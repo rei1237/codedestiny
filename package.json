@@ -142,6 +142,7 @@
     "verify:monthly-credit-lots": "node scripts/verify-monthly-credit-lots.mjs",
     "verify:monthly-credit-expiry": "node scripts/verify-monthly-credit-expiry-flow.mjs",
     "verify:admin-feedback-bug-reward": "node scripts/verify-admin-feedback-bug-reward.mjs",
+    "verify:admin-prompt-lab": "node scripts/verify-admin-prompt-lab-engines.mjs",
     "verify:billing-pass-policy": "node scripts/verify-billing-pass-policy.mjs",
     "verify:checkout-auth-recovery": "node scripts/verify-checkout-auth-recovery.mjs",
     "verify:direct-confirm-pending-recovery": "node scripts/verify-direct-confirm-pending-recovery.mjs",

@@ -93,6 +93,10 @@ type PromptLabForm = {
   earthStorageOpeningEnabled: boolean;
   earthStorageOpeningMode: PromptLabEarthStorageMode;
   earthStorageOpeningScope: PromptLabEarthStorageScope;
+  partnerName: string;
+  partnerGender: "" | "M" | "F";
+  partnerBirthDate: string;
+  partnerCalendarType: PromptLabCalendarType;
   question: string;
 };
 
@@ -204,6 +208,13 @@ type AdminInsightsCopy = {
   lunarLeap: string;
   birthTimeLabel: string;
   unknownBirthTime: string;
+  partnerTitle: string;
+  partnerNote: string;
+  partnerNameLabel: string;
+  partnerNamePlaceholder: string;
+  partnerGenderLabel: string;
+  partnerBirthDateLabel: string;
+  partnerCalendarLabel: string;
   timeCorrectionLabel: string;
   dayChangeLabel: string;
   birthPlaceLabel: string;
@@ -315,6 +326,7 @@ type AdminInsightsCopy = {
     birthDateRequired: string;
     exactBirthTimeRequired: string;
     coordinatesRequired: string;
+    partnerBirthRequired: string;
     questionTooShort: string;
     promptGenerateFailed: string;
     promptNetworkFailed: string;
@@ -370,6 +382,13 @@ const ADMIN_INSIGHTS_COPY_KO: AdminInsightsCopy = {
   lunarLeap: "윤달",
   birthTimeLabel: "출생시간",
   unknownBirthTime: "출생시간 미상",
+  partnerTitle: "상대 정보 (숙요 궁합)",
+  partnerNote: "상대 생년월일을 넣으면 실제 두 사람의 본명숙으로 궁합을 계산합니다. 비워 두면 궁합 없이 개인 해석만 나갑니다.",
+  partnerNameLabel: "상대 이름",
+  partnerNamePlaceholder: "상대",
+  partnerGenderLabel: "상대 성별",
+  partnerBirthDateLabel: "상대 생년월일",
+  partnerCalendarLabel: "상대 양/음력",
   timeCorrectionLabel: "생시 보정",
   dayChangeLabel: "일진 기준",
   birthPlaceLabel: "출생지",
@@ -542,7 +561,7 @@ const ADMIN_INSIGHTS_COPY_KO: AdminInsightsCopy = {
     sukuyo: "숙요는 생년월일의 달빛 결을 중심으로 살핍니다.",
     astrology: "점성술은 ASC, 하우스, MC가 위도·경도와 정확한 생시에 기대어 솟아납니다.",
     ziwei: "자미두수는 명궁과 신궁을 위해 생시가 필요합니다.",
-    vedic: "베다점은 라그나와 나크샤트라가 위도·경도와 정확한 생시에 기대어 떠오릅니다.",
+    vedic: "베다점은 라그나와 나크샤트라가 위도·경도와 정확한 생시에 기대어 떠오릅니다. 프로덕션과 같은 빌더를 쓰므로 주제는 질문에서 자동 분류되고 주제 선택은 사용하지 않습니다.",
   },
   sajuAdvancedRules: [
     "월지 지장간을 가장 무겁게 잡고 일지 지장간은 관계와 내면 반응에 연결",
@@ -565,6 +584,7 @@ const ADMIN_INSIGHTS_COPY_KO: AdminInsightsCopy = {
     birthDateRequired: "생년월일을 입력해 주세요.",
     exactBirthTimeRequired: "선택한 기능은 정확한 생시가 필요합니다.",
     coordinatesRequired: "선택한 기능은 출생지 좌표가 필요합니다. 지역을 입력한 뒤 좌표를 자동 입력해 주세요.",
+    partnerBirthRequired: "숙요 궁합은 상대 생년월일이 필요합니다.",
     questionTooShort: "질문을 조금 더 구체적으로 입력해 주세요.",
     promptGenerateFailed: "프롬프트 생성에 실패했습니다.",
     promptNetworkFailed: "네트워크 오류로 프롬프트를 만들지 못했습니다.",
@@ -617,6 +637,13 @@ const ADMIN_INSIGHTS_COPY_EN: AdminInsightsCopy = {
   lunarLeap: "Leap month",
   birthTimeLabel: "Birth time",
   unknownBirthTime: "Birth time unknown",
+  partnerTitle: "Partner (Sukuyo compatibility)",
+  partnerNote: "Enter the partner's birth date to compute compatibility from both real natal mansions. Leave it empty for a personal-only reading.",
+  partnerNameLabel: "Partner name",
+  partnerNamePlaceholder: "Partner",
+  partnerGenderLabel: "Partner gender",
+  partnerBirthDateLabel: "Partner birth date",
+  partnerCalendarLabel: "Partner calendar",
   timeCorrectionLabel: "Time correction",
   dayChangeLabel: "Day boundary",
   birthPlaceLabel: "Birth place",
@@ -783,7 +810,7 @@ const ADMIN_INSIGHTS_COPY_EN: AdminInsightsCopy = {
     sukuyo: "Sukuyo reads the moonlit pattern of the birth date.",
     astrology: "Astrology relies on latitude, longitude, and exact birth time for ASC, houses, and MC.",
     ziwei: "Zi Wei needs birth time to open the life and body palaces.",
-    vedic: "Vedic astrology relies on latitude, longitude, and exact birth time for lagna and nakshatra.",
+    vedic: "Vedic astrology relies on latitude, longitude, and exact birth time for lagna and nakshatra. It uses the same builder as production, so the topic is classified from the question and the topic selector is unused.",
   },
   sajuAdvancedRules: [
     "Weight the month branch hidden stems most heavily and connect the day branch hidden stems to relationship and inner response.",
@@ -806,6 +833,7 @@ const ADMIN_INSIGHTS_COPY_EN: AdminInsightsCopy = {
     birthDateRequired: "Enter the birth date.",
     exactBirthTimeRequired: "The selected service requires an exact birth time.",
     coordinatesRequired: "The selected service requires birth-place coordinates. Enter a place and auto-fill the coordinates.",
+    partnerBirthRequired: "Sukuyo compatibility requires the partner's birth date.",
     questionTooShort: "Please make the question a little more specific.",
     promptGenerateFailed: "Could not generate the prompt.",
     promptNetworkFailed: "A network error prevented prompt generation.",
@@ -854,6 +882,13 @@ const ADMIN_INSIGHTS_COPY_JA: AdminInsightsCopy = {
   lunarLeap: "閏月",
   birthTimeLabel: "出生時刻",
   unknownBirthTime: "出生時刻不明",
+  partnerTitle: "相手情報（宿曜相性）",
+  partnerNote: "相手の生年月日を入力すると、二人の実際の本命宿から相性を計算します。空欄なら個人鑑定のみになります。",
+  partnerNameLabel: "相手の名前",
+  partnerNamePlaceholder: "相手",
+  partnerGenderLabel: "相手の性別",
+  partnerBirthDateLabel: "相手の生年月日",
+  partnerCalendarLabel: "相手の暦",
   timeCorrectionLabel: "時刻補正",
   dayChangeLabel: "日替わり基準",
   birthPlaceLabel: "出生地",
@@ -930,6 +965,13 @@ const ADMIN_INSIGHTS_COPY_ZH_CN: AdminInsightsCopy = {
   lunarLeap: "闰月",
   birthTimeLabel: "出生时间",
   unknownBirthTime: "出生时间不详",
+  partnerTitle: "对方信息（宿曜合盘）",
+  partnerNote: "填写对方出生日期后，将用两人真实的本命宿计算合盘。留空则只出个人解读。",
+  partnerNameLabel: "对方姓名",
+  partnerNamePlaceholder: "对方",
+  partnerGenderLabel: "对方性别",
+  partnerBirthDateLabel: "对方出生日期",
+  partnerCalendarLabel: "对方历法",
   timeCorrectionLabel: "时间校正",
   dayChangeLabel: "换日基准",
   birthPlaceLabel: "出生地",
@@ -987,6 +1029,13 @@ const ADMIN_INSIGHTS_COPY_ZH_TW: AdminInsightsCopy = {
   earthStorageEnabledLabel: "土支開庫",
   birthTimeLabel: "出生時間",
   unknownBirthTime: "出生時間不詳",
+  partnerTitle: "對方資訊（宿曜合盤）",
+  partnerNote: "填寫對方出生日期後，將以兩人真實的本命宿計算合盤。留空則只產生個人解讀。",
+  partnerNameLabel: "對方姓名",
+  partnerNamePlaceholder: "對方",
+  partnerGenderLabel: "對方性別",
+  partnerBirthDateLabel: "對方出生日期",
+  partnerCalendarLabel: "對方曆法",
   geocode: "依地區自動填入經緯度",
   generatedPromptPlaceholder: "產生的提示詞會顯示在這裡。",
   menuTitle: "管理員選單",
@@ -1075,42 +1124,62 @@ const DEFAULT_PROMPT_LAB_FORM_BASE: Omit<PromptLabForm, "question"> = {
   earthStorageOpeningEnabled: true,
   earthStorageOpeningMode: "standard",
   earthStorageOpeningScope: "natal_daewoon_sewoon",
+  partnerName: "",
+  partnerGender: "",
+  partnerBirthDate: "",
+  partnerCalendarType: "solar",
 };
 
 const PROMPT_LAB_SERVICE_REQUIREMENTS: Record<PromptLabService, {
   needsCoordinates: boolean;
   needsExactTime: boolean;
   supportsTimeCorrection: boolean;
+  // 궁합 주제를 고르면 상대 생년월일이 필요한 서비스. 숙요만 해당한다.
+  supportsPartner: boolean;
+  // 프로덕션 빌더가 domain 인자를 받는지. 베다는 질문에서 주제를 스스로 분류한다.
+  supportsDomain: boolean;
 }> = {
   saju: {
     needsCoordinates: true,
     needsExactTime: false,
     supportsTimeCorrection: true,
+    supportsPartner: false,
+    supportsDomain: true,
   },
   tarot: {
     needsCoordinates: false,
     needsExactTime: false,
     supportsTimeCorrection: false,
+    supportsPartner: false,
+    supportsDomain: true,
   },
   sukuyo: {
     needsCoordinates: false,
     needsExactTime: false,
     supportsTimeCorrection: false,
+    supportsPartner: true,
+    supportsDomain: true,
   },
   astrology: {
     needsCoordinates: true,
     needsExactTime: true,
     supportsTimeCorrection: false,
+    supportsPartner: false,
+    supportsDomain: true,
   },
   ziwei: {
     needsCoordinates: false,
     needsExactTime: true,
     supportsTimeCorrection: false,
+    supportsPartner: false,
+    supportsDomain: true,
   },
   vedic: {
     needsCoordinates: true,
     needsExactTime: true,
     supportsTimeCorrection: false,
+    supportsPartner: false,
+    supportsDomain: false,
   },
 };
 
@@ -1620,6 +1689,11 @@ export default function AdminInsightsPage() {
       return;
     }
 
+    if (promptLabRequirement.supportsPartner && promptLabForm.domain === "compatibility" && !promptLabForm.partnerBirthDate) {
+      setPromptLabError(copy.errors.partnerBirthRequired);
+      return;
+    }
+
     if (promptLabForm.question.trim().length < 5) {
       setPromptLabError(copy.errors.questionTooShort);
       return;
@@ -1787,7 +1861,8 @@ export default function AdminInsightsPage() {
                   <select
                     value={promptLabForm.domain}
                     onChange={(e) => updatePromptLabField("domain", e.target.value as PromptLabDomain)}
-                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
+                    disabled={!promptLabRequirement.supportsDomain}
+                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50 disabled:opacity-50"
                   >
                     {PROMPT_LAB_DOMAINS.map((option) => (
                       <option key={option.key} value={option.key}>{copy.promptDomains[option.key]}</option>
@@ -1924,6 +1999,58 @@ export default function AdminInsightsPage() {
                 />
                 {copy.unknownBirthTime}
               </label>
+
+              {promptLabRequirement.supportsPartner ? (
+                <div className="rounded-lg border border-amber-900/60 bg-[#201811] px-3 py-2">
+                  <p className="text-xs font-semibold text-amber-100">{copy.partnerTitle}</p>
+                  <p className="mt-1 text-xs leading-5 text-amber-100/75">{copy.partnerNote}</p>
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <label className="block text-xs text-amber-100/70">
+                      {copy.partnerNameLabel}
+                      <input
+                        type="text"
+                        value={promptLabForm.partnerName}
+                        onChange={(e) => updatePromptLabField("partnerName", e.target.value)}
+                        className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#15110d] px-3 py-2 text-sm text-amber-50"
+                        placeholder={copy.partnerNamePlaceholder}
+                      />
+                    </label>
+                    <label className="block text-xs text-amber-100/70">
+                      {copy.partnerGenderLabel}
+                      <select
+                        value={promptLabForm.partnerGender}
+                        onChange={(e) => updatePromptLabField("partnerGender", e.target.value as PromptLabForm["partnerGender"])}
+                        className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#15110d] px-3 py-2 text-sm text-amber-50"
+                      >
+                        <option value="">{copy.genderNone}</option>
+                        <option value="F">{copy.genderFemale}</option>
+                        <option value="M">{copy.genderMale}</option>
+                      </select>
+                    </label>
+                    <label className="block text-xs text-amber-100/70">
+                      {copy.partnerBirthDateLabel}
+                      <input
+                        type="date"
+                        value={promptLabForm.partnerBirthDate}
+                        onChange={(e) => updatePromptLabField("partnerBirthDate", e.target.value)}
+                        className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#15110d] px-3 py-2 text-sm text-amber-50"
+                      />
+                    </label>
+                    <label className="block text-xs text-amber-100/70">
+                      {copy.partnerCalendarLabel}
+                      <select
+                        value={promptLabForm.partnerCalendarType}
+                        onChange={(e) => updatePromptLabField("partnerCalendarType", e.target.value as PromptLabCalendarType)}
+                        className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#15110d] px-3 py-2 text-sm text-amber-50"
+                      >
+                        <option value="solar">{copy.solar}</option>
+                        <option value="lunar">{copy.lunar}</option>
+                        <option value="lunar_leap">{copy.lunarLeap}</option>
+                      </select>
+                    </label>
+                  </div>
+                </div>
+              ) : null}
 
               {promptLabRequirement.supportsTimeCorrection ? (
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
