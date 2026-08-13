@@ -25,6 +25,22 @@ const LOCKED_PAYLOAD = {
   },
 };
 
+const UNLOCKED_PAYLOAD = {
+  ok: true,
+  unlocked: true,
+  contentKey: "sukyo_yearly_fortune_unlock:2026",
+  unlockScope: { profileId: "P1", targetYear: 2026 },
+  result: {
+    profileSummary: {},
+    yearlyTheme: { title: "Theme", summary: "Summary", keywords: [] },
+    calculationBasis: {},
+    totalFortune: {}, firstHalf: {}, secondHalf: {},
+    loveAndRelationship: {}, workAndBusiness: {}, money: {}, healthAndMind: {},
+    noblePersonAndCaution: {}, sukuyoMasterFocus: {}, finalPrescription: {},
+    monthlyFlow: [],
+  },
+};
+
 function bootEngine() {
   const dom = new JSDOM(
     '<!doctype html><html><body><div id="sukuyoSection">' + SECTION_HTML + "</div></body></html>",
@@ -36,13 +52,19 @@ function bootEngine() {
   global.window = window;
   global.document = window.document;
 
-  const state = { count: 0, paths: [], respond: null };
+  const state = { count: 0, paths: [], respond: null, gateCalls: [] };
   window.alert = (message) => { throw new Error("Unexpected alert: " + message); };
   window._cdResolveCurrentProfileIdForAccess = () => "P1";
   window.fetchJsonWithAuth = (requestPath) => {
     state.count += 1;
     state.paths.push(requestPath);
     return Promise.resolve(state.respond());
+  };
+  // 🔴 즉시 resolve 하면 _sySukuyoYearlyUnlockBusy in-flight 가드가 한 틱도 서지 못해
+  // "중복 오픈" 을 잡지 못한다(지연 0 하네스 함정). 한 틱 뒤에 미승인으로 닫는다.
+  window._cdOpenPaidServiceGate = (options) => {
+    state.gateCalls.push(options);
+    return new Promise((resolve) => setTimeout(() => resolve({ status: "cancelled" }), 5));
   };
   state.respond = () => ({ ok: true, status: 200, payload: LOCKED_PAYLOAD });
 
@@ -127,6 +149,86 @@ test("rerender and transient failure do not trigger automatic yearly retries", a
     }
     await settle();
     assert.equal(env.state.count, 3);
+  } finally {
+    env.restore();
+  }
+});
+
+test("view opens the coin gate for a locked year without any pre-check round trip", async () => {
+  const env = bootEngine();
+  try {
+    env.api.bind({ targetYear: 2026, monthlyFlow: [] });
+    env.window.document.querySelector("[data-sy-yearly-view]").click();
+    await settle();
+
+    assert.equal(env.state.count, 1, "only the yearly read may go out before the gate");
+    assert.equal(env.state.paths.filter((p) => p.includes("/unlock")).length, 0);
+    assert.equal(env.state.gateCalls.length, 1, "locked year must reach the shared paid gate");
+    assert.equal(env.state.gateCalls[0].featureKey, "sukyo_yearly_fortune_unlock");
+    assert.equal(env.state.gateCalls[0].contentKey, "sukyo_yearly_fortune_unlock:2026");
+    assert.equal(env.state.gateCalls[0].coinPrice, 100);
+    assert.equal(env.state.gateCalls[0].amountKrw, 10000);
+    // 결제창을 닫아도 잠금 패널과 CTA 는 살아 있어야 한다(경고창 없이).
+    assert.ok(env.window.document.querySelector("[data-sy-yearly-unlock]"));
+  } finally {
+    env.restore();
+  }
+});
+
+test("view never opens the gate for an already unlocked year", async () => {
+  const env = bootEngine();
+  try {
+    env.state.respond = () => ({ ok: true, status: 200, payload: UNLOCKED_PAYLOAD });
+    env.api.bind({ targetYear: 2026, monthlyFlow: [] });
+    env.window.document.querySelector("[data-sy-yearly-view]").click();
+    await settle();
+
+    assert.equal(env.state.count, 1);
+    assert.equal(env.state.gateCalls.length, 0, "an unlocked year must render, not charge");
+  } finally {
+    env.restore();
+  }
+});
+
+test("a failed read keeps the gate reachable in one click and never auto-opens it", async () => {
+  const env = bootEngine();
+  try {
+    env.state.respond = () => ({ ok: false, status: 503, payload: { code: "SERVICE_UNAVAILABLE", message: "db" } });
+    env.api.bind({ targetYear: 2026, monthlyFlow: [] });
+    env.window.document.querySelector("[data-sy-yearly-view]").click();
+    await settle();
+
+    assert.equal(env.state.gateCalls.length, 0, "unknown lock state must not pop a payment window");
+    const cta = env.window.document.querySelector("[data-sy-yearly-unlock]");
+    assert.ok(cta, "the unlock CTA must survive a failed read");
+
+    cta.click();
+    await settle();
+    assert.equal(env.state.count, 1, "the CTA must not add a server round trip before the gate");
+    assert.equal(env.state.gateCalls.length, 1);
+  } finally {
+    env.restore();
+  }
+});
+
+test("each year gets its own single-flight identity", async () => {
+  const env = bootEngine();
+  try {
+    env.api.bind({ targetYear: 2026, monthlyFlow: [] });
+    env.window.document.querySelector("[data-sy-yearly-view]").click();
+    await settle();
+
+    env.window.document.querySelector("[data-sy-yearly-input]").value = "2027";
+    env.window.document.querySelector("[data-sy-yearly-view]").click();
+    await settle();
+
+    assert.equal(env.state.gateCalls.length, 2);
+    const [first, second] = env.state.gateCalls;
+    // featureKey 는 연도와 무관한 상수라, 셸의 단일비행 키가 두 연도를 하나로 합치지 않으려면
+    // requestId 와 title(라벨 성분) 이 반드시 달라야 한다.
+    assert.notEqual(first.requestId, second.requestId);
+    assert.notEqual(first.title, second.title);
+    assert.equal(second.contentKey, "sukyo_yearly_fortune_unlock:2027");
   } finally {
     env.restore();
   }

@@ -14236,8 +14236,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     return String(profileId || '') + ':' + String(targetYear || '');
   }
 
-  function syHydrateSukuyoYearlyFortune(reading) {
+  // options.openCheckoutWhenLocked: '보기'·Enter 처럼 열람 의사가 분명한 진입에서만 true.
+  // 잠금이 확인되면 그 자리에서 결제창을 연다. 조회 실패 경로는 자동으로 열지 않는다 —
+  // 잠금 여부를 모르는 채 결제창을 띄우는 대신, 폴백 패널의 CTA(왕복 0회)를 남겨 사용자가 고르게 한다.
+  function syHydrateSukuyoYearlyFortune(reading, options) {
     var state = reading || window._sySukuyoYearlyReading || {};
+    var openCheckoutWhenLocked = !!(options && options.openCheckoutWhenLocked);
     var target = document.getElementById('syYearlyFortuneContent');
     var status = document.querySelector('[data-sy-monthly-status]');
     if (!target) return;
@@ -14287,6 +14291,9 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         // 이 함수를 호출한다(하이드레이트 → 바인딩 → 하이드레이트 재귀). 새로 그려진 잠금 버튼에
         // 리스너만 다시 붙인다.
         syBindSukuyoYearlyUnlockButton(window._sySukuyoYearlyReading);
+        if (!payload.unlocked && openCheckoutWhenLocked) {
+          syOpenSukuyoYearlyCheckout(window._sySukuyoYearlyReading, targetYear, resolvedProfileId);
+        }
       })
       .catch(function(error) {
         // 분류 순서는 레포 하우스룰을 따른다(app/_lib/consultationResultPolling.ts):
@@ -14345,23 +14352,108 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     }
     var input = document.querySelector('[data-sy-yearly-input]');
     var viewBtn = document.querySelector('[data-sy-yearly-view]');
+    // 🔴 '보기' 는 열람 의사 표시다 — 잠긴 연도면 조회로 끝내지 말고 그 자리에서 결제창까지 간다.
+    // 종전에는 조회만 하고 멈춰, 사용자가 잠금 패널의 CTA 를 한 번 더 찾아 눌러야 결제가 시작됐다.
     if (input && !input._syYearlyInputBound) {
       input._syYearlyInputBound = true;
       input.addEventListener('keydown', function(event) {
         if (event.key === 'Enter') {
           event.preventDefault();
-          syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading);
+          syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading, { openCheckoutWhenLocked: true });
         }
       });
     }
     if (viewBtn && !viewBtn._syYearlyViewBound) {
       viewBtn._syYearlyViewBound = true;
       viewBtn.addEventListener('click', function() {
-        syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading);
+        syHydrateSukuyoYearlyFortune(window._sySukuyoYearlyReading || reading, { openCheckoutWhenLocked: true });
       });
     }
     var stateForHydrate = window._sySukuyoYearlyReading || reading || {};
     syBindSukuyoYearlyUnlockButton(stateForHydrate);
+  }
+
+  function sySetSukuyoYearlyUnlockButtonLabel(text, disabled) {
+    // 하이드레이션이 잠금 패널을 다시 그리면 앞서 캡처한 노드는 detach 된다 — 매번 다시 찾는다.
+    var btn = document.querySelector('[data-sy-yearly-unlock]');
+    if (!btn) return;
+    btn.disabled = !!disabled;
+    btn.textContent = text;
+  }
+
+  // 코인 게이트로 가는 **유일한** 진입점. '보기'(잠금 확인 직후 자동)와 잠금 패널 CTA 가 이 함수를 공유한다.
+  // 🔴 여기서 서버에 먼저 묻지 않는다. 종전에는 POST /api/sukuyo/yearly-fortune/unlock 으로 해금 여부를
+  // 선조회한 뒤에야 결제창을 열었는데, ①그 응답의 billing.payload 는 아래에서 그대로 덮어쓰는 값과
+  // 동일해 얻는 정보가 없었고 ②'이미 해금됐는가' 판정은 /api/billing/coin-gate 가 연도별 contentKey 로
+  // 다시 수행해(already_unlocked → 차감 없이 통과) 중복이었으며 ③조회가 죽으면 결제 경로까지 함께
+  // 죽었다(503 이 뜬 화면에서 CTA 를 눌러도 같은 이유로 실패 → 코인 게이트에 도달할 방법이 없었다).
+  // 그 라우트는 캐시된 구버전 클라이언트를 위해 서버에 그대로 남아 있다 — 호출자만 0 이다.
+  function syOpenSukuyoYearlyCheckout(state, targetYear, profileId) {
+    if (window._sySukuyoYearlyUnlockBusy) return Promise.resolve(false);
+    if (typeof window._cdOpenPaidServiceGate !== 'function') {
+      window.alert('결제 모듈을 불러오지 못했습니다.');
+      return Promise.resolve(false);
+    }
+    var source = state && typeof state === 'object' ? state : {};
+    // 🔴 contentKey 는 반드시 지금 결제하려는 연도에서 유도한다 — 서버의 sukuyoYearlyContentKey() 와
+    // 같은 형식이라 잃는 정보가 없다. state.contentKey 를 우선하면 직전 조회가 남긴 다른 연도의 키가
+    // 그대로 실려, 사용자가 연도만 바꾸고 CTA 를 누를 때 엉뚱한 연도가 결제된다.
+    var contentKey = syBuildSukuyoYearlyContentKey(targetYear);
+    var idleLabel = '숙요점 1년운 전체 해석 잠금 해제 · 10,000원';
+    window._sySukuyoYearlyUnlockBusy = true;
+    sySetSukuyoYearlyUnlockButtonLabel('숙요점 1년운을 열고 있어요.', true);
+    // 🔴 featureKey 가 연도와 무관한 상수라, 셸의 단일비행 키(featureKey|title|cost|amount|profileId)가
+    // 2026 년과 2027 년에 대해 같아진다 — 45초 안에 다른 연도를 열면 앞 연도의 in-flight 에 합류해
+    // 엉뚱한 연도가 앞 연도의 결제 증빙으로 검증된다. title 과 requestId 를 연도별로 갈라 막는다.
+    return Promise.resolve(window._cdOpenPaidServiceGate({
+      title: String(targetYear) + '년 ' + _sajuQuantumText("sq_12360_prop_title"),
+      reason: '숙요점 1년운 전체 해석 잠금 해제',
+      requestId: 'sukuyo-yearly:' + String(profileId) + ':' + String(targetYear),
+      featureKey: 'sukyo_yearly_fortune_unlock',
+      contentKey: contentKey,
+      contentId: contentKey,
+      serviceKey: 'sukuyo',
+      serviceId: 'sukuyo',
+      profileId: profileId,
+      selectedProfileId: profileId,
+      targetYear: targetYear,
+      coinPrice: 100,
+      cost: 100,
+      amountKrw: 10000
+    })).then(function(result) {
+      // 사용자가 결제창을 닫은 것은 오류가 아니다 — 조용히 CTA 만 되돌린다.
+      // ('보기' 만으로 결제창이 열리므로, 닫을 때마다 경고창이 뜨면 조회 자체가 불가능해진다.)
+      if (!syIsPaidGateGranted(result)) {
+        sySetSukuyoYearlyUnlockButtonLabel(idleLabel, false);
+        return false;
+      }
+      var grantedByPass = syIsSukuyoYearlyPassGrant(result);
+      var savingLabel = grantedByPass ? '이용권으로 열람되었습니다 · 해금 반영 중' : '결제 확인됨 · 해금 반영 중';
+      sySetSukuyoYearlyUnlockStateV2(false, targetYear, savingLabel);
+      sySetSukuyoYearlyUnlockButtonLabel(savingLabel, true);
+      return syVerifySukuyoYearlyPaymentWithRetry({
+        profileId: profileId,
+        selectedProfileId: profileId,
+        targetYear: targetYear,
+        contentKey: contentKey,
+        contentId: contentKey,
+        serviceKey: 'sukuyo',
+        serviceId: 'sukuyo',
+        featureKey: 'sukyo_yearly_fortune_unlock'
+      }, result).then(function(verifyPayload) {
+        if (!verifyPayload || verifyPayload.unlocked !== true) throw new Error('해금 기록이 아직 확인되지 않았습니다.');
+        // 해금 직후 재조회는 플래그 없이 부른다 — 결제 → 하이드레이트 → 결제 루프를 만들지 않는다.
+        syHydrateSukuyoYearlyFortune(Object.assign({}, source, { profileId: profileId, targetYear: targetYear }));
+        return true;
+      });
+    }).catch(function(error) {
+      sySetSukuyoYearlyUnlockButtonLabel(idleLabel, false);
+      window.alert(error && error.message ? error.message : '잠금 해제 처리에 실패했습니다.');
+      return false;
+    }).then(function(granted) {
+      window._sySukuyoYearlyUnlockBusy = false;
+      return granted;
+    });
   }
 
   function syBindSukuyoYearlyUnlockButton(reading) {
@@ -14370,8 +14462,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     btn._syYearlyUnlockBound = true;
     btn.addEventListener('click', function() {
       // 버튼 DOM 은 하이드레이션마다 새로 그려지므로 btn.disabled 만으로는 중복 실행을 못 막는다.
-      // 결제 게이트가 열려 있는 동안의 재진입은 전역 플래그로 막는다.
-      if (window._sySukuyoYearlyUnlockBusy) return;
+      // 결제 게이트가 열려 있는 동안의 재진입은 전역 플래그로 막는다(syOpenSukuyoYearlyCheckout 안).
       var state = window._sySukuyoYearlyReading || reading || {};
       var targetYear = syResolveSukuyoYearlyTargetYear(state);
       if (!targetYear) return;
@@ -14380,71 +14471,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         window.alert('프로필 카드를 먼저 선택해 주세요.');
         return;
       }
-      var contentKey = state.contentKey || syBuildSukuyoYearlyContentKey(targetYear);
-      window._sySukuyoYearlyUnlockBusy = true;
-      btn.disabled = true;
-      btn.textContent = '숙요점 1년운을 열고 있어요.';
-      syFetchSukuyoYearlyJson('/api/sukuyo/yearly-fortune/unlock', {
-        method: 'POST',
-        body: JSON.stringify({
-          profileId: profileId,
-          selectedProfileId: profileId,
-          targetYear: targetYear,
-          contentKey: contentKey,
-          contentId: contentKey,
-          serviceKey: 'sukuyo',
-          serviceId: 'sukuyo'
-        })
-      }).then(function(pack) {
-        var payload = pack && pack.payload ? pack.payload : {};
-        if (!pack || !pack.ok || payload.ok === false) throw new Error((payload && payload.message) || '잠금 해제 상태를 확인하지 못했습니다.');
-        if (payload.unlocked || payload.alreadyUnlocked) {
-          syHydrateSukuyoYearlyFortune(Object.assign({}, state, { profileId: payload.profileId || profileId, targetYear: targetYear }));
-          return null;
-        }
-        if (typeof window._cdOpenPaidServiceGate !== 'function') throw new Error('결제 모듈을 불러오지 못했습니다.');
-        var billing = payload.billing && payload.billing.payload ? payload.billing.payload : {};
-        return window._cdOpenPaidServiceGate(Object.assign({}, billing, {
-          title: _sajuQuantumText("sq_12360_prop_title"),
-          reason: '숙요점 1년운 전체 해석 잠금 해제',
-          featureKey: 'sukyo_yearly_fortune_unlock',
-          contentKey: payload.contentKey || contentKey,
-          contentId: payload.contentKey || contentKey,
-          serviceKey: 'sukuyo',
-          serviceId: 'sukuyo',
-          profileId: payload.profileId || profileId,
-          selectedProfileId: payload.profileId || profileId,
-          targetYear: targetYear,
-          coinPrice: 100,
-          cost: 100,
-          amountKrw: 10000
-        })).then(function(result) {
-          if (!syIsPaidGateGranted(result)) throw new Error('결제가 완료되지 않았습니다.');
-          var grantedByPass = syIsSukuyoYearlyPassGrant(result);
-          var savingLabel = grantedByPass ? '이용권으로 열람되었습니다 · 해금 반영 중' : '결제 확인됨 · 해금 반영 중';
-          sySetSukuyoYearlyUnlockStateV2(false, targetYear, savingLabel);
-          btn.textContent = savingLabel;
-          return syVerifySukuyoYearlyPaymentWithRetry({
-            profileId: payload.profileId || profileId,
-            selectedProfileId: payload.profileId || profileId,
-            targetYear: targetYear,
-            contentKey: payload.contentKey || contentKey,
-            contentId: payload.contentKey || contentKey,
-            serviceKey: 'sukuyo',
-            serviceId: 'sukuyo',
-            featureKey: 'sukyo_yearly_fortune_unlock'
-          }, result).then(function(verifyPayload) {
-            if (!verifyPayload || verifyPayload.unlocked !== true) throw new Error('해금 기록이 아직 확인되지 않았습니다.');
-            syHydrateSukuyoYearlyFortune(Object.assign({}, state, { profileId: payload.profileId || profileId, targetYear: targetYear }));
-          });
-        });
-      }).catch(function(error) {
-        btn.disabled = false;
-        btn.textContent = '숙요점 1년운 전체 해석 잠금 해제 · 10,000원';
-        window.alert(error && error.message ? error.message : '잠금 해제 처리에 실패했습니다.');
-      }).then(function() {
-        window._sySukuyoYearlyUnlockBusy = false;
-      });
+      syOpenSukuyoYearlyCheckout(state, targetYear, profileId);
     });
   }
 
