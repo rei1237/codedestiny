@@ -1018,6 +1018,36 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
   return null;
 }
 
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/* 관리자 프롬프트 랩 전용. 결제·LLM 없이 프로덕션과 똑같은 프롬프트를 조립한다
+   (lib/admin/prompt-lab-registry.mjs 참고). 장(section)이 여러 개라 variants 로 목록을 함께 돌려주고,
+   options.variant 로 고른 장의 프롬프트를 만든다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  // 분야는 프로덕션에서 사용자가 화면에서 고르는 값이라 랩에서는 기본값으로 채운다.
+  const normalized = normalizeConsultationInput({ focusArea: "overall", ...body });
+  if (!normalized.ok) {
+    throw new Error(normalized.message || "인생의 책 프롬프트에 필요한 입력이 부족합니다.");
+  }
+
+  const sajuResult = calculateLifeBookAiSaju(normalized.input.birthInfo);
+  const plan = buildSectionPlan(normalized.input);
+  const section = plan.find((item) => item.id === options.variant) || plan[0];
+  if (!section) throw new Error("인생의 책 섹션 구성을 만들지 못했습니다.");
+
+  const consultationType = isLifeFortuneInput(normalized.input) ? "lifeFortune" : "lifeBook";
+
+  return {
+    systemPrompt: buildSystemPrompt(consultationType),
+    prompt: buildSectionPrompt(normalized.input, pickSajuSlice(sajuResult, section.evidenceRefs), section, ""),
+    variantKey: section.id,
+    variants: plan.map((item) => ({ key: item.id, label: item.title || item.id })),
+  };
+}
+
 function buildSystemPrompt(consultationType = "lifeBook") {
   const isFortune = consultationType === "lifeFortune";
   const toneLines = isFortune

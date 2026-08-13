@@ -839,6 +839,24 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
 ]);
 
 // ─── 2차(수정 작전) 챕터 레지스트리 ────────────────────────────────────────
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   섹션별 사용자 프롬프트는 계산된 체계별 요약 데이터를 입력으로 받으므로 생년 정보만으로는 조립되지 않는다.
+   페르소나가 체계(사주/자미/베다/점성술)마다 다르므로 체계를 고를 수 있게 목록을 함께 돌려준다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const methods = Object.keys(NEO_EXPERT_PERSONA);
+  const method = methods.includes(options.variant) ? options.variant : methods[0];
+
+  return {
+    systemPrompt: NEO_EXPERT_PERSONA[method],
+    prompt: "",
+    partial: true,
+    partialReason: "섹션별 사용자 프롬프트는 계산된 체계 요약 데이터를 입력으로 받습니다. 체계별 페르소나(시스템 프롬프트)만 표시합니다.",
+    variantKey: method,
+    variants: methods.map((key) => ({ key, label: key })),
+    notes: NEO_DOMAIN_COVERAGE[method] ? [`${method} 근거 범위: ${NEO_DOMAIN_COVERAGE[method]}`] : [],
+  };
+}
+
 export const NEO_REFINED_SECTIONS = Object.freeze([
   {
     id: "neoReview",

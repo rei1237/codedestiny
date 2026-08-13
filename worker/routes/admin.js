@@ -34,6 +34,8 @@ import { buildZiweiAIPromptWithDomain } from "../lib/ziwei-ai-prompt.js";
 import { buildVedicAIPrompt } from "../lib/vedic-ai-prompt.js";
 import { calculateZiweiAiChart, describeBrightness } from "../lib/ziwei-ai-chart.js";
 import { primePromptTemplateOverrides } from "../lib/cms-prompts.js";
+import { buildPromptLabResult, hasPromptLabLoader } from "../lib/admin-prompt-lab-loaders.js";
+import { getAdminPromptLabService, promptLabServiceNeeds } from "../../lib/admin/prompt-lab-registry.mjs";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { buildSajuQuantumDaewunRows, buildSajuQuantumElementMap, normalizeElementKeys } from "../lib/saju-quantum-myeongri.js";
 import { buildCompatibilityFromIndices, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
@@ -306,7 +308,9 @@ function pickAdmin(list, seed, offset = 0) {
 
 function normalizeAdminPromptService(value) {
   const key = String(value || "").trim().toLowerCase();
-  return ADMIN_PROMPT_SERVICE_ALIASES[key] || "";
+  if (ADMIN_PROMPT_SERVICE_ALIASES[key]) return ADMIN_PROMPT_SERVICE_ALIASES[key];
+  // 6종 외의 운세는 프롬프트 랩 레지스트리가 선언한다(lib/admin/prompt-lab-registry.mjs).
+  return getAdminPromptLabService(key) ? key : "";
 }
 
 function normalizeAdminPromptDomain(service, value) {
@@ -1690,7 +1694,7 @@ async function buildAdminVedicContextFromEngine(profile, env, requestUrl) {
   };
 }
 
-async function buildAdminPromptByService({ service, question, profile, partnerProfile, domain, promptConfig, env, requestUrl }) {
+async function buildAdminPromptByService({ service, question, profile, partnerProfile, domain, promptConfig, env, requestUrl, variant, extraBody }) {
   if (service === "saju") {
     return buildSajuAIPromptWithDomain({
       question,
@@ -1742,14 +1746,65 @@ async function buildAdminPromptByService({ service, question, profile, partnerPr
     });
   }
 
+  // 위 6종은 이 파일이 직접 조립한다(검증된 경로라 그대로 둔다).
+  // 나머지 운세는 각 라우트/라이브러리가 노출한 buildAdminLabPrompt 를 레지스트리로 찾아 부른다.
+  if (hasPromptLabLoader(service)) {
+    return buildPromptLabResult(
+      service,
+      { ...(extraBody || {}), ...buildAdminLabBody(profile, question) },
+      { env, variant: variant || "" },
+    );
+  }
+
   throw createHttpError(400, "지원하지 않는 점술입니다.", { code: "INVALID_PROMPT_SERVICE" });
+}
+
+/* 관리자 폼의 프로필을 각 라우트의 요청 본문 모양으로 옮긴다.
+   라우트마다 normalize* 가 여러 별칭(birthInfo.* / 최상위 *)을 받아 주므로 둘 다 실어 보낸다. */
+function buildAdminLabBody(profile = {}, question = "") {
+  const birthPlace = {
+    name: profile.birthPlace || "",
+    latitude: profile.latitude ?? null,
+    longitude: profile.longitude ?? null,
+    timezone: profile.timezone || "",
+  };
+
+  return {
+    name: profile.name || "",
+    userName: profile.name || "",
+    gender: profile.gender || "",
+    birthDate: profile.birthDateText || "",
+    birthTime: profile.timeUnknown ? "" : (profile.birthTimeText || ""),
+    birthTimeUnknown: Boolean(profile.timeUnknown),
+    calendarType: profile.calendarType || "solar",
+    birthPlace,
+    timezone: profile.timezone || "",
+    latitude: profile.latitude ?? null,
+    longitude: profile.longitude ?? null,
+    question: question || "",
+    birthInfo: {
+      name: profile.name || "",
+      gender: profile.gender || "",
+      birthDate: profile.birthDateText || "",
+      birthTime: profile.timeUnknown ? "" : (profile.birthTimeText || ""),
+      birthTimeUnknown: Boolean(profile.timeUnknown),
+      calendarType: profile.calendarType || "solar",
+      birthPlace,
+    },
+  };
 }
 
 function normalizeAdminPromptLabResult({ built, service, domain, profile, partnerProfile, question, adminContext, requestId }) {
   const prompt = String(built?.prompt || built?.generatedPrompt || "").trim();
-  if (!prompt) {
+  const systemPrompt = String(built?.systemPrompt || "").trim();
+  const variants = Array.isArray(built?.variants) ? built.variants : [];
+  // 사용자 프롬프트가 계산 결과를 필요로 해서 못 만드는 운세도 있다(partial). 그때는 시스템
+  // 프롬프트나 변형 목록만이라도 보여 주는 것이 목적이므로, 셋 다 비었을 때만 실패로 본다.
+  if (!prompt && !systemPrompt && !variants.length) {
     throw createHttpError(500, "프롬프트 본문을 만들지 못했습니다.", { code: "PROMPT_BODY_EMPTY" });
   }
+
+  const labService = getAdminPromptLabService(service);
 
   return {
     ok: true,
@@ -1758,12 +1813,18 @@ function normalizeAdminPromptLabResult({ built, service, domain, profile, partne
     adminUserId: adminContext?.userId || null,
     adminFreeExecution: true,
     service,
-    serviceLabel: ADMIN_PROMPT_SERVICE_LABELS[service] || service,
+    serviceLabel: ADMIN_PROMPT_SERVICE_LABELS[service] || labService?.label || service,
     domain: built?.domain || domain || "general",
     domainLabel: built?.domainLabel || ADMIN_PROMPT_DOMAIN_LABELS[domain] || ADMIN_PROMPT_DOMAIN_LABELS.general,
-    title: built?.title || `${ADMIN_PROMPT_SERVICE_LABELS[service] || service} 프롬프트`,
+    title: built?.title || `${ADMIN_PROMPT_SERVICE_LABELS[service] || labService?.label || service} 프롬프트`,
     prompt,
     generatedPrompt: prompt,
+    systemPrompt,
+    partial: Boolean(built?.partial),
+    partialReason: String(built?.partialReason || ""),
+    variantKey: String(built?.variantKey || ""),
+    variants,
+    notes: Array.isArray(built?.notes) ? built.notes : [],
     summaryIntent: built?.summaryIntent || "",
     analysisAngles: Array.isArray(built?.analysisAngles) ? built.analysisAngles : [],
     recommendedFollowUpQuestions: Array.isArray(built?.recommendedFollowUpQuestions) ? built.recommendedFollowUpQuestions : [],
@@ -1813,15 +1874,20 @@ async function handleAdminPromptLabGenerate(request, env) {
     throw createHttpError(400, "점술 종류를 선택해 주세요.", { code: "INVALID_PROMPT_SERVICE" });
   }
 
+  // 질문을 쓰지 않는 운세(꿈해몽·반려동물 사주 등)까지 질문을 강제하면 프롬프트를 뽑을 수 없다.
+  // 무엇을 요구하는지는 레지스트리의 inputs 선언이 정본이다.
   const question = normalizeAdminQuestion(body.question);
-  if (question.length < 5) {
+  if (promptLabServiceNeeds(service, "question") && question.length < 5) {
     throw createHttpError(400, "질문을 조금 더 구체적으로 입력해 주세요.", { code: "INVALID_PROMPT_QUESTION" });
   }
 
   const profile = buildAdminPromptProfile(body);
   const domain = normalizeAdminPromptDomain(service, body.domain) || "";
   const partnerProfile = service === "sukuyo" ? buildAdminPartnerProfile(body) : null;
-  assertAdminPromptProfileReady(service, profile, { domain, partnerProfile });
+  // 생년 정보를 쓰지 않는 운세는 생시·좌표 검사를 걸 이유가 없다.
+  if (promptLabServiceNeeds(service, "profile")) {
+    assertAdminPromptProfileReady(service, profile, { domain, partnerProfile });
+  }
   const promptConfig = service === "saju" ? buildAdminSajuPromptConfig(body) : null;
   const engineProfile = service === "saju"
     ? await resolveAdminSajuEngineProfile(profile, env)
@@ -1839,6 +1905,9 @@ async function handleAdminPromptLabGenerate(request, env) {
     promptConfig,
     env,
     requestUrl: request.url,
+    variant: normalizeAdminText(body.variant, 120),
+    // 기능 고유 입력(꿈 내용·반려동물·대상 연도 등)은 라우트의 normalize* 가 직접 읽는다.
+    extraBody: body,
   });
 
   return json(normalizeAdminPromptLabResult({

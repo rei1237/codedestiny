@@ -1035,6 +1035,36 @@ function normalizePsychoTone(body, dreamText) {
   };
 }
 
+/* 정신분석 해몽의 시스템 프롬프트. 예전에는 핸들러 안 인라인이라 관리자 화면이 읽을 수 없었다.
+   문자열은 그대로이고 선언 위치만 밖으로 옮겼다(동작 불변). */
+const DREAM_PSYCHO_SYSTEM_PROMPT = [
+  "당신은 정신분석 해몽가입니다.",
+  "말투는 전문적이되 지나치게 기술적이지 않게 유지하고, 꿈의 정서를 먼저 읽으세요.",
+  "행복한 꿈은 불안 템플릿으로 밀어 넣지 말고, 긴장된 꿈은 소망과 방어를 균형 있게 다루세요.",
+  "출력은 5장 구조의 Markdown으로 자연스럽게 정리하세요.",
+].join(" ");
+
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return DREAM_PSYCHO_SYSTEM_PROMPT;
+}
+
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   꿈 내용만 있으면 프로덕션과 똑같은 프롬프트가 그대로 조립된다 — 생년 정보가 필요 없다. */
+export function buildAdminLabPrompt(body = {}) {
+  const normalized = normalizeDreamText(body);
+  if (!normalized.ok) {
+    throw new Error(normalized.message || "꿈 내용을 입력해 주세요.");
+  }
+
+  const tone = normalizePsychoTone(body, normalized.text);
+
+  return {
+    systemPrompt: DREAM_PSYCHO_SYSTEM_PROMPT,
+    prompt: buildPsychoPrompt(body, normalized.text, tone),
+  };
+}
+
 function buildPsychoPrompt(body, dreamText, tone) {
   const intake = body?.intake && typeof body.intake === "object" ? body.intake : {};
   const people = Array.isArray(body?.peopleInDream)
@@ -1254,12 +1284,7 @@ async function handlePsychoAnalysis(request, env = {}) {
 
   const tone = normalizePsychoTone(body, normalized.text);
   const prompt = buildPsychoPrompt(body, normalized.text, tone);
-  const systemPrompt = [
-    "당신은 정신분석 해몽가입니다.",
-    "말투는 전문적이되 지나치게 기술적이지 않게 유지하고, 꿈의 정서를 먼저 읽으세요.",
-    "행복한 꿈은 불안 템플릿으로 밀어 넣지 말고, 긴장된 꿈은 소망과 방어를 균형 있게 다루세요.",
-    "출력은 5장 구조의 Markdown으로 자연스럽게 정리하세요.",
-  ].join(" ");
+  const systemPrompt = DREAM_PSYCHO_SYSTEM_PROMPT;
 
   const aiResult = await dreamGeminiCaller(env, prompt, {
     systemPrompt,

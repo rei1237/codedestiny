@@ -55,6 +55,18 @@ export function getDefaultSystemPrompt() {
   return buildSystemPrompt();
 }
 
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   이 라우트의 사용자 프롬프트는 앞선 계산이 만든 narration 스냅샷을 다듬는 것이라
+   생년 정보만으로는 조립되지 않는다. 그래서 시스템 프롬프트만 정확히 돌려주고 partial 로 알린다. */
+export function buildAdminLabPrompt() {
+  return {
+    systemPrompt: buildSystemPrompt(),
+    prompt: "",
+    partial: true,
+    partialReason: "사용자 프롬프트는 앞 단계에서 만들어진 기본 해설(narration)을 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+  };
+}
+
 /** CMS 오버라이드가 있으면 그것을, 없거나 조회 실패면 코드 기본값을 쓴다. */
 function resolveSystemPrompt(env) {
   return cmsPromptText(env, "destiny-compass", buildSystemPrompt());

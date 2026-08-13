@@ -321,6 +321,42 @@ export function getDefaultSystemPrompt() {
   return buildSystemPrompt();
 }
 
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   실제 상담은 사용자가 뽑은 카드를 받아야 하므로, 랩에서는 모드별 슬롯 수에 맞춰
+   앞에서부터 동물을 채운 '샘플 뽑기'로 프롬프트를 조립한다. 프롬프트 구조는 프로덕션과 같고
+   카드 내용만 표본이다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const modes = Object.keys(MODE_SPEC);
+  const mode = modes.includes(options.variant) ? options.variant : modes[0];
+  const spec = MODE_SPEC[mode];
+
+  const animalIds = Object.keys(ANIMAL_NAME_BY_ID).slice(0, spec.size);
+  const cards = spec.slots.map((slot, index) => ({
+    order: index + 1,
+    slot,
+    animalId: animalIds[index],
+    animalName: ANIMAL_NAME_BY_ID[animalIds[index]],
+    category: "샘플",
+    essence: "샘플 카드입니다. 실제 상담에서는 사용자가 뽑은 카드의 본질 문장이 들어갑니다.",
+    shadow: "샘플 카드의 그림자 문장입니다.",
+    actions: [],
+  }));
+
+  return {
+    systemPrompt: buildSystemPrompt(),
+    prompt: buildUserPrompt({
+      mode,
+      spec,
+      cards,
+      question: String(body?.question || "지금 제 상황이 어떤가요?"),
+      background: "",
+    }),
+    variantKey: mode,
+    variants: modes.map((key) => ({ key, label: `${key} (${MODE_SPEC[key].size}장)` })),
+    notes: ["카드 내용은 샘플입니다 — 실제 상담에서는 사용자가 뽑은 카드가 들어갑니다."],
+  };
+}
+
 function resolveSystemPrompt(env) {
   return cmsPromptText(env, "animal-totem", buildSystemPrompt());
 }

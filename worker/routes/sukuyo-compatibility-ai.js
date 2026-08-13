@@ -113,6 +113,26 @@ export function getDefaultCompatibilityJsonSystemPrompt() {
   return COMPATIBILITY_JSON_SYSTEM_PROMPT;
 }
 
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   사용자 프롬프트는 계산된 본명숙·관계 거리 결과를 입력으로 받으므로 생년 정보만으로는 조립되지 않는다.
+   상담용/구조화 출력용 두 벌이 따로 있어 variants 로 고르게 한다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const variants = [
+    { key: "consult", label: "상담용" },
+    { key: "json", label: "구조화 출력용(JSON)" },
+  ];
+  const variant = variants.find((item) => item.key === options.variant) || variants[0];
+
+  return {
+    systemPrompt: variant.key === "json" ? COMPATIBILITY_JSON_SYSTEM_PROMPT : SYSTEM_PROMPT,
+    prompt: "",
+    partial: true,
+    partialReason: "사용자 프롬프트는 계산된 본명숙과 두 사람의 관계 거리를 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+    variantKey: variant.key,
+    variants,
+  };
+}
+
 const SYSTEM_PROMPT = [
   "당신은 숙요점 27숙과 관계 상담에 능한 전문 상담가입니다.",
   "",

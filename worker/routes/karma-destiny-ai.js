@@ -969,6 +969,31 @@ const LENS_CONSTITUTION = [
   "계산 근거로 주어지지 않은 값은 어떤 경우에도 추정하거나 지어내지 않습니다. 없으면 없는 대로 다른 관점으로 답합니다.",
 ].join("\n");
 
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/* 관리자 프롬프트 랩 전용. 결제·LLM 없이 프로덕션과 똑같은 프롬프트를 조립한다
+   (lib/admin/prompt-lab-registry.mjs 참고). 다섯 렌즈 통합 계산이 들어가므로 env 가 필요하다. */
+export async function buildAdminLabPrompt(body = {}, options = {}) {
+  const normalized = normalizeConsultationInput(body);
+  if (!normalized.ok) {
+    throw new Error(normalized.message || "카르마 데스티니 프롬프트에 필요한 입력이 부족합니다.");
+  }
+
+  const integratedResult = await buildKarmaDestinyIntegratedResult(
+    options.env || {},
+    normalized.input.birthInfo,
+    { lensUsageWeights: LENS_USAGE_WEIGHTS },
+  );
+
+  return {
+    systemPrompt: buildSystemPrompt("initial"),
+    prompt: buildFirstPrompt(normalized.input, integratedResult),
+  };
+}
+
 function buildSystemPrompt(mode = "initial") {
   const shared = [
     "당신은 오래 상담해 온 운명의 업 상담가입니다.",

@@ -118,6 +118,23 @@ export function compassFallbackMinChars(spec) {
   return Math.round((Number(spec?.minChars) || 0) * 0.4);
 }
 
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   섹션별 사용자 프롬프트는 계산된 다섯 체계의 결과를 입력으로 받으므로 생년 정보만으로는 조립되지 않는다.
+   9섹션이 시스템 프롬프트를 공유하므로 섹션 목록을 함께 돌려준다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const section = getCompassSection(options.variant) || COMPASS_SECTIONS[0];
+
+  return {
+    systemPrompt: buildCompassSystemPrompt(),
+    prompt: "",
+    partial: true,
+    partialReason: "섹션별 사용자 프롬프트는 계산된 사주·자미두수·숙요·타로·베다 결과를 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+    variantKey: section?.key || "",
+    variants: COMPASS_SECTIONS.map((item) => ({ key: item.key, label: item.title || item.key })),
+    notes: section?.guide ? [`${section.title} 지침: ${section.guide}`] : [],
+  };
+}
+
 function clean(value, max = 0) {
   const text = String(value == null ? "" : value).replace(/\s+/g, " ").trim();
   return max > 0 ? text.slice(0, max) : text;

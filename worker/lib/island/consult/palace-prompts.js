@@ -35,6 +35,32 @@ export const PALACE_KEYS = Object.keys(PALACE_CONSULT);
 export function isValidPalace(key) { return Object.prototype.hasOwnProperty.call(PALACE_CONSULT, String(key || "")); }
 export function getPalaceConfig(key) { return PALACE_CONSULT[String(key || "")] || null; }
 
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   궁별 사용자 프롬프트는 계산된 명반(chart)을 입력으로 받으므로 생년 정보만으로는 조립되지 않는다.
+   12궁은 시스템 프롬프트를 공유하므로 궁 목록만 함께 돌려준다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const palace = isValidPalace(options.variant) ? String(options.variant) : PALACE_KEYS[0];
+  const config = getPalaceConfig(palace);
+
+  return {
+    systemPrompt: buildSystemPrompt(),
+    prompt: "",
+    partial: true,
+    partialReason: "궁별 사용자 프롬프트는 계산된 자미두수 명반을 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+    variantKey: palace,
+    variants: PALACE_KEYS.map((key) => ({
+      key,
+      label: `${key} · ${PALACE_CONSULT[key].title}`,
+    })),
+    notes: config ? [`${palace} 초점: ${config.focus}`] : [],
+  };
+}
+
 // 14주성 + 사화 한자 병기 화이트리스트(가짜 근거 방지 — ziwei-ai와 동일 원칙)
 const HANJA_WHITELIST = "자미(紫微)·천기(天機)·태양(太陽)·무곡(武曲)·천동(天同)·염정(廉貞)·천부(天府)·태음(太陰)·탐랑(貪狼)·거문(巨門)·천상(天相)·천량(天梁)·칠살(七殺)·파군(破軍) / 화록(化祿)·화권(化權)·화과(化科)·화기(化忌) / 대운(大運)·삼방사정(三方四正)";
 

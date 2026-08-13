@@ -397,6 +397,37 @@ export function buildMasterLoveCodexSystemGuide({
  * @param {string} [params.prologueChoice] 프롤로그 선택지 키
  * @param {string[]} [params.memory]  앞 장들의 요약(중복 방지·연결용)
  */
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   장별 사용자 프롬프트는 계산된 사주·자미두수 결과를 입력으로 받으므로 생년 정보만으로는 조립되지 않는다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const chapter = MASTER_LOVE_CODEX_CHAPTERS.find((item) => item.id === options.variant)
+    || MASTER_LOVE_CODEX_CHAPTERS[0];
+
+  // 이 기능은 별도의 시스템 프롬프트 없이 장별 프롬프트 한 벌로 돌아간다.
+  // 명식 데이터 없이도 프롬프트 뼈대는 만들어지므로, 데이터 칸이 빈 상태로 구조를 보여 준다.
+  let prompt = "";
+  try {
+    prompt = buildMasterLoveCodexChapterPrompt({
+      saju: null,
+      ziweiChart: null,
+      birthInfo: {},
+      chapter,
+    });
+  } catch (error) {
+    prompt = "";
+  }
+
+  return {
+    systemPrompt: "",
+    prompt,
+    partial: true,
+    partialReason: "이 기능은 시스템 프롬프트 없이 장별 프롬프트 한 벌로 동작합니다. 명식 데이터 칸은 비어 있고 구조만 표시합니다.",
+    variantKey: chapter?.id || "",
+    variants: MASTER_LOVE_CODEX_CHAPTERS.map((item) => ({ key: item.id, label: item.title || item.id })),
+    notes: chapter?.scope ? [`${chapter.title} 범위: ${chapter.scope}`] : [],
+  };
+}
+
 export function buildMasterLoveCodexChapterPrompt({ saju, ziweiChart, birthInfo, chapter, prologueChoice = "", memory = [] }) {
   const min = chapter.minChars || 2400;
   const palaces = (chapter.ziweiPalaces || []).join(", ");

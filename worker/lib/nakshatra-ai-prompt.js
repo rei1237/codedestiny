@@ -150,6 +150,24 @@ export const FUSION_SECTIONS = Object.freeze([
 
 export const NAKSHATRA_SECTIONS = Object.freeze([...SUKUYO_SECTIONS, ...VEDIC_SECTIONS, ...FUSION_SECTIONS]);
 
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   섹션별 사용자 프롬프트는 계산된 27수·나크샤트라 결과를 입력으로 받으므로 생년 정보만으로는 조립되지 않는다.
+   덱(숙요/베다/융합)마다 페르소나가 다르므로 섹션을 고르면 그 덱의 시스템 프롬프트를 보여준다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const section = NAKSHATRA_SECTIONS.find((item) => item.id === options.variant) || NAKSHATRA_SECTIONS[0];
+  const deck = section?.deck || "sukuyo";
+
+  return {
+    systemPrompt: NAKSHATRA_PERSONA[deck] || NAKSHATRA_PERSONA.sukuyo,
+    prompt: "",
+    partial: true,
+    partialReason: "섹션별 사용자 프롬프트는 계산된 27수·나크샤트라 결과를 입력으로 받습니다. 덱별 페르소나(시스템 프롬프트)만 표시합니다.",
+    variantKey: section?.id || "",
+    variants: NAKSHATRA_SECTIONS.map((item) => ({ key: item.id, label: `${item.deck} · ${item.title || item.id}` })),
+    notes: section?.scope ? [`${section.title} 범위: ${section.scope}`] : [],
+  };
+}
+
 // 생성 페이즈 — 융합 덱은 두 대가의 상담이 끝난 뒤에만 쓸 수 있다.
 export const NAKSHATRA_PHASE_DECKS = Object.freeze([...SUKUYO_SECTIONS, ...VEDIC_SECTIONS]);
 export const NAKSHATRA_PHASE_FUSION = FUSION_SECTIONS;
