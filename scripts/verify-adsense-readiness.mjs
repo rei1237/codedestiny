@@ -1175,11 +1175,15 @@ const staticShells = [
   "public/en/index.html",
   "public/ja/index.html",
   "public/zh/index.html",
+  // zh-tw 는 승격(promote-static-shell-to-root)·동기화 대상이면서도 이 목록에만 빠져 있어,
+  // 광고 임베드와 신뢰 링크 8종을 유일하게 검사받지 않는 셸이었다.
+  "public/zh-tw/index.html",
   "dist/index.html",
   "dist/static/index.html",
   "dist/en/index.html",
   "dist/ja/index.html",
   "dist/zh/index.html",
+  "dist/zh-tw/index.html",
 ];
 
 for (const shellPath of staticShells) {
