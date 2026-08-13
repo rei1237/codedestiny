@@ -2,20 +2,26 @@
 
 /**
  * ═══════════════════════════════════════════════════════════════════════════
- *  심화 자미두수 PDF  (ZIWEI_DEEP_PDF)  —  UI 패널
+ *  심화 자미두수 심층 리포트  (ZIWEI_DEEP_PDF)  —  통합 UI 패널
  * ───────────────────────────────────────────────────────────────────────────
- *  회당 결제 LLM 15챕터 심층 리포트 생성 → 화면 렌더 → PDF 다운로드.
+ *  회당 결제 LLM 15챕터 심층 리포트 생성 → 화면 렌더 → PDF 다운로드 → 재열람.
  *  - 결제: featureKey `ziwei-deep-pdf` (300코인=30,000원), 회당 결제.
- *  - 백엔드: /api/ziwei-deep-report/{prepare,generate} (worker/routes/ziwei-deep-report.js)
+ *  - 백엔드: /api/ziwei-deep-report/{prepare,generate,result} (worker/routes/ziwei-deep-report.js)
  *  - PDF: html2canvas로 브라우저 렌더(한글 폰트) 캡처 → jsPDF 이미지 페이지.
+ *
+ *  🔮 통합(2026-08-13): 같은 화면에 따로 있던 "별궁 전문가 상담"(ziwei-ai-consultation,
+ *     30,000원)을 여기로 흡수했다. 관심분야·자유질문을 받아 15챕터 전체에 주입하므로
+ *     사용자는 30,000원 한 번으로 질문 맞춤 심층 리포트를 받는다.
+ *     독립 페이지 /ziwei-ai 는 그대로 살아 있다(별도 상품).
  *
  *  ▶ 접근 키워드: `ZIWEI_DEEP_PDF`, `ziwei-deep-pdf`, `ZiweiDeepPdfPanel`
  * ═══════════════════════════════════════════════════════════════════════════
  */
 
 import { useMemo, useRef, useState } from "react";
-import { Download, Loader2, Sparkles } from "lucide-react";
+import { Download, History, Loader2, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
+import { PriceBadge } from "@/app/components/PriceBadge";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -25,9 +31,23 @@ import {
 } from "@/app/_lib/billing-client";
 
 const FEATURE_KEY = "ziwei-deep-pdf";
-const FEATURE_REASON = "심화 자미두수 PDF";
+const FEATURE_REASON = "심화 자미두수 심층 리포트";
 const FEATURE_COST = 300;
 const FEATURE_AMOUNT_KRW = 30000;
+
+/** 통합 이전 "별궁 전문가 상담"이 받던 관심분야. 15챕터 프롬프트에 그대로 넘어간다. */
+type FocusArea = "overall" | "personality" | "career" | "money" | "love" | "relationship" | "health" | "custom";
+
+const FOCUS_OPTIONS: Array<{ value: FocusArea; label: string }> = [
+  { value: "overall", label: "전체 명반 해석" },
+  { value: "personality", label: "타고난 성향" },
+  { value: "career", label: "직업/사업운" },
+  { value: "money", label: "재물운" },
+  { value: "love", label: "연애/결혼운" },
+  { value: "relationship", label: "인간관계" },
+  { value: "health", label: "건강/멘탈" },
+  { value: "custom", label: "현재 고민 상담" },
+];
 
 export interface ZiweiDeepBirthInput {
   name: string;
@@ -40,9 +60,10 @@ export interface ZiweiDeepBirthInput {
 }
 
 interface ReportChapter { id: string; title: string; body: string; chars: number; ok?: boolean }
-interface DeepReport { label: string; chapters: ReportChapter[]; totalChars: number; generatedAt: string }
+interface DeepReport { label: string; chapters: ReportChapter[]; totalChars: number; generatedAt: string; restored?: boolean }
 interface BatchResult { startIndex: number; nextIndex: number; totalChapters: number; done: boolean; chapters: ReportChapter[] }
 interface ReportMeta { label: string; generatedAt: string; minTotalChars: number; chapterCount: number }
+interface StoredReportSummary { id: string; name: string; topic: string; question: string; status: string; createdAt: string }
 
 type Phase = "idle" | "checking" | "payment" | "generating" | "ready";
 
@@ -52,6 +73,9 @@ const ERROR_TEXT: Record<string, string> = {
   PAYMENT_VERIFY_FAILED: "결제 확인이 완료되지 않았습니다. 결제가 끝났다면 잠시 후 다시 시도해 주세요.",
   PAYMENT_CANCELLED: "결제가 취소되었습니다.",
   INVALID_INPUT: "생년월일과 출생시간 정보를 확인해 주세요.",
+  CUSTOM_QUESTION_REQUIRED: "묻고 싶은 질문을 조금 더 구체적으로 적어 주세요.",
+  GENERATION_FAILED: "리포트를 완성하지 못했습니다. 결제는 되돌렸으니 잠시 후 다시 시도해 주세요.",
+  DB_DEGRADED: "지금 접속이 잠시 불안정합니다. 잠시 후 다시 시도해 주세요.",
   SERVER_ERROR: "리포트를 준비하는 중 문제가 발생했습니다.",
   NETWORK_ERROR: "연결이 불안정합니다. 잠시 후 다시 시도해 주세요.",
 };
@@ -157,9 +181,16 @@ type ApiResult = {
   ok?: boolean; reason?: string; message?: string;
   accessToken?: string; accessType?: string;
   paymentPayload?: Record<string, unknown>;
-  report?: DeepReport;
   batch?: BatchResult;
   reportMeta?: ReportMeta;
+  // 저장본 재열람/멱등 재요청 응답(서버의 publicStoredReport).
+  restored?: boolean;
+  reportId?: string;
+  chapters?: ReportChapter[];
+  nextIndex?: number;
+  totalChapters?: number;
+  done?: boolean;
+  reports?: StoredReportSummary[];
 };
 
 const TOTAL_CHAPTERS = 15;
@@ -174,15 +205,23 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
   const [pdfLoading, setPdfLoading] = useState(false);
   const [stepIndex, setStepIndex] = useState(0);
   const [genProgress, setGenProgress] = useState({ done: 0, total: TOTAL_CHAPTERS });
+  const [focusArea, setFocusArea] = useState<FocusArea>("overall");
+  const [question, setQuestion] = useState("");
+  const [history, setHistory] = useState<StoredReportSummary[] | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const busyRef = useRef(false);
   const idempotencyRef = useRef("");
   const reportRef = useRef<HTMLDivElement | null>(null);
 
   const busy = phase === "checking" || phase === "payment" || phase === "generating";
+  const topic = FOCUS_OPTIONS.find((option) => option.value === focusArea)?.label || "";
 
   const payload = useMemo(() => ({
     serviceType: FEATURE_KEY,
     locale: "ko",
+    focusArea,
+    topic,
+    question: question.trim(),
     birthInfo: {
       name: birth.name,
       gender: birth.gender,
@@ -192,7 +231,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
       calendarType: birth.calendarType,
       isLeapMonth: birth.calendarType === "lunar" ? birth.isLeapMonth : false,
     },
-  }), [birth]);
+  }), [birth, focusArea, topic, question]);
 
   function cycleSteps() {
     let i = 0;
@@ -209,6 +248,7 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
       // 끝나 타임아웃 위험이 없고, 챕터는 결정론이라 각 배치가 독립·재개 가능하다.
       const accumulated: ReportChapter[] = [];
       let meta: ReportMeta | null = null;
+      let restored = false;
       let accessExtra: Record<string, unknown> = { ...extra };
       let startIndex = 0;
       for (let guard = 0; guard < MAX_BATCHES; guard += 1) {
@@ -217,27 +257,42 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
           { ...payload, ...accessExtra, idempotencyKey, startIndex },
           idempotencyKey,
         );
-        if (!data.ok || !data.batch) throw new Error(mapError(data, status));
-        accumulated.push(...data.batch.chapters);
-        if (!meta && data.reportMeta) meta = data.reportMeta;
+        if (!data.ok) throw new Error(mapError(data, status));
         // 두 번째 배치부터는 재사용 토큰으로 접근(추가 DB·결제 조회 없음).
         if (data.accessToken) accessExtra = { accessToken: data.accessToken, accessType: data.accessType };
-        setGenProgress({ done: Math.min(data.batch.nextIndex, data.batch.totalChapters), total: data.batch.totalChapters });
-        if (data.batch.done) {
-          const totalChars = accumulated.reduce((sum, ch) => sum + (ch.chars || 0), 0);
-          setReport({
-            label: meta?.label || FEATURE_REASON,
-            generatedAt: meta?.generatedAt || new Date().toISOString(),
-            totalChars,
-            chapters: accumulated,
-          });
-          setPhase("ready");
-          return;
+        if (!meta && data.reportMeta) meta = data.reportMeta;
+
+        // 같은 요청 키의 저장본이 있으면 서버가 재생성 없이 그대로 돌려준다(재과금 없음).
+        // 미완성 저장본이면 nextIndex 부터 이어 만든다.
+        if (data.restored) {
+          restored = true;
+          accumulated.push(...(data.chapters || []));
+          setGenProgress({ done: accumulated.length, total: data.totalChapters || TOTAL_CHAPTERS });
+          if (data.done) break;
+          startIndex = typeof data.nextIndex === "number" ? data.nextIndex : accumulated.length;
+          continue;
         }
+
+        if (!data.batch) throw new Error(mapError(data, status));
+        accumulated.push(...data.batch.chapters);
+        setGenProgress({ done: Math.min(data.batch.nextIndex, data.batch.totalChapters), total: data.batch.totalChapters });
+        if (data.batch.done) break;
         startIndex = data.batch.nextIndex;
       }
-      throw new Error(ERROR_TEXT.SERVER_ERROR);
+      if (!accumulated.length) throw new Error(ERROR_TEXT.SERVER_ERROR);
+      applyReport(accumulated, meta, restored);
     } finally { stop(); }
+  }
+
+  function applyReport(chapters: ReportChapter[], meta: ReportMeta | null, restored = false) {
+    setReport({
+      label: meta?.label || FEATURE_REASON,
+      generatedAt: meta?.generatedAt || new Date().toISOString(),
+      totalChars: chapters.reduce((sum, ch) => sum + (ch.chars || 0), 0),
+      chapters,
+      restored,
+    });
+    setPhase("ready");
   }
 
   function mapError(data: ApiResult, status = 0) {
@@ -248,9 +303,48 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
     return data?.message || ERROR_TEXT.SERVER_ERROR;
   }
 
+  /** 내 리포트 목록 — 눌렀을 때만 조회한다(마운트 시 자동 조회 없음). */
+  async function loadHistory() {
+    if (historyLoading) return;
+    setHistoryLoading(true);
+    setError("");
+    try {
+      const response = await authFetch("/api/ziwei-deep-report/result", { method: "GET" }, { retryOn401: false });
+      const data = (await response.json().catch(() => ({}))) as ApiResult;
+      if (!response.ok || !data.ok) throw new Error(mapError(data, response.status));
+      setHistory(data.reports || []);
+    } catch (caught) {
+      setError(caught instanceof TypeError ? ERROR_TEXT.NETWORK_ERROR : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR);
+    } finally { setHistoryLoading(false); }
+  }
+
+  /** 저장본 재열람 — 결제 없이 저장된 리포트를 그대로 다시 연다. */
+  async function openStoredReport(reportId: string) {
+    if (busyRef.current) return;
+    busyRef.current = true;
+    setError("");
+    setPhase("generating");
+    try {
+      const response = await authFetch(`/api/ziwei-deep-report/result?id=${encodeURIComponent(reportId)}`, { method: "GET" }, { retryOn401: false });
+      const data = (await response.json().catch(() => ({}))) as ApiResult;
+      if (!response.ok || !data.ok || !data.chapters?.length) throw new Error(mapError(data, response.status));
+      applyReport(data.chapters, data.reportMeta || null, true);
+    } catch (caught) {
+      setError(caught instanceof TypeError ? ERROR_TEXT.NETWORK_ERROR : caught instanceof Error ? caught.message : ERROR_TEXT.SERVER_ERROR);
+      setPhase("idle");
+    } finally { busyRef.current = false; }
+  }
+
+  function validate(): string {
+    if (!birth.birthDate || (!birth.birthTime && !birth.birthTimeUnknown)) return ERROR_TEXT.INVALID_INPUT;
+    if (focusArea === "custom" && question.trim().length < 2) return ERROR_TEXT.CUSTOM_QUESTION_REQUIRED;
+    return "";
+  }
+
   async function handleGenerate() {
     if (busyRef.current || disabled) return;
-    if (!birth.birthDate || (!birth.birthTime && !birth.birthTimeUnknown)) { setError(ERROR_TEXT.INVALID_INPUT); return; }
+    const validationMessage = validate();
+    if (validationMessage) { setError(validationMessage); return; }
     busyRef.current = true;
     const idempotencyKey = idempotencyRef.current || createIdempotencyKey();
     idempotencyRef.current = idempotencyKey;
@@ -319,24 +413,90 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
     <section className="font-premium relative overflow-hidden rounded-[1.6rem] border border-amber-200/25 bg-gradient-to-br from-[#140f2e]/85 via-[#0c1230]/85 to-[#101a34]/85 p-5 text-slate-100 md:p-7">
       <div className="pointer-events-none absolute inset-0 opacity-40 [background:radial-gradient(circle_at_18%_12%,rgba(250,204,21,.14),transparent_42%),radial-gradient(circle_at_82%_80%,rgba(125,211,252,.14),transparent_46%)]" aria-hidden="true" />
       <div className="relative z-10">
-        <p className="text-[11px] font-semibold tracking-[0.3em] text-amber-100/80">ZIWEI DEEP PDF · 회당 결제</p>
-        <h3 className="font-display mt-2 text-xl font-black text-white md:text-2xl">✨ 심화 자미두수 15챕터 PDF 리포트</h3>
+        <p className="text-[11px] font-semibold tracking-[0.3em] text-amber-100/80">ZIWEI 전문가 상담 · 회당 결제</p>
+        <h3 className="font-display mt-2 text-xl font-black text-white md:text-2xl">✨ 심화 자미두수 전문가 상담 리포트</h3>
         <p className="mt-2 max-w-2xl text-sm leading-7 text-slate-200/85">
-          명궁부터 복덕궁까지 12궁 전체와 사화·삼방사정·대한 흐름을 <b className="text-amber-100">15개 챕터·3~4만자</b>로 깊게 풀어 PDF로 저장합니다. 전문가가 명반을 근거로 인생 전체를 상담합니다.
+          지금 가장 궁금한 질문을 남기면, 명궁부터 복덕궁까지 12궁 전체와 사화·삼방사정·대한 흐름을 <b className="text-amber-100">15개 챕터·3~4만자</b>로 풀어 그 질문에 답합니다. 화면에서 바로 읽고 PDF로도 저장할 수 있습니다.
         </p>
 
         {phase !== "ready" && (
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            <button
-              type="button"
-              onClick={() => void handleGenerate()}
+          <div className="mt-5 grid gap-4">
+            <div className="flex flex-wrap gap-2">
+              {FOCUS_OPTIONS.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => setFocusArea(option.value)}
+                  disabled={busy || disabled}
+                  className={`rounded-full border px-3.5 py-2 text-xs font-bold transition disabled:opacity-60 ${
+                    focusArea === option.value
+                      ? "border-amber-200/60 bg-amber-200/20 text-amber-50"
+                      : "border-white/12 bg-white/5 text-slate-200 hover:border-amber-200/40"
+                  }`}
+                >
+                  {option.label}
+                </button>
+              ))}
+            </div>
+
+            <textarea
+              value={question}
+              onChange={(event) => setQuestion(event.target.value)}
               disabled={busy || disabled}
-              className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-200 via-amber-100 to-sky-200 px-5 py-3 text-sm font-black text-slate-950 shadow-[0_14px_30px_-10px_rgba(250,204,21,.5)] transition disabled:cursor-not-allowed disabled:opacity-60"
-            >
-              {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
-              {phase === "checking" ? "결제 확인 중..." : phase === "payment" ? "결제 진행 중..." : phase === "generating" ? "리포트 생성 중..." : "심화 PDF 리포트 생성 (30,000원)"}
-            </button>
-            <span className="text-xs text-slate-300/70">회당 결제 · 15챕터 · 3~4만자</span>
+              rows={3}
+              placeholder="묻고 싶은 질문을 적어 주세요. (선택 · ‘현재 고민 상담’은 필수)"
+              className="w-full resize-none rounded-2xl border border-white/12 bg-black/25 px-4 py-3 text-sm leading-7 text-slate-100 placeholder:text-slate-400/70 focus:border-amber-200/50 focus:outline-none"
+            />
+
+            <div className="flex flex-wrap items-center gap-3">
+              <button
+                type="button"
+                onClick={() => void handleGenerate()}
+                disabled={busy || disabled}
+                className="inline-flex items-center gap-2 rounded-2xl bg-gradient-to-r from-amber-200 via-amber-100 to-sky-200 px-5 py-3 text-sm font-black text-slate-950 shadow-[0_14px_30px_-10px_rgba(250,204,21,.5)] transition disabled:cursor-not-allowed disabled:opacity-60"
+              >
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}
+                {phase === "checking" ? "결제 확인 중..." : phase === "payment" ? "결제 진행 중..." : phase === "generating" ? "리포트 생성 중..." : "심화 전문가 상담 받기 (30,000원)"}
+              </button>
+              <PriceBadge featureKey={FEATURE_KEY} prefix="상담 이용 가격 " />
+            </div>
+            <p className="text-xs text-slate-300/70">회당 결제 · 15챕터 · 3~4만자 · 이용권/월정석 보유 시 무차감 진행</p>
+
+            <div className="border-t border-white/10 pt-3">
+              <button
+                type="button"
+                onClick={() => void loadHistory()}
+                disabled={historyLoading || busy}
+                className="inline-flex items-center gap-2 rounded-xl border border-white/12 bg-white/5 px-3.5 py-2 text-xs font-semibold text-slate-200 transition hover:border-amber-200/40 disabled:opacity-60"
+              >
+                {historyLoading ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <History className="h-3.5 w-3.5" />}
+                {historyLoading ? "불러오는 중..." : "지난 리포트 다시 보기"}
+              </button>
+              {history && !history.length && (
+                <p className="mt-2 text-xs text-slate-300/70">아직 저장된 리포트가 없습니다.</p>
+              )}
+              {history && history.length > 0 && (
+                <ul className="mt-3 grid gap-2">
+                  {history.map((item) => (
+                    <li key={item.id}>
+                      <button
+                        type="button"
+                        onClick={() => void openStoredReport(item.id)}
+                        disabled={busy}
+                        className="w-full rounded-xl border border-white/10 bg-black/20 px-4 py-3 text-left transition hover:border-amber-200/35 disabled:opacity-60"
+                      >
+                        <span className="block text-sm font-bold text-slate-100">
+                          {item.name || "내"} 리포트 · {item.topic || "전체 명반 해석"}
+                          {item.status === "partial" ? " (생성 중단)" : ""}
+                        </span>
+                        {item.question && <span className="mt-0.5 block truncate text-xs text-slate-300/75">{item.question}</span>}
+                        <span className="mt-0.5 block text-xs text-slate-400/70">{new Date(item.createdAt).toLocaleDateString("ko-KR")}</span>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
           </div>
         )}
 
@@ -358,8 +518,12 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
           <div className="mt-5">
             <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-amber-200/25 bg-amber-200/10 px-4 py-3">
               <div>
-                <p className="text-xs font-semibold text-amber-100/80">완성 · {report.chapters.length}챕터 · 약 {report.totalChars.toLocaleString("ko-KR")}자</p>
-                <p className="text-sm font-bold text-white">심화 자미두수 리포트가 완성되었습니다</p>
+                <p className="text-xs font-semibold text-amber-100/80">
+                  {report.restored ? "저장된 리포트" : "완성"} · {report.chapters.length}챕터 · 약 {report.totalChars.toLocaleString("ko-KR")}자
+                </p>
+                <p className="text-sm font-bold text-white">
+                  {report.restored ? "저장된 리포트를 다시 열었습니다" : "심화 자미두수 리포트가 완성되었습니다"}
+                </p>
               </div>
               <button
                 type="button"
@@ -371,6 +535,14 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
                 {pdfLoading ? "저장 중..." : "PDF 다운로드"}
               </button>
             </div>
+
+            <button
+              type="button"
+              onClick={() => { setPhase("idle"); setReport(null); setHistory(null); idempotencyRef.current = ""; }}
+              className="mt-3 rounded-xl border border-white/12 bg-white/8 px-4 py-2.5 text-sm font-semibold text-slate-100 transition hover:border-amber-200/35"
+            >
+              다른 질문으로 다시 상담하기
+            </button>
 
             <div ref={reportRef} id="ziwei-deep-pdf-report" className="mt-4 grid gap-4">
               <section data-ziwei-pdf-section className="rounded-2xl border border-amber-200/20 bg-[#0b1020] p-6">

@@ -223,16 +223,39 @@ export function buildZiweiDeepSystemGuide() {
 }
 
 /**
+ * 상담 블록. 통합 이전에는 "🔮 별궁 전문가 상담"이 별도 상품으로 이 질문을 받았다.
+ * 두 상품을 하나로 합치면서, 관심분야·자유질문을 15챕터 전체가 공유하는 맥락으로 넘긴다.
+ * 값이 없으면 빈 배열을 돌려 기존 프롬프트와 완전히 동일한 문자열을 유지한다.
+ */
+function buildConsultationLines(consultation) {
+  const topic = String(consultation?.topic ?? "").trim();
+  const question = String(consultation?.question ?? "").trim();
+  if (!topic && !question) return [];
+
+  const lines = ["[내담자의 상담 요청]"];
+  if (topic) lines.push(`- 관심분야: ${topic}`);
+  if (question) lines.push(`- 질문: ${question}`);
+  lines.push(
+    "- 이 장의 해석 범위를 지키되, 위 관심분야·질문과 이 장이 닿는 지점을 반드시 한 단락 이상 다뤄라.",
+    "- 이 장에서 실제로 말할 수 있는 만큼만 연결하라. 무관한 장에 질문을 억지로 끌어오지 마라.",
+    "- 질문에 답한다고 이 장의 원래 범위를 축소하지 마라. 분량 목표는 그대로다.",
+  );
+  return lines;
+}
+
+/**
  * 특정 챕터의 LLM 프롬프트를 만든다.
  * @param {object} chart  calculateZiweiAiChart(...) 결과
  * @param {object} birthInfo  { name, gender, birthDate, birthTime, birthTimeUnknown, calendarType }
  * @param {object} chapter  ZIWEI_DEEP_CHAPTERS 항목
+ * @param {object} [consultation]  { topic, question } — 통합된 전문가 상담 입력(선택)
  */
-export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter) {
+export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter, consultation = null) {
   const chartText = formatZiweiChartForPrompt(chart);
   const birthLine = formatBirthLine(birthInfo);
   const min = chapter.minChars || 2200;
   const companions = (chapter.companionPalaces || []).join(", ");
+  const consultationLines = buildConsultationLines(consultation);
 
   const palaceFocus = chapter.palaceKey
     ? `이번 장은 [${chapter.palaceKey}]을 중심 궁으로 삼아, 그 궁의 주성·보좌성·흉성·사화 조합을 정밀하게 해석한다.`
@@ -250,6 +273,7 @@ export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter) {
     `[해석 범위] ${chapter.scope}`,
     palaceFocus,
     companions ? `[함께 볼 궁(삼방사정·호응)] ${companions}` : "",
+    ...(consultationLines.length ? ["", ...consultationLines] : []),
     "",
     "[작성 지시]",
     `- 이 장 하나만 작성한다. 다른 장의 내용은 쓰지 않는다.`,

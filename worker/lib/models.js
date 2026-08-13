@@ -1001,6 +1001,51 @@ const destinyCompassReportSchema = new mongoose.Schema({
 destinyCompassReportSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 destinyCompassReportSchema.index({ userId: 1, createdAt: -1 });
 
+// 심화 자미두수 15챕터 리포트 — 4개씩 4배치로 도착하는 챕터를 누적 저장한다.
+// destinyCompassReportSchema 와 같은 문제를 푸는 스키마다(웨이브로 나눠 오는 본문 + 재열람).
+// 저장 이유 세 가지: ① 재열람 ② 배치 사이 연결이 끊겨도 결제한 내용이 남는다
+// ③ 같은 idempotencyKey 재요청 시 재생성·재과금 대신 저장본을 돌려준다.
+const ziweiDeepChapterSchema = new mongoose.Schema({
+  id: { type: String, required: true, trim: true, maxlength: 60 },
+  order: { type: Number, default: 0 },
+  title: { type: String, default: "", trim: true, maxlength: 160 },
+  body: { type: String, default: "", maxlength: 20000 },
+  chars: { type: Number, default: 0 },
+  provider: { type: String, default: "", trim: true, maxlength: 40 },
+  ok: { type: Boolean, default: true },
+}, { _id: false });
+
+const ziweiDeepReportSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 120, index: true },
+  birthInfo: {
+    name: { type: String, default: "", trim: true, maxlength: 80 },
+    gender: { type: String, default: "", trim: true, maxlength: 20 },
+    birthDate: { type: String, default: "", trim: true, maxlength: 10 },
+    birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+    birthTimeUnknown: { type: Boolean, default: false },
+    calendarType: { type: String, enum: ["solar", "lunar"], default: "solar" },
+    isLeapMonth: { type: Boolean, default: false },
+  },
+  // 통합된 전문가 상담 입력(구 ziwei-ai-consultation 의 관심분야·자유질문).
+  focusArea: { type: String, default: "", trim: true, maxlength: 40 },
+  topic: { type: String, default: "", trim: true, maxlength: 80 },
+  userQuestion: { type: String, default: "", trim: true, maxlength: 1200 },
+  ziweiChart: { type: ziweiAiChartSchema, default: () => ({}) },
+  chapters: { type: [ziweiDeepChapterSchema], default: [] },
+  // partial = 일부 배치만 도착. completed = 15장 전부. 재열람은 partial 도 보여준다.
+  status: { type: String, enum: ["generating", "partial", "completed", "generation_failed"], default: "generating", index: true },
+  accessType: { type: String, default: "", trim: true, maxlength: 40 },
+  usageAppliedAt: { type: Date, default: null },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "ziweiDeepReports" });
+
+ziweiDeepReportSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+ziweiDeepReportSchema.index({ userId: 1, createdAt: -1 });
+
 const loveSecretAiMessageSchema = new mongoose.Schema({
   role: { type: String, enum: ["user", "assistant"], required: true },
   content: { type: String, required: true, trim: true, maxlength: 60000 },
@@ -1586,6 +1631,9 @@ export const LoveSecretAiConsultation = mongoose.models.LoveSecretAiConsultation
   || mongoose.model("LoveSecretAiConsultation", loveSecretAiConsultationSchema);
 export const DestinyCompassReport = mongoose.models.DestinyCompassReport
   || mongoose.model("DestinyCompassReport", destinyCompassReportSchema);
+
+export const ZiweiDeepReport = mongoose.models.ZiweiDeepReport
+  || mongoose.model("ZiweiDeepReport", ziweiDeepReportSchema);
 export const MasterLoveCodexSession = mongoose.models.MasterLoveCodexSession
   || mongoose.model("MasterLoveCodexSession", masterLoveCodexSchema);
 export const LifeBookAiConsultation = mongoose.models.LifeBookAiConsultation

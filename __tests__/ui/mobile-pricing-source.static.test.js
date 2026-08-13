@@ -8,7 +8,9 @@ const shell = fs.readFileSync(path.join(root, "index.html"), "utf8");
 const paidBadgeSources = [
   "app/astrology-ai/AstrologyAiClient.tsx",
   "app/love-secret-ai/LoveSecretAiClient.tsx",
-  "app/components/ziwei/ZiweiAiConsultPanel.tsx",
+  // 2026-08-13 통합: ZiweiAiConsultPanel 이 ZiweiDeepPdfPanel 로 흡수됐다(같은 화면·같은 가격의
+  // 유료 상품 두 개를 하나로). PriceBadge 사용처가 그대로 옮겨왔으므로 검사 대상도 옮긴다.
+  "app/components/ziwei/ZiweiDeepPdfPanel.tsx",
   "app/karma-destiny-ai/KarmaDestinyAiClient.tsx",
   "app/life-book-ai/LifeBookAiClient.tsx",
   "app/sukuyo-compatibility-ai/SukuyoCompatibilityAiClient.tsx",
