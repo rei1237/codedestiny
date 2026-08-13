@@ -97,7 +97,7 @@ import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
-import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
+import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 
@@ -1392,7 +1392,7 @@ function buildAIPromptMonthlyCreditLedgerClauses(tokens) {
   return clauses;
 }
 
-async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId }) {
+async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId, cost }) {
   if (!isAIPromptMonthlyCreditAccessPayload(body) && !hasAIPromptMonthlyCreditEvidenceToken(body)) return null;
   const userId = String(auth?.userId || "").trim();
   const normalizedFeatureKey = normalizeFeatureKey(featureKey);
@@ -1401,11 +1401,18 @@ async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, reque
   const clauses = buildAIPromptMonthlyCreditLedgerClauses(tokens);
   if (!userId || !featureKeys.length || !clauses.length) return null;
 
+  // 🔴 단위 주의: 원장의 amount 는 월정석, 인자 cost 는 코인이다. 하한은 반드시 정본 변환기를 거친다
+  // (하드코딩 환산은 틀리는 순간 정상 결제가 402 로 떨어진다). billing 이 원장에 쓰는 amount 도
+  // 같은 calculateMembershipCreditCost 결과라 이 하한은 근사치가 아니라 정확히 일치한다.
+  const minCredit = isAIPromptPassAccessPayload(body)
+    ? 0
+    : Math.floor(Number(calculateMembershipCreditCost(cost) || 0));
+
   return MonthlyCreditLedger.findOne({
     userId,
     type: "MONTHLY_CREDIT_SPEND",
     serviceKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0],
-    amount: { $gt: 0 },
+    amount: minCredit > 0 ? { $gte: minCredit } : { $gt: 0 },
     "metadata.refundedForUnlockFailure": { $ne: true },
     "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
     "metadata.monthlyCreditRefundedForLedgerFailure": { $ne: true },
@@ -1591,7 +1598,7 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     if (payment) return { source: "payment", record: payment };
   }
 
-  const monthlyCredit = await findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId });
+  const monthlyCredit = await findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId, cost });
   if (monthlyCredit) return { source: "monthly_credit_ledger", record: monthlyCredit };
 
   return null;
