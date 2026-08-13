@@ -16,6 +16,7 @@ const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), 
 const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
 const modelsSource = readFileSync(resolve(root, "worker/lib/models.js"), "utf8");
 const monthlyCreditStoreSource = readFileSync(resolve(root, "worker/lib/monthly-credit-store.js"), "utf8");
+const serviceExecutionTaskSource = readFileSync(resolve(root, "worker/lib/service-execution-task.js"), "utf8");
 
 // 멱등 마커를 직접 write하는 소스 전량 — payments.js는 이용권 월정석 구매 경로 제거 후
 // 해당 마커를 직접 write하지 않으므로 대상에서 제외한다.
@@ -326,6 +327,46 @@ assert.doesNotMatch(
   billingSource,
   /MonthlyCreditLedger\.(deleteOne|deleteMany|findByIdAndDelete)/,
   "환불이 원장을 삭제하면 안 된다(감사 추적 보존 — 재기입+플래그로 처리)",
+);
+// 6c-6. 생성 실패 환불은 키 해제 계약 표식을 '두 곳 모두'에 찍어야 한다.
+// releaseRefundedSpendSourceId 는 원장의 refundedForUnlockFailure 로만 환불 원장을 고르고,
+// readIdempotentSpendResult 의 PointHistory 갈래는 monthlyCreditRefundedForUnlockFailure 만 배제한다.
+// 한쪽만 찍으면 replay 가 "이미 결제됨"으로 조기 반환해 E11000 복구(=키 해제)에 도달조차 못 한다.
+for (const [label, source] of Object.entries({
+  "fortune.js": fortuneSource,
+  "service-execution-task.js": serviceExecutionTaskSource,
+})) {
+  assert.match(
+    source,
+    /"metadata\.monthlyCreditRefundedForServiceExecution": true,\s*(?:\/\/[^\n]*\n\s*)*"metadata\.monthlyCreditRefundedForUnlockFailure": true/,
+    `${label}: 생성 실패 환불은 PointHistory 에 monthlyCreditRefundedForUnlockFailure 도 찍어야 한다(replay 배제)`,
+  );
+  assert.match(
+    source,
+    /"metadata\.refundedForServiceExecution": true,\s*(?:\/\/[^\n]*\n\s*)*"metadata\.refundedForUnlockFailure": true/,
+    `${label}: 생성 실패 환불은 원장에 refundedForUnlockFailure 도 찍어야 한다(키 해제)`,
+  );
+}
+// 6c-7. 환불은 recentConsumeRequestIds 마커도 빼야 한다. 안 빼면 재구매가 applyLotDeduction 에서
+// ALREADY_PROCESSED 로 걸려 402 가 되고, 원장 insert 까지 못 가 11000 복구 경로도 안 돈다
+// (= 환불받고 같은 질문을 영영 못 여는 락).
+assert.match(
+  serviceExecutionTaskSource,
+  /restoreMonthlyCreditLot\(\{[\s\S]{0,300}?pullRequestId/,
+  "service-execution-task 의 월정석 환불은 restoreMonthlyCreditLot 에 pullRequestId 를 넘겨야 한다",
+);
+assert.match(
+  fortuneSource,
+  /restoreMonthlyCreditLot\(\{[\s\S]{0,300}?pullRequestId/,
+  "사주 월정석 환불은 restoreMonthlyCreditLot 에 pullRequestId 를 넘겨야 한다",
+);
+// 6c-8. 월정석 증빙에도 금액 하한이 있어야 한다(더 싼 차감이 비싼 상담 증거로 통과하는 것 방지).
+// 하한은 반드시 정본 변환기를 거친다 — 원장 amount 는 월정석, cost 는 코인이라 하드코딩 환산은
+// 틀리는 순간 정상 결제를 402 로 떨어뜨린다.
+assert.match(
+  fortuneSource,
+  /findAIPromptMonthlyCreditEvidence\(\{[^}]*cost[^}]*\}\)\s*\{[\s\S]{0,900}?calculateMembershipCreditCost\(cost\)/,
+  "findAIPromptMonthlyCreditEvidence 는 calculateMembershipCreditCost 로 환산한 금액 하한을 써야 한다",
 );
 
 // ── 시나리오 7: 멱등 마커 배열 상한 (무한 누적 병목) ──────────────────────────

@@ -695,7 +695,20 @@ async function runMonthlyCreditRefund({
   if (amount <= 0) return { refunded: false, skipped: true, reason: "MEMBERSHIP_CREDIT_AMOUNT_MISSING" };
 
   // 복원분은 신규 30일 lot으로 재적립(원래 lot의 만료를 되살리지 않음). lotId=refundSourceId로 멱등.
-  const updatedUser = await restoreMonthlyCreditLot({ userId, lotId: refundSourceId, amount });
+  // 🔴 pullRequestId 는 선택 인자가 아니다 — 차감 때 applyLotDeduction 이 recentConsumeRequestIds 에
+  // 밀어 넣은 purchaseId 를 여기서 빼 주지 않으면, 같은 purchaseId 재구매가 ALREADY_PROCESSED 로
+  // 402 를 맞고 E11000 이 안 나므로 키 해제 경로조차 돌지 않는다(= 환불받고 영영 못 여는 락).
+  // buildHistoryPayload 가 metadata.purchaseId 에 그 마커 값을 그대로 쓰므로 1:1로 되짚을 수 있다.
+  const consumeRequestId = cleanMetadataText(
+    metadata.purchaseId || metadata.idempotencyKey || metadata.orderId || metadata.requestId,
+    160,
+  );
+  const updatedUser = await restoreMonthlyCreditLot({
+    userId,
+    lotId: refundSourceId,
+    amount,
+    pullRequestId: consumeRequestId,
+  });
   if (!updatedUser) throw new Error("USER_NOT_FOUND_FOR_MONTHLY_CREDIT_REFUND");
 
   const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
@@ -726,6 +739,9 @@ async function runMonthlyCreditRefund({
     {
       $set: {
         "metadata.monthlyCreditRefundedForServiceExecution": true,
+        // 키 해제 계약 표식 — readIdempotentSpendResult(billing.js)의 PointHistory 갈래가 이 표식만
+        // 배제한다. 없으면 환불된 이력이 "이미 결제됨"으로 replay 돼 무료 재생성이 성립한다.
+        "metadata.monthlyCreditRefundedForUnlockFailure": true,
         "metadata.monthlyCreditRefundedAt": new Date(),
         "metadata.monthlyCreditRefundExecutionId": String(executionId || ""),
         "metadata.monthlyCreditRefundLedgerId": String(ledger?._id || ""),
@@ -740,6 +756,9 @@ async function runMonthlyCreditRefund({
       {
         $set: {
           "metadata.refundedForServiceExecution": true,
+          // 원장 쪽 키 해제 계약 표식 — releaseRefundedSpendSourceId 가 이 표식으로만 환불 원장을
+          // 골라 sourceId 를 비운다(재구매 가능하게).
+          "metadata.refundedForUnlockFailure": true,
           "metadata.refundedAt": new Date(),
           "metadata.refundExecutionId": String(executionId || ""),
           "metadata.refundLedgerId": String(ledger?._id || ""),
