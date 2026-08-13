@@ -16,7 +16,6 @@ let currentMode = 'camera';
 let _phyFrameCount = 0; // 프레임 스로틀용
 let _phyUploadToken = 0;
 let _phyAnalysisAbortController = null;
-let _phyLoadingTicker = null;
 let _phyLongWaitTimer = null;
 let _phyVeryLongWaitTimer = null;
 let _phyAnalysisSourceEl = null;
@@ -24,6 +23,7 @@ let _phyScrollSuppressUntil = 0;
 let _phyActiveSectionIndex = 0;
 let _phyMediaPipeReadyPromise = null;
 let _phyActiveLandmarkToken = 0;
+let _phyEnsemblePending = null; // 앙상블 패스 1건이 결과를 기다리는 resolve
 
 const PHY_FILE_HARD_LIMIT_BYTES = 20 * 1024 * 1024;
 const PHY_IMAGE_MAX_EDGE = 1280;
@@ -46,6 +46,20 @@ const PHY_LOADING_STEPS = [
   '관상적 특징을 해석으로 변환하고 있습니다.',
   'Code:Destiny 스타일로 결과를 정리하고 있습니다.'
 ];
+
+// ── 랜드마크 앙상블 ──
+// 검출 1회는 랜드마크마다 지터를 갖고, 그 지터가 faceRatio 같은 비율에 그대로 전파된다.
+// 서로 다른 입력(얼굴 크롭 · 미세 회전 · 대비 정규화)에서 얻은 좌표를 인덱스별 중앙값으로 합쳐
+// 그 분산을 깎는 것이 목적이다.
+// 🔴 해상도를 올리는 장치가 아니다 — FaceMesh 는 어차피 얼굴을 192×192 로 리샘플한다.
+//    이득은 "검출 ROI 를 여러 방식으로 흔들어 보고 중앙값을 취한다"는 분산 감소 쪽이다.
+//    (그래서 평균이 아니라 중앙값이다. 한 패스가 얼굴을 놓쳐도 결과가 끌려가지 않는다)
+const PHY_ENSEMBLE_PASS_TIMEOUT_MS = 8000;
+const PHY_ENSEMBLE_CROP_EDGE = 1280;
+const PHY_ENSEMBLE_TILT_DEG = 4;
+// 분석 화면 최소 표시 시간. 연산이 먼저 끝나면 남은 시간만큼 마지막 단계에서 기다렸다가 렌더한다.
+// (결과 카드 삽입 자체는 지연시키지 않는다 — 그건 예전에 '팝콘' 사고를 냈고 verify 가 막는다)
+const PHY_MIN_ANALYSIS_MS = 3200;
 
 // ── 궁합 분석 상태 변수 ──
 let compatMode = false;        // 궁합 모드 활성화 여부
@@ -293,6 +307,27 @@ styleLink.textContent = `
     font-weight: 700;
     color: #e2e8f0;
     line-height: 1.5;
+  }
+  .analysis-stage-progress {
+    margin-top: 10px;
+    height: 6px;
+    border-radius: 999px;
+    background: rgba(148,163,184,0.24);
+    overflow: hidden;
+  }
+  /* 레이아웃 스래싱을 피하려고 width 가 아니라 scaleX 로 채운다. */
+  .analysis-stage-progress-bar {
+    display: block;
+    height: 100%;
+    width: 100%;
+    transform: scaleX(0);
+    transform-origin: left center;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #a5b4fc, #34d399);
+    transition: transform 0.45s cubic-bezier(.22,1,.36,1);
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .analysis-stage-progress-bar { transition: none; }
   }
   .analysis-stage-sub {
     margin-top: 8px;
@@ -572,7 +607,8 @@ const appHtml = `
 
       <div class="analysis-stage-card" id="analysisStageCard">
         <div class="analysis-stage-label">ANALYSIS RITUAL</div>
-        <div class="analysis-stage-message" id="analysisStageMessage">얼굴형과 분위기 데이터를 분석 중입니다.</div>
+        <div class="analysis-stage-message" id="analysisStageMessage" aria-live="polite">얼굴형과 분위기 데이터를 분석 중입니다.</div>
+        <div class="analysis-stage-progress" id="analysisStageProgress" role="progressbar" aria-label="분석 진행률" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><span class="analysis-stage-progress-bar" id="analysisStageProgressBar"></span></div>
         <div class="analysis-stage-sub" id="analysisStageSub"></div>
         <div class="analysis-stage-actions">
           <button class="analysis-stage-btn" type="button" onclick="cancelPhysiognomyAnalysis()">취소</button>
@@ -752,20 +788,27 @@ function setAnalysisStageSub(message) {
   if (subEl) subEl.innerText = message || '';
 }
 
+// 진행률(0~1)에 문구와 막대를 함께 묶는다.
+// 예전에는 1700ms 타이머로 문구만 돌았고 실제 단계와 무관했다 — 분석이 즉시 끝나
+// 사용자는 1단계만 보고 결과를 받았다. 지금은 문구가 곧 실제 진행 상황이다.
+function setAnalysisProgress(ratio) {
+  const clamped = Math.max(0, Math.min(1, Number(ratio) || 0));
+  const bar = getEl('analysisStageProgressBar');
+  if (bar) bar.style.transform = 'scaleX(' + clamped.toFixed(4) + ')';
+  const track = getEl('analysisStageProgress');
+  if (track) track.setAttribute('aria-valuenow', String(Math.round(clamped * 100)));
+  const step = Math.min(PHY_LOADING_STEPS.length - 1, Math.floor(clamped * PHY_LOADING_STEPS.length));
+  setAnalysisStageMessage(PHY_LOADING_STEPS[step]);
+}
+
 function startAnalysisStepFlow() {
   stopAnalysisStepFlow();
   showAnalysisStage(true);
   const retryBtn = getEl('analysisRetryBtn');
   if (retryBtn) retryBtn.style.display = 'none';
 
-  let stepIndex = 0;
-  setAnalysisStageMessage(PHY_LOADING_STEPS[stepIndex]);
+  setAnalysisProgress(0);
   setAnalysisStageSub('잠시만 기다려 주세요. 분석 중에도 화면은 계속 반응합니다.');
-
-  _phyLoadingTicker = setInterval(() => {
-    stepIndex = (stepIndex + 1) % PHY_LOADING_STEPS.length;
-    setAnalysisStageMessage(PHY_LOADING_STEPS[stepIndex]);
-  }, 1700);
 
   _phyLongWaitTimer = setTimeout(() => {
     setAnalysisStageSub('조금 더 정밀하게 분석 중입니다. 곧 결과를 보여드릴게요.');
@@ -779,10 +822,6 @@ function startAnalysisStepFlow() {
 }
 
 function stopAnalysisStepFlow() {
-  if (_phyLoadingTicker) {
-    clearInterval(_phyLoadingTicker);
-    _phyLoadingTicker = null;
-  }
   if (_phyLongWaitTimer) {
     clearTimeout(_phyLongWaitTimer);
     _phyLongWaitTimer = null;
@@ -919,6 +958,171 @@ async function prepareImageForLandmark(file) {
     height: targetHeight,
     optimized: Boolean(optimizedDataUrl)
   };
+}
+
+// ── 랜드마크 앙상블 ──────────────────────────────────────────────────────────
+// 한 장의 사진을 서로 다른 방식으로 다시 보여 주고, 인덱스별 중앙값으로 좌표를 합친다.
+// 각 변형본은 랜드마크를 자기 캔버스 기준 정규화 좌표로 돌려주므로, 원본 이미지 기준으로
+// 되돌리는 map 함수를 canvas 와 한 쌍으로 들고 다닌다.
+
+function phyFaceBox(landmarks, imgW, imgH, padRatio) {
+  let minX = 1;
+  let minY = 1;
+  let maxX = 0;
+  let maxY = 0;
+  for (let i = 0; i < landmarks.length; i += 1) {
+    const p = landmarks[i];
+    if (!p || !isFinite(p.x) || !isFinite(p.y)) continue;
+    if (p.x < minX) minX = p.x;
+    if (p.y < minY) minY = p.y;
+    if (p.x > maxX) maxX = p.x;
+    if (p.y > maxY) maxY = p.y;
+  }
+  const w = maxX - minX;
+  const h = maxY - minY;
+  if (!(w > 0) || !(h > 0)) return null;
+
+  const x0 = Math.max(0, Math.floor((minX - w * padRatio) * imgW));
+  const y0 = Math.max(0, Math.floor((minY - h * padRatio) * imgH));
+  const x1 = Math.min(imgW, Math.ceil((maxX + w * padRatio) * imgW));
+  const y1 = Math.min(imgH, Math.ceil((maxY + h * padRatio) * imgH));
+  if (x1 - x0 < 64 || y1 - y0 < 64) return null;
+  return { x: x0, y: y0, w: x1 - x0, h: y1 - y0 };
+}
+
+// 얼굴만 잘라서 다시 보여 준다 — 검출기가 잡는 ROI 가 달라지므로 원본 패스와 오차가 독립적이다.
+function phyCropVariant(source, box, imgW, imgH, filter) {
+  const scale = Math.min(PHY_ENSEMBLE_CROP_EDGE / Math.max(box.w, box.h), 4);
+  const cw = Math.max(1, Math.round(box.w * scale));
+  const ch = Math.max(1, Math.round(box.h * scale));
+  const canvas = document.createElement('canvas');
+  canvas.width = cw;
+  canvas.height = ch;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) return null;
+  if (filter) ctx.filter = filter;
+  ctx.drawImage(source, box.x, box.y, box.w, box.h, 0, 0, cw, ch);
+  // z 는 x 와 같은 스케일(이미지 폭 기준 정규화)이라, 크롭 폭 기준으로 온 값을 원본 폭 기준으로 되돌린다.
+  const zScale = box.w / imgW;
+  return {
+    canvas: canvas,
+    map: function (p) {
+      return {
+        x: (box.x + p.x * box.w) / imgW,
+        y: (box.y + p.y * box.h) / imgH,
+        z: (Number(p.z) || 0) * zScale
+      };
+    }
+  };
+}
+
+// 이미지 평면에서 살짝 돌려 본다 — 검출기의 회전 의존 편향을 좌우로 갈라 중앙값에서 상쇄시킨다.
+function phyTiltVariant(source, deg, imgW, imgH) {
+  const rad = (deg * Math.PI) / 180;
+  const canvas = document.createElement('canvas');
+  canvas.width = imgW;
+  canvas.height = imgH;
+  const ctx = canvas.getContext('2d', { alpha: false });
+  if (!ctx) return null;
+  ctx.fillStyle = '#000000';
+  ctx.fillRect(0, 0, imgW, imgH);
+  ctx.translate(imgW / 2, imgH / 2);
+  ctx.rotate(rad);
+  ctx.drawImage(source, -imgW / 2, -imgH / 2, imgW, imgH);
+
+  const cos = Math.cos(-rad);
+  const sin = Math.sin(-rad);
+  return {
+    canvas: canvas,
+    map: function (p) {
+      const px = p.x * imgW - imgW / 2;
+      const py = p.y * imgH - imgH / 2;
+      return {
+        x: (imgW / 2 + px * cos - py * sin) / imgW,
+        y: (imgH / 2 + px * sin + py * cos) / imgH,
+        z: Number(p.z) || 0
+      };
+    }
+  };
+}
+
+function phySendForLandmarks(source, timeoutMs) {
+  const received = new Promise((resolve) => {
+    _phyEnsemblePending = resolve;
+  });
+  return Promise.resolve()
+    .then(function () { return faceMesh.send({ image: source }); })
+    .then(function () { return withTimeout(received, timeoutMs, 'ENSEMBLE_PASS_TIMEOUT'); })
+    .then(
+      function (value) { _phyEnsemblePending = null; return value; },
+      function (error) { _phyEnsemblePending = null; throw error; }
+    );
+}
+
+function phyMedianLandmarks(sets) {
+  const usable = sets.filter(function (s) { return Array.isArray(s) && s.length > 0; });
+  if (usable.length < 2) return usable[0] || null;
+
+  let count = usable[0].length;
+  for (let i = 1; i < usable.length; i += 1) count = Math.min(count, usable[i].length);
+
+  const middle = (values) => {
+    values.sort(function (a, b) { return a - b; });
+    const mid = values.length >> 1;
+    return values.length % 2 ? values[mid] : (values[mid - 1] + values[mid]) / 2;
+  };
+
+  const merged = new Array(count);
+  for (let i = 0; i < count; i += 1) {
+    const xs = [];
+    const ys = [];
+    const zs = [];
+    for (let s = 0; s < usable.length; s += 1) {
+      const p = usable[s][i];
+      if (!p || !isFinite(p.x) || !isFinite(p.y)) continue;
+      xs.push(p.x);
+      ys.push(p.y);
+      zs.push(Number(p.z) || 0);
+    }
+    merged[i] = xs.length ? { x: middle(xs), y: middle(ys), z: middle(zs) } : usable[0][i];
+  }
+  return merged;
+}
+
+// 업로드 시 이미 얻은 1패스(base)에 변형본 패스를 더해 중앙값으로 합친다.
+// 변형본이 하나도 성공하지 못하면 base 를 그대로 쓴다 — 정밀도를 못 올릴 뿐 결과는 나온다.
+async function refineLandmarksEnsemble(baseLandmarks, source, signal, onPassDone) {
+  const imgW = Math.round(Number((source && (source.naturalWidth || source.videoWidth || source.width)) || 0));
+  const imgH = Math.round(Number((source && (source.naturalHeight || source.videoHeight || source.height)) || 0));
+  const sets = [baseLandmarks];
+
+  if (!faceMesh || !source || !imgW || !imgH || !Array.isArray(baseLandmarks) || !baseLandmarks.length) {
+    if (typeof onPassDone === 'function') onPassDone(0, 0);
+    return { landmarks: baseLandmarks, passes: 1 };
+  }
+
+  const box = phyFaceBox(baseLandmarks, imgW, imgH, 0.25);
+  const variants = [];
+  if (box) variants.push(phyCropVariant(source, box, imgW, imgH, null));
+  variants.push(phyTiltVariant(source, -PHY_ENSEMBLE_TILT_DEG, imgW, imgH));
+  variants.push(phyTiltVariant(source, PHY_ENSEMBLE_TILT_DEG, imgW, imgH));
+  if (box) variants.push(phyCropVariant(source, box, imgW, imgH, 'contrast(1.15)'));
+
+  for (let i = 0; i < variants.length; i += 1) {
+    if (signal && signal.aborted) break;
+    const variant = variants[i];
+    if (variant) {
+      try {
+        const landmarks = await phySendForLandmarks(variant.canvas, PHY_ENSEMBLE_PASS_TIMEOUT_MS);
+        if (landmarks && landmarks.length) sets.push(landmarks.map(variant.map));
+      } catch (err) {
+        console.warn('앙상블 패스 실패(무시):', (err && err.message) || err);
+      }
+    }
+    if (typeof onPassDone === 'function') onPassDone(i + 1, variants.length);
+  }
+
+  return { landmarks: phyMedianLandmarks(sets) || baseLandmarks, passes: sets.length };
 }
 
 function extractDescriptionSection(descriptionHtml, sectionLabel) {
@@ -1390,6 +1594,13 @@ async function loadMediaPipeScripts() {
 }
 
 function onResults(results) {
+  // 앙상블 패스는 미리보기 캔버스·상태문구를 건드리지 않고 랜드마크만 넘긴다.
+  if (_phyEnsemblePending) {
+    const deliver = _phyEnsemblePending;
+    _phyEnsemblePending = null;
+    deliver((results && results.multiFaceLandmarks && results.multiFaceLandmarks[0]) || null);
+    return;
+  }
   if(!canvasCtx) return;
   if (currentMode === 'file' && _phyActiveLandmarkToken && _phyActiveLandmarkToken !== _phyUploadToken) return;
   canvasCtx.save();
@@ -1501,7 +1712,8 @@ async function startMediaPipe() {
   if(currentMode === 'camera') {
     camera = createCustomCamera(
       videoElement,
-      async () => { if(currentMode === 'camera' && !analysisComplete) { if (++_phyFrameCount % 2 === 0) await faceMesh.send({image: videoElement}); } },
+      // isAnalyzing 중에는 라이브 프레임을 보내지 않는다 — 앙상블 패스가 기다리는 onResults 를 가로챈다.
+      async () => { if(currentMode === 'camera' && !analysisComplete && !isAnalyzing) { if (++_phyFrameCount % 2 === 0) await faceMesh.send({image: videoElement}); } },
       320, 320
     );
     await camera.start();
@@ -1727,7 +1939,8 @@ window.startCapture = async function() {
     alert('얼굴이 제대로 인식되지 않았습니다. 밝은 곳에서 다시 시도해주세요.');
     return;
   }
-  const analysisLandmarks = landmarksData;
+  // 앙상블 결과로 갈아끼우므로 let 이다.
+  let analysisLandmarks = landmarksData;
 
   isAnalyzing = true;
   analysisComplete = false;
@@ -1746,12 +1959,14 @@ window.startCapture = async function() {
 
   const controller = new AbortController();
   _phyAnalysisAbortController = controller;
+  const analysisStartedAt = Date.now();
 
   try {
     await waitForUiFrame();
     await waitForUiFrame();
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
     if (!window.faceAnalysisEngine) throw new Error('분석 엔진 부재');
+    setAnalysisProgress(0.06);
 
     let expressionData = null;
     try {
@@ -1770,8 +1985,27 @@ window.startCapture = async function() {
     } catch (exErr) {
       console.warn('표정 감지 실패(무시):', exErr);
     }
+    setAnalysisProgress(0.16);
 
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
+
+    // ── 랜드마크 앙상블 ──
+    // 업로드 때 받은 1패스만 쓰면 그때의 검출 지터가 비율에 그대로 남는다.
+    // 여기서 변형본을 더 돌려 인덱스별 중앙값으로 좌표를 다시 잡는다.
+    const ensembleSource = (typeof currentMode !== 'undefined' && currentMode === 'file')
+      ? (_phyAnalysisSourceEl || document.getElementById('phyImage'))
+      : document.getElementById('phyVideo');
+    const ensemble = await refineLandmarksEnsemble(
+      analysisLandmarks,
+      ensembleSource,
+      controller.signal,
+      (done, total) => {
+        if (total > 0) setAnalysisProgress(0.16 + 0.64 * (done / total));
+      }
+    );
+    analysisLandmarks = ensemble.landmarks;
+    if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
+    setAnalysisProgress(0.82);
     // 종횡비 보정용: 랜드마크 소스 이미지의 W/H를 전달해 정규화 좌표 왜곡(세로형 셀카가 갸름 얼굴을 넓게 측정)을 교정
     const _phyAspectSrc = (typeof currentMode !== 'undefined' && currentMode === 'file')
       ? (_phyAnalysisSourceEl || document.getElementById('phyImage'))
@@ -1785,6 +2019,14 @@ window.startCapture = async function() {
       'ANALYSIS_TIMEOUT'
     );
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
+    setAnalysisProgress(0.96);
+
+    // 앙상블이 목표보다 일찍 끝나면 남은 시간만큼 분석 화면을 유지한다.
+    // 결과 렌더 자체는 지연시키지 않는다(카드 stagger 재도입 금지 계약).
+    const elapsedMs = Date.now() - analysisStartedAt;
+    if (elapsedMs < PHY_MIN_ANALYSIS_MS) await sleepMs(PHY_MIN_ANALYSIS_MS - elapsedMs);
+    if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
+    setAnalysisProgress(1);
 
     analysisComplete = true;
     stopAnalysisStepFlow();
