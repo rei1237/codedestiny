@@ -1,6 +1,11 @@
 # 검색엔진 등록 & 검증 가이드 — code-destiny.com (꿀꿀 운세)
 
-> 2026-07-04 SEO 정비 작업 기준. 배포(`deploy:cf:pages` + `deploy:cf:worker`) **완료 후** 아래 순서대로 진행하세요.
+> 2026-07-04 SEO 정비 작업 기준. **배포가 라이브에 반영된 뒤** 아래 순서대로 진행하세요.
+>
+> 🔴 2026-08-13 정정: 이 문서가 원래 안내하던 `deploy:cf:pages` / `deploy:cf:worker` 로컬 배포는
+> **폐기됐습니다.** 지금은 PR 을 머지하면 "Release Cloudflare Pages and Worker" 가 그 커밋으로
+> 자동 배포합니다(`scripts/lib/production-deploy-guard.mjs` 가 로컬 프로덕션 배포를 막습니다).
+> 아래 절차는 그 자동 배포가 끝난 뒤에 진행하면 됩니다.
 >
 > 이 사이트의 사이트맵은 **`https://code-destiny.com/sitemap.xml` 하나뿐**입니다.
 > `scripts/generate-sitemap.mjs`가 만들어 커밋하는 정적 파일이며, 배포 게이트
@@ -26,7 +31,7 @@
 
 ### 1-2. 인증
 
-**방법 A — DNS TXT (도메인 속성, 권장)**
+**방법 A — DNS TXT (도메인 속성, 권장)** — ✅ **2026-08-13 완료.** 존에 TXT 레코드가 반영되어 있으므로 아래는 재등록·다른 도메인 추가 시 참고용입니다. 방법 B 는 쓰지 않습니다.
 1. [search.google.com/search-console](https://search.google.com/search-console) → 속성 추가 → "도메인" 선택 → `code-destiny.com` 입력
 2. 표시되는 `google-site-verification=XXXX` TXT 값을 복사
 3. Cloudflare 대시보드 → code-destiny.com zone → **DNS → Records → Add record** → Type `TXT`, Name `@`, Content에 복사한 값 붙여넣기
@@ -35,8 +40,8 @@
 **방법 B — HTML 태그 (URL 접두어 속성)**
 1. GSC가 주는 `<meta name="google-site-verification" content="...">`의 `content` 값을 복사
 2. 코드 두 곳의 플레이스홀더를 실제 값으로 교체:
-   - `index.html` (루트) 약 306행 — 주석 처리된 `google-site-verification` 메타의 주석을 해제하고 값 교체 → **`npm run sync:public` 실행** (public/, static/, 로케일 사본으로 전파됨)
-   - `app/layout.js` 약 113행 — 주석 처리된 `verification: { google: ... }` 블록 주석 해제 + 값 교체
+   - `index.html` (루트) 약 413~415행 — 주석 처리된 `google-site-verification` 메타의 주석을 해제하고 값 교체 → **`npm run sync:public` 실행** (public/, static/, 로케일 사본으로 전파됨)
+   - `app/layout.js` 약 128~133행 — 주석 처리된 `verification: { google: ... }` 블록 주석 해제 + 값 교체
 3. 커밋 → 배포 → GSC에서 "확인"
 
 ### 1-3. 사이트맵 제출
@@ -140,7 +145,7 @@ npm run seo:check
 
 ## 7. 일본(및 다국어) 검색 유입 체크리스트
 
-2026-07 작업으로 다국어 색인이 개방되었습니다 (`SEO_INDEXABLE_LOCALES = ["ko","ja","zh","en"]`):
+2026-07 작업으로 다국어 색인이 개방되었습니다 (`SEO_INDEXABLE_LOCALES = ["ko","ja","zh","zh-TW","en"]` — `lib/i18n/locales.ts` 가 정본):
 - `/ja/`, `/zh/`, `/en/` 랜딩 셸: 해당 언어 title/description/키워드 + self-canonical + index 상태, 방문 시 자동 언어 전환
 - `/ja/ziwei/`, `/ja/sukuyo/`, `/ja/today/`, `/ja/insights/*`: 네이티브 일본어 SSR 페이지, hreflang 상호참조 포함
 - 사이트맵에 전 로케일 URL + `xhtml:link` hreflang 포함
@@ -162,4 +167,4 @@ npm run seo:check
 | `app/layout.js` | `metadata` 객체 내 주석 처리된 `verification.google` | 주석 해제 + 실제 코드 |
 | `app/layout.js` / `index.html` | `naver-site-verification` 2개 병기 중 | 서치어드바이저에서 유효 코드 확인 후 하나로 정리 |
 
-> 수정 후 반드시: `npm run sync:public` → 커밋 → `deploy:cf:pages` (index.html 계열은 Pages 배포만으로 반영)
+> 수정 후 반드시: `npm run sync:public` → 커밋 → PR 머지(머지가 곧 배포). index.html 계열은 Pages 배포만으로 반영된다.

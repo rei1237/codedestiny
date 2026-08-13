@@ -998,15 +998,24 @@ function verifyGeneratedPaidFeatureRoutesNoAdsense(baseDir) {
   assert(paidRouteCount > 0, `${baseDir}: no paid feature routes were checked`);
 }
 
+// 2026-08-13: /famous-saju/<slug> 는 /insights/famous-saju/<slug> 와 같은 페이지를 두 URL 로
+// 빌드해 130개를 중복 크롤시켰다. 라우트를 지우고 public/_redirects 의 301 로 대체했다.
+// 그래서 이 가드의 계약이 바뀌었다 — "alias 가 noindex 인가" 대신
+// "alias 가 다시 빌드되지 않는가" + "정본 상세가 noindex 를 유지하는가".
+// 후자는 예전 구현에서 self-canonical 이라는 이유로 전부 건너뛰어(구 :1019) 사실상
+// 검사되지 않던 부분이라, 이 변경은 커버리지를 줄이는 게 아니라 늘린다.
 function verifyFamousSajuAliasRoutesNoindex(baseDir) {
   const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
-  let aliasRouteCount = 0;
+  const rebuiltAliasRoutes = [];
+  let detailRouteCount = 0;
 
   for (const absolutePath of htmlFiles) {
     const route = routeFromHtmlPath(baseDir, absolutePath);
-    const isTopLevelAlias = matchesFamousSajuAliasRoute(route);
-    const isInsightsDetail = matchesInsightsFamousSajuDetailRoute(route);
-    if (!isTopLevelAlias && !isInsightsDetail) continue;
+    if (matchesFamousSajuAliasRoute(route)) {
+      rebuiltAliasRoutes.push(route);
+      continue;
+    }
+    if (!matchesInsightsFamousSajuDetailRoute(route)) continue;
 
     const htmlPath = relative(rootDir, absolutePath).replace(/\\/g, "/");
     const html = readFileUtf8WithRetry(absolutePath);
@@ -1014,26 +1023,25 @@ function verifyFamousSajuAliasRoutesNoindex(baseDir) {
     const googleBot = getMetaContent(html, "googlebot").toLowerCase();
     const canonical = getCanonical(html);
     const canonicalPath = canonicalPathnameFromUrl(canonical);
-    const normalizedRoute = route.replace(/\/+$/, "") || "/";
-    const isInsightsAlias = isInsightsDetail && canonicalPath !== normalizedRoute;
-    if (!isTopLevelAlias && !isInsightsAlias) continue;
-    aliasRouteCount += 1;
-
     const currentHref = `${siteOrigin}${route === "/" ? "" : route}/`;
-    if (isTopLevelAlias) {
-      assert(!canLoadAdsense(route), `${route}: famous-saju alias route policy should block AdSense`);
-    }
+    detailRouteCount += 1;
+
+    assert(!canLoadAdsense(route), `${route}: famous-saju detail route policy should block AdSense`);
     assert(
       !canLoadAdsenseForCanonicalUrl(route, canonical, currentHref),
-      `${route}: famous-saju alias canonical URL policy should block AdSense`,
+      `${route}: famous-saju detail canonical URL policy should block AdSense`,
     );
-    assert(!embedsAdsenseCode(html), `${htmlPath}: famous-saju alias route must not embed AdSense`);
-    assert(canonicalPath.startsWith("/insights/famous-saju/"), `${htmlPath}: famous-saju alias must canonicalize to insights`);
-    assert(robots.includes("noindex"), `${htmlPath}: famous-saju alias must contain noindex robots`);
-    assert(googleBot.includes("noindex"), `${htmlPath}: famous-saju alias googlebot must contain noindex`);
+    assert(!embedsAdsenseCode(html), `${htmlPath}: famous-saju detail route must not embed AdSense`);
+    assert(canonicalPath.startsWith("/insights/famous-saju/"), `${htmlPath}: famous-saju detail must canonicalize under insights`);
+    assert(robots.includes("noindex"), `${htmlPath}: famous-saju detail must contain noindex robots`);
+    assert(googleBot.includes("noindex"), `${htmlPath}: famous-saju detail googlebot must contain noindex`);
   }
 
-  assert(aliasRouteCount > 0, `${baseDir}: no famous-saju alias routes were checked`);
+  assert(
+    rebuiltAliasRoutes.length === 0,
+    `${baseDir}: /famous-saju/<slug> alias pages must not be built — they are 301'd in public/_redirects (found ${rebuiltAliasRoutes.length}, e.g. ${rebuiltAliasRoutes[0]})`,
+  );
+  assert(detailRouteCount > 0, `${baseDir}: no famous-saju detail routes were checked`);
 }
 
 function verifyPrivateNoindexRoutes(baseDir) {

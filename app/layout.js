@@ -125,7 +125,11 @@ export const metadata = {
     description: ROOT_SEO.ogDescription,
     images: [siteSeo.defaultOgImage],
   },
-  // verification: Google Search Console 등록 후 아래 주석을 해제하고 실제 코드를 넣을 것.
+  // verification: 손대지 말 것 — 2026-08-13 Cloudflare DNS TXT 로 GSC 도메인 속성 인증을 마쳤다.
+  // DNS 인증은 서브도메인과 http/https 를 전부 커버하므로 이 메타태그는 필요 없다.
+  // (아래 주석은 URL 접두어 속성을 따로 만들 때를 위한 참고로만 남긴다. 정적 셸의 같은
+  //  placeholder 도 주석 안이라 아무것도 나가지 않는다.)
+  // 원래 안내: Google Search Console 등록 후 아래 주석을 해제하고 실제 코드를 넣을 것.
   // GSC(https://search.google.com/search-console) → 속성 추가 → "HTML 태그" 방식의 content 값.
   // 정적 홈(index.html)의 <head>에도 동일한 <meta name="google-site-verification">를 넣어야 함(루트 index.html 수정 후 npm run sync:public).
   // verification: {

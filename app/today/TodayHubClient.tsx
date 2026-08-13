@@ -7,13 +7,16 @@
 //
 // 계산은 lib/lock-screen-daily-fortune.ts 의 getDailyFortune() 을 그대로 읽어 쓴다(read-only).
 // output:"export" 정적 빌드라 빌드 시점 날짜가 굳지 않도록 반드시 마운트 후에 계산한다.
-// 그래서 이 컴포넌트의 텍스트는 SEO 텍스트 카운트에 잡히지 않으며,
-// 하단의 SeoLandingTemplate 콘텐츠가 배포 게이트(광고 불가·색인 가능 라우트 최소 1800자)를 지탱한다.
+// 날짜·운세 값은 마운트 후에 채워지므로 그 부분은 SEO 텍스트 카운트에 잡히지 않는다.
+// 배포 게이트(광고 불가·색인 가능 라우트 최소 1800자)를 지탱하는 것은 children 으로 들어오는
+// 서버 렌더 해설 섹션(TodayReadingGuide)이다.
+// ⚠️ 이 자리에 예전 주석은 "하단의 SeoLandingTemplate 이 지탱한다"고 적혀 있었지만 사실이 아니었다 —
+//    /today 는 그 템플릿을 마운트한 적이 없고, 게이트는 골격 텍스트만으로 아슬아슬하게 통과 중이었다.
 //
 // 무료다. 어떤 결제 게이트도 로그인 요구도 걸지 않는다.
 
 import Link from "next/link";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getDailyFortune, type DailyFortune } from "@/lib/lock-screen-daily-fortune";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 
@@ -96,7 +99,9 @@ function FortuneCard({ fortune }: { fortune: DailyFortune }) {
   );
 }
 
-export default function TodayHubClient() {
+// children 은 page.js 가 넘기는 서버 렌더 해설 섹션이다. 클라이언트 컴포넌트의 children 으로
+// 들어와도 서버에서 렌더되므로, 배포 게이트가 세는 본문 분량에 그대로 포함된다.
+export default function TodayHubClient({ children }: { children?: ReactNode }) {
   const { seed } = useAiProfileSeed();
   // 마운트 후에만 계산한다(정적 빌드에 날짜가 굳는 것을 막고, 자정을 넘겨도 새로고침이면 갱신된다).
   const [now, setNow] = useState<Date | null>(null);
@@ -207,6 +212,8 @@ export default function TodayHubClient() {
             {sharing ? "이미지 만드는 중…" : "📸 오늘의 운세 공유하기"}
           </button>
         </div>
+
+        {children}
 
         {/* 더 깊게 보기 */}
         <h3 className="mt-16 break-keep text-lg font-extrabold text-white">더 깊게 보기</h3>

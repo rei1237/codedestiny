@@ -73,7 +73,7 @@
 /sukuyo/calendar*
   X-Robots-Tag: noindex, nofollow
 /tarot/year*
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 /tarot/healing*
   X-Robots-Tag: noindex, nofollow
 # 아래 셸 사본 라우트들은 홈이 가장 많이 링크하는 대상이다. nofollow 였을 때는
@@ -103,26 +103,26 @@
 /saju/basic*
   X-Robots-Tag: noindex, follow
 /saju/sibyl*
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 /tarot/mingri*
   X-Robots-Tag: noindex, follow
 /tarot/love*
   X-Robots-Tag: noindex, follow
 /tarot/reunion*
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 /tarot/self-esteem*
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 /astrology/cosmic*
   X-Robots-Tag: noindex, follow
 /oracle/sukuyo*
   X-Robots-Tag: noindex, follow
 /oracle/juyuk*
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 # 🔴 `/oracle/hwatu*` 로 합치지 말 것 — 색인 대상인 `/oracle/hwatu-life` 를 삼킨다.
 /oracle/hwatu
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 /oracle/hwatu/*
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 # 크롤러 가시 텍스트가 124~1,033자뿐인 인터랙티브 도구·게임 화면.
 # canonical/robots meta 가 아예 없는 상태로 홈 타일에서 직접 링크된다.
 # 기능·링크는 그대로 두고 색인만 막는다(AdSense inventory value: 저가치 화면).

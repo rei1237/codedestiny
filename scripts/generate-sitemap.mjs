@@ -117,7 +117,6 @@ const coreRoutes = [
   { path: "/destiny-compass", changefreq: "weekly", priority: 0.9 },
   { path: "/reviews", changefreq: "daily", priority: 0.85 },
   { path: "/today", changefreq: "daily", priority: 0.97 },
-  { path: "/daily-fortune", changefreq: "daily", priority: 0.97 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
   { path: "/saju/compatibility", changefreq: "weekly", priority: 0.96 },
   { path: "/tarot", changefreq: "weekly", priority: 0.96 },
