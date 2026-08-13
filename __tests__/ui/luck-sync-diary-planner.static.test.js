@@ -88,7 +88,8 @@ test("diary tabs keep their tablist wiring", () => {
     has(diary, new RegExp(`id="lsdPanel${cap}"[^>]*role="tabpanel"`), `panel ${cap} missing`);
   }
 
-  for (const key of ["ArrowRight", "ArrowLeft", "Home", "End"]) {
+  // 데스크탑은 세로 레일이라 위/아래도 이동해야 한다.
+  for (const key of ["ArrowRight", "ArrowLeft", "ArrowUp", "ArrowDown", "Home", "End"]) {
     has(diary, new RegExp(`'${key}'`), `tab keyboard handler lost ${key}`);
   }
 });

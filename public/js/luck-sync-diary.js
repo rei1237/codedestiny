@@ -3553,6 +3553,7 @@ return true;
         '.lsd-tabs{display:flex;gap:8px;padding:11px 14px;overflow-x:auto;background:linear-gradient(180deg,var(--lsd-surface-2),var(--lsd-surface-2));border-bottom:1px solid var(--lsd-border);flex-shrink:0;scrollbar-width:none;-ms-overflow-style:none}.lsd-tabs::-webkit-scrollbar{display:none}',
         '.lsd-tab{background:var(--lsd-surface);border:1px solid var(--lsd-border);color:var(--lsd-accent-ink);min-height:40px;padding:9px 14px;border-radius:var(--lsd-r-pill);font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-semibold);box-shadow:0 5px 14px rgba(146,75,130,.08)}.lsd-tab:hover{background:var(--lsd-surface-2);color:var(--lsd-accent-ink);border-color:var(--lsd-border-strong)}.lsd-tab.is-active{background:linear-gradient(135deg,var(--lsd-accent),var(--lsd-accent));color:var(--lsd-head-ink);border-color:transparent;box-shadow:0 8px 20px rgba(217,70,158,.28)}',
         '.lsd-scroll-area{flex:1;overflow-y:auto;background:linear-gradient(180deg,var(--lsd-surface-2),var(--lsd-surface-2) 44%,var(--lsd-surface));scrollbar-width:thin}.lsd-panel{padding:14px;animation:lsdSlideUp .24s ease}.lsd-panel-intro{background:linear-gradient(135deg,var(--lsd-surface),var(--lsd-surface-2));border:1px solid var(--lsd-border);border-radius:var(--lsd-r-lg);padding:11px 13px;margin-bottom:12px;color:var(--lsd-ink-muted);font-size:var(--lsd-t-body);font-weight:var(--lsd-w-medium);line-height:1.45;box-shadow:0 8px 18px rgba(146,75,130,.06)}',
+        '.lsd-shell-foot{position:sticky;bottom:0;z-index:3;display:flex;justify-content:flex-end;padding:10px var(--lsd-pad-panel) 14px;background:var(--lsd-surface);border-top:1px solid var(--lsd-border)}',
         '.lsd-card{background:rgba(255,255,255,.94);border:1px solid var(--lsd-border);border-radius:var(--lsd-r-xl);padding:14px 15px;margin-bottom:12px;box-shadow:0 12px 30px rgba(65,31,92,.08)}.lsd-card-title{font-size:var(--lsd-t-lead);font-weight:var(--lsd-w-semibold);color:var(--lsd-ink);margin:0 0 3px}.lsd-card-sub{font-size:var(--lsd-t-body-s);color:var(--lsd-ink-muted);margin:0 0 12px;line-height:1.45}.lsd-card-soft{background:linear-gradient(135deg,var(--lsd-surface),var(--lsd-surface-2) 54%,var(--lsd-surface-2));border:1px solid var(--lsd-border);border-radius:var(--lsd-r-xl);padding:14px 15px;margin-bottom:12px;box-shadow:0 12px 28px rgba(168,85,247,.1)}',
         '.lsd-widget-kicker{font-size:var(--lsd-t-caption);font-weight:var(--lsd-w-semibold);color:var(--lsd-accent-ink);text-transform:uppercase;letter-spacing:.14em;margin:0 0 8px}.lsd-day-master{font-size:var(--lsd-t-section);font-weight:var(--lsd-w-semibold);color:var(--lsd-ink);margin-bottom:8px;line-height:1.18}',
         '.lsd-mini-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;margin-bottom:12px}.lsd-mini-card{background:linear-gradient(145deg,var(--lsd-surface),var(--lsd-surface-2));border:1px solid var(--lsd-border);border-radius:var(--lsd-r-lg);padding:11px 12px;min-height:76px;box-shadow:0 8px 18px rgba(146,75,130,.07)}.lsd-mini-card span{display:block;font-size:var(--lsd-t-caption);font-weight:var(--lsd-w-semibold);color:var(--lsd-accent-ink);margin-bottom:6px}.lsd-mini-card b{display:block;font-size:var(--lsd-t-title);font-weight:var(--lsd-w-semibold);color:var(--lsd-ink);line-height:1.22}.lsd-mini-card small{display:block;margin-top:4px;font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted);line-height:1.35}',
@@ -3572,6 +3573,17 @@ return true;
         '.lsd-confirm-overlay{position:absolute;inset:0;z-index:34;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(15,23,42,.42);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px)}.lsd-confirm-card{width:min(340px,100%);border-radius:var(--lsd-r-xl);border:1px solid var(--lsd-border);background:var(--lsd-surface);padding:18px;box-shadow:0 24px 56px rgba(15,23,42,.28)}.lsd-confirm-title{margin:0 0 6px;font-size:var(--lsd-t-lead);font-weight:var(--lsd-w-semibold);color:var(--lsd-ink)}.lsd-confirm-copy{margin:0;font-size:var(--lsd-t-body);line-height:1.55;color:var(--lsd-ink-muted);font-weight:var(--lsd-w-regular)}.lsd-confirm-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:16px}.lsd-confirm-cancel,.lsd-confirm-delete{border-radius:var(--lsd-r-pill);padding:9px 14px;font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);cursor:pointer}.lsd-confirm-cancel{border:1px solid var(--lsd-border-strong);background:var(--lsd-surface);color:var(--lsd-ink-muted)}.lsd-confirm-delete{border:1px solid var(--lsd-danger);background:var(--lsd-grade-vb-bg);color:var(--lsd-danger)}',
         '@keyframes lsdSoftCheck{0%{transform:scale(.78)}70%{transform:scale(1.12)}100%{transform:scale(1)}}',
         '@media (min-width:760px){.lsd-hero-grid{grid-template-columns:minmax(0,1fr) minmax(260px,auto);align-items:end;gap:28px}.lsd-panel{padding:16px 18px 18px}.lsd-mini-grid{grid-template-columns:repeat(4,minmax(0,1fr))}.lsd-mood-grid{grid-template-columns:repeat(6,minmax(0,1fr))}.lsd-sats-player{height:230px}}',
+        '@media (min-width:1024px){',
+        '.lsd-shell{display:grid;grid-template-columns:236px minmax(0,1fr);grid-template-rows:auto minmax(0,1fr);grid-template-areas:"hero hero" "rail main";max-width:1180px;max-height:min(92vh,900px)}',
+        '.lsd-drag-handle{display:none}',
+        '.lsd-hero{grid-area:hero;padding:26px 32px 22px}',
+        '.lsd-hero:after{left:32px;right:32px}',
+        '.lsd-tabs{grid-area:rail;flex-direction:column;align-items:stretch;gap:2px;padding:18px 12px;overflow:hidden auto;min-height:0;background:var(--lsd-surface-2);border-bottom:none;border-right:1px solid var(--lsd-border)}',
+        '.lsd-tab{width:100%;justify-content:flex-start;text-align:left;padding:11px 12px 11px 14px;border-radius:var(--lsd-r-md);border-color:transparent;background:transparent;box-shadow:none;font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);color:var(--lsd-ink-muted)}',
+        '.lsd-tab:hover{background:var(--lsd-surface);color:var(--lsd-accent-ink);border-color:transparent}',
+        '.lsd-tab.is-active{background:var(--lsd-accent-wash);color:var(--lsd-accent-ink);font-weight:var(--lsd-w-semibold);box-shadow:inset 3px 0 0 var(--lsd-accent)}',
+        '.lsd-scroll-area{grid-area:main;min-height:0;overflow-y:auto}',
+        '}',
         '@media (max-width:420px){.lsd-routine-head{display:grid}.lsd-mini-grid{grid-template-columns:1fr 1fr}.lsd-sats-track{grid-template-columns:52px minmax(0,1fr);align-items:start}.lsd-sats-track-actions{grid-column:2}.lsd-sats-play-btn{width:100%}}',
         '.lsd-confetti-wrap{position:fixed;inset:0;pointer-events:none;z-index:1000001}',
         '.lsd-confetti-bit{position:absolute;top:42vh;width:8px;height:14px;border-radius:var(--lsd-r-xs);opacity:.9;animation:lsdConfettiDrop .95s ease-out forwards}',
@@ -3846,7 +3858,7 @@ return true;
       '</div>',
       '<div id="lsdHistoryList" style="display:flex;flex-direction:column;gap:8px"></div>',
       '</section>',
-      '<div style="padding:10px 14px 14px;background:#fff;border-top:1px solid #eef2ff;display:flex;justify-content:flex-end;flex-shrink:0">',
+      '<div class="lsd-shell-foot">',
       '<button type="button" data-action="closeLuckSyncDiary" style="padding:9px 16px;border-radius:999px;border:1.5px solid #c4b5fd;background:#faf5ff;color:#6d28d9;font-size:.74rem;font-weight:800;cursor:pointer">닫기</button>',
       '</div>',
       '</div>',
@@ -4088,6 +4100,22 @@ return true;
     var tabs = Array.prototype.slice.call(modal.querySelectorAll('.lsd-tab'));
     var lastTouchTabAt = 0;
 
+    /* 탭은 데스크탑에서 세로 레일, 모바일에서 가로 줄이다. aria-orientation 이
+       실제 방향과 어긋나면 스크린리더에 잘못된 모델을 주므로 뷰포트를 따라간다. */
+    var tabList = modal.querySelector('.lsd-tabs');
+    if (tabList && typeof window.matchMedia === 'function') {
+      var railQuery = window.matchMedia('(min-width:1024px)');
+      var syncTabOrientation = function () {
+        tabList.setAttribute('aria-orientation', railQuery.matches ? 'vertical' : 'horizontal');
+      };
+      syncTabOrientation();
+      if (typeof railQuery.addEventListener === 'function') {
+        railQuery.addEventListener('change', syncTabOrientation);
+      } else if (typeof railQuery.addListener === 'function') {
+        railQuery.addListener(syncTabOrientation);
+      }
+    }
+
     function activateTab(tabEl) {
       if (!tabEl) return;
       var tabId = tabEl.getAttribute('data-tab') || 'dashboard';
@@ -4129,6 +4157,9 @@ return true;
 
       tab.addEventListener('keydown', function (ev) {
         var key = ev.key;
+        // 데스크탑에서는 탭이 세로 레일이라 위/아래도 같은 이동이어야 한다.
+        if (key === 'ArrowDown') key = 'ArrowRight';
+        else if (key === 'ArrowUp') key = 'ArrowLeft';
         if (key === 'ArrowRight' || key === 'ArrowLeft' || key === 'Home' || key === 'End') {
           ev.preventDefault();
           var nextIndex = idx;

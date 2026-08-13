@@ -11,7 +11,7 @@ const { JSDOM } = require("jsdom");
 
 const root = path.resolve(__dirname, "../..");
 
-function openDiary() {
+function openDiary({ desktop = false } = {}) {
   const dom = new JSDOM("<!doctype html><html><body></body></html>", {
     url: "https://code-destiny.com/",
     pretendToBeVisual: true,
@@ -20,10 +20,11 @@ function openDiary() {
     runScripts: "outside-only",
   });
   const { window } = dom;
-  window.matchMedia = window.matchMedia || ((q) => ({
-    matches: false, media: q,
+  // jsdom 은 레이아웃을 하지 않으므로 뷰포트는 matchMedia 로만 흉내 낼 수 있다.
+  window.matchMedia = (q) => ({
+    matches: desktop && /min-width:\s*1024px/.test(q), media: q,
     addEventListener() {}, removeEventListener() {}, addListener() {}, removeListener() {},
-  }));
+  });
 
   const warnings = [];
   window.console = Object.assign({}, console, { warn: (...a) => warnings.push(a.join(" ")) });
@@ -96,6 +97,37 @@ test("diary tabs and runtime-inserted blocks land where the layout expects", () 
     "lsdEmotionCard",
     "#lsdEmotionCard is no longer the history panel's first child",
   );
+});
+
+test("tab list reports the orientation it actually has", () => {
+  const mobile = openDiary().doc.querySelector(".lsd-tabs");
+  assert.equal(mobile.getAttribute("aria-orientation"), "horizontal", "mobile tabs should read as horizontal");
+
+  const desktop = openDiary({ desktop: true }).doc.querySelector(".lsd-tabs");
+  assert.equal(desktop.getAttribute("aria-orientation"), "vertical", "desktop rail should read as vertical");
+});
+
+test("desktop tier lays the shell out as a rail beside the content", () => {
+  const { doc } = openDiary({ desktop: true });
+  const css = doc.getElementById("lsd-tw-styles")?.textContent || "";
+
+  // 1024px 블록은 두 개다: 앞은 토큰 확대값, 뒤가 레이아웃. 레이아웃 쪽을 잡는다.
+  const tierStart = css.indexOf("@media (min-width:1024px){.lsd-shell{display:grid");
+  assert.ok(tierStart > 0, "desktop layout tier missing entirely");
+  const tier = css.slice(tierStart);
+  assert.ok(tier.includes('grid-template-areas:"hero hero" "rail main"'), "shell is not laid out as hero over rail+main");
+
+  // grid row 가 minmax(0,1fr) 이어도 아이템에 min-height:0 이 없으면
+  // .lsd-scroll-area 가 스크롤하지 않고 셸이 max-height 를 뚫는다.
+  const scrollRule = tier.slice(tier.indexOf(".lsd-scroll-area{"));
+  assert.ok(/min-height:0/.test(scrollRule.slice(0, 120)), ".lsd-scroll-area needs min-height:0 to actually scroll");
+  const railRule = tier.slice(tier.indexOf(".lsd-tabs{"));
+  assert.ok(/min-height:0/.test(railRule.slice(0, 260)), ".lsd-tabs rail needs min-height:0");
+
+  // 배열 순서 = 캐스케이드 순서. 데스크탑 블록이 기본 규칙보다 앞서면 조용히 무효가 된다.
+  for (const base of [".lsd-shell{position:relative", ".lsd-scroll-area{flex:1", ".lsd-tabs{display:flex"]) {
+    assert.ok(css.indexOf(base) < tierStart, `desktop tier must come after the base rule ${base}`);
+  }
 });
 
 test("diary injects its token block before any rule can reference it", () => {
