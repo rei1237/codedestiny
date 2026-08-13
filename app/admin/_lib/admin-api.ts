@@ -1,6 +1,6 @@
 // 관리자 CMS 전용 fetch 헬퍼.
 // 인증은 기존 꽃 admin 토큰(x-admin-token) 방식을 그대로 쓴다 — 새 인증 체계를 만들지 않는다.
-import { getApiBaseUrl } from "../../../_lib/api-config";
+import { getApiBaseUrl } from "../../_lib/api-config";
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const LOCAL_ADMIN_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);

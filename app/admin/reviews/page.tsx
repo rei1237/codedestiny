@@ -1,7 +1,6 @@
 "use client";
 
-import Link from "next/link";
-import { Check, ExternalLink, LogOut, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
+import { Check, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../../_lib/api-config";
 
@@ -373,14 +372,6 @@ export default function AdminReviewsPage() {
               <p className="text-xs text-slate-400">
                 검수 대기 {counts.pending || 0} · 승인 {counts.approved || 0} · 반려 {counts.rejected || 0}
               </p>
-            </div>
-            <div className="flex gap-2">
-              <Link href="/admin/content" className={commandButtonClass()} aria-label="글 편집으로 이동">
-                <ExternalLink className="h-4 w-4" />
-              </Link>
-              <button type="button" onClick={redirectToLogin} className={commandButtonClass()} aria-label="로그아웃">
-                <LogOut className="h-4 w-4" />
-              </button>
             </div>
           </div>
 

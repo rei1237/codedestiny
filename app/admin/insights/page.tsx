@@ -1,10 +1,10 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getApiBaseUrl } from "../../_lib/api-config";
+import { getFlowerAdminToken, resolveAdminCredentials } from "../_lib/admin-api";
 
 type InsightStatus = "draft" | "scheduled" | "published" | "archived" | "private" | "trash";
 type FilterKey = "all" | InsightStatus;
@@ -1211,46 +1211,16 @@ const PROMPT_LAB_EARTH_STORAGE_SCOPE_OPTIONS: Array<{ key: PromptLabEarthStorage
   { key: "all" },
 ];
 
-const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
-const LOCAL_ADMIN_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
-
-function isLocalAdminHost(hostname: string): boolean {
-  return LOCAL_ADMIN_HOSTS.has(String(hostname || "").trim().toLowerCase());
-}
-
-function getFlowerAdminTokenClient(): string {
-  if (typeof window === "undefined") return "";
-
-  try {
-    const fromSession = String(sessionStorage.getItem("flower_admin_token") || "").trim();
-    if (FLOWER_ADMIN_TOKEN_RE.test(fromSession)) return fromSession;
-  } catch {}
-
-  return "";
-}
+/* 토큰 처리는 app/admin/_lib/admin-api.ts 하나만 쓴다.
+   예전에는 이 파일과 /admin/content 가 같은 로직을 따로 구현해 세 벌이 돌아다녔다. */
+const resolveAdminRequestCredentials = resolveAdminCredentials;
+const getFlowerAdminTokenClient = getFlowerAdminToken;
 
 function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = { ...(extraHeaders || {}) };
   const adminToken = getFlowerAdminTokenClient();
   if (adminToken) headers["x-admin-token"] = adminToken;
   return headers;
-}
-
-function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
-  if (typeof window === "undefined") return "include";
-
-  const base = String(apiBase || "").trim();
-  if (!base) return "include";
-
-  try {
-    const target = new URL(base);
-    const current = new URL(window.location.origin);
-    if (target.origin === current.origin) return "include";
-    if (isLocalAdminHost(target.hostname) && isLocalAdminHost(current.hostname)) return "include";
-    return "omit";
-  } catch {
-    return "include";
-  }
 }
 
 function getAdminInsightsCopy(locale: LoadingLocale) {
@@ -2194,37 +2164,8 @@ export default function AdminInsightsPage() {
         </section>
 
         <section className="grid grid-cols-1 lg:grid-cols-12 gap-4">
-          <aside className="lg:col-span-3 rounded-2xl border border-[#2a2a3e] bg-[#13131f] p-3">
-            <p className="text-xs uppercase tracking-wider text-slate-500 px-2 py-1">{copy.menuTitle}</p>
-            <nav className="mt-2 space-y-1">
-              <Link
-                href="/admin/content"
-                className="block rounded-lg px-3 py-2 text-sm bg-violet-900/40 border border-violet-700 text-violet-100"
-              >
-                {copy.contentManagement}
-              </Link>
-              <Link
-                href="/admin/insights"
-                className="block rounded-lg px-3 py-2 text-sm bg-slate-800 border border-slate-700 text-slate-200"
-              >
-                {copy.insightView}
-              </Link>
-              <Link
-                href="/admin/reviews"
-                className="block rounded-lg px-3 py-2 text-sm bg-emerald-950/50 border border-emerald-800 text-emerald-100"
-              >
-                {copy.reviewManagement}
-              </Link>
-              <a
-                href="#adminPromptLab"
-                className="block rounded-lg px-3 py-2 text-sm bg-amber-950/40 border border-amber-800 text-amber-100"
-              >
-                {copy.promptLabNav}
-              </a>
-            </nav>
-          </aside>
 
-          <section className="lg:col-span-9 rounded-2xl border border-[#2a2a3e] bg-[#13131f] p-4 space-y-4">
+          <section className="lg:col-span-12 rounded-2xl border border-[#2a2a3e] bg-[#13131f] p-4 space-y-4">
             <div className="flex flex-wrap gap-2">
               {FILTER_OPTIONS.map((option) => {
                 const active = filter === option.key;

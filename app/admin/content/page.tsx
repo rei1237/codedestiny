@@ -8,7 +8,6 @@ import Link from "next/link";
 import {
   Archive,
   Bold,
-  BookOpen,
   Clock,
   ExternalLink,
   Eye,
@@ -20,8 +19,6 @@ import {
   Link as LinkIcon,
   List,
   ListOrdered,
-  LogOut,
-  MessageSquare,
   Plus,
   Quote,
   RefreshCw,
@@ -35,6 +32,7 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getApiBaseUrl } from "../../_lib/api-config";
+import { clearAdminToken, getFlowerAdminToken, resolveAdminCredentials } from "../_lib/admin-api";
 import { uploadInsightImage } from "../insights/_lib/imageUpload";
 import { sanitizeInsightHtml } from "../insights/_lib/sanitizeContent";
 
@@ -163,8 +161,6 @@ type FormState = {
   scheduledAt: string;
 };
 
-const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
-const LOCAL_ADMIN_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
 
 type AdminContentCopy = {
   types: Record<ContentType, string>;
@@ -550,47 +546,17 @@ const EMPTY_PAGINATION: Pagination = {
   totalPages: 1,
 };
 
-function isLocalAdminHost(hostname: string): boolean {
-  return LOCAL_ADMIN_HOSTS.has(String(hostname || "").trim().toLowerCase());
-}
 
-function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
-  if (typeof window === "undefined") return "include";
-  const base = String(apiBase || "").trim();
-  if (!base) return "include";
-
-  try {
-    const target = new URL(base);
-    const current = new URL(window.location.origin);
-    if (target.origin === current.origin) return "include";
-    if (isLocalAdminHost(target.hostname) && isLocalAdminHost(current.hostname)) return "include";
-    return "omit";
-  } catch {
-    return "include";
-  }
-}
-
-function getFlowerAdminTokenClient(): string {
-  if (typeof window === "undefined") return "";
-
-  try {
-    const token = String(sessionStorage.getItem("flower_admin_token") || "").trim();
-    if (FLOWER_ADMIN_TOKEN_RE.test(token)) return token;
-  } catch {}
-
-  return "";
-}
+/* 토큰 처리는 app/admin/_lib/admin-api.ts 하나만 쓴다.
+   예전에는 이 파일과 /admin/insights 가 같은 로직을 따로 구현해 세 벌이 돌아다녔다. */
+const resolveAdminRequestCredentials = resolveAdminCredentials;
+const getFlowerAdminTokenClient = getFlowerAdminToken;
 
 function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
   const headers: Record<string, string> = { ...(extraHeaders || {}) };
   const token = getFlowerAdminTokenClient();
   if (token) headers["x-admin-token"] = token;
   return headers;
-}
-
-function clearAdminToken(): void {
-  try { sessionStorage.removeItem("flower_admin_token"); } catch {}
-  try { sessionStorage.removeItem("flower_admin_password_ok"); } catch {}
 }
 
 function getItemId(item: ContentItem): string {
@@ -1219,17 +1185,8 @@ export default function AdminContentPage() {
               <p className="text-xs text-slate-400">{pagination.total.toLocaleString("ko-KR")}개</p>
             </div>
             <div className="flex gap-2">
-              <Link href="/admin/cms" className={editorButtonClass()} title="콘텐츠 관리(AI 프롬프트·라이트 노벨·문구·FAQ)" aria-label="콘텐츠 관리">
-                <BookOpen className="h-4 w-4" />
-              </Link>
-              <Link href="/admin/reviews" className={editorButtonClass()} title="리뷰 관리" aria-label="리뷰 관리">
-                <MessageSquare className="h-4 w-4" />
-              </Link>
               <button type="button" onClick={startNewPost} className={editorButtonClass()} title="새 글">
                 <Plus className="h-4 w-4" />
-              </button>
-              <button type="button" onClick={redirectToLogin} className={editorButtonClass()} title={copy.logout}>
-                <LogOut className="h-4 w-4" />
               </button>
             </div>
           </div>

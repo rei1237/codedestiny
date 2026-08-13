@@ -5,7 +5,7 @@
 //
 // 🔴 전부 동적 import 다. 라이트 노벨 본문(episodes.generated.json)만 2MB 라서 정적으로 붙이면
 //    관리자 첫 화면이 그만큼 무거워진다. 해당 그룹을 열 때만 청크를 받는다.
-import { adminFetch } from "./admin-api";
+import { adminFetch } from "../../_lib/admin-api";
 
 export interface CmsBaseEntry {
   key: string;
