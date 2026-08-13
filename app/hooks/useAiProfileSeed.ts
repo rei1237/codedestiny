@@ -67,12 +67,14 @@ export function useAiProfileSeed(): {
     // 전환한 드문 경우 이 기기 반영이 늦어질 수 있지만, 카드 전환·재진입 시 destinyProfileChanged/
     // storage 이벤트가 그대로 재조회를 트리거하므로 실제 영향은 작다.
     if (!hasSeedContent(localSeed)) hydrateFromApi();
-    window.addEventListener("destinyProfileChanged", handleProfileChanged);
+    /* 🔴 document 한 곳에만 건다. 예전에는 window 에도 같이 걸었는데 destiny-profile.js 의 발행이
+       bubbles:true 라 같은 핸들러가 document·window 에서 **2번** 돌아 프로필 재조회가 매번 두 배로
+       나갔다. 남길 쪽은 document 다 — saju-engine.js 의 'manual-input' 발행에는 bubbles 가 없어
+       window 에는 애초에 닿지 않으므로, window 만 남기면 그 경로를 통째로 놓친다. */
     document.addEventListener("destinyProfileChanged", handleProfileChanged);
     window.addEventListener("storage", handleProfileStorage);
     return () => {
       cancelled = true;
-      window.removeEventListener("destinyProfileChanged", handleProfileChanged);
       document.removeEventListener("destinyProfileChanged", handleProfileChanged);
       window.removeEventListener("storage", handleProfileStorage);
     };

@@ -1789,12 +1789,11 @@ export default function YeonStarHugPage() {
     };
 
     syncProfileFromSource();
-    window.addEventListener("destinyProfileChanged", handleProfileChanged);
+    // 🔴 document 한 곳에만 건다(window 중복 등록 시 bubbles:true 발행이 핸들러를 2번 돌린다).
     document.addEventListener("destinyProfileChanged", handleProfileChanged);
     window.addEventListener("storage", handleProfileStorage);
     return () => {
       profileSyncVersionRef.current += 1;
-      window.removeEventListener("destinyProfileChanged", handleProfileChanged);
       document.removeEventListener("destinyProfileChanged", handleProfileChanged);
       window.removeEventListener("storage", handleProfileStorage);
     };

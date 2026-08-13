@@ -203,6 +203,7 @@
     "verify:profile-card-add-entry": "node scripts/verify-profile-card-add-entry.mjs",
     "verify:profile-current-switch": "node scripts/verify-profile-current-switch.mjs",
     "verify:profile-new-user": "node scripts/verify-profile-new-user-bootstrap.mjs",
+    "verify:profile-fresh-signup": "node scripts/verify-profile-fresh-signup-render.mjs",
     "verify:paid-gate-profile-scope": "node scripts/verify-paid-gate-profile-scope.mjs",
     "verify:profile-server-first": "node scripts/verify-profile-server-first.mjs",
     "verify:profile-client-first": "node scripts/verify-profile-client-first.mjs",
