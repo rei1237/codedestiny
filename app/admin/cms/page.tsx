@@ -19,7 +19,7 @@ import {
   getCmsNamespace,
   isValidCmsKey,
 } from "@/lib/cms/registry.mjs";
-import { AdminApiError, adminFetch } from "../_lib/admin-api";
+import { AdminApiError, adminFetch, describeAdminError } from "../_lib/admin-api";
 import { loadBaseEntries, type CmsBaseEntry } from "./_lib/base-values";
 import FieldEditor, { type CmsFieldDef } from "./_components/FieldEditor";
 import RevisionPanel, { type CmsRevision } from "./_components/RevisionPanel";
@@ -172,11 +172,7 @@ export default function AdminCmsPage() {
       setStale(Boolean(data?.stale));
       setError("");
     } catch (caught) {
-      if (caught instanceof AdminApiError && caught.status === 503) {
-        setError("데이터베이스가 일시적으로 응답하지 않습니다. 잠시 후 새로고침해 주세요.");
-        return;
-      }
-      setError(caught instanceof Error ? caught.message : "수정본 목록을 불러오지 못했습니다.");
+      setError(describeAdminError(caught, "수정본 목록을 불러오지 못했습니다.").message);
     }
   }, []);
 
@@ -278,7 +274,7 @@ export default function AdminCmsPage() {
           : `${CMS_STATUS_LABELS[status] || status} 상태로 저장했습니다.`);
       }
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "저장에 실패했습니다.");
+      setError(describeAdminError(caught, "저장에 실패했습니다.").message);
     } finally {
       savingRef.current = false;
       setSaving(false);
@@ -326,7 +322,7 @@ export default function AdminCmsPage() {
       setDraft({ ...effectiveBaseFields });
       setMessage("기본값으로 되돌렸습니다.");
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "되돌리기에 실패했습니다.");
+      setError(describeAdminError(caught, "되돌리기에 실패했습니다.").message);
     } finally {
       setSaving(false);
     }
@@ -346,7 +342,7 @@ export default function AdminCmsPage() {
       }
       setMessage(`v${version} 내용으로 복원했습니다. 확인 후 발행해 주세요.`);
     } catch (caught) {
-      setError(caught instanceof Error ? caught.message : "복원에 실패했습니다.");
+      setError(describeAdminError(caught, "복원에 실패했습니다.").message);
     } finally {
       setSaving(false);
     }
@@ -376,7 +372,7 @@ export default function AdminCmsPage() {
       const code = caught instanceof AdminApiError ? caught.code : "";
       setError(code === "DEPLOY_TOKEN_MISSING"
         ? "배포 토큰(GITHUB_DEPLOY_TOKEN)이 워커에 설정되지 않았습니다."
-        : (caught instanceof Error ? caught.message : "사이트 반영 요청에 실패했습니다."));
+        : describeAdminError(caught, "사이트 반영 요청에 실패했습니다.").message);
     } finally {
       setDeploying(false);
     }

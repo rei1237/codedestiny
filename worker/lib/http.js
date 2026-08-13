@@ -191,12 +191,43 @@ function publicErrorContract({ code, status, message, requestId }) {
 const PERMANENT_MONGO_ERROR_CODES = new Set([
   2, // BadValue
   9, // FailedToParse
+  14, // TypeMismatch
+  27, // IndexNotFound
+  28, // PathNotViable
   40, // ConflictingUpdateOperators
+  66, // ImmutableField
+  72, // InvalidOptions
   121, // DocumentValidationFailure
+  292, // QueryExceededMemoryLimitNoDiskUseAllowed
 ]);
 
+/* 드라이버가 "호출 형태가 틀렸다"고 즉시 거부하는 클래스. 서버에 닿지도 않으므로 재시도가 무의미한데
+   위 `/^Mongo/` 가 전부 삼켜 왔다. */
+const PERMANENT_MONGO_ERROR_NAMES = new Set([
+  "MongoInvalidArgumentError",
+  "MongoParseError",
+  "MongoAPIError",
+  "MongoCompatibilityError",
+  "MongoMissingDependencyError",
+  "MongoMissingCredentialsError",
+]);
+
+/* 메시지로만 잡을 수 있는 영구 오류. 서버 버전에 따라 정렬 폭발이 코드 96(OperationFailed)으로
+   보고되는데, 96 은 진짜 일시적 실패도 포함하는 범용 코드라 통째로 allowlist 에 넣을 수 없다.
+   그래서 코드가 아니라 이 두 문구로만 좁혀 잡는다 — 인덱스가 못 받쳐 주는 정렬은 인프라 장애가
+   아니라 쿼리 설계 버그이므로 500 으로 나가 눈에 띄어야 한다. */
+const PERMANENT_MONGO_MESSAGE_PATTERN = /sort exceeded memory limit|did not opt in to external sorting/i;
+
+/* 🔴 "재시도해도 결과가 같은가"의 단일 판별. isDbUnavailableError 앞단이자, degrade 표면을 그대로
+   유지해야 하는 라우트(access-state)가 직접 참조하는 지점이다. */
+export function isPermanentMongoError(error) {
+  if (PERMANENT_MONGO_ERROR_CODES.has(Number(error?.code))) return true;
+  if (PERMANENT_MONGO_ERROR_NAMES.has(String(error?.name || ""))) return true;
+  return PERMANENT_MONGO_MESSAGE_PATTERN.test(String(error?.message || error || ""));
+}
+
 export function isDbUnavailableError(error) {
-  if (PERMANENT_MONGO_ERROR_CODES.has(Number(error?.code))) return false;
+  if (isPermanentMongoError(error)) return false;
   const errorText = String(error?.message || error || "");
   return /mongo|mongoose|mongodb|server selection timed out|connection timed out|connection is not ready|connect ECONNREFUSED|ENOTFOUND/i.test(errorText)
     || /^Mongo/.test(String(error?.name || ""))

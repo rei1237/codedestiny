@@ -3,9 +3,24 @@
 import { Check, Plus, RefreshCw, Save, Trash2, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../../_lib/api-config";
+import { adminFetch, describeAdminError, type AdminErrorView } from "../_lib/admin-api";
+import AdminErrorState from "../_components/AdminErrorState";
 
 type ReviewStatus = "pending" | "approved" | "rejected" | "hidden";
 type TabValue = ReviewStatus | "all" | "create";
+
+interface PaginationInfo {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+interface ListResponse {
+  items?: ReviewItem[];
+  counts?: Record<string, number>;
+  pagination?: PaginationInfo;
+}
 
 interface ReviewItem {
   id: string;
@@ -50,9 +65,6 @@ interface SeedForm {
   status: Extract<ReviewStatus, "approved" | "pending">;
 }
 
-const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
-const LOCAL_ADMIN_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
-
 const STATUS_TABS: Array<{ value: TabValue; label: string }> = [
   { value: "pending", label: "검수 대기" },
   { value: "approved", label: "승인 완료" },
@@ -81,49 +93,6 @@ const EMPTY_SEED: SeedForm = {
   displayedAt: "",
   status: "approved",
 };
-
-function isLocalAdminHost(hostname: string): boolean {
-  return LOCAL_ADMIN_HOSTS.has(String(hostname || "").trim().toLowerCase());
-}
-
-function resolveAdminRequestCredentials(apiBase: string): RequestCredentials {
-  if (typeof window === "undefined") return "include";
-  const base = String(apiBase || "").trim();
-  if (!base) return "include";
-
-  try {
-    const target = new URL(base);
-    const current = new URL(window.location.origin);
-    if (target.origin === current.origin) return "include";
-    if (isLocalAdminHost(target.hostname) && isLocalAdminHost(current.hostname)) return "include";
-    return "omit";
-  } catch {
-    return "include";
-  }
-}
-
-function getFlowerAdminTokenClient(): string {
-  if (typeof window === "undefined") return "";
-
-  try {
-    const token = String(sessionStorage.getItem("flower_admin_token") || "").trim();
-    if (FLOWER_ADMIN_TOKEN_RE.test(token)) return token;
-  } catch {}
-
-  return "";
-}
-
-function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
-  const headers: Record<string, string> = { ...(extraHeaders || {}) };
-  const token = getFlowerAdminTokenClient();
-  if (token) headers["x-admin-token"] = token;
-  return headers;
-}
-
-function clearAdminToken(): void {
-  try { sessionStorage.removeItem("flower_admin_token"); } catch {}
-  try { sessionStorage.removeItem("flower_admin_password_ok"); } catch {}
-}
 
 function commandButtonClass(tone: "neutral" | "primary" | "success" | "warn" | "danger" = "neutral"): string {
   if (tone === "primary") return "inline-flex items-center gap-2 rounded-lg bg-violet-600 px-3 py-2 text-sm font-medium text-white hover:bg-violet-500 disabled:opacity-50";
@@ -185,9 +154,8 @@ function StarPicker({ value, onChange }: { value: number; onChange: (next: numbe
 
 export default function AdminReviewsPage() {
   const apiBase = useMemo(() => getApiBaseUrl(), []);
-  const adminEndpoint = `${apiBase || ""}/api/admin/reviews`;
+  // 상품 목록만 공개 라우트라 직접 fetch 한다 — 401 이 날 수 없는 경로에 관리자 인증·리다이렉트를 붙일 이유가 없다.
   const productsEndpoint = `${apiBase || ""}/api/reviews/products`;
-  const requestCredentials = useMemo(() => resolveAdminRequestCredentials(apiBase), [apiBase]);
 
   const [activeTab, setActiveTab] = useState<TabValue>("pending");
   const [productFilter, setProductFilter] = useState("");
@@ -201,22 +169,9 @@ export default function AdminReviewsPage() {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
-
-  const redirectToLogin = useCallback(() => {
-    clearAdminToken();
-    const next = typeof window === "undefined" ? "/admin/reviews" : `${window.location.pathname}${window.location.search}`;
-    window.location.assign(`/admin/login?next=${encodeURIComponent(next)}`);
-  }, []);
-
-  const handleAuthFailure = useCallback((status: number) => {
-    if (status === 401 || status === 403) {
-      setError(status === 401 ? "로그인이 필요합니다." : "관리자 권한이 필요합니다.");
-      redirectToLogin();
-      return true;
-    }
-    return false;
-  }, [redirectToLogin]);
+  const [errorView, setErrorView] = useState<AdminErrorView | null>(null);
+  const [page, setPage] = useState(1);
+  const [pagination, setPagination] = useState<PaginationInfo | null>(null);
 
   const loadProducts = useCallback(async () => {
     try {
@@ -233,33 +188,24 @@ export default function AdminReviewsPage() {
     if (activeTab === "create") return;
 
     setLoading(true);
-    setError("");
+    setErrorView(null);
     try {
       const params = new URLSearchParams();
       if (activeTab !== "all") params.set("status", activeTab);
       if (productFilter) params.set("productId", productFilter);
       if (flaggedOnly) params.set("flagged", "1");
+      params.set("page", String(page));
 
-      const res = await fetch(`${adminEndpoint}?${params.toString()}`, {
-        method: "GET",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (handleAuthFailure(res.status)) return;
-      if (!res.ok) {
-        setError(String(data?.message || "리뷰 목록을 불러오지 못했습니다."));
-        return;
-      }
+      const data = await adminFetch<ListResponse>(`/api/admin/reviews?${params.toString()}`);
       setItems(Array.isArray(data?.items) ? data.items : []);
       setCounts(data?.counts && typeof data.counts === "object" ? data.counts : {});
-    } catch {
-      setError("리뷰 목록을 불러오지 못했습니다.");
+      setPagination(data?.pagination ?? null);
+    } catch (caught) {
+      setErrorView(describeAdminError(caught, "리뷰 목록을 불러오지 못했습니다."));
     } finally {
       setLoading(false);
     }
-  }, [activeTab, adminEndpoint, flaggedOnly, handleAuthFailure, productFilter, requestCredentials]);
+  }, [activeTab, flaggedOnly, page, productFilter]);
 
   useEffect(() => { void loadProducts(); }, [loadProducts]);
   useEffect(() => { void loadList(); }, [loadList]);
@@ -270,43 +216,30 @@ export default function AdminReviewsPage() {
     setDraft(selected ? { ...selected } : null);
   }, [selected]);
 
-  const mutate = useCallback(async (url: string, method: string, payload?: unknown) => {
+  const mutate = useCallback(async (path: string, method: string, payload?: unknown) => {
     setBusy(true);
-    setError("");
+    setErrorView(null);
     setMessage("");
     try {
-      const res = await fetch(url, {
-        method,
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(payload ? { "Content-Type": "application/json" } : undefined),
-        cache: "no-store",
-        ...(payload ? { body: JSON.stringify(payload) } : {}),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (handleAuthFailure(res.status)) return null;
-      if (!res.ok) {
-        setError(String(data?.message || "요청을 처리하지 못했습니다."));
-        return null;
-      }
-      return data;
-    } catch {
-      setError("요청을 처리하지 못했습니다.");
+      return await adminFetch<Record<string, unknown>>(path, { method, body: payload });
+    } catch (caught) {
+      setErrorView(describeAdminError(caught, "요청을 처리하지 못했습니다."));
       return null;
     } finally {
       setBusy(false);
     }
-  }, [handleAuthFailure, requestCredentials]);
+  }, []);
 
   const updateStatus = useCallback(async (id: string, status: ReviewStatus) => {
-    const result = await mutate(`${adminEndpoint}/${id}/status`, "POST", { status });
+    const result = await mutate(`/api/admin/reviews/${id}/status`, "POST", { status });
     if (!result) return;
     setMessage(`리뷰를 ${statusLabel(status)} 처리했습니다.`);
     await loadList();
-  }, [adminEndpoint, loadList, mutate]);
+  }, [loadList, mutate]);
 
   const saveDraft = useCallback(async () => {
     if (!draft) return;
-    const result = await mutate(`${adminEndpoint}/${draft.id}`, "PATCH", {
+    const result = await mutate(`/api/admin/reviews/${draft.id}`, "PATCH", {
       rating: draft.rating,
       title: draft.title,
       body: draft.body,
@@ -319,32 +252,32 @@ export default function AdminReviewsPage() {
     if (!result) return;
     setMessage("리뷰를 저장했습니다.");
     await loadList();
-  }, [adminEndpoint, draft, loadList, mutate]);
+  }, [draft, loadList, mutate]);
 
   const removeReview = useCallback(async (id: string) => {
     if (typeof window !== "undefined" && !window.confirm("이 리뷰를 삭제할까요? 되돌릴 수 없습니다.")) return;
-    const result = await mutate(`${adminEndpoint}/${id}`, "DELETE");
+    const result = await mutate(`/api/admin/reviews/${id}`, "DELETE");
     if (!result) return;
     setSelectedId("");
     setMessage("리뷰를 삭제했습니다.");
     await loadList();
-  }, [adminEndpoint, loadList, mutate]);
+  }, [loadList, mutate]);
 
   const createSeedReview = useCallback(async () => {
     if (!seed.productId) {
-      setError("상품을 선택해 주세요.");
+      setErrorView({ message: "상품을 선택해 주세요.", retryable: false, diagnostic: "" });
       return;
     }
     if (!seed.userId.trim() && !seed.authorName.trim()) {
-      setError("사용자 ID 또는 닉네임 중 하나는 입력해야 합니다.");
+      setErrorView({ message: "사용자 ID 또는 닉네임 중 하나는 입력해야 합니다.", retryable: false, diagnostic: "" });
       return;
     }
     if (seed.body.trim().length < 10) {
-      setError("리뷰 내용을 10자 이상 입력해 주세요.");
+      setErrorView({ message: "리뷰 내용을 10자 이상 입력해 주세요.", retryable: false, diagnostic: "" });
       return;
     }
 
-    const result = await mutate(adminEndpoint, "POST", {
+    const result = await mutate("/api/admin/reviews", "POST", {
       productId: seed.productId,
       userId: seed.userId.trim(),
       authorName: seed.authorName.trim(),
@@ -360,7 +293,7 @@ export default function AdminReviewsPage() {
     setMessage("관리자 리뷰를 생성했습니다.");
     setSeed((prev) => ({ ...EMPTY_SEED, productId: prev.productId, status: prev.status }));
     await loadProducts();
-  }, [adminEndpoint, loadProducts, mutate, seed]);
+  }, [loadProducts, mutate, seed]);
 
   return (
     <main className="min-h-screen bg-[#0d0f18] text-slate-100">
@@ -381,7 +314,7 @@ export default function AdminReviewsPage() {
                 <button
                   key={tab.value}
                   type="button"
-                  onClick={() => { setActiveTab(tab.value); setSelectedId(""); }}
+                  onClick={() => { setActiveTab(tab.value); setSelectedId(""); setPage(1); }}
                   className={activeTab === tab.value
                     ? "rounded-lg border border-violet-500 bg-violet-950 px-2 py-2 text-xs text-violet-100"
                     : "rounded-lg border border-slate-700 bg-slate-950 px-2 py-2 text-xs text-slate-300 hover:border-slate-500"}
@@ -395,7 +328,7 @@ export default function AdminReviewsPage() {
               <>
                 <select
                   value={productFilter}
-                  onChange={(event) => setProductFilter(event.target.value)}
+                  onChange={(event) => { setProductFilter(event.target.value); setPage(1); }}
                   aria-label="상품 필터"
                   className="w-full rounded-lg border border-slate-700 bg-slate-950 px-3 py-2 text-sm outline-none focus:border-violet-500"
                 >
@@ -410,7 +343,7 @@ export default function AdminReviewsPage() {
                   <input
                     type="checkbox"
                     checked={flaggedOnly}
-                    onChange={(event) => setFlaggedOnly(event.target.checked)}
+                    onChange={(event) => { setFlaggedOnly(event.target.checked); setPage(1); }}
                     className="h-4 w-4 rounded border-slate-600 bg-slate-950"
                   />
                   자동 필터에 걸린 리뷰만 보기
@@ -430,8 +363,14 @@ export default function AdminReviewsPage() {
             </div>
           ) : (
             <div className="max-h-[calc(100vh-260px)] overflow-y-auto">
-              {items.length === 0 ? (
-                <div className="p-4 text-sm text-slate-400">{loading ? "불러오는 중..." : "리뷰가 없습니다."}</div>
+              {loading ? (
+                <div className="p-4 text-sm text-slate-400">불러오는 중...</div>
+              ) : errorView ? (
+                <div className="p-4">
+                  <AdminErrorState view={errorView} onRetry={() => { void loadList(); }} retrying={loading} />
+                </div>
+              ) : items.length === 0 ? (
+                <div className="p-4 text-sm text-slate-400">리뷰가 없습니다.</div>
               ) : (
                 <div className="divide-y divide-slate-800">
                   {items.map((item) => (
@@ -469,6 +408,30 @@ export default function AdminReviewsPage() {
                   ))}
                 </div>
               )}
+
+              {pagination && pagination.totalPages > 1 ? (
+                <div className="flex items-center justify-between gap-2 border-t border-slate-800 p-3">
+                  <button
+                    type="button"
+                    aria-label="이전 페이지"
+                    disabled={page <= 1 || loading}
+                    onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+                    className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    이전
+                  </button>
+                  <span className="text-[11px] text-slate-500">{pagination.page} / {pagination.totalPages} · 총 {pagination.total}건</span>
+                  <button
+                    type="button"
+                    aria-label="다음 페이지"
+                    disabled={page >= pagination.totalPages || loading}
+                    onClick={() => setPage((prev) => prev + 1)}
+                    className="rounded-lg border border-slate-700 bg-slate-950 px-3 py-1.5 text-xs text-slate-300 hover:border-slate-500 disabled:cursor-not-allowed disabled:opacity-40"
+                  >
+                    다음
+                  </button>
+                </div>
+              ) : null}
             </div>
           )}
         </aside>
@@ -483,7 +446,8 @@ export default function AdminReviewsPage() {
                   : "왼쪽에서 리뷰를 선택하세요"}
             </p>
             {message ? <p className="mt-2 text-xs text-sky-200">{message}</p> : null}
-            {error ? <p className="mt-2 text-xs text-rose-300">{error}</p> : null}
+            {/* 변경 실패는 자동 재시도하지 않는다(삭제가 이 경로에 있다) — 안내만 한다. */}
+            {errorView ? <div className="mt-2"><AdminErrorState view={errorView} compact /></div> : null}
           </div>
 
           {activeTab === "create" ? (

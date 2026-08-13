@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
-import { AdminApiError, adminFetch } from "../_lib/admin-api";
+import { adminFetch, describeAdminError } from "../_lib/admin-api";
 
 const MAX_GRANT_AMOUNT = 999999;
 
@@ -100,15 +100,17 @@ export default function AdminMonthlyCreditsPage() {
           idempotencyKey: requestKey,
         },
       });
-      setResult(data);
-      setNotice(data.idempotent ? "동일 요청이 이미 처리되어 기존 지급 결과를 표시했습니다." : "월정석 지급이 완료되었습니다.");
-      setConfirmed(false);
-    } catch (caught) {
-      if (caught instanceof AdminApiError) {
-        setError(caught.code ? `${caught.message} (${caught.code})` : caught.message);
+      // 🔴 data.grant 가드: 아래 결과 카드가 grant.email / grant.amount 를 바로 읽는다. grant 없는 2xx
+      // 본문(멱등 응답 등)이 오면 그 자리에서 터져 지급 화면이 통째로 화이트스크린이 된다.
+      if (!data?.grant) {
+        setError("지급 응답을 확인하지 못했습니다. 원장에서 처리 결과를 확인해 주세요.");
       } else {
-        setError("지급 요청 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.");
+        setResult(data);
+        setNotice(data.idempotent ? "동일 요청이 이미 처리되어 기존 지급 결과를 표시했습니다." : "월정석 지급이 완료되었습니다.");
+        setConfirmed(false);
       }
+    } catch (caught) {
+      setError(describeAdminError(caught, "지급 요청 중 문제가 생겼어요. 잠시 후 다시 시도해 주세요.").message);
     } finally {
       setSubmitting(false);
     }

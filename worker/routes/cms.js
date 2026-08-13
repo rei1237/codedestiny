@@ -16,9 +16,14 @@ const REVISION_KEEP_PER_KEY = 200;
 const LIST_LIMIT = 1000;
 const STATUS_SET = new Set(CMS_STATUSES);
 
-/** 관리자 READ 전용 재시도. 쓰기에는 쓰지 않는다(중복 결제/중복 리비전 방지). */
+/** 관리자 READ 전용 재시도. 쓰기에는 쓰지 않는다(중복 결제/중복 리비전 방지).
+ *  옵션 근거는 admin.js 의 adminMongoRead 주석 참조. */
 function cmsMongoRead(env, operation) {
-  return withMongoRetry(env, operation, { retries: 2 });
+  return withMongoRetry(env, operation, {
+    retries: 1,
+    retryOnOperationTimeout: true,
+    retryAdmissionOnOverload: true,
+  });
 }
 
 function normalizeLocale(value) {
