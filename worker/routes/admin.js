@@ -64,6 +64,30 @@ const ADMIN_ENTRY_PASSWORD_HASH_KEY = "ADMIN_ENTRY_PASSWORD_HASH";
 
 const FLOWER_TOKEN_TTL_SEC = 8 * 60 * 60;
 const INSIGHT_STATUS_SET = new Set(["draft", "scheduled", "published", "archived", "private", "trash"]);
+
+/* 이름이 같은 body 키에서 오지 않는 파생 필드와 그 출처. update 모드의 "안 보낸 필드는 건드리지
+   않는다" 규칙이 이름만 보고 지우면, 평면 SEO 만 보낸 요청에서 중첩 seo{} 가 갱신에서 빠져 낡은
+   값이 살아남는다(읽을 때는 중첩이 이긴다). */
+const CONTENT_DERIVED_FIELD_SOURCES = Object.freeze({
+  seo: ["seo", "metaTitle", "metaDescription", "ogTitle", "ogDescription", "ogImage", "canonicalUrl"],
+  excerpt: ["summary", "excerpt"],
+  summary: ["summary", "excerpt"],
+  author: ["author", "authorName"],
+  authorName: ["authorName", "author"],
+});
+
+/* 목록에서 읽을 필드. 🔴 본문(content/contentHtml/contentJson)과 이력(revisionHistory)은 뺀다 —
+   이력 스냅샷 하나하나가 본문 전체를 통째로 담고 있어서, 20건짜리 한 페이지가 게시글 본문
+   수백 벌을 실어 나르고 있었다. 목록 화면은 이 필드들을 쓰지 않는다(본문은 상세 조회가,
+   이력은 /:id/revisions 가 따로 가져간다). */
+const CONTENT_LIST_PROJECTION = [
+  "type", "title", "slug", "summary", "excerpt", "subtitle", "contentFormat",
+  "revision", "thumbnailUrl", "featuredImage", "category", "tags", "status", "seo",
+  "metaTitle", "metaDescription", "canonicalUrl", "ogTitle", "ogDescription", "ogImage",
+  "twitterTitle", "twitterDescription", "twitterImage", "keywords",
+  "authorId", "authorName", "author", "isPublished", "isFeatured", "noIndex",
+  "viewCount", "readingTime", "publishedAt", "createdAt", "updatedAt",
+].join(" ");
 const CONTENT_STATUS_SET = new Set(["draft", "scheduled", "published", "archived", "private", "trash"]);
 const CONTENT_PUBLIC_STATUS = "published";
 const CONTENT_FORMAT_SET = new Set(["html", "markdown", "blocks"]);
@@ -2020,11 +2044,6 @@ function normalizeContentStatus(value, fallback = "draft") {
   return CONTENT_STATUS_SET.has(status) ? status : fallback;
 }
 
-function ensureStatus(value, fallback = "draft") {
-  const status = String(value || fallback).trim().toLowerCase();
-  return INSIGHT_STATUS_SET.has(status) ? status : fallback;
-}
-
 function isObjectLike(value) {
   return value && typeof value === "object" && !Array.isArray(value);
 }
@@ -2183,11 +2202,15 @@ function parseContentPublishedAt(value, status, existingPublishedAt = null) {
   return null;
 }
 
-function toContentItem(item) {
+/* options.list 는 목록 응답용이다. 본문·이력을 빼고 내보낸다 — 목록 화면이 그 필드를 쓰지 않는데
+   응답에는 실려 나가고 있었다(본문은 상세 조회, 이력은 /:id/revisions 가 따로 가져간다).
+   본문 정화(sanitizeInsightHtml)도 목록에서는 건너뛴다. 항목마다 본문 전체를 다시 훑는 비용이다. */
+function toContentItem(item, options = {}) {
+  const listMode = Boolean(options.list);
   const contentFormat = normalizeContentFormat(item?.contentFormat, "html");
-  const contentHtml = sanitizeInsightHtml(
-    String(item?.contentHtml || (contentFormat === "html" ? item?.content : "") || ""),
-  );
+  const contentHtml = listMode
+    ? ""
+    : sanitizeInsightHtml(String(item?.contentHtml || (contentFormat === "html" ? item?.content : "") || ""));
   const thumbnailUrl = sanitizeHttpUrl(item?.thumbnailUrl || item?.featuredImage?.url, 1000);
   const seo = {
     metaTitle: normalizeText(item?.seo?.metaTitle || item?.metaTitle, 240),
@@ -2207,12 +2230,14 @@ function toContentItem(item) {
     slug: normalizeText(item?.slug, 240),
     summary: normalizeText(item?.summary || item?.excerpt, 2000),
     excerpt: normalizeText(item?.excerpt || item?.summary, 2000),
-    content: String(item?.content || contentHtml || ""),
+    ...(listMode ? {} : {
+      content: String(item?.content || contentHtml || ""),
+      contentHtml,
+      contentJson: isObjectLike(item?.contentJson) ? item.contentJson : {},
+      revisionHistory: Array.isArray(item?.revisionHistory) ? item.revisionHistory.slice(-20) : [],
+    }),
     contentFormat,
-    contentHtml,
-    contentJson: isObjectLike(item?.contentJson) ? item.contentJson : {},
     revision: Math.max(1, Number(item?.revision || 1) || 1),
-    revisionHistory: Array.isArray(item?.revisionHistory) ? item.revisionHistory.slice(-20) : [],
     thumbnailUrl,
     featuredImage: {
       url: thumbnailUrl,
@@ -2336,6 +2361,15 @@ function normalizeContentPayload(body = {}, mode = "create", existing = null) {
 
   if (mode === "update") {
     Object.keys(payload).forEach((key) => {
+      // 🔴 파생 필드는 같은 이름의 body 키가 없다. 이름만 보고 지우면 갱신에서 통째로 빠지는데,
+      // 읽을 때는 중첩 seo 가 평면 필드를 이기므로(toContentItem) 낡은 seo 가 계속 살아남아
+      // "SEO 를 고쳤는데 안 바뀐다"가 된다. 그래서 출처 키가 하나라도 오면 남긴다.
+      if (CONTENT_DERIVED_FIELD_SOURCES[key]) {
+        if (!CONTENT_DERIVED_FIELD_SOURCES[key].some((source) => body[source] !== undefined)) {
+          delete payload[key];
+        }
+        return;
+      }
       if (body[key] === undefined && key !== "isPublished" && key !== "publishedAt") {
         delete payload[key];
       }
@@ -2368,65 +2402,6 @@ function logAdminContent(event, details = {}) {
   } catch (e) {
     console.log("[admin-content]", payload);
   }
-}
-
-function normalizeInsightPayload(body = {}, mode = "create") {
-  const title = normalizeText(body.title, 240);
-  const providedSlug = normalizeText(body.slug, 240);
-  const status = ensureStatus(body.status, mode === "create" ? "draft" : "draft");
-
-  if (mode === "create" && !title) {
-    throw createHttpError(400, "title is required.", { code: "VALIDATION_ERROR" });
-  }
-
-  const payload = {
-    title,
-    subtitle: normalizeText(body.subtitle, 240),
-    slug: slugify(providedSlug),
-    excerpt: normalizeText(body.excerpt, 2000),
-    contentHtml: sanitizeInsightHtml(body.contentHtml),
-    contentJson: isObjectLike(body.contentJson) ? body.contentJson : {},
-    featuredImage: buildFeaturedImage(body.featuredImage),
-    category: normalizeText(body.category, 120),
-    tags: normalizeStringArray(body.tags, 60, 40),
-    metaTitle: normalizeText(body.metaTitle, 240),
-    metaDescription: normalizeText(body.metaDescription, 600),
-    keywords: normalizeStringArray(body.keywords, 80, 50),
-    canonicalUrl: normalizeText(body.canonicalUrl, 1000),
-    ogTitle: normalizeText(body.ogTitle, 240),
-    ogDescription: normalizeText(body.ogDescription, 600),
-    ogImage: normalizeText(body.ogImage, 1000),
-    twitterTitle: normalizeText(body.twitterTitle, 240),
-    twitterDescription: normalizeText(body.twitterDescription, 600),
-    twitterImage: normalizeText(body.twitterImage, 1000),
-    author: normalizeText(body.author, 120),
-    status,
-    isPublished: typeof body.isPublished === "boolean" ? body.isPublished : status === "published",
-    isFeatured: Boolean(body.isFeatured),
-    noIndex: Boolean(body.noIndex),
-    viewCount: Math.max(0, Number(body.viewCount || 0) || 0),
-    readingTime: Math.max(0, Number(body.readingTime || 0) || 0),
-    publishedAt: body.publishedAt ? new Date(body.publishedAt) : (status === "published" ? new Date() : null),
-  };
-
-  if (payload.publishedAt && Number.isNaN(payload.publishedAt.getTime())) {
-    payload.publishedAt = null;
-  }
-
-  if (mode === "update") {
-    Object.keys(payload).forEach((key) => {
-      if (body[key] === undefined && !["slug", "isPublished", "publishedAt", "status"].includes(key)) {
-        delete payload[key];
-      }
-    });
-
-    if (body.slug === undefined) delete payload.slug;
-    if (body.isPublished === undefined && body.status === undefined) delete payload.isPublished;
-    if (body.publishedAt === undefined && body.status === undefined) delete payload.publishedAt;
-    if (body.status === undefined) delete payload.status;
-  }
-
-  return { payload, title, providedSlug };
 }
 
 function buildContentRevisionSnapshot(item, adminContext, reason = "manual_save") {
@@ -2925,7 +2900,10 @@ async function handleInsightsCreate(request, env) {
   await connectDb(env);
 
   const body = await readJson(request);
-  const { payload, title, providedSlug } = normalizeInsightPayload(body, "create");
+  // /api/admin/content 와 같은 정규화기를 쓴다. 예전에는 이 경로만 다른 함수를 써서
+  // seo{} 중첩·summary·content·type 을 안 남겼고, 읽을 때는 중첩 seo 가 이겨서
+  // 여기서 고친 SEO 가 글 편집 화면과 공개 메타에서 무시됐다.
+  const { payload, title, providedSlug } = normalizeContentPayload(body, "create");
 
   if (!title) {
     throw createHttpError(400, "title is required.", { code: "VALIDATION_ERROR" });
@@ -2943,8 +2921,6 @@ async function handleInsightsCreate(request, env) {
   if (!payload.slug) {
     payload.slug = await buildUniqueSlug(`insight-${Date.now()}`);
   }
-
-  payload.status = ensureStatus(payload.status, "draft");
 
   const doc = await Insight.create(payload);
   return json({ ok: true, item: doc.toObject() }, { status: 201 });
@@ -2974,7 +2950,10 @@ async function handleInsightsUpdate(path, request, env) {
   if (!existing) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
   const body = await readJson(request);
-  const { payload, title, providedSlug } = normalizeInsightPayload(body, "update");
+  // /api/admin/content 와 같은 정규화기. isPublished 는 여기서 항상 status 로부터 파생되므로
+  // 둘이 갈리지 않는다 — 예전에는 이 경로가 isPublished 를 독립으로 받아 "관리자엔 발행됨,
+  // 사이트엔 안 나옴"이 가능했다(공개 조회는 status 만 본다).
+  const { payload, title, providedSlug } = normalizeContentPayload(body, "update", existing);
 
   if (body.title !== undefined && !title) {
     throw createHttpError(400, "title is required.", { code: "VALIDATION_ERROR" });
@@ -2989,16 +2968,6 @@ async function handleInsightsUpdate(path, request, env) {
       if (duplicate) {
         throw createHttpError(409, "slug already exists.", { code: "DUPLICATE_SLUG" });
       }
-    }
-  }
-
-  if (body.status !== undefined) {
-    payload.status = ensureStatus(body.status, existing.status || "draft");
-    if (body.isPublished === undefined) {
-      payload.isPublished = payload.status === "published";
-    }
-    if (body.publishedAt === undefined && payload.status === "published" && !existing.publishedAt) {
-      payload.publishedAt = new Date();
     }
   }
 
@@ -3187,6 +3156,7 @@ async function handleContentList(request, env) {
 
   const [items, total] = await adminMongoRead(env, async () => Promise.all([
     Insight.find(query)
+      .select(CONTENT_LIST_PROJECTION)
       .sort(sort)
       .skip((filters.page - 1) * filters.limit)
       .limit(filters.limit)
@@ -3194,7 +3164,7 @@ async function handleContentList(request, env) {
     Insight.countDocuments(query),
   ]));
 
-  const mappedItems = items.map((item) => toContentItem(item));
+  const mappedItems = items.map((item) => toContentItem(item, { list: true }));
   const totalPages = Math.max(1, Math.ceil(total / filters.limit));
 
   logAdminContent("list_success", {
@@ -5058,3 +5028,12 @@ export async function handleAdminRoutes(request, env) {
     return handleRouteError(error);
   }
 }
+
+/* 테스트 전용 노출. 글 저장 경로는 라우터를 태우려면 DB·인증 하네스가 필요한데, 여기서 지키려는
+   계약(두 경로가 같은 필드를 쓴다 / isPublished 는 status 에서 파생된다 / 목록에 본문을 싣지 않는다)은
+   순수 함수 수준에서 검증할 수 있다. 다른 라우트의 __*TestUtils 와 같은 관례다. */
+export const __adminContentTestUtils = {
+  normalizeContentPayload,
+  toContentItem,
+  CONTENT_LIST_PROJECTION,
+};
