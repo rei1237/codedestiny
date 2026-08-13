@@ -30,6 +30,17 @@ const probeOnly = process.argv.includes("--probe");
 /** 이 안쪽은 런타임 번역 대상이 아니다. */
 const SKIP_TAGS = new Set(["script", "style", "template", "svg", "noscript", "code", "pre", "head"]);
 
+/**
+ * 명시적 제외 표식. 이 속성이 붙은 요소와 그 자손은 마킹하지 않는다.
+ *
+ * 왜 필요한가: `<pre>`/`<code>` 가 아닌 태그로 쓰인 코드 아트가 있다. 히어로의
+ * 의사(擬似) 코드 블록(`.moon-story-entry__code`)이 그렇고, 그 안의 `??`(널 병합
+ * 연산자)는 i18n:check 의 모지바케 가드(`/\?{2,}/`)에 걸려 사전에 넣는 순간 게이트가
+ * 깨진다. 가드를 느슨하게 푸는 건 진짜 깨진 문자를 놓치는 대가를 치르는 일이라,
+ * 그 한 요소만 대상에서 빼는 쪽이 맞다.
+ */
+const SKIP_ATTR = "data-cd-trans-skip";
+
 /** 값이 번역 대상인 속성. `content` 는 <meta> 에 한정한다(다른 곳의 content 는 데이터). */
 const TRANSLATABLE_ATTRS = ["placeholder", "aria-label", "title", "alt", "data-tooltip"];
 
@@ -82,6 +93,7 @@ function walk(node, ancestors) {
   for (const child of node.childNodes || []) {
     if (!child.tagName) continue;
     if (SKIP_TAGS.has(child.tagName)) continue;
+    if (child.attrs.some((a) => a.name === SKIP_ATTR)) continue;
     if (!child.sourceCodeLocation?.startTag) { walk(child, [...ancestors, child]); continue; }
 
     const text = textOf(child).trim();
