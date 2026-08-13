@@ -230,6 +230,35 @@ const GUARDIAN_CATEGORY_INSTRUCTIONS_KO = Object.freeze({
   tarot: "서버가 선택한 카드와 스프레드만 사용하고 카드 이름이나 의미를 임의로 만들지 않습니다.",
 });
 
+/* 시스템 프롬프트 조립. 예전에는 buildGuardianFortunePrompt 안 인라인이라 관리자 화면이 읽을 수 없었다.
+   문자열 구성은 그대로이고 함수로 빼기만 했다(동작 불변). */
+function buildGuardianSystemPrompt(mode) {
+  return [
+    MODE_SYSTEM_PROMPTS[mode],
+    EXPERT_SYSTEM_GUIDANCE,
+    "서버가 계산한 구조화된 근거만 사용하고, 운세를 새로 계산하거나 생년월일을 추론하지 마.",
+    "의료·법률·투자에 대한 확정 조언, 상대의 속마음 확정, 재회·성공 보장, 공포와 결제 압박을 쓰지 마.",
+    "연이와 네오는 같은 답을 다른 말투로 바꾸는 수준이 아니다. 연이는 감정의 안전감과 선택지를, 네오는 판단 기준과 실행 순서를 우선한다.",
+    "반드시 JSON 하나만 반환하고 Markdown, 코드펜스, 설명 문장은 반환하지 마.",
+  ].join(" ");
+}
+
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   사용자 프롬프트는 서버가 계산한 체계별 구조화 근거를 입력으로 받으므로 생년 정보만으로는 조립되지 않는다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const modes = Object.keys(MODE_SYSTEM_PROMPTS);
+  const mode = modes.includes(options.variant) ? options.variant : modes[0];
+
+  return {
+    systemPrompt: buildGuardianSystemPrompt(mode),
+    prompt: "",
+    partial: true,
+    partialReason: "사용자 프롬프트는 서버가 계산한 체계별 구조화 근거를 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+    variantKey: mode,
+    variants: modes.map((key) => ({ key, label: key === "yeoni" ? "연이" : "네오" })),
+  };
+}
+
 export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
   const inputSummary = context?.inputSummary || {};
   const mode = inputSummary.mode === "neo" || input?.mode === "neo" ? "neo" : "yeoni";
@@ -247,14 +276,7 @@ export function buildGuardianFortunePrompt({ input = {}, context = {} } = {}) {
     error.code = "GUARDIAN_PROMPT_INVALID_CATEGORY";
     throw error;
   }
-  const systemPrompt = [
-    MODE_SYSTEM_PROMPTS[mode],
-    EXPERT_SYSTEM_GUIDANCE,
-    "서버가 계산한 구조화된 근거만 사용하고, 운세를 새로 계산하거나 생년월일을 추론하지 마.",
-    "의료·법률·투자에 대한 확정 조언, 상대의 속마음 확정, 재회·성공 보장, 공포와 결제 압박을 쓰지 마.",
-    "연이와 네오는 같은 답을 다른 말투로 바꾸는 수준이 아니다. 연이는 감정의 안전감과 선택지를, 네오는 판단 기준과 실행 순서를 우선한다.",
-    "반드시 JSON 하나만 반환하고 Markdown, 코드펜스, 설명 문장은 반환하지 마.",
-  ].join(" ");
+  const systemPrompt = buildGuardianSystemPrompt(mode);
 
   // 🔴 context 에서만 읽는다. input 은 정규화 전 원본이라 개수·길이·민감정보 필터를 안 거쳤다.
   const recentTurns = formatRecentTurns(context?.recentTurns);

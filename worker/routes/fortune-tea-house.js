@@ -3228,6 +3228,33 @@ const sharedOutputRules = [
   "반드시 유효한 JSON 하나만 반환한다. 마크다운과 JSON 밖 설명은 쓰지 않는다.",
 ];
 
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   사용자 프롬프트는 뽑은 타로 카드·계산된 명식 스냅샷을 입력으로 받아 조립되므로
+   생년 정보만으로는 만들 수 없다. 상담 모드별 시스템 프롬프트를 정확히 돌려준다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const modes = [
+    { key: "tarot", label: "타로" },
+    { key: "saju", label: "사주" },
+    { key: "sajuCompatibility", label: "사주 궁합" },
+    { key: "sukuyo", label: "숙요" },
+  ];
+  const mode = modes.find((item) => item.key === options.variant) || modes[0];
+
+  return {
+    systemPrompt: buildSystemPrompt(mode.key),
+    prompt: "",
+    partial: true,
+    partialReason: "사용자 프롬프트는 뽑은 카드와 계산된 명식 스냅샷을 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+    variantKey: mode.key,
+    variants: modes,
+  };
+}
+
 function buildSystemPrompt(consultationMode = "tarot") {
   if (isSajuFamilyMode(consultationMode)) {
     const compatLines = consultationMode === "sajuCompatibility"

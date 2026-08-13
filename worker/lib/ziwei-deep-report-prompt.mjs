@@ -265,6 +265,22 @@ export function buildZiweiDeepChapterPrompt(chart, birthInfo, chapter) {
 }
 
 /** 리포트 전체 챕터 수 / 목표 분량 요약 (검증·진행률 표시에 사용) */
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   장별 사용자 프롬프트는 계산된 명반(chart)을 입력으로 받으므로 생년 정보만으로는 조립되지 않는다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const chapter = ZIWEI_DEEP_CHAPTERS.find((item) => item.id === options.variant) || ZIWEI_DEEP_CHAPTERS[0];
+
+  return {
+    systemPrompt: buildZiweiDeepSystemGuide(),
+    prompt: "",
+    partial: true,
+    partialReason: "장별 사용자 프롬프트는 계산된 자미두수 명반을 입력으로 받습니다. 시스템 지침만 표시합니다.",
+    variantKey: chapter?.id || "",
+    variants: ZIWEI_DEEP_CHAPTERS.map((item) => ({ key: item.id, label: item.title || item.id })),
+    notes: chapter?.scope ? [`${chapter.title} 범위: ${chapter.scope}`] : [],
+  };
+}
+
 export function getZiweiDeepReportPlan() {
   const chapters = ZIWEI_DEEP_CHAPTERS.map((ch) => ({
     id: ch.id,

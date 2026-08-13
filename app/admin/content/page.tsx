@@ -1290,7 +1290,7 @@ export default function AdminContentPage() {
           <div className="space-y-2 border-b border-slate-800 bg-slate-900/40 p-4">
             <p className="text-[11px] font-semibold uppercase tracking-wide text-amber-200/70">{copy.botOps}</p>
             <Link
-              href="/admin/insights?service=saju#adminPromptLab"
+              href="/admin/prompts"
               className="group block rounded-xl border border-amber-700 bg-gradient-to-br from-amber-950/80 to-slate-900 p-3 text-sm text-amber-100 transition hover:border-amber-400 hover:from-amber-900/80 hover:to-amber-900/40"
             >
               <div className="flex items-start gap-3">
@@ -1298,10 +1298,10 @@ export default function AdminContentPage() {
                   <Sparkles className="h-4 w-4 text-amber-200" />
                 </div>
                 <div className="min-w-0">
-                  <p className="text-sm font-semibold text-amber-100">사주 프롬프트 설정</p>
-                  <p className="mt-1 text-xs leading-5 text-slate-300">사주운세 프롬프트 규칙을 한곳에서 관리하고 샘플 프롬프트를 즉시 확인하세요.</p>
+                  <p className="text-sm font-semibold text-amber-100">프롬프트 랩</p>
+                  <p className="mt-1 text-xs leading-5 text-slate-300">사주·타로·꿈해몽 등 각 운세가 실제로 AI에 보내는 프롬프트를 결제 없이 뽑아 봅니다.</p>
                   <p className="mt-2 inline-flex items-center text-[11px] text-amber-200">
-                    설정 화면 열기
+                    프롬프트 랩 열기
                     <ExternalLink className="ml-1 h-3 w-3 opacity-80 transition group-hover:translate-x-0.5" />
                   </p>
                 </div>

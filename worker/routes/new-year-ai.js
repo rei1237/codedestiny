@@ -1224,6 +1224,29 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey = "", i
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
 
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return buildSystemPrompt();
+}
+
+/* 관리자 프롬프트 랩 전용. 결제·LLM 없이 프로덕션과 똑같은 프롬프트를 조립해 돌려준다
+   (lib/admin/prompt-lab-registry.mjs 참고). 프로덕션 경로가 쓰는 함수를 그대로 부르므로
+   여기서 프롬프트 문장을 새로 쓰지 않는다 — 다르게 쓰면 랩이 거짓말을 하게 된다. */
+export function buildAdminLabPrompt(body = {}, options = {}) {
+  const normalized = normalizeConsultationInput(body);
+  if (!normalized.ok) {
+    throw new Error(normalized.message || "신년운세 프롬프트에 필요한 입력이 부족합니다.");
+  }
+
+  const section = options.section || null;
+  const fortuneData = calculateNewYearFortuneData(normalized.input);
+
+  return {
+    systemPrompt: buildSystemPrompt(section),
+    prompt: buildFirstPrompt(normalized.input, fortuneData, section),
+  };
+}
+
 // section을 넘기면 "완성본 전체"가 아니라 그 부분만 쓰는 지시가 뒤에 붙는다.
 // 인자 없이 부르면 출력이 기존과 완전히 동일하다(verify-new-year-ai-flow가 이 문자열들을 단언).
 function buildSystemPrompt(section = null) {

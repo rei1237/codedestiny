@@ -166,6 +166,17 @@ export const LOVE_SECRET_AI_SYSTEM_PROMPT = `당신은 30년 경력의 사주 �
 //
 // 겹치는 섹션 제목은 기존 STRUCTURED_SECTION_FIELDS 문자열을 그대로 재사용한다 —
 // 결과 화면의 FALLBACK_SECTIONS 와 회귀 스크립트가 이 제목으로 맞춰져 있다.
+/* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
+   그룹별 사용자 프롬프트는 계산된 명식·궁합 데이터를 입력으로 받으므로 생년 정보만으로는 조립되지 않는다. */
+export function buildAdminLabPrompt() {
+  return {
+    systemPrompt: LOVE_SECRET_AI_SYSTEM_PROMPT,
+    prompt: "",
+    partial: true,
+    partialReason: "사용자 프롬프트는 6개 그룹별로 계산된 명식·궁합 데이터를 입력으로 받습니다. 시스템 프롬프트만 표시합니다.",
+  };
+}
+
 export const LOVE_SECRET_AI_GROUP_MIN_CHARS = 5000;
 export const LOVE_SECRET_AI_GROUP_MAX_CHARS = 6500;
 

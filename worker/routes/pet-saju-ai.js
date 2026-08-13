@@ -106,6 +106,23 @@ function buildReportFacts(blueprint) {
   ].join("\n");
 }
 
+/** 관리자 CMS 가 기본값을 보여줄 때 읽어 간다(worker/lib/cms-prompt-defaults.js). */
+export function getDefaultSystemPrompt() {
+  return SYSTEM_PROMPT;
+}
+
+/* 관리자 프롬프트 랩 전용. 결제·LLM 없이 프로덕션과 똑같은 프롬프트를 조립한다
+   (lib/admin/prompt-lab-registry.mjs 참고). 생년 프로필이 아니라 반려동물 정보를 받는다. */
+export function buildAdminLabPrompt(body = {}) {
+  const date = normalizeRequestDate(body?.date);
+  const { blueprint } = computePetBlueprint(body?.pet, date);
+
+  return {
+    systemPrompt: SYSTEM_PROMPT,
+    prompt: buildReportPrompt(blueprint),
+  };
+}
+
 function buildReportPrompt(blueprint) {
   return [
     buildReportFacts(blueprint),
