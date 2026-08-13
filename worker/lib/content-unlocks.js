@@ -145,7 +145,9 @@ function buildContentKeyClause(contentKey) {
   return aliases.length > 1 ? { contentKey: { $in: aliases } } : { contentKey: aliases[0] || "" };
 }
 
-function resolvePaidContentServiceKey(featureKey, fallback = "") {
+/* featureKey → serviceKey 유도 정본. payments V2 지급(worker/payments/entitlements.js)도 이걸 쓴다 —
+   예전엔 V2 만 serviceKey 를 featureKey 로 접어, 같은 상품이 쓰기 경로에 따라 서로 다른 키로 저장됐다. */
+export function resolvePaidContentServiceKey(featureKey, fallback = "") {
   const key = String(featureKey || "").trim().toLowerCase();
   if (key === "fun.quantumlotto.ritualreport") return "saju";
   if (key.startsWith("section_") || key.includes("saju") || key.includes("lifebook") || key.includes("love-secret")) return "saju";

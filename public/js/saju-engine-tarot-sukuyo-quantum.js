@@ -13955,6 +13955,7 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         + '<p style="color:#fef3c7;">' + syCanonicalEsc(summary.name || '프로필') + ' · ' + syCanonicalEsc(summary.birthDate || '') + ' · ' + syCanonicalEsc(summary.gender || '') + ' · ' + syCanonicalEsc(summary.targetYear || '') + '년 · 본명숙 ' + syCanonicalEsc(summary['natal宿'] || '') + '</p>'
         + '<p>' + syCanonicalEsc((preview.totalFortunePreview && preview.totalFortunePreview.text) || '') + '</p>'
         + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 잠금 해제 · 10,000원</button>'
+        + '<p class="sy-lunar-note">해금은 선택한 프로필의 ' + syCanonicalEsc(summary.targetYear || '해당') + '년에만 적용됩니다.</p>'
       + '</div>'
       + '</div>'
       + '<div class="sy-month-preview-grid">'
@@ -13962,6 +13963,31 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         return '<article class="sy-month-preview-item"><strong>' + syCanonicalEsc(item.month) + '월 · ' + syCanonicalEsc(item.title) + '</strong><span>' + syCanonicalEsc(item.theme) + '</span></article>';
       }).join('')
       + '<article class="sy-month-preview-item"><strong>잠금 영역</strong><span>전체 12개월 흐름, 사랑/금전/사업/건강운은 잠금 해제 후 확인할 수 있습니다.</span></article>'
+      + '</div>';
+  }
+
+  // 🔴 조회가 실패해도 잠금 CTA 는 남아야 한다. 종전에는 실패 시 이 컨테이너를 에러 박스로 통째로
+  // 덮어 해금 버튼까지 지웠고, 그래서 GET 이 한 번 실패하면 결제 자체가 불가능했다.
+  // 미리보기 없이도 그릴 수 있는 최소 잠금 패널이라, 실패 원인과 무관하게 구매 경로가 살아 있다.
+  // (이미 결제한 사용자가 눌러도 /unlock 이 alreadyUnlocked 로 답해 재하이드레이션한다 — 이중 결제 없음.)
+  function syRenderSukuyoYearlyLockedFallback(targetYear, notice, canRetry) {
+    return ''
+      + (notice
+        ? '<div class="sy-yearly-empty-state" role="status" style="color:#fecaca;">'
+          + syCanonicalEsc(notice)
+          + (canRetry
+            ? '<button type="button" data-sy-yearly-retry="1" aria-label="숙요점 1년운 다시 시도" style="display:block;margin:12px auto 0;padding:9px 18px;border-radius:999px;border:1px solid rgba(244,190,209,.5);background:transparent;color:#fecaca;font:inherit;cursor:pointer;">다시 시도</button>'
+            : '')
+          + '</div>'
+        : '')
+      + '<div class="sy-month-lock-panel">'
+      + '<div class="sy-month-lock-orbit" aria-hidden="true">☾</div>'
+      + '<div class="sy-month-lock-body">'
+        + '<strong>' + syCanonicalEsc(targetYear) + '년 숙요점 1년운 전체 해석</strong>'
+        + '<p>본명숙 기준 12개월 달빛 흐름과 사랑, 일, 금전, 건강운은 잠금 해제 후 열립니다.</p>'
+        + '<button type="button" class="sy-month-unlock-btn" data-sy-yearly-unlock aria-label="' + _sajuQuantumText("sq_12083_attr_aria_label") + '">숙요점 1년운 전체 해석 잠금 해제 · 10,000원</button>'
+        + '<p class="sy-lunar-note">해금은 선택한 프로필의 ' + syCanonicalEsc(targetYear) + '년에만 적용됩니다.</p>'
+      + '</div>'
       + '</div>';
   }
 
@@ -14239,6 +14265,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           var failure = new Error((payload && payload.message) || '숙요점 1년운을 불러오지 못했습니다.');
           failure.status = Number((pack && pack.status) || 0);
           failure.code = (payload && payload.code) || '';
+          // 워커가 실어 보내는 추적 id. 확정 실패(500) 문의 시 로그와 대조할 수 있는 유일한 단서다.
+          failure.requestId = String((payload && payload.requestId) || '');
           throw failure;
         }
         var resolvedProfileId = payload.unlockScope && payload.unlockScope.profileId || profileId;
@@ -14261,24 +14289,32 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         syBindSukuyoYearlyUnlockButton(window._sySukuyoYearlyReading);
       })
       .catch(function(error) {
-        // 워커는 일시적 DB 장애를 503으로 표면화한다(의도된 degrade). 그 영문 원문
-        // "Database is temporarily unavailable." 을 그대로 보여주면 사용자가 할 수 있는 게 없다 —
-        // 한국어 안내 + 재시도 버튼을 준다. 4xx(로그인 필요·프로필 미선택 등)는 서버 한국어 문구를 유지한다.
+        // 분류 순서는 레포 하우스룰을 따른다(app/_lib/consultationResultPolling.ts):
+        // 402(잠금 유지) → 일시장애(0·503) → 확정 실패(500·4xx).
+        // 🔴 500 은 일시적이 아니다. 종전에는 statusCode >= 500 을 전부 '붐벼요'로 묶어,
+        // 코드 버그로 난 500 이 '서버 혼잡'으로 위장되고 원인 추적이 막혔다.
         var statusCode = Number((error && error.status) || 0);
         var errorCode = String((error && error.code) || '');
+        var requestId = String((error && error.requestId) || '');
+        var isPaymentRequired = statusCode === 402 || errorCode === 'PAYMENT_REQUIRED';
         var isTransient = statusCode === 0
-          || statusCode >= 500
+          || statusCode === 503
           || errorCode === 'AUTH_STATUS_TEMPORARILY_UNAVAILABLE'
           || errorCode === 'SERVICE_UNAVAILABLE';
-        var message = isTransient
-          ? '지금 서버가 잠시 붐벼요. 잠시 후 다시 시도해 주세요.'
-          : ((error && error.message) || '숙요점 1년운을 불러오지 못했습니다.');
-        target.innerHTML = '<div style="padding:18px;color:#fecaca;line-height:1.8;">'
-          + syCanonicalEsc(message)
-          + (isTransient
-            ? '<button type="button" data-sy-yearly-retry="1" aria-label="숙요점 1년운 다시 시도" style="display:block;margin:12px auto 0;padding:9px 18px;border-radius:999px;border:1px solid rgba(244,190,209,.5);background:transparent;color:#fecaca;font:inherit;cursor:pointer;">다시 시도</button>'
-            : '')
-          + '</div>';
+        var notice = '';
+        if (isTransient) {
+          notice = '지금 서버가 잠시 붐벼요. 잠시 후 다시 시도해 주세요.';
+        } else if (!isPaymentRequired) {
+          // 500 의 서버 문구는 영문 "Internal server error." 라 그대로 보이면 안 된다.
+          notice = statusCode >= 500
+            ? ('숙요점 1년운을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.' + (requestId ? ' (오류 코드 ' + requestId + ')' : ''))
+            : ((error && error.message) || '숙요점 1년운을 불러오지 못했습니다.');
+        }
+        // 🔴 실패해도 잠금 패널과 해금 버튼은 남긴다 — 안내만 위에 얹는다.
+        // 컨테이너를 에러 박스로 덮으면 결제 경로가 사라져 "결제가 진행되지 않는다"가 된다.
+        target.innerHTML = syRenderSukuyoYearlyLockedFallback(targetYear, notice, !isPaymentRequired);
+        // 잠금 패널을 그렸으니 배지도 잠금으로 맞춘다(직전 성공이 '해금 완료'를 남겼을 수 있다).
+        sySetSukuyoYearlyUnlockStateV2(false, targetYear);
         // 실패는 렌더 완료로 치지 않는다(다시 열면 재시도 가능). 대신 자동 경로만 잠깐 쉬게 해
         // 렌더가 반복될 때 같은 실패 요청이 연달아 나가지 않도록 한다.
         window._sySukuyoYearlyAutoRetryAt = Date.now() + SY_YEARLY_AUTO_RETRY_COOLDOWN_MS;
@@ -14288,6 +14324,14 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
             syHydrateSukuyoYearlyFortune(state);
           }, { once: true });
         }
+        // 새로 그린 해금 버튼에 리스너를 붙인다(성공 경로와 동일). 이게 없으면 CTA 가 죽은 버튼이 된다.
+        window._sySukuyoYearlyReading = Object.assign({}, state, {
+          profileId: profileId,
+          selectedProfileId: profileId,
+          contentKey: syBuildSukuyoYearlyContentKey(targetYear),
+          targetYear: targetYear
+        });
+        syBindSukuyoYearlyUnlockButton(window._sySukuyoYearlyReading);
       })
       .then(function() {
         if (window._sySukuyoYearlyInFlightKey === hydrateKey) window._sySukuyoYearlyInFlightKey = '';

@@ -1522,14 +1522,34 @@ function requireSukuyoYearlyAuth(auth) {
   throw error;
 }
 
+/* Solar.fromYmdHms 는 범위를 벗어난 인자에 status 없는 맨 Error("wrong month 0")를 던진다.
+   그 에러는 handleSukuyoRoutes 의 4xx 분기에도, isDbUnavailableError 의 503 분기에도 안 걸려
+   그대로 500 이 됐다 — 1년운만 "지금 서버가 잠시 붐벼요"로 죽던 원인이다.
+   Number(null)·Number("") 는 0 이고 **유한**이라 종전의 isFinite 검사로는 못 걸렀다. */
+function isSukuyoBirthDatePartInRange(value, min, max) {
+  return Number.isInteger(value) && value >= min && value <= max;
+}
+
+// 시·분은 본명숙 판정의 신원 값이 아니라 보조 값이라 거부하지 않고 접는다
+// (레포 공통 관례 '시간 모름 = 정오' — index.html 의 data-cd-set-unknown-time 과 같은 기준).
+function clampSukuyoBirthClockPart(value, max, fallback) {
+  const parsed = Math.trunc(Number(value));
+  if (!Number.isFinite(parsed) || parsed < 0 || parsed > max) return fallback;
+  return parsed;
+}
+
 function resolveSukuyoLunarFromProfile(profile) {
   const birth = profile?.birth || {};
-  const year = Number(birth.year);
-  const month = Number(birth.month);
-  const day = Number(birth.day);
-  const hour = Number.isFinite(Number(birth.hour)) ? Number(birth.hour) : 12;
-  const minute = Number.isFinite(Number(birth.minute)) ? Number(birth.minute) : 0;
-  if (!Number.isFinite(year) || !Number.isFinite(month) || !Number.isFinite(day)) return null;
+  const year = Math.trunc(Number(birth.year));
+  const month = Math.trunc(Number(birth.month));
+  const day = Math.trunc(Number(birth.day));
+  const hour = clampSukuyoBirthClockPart(birth.hour, 23, 12);
+  const minute = clampSukuyoBirthClockPart(birth.minute, 59, 0);
+  if (!isSukuyoBirthDatePartInRange(year, 1000, 9999)
+    || !isSukuyoBirthDatePartInRange(month, 1, 12)
+    || !isSukuyoBirthDatePartInRange(day, 1, 31)) {
+    return null;
+  }
   const calendarType = clean(birth.calType || "solar").toLowerCase();
   if (calendarType === "lunar" || calendarType === "lunar_leap") {
     return { year, month, day, isLeap: calendarType === "lunar_leap" };
@@ -2385,6 +2405,12 @@ export async function handleSukuyoRoutes(request, env = {}, ctx = null) {
         missing: Array.isArray(error?.missing) ? error.missing : undefined,
       }, { status });
     }
-    return handleRouteError(error);
+    // context 를 넘겨야 응답에 requestId 가, 로그에 route/requestPath 가 남는다.
+    // 안 넘기던 동안 1년운 500 은 어느 경로에서 났는지조차 추적할 수 없었다.
+    return handleRouteError(error, {
+      request,
+      env,
+      trace: { route: "sukuyo", method: request?.method || "", requestPath: `/api/sukuyo${path}` },
+    });
   }
 }
