@@ -1263,6 +1263,12 @@ export async function handlePaymentsContext(request, env, options = {}) {
       request, env, ctx, userId, body, rawBody, params: matched.params, withDb, legacyShape, legacyEnvelope,
     });
     status = response.status;
+    /* 🔴 정상 응답에도 서버 시간을 실어 보낸다. 예전엔 Server-Timing 이 오류 경로에만 붙어서
+       (worker/lib/http.js), "느린데 200 으로 성공하는" 요청 — 즉 '결제창이 늦게 뜬다'의 본체 —
+       은 브라우저에서 총 시간만 보였다. 숫자만 담으므로 PII 가 없고, Access-Control-Expose-Headers
+       에 Server-Timing 이 이미 있어(worker/index.js) 교차출처에서도 읽힌다.
+       오류 경로는 건드리지 않는다 — 그쪽의 cd-error;desc="stage" 가 진단 축이다. */
+    applyServerTiming(response, ctx);
     return response;
   } catch (error) {
     const contract = classify(error);
@@ -1291,7 +1297,28 @@ export async function handlePaymentsContext(request, env, options = {}) {
       stage,
       durationMs: Date.now() - ctx.startedAt,
       mongoOps: ctx.mongoOps,
+      // durationMs 를 admission 대기 / 커넥션 수립 / 실제 쿼리로 가른다(withPaymentDb 가 채운다).
+      extra: ctx.dbTimings || undefined,
     });
+  }
+}
+
+/**
+ * 성공 응답에 붙는 서버 시간. 이름은 짧게 — Server-Timing 은 헤더 예산을 먹는다.
+ *   cd=요청 전체 · cdadm=admission 대기 · cdconn=Mongo 커넥션 수립 · cdop=쿼리
+ * cd 에서 나머지 셋을 빼면 인증·가격해석·봉투 조립 등 순수 CPU 구간이 남는다.
+ */
+function applyServerTiming(response, ctx) {
+  try {
+    if (!response?.headers || response.headers.has("Server-Timing")) return;
+    const t = ctx.dbTimings || {};
+    const parts = [`cd;dur=${Date.now() - ctx.startedAt}`];
+    if (Number.isFinite(t.admissionMs)) parts.push(`cdadm;dur=${t.admissionMs}`);
+    if (Number.isFinite(t.connectMs)) parts.push(`cdconn;dur=${t.connectMs}`);
+    if (Number.isFinite(t.opMs)) parts.push(`cdop;dur=${t.opMs}`);
+    response.headers.set("Server-Timing", parts.join(", "));
+  } catch {
+    // 계측은 절대 응답 경로를 바꾸지 않는다.
   }
 }
 
