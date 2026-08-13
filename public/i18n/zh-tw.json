@@ -6115,7 +6115,21 @@
         "k16bs": "首頁",
         "kwp0s": "我的",
         "kxro3": "諮詢",
-        "kxvio": "四柱八字"
+        "kxvio": "四柱八字",
+        "k16cq4to": "全部運勢",
+        "ku6gdz": "通行證",
+        "kb86wy0": {
+          "ariaLabel": "以我的資料查看四柱八字"
+        },
+        "k1mpcz5w": {
+          "ariaLabel": "瀏覽全部運勢"
+        },
+        "k16eawmw": {
+          "ariaLabel": "通行證商店"
+        },
+        "k164wabc": {
+          "ariaLabel": "我的頁面"
+        }
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "塔羅",
@@ -6194,7 +6208,11 @@
         "kry6axn": "27宿月宿",
         "kslqazg": "綜合運勢提示",
         "kxgi8q8": "占卜師魚",
-        "kxqdi2w": "血型運勢"
+        "kxqdi2w": "血型運勢",
+        "k8jupm2": "專家動物面相"
+      },
+      "k1as5gz2": {
+        "ariaLabel": "前往專家動物面相"
       }
     },
     "featureCardGrid": {
@@ -6217,16 +6235,28 @@
         },
         "k6gno8d": {
           "ariaLabel": "新年運勢 AI 諮詢 — 命盤與流年為您解答"
+        },
+        "k1m9xov8": {
+          "ariaLabel": "人生之書專家諮詢 — 以命盤與提問讀出的人生敘事"
+        },
+        "k158v3r1": {
+          "ariaLabel": "戀愛祕策專家諮詢 — 從命盤看愛情的紋理"
+        },
+        "k1t7f2xt": {
+          "ariaLabel": "新年運勢專家諮詢 — 命盤與流年回答你的提問"
         }
       }
     },
     "fgGroupCards": {
       "lifebookTile": {
         "k19ij50j": "人生之書 AI 諮詢",
-        "k1c3xcpf": "新年運勢 AI 諮詢"
+        "k1c3xcpf": "新年運勢 AI 諮詢",
+        "kn9so5r": "人生之書專家諮詢",
+        "kwnx8m7": "新年運勢專家諮詢"
       },
       "lovebibleTile": {
-        "k1s2fcm4": "戀愛秘笈 AI 諮詢"
+        "k1s2fcm4": "戀愛秘笈 AI 諮詢",
+        "ku5mrxy": "戀愛祕策專家諮詢"
       }
     },
     "honeyMembershipDetails": {
@@ -6250,6 +6280,14 @@
       },
       "k85zbld": {
         "ariaLabel": "手機快速導航"
+      },
+      "logoArea": {
+        "k52dhv3": {
+          "ariaLabel": "今日推薦諮詢"
+        },
+        "k16nuyta": {
+          "ariaLabel": "精選運命諮詢"
+        }
       }
     },
     "ks7htym": {
@@ -6282,7 +6320,9 @@
         "k1e2ozr5": "命盤紋理之上，大運、流年、月運之門開啟",
         "k1n6j5jj": "將原局氣質、大運背景、流年事件性、月運起伏串聯成一條線，指出今年的選擇和需注意的時期。",
         "k1x7d2nr": "透過命盤與當前問題，解讀您的人生故事",
-        "ktjp1an": "根據您的出生年月日和人生主題，像諮詢一樣，為您平靜地展開重複的模式、隱藏的才能以及未來應發展的方向。"
+        "ktjp1an": "根據您的出生年月日和人生主題，像諮詢一樣，為您平靜地展開重複的模式、隱藏的才能以及未來應發展的方向。",
+        "kn9so5r": "人生之書專家諮詢",
+        "kwnx8m7": "新年運勢專家諮詢"
       },
       "lifebookTileLabelRow": {
         "AI30000": "AI 諮詢 · 30,000韓元",
@@ -6304,14 +6344,16 @@
     "lovebibleTileCoinGroup": {
       "lovebibleTileCoinBadge": {
         "k11zo0b": "AI 諮詢",
-        "n30000": "30,000韓元"
+        "n30000": "30,000韓元",
+        "k1tna4h3": "專家諮詢"
       }
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
         "k153vbx2": "平靜解讀愛情紋理的命理諮詢",
         "k1s2fcm4": "戀愛秘笈 AI 諮詢",
-        "ko82iqm": "結合日干、日支、關係宮與流年運勢，為您優雅地指出當前的心境與選擇。"
+        "ko82iqm": "結合日干、日支、關係宮與流年運勢，為您優雅地指出當前的心境與選擇。",
+        "ku5mrxy": "戀愛祕策專家諮詢"
       }
     },
     "miscCollection": {
@@ -6334,7 +6376,8 @@
     },
     "normalLogo": {
       "moonHeroCopy": {
-        "k5pz2jn": "星光運勢之路"
+        "k5pz2jn": "星光運勢之路",
+        "kbm4p3d": "依你的問題串聯四柱八字、紫微斗數、宿曜、占星與塔羅，再以超融合運勢沉靜梳理今天的選擇。"
       }
     },
     "premiumVvipCollection": {
@@ -6362,6 +6405,27 @@
         },
         "n2727": {
           "ariaLabel": "星宿決定版 — 東方27宿 × 印度27納克沙特拉綜合星宿"
+        },
+        "kkn0c7c": {
+          "ariaLabel": "人生羅盤 — 以四柱八字與紫微斗數定出此刻方位的指引"
+        },
+        "k1q7t6kn": {
+          "ariaLabel": "開啟人生總運專家諮詢"
+        },
+        "ksb1e44": {
+          "ariaLabel": "宿曜合婚專家諮詢"
+        },
+        "kb3asmd": {
+          "ariaLabel": "查看紫微斗數專家諮詢"
+        },
+        "k1v6dzf8": {
+          "ariaLabel": "查看占星專家諮詢"
+        },
+        "k1v8klir": {
+          "ariaLabel": "前往吠陀占星專家諮詢"
+        },
+        "k10411ib": {
+          "ariaLabel": "開始基於四柱八字的尊享專家取名"
         }
       }
     },
@@ -6475,7 +6539,15 @@
         "kt62t87": "吠陀占 AI 諮詢",
         "kyqh20f": "Neo 將四柱八字、紫微斗數、吠陀占星術、占星術結合，冷靜地分析您現在應抓住的選擇標準。",
         "kzo1yhl": "獸 十二運星動物占",
-        "n2727Nakshatra": "東方 27 宿 × 印度 27 Nakshatra — 一顆星，兩種語言。千年前分裂的兩個星座體系，在您的四柱八字上再次相遇。"
+        "n2727Nakshatra": "東方 27 宿 × 印度 27 Nakshatra — 一顆星，兩種語言。千年前分裂的兩個星座體系，在您的四柱八字上再次相遇。",
+        "k1ovtqnv": "人生羅盤",
+        "k1p1xzy7": "當你不知該往哪裡走，我們把四柱八字與紫微斗數並置，替你定出方位。",
+        "k18jn96d": "人生總運專家諮詢",
+        "ksb1e44": "宿曜合婚專家諮詢",
+        "kdyem8n": "紫微斗數專家諮詢",
+        "k1jaids8": "占星專家諮詢",
+        "kdriwl7": "吠陀占星專家諮詢",
+        "k1ncgm2q": "專家將命盤與五行、字音與漢字之義編織在一起親自取名，並連同提示詞原文一併奉上。"
       },
       "tarotTileImgWrap": {
         "AI30000": "AI 諮詢 · 30,000韓元",
@@ -6503,7 +6575,18 @@
         },
         "koe32kc": "免費體驗",
         "ktgbfsy": "NEW · 決定版",
-        "n50001000020000": "塔羅 5,000韓元 · 四柱八字 10,000韓元 · 合婚 20,000韓元"
+        "n50001000020000": "塔羅 5,000韓元 · 四柱八字 10,000韓元 · 合婚 20,000韓元",
+        "k1dw3t0h": "命盤免費 · 專家諮詢付費",
+        "kg12w8e": "全新 · 人生羅盤",
+        "n110000": "基礎免費 · 深度每次10,000韓元",
+        "n30000": "專家諮詢 · 30,000韓元",
+        "n300002": "專家諮詢 · 30,000韓元",
+        "n300003": "專家諮詢 · 30,000韓元",
+        "n300004": "專家諮詢 · 30,000韓元",
+        "n300005": "專家諮詢 · 30,000韓元",
+        "k1tna4h3": "專家諮詢",
+        "n300006": "專家諮詢 · 30,000韓元",
+        "n300007": "專家取名 · 30,000韓元"
       }
     },
     "tarotTileBody": {
@@ -6543,7 +6626,13 @@
         "kwuu0": "免費",
         "kyyvo": "命名",
         "kyzfrrw": "四柱八字 · 塔羅 · 合婚",
-        "n30000": "以30,000韓元為基準"
+        "n30000": "以30,000韓元為基準",
+        "kmuahqh": "四柱八字 · 紫微斗數",
+        "k1gd6g4k": "方向規劃",
+        "km02jru": "尋路",
+        "k1tna4h3": "專家諮詢",
+        "k1tna4h32": "專家諮詢",
+        "k1tna4h33": "專家諮詢"
       },
       "pvcPremPoints": {
         "AIPDF": "AI完成的命名結果 + PDF儲存",
@@ -6578,7 +6667,11 @@
         "kxatr2b": "溫和化解煩惱的選擇型流程",
         "kyk2x3o": "基於大運、流年的選擇建議",
         "n12NPC": "每日變化的島嶼天氣與12宮NPC對話",
-        "n30000": "30,000韓元單次付款或通行證、月精石"
+        "n30000": "30,000韓元單次付款或通行證、月精石",
+        "kfib4kf": "比較岔路口兩個選擇的氣",
+        "k1vetwxt": "以當前所行大運與流年讀出的人生航路",
+        "k67hhx7": "預先描摹選擇之後的未來推演",
+        "k1n33cx9": "專家完成的取名結果 + PDF 儲存"
       }
     },
     "terms24Card": {
@@ -6620,10 +6713,223 @@
         },
         "kp08cb": {
           "ariaLabel": "故事連結"
+        },
+        "k1lyzj38": {
+          "ariaLabel": "專家諮詢連結"
+        },
+        "ki07z7y": {
+          "ariaLabel": "功能指南連結"
         }
       },
       "k14mqjx7": "紫微斗數 AI 諮詢",
-      "kt62t87": "吠陀占星 AI 諮詢"
+      "kt62t87": "吠陀占星 AI 諮詢",
+      "kdyem8n": "紫微斗數專家諮詢",
+      "kdriwl7": "吠陀占星專家諮詢"
+    },
+    "moonHeroCopy": {
+      "moonHeroActions": {
+        "kerryje": "✦ 查看超融合運勢"
+      }
+    },
+    "cdTodayPanelSaju": {
+      "kv58y0g": "解讀當日天干地支在你的日主上織出怎樣的紋理。",
+      "kkmdg9l": "四柱八字以今日日辰與你的日主之間的十神關係判斷一日吉凶。日主強與日主弱的命盤，同一天的讀法恰好相反，因此唯有知道自己的命盤，才能定下今天是大吉日還是宜慎行之日。"
+    },
+    "cdTodayPanelSukuyo": {
+      "kd5ukqs": "看月亮所宿的星宿與你的本命宿相遇之位。",
+      "k6mrnix": "宿曜以出生當日的農曆定出本命宿（二十七宿），再看今日月亮所宿之宿對本命宿處於何位來判吉凶。榮親、安壞、業胎等位次，各自分出大吉日與凶日。"
+    },
+    "cdTodayPanelVedic": {
+      "kom45ly": "將今日月亮實際經過的星宿與你的本命位相互對照。",
+      "k451jpc": "吠陀占星以今日月亮的恆星黃道位置定出納沙特拉，再依它距你本命位第幾位，落入九個塔拉巴拉之位。三帕特與克捨摩為吉，維帕特與瓦達則是宜推遲重大決定之位。"
+    },
+    "cdPickInner": {
+      "cdPickCopy": {
+        "kl74p3h": "今日運命",
+        "kg9at99": "今天最適合你的諮詢",
+        "kntw327": "納沙特拉決定版",
+        "k4byd9a": "同一顆星，以印度吠陀占星與韓國命理學兩種語言同時解讀。"
+      }
+    },
+    "cdTodayPick": {
+      "cdPickInner": {
+        "k16e565e": "為你推薦"
+      }
+    },
+    "cdSignatureConsult": {
+      "cdSigHead": {
+        "k16nuyta": "精選運命諮詢",
+        "k1uopfsh": "四條深度諮詢之路，選擇此刻你最需要的那一條。"
+      },
+      "keqgznt": {
+        "ariaLabel": "翻閱精選諮詢卡片"
+      }
+    },
+    "cdSigCard": {
+      "cdSigCardMedia": {
+        "krnc4c4": "尊享",
+        "k1039k": "推薦",
+        "kwuqfvj": {
+          "alt": "大師姻緣之書 — 神祕圖書館中，情感高手攤開的戀愛策略書"
+        },
+        "k1ph66tm": {
+          "alt": "Yeoni 的運命茶館 — 蓮花守門人 Yeoni 以月光茶盞遞上的感性諮詢"
+        },
+        "k1wq9p18": {
+          "alt": "納沙特拉決定版 — 東方星宿紋樣與印度曼陀羅交錯的夜空圖像"
+        },
+        "k1f89g8b": {
+          "alt": "Neo 的直言運命戰略室 — 在獅子徽章前梳理抉擇戰線的戰略諮詢"
+        }
+      },
+      "cdSigCardBody": {
+        "k1sw19cg": "大師姻緣之書",
+        "k2fl7d2": "將四柱八字與紫微斗數編織為一，由情感高手解讀的二十章戀愛策略書。",
+        "n20000": "20,000韓元起",
+        "k1dc5spb": "運命茶館",
+        "k1f3556p": "以溫柔筆觸解開四柱八字、塔羅與合婚的感性諮詢。",
+        "n5000": "5,000韓元起",
+        "kntw327": "納沙特拉決定版",
+        "koevlcx": "一顆星，兩種語言 — 將印度吠陀占星與韓國命理學對同一星宿的解讀並列對照",
+        "k18zdwwf": "免費公開",
+        "kk0w8v": "直言戰略室",
+        "k1bs96nr": "Neo 冷靜點明的選擇作戰簡報",
+        "n30000": "30,000韓元"
+      }
+    },
+    "cdSigCardBody": {
+      "cdSigCardMeta": {
+        "k1hiiadz": "20章 · 5萬字",
+        "k1l2ndq7": "可用通行證",
+        "n32006000": "3,200~6,000字",
+        "k1l2ndq72": "可用通行證",
+        "n2114": "21篇 · 1.4萬字",
+        "k1l2ndq73": "可用通行證",
+        "n1415000": "14章 · 15,000字",
+        "k1l2ndq74": "可用通行證"
+      }
+    },
+    "cdPickReason": {
+      "cdPickWhyText": {
+        "kntw327": "納沙特拉決定版",
+        "k1s5m1vr": "東方二十七宿與印度納沙特拉並觀，同一張命盤也會讀得清晰許多。"
+      }
+    },
+    "cdDiaryPlannerEntry": {
+      "cdDiaryPlannerEntryCopy": {
+        "k16byqlb": "把今天的節奏握在手裡",
+        "kh71llm": "記錄今天的流向，把重要日程與微小實踐接續成一個月的節奏。",
+        "k1vo9x0c": "記錄與日程僅保存在本裝置。",
+        "k1c8x4ap": {
+          "ariaLabel": "日記與規劃功能"
+        }
+      }
+    },
+    "cdDiaryPlannerEntryCopy": {
+      "cdDiaryPlannerEntryPoints": {
+        "ky00tcw": "記錄今日運氣與心情",
+        "ktzwo12": "日程與例行規劃",
+        "kgbiqt0": "一眼看清整月流向"
+      },
+      "cdDiaryPlannerEntryAction": {
+        "k1c914y0": "開啟日記與規劃"
+      }
+    },
+    "fortuneGatewayEntryShell": {
+      "fortuneGatewayEntryCopy": {
+        "kjx6wsf": "運命之門",
+        "k1i0ttch": "輕一些的煩惱，與 Yeoni、Neo 對話即可化開；人生的大流向，則交給融六大體系為一的超融合解讀。"
+      }
+    },
+    "fortuneGatewayDoors": {
+      "fortuneGatewayDoor": {
+        "k69nrae": "Yeoni 運命諮詢",
+        "k1tbc6n5": "從一個煩惱說起，溫暖的 Yeoni 與直言的 Neo 會替你梳理眼下的流向。",
+        "k12pdy0g": "超融合深度解讀",
+        "k1eti53b": "指出四柱八字、紫微斗數、吠陀占星、宿曜、西洋占星與塔羅彼此重疊的訊號，以及彼此相左之處。"
+      }
+    },
+    "fortuneGatewayDoor": {
+      "fortuneGatewayDoorMeta": {
+        "k18ykrep": "免費3次",
+        "n115000": "未登入1次 · 之後每次5,000韓元",
+        "n130000": "每次30,000韓元",
+        "k1lo4ibg": "2萬字以上 · 最終交叉判定"
+      }
+    },
+    "fortuneGatewayEntry": {
+      "fortuneGatewayEntryShell": {
+        "klg50va": "對話與分析只在各自的頁面內進行，本頁面不會傳送任何資訊。"
+      }
+    },
+    "moonStoryEntry": {
+      "moonStoryEntryCopy": {
+        "CODEDESTINY": "CODE DESTINY 輕小說"
+      }
+    },
+    "moonStoryEntryCopy": {
+      "moonStoryEntryMeta": {
+        "k1re6l3o": "全44話完結",
+        "k18zi880": "免費閱讀",
+        "k1cmoty1": "收錄視覺小說"
+      }
+    },
+    "cdFeedbackCard": {
+      "cdFeedbackCopy": {
+        "k1qqtskq": "邀你一起打造這項服務。"
+      }
+    },
+    "cdFeedbackCopy": {
+      "cdFeedbackReward": {
+        "k1ubfgod": "月精石 300 顆"
+      }
+    },
+    "cdFeedbackGate": {
+      "cdFeedbackCard": {
+        "k1chb9k4": "傳送意見"
+      }
+    },
+    "tarotYearFortuneIntroStage": {
+      "tyHero": {
+        "k1qxj83w": "本年關鍵牌 · 12個月逐月解讀 · 財運/事業/關係/健康/成長 · 轉折點與幸運行動"
+      }
+    },
+    "totemResultContainer": {
+      "totemResultActions": {
+        "ksp2edy": "🗂 儲存到收藏",
+        "kfksveu": "🗂 過往解讀"
+      }
+    },
+    "dailyFortuneCard": {
+      "fortuneLeadMagnetCta": {
+        "k1kuwldz": "✨ 查看財運、感情、事業、健康的分項精解，以及分時段指引。"
+      }
+    },
+    "fortuneLeadMagnetCta": {
+      "cdBtnTodayPulse": {
+        "k1715eae": "查看今日運勢完整報告 →"
+      }
+    },
+    "cdSigGrid": {
+      "krqyte4": {
+        "ariaLabel": "開啟大師姻緣之書"
+      },
+      "ktlnhmn": {
+        "ariaLabel": "進入 Yeoni 的運命茶館"
+      },
+      "k19zjy0t": {
+        "ariaLabel": "開啟納沙特拉決定版"
+      },
+      "k1coanmg": {
+        "ariaLabel": "進入 Neo 的直言運命戰略室"
+      }
+    },
+    "cdFooterLegalMeta": {
+      "cdFooterLangpick": {
+        "kw3mf7": {
+          "ariaLabel": "韓語"
+        }
+      }
     }
   },
   "adsenseArticle": {

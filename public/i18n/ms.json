@@ -6115,7 +6115,21 @@
         "k16bs": "Utama",
         "kwp0s": "Saya",
         "kxro3": "Konsultasi",
-        "kxvio": "Empat Tiang"
+        "kxvio": "Empat Tiang",
+        "k16cq4to": "Semua",
+        "ku6gdz": "Pas",
+        "kb86wy0": {
+          "ariaLabel": "Lihat Empat Tiang saya dengan profil saya"
+        },
+        "k1mpcz5w": {
+          "ariaLabel": "Lihat semua bacaan"
+        },
+        "k16eawmw": {
+          "ariaLabel": "Kedai Pas"
+        },
+        "k164wabc": {
+          "ariaLabel": "Halaman Saya"
+        }
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",
@@ -6194,7 +6208,11 @@
         "kry6axn": "27 Nakshatra",
         "kslqazg": "Prom Bacaan Komprehensif",
         "kxgi8q8": "Ikan Fortune Teller",
-        "kxqdi2w": "Bacaan Jenis Darah"
+        "kxqdi2w": "Bacaan Jenis Darah",
+        "k8jupm2": "Bacaan Wajah Haiwan Pakar"
+      },
+      "k1as5gz2": {
+        "ariaLabel": "Pergi ke Bacaan Wajah Haiwan Pakar"
       }
     },
     "featureCardGrid": {
@@ -6217,16 +6235,28 @@
         },
         "k6gno8d": {
           "ariaLabel": "Bacaan Tahun Baharu AI — carta kelahiran dan kitaran nasib tahunan menjawab soalan anda"
+        },
+        "k1m9xov8": {
+          "ariaLabel": "Rundingan Pakar: Kitab Hidup Anda — kisah hidup anda dibaca daripada carta kelahiran dan soalan anda"
+        },
+        "k158v3r1": {
+          "ariaLabel": "Rundingan Pakar: Panduan Asmara — corak kehidupan cinta anda dilihat melalui carta kelahiran"
+        },
+        "k1t7f2xt": {
+          "ariaLabel": "Rundingan Pakar: Tahun Mendatang — carta kelahiran dan kitaran tahun menjawab soalan anda"
         }
       }
     },
     "fgGroupCards": {
       "lifebookTile": {
         "k19ij50j": "Buku Kehidupan AI",
-        "k1c3xcpf": "Bacaan Tahun Baharu AI"
+        "k1c3xcpf": "Bacaan Tahun Baharu AI",
+        "kn9so5r": "Rundingan Pakar: Kitab Hidup Anda",
+        "kwnx8m7": "Rundingan Pakar: Tahun Mendatang"
       },
       "lovebibleTile": {
-        "k1s2fcm4": "Buku Cinta AI"
+        "k1s2fcm4": "Buku Cinta AI",
+        "ku5mrxy": "Rundingan Pakar: Panduan Asmara"
       }
     },
     "honeyMembershipDetails": {
@@ -6250,6 +6280,14 @@
       },
       "k85zbld": {
         "ariaLabel": "Navigasi pantas mudah alih"
+      },
+      "logoArea": {
+        "k52dhv3": {
+          "ariaLabel": "Rundingan disyorkan hari ini"
+        },
+        "k16nuyta": {
+          "ariaLabel": "Rundingan pilihan"
+        }
       }
     },
     "ks7htym": {
@@ -6282,7 +6320,9 @@
         "k1e2ozr5": "Pintu kitaran nasib, tahunan, bulanan terbuka di atas tenunan carta kelahiran anda",
         "k1n6j5jj": "Kami merangkai sifat semula jadi, latar belakang kitaran nasib, peristiwa tahunan, dan pasang surut bulanan menjadi satu aliran untuk menunjukkan pilihan dan masa berhati-hati tahun ini.",
         "k1x7d2nr": "Naratif kehidupan anda dibaca dari carta kelahiran dan soalan semasa anda",
-        "ktjp1an": "Berdasarkan tarikh lahir dan tema kehidupan anda, kami dengan tenang membentangkan aliran berulang, bakat tersembunyi, dan arah yang perlu anda kembangkan, seperti sesi nasihat."
+        "ktjp1an": "Berdasarkan tarikh lahir dan tema kehidupan anda, kami dengan tenang membentangkan aliran berulang, bakat tersembunyi, dan arah yang perlu anda kembangkan, seperti sesi nasihat.",
+        "kn9so5r": "Rundingan Pakar: Kitab Hidup Anda",
+        "kwnx8m7": "Rundingan Pakar: Tahun Mendatang"
       },
       "lifebookTileLabelRow": {
         "AI30000": "Nasihat AI · 30,000 won",
@@ -6304,14 +6344,16 @@
     "lovebibleTileCoinGroup": {
       "lovebibleTileCoinBadge": {
         "k11zo0b": "Nasihat AI",
-        "n30000": "30,000 won"
+        "n30000": "30,000 won",
+        "k1tna4h3": "Rundingan pakar"
       }
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
         "k153vbx2": "Nasihat Empat Tiang (BaZi) yang tenang membaca tenunan cinta",
         "k1s2fcm4": "Buku Cinta AI",
-        "ko82iqm": "Kami merangkai hari lahir, cabang bumi harian, istana hubungan, dan aliran tahunan untuk dengan elegan menunjukkan perasaan dan pilihan anda sekarang."
+        "ko82iqm": "Kami merangkai hari lahir, cabang bumi harian, istana hubungan, dan aliran tahunan untuk dengan elegan menunjukkan perasaan dan pilihan anda sekarang.",
+        "ku5mrxy": "Rundingan Pakar: Panduan Asmara"
       }
     },
     "miscCollection": {
@@ -6334,7 +6376,8 @@
     },
     "normalLogo": {
       "moonHeroCopy": {
-        "k5pz2jn": "Jalan Bacaan Bintang"
+        "k5pz2jn": "Jalan Bacaan Bintang",
+        "kbm4p3d": "Empat Tiang, Zi Wei Dou Shu, Sukuyo, astrologi dan tarot dihubungkan mengikut soalan anda, lalu disatukan menjadi bacaan gabungan yang menjernihkan pilihan hari ini."
       }
     },
     "premiumVvipCollection": {
@@ -6362,6 +6405,27 @@
         },
         "n2727": {
           "ariaLabel": "Edisi Muktamad Nakshatra — Gabungan 27 Sukuyo Timur × 27 Nakshatra India"
+        },
+        "kkn0c7c": {
+          "ariaLabel": "Kompas Hidup — panduan yang menetapkan arah anda kini daripada Empat Tiang dan Zi Wei Dou Shu"
+        },
+        "k1q7t6kn": {
+          "ariaLabel": "Buka Rundingan Pakar: Gambaran Hidup"
+        },
+        "ksb1e44": {
+          "ariaLabel": "Rundingan Pakar: Keserasian Sukuyo"
+        },
+        "kb3asmd": {
+          "ariaLabel": "Lihat Rundingan Pakar: Zi Wei Dou Shu"
+        },
+        "k1v6dzf8": {
+          "ariaLabel": "Lihat Rundingan Pakar: Astrologi"
+        },
+        "k1v8klir": {
+          "ariaLabel": "Pergi ke Rundingan Pakar: Astrologi Veda"
+        },
+        "k10411ib": {
+          "ariaLabel": "Mulakan penamaan pakar premium berdasarkan Empat Tiang anda"
         }
       }
     },
@@ -6475,7 +6539,15 @@
         "kt62t87": "Konsultasi AI Astrologi Veda",
         "kyqh20f": "Neo memberi taklimat ringkas tentang kriteria pilihan yang perlu anda pegang sekarang, menggabungkan Empat Tiang, Zi Wei Dou Shu, Astrologi Veda, dan Astrologi.",
         "kzo1yhl": "Ramalan Haiwan 12 Wawasan",
-        "n2727Nakshatra": "27 Sukuyo Timur × 27 Nakshatra India — Satu bintang, dua bahasa. Dua sistem buruj yang terpisah seribu tahun lalu bertemu semula di atas carta kelahiran anda."
+        "n2727Nakshatra": "27 Sukuyo Timur × 27 Nakshatra India — Satu bintang, dua bahasa. Dua sistem buruj yang terpisah seribu tahun lalu bertemu semula di atas carta kelahiran anda.",
+        "k1ovtqnv": "Kompas Hidup",
+        "k1p1xzy7": "Apabila anda tidak tahu ke mana harus melangkah, kami letakkan Empat Tiang di sisi Zi Wei Dou Shu untuk mencari arah.",
+        "k18jn96d": "Rundingan Pakar: Gambaran Hidup",
+        "ksb1e44": "Rundingan Pakar: Keserasian Sukuyo",
+        "kdyem8n": "Rundingan Pakar: Zi Wei Dou Shu",
+        "k1jaids8": "Rundingan Pakar: Astrologi",
+        "kdriwl7": "Rundingan Pakar: Astrologi Veda",
+        "k1ncgm2q": "Seorang pakar menamakan dengan menganyam carta kelahiran, Lima Unsur, bunyi dan makna setiap aksara — serta menyerahkan teks asal gesaan itu sekali."
       },
       "tarotTileImgWrap": {
         "AI30000": "Konsultasi AI · 30,000 won",
@@ -6503,7 +6575,18 @@
         },
         "koe32kc": "Cuba Percuma",
         "ktgbfsy": "BARU · Edisi Muktamad",
-        "n50001000020000": "Tarot 5,000 won · Empat Tiang 10,000 won · Keserasian 20,000 won"
+        "n50001000020000": "Tarot 5,000 won · Empat Tiang 10,000 won · Keserasian 20,000 won",
+        "k1dw3t0h": "Carta percuma · rundingan pakar berbayar",
+        "kg12w8e": "Baharu · Kompas Hidup",
+        "n110000": "Asas percuma · mendalam ₩10,000 setiap bacaan",
+        "n30000": "Rundingan pakar · ₩30,000",
+        "n300002": "Rundingan pakar · ₩30,000",
+        "n300003": "Rundingan pakar · ₩30,000",
+        "n300004": "Rundingan pakar · ₩30,000",
+        "n300005": "Rundingan pakar · ₩30,000",
+        "k1tna4h3": "Rundingan pakar",
+        "n300006": "Rundingan pakar · ₩30,000",
+        "n300007": "Penamaan pakar · ₩30,000"
       }
     },
     "tarotTileBody": {
@@ -6543,7 +6626,13 @@
         "kwuu0": "Percuma",
         "kyyvo": "Penamaan",
         "kyzfrrw": "Empat Tiang (BaZi) · Tarot · Keserasian",
-        "n30000": "Berdasarkan 30,000 won"
+        "n30000": "Berdasarkan 30,000 won",
+        "kmuahqh": "Empat Tiang · Zi Wei Dou Shu",
+        "k1gd6g4k": "Reka arah",
+        "km02jru": "Mencari jalan",
+        "k1tna4h3": "Rundingan pakar",
+        "k1tna4h32": "Rundingan pakar",
+        "k1tna4h33": "Rundingan pakar"
       },
       "pvcPremPoints": {
         "AIPDF": "Hasil penamaan AI + simpan PDF",
@@ -6578,7 +6667,11 @@
         "kxatr2b": "Aliran pilihan yang melembutkan tekstur kebimbangan",
         "kyk2x3o": "Nasihat pilihan berdasarkan kitaran nasib dan nasib tahunan",
         "n12NPC": "Cuaca pulau yang berubah setiap hari dan perbualan NPC 12 Rumah",
-        "n30000": "Pembayaran sekali 30,000 won atau Pas · Batu Cahaya Bulan"
+        "n30000": "Pembayaran sekali 30,000 won atau Pas · Batu Cahaya Bulan",
+        "kfib4kf": "Bandingkan tenaga dua pilihan di persimpangan",
+        "k1vetwxt": "Haluan hidup anda, dibaca melalui kitaran nasib dan tahun yang sedang anda lalui",
+        "k67hhx7": "Simulasi masa depan yang melakar apa yang menyusul setiap pilihan",
+        "k1n33cx9": "Hasil penamaan lengkap daripada pakar + simpan PDF"
       }
     },
     "terms24Card": {
@@ -6620,10 +6713,223 @@
         },
         "kp08cb": {
           "ariaLabel": "Pautan Cerita"
+        },
+        "k1lyzj38": {
+          "ariaLabel": "Pautan rundingan pakar"
+        },
+        "ki07z7y": {
+          "ariaLabel": "Pautan panduan ciri"
         }
       },
       "k14mqjx7": "Perundingan AI Zi Wei Dou Shu",
-      "kt62t87": "Perundingan AI Astrologi Veda"
+      "kt62t87": "Perundingan AI Astrologi Veda",
+      "kdyem8n": "Rundingan Pakar: Zi Wei Dou Shu",
+      "kdriwl7": "Rundingan Pakar: Astrologi Veda"
+    },
+    "moonHeroCopy": {
+      "moonHeroActions": {
+        "kerryje": "✦ Lihat bacaan gabungan"
+      }
+    },
+    "cdTodayPanelSaju": {
+      "kv58y0g": "Kami membaca bagaimana batang dan cabang hari ini membentuk corak Penguasa Hari anda.",
+      "kkmdg9l": "Empat Tiang menilai hari melalui hubungan Sepuluh Dewa antara tiang hari ini dan Penguasa Hari anda. Penguasa Hari yang kuat dan yang lemah membaca tarikh sama secara bertentangan, jadi hanya carta kelahiran anda menentukan sama ada hari ini amat bertuah atau hari untuk berhati-hati."
+    },
+    "cdTodayPanelSukuyo": {
+      "kd5ukqs": "Kami melihat di mana rumah bulan hari ini bertemu rumah kelahiran anda.",
+      "k6mrnix": "Sukuyo menetapkan rumah kelahiran anda daripada tarikh bulan kelahiran dalam 27 rumah, lalu menilai hari mengikut kedudukan rumah bulan hari ini terhadapnya. Kedudukan seperti Yeongchin, Angoe dan Eoptae memisahkan hari amat bertuah daripada hari yang sukar."
+    },
+    "cdTodayPanelVedic": {
+      "kom45ly": "Kami membandingkan buruj yang benar-benar dilalui bulan hari ini dengan kedudukan kelahiran anda.",
+      "k451jpc": "Astrologi Veda menetapkan nakshatra daripada kedudukan sidereal bulan hari ini, lalu mengira jaraknya dari kedudukan kelahiran anda untuk meletakkannya dalam sembilan stesen Tara Bala. Sampat dan Kshema membawa tuah; Vipat dan Vadha ialah stesen untuk menangguhkan keputusan besar."
+    },
+    "cdPickInner": {
+      "cdPickCopy": {
+        "kl74p3h": "Takdir Hari Ini",
+        "kg9at99": "Rundingan yang paling sesuai untuk anda hari ini",
+        "kntw327": "Edisi Nakshatra",
+        "k4byd9a": "Satu bintang, dibaca serentak dalam dua bahasa — astrologi Veda India dan ilmu takdir Korea."
+      }
+    },
+    "cdTodayPick": {
+      "cdPickInner": {
+        "k16e565e": "Pilihan Untuk Anda"
+      }
+    },
+    "cdSignatureConsult": {
+      "cdSigHead": {
+        "k16nuyta": "Rundingan Pilihan",
+        "k1uopfsh": "Empat laluan rundingan mendalam — pilih yang anda perlukan kini."
+      },
+      "keqgznt": {
+        "ariaLabel": "Selak kad rundingan pilihan"
+      }
+    },
+    "cdSigCard": {
+      "cdSigCardMedia": {
+        "krnc4c4": "Premium",
+        "k1039k": "Disyorkan",
+        "kwuqfvj": {
+          "alt": "Kitab Ikatan Sang Mahaguru — kitab strategi cinta yang dibuka oleh seorang pakar di dalam perpustakaan misteri"
+        },
+        "k1ph66tm": {
+          "alt": "Rumah Teh Takdir Yeoni — Yeoni, penjaga pintu teratai, menghulurkan bacaan hangat dalam cawan teh bercahaya bulan"
+        },
+        "k1wq9p18": {
+          "alt": "Edisi Nakshatra — langit malam tempat corak buruj Timur bersilang dengan mandala India"
+        },
+        "k1f89g8b": {
+          "alt": "Bilik Strategi Takdir Terus Terang Neo — sesi strategi yang menyusun barisan hadapan sesuatu keputusan di hadapan lambang singa"
+        }
+      },
+      "cdSigCardBody": {
+        "k1sw19cg": "Kitab Ikatan Sang Mahaguru",
+        "k2fl7d2": "Empat Tiang dan Zi Wei Dou Shu dianyam menjadi satu kitab strategi cinta 20 bab, dibaca oleh pakar asmara.",
+        "n20000": "Dari ₩20,000",
+        "k1dc5spb": "Rumah Teh Takdir",
+        "k1f3556p": "Rundingan hangat yang membuka Empat Tiang, tarot dan keserasian dengan lembut.",
+        "n5000": "Dari ₩5,000",
+        "kntw327": "Edisi Nakshatra",
+        "koevlcx": "Satu bintang, dua bahasa — kami menjajarkan bacaan Veda India dan ilmu takdir Korea bagi buruj yang sama",
+        "k18zdwwf": "Percuma dibaca",
+        "kk0w8v": "Bilik Strategi Terus Terang",
+        "k1bs96nr": "Taklimat operasi Neo yang dingin dan tepat tentang pilihan di hadapan anda",
+        "n30000": "₩30,000"
+      }
+    },
+    "cdSigCardBody": {
+      "cdSigCardMeta": {
+        "k1hiiadz": "20 bab · 50k aksara",
+        "k1l2ndq7": "Pas diterima",
+        "n32006000": "3,200–6,000 aksara",
+        "k1l2ndq72": "Pas diterima",
+        "n2114": "21 karya · 14k aksara",
+        "k1l2ndq73": "Pas diterima",
+        "n1415000": "14 bab · 15,000 aksara",
+        "k1l2ndq74": "Pas diterima"
+      }
+    },
+    "cdPickReason": {
+      "cdPickWhyText": {
+        "kntw327": "Edisi Nakshatra",
+        "k1s5m1vr": "Membaca 27 rumah Timur bersama nakshatra India membuat carta yang sama terpapar jauh lebih jelas."
+      }
+    },
+    "cdDiaryPlannerEntry": {
+      "cdDiaryPlannerEntryCopy": {
+        "k16byqlb": "Jadikan Irama Hari Ini Milik Anda",
+        "kh71llm": "Catat aliran hari ini, dan sambungkan tarikh penting serta amalan kecil ke dalam irama sebulan.",
+        "k1vo9x0c": "Catatan dan jadual anda kekal pada peranti ini sahaja.",
+        "k1c8x4ap": {
+          "ariaLabel": "Ciri diari dan perancang"
+        }
+      }
+    },
+    "cdDiaryPlannerEntryCopy": {
+      "cdDiaryPlannerEntryPoints": {
+        "ky00tcw": "Rekod tenaga dan perasaan hari ini",
+        "ktzwo12": "Perancang jadual dan rutin",
+        "kgbiqt0": "Lihat sebulan sekali pandang"
+      },
+      "cdDiaryPlannerEntryAction": {
+        "k1c914y0": "Buka Diari dan Perancang"
+      }
+    },
+    "fortuneGatewayEntryShell": {
+      "fortuneGatewayEntryCopy": {
+        "kjx6wsf": "Pintu Takdir",
+        "k1i0ttch": "Bualkan kerisauan kecil bersama Yeoni dan Neo; untuk arus besar hidup anda, gunakan bacaan gabungan yang menganyam enam sistem menjadi satu."
+      }
+    },
+    "fortuneGatewayDoors": {
+      "fortuneGatewayDoor": {
+        "k69nrae": "Rundingan bersama Yeoni",
+        "k1tbc6n5": "Mulakan dengan satu kerisauan, dan biar Yeoni yang hangat serta Neo yang berterus terang menyusun aliran anda kini.",
+        "k12pdy0g": "Bacaan Gabungan Mendalam",
+        "k1eti53b": "Kami menunjukkan di mana Empat Tiang, Zi Wei Dou Shu, astrologi Veda, Sukuyo, astrologi Barat dan tarot sepakat — dan di mana ia berbeza."
+      }
+    },
+    "fortuneGatewayDoor": {
+      "fortuneGatewayDoorMeta": {
+        "k18ykrep": "3 bacaan percuma",
+        "n115000": "1 tanpa log masuk · selepas itu ₩5,000 setiap satu",
+        "n130000": "₩30,000 setiap bacaan",
+        "k1lo4ibg": "Lebih 20,000 aksara · semakan silang akhir"
+      }
+    },
+    "fortuneGatewayEntry": {
+      "fortuneGatewayEntryShell": {
+        "klg50va": "Perbualan dan analisis berlaku dalam setiap skrin sahaja; tiada apa-apa dihantar dari skrin ini."
+      }
+    },
+    "moonStoryEntry": {
+      "moonStoryEntryCopy": {
+        "CODEDESTINY": "Novel Ringan CODE DESTINY"
+      }
+    },
+    "moonStoryEntryCopy": {
+      "moonStoryEntryMeta": {
+        "k1re6l3o": "Lengkap dalam 44 episod",
+        "k18zi880": "Baca percuma",
+        "k1cmoty1": "Termasuk novel visual"
+      }
+    },
+    "cdFeedbackCard": {
+      "cdFeedbackCopy": {
+        "k1qqtskq": "Bantu kami membina perkhidmatan ini."
+      }
+    },
+    "cdFeedbackCopy": {
+      "cdFeedbackReward": {
+        "k1ubfgod": "300 Batu Cahaya Bulan"
+      }
+    },
+    "cdFeedbackGate": {
+      "cdFeedbackCard": {
+        "k1chb9k4": "Hantar Maklum Balas"
+      }
+    },
+    "tarotYearFortuneIntroStage": {
+      "tyHero": {
+        "k1qxj83w": "Kad utama tahun ini · bacaan bulan demi bulan · kewangan, kerja, hubungan, kesihatan dan pertumbuhan · titik peralihan dan tindakan bertuah"
+      }
+    },
+    "totemResultContainer": {
+      "totemResultActions": {
+        "ksp2edy": "🗂 Simpan ke pustaka",
+        "kfksveu": "🗂 Bacaan lepas"
+      }
+    },
+    "dailyFortuneCard": {
+      "fortuneLeadMagnetCta": {
+        "k1kuwldz": "✨ Lihat bacaan terperinci bagi kewangan, cinta, kerja dan kesihatan — berserta panduan mengikut waktu."
+      }
+    },
+    "fortuneLeadMagnetCta": {
+      "cdBtnTodayPulse": {
+        "k1715eae": "Lihat laporan penuh hari ini →"
+      }
+    },
+    "cdSigGrid": {
+      "krqyte4": {
+        "ariaLabel": "Buka Kitab Ikatan Sang Mahaguru"
+      },
+      "ktlnhmn": {
+        "ariaLabel": "Masuk ke Rumah Teh Takdir Yeoni"
+      },
+      "k19zjy0t": {
+        "ariaLabel": "Buka Edisi Nakshatra"
+      },
+      "k1coanmg": {
+        "ariaLabel": "Masuk ke Bilik Strategi Takdir Terus Terang Neo"
+      }
+    },
+    "cdFooterLegalMeta": {
+      "cdFooterLangpick": {
+        "kw3mf7": {
+          "ariaLabel": "Bahasa Korea"
+        }
+      }
     }
   },
   "adsenseArticle": {

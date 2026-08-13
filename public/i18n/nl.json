@@ -6115,7 +6115,21 @@
         "k16bs": "Home",
         "kwp0s": "Mijn",
         "kxro3": "Consult",
-        "kxvio": "Vier Pijlers (BaZi)"
+        "kxvio": "Vier Pijlers (BaZi)",
+        "k16cq4to": "Alle readings",
+        "ku6gdz": "Pas",
+        "kb86wy0": {
+          "ariaLabel": "Mijn Vier Pijlers bekijken met mijn profiel"
+        },
+        "k1mpcz5w": {
+          "ariaLabel": "Alle readings bekijken"
+        },
+        "k16eawmw": {
+          "ariaLabel": "Pas-winkel"
+        },
+        "k164wabc": {
+          "ariaLabel": "Mijn pagina"
+        }
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",
@@ -6194,7 +6208,11 @@
         "kry6axn": "27 Sukuyo Maanposities",
         "kslqazg": "Algemene reading-prompt",
         "kxgi8q8": "Fortune Teller Vis",
-        "kxqdi2w": "Bloedgroep-reading"
+        "kxqdi2w": "Bloedgroep-reading",
+        "k8jupm2": "Expert dier-gelaatkunde"
+      },
+      "k1as5gz2": {
+        "ariaLabel": "Naar expert dier-gelaatkunde"
       }
     },
     "featureCardGrid": {
@@ -6217,16 +6235,28 @@
         },
         "k6gno8d": {
           "ariaLabel": "AI-consult voor nieuwjaarsreading — geboortekaart en jaarcyclus beantwoorden uw vragen"
+        },
+        "k1m9xov8": {
+          "ariaLabel": "Expertconsult: het boek van je leven — je levensverhaal gelezen uit geboortekaart en vraag"
+        },
+        "k158v3r1": {
+          "ariaLabel": "Expertconsult: het liefdesplaybook — de structuur van je liefdesleven gezien via je geboortekaart"
+        },
+        "k1t7f2xt": {
+          "ariaLabel": "Expertconsult: het komende jaar — je geboortekaart en de jaarcyclus beantwoorden je vraag"
         }
       }
     },
     "fgGroupCards": {
       "lifebookTile": {
         "k19ij50j": "Levensboek AI-consult",
-        "k1c3xcpf": "Nieuwjaarsreading AI-consult"
+        "k1c3xcpf": "Nieuwjaarsreading AI-consult",
+        "kn9so5r": "Expertconsult: het boek van je leven",
+        "kwnx8m7": "Expertconsult: het komende jaar"
       },
       "lovebibleTile": {
-        "k1s2fcm4": "Liefdesgeheim AI-consult"
+        "k1s2fcm4": "Liefdesgeheim AI-consult",
+        "ku5mrxy": "Expertconsult: het liefdesplaybook"
       }
     },
     "honeyMembershipDetails": {
@@ -6250,6 +6280,14 @@
       },
       "k85zbld": {
         "ariaLabel": "Mobiele snelle navigatie"
+      },
+      "logoArea": {
+        "k52dhv3": {
+          "ariaLabel": "Aanbevolen consult van vandaag"
+        },
+        "k16nuyta": {
+          "ariaLabel": "Uitgelichte consulten"
+        }
       }
     },
     "ks7htym": {
@@ -6282,7 +6320,9 @@
         "k1e2ozr5": "De deuren van geluk-cyclus, jaarcyclus en maandcyclus openen zich over de structuur van de geboortekaart",
         "k1n6j5jj": "De aard van de geboortekaart, de achtergrond van de geluk-cyclus, de gebeurtenissen van de jaarcyclus en de fluctuaties van de maandcyclus worden samengevoegd tot één stroom om de keuzes en voorzichtigheidsperioden van dit jaar aan te wijzen.",
         "k1x7d2nr": "Jouw levensverhaal gelezen aan de hand van je geboortekaart en huidige vragen",
-        "ktjp1an": "Op basis van je geboortedatum en levensthema's ontvouwen we rustig de herhalende patronen, verborgen talenten en toekomstige richtingen die je moet benutten, net als in een consult."
+        "ktjp1an": "Op basis van je geboortedatum en levensthema's ontvouwen we rustig de herhalende patronen, verborgen talenten en toekomstige richtingen die je moet benutten, net als in een consult.",
+        "kn9so5r": "Expertconsult: het boek van je leven",
+        "kwnx8m7": "Expertconsult: het komende jaar"
       },
       "lifebookTileLabelRow": {
         "AI30000": "AI-consult · 30.000 won",
@@ -6304,14 +6344,16 @@
     "lovebibleTileCoinGroup": {
       "lovebibleTileCoinBadge": {
         "k11zo0b": "AI-consult",
-        "n30000": "30.000 won"
+        "n30000": "30.000 won",
+        "k1tna4h3": "Expertconsult"
       }
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
         "k153vbx2": "Vier Pijlers consult dat de structuur van liefde rustig leest",
         "k1s2fcm4": "Liefdesgeheim AI-consult",
-        "ko82iqm": "Door de dagmeester, dagtak en relatiepaleis te verbinden met de stroom van de jaarcyclus, duiden we op een waardige manier je huidige gevoelens en keuzes."
+        "ko82iqm": "Door de dagmeester, dagtak en relatiepaleis te verbinden met de stroom van de jaarcyclus, duiden we op een waardige manier je huidige gevoelens en keuzes.",
+        "ku5mrxy": "Expertconsult: het liefdesplaybook"
       }
     },
     "miscCollection": {
@@ -6334,7 +6376,8 @@
     },
     "normalLogo": {
       "moonHeroCopy": {
-        "k5pz2jn": "Pad van de sterrenreading"
+        "k5pz2jn": "Pad van de sterrenreading",
+        "kbm4p3d": "Vier Pijlers, Zi Wei Dou Shu, Sukuyo, astrologie en tarot — afgestemd op je vraag en samengebracht in één fusion-reading die de keuze van vandaag rustig ordent."
       }
     },
     "premiumVvipCollection": {
@@ -6362,6 +6405,27 @@
         },
         "n2727": {
           "ariaLabel": "Nakshatra Definitieve Editie — Geïntegreerde horoscoop van Oosterse 27 Sukuyo × Indiase 27 Nakshatra's"
+        },
+        "kkn0c7c": {
+          "ariaLabel": "Levenskompas — een gids die je koers nu bepaalt vanuit Vier Pijlers en Zi Wei Dou Shu"
+        },
+        "k1q7t6kn": {
+          "ariaLabel": "Expertconsult levensoverzicht openen"
+        },
+        "ksb1e44": {
+          "ariaLabel": "Expertconsult: Sukuyo-compatibiliteit"
+        },
+        "kb3asmd": {
+          "ariaLabel": "Expertconsult Zi Wei Dou Shu bekijken"
+        },
+        "k1v6dzf8": {
+          "ariaLabel": "Expertconsult astrologie bekijken"
+        },
+        "k1v8klir": {
+          "ariaLabel": "Naar expertconsult Vedische astrologie"
+        },
+        "k10411ib": {
+          "ariaLabel": "Start premium expert-naamgeving op basis van je Vier Pijlers"
         }
       }
     },
@@ -6475,7 +6539,15 @@
         "kt62t87": "AI consultatie Vedische astrologie",
         "kyqh20f": "Neo geeft een nuchtere briefing over de selectiecriteria die u nu moet omarmen, waarbij Vier Pijlers (BaZi), Zi Wei Dou Shu, Vedische astrologie en westerse astrologie worden gecombineerd.",
         "kzo1yhl": "獸 Twaalf Dieren van de Levenscyclus",
-        "n2727Nakshatra": "Oosterse 27 Sukuyo × Indiase 27 Nakshatra — Eén ster, twee talen. Twee sterrenstelsels die duizend jaar geleden gescheiden werden, ontmoeten elkaar opnieuw in uw geboortekaart."
+        "n2727Nakshatra": "Oosterse 27 Sukuyo × Indiase 27 Nakshatra — Eén ster, twee talen. Twee sterrenstelsels die duizend jaar geleden gescheiden werden, ontmoeten elkaar opnieuw in uw geboortekaart.",
+        "k1ovtqnv": "Levenskompas",
+        "k1p1xzy7": "Als je niet weet welke kant op, zetten we Vier Pijlers naast Zi Wei Dou Shu en bepalen we de koers.",
+        "k18jn96d": "Expertconsult: levensoverzicht",
+        "ksb1e44": "Expertconsult: Sukuyo-compatibiliteit",
+        "kdyem8n": "Expertconsult: Zi Wei Dou Shu",
+        "k1jaids8": "Expertconsult: astrologie",
+        "kdriwl7": "Expertconsult: Vedische astrologie",
+        "k1ncgm2q": "Een expert kiest de naam door geboortekaart, Vijf Elementen, klank en de betekenis van elk teken te verweven — en geeft je ook de originele prompt mee."
       },
       "tarotTileImgWrap": {
         "AI30000": "AI consultatie · 30.000 KRW",
@@ -6503,7 +6575,18 @@
         },
         "koe32kc": "Gratis proefversie",
         "ktgbfsy": "NIEUW · Definitieve Editie",
-        "n50001000020000": "Tarot 5.000 KRW · Vier Pijlers (BaZi) 10.000 KRW · Compatibiliteit 20.000 KRW"
+        "n50001000020000": "Tarot 5.000 KRW · Vier Pijlers (BaZi) 10.000 KRW · Compatibiliteit 20.000 KRW",
+        "k1dw3t0h": "Kaart gratis · expertconsult betaald",
+        "kg12w8e": "Nieuw · Levenskompas",
+        "n110000": "Basis gratis · verdieping ₩10.000 per reading",
+        "n30000": "Expertconsult · ₩30.000",
+        "n300002": "Expertconsult · ₩30.000",
+        "n300003": "Expertconsult · ₩30.000",
+        "n300004": "Expertconsult · ₩30.000",
+        "n300005": "Expertconsult · ₩30.000",
+        "k1tna4h3": "Expertconsult",
+        "n300006": "Expertconsult · ₩30.000",
+        "n300007": "Expert-naamgeving · ₩30.000"
       }
     },
     "tarotTileBody": {
@@ -6543,7 +6626,13 @@
         "kwuu0": "Gratis",
         "kyyvo": "Naamgeving",
         "kyzfrrw": "Vier Pijlers (BaZi) · Tarot · Compatibiliteit",
-        "n30000": "Gebaseerd op 30.000 KRW"
+        "n30000": "Gebaseerd op 30.000 KRW",
+        "kmuahqh": "Vier Pijlers · Zi Wei Dou Shu",
+        "k1gd6g4k": "Richting bepalen",
+        "km02jru": "Wegwijzing",
+        "k1tna4h3": "Expertconsult",
+        "k1tna4h32": "Expertconsult",
+        "k1tna4h33": "Expertconsult"
       },
       "pvcPremPoints": {
         "AIPDF": "Naamgevingsresultaat door AI + PDF opslaan",
@@ -6578,7 +6667,11 @@
         "kxatr2b": "Keuzegerichte stroom die de lagen van zorgen verzacht",
         "kyk2x3o": "Keuzeadvies gebaseerd op geluk-cyclus en jaarlijkse cyclus",
         "n12NPC": "Dagelijks wisselend eilandweer en gesprekken met 12 huizen NPC's",
-        "n30000": "Eenmalige betaling van 30.000 KRW of Pas/Maanlichtsteen"
+        "n30000": "Eenmalige betaling van 30.000 KRW of Pas/Maanlichtsteen",
+        "kfib4kf": "Vergelijk de energie van de twee opties op het kruispunt",
+        "k1vetwxt": "Je levenskoers, gelezen uit de geluk-cyclus en het jaar dat je doorloopt",
+        "k67hhx7": "Een toekomstsimulatie die schetst wat op elke keuze volgt",
+        "k1n33cx9": "Het afgeronde resultaat van de expert + PDF opslaan"
       }
     },
     "terms24Card": {
@@ -6620,10 +6713,223 @@
         },
         "kp08cb": {
           "ariaLabel": "Verhaal link"
+        },
+        "k1lyzj38": {
+          "ariaLabel": "Links naar expertconsulten"
+        },
+        "ki07z7y": {
+          "ariaLabel": "Links naar functiegidsen"
         }
       },
       "k14mqjx7": "Zi Wei Dou Shu AI-advies",
-      "kt62t87": "Vedische Astrologie AI-advies"
+      "kt62t87": "Vedische Astrologie AI-advies",
+      "kdyem8n": "Expertconsult: Zi Wei Dou Shu",
+      "kdriwl7": "Expertconsult: Vedische astrologie"
+    },
+    "moonHeroCopy": {
+      "moonHeroActions": {
+        "kerryje": "✦ Bekijk je fusion-reading"
+      }
+    },
+    "cdTodayPanelSaju": {
+      "kv58y0g": "We lezen hoe de stam en tak van de dag de structuur van je Dagmeester vormen.",
+      "kkmdg9l": "Vier Pijlers beoordeelt de dag via de Tien Goden-relatie tussen de pijler van vandaag en je Dagmeester. Een sterke en een zwakke Dagmeester lezen dezelfde datum precies omgekeerd, dus pas je eigen geboortekaart bepaalt of vandaag zeer gunstig is of om voorzichtigheid vraagt."
+    },
+    "cdTodayPanelSukuyo": {
+      "kd5ukqs": "We kijken waar het maanhuis van vandaag je geboortehuis ontmoet.",
+      "k6mrnix": "Sukuyo bepaalt je geboortehuis uit de maandatum van je geboorte onder de 27 huizen en beoordeelt de dag vervolgens op de positie die het maanhuis van vandaag daartegenover inneemt. Posities als Yeongchin, Angoe en Eoptae scheiden de zeer gunstige dagen van de lastige."
+    },
+    "cdTodayPanelVedic": {
+      "kom45ly": "We vergelijken het sterrenbeeld dat de maan vandaag werkelijk doorkruist met je geboortepositie.",
+      "k451jpc": "Vedische astrologie bepaalt de nakshatra uit de siderische positie van de maan en telt de afstand tot je geboortepositie om die in een van de negen Tara Bala-stations te plaatsen. Sampat en Kshema zijn gunstig; Vipat en Vadha zijn stations om grote beslissingen uit te stellen."
+    },
+    "cdPickInner": {
+      "cdPickCopy": {
+        "kl74p3h": "Het lot van vandaag",
+        "kg9at99": "Het consult dat vandaag het best bij je past",
+        "kntw327": "De Nakshatra-editie",
+        "k4byd9a": "Eén ster, tegelijk gelezen in twee talen — Indiase Vedische astrologie en Koreaanse lotsleer."
+      }
+    },
+    "cdTodayPick": {
+      "cdPickInner": {
+        "k16e565e": "Voor jou gekozen"
+      }
+    },
+    "cdSignatureConsult": {
+      "cdSigHead": {
+        "k16nuyta": "Uitgelichte consulten",
+        "k1uopfsh": "Vier diepgaande consulten — kies het pad dat je nu nodig hebt."
+      },
+      "keqgznt": {
+        "ariaLabel": "Blader door de uitgelichte consultkaarten"
+      }
+    },
+    "cdSigCard": {
+      "cdSigCardMedia": {
+        "krnc4c4": "Premium",
+        "k1039k": "Aanbevolen",
+        "kwuqfvj": {
+          "alt": "Het Meesterboek van Verbindingen — een boek over liefdesstrategie, opengeslagen door een meester in een bibliotheek vol mysteries"
+        },
+        "k1ph66tm": {
+          "alt": "Yeoni's Theehuis van het Lot — Yeoni, de lotuspoortwachter, reikt een warme reading aan in een maanverlichte theekop"
+        },
+        "k1wq9p18": {
+          "alt": "De Nakshatra-editie — een nachtelijke hemel waar Oost-Aziatische sterrenbeeldmotieven een Indiase mandala kruisen"
+        },
+        "k1f89g8b": {
+          "alt": "Neo's Recht-voor-z'n-raap Lotsstrategiekamer — een strategiesessie die de frontlinie van een beslissing uittekent voor een leeuwenembleem"
+        }
+      },
+      "cdSigCardBody": {
+        "k1sw19cg": "Het Meesterboek van Verbindingen",
+        "k2fl7d2": "Vier Pijlers en Zi Wei Dou Shu verweven tot een liefdesstrategie in 20 hoofdstukken, gelezen door een meester.",
+        "n20000": "Vanaf ₩20.000",
+        "k1dc5spb": "Het Theehuis van het Lot",
+        "k1f3556p": "Een warm consult dat Vier Pijlers, tarot en compatibiliteit met zorg ontvouwt.",
+        "n5000": "Vanaf ₩5.000",
+        "kntw327": "De Nakshatra-editie",
+        "koevlcx": "Eén ster, twee talen — we zetten de Indiase Vedische en de Koreaanse lezing van hetzelfde sterrenbeeld naast elkaar",
+        "k18zdwwf": "Gratis te lezen",
+        "kk0w8v": "De Recht-voor-z'n-raap Strategiekamer",
+        "k1bs96nr": "Neo's koelbloedige operatiebriefing over de keuze die voor je ligt",
+        "n30000": "₩30.000"
+      }
+    },
+    "cdSigCardBody": {
+      "cdSigCardMeta": {
+        "k1hiiadz": "20 hoofdstukken · 50k tekens",
+        "k1l2ndq7": "Pas geldig",
+        "n32006000": "3.200–6.000 tekens",
+        "k1l2ndq72": "Pas geldig",
+        "n2114": "21 stukken · 14k tekens",
+        "k1l2ndq73": "Pas geldig",
+        "n1415000": "14 hoofdstukken · 15.000 tekens",
+        "k1l2ndq74": "Pas geldig"
+      }
+    },
+    "cdPickReason": {
+      "cdPickWhyText": {
+        "kntw327": "De Nakshatra-editie",
+        "k1s5m1vr": "Lees je de 27 Oost-Aziatische huizen samen met de Indiase nakshatra's, dan komt dezelfde kaart veel scherper naar voren."
+      }
+    },
+    "cdDiaryPlannerEntry": {
+      "cdDiaryPlannerEntryCopy": {
+        "k16byqlb": "Maak het ritme van vandaag van jou",
+        "kh71llm": "Noteer de stroom van vandaag en verbind je belangrijke data en kleine gewoontes met het ritme van de maand.",
+        "k1vo9x0c": "Je notities en agenda blijven alleen op dit apparaat.",
+        "k1c8x4ap": {
+          "ariaLabel": "Functie dagboek en planner"
+        }
+      }
+    },
+    "cdDiaryPlannerEntryCopy": {
+      "cdDiaryPlannerEntryPoints": {
+        "ky00tcw": "Leg de energie en stemming van vandaag vast",
+        "ktzwo12": "Agenda- en routineplanner",
+        "kgbiqt0": "Zie de maand in één oogopslag"
+      },
+      "cdDiaryPlannerEntryAction": {
+        "k1c914y0": "Dagboek en planner openen"
+      }
+    },
+    "fortuneGatewayEntryShell": {
+      "fortuneGatewayEntryCopy": {
+        "kjx6wsf": "De Poort van het Lot",
+        "k1i0ttch": "Kleinere zorgen praat je door met Yeoni en Neo; voor de grote stromingen in je leven is er de fusion-reading die zes systemen tot één verweeft."
+      }
+    },
+    "fortuneGatewayDoors": {
+      "fortuneGatewayDoor": {
+        "k69nrae": "Een consult met Yeoni",
+        "k1tbc6n5": "Begin bij één zorg en laat de warme Yeoni en de directe Neo ordenen hoe het er nu voor staat.",
+        "k12pdy0g": "Diepe fusion-reading",
+        "k1eti53b": "We wijzen aan waar Vier Pijlers, Zi Wei Dou Shu, Vedische astrologie, Sukuyo, westerse astrologie en tarot samenvallen — en waar ze uiteenlopen."
+      }
+    },
+    "fortuneGatewayDoor": {
+      "fortuneGatewayDoorMeta": {
+        "k18ykrep": "3 gratis readings",
+        "n115000": "1 zonder inloggen · daarna ₩5.000 per stuk",
+        "n130000": "₩30.000 per reading",
+        "k1lo4ibg": "20.000+ tekens · finale kruiscontrole"
+      }
+    },
+    "fortuneGatewayEntry": {
+      "fortuneGatewayEntryShell": {
+        "klg50va": "Gesprek en analyse gebeuren alleen binnen elk scherm; vanaf dit scherm wordt niets verzonden."
+      }
+    },
+    "moonStoryEntry": {
+      "moonStoryEntryCopy": {
+        "CODEDESTINY": "De CODE DESTINY light novel"
+      }
+    },
+    "moonStoryEntryCopy": {
+      "moonStoryEntryMeta": {
+        "k1re6l3o": "Compleet in 44 afleveringen",
+        "k18zi880": "Gratis lezen",
+        "k1cmoty1": "Visual novel inbegrepen"
+      }
+    },
+    "cdFeedbackCard": {
+      "cdFeedbackCopy": {
+        "k1qqtskq": "Help ons deze dienst te bouwen."
+      }
+    },
+    "cdFeedbackCopy": {
+      "cdFeedbackReward": {
+        "k1ubfgod": "300 Maanlichtstenen"
+      }
+    },
+    "cdFeedbackGate": {
+      "cdFeedbackCard": {
+        "k1chb9k4": "Feedback sturen"
+      }
+    },
+    "tarotYearFortuneIntroStage": {
+      "tyHero": {
+        "k1qxj83w": "De sleutelkaart van het jaar · maand voor maand · geld, werk, relaties, gezondheid en groei · keerpunten en gelukkige stappen"
+      }
+    },
+    "totemResultContainer": {
+      "totemResultActions": {
+        "ksp2edy": "🗂 Opslaan in bibliotheek",
+        "kfksveu": "🗂 Eerdere readings"
+      }
+    },
+    "dailyFortuneCard": {
+      "fortuneLeadMagnetCta": {
+        "k1kuwldz": "✨ Bekijk de uitgebreide reading voor geld, liefde, werk en gezondheid — met een gids per tijdstip."
+      }
+    },
+    "fortuneLeadMagnetCta": {
+      "cdBtnTodayPulse": {
+        "k1715eae": "Bekijk het volledige dagrapport →"
+      }
+    },
+    "cdSigGrid": {
+      "krqyte4": {
+        "ariaLabel": "Het Meesterboek van Verbindingen openen"
+      },
+      "ktlnhmn": {
+        "ariaLabel": "Yeoni's Theehuis van het Lot binnengaan"
+      },
+      "k19zjy0t": {
+        "ariaLabel": "De Nakshatra-editie openen"
+      },
+      "k1coanmg": {
+        "ariaLabel": "Neo's Recht-voor-z'n-raap Lotsstrategiekamer binnengaan"
+      }
+    },
+    "cdFooterLegalMeta": {
+      "cdFooterLangpick": {
+        "kw3mf7": {
+          "ariaLabel": "Koreaans"
+        }
+      }
     }
   },
   "adsenseArticle": {

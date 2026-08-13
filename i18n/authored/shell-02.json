@@ -1,0 +1,483 @@
+{
+  "_comment": "셸 잔여 한국어 배치 2 — 다이어리·플래너 진입, 운명의 문 게이트웨이, 모바일 하단 내비, 인생의 나침반 타일.",
+
+  "shell.cdDiaryPlannerEntry.cdDiaryPlannerEntryCopy.k16byqlb": {
+    "ko": "오늘의 리듬을 내 것으로",
+    "en": "Make Today's Rhythm Yours",
+    "ja": "今日のリズムを自分のものに",
+    "zh-CN": "把今天的节奏握在手里",
+    "zh-TW": "把今天的節奏握在手裡",
+    "vi": "Biến nhịp hôm nay thành của bạn",
+    "hi": "आज की लय को अपना बनाएँ",
+    "es": "Haz tuyo el ritmo de hoy",
+    "fr": "Faites vôtre le rythme du jour",
+    "de": "Machen Sie den Rhythmus des Tages zu Ihrem",
+    "nl": "Maak het ritme van vandaag van jou",
+    "ms": "Jadikan Irama Hari Ini Milik Anda"
+  },
+
+  "shell.cdDiaryPlannerEntry.cdDiaryPlannerEntryCopy.kh71llm": {
+    "ko": "오늘의 흐름을 기록하고, 중요한 일정과 작은 실천을 한 달의 리듬으로 이어가 보세요.",
+    "en": "Note the flow of today, and carry your key dates and small habits into the rhythm of the month.",
+    "ja": "今日の流れを記録し、大切な予定と小さな実践をひと月のリズムへつないでいきましょう。",
+    "zh-CN": "记录今天的流向，把重要日程与微小实践接续成一个月的节奏。",
+    "zh-TW": "記錄今天的流向，把重要日程與微小實踐接續成一個月的節奏。",
+    "vi": "Ghi lại dòng chảy hôm nay, rồi nối những lịch hẹn quan trọng và thói quen nhỏ vào nhịp của cả tháng.",
+    "hi": "आज का प्रवाह दर्ज करें, और ज़रूरी तारीखों तथा छोटी आदतों को महीने की लय में पिरोएँ।",
+    "es": "Anota el flujo de hoy y enlaza tus fechas clave y pequeños hábitos con el ritmo del mes.",
+    "fr": "Notez le flux du jour et reliez vos dates clés et petites habitudes au rythme du mois.",
+    "de": "Halten Sie den Fluss des Tages fest und führen Sie wichtige Termine und kleine Gewohnheiten in den Rhythmus des Monats über.",
+    "nl": "Noteer de stroom van vandaag en verbind je belangrijke data en kleine gewoontes met het ritme van de maand.",
+    "ms": "Catat aliran hari ini, dan sambungkan tarikh penting serta amalan kecil ke dalam irama sebulan."
+  },
+
+  "shell.cdDiaryPlannerEntryCopy.cdDiaryPlannerEntryPoints.ky00tcw": {
+    "ko": "오늘 운기와 감정 기록",
+    "en": "Log today's energy and mood",
+    "ja": "今日の運気と感情を記録",
+    "zh-CN": "记录今日运气与心情",
+    "zh-TW": "記錄今日運氣與心情",
+    "vi": "Ghi vận khí và cảm xúc hôm nay",
+    "hi": "आज की ऊर्जा और भाव दर्ज करें",
+    "es": "Registra la energía y el ánimo de hoy",
+    "fr": "Consignez l'énergie et l'humeur du jour",
+    "de": "Energie und Stimmung des Tages festhalten",
+    "nl": "Leg de energie en stemming van vandaag vast",
+    "ms": "Rekod tenaga dan perasaan hari ini"
+  },
+
+  "shell.cdDiaryPlannerEntryCopy.cdDiaryPlannerEntryPoints.ktzwo12": {
+    "ko": "일정·루틴 플래너",
+    "en": "Schedule and routine planner",
+    "ja": "予定・ルーティンプランナー",
+    "zh-CN": "日程与例行规划",
+    "zh-TW": "日程與例行規劃",
+    "vi": "Lịch trình và thói quen",
+    "hi": "कार्यक्रम और दिनचर्या प्लानर",
+    "es": "Planificador de agenda y rutinas",
+    "fr": "Planificateur d'agenda et de routines",
+    "de": "Termin- und Routineplaner",
+    "nl": "Agenda- en routineplanner",
+    "ms": "Perancang jadual dan rutin"
+  },
+
+  "shell.cdDiaryPlannerEntryCopy.cdDiaryPlannerEntryPoints.kgbiqt0": {
+    "ko": "월간 흐름 한눈에 보기",
+    "en": "See the month at a glance",
+    "ja": "月間の流れをひと目で",
+    "zh-CN": "一眼看清整月流向",
+    "zh-TW": "一眼看清整月流向",
+    "vi": "Nhìn cả tháng trong một cái liếc",
+    "hi": "पूरा महीना एक नज़र में",
+    "es": "Ve el mes de un vistazo",
+    "fr": "Voyez le mois d'un coup d'œil",
+    "de": "Den Monat auf einen Blick sehen",
+    "nl": "Zie de maand in één oogopslag",
+    "ms": "Lihat sebulan sekali pandang"
+  },
+
+  "shell.cdDiaryPlannerEntryCopy.cdDiaryPlannerEntryAction.k1c914y0": {
+    "ko": "다이어리와 플래너 열기",
+    "en": "Open Diary and Planner",
+    "ja": "ダイアリーとプランナーを開く",
+    "zh-CN": "打开日记与规划",
+    "zh-TW": "開啟日記與規劃",
+    "vi": "Mở Nhật ký và Lịch trình",
+    "hi": "डायरी और प्लानर खोलें",
+    "es": "Abrir diario y planificador",
+    "fr": "Ouvrir le journal et l'agenda",
+    "de": "Tagebuch und Planer öffnen",
+    "nl": "Dagboek en planner openen",
+    "ms": "Buka Diari dan Perancang"
+  },
+
+  "shell.cdDiaryPlannerEntry.cdDiaryPlannerEntryCopy.k1vo9x0c": {
+    "ko": "기록과 일정은 이 기기에만 저장됩니다.",
+    "en": "Your notes and schedule stay on this device only.",
+    "ja": "記録と予定はこの端末にのみ保存されます。",
+    "zh-CN": "记录与日程仅保存在本设备。",
+    "zh-TW": "記錄與日程僅保存在本裝置。",
+    "vi": "Ghi chép và lịch trình chỉ lưu trên thiết bị này.",
+    "hi": "आपके नोट्स और कार्यक्रम केवल इसी डिवाइस पर रहते हैं।",
+    "es": "Tus notas y tu agenda se guardan solo en este dispositivo.",
+    "fr": "Vos notes et votre agenda restent uniquement sur cet appareil.",
+    "de": "Notizen und Termine bleiben ausschließlich auf diesem Gerät.",
+    "nl": "Je notities en agenda blijven alleen op dit apparaat.",
+    "ms": "Catatan dan jadual anda kekal pada peranti ini sahaja."
+  },
+
+  "shell.fortuneGatewayEntryShell.fortuneGatewayEntryCopy.kjx6wsf": {
+    "ko": "운명의 문",
+    "en": "The Gate of Destiny",
+    "ja": "運命の扉",
+    "zh-CN": "运命之门",
+    "zh-TW": "運命之門",
+    "vi": "Cánh Cổng Vận Mệnh",
+    "hi": "भाग्य का द्वार",
+    "es": "La Puerta del Destino",
+    "fr": "La Porte du Destin",
+    "de": "Das Tor des Schicksals",
+    "nl": "De Poort van het Lot",
+    "ms": "Pintu Takdir"
+  },
+
+  "shell.fortuneGatewayEntryShell.fortuneGatewayEntryCopy.k1i0ttch": {
+    "ko": "가벼운 고민은 연이·네오와 대화로 풀고, 삶의 큰 흐름은 여섯 체계를 하나로 엮은 초융합 리딩으로 살펴보세요.",
+    "en": "Talk the smaller worries through with Yeoni and Neo; for the larger currents of your life, turn to the fusion reading that weaves six systems into one.",
+    "ja": "軽い悩みは Yeoni・Neo との対話でほどき、人生の大きな流れは六つの体系を一つに編んだ超融合リーディングで見つめてみてください。",
+    "zh-CN": "轻一些的烦恼，与 Yeoni、Neo 对话即可化开；人生的大流向，则交给融六大体系为一的超融合解读。",
+    "zh-TW": "輕一些的煩惱，與 Yeoni、Neo 對話即可化開；人生的大流向，則交給融六大體系為一的超融合解讀。",
+    "vi": "Những băn khoăn nhẹ, hãy trò chuyện cùng Yeoni và Neo; còn dòng chảy lớn của đời, hãy soi bằng bản luận siêu hợp nhất đan sáu hệ thống làm một.",
+    "hi": "छोटी उलझनें Yeoni और Neo से बातचीत में सुलझाएँ; जीवन की बड़ी धाराओं के लिए छह पद्धतियों को एक में बुनने वाला सुपर-फ्यूज़न पाठ देखें।",
+    "es": "Habla las preocupaciones pequeñas con Yeoni y Neo; para las corrientes grandes de tu vida, acude a la lectura de fusión que teje seis sistemas en uno.",
+    "fr": "Dénouez les petits soucis en conversant avec Yeoni et Neo ; pour les grands courants de votre vie, tournez-vous vers la lecture fusionnée qui tisse six systèmes en un.",
+    "de": "Kleinere Sorgen klären Sie im Gespräch mit Yeoni und Neo; für die großen Strömungen Ihres Lebens hilft die Fusionsdeutung, die sechs Systeme zu einem verwebt.",
+    "nl": "Kleinere zorgen praat je door met Yeoni en Neo; voor de grote stromingen in je leven is er de fusion-reading die zes systemen tot één verweeft.",
+    "ms": "Bualkan kerisauan kecil bersama Yeoni dan Neo; untuk arus besar hidup anda, gunakan bacaan gabungan yang menganyam enam sistem menjadi satu."
+  },
+
+  "shell.fortuneGatewayDoors.fortuneGatewayDoor.k69nrae": {
+    "ko": "연이 운명 상담",
+    "en": "A Reading with Yeoni",
+    "ja": "Yeoni の運命相談",
+    "zh-CN": "Yeoni 运命咨询",
+    "zh-TW": "Yeoni 運命諮詢",
+    "vi": "Tư vấn vận mệnh cùng Yeoni",
+    "hi": "Yeoni के साथ परामर्श",
+    "es": "Una consulta con Yeoni",
+    "fr": "Une consultation avec Yeoni",
+    "de": "Eine Beratung mit Yeoni",
+    "nl": "Een consult met Yeoni",
+    "ms": "Rundingan bersama Yeoni"
+  },
+
+  "shell.fortuneGatewayDoors.fortuneGatewayDoor.k1tbc6n5": {
+    "ko": "한 가지 고민에서 시작해, 따뜻한 연이와 직설적인 네오가 지금의 흐름을 정리해 드려요.",
+    "en": "Start from one worry, and let warm Yeoni and blunt Neo sort out where things stand right now.",
+    "ja": "一つの悩みから始めて、あたたかな Yeoni と率直な Neo が今の流れを整理します。",
+    "zh-CN": "从一个烦恼说起，温暖的 Yeoni 与直言的 Neo 会替你梳理眼下的流向。",
+    "zh-TW": "從一個煩惱說起，溫暖的 Yeoni 與直言的 Neo 會替你梳理眼下的流向。",
+    "vi": "Bắt đầu từ một nỗi băn khoăn, để Yeoni ấm áp và Neo thẳng thắn sắp xếp lại dòng chảy hiện tại.",
+    "hi": "एक चिंता से शुरू करें, और गर्मजोशी वाली Yeoni तथा बेबाक Neo मौजूदा प्रवाह को सुलझा देंगे।",
+    "es": "Empieza por una sola inquietud y deja que la cálida Yeoni y el directo Neo ordenen cómo están las cosas ahora.",
+    "fr": "Partez d'un seul souci et laissez la chaleureuse Yeoni et le direct Neo remettre le courant actuel en ordre.",
+    "de": "Beginnen Sie mit einer Sorge – die warmherzige Yeoni und der direkte Neo ordnen, wie die Dinge gerade stehen.",
+    "nl": "Begin bij één zorg en laat de warme Yeoni en de directe Neo ordenen hoe het er nu voor staat.",
+    "ms": "Mulakan dengan satu kerisauan, dan biar Yeoni yang hangat serta Neo yang berterus terang menyusun aliran anda kini."
+  },
+
+  "shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.k18ykrep": {
+    "ko": "무료 3회",
+    "en": "3 free readings",
+    "ja": "無料3回",
+    "zh-CN": "免费3次",
+    "zh-TW": "免費3次",
+    "vi": "3 lượt miễn phí",
+    "hi": "3 निःशुल्क पाठ",
+    "es": "3 lecturas gratis",
+    "fr": "3 lectures gratuites",
+    "de": "3 kostenlose Deutungen",
+    "nl": "3 gratis readings",
+    "ms": "3 bacaan percuma"
+  },
+
+  "shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n115000": {
+    "ko": "비로그인 1회 · 이후 1회 5,000원",
+    "en": "1 without signing in · ₩5,000 each after",
+    "ja": "未ログインで1回・以降1回5,000ウォン",
+    "zh-CN": "未登录1次 · 之后每次5,000韩元",
+    "zh-TW": "未登入1次 · 之後每次5,000韓元",
+    "vi": "1 lượt khi chưa đăng nhập · sau đó 5.000 KRW mỗi lượt",
+    "hi": "बिना साइन-इन 1 बार · उसके बाद ₩5,000 प्रति बार",
+    "es": "1 sin iniciar sesión · ₩5.000 cada una después",
+    "fr": "1 sans connexion · 5 000 ₩ ensuite par lecture",
+    "de": "1× ohne Anmeldung · danach 5.000 ₩ je Deutung",
+    "nl": "1 zonder inloggen · daarna ₩5.000 per stuk",
+    "ms": "1 tanpa log masuk · selepas itu ₩5,000 setiap satu"
+  },
+
+  "shell.fortuneGatewayDoors.fortuneGatewayDoor.k12pdy0g": {
+    "ko": "초융합 심층 리딩",
+    "en": "Deep Fusion Reading",
+    "ja": "超融合ディープリーディング",
+    "zh-CN": "超融合深度解读",
+    "zh-TW": "超融合深度解讀",
+    "vi": "Luận sâu siêu hợp nhất",
+    "hi": "गहन सुपर-फ्यूज़न पाठ",
+    "es": "Lectura de fusión profunda",
+    "fr": "Lecture fusionnée approfondie",
+    "de": "Tiefe Fusionsdeutung",
+    "nl": "Diepe fusion-reading",
+    "ms": "Bacaan Gabungan Mendalam"
+  },
+
+  "shell.fortuneGatewayDoors.fortuneGatewayDoor.k1eti53b": {
+    "ko": "사주·자미두수·베다점·숙요점·점성술·타로가 겹치는 신호와 엇갈리는 신호를 함께 짚어 드려요.",
+    "en": "We point out where Four Pillars, Zi Wei Dou Shu, Vedic astrology, Sukuyo, Western astrology and tarot agree — and where they pull apart.",
+    "ja": "四柱推命・紫微斗数・ヴェーダ占星術・宿曜・西洋占星術・タロットが重なる兆しと、食い違う兆しを併せて示します。",
+    "zh-CN": "指出四柱八字、紫微斗数、吠陀占星、宿曜、西洋占星与塔罗彼此重叠的信号，以及彼此相左之处。",
+    "zh-TW": "指出四柱八字、紫微斗數、吠陀占星、宿曜、西洋占星與塔羅彼此重疊的訊號，以及彼此相左之處。",
+    "vi": "Chỉ ra nơi Tứ Trụ, Tử Vi Đẩu Số, chiêm tinh Vệ Đà, Túc Diệu, chiêm tinh Tây phương và tarot đồng thuận — và nơi chúng lệch nhau.",
+    "hi": "हम बताते हैं कि फोर पिलर्स, ज़ी वेई दोउ शू, वैदिक ज्योतिष, नक्षत्र ज्योतिष, पाश्चात्य ज्योतिष और टैरो कहाँ एक स्वर में हैं — और कहाँ अलग जाते हैं।",
+    "es": "Señalamos dónde coinciden Cuatro Pilares, Zi Wei Dou Shu, astrología védica, Sukuyo, astrología occidental y tarot, y dónde se separan.",
+    "fr": "Nous montrons où Quatre Piliers, Zi Wei Dou Shu, astrologie védique, Sukuyo, astrologie occidentale et tarot concordent — et où ils divergent.",
+    "de": "Wir zeigen, wo Vier Säulen, Zi Wei Dou Shu, vedische Astrologie, Sukuyo, westliche Astrologie und Tarot übereinstimmen – und wo sie auseinandergehen.",
+    "nl": "We wijzen aan waar Vier Pijlers, Zi Wei Dou Shu, Vedische astrologie, Sukuyo, westerse astrologie en tarot samenvallen — en waar ze uiteenlopen.",
+    "ms": "Kami menunjukkan di mana Empat Tiang, Zi Wei Dou Shu, astrologi Veda, Sukuyo, astrologi Barat dan tarot sepakat — dan di mana ia berbeza."
+  },
+
+  "shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n130000": {
+    "ko": "1회 30,000원",
+    "en": "₩30,000 per reading",
+    "ja": "1回30,000ウォン",
+    "zh-CN": "每次30,000韩元",
+    "zh-TW": "每次30,000韓元",
+    "vi": "30.000 KRW mỗi lượt",
+    "hi": "₩30,000 प्रति पाठ",
+    "es": "₩30.000 por lectura",
+    "fr": "30 000 ₩ par lecture",
+    "de": "30.000 ₩ je Deutung",
+    "nl": "₩30.000 per reading",
+    "ms": "₩30,000 setiap bacaan"
+  },
+
+  "shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.k1lo4ibg": {
+    "ko": "2만 자 이상 · 최종 교차 판정",
+    "en": "20,000+ characters · final cross-check",
+    "ja": "2万字以上・最終クロス判定",
+    "zh-CN": "2万字以上 · 最终交叉判定",
+    "zh-TW": "2萬字以上 · 最終交叉判定",
+    "vi": "Hơn 20.000 ký tự · đối chiếu chung cuộc",
+    "hi": "20,000+ अक्षर · अंतिम क्रॉस-जाँच",
+    "es": "Más de 20.000 caracteres · verificación cruzada final",
+    "fr": "Plus de 20 000 caractères · recoupement final",
+    "de": "Über 20.000 Zeichen · abschließender Abgleich",
+    "nl": "20.000+ tekens · finale kruiscontrole",
+    "ms": "Lebih 20,000 aksara · semakan silang akhir"
+  },
+
+  "shell.fortuneGatewayEntry.fortuneGatewayEntryShell.klg50va": {
+    "ko": "대화와 분석은 각 화면 안에서만 진행되고, 이 화면에서는 어떤 정보도 보내지 않아요.",
+    "en": "Conversation and analysis happen only inside each screen; nothing is sent from this one.",
+    "ja": "対話と分析は各画面の中だけで行われ、この画面からは何の情報も送信しません。",
+    "zh-CN": "对话与分析只在各自的页面内进行，本页面不会发送任何信息。",
+    "zh-TW": "對話與分析只在各自的頁面內進行，本頁面不會傳送任何資訊。",
+    "vi": "Trò chuyện và phân tích chỉ diễn ra bên trong từng màn hình; màn hình này không gửi đi bất cứ thông tin nào.",
+    "hi": "बातचीत और विश्लेषण केवल संबंधित स्क्रीन के भीतर होते हैं; इस स्क्रीन से कुछ भी नहीं भेजा जाता।",
+    "es": "La conversación y el análisis ocurren solo dentro de cada pantalla; desde esta no se envía nada.",
+    "fr": "La conversation et l'analyse se déroulent uniquement dans chaque écran ; rien n'est envoyé depuis celui-ci.",
+    "de": "Gespräch und Analyse finden nur innerhalb des jeweiligen Bildschirms statt; von diesem wird nichts gesendet.",
+    "nl": "Gesprek en analyse gebeuren alleen binnen elk scherm; vanaf dit scherm wordt niets verzonden.",
+    "ms": "Perbualan dan analisis berlaku dalam setiap skrin sahaja; tiada apa-apa dihantar dari skrin ini."
+  },
+
+  "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to": {
+    "ko": "모든 운세",
+    "en": "All Readings",
+    "ja": "すべての占い",
+    "zh-CN": "全部运势",
+    "zh-TW": "全部運勢",
+    "vi": "Tất cả",
+    "hi": "सभी पाठ",
+    "es": "Todas",
+    "fr": "Toutes",
+    "de": "Alle",
+    "nl": "Alle readings",
+    "ms": "Semua"
+  },
+
+  "shell.cdMobileBottomNav.cdMobileBottomNavMain.ku6gdz": {
+    "ko": "이용권",
+    "en": "Pass",
+    "ja": "パス",
+    "zh-CN": "通行证",
+    "zh-TW": "通行證",
+    "vi": "Thẻ Pass",
+    "hi": "पास",
+    "es": "Pase",
+    "fr": "Pass",
+    "de": "Pass",
+    "nl": "Pas",
+    "ms": "Pas"
+  },
+
+  "shell.featureBegin.moonPreviewCard.k8jupm2": {
+    "ko": "전문가 동물 관상",
+    "en": "Expert Animal Face Reading",
+    "ja": "専門家による動物人相",
+    "zh-CN": "专家动物面相",
+    "zh-TW": "專家動物面相",
+    "vi": "Tướng mặt động vật chuyên sâu",
+    "hi": "विशेषज्ञ पशु-मुखाकृति पाठ",
+    "es": "Fisiognomía animal experta",
+    "fr": "Physiognomonie animale experte",
+    "de": "Experten-Tiergesichtslesung",
+    "nl": "Expert dier-gelaatkunde",
+    "ms": "Bacaan Wajah Haiwan Pakar"
+  },
+
+  "shell.tarotTile.tarotTileImgWrap.k1dw3t0h": {
+    "ko": "명반 무료 · 전문가 상담 유료",
+    "en": "Chart free · expert reading paid",
+    "ja": "命盤は無料・専門家相談は有料",
+    "zh-CN": "命盘免费 · 专家咨询付费",
+    "zh-TW": "命盤免費 · 專家諮詢付費",
+    "vi": "Lá số miễn phí · tư vấn chuyên sâu có phí",
+    "hi": "चार्ट निःशुल्क · विशेषज्ञ परामर्श सशुल्क",
+    "es": "Carta gratis · consulta experta de pago",
+    "fr": "Thème gratuit · consultation experte payante",
+    "de": "Diagramm kostenlos · Expertenberatung kostenpflichtig",
+    "nl": "Kaart gratis · expertconsult betaald",
+    "ms": "Carta percuma · rundingan pakar berbayar"
+  },
+
+  "shell.tarotTile.tarotTileImgWrap.kg12w8e": {
+    "ko": "신규 · 인생의 나침반",
+    "en": "New · Life Compass",
+    "ja": "新着・人生のコンパス",
+    "zh-CN": "全新 · 人生罗盘",
+    "zh-TW": "全新 · 人生羅盤",
+    "vi": "Mới · La Bàn Cuộc Đời",
+    "hi": "नया · जीवन दिक्सूचक",
+    "es": "Nuevo · Brújula de vida",
+    "fr": "Nouveau · Boussole de vie",
+    "de": "Neu · Lebenskompass",
+    "nl": "Nieuw · Levenskompas",
+    "ms": "Baharu · Kompas Hidup"
+  },
+
+  "shell.tarotTile.tarotTileImgWrap.n110000": {
+    "ko": "기본 무료 · 심화 1회 10,000원",
+    "en": "Basic free · in-depth ₩10,000 per reading",
+    "ja": "基本無料・詳細版1回10,000ウォン",
+    "zh-CN": "基础免费 · 深度每次10,000韩元",
+    "zh-TW": "基礎免費 · 深度每次10,000韓元",
+    "vi": "Bản cơ bản miễn phí · bản chuyên sâu 10.000 KRW mỗi lượt",
+    "hi": "बेसिक निःशुल्क · गहन ₩10,000 प्रति पाठ",
+    "es": "Básico gratis · versión profunda ₩10.000 por lectura",
+    "fr": "Version de base gratuite · approfondie 10 000 ₩ par lecture",
+    "de": "Basis kostenlos · Vertiefung 10.000 ₩ je Deutung",
+    "nl": "Basis gratis · verdieping ₩10.000 per reading",
+    "ms": "Asas percuma · mendalam ₩10,000 setiap bacaan"
+  },
+
+  "shell.tarotTile.tarotTileBody.k1ovtqnv": {
+    "ko": "인생의 나침반",
+    "en": "Life Compass",
+    "ja": "人生のコンパス",
+    "zh-CN": "人生罗盘",
+    "zh-TW": "人生羅盤",
+    "vi": "La Bàn Cuộc Đời",
+    "hi": "जीवन दिक्सूचक",
+    "es": "Brújula de vida",
+    "fr": "Boussole de vie",
+    "de": "Lebenskompass",
+    "nl": "Levenskompas",
+    "ms": "Kompas Hidup"
+  },
+
+  "shell.tarotTile.tarotTileBody.k1p1xzy7": {
+    "ko": "지금 어디로 가야 할지 모르겠을 때, 사주와 자미두수를 함께 놓고 나아갈 방향을 잡아 드립니다.",
+    "en": "When you cannot tell which way to go, we set Four Pillars beside Zi Wei Dou Shu and find the bearing.",
+    "ja": "どこへ進むべきか分からないとき、四柱推命と紫微斗数を並べて進むべき方角を定めます。",
+    "zh-CN": "当你不知该往哪里走，我们把四柱八字与紫微斗数并置，替你定出方位。",
+    "zh-TW": "當你不知該往哪裡走，我們把四柱八字與紫微斗數並置，替你定出方位。",
+    "vi": "Khi bạn không biết nên đi hướng nào, chúng tôi đặt Tứ Trụ cạnh Tử Vi Đẩu Số để tìm ra phương hướng.",
+    "hi": "जब समझ न आए कि किधर जाएँ, हम फोर पिलर्स को ज़ी वेई दोउ शू के साथ रखकर दिशा तय करते हैं।",
+    "es": "Cuando no sabes hacia dónde ir, ponemos Cuatro Pilares junto a Zi Wei Dou Shu y hallamos el rumbo.",
+    "fr": "Quand vous ne savez plus où aller, nous plaçons Quatre Piliers auprès de Zi Wei Dou Shu pour trouver le cap.",
+    "de": "Wenn Sie nicht wissen, wohin, stellen wir Vier Säulen neben Zi Wei Dou Shu und bestimmen die Richtung.",
+    "nl": "Als je niet weet welke kant op, zetten we Vier Pijlers naast Zi Wei Dou Shu en bepalen we de koers.",
+    "ms": "Apabila anda tidak tahu ke mana harus melangkah, kami letakkan Empat Tiang di sisi Zi Wei Dou Shu untuk mencari arah."
+  },
+
+  "shell.tarotTileBody.pvcPremPoints.kfib4kf": {
+    "ko": "갈림길에 선 두 선택의 기운 비교",
+    "en": "Compare the energy of the two options at the fork",
+    "ja": "分かれ道に立つ二つの選択の気を比較",
+    "zh-CN": "比较岔路口两个选择的气",
+    "zh-TW": "比較岔路口兩個選擇的氣",
+    "vi": "So sánh khí của hai lựa chọn tại ngã rẽ",
+    "hi": "दोराहे पर खड़े दो विकल्पों की ऊर्जा की तुलना",
+    "es": "Compara la energía de las dos opciones en la encrucijada",
+    "fr": "Comparez l'énergie des deux options au carrefour",
+    "de": "Die Energie der beiden Optionen an der Weggabelung vergleichen",
+    "nl": "Vergelijk de energie van de twee opties op het kruispunt",
+    "ms": "Bandingkan tenaga dua pilihan di persimpangan"
+  },
+
+  "shell.tarotTileBody.pvcPremPoints.k1vetwxt": {
+    "ko": "지금 지나는 대운·세운으로 읽는 삶의 항로",
+    "en": "Your course in life, read through the luck cycle and year you are passing through",
+    "ja": "いま通過している大運・歳運から読む人生の航路",
+    "zh-CN": "以当前所行大运与流年读出的人生航路",
+    "zh-TW": "以當前所行大運與流年讀出的人生航路",
+    "vi": "Hải trình cuộc đời đọc qua đại vận và lưu niên bạn đang đi qua",
+    "hi": "जिस दशा चक्र और वर्ष से आप गुज़र रहे हैं, उससे पढ़ा गया जीवन-पथ",
+    "es": "El rumbo de tu vida leído en el ciclo de fortuna y el año que atraviesas",
+    "fr": "Le cap de votre vie, lu dans le cycle de chance et l'année que vous traversez",
+    "de": "Ihr Lebenskurs, gelesen aus dem Glückszyklus und dem Jahr, das Sie durchlaufen",
+    "nl": "Je levenskoers, gelezen uit de geluk-cyclus en het jaar dat je doorloopt",
+    "ms": "Haluan hidup anda, dibaca melalui kitaran nasib dan tahun yang sedang anda lalui"
+  },
+
+  "shell.tarotTileBody.pvcPremPoints.k67hhx7": {
+    "ko": "선택 이후를 미리 그려보는 미래 시뮬레이션",
+    "en": "A future simulation that sketches what follows each choice",
+    "ja": "選択の先を先取りして描く未来シミュレーション",
+    "zh-CN": "预先描摹选择之后的未来推演",
+    "zh-TW": "預先描摹選擇之後的未來推演",
+    "vi": "Mô phỏng tương lai phác trước điều đến sau mỗi lựa chọn",
+    "hi": "हर चुनाव के बाद क्या आता है, उसका पूर्वानुमान करता भविष्य सिमुलेशन",
+    "es": "Una simulación de futuro que esboza lo que sigue a cada elección",
+    "fr": "Une simulation d'avenir qui esquisse ce qui suit chaque choix",
+    "de": "Eine Zukunftssimulation, die skizziert, was auf jede Wahl folgt",
+    "nl": "Een toekomstsimulatie die schetst wat op elke keuze volgt",
+    "ms": "Simulasi masa depan yang melakar apa yang menyusul setiap pilihan"
+  },
+
+  "shell.tarotTileBody.pvcPremMeta.kmuahqh": {
+    "ko": "사주 · 자미두수",
+    "en": "Four Pillars · Zi Wei Dou Shu",
+    "ja": "四柱推命・紫微斗数",
+    "zh-CN": "四柱八字 · 紫微斗数",
+    "zh-TW": "四柱八字 · 紫微斗數",
+    "vi": "Tứ Trụ · Tử Vi Đẩu Số",
+    "hi": "फोर पिलर्स · ज़ी वेई दोउ शू",
+    "es": "Cuatro Pilares · Zi Wei Dou Shu",
+    "fr": "Quatre Piliers · Zi Wei Dou Shu",
+    "de": "Vier Säulen · Zi Wei Dou Shu",
+    "nl": "Vier Pijlers · Zi Wei Dou Shu",
+    "ms": "Empat Tiang · Zi Wei Dou Shu"
+  },
+
+  "shell.tarotTileBody.pvcPremMeta.k1gd6g4k": {
+    "ko": "방향 설계",
+    "en": "Direction planning",
+    "ja": "方向設計",
+    "zh-CN": "方向规划",
+    "zh-TW": "方向規劃",
+    "vi": "Thiết kế hướng đi",
+    "hi": "दिशा नियोजन",
+    "es": "Diseño de rumbo",
+    "fr": "Choix de cap",
+    "de": "Richtungsplanung",
+    "nl": "Richting bepalen",
+    "ms": "Reka arah"
+  },
+
+  "shell.tarotTileBody.pvcPremMeta.km02jru": {
+    "ko": "길 찾기",
+    "en": "Wayfinding",
+    "ja": "道さがし",
+    "zh-CN": "寻路",
+    "zh-TW": "尋路",
+    "vi": "Tìm đường",
+    "hi": "मार्ग खोज",
+    "es": "Orientación",
+    "fr": "Orientation",
+    "de": "Wegfindung",
+    "nl": "Wegwijzing",
+    "ms": "Mencari jalan"
+  }
+}
