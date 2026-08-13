@@ -6115,7 +6115,21 @@
         "k16bs": "Trang chủ",
         "kwp0s": "Của tôi",
         "kxro3": "Tư vấn",
-        "kxvio": "Tứ Trụ"
+        "kxvio": "Tứ Trụ",
+        "k16cq4to": "Tất cả",
+        "ku6gdz": "Thẻ Pass",
+        "kb86wy0": {
+          "ariaLabel": "Xem Tứ Trụ bằng hồ sơ của tôi"
+        },
+        "k1mpcz5w": {
+          "ariaLabel": "Xem tất cả các bản luận"
+        },
+        "k16eawmw": {
+          "ariaLabel": "Cửa hàng Thẻ Pass"
+        },
+        "k164wabc": {
+          "ariaLabel": "Trang của tôi"
+        }
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",
@@ -6194,7 +6208,11 @@
         "kry6axn": "27 Túc Diệu",
         "kslqazg": "Lời nhắc vận mệnh tổng hợp",
         "kxgi8q8": "Cá Thầy bói",
-        "kxqdi2w": "Vận mệnh nhóm máu"
+        "kxqdi2w": "Vận mệnh nhóm máu",
+        "k8jupm2": "Tướng mặt động vật chuyên sâu"
+      },
+      "k1as5gz2": {
+        "ariaLabel": "Đến Tướng mặt động vật chuyên sâu"
       }
     },
     "featureCardGrid": {
@@ -6217,16 +6235,28 @@
         },
         "k6gno8d": {
           "ariaLabel": "Tư vấn AI Vận mệnh năm mới — lá số và đại vận trả lời câu hỏi của bạn"
+        },
+        "k1m9xov8": {
+          "ariaLabel": "Tư vấn chuyên sâu: Cuốn Sách Đời Bạn — câu chuyện đời bạn đọc từ lá số và câu hỏi"
+        },
+        "k158v3r1": {
+          "ariaLabel": "Tư vấn chuyên sâu: Bí Kíp Tình Duyên — thớ vận tình cảm soi qua lá số"
+        },
+        "k1t7f2xt": {
+          "ariaLabel": "Tư vấn chuyên sâu: Vận trình năm mới — lá số và lưu niên trả lời câu hỏi của bạn"
         }
       }
     },
     "fgGroupCards": {
       "lifebookTile": {
         "k19ij50j": "Tư vấn AI Sách Cuộc Đời",
-        "k1c3xcpf": "Tư vấn AI Vận mệnh năm mới"
+        "k1c3xcpf": "Tư vấn AI Vận mệnh năm mới",
+        "kn9so5r": "Tư vấn chuyên sâu: Cuốn Sách Đời Bạn",
+        "kwnx8m7": "Tư vấn chuyên sâu: Vận trình năm mới"
       },
       "lovebibleTile": {
-        "k1s2fcm4": "Tư vấn AI Bí quyết Tình yêu"
+        "k1s2fcm4": "Tư vấn AI Bí quyết Tình yêu",
+        "ku5mrxy": "Tư vấn chuyên sâu: Bí Kíp Tình Duyên"
       }
     },
     "honeyMembershipDetails": {
@@ -6250,6 +6280,14 @@
       },
       "k85zbld": {
         "ariaLabel": "Điều hướng nhanh trên di động"
+      },
+      "logoArea": {
+        "k52dhv3": {
+          "ariaLabel": "Tư vấn được đề xuất hôm nay"
+        },
+        "k16nuyta": {
+          "ariaLabel": "Tư vấn vận mệnh tiêu biểu"
+        }
       }
     },
     "ks7htym": {
@@ -6282,7 +6320,9 @@
         "k1e2ozr5": "Cánh cửa của đại vận, lưu niên và nguyệt vận mở ra trên lá số của bạn",
         "k1n6j5jj": "Kết nối khí chất của lá số gốc, bối cảnh của đại vận, sự kiện của lưu niên và thăng trầm của nguyệt vận thành một dòng chảy, chỉ ra những lựa chọn và thời điểm cần cẩn trọng trong năm nay.",
         "k1x7d2nr": "Câu chuyện cuộc đời bạn được đọc từ lá số và câu hỏi hiện tại",
-        "ktjp1an": "Dựa trên ngày sinh và chủ đề cuộc sống, chúng tôi sẽ nhẹ nhàng mở ra những dòng chảy lặp lại, tài năng tiềm ẩn và hướng đi cần phát huy trong tương lai, như một buổi tư vấn."
+        "ktjp1an": "Dựa trên ngày sinh và chủ đề cuộc sống, chúng tôi sẽ nhẹ nhàng mở ra những dòng chảy lặp lại, tài năng tiềm ẩn và hướng đi cần phát huy trong tương lai, như một buổi tư vấn.",
+        "kn9so5r": "Tư vấn chuyên sâu: Cuốn Sách Đời Bạn",
+        "kwnx8m7": "Tư vấn chuyên sâu: Vận trình năm mới"
       },
       "lifebookTileLabelRow": {
         "AI30000": "Tư vấn AI · 30.000đ",
@@ -6304,14 +6344,16 @@
     "lovebibleTileCoinGroup": {
       "lovebibleTileCoinBadge": {
         "k11zo0b": "Tư vấn AI",
-        "n30000": "30.000đ"
+        "n30000": "30.000đ",
+        "k1tna4h3": "Tư vấn chuyên sâu"
       }
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
         "k153vbx2": "Tư vấn Tứ Trụ đọc dòng chảy tình yêu một cách nhẹ nhàng",
         "k1s2fcm4": "Tư vấn AI Bí quyết Tình yêu",
-        "ko82iqm": "Kết nối Nhật Can, Nhật Chi, cung phu thê và dòng chảy lưu niên, chúng tôi sẽ chỉ ra tâm tư và lựa chọn hiện tại của bạn một cách trang trọng."
+        "ko82iqm": "Kết nối Nhật Can, Nhật Chi, cung phu thê và dòng chảy lưu niên, chúng tôi sẽ chỉ ra tâm tư và lựa chọn hiện tại của bạn một cách trang trọng.",
+        "ku5mrxy": "Tư vấn chuyên sâu: Bí Kíp Tình Duyên"
       }
     },
     "miscCollection": {
@@ -6334,7 +6376,8 @@
     },
     "normalLogo": {
       "moonHeroCopy": {
-        "k5pz2jn": "Con đường vận mệnh ánh sao"
+        "k5pz2jn": "Con đường vận mệnh ánh sao",
+        "kbm4p3d": "Kết nối Tứ Trụ, Tử Vi Đẩu Số, Túc Diệu, chiêm tinh và tarot theo đúng câu hỏi của bạn, rồi gộp thành một bản luận siêu hợp nhất để lựa chọn hôm nay trở nên rõ ràng."
       }
     },
     "premiumVvipCollection": {
@@ -6362,6 +6405,27 @@
         },
         "n2727": {
           "ariaLabel": "Phiên bản Nakshatra hoàn chỉnh — Tích hợp 27 Túc phương Đông × 27 Nakshatra Ấn Độ"
+        },
+        "kkn0c7c": {
+          "ariaLabel": "La Bàn Cuộc Đời — kim chỉ nam định hướng hiện tại từ Tứ Trụ và Tử Vi Đẩu Số"
+        },
+        "k1q7t6kn": {
+          "ariaLabel": "Mở Tư vấn chuyên sâu: Tổng vận cuộc đời"
+        },
+        "ksb1e44": {
+          "ariaLabel": "Tư vấn chuyên sâu: Hợp duyên Túc Diệu"
+        },
+        "kb3asmd": {
+          "ariaLabel": "Xem Tư vấn chuyên sâu: Tử Vi Đẩu Số"
+        },
+        "k1v6dzf8": {
+          "ariaLabel": "Xem Tư vấn chuyên sâu: Chiêm tinh"
+        },
+        "k1v8klir": {
+          "ariaLabel": "Đến Tư vấn chuyên sâu: Chiêm tinh Vệ Đà"
+        },
+        "k10411ib": {
+          "ariaLabel": "Bắt đầu đặt tên cao cấp theo Tứ Trụ của bạn"
         }
       }
     },
@@ -6475,7 +6539,15 @@
         "kt62t87": "Tư vấn AI chiêm tinh Vệ Đà",
         "kyqh20f": "Neo sẽ tổng hợp Tứ Trụ, Tử Vi Đẩu Số, Chiêm tinh Vệ Đà và Chiêm tinh học để đưa ra những tiêu chí lựa chọn cần nắm bắt ngay lập tức.",
         "kzo1yhl": "獸 Bói động vật Thập Nhị Vận Tinh",
-        "n2727Nakshatra": "27 Túc phương Đông × 27 Nakshatra Ấn Độ — Một vì sao, hai ngôn ngữ. Hai hệ thống chòm sao đã tách rời hàng ngàn năm trước nay gặp lại trên lá số Tứ Trụ của bạn."
+        "n2727Nakshatra": "27 Túc phương Đông × 27 Nakshatra Ấn Độ — Một vì sao, hai ngôn ngữ. Hai hệ thống chòm sao đã tách rời hàng ngàn năm trước nay gặp lại trên lá số Tứ Trụ của bạn.",
+        "k1ovtqnv": "La Bàn Cuộc Đời",
+        "k1p1xzy7": "Khi bạn không biết nên đi hướng nào, chúng tôi đặt Tứ Trụ cạnh Tử Vi Đẩu Số để tìm ra phương hướng.",
+        "k18jn96d": "Tư vấn chuyên sâu: Tổng vận cuộc đời",
+        "ksb1e44": "Tư vấn chuyên sâu: Hợp duyên Túc Diệu",
+        "kdyem8n": "Tư vấn chuyên sâu: Tử Vi Đẩu Số",
+        "k1jaids8": "Tư vấn chuyên sâu: Chiêm tinh",
+        "kdriwl7": "Tư vấn chuyên sâu: Chiêm tinh Vệ Đà",
+        "k1ncgm2q": "Chuyên gia đích thân đặt tên bằng cách đan lá số, Ngũ Hành, âm thanh và nghĩa của từng chữ Hán — kèm theo cả bản gốc của câu lệnh."
       },
       "tarotTileImgWrap": {
         "AI30000": "Tư vấn AI · 30.000đ",
@@ -6503,7 +6575,18 @@
         },
         "koe32kc": "Trải nghiệm miễn phí",
         "ktgbfsy": "MỚI · Phiên bản quyết định",
-        "n50001000020000": "Tarot 5.000đ · Tứ Trụ 10.000đ · Hợp duyên 20.000đ"
+        "n50001000020000": "Tarot 5.000đ · Tứ Trụ 10.000đ · Hợp duyên 20.000đ",
+        "k1dw3t0h": "Lá số miễn phí · tư vấn chuyên sâu có phí",
+        "kg12w8e": "Mới · La Bàn Cuộc Đời",
+        "n110000": "Bản cơ bản miễn phí · bản chuyên sâu 10.000 KRW mỗi lượt",
+        "n30000": "Tư vấn chuyên sâu · 30.000 KRW",
+        "n300002": "Tư vấn chuyên sâu · 30.000 KRW",
+        "n300003": "Tư vấn chuyên sâu · 30.000 KRW",
+        "n300004": "Tư vấn chuyên sâu · 30.000 KRW",
+        "n300005": "Tư vấn chuyên sâu · 30.000 KRW",
+        "k1tna4h3": "Tư vấn chuyên sâu",
+        "n300006": "Tư vấn chuyên sâu · 30.000 KRW",
+        "n300007": "Đặt tên chuyên sâu · 30.000 KRW"
       }
     },
     "tarotTileBody": {
@@ -6543,7 +6626,13 @@
         "kwuu0": "Miễn phí",
         "kyyvo": "Đặt tên",
         "kyzfrrw": "Tứ Trụ · Tarot · Hợp duyên",
-        "n30000": "Giá 30.000 won"
+        "n30000": "Giá 30.000 won",
+        "kmuahqh": "Tứ Trụ · Tử Vi Đẩu Số",
+        "k1gd6g4k": "Thiết kế hướng đi",
+        "km02jru": "Tìm đường",
+        "k1tna4h3": "Tư vấn chuyên sâu",
+        "k1tna4h32": "Tư vấn chuyên sâu",
+        "k1tna4h33": "Tư vấn chuyên sâu"
       },
       "pvcPremPoints": {
         "AIPDF": "Kết quả đặt tên hoàn thiện bởi AI + Lưu PDF",
@@ -6578,7 +6667,11 @@
         "kxatr2b": "Dòng chảy lựa chọn giúp giải tỏa nhẹ nhàng những lo lắng",
         "kyk2x3o": "Lời khuyên lựa chọn dựa trên đại vận và tiểu vận",
         "n12NPC": "Thời tiết đảo thay đổi hàng ngày và đối thoại với 12 cung NPC",
-        "n30000": "Thanh toán một lần 30.000 won hoặc Thẻ Pass · Nguyệt Tinh Thạch"
+        "n30000": "Thanh toán một lần 30.000 won hoặc Thẻ Pass · Nguyệt Tinh Thạch",
+        "kfib4kf": "So sánh khí của hai lựa chọn tại ngã rẽ",
+        "k1vetwxt": "Hải trình cuộc đời đọc qua đại vận và lưu niên bạn đang đi qua",
+        "k67hhx7": "Mô phỏng tương lai phác trước điều đến sau mỗi lựa chọn",
+        "k1n33cx9": "Kết quả đặt tên hoàn chỉnh của chuyên gia + lưu PDF"
       }
     },
     "terms24Card": {
@@ -6620,10 +6713,223 @@
         },
         "kp08cb": {
           "ariaLabel": "Liên kết câu chuyện"
+        },
+        "k1lyzj38": {
+          "ariaLabel": "Liên kết tư vấn chuyên sâu"
+        },
+        "ki07z7y": {
+          "ariaLabel": "Liên kết hướng dẫn tính năng"
         }
       },
       "k14mqjx7": "Tử Vi Đẩu Số AI",
-      "kt62t87": "Tư vấn Chiêm tinh Vệ Đà AI"
+      "kt62t87": "Tư vấn Chiêm tinh Vệ Đà AI",
+      "kdyem8n": "Tư vấn chuyên sâu: Tử Vi Đẩu Số",
+      "kdriwl7": "Tư vấn chuyên sâu: Chiêm tinh Vệ Đà"
+    },
+    "moonHeroCopy": {
+      "moonHeroActions": {
+        "kerryje": "✦ Xem bản luận siêu hợp nhất"
+      }
+    },
+    "cdTodayPanelSaju": {
+      "kv58y0g": "Đọc xem thiên can và địa chi của ngày tạo nên thớ vận nào trên Nhật Chủ của bạn.",
+      "kkmdg9l": "Tứ Trụ luận cát hung trong ngày qua quan hệ Thập Thần giữa trụ ngày hôm nay và Nhật Chủ của bạn. Lá số Nhật Chủ vượng và Nhật Chủ nhược đọc cùng một ngày theo hai hướng trái ngược, nên phải biết lá số của mình mới định được hôm nay là đại cát hay ngày cần thận trọng."
+    },
+    "cdTodayPanelSukuyo": {
+      "kd5ukqs": "Xem vị trí mà tú của mặt trăng gặp bản mệnh tú của bạn.",
+      "k6mrnix": "Túc Diệu lấy ngày âm lịch lúc sinh để định bản mệnh tú trong 27 tú, rồi xét tú mà mặt trăng trú hôm nay đứng ở vị trí nào so với bản mệnh tú để phân cát hung. Các vị trí như Vinh Thân, An Hoại, Nghiệp Thai chia rõ ngày đại cát và ngày xấu."
+    },
+    "cdTodayPanelVedic": {
+      "kom45ly": "So chiếu chòm sao mà mặt trăng thực sự đi qua hôm nay với vị trí bản mệnh của bạn.",
+      "k451jpc": "Chiêm tinh Vệ Đà xác định nakshatra từ vị trí sidereal của mặt trăng hôm nay, rồi đếm khoảng cách tới vị trí bản mệnh của bạn để xếp vào chín cung Tara Bala. Sampat và Kshema là cát; Vipat và Vadha là cung nên hoãn những quyết định lớn."
+    },
+    "cdPickInner": {
+      "cdPickCopy": {
+        "kl74p3h": "Vận mệnh hôm nay",
+        "kg9at99": "Buổi tư vấn hợp với bạn nhất hôm nay",
+        "kntw327": "Ấn bản Nakshatra",
+        "k4byd9a": "Cùng một ngôi sao, đọc đồng thời bằng hai ngôn ngữ — chiêm tinh Vệ Đà Ấn Độ và mệnh lý học Hàn Quốc."
+      }
+    },
+    "cdTodayPick": {
+      "cdPickInner": {
+        "k16e565e": "Gợi ý cho bạn"
+      }
+    },
+    "cdSignatureConsult": {
+      "cdSigHead": {
+        "k16nuyta": "Tư vấn vận mệnh tiêu biểu",
+        "k1uopfsh": "Bốn hướng tư vấn chuyên sâu — chọn con đường bạn cần lúc này."
+      },
+      "keqgznt": {
+        "ariaLabel": "Lướt qua các thẻ tư vấn tiêu biểu"
+      }
+    },
+    "cdSigCard": {
+      "cdSigCardMedia": {
+        "krnc4c4": "Cao cấp",
+        "k1039k": "Đề xuất",
+        "kwuqfvj": {
+          "alt": "Sách Duyên Phận Bậc Thầy — cuốn sách chiến lược tình duyên được cao thủ mở ra giữa thư viện huyền bí"
+        },
+        "k1ph66tm": {
+          "alt": "Quán Trà Vận Mệnh của Yeoni — Yeoni, người gác cổng hoa sen, trao buổi tư vấn ấm áp trong chén trà ánh trăng"
+        },
+        "k1wq9p18": {
+          "alt": "Ấn bản Nakshatra — bầu trời đêm nơi hoa văn chòm sao phương Đông giao thoa cùng mandala Ấn Độ"
+        },
+        "k1f89g8b": {
+          "alt": "Phòng Chiến Lược Vận Mệnh Nói Thẳng của Neo — buổi hoạch định vạch rõ tuyến đầu của một quyết định trước huy hiệu sư tử"
+        }
+      },
+      "cdSigCardBody": {
+        "k1sw19cg": "Sách Duyên Phận Bậc Thầy",
+        "k2fl7d2": "Tứ Trụ và Tử Vi Đẩu Số đan thành một, cho ra cuốn sách chiến lược tình duyên 20 chương do cao thủ luận giải.",
+        "n20000": "Từ 20.000 KRW",
+        "k1dc5spb": "Quán Trà Vận Mệnh",
+        "k1f3556p": "Buổi tư vấn ấm áp, nhẹ nhàng mở ra Tứ Trụ, tarot và hợp duyên.",
+        "n5000": "Từ 5.000 KRW",
+        "kntw327": "Ấn bản Nakshatra",
+        "koevlcx": "Một ngôi sao, hai ngôn ngữ — đặt cạnh nhau cách chiêm tinh Vệ Đà Ấn Độ và mệnh lý học Hàn Quốc đọc cùng một chòm sao",
+        "k18zdwwf": "Miễn phí",
+        "kk0w8v": "Phòng Chiến Lược Nói Thẳng",
+        "k1bs96nr": "Bản tóm tắt tác chiến lạnh lùng của Neo cho lựa chọn trước mắt",
+        "n30000": "30.000 KRW"
+      }
+    },
+    "cdSigCardBody": {
+      "cdSigCardMeta": {
+        "k1hiiadz": "20 chương · 50.000 ký tự",
+        "k1l2ndq7": "Dùng được Thẻ Pass",
+        "n32006000": "3.200–6.000 ký tự",
+        "k1l2ndq72": "Dùng được Thẻ Pass",
+        "n2114": "21 bài · 14.000 ký tự",
+        "k1l2ndq73": "Dùng được Thẻ Pass",
+        "n1415000": "14 chương · 15.000 ký tự",
+        "k1l2ndq74": "Dùng được Thẻ Pass"
+      }
+    },
+    "cdPickReason": {
+      "cdPickWhyText": {
+        "kntw327": "Ấn bản Nakshatra",
+        "k1s5m1vr": "Xem 27 tú phương Đông cùng các nakshatra Ấn Độ, cùng một lá số sẽ hiện lên rõ nét hơn nhiều."
+      }
+    },
+    "cdDiaryPlannerEntry": {
+      "cdDiaryPlannerEntryCopy": {
+        "k16byqlb": "Biến nhịp hôm nay thành của bạn",
+        "kh71llm": "Ghi lại dòng chảy hôm nay, rồi nối những lịch hẹn quan trọng và thói quen nhỏ vào nhịp của cả tháng.",
+        "k1vo9x0c": "Ghi chép và lịch trình chỉ lưu trên thiết bị này.",
+        "k1c8x4ap": {
+          "ariaLabel": "Tính năng nhật ký và lịch trình"
+        }
+      }
+    },
+    "cdDiaryPlannerEntryCopy": {
+      "cdDiaryPlannerEntryPoints": {
+        "ky00tcw": "Ghi vận khí và cảm xúc hôm nay",
+        "ktzwo12": "Lịch trình và thói quen",
+        "kgbiqt0": "Nhìn cả tháng trong một cái liếc"
+      },
+      "cdDiaryPlannerEntryAction": {
+        "k1c914y0": "Mở Nhật ký và Lịch trình"
+      }
+    },
+    "fortuneGatewayEntryShell": {
+      "fortuneGatewayEntryCopy": {
+        "kjx6wsf": "Cánh Cổng Vận Mệnh",
+        "k1i0ttch": "Những băn khoăn nhẹ, hãy trò chuyện cùng Yeoni và Neo; còn dòng chảy lớn của đời, hãy soi bằng bản luận siêu hợp nhất đan sáu hệ thống làm một."
+      }
+    },
+    "fortuneGatewayDoors": {
+      "fortuneGatewayDoor": {
+        "k69nrae": "Tư vấn vận mệnh cùng Yeoni",
+        "k1tbc6n5": "Bắt đầu từ một nỗi băn khoăn, để Yeoni ấm áp và Neo thẳng thắn sắp xếp lại dòng chảy hiện tại.",
+        "k12pdy0g": "Luận sâu siêu hợp nhất",
+        "k1eti53b": "Chỉ ra nơi Tứ Trụ, Tử Vi Đẩu Số, chiêm tinh Vệ Đà, Túc Diệu, chiêm tinh Tây phương và tarot đồng thuận — và nơi chúng lệch nhau."
+      }
+    },
+    "fortuneGatewayDoor": {
+      "fortuneGatewayDoorMeta": {
+        "k18ykrep": "3 lượt miễn phí",
+        "n115000": "1 lượt khi chưa đăng nhập · sau đó 5.000 KRW mỗi lượt",
+        "n130000": "30.000 KRW mỗi lượt",
+        "k1lo4ibg": "Hơn 20.000 ký tự · đối chiếu chung cuộc"
+      }
+    },
+    "fortuneGatewayEntry": {
+      "fortuneGatewayEntryShell": {
+        "klg50va": "Trò chuyện và phân tích chỉ diễn ra bên trong từng màn hình; màn hình này không gửi đi bất cứ thông tin nào."
+      }
+    },
+    "moonStoryEntry": {
+      "moonStoryEntryCopy": {
+        "CODEDESTINY": "Light Novel CODE DESTINY"
+      }
+    },
+    "moonStoryEntryCopy": {
+      "moonStoryEntryMeta": {
+        "k1re6l3o": "Trọn bộ 44 tập",
+        "k18zi880": "Đọc miễn phí",
+        "k1cmoty1": "Kèm visual novel"
+      }
+    },
+    "cdFeedbackCard": {
+      "cdFeedbackCopy": {
+        "k1qqtskq": "Cùng chúng tôi xây dựng dịch vụ này."
+      }
+    },
+    "cdFeedbackCopy": {
+      "cdFeedbackReward": {
+        "k1ubfgod": "300 Nguyệt Tinh Thạch"
+      }
+    },
+    "cdFeedbackGate": {
+      "cdFeedbackCard": {
+        "k1chb9k4": "Gửi góp ý"
+      }
+    },
+    "tarotYearFortuneIntroStage": {
+      "tyHero": {
+        "k1qxj83w": "Lá bài chủ đạo của năm · luận theo từng tháng · tài lộc, công việc, quan hệ, sức khỏe và phát triển · bước ngoặt và hành động may mắn"
+      }
+    },
+    "totemResultContainer": {
+      "totemResultActions": {
+        "ksp2edy": "🗂 Lưu vào thư viện",
+        "kfksveu": "🗂 Các bản luận trước"
+      }
+    },
+    "dailyFortuneCard": {
+      "fortuneLeadMagnetCta": {
+        "k1kuwldz": "✨ Xem luận giải chi tiết theo tài lộc, tình cảm, công việc, sức khỏe — kèm hướng dẫn theo khung giờ."
+      }
+    },
+    "fortuneLeadMagnetCta": {
+      "cdBtnTodayPulse": {
+        "k1715eae": "Xem báo cáo vận mệnh hôm nay đầy đủ →"
+      }
+    },
+    "cdSigGrid": {
+      "krqyte4": {
+        "ariaLabel": "Mở Sách Duyên Phận Bậc Thầy"
+      },
+      "ktlnhmn": {
+        "ariaLabel": "Vào Quán Trà Vận Mệnh của Yeoni"
+      },
+      "k19zjy0t": {
+        "ariaLabel": "Mở Ấn bản Nakshatra"
+      },
+      "k1coanmg": {
+        "ariaLabel": "Vào Phòng Chiến Lược Vận Mệnh Nói Thẳng của Neo"
+      }
+    },
+    "cdFooterLegalMeta": {
+      "cdFooterLangpick": {
+        "kw3mf7": {
+          "ariaLabel": "Tiếng Hàn"
+        }
+      }
     }
   },
   "adsenseArticle": {

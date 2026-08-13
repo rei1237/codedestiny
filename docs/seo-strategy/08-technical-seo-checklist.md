@@ -17,6 +17,8 @@
 | `/insights/*` 서브허브 8개 registry 미등록 | `SeoLandingTemplate.jsx` 자동 상호링크 대상 아님 | 낮음 | [06-content-roadmap.md P2](06-content-roadmap.md) | `verify:seo-entity-registry` | 로드맵 등록됨 |
 | `app/insights/adsense-ready-articles.js`/`methodology-articles.js` | 최초 죽은 코드로 의심됐으나 조사 결과 **둘 다 실사용**(`articles.js`/`seo-growth-articles.js`가 import해 렌더 파이프라인에 병합) | — | 조치 없음 — 삭제 대상 아님 | — | 확인 완료(취소) |
 | famous-saju 카니발라이제이션 | [04-url-architecture.md §3](04-url-architecture.md) | 중간 | GSC 데이터 확보 후 판단 | `verify:adsense-readiness` | 확정 대기 |
+| ~~로케일 셸 본문 미번역~~ | **2026-08-13 해결** — 프리렌더가 마커 문법 2종 중 `data-cd-trans="키"` 만 처리해 `data-cd-trans data-key="키"` 802개(전체의 68%)를 건너뛰었고, `zh-tw` 는 대상 로케일 목록에 아예 없었다. 실측 잔존 한국어 `/ja`·`/zh`·`/en` 각 10,102자·`/zh-tw` 13,963자 | 높음(색인 대상 로케일 홈이 선언한 `lang` 과 다른 언어를 렌더) | 두 문법 모두 처리 + `zh-tw` 추가 + 마커 없던 문구 140개 신규 키 작성 | `i18n:check` | **완료** |
+| 🔴 `verify:i18n-rendered-korean` 미배선 | 헤드리스로 **실제 렌더 후** 한국어를 세는 유일한 검증기인데 어떤 npm 스크립트에도 CI 에도 걸려 있지 않다. 위 미번역 사고를 잡았을 도구가 잠들어 있었다 | 중간(정적 분석은 "번역이 걸릴 준비"만 보고 실제 렌더 결과는 못 본다) | 배선하려면 `playwright` 를 devDependency 로 선언해야 하는데 그 변경은 `package-lock.json` 수정을 수반한다 — **수정 금지 파일**이라 이번에 하지 않았다. 로컬 수동 실행은 가능: `node scripts/verify-i18n-rendered-korean.mjs --locales ja,en` | — | 미착수(차단됨) |
 
 ## 2. 기존 `verify:*`/`seo:*` 스크립트 인벤토리
 

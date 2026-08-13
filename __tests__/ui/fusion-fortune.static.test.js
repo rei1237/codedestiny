@@ -171,7 +171,9 @@ test("the destiny gate states the free quota before the paid price", () => {
   const html = read("index.html");
   // 🔴 계정 무료 3회는 총량이다(worker/lib/guardian-fortune-usage.js: "lifetime-scoped").
   //    "매일" 로 쓰면 매일 지급을 약속하는 문구가 된다.
-  assert.match(html, /<b>무료 3회<\/b>/);
+  // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
+  // 텍스트만 어디 있어도 통과하는 형태로 풀지는 않는다: 굵게 표시되는지까지가 계약이다.
+  assert.match(html, /<b[^>]*>무료 3회<\/b>/);
   assert.match(html, /비로그인 1회 · 이후 1회 5,000원/);
   assert.doesNotMatch(html, /매일 무료|하루 무료|매일 3회/);
 });

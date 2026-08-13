@@ -1,0 +1,588 @@
+{
+  "_comment": "셸 잔여 한국어 배치 1 — 히어로·오늘의 운세 패널·오늘의 추천. 용어집(i18n/glossary.json)을 따른다. 브랜드 고유명사(Code Destiny, Neo, Yeoni)는 번역하지 않는다. 가격은 KRW 표기를 유지한다(해외 마켓 미개방, docs/INTERNATIONAL_MARKET_LOCALIZATION.md).",
+
+  "shell.normalLogo.moonHeroCopy.kbm4p3d": {
+    "ko": "사주·자미두수·숙요점·점성술·타로를 질문에 맞게 연결하고, 초융합 운세로 오늘의 선택을 차분히 정리합니다.",
+    "en": "Four Pillars, Zi Wei Dou Shu, Sukuyo, astrology and tarot — matched to your question, then drawn together into one fusion reading so today's choice comes into focus.",
+    "ja": "四柱推命・紫微斗数・宿曜・占星術・タロットをご相談内容に合わせて結び、超融合占いとして今日の選択を静かに整理します。",
+    "zh-CN": "依你的问题串联四柱八字、紫微斗数、宿曜、占星与塔罗，再以超融合运势沉静梳理今天的选择。",
+    "zh-TW": "依你的問題串聯四柱八字、紫微斗數、宿曜、占星與塔羅，再以超融合運勢沉靜梳理今天的選擇。",
+    "vi": "Kết nối Tứ Trụ, Tử Vi Đẩu Số, Túc Diệu, chiêm tinh và tarot theo đúng câu hỏi của bạn, rồi gộp thành một bản luận siêu hợp nhất để lựa chọn hôm nay trở nên rõ ràng.",
+    "hi": "फोर पिलर्स, ज़ी वेई दोउ शू, नक्षत्र ज्योतिष, ज्योतिष और टैरो को आपके प्रश्न से जोड़कर, एक सुपर-फ्यूज़न पाठ में समेटते हैं ताकि आज का चुनाव साफ़ दिखे।",
+    "es": "Conectamos Cuatro Pilares, Zi Wei Dou Shu, Sukuyo, astrología y tarot según tu pregunta, y los reunimos en una lectura de fusión que ordena con calma la decisión de hoy.",
+    "fr": "Nous relions Quatre Piliers, Zi Wei Dou Shu, Sukuyo, astrologie et tarot à votre question, puis les réunissons en une lecture fusionnée qui clarifie le choix du jour.",
+    "de": "Vier Säulen, Zi Wei Dou Shu, Sukuyo, Astrologie und Tarot – auf Ihre Frage abgestimmt und zu einer Fusionsdeutung verbunden, die die heutige Entscheidung ruhig ordnet.",
+    "nl": "Vier Pijlers, Zi Wei Dou Shu, Sukuyo, astrologie en tarot — afgestemd op je vraag en samengebracht in één fusion-reading die de keuze van vandaag rustig ordent.",
+    "ms": "Empat Tiang, Zi Wei Dou Shu, Sukuyo, astrologi dan tarot dihubungkan mengikut soalan anda, lalu disatukan menjadi bacaan gabungan yang menjernihkan pilihan hari ini."
+  },
+
+  "shell.moonHeroCopy.moonHeroActions.kerryje": {
+    "ko": "✦ 초융합 운세 보기",
+    "en": "✦ Get Your Fusion Reading",
+    "ja": "✦ 超融合占いを見る",
+    "zh-CN": "✦ 查看超融合运势",
+    "zh-TW": "✦ 查看超融合運勢",
+    "vi": "✦ Xem bản luận siêu hợp nhất",
+    "hi": "✦ सुपर-फ्यूज़न पाठ देखें",
+    "es": "✦ Ver mi lectura de fusión",
+    "fr": "✦ Voir ma lecture fusionnée",
+    "de": "✦ Fusionsdeutung ansehen",
+    "nl": "✦ Bekijk je fusion-reading",
+    "ms": "✦ Lihat bacaan gabungan"
+  },
+
+  "shell.cdTodayPanelSaju.kv58y0g": {
+    "ko": "그날의 천간과 지지가 내 일간에 어떤 결을 만드는지 읽어 드립니다.",
+    "en": "We read how the day's stem and branch shape the grain of your Day Master.",
+    "ja": "その日の天干と地支が、あなたの日干にどんな流れをつくるかを読み解きます。",
+    "zh-CN": "解读当日天干地支在你的日主上织出怎样的纹理。",
+    "zh-TW": "解讀當日天干地支在你的日主上織出怎樣的紋理。",
+    "vi": "Đọc xem thiên can và địa chi của ngày tạo nên thớ vận nào trên Nhật Chủ của bạn.",
+    "hi": "पढ़ते हैं कि दिन के तना और शाखा आपके डे-मास्टर पर कैसी बुनावट बनाते हैं।",
+    "es": "Leemos cómo el tronco y la rama del día tejen el carácter de tu Amo del Día.",
+    "fr": "Nous lisons comment le tronc et la branche du jour façonnent votre Maître du Jour.",
+    "de": "Wir lesen, wie Stamm und Zweig des Tages die Struktur Ihres Tagesherrn formen.",
+    "nl": "We lezen hoe de stam en tak van de dag de structuur van je Dagmeester vormen.",
+    "ms": "Kami membaca bagaimana batang dan cabang hari ini membentuk corak Penguasa Hari anda."
+  },
+
+  "shell.cdTodayPanelSaju.kkmdg9l": {
+    "ko": "사주는 오늘의 일진과 내 일간의 십성 관계로 하루의 길흉을 봅니다. 일간이 강한 사주와 약한 사주는 같은 날도 반대로 읽히기 때문에, 내 명식을 알아야 오늘이 대길일인지 주의일인지가 정해집니다.",
+    "en": "Four Pillars judges the day through the Ten Gods relationship between today's pillar and your Day Master. A strong Day Master and a weak one read the same date in opposite directions, so only your own birth chart decides whether today is highly auspicious or one to move carefully.",
+    "ja": "四柱推命は、今日の日辰とあなたの日干の十神関係から一日の吉凶を見ます。日干が強い命式と弱い命式では同じ日でも読みが逆になるため、自分の命式を知って初めて今日が大吉日か要注意日かが決まります。",
+    "zh-CN": "四柱八字以今日日辰与你的日主之间的十神关系判断一日吉凶。日主强与日主弱的命盘，同一天的读法恰好相反，因此唯有知道自己的命盘，才能定下今天是大吉日还是宜慎行之日。",
+    "zh-TW": "四柱八字以今日日辰與你的日主之間的十神關係判斷一日吉凶。日主強與日主弱的命盤，同一天的讀法恰好相反，因此唯有知道自己的命盤，才能定下今天是大吉日還是宜慎行之日。",
+    "vi": "Tứ Trụ luận cát hung trong ngày qua quan hệ Thập Thần giữa trụ ngày hôm nay và Nhật Chủ của bạn. Lá số Nhật Chủ vượng và Nhật Chủ nhược đọc cùng một ngày theo hai hướng trái ngược, nên phải biết lá số của mình mới định được hôm nay là đại cát hay ngày cần thận trọng.",
+    "hi": "फोर पिलर्स आज के स्तंभ और आपके डे-मास्टर के बीच दस देव संबंध से दिन का शुभाशुभ आंकता है। बलवान और निर्बल डे-मास्टर एक ही दिन को उलटी दिशा में पढ़ते हैं, इसलिए आपका अपना जन्म चार्ट ही तय करता है कि आज अत्यंत शुभ है या सावधानी का दिन।",
+    "es": "Los Cuatro Pilares juzgan el día por la relación de los Diez Dioses entre el pilar de hoy y tu Amo del Día. Un Amo del Día fuerte y uno débil leen la misma fecha en sentidos opuestos, así que solo tu carta natal decide si hoy es muy propicio o un día para avanzar con cuidado.",
+    "fr": "Les Quatre Piliers jugent la journée par la relation des Dix Dieux entre le pilier du jour et votre Maître du Jour. Un Maître du Jour fort et un faible lisent la même date en sens inverse : seul votre thème natal décide si aujourd'hui est très favorable ou à aborder avec prudence.",
+    "de": "Die Vier Säulen beurteilen den Tag über die Zehn-Götter-Beziehung zwischen der heutigen Säule und Ihrem Tagesherrn. Ein starker und ein schwacher Tagesherr lesen dasselbe Datum genau entgegengesetzt – erst Ihr Geburtsdiagramm entscheidet, ob heute ein sehr günstiger oder ein achtsamer Tag ist.",
+    "nl": "Vier Pijlers beoordeelt de dag via de Tien Goden-relatie tussen de pijler van vandaag en je Dagmeester. Een sterke en een zwakke Dagmeester lezen dezelfde datum precies omgekeerd, dus pas je eigen geboortekaart bepaalt of vandaag zeer gunstig is of om voorzichtigheid vraagt.",
+    "ms": "Empat Tiang menilai hari melalui hubungan Sepuluh Dewa antara tiang hari ini dan Penguasa Hari anda. Penguasa Hari yang kuat dan yang lemah membaca tarikh sama secara bertentangan, jadi hanya carta kelahiran anda menentukan sama ada hari ini amat bertuah atau hari untuk berhati-hati."
+  },
+
+  "shell.cdTodayPanelSukuyo.kd5ukqs": {
+    "ko": "달이 머무는 별자리가 내 본명수와 만나는 자리를 봅니다.",
+    "en": "We look at where the moon's lodge meets your birth lodge.",
+    "ja": "月が宿る星宿と、あなたの本命宿が出会う位置を見ます。",
+    "zh-CN": "看月亮所宿的星宿与你的本命宿相遇之位。",
+    "zh-TW": "看月亮所宿的星宿與你的本命宿相遇之位。",
+    "vi": "Xem vị trí mà tú của mặt trăng gặp bản mệnh tú của bạn.",
+    "hi": "देखते हैं कि चंद्रमा का नक्षत्र आपके जन्म नक्षत्र से कहाँ मिलता है।",
+    "es": "Observamos dónde la mansión lunar de hoy se encuentra con tu mansión natal.",
+    "fr": "Nous observons où la demeure lunaire du jour rencontre votre demeure natale.",
+    "de": "Wir betrachten, wo die Mondstation des Tages auf Ihre Geburtsstation trifft.",
+    "nl": "We kijken waar het maanhuis van vandaag je geboortehuis ontmoet.",
+    "ms": "Kami melihat di mana rumah bulan hari ini bertemu rumah kelahiran anda."
+  },
+
+  "shell.cdTodayPanelSukuyo.k6mrnix": {
+    "ko": "숙요점은 태어난 날의 음력으로 본명수(27수)를 정하고, 오늘 달이 머무는 수가 그 본명수에게 어떤 자리인지로 길흉을 가릅니다. 영친·안괴·업태처럼 자리마다 대길일과 흉일이 갈립니다.",
+    "en": "Sukuyo sets your birth lodge from the lunar date of your birth among the 27 lodges, then judges the day by the position today's lunar lodge occupies relative to it. Positions such as Yeongchin, Angoe and Eoptae divide the highly auspicious days from the difficult ones.",
+    "ja": "宿曜は生まれた日の旧暦から本命宿（二十七宿）を定め、今日月が宿る宿がその本命宿にとってどの位置かで吉凶を分けます。栄親・安壊・業胎のように、位置ごとに大吉日と凶日が分かれます。",
+    "zh-CN": "宿曜以出生当日的农历定出本命宿（二十七宿），再看今日月亮所宿之宿对本命宿处于何位来判吉凶。荣亲、安坏、业胎等位次，各自分出大吉日与凶日。",
+    "zh-TW": "宿曜以出生當日的農曆定出本命宿（二十七宿），再看今日月亮所宿之宿對本命宿處於何位來判吉凶。榮親、安壞、業胎等位次，各自分出大吉日與凶日。",
+    "vi": "Túc Diệu lấy ngày âm lịch lúc sinh để định bản mệnh tú trong 27 tú, rồi xét tú mà mặt trăng trú hôm nay đứng ở vị trí nào so với bản mệnh tú để phân cát hung. Các vị trí như Vinh Thân, An Hoại, Nghiệp Thai chia rõ ngày đại cát và ngày xấu.",
+    "hi": "नक्षत्र ज्योतिष जन्म की चंद्र तिथि से आपका जन्म नक्षत्र (27 में से) तय करता है, फिर आज चंद्रमा जिस नक्षत्र में है वह उस जन्म नक्षत्र के सापेक्ष किस स्थान पर है — इससे शुभाशुभ आंका जाता है। योंगचिन, आनगोए और ओप्तै जैसे स्थान अत्यंत शुभ दिनों को कठिन दिनों से अलग करते हैं।",
+    "es": "Sukuyo fija tu mansión natal a partir de la fecha lunar de tu nacimiento entre las 27 mansiones, y luego juzga el día por la posición que ocupa hoy la mansión lunar respecto a ella. Posiciones como Yeongchin, Angoe y Eoptae separan los días muy propicios de los difíciles.",
+    "fr": "Sukuyo établit votre demeure natale à partir de la date lunaire de naissance parmi les 27 demeures, puis juge la journée selon la position qu'occupe aujourd'hui la demeure lunaire par rapport à elle. Des positions comme Yeongchin, Angoe et Eoptae séparent les jours très favorables des jours difficiles.",
+    "de": "Sukuyo bestimmt Ihre Geburtsstation aus dem Monddatum Ihrer Geburt unter den 27 Stationen und beurteilt den Tag danach, welche Position die heutige Mondstation dazu einnimmt. Positionen wie Yeongchin, Angoe und Eoptae trennen die sehr günstigen von den schwierigen Tagen.",
+    "nl": "Sukuyo bepaalt je geboortehuis uit de maandatum van je geboorte onder de 27 huizen en beoordeelt de dag vervolgens op de positie die het maanhuis van vandaag daartegenover inneemt. Posities als Yeongchin, Angoe en Eoptae scheiden de zeer gunstige dagen van de lastige.",
+    "ms": "Sukuyo menetapkan rumah kelahiran anda daripada tarikh bulan kelahiran dalam 27 rumah, lalu menilai hari mengikut kedudukan rumah bulan hari ini terhadapnya. Kedudukan seperti Yeongchin, Angoe dan Eoptae memisahkan hari amat bertuah daripada hari yang sukar."
+  },
+
+  "shell.cdTodayPanelVedic.kom45ly": {
+    "ko": "오늘 달이 실제로 지나는 별자리를 내 본명 자리와 견줍니다.",
+    "en": "We measure the constellation the moon actually crosses today against your birth position.",
+    "ja": "今日、月が実際に通る星座をあなたの本命位置と照らし合わせます。",
+    "zh-CN": "将今日月亮实际经过的星宿与你的本命位相互对照。",
+    "zh-TW": "將今日月亮實際經過的星宿與你的本命位相互對照。",
+    "vi": "So chiếu chòm sao mà mặt trăng thực sự đi qua hôm nay với vị trí bản mệnh của bạn.",
+    "hi": "आज चंद्रमा वास्तव में जिस नक्षत्र से गुज़रता है, उसे आपके जन्म स्थान से मिलाते हैं।",
+    "es": "Comparamos la constelación que la luna recorre hoy con tu posición natal.",
+    "fr": "Nous comparons la constellation que la lune traverse aujourd'hui à votre position natale.",
+    "de": "Wir vergleichen das Sternbild, das der Mond heute tatsächlich durchläuft, mit Ihrer Geburtsposition.",
+    "nl": "We vergelijken het sterrenbeeld dat de maan vandaag werkelijk doorkruist met je geboortepositie.",
+    "ms": "Kami membandingkan buruj yang benar-benar dilalui bulan hari ini dengan kedudukan kelahiran anda."
+  },
+
+  "shell.cdTodayPanelVedic.k451jpc": {
+    "ko": "베다 점성술은 오늘 달의 시데리얼 위치로 나크샤트라를 정하고, 내 본명 자리에서 몇 번째인지로 타라 발라 아홉 자리를 봅니다. 삼파트·크셰마는 길하고 비파트·바다는 큰 결정을 미루는 자리입니다.",
+    "en": "Vedic astrology fixes the nakshatra from the moon's sidereal position today, then counts how far it falls from your birth position to place it among the nine Tara Bala stations. Sampat and Kshema are favourable; Vipat and Vadha are stations for postponing large decisions.",
+    "ja": "ヴェーダ占星術は今日の月のサイデリアル位置からナクシャトラを定め、本命位置から数えて何番目かでターラ・バラの九つの位置を見ます。サンパットとクシェーマは吉、ヴィパットとヴァダは大きな決断を先送りする位置です。",
+    "zh-CN": "吠陀占星以今日月亮的恒星黄道位置定出纳沙特拉，再依它距你本命位第几位，落入九个塔拉巴拉之位。三帕特与克舍摩为吉，维帕特与瓦达则是宜推迟重大决定之位。",
+    "zh-TW": "吠陀占星以今日月亮的恆星黃道位置定出納沙特拉，再依它距你本命位第幾位，落入九個塔拉巴拉之位。三帕特與克捨摩為吉，維帕特與瓦達則是宜推遲重大決定之位。",
+    "vi": "Chiêm tinh Vệ Đà xác định nakshatra từ vị trí sidereal của mặt trăng hôm nay, rồi đếm khoảng cách tới vị trí bản mệnh của bạn để xếp vào chín cung Tara Bala. Sampat và Kshema là cát; Vipat và Vadha là cung nên hoãn những quyết định lớn.",
+    "hi": "वैदिक ज्योतिष आज चंद्रमा की सायडेरियल स्थिति से नक्षत्र तय करता है, फिर आपके जन्म स्थान से गिनकर उसे तारा बल के नौ स्थानों में रखता है। संपत और क्षेम शुभ हैं; विपत और वध बड़े निर्णय टालने के स्थान हैं।",
+    "es": "La astrología védica fija el nakshatra por la posición sideral de la luna hoy y cuenta a qué distancia cae de tu posición natal para situarlo entre las nueve estaciones de Tara Bala. Sampat y Kshema son favorables; Vipat y Vadha son estaciones para aplazar decisiones grandes.",
+    "fr": "L'astrologie védique fixe le nakshatra d'après la position sidérale de la lune du jour, puis compte son écart avec votre position natale pour le situer parmi les neuf stations du Tara Bala. Sampat et Kshema sont favorables ; Vipat et Vadha invitent à différer les grandes décisions.",
+    "de": "Die vedische Astrologie bestimmt das Nakshatra aus der siderischen Position des Mondes und zählt dessen Abstand zu Ihrer Geburtsposition, um es einer der neun Tara-Bala-Stationen zuzuordnen. Sampat und Kshema sind günstig; Vipat und Vadha sind Stationen, um große Entscheidungen zu verschieben.",
+    "nl": "Vedische astrologie bepaalt de nakshatra uit de siderische positie van de maan en telt de afstand tot je geboortepositie om die in een van de negen Tara Bala-stations te plaatsen. Sampat en Kshema zijn gunstig; Vipat en Vadha zijn stations om grote beslissingen uit te stellen.",
+    "ms": "Astrologi Veda menetapkan nakshatra daripada kedudukan sidereal bulan hari ini, lalu mengira jaraknya dari kedudukan kelahiran anda untuk meletakkannya dalam sembilan stesen Tara Bala. Sampat dan Kshema membawa tuah; Vipat dan Vadha ialah stesen untuk menangguhkan keputusan besar."
+  },
+
+  "shell.cdPickInner.cdPickCopy.kl74p3h": {
+    "ko": "오늘의 운명",
+    "en": "Today's Destiny",
+    "ja": "今日の運命",
+    "zh-CN": "今日运命",
+    "zh-TW": "今日運命",
+    "vi": "Vận mệnh hôm nay",
+    "hi": "आज का भाग्य",
+    "es": "El destino de hoy",
+    "fr": "Le destin du jour",
+    "de": "Das Schicksal von heute",
+    "nl": "Het lot van vandaag",
+    "ms": "Takdir Hari Ini"
+  },
+
+  "shell.cdPickInner.cdPickCopy.kg9at99": {
+    "ko": "오늘 당신에게 가장 어울리는 상담",
+    "en": "The reading that suits you best today",
+    "ja": "今日のあなたに最も合う相談",
+    "zh-CN": "今天最适合你的咨询",
+    "zh-TW": "今天最適合你的諮詢",
+    "vi": "Buổi tư vấn hợp với bạn nhất hôm nay",
+    "hi": "आज आपके लिए सबसे उपयुक्त परामर्श",
+    "es": "La consulta que mejor te va hoy",
+    "fr": "La consultation qui vous convient le mieux aujourd'hui",
+    "de": "Die Beratung, die heute am besten zu Ihnen passt",
+    "nl": "Het consult dat vandaag het best bij je past",
+    "ms": "Rundingan yang paling sesuai untuk anda hari ini"
+  },
+
+  "shell.cdPickInner.cdPickCopy.kntw327": {
+    "ko": "나크샤트라 결정판",
+    "en": "The Nakshatra Edition",
+    "ja": "ナクシャトラ決定版",
+    "zh-CN": "纳沙特拉决定版",
+    "zh-TW": "納沙特拉決定版",
+    "vi": "Ấn bản Nakshatra",
+    "hi": "नक्षत्र संस्करण",
+    "es": "La edición Nakshatra",
+    "fr": "L'édition Nakshatra",
+    "de": "Die Nakshatra-Edition",
+    "nl": "De Nakshatra-editie",
+    "ms": "Edisi Nakshatra"
+  },
+
+  "shell.cdPickInner.cdPickCopy.k4byd9a": {
+    "ko": "하나의 별을 인도 베다점과 한국 명리학, 두 개의 언어로 동시에 읽습니다.",
+    "en": "One star, read at once in two languages — Indian Vedic astrology and Korean destiny study.",
+    "ja": "一つの星を、インドのヴェーダ占星術と韓国の命理学という二つの言語で同時に読み解きます。",
+    "zh-CN": "同一颗星，以印度吠陀占星与韩国命理学两种语言同时解读。",
+    "zh-TW": "同一顆星，以印度吠陀占星與韓國命理學兩種語言同時解讀。",
+    "vi": "Cùng một ngôi sao, đọc đồng thời bằng hai ngôn ngữ — chiêm tinh Vệ Đà Ấn Độ và mệnh lý học Hàn Quốc.",
+    "hi": "एक ही तारा, दो भाषाओं में एक साथ पढ़ा गया — भारतीय वैदिक ज्योतिष और कोरियाई भाग्यशास्त्र।",
+    "es": "Una misma estrella, leída a la vez en dos lenguajes: la astrología védica india y el estudio del destino coreano.",
+    "fr": "Une même étoile, lue simultanément en deux langages : l'astrologie védique indienne et l'étude coréenne du destin.",
+    "de": "Ein Stern, zugleich in zwei Sprachen gelesen – indische vedische Astrologie und koreanische Schicksalslehre.",
+    "nl": "Eén ster, tegelijk gelezen in twee talen — Indiase Vedische astrologie en Koreaanse lotsleer.",
+    "ms": "Satu bintang, dibaca serentak dalam dua bahasa — astrologi Veda India dan ilmu takdir Korea."
+  },
+
+  "shell.cdTodayPick.cdPickInner.k16e565e": {
+    "ko": "맞춤 추천",
+    "en": "Picked for You",
+    "ja": "おすすめ",
+    "zh-CN": "为你推荐",
+    "zh-TW": "為你推薦",
+    "vi": "Gợi ý cho bạn",
+    "hi": "आपके लिए चुना",
+    "es": "Elegido para ti",
+    "fr": "Choisi pour vous",
+    "de": "Für Sie ausgewählt",
+    "nl": "Voor jou gekozen",
+    "ms": "Pilihan Untuk Anda"
+  },
+
+  "shell.cdSignatureConsult.cdSigHead.k16nuyta": {
+    "ko": "대표 운명 상담",
+    "en": "Featured Readings",
+    "ja": "代表の運命相談",
+    "zh-CN": "精选运命咨询",
+    "zh-TW": "精選運命諮詢",
+    "vi": "Tư vấn vận mệnh tiêu biểu",
+    "hi": "प्रमुख परामर्श",
+    "es": "Consultas destacadas",
+    "fr": "Consultations phares",
+    "de": "Ausgewählte Beratungen",
+    "nl": "Uitgelichte consulten",
+    "ms": "Rundingan Pilihan"
+  },
+
+  "shell.cdSignatureConsult.cdSigHead.k1uopfsh": {
+    "ko": "네 갈래의 깊은 상담 중, 지금 당신에게 필요한 길을 고르세요.",
+    "en": "Four paths, four depths — choose the one you need right now.",
+    "ja": "四つの深い相談から、いま必要な道を選んでください。",
+    "zh-CN": "四条深度咨询之路，选择此刻你最需要的那一条。",
+    "zh-TW": "四條深度諮詢之路，選擇此刻你最需要的那一條。",
+    "vi": "Bốn hướng tư vấn chuyên sâu — chọn con đường bạn cần lúc này.",
+    "hi": "चार गहन परामर्श — अभी आपको जो चाहिए वह चुनें।",
+    "es": "Cuatro caminos de lectura profunda: elige el que necesitas ahora.",
+    "fr": "Quatre voies de lecture approfondie : choisissez celle qu'il vous faut.",
+    "de": "Vier tiefgehende Beratungen — wählen Sie den Weg, den Sie jetzt brauchen.",
+    "nl": "Vier diepgaande consulten — kies het pad dat je nu nodig hebt.",
+    "ms": "Empat laluan rundingan mendalam — pilih yang anda perlukan kini."
+  },
+
+  "shell.cdSigCard.cdSigCardMedia.krnc4c4": {
+    "ko": "프리미엄",
+    "en": "Premium",
+    "ja": "プレミアム",
+    "zh-CN": "尊享",
+    "zh-TW": "尊享",
+    "vi": "Cao cấp",
+    "hi": "प्रीमियम",
+    "es": "Premium",
+    "fr": "Premium",
+    "de": "Premium",
+    "nl": "Premium",
+    "ms": "Premium"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.k1sw19cg": {
+    "ko": "마스터 인연의 서",
+    "en": "The Master Book of Bonds",
+    "ja": "マスター縁の書",
+    "zh-CN": "大师姻缘之书",
+    "zh-TW": "大師姻緣之書",
+    "vi": "Sách Duyên Phận Bậc Thầy",
+    "hi": "मास्टर बुक ऑफ़ बॉन्ड्स",
+    "es": "El Libro Maestro de los Vínculos",
+    "fr": "Le Grand Livre des Liens",
+    "de": "Das Meisterbuch der Verbindungen",
+    "nl": "Het Meesterboek van Verbindingen",
+    "ms": "Kitab Ikatan Sang Mahaguru"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.k2fl7d2": {
+    "ko": "사주·자미두수를 하나로 엮어 연애 고수가 읽어주는 20장의 연애 전략서",
+    "en": "Four Pillars and Zi Wei Dou Shu woven together into a 20-chapter love strategy, read by a master of the art.",
+    "ja": "四柱推命と紫微斗数を一つに編み、恋愛の達人が読み解く全20章の恋愛戦略書。",
+    "zh-CN": "将四柱八字与紫微斗数编织为一，由情感高手解读的二十章恋爱策略书。",
+    "zh-TW": "將四柱八字與紫微斗數編織為一，由情感高手解讀的二十章戀愛策略書。",
+    "vi": "Tứ Trụ và Tử Vi Đẩu Số đan thành một, cho ra cuốn sách chiến lược tình duyên 20 chương do cao thủ luận giải.",
+    "hi": "फोर पिलर्स और ज़ी वेई दोउ शू को एक साथ बुनकर, प्रेम के जानकार द्वारा पढ़ी गई 20 अध्यायों की प्रेम रणनीति।",
+    "es": "Cuatro Pilares y Zi Wei Dou Shu entrelazados en una estrategia amorosa de 20 capítulos, leída por un maestro del tema.",
+    "fr": "Quatre Piliers et Zi Wei Dou Shu tissés en une stratégie amoureuse de 20 chapitres, lue par un maître en la matière.",
+    "de": "Vier Säulen und Zi Wei Dou Shu verwoben zu einer Liebesstrategie in 20 Kapiteln, gelesen von einem Meister des Fachs.",
+    "nl": "Vier Pijlers en Zi Wei Dou Shu verweven tot een liefdesstrategie in 20 hoofdstukken, gelezen door een meester.",
+    "ms": "Empat Tiang dan Zi Wei Dou Shu dianyam menjadi satu kitab strategi cinta 20 bab, dibaca oleh pakar asmara."
+  },
+
+  "shell.cdSigCard.cdSigCardBody.n20000": {
+    "ko": "20,000원~",
+    "en": "From ₩20,000",
+    "ja": "20,000ウォン〜",
+    "zh-CN": "20,000韩元起",
+    "zh-TW": "20,000韓元起",
+    "vi": "Từ 20.000 KRW",
+    "hi": "₩20,000 से",
+    "es": "Desde ₩20.000",
+    "fr": "À partir de 20 000 ₩",
+    "de": "Ab 20.000 ₩",
+    "nl": "Vanaf ₩20.000",
+    "ms": "Dari ₩20,000"
+  },
+
+  "shell.cdSigCardBody.cdSigCardMeta.k1hiiadz": {
+    "ko": "20장 · 5만자",
+    "en": "20 chapters · 50k characters",
+    "ja": "全20章・5万字",
+    "zh-CN": "20章 · 5万字",
+    "zh-TW": "20章 · 5萬字",
+    "vi": "20 chương · 50.000 ký tự",
+    "hi": "20 अध्याय · 50 हज़ार अक्षर",
+    "es": "20 capítulos · 50 mil caracteres",
+    "fr": "20 chapitres · 50 000 caractères",
+    "de": "20 Kapitel · 50.000 Zeichen",
+    "nl": "20 hoofdstukken · 50k tekens",
+    "ms": "20 bab · 50k aksara"
+  },
+
+  "shell.cdSigCardBody.cdSigCardMeta.k1l2ndq7": {
+    "ko": "이용권 사용 가능",
+    "en": "Pass accepted",
+    "ja": "パス利用可",
+    "zh-CN": "可用通行证",
+    "zh-TW": "可用通行證",
+    "vi": "Dùng được Thẻ Pass",
+    "hi": "पास मान्य",
+    "es": "Pase aceptado",
+    "fr": "Pass accepté",
+    "de": "Pass einlösbar",
+    "nl": "Pas geldig",
+    "ms": "Pas diterima"
+  },
+
+  "shell.cdSigCard.cdSigCardMedia.k1039k": {
+    "ko": "추천",
+    "en": "Recommended",
+    "ja": "おすすめ",
+    "zh-CN": "推荐",
+    "zh-TW": "推薦",
+    "vi": "Đề xuất",
+    "hi": "अनुशंसित",
+    "es": "Recomendado",
+    "fr": "Recommandé",
+    "de": "Empfohlen",
+    "nl": "Aanbevolen",
+    "ms": "Disyorkan"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.k1dc5spb": {
+    "ko": "운명의 찻집",
+    "en": "The Destiny Tea House",
+    "ja": "運命の茶館",
+    "zh-CN": "运命茶馆",
+    "zh-TW": "運命茶館",
+    "vi": "Quán Trà Vận Mệnh",
+    "hi": "डेस्टिनी टी हाउस",
+    "es": "La Casa de Té del Destino",
+    "fr": "La Maison de Thé du Destin",
+    "de": "Das Teehaus des Schicksals",
+    "nl": "Het Theehuis van het Lot",
+    "ms": "Rumah Teh Takdir"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.k1f3556p": {
+    "ko": "사주·타로·궁합을 다정하게 풀어주는 감성 상담",
+    "en": "A warm reading that unfolds Four Pillars, tarot and compatibility with care.",
+    "ja": "四柱推命・タロット・相性をやさしく解きほぐす、心に寄り添う相談。",
+    "zh-CN": "以温柔笔触解开四柱八字、塔罗与合婚的感性咨询。",
+    "zh-TW": "以溫柔筆觸解開四柱八字、塔羅與合婚的感性諮詢。",
+    "vi": "Buổi tư vấn ấm áp, nhẹ nhàng mở ra Tứ Trụ, tarot và hợp duyên.",
+    "hi": "फोर पिलर्स, टैरो और अनुकूलता को कोमलता से खोलता एक आत्मीय परामर्श।",
+    "es": "Una consulta cálida que despliega con delicadeza Cuatro Pilares, tarot y compatibilidad.",
+    "fr": "Une consultation chaleureuse qui déploie avec douceur Quatre Piliers, tarot et compatibilité.",
+    "de": "Eine warme Beratung, die Vier Säulen, Tarot und Partnerschaftsanalyse behutsam entfaltet.",
+    "nl": "Een warm consult dat Vier Pijlers, tarot en compatibiliteit met zorg ontvouwt.",
+    "ms": "Rundingan hangat yang membuka Empat Tiang, tarot dan keserasian dengan lembut."
+  },
+
+  "shell.cdSigCard.cdSigCardBody.n5000": {
+    "ko": "5,000원~",
+    "en": "From ₩5,000",
+    "ja": "5,000ウォン〜",
+    "zh-CN": "5,000韩元起",
+    "zh-TW": "5,000韓元起",
+    "vi": "Từ 5.000 KRW",
+    "hi": "₩5,000 से",
+    "es": "Desde ₩5.000",
+    "fr": "À partir de 5 000 ₩",
+    "de": "Ab 5.000 ₩",
+    "nl": "Vanaf ₩5.000",
+    "ms": "Dari ₩5,000"
+  },
+
+  "shell.cdSigCardBody.cdSigCardMeta.n32006000": {
+    "ko": "3,200~6,000자",
+    "en": "3,200–6,000 characters",
+    "ja": "3,200〜6,000字",
+    "zh-CN": "3,200~6,000字",
+    "zh-TW": "3,200~6,000字",
+    "vi": "3.200–6.000 ký tự",
+    "hi": "3,200–6,000 अक्षर",
+    "es": "3.200–6.000 caracteres",
+    "fr": "3 200–6 000 caractères",
+    "de": "3.200–6.000 Zeichen",
+    "nl": "3.200–6.000 tekens",
+    "ms": "3,200–6,000 aksara"
+  },
+
+  "shell.cdSigCardBody.cdSigCardMeta.k1l2ndq72": {
+    "ko": "이용권 사용 가능",
+    "en": "Pass accepted",
+    "ja": "パス利用可",
+    "zh-CN": "可用通行证",
+    "zh-TW": "可用通行證",
+    "vi": "Dùng được Thẻ Pass",
+    "hi": "पास मान्य",
+    "es": "Pase aceptado",
+    "fr": "Pass accepté",
+    "de": "Pass einlösbar",
+    "nl": "Pas geldig",
+    "ms": "Pas diterima"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.kntw327": {
+    "ko": "나크샤트라 결정판",
+    "en": "The Nakshatra Edition",
+    "ja": "ナクシャトラ決定版",
+    "zh-CN": "纳沙特拉决定版",
+    "zh-TW": "納沙特拉決定版",
+    "vi": "Ấn bản Nakshatra",
+    "hi": "नक्षत्र संस्करण",
+    "es": "La edición Nakshatra",
+    "fr": "L'édition Nakshatra",
+    "de": "Die Nakshatra-Edition",
+    "nl": "De Nakshatra-editie",
+    "ms": "Edisi Nakshatra"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.koevlcx": {
+    "ko": "하나의 별, 두 개의 언어 — 같은 별자리를 인도 베다점과 한국 명리학이 각각 어떻게 읽는지 나란히 놓고 비교합니다",
+    "en": "One star, two languages — we set the Indian Vedic and Korean destiny readings of the same constellation side by side",
+    "ja": "一つの星、二つの言語 — 同じ星座をインドのヴェーダ占星術と韓国の命理学がどう読むかを並べて比べます",
+    "zh-CN": "一颗星，两种语言 — 将印度吠陀占星与韩国命理学对同一星宿的解读并列对照",
+    "zh-TW": "一顆星，兩種語言 — 將印度吠陀占星與韓國命理學對同一星宿的解讀並列對照",
+    "vi": "Một ngôi sao, hai ngôn ngữ — đặt cạnh nhau cách chiêm tinh Vệ Đà Ấn Độ và mệnh lý học Hàn Quốc đọc cùng một chòm sao",
+    "hi": "एक तारा, दो भाषाएँ — एक ही नक्षत्र को भारतीय वैदिक ज्योतिष और कोरियाई भाग्यशास्त्र कैसे पढ़ते हैं, साथ-साथ रखकर तुलना",
+    "es": "Una estrella, dos lenguajes: ponemos lado a lado cómo leen la misma constelación la astrología védica india y el estudio del destino coreano",
+    "fr": "Une étoile, deux langages : nous plaçons côte à côte les lectures indienne védique et coréenne d'une même constellation",
+    "de": "Ein Stern, zwei Sprachen – wir stellen die indische vedische und die koreanische Deutung desselben Sternbilds nebeneinander",
+    "nl": "Eén ster, twee talen — we zetten de Indiase Vedische en de Koreaanse lezing van hetzelfde sterrenbeeld naast elkaar",
+    "ms": "Satu bintang, dua bahasa — kami menjajarkan bacaan Veda India dan ilmu takdir Korea bagi buruj yang sama"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.k18zdwwf": {
+    "ko": "무료 공개",
+    "en": "Free to read",
+    "ja": "無料公開",
+    "zh-CN": "免费公开",
+    "zh-TW": "免費公開",
+    "vi": "Miễn phí",
+    "hi": "निःशुल्क",
+    "es": "Lectura gratuita",
+    "fr": "Lecture gratuite",
+    "de": "Kostenlos lesbar",
+    "nl": "Gratis te lezen",
+    "ms": "Percuma dibaca"
+  },
+
+  "shell.cdSigCardBody.cdSigCardMeta.n2114": {
+    "ko": "21편 · 1.4만자",
+    "en": "21 pieces · 14k characters",
+    "ja": "全21編・1.4万字",
+    "zh-CN": "21篇 · 1.4万字",
+    "zh-TW": "21篇 · 1.4萬字",
+    "vi": "21 bài · 14.000 ký tự",
+    "hi": "21 लेख · 14 हज़ार अक्षर",
+    "es": "21 piezas · 14 mil caracteres",
+    "fr": "21 textes · 14 000 caractères",
+    "de": "21 Beiträge · 14.000 Zeichen",
+    "nl": "21 stukken · 14k tekens",
+    "ms": "21 karya · 14k aksara"
+  },
+
+  "shell.cdSigCardBody.cdSigCardMeta.k1l2ndq73": {
+    "ko": "이용권 사용 가능",
+    "en": "Pass accepted",
+    "ja": "パス利用可",
+    "zh-CN": "可用通行证",
+    "zh-TW": "可用通行證",
+    "vi": "Dùng được Thẻ Pass",
+    "hi": "पास मान्य",
+    "es": "Pase aceptado",
+    "fr": "Pass accepté",
+    "de": "Pass einlösbar",
+    "nl": "Pas geldig",
+    "ms": "Pas diterima"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.kk0w8v": {
+    "ko": "팩폭 전략소",
+    "en": "The Straight-Talk War Room",
+    "ja": "辛口戦略室",
+    "zh-CN": "直言战略室",
+    "zh-TW": "直言戰略室",
+    "vi": "Phòng Chiến Lược Nói Thẳng",
+    "hi": "खरी-बात रणनीति कक्ष",
+    "es": "La Sala de Estrategia Sin Rodeos",
+    "fr": "La Salle de Stratégie Sans Détour",
+    "de": "Der Klartext-Strategieraum",
+    "nl": "De Recht-voor-z'n-raap Strategiekamer",
+    "ms": "Bilik Strategi Terus Terang"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.k1bs96nr": {
+    "ko": "네오가 냉정하게 짚어주는 선택의 작전 브리핑",
+    "en": "Neo's cool-headed operation briefing on the choice in front of you",
+    "ja": "Neo が冷静に突く、選択のための作戦ブリーフィング",
+    "zh-CN": "Neo 冷静点明的选择作战简报",
+    "zh-TW": "Neo 冷靜點明的選擇作戰簡報",
+    "vi": "Bản tóm tắt tác chiến lạnh lùng của Neo cho lựa chọn trước mắt",
+    "hi": "आपके सामने खड़े चुनाव पर Neo की बेलाग ऑपरेशन ब्रीफिंग",
+    "es": "El informe de operaciones de Neo, frío y directo, sobre la decisión que tienes delante",
+    "fr": "Le briefing d'opération de Neo, lucide et sans détour, sur le choix devant vous",
+    "de": "Neos nüchternes Einsatzbriefing zu der Entscheidung, die vor Ihnen liegt",
+    "nl": "Neo's koelbloedige operatiebriefing over de keuze die voor je ligt",
+    "ms": "Taklimat operasi Neo yang dingin dan tepat tentang pilihan di hadapan anda"
+  },
+
+  "shell.cdSigCard.cdSigCardBody.n30000": {
+    "ko": "30,000원",
+    "en": "₩30,000",
+    "ja": "30,000ウォン",
+    "zh-CN": "30,000韩元",
+    "zh-TW": "30,000韓元",
+    "vi": "30.000 KRW",
+    "hi": "₩30,000",
+    "es": "₩30.000",
+    "fr": "30 000 ₩",
+    "de": "30.000 ₩",
+    "nl": "₩30.000",
+    "ms": "₩30,000"
+  },
+
+  "shell.cdSigCardBody.cdSigCardMeta.n1415000": {
+    "ko": "14장 · 15,000자",
+    "en": "14 chapters · 15,000 characters",
+    "ja": "全14章・15,000字",
+    "zh-CN": "14章 · 15,000字",
+    "zh-TW": "14章 · 15,000字",
+    "vi": "14 chương · 15.000 ký tự",
+    "hi": "14 अध्याय · 15,000 अक्षर",
+    "es": "14 capítulos · 15.000 caracteres",
+    "fr": "14 chapitres · 15 000 caractères",
+    "de": "14 Kapitel · 15.000 Zeichen",
+    "nl": "14 hoofdstukken · 15.000 tekens",
+    "ms": "14 bab · 15,000 aksara"
+  },
+
+  "shell.cdSigCardBody.cdSigCardMeta.k1l2ndq74": {
+    "ko": "이용권 사용 가능",
+    "en": "Pass accepted",
+    "ja": "パス利用可",
+    "zh-CN": "可用通行证",
+    "zh-TW": "可用通行證",
+    "vi": "Dùng được Thẻ Pass",
+    "hi": "पास मान्य",
+    "es": "Pase aceptado",
+    "fr": "Pass accepté",
+    "de": "Pass einlösbar",
+    "nl": "Pas geldig",
+    "ms": "Pas diterima"
+  },
+
+  "shell.cdPickReason.cdPickWhyText.kntw327": {
+    "ko": "나크샤트라 결정판",
+    "en": "The Nakshatra Edition",
+    "ja": "ナクシャトラ決定版",
+    "zh-CN": "纳沙特拉决定版",
+    "zh-TW": "納沙特拉決定版",
+    "vi": "Ấn bản Nakshatra",
+    "hi": "नक्षत्र संस्करण",
+    "es": "La edición Nakshatra",
+    "fr": "L'édition Nakshatra",
+    "de": "Die Nakshatra-Edition",
+    "nl": "De Nakshatra-editie",
+    "ms": "Edisi Nakshatra"
+  },
+
+  "shell.cdPickReason.cdPickWhyText.k1s5m1vr": {
+    "ko": "동양 27수와 인도 나크샤트라를 함께 보면 같은 사주도 훨씬 또렷하게 읽힙니다.",
+    "en": "Read the East Asian 27 lodges alongside the Indian nakshatras and the same chart comes through far more sharply.",
+    "ja": "東洋の二十七宿とインドのナクシャトラを併せて見ると、同じ命式でもずっと鮮明に読めます。",
+    "zh-CN": "东方二十七宿与印度纳沙特拉并观，同一张命盘也会读得清晰许多。",
+    "zh-TW": "東方二十七宿與印度納沙特拉並觀，同一張命盤也會讀得清晰許多。",
+    "vi": "Xem 27 tú phương Đông cùng các nakshatra Ấn Độ, cùng một lá số sẽ hiện lên rõ nét hơn nhiều.",
+    "hi": "पूर्वी 27 नक्षत्रों को भारतीय नक्षत्रों के साथ पढ़ें, तो वही चार्ट कहीं अधिक स्पष्ट उभरता है।",
+    "es": "Al leer las 27 mansiones orientales junto a los nakshatras indios, la misma carta se ve mucho más nítida.",
+    "fr": "En lisant les 27 demeures orientales avec les nakshatras indiens, le même thème devient bien plus net.",
+    "de": "Liest man die 27 ostasiatischen Stationen zusammen mit den indischen Nakshatras, tritt dasselbe Diagramm weit schärfer hervor.",
+    "nl": "Lees je de 27 Oost-Aziatische huizen samen met de Indiase nakshatra's, dan komt dezelfde kaart veel scherper naar voren.",
+    "ms": "Membaca 27 rumah Timur bersama nakshatra India membuat carta yang sama terpapar jauh lebih jelas."
+  }
+}

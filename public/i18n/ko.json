@@ -3256,7 +3256,21 @@
         "k16bs": "홈",
         "kwp0s": "마이",
         "kxro3": "상담",
-        "kxvio": "사주"
+        "kxvio": "사주",
+        "k16cq4to": "모든 운세",
+        "ku6gdz": "이용권",
+        "kb86wy0": {
+          "ariaLabel": "내 프로필로 사주 보기"
+        },
+        "k1mpcz5w": {
+          "ariaLabel": "모든 운세 둘러보기"
+        },
+        "k16eawmw": {
+          "ariaLabel": "이용권 상점"
+        },
+        "k164wabc": {
+          "ariaLabel": "마이페이지"
+        }
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "타로",
@@ -3331,7 +3345,11 @@
         "kry6axn": "27수 달자리",
         "kslqazg": "종합 운세 프롬프트",
         "kxgi8q8": "포춘텔러 물고기",
-        "kxqdi2w": "혈액형 운세"
+        "kxqdi2w": "혈액형 운세",
+        "k8jupm2": "전문가 동물 관상"
+      },
+      "k1as5gz2": {
+        "ariaLabel": "전문가 동물 관상 바로가기"
       }
     },
     "honeyMembershipDetails": {
@@ -3355,6 +3373,14 @@
       },
       "k85zbld": {
         "ariaLabel": "모바일 빠른 탐색"
+      },
+      "logoArea": {
+        "k52dhv3": {
+          "ariaLabel": "오늘의 추천 상담"
+        },
+        "k16nuyta": {
+          "ariaLabel": "대표 운명 상담"
+        }
       }
     },
     "ks7htym": {
@@ -3385,7 +3411,9 @@
         "k1e2ozr5": "명식의 결 위로 대운과 세운, 월운의 문이 열립니다",
         "k1n6j5jj": "원국의 기질, 대운의 배경, 세운의 사건성, 월운의 기복을 한 흐름으로 엮어 올해의 선택과 조심할 시기를 짚습니다.",
         "k1x7d2nr": "명식과 지금의 질문으로 읽는 당신의 인생 서사",
-        "ktjp1an": "생년월일과 삶의 주제를 바탕으로 반복되는 흐름, 숨은 재능, 앞으로 살려야 할 방향을 상담처럼 차분히 펼쳐드립니다."
+        "ktjp1an": "생년월일과 삶의 주제를 바탕으로 반복되는 흐름, 숨은 재능, 앞으로 살려야 할 방향을 상담처럼 차분히 펼쳐드립니다.",
+        "kn9so5r": "인생의 책 전문가 상담",
+        "kwnx8m7": "신년운세 전문가 상담"
       },
       "lifebookTileLabelRow": {
         "n30000": "전문가 상담 · 30,000원"
@@ -3405,13 +3433,15 @@
     },
     "lovebibleTileCoinGroup": {
       "lovebibleTileCoinBadge": {
-        "n30000": "30,000원"
+        "n30000": "30,000원",
+        "k1tna4h3": "전문가 상담"
       }
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
         "k153vbx2": "사랑의 결을 차분히 읽는 명리 상담",
-        "ko82iqm": "일간·일지·관계궁과 세운의 흐름을 엮어, 지금의 마음과 선택을 품격 있게 짚어드립니다."
+        "ko82iqm": "일간·일지·관계궁과 세운의 흐름을 엮어, 지금의 마음과 선택을 품격 있게 짚어드립니다.",
+        "ku5mrxy": "연애 비책 전문가 상담"
       }
     },
     "miscCollection": {
@@ -3434,7 +3464,8 @@
     },
     "normalLogo": {
       "moonHeroCopy": {
-        "k5pz2jn": "별빛 운세의 길"
+        "k5pz2jn": "별빛 운세의 길",
+        "kbm4p3d": "사주·자미두수·숙요점·점성술·타로를 질문에 맞게 연결하고, 초융합 운세로 오늘의 선택을 차분히 정리합니다."
       }
     },
     "premiumVvipCollection": {
@@ -3444,6 +3475,27 @@
         },
         "n2727": {
           "ariaLabel": "나크샤트라 결정판 — 동양 27수 × 인도 27 나크샤트라 통합 별자리"
+        },
+        "kkn0c7c": {
+          "ariaLabel": "인생의 나침반 — 사주·자미두수로 지금 나아갈 방향을 잡는 길잡이"
+        },
+        "k1q7t6kn": {
+          "ariaLabel": "인생 총운 전문가 상담 열기"
+        },
+        "ksb1e44": {
+          "ariaLabel": "숙요점 궁합 전문가 상담"
+        },
+        "kb3asmd": {
+          "ariaLabel": "자미두수 전문가 상담 보기"
+        },
+        "k1v6dzf8": {
+          "ariaLabel": "점성술 전문가 상담 보기"
+        },
+        "k1v8klir": {
+          "ariaLabel": "베다점 전문가 상담 보러 가기"
+        },
+        "k10411ib": {
+          "ariaLabel": "사주 맞춤 프리미엄 전문가 작명 시작하기"
         }
       }
     },
@@ -3536,7 +3588,15 @@
         "kslqazg": "종합 운세 프롬프트",
         "kstndh6": "운명 동물 도감",
         "kzo1yhl": "獸 십이운성 동물점",
-        "n2727Nakshatra": "동양 27宿 × 인도 27 Nakshatra — 하나의 별, 두 개의 언어. 천 년 전 갈라진 두 별자리 체계가 당신의 사주 위에서 다시 만납니다."
+        "n2727Nakshatra": "동양 27宿 × 인도 27 Nakshatra — 하나의 별, 두 개의 언어. 천 년 전 갈라진 두 별자리 체계가 당신의 사주 위에서 다시 만납니다.",
+        "k1ovtqnv": "인생의 나침반",
+        "k1p1xzy7": "지금 어디로 가야 할지 모르겠을 때, 사주와 자미두수를 함께 놓고 나아갈 방향을 잡아 드립니다.",
+        "k18jn96d": "인생 총운 전문가 상담",
+        "ksb1e44": "숙요점 궁합 전문가 상담",
+        "kdyem8n": "자미두수 전문가 상담",
+        "k1jaids8": "점성술 전문가 상담",
+        "kdriwl7": "베다점 전문가 상담",
+        "k1ncgm2q": "사주와 오행, 소리와 한자의 뜻을 엮어 전문가가 직접 이름을 짓고, 그 프롬프트 원문까지 함께 드립니다."
       },
       "tarotTileImgWrap": {
         "k18zdwwf": "무료 공개",
@@ -3546,7 +3606,18 @@
           "alt": "운명의 업 대표 이미지"
         },
         "koe32kc": "무료체험",
-        "ktgbfsy": "NEW · 결정판"
+        "ktgbfsy": "NEW · 결정판",
+        "k1dw3t0h": "명반 무료 · 전문가 상담 유료",
+        "kg12w8e": "신규 · 인생의 나침반",
+        "n110000": "기본 무료 · 심화 1회 10,000원",
+        "n30000": "전문가 상담 · 30,000원",
+        "n300002": "전문가 상담 · 30,000원",
+        "n300003": "전문가 상담 · 30,000원",
+        "n300004": "전문가 상담 · 30,000원",
+        "n300005": "전문가 상담 · 30,000원",
+        "k1tna4h3": "전문가 상담",
+        "n300006": "전문가 상담 · 30,000원",
+        "n300007": "전문가 작명 · 30,000원"
       }
     },
     "tarotTileBody": {
@@ -3576,7 +3647,13 @@
         "kv9f8rk": "즉시 상담",
         "kwuu0": "무료",
         "kyyvo": "작명",
-        "n30000": "30,000원 기준"
+        "n30000": "30,000원 기준",
+        "kmuahqh": "사주 · 자미두수",
+        "k1gd6g4k": "방향 설계",
+        "km02jru": "길 찾기",
+        "k1tna4h3": "전문가 상담",
+        "k1tna4h32": "전문가 상담",
+        "k1tna4h33": "전문가 상담"
       },
       "pvcPremPoints": {
         "k11eirzr": "궁의 강약이 건물 등급으로 — 폐허부터 신전까지",
@@ -3604,7 +3681,11 @@
         "kwuh556": "끌림과 갈등의 반복 패턴",
         "kyk2x3o": "대운·세운 기반 선택 조언",
         "n12NPC": "매일 바뀌는 섬 날씨와 12궁 NPC 대화",
-        "n30000": "30,000원 단건 결제 또는 이용권·월정석"
+        "n30000": "30,000원 단건 결제 또는 이용권·월정석",
+        "kfib4kf": "갈림길에 선 두 선택의 기운 비교",
+        "k1vetwxt": "지금 지나는 대운·세운으로 읽는 삶의 항로",
+        "k67hhx7": "선택 이후를 미리 그려보는 미래 시뮬레이션",
+        "k1n33cx9": "전문가가 완성한 작명 결과 + PDF 저장"
       }
     },
     "terms24Card": {
@@ -3641,6 +3722,241 @@
         },
         "kp08cb": {
           "ariaLabel": "스토리 링크"
+        },
+        "k1lyzj38": {
+          "ariaLabel": "전문가 상담 링크"
+        },
+        "ki07z7y": {
+          "ariaLabel": "기능 가이드 링크"
+        }
+      },
+      "kdyem8n": "자미두수 전문가 상담",
+      "kdriwl7": "베다점 전문가 상담"
+    },
+    "moonHeroCopy": {
+      "moonHeroActions": {
+        "kerryje": "✦ 초융합 운세 보기"
+      }
+    },
+    "cdTodayPanelSaju": {
+      "kv58y0g": "그날의 천간과 지지가 내 일간에 어떤 결을 만드는지 읽어 드립니다.",
+      "kkmdg9l": "사주는 오늘의 일진과 내 일간의 십성 관계로 하루의 길흉을 봅니다. 일간이 강한 사주와 약한 사주는 같은 날도 반대로 읽히기 때문에, 내 명식을 알아야 오늘이 대길일인지 주의일인지가 정해집니다."
+    },
+    "cdTodayPanelSukuyo": {
+      "kd5ukqs": "달이 머무는 별자리가 내 본명수와 만나는 자리를 봅니다.",
+      "k6mrnix": "숙요점은 태어난 날의 음력으로 본명수(27수)를 정하고, 오늘 달이 머무는 수가 그 본명수에게 어떤 자리인지로 길흉을 가릅니다. 영친·안괴·업태처럼 자리마다 대길일과 흉일이 갈립니다."
+    },
+    "cdTodayPanelVedic": {
+      "kom45ly": "오늘 달이 실제로 지나는 별자리를 내 본명 자리와 견줍니다.",
+      "k451jpc": "베다 점성술은 오늘 달의 시데리얼 위치로 나크샤트라를 정하고, 내 본명 자리에서 몇 번째인지로 타라 발라 아홉 자리를 봅니다. 삼파트·크셰마는 길하고 비파트·바다는 큰 결정을 미루는 자리입니다."
+    },
+    "cdPickInner": {
+      "cdPickCopy": {
+        "kl74p3h": "오늘의 운명",
+        "kg9at99": "오늘 당신에게 가장 어울리는 상담",
+        "kntw327": "나크샤트라 결정판",
+        "k4byd9a": "하나의 별을 인도 베다점과 한국 명리학, 두 개의 언어로 동시에 읽습니다."
+      }
+    },
+    "cdTodayPick": {
+      "cdPickInner": {
+        "k16e565e": "맞춤 추천"
+      }
+    },
+    "cdSignatureConsult": {
+      "cdSigHead": {
+        "k16nuyta": "대표 운명 상담",
+        "k1uopfsh": "네 갈래의 깊은 상담 중, 지금 당신에게 필요한 길을 고르세요."
+      },
+      "keqgznt": {
+        "ariaLabel": "대표 상담 카드 넘기기"
+      }
+    },
+    "cdSigCard": {
+      "cdSigCardMedia": {
+        "krnc4c4": "프리미엄",
+        "k1039k": "추천",
+        "kwuqfvj": {
+          "alt": "마스터 인연의 서 — 신비의 도서관에서 연애 고수가 펼쳐 보이는 연애 전략서"
+        },
+        "k1ph66tm": {
+          "alt": "연이의 운명 찻집 — 연꽃 문지기 연이가 달빛 찻잔으로 건네는 감성 상담"
+        },
+        "k1wq9p18": {
+          "alt": "나크샤트라 결정판 — 동양 별자리 문양과 인도 만다라가 교차하는 밤하늘 이미지"
+        },
+        "k1f89g8b": {
+          "alt": "네오의 팩폭 운명 전략소 — 사자 휘장 앞에서 선택의 전선을 정리하는 전략 상담"
+        }
+      },
+      "cdSigCardBody": {
+        "k1sw19cg": "마스터 인연의 서",
+        "k2fl7d2": "사주·자미두수를 하나로 엮어 연애 고수가 읽어주는 20장의 연애 전략서",
+        "n20000": "20,000원~",
+        "k1dc5spb": "운명의 찻집",
+        "k1f3556p": "사주·타로·궁합을 다정하게 풀어주는 감성 상담",
+        "n5000": "5,000원~",
+        "kntw327": "나크샤트라 결정판",
+        "koevlcx": "하나의 별, 두 개의 언어 — 같은 별자리를 인도 베다점과 한국 명리학이 각각 어떻게 읽는지 나란히 놓고 비교합니다",
+        "k18zdwwf": "무료 공개",
+        "kk0w8v": "팩폭 전략소",
+        "k1bs96nr": "네오가 냉정하게 짚어주는 선택의 작전 브리핑",
+        "n30000": "30,000원"
+      }
+    },
+    "cdSigCardBody": {
+      "cdSigCardMeta": {
+        "k1hiiadz": "20장 · 5만자",
+        "k1l2ndq7": "이용권 사용 가능",
+        "n32006000": "3,200~6,000자",
+        "k1l2ndq72": "이용권 사용 가능",
+        "n2114": "21편 · 1.4만자",
+        "k1l2ndq73": "이용권 사용 가능",
+        "n1415000": "14장 · 15,000자",
+        "k1l2ndq74": "이용권 사용 가능"
+      }
+    },
+    "cdPickReason": {
+      "cdPickWhyText": {
+        "kntw327": "나크샤트라 결정판",
+        "k1s5m1vr": "동양 27수와 인도 나크샤트라를 함께 보면 같은 사주도 훨씬 또렷하게 읽힙니다."
+      }
+    },
+    "cdDiaryPlannerEntry": {
+      "cdDiaryPlannerEntryCopy": {
+        "k16byqlb": "오늘의 리듬을 내 것으로",
+        "kh71llm": "오늘의 흐름을 기록하고, 중요한 일정과 작은 실천을 한 달의 리듬으로 이어가 보세요.",
+        "k1vo9x0c": "기록과 일정은 이 기기에만 저장됩니다.",
+        "k1c8x4ap": {
+          "ariaLabel": "다이어리와 플래너 기능"
+        }
+      }
+    },
+    "cdDiaryPlannerEntryCopy": {
+      "cdDiaryPlannerEntryPoints": {
+        "ky00tcw": "오늘 운기와 감정 기록",
+        "ktzwo12": "일정·루틴 플래너",
+        "kgbiqt0": "월간 흐름 한눈에 보기"
+      },
+      "cdDiaryPlannerEntryAction": {
+        "k1c914y0": "다이어리와 플래너 열기"
+      }
+    },
+    "fortuneGatewayEntryShell": {
+      "fortuneGatewayEntryCopy": {
+        "kjx6wsf": "운명의 문",
+        "k1i0ttch": "가벼운 고민은 연이·네오와 대화로 풀고, 삶의 큰 흐름은 여섯 체계를 하나로 엮은 초융합 리딩으로 살펴보세요."
+      }
+    },
+    "fortuneGatewayDoors": {
+      "fortuneGatewayDoor": {
+        "k69nrae": "연이 운명 상담",
+        "k1tbc6n5": "한 가지 고민에서 시작해, 따뜻한 연이와 직설적인 네오가 지금의 흐름을 정리해 드려요.",
+        "k12pdy0g": "초융합 심층 리딩",
+        "k1eti53b": "사주·자미두수·베다점·숙요점·점성술·타로가 겹치는 신호와 엇갈리는 신호를 함께 짚어 드려요."
+      }
+    },
+    "fortuneGatewayDoor": {
+      "fortuneGatewayDoorMeta": {
+        "k18ykrep": "무료 3회",
+        "n115000": "비로그인 1회 · 이후 1회 5,000원",
+        "n130000": "1회 30,000원",
+        "k1lo4ibg": "2만 자 이상 · 최종 교차 판정"
+      }
+    },
+    "fortuneGatewayEntry": {
+      "fortuneGatewayEntryShell": {
+        "klg50va": "대화와 분석은 각 화면 안에서만 진행되고, 이 화면에서는 어떤 정보도 보내지 않아요."
+      }
+    },
+    "moonStoryEntry": {
+      "moonStoryEntryCopy": {
+        "CODEDESTINY": "CODE DESTINY 라이트 노벨"
+      }
+    },
+    "moonStoryEntryCopy": {
+      "moonStoryEntryMeta": {
+        "k1re6l3o": "전 44화 완결",
+        "k18zi880": "무료 열람",
+        "k1cmoty1": "비주얼 노벨 수록"
+      }
+    },
+    "cdFeedbackCard": {
+      "cdFeedbackCopy": {
+        "k1qqtskq": "서비스를 함께 만들어 주세요."
+      }
+    },
+    "cdFeedbackCopy": {
+      "cdFeedbackReward": {
+        "k1ubfgod": "월정석 300개"
+      }
+    },
+    "cdFeedbackGate": {
+      "cdFeedbackCard": {
+        "k1chb9k4": "의견 보내기"
+      }
+    },
+    "tarotYearFortuneIntroStage": {
+      "tyHero": {
+        "k1qxj83w": "올해의 핵심 카드 · 12개월 월별 리딩 · 금전·일·관계·건강·성장운 · 전환점과 행운 행동"
+      }
+    },
+    "totemResultContainer": {
+      "totemResultActions": {
+        "ksp2edy": "🗂 보관함에 저장",
+        "kfksveu": "🗂 지난 리딩"
+      }
+    },
+    "dailyFortuneCard": {
+      "fortuneLeadMagnetCta": {
+        "k1kuwldz": "✨ 재물·애정·직장·건강 테마별 정밀 풀이와 시간대별 가이드를 확인하세요."
+      }
+    },
+    "fortuneLeadMagnetCta": {
+      "cdBtnTodayPulse": {
+        "k1715eae": "오늘의 운세 전체보기 리포트 →"
+      }
+    },
+    "fgGroupCards": {
+      "lifebookTile": {
+        "kn9so5r": "인생의 책 전문가 상담",
+        "kwnx8m7": "신년운세 전문가 상담"
+      },
+      "lovebibleTile": {
+        "ku5mrxy": "연애 비책 전문가 상담"
+      }
+    },
+    "cdSigGrid": {
+      "krqyte4": {
+        "ariaLabel": "마스터 인연의 서 열기"
+      },
+      "ktlnhmn": {
+        "ariaLabel": "연이의 운명 찻집 입장하기"
+      },
+      "k19zjy0t": {
+        "ariaLabel": "나크샤트라 결정판 열기"
+      },
+      "k1coanmg": {
+        "ariaLabel": "네오의 팩폭 운명 전략소 입장하기"
+      }
+    },
+    "fgGroup": {
+      "fgGroupCards": {
+        "k1m9xov8": {
+          "ariaLabel": "인생의 책 전문가 상담 - 명식과 질문으로 읽는 나의 인생 서사"
+        },
+        "k158v3r1": {
+          "ariaLabel": "연애 비책 전문가 상담 — 명식으로 살피는 사랑의 결"
+        },
+        "k1t7f2xt": {
+          "ariaLabel": "신년운세 전문가 상담 — 명식과 세운이 질문에 답합니다"
+        }
+      }
+    },
+    "cdFooterLegalMeta": {
+      "cdFooterLangpick": {
+        "kw3mf7": {
+          "ariaLabel": "한국어"
         }
       }
     }

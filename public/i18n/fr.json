@@ -6115,7 +6115,21 @@
         "k16bs": "Accueil",
         "kwp0s": "Mon",
         "kxro3": "Consultation",
-        "kxvio": "Quatre Piliers (BaZi)"
+        "kxvio": "Quatre Piliers (BaZi)",
+        "k16cq4to": "Toutes",
+        "ku6gdz": "Pass",
+        "kb86wy0": {
+          "ariaLabel": "Voir mes Quatre Piliers avec mon profil"
+        },
+        "k1mpcz5w": {
+          "ariaLabel": "Parcourir toutes les lectures"
+        },
+        "k16eawmw": {
+          "ariaLabel": "Boutique de pass"
+        },
+        "k164wabc": {
+          "ariaLabel": "Mon espace"
+        }
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",
@@ -6194,7 +6208,11 @@
         "kry6axn": "27 Nakshatras lunaires",
         "kslqazg": "Invite de lecture complète",
         "kxgi8q8": "Poisson diseur de bonne aventure",
-        "kxqdi2w": "Lecture par groupe sanguin"
+        "kxqdi2w": "Lecture par groupe sanguin",
+        "k8jupm2": "Physiognomonie animale experte"
+      },
+      "k1as5gz2": {
+        "ariaLabel": "Aller à la physiognomonie animale experte"
       }
     },
     "featureCardGrid": {
@@ -6217,16 +6235,28 @@
         },
         "k6gno8d": {
           "ariaLabel": "Lecture du Nouvel An par IA — votre thème natal et votre cycle annuel répondent à vos questions"
+        },
+        "k1m9xov8": {
+          "ariaLabel": "Consultation experte : le livre de votre vie — votre récit lu à partir du thème natal et de votre question"
+        },
+        "k158v3r1": {
+          "ariaLabel": "Consultation experte : le manuel de l'amour — la texture de votre vie amoureuse lue dans le thème natal"
+        },
+        "k1t7f2xt": {
+          "ariaLabel": "Consultation experte : l'année à venir — votre thème natal et le cycle annuel répondent à votre question"
         }
       }
     },
     "fgGroupCards": {
       "lifebookTile": {
         "k19ij50j": "Lecture IA du Livre de Vie",
-        "k1c3xcpf": "Lecture IA du Nouvel An"
+        "k1c3xcpf": "Lecture IA du Nouvel An",
+        "kn9so5r": "Consultation experte : le livre de votre vie",
+        "kwnx8m7": "Consultation experte : l'année à venir"
       },
       "lovebibleTile": {
-        "k1s2fcm4": "Lecture IA du Guide Amoureux"
+        "k1s2fcm4": "Lecture IA du Guide Amoureux",
+        "ku5mrxy": "Consultation experte : le manuel de l'amour"
       }
     },
     "honeyMembershipDetails": {
@@ -6250,6 +6280,14 @@
       },
       "k85zbld": {
         "ariaLabel": "Navigation rapide mobile"
+      },
+      "logoArea": {
+        "k52dhv3": {
+          "ariaLabel": "Consultation recommandée du jour"
+        },
+        "k16nuyta": {
+          "ariaLabel": "Consultations phares"
+        }
       }
     },
     "ks7htym": {
@@ -6282,7 +6320,9 @@
         "k1e2ozr5": "Les portes du cycle de chance, du cycle annuel et du cycle mensuel s'ouvrent sur la trame de votre thème natal.",
         "k1n6j5jj": "Nous relions le tempérament de votre thème natal, le contexte du cycle de chance, les événements du cycle annuel et les fluctuations du cycle mensuel pour identifier les choix et les périodes de prudence de cette année.",
         "k1x7d2nr": "Votre récit de vie lu à travers votre thème natal et vos questions actuelles",
-        "ktjp1an": "Basé sur votre date de naissance et les thèmes de votre vie, nous dévoilons calmement les schémas récurrents, les talents cachés et les directions à suivre, comme lors d'une consultation."
+        "ktjp1an": "Basé sur votre date de naissance et les thèmes de votre vie, nous dévoilons calmement les schémas récurrents, les talents cachés et les directions à suivre, comme lors d'une consultation.",
+        "kn9so5r": "Consultation experte : le livre de votre vie",
+        "kwnx8m7": "Consultation experte : l'année à venir"
       },
       "lifebookTileLabelRow": {
         "AI30000": "Lecture IA · 30 000 KRW",
@@ -6304,14 +6344,16 @@
     "lovebibleTileCoinGroup": {
       "lovebibleTileCoinBadge": {
         "k11zo0b": "Lecture IA",
-        "n30000": "30 000 KRW"
+        "n30000": "30 000 KRW",
+        "k1tna4h3": "Consultation experte"
       }
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
         "k153vbx2": "Une lecture des Quatre Piliers (BaZi) qui interprète calmement la trame de l'amour",
         "k1s2fcm4": "Lecture IA du Guide Amoureux",
-        "ko82iqm": "Nous relions le Maître du Jour, la Branche Terrestre du Jour, le Palais des Relations et le flux du cycle annuel pour interpréter avec élégance vos sentiments et vos choix actuels."
+        "ko82iqm": "Nous relions le Maître du Jour, la Branche Terrestre du Jour, le Palais des Relations et le flux du cycle annuel pour interpréter avec élégance vos sentiments et vos choix actuels.",
+        "ku5mrxy": "Consultation experte : le manuel de l'amour"
       }
     },
     "miscCollection": {
@@ -6334,7 +6376,8 @@
     },
     "normalLogo": {
       "moonHeroCopy": {
-        "k5pz2jn": "Le chemin de la lecture des étoiles"
+        "k5pz2jn": "Le chemin de la lecture des étoiles",
+        "kbm4p3d": "Nous relions Quatre Piliers, Zi Wei Dou Shu, Sukuyo, astrologie et tarot à votre question, puis les réunissons en une lecture fusionnée qui clarifie le choix du jour."
       }
     },
     "premiumVvipCollection": {
@@ -6362,6 +6405,27 @@
         },
         "n2727": {
           "ariaLabel": "Édition définitive des Nakshatras — 27 Sukuyo orientaux × 27 Nakshatras indiens, horoscope intégré"
+        },
+        "kkn0c7c": {
+          "ariaLabel": "Boussole de vie — un guide qui fixe votre cap actuel à partir des Quatre Piliers et de Zi Wei Dou Shu"
+        },
+        "k1q7t6kn": {
+          "ariaLabel": "Ouvrir la consultation experte : vue d'ensemble de la vie"
+        },
+        "ksb1e44": {
+          "ariaLabel": "Consultation experte : compatibilité Sukuyo"
+        },
+        "kb3asmd": {
+          "ariaLabel": "Voir la consultation experte : Zi Wei Dou Shu"
+        },
+        "k1v6dzf8": {
+          "ariaLabel": "Voir la consultation experte : astrologie"
+        },
+        "k1v8klir": {
+          "ariaLabel": "Aller à la consultation experte : astrologie védique"
+        },
+        "k10411ib": {
+          "ariaLabel": "Commencer le choix de prénom expert premium selon vos Quatre Piliers"
         }
       }
     },
@@ -6475,7 +6539,15 @@
         "kt62t87": "Consultation AI d'astrologie védique",
         "kyqh20f": "Neo vous présente un briefing objectif des critères de choix à saisir maintenant, en combinant Quatre Piliers (BaZi), Zi Wei Dou Shu, astrologie védique et astrologie occidentale.",
         "kzo1yhl": "Divination animale des Douze Palais",
-        "n2727Nakshatra": "27 Sukuyo oriental × 27 Nakshatras indien — Une seule étoile, deux langues. Deux systèmes astraux séparés il y a mille ans se retrouvent sur votre thème natal."
+        "n2727Nakshatra": "27 Sukuyo oriental × 27 Nakshatras indien — Une seule étoile, deux langues. Deux systèmes astraux séparés il y a mille ans se retrouvent sur votre thème natal.",
+        "k1ovtqnv": "Boussole de vie",
+        "k1p1xzy7": "Quand vous ne savez plus où aller, nous plaçons Quatre Piliers auprès de Zi Wei Dou Shu pour trouver le cap.",
+        "k18jn96d": "Consultation experte : vue d'ensemble de la vie",
+        "ksb1e44": "Consultation experte : compatibilité Sukuyo",
+        "kdyem8n": "Consultation experte : Zi Wei Dou Shu",
+        "k1jaids8": "Consultation experte : astrologie",
+        "kdriwl7": "Consultation experte : astrologie védique",
+        "k1ncgm2q": "Un expert compose le prénom en tissant le thème natal, les Cinq Éléments, la sonorité et le sens de chaque caractère — et vous remet aussi le prompt d'origine."
       },
       "tarotTileImgWrap": {
         "AI30000": "Consultation AI · 30 000 KRW",
@@ -6503,7 +6575,18 @@
         },
         "koe32kc": "Essai gratuit",
         "ktgbfsy": "NOUVEAU · Édition Définitive",
-        "n50001000020000": "Tarot 5 000 KRW · Quatre Piliers (BaZi) 10 000 KRW · Compatibilité 20 000 KRW"
+        "n50001000020000": "Tarot 5 000 KRW · Quatre Piliers (BaZi) 10 000 KRW · Compatibilité 20 000 KRW",
+        "k1dw3t0h": "Thème gratuit · consultation experte payante",
+        "kg12w8e": "Nouveau · Boussole de vie",
+        "n110000": "Version de base gratuite · approfondie 10 000 ₩ par lecture",
+        "n30000": "Consultation experte · 30 000 ₩",
+        "n300002": "Consultation experte · 30 000 ₩",
+        "n300003": "Consultation experte · 30 000 ₩",
+        "n300004": "Consultation experte · 30 000 ₩",
+        "n300005": "Consultation experte · 30 000 ₩",
+        "k1tna4h3": "Consultation experte",
+        "n300006": "Consultation experte · 30 000 ₩",
+        "n300007": "Choix de prénom expert · 30 000 ₩"
       }
     },
     "tarotTileBody": {
@@ -6543,7 +6626,13 @@
         "kwuu0": "Gratuit",
         "kyyvo": "Nommage",
         "kyzfrrw": "Quatre Piliers (BaZi) · Tarot · Compatibilité",
-        "n30000": "Basé sur 30 000 KRW"
+        "n30000": "Basé sur 30 000 KRW",
+        "kmuahqh": "Quatre Piliers · Zi Wei Dou Shu",
+        "k1gd6g4k": "Choix de cap",
+        "km02jru": "Orientation",
+        "k1tna4h3": "Consultation experte",
+        "k1tna4h32": "Consultation experte",
+        "k1tna4h33": "Consultation experte"
       },
       "pvcPremPoints": {
         "AIPDF": "Résultat de nommage par AI + sauvegarde PDF",
@@ -6578,7 +6667,11 @@
         "kxatr2b": "Flux de choix pour adoucir les nuances de vos préoccupations",
         "kyk2x3o": "Conseils de choix basés sur les cycles de chance (Daewoon et Sewoon)",
         "n12NPC": "Météo de l'île changeante chaque jour et dialogue avec les PNJ des 12 Palais",
-        "n30000": "Paiement unique de 30 000 KRW ou Pass / Pierre de Clair de Lune"
+        "n30000": "Paiement unique de 30 000 KRW ou Pass / Pierre de Clair de Lune",
+        "kfib4kf": "Comparez l'énergie des deux options au carrefour",
+        "k1vetwxt": "Le cap de votre vie, lu dans le cycle de chance et l'année que vous traversez",
+        "k67hhx7": "Une simulation d'avenir qui esquisse ce qui suit chaque choix",
+        "k1n33cx9": "Le résultat final de l'expert + enregistrement PDF"
       }
     },
     "terms24Card": {
@@ -6620,10 +6713,223 @@
         },
         "kp08cb": {
           "ariaLabel": "Lien vers l'histoire"
+        },
+        "k1lyzj38": {
+          "ariaLabel": "Liens vers les consultations expertes"
+        },
+        "ki07z7y": {
+          "ariaLabel": "Liens vers les guides des fonctionnalités"
         }
       },
       "k14mqjx7": "Consultation AI Zi Wei Dou Shu",
-      "kt62t87": "Consultation AI Astrologie Védique"
+      "kt62t87": "Consultation AI Astrologie Védique",
+      "kdyem8n": "Consultation experte : Zi Wei Dou Shu",
+      "kdriwl7": "Consultation experte : astrologie védique"
+    },
+    "moonHeroCopy": {
+      "moonHeroActions": {
+        "kerryje": "✦ Voir ma lecture fusionnée"
+      }
+    },
+    "cdTodayPanelSaju": {
+      "kv58y0g": "Nous lisons comment le tronc et la branche du jour façonnent votre Maître du Jour.",
+      "kkmdg9l": "Les Quatre Piliers jugent la journée par la relation des Dix Dieux entre le pilier du jour et votre Maître du Jour. Un Maître du Jour fort et un faible lisent la même date en sens inverse : seul votre thème natal décide si aujourd'hui est très favorable ou à aborder avec prudence."
+    },
+    "cdTodayPanelSukuyo": {
+      "kd5ukqs": "Nous observons où la demeure lunaire du jour rencontre votre demeure natale.",
+      "k6mrnix": "Sukuyo établit votre demeure natale à partir de la date lunaire de naissance parmi les 27 demeures, puis juge la journée selon la position qu'occupe aujourd'hui la demeure lunaire par rapport à elle. Des positions comme Yeongchin, Angoe et Eoptae séparent les jours très favorables des jours difficiles."
+    },
+    "cdTodayPanelVedic": {
+      "kom45ly": "Nous comparons la constellation que la lune traverse aujourd'hui à votre position natale.",
+      "k451jpc": "L'astrologie védique fixe le nakshatra d'après la position sidérale de la lune du jour, puis compte son écart avec votre position natale pour le situer parmi les neuf stations du Tara Bala. Sampat et Kshema sont favorables ; Vipat et Vadha invitent à différer les grandes décisions."
+    },
+    "cdPickInner": {
+      "cdPickCopy": {
+        "kl74p3h": "Le destin du jour",
+        "kg9at99": "La consultation qui vous convient le mieux aujourd'hui",
+        "kntw327": "L'édition Nakshatra",
+        "k4byd9a": "Une même étoile, lue simultanément en deux langages : l'astrologie védique indienne et l'étude coréenne du destin."
+      }
+    },
+    "cdTodayPick": {
+      "cdPickInner": {
+        "k16e565e": "Choisi pour vous"
+      }
+    },
+    "cdSignatureConsult": {
+      "cdSigHead": {
+        "k16nuyta": "Consultations phares",
+        "k1uopfsh": "Quatre voies de lecture approfondie : choisissez celle qu'il vous faut."
+      },
+      "keqgznt": {
+        "ariaLabel": "Parcourir les cartes de consultations phares"
+      }
+    },
+    "cdSigCard": {
+      "cdSigCardMedia": {
+        "krnc4c4": "Premium",
+        "k1039k": "Recommandé",
+        "kwuqfvj": {
+          "alt": "Le Grand Livre des Liens — un ouvrage de stratégie amoureuse ouvert par un maître dans une bibliothèque de mystères"
+        },
+        "k1ph66tm": {
+          "alt": "La Maison de Thé du Destin de Yeoni — Yeoni, gardienne du lotus, offre une lecture chaleureuse dans une tasse au clair de lune"
+        },
+        "k1wq9p18": {
+          "alt": "L'édition Nakshatra — un ciel nocturne où les motifs de constellations orientales croisent un mandala indien"
+        },
+        "k1f89g8b": {
+          "alt": "La Salle de Stratégie du Destin Sans Détour de Neo — une séance qui cartographie la ligne de front d'une décision devant un emblème de lion"
+        }
+      },
+      "cdSigCardBody": {
+        "k1sw19cg": "Le Grand Livre des Liens",
+        "k2fl7d2": "Quatre Piliers et Zi Wei Dou Shu tissés en une stratégie amoureuse de 20 chapitres, lue par un maître en la matière.",
+        "n20000": "À partir de 20 000 ₩",
+        "k1dc5spb": "La Maison de Thé du Destin",
+        "k1f3556p": "Une consultation chaleureuse qui déploie avec douceur Quatre Piliers, tarot et compatibilité.",
+        "n5000": "À partir de 5 000 ₩",
+        "kntw327": "L'édition Nakshatra",
+        "koevlcx": "Une étoile, deux langages : nous plaçons côte à côte les lectures indienne védique et coréenne d'une même constellation",
+        "k18zdwwf": "Lecture gratuite",
+        "kk0w8v": "La Salle de Stratégie Sans Détour",
+        "k1bs96nr": "Le briefing d'opération de Neo, lucide et sans détour, sur le choix devant vous",
+        "n30000": "30 000 ₩"
+      }
+    },
+    "cdSigCardBody": {
+      "cdSigCardMeta": {
+        "k1hiiadz": "20 chapitres · 50 000 caractères",
+        "k1l2ndq7": "Pass accepté",
+        "n32006000": "3 200–6 000 caractères",
+        "k1l2ndq72": "Pass accepté",
+        "n2114": "21 textes · 14 000 caractères",
+        "k1l2ndq73": "Pass accepté",
+        "n1415000": "14 chapitres · 15 000 caractères",
+        "k1l2ndq74": "Pass accepté"
+      }
+    },
+    "cdPickReason": {
+      "cdPickWhyText": {
+        "kntw327": "L'édition Nakshatra",
+        "k1s5m1vr": "En lisant les 27 demeures orientales avec les nakshatras indiens, le même thème devient bien plus net."
+      }
+    },
+    "cdDiaryPlannerEntry": {
+      "cdDiaryPlannerEntryCopy": {
+        "k16byqlb": "Faites vôtre le rythme du jour",
+        "kh71llm": "Notez le flux du jour et reliez vos dates clés et petites habitudes au rythme du mois.",
+        "k1vo9x0c": "Vos notes et votre agenda restent uniquement sur cet appareil.",
+        "k1c8x4ap": {
+          "ariaLabel": "Fonction journal et agenda"
+        }
+      }
+    },
+    "cdDiaryPlannerEntryCopy": {
+      "cdDiaryPlannerEntryPoints": {
+        "ky00tcw": "Consignez l'énergie et l'humeur du jour",
+        "ktzwo12": "Planificateur d'agenda et de routines",
+        "kgbiqt0": "Voyez le mois d'un coup d'œil"
+      },
+      "cdDiaryPlannerEntryAction": {
+        "k1c914y0": "Ouvrir le journal et l'agenda"
+      }
+    },
+    "fortuneGatewayEntryShell": {
+      "fortuneGatewayEntryCopy": {
+        "kjx6wsf": "La Porte du Destin",
+        "k1i0ttch": "Dénouez les petits soucis en conversant avec Yeoni et Neo ; pour les grands courants de votre vie, tournez-vous vers la lecture fusionnée qui tisse six systèmes en un."
+      }
+    },
+    "fortuneGatewayDoors": {
+      "fortuneGatewayDoor": {
+        "k69nrae": "Une consultation avec Yeoni",
+        "k1tbc6n5": "Partez d'un seul souci et laissez la chaleureuse Yeoni et le direct Neo remettre le courant actuel en ordre.",
+        "k12pdy0g": "Lecture fusionnée approfondie",
+        "k1eti53b": "Nous montrons où Quatre Piliers, Zi Wei Dou Shu, astrologie védique, Sukuyo, astrologie occidentale et tarot concordent — et où ils divergent."
+      }
+    },
+    "fortuneGatewayDoor": {
+      "fortuneGatewayDoorMeta": {
+        "k18ykrep": "3 lectures gratuites",
+        "n115000": "1 sans connexion · 5 000 ₩ ensuite par lecture",
+        "n130000": "30 000 ₩ par lecture",
+        "k1lo4ibg": "Plus de 20 000 caractères · recoupement final"
+      }
+    },
+    "fortuneGatewayEntry": {
+      "fortuneGatewayEntryShell": {
+        "klg50va": "La conversation et l'analyse se déroulent uniquement dans chaque écran ; rien n'est envoyé depuis celui-ci."
+      }
+    },
+    "moonStoryEntry": {
+      "moonStoryEntryCopy": {
+        "CODEDESTINY": "Le light novel CODE DESTINY"
+      }
+    },
+    "moonStoryEntryCopy": {
+      "moonStoryEntryMeta": {
+        "k1re6l3o": "Complet en 44 épisodes",
+        "k18zi880": "Lecture gratuite",
+        "k1cmoty1": "Visual novel inclus"
+      }
+    },
+    "cdFeedbackCard": {
+      "cdFeedbackCopy": {
+        "k1qqtskq": "Aidez-nous à bâtir ce service."
+      }
+    },
+    "cdFeedbackCopy": {
+      "cdFeedbackReward": {
+        "k1ubfgod": "300 Pierres de Clair de Lune"
+      }
+    },
+    "cdFeedbackGate": {
+      "cdFeedbackCard": {
+        "k1chb9k4": "Envoyer un avis"
+      }
+    },
+    "tarotYearFortuneIntroStage": {
+      "tyHero": {
+        "k1qxj83w": "La carte clé de l'année · lectures mois par mois · argent, travail, relations, santé et croissance · tournants et gestes porte-bonheur"
+      }
+    },
+    "totemResultContainer": {
+      "totemResultActions": {
+        "ksp2edy": "🗂 Enregistrer dans la bibliothèque",
+        "kfksveu": "🗂 Lectures passées"
+      }
+    },
+    "dailyFortuneCard": {
+      "fortuneLeadMagnetCta": {
+        "k1kuwldz": "✨ Découvrez la lecture détaillée argent, amour, travail et santé, avec un guide par tranche horaire."
+      }
+    },
+    "fortuneLeadMagnetCta": {
+      "cdBtnTodayPulse": {
+        "k1715eae": "Voir le rapport complet du jour →"
+      }
+    },
+    "cdSigGrid": {
+      "krqyte4": {
+        "ariaLabel": "Ouvrir Le Grand Livre des Liens"
+      },
+      "ktlnhmn": {
+        "ariaLabel": "Entrer dans la Maison de Thé du Destin de Yeoni"
+      },
+      "k19zjy0t": {
+        "ariaLabel": "Ouvrir l'édition Nakshatra"
+      },
+      "k1coanmg": {
+        "ariaLabel": "Entrer dans la Salle de Stratégie du Destin Sans Détour de Neo"
+      }
+    },
+    "cdFooterLegalMeta": {
+      "cdFooterLangpick": {
+        "kw3mf7": {
+          "ariaLabel": "Coréen"
+        }
+      }
     }
   },
   "adsenseArticle": {

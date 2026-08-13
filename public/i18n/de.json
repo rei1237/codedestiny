@@ -6115,7 +6115,21 @@
         "k16bs": "Home",
         "kwp0s": "Mein",
         "kxro3": "Beratung",
-        "kxvio": "Vier Säulen"
+        "kxvio": "Vier Säulen",
+        "k16cq4to": "Alle",
+        "ku6gdz": "Pass",
+        "kb86wy0": {
+          "ariaLabel": "Meine Vier Säulen mit meinem Profil ansehen"
+        },
+        "k1mpcz5w": {
+          "ariaLabel": "Alle Deutungen durchsehen"
+        },
+        "k16eawmw": {
+          "ariaLabel": "Pass-Shop"
+        },
+        "k164wabc": {
+          "ariaLabel": "Mein Bereich"
+        }
       },
       "cdMobileBottomNavQuick": {
         "k10ios": "Tarot",
@@ -6194,7 +6208,11 @@
         "kry6axn": "27 Sukuyo Mondpositionen",
         "kslqazg": "Umfassender Deutungs-Prompt",
         "kxgi8q8": "Wahrsager-Fisch",
-        "kxqdi2w": "Blutgruppen-Deutung"
+        "kxqdi2w": "Blutgruppen-Deutung",
+        "k8jupm2": "Experten-Tiergesichtslesung"
+      },
+      "k1as5gz2": {
+        "ariaLabel": "Zur Experten-Tiergesichtslesung"
       }
     },
     "featureCardGrid": {
@@ -6217,16 +6235,28 @@
         },
         "k6gno8d": {
           "ariaLabel": "Neujahrsdeutung KI-Beratung – Geburtsdiagramm und Jahreszyklus beantworten Ihre Fragen"
+        },
+        "k1m9xov8": {
+          "ariaLabel": "Expertenberatung: das Buch Ihres Lebens – Ihre Lebenserzählung, gelesen aus Geburtsdiagramm und Frage"
+        },
+        "k158v3r1": {
+          "ariaLabel": "Expertenberatung: das Liebes-Playbook – die Struktur Ihres Liebeslebens im Geburtsdiagramm"
+        },
+        "k1t7f2xt": {
+          "ariaLabel": "Expertenberatung: das kommende Jahr – Geburtsdiagramm und Jahreszyklus beantworten Ihre Frage"
         }
       }
     },
     "fgGroupCards": {
       "lifebookTile": {
         "k19ij50j": "Lebensbuch KI-Beratung",
-        "k1c3xcpf": "Neujahrsdeutung KI-Beratung"
+        "k1c3xcpf": "Neujahrsdeutung KI-Beratung",
+        "kn9so5r": "Expertenberatung: das Buch Ihres Lebens",
+        "kwnx8m7": "Expertenberatung: das kommende Jahr"
       },
       "lovebibleTile": {
-        "k1s2fcm4": "Liebesgeheimnisse KI-Beratung"
+        "k1s2fcm4": "Liebesgeheimnisse KI-Beratung",
+        "ku5mrxy": "Expertenberatung: das Liebes-Playbook"
       }
     },
     "honeyMembershipDetails": {
@@ -6250,6 +6280,14 @@
       },
       "k85zbld": {
         "ariaLabel": "Mobile Schnellnavigation"
+      },
+      "logoArea": {
+        "k52dhv3": {
+          "ariaLabel": "Empfohlene Beratung für heute"
+        },
+        "k16nuyta": {
+          "ariaLabel": "Ausgewählte Beratungen"
+        }
       }
     },
     "ks7htym": {
@@ -6282,7 +6320,9 @@
         "k1e2ozr5": "Die Tore der Glückszyklen, Jahres- und Monatszyklen öffnen sich über die Struktur Ihres Geburtsdiagramms",
         "k1n6j5jj": "Wir verknüpfen die Veranlagung des Geburtsdiagramms, den Hintergrund des Glückszyklus, die Ereignisse des Jahreszyklus und die Schwankungen des Monatszyklus zu einem Fluss, um die Entscheidungen und Vorsichtszeiten des Jahres zu bestimmen.",
         "k1x7d2nr": "Ihre Lebensgeschichte, gelesen aus Ihrem Geburtsdiagramm und Ihren aktuellen Fragen",
-        "ktjp1an": "Basierend auf Ihrem Geburtsdatum und Lebensthemen entfalten wir ruhig wiederkehrende Muster, verborgene Talente und zukünftige Richtungen, die Sie verfolgen sollten, wie in einer Beratung."
+        "ktjp1an": "Basierend auf Ihrem Geburtsdatum und Lebensthemen entfalten wir ruhig wiederkehrende Muster, verborgene Talente und zukünftige Richtungen, die Sie verfolgen sollten, wie in einer Beratung.",
+        "kn9so5r": "Expertenberatung: das Buch Ihres Lebens",
+        "kwnx8m7": "Expertenberatung: das kommende Jahr"
       },
       "lifebookTileLabelRow": {
         "AI30000": "KI-Beratung · 30.000 Won",
@@ -6304,14 +6344,16 @@
     "lovebibleTileCoinGroup": {
       "lovebibleTileCoinBadge": {
         "k11zo0b": "KI-Beratung",
-        "n30000": "30.000 Won"
+        "n30000": "30.000 Won",
+        "k1tna4h3": "Expertenberatung"
       }
     },
     "lovebibleTileInner": {
       "lovebibleTileBody": {
         "k153vbx2": "Vier Säulen (BaZi) Beratung, die die Struktur der Liebe ruhig liest",
         "k1s2fcm4": "Liebesgeheimnisse KI-Beratung",
-        "ko82iqm": "Wir verknüpfen den Tagesstamm, den Tageszweig, den Beziehungspalast und den Fluss des Jahreszyklus, um Ihre aktuellen Gefühle und Entscheidungen stilvoll zu interpretieren."
+        "ko82iqm": "Wir verknüpfen den Tagesstamm, den Tageszweig, den Beziehungspalast und den Fluss des Jahreszyklus, um Ihre aktuellen Gefühle und Entscheidungen stilvoll zu interpretieren.",
+        "ku5mrxy": "Expertenberatung: das Liebes-Playbook"
       }
     },
     "miscCollection": {
@@ -6334,7 +6376,8 @@
     },
     "normalLogo": {
       "moonHeroCopy": {
-        "k5pz2jn": "Der Weg der Sternen-Deutung"
+        "k5pz2jn": "Der Weg der Sternen-Deutung",
+        "kbm4p3d": "Vier Säulen, Zi Wei Dou Shu, Sukuyo, Astrologie und Tarot – auf Ihre Frage abgestimmt und zu einer Fusionsdeutung verbunden, die die heutige Entscheidung ruhig ordnet."
       }
     },
     "premiumVvipCollection": {
@@ -6362,6 +6405,27 @@
         },
         "n2727": {
           "ariaLabel": "Nakshatra-Edition – Integriertes Horoskop aus den 27 östlichen Sukuyo und den 27 indischen Nakshatras"
+        },
+        "kkn0c7c": {
+          "ariaLabel": "Lebenskompass – ein Leitfaden, der Ihre Richtung aus Vier Säulen und Zi Wei Dou Shu bestimmt"
+        },
+        "k1q7t6kn": {
+          "ariaLabel": "Expertenberatung Lebensüberblick öffnen"
+        },
+        "ksb1e44": {
+          "ariaLabel": "Expertenberatung: Sukuyo-Partnerschaftsanalyse"
+        },
+        "kb3asmd": {
+          "ariaLabel": "Expertenberatung Zi Wei Dou Shu ansehen"
+        },
+        "k1v6dzf8": {
+          "ariaLabel": "Expertenberatung Astrologie ansehen"
+        },
+        "k1v8klir": {
+          "ariaLabel": "Zur Expertenberatung vedische Astrologie"
+        },
+        "k10411ib": {
+          "ariaLabel": "Premium-Expertennamensgebung nach Ihren Vier Säulen starten"
         }
       }
     },
@@ -6475,7 +6539,15 @@
         "kt62t87": "Vedische AI-Beratung",
         "kyqh20f": "Neo fasst Vier Säulen (BaZi), Zi Wei Dou Shu, vedische Astrologie und westliche Astrologie zusammen und gibt Ihnen eine nüchterne Einschätzung der Entscheidungskriterien, die Sie jetzt ergreifen sollten.",
         "kzo1yhl": "獸 Tierkreiszeichen der Zwölf Lebensphasen",
-        "n2727Nakshatra": "Östliche 27 Sukuyo × Indische 27 Nakshatras – Ein Stern, zwei Sprachen. Zwei vor tausend Jahren getrennte Sternensysteme treffen sich wieder in Ihrem Geburtsdiagramm."
+        "n2727Nakshatra": "Östliche 27 Sukuyo × Indische 27 Nakshatras – Ein Stern, zwei Sprachen. Zwei vor tausend Jahren getrennte Sternensysteme treffen sich wieder in Ihrem Geburtsdiagramm.",
+        "k1ovtqnv": "Lebenskompass",
+        "k1p1xzy7": "Wenn Sie nicht wissen, wohin, stellen wir Vier Säulen neben Zi Wei Dou Shu und bestimmen die Richtung.",
+        "k18jn96d": "Expertenberatung: Lebensüberblick",
+        "ksb1e44": "Expertenberatung: Sukuyo-Partnerschaftsanalyse",
+        "kdyem8n": "Expertenberatung: Zi Wei Dou Shu",
+        "k1jaids8": "Expertenberatung: Astrologie",
+        "kdriwl7": "Expertenberatung: vedische Astrologie",
+        "k1ncgm2q": "Eine Fachperson vergibt den Namen, indem sie Geburtsdiagramm, Fünf Elemente, Klang und Zeichenbedeutung verwebt – und übergibt Ihnen zusätzlich den ursprünglichen Prompt."
       },
       "tarotTileImgWrap": {
         "AI30000": "AI-Beratung · 30.000 ₩",
@@ -6503,7 +6575,18 @@
         },
         "koe32kc": "Kostenlose Testphase",
         "ktgbfsy": "NEU · Definitive Ausgabe",
-        "n50001000020000": "Tarot 5.000 ₩ · Vier Säulen (BaZi) 10.000 ₩ · Partnerschaftsanalyse 20.000 ₩"
+        "n50001000020000": "Tarot 5.000 ₩ · Vier Säulen (BaZi) 10.000 ₩ · Partnerschaftsanalyse 20.000 ₩",
+        "k1dw3t0h": "Diagramm kostenlos · Expertenberatung kostenpflichtig",
+        "kg12w8e": "Neu · Lebenskompass",
+        "n110000": "Basis kostenlos · Vertiefung 10.000 ₩ je Deutung",
+        "n30000": "Expertenberatung · 30.000 ₩",
+        "n300002": "Expertenberatung · 30.000 ₩",
+        "n300003": "Expertenberatung · 30.000 ₩",
+        "n300004": "Expertenberatung · 30.000 ₩",
+        "n300005": "Expertenberatung · 30.000 ₩",
+        "k1tna4h3": "Expertenberatung",
+        "n300006": "Expertenberatung · 30.000 ₩",
+        "n300007": "Experten-Namensgebung · 30.000 ₩"
       }
     },
     "tarotTileBody": {
@@ -6543,7 +6626,13 @@
         "kwuu0": "Kostenlos",
         "kyyvo": "Namensgebung",
         "kyzfrrw": "Vier Säulen · Tarot · Partnerschaftsanalyse",
-        "n30000": "Basierend auf 30.000 Won"
+        "n30000": "Basierend auf 30.000 Won",
+        "kmuahqh": "Vier Säulen · Zi Wei Dou Shu",
+        "k1gd6g4k": "Richtungsplanung",
+        "km02jru": "Wegfindung",
+        "k1tna4h3": "Expertenberatung",
+        "k1tna4h32": "Expertenberatung",
+        "k1tna4h33": "Expertenberatung"
       },
       "pvcPremPoints": {
         "AIPDF": "Von AI erstelltes Namensgebungsergebnis + PDF-Speicherung",
@@ -6578,7 +6667,11 @@
         "kxatr2b": "Wählbare Abläufe, die die Facetten Ihrer Sorgen sanft entwirren",
         "kyk2x3o": "Entscheidungshilfe basierend auf Glückszyklus und Jahreszyklus",
         "n12NPC": "Täglich wechselndes Inselwetter und Gespräche mit 12-Haus-NPCs",
-        "n30000": "Einzelzahlung von 30.000 Won oder Pass · Mondlichtstein"
+        "n30000": "Einzelzahlung von 30.000 Won oder Pass · Mondlichtstein",
+        "kfib4kf": "Die Energie der beiden Optionen an der Weggabelung vergleichen",
+        "k1vetwxt": "Ihr Lebenskurs, gelesen aus dem Glückszyklus und dem Jahr, das Sie durchlaufen",
+        "k67hhx7": "Eine Zukunftssimulation, die skizziert, was auf jede Wahl folgt",
+        "k1n33cx9": "Das fertige Ergebnis der Fachperson + PDF-Speicherung"
       }
     },
     "terms24Card": {
@@ -6620,10 +6713,223 @@
         },
         "kp08cb": {
           "ariaLabel": "Story-Link"
+        },
+        "k1lyzj38": {
+          "ariaLabel": "Links zu Expertenberatungen"
+        },
+        "ki07z7y": {
+          "ariaLabel": "Links zu Funktionsanleitungen"
         }
       },
       "k14mqjx7": "Zi Wei Dou Shu AI Beratung",
-      "kt62t87": "Veda AI Beratung"
+      "kt62t87": "Veda AI Beratung",
+      "kdyem8n": "Expertenberatung: Zi Wei Dou Shu",
+      "kdriwl7": "Expertenberatung: vedische Astrologie"
+    },
+    "moonHeroCopy": {
+      "moonHeroActions": {
+        "kerryje": "✦ Fusionsdeutung ansehen"
+      }
+    },
+    "cdTodayPanelSaju": {
+      "kv58y0g": "Wir lesen, wie Stamm und Zweig des Tages die Struktur Ihres Tagesherrn formen.",
+      "kkmdg9l": "Die Vier Säulen beurteilen den Tag über die Zehn-Götter-Beziehung zwischen der heutigen Säule und Ihrem Tagesherrn. Ein starker und ein schwacher Tagesherr lesen dasselbe Datum genau entgegengesetzt – erst Ihr Geburtsdiagramm entscheidet, ob heute ein sehr günstiger oder ein achtsamer Tag ist."
+    },
+    "cdTodayPanelSukuyo": {
+      "kd5ukqs": "Wir betrachten, wo die Mondstation des Tages auf Ihre Geburtsstation trifft.",
+      "k6mrnix": "Sukuyo bestimmt Ihre Geburtsstation aus dem Monddatum Ihrer Geburt unter den 27 Stationen und beurteilt den Tag danach, welche Position die heutige Mondstation dazu einnimmt. Positionen wie Yeongchin, Angoe und Eoptae trennen die sehr günstigen von den schwierigen Tagen."
+    },
+    "cdTodayPanelVedic": {
+      "kom45ly": "Wir vergleichen das Sternbild, das der Mond heute tatsächlich durchläuft, mit Ihrer Geburtsposition.",
+      "k451jpc": "Die vedische Astrologie bestimmt das Nakshatra aus der siderischen Position des Mondes und zählt dessen Abstand zu Ihrer Geburtsposition, um es einer der neun Tara-Bala-Stationen zuzuordnen. Sampat und Kshema sind günstig; Vipat und Vadha sind Stationen, um große Entscheidungen zu verschieben."
+    },
+    "cdPickInner": {
+      "cdPickCopy": {
+        "kl74p3h": "Das Schicksal von heute",
+        "kg9at99": "Die Beratung, die heute am besten zu Ihnen passt",
+        "kntw327": "Die Nakshatra-Edition",
+        "k4byd9a": "Ein Stern, zugleich in zwei Sprachen gelesen – indische vedische Astrologie und koreanische Schicksalslehre."
+      }
+    },
+    "cdTodayPick": {
+      "cdPickInner": {
+        "k16e565e": "Für Sie ausgewählt"
+      }
+    },
+    "cdSignatureConsult": {
+      "cdSigHead": {
+        "k16nuyta": "Ausgewählte Beratungen",
+        "k1uopfsh": "Vier tiefgehende Beratungen — wählen Sie den Weg, den Sie jetzt brauchen."
+      },
+      "keqgznt": {
+        "ariaLabel": "Durch die ausgewählten Beratungskarten blättern"
+      }
+    },
+    "cdSigCard": {
+      "cdSigCardMedia": {
+        "krnc4c4": "Premium",
+        "k1039k": "Empfohlen",
+        "kwuqfvj": {
+          "alt": "Das Meisterbuch der Verbindungen – ein Band zur Liebesstrategie, aufgeschlagen von einem Meister in einer Bibliothek der Geheimnisse"
+        },
+        "k1ph66tm": {
+          "alt": "Yeonis Teehaus des Schicksals – Yeoni, die Lotus-Torwächterin, reicht eine warme Deutung in einer mondbeschienenen Teetasse"
+        },
+        "k1wq9p18": {
+          "alt": "Die Nakshatra-Edition – ein Nachthimmel, in dem ostasiatische Sternbildmotive ein indisches Mandala kreuzen"
+        },
+        "k1f89g8b": {
+          "alt": "Neos Klartext-Strategieraum des Schicksals – eine Strategiesitzung, die vor einem Löwenemblem die Frontlinie einer Entscheidung ordnet"
+        }
+      },
+      "cdSigCardBody": {
+        "k1sw19cg": "Das Meisterbuch der Verbindungen",
+        "k2fl7d2": "Vier Säulen und Zi Wei Dou Shu verwoben zu einer Liebesstrategie in 20 Kapiteln, gelesen von einem Meister des Fachs.",
+        "n20000": "Ab 20.000 ₩",
+        "k1dc5spb": "Das Teehaus des Schicksals",
+        "k1f3556p": "Eine warme Beratung, die Vier Säulen, Tarot und Partnerschaftsanalyse behutsam entfaltet.",
+        "n5000": "Ab 5.000 ₩",
+        "kntw327": "Die Nakshatra-Edition",
+        "koevlcx": "Ein Stern, zwei Sprachen – wir stellen die indische vedische und die koreanische Deutung desselben Sternbilds nebeneinander",
+        "k18zdwwf": "Kostenlos lesbar",
+        "kk0w8v": "Der Klartext-Strategieraum",
+        "k1bs96nr": "Neos nüchternes Einsatzbriefing zu der Entscheidung, die vor Ihnen liegt",
+        "n30000": "30.000 ₩"
+      }
+    },
+    "cdSigCardBody": {
+      "cdSigCardMeta": {
+        "k1hiiadz": "20 Kapitel · 50.000 Zeichen",
+        "k1l2ndq7": "Pass einlösbar",
+        "n32006000": "3.200–6.000 Zeichen",
+        "k1l2ndq72": "Pass einlösbar",
+        "n2114": "21 Beiträge · 14.000 Zeichen",
+        "k1l2ndq73": "Pass einlösbar",
+        "n1415000": "14 Kapitel · 15.000 Zeichen",
+        "k1l2ndq74": "Pass einlösbar"
+      }
+    },
+    "cdPickReason": {
+      "cdPickWhyText": {
+        "kntw327": "Die Nakshatra-Edition",
+        "k1s5m1vr": "Liest man die 27 ostasiatischen Stationen zusammen mit den indischen Nakshatras, tritt dasselbe Diagramm weit schärfer hervor."
+      }
+    },
+    "cdDiaryPlannerEntry": {
+      "cdDiaryPlannerEntryCopy": {
+        "k16byqlb": "Machen Sie den Rhythmus des Tages zu Ihrem",
+        "kh71llm": "Halten Sie den Fluss des Tages fest und führen Sie wichtige Termine und kleine Gewohnheiten in den Rhythmus des Monats über.",
+        "k1vo9x0c": "Notizen und Termine bleiben ausschließlich auf diesem Gerät.",
+        "k1c8x4ap": {
+          "ariaLabel": "Funktion Tagebuch und Planer"
+        }
+      }
+    },
+    "cdDiaryPlannerEntryCopy": {
+      "cdDiaryPlannerEntryPoints": {
+        "ky00tcw": "Energie und Stimmung des Tages festhalten",
+        "ktzwo12": "Termin- und Routineplaner",
+        "kgbiqt0": "Den Monat auf einen Blick sehen"
+      },
+      "cdDiaryPlannerEntryAction": {
+        "k1c914y0": "Tagebuch und Planer öffnen"
+      }
+    },
+    "fortuneGatewayEntryShell": {
+      "fortuneGatewayEntryCopy": {
+        "kjx6wsf": "Das Tor des Schicksals",
+        "k1i0ttch": "Kleinere Sorgen klären Sie im Gespräch mit Yeoni und Neo; für die großen Strömungen Ihres Lebens hilft die Fusionsdeutung, die sechs Systeme zu einem verwebt."
+      }
+    },
+    "fortuneGatewayDoors": {
+      "fortuneGatewayDoor": {
+        "k69nrae": "Eine Beratung mit Yeoni",
+        "k1tbc6n5": "Beginnen Sie mit einer Sorge – die warmherzige Yeoni und der direkte Neo ordnen, wie die Dinge gerade stehen.",
+        "k12pdy0g": "Tiefe Fusionsdeutung",
+        "k1eti53b": "Wir zeigen, wo Vier Säulen, Zi Wei Dou Shu, vedische Astrologie, Sukuyo, westliche Astrologie und Tarot übereinstimmen – und wo sie auseinandergehen."
+      }
+    },
+    "fortuneGatewayDoor": {
+      "fortuneGatewayDoorMeta": {
+        "k18ykrep": "3 kostenlose Deutungen",
+        "n115000": "1× ohne Anmeldung · danach 5.000 ₩ je Deutung",
+        "n130000": "30.000 ₩ je Deutung",
+        "k1lo4ibg": "Über 20.000 Zeichen · abschließender Abgleich"
+      }
+    },
+    "fortuneGatewayEntry": {
+      "fortuneGatewayEntryShell": {
+        "klg50va": "Gespräch und Analyse finden nur innerhalb des jeweiligen Bildschirms statt; von diesem wird nichts gesendet."
+      }
+    },
+    "moonStoryEntry": {
+      "moonStoryEntryCopy": {
+        "CODEDESTINY": "Der CODE DESTINY Light Novel"
+      }
+    },
+    "moonStoryEntryCopy": {
+      "moonStoryEntryMeta": {
+        "k1re6l3o": "Abgeschlossen in 44 Folgen",
+        "k18zi880": "Kostenlos lesen",
+        "k1cmoty1": "Visual Novel enthalten"
+      }
+    },
+    "cdFeedbackCard": {
+      "cdFeedbackCopy": {
+        "k1qqtskq": "Gestalten Sie diesen Dienst mit."
+      }
+    },
+    "cdFeedbackCopy": {
+      "cdFeedbackReward": {
+        "k1ubfgod": "300 Mondlichtsteine"
+      }
+    },
+    "cdFeedbackGate": {
+      "cdFeedbackCard": {
+        "k1chb9k4": "Feedback senden"
+      }
+    },
+    "tarotYearFortuneIntroStage": {
+      "tyHero": {
+        "k1qxj83w": "Die Schlüsselkarte des Jahres · Monat für Monat · Geld, Arbeit, Beziehungen, Gesundheit und Wachstum · Wendepunkte und glückliche Schritte"
+      }
+    },
+    "totemResultContainer": {
+      "totemResultActions": {
+        "ksp2edy": "🗂 In der Ablage speichern",
+        "kfksveu": "🗂 Frühere Deutungen"
+      }
+    },
+    "dailyFortuneCard": {
+      "fortuneLeadMagnetCta": {
+        "k1kuwldz": "✨ Sehen Sie die ausführliche Deutung zu Geld, Liebe, Arbeit und Gesundheit – samt Leitfaden nach Tageszeit."
+      }
+    },
+    "fortuneLeadMagnetCta": {
+      "cdBtnTodayPulse": {
+        "k1715eae": "Vollständigen Tagesbericht ansehen →"
+      }
+    },
+    "cdSigGrid": {
+      "krqyte4": {
+        "ariaLabel": "Das Meisterbuch der Verbindungen öffnen"
+      },
+      "ktlnhmn": {
+        "ariaLabel": "Yeonis Teehaus des Schicksals betreten"
+      },
+      "k19zjy0t": {
+        "ariaLabel": "Die Nakshatra-Edition öffnen"
+      },
+      "k1coanmg": {
+        "ariaLabel": "Neos Klartext-Strategieraum des Schicksals betreten"
+      }
+    },
+    "cdFooterLegalMeta": {
+      "cdFooterLangpick": {
+        "kw3mf7": {
+          "ariaLabel": "Koreanisch"
+        }
+      }
     }
   },
   "adsenseArticle": {
