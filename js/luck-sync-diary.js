@@ -997,18 +997,18 @@ return true;
         + '</div>'
         + '<div style="margin-top:10px;display:flex;gap:8px;align-items:center;flex-wrap:wrap">'
         + '  <button id="lsdShareCardBtn" type="button" class="lsd-share-btn">오늘 운기 카드 저장</button>'
-        + '  <span style="font-size:.68rem;color:#6b7280">세로형 공유 카드 규격</span>'
+        + '  <span style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted)">세로형 공유 카드 규격</span>'
         + '</div>'
         + '<div class="lsd-grid-2" style="margin-top:8px">'
-        + '  <input id="lsdShareNick" type="text" placeholder="' + _lsdText("lsd.placeholder.001") + '" style="border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.73rem">'
-        + '  <select id="lsdShareTheme" style="border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.73rem">'
+        + '  <input id="lsdShareNick" type="text" placeholder="' + _lsdText("lsd.placeholder.001") + '" style="border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px 10px;font-size:var(--lsd-t-body-s)">'
+        + '  <select id="lsdShareTheme" style="border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px 10px;font-size:var(--lsd-t-body-s)">'
         + '    <option value="vivid">Vivid 팝</option>'
         + '    <option value="soft">Soft 파스텔</option>'
         + '    <option value="night">Night 글로우</option>'
         + '  </select>'
         + '</div>'
         + '<textarea id="lsdShareCaption" class="lsd-note-box" style="min-height:58px;margin-top:8px" placeholder="' + _lsdText("lsd.placeholder.002") + '"></textarea>'
-        + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:.7rem;color:#4b5563">'
+        + '<div style="display:flex;gap:12px;flex-wrap:wrap;margin-top:8px;font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted)">'
         + '  <label><input id="lsdShareStickerOn" type="checkbox" checked> 스티커 포함</label>'
         + '  <label><input id="lsdShareBadgeOn" type="checkbox" checked> 배지 포함</label>'
         + '</div>';
@@ -1049,21 +1049,21 @@ return true;
         + '<p class="lsd-mz-title">나만의 운기 메모</p>'
         + '<textarea id="lsdMemoInput" class="lsd-note-box" placeholder="' + _lsdText("lsd.placeholder.003") + '"></textarea>'
         + '<div style="margin-top:8px"><button id="lsdSaveMemoBtn" type="button" class="lsd-plain-btn">메모 저장</button></div>'
-        + '<hr style="border:none;border-top:1px solid #eef2ff;margin:12px 0">'
+        + '<hr style="border:none;border-top:1px solid var(--lsd-border);margin:12px 0">'
         + '<p class="lsd-mz-title" style="margin-top:0">관계 흐름 메모</p>'
         + '<div style="display:flex;gap:8px;flex-wrap:wrap">'
-        + '  <input id="lsdPartnerName" type="text" placeholder="' + _lsdText("lsd.placeholder.004") + '" style="flex:1;min-width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
-        + '  <input id="lsdPartnerBirthDate" type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" style="width:150px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
-        + '  <input id="lsdPartnerBirthTime" type="time" value="12:00" style="width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
+        + '  <input id="lsdPartnerName" type="text" placeholder="' + _lsdText("lsd.placeholder.004") + '" style="flex:1;min-width:120px;border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px 10px;font-size:var(--lsd-t-body-s)">'
+        + '  <input id="lsdPartnerBirthDate" type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" style="width:150px;border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px 10px;font-size:var(--lsd-t-body-s)">'
+        + '  <input id="lsdPartnerBirthTime" type="time" value="12:00" style="width:120px;border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px 10px;font-size:var(--lsd-t-body-s)">'
         + '</div>'
         + '<div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:8px">'
-        + '  <select id="lsdPartnerCity" style="flex:1;min-width:120px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
+        + '  <select id="lsdPartnerCity" style="flex:1;min-width:120px;border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px 10px;font-size:var(--lsd-t-body-s)">'
         + '    <option value="서울">서울</option><option value="부산">부산</option><option value="인천">인천</option><option value="대구">대구</option><option value="광주">광주</option><option value="대전">대전</option>'
         + '  </select>'
-        + '  <select id="lsdCompatType" style="width:132px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
+        + '  <select id="lsdCompatType" style="width:132px;border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px 10px;font-size:var(--lsd-t-body-s)">'
         + '    <option value="love">연애</option><option value="friend">친구</option><option value="business">비즈니스</option>'
         + '  </select>'
-        + '  <input id="lsdPartnerYear" type="number" min="1900" max="2100" placeholder="' + _lsdText("lsd.placeholder.005") + '" style="width:110px;border:1px solid #e5e7eb;border-radius:10px;padding:8px 10px;font-size:.75rem">'
+        + '  <input id="lsdPartnerYear" type="number" min="1900" max="2100" placeholder="' + _lsdText("lsd.placeholder.005") + '" style="width:110px;border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px 10px;font-size:var(--lsd-t-body-s)">'
         + '  <button id="lsdCompatBtn" type="button" class="lsd-plain-btn">관계 메모 정리</button>'
         + '</div>'
         + '<div id="lsdCompatResult" class="lsd-mini-box" style="margin-top:8px">상대 정보를 입력하면 관계 흐름을 조용히 메모로 정리합니다.</div>';
@@ -1106,19 +1106,19 @@ return true;
     var t = ELEM[todayEl] || ELEM.earth;
     box.innerHTML = ''
       + '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px">'
-      + '  <strong style="font-size:.73rem;color:#111827">일운 에너지 밸런스</strong>'
-      + '  <span style="font-size:.68rem;font-weight:800;color:' + t.color + '">' + phase + '</span>'
+      + '  <strong style="font-size:var(--lsd-t-body-s);color:var(--lsd-ink)">일운 에너지 밸런스</strong>'
+      + '  <span style="font-size:var(--lsd-t-micro);font-weight:var(--lsd-w-medium);color:' + t.color + '">' + phase + '</span>'
       + '</div>'
       + '<div style="display:grid;gap:7px">'
       + values.map(function (v, i) {
         return '<div style="display:grid;grid-template-columns:42px 1fr 28px;gap:7px;align-items:center">'
-          + '<span style="font-size:.66rem;font-weight:800;color:#64748b">' + labels[i] + '</span>'
-          + '<span style="height:8px;border-radius:999px;background:#e2e8f0;overflow:hidden"><i style="display:block;width:' + _clamp(v, 0, 100) + '%;height:100%;border-radius:999px;background:' + t.color + '"></i></span>'
-          + '<b style="font-size:.66rem;color:#475569;text-align:right">' + v + '</b>'
+          + '<span style="font-size:var(--lsd-t-micro);font-weight:var(--lsd-w-medium);color:var(--lsd-ink-muted)">' + labels[i] + '</span>'
+          + '<span style="height:8px;border-radius:var(--lsd-r-pill);background:var(--lsd-surface-2);overflow:hidden"><i style="display:block;width:' + _clamp(v, 0, 100) + '%;height:100%;border-radius:var(--lsd-r-pill);background:' + t.color + '"></i></span>'
+          + '<b style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted);text-align:right">' + v + '</b>'
           + '</div>';
       }).join('')
       + '</div>'
-      + '<p style="margin:8px 0 0;font-size:.67rem;color:#6b7280">높은 축은 살리고 낮은 축은 루틴 하나로 보완합니다.</p>';
+      + '<p style="margin:8px 0 0;font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted)">높은 축은 살리고 낮은 축은 루틴 하나로 보완합니다.</p>';
   }
 
   function _relScore(a, b) {
@@ -1436,7 +1436,7 @@ return true;
     if (!model || !model.tabs) {
       tabBar.innerHTML = '';
       body.setAttribute('data-saju-variant', 'none');
-      body.innerHTML = '<p style="margin:0;font-size:.74rem;color:#6b7280;line-height:1.6">사주 리딩을 완료하면 오늘의 운기 요약이 표시됩니다.</p>';
+      body.innerHTML = '<p style="margin:0;font-size:var(--lsd-t-body-s);color:var(--lsd-ink-muted);line-height:1.6">사주 리딩을 완료하면 오늘의 운기 요약이 표시됩니다.</p>';
       return;
     }
 
@@ -1537,7 +1537,7 @@ return true;
       golden.innerHTML = '<strong>⏰ 택일 골든 타임</strong><br>'
         + '미팅/계약: <b>' + baseTime[0] + '</b><br>'
         + '데이트/소통: <b>' + baseTime[1] + '</b><br>'
-        + '<span style="font-size:.65rem;color:#6b7280">오늘 행운 오행 기준 추천</span>';
+        + '<span style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted)">오늘 행운 오행 기준 추천</span>';
     }
 
     var boost = document.getElementById('lsdBoostMissionBox');
@@ -1600,7 +1600,7 @@ return true;
       var badges = entry.badges || [];
       badgeShelf.innerHTML = badges.length
         ? badges.map(function (b) { return '<span class="lsd-badge">' + escHtml(b) + '</span>'; }).join('')
-        : '<span style="font-size:.68rem;color:#9ca3af">아직 배지가 없어! 오늘 챌린지 성공하면 바로 지급돼.</span>';
+        : '<span style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-faint)">아직 배지가 없어! 오늘 챌린지 성공하면 바로 지급돼.</span>';
     }
 
     renderNightPracticeBoard(entry);
@@ -1873,7 +1873,7 @@ return true;
       + '<div style="margin-top:6px"><b>부드러운 흐름</b><br>' + toBullets(strengths) + '</div>'
       + '<div style="margin-top:6px"><b>조율할 점</b><br>' + toBullets(cautions) + '</div>'
       + '<div style="margin-top:6px"><b>작은 실천</b><br>' + toBullets(boostTips) + '</div>'
-      + '<span style="font-size:.65rem;color:#64748b">입력 기준: ' + escHtml((bdate || (by + '-01-01')) + ' ' + btime + ' · ' + bcity + ' · ' + ctype) + '</span>';
+      + '<span style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted)">입력 기준: ' + escHtml((bdate || (by + '-01-01')) + ' ' + btime + ' · ' + bcity + ' · ' + ctype) + '</span>';
   }
 
   /* ─── 레이더 차트 (Canvas) ───────────────────────────────────── */
@@ -2284,7 +2284,7 @@ return true;
     if (!box) return;
     var keys = Object.keys(diary || {}).sort().slice(-7);
     if (!keys.length) {
-      box.innerHTML = '<div style="font-size:.7rem;color:#94a3b8">명상 기록이 쌓이면 최근 7일 추세가 표시됩니다.</div>';
+      box.innerHTML = '<div style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-faint)">명상 기록이 쌓이면 최근 7일 추세가 표시됩니다.</div>';
       return;
     }
     var rows = keys.map(function (k) {
@@ -2292,9 +2292,9 @@ return true;
       ensureEntryShape(e);
       var p = calcMeditationPoints(e);
       return '<div style="display:grid;grid-template-columns:68px 1fr 34px;gap:8px;align-items:center">'
-        + '<span style="font-size:.66rem;color:#64748b">' + k.slice(5) + '</span>'
-        + '<div style="height:7px;border-radius:999px;background:#1e293b;overflow:hidden"><div style="height:100%;width:' + p + '%;background:linear-gradient(90deg,#22d3ee,#a78bfa)"></div></div>'
-        + '<span style="font-size:.66rem;color:#e2e8f0;text-align:right">' + p + '</span>'
+        + '<span style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted)">' + k.slice(5) + '</span>'
+        + '<div style="height:7px;border-radius:var(--lsd-r-pill);background:var(--lsd-head-bg);overflow:hidden"><div style="height:100%;width:' + p + '%;background:linear-gradient(90deg,var(--lsd-gold),var(--lsd-accent))"></div></div>'
+        + '<span style="font-size:var(--lsd-t-micro);color:var(--lsd-head-ink-muted);text-align:right">' + p + '</span>'
         + '</div>';
     }).join('');
     box.innerHTML = rows;
@@ -2891,9 +2891,9 @@ return true;
         var scheduledForDay = plannerEventsForDate(selectedKey);
         hint.innerHTML = ''
           + '<strong>' + escHtml(selectedKey) + '</strong> · '
-          + '<span style="font-weight:800">' + escHtml(selectedSnap.label) + '</span>'
-          + (selectedSnap.goodness == null ? '<br><span style="color:#70445c">프로필을 저장하면 이 날짜의 개인 일운을 계산합니다.</span>' : (' · 안정도 ' + selectedSnap.goodness + '점'))
-          + (memo ? ('<br><span style="color:#475569">기록: ' + escHtml(String(memo).slice(0, 80)) + (String(memo).length > 80 ? '...' : '') + '</span>') : '')
+          + '<span style="font-weight:var(--lsd-w-medium)">' + escHtml(selectedSnap.label) + '</span>'
+          + (selectedSnap.goodness == null ? '<br><span style="color:var(--lsd-ink-muted)">프로필을 저장하면 이 날짜의 개인 일운을 계산합니다.</span>' : (' · 안정도 ' + selectedSnap.goodness + '점'))
+          + (memo ? ('<br><span style="color:var(--lsd-ink-muted)">기록: ' + escHtml(String(memo).slice(0, 80)) + (String(memo).length > 80 ? '...' : '') + '</span>') : '')
           + (scheduledForDay.length ? ('<div class="lsd-month-schedule-summary"><b>오늘의 일정 ' + scheduledForDay.length + '개</b>' + scheduledForDay.slice(0, 3).map(function (event) {
             return '<span>' + escHtml(event.allDay ? '하루 종일' : (event.start || '시간 미정')) + ' · ' + escHtml(event.title || '이름 없는 일정') + '</span>';
           }).join('') + (scheduledForDay.length > 3 ? '<span>외 ' + (scheduledForDay.length - 3) + '개</span>' : '') + '</div>') : '<div class="lsd-month-schedule-empty">아직 일정이 없어요. 아래에서 가볍게 하나 추가해보세요.</div>');
@@ -3168,7 +3168,7 @@ return true;
     if (!box) return;
 
     if (!pillars || !pillars.d || !pillars.d.g || !todayGZ || !todayGZ.g) {
-      box.innerHTML = '<p style="margin:0;font-size:.74rem;color:#6b7280;line-height:1.6">사주 리딩을 완료하면 오늘의 운기 요약과 실천 가이드를 보여드릴게요.</p>';
+      box.innerHTML = '<p style="margin:0;font-size:var(--lsd-t-body-s);color:var(--lsd-ink-muted);line-height:1.6">사주 리딩을 완료하면 오늘의 운기 요약과 실천 가이드를 보여드릴게요.</p>';
       return;
     }
 
@@ -3304,43 +3304,43 @@ return true;
     var cautionTop = cautionList[0] || '속도보다 리듬을 지키는 운영이 더 유리해요.';
 
     box.innerHTML = ''
-      + '<p style="margin:0 0 8px;font-size:.78rem;font-weight:900;color:#111827">하루 균형 리딩</p>'
-      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:.72rem;line-height:1.5">'
-      + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
-      + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">🧭 행동 가이드</p>'
-      + '    <p style="margin:0;color:#334155">최상 운 영역: <b>' + topScoreLine + '</b><br>' + keyMap[bestKey].action + '</p>'
+      + '<p style="margin:0 0 8px;font-size:var(--lsd-t-body);font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">하루 균형 리딩</p>'
+      + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:var(--lsd-t-body-s);line-height:1.5">'
+      + '  <div style="border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px;background:var(--lsd-surface)">'
+      + '    <p style="margin:0 0 4px;font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">🧭 행동 가이드</p>'
+      + '    <p style="margin:0;color:var(--lsd-ink-muted)">최상 운 영역: <b>' + topScoreLine + '</b><br>' + keyMap[bestKey].action + '</p>'
       + '  </div>'
-      + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
-      + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">💓 감정 리듬</p>'
-      + '    <p style="margin:0;color:#334155">컬러: <b style="color:' + luckyInfo.ink + '">' + (colorGuide[luckyEl] || luckyInfo.lotto) + '</b><br>장소: ' + (placeGuide[luckyEl] || '편안하고 조용한 자리') + '</p>'
+      + '  <div style="border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px;background:var(--lsd-surface)">'
+      + '    <p style="margin:0 0 4px;font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">💓 감정 리듬</p>'
+      + '    <p style="margin:0;color:var(--lsd-ink-muted)">컬러: <b style="color:' + luckyInfo.ink + '">' + (colorGuide[luckyEl] || luckyInfo.lotto) + '</b><br>장소: ' + (placeGuide[luckyEl] || '편안하고 조용한 자리') + '</p>'
       + '  </div>'
-      + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
-      + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">🤝 관계 흐름</p>'
-      + '    <p style="margin:0;color:#334155">' + (socialGuide[bestKey] || socialGuide.health) + '</p>'
+      + '  <div style="border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px;background:var(--lsd-surface)">'
+      + '    <p style="margin:0 0 4px;font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">🤝 관계 흐름</p>'
+      + '    <p style="margin:0;color:var(--lsd-ink-muted)">' + (socialGuide[bestKey] || socialGuide.health) + '</p>'
       + '  </div>'
-      + '  <div style="border:1px solid #e2e8f0;border-radius:10px;padding:8px;background:#fff">'
-      + '    <p style="margin:0 0 4px;font-weight:900;color:#0f172a">🎁 행운 아이템</p>'
-      + '    <p style="margin:0;color:#334155"><b>' + itemLine + '</b><br>' + itemTip + '</p>'
+      + '  <div style="border:1px solid var(--lsd-border);border-radius:var(--lsd-r-sm);padding:8px;background:var(--lsd-surface)">'
+      + '    <p style="margin:0 0 4px;font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">🎁 행운 아이템</p>'
+      + '    <p style="margin:0;color:var(--lsd-ink-muted)"><b>' + itemLine + '</b><br>' + itemTip + '</p>'
       + '  </div>'
       + '</div>'
-      + '<div style="margin-top:8px;border:1px solid #fde68a;background:#fffbeb;border-radius:10px;padding:9px 10px;font-size:.72rem;line-height:1.5;color:#92400e">'
-      + '  <p style="margin:0 0 4px;font-weight:900">오늘의 보완점</p>'
+      + '<div style="margin-top:8px;border:1px solid var(--lsd-gold);background:var(--lsd-gold-soft);border-radius:var(--lsd-r-sm);padding:9px 10px;font-size:var(--lsd-t-body-s);line-height:1.5;color:var(--lsd-gold-ink)">'
+      + '  <p style="margin:0 0 4px;font-weight:var(--lsd-w-medium)">오늘의 보완점</p>'
       + '  <p style="margin:0">' + cautionTop + '</p>'
       + '</div>'
-      + '<div style="margin-top:8px;border:1px solid #dbeafe;background:#eff6ff;border-radius:10px;padding:9px 10px;font-size:.72rem;line-height:1.55;color:#1e3a8a">'
-      + '  <p style="margin:0 0 4px;font-weight:900">운기 타이밍</p>'
+      + '<div style="margin-top:8px;border:1px solid var(--lsd-border);background:var(--lsd-accent-wash);border-radius:var(--lsd-r-sm);padding:9px 10px;font-size:var(--lsd-t-body-s);line-height:1.55;color:var(--lsd-ink)">'
+      + '  <p style="margin:0 0 4px;font-weight:var(--lsd-w-medium)">운기 타이밍</p>'
       + '  <p style="margin:0">핵심 행동 시간: <b>' + todayTime + '</b> · 오행 부스팅: <b>' + todayElemTime + '</b><br>일진: <b style="color:' + todayInfo.ink + '">' + todayGZ.g + todayGZ.j + '</b> (' + todayInfo.cn + ')</p>'
       + '</div>'
-      + '<div style="margin-top:10px;padding:10px 12px;border-radius:10px;background:#eef2ff;border:1px solid #c7d2fe;font-size:.73rem;color:#3730a3;line-height:1.55">'
-      + '<p style="margin:0 0 6px;font-weight:900">내일의 작은 설계 · ' + ((tomorrowGZ && tomorrowGZ.g) || '—') + ((tomorrowGZ && tomorrowGZ.j) || '') + ' (' + tomorrowInfo.cn + ')</p>'
+      + '<div style="margin-top:10px;padding:10px 12px;border-radius:var(--lsd-r-sm);background:var(--lsd-accent-wash);border:1px solid var(--lsd-border-strong);font-size:var(--lsd-t-body-s);color:var(--lsd-accent-ink);line-height:1.55">'
+      + '<p style="margin:0 0 6px;font-weight:var(--lsd-w-medium)">내일의 작은 설계 · ' + ((tomorrowGZ && tomorrowGZ.g) || '—') + ((tomorrowGZ && tomorrowGZ.j) || '') + ' (' + tomorrowInfo.cn + ')</p>'
       + '<p style="margin:0">1) ' + tomorrowTime + ' 전에 내일의 핵심 목표 1가지를 짧게 적어두기</p>'
       + '<p style="margin:0">2) ' + tomorrowFocus + '</p>'
       + '<p style="margin:0">3) ' + tomorrowCaution + '</p>'
       + '</div>'
-      + '<div style="margin-top:8px;padding:9px 10px;border:1px dashed #cbd5e1;border-radius:10px;background:#f8fafc;font-size:.71rem;color:#475569;line-height:1.55">'
+      + '<div style="margin-top:8px;padding:9px 10px;border:1px dashed var(--lsd-border-strong);border-radius:var(--lsd-r-sm);background:var(--lsd-surface-2);font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted);line-height:1.55">'
       + '<b>추가 리딩</b><br>' + tenstarLine + '<br>' + yongLine + '<br>' + kiLine
       + '</div>'
-      + '<div style="margin-top:8px;font-size:.71rem;color:#475569;line-height:1.55"><b>운기 실천 기록</b><br>' + loveCheck + '<br>' + wealthCheck + '<br>' + healthCheck + '<br>' + workCheck + '</div>';
+      + '<div style="margin-top:8px;font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted);line-height:1.55"><b>운기 실천 기록</b><br>' + loveCheck + '<br>' + wealthCheck + '<br>' + healthCheck + '<br>' + workCheck + '</div>';
   }
 
   /* ─── 모달 HTML 생성 ─────────────────────────────────────── */
@@ -3414,6 +3414,12 @@ return true;
         '.lsd-result--pop{animation:lsdPopIn .4s cubic-bezier(.17,.67,.35,1.4) forwards}',
         '.lsd-result-ball-pop{animation:lsdPopIn .45s cubic-bezier(.17,.67,.35,1.4) forwards}',
         '.lsd-lotto-machine{position:relative;padding:8px 0 10px}',
+        '.lsd-lotto-btn{padding:12px 24px;border:none;border-radius:var(--lsd-r-md);background:var(--lsd-accent);color:var(--lsd-head-ink);font-size:var(--lsd-t-lead);font-weight:var(--lsd-w-semibold);cursor:pointer;box-shadow:var(--lsd-sh-2);transition:transform .18s ease,box-shadow .2s ease}',
+        '.lsd-lotto-btn:hover{transform:translateY(-1px);box-shadow:var(--lsd-sh-3)}',
+        '.lsd-redraw-btn{padding:7px 18px;border-radius:var(--lsd-r-md);border:1px solid var(--lsd-border-strong);background:transparent;font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);color:var(--lsd-accent-ink);cursor:pointer;transition:background .2s ease}',
+        '.lsd-redraw-btn:hover{background:var(--lsd-accent-wash)}',
+        '.lsd-clear-btn{padding:6px 12px;border:1px solid var(--lsd-danger);border-radius:var(--lsd-r-md);background:transparent;font-size:var(--lsd-t-micro);font-weight:var(--lsd-w-medium);color:var(--lsd-danger);cursor:pointer;transition:background .2s ease;flex-shrink:0;margin-left:8px;white-space:nowrap}',
+        '.lsd-clear-btn:hover{background:var(--lsd-grade-vb-bg)}',
         '.lsd-spin-ring{position:absolute;left:50%;top:64px;border-radius:var(--lsd-r-pill);border:1.5px dashed rgba(124,58,237,.28);pointer-events:none;transform-origin:center center}',
         '.lsd-spin-ring--outer{width:146px;height:146px;transform:translate(-50%,-50%)}',
         '.lsd-spin-ring--inner{width:114px;height:114px;transform:translate(-50%,-50%)}',
@@ -3661,7 +3667,7 @@ return true;
       '<div id="lsdDayMaster" class="lsd-day-master">—</div>',
       '<div id="lsdElemBadges" style="display:flex;flex-wrap:wrap;gap:6px"></div>',
       '<div id="lsdSajuInsightTabBar" class="lsd-saju-tab-row"></div>',
-      '<div id="lsdSajuInsightBody" class="lsd-saju-card"><p style="margin:0;font-size:.74rem;color:#6b7280;line-height:1.6">사주 리딩을 준비하고 있습니다.</p></div>',
+      '<div id="lsdSajuInsightBody" class="lsd-saju-card"><p style="margin:0;font-size:var(--lsd-t-body-s);color:var(--lsd-ink-muted);line-height:1.6">사주 리딩을 준비하고 있습니다.</p></div>',
       '</div>',
       '<div id="lsdEnergyCard" class="lsd-energy-card">',
       '<p class="lsd-energy-kicker">오늘의 에너지</p>',
@@ -3672,30 +3678,30 @@ return true;
       '<p class="lsd-card-title">오늘의 운기 점수</p>',
       '<p class="lsd-card-sub">사주 오행 흐름 기반 5축 리딩</p>',
       '<div id="lsdScoreBars" style="display:flex;flex-direction:column;gap:10px"></div>',
-      '<div id="lsdLuckElemRow" style="margin-top:12px;font-size:.74rem;color:#6b7280;text-align:center;font-weight:600"></div>',
-      '<div id="lsdFortuneDetail" style="margin-top:10px;padding:10px 12px;border-radius:12px;background:#f8fafc;border:1px solid #e2e8f0"></div>',
+      '<div id="lsdLuckElemRow" style="margin-top:12px;font-size:var(--lsd-t-body-s);color:var(--lsd-ink-muted);text-align:center;font-weight:var(--lsd-w-regular)"></div>',
+      '<div id="lsdFortuneDetail" style="margin-top:10px;padding:10px 12px;border-radius:var(--lsd-r-md);background:var(--lsd-surface-2);border:1px solid var(--lsd-border)"></div>',
       '</div>',
       '<div class="lsd-card lsd-col-b" style="text-align:center">',
-      '<h3 style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">오늘의 핵심 행동 가이드</h3>',
-      '<p style="font-size:.72rem;color:#64748b;margin:0 0 20px;line-height:1.5">오늘의 오행 흐름에 맞는 개운 아이템과 작은 행동을 뽑아보세요.</p>',
+      '<h3 style="font-size:var(--lsd-t-lead);font-weight:var(--lsd-w-medium);color:var(--lsd-ink);margin:0 0 2px">오늘의 핵심 행동 가이드</h3>',
+      '<p style="font-size:var(--lsd-t-body-s);color:var(--lsd-ink-muted);margin:0 0 20px;line-height:1.5">오늘의 오행 흐름에 맞는 개운 아이템과 작은 행동을 뽑아보세요.</p>',
       '<div id="lsdLottoMachine" class="lsd-lotto-machine" aria-live="polite">',
       '<div class="lsd-spin-ring lsd-spin-ring--outer animate-spin-slow" aria-hidden="true"></div>',
       '<div class="lsd-spin-ring lsd-spin-ring--inner animate-spin-reverse" aria-hidden="true"></div>',
-      '<div style="width:128px;height:128px;border-radius:50%;background:linear-gradient(135deg,#ede9fe,#ddd6fe);border:4px solid #c4b5fd;margin:0 auto 10px;position:relative;overflow:hidden;box-shadow:inset 0 4px 14px rgba(124,58,237,.18),0 6px 24px rgba(124,58,237,.2)">',
-      '<div id="lsdGlobeInner" class="lsd-globe-inner" style="position:absolute;inset:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;font-size:1.2rem;font-weight:900;color:#5b21b6;user-select:none">木 火 土 金 水</div>',
+      '<div style="width:128px;height:128px;border-radius:50%;background:linear-gradient(135deg,var(--lsd-accent-wash),var(--lsd-accent-soft));border:4px solid var(--lsd-border-strong);margin:0 auto 10px;position:relative;overflow:hidden;box-shadow:inset 0 4px 14px rgba(124,58,237,.18),0 6px 24px rgba(124,58,237,.2)">',
+      '<div id="lsdGlobeInner" class="lsd-globe-inner" style="position:absolute;inset:8px;display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:6px;font-size:var(--lsd-t-section);font-weight:var(--lsd-w-medium);color:var(--lsd-accent-ink);user-select:none">木 火 土 金 水</div>',
       '<div style="position:absolute;top:10px;left:14px;width:20px;height:20px;border-radius:50%;background:rgba(255,255,255,.55);filter:blur(3px)"></div></div>',
       '<div id="lsdLottoTicker" class="lsd-lotto-ticker animate-pulse">READY</div>',
-      '<div style="width:48px;height:7px;border-radius:4px;background:#c4b5fd;margin:0 auto 12px;opacity:.5"></div>',
-      '<div id="lsdLuckyElemHint" style="font-size:.74rem;font-weight:700;color:#7c3aed;margin-bottom:14px;min-height:18px"></div>',
-      '<button id="lsdLottoBtn" type="button" class="animate-pulse" style="padding:12px 24px;border:none;border-radius:999px;background:linear-gradient(135deg,#7c3aed,#4f46e5);color:#fff;font-size:.85rem;font-weight:900;cursor:pointer;box-shadow:0 4px 18px rgba(124,58,237,.4);transition:all .2s" onmouseover="this.style.transform=\'scale(1.05)\';this.style.boxShadow=\'0 8px 26px rgba(124,58,237,.5)\'" onmouseout="this.style.transform=\'scale(1)\';this.style.boxShadow=\'0 4px 18px rgba(124,58,237,.4)\'"">오늘의 작은 행동 고르기</button></div>',
+      '<div style="width:48px;height:7px;border-radius:var(--lsd-r-xs);background:var(--lsd-accent-soft);margin:0 auto 12px;opacity:.5"></div>',
+      '<div id="lsdLuckyElemHint" style="font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-regular);color:var(--lsd-accent-ink);margin-bottom:14px;min-height:18px"></div>',
+      '<button id="lsdLottoBtn" type="button" class="animate-pulse lsd-lotto-btn"">오늘의 작은 행동 고르기</button></div>',
       '<div id="lsdLottoResult" style="display:none;margin-top:18px">',
-      '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,#faf5ff,#ede9fe);border-radius:20px;padding:22px 36px;border:1px solid #c4b5fd;width:100%;box-sizing:border-box">',
-      '<div id="lsdResultBall" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:1rem;font-weight:900;color:#fff;box-shadow:0 4px 16px rgba(124,58,237,.4)"></div>',
-      '<div id="lsdResultEmoji" style="font-size:3rem;line-height:1;margin:-4px 0"></div>',
-      '<div id="lsdResultName" style="font-size:1rem;font-weight:900;color:#1f1035"></div>',
-      '<div id="lsdResultTip" style="font-size:.76rem;color:#6b7280;text-align:center;line-height:1.55;max-width:200px"></div>',
-      '<p style="font-size:.72rem;font-weight:700;color:#7c3aed;margin:0">오늘의 행동 가이드가 준비됐어요.</p>',
-      '<button id="lsdRedrawBtn" type="button" style="padding:7px 18px;border-radius:999px;border:1.5px solid #c4b5fd;background:transparent;font-size:.72rem;font-weight:700;color:#7c3aed;cursor:pointer;transition:all .2s" onmouseover="this.style.background=\'#ede9fe\'" onmouseout="this.style.background=\'transparent\'">다시 고르기</button>',
+      '<div style="display:inline-flex;flex-direction:column;align-items:center;gap:8px;background:linear-gradient(135deg,var(--lsd-accent-wash),var(--lsd-accent-wash));border-radius:var(--lsd-r-xl);padding:22px 36px;border:1px solid var(--lsd-border-strong);width:100%;box-sizing:border-box">',
+      '<div id="lsdResultBall" style="width:52px;height:52px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:var(--lsd-t-title);font-weight:var(--lsd-w-medium);color:var(--lsd-head-ink);box-shadow:0 4px 16px rgba(124,58,237,.4)"></div>',
+      '<div id="lsdResultEmoji" style="font-size:var(--lsd-t-display);line-height:1;margin:-4px 0"></div>',
+      '<div id="lsdResultName" style="font-size:var(--lsd-t-title);font-weight:var(--lsd-w-medium);color:var(--lsd-ink)"></div>',
+      '<div id="lsdResultTip" style="font-size:var(--lsd-t-body-s);color:var(--lsd-ink-muted);text-align:center;line-height:1.55;max-width:200px"></div>',
+      '<p style="font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-regular);color:var(--lsd-accent-ink);margin:0">오늘의 행동 가이드가 준비됐어요.</p>',
+      '<button id="lsdRedrawBtn" type="button" class="lsd-redraw-btn">다시 고르기</button>',
       '</div></div></div></section>',
       '<section class="lsd-panel" id="lsdPanelChallenge" role="tabpanel" aria-labelledby="lsdTabChallenge" aria-hidden="true" hidden="hidden" style="display:none">',
       '<div class="lsd-panel-intro">작은 루틴이 오늘의 운기를 몸에 남깁니다.</div>',
@@ -3708,7 +3714,7 @@ return true;
       '<div id="lsdRoutineDoneText" class="lsd-routine-done">0/0 완료</div>',
       '</div>',
       '<div id="lsdChallenges"></div></div>',
-      '<div id="lsdChallengeCongrats" style="display:none;background:linear-gradient(135deg,#ecfeff,#f5f3ff);border:1px solid #c4b5fd;color:#4c1d95;border-radius:14px;padding:12px 14px;margin-bottom:12px;font-size:.78rem;font-weight:700;line-height:1.5"></div>',
+      '<div id="lsdChallengeCongrats" style="display:none;background:linear-gradient(135deg,var(--lsd-accent-wash),var(--lsd-accent-wash));border:1px solid var(--lsd-border-strong);color:var(--lsd-accent-ink);border-radius:var(--lsd-r-md);padding:12px 14px;margin-bottom:12px;font-size:var(--lsd-t-body);font-weight:var(--lsd-w-regular);line-height:1.5"></div>',
       '</section>',
       '<section class="lsd-panel" id="lsdPanelNight" role="tabpanel" aria-labelledby="lsdTabNight" aria-hidden="true" hidden="hidden" style="display:none">',
       '<div class="lsd-panel-intro">하루의 끝에서 오늘의 실천을 부드럽게 접어둡니다. 잘한 것과 보완할 것을 나누어 Tomorrow Blueprint로 이어갑니다.</div>',
@@ -3726,40 +3732,40 @@ return true;
       '<div class="lsd-card lsd-col-a" style="overflow:hidden">',
       '<div class="lsd-night-section">',
       '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">Tomorrow Blueprint</p>',
+      '<p style="margin:0 0 7px;font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">Tomorrow Blueprint</p>',
       '<div id="lsdTomorrowBlueprintBtns" style="display:flex;gap:6px;flex-wrap:wrap">',
       BLUEPRINT_THEMES.map(function (t) { return '<button type="button" class="lsd-blueprint-btn" data-blueprint="' + t.id + '">' + t.icon + ' ' + t.label + '</button>'; }).join(''),
       '</div>',
       '</div>',
       '<div class="lsd-mini-box" id="lsdTomorrowFocusSummary"></div>',
       '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">내일 보완할 것</p>',
+      '<p style="margin:0 0 7px;font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">내일 보완할 것</p>',
       '<div id="lsdTomorrowPlanList" style="display:grid;gap:7px"></div>',
       '</div>',
       '<div>',
-      '<p style="margin:0 0 7px;font-size:.74rem;font-weight:900;color:#0f172a">오늘 가장 잘한 것</p>',
-      '<textarea id="lsdPracticeNoteInput" class="lsd-diary-lines" maxlength="500" rows="5" style="width:100%;font-size:.82rem;color:#1f2937;resize:vertical;outline:none;border:1px solid #e2e8f0;border-radius:12px;font-family:inherit;box-sizing:border-box;display:block" placeholder="' + _lsdText("lsd.placeholder.006") + '"></textarea>',
-      '<div style="display:flex;justify-content:flex-end;margin-top:4px;font-size:.69rem;color:#94a3b8"><span id="lsdPracticeCharCount">0</span>/500</div>',
+      '<p style="margin:0 0 7px;font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">오늘 가장 잘한 것</p>',
+      '<textarea id="lsdPracticeNoteInput" class="lsd-diary-lines" maxlength="500" rows="5" style="width:100%;font-size:var(--lsd-t-body);color:var(--lsd-ink);resize:vertical;outline:none;border:1px solid var(--lsd-border);border-radius:var(--lsd-r-md);font-family:inherit;box-sizing:border-box;display:block" placeholder="' + _lsdText("lsd.placeholder.006") + '"></textarea>',
+      '<div style="display:flex;justify-content:flex-end;margin-top:4px;font-size:var(--lsd-t-micro);color:var(--lsd-ink-faint)"><span id="lsdPracticeCharCount">0</span>/500</div>',
       '</div>',
       '<div>',
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:7px">',
-      '<p style="margin:0;font-size:.74rem;font-weight:900;color:#0f172a">내일 운기 코치</p>',
-      '<button id="lsdGenerateAiCoachBtn" type="button" class="lsd-plain-btn" style="border-color:#93c5fd;color:#0c4a6e">작은 설계 생성</button>',
+      '<p style="margin:0;font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">내일 운기 코치</p>',
+      '<button id="lsdGenerateAiCoachBtn" type="button" class="lsd-plain-btn" style="border-color:var(--lsd-border-strong);color:var(--lsd-gold-ink)">작은 설계 생성</button>',
       '</div>',
       '<div id="lsdAiLuckCoach" class="lsd-ai-coach-card">오늘 실천 데이터를 바탕으로 내일 운 설계 가이드를 제안합니다.</div>',
       '</div>',
       '<div class="lsd-save-row">',
-      '<span style="font-size:.7rem;color:#64748b">야간 회고는 내일 운 설계에만 집중합니다.</span>',
+      '<span style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted)">야간 회고는 내일 운 설계에만 집중합니다.</span>',
       '<button id="lsdSaveNightBtn" type="button" class="lsd-save-night-btn">내일 설계 저장</button>',
       '</div>',
-      '<div id="lsdSaveFeedback" style="display:none;font-size:.78rem;font-weight:700;color:#0891b2">오늘의 운 설계 기록이 저장됐어요.</div>',
+      '<div id="lsdSaveFeedback" style="display:none;font-size:var(--lsd-t-body);font-weight:var(--lsd-w-regular);color:var(--lsd-gold-ink)">오늘의 운 설계 기록이 저장됐어요.</div>',
       '</div>',
       '</div></section>',
       '<section class="lsd-panel" id="lsdPanelMeditation" role="tabpanel" aria-labelledby="lsdTabMeditation" aria-hidden="true" hidden="hidden" style="display:none">',
       '<div class="lsd-panel-intro">소리는 낮게, 마음은 선명하게 정돈합니다.</div>',
       '<div class="lsd-med-intro">',
-      '<h3 style="font-size:.9rem;font-weight:900;color:#0f172a;margin:0 0 3px">조용한 명상 사운드</h3>',
-      '<p style="font-size:.72rem;color:#64748b;margin:0;line-height:1.45">Revision, SATS, I AM 선언과 명상 타이머를 오늘 운기와 연결합니다.</p>',
+      '<h3 style="font-size:var(--lsd-t-lead);font-weight:var(--lsd-w-medium);color:var(--lsd-ink);margin:0 0 3px">조용한 명상 사운드</h3>',
+      '<p style="font-size:var(--lsd-t-body-s);color:var(--lsd-ink-muted);margin:0;line-height:1.45">Revision, SATS, I AM 선언과 명상 타이머를 오늘 운기와 연결합니다.</p>',
       '</div>',
       '<div class="lsd-meditation-shell">',
       '<div class="lsd-meditation-card">',
@@ -3769,17 +3775,17 @@ return true;
       '<label class="lsd-mini-label" for="lsdRevisionImagined">원하는 전개로 수정한 장면</label>',
       '<textarea id="lsdRevisionImagined" class="lsd-meditation-input" rows="2" maxlength="220" placeholder="' + _lsdText("lsd.placeholder.008") + '"></textarea>',
       '<div style="display:flex;gap:8px;align-items:center;justify-content:space-between;flex-wrap:wrap">',
-      '<button id="lsdStartRevisionTimer" type="button" class="lsd-plain-btn" style="border-color:#22d3ee;color:#0c4a6e">⏱️ 1분 상상 시작</button>',
-      '<span id="lsdRevisionCountdown" style="font-size:.74rem;font-weight:800;color:#0f172a">01:00</span>',
+      '<button id="lsdStartRevisionTimer" type="button" class="lsd-plain-btn" style="border-color:var(--lsd-gold);color:var(--lsd-gold-ink)">⏱️ 1분 상상 시작</button>',
+      '<span id="lsdRevisionCountdown" style="font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);color:var(--lsd-ink)">01:00</span>',
       '</div>',
       '<div id="lsdRevisionGuide" class="lsd-mini-box" style="margin-top:8px">이제 눈을 감고, 수정된 장면이 실제 사실인 것처럼 1분간 상상하세요.</div>',
-      '<div id="lsdRevisionStatus" style="margin-top:6px;font-size:.7rem;color:#64748b"></div>',
+      '<div id="lsdRevisionStatus" style="margin-top:6px;font-size:var(--lsd-t-micro);color:var(--lsd-ink-muted)"></div>',
       '</div>',
 
       '<div class="lsd-meditation-card lsd-sats-zone" id="lsdSatsZone">',
       '<p class="lsd-meditation-title">SATS</p>',
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">',
-      '<span style="font-size:.72rem;color:#475569">내일 키워드: <b id="lsdSatsKeyword" style="color:#0ea5e9">로딩중</b></span>',
+      '<span style="font-size:var(--lsd-t-body-s);color:var(--lsd-ink-muted)">내일 키워드: <b id="lsdSatsKeyword" style="color:var(--lsd-gold-ink)">로딩중</b></span>',
       '<button id="lsdGenerateSatsScene" type="button" class="lsd-plain-btn">장면 추천</button>',
       '</div>',
       '<div id="lsdSatsScene" class="lsd-sats-scene">당신이 이미 원하는 결과를 이룬 단 하나의 장면이 표시됩니다.</div>',
@@ -3809,19 +3815,19 @@ return true;
       '<input id="lsdIamInput" type="text" class="lsd-meditation-input" placeholder="' + _lsdText("lsd.placeholder.009") + '">',
       '<div style="display:flex;gap:8px;flex-wrap:wrap">',
       '<button id="lsdRegenerateIam" type="button" class="lsd-plain-btn">🔁 문구 새로고침</button>',
-      '<button id="lsdConfirmIam" type="button" class="lsd-plain-btn" style="border-color:#34d399;color:#065f46">선언 완료</button>',
+      '<button id="lsdConfirmIam" type="button" class="lsd-plain-btn" style="border-color:var(--lsd-gold);color:var(--lsd-gold-ink)">선언 완료</button>',
       '</div>',
       '</div>',
 
-      '<div class="lsd-meditation-card" style="background:#0f172a;color:#e2e8f0">',
+      '<div class="lsd-meditation-card" style="background:var(--lsd-head-bg);color:var(--lsd-head-ink-muted)">',
       '<div style="display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap">',
-      '<p class="lsd-meditation-title" style="color:#f8fafc;margin:0">운세 실천 지수 연동</p>',
-      '<span style="font-size:.72rem;font-weight:900;color:#67e8f9">Meditation Points <b id="lsdMeditationPoints">0</b></span>',
+      '<p class="lsd-meditation-title" style="color:var(--lsd-head-ink);margin:0">운세 실천 지수 연동</p>',
+      '<span style="font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);color:var(--lsd-gold)">Meditation Points <b id="lsdMeditationPoints">0</b></span>',
       '</div>',
       '<div id="lsdMeditationTrend" style="margin-top:8px;display:grid;gap:6px"></div>',
-      '<div class="lsd-mini-box" style="margin-top:8px;background:rgba(15,23,42,.45);border-color:rgba(56,189,248,.45);color:#bae6fd">',
+      '<div class="lsd-mini-box" style="margin-top:8px;background:rgba(15,23,42,.45);border-color:rgba(56,189,248,.45);color:var(--lsd-head-ink-muted)">',
       '몰입 모드 제안: 명상 시작 전 기기의 방해 금지 모드(알림 차단)를 켜고, 전체화면으로 전환하면 집중도가 상승합니다.',
-      '<div style="margin-top:6px"><button id="lsdSuggestFocusMode" type="button" class="lsd-plain-btn" style="border-color:#38bdf8;color:#0ea5e9;background:rgba(15,23,42,.7)">🔕 몰입 모드 제안 실행</button></div>',
+      '<div style="margin-top:6px"><button id="lsdSuggestFocusMode" type="button" class="lsd-plain-btn" style="border-color:var(--lsd-gold);color:var(--lsd-gold-ink);background:rgba(15,23,42,.7)">🔕 몰입 모드 제안 실행</button></div>',
       '</div>',
       '</div>',
       '</div>',
@@ -3867,13 +3873,13 @@ return true;
       '<button id="lsdPredictFromCalendarBtn" type="button" class="lsd-month-cta">+ 나의 운세 예측하기</button>',
       '</div>',
       '<div class="lsd-history-head">',
-      '<div><h3 id="lsdHistoryMonthTitle" style="font-size:.88rem;font-weight:900;color:#111827;margin:0 0 2px">이번 달 운세 기록</h3><p style="font-size:.7rem;color:#9ca3af;margin:0">선택한 달의 저장 기록을 확인할 수 있어요.</p></div>',
-      '<button id="lsdClearBtn" type="button" style="padding:6px 12px;border:1.5px solid #fca5a5;border-radius:999px;background:transparent;font-size:.7rem;font-weight:700;color:#f87171;cursor:pointer;transition:all .2s;flex-shrink:0;margin-left:8px;white-space:nowrap" onmouseover="this.style.background=\'#fef2f2\'" onmouseout="this.style.background=\'transparent\'">🗑️ 전체 삭제</button>',
+      '<div><h3 id="lsdHistoryMonthTitle" style="font-size:var(--lsd-t-lead);font-weight:var(--lsd-w-medium);color:var(--lsd-ink);margin:0 0 2px">이번 달 운세 기록</h3><p style="font-size:var(--lsd-t-micro);color:var(--lsd-ink-faint);margin:0">선택한 달의 저장 기록을 확인할 수 있어요.</p></div>',
+      '<button id="lsdClearBtn" type="button" class="lsd-clear-btn">🗑️ 전체 삭제</button>',
       '</div>',
       '<div id="lsdHistoryList" style="display:flex;flex-direction:column;gap:8px"></div>',
       '</section>',
       '<div class="lsd-shell-foot">',
-      '<button type="button" data-action="closeLuckSyncDiary" style="padding:9px 16px;border-radius:999px;border:1.5px solid #c4b5fd;background:#faf5ff;color:#6d28d9;font-size:.74rem;font-weight:800;cursor:pointer">닫기</button>',
+      '<button type="button" data-action="closeLuckSyncDiary" style="padding:9px 16px;border-radius:var(--lsd-r-pill);border:1.5px solid var(--lsd-border-strong);background:var(--lsd-accent-wash);color:var(--lsd-accent-ink);font-size:var(--lsd-t-body-s);font-weight:var(--lsd-w-medium);cursor:pointer">닫기</button>',
       '</div>',
       '</div>',
       '</div>'
@@ -3942,7 +3948,7 @@ return true;
       var dg = pillars.d.g;
       var dEl = GAN_ELEM[dg] || 'earth';
       var eInfo = ELEM[dEl];
-      dayMasterEl.innerHTML = '<span style="color:' + eInfo.ink + ';font-size:2rem">' + dg + '</span>' +
+      dayMasterEl.innerHTML = '<span style="color:' + eInfo.ink + ';font-size:var(--lsd-t-display)">' + dg + '</span>' +
         ' <small style="color:' + eInfo.color + '">' + (GAN_KO[dg] || dg) + ' · ' + eInfo.cn + '</small>';
     } else {
       dayMasterEl.textContent = '사주 리딩 후 표시됩니다';
@@ -3970,7 +3976,7 @@ return true;
         var isYong = yons.indexOf(el) >= 0;
         var isKi   = power && power.kijishin && power.kijishin.indexOf(el) >= 0;
         return '<span class="lsd-elem-badge' + (isYong ? ' is-yong' : '') + (isKi ? ' is-ki' : '') + '" ' +
-          'style="background:#fff;border-color:#e2e8f0;color:#334155">' +
+          'style="background:var(--lsd-surface);border-color:var(--lsd-border);color:var(--lsd-ink-muted)">' +
           ei.badge + ei.short + ' <b>' + cnt[el] + '</b>' +
           (isYong ? '<span class="lsd-badge-tag">용신</span>' : '') +
           (isKi   ? '<span class="lsd-badge-tag lsd-badge-tag--ki">기신</span>' : '') +
@@ -3999,9 +4005,9 @@ return true;
     if (mainTenStar) {
       var tsInfo = TENSTAR_GUIDE[mainTenStar] || {};
       var tsEmoji = (window.TS_DB && window.TS_DB[mainTenStar]) ? window.TS_DB[mainTenStar].emoji : '✨';
-      if (starEl)  starEl.innerHTML  = '오늘의 십성 <b style="color:' + (tsInfo.color||'#a78bfa') + '">' + mainTenStar + '</b> ' + tsEmoji;
+      if (starEl)  starEl.innerHTML  = '오늘의 십성 <b style="color:var(--lsd-accent-ink)">' + mainTenStar + '</b> ' + tsEmoji;
       if (guideEl) guideEl.textContent = tsInfo.guide || '오늘의 에너지를 차분히 실천으로 옮기기 좋은 날입니다.';
-      if (energyCard) energyCard.style.borderColor = tsInfo.color || '#6366f1';
+      if (energyCard) energyCard.style.borderColor = tsInfo.color || '#b31955';
     } else if (guideEl) {
       guideEl.textContent = '사주 리딩을 완료하면 더 정확한 에너지 가이드를 받을 수 있어요!';
     }
@@ -4015,7 +4021,7 @@ return true;
     var luckRow = document.getElementById('lsdLuckElemRow');
     if (luckRow) {
       var ei = ELEM[_luckyEl] || ELEM.earth;
-      luckRow.innerHTML = '오늘의 행운 오행: <span style="color:' + ei.ink + ';font-weight:700">' +
+      luckRow.innerHTML = '오늘의 행운 오행: <span style="color:' + ei.ink + ';font-weight:var(--lsd-w-regular)">' +
         ei.badge + ' ' + ei.cn + ' (' + ei.lotto + ')</span>';
     }
     var hintEl = document.getElementById('lsdLuckyElemHint');
