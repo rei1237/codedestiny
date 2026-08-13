@@ -3825,6 +3825,10 @@ async function handleAstrologyAIPrompt(request, auth, env) {
     return buildAstrologyAIPromptError("MISSING_ASTROLOGY_RESULT", "기본 점성술 결과가 필요합니다.", 400);
   }
 
+  // 분야별 템플릿 오버라이드는 동기 접근자 안쪽에서 읽히므로 빌드 전에 채워 둔다.
+  // 실패해도 코드 기본 템플릿으로 그대로 진행한다(내부에서 삼킴).
+  await primePromptTemplateOverrides(env);
+
   let builtPrompt = null;
   try {
     builtPrompt = domain
@@ -4013,6 +4017,10 @@ async function handleVedicAIPrompt(request, auth, env) {
   if (!vedicResult || typeof vedicResult !== "object") {
     return buildVedicAIPromptError("MISSING_VEDIC_RESULT", "기본 베다 점성술 결과가 필요합니다.", 400);
   }
+
+  // 분야별 템플릿 오버라이드는 동기 접근자 안쪽에서 읽히므로 빌드 전에 채워 둔다.
+  // 실패해도 코드 기본 템플릿으로 그대로 진행한다(내부에서 삼킴).
+  await primePromptTemplateOverrides(env);
 
   let builtPrompt = null;
   try {
@@ -4954,6 +4962,10 @@ async function handleZiweiAIPrompt(request, auth, env) {
     );
   }
 
+  // 분야별 템플릿 오버라이드는 동기 접근자 안쪽에서 읽히므로 빌드 전에 채워 둔다.
+  // 실패해도 코드 기본 템플릿으로 그대로 진행한다(내부에서 삼킴).
+  await primePromptTemplateOverrides(env);
+
   let builtPrompt = null;
   try {
     builtPrompt = domain
@@ -5155,6 +5167,10 @@ async function handleSukuyoAIPrompt(request, auth, env) {
   if (!question || question.length < 5 || question.length > 1000) {
     return buildSukuyoAIPromptError("INVALID_QUESTION", "질문은 5자 이상 1000자 이하로 입력해 주세요.", 400);
   }
+
+  // 분야별 템플릿 오버라이드는 동기 접근자 안쪽에서 읽히므로 빌드 전에 채워 둔다.
+  // 실패해도 코드 기본 템플릿으로 그대로 진행한다(내부에서 삼킴).
+  await primePromptTemplateOverrides(env);
 
   let builtPrompt = null;
   try {
