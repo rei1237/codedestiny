@@ -1275,7 +1275,7 @@ function init(){
     var today2=getTodayKey();
     G.chatDate=today2;
     // 서버에서 펫 상태 로드
-    apiFetch('/api/tadagochi/pet').then(function(r){return r.json();}).then(function(petRes){
+    apiFetch('/api/user/tamagotchi').then(function(r){return r.json();}).then(function(petRes){
       updateChatRemain();
       var hasSavedPet=!!(petRes&&petRes.pet&&(petRes.pet.animal||petRes.pet.zodiac||petRes.pet.petName));
       if(hasSavedPet){
@@ -1304,7 +1304,7 @@ function init(){
 function saveState(){
   if(!G.userId){return;} // 미로그인이면 저장 안함
   var data={petName:G.petName,animal:G.animal,zodiac:G.zodiac,element:G.element,theme:G.theme,day:G.day,hunger:G.hunger,happy:G.happy,energy:G.energy,fortune:G.fortune,sleeping:G.sleeping,birthYear:G.birthYear,birthMonth:G.birthMonth,birthDay:G.birthDay,birthHour:G.birthHour,chatCount:G.chatCount,chatDate:normalizeDayKey(G.chatDate)||getTodayKey()};
-  apiFetch('/api/tadagochi/pet',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){
+  apiFetch('/api/user/tamagotchi',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(data)}).then(function(r){
     if(r&&r.status===401){
       G.userId=null;
     }
@@ -1313,7 +1313,7 @@ function saveState(){
 
 function resetPet(){
   if(!confirm(G.petName+'을(를) 떠나보내고 새 친구를 만들까요? 지금까지의 기록이 사라져요 💧'))return;
-  apiFetch('/api/tadagochi/pet',{method:'DELETE'}).then(function(){
+  apiFetch('/api/user/tamagotchi',{method:'DELETE'}).then(function(){
     G.userId=G.userId; // 유저 ID는 유지
     Object.assign(G,{petName:'',animal:null,zodiac:null,element:null,theme:null,day:1,hunger:70,happy:80,energy:90,fortune:50,sleeping:false,birthYear:null,state:'idle'});
     if(G.gTick){clearInterval(G.gTick);G.gTick=null;}
