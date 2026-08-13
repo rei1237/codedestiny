@@ -51,7 +51,7 @@ type Copy = {
 const EN: Copy = {
   loginTitle: "Welcome back", signupTitle: "Save your destiny safely",
   loginDescription: "Continue quickly with a social account or email.",
-  signupDescription: "Create an account with only the essentials. Fortune profile details come later.",
+  signupDescription: "Sign up and get 500 moonstones (worth ₩5,000) right away, usable on paid readings for 30 days. We only ask for the essentials.",
   socialLabel: "Continue with a social account", google: "Continue with Google", naver: "Continue with Naver",
   kakao: "Continue with Kakao", moving: "Opening authentication…", orEmail: "or use email",
   email: "Email", password: "Password", name: "Name", phone: "Mobile number",
@@ -76,7 +76,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
   ko: {
     loginTitle: "다시 만나서 반가워요", signupTitle: "운명의 기록을 안전하게 저장해 보세요",
     loginDescription: "소셜 계정 또는 이메일로 빠르게 이어갈 수 있어요.",
-    signupDescription: "계정에는 꼭 필요한 정보만 받아요. 운세 프로필은 이용할 때 입력해요.",
+    signupDescription: "가입하면 월정석 500개(5,000원 상당)를 바로 드려요 — 30일 안에 유료 콘텐츠에 쓸 수 있어요. 계정에는 꼭 필요한 정보만 받아요.",
     socialLabel: "소셜 계정으로 계속하기", google: "Google로 계속하기", naver: "네이버로 계속하기",
     kakao: "카카오로 계속하기", moving: "인증 화면으로 이동 중…", orEmail: "또는 이메일로 계속하기",
     email: "이메일", password: "비밀번호", name: "이름", phone: "휴대폰 번호",

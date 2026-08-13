@@ -187,6 +187,17 @@ export default function RootLayout({ children }) {
         <Script src="/js/core/checkout-entry.js?v=20260804-core-runtime-v1" strategy="beforeInteractive" />
         <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <Script src="/js/core/payment-service.js?v=20260804" strategy="beforeInteractive" />
+        {/* GA4 측정 ID 는 공개 식별자다. 값이 없으면 analytics.js 가 통째로 no-op 이 되므로
+            (아래 스크립트는 항상 붙여 두고) 여기서만 주입한다. 정적 셸은 자기 <head> 에서
+            같은 전역(window.__CD_GA_ID)을 설정한다 — 런타임 계약은 하나다. */}
+        {process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID ? (
+          <script
+            dangerouslySetInnerHTML={{
+              __html: `window.__CD_GA_ID=${JSON.stringify(process.env.NEXT_PUBLIC_GA_MEASUREMENT_ID)};`,
+            }}
+          />
+        ) : null}
+        <Script src="/js/core/analytics.js?v=20260814-ga4-v1" strategy="afterInteractive" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
         {/* hreflang / og:site_name / og:locale 을 여기서 하드코딩하지 말 것.
             이 layout 은 모든 Next 라우트의 <head> 이므로, 홈 기준 값을 박으면 전 페이지가
