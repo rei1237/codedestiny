@@ -1,12 +1,9 @@
 "use client";
 
-import Link from "next/link";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   AlertTriangle,
   Check,
-  ExternalLink,
-  LogOut,
   Plus,
   RefreshCw,
   RotateCcw,
@@ -22,7 +19,7 @@ import {
   getCmsNamespace,
   isValidCmsKey,
 } from "@/lib/cms/registry.mjs";
-import { AdminApiError, adminFetch, redirectToAdminLogin } from "./_lib/admin-api";
+import { AdminApiError, adminFetch } from "../_lib/admin-api";
 import { loadBaseEntries, type CmsBaseEntry } from "./_lib/base-values";
 import FieldEditor, { type CmsFieldDef } from "./_components/FieldEditor";
 import RevisionPanel, { type CmsRevision } from "./_components/RevisionPanel";
@@ -396,9 +393,6 @@ export default function AdminCmsPage() {
         <nav className="border-b border-slate-800 bg-[#0b0d15] lg:border-b-0 lg:border-r" aria-label="콘텐츠 그룹">
           <div className="flex items-center justify-between border-b border-slate-800 px-4 py-3">
             <h1 className="text-sm font-semibold">콘텐츠 관리</h1>
-            <button type="button" onClick={redirectToAdminLogin} className="rounded p-1.5 text-slate-400 hover:bg-slate-800 hover:text-slate-100" aria-label="로그아웃">
-              <LogOut className="h-4 w-4" />
-            </button>
           </div>
           <div className="space-y-4 p-3">
             {CMS_GROUPS.map((group: { id: string; label: string }) => {
@@ -423,12 +417,6 @@ export default function AdminCmsPage() {
                 </div>
               );
             })}
-            <div className="border-t border-slate-800 pt-3">
-              <Link href="/admin/content" className="flex items-center gap-2 rounded-md px-2 py-1.5 text-sm text-slate-400 hover:bg-slate-900 hover:text-slate-200">
-                <ExternalLink className="h-3.5 w-3.5" />
-                블로그 글 편집
-              </Link>
-            </div>
           </div>
         </nav>
 

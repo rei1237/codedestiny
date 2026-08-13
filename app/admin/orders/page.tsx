@@ -3,7 +3,7 @@
 // 관리자 주문 조회·환불 화면.
 // 인증/fetch 는 기존 관리자 헬퍼(adminFetch)를 그대로 쓴다 — 토큰 로직을 다시 복제하지 않는다.
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AdminApiError, adminFetch } from "../cms/_lib/admin-api";
+import { AdminApiError, adminFetch } from "../_lib/admin-api";
 
 type AdminOrder = {
   id: string;

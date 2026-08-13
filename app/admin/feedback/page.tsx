@@ -1,17 +1,15 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
-import { Check, Gift, LogOut, RefreshCw } from "lucide-react";
+import { Check, Gift, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   AdminApiError,
   adminFetch,
   getAdminApiBase,
   getFlowerAdminToken,
-  redirectToAdminLogin,
   resolveAdminCredentials,
-} from "../cms/_lib/admin-api";
+} from "../_lib/admin-api";
 
 type FeedbackStatus = "new" | "in_progress" | "resolved" | "on_hold" | "rejected";
 type TabValue = FeedbackStatus | "all";
@@ -215,14 +213,6 @@ export default function AdminFeedbackPage() {
             <div>
               <h1 className="text-base font-semibold">버그 제보 관리</h1>
               <p className="text-xs text-slate-400">미확인 {counts.new || 0} · 확인 중 {counts.in_progress || 0}</p>
-            </div>
-            <div className="flex gap-2">
-              <Link href="/admin/monthly-credits" className={commandButtonClass()} aria-label="월정석 지급">
-                <Gift className="h-4 w-4" />
-              </Link>
-              <button type="button" onClick={redirectToAdminLogin} className={commandButtonClass()} aria-label="로그아웃">
-                <LogOut className="h-4 w-4" />
-              </button>
             </div>
           </div>
 

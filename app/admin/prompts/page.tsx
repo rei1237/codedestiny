@@ -18,7 +18,7 @@ import {
   getAdminPromptLabService,
   promptLabServiceNeeds,
 } from "@/lib/admin/prompt-lab-registry.mjs";
-import { AdminApiError, adminFetch } from "../cms/_lib/admin-api";
+import { AdminApiError, adminFetch } from "../_lib/admin-api";
 
 interface LabService {
   key: string;
