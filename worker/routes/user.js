@@ -75,30 +75,46 @@ function clampPercent(value, fallback) {
   return Math.max(0, Math.min(100, Math.round(n)));
 }
 
-function sanitizeTamagotchiAction(value) {
-  const action = String(value || "").trim();
-  if (action === "feed" || action === "play" || action === "rest" || action === "fortune") return action;
-  return null;
+const TAMAGOTCHI_ELEMENTS = new Set(["wood", "fire", "earth", "metal", "water"]);
+const TAMAGOTCHI_THEMES = new Set(["moon", "strawberry", "cherry", "star", "angel"]);
+const DAY_KEY_PATTERN = /^\d{4}-\d{2}-\d{2}$/;
+
+function sanitizeTamagotchiEnum(value, allowed, fallback) {
+  const text = String(value || "").trim().toLowerCase();
+  return allowed.has(text) ? text : fallback;
 }
 
+function sanitizeDayKey(value) {
+  const text = String(value || "").trim();
+  return DAY_KEY_PATTERN.test(text) ? text : "";
+}
+
+// /tadagochi 의 펫 상태. 화이트리스트라 클라이언트가 보낸 임의 필드는 저장되지 않는다.
+// 동물 키는 문자 제한을 걸지 않는다 — 클라이언트가 별칭(한글 포함)을 자기 쪽에서
+// normalizeAnimalKey 로 정규화하므로 여기서 깎으면 되레 값이 깨진다.
 function normalizeTamagotchi(raw) {
   if (!raw || typeof raw !== "object") return null;
   const source = raw;
   const now = new Date().toISOString();
-  const animalId = sanitizeTamagotchiText(source.animalId, "").replace(/[^a-z0-9-]/gi, "").slice(0, 60);
   return {
-    animalId: animalId || null,
-    animalName: sanitizeTamagotchiText(source.animalName, "운명의 알"),
-    stage: sanitizeTamagotchiText(source.stage, ""),
+    petName: sanitizeTamagotchiText(source.petName, ""),
+    animal: sanitizeTamagotchiText(source.animal, "").slice(0, 40),
+    zodiac: sanitizeTamagotchiText(source.zodiac, "").slice(0, 40),
+    element: sanitizeTamagotchiEnum(source.element, TAMAGOTCHI_ELEMENTS, "water"),
+    theme: sanitizeTamagotchiEnum(source.theme, TAMAGOTCHI_THEMES, "moon"),
+    day: sanitizeInt(source.day, 1, 9999, 1),
     hunger: clampPercent(source.hunger, 70),
-    mood: clampPercent(source.mood, 70),
-    bond: clampPercent(source.bond, 45),
-    luck: clampPercent(source.luck, 70),
-    energy: clampPercent(source.energy, 70),
-    growth: clampPercent(source.growth, 30),
-    todayFortune: sanitizeTamagotchiText(source.todayFortune, "오늘은 작은 돌봄 하나가 운의 문을 부드럽게 엽니다."),
-    lastAction: sanitizeTamagotchiAction(source.lastAction),
-    lastActionAt: sanitizeTamagotchiText(source.lastActionAt, "") || null,
+    happy: clampPercent(source.happy, 80),
+    energy: clampPercent(source.energy, 90),
+    fortune: clampPercent(source.fortune, 50),
+    sleeping: Boolean(source.sleeping),
+    birthYear: sanitizeInt(source.birthYear, 1900, 2200, 0),
+    birthMonth: sanitizeInt(source.birthMonth, 1, 12, 6),
+    birthDay: sanitizeInt(source.birthDay, 1, 31, 15),
+    birthHour: sanitizeInt(source.birthHour, 0, 23, 12),
+    // 하루 5회 운세 제한의 근거. 상한을 서버에서도 걸어 클라이언트 값만 믿지 않는다.
+    chatCount: sanitizeInt(source.chatCount, 0, 5, 0),
+    chatDate: sanitizeDayKey(source.chatDate),
     createdAt: sanitizeTamagotchiText(source.createdAt, now),
     updatedAt: now,
     ownerScope: "account",
@@ -530,20 +546,21 @@ async function handleGetTamagotchi(auth) {
 
   return json({
     ok: true,
-    tamagotchi: normalizeTamagotchi(user.tamagotchi),
+    pet: normalizeTamagotchi(user.tamagotchi),
   });
 }
 
 async function handlePutTamagotchi(request, auth) {
   const body = await readJson(request);
-  const tamagotchi = normalizeTamagotchi(body?.tamagotchi || body);
-  if (!tamagotchi?.animalId) {
+  const pet = normalizeTamagotchi(body?.pet || body?.tamagotchi || body);
+  // 클라이언트가 "펫이 있다"고 판정하는 기준과 같게 둔다(petName/animal/zodiac 중 하나).
+  if (!pet || !(pet.petName || pet.animal || pet.zodiac)) {
     return json({ ok: false, message: "다마고치 캐릭터 정보가 필요합니다." }, { status: 400 });
   }
 
   const updated = await User.findByIdAndUpdate(
     auth.userId,
-    { $set: { tamagotchi } },
+    { $set: { tamagotchi: pet } },
     { returnDocument: "after", projection: { tamagotchi: 1 } },
   ).lean();
 
@@ -553,8 +570,22 @@ async function handlePutTamagotchi(request, auth) {
 
   return json({
     ok: true,
-    tamagotchi: normalizeTamagotchi(updated.tamagotchi),
+    pet: normalizeTamagotchi(updated.tamagotchi),
   });
+}
+
+async function handleDeleteTamagotchi(auth) {
+  const updated = await User.findByIdAndUpdate(
+    auth.userId,
+    { $set: { tamagotchi: null } },
+    { returnDocument: "after", projection: { _id: 1 } },
+  ).lean();
+
+  if (!updated) {
+    return json({ ok: false, message: "사용자를 찾을 수 없습니다." }, { status: 404 });
+  }
+
+  return json({ ok: true, pet: null });
 }
 
 export async function handleUserRoutes(request, env) {
@@ -616,6 +647,25 @@ export async function handleUserRoutes(request, env) {
         }, { status: 202 });
       }
       return await handlePutTamagotchi(request, auth);
+    }
+
+    if (method === "DELETE" && path === "/tamagotchi") {
+      const auth = await requireUserFromRequest(request, env);
+      try {
+        await connectDb(env);
+      } catch (error) {
+        logUserRouteError("connect-db-delete-tamagotchi", error, request, {
+          userId: String(auth?.userId || ""),
+        });
+        return json({
+          ok: false,
+          degraded: true,
+          code: "DB_FALLBACK",
+          message: "다마고치 동기화 서버가 일시적으로 불안정합니다.",
+          errorDetails: buildPublicErrorDetails("connect-db-delete-tamagotchi", error),
+        }, { status: 202 });
+      }
+      return await handleDeleteTamagotchi(auth);
     }
 
     if (method === "GET" && path === "/destiny-profiles") {
