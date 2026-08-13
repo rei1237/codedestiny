@@ -193,7 +193,9 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 #particle-canvas{position:fixed;inset:0;pointer-events:none;z-index:0}
 
-.card{width:min(400px,100vw);height:min(780px,calc(var(--app-vh,1dvh)*100));background:#fff;border-radius:32px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12),0 0 0 1.5px var(--cb);backdrop-filter:blur(12px);z-index:1;transition:box-shadow .4s}
+.stage{position:relative;width:min(400px,100vw);height:min(780px,calc(var(--app-vh,1dvh)*100));z-index:1}
+
+.card{width:100%;height:100%;background:#fff;border-radius:32px;position:relative;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.12),0 0 0 1.5px var(--cb);backdrop-filter:blur(12px);transition:box-shadow .4s}
 
 .top-strip{position:absolute;top:0;left:0;right:0;height:3.5px;background:linear-gradient(90deg,var(--c1),var(--c2),var(--c3),var(--c2),var(--c1));background-size:200%;animation:bar 2.5s linear infinite;z-index:100}
 
@@ -327,6 +329,14 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 
 .fortune-card{border-radius:14px;border:1px solid var(--cb);background:linear-gradient(170deg,rgba(255,255,255,.96),rgba(255,255,255,.84));padding:12px 13px;box-shadow:0 2px 8px rgba(0,0,0,.045)}
 
+.fortune-card--answer{border-color:var(--acc);background:linear-gradient(170deg,var(--adim),rgba(255,255,255,.94));box-shadow:0 4px 14px var(--al)}
+.fortune-answer-tag{flex-shrink:0;padding:2px 7px;border-radius:999px;background:var(--acc);color:#fff;font-size:9.5px;font-weight:800;line-height:1.5}
+.fortune-more{border-radius:12px;border:1px dashed var(--cb);background:rgba(255,255,255,.62)}
+.fortune-more>summary{list-style:none;cursor:pointer;padding:9px 11px;font-size:11.5px;font-weight:800;color:var(--acc)}
+.fortune-more>summary::-webkit-details-marker{display:none}
+.fortune-more>summary:focus-visible{outline:none;box-shadow:0 0 0 3px var(--al);border-radius:12px}
+.fortune-more[open]>summary{border-bottom:1px dashed var(--cb)}
+.fortune-more>.fortune-grid{padding:9px}
 .fortune-card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
 
 .fortune-card-emoji{font-size:15px;line-height:1;flex-shrink:0}
@@ -381,6 +391,8 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 .quick-chip{flex-shrink:0;padding:7px 13px;border-radius:999px;border:1.5px solid var(--cb);background:rgba(255,255,255,.85);color:var(--acc);font-family:'Noto Sans KR';font-size:12px;font-weight:700;white-space:nowrap;cursor:pointer;transition:background .14s,border-color .14s,transform .12s}
 .quick-chip:hover{background:var(--adim);border-color:var(--al)}
 .quick-chip:active{transform:scale(.94);background:var(--c1)}
+.quick-chip.is-active{background:var(--acc);border-color:transparent;color:#fff;box-shadow:0 4px 12px var(--al)}
+.cat-btn:focus-visible,.quick-chip:focus-visible,.abtn:focus-visible,.fortune-dock-btn:focus-visible,.fortune-tab-btn:focus-visible{outline:none;box-shadow:0 0 0 3px var(--al)}
 
 /* 봇 아바타 (연속 메시지에서 생략) */
 .bot-ava{width:28px;height:28px;flex-shrink:0;margin-top:4px;border-radius:50%;overflow:hidden}
@@ -402,6 +414,30 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
 @media (prefers-reduced-motion:reduce){
   .chat-avatar img{animation:none}
   .skel-line{animation:none}
+}
+
+/* ── 마우스 환경: 가로 스크롤 대신 줄바꿈 ──────────────────────────────────
+   스크롤바를 숨긴 가로 스트립은 마우스로 넘길 방법이 없다(드래그/Tab 뿐).
+   터치는 이 쿼리 밖이라 기존 스와이프가 그대로 유지된다.
+   overflow-x 만 바꾸면 브라우저가 overflow-y 를 auto 로 승격시키므로 한 번에 지정한다. */
+@media (pointer:fine){
+  .chat-cat-row,.quick-chips{flex-wrap:wrap;overflow:visible}
+  .chat-cat-row::after,.quick-chips::after{display:none}
+}
+
+/* ── 데스크탑 2단: 왼쪽 기기(400px 고정) + 오른쪽 운세 패널 ────────────────
+   기기 폭을 그대로 두기 때문에 펫·스탯·플로팅 노트의 픽셀 기준이 안 깨진다.
+   400 + 22 + 620 = 1042 라 1120px 임계에서 좌우 여백이 남는다. */
+@media (min-width:1120px) and (pointer:fine){
+  .stage{display:flex;align-items:stretch;gap:22px;width:min(1042px,calc(100vw - 48px));margin:0 24px}
+  .card{flex:0 0 400px;width:400px}
+  .chat-modal{position:relative;inset:auto;flex:1 1 620px;max-width:660px;min-width:0;height:100%;animation:none;box-shadow:0 20px 60px rgba(0,0,0,.12),0 0 0 1.5px var(--cb)}
+  .chat-back{display:none}
+  .chat-cat-row,.quick-chips{flex-wrap:nowrap}
+  .fortune-more>.fortune-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start}
+  .fortune-detail{max-width:60ch}
+  .chat-bubble{max-width:78%}
+  .cat-btn:hover{background:var(--adim);border-color:var(--al)}
 }
 
 @keyframes chat-enter{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
@@ -474,6 +510,8 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     <div style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.4);font-family:'Noto Sans KR',sans-serif">계정이 없으신가요? <a href="/login?redirect=/tadagochi" style="color:#a78bfa;text-decoration:none">회원가입</a></div>
   </div>
 </div>
+
+<div class="stage" id="stage">
 
 <div class="card" id="gc">
 
@@ -849,7 +887,11 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
 
 
-<!-- CHAT MODAL -->
+<div id="lfl" class="absolute inset-0 bg-white/25 pointer-events-none z-50 opacity-0 transition-opacity duration-200 rounded-3xl"></div>
+
+</div><!-- /.card -->
+
+<!-- CHAT MODAL — 데스크탑 2단에서 기기 옆 패널이 되므로 .card 밖, .stage 안에 둔다 -->
 
 <div class="chat-modal" id="chat-modal">
 
@@ -892,11 +934,11 @@ button,input,select,textarea{font-family:var(--font-body)!important}
   <div class="chat-log flex-1 overflow-y-auto flex flex-col" id="chat-log"></div>
 
   <div class="quick-chips" id="quick-chips">
-    <button class="quick-chip" type="button" onclick="quickAsk('오늘 총운이 궁금해')">✨ 오늘 총운</button>
-    <button class="quick-chip" type="button" onclick="quickAsk('오늘 조심할 점을 알려줘')">⚠️ 조심할 점</button>
-    <button class="quick-chip" type="button" onclick="quickAsk('오늘 행운의 시간은 언제야?')">🍀 행운 시간</button>
-    <button class="quick-chip" type="button" onclick="quickAsk('오늘 연애운은 어때?')">💕 연애운</button>
-    <button class="quick-chip" type="button" onclick="quickAsk('오늘 재물운은 어때?')">💰 재물운</button>
+    <button class="quick-chip" type="button" data-topic="today" onclick="quickTopic('today')">✨ 오늘 총운</button>
+    <button class="quick-chip" type="button" data-topic="caution" onclick="quickTopic('caution')">⚠️ 조심할 점</button>
+    <button class="quick-chip" type="button" data-topic="timing" onclick="quickTopic('timing')">🍀 행운 시간</button>
+    <button class="quick-chip" type="button" data-topic="love" onclick="quickTopic('love')">💕 연애운</button>
+    <button class="quick-chip" type="button" data-topic="money" onclick="quickTopic('money')">💰 재물운</button>
   </div>
 
   <div class="chat-input-wrap shrink-0">
@@ -919,9 +961,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
 
 
-<div id="lfl" class="absolute inset-0 bg-white/25 pointer-events-none z-50 opacity-0 transition-opacity duration-200 rounded-3xl"></div>
-
-</div>
+</div><!-- /.stage -->
 
 <script>
 
@@ -1035,7 +1075,10 @@ function spawnParticles(el){
 
   const gen=configs[el]||configs.metal;
 
-  for(let i=0;i<18;i++) particles.push(gen());
+  // 캔버스는 뷰포트 전체라 18개 고정이면 데스크탑에서 텅 비어 보인다(모바일 폭에서는 그대로 18).
+  const count=Math.min(44,Math.round(18*Math.max(1,(window.innerWidth||400)/430)));
+
+  for(let i=0;i<count;i++) particles.push(gen());
 
   if(!animating) startAnim();
 
@@ -1159,7 +1202,7 @@ function initTouchScrollGuard(){
     tracking=false;
   }
 
-  ['.chat-log','.chat-cat-row'].forEach(function(sel){
+  ['.chat-log','.chat-cat-row','.quick-chips'].forEach(function(sel){
     var el=document.querySelector(sel);
     if(!el) return;
     el.addEventListener('touchstart',onStart,{passive:true});
@@ -1172,7 +1215,7 @@ function initTouchScrollGuard(){
     if(!_touchMoved) return;
     if(Date.now()-_touchLastMoveTs>240) return;
     var trg=e.target;
-    if(trg&&trg.closest('.cat-btn,.fortune-tab-btn,.abtn,[data-tab-btn]')){
+    if(trg&&trg.closest('.cat-btn,.quick-chip,.fortune-tab-btn,.abtn,[data-tab-btn]')){
       e.preventDefault();
       e.stopPropagation();
     }
@@ -1198,6 +1241,11 @@ function initUI(){
   window.addEventListener('resize',syncAppViewportHeight,{passive:true});
   if(window.visualViewport&&window.visualViewport.addEventListener){
     window.visualViewport.addEventListener('resize',syncAppViewportHeight,{passive:true});
+  }
+  // 창을 키워 데스크탑 2단에 진입하면 운세 패널을 연다. 줄일 때는 닫지 않는다
+  // (닫으면 대화 중이던 맥락이 사라지고, 좁은 폭에서는 그대로 오버레이가 되면 된다).
+  if(_dsMq&&_dsMq.addEventListener){
+    _dsMq.addEventListener('change',function(e){ if(e.matches&&G.scr==='main') openChat(); });
   }
   initTouchScrollGuard();
   initChatInputFocusGuard();
@@ -1325,7 +1373,16 @@ function resetPet(){
 
 
 
-function show(id){document.querySelectorAll('.scr').forEach(function(s){s.classList.toggle('on',s.id===id);});G.scr=id.replace('s-','');}
+// 데스크탑 2단(CSS @media 와 같은 조건)에서는 운세 패널을 상시 노출해 레이아웃 점프를 없앤다.
+var _dsMq=window.matchMedia?window.matchMedia('(min-width:1120px) and (pointer:fine)'):null;
+function isDesktopStage(){return !!(_dsMq&&_dsMq.matches);}
+
+function show(id){
+  document.querySelectorAll('.scr').forEach(function(s){s.classList.toggle('on',s.id===id);});
+  G.scr=id.replace('s-','');
+  if(G.scr==='main'){ if(isDesktopStage()) openChat(); }
+  else{ closeChat(); }
+}
 
 function gS(){show('s-setup');}
 
@@ -2011,13 +2068,14 @@ function setcat(btn,cat,silent){
     b.classList.toggle('is-active',b.dataset.cat===cat);
     b.style.background=''; b.style.borderColor=''; b.style.color='';
   });
-  // Scroll selected chip into view
-  if(btn&&btn.scrollIntoView) btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
+  // Scroll selected chip into view (줄바꿈된 데스크탑에서는 스크롤이 없으므로 건너뛴다)
+  if(btn&&btn.scrollIntoView&&btn.parentNode&&btn.parentNode.scrollWidth>btn.parentNode.clientWidth) btn.scrollIntoView({behavior:'smooth',block:'nearest',inline:'center'});
   // Always sync placeholder to selected category
   var inp=document.getElementById('chat-inp');
   if(inp) inp.placeholder=_chatCatPlaceholders[cat]||'궁금한 내용을 입력해줘...';
   // Category changed (non-silent): clear log, animate, show welcome
   if(!silent&&prev!==cat){
+    document.querySelectorAll('.quick-chip.is-active').forEach(function(b){b.classList.remove('is-active');});
     var log=document.getElementById('chat-log');
     if(log){
       log.innerHTML='';
@@ -2079,12 +2137,34 @@ function detectFortuneFocus(question){
   return 'general';
 }
 
-function prioritizeFortuneCategories(cards,focus){
+// 빠른 질문 칩이 고르는 "주제" 축. 상단 시스템 탭(chatCat)과 직교한다.
+// card = 그 주제의 답이 되는 카드 키. warning/timing 은 기본 7장에 없어 buildTopicCards 가 만든다.
+var FORTUNE_TOPICS={
+  today:{label:'오늘 총운',emoji:'✨',q:'오늘 총운이 궁금해',focus:'',card:'today'},
+  caution:{label:'조심할 점',emoji:'⚠️',q:'오늘 조심할 점을 알려줘',focus:'',card:'warning'},
+  timing:{label:'행운 시간',emoji:'🍀',q:'오늘 행운의 시간은 언제야?',focus:'',card:'timing'},
+  love:{label:'연애운',emoji:'💕',q:'오늘 연애운은 어때?',focus:'love',card:'love'},
+  money:{label:'재물운',emoji:'💰',q:'오늘 재물운은 어때?',focus:'money',card:'money'}
+};
+
+// 자유 입력 전용 폴백. 칩은 주제를 명시적으로 넘기므로 여기에 의존하지 않는다.
+// 매칭이 없으면 ''(주제 없음) → 기존 전체 카드 답변 그대로.
+function detectFortuneTopic(question){
+  var q=(question||'');
+  if(/조심|주의|피해야|위험|경고|실수|리스크/.test(q)) return 'caution';
+  if(/행운.{0,2}(시간|시각)|시간대|몇\s*시|타이밍|길한\s*시/.test(q)) return 'timing';
+  if(/총운|전반적|전체적인\s*운/.test(q)) return 'today';
+  var f=detectFortuneFocus(q);
+  return (f==='love'||f==='money')?f:'';
+}
+
+function prioritizeFortuneCategories(cards,focus,topicCard){
   var priority={money:'money',love:'love',career:'career',relationship:'relationship',health:'health',general:'today'}[focus]||'today';
-  var order={today:0,money:1,love:2,career:3,relationship:4,health:5,signal:6,warning:7,action:8};
+  // order 값에 0 을 새로 넣지 말 것 — 아래 order[key]||99 가 0 을 falsy 로 보고 맨 뒤로 보낸다.
+  var order={today:0,money:1,love:2,career:3,relationship:4,health:5,signal:6,warning:7,timing:7.5,action:8};
   return cards.slice().sort(function(a,b){
-    var pa=(a.key==='today')?-3:(a.key===priority?-2:(order[a.key]||99));
-    var pb=(b.key==='today')?-3:(b.key===priority?-2:(order[b.key]||99));
+    var pa=(a.key==='today')?-3:(topicCard&&a.key===topicCard?-2.5:(a.key===priority?-2:(order[a.key]||99)));
+    var pb=(b.key==='today')?-3:(topicCard&&b.key===topicCard?-2.5:(b.key===priority?-2:(order[b.key]||99)));
     return pa-pb;
   });
 }
@@ -2143,13 +2223,19 @@ function createLuckyPick(meta,system){
   };
 }
 
-function createFortuneMeta(cat,score,fortune,petName,zName,todayLabel,question){
-  var focus=detectFortuneFocus(question);
+function createFortuneMeta(cat,score,fortune,petName,zName,todayLabel,question,topic){
+  var topicKey=topic||detectFortuneTopic(question);
+  var t=FORTUNE_TOPICS[topicKey]||null;
+  var focus=(t&&t.focus)?t.focus:detectFortuneFocus(question);
   var labels={money:'재물',love:'연애',career:'직업/학업',relationship:'인간관계',health:'건강',general:'전반'};
   var catLabels={general:'종합',saju:'사주',ziwei:'자미두수',astrology:'점성술',tarot:'타로'};
-  var seed=buildSeededValue([cat,question,todayLabel,zName,score,petName].join('|'));
+  var seed=buildSeededValue([cat,question,topicKey,todayLabel,zName,score,petName].join('|'));
   return {
     cat:cat,
+    topic:topicKey,
+    topicLabel:t?t.label:'',
+    topicEmoji:t?t.emoji:'',
+    topicCard:t?t.card:'',
     catLabel:catLabels[cat]||'종합',
     score:clampScore(score),
     fortune:fortune||scoreToFortune(score),
@@ -2174,9 +2260,15 @@ function shiftedMeta(baseMeta,scoreDelta,seedDelta){
   });
 }
 
+function fortuneCardsFromCategories(list){
+  return (list||[]).map(function(c){
+    return {key:c.key,title:(c.emoji||'🔹')+' '+(c.title||'포인트'),text:(c.detail||'')+(c.advice?'\n조언: '+c.advice:'')};
+  });
+}
+
 function makeFortuneResult(system,meta,headline,summary,categories){
   var labels={saju:'📿 사주',ziwei:'🌌 자미두수',astrology:'⭐ 점성술',tarot:'🃏 타로',general:'🔮 종합'};
-  var ordered=prioritizeFortuneCategories(categories||[],meta.focus);
+  var ordered=prioritizeFortuneCategories(categories||[],meta.focus,meta.topicCard);
   var lucky=createLuckyPick(meta,system);
   return {
     system:system,
@@ -2187,19 +2279,58 @@ function makeFortuneResult(system,meta,headline,summary,categories){
     state:meta.state,
     focus:meta.focus,
     focusLabel:meta.focusLabel,
+    topic:meta.topic,
+    topicLabel:meta.topicLabel,
+    topicEmoji:meta.topicEmoji,
+    topicCard:meta.topicCard,
     headline:headline,
     summary:summary,
     lucky:lucky,
     petMessage:buildPetMessage(system,meta),
     categories:ordered,
-    cards:ordered.map(function(c){
-      return {key:c.key,title:(c.emoji||'🔹')+' '+(c.title||'포인트'),text:(c.detail||'')+(c.advice?'\n조언: '+c.advice:'')};
-    })
+    cards:fortuneCardsFromCategories(ordered)
   };
+}
+
+// 주제가 caution/timing 일 때만 그 답이 될 카드를 1장 더 만든다.
+// 무조건 추가하면 주제 없는 자유 질문의 카드까지 늘어나므로 조건부로 둔다.
+function buildTopicCards(meta,pack){
+  if(meta.topicCard==='warning') return [buildCategory(meta,'warning','⚠️',pack.wTitle,pack.wDetail,pack.wAdvice,8,-3)];
+  if(meta.topicCard==='timing') return [buildCategory(meta,'timing','⏰',pack.tTitle,pack.tDetail,pack.tAdvice,9,3)];
+  return [];
+}
+
+function buildTopicSummary(t,result,answer){
+  var sys=result.systemLabel||'🔮 종합';
+  var sc=answer?answer.score:result.score;
+  if(t.card==='warning') return sys+' 기준 오늘 가장 조심할 지점만 먼저 뽑았어. 이 하나만 피해도 하루 체감이 크게 달라져.';
+  if(t.card==='timing') return '오늘 가장 유리한 시간대는 '+((result.lucky&&result.lucky.time)||'오후')+'야. '+sys+' 기준 시간 배치를 아래에 정리했어.';
+  if(t.card==='love') return sys+' 기준 오늘 연애운은 '+sc+'점 '+result.state+' 흐름이야. 연애 카드부터 먼저 읽어줘.';
+  if(t.card==='money') return sys+' 기준 오늘 재물운은 '+sc+'점 '+result.state+' 흐름이야. 돈 흐름 카드부터 먼저 읽어줘.';
+  return sys+' 기준 오늘 총운은 '+sc+'점 '+result.fortune+'이야. 중심 흐름 카드부터 먼저 읽어줘.';
+}
+
+// 주제 답 카드를 맨 앞으로 올리고 제목·요약을 그 주제로 바꾼다.
+// 답 카드가 없는 결과(종합 모드의 요약 블록)는 제목·요약만 주제화하고 카드는 그대로 둔다.
+function applyTopicView(result){
+  var t=result&&FORTUNE_TOPICS[result.topic];
+  if(!t) return result;
+  var answer=null,rest=[];
+  (result.categories||[]).forEach(function(c){
+    if(!answer&&c.key===t.card) answer=c; else rest.push(c);
+  });
+  result.headline=t.emoji+' '+t.label+' · '+result.state+' 흐름';
+  result.summary=buildTopicSummary(t,result,answer);
+  if(!answer) return result;
+  answer.isAnswer=true;
+  result.categories=[answer].concat(rest);
+  result.cards=fortuneCardsFromCategories(result.categories);
+  return result;
 }
 
 function buildTamaSajuResult(meta){
   var dayMaster=GAN[(meta.seed+3)%GAN.length];
+  var lucky=createLuckyPick(meta,'saju');
   var harmony=pickBySeed(['목화 순환이 앞서는 날','토금 균형이 살아나는 날','수기운이 정돈되는 날'],meta.seed,1);
   var action=pickBySeed(['우선순위 3개를 적고 순서대로 끝내기','오전 결정을 오후에 한 번 더 검토하기','지출/시간 로그를 짧게 남기기'],meta.seed,7);
   return makeFortuneResult('saju',meta,
@@ -2213,12 +2344,20 @@ function buildTamaSajuResult(meta){
       buildCategory(meta,'relationship','🤝','비견 흐름 인간관계운','비견 기운이 강해지면 말투가 직선적으로 보일 수 있어. 결론 전에 상대 입장을 한 줄 확인하면 관계운이 부드럽게 이어져.','결론 전에 상대 입장 확인 문장을 넣어줘.',5,0),
       buildCategory(meta,'health','🫧','수화 균형 건강운','수화 밸런스가 흔들리기 쉬운 날이라 수면과 수분을 먼저 챙기는 게 좋아. 짧은 스트레칭을 끼워 넣으면 피로 누적을 막을 수 있어.','물 한 컵과 3분 스트레칭을 루틴화해.',6,-1),
       buildCategory(meta,'action','✅','실전 행동 지침',action+'를 오늘 바로 실행해. 사주 흐름은 준비된 행동을 가장 크게 보상해.','체크리스트로 완료 여부를 남겨봐.',7,2)
-    ]
+    ].concat(buildTopicCards(meta,{
+      wTitle:'형충파해 주의 구간',
+      wDetail:'일간 '+dayMaster+'을 극하는 기운이 오후로 갈수록 강해져. 오늘 손실이 몰리는 자리는 즉흥적인 금전 약속과 감정이 실린 회신 두 가지야. 서명·송금·중요한 답장은 한 템포 늦추면 대부분 피할 수 있어.',
+      wAdvice:'결정 직전에 "지금 안 해도 되나?"를 한 번만 자문해.',
+      tTitle:'시주(時柱) 기준 길시',
+      tDetail:'기운이 가장 맑은 구간은 '+lucky.time+'이야. 여기에 오늘 제일 무거운 일 하나를 붙이면 성사율이 눈에 띄게 올라가. 반대로 식사 직후 한 시간은 판단이 무뎌지니 확정 결정을 피하고 정리·준비에 쓰는 게 좋아.',
+      tAdvice:lucky.time+'에 가장 어려운 일 하나만 배치해.'
+    }))
   );
 }
 
 function buildTamaZiweiResult(meta){
   var ming=pickBySeed(['명궁 안정성','명궁 확장성','명궁 균형감'],meta.seed,2);
+  var lucky=createLuckyPick(meta,'ziwei');
   var assist=pickBySeed(['보좌성이 살아나 주변 협력이 쉬워','천이궁 자극으로 외부 연결이 빨라','관록궁 압력이 높아 구조화가 필요해'],meta.seed,9);
   return makeFortuneResult('ziwei',meta,
     meta.todayLabel+' 자미두수는 '+meta.state+' 단계',
@@ -2231,12 +2370,20 @@ function buildTamaZiweiResult(meta){
       buildCategory(meta,'relationship','🧭','교우궁 관계운','교우궁은 연결은 넓지만 오해도 빨리 번질 수 있음을 보여줘. 중요한 메시지는 문장 길이를 줄여 핵심만 전달하는 게 좋아.','핵심 1문장 + 보조 1문장으로 전달해.',5,0),
       buildCategory(meta,'health','🌿','복덕궁 회복운','복덕궁 관점에선 머리를 쉬게 하는 짧은 휴식이 필요해. 과한 입력을 줄이고 리듬을 고르면 컨디션이 안정돼.','15분 휴식 블록을 강제로 확보해.',6,-1),
       buildCategory(meta,'action','✅','실전 행동 지침','명궁-관록궁 순서로 우선순위를 적고 가장 중요한 일 하나를 먼저 끝내. 자미두수는 중심축 정렬을 크게 보상해.','우선순위 목록을 화면에 고정해.',7,2)
-    ]
+    ].concat(buildTopicCards(meta,{
+      wTitle:'살성 간섭 궁위',
+      wDetail:'오늘은 살성이 관록-교우 축을 스치는 배치야. 아직 확정되지 않은 일정이나 결정을 먼저 알리는 행동이 가장 큰 오해를 만들어. 중간 보고는 결론이 선 뒤에 하고, 감정이 실린 메시지는 하루 묵혔다 보내는 게 안전해.',
+      wAdvice:'미확정 정보는 오늘 공유하지 않는다.',
+      tTitle:'궁위 전환 시간대',
+      tDetail:'궁위 축이 바뀌는 '+lucky.time+'이 오늘의 분기점이야. 그 앞은 정리·확인에, 그 뒤는 실행·연결에 쓰면 흐름이 끊기지 않아. 전환 직전 10분을 비워 두면 체감 차이가 확실히 커져.',
+      tAdvice:lucky.time+' 직전 10분을 비우고 우선순위를 다시 적어.'
+    }))
   );
 }
 
 function buildTamaAstrologyResult(meta){
   var asc=pickBySeed(['상승궁 집중력이 높아지는 구간','달의 위상이 감정 결을 흔드는 구간','트랜짓 변동성이 커지는 구간'],meta.seed,4);
+  var lucky=createLuckyPick(meta,'astrology');
   return makeFortuneResult('astrology',meta,
     meta.todayLabel+' 점성술은 '+meta.state+' 리듬',
     asc+'이야. '+meta.focusLabel+' 질문은 시간대 분할 전략을 쓰면 오차가 크게 줄어.',
@@ -2248,13 +2395,21 @@ function buildTamaAstrologyResult(meta){
       buildCategory(meta,'relationship','🫶','대인관계 조율운','화성 자극으로 말의 강도가 세질 수 있어. 질문형 문장으로 시작하면 협업 분위기를 지키면서 핵심을 전달할 수 있어.','첫 문장을 질문형으로 바꿔 전달해.',5,0),
       buildCategory(meta,'health','🛌','컨디션·수면 리듬','저녁 자극이 누적되면 다음날 집중력이 떨어져. 취침 1시간 전 화면 밝기와 카페인을 줄이면 회복이 빨라져.','취침 전 1시간 디지털 디톡스를 해봐.',6,-1),
       buildCategory(meta,'action','✅','실전 행동 지침','오전-오후 할 일을 분리해서 캘린더에 고정해. 점성술 흐름은 시간대 전략에 가장 잘 반응해.','타임블록을 실제 시간으로 박아 넣어.',7,2)
-    ]
+    ].concat(buildTopicCards(meta,{
+      wTitle:'역행·보이드문 주의 구간',
+      wDetail:'수성 계열 신호가 흔들려 오늘은 문장이 짧을수록 유리해. 실수가 몰리는 자리는 계약 세부 조항, 예약 시간, 숫자 오타 세 가지야. 보내기 전에 본문 말고 숫자와 날짜만 따로 다시 읽으면 대부분 걸러진다.',
+      wAdvice:'전송 전 숫자와 날짜만 따로 한 번 더 확인해.',
+      tTitle:'트랜짓 유리 시간대',
+      tDetail:'행성 배치상 '+lucky.time+'이 오늘 가장 협조적인 창이야. 이 구간에 연락·제안·발표를 붙이면 같은 말도 훨씬 잘 통해. 반대로 늦은 밤은 감정 진폭이 커지니 결론을 내는 대화는 다음 날로 미루는 게 좋아.',
+      tAdvice:'중요한 연락은 '+lucky.time+' 안에 끝내.'
+    }))
   );
 }
 
 function buildTamaTarotResult(meta){
   var major=pickBySeed(['은둔자','힘','정의','절제','별'],meta.seed,5);
   var stance=pickBySeed(['정위치', '역위치'],meta.seed,8);
+  var lucky=createLuckyPick(meta,'tarot');
   return makeFortuneResult('tarot',meta,
     meta.todayLabel+' 타로는 '+meta.state+' 신호',
     '메인 카드 '+major+'('+stance+') 메시지는 "성급한 확정보다 준비된 한 걸음"이야. '+meta.focusLabel+' 질문일수록 카드 질문을 구체화할수록 선명해져.',
@@ -2266,7 +2421,14 @@ function buildTamaTarotResult(meta){
       buildCategory(meta,'relationship','👂','관계 카드 해석','관계 카드는 경청 포인트를 보여줘. 상대 문장을 요약해 되물으면 신뢰 점수가 빠르게 올라가.','요약 후 확인 질문을 한 번 넣어봐.',5,0),
       buildCategory(meta,'health','🌙','건강 카드 해석','건강 카드는 리듬 회복을 먼저 말해. 짧은 산책과 수면 준비 루틴을 고정하면 피로가 눈에 띄게 줄어.','잠들기 전 루틴을 한 가지 고정해.',6,-1),
       buildCategory(meta,'action','✅','실전 행동 지침','질문을 한 단계 더 구체화해 다시 뽑아봐. 타로는 질문의 정밀도만큼 정확하게 답해줘.','질문에 시간·대상·목표를 넣어봐.',7,2)
-    ]
+    ].concat(buildTopicCards(meta,{
+      wTitle:'역위치 경고 카드',
+      wDetail:'보조 자리에 역위치가 떠서 "서두르면 되돌리게 된다"는 신호가 왔어. 오늘 되돌리기 어려운 선택은 취소·환불·통보 세 가지야. 확정하기 전에 한 사람에게만 소리 내어 설명해 보면 어긋난 지점이 바로 드러나.',
+      wAdvice:'되돌리기 어려운 결정은 하루 미룬다.',
+      tTitle:'카드가 가리키는 시각',
+      tDetail:'메인 카드 '+major+'는 '+lucky.time+'을 가리켜. 이 시간에 질문을 다시 구체화해서 뽑으면 답이 훨씬 선명해져. 그 전까지는 정보만 모으고 판단은 미루는 편이 카드 흐름과 맞아.',
+      tAdvice:lucky.time+'에 질문을 한 문장으로 다시 적어봐.'
+    }))
   );
 }
 
@@ -2318,19 +2480,28 @@ function renderFortuneCardsHtml(result,compact){
       };
     });
   }
-  var cards=categories.map(function(card){
+  var cardHtmls=categories.map(function(card){
     var advice=card.advice?'<p class="fortune-advice"><span class="fa-ico" aria-hidden="true">💡</span><span>'+escHtml(card.advice)+'</span></p>':'';
+    var isAnswer=!!card.isAnswer;
     return ''
-      +'<article class="fortune-card">'
+      +'<article class="fortune-card'+(isAnswer?' fortune-card--answer':'')+'">'
         +'<div class="fortune-card-head">'
           +'<span class="fortune-card-emoji" aria-hidden="true">'+escHtml(card.emoji||'🔹')+'</span>'
           +'<h4>'+(escHtml(card.title||'포인트'))+'</h4>'
+          +(isAnswer?'<span class="fortune-answer-tag">이 질문의 답</span>':'')
           +scoreRingHtml(card.score||0,false)
         +'</div>'
         +'<p class="fortune-detail">'+escHtml(card.detail||card.text||'')+'</p>'
         +advice
       +'</article>';
-  }).join('');
+  });
+  // 주제 답 카드가 있으면 그 한 장만 펼치고 나머지는 접는다(정보는 그대로 남긴다).
+  var gridCls='fortune-grid'+(compact?' compact':'');
+  var cards=(categories.length&&categories[0].isAnswer&&cardHtmls.length>1)
+    ?('<div class="'+gridCls+'">'+cardHtmls[0]+'</div>'
+      +'<details class="fortune-more"><summary>다른 흐름도 보기 ('+(cardHtmls.length-1)+')</summary>'
+      +'<div class="'+gridCls+'">'+cardHtmls.slice(1).join('')+'</div></details>')
+    :('<div class="'+gridCls+'">'+cardHtmls.join('')+'</div>');
   var lucky=result.lucky||{};
   var luckyHtml=(lucky.item||lucky.color||lucky.time||lucky.keyword)
     ?'<div class="fortune-lucky">🍀 행운 아이템 '+escHtml(lucky.item||'-')+' · 컬러 '+escHtml(lucky.color||'-')+' · 시간 '+escHtml(lucky.time||'-')+' · 키워드 '+escHtml(lucky.keyword||'-')+'</div>'
@@ -2341,14 +2512,16 @@ function renderFortuneCardsHtml(result,compact){
       +'<div class="fortune-head"><span>'+escHtml(result.systemLabel||'🔮 종합')+'</span><span class="fortune-head-score">'+scoreRingHtml(result.score||0,true)+'<span>'+escHtml(result.fortune||'평')+'</span></span></div>'
       +'<div class="fortune-meta">'
         +(result.date?'<span class="fortune-pill">'+escHtml(result.date)+'</span>':'')
-        +'<span class="fortune-pill">'+escHtml(result.focusLabel||'전반')+' 포커스</span>'
+        +(result.topic
+          ?'<span class="fortune-pill">'+escHtml((result.topicEmoji||'')+' '+(result.topicLabel||''))+'</span>'
+          :'<span class="fortune-pill">'+escHtml(result.focusLabel||'전반')+' 포커스</span>')
         +'<span class="fortune-pill">'+escHtml(result.state||'안정')+' 흐름</span>'
       +'</div>'
       +'<div class="fortune-title">'+escHtml(result.headline||'오늘 운세 분석')+'</div>'
       +'<div class="fortune-summary">'+escHtml(result.summary||'')+'</div>'
       +luckyHtml
       +petHtml
-      +'<div class="fortune-grid'+(compact?' compact':'')+'">'+cards+'</div>'
+      +cards
     +'</div>';
 }
 
@@ -2372,7 +2545,10 @@ function shareFortune(targetId,btn){
   if(!node){toast('저장할 결과를 찾지 못했어요');return;}
   if(typeof html2canvas==='undefined'){toast('이미지 저장을 준비 중이에요, 잠시 후 다시 시도해줘 📸');return;}
   if(btn) btn.disabled=true;
-  html2canvas(node,{scale:2,backgroundColor:'#ffffff',useCORS:true}).then(function(c){
+  html2canvas(node,{scale:2,backgroundColor:'#ffffff',useCORS:true,onclone:function(doc){
+    // 접힌 카드는 캡처에 안 잡히므로 복제본에서만 펼친다(화면은 그대로).
+    doc.querySelectorAll('details.fortune-more').forEach(function(d){d.open=true;});
+  }}).then(function(c){
     var fname='운세다마_'+getTodayKey()+'.png';
     function fallbackDownload(){var a=document.createElement('a');a.href=c.toDataURL('image/png');a.download=fname;a.click();toast('이미지로 저장했어요 📸');if(btn)btn.disabled=false;}
     if(c.toBlob){
@@ -2492,7 +2668,11 @@ function openChat(){
 
 function closeChat(){document.getElementById('chat-modal').classList.remove('on');}
 
-function quickAsk(q){document.getElementById('chat-inp').value=q; sendChat();}
+function quickTopic(topic){
+  var t=FORTUNE_TOPICS[topic]; if(!t) return;
+  var inp=document.getElementById('chat-inp'); if(inp) inp.value=t.q;
+  sendChat(null,topic);
+}
 function quickCat(cat,q){document.getElementById('chat-inp').value=q; sendChat(cat);}
 
 // ── 일반 대화 로컬 응답 ───────────────────────────────────────────────────
@@ -2521,13 +2701,17 @@ function buildChatReply(q,petName,el){
   return rep[Math.floor(Math.random()*rep.length)];
 }
 
-function sendChat(forceCat){
+function sendChat(forceCat,forceTopic){
   var inp=document.getElementById('chat-inp');
   var q=inp.value.trim(); if(!q) return;
   var cat=forceCat||chatCat;
   var isFortune=true;
   if(isFortune&&G.chatCount>=5){addBotMsg('오늘 운세 질문 5회를 모두 사용했어요. 내일 다시 물어봐줘 💙');return;}
   inp.value='';
+  // 할당량 통과 뒤에 칩을 표시해야 소진된 사용자가 답 없는 선택 상태로 남지 않는다.
+  document.querySelectorAll('.quick-chip').forEach(function(b){
+    b.classList.toggle('is-active',b.getAttribute('data-topic')===(forceTopic||''));
+  });
   var uEl=addUserMsg(q); if(uEl) uEl.setAttribute('data-cat',cat);
   var todayStr=getTodayKey();
   if(normalizeDayKey(G.chatDate)!==todayStr){G.chatCount=0;G.chatDate=todayStr;}
@@ -2538,7 +2722,7 @@ function sendChat(forceCat){
   var baseFortune=scoreToFortune(baseScore);
   var zName=G.zodiac||'dragon';
   var todayLabel=todayGanji().label;
-  var baseMeta=createFortuneMeta(cat,baseScore,baseFortune,G.petName,zName,todayLabel,q);
+  var baseMeta=createFortuneMeta(cat,baseScore,baseFortune,G.petName,zName,todayLabel,q,forceTopic);
 
   if(cat==='general'){
     var generalLoading=addFortuneSkeletonMsg('종합 운세 분석 중… 시스템별 결과를 카드로 정리하고 있어 🔮',false);
@@ -2546,10 +2730,10 @@ function sendChat(forceCat){
       if(thisReq!==_reqId) return;
       if(generalLoading&&generalLoading.parentNode){generalLoading.remove();}
       var tabs=[
-        {key:'saju',label:'📿 사주',result:buildTamaSajuResult(shiftedMeta(baseMeta,2,13))},
-        {key:'ziwei',label:'🌌 자미두수',result:buildTamaZiweiResult(shiftedMeta(baseMeta,-1,29))},
-        {key:'astrology',label:'⭐ 점성술',result:buildTamaAstrologyResult(shiftedMeta(baseMeta,1,47))},
-        {key:'tarot',label:'🃏 타로',result:buildTamaTarotResult(shiftedMeta(baseMeta,0,71))}
+        {key:'saju',label:'📿 사주',result:applyTopicView(buildTamaSajuResult(shiftedMeta(baseMeta,2,13)))},
+        {key:'ziwei',label:'🌌 자미두수',result:applyTopicView(buildTamaZiweiResult(shiftedMeta(baseMeta,-1,29)))},
+        {key:'astrology',label:'⭐ 점성술',result:applyTopicView(buildTamaAstrologyResult(shiftedMeta(baseMeta,1,47)))},
+        {key:'tarot',label:'🃏 타로',result:applyTopicView(buildTamaTarotResult(shiftedMeta(baseMeta,0,71)))}
       ];
       var scores=tabs.map(function(t){return t.result.score;});
       var avg=Math.round(scores.reduce(function(a,b){return a+b;},0)/scores.length);
@@ -2558,7 +2742,7 @@ function sendChat(forceCat){
       addGeneralFortuneMsg({
         score:avg,
         fortune:scoreToFortune(avg),
-        summary:buildTamaGeneralResult(shiftedMeta(baseMeta,avg-baseMeta.score,97)),
+        summary:applyTopicView(buildTamaGeneralResult(shiftedMeta(baseMeta,avg-baseMeta.score,97))),
         tabs:tabs
       });
     },680);
@@ -2575,7 +2759,7 @@ function sendChat(forceCat){
   setTimeout(function(){
     if(thisReq!==_reqId) return;
     if(botEl&&botEl.parentNode){botEl.remove();}
-    var result=buildFortuneResultByCategory(cat,baseMeta);
+    var result=applyTopicView(buildFortuneResultByCategory(cat,baseMeta));
     addFortuneResultMsg(result);
     G.fortune=clampScore((G.fortune*2+result.score)/3);
     updateUI();
