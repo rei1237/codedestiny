@@ -867,6 +867,180 @@ class AnalysisEngine {
   // 얼굴 점(點/痣) 위치별 관상학적 해석 시스템
   // 전통 관상학 12궁(十二宮) 기반 점 위치 분석
   // ============================================
+  // ── 점(痣) 실검출 ────────────────────────────────────────────────────────
+  // 예전에는 얼굴 비율의 해시를 시드로 Math.sin() 의사난수를 돌려 12구역의 점을 지어냈다.
+  // 유료 섹션(오관·점 정밀 분석, 5,000원) 안에서 그러고 있었다.
+  // 지금은 실제 화소를 읽는다. 읽을 화소가 없으면 지어내지 않고 '판독 불가'로 남긴다.
+  //
+  // analyze() 의 시그니처는 검증 스크립트가 문자열로 고정하고 있어 인자를 늘릴 수 없다.
+  // 그래서 분석 직전에 이 메서드로 이미지를 따로 넘긴다.
+  setMoleSource(source) {
+    this._moleSample = null;
+    if (!source) return false;
+    try {
+      const width = Number(source.naturalWidth || source.videoWidth || source.width || 0);
+      const height = Number(source.naturalHeight || source.videoHeight || source.height || 0);
+      if (!width || !height) return false;
+
+      // 화소를 읽기만 하면 되므로 긴 변 640 이면 충분하다(점 하나가 여전히 수 px 이다).
+      const scale = Math.min(1, 640 / Math.max(width, height));
+      const w = Math.max(1, Math.round(width * scale));
+      const h = Math.max(1, Math.round(height * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      const ctx = canvas.getContext('2d', { alpha: false, willReadFrequently: true });
+      if (!ctx) return false;
+      ctx.drawImage(source, 0, 0, w, h);
+      // 원본이 다른 출처면 getImageData 가 보안 오류로 막힌다 — 그때는 판독 불가로 간다.
+      this._moleSample = { data: ctx.getImageData(0, 0, w, h).data, width: w, height: h };
+      return true;
+    } catch (error) {
+      console.warn('점 분석용 화소를 읽지 못했습니다(판독 불가로 진행):', error);
+      this._moleSample = null;
+      return false;
+    }
+  }
+
+  clearMoleSource() {
+    this._moleSample = null;
+  }
+
+  /**
+   * 한 구역에서 점을 찾는다.
+   *
+   * 주변 피부보다 뚜렷하게 어두우면서, 작고, 뭉쳐 있고, 둥근 덩어리만 점으로 본다.
+   * 문턱은 고정값이 아니라 그 구역 자체의 중앙값·MAD 로 잡는다 — 조명·피부톤이 사람마다
+   * 다르고 같은 얼굴에서도 이마와 턱이 다르기 때문이다.
+   *
+   * @returns {{detected:boolean, confidence:number, darkness:number, warm:boolean}|null}
+   *          null 이면 판독 불가(화소 없음 / 구역이 화면 밖 / 어두운 구조물이 구역을 덮음)
+   */
+  detectMoleInRegion(region, faceLengthPx) {
+    const sample = this._moleSample;
+    if (!sample || !region) return null;
+
+    const { data, width, height } = sample;
+    const cx = region.cx * width;
+    const cy = region.cy * height;
+    // region.radius 는 faceLength(주로 세로 성분) 기준 정규화 거리다.
+    const radius = Math.max(4, region.radius * height);
+    const x0 = Math.max(0, Math.floor(cx - radius));
+    const y0 = Math.max(0, Math.floor(cy - radius));
+    const x1 = Math.min(width - 1, Math.ceil(cx + radius));
+    const y1 = Math.min(height - 1, Math.ceil(cy + radius));
+    if (x1 - x0 < 5 || y1 - y0 < 5) return null;
+
+    const boxW = x1 - x0 + 1;
+    const boxH = y1 - y0 + 1;
+    const lum = new Float32Array(boxW * boxH);
+    const inside = new Uint8Array(boxW * boxH);
+    const warmth = new Float32Array(boxW * boxH);
+    const values = [];
+    const r2 = radius * radius;
+
+    for (let y = y0; y <= y1; y += 1) {
+      for (let x = x0; x <= x1; x += 1) {
+        const i = (y - y0) * boxW + (x - x0);
+        const dx = x - cx;
+        const dy = y - cy;
+        if (dx * dx + dy * dy > r2) continue;
+        const p = (y * width + x) * 4;
+        const r = data[p];
+        const g = data[p + 1];
+        const b = data[p + 2];
+        const value = 0.299 * r + 0.587 * g + 0.114 * b;
+        lum[i] = value;
+        // 점은 갈색 계열(R>B)이고, 머리카락·그림자는 그 차이가 거의 없다.
+        warmth[i] = (r - b) / 255;
+        inside[i] = 1;
+        values.push(value);
+      }
+    }
+    if (values.length < 40) return null;
+
+    values.sort((a, b) => a - b);
+    const median = values[values.length >> 1];
+    const deviations = [];
+    for (let i = 0; i < values.length; i += 1) deviations.push(Math.abs(values[i] - median));
+    deviations.sort((a, b) => a - b);
+    const mad = deviations[deviations.length >> 1];
+    // 완전히 평평한 구역(MAD 0)에서 문턱이 0 이 되면 화소 하나하나가 후보가 된다.
+    const threshold = median - Math.max(6, 2.5 * mad);
+
+    const dark = new Uint8Array(boxW * boxH);
+    let darkCount = 0;
+    for (let i = 0; i < dark.length; i += 1) {
+      if (inside[i] && lum[i] < threshold) { dark[i] = 1; darkCount += 1; }
+    }
+    if (!darkCount) return { detected: false, confidence: 0, darkness: 0, warm: false };
+
+    // 어두운 화소가 구역을 넓게 덮으면 그건 점이 아니라 머리카락·눈썹·콧구멍·그늘이다.
+    // 그런 구역은 '없다'가 아니라 '판독 불가'로 돌려보낸다.
+    if (darkCount / values.length > 0.25) return null;
+
+    // 연결요소(4이웃)로 덩어리를 모은다.
+    const seen = new Uint8Array(boxW * boxH);
+    const stack = [];
+    let best = null;
+    for (let start = 0; start < dark.length; start += 1) {
+      if (!dark[start] || seen[start]) continue;
+      stack.length = 0;
+      stack.push(start);
+      seen[start] = 1;
+      let area = 0;
+      let sumLum = 0;
+      let sumWarm = 0;
+      let minX = boxW;
+      let maxX = -1;
+      let minY = boxH;
+      let maxY = -1;
+      while (stack.length) {
+        const idx = stack.pop();
+        const ix = idx % boxW;
+        const iy = (idx - ix) / boxW;
+        area += 1;
+        sumLum += lum[idx];
+        sumWarm += warmth[idx];
+        if (ix < minX) minX = ix;
+        if (ix > maxX) maxX = ix;
+        if (iy < minY) minY = iy;
+        if (iy > maxY) maxY = iy;
+        const neighbours = [
+          ix > 0 ? idx - 1 : -1,
+          ix < boxW - 1 ? idx + 1 : -1,
+          iy > 0 ? idx - boxW : -1,
+          iy < boxH - 1 ? idx + boxW : -1
+        ];
+        for (let n = 0; n < 4; n += 1) {
+          const next = neighbours[n];
+          if (next >= 0 && dark[next] && !seen[next]) { seen[next] = 1; stack.push(next); }
+        }
+      }
+
+      const blobW = maxX - minX + 1;
+      const blobH = maxY - minY + 1;
+      const diameter = Math.max(blobW, blobH);
+      // 점의 크기: 얼굴 길이의 0.5%~4%. 이보다 작으면 잡티·노이즈, 크면 그림자·수염이다.
+      if (diameter < faceLengthPx * 0.005 || diameter > faceLengthPx * 0.04) continue;
+      // 둥글기: 가로세로가 크게 어긋나거나 바운딩박스를 성기게 채우면 선(주름·머리카락)이다.
+      const aspect = blobW / blobH;
+      if (aspect < 0.5 || aspect > 2) continue;
+      if (area / (blobW * blobH) < 0.5) continue;
+
+      const meanLum = sumLum / area;
+      const contrast = median > 0 ? (median - meanLum) / median : 0;
+      if (!best || contrast > best.darkness) {
+        best = { detected: true, darkness: contrast, warm: sumWarm / area > 0.12, area: area };
+      }
+    }
+
+    if (!best) return { detected: false, confidence: 0, darkness: 0, warm: false };
+    // 주변보다 12% 어두우면 확신 0, 45% 이상이면 확신 1 로 본다.
+    best.confidence = Math.max(0, Math.min(1, (best.darkness - 0.12) / 0.33));
+    return best;
+  }
+
   analyzeMolePositions(landmarks, features) {
     // 주요 랜드마크 추출
     const FOREHEAD = landmarks[10];
@@ -1081,61 +1255,55 @@ class AnalysisEngine {
       }
     ];
 
-    // ── 얼굴 측정값의 해시를 시드로 사용하여 결정적 점 분석 생성 ──
-    const seedValue = Math.abs(
-      Math.round(features.faceRatio * 10000) +
-      Math.round(features.eyeSlant * 1000) +
-      Math.round(features.eyeDistRatio * 10000) +
-      Math.round(features.noseWidthRatio * 10000) +
-      Math.round(features.mouthRatio * 10000) +
-      Math.round(features.chinLength * 10000) +
-      Math.round((features.earRatio || 0) * 10000)
-    );
-
-    // 시드 기반 의사 난수 생성기 (동일 얼굴 = 동일 결과)
-    const seededRandom = (seed, index) => {
-      const x = Math.sin(seed * 9301 + index * 49297 + 233280) * 49297;
-      return x - Math.floor(x);
-    };
-
-    // ── 각 영역에 대해 점 존재 여부 및 길흉 판정 ──
+    // ── 각 영역의 화소를 실제로 읽어 점을 찾는다 ──
+    // 🔴 여기는 유료 섹션이다. 화소를 못 읽으면 점을 지어내지 않고 '판독 불가'로 돌려보낸다.
+    //    (2026-08-13 이전에는 얼굴 비율 해시를 시드로 Math.sin() 난수를 돌려 약 15% 구역에
+    //     점을 만들고 그중 65% 를 길점으로 찍었다. 사진과 아무 관계가 없었다.)
+    const faceLengthPx = faceLength * (this._moleSample ? this._moleSample.height : 0);
     const moleReadings = [];
-    let detectedCount = 0;
+    let unreadableZones = 0;
+    let readableZones = 0;
 
-    zones.forEach((zone, idx) => {
-      const rand = seededRandom(seedValue, idx);
-      // Zero-Ghost Mole Policy: 명확한 증거 없이 점을 만들지 않는다
-      // 약 15%의 영역에서만 점이 감지됨 (오탐 방지)
-      const hasSignal = rand < 0.15;
-      
-      if (hasSignal) {
-        detectedCount++;
-        const isGood = seededRandom(seedValue, idx + 100) > 0.35; // 65% 확률로 길점
-        const moleData = isGood ? zone.goodMole : zone.badMole;
-        
-        moleReadings.push({
-          zone: zone.name,
-          icon: zone.icon,
-          position: zone.position,
-          type: isGood ? 'good' : 'bad',
-          typeLabel: isGood ? '활점(活痣) — 吉' : '사점(死痣) — 凶',
-          title: moleData.title,
-          description: moleData.desc,
-          advice: moleData.advice
-        });
-      }
+    zones.forEach((zone) => {
+      const hit = this.detectMoleInRegion(zone.region, faceLengthPx);
+      if (!hit) { unreadableZones += 1; return; }
+      readableZones += 1;
+      if (!hit.detected || hit.confidence < 0.25) return;
+
+      // 활점(活痣)은 윤기 있는 갈색, 사점(死痣)은 검고 칙칙하다.
+      // 가르는 축은 짙기가 아니라 색이다 — 실제 점은 활점이라도 피부보다 한참 어둡다.
+      // 짙기는 "거의 새까맣다"를 걸러내는 상한으로만 쓴다.
+      const isGood = hit.warm && hit.darkness < 0.75;
+      const moleData = isGood ? zone.goodMole : zone.badMole;
+
+      moleReadings.push({
+        zone: zone.name,
+        icon: zone.icon,
+        position: zone.position,
+        type: isGood ? 'good' : 'bad',
+        typeLabel: isGood ? '활점(活痣) — 吉' : '사점(死痣) — 凶',
+        title: moleData.title,
+        description: moleData.desc,
+        advice: moleData.advice,
+        confidence: Math.round(hit.confidence * 100)
+      });
     });
 
-    // 최대 4개 유지. 0개도 정상 결과 — 존재하지 않는 점은 만들지 않는다
+    // 확신이 높은 것부터. 0개도 정상 결과 — 존재하지 않는 점은 만들지 않는다.
+    moleReadings.sort((a, b) => b.confidence - a.confidence);
     if (moleReadings.length > 4) {
       moleReadings.splice(4);
     }
+    // 읽을 수 있었던 구역이 하나도 없으면 "점이 없다"가 아니라 "판독하지 못했다"이다.
+    const moleUnreadable = readableZones === 0;
 
     // 종합 판정
     const goodCount = moleReadings.filter(m => m.type === 'good').length;
     const badCount = moleReadings.filter(m => m.type === 'bad').length;
     let overallVerdict = '';
-    if (moleReadings.length === 0) {
+    if (moleUnreadable) {
+      overallVerdict = '이 사진에서는 <b>점을 판독하지 못했습니다</b>. 얼굴이 화면에서 너무 작거나, 그림자·머리카락이 부위를 덮고 있거나, 이미지 화소를 읽을 수 없는 경우입니다. 밝은 곳에서 얼굴이 크게 나오도록 정면으로 다시 촬영하시면 판독할 수 있습니다. <b>점이 없다는 뜻이 아닙니다.</b>';
+    } else if (moleReadings.length === 0) {
       overallVerdict = '깨끗한 옥(玉)과 같은 피부 — 얼굴 12궁 어디에서도 뚜렷한 점의 흔적이 감지되지 않았습니다. 잡티·그림자·모공을 점으로 오판하지 않은 결과입니다. 매끈하고 청명한 안면은 그 자체로 <b>맑은 기운(淸氣)이 서린 복상</b>입니다.';
     } else if (goodCount > badCount * 2) {
       overallVerdict = '얼굴 곳곳에 <b>길한 활점(活痣)이 우세</b>하여 타고난 복록이 두텁습니다. 점이 가리키는 방향대로 삶을 설계하면 순풍에 돛 단 듯 순탄합니다.';
@@ -1152,7 +1320,10 @@ class AnalysisEngine {
       totalDetected: moleReadings.length,
       goodCount,
       badCount,
-      overallVerdict
+      overallVerdict,
+      unreadable: moleUnreadable,
+      unreadableZones,
+      readableZones
     };
   }
 

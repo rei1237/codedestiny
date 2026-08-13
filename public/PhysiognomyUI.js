@@ -2013,11 +2013,19 @@ window.startCapture = async function() {
     const _phyImgW = _phyAspectSrc ? (_phyAspectSrc.naturalWidth || _phyAspectSrc.videoWidth || _phyAspectSrc.width || 0) : 0;
     const _phyImgH = _phyAspectSrc ? (_phyAspectSrc.naturalHeight || _phyAspectSrc.videoHeight || _phyAspectSrc.height || 0) : 0;
     const imageAspect = (_phyImgW > 0 && _phyImgH > 0) ? (_phyImgW / _phyImgH) : 1;
+    // 점(痣) 분석은 실제 화소를 읽는다. analyze() 의 인자는 검증이 문자열로 고정하고 있어
+    // 늘릴 수 없으므로 여기서 따로 넘긴다. 못 넘기면 엔진이 '판독 불가'로 답한다(점을 지어내지 않는다).
+    if (typeof window.faceAnalysisEngine.setMoleSource === 'function') {
+      window.faceAnalysisEngine.setMoleSource(_phyAspectSrc);
+    }
     const result = await withTimeout(
       window.faceAnalysisEngine.analyze(analysisLandmarks, expressionData, imageAspect),
       45000,
       'ANALYSIS_TIMEOUT'
     );
+    if (typeof window.faceAnalysisEngine.clearMoleSource === 'function') {
+      window.faceAnalysisEngine.clearMoleSource();
+    }
     if (controller.signal.aborted) throw new Error('ANALYSIS_ABORTED');
     setAnalysisProgress(0.96);
 
