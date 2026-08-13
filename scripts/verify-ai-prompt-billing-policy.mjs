@@ -125,6 +125,25 @@ assert.match(sajuAIGateSource, /code:\s*'PAYMENT_GATE_UNAVAILABLE'/, "saju promp
 assert.match(sajuPromptRequestSource, /featureKey:\s*'saju_ai_prompt_generator'/, "saju question prompt must use the 1514371 feature key");
 assert.match(sajuPromptRequestSource, /cost:\s*200/, "saju prompt must charge 200 coins for the 20,000 KRW result");
 assert.match(sajuPromptRequestSource, /amountKrw:\s*20000/, "saju prompt must pass the 20,000 KRW amount");
+// 🔴 셸의 결제 성공 검증(_cdHasVerifiedServerAccess / _cdHasVerifiedMonthlyConsumption)은 클라이언트가
+// 들고 있는 featureKey 와 서버가 정규화해 돌려준 featureKey 를 _cdServerAccessFeatureMatches 로 비교한다.
+// 서버 alias 표(PAID_FEATURE_KEY_ALIASES)에 있는 AI 프롬프트 쌍이 셸 alias 맵에 없으면, 차감이 끝난 뒤
+// 그 비교가 false 를 내고 MONTHLY_ACCESS_UNVERIFIED 가 재제안 루프에 걸려 결제창이 문구 없이 다시 열린다
+// (2026-08-13 사주 AI 상담 실사고 — 월정석이 빠져나간 뒤 첫 시도부터 항상 재현됐다).
+const shellAccessAliasSource = extractSourceBlock(
+  indexSource,
+  "function _cdNormalizeServerAccessFeatureKey(featureKey) {",
+  "function _cdServerAccessFeatureMatches(expectedFeature, actualFeature) {",
+);
+for (const promptFeatureKey of promptFeatures) {
+  const canonicalFeatureKey = normalizePaidFeatureKey(promptFeatureKey);
+  if (canonicalFeatureKey === promptFeatureKey) continue;
+  assert.match(
+    shellAccessAliasSource,
+    new RegExp(`${promptFeatureKey}:\\s*'${canonicalFeatureKey}'`),
+    `shell access-feature alias map must map ${promptFeatureKey} -> ${canonicalFeatureKey} (the server normalizes it, so the client must too)`,
+  );
+}
 assert.doesNotMatch(sajuPromptRequestSource, /allowedPaymentModes:\s*\['direct'\]/, "saju prompt must not be restricted to direct-only payment");
 assert.doesNotMatch(sajuPromptRequestSource, /disablePassChoice|forceDirectPayment|disablePassFirst/, "saju prompt must keep pass and monthly choices available");
 assert.match(sajuPromptRequestSource, /_sajuPromptPostWithPaidEvidence\(requestNonce,\s*question,\s*privacyOptions,\s*domain,\s*savedEvidence,\s*options\)/, "saju prompt must post with reusable paid evidence");

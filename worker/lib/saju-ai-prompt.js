@@ -1473,26 +1473,29 @@ function normalizeBirthInfo(profile, snapshot) {
   };
 }
 
+/* 🔴 기둥 표기는 한 가지가 아니다 — 엔진은 {g, j} 로 주고 다른 호출부·계약 픽스처는 {ganji:"丙子"} 로
+   준다. readPillar 가 그 둘을 모두 읽는 이 파일의 정본 리더인데(analysisBasis 는 그걸 쓴다) 여기만
+   {g, j} 를 직접 읽어서, ganji 표기로 들어오면 같은 입력이 근거에는 丙子 로 실리면서 프롬프트의
+   명식 블록에는 "--" 로 찍혔다. 리더를 하나로 맞춰 그 갈라짐을 없앤다. */
 function normalizePillars(pillars) {
   const p = pillars && typeof pillars === "object" ? pillars : {};
-  const y = p.y && typeof p.y === "object" ? p.y : {};
-  const m = p.m && typeof p.m === "object" ? p.m : {};
-  const d = p.d && typeof p.d === "object" ? p.d : {};
-  const h = p.h && typeof p.h === "object" ? p.h : {};
-
-  const yearPillar = `${toText(y.g, "-")}${toText(y.j, "-")}`;
-  const monthPillar = `${toText(m.g, "-")}${toText(m.j, "-")}`;
-  const dayPillar = `${toText(d.g, "-")}${toText(d.j, "-")}`;
-  const hourPillar = `${toText(h.g, "-")}${toText(h.j, "-")}`;
+  const y = readPillar(p.y || p.year);
+  const m = readPillar(p.m || p.month);
+  const d = readPillar(p.d || p.day);
+  const h = readPillar(p.h || p.hour);
+  const join = (row) => `${toText(row.stem, "-")}${toText(row.branch, "-")}`;
 
   return {
-    yearPillar,
-    monthPillar,
-    dayPillar,
-    hourPillar,
-    dayStem: toText(d.g, DEFAULT_TEXT),
-    dayStemElement: toText(d.gE || ELEMENT_KO_BY_KEY[STEM_ELEMENT_KEY[d.g]], DEFAULT_TEXT),
-    dayStemPolarity: STEM_POLARITY_KO[STEM_POLARITY[d.g]] || DEFAULT_TEXT,
+    yearPillar: join(y),
+    monthPillar: join(m),
+    dayPillar: join(d),
+    hourPillar: join(h),
+    dayStem: toText(d.stem, DEFAULT_TEXT),
+    dayStemElement: toText(
+      ELEMENT_KO_BY_KEY[d.stemElement] || ELEMENT_KO_BY_KEY[STEM_ELEMENT_KEY[d.stem]],
+      DEFAULT_TEXT,
+    ),
+    dayStemPolarity: STEM_POLARITY_KO[STEM_POLARITY[d.stem]] || DEFAULT_TEXT,
   };
 }
 
@@ -1534,7 +1537,18 @@ function ensureSajuResultPresence(sajuResult) {
     throw new Error("MISSING_SAJU_RESULT");
   }
   const pillars = sajuResult.pillars;
-  if (!pillars || typeof pillars !== "object" || !pillars.d) {
+  const dayPillar = pillars && typeof pillars === "object" ? (pillars.d || pillars.day) : null;
+  if (!dayPillar) {
+    throw new Error("MISSING_SAJU_RESULT");
+  }
+  // 🔴 pillars.d 가 객체이기만 하면 통과하던 시절에는, 일간이 없어도 normalizePillars 가 "-" 로
+  // 채워 사실상 빈 명식으로 20,000원 과금 + LLM 호출이 끝까지 돌았다. 일간은 십성 확정표의 기준축이라
+  // 이게 없으면 상담 자체가 성립하지 않는다 — 결제 검증(handleSajuAIPrompt)보다 먼저 도는 이 지점에서
+  // 막아야 과금 전에 400 으로 끝난다.
+  // 🔴 판정은 readPillar 로 한다 — d.g/d.j 를 직접 읽으면 {ganji:"丙子"} 표기를 빈 명식으로 오인해
+  // 정상 입력을 400 으로 막는다(계약 검증 verify:analysis-basis-contract 가 그 표기를 쓴다).
+  const day = readPillar(dayPillar);
+  if (!day.stem || !day.branch) {
     throw new Error("MISSING_SAJU_RESULT");
   }
 }
@@ -2096,7 +2110,8 @@ export function buildSajuAIPromptWithDomain({
     kijishin: power.kijishin,
   });
   const purposePrompt = [
-    "[명식이 답하는 사주 AI 상담 v4]",
+    // 헤더 문자열은 SAJU_AI_PROMPT_VERSION(= promptVersion, 캐시 키 keyExtra)과 같은 세대를 가리켜야 한다.
+    `[명식이 답하는 사주 AI 상담 ${SAJU_AI_PROMPT_VERSION.replace(/^saju-myeongsik-ai-/, "")}]`,
     "아래 제공된 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다.",
     "LLM은 십성/오행/천간/지지 관계를 직접 계산하지 말고, 제공된 내부 계산값만 근거로 상담문을 작성합니다.",
     "상담문은 질문에만 짧게 답하지 말고 명식 전체의 성향, 십성 구조, 오행 균형, 현재 고민과의 연결, 조심할 패턴, 살리는 전략, 30일 실천 가이드를 포함합니다.",

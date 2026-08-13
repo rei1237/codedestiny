@@ -54,6 +54,10 @@ async function loadPromptOverrides(env) {
     return value || {};
   } catch (e) {
     // 조회 실패 = 오버라이드 없음. 호출부는 코드 기본값을 그대로 쓴다.
+    // 🔴 보관소도 함께 비운다. 이게 없으면 시스템 프롬프트는 코드 기본값으로 돌아가는데
+    // 도메인 템플릿만 아이솔레이트에 남은 옛 오버라이드를 계속 써서, 한 번의 생성 안에서
+    // 서로 다른 세대의 프롬프트가 섞인다.
+    setPromptTemplateOverrides({});
     return {};
   }
 }

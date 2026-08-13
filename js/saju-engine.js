@@ -5927,15 +5927,22 @@ function _cdAIPromptGate(input) {
 function _cdAIPromptGateEvidence(gateResult) {
   var gate = gateResult && typeof gateResult === 'object' ? gateResult : {};
   var data = gate.data && typeof gate.data === 'object' ? gate.data : {};
-  var consume = data.consume && typeof data.consume === 'object' ? data.consume : {};
-  var accessGrant = data.accessGrant && typeof data.accessGrant === 'object' ? data.accessGrant : {};
-  var accessDecision = data.accessDecision && typeof data.accessDecision === 'object' ? data.accessDecision : {};
-  var payment = data.payment && typeof data.payment === 'object' ? data.payment : undefined;
+  /* 🔴 게이트 응답의 모양이 경로마다 다르다 — coin-gate 는 {ok, data:{…}} 로 한 겹 감싸는데,
+     이용권 무료 통과(_cdBuildPassBypassPayload)는 accessGrant·freeBySubscription 을 최상위에 둔다.
+     data(한 층)만 읽으면 그 증거가 통째로 유실돼 서버가 결제 증빙을 못 찾고 402 를 낸다.
+     아래 _paymentContext 의 문자열 체인도 이 세 객체를 폴백으로 쓰므로 여기만 고치면 함께 회복된다.
+     _cdAIPromptIsPassPayload(위)가 이미 쓰는 레이어 스캔과 같은 계약이다. */
+  var layers = _cdAIPromptPayloadLayers(gate.payload);
+  var consume = _cdAIPromptFirstObject(layers, 'consume');
+  var accessGrant = _cdAIPromptFirstObject(layers, 'accessGrant');
+  var accessDecision = _cdAIPromptFirstObject(layers, 'accessDecision');
+  var paymentLayer = _cdAIPromptFirstObject(layers, 'payment');
+  var payment = Object.keys(paymentLayer).length ? paymentLayer : undefined;
   return {
     requestId: String(gate.requestId || data.requestId || accessDecision.requestId || accessGrant.requestId || consume.requestId || '').trim(),
     accessGrant: accessGrant,
     accessDecision: accessDecision,
-    freeBySubscription: data.freeBySubscription === true,
+    freeBySubscription: layers.some(function(layer) { return layer && layer.freeBySubscription === true; }),
     consume: consume,
     payment: payment,
     _paymentContext: {
@@ -7809,6 +7816,22 @@ function _bindSajuQuestionPromptCard(rootEl) {
         return;
       }
       if (code === 'PAYMENT_REQUIRED' || code === 'INSUFFICIENT_COINS' || result.status === 402) {
+        // 게이트를 통과해 결제가 끝난 뒤의 402 는 '미결제'가 아니라 서버가 방금 받은 결제를 못 찾은 것이다.
+        // 여기서 증거를 버리면 다음 클릭이 결제창을 새로 열어 같은 상담에 두 번 결제한다(아래 5xx 분기와 같은 사고).
+        // 다만 보관된 증거로 재시도했는데 또 402 면 그 증거가 실제로 유효하지 않은 것이므로 놓아준다 —
+        // 그래야 사용자가 결제창을 다시 열 길이 남는다.
+        if (result._sajuPaidEvidence && !reusePaidEvidence) {
+          rememberPendingJob(Object.assign({}, activePendingJob || {}, {
+            requestId: payload.requestId || (activePendingJob && activePendingJob.requestId),
+            profileId: (activePendingJob && activePendingJob.profileId) || _sajuPromptResolveProfileId(),
+            question: question,
+            domain: domain,
+            privacyOptions: privacyOptions,
+            paidEvidence: result._sajuPaidEvidence
+          }));
+          markFailedForRetry(activePendingJob, message, code || 'PAYMENT_REQUIRED');
+          return;
+        }
         clearPaidEvidence();
         _sajuPromptSetStatus(statusEl, message, 'error');
         return;
