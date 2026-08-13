@@ -74,8 +74,16 @@
 /fortune/tomorrow/ziwei/*      /ziwei/                   301
 /fortune/weekly/ziwei/*        /ziwei/                   301
 /fortune/monthly/ziwei/*       /ziwei/                   301
-/fortune                       /daily-fortune            301
-/fortune/                      /daily-fortune            301
+/fortune                       /today/                   301
+/fortune/                      /today/                   301
+
+# 2026-08-13 /daily-fortune 을 /today 로 통합.
+# 둘 다 "오늘의 운세"를 노렸고 설명문까지 거의 같아 서로를 잠식했다. /today 를 남긴 이유:
+# ko/ja/zh/zh-TW/en hreflang 클러스터를 가진 쪽이고(daily-fortune 은 로케일 변형이 없다),
+# scripts/check-seo-health.mjs 가 /today/ 를 allowRedirect:false + 정확히 200 으로 단언한다.
+# 위 /fortune 도 함께 /today/ 로 돌린다 — 안 그러면 /fortune → /daily-fortune → /today 2홉 체인이 된다.
+/daily-fortune                 /today/                   301
+/daily-fortune/                /today/                   301
 # 2026-05-28 abdb642f5 가 app/saju/love-secret 을 삭제하고 남긴 404.
 /saju/love-secret              /love-secret-ai/          301
 /saju/love-secret/             /love-secret-ai/          301

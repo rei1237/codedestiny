@@ -67,12 +67,6 @@
     <priority>0.60</priority>
   </url>
   <url>
-    <loc>https://code-destiny.com/daily-fortune/</loc>
-    <lastmod>2026-08-13</lastmod>
-    <changefreq>daily</changefreq>
-    <priority>0.97</priority>
-  </url>
-  <url>
     <loc>https://code-destiny.com/destiny-compass/</loc>
     <lastmod>2026-08-13</lastmod>
     <changefreq>weekly</changefreq>

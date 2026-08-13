@@ -40,7 +40,6 @@ const DEFAULT_RELATED_LABELS = {
   "/tarot/reunion": "재회 타로 리딩",
   "/tarot/mindscan": "상대 마음 타로",
   "/today": "오늘의 운세 보기",
-  "/daily-fortune": "오늘의 운세 보기",
   "/love": "연애운 보기",
   "/ziwei": "자미두수 12궁 명반",
   "/astrology": "점성술 출생차트",

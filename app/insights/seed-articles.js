@@ -277,7 +277,7 @@ function resolveServiceLink(categoryLabel) {
   if (categoryLabel === "타로") return "/tarot";
   if (categoryLabel === "점성술") return "/astrology";
   if (categoryLabel === "베다점") return "/vedic";
-  if (categoryLabel === "오늘의 운세") return "/daily-fortune";
+  if (categoryLabel === "오늘의 운세") return "/today";
   if (categoryLabel === "궁합") return "/compatibility";
   return "/insights";
 }

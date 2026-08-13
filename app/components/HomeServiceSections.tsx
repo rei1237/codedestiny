@@ -38,7 +38,6 @@ function getCurrentHomeServiceLocale(): LoadingLocale {
 
 const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
   "/saju/basic": "/saju/basic",
-  "/daily-fortune": "/index.html",
   "/manse": "/index.html",
   "/compatibility": "/index.html?action=runCompat",
   "/tarot/mingri": "/tarot/mingri",

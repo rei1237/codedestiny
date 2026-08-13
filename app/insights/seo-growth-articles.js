@@ -96,13 +96,13 @@ const CATEGORY_LINKS = {
     { href: "/sukuyo", label: seoGrowthArticleText("sga_21_prop_label") },
     { href: "/sukuyo/compatibility", label: seoGrowthArticleText("sga_22_prop_label") },
     { href: "/compatibility", label: seoGrowthArticleText("sga_23_prop_label") },
-    { href: "/daily-fortune", label: seoGrowthArticleText("sga_24_prop_label") },
+    { href: "/today", label: seoGrowthArticleText("sga_24_prop_label") },
   ],
   "사주": [
     { href: "/saju", label: seoGrowthArticleText("sga_27_prop_label") },
     { href: "/manse", label: seoGrowthArticleText("sga_28_prop_label") },
     { href: "/compatibility", label: seoGrowthArticleText("sga_29_prop_label") },
-    { href: "/daily-fortune", label: seoGrowthArticleText("sga_30_prop_label") },
+    { href: "/today", label: seoGrowthArticleText("sga_30_prop_label") },
   ],
   "타로": [
     { href: "/tarot", label: seoGrowthArticleText("sga_33_prop_label") },
@@ -113,7 +113,7 @@ const CATEGORY_LINKS = {
   "점성술": [
     { href: "/astrology", label: seoGrowthArticleText("sga_39_prop_label") },
     { href: "/vedic", label: seoGrowthArticleText("sga_40_prop_label") },
-    { href: "/daily-fortune", label: seoGrowthArticleText("sga_41_prop_label") },
+    { href: "/today", label: seoGrowthArticleText("sga_41_prop_label") },
   ],
   "베다점성술": [
     { href: "/vedic", label: seoGrowthArticleText("sga_44_prop_label") },

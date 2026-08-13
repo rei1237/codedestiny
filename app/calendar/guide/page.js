@@ -194,7 +194,7 @@ export default function CalendarGuidePage() {
 
       <nav className="cd-chip-wrap" aria-label="운세 달력 가이드 관련 링크">
         <Link href="/today" className="cd-chip">오늘의 운세</Link>
-        <Link href="/daily-fortune" className="cd-chip">데일리 운세</Link>
+        <Link href="/today" className="cd-chip">데일리 운세</Link>
         <Link href="/manse" className="cd-chip">만세력 보기</Link>
         <Link href="/saju/guide" className="cd-chip">사주 가이드</Link>
         <Link href="/disclaimer" className="cd-chip">면책 고지</Link>

@@ -42,7 +42,7 @@ const SEO_LINK_GROUPS = [
       { href: "/kkul-kkul-unse", text: "꿀꿀 운세 — 코드 데스티니 브랜드 안내" },
       { href: "/saju", text: "무료 사주풀이 보기" },
       { href: "/manse", text: "꿀꿀 만세력 확인하기" },
-      { href: "/daily-fortune", text: "오늘의 운세 확인하기" },
+      { href: "/today", text: "오늘의 운세 확인하기" },
       { href: "/compatibility", text: "사주 궁합 분석하기" },
       { href: "/premium", text: "프리미엄 운세 리포트" },
       { href: "/saju/basic", text: "사주 만세력 기본 해석" },

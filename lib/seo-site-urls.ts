@@ -69,7 +69,6 @@ const ROUTE_CANDIDATES: SitemapRouteEntry[] = [
   { path: "/health-report/guide", changeFrequency: "monthly", priority: 0.87 },
   { path: "/manse",         changeFrequency: "daily", priority: 0.98 },
   { path: "/today",         changeFrequency: "daily", priority: 0.97 },
-  { path: "/daily-fortune", changeFrequency: "daily", priority: 0.97 },
   { path: "/calendar/guide", changeFrequency: "monthly", priority: 0.88 },
   { path: "/compatibility", changeFrequency: "weekly", priority: 0.96 },
   { path: "/saju/compatibility", changeFrequency: "weekly", priority: 0.96 },
