@@ -328,6 +328,7 @@
     "cms:apply-novel": "node scripts/apply-vn-overrides.mjs && node scripts/build-story-text.mjs",
     "verify:vn-override-safety": "node scripts/verify-vn-override-safety.mjs",
     "verify:cms-registry": "node scripts/verify-cms-registry.mjs",
+    "migrate:insight-seo-publish-drift": "node scripts/migrations/20260813-repair-insight-seo-publish-drift.mjs",
     "ensure:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs",
     "verify:pages-single-deploy": "node scripts/ensure-pages-single-deploy.mjs --check",
     "verify:pages-single-deploy-guard": "node scripts/verify-pages-single-deploy-guard.mjs",
