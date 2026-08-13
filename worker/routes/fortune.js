@@ -97,7 +97,7 @@ import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { canUseByPass, isActiveStatus, isInactiveStatus, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
 import { resolveCanonicalEntitlement } from "../lib/entitlement-policy.js";
-import { calculateKrwAmountFromCoins } from "../lib/billing-policy.js";
+import { calculateKrwAmountFromCoins, calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { autoRefundSinglePaymentDeliveryFailure } from "../lib/payment-refund.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 
@@ -897,8 +897,12 @@ async function refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, req
   const userId = String(auth?.userId || "").trim();
   if (!userId) return { attempted: true, refundOk: false };
 
+  // monthlyCreditRefundedForUnlockFailure 는 이름과 달리 "이 환불은 유니크 키를 놓는다"는 계약 마커다
+  // (love-secret-ai.js 가 쓰는 관례). 이게 없으면 billing.js readIdempotentSpendResult 의 PointHistory
+  // 갈래가 환불된 이력을 "이미 결제됨"으로 되돌려, 재구매가 E11000 복구(=키 해제)에 도달조차 못 한다.
   const marker = {
     "metadata.monthlyCreditRefundedForServiceExecution": true,
+    "metadata.monthlyCreditRefundedForUnlockFailure": true,
     "metadata.monthlyCreditRefundedAt": new Date(),
     "metadata.serviceExecutionFailureMessage": String(error?.message || error || "").slice(0, 500),
     "metadata.serviceExecutionRequestId": String(requestId || "").slice(0, 120),
@@ -917,6 +921,9 @@ async function refundSajuAIPromptMonthlyCredit({ auth, consumePayload, body, req
         $set: {
           ...marker,
           "metadata.refundedForServiceExecution": true,
+          // 원장 쪽 키 해제 계약 표식 — releaseRefundedSpendSourceId(billing.js)가 이 표식으로만
+          // 환불 원장을 골라 sourceId 를 비운다. 없으면 같은 purchaseId 재구매가 영구 E11000 이다.
+          "metadata.refundedForUnlockFailure": true,
           "metadata.refundedAt": new Date(),
         },
       },
@@ -1330,6 +1337,12 @@ async function findAIPromptPaymentEvidence({ auth, featureKey, body, requestId, 
     userId,
     kind: "deduct",
     featureKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0],
+    // 월정석 환불은 kind:"refund" 행을 만들지 않고 원본 차감에 표식만 남기므로, 아래 refund 조회로는
+    // 구조적으로 안 걸린다. 형제 findAIPromptMonthlyCreditEvidence 와 같은 목록으로 맞춰 배제한다.
+    "metadata.refundedForUnlockFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForLedgerFailure": { $ne: true },
+    "metadata.monthlyCreditRefundedForServiceExecution": { $ne: true },
     $or: clauses,
   };
   const minCost = Math.floor(Number(cost || 0));
@@ -1379,7 +1392,7 @@ function buildAIPromptMonthlyCreditLedgerClauses(tokens) {
   return clauses;
 }
 
-async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId }) {
+async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId, cost }) {
   if (!isAIPromptMonthlyCreditAccessPayload(body) && !hasAIPromptMonthlyCreditEvidenceToken(body)) return null;
   const userId = String(auth?.userId || "").trim();
   const normalizedFeatureKey = normalizeFeatureKey(featureKey);
@@ -1388,11 +1401,18 @@ async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, reque
   const clauses = buildAIPromptMonthlyCreditLedgerClauses(tokens);
   if (!userId || !featureKeys.length || !clauses.length) return null;
 
+  // 🔴 단위 주의: 원장의 amount 는 월정석, 인자 cost 는 코인이다. 하한은 반드시 정본 변환기를 거친다
+  // (하드코딩 환산은 틀리는 순간 정상 결제가 402 로 떨어진다). billing 이 원장에 쓰는 amount 도
+  // 같은 calculateMembershipCreditCost 결과라 이 하한은 근사치가 아니라 정확히 일치한다.
+  const minCredit = isAIPromptPassAccessPayload(body)
+    ? 0
+    : Math.floor(Number(calculateMembershipCreditCost(cost) || 0));
+
   return MonthlyCreditLedger.findOne({
     userId,
     type: "MONTHLY_CREDIT_SPEND",
     serviceKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0],
-    amount: { $gt: 0 },
+    amount: minCredit > 0 ? { $gte: minCredit } : { $gt: 0 },
     "metadata.refundedForUnlockFailure": { $ne: true },
     "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
     "metadata.monthlyCreditRefundedForLedgerFailure": { $ne: true },
@@ -1578,7 +1598,7 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     if (payment) return { source: "payment", record: payment };
   }
 
-  const monthlyCredit = await findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId });
+  const monthlyCredit = await findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId, cost });
   if (monthlyCredit) return { source: "monthly_credit_ledger", record: monthlyCredit };
 
   return null;
