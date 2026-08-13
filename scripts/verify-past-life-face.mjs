@@ -152,30 +152,55 @@ const seedFor = (animal, features) => ({
   extractedFeatures: features,
 });
 
-// 얼굴형(4) × 삼정 우세(3) 를 실제로 그 분류로 떨어지게 만드는 수치 조합.
-// classifyFaceShape 의 가중치를 그대로 계산해 맞춘 값이라 임의로 바꾸면 분류가 흔들린다.
+// 얼굴형 × 삼정 우세를 실제로 그 분류로 떨어지게 만드는 수치 조합.
+//
+// 🔴 chinLength 는 반드시 samjung.lower 와 같아야 한다.
+//    AnalysisEngine.js 에서 두 값은 문자 그대로 같은 식(lower_len / total_samjung)이다.
+//    예전 케이스들은 이 둘을 서로 다른 값으로 넣어(예: chin 0.30 / lower 0.28) "60종 전부 도달"을
+//    통과시켰는데, 그 입력은 실제로는 존재할 수 없었다. 그래서 가드가 초록인 동안
+//    프로덕션에서는 실사진의 62.5% 가 도장의 장인(square:lower:3) 하나로 떨어지고 있었다.
+//    아래 assert 가 그 제약을 코드로 못 박는다.
+//
+// 아래 값들은 손으로 맞춘 게 아니라 실제 판정기를 격자 탐색해 뽑았다.
 const SHAPE_CASES = [
-  { label: 'round/upper',    faceRatio: 0.88, chinLength: 0.30, samjung: { upper: 0.40, middle: 0.32, lower: 0.28 } },
-  { label: 'round/middle',   faceRatio: 0.88, chinLength: 0.30, samjung: { upper: 0.30, middle: 0.40, lower: 0.30 } },
-  { label: 'round/lower',    faceRatio: 0.88, chinLength: 0.32, samjung: { upper: 0.28, middle: 0.32, lower: 0.40 } },
-  { label: 'square/upper',   faceRatio: 0.84, chinLength: 0.38, samjung: { upper: 0.40, middle: 0.32, lower: 0.28 } },
-  { label: 'square/middle',  faceRatio: 0.84, chinLength: 0.38, samjung: { upper: 0.29, middle: 0.41, lower: 0.30 } },
-  { label: 'square/lower',   faceRatio: 0.84, chinLength: 0.38, samjung: { upper: 0.28, middle: 0.32, lower: 0.40 } },
-  { label: 'long/upper',     faceRatio: 0.74, chinLength: 0.35, samjung: { upper: 0.40, middle: 0.32, lower: 0.28 } },
-  { label: 'long/middle',    faceRatio: 0.74, chinLength: 0.35, samjung: { upper: 0.28, middle: 0.40, lower: 0.32 } },
-  { label: 'long/lower',     faceRatio: 0.74, chinLength: 0.35, samjung: { upper: 0.28, middle: 0.33, lower: 0.39 } },
-  { label: 'triangle/upper', faceRatio: 0.82, chinLength: 0.28, samjung: { upper: 0.40, middle: 0.32, lower: 0.28 } },
-  { label: 'triangle/middle',faceRatio: 0.82, chinLength: 0.28, samjung: { upper: 0.33, middle: 0.39, lower: 0.28 } },
-  { label: 'triangle/lower', faceRatio: 0.79, chinLength: 0.28, samjung: { upper: 0.30, middle: 0.31, lower: 0.39 } },
-];
+  { label: 'round/upper',     faceRatio: 0.80, samjung: { upper: 0.310, middle: 0.290, lower: 0.400 } },
+  { label: 'round/middle',    faceRatio: 0.80, samjung: { upper: 0.290, middle: 0.305, lower: 0.405 } },
+  { label: 'round/lower',     faceRatio: 0.80, samjung: { upper: 0.305, middle: 0.290, lower: 0.405 } },
+  { label: 'square/upper',    faceRatio: 0.83, samjung: { upper: 0.320, middle: 0.270, lower: 0.410 } },
+  { label: 'square/middle',   faceRatio: 0.83, samjung: { upper: 0.260, middle: 0.315, lower: 0.425 } },
+  { label: 'square/lower',    faceRatio: 0.80, samjung: { upper: 0.260, middle: 0.280, lower: 0.460 } },
+  { label: 'long/upper',      faceRatio: 0.68, samjung: { upper: 0.310, middle: 0.290, lower: 0.400 } },
+  { label: 'long/middle',     faceRatio: 0.68, samjung: { upper: 0.260, middle: 0.315, lower: 0.425 } },
+  { label: 'long/lower',      faceRatio: 0.68, samjung: { upper: 0.260, middle: 0.280, lower: 0.460 } },
+  { label: 'triangle/upper',  faceRatio: 0.68, samjung: { upper: 0.330, middle: 0.305, lower: 0.365 } },
+  { label: 'triangle/middle', faceRatio: 0.68, samjung: { upper: 0.315, middle: 0.320, lower: 0.365 } },
+  // 🔴 triangle/lower 는 없다 — 논리적으로 불가능하다.
+  //    classifyFaceShape 의 역삼각형 판정은 상정이 하정보다 길 것(sj.upper > sj.lower + 0.04)과
+  //    짧은 턱(chin <= 0.30, 즉 하정이 짧을 것)을 요구한다. 하정이 우세이면서 역삼각형일 수 없다.
+  //    따라서 PLF_ROLES 의 'triangle:lower:0'~':4' 5종은 어떤 얼굴로도 도달하지 않는다.
+  //    (내용을 살리려면 그 5종을 도달 가능한 칸으로 다시 키잉해야 하는데 그건 콘텐츠 결정이다)
+].map((c) => Object.assign({}, c, { chinLength: c.samjung.lower }));
 
-// 신분 레인(0~4) = 코 너비 · 입 크기 · 귀 길이의 합산 구간. 얼굴형 12 × 레인 5 = 60 신분 전수 커버.
+for (const c of SHAPE_CASES) {
+  assert.equal(
+    c.chinLength,
+    c.samjung.lower,
+    `${c.label}: chinLength 와 samjung.lower 는 엔진에서 같은 식이므로 케이스도 같아야 한다`,
+  );
+  const sum = c.samjung.upper + c.samjung.middle + c.samjung.lower;
+  assert.ok(Math.abs(sum - 1) < 1e-9, `${c.label}: 삼정 합이 1 이어야 한다 (실제 ${sum})`);
+}
+
+// 신분 레인(0~4) = 코 너비 · 입 크기 · 미간 넓이의 합산 구간.
+// 🔴 세 번째 축이 earRatio 에서 eyeDistRatio 로 바뀌었다 — earHeight 는 랜드마크 127/132,
+//    둘 다 얼굴 윤곽선 위의 점이라 사람이 달라도 0.20~0.30 에 머무는 상수였다(정보량 0).
+// 얼굴형·삼정 11조합 × 레인 5 = 55 신분 전수 커버.
 const LANE_CASES = [
-  { label: 'lane0', noseWidthRatio: 0.80, mouthRatio: 1.20, earRatio: 0.14 },
-  { label: 'lane1', noseWidthRatio: 0.90, mouthRatio: 1.20, earRatio: 0.14 },
-  { label: 'lane2', noseWidthRatio: 0.90, mouthRatio: 1.35, earRatio: 0.18 },
-  { label: 'lane3', noseWidthRatio: 0.98, mouthRatio: 1.50, earRatio: 0.18 },
-  { label: 'lane4', noseWidthRatio: 0.98, mouthRatio: 1.50, earRatio: 0.22 },
+  { label: 'lane0', noseWidthRatio: 0.76, mouthRatio: 1.05, eyeDistRatio: 0.90 },
+  { label: 'lane1', noseWidthRatio: 0.76, mouthRatio: 1.05, eyeDistRatio: 1.16 },
+  { label: 'lane2', noseWidthRatio: 0.76, mouthRatio: 1.31, eyeDistRatio: 1.16 },
+  { label: 'lane3', noseWidthRatio: 0.76, mouthRatio: 1.43, eyeDistRatio: 1.16 },
+  { label: 'lane4', noseWidthRatio: 0.90, mouthRatio: 1.43, eyeDistRatio: 1.16 },
 ];
 
 const FACE_CASES = SHAPE_CASES.flatMap((shape) =>
@@ -223,9 +248,12 @@ for (const marker of [
 // 🔴 분량 회귀 방지 (2026-08 3차 개편). 개편 전 실측이 약 1,200자였고 개편 후가 3,400자대다.
 //    테이블에서 필드를 떼거나 장면을 도로 합치면 여기서 걸린다.
 const revealLength = revealText.replace(/\s+/g, ' ').trim().length;
+// 2026-08-13 4차 개편에서 공통 서사 레이어 7종(전조·인연·유물·계절·미완·반복·평판, 94항목)을
+// 더해 3,365자 → 3,865자가 됐다. 신분 표에 필드를 더 쓰지 않고 신분과 독립인 축의 해시로 뽑으므로,
+// 같은 신분이 나와도 글이 갈린다("늘 같은 글"로 읽히던 문제).
 assert.ok(
-  revealLength >= 3000,
-  `전생 리딩 분량이 3,000자 미만이다 (실제 ${revealLength}자). 서사 필드(standing/day/epitaph/aftermath/detail/origin 등)가 떨어져 나갔는지 확인할 것.`,
+  revealLength >= 3700,
+  `전생 리딩 분량이 3,700자 미만이다 (실제 ${revealLength}자). 서사 필드(standing/day/epitaph/aftermath/detail/origin)나 공통 레이어(omen/bond/relic/season/unfinished/recurrence/reputation)가 떨어져 나갔는지 확인할 것.`,
 );
 
 // 🔴 관상 근거는 서사가 아니라 신뢰 장치다 — 장면마다 한 번씩, 최소 5개 이상 붙어야 한다.
@@ -354,7 +382,7 @@ for (const faceCase of FACE_CASES) {
   }
   rolesByFace.set(role, faceCase.label);
 }
-assert.equal(rolesByFace.size, 60, `전생 신분 풀은 60종이어야 함 (실제 도달 ${rolesByFace.size}종)`);
+assert.equal(rolesByFace.size, 55, `도달 가능한 전생 신분은 55종이어야 함 (실제 도달 ${rolesByFace.size}종). 표에는 60종이 있지만 triangle:lower 5종은 논리적으로 불가능하다 — SHAPE_CASES 주석 참조`);
 
 // 6-4. 27종 × 60 얼굴 조합이 전부 서로 다른 리딩을 내는가
 const seen = new Map();
@@ -372,6 +400,72 @@ assert.equal(
   collisions.length,
   0,
   `전생 리딩이 중복됨 (${collisions.length}건). 서사 레이어가 27종 × 60 얼굴을 전부 덮어야 한다:\n  ${collisions.join('\n  ')}`,
+);
+
+// ── 6-4a. 🔴 실사진 대역 분포 가드 (2026-08-13 신설) ──
+// 위 6-4 는 "이론상 도달 가능한가"만 본다. 그것만으로는 이번 사고를 못 잡았다:
+// 표의 60칸을 전부 덮는 합성 입력이 있어도, 실제 얼굴이 그중 한 칸에만 살면 사용자는
+// 늘 같은 결과를 본다. 실제로 도장의 장인 하나가 실사진 대역의 62.5% 를 먹고 있었다.
+// 그래서 "실제 얼굴이 몰리는 좁은 구간"을 따로 쓸어 편중을 직접 단언한다.
+//   · 하정(코끝→턱끝)이 체계적으로 가장 길다
+//   · chinLength === samjung.lower (엔진에서 같은 식)
+const clusteredSamjung = [];
+for (const upper of [0.28, 0.30, 0.32, 0.34]) {
+  for (const middle of [0.26, 0.28, 0.30, 0.32]) {
+    const lower = Number((1 - upper - middle).toFixed(3));
+    if (lower < 0.36 || lower > 0.46) continue;
+    clusteredSamjung.push({ upper, middle, lower });
+  }
+}
+
+const roleHits = new Map();
+const laneTiers = new Set();
+let sweepTotal = 0;
+for (const samjung of clusteredSamjung) {
+  for (const faceRatio of [0.78, 0.82, 0.85, 0.88, 0.91]) {
+    for (const noseWidthRatio of [0.85, 0.95, 1.00]) {
+      for (const mouthRatio of [1.25, 1.38, 1.50]) {
+        for (const eyeDistRatio of [1.02, 1.10, 1.18]) {
+          window.openPastLifeFaceApp({
+            seed: seedFor(animals[0], {
+              faceRatio,
+              chinLength: samjung.lower,
+              samjung,
+              noseWidthRatio,
+              mouthRatio,
+              eyeDistRatio,
+              earRatio: 0.26,
+              eyeRatio: 2.7, eyeSlant: 0, lipThickness: 0.02,
+              browSlant: -1, browArch: 1.2, browEyeGap: 1.5,
+            }),
+          });
+          const role = roleOf();
+          roleHits.set(role, (roleHits.get(role) || 0) + 1);
+          laneTiers.add(window.document.querySelector('.plf-sharecard__tier').textContent.trim().split(' · ')[0]);
+          sweepTotal += 1;
+        }
+      }
+    }
+  }
+}
+
+const sweepRanked = [...roleHits.entries()].sort((a, b) => b[1] - a[1]);
+const [topRole, topHits] = sweepRanked[0];
+const topShare = topHits / sweepTotal;
+assert.ok(
+  topShare <= 0.12,
+  `실사진 대역에서 단일 신분 편중: ${topRole} ${(topShare * 100).toFixed(1)}% (상한 12%).\n` +
+    '  얼굴형·삼정·레인 축 중 하나가 실측 대역과 어긋나 한 칸으로 붕괴했는지 확인할 것 —\n' +
+    '  PastLifeFaceUI.js 의 plfRecenteredFeatures / plfRoleLane 을 볼 것.',
+);
+assert.ok(
+  sweepRanked.length >= 30,
+  `실사진 대역에서 도달한 신분이 ${sweepRanked.length}종뿐이다 (하한 30종). 축 하나가 상수로 굳었는지 확인할 것.`,
+);
+// 등급이 한 칸에 몰리면 희귀도 연출 자체가 죽는다.
+assert.ok(
+  laneTiers.size >= 3,
+  `실사진 대역에서 등급이 ${laneTiers.size}종뿐이다 (하한 3종): ${[...laneTiers].join(', ')}`,
 );
 
 // ── 6-5. 유료 궁합(5,000원) 실렌더 — 결제 후 빈 화면이 되는 회귀를 막는다 ──

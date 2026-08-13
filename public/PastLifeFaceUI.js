@@ -862,6 +862,133 @@
     '누군가의 뒷모습이 아는 사람 같아 한참을 돌아볼 때'
   ];
 
+  // ④-a 공통 서사 레이어 3종 (2026-08-13 추가)
+  //     신분 60종에 필드를 더 쓰지 않고, 신분과 독립인 모듈을 다른 축의 해시로 뽑아 조합한다.
+  //     그래서 같은 신분이 나와도 전조·인연·유물이 갈려 "늘 같은 글"로 읽히지 않는다.
+  //     역할 중립적으로 쓴다 — 55 신분 어디에 붙어도 어색하지 않아야 한다.
+
+  // 전조: 사건이 오기 전에 먼저 스쳤던 것. (얼굴 윤곽·눈썹 계열 해시)
+  const PLF_OMENS = [
+    '그해 봄, 늘 다니던 길에 없던 그림자가 하나 늘었습니다. 며칠 지나서야 그게 사람이었다는 걸 알았습니다.',
+    '어느 밤부터 같은 꿈이 반복됐습니다. 꿈에서 당신은 늘 무언가를 두고 나오는 중이었습니다.',
+    '문지방에서 두 번 넘어졌습니다. 늙어서라고 생각했지만, 그 뒤에 일어난 일을 알고 나서는 생각을 바꿨습니다.',
+    '기르던 짐승이 먼저 집을 나갔습니다. 사흘 뒤에 돌아왔는데, 그때는 이미 늦어 있었습니다.',
+    '우물물 맛이 달라졌다고 당신만 말했습니다. 아무도 동의하지 않았고, 당신은 그 말을 접었습니다.',
+    '누군가 당신의 이름을 부르는 소리에 돌아봤는데 아무도 없었습니다. 그런 날이 세 번 있었습니다.',
+    '오래 쓰던 물건이 손에서 미끄러져 깨졌습니다. 붙일 수 있었지만 붙이지 않았습니다.',
+    '그 계절에 유난히 새가 낮게 날았습니다. 어른들은 비가 온다고 했고, 비는 오지 않았습니다.',
+    '거울처럼 쓰던 물그릇에서 당신 얼굴이 낯설게 보인 날이 있었습니다. 눈만 다른 사람 같았습니다.',
+    '평소 잘 자던 당신이 그 무렵부터 새벽에 깼습니다. 깨어나서 하는 일은 없었습니다. 그냥 앉아 있었습니다.',
+    '한동안 아무 냄새도 맡지 못했습니다. 며칠 만에 돌아왔을 때 가장 먼저 맡은 것은 탄 냄새였습니다.',
+    '길에서 처음 보는 사람이 당신에게 인사를 했습니다. 아는 척을 했는데, 끝내 누구인지 알아내지 못했습니다.',
+    '쓰던 글씨가 그 무렵부터 조금씩 기울었습니다. 손이 아팠던 것은 아니었습니다.',
+    '멀리서 종소리가 들렸는데, 그 방향에는 종이 없었습니다. 당신은 그 이야기를 아무에게도 하지 않았습니다.'
+  ];
+
+  // 그 시절의 인연: 곁에 있던 한 사람. (수호령 기질축 + 미간 해시)
+  const PLF_BONDS = [
+    { who: '같은 일을 하던 손아래 사람', line: '당신을 흉내 내며 배웠고, 나중에는 당신보다 잘하게 됐습니다. 당신은 그게 기뻤고 동시에 조금 서운했습니다.' },
+    { who: '한 번도 편들어 준 적 없던 윗사람', line: '끝까지 당신을 인정하지 않았는데, 당신이 없는 자리에서는 당신 이야기만 했다고 합니다.' },
+    { who: '말이 거의 없던 이웃', line: '말 대신 물건을 두고 갔습니다. 당신이 필요하다고 말하기 전에 늘 먼저 와 있었습니다.' },
+    { who: '길에서 주워 거둔 아이', line: '몇 해를 데리고 있다가 보냈습니다. 보낸 뒤로 그 아이 소식은 듣지 못했습니다.' },
+    { who: '평생 딱 한 번 크게 싸운 친구', line: '그 뒤로 서먹했지만 서로의 안부는 늘 알고 있었습니다. 화해할 기회는 오지 않았습니다.' },
+    { who: '먼 데서 온 손님', line: '한 철을 머물다 떠났습니다. 그 사람이 하고 간 말 한마디가 당신의 다음 십 년을 정했습니다.' },
+    { who: '당신을 두려워하던 사람', line: '당신은 그를 해친 적이 없는데도 그랬습니다. 왜 그런지 끝내 묻지 못했습니다.' },
+    { who: '늘 늦게 오던 동료', line: '당신은 매번 화를 냈지만 한 번도 그를 내치지 않았습니다. 그도 그걸 알고 있었습니다.' },
+    { who: '이름을 부르지 않고 지낸 사이', line: '서로를 직함으로만 불렀습니다. 마지막에야 이름을 알았고, 그때는 부를 일이 없었습니다.' },
+    { who: '당신의 실수를 덮어 준 사람', line: '그 일을 평생 입에 올리지 않았습니다. 당신도 고맙다고 말하지 못한 채 지났습니다.' },
+    { who: '같은 병을 앓던 사람', line: '함께 나았고, 그 뒤로는 서로를 피했습니다. 그 시절을 떠올리기 싫었기 때문입니다.' },
+    { who: '당신이 끝내 믿지 못한 사람', line: '그는 마지막까지 당신 편이었습니다. 그걸 안 것은 훨씬 뒤의 일입니다.' },
+    { who: '해마다 한 번씩만 만나던 사람', line: '더 자주 볼 수 있었는데 그러지 않았습니다. 그 간격이 두 사람에게 맞았습니다.' },
+    { who: '당신 대신 벌을 받은 사람', line: '그는 억울해하지 않았습니다. 그게 당신을 더 오래 괴롭혔습니다.' },
+    { who: '늘 웃던 아랫사람', line: '당신은 그가 편한 줄 알았습니다. 나중에 그가 밤마다 울었다는 걸 들었습니다.' },
+    { who: '한 계절만 함께한 스승', line: '가르친 것은 기술이 아니라 기다리는 법이었습니다. 당신은 그걸 늦게 알아들었습니다.' }
+  ];
+
+  // 남겨진 물건: 그 생에서 마지막까지 남은 것. (사건 축 + 코 해시)
+  const PLF_RELICS = [
+    { item: '닳아서 얇아진 손잡이', line: '매일 같은 자리를 쥐어 그 부분만 움푹 들어가 있었습니다. 그 자국이 당신의 손 모양이었습니다.' },
+    { item: '반쯤 쓴 먹', line: '아껴 쓰다 남았습니다. 아껴 쓸 이유가 없어진 뒤에도 그 습관은 남았습니다.' },
+    { item: '한 짝만 남은 신', line: '나머지 한 짝이 어디로 갔는지 아무도 몰랐습니다. 그래도 버리지 못했습니다.' },
+    { item: '접힌 자국이 깊은 종이', line: '여러 번 펴 보고 다시 접은 종이였습니다. 내용은 이미 외우고 있었습니다.' },
+    { item: '이 빠진 그릇', line: '더 좋은 그릇이 생긴 뒤에도 그것으로만 먹었습니다. 이유를 물으면 웃기만 했습니다.' },
+    { item: '녹슨 열쇠', line: '맞는 자물쇠는 이미 없어졌습니다. 그래도 버리는 것과 잃는 것은 다르다고 여겼습니다.' },
+    { item: '색이 바랜 천 한 조각', line: '어떤 옷의 일부였습니다. 그 옷을 입었던 사람은 기억나는데 얼굴은 흐릿했습니다.' },
+    { item: '눌러 말린 잎', line: '누가 준 것인지 적어 두지 않았습니다. 적어 둘 필요가 없다고 생각했기 때문입니다.' },
+    { item: '금이 간 돌', line: '주웠을 때부터 금이 있었습니다. 갈라지지는 않았고, 당신보다 오래 남았습니다.' },
+    { item: '끝이 닳은 붓', line: '새것을 두고도 그것만 썼습니다. 손에 익은 것을 바꾸는 일이 당신에게는 어려웠습니다.' },
+    { item: '두 번 꿰맨 자루', line: '세 번째는 꿰매지 않았습니다. 그쯤에서 그만두는 법도 당신은 알고 있었습니다.' },
+    { item: '이름이 지워진 패', line: '누구의 것인지 알 수 없게 됐지만 자리는 그대로 두었습니다.' },
+    { item: '작은 매듭 하나', line: '무엇을 묶으려던 것인지는 잊었습니다. 푸는 대신 그대로 두었습니다.' },
+    { item: '반쯤 남은 향', line: '아끼느라 다 태우지 못했습니다. 남은 향은 그 뒤에 아무도 태우지 않았습니다.' },
+    { item: '한 번도 신지 않은 새 옷', line: '언젠가 입으려고 두었습니다. 그 언젠가는 오지 않았습니다.' },
+    { item: '물이 밴 나무 상자', line: '안에 든 것은 이미 상했는데 상자만 남았습니다. 상자를 열어 본 사람은 없었습니다.' },
+    { item: '깨진 자리를 메운 그릇', line: '메운 자리가 원래보다 단단했습니다. 당신은 그 이야기를 자주 했습니다.' },
+    { item: '접어 둔 지도 한 장', line: '가 보지 못한 길에 표시가 되어 있었습니다. 표시만 하고 떠나지 않았습니다.' }
+  ];
+
+  // 그 시절의 계절감: 문이 열리자마자 감각으로 먼저 들어오는 것. (첫인상 키 + 얼굴 길이 해시)
+  const PLF_SEASONS = [
+    { air: '문 너머는 늦겨울이었습니다. 아직 얼음이 남았는데 바람만 먼저 물러난 계절이었습니다.', doing: '당신은 그 무렵 손을 자주 비볐습니다. 추워서가 아니라 기다리는 버릇이었습니다.' },
+    { air: '문 너머는 이른 봄이었습니다. 흙에서 물 냄새가 올라오고 아직 꽃은 없었습니다.', doing: '당신은 매일 같은 자리에 서서 무엇이 먼저 올라오는지 확인했습니다.' },
+    { air: '문 너머는 한여름이었습니다. 그늘마저 덥고, 낮이 끝나지 않을 것 같은 계절이었습니다.', doing: '당신은 해가 가장 높을 때 잠깐 눈을 붙였습니다. 그 짧은 잠에서만 꿈을 꿨습니다.' },
+    { air: '문 너머는 장마철이었습니다. 며칠째 처마 밑으로 물이 줄을 그으며 떨어졌습니다.', doing: '당신은 그 소리를 세다가 자주 하던 일을 놓쳤습니다.' },
+    { air: '문 너머는 초가을이었습니다. 아침저녁으로만 서늘하고 낮은 아직 여름이었습니다.', doing: '당신은 이 계절에 결정을 많이 했습니다. 머리가 가장 맑았기 때문입니다.' },
+    { air: '문 너머는 늦가을이었습니다. 마른 것들이 서로 부딪히는 소리가 종일 났습니다.', doing: '당신은 그 소리 사이에서 사람 발소리를 골라 듣는 데 익숙했습니다.' },
+    { air: '문 너머는 첫눈이 온 날이었습니다. 발자국이 아직 몇 개 없는 아침이었습니다.', doing: '당신은 남의 발자국을 밟지 않고 걷는 습관이 있었습니다.' },
+    { air: '문 너머는 한겨울이었습니다. 숨이 그대로 보이고 말수가 줄어드는 계절이었습니다.', doing: '당신은 이 계절에 말수가 더 줄었습니다. 대신 손이 더 부지런했습니다.' },
+    { air: '문 너머는 바람이 오래 부는 철이었습니다. 문이 밤새 덜컹거렸습니다.', doing: '당신은 그 문을 고치지 않았습니다. 소리가 없으면 오히려 잠들지 못했습니다.' },
+    { air: '문 너머는 안개가 걷히지 않는 날들이었습니다. 멀리 있는 것은 아무것도 보이지 않았습니다.', doing: '당신은 그 안에서도 길을 잃지 않았습니다. 눈이 아니라 발이 길을 외우고 있었습니다.' }
+  ];
+
+  // 끝내 못 한 일: 그 생에서 남긴 미완. (신분 레인 + 입 계열 해시)
+  const PLF_UNFINISHED = [
+    { what: '끝내 배우지 못한 것이 하나 있었습니다.', why: '배울 시간이 없었던 게 아니라, 배우면 지금 하는 일을 그만둬야 할 것 같아서였습니다.' },
+    { what: '가 보려던 곳이 하나 있었습니다.', why: '갈 수 있는 해가 몇 번 있었는데, 그때마다 더 급한 일이 생겼습니다. 급한 일은 늘 있었습니다.' },
+    { what: '고치려던 버릇이 하나 있었습니다.', why: '고치지 못한 채로 살았고, 나중에는 그게 당신을 알아보게 하는 표식이 됐습니다.' },
+    { what: '갚으려던 빚이 하나 있었습니다.', why: '돈이 아니었습니다. 갚을 방법을 끝내 찾지 못했습니다.' },
+    { what: '물어보려던 것이 하나 있었습니다.', why: '물어볼 사람이 아직 있을 때는 때가 아니라고 생각했고, 때가 왔을 때는 그 사람이 없었습니다.' },
+    { what: '만들다 만 것이 하나 있었습니다.', why: '완성하면 더 할 일이 없어질 것 같아 마지막 손을 대지 않았습니다.' },
+    { what: '읽으려던 것이 하나 있었습니다.', why: '펼칠 때마다 첫 장에서 멈췄습니다. 첫 장이 너무 정확했기 때문입니다.' },
+    { what: '용서하려던 사람이 하나 있었습니다.', why: '용서할 마음은 있었는데 그 말을 소리 내어 할 자리가 끝내 없었습니다.' },
+    { what: '떠나려던 계획이 하나 있었습니다.', why: '짐까지 싸 두었습니다. 그 짐은 몇 해 동안 같은 자리에 있었습니다.' },
+    { what: '전하려던 물건이 하나 있었습니다.', why: '주인을 찾다가 시간이 지났고, 나중에는 그것이 누구 것이었는지도 흐려졌습니다.' },
+    { what: '멈추려던 일이 하나 있었습니다.', why: '그만두겠다고 말한 해가 여러 번이었습니다. 매번 한 해만 더 하기로 했습니다.' },
+    { what: '털어놓으려던 이야기가 하나 있었습니다.', why: '들어 줄 사람을 고르다가 평생이 갔습니다. 결국 아무도 고르지 못했습니다.' }
+  ];
+
+  // 남들이 당신을 부르던 말: 신분과 별개로 그 사람이 어떻게 불렸는가. (얼굴형 + 코 계열 해시)
+  const PLF_REPUTATIONS = [
+    { called: '사람들은 당신을 “끝을 보는 사람”이라 불렀습니다.', truth: '칭찬처럼 들렸지만 아무도 당신에게 쉬라고 말하지는 않았습니다.' },
+    { called: '사람들은 당신을 “말이 적은 쪽”이라 불렀습니다.', truth: '할 말이 없어서가 아니라, 한 번 뱉으면 주워 담기 어려운 자리에 있었기 때문입니다.' },
+    { called: '사람들은 당신을 “먼저 아는 사람”이라 불렀습니다.', truth: '앞서 본 것이 아니라 남들보다 오래 지켜본 것이었습니다.' },
+    { called: '사람들은 당신을 “까다로운 쪽”이라 불렀습니다.', truth: '기준이 높았던 게 아니라 대충 넘겨서 크게 잃어 본 적이 있었습니다.' },
+    { called: '사람들은 당신을 “늘 그 자리에 있는 사람”이라 불렀습니다.', truth: '떠나지 않은 게 아니라 떠날 자리를 만들지 못한 것이었습니다.' },
+    { called: '사람들은 당신을 “운이 좋은 쪽”이라 불렀습니다.', truth: '운이 오기 전까지 몇 해를 어떻게 버텼는지는 아무도 보지 않았습니다.' },
+    { called: '사람들은 당신을 “정 많은 사람”이라 불렀습니다.', truth: '정이 많은 게 아니라 거절하는 법을 배우지 못한 것이었습니다.' },
+    { called: '사람들은 당신을 “찬 쪽”이라 불렀습니다.', truth: '차가운 게 아니라 흔들리는 모습을 보이면 안 되는 위치였습니다.' },
+    { called: '사람들은 당신을 “손이 빠른 사람”이라 불렀습니다.', truth: '빨라야만 했던 시절이 있었고, 그 속도가 몸에 남았습니다.' },
+    { called: '사람들은 당신을 “속을 모르겠는 쪽”이라 불렀습니다.', truth: '숨긴 게 아니라 물어봐 준 사람이 없었습니다.' },
+    { called: '사람들은 당신을 “고집 센 쪽”이라 불렀습니다.', truth: '한 번 물러섰다가 되돌리지 못한 일이 있었기 때문입니다.' },
+    { called: '사람들은 당신을 “있어야 할 때 있는 사람”이라 불렀습니다.', truth: '그러려고 나머지 시간을 전부 비워 두고 살았습니다.' }
+  ];
+
+  // 현생에서 반복되는 장면: 전생의 자국이 지금 어떤 순간에 튀어나오는가. (수호령 축 + 눈 계열 해시)
+  const PLF_RECURRENCES = [
+    { scene: '처음 가는 장소인데 문 위치를 먼저 확인하는 자신을 발견할 때가 있습니다.', mean: '어디서든 나가는 길을 먼저 확보해 두는 습관은 그 생에서 왔습니다.' },
+    { scene: '남이 부탁하기 전에 이미 준비를 끝내 놓는 자신을 볼 때가 있습니다.', mean: '먼저 알아채는 능력은 재능이 아니라 그때 익힌 생존 방식이었습니다.' },
+    { scene: '칭찬을 들으면 곧바로 다음 할 일을 떠올릴 때가 있습니다.', mean: '멈춰서 받는 법을 배울 기회가 그 생에는 없었습니다.' },
+    { scene: '누가 화를 내면 목소리가 아니라 손을 먼저 보는 습관이 있습니다.', mean: '말보다 손이 먼저 움직이는 자리에서 오래 지냈기 때문입니다.' },
+    { scene: '오래된 물건을 버리려다 결국 다시 넣어 두는 일이 반복됩니다.', mean: '그 생에서 남은 것이 물건뿐이었던 시기가 있었습니다.' },
+    { scene: '여럿이 있을 때 가장 말이 없는 사람을 자꾸 살피게 됩니다.', mean: '그 자리에 있어 본 적이 있기 때문입니다.' },
+    { scene: '결정을 내린 뒤에도 한참 뒤에 그 장면을 다시 돌려 봅니다.', mean: '한 번의 선택이 너무 많은 것을 바꾼 경험이 남아 있습니다.' },
+    { scene: '잘 알던 길인데 일부러 다른 길로 돌아갈 때가 있습니다.', mean: '같은 길만 다니다 마주친 것이 있었기 때문입니다.' },
+    { scene: '누군가 떠난다고 하면 붙잡는 대신 짐부터 챙겨 줍니다.', mean: '붙잡아 본 적이 있고, 그게 어떻게 끝났는지 알기 때문입니다.' },
+    { scene: '조용한 방에 혼자 있으면 오히려 생각이 정리됩니다.', mean: '그 생에서 가장 중요한 판단은 전부 혼자 있을 때 내려졌습니다.' },
+    { scene: '남의 이름을 유난히 정확하게 기억합니다.', mean: '이름을 잘못 부르면 안 되는 자리에 있었습니다.' },
+    { scene: '일이 잘 풀릴 때 오히려 조심스러워집니다.', mean: '가장 좋았던 해 다음에 무슨 일이 있었는지 몸이 기억하고 있습니다.' }
+  ];
+
   // ④ 전생의 사건 30종.
   //    신분과 무관하게 읽히도록 역할 중립적으로 쓴다 — 36 × 30 = 1,080 조합에서 어색한 짝이 나오면 안 된다.
   //    echo 는 그 사건이 이번 생에 남긴 자국이고, 5장(현생의 흔적)에서 신분의 echo 와 합쳐진다.
@@ -1546,6 +1673,31 @@
     '  .plf-scene{opacity:0;transform:translate3d(0,20px,0);',
     '    transition:opacity .62s ease-out,transform .62s cubic-bezier(.22,1,.36,1);}',
     '  .plf-scene.is-revealed{opacity:1;transform:none;}',
+    // ── 장면 안에서 한 줄씩 열린다 (2026-08-13) ──
+    // 🔴 숨김은 전부 이 블록(no-preference) 안에만 있고, 여는 조건은 .is-revealed 하나다.
+    //    IntersectionObserver 가 없는 환경에서는 openAll() 이 전 장면에 .is-revealed 를 달아 주므로
+    //    "콘텐츠가 영영 숨는" 경로가 생기지 않는다. 글자를 DOM 에서 빼지도 않는다.
+    '  .plf-scene__body > *{opacity:0;transform:translate3d(0,10px,0);',
+    '    transition:opacity .52s ease-out,transform .52s cubic-bezier(.22,1,.36,1);}',
+    '  .plf-scene.is-revealed .plf-scene__body > *{opacity:1;transform:none;}',
+    '  .plf-scene.is-revealed .plf-scene__body > *:nth-child(1){transition-delay:.05s;}',
+    '  .plf-scene.is-revealed .plf-scene__body > *:nth-child(2){transition-delay:.14s;}',
+    '  .plf-scene.is-revealed .plf-scene__body > *:nth-child(3){transition-delay:.23s;}',
+    '  .plf-scene.is-revealed .plf-scene__body > *:nth-child(4){transition-delay:.32s;}',
+    '  .plf-scene.is-revealed .plf-scene__body > *:nth-child(5){transition-delay:.41s;}',
+    '  .plf-scene.is-revealed .plf-scene__body > *:nth-child(6){transition-delay:.50s;}',
+    '  .plf-scene.is-revealed .plf-scene__body > *:nth-child(7){transition-delay:.59s;}',
+    '  .plf-scene.is-revealed .plf-scene__body > *:nth-child(n+8){transition-delay:.66s;}',
+    '  .plf-scene__no{opacity:0;transform:translate3d(-8px,0,0);',
+    '    transition:opacity .5s ease-out,transform .5s ease-out;}',
+    '  .plf-scene.is-revealed .plf-scene__no{opacity:1;transform:none;}',
+    '  .plf-scene__sep{opacity:0;transform:rotate(-120deg) scale(.5);',
+    '    transition:opacity .6s ease-out .45s,transform .8s cubic-bezier(.22,1,.36,1) .45s;}',
+    '  .plf-scene.is-revealed .plf-scene__sep{opacity:1;transform:none;}',
+    // 묘비 한 줄만 타이핑처럼 드러낸다. 글자는 처음부터 DOM 에 다 있고 clip-path 만 움직인다 —
+    // 문자를 주입하는 방식이면 렌더 직후 분량을 재는 가드가 흔들린다.
+    '  .plf-scene:not(.is-revealed) .plf-epitaph{clip-path:inset(0 100% 0 0);}',
+    '  .plf-scene.is-revealed .plf-epitaph{animation:plfType 1.4s steps(30,end) .5s both;}',
     '  .plf-card__inner{animation:plfFlip .78s cubic-bezier(.22,1,.36,1) both;}',
     '  .plf-reveal-item{animation:plfRise .5s cubic-bezier(.22,1,.36,1) both;}',
     '  .plf-preview__beam{animation:plfBeam 2.1s cubic-bezier(.45,0,.55,1) infinite;}',
@@ -1554,7 +1706,8 @@
     '@keyframes plfFlip{from{transform:rotateY(-92deg);opacity:0;}60%{opacity:1;}to{transform:rotateY(0);opacity:1;}}',
     '@keyframes plfRise{from{transform:translateY(12px);opacity:0;}to{transform:translateY(0);opacity:1;}}',
     '@keyframes plfBeam{0%{top:-26%;}100%{top:100%;}}',
-    '@keyframes plfShimmer{from{transform:translateX(-38%);}to{transform:translateX(38%);}}'
+    '@keyframes plfShimmer{from{transform:translateX(-38%);}to{transform:translateX(38%);}}',
+    '@keyframes plfType{from{clip-path:inset(0 100% 0 0);}to{clip-path:inset(0 0 0 0);}}'
   ].join('\n');
 
   function plfEnsureStyles() {
@@ -2040,6 +2193,44 @@
     };
   }
 
+  // ── 측정값 재중심화 ─────────────────────────────────────────
+  // 🔴 이 함수가 전생 신분 편중(도장의 장인 62.5%)의 해법이다.
+  //
+  // 얼굴형 분류기(AnalysisEngine.classifyFaceShape)와 삼정 우세 판정은 둘 다 "절대값이 얼마인가"를
+  // 임계값으로 묻는데, 실제 MediaPipe 측정값은 그 임계값이 전제한 대역에 있지 않다.
+  //   · 하정(코끝→턱끝)이 체계적으로 가장 길다 → 삼정 생 argmax 가 사실상 항상 'lower'
+  //   · 그래서 chinLength(= samjung.lower 와 문자 그대로 같은 식)가 거의 항상 0.36 을 넘고,
+  //     분류기가 그 하나의 숫자를 chin·sj.lower 로 두 번 세어 square 에만 +45 를 준다
+  // 실사진 대역 스윕에서 얼굴형 square 100% · 삼정 lower 100% 로 붕괴했고,
+  // 전생 신분 60종 중 4종만 도달했다(도장의 장인 = square:lower:3).
+  //
+  // 여기서는 축의 '순서'(누가 더 긴가)는 그대로 두고 '중심'만 분류기가 기대하는 대역으로 옮긴다.
+  // 그러면 판정이 "절대적으로 긴가"가 아니라 "제 또래 대비 유독 긴가"가 된다.
+  // 기준값은 실사진 측정으로 갱신할 수 있게 여기 한 곳에만 둔다(npm run physio:measure).
+  const PLF_MEASURED_CENTER = { faceRatio: 0.850, upper: 0.310, middle: 0.290, lower: 0.400 };
+  const PLF_CLASSIFIER_CENTER = { faceRatio: 0.825, third: 1 / 3 };
+
+  function plfRecenteredFeatures(features) {
+    const src = features || {};
+    const samjung = src.samjung || { upper: 0.333, middle: 0.333, lower: 0.334 };
+    const shift = function (key) {
+      const v = Number(samjung[key]);
+      if (!isFinite(v)) return PLF_CLASSIFIER_CENTER.third;
+      return PLF_CLASSIFIER_CENTER.third + (v - PLF_MEASURED_CENTER[key]);
+    };
+    // 편차를 그대로 더하므로 합은 1 로 유지된다(Σ기준 = Σ목표 = 1).
+    const recentered = { upper: shift('upper'), middle: shift('middle'), lower: shift('lower') };
+    const faceRatio = Number(src.faceRatio);
+    return Object.assign({}, src, {
+      faceRatio: isFinite(faceRatio)
+        ? PLF_CLASSIFIER_CENTER.faceRatio + (faceRatio - PLF_MEASURED_CENTER.faceRatio)
+        : PLF_CLASSIFIER_CENTER.faceRatio,
+      // chinLength 는 엔진에서 samjung.lower 와 같은 식이므로 함께 옮긴다.
+      chinLength: recentered.lower,
+      samjung: recentered
+    });
+  }
+
   function plfDominantThird(features) {
     const samjung = (features && features.samjung) || { upper: 0.333, middle: 0.333, lower: 0.334 };
     const entries = Object.keys(samjung).map(function (key) { return [key, Number(samjung[key] || 0)]; });
@@ -2072,21 +2263,45 @@
    * 수치가 하나도 없으면 얼굴형·삼정만으로는 레인이 항상 0이 되어 신분 12종만 나오므로,
    * 그 경우에만 해시로 흩는다.
    */
+  // 신분 레인 0~4 = 코 너비 · 입 크기 · 미간 넓이의 합산 구간.
+  //
+  // 🔴 예전에는 세 번째 축이 earRatio 였는데 그건 귀가 아니다 —
+  //    AnalysisEngine 의 earHeight 는 랜드마크 127/132, 둘 다 얼굴 윤곽선 위의 점이라
+  //    사람이 달라도 0.20~0.30 에 머문다. 임계값(0.16/0.20)이 그 아래라 모든 얼굴이 버킷 2 에
+  //    고정됐고, 정보량 0 인 축이 점수의 1/3 을 상수로 채워 레인이 3 으로 쏠렸다.
+  //    대신 eyeDistRatio(인당의 넓이)를 쓴다 — 관상 지표이면서 아키타입 표가 이미 보정한 축이다.
+  //
+  // 컷포인트는 손으로 고른 값이 아니라 AnalysisEngine 아키타입 27종의 축별 3분위다
+  // (dist 1.05/1.15 · nose 0.88/0.98 · mouth 1.30/1.42).
+  const PLF_LANE_CUTS = {
+    nose: [0.88, 0.98],
+    mouth: [1.30, 1.42],
+    eyeDist: [1.05, 1.15]
+  };
+
+  function plfLaneBucket(value, cuts) {
+    if (value <= cuts[0]) return 0;
+    if (value <= cuts[1]) return 1;
+    return 2;
+  }
+
   function plfRoleLane(features, seed) {
     const nose = Number(features && features.noseWidthRatio);
     const mouth = Number(features && features.mouthRatio);
-    const ear = Number(features && features.earRatio);
+    const eyeDist = Number(features && features.eyeDistRatio);
     let score = 0;
     let known = 0;
-    if (Number.isFinite(nose)) { score += nose <= 0.86 ? 0 : nose <= 0.94 ? 1 : 2; known += 1; }
-    if (Number.isFinite(mouth)) { score += mouth <= 1.28 ? 0 : mouth <= 1.44 ? 1 : 2; known += 1; }
-    if (Number.isFinite(ear)) { score += ear < 0.16 ? 0 : ear < 0.20 ? 1 : 2; known += 1; }
+    if (Number.isFinite(nose)) { score += plfLaneBucket(nose, PLF_LANE_CUTS.nose); known += 1; }
+    if (Number.isFinite(mouth)) { score += plfLaneBucket(mouth, PLF_LANE_CUTS.mouth); known += 1; }
+    if (Number.isFinite(eyeDist)) { score += plfLaneBucket(eyeDist, PLF_LANE_CUTS.eyeDist); known += 1; }
     if (known === 0) return plfHash(seed + ':lane') % 5;
-    const normalized = (score / known) * 3; // 0~6 스케일로 환산
-    if (normalized <= 0.5) return 0;
-    if (normalized <= 2.5) return 1;
-    if (normalized <= 3.5) return 2;
-    if (normalized <= 5.5) return 3;
+    // 0~6 스케일로 환산한 뒤 폭이 같은 다섯 칸으로 자른다.
+    // 예전 경계는 0.5 / 2 / 1 / 2 / 0.5 폭이라 레인 3 이 두 점수를 흡수하고 0·4 는 굶었다.
+    const normalized = (score / known) * 3;
+    if (normalized < 1.2) return 0;
+    if (normalized < 2.4) return 1;
+    if (normalized < 3.6) return 2;
+    if (normalized < 4.8) return 3;
     return 4;
   }
 
@@ -2178,8 +2393,11 @@
     const engine = window.faceAnalysisEngine;
     const seedReading = engine.calculatePastLifePhysiognomy(result);
     const features = (result && result.extractedFeatures) || {};
-    const shape = engine.classifyFaceShape(features);
-    const dominant = plfDominantThird(features);
+    // 얼굴형·삼정 축은 재중심화한 사본으로 판정한다(plfRecenteredFeatures 주석 참조).
+    // 레인·사건·첫인상 축은 원본 측정값을 그대로 쓴다 — 그쪽 임계값은 실측 대역과 어긋나 있지 않다.
+    const shapeFeatures = plfRecenteredFeatures(features);
+    const shape = engine.classifyFaceShape(shapeFeatures);
+    const dominant = plfDominantThird(shapeFeatures);
 
     // 얼굴 기하만으로 만든 시드. 동물은 들어가지 않는다.
     const faceSeed = shape.type + ':' + dominant + ':' +
@@ -2205,6 +2423,19 @@
     // 게이지·부적·징후는 얼굴과 수호령을 함께 섞어 같은 얼굴이라도 미세하게 갈라지게 둔다.
     const mixSeed = faceSeed + ':' + animalId;
 
+    // 공통 서사 레이어. 신분과 독립인 축의 해시로 뽑아, 같은 신분이 나와도 글이 갈리게 한다.
+    const measured = function (key) {
+      const value = Number(features && features[key]);
+      return Number.isFinite(value) ? Math.round(value * 1000) : 'x';
+    };
+    const omen = PLF_OMENS[plfHash(faceSeed + ':omen:' + measured('browArch') + '-' + measured('eyeSlant')) % PLF_OMENS.length];
+    const bond = PLF_BONDS[plfHash(animalId + ':' + String(guardian.axis || '') + ':bond:' + measured('eyeDistRatio') + '-' + measured('mouthRatio')) % PLF_BONDS.length];
+    const relic = PLF_RELICS[plfHash(event.title + ':relic:' + measured('noseWidthRatio') + '-' + measured('lipThickness')) % PLF_RELICS.length];
+    const season = PLF_SEASONS[plfHash(firstKey + ':season:' + measured('faceLength') + '-' + measured('faceRatio')) % PLF_SEASONS.length];
+    const unfinished = PLF_UNFINISHED[plfHash(lane + ':unfinished:' + measured('mouthRatio') + '-' + measured('mouthCurve')) % PLF_UNFINISHED.length];
+    const recurrence = PLF_RECURRENCES[plfHash(String(guardian.axis || '') + ':again:' + measured('eyeRatio') + '-' + measured('eyeSlant')) % PLF_RECURRENCES.length];
+    const reputation = PLF_REPUTATIONS[plfHash(shape.type + ':called:' + measured('noseRatio') + '-' + measured('browEyeGap')) % PLF_REPUTATIONS.length];
+
     return {
       // ① 첫인상
       firstNick: first.nick,
@@ -2226,6 +2457,20 @@
       eventBody: event.body,
       eventAftermath: event.aftermath,
       eventEcho: event.echo,
+      // ④-a 공통 서사 레이어 — 신분과 독립인 축에서 뽑는다
+      omen: omen,
+      bondWho: bond.who,
+      bondLine: bond.line,
+      relicItem: relic.item,
+      relicLine: relic.line,
+      seasonAir: season.air,
+      seasonDoing: season.doing,
+      unfinishedWhat: unfinished.what,
+      unfinishedWhy: unfinished.why,
+      recurrenceScene: recurrence.scene,
+      recurrenceMean: recurrence.mean,
+      reputationCalled: reputation.called,
+      reputationTruth: reputation.truth,
       // ⑤ 수호령 — animalEmoji/guardianName 은 공유 카드가 참조하므로 이름을 바꾸지 말 것.
       //    나머지 서사(주령의 line/origin/moment, 곁령, 그림자령, 무리 칭호)는 전부 guardians 안에 있다.
       animalName: animalName,
@@ -2397,12 +2642,18 @@
           reading.world.era,
           reading.world.place,
           reading.world.sense
-        ]) + plfEvidenceHtml(evidence.world)
+        ]) +
+          '<p class="plf-scene__lead-sub">그때의 공기</p>' +
+          plfParagraphsHtml([reading.seasonAir, reading.seasonDoing]) +
+          plfEvidenceHtml(evidence.world)
       },
       {
         label: '전생의 당신은…',
         lead: reading.roleEmoji + ' ' + reading.roleName,
-        body: plfParagraphsHtml([reading.roleIntro, reading.roleStanding]) + plfEvidenceHtml(evidence.role)
+        body: plfParagraphsHtml([reading.roleIntro, reading.roleStanding]) +
+          '<p class="plf-scene__lead-sub">사람들이 당신을 부르던 말</p>' +
+          plfParagraphsHtml([reading.reputationCalled, reading.reputationTruth]) +
+          plfEvidenceHtml(evidence.role)
       },
       {
         label: '전생의 하루',
@@ -2410,23 +2661,31 @@
         body: plfParagraphsHtml([
           reading.roleDay,
           '이 하루가 몇 해를 반복됐습니다. 지금 당신이 이유 없이 익숙하게 느끼는 리듬이 여기서 왔습니다.'
-        ])
+        ]) +
+          '<p class="plf-scene__lead-sub">그 하루에 늘 있던 사람</p>' +
+          plfParagraphsHtml([reading.bondWho + '이 있었습니다.', reading.bondLine])
       },
       {
         label: '그날의 사건',
         lead: reading.eventTitle,
-        body: plfParagraphsHtml([
-          reading.eventBody,
-          reading.eventAftermath,
-          '그리고 그때부터 당신은 조금 다른 사람이 되었습니다.'
-        ]) + plfEvidenceHtml(evidence.event)
+        body: '<p class="plf-scene__lead-sub">그전에 먼저 스친 것</p>' +
+          plfParagraphsHtml([reading.omen]) +
+          plfParagraphsHtml([
+            reading.eventBody,
+            reading.eventAftermath,
+            '그리고 그때부터 당신은 조금 다른 사람이 되었습니다.'
+          ]) + plfEvidenceHtml(evidence.event)
       },
       {
         label: '그리고 당신의 마지막은',
         lead: '전생의 끝',
         body: plfParagraphsHtml([reading.roleEnd]) +
+          '<p class="plf-scene__lead-sub">끝내 못 한 것</p>' +
+          plfParagraphsHtml([reading.unfinishedWhat, reading.unfinishedWhy]) +
+          '<p class="plf-scene__lead-sub">남은 자리에 있던 것</p>' +
+          plfParagraphsHtml([reading.relicItem + '이 남았습니다.', reading.relicLine]) +
           '<p class="plf-scene__lead-sub">사람들이 당신을 이렇게 기억했습니다</p>' +
-          plfParagraphsHtml(['「' + reading.roleEpitaph + '」'])
+          '<p class="plf-section__body plf-epitaph">「' + plfEscape(reading.roleEpitaph) + '」</p>'
       },
       {
         label: '전생 수호령',
@@ -2444,6 +2703,8 @@
           reading.eventEcho,
           reading.guardians.main.now
         ]) +
+          '<p class="plf-scene__lead-sub">같은 장면이 반복될 때</p>' +
+          plfParagraphsHtml([reading.recurrenceScene, reading.recurrenceMean]) +
           '<p class="plf-scene__lead-sub">전생이 스치는 순간</p>' +
           '<ul class="plf-signs">' +
           reading.signs.map(function (sign) { return '<li>' + plfEscape(sign) + '</li>'; }).join('') +

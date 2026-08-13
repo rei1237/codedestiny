@@ -429,7 +429,7 @@ body{background:linear-gradient(150deg,var(--bg1),var(--bg2))}
    기기 폭을 그대로 두기 때문에 펫·스탯·플로팅 노트의 픽셀 기준이 안 깨진다.
    400 + 22 + 620 = 1042 라 1120px 임계에서 좌우 여백이 남는다. */
 @media (min-width:1120px) and (pointer:fine){
-  .stage{display:flex;align-items:stretch;gap:22px;width:auto;margin:0 24px}
+  .stage{display:flex;align-items:stretch;gap:22px;width:min(1042px,calc(100vw - 48px));margin:0 24px}
   .card{flex:0 0 400px;width:400px}
   .chat-modal{position:relative;inset:auto;flex:1 1 620px;max-width:660px;min-width:0;height:100%;animation:none;box-shadow:0 20px 60px rgba(0,0,0,.12),0 0 0 1.5px var(--cb)}
   .chat-back{display:none}
