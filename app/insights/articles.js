@@ -2715,7 +2715,9 @@ const RAW_INSIGHT_ARTICLES = [
     title: insightArticleText("ia_1240_prop_title"),
     description:
       "숙요점 궁합 보는 법을 27수 본명숙 확인부터 영친·안괴 관계 해석, 관계 리듬 맞추기까지 순서대로 정리한 실전 가이드입니다.",
-    category: "숙요점",
+    // docs/insight-hub-authoring.md §2 의 확정된 통합 대상. 본문이 buildMysticSections
+    // 템플릿으로 조립되고 있어 sukuyo-compatibility-guide 로 301 통합한다.
+    category: "통합 리다이렉트",
     updatedAt: "2026-07-04",
     keywords: ["숙요점 궁합", "27수 궁합", "본명숙", "영친 안괴", "숙요 관계 해석", "달 별자리 궁합", "숙요점 보는 법"],
     contentHtml: `<!-- target keyword: 숙요점 궁합 | secondary: 27수 궁합, 본명숙, 영친 안괴 -->
@@ -3143,7 +3145,9 @@ const RAW_INSIGHT_ARTICLES = [
     title: insightArticleText("ia_1416_prop_title"),
     description:
       "숙요 궁합 결과를 실제 관계에서 검증하는 7가지 행동 체크리스트입니다. 연락 템포·회복 속도·결정 방식 등 육관계(영친·안괴 등) 해석과 짝지어 오늘 바로 점검할 수 있게 구성했습니다.",
-    category: "숙요점",
+    // docs/insight-hub-authoring.md §2 의 확정된 통합 대상. 본문이 템플릿 조립물이라
+    // sukuyo-compatibility-guide 로 301 통합한다.
+    category: "통합 리다이렉트",
     updatedAt: "2026-07-04",
     keywords: ["숙요 궁합", "궁합 체크리스트", "숙요점 궁합 보는 법", "연애 궁합 체크", "관계 점검 질문", "영친 안괴", "궁합 확인법"],
     contentHtml: `<!-- target keyword: 숙요 궁합 체크리스트 | secondary: 궁합 확인법, 관계 점검, 영친 안괴 -->
@@ -5393,9 +5397,12 @@ const NON_ESSENTIAL_CATEGORIES = new Set([
   "통합 리다이렉트",
 ]);
 
+// 마스코트(꽃돼지 연이)에게 "명리학 연구자 · 운세 콘텐츠 에디터" 라는 자격을 붙여
+// 저자로 세우던 자리다. 실재하지 않는 사람의 전문성 주장이라 조직 귀속으로 바꾼다.
+// /high-value/* 가 이미 쓰는 표기와 같은 이름을 쓴다.
 const DEFAULT_ARTICLE_AUTHOR = {
-  name: "꽃돼지 연이",
-  role: "명리학 연구자 · 운세 콘텐츠 에디터",
+  name: "Code Destiny 편집팀",
+  role: "운세 콘텐츠 편집팀",
   profileUrl: "/about",
 };
 

@@ -445,9 +445,12 @@ export default function InsightArticleCosmicClient({
       headline: String(item?.title || ""),
       description: String(seo.metaDescription || ""),
       image: seo.ogImage || undefined,
+      // 마스코트 이름을 Person 저자로 내보내던 폴백. 실재하지 않는 사람이라
+      // 조직 귀속으로 바꾼다(이 파일은 현재 임포터가 없지만, 되살아날 때 틀린 채로
+      // 부활하지 않도록 함께 고친다).
       author: {
-        "@type": "Person",
-        name: String(item?.author || "꽃돼지 연이"),
+        "@type": "Organization",
+        name: String(item?.author || "Code Destiny 편집팀"),
       },
       publisher: {
         "@type": "Organization",

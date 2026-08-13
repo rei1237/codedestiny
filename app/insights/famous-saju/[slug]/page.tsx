@@ -738,7 +738,9 @@ body:has(main[data-famous-saju-detail]) {
             <CelebritySajuCTA cta={magazine.cta} />
             <RelatedCelebritySajuList related={related} />
             <p className="mt-6 text-xs leading-6 text-slate-400/70">{magazine.profile.sourceNote}</p>
-            <ContentIntegrityNote />
+            {/* 이름과 생년월일을 규칙에 대입해 구성한 페이지다. 사람이 한 건씩 검토하지
+                않으므로 그렇게 주장하지 않는다(그래서 이 라우트는 noindex 다). */}
+            <ContentIntegrityNote contentSource="template" />
           </div>
 
           <aside className="hidden lg:block">

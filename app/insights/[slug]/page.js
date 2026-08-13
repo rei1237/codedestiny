@@ -219,7 +219,7 @@ export default async function InsightArticlePage({ params }) {
           </section>
         )}
 
-        <ContentIntegrityNote datePublished={article.publishedAt || article.updatedAt} dateModified={article.updatedAt || article.publishedAt} />
+        <ContentIntegrityNote contentSource={article.contentSource} datePublished={article.publishedAt || article.updatedAt} dateModified={article.updatedAt || article.publishedAt} />
 
         {hub ? (
           <section className="mt-10 rounded-3xl border border-amber-200/25 bg-amber-100/[0.05] p-5 md:p-7">

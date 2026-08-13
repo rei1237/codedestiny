@@ -894,6 +894,11 @@ function buildSeedArticle(article, index) {
   return {
     slug,
     title,
+    // 저자 원고인지 buildMysticSections 조립물인지를 데이터로 내보낸다. 제작·검수 고지가
+    // 이 값을 보고 문구를 고르므로, 조립물이 다시 생겨도 "사람이 검토했다"고 말하지 않는다.
+    // 판정 관문이 둘(ORIGINAL_CONTENT_SLUGS 또는 useOriginalContent)이라 소스만 훑어서는
+    // 오판하기 쉽다 — 그래서 판정 결과 자체를 내보낸다.
+    contentSource: useOriginalContent ? "authored" : "template",
     subtitle: String(article?.subtitle || "").trim(),
     intro: String(article?.intro || "").trim(),
     description,

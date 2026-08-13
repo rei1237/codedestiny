@@ -1007,7 +1007,10 @@ export const ADSENSE_READY_ARTICLES = [
     slug: 'how-to-ask-better-fortune-questions',
     title: adsenseReadyArticleText("adsenseArticle.title.014"),
     description: adsenseReadyArticleText("adsenseArticle.description.014"),
-    category: '타로 이론',
+    // docs/insight-hub-authoring.md §2 는 이 슬러그가 코드베이스에 없다고 적고 있었지만
+    // 실제로는 존재했고 사이트맵에도 올라가 있었다. 본문이 템플릿 조립물이라
+    // tarot-how-to-read 로 301 통합한다.
+    category: '통합 리다이렉트',
     updatedAt: '2026-07-04',
     keywords: ['운세 질문', '타로 질문법', '질문 설계', '타로 질문 예시', '사주 상담 질문', '운세 활용법', '좋은 질문 만들기'],
     contentHtml: `<!-- target keyword: 운세 질문 | secondary: 타로 질문법, 질문 설계 -->
