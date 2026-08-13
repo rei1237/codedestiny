@@ -12,7 +12,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } fro
 import { m } from "framer-motion";
 // 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 PDF 리포트 패널
 import ZiweiDeepPdfPanel, { type ZiweiDeepBirthInput } from "./ziwei/ZiweiDeepPdfPanel";
-import ZiweiAiConsultPanel from "./ziwei/ZiweiAiConsultPanel";
 import {
   calculateZiweiChart,
   normalizeZiweiForAdvancedReport,
@@ -2663,12 +2662,10 @@ export default function AdvancedZiweiSectionV2({
           </div>
         ) : null}
 
-        {/* 심화 자미두수 안 인라인 전문가 상담 (ziwei-ai-consultation) — 명반 무료, 상담만 회당 결제 */}
-        <div className="relative z-10 mt-6">
-          <ZiweiAiConsultPanel birth={deepPdfBirth} disabled={!chart} />
-        </div>
-
-        {/* 심화 자미두수 PDF (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 리포트 */}
+        {/* 심화 자미두수 전문가 상담 리포트 (ZIWEI_DEEP_PDF) — 회당 결제 LLM 15챕터 심층 리포트.
+            2026-08-13 통합: 같은 가격(30,000원)으로 나란히 있던 인라인 상담 패널
+            (ziwei-ai-consultation)을 이 패널이 흡수했다 — 관심분야·자유질문을 15챕터
+            프롬프트에 주입한다. 독립 페이지 /ziwei-ai 는 별도 상품으로 그대로 살아 있다. */}
         <div className="relative z-10 mt-6">
           <ZiweiDeepPdfPanel birth={deepPdfBirth} disabled={!chart} />
         </div>
