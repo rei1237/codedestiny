@@ -29,7 +29,11 @@ import { buildSajuAIPromptWithDomain } from "../lib/saju-ai-prompt.js";
 import { buildSukuyoAIPromptWithDomain } from "../lib/sukuyo-ai-prompt.js";
 import { buildAstrologyAIPromptWithDomain } from "../lib/astrology-ai-prompt.js";
 import { buildZiweiAIPromptWithDomain } from "../lib/ziwei-ai-prompt.js";
-import { buildVedicAIPromptWithDomain } from "../lib/vedic-ai-prompt.js";
+// 베다는 프로덕션(/api/fortune/vedic/ai-prompt)과 같은 빌더를 쓴다.
+// buildVedicAIPromptWithDomain 은 래퍼가 아니라 별도 구현이라 출력이 달라진다.
+import { buildVedicAIPrompt } from "../lib/vedic-ai-prompt.js";
+import { calculateZiweiAiChart, describeBrightness } from "../lib/ziwei-ai-chart.js";
+import { primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { buildSajuProfile } from "../lib/destiny-bias-engine.js";
 import { buildSajuQuantumDaewunRows, buildSajuQuantumElementMap, normalizeElementKeys } from "../lib/saju-quantum-myeongri.js";
 import { buildCompatibilityFromIndices, buildSukuyoFromLunar } from "../lib/sukuyo-premium.js";
@@ -175,28 +179,7 @@ const ADMIN_ELEMENT_META = Object.freeze({
   water: { ko: "수", label: "수(水)" },
 });
 const ADMIN_ELEMENT_KEYS = ["wood", "fire", "earth", "metal", "water"];
-const ADMIN_GAN_ELEMENT_KEYS = ["wood", "wood", "fire", "fire", "earth", "earth", "metal", "metal", "water", "water"];
-const ADMIN_JI_ELEMENT_KEYS = ["water", "earth", "wood", "wood", "earth", "fire", "fire", "earth", "metal", "metal", "earth", "water"];
-const ADMIN_WESTERN_SIGNS = ["양자리", "황소자리", "쌍둥이자리", "게자리", "사자자리", "처녀자리", "천칭자리", "전갈자리", "사수자리", "염소자리", "물병자리", "물고기자리"];
-const ADMIN_VEDIC_SIGNS = ["메샤", "브리샤바", "미투나", "카르카", "심하", "칸야", "툴라", "브리슈치카", "다누", "마카라", "쿰바", "미나"];
-const ADMIN_NAKSHATRAS = ["아슈비니", "바라니", "크리티카", "로히니", "므리기라", "아르드라", "푸나르바수", "푸샤", "아슐레샤", "마가", "푸르바팔구니", "우타라팔구니", "하스타", "치트라", "스와티", "비샤카", "아누라다", "제슈타", "물라", "푸르바샤다", "우타라샤다", "슈라바나", "다니슈타", "샤타비샤", "푸르바바드라", "우타라바드라", "레바티"];
-const ADMIN_SUKUYO_MANSIONS = ["각숙", "항숙", "저숙", "방숙", "심숙", "미숙", "기숙", "두숙", "여숙", "허숙", "위숙(危)", "실숙", "벽숙", "규숙", "루숙", "위숙(胃)", "묘숙", "필숙", "자숙", "삼숙", "정숙", "귀숙", "류숙", "성숙", "장숙", "익숙", "진숙"];
 const ADMIN_TAROT_CARDS = ["바보", "마법사", "여사제", "여황제", "황제", "교황", "연인", "전차", "힘", "은둔자", "운명의 수레바퀴", "정의", "매달린 사람", "죽음", "절제", "악마", "탑", "별", "달", "태양", "심판", "세계"];
-const ADMIN_ZIWEI_PALACES = [
-  ["ming", "명궁"],
-  ["siblings", "형제궁"],
-  ["spouse", "부부궁"],
-  ["children", "자녀궁"],
-  ["wealth", "재백궁"],
-  ["health", "질액궁"],
-  ["travel", "천이궁"],
-  ["friends", "노복궁"],
-  ["career", "관록궁"],
-  ["property", "전택궁"],
-  ["fortune", "복덕궁"],
-  ["parents", "부모궁"],
-];
-const ADMIN_ZIWEI_STARS = ["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량", "칠살", "파군"];
 
 const ADMIN_GEOCODE_PRESETS = [
   { keys: ["서울", "seoul"], label: "서울", latitude: 37.5665, longitude: 126.9780, timezone: "Asia/Seoul" },
@@ -527,6 +510,22 @@ export function buildAdminPromptProfile(body) {
   };
 }
 
+// 숙요 궁합용 상대 프로필. 생년월일이 없으면 null 이고, 그러면 궁합 데이터 없이 개인 해석만 나간다.
+// 숙요는 날짜만 쓰므로 생시는 받지 않는다(라이브 lunarForPerson 도 생시 없으면 12:00 로 본다).
+export function buildAdminPartnerProfile(body) {
+  const birthDate = normalizeAdminText(body?.partnerBirthDate || "", 20);
+  if (!birthDate) return null;
+
+  return buildAdminPromptProfile({
+    name: body?.partnerName || "상대",
+    gender: body?.partnerGender,
+    birthDate,
+    birthTimeUnknown: true,
+    calendarType: body?.partnerCalendarType,
+    timezone: body?.timezone,
+  });
+}
+
 function buildAdminBirthObject(profile) {
   const promptCalendarType = profile.promptCalendarType || profile.inputCalendarType || profile.calendarType;
   return {
@@ -642,12 +641,17 @@ export async function resolveAdminSajuEngineProfile(profile, env) {
   return buildAdminSajuEngineProfileFromKasiSolar(profile, solar, response?.source || "kasi");
 }
 
-function assertAdminPromptProfileReady(service, profile) {
+function assertAdminPromptProfileReady(service, profile, { domain, partnerProfile } = {}) {
   if (adminPromptNeedsExactTime(service) && profile.timeUnknown) {
     throw createHttpError(400, "선택한 기능은 정확한 생시가 필요합니다.", { code: "BIRTH_TIME_REQUIRED" });
   }
   if (adminPromptNeedsCoordinates(service) && (!Number.isFinite(profile.latitude) || !Number.isFinite(profile.longitude))) {
     throw createHttpError(400, "선택한 기능은 출생지 위도와 경도가 필요합니다.", { code: "BIRTH_COORDINATES_REQUIRED" });
+  }
+  // 숙요 궁합 템플릿은 상대 데이터가 없으면 빌더가 MISSING_COMPATIBILITY_RESULT 로 죽는다.
+  // 서버에서 먼저 한국어로 안내한다.
+  if (service === "sukuyo" && domain === "compatibility" && !partnerProfile) {
+    throw createHttpError(400, "숙요 궁합은 상대 생년월일이 필요합니다.", { code: "PARTNER_BIRTH_REQUIRED" });
   }
 }
 
@@ -724,21 +728,6 @@ function buildAdminLocationObject(profile) {
   };
 }
 
-function buildAdminPillar(stemIndex, branchIndex) {
-  const stemKey = positiveModulo(stemIndex, ADMIN_GAN.length);
-  const branchKey = positiveModulo(branchIndex, ADMIN_JI.length);
-  const stemElement = ADMIN_GAN_ELEMENT_KEYS[stemKey];
-  const branchElement = ADMIN_JI_ELEMENT_KEYS[branchKey];
-  return {
-    g: ADMIN_GAN[stemKey],
-    j: ADMIN_JI[branchKey],
-    gE: ADMIN_ELEMENT_META[stemElement].ko,
-    jE: ADMIN_ELEMENT_META[branchElement].ko,
-    gEKey: stemElement,
-    jEKey: branchElement,
-  };
-}
-
 function rankAdminElements(counts, direction = "desc") {
   return ADMIN_ELEMENT_KEYS
     .slice()
@@ -746,125 +735,6 @@ function rankAdminElements(counts, direction = "desc") {
       const diff = Number(counts[b] || 0) - Number(counts[a] || 0);
       return direction === "asc" ? -diff : diff;
     });
-}
-
-function buildAdminSajuResult(profile) {
-  const yearStemIndex = positiveModulo(profile.year - 4, 10);
-  const yearBranchIndex = positiveModulo(profile.year - 4, 12);
-  const monthStemIndex = positiveModulo(yearStemIndex * 2 + profile.month, 10);
-  const monthBranchIndex = positiveModulo(profile.month + 1, 12);
-  const dayBase = Math.floor(Date.UTC(profile.year, profile.month - 1, profile.day) / 86400000);
-  const dayStemIndex = positiveModulo(dayBase + 9, 10);
-  const dayBranchIndex = positiveModulo(dayBase + 1, 12);
-  const hourBranchIndex = positiveModulo(Math.floor((profile.hour + 1) / 2), 12);
-  const hourStemIndex = positiveModulo(dayStemIndex * 2 + hourBranchIndex, 10);
-
-  const pillars = {
-    y: buildAdminPillar(yearStemIndex, yearBranchIndex),
-    m: buildAdminPillar(monthStemIndex, monthBranchIndex),
-    d: buildAdminPillar(dayStemIndex, dayBranchIndex),
-    h: buildAdminPillar(hourStemIndex, hourBranchIndex),
-  };
-  const counts = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
-  Object.values(pillars).forEach((pillar) => {
-    counts[pillar.gEKey] += 1;
-    counts[pillar.jEKey] += 1;
-  });
-  const dominantKey = rankAdminElements(counts)[0];
-  const weakKeys = rankAdminElements(counts, "asc").slice(0, 2);
-  const strongKeys = rankAdminElements(counts).slice(0, 2);
-  const johuType = ["亥", "子", "丑"].includes(pillars.m.j)
-    ? "한랭 조후"
-    : (["巳", "午", "未"].includes(pillars.m.j) ? "열기 조후" : "중화 조후");
-  const age = Math.max(0, new Date().getUTCFullYear() - profile.year);
-
-  return {
-    profile: {
-      name: profile.name,
-      gender: profile.gender,
-      birth: buildAdminBirthObject(profile),
-      location: buildAdminLocationObject(profile),
-    },
-    analysisProfile: {
-      name: profile.name,
-      gender: profile.gender,
-      birth: buildAdminBirthObject(profile),
-      location: buildAdminLocationObject(profile),
-    },
-    snapshot: {
-      gender: profile.gender,
-      birth: buildAdminBirthObject(profile),
-      elementWeights: counts,
-      analysis: {
-        dayStemElement: ADMIN_ELEMENT_META[dominantKey].label,
-      },
-    },
-    pillars,
-    natal: {
-      counts,
-      dominant: ADMIN_ELEMENT_META[dominantKey].label,
-    },
-    johu: {
-      type: johuType,
-      score: positiveModulo(profile.seed, 41) + 60,
-    },
-    power: {
-      isStrong: counts[pillars.d.gEKey] >= 2,
-      yongshin: weakKeys.map((key) => ADMIN_ELEMENT_META[key].label),
-      kijishin: strongKeys.map((key) => ADMIN_ELEMENT_META[key].label),
-    },
-    jong: {
-      isJong: false,
-      name: "일반격",
-    },
-    engineContext: {
-      marker: "admin-prompt-lab-v20260617",
-      sourceLayers: ["원국", "오행 분포", "조후", "신강/신약", "용신 후보", "대운 퀀텀"],
-      bazi: {
-        yearPillar: `${pillars.y.g}${pillars.y.j}`,
-        monthPillar: `${pillars.m.g}${pillars.m.j}`,
-        dayPillar: `${pillars.d.g}${pillars.d.j}`,
-        hourPillar: `${pillars.h.g}${pillars.h.j}`,
-      },
-      quantumMyeongli: {
-        dayStem: pillars.d.g,
-        monthBranch: pillars.m.j,
-        currentAge: age,
-        elementMap: ADMIN_ELEMENT_KEYS.map((key) => ({
-          element: key,
-          label: ADMIN_ELEMENT_META[key].label,
-          score: counts[key],
-          verdict: key === dominantKey ? "강함" : (weakKeys.includes(key) ? "보완 필요" : "중간"),
-        })),
-        daewun: Array.from({ length: 8 }, (_, index) => {
-          const stem = ADMIN_GAN[positiveModulo(yearStemIndex + index + 1, 10)];
-          const branch = ADMIN_JI[positiveModulo(yearBranchIndex + index + 1, 12)];
-          return {
-            age: 10 + index * 10,
-            gan: stem,
-            zhi: branch,
-            ganElement: ADMIN_ELEMENT_META[ADMIN_GAN_ELEMENT_KEYS[positiveModulo(yearStemIndex + index + 1, 10)]].label,
-            zhiElement: ADMIN_ELEMENT_META[ADMIN_JI_ELEMENT_KEYS[positiveModulo(yearBranchIndex + index + 1, 12)]].label,
-            score: positiveModulo(profile.seed + index * 13, 41) + 55,
-            label: index % 2 === 0 ? "확장" : "정비",
-            jongStrength: counts[pillars.d.gEKey] >= 2 ? "일간 지지" : "일간 보강",
-          };
-        }),
-      },
-      renderedFeatureDigests: [
-        {
-          id: "quantum-myeongli",
-          label: "퀀텀 명리 엔진",
-          text: "원국, 월지 조후, 오행 강약, 용신 후보, 대운 파동을 한 묶음으로 엮어 질문의 핵심 관문을 좁힙니다.",
-        },
-        {
-          id: "question-lock",
-          label: "질문 결속",
-          text: "일간과 월지, 질문 성격을 함께 고정해 다른 명식에 그대로 옮기기 어렵게 묶습니다.",
-        },
-      ],
-    },
-  };
 }
 
 function adminElementLabel(key) {
@@ -1006,64 +876,6 @@ function buildAdminSajuConsultationDigest(profile, question, domain) {
   return `${domainLabel} 질문의 문이 ${profile.birthDateText} ${birthTime}, ${place} 명식 위에 놓입니다. 상담자는 "${questionText || "내담자의 질문"}"을 첫 등불로 삼고 원국, 조후, 용신과 기신, 대운, 세운 중 먼저 열릴 문을 가립니다.`;
 }
 
-function cloneAdminPromptJson(value) {
-  try {
-    return JSON.parse(JSON.stringify(value));
-  } catch (error) {
-    return value && typeof value === "object" ? { ...value } : value;
-  }
-}
-
-function maskAdminSajuBirthObject(birth, hideBirth, hideTime) {
-  const out = birth && typeof birth === "object" ? cloneAdminPromptJson(birth) : {};
-  if (hideBirth) {
-    out.year = null;
-    out.month = null;
-    out.day = null;
-    out.date = "";
-    out.birthDate = "";
-  }
-  if (hideTime) {
-    out.hour = null;
-    out.minute = null;
-    out.time = "";
-    out.birthTime = "";
-  }
-  return out;
-}
-
-function applyAdminSajuPromptPrivacy(payload, options = {}) {
-  const out = cloneAdminPromptJson(payload) || {};
-  const hideName = options.hideName !== false;
-  const hideBirth = options.hideBirth !== false;
-  const hideTime = options.hideTime !== false;
-
-  if (out.profile && typeof out.profile === "object") {
-    if (hideName) out.profile.name = "사용자";
-    out.profile.birth = maskAdminSajuBirthObject(out.profile.birth, hideBirth, hideTime);
-  }
-  if (out.snapshot && typeof out.snapshot === "object") {
-    if (hideName) out.snapshot.name = "사용자";
-    out.snapshot.birth = maskAdminSajuBirthObject(out.snapshot.birth, hideBirth, hideTime);
-  }
-  if (out.analysisProfile && typeof out.analysisProfile === "object") {
-    if (hideName) out.analysisProfile.name = "사용자";
-    out.analysisProfile.birth = maskAdminSajuBirthObject(out.analysisProfile.birth, hideBirth, hideTime);
-    if (hideBirth) {
-      out.analysisProfile.year = null;
-      out.analysisProfile.month = null;
-      out.analysisProfile.day = null;
-      out.analysisProfile.birthDate = "";
-    }
-    if (hideTime) {
-      out.analysisProfile.hour = null;
-      out.analysisProfile.minute = null;
-      out.analysisProfile.birthTime = "";
-    }
-  }
-  return out;
-}
-
 export function buildAdminSajuResultFromEngine(profile, options = {}) {
   const engineProfile = buildSajuProfile({
     name: profile.name,
@@ -1160,7 +972,9 @@ export function buildAdminSajuResultFromEngine(profile, options = {}) {
     timeZhi: pillars.h.j,
   };
 
-  return applyAdminSajuPromptPrivacy({
+  // 마스킹하지 않는다 — 실험실의 목적이 "실제 발송되는 프롬프트"를 그대로 검수하는 것이라,
+  // 이름·생년월일·생시를 가리면 검수 대상과 실물이 달라진다. 입력은 관리자가 직접 넣은 테스트 값이다.
+  return {
     profile: {
       name: profile.name,
       gender: profile.gender,
@@ -1268,30 +1082,102 @@ export function buildAdminSajuResultFromEngine(profile, options = {}) {
       ],
     },
     sajuCoreResult: engineProfile?.sajuCoreResult || null,
-  }, { hideName: true, hideBirth: true, hideTime: true });
+  };
 }
 
-function buildAdminSukuyoContext(profile) {
-  const solar = Solar.fromYmdHms(profile.year, profile.month, profile.day, profile.timeUnknown ? 12 : profile.hour, profile.minute || 0, 0);
+// 라이브 숙요 궁합(worker/routes/sukuyo-compatibility-ai.js lunarForPerson)과 같은 규칙:
+// 음력 입력은 그 값을 그대로 음력으로 쓰고, 양력 입력만 변환한다.
+function resolveAdminSukuyoStar(person) {
+  if (person.calendarType === "lunar" || person.calendarType === "lunar_leap") {
+    const isLeapMonth = person.calendarType === "lunar_leap";
+    const lunarMonth = Math.abs(person.month);
+    return {
+      lunarMonth,
+      lunarDay: person.day,
+      sukuyo: buildSukuyoFromLunar(lunarMonth, person.day, {
+        isLeapMonth,
+        source: "admin-prompt-lab-user-lunar",
+      }),
+    };
+  }
+
+  const solar = Solar.fromYmdHms(person.year, person.month, person.day, person.timeUnknown ? 12 : person.hour, person.minute || 0, 0);
   const lunar = solar.getLunar();
-  const lunarMonthRaw = Number(lunar?.getMonth?.() || profile.month);
+  const lunarMonthRaw = Number(lunar?.getMonth?.() || person.month);
   const lunarMonth = Math.max(1, Math.abs(lunarMonthRaw));
-  const lunarDay = Math.max(1, Number(lunar?.getDay?.() || profile.day));
-  const sukuyo = buildSukuyoFromLunar(lunarMonth, lunarDay, {
-    isLeapMonth: typeof lunar?.isLeap === "function" ? lunar.isLeap() : lunarMonthRaw < 0,
-    source: "admin-prompt-lab-lunar",
-  });
-  const mansionIdx = Number.isFinite(Number(sukuyo?.index))
-    ? Number(sukuyo.index)
-    : positiveModulo(profile.seed + profile.month * 3 + profile.day, ADMIN_SUKUYO_MANSIONS.length);
-  const partnerIdx = positiveModulo(mansionIdx + 7, ADMIN_SUKUYO_MANSIONS.length);
-  const mansion = sukuyo?.nameKo ? `${sukuyo.nameKo}숙` : ADMIN_SUKUYO_MANSIONS[mansionIdx];
-  const partnerMansion = ADMIN_SUKUYO_MANSIONS[partnerIdx];
-  const compatibility = buildCompatibilityFromIndices(mansionIdx, partnerIdx) || {};
-  const distance = Math.min(
-    positiveModulo(partnerIdx - mansionIdx, ADMIN_SUKUYO_MANSIONS.length),
-    positiveModulo(mansionIdx - partnerIdx, ADMIN_SUKUYO_MANSIONS.length),
-  );
+  const lunarDay = Math.max(1, Number(lunar?.getDay?.() || person.day));
+  return {
+    lunarMonth,
+    lunarDay,
+    sukuyo: buildSukuyoFromLunar(lunarMonth, lunarDay, {
+      isLeapMonth: typeof lunar?.isLeap === "function" ? lunar.isLeap() : lunarMonthRaw < 0,
+      source: "admin-prompt-lab-lunar",
+    }),
+  };
+}
+
+function buildAdminSukuyoCompatibilityResult(selfStar, partnerProfile) {
+  if (!partnerProfile) return null;
+
+  const partnerStar = resolveAdminSukuyoStar(partnerProfile);
+  const myIdx = Number(selfStar.sukuyo?.index);
+  const partnerIdx = Number(partnerStar.sukuyo?.index);
+  if (!Number.isFinite(myIdx) || !Number.isFinite(partnerIdx)) return null;
+
+  // 관계 지표 정본. 값이 안 나오면 지어내지 않고 그대로 빈 값을 남긴다.
+  const compatibility = buildCompatibilityFromIndices(myIdx, partnerIdx);
+  if (!compatibility) return null;
+
+  const partnerMansion = partnerStar.sukuyo?.nameKo ? `${partnerStar.sukuyo.nameKo}숙` : "";
+  const roleGuide = compatibility.roleActionGuide || {};
+  const strengthShadow = compatibility.strengthShadowMap || {};
+
+  return {
+    myIdx,
+    partnerIdx,
+    partnerDisplayIndex: partnerIdx + 1,
+    partnerMansion,
+    partnerName: partnerProfile.name,
+    partnerGender: partnerProfile.genderLabel,
+    relationType: compatibility.relationType,
+    relationTypeHan: compatibility.relationTypeHan,
+    distanceLabel: compatibility.distanceLabel,
+    shortestDistance: compatibility.shortestDistance,
+    myRole: compatibility.aRole,
+    partnerRole: compatibility.bRole,
+    directionFromAToB: compatibility.directionFromAToB,
+    directionFromBToA: compatibility.directionFromBToA,
+    score: compatibility.compatibilityIndex,
+    temperature: compatibility.chemistryScore,
+    magnetism: compatibility.growthScore,
+    communicationScore: compatibility.communicationScore,
+    stabilityScore: compatibility.stabilityScore,
+    growthScore: compatibility.growthScore,
+    conflictScore: compatibility.conflictScore,
+    summary: compatibility.summary,
+    // 정본은 객체로 주고 프롬프트는 문자열로 읽는다 — 여기서 한 번 평문화한다.
+    roleGuideText: [roleGuide.meAction, roleGuide.otherAction, roleGuide.resetLine].filter(Boolean).join(" "),
+    elementHarmonyText: compatibility.elementHarmony?.summary || "",
+    strengthShadowText: [
+      strengthShadow.a ? `본인 강점 ${strengthShadow.a.strength} / 그림자 ${strengthShadow.a.shadow}` : "",
+      strengthShadow.b ? `상대 강점 ${strengthShadow.b.strength} / 그림자 ${strengthShadow.b.shadow}` : "",
+      strengthShadow.complementSummary || "",
+    ].filter(Boolean).join(" "),
+    stamp: "관리자 숙요 계산 컨텍스트",
+    partnerTraits: {
+      core: partnerStar.sukuyo?.archetypeTitle || "",
+      hidden: (partnerStar.sukuyo?.shadows || []).join("·"),
+      love: (partnerStar.sukuyo?.strengths || []).join("·"),
+      moonTone: partnerStar.sukuyo?.element || "",
+    },
+  };
+}
+
+export function buildAdminSukuyoContext(profile, partnerProfile) {
+  const selfStar = resolveAdminSukuyoStar(profile);
+  const { sukuyo, lunarMonth, lunarDay } = selfStar;
+  const mansionIdx = Number(sukuyo?.index);
+  const mansion = sukuyo?.nameKo ? `${sukuyo.nameKo}숙` : "";
   const strengths = Array.isArray(sukuyo?.strengths) ? sukuyo.strengths : [];
   const shadows = Array.isArray(sukuyo?.shadows) ? sukuyo.shadows : [];
   const keywords = Array.isArray(sukuyo?.keywords) ? sukuyo.keywords : [];
@@ -1325,168 +1211,7 @@ function buildAdminSukuyoContext(profile) {
         source: sukuyo?.source || "admin-prompt-lab-lunar",
       },
     },
-    compatibilityResult: {
-      myIdx: mansionIdx,
-      partnerIdx,
-      partnerDisplayIndex: partnerIdx + 1,
-      partnerMansion,
-      partnerName: "관리자 상대",
-      partnerGender: "미지정",
-      relationType: compatibility.relationType || (distance <= 3 ? "영친" : distance <= 9 ? "안괴" : "성위"),
-      relationTypeHan: compatibility.relationTypeHan || (distance <= 3 ? "榮親" : distance <= 9 ? "安壞" : "成危"),
-      distanceLabel: `${distance}보 거리`,
-      shortestDistance: distance,
-      myRole: compatibility.aRole || "받아들이는 쪽",
-      partnerRole: compatibility.bRole || "자극을 여는 쪽",
-      directionFromAToB: "감정의 문이 먼저 열림",
-      directionFromBToA: "현실의 속도를 맞춤",
-      score: Number(compatibility.compatibilityIndex || compatibility.chemistryScore || 0) || positiveModulo(profile.seed, 31) + 62,
-      temperature: Number(compatibility.chemistryScore || 0) || positiveModulo(profile.seed + 11, 36) + 58,
-      magnetism: Number(compatibility.growthScore || 0) || positiveModulo(profile.seed + 23, 38) + 55,
-      communicationScore: Number(compatibility.communicationScore || 0) || positiveModulo(profile.seed + 31, 32) + 60,
-      stabilityScore: Number(compatibility.stabilityScore || 0) || positiveModulo(profile.seed + 41, 30) + 58,
-      growthScore: Number(compatibility.growthScore || 0) || positiveModulo(profile.seed + 53, 34) + 57,
-      conflictScore: Number(compatibility.conflictScore || 0) || positiveModulo(profile.seed + 61, 28) + 24,
-      emotionalPattern: "가까워질수록 말보다 분위기의 결이 먼저 움직입니다.",
-      conflictPattern: "속도 차이가 생기면 잠시 간격을 두고 다시 손을 맞춥니다.",
-      longTermPotential: "꾸준한 약속이 쌓일수록 인연의 뿌리가 깊어집니다.",
-      summary: compatibility.summary || `${mansion}과 ${partnerMansion} 사이에 서로 다른 달빛의 속도가 머무릅니다.`,
-      stamp: "관리자 숙요 계산 컨텍스트",
-      partnerTraits: {
-        core: "반응이 빠르고 관계의 신호를 민감하게 받습니다.",
-        hidden: "불안이 올라오면 확인 욕구가 강해집니다.",
-        love: "명확한 표현과 반복되는 약속에 마음이 안정됩니다.",
-        moonTone: "기울어지는 달",
-      },
-    },
-  };
-}
-
-function buildAdminWesternSign(profile, offset = 0) {
-  const starts = [
-    [1, 20, 10], [2, 19, 11], [3, 21, 0], [4, 20, 1],
-    [5, 21, 2], [6, 22, 3], [7, 23, 4], [8, 23, 5],
-    [9, 23, 6], [10, 24, 7], [11, 23, 8], [12, 22, 9],
-  ];
-  let index = 9;
-  starts.forEach(([month, day, signIndex]) => {
-    if (profile.month > month || (profile.month === month && profile.day >= day)) {
-      index = signIndex;
-    }
-  });
-  return ADMIN_WESTERN_SIGNS[positiveModulo(index + offset, ADMIN_WESTERN_SIGNS.length)];
-}
-
-function buildAdminAstrologyContext(profile) {
-  const sun = buildAdminWesternSign(profile, 0);
-  const moon = pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 4);
-  const asc = profile.timeUnknown ? "ASC 미상(정오 보정)" : pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 8);
-  const venus = pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 2);
-  const mars = pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 6);
-
-  return {
-    astrologyResult: {
-      birth: {
-        year: profile.year,
-        month: profile.month,
-        day: profile.day,
-        hour: profile.hour,
-        minute: profile.minute,
-        timezone: profile.timezone,
-        latitude: profile.latitude,
-        longitude: profile.longitude,
-      },
-      coreSigns: {
-        sun,
-        moon,
-        asc,
-        mc: pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 10),
-        desc: pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 14),
-      },
-      elements: {
-        dominant: pickAdmin(["불", "흙", "공기", "물"], profile.seed, 1),
-        weakest: pickAdmin(["불", "흙", "공기", "물"], profile.seed, 3),
-        counts: {
-          fire: positiveModulo(profile.seed, 4) + 1,
-          earth: positiveModulo(profile.seed + 2, 4) + 1,
-          air: positiveModulo(profile.seed + 4, 4) + 1,
-          water: positiveModulo(profile.seed + 6, 4) + 1,
-        },
-        percentages: { fire: 28, earth: 24, air: 23, water: 25 },
-      },
-      modalities: {
-        dominant: pickAdmin(["활동", "고정", "변통"], profile.seed, 2),
-        counts: {
-          cardinal: positiveModulo(profile.seed, 5) + 1,
-          fixed: positiveModulo(profile.seed + 5, 5) + 1,
-          mutable: positiveModulo(profile.seed + 9, 5) + 1,
-        },
-        advice: "리듬을 먼저 맞추면 선택의 칼날이 선명해집니다.",
-      },
-      focus: {
-        topHouse: `${positiveModulo(profile.seed, 12) + 1}하우스`,
-        topHouseTopic: pickAdmin(["자기표현", "재정", "관계", "일", "전환", "정신성"], profile.seed, 7),
-        focusCount: positiveModulo(profile.seed, 5) + 2,
-      },
-      transits: {
-        jupiterTransit: `${pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 5)} 목성 흐름`,
-        jupiterIndex: positiveModulo(profile.seed, 12),
-        message: "확장되는 자리와 정리해야 할 자리가 동시에 비칩니다.",
-      },
-      timelord: {
-        firdaria: {
-          main: pickAdmin(["태양", "금성", "수성", "달", "토성", "목성", "화성"], profile.seed, 1),
-          sub: pickAdmin(["태양", "금성", "수성", "달", "토성", "목성", "화성"], profile.seed, 4),
-          yearsLeft: positiveModulo(profile.seed, 5) + 1,
-        },
-        profection: {
-          house: `${positiveModulo(new Date().getUTCFullYear() - profile.year, 12) + 1}하우스`,
-          sign: pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 9),
-          ruler: pickAdmin(["태양", "달", "수성", "금성", "화성", "목성", "토성"], profile.seed, 3),
-          theme: "올해 열리는 무대와 책임의 결",
-        },
-      },
-      placements: ["태양", "달", "수성", "금성", "화성", "목성", "토성"].map((planet, index) => ({
-        planet,
-        sign: pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, index),
-        house: `${positiveModulo(profile.seed + index, 12) + 1}하우스`,
-        degree: `${positiveModulo(profile.seed + index * 7, 30)}°`,
-      })),
-      majorAspects: [
-        { pair: "태양-달", aspect: "삼분", orb: "3°" },
-        { pair: "금성-화성", aspect: "육분", orb: "2°" },
-        { pair: "목성-토성", aspect: "사각", orb: "4°" },
-      ],
-    },
-    compatibilityResult: {
-      source: "admin-prompt-lab",
-      score: positiveModulo(profile.seed, 31) + 60,
-      relationType: "상호 보완형",
-      loveDesc: "감정의 속도와 표현의 결을 맞출수록 끌림이 안정됩니다.",
-      workDesc: "현실 감각과 추진력이 서로의 빈틈을 받칩니다.",
-      spiritDesc: "서로 다른 욕구가 성장의 거울로 떠오릅니다.",
-      bestSupport: "달-금성 조화",
-      bestChallenge: "화성-토성 긴장",
-      partner: {
-        name: "관리자 상대",
-        gender: "미지정",
-        sun: pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 3),
-        moon: pickAdmin(ADMIN_WESTERN_SIGNS, profile.seed, 7),
-        venus,
-        mars,
-      },
-      houseOverlay: {
-        mySunInPartnerHouse: "7하우스",
-        partnerSunInMyHouse: "10하우스",
-        myMoonInPartnerHouse: "4하우스",
-        partnerMoonInMyHouse: "2하우스",
-        myVenusInPartnerHouse: "5하우스",
-        partnerVenusInMyHouse: "11하우스",
-        myMarsInPartnerHouse: "6하우스",
-        partnerMarsInMyHouse: "1하우스",
-      },
-      accuracyNotes: profile.timeUnknown ? ["출생시간 미상으로 ASC/하우스는 정오 보정"] : [],
-    },
+    compatibilityResult: buildAdminSukuyoCompatibilityResult(selfStar, partnerProfile),
   };
 }
 
@@ -1758,36 +1483,82 @@ function buildAdminTarotPrompt({ question, profile, domain }) {
   });
 }
 
-function buildAdminZiweiChart(profile) {
-  const palaces = ADMIN_ZIWEI_PALACES.map(([id, name], index) => {
-    const starA = pickAdmin(ADMIN_ZIWEI_STARS, profile.seed, index);
-    const starB = pickAdmin(ADMIN_ZIWEI_STARS, profile.seed, index + 5);
-    return {
-      id,
-      name,
-      branch: ADMIN_JI[positiveModulo(profile.seed + index, ADMIN_JI.length)],
-      index,
-      mainStars: [
-        { name: starA, strengthSymbol: index % 3 === 0 ? "◎" : "O" },
-        { name: starB, strengthSymbol: index % 4 === 0 ? "▲" : "△" },
-      ],
-      auxiliaryStars: [
-        { name: pickAdmin(["좌보", "우필", "문창", "문곡", "천魁", "천월"], profile.seed, index), strengthSymbol: "△" },
-      ],
-      strengthSummary: {
-        weakStars: index % 5 === 0 ? [{ name: pickAdmin(["화성", "영성", "양인", "타라"], profile.seed, index), strengthSymbol: "X" }] : [],
-      },
-    };
-  });
-  const mingIndex = positiveModulo(profile.seed, palaces.length);
-  const shenIndex = positiveModulo(mingIndex + 6, palaces.length);
-  const strongestIndex = positiveModulo(mingIndex + 8, palaces.length);
-  const weakestIndex = positiveModulo(mingIndex + 3, palaces.length);
+// 엔진(worker/lib/ziwei-ai-chart.js)이 내보내는 한글 궁 이름 -> 프롬프트 계약의 궁 id.
+// 엔진의 PALACE_NAMES 와 순서·표기가 같아야 한다(노복궁 표기 포함).
+const ADMIN_ZIWEI_ENGINE_PALACE_IDS = Object.freeze({
+  "명궁": "ming",
+  "형제궁": "siblings",
+  "부부궁": "spouse",
+  "자녀궁": "children",
+  "재백궁": "wealth",
+  "질액궁": "health",
+  "천이궁": "travel",
+  "노복궁": "friends",
+  "관록궁": "career",
+  "전택궁": "property",
+  "복덕궁": "fortune",
+  "부모궁": "parents",
+});
+
+// 엔진의 밝기 등급(묘/득/리/평/함)을 프롬프트가 읽는 strengthSymbol 로 옮긴다.
+// 표에 없는 별은 심볼을 붙이지 않는다 — 없는 강약 근거를 지어내지 않기 위함.
+function toAdminZiweiStars(names, brightness) {
+  if (!Array.isArray(names)) return [];
+  return names
+    .filter(Boolean)
+    .map((name) => {
+      const symbol = describeBrightness(brightness?.[name])?.symbol || "";
+      return symbol ? { name, strengthSymbol: symbol } : { name };
+    });
+}
+
+export function buildAdminZiweiChartFromEngine(profile) {
+  // 엔진은 gender 를 소문자화한 뒤 "male" 만 남성으로 인정한다(applyMajorLuck).
+  // "M" 을 그대로 넘기면 대운 방향이 조용히 뒤집히므로 라이브(ziwei-ai.js)와 같은 표기로 넘긴다.
+  const gender = profile.gender === "M" ? "male" : profile.gender === "F" ? "female" : "";
+  // 자미두수 엔진은 음력 변환을 스스로 하므로 사주처럼 KASI 로 미리 양력화하지 않는다.
+  const calendarType = profile.calendarType === "solar" ? "solar" : "lunar";
+  const chart = calculateZiweiAiChart({
+    birthInfo: {
+      gender,
+      birthDate: profile.birthDateText,
+      birthTime: profile.birthTimeText,
+      birthTimeUnknown: profile.timeUnknown,
+      calendarType,
+      isLeapMonth: profile.calendarType === "lunar_leap",
+    },
+  }, { year: new Date().getUTCFullYear() });
+
+  const palaces = (Array.isArray(chart.palaces) ? chart.palaces : []).map((palace, index) => ({
+    id: ADMIN_ZIWEI_ENGINE_PALACE_IDS[palace?.name] || "",
+    name: palace?.name || "",
+    branch: palace?.earthlyBranch || "",
+    index,
+    mainStars: toAdminZiweiStars(palace?.mainStars, palace?.brightness),
+    auxiliaryStars: toAdminZiweiStars(palace?.assistantStars, palace?.brightness),
+    strengthSummary: {
+      weakStars: toAdminZiweiStars(palace?.maleficStars, palace?.brightness),
+    },
+  }));
+
+  const strongestPalaces = Array.isArray(chart?.keyFeatures?.strongestPalaces) ? chart.keyFeatures.strongestPalaces : [];
+  const strongestName = strongestPalaces[0]?.palace || "";
+  // keyFeatures.strongestPalaces 는 상위 3개만 담기므로 그 마지막을 "가장 약한 궁"으로 쓰면 라벨과 내용이 어긋난다.
+  // 엔진과 같은 점수식(주성*3 + 보조성 - 살성)을 12궁 전체에 적용해 실제 최약궁을 고른다.
+  const scoredPalaces = (Array.isArray(chart.palaces) ? chart.palaces : []).map((palace) => ({
+    name: palace?.name || "",
+    score: (palace?.mainStars?.length || 0) * 3 + (palace?.assistantStars?.length || 0) - (palace?.maleficStars?.length || 0),
+  }));
+  const weakestName = scoredPalaces.length
+    ? scoredPalaces.slice().sort((a, b) => a.score - b.score)[0].name
+    : "";
+  const sihua = chart.fourTransformations && typeof chart.fourTransformations === "object" ? chart.fourTransformations : {};
 
   return {
     user: {
       gender: profile.gender,
-      calendarType: "solar",
+      calendarType,
+      isLeapMonth: profile.calendarType === "lunar_leap",
       birthYear: profile.year,
       birthMonth: profile.month,
       birthDay: profile.day,
@@ -1797,136 +1568,40 @@ function buildAdminZiweiChart(profile) {
       birthPlace: profile.birthPlace || "미지정",
       timezone: profile.timezone,
     },
-    birthYearStem: ADMIN_GAN[positiveModulo(profile.year - 4, ADMIN_GAN.length)],
-    yearGan: ADMIN_GAN[positiveModulo(profile.year - 4, ADMIN_GAN.length)],
-    yearZhi: ADMIN_JI[positiveModulo(profile.year - 4, ADMIN_JI.length)],
-    mingGong: palaces[mingIndex].name,
-    shenGong: palaces[shenIndex].name,
+    birthYearStem: chart?.lunar?.yearStem || "",
+    yearGan: chart?.lunar?.yearStem || "",
+    yearZhi: chart?.lunar?.yearBranch || "",
+    mingGong: chart.lifePalace || "",
+    shenGong: chart.bodyPalace || "",
     palaces,
     summary: {
-      strongestPalaceId: palaces[strongestIndex].id,
-      weakestPalaceId: palaces[weakestIndex].id,
-      direction: "명궁과 관록궁을 함께 묶어 현실 선택의 무게를 봅니다.",
-      strengths: ["집중력", "회복력", "현실 감각"],
-      weaknesses: ["속도 과잉", "관계 거리 조절"],
+      strongestPalaceId: ADMIN_ZIWEI_ENGINE_PALACE_IDS[strongestName] || "",
+      weakestPalaceId: ADMIN_ZIWEI_ENGINE_PALACE_IDS[weakestName] || "",
+      direction: chart.chartSummary || "",
+      strengths: strongestPalaces.map((row) => row?.palace).filter(Boolean),
+      weaknesses: [],
     },
+    // 엔진은 huaLu/huaQuan/huaKe/huaJi(카멜) 로 내보내고 프롬프트는 hualu/huaquan/huake/huaji(소문자)로 읽는다.
     sihua: {
-      hualu: pickAdmin(ADMIN_ZIWEI_STARS, profile.seed, 2),
-      huaquan: pickAdmin(ADMIN_ZIWEI_STARS, profile.seed, 4),
-      huake: pickAdmin(ADMIN_ZIWEI_STARS, profile.seed, 6),
-      huaji: pickAdmin(ADMIN_ZIWEI_STARS, profile.seed, 8),
+      hualu: sihua.huaLu || "",
+      huaquan: sihua.huaQuan || "",
+      huake: sihua.huaKe || "",
+      huaji: sihua.huaJi || "",
     },
-    majorPeriods: palaces.slice(0, 8).map((palace, index) => ({
-      palaceId: palace.id,
-      palaceName: palace.name,
-      range: `${10 + index * 10}~${19 + index * 10}세`,
+    majorPeriods: (Array.isArray(chart.majorLuck) ? chart.majorLuck : []).map((period) => ({
+      palaceId: ADMIN_ZIWEI_ENGINE_PALACE_IDS[period?.palaceName] || "",
+      palaceName: period?.palaceName || "",
+      range: period?.range || "",
     })),
+    // 엔진의 yearlyLuck 은 keyPalaces 배열을 갖지 않는다. 유년 궁 하나가 실제 근거이므로
+    // 그것만 넘기고 나머지 궁을 지어내지 않는다.
     annualFlow: {
-      yearLabel: `${new Date().getUTCFullYear()} 세운`,
-      keyPalaces: [palaces[mingIndex].id, palaces[strongestIndex].id, palaces[weakestIndex].id],
+      yearLabel: chart?.yearlyLuck?.year ? `${chart.yearlyLuck.year} 세운` : "",
+      keyPalaces: [ADMIN_ZIWEI_ENGINE_PALACE_IDS[chart?.yearlyLuck?.palaceName] || ""].filter(Boolean),
     },
-    juInfo: `${positiveModulo(profile.seed, 5) + 2}국`,
-  };
-}
-
-function buildAdminVedicContext(profile) {
-  const lagnaIndex = positiveModulo(profile.seed, ADMIN_VEDIC_SIGNS.length);
-  const moonNakIndex = positiveModulo(profile.seed + profile.day, ADMIN_NAKSHATRAS.length);
-  const grahas = ["수리야", "찬드라", "망갈", "부다", "구루", "슈크라", "샤니", "라후", "케투"];
-  const lords = ["화성", "금성", "수성", "달", "태양", "목성", "토성", "라후", "케투"];
-
-  return {
-    vedicResult: {
-      profile: {
-        name: profile.name,
-        birth: {
-          year: profile.year,
-          month: profile.month,
-          day: profile.day,
-          hour: profile.hour,
-          minute: profile.minute,
-          gender: profile.gender,
-          timezone: profile.timezone,
-          lat: profile.latitude,
-          lon: profile.longitude,
-          timeUnknown: profile.timeUnknown,
-        },
-      },
-      lagna: {
-        signKo: ADMIN_VEDIC_SIGNS[lagnaIndex],
-        sign: ADMIN_VEDIC_SIGNS[lagnaIndex],
-        degree: positiveModulo(profile.seed, 30),
-        lord: pickAdmin(lords, profile.seed, 2),
-      },
-      moonNakshatra: {
-        name: ADMIN_NAKSHATRAS[moonNakIndex],
-        pada: positiveModulo(profile.seed, 4) + 1,
-        lord: pickAdmin(lords, profile.seed, 4),
-        deity: pickAdmin(["아그니", "인드라", "소마", "바루나", "비슈누"], profile.seed, 5),
-        motive: pickAdmin(["다르마", "아르타", "카마", "목샤"], profile.seed, 6),
-      },
-      karakas: {
-        atmakaraka: pickAdmin(grahas, profile.seed, 1),
-        amatyakaraka: pickAdmin(grahas, profile.seed, 3),
-        darakaraka: pickAdmin(grahas, profile.seed, 5),
-      },
-      yogas: ["라자 요가의 씨앗", "다나 요가의 축적성", "찬드라 리듬의 감응"],
-      planets: grahas.map((graha, index) => ({
-        grahaKo: graha,
-        graha,
-        rashiKo: ADMIN_VEDIC_SIGNS[positiveModulo(lagnaIndex + index, ADMIN_VEDIC_SIGNS.length)],
-        rashi: ADMIN_VEDIC_SIGNS[positiveModulo(lagnaIndex + index, ADMIN_VEDIC_SIGNS.length)],
-        bhava: positiveModulo(index + 1, 12) + 1,
-        nakshatra: pickAdmin(ADMIN_NAKSHATRAS, profile.seed, index),
-        pada: positiveModulo(profile.seed + index, 4) + 1,
-        dignity: pickAdmin(["강함", "중간", "보완 필요"], profile.seed, index),
-        retrograde: index % 4 === 0,
-      })),
-      bhavas: Array.from({ length: 12 }, (_, index) => ({
-        number: index + 1,
-        rashiKo: ADMIN_VEDIC_SIGNS[positiveModulo(lagnaIndex + index, ADMIN_VEDIC_SIGNS.length)],
-        rashi: ADMIN_VEDIC_SIGNS[positiveModulo(lagnaIndex + index, ADMIN_VEDIC_SIGNS.length)],
-        lord: pickAdmin(lords, profile.seed, index),
-        planets: grahas.filter((_, planetIndex) => positiveModulo(planetIndex + profile.seed, 12) === index).slice(0, 3),
-      })),
-      dasha: [
-        { planet: pickAdmin(grahas, profile.seed, 1), start: "2022", end: "2029", years: 7, active: true },
-        { planet: pickAdmin(grahas, profile.seed, 2), start: "2029", end: "2035", years: 6, active: false },
-        { planet: pickAdmin(grahas, profile.seed, 3), start: "2035", end: "2045", years: 10, active: false },
-      ],
-      romance: { primary: ["7하우스의 관계 리듬", "다라카라카의 끌림"], best: "감정의 속도를 맞추는 때" },
-      career: { primary: ["10하우스의 책임", "아마티아카라카의 일"], yogas: ["라자 요가"], best: "다샤가 바뀌기 전 준비기" },
-      wealth: { primary: ["2하우스 축적", "11하우스 성취"], yogas: ["다나 요가"], best: "목성의 확장 흐름" },
-    },
-    compatibilityResult: {
-      partner: {
-        name: "관리자 상대",
-        birth: {
-          year: profile.year + 1,
-          month: positiveModulo(profile.month + 2, 12) + 1,
-          day: positiveModulo(profile.day + 6, 28) + 1,
-        },
-      },
-      ashtakoota: {
-        total: positiveModulo(profile.seed, 12) + 20,
-        totalMax: 36,
-        verdict: "조율형 인연",
-        breakdown: [
-          { name: "바르나", score: 1, max: 1, label: "기질 접점" },
-          { name: "바샤", score: 2, max: 2, label: "끌림" },
-          { name: "타라", score: 2, max: 3, label: "운의 호흡" },
-          { name: "요니", score: 3, max: 4, label: "본능 리듬" },
-          { name: "그라하 마이트리", score: 4, max: 5, label: "마음의 언어" },
-          { name: "가나", score: 4, max: 6, label: "성향 거리" },
-          { name: "바쿠트", score: 6, max: 7, label: "생활 결" },
-          { name: "나디", score: 8, max: 8, label: "깊은 인연" },
-        ],
-      },
-      strengths: ["정서적 보완", "현실 감각"],
-      challenges: ["속도 차이", "확인 욕구"],
-      advice: "달의 리듬이 흔들릴 때 약속의 언어를 먼저 세웁니다.",
-      overallReason: "낙샤트라와 다샤의 결이 서로 다른 속도로 맞물립니다.",
-    },
+    juInfo: chart?.bureau?.name || "",
+    sanFangSiZheng: chart.sanFangSiZheng || null,
+    uncertainty: chart.uncertainty || null,
   };
 }
 
@@ -2015,7 +1690,7 @@ async function buildAdminVedicContextFromEngine(profile, env, requestUrl) {
   };
 }
 
-async function buildAdminPromptByService({ service, question, profile, domain, promptConfig, env, requestUrl }) {
+async function buildAdminPromptByService({ service, question, profile, partnerProfile, domain, promptConfig, env, requestUrl }) {
   if (service === "saju") {
     return buildSajuAIPromptWithDomain({
       question,
@@ -2029,7 +1704,7 @@ async function buildAdminPromptByService({ service, question, profile, domain, p
   }
 
   if (service === "sukuyo") {
-    const context = buildAdminSukuyoContext(profile);
+    const context = buildAdminSukuyoContext(profile, partnerProfile);
     return buildSukuyoAIPromptWithDomain({
       question,
       basicResult: context.basicResult,
@@ -2051,25 +1726,26 @@ async function buildAdminPromptByService({ service, question, profile, domain, p
   if (service === "ziwei") {
     return buildZiweiAIPromptWithDomain({
       question,
-      chartResult: buildAdminZiweiChart(profile),
+      chartResult: buildAdminZiweiChartFromEngine(profile),
       domain,
     });
   }
 
   if (service === "vedic") {
     const context = await buildAdminVedicContextFromEngine(profile, env, requestUrl);
-    return buildVedicAIPromptWithDomain({
+    // 프로덕션(fortune.js handleVedicAIPrompt)과 동일하게 domain 없는 빌더를 쓴다.
+    // 이 빌더는 질문에서 주제를 스스로 분류하므로 domain 인자를 받지 않는다.
+    return buildVedicAIPrompt({
       question,
       vedicResult: context.vedicResult,
       compatibilityResult: context.compatibilityResult,
-      domain,
     });
   }
 
   throw createHttpError(400, "지원하지 않는 점술입니다.", { code: "INVALID_PROMPT_SERVICE" });
 }
 
-function normalizeAdminPromptLabResult({ built, service, domain, profile, question, adminContext, requestId }) {
+function normalizeAdminPromptLabResult({ built, service, domain, profile, partnerProfile, question, adminContext, requestId }) {
   const prompt = String(built?.prompt || built?.generatedPrompt || "").trim();
   if (!prompt) {
     throw createHttpError(500, "프롬프트 본문을 만들지 못했습니다.", { code: "PROMPT_BODY_EMPTY" });
@@ -2111,6 +1787,14 @@ function normalizeAdminPromptLabResult({ built, service, domain, profile, questi
       longitude: profile.longitude,
       seed: profile.seed,
     },
+    partnerProfile: partnerProfile
+      ? {
+        name: partnerProfile.name,
+        genderLabel: partnerProfile.genderLabel,
+        birthDate: partnerProfile.birthDateText,
+        calendarType: partnerProfile.calendarType,
+      }
+      : null,
     question,
     generatedAt: new Date().toISOString(),
   };
@@ -2135,16 +1819,22 @@ async function handleAdminPromptLabGenerate(request, env) {
   }
 
   const profile = buildAdminPromptProfile(body);
-  assertAdminPromptProfileReady(service, profile);
   const domain = normalizeAdminPromptDomain(service, body.domain) || "";
+  const partnerProfile = service === "sukuyo" ? buildAdminPartnerProfile(body) : null;
+  assertAdminPromptProfileReady(service, profile, { domain, partnerProfile });
   const promptConfig = service === "saju" ? buildAdminSajuPromptConfig(body) : null;
   const engineProfile = service === "saju"
     ? await resolveAdminSajuEngineProfile(profile, env)
     : profile;
+  // 분야별 템플릿 오버라이드는 빌더 안쪽의 동기 접근자가 읽으므로 빌드 전에 채워 둔다.
+  // 라이브 사주 경로(fortune.js handleSajuAIPrompt)와 같은 처리이며, 실패해도 내부에서 삼키고
+  // 코드 기본 템플릿으로 진행한다.
+  await primePromptTemplateOverrides(env);
   const built = await buildAdminPromptByService({
     service,
     question,
     profile: engineProfile,
+    partnerProfile,
     domain,
     promptConfig,
     env,
@@ -2156,6 +1846,7 @@ async function handleAdminPromptLabGenerate(request, env) {
     service,
     domain,
     profile: engineProfile,
+    partnerProfile,
     question,
     adminContext,
     requestId,
