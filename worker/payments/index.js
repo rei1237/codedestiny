@@ -153,6 +153,33 @@ async function applyNonPaidPgEvent(db, { eventType, orderId }) {
 }
 
 /**
+ * 레거시 prepare 가 User 에서 실제로 읽는 필드 전부.
+ *
+ * 투영 없이 읽으면 destinyProfiles[]·unlockedFeatures[]·membershipCreditLots[]·
+ * recentConsumeRequestIds[] 가 결제 임계경로로 통째로 딸려온다. 이 왕복은 클릭과 PG 창 사이의
+ * 유일한 서버 왕복이라 그만큼이 그대로 체감 지연이다.
+ *
+ * 🔴 필드를 빼면 예외가 아니라 **조용한 폴백**이 된다. 이름은 "Code Destiny 고객"으로,
+ * profileId 는 빈 문자열로 떨어질 뿐 아무도 실패했다고 말해 주지 않는다. 앞의 7개는
+ * buildLegacyPrepareCustomer 가, destinyProfilesCurrentId 는 아래 profileId 폴백(:750)이 쓴다 —
+ * 같은 조회를 두 곳이 나눠 쓰므로 한쪽만 보고 목록을 줄이면 다른 쪽이 소리 없이 깨진다.
+ *
+ * 🔴 이 투영은 레거시 prepare 의 그 한 조회에만 건다. 다른 findOne(User) 들은
+ * profileSubscription 을 읽으므로(handlePassPrepare·grantPassOrderEntitlement·
+ * resolveCanonicalEntitlement 경로) 같은 투영을 쓰면 역시 조용히 깨진다.
+ */
+const LEGACY_PREPARE_USER_PROJECTION = {
+  fullName: 1,
+  name: 1,
+  displayName: 1,
+  username: 1,
+  email: 1,
+  phoneNumber: 1,
+  phone: 1,
+  destinyProfilesCurrentId: 1,
+};
+
+/**
  * 컷오버 어댑터 전용(POST /prepare). 구 prepare 는 주문 응답에 customer(이름·이메일·전화 평문)를
  * 실어 보냈고, 셸은 그 인라인 값 덕분에 결제 직전의 /api/auth/me·/api/me/payment-phone 왕복을
  * 건너뛴다(RC-8). 순수 V2 라우트(POST /orders)는 Mongo 읽기 0회가 계약이라 이걸 하지 않는다 —
@@ -744,7 +771,7 @@ const ROUTES = {
            일반 경로에서는 폴백이 필요 없고, 두 왕복이 겹쳐 **결제창 앞 대기가 한 왕복만큼 짧아진다**
            (클릭→PG창 사이 서버 왕복은 이 prepare 하나뿐이라 그만큼이 그대로 체감 지연이다).
            바디에 profileId 가 없으면 예전처럼 사용자 문서를 먼저 기다린다 — 그때만 직렬이다. */
-        const userPromise = db.findOne(User, { _id: toObjectId(userId) });
+        const userPromise = db.findOne(User, { _id: toObjectId(userId) }, { projection: LEGACY_PREPARE_USER_PROJECTION });
         userPromise.catch(() => {}); // 미관측 거부 경고만 막는다 — 실제 처리는 아래 await 가 한다.
         const bodyProfileId = String(body.profileId || body.selectedProfileId || "");
         const profileId = bodyProfileId || String((await userPromise)?.destinyProfilesCurrentId || "");
