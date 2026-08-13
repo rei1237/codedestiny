@@ -6,7 +6,8 @@
  *
  *  - 상품: "심화 자미두수 PDF" — featureKey: `ziwei-deep-pdf`
  *  - 결제: 회당 결제(B유형), 300코인 = 30,000원 (worker/lib/paid-feature-registry.js)
- *  - 잠금 콘텐츠 "심화 자미두수"(웹, premium-ziwei 5만원 영구잠금)와는 별개의 SKU다.
+ *  - 잠금 콘텐츠 "심화 자미두수"(웹, premium-ziwei 200코인=20,000원 영구잠금)와는 별개의 SKU다.
+ *    가격 정본은 worker/lib/paid-feature-registry.js 의 `unlock.premium_ziwei` 다.
  *  - 구성: 명궁부터 복덕궁까지 12궁 전체 + 사화/삼방사정 + 대한/유년 마스터플랜 = 15챕터.
  *  - 생성 전략: 챕터별 개별 LLM 콜(15콜). 챕터당 목표 2,200~3,000자 → 총 34,000~40,000자+.
  *  - 명반(성요 배치·사화)은 로컬 결정론 계산(worker/lib/ziwei-ai-chart.js) 결과를 주입한다.

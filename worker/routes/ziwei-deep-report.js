@@ -800,31 +800,16 @@ function handlePlan() {
   return json({ ok: true, plan: getZiweiDeepReportPlan() });
 }
 
-/**
- * 심화 자미두수 웹 리포트(20,000원 영구 잠금 `premium-ziwei`)의 서버 엔타이틀먼트 확인.
- * 클라이언트(V2)가 마운트 시 호출해 잠금 여부를 서버 권위로 판정한다(과금 우회 차단).
- * 오류 시 클라이언트는 fail-open 처리(콘텐츠 노출)하도록 unlocked=true 대신 error 플래그를 준다.
- */
-async function handleWebAccess(request, env) {
-  const auth = await getOptionalUserFromRequest(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
-  if (!auth) return json({ ok: true, unlocked: false, reason: "LOGIN_REQUIRED" });
-  if (isAdmin(auth)) return json({ ok: true, unlocked: true, accessType: "admin" });
-  try {
-    await connectDb(env);
-    const decision = await canAccessPaidFeature(auth.userId, "premium-ziwei", { env, reason: "심화 자미두수", userDoc: auth.authUserDoc });
-    return json({ ok: true, unlocked: Boolean(decision?.allowed) });
-  } catch (error) {
-    console.error("[ziwei-deep-report] access", clean(error?.message, 200));
-    return json({ ok: false, unlocked: false, error: true });
-  }
-}
+// GET /access 는 제거했다(2026-08-13). 잠금 상품 `premium-ziwei` 의 엔타이틀먼트를 조회하던
+// 엔드포인트인데, 심화 화면이 "명반 무료 열람"으로 바뀌면서 호출자가 0이 됐다.
+// 🔴 `premium-ziwei` 잠금 자체는 살아 있다 — 게이팅 정본은 worker/lib/access-control.js
+// (`ziweiPremium`)와 worker/routes/fortune.js 의 PERSISTENT_UNLOCK_KEY_SET 이다.
 
 export async function handleZiweiDeepReportRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/ziwei-deep-report");
   try {
     if (method === "GET" && (path === "/plan" || path === "")) return handlePlan();
-    if (method === "GET" && path === "/access") return await handleWebAccess(request, env);
     if (method === "GET" && path === "/result") return await handleResult(request, env);
     if (method === "POST" && path === "/prepare") return await handlePrepare(request, env);
     if (method === "POST" && path === "/generate") return await handleGenerate(request, env);
