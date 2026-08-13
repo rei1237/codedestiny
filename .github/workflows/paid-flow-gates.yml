@@ -51,6 +51,13 @@ on:
       - "js/destiny-profile.js"
       # 미러도 함께 건다 — verify:payment-choice-parity 가 이 사본을 실제로 열어 검사한다.
       - "public/js/destiny-profile.js"
+      # 🔴 아래 셋은 cd:auth-changed 리스너를 갖고 있어 verify:auth-changed-coverage 의 스캔 대상이다.
+      # 가드가 검사하는데 트리거에 없으면 "그 파일만 고친 PR 에서는 가드가 안 도는" 구멍이 된다
+      # (index-inline-runtime 은 verify:auth-event-loop 가 이미 검사하고 있었는데도 빠져 있었다).
+      # 그 정합성은 이제 verify:auth-changed-coverage 가 기계로 강제한다.
+      - "js/core/index-inline-runtime.js"
+      - "js/saju-engine.js"
+      - "js/share.js"
       # ── 정적 셸 (결제수단 선택 모달 **정본**) ───────────────
       # 🔴 결제창 렌더러는 3종이지만 정본은 셸 인라인 하나다(`_cdChooseServicePaymentMode`,
       #    CSS 는 `_cdEnsureDirectPaymentStyles`). 나머지 두 렌더러(app/_lib/billing-client.ts ·
@@ -119,6 +126,13 @@ jobs:
       # 이용권 확인마다 캐시가 전멸하고 홈이 다시 그려진다(증상이 "가끔 느리다"로만 보인다).
       - name: Verify auth event loop guard
         run: npm run verify:auth-event-loop
+
+      # 위 가드는 "손으로 쓴 목록의 리스너에 필터가 있는가"를 본다. 목록에 없는 파일에 리스너가
+      # 새로 생기면 못 본다 — 그래서 사고가 두 번 났다(G-3 셸 미러, G-7 프로필 카드 무한 로딩).
+      # 이쪽은 소스에서 리스너를 전수 발견해 전부 filtered/benign 으로 분류돼 있는지 본다.
+      # 분류되지 않은 새 리스너는 실패다 — 그게 이 가드의 존재 이유다.
+      - name: Verify every cd:auth-changed listener is classified
+        run: npm run verify:auth-changed-coverage
 
       # 형제 가드인데 여기 빠져 있어서, 하네스가 깨진 채로 방치됐다(auth-client 가 새 모듈을
       # import 하자 import 매핑 표에 없어 스크립트가 그냥 던졌다). 아무도 부르지 않는 가드는

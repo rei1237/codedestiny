@@ -16,6 +16,7 @@
 | G-4 | `db.transaction-budget.test.js` 외 10곳 | 빌드 산출물을 소스로 오인 | ✅ PR #557 |
 | G-5 | `verify:*` 미배선 다수 | 존재하나 아무도 호출 안 함 | ✅ PR #558 |
 | G-6 | `deploy:critical` ↔ paid-flow-gates 커버리지 차이 | 검증 안 됨 | ✅ PR #558 (G-5 와 같은 가드) |
+| G-7 | `verify-auth-event-loop-guard` 대상 목록 | **G-3 재발** — 프로필 카드 무한 로딩으로 프로덕션 표면화 | ✅ PR #567 + 커버리지 메타 가드 |
 
 > **G-5·G-6 후속 정정 (2026-08-13)**
 > - 위 "54개"는 손으로 센 값이라 **믿지 말 것.** 정본은 `npm run verify:guard-wiring` 이 계산한다(실측: `verify:*` 178개 중 88개 배선 / 90개 미배선 선언).
@@ -58,6 +59,33 @@ if (!existsSync(handlerPath)) {           // .open-next/server-functions/default
 ### G-3. 셸 미러 하나가 가드 목록에서 빠져 있었다
 
 `verify-auth-event-loop-guard.mjs` 의 `SHELLS` 가 6종만 열거해 `public/zh-tw/index.html` 이 빠져 있었다. 추가 후에도 통과 — 드리프트가 아니라 **커버리지 구멍**이었다.
+
+### G-7. 같은 가드의 커버리지 구멍이 **다시** 났다 — 이번엔 프로덕션 증상까지 갔다
+
+G-3 과 **같은 가드, 같은 원인, 다른 파일**이다. `verify-auth-event-loop-guard.mjs` 가 `SHELLS`(index.html 계열)와 `RUNTIMES`(index-inline-runtime.js)만 열거하는데, `js/destiny-profile.js` 도 `cd:auth-changed` 를 듣고 있었다. 그 리스너에만 source 필터가 없었다.
+
+```js
+// js/destiny-profile.js — 수정 전
+window.addEventListener('cd:auth-changed', _dpScheduleAuthScopeRefresh);
+//                                         ^ 이벤트 인자를 받지 않아 필터가 원천적으로 불가능
+```
+
+같은 이벤트를 듣는 다른 4곳(`index.html:400`·`:15035`, `js/core/index-inline-runtime.js`, `js/core/access-store.js`)은 전부 필터가 있었다. 워크플로 주석은 *"source 필터 하나만 빠져도 루프가 되살아난다"* 라고 **정확히 경고하고 있었는데**, 가드가 그 파일을 열지 않아 내내 초록불이었다.
+
+**증상**: 이용권 갱신이 스스로 쏘는 되울림(`subscription-sync` / `membership-cache`)마다 프로필 스코프를 통째로 버리고 로딩 카드를 다시 그렸다. 카드가 0장인 계정은 되돌아갈 캐시가 없어 매번 로딩으로 떨어졌고, 5분 세션 하트비트와 탭 재포커스가 그 이벤트를 계속 만들어내 사용자에게는 **무한 로딩**이었다.
+
+라이브 자산을 jsdom 에 얹어 실측한 값:
+
+```
+되울림 2발 → 로딩 카드 재그림 3회 + /api/profile 3회
+/api/profile 이 느릴 때: 40초마다 잠깐 풀렸다 되돌아가는 진동
+```
+
+**조치**: PR #567 이 필터를 넣고 가드 대상에 이 파일을 추가했다. 그런데 그건 **목록을 한 칸 더 늘린 것뿐**이라 세 번째 사고를 미룰 뿐이다. 그래서 별도로 `verify:auth-changed-coverage` 를 만들었다 — 손으로 쓴 목록을 신뢰하지 않고 소스에서 리스너를 **전수 발견**해, 각각이 `filtered`(필터 본문을 잘라 확인) 또는 `benign`(사유 기재, 가능하면 근거도 기계 검사)으로 분류돼 있는지 본다. **분류되지 않은 새 리스너는 실패다.**
+
+곁들여 그 가드가 스스로 드러낸 것 둘:
+- `js/core/access-store.js` 의 필터는 **철자가 다르다**(`source` 가 아니라 `authEvent`/`authSource`). 의미는 같지만 정본 정규식으로는 안 잡힌다 — 기존 가드가 이 파일을 안 봤기 때문에 아무도 몰랐다.
+- 스캔 대상 6개 중 **3개가 워크플로 트리거 `paths` 에 없었다**(`index-inline-runtime.js` 포함 — 형제 가드가 이미 검사하던 파일인데도). "가드는 검사하는데 CI 가 안 깨어나는" 같은 종류의 구멍이라, 그 정합성도 같은 가드가 기계로 강제하게 했다.
 
 ---
 
@@ -191,3 +219,9 @@ git fetch origin main && git checkout origin/main && npm run check:critical
 
 **7. 줄 범위로 코드를 자를 때 블록의 끝을 눈으로 믿지 않는다.**
 `};` 를 함수의 끝으로 봤는데 바로 뒤 const 객체의 끝이었다(사고 1). 자른 뒤에는 잘라낸 **첫 줄과 마지막 줄을 출력해 확인**하고, 워커라면 `verify:worker-no-undef` 를 바로 돌린다.
+
+**8. 🔴 손으로 쓴 대상 목록은 가드가 아니라 가드의 **가정**이다 — 그 가정도 검사해야 한다.**
+G-3 과 G-7 은 같은 가드에서 같은 이유로 났다: `SHELLS`/`RUNTIMES` 같은 배열이 현실과 어긋났고, 어긋난 것을 아무도 몰랐다. 목록에 한 칸 더 넣는 것은 **다음 사고를 미루는 것**이지 고치는 게 아니다. 규칙이 "이 성질을 가진 모든 코드"에 걸리는 것이라면, 가드도 그 집합을 **소스에서 발견**하고 각 항목이 분류돼 있는지를 봐야 한다(`verify:auth-changed-coverage` 가 그 형태다). 분류되지 않은 새 항목이 실패가 아니면, 그 가드는 자기가 아는 것만 지킨다.
+
+**9. 가드가 검사하는 파일은 그 가드를 부르는 워크플로의 트리거 `paths` 에 있어야 한다.**
+없으면 "그 파일만 고친 PR 에서는 가드가 아예 돌지 않는다" — 목록 드리프트와 정확히 같은 종류의 구멍인데 훨씬 눈에 안 띈다. 실제로 G-7 을 고치다 보니 스캔 대상 6개 중 3개가 그 상태였고, 그중 하나는 형제 가드가 **이미 검사하고 있던** 파일이었다. 이 정합성은 사람이 기억할 일이 아니라 기계가 강제할 일이다.
