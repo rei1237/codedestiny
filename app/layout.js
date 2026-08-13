@@ -96,6 +96,8 @@ export const metadata = {
       "ja-JP": "/ja/",
       "zh-CN": "/zh/",
       zh: "/zh/",
+      "zh-TW": "/zh-tw/",
+      "zh-Hant": "/zh-tw/",
       en: "/en/",
       "en-US": "/en/",
       "x-default": "/",
@@ -185,13 +187,12 @@ export default function RootLayout({ children }) {
         <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <Script src="/js/core/payment-service.js?v=20260804" strategy="beforeInteractive" />
         <link rel="alternate" type="application/rss+xml" title={ROOT_LAYOUT_COPY.ko.insightsRssTitle} href="https://code-destiny.com/rss.xml" />
-        <link rel="alternate" hrefLang="ko" href="https://code-destiny.com/" />
-        <link rel="alternate" hrefLang="ja" href="https://code-destiny.com/ja/" />
-        <link rel="alternate" hrefLang="zh-CN" href="https://code-destiny.com/zh/" />
-        <link rel="alternate" hrefLang="en" href="https://code-destiny.com/en/" />
-        <link rel="alternate" hrefLang="x-default" href="https://code-destiny.com/" />
-        <meta property="og:site_name" content={siteSeo.siteName} />
-        <meta property="og:locale" content="ko_KR" />
+        {/* hreflang / og:site_name / og:locale 을 여기서 하드코딩하지 말 것.
+            이 layout 은 모든 Next 라우트의 <head> 이므로, 홈 기준 값을 박으면 전 페이지가
+            "내 한국어판은 홈페이지"라고 선언하게 된다(2026-08-13 실측: 색인 가능 355개 중 350개가
+            canonical=/saju/ 인데 hreflang ko=/ 를 함께 내보내는 자기모순 상태였다).
+            로케일 대체 URL 은 metadata.alternates.languages 가, og 는 metadata.openGraph 가
+            페이지별로 생성한다. */}
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLdGraph) }} />
         {/* 정적 셸과 동일한 연이/네오 테마 키 공유 — hydration 전에 html 속성으로 반영 (FOUC 방지).
 
