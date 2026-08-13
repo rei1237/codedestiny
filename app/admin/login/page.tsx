@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getApiBaseUrl } from "../../_lib/api-config";
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 type AdminLoginCopy = {
@@ -150,7 +151,10 @@ export default function AdminLoginPage() {
     }
     setLoading(true);
     try {
-      const res = await fetch("/api/admin/entry/password", {
+      // 🔴 상대경로로 두면 workers.dev·Capacitor 셸(https://localhost)처럼 API 가 다른 출처에 있는
+      // 환경에서 로그인만 404 가 난다 — 나머지 관리자 요청은 전부 getApiBaseUrl 을 거치기 때문에
+      // "다른 화면은 되는데 로그인만 안 된다"로 보인다.
+      const res = await fetch(`${getApiBaseUrl() || ""}/api/admin/entry/password`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ password }),

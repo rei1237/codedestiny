@@ -4,7 +4,8 @@ import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getApiBaseUrl } from "../../_lib/api-config";
-import { getFlowerAdminToken, resolveAdminCredentials } from "../_lib/admin-api";
+import { adminFetch, describeAdminError, type AdminErrorView } from "../_lib/admin-api";
+import AdminErrorState from "../_components/AdminErrorState";
 
 type InsightStatus = "draft" | "scheduled" | "published" | "archived" | "private" | "trash";
 type FilterKey = "all" | InsightStatus;
@@ -1211,17 +1212,7 @@ const PROMPT_LAB_EARTH_STORAGE_SCOPE_OPTIONS: Array<{ key: PromptLabEarthStorage
   { key: "all" },
 ];
 
-/* 토큰 처리는 app/admin/_lib/admin-api.ts 하나만 쓴다.
-   예전에는 이 파일과 /admin/content 가 같은 로직을 따로 구현해 세 벌이 돌아다녔다. */
-const resolveAdminRequestCredentials = resolveAdminCredentials;
-const getFlowerAdminTokenClient = getFlowerAdminToken;
-
-function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
-  const headers: Record<string, string> = { ...(extraHeaders || {}) };
-  const adminToken = getFlowerAdminTokenClient();
-  if (adminToken) headers["x-admin-token"] = adminToken;
-  return headers;
-}
+/* 토큰 처리·401 리다이렉트는 app/admin/_lib/admin-api.ts 의 adminFetch 하나만 쓴다. */
 
 function getAdminInsightsCopy(locale: LoadingLocale) {
   return ADMIN_INSIGHTS_COPY[locale] || ADMIN_INSIGHTS_COPY.en;
@@ -1237,17 +1228,6 @@ function createDefaultPromptLabForm(locale: LoadingLocale): PromptLabForm {
 const DEFAULT_PROMPT_LAB_QUESTIONS = new Set(
   Object.values(ADMIN_INSIGHTS_COPY).map((copy) => copy.defaultQuestion),
 );
-
-function getAdminAccessMessage(status: number, copy: AdminInsightsCopy): string {
-  if (status === 401) return copy.adminLoginRequired;
-  return copy.adminPermissionDenied;
-}
-
-function clearFlowerAdminTokenClient(): void {
-  if (typeof window === "undefined") return;
-  try { sessionStorage.removeItem("flower_admin_token"); } catch {}
-  try { sessionStorage.removeItem("flower_admin_password_ok"); } catch {}
-}
 
 const FILTER_OPTIONS: Array<{ key: FilterKey }> = [
   { key: "all" },
@@ -1346,9 +1326,7 @@ export default function AdminInsightsPage() {
   const router = useRouter();
   const apiBase = useMemo(() => getApiBaseUrl(), []);
   const endpointBase = `${apiBase || ""}/api/admin/content`;
-  const promptLabEndpoint = `${apiBase || ""}/api/admin/prompt-lab/generate`;
   const promptLabGeocodeEndpoint = `${apiBase || ""}/api/admin/prompt-lab/geocode`;
-  const requestCredentials = useMemo(() => resolveAdminRequestCredentials(apiBase), [apiBase]);
 
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = getAdminInsightsCopy(locale);
@@ -1361,9 +1339,7 @@ export default function AdminInsightsPage() {
   const [items, setItems] = useState<InsightItem[]>([]);
   const [pagination, setPagination] = useState<ContentPagination>(EMPTY_CONTENT_PAGINATION);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
-  const [forbidden, setForbidden] = useState(false);
-  const [forbiddenMessage, setForbiddenMessage] = useState("");
+  const [errorView, setErrorView] = useState<AdminErrorView | null>(null);
   const [busyId, setBusyId] = useState("");
   const [publicationChecks, setPublicationChecks] = useState<Record<string, PublicationCheck>>({});
   const [diag, setDiag] = useState<ContentDiag | null>(null);
@@ -1393,20 +1369,14 @@ export default function AdminInsightsPage() {
 
   async function loadDiag() {
     try {
-      const res = await fetch(`${endpointBase}/diag`, {
-        method: "GET",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) setDiag(data as ContentDiag);
+      const data = await adminFetch<ContentDiag>("/api/admin/content/diag");
+      setDiag(data);
     } catch {}
   }
 
   async function loadList() {
     setLoading(true);
-    setError("");
+    setErrorView(null);
 
     try {
       const collectedItems: InsightItem[] = [];
@@ -1422,30 +1392,8 @@ export default function AdminInsightsPage() {
         url.searchParams.set("page", String(page));
         url.searchParams.set("limit", String(ADMIN_CONTENT_LIST_PAGE_SIZE));
 
-        const res = await fetch(url.toString(), {
-          method: "GET",
-          credentials: requestCredentials,
-          headers: buildAdminHeaders(),
-          cache: "no-store",
-        });
-        const data = await res.json().catch(() => ({}));
-
-        if (res.status === 401 || res.status === 403) {
-          if (res.status === 401) clearFlowerAdminTokenClient();
-          setForbidden(true);
-          setForbiddenMessage(getAdminAccessMessage(res.status, copy));
-          setError("");
-          setItems([]);
-          setPagination(EMPTY_CONTENT_PAGINATION);
-          return;
-        }
-
-        if (!res.ok) {
-          setError(String(data?.message || copy.errors.listLoadFailed));
-          setItems([]);
-          setPagination(EMPTY_CONTENT_PAGINATION);
-          return;
-        }
+        // 401/403 은 adminFetch 가 토큰을 지우고 로그인으로 보낸다 — 여기서 forbidden 카드를 따로 그리지 않는다.
+        const data = await adminFetch<Record<string, any>>(`/api/admin/content?${url.searchParams.toString()}`);
 
         const pageItems = Array.isArray(data?.items) ? data.items : [];
         const rawPagination = data?.pagination || {};
@@ -1461,13 +1409,11 @@ export default function AdminInsightsPage() {
         page = currentPage + 1;
       }
 
-      setForbidden(false);
-      setForbiddenMessage("");
       setItems(collectedItems);
       setPagination(nextPagination);
       void loadDiag();
-    } catch {
-      setError(copy.errors.listNetworkFailed);
+    } catch (caught) {
+      setErrorView(describeAdminError(caught, copy.errors.listNetworkFailed));
       setItems([]);
       setPagination(EMPTY_CONTENT_PAGINATION);
     } finally {
@@ -1478,25 +1424,16 @@ export default function AdminInsightsPage() {
   useEffect(() => {
     loadList();
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [endpointBase, filter, typeFilter, sort, query, requestCredentials]);
+  }, [endpointBase, filter, typeFilter, sort, query]);
 
   async function updateStatus(id: string, status: InsightStatus) {
     setBusyId(id);
-    setError("");
+    setErrorView(null);
     try {
-      const res = await fetch(`${endpointBase}/${id}`, {
-        method: "PATCH",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ status }),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(String(data?.message || copy.errors.statusUpdateFailed));
-        return;
-      }
+      await adminFetch(`/api/admin/content/${id}`, { method: "PATCH", body: { status } });
       await loadList();
+    } catch (caught) {
+      setErrorView(describeAdminError(caught, copy.errors.statusUpdateFailed));
     } finally {
       setBusyId("");
     }
@@ -1504,20 +1441,12 @@ export default function AdminInsightsPage() {
 
   async function moveToTrash(id: string) {
     setBusyId(id);
-    setError("");
+    setErrorView(null);
     try {
-      const res = await fetch(`${endpointBase}/${id}`, {
-        method: "DELETE",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(String(data?.message || copy.errors.trashMoveFailed));
-        return;
-      }
+      await adminFetch(`/api/admin/content/${id}`, { method: "DELETE" });
       await loadList();
+    } catch (caught) {
+      setErrorView(describeAdminError(caught, copy.errors.trashMoveFailed));
     } finally {
       setBusyId("");
     }
@@ -1525,23 +1454,15 @@ export default function AdminInsightsPage() {
 
   async function checkPublication(id: string) {
     setBusyId(id);
-    setError("");
+    setErrorView(null);
     try {
-      const res = await fetch(`${endpointBase}/${encodeURIComponent(id)}/publish-status`, {
-        method: "GET",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(String(data?.message || copy.errors.publicationCheckFailed));
-        return;
-      }
+      const data = await adminFetch<Record<string, any>>(`/api/admin/content/${encodeURIComponent(id)}/publish-status`);
       setPublicationChecks((prev) => ({
         ...prev,
         [id]: data?.publication || { ok: false },
       }));
+    } catch (caught) {
+      setErrorView(describeAdminError(caught, copy.errors.publicationCheckFailed));
     } finally {
       setBusyId("");
     }
@@ -1549,19 +1470,12 @@ export default function AdminInsightsPage() {
 
   async function purgeContentCache(id: string) {
     setBusyId(id);
-    setError("");
+    setErrorView(null);
     try {
-      const res = await fetch(`${endpointBase}/${encodeURIComponent(id)}/cache-purge`, {
+      const data = await adminFetch<Record<string, any>>(`/api/admin/content/${encodeURIComponent(id)}/cache-purge`, {
         method: "POST",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
-        cache: "no-store",
+        body: {},
       });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setError(String(data?.message || copy.errors.cachePurgeFailed));
-        return;
-      }
       setPublicationChecks((prev) => ({
         ...prev,
         [id]: {
@@ -1570,6 +1484,8 @@ export default function AdminInsightsPage() {
           purgeStatus: String(data?.purge?.status || "requested"),
         },
       }));
+    } catch (caught) {
+      setErrorView(describeAdminError(caught, copy.errors.cachePurgeFailed));
     } finally {
       setBusyId("");
     }
@@ -1602,30 +1518,12 @@ export default function AdminInsightsPage() {
     try {
       const url = new URL(promptLabGeocodeEndpoint, window.location.origin);
       url.searchParams.set("q", queryText);
-      const res = await fetch(url.toString(), {
-        method: "GET",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-
-      if (res.status === 401 || res.status === 403) {
-        if (res.status === 401) clearFlowerAdminTokenClient();
-        setForbidden(true);
-        const message = getAdminAccessMessage(res.status, copy);
-        setForbiddenMessage(message);
-        setPromptLabError(message);
+      const data = await adminFetch<Record<string, any>>(`/api/admin/prompt-lab/geocode?${url.searchParams.toString()}`);
+      if (!data?.ok) {
+        setPromptLabError(copy.errors.geocodeFailed);
         return;
       }
 
-      if (!res.ok || !data?.ok) {
-        setPromptLabError(String(data?.message || copy.errors.geocodeFailed));
-        return;
-      }
-
-      setForbidden(false);
-      setForbiddenMessage("");
       setPromptLabForm((prev) => ({
         ...prev,
         birthPlace: String(data?.label || data?.query || prev.birthPlace),
@@ -1633,8 +1531,8 @@ export default function AdminInsightsPage() {
         longitude: Number.isFinite(Number(data?.longitude)) ? String(Number(data.longitude).toFixed(6)) : prev.longitude,
         timezone: String(data?.timezone || prev.timezone || "Asia/Seoul"),
       }));
-    } catch {
-      setPromptLabError(copy.errors.geocodeNetworkFailed);
+    } catch (caught) {
+      setPromptLabError(describeAdminError(caught, copy.errors.geocodeNetworkFailed).message);
     } finally {
       setPromptLabGeocoding(false);
     }
@@ -1671,34 +1569,14 @@ export default function AdminInsightsPage() {
 
     setPromptLabLoading(true);
     try {
-      const res = await fetch(promptLabEndpoint, {
+      const data = await adminFetch<Record<string, any>>("/api/admin/prompt-lab/generate", {
         method: "POST",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(promptLabForm),
-        cache: "no-store",
+        body: promptLabForm,
       });
-      const data = await res.json().catch(() => ({}));
 
-      if (res.status === 401 || res.status === 403) {
-        if (res.status === 401) clearFlowerAdminTokenClient();
-        setForbidden(true);
-        const message = getAdminAccessMessage(res.status, copy);
-        setForbiddenMessage(message);
-        setPromptLabError(message);
-        return;
-      }
-
-      if (!res.ok) {
-        setPromptLabError(String(data?.message || copy.errors.promptGenerateFailed));
-        return;
-      }
-
-      setForbidden(false);
-      setForbiddenMessage("");
       setPromptLabResult(data as PromptLabResult);
-    } catch {
-      setPromptLabError(copy.errors.promptNetworkFailed);
+    } catch (caught) {
+      setPromptLabError(describeAdminError(caught, copy.errors.promptNetworkFailed).message);
     } finally {
       setPromptLabLoading(false);
     }
@@ -2220,40 +2098,23 @@ export default function AdminInsightsPage() {
               </button>
             </div>
 
-            {forbidden ? (
-              <div className="rounded-xl border border-rose-700/60 bg-rose-900/20 p-5">
-                <p className="text-rose-200 font-semibold">{forbiddenMessage || copy.adminLoginRequired}</p>
-                <p className="text-sm text-rose-200/80 mt-1">{copy.forbiddenHint}</p>
-                <button
-                  type="button"
-                  onClick={() => router.push(`/admin/login?next=${encodeURIComponent("/admin/content")}`)}
-                  className="mt-3 rounded-lg bg-rose-700 hover:bg-rose-600 px-3 py-2 text-sm"
-                >
-                  {copy.adminLoginButton}
-                </button>
-              </div>
-            ) : null}
-
-            {error ? (
-              <div className="rounded-xl border border-rose-700/60 bg-rose-900/20 p-3 text-sm text-rose-200">
-                {error}
-              </div>
-            ) : null}
-
+            {/* 판정 순서는 loading → error → empty 다. 예전에는 error 카드와 "글이 없습니다"가 함께 떴다. */}
             {loading ? (
               <div className="rounded-xl border border-slate-700 bg-slate-900/50 p-6 text-sm text-slate-300">
                 {copy.loadingList}
               </div>
+            ) : errorView ? (
+              <AdminErrorState view={errorView} onRetry={() => { void loadList(); }} retrying={loading} />
             ) : null}
 
-            {!loading && !forbidden && items.length === 0 ? (
+            {!loading && !errorView && items.length === 0 ? (
               <div className="rounded-xl border border-slate-700 bg-slate-900/50 p-8 text-center">
                 <p className="text-base font-semibold text-slate-200">{copy.emptyTitle}</p>
                 <p className="text-sm text-slate-400 mt-1">{copy.emptyBody}</p>
               </div>
             ) : null}
 
-            {!loading && !forbidden && items.length > 0 ? (
+            {!loading && !errorView && items.length > 0 ? (
               <>
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs text-slate-400">
                   <p>
@@ -2298,7 +2159,7 @@ export default function AdminInsightsPage() {
                           <td className="px-3 py-2 text-slate-400">{formatDate(item.publishedAt, locale)}</td>
                           <td className="px-3 py-2">
                             <div className="flex flex-wrap gap-1.5">
-                              <button type="button" className="rounded bg-slate-700 hover:bg-slate-600 px-2 py-1 text-xs" onClick={() => router.push(`/admin/insights/edit?id=${encodeURIComponent(item._id)}`)}>{copy.edit}</button>
+                              <button type="button" className="rounded bg-slate-700 hover:bg-slate-600 px-2 py-1 text-xs" onClick={() => router.push(`/admin/content?id=${encodeURIComponent(item._id)}`)}>{copy.edit}</button>
                               <button type="button" className="rounded bg-blue-700 hover:bg-blue-600 px-2 py-1 text-xs" onClick={() => window.open(`/insights/${item.slug}`, "_blank", "noopener,noreferrer")}>{copy.preview}</button>
                               <button type="button" disabled={busyId === item._id || item.status === "draft"} className="rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "draft")}>{copy.saveDraft}</button>
                               <button type="button" disabled={busyId === item._id || item.status === "published"} className="rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "published")}>{copy.publish}</button>
@@ -2339,7 +2200,7 @@ export default function AdminInsightsPage() {
                         <p className="col-span-2">{copy.mobilePublished}: {formatDate(item.publishedAt, locale)}</p>
                       </div>
                       <div className="flex flex-wrap gap-1.5">
-                        <button type="button" className="rounded bg-slate-700 hover:bg-slate-600 px-2 py-1 text-xs" onClick={() => router.push(`/admin/insights/edit?id=${encodeURIComponent(item._id)}`)}>{copy.edit}</button>
+                        <button type="button" className="rounded bg-slate-700 hover:bg-slate-600 px-2 py-1 text-xs" onClick={() => router.push(`/admin/content?id=${encodeURIComponent(item._id)}`)}>{copy.edit}</button>
                         <button type="button" className="rounded bg-blue-700 hover:bg-blue-600 px-2 py-1 text-xs" onClick={() => window.open(`/insights/${item.slug}`, "_blank", "noopener,noreferrer")}>{copy.preview}</button>
                         <button type="button" disabled={busyId === item._id || item.status === "draft"} className="rounded bg-slate-700 hover:bg-slate-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "draft")}>{copy.saveDraft}</button>
                         <button type="button" disabled={busyId === item._id || item.status === "published"} className="rounded bg-emerald-700 hover:bg-emerald-600 disabled:opacity-50 px-2 py-1 text-xs" onClick={() => updateStatus(item._id, "published")}>{copy.publish}</button>

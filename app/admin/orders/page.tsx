@@ -3,7 +3,7 @@
 // 관리자 주문 조회·환불 화면.
 // 인증/fetch 는 기존 관리자 헬퍼(adminFetch)를 그대로 쓴다 — 토큰 로직을 다시 복제하지 않는다.
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { AdminApiError, adminFetch } from "../_lib/admin-api";
+import { adminFetch, describeAdminError } from "../_lib/admin-api";
 
 type AdminOrder = {
   id: string;
@@ -101,6 +101,10 @@ function Row({ label, value }: { label: string; value: React.ReactNode }) {
 export default function AdminOrdersPage() {
   const [query, setQuery] = useState("");
   const [email, setEmail] = useState("");
+  // 🔴 검색어는 디바운스한 값으로만 조회한다. 예전에는 입력 이벤트마다 곧바로 목록을 다시 불러
+  // 이메일 25자를 치면 관리자 목록 쿼리가 25번 나갔다(각각 find + countDocuments + 집계).
+  const [debouncedQuery, setDebouncedQuery] = useState("");
+  const [debouncedEmail, setDebouncedEmail] = useState("");
   const [status, setStatus] = useState("");
   const [paymentType, setPaymentType] = useState("");
   const [page, setPage] = useState(1);
@@ -128,19 +132,27 @@ export default function AdminOrdersPage() {
     setListError("");
     try {
       const params = new URLSearchParams();
-      if (query.trim()) params.set("q", query.trim());
-      if (email.trim()) params.set("email", email.trim());
+      if (debouncedQuery.trim()) params.set("q", debouncedQuery.trim());
+      if (debouncedEmail.trim()) params.set("email", debouncedEmail.trim());
       if (status) params.set("status", status);
       if (paymentType) params.set("paymentType", paymentType);
       params.set("page", String(page));
       const data = await adminFetch<ListResponse>(`/api/admin/orders?${params.toString()}`);
       setList(data);
     } catch (error) {
-      setListError(error instanceof AdminApiError ? error.message : "주문 목록을 불러오지 못했습니다.");
+      setListError(describeAdminError(error, "주문 목록을 불러오지 못했습니다.").message);
     } finally {
       setListLoading(false);
     }
-  }, [query, email, status, paymentType, page]);
+  }, [debouncedQuery, debouncedEmail, status, paymentType, page]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedQuery(query);
+      setDebouncedEmail(email);
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [query, email]);
 
   useEffect(() => { void loadList(); }, [loadList]);
 
@@ -157,7 +169,7 @@ export default function AdminOrdersPage() {
       const data = await adminFetch<DetailResponse>(`/api/admin/orders/${orderId}`);
       setDetail(data);
     } catch (error) {
-      setDetailError(error instanceof AdminApiError ? error.message : "주문 상세를 불러오지 못했습니다.");
+      setDetailError(describeAdminError(error, "주문 상세를 불러오지 못했습니다.").message);
     } finally {
       setDetailLoading(false);
     }
@@ -172,7 +184,7 @@ export default function AdminOrdersPage() {
       setReconcileResult(`검사 ${r.scanned ?? 0}건 · 정산 ${r.settled ?? 0} · 취소동기화 ${r.syncedCancelled ?? 0} · 실패동기화 ${r.syncedFailed ?? 0} · 만료 ${r.expired ?? 0} · 미변경 ${r.untouched ?? 0}`);
       await loadList();
     } catch (error) {
-      setReconcileResult(error instanceof AdminApiError ? error.message : "대조 실행에 실패했습니다.");
+      setReconcileResult(describeAdminError(error, "대조 실행에 실패했습니다.").message);
     } finally {
       setReconciling(false);
     }
@@ -212,7 +224,7 @@ export default function AdminOrdersPage() {
       await loadDetail(order.id);
       await loadList();
     } catch (error) {
-      setNotice(error instanceof AdminApiError ? `환불 실패 — ${error.message}` : "환불에 실패했습니다.");
+      setNotice(`환불 실패 — ${describeAdminError(error, "환불에 실패했습니다.").message}`);
     } finally {
       setRefunding(false);
     }

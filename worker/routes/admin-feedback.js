@@ -34,8 +34,14 @@ const LIST_LIMIT = 50;
 export const BUG_REPORT_REWARD_AMOUNT = 300;
 const BUG_REWARD_SERVICE_KEY = "admin_bug_bounty";
 
+// 옵션 근거는 admin.js 의 같은 이름 래퍼 주석 참조 — op-타임아웃 재시도를 켜서 "될 때도 있고
+// 안 될 때도 있다"를 없애고, 그 대가로 retries 를 1 로 낮춰 시도 누적이 워커 hung 감지에 닿지 않게 한다.
 function adminMongoRead(env, operation) {
-  return withMongoRetry(env, operation, { retries: 2 });
+  return withMongoRetry(env, operation, {
+    retries: 1,
+    retryOnOperationTimeout: true,
+    retryAdmissionOnOverload: true,
+  });
 }
 
 function toText(value) {

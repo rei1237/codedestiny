@@ -25,8 +25,13 @@ const MAX_PAGE_SIZE = 100;
 const DEFAULT_WINDOW_DAYS = 90;
 const OBJECT_ID_PATTERN = /^[a-f0-9]{24}$/i;
 
+// 옵션 근거는 admin.js 의 같은 이름 래퍼 주석 참조.
 function adminMongoRead(env, operation) {
-  return withMongoRetry(env, operation, { retries: 2 });
+  return withMongoRetry(env, operation, {
+    retries: 1,
+    retryOnOperationTimeout: true,
+    retryAdmissionOnOverload: true,
+  });
 }
 
 function escapeRegex(value) {

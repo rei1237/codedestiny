@@ -4,12 +4,12 @@ import Image from "next/image";
 import { Check, Gift, RefreshCw } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import {
-  AdminApiError,
   adminFetch,
-  getAdminApiBase,
-  getFlowerAdminToken,
-  resolveAdminCredentials,
+  adminFetchResponse,
+  describeAdminError,
+  type AdminErrorView,
 } from "../_lib/admin-api";
+import AdminErrorState from "../_components/AdminErrorState";
 
 type FeedbackStatus = "new" | "in_progress" | "resolved" | "on_hold" | "rejected";
 type TabValue = FeedbackStatus | "all";
@@ -93,14 +93,9 @@ function AdminAttachmentThumb({ url }: { url: string }) {
 
     (async () => {
       try {
-        const headers: Record<string, string> = {};
-        const token = getFlowerAdminToken();
-        if (token) headers["x-admin-token"] = token;
-        const response = await fetch(url, {
-          credentials: resolveAdminCredentials(getAdminApiBase()),
-          headers,
-          cache: "no-store",
-        });
+        // adminFetchResponse 는 절대 URL 을 그대로 통과시키고 토큰·credentials 만 붙인다(첨부 url 은 절대경로다).
+        // 썸네일은 재시도할 가치가 없으므로 retry:false — 실패해도 원본 링크가 남는다.
+        const response = await adminFetchResponse(url, { retry: false });
         if (!response.ok || cancelled) return;
         const blob = await response.blob();
         if (cancelled) return;
@@ -138,19 +133,21 @@ export default function AdminFeedbackPage() {
   const [loading, setLoading] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
-  const [error, setError] = useState("");
+  const [errorView, setErrorView] = useState<AdminErrorView | null>(null);
 
   const loadList = useCallback(async () => {
     setLoading(true);
-    setError("");
+    setErrorView(null);
     try {
       const params = new URLSearchParams();
       if (activeTab !== "all") params.set("status", activeTab);
       const data = await adminFetch<ListResponse>(`/api/admin/feedback?${params.toString()}`);
-      setItems(data.items);
-      setCounts(data.counts);
+      // 🔴 Array.isArray 가드가 필요한 이유: 워커에는 2xx 로 내려가는 degraded 응답 경로가 있어
+      // items 가 빠진 본문이 올 수 있다. 그대로 넣으면 아래 items.length 에서 터져 화이트스크린이 된다.
+      setItems(Array.isArray(data?.items) ? data.items : []);
+      setCounts(data?.counts && typeof data.counts === "object" ? data.counts : {});
     } catch (caught) {
-      setError(caught instanceof AdminApiError ? caught.message : "제보 목록을 불러오지 못했습니다.");
+      setErrorView(describeAdminError(caught, "제보 목록을 불러오지 못했습니다."));
     } finally {
       setLoading(false);
     }
@@ -166,12 +163,12 @@ export default function AdminFeedbackPage() {
 
   const mutate = useCallback(async (path: string, body?: unknown): Promise<Record<string, unknown> | null> => {
     setBusy(true);
-    setError("");
+    setErrorView(null);
     setMessage("");
     try {
       return await adminFetch<Record<string, unknown>>(path, { method: "POST", body });
     } catch (caught) {
-      setError(caught instanceof AdminApiError ? (caught.code ? `${caught.message} (${caught.code})` : caught.message) : "요청을 처리하지 못했습니다.");
+      setErrorView(describeAdminError(caught, "요청을 처리하지 못했습니다."));
       return null;
     } finally {
       setBusy(false);
@@ -238,8 +235,16 @@ export default function AdminFeedbackPage() {
           </div>
 
           <div className="max-h-[calc(100vh-260px)] overflow-y-auto">
-            {items.length === 0 ? (
-              <div className="p-4 text-sm text-slate-400">{loading ? "불러오는 중..." : "제보가 없습니다."}</div>
+            {/* 🔴 실패와 "없음"을 동시에 그리지 않는다 — 실패하면 items 가 [] 이라 예전에는 "불러오지
+                못했습니다"와 "제보가 없습니다"가 나란히 떴다. 판정 순서는 loading → error → empty 다. */}
+            {loading ? (
+              <div className="p-4 text-sm text-slate-400">불러오는 중...</div>
+            ) : errorView ? (
+              <div className="p-4">
+                <AdminErrorState view={errorView} onRetry={() => { void loadList(); }} retrying={loading} />
+              </div>
+            ) : items.length === 0 ? (
+              <div className="p-4 text-sm text-slate-400">제보가 없습니다.</div>
             ) : (
               <div className="divide-y divide-slate-800">
                 {items.map((item) => (
@@ -282,7 +287,8 @@ export default function AdminFeedbackPage() {
               {selected ? `${selected.ticketNo} · ${selected.categoryLabel}` : "왼쪽에서 제보를 선택하세요"}
             </p>
             {message ? <p className="mt-2 text-xs text-sky-200">{message}</p> : null}
-            {error ? <p className="mt-2 text-xs text-rose-300">{error}</p> : null}
+            {/* 변경 실패는 자동 재시도하지 않는다(월정석 지급이 이 경로에 있다) — 안내만 하고 재시도는 관리자가 고른다. */}
+            {errorView ? <div className="mt-2"><AdminErrorState view={errorView} compact /></div> : null}
           </div>
 
           {!selected ? (

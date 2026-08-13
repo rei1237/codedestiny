@@ -1,5 +1,5 @@
 import { peekAccessTokenUserId, requireUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
-import { getRoutePath, handleRouteError, isDbUnavailableError, json, methodNotAllowed, notFound } from "../lib/http.js";
+import { getRoutePath, handleRouteError, isDbUnavailableError, isPermanentMongoError, json, methodNotAllowed, notFound } from "../lib/http.js";
 import { resolveActivePassPolicy } from "../lib/profile-limits.js";
 import {
   ACCESS_STATE_USER_PROJECTION,
@@ -253,9 +253,16 @@ export async function handleAccessStateRoutes(request, env) {
     // 오독 위험도 없다 — buildDegradedAccessState 는 빈 userId 를 이미 처리하고
     // completeness:"degraded" / authority:"none" 을 달기 때문에, 클라이언트(js/core/pass-verdict.js
     // isUntrustedNoneSource)가 이걸 '이용권 미보유 확정' 스냅샷으로 저장할 수 없다.
+    //
+    // 🔴 isPermanentMongoError 를 함께 보는 이유: isDbUnavailableError 가 영구 Mongo 오류를 제외하도록
+    // 좁혀졌는데(http.js), 이 라우트는 원래부터 "DB 쪽 문제면 종류를 안 가리고 degraded 스냅샷"이
+    // 의도였다. 그 좁힘이 여기까지 번지면 접근상태 조회가 degraded-200 대신 500 을 내고, 그건
+    // pass-verdict 스냅샷 경로를 통째로 깨뜨린다. 500↔503 교정은 handleRouteError 쪽에서만 받는다.
     const infraCode = /timeout|timed out/i.test(String(error?.message || error || ""))
       ? "ACCESS_STATE_TIMEOUT"
-      : ((isAuthDbInfraError(error) || isDbUnavailableError(error)) ? "ACCESS_STATE_UNAVAILABLE" : "");
+      : ((isAuthDbInfraError(error) || isDbUnavailableError(error) || isPermanentMongoError(error))
+        ? "ACCESS_STATE_UNAVAILABLE"
+        : "");
     if (infraCode) {
       return finish(responseFor(buildDegradedAccessState(userId, profileId, infraCode), true, request), errorType);
     }

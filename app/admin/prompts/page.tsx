@@ -18,7 +18,7 @@ import {
   getAdminPromptLabService,
   promptLabServiceNeeds,
 } from "@/lib/admin/prompt-lab-registry.mjs";
-import { AdminApiError, adminFetch } from "../_lib/admin-api";
+import { adminFetch, describeAdminError } from "../_lib/admin-api";
 
 interface LabService {
   key: string;
@@ -172,10 +172,7 @@ export default function AdminPromptLabPage() {
       // 서버가 실제로 쓴 변형을 폼에 되맞춘다 — 안 그러면 다음 생성에서 선택이 초기화된 것처럼 보인다.
       if (data?.variantKey && !form.variant) update("variant", data.variantKey);
     } catch (caught) {
-      const message = caught instanceof AdminApiError
-        ? caught.message
-        : (caught instanceof Error ? caught.message : "프롬프트를 만들지 못했습니다.");
-      setError(message);
+      setError(describeAdminError(caught, "프롬프트를 만들지 못했습니다.").message);
       setResult(null);
     } finally {
       setLoading(false);

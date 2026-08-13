@@ -45,10 +45,25 @@ import { buildVedicLocalChartJson } from "../lib/vedic-premium-generator.js";
 import { requestKasiLegacyCalendarMethod } from "./kasi.js";
 import { Lunar, Solar } from "lunar-javascript";
 
-// 관리자 READ 전용 Mongo 재시도 래퍼. 풀 초기화/네트워크 타임아웃 순간에도 조회가 성공하도록
-// 기본(1회)보다 여유 있게 재시도한다. 쓰기에는 사용하지 않는다.
+// 관리자 READ 전용 Mongo 재시도 래퍼. 쓰기에는 사용하지 않는다.
+//
+// 🔴 retryOnOperationTimeout 이 이 화면들의 "될 때도 있고 안 될 때도 있다"를 고치는 지점이다.
+// db.js:1004-1007 이 실측으로 문서화한 대로, 이 옵션이 꺼져 있으면 예산에서 죽은 요청은 커넥션
+// 리셋만 남기고 **그 리셋의 수혜자는 다음 요청**이 된다 → 성공↔실패가 교대로 난다. 관리자 패널은
+// 트래픽이 낮아 매번 콜드 아이솔레이트를 만나므로(=시도 예산을 쿼리가 아니라 connectDb 가 쓴다)
+// 이 교대 패턴이 특히 잘 보인다. 켜면 그 리셋을 자기 요청이 써서 하드 503 이 "조금 느린 성공"이 된다.
+//
+// retries 를 2 → 1 로 낮추는 것이 이 변경의 짝이다. 시도 상한이 8초라 retries:2 와 op-타임아웃
+// 재시도를 함께 켜면 최악 3×8s ≈ 24s 가 되어 db.js:1000-1002 가 경고하는 워커 hung 감지 영역에
+// 들어간다. retries:1 이면 최악 2×8s+backoff ≈ 16s 다.
+//
+// resetOnOperationTimeout 은 넘기지 않는다(기본 true 유지) — 리셋이 있어야 재시도가 새 커넥션에 앉는다.
 function adminMongoRead(env, operation) {
-  return withMongoRetry(env, operation, { retries: 2 });
+  return withMongoRetry(env, operation, {
+    retries: 1,
+    retryOnOperationTimeout: true,
+    retryAdmissionOnOverload: true,
+  });
 }
 
 // 관리자 진입 비밀번호는 소스에 두지 않는다 — 과거 이 자리에 평문 주석과 salt 없는 SHA-256이 함께
@@ -5032,7 +5047,15 @@ export async function handleAdminRoutes(request, env) {
     if (["GET", "POST", "PATCH", "PUT", "DELETE"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
-    return handleRouteError(error);
+    // 🔴 context 를 반드시 넘긴다. 없으면 X-Request-ID 가 "unknown" 이고 errorDetails.route 가 빈 문자열이라,
+    // 관리자 503 이 떴을 때 **어느 엔드포인트의 어떤 에러인지 로그에서 특정할 수 없다**(admin-feedback.js 는
+    // 처음부터 넘겼고 그쪽만 추적이 됐다). resolveErrorStage 도 trace 를 읽어야 db-op-timeout / db-op-admission
+    // 을 구분한다.
+    return handleRouteError(error, {
+      request,
+      env,
+      trace: { route: "api/admin", method: request.method, requestPath: new URL(request.url).pathname },
+    });
   }
 }
 

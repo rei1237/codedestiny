@@ -32,7 +32,8 @@ import {
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getApiBaseUrl } from "../../_lib/api-config";
-import { clearAdminToken, getFlowerAdminToken, resolveAdminCredentials } from "../_lib/admin-api";
+import { adminFetch, describeAdminError, getFlowerAdminToken, type AdminErrorView } from "../_lib/admin-api";
+import AdminErrorState from "../_components/AdminErrorState";
 import { uploadInsightImage } from "../insights/_lib/imageUpload";
 import { sanitizeInsightHtml } from "../insights/_lib/sanitizeContent";
 
@@ -547,17 +548,9 @@ const EMPTY_PAGINATION: Pagination = {
 };
 
 
-/* 토큰 처리는 app/admin/_lib/admin-api.ts 하나만 쓴다.
-   예전에는 이 파일과 /admin/insights 가 같은 로직을 따로 구현해 세 벌이 돌아다녔다. */
-const resolveAdminRequestCredentials = resolveAdminCredentials;
+/* 토큰 처리는 app/admin/_lib/admin-api.ts 하나만 쓴다 — 여기서 재구현하지 않는다.
+   이미지 업로드만 토큰 원문을 요구해서(멀티파트라 adminFetch 를 못 탄다) 그 하나만 남겨 둔다. */
 const getFlowerAdminTokenClient = getFlowerAdminToken;
-
-function buildAdminHeaders(extraHeaders?: Record<string, string>): Record<string, string> {
-  const headers: Record<string, string> = { ...(extraHeaders || {}) };
-  const token = getFlowerAdminTokenClient();
-  if (token) headers["x-admin-token"] = token;
-  return headers;
-}
 
 function getItemId(item: ContentItem): string {
   return String(item.id || item._id || "");
@@ -691,8 +684,8 @@ function commandButtonClass(tone: "neutral" | "primary" | "success" | "warn" = "
 
 export default function AdminContentPage() {
   const apiBase = useMemo(() => getApiBaseUrl(), []);
+  // endpointBase 는 URL 조립(쿼리스트링)용으로만 남는다 — 실제 요청 경로는 adminFetch 가 apiBase 를 붙인다.
   const endpointBase = `${apiBase || ""}/api/admin/content`;
-  const requestCredentials = useMemo(() => resolveAdminRequestCredentials(apiBase), [apiBase]);
 
   const featuredInputRef = useRef<HTMLInputElement | null>(null);
   const bodyImageInputRef = useRef<HTMLInputElement | null>(null);
@@ -713,6 +706,8 @@ export default function AdminContentPage() {
   const [uploading, setUploading] = useState<"featured" | "body" | "">("");
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
+  // 목록 실패는 별도로 들고 있는다 — 공용 error 하나로 처리하면 목록 칸에 "글이 없습니다."가 같이 뜬다.
+  const [listErrorView, setListErrorView] = useState<AdminErrorView | null>(null);
   const [previewOpen, setPreviewOpen] = useState(false);
   const [seoOpen, setSeoOpen] = useState(false);
   const [revisions, setRevisions] = useState<ContentRevision[]>([]);
@@ -761,24 +756,12 @@ export default function AdminContentPage() {
     };
   }, []);
 
-  const redirectToLogin = useCallback(() => {
-    clearAdminToken();
-    const next = typeof window === "undefined" ? "/admin/content" : `${window.location.pathname}${window.location.search}`;
-    window.location.assign(`/admin/login?next=${encodeURIComponent(next)}`);
-  }, []);
-
-  const handleAuthFailure = useCallback((status: number) => {
-    if (status === 401 || status === 403) {
-      setError(status === 401 ? copy.errors.loginRequired : copy.errors.permissionRequired);
-      redirectToLogin();
-      return true;
-    }
-    return false;
-  }, [copy.errors.loginRequired, copy.errors.permissionRequired, redirectToLogin]);
+  // 401/403 리다이렉트는 adminFetch 가 담당한다(app/admin/_lib/admin-api.ts).
 
   const loadList = useCallback(async () => {
     setLoadingList(true);
     setError("");
+    setListErrorView(null);
     try {
       const url = new URL(endpointBase, typeof window === "undefined" ? "http://localhost" : window.location.origin);
       if (filterStatus !== "all") url.searchParams.set("status", filterStatus);
@@ -788,20 +771,7 @@ export default function AdminContentPage() {
       url.searchParams.set("page", "1");
       url.searchParams.set("limit", "80");
 
-      const res = await fetch(url.toString(), {
-        method: "GET",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (handleAuthFailure(res.status)) return;
-      if (!res.ok) {
-        setError(String(data?.message || copy.errors.listLoadFailed));
-        setItems([]);
-        setPagination(EMPTY_PAGINATION);
-        return;
-      }
+      const data = await adminFetch<Record<string, any>>(`/api/admin/content?${url.searchParams.toString()}`);
 
       setItems(Array.isArray(data?.items) ? data.items : []);
       setPagination({
@@ -810,14 +780,14 @@ export default function AdminContentPage() {
         total: Math.max(0, Number(data?.pagination?.total || 0) || 0),
         totalPages: Math.max(1, Number(data?.pagination?.totalPages || 1) || 1),
       });
-    } catch {
-      setError(copy.errors.listNetworkFailed);
+    } catch (caught) {
+      setListErrorView(describeAdminError(caught, copy.errors.listNetworkFailed));
       setItems([]);
       setPagination(EMPTY_PAGINATION);
     } finally {
       setLoadingList(false);
     }
-  }, [copy.errors.listLoadFailed, copy.errors.listNetworkFailed, endpointBase, filterStatus, handleAuthFailure, query, requestCredentials, sort, typeFilter]);
+  }, [copy.errors.listNetworkFailed, endpointBase, filterStatus, query, sort, typeFilter]);
 
   const loadRevisions = useCallback(async (contentId: string) => {
     if (!contentId) {
@@ -826,16 +796,10 @@ export default function AdminContentPage() {
     }
 
     try {
-      const res = await fetch(`${endpointBase}/${encodeURIComponent(contentId)}/revisions`, {
-        method: "GET",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (res.ok) setRevisions(Array.isArray(data?.revisions) ? data.revisions : []);
+      const data = await adminFetch<Record<string, any>>(`/api/admin/content/${encodeURIComponent(contentId)}/revisions`);
+      setRevisions(Array.isArray(data?.revisions) ? data.revisions : []);
     } catch {}
-  }, [endpointBase, requestCredentials]);
+  }, []);
 
   const loadDetail = useCallback(async (contentId: string) => {
     if (!contentId || !editor) return;
@@ -845,18 +809,7 @@ export default function AdminContentPage() {
     setPublicationCheck(null);
 
     try {
-      const res = await fetch(`${endpointBase}/${encodeURIComponent(contentId)}`, {
-        method: "GET",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (handleAuthFailure(res.status)) return;
-      if (!res.ok) {
-        setError(String(data?.message || copy.errors.detailLoadFailed));
-        return;
-      }
+      const data = await adminFetch<Record<string, any>>(`/api/admin/content/${encodeURIComponent(contentId)}`);
 
       const item = data?.item as ContentItem;
       const nextForm = normalizeFormFromItem(item || {});
@@ -871,16 +824,28 @@ export default function AdminContentPage() {
       }
 
       await loadRevisions(nextForm.id);
-    } catch {
-      setError(copy.errors.detailNetworkFailed);
+    } catch (caught) {
+      setError(describeAdminError(caught, copy.errors.detailNetworkFailed).message);
     } finally {
       setLoadingDetail(false);
     }
-  }, [copy.errors.detailLoadFailed, copy.errors.detailNetworkFailed, editor, endpointBase, handleAuthFailure, loadRevisions, requestCredentials]);
+  }, [copy.errors.detailNetworkFailed, editor, loadRevisions]);
 
   useEffect(() => {
     void loadList();
   }, [loadList]);
+
+  // /admin/content?id=... 로 들어오면 그 글을 바로 연다. 예전에는 인사이트 목록의 "수정" 버튼이
+  // id 를 붙여 보냈는데 받는 쪽이 읽지 않아 항상 빈 편집기가 떴다.
+  useEffect(() => {
+    if (typeof window === "undefined" || !editor) return;
+    const requestedId = new URLSearchParams(window.location.search).get("id") || "";
+    if (!requestedId) return;
+    void loadDetail(requestedId);
+    // 새로고침 때 같은 글을 다시 여는 것은 맞지만, 주소창에 남은 id 가 "새 글" 버튼과 충돌하지 않도록 지운다.
+    window.history.replaceState(null, "", window.location.pathname);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editor]);
 
   function startNewPost() {
     setForm(EMPTY_FORM);
@@ -1057,21 +1022,12 @@ export default function AdminContentPage() {
   async function runPublicationCheck(contentId: string): Promise<PublicationCheck | null> {
     if (!contentId) return null;
     try {
-      await fetch(`${endpointBase}/${encodeURIComponent(contentId)}/cache-purge`, {
+      await adminFetch(`/api/admin/content/${encodeURIComponent(contentId)}/cache-purge`, {
         method: "POST",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
-        cache: "no-store",
+        body: {},
       }).catch(() => null);
 
-      const res = await fetch(`${endpointBase}/${encodeURIComponent(contentId)}/publish-status`, {
-        method: "GET",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders(),
-        cache: "no-store",
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) return null;
+      const data = await adminFetch<Record<string, any>>(`/api/admin/content/${encodeURIComponent(contentId)}/publish-status`);
       const check = data?.publication || null;
       setPublicationCheck(check);
       return check;
@@ -1089,20 +1045,11 @@ export default function AdminContentPage() {
 
     try {
       const isEdit = Boolean(form.id);
-      const url = isEdit ? `${endpointBase}/${encodeURIComponent(form.id)}` : endpointBase;
-      const res = await fetch(url, {
+      const path = isEdit ? `/api/admin/content/${encodeURIComponent(form.id)}` : "/api/admin/content";
+      const data = await adminFetch<Record<string, any>>(path, {
         method: isEdit ? "PATCH" : "POST",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify(buildPayload(status)),
-        cache: "no-store",
+        body: buildPayload(status),
       });
-      const data = await res.json().catch(() => ({}));
-      if (handleAuthFailure(res.status)) return;
-      if (!res.ok) {
-        setError(String(data?.message || copy.errors.saveFailed));
-        return;
-      }
 
       const item = data?.item as ContentItem;
       const nextForm = normalizeFormFromItem(item || {});
@@ -1123,8 +1070,8 @@ export default function AdminContentPage() {
       } else {
         setMessage(copy.notices.draftSaved);
       }
-    } catch {
-      setError(copy.errors.saveNetworkFailed);
+    } catch (caught) {
+      setError(describeAdminError(caught, copy.errors.saveNetworkFailed).message);
     } finally {
       setSaving("");
     }
@@ -1138,19 +1085,10 @@ export default function AdminContentPage() {
     setError("");
     setMessage("");
     try {
-      const res = await fetch(`${endpointBase}/${encodeURIComponent(form.id)}/restore`, {
+      const data = await adminFetch<Record<string, any>>(`/api/admin/content/${encodeURIComponent(form.id)}/restore`, {
         method: "POST",
-        credentials: requestCredentials,
-        headers: buildAdminHeaders({ "Content-Type": "application/json" }),
-        body: JSON.stringify({ revisionId }),
-        cache: "no-store",
+        body: { revisionId },
       });
-      const data = await res.json().catch(() => ({}));
-      if (handleAuthFailure(res.status)) return;
-      if (!res.ok) {
-        setError(String(data?.message || copy.errors.restoreFailed));
-        return;
-      }
       const item = data?.item as ContentItem;
       setForm(normalizeFormFromItem(item || {}));
       if (item?.contentJson && typeof item.contentJson === "object" && !Array.isArray(item.contentJson)) {
@@ -1161,8 +1099,8 @@ export default function AdminContentPage() {
       await loadRevisions(getItemId(item || {}));
       await loadList();
       setMessage(copy.notices.restored);
-    } catch {
-      setError(copy.errors.restoreNetworkFailed);
+    } catch (caught) {
+      setError(describeAdminError(caught, copy.errors.restoreNetworkFailed).message);
     } finally {
       setRestoringRevisionId("");
     }
@@ -1269,6 +1207,10 @@ export default function AdminContentPage() {
           <div className="max-h-[calc(100vh-182px)] overflow-y-auto">
             {loadingList ? (
               <div className="p-4 text-sm text-slate-400">불러오는 중...</div>
+            ) : listErrorView ? (
+              <div className="p-4">
+                <AdminErrorState view={listErrorView} onRetry={() => { void loadList(); }} retrying={loadingList} />
+              </div>
             ) : items.length === 0 ? (
               <div className="p-4 text-sm text-slate-400">글이 없습니다.</div>
             ) : (
