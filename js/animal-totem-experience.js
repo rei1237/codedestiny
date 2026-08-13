@@ -2155,7 +2155,7 @@
     if (input) state.question = input.value.trim().slice(0, QUESTION_MAX);
     renderFocusStage();
   }
-  global.addEventListener("destinyProfileChanged", handleProfileChanged);
+  /* document 한 곳에만 건다(window 중복 등록 시 bubbles:true 발행이 핸들러를 2번 돌린다). */
   document.addEventListener("destinyProfileChanged", handleProfileChanged);
 
   global.openAnimalTotemModal = openAnimalTotemModal;

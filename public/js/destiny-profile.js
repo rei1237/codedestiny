@@ -1560,6 +1560,36 @@
     return false;
   }
 
+  /* 가입 직후 1회성 힌트 소비.
+     쓰는 쪽은 app/components/auth/AuthShell.tsx 의 markFreshSignup — 키·형식이 그쪽과 같아야 한다.
+     서버의 handleRegister 는 ProfileCard 를 한 장도 만들지 않으므로 "방금 가입했다" = "카드 0장 확정"
+     이고, 그래서 /api/profile 왕복을 기다리지 않고 곧바로 작성 유도 빈 카드를 그릴 수 있다.
+     안전장치 3겹: ①현재 스코프와 id 가 같아야 하고 ②60초를 넘기면 무시하며 ③읽는 즉시 지운다.
+     🔴 이 힌트는 렌더 "시작"만 앞당긴다 — _dpLoadFromServer 는 그대로 돌아 서버 결과로 정정하므로,
+     힌트가 틀려도 카드가 있는 계정은 1왕복 안에 제 카드를 되찾는다. */
+  var FRESH_SIGNUP_HINT_KEY = 'cd_fresh_signup_v1';
+  var FRESH_SIGNUP_HINT_TTL_MS = 60000;
+
+  function _dpConsumeFreshSignupHint(scope) {
+    var raw = '';
+    try {
+      raw = sessionStorage.getItem(FRESH_SIGNUP_HINT_KEY) || '';
+      if (raw) sessionStorage.removeItem(FRESH_SIGNUP_HINT_KEY);
+    } catch (e) { return false; }
+    if (!raw) return false;
+    try {
+      var hint = JSON.parse(raw);
+      if (!hint || typeof hint !== 'object') return false;
+      var hintScope = String(hint.scope || '').trim().toLowerCase();
+      if (!hintScope || hintScope !== String(scope || '').trim().toLowerCase()) return false;
+      var at = Number(hint.at);
+      if (!isFinite(at) || at <= 0) return false;
+      return (Date.now() - at) <= FRESH_SIGNUP_HINT_TTL_MS;
+    } catch (e2) {
+      return false;
+    }
+  }
+
   var _dpSessionVerify = {
     checkedAt: 0,
     ok: false,
@@ -9846,7 +9876,11 @@
     // DPStorage.current()는 인증 사용자 스코프 기준으로 읽으므로 이전 사용자
     // 카드가 노출되지 않는다. 저장분이 없을 때만 로딩 카드를 띄운다.
     var initialProfile = DPStorage.current();
-    var shouldShowProfileLoading = hasInitialSessionHint;
+    // 가입 직후라면 "카드 0장"이 이미 확정이므로 서버 왕복을 기다리지 않고 작성 유도 카드를 바로 그린다.
+    // (아래 _dpLoadFromServer 는 그대로 돌아 서버 결과로 정정한다.)
+    var freshSignup = hasInitialSessionHint && !initialProfile
+      && _dpConsumeFreshSignupHint(_dpGetProfileScope());
+    var shouldShowProfileLoading = hasInitialSessionHint && !freshSignup;
     if (initialProfile) renderMasterCard(initialProfile);
     else if (shouldShowProfileLoading) renderProfileLoadingCard();
     else renderMasterCard(null);
@@ -10090,6 +10124,8 @@
       var _dpScopedCurrent = DPStorage.current();
       if (_dpHasSessionHint()) {
         if (_dpScopedCurrent) renderMasterCard(_dpScopedCurrent);
+        // 가입 직후면 카드 0장이 확정이므로 로딩 카드를 건너뛰고 작성 유도 카드를 즉시 그린다.
+        else if (_dpConsumeFreshSignupHint(_dpGetProfileScope())) renderMasterCard(null);
         else {
           renderProfileLoadingCard();
           _dpArmProfileLoadingFailsafe();

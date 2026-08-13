@@ -648,9 +648,12 @@ export function installUserAccessInvalidationListeners() {
   const onBillingUpdated = () => {
     invalidateMatching((entry) => entry.kind === "entitlement" || entry.kind === "paymentAccess");
   };
+  /* 바로 위 invalidateProfileCache 에 위임한다. 예전에는 같은 일을 손으로 다시 써서 affectedKinds 를
+     빠뜨렸고(기본값 []), 그러면 inFlight 는 그대로 둔 채 cacheGeneration 만 올라가 **비행 중이던
+     /api/profile 응답이 캐시에 기록되지 않고 버려졌다**(rememberResponse 세대 검사). 그 결과
+     destinyProfileChanged 한 번마다 다음 소비자가 확정 캐시 미스가 되어 같은 프로필을 다시 받아왔다. */
   const onProfileChanged = () => {
-    invalidateMatching((entry) => entry.kind === "profile");
-    updateStatus("profile", "idle", null);
+    invalidateProfileCache("profile-changed");
   };
   const onStorage = (event: StorageEvent) => {
     if (event.key === "fortune_auth_user" || event.key === "fortune_auth_token") {

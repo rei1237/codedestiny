@@ -22,6 +22,21 @@ type AuthUser = { role?: string; [key: string]: unknown };
 /** worker/lib/validation.js 의 MIN_NEW_PASSWORD_LENGTH 와 같은 값이어야 한다(가입·변경 전용). */
 const MIN_NEW_PASSWORD_LENGTH = 10;
 
+/* 가입 직후 프로필 카드가 서버 왕복을 기다리지 않게 하는 1회성 힌트.
+   handleRegister(worker/routes/auth.js) 는 ProfileCard 를 한 장도 만들지 않으므로, "방금 가입했다"는
+   곧 "카드 0장"이 확정이라는 뜻이다. 그 사실을 홈 셸에 넘겨 로딩 카드를 건너뛰게 한다.
+   🔴 로그인에는 절대 쓰지 말 것 — 로그인 계정은 카드가 있을 수 있고, 그러면 "작성하세요"가 잘못 뜬다.
+   읽는 쪽 정본은 js/destiny-profile.js 의 _dpConsumeFreshSignupHint 다. 키·형식이 그쪽과 같아야 한다. */
+const FRESH_SIGNUP_HINT_KEY = "cd_fresh_signup_v1";
+
+function markFreshSignup(user?: AuthUser) {
+  const scope = String(user?.id || user?.userId || user?._id || user?.uid || "").trim().toLowerCase();
+  if (!scope) return;
+  try {
+    sessionStorage.setItem(FRESH_SIGNUP_HINT_KEY, JSON.stringify({ scope, at: Date.now() }));
+  } catch { /* 저장 실패는 기존 로딩 카드 경로로 폴백될 뿐이라 조용히 넘어간다 */ }
+}
+
 type Copy = {
   loginTitle: string; signupTitle: string; loginDescription: string; signupDescription: string;
   socialLabel: string; google: string; naver: string; kakao: string; moving: string; orEmail: string;
@@ -198,6 +213,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       if (!response.ok && response.status >= 500) { setError(withServerDiagnostics(copy.unavailable, payload)); return; }
       if (!response.ok) throw new Error(payload.message || copy.invalidSignup);
       completeClientLogin(payload);
+      markFreshSignup(payload.user);
       redirect(payload.nextPath, payload.user?.role);
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : copy.network;
@@ -220,6 +236,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       if (!response.ok && response.status >= 500) { setError(withServerDiagnostics(copy.unavailable, payload)); return; }
       if (!response.ok) throw new Error(payload.message || copy.invalidSignup);
       completeClientLogin(payload);
+      markFreshSignup(payload.user);
       if (payload.appRedirectUrl) window.location.assign(payload.appRedirectUrl); else redirect(payload.nextPath, payload.user?.role);
     } catch (reason) { setError(reason instanceof Error ? reason.message : copy.network); }
     finally { setBusy(false); }
