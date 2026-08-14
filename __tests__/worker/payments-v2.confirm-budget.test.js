@@ -27,6 +27,18 @@ import { __paymentDbTestUtils } from "../../worker/payments/db.js";
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "../..");
 const read = (rel) => readFileSync(path.join(ROOT, rel), "utf8");
 
+/**
+ * 시도 상한은 프로덕션 정본(wrangler.toml `[vars]`)에서 읽는다.
+ * 🔴 2026-08-14 이전에는 db.js 의 코드 기본값을 읽었는데, 그 예산이 `[vars]` 로 올라가면서
+ * env 가 코드를 이기게 됐다 — 코드 쪽을 계속 읽으면 프로덕션이 안 읽는 값으로 부등식을 검산한다.
+ * 두 곳의 일치는 db.vars-code-default-parity.test.js 가 강제한다.
+ */
+function readWranglerVar(name) {
+  const hit = read("worker/wrangler.toml").match(new RegExp(`^${name}\\s*=\\s*"([^"]*)"`, "m"));
+  if (!hit) throw new Error(`${name} 이 worker/wrangler.toml [vars] 에 없다.`);
+  return Number(hit[1]);
+}
+
 /* 관계식의 항을 소스에서 직접 읽는다 — 숫자를 여기 또 적으면 그 사본이 드리프트한다. */
 function readDefault(source, marker) {
   const at = source.indexOf(marker);
@@ -78,7 +90,7 @@ test("확정 전용 예산은 없어야 한다 — 있으면 PG 가 슬롯 안�
 
 test("확정 한 건의 최악 비용이 셸 confirm 요청 상한 안에 있다", () => {
   const portOneTimeoutMS = readDefault(read("worker/lib/portone.js"), "PORTONE_API_TIMEOUT_MS");
-  const attemptTimeoutMS = readDefault(read("worker/lib/db.js"), 'getEnv(env, "MONGO_OP_ATTEMPT_TIMEOUT_MS"');
+  const attemptTimeoutMS = readWranglerVar("MONGO_OP_ATTEMPT_TIMEOUT_MS");
   expect(portOneTimeoutMS).toBeGreaterThan(0);
   expect(attemptTimeoutMS).toBeGreaterThan(0);
 
@@ -95,7 +107,7 @@ test("확정 한 건의 최악 비용이 셸 confirm 요청 상한 안에 있다
 
 test("시도 상한이 withMongoRetry clamp 안에 있다", () => {
   // clamp 상한(18000)을 넘으면 조용히 잘려 위 계산이 무의미해진다.
-  const attemptTimeoutMS = readDefault(read("worker/lib/db.js"), 'getEnv(env, "MONGO_OP_ATTEMPT_TIMEOUT_MS"');
+  const attemptTimeoutMS = readWranglerVar("MONGO_OP_ATTEMPT_TIMEOUT_MS");
   expect(attemptTimeoutMS).toBeLessThanOrEqual(18000);
 });
 

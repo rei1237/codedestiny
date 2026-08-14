@@ -20,14 +20,26 @@
  * 아래 maxIdleTimeMS 단언이 상한에서 하한으로 뒤집힌 이유가 그것이다.
  */
 
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+
 import { jest } from "@jest/globals";
 
-// withMongoRetry 의 시도 상한 기본값(= MONGO_OP_ATTEMPT_TIMEOUT_MS).
+// withMongoRetry 의 시도 상한(= MONGO_OP_ATTEMPT_TIMEOUT_MS).
 // 🔴 12000 → 8000 (2026-08-12, M10 전환의 **점유 시간 축**). serverSelectionTimeoutMS 가 8000 → 3000
 // 으로 내려가면서 파생 하한(serverSelection + 3500)이 11500 → 6500 이 되어 비로소 낮출 수 있게 됐다.
-// 이 상수가 db.js 기본값과 어긋나면 아래 정렬 단언이 **실제보다 느슨해진다**(옛 12000 을 그대로 두면
-// socket 11000 도 통과해 버린다) — 반드시 함께 움직인다.
-const OP_ATTEMPT_TIMEOUT_MS = 8000;
+// 이 값이 실제 예산과 어긋나면 아래 정렬 단언이 **실제보다 느슨해진다**(옛 12000 을 그대로 두면
+// socket 11000 도 통과해 버린다).
+// 🔴 2026-08-14: 손으로 복사한 상수였던 것을 프로덕션 정본(wrangler.toml `[vars]`)에서 읽도록 바꿨다.
+// 예산이 `[vars]` 로 올라가면서 env 가 코드를 이기게 됐으므로, 코드 기본값을 베끼면 프로덕션이
+// 안 읽는 값을 기준으로 정렬을 검사하게 된다. 두 곳의 일치 자체는
+// db.vars-code-default-parity.test.js 가 따로 강제한다.
+const OP_ATTEMPT_TIMEOUT_MS = (() => {
+  const toml = readFileSync(fileURLToPath(new URL("../../worker/wrangler.toml", import.meta.url)), "utf8");
+  const match = toml.match(/^MONGO_OP_ATTEMPT_TIMEOUT_MS\s*=\s*"([^"]*)"/m);
+  if (!match) throw new Error("MONGO_OP_ATTEMPT_TIMEOUT_MS 가 worker/wrangler.toml [vars] 에 없다.");
+  return Number(match[1]);
+})();
 
 test("socketTimeoutMS 와 waitQueueTimeoutMS 가 op 예산 안으로 정렬되어 있다", async () => {
   const connection = {

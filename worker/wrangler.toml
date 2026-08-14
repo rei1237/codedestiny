@@ -124,6 +124,32 @@ MONGO_PAYMENT_CONNECT_GUARD_MS = "9000"
 # Atlas Query Profiler 에서 부하 주체를 가르는 라벨. 둘을 다르게 유지할 것.
 MONGO_APP_NAME = "code-destiny-worker"
 MONGO_PAYMENT_APP_NAME = "code-destiny-payments"
+# ── op 예산 (2026-08-14) ────────────────────────────────────────────────────
+# 여기 있는 값은 전부 worker/lib/db.js 의 코드 기본값과 **같다**. 동작을 바꾸려고 올린 것이 아니라,
+# 장애 중에 배포 없이 되돌릴 수 있는 범위를 커넥션 계층에서 op 계층까지 넓히려고 올렸다.
+# 그 전까지 커넥션 노브(위 블록)는 여기서 되돌릴 수 있었는데 정작 op 예산은 코드에만 있어서,
+# 시도 상한 하나 줄이는 데도 PR + CI + 배포 사이클이 필요했다.
+# 🔴 값을 고칠 때는 db.js 의 기본값도 같이 고칠 것. env 가 코드를 이기므로 한쪽만 고치면
+#    가드가 프로덕션이 안 읽는 값을 지키게 된다. __tests__/worker/db.vars-code-default-parity.test.js
+#    가 두 곳의 일치를 강제한다.
+#
+# 시도당 예산. 파생 하한(serverSelectionTimeoutMS + 3500 = 6500)보다 커야 실효가 있다.
+# 상한은 withMongoRetry 의 clamp(18000)이고, 확정 경로 검산은 attempt×2 + PortOne < 25000(셸 상한)이다.
+MONGO_OP_ATTEMPT_TIMEOUT_MS = "8000"
+# 트랜잭션 CSOT. 드라이버 기본은 120000(mongodb/lib/sessions.js MAX_TIMEOUT)이라, 이게 없으면
+# "사용자에겐 실패라고 답했는데 트랜잭션은 뒤에서 커밋"이 가능해진다. op 예산과 같은 값으로 맞춰 둔다.
+MONGO_TXN_TIMEOUT_MS = "8000"
+# op 재시도. 선거 내성은 retryWrites/retryReads 와 이 재시도가 나눠 맡는다.
+MONGO_OP_RETRIES = "1"
+MONGO_OP_RETRY_DELAY_MS = "120"
+# admission 슬롯 대기 상한. 예산 검산: 2500 + waitQueue 4000 + 쿼리 < 시도 상한.
+MONGO_OP_ADMISSION_TIMEOUT_MS = "2500"
+# 풀 리셋 억제. 연속 커넥션 실패가 이 횟수에 닿아야 리셋하고, 리셋 사이엔 쿨다운을 둔다.
+# 낮추면 자기증폭(리셋 → 재연결 폭증 → 15/s 예산 소진)이 된다.
+MONGO_POOL_RESET_COOLDOWN_MS = "2000"
+MONGO_POOL_FORCE_RESET_AFTER = "3"
+# 커넥션 수립 재시도 사이의 기본 대기(백오프는 이 값 × (시도+1)).
+MONGO_WORKER_RETRY_DELAY_MS = "220"
 GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
 ZIWEI_PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
