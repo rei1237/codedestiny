@@ -4,9 +4,13 @@
  * 각자 복사해 두고 있었고, 그 모듈에 상수가 하나 늘 때마다 세 곳이 한꺼번에 깨졌다
  * (2026-08-14 SAJU_AI_SECTION_GROUPS 추가). 대역 모양은 여기 하나만 둔다.
  *
- * 🔴 SAJU_AI_SECTION_GROUPS 는 worker/routes/fortune.js 가 **모듈 로드 시점에** 10챕터
+ * 🔴 SAJU_AI_SECTION_GROUPS 는 worker/routes/fortune.js 가 **모듈 로드 시점에** 12챕터
  *    커버리지를 검사하는 대상이라, 실제 챕터 번호·제목을 그대로 담아야 한다. 어긋나면
  *    임포트가 즉시 던지고 그 테스트 파일 전체가 죽는다.
+ *
+ * 🔴 챕터를 늘릴 때 함께 움직여야 하는 곳은 넷이다 — 하나라도 빠뜨리면 여기가 빨개진다:
+ *    worker/lib/saju-ai-prompt.js(정본) · worker/routes/fortune.js(패턴 목록) ·
+ *    js/saju-engine.js(+ public/js 사본, 렌더러 제목) · 이 대역.
  */
 function createSajuAIPromptModuleMock(promptBuildResult) {
   return {
@@ -42,19 +46,28 @@ function createSajuAIPromptModuleMock(promptBuildResult) {
         maxChars: 4800,
       },
       {
+        key: "timing_flow",
+        chapters: [
+          { no: 7, title: "대운의 전환점" },
+          { no: 8, title: "올해의 흐름" },
+        ],
+        minChars: 3000,
+        maxChars: 4600,
+      },
+      {
         key: "strategy_action",
         chapters: [
-          { no: 7, title: "조심해야 할 패턴" },
-          { no: 8, title: "살리는 전략" },
-          { no: 9, title: "30일 실천 가이드" },
-          { no: 10, title: "마지막 한마디" },
+          { no: 9, title: "조심해야 할 패턴" },
+          { no: 10, title: "살리는 전략" },
+          { no: 11, title: "30일 실천 가이드" },
+          { no: 12, title: "마지막 한마디" },
         ],
         minChars: 3000,
         maxChars: 4600,
       },
     ],
     SAJU_AI_SECTION_MAX_OUTPUT_TOKENS: 9600,
-    SAJU_AI_MIN_RESULT_CHARS: 9000,
+    SAJU_AI_MIN_RESULT_CHARS: 11500,
     getSajuAICategoryRubric: () => ({}),
     validateSajuMyeongsikTenGodText: () => ({ ok: true, issues: [] }),
     buildSajuAIPrompt: () => promptBuildResult,

@@ -70,8 +70,8 @@ assert(route.includes("getSwissWesternChart"), "Swiss western chart calculator m
 assert(route.includes("callGeminiText"), "LLM generation missing");
 assert(route.includes("applyUsageOnce"), "usage finalization missing");
 assert(route.includes("idempotencyKey"), "idempotency handling missing");
-assert(route.includes("ASTROLOGY_AI_MIN_RESULT_CHARS = 10000"), "minimum total result character gate missing");
-assert(route.includes("ASTROLOGY_AI_MAX_RESULT_CHARS = 20000"), "maximum total result character gate missing");
+assert(route.includes("ASTROLOGY_AI_MIN_RESULT_CHARS = 15000"), "minimum total result character gate missing");
+assert(route.includes("ASTROLOGY_AI_MAX_RESULT_CHARS = 26000"), "maximum total result character gate missing");
 assert(route.includes("countConsultationChars"), "result character counter missing");
 assert(route.includes("buildConsultationExpansionPrompt"), "short result expansion prompt missing");
 assert(route.includes("buildConsultationCondensePrompt"), "long result condense prompt missing");
