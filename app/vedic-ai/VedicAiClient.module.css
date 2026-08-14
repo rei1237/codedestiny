@@ -154,7 +154,7 @@
 }
 
 /* 제목은 전역 명조 스택(--font-serif, styles/globals.css)을 그대로 쓴다 — 이 페이지 전용 서체를 새로 만들지 않는다. */
-.copy h1 {
+.copy h2 {
   margin: var(--vd-gap-md) 0 var(--vd-gap-sm);
   font-family: var(--font-serif);
   font-size: clamp(2.3rem, 5.2vw, 4.2rem);
@@ -1405,7 +1405,7 @@
     padding-top: 2.2rem;
   }
 
-  .copy h1 {
+  .copy h2 {
     font-size: 2.4rem;
   }
 

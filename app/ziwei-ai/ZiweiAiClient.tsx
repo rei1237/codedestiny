@@ -981,7 +981,7 @@ export default function ZiweiAiPage() {
         <div className="heroBackdropText" aria-hidden="true">紫微斗數</div>
         <div className="heroCopy">
           <p className="eyebrow"><Stars size={16} /> 紫微斗數 · 별궁 전문가 상담</p>
-          <h1>자미두수 전문가 상담</h1>
+          <h2>자미두수 전문가 상담</h2>
           <p>명궁과 12궁의 별 흐름을 따라 지금 가장 궁금한 질문을 차분히 풀어드립니다.</p>
         </div>
         <div className="heroSeparator" aria-hidden="true" />
@@ -1275,7 +1275,7 @@ export default function ZiweiAiPage() {
         .heroBackdropText{position:absolute;right:4%;bottom:8%;z-index:1;color:rgba(235,229,255,.075);font-family:var(--font-premium);font-size:clamp(58px,13vw,172px);font-weight:900;line-height:.82;white-space:nowrap;text-shadow:0 0 38px rgba(216,180,254,.12)}
         .heroCopy{position:relative;z-index:2;max-width:760px;padding:42px 40px 54px}
         .eyebrow{display:inline-flex;align-items:center;gap:8px;margin:0 0 14px;color:#fde8a7;font-size:13px;font-weight:850}
-        .heroCopy h1{margin:0;color:#fffaf0;font-family:var(--font-premium);font-size:clamp(40px,7vw,78px);line-height:1.03;letter-spacing:0;text-shadow:0 0 28px rgba(252,211,77,.18)}
+        .heroCopy h2{margin:0;color:#fffaf0;font-family:var(--font-premium);font-size:clamp(40px,7vw,78px);line-height:1.03;letter-spacing:0;text-shadow:0 0 28px rgba(252,211,77,.18)}
         .heroCopy p:last-child{max-width:650px;margin:16px 0 0;color:#e6e0ff;font-size:17px;line-height:1.76;text-shadow:0 2px 18px rgba(3,5,14,.92)}
         .heroSeparator{position:absolute;left:0;right:0;bottom:0;height:54px;background:radial-gradient(ellipse at 30% 100%,rgba(244,214,148,.24),transparent 46%),linear-gradient(180deg,transparent,rgba(9,10,30,.84));pointer-events:none}
         .workspace{display:grid;grid-template-columns:minmax(320px,446px) minmax(0,1fr);gap:18px;max-width:1360px;margin:18px auto 0}

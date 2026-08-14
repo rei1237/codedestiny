@@ -603,7 +603,7 @@ function KarmaResultModal({
       <div id="karma-result-content" className="kdai-result-document">
         <div className="kdai-result-cover" data-kdai-pdf-page>
           <span aria-hidden="true">☽</span>
-          <h1>운명의 답장</h1>
+          <h2>운명의 답장</h2>
           <p>{userName}님의 명(命) · 업(業) · 시(時)</p>
         </div>
 
@@ -945,7 +945,7 @@ export default function KarmaDestinyAiPage() {
         </div>
         <div className="kdai-hero__copy">
           <div className="kdai-kicker"><Moon size={16} /> Karma · Saju · Astrology · Vedic Reading</div>
-          <h1>운명의 업 전문가 상담</h1>
+          <h2>운명의 업 전문가 상담</h2>
           <p>반복되는 인생의 흐름 속에서, 지금 끊어내야 할 패턴과 새롭게 열어야 할 길을 읽어드립니다.</p>
           <div className="kdai-status" data-status={status}>
             {isBusy ? <Loader2 size={16} className="kdai-spin" /> : <Sparkles size={16} />}
@@ -1545,7 +1545,7 @@ export default function KarmaDestinyAiPage() {
           text-transform: uppercase;
         }
 
-        .kdai-hero h1 {
+        .kdai-hero h2 {
           max-width: 780px;
           margin: 14px 0 12px;
           font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
@@ -2203,7 +2203,7 @@ export default function KarmaDestinyAiPage() {
           line-height: 1;
         }
 
-        .kdai-result-cover h1 {
+        .kdai-result-cover h2 {
           margin: 12px 0 6px;
           color: #fff7df;
           font-family: CodeDestinyDisplay, CodeDestinyBody, serif;
@@ -2413,7 +2413,7 @@ export default function KarmaDestinyAiPage() {
             width: min(118%, 310px);
           }
 
-          .kdai-hero h1 {
+          .kdai-hero h2 {
             font-size: 34px;
           }
 

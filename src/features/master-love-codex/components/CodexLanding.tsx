@@ -62,7 +62,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
             >
               AI PREMIUM COMPATIBILITY CONSULTATION
             </p>
-            <h1 className={`${styles.hero} mt-6`}>Master Love Codex</h1>
+            <h2 className={`${styles.hero} mt-6`}>Master Love Codex</h2>
             <p className={`${styles.actTitle} mt-5`}>{MASTER_LOVE_CODEX_TITLE}</p>
             <hr className={`${styles.rule} ${styles.ruleShort} mt-9`} />
           </CodexReveal>
