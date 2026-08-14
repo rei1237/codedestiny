@@ -74,8 +74,12 @@
   X-Robots-Tag: noindex, nofollow
 /500
   X-Robots-Tag: noindex, nofollow
+# /blog 은 2026-08-14 에 은퇴했다(전편 /insights 정본으로 301, public/_redirects 참고).
+# 규칙은 지운 게 아니라 남긴다 — verify:adsense-readiness 가 /blog·/blog/* 커버를 요구하고,
+# blog-style.css 는 /famous 가 계속 쓴다. nofollow → follow: 301 응답에서 링크 신호를
+# 끊으면 통합의 목적(자산을 /insights 로 모으기)을 스스로 막는다(위 셸 사본과 같은 이유).
 /blog*
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 # 🔴 `/famous*` 로 합치지 말 것 — 색인 대상인 `/famous-saju` 와 카테고리 12개를 삼킨다.
 /famous
   X-Robots-Tag: noindex, nofollow
