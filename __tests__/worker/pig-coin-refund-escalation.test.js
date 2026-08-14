@@ -9,6 +9,7 @@
  */
 
 const mongoose = require("mongoose");
+const { createSajuAIPromptModuleMock } = require("../fixtures/saju-ai-prompt-mock.js");
 
 const TEST_USER_ID = "64f0a1b2c3d4e5f678901234";
 const AUDIT_ROW_ID = "64f0a1b2c3d4e5f678900001";       // delta:0 감사행 (공격 재료)
@@ -155,15 +156,10 @@ beforeAll(async () => {
       buildSukuyoAIPrompt: () => promptStub,
       buildSukuyoAIPromptWithDomain: () => promptStub,
     })),
-    jest.unstable_mockModule("../../worker/lib/saju-ai-prompt.js", () => ({
-      SAJU_AI_PROMPT_FEATURE_KEY: "saju_ai_prompt_generator",
-      SAJU_AI_PROMPT_PRICE: 100,
-      SAJU_AI_PROMPT_VERSION: "test-saju-ai-prompt-version",
-      getSajuAICategoryRubric: () => ({}),
-      validateSajuMyeongsikTenGodText: () => ({ ok: true, issues: [] }),
-      buildSajuAIPrompt: () => promptStub,
-      buildSajuAIPromptWithDomain: () => promptStub,
-    })),
+    jest.unstable_mockModule(
+      "../../worker/lib/saju-ai-prompt.js",
+      () => createSajuAIPromptModuleMock(promptStub),
+    ),
     jest.unstable_mockModule("../../worker/lib/astrology-ai-prompt.js", () => ({
       ASTROLOGY_AI_PROMPT_FEATURE_KEY: "astrology_ai_prompt_generator",
       ASTROLOGY_AI_PROMPT_PRICE: 100,

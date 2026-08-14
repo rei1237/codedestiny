@@ -2,6 +2,8 @@
  * @jest-environment node
  */
 
+const { createSajuAIPromptModuleMock } = require("../fixtures/saju-ai-prompt-mock.js");
+
 let handleFortuneRoutes;
 let handleUserRoutes;
 let handleBillingRoutes;
@@ -75,15 +77,10 @@ beforeAll(async () => {
       buildSukuyoAIPrompt: () => promptBuildResult,
       buildSukuyoAIPromptWithDomain: () => promptBuildResult,
     })),
-    jest.unstable_mockModule("../../worker/lib/saju-ai-prompt.js", () => ({
-      SAJU_AI_PROMPT_FEATURE_KEY: "saju_ai_prompt_generator",
-      SAJU_AI_PROMPT_PRICE: 100,
-      SAJU_AI_PROMPT_VERSION: "test-saju-ai-prompt-version",
-      getSajuAICategoryRubric: () => ({}),
-      validateSajuMyeongsikTenGodText: () => ({ ok: true, issues: [] }),
-      buildSajuAIPrompt: () => promptBuildResult,
-      buildSajuAIPromptWithDomain: () => promptBuildResult,
-    })),
+    jest.unstable_mockModule(
+      "../../worker/lib/saju-ai-prompt.js",
+      () => createSajuAIPromptModuleMock(promptBuildResult),
+    ),
     jest.unstable_mockModule("../../worker/lib/astrology-ai-prompt.js", () => ({
       ASTROLOGY_AI_PROMPT_FEATURE_KEY: "astrology_ai_prompt_generator",
       ASTROLOGY_AI_PROMPT_PRICE: 100,
