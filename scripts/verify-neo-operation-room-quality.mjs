@@ -2,7 +2,7 @@
 /**
  * 네오 팩폭 작전실 품질 가드(정적).
  * LLM 호출 없이 챕터 레지스트리 불변식만 검사한다:
- *  - 1차/2차 각각 minChars 합계가 목표 분량(1만 자) 이상
+ *  - 1차 브리핑 2만 자, 2차 정예 명령 8천 자 이상(각각 별도 목표)
  *  - 타고난 성향은 1차에만, 30일 전략은 2차에만
  *  - 주제 카테고리 챕터가 1차에 존재
  *  - 자미두수 별 세기 가중 지시가 프롬프트에 주입됨
@@ -16,14 +16,18 @@ import {
 } from "../worker/lib/neo-operation-room-prompt.js";
 import { REASONING_OUTPUT_RULE_LINES } from "../worker/lib/fortune-reasoning-contract.js";
 
-const TARGET_CHARS = 10000;
+// 1차 브리핑이 상품 본편이라 홈 카드가 광고하는 분량(2만 자)을 그대로 계약값으로 박는다.
+// 2차 정예 명령은 후속 대화라 목표가 다르다 — 한 상수로 묶으면 1차를 올릴 때 2차 문턱까지
+// 같이 끌려 올라가 통과할 수 없는 가드가 된다.
+const INITIAL_TARGET_CHARS = 20000;
+const REFINED_TARGET_CHARS = 8000;
 const failures = [];
 const ok = (cond, msg) => { if (!cond) failures.push(msg); };
 
 const initTotal = NEO_INITIAL_SECTIONS.reduce((s, c) => s + c.minChars, 0);
 const refinedTotal = NEO_REFINED_SECTIONS.reduce((s, c) => s + c.minChars, 0);
-ok(initTotal >= TARGET_CHARS, `1차 minChars 합계 ${initTotal} < ${TARGET_CHARS}`);
-ok(refinedTotal >= TARGET_CHARS * 0.8, `2차 minChars 합계 ${refinedTotal} < ${TARGET_CHARS * 0.8}`);
+ok(initTotal >= INITIAL_TARGET_CHARS, `1차 minChars 합계 ${initTotal} < ${INITIAL_TARGET_CHARS}`);
+ok(refinedTotal >= REFINED_TARGET_CHARS, `2차 minChars 합계 ${refinedTotal} < ${REFINED_TARGET_CHARS}`);
 
 const initIds = NEO_INITIAL_SECTIONS.map((c) => c.id);
 const refinedIds = NEO_REFINED_SECTIONS.map((c) => c.id);
@@ -59,4 +63,4 @@ if (failures.length) {
   failures.forEach((f) => console.error("  - " + f));
   process.exit(1);
 }
-console.log(`[verify-neo] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터/${initTotal}자, 2차 ${NEO_REFINED_SECTIONS.length}챕터/${refinedTotal}자 (목표 ${TARGET_CHARS}자)`);
+console.log(`[verify-neo] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터/${initTotal}자(목표 ${INITIAL_TARGET_CHARS}), 2차 ${NEO_REFINED_SECTIONS.length}챕터/${refinedTotal}자(목표 ${REFINED_TARGET_CHARS})`);
