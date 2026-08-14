@@ -55,6 +55,10 @@ on:
       # 가드가 검사하는데 트리거에 없으면 "그 파일만 고친 PR 에서는 가드가 안 도는" 구멍이 된다
       # (index-inline-runtime 은 verify:auth-event-loop 가 이미 검사하고 있었는데도 빠져 있었다).
       # 그 정합성은 이제 verify:auth-changed-coverage 가 기계로 강제한다.
+      # 🔴 유료 타일의 **진입 자체**를 좌우한다(2026-08-14 추가). 고스트 클릭 억제가
+      #    상세 팝업 CTA 의 진입 클릭을 삼켜 유료 기능 13종이 전부 "눌러도 무반응"이었는데,
+      #    이 파일이 트리거에 없어 결제 게이트가 깨어나지 않았다(PR #625).
+      - "js/mobile-interaction-patch.js"
       - "js/core/index-inline-runtime.js"
       - "js/saju-engine.js"
       - "js/share.js"
@@ -104,7 +108,34 @@ permissions:
   contents: read
 
 jobs:
+  # 🔴 경로 트리거만으로는 "결제를 실제로 건드렸는가"를 구분할 수 없다.
+  #    index.html 은 결제창 정본이면서 홈 콘텐츠 셸이고, js/core/index-inline-runtime.js 는
+  #    sync:public 이 캐시키만 재생성해도 변경으로 잡힌다 — 그래서 팝업 문구 한 줄에도
+  #    36개 검증기가 통째로 돌았다(사용자 지적, 2026-08-14).
+  #    판정은 diff 내용으로 하고, 재료는 전부 정본에서 가져온다(change-risk · 이 YAML 의 paths ·
+  #    셸의 결제 모달 구간). 못 구하면 돌린다(fail-closed).
+  scope:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      run: ${{ steps.decide.outputs.run }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Decide whether the paid gates are needed
+        id: decide
+        run: node scripts/resolve-paid-gate-scope.mjs --base "${{ github.event.pull_request.base.sha }}" --head "${{ github.event.pull_request.head.sha }}"
+
   paid-flow-gates:
+    needs: scope
+    # 값이 없거나 판정이 실패하면 돌린다 — 건너뛰는 것은 run=false 를 명시적으로 받았을 때뿐이다.
+    if: needs.scope.outputs.run != 'false'
     runs-on: ubuntu-latest
     timeout-minutes: 20
     steps:
