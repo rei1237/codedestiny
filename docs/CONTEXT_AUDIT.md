@@ -20,13 +20,12 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ## Delivery Policy
 
-- Active rule: work on `main` directly. Ship with `npm run deploy:safe` — it previews, opens the browser, waits at a `[y/N]` prompt while the user inspects, then promotes. Pushing to `main` deploys nothing.
-- Active rule: a preview is created only as part of a real release. `deploy:check` is the no-upload inspection.
-- Active rule: production promotion needs explicit user approval for that exact run. Preview does not.
-- Active rule: parallel sessions work in separate worktrees and deploy independently. Preview is parallel; promotion is serialized by `promote.lock`, and promoting requires HEAD to contain the currently live commit.
-- Enforcement: `scripts/deploy-safe.mjs` (artifact fingerprint, shared lock, auto-rollback), `scripts/lib/change-risk.mjs` (`deepRequired` forces the full regression on auth/payment/DB/pipeline paths), `scripts/lib/worker-deploy-base-guard.mjs` (stale-base block), `scripts/verify-worker-single-deploy-guard.mjs` (no second deploy path).
-- **2026-08-08 — PR-first policy retired.** The branch → PR → review → merge → deploy chain was removed for a single-developer repository: it cost time and agent tokens without preventing regressions, and `main` never had branch protection or a ruleset enforcing it anyway. Deleted with it: the worktree-policy judge, the release-fast direct lane, the release-PR-overlap check, the Pages PR contract check, the CI-gate waiter, the Codex PR helper directory, and the worktree-pr-policy / pages-build-gate / cloudflare-safe-auto-release workflows. Recover any of them from git history before 2026-08-08 if needed. What replaced review is verification depth, not less checking.
-- Historical drift: any document describing a PR lane, `release:fast`, `verify:worktree-policy`, or a push-triggered production deploy predates this change.
+> 🔴 **2026-08-14 — 이 절이 폐기된 계약을 "Active rule" 로 선언하고 있었다.** 이 파일은 우선순위 4위인데 1위 `AGENTS.md` 와 정반대 규칙을 활성으로 적어 두었고, 바로 위 "세 문서가 disagree 하면 코딩 전에 화해시켜라" 규칙 때문에 **매 세션 시작이 그 화해 작업에 막혔다.** 이 파일의 역할은 충돌·예외의 기록이지 현재 상태의 재서술이 아니다(Purpose 절 참고). 그래서 여기에는 활성 규칙을 쓰지 않는다.
+
+- **활성 배포 규칙은 `AGENTS.md` §Delivery 하나다.** 요약조차 여기 두지 않는다 — 요약이 낡는 것이 정확히 이 사고의 형태였다.
+- **Historical — 2026-08-08 "work on `main`, ship with `deploy:safe`" 계약**: 단일 개발자 레포라는 이유로 PR 레인을 걷어내고 워킹트리를 배포 단위로 삼았다. 함께 삭제된 것: worktree-policy judge, release-fast direct lane, release-PR-overlap check, Pages PR contract check, CI-gate waiter, Codex PR helper directory, worktree-pr-policy / pages-build-gate / cloudflare-safe-auto-release 워크플로. 필요하면 2026-08-08 이전 git 히스토리에서 복구한다.
+- **Historical — 왜 되돌렸나 (2026-08-11)**: `wrangler` 는 커밋이 아니라 **워킹트리**를 민다. 그래서 프로덕션이 어느 커밋인지 이름 붙일 수 없었고, 베이스가 낡으면 그 사이 머지된 변경이 조용히 증발했다(2026-08-01 하루에 3회). 지금은 릴리스가 `github.sha` 를 체크아웃해 배포하므로 워킹트리라는 개념 자체가 없다.
+- **Historical drift**: `release:fast` · `verify:worktree-policy` · `promote.lock` · `deploy:safe [y/N]` 승격 프롬프트 · "preview 는 릴리스의 일부" 를 설명하는 문서는 모두 2026-08-11 이전 것이다.
 
 ## Current Conflict Resolutions
 
@@ -47,23 +46,21 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ### Deployment safety
 
-- Active rule: no production deploy without explicit approval for that exact run. The preview stage runs freely; only promotion is gated.
-- Historical drift: older deployment notes may describe a PR-gated or push-triggered release. Use the preview-then-promote rule instead.
+- Active rule: production is reached only by merging a PR into `main`. **Merging is the user's action and it is the approval** — there is no separate promotion prompt and no preview stage before production.
+- Local production deploys are blocked by `scripts/lib/production-deploy-guard.mjs`. Do not work around it.
+- Historical drift: notes describing "preview-then-promote", a `[y/N]` promotion gate, or a preview created as part of a release predate 2026-08-11.
 
 ## Historical-Only References
 
-The following may still be useful as evidence, but they are not active coding baselines:
+The following may still be useful as evidence, but they are not active coding baselines.
+
+> 🔴 **2026-08-14 정정** — 이 목록이 활성 문서 5종(`docs/payment-policy-overview.md` · `payment-policy-content-access.md` · `payment-policy-flow.md` · `deploy-cache.md` · `r2-assets-cache-strategy.md`)을 "역사 참고용"으로 강등하고 있었다. 다섯 모두 `AGENTS.md` §Important Docs 에 활성으로 올라 있고 결제 3부작은 정책 **정본**이다. 제거했다. 이 목록에 무언가를 넣기 전에 `AGENTS.md` §Important Docs 와 대조할 것.
 
 - `PROJECT_STRUCTURE.md`
 - `PAYMENT_POLICY.md`
 - `PAYMENT_CONCURRENCY_AUDIT.md`
 - `CLOUDFLARE_PAGES_SETUP.md`
 - `DEPLOY_CHECKLIST.md`
-- `docs/payment-policy-overview.md`
-- `docs/payment-policy-content-access.md`
-- `docs/payment-policy-flow.md`
-- `docs/deploy-cache.md`
-- `docs/r2-assets-cache-strategy.md`
 - `docs/admin-subscription-tier-simulation-checklist-2026-04-22.md`
 - `docs/portone-resubmission-checklist-2026-04-16.md`
 
