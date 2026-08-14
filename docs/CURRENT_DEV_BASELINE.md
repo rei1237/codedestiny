@@ -66,7 +66,8 @@ Last curated: `2026-08-14`
 
 **안정성 — 지금 가장 얇은 곳**
 
-- 🔴 **워커 번들이 무료 플랜 한도의 96.3%**(gzip 2.89 / 3 MiB, 여유 0.11 MiB — 2026-08-13 실측). **다음 워커 추가가 배포를 깨뜨릴 수 있는 위치**다. `worker/` 에 무언가 더하기 전에 `npm run verify:worker-size` 로 다시 잰다.
+- **워커 번들: 무료 플랜 한도의 78.7%**(gzip 2.36 / 3 MiB, 여유 0.64 MiB — 2026-08-14 실측). 2026-08-14 이전에는 97.0%(여유 0.09 MiB)로 다음 워커 추가가 PR CI 를 막는 위치였고, `worker/wrangler.toml` 에 `minify = true` 를 켜서 해소했다. `worker/` 에 무언가 더하기 전에 `npm run build:worker && npm run verify:worker-size` 로 다시 잰다.
+  - **다음에 여유가 다시 마르면 볼 곳** (2026-08-14 gzip 한계 기여도 실측): `lib/tarot` 343 KB(예산 11.2%) · `mongoose` 196 KB · `mongodb` 178 KB · `lunar-javascript` 111 KB · `swisseph.wasm` 252 KB. 🔴 **raw 크기로 고르지 말 것** — `@mongodb-js/saslprep` 은 raw 553 KB 인데 gzip 기여는 6 KB 다(반복 유니코드 테이블). 예산이 gzip 이므로 순위가 완전히 뒤바뀐다.
 - 가드 무결성 7건(G-1~G-7)은 모두 조치됐다. 재발 방지는 `verify:guard-wiring`(배선 누락 fail-closed)과 `verify:auth-changed-coverage`(리스너 전수 발견)가 맡는다 — 이 둘을 약화시키는 변경은 하지 않는다.
 - 머지된 작업이 프로덕션에 도달하지 못하는 조용한 실패는 `landing-watchdog.yml` 이 이슈 하나로 모은다(스택 PR 좌초 · 릴리스 런 취소 · 프로덕션 드리프트).
 
