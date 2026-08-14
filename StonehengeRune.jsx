@@ -2031,7 +2031,7 @@ export default function StonehengeRune() {
           {/* Header */}
           <header className="sr-header">
             <p className="sr-header-eyebrow">MYSTIC ORACLE COLLECTION</p>
-            <h1 className="sr-header-title">Whispers of<br />Stonehenge</h1>
+            <h2 className="sr-header-title">Whispers of<br />Stonehenge</h2>
             <p className="sr-header-sub">신탁의 흐름을 읽고, 오늘의 방향을 선명하게 받아보세요</p>
             <div className="sr-divider">
               <div className="sr-divider-line" />

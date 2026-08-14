@@ -30,14 +30,15 @@ export default function TwelveAnimalHero({ onStart, onReview }: Props) {
               운명의 동물 도감
             </m.p>
 
-            <m.h1
+            {/* 페이지의 H1 은 page.tsx 의 ServiceIntroSection 이 소유한다. */}
+            <m.h2
               initial={{ opacity: 0, y: 12 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.05 }}
               className="text-balance text-3xl font-black leading-tight text-[#254769] sm:text-5xl"
             >
               나의 십이운성 동물은?
-            </m.h1>
+            </m.h2>
 
             <m.p
               initial={{ opacity: 0, y: 12 }}
