@@ -114,7 +114,8 @@ export default function FortuneTeaHouseLanding({ hasSeenPrologue, onEnter, onRep
         <div className={styles.landingHeroContent}>
           <div className={`${styles.landingCopy} ${landingCopyUi}`}>
             <p className={`${styles.landingBadge} ${landingBadgeUi}`}>Moonlight Fortune Tea House</p>
-            <h1 id="fortuneTeaHouseTitle" className={landingTitleUi}>운명의 찻집</h1>
+            {/* 페이지의 H1 은 page.tsx 의 ServiceIntroSection 이 소유한다. id 는 그대로 두어 위 aria-labelledby 가 계속 가리킨다. */}
+            <h2 id="fortuneTeaHouseTitle" className={landingTitleUi}>운명의 찻집</h2>
             <p className={`${styles.landingLead} ${landingLeadUi}`}>
               달빛 골목 끝에서 문이 열립니다.
               <br />

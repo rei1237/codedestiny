@@ -179,6 +179,12 @@ jobs:
         if: needs.classify.outputs.runs_build == 'true'
         run: npm run build:cf
 
+      # 색인 대상 라우트의 H1 이 정확히 1개인지 본다. 사이트맵에서 라우트를 전수 발견하므로
+      # 새 라우트도 자동으로 걸린다. out/ 을 읽으니 반드시 build:cf 뒤에 둔다.
+      - name: Verify SEO heading integrity
+        if: needs.classify.outputs.runs_build == 'true'
+        run: npm run verify:seo-heading-integrity
+
       # 번들 1MB 제한과 문법 오류를 업로드 없이 잡는다(--dry-run 은 아무것도 올리지 않는다).
       - name: Build Worker bundle (dry run)
         if: needs.classify.outputs.runs_build == 'true'

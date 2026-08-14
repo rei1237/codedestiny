@@ -13,7 +13,8 @@ function LifeBookAiShell() {
         <div className="h-9 w-44 animate-pulse rounded-full bg-amber-100/10" />
         <section className="rounded-[28px] border border-amber-100/15 bg-white/[0.06] p-5 leading-8 text-amber-50 shadow-2xl shadow-black/30">
           <p className="text-sm font-semibold tracking-[0.28em] text-amber-200/80">LIFE BOOK AI READING</p>
-          <h1 className="mt-3 text-3xl font-semibold text-amber-50">인생의 책 전문가 상담</h1>
+          {/* 페이지의 H1 은 page.tsx 의 ServiceIntroSection 이 소유한다. 로딩 셸까지 h1 이면 서버 HTML 에 H1 이 겹친다. */}
+          <h2 className="mt-3 text-3xl font-semibold text-amber-50">인생의 책 전문가 상담</h2>
           <p className="mt-4 text-sm text-amber-100/85">
             태어난 날과 시간에 담긴 명식의 결은 한 사람의 삶이 어디에서 힘을 얻고, 어디에서 오래 머물며, 어떤 시기에 다시 방향을 틀어야 하는지를 조용히 드러냅니다.
             인생의 책은 사주 명식과 대운, 세운의 흐름을 바탕으로 일, 관계, 재물, 마음의 전환점을 긴 호흡으로 읽어 내려갑니다.

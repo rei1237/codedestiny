@@ -23,6 +23,7 @@
     "seo:check": "node scripts/check-seo-health.mjs",
     "seo:audit": "node scripts/seo-audit.mjs",
     "verify:seo-entity-registry": "node scripts/verify-seo-entity-registry.mjs",
+    "verify:seo-heading-integrity": "node scripts/verify-seo-heading-integrity.mjs",
     "adsense:audit": "node scripts/adsense-crawl-audit.mjs https://code-destiny.com 250",
     "adsense:route-audit": "node scripts/generate-adsense-route-audit.mjs",
     "verify:analytics-events": "node scripts/verify-analytics-events.mjs",

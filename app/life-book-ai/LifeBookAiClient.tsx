@@ -588,9 +588,9 @@ export default function LifeBookAiClient() {
                 <Stars className="h-4 w-4" aria-hidden="true" />
                 Book of Life · AI Destiny Reading
               </div>
-              <h1 className="mt-5 max-w-[12ch] text-4xl font-black leading-tight tracking-normal text-amber-50 sm:text-5xl">
+              <h2 className="mt-5 max-w-[12ch] text-4xl font-black leading-tight tracking-normal text-amber-50 sm:text-5xl">
                 인생의 책 전문가 상담
-              </h1>
+              </h2>
               <p className="mt-4 max-w-xl text-base leading-7 text-[#f0dec0]">
                 당신이 타고난 사주의 문장과 지나온 시간의 결을 엮어, 앞으로 펼쳐질 인생의 장면을 한 권의 책처럼 읽어드립니다.
               </p>
