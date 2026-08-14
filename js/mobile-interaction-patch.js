@@ -1097,7 +1097,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-61b87698ebab').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-5311ff1bc319').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1188,24 +1188,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-61b87698ebab'
+      'js/animal-totem-experience.js?v=build-5311ff1bc319'
     ],
     openHwatuModal: ['HwatuFortune.js?v=h5be3c5cb5489'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-61b87698ebab'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-61b87698ebab'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-61b87698ebab'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-5311ff1bc319'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-5311ff1bc319'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-5311ff1bc319'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-61b87698ebab'],
-    openDreamModal: ['js/dream-ledger.js?v=build-61b87698ebab'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-61b87698ebab'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-5311ff1bc319'],
+    openDreamModal: ['js/dream-ledger.js?v=build-5311ff1bc319'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-5311ff1bc319'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-61b87698ebab']
+    openSibylModal: ['js/sibyl-system.js?v=build-5311ff1bc319']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
