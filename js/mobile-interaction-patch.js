@@ -159,6 +159,16 @@
 
   function reconcileOverlayLifecycle() {
     try {
+      // 상세 팝업이 닫혔는데 배경 inert 스냅샷이 남아 있으면 되돌린다 — 화면은 보이는데
+      // 아무것도 안 눌리는 프리징의 최후 방어선. 스냅샷에 기록된 원래 값으로 복원하므로
+      // 하단 네비처럼 다른 주체가 건 inert 는 건드리지 않는다.
+      // 판정은 pvw-open 이 아니라 aria-hidden 으로 한다 — pvw-open 은 rAF 뒤에 붙어서
+      // 여는 도중에 잠깐 비어 있고, aria-hidden 은 _open/_close 가 동기로 세운다.
+      var pvwOverlay = document.getElementById('tilePvwOverlay');
+      if ((!pvwOverlay || pvwOverlay.getAttribute('aria-hidden') !== 'false')
+        && typeof window._cdReleaseTilePreviewInert === 'function') {
+        window._cdReleaseTilePreviewInert();
+      }
       if (!hasOpenMobileOverlay()) {
         if (document.body && document.body.style && document.body.style.overflow === 'hidden') {
           document.body.style.overflow = '';
@@ -964,7 +974,17 @@
       var dy = Math.abs(Number(point.y) - Number(start.y));
       if (dx >= TAP_MAX_DX || dy >= TAP_MAX_DY || (dy >= TAP_VERTICAL_BLOCK_PX && dy >= dx)) return false;
     }
-    var toggle = findCollectionToggleFromOrigin(event.target) || findCollectionToggleFromPoint(point.x, point.y);
+    // 🔴 좌표 폴백은 "탭이 시트/모달 안에서 시작한 경우" 절대 쓰면 안 된다.
+    // 상세 팝업 ✕ 는 pointerup 에서 시트를 먼저 닫는데, 뒤이어 오는 touchend 시점엔 시트가
+    // pointer-events:none 이라 elementFromPoint 가 그 아래 컬렉션 헤더를 최상단으로 돌려준다.
+    // 그러면 닫기 한 번에 컬렉션이 통째로 접히고 카드가 전부 사라졌다(운세 목록이 빈 화면).
+    // occludedByOtherLayer 는 이 경우를 못 잡는다 — 헤더가 실제로 최상단이기 때문이다.
+    var toggleOrigin = event.target;
+    if (toggleOrigin && toggleOrigin.closest
+      && toggleOrigin.closest('.tile-pvw-overlay,.cd-direct-payment-modal,[role="dialog"]')) {
+      return false;
+    }
+    var toggle = findCollectionToggleFromOrigin(toggleOrigin) || findCollectionToggleFromPoint(point.x, point.y);
     return toggleMobileCollection(toggle, event, source);
   }
 
@@ -976,6 +996,19 @@
     }
     lastActionInvoke = { action: action, at: now };
     return false;
+  }
+
+  // 한 번의 탭에 touchend 와 pointerup 이 모두 발화한다. 서로 다른 이벤트라 한쪽의
+  // stopPropagation()·__cdMobileBridgeHandled 가 다른 쪽을 막지 못해, 두 핸들러의 동일한
+  // _cdOpenTilePreview 블록이 상세 팝업을 두 번 연다. 두 번째 열기는 배경 inert 스냅샷을
+  // 오염시켜 닫을 때 화면 전체가 안 눌리는 프리징으로 이어졌다. 기존 액션 디듀프를 그대로 쓴다.
+  function shouldSkipTilePreview(tile) {
+    if (!tile || typeof tile.getAttribute !== 'function') return false;
+    var key = tile.getAttribute('data-feature-key')
+      || tile.getAttribute('data-action')
+      || tile.getAttribute('data-tile-lock-key')
+      || 'tile';
+    return shouldSkipDuplicateAction('tile-preview::' + key);
   }
 
   function parseActionArgs(raw) {
@@ -1064,7 +1097,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-9fa8d4d4fed5').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-3774b1591354').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1155,24 +1188,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-9fa8d4d4fed5'
+      'js/animal-totem-experience.js?v=build-3774b1591354'
     ],
     openHwatuModal: ['HwatuFortune.js?v=h5be3c5cb5489'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-9fa8d4d4fed5'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-9fa8d4d4fed5'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-9fa8d4d4fed5'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-3774b1591354'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-3774b1591354'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-3774b1591354'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-9fa8d4d4fed5'],
-    openDreamModal: ['js/dream-ledger.js?v=build-9fa8d4d4fed5'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-9fa8d4d4fed5'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-3774b1591354'],
+    openDreamModal: ['js/dream-ledger.js?v=build-3774b1591354'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-3774b1591354'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-9fa8d4d4fed5']
+    openSibylModal: ['js/sibyl-system.js?v=build-3774b1591354']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -1857,7 +1890,7 @@
 
       if (event.target && event.target.closest) {
         var gateTile = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
-        if (gateTile && !gateTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
+        if (gateTile && !gateTile.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function' && !shouldSkipTilePreview(gateTile)) {
           try {
             if (window._cdOpenTilePreview(gateTile)) {
               showTapFeedback(gateTile);
@@ -2041,7 +2074,7 @@
       }
       if (event.target && event.target.closest) {
         var gateTile2 = event.target.closest('[data-tile-lock-key],[data-coin-cost]');
-        if (gateTile2 && !gateTile2.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function') {
+        if (gateTile2 && !gateTile2.getAttribute('data-pvw-bypass') && typeof window._cdOpenTilePreview === 'function' && !shouldSkipTilePreview(gateTile2)) {
           try {
             if (window._cdOpenTilePreview(gateTile2)) {
               showTapFeedback(gateTile2);

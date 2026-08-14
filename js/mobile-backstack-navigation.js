@@ -249,6 +249,9 @@
 
     try {
       document.body.classList.remove('lb-modal-open');
+      // 상세 팝업은 열릴 때 body 자식 전체에 inert 를 건다. 여기서 노드만 감추고 끝내면
+      // 그 inert 가 남아 화면은 보이는데 아무것도 안 눌리는 상태가 된다.
+      if (typeof window._cdReleaseTilePreviewInert === 'function') window._cdReleaseTilePreviewInert();
       // 키드 스크롤 락(lockCount)까지 초기화 + position/top/width 복원 —
       // overflow만 지우면 남아있는 키드 카운트가 다음 락에서 다시 hidden을 씌운다.
       if (typeof window.__cdForceUnlockBodyScroll === 'function') {
