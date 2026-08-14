@@ -1064,7 +1064,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-d48b43299efd').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-c1d79f488fed').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1155,24 +1155,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-d48b43299efd'
+      'js/animal-totem-experience.js?v=build-c1d79f488fed'
     ],
     openHwatuModal: ['HwatuFortune.js?v=h5be3c5cb5489'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-d48b43299efd'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-d48b43299efd'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-d48b43299efd'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-c1d79f488fed'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-c1d79f488fed'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-c1d79f488fed'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-d48b43299efd'],
-    openDreamModal: ['js/dream-ledger.js?v=build-d48b43299efd'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-d48b43299efd'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-c1d79f488fed'],
+    openDreamModal: ['js/dream-ledger.js?v=build-c1d79f488fed'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-c1d79f488fed'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-d48b43299efd']
+    openSibylModal: ['js/sibyl-system.js?v=build-c1d79f488fed']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -2285,10 +2285,19 @@
       bindDirectFeatureCardActions(document);
     }
 
-    // 초기 설정 및 DOM 변경 시 재설정
+    // 초기 설정 및 DOM 변경 시 재설정.
+    // 🔴 body 전역(childList+subtree) 관찰이라 로딩 중 DOM 변경 배치마다 깨어나는데,
+    //    setupCollectionScrollListeners 는 매번 6종 셀렉터로 문서 전체를 훑는다. 그대로 두면
+    //    첫 로드의 카드 마운트 구간에서만 수십 번 반복돼 메인 스레드를 붙든다. 결과가 멱등이고
+    //    (이미 바인딩된 노드는 __cdScrollBound 로 건너뛴다) 몇십 ms 늦어도 무해하므로 디바운스한다.
     setupCollectionScrollListeners();
+    var scrollSetupTimer = 0;
     var scrollObserver = new MutationObserver(function() {
-      setupCollectionScrollListeners();
+      if (scrollSetupTimer) return;
+      scrollSetupTimer = window.setTimeout(function() {
+        scrollSetupTimer = 0;
+        setupCollectionScrollListeners();
+      }, 150);
     });
     scrollObserver.observe(document.body, { childList: true, subtree: true });
 
