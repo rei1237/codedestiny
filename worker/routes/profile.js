@@ -1380,11 +1380,14 @@ async function handleUpdateProfile(request, auth, profileIdRaw, env) {
     evidence: authorization.evidence,
   });
 
-  const user = await withMongoRetry(env, () => User.findById(auth.userId)
-    .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
-    .lean());
+  /* 두 읽기는 서로 의존하지 않으므로 같은 admission 슬롯 안에서 병렬로 낸다(위와 같은 패턴). */
+  const [user, profiles] = await withMongoRetry(env, () => Promise.all([
+    User.findById(auth.userId)
+      .select("profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt destinyProfilesCurrentId destinyProfilesLockedCurrentId destinyProfilesLockedAt")
+      .lean(),
+    listUserProfiles(auth.userId),
+  ]));
   const subscription = resolveSubscriptionPolicy(user || {});
-  const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
   const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profileId || profiles[0]?.id || "";
   if (nextCurrentId !== String(user?.destinyProfilesCurrentId || "")) {
     await withMongoRetry(env, () => User.updateOne({ _id: auth.userId }, { $set: { destinyProfilesCurrentId: nextCurrentId } }));
@@ -1412,10 +1415,13 @@ async function handleUpdateProfile(request, auth, profileIdRaw, env) {
 }
 
 async function buildProfileDeleteResponse(auth, profileId, env, { policy = null, evidence = null, replayed = false } = {}) {
-  const profiles = await withMongoRetry(env, () => listUserProfiles(auth.userId));
-  const user = await withMongoRetry(env, () => User.findById(auth.userId)
-    .select("destinyProfilesCurrentId points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
-    .lean());
+  /* 두 읽기는 서로 의존하지 않으므로 같은 admission 슬롯 안에서 병렬로 낸다(handleUpdateCurrent 과 같은 패턴). */
+  const [profiles, user] = await withMongoRetry(env, () => Promise.all([
+    listUserProfiles(auth.userId),
+    User.findById(auth.userId)
+      .select("destinyProfilesCurrentId points profileSubscription subscription membership pass entitlement plan planId productId subscriptionTier membershipTier passTier status subscriptionStatus membershipStatus isActive isSubscribed expiresAt")
+      .lean(),
+  ]));
   const nextCurrentId = resolveCurrentId(user?.destinyProfilesCurrentId, profiles) || profiles[0]?.id || "";
   const subscription = resolveSubscriptionPolicy(user || {});
   if (nextCurrentId !== String(user?.destinyProfilesCurrentId || "")) {

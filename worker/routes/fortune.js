@@ -2293,18 +2293,22 @@ function isRepairableConsumeArrayShapeError(error) {
 async function resolvePersistedUnlockFeatures(userId, currentUnlocks, profileId = "", env = {}) {
   const scopedProfileId = sanitizeProfileBindingId(profileId);
   if (userId && scopedProfileId) {
-    const scopedKeys = await withMongoRetry(env, () => PointHistory.distinct("featureKey", {
-      userId,
-      kind: "deduct",
-      featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
-      $or: [
-        { "metadata.profileId": scopedProfileId },
-        { "metadata.selectedProfileId": scopedProfileId },
-      ],
-    }));
     // KRW 단건결제 해금은 PointHistory deduct 기록 없이 ContentEntitlement에만 남으므로 병합한다.
     // (일시적 Mongo 오류는 여기서 삼키지 않는다 — 호출부의 degraded 폴백이 처리하도록 그대로 전파한다.)
-    const snapshot = await withMongoRetry(env, () => getUnlockedContentSnapshot({ userId, profileId: scopedProfileId }));
+    /* 두 조회는 서로 의존하지 않는다(둘 다 userId·scopedProfileId 만 쓴다). 같은 admission 슬롯 안에서
+       병렬로 내 왕복 1회와 슬롯 1개를 줄인다 — 이 경로는 페이지 진입마다 불리는 /api/fortune/balance 다. */
+    const [scopedKeys, snapshot] = await withMongoRetry(env, () => Promise.all([
+      PointHistory.distinct("featureKey", {
+        userId,
+        kind: "deduct",
+        featureKey: { $in: Array.from(PERSISTENT_UNLOCK_KEY_SET) },
+        $or: [
+          { "metadata.profileId": scopedProfileId },
+          { "metadata.selectedProfileId": scopedProfileId },
+        ],
+      }),
+      getUnlockedContentSnapshot({ userId, profileId: scopedProfileId }),
+    ]));
     const entitlementKeys = (snapshot.featureKeys || []).filter((key) => isPersistentUnlockFeatureKey(key));
     return normalizePersistentUnlockKeys([...scopedKeys, ...entitlementKeys]);
   }
