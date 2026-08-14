@@ -8,6 +8,22 @@ compatibility_date = "2026-05-02"
 # (스트리밍 모니터의 교차요청 I/O는 db.js serverMonitoringMode:"poll"로 이미 근원 제거.)
 compatibility_flags = ["nodejs_compat"]
 workers_dev = true
+
+# 🔴 여기에 두는 이유 — 프로덕션 업로드는 `wrangler versions upload --config worker/wrangler.toml`
+# (scripts/deploy-safe.mjs)이고 크기 측정은 `npm run build:worker`(wrangler deploy --dry-run)다.
+# 두 곳에 `--minify` 플래그를 따로 붙이면 한쪽만 고쳤을 때 **가드가 프로덕션이 안 쓰는 값을 잰다.**
+# 설정 파일에 두면 두 경로가 같은 것을 본다.
+#
+# 실측(2026-08-14): gzip 2.91 MiB(무료 한도 3 MiB 의 97.0%, 여유 0.09) → 2.36 MiB(78.7%, 여유 0.64).
+# 켜기 전에는 다음 워커 추가가 예산을 넘겨 PR CI 를 막는 위치였다.
+#
+# 안전성 확인: wrangler 는 minify 와 함께 esbuild `keepNames` 를 유지하므로 함수명에 의존하는 코드
+# (mongoose 등)가 살아 있고, `TokenExpiredError`·`MongoServerError` 같은 판별 문자열은 리터럴이라
+# 맹글링되지 않는다. `/api` 경로 문자열 254개가 minify 전후 완전히 동일했다.
+#
+# 대가: 프로덕션 스택트레이스가 읽기 어려워진다. 필요해지면 `upload_source_maps` 를 검토하되,
+# 소스맵이 3 MiB 한도에 산입되는지 **먼저 실측**할 것(미검증).
+minify = true
 routes = [
   { pattern = "api.code-destiny.com", custom_domain = true },
   { pattern = "code-destiny.com/api/*", zone_name = "code-destiny.com" },
