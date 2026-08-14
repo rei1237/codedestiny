@@ -610,9 +610,27 @@ assert.ok(
 );
 
 const fortuneSource = fs.readFileSync(path.join(root, "worker/routes/fortune.js"), "utf8");
+// 🔴 지키려는 것은 "entitlement 조회가 재시도 안에서 돈다"이지 특정 호출 형태가 아니다.
+// 2026-08-14 에 이 조회를 PointHistory 조회와 같은 슬롯에서 Promise.all 로 묶으면서 형태가 바뀌었다
+// (왕복 1회·슬롯 1개 절약). 그래서 리터럴 문자열 대신 함수 본문을 잘라 재시도 포함 여부를 본다.
+const persistedUnlockStart = fortuneSource.indexOf("async function resolvePersistedUnlockFeatures");
+assert.ok(persistedUnlockStart >= 0, "resolvePersistedUnlockFeatures가 존재한다");
+const persistedUnlockBody = fortuneSource.slice(
+  persistedUnlockStart,
+  fortuneSource.indexOf("\n}\n", persistedUnlockStart),
+);
 assert.ok(
-  fortuneSource.includes("withMongoRetry(env, () => getUnlockedContentSnapshot("),
-  "resolvePersistedUnlockFeatures가 entitlement 조회를 withMongoRetry로 감싼다",
+  persistedUnlockBody.includes("getUnlockedContentSnapshot("),
+  "resolvePersistedUnlockFeatures가 entitlement 스냅샷을 조회한다",
+);
+assert.ok(
+  persistedUnlockBody.includes("withMongoRetry(env, () => Promise.all(["),
+  "resolvePersistedUnlockFeatures가 entitlement 조회를 withMongoRetry 슬롯 안에서 낸다",
+);
+// 형태가 또 바뀌어도 "재시도 밖에서 직접 부르는" 회귀는 이 단언이 잡는다(옛 리터럴 단언은 못 잡았다).
+assert.ok(
+  !/await\s+getUnlockedContentSnapshot\(/.test(fortuneSource),
+  "entitlement 조회를 withMongoRetry 밖에서 직접 await 하지 않는다",
 );
 assert.ok(
   !fortuneSource.includes("entitlementKeys = [];"),
