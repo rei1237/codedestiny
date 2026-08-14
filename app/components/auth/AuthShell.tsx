@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { type FormEvent, type ReactNode, useEffect, useMemo, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { trackEvent } from "@/lib/analytics";
 import { getApiBaseUrl } from "../../_lib/api-config";
 import {
   authFetch,
@@ -199,6 +200,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     try {
       if (mode === "login") {
         const result = await login({ email: email.trim(), password, nextPath: nextPath(), apiBase });
+        trackEvent("login", { method: "password" });
         redirect(result.nextPath, result.user?.role);
         return;
       }
@@ -214,6 +216,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       if (!response.ok) throw new Error(payload.message || copy.invalidSignup);
       completeClientLogin(payload);
       markFreshSignup(payload.user);
+      trackEvent("signup", { method: "password" });
       redirect(payload.nextPath, payload.user?.role);
     } catch (reason) {
       const message = reason instanceof Error ? reason.message : copy.network;
@@ -237,6 +240,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       if (!response.ok) throw new Error(payload.message || copy.invalidSignup);
       completeClientLogin(payload);
       markFreshSignup(payload.user);
+      trackEvent("signup", { method: "social" });
       if (payload.appRedirectUrl) window.location.assign(payload.appRedirectUrl); else redirect(payload.nextPath, payload.user?.role);
     } catch (reason) { setError(reason instanceof Error ? reason.message : copy.network); }
     finally { setBusy(false); }

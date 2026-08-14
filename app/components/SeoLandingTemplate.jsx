@@ -327,7 +327,9 @@ export default function SeoLandingTemplate({ page }) {
               {topicProfile.topicSummary}
             </p>
           ) : null}
-          <ul className="mt-6 grid gap-x-12 sm:grid-cols-2">
+          {/* 이 템플릿은 서버 컴포넌트라 onClick 을 달 수 없다. 대신 컨테이너에 표식만 남기고
+              js/core/analytics.js 의 위임 리스너가 cross_sell_click 을 쏜다. */}
+          <ul className="mt-6 grid gap-x-12 sm:grid-cols-2" data-cd-cross-sell={page?.path || ""}>
             {relatedServices.map((item) => (
               <li key={item.href} className="border-b border-[rgba(244,238,255,0.09)]">
                 <Link

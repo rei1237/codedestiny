@@ -8,6 +8,7 @@ import {
   isPaidAttemptInProgress,
   logPaidAttemptEvent,
 } from "@/app/_lib/paid-attempt-session";
+import { trackEvent } from "@/lib/analytics";
 import {
   attemptAppExit,
   createPopstateDebouncer,
@@ -148,6 +149,12 @@ export default function NavigationProvider({ children }: { children: React.React
   );
 
   useEffect(() => {
+    // 🔴 첫 진입은 js/core/analytics.js 의 gtag("config") 가 이미 page_view 를 한 번 쏜다.
+    // 여기서 무조건 쏘면 진입 화면만 두 번 잡히므로, 경로가 실제로 바뀐 전환에만 보낸다
+    // (pathRef 는 useRef(pathname) 으로 시작하므로 마운트 시에는 같다).
+    if (pathRef.current !== pathname) {
+      trackEvent("page_view", { page_path: pathname });
+    }
     pathRef.current = pathname;
     routeChangedAtRef.current = Date.now();
 
