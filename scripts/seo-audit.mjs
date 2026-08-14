@@ -6,16 +6,31 @@ const outJson = path.resolve("seo-audit-report.json");
 const outMd = path.resolve("seo-audit-report.md");
 const crawlSitemap = process.argv.includes("--crawl-sitemap");
 
-const indexablePaths = [
+// 🔴 색인 대상의 정본은 **사이트맵**이지 이 파일의 배열이 아니다.
+//
+// 예전에는 여기 하드코딩한 목록이 판정을 지배했고, 그 목록이 정본과 갈라진 채 방치돼
+// **프로덕션 상대 실행이 이슈 11건을 뱉는데 그중 10건이 거짓**이었다(2026-08-14 실측):
+//   - `/saju/basic` `/tarot/reunion` `/premium-reports` `/pdf/life-book` `/pdf/love-report`
+//     을 "색인 대상"으로 단언했지만, 이 다섯은 `scripts/generate-sitemap.mjs` 의
+//     `noindexPathPrefixes` 가 **일부러** 빼는 경로다(정적 셸 사본이거나 PDF 랜딩).
+//     → "indexable page has noindex" 5건.
+//   - `/en` `/ja` `/zh` 를 "비공개" 로 단언했지만 셋 다 사이트맵에 있는 실제 로케일 홈이다.
+//     → "private/test page is missing noindex" 3건.
+//   - 거기서 파생된 2건: `/pdf/life-book` 이 리다이렉트라 H1 이 0개라는 신고, 그리고
+//     저 넷의 canonical 이 사이트맵에 없다는 신고. **잘못된 전제가 이슈를 번식시킨다.**
+//
+// 거짓이 10/11 인 감사는 아무도 읽지 않게 된다. 그래서 목록을 고치는 대신
+// **사이트맵에서 유도**하도록 바꿨다. 아래 seed 는 "판정 기준"이 아니라 두 가지 용도다:
+//   ① 사이트맵을 못 읽었을 때의 폴백
+//   ② 사이트맵과 어긋나면 **이슈로 신고**해서 이 목록이 다시 조용히 썩지 않게 하는 장치
+const seedIndexablePaths = [
   "/",
   "/about",
   "/faq",
   "/methodology",
   "/manse",
-  "/saju/basic",
   "/saju/compatibility",
   "/tarot",
-  "/tarot/reunion",
   "/tarot/mindscan",
   "/ziwei",
   "/astrology",
@@ -24,9 +39,6 @@ const indexablePaths = [
   "/dream",
   "/today",
   "/love",
-  "/premium-reports",
-  "/pdf/life-book",
-  "/pdf/love-report",
   "/sukuyo-compatibility-ai",
   "/high-value",
   "/high-value/complete-guide-to-saju",
@@ -37,7 +49,9 @@ const indexablePaths = [
   "/high-value/common-user-questions-faq",
 ];
 
-const noindexPaths = [
+// 사이트맵에 애초에 들어가지 않는 비공개·인증 라우트의 점검용 표본.
+// 🔴 로케일 홈(`/en` `/ja` `/zh`)을 여기 넣지 말 것 — 사이트맵에 있는 색인 대상이다.
+const seedNoindexPaths = [
   "/login",
   "/signup",
   "/profile",
@@ -48,12 +62,9 @@ const noindexPaths = [
   "/points",
   "/admin",
   "/api-hello-test",
-  "/en",
-  "/ja",
-  "/zh",
 ];
 
-const seedPathsToAudit = [...new Set([...indexablePaths, ...noindexPaths])];
+const seedPathsToAudit = [...new Set([...seedIndexablePaths, ...seedNoindexPaths])];
 
 function normalizePathname(pathname) {
   const cleanPath = pathname.replace(/\/+$/, "");
@@ -185,8 +196,11 @@ async function fetchText(url) {
 async function auditPath(inputPath, sitemapIndexablePaths = new Set()) {
   const url = absoluteUrl(inputPath);
   const normalizedPath = normalizePathname(inputPath);
-  const shouldBeIndexed = indexablePaths.includes(normalizedPath) || sitemapIndexablePaths.has(normalizedPath);
-  const shouldBeNoindex = noindexPaths.includes(normalizedPath);
+  // 사이트맵을 읽었으면 그것만이 판정 기준이다. 못 읽었을 때만 seed 로 폴백한다.
+  const shouldBeIndexed = sitemapIndexablePaths.size > 0
+    ? sitemapIndexablePaths.has(normalizedPath)
+    : seedIndexablePaths.includes(normalizedPath);
+  const shouldBeNoindex = seedNoindexPaths.includes(normalizedPath);
   try {
     let { response, text } = await fetchText(url);
     if (response.status === 404 && inputPath !== "/" && !inputPath.endsWith("/")) {
@@ -305,8 +319,32 @@ async function auditSitemapAndRobots(rows) {
   return { sitemap, robots, noindexInSitemap, canonicalMismatch };
 }
 
-function buildIssues(rows, support) {
+/**
+ * seed 목록이 사이트맵과 어긋나면 신고한다.
+ *
+ * 이 감사가 거짓 이슈 8건을 상시로 뱉고 있던 이유가 정확히 이 드리프트였다. 목록을 한 번
+ * 고치는 것만으로는 다음에 또 갈라지고, 그때도 아무도 모른다 — 그래서 어긋남 자체를 실패로 만든다.
+ */
+function buildSeedDriftIssues(sitemapPathSet) {
+  if (sitemapPathSet.size === 0) {
+    return ["/sitemap.xml: 읽지 못해 seed 목록으로 판정했다 — 색인 판정 결과를 신뢰하지 말 것"];
+  }
   const issues = [];
+  for (const path of seedIndexablePaths) {
+    if (!sitemapPathSet.has(path)) {
+      issues.push(`seed drift: ${path} 가 seedIndexablePaths 에 있는데 사이트맵에 없다 — 의도적 noindex 면 이 목록에서 지울 것`);
+    }
+  }
+  for (const path of seedNoindexPaths) {
+    if (sitemapPathSet.has(path)) {
+      issues.push(`seed drift: ${path} 가 seedNoindexPaths 에 있는데 사이트맵에 있다 — 색인 대상이면 이 목록에서 지울 것`);
+    }
+  }
+  return issues;
+}
+
+function buildIssues(rows, support) {
+  const issues = [...buildSeedDriftIssues(sitemapIndexablePaths)];
   for (const row of rows) {
     if (row.error) issues.push(`${row.path}: fetch failed (${row.error})`);
     if (row.shouldBeIndexed && row.httpStatus !== 200) issues.push(`${row.path}: indexable page is not 200`);
@@ -363,9 +401,11 @@ function buildMarkdown(report) {
   return `${lines.join("\n")}\n`;
 }
 
-const sitemapPaths = crawlSitemap ? await readSitemapPaths() : [];
+// 사이트맵은 **항상** 읽는다(요청 1회). 색인 판정의 정본이기 때문이다.
+// `--crawl-sitemap` 은 "사이트맵의 URL 을 전부 감사할 것인가"만 정한다(현재 329개 = 그만큼 요청).
+const sitemapPaths = await readSitemapPaths();
 const sitemapIndexablePaths = new Set(sitemapPaths);
-const pathsToAudit = [...new Set([...seedPathsToAudit, ...sitemapPaths])];
+const pathsToAudit = [...new Set([...seedPathsToAudit, ...(crawlSitemap ? sitemapPaths : [])])];
 
 const routes = [];
 for (const inputPath of pathsToAudit) {
