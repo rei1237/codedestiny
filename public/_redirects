@@ -115,26 +115,64 @@
 /zh-cn/*                       /zh/:splat      301
 
 # 구형 /blog/* → /insights/*
-/blog/saju-pallja               /insights/saju-how-to-read-step-by-step-beginner-guide  301
-/blog/saju-pallja/              /insights/saju-how-to-read-step-by-step-beginner-guide  301
-/blog/ohang                     /insights/five-elements-ohang-complete-guide            301
-/blog/ohang/                    /insights/five-elements-ohang-complete-guide            301
-/blog/tarot-arcana              /insights/tarot-major-arcana-22-complete-meanings        301
-/blog/tarot-arcana/             /insights/tarot-major-arcana-22-complete-meanings        301
-/blog/ziwei                     /insights/ziwei-what-is                                  301
-/blog/ziwei/                    /insights/ziwei-what-is                                  301
-/blog/cheongan-jiji             /insights/cheongan-jiji-complete-explanation             301
-/blog/cheongan-jiji/            /insights/cheongan-jiji-complete-explanation             301
-/blog/singang-sinyak            /insights/singang-sinyak-judgment-complete-guide         301
-/blog/singang-sinyak/           /insights/singang-sinyak-judgment-complete-guide         301
-/blog/yongshin                  /insights/yongshin-finding-method-practical-guide        301
-/blog/yongshin/                 /insights/yongshin-finding-method-practical-guide        301
-/blog/goonghap                  /insights/saju-compatibility-how-to                      301
-/blog/goonghap/                 /insights/saju-compatibility-how-to                      301
-/blog/iljoo                     /insights/iljoo-personality-complete-guide-60-pillars    301
-/blog/iljoo/                    /insights/iljoo-personality-complete-guide-60-pillars    301
-/blog/daewoon-sewoon            /insights/daewoon-sewoon-reading-complete-guide          301
-/blog/daewoon-sewoon/           /insights/daewoon-sewoon-reading-complete-guide          301
+# 🔴 대상은 후행 슬래시까지 적는다 — 빼면 301 뒤에 308(/insights/<slug>/ 정규화)이 한 번 더 붙는다.
+/blog/saju-pallja               /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
+/blog/saju-pallja/              /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
+/blog/ohang                     /insights/five-elements-ohang-complete-guide/           301
+/blog/ohang/                    /insights/five-elements-ohang-complete-guide/           301
+/blog/tarot-arcana              /insights/tarot-major-arcana-22-complete-meanings/       301
+/blog/tarot-arcana/             /insights/tarot-major-arcana-22-complete-meanings/       301
+/blog/ziwei                     /insights/ziwei-what-is/                                 301
+/blog/ziwei/                    /insights/ziwei-what-is/                                 301
+/blog/cheongan-jiji             /insights/cheongan-jiji-complete-explanation/            301
+/blog/cheongan-jiji/            /insights/cheongan-jiji-complete-explanation/            301
+/blog/singang-sinyak            /insights/singang-sinyak-judgment-complete-guide/        301
+/blog/singang-sinyak/           /insights/singang-sinyak-judgment-complete-guide/        301
+/blog/yongshin                  /insights/yongshin-finding-method-practical-guide/       301
+/blog/yongshin/                 /insights/yongshin-finding-method-practical-guide/       301
+/blog/goonghap                  /insights/saju-compatibility-how-to/                     301
+/blog/goonghap/                 /insights/saju-compatibility-how-to/                     301
+/blog/iljoo                     /insights/iljoo-personality-complete-guide-60-pillars/   301
+/blog/iljoo/                    /insights/iljoo-personality-complete-guide-60-pillars/   301
+/blog/daewoon-sewoon            /insights/daewoon-sewoon-reading-complete-guide/         301
+/blog/daewoon-sewoon/           /insights/daewoon-sewoon-reading-complete-guide/         301
+
+# /blog 은퇴 (2026-08-14) — public/blog/*.html 손글 10편을 삭제하고 /insights 정본으로 통합했다.
+# 10편 전부 대응하는 저자 원고가 /insights 에 있고(조립물 마커 0) 본문도 9/10 에서 더 길다.
+# 색인은 원래부터 _headers 의 noindex 로 막혀 있었고 색인 페이지發 인바운드 링크도 0이라 잃는 자산이 없다.
+# 🔴 `.html` 형태도 함께 적는다 — 파일이 사라지면 확장자 정규화(308 → 확장자 없는 경로)가
+#    더는 걸리지 않으므로, 규칙이 없으면 옛 링크가 404 가 된다.
+/blog/saju-basics               /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
+/blog/saju-basics/              /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
+/blog/saju-basics.html          /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
+/blog/ohang-five-elements       /insights/five-elements-ohang-complete-guide/            301
+/blog/ohang-five-elements/      /insights/five-elements-ohang-complete-guide/            301
+/blog/ohang-five-elements.html  /insights/five-elements-ohang-complete-guide/            301
+/blog/tarot-major-arcana        /insights/tarot-major-arcana-22-complete-meanings/       301
+/blog/tarot-major-arcana/       /insights/tarot-major-arcana-22-complete-meanings/       301
+/blog/tarot-major-arcana.html   /insights/tarot-major-arcana-22-complete-meanings/       301
+/blog/tarot-spread-howto        /insights/tarot-spread-design-principles/                301
+/blog/tarot-spread-howto/       /insights/tarot-spread-design-principles/                301
+/blog/tarot-spread-howto.html   /insights/tarot-spread-design-principles/                301
+/blog/ziwei-intro               /insights/ziwei-what-is/                                 301
+/blog/ziwei-intro/              /insights/ziwei-what-is/                                 301
+/blog/ziwei-intro.html          /insights/ziwei-what-is/                                 301
+/blog/yongshin-guide            /insights/yongshin-finding-method-practical-guide/       301
+/blog/yongshin-guide/           /insights/yongshin-finding-method-practical-guide/       301
+/blog/yongshin-guide.html       /insights/yongshin-finding-method-practical-guide/       301
+/blog/goonghap-guide            /insights/saju-compatibility-how-to/                     301
+/blog/goonghap-guide/           /insights/saju-compatibility-how-to/                     301
+/blog/goonghap-guide.html       /insights/saju-compatibility-how-to/                     301
+/blog/ilju-personality          /insights/iljoo-personality-complete-guide-60-pillars/   301
+/blog/ilju-personality/         /insights/iljoo-personality-complete-guide-60-pillars/   301
+/blog/ilju-personality.html     /insights/iljoo-personality-complete-guide-60-pillars/   301
+/blog/saju-career               /insights/ten-gods-beginner-map/                         301
+/blog/saju-career/              /insights/ten-gods-beginner-map/                         301
+/blog/saju-career.html          /insights/ten-gods-beginner-map/                         301
+/blog/daewoon-sewoon.html       /insights/daewoon-sewoon-reading-complete-guide/         301
+/blog/index.html                /insights/                                               301
+/blog/                          /insights/                                               301
+/blog                           /insights/                                               301
 
 # insights 중복 통합 (canonical 병합)
 # 사주 입문 4편 → saju-how-to-read-step-by-step-beginner-guide
