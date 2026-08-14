@@ -78,7 +78,7 @@ function createRuntime({ dayGan = '甲', noDay = false, customSource = source } 
 function renderCase(options) {
   const runtime = createRuntime(options);
   runtime.window.renderHealthReport(
-    {},
+    options.p || {},
     { ratios: options.ratios },
     options.johu || {},
     options.pw || {},
@@ -178,6 +178,25 @@ for (const testCase of cases) {
   assert(html.includes('오행 개운법'), '일진 데이터 없음: remedy section missing');
   assert(!html.includes('오늘의 오행 조율'), '일진 데이터 없음: daily section should be hidden');
   assert(!html.includes('오늘의 추천 5선'), '일진 데이터 없음: food section should be hidden');
+}
+
+// 프로필 카드로 결과를 여는 경로에는 window.G_BAZI 가 없다. 그때도 넘겨받은 원국의 일간으로
+// 데스크탑과 같은 전체 리포트가 나와야 한다 — 예전에는 전역만 보느라 축소본으로 떨어졌다.
+{
+  const html = renderCase({
+    label: '전역 없이 원국만',
+    noDay: true,
+    p: { d: { g: '甲', j: '子' } },
+    ratios: { wood: 35, fire: 20, earth: 12, metal: 16, water: 17 },
+    pw: { yongshin: ['earth'], kijishin: ['wood'] },
+  });
+  assertCommonHealthReport(html, '전역 없이 원국만');
+  assert(html.includes('오늘의 오행 조율'), '전역 없이 원국만: daily section missing');
+  assert(html.includes('오늘의 헬스 미션'), '전역 없이 원국만: mission section missing');
+  assert(html.includes('오늘의 회복 루틴'), '전역 없이 원국만: routine section missing');
+  assert(html.includes('오늘의 추천 5선'), '전역 없이 원국만: food section missing');
+  assert(html.includes('장부/생활 신호'), '전역 없이 원국만: organ signal section missing');
+  assert(!html.includes('선천 체질 기준 안내'), '전역 없이 원국만: degraded fallback copy leaked');
 }
 
 {
