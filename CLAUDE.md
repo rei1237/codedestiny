@@ -312,6 +312,7 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
 - `docs/CURRENT_DEV_BASELINE.md` is the latest working summary for current service development focus.
 - 🔴 [docs/guard-integrity-2026-08-13.md](docs/guard-integrity-2026-08-13.md) — **가드가 초록불인데 아무것도 안 지키던 사례 모음(G-1~G-7).** 가드를 만지거나 검증기를 지우기 전에 읽을 것. **7건 모두 조치 완료**(2026-08-14 실측 재확인): 빌드 산출물 오인은 `isBuildArtifactDir()` 제외로, 배선 누락과 `deploy:critical`↔paid-flow-gates 커버리지 차이는 `scripts/verify-guard-wiring.mjs`(fail-closed 3방향)가 `pr-ci.yml` 에 배선되어 각각 막는다.
   - **미배선 검증기 수를 문서에서 세지 말 것** — 손으로 센 값이 두 번 틀렸다. 정본은 `npm run verify:guard-wiring` 의 출력이고, 미배선은 사유와 함께 그 스크립트의 `UNWIRED_BY_DESIGN` 에 선언한다.
-  - 🔴 **워커 크기는 무료 플랜 한도의 96.3%(gzip 2.89 / 3 MiB, 여유 0.11 MiB) — 2026-08-13 실측값이다.** 그 뒤 워커 코드가 바뀌었으므로 이 숫자를 현재 값으로 인용하지 말고, 워커에 무언가를 더하기 전에 `npm run verify:worker-size` 로 다시 잰다.
+  - **워커 크기: gzip 2.36 / 3 MiB = 78.7%, 여유 0.64 MiB (2026-08-14 실측, `minify = true` 적용 후).** 적용 전에는 97.0%(여유 0.09 MiB)로 다음 워커 추가가 PR CI 를 막는 위치였다. 🔴 **이 숫자도 그날의 측정값이다** — 워커에 무언가를 더하기 전에 `npm run build:worker && npm run verify:worker-size` 로 다시 잰다(가드는 90% 부터 경고).
+  - 🔴 **`worker/wrangler.toml` 의 `minify = true` 를 지우지 말 것.** 지우면 즉시 97% 로 돌아간다. `--minify` 를 플래그로 옮기지도 말 것 — 프로덕션 업로드(`wrangler versions upload`)와 크기 측정(`build:worker`)이 각각 다른 명령이라, 설정 파일이 아니면 한쪽만 고쳤을 때 **가드가 프로덕션이 안 쓰는 값을 잰다.**
 - `CLAUDE.md` is project context and reference material.
 - If these docs disagree, do not merge the rules silently. Reconcile the mismatch in `docs/CONTEXT_AUDIT.md` before coding.
