@@ -298,6 +298,13 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   - 로컬 `npm run deploy:preview` 는 개발용 도구로 남아 있지만 흐름의 일부가 아니다. 실행하면 Cloudflare 에 아티팩트가 남으므로 습관적으로 돌리지 않는다. 변경 집합만 보려면 업로드가 없는 `npm run deploy:check`.
 - **결제·인증 전용 게이트**(`paid-flow-gates.yml`)는 그대로 남아 `pull_request` 에서 결제·로그인·운세 경로가 걸릴 때만 36개 검증기를 돌린다. 위 티어와 **독립**이며 필수 체크는 아니다.
   - 🔴 **정적 셸 6종(`index.html` + 5미러)이 여기 포함된다**(2026-08-11 추가). 결제창 렌더러 3종 중 **정본이 셸 인라인**(`_cdChooseServicePaymentMode`)인데 정작 그것만 트리거 목록에서 빠져 있어, 셸에서 이용권 카드를 지우거나 3옵션 문구를 바꿔도 `verify:payment-choice-parity` 가 깨어나지 않았다. 셸은 홈 콘텐츠도 겸하므로 PR CI 티어는 `fast` 로 두고(문구 한 줄에 전체 회귀를 돌리지 않는다) 결제 검증만 이 게이트로 깨운다.
+  - 🔴 **결제와 무관한 변경에 이 게이트를 돌리지 않는다 (2026-08-14 사용자 지시, 미해결 과제로 명시)**. 지금 트리거는 **경로 기반**이라 그 지시를 구조적으로 지키지 못한다 — 두 가지 이유로 순수 문구·이미지 변경도 36개 검증기를 깨운다:
+    1. `index.html`(+미러 6)은 **결제창 정본이자 홈 콘텐츠 셸**이다. 팝업 문구 한 줄만 고쳐도 걸린다.
+    2. `js/core/index-inline-runtime.js` 는 `cd:auth-changed` 리스너 때문에 트리거인데, **`npm run sync:public` 이 캐시키(`?v=build-…`)만 재생성해도** 변경 파일로 잡힌다. 셸을 건드리는 모든 PR 이 자동으로 여기 걸린다는 뜻이다.
+    - **경로 목록을 손보는 것으로는 못 고친다.** 셸에서 빼면 2026-08-11 에 막은 구멍(이용권 카드·3옵션 문구를 지워도 parity 가드가 안 깨어남)이 그대로 다시 열린다. 필요한 것은 **diff 내용 기반 선판정**이다.
+    - 🔴 **마커 목록으로 판정하려는 시도는 실패했다(2026-08-14 실측).** "결제 관련 단어가 diff 에 있으면 돌린다"는 방식을 만들어 실제 커밋 2개로 검증했더니 **양방향으로 틀렸다**: 문구 전용 PR #629 는 `featureKey` 한 단어에 걸려 돌았고, 정작 결제 진입 경로를 고친 PR #625 는 `data-pvw-cta-bypass` 가 목록에 없어 **건너뛰었다**. 원칙 11 그대로 — **손으로 쓴 목록은 가드가 아니다.** 그 시도는 올리지 않고 폐기했다.
+    - **다음에 시도한다면 방향은 이것이다**: 판정을 새로 발명하지 말고 **정본(`scripts/lib/change-risk.mjs` 의 `deepRequired`)에 물어보게** 만든다. 셸의 모호함은 "셸 diff 가 결제 모달 **구간**(`_cdChooseServicePaymentMode`~`_cdEnsureDirectPaymentStyles` 블록) 안을 건드렸는가"를 **구간 단위**로 보고, 캐시키만 바뀐 줄은 노이즈로 버린다. **fail-closed**(모르면 돌린다)는 유지한다.
+    - 그때까지는 **이 게이트가 문구 PR 에서 도는 것은 알려진 미해결 상태**다. 이 항목을 지우지 말 것 — 지우면 다음 세션이 같은 지적을 다시 받는다.
 - **Merging the PR is the deploy trigger.** The push to `main` starts *Release Cloudflare Pages and Worker*, which checks out `github.sha` exactly, builds once, promotes the Worker then Pages, smokes production, and verifies the live SHA on both layers (`npm run verify:deployed-sha`). Failure auto-rolls back both layers and reports on the PR.
 - **Local production deploys are blocked** by `scripts/lib/production-deploy-guard.mjs`. `deploy:check`, `deploy:preview`, and `deploy:smoke` still work locally. The break-glass path — for when GitHub Actions itself is unavailable — is `CD_BREAK_GLASS=1 <command> --break-glass`, and anything shipped that way must be re-landed through a PR or the next release silently reverts it.
 - Production Cloudflare credentials belong in GitHub Actions secrets. Do not add them to CI workflows from `.env` files.
