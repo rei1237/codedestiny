@@ -222,9 +222,14 @@ function __applyResponsiveSrcsetHints(img) {
   if (!img || img.dataset.responsiveHintReady === '1') return;
 
   var srcsetHints = {
+    // 🔴 srcset 을 일부러 두지 않는다. 예전에는 96w/130w/512w 세 후보가 **전부 같은 512px 파일**을
+    //    가리켰고(고를 것이 없는 degenerate srcset), 게다가 `?v=20260511-mobile-logo-fix4` 라는
+    //    별도 캐시 키를 써서 셸의 맨 URL(`/icons/app-logo-512.webp`, head 에서 preload 로 데워 둔
+    //    바로 그 URL)과 **다른 자산으로 취급됐다**. 그래서 히어로 로고가 두 번 내려받아졌다
+    //    (프로덕션 Lighthouse 가 #honeypigLogo 를 30.5 KiB × 2 로 보고).
+    //    index.html 쪽 degenerate srcset 은 커밋 5c7abb303 이 같은 이유로 이미 걷어냈는데
+    //    이 사본이 남아 있었다. width/height 는 CLS 방지에 쓰이므로 그대로 둔다.
     '/icons/app-logo-512.webp': {
-      srcset: '/icons/app-logo-512.webp?v=20260511-mobile-logo-fix4 96w, /icons/app-logo-512.webp?v=20260511-mobile-logo-fix4 130w, /icons/app-logo-512.webp?v=20260511-mobile-logo-fix4 512w',
-      sizes: '(max-width: 768px) 88px, 130px',
       width: 130,
       height: 130
     },
@@ -257,14 +262,13 @@ function __applyResponsiveSrcsetHints(img) {
   var srcPath = normalizePath(img.getAttribute('data-lazy-src') || img.getAttribute('src'));
   var byPath = srcsetHints[srcPath];
 
-  if (byPath && !img.getAttribute('srcset')) {
+  if (byPath && byPath.srcset && !img.getAttribute('srcset')) {
     img.setAttribute('srcset', byPath.srcset);
     img.setAttribute('sizes', byPath.sizes);
   }
 
-  if ((cls.indexOf('honeypig-logo-icon') !== -1 || id === 'honeypigLogo') && !img.getAttribute('srcset')) {
-    img.setAttribute('srcset', srcsetHints['/icons/app-logo-512.webp'].srcset);
-    img.setAttribute('sizes', srcsetHints['/icons/app-logo-512.webp'].sizes);
+  // 로고는 srcset 없이 width/height 힌트만 받는다(위 주석 참고 — 두 번 받던 원인이었다).
+  if (cls.indexOf('honeypig-logo-icon') !== -1 || id === 'honeypigLogo') {
     byPath = srcsetHints['/icons/app-logo-512.webp'];
   }
 
