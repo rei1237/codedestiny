@@ -309,7 +309,7 @@ export default function DestinyMeetingPlacePage() {
           </button>
           <div className="text-center">
             <p className="text-[10px] font-black uppercase tracking-[0.28em] text-[#ffd88a] [text-shadow:0_0_12px_rgba(255,212,138,0.7)]">Destiny Meeting Place</p>
-            <h1 className="mt-1 text-sm font-black tracking-tight text-white [text-shadow:0_0_18px_rgba(146,209,255,0.55)] sm:text-base">사주로 보는 인연의 장소</h1>
+            <h2 className="mt-1 text-sm font-black tracking-tight text-white [text-shadow:0_0_18px_rgba(146,209,255,0.55)] sm:text-base">사주로 보는 인연의 장소</h2>
           </div>
           <button
             onClick={handleReset}

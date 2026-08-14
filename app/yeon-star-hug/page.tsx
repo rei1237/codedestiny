@@ -14,7 +14,9 @@ export default function YeonStarHugPage() {
           </summary>
           <div className="mt-4">
             <p className="text-xs font-bold uppercase tracking-[0.18em] text-rose-400">Yeon Star Hug</p>
-            <h2 className="mt-3 text-2xl font-black text-slate-800">연이의 마음 별자리</h2>
+            {/* 이 페이지의 H1. 인터랙티브 화면은 ssr:false 라 서버 HTML 에 헤딩을 남기지 않아,
+                승격 전에는 색인 대상인데도 H1 이 0개였다. Tailwind 유틸이 크기·굵기를 모두 지정하므로 시각 변화는 없다. */}
+            <h1 className="mt-3 text-2xl font-black text-slate-800">연이의 마음 별자리</h1>
             <p className="mt-4 text-sm leading-7">
               오늘의 감정, 별자리, 마음에 남은 고민을 함께 놓고 지금 강하게 떠오르는 마음의 결을 읽습니다.
               결과는 확정된 예언이 아니라, 지친 감정이 어디에서 흔들리고 어디에서 다시 숨을 고르는지 살피는

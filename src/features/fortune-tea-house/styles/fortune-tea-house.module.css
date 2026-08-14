@@ -2371,7 +2371,7 @@
   text-shadow: 0 0 18px rgba(233, 196, 106, 0.38);
 }
 
-.landingCopy h1,
+.landingCopy h2,
 .landingSectionHeader h2,
 .storyPanel h2,
 .transformCopy h2,
@@ -8718,7 +8718,7 @@
   letter-spacing: 0;
 }
 
-.page[data-stage="landing"] .landingCopy h1 {
+.page[data-stage="landing"] .landingCopy h2 {
   font-family: var(--font-premium, var(--font-display, var(--font-body)));
   font-size: clamp(3.1rem, 4.8vw, 4.55rem);
   line-height: 1.08;
@@ -9528,7 +9528,7 @@
     padding: 7px;
   }
 
-  .landingCopy h1,
+  .landingCopy h2,
   .landingSectionHeader h2,
   .storyPanel h2,
   .transformCopy h2,
@@ -9807,7 +9807,7 @@
 }
 
 @media (max-width: 390px) {
-  .landingCopy h1,
+  .landingCopy h2,
   .landingSectionHeader h2,
   .storyPanel h2,
   .transformCopy h2,
@@ -10623,7 +10623,7 @@
     margin-inline: auto;
   }
 
-  .page[data-stage="landing"] .landingCopy h1 {
+  .page[data-stage="landing"] .landingCopy h2 {
     font-size: clamp(2.4rem, 11vw, 3.25rem);
     white-space: normal;
   }
@@ -12170,7 +12170,7 @@
   box-shadow: 0 0 16px rgba(255, 233, 177, 0.72), 0 0 28px rgba(248, 187, 221, 0.5);
 }
 
-.page[data-stage="landing"] .landingCopy h1 {
+.page[data-stage="landing"] .landingCopy h2 {
   max-width: 7em;
   color: rgba(255, 250, 253, 0.98);
   font-family: var(--tea-font-display);
@@ -12456,7 +12456,7 @@
     margin-inline: auto;
   }
 
-  .page[data-stage="landing"] .landingCopy h1 {
+  .page[data-stage="landing"] .landingCopy h2 {
     max-width: none;
     font-size: clamp(2.85rem, 12vw, 4.9rem);
   }
@@ -12533,7 +12533,7 @@
     font-size: 0.72rem;
   }
 
-  .page[data-stage="landing"] .landingCopy h1 {
+  .page[data-stage="landing"] .landingCopy h2 {
     font-size: clamp(2.35rem, 13vw, 3.45rem);
     line-height: 1.02;
   }
@@ -15483,7 +15483,7 @@
   --tea-dialogue-ink-soft: #51346c;
 }
 
-.landingCopy h1,
+.landingCopy h2,
 .landingSectionHeader h2,
 .storyPanel h2,
 .transformCopy h2,
@@ -15681,7 +15681,7 @@
   text-rendering: geometricPrecision;
 }
 
-.landingCopy h1,
+.landingCopy h2,
 .landingSectionHeader h2,
 .storyPanel h2,
 .transformCopy h2,
@@ -16298,7 +16298,7 @@
   backdrop-filter: none;
 }
 
-.page[data-stage="landing"] .landingCopy h1 {
+.page[data-stage="landing"] .landingCopy h2 {
   margin-top: 16px;
   font-size: 4.7rem;
   line-height: 0.98;
@@ -16453,7 +16453,7 @@
     text-align: center;
   }
 
-  .page[data-stage="landing"] .landingCopy h1 {
+  .page[data-stage="landing"] .landingCopy h2 {
     font-size: 3.7rem;
   }
 
@@ -16516,7 +16516,7 @@
     font-size: 0.72rem;
   }
 
-  .page[data-stage="landing"] .landingCopy h1 {
+  .page[data-stage="landing"] .landingCopy h2 {
     margin-top: 11px;
     font-size: 2.78rem;
     line-height: 1;
@@ -16572,7 +16572,7 @@
     padding-top: max(78px, calc(env(safe-area-inset-top, 0px) + 64px));
   }
 
-  .page[data-stage="landing"] .landingCopy h1 {
+  .page[data-stage="landing"] .landingCopy h2 {
     font-size: 2.38rem;
   }
 

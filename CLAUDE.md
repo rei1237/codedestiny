@@ -42,6 +42,12 @@ npm run deploy:cf:opennext # OpenNext 경유 배포
 10. 🔴 **심볼·파일을 지우거나 이름을 바꿀 때는 3면 grep**: 소스 + `__tests__/` + `scripts/verify-*` 를 **함께** 본다. **"임포터 0"은 죽었다는 증거가 아니다** — `lib/payment/portone.ts`는 import 가 0이지만 `verify-portone-single-payment-regression.mjs`가 파일로 읽어 정본 형태로 단언한다(지웠으면 `deploy:critical` 가드 파괴였다). 줄 범위로 코드를 자를 때는 블록의 끝을 눈으로 믿지 말고 잘라낸 첫 줄·마지막 줄을 출력해 확인한다. 삭제가 **2개 이상의 PR 로 나뉘면** 마지막에 머지된 `main` 에서 `npm run check:critical` 을 한 번 돌린다(브랜치 단위 검증은 "A 도 통과, B 도 통과인데 A+B 가 깨지는" 부류를 구조적으로 못 잡는다).
 11. 🔴 **가드는 fail-closed 여야 하고, 손으로 쓴 대상 목록은 가드가 아니다**: 검사 대상이 없을 때 **통과시키는 가드는 가드가 아니다**(`verify:worker-size`가 존재하지 않는 산출물을 찾아 `exit 0` 하며 예산을 지키는 척했다). 규칙이 "이 성질을 가진 모든 코드"에 걸리는 것이라면 배열에 파일명을 열거하지 말고 **소스에서 전수 발견해 미분류를 실패시킨다** — 정본 형태는 `verify:auth-changed-coverage`·`verify:guard-wiring` 이다. 목록에 한 칸 더 넣는 것은 고치는 게 아니라 다음 사고를 미루는 것이다. 가드가 검사하는 파일은 그 가드를 부르는 워크플로의 트리거 `paths` 에도 있어야 한다.
 12. 🔴 **끝은 "검증했다"까지다**: 변경마다 **실행한 명령과 그 출력**을 근거로 보고한다. 출력을 실제로 보지 않고 "통과"라고 쓰지 않는다. 돌리지 못한 검증은 숨기지 말고 이유와 함께 **"미검증"으로 명시**한다. 최종 보고에는 수정한 파일 · 의도 · 건드리지 않은 영역 · 검증한 명령 · 추가 확인이 필요한 부분을 남긴다.
+13. 🔴 **컨텍스트가 모자라면 밀어붙이지 말고 인수인계 문서로 넘긴다 (2026-08-15 사용자 지시)**: 남은 작업이 컨텍스트 안에 안 들어오면, 절반만 하고 "했다"고 보고하거나 후반부를 **근거 없이 채우지 않는다.** 대신 `docs/handoff/<주제>.md` 를 만들어 다음 세션이 **그 문서만 읽고 시작할 수 있게** 넘긴다.
+   - **왜**: 컨텍스트가 마를수록 근거 확인을 건너뛰고 추측으로 메우게 된다. 실제로 이 레포에서 가장 큰 사고(상세 팝업에 지어낸 결과 예시)가 그 형태였다. 넘기는 것이 품질을 지키는 유일한 방법이다.
+   - **인수인계 문서에 반드시 넣을 것**: ①왜 하는 작업인지(사용자 요구 원문 포함) ②**이미 끝난 것**(PR 번호·머지 여부 — 다음 세션이 다시 하지 않도록) ③남은 작업의 **정확한 대상과 개수** ④**방법**(무엇을 근거로 판정하는지, 확인 명령) ⑤**정본 예시 하나**를 근거 파일·줄번호와 함께 ⑥이 레포 고유의 작업 규칙(sync:public·격리 워크트리·머지는 사용자) ⑦검증 명령 목록 ⑧"근거 못 찾으면 추측하지 말고 물어라"
+   - **넘기는 시점**: 작업을 시작하기 전에 판단한다. "일단 해보고 모자라면"은 늦다 — 그때는 이미 문서를 쓸 컨텍스트도 없다.
+   - 🔴 **문서를 남겼다고 작업이 끝난 것이 아니다.** 사용자에게 **무엇이 남았고 왜 넘겼는지** 분명히 보고한다. 넘긴 범위를 "완료"로 적지 않는다.
+   - 정본 예시: [docs/handoff/detail-sheet-copy-rewrite.md](docs/handoff/detail-sheet-copy-rewrite.md)
 
 ## Folder Structure
 
@@ -298,13 +304,13 @@ UI/UX 관련 요청(디자인/리디자인/비평/감사/폴리싱/애니메이�
   - 로컬 `npm run deploy:preview` 는 개발용 도구로 남아 있지만 흐름의 일부가 아니다. 실행하면 Cloudflare 에 아티팩트가 남으므로 습관적으로 돌리지 않는다. 변경 집합만 보려면 업로드가 없는 `npm run deploy:check`.
 - **결제·인증 전용 게이트**(`paid-flow-gates.yml`)는 그대로 남아 `pull_request` 에서 결제·로그인·운세 경로가 걸릴 때만 36개 검증기를 돌린다. 위 티어와 **독립**이며 필수 체크는 아니다.
   - 🔴 **정적 셸 6종(`index.html` + 5미러)이 여기 포함된다**(2026-08-11 추가). 결제창 렌더러 3종 중 **정본이 셸 인라인**(`_cdChooseServicePaymentMode`)인데 정작 그것만 트리거 목록에서 빠져 있어, 셸에서 이용권 카드를 지우거나 3옵션 문구를 바꿔도 `verify:payment-choice-parity` 가 깨어나지 않았다. 셸은 홈 콘텐츠도 겸하므로 PR CI 티어는 `fast` 로 두고(문구 한 줄에 전체 회귀를 돌리지 않는다) 결제 검증만 이 게이트로 깨운다.
-  - 🔴 **결제와 무관한 변경에 이 게이트를 돌리지 않는다 (2026-08-14 사용자 지시, 미해결 과제로 명시)**. 지금 트리거는 **경로 기반**이라 그 지시를 구조적으로 지키지 못한다 — 두 가지 이유로 순수 문구·이미지 변경도 36개 검증기를 깨운다:
-    1. `index.html`(+미러 6)은 **결제창 정본이자 홈 콘텐츠 셸**이다. 팝업 문구 한 줄만 고쳐도 걸린다.
-    2. `js/core/index-inline-runtime.js` 는 `cd:auth-changed` 리스너 때문에 트리거인데, **`npm run sync:public` 이 캐시키(`?v=build-…`)만 재생성해도** 변경 파일로 잡힌다. 셸을 건드리는 모든 PR 이 자동으로 여기 걸린다는 뜻이다.
-    - **경로 목록을 손보는 것으로는 못 고친다.** 셸에서 빼면 2026-08-11 에 막은 구멍(이용권 카드·3옵션 문구를 지워도 parity 가드가 안 깨어남)이 그대로 다시 열린다. 필요한 것은 **diff 내용 기반 선판정**이다.
-    - 🔴 **마커 목록으로 판정하려는 시도는 실패했다(2026-08-14 실측).** "결제 관련 단어가 diff 에 있으면 돌린다"는 방식을 만들어 실제 커밋 2개로 검증했더니 **양방향으로 틀렸다**: 문구 전용 PR #629 는 `featureKey` 한 단어에 걸려 돌았고, 정작 결제 진입 경로를 고친 PR #625 는 `data-pvw-cta-bypass` 가 목록에 없어 **건너뛰었다**. 원칙 11 그대로 — **손으로 쓴 목록은 가드가 아니다.** 그 시도는 올리지 않고 폐기했다.
-    - **다음에 시도한다면 방향은 이것이다**: 판정을 새로 발명하지 말고 **정본(`scripts/lib/change-risk.mjs` 의 `deepRequired`)에 물어보게** 만든다. 셸의 모호함은 "셸 diff 가 결제 모달 **구간**(`_cdChooseServicePaymentMode`~`_cdEnsureDirectPaymentStyles` 블록) 안을 건드렸는가"를 **구간 단위**로 보고, 캐시키만 바뀐 줄은 노이즈로 버린다. **fail-closed**(모르면 돌린다)는 유지한다.
-    - 그때까지는 **이 게이트가 문구 PR 에서 도는 것은 알려진 미해결 상태**다. 이 항목을 지우지 말 것 — 지우면 다음 세션이 같은 지적을 다시 받는다.
+  - 🔴 **결제와 무관한 변경에는 이 게이트가 돌지 않는다 (2026-08-14, 사용자 지시로 도입 — 되돌리지 말 것)**. 경로 트리거만으로는 그 지시를 지킬 수 없었다: ①`index.html`(+미러 6)이 결제창 정본이자 홈 콘텐츠 셸이라 팝업 문구 한 줄만 고쳐도 걸리고 ②`js/core/index-inline-runtime.js` 는 `cd:auth-changed` 리스너 때문에 트리거인데 `sync:public` 이 캐시키(`?v=build-…`)만 재생성해도 변경으로 잡힌다. 그래서 **셸을 건드리는 모든 PR** 이 36개 검증기를 깨웠다.
+    - 🔴 **고치는 방향은 트리거 `paths:` 에서 셸을 빼는 것이 아니다.** 빼면 2026-08-11 에 막은 구멍(이용권 카드·3옵션 문구를 지워도 `verify:payment-choice-parity` 가 안 깨어남)이 그대로 다시 열린다. 판정은 경로가 아니라 **diff 내용**에서 나와야 한다.
+    - 해결은 `scope` 잡(`scripts/resolve-paid-gate-scope.mjs`)이다. **경로가 아니라 diff 내용**으로 판정하고, 판정 재료를 **전부 정본에서** 가져온다 — 결제·인증 축은 `scripts/lib/change-risk.mjs` 의 `requiresDeepVerification`, 트리거 목록은 **이 YAML 의 `paths:` 를 직접 파싱**(목록을 두 벌로 만들지 않는다), 셸의 모호함은 **결제 모달 함수 본문을 중괄호로 잘라낸 실제 구간**. 캐시키만 바뀐 줄은 생성 노이즈로 버린다.
+    - 🔴 **마커 단어 목록으로 판정하지 말 것.** 그 방식을 먼저 만들어 실제 커밋으로 검증했더니 **양방향으로 틀렸다** — 문구 전용 PR #629 는 `featureKey` 한 단어에 걸려 돌았고, 결제 진입 경로를 고친 PR #625 는 `data-pvw-cta-bypass` 가 목록에 없어 건너뛰었다. 원칙 11 그대로다.
+    - 🔴 **fail-closed 다.** `if: needs.scope.outputs.run != 'false'` 이므로 판정이 실패하거나 출력이 없으면 **돌린다.** 건너뛰는 것은 `run=false` 를 명시적으로 받았을 때뿐이다. 이 조건을 `== 'true'` 로 바꾸지 말 것.
+    - 검증 매트릭스(도입 시 실측): 문구 전용 → 건너뜀 / 결제 라우트 → 돎 / 결제 게이트 → 돎 / **셸의 결제 구간만** → 돎 / **셸의 문구만** → 건너뜀.
+    - `js/mobile-interaction-patch.js` 도 이때 트리거에 추가했다 — 고스트 클릭 억제가 상세 팝업 CTA 의 진입 클릭을 삼켜 유료 기능 13종이 전부 무반응이었는데(PR #625), 그 파일이 목록에 없어 결제 게이트가 깨어나지 않았다.
 - **Merging the PR is the deploy trigger.** The push to `main` starts *Release Cloudflare Pages and Worker*, which checks out `github.sha` exactly, builds once, promotes the Worker then Pages, smokes production, and verifies the live SHA on both layers (`npm run verify:deployed-sha`). Failure auto-rolls back both layers and reports on the PR.
 - **Local production deploys are blocked** by `scripts/lib/production-deploy-guard.mjs`. `deploy:check`, `deploy:preview`, and `deploy:smoke` still work locally. The break-glass path — for when GitHub Actions itself is unavailable — is `CD_BREAK_GLASS=1 <command> --break-glass`, and anything shipped that way must be re-landed through a PR or the next release silently reverts it.
 - Production Cloudflare credentials belong in GitHub Actions secrets. Do not add them to CI workflows from `.env` files.
