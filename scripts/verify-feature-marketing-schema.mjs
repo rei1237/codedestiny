@@ -40,17 +40,16 @@ for (const line of html.split("\n")) {
   }
 }
 
-// 샘플 본문은 읽히는 콘텐츠다. 장식이 아니므로 aria-hidden 을 붙이면 안 된다.
-const sampleDoc = /<div[^>]*id="tilePvwSampleDoc"[^>]*>/.exec(html);
-if (!sampleDoc) fail("#tilePvwSampleDoc 노드를 찾을 수 없습니다.");
-else if (/aria-hidden/.test(sampleDoc[0])) {
-  fail("#tilePvwSampleDoc 에 aria-hidden 이 붙었습니다 — 샘플 본문은 읽혀야 합니다.");
+// 🔴 가짜 결과 예시는 금지다 — 실제 출력이 아닌 문장을 "실제 리포트 예시"로 보여주면
+// 팝업 설명이 기능과 달라진다. 예전에는 이 가드가 오히려 샘플을 "요구"했다.
+if (/id="tilePvwSampleDoc"/.test(html)) {
+  fail("#tilePvwSampleDoc 이 되살아났습니다 — 지어낸 결과 예시 블록은 다시 넣지 않습니다.");
 }
 
 // 순서 계약: 무엇을 얻는가 → 어떻게 분석 → 리포트 예시 → 누구에게 → 가격 → FAQ
 const ORDER = [
   "tilePvwPremiumBlock", "tilePvwScaleSec", "tilePvwQuestSec", "tilePvwStepsSec",
-  "tilePvwReqSec", "tilePvwSample", "tilePvwAudSec", "tilePvwCmpSec",
+  "tilePvwReqSec", "tilePvwAudSec", "tilePvwCmpSec",
   "tilePvwTrustSec", "tilePvwPaywall", "tilePvwFaqSec",
 ];
 let cursor = -1;
@@ -124,14 +123,11 @@ function checkEntry(label, entry) {
     }
   }
 
-  if (entry.sampleReport !== undefined) {
-    const sections = entry.sampleReport?.sections;
-    if (!Array.isArray(sections) || !sections.length) {
-      fail(`${label}: sampleReport.sections 가 비었습니다.`);
-    } else {
-      sections.forEach((section, i) => {
-        if (!String(section?.body || "").trim()) fail(`${label}: sampleReport.sections[${i}].body 가 비었습니다.`);
-      });
+  // 🔴 지어낸 결과물 필드는 존재 자체가 실패다(2026-08-14). 실제 기능 출력이 아닌 문장을
+  // 결과 예시로 내보내면 유료 결제 앞에서 사실과 다른 설명이 된다.
+  for (const banned of ["sampleReport", "resultPreview"]) {
+    if (entry[banned] !== undefined) {
+      fail(`${label}: ${banned} 는 금지된 필드입니다 — 지어낸 결과 예시를 다시 넣지 마세요.`);
     }
   }
 
@@ -198,10 +194,7 @@ for (const featureKey of highPrice) {
     fail(`${featureKey}: ${HIGH_PRICE_KRW.toLocaleString("ko-KR")}원 이상인데 마케팅 카피가 없습니다 (카테고리 폴백으로 떨어집니다).`);
     continue;
   }
-  const sections = entry.sampleReport?.sections;
-  if (!Array.isArray(sections) || !sections.length) {
-    fail(`${featureKey}: 고가 상품인데 자기 sampleReport 가 없습니다 — 카테고리 일반 샘플이 대신 나갑니다.`);
-  }
+  // 고가 상품에 자기 카피가 있는지까지만 본다. 샘플 결과물 의무는 폐기했다(가짜 강제였다).
 }
 
 /* ── 결과 ──────────────────────────────────────────────────────────── */
@@ -215,5 +208,5 @@ if (errors.length) {
 const scaleCount = Object.values(COPY).filter((e) => e?.reportScale).length;
 console.log(
   `[verify:feature-marketing-schema] OK — 카피 ${Object.keys(COPY).length}개 / 템플릿 ${Object.keys(TEMPLATES).length}개 / ` +
-  `실측 reportScale ${scaleCount}개 / 고가 상품 ${highPrice.length}종 샘플 보유`
+  `실측 reportScale ${scaleCount}개 / 고가 상품 ${highPrice.length}종 카피 보유 / 가짜 결과 예시 0`
 );
