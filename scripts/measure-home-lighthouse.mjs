@@ -19,6 +19,7 @@ import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
+import zlib from "node:zlib";
 import lighthouse from "lighthouse";
 import * as chromeLauncher from "chrome-launcher";
 import desktopConfig from "lighthouse/core/config/desktop-config.js";
@@ -42,6 +43,10 @@ const CHROME_FLAGS = [
   "--mute-audio",
 ];
 
+// 🔴 서버가 최상위 await 로 먼저 뜨므로, 서버가 쓰는 const 는 반드시 그 앞에 선언한다(TDZ).
+const COMPRESSIBLE = new Set([".html", ".js", ".mjs", ".css", ".json", ".svg", ".xml", ".txt"]);
+const encodedCache = new Map();
+
 const args = parseArgs(process.argv.slice(2));
 
 const server = await startStaticServer();
@@ -61,7 +66,15 @@ try {
       process.stdout.write(`[perf:home] ${preset} run ${i + 1}/${args.runs} ... `);
       const lhr = await runOnce(targetUrl, preset);
       const metrics = extractMetrics(lhr);
-      runs.push({ metrics, longTasks: extractLongTasks(lhr), bootup: extractBootup(lhr) });
+      runs.push({
+        metrics,
+        longTasks: extractLongTasks(lhr),
+        bootup: extractBootup(lhr),
+        breakdown: extractBreakdown(lhr),
+        dom: extractDom(lhr),
+        unusedCss: extractUnusedCss(lhr),
+        renderBlocking: extractRenderBlocking(lhr),
+      });
       console.log(`score ${metrics.performance} · TBT ${Math.round(metrics.tbt)}ms`);
     }
     results[preset] = summarize(runs);
@@ -144,6 +157,47 @@ function extractBootup(lhr) {
   }));
 }
 
+/**
+ * 🔴 이 감사가 이 스크립트의 존재 이유다.
+ * 메인스레드 시간이 Script Evaluation 에 있는지 Style & Layout 에 있는지가
+ * 처방을 완전히 갈라놓는다 — 전자면 코드를 덜 실행해야 하고, 후자면 CSS 규칙 수와
+ * DOM 크기를 줄여야 한다. 이걸 모르고 고치면 앞서 두 번 그랬듯 헛수고가 된다.
+ */
+function extractBreakdown(lhr) {
+  const items = lhr.audits?.["mainthread-work-breakdown"]?.details?.items || [];
+  const out = {};
+  for (const item of items) out[item.groupLabel || item.group] = item.duration || 0;
+  return out;
+}
+
+function extractDom(lhr) {
+  const items = lhr.audits?.["dom-size"]?.details?.items || [];
+  const out = {};
+  for (const item of items) {
+    const label = item.statistic || "";
+    out[label] = Number(item.value?.value ?? item.value ?? 0);
+  }
+  return out;
+}
+
+function extractUnusedCss(lhr) {
+  const items = lhr.audits?.["unused-css-rules"]?.details?.items || [];
+  return items.map((item) => ({
+    url: item.url || "(inline)",
+    total: item.totalBytes || 0,
+    wasted: item.wastedBytes || 0,
+  }));
+}
+
+function extractRenderBlocking(lhr) {
+  const items = lhr.audits?.["render-blocking-resources"]?.details?.items || [];
+  return items.map((item) => ({
+    url: item.url || "",
+    total: item.totalBytes || 0,
+    wasted: item.wastedMs || 0,
+  }));
+}
+
 /* ───────────────────────────── aggregate ───────────────────────────── */
 
 function median(values) {
@@ -161,10 +215,22 @@ function summarize(runs) {
     metrics[key] = { median: median(values), min: Math.min(...values), max: Math.max(...values) };
   }
   // 회차마다 태스크 경계가 흔들리므로, URL 단위로 합산한 뒤 회차 중앙값을 쓴다.
+  const breakdown = {};
+  for (const key of new Set(runs.flatMap((run) => Object.keys(run.breakdown || {})))) {
+    breakdown[key] = median(runs.map((run) => run.breakdown?.[key] || 0));
+  }
+  const dom = {};
+  for (const key of new Set(runs.flatMap((run) => Object.keys(run.dom || {})))) {
+    dom[key] = median(runs.map((run) => run.dom?.[key] || 0));
+  }
   return {
     metrics,
+    breakdown,
+    dom,
     longTasks: rankByUrl(runs, (run) => run.longTasks, "duration"),
     bootup: rankByUrl(runs, (run) => run.bootup, "total"),
+    unusedCss: rankByUrl(runs, (run) => run.unusedCss, "wasted"),
+    renderBlocking: rankByUrl(runs, (run) => run.renderBlocking, "wasted"),
     rawRuns: runs.map((run) => run.metrics),
   };
 }
@@ -226,6 +292,19 @@ function printTables() {
     console.log(`  CLS           ${fmt(metrics.cls.median, 3)}`);
     console.log(`  Speed Index   ${fmt(metrics.speedIndex.median)} ms`);
 
+    const { breakdown, dom, unusedCss } = results[preset];
+    console.log(`\n  Main-thread work breakdown (median):`);
+    for (const [label, ms] of Object.entries(breakdown).sort((a, b) => b[1] - a[1])) {
+      console.log(`    ${fmt(ms).padStart(7)} ms  ${label}`);
+    }
+    if (Object.keys(dom).length) {
+      console.log(`  DOM: ${Object.entries(dom).map(([k, v]) => `${k}=${fmt(v)}`).join(" · ")}`);
+    }
+    console.log(`\n  Top unused CSS (wasted bytes):`);
+    for (const row of unusedCss.slice(0, 5)) {
+      console.log(`    ${kb(row.ms).padStart(8)} wasted  ${row.url}`);
+    }
+
     console.log(`\n  Top long tasks (>50ms):`);
     for (const row of longTasks.slice(0, 5)) {
       console.log(`    ${fmt(row.ms).padStart(6)} ms  ${kb(row.bytes).padStart(7)}  ${row.url}`);
@@ -277,6 +356,32 @@ function parseArgs(argv) {
   };
 }
 
+/**
+ * 🔴 압축은 옵션이 아니라 필수다.
+ *
+ * 압축 없이 서빙하면 Lighthouse 의 시뮬레이션 스로틀링에서 2.6MB 셸의 전송이 지배해
+ * FCP 가 14초까지 밀리고, 그러면 **JS 실행이 대부분 FCP 이전에 끝나 TBT 에 안 잡힌다**
+ * (실측: 압축 없음 → 모바일 TBT 432ms, 프로덕션 → 3,010ms. 같은 코드다).
+ * 프로덕션 Cloudflare 는 brotli 로 내려주므로, 그 체제를 재현해야 측정이 의미를 가진다.
+ */
+function encodeFor(filePath, buffer, acceptEncoding) {
+  if (!COMPRESSIBLE.has(path.extname(filePath).toLowerCase())) return null;
+  const accepts = String(acceptEncoding || "");
+  const encoding = /\bbr\b/.test(accepts) ? "br" : /\bgzip\b/.test(accepts) ? "gzip" : null;
+  if (!encoding) return null;
+
+  const key = `${encoding}:${filePath}`;
+  let body = encodedCache.get(key);
+  if (!body) {
+    // 품질은 전송 크기가 프로덕션과 비슷해지는 선에서 가장 빠른 값으로 고른다.
+    body = encoding === "br"
+      ? zlib.brotliCompressSync(buffer, { params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 5 } })
+      : zlib.gzipSync(buffer, { level: 6 });
+    encodedCache.set(key, body);
+  }
+  return { encoding, body };
+}
+
 function startStaticServer() {
   const instance = http.createServer((req, res) => {
     const url = new URL(req.url || "/", "http://127.0.0.1");
@@ -291,8 +396,14 @@ function startStaticServer() {
         res.writeHead(404).end("Not found");
         return;
       }
-      res.writeHead(200, { "content-type": contentType(filePath), "cache-control": "no-store" });
-      res.end(buffer);
+      const headers = { "content-type": contentType(filePath), "cache-control": "no-store" };
+      const encoded = encodeFor(filePath, buffer, req.headers["accept-encoding"]);
+      if (encoded) {
+        headers["content-encoding"] = encoded.encoding;
+        headers["vary"] = "Accept-Encoding";
+      }
+      res.writeHead(200, headers);
+      res.end(encoded ? encoded.body : buffer);
     });
   });
   return new Promise((resolve, reject) => {
