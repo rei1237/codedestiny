@@ -33,7 +33,7 @@ const SERVICE_SECTION_DEFINITIONS = [
       {
         href: "/tarot/prompt-maker",
         fallbackTitle: "타로 프롬프트 라이브러리",
-        fallbackDesc: "질문 설계 + 카드 드로우 + 오라클 문장 정리 · 1회 5,000원 · 63 스프레드",
+        fallbackDesc: "질문 설계 + 카드 드로우 + 오라클 문장 정리 · 영구 해금 10,000원 · 63 스프레드",
         image: "/fuctionassets/연애 재회 타로 프롬프트 메이커.webp",
         fallbackAlt: "타로 프롬프트 라이브러리",
       },

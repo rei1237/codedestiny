@@ -349,7 +349,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "사용자의 질문을 카테고리로 분석하고, 상황에 맞는 스프레드를 추천한 뒤 직접 카드를 뽑아 포지션 의미와 해석 지침을 결합한 Oracle Prompt를 완성합니다.",
       "heroImageAlt": "타로 프롬프트 라이브러리 대표 이미지",
       "tags": ["타로", "프롬프트", "스프레드", "전문가 리딩"],
-      "highlights": ["질문 자동 분류", "63개 스프레드 라이브러리", "1회 5,000원"],
+      "highlights": ["질문 자동 분류", "63개 스프레드 라이브러리", "영구 해금 10,000원"],
       "howItWorks": [
         {
           "title": "질문 입력",
