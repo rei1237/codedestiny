@@ -39,6 +39,9 @@
      seed-articles.js MERGED 필터 3곳에 등록돼 있어 **렌더·사이트맵에서 자동 제외**된다(74줄 객체를 지울 필요 없음).
    - `public/_redirects`에 `/insights/<old>    /insights/<canonical>    301` 추가
      (기존 `/blog/* → /insights/*` 블록 형식). 페이지가 미생성되므로 301이 실제로 적용됨.
+     🔴 **대상 URL 은 후행 슬래시까지 적을 것** — 빼면 301 뒤에 308(`/insights/<slug>/` 정규화)이
+     한 번 더 붙어 홉이 2배가 된다. Pages 는 `_redirects` 를 정적 파일보다 **먼저** 본다(실측:
+     파일이 있는 `/blog/daewoon-sewoon` 이 301 로 나갔다). 즉 규칙만 넣어도 페이지는 가려진다.
    - ⚠️ 기존 `_redirects`가 old 슬러그를 **가리키고** 있으면(예: `/blog/saju-pallja`) canonical로 재지정할 것.
 4. 검증: `node scripts/verify-insight-authored.mjs <canonical-slug> [--merged old-a,old-b]`
 5. 아래 §4 체크리스트 상태 갱신 → 변경 파일만 커밋.
@@ -272,6 +275,22 @@ scaled content abuse 기준에서는 대량 자동생성물이다. `/editorial-p
 1. **정본이 있으면 통합** — §1-3 절차(`category: "통합 리다이렉트"` + `_redirects` 301).
    링크 자산이 정본으로 모이므로 이쪽이 낫다.
 2. **정본이 없으면** 저자 원고로 교체할 때까지 색인에서 뺀다.
+
+### 구 `/blog` 은퇴 (2026-08-14) — 되살리지 말 것
+
+`public/blog/*.html` 손글 10편 + 인덱스를 삭제하고 전부 `/insights` 정본으로 301 했다.
+`blog-style.css` 만 남겼다 — `/famous` 가 그 스타일시트를 쓴다.
+
+되살리자는 제안이 나오면 아래 실측을 먼저 다시 확인할 것(2026-08-14 측정):
+
+- 10편 **전부** 대응하는 `/insights` 저자 원고가 있고, 조립물 마커(§5) 는 **0편**이다.
+- 렌더 텍스트 분량은 **9/10 에서 `/insights` 쪽이 더 길다**(예: 타로 대아르카나 7,559 vs 15,372자).
+  `/blog` 가 더 긴 건 사주 기초 1편(7,742 vs 6,888)뿐이다. HTML 파일 크기(31KB)는 인라인 스타일이
+  대부분이라 분량 근거가 못 된다.
+- `/blog` 는 `_headers` 의 noindex 로 원래부터 색인 밖이었고, **색인 페이지發 인바운드 링크가 0**이었다
+  (유일한 링크원 `/famous` 자체가 noindex. 검색 범위: `dist/**/*.html`).
+
+즉 색인을 풀면 얻는 것은 없고 정본 10편과 서로 순위를 갉아먹는다.
 
 ### 조립물이 남아 있는지 확인하는 법
 
