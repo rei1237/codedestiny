@@ -249,7 +249,7 @@ export default function CodexReader({
                 className="mx-auto h-[24svh] w-auto object-contain"
                 style={{ filter: "drop-shadow(0 24px 48px rgba(0,0,0,.66))" }}
               />
-              <h1 className={`${styles.hero} mt-10`}>Master Love Codex</h1>
+              <h2 className={`${styles.hero} mt-10`}>Master Love Codex</h2>
               <p className={`${styles.actTitle} mt-5`} style={{ color: "var(--codex-ink-text)" }}>
                 {name ? `${name}님의 ${bookTitle}` : bookTitle}
               </p>

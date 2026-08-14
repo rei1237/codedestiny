@@ -1369,7 +1369,7 @@ export default function VedicAiClient() {
         <div className={styles.heroInner}>
           <div className={styles.copy}>
             <span className={styles.eyebrow}><Sparkles size={16} /> Jyotish · Vedic Star Counsel</span>
-            <h1>베다점 전문가 상담</h1>
+            <h2>베다점 전문가 상담</h2>
             <p>나크샤트라와 행성의 흐름, 다샤의 리듬 위로 지금의 질문이 조용히 비춥니다.</p>
             <div className={styles.heroMeta}>
               <span>30,000원</span>

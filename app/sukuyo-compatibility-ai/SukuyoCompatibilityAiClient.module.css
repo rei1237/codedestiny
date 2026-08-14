@@ -230,7 +230,7 @@
   letter-spacing: .02em;
 }
 
-.visualCopy h1 {
+.visualCopy h2 {
   margin: 0;
   font-family: var(--font-premium), var(--font-display), var(--font-body), system-ui, sans-serif;
   max-width: 10.6em;
@@ -1147,7 +1147,7 @@
   backdrop-filter: blur(18px);
 }
 
-.modalHeader h1 {
+.modalHeader h2 {
   margin: 0;
   color: #ffe7a8;
   font-family: var(--font-premium), var(--font-display), var(--font-body), system-ui, sans-serif;
@@ -1675,7 +1675,7 @@
     min-height: 420px;
   }
 
-  .visualCopy h1 {
+  .visualCopy h2 {
     max-width: 12em;
     font-size: clamp(2.36rem, 7vw, 3rem);
   }
@@ -1754,7 +1754,7 @@
     max-width: none;
   }
 
-  .visualCopy h1 {
+  .visualCopy h2 {
     max-width: 9.2em;
     font-size: clamp(2.04rem, 9vw, 2.34rem);
     line-height: 1.12;
