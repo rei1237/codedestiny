@@ -13,11 +13,13 @@
   var BG_SELECTOR = '[data-lazy-bg]';
   var LQIP_SRC = 'data:image/svg+xml,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 width=%224%22 height=%223%22 viewBox=%220 0 4 3%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 x2=%221%22 y1=%220%22 y2=%221%22%3E%3Cstop stop-color=%22%231a1630%22/%3E%3Cstop offset=%221%22 stop-color=%22%23272545%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%224%22 height=%223%22 fill=%22url(%23g)%22/%3E%3C/svg%3E';
   var SRCSET_HINTS = {
-    // 🔴 후보 3개가 전부 같은 512px 파일을 가리키던 자리다(2026-08-14 수정). 디스크립터만 다르고
-    //    URL 이 같으면 브라우저는 어느 후보를 골라도 원본을 받으므로 srcset 이 통째로 무의미했다.
-    //    셸의 #honeypigLogo·부팅 게이트 로고와 같은 URL 을 써야 한 번만 받는다 — 함께 고칠 것.
+    // 🔴 여기 URL 은 셸의 로고 preload(`<link rel=preload href="/icons/app-logo-512.webp">`)와
+    //    **문자 그대로** 같아야 한다. 예전에는 후보 3개가 전부 같은 512px 파일을 `?v=…` 붙은
+    //    경로로 가리켰다 — 디스크립터만 다르고 URL 이 같아 고르는 의미가 없는데다, preload 의
+    //    버전 없는 경로와 캐시 키가 갈려 같은 그림을 두 번 받게 만들었다(2026-08-14 수정).
+    //    후보를 하나로 줄여 preload·부팅 게이트·히어로·결제 오버레이가 한 URL 을 공유하게 한다.
     '/icons/app-logo-512.webp': {
-      srcset: '/cdn-cgi/image/width=192,quality=80,format=auto/icons/app-logo-512.webp 192w, /cdn-cgi/image/width=384,quality=80,format=auto/icons/app-logo-512.webp 384w',
+      srcset: '/icons/app-logo-512.webp 512w',
       sizes: '(max-width: 360px) 78px, (max-width: 768px) 88px, 130px'
     },
     '/icons/neo.webp': {
