@@ -20,9 +20,12 @@ const steps = [
   "scripts/fix-locale-html-lang.mjs",
   "scripts/prerender-locale-shell-translations.mjs",
   "scripts/verify-adsense-readiness.mjs",
-  // 🔴 반드시 verify-adsense-readiness **뒤**에 둘 것. 그 검증기는 dist/js 의 한국어 문구를
-  // 정규식으로 읽는 유일한 소비자라, 앞으로 옮기면 minify 된 산출물을 검사하게 된다.
-  // 소스(js/)와 미러(public/js/)는 건드리지 않는다 — 이유는 스크립트 머리말 참고.
+  // 아래 둘은 **검증이 끝난 뒤 배포 바이트만** 고치는 최적화 단계다. 소스(index.html·js/)와
+  // 미러(public/)는 건드리지 않으므로, 셸을 문자열로 읽는 가드 61개는 계속 원본을 읽는다.
+  // 🔴 반드시 verify-adsense-readiness **뒤**에 둘 것 — 그 검증기가 dist 셸의 본문 텍스트와
+  //    dist/js 의 한국어 문구를 읽는 유일한 소비자라, 앞에 두면 가공된 산출물을 검사하게 된다.
+  // 🔴 externalize → minify 순서를 지킬 것. 그래야 셸에서 빠져나온 스크립트도 minify 를 탄다.
+  "scripts/externalize-dist-inline-scripts.mjs",
   "scripts/minify-dist-js.mjs",
 ];
 
