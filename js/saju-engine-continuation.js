@@ -7,7 +7,13 @@
 function showTsDetail(name){
   var info=TS_DB[name],deep=TS_DEEP[name];
   if(!info||!deep)return;
-  document.getElementById('modalBody').innerHTML=
+  /* #tsModal 은 모바일에서 DOM 밖에 있을 수 있다(saju-engine.js 의 ensureSajuDetailModal 주석 참고).
+     예전엔 마운트 보장도 null 가드도 없어서 modalBody 가 null 이면 인라인 onclick 안에서
+     TypeError 로 죽었다 — 십성 카드를 탭해도 아무 일도 안 일어나고 에러도 안 보였다. */
+  ensureSajuDetailModal();
+  var modalBodyEl=document.getElementById('modalBody');
+  if(!modalBodyEl)return;
+  modalBodyEl.innerHTML=
     '<div style="text-align:center;margin-bottom:20px">'+
     '<div style="font-size:2.8rem;margin-bottom:8px">'+info.emoji+'</div>'+
     '<h2 style="color:var(--pink);font-size:1.4rem;margin-bottom:4px">'+name+'</h2>'+
@@ -18,11 +24,16 @@ function showTsDetail(name){
     '<div class="prem-box" style="background:#E8F5E9;border-color:#C8E6C9">'+
     '<span class="prem-title" style="border-color:#4CAF50;color:#2E7D32">🍀 연이의 조언</span>'+
     '<div class="prem-text" style="font-weight:700;color:#1B5E20">"'+deep.advice+'"</div></div>';
-  document.getElementById('tsModal').classList.add('show');
+  openSajuDetailModal();
 }
 function closeModal(e){
-  if(e&&e.target!==document.getElementById('tsModal'))return;
-  document.getElementById('tsModal').classList.remove('show');
+  var modal=document.getElementById('tsModal');
+  if(!modal)return;
+  if(e&&e.target!==modal)return;
+  modal.classList.remove('show');
+  /* openSajuDetailModal 이 인라인으로 켠 display 를 같이 되돌린다. 안 지우면 클래스만 빠지고
+     인라인 display:flex 가 남아 모달이 안 닫힌다. */
+  modal.style.display='';
 }
 
 function resetApp(){
