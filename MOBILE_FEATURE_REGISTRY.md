@@ -106,7 +106,7 @@
 | 최애운명 | 기타 컬렉션 | `/saju/destiny-bias` | 1회 5,000원 | 입력/결과/공유가 긴 route | Next route bundle | 카드 preview 후 이동 |
 | 사주 FPTI | 기타 컬렉션 | `/saju-fpti` | 무료, 심화 리포트 가능 | 무료 테스트와 리포트가 혼재 | route bundle | 무료 시작 후 심화 분리 |
 | 우주 신비 도서관 | 홈 인사이트 섹션 | `/insights`, `/insights/[slug]` | 무료 콘텐츠 | 홈 후반에 있어 찾기 어려움 | 기사/이미지 목록 | 모바일에서는 보조 링크 |
-| 유명인 사주 분석 아카이브 | 홈 아카이브 카드, 인사이트 | `/famous-saju`, `/famous-saju/[slug]`, `/insights/famous-saju` | 무료 콘텐츠 | 홈 후반 검색 UI가 길어짐 | 유명인 DB/카드 렌더 | 별도 route 우선 |
+| 유명인 사주 분석 아카이브 | 홈 아카이브 카드, 인사이트 | `/famous-saju`, `/insights/famous-saju`, `/insights/famous-saju/[slug]` | 무료 콘텐츠 | 홈 후반 검색 UI가 길어짐 | 유명인 DB/카드 렌더 | 상세는 insights 정경로, `/famous-saju/:slug` 는 301 |
 | 시빌라 시스템 | 기타/VVIP/사주 섹션 | `openSibylModal`, `/saju/sibyl` | 기본 무료, 심화 유료 | modal과 결과 섹션이 길어짐 | lazy script/engine | 별도 route와 modal 분리 |
 | 사주네컷 | 사주 결과 fun card | 인페이지 결과 섹션, `/saju-picture` | 무료/공유 | 결과 후반에 묻힘 | 이미지/SVG 생성 | 결과 액션으로 유지 |
 | 사주 RPG | 사주 결과 특수 리포트 | 인페이지 `skillTreeCard` | 유료 해금 3,000원 | 홈 첫 화면에는 불필요 | 결과 계산 후 렌더 | 결과 후 노출 |
