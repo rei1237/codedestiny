@@ -89,9 +89,13 @@ window.addEventListener('cd:auth-changed', _dpScheduleAuthScopeRefresh);
 
 ---
 
-## ❌ 미조치 — 다음 세션이 이어받을 것
+## ✅ 나중에 해결됨 — 원래 "미조치"로 남겼던 3건
 
-### G-4. `worker/` 안의 빌드 산출물을 정적 가드가 소스로 오인한다
+> **2026-08-14 실측 재확인.** 아래 세 건은 이 문서를 처음 쓸 때 미조치로 남겼고 요약 표만 ✅ 로 갱신돼 **표와 본문이 어긋나 있었다.** 그 상태에서 `CLAUDE.md` 가 본문을 인용해 "3건이 미조치로 남아 있다"고 적었고, 다음 세션이 이미 끝난 일을 다시 하려 들 수 있었다. 진단 기록은 같은 패턴을 찾을 때의 본보기로 그대로 두고, 각 항목 머리에 **무엇이 어떻게 닫혔는지**를 적는다.
+
+### G-4. `worker/` 안의 빌드 산출물을 정적 가드가 소스로 오인한다 — ✅ 해결
+
+> **닫힘**: `__tests__/worker/db.transaction-budget.test.js` 의 `walk()` 가 `isBuildArtifactDir(entry)` 로 산출물 디렉터리를 건너뛴다. 회피(산출물을 `worker/` 밖에 두기)가 아니라 스캐너 자체가 고쳐졌다.
 
 **재현**: `worker/` 하위 어디든 번들된 JS 를 두면(예: `--outdir` 를 `worker/build-cache/` 로 잘못 지정) 다음이 깨진다.
 
@@ -103,9 +107,9 @@ __tests__/worker/db.transaction-budget.test.js
 
 **원인**: 스캐너가 `WORKER_DIR`(`worker/`) 전체를 `walk()` 하면서 **제외 목록이 없다**. 번들 안에 섞여 들어간 `withTransaction` 호출을 "시간 상한 없는 위반"으로 신고한다.
 
-**현재 상태**: 산출물을 `worker/` **밖**(`build-cache/`)에 두어 **회피**만 했다. 스캐너 자체는 그대로다.
+**당시 상태**: 산출물을 `worker/` **밖**(`build-cache/`)에 두어 **회피**만 했다. 스캐너 자체는 그대로였다.
 
-**해야 할 일**: `worker/` 를 훑는 정적 가드 전체에 산출물 제외를 넣는다. 최소 대상:
+**한 일**: `worker/` 를 훑는 정적 가드에 산출물 제외를 넣었다. 대상:
 - `__tests__/worker/db.transaction-budget.test.js` (`walk(WORKER_DIR)`)
 - 같은 방식으로 `worker/**` 를 훑는 다른 가드들(`verify:worker-no-undef`, `user-model-single-source.static.test.js` 등 — 전수 확인 필요)
 
@@ -113,32 +117,36 @@ __tests__/worker/db.transaction-budget.test.js
 
 **왜 중요한가**: 지금은 아무도 `worker/` 안에 빌드를 안 하니까 조용하다. 누군가 `--outdir` 를 상대경로로 쓰는 순간(그게 자연스러운 표기다) 워커 가드 여러 개가 한꺼번에 거짓 실패한다. 그러면 **가드를 의심하는 대신 코드를 의심하게 된다.**
 
-### G-5. `verify:*` 177개 중 54개가 어디서도 실행되지 않는다
+### G-5. `verify:*` 중 다수가 어디서도 실행되지 않는다 — ✅ 해결
+
+> **닫힘**: `scripts/verify-guard-wiring.mjs`(메타 가드)가 `pr-ci.yml` 에 배선됐다. 모든 `verify:*` 는 **게이트에서 도달 가능하거나**, 아니면 사유와 함께 `UNWIRED_BY_DESIGN` 에 **선언돼 있어야** 하고, 둘 다 아니면 실패한다. fail-closed 3방향이라 낡은 선언·이름이 바뀐 선언도 함께 잡는다.
+>
+> 🔴 **아래 본문의 "177개 중 54개" 를 인용하지 말 것.** 손으로 센 값이고 이 문서 스스로 이미 한 번 정정했다. 숫자가 필요하면 `npm run verify:guard-wiring` 을 돌려 그 출력을 쓴다.
 
 **실측(2026-08-13)**: `verify:*` npm 스크립트 **177개** 중 **54개**가 다른 npm 스크립트·워크플로·`scripts/` 어디에서도 호출되지 않는다. 그중 3개는 마이그레이션 `--check`(본래 수동)이므로 **실질 51개**.
 
 배선 판정 기준은 셋 중 하나라도 있으면 배선으로 봤다: 다른 npm 스크립트가 `npm run <name>` 으로 호출 / 워크플로가 호출 / 누군가 그 **파일 경로**를 직접 실행. 재생성 스크립트는 이 PR 에 포함하지 않았으니 필요하면 위 기준으로 다시 만들 것(이름 기준으로만 세면 103개가 나오는데, 파일 경로 호출을 놓쳐 **과장된 수치**다).
 
-**눈에 띄는 것들** — 이름만 보면 당연히 CI 에 있을 것 같은데 없다:
+**당시 눈에 띈 것들** — 이름만 보면 당연히 CI 에 있을 것 같은데 없었다. 아래 표는 **그때의 스냅샷**이며 현재 상태가 아니다(현재는 `npm run verify:guard-wiring` 이 답한다):
 
-| 스크립트 | 왜 눈에 띄나 |
-|---|---|
-| `verify:public-parity` | 셸 6종 ↔ `public/` 미러 정합. 미러가 갈라지면 조용히 갈라진다 |
-| `verify:mobile-detail-nonintrusive` | 🔴 **CLAUDE.md 가 "CI 차단"이라고 적어 둔 가드인데 배선이 없다** — 문서와 현실이 어긋난 사례 |
-| `verify:auth-public-origin` | OAuth 콜백 origin 고정. 이번 감사에서 인증 엔드포인트를 지울 때 근거로 쓴 가드다 |
-| `verify:payment-service-boundary` · `verify:payment-choice-single-instance` · `verify:pass-check-retry` | 결제 경계·결제창 단일 인스턴스·이용권 재시도 |
-| `verify:static-asset-cache-keys` · `verify:route-await-dispatch` | 자산 캐시 키 · 라우트 await 디스패치 |
+| 스크립트 | 왜 눈에 띄었나 | 이후 |
+|---|---|---|
+| `verify:public-parity` | 셸 6종 ↔ `public/` 미러 정합 | ⚠️ **오판이었다** — `scripts/build-cf-main.mjs` 안에서 `build:cf` 의 blocking 스텝으로 이미 돌고 있었다. 손으로 세다 "파일·배열 형태의 배선"을 놓쳤다 |
+| `verify:mobile-detail-nonintrusive` | CLAUDE.md 가 "CI 차단"이라고 적어 둔 가드인데 배선이 없었다 | ✅ `pr-ci.yml` 에 배선됨 (문서가 이미 약속한 것이라 "빠진 칸 채우기"로 처리) |
+| `verify:auth-public-origin` · `verify:payment-service-boundary` · `verify:payment-choice-single-instance` · `verify:pass-check-retry` · `verify:static-asset-cache-keys` · `verify:route-await-dispatch` | OAuth origin 고정 · 결제 경계 · 결제창 단일 인스턴스 · 이용권 재시도 · 자산 캐시 키 · 라우트 await 디스패치 | 사유와 함께 `UNWIRED_BY_DESIGN` 에 **선언**됨. 배선은 게이트 추가이므로 사용자 승인 사항 |
 
-**해야 할 일**:
-1. 51개를 셋으로 분류: **배선**(어느 게이트에?) / **삭제**(가치 없음) / **수동 도구로 명시**(스크립트 상단 주석에 "CI 미배선, 수동 실행" 이라고).
-2. 🔴 **게이트 추가는 사용자 승인 사항이다**(CI gate scope 룰). 배선 후보는 목록으로 제안하고 승인을 받을 것. G-1 은 형제 가드가 **이미 같은 게이트에 있었기에** "빠진 칸 채우기"로 처리했다 — 그 근거가 없으면 임의로 넣지 말 것.
-3. `verify:mobile-detail-nonintrusive` 는 문서가 이미 "CI 차단"이라고 약속하고 있으므로, **배선하거나 문서를 고치거나** 둘 중 하나는 해야 한다. 지금은 약속만 있다.
+**남아 있는 규칙** (이 항목이 닫힌 뒤에도 계속 적용된다):
 
-### G-6. `deploy:critical` 과 `paid-flow-gates` 의 커버리지 관계가 검증되지 않는다
+- 새 `verify:*` 는 **배선하거나, 사유와 함께 `UNWIRED_BY_DESIGN` 에 선언하거나** 둘 중 하나를 해야 한다. 아무것도 안 하면 `verify:guard-wiring` 이 실패시킨다.
+- 🔴 **게이트 추가는 사용자 승인 사항이다**(CI gate scope 룰). 배선 후보는 목록으로 제안하고 승인을 받을 것. G-1·`verify:mobile-detail-nonintrusive` 는 **문서나 형제 가드가 이미 그 게이트를 약속하고 있었기에** 빠진 칸 채우기로 처리한 것이다 — 그 근거가 없으면 임의로 넣지 말 것.
 
-두 목록이 손으로 관리되고, 서로 포함 관계가 아니며, 한쪽에만 있는 검증기가 있다(G-1 이 그 사례였다: `verify:auth-event-loop` 는 게이트에 있는데 형제인 `verify:auth-session-stability` 는 양쪽 다 없었다).
+### G-6. `deploy:critical` 과 `paid-flow-gates` 의 커버리지 관계가 검증되지 않는다 — ✅ 해결
 
-**해야 할 일**: `package.json` 의 `verify:*` 전체를 기준으로 "어느 게이트가 이걸 부르는가" 표를 만드는 메타 가드. 어디에도 안 걸린 검증기는 **의도적 제외로 명시**하게 강제한다.
+> **닫힘**: G-5 와 같은 가드(`verify:guard-wiring`)가 답한다. `package.json` 의 `verify:*` 전체를 기준으로 "어느 게이트가 이걸 부르는가"를 계산하므로, 두 손 관리 목록 사이로 검증기가 빠져나가면 실패한다.
+
+두 목록이 손으로 관리되고, 서로 포함 관계가 아니며, 한쪽에만 있는 검증기가 있었다(G-1 이 그 사례였다: `verify:auth-event-loop` 는 게이트에 있는데 형제인 `verify:auth-session-stability` 는 양쪽 다 없었다).
+
+**알려진 한계(그대로 남아 있다)**: "배선됨"은 **호출된다**는 뜻이지 **실패가 머지를 막는다**는 뜻이 아니다. `build-cf-main.mjs` 의 `i18n:check` 스텝은 `optional: true` 라 실패해도 빌드를 세우지 않는다 — 그 아래 i18n 검증기들은 "배선됐지만 비차단"이고, 이 가드는 그 구분을 하지 않는다.
 
 ---
 
@@ -189,7 +197,7 @@ npm run check:critical      # 릴리스가 돌리는 그 체인 (exit 0 이어�
 - **왜 `check:critical` 인가**: 릴리스가 실제로 돌리는 체인이라, 여기서 통과하면 릴리스도 통과한다. 이번 두 사고는 각각 `verify:worker-no-undef` 와 `verify:env-parity` 가 잡았고 **둘 다 이 체인에 있다.**
 - **발견하면**: 릴리스가 이미 막혀 있는 상태이므로 **핫픽스가 최우선**이다. 라이브 SHA 는 `curl https://code-destiny.com/api/version` 으로 확인한다 — 실패한 릴리스는 승격을 안 했으므로 보통 프로덕션은 무사하다.
 
-> 이걸 사람 규율이 아니라 자동 검사로 만들고 싶다면 **G-6** 을 먼저 해결하는 편이 낫다. `deploy:critical` 의 검증기가 PR CI 에서 하나도 빠지지 않도록 보장하면, 사고 1 은 애초에 PR 단계에서 걸린다.
+> **G-6 이 닫힌 지금도 이 규율은 남는다.** `verify:guard-wiring` 은 "검증기가 어느 게이트에서도 안 도는 것"을 막지만, **각 PR 이 자기 base 에서만 검증된다는 구조 자체**는 못 바꾼다. A 가 심볼을 지우고 B 가 그 참조를 지우면 A 도 통과·B 도 통과인데 A+B 가 깨진다 — 그건 합쳐진 `main` 에서 한 번 돌려야만 보인다.
 
 ---
 
