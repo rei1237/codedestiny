@@ -971,7 +971,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
     <div className={styles.resultModal} role="dialog" aria-modal="true" aria-label="달빛 궁합 답장">
       <header className={styles.modalHeader}>
         <div>
-          <h1>달빛 궁합 답장</h1>
+          <h2>달빛 궁합 답장</h2>
           <p>
             {meta.person_a.name} · {meta.person_a.sukuyo}
             <span>✦</span>
@@ -1591,7 +1591,7 @@ export default function SukuyoCompatibilityAiClient() {
             transition={{ duration: 0.5, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
           >
             <p className={styles.eyebrow}><Moon size={15} /> ☾ 27숙 달빛 궁합</p>
-            <h1>두 사람의 달빛 자리를 엽니다</h1>
+            <h2>두 사람의 달빛 자리를 엽니다</h2>
             <p>본명숙과 관계 거리를 바탕으로 끌림, 갈등, 오래 머무는 마음의 리듬을 차분히 풀어드립니다.</p>
             <div className={styles.heroMeta} aria-label="상담 기준">
               <span><Orbit size={14} /> 27숙 본명숙</span>
