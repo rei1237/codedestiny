@@ -90,6 +90,19 @@
     // 계속 차단하므로 안전하다.
   }
 
+  /* 스크롤/탭 판정 정본은 js/inline/gesture-arbiter.js 하나다. 이 파일의 기존 임계값
+     (TAP_MAX_DX 등)은 그대로 두되, 그것들이 놓치는 경우 — 특히 RULES 30개 밖의 카드에서
+     lastTouchHadMove 가 영영 서지 않는 구멍 — 를 중재자가 덮는다.
+     중재자가 아직 없거나 판단이 안 서면 false 를 돌려 통과시킨다(fail-open). */
+  function gestureBlocksActivation() {
+    try {
+      var arbiter = window.__cdGesture;
+      return !!(arbiter && arbiter.blocksActivation());
+    } catch (_) {
+      return false;
+    }
+  }
+
   function isCardScrollTarget(node) {
     return !!(node && node.closest && node.closest(CARD_SCROLL_SELECTORS));
   }
@@ -1097,7 +1110,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-5311ff1bc319').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-6192c2200413').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1188,24 +1201,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-5311ff1bc319'
+      'js/animal-totem-experience.js?v=build-6192c2200413'
     ],
     openHwatuModal: ['HwatuFortune.js?v=h5be3c5cb5489'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-5311ff1bc319'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-5311ff1bc319'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-5311ff1bc319'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-6192c2200413'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-6192c2200413'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-6192c2200413'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-5311ff1bc319'],
-    openDreamModal: ['js/dream-ledger.js?v=build-5311ff1bc319'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-5311ff1bc319'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-6192c2200413'],
+    openDreamModal: ['js/dream-ledger.js?v=build-6192c2200413'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-6192c2200413'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-5311ff1bc319']
+    openSibylModal: ['js/sibyl-system.js?v=build-6192c2200413']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -1745,7 +1758,14 @@
       var now = Date.now();
       var recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
         && (lastTouchHadMove || cardScrollTouch.moved);
-      if (now < suppressClickUntil || recentScrollGuard) return;
+      // 🔴 막기로 판정했으면 실제로 막아야 한다. 예전에는 여기서 그냥 return 해서 클릭이 계속
+      // 전파됐고, 아래 bindDirectFeatureCardActions 가 노드에 직접 건 무가드 클릭 핸들러가
+      // 그 클릭을 받아 액션을 실행했다 — 판정을 내려놓고 버리는 구조였다.
+      if (now < suppressClickUntil || recentScrollGuard || gestureBlocksActivation()) {
+        event.preventDefault();
+        event.stopPropagation();
+        return;
+      }
       if (!invokeDataActionFallback(actionEl, event)) return;
       event.__cdMobileBridgeHandled = true;
       showTapFeedback(actionEl);
@@ -1784,6 +1804,7 @@
         }
         directTouch = null;
         if (event && event.__cdMobileBridgeHandled) return;
+        if (gestureBlocksActivation()) return;
         if (!invokeDataActionFallback(node, event)) return;
         event.__cdMobileBridgeHandled = true;
         showTapFeedback(node);
@@ -1794,6 +1815,7 @@
       node.addEventListener('pointerup', function(event) {
         if (!event || event.pointerType !== 'touch' || event.__cdMobileBridgeHandled) return;
         if (directTouch && directTouch.moved) return;
+        if (gestureBlocksActivation()) return;
         if (!invokeDataActionFallback(node, event)) return;
         event.__cdMobileBridgeHandled = true;
         showTapFeedback(node);
@@ -1804,6 +1826,9 @@
       node.addEventListener('click', function(event) {
         if (!shouldEnableMobileInteractionBridge()) return;
         if (!event || event.__cdMobileBridgeHandled) return;
+        // 이 핸들러엔 원래 스크롤 검사가 하나도 없었다 — 위 fallback 이 "막자"고 판정한 클릭도
+        // 여기까지 흘러와 그대로 실행됐다.
+        if (gestureBlocksActivation()) return;
         if (!invokeDataActionFallback(node, event)) return;
         event.__cdMobileBridgeHandled = true;
         showTapFeedback(node);
@@ -1881,6 +1906,13 @@
     root.addEventListener('touchend', function (event) {
       var pt = getPoint(event);
       if (!pt) return;
+
+      // 이 핸들러는 합성 클릭보다 먼저 기능을 연다 — 중재자의 클릭 게이트만으로는 못 막으므로
+      // 여기서 직접 묻는다. 아래 자체 판정(ctx.moved 등)은 RULES 매칭 타일에서만 유효하다.
+      if (gestureBlocksActivation()) {
+        touchCtx = null;
+        return;
+      }
 
       if (handleCollectionToggleTap(event, pt, 'touch')) {
         event.__cdMobileBridgeHandled = true;
@@ -2067,6 +2099,10 @@
       if (event.pointerType !== 'touch') return;
       var pt = getPoint(event);
       if (!pt) return;
+      if (gestureBlocksActivation()) {
+        touchCtx = null;
+        return;
+      }
       if (handleCollectionToggleTap(event, pt, 'pointer')) {
         event.__cdMobileBridgeHandled = true;
         suppressClickUntil = Date.now() + GHOST_CLICK_BLOCK_MS;

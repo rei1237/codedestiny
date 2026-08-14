@@ -117,6 +117,93 @@ try {
   assert(initial.audioVideoCount === 0, "home has no initial audio/video elements", initial);
   assert(initial.hiddenOverlaysPointerSafe, "hidden overlays do not block touch", initial);
 
+  // ── 스크롤 중 오탭 회귀 (2026-08-15) ──────────────────────────────────────────
+  // 이 셸에는 같은 탭을 놓고 경쟁하는 리스너 스택이 8벌 있고 임계값이 제각각이라,
+  // 한 스택이 "스크롤이니 막자"고 판정해도 다른 스택이 기능을 열었다. 판정 정본은
+  // js/inline/gesture-arbiter.js 하나이며 아래가 그 계약을 고정한다.
+  // 판정 축은 하드 내비게이션(href) 이다 — 오탭의 실제 대가가 셸 전체 재로드이기 때문.
+  {
+    const scrollTapTarget = '.moon-preview-card[href="/tarot/mingri"]';
+    const homeUrl = `http://127.0.0.1:${server.port}/index.html`;
+
+    const arbiter = await evaluate(cdp, gestureProbeExpression(), "gesture arbiter presence");
+    assert(arbiter.arbiterPresent, "gesture arbiter is installed on the mobile shell", arbiter);
+
+    // 1) 세로 스크롤 — 카드 위에서 시작해 끌어올린 뒤 떼도 열리면 안 된다.
+    const beforeVertical = await evaluate(cdp, gestureProbeExpression(), "before vertical swipe");
+    await swipeFromSelector(cdp, scrollTapTarget, 0, -160);
+    await delay(600);
+    const afterVertical = await evaluate(cdp, gestureProbeExpression(), "after vertical swipe");
+    assert(
+      afterVertical.href === beforeVertical.href && afterVertical.lastAction === beforeVertical.lastAction
+        && !!afterVertical.lastBlock && afterVertical.lastBlock.at >= beforeVertical.now,
+      "vertical scroll starting on a fortune card does not open it",
+      { before: beforeVertical, after: afterVertical },
+    );
+
+    // 2) 가로 스와이프 — .moon-collection-nav 는 overflow-x:auto 레일이고, 예전에는
+    //    어떤 스크롤 잠금 목록에도 없어 가로 스와이프가 그대로 기능을 열었다.
+    await navigate(cdp, homeUrl);
+    await delay(400);
+    const beforeHorizontal = await evaluate(cdp, gestureProbeExpression(), "before horizontal swipe");
+    await swipeFromSelector(cdp, scrollTapTarget, -150, 0);
+    await delay(600);
+    const afterHorizontal = await evaluate(cdp, gestureProbeExpression(), "after horizontal swipe");
+    assert(
+      afterHorizontal.href === beforeHorizontal.href && afterHorizontal.lastAction === beforeHorizontal.lastAction
+        && !!afterHorizontal.lastBlock && afterHorizontal.lastBlock.at >= beforeHorizontal.now,
+      "horizontal swipe on the fortune card rail does not open a card",
+      { before: beforeHorizontal, after: afterHorizontal },
+    );
+
+    // 3) 스크롤 아웃&백 — 끌었다가 시작점으로 되돌아와 떼는 제스처. 시작점과 끝점의
+    //    좌표 차이만 보는 판정기(기존 4벌 전부)는 이걸 전부 탭으로 통과시킨다.
+    await navigate(cdp, homeUrl);
+    await delay(400);
+    const beforeOutBack = await evaluate(cdp, gestureProbeExpression(), "before out-and-back swipe");
+    await swipeOutAndBackFromSelector(cdp, scrollTapTarget, -120);
+    await delay(600);
+    const afterOutBack = await evaluate(cdp, gestureProbeExpression(), "after out-and-back swipe");
+    assert(
+      afterOutBack.href === beforeOutBack.href && afterOutBack.lastAction === beforeOutBack.lastAction
+        && !!afterOutBack.lastBlock && afterOutBack.lastBlock.at >= beforeOutBack.now,
+      "drag that returns to its origin is not treated as a tap",
+      { before: beforeOutBack, after: afterOutBack },
+    );
+
+    // 관성 캐치(흐르는 리스트에 손가락을 대 멈추는 동작)는 의도적으로 다루지 않는다 —
+    // 앱 자신이 스크롤하는 순간과 구분할 신호가 없어 시도한 세 방식이 모두 멀쩡한 탭을 죽였다.
+    // 근거와 재현 사례는 js/inline/gesture-arbiter.js 상단 주석에 남겼다.
+
+    // 4) 🔴 정상 동작 보존 — 여기가 이 블록에서 가장 중요한 단언이다.
+    //    2026-08-14 13cc7e6d7 은 과차단으로 유료 진입 CTA 가 두 릴리스 동안 완전히
+    //    죽어 있었는데 스모크는 초록이었던 사고를 고쳤다. 오탭을 막는 코드는 언제든
+    //    "아무것도 안 열림"으로 넘어갈 수 있으므로, 스크롤이 멎은 뒤의 탭이 실제로
+    //    기능을 여는지 매번 확인한다.
+    // 판정 축은 "액션이 실제로 발화했는가"(__cdLastMobileAction)다. 라우트 도달 여부로 재면
+    // 정적 트리에 없는 Next 라우트 때문에 환경 탓으로 실패해 신호가 흐려진다.
+    await navigate(cdp, homeUrl);
+    await delay(400);
+    await evaluate(cdp, "(() => { window.scrollBy(0, 120); return true; })()", "emit scroll before settled tap");
+    await delay(500); // 스크롤이 완전히 멎은 상태를 만든다
+    const beforeSettled = await evaluate(cdp, gestureProbeExpression(), "before settled tap");
+    await tapSelector(cdp, scrollTapTarget);
+    let afterSettled = beforeSettled;
+    for (let i = 0; i < 8; i += 1) {
+      await delay(250);
+      afterSettled = await evaluate(cdp, gestureProbeExpression(), "after settled tap");
+      if (afterSettled.lastAction !== beforeSettled.lastAction || afterSettled.href !== beforeSettled.href) break;
+    }
+    assert(
+      afterSettled.lastAction !== beforeSettled.lastAction || afterSettled.href !== beforeSettled.href,
+      "a deliberate tap after scrolling settles still opens the card",
+      { before: beforeSettled, after: afterSettled },
+    );
+
+    await navigate(cdp, homeUrl);
+    await delay(400);
+  }
+
   if (!focusAllFortunes) {
   await tapSelector(cdp, ".moon-hero__cta--primary[href=\"/codedestiny-novel.html\"]");
   // 단일 반응형 홈의 주 CTA는 운명 여정으로 이동한다. 정적 셸의 문서 전환은 고정 대기보다 짧은 폴링이 안정적이다.
@@ -916,6 +1003,85 @@ async function tapSelector(cdp, selector) {
   });
 }
 
+/* 손가락이 눌린 채 이동했다가 떼는 제스처. dx/dy 는 시작점 기준 총 이동량. */
+async function swipeFromSelector(cdp, selector, dx, dy, steps = 8) {
+  let box = await evaluate(cdp, selectorBoxExpression(selector));
+  if (!box.exists || !box.visible) {
+    throw new Error(`Cannot swipe hidden selector: ${selector} ${JSON.stringify(box)}`);
+  }
+  if (!box.inViewport) {
+    await evaluate(cdp, scrollSelectorIntoViewExpression(selector), `scroll ${selector} into view`);
+    await delay(200);
+    box = await evaluate(cdp, selectorBoxExpression(selector));
+  }
+  if (!box.inViewport) {
+    throw new Error(`Cannot swipe selector outside viewport: ${selector} ${JSON.stringify(box)}`);
+  }
+  await send(cdp, "Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x: box.centerX, y: box.centerY, radiusX: 3, radiusY: 3, force: 1 }],
+  });
+  for (let i = 1; i <= steps; i += 1) {
+    await send(cdp, "Input.dispatchTouchEvent", {
+      type: "touchMove",
+      touchPoints: [{
+        x: box.centerX + (dx * i) / steps,
+        y: box.centerY + (dy * i) / steps,
+        radiusX: 3,
+        radiusY: 3,
+        force: 1,
+      }],
+    });
+    await delay(16);
+  }
+  await send(cdp, "Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+}
+
+/* 이동했다가 시작점으로 되돌아와 떼는 제스처. 좌표 임계값만 보는 판정기는 전부 이걸 탭으로 오인한다. */
+async function swipeOutAndBackFromSelector(cdp, selector, dy, steps = 6) {
+  let box = await evaluate(cdp, selectorBoxExpression(selector));
+  if (!box.inViewport) {
+    await evaluate(cdp, scrollSelectorIntoViewExpression(selector), `scroll ${selector} into view`);
+    await delay(200);
+    box = await evaluate(cdp, selectorBoxExpression(selector));
+  }
+  if (!box.exists || !box.visible || !box.inViewport) {
+    throw new Error(`Cannot swipe selector: ${selector} ${JSON.stringify(box)}`);
+  }
+  const point = (y) => ({
+    type: "touchMove",
+    touchPoints: [{ x: box.centerX, y, radiusX: 3, radiusY: 3, force: 1 }],
+  });
+  await send(cdp, "Input.dispatchTouchEvent", {
+    type: "touchStart",
+    touchPoints: [{ x: box.centerX, y: box.centerY, radiusX: 3, radiusY: 3, force: 1 }],
+  });
+  for (let i = 1; i <= steps; i += 1) {
+    await send(cdp, "Input.dispatchTouchEvent", point(box.centerY + (dy * i) / steps));
+    await delay(16);
+  }
+  for (let i = steps - 1; i >= 0; i -= 1) {
+    await send(cdp, "Input.dispatchTouchEvent", point(box.centerY + (dy * i) / steps));
+    await delay(16);
+  }
+  await send(cdp, "Input.dispatchTouchEvent", { type: "touchEnd", touchPoints: [] });
+}
+
+/* 오탭 여부를 판정할 상태 스냅샷. 하드 내비게이션이 가장 명확한 신호라 href 를 축으로 쓴다. */
+function gestureProbeExpression() {
+  return `(() => {
+    const last = window.__cdLastMobileAction || null;
+    return {
+      href: location.href,
+      lastAction: last ? String(last.action || '') + '@' + String(last.at || '') : '',
+      now: Date.now(),
+      arbiterPresent: !!window.__cdGesture,
+      lastBlock: (window.__cdGesture && window.__cdGesture.lastBlock) ? window.__cdGesture.lastBlock() : null,
+      blockLog: (window.__cdGesture && window.__cdGesture.blockLog) ? window.__cdGesture.blockLog() : []
+    };
+  })()`;
+}
+
 async function clickSelector(cdp, selector) {
   let box = await evaluate(cdp, selectorBoxExpression(selector));
   if (!box.exists || !box.visible) {
@@ -1075,7 +1241,14 @@ function modalStateExpression() {
 }
 
 function assert(pass, name, details) {
-  if (!pass) failures.push({ name, details });
+  if (pass) {
+    if (debugCdp) logDebug(`PASS ${name}`);
+    return;
+  }
+  failures.push({ name, details });
+  // 이 하네스는 숨은 요소를 탭하려다 throw 하면 그때까지 쌓인 실패 목록을 통째로 잃는다.
+  // 디버그 실행에서는 발생 즉시 남겨 어디서 무엇이 깨졌는지 추적할 수 있게 한다.
+  if (debugCdp) logDebug(`FAIL ${name} :: ${JSON.stringify(details)}`);
 }
 
 function delay(ms) {
