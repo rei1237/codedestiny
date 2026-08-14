@@ -16,7 +16,9 @@ function VedicAiShell() {
     <div className="min-h-screen bg-[#070914] text-white">
       <section className="mx-auto flex min-h-[52vh] max-w-5xl flex-col justify-center px-5 py-16 sm:px-8">
         <p className="text-sm font-semibold uppercase tracking-[0.3em] text-indigo-200/80">Vedic Astrology</p>
-        <h1 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">베다점 전문가 상담</h1>
+        {/* 페이지의 H1 은 page.tsx 의 ServiceIntroSection 이 소유한다. 이 로딩 셸도 h1 이면
+            서버 HTML 에 H1 이 2개 실린다 — 클래스가 그대로라 화면은 동일하다. */}
+        <h2 className="mt-4 text-3xl font-black leading-tight sm:text-5xl">베다점 전문가 상담</h2>
         <p className="mt-5 max-w-2xl text-base leading-8 text-indigo-50/85 sm:text-lg">
           나크샤트라와 행성의 흐름, 다샤의 리듬 위로 지금의 질문을 조용히 비춥니다. 태어난 장소와
           시간에 맺힌 하늘의 결을 따라 마음이 머무는 방향을 차분히 살핍니다.
