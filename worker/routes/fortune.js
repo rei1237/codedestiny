@@ -63,6 +63,9 @@ import {
   SAJU_AI_PROMPT_FEATURE_KEY,
   SAJU_AI_PROMPT_PRICE,
   SAJU_AI_PROMPT_VERSION,
+  SAJU_AI_SECTION_GROUPS,
+  SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
+  SAJU_AI_MIN_RESULT_CHARS,
   getSajuAICategoryRubric,
   validateSajuMyeongsikTenGodText,
 } from "../lib/saju-ai-prompt.js";
@@ -182,8 +185,10 @@ const SAJU_AI_RESULT_SYSTEM_PROMPT = [
   "상담은 짧은 운세 문장이 아니라 실제 유료 명리 상담처럼 깊이 있게 작성합니다.",
   "질문에 먼저 답하되 명식 전체의 중심 성향, 십성 구조, 오행 균형, 현재 고민과의 연결, 일·돈·관계·연애·건강 리듬, 조심할 패턴, 살리는 전략, 30일 실천 가이드를 챕터별로 풀어 줍니다.",
   "겁주거나 단정하지 말고 가능성과 경향성 중심으로 말합니다.",
-  "고정 글자수를 채우려 하지 말고 선택 카테고리의 상담 품질 기준을 빠짐없이 다뤄 자연스럽게 마무리합니다.",
-  "중간에 끊기지 않도록 마지막 한마디까지 완성하고, 끝맺음 문장은 따뜻하지만 가볍지 않게 닫습니다.",
+  // 🔴 예전에는 "고정 글자수를 채우려 하지 말고"였다. 그 한 줄이 유료 상담을 짧게 만드는 주범이었다 —
+  // 모델은 목표가 없으면 챕터당 300~500자에서 멈춘다. 반복 금지와 분량 요구는 양립한다.
+  "요구된 분량은 반드시 채우되, 같은 말을 바꿔 쓰거나 문장을 늘려 채우지 않고 새 근거와 새 장면을 더해 채웁니다.",
+  "중간에 끊기지 않도록 맡은 챕터의 마지막까지 완성하고, 끝맺음 문장은 따뜻하지만 가볍지 않게 닫습니다.",
   "근거가 강한 해석과 참고 수준의 해석을 문장 안에서 구분하고, 마무리 근처에서 이 상담이 삶을 비추는 참고용 도구라는 점을 자연스럽게 한 번 담으세요.",
   "개발 문서, 기능 설명, 프롬프트 설명처럼 쓰지 말고 명리학자가 직접 상담하듯 작성하세요.",
 ].join("\n");
@@ -254,51 +259,64 @@ function formatSajuAIResultRubric(rubric) {
   ].join("\n");
 }
 
-function buildSajuAIResultPrompt(builtPrompt, options = {}) {
+/** 그룹이 맡은 챕터를 "3. 십성 구조 해석" 형태로 — 번호와 제목은 렌더러가 보는 계약 그대로다. */
+function formatSajuAIGroupChapterLines(group) {
+  return (group?.chapters || []).map((chapter) => `${chapter.no}. ${chapter.title}`);
+}
+
+/** 이 그룹이 손대면 안 되는 챕터 — 병렬 그룹끼리 같은 내용을 두 번 쓰는 것을 막는다. */
+function formatSajuAIOtherChapterTitles(group) {
+  return SAJU_AI_SECTION_GROUPS
+    .filter((item) => item.key !== group?.key)
+    .flatMap((item) => item.chapters.map((chapter) => `${chapter.no}. ${chapter.title}`));
+}
+
+/**
+ * 그룹 하나의 상담문 프롬프트.
+ *
+ * 🔴 목차 우선순위를 못박는 줄이 반드시 있어야 한다 — 내부 프롬프트에는 공유 모듈
+ *    (worker/lib/fortune-question-prompt.js `[답변 형식]`)의 14항목 목차와 카테고리 루브릭이
+ *    함께 들어 있어, 그냥 두면 모델이 서로 다른 목차 세 벌 사이에서 어느 것도 제대로 채우지
+ *    못한다. 클라이언트 렌더러가 이해하는 것은 10챕터 하나뿐이다.
+ *    공유 모듈은 다른 기능도 함께 쓰므로 건드리지 않고 여기서 우선순위만 선언한다.
+ */
+function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
   const internalPrompt = String(builtPrompt?.generatedPrompt || builtPrompt?.prompt || "").trim();
   const factCard = String(builtPrompt?.factCard || "").trim();
-  const repairReason = String(options?.repairReason || "").trim();
+  const repairLines = Array.isArray(options?.repairLines) ? options.repairLines.filter(Boolean) : [];
   const categoryRubric = resolveSajuAIResultRubric(builtPrompt);
+  const chapterLines = formatSajuAIGroupChapterLines(group);
+  const otherTitles = formatSajuAIOtherChapterTitles(group);
+  const hasClosingChapter = (group?.chapters || []).some((chapter) => chapter.no === 10);
   return [
     "아래 내부 프롬프트는 사용자에게 보여주지 않는 생성 지시문입니다.",
-    "이 지시문을 바탕으로 최종 사주 상담 결과만 한국어로 작성하세요.",
+    "이 지시문을 바탕으로 최종 사주 상담 결과의 **일부분만** 한국어로 작성하세요.",
     // 🔴 사실 카드가 비면 아래 블록이 .filter(Boolean) 로 사라지는데, 이 지시문만 남으면
     // "존재하지 않는 표를 절대 기준으로 삼으라"가 되어 오히려 환각을 유도한다 — 카드와 생사를 같이한다.
     // 일간별 예시(辛/壬)를 박아 두던 줄은 제거했다. 확정표가 이미 그 사용자의 일간으로 계산돼 있다.
     factCard ? "내부 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다. 다른 십성으로 바꾸거나 재계산하지 마세요." : "",
     factCard ? "십성은 확정표에 적힌 그대로만 쓰고, 표에 없는 관계는 단정하지 마세요." : "",
-    "형식은 반드시 1. 질문에 대한 핵심 답변, 2. 이 명식의 중심 성향, 3. 십성 구조 해석, 4. 오행 균형 해석, 5. 현재 고민과 명식의 연결, 6. 일/돈/관계/연애/건강 리듬, 7. 조심해야 할 패턴, 8. 살리는 전략, 9. 30일 실천 가이드, 10. 마지막 한마디 순서로 구성하세요.",
-    "고정 글자수를 채우려 하지 말고, 카테고리별 상담 품질 기준을 모두 다룬 뒤 마지막 한마디까지 자연스럽게 완성하세요.",
-    "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 끝맺음 문장은 상담자가 직접 건네는 말처럼 완결하세요.",
+    ["[이번에 쓸 챕터] — 아래 제목을 번호까지 그대로 소제목으로 쓰고, 이 순서대로 씁니다.", ...chapterLines].join("\n"),
+    otherTitles.length
+      ? ["다음 챕터는 다른 곳에서 씁니다. 여기서는 쓰지도 말고 요약하지도 마세요.", ...otherTitles].join("\n")
+      : "",
+    "내부 프롬프트 안에 다른 목차가 있어도 무시하고, 위 챕터 구성만 따르세요.",
+    `이번 부분만으로 공백 제외 ${group.minChars.toLocaleString("ko-KR")}자 이상 ${group.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
+    "분량을 채우려고 같은 문장을 반복하거나 말을 늘리지 말고, 아직 짚지 않은 근거와 현실의 장면, 판단 기준을 새로 더해 채우세요.",
+    group?.guide || "",
+    hasClosingChapter
+      ? "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 마지막 한마디는 상담자가 직접 건네는 말처럼 완결하세요."
+      : "중간에 끊기는 느낌이 없도록 맡은 챕터를 모두 닫으세요. 여기서 상담 전체를 마무리하는 인사는 쓰지 마세요.",
     "사용자에게 '프롬프트', '기능', '분석 결과는', '내부 지시문' 같은 말은 쓰지 마세요.",
     Number(builtPrompt?.calibrationApplied) > 0
-      ? "사용자가 보고한 시기 캘리브레이션 검증 결과는 별도 목차를 만들지 말고 5, 6, 8, 9번 챕터 산문에 자연스럽게 녹이세요."
+      ? "사용자가 보고한 시기 캘리브레이션 검증 결과는 별도 목차를 만들지 말고 맡은 챕터 산문에 자연스럽게 녹이세요."
       : "",
-    repairReason ? `이전 생성문 보정 사유: ${repairReason}` : "",
+    repairLines.length ? ["[보강 요청]", ...repairLines].join("\n") : "",
     formatSajuAIResultRubric(categoryRubric),
     factCard ? "내부 명식 사실 카드:" : "",
     factCard,
     "내부 프롬프트:",
     internalPrompt,
-  ].filter(Boolean).join("\n\n").trim();
-}
-
-function buildSajuAICompletionRepairPrompt(builtPrompt, partialText, validation = {}) {
-  const factCard = String(builtPrompt?.factCard || "").trim();
-  const categoryRubric = resolveSajuAIResultRubric(builtPrompt);
-  return [
-    "아래 사주 상담문은 중간에 끊겼거나 마지막 한마디까지 완성되지 않았습니다.",
-    "기존 내용을 반복하지 말고, 끊긴 지점 이후부터 자연스럽게 이어서 부족한 챕터와 마지막 한마디를 완성하세요.",
-    "십성/오행/명식 관계는 내부 명식 사실 카드만 기준으로 삼고 재계산하지 마세요.",
-    "추가 문장 안에서도 내부 십성표와 다른 십성을 말하면 안 됩니다.",
-    validation?.reason ? `보완 사유: ${validation.reason}` : "",
-    formatSajuAIResultRubric(categoryRubric),
-    factCard ? "내부 명식 사실 카드:" : "",
-    factCard,
-    "기존 상담문:",
-    String(partialText || "").trim(),
-    "이어쓰기 지시:",
-    "위 내용을 반복하지 말고 이어질 본문만 작성하세요. 마지막에는 반드시 '10. 마지막 한마디' 또는 자연스러운 마지막 한마디로 닫으세요.",
   ].filter(Boolean).join("\n\n").trim();
 }
 
@@ -318,6 +336,29 @@ const SAJU_AI_REQUIRED_CHAPTER_PATTERNS = Object.freeze([
   /30일\s*실천/,
   /마지막\s*한마디/,
 ]);
+
+// 그룹이 10챕터를 빠짐없이 정확히 한 번씩 덮는지 모듈 로드 시점에 확인한다.
+// 챕터를 늘리고 그룹에 못 넣으면 그 챕터는 영영 생성되지 않는다 — 조용히 비는 대신 즉시 깨진다.
+// (같은 취지의 선례: worker/lib/fusion-fortune-prompt.js 파일 끝의 그룹 커버리지 검사)
+{
+  const covered = SAJU_AI_SECTION_GROUPS.flatMap((group) => group.chapters);
+  const numbers = covered.map((chapter) => chapter.no);
+  const duplicated = numbers.filter((no, index) => numbers.indexOf(no) !== index);
+  const uncovered = SAJU_AI_REQUIRED_CHAPTER_PATTERNS
+    .map((pattern, index) => (covered.some((chapter) => pattern.test(chapter.title)) ? "" : `#${index + 1}`))
+    .filter(Boolean);
+  if (covered.length !== SAJU_AI_REQUIRED_CHAPTER_PATTERNS.length || duplicated.length || uncovered.length) {
+    throw new Error(
+      `SAJU_AI_SECTION_GROUPS mismatch — chapters: ${covered.length}/${SAJU_AI_REQUIRED_CHAPTER_PATTERNS.length}`
+      + ` duplicated: ${duplicated.join(",")} uncovered: ${uncovered.join(",")}`,
+    );
+  }
+}
+
+/** 검증·분량 판정이 보는 길이. 공백을 빼야 줄바꿈으로 부풀린 결과가 통과하지 않는다. */
+function countSajuAIVisibleChars(text) {
+  return normalizeSajuAIResultText(text).replace(/\s+/g, "").length;
+}
 
 const SAJU_AI_INCOMPLETE_TAIL_PATTERNS = Object.freeze([
   /(?:그리고|또한|하지만|그러나|다만|그래서|그러므로|왜냐하면|예를 들어|즉|첫째|둘째|셋째)\s*$/,
@@ -363,6 +404,123 @@ function countSajuAICategoryMatches(text, rubric) {
   }, 0);
 }
 
+/** 완결이 길이보다 우선한다 — 완결된 4,000자를 잘린 4,500자로 바꾸면 개악이다. */
+function scoreSajuAISectionRow(row) {
+  const complete = row?.text && !detectSajuAIIncompleteResult(row.text).incomplete;
+  return (complete ? 1000000 : 0) + countSajuAIVisibleChars(row?.text);
+}
+
+function isSajuAISectionRowShort(row) {
+  return !row?.ok
+    || countSajuAIVisibleChars(row.text) < row.group.minChars
+    || detectSajuAIIncompleteResult(row.text).incomplete;
+}
+
+/**
+ * 10개 챕터를 그룹으로 나눠 병렬 생성하고 하나의 상담문으로 조립한다.
+ *
+ * 반환은 산문 한 덩어리다 — 저장·검증·렌더 경로가 기대하는 출력 계약을 바꾸지 않는다.
+ * 분량 미달은 전체 재생성이 아니라 **모자란 그룹만** 다시 쓴다.
+ *
+ * 🔴 이 함수는 던지지 않는다. 던지면 호출부의 경량 보장(salvage)이 건너뛰어져,
+ *    세 그룹이 멀쩡한데 한 그룹 때문에 결제한 사용자가 빈손이 된다.
+ */
+async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion } = {}) {
+  const runSectionGroup = async (group, { repairLines = [], attempt = 0, timeoutMs, maxOutputTokens }) => {
+    try {
+      const ai = await callGeminiText(env, buildSajuAISectionPrompt(builtPrompt, group, { repairLines }), {
+        systemPrompt,
+        taskType: "fortune",
+        temperature: attempt > 0 ? 0.5 : 0.56,
+        maxOutputTokens,
+        timeoutMs,
+        // 폴백 스텁이 20,000원 상품 결과로 전달되지 않도록 문턱을 건다. 전체가 아니라
+        // 이 그룹 목표의 40% — CLAUDE.md 의 fallbackMinChars 관례를 그룹 단위로 적용한 것이다.
+        fallbackMinChars: Math.round(group.minChars * 0.4),
+        // 캐시 키를 그룹·시도별로 갈라야 네 그룹이 서로의 응답을 집어가지 않는다.
+        cache: cache ? { ...cache, keyExtra: `${cache.keyExtra}-${group.key}-a${attempt}` } : undefined,
+      });
+      return { group, ok: ai?.ok === true, text: normalizeSajuAIResultText(ai?.text), ai };
+    } catch (groupError) {
+      console.warn("[SajuMyeongsikAI] section group threw", {
+        requestId,
+        group: group.key,
+        attempt: attempt + 1,
+        message: String(groupError?.message || groupError || ""),
+      });
+      return { group, ok: false, text: "", ai: null };
+    }
+  };
+
+  // ── 웨이브1 — 전 그룹 동시 생성 ───────────────────────────────────────
+  // 벽시계는 그룹 시간의 합이 아니라 가장 느린 그룹 하나다. 이것이 예산을 늘리지 않고
+  // 분량을 3배로 올릴 수 있는 유일한 이유다.
+  const wave1TimeoutMs = featureAiCallTimeoutMs(deadlineAt, SAJU_AI_SECTION_TIMEOUT_MS);
+  let sectionResults = [];
+  if (!(wave1TimeoutMs > 0)) {
+    console.warn("[SajuMyeongsikAI] llm budget exhausted before generation", { requestId });
+  } else {
+    console.info("[SajuMyeongsikAI] LLM request created", {
+      requestId,
+      promptVersion,
+      groups: SAJU_AI_SECTION_GROUPS.length,
+    });
+    sectionResults = await Promise.all(SAJU_AI_SECTION_GROUPS.map((group) => runSectionGroup(group, {
+      attempt: 0,
+      timeoutMs: wave1TimeoutMs,
+      maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
+    })));
+
+    // ── 웨이브2 — 모자란 그룹만 다시 쓴다(전체 재생성 금지) ──────────────
+    const shortGroups = sectionResults.filter(isSajuAISectionRowShort);
+    // 시작해 놓고 예산이 끊기면 그 호출은 통째로 버려진다(비스트리밍 abort 는 부분 텍스트가 0).
+    const wave2TimeoutMs = deadlineAt - Date.now() >= SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS
+      ? featureAiCallTimeoutMs(deadlineAt, SAJU_AI_SECTION_REPAIR_TIMEOUT_MS)
+      : 0;
+    if (shortGroups.length && wave2TimeoutMs > 0) {
+      console.warn("[SajuMyeongsikAI] section groups short", {
+        requestId,
+        promptVersion,
+        groups: shortGroups.map((row) => row.group.key).join(","),
+      });
+      const repaired = await Promise.all(shortGroups.map((row) => {
+        const currentChars = countSajuAIVisibleChars(row.text);
+        // 🔴 보강 지시는 형용사가 아니라 숫자로 준다. "더 길게"로는 분량이 늘지 않는다.
+        const repairLines = row.ok && currentChars > 0
+          ? [
+            `현재 이 부분은 공백 제외 ${currentChars.toLocaleString("ko-KR")}자로 목표에 못 미칩니다.`,
+            `${row.group.minChars.toLocaleString("ko-KR")}자 이상이 되도록 아직 쓰지 않은 근거와 장면, 판단 기준을 새로 더해 처음부터 다시 쓰세요.`,
+          ]
+          : [];
+        return runSectionGroup(row.group, {
+          repairLines,
+          attempt: 1,
+          timeoutMs: wave2TimeoutMs,
+          maxOutputTokens: SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS,
+        });
+      }));
+      for (const candidate of repaired) {
+        const index = sectionResults.findIndex((row) => row.group.key === candidate.group.key);
+        if (index < 0 || !candidate.ok || !candidate.text) continue;
+        // 재시도가 더 짧거나 잘려 나오는 경우가 있다 — 나아졌을 때만 갈아끼운다.
+        if (scoreSajuAISectionRow(candidate) > scoreSajuAISectionRow(sectionResults[index])) {
+          sectionResults[index] = candidate;
+        }
+      }
+    }
+  }
+
+  // ── 조립 ──────────────────────────────────────────────────────────────
+  // 그룹 순서 = 챕터 순서다. 실패한 그룹은 빠지고, 그 결손은 챕터 수 검증이 잡는다.
+  const assembledText = normalizeSajuAIResultText(
+    sectionResults.filter((row) => row.text).map((row) => row.text).join("\n\n"),
+  );
+  const ai = sectionResults.find((row) => row.ok && row.ai)?.ai
+    || sectionResults.find((row) => row.ai)?.ai
+    || { ok: false, message: "전문가 상담 생성에 실패했습니다." };
+  return { sectionResults, assembledText, ai };
+}
+
 export function validateSajuAIResultText(text, factSnapshot = null, options = {}) {
   const normalized = normalizeSajuAIResultText(text);
   const forbidden = SAJU_AI_RESULT_FORBIDDEN_PATTERNS.find((pattern) => pattern.test(normalized));
@@ -379,6 +537,17 @@ export function validateSajuAIResultText(text, factSnapshot = null, options = {}
       ok: false,
       reason: "상담문 필수 챕터가 충분히 갖춰지지 않았습니다.",
       qualityIssues: { chapterCount },
+    };
+  }
+  // 🔴 이 하한은 배달을 막는 문턱이 아니라 "웨이브2를 돌게 만드는 신호"다. 미달로 떨어져도
+  // 호출부의 경량 보장(렌더 가능 텍스트 ≥400자 salvage)이 결과를 그대로 전달하므로 환불이 늘지
+  // 않는다. salvage 를 지우면 이 줄이 곧바로 환불 문턱으로 돌변한다 — 함께 보고 옮길 것.
+  const visibleChars = countSajuAIVisibleChars(normalized);
+  if (visibleChars < SAJU_AI_MIN_RESULT_CHARS) {
+    return {
+      ok: false,
+      reason: "상담 분량이 유료 기준에 못 미칩니다.",
+      qualityIssues: { visibleChars, minChars: SAJU_AI_MIN_RESULT_CHARS },
     };
   }
   const rubric = options?.categoryRubric || getSajuAICategoryRubric(options?.domain || factSnapshot?.domain || "life_direction");
@@ -4469,132 +4638,43 @@ async function handleSajuAIPrompt(request, auth, env, ctx = null) {
     // salvage 판정은 lastValidation?.text가 아니라 이 후보 텍스트를 직접 추적해야 한다.
     let lastCandidateText = "";
 
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      // 2회차 풀 시도는 예산이 실제로 남았을 때만. 1회차가 타임아웃으로 끝났다면 여기서 멈춘다.
-      if (attempt > 0 && sajuDeadlineAt - Date.now() < FEATURE_AI_RETRY_MIN_REMAINING_MS) break;
-      // 예산 소진 → 호출을 건너뛰고 아래 경량 보장(lastValidation.text salvage)으로 넘긴다.
-      const llmTimeoutMs = featureAiCallTimeoutMs(sajuDeadlineAt, FEATURE_AI_PRIMARY_TIMEOUT_MS);
-      if (!(llmTimeoutMs > 0)) {
-        console.warn("[SajuMyeongsikAI] llm budget exhausted before generation", { requestId });
-        break;
-      }
-      const llmPrompt = buildSajuAIResultPrompt(builtPrompt, {
-        repairReason: lastValidation?.reason || "",
-      });
-      console.info("[SajuMyeongsikAI] LLM request created", {
+    const promptVersion = builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION;
+    const { sectionResults, assembledText, ai: sectionAi } = await runSajuAISectionWaves(env, {
+      builtPrompt,
+      systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
+      cache: sajuLlmCache,
+      deadlineAt: sajuDeadlineAt,
+      requestId,
+      promptVersion,
+    });
+    const usableGroups = sectionResults.filter((row) => row.text);
+    if (assembledText) lastCandidateText = assembledText;
+    finalAi = sectionAi;
+
+    lastValidation = assembledText
+      ? validateSajuAIResultText(assembledText, builtPrompt.factSnapshot, {
+        domain: builtPrompt.domain,
+        categoryRubric: builtPrompt.categoryRubric,
+      })
+      : { ok: false, reason: finalAi?.message || finalAi?.error || "LLM 생성 실패" };
+
+    if (!lastValidation.ok && lastValidation.tenGodMismatches?.length) {
+      console.warn("[SajuMyeongsikAI] validation mismatch", {
         requestId,
-        promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
-        attempt: attempt + 1,
+        promptVersion,
+        mismatchCount: lastValidation.tenGodMismatches.length,
       });
-      const ai = await callGeminiText(env, llmPrompt, {
-        systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
-        taskType: "fortune",
-        temperature: attempt > 0 ? 0.5 : 0.56,
-        // 200tok/s 기준 50s. 구 20000(=100s)은 엣지(100s) 안쪽 어떤 타임아웃으로도 채울 수 없어
-        // 목표가 아니라 "느린 생성이 abort 를 지나쳐 달리게 두는 장치"로만 작동했다.
-        // 잘리면 아래 이어쓰기 repair 가 덧붙이므로 실효 상한은 10,000 + 6,000 이다.
-        maxOutputTokens: 10000,
-        timeoutMs: llmTimeoutMs,
-        // 폴백 스텁이 20,000원 상품 결과로 전달되지 않도록 문턱을 건다(미달이면 실패→환불 경로).
-        fallbackMinChars: FEATURE_AI_FALLBACK_MIN_CHARS,
-        cache: sajuLlmCache,
+    }
+    if (lastValidation.ok) {
+      finalText = lastValidation.text;
+      console.info("[SajuMyeongsikAI] quality validation passed", {
+        requestId,
+        promptVersion,
+        chapterCount: lastValidation.chapterCount,
+        categoryMatches: lastValidation.categoryMatches,
+        visibleChars: countSajuAIVisibleChars(finalText),
+        groups: usableGroups.length,
       });
-      const resultText = normalizeSajuAIResultText(ai?.text);
-      if (resultText) lastCandidateText = resultText;
-      let validation = ai?.ok
-        ? validateSajuAIResultText(resultText, builtPrompt.factSnapshot, {
-          domain: builtPrompt.domain,
-          categoryRubric: builtPrompt.categoryRubric,
-        })
-        : { ok: false, reason: ai?.message || ai?.error || "LLM 생성 실패" };
-      if (!validation.ok && validation.tenGodMismatches?.length) {
-        console.warn("[SajuMyeongsikAI] validation mismatch", {
-          requestId,
-          promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
-          mismatchCount: validation.tenGodMismatches.length,
-        });
-      }
-      // 잘림(MAX_TOKENS)은 검증이 놓칠 수 있으므로 완성 repair 대상에 명시적으로 포함한다.
-      // repair 는 폴백을 끄므로(아래) 폴백 예약분을 떼지 않는다. 예산이 없으면 건너뛰고 현재 결과로 간다.
-      const repairTimeoutMs = (ai?.ok && (validation.incomplete || ai.truncated))
-        ? featureAiCallTimeoutMs(sajuDeadlineAt, FEATURE_AI_REPAIR_TIMEOUT_MS, 0)
-        : 0;
-      if (repairTimeoutMs > 0) {
-        console.warn("[SajuMyeongsikAI] incomplete result", {
-          requestId,
-          promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
-          attempt: attempt + 1,
-          reason: validation.reason,
-          truncated: ai.truncated === true,
-        });
-        const repairPrompt = buildSajuAICompletionRepairPrompt(builtPrompt, resultText, validation);
-        console.info("[SajuMyeongsikAI] completion repair requested", {
-          requestId,
-          promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
-          attempt: attempt + 1,
-        });
-        const repairAi = await callGeminiText(env, repairPrompt, {
-          systemPrompt: await cmsPromptText(env, "saju-ai-result", SAJU_AI_RESULT_SYSTEM_PROMPT),
-          taskType: "fortune",
-          temperature: 0.42,
-          // 잘려서 이어붙이는 경우 꼬리만 채우므로 이 정도면 완결된다.
-          maxOutputTokens: ai.truncated ? 6000 : 4000,
-          timeoutMs: repairTimeoutMs,
-          // 이어쓰기는 분량 문턱을 정할 수 없고 예산이 가장 얇은 구간이라 무제한 폴백을 감당할 수 없다.
-          // 실패해도 아래 repairedValidation 분기가 원본 본문을 그대로 보존한다.
-          fallbackToWorkersAI: false,
-          cache: sajuLlmCache,
-        });
-        if (repairAi?.ok) {
-          const repairedText = normalizeSajuAIResultText(`${resultText}\n\n${repairAi.text || ""}`);
-          if (repairedText) lastCandidateText = repairedText;
-          const repairedValidation = validateSajuAIResultText(repairedText, builtPrompt.factSnapshot, {
-            domain: builtPrompt.domain,
-            categoryRubric: builtPrompt.categoryRubric,
-          });
-          if (!repairedValidation.ok && repairedValidation.tenGodMismatches?.length) {
-            console.warn("[SajuMyeongsikAI] validation mismatch", {
-              requestId,
-              promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
-              mismatchCount: repairedValidation.tenGodMismatches.length,
-              stage: "completion-repair",
-            });
-          }
-          if (repairedValidation.ok) {
-            finalAi = { ...ai, repairProvider: repairAi.provider, repairModel: repairAi.model };
-            finalText = repairedValidation.text;
-            lastValidation = repairedValidation;
-            console.info("[SajuMyeongsikAI] quality validation passed", {
-              requestId,
-              promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
-              chapterCount: repairedValidation.chapterCount,
-              categoryMatches: repairedValidation.categoryMatches,
-              repaired: true,
-            });
-            break;
-          }
-          validation = repairedValidation;
-        }
-      }
-      if (ai?.ok && validation.ok) {
-        finalAi = ai;
-        finalText = validation.text;
-        lastValidation = validation;
-        console.info("[SajuMyeongsikAI] quality validation passed", {
-          requestId,
-          promptVersion: builtPrompt.promptVersion || SAJU_AI_PROMPT_VERSION,
-          chapterCount: validation.chapterCount,
-          categoryMatches: validation.categoryMatches,
-          repaired: false,
-        });
-        break;
-      }
-      finalAi = ai;
-      lastValidation = validation;
-      // 소프트 미스(십성 검증 등은 못 넘겼지만 렌더 가능한 상담문이 나옴)는 2번째 풀 생성(120s+90s repair)이
-      // 같은 결정론적 이유로 또 실패할 확률이 높다 — 낭비 대신 즉시 degrade(루프 종료)로 배출한다.
-      // 하드 실패(렌더 가능한 텍스트조차 없음)일 때만 다음 시도로 넘어간다.
-      if (hasRenderableLlmText(lastCandidateText, { minChars: 400 })) break;
     }
 
     // 경량 보장 계약: 십성 검증 등 품질 기준 미통과라도, LLM이 렌더 가능한 상담문을 냈다면
@@ -4901,6 +4981,19 @@ const FEATURE_AI_MIN_CALL_MS = 15000;
 const FEATURE_AI_RETRY_MIN_REMAINING_MS = 45000;
 /** 폴백 수용 문턱 = 목표 분량(10,000토큰 ÷ 1.5 ≈ 6,600자)의 40%. CLAUDE.md 의 fallbackMinChars 관례. */
 const FEATURE_AI_FALLBACK_MIN_CHARS = 2500;
+
+// ── 사주 그룹 병렬 생성 예산 ───────────────────────────────────────────────
+// 🔴 위 FEATURE_AI_* 는 형제 4종(자미두수·점성술·베다·숙요 AI 질문 상담)이 공유하는
+//    runFeatureAiConsultation 의 값이다. 사주만 그룹 병렬로 가므로 아래를 따로 둔다 —
+//    위 값들을 사주에 맞춰 바꾸면 형제 넷이 함께 끌려간다.
+/** 웨이브1 그룹 1회 대기 상한. 9,600토큰(=48s) + 병렬이라 벽시계는 가장 느린 그룹 하나. */
+const SAJU_AI_SECTION_TIMEOUT_MS = 48000;
+/** 웨이브2 대기 상한. 48s + 30s = 78s 로 총예산 80s 안에 들어온다. */
+const SAJU_AI_SECTION_REPAIR_TIMEOUT_MS = 30000;
+/** 이만큼도 안 남았으면 웨이브2를 시작하지 않는다 — 시작해 놓고 잘리면 그 호출은 통째로 버려진다. */
+const SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS = 28000;
+/** 웨이브2는 30s 안에 끝나야 하므로 상한을 낮춘다(6,000토큰 ≈ 4,000자 ≥ 그룹 minChars 3,000자). */
+const SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS = 6000;
 
 /**
  * 남은 예산 안에서만 기다린다. 0을 돌려주면 호출부가 그 호출을 건너뛴다.
@@ -6644,4 +6737,18 @@ export const __fortuneAccessTestUtils = {
   mapSajuAIExecutionStatus,
   buildSajuAIStatusPayload,
   readAIPromptRequestId,
+};
+
+// 그룹 병렬 생성은 결제 경로 한가운데에 있어 mock 없이는 손댈 수 없다.
+// scripts/verify-saju-ai-section-plan.mjs 가 이 seam 으로 가짜 응답을 물려 웨이브 동작을 검증한다.
+export const __sajuAiSectionTestUtils = {
+  runSajuAISectionWaves,
+  buildSajuAISectionPrompt,
+  isSajuAISectionRowShort,
+  scoreSajuAISectionRow,
+  countSajuAIVisibleChars,
+  SAJU_AI_SECTION_TIMEOUT_MS,
+  SAJU_AI_SECTION_REPAIR_TIMEOUT_MS,
+  SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS,
+  SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS,
 };

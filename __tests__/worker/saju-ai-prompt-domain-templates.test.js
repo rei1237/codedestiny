@@ -87,7 +87,7 @@ describe("Saju AI prompt domain templates", () => {
       domain: "life_direction",
     });
 
-    expect(built.promptVersion).toBe("saju-myeongsik-ai-v5");
+    expect(built.promptVersion).toBe("saju-myeongsik-ai-v6");
     expect(built.factSnapshot.fixedTenGodTable.find((row) => row.stem === "壬")?.tenGod).toBe("상관");
     expect(built.factSnapshot.fixedTenGodTable.find((row) => row.stem === "癸")?.tenGod).toBe("식신");
     expect(built.factCard).toContain("壬(임):상관");
