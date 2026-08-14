@@ -1097,7 +1097,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-ca8e8e271ec3').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-61b87698ebab').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1188,24 +1188,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-ca8e8e271ec3'
+      'js/animal-totem-experience.js?v=build-61b87698ebab'
     ],
     openHwatuModal: ['HwatuFortune.js?v=h5be3c5cb5489'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-ca8e8e271ec3'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-ca8e8e271ec3'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-ca8e8e271ec3'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-61b87698ebab'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-61b87698ebab'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-61b87698ebab'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-ca8e8e271ec3'],
-    openDreamModal: ['js/dream-ledger.js?v=build-ca8e8e271ec3'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-ca8e8e271ec3'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-61b87698ebab'],
+    openDreamModal: ['js/dream-ledger.js?v=build-61b87698ebab'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-61b87698ebab'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-ca8e8e271ec3']
+    openSibylModal: ['js/sibyl-system.js?v=build-61b87698ebab']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -2216,7 +2216,14 @@
       var now = Date.now();
       var recentScrollGuard = ((now - lastScrollAt < SCROLL_BLOCK_MS) || shouldBlockCardTap())
         && (lastTouchHadMove || cardScrollTouch.moved);
-      if (now < suppressClickUntil || recentScrollGuard) {
+      // 🔴 상세 팝업 CTA 가 쏘는 합성 클릭은 고스트 클릭이 아니다 — 예외로 둔다.
+      // _onCta 는 타일에 data-pvw-cta-bypass 를 달고 즉시 tile.click() 하는데, 바로 직전
+      // CTA 를 누른 손가락 터치가 suppressClickUntil 을 now+500ms 로 밀어 놓은 상태다.
+      // 그래서 이 합성 클릭이 자기 터치가 만든 고스트로 오인돼 stopPropagation 으로 죽고,
+      // 클릭이 타일까지 못 가 액션이 영영 실행되지 않는다(실측: 스크립트 로드 0회).
+      // 증상은 유료 진입 타일을 눌러도 아무 반응 없음 — 이동도 에러도 없다.
+      var _ctaHandoff = !!(event.target.closest && event.target.closest('[data-pvw-cta-bypass]'));
+      if (!_ctaHandoff && (now < suppressClickUntil || recentScrollGuard)) {
         event.preventDefault();
         event.stopPropagation();
         return;
