@@ -485,7 +485,15 @@ if(!cdAuthHint){try{cdAuthHint=/(?:^|;\s*)fortune_auth_role=/.test(document.cook
 var cdBooted=false;try{cdBooted=sessionStorage.getItem('cdBootGateShownV1')==='1';}catch(e){}
 var cdNavType='';try{var nav=performance.getEntriesByType&&performance.getEntriesByType('navigation')[0];cdNavType=nav?nav.type:'';}catch(e){}
 var cdIsApp=false;try{var cdAppCtx=window.__cdAppContext;cdIsApp=!!(cdAppCtx&&typeof cdAppCtx.isApp==='function'&&cdAppCtx.isApp());}catch(e){}
-if((cdAuthHint||cdIsApp)&&!cdBooted&&cdNavType!=='back_forward'){d.classList.add('cd-boot-gate');try{sessionStorage.setItem('cdBootGateShownV1','1');}catch(e){}}
+/* 🔴 부트 게이트를 모바일 익명 방문자에게 다시 씌운다(cdIsApp -> cdTouch, 8fc05dd53 되돌림).
+   8fc05dd53 이 이 조건을 (cdTouch||cdAuthHint) 에서 (cdAuthHint||cdIsApp) 로 바꿔 모바일 익명에게서
+   베일을 걷었고, 그 시점에 PSI 모바일 점수가 53 -> 30 으로 떨어졌다.
+   메커니즘은 실측으로 확인됐다: 베일이 덮여 있으면 FCP 가 늦고, TBT 는 정의상 FCP 이후의 롱태스크만
+   세므로 같은 작업량이 점수에서 빠진다. 반대로 베일을 걷으면 원래 있던 메인스레드 점유가 그대로 드러난다.
+   🔴 이 커밋은 성능을 개선하지 않는다 — 점수를 8fc05dd53 이전으로 되돌릴 뿐이다.
+      TBT 는 베일 뒤에 그대로 있고, Speed Index 는 8.0s -> 10.9s 로 나빠진다(8fc05dd53 기록값).
+      사용자가 그 트레이드오프를 알고 선택했다. 근본 원인(Style & Layout 이 메인스레드의 59%)은 미해결. */
+if((cdTouch||cdAuthHint)&&!cdBooted&&cdNavType!=='back_forward'){d.classList.add('cd-boot-gate');try{sessionStorage.setItem('cdBootGateShownV1','1');}catch(e){}}
 if((mm&&mm('(max-width: 900px)').matches)||/android|iphone|ipad|ipod/i.test(ua))d.classList.add('mobile-safe-render');}catch(e){}})();</script>
 <!-- 기능 딥링크(?action=)로 들어온 모바일 진입에서 홈이 먼저 그려졌다가 모달로 덮이는 전환을 가린다.
      앱은 모든 기능 진입이 이 경로라 그 깜빡임이 "모달이 여러 개 떴다 사라진다"로 읽힌다.
@@ -22229,7 +22237,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-15ec7ef2ac04" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-8c683c6dc4da" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-15ec7ef2ac04" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-15ec7ef2ac04" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
