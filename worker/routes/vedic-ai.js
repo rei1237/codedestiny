@@ -9,7 +9,6 @@ import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
-import { callGeminiText } from "../lib/gemini.js";
 import { cmsPromptText } from "../lib/cms-prompts.js";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
@@ -31,14 +30,25 @@ const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "베다점 전문가 상담";
 const AMOUNT_KRW = 30000;
 const COIN_PRICE = 300;
-const MIN_INITIAL_READING_CHARS = 10000;
-const MAX_INITIAL_READING_CHARS = 20000;
+const MIN_INITIAL_READING_CHARS = 15000;
+const MAX_INITIAL_READING_CHARS = 23000;
 const MAX_ASSISTANT_TEXT_CHARS = 60000;
-// 섹션 body 합산 10,000~20,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 16000은
-// 목표 분량에서 잘림→JSON 파싱 실패→degraded/LLM_FAILED를 유발했다.
-// 구 32000은 상한 20,000자를 최악 비율로 채우면 1,333자밖에 안 남아 완충이 부족했다.
-// tokensRequiredForChars(20000) = 32,250 이상을 확보한다.
-const INITIAL_MAX_OUTPUT_TOKENS = 33000;
+// ── 첫 상담을 나눠 쓰는 단위 ────────────────────────────────────────────────
+//
+// 🔴 예전에는 4개 읽기 섹션 + 근거 5흐름을 **한 번의 호출**로 요구했다(33,000토큰). 그런데
+//    모델은 한 호출에서 6천자 근처면 스스로 멈춘다 — 그래서 "한 섹션당 2,500~5,000자"라고
+//    적어 둔 프롬프트가 실제로는 전체 6천자로 수렴했고, 요구 하한 10,000자는 거의 매번
+//    total_body_too_short → 전면 재작성 repair 를 돌렸다(입력에 초안을 통째로 다시 넣는 호출).
+//    호출당 목표를 모델이 한 번에 채우는 크기로 낮추면 그 고리가 사라진다.
+//    (같은 결론의 선례: worker/routes/astrology-ai.js, worker/lib/saju-ai-prompt.js)
+//
+// 🔴 분량 판정(validateConsultationQuality)은 READING_SECTION_KEYS 4개의 body 만 센다.
+//    근거 흐름 그룹은 화면에는 나가지만 분량 합계에는 들어가지 않는다 — 그래서 요구 하한
+//    15,000자는 **읽기 섹션 4개만으로** 채워야 하고, 그룹 minChars 합도 그 기준으로 잡았다.
+const VEDIC_GROUP_MAX_OUTPUT_TOKENS = 11000;
+const VEDIC_READING_GROUP_MIN_CHARS = 3800;
+const VEDIC_READING_GROUP_MAX_CHARS = 5600;
+const VEDIC_REASONING_GROUP_KEY = "reasoning_flows";
 // 상담문은 차트 요소별 나열이 아니라 삶의 주제 네 갈래로 쓴다.
 // 요소별 7섹션 시절에는 라그나·라시·그라하를 각각 설명하느라 "요소 설명서"가 됐고,
 // 나바암샤(D9)는 데이터로만 들어가 관계·후반기 해석이 얕았다.
@@ -62,6 +72,31 @@ const LEGACY_SECTION_KEYS = Object.freeze({
   relationship_soul: [],
   dasha_upaya: ["dasha", "vimshottari_dasha"],
 });
+
+/**
+ * 첫 상담의 병렬 생성 단위. 읽기 섹션 4개는 각각 자기 호출을 갖고, 근거 5흐름은 한 그룹으로 묶는다
+ * (근거 흐름은 fortune-reasoning-contract 의 공용 스키마/규칙을 그대로 쓰므로 쪼개지 않는다).
+ *
+ * scores 는 첫 그룹만 낸다 — 그룹마다 점수를 매기면 병합에서 어느 쪽을 쓸지 임의로 정하게 된다.
+ */
+const VEDIC_SECTION_GROUPS = Object.freeze(READING_SECTION_KEYS.map((key, index) => Object.freeze({
+  key,
+  sectionKeys: Object.freeze([key]),
+  label: REQUIRED_SECTION_LABELS[key],
+  minChars: VEDIC_READING_GROUP_MIN_CHARS,
+  maxChars: VEDIC_READING_GROUP_MAX_CHARS,
+  includeScores: index === 0,
+  includeReasoning: false,
+})).concat([Object.freeze({
+  key: VEDIC_REASONING_GROUP_KEY,
+  sectionKeys: Object.freeze([]),
+  label: "해석 근거 흐름",
+  // 분량 합계에 들어가지 않는 그룹이라 목표는 화면에서 읽을 만한 최소치로만 잡는다.
+  minChars: 2600,
+  maxChars: 4200,
+  includeScores: false,
+  includeReasoning: true,
+})]));
 const VEDIC_RESULT_ONLY_SYSTEM_PROMPT = `
 당신은 파라샤라 전통을 따르는 조티쉬(Jyotish) 베다 점성술 상담가입니다.
 천체 위치, 라그나, 라시, 바바, 나크샤트라, 다샤를 직접 계산하지 않습니다.
@@ -906,21 +941,36 @@ function buildSectionEvidenceLines(chart) {
   ];
 }
 
-function buildFirstPrompt(input, chart) {
+function buildGroupPrompt(input, chart, group, repairLines = []) {
   const canonicalFacts = buildCanonicalFactsLine(chart);
+  const sectionKeys = group.sectionKeys || [];
+  const otherLabels = READING_SECTION_KEYS
+    .filter((key) => !sectionKeys.includes(key))
+    .map((key) => `"${REQUIRED_SECTION_LABELS[key]}"`)
+    .join(", ");
+  const schemaSections = {
+    ...Object.fromEntries(sectionKeys.map((key) => [key, {
+      title: REQUIRED_SECTION_LABELS[key],
+      body: "제공된 계산값만 바탕으로 해석합니다.",
+    }])),
+    ...(group.includeReasoning ? buildReasoningSectionSchema() : {}),
+  };
   return [
-    "아래 VedicChartResult JSON과 사용자 질문을 바탕으로 조티시 상담을 시작하세요.",
+    "아래 VedicChartResult JSON과 사용자 질문을 바탕으로 조티시 상담문 중 **지정된 부분만** 쓰세요.",
+    "이 글은 다른 부분과 합쳐져 하나의 상담문이 됩니다. 인사말·전체 요약·맺음말을 새로 쓰지 마세요.",
+    otherLabels ? `${otherLabels} 는 다른 호출이 맡습니다. 여기서는 쓰지도 말고 요약하지도 마세요.` : "",
     "LLM은 계산하지 않습니다. 라그나, 라시, 그라하, 바바, 나크샤트라, 다샤는 제공된 JSON 값만 해석하세요.",
     "JSON에 null 또는 빈 배열로 표시된 값은 출생 정보 한계로 확인이 제한된다고 안내하고 추측하지 마세요.",
     "불안을 자극하지 말고, 사용자가 오늘 실제로 선택할 수 있는 방향을 제시하세요.",
     "각 섹션 body는 (1) 계산값 근거 명시 → (2) 삶의 주제 해석 → (3) 실행 가능한 조언 순서로 쓰세요. 해당 섹션의 핵심 계산값(라시·나크샤트라·다샤 lord 등)을 본문에 그대로 언급한 뒤 해석하세요.",
     `모든 섹션의 마지막 문단은 상담 주제 "${input.topic}"${input.userQuestion ? "와 사용자의 자유 질문" : ""}에 연결해 마무리하세요.`,
-    "첫 상담문은 sections body 전체 합산 공백 제외 10,000~20,000자 사이로 완성하세요.",
-    "섹션은 넷뿐이므로 한 섹션당 2,500~5,000자를 확보해 깊이 있게 쓰세요. 요약으로 끝내지 말고 근거→해석→조언을 각각 여러 문단으로 전개하세요.",
+    `이번 부분의 body 합산은 공백 제외 ${group.minChars.toLocaleString("ko-KR")}자 이상 ${group.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
+    "분량을 채우려고 같은 문장을 반복하지 말고, 새로 짚을 장면과 판단 기준을 더하세요. 요약으로 끝내지 말고 근거→해석→조언을 각각 여러 문단으로 전개하세요.",
     "반환은 JSON 객체 하나만 허용합니다.",
     "",
     "섹션별로 반드시 인용해야 할 계산값과 다룰 내용:",
-    ...buildSectionEvidenceLines(chart),
+    // 이 그룹이 맡은 섹션의 근거 줄만 싣는다 — 남의 섹션 지시가 들어가면 모델이 그것까지 쓴다.
+    ...buildSectionEvidenceLines(chart).filter((line) => sectionKeys.some((key) => line.startsWith(`- ${key} `))),
     ...(canonicalFacts ? ["", `계산 확정값 (본문에서 이 값과 다르게 서술하는 것을 금지): ${canonicalFacts}`] : []),
     "",
     `이름 또는 닉네임: ${input.birthInfo.name || "미입력"}`,
@@ -934,21 +984,16 @@ function buildFirstPrompt(input, chart) {
     `자유 질문: ${input.userQuestion || "전체 흐름을 먼저 알고 싶습니다."}`,
     `해석 기준: ${chart.calculationMeta?.lagnaBhavaAvailable === false ? "출생시간이 없으므로 라그나와 바바는 계산하지 않고 달, 라시, 나크샤트라, 다샤 중심" : "Lagna Chart와 Whole Sign Bhava 중심"}`,
     "",
-    "필수 sections 키와 title:",
-    JSON.stringify(REQUIRED_SECTION_LABELS),
+    "이번 부분이 낼 sections 키와 title:",
+    JSON.stringify(Object.fromEntries(sectionKeys.map((key) => [key, REQUIRED_SECTION_LABELS[key]]))),
     "",
-    "반환 JSON 형식:",
+    "반환 JSON 형식 (아래 키만 내고, 다른 키는 넣지 마세요):",
     JSON.stringify({
-      scores: { dharma: 0, artha: 0, kama: 0, moksha: 0, overall: 0 },
-      sections: {
-        ...Object.fromEntries(READING_SECTION_KEYS.map((key) => [key, {
-          title: REQUIRED_SECTION_LABELS[key],
-          body: "제공된 계산값만 바탕으로 해석합니다.",
-        }])),
-        // 근거를 먼저 밝히는 다섯 흐름. 품질 검증(READING_SECTION_KEYS)에는 넣지 않는다 —
-        // 빠지면 화면에서 생략될 뿐, 결제까지 끝난 상담 전체를 실패로 만들지 않기 위해서다.
-        ...buildReasoningSectionSchema(),
-      },
+      // scores 는 첫 그룹만 낸다. 나머지 그룹이 함께 내면 병합에서 어느 쪽을 쓸지 임의로 정하게 된다.
+      ...(group.includeScores ? { scores: { dharma: 0, artha: 0, kama: 0, moksha: 0, overall: 0 } } : {}),
+      // 근거를 먼저 밝히는 다섯 흐름. 품질 검증(READING_SECTION_KEYS)에는 넣지 않는다 —
+      // 빠지면 화면에서 생략될 뿐, 결제까지 끝난 상담 전체를 실패로 만들지 않기 위해서다.
+      sections: schemaSections,
     }),
     "",
     "계산된 VedicChartResult 데이터:",
@@ -960,8 +1005,9 @@ function buildFirstPrompt(input, chart) {
     // 아래 확정값은 그대로 사용자 화면의 근거 패널로도 나간다. 본문이 그 표를 벗어나지 않게 못 박는다.
     ...buildEvidenceRuleLines(buildVedicAnalysisBasis(chart)),
     "",
-    ...buildReasoningSectionRuleLines(),
-  ].join("\n");
+    ...(group.includeReasoning ? buildReasoningSectionRuleLines() : []),
+    ...(repairLines.length ? ["", "[보강 요청]", ...repairLines] : []),
+  ].filter(Boolean).join("\n");
 }
 
 function sanitizeAssistantText(value) {
@@ -1101,68 +1147,6 @@ function getProviderDiagnostics(env) {
     willUseRealLLM: hasGeminiEnv || hasWorkersAi,
     providerReason: hasGeminiEnv ? "gemini-env" : (hasWorkersAi ? "workers-ai-binding" : "missing-ai-env"),
   };
-}
-
-async function callConsultationLlm(env, prompt, logContext = {}, options = {}) {
-  logVedicAi("LLM Provider Selected", {
-    ...logContext,
-    ...getProviderDiagnostics(env),
-  });
-  // 초기/repair 리딩은 대형 구조화 JSON이라 JSON 모드 + 잘림 반응형 재시도로 첫 생성이
-  // 잘리지 않게 보장한다. follow-up(requireStructured 미설정)은 프로즈라 단발 호출을 유지한다.
-  const baseMaxOutputTokens = Number(options.maxOutputTokens || INITIAL_MAX_OUTPUT_TOKENS);
-  // timeoutMs 미지정 시 llm-client 기본 30s가 적용돼 33,000토큰(≈165s) 생성이 항상 잘렸다.
-  // PREMIUM_GEMINI_TIMEOUT_MS(운영 45s)는 || 체인에 넣으면 큰 기본값이 죽으므로 참조하지 않는다.
-  // 이 라우트는 동기 생성이라 엣지가 100초에 요청을 끊는다. 구 180s는 그 한계를 넘겨, 오래 걸리는
-  // 생성이 라우트의 실패 처리(생성 실패 기록·선차감 복원)를 건너뛴 채 잘려 나갔다.
-  // clamp를 걸면 라우트가 먼저 판정해 짧아진 결과라도 degrade 경로로 전달한다.
-  const vedicTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.VEDIC_AI_TIMEOUT_MS) || 180000);
-  const result = options.requireStructured === true
-    ? await callGeminiJsonWithRetry(env, prompt, {
-        systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
-        taskType: "fortune",
-        temperature: 0.72,
-        baseTokens: baseMaxOutputTokens,
-        capTokens: Math.round(baseMaxOutputTokens * 1.3),
-        responseMimeType: "application/json",
-        timeoutMs: vedicTimeoutMs,
-        // 폴백 허용(폴백 JSON 은 structured-consultation 이 정화). 너무 짧으면 실패로 돌린다.
-        fallbackMinChars: 2000,
-      })
-    : await callGeminiText(env, prompt, {
-        systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
-        maxOutputTokens: baseMaxOutputTokens,
-        temperature: 0.72,
-        taskType: "fortune",
-        timeoutMs: vedicTimeoutMs,
-      });
-  const provider = clean(result?.provider || result?.model || "gemini");
-  const isMock = /mock/i.test(provider) || result?.isMock === true;
-  const content = sanitizeAssistantText(result?.text || "");
-  if (!result?.ok || isMock || !content) {
-    const error = new Error(result?.message || (isMock ? "MOCK_PROVIDER_BLOCKED" : "LLM_FAILED"));
-    error.code = "LLM_FAILED";
-    error.llm = result || null;
-    throw error;
-  }
-  const quality = validateConsultationQuality(content, {
-    minTotalChars: Number(options.minTotalChars || 0),
-    maxTotalChars: Number(options.maxTotalChars || 0),
-    requireStructured: options.requireStructured === true,
-    chart: options.chart || null,
-  });
-  if (!quality.ok) {
-    // 경량 보장 계약: 품질 미달이라도 렌더 가능한 상담문이면 버리지 않고 degrade로 전달한다.
-    if (hasRenderableLlmText(content, { minChars: 400 })) {
-      return { content, meta: { provider, model: clean(result.model || ""), isMock: false, quality, degraded: true } };
-    }
-    const error = new Error(`LLM_QUALITY_FAILED:${quality.issues.join(",")}`);
-    error.code = "LLM_FAILED";
-    error.llm = result || null;
-    error.quality = quality;
-    throw error;
-  }
-  return { content, meta: { provider, model: clean(result.model || ""), isMock: false, quality } };
 }
 
 function summaryCards(chart) {
@@ -1322,29 +1306,131 @@ async function resolveStartAccess({ env, auth, body, normalized, idempotencyKey,
   });
 }
 
+/**
+ * 그룹 하나를 생성한다. **절대 던지지 않는다** — 한 그룹의 실패가 나머지 그룹까지 죽이면
+ * 결제까지 끝난 사용자가 아무것도 못 받는다. 실패는 빈 텍스트로 돌려주고 병합이 알아서 뺀다.
+ */
+async function generateVedicGroup(env, input, chart, group, context, repairLines = []) {
+  // 동기 생성이라 엣지가 100초에 요청을 끊는다. clamp 를 걸어야 라우트가 먼저 판정해
+  // 짧아진 결과라도 degrade 경로로 전달하고, 생성 실패 기록·선차감 복원이 실행된다.
+  const vedicTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.VEDIC_AI_TIMEOUT_MS) || 180000);
+  try {
+    const result = await callGeminiJsonWithRetry(env, buildGroupPrompt(input, chart, group, repairLines), {
+      systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
+      taskType: "fortune",
+      temperature: repairLines.length ? 0.62 : 0.72,
+      baseTokens: VEDIC_GROUP_MAX_OUTPUT_TOKENS,
+      capTokens: Math.round(VEDIC_GROUP_MAX_OUTPUT_TOKENS * 1.3),
+      responseMimeType: "application/json",
+      timeoutMs: vedicTimeoutMs,
+      // 그룹 단위 문턱 — 전체 목표가 아니라 이 그룹 목표의 40%.
+      fallbackMinChars: Math.round(group.minChars * 0.4),
+      logContext: { ...context, group: group.key },
+    });
+    const provider = clean(result?.provider || result?.model || "gemini");
+    if (!result?.ok || /mock/i.test(provider) || result?.isMock === true) return { group, text: "", provider: "", model: "" };
+    return { group, text: sanitizeAssistantText(result?.text || ""), provider, model: clean(result?.model || "") };
+  } catch (error) {
+    logVedicAi("Group Generation Failed", { ...context, group: group.key, message: clean(error?.message, 200) }, "warn");
+    return { group, text: "", provider: "", model: "" };
+  }
+}
+
+/** 그룹별 JSON 을 하나의 상담문 JSON 으로 합친다. 출력 계약(구조화 JSON 문자열)은 그대로다. */
+function mergeVedicGroupPayloads(rows) {
+  const sections = {};
+  let scores = null;
+  for (const row of rows) {
+    if (!row?.text) continue;
+    const parsed = parseStructuredConsultationText(cleanMultiline(row.text, MAX_ASSISTANT_TEXT_CHARS));
+    if (!parsed) continue;
+    if (parsed.sections && typeof parsed.sections === "object") {
+      for (const [key, value] of Object.entries(parsed.sections)) {
+        // 그룹이 남의 섹션을 덤으로 냈다면 그 그룹의 담당 키만 채택한다(중복 서술 방지).
+        const owned = !row.group.sectionKeys.length || row.group.sectionKeys.includes(key) || row.group.includeReasoning;
+        if (owned && value && typeof value === "object") sections[key] = value;
+      }
+    }
+    if (!scores && parsed.scores && typeof parsed.scores === "object" && Object.keys(parsed.scores).length) {
+      scores = parsed.scores;
+    }
+  }
+  return JSON.stringify({ scores: scores || {}, sections });
+}
+
 async function generateInitialReading(env, input, chart, context) {
-  const options = {
+  logVedicAi("LLM Provider Selected", { ...context, ...getProviderDiagnostics(env) });
+  const qualityOptions = {
     minTotalChars: MIN_INITIAL_READING_CHARS,
     maxTotalChars: MAX_INITIAL_READING_CHARS,
     requireStructured: true,
-    maxOutputTokens: INITIAL_MAX_OUTPUT_TOKENS,
     chart,
   };
-  const prompt = buildFirstPrompt(input, chart);
-  try {
-    return await callConsultationLlm(env, prompt, context, options);
-  } catch (error) {
-    const issues = Array.isArray(error?.quality?.issues) ? error.quality.issues : [];
-    if (!issues.length) throw error;
-    logVedicAi("LLM Quality Retry", { ...context, issues }, "warn");
-    const repairPrompt = [
-      prompt,
-      "",
-      "직전 응답이 아래 품질 기준을 어겨 반려되었다. 전부 고쳐서 처음부터 다시 작성하라:",
-      ...describeQualityIssuesForRepair(issues, chart),
-    ].join("\n");
-    return callConsultationLlm(env, repairPrompt, context, options);
+
+  // 웨이브 1 — 전 그룹 동시 생성. 벽시계는 그룹 시간의 합이 아니라 가장 느린 그룹 하나다.
+  let rows = await Promise.all(VEDIC_SECTION_GROUPS.map((group) => generateVedicGroup(env, input, chart, group, context)));
+
+  // 웨이브 2 — 비었거나 목표에 못 미치는 그룹만 다시 쓴다(전면 재생성 금지).
+  const groupChars = (row) => {
+    const parsed = row?.text ? parseStructuredConsultationText(cleanMultiline(row.text, MAX_ASSISTANT_TEXT_CHARS)) : null;
+    const sections = parsed?.sections && typeof parsed.sections === "object" ? parsed.sections : {};
+    return Object.values(sections).reduce((sum, section) => sum + readingTextLength(cleanMultiline(section?.body || "")), 0);
+  };
+  const shortfall = rows.filter((row) => groupChars(row) < row.group.minChars);
+  if (shortfall.length) {
+    logVedicAi("Group Repair Wave", { ...context, groups: shortfall.map((row) => row.group.key) }, "warn");
+    const repaired = await Promise.all(shortfall.map((row) => generateVedicGroup(env, input, chart, row.group, context, [
+      `직전 응답이 ${groupChars(row).toLocaleString("ko-KR")}자로 목표에 못 미칩니다. ${row.group.minChars.toLocaleString("ko-KR")}자 이상이 되도록 근거와 장면을 더해 다시 쓰세요.`,
+      "분량만 늘리지 말고, 아직 짚지 않은 계산 근거와 실제 장면을 새로 더하세요.",
+    ])));
+    // 다시 쓴 결과가 더 짧으면 원본을 지킨다 — 보강이 개악이 되는 경우가 있다.
+    rows = rows.map((row) => {
+      const next = repaired.find((item) => item.group.key === row.group.key);
+      return next && groupChars(next) > groupChars(row) ? next : row;
+    });
   }
+
+  let content = mergeVedicGroupPayloads(rows);
+  let quality = validateConsultationQuality(content, qualityOptions);
+
+  // 웨이브 3 — 품질 이슈가 남으면 **그 이슈를 책임지는 그룹만** 다시 쓴다.
+  // (구조 전환 전에는 여기서 프롬프트 전체를 다시 돌렸다. 그 전면 재작성이 출력을 2~3배로 태웠다.)
+  if (!quality.ok) {
+    const repairHints = describeQualityIssuesForRepair(quality.issues, chart);
+    const targets = rows.filter((row) => row.group.sectionKeys.some(
+      (key) => quality.issues.some((issue) => issue.startsWith(`${key}.`) || repairHints.some((hint) => hint.includes(`${key} 섹션`))),
+    ));
+    if (targets.length) {
+      logVedicAi("Group Quality Repair", { ...context, groups: targets.map((row) => row.group.key), issues: quality.issues }, "warn");
+      const requalified = await Promise.all(targets.map((row) => generateVedicGroup(env, input, chart, row.group, context, repairHints)));
+      rows = rows.map((row) => {
+        const next = requalified.find((item) => item.group.key === row.group.key);
+        return next?.text && groupChars(next) >= groupChars(row) ? next : row;
+      });
+      content = mergeVedicGroupPayloads(rows);
+      quality = validateConsultationQuality(content, qualityOptions);
+    }
+  }
+
+  const alive = rows.filter((row) => row.text);
+  if (!alive.length) {
+    const error = new Error("LLM_FAILED");
+    error.code = "LLM_FAILED";
+    throw error;
+  }
+  const provider = clean(alive[0].provider || "gemini");
+  const model = clean(alive[0].model || "");
+  if (!quality.ok) {
+    // 경량 보장 계약: 품질 미달이라도 렌더 가능한 상담문이면 버리지 않고 degrade 로 전달한다.
+    if (hasRenderableLlmText(content, { minChars: 400 })) {
+      return { content, meta: { provider, model, isMock: false, quality, degraded: true } };
+    }
+    const error = new Error(`LLM_QUALITY_FAILED:${quality.issues.join(",")}`);
+    error.code = "LLM_FAILED";
+    error.quality = quality;
+    throw error;
+  }
+  return { content, meta: { provider, model, isMock: false, quality } };
 }
 
 async function generateConsultation({ request, env, auth, body, normalized, idempotencyKey }) {
@@ -1559,12 +1645,17 @@ export const __vedicAiTestUtils = {
   FEATURE_KEY,
   SERVICE_KEY,
   normalizeConsultationInput,
-  buildFirstPrompt,
+  VEDIC_SECTION_GROUPS,
+  VEDIC_GROUP_MAX_OUTPUT_TOKENS,
+  MIN_INITIAL_READING_CHARS,
+  MAX_INITIAL_READING_CHARS,
+  buildGroupPrompt,
+  mergeVedicGroupPayloads,
+  generateInitialReading,
   buildPaymentPayload,
   sanitizeAssistantText,
   validateConsultationQuality,
   validateChartConsistency,
-  describeQualityIssuesForRepair,
   buildCanonicalFactsLine,
   buildVedicAnalysisBasis,
   collectEvidenceIds,

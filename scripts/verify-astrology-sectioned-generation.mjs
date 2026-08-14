@@ -78,7 +78,15 @@ const SECTION_KEYWORDS = {
   personal_growth: "수성의 판단 습관과 금성의 애정 방식, 화성의 추진력, 그리고 목성과 토성의 과제",
   evidence_domains: "주요 각도와 원소 균형, 모드의 분포",
   timing_action: "하우스와 트랜짓이 만드는 시기감, 지금 실천할 루틴과 2주 점검",
+  relationship_patterns: "관계에서 반복되는 자리와 그때 맡게 되는 역할",
+  yearly_outlook: "앞으로 네 분기에 걸쳐 열리고 조여드는 흐름",
 };
+
+// 새 섹션을 더하고 여기에 키워드를 안 넣으면 mockSectionText 가 "undefined" 를 본문에 심는다.
+// 조립 결과가 품질 게이트를 통과해 버려 실패가 아니라 '통과'로 보이므로, 누락을 여기서 막는다.
+for (const section of ASTROLOGY_SECTIONS) {
+  assert(SECTION_KEYWORDS[section.key], `섹션 ${section.key} 의 목 키워드가 없다 — SECTION_KEYWORDS 에 추가하라`);
+}
 
 /**
  * 같은 문장 반복 판정(34자 이상 동일 문장 3회)에 걸리지 않게 만든다.

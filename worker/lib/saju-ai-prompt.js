@@ -69,13 +69,24 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
     guide: "지금의 고민을 명식의 어느 자리가 만들고 있는지 짚고, 일·돈·관계·연애·건강 다섯 영역의 리듬을 각각 구체적 장면으로 보여 주세요.",
   }),
   Object.freeze({
+    key: "timing_flow",
+    label: "대운의 전환점과 올해의 흐름",
+    chapters: Object.freeze([
+      Object.freeze({ no: 7, title: "대운의 전환점" }),
+      Object.freeze({ no: 8, title: "올해의 흐름" }),
+    ]),
+    minChars: 3000,
+    maxChars: 4600,
+    guide: "지나온 대운과 지금 대운, 다음 대운이 각각 어떤 성격의 시기인지 나누고, 그 사이의 전환점에서 실제로 무엇이 바뀌었고 무엇이 바뀔지 짚어 주세요. 이어서 올해의 세운이 원국의 어느 자리를 건드리는지 밝히고, 상반기와 하반기의 결이 어떻게 다른지 구분해 주세요. 다른 챕터에서 다루는 성향·구조·영역별 리듬을 다시 설명하지 말고, 여기서는 **시기의 순서**만 다루세요. '좋아진다/나빠진다'로 뭉뚱그리지 말고 어느 달·어느 시기에 무엇을 하면 유리하고 무엇을 미루는 편이 나은지로 쓰세요.",
+  }),
+  Object.freeze({
     key: "strategy_action",
     label: "패턴과 전략, 실천과 마무리",
     chapters: Object.freeze([
-      Object.freeze({ no: 7, title: "조심해야 할 패턴" }),
-      Object.freeze({ no: 8, title: "살리는 전략" }),
-      Object.freeze({ no: 9, title: "30일 실천 가이드" }),
-      Object.freeze({ no: 10, title: "마지막 한마디" }),
+      Object.freeze({ no: 9, title: "조심해야 할 패턴" }),
+      Object.freeze({ no: 10, title: "살리는 전략" }),
+      Object.freeze({ no: 11, title: "30일 실천 가이드" }),
+      Object.freeze({ no: 12, title: "마지막 한마디" }),
     ]),
     minChars: 3000,
     maxChars: 4600,
@@ -91,14 +102,14 @@ export const SAJU_AI_SECTION_GROUPS = Object.freeze([
 export const SAJU_AI_SECTION_MAX_OUTPUT_TOKENS = 9600;
 
 /**
- * 조립본의 유료 배달 하한. 그룹 minChars 합(12,200)의 약 74%다
+ * 조립본의 유료 배달 하한. 그룹 minChars 합(15,200)의 약 76%다
  * (인생의 책 80% / 자미두수 55% 사이).
  *
  * 🔴 이 값은 "배달을 막는 문턱"이 아니라 "웨이브2를 돌게 만드는 신호"다. 미달이어도 기존
  *    경량 보장(렌더 가능 텍스트 ≥400자 salvage)이 그대로 결과를 전달하므로 환불률을 올리지
  *    않는다. salvage 를 지우면 이 상수가 곧바로 환불 문턱으로 돌변한다.
  */
-export const SAJU_AI_MIN_RESULT_CHARS = 9000;
+export const SAJU_AI_MIN_RESULT_CHARS = 11500;
 
 export const SAJU_AI_CATEGORY_RUBRICS = Object.freeze({
   career: Object.freeze({

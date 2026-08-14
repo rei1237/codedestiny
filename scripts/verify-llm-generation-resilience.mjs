@@ -176,13 +176,28 @@ function assertNeverThrows(feature, label, run) {
       assert(typeof quality?.ok === "boolean", `${feature}: 품질 판정이 boolean ok를 돌려주지 않음`);
     });
   }
-  assertBudget(feature, {
-    minChars: 10000,
-    maxChars: 20000,
-    maxOutputTokens: 33000,
-    tokenConstantName: "INITIAL_MAX_OUTPUT_TOKENS",
-    sourcePath: "worker/routes/vedic-ai.js",
-  });
+  // 베다도 이제 그룹을 나눠 병렬 생성한다 — 예산 단위는 "상담 전체"가 아니라 "그룹 하나"다.
+  const { VEDIC_SECTION_GROUPS, VEDIC_GROUP_MAX_OUTPUT_TOKENS, MIN_INITIAL_READING_CHARS } = __vedicAiTestUtils;
+  assert(Array.isArray(VEDIC_SECTION_GROUPS) && VEDIC_SECTION_GROUPS.length > 0, `${feature}: 그룹 정의가 없다`);
+  for (const group of VEDIC_SECTION_GROUPS) {
+    assertBudget(`${feature}:${group.key}`, {
+      minChars: group.minChars,
+      maxChars: group.maxChars,
+      maxOutputTokens: VEDIC_GROUP_MAX_OUTPUT_TOKENS,
+      tokenConstantName: "VEDIC_GROUP_MAX_OUTPUT_TOKENS",
+      sourcePath: "worker/routes/vedic-ai.js",
+    });
+  }
+  // 🔴 분량 판정은 읽기 섹션 4개의 body 만 센다. 근거 흐름 그룹은 합계에 들어가지 않으므로
+  //    요구 하한은 읽기 그룹만으로 채워져야 한다 — 근거 그룹을 세면 하한이 조용히 헐거워진다.
+  const readingMinTotal = VEDIC_SECTION_GROUPS
+    .filter((group) => group.sectionKeys.length > 0)
+    .reduce((sum, group) => sum + group.minChars, 0);
+  checks += 1;
+  assert(
+    readingMinTotal >= MIN_INITIAL_READING_CHARS,
+    `${feature}: 읽기 그룹 minChars 합 ${readingMinTotal} < 배달 하한 ${MIN_INITIAL_READING_CHARS}`,
+  );
 }
 
 // ── 3. 점성술 ─────────────────────────────────────────
@@ -451,6 +466,92 @@ for (const [feature, path, timeoutVar] of [
     assignment.test(source),
     `${feature}: ${timeoutVar} 할당이 clampSyncLlmTimeoutMs로 감싸여 있지 않다 — `
     + `엣지 ${SYNC_LLM_TIMEOUT_CEILING_MS}ms 한계를 넘기면 라우트가 실패 처리를 못 한 채 잘린다 (${path})`,
+  );
+}
+
+// ── 7. 신년운세 · 인생의 책: 섹션/챕터 예산 ─────────────────────────────────
+// 이 둘은 오랫동안 이 하네스 밖에 있었다. 예산 셋(분량 여유·토큰 여유·섹션 합계) 중 어느 것도
+// 지켜지지 않아도 초록불이었다는 뜻이다.
+{
+  const feature = "new-year";
+  const source = read("worker/routes/new-year-ai.js");
+  const { __newYearAiTestUtils } = await import("../worker/routes/new-year-ai.js");
+  const sections = __newYearAiTestUtils.NEW_YEAR_AI_SECTIONS;
+  assert(Array.isArray(sections) && sections.length > 0, `${feature}: 섹션 정의가 없다`);
+
+  const sectionTokens = Number((source.match(/const NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS = (\d+);/) || [])[1]);
+  for (const section of sections) {
+    assertBudget(`${feature}:${section.key}`, {
+      minChars: section.minChars,
+      maxChars: section.maxChars,
+      maxOutputTokens: sectionTokens,
+      tokenConstantName: "NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS",
+      sourcePath: "worker/routes/new-year-ai.js",
+    });
+  }
+  // 섹션 합이 전체 계약을 덮는지 — 섹션을 줄이다 전체 하한이 깨지는 회귀를 막는다.
+  const minTotal = Number((source.match(/const NEW_YEAR_AI_MIN_TOTAL_CHARS = (\d+);/) || [])[1]);
+  const maxTotal = Number((source.match(/const NEW_YEAR_AI_MAX_TOTAL_CHARS = (\d+);/) || [])[1]);
+  const sectionMinTotal = sections.reduce((sum, section) => sum + section.minChars, 0);
+  const sectionMaxTotal = sections.reduce((sum, section) => sum + section.maxChars, 0);
+  checks += 1;
+  assert(sectionMinTotal >= minTotal, `${feature}: 섹션 minChars 합 ${sectionMinTotal} < 전체 하한 ${minTotal}`);
+  checks += 1;
+  assert(sectionMaxTotal <= maxTotal, `${feature}: 섹션 maxChars 합 ${sectionMaxTotal} > 전체 상한 ${maxTotal}`);
+
+  // 🔴 섹션 하한이 오르면 폴백 문턱(minChars × 0.4)도 함께 오른다. 실측 폴백 분량(~1,700자)을
+  //    넘겨 버리면 폴백이 있으나 마나가 된다 — Gemini 장애 때 사용자가 받는 게 결과가 아니라 실패다.
+  const widestSectionMin = Math.max(...sections.map((section) => section.minChars));
+  checks += 1;
+  assert(
+    Math.round(widestSectionMin * 0.4) <= 1700,
+    `${feature}: 가장 큰 섹션 하한 ${widestSectionMin}자의 폴백 문턱 ${Math.round(widestSectionMin * 0.4)}자가 실측 폴백 분량(~1,700자)을 넘는다`,
+  );
+}
+{
+  const feature = "life-book";
+  const source = read("worker/routes/life-book-ai.js");
+  const num = (name) => Number((source.match(new RegExp(`const ${name} = (\\d+);`)) || [])[1]);
+  const chapterCount = num("LIFE_BOOK_EXPECTED_CHAPTER_COUNT");
+  const minChapter = num("LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS");
+  const minTotal = num("LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS");
+  const maxTotal = num("LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS");
+  checks += 1;
+  assert(chapterCount > 0 && minChapter > 0, `${feature}: 챕터 계약 상수를 못 읽었다`);
+  // 챕터 하한 합이 전체 하한을 덮어야 한다 — 안 그러면 전 챕터가 자기 하한을 채워도 전체가 미달이다.
+  checks += 1;
+  assert(
+    chapterCount * minChapter >= minTotal,
+    `${feature}: 챕터 하한 합 ${chapterCount * minChapter} < 전체 하한 ${minTotal}`,
+  );
+  // 챕터 하나의 토큰 상한이 챕터 상한(전체 상한 ÷ 챕터 수)을 완충까지 담는가.
+  const chapterMaxChars = Math.ceil(maxTotal / chapterCount);
+  const chapterTokens = Number((source.match(/chapter: Object\.freeze\(\{ minChars: LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS,[^}]*maxOutputTokens: (\d+)/) || [])[1]);
+  checks += 1;
+  assert(
+    Number.isFinite(chapterTokens) && charsAllowedByTokens(chapterTokens) >= chapterMaxChars,
+    `${feature}: 챕터 토큰 상한(${chapterTokens})이 챕터 상한 ${chapterMaxChars}자를 못 담는다`
+    + ` — ${tokensRequiredForChars(chapterMaxChars)} 이상으로 올려라`,
+  );
+}
+
+// ── 8. 단일 호출로 남아 있는 유료 라우트 ────────────────────────────────────
+// 이 둘은 아직 섹션 병렬이 아니다. 그래서 요구 하한을 한 호출이 실제로 채울 수 있는 크기
+// (모델은 6천자 근처에서 스스로 멈춘다) 위로 올리면 분량이 느는 게 아니라 실패·재시도만 는다.
+// 여기서 막는 것은 "섹션화 없이 하한만 올리는 변경"이다 — 섹션화하면 이 단언을 그때 함께 옮긴다.
+const SINGLE_CALL_FLOOR_CEILING = 6000;
+for (const [feature, path, constantName] of [
+  ["naming-prompt", "worker/routes/naming-prompt.js", "NAMING_MIN_TOTAL_CONTENT_CHARS"],
+  ["fortune-tea-house:saju", "worker/routes/fortune-tea-house.js", "SAJU_MIN_RESULT_CHARS"],
+  ["fortune-tea-house:tarot", "worker/routes/fortune-tea-house.js", "TAROT_MIN_RESULT_CHARS"],
+  ["fortune-tea-house:sukuyo", "worker/routes/fortune-tea-house.js", "SUKUYO_MIN_RESULT_CHARS"],
+]) {
+  const value = Number((read(path).match(new RegExp(`const ${constantName} = (\\d+);`)) || [])[1]);
+  checks += 1;
+  assert(
+    Number.isFinite(value) && value <= SINGLE_CALL_FLOOR_CEILING,
+    `${feature}: ${constantName} = ${value} 는 단일 호출이 채울 수 있는 한계(${SINGLE_CALL_FLOOR_CEILING}자)를 넘는다.`
+    + " 분량을 늘리려면 먼저 섹션 병렬로 쪼개라(astrology-ai.js · vedic-ai.js 패턴)",
   );
 }
 
@@ -778,7 +879,10 @@ const EXPECTED_LLM_CALL_SITES = {
   "worker/routes/karma-destiny-ai.js": 5, "worker/routes/life-book-ai.js": 1, "worker/routes/love-secret-ai.js": 2,
   "worker/routes/master-love-codex.js": 2, "worker/routes/nakshatra-ai.js": 1, "worker/routes/naming-prompt.js": 1,
   "worker/routes/neo-operation-room.js": 1, "worker/routes/new-year-ai.js": 2, "worker/routes/oracle.js": 1,
-  "worker/routes/pet-saju-ai.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 2,
+  // vedic 1건: 그룹 생성 하나로 웨이브 1(전 그룹 동시)·2(분량 미달)·3(품질 미달)이 모두 지나간다.
+  // 구 2건은 단일 호출 상담(callConsultationLlm)의 JSON/프로즈 두 갈래였고, 그룹 전환으로 사라졌다
+  // — 이 라우트에는 후속 질문 경로가 없어 프로즈 갈래는 호출자가 0이었다.
+  "worker/routes/pet-saju-ai.js": 1, "worker/routes/sukuyo-compatibility-ai.js": 4, "worker/routes/vedic-ai.js": 1,
   "worker/routes/yoga-guru.js": 1, "worker/routes/ziwei-ai.js": 3, "worker/routes/ziwei-deep-report.js": 1,
   "worker/routes/ziwei-island-ai.js": 1, "worker/lib/fusion-fortune.js": 1, "worker/lib/palm-vision.js": 2,
 };

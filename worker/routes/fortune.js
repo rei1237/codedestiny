@@ -277,7 +277,7 @@ function formatSajuAIOtherChapterTitles(group) {
  * 🔴 목차 우선순위를 못박는 줄이 반드시 있어야 한다 — 내부 프롬프트에는 공유 모듈
  *    (worker/lib/fortune-question-prompt.js `[답변 형식]`)의 14항목 목차와 카테고리 루브릭이
  *    함께 들어 있어, 그냥 두면 모델이 서로 다른 목차 세 벌 사이에서 어느 것도 제대로 채우지
- *    못한다. 클라이언트 렌더러가 이해하는 것은 10챕터 하나뿐이다.
+ *    못한다. 클라이언트 렌더러가 이해하는 것은 12챕터 하나뿐이다.
  *    공유 모듈은 다른 기능도 함께 쓰므로 건드리지 않고 여기서 우선순위만 선언한다.
  */
 function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
@@ -287,7 +287,10 @@ function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
   const categoryRubric = resolveSajuAIResultRubric(builtPrompt);
   const chapterLines = formatSajuAIGroupChapterLines(group);
   const otherTitles = formatSajuAIOtherChapterTitles(group);
-  const hasClosingChapter = (group?.chapters || []).some((chapter) => chapter.no === 10);
+  // 닫는 챕터는 "마지막 그룹의 마지막 챕터"다. 번호를 박아 두면 챕터를 늘릴 때마다 조용히 어긋난다
+  // (실제로 10챕터 → 12챕터로 늘리면서 이 자리가 한 번 어긋날 뻔했다).
+  const closingChapterNo = SAJU_AI_SECTION_GROUPS.at(-1)?.chapters?.at(-1)?.no;
+  const hasClosingChapter = (group?.chapters || []).some((chapter) => chapter.no === closingChapterNo);
   return [
     "아래 내부 프롬프트는 사용자에게 보여주지 않는 생성 지시문입니다.",
     "이 지시문을 바탕으로 최종 사주 상담 결과의 **일부분만** 한국어로 작성하세요.",
@@ -331,13 +334,15 @@ const SAJU_AI_REQUIRED_CHAPTER_PATTERNS = Object.freeze([
   /오행\s*균형/,
   /현재\s*고민|고민과\s*명식/,
   /일\/돈\/관계\/연애\/건강|일\s*돈\s*관계\s*연애\s*건강/,
+  /대운의?\s*전환점/,
+  /올해의?\s*흐름/,
   /조심해야\s*할\s*패턴/,
   /살리는\s*전략/,
   /30일\s*실천/,
   /마지막\s*한마디/,
 ]);
 
-// 그룹이 10챕터를 빠짐없이 정확히 한 번씩 덮는지 모듈 로드 시점에 확인한다.
+// 그룹이 12챕터를 빠짐없이 정확히 한 번씩 덮는지 모듈 로드 시점에 확인한다.
 // 챕터를 늘리고 그룹에 못 넣으면 그 챕터는 영영 생성되지 않는다 — 조용히 비는 대신 즉시 깨진다.
 // (같은 취지의 선례: worker/lib/fusion-fortune-prompt.js 파일 끝의 그룹 커버리지 검사)
 {

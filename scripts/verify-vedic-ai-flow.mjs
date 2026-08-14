@@ -73,7 +73,9 @@ const route = read("worker/routes/vedic-ai.js");
   "/ensure-access",
   "/start",
   "calculateVedicAiChart",
-  "callGeminiText",
+  // 첫 상담은 그룹별 구조화 JSON 이라 callGeminiJsonWithRetry 하나만 쓴다.
+  // (구 callGeminiText 갈래는 이 라우트에 없는 후속 질문 경로용이었고 호출자가 0이었다.)
+  "callGeminiJsonWithRetry",
   "[Vedic AI",
   "restorePrepaidAccessOnFailure",
   "birthTimeUnknown",
@@ -81,8 +83,11 @@ const route = read("worker/routes/vedic-ai.js");
   "focusArea",
   "requestId",
   "LLM Payment Guard Passed",
-  "MIN_INITIAL_READING_CHARS = 10000",
-  "MAX_INITIAL_READING_CHARS = 20000",
+  "MIN_INITIAL_READING_CHARS = 15000",
+  "MAX_INITIAL_READING_CHARS = 23000",
+  "VEDIC_SECTION_GROUPS",
+  "generateVedicGroup",
+  "mergeVedicGroupPayloads",
   "validateConsultationQuality",
   "maxTotalChars",
   "requireStructured: true",
@@ -100,14 +105,22 @@ const route = read("worker/routes/vedic-ai.js");
 
 // 토큰 상한은 요구 분량 상한 + 완충을 담을 수 있어야 한다. 특정 숫자를 고정하면 예산을 올릴 때마다
 // 이 가드가 먼저 깨져 낡은 값으로 되돌리게 만든다 — 최소 기준으로 단언한다(정본은 verify:llm-generation-resilience).
-const vedicTokenBudget = Number(/INITIAL_MAX_OUTPUT_TOKENS = (\d+)/.exec(route)?.[1] || 0);
+// 첫 상담은 그룹 단위로 나눠 생성하므로 예산 단위도 "그룹 하나"다(전체가 아니다).
+const vedicGroupMaxChars = Number(/VEDIC_READING_GROUP_MAX_CHARS = (\d+)/.exec(route)?.[1] || 0);
+const vedicTokenBudget = Number(/VEDIC_GROUP_MAX_OUTPUT_TOKENS = (\d+)/.exec(route)?.[1] || 0);
+const vedicTokensNeeded = Math.ceil((vedicGroupMaxChars + 1500) * 1.5);
 assert(
-  vedicTokenBudget >= 32250,
-  `[verify:vedic-ai-flow] INITIAL_MAX_OUTPUT_TOKENS too small: ${vedicTokenBudget} (need >= 32250 for 20,000 chars + headroom)`,
+  vedicGroupMaxChars > 0 && vedicTokenBudget >= vedicTokensNeeded,
+  `[verify:vedic-ai-flow] VEDIC_GROUP_MAX_OUTPUT_TOKENS too small: ${vedicTokenBudget} (need >= ${vedicTokensNeeded} for ${vedicGroupMaxChars} chars + headroom)`,
+);
+// 그룹을 나눈 이유가 사라지지 않도록 — 한 그룹이 한 번에 채울 수 있는 크기를 넘기면 안 된다.
+assert(
+  vedicGroupMaxChars <= 6000,
+  `[verify:vedic-ai-flow] VEDIC_READING_GROUP_MAX_CHARS ${vedicGroupMaxChars} is too large for one call (model stops near 6,000)`,
 );
 assertMissing(route, ["/api/vedic/ai-consultation", "/api/vedic/pdf", "premium_pdf_vedic", "create-job", "generateChapter"], "worker route");
 assertMissing(route, ["3,500~5,000자", "500~700자", "600~800자", "400~500자"], "worker route length contract");
-assertIncludes(route, "10,000~20,000자", "length range contract");
+assertIncludes(route, "이번 부분의 body 합산은 공백 제외", "per-group length contract");
 assertIncludes(route, "JSON에 없는 행성 위치, 하우스, 나크샤트라, 파다, 다샤 기간은 지어내지 않습니다", "result-only guard");
 
 const workerIndex = read("worker/index.js");
