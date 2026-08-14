@@ -20,6 +20,10 @@ const steps = [
   "scripts/fix-locale-html-lang.mjs",
   "scripts/prerender-locale-shell-translations.mjs",
   "scripts/verify-adsense-readiness.mjs",
+  // 🔴 반드시 verify-adsense-readiness **뒤**에 둘 것. 그 검증기는 dist/js 의 한국어 문구를
+  // 정규식으로 읽는 유일한 소비자라, 앞으로 옮기면 minify 된 산출물을 검사하게 된다.
+  // 소스(js/)와 미러(public/js/)는 건드리지 않는다 — 이유는 스크립트 머리말 참고.
+  "scripts/minify-dist-js.mjs",
 ];
 
 function wait(ms) {
