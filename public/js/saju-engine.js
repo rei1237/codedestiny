@@ -4873,20 +4873,30 @@ function validateSajuFormBeforeLogin() {
 
 async function checkPrivacyAndCalculate() {
   if (!validateSajuFormBeforeLogin()) return;
-  // 로그인 세션 확인 — 비로그인(게스트) 상태에서는 사주 계산 진입 차단
-  if (typeof window.__dpHasLoginSession === 'function' && !window.__dpHasLoginSession()) {
-    if (typeof window.__cdOpenLoginRequiredModal === 'function') {
-      window.__cdOpenLoginRequiredModal({ reason: 'login_required', redirectTo: window.location.pathname });
-    }
+  // 무료 사주 열람은 비로그인도 가능하다. 계산은 전부 클라이언트 사이드(lunar Solar)라
+  // 입력값이 브라우저를 떠나지 않으므로, 로그인 대신 개인정보 동의를 받는다.
+  // 저장(프로필 카드)과 유료 섹션은 그대로 로그인·결제를 요구한다.
+  var signedIn = typeof window.__dpHasLoginSession === 'function' && window.__dpHasLoginSession();
+  if (!signedIn && sessionStorage.getItem('privacyAgreed') !== 'true') {
+    openPrivacyModal();
     return;
   }
   sessionStorage.setItem('privacyAgreed', 'true');
   await startSajuCalculationFlow();
 }
 
+function openPrivacyModal() {
+  var modal = document.getElementById('privacy-modal-overlay');
+  if (!modal) return;
+  modal.classList.add('show');
+  modal.setAttribute('aria-hidden', 'false');
+}
+
 function closePrivacyModal() {
   var modal = document.getElementById('privacy-modal-overlay');
-  if (modal) modal.classList.remove('show');
+  if (!modal) return;
+  modal.classList.remove('show');
+  modal.setAttribute('aria-hidden', 'true');
 }
 
 async function agreeAndCalculate() {
@@ -4897,6 +4907,9 @@ async function agreeAndCalculate() {
 
 async function startSajuCalculationFlow() {
   if (!validateSajuFormBeforeLogin()) return;
+  if (typeof window.cdTrack === 'function') {
+    window.cdTrack('free_saju_started', { signed_in: !!(typeof window.__dpHasLoginSession === 'function' && window.__dpHasLoginSession()) });
+  }
   if(typeof Solar==='undefined'||typeof Solar.fromYmdHms!=='function'){
     setSajuFormStatus('사주 계산 엔진을 불러오는 중입니다. 잠시만 기다려 주세요.', 'info');
     __pendingAutoBirthSnapshot = _captureBirthFormSnapshot();
@@ -5439,6 +5452,9 @@ async function calculate(){
     var btnNewSajuEl = document.getElementById('btnNewSaju');
     if (inputPageEl) inputPageEl.style.display = 'none';
     if (resultPageEl) resultPageEl.style.display = 'block';
+    if (typeof window.cdTrack === 'function') {
+      window.cdTrack('free_saju_completed', { signed_in: !!(typeof window.__dpHasLoginSession === 'function' && window.__dpHasLoginSession()) });
+    }
     // 오버레이 닫기는 startSajuCalculationFlow의 Promise.all에서 처리
     if (letterBoxEl) letterBoxEl.style.display = 'block';
     if (emailSubBoxEl) emailSubBoxEl.style.display = 'block';

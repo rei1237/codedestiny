@@ -393,6 +393,16 @@
         dwellMs: Math.max(0, Math.floor(Number((payload && payload.dwellMs) || 0))),
         runtime: shouldUseAppStoreEntry() ? "app" : "web",
       });
+      // 같은 이벤트를 GA4 로도 흘려보낸다. 1st-party 적재(위 fetch)는 읽는 경로가 아직 없어
+      // 퍼널을 눈으로 볼 수 없었다. cdTrack 은 측정 ID 가 없으면 no-op 이고 내부에서 삼킨다.
+      var trackWin = runtimeWindow();
+      if (trackWin && typeof trackWin.cdTrack === "function") {
+        trackWin.cdTrack(eventName, {
+          feature_key: text(payload && payload.featureKey),
+          option: text(payload && payload.option),
+          coin_price: Math.max(0, Math.floor(Number((payload && payload.coinPrice) || 0))),
+        });
+      }
       void fetch(funnelEndpoint(), {
         method: "POST",
         body: body,
