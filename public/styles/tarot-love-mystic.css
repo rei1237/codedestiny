@@ -243,8 +243,12 @@
 }
 
 /* Close button */
+/* z-index 필수: .tarot-love-hero 가 position:relative 인데 DOM 상 이 버튼보다 뒤에 온다.
+   둘 다 z-index:auto 면 트리 순서가 이겨 히어로가 닫기 버튼 위에 그려지고,
+   모바일(≤480px)에선 48px 중 세로 38px·가로 42px 가 덮여 상단 얇은 띠만 눌린다. */
 .tarot-love-close {
   position: absolute;
+  z-index: 2;
   top: 14px;
   right: 14px;
   width: 44px;

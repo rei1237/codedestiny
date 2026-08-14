@@ -202,6 +202,123 @@ try {
   const restoredFortunesState = await evaluate(cdp, "({ currentCollection: window.cdMobileCollectionFullscreen?.getCurrent?.() || null, overlayOpen: !!window.cdMobileCollectionFullscreen?.isOpen?.() })", "restored all-fortunes state");
   assert(restoredFortunesState.overlayOpen && restoredFortunesState.currentCollection === "miscCollection", "reopening all-fortunes preserves its selected collection", restoredFortunesState);
 
+  // ── 상세 팝업 → 진입 버튼 구간 ──────────────────────────────────────────────
+  // 여기가 비어 있어서 "카드는 눌리는데 진입 버튼을 누르면 화면이 프리징"을 놓쳤다.
+  // 상세 팝업은 열릴 때 body 자식 전체에 inert 를 걸고 닫을 때 되돌리는데, 열려 있는 채로
+  // _open 이 재진입하면(가격 조회 완료, touchend+pointerup 이중 발화) 이미 true 인 값을
+  // "원래값"으로 다시 스냅샷해 닫는 순간 배경이 inert 로 고착됐다. 화면은 보이고 스크롤도
+  // 되는데 아무것도 안 눌리는 상태라 육안·기존 단언 모두 통과했다.
+  await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
+  await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"fortunes\"]");
+  await delay(700);
+  await tapSelector(cdp, '.cd-fov__cat[data-collection-id="tarotCollection"]');
+  await delay(450);
+
+  const GATED_TILE = '.tarot-tile[data-feature-key="tarot-love-relationship"]';
+  const inertProbe = `(() => {
+    const ov = document.getElementById('tilePvwOverlay');
+    const stuck = Array.prototype.slice.call(document.body.children)
+      .filter((n) => n.inert && n.id !== 'cdMobileBottomNav')
+      .map((n) => n.id || n.className || n.tagName);
+    return {
+      sheetOpen: !!(ov && ov.classList.contains('pvw-open')),
+      sheetAriaHidden: ov ? ov.getAttribute('aria-hidden') : null,
+      wrapInert: !!(document.querySelector('.wrap') || {}).inert,
+      stuckInert: stuck
+    };
+  })()`;
+
+  await waitForSelector(cdp, GATED_TILE);
+  await tapSelector(cdp, GATED_TILE);
+  await delay(500);
+  const afterTileTap = await evaluate(cdp, inertProbe, "after gated fortune tile tap");
+  assert(afterTileTap.sheetOpen, "tapping a gated fortune tile opens the detail sheet", afterTileTap);
+
+  // 가격 조회가 끝나면서 _open 이 재진입하는 구간. 여기를 지나야 회귀가 재현된다.
+  await delay(1800);
+  await tapSelector(cdp, "#tilePvwClose");
+  await delay(600);
+  const afterSheetClose = await evaluate(cdp, inertProbe, "after detail sheet close");
+  assert(!afterSheetClose.sheetOpen, "the detail sheet closes on its ✕", afterSheetClose);
+  assert(!afterSheetClose.wrapInert && afterSheetClose.stuckInert.length === 0, "closing the detail sheet leaves no inert body child", afterSheetClose);
+
+  // 상세 팝업 ✕ 는 pointerup 에서 시트를 닫는다. 그 뒤 touchend 의 좌표 기반 컬렉션 토글 조회가
+  // 시트가 사라진 자리의 컬렉션 헤더를 집으면, 닫기 한 번에 컬렉션이 접히고 카드가 전부 사라진다.
+  const postCloseState = await evaluate(cdp, `(() => {
+    const api = window.cdMobileCollectionFullscreen;
+    const coll = document.getElementById('tarotCollection');
+    const ov = document.getElementById('cdMobileFortuneOverview');
+    return {
+      overlayOpen: !!api?.isOpen?.(),
+      current: api?.getCurrent?.() || null,
+      overviewOpen: !!(ov && ov.classList.contains('is-open')),
+      collInDom: !!coll,
+      collOpenAttr: coll ? coll.getAttribute('data-collection-open') : null,
+      collFullscreen: coll ? coll.classList.contains('cd-mobile-collection-fullscreen') : null,
+      collDisplay: coll ? getComputedStyle(coll).display : null,
+      tiles: coll ? coll.querySelectorAll('.tarot-tile').length : -1,
+      placeholders: coll ? coll.querySelectorAll('.cd-mobile-card-placeholder').length : -1
+    };
+  })()`, "post sheet-close collection state");
+  assert(
+    postCloseState.overlayOpen && postCloseState.collOpenAttr === "true" && postCloseState.tiles > 0,
+    "closing the detail sheet keeps the fortune collection open with its cards",
+    postCloseState,
+  );
+
+  // 진입 버튼(CTA) 경로 — _onCta 는 _close() 를 먼저 부르고 타일을 다시 클릭한다.
+  await delay(700);
+  await waitForSelector(cdp, GATED_TILE);
+  await tapSelector(cdp, GATED_TILE);
+  await delay(2000);
+  await tapSelector(cdp, "#tilePvwCtaBtn");
+  await delay(900);
+  const afterCtaEntry = await evaluate(cdp, inertProbe, "after detail sheet CTA entry");
+  assert(!afterCtaEntry.wrapInert && afterCtaEntry.stuckInert.length === 0, "entering a feature from the detail sheet leaves the page interactive", afterCtaEntry);
+
+  // 기능적 증명: 배경이 살아 있어야 모든 운세 ✕ 가 실제로 먹는다.
+  const closeStillWorks = await evaluate(cdp, `(() => {
+    const btn = document.querySelector('.cd-mobile-collection-close');
+    if (!btn) return { present: false };
+    const r = btn.getBoundingClientRect();
+    const top = document.elementFromPoint(Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2));
+    return {
+      present: true,
+      hits: !!(top && top.closest('.cd-mobile-collection-close')),
+      topEl: top ? (top.id || top.className || top.tagName) : null
+    };
+  })()`, "all-fortunes close reachability after feature entry");
+  assert(!closeStillWorks.present || closeStillWorks.hits, "the all-fortunes ✕ stays tappable after entering a feature", closeStillWorks);
+
+  // "우리는 무슨 사이?" 닫기 버튼 — .tarot-love-hero 가 position:relative 로 DOM 상 뒤에 와서
+  // 둘 다 z-index:auto 면 히어로가 버튼 위에 그려진다(모바일에서 48px 중 38px 가 덮였다).
+  const tarotLoveClose = await evaluate(cdp, `(() => {
+    document.querySelectorAll('link[rel="stylesheet"][media="print"]').forEach((l) => { l.media = 'all'; });
+    const ov = document.getElementById('tarotLoveOverlay');
+    if (!ov) return { present: false };
+    ov.style.display = 'block';
+    ov.classList.add('is-open');
+    const btn = ov.querySelector('.tarot-love-close');
+    if (!btn) return { present: true, button: false };
+    const r = btn.getBoundingClientRect();
+    const cx = Math.round(r.left + r.width / 2);
+    const cy = Math.round(r.top + r.height / 2);
+    const top = document.elementFromPoint(cx, cy);
+    return {
+      present: true,
+      button: true,
+      width: Math.round(r.width),
+      height: Math.round(r.height),
+      hits: !!(top && top.closest('.tarot-love-close')),
+      topEl: top ? (top.className || top.tagName) : null
+    };
+  })()`, "tarot love close hit test");
+  assert(
+    !tarotLoveClose.present || !tarotLoveClose.button || tarotLoveClose.hits,
+    "the 우리는 무슨 사이? close button is not covered by its hero",
+    tarotLoveClose,
+  );
+
   if (!focusAllFortunes) {
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
@@ -712,6 +829,22 @@ async function evaluate(cdp, expression, label = "Runtime.evaluate") {
     throw new Error(`${label}: ${result.exceptionDetails.text || "Runtime evaluation failed"}`);
   }
   return result.result.value;
+}
+
+// 모바일 컬렉션 카드는 자리표시자 → 실제 카드로 지연 마운트된다. 마운트 순간을 놓치면
+// querySelector 가 null 을 돌려주므로, 탭 전에 실제로 붙을 때까지 기다린다.
+async function waitForSelector(cdp, selector, timeoutMs) {
+  const deadline = Date.now() + (typeof timeoutMs === "number" ? timeoutMs : 10000);
+  let box = null;
+  for (;;) {
+    box = await evaluate(cdp, selectorBoxExpression(selector), `wait for ${selector}`);
+    if (box.exists && box.visible) return box;
+    if (Date.now() > deadline) {
+      throw new Error(`Timed out waiting for selector: ${selector} ${JSON.stringify(box)}`);
+    }
+    await evaluate(cdp, scrollSelectorIntoViewExpression(selector), `nudge ${selector}`);
+    await delay(200);
+  }
 }
 
 async function tapSelector(cdp, selector) {
