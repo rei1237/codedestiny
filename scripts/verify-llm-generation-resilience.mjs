@@ -302,9 +302,37 @@ function assertNeverThrows(feature, label, run) {
       assert(typeof result?.ok === "boolean", `${feature}: 검증 결과가 boolean ok를 돌려주지 않음`);
     });
   }
-  // 사주는 자유 텍스트라 요구 상한이 없다. 토큰 예산만 최소 분량 기준으로 확인한다.
+  // 🔴 예전에는 `charsAllowedByTokens(20000) >= 10000` 이었다. 20000 은 하네스에만 있던 숫자라
+  // 라우트를 한 줄도 읽지 않았고, 실제 값이 10,000 으로 내려간 뒤에도 계속 초록불이었다.
+  // 사주도 이제 그룹을 나눠 병렬 생성하므로 예산 단위는 "상담 전체"가 아니라 "그룹 하나"다.
+  const { SAJU_AI_SECTION_GROUPS, SAJU_AI_SECTION_MAX_OUTPUT_TOKENS, SAJU_AI_MIN_RESULT_CHARS } =
+    await import("../worker/lib/saju-ai-prompt.js");
+  assert(Array.isArray(SAJU_AI_SECTION_GROUPS) && SAJU_AI_SECTION_GROUPS.length > 0, `${feature}: 섹션 그룹 정의가 없다`);
+  for (const group of SAJU_AI_SECTION_GROUPS) {
+    assertBudget(`${feature}:${group.key}`, {
+      minChars: group.minChars,
+      maxChars: group.maxChars,
+      maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
+      tokenConstantName: "SAJU_AI_SECTION_MAX_OUTPUT_TOKENS",
+      sourcePath: "worker/lib/saju-ai-prompt.js",
+    });
+  }
+  // 그룹 합이 배달 하한을 덮는지 — 그룹을 줄이다 하한이 깨지는 회귀를 막는다.
+  const sectionMinTotal = SAJU_AI_SECTION_GROUPS.reduce((sum, group) => sum + group.minChars, 0);
   checks += 1;
-  assert(charsAllowedByTokens(20000) >= 10000, `${feature}: 토큰 상한이 상담 최소 분량도 못 담는다`);
+  assert(
+    sectionMinTotal >= SAJU_AI_MIN_RESULT_CHARS,
+    `${feature}: 그룹 minChars 합 ${sectionMinTotal} < 배달 하한 ${SAJU_AI_MIN_RESULT_CHARS}`,
+  );
+  // 웨이브2는 웨이브1보다 짧은 예산에서 도는데도 그룹 하한은 채워야 한다.
+  const sajuRouteSource = read("worker/routes/fortune.js");
+  const repairTokens = Number((sajuRouteSource.match(/const SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS = (\d+);/) || [])[1]);
+  const widestMin = Math.max(...SAJU_AI_SECTION_GROUPS.map((group) => group.minChars));
+  checks += 1;
+  assert(
+    Number.isFinite(repairTokens) && charsAllowedByTokens(repairTokens) >= widestMin,
+    `${feature}: 웨이브2 토큰 상한(${repairTokens})이 가장 큰 그룹 하한 ${widestMin}자를 못 담는다`,
+  );
 }
 
 // ── 6. 운명의 지도 심층 리포트 ─────────────────────────
@@ -544,17 +572,40 @@ for (const [feature, path, timeoutVar] of [
   );
 
   // 폴백을 켠 유료 라우트는 fallbackMinChars를 함께 줘야 짧은 스텁이 상품 결과로 나가지 않는다(CLAUDE.md).
+  //
+  // 🔴 예전에는 상수 이름(`fallbackMinChars: FEATURE_AI_FALLBACK_MIN_CHARS`)의 등장 횟수를 셌다.
+  // 그러면 사주처럼 그룹별 문턱(minChars × 0.4)을 쓰는 경로가 규칙을 지키는데도 실패하고, 반대로
+  // 상수를 주석에만 적어 둬도 통과한다. 이름이 아니라 **호출 하나하나**를 중괄호 균형으로 잘라 연다.
+  // 규칙은 하나다 — 폴백을 끄거나, 분량 문턱을 주거나. 둘 다 없는 호출은 없어야 한다.
+  const geminiCallSites = [];
+  for (const match of source.matchAll(/callGeminiText\(env,/g)) {
+    // 옵션 객체는 3번째 인자다. 인자 목록 여는 괄호부터 균형을 세어 그 안의 마지막 { } 블록을 잡는다.
+    let depth = 0;
+    let argsEnd = -1;
+    const argsStart = source.indexOf("(", match.index);
+    for (let cursor = argsStart; cursor < source.length; cursor += 1) {
+      const char = source[cursor];
+      if (char === "(") depth += 1;
+      else if (char === ")") {
+        depth -= 1;
+        if (depth === 0) { argsEnd = cursor; break; }
+      }
+    }
+    if (argsEnd > argsStart) geminiCallSites.push(source.slice(argsStart, argsEnd + 1));
+  }
   checks += 1;
   assert(
-    (source.match(/fallbackMinChars: FEATURE_AI_FALLBACK_MIN_CHARS/g) || []).length >= 2,
-    `${feature}: 풀 생성 경로에 fallbackMinChars가 빠졌다 — Workers AI 스텁이 유료 결과로 전달된다`,
+    geminiCallSites.length >= 3,
+    `${feature}: callGeminiText 호출부를 ${geminiCallSites.length}개밖에 못 잘랐다 — 스캐너가 소스와 어긋났다`,
   );
-  // 이어쓰기 repair는 분량 문턱을 정할 수 없고 예산이 가장 얇은 구간이라 무제한 폴백을 감당할 수 없다.
-  checks += 1;
-  assert(
-    (source.match(/fallbackToWorkersAI: false/g) || []).length >= 2,
-    `${feature}: repair 호출에 fallbackToWorkersAI: false가 빠졌다 — 폴백이 예산 밖으로 넘어간다`,
-  );
+  for (const [index, callSite] of geminiCallSites.entries()) {
+    checks += 1;
+    assert(
+      /fallbackToWorkersAI:\s*false/.test(callSite) || /fallbackMinChars:/.test(callSite),
+      `${feature}: callGeminiText 호출 #${index + 1}에 fallbackMinChars도 fallbackToWorkersAI:false도 없다`
+      + ` — Workers AI 스텁이 유료 결과로 전달된다`,
+    );
+  }
 
   // 결제 증거 재사용이 켜진 뒤로는, 환불된 차감을 걸러 내는 이 검사가 유일한 "무료 재생성" 차단선이다.
   checks += 1;
@@ -721,7 +772,9 @@ for (const [path, anchor, reason] of GATE_EXEMPT) {
 const EXPECTED_LLM_CALL_SITES = {
   "worker/routes/admin.js": 1, "worker/routes/animal-totem.js": 1, "worker/routes/astrology-ai.js": 4,
   "worker/routes/celestial-harmony.js": 1, "worker/routes/destiny-compass-ai.js": 1, "worker/routes/destiny-compass.js": 1,
-  "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 2, "worker/routes/fortune.js": 4,
+  // fortune.js 3건: 사주 그룹 생성(웨이브1·2가 같은 호출부를 공유) + 형제 4종 공용 풀 생성 + 그 이어쓰기 repair.
+  // 사주의 전용 이어쓰기 repair 호출은 그룹 재생성으로 대체되며 사라졌다(4 → 3).
+  "worker/routes/dream.js": 0, "worker/routes/fortune-tea-house.js": 2, "worker/routes/fortune.js": 3,
   "worker/routes/karma-destiny-ai.js": 5, "worker/routes/life-book-ai.js": 1, "worker/routes/love-secret-ai.js": 2,
   "worker/routes/master-love-codex.js": 2, "worker/routes/nakshatra-ai.js": 1, "worker/routes/naming-prompt.js": 1,
   "worker/routes/neo-operation-room.js": 1, "worker/routes/new-year-ai.js": 2, "worker/routes/oracle.js": 1,
