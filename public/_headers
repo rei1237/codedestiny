@@ -192,45 +192,13 @@
   Pragma: no-cache
   Expires: 0
 
-/*/index.html
-  Content-Type: text/html; charset=utf-8
-  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Pragma: no-cache
-  Expires: 0
-
-/*/*/
-  Content-Type: text/html; charset=utf-8
-  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Pragma: no-cache
-  Expires: 0
-
-/*/*/index.html
-  Content-Type: text/html; charset=utf-8
-  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Pragma: no-cache
-  Expires: 0
-
-/*/*/*/
-  Content-Type: text/html; charset=utf-8
-  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Pragma: no-cache
-  Expires: 0
-
-/*/*/*/index.html
-  Content-Type: text/html; charset=utf-8
-  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Pragma: no-cache
-  Expires: 0
+# 🔴 `/*/index.html`·`/*/*/`·`/*/*/index.html`·`/*/*/*/`·`/*/*/*/index.html` 5개를 지웠다
+# (2026-08-14). Cloudflare 의 splat 은 **슬래시를 건너뛴다** — 이 파일 아래쪽 `_next/static`
+# 주석에 실측이 남아 있다: `/*.js` 가 `/_next/static/chunks/2474.hash.js` 에 매칭됐다(슬래시 3개).
+# 따라서 위 5개는 전부 바로 위 `/*.html` 과 `/*/` 에 이미 덮이고, 헤더 블록도 바이트 동일했다.
+# 지운 이유는 정리가 아니라 **예산**이다. 규칙이 정확히 100개(= Cloudflare 적용 상한)에 닿아
+# 있어서 새 규칙을 하나도 못 넣는 상태였다. 위 `/static` 통합과 같은 이유다.
+# 회수한 5칸 중 1칸을 `/js/shell/*` immutable 에 쓰고 4칸은 여유로 남긴다.
 
 # `/static`·`/static/`·`/static/index.html` 세 규칙을 하나로 합쳤다 — 규칙 100개 예산을 벌어
 # `_next/static` 을 앞으로 옮기면서 다른 규칙이 밀려나지 않게 하기 위함이다. `/static` 으로
@@ -328,6 +296,17 @@
   Cache-Control: public, max-age=604800, stale-while-revalidate=2592000
   CDN-Cache-Control: public, max-age=604800
   Cloudflare-CDN-Cache-Control: public, max-age=604800
+
+# 🔴 이 블록은 반드시 위 `/js/*.js` **뒤**에 있어야 한다. 둘 다 매칭되고 같은 헤더는 뒤가 이긴다.
+# `/js/shell/s-<sha256 16자>.js` 는 scripts/externalize-dist-inline-scripts.mjs 가 셸의 인라인
+# 스크립트 본문을 해시해서 만든 파일이다 — **파일명 자체가 내용 해시**라 내용이 바뀌면 이름이
+# 바뀐다. 위 주석이 `/js/*.js` 를 immutable 로 못 올린다고 한 이유(무버전 참조 11곳)는 이 경로엔
+# 해당하지 않는다. 이 디렉터리에는 빌드가 만든 해시 파일만 들어간다.
+# 프로덕션 Lighthouse 가 이 파일들을 "캐시 수명 7일" 로 지적했고, 그게 `/js/*.js` 적용 결과였다.
+/js/shell/*
+  Cache-Control: public, max-age=31536000, immutable
+  CDN-Cache-Control: public, max-age=31536000, immutable
+  Cloudflare-CDN-Cache-Control: public, max-age=31536000, immutable
 
 /lib/*.js
   Cache-Control: public, max-age=604800, stale-while-revalidate=2592000

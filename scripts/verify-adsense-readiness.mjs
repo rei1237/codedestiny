@@ -1111,9 +1111,29 @@ function headersRuleCovers(rulePath, pattern) {
   return pattern.startsWith(rulePath.slice(0, -1));
 }
 
+/**
+ * 🔴 Cloudflare Pages 는 `_headers` 규칙을 **100개까지만** 적용하고 나머지를 조용히 버린다.
+ *
+ * 이 상한을 지키는 검사가 그동안 하나도 없었다. 2026-08-08 에 133개 중 33개가 버려져
+ * `/_next/static/*` 의 immutable 이 통째로 죽어 있었고(위 headersRuleCovers 주석 참고),
+ * 2026-08-14 에는 정확히 100개에 닿아 새 규칙을 하나도 넣을 수 없는 상태였다.
+ * 조용히 깨지는 종류의 실패라 규칙을 세는 것만으로 막을 수 있다.
+ */
+const CLOUDFLARE_HEADERS_RULE_LIMIT = 100;
+
+function verifyHeadersRuleBudget(headersPath) {
+  const rules = parseHeadersRules(readRequired(headersPath));
+  assert(
+    rules.length <= CLOUDFLARE_HEADERS_RULE_LIMIT,
+    `${headersPath}: _headers 규칙이 ${rules.length}개로 Cloudflare Pages 상한 ${CLOUDFLARE_HEADERS_RULE_LIMIT}개를 넘는다. `
+      + `초과분은 배포 시 조용히 버려진다 — 중복 규칙을 합쳐 예산을 확보할 것.`
+  );
+}
+
 function verifyXRobotsNoindexHeaders(headersPath) {
   const headersText = readRequired(headersPath);
   const rules = parseHeadersRules(headersText);
+  verifyHeadersRuleBudget(headersPath);
   for (const pattern of xRobotsNoindexHeaderPatterns) {
     const policyPath = pattern.endsWith("/*") ? pattern.slice(0, -2) : pattern;
     assert(!canLoadAdsense(policyPath), `${policyPath}: X-Robots noindex route must not load AdSense`);
