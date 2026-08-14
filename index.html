@@ -16052,6 +16052,14 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         var p = stripLocale(String(path || '/').replace(/\/+$/, '') || '/');
         return (p === '/index.html' || p === '/index') ? '/' : p;
       }
+      // 사주 결과(#resultPage)는 URL 을 바꾸지 않고 #inputPage 와 자리를 맞바꾼다. 그래서 아래
+      // urlTabKey() 는 결과 화면에서도 'home' 을 돌려준다 — 화면 상태는 URL 로 알 수 없다.
+      function sajuResultOpen(){
+        var el = document.getElementById('resultPage');
+        if (!el || !document.documentElement.contains(el)) return false;
+        try { return window.getComputedStyle(el).display !== 'none'; }
+        catch (_) { return el.style.display === 'block'; }
+      }
       function readStoredKey(){
         try {
           var saved = String(window.sessionStorage.getItem(TAB_STATE_KEY) || '');
@@ -16213,10 +16221,29 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           // 다른 셸 인페이지 동작은 기존 전역 위임을 그대로 사용한다.
           if (shellAction && event.cancelable) event.preventDefault();
 
+          // 홈 탭: 사주 결과가 열려 있으면 그것부터 닫는다. 결과는 URL 을 바꾸지 않아 아래 "이미 홈"
+          // 분기가 그대로 걸리는데, 그러면 앵커 이동이 취소된 채 스크롤만 올라가 홈 탭이 아무 일도
+          // 하지 않는 것처럼 보였다(모바일에서는 데스크탑용 .result-home-shortcut 이 숨겨져 있어
+          // 누를 수 있는 홈이 이 탭 하나뿐이다). 데스크탑 홈 버튼과 같은 resetApp 을 쓰므로 동작이
+          // 갈라지지 않고, 셸 재로드도 없다. resetApp 이 아직 없으면(사주 체인이 saju-engine.js 와
+          // continuation 사이에서 끊긴 경우) 아래 "이미 홈" 분기도 함께 비켜가 href="/" 문서 이동에
+          // 맡긴다 — 느려도 홈에는 도착한다. 두 분기 중 하나만 비키면 탭이 그대로 삼켜진다.
+          if (navKey === 'home' && !shellAction && sajuResultOpen() && typeof window.resetApp === 'function') {
+            if (event.cancelable) event.preventDefault();
+            window.resetApp();
+            setActive(navKey);
+            schedule();
+            window.setTimeout(schedule, 180);
+            return;
+          }
+
           // 홈 탭: 이미 홈이면 재적재 대신 최상단으로 올린다.
           // pathname 비교도 urlTabKey()와 같은 정규화를 거쳐야 한다 — '/index.html'에서도 "이미 홈"으로
           // 판정돼야 문서 이동(=전체 재로드)이 아니라 스크롤로 끝난다.
-          if (navKey === 'home' && !shellAction && urlTabKey() === 'home' && normalizeShellPath(location.pathname) === '/') {
+          // 🔴 sajuResultOpen() 예외를 빼지 말 것 — 결과 화면은 URL 이 홈과 같아서 여기 걸리는데,
+          //    그러면 이동이 취소된 채 스크롤만 올라가 홈 탭이 무반응이 된다. 위 분기가 못 받은
+          //    경우(resetApp 부재)는 여기서도 비켜 앵커 이동으로 넘겨야 사용자가 홈에 도착한다.
+          if (navKey === 'home' && !shellAction && !sajuResultOpen() && urlTabKey() === 'home' && normalizeShellPath(location.pathname) === '/') {
             if (event.cancelable) event.preventDefault();
             try { window.scrollTo({ top: 0, behavior: 'smooth' }); } catch (_) { window.scrollTo(0, 0); }
           }
@@ -22257,7 +22284,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-d79525f51b08" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-8c683c6dc4da" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-d79525f51b08" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-d79525f51b08" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
