@@ -29,6 +29,12 @@ const TAROT_GENERIC_COPY_PATTERN = /긍정적으로 생각|대화가 중요|마�
 const TAROT_DETERMINISTIC_CLAIM_PATTERN = /반드시.*사랑|상대는 반드시|재회됩니다|절대 안 됩니다|계속 연락|포기하지 말고 계속/i;
 const SAJU_MIN_RESULT_CHARS = 6000;
 const SAJU_TARGET_RESULT_CHARS = 8000;
+// 🔴 이 세 하한은 **단일 호출** 결과에 걸린다(3697행의 attempt 루프 하나가 전부를 만든다).
+//    모델은 한 호출에서 6천자 근처면 스스로 멈추므로, 하한만 올리면 분량이 느는 게 아니라
+//    재시도가 늘고 끝내 결정론 degrade 로 빠진다. 분량을 실제로 늘리려면 먼저 섹션 병렬로
+//    쪼개야 한다(정본 패턴: worker/routes/astrology-ai.js, worker/routes/vedic-ai.js).
+//    또 하나 — 타로/사주 하한은 카테고리 규칙(175~345행 minChars)이 이 상수를 덮어쓴다.
+//    여기만 고치면 대부분의 경로에서 아무 일도 일어나지 않는다.
 const TAROT_MIN_RESULT_CHARS = 3200;
 const TAROT_FIVE_CARD_EXTRA_CHARS = 1200;
 // 카드 한 장당 detail(핵심의미·현재상황·질문연결·조언·주의) 합계 하한(공백 제외).

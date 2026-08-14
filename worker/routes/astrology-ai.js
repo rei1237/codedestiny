@@ -42,8 +42,8 @@ const CALCULATION_ERROR_MESSAGE = "점성술 차트 계산 중 문제가 발생�
 const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습니다. 결제 금액은 차감되지 않았습니다.";
 const LLM_ERROR_MESSAGE = "전문가 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
 const RESULT_NOT_FOUND_MESSAGE = "저장된 점성술 상담 결과를 찾지 못했습니다. 로그인 상태와 결과 링크를 다시 확인해 주세요.";
-const ASTROLOGY_AI_MIN_RESULT_CHARS = 10000;
-const ASTROLOGY_AI_MAX_RESULT_CHARS = 20000;
+const ASTROLOGY_AI_MIN_RESULT_CHARS = 15000;
+const ASTROLOGY_AI_MAX_RESULT_CHARS = 26000;
 const ASTROLOGY_AI_MIN_FOLLOWUP_CHARS = 80;
 const ASTROLOGY_AI_SANITIZE_MAX_CHARS = 70000;
 const ASTROLOGY_AI_MIN_EXPERT_PARTS = 5;
@@ -887,11 +887,15 @@ function buildSystemPrompt() {
  *    초안 전체를 다시 입력에 넣고 처음부터 다시 쓰는 expand 호출이 상시 발동했다
  *    (출력이 2~3배). 섹션당 목표를 모델이 한 번에 채우는 크기로 낮추면 그 고리가 사라진다.
  *
- * minChars 합계 10,800 ≥ ASTROLOGY_AI_MIN_RESULT_CHARS(10,000),
- * maxChars 합계 17,200 ≤ ASTROLOGY_AI_MAX_RESULT_CHARS(20,000) 로 잡아
+ * minChars 합계 16,200 ≥ ASTROLOGY_AI_MIN_RESULT_CHARS(15,000),
+ * maxChars 합계 25,800 ≤ ASTROLOGY_AI_MAX_RESULT_CHARS(26,000) 로 잡아
  * 조립 결과가 기존 품질 게이트를 그대로 통과하게 한다.
  * expertParts 는 ASTROLOGY_EXPERT_PARTS 를 빠짐없이 덮고(6/6),
- * reasoningKeys 는 다섯 흐름을 순서대로 나눠 갖는다.
+ * reasoningKeys 는 다섯 흐름을 앞의 네 섹션이 순서대로 나눠 갖는다.
+ *
+ * 🔴 분량을 늘릴 때는 섹션의 minChars/maxChars 가 아니라 **섹션 수**를 늘린다.
+ *    위 실패 모드가 정확히 "한 호출에 큰 목표를 주면 모델이 스스로 멈춘다" 이기 때문이다.
+ *    뒤의 두 섹션(관계 패턴·1년 전망)이 그렇게 더해졌다 — 앞 네 섹션은 손대지 않았다.
  */
 const ASTROLOGY_SECTIONS = Object.freeze([
   {
@@ -929,6 +933,24 @@ const ASTROLOGY_SECTIONS = Object.freeze([
     reasoningKeys: ["action_plan"],
     expertParts: ["houses_timing", "topic_practice"],
     guide: "하우스 또는 현재 트랜짓이 주는 시기감을 짚고, 상담 주제에 맞는 선택 기준과 실천 루틴으로 좁혀 주세요. 마무리는 오늘 바로 해볼 수 있는 작은 행동과 2주 안에 점검할 선택 기준으로 닫아 주세요.",
+  },
+  {
+    key: "relationship_patterns",
+    label: "관계에서 반복되는 패턴과 그 안에서 내가 맡는 역할",
+    minChars: 2600,
+    maxChars: 4200,
+    reasoningKeys: [],
+    expertParts: [],
+    guide: "금성·화성·달과 (출생시간이 있으면) 7하우스를 근거로, 이 사람이 관계에서 반복적으로 놓이는 자리와 그때 스스로 맡게 되는 역할을 풀어 주세요. 끌리는 상대의 유형, 가까워질 때 나오는 습관, 멀어질 때 먼저 무너지는 지점을 각각 다른 장면으로 보여 주세요. 앞선 부분에서 이미 다룬 '수성·금성·화성의 생활 패턴'을 다시 설명하지 말고, 그 기질이 **타인과 맞물릴 때** 무엇이 달라지는지에만 집중하세요. 출생시간이 없으면 7하우스는 확정하지 말고 달과 금성 중심으로 이어가세요.",
+  },
+  {
+    key: "yearly_outlook",
+    label: "앞으로 1년의 분기별 흐름",
+    minChars: 2800,
+    maxChars: 4400,
+    reasoningKeys: [],
+    expertParts: [],
+    guide: "현재 트랜짓을 근거로 앞으로 1년을 네 분기로 나눠, 각 분기마다 무엇이 열리고 무엇이 조여드는지를 따로 써 주세요. 분기마다 '이 시기에 하면 유리한 일'과 '미루는 편이 나은 일'을 구체적인 행동으로 구분해 주고, 계산 데이터에 없는 트랜짓은 지어내지 말고 없으면 출생 차트의 행성 배치가 만드는 리듬으로 대신하세요. 앞선 부분의 '지금의 시기감'과 겹치지 않도록, 여기서는 지금이 아니라 **앞으로의 순서**만 다루세요. 네 분기가 서로 같은 말이 되지 않게 각 분기의 초점을 다르게 잡으세요.",
   },
 ]);
 

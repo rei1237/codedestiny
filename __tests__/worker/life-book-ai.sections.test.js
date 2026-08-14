@@ -103,11 +103,11 @@ describe("섹션 계획", () => {
     expect(total).toBeLessThanOrEqual(60000);
   });
 
-  test("인생의 책 섹션 목표 합계가 요구 분량(10,000~20,000자) 안에 있다", () => {
+  test("인생의 책 섹션 목표 합계가 요구 분량(15,000~26,000자) 안에 있다", () => {
     const plan = buildSectionPlan(lifeBookInput);
     const total = plan.reduce((sum, s) => sum + s.targetChars, 0);
-    expect(total).toBeGreaterThanOrEqual(10000);
-    expect(total).toBeLessThanOrEqual(20000);
+    expect(total).toBeGreaterThanOrEqual(15000);
+    expect(total).toBeLessThanOrEqual(26000);
   });
 });
 

@@ -8,7 +8,7 @@
  *    글솜씨가 아니라 "짧은 그룹만 다시 부르는가 / 나빠지면 안 갈아끼우는가" 라는 배관이다.
  *
  * 무엇을 지키는가:
- *  - 10개 챕터가 그룹에 정확히 한 번씩 배정되고, 그룹 프롬프트가 남의 챕터를 금지한다
+ *  - 12개 챕터가 그룹에 정확히 한 번씩 배정되고, 그룹 프롬프트가 남의 챕터를 금지한다
  *  - 목표 분량이 프롬프트에 숫자로 들어간다(예전의 "고정 글자수를 채우려 하지 말고" 회귀 방지)
  *  - 웨이브1이 전 그룹을 동시에 부르고, 웨이브2는 **모자란 그룹만** 다시 부른다
  *  - 웨이브2 결과가 더 나쁘면 원본을 지킨다
@@ -53,18 +53,18 @@ const { runSajuAISectionWaves, buildSajuAISectionPrompt, countSajuAIVisibleChars
 
 const CHAPTER_TITLES = [
   "질문에 대한 핵심 답변", "이 명식의 중심 성향", "십성 구조 해석", "오행 균형 해석",
-  "현재 고민과 명식의 연결", "일/돈/관계/연애/건강 리듬", "조심해야 할 패턴", "살리는 전략",
-  "30일 실천 가이드", "마지막 한마디",
+  "현재 고민과 명식의 연결", "일/돈/관계/연애/건강 리듬", "대운의 전환점", "올해의 흐름",
+  "조심해야 할 패턴", "살리는 전략", "30일 실천 가이드", "마지막 한마디",
 ];
 
-// ── 1. 그룹이 10챕터를 정확히 덮는다 ──────────────────────────────────────
+// ── 1. 그룹이 12챕터를 정확히 덮는다 ──────────────────────────────────────
 {
   const covered = SAJU_AI_SECTION_GROUPS.flatMap((group) => group.chapters);
-  check(covered.length === 10, `그룹이 덮는 챕터가 ${covered.length}개다 (요구 10)`);
+  check(covered.length === 12, `그룹이 덮는 챕터가 ${covered.length}개다 (요구 12)`);
   for (const [index, title] of CHAPTER_TITLES.entries()) {
     check(
       covered.filter((chapter) => chapter.title === title && chapter.no === index + 1).length === 1,
-      `챕터 "${index + 1}. ${title}" 가 정확히 한 번 배정되지 않았다 — 렌더러가 아는 제목은 이 10개뿐이다`,
+      `챕터 "${index + 1}. ${title}" 가 정확히 한 번 배정되지 않았다 — 렌더러가 아는 제목은 이 12개뿐이다`,
     );
   }
   const minTotal = SAJU_AI_SECTION_GROUPS.reduce((sum, group) => sum + group.minChars, 0);
@@ -73,7 +73,8 @@ const CHAPTER_TITLES = [
     `그룹 minChars 합 ${minTotal} < 배달 하한 ${SAJU_AI_MIN_RESULT_CHARS}`,
   );
   // 20,000원 상품이 형제 10,000원 상품(단일 호출 ≈ 6,600자 상한)보다 확실히 길어야 한다.
-  check(minTotal >= 12000, `그룹 minChars 합 ${minTotal} 은 ₩20,000 상품 목표(12,000자)에 못 미친다`);
+  // 목표는 A4 10장(15,000자). 그 아래로 내리려면 가격도 함께 내려야 한다.
+  check(minTotal >= 15000, `그룹 minChars 합 ${minTotal} 은 ₩20,000 상품 목표(15,000자)에 못 미친다`);
 }
 
 // ── 2. 그룹 프롬프트가 분량을 숫자로 요구하고, 남의 챕터를 금지한다 ────────
@@ -174,7 +175,7 @@ function resetCalls() {
     validation.ok || !/분량|필수 챕터/.test(String(validation.reason || "")),
     `조립본이 분량/챕터 게이트에서 떨어졌다: ${validation.reason}`,
   );
-  // 챕터 제목이 그룹 순서대로 남아야 클라이언트 렌더러가 10개 섹션으로 나눈다.
+  // 챕터 제목이 그룹 순서대로 남아야 클라이언트 렌더러가 12개 섹션으로 나눈다.
   let cursor = -1;
   for (const title of CHAPTER_TITLES) {
     const at = assembledText.indexOf(title);

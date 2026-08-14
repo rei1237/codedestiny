@@ -76,9 +76,11 @@ const FOCUS_AREAS = new Set(Object.keys(FOCUS_AREA_LABELS));
 const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|인공지능|이 기능은|이 결과는|분석 결과는/gi;
 const CANONICAL_TEN_GODS = Object.freeze(["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"]);
 const LIFE_BOOK_EXPECTED_CHAPTER_COUNT = 10;
-const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 700;
-const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 10000;
-const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 20000;
+// 10챕터 병렬 생성이라 분량은 챕터 목표를 키워서 올린다(챕터당 1,500~2,600자는 모델이 한 번에
+// 채우는 크기 안쪽이다). 총합 하한 15,000자 = A4 10장.
+const LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS = 1500;
+const LIFE_BOOK_MIN_TOTAL_CONTENT_CHARS = 15000;
+const LIFE_BOOK_MAX_TOTAL_CONTENT_CHARS = 26000;
 const LIFE_FORTUNE_MIN_CHAPTER_CONTENT_CHARS = 2400;
 const LIFE_FORTUNE_MIN_EXPERT_READING_CONTENT_CHARS = 1200;
 const LIFE_FORTUNE_MIN_TOTAL_CONTENT_CHARS = 30000;
@@ -203,7 +205,9 @@ const SECTION_TARGETS = Object.freeze({
     frame: Object.freeze({ minChars: 0, targetChars: 0, maxOutputTokens: 2000, minAdvice: 0 }),
   }),
   lifeBook: Object.freeze({
-    chapter: Object.freeze({ minChars: LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS, targetChars: 1200, maxOutputTokens: 6000, minAdvice: 2 }),
+    // maxOutputTokens 는 챕터 상한(총합 26,000 / 10챕터 = 2,600자)에 완충을 더한 값이어야 한다
+    // — tokensRequiredForChars(2600) = 6,150(worker/lib/llm-budget.js).
+    chapter: Object.freeze({ minChars: LIFE_BOOK_MIN_CHAPTER_CONTENT_CHARS, targetChars: 2000, maxOutputTokens: 7000, minAdvice: 2 }),
     expert: Object.freeze({ minChars: 350, targetChars: 600, maxOutputTokens: 4000, minAdvice: 2 }),
     frame: Object.freeze({ minChars: 0, targetChars: 0, maxOutputTokens: 2000, minAdvice: 0 }),
   }),

@@ -23,8 +23,8 @@ const SERVER_ERROR_MESSAGE = "상담을 준비하는 중 문제가 발생했습�
 const LLM_ERROR_MESSAGE = "전문가 상담 답변을 생성하지 못했습니다. 이용권 또는 결제 권한은 보존되었으니 다시 시도해 주세요.";
 const PAYMENT_VERIFY_FAILED_MESSAGE = "결제 확인이 완료되지 않았습니다. 결제가 완료되었다면 잠시 후 다시 시도해 주세요.";
 const LOGIN_REQUIRED_MESSAGE = "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.";
-const NEW_YEAR_AI_MIN_TOTAL_CHARS = 10000;
-const NEW_YEAR_AI_MAX_TOTAL_CHARS = 20000;
+const NEW_YEAR_AI_MIN_TOTAL_CHARS = 15000;
+const NEW_YEAR_AI_MAX_TOTAL_CHARS = 24000;
 // 총 10,000~20,000자(한국어 1자≈1~1.5토큰)를 한 번의 동기 호출로 뽑으면
 // gemini-2.5-flash(~200tok/s) 기준 75~112s가 필요한데, Cloudflare 엣지는 100s에 요청을 끊는다.
 // 그 조합에서 라우트는 실패 판정을 내리기도 전에 잘려 generation_failed 기록도, 이용권 복원도
@@ -45,8 +45,8 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     label: "올해의 총운",
     heading: "올해의 총운",
     categories: ["study"],
-    minChars: 2600,
-    maxChars: 3600,
+    minChars: 3200,
+    maxChars: 4800,
     covered: "재물·직업 상세, 애정·대인관계 상세, 1~12월 월별 흐름, 건강과 개운법, 마무리 한 줄",
   },
   {
@@ -54,8 +54,8 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     label: "재물과 직업",
     heading: "재물과 직업",
     categories: ["money", "career"],
-    minChars: 2400,
-    maxChars: 3400,
+    minChars: 3000,
+    maxChars: 4600,
     covered: "타고난 성향 총론, 격국·용신·조후 해설, 대운-세운 해석, 애정·대인관계, 1~12월 월별 흐름, 건강과 개운법",
   },
   {
@@ -63,8 +63,8 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     label: "애정과 대인관계",
     heading: "애정과 대인관계",
     categories: ["love", "relationship"],
-    minChars: 2400,
-    maxChars: 3400,
+    minChars: 3000,
+    maxChars: 4600,
     covered: "타고난 성향 총론, 격국·용신·조후 해설, 대운-세운 해석, 재물·직업, 1~12월 월별 흐름, 건강과 개운법",
   },
   {
@@ -72,8 +72,8 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     label: "1월~12월 월별 흐름",
     heading: "",
     categories: [],
-    minChars: 3200,
-    maxChars: 4600,
+    minChars: 3400,
+    maxChars: 5000,
     covered: "총론과 명식 근거, 재물·직업 상세, 애정·대인관계 상세, 건강과 개운법, 마무리 한 줄",
   },
   {
@@ -81,14 +81,19 @@ const NEW_YEAR_AI_SECTIONS = Object.freeze([
     label: "건강과 개운법",
     heading: "건강과 개운법",
     categories: ["health"],
-    minChars: 2000,
-    maxChars: 2800,
+    minChars: 2600,
+    maxChars: 4200,
     covered: "총론과 명식 근거, 재물·직업 상세, 애정·대인관계 상세, 1~12월 월별 흐름",
   },
 ]);
-// 섹션 min 합 12,600자 / max 합 17,800자 → 권장 밴드(12,000~18,000자) 안쪽.
+// 섹션 min 합 15,200자 / max 합 23,200자 → 요구 밴드(15,000~24,000자) 안쪽.
 // 정상 경로에서 MIN_TOTAL_CHARS·MAX_TOTAL_CHARS 어느 쪽도 걸리지 않아 압축 패스가 불필요하다.
-// 상한 4,600자 × 1.5tok/자 + 완충 = llm-budget의 tokensRequiredForChars(4600)=8,900 이상.
+// 상한 5,000자 × 1.5tok/자 + 완충 = llm-budget의 tokensRequiredForChars(5000)=9,750 이상.
+//
+// 🔴 분량을 더 늘려야 하면 섹션 목표를 키우지 말고 **섹션을 늘려라.** 다만 그 한계는 "호출당 목표"이지
+//    "섹션당 목표"가 아니다 — 한 호출에 1~2만자를 요구하면 모델이 6천자에서 멈추지만(astrology-ai.js
+//    의 실패 기록), 3,000~5,000자는 astrology(4,600)·sukuyo(6,000)·love-secret(6,500)이 이미 쓰고 있는
+//    검증된 구간이다. 위 값은 그 구간 안에서 올린 것이고, 5,000자를 넘기지 말 것.
 const NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS = 10500;
 // 섹션 1개의 LLM 대기 상한. 4개가 동시에 도니 이 값이 곧 1웨이브의 벽시계 상한이다.
 const NEW_YEAR_AI_SECTION_TIMEOUT_MS = 52000;
@@ -1269,7 +1274,7 @@ function buildSystemPrompt(section = null) {
     "10. 답변 마지막에는 추가 질문을 유도하지 말고, 새해를 여는 한 줄 조언으로 마무리합니다.",
     "11. PDF, 챕터, progress, job이라는 단어를 쓰지 않습니다.",
     "12. 계산 항목을 나열하는 대신, 왜 그런 흐름이 드러나는지 명식의 근거와 생활 선택을 한 문맥으로 이어 말합니다.",
-    "13. 완성 상담문 전체 본문은 공백을 제외하고 10,000자 이상 20,000자 이하로 씁니다. 권장 분량은 12,000~18,000자이며, 항목마다 10,000자를 쓰라는 뜻이 아닙니다.",
+    "13. 완성 상담문 전체 본문은 공백을 제외하고 15,000자 이상 24,000자 이하로 씁니다. 권장 분량은 17,000~22,000자이며, 항목마다 15,000자를 쓰라는 뜻이 아닙니다.",
     "14. 분량이 부족할 때는 같은 말을 늘리지 말고, 명리 전문가로서 격국·월령, 용신·기신, 조후, 대운·세운, 천간·지지 합충, 월운, 현실 처방 파트를 새로 보강합니다.",
     "15. 문단 사이는 빈 줄로 구분하고, 핵심 문구는 **굵게** 표시합니다. 필요할 때만 '-' 목록을 쓰고, 그 외 마크다운(제목 #, 코드블록, 표)은 쓰지 않습니다.",
     ...(section ? [
@@ -1460,9 +1465,9 @@ function buildFirstPrompt(input, fortuneData, section = null) {
     ...(section ? buildSectionOutlineLines(input, section) : outline.map((item) => item.line)),
     "",
     ...(section ? buildSectionLengthLines(section) : [
-      "완성 상담문 전체 본문 합계는 공백을 제외하고 10,000자 이상 20,000자 이하로 맞추세요.",
-      "권장 분량은 12,000~18,000자이며, 더 중요한 기준은 분량보다 상담 품질과 명리 근거의 밀도입니다.",
-      "각 항목마다 10,000자를 쓰지 말고, 전체 상담문이 충분히 깊고 완성된 분량이 되도록 균형 있게 확장하세요.",
+      "완성 상담문 전체 본문 합계는 공백을 제외하고 15,000자 이상 24,000자 이하로 맞추세요.",
+      "권장 분량은 17,000~22,000자이며, 더 중요한 기준은 분량보다 상담 품질과 명리 근거의 밀도입니다.",
+      "각 항목마다 15,000자를 쓰지 말고, 전체 상담문이 충분히 깊고 완성된 분량이 되도록 균형 있게 확장하세요.",
       "분량이 부족하면 단순히 문장을 길게 늘이지 말고, 명리 전문가로서 격국과 월령, 용신·기신, 조후, 대운과 세운, 천간·지지 합충, 월운, 현실 처방을 새 파트로 보강하세요.",
     ]),
     "",
@@ -1712,7 +1717,7 @@ function buildConsultationCompressionPrompt(originalText, minTotalChars = NEW_YE
 }
 
 function buildMockConsultationText(options = {}) {
-  const targetChars = Number(options.targetChars || 13000) || 13000;
+  const targetChars = Number(options.targetChars || 17000) || 17000;
   const titles = [
     "새해 전체 운의 결",
     "명식에서 먼저 드러나는 힘",
@@ -1779,8 +1784,9 @@ async function generateConsultationSection(env, options) {
       maxOutputTokens: NEW_YEAR_AI_SECTION_MAX_OUTPUT_TOKENS,
       timeoutMs,
       // 폴백 허용. 섹션 목표의 40% 미만이면 gemini.js가 실패로 돌려 재시도·환불 경로를 지킨다.
-      // 섹션 단위(1,600~5,200자)라 실측 폴백 분량(~1,700자)이 이 문턱을 실제로 넘긴다 —
+      // 섹션 단위(2,600~5,000자)라 문턱이 1,040~1,360자이고, 실측 폴백 분량(~1,700자)이 이를 넘긴다 —
       // 단일 2만자 호출에서는 넘길 수 없어 폴백이 사실상 무용지물이었다.
+      // 🔴 섹션 하한을 4,250자 이상으로 올리면 문턱이 1,700자를 넘어 폴백이 다시 무용지물이 된다.
       fallbackMinChars: Math.round(section.minChars * 0.4),
       cache,
       logContext,
