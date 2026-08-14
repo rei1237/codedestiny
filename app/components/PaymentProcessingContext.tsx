@@ -11,6 +11,7 @@ import {
   useState,
 } from "react";
 
+import { trackEvent } from "@/lib/analytics";
 import type { PaymentLoadingProps } from "./common/PaymentLoading";
 import LoadingProgressMotion, {
   type LoadingMotionPhase,
@@ -622,6 +623,7 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
   const seqRef = useRef(0);
   const closeTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const holdRef = useRef<{ requestId: string; until: number; capMs: number } | null>(null);
+  const purchaseTrackedRequestIdRef = useRef("");
   const [locale, setLocale] = useState<LoadingLocale>("ko");
   const [loadingPhase, setLoadingPhase] = useState<LoadingMotionPhase>("fresh");
   const [state, setState] = useState<PaidFeatureGateState>({
@@ -747,6 +749,21 @@ function PaidFeatureGateProvider({ children }: PaymentProcessingProviderProps) {
     const requestedStatus = detail.status || "checkingEntitlement";
     const activeLocale = getCurrentLoadingLocale();
     setLocale(activeLocale);
+    // 결제 완료 계측. 이 게이트는 React 쪽 모든 유료 기능이 지나는 단일 수렴점이라 여기 한 곳이면
+    // 기능별 배선이 필요 없다. 🔴 requestId 로 한 번만 센다 — update 는 같은 상태로 여러 번 불릴
+    // 수 있고(아래 분기들이 각각 재호출된다), 그때마다 세면 매출·전환율이 부풀어 오른다.
+    // hasEntitlement 는 제외한다. 이미 보유한 것을 여는 것이라 구매가 아니다.
+    if (requestedStatus === "paymentSuccess") {
+      const purchaseRequestId = String(detail.requestId || "");
+      if (purchaseRequestId && purchaseRequestId !== purchaseTrackedRequestIdRef.current) {
+        purchaseTrackedRequestIdRef.current = purchaseRequestId;
+        trackEvent("purchase_complete", {
+          feature_key: String(detail.featureKey || detail.featureId || ""),
+          payment_mode: String(detail.paymentMode || detail.paymentMethod || ""),
+          coin_price: Math.max(0, Math.floor(Number(detail.cost || 0))),
+        });
+      }
+    }
     if (/^(error|paymentFailed|noEntitlement|readyToPay|cancelled)$/.test(requestedStatus)) {
       const detailRequestId = detail.requestId ? String(detail.requestId) : "";
       if (!detailRequestId || !holdRef.current || holdRef.current.requestId === detailRequestId) {

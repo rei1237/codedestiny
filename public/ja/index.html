@@ -11758,6 +11758,9 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
     setConsent(value);
     hide();
     try { document.documentElement.setAttribute('data-cd-cookie-consent', value); } catch (_) {}
+    /* GA4 는 로드 시점에 analytics_storage 기본값을 denied 로 잡아 둔다. 여기서 알려주지 않으면
+       "동의함"을 누른 세션도 페이지를 새로 고칠 때까지 익명 집계로 남는다. */
+    try { if (typeof window.cdSyncConsent === 'function') window.cdSyncConsent(); } catch (_) {}
   }
   if (readConsent()) {
     try { document.documentElement.setAttribute('data-cd-cookie-consent', readConsent()); } catch (_) {}
@@ -22176,7 +22179,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-f5b58d0f1db3" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-8c683c6dc4da" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-f5b58d0f1db3" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-f5b58d0f1db3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -27056,6 +27059,10 @@ return you.name.restore();</span>
     return requestId;
   }
 
+  /* 결제 완료를 requestId 당 한 번만 센다. _cdUpdatePaidFeatureGate 는 같은 상태로 여러 번
+     불릴 수 있어(호출부 17곳), 그때마다 세면 매출·전환율이 부풀어 오른다. */
+  var _cdPurchaseTrackedRequestId = '';
+
   function _cdUpdatePaidFeatureGate(options) {
     var opts = options || {};
     if (opts.requestId && _cdPaidFeatureGateState.requestId && opts.requestId !== _cdPaidFeatureGateState.requestId) return;
@@ -27073,6 +27080,22 @@ return you.name.restore();</span>
     }))) {
       _cdPaidFeatureGateState.status = status;
       return;
+    }
+    /* 셸에서 처리한 결제만 여기서 센다. 위에서 React 로 넘어간 건은 PaymentProcessingContext 가
+       같은 이벤트를 쏘므로, 그 앞에 두면 두 번 집계된다.
+       hasEntitlement 는 제외한다 — 이미 보유한 것을 여는 것이라 구매가 아니다. */
+    if (status === 'paymentSuccess') {
+      var _purchaseRequestId = String(opts.requestId || _cdPaidFeatureGateState.requestId || '');
+      if (_purchaseRequestId && _purchaseRequestId !== _cdPurchaseTrackedRequestId) {
+        _cdPurchaseTrackedRequestId = _purchaseRequestId;
+        try {
+          if (typeof window.cdTrack === 'function') window.cdTrack('purchase_complete', {
+            feature_key: String(opts.featureKey || opts.featureId || _cdPaidFeatureGateState.featureId || ''),
+            payment_mode: String(opts.accessSource || opts.paymentIntentType || ''),
+            coin_price: Math.max(0, Math.floor(Number(opts.cost || 0)))
+          });
+        } catch (_) {}
+      }
     }
     var gate = _cdEnsurePaidFeatureGateShell();
     var titleEl = document.getElementById('cdPaidGateTitle');
