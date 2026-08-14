@@ -272,7 +272,36 @@ try {
   await tapSelector(cdp, GATED_TILE);
   await delay(2000);
   await tapSelector(cdp, "#tilePvwCtaBtn");
-  await delay(900);
+  await delay(2600);
+
+  // 🔴 이 단언이 없어서 진입이 완전히 죽은 채로 두 번의 릴리스를 통과했다.
+  // 예전에는 CTA 를 누른 뒤 inert 누수만 봤고, 아래 닫기버튼 검사가 오버레이를 손으로 열어
+  // (style.display='block') 검사했기 때문에, 기능이 아예 안 열려도 스모크는 초록이었다.
+  const ctaEntryOpened = await evaluate(cdp, `(() => {
+    const ov = document.getElementById('tarotLoveOverlay');
+    const cs = ov ? getComputedStyle(ov) : null;
+    return {
+      path: location.pathname,
+      scriptLoaded: typeof window.openTarotLoveModal === 'function',
+      inDocument: !!(ov && document.documentElement.contains(ov)),
+      display: cs ? cs.display : null,
+      visibility: cs ? cs.visibility : null,
+      isOpen: !!(ov && ov.classList.contains('is-open'))
+    };
+  })()`, "detail sheet CTA actually opens the feature");
+  assert(
+    ctaEntryOpened.scriptLoaded && ctaEntryOpened.inDocument
+      && ctaEntryOpened.display !== "none" && ctaEntryOpened.visibility !== "hidden"
+      && ctaEntryOpened.isOpen,
+    "the detail sheet CTA actually opens the paid feature",
+    ctaEntryOpened,
+  );
+  assert(
+    ctaEntryOpened.path === "/index.html" || ctaEntryOpened.path === "/",
+    "entering from the detail sheet opens in place instead of navigating away",
+    ctaEntryOpened,
+  );
+
   const afterCtaEntry = await evaluate(cdp, inertProbe, "after detail sheet CTA entry");
   assert(!afterCtaEntry.wrapInert && afterCtaEntry.stuckInert.length === 0, "entering a feature from the detail sheet leaves the page interactive", afterCtaEntry);
 
@@ -284,20 +313,20 @@ try {
     const top = document.elementFromPoint(Math.round(r.left + r.width / 2), Math.round(r.top + r.height / 2));
     return {
       present: true,
-      hits: !!(top && top.closest('.cd-mobile-collection-close')),
+      hits: !!(top && (top.closest('.cd-mobile-collection-close') || top.closest('#tarotLoveOverlay'))),
       topEl: top ? (top.id || top.className || top.tagName) : null
     };
   })()`, "all-fortunes close reachability after feature entry");
-  assert(!closeStillWorks.present || closeStillWorks.hits, "the all-fortunes ✕ stays tappable after entering a feature", closeStillWorks);
+  assert(!closeStillWorks.present || closeStillWorks.hits, "the opened feature owns the hit test after entering from the detail sheet", closeStillWorks);
 
   // "우리는 무슨 사이?" 닫기 버튼 — .tarot-love-hero 가 position:relative 로 DOM 상 뒤에 와서
   // 둘 다 z-index:auto 면 히어로가 버튼 위에 그려진다(모바일에서 48px 중 38px 가 덮였다).
   const tarotLoveClose = await evaluate(cdp, `(() => {
     document.querySelectorAll('link[rel="stylesheet"][media="print"]').forEach((l) => { l.media = 'all'; });
+    // 🔴 오버레이를 손으로 열지 않는다 — 위 CTA 진입이 실제로 연 상태를 그대로 검사해야
+    // "진입은 죽었는데 닫기버튼만 초록"인 예전 구멍이 되살아나지 않는다.
     const ov = document.getElementById('tarotLoveOverlay');
     if (!ov) return { present: false };
-    ov.style.display = 'block';
-    ov.classList.add('is-open');
     const btn = ov.querySelector('.tarot-love-close');
     if (!btn) return { present: true, button: false };
     const r = btn.getBoundingClientRect();
