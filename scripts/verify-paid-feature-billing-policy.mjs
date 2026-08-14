@@ -105,7 +105,6 @@ for (const featureKey of [
   "vedic-compatibility-per-use",
   "physiognomy-compatibility",
   "physiognomy-pastlife-compatibility",
-  "tarot-prompt-maker",
   "saju_ai_prompt_generator",
   "ziwei_ai_prompt_generator",
   "astrology_ai_prompt_generator",
@@ -135,10 +134,17 @@ for (const featureKey of [
   "fun.quantumLotto.ritualReport",
   "sukuyo-relationship-encyclopedia",
   "premium-fpti-report",
+  "tarot-prompt-maker",
 ]) {
   assert.equal(getPaidFeatureBillingType(featureKey), PAID_FEATURE_BILLING_TYPES.UNLOCK, `${featureKey} must be an unlock feature`);
   assert.equal(isUnlockPaidFeatureKey(featureKey), true, `${featureKey} must persist unlock entitlement`);
 }
+
+// 타로 프롬프트 라이브러리: 회당 ₩5,000 → 1회 ₩10,000 영구 해금으로 전환(T2 → T3).
+// 생성기가 로컬 템플릿 빌더(buildOraclePrompt)라 서버 LLM 호출이 없어 한계비용이 0인데도
+// 뽑을 때마다 과금하고 있었다. 스프레드를 바꿔 가며 여러 장 뽑는 것이 정상 사용법이라
+// 회당 결제가 사용 자체를 막던 구조다. 되돌리려면 레지스트리와 이 가드를 함께 뒤집어야 한다.
+assert.equal(isPerUsePaidFeatureKey("tarot-prompt-maker"), false, "tarot-prompt-maker must be a locked unlock, not per-use");
 
 // FPTI 프리미엄 리포트: PDF 회당 과금 → 생년월일 시그니처 스코프 영구 잠금으로 전환됨.
 assert.equal(isPerUsePaidFeatureKey("premium-fpti-report"), false, "premium-fpti-report must be a locked unlock, not per-use/pdf");

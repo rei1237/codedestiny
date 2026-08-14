@@ -124,6 +124,7 @@
     "verify:mongo-launch-indexes": "node scripts/verify-mongo-launch-indexes.mjs",
     "audit:mongo-collections": "node scripts/audit-mongo-collections.mjs",
     "audit:user-fields": "node scripts/audit-user-fields.mjs",
+    "audit:tarot-prompt-maker-purchasers": "node scripts/audit-tarot-prompt-maker-purchasers.mjs",
     "backup:mongo": "node scripts/backup-mongo.mjs",
     "verify:phone-encryption-key": "node scripts/migrate-encrypt-user-phone.mjs --check",
     "migrate:insights-to-content": "node scripts/migrate-insights-to-content.mjs",

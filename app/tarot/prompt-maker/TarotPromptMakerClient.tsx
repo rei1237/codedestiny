@@ -172,7 +172,7 @@ type CardFlowCopy = {
 const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy> = {
   ko: {
     free: "무료",
-    oneTimePrice: "1회 5,000원",
+    oneTimePrice: "영구 해금 10,000원",
     lenormandFree: "레노먼드 무료",
     passAvailable: "이용권 적용 가능",
     instantUse: "즉시 이용",
@@ -215,7 +215,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   en: {
     free: "Free",
-    oneTimePrice: "One use KRW 5,000",
+    oneTimePrice: "Unlock forever KRW 10,000",
     lenormandFree: "Lenormand free",
     passAvailable: "Pass available",
     instantUse: "Ready now",
@@ -258,7 +258,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   ja: {
     free: "無料",
-    oneTimePrice: "1回 5,000ウォン",
+    oneTimePrice: "永久解放 10,000ウォン",
     lenormandFree: "ルノルマン無料",
     passAvailable: "利用券を適用できます",
     instantUse: "すぐ利用可能",
@@ -301,7 +301,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   "zh-CN": {
     free: "免费",
-    oneTimePrice: "单次 5,000韩元",
+    oneTimePrice: "永久解锁 10,000韩元",
     lenormandFree: "雷诺曼免费",
     passAvailable: "可使用通行权益",
     instantUse: "可立即使用",
@@ -344,7 +344,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   "zh-TW": {
     free: "免費",
-    oneTimePrice: "單次 5,000韓元",
+    oneTimePrice: "永久解鎖 10,000韓元",
     lenormandFree: "雷諾曼免費",
     passAvailable: "可使用通行權益",
     instantUse: "可立即使用",
@@ -387,7 +387,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   vi: {
     free: "Miễn phí",
-    oneTimePrice: "Một lần 5.000 KRW",
+    oneTimePrice: "Mở khóa vĩnh viễn 10.000 KRW",
     lenormandFree: "Lenormand miễn phí",
     passAvailable: "Có thể dùng quyền lợi",
     instantUse: "Dùng ngay",
@@ -430,7 +430,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   hi: {
     free: "मुफ्त",
-    oneTimePrice: "एक बार KRW 5,000",
+    oneTimePrice: "हमेशा के लिए अनलॉक KRW 10,000",
     lenormandFree: "Lenormand मुफ्त",
     passAvailable: "Pass लागू हो सकता है",
     instantUse: "अभी उपयोग करें",
@@ -473,7 +473,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   es: {
     free: "Gratis",
-    oneTimePrice: "Una vez 5.000 KRW",
+    oneTimePrice: "Desbloqueo permanente 10.000 KRW",
     lenormandFree: "Lenormand gratis",
     passAvailable: "Pase disponible",
     instantUse: "Uso inmediato",
@@ -516,7 +516,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   fr: {
     free: "Gratuit",
-    oneTimePrice: "Une fois 5 000 KRW",
+    oneTimePrice: "Déblocage définitif 10 000 KRW",
     lenormandFree: "Lenormand gratuit",
     passAvailable: "Pass disponible",
     instantUse: "Utilisable maintenant",
@@ -559,7 +559,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   de: {
     free: "Kostenlos",
-    oneTimePrice: "Einmal 5.000 KRW",
+    oneTimePrice: "Dauerhaft freischalten 10.000 KRW",
     lenormandFree: "Lenormand kostenlos",
     passAvailable: "Pass verfügbar",
     instantUse: "Sofort nutzbar",
@@ -602,7 +602,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   nl: {
     free: "Gratis",
-    oneTimePrice: "Eenmalig KRW 5.000",
+    oneTimePrice: "Voorgoed ontgrendelen KRW 10.000",
     lenormandFree: "Lenormand gratis",
     passAvailable: "Pass beschikbaar",
     instantUse: "Direct te gebruiken",
@@ -645,7 +645,7 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   ms: {
     free: "Percuma",
-    oneTimePrice: "Sekali KRW 5,000",
+    oneTimePrice: "Buka kekal KRW 10,000",
     lenormandFree: "Lenormand percuma",
     passAvailable: "Pas tersedia",
     instantUse: "Boleh guna segera",
@@ -2379,6 +2379,12 @@ function StarField() {
   );
 }
 
+/* 영구 해금이라 사용자당 결제는 한 번뿐이다 — requestId 도 고정한다.
+   매 클릭마다 새 id 를 만들면 워커 consume 의 멱등이 무력화돼, 첫 결제가 네트워크 오류로
+   실패한 뒤의 '다시 시도'가 재결제가 된다. 멱등 유니크 인덱스는 둘 다 userId 로 스코프돼
+   있어(models.js 의 paymentSchema · idempotencyKeySchema) 고정 문자열이 사용자 간에 겹치지 않는다. */
+const TAROT_PROMPT_MAKER_UNLOCK_REQUEST_ID = "tarot-prompt-library:unlock:v1";
+
 /* ─── Main Component ─── */
 export default function TarotPromptMakerPage() {
   const [locale, setLocale] = useState<LoadingLocale>("ko");
@@ -2747,7 +2753,7 @@ export default function TarotPromptMakerPage() {
         featureKey: "tarot-prompt-maker",
         cost: lookupServerCoinPrice("tarot-prompt-maker"),
         reason: feedbackCopy.subscriptionReason,
-        requestId: `tarot-prompt-library:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        requestId: TAROT_PROMPT_MAKER_UNLOCK_REQUEST_ID,
         onPaid: ({ chargedCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
           pendingGenerate = generate().then(() => {
             // 🔴 판정은 accessSource 로만 한다. 예전에는 `chargedCoins <= 0 && billingPassIncluded` 폴백이
