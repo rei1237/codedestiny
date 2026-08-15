@@ -160,9 +160,33 @@ console.log(Object.keys(fs).map(k => k + '=' + JSON.stringify(fs[k]).length).joi
 | 슬라이싱 (`earthStorageOpenings` 4그룹 제거, -12.7%) | $0.0340 | 🔴 그룹별 `evidenceRefs` 선언 필요, 근거 누락 시 품질 저하 |
 | **명시적 캐싱** (생성 1회 + 5회 참조) | **≈ $0.0177** | ✅ **프롬프트 내용 무변경 → 0** |
 
-**명시적 캐싱이 절감도 크고(≈55%) 품질 위험도 없다.** 🔴 **슬라이싱보다 이쪽을 먼저 하라.** 슬라이싱은 명시적 캐싱을 넣은 뒤에도 남는 고유부(그룹당 379자)에만 영향을 주므로, 그 시점에는 사실상 의미가 없어진다.
+**명시적 캐싱이 절감도 크고(≈55%) 품질 위험도 없다.** 그래서 그쪽을 먼저 했고(#659, 아래), 슬라이싱은 명시적 캐싱을 넣은 뒤에 남는 고유부(그룹당 379자)에만 영향을 주므로 **사주에서는 사실상 의미가 없어졌다.** 🔴 **이 문서의 작업을 사주에 적용하지 말 것.** 다른 라우트는 아래 "다른 라우트는?" 절을 먼저 읽어라.
 
-구현 인수인계: **[llm-explicit-context-caching.md](llm-explicit-context-caching.md)**
+### ✅ 구현 완료 — PR #659 (2026-08-15 머지)
+
+사주 웨이브에 배선됐다. `createGeminiContextCache`/`deleteGeminiContextCache`(`lib/llm-client.ts`)와
+`LLMRequest.geminiCachedContent`, 그리고 `buildSajuAISectionPromptPrefix`(`worker/routes/fortune.js`).
+킬 스위치는 `GEMINI_CONTEXT_CACHE`(기본 ON, `"0"/"false"/"off"` 로 차단).
+
+🔴 **실제 구현은 위 계획과 두 군데가 다르다. 다음에 다른 라우트로 넓힐 때 그대로 따를 것:**
+
+1. **접두사를 `prompt` 밖으로 빼지 않는다.** 계획은 그렇게 적었지만, `buildCacheKey`
+   (`lib/llm-cache.ts`)가 해시하는 것이 `prompt` 이고 사주가 넘기는 `keyExtra` 는 프롬프트
+   버전뿐이라, 접두사를 빼면 키가 `(그룹, 시도, promptVersion)` 만 남아 **모든 사용자가 같은
+   키를 공유한다**(store=Mongo, `deterministic: true`, TTL 30일). 즉 다른 사용자의 유료 상담
+   결과가 캐시 히트로 새어 나간다. 그래서 `prompt` 는 전체로 두고 접두사 제거는
+   `callGeminiPrimary` 가 **전송 직전에만** 한다. 부수적으로 Workers AI 폴백도 전체 프롬프트를
+   그대로 보게 되어 따로 손댈 곳이 없다.
+2. **`systemInstruction` 은 캐시에 굽는다.** Gemini 는 `cachedContent` 와 `systemInstruction` 을
+   같은 요청에 함께 받지 않는다. 캐시 생성 시 `applyOutputLocale` 과 같은 변환을 적용해 나중에
+   실제로 나갈 값과 문자까지 맞춘다(다르면 캐시를 쓰지 않고 조용히 기존 경로로 간다).
+
+또 강등 사다리에 중간 단계를 넣었다 — **Gemini(캐시) → Gemini(무캐시) → Workers AI**. 없으면
+핸들 하나가 잘못될 때 5개 그룹이 동시에 폴백으로 떨어지고 `fallbackMinChars` 에 걸려 상담
+전체가 실패한다.
+
+실호출 스모크(사용자 허가 1회): `inputTokens 3482 / cachedInputTokens 3461` = **99.4% 할인**,
+`systemInstruction` 을 캐시에 구운 조합이 실제 API 에서 통과함을 확인했다.
 
 ### 재현 명령
 
