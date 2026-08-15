@@ -8,8 +8,8 @@
  * (2026-08-12)에서 나온 실제 소비 키를 그대로 고정한다:
  *   셸/_dp: payload.data.order 에서 merchantUid·paymentAmount(필수) + config 5키 + customer
  *   PointsClient: payload.order 에서 merchantUid·paymentAmount·productName·coinPrice·customer.phoneNumber
- * 그리고 구 prepare 의 두 실패 계약(CLIENT_AMOUNT_MISMATCH 400 · IDEMPOTENCY_CONFLICT 409 — 새 키
- * 재시도의 트리거)을 V2 위에서 승계했는지 실행으로 확인한다. 가짜 드라이버만 사용.
+ * 그리고 구 prepare 의 실패 계약(CLIENT_AMOUNT_MISMATCH 400)을 V2 위에서 승계했는지 실행으로
+ * 확인한다. 가짜 드라이버만 사용. 멱등키 충돌 계약은 payments-v2.prepare-conflict.test.js 소관.
  */
 import { handlePaymentsContext } from "../../worker/payments/index.js";
 import { listProducts } from "../../worker/payments/catalog.js";
@@ -161,7 +161,13 @@ test("🔴 같은 기능·미결제·옛 가격 주문: 409 가 아니라 현재
   expect(row.pricingSnapshot.repricedAt).toBeTruthy();
 });
 
-test("다른 기능으로 같은 키 재사용: 종전대로 409 IDEMPOTENCY_CONFLICT (재가격 금지)", async () => {
+/* 🔴 아래 두 단언은 2026-08-15 에 **뒤집혔다.** 예전에는 둘 다 409 IDEMPOTENCY_CONFLICT 였고,
+   복구는 전적으로 클라이언트의 새-키 재시도에 달려 있었다. 그 재시도가 빠진 경로가 하나만 생겨도
+   결제창이 영영 안 열려 같은 증상이 #467·#471·#497 로 반복됐다. 이제 서버가 재사용할 수 없는
+   주문에 **새 세대 주문**으로 답한다(orders.js createPayableOrder). 409 는 세대를 다 쓴 뒤에만
+   남는다 — 그 fail-closed 단언은 payments-v2.prepare-conflict.test.js 가 고정한다. */
+
+test("🔴 다른 기능으로 같은 키 재사용: 409 가 아니라 새 주문을 발급한다 (옛 주문은 그대로 둔다)", async () => {
   const db = makeFakePaymentDb();
   seedUser(db);
   db.rows.push({
@@ -173,11 +179,16 @@ test("다른 기능으로 같은 키 재사용: 종전대로 409 IDEMPOTENCY_CON
   const { response, payload } = await postPrepare(db, {
     paymentType: "digital_content", featureKey: PRODUCT.featureKey, idempotencyKey: "stable-key-2",
   });
-  expect(response.status).toBe(409);
-  expect(payload.code).toBe("IDEMPOTENCY_CONFLICT"); // 클라 새-키 재시도가 이 top-level code 에 걸려 있다
+  expect(response.status).toBe(201);
+  expect(payload.order.merchantUid).not.toBe("cdstaleorder111111111111111111111111111");
+  expect(payload.order.paymentAmount).toBe(PRODUCT.priceKRW);
+  // 남의 기능 주문은 재가격되지도, 상태가 바뀌지도 않는다.
+  const stale = db.rows.find((r) => r.merchantUid === "cdstaleorder111111111111111111111111111");
+  expect(stale.featureKey).toBe("some-other-feature-key");
+  expect(stale.paymentAmount).toBe(99000);
 });
 
-test("이미 결제된 주문과의 가격 불일치: 종전대로 409 (결제 완료 주문은 절대 재가격하지 않는다)", async () => {
+test("🔴 이미 결제된 주문과의 가격 불일치: 새 주문을 발급한다 (결제 완료 주문은 절대 재가격·재사용하지 않는다)", async () => {
   const db = makeFakePaymentDb();
   seedUser(db);
   db.rows.push({
@@ -189,9 +200,11 @@ test("이미 결제된 주문과의 가격 불일치: 종전대로 409 (결제 �
   const { response, payload } = await postPrepare(db, {
     paymentType: "digital_content", featureKey: PRODUCT.featureKey, idempotencyKey: "stable-key-3",
   });
-  expect(response.status).toBe(409);
-  expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
-  expect(db.rows.find((r) => r.merchantUid === "cdstaleorder222222222222222222222222222").paymentAmount).toBe(PRODUCT.priceKRW + 5000);
+  expect(response.status).toBe(201);
+  expect(payload.order.merchantUid).not.toBe("cdstaleorder222222222222222222222222222");
+  const paid = db.rows.find((r) => r.merchantUid === "cdstaleorder222222222222222222222222222");
+  expect(paid.paymentAmount).toBe(PRODUCT.priceKRW + 5000);
+  expect(paid.status).toBe("paid");
 });
 
 test("낡은 가격의 클라이언트 금액: 400 CLIENT_AMOUNT_MISMATCH (주문을 만들지 않는다)", async () => {
