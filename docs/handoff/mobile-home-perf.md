@@ -1,237 +1,257 @@
-# 인수인계 — 모바일 홈 셸 성능 (34점 → PSI 60점대)
+# 인수인계 — 모바일 홈 성능 (프로덕션 39점 → 목표 60점대)
 
-> 2026-08-15 갱신. 이 문서만 읽고 이어서 시작할 수 있게 쓴다.
-
-## 왜 하는 작업인가
-
-사용자 요구 원문:
-> 성능이 너무 처참해 이전에는 50점 대였는데 … 대체 무엇이 원인이라서 모바일 성능이 이렇게까지 떨어졌는지 분석해주고 쓸데없는 중복 css라든지 모든 측면을 다 고려해서 서비스 모바일 성능을 완벽하게 최적화해주면 좋겠어 많이 바라지도 않아 60점대정도만 나와도 만족한다
-> cls 제외하고는 점수가 최하점이므로 … 목표 점수가 될때까지 계속 수정해
-
-사용자 확정: 기준 도구 **PSI** · **부트 베일 유지**(작업량 먼저) · **모바일 홈 요소 축소 허용, 단 모든 기능에 매우 편리하게 접근 가능해야 함**.
+> 2026-08-15 **2차 개정**. 이 문서만 읽고 바로 이어서 시작할 수 있게 쓴다.
+> 1차 개정본의 **L1·L2 는 실측으로 기각됐다.** 아래 §3 에 반증 근거가 있다. 되살리지 말 것.
 
 ---
 
-## 1. 원인 (규명 완료)
+## 0. 30초 요약
 
-**점수가 떨어진 건 페이지가 느려져서가 아니다. 가려져 있던 TBT 가 드러난 것이다.**
-
-커밋 `8fc05dd53` 본문에 53점 시점 실측이 있다. 사용자의 34점 실측과 비교:
-
-| 지표 | 53점 시점 | 34점 지금 | 방향 | 가중치 |
-|---|---|---|---|---|
-| FCP | 5.8s | 5.3s | 개선 | 10% |
-| LCP | 7.7s | 6.6s | 개선 | 25% |
-| Speed Index | 10.9s | 6.6s | 크게 개선 | 10% |
-| CLS | — | 0.003 | 만점 | 25% |
-| **TBT** | **≈300ms**(곡선 역산) | **2,110ms** | **7배 악화** | **30%** |
-
-`reports/psi-mobile.json`(2026-05-19, PSI 52점)이 뒷받침한다: **TBT 100ms · 메인스레드 총량 12.1s · 최장 롱태스크 144ms**. 지금은 총량이 ~9.5s로 **줄었는데도** 최장 롱태스크가 1,200~1,400ms다.
-
-메커니즘은 `dc6129747` 이 이미 적어 뒀다 — 베일이 FCP 를 늦춰 TBT 를 숨기고 있었고, HTML 2.6MB→1.32MB(externalize)·JS minify·CSS minify 가 **작업량은 그대로 둔 채 FCP 만 앞당겨** 숨은 작업이 계상되기 시작했다.
-
-**기각된 가설(근거 있음)**: externalize 가 점수를 떨어뜨렸다(FCP·LCP·SI 는 전부 개선됨) / CSS 미니파이 캐시 오염(키는 커밋 SHA 라 배포마다 회전, 프로덕션 실측 확인) / PR #651·#653 이 홈 임계경로를 건드렸다(둘 다 정적 셸 밖).
-
-**롤백은 무의미하다** — 되돌리면 FCP 가 다시 늦어져 TBT 가 숨겨질 뿐, 작업량은 그대로다.
+- 점수가 떨어진 건 페이지가 느려져서가 아니다. **TBT 하나만 악화**됐고, 부트 베일이 가려 주던 작업이 드러난 것이다. 롤백은 무의미하다.
+- **LCP 는 이미지가 아니다.** `h1.moon-hero__title` **텍스트**이고, 그 지연은 전부 `Element render delay` 다(자원 로드 지연 **0ms**). → **이미지로는 LCP 를 못 움직인다.**
+- **TBT(30%) 와 LCP(25%) 가 같은 원인 하나를 공유한다 — 메인스레드 작업량.** 점수의 55% 다.
+- 그 작업량의 정체가 이번에 밝혀졌다: **CSS 를 전부 걷어내면 RecalcStyle 이 38,307ms → 515ms 로 98.7% 사라진다.** 무효화 **횟수**는 그대로다(71 → 64). 즉 **회당 매칭 비용**이 문제다.
+- 그중 **`styles/fortune-ui.css` 한 파일이 43%.** 하지만 **통째로 뺄 수는 없다** — 홈이 실제로 쓰고 있고, 빼면 숨어 있어야 할 요소가 드러난다(§4).
+- **다음에 할 일 = `fortune-ui.css` 를 홈이 쓰는 부분과 아닌 부분으로 쪼개기.** 그게 유일하게 남은 큰 지렛대다.
 
 ---
 
-## 2. 🔴 이미 시도했고 **실패한** 것 — 다시 하지 말 것
+## 1. 사용자 요구 (원문)
 
-### 하단 내비 상태기(`cdMobileBottomNav`)는 병목이 아니다 — **ablation 으로 반증됨**
+> 성능이 너무 처참해 이전에는 50점 대였는데 니가 이건 뭔가 잘못했던거야 그래서 롤백하라고 했음에도 롤백도 변경이 많아서 불가능한 상황으로 판단되는데 대체 무엇이 원인이라서 모바일 성능이 이렇게까지 떨어졌는지 분석해주고 쓸데없는 중복 css라든지 모든 측면을 다 고려해서 서비스 모바일 성능을 완벽하게 최적화해주면 좋겠어 많이 바라지도 않아 60점대정도만 나와도 만족한다
 
-`perf:home` 의 bootup-time·long-tasks 가 이 9KB 청크를 1위로 지목해서 세 가지 방식으로 고쳐 봤다. **전부 노이즈 범위**였다:
+> cls 제외하고는 점수가 최하점이므로 오히려 최하이므로 개선의 여지가 많을것으로 보이므로 목표 점수가 될때까지 계속 수정해
 
-| 시도 | score | TBT | LCP | Style&Layout | 최장 롱태스크 |
-|---|---:|---:|---:|---:|---:|
-| 기준(CSS 미니파이 상태) | 47 | 1,478 | 5,106 | 5,816 | 1,141ms |
-| body 전역 옵저버를 오버레이 관련 변경에만 승격 | 48 | **1,668** | 4,805 | 6,271 | **1,401ms** |
-| `isVisible()` 에서 `getComputedStyle`/`offsetWidth` 전면 제거 | 46 | 1,525 | 4,926 | 5,824 | 1,221ms |
-| **ABLATION: `update()` 를 즉시 return 시켜 전면 비활성** | 45 | **1,573** | 5,107 | 6,241 | **1,199ms** |
-
-**`update()` 를 통째로 죽여도 TBT 도 최장 롱태스크도 안 줄었다.** 즉 Lighthouse 가 이 파일에 붙인 1.2초는 이 스크립트가 하는 일이 아니라, **이 스크립트의 rAF 콜백이 올라탄 프레임의 스타일·레이아웃 비용**이다. 롱태스크는 스택 맨 아래 스크립트로 귀속되므로 이런 오귀속이 생긴다.
-
-🔴 **교훈: `bootup-time`/`long-tasks` 의 URL 귀속만 보고 범인을 정하지 말 것. ablation 으로 확인할 것.**
-(첫 번째 시도인 `recordsHintOverlay` 게이팅은 **더 나빠졌다** — 추가 노드마다 `querySelector` 로 서브트리를 훑은 게 원인. 되살리지 말 것.)
-
-### 그래서 진짜 병목은
-
-**Style & Layout 5,800~6,300ms 가 부팅 전체에 퍼져 있고, 어떤 단일 스크립트도 소유하지 않는다.** 네 변형 전부에서 이 값이 거의 안 변했다. `dc6129747` 이 남긴 프로덕션 트레이스와 같은 그림이다: **Recalculate Style 681회 × 평균 12.3ms**.
-
-즉 줄여야 하는 건 `규칙 수 × 요소 수 × 무효화 횟수` 다.
+**질문으로 확정받은 사항**
+1. 기준 도구는 **PSI**. 🔴 **키는 발급하지 않는다** — 라운드마다 **사용자가 pagespeed.web.dev 에서 1회 직접 실행해 점수를 알려준다.** 그 사이 반복 측정은 `perf:home --url=` (동일 Lighthouse 엔진, 키 불필요).
+2. **부트 베일은 유지** — 작업량을 먼저 줄인다.
+3. **모바일 홈 요소 축소 허용** — 단 원문: *"모바일에서 컬렉션 카드를 줄이든지 홈 요소를 축소해도 좋아 대신 ui/ux적으로 매우 편리하게 모든 기능들에 접근할 수 있는 있어야해"*
+4. (2026-08-15) 이미지 최적화가 점수에 기여 0 으로 나온 뒤 **"Style & Layout 공략으로 전환"** 을 사용자가 선택했다.
 
 ---
 
-## 3. 실측된 지표 (2026-08-15, 로컬 dist·brotli·CPU 4x, 5회 중앙값)
+## 2. 프로덕션 베이스라인 (실측 · 이 문서의 기준점)
 
-| 항목 | 값 |
-|---|---|
-| 배포 셸 `dist/index.html` | 1,320,517 B (brotli 240,861) · `no-store` 라 **매 방문 재다운로드** |
-| **head** | **399,724 B, 그중 인라인 `<style>` 41블록이 364,878 B (91.3%)** |
-| FCP 요소에 닿기까지 파싱해야 할 양 | **brotli 60,598 B** |
-| 렌더 블로킹 CSS | 6개 · 343,143 raw / 46,783 brotli (`cosmic-main.css` 가 69.6%) |
-| 렌더 블로킹 JS(head) | 7개 · 29,165 raw / 9,722 brotli |
-| 파서 블로킹 `<script src>` 전체 | **49개 · 1,558,908 raw / 343,019 brotli** |
-| externalize 가 만든 셸 청크 | 18개 · 684,006 raw / 158,500 brotli (**17개가 body**) |
-| 모바일 런타임 DOM | **2,164 요소**(박스 있음 1,184 / 숨김 980) |
-| 런타임 스타일시트 / CSSOM 규칙 | 95개 / **7,116 규칙** |
-| 상위 DOM 분포 | `#inputPage 235 · #cdSigGrid 119 · #cdAiFeatures 98 · #fsp-grid 74 · #destinyCardForm 70 · #birthMinute 61` |
-| `<option>` 정적 요소 | 91개 (`birthMinute` 60 + `birthHour` 24) |
+`npm run perf:home -- --url=https://code-destiny.com --runs=5 --preset=mobile` · 커밋 `084ef01b0c25` · 2026-08-15
+
+| 지표 | 값 | 가중치 |
+|---|---:|---:|
+| **Performance** | **39** (35–42) | |
+| FCP | 5,119 ms | 10% |
+| LCP | 6,696 ms | 25% |
+| **TBT** | **1,216 ms** (832–1,722) | **30%** |
+| CLS | 0.038 | 25% |
+| Speed Index | 6,609 ms | 10% |
+
+**메인스레드 내역 (중앙값)**
+
+| ms | 항목 |
+|---:|---|
+| **6,698** | **Style & Layout** ← 65% |
+| 2,022 | Other |
+| 1,110 | Script Evaluation |
+| 632 | Rendering |
+| 217 | Parse HTML & CSS |
+| 141 | Script Parsing & Compilation |
+
+**LCP 의 주인 (열린 항목이었음 — 이제 확정)**
+
+```
+LCP element : h1.moon-hero__title   (텍스트, 렌더 박스 304x72)
+  Time to first byte      302 ms
+  Element render delay  781~1,060 ms
+  resource load delay       0 ms   ← 이미지·네트워크 무관
+```
+
+🔴 **TBT 노이즈가 크다(832~1,722ms, ±45%).** 5회 중앙값을 쓰고, **min~max 밴드가 겹치면 개선으로 인정하지 않는다.** 1차 세션의 ablation 3건이 전부 이 밴드 안에서 흔들렸다.
 
 ---
 
-## 4. 남은 레버 (근거와 함께, 우선순위 순)
+## 3. 🔴 실측으로 기각된 것 — **절대 반복하지 말 것**
 
-### L1. 파서 블로킹 셸 청크 18개 중 13개를 `defer` — **파일별 근거 확보 완료**
+### 3-1. 하단 내비 상태기(`cdMobileBottomNav` = `s-61d550aa8640e310.js`)
 
-`externalize-dist-inline-scripts.mjs` 가 실행 순서 보존을 위해 `defer` 없이 낸다(`:23-25`, `:131`, `MIN_BYTES=8192` at `:39`). 13개는 파스 시점 소비자가 없다 → **140,513 B brotli** 를 블로킹 체인에서 제거. 그중 **114,667 B 가 단 두 파일**:
+`bootup-time` 1위(CPU 3,894ms)이자 최장 롱태스크(1,422ms)이자 **강제 동기 레이아웃 1위(589ms)** 다. 그런데 1차 세션이 세 갈래로 고쳐 봤고 **`update()` 를 통째로 즉시 return 시켜도** TBT·최장 롱태스크가 안 줄었다(전부 노이즈 밴드 안).
+그리고 589ms 는 Style & Layout 6,698ms 의 **9%** 일 뿐이다 — **나머지 91% 는 강제 리플로가 아니라 평범한 스타일 재계산이다.**
+🔴 `bootup-time`/`long-tasks`/`forced-reflow` 의 URL 귀속만 보고 범인을 정하지 말 것.
 
-| 파일 | brotli | 근거 |
-|---|---:|---|
-| `s-3b8e573f09dee186.js` | 63,091 | `isTileKeyUnlocked`/`formatWon`/`unlockedFeatureMap` HTML 참조 **0회**. 문서 98.5% 지점 |
-| `s-81b309f01cb83ca9.js` | 51,576 | `_cdInvokeActionDirect`/`_cdOpenTilePreview`/`__cdOpenMainVvipModal` 참조 **0회**. 전부 클릭 리스너 |
+### 3-2. 이미지 최적화 전반 — **점수 기여 0**
 
-**반드시 블로킹 유지 5개**: `s-a912e5da6adadd69`(`window.fetch` 교체 — access-store 의 defer 안전성이 여기 의존) · `s-7bcdba92aaa3009d`(히어로 마크업 주입 → 지연 시 CLS) · `s-49eb61aeb0e25642`(히어로 문구 교체) · `s-884dcf881587689b`(auth 부트 신호 → 베일 지연) · `s-a99efd85dbb93094`(내비 재부모화).
+`perf:home` 에 "실제로 다운로드된 이미지" 추출을 붙여 확인했다. 홈 셸 `<img>` 59개 중 **Lighthouse 가 실제로 받는 것은 9개, 373KB 뿐**이다. 나머지는 전부 `loading="lazy"` + 스크롤 아래라 **아예 요청되지 않는다.**
 
-구현: 스크립트에 **명시적 안전 목록**을 두고 목록 밖은 기본 블로킹(fail-safe).
-🔴 주의: 이건 FCP 를 더 당긴다 → §1 메커니즘 때문에 **TBT 가 더 나빠질 수 있다.** 작업량을 줄이는 레버와 **함께** 내보낼 것.
+1차 개정본 L1 이 지목한 `saju.webp`·`ai tarrot.webp`·`info.webp`·`유명인 사주 분석.webp`·`sybila.webp` **5개는 한 개도 다운로드되지 않는다.** 전환했어도 점수는 1점도 안 움직였다.
 
-### L2. head 인라인 CSS 364,878 B 축소 (FCP + 재방문 비용)
+그리고 **LCP 요소가 텍스트**이고 `resource load delay` 가 0 이므로, 이미지를 아무리 줄여도 LCP(25%)는 그대로다.
 
-파서가 FCP 요소에 닿으려면 brotli 60,598 B 를 받아 파싱해야 하고, HTML 이 `no-store` 라 **매 방문 반복**된다. 첫 화면에 관여하지 않는 `<style>` 블록을 dist 단계에서 body 하단/외부 캐시 가능 파일로 옮긴다.
-🔴 판정은 정적 grep 금지 — **CDP `CSS.startRuleUsageTracking`** 으로 첫 페인트 시점 매칭 규칙을 실측해서 정한다(정적 판정은 런타임 생성 클래스를 오판했다).
+**부수적으로 알아낸 것 (점수용이 아니라 데이터 비용용)**
+- 리사이즈가 항상 이득이 아니다 — `자는 연이.webp` 10,950→20,770(+90%) · `flower-pig-honey-hug.webp` 22,890→41,737(+82%) · `info.webp@1600` 336,464→374,348(+11%). **전환 전 반드시 원본 vs 리사이즈본을 프로브할 것.**
+- 실제 낭비는 여기 있다(합 ~167KB): `네오와 연이의 운명의 섬` 60KB(768x512 인데 표시 332x221) · `orbs/core.webp` 33KB(448→96) · `app-logo-512.webp` 30KB(512→88) · `luck-sync-diary-v2` 23KB(640→116) · `flower-pig-honey-hug` 21KB(361→96). 별도로 `vvip-destiny-archive-v1.webp` **110KB**(CSS 배경, 리사이즈 미적용)와 `/icons/neo.webp` 48KB.
+- 🔴 `#neoLogo` 는 `srcset`(96w/130w/512w)이 **제대로 있는데도 512px 원본을 받는다.** Lighthouse 모바일 DPR 2.625 × 88px = 231px 가 필요한데 후보가 130w 다음이 512w 라 512w 가 뽑힌다. `app-logo-512.webp`(176w/512w)도 같은 함정. **고치려면 ~256w 변형을 만들어야 한다**(`sharp` 보유, `scripts/webp-exclusions.mjs:18` 이 `app-logo*` 를 자동 변환에서 제외하므로 수동 생성).
 
-### L3. 요소 수 축소 (사용자 승인 범위 — Style & Layout 직격)
+### 3-3. L2(로고 srcset) 의 전제도 틀렸다
 
-Style & Layout 이 `규칙 × 요소` 이므로 요소를 줄이는 게 직접적이다.
-- `<option>` 91개를 최초 포커스 시 생성
-- `#cdSigGrid`(119)·`#cdAiFeatures`(98)·`#fsp-grid`(74)를 모바일에서 **접힌 요약 + 전체 보기**로
-- 🔴 사용자 조건: 축소는 "숨기기"가 아니라 **하단 탭 + 전체 기능 시트로 흡수**. PR 에 **축소 항목 수 + 접근 경로 표**를 반드시 기재하고 사용자 확인 후 머지.
+- `app-logo-176.webp` 는 "참조 0회"가 아니다 — **결제창 안내 자산**이고 `scripts/verify-payment-choice-parity.mjs:138` 이 가드한다.
+- `#honeypigLogo` 의 `srcset` 은 부팅 때 `js/share.js:1103,1223` 과 `index.html` 인라인 `syncHeroMascot` 이 **전부 512 를 가리키는 degenerate srcset 으로 무조건 덮어쓴다.** HTML 만 고치면 무효다.
+- `index.html:548` 의 preload 는 `scripts/verify-portone-single-payment-regression.mjs:513` 이 **`href="/icons/app-logo-512.webp"` 접두사로** 단언한다. `imagesrcset`/`imagesizes` 를 **href 뒤에** 붙이는 것은 통과하지만 href 를 바꾸면 깨진다.
 
-### L4. `content-visibility` 재시도 — **조건부**
+### 3-4. `:has()` 셀렉터 — 기각
 
-`18e28782e` 가 오프스크린 containment 를 첫 스타일 해석부터 적용해 데스크탑 LCP −365ms, Style&Layout 5,361→5,245 를 실측했는데 `d29310c4a` 로 되돌아갔다. **되돌린 사유가 레포 어디에도 없다.**
-지금은 `scripts/verify-home-visual-parity.mjs` 로 시각 동일성을 증명할 수 있으니 재시도 가치가 있다. 🔴 **착수 전 사용자에게 "그때 무엇이 보였는지" 먼저 묻는다.**
+홈 CSS 3면에 `:has()` 셀렉터가 42개 있고(`body:has(.tile-pvw-overlay.pvw-open)` 같은 문서 전역 것 포함) 유력해 보였다. **dist 의 `:has()` 를 전부 무력화해 측정했더니 RecalcStyle 38,307ms → 37,122ms** (밴드 38,122–43,966 vs 35,523–39,699, 겹침). **노이즈다.**
 
-### L5. 중복·미사용 CSS
+### 3-5. 그 외 (1차 세션 결론, 유효)
 
-2026-05-19 PSI 가 `unused-css-rules` **318 KiB** 절감 여지 보고. 조사 미완.
+- **중복 CSS 제거** — 전체 1.55MiB 중 16.1KiB(1.0%)뿐. 사용자가 지목했지만 건드릴 가치 없음.
+- **정적 판정으로 CSS 삭제** — "매칭 불가 51.9%" 중 **83%가 JS 문자열로 되살아났다**(`.cd-refund-toast`, `.tarot-tile__lock-icon`).
+- **`@font-face` 189개 정리** — 3개 패밀리의 unicode-range 서브셋 샤드다. 낭비 아님. `media=print` 스왑이라 렌더 블로킹도 아님.
+- **부트 베일 조건 변경** — 사용자가 유지 선택 + `dc6129747` 의 53→30 전례.
+- **`cosmic-main.css` 통짜 지연** — `8fc05dd53` 이 CLS 로 기각.
+- **소스 `index.html` 구조 변경** — 문자열로 읽는 verify 61개, 함수 본문을 중괄호로 잘라 쓰는 것 19개.
 
-### 하지 않기로 한 것
+---
 
-부트 베일 조건 변경(사용자가 유지 선택 + `dc6129747` 의 53→30 전례) · `cosmic-main.css`(238KB, 블로킹 CSS 의 69.6%) 통짜 지연(`8fc05dd53` 이 CLS 로 기각) · 소스 `index.html` 구조 변경(문자열로 읽는 가드 61개).
+## 4. 🔴 확정된 원인과 다음 작업
+
+### 4-1. 원인 — 스타일 재계산의 **회당 비용**
+
+`npm run perf:style-cost -- --runs=3 --preset=mobile` (로컬 dist, CPU 4x, settle 6s)
+
+| 실험 | RecalcStyle 횟수 | RecalcStyle ms | Task ms |
+|---|---:|---:|---:|
+| **베이스라인** | 71 | **38,307** | 43,279 |
+| `:has()` 전부 무력화 | 73 | 37,122 | 42,224 |
+| `fortune-ui.css` 만 제거 | 121 | **21,733** | 27,015 |
+| 외부 시트 22개 전부 제거 | 408 | **13,055** | 19,061 |
+| **CSS 전부 제거(바닥)** | 64 | **515** | 3,409 |
+
+읽는 법:
+- **횟수는 거의 안 변하는데 총량이 98.7% 사라진다** → 무효화를 줄이는 게 아니라 **매칭 비용**을 줄여야 한다.
+- **`fortune-ui.css` 단독 −43%**(밴드 20,644–22,833, 베이스라인과 겹치지 않음).
+- 외부 시트 전체가 −66%, 나머지 −34% 는 **인라인 `<style>` 81블록**(head 364,878 B).
+
+부수 실측: DOM 2,164 요소(박스 1,184 / 숨김 980 / `display:none` 445) · 스타일시트 95개(`<style>` 87 + `<link>` 8) · CSS 규칙 7,108개.
+셀렉터 모양(정적 카운트): `:not()` 1,507개 · 깊이 4 이상 1,981개(그중 인라인 셸이 1,548개) · 키가 맨 태그인 것 1,374개.
+
+### 4-2. 🔴 그런데 통째로 뺄 수는 없다 — 실측으로 확인
+
+`dist/styles/fortune-ui.css` 를 **빈 파일로 바꾸고**(요소 인덱스를 유지하려고 `<link>` 제거가 아니라 내용 비우기) 시각 파리티를 돌렸다:
+
+```
+node scripts/verify-home-visual-parity.mjs --compare=base1,emptyfui --noise=base1,base2
+  mobile-yeon   FAIL  scrollHeight 17465 → 17548 · computed style 차이 1,621건
+  mobile-neo    FAIL  scrollHeight 17023 → 17104 · 3,055건
+  desktop-yeon  FAIL  scrollHeight 19026 → 19930 · 7,085건
+  desktop-neo   FAIL  scrollHeight 18362 → 19312 · 실측 다수
+```
+
+단순한 색 차이가 아니라 **기능 회귀**가 섞여 있다:
+- `#fsnNavBar` — `transform: matrix(...,-56)` → `none`, `pointer-events:none` → `auto`. **숨어 있어야 할 내비가 드러난다.**
+- `#destinyFlowerStudioSheet` — `opacity: 0` → `1`. **숨은 시트가 보인다.**
+- 네오 모드 `body` 텍스트색 `rgb(200,200,200)` → `rgb(248,250,252)`.
+
+즉 **홈은 이 시트를 실제로 쓴다.** 처방은 삭제가 아니라 **분할**이다.
+
+### 4-3. 다음 라운드 — `fortune-ui.css` 분할
+
+목표: 홈이 매칭하는 규칙만 남긴 작은 시트를 홈에 주고, 609KB 원본은 홈에서 안 받게 한다.
+
+- 🔴 **정적 grep 으로 "안 쓰는 규칙"을 판정하지 말 것** — 위 §3-5. 판정은 **`CSS.startRuleUsageTracking`**(이미 `scripts/measure-home-style-cost.mjs` 가 쓴다) 으로 브라우저가 실제 매칭한 규칙만 센다.
+- 🔴 **런타임에 나중에 생기는 클래스를 놓친다**는 것이 그 방법의 약점이다. 그래서 **커버리지를 한 번만 걷지 말고**, 모달·오버레이·컬렉션 펼침 등 홈에서 도달 가능한 상태를 밟은 뒤에도 걷어 합집합을 쓴다.
+- 안전망은 `verify-home-visual-parity.mjs` 다. **분할본으로 4셀 전부 통과**해야 한다.
+- 그 다음 지렛대는 **인라인 `<style>` 81블록(−34%)** 이다. 같은 방법을 적용한다.
+- ⚠️ 이 작업은 `dist` 단계에서 한다(§6-1). 소스 `index.html` 구조를 바꾸면 문자열 가드 61개가 깨진다.
+
+**남은 후순위** (1차 개정본에서 그대로 유효):
+- L4 파서 블로킹 셸 청크 18개 중 13개 `defer` (140,513 B br). 🔴 FCP 를 더 당겨 TBT 가 더 나빠질 수 있으니 **작업량 감축과 함께** 낼 것. 블로킹 유지 5개: `s-a912e5da6adadd69`·`s-7bcdba92aaa3009d`·`s-49eb61aeb0e25642`·`s-884dcf881587689b`·`s-a99efd85dbb93094`.
+- L6 요소 축소(`<option>` 91개 지연 생성, `#cdSigGrid` 119·`#cdAiFeatures` 98·`#fsp-grid` 74). 🔴 사용자 조건: 축소는 "숨기기"가 아니라 **하단 탭 + 전체 기능 시트로 흡수**. PR 에 축소 항목 수 + 접근 경로 표 필수.
+- L7 `content-visibility` 재시도. 🔴 **착수 전 사용자에게 "`d29310c4a` 로 되돌렸을 때 무엇이 보였는지" 먼저 물을 것** — 사유가 레포 어디에도 없다. **아직 안 물어봤다.**
 
 ---
 
 ## 5. 목표 역산
 
-Lighthouse 10 모바일: TBT 30% · LCP 25% · CLS 25% · FCP 10% · SI 10%
+Lighthouse 모바일: **TBT 30% · LCP 25% · CLS 25% · FCP 10% · SI 10%**
 
 | 지표 | 현재 | 목표 | 기여 |
 |---|---|---|---|
-| TBT | 2,110ms | ≤ 600ms | ~15/30 |
-| LCP | 6.6s | ≤ 4.0s | ~12.5/25 |
-| CLS | 0.003 | 유지 | 25/25 |
-| FCP | 5.3s | ≤ 3.0s | ~5/10 |
-| SI | 6.6s | ≤ 5.0s | ~6/10 |
-| | **34** | | **~63** |
+| TBT | 1,216 ms | ≤ 600 ms | ~15/30 |
+| LCP | 6,696 ms | ≤ 4,000 ms | ~12.5/25 |
+| CLS | 0.038 | 유지 | 25/25 |
+| FCP | 5,119 ms | ≤ 3,000 ms | ~5/10 |
+| SI | 6,609 ms | ≤ 5,000 ms | ~6/10 |
+| | **39** | | **~63** |
 
-🔴 **TBT(작업량)를 먼저, 페인트를 나중에.** 반대로 하면 점수가 더 떨어진다 — 지금까지 정확히 그 순서로 일어났다.
+🔴 **TBT(작업량)를 먼저, 페인트를 나중에.** 반대로 하면 점수가 더 떨어진다 — 지금까지 정확히 그 순서로 일어났다. **그리고 LCP 도 페인트가 아니라 작업량 문제다**(§2).
 
 ---
 
-## 6. 도구와 검증
+## 6. 이 레포 고유의 작업 규칙
 
-이번 세션에 추가된 것(이미 `main`):
-- `npm run perf:home` — 로컬 dist brotli Lighthouse, `--url=` 로 프로덕션도 가능(**API 키 불필요**)
-- `npm run perf:style-cost` — CDP 로 RecalcStyleCount/LayoutCount/DOM 인구조사/실제 매칭 규칙 수
-- `node scripts/verify-home-visual-parity.mjs` — 4셀(모바일/데스크탑 × 연이/네오) computed style 전수 + scrollHeight + 스크린샷. `--noise=` 로 측정한 노이즈만 제외, `background-image` 는 실제 렌더로 비교
+1. 🔴 **성능 최적화는 `dist` 단계에서만.** 정본 자리는 `scripts/run-postbuild.mjs` 의 `verify-adsense-readiness` **뒤** steps(`externalize-dist-inline-scripts` → `minify-dist-js` → `minify-dist-css`).
+2. `index.html` 을 고쳤으면 **`npm run sync:public`**. 미러는 **6벌**(`public/index.html`·`public/static/`·`public/{en,ja,zh,zh-tw}/`) 이고 전부 `scripts/sync-legacy-static-to-public.mjs` 가 루트에서 **생성**한다 — 미러를 손으로 고치지 말 것.
+3. `sitemap.xml`·`public/sitemap.xml` 의 `lastmod` 는 빌드 부산물. 커밋 금지 — `git checkout -- sitemap.xml public/sitemap.xml`.
+4. 격리된 **git worktree** 에서 작업(동시 세션이 디렉터리 공유). 2차 세션은 `.claude/worktrees/perf-home-shell` 사용(node_modules 보유).
+5. **머지는 사용자가 한다.** PR 까지만.
+6. 🔴 **CI 에 새 게이트 금지**(사용자 지시). 새 `verify:*` 는 `scripts/verify-guard-wiring.mjs` 의 `UNWIRED_BY_DESIGN` 등재 의무가 생기므로 **측정 도구는 `perf:*` 로 이름 지을 것**.
+7. 🔴 **`/cdn-cgi/image/` 는 zone 기능이라 로컬·`*.pages.dev` 프리뷰에서 404**(`scripts/deploy-smoke.mjs:68-74`). 새 `/cdn-cgi/` 태그에는 정본 `onerror` 폴백(`dataset.cdImgFallback` 가드 + `removeAttribute('srcset')`)이 **필수**다. 없으면 프리뷰 스모크가 릴리스를 막는다.
+8. **ablation 은 `dist` 에 직접 해도 된다** — 다음 빌드가 덮어쓴다. 다만 백업 후 반드시 복원할 것. `dist/` 는 커밋 대상이 아니다.
 
-**판정 규칙(사전 고정)**: 5회 중앙값이 베이스라인 min~max 밴드 밖으로 나갈 때만 개선. 주 지표 **TBT·LCP**.
+---
+
+## 7. 도구와 검증
+
+| 명령 | 파일 | 용도 |
+|---|---|---|
+| `npm run perf:home` | `scripts/measure-home-lighthouse.mjs` | 로컬 dist brotli Lighthouse. **`--url=` 로 프로덕션도 가능(키 불필요)** |
+| `npm run perf:style-cost` | `scripts/measure-home-style-cost.mjs` | CDP 로 RecalcStyleCount/ms·LayoutCount·DOM 인구조사·실제 매칭 규칙 수 |
+| `node scripts/verify-home-visual-parity.mjs` | 동명 파일 | 4셀(모바일/데스크탑 × 연이/네오) computed style 전수 + scrollHeight + 스크린샷 |
+
+**2차 세션이 `perf:home` 에 추가한 것** (커밋 `9b6d8bdbf`·`477de5a27`)
+- **LCP 요소**(선택자·스니펫·렌더 박스) 와 **LCP 단계 분해**(TTFB / load delay / load duration / render delay)
+- **실제 다운로드된 이미지**와 바이트 · **이미지 전송 절감 여지**(이유 문구 포함)
+- **강제 동기 레이아웃**을 소스 위치별로
+
+🔴 **감사 id 가 Lighthouse 13 에서 갈렸다.** `largest-contentful-paint-element` 는 **없어졌고**, `lcp-discovery-insight` 는 **LCP 가 이미지일 때만** 값이 있으며(텍스트 LCP 면 `lcp-breakdown-insight` 만 답한다), `uses-responsive-images` 는 `image-delivery-insight` 에 흡수됐다. **한쪽만 보면 실패하지 않고 조용히 빈 값이 나온다** — 실제로 첫 실행이 그랬다. 세 id 를 순서대로 훑도록 해 뒀다. `slow-css-selector-insight` 는 **LH13 에 존재하지만 구현이 비어 있다**(`// TODO: implement`) — 기대하지 말 것.
+
+**시각 동일성 검증기 사용 시 반드시 알아야 할 것**
+1. `*{animation:none!important}` 는 **안 먹는다** — `*` 는 특이도 0.
+2. 재생속도 0 도 부족 — 멈추는 지점이 회차마다 다르다. 현재 방식: `anim.currentTime=0; anim.pause()` + `svg.setCurrentTime(0)`.
+3. 남는 흔들림은 `--noise=<A>,<B>`(같은 dist 두 벌)로 **측정해서** 제외. 손으로 무시 목록 쓰지 말 것.
+4. `background-image` 는 문자열이 아니라 **실제 렌더**로 비교한다.
+5. 🔴 **요소 수가 바뀌는 ablation 은 비교가 무의미하다** — 이 도구는 **인덱스로 짝을 맞춘다.** `<link>` 를 지우면 전 요소가 한 칸 밀려 차이가 6,398건으로 튄다(전부 허수). CSS 를 죽이려면 **태그를 지우지 말고 파일 내용을 비울 것.** 2차 세션이 이걸로 한 번 헛디뎠다.
+
+### 라운드마다 돌릴 것
 
 ```bash
 npm run build:cf
 npm run perf:home -- --runs=5 --preset=mobile --label=<R> --out=<tmp>
+npm run perf:style-cost -- --runs=3 --preset=mobile --label=<R>
 node scripts/verify-home-visual-parity.mjs --snapshot --label=<R>
 node scripts/verify-home-visual-parity.mjs --compare=<이전>,<R> --noise=<이전>,<이전2>
 MOBILE_CDP_TARGET=dist npm run verify:mobile-cdp-smoke
-npm run typecheck && npm run lint && npm run verify:public-parity && npm run verify:locale-main-sync
-npm run verify:payment-freeze && npm run verify:mobile-detail-nonintrusive && npm run verify:hero-contrast
+npm run typecheck && npm run lint
+npm run verify:public-parity && npm run verify:locale-main-sync && npm run verify:payment-freeze
+npm run verify:mobile-detail-nonintrusive && npm run verify:mobile-detail-render && npm run verify:hero-contrast
 ```
-`index.html` 수정 시 `npm run sync:public`(셸 7벌).
 
-**PSI 측정**: `scripts/psi-lighthouse-audit.mjs` 를 키 없이도 호출하도록 고쳤지만(예전엔 키 없으면 `exit 0` 으로 조용히 건너뜀), **공용 할당량이 소진돼 429 가 난다.** PSI 로 판정하려면 `PAGESPEED_API_KEY` 가 필요하다 — 사용자에게 요청할 것. 그 전까지는 `perf:home --url=https://code-destiny.com` 이 키 없이 쓸 수 있는 프로덕션 실측 수단이다.
-
-## 7. 근거 못 찾으면 추측하지 말고 물어라
-
-1. **`d29310c4a` 가 containment 를 되돌린 이유** — 커밋 메시지가 한 줄뿐이고 문서에도 없다. L4 착수 전 필수.
-2. **`PAGESPEED_API_KEY`** 존재 여부.
-3. 프로덕션 배포본과 `main` 이 어긋나 있을 수 있다 — 착수 전 `/version.json` 과 `git log origin/main` 대조.
+**판정 규칙(사전 고정)**: 5회 중앙값이 베이스라인 **min~max 밴드 밖**으로 나갈 때만 개선으로 인정. 주 지표 **TBT·LCP**.
+**배포 후**: `npm run perf:home -- --url=https://code-destiny.com --runs=5 --preset=mobile` + **사용자에게 PSI 1회 요청**.
 
 ---
 
-## 8. 중복 CSS / 이미지 조사 결과 (2026-08-15 실측 — 사용자 가설 정정 포함)
+## 8. 열린 항목 / 사용자에게 물어야 할 것
 
-### 🔴 "쓸데없는 중복 CSS" 는 병목이 아니다 — 전체 CSS 1.55 MiB 중 **1.0%**
+1. 🔴 **`d29310c4a` 가 containment(`18e28782e`)를 되돌린 이유** — 커밋 메시지가 한 줄뿐이고 `CLAUDE.md`·`AGENTS.md`·`docs/**` 어디에도 없다. **L7 착수 전 필수. 아직 안 물어봤다.**
+2. **현재 PSI 모바일 점수** — 미확정. 위 39점은 `perf:home --url=` 값이다.
+3. 별건 보고 대상: 엣지가 **404 를 2일간 캐시**하는 대시보드 Cache Rule 이 아직 살아 있다(`/js/shell/` 404 응답에 `max-age=172800`). `_headers` 에는 그 값이 없다.
 
-| 측정 | 규칙 | 바이트 |
+---
+
+## 9. PR 이력
+
+| PR | 상태 | 내용 |
 |---|---|---|
-| 인라인 81블록 **내부** 완전 중복 | 49 / 3,710 | **8,758 B** |
-| 인라인 규칙이 외부 시트와 바이트 동일 | 78 / 3,710 (2.1%) | **7,752 B** |
-| **합계** | | **≈16.1 KiB (1.0%)** |
+| #658 | 머지·배포됨 | `scripts/minify-dist-css.mjs` 신설 + postbuild 배선 |
+| #660 | **머지됨** | `psi-lighthouse-audit.mjs` 의 조용한 건너뜀 제거 + 이 문서 1차본 |
+| (이 PR) | 열림 | `perf:home` 측정 확장(LCP 요소·단계 / 실제 로드 이미지 / 강제 리플로) + 이 문서 2차 개정 |
 
-인라인 CSS 는 **이미 미니파이돼 있다**(주석 0 B, 잉여 공백 41 B). 레이어드 오버라이드 블록들은 같은 셀렉터에 **다른 속성**을 선언하는 것이지 같은 블록의 복사가 아니다. **중복 제거는 건드릴 가치가 없다.**
-
-### 절대 매칭 불가 셀렉터 — 상한값이며 삭제 대상이 아니다
-
-| | 셀렉터 그룹 | 마크업 미매칭 | +JS 문자열도 없음 |
-|---|---|---|---|
-| 전체 | 11,280 | 5,853 (51.9%) / 722.5 KB | **1,027 (9.1%) / 124.3 KB** |
-| `fortune-ui.css` | 4,127 | **3,098 (75.1%) / 316.5 KB** | 660 / 75.1 KB |
-
-🔴 **51.9% 는 상한선일 뿐 오답이다** — 그중 **4,751개가 JS 문자열 매칭으로 되살아났다**(83%가 오탐). `.cd-refund-toast`·`.tarot-tile__lock-icon` 이 그 예다. 그리고 **홈에서 안 쓰인다 ≠ 지워도 된다** — `fortune-ui.css` 는 전 사이트 시트다.
-→ **처방은 규칙 삭제가 아니라 "홈에서 474 KB 짜리 전 사이트 시트를 안 받는 것".**
-
-### `@font-face` 189개는 낭비가 아니다 (내 이전 서술 정정)
-
-189 = **3 패밀리의 unicode-range 서브셋 샤드**이고 전부 `font-display:swap`. 홈에서 안 쓰는 패밀리는 **0개**. 브라우저는 교집합 샤드만 받는다. `media="print"` 스왑이라 렌더 블로킹도 아니다. **그대로 둘 것.**
-
-- 다만 실제 버그 하나: 홈 렌더 경로에서 `var(--font-serif)` 를 쓰는데 **`--font-serif` 가 정의되지 않는다.** 정의는 `styles/globals.css:37-40` 에 있고 `globals.css` 는 `dist/index.html` 에서 **참조 0회**다. 조용히 빈 값으로 해석된다.
-
-### `!important` 전쟁의 진원지 = `cosmic-main.css` 의 히어로 테마 분기
-
-`!important` 총계: 인라인 6,184 · **cosmic-main 3,159** · fortune-ui 385 · mobile-lite 357. 상위는 전부 `body:not(.neo-mode) .moon-hero*` / `body.neo-mode .moon-hero*` 계열(단일 셀렉터에 `!important` 46·40·40·32…). **238,716 B 렌더 블로킹 1위 파일이자 레이어링 손상의 중심.**
-
-### 🔴 가장 큰 실측 낭비 — 이미지가 리사이즈 파이프라인을 우회한다 (~3.35 MB 추정)
-
-같은 페이지의 `<img>` 48개 중 **19개는 이미 `/cdn-cgi/image/width=…,quality=80,format=auto/` 를 쓴다.** 그런데 **26개는 원본 그대로** 나간다 — `srcset` 도 CF 리사이즈도 없이, `width="200"` 로 선언된 타일에.
-
-| 바이트 | 원본 크기 | 선언 폭 | 파일 |
-|---:|---|---:|---|
-| 392,674 | 1672×941 | 200 | `/fuctionassets/심리테스트.webp` |
-| 336,464 | 1808×1024 | 1600 | `/fuctionassets/info.webp` |
-| 255,004 | 1536×1024 | 200 | `/fuctionassets/meditation.webp` |
-| 252,592 | 1672×941 | 200 | `/fuctionassets/soul-origin-cover.webp` |
-| 242,638 | 1536×1024 | 200 | `/fuctionassets/r=vd.webp` |
-| 228,968 | 1536×1024 | 200 | `/fuctionassets/stonetaro.webp` |
-| 220,114 | 1536×1024 | 200 | `/images/Celestial Harmony.webp` |
-| … 26개 합계 | | | **4,193,972 B** |
-
-`loading="lazy"` 라 Lighthouse 가 과소 보고하지만 대역폭·SI 에는 그대로 든다. **파이프라인이 이미 같은 페이지에서 돌고 있으므로 URL 만 바꾸면 된다.**
-
-### LCP 요소의 이미지가 8배 크다 — 올바른 자산이 이미 레포에 있다
-
-`#honeypigLogo`(`data-lcp-candidate="1"`, `index.html:11946-11957`)와 부트 베일 로고(`:7121`, FCP 요소)가 **`/icons/app-logo-512.webp` 31,916 B(512×512)** 를 **48~130 px** 로 그린다. `srcset` 없음, CF 리사이즈 없음.
-**`/icons/app-logo-176.webp`(6,182 B, 176×176)가 이미 레포에 있는데 참조가 0회다.** 절감 ≈ **25.7~29 KiB**, 그것도 LCP/FCP 요소에서.
-
-바로 옆 `#neoLogo` 는 `srcset`(96w/130w/512w)+`sizes` 로 **제대로 하고 있다** — 같은 패턴을 복사하면 된다.
-
-🔴 **주의**: `/cdn-cgi/image/` 는 **zone 기능이라 로컬 정적 서버와 `*.pages.dev` 프리뷰에서 404 난다**(`scripts/deploy-smoke.mjs:68`). 이미 19개가 그 상태라 **로컬 `perf:home` 측정에는 그 이미지들이 빠져 있다.** 로컬에서도 유효한 개선을 원하면 정적 `srcset`(`app-logo-176.webp` 등)을, 프로덕션 최적화를 원하면 CF 리사이즈를 쓴다. **둘의 측정 가능성이 다르다는 걸 알고 고를 것.**
-
-### 이 절의 우선순위
-
-1. **이미지 리사이즈 우회 26개** — ~3.35 MB, 파이프라인 기존재, 시각 동일
-2. **`fortune-ui.css` 474 KB 를 홈에서 빼기** — 316.5 KB 가 홈 마크업과 매칭 불가
-3. **`cosmic-main.css` 238 KB** — 렌더 블로킹 1위 + `!important` 3,159
-4. **LCP 로고 25~29 KiB** — 올바른 자산이 이미 있음
-5. ~~중복 CSS 16 KiB~~ — **1%. 건드리지 말 것.**
+**셸·런타임 변경은 아직 하나도 없다.** 2차 세션은 **측정과 진단만** 했고, 그 결과로 1차본의 L1·L2 를 기각하고 `fortune-ui.css` 분할이라는 검증된 대상 하나를 남겼다.
