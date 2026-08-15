@@ -188,19 +188,49 @@ describe("prepare — 구 계약 승계", () => {
     expect(db.rows.some((r) => r.paymentType === "membership_pass")).toBe(false);
   });
 
-  test("같은 키·다른 등급의 기존 주문: 옛 주문을 조용히 돌려주지 않고 409 IDEMPOTENCY_CONFLICT", async () => {
+  /* 🔴 2026-08-16 계약 변경. 예전에는 여기서 409 IDEMPOTENCY_CONFLICT 를 고정했다. 지켜야 할 것은
+     "옛 주문을 조용히 돌려주지 않는다"이지 "거절한다"가 아니었다 — `/points`(PointsClient)는 그 409 를
+     새 키로 재시도하지 않고 토스트만 띄우므로, 사용자는 키가 바뀔 때까지 **이용권을 살 수 없는
+     막다른 길**에 갇혔다. 이제 카드 상품과 같이 세대를 올려 요청한 플랜의 새 주문을 발급한다.
+     옛 주문은 미결제 그대로 남아 만료되고, 새 merchantUid = 새 PortOne paymentId 다. */
+  test("같은 키·다른 등급의 기존 주문: 옛 주문을 돌려주지 않고 요청한 등급의 새 주문을 낸다", async () => {
     const db = makeFakePaymentDb();
     seedUser(db);
+    const existingUid = "sub_p1m_existing0000000000000000000";
     db.rows.push({
       userId: USER, idempotencyKey: "sub-key-drift", paymentType: "membership_pass",
-      merchantUid: "sub_p1m_existing0000000000000000000", paymentAmount: 29900,
+      merchantUid: existingUid, paymentAmount: 29900,
       subscriptionTier: "premium", status: "pending", createdAt: new Date(Date.now() - 60_000),
     });
     const { response, payload } = await post(db, "/api/payments/subscription/prepare", passBody("standard"), {
       headers: { "Idempotency-Key": "sub-key-drift" },
     });
-    expect(response.status).toBe(409);
-    expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
+    expect(response.status).toBeLessThan(400);
+    expect(payload.order.merchantUid).not.toBe(existingUid);
+    // 옛 premium 주문은 손대지 않는다 — 조용한 재가격도, 상태 변경도 없다.
+    const stale = db.rows.find((row) => row.merchantUid === existingUid);
+    expect(stale.subscriptionTier).toBe("premium");
+    expect(stale.paymentAmount).toBe(29900);
+    expect(stale.status).toBe("pending");
+  });
+
+  /* 결제 완료 주문의 merchantUid 를 PortOne 에 다시 넘기면 결제창이 그려지기 전에 거절된다 —
+     카드 쪽에서 닫은 형제 결함이 이용권에도 그대로 있었다. */
+  test("🔴 같은 키의 기존 주문이 결제 완료면 그 주문을 재사용하지 않는다", async () => {
+    const db = makeFakePaymentDb();
+    seedUser(db);
+    const paidUid = "sub_p1m_paid00000000000000000000000";
+    db.rows.push({
+      userId: USER, idempotencyKey: "sub-key-paid", paymentType: "membership_pass",
+      merchantUid: paidUid, paymentAmount: 9900,
+      subscriptionTier: "standard", status: "paid", createdAt: new Date(Date.now() - 60_000),
+    });
+    const { response, payload } = await post(db, "/api/payments/subscription/prepare", passBody("standard"), {
+      headers: { "Idempotency-Key": "sub-key-paid" },
+    });
+    expect(response.status).toBeLessThan(400);
+    expect(payload.order.merchantUid).not.toBe(paidUid);
+    expect(db.rows.find((row) => row.merchantUid === paidUid).status).toBe("paid");
   });
 
   /* 🔴 2026-08-15 회귀 재현. createPassOrder 에도 orders.js createOrder 와 **같은** 11000 catch

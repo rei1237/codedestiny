@@ -11,6 +11,19 @@
 작성 2026-08-15 · **설계만이다. 착수 금지.**
 전제 문서: [payment-auth-p0-fixes.md](payment-auth-p0-fixes.md) · [../PAYMENT_AUTH_RELIABILITY_PLAN_2026-08-15.md](../PAYMENT_AUTH_RELIABILITY_PLAN_2026-08-15.md) §2-B · §5
 
+> 🔴 **정정 (2026-08-16): 아래 "후보 B 배제" 판정은 틀렸다.** 배제 근거였던 "자동 복구되므로 B 가 아니다"
+> 가 성립하지 않는다 — 셸(`index.html:24350`)과 dp(`js/destiny-profile.js:4222`) **양쪽에** 409
+> IDEMPOTENCY_CONFLICT 새-키 1회 재시도가 이미 있어서 **후보 B 도 자동 복구된다**. 이 문서가
+> "자력 복구 불가"라고 적은 환경은 실재하지 않았다.
+> 실제 원인은 후보 B 였다: 정적 셸 전용 번들이 영구 결정적 `requestId` 를 넘기고
+> (`js/saju-engine-tarot-sukuyo-quantum.js:7413`·`:14511`, `js/saju-engine.js:7272`),
+> 셸 게이트가 거기서 멱등키까지 파생해(`index.html` `_cdAttemptIdempotencyKey`) 세대가 소진된 뒤부터
+> **매 결제가 409 로 시작**했다. 복구가 checkout 왕복 하나를 더 쓰므로 증상은 "PG 결제창이 늦게 뜬다".
+> 수정: 게이트 진입 스코프를 멱등키에 곱하고(`js/core/checkout-entry.js` `mintPaymentAttemptScope`),
+> 서버는 고정 세대 소진 시 409 대신 난수 세대를 발급한다(`worker/payments/orders.js`).
+> 가드: `verify:pg-window-no-conflict` ⑦⑧ · `payments-v2.orders.test.js` T1' ·
+> `payments-v2.prepare-conflict.test.js`.
+
 ## 🔴 현재 판정: **보류 (착수 대상 아님)** — 2026-08-15 사용자 증상 보고 반영
 
 사용자 보고: **"409·503 둘 다 난다. 모두 간헐적이고, 실패해도 자동으로 복구된다."**
