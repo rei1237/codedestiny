@@ -6,8 +6,8 @@ import { spawn } from "node:child_process";
 import WebSocket from "ws";
 
 const root = process.cwd();
-const staticRoot = fs.existsSync(path.join(root, "dist", "index.html")) ? path.join(root, "dist") : root;
 // dist 는 웹 배포본일 수도, 앱(Android) 빌드본일 수도 있다. 앱 빌드는 build-mobile-app.mjs 가
+const staticRoot = resolveStaticRoot();
 const chromePath = findChrome();
 const server = await startStaticServer();
 const tempProfilePrefix = path.join(os.tmpdir(), "code-destiny-mobile-cdp-profile-");
@@ -438,35 +438,61 @@ try {
   if (!focusAllFortunes) {
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
+  // 🔴 첫 매치를 그냥 집으면 안 된다. 이 섹션에는 benefits CTA 가 둘 있고, 앞의
+  // .honey-membership-mini__hero 는 모바일에서 display:none 이다(index.html 의
+  // "#honeyMembershipMini .honey-membership-mini__hero{display:none!important}").
+  // 예전에는 그 숨은 쪽을 재고 있었는데, 스모크가 낡은 dist 를 서빙한 탓에 어긋남이 드러나지
+  // 않았다(G-8). 계약은 "모바일에서 눌리는 benefits CTA 가 하나는 있다"이므로 그대로 잰다.
   const membershipButtonState = await evaluate(cdp, `(() => {
-    const node = document.querySelector('#honeyMembershipMini [data-membership-cta="benefits"]');
-    if (!node) return { exists: false, visible: false, action: null };
+    const nodes = Array.from(document.querySelectorAll('#honeyMembershipMini [data-membership-cta="benefits"]'));
+    if (!nodes.length) return { exists: false, visible: false, action: null, total: 0 };
+    const isVisible = (node) => {
+      const r = node.getBoundingClientRect();
+      const style = getComputedStyle(node);
+      return r.width > 0 && r.height > 0 && style.display !== 'none' && style.visibility !== 'hidden';
+    };
+    nodes.forEach((node) => node.removeAttribute('data-cdp-benefits-target'));
+    const node = nodes.find(isVisible);
+    if (!node) {
+      return { exists: true, visible: false, action: null, total: nodes.length };
+    }
+    node.setAttribute('data-cdp-benefits-target', '1');
     const r = node.getBoundingClientRect();
-    const style = getComputedStyle(node);
     return {
       exists: true,
-      visible: r.width > 0 && r.height > 0 && style.display !== 'none' && style.visibility !== 'hidden',
+      visible: true,
       action: node.getAttribute('data-membership-cta'),
+      total: nodes.length,
       width: Math.round(r.width),
       height: Math.round(r.height)
     };
   })()`, "membership benefits button state");
   assert(membershipButtonState.exists && membershipButtonState.visible && membershipButtonState.action === "benefits", "mobile membership benefits button is visible and action-wired", membershipButtonState);
 
-  await tapSelector(cdp, '#honeyMembershipMini [data-membership-cta="benefits"]');
+  await tapSelector(cdp, '#honeyMembershipMini [data-cdp-benefits-target="1"]');
   let membershipBenefitsDestination = { pathname: "", search: "" };
   for (let i = 0; i < 12; i += 1) {
     await delay(250);
     membershipBenefitsDestination = await evaluate(cdp, "({ pathname: location.pathname, search: location.search })", "membership benefits destination");
     if (membershipBenefitsDestination.pathname.indexOf("/points") === 0 || membershipBenefitsDestination.pathname.indexOf("/login") === 0) break;
   }
+  // next 파라미터는 퍼센트 인코딩돼 온다(?next=%2Fpoints%3F...). 디코드하지 않으면 로그인
+  // 리다이렉트가 이용권 안내를 제대로 가리키고 있어도 이 단언이 틀리게 실패한다.
+  // 이 경로는 예전엔 아예 도달하지 않았다 — 위 탭이 모바일에서 숨겨진 버튼을 노렸기 때문이다(G-8).
+  const membershipBenefitsNext = (() => {
+    try {
+      return decodeURIComponent(membershipBenefitsDestination.search || "");
+    } catch (_) {
+      return membershipBenefitsDestination.search || "";
+    }
+  })();
   assert(
     membershipBenefitsDestination.pathname.indexOf("/points") === 0 || (
       membershipBenefitsDestination.pathname.indexOf("/login") === 0 &&
-      membershipBenefitsDestination.search.indexOf("/points") >= 0
+      membershipBenefitsNext.indexOf("/points") >= 0
     ),
     "mobile membership benefits routes to the pass guide without entering a payment flow",
-    membershipBenefitsDestination,
+    { ...membershipBenefitsDestination, decodedSearch: membershipBenefitsNext },
   );
   }
 
@@ -514,6 +540,59 @@ try {
   if (userDataDir) {
     await removeTempDir(userDataDir);
   }
+}
+
+/* 🔴 무엇을 서빙할지는 명시적으로 정한다.
+   예전에는 `dist/index.html 이 있으면 무조건 그것`이었고 신선도를 보지 않았다. dist 는
+   gitignore 된 로컬 산출물이라 마지막 빌드 시점에 멈춰 있어서, 소스를 아무리 고쳐도 이 스모크는
+   옛 셸을 검사하며 조용히 통과했다(실측 2026-08-15: 로컬 dist 에 data-pvw-cta-bypass 0건 /
+   루트 21건, 1.47MB vs 2.65MB). 초록불인데 아무것도 안 지키는 상태였고, 그 탓에 실제 단언
+   하나가 소스와 어긋난 것도 가려져 있었다(모바일에서 display:none 인 버튼을 검사하고 있었다).
+
+   MOBILE_CDP_TARGET=source (기본) → 레포 루트. 방금 고친 소스를 검사한다.
+   MOBILE_CDP_TARGET=dist         → 빌드 산출물. 낡았으면 통과시키지 않고 실패한다.
+   docs/guard-integrity-2026-08-13.md G-8 참고. */
+function resolveStaticRoot() {
+  const requested = String(process.env.MOBILE_CDP_TARGET || "source").toLowerCase();
+  if (requested !== "source" && requested !== "dist") {
+    throw new Error(`MOBILE_CDP_TARGET must be "source" or "dist" (got "${requested}")`);
+  }
+  if (requested === "source") return root;
+
+  const distIndex = path.join(root, "dist", "index.html");
+  if (!fs.existsSync(distIndex)) {
+    throw new Error("MOBILE_CDP_TARGET=dist but dist/index.html does not exist. Run a build first, or use MOBILE_CDP_TARGET=source.");
+  }
+  const builtAt = fs.statSync(distIndex).mtimeMs;
+  const stale = newestSourceInput(builtAt);
+  if (stale) {
+    throw new Error(
+      `dist/index.html is older than ${path.relative(root, stale)} - this run would test a stale shell.
+` +
+      "  Rebuild (npm run build:cf) or use MOBILE_CDP_TARGET=source."
+    );
+  }
+  return path.join(root, "dist");
+}
+
+/* 산출물보다 새로운 소스 파일을 하나라도 찾으면 그 경로를 돌려준다(없으면 null).
+   전부 훑을 필요는 없다 — 하나만 나와도 산출물은 낡은 것이다. */
+function newestSourceInput(builtAt) {
+  const roots = [path.join(root, "index.html"), path.join(root, "js"), path.join(root, "styles")];
+  const stack = roots.filter((p) => fs.existsSync(p));
+  while (stack.length) {
+    const current = stack.pop();
+    const stat = fs.statSync(current);
+    if (stat.isDirectory()) {
+      for (const entry of fs.readdirSync(current)) {
+        if (entry === "node_modules" || entry.startsWith(".")) continue;
+        stack.push(path.join(current, entry));
+      }
+      continue;
+    }
+    if (stat.mtimeMs > builtAt) return current;
+  }
+  return null;
 }
 
 function findChrome() {
