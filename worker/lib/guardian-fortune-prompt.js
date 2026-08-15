@@ -163,7 +163,8 @@ export function formatGuardianFortuneContextForPrompt(context = {}) {
     integratedInsight: projectInsight(context?.integratedInsight),
   };
 
-  return JSON.stringify(safeContext, null, 2);
+  // 들여쓰기는 모델이 읽는 데 필요 없고 입력 토큰만 20~30% 늘린다.
+  return JSON.stringify(safeContext);
 }
 
 function buildSchemaHint() {
