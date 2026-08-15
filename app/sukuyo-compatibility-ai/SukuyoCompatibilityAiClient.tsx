@@ -1170,6 +1170,10 @@ export default function SukuyoCompatibilityAiClient() {
   const [error, setError] = useState("");
   const [notice, setNotice] = useState("");
   const submitKeyRef = useRef("");
+  // busy 는 phase 파생값이라 React state 갱신 전에 같은 틱의 두 번째 클릭이 그대로 통과한다.
+  // 그러면 생성 요청이 두 번 나가고, 서버의 startLocks 는 인메모리라 다른 isolate 로 갈리면
+  // 그룹 6개 생성이 통째로 두 번 돈다. 다른 AI 클라이언트가 쓰는 ref 락 패턴을 맞춘다.
+  const submitLockRef = useRef(false);
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const formTouchedRef = useRef(false);
 
@@ -1384,7 +1388,16 @@ export default function SukuyoCompatibilityAiClient() {
   }
 
   async function handleSubmit() {
-    if (busy) return;
+    if (submitLockRef.current || busy) return;
+    submitLockRef.current = true;
+    try {
+      await runSubmit();
+    } finally {
+      submitLockRef.current = false;
+    }
+  }
+
+  async function runSubmit() {
     const previewState = readDevPreviewState();
     if (previewState) {
       setPhase("start");

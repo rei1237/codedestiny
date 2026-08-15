@@ -2116,14 +2116,15 @@ export function buildSajuAIPromptWithDomain({
   });
   const factSnapshot = factBuild.factSnapshot;
   const factCard = factBuild.factCard;
+  // factSnapshot·advancedFactors 는 최상위에만 싣는다. engineContext 밑에 같은 참조를 한 번 더
+  // 넣으면 JSON.stringify 가 같은 객체를 두 번 직렬화해(실측 34,392자) 프롬프트가 그만큼 커지는데,
+  // 이 사본을 읽는 코드는 레포에 없다(engineContext.factSnapshot / engineContext.advancedFactors 참조 0건).
   const canonicalSajuResult = {
     ...sajuResult,
     factSnapshot,
     advancedFactors,
     engineContext: {
       ...(sajuResult.engineContext && typeof sajuResult.engineContext === "object" ? sajuResult.engineContext : {}),
-      advancedFactors,
-      factSnapshot,
     },
   };
   const questionFocusAngles = buildSajuQuestionFocusAngles(questionType, resolvedDomain);
@@ -2140,8 +2141,9 @@ export function buildSajuAIPromptWithDomain({
   const categoryRubricLines = buildSajuCategoryRubricLines(categoryRubric);
 
   const domainDataLines = [
-    factCard,
-    "",
+    // factCard 는 아래 purposePrompt 가 generatedPrompt 앞에 이미 싣는다. 여기 한 번 더 넣으면
+    // [분석 데이터 요약] 안에 카드 전문이 통째로 복제된다(실측 1,540자 × 그룹 5회).
+    // "위 명식 사실 카드"라는 지시는 purposePrompt 의 카드가 앞서 나오므로 그대로 성립한다.
     "[내부 명식 기준 고정 규칙]",
     "- 위 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다.",
     "- 십성, 오행, 천간/지지 관계를 직접 추측하거나 재계산하지 마세요.",
