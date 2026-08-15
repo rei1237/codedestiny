@@ -9219,6 +9219,39 @@ function renderIlju(p){
   }
 }
 
+/* 사주 결과의 상세 모달(#tsModal)은 모바일에서 DOM 밖에 있을 수 있다 — index.html 의
+   mobile-home-lazy-mount-v20260701 이 홈 로드 직후 오버레이를 물리적으로 들어내는데, 그 복귀
+   경로 등록이 closeModal 하나뿐이라 여는 쪽이 없다. 그래서 여는 지점에서 직접 되돌려 놓는다.
+   되돌리지 않으면 getElementById('modalBody') 가 null 이라 십성/만세력 글자 탭이 조용히 죽는다.
+   모바일 백스택(mobile-backstack-navigation.js 의 hideOverlayNode)이 남긴 인라인 숨김도 함께
+   지운다 — 인라인 스타일은 .modal.show 클래스 규칙을 이긴다.
+   가드: npm run verify:mobile-lazy-mount-openers */
+function ensureSajuDetailModal(){
+  try {
+    if (window.__cdMobileHomeLazyMount && typeof window.__cdMobileHomeLazyMount.mount === 'function') {
+      window.__cdMobileHomeLazyMount.mount('tsModal');
+    }
+  } catch (_) {}
+  var modal = document.getElementById('tsModal');
+  if (!modal) return null;
+  modal.style.visibility = '';
+  modal.style.pointerEvents = '';
+  modal.removeAttribute('aria-hidden');
+  return modal;
+}
+/* display 를 인라인으로 켠다 — .modal.show{display:flex} 는 비동기로 받는 fortune-ui.css 에만
+   있어서(크리티컬 인라인 블록에는 .modal{display:none} 만 있다) 그 파일이 늦으면 클래스만 붙고
+   화면에는 안 나온다. closeModal 이 같은 인라인 값을 되돌린다. */
+function openSajuDetailModal(){
+  var modal = ensureSajuDetailModal();
+  if (!modal) return null;
+  modal.style.display = 'flex';
+  modal.classList.add('show');
+  return modal;
+}
+window.ensureSajuDetailModal = ensureSajuDetailModal;
+window.openSajuDetailModal = openSajuDetailModal;
+
 /* ═══════════════════════════════════════
    [NEW] 글자 클릭 시 60갑자 및 천간지지 상세 모달 출력
 ═══════════════════════════════════════ */
@@ -9231,6 +9264,7 @@ function showCharDetail(clickedChar, charType, g, j, posLabel, isDayStem) {
 
   if(!gapjaData) return;
 
+  ensureSajuDetailModal();
   let modalBox = document.getElementById('modalBody');
   if(!modalBox) return;
 
@@ -9296,8 +9330,7 @@ let html = ``;
 
   modalBox.innerHTML = html;
 
-  const tsModal = document.getElementById('tsModal');
-  if(tsModal) tsModal.classList.add('show');
+  openSajuDetailModal();
 }
 
 function escapeManseAttr(value){
