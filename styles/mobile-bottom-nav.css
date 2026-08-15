@@ -22,6 +22,18 @@
     --cd-mnav-offset: calc(56px + env(safe-area-inset-bottom, 0px));
   }
 
+  /**
+   * 하단 네비가 보이는 뷰포트에서는 좌상단 고정 나브(AppChrome 의 FeatureBackHomeNav)를 숨긴다.
+   * 홈은 아래 '홈' 탭이 이미 담당하므로 중복이고, position:fixed 라 스크롤 내내 같은 좌표에서
+   * 기능 화면 UI 를 덮는다. 정적 셸은 같은 판단을 이미 내려 뒀다 —
+   * index.html 의 `.result-home-shortcut{display:none}` 이 같은 쿼리 안에 있다.
+   * 🔴 이 규칙은 반드시 하단 네비와 같은 미디어 쿼리에 둔다. 두 나브는 서로의 대체재라
+   *    한쪽만 다른 브레이크포인트(예: Tailwind sm: = 640px)로 뒤집으면 둘 다 보이는 구간이 생긴다.
+   */
+  .cd-feature-nav {
+    display: none;
+  }
+
   .cd-mnav {
     position: fixed;
     left: 0;

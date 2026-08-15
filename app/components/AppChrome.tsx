@@ -129,9 +129,12 @@ function FeatureBackHomeNav() {
   }, [router]);
 
   return (
+    // cd-feature-nav: 모바일에서 숨기는 표식. 하단 네비(.cd-mnav)가 홈 탭을 이미 갖고 있어
+    // 이 좌상단 고정 나브는 중복이면서 기능 화면 UI 를 덮는다. 숨김 규칙은 두 나브가 서로의
+    // 대체재이므로 같은 미디어 쿼리 안에 둔다 — styles/mobile-bottom-nav.css.
     <nav
       aria-label="Feature navigation"
-      className="pointer-events-none fixed left-3 top-[calc(env(safe-area-inset-top,0px)+12px)] z-[2147481200] flex items-center gap-2 sm:left-4"
+      className="cd-feature-nav pointer-events-none fixed left-3 top-[calc(env(safe-area-inset-top,0px)+12px)] z-[2147481200] flex items-center gap-2 sm:left-4"
     >
       <button
         type="button"
