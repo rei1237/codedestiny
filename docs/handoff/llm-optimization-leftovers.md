@@ -128,6 +128,18 @@ merge driver 는 **로컬 git 설정**(`git config merge.cachebust.driver`, `scr
 
 없다(설정 파일). 다음번 셸 충돌 때 `public/zh-tw/index.html` 이 자동 해소되는지로 확인한다.
 
+### ✅ 2026-08-15 조치 완료 — 범위도 확인했다
+
+`public/` 에는 셸이 7개 있는데(`en`·`famous`·`fortune`·`ja`·`static`·`zh`·`zh-tw`) `.gitattributes` 는 6개만 등록하고 있었다. 캐시키 보유량을 세어 **대상이 정확히 `zh-tw` 하나뿐**임을 확인했다:
+
+| 셸 | `?v=build-` 개수 | 등록 필요 |
+|---|---:|---|
+| `public/zh-tw/index.html` | **83** | ✅ 추가함 |
+| `public/famous/index.html` | 0 | 불필요 |
+| `public/fortune/index.html` | 0 | 불필요 |
+
+즉 "한 줄 추가"가 맞았다.
+
 ---
 
 ## 4. 【C】 sukuyo 의 `attempts: 2` 와 `capTokens` 가 어긋난다
@@ -153,10 +165,26 @@ base 8,000 × (1 + 0.3 × 1) = 10,400   ← cap 12,000 에 도달하지 못한�
 
 사용자가 "재시도도 2회면 충분할 것 같다"고 결정했고 그건 그대로 맞다. 다만 **cap 이 이제 거짓말을 한다** — 코드를 읽는 사람은 12,000 까지 늘어난다고 믿게 된다. 어느 쪽으로 맞출지는 **실측 잘림률**을 봐야 정할 수 있어 남겼다.
 
+### 🔴 2026-08-15 실측 — 이건 **비용 문제가 아니다**. 우선순위를 낮춰라
+
+`maxOutputTokens = min(cap, scaled)` 이므로 **도달하지 못하는 cap 은 토큰을 1개도 더 쓰지 않는다.** 즉 이 항목은 절감이 아니라 "코드가 거짓말하는 상태"를 끝내는 일이다. 최적화로 착수하지 말 것.
+
+`worker/` 전수 조사 결과, `attempts: 2` 인 곳은 8군데이고 **정본 형태는 `capTokens: Math.round(base * 1.3)`** 이다(그게 `attempts:2` 의 실제 도달 상한과 정확히 일치한다):
+
+| 위치 | base | cap | 실제 도달 최대 | |
+|---|---:|---:|---:|---|
+| `sukuyo-compatibility-ai.js:1422` | 8,000 | 12,000 | 10,400 | 🔴 불일치 |
+| `palm-vision.js:470` | 8,192 | 12,288 | 10,650 | 🔴 불일치 |
+| `master-love-codex.js:651` | 6,000 | 14,000 | 7,800 | 🔴 불일치 (2.33×) |
+| `pet-saju-ai.js:310` | base | base×**1.8** | base×1.3 | 🔴 불일치 |
+| `animal-totem.js:627` · `vedic-ai.js:1323` · `ziwei-island-ai.js:524` · `sukuyo:1471` | — | base×**1.3** | base×1.3 | ✅ 일치 |
+
 ### 고치는 법 (둘 중 하나, 실측 후 선택)
 
-- **잘림이 드물면**: `capTokens` 를 10,400 으로 낮춰 코드가 사실을 말하게 한다.
+- **잘림이 드물면**: `capTokens` 를 `Math.round(base * 1.3)` 로 맞춰 코드가 사실을 말하게 한다(위 4곳). **절감 0, 가독성만 회복.**
 - **잘림이 잦으면**: `baseTokens` 를 올린다(예: 9,300 → 재시도 시 12,090). 🔴 **`baseTokens` 인상은 출력 토큰 상한을 올리는 것이므로 비용이 는다** — 사용자 승인 사항이다.
+
+🔴 **cap 상수는 `verify-llm-generation-resilience.mjs` 의 `assertBudget` 이 소스 리터럴로 단언한다**(`tokenConstantName`). 바꾸면 그 스크립트도 함께 고쳐야 한다.
 
 실측 방법은 `[llm token_usage]` 로그의 `finishReason` 분포와 `structured-consultation` 의 재시도 로그를 보는 것이다(§6).
 
@@ -228,15 +256,36 @@ npm run test:jest
 
 ---
 
+## 6-1. 【F】 LLM 캐시 미배선 라우트 — 실측 결과 2곳뿐 (2026-08-15)
+
+캐시 히트는 호출을 통째로 0으로 만들므로 접두사 캐싱보다 절감이 크다. `callGeminiText`/`callGeminiJsonWithRetry` 를 부르는 파일을 전수로 훑었다(`worker/routes` + `worker/lib`).
+
+🔴 **`cache:` 로 grep 하면 안 된다 — 5건 중 3건을 오탐했다.** `love-secret-ai.js:816`·`master-love-codex.js:656`·`ziwei-island-ai.js:524` 는 **shorthand(`cache,`)** 로 넘기고 있어 콜론 검색에 안 잡힌다. 원칙 9 그대로 파일을 열어 확인해야 한다.
+
+**실제로 캐시가 하나도 없는 곳 (2곳)**:
+
+| 파일 | LLM 호출 | 비고 |
+|---|---:|---|
+| `worker/lib/palm-vision.js` | 2 | 손금 비전. 입력이 이미지라 캐시 키 설계가 별건 |
+| `worker/routes/animal-totem.js` | 1 | `baseTokens` 3,000~4,800 |
+
+**착수 전 판단할 것**: 캐시는 *같은 입력이 되풀이될 때*만 이득이다(재시도·재열람·동일 입력). 매번 다른 개인화 입력이면 히트율 0 이라 배선해도 소용없다. 🔴 **배선한다면 `cache.minChars` 를 반드시 함께 준다** — PR #646 이 그 가드를 넣은 이유가, 분량 미달 응답이 TTL 30일 동안 굳어 재생성이 같은 실패를 반복하기 때문이다.
+
 ## 7. 권장 착수 순서
 
-1. **【B】 `.gitattributes` 한 줄** — 5분, 위험 0. 다음 셸 충돌을 하나 줄인다.
-2. **【C】 sukuyo cap 정합** — 실측 후 한 줄. 코드가 거짓말하는 상태를 끝낸다.
-3. **【A】 모델 오버라이드** — 절감 그 자체는 아니지만 **다른 모든 단가 절감안의 전제**다. 🔴 착수 전에 프로덕션 env 6개 키 상태를 사용자에게 확인할 것.
-4. **【E】 집계 사각지대** — 이후 최적화의 측정 정확도를 올린다.
-5. **【D】 네이티브 스키마** — 절감 규모를 먼저 재고 판단.
+🔴 **2026-08-15 실측으로 순서를 갈아엎었다.** 아래가 현재 판단이다.
 
-큰 작업 2건([sukuyo 중복 창](sukuyo-duplicate-generation-window.md) · [JSON 슬라이싱](llm-prompt-json-slicing.md))은 이 목록과 별개이며, 절감 규모는 그쪽이 훨씬 크다.
+0. **[먼저] 프로덕션에서 `cachedContentTokenCount` 를 본다** — `npx wrangler tail --format json > llm.log` → `node scripts/report-llm-token-usage.mjs llm.log`. **이 숫자 없이는 프롬프트 구조 최적화를 고를 수 없다.** 사주 프롬프트의 79.5%(246,192자)가 접두사 캐싱 대상인데(PR #648), 실제 할인이 걸리는지가 미검증이라 다음 작업의 방향이 정반대로 갈린다. 자세한 근거는 [llm-prompt-json-slicing.md §3-1](llm-prompt-json-slicing.md).
+1. ~~**【B】 `.gitattributes`**~~ — **2026-08-15 조치 완료.**
+2. **【E】 집계 사각지대** — 0번을 제대로 하려면 이게 먼저다. `mindscan`·`love-reading` 두 경로가 집계에 안 잡혀 "어느 라우트가 큰가" 판단이 실제보다 작게 나온다.
+3. **【A】 모델 오버라이드** — 절감 그 자체는 아니지만 **다른 모든 단가 절감안의 전제**다. 🔴 착수 전에 프로덕션 env 6개 키 상태를 사용자에게 확인할 것.
+4. **【F】 캐시 미배선 2곳** — 히트율이 나올 기능인지부터 판단(§6-1).
+5. **【D】 네이티브 스키마** — 절감 규모를 먼저 재고 판단.
+6. **【C】 cap 정합** — 🔴 **절감 0이다**(§4 실측). 코드 가독성 항목이므로 맨 뒤.
+
+**끝난 큰 작업**: [sukuyo 중복 생성 창](sukuyo-duplicate-generation-window.md) → **PR #652 머지됨(2026-08-15)**. 중복 1회당 LLM 6회를 막았고, 22초 클라 abort 도 202+폴링으로 수렴시켰다.
+
+**남은 큰 작업**: [JSON 슬라이싱](llm-prompt-json-slicing.md) — 🔴 **사주에는 적용하지 말 것**(그 문서 §3-1 정정 참조. 접두사 캐싱을 무너뜨려 2배 이상 손해). 다른 라우트는 절대 크기를 먼저 재라.
 
 ---
 

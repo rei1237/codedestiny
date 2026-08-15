@@ -82,6 +82,55 @@ console.log(Object.keys(fs).map(k => k + '=' + JSON.stringify(fs[k]).length).joi
 
 `earthStorageOpenings` 가 정말 필요한 그룹이 `timing_flow`(시기) 하나뿐이라면 나머지 4그룹에서 빼서 **-39,412자/건**. 다른 큰 덩어리까지 그룹별로 가르면 그 이상. 🔴 **"필요한 그룹이 하나뿐"은 아직 검증되지 않은 가설이다.** §4 가 검증 방법이다.
 
+---
+
+## 🔴 3-1. 중대 정정 (2026-08-15 실측) — 사주에서는 이 작업이 **역효과**다
+
+위 §3 을 쓴 뒤 **PR #648 이 머지되어 전제가 바뀌었다.** 그 PR 은 `buildSajuAISectionPrompt`(`worker/routes/fortune.js:283~`)의 배열을 **불변 접두사 → 가변 접미사**로 재배치했다. `origin/main`(`eab74c949`)에서 다시 쟀다:
+
+```
+=== 사주 그룹 프롬프트 (그룹 5개) ===
+   61927 answer_core / 61924 structure_reading / 61933 life_domains
+   62133 timing_flow / 61941 strategy_action
+합계          309,858
+공통 접두사    61,548  (1그룹의 99.4%)
+공통 접미사    3
+그룹당 고유부  376
+```
+
+즉 **전체 309,858자 중 246,192자(79.5%)가 Gemini 암묵 캐싱의 대상**이다.
+
+**슬라이싱은 이걸 무너뜨린다.** 그룹마다 다른 JSON 을 실으면 공통 접두사가 61,548 → 사실상 0 이 된다. 거칠게 비교하면(캐시 할인 75% 가정):
+
+| | 정가 구간 | 캐시 구간 | 실효 비용(자 환산) |
+|---|---:|---:|---:|
+| **현재(접두사 캐싱)** | 63,666 | 246,192 × 0.25 | **≈ 125,214** |
+| **슬라이싱(캐시 소멸)** | 270,446 | 0 | **≈ 270,446** |
+
+**슬라이싱 쪽이 2배 이상 나쁘다.** 🔴 **사주에는 이 문서의 작업을 적용하지 말 것.**
+
+### 단, 전제가 하나 미검증이다
+
+암묵 캐싱은 Google 이 자동 적용하므로 **할인이 보장되지 않는다.** 특히 웨이브1은 `Promise.all`(`fortune.js:482`) 병렬이라 첫 호출이 캐시를 채우기 전에 나머지 4개가 나갈 수 있다 — 그러면 캐시 이득은 웨이브2 재생성·재요청에만 남는다.
+
+**판정 방법은 하나뿐이다**: 프로덕션 로그의 `usageMetadata.cachedContentTokenCount`(`lib/llm-client.ts:274` 가 이미 읽고 있다).
+
+```bash
+npx wrangler tail --format json > llm.log
+node scripts/report-llm-token-usage.mjs llm.log
+```
+
+🔴 **이 숫자를 보기 전에는 사주 프롬프트 구조를 다시 건드리지 말 것.** 캐시가 실제로 걸리고 있으면 슬라이싱은 손해고, 전혀 안 걸리고 있으면 그때 비로소 슬라이싱이 후보가 된다. **둘 중 어느 쪽인지 모르는 상태에서 고르는 것이 가장 나쁘다.**
+
+### 다른 라우트는? — 접두사 재배치 쪽이 먼저다
+
+7개 라우트가 전부 병렬 팬아웃인데(`fortune` `vedic-ai` `astrology-ai` `new-year-ai` `sukuyo-compatibility-ai` `ziwei-ai` `love-secret-ai`) **#648 은 사주 하나만 재배치했다.** 나머지는 여전히 가변부가 앞에 있다:
+
+- `sukuyo-compatibility-ai.js` `buildSectionGroupPrompt` — 장 목록·guide·분량이 앞, `JSON.stringify(...context)` 가 뒤. **실측: 5그룹 합계 22,033자, 공통 접두사 133자(3.1%), 접미사 0.**
+- `vedic-ai.js` (`:990~1010`) — **가변 → 불변 → 가변** 샌드위치라 접두사·접미사 양쪽이 다 작다.
+
+🔴 **다만 숙요는 그룹당 4.4K자로 사주(62K자)의 1/14 다.** 재배치해도 절감의 절대량이 작으므로, **유료 라우트의 출력 품질을 흔들 위험 대비 이득이 크지 않다.** vedic·astrology·new-year 의 절대 크기는 **미측정**이며, 착수 전에 위 방법으로 먼저 재라 — 큰 것부터가 아니면 하지 않는 편이 낫다.
+
 ### 다른 라우트 (미실측 — 착수 시 같은 방법으로 잴 것)
 
 `vedic-ai.js`(`compactChartForPrompt` + `buildVedicKnowledgeContext`) · `new-year-ai.js`(`JSON.stringify(fortuneData)` 전량) · `sukuyo-compatibility-ai.js` · `astrology-ai.js`(`JSON.stringify(chart)` 전량). 각각 그룹/섹션 수만큼 곱해진다.
