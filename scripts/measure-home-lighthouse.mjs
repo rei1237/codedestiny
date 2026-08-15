@@ -76,6 +76,7 @@ try {
         renderBlocking: extractRenderBlocking(lhr),
         lcpElement: extractLcpElement(lhr),
         lcpPhases: extractLcpPhases(lhr),
+        forcedReflow: extractForcedReflow(lhr),
         imageRequests: extractImageRequests(lhr),
         oversizedImages: extractOversizedImages(lhr),
       });
@@ -231,6 +232,25 @@ function extractLcpElement(lhr) {
 }
 
 /**
+ * Style & Layout 이 메인스레드의 3분의 2를 먹는데, breakdown 은 "얼마나"까지만 말한다.
+ * 강제 동기 레이아웃(JS 가 기하 정보를 읽어 레이아웃을 앞당기는 것)은 그중 **어디서**
+ * 오는지를 소스 위치로 짚어 주는 유일한 감사다. 🔴 여기 이름이 뜬다고 범인 확정이 아니다 —
+ * 핸드오프 §3 의 하단 내비 사례처럼 ablation 으로 확인한 뒤에 고칠 것.
+ */
+function extractForcedReflow(lhr) {
+  const tables = lhr.audits?.["forced-reflow-insight"]?.details?.items || [];
+  const out = [];
+  for (const table of tables) {
+    for (const row of table.items || []) {
+      const source = row.source || {};
+      const where = source.url ? `${source.url}:${source.line ?? 0}:${source.column ?? 0}` : source.value || "(unattributed)";
+      out.push({ url: where, ms: row.reflowTime || 0 });
+    }
+  }
+  return out;
+}
+
+/**
  * LCP 를 TTFB / 자원 로드 지연 / 로드 시간 / 렌더 지연으로 쪼갠다.
  * 어느 칸이 큰지에 따라 처방이 갈린다 — 네트워크를 고칠지 메인스레드를 고칠지.
  */
@@ -312,6 +332,7 @@ function summarize(runs) {
     bootup: rankByUrl(runs, (run) => run.bootup, "total"),
     unusedCss: rankByUrl(runs, (run) => run.unusedCss, "wasted"),
     renderBlocking: rankByUrl(runs, (run) => run.renderBlocking, "wasted"),
+    forcedReflow: rankByUrl(runs, (run) => run.forcedReflow, "ms"),
     lcpElements: rankLcpElements(runs),
     lcpPhases: Object.fromEntries(
       [...new Set(runs.flatMap((run) => Object.keys(run.lcpPhases || {})))]
@@ -445,7 +466,13 @@ function printTables() {
       console.log(`    ${fmt(row.ms).padStart(6)} ms  ${kb(row.bytes).padStart(7)}  ${row.url}`);
     }
 
-    const { lcpElements, lcpPhases, imageRequests, oversizedImages } = results[preset];
+    const { lcpElements, lcpPhases, imageRequests, oversizedImages, forcedReflow } = results[preset];
+    if (forcedReflow.length) {
+      console.log(`\n  Forced synchronous layout (median ms per source):`);
+      for (const row of forcedReflow.slice(0, 8)) {
+        console.log(`    ${fmt(row.ms, 1).padStart(8)} ms  ${row.url}`);
+      }
+    }
     if (Object.keys(lcpPhases).length) {
       console.log(`\n  LCP breakdown (median):`);
       for (const [label, ms] of Object.entries(lcpPhases).sort((a, b) => b[1] - a[1])) {
@@ -498,7 +525,9 @@ function renderMarkdown() {
     lines.push("", "### Top script CPU (bootup-time)", "", "| ms | size | url |", "|---:|---:|---|");
     for (const row of bootup) lines.push(`| ${fmt(row.ms)} | ${kb(row.bytes)} | \`${row.url}\` |`);
 
-    const { lcpElements, lcpPhases, imageRequests, oversizedImages } = results[preset];
+    const { lcpElements, lcpPhases, imageRequests, oversizedImages, forcedReflow } = results[preset];
+    lines.push("", "### Forced synchronous layout", "", "| ms | source |", "|---:|---|");
+    for (const row of forcedReflow) lines.push(`| ${fmt(row.ms, 1)} | \`${row.url}\` |`);
     lines.push("", "### LCP breakdown", "", "| subpart | ms |", "|---|---:|");
     for (const [label, ms] of Object.entries(lcpPhases).sort((a, b) => b[1] - a[1])) lines.push(`| ${label} | ${fmt(ms)} |`);
     lines.push("", "### LCP element", "", "| runs | rendered | selector | snippet |", "|---:|---|---|---|");
