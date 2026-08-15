@@ -77,6 +77,23 @@ try {
     }
     await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: "load", timeout: 120000 });
     await page.waitForTimeout(6000);
+    // 🔴 추출원을 셸의 로딩 방식에 의존하지 않는다. 이 스크립트가 만든 부분집합을 셸이 쓰기
+    //    시작하면 전체 시트는 지연 로더로 넘어가고, 6초 안에는 CSSOM 에 없다 — 그러면 다음
+    //    재생성이 0규칙을 뽑는다(실제로 그랬고, 0규칙 가드가 덮어쓰기를 막았다). 직접 붙인다.
+    await page.evaluate(
+      (href) =>
+        new Promise((resolve) => {
+          if ([...document.styleSheets].some((sheet) => (sheet.href || "").includes("/styles/fortune-ui.css"))) return resolve();
+          const link = document.createElement("link");
+          link.rel = "stylesheet";
+          link.href = href;
+          link.onload = resolve;
+          link.onerror = resolve;
+          document.head.appendChild(link);
+        }),
+      "/styles/fortune-ui.css",
+    );
+    await page.waitForTimeout(1000);
     const found = await page.evaluate(collectMatchingRules);
     for (const row of found) if (!kept.has(row.text)) kept.set(row.text, row);
     console.log(`[critical-css] ${cell.name.padEnd(13)} matched ${String(found.length).padStart(5)} · union ${kept.size}`);
@@ -117,7 +134,8 @@ function argValue(name) {
  * 반환: [{ text, conditions: ["@media (...)", ...] }]
  */
 function collectMatchingRules() {
-  const sheets = [...document.styleSheets].filter((sheet) => (sheet.href || "").includes("fortune-ui.css"));
+  // 🔴 "fortune-ui.css" 부분일치로 잡으면 우리가 만든 fortune-ui-home.css 까지 걸린다.
+  const sheets = [...document.styleSheets].filter((sheet) => (sheet.href || "").includes("/styles/fortune-ui.css"));
   const out = [];
   // 동적 의사클래스·의사요소는 querySelector 로 검사할 수 없다. 떼고 구조만 본다.
   const DYNAMIC = /::?(?:hover|focus|focus-visible|focus-within|active|checked|disabled|enabled|target|visited|link|placeholder-shown|user-invalid|invalid|valid|indeterminate|default|read-only|read-write|autofill|-webkit-[a-z-]+|-moz-[a-z-]+|before|after|marker|selection|backdrop|first-line|first-letter|placeholder|file-selector-button)\b(?:\([^()]*\))?/g;
