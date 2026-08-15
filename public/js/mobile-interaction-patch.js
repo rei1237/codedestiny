@@ -167,6 +167,25 @@
     tapFeedbackTimer = setTimeout(clearTapFeedback, 220);
   }
 
+  /* 아래 정리 블록이 **실제로 되돌릴 것이 있는 상태인가.**
+     reconcileOverlayLifecycle 의 정리 블록이 하는 일은 딱 셋이고 전부 조건부 쓰기다:
+       ① body.style.overflow 가 'hidden' 일 때만 '' 로 되돌림
+       ② classList.remove('lb-modal-open')      — 없으면 no-op
+       ③ classList.remove('naming-prompt-open') — 없으면 no-op
+     셋의 전제가 모두 거짓이면 그 블록은 hasOpenMobileOverlay() 의 반환값과 **무관하게** 전부
+     no-op 이다(형식적 동치). 그런데 hasOpenMobileOverlay 는 셀렉터 10개짜리 문서 전수
+     querySelectorAll 이고, 🔴 **매치가 0개일 때가 오히려 가장 비싸다** — 조기 종료가 없어
+     문서 끝까지 순회하고, `[aria-hidden="false"]` 같은 속성 셀렉터라 클래스 검사보다 느리다.
+     프로퍼티 조회 3번으로 그 순회를 대신한다.
+     ⚠ 이 게이트를 inert 해제 블록 위로 올리지 말 것 — 그건 body 상태와 무관하게 돌아야 한다. */
+  function hasOverlayLifecycleResidue() {
+    var body = document.body;
+    if (!body) return false;
+    if (body.style && body.style.overflow === 'hidden') return true;
+    var classes = body.classList;
+    return !!(classes && (classes.contains('lb-modal-open') || classes.contains('naming-prompt-open')));
+  }
+
   function hasOpenMobileOverlay() {
     var selectors = [
       '#tilePvwOverlay.pvw-open',
@@ -205,6 +224,8 @@
         && typeof window._cdReleaseTilePreviewInert === 'function') {
         window._cdReleaseTilePreviewInert();
       }
+      // 되돌릴 잔여물이 없으면 아래 블록은 통째로 no-op 이다 — 문서 전수 스캔을 하지 않는다.
+      if (!hasOverlayLifecycleResidue()) return;
       if (!hasOpenMobileOverlay()) {
         if (document.body && document.body.style && document.body.style.overflow === 'hidden') {
           document.body.style.overflow = '';
@@ -834,8 +855,97 @@
     return null;
   }
 
+  /* RULES 각 복합 셀렉터의 **맨 왼쪽 컴파운드**에서 class / id / data-action 키만 뽑아 둔다.
+     `.tarot-tile--physio .tarot-tile__img` 같은 자손 셀렉터가 매치하려면, 매치된 요소의
+     조상-또는-자기 중 하나가 반드시 맨 왼쪽 컴파운드의 키를 갖는다. 따라서 origin 의 조상
+     사슬 어디에도 그 키가 하나도 없으면 **어떤 규칙도 매치할 수 없다**(거짓 음성 불가).
+     실측: 규칙 32개 · 고유 leftmost compound 75개, 키를 못 뽑는 head **0개**(2026-08-16).
+     🔴 fail-open — 키를 못 뽑는 head 가 하나라도 생기면 게이트를 통째로 끈다. 나중에 누가
+        태그 셀렉터나 `*` 를 규칙에 넣어도 탭이 조용히 죽지 않게 하는 유일한 장치다. */
+  var RULE_GATE_SOUND = true;
+  var RULE_GATE = (function () {
+    var classes = Object.create(null);
+    var ids = Object.create(null);
+    var actions = Object.create(null);
+    RULES.forEach(function (rule) {
+      String(rule.targetSelector).split(',').forEach(function (complex) {
+        var head = complex.trim().split(/[\s>+~]+/)[0];
+        if (!head) { RULE_GATE_SOUND = false; return; }
+        var pattern = /\.([A-Za-z0-9_-]+)|#([A-Za-z0-9_-]+)|\[data-action="([^"]+)"\]/g;
+        var match;
+        var found = false;
+        while ((match = pattern.exec(head))) {
+          found = true;
+          if (match[1]) classes[match[1]] = true;
+          else if (match[2]) ids[match[2]] = true;
+          else actions[match[3]] = true;
+        }
+        if (!found) RULE_GATE_SOUND = false;
+      });
+    });
+    return { classes: classes, ids: ids, actions: actions };
+  })();
+
+  /* 조상 사슬을 한 번만 올라가며 **순수 프로퍼티 조회만** 한다 — 선택자 엔진을 부르지 않는다.
+     핸들러가 없는 헤더를 탭하면 사슬이 5개(div → header → #inputPage → body → html)뿐이라
+     조회 ~15회로 끝난다. 그 전에는 규칙 32개 × 조상 5개 × 컴파운드 ~8개였다. */
+  function couldMatchAnyRule(origin) {
+    if (!RULE_GATE_SOUND) return true;
+    for (var el = origin; el && el.nodeType === 1; el = el.parentElement) {
+      if (el.id && RULE_GATE.ids[el.id]) return true;
+      var list = el.classList;
+      if (list) {
+        for (var i = 0; i < list.length; i += 1) {
+          if (RULE_GATE.classes[list[i]]) return true;
+        }
+      }
+      if (el.hasAttribute && el.hasAttribute('data-action')
+        && RULE_GATE.actions[el.getAttribute('data-action')]) return true;
+    }
+    return false;
+  }
+
+  /* 손가락 한 번 내림에 pointerdown 과 touchstart 가 **둘 다** 온다(순서는 브라우저마다 다르고,
+     한쪽만 오는 경우도 있다). 두 이벤트는 같은 하드웨어 입력에서 나오므로 timeStamp 가 사실상 같다.
+     그래서 "먼저 온 쪽이 공유 작업을 하고, 16ms 창 안의 같은 타깃 이벤트는 그 결과를 재사용한다".
+     🔴 타이머로 다른 쪽을 기다리지 않는다 — 한쪽만 오는 브라우저에서는 그 한쪽이 '먼저 온 쪽'이
+        되므로 아무것도 잃지 않는다. 창 판정이 실패하면 예전처럼 2번 도는 것뿐이다(fail-open). */
+  var GESTURE_DOWN_DEDUPE_MS = 16;
+  var gestureDown = { stamp: -1, at: 0, target: null, rule: null, ruleResolved: false };
+
+  function beginGestureDown(event) {
+    var stamp = (event && typeof event.timeStamp === 'number') ? event.timeStamp : NaN;
+    var sameTarget = !!(gestureDown.target && gestureDown.target === event.target);
+    var withinWindow = (gestureDown.stamp >= 0 && stamp === stamp)
+      ? Math.abs(stamp - gestureDown.stamp) <= GESTURE_DOWN_DEDUPE_MS
+      : (Date.now() - gestureDown.at) <= GESTURE_DOWN_DEDUPE_MS;
+    if (sameTarget && withinWindow) return false;   // 같은 제스처의 두 번째 신호
+    gestureDown = {
+      stamp: (stamp === stamp ? stamp : -1),
+      at: Date.now(),
+      target: event.target,
+      rule: null,
+      ruleResolved: false
+    };
+    return true;                                     // 이번 제스처의 첫 신호
+  }
+
+  function ruleForGestureDown(event) {
+    if (gestureDown.target === event.target && gestureDown.ruleResolved) return gestureDown.rule;
+    var rule = findRuleFromTarget(event.target);
+    if (gestureDown.target === event.target) {
+      gestureDown.rule = rule;
+      gestureDown.ruleResolved = true;
+    }
+    return rule;
+  }
+
   function findRuleFromTarget(origin) {
     if (!origin || typeof origin.closest !== 'function') return null;
+    /* 🔴 아래 루프를 **재구조화하지 않는다.** 지금 의미론은 "배열 순서가 이른 규칙 우선"이고,
+       결합 셀렉터 1회 closest 로 바꾸면 "가장 가까운 조상 우선"이 되어 결과가 갈릴 수 있다.
+       게이트는 매치 가능성이 0인 경우만 걸러내므로 우선순위를 건드리지 않는다(무손실). */
+    if (!couldMatchAnyRule(origin)) return null;
     for (var i = 0; i < RULES.length; i += 1) {
       if (origin.closest(RULES[i].targetSelector)) return RULES[i];
     }
@@ -933,6 +1043,10 @@
     else if (event && typeof event.stopPropagation === 'function') event.stopPropagation();
   }
 
+  /* 컬렉션 소유자. 🔴 occludedByOtherLayer 와 좌표 폴백 게이트가 **반드시 같은 정의**를 써야 한다 —
+     둘이 갈라지면 "게이트는 통과했는데 후보는 전부 occluded" 같은 조용한 죽은 구간이 생긴다. */
+  var COLLECTION_OWNER_SELECTOR = '.feat-collection[id],.tarot-collection[id]';
+
   function findCollectionToggleFromOrigin(origin) {
     return origin instanceof Element ? origin.closest('[data-action="toggleCollection"][data-target]') : null;
   }
@@ -954,7 +1068,7 @@
     // 최상단 실히트가 그 컬렉션 밖이면 다른 레이어가 주인이라고 보고 넘긴다.
     function occludedByOtherLayer(candidate) {
       if (!top || !candidate || !candidate.closest) return false;
-      var owner = candidate.closest('.feat-collection[id],.tarot-collection[id]');
+      var owner = candidate.closest(COLLECTION_OWNER_SELECTOR);
       return !!(owner && !owner.contains(top));
     }
     if (typeof document.elementsFromPoint === 'function') {
@@ -1020,7 +1134,24 @@
       && toggleOrigin.closest('.tile-pvw-overlay,.cd-direct-payment-modal,[role="dialog"]')) {
       return false;
     }
-    var toggle = findCollectionToggleFromOrigin(toggleOrigin) || findCollectionToggleFromPoint(point.x, point.y);
+    /* 🔴 좌표 폴백의 존재 이유는 위 947-954 에 적힌 단 하나 — "같은 컬렉션 안의 장식 요소가
+       헤더를 덮어 closest 가 실패한 경우"의 구제다(실제 마크업: .feat-collection__cosmos 안의
+       .fc-star 들이 헤더 버튼 위에 깔린다). 그 전제를 그대로 선행 조건으로 쓴다 — origin 이
+       컬렉션 서브트리 밖이면 구제할 대상 자체가 없으므로 elementFromPoint · elementsFromPoint ·
+       토글 전수 rect 스캔을 아예 하지 않는다.
+
+       🔴 이 게이트는 폴백을 **좁히기만 한다. 넓히지 않는다.** 그래서 위 두 실사고
+          (모달 버튼이 컬렉션 토글로 오판 / ✕ 한 번에 컬렉션이 통째로 접힘)는 구조적으로 재발할
+          수 없다 — 두 경우 모두 origin 이 오버레이·시트 안이라 게이트에서 먼저 걸린다.
+          기존 방어(occludedByOtherLayer · .tile-pvw-overlay 명시 차단)는 그대로 살려 둔다(2중).
+
+       실측 효과: 컬렉션 밖(헤더·하단 내비·오늘의 운세·검색·푸터) 탭에서 제스처당
+       elementsFromPoint 3회 · elementFromPoint 3회 · querySelectorAll 3회 ·
+       getBoundingClientRect 39회가 전부 0 이 된다. 필드 최악인 header.logo-area 가 이 경우다. */
+    var toggle = findCollectionToggleFromOrigin(toggleOrigin);
+    if (!toggle && toggleOrigin && toggleOrigin.closest && toggleOrigin.closest(COLLECTION_OWNER_SELECTOR)) {
+      toggle = findCollectionToggleFromPoint(point.x, point.y);
+    }
     return toggleMobileCollection(toggle, event, source);
   }
 
@@ -1133,7 +1264,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-7decc89514ec').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-7fd42d81d5d9').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1224,24 +1355,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-7decc89514ec'
+      'js/animal-totem-experience.js?v=build-7fd42d81d5d9'
     ],
     openHwatuModal: ['HwatuFortune.js?v=h5be3c5cb5489'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-7decc89514ec'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-7decc89514ec'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-7decc89514ec'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-7fd42d81d5d9'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-7fd42d81d5d9'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-7fd42d81d5d9'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-7decc89514ec'],
-    openDreamModal: ['js/dream-ledger.js?v=build-7decc89514ec'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-7decc89514ec'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-7fd42d81d5d9'],
+    openDreamModal: ['js/dream-ledger.js?v=build-7fd42d81d5d9'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-7fd42d81d5d9'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-7decc89514ec']
+    openSibylModal: ['js/sibyl-system.js?v=build-7fd42d81d5d9']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -1887,14 +2018,18 @@
         lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
         lastTouchHadMove = false;
       }
-      if (event && event.target) {
+      // 공유 작업은 이번 제스처의 첫 신호에서만 — pointerdown 이 이미 했으면 건너뛴다.
+      if (event && event.target && beginGestureDown(event)) {
         showTapFeedback(event.target);
         scheduleOverlayLifecycleGuard(260);
       }
       if (!event || !event.target || !event.target.closest) return;
-      var rule = findRuleFromTarget(event.target);
+      var rule = ruleForGestureDown(event);
       if (!rule) return;
       if (!pt) return;
+      /* 🔴 아래 두 줄은 touchstart 고유라 **절대 건너뛰지 않는다.** 이걸 공유 작업으로 묶으면
+         pointerdown 이 먼저 오는 브라우저에서 cardScrollTouch 가 영영 서지 않고, 그러면
+         touchmove 의 markCardScrollLock 이 안 돌아 "스크롤 직후 고스트 탭이 카드를 연다"가 된다. */
       cardScrollTouch.active = isCardScrollTarget(event.target);
       cardScrollTouch.moved = false;
 
@@ -2086,12 +2221,13 @@
         lastTouchStart = { x: pt.x, y: pt.y, at: Date.now() };
         lastTouchHadMove = false;
       }
-      if (event && event.target) {
+      // 공유 작업은 이번 제스처의 첫 신호에서만 — touchstart 가 이미 했으면 건너뛴다.
+      if (event && event.target && beginGestureDown(event)) {
         showTapFeedback(event.target);
         scheduleOverlayLifecycleGuard(260);
       }
       if (!event || !event.target || !event.target.closest) return;
-      var rule = findRuleFromTarget(event.target);
+      var rule = ruleForGestureDown(event);
       if (!rule) return;
       if (!pt) return;
       touchCtx = {
@@ -2317,6 +2453,11 @@
     (function syncViewportHeight() {
       var root = document.documentElement;
       if (!root) return;
+      /* 🔴 값이 바뀔 때만 쓴다. `--cd-safe-vh` 는 :root 커스텀 프로퍼티라 **쓸 때마다 문서 전체
+         스타일이 무효화**되는데, 아래에서 visualViewport 의 **scroll** 에도 물려 있어 스크롤
+         한 번마다 같은 값을 다시 쓰고 있었다. 스크롤 직후의 탭이 필드 INP 상위 3건의 상황이라
+         정확히 그 자리에서 다음 탭의 입력 대기를 늘리고 있었다. */
+      var lastSafeVh = '';
       function update() {
         var h = 0;
         if (window.visualViewport && Number(window.visualViewport.height) > 0) {
@@ -2324,7 +2465,11 @@
         } else if (Number(window.innerHeight) > 0) {
           h = window.innerHeight;
         }
-        if (h > 0) root.style.setProperty('--cd-safe-vh', h + 'px');
+        if (h <= 0) return;
+        var next = h + 'px';
+        if (next === lastSafeVh) return;
+        lastSafeVh = next;
+        root.style.setProperty('--cd-safe-vh', next);
       }
       update();
       window.addEventListener('resize', update, { passive: true });
