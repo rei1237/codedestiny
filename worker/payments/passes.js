@@ -27,6 +27,8 @@ import {
 import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import { paymentError } from "./errors.js";
 import { toObjectId } from "./db.js";
+// 🔴 세대 사다리는 카드 상품과 **같은 구현**을 쓴다. 두 벌을 두면 한쪽만 고쳐 상품별 멱등 계약이 갈린다.
+import { MAX_ORDER_GENERATIONS, generationKey, terminalGenerationKey } from "./orders.js";
 
 const PASS_PRODUCT_TYPE = "membership_pass";
 const PASS_TIER_RANK = Object.freeze({ free: 0, standard: 1, premium: 2, vvip: 3, family: 4 });
@@ -108,8 +110,8 @@ export function computePassExpiry({ transition, paidAt, now = new Date(), durati
 
 /**
  * T1 · 이용권 주문 upsert. 같은 (userId, idempotencyKey, membership_pass) 는 같은 주문이다.
- * 같은 키의 기존 주문이 다른 금액·등급이면 IDEMPOTENCY_CONFLICT — 구 계약 그대로, 옛 가격
- * 주문을 조용히 돌려주지 않는다(클라이언트는 새 키로 다시 온다).
+ * 같은 키의 기존 주문이 다른 금액·등급이면 IDEMPOTENCY_CONFLICT — 옛 가격 주문을 조용히
+ * 돌려주지 않는다. 그 409 를 흡수하는 것은 아래 createPayablePassOrder 다(호출부는 그쪽을 쓴다).
  */
 export async function createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod = "card_general" }) {
   const uid = toObjectId(userId);
@@ -171,12 +173,54 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
     });
   }
   if (!order) throw paymentError("INTERNAL_ERROR", "이용권 주문을 생성하지 못했습니다.", { orderId });
-  if (Number(order.paymentAmount) !== Number(plan.wonPrice) || String(order.subscriptionTier || "") !== plan.tier) {
-    throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing membership pass preparation.", {
-      orderId: String(order.merchantUid || ""),
-    });
-  }
   return order;
+}
+
+/** 이 주문으로 지금 결제창을 열어도 되는가. orders.js isPayableOrder 와 같은 술어(정확 일치)다. */
+function isPayablePassOrder(order) {
+  return String(order?.status || "") === "pending";
+}
+
+/** 의도가 달라졌는가. 이용권은 가격 승계(reprice)를 하지 않는다 — 다른 플랜은 다른 주문이다. */
+function hasPassDrift(order, plan) {
+  return Number(order?.paymentAmount) !== Number(plan.wonPrice)
+    || String(order?.subscriptionTier || "") !== plan.tier;
+}
+
+/**
+ * T1' · **결제 가능한 이용권 주문을 반드시 돌려준다.** 카드 상품의 createPayableOrder 와 같은 계약이다.
+ *
+ * 예전에는 재사용할 수 없는 주문(다른 플랜·이미 결제됨·취소됨)을 만나면 곧바로 409 를 던졌다. 그런데
+ * `/points` 는 그 409 를 새 키로 재시도하지 않고 토스트만 띄우므로(PointsClient), 사용자는 그 키가
+ * 바뀔 때까지 **이용권을 살 수 없는 막다른 길**에 갇혔다. 게다가 이미 결제된 주문이 조건을 통과하면
+ * 그 merchantUid 가 PortOne 에 다시 넘어가 **결제창이 그려지기 전에 거절**된다(카드 쪽에서 닫은 것과
+ * 같은 형제 결함).
+ *
+ * 멱등키가 막아야 하는 것은 "진행 중인 결제의 중복 생성"이지 "의도가 달라진 재요청"이 아니다.
+ * 그래서 재사용할 수 없으면 거절하는 대신 세대를 올려 새 주문을 발급한다. 새 merchantUid =
+ * 새 PortOne paymentId 이고 결제창이 열리기 전이라 이중결제 위험이 없다.
+ *
+ * 왕복 수: 정상 경로 **1회 그대로**. 재사용 불가일 때만 세대당 1회가 더 붙는다.
+ */
+export async function createPayablePassOrder(db, input) {
+  const baseKey = String(input?.idempotencyKey || "").trim();
+  if (!baseKey) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "결제 요청 식별자가 필요합니다.");
+  const plan = input.plan;
+  let lastOrderId = "";
+
+  for (let generation = 0; generation < MAX_ORDER_GENERATIONS; generation += 1) {
+    const order = await createPassOrder(db, { ...input, idempotencyKey: generationKey(baseKey, generation) });
+    lastOrderId = String(order.merchantUid || "");
+    if (isPayablePassOrder(order) && !hasPassDrift(order, plan)) return order;
+  }
+
+  // 고정 사다리 소진 — 겹칠 수 없는 키로 새 주문을 발급한다(orders.js terminalGenerationKey 머리주석).
+  const fresh = await createPassOrder(db, { ...input, idempotencyKey: terminalGenerationKey(baseKey) });
+  if (isPayablePassOrder(fresh) && !hasPassDrift(fresh, plan)) return fresh;
+
+  throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing membership pass preparation.", {
+    orderId: String(fresh?.merchantUid || lastOrderId || ""),
+  });
 }
 
 /**

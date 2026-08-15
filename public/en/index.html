@@ -22303,7 +22303,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-4d1f4e0793f3" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-9edeaf4719a9" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-4d1f4e0793f3" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-4d1f4e0793f3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -22855,6 +22855,15 @@ return you.name.restore();</span>
   // 아래는 얇은 위임 래퍼일 뿐이며, 모듈이 아직 안 붙었어도 결제 흐름이 죽지 않도록 안전한 기본값을 준다.
   function _cdCheckoutEntry() {
     try { return window.__cdCheckoutEntry || null; } catch (_checkoutEntryError) { return null; }
+  }
+  // 🔴 멱등키 스코프 정본도 checkout-entry 하나다(mintPaymentAttemptScope 머리주석에 이유 전부).
+  // 모듈이 아직 안 붙었을 때만 같은 형식의 값을 자체 생성한다 — 결제 흐름을 죽이지 않는다.
+  function _cdMintPaymentAttemptScope() {
+    var api = _cdCheckoutEntry();
+    if (api && typeof api.mintPaymentAttemptScope === 'function') {
+      try { return api.mintPaymentAttemptScope(); } catch (_scopeError) { /* 아래 폴백 */ }
+    }
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
   }
   // 추천 선택지 판정 위임. 모듈이 없으면 종전 동작(이용권 등급 미상이면 이용권이 첫 카드)으로 물러난다 —
   // 결제창이 렌더 자체를 못 하는 것보다 추천만 단순해지는 편이 낫다.
@@ -23719,7 +23728,10 @@ return you.name.restore();</span>
   // 여기서 **영구히 미반환**했다 — await 뒤의 requestPayment 에 도달하지 못해 PG 결제창이 아예 안 뜨고,
   // 예외가 아니라서 콘솔에도 흔적이 없다(2026-08-01 재현: 12초 무반응 + CDN 재요청 0회).
   // 죽은 태그는 반드시 걷어내야 다음 시도가 실제로 새 요청을 낸다. dp 의 _dpLoadPortOneV2Sdk 와 같은 규율.
-  async function _cdLoadPortOneV2Sdk() {
+  // 이 로더 한 번의 대기 상한. 인자로 줄이면 그만큼만 기다린다(재시도가 상한을 두 번 쓰지 않게 하는 용도).
+  var CD_PORTONE_SDK_BUDGET_MS = 8000;
+  async function _cdLoadPortOneV2Sdk(budgetMs) {
+    var _cdSdkBudget = Math.max(0, Math.floor(Number(budgetMs)) || CD_PORTONE_SDK_BUDGET_MS);
     if (window.PortOne && typeof window.PortOne.requestPayment === 'function') return;
     await new Promise(function(resolve, reject) {
       var settled = false;
@@ -23763,7 +23775,9 @@ return you.name.restore();</span>
       // 발동시켜 결제창을 원천 차단했다(만료 시 미완료 태그를 제거하고 새로 시작하므로 재시도도 같은
       // 상한에 다시 걸린다) — 실측: 체크아웃 성공 후 PortOne 팝업이 아예 안 뜨는 사고. 8000ms 는 오래
       // 실사용된 값이다(#243).
-      setTimeout(function() { finish(!!(window.PortOne && typeof window.PortOne.requestPayment === 'function')); }, 8000);
+      // 🔴 상한은 인자로 줄일 수 있다. 결제 임계경로의 재시도(아래 _cdPortOneV2SdkPromise 호출부)가
+      // 이 8초를 **두 번** 쓰면 최악 16초가 클릭→결제창 구간에 통째로 얹힌다 — 재시도는 남은 예산만 쓴다.
+      setTimeout(function() { finish(!!(window.PortOne && typeof window.PortOne.requestPayment === 'function')); }, _cdSdkBudget);
     });
     if (!window.PortOne || typeof window.PortOne.requestPayment !== 'function') {
       throw new Error('PORTONE_SDK_UNAVAILABLE');
@@ -23772,10 +23786,10 @@ return you.name.restore();</span>
 
   // SDK 로드 진입점은 이것 하나다. 프리로드(모달 오픈)·예열(결제 fetch)·실제 결제가 **같은 promise**를
   // 공유해야 이중 태그가 생기지 않는다. 실패한 promise 는 캐시에서 버려 다음 시도가 새로 로드한다.
-  function _cdPortOneV2SdkPromise() {
+  function _cdPortOneV2SdkPromise(budgetMs) {
     var shared = window.__cdPortOneV2PreloadPromise;
     if (shared && typeof shared.then === 'function') return shared;
-    var created = _cdLoadPortOneV2Sdk();
+    var created = _cdLoadPortOneV2Sdk(budgetMs);
     window.__cdPortOneV2PreloadPromise = created;
     created.catch(function() {
       if (window.__cdPortOneV2PreloadPromise === created) window.__cdPortOneV2PreloadPromise = null;
@@ -24294,7 +24308,16 @@ return you.name.restore();</span>
     // 🔴 결제 시도별 키(opts.idempotencyKey)를 requestId 보다 먼저 본다. requestId 는 게이트 재제안
     // 루프 전체에서 고정이라 그것을 키로 쓰면 서버가 같은 주문(=같은 paymentId)을 멱등 반환하고,
     // PortOne 이 paymentId 중복을 결제창 렌더 전에 거절한다(=결제창이 안 뜬다).
-    checkoutPayload.idempotencyKey = String(checkoutPayload.idempotencyKey || opts.idempotencyKey || checkoutPayload.requestId || '').trim();
+    // 🔴 requestId 폴백에는 시도 스코프를 곱한다(dp js/destiny-profile.js 와 같은 계약). 게이트를
+    // 거치지 않고 이 코어를 직접 부르는 호출부가 셸에 셋 있는데(잠금해제·회당결제·타일), 그들이 넘기는
+    // requestId 가 결정적이면 서버 merchantUid 가 영원히 같아져 세대 소진 뒤 매 결제가 409 로 시작한다.
+    // 앞의 두 갈래(호출부가 준 시도별 키)는 그대로 존중한다.
+    checkoutPayload.idempotencyKey = String(
+      checkoutPayload.idempotencyKey
+      || opts.idempotencyKey
+      || (checkoutPayload.requestId ? (checkoutPayload.requestId + ':g' + _cdMintPaymentAttemptScope()) : '')
+      || ''
+    ).trim();
     if (opts.categoryKey) checkoutPayload.categoryKey = opts.categoryKey;
     if (opts.subFeatureKey) checkoutPayload.subFeatureKey = opts.subFeatureKey;
     if (opts.productId) checkoutPayload.productId = opts.productId;
@@ -24414,10 +24437,14 @@ return you.name.restore();</span>
 
     // 프리로드가 실패했으면 캐시는 이미 비워져 있다(_cdPortOneV2SdkPromise 의 catch). 그래서 재호출이
     // 곧 새 로드다 — 죽은 태그도 함께 제거되므로 이 재시도가 실제로 새 요청을 낸다.
+    // 🔴 두 시도가 **하나의 예산(8초)을 나눠 쓴다.** 예전에는 각자 8초 상한을 따로 걸어, CDN 이 죽은
+    // 네트워크에서 최악 16초가 클릭→결제창 구간에 통째로 얹혔다. 재시도의 가치는 "죽은 태그를 걷어내고
+    // 새로 받는 것"이지 "두 배로 기다리는 것"이 아니다.
+    var _cdSdkDeadline = Date.now() + CD_PORTONE_SDK_BUDGET_MS;
     try {
       await _cdPortOneV2SdkPromise();
     } catch (_sdkFirstError) {
-      await _cdPortOneV2SdkPromise();
+      await _cdPortOneV2SdkPromise(Math.max(250, _cdSdkDeadline - Date.now()));
     }
     _cdMarkPgStep('sdk');
     var config = await _cdResolveDirectCheckoutConfig(checkoutPreflight, order, checkoutData);
@@ -24969,6 +24996,11 @@ return you.name.restore();</span>
     var amountKrw = _cdResolvePaidGateAmountKrw(opts, coinPrice);
     var featureKey = _cdResolvePaidGateFeatureKey(opts, title);
     var requestId = String(opts.requestId || '').trim() || ('paid-gate-' + Date.now() + '-' + Math.random().toString(36).slice(2, 10));
+    // 🔴 멱등키 스코프는 게이트 진입마다 새로 뽑는다. requestId 는 결정적이어야 하는 값이고(연타 디듀프·
+    // 서버 증빙 조회), 실제로 숙요점·사주 AI 상담은 영구 고정값을 넘긴다 — 거기서 멱등키까지 파생하면
+    // 서버 merchantUid 가 영원히 같아져 세대 소진 뒤 매 결제가 409 로 시작한다. 정본은 checkout-entry
+    // 하나이고, defer 로드가 아직 안 붙은 극초기 클릭만 아래 폴백을 탄다(같은 형식).
+    var _cdGateAttemptScope = _cdMintPaymentAttemptScope();
     var passCheckingMessage = '\uC774\uC6A9\uAD8C \uD655\uC778 \uC911\uC785\uB2C8\uB2E4.';
     var paidGateToken = null;
     var passFirstAccess = null;
@@ -25148,7 +25180,10 @@ return you.name.restore();</span>
       // 중복을 결제창을 그리기 전에 거절하므로, 한 번 실패한 뒤에는 몇 번을 눌러도 창이 안 뜬다.
       // → requestId 는 UI·게이트 상관관계용으로 유지하고, **결제 시도별 키**를 따로 파생해 넘긴다.
       //   같은 시도 안의 더블클릭은 키가 같아 여전히 멱등이다(이중결제 방어 유지).
-      var _cdAttemptIdempotencyKey = requestId + ':a' + _cdGateAttempt;
+      // 🔴 _cdGateAttempt 는 게이트에 다시 들어올 때마다 0 으로 리셋된다. requestId 가 고정인 호출부
+      //   (숙요점·사주 AI 상담)는 그래서 매 클릭이 같은 base key 'R:a0' 이었고, 서버 세대 3개를 태운 뒤
+      //   부터 영구 409 였다. 게이트 진입 스코프를 끼워 그 영구 결속만 끊는다.
+      var _cdAttemptIdempotencyKey = requestId + ':g' + _cdGateAttemptScope + ':a' + _cdGateAttempt;
       var choice = await _cdChooseServicePaymentMode(Object.assign({}, opts, _cdMonthlyBlockedReason === 'insufficient' ? { monthlyBalance: _cdMonthlyBlockedBalance, membershipCreditCost: _cdMonthlyBlockedRequired } : {}, {
         idempotencyKey: _cdAttemptIdempotencyKey,
         title: title,

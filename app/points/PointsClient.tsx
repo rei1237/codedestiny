@@ -61,6 +61,9 @@ type AuthUser = {
 
 type PrepareSubscriptionOrderResponse = {
   message?: string;
+  // 409 는 한 가지가 아니다. IDEMPOTENCY_CONFLICT 는 새 키로 다시 물으면 풀리고,
+  // SUBSCRIPTION_DOWNGRADE_BLOCKED 는 정책상 확정 거절이다 — 둘을 같은 토스트로 접으면 안 된다.
+  code?: string;
   order?: {
     merchantUid: string;
     customerUid: string;
@@ -4114,6 +4117,25 @@ export default function PointsPage() {
 
       if (!prepareData.order) {
         // 준비 요청이 실패한 결과를 계속 물고 있으면 재시도해도 같은 실패가 되풀이된다.
+        subscriptionPrepareRef.current = null;
+        /* 🔴 409 를 한 덩어리로 접지 않는다(2026-08-16). IDEMPOTENCY_CONFLICT 는 "그 멱등키로는 결제
+           가능한 주문을 만들 수 없다"는 뜻이라 **새 키로 다시 물으면 풀린다** — 결제창이 열리기 전이라
+           이중결제 위험도 없다. 그런데 여기서 "이미 활성 이용권이 있어…" 토스트로 끝내는 바람에,
+           사용자는 틀린 이유를 보고 스스로 다시 눌러야 했다(서버는 이제 이 코드를 거의 내지 않지만,
+           세대 발급이 실패하는 fail-closed 경로가 남아 있어 이 안전망도 함께 살아 있어야 한다).
+           SUBSCRIPTION_DOWNGRADE_BLOCKED 같은 정책 거절은 종전대로 확정 실패다. */
+        if (prepareStatus === 409 && prepareData.code === "IDEMPOTENCY_CONFLICT") {
+          const retryAttempt = await requestSubscriptionPrepare(
+            plan,
+            `membership-retry-${plan.planId}-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
+            selectedMethod || "card_general",
+          );
+          prepareStatus = retryAttempt.status;
+          prepareData = retryAttempt.data;
+        }
+      }
+
+      if (!prepareData.order) {
         subscriptionPrepareRef.current = null;
         if (prepareStatus === 409) {
           pushToast("error", prepareData.message || "이미 활성 이용권이 있어 중복 구매를 신청할 수 없습니다.");

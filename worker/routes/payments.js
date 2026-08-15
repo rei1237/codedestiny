@@ -5920,7 +5920,11 @@ export async function handlePaymentRoutes(request, env, ctx) {
     return methodNotAllowed();
   } catch (error) {
     if (error && error.code === 11000) {
-      return json({ message: "Duplicate payment key." }, { status: 409 });
+      /* 🔴 code 를 함께 싣는다(2026-08-16). 결제 경로의 다른 409 는 전부 code 를 갖는데 여기만 없어서,
+         `code === 'IDEMPOTENCY_CONFLICT'` 로 재시도를 판단하는 클라이언트(index.html ·
+         js/destiny-profile.js · app/points/PointsClient.tsx)가 **어느 하나도 복구하지 못하는** 막다른
+         409 였다. 11000 = 같은 키의 문서가 이미 있다 = 정확히 멱등 충돌이므로 같은 코드를 쓴다. */
+      return json({ ok: false, code: "IDEMPOTENCY_CONFLICT", message: "Duplicate payment key." }, { status: 409 });
     }
     const errorText = String(error?.message || "");
     trace.mongoQueryFailed = /mongo|mongoose|cast to objectid|findbyid|findone|query/i.test(errorText);

@@ -23,6 +23,8 @@ import {
   releaseRefundLock,
   settleRefund,
   toOrderStatus,
+  MAX_ORDER_GENERATIONS,
+  createPayableOrder,
 } from "../../worker/payments/orders.js";
 import { PaymentError } from "../../worker/payments/errors.js";
 import { makeFakePaymentDb } from "../fixtures/fake-payment-db.mjs";
@@ -135,6 +137,59 @@ describe("T1 · 주문 생성은 멱등이다", () => {
     };
     await expect(createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" }))
       .rejects.toThrow("ConflictingUpdateOperators");
+  });
+});
+
+/* 🔴 2026-08-16 회귀 재현. "PG 결제창이 늦게 뜬다 / 409 가 떴다가 회복된다"의 서버 쪽 절반이다.
+   merchantUid 는 (userId, 멱등키)의 순수 파생이라, 결정적 requestId 를 쓰는 호출부(정적 셸의
+   숙요점·사주 AI 상담)는 같은 base key 를 영구히 보낸다. 결제 성공·취소·실패가 각각 세대를 하나씩
+   태우므로 세 번이면 고정 사다리가 소진되고, 그 뒤로는 **모든 결제가 409 로 시작**했다. */
+describe("T1' · 결제 가능한 주문을 반드시 돌려준다", () => {
+  async function burnGeneration(db, baseKey, generation) {
+    const key = generation === 0 ? baseKey : `${baseKey}#${generation}`;
+    const order = await createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: key });
+    await markOrderCancelled(db, { orderId: order.merchantUid, userId: USER });
+    return order.merchantUid;
+  }
+
+  test("같은 의도의 재전송은 같은 주문이다(멱등 계약 불변)", async () => {
+    const db = makeFakeDb();
+    const first = await createPayableOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" });
+    const second = await createPayableOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" });
+    expect(second.merchantUid).toBe(first.merchantUid);
+    expect(db.rows).toHaveLength(1);
+  });
+
+  test("🔴 고정 세대가 모두 종료 상태여도 409 가 아니라 결제 가능한 주문이 나온다", async () => {
+    const db = makeFakeDb();
+    const burned = [];
+    for (let generation = 0; generation < MAX_ORDER_GENERATIONS; generation += 1) {
+      burned.push(await burnGeneration(db, "idem-1", generation));
+    }
+
+    const order = await createPayableOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" });
+    expect(order.status).toBe("pending");
+    expect(order.paymentAmount).toBe(PRODUCT.priceKRW);
+    // 새 merchantUid = 새 PortOne paymentId. 태운 세대 중 아무것도 재사용하지 않는다.
+    expect(burned).not.toContain(order.merchantUid);
+  });
+
+  test("🔴 결제 완료 주문은 덮지 않는다 — 새 주문을 따로 발급한다", async () => {
+    const db = makeFakeDb();
+    const paidId = await seedPaid(db, { idempotencyKey: "idem-1" });
+    for (let generation = 1; generation < MAX_ORDER_GENERATIONS; generation += 1) {
+      await burnGeneration(db, "idem-1", generation);
+    }
+
+    const order = await createPayableOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" });
+    expect(order.merchantUid).not.toBe(paidId);
+    expect(db.rows.find((row) => row.merchantUid === paidId).status).toBe("paid");
+  });
+
+  test("멱등키가 없으면 만들지 않는다", async () => {
+    const db = makeFakeDb();
+    await expect(createPayableOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: " " }))
+      .rejects.toThrow(PaymentError);
   });
 });
 
