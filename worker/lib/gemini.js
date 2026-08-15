@@ -1,4 +1,8 @@
-import { callLLM } from "../../lib/llm-client.ts";
+import {
+  callLLM,
+  createGeminiContextCache as createLLMContextCache,
+  deleteGeminiContextCache as deleteLLMContextCache,
+} from "../../lib/llm-client.ts";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
 
 function clean(value, maxLength = 0) {
@@ -76,6 +80,32 @@ function rejectShortFallback(result, fallbackMinChars) {
   };
 }
 
+/**
+ * Gemini 명시적 컨텍스트 캐시를 만든다. 병렬 팬아웃이 공유하는 불변 접두사를 한 벌만
+ * 올려 두고 핸들을 받아, 각 호출이 접두사를 정가로 재전송하지 않게 한다.
+ *
+ * 🔴 systemPrompt·locale 을 callGeminiText 와 **같은 규칙**으로 정규화한다. 캐시에 굽는
+ *    systemInstruction 이 나중에 실제로 나갈 값과 한 글자라도 다르면 llm-client 가 캐시를
+ *    쓰지 않고 조용히 정가로 보낸다(틀려도 결과는 정상이므로 눈에 띄지 않는다).
+ *
+ * 실패하면 null 을 돌려준다. 절대 던지지 않는다 — 호출부는 캐시 없이 그대로 진행하면 된다.
+ */
+export function createGeminiContextCache(env, options = {}) {
+  return createLLMContextCache({
+    prefix: String(options.prefix || ""),
+    systemPrompt: clean(options.systemPrompt),
+    locale: clean(options.locale) || getAmbientAiLocale() || undefined,
+    model: clean(options.model),
+    ttlSeconds: Number(options.ttlSeconds) || undefined,
+    timeoutMs: Number(options.timeoutMs) || undefined,
+  }, env);
+}
+
+/** 다 쓴 컨텍스트 캐시를 지운다. 실패는 삼킨다(TTL 이 안전망). */
+export function deleteGeminiContextCache(env, cache) {
+  return deleteLLMContextCache(cache, env);
+}
+
 export async function callGeminiText(env, prompt, options = {}) {
   const textPrompt = clean(prompt);
   if (!textPrompt) {
@@ -106,6 +136,12 @@ export async function callGeminiText(env, prompt, options = {}) {
       fallbackToWorkersAI: options.fallbackToWorkersAI === false ? false : undefined,
       logContext: options.logContext && typeof options.logContext === "object" ? options.logContext : undefined,
       cache: options.cache && typeof options.cache === "object" ? options.cache : undefined,
+      // Gemini 명시적 컨텍스트 캐시 핸들(createGeminiContextCache 반환값). 위 `cache`(응답 캐시)와
+      // 다른 것이다. prompt 는 접두사를 포함한 전체로 두고, 접두사 제거는 llm-client 가 전송
+      // 직전에만 한다 — Workers AI 폴백과 응답 캐시 키가 전체 프롬프트를 그대로 봐야 한다.
+      geminiCachedContent: options.geminiCachedContent && typeof options.geminiCachedContent === "object"
+        ? options.geminiCachedContent
+        : undefined,
     }, env);
 
     const tooShort = rejectShortFallback(result, options.fallbackMinChars);
