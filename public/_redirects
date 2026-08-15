@@ -74,6 +74,59 @@
 /fortune/tomorrow/ziwei/*      /ziwei/                   301
 /fortune/weekly/ziwei/*        /ziwei/                   301
 /fortune/monthly/ziwei/*       /ziwei/                   301
+
+# 2026-08-15 /fortune/{today,tomorrow}/*.html 48개를 App Router 라우트로 이전했다.
+# 구 셸은 본문을 브라우저에서 그려 크롤러가 받는 텍스트가 0자였고 JSON-LD 도 비어 있었다.
+# 구 URL 이 색인에 남아 있으므로 신규 경로로 301 한다. 타겟에 trailing slash 를 붙여
+# trailingSlash:true 의 308 과 겹친 리다이렉트 체인이 생기지 않게 한다.
+/fortune/today/aries.html      /fortune/today/aries/     301
+/fortune/today/taurus.html     /fortune/today/taurus/    301
+/fortune/today/gemini.html     /fortune/today/gemini/    301
+/fortune/today/cancer.html     /fortune/today/cancer/    301
+/fortune/today/leo.html        /fortune/today/leo/       301
+/fortune/today/virgo.html      /fortune/today/virgo/     301
+/fortune/today/libra.html      /fortune/today/libra/     301
+/fortune/today/scorpio.html    /fortune/today/scorpio/   301
+/fortune/today/sagittarius.html /fortune/today/sagittarius/ 301
+/fortune/today/capricorn.html  /fortune/today/capricorn/ 301
+/fortune/today/aquarius.html   /fortune/today/aquarius/  301
+/fortune/today/pisces.html     /fortune/today/pisces/    301
+/fortune/today/rat.html        /fortune/today/rat/       301
+/fortune/today/ox.html         /fortune/today/ox/        301
+/fortune/today/tiger.html      /fortune/today/tiger/     301
+/fortune/today/rabbit.html     /fortune/today/rabbit/    301
+/fortune/today/dragon.html     /fortune/today/dragon/    301
+/fortune/today/snake.html      /fortune/today/snake/     301
+/fortune/today/horse.html      /fortune/today/horse/     301
+/fortune/today/goat.html       /fortune/today/goat/      301
+/fortune/today/monkey.html     /fortune/today/monkey/    301
+/fortune/today/rooster.html    /fortune/today/rooster/   301
+/fortune/today/dog.html        /fortune/today/dog/       301
+/fortune/today/pig.html        /fortune/today/pig/       301
+/fortune/tomorrow/aries.html   /fortune/tomorrow/aries/  301
+/fortune/tomorrow/taurus.html  /fortune/tomorrow/taurus/ 301
+/fortune/tomorrow/gemini.html  /fortune/tomorrow/gemini/ 301
+/fortune/tomorrow/cancer.html  /fortune/tomorrow/cancer/ 301
+/fortune/tomorrow/leo.html     /fortune/tomorrow/leo/    301
+/fortune/tomorrow/virgo.html   /fortune/tomorrow/virgo/  301
+/fortune/tomorrow/libra.html   /fortune/tomorrow/libra/  301
+/fortune/tomorrow/scorpio.html /fortune/tomorrow/scorpio/ 301
+/fortune/tomorrow/sagittarius.html /fortune/tomorrow/sagittarius/ 301
+/fortune/tomorrow/capricorn.html /fortune/tomorrow/capricorn/ 301
+/fortune/tomorrow/aquarius.html /fortune/tomorrow/aquarius/ 301
+/fortune/tomorrow/pisces.html  /fortune/tomorrow/pisces/ 301
+/fortune/tomorrow/rat.html     /fortune/tomorrow/rat/    301
+/fortune/tomorrow/ox.html      /fortune/tomorrow/ox/     301
+/fortune/tomorrow/tiger.html   /fortune/tomorrow/tiger/  301
+/fortune/tomorrow/rabbit.html  /fortune/tomorrow/rabbit/ 301
+/fortune/tomorrow/dragon.html  /fortune/tomorrow/dragon/ 301
+/fortune/tomorrow/snake.html   /fortune/tomorrow/snake/  301
+/fortune/tomorrow/horse.html   /fortune/tomorrow/horse/  301
+/fortune/tomorrow/goat.html    /fortune/tomorrow/goat/   301
+/fortune/tomorrow/monkey.html  /fortune/tomorrow/monkey/ 301
+/fortune/tomorrow/rooster.html /fortune/tomorrow/rooster/ 301
+/fortune/tomorrow/dog.html     /fortune/tomorrow/dog/    301
+/fortune/tomorrow/pig.html     /fortune/tomorrow/pig/    301
 /fortune                       /today/                   301
 /fortune/                      /today/                   301
 

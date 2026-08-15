@@ -1,0 +1,70 @@
+# 매일 KST 자정 직후, 그날의 운세가 실린 사이트를 다시 배포한다.
+#
+# 배경 — 이 워크플로는 한 번 존재했다가 사고로 사라졌다.
+#   2026-04-29 `26b192f95` 가 "Workers 배포를 Actions 에서 분리"하면서 워크플로 파일들을
+#   `.bak` 으로 rename 했고, 그때 fortune-daily-publish.yml 이 파일명 패턴에 싸잡혔다.
+#   2026-05-04 `2938a72ad` 가 `.bak` 을 일괄 청소하며 완전히 사라졌다.
+#   그 뒤로 fortune/data/daily-*.json 이 공급되지 않아 운세 페이지 96개가 4개월간
+#   "운세를 불러오는 중입니다..." 빈 셸로 서빙됐다(에러가 나지 않아 아무도 몰랐다).
+#
+# 구 버전과 달라진 점 — 이제 생성물을 커밋하지 않는다.
+#   구 버전은 daily JSON 을 만들어 main 에 직접 push 했고 그 push 가 배포를 일으켰다.
+#   지금은 브랜치 룰셋이 main 직접 push 를 막는다(CLAUDE.md 절대 규칙 3).
+#   대신 데이터 생성을 빌드 안으로 옮겼다 — `prebuild:cf` 의 scripts/fortune-build-data.mjs 가
+#   KST 오늘·내일분을 만들고, App Router 가 그 값을 HTML 에 굳힌다.
+#   따라서 이 워크플로가 할 일은 "그날의 빌드를 한 번 돌려라"는 신호 하나뿐이다.
+#
+# 🔴 과금 없음 — scripts/gen-daily.mjs 는 lunar-javascript 역법 계산과 날짜 해시 선택만 쓴다.
+#    LLM·외부 API 호출이 0이므로 매일 돌아도 비용이 발생하지 않는다.
+
+name: Fortune daily publish (once per KST day)
+
+on:
+  schedule:
+    # 15:10 UTC = 00:10 KST. 자정 정각이 아니라 10분을 두는 이유는 GitHub 의 예약 실행이
+    # 부하에 따라 수 분 늦게 뜨기 때문이다. 날짜가 확실히 넘어간 뒤에 빌드가 시작돼야
+    # KST '오늘'이 의도한 날짜로 잡힌다.
+    - cron: "10 15 * * *"
+  workflow_dispatch:
+
+# 릴리스 워크플로 자체가 cloudflare-production-release 그룹으로 직렬화되므로 여기서는
+# 디스패치가 겹치는 것만 막는다.
+concurrency:
+  group: fortune-daily-kst
+  cancel-in-progress: false
+
+permissions:
+  # 다른 워크플로를 workflow_dispatch 로 깨우는 데 필요하다.
+  # GITHUB_TOKEN 이 일으킨 이벤트는 보통 새 워크플로 런을 만들지 않지만
+  # workflow_dispatch 와 repository_dispatch 는 그 규칙의 명시적 예외다.
+  actions: write
+
+jobs:
+  trigger-release:
+    name: Dispatch production release for today's fortune
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Dispatch release workflow
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          TODAY_KST="$(node --input-type=module -e "import { kstYmdToday } from './scripts/lib/fortune-date.mjs'; console.log(kstYmdToday())")"
+          echo "::notice::KST ${TODAY_KST} 자 운세를 반영하기 위해 프로덕션 릴리스를 요청합니다."
+          gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production
+          {
+            echo "## 🔮 Fortune daily publish"
+            echo ""
+            echo "| 항목 | 값 |"
+            echo "|---|---|"
+            echo "| 대상 날짜 (KST) | \`${TODAY_KST}\` |"
+            echo "| 요청한 릴리스 | Release Cloudflare Pages and Worker (mode=production) |"
+            echo "| 트리거 | ${GITHUB_EVENT_NAME} |"
+            echo ""
+            echo "빌드가 \`prebuild:cf\` 에서 그날의 일일 패키지를 생성하고, /fortune/today 와"
+            echo "/fortune/tomorrow 의 50개 라우트가 그 값을 서버 렌더로 굳혀 배포됩니다."
+          } >> "$GITHUB_STEP_SUMMARY"
