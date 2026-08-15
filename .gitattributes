@@ -24,6 +24,7 @@ public/static/index.html            merge=cachebust
 public/en/index.html                merge=cachebust
 public/ja/index.html                merge=cachebust
 public/zh/index.html                merge=cachebust
+public/zh-tw/index.html             merge=cachebust
 js/core/index-inline-runtime.js     merge=cachebust
 js/core/uiBindings.js               merge=cachebust
 js/mobile-interaction-patch.js      merge=cachebust
