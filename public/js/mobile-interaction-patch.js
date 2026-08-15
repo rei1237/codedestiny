@@ -103,6 +103,29 @@
     }
   }
 
+  /**
+   * 이 클릭은 우리가 쏜 인계인가.
+   *
+   * 🔴 판정을 한 곳으로 모으는 함수다. 2026-08-14 13cc7e6d7 은 "고스트 클릭 억제가 유료 진입 탭을
+   * 삼킨다"를 고쳤지만, 예외를 document 캡처 게이트 한 곳에만 인라인으로 넣었다. 조건식이 같은
+   * 게이트가 두 벌 더 있었고(bindMobileDataActionFallback, 노드 직접 바인딩) 거기엔 예외가 없어
+   * 같은 결함이 그대로 남았다 — rule 매칭이 안 되는 타일에서 인계 클릭이 500ms 억제창에 걸려 죽는다.
+   * "결제는 됐는데 기능이 안 열린다"가 그 경로다.
+   *
+   * 인계를 쏘는 곳은 두 군데이고 둘 다 사용자 제스처 핸들러 안에서 실행된다 —
+   * 상세 팝업 CTA(_onCta) 와 코인 게이트 승인(_cdDispatchSyntheticActionClick). 그 제스처는
+   * 이미 심판을 받았으므로 여기서 다시 심판하면 이중 판정이다.
+   *
+   * 표식(data-pvw-cta-bypass)과 합성 여부(isTrusted/detail)를 함께 본다 — 브라우저마다
+   * 합성 클릭 판정이 달라서 한쪽만으로는 새는 경우가 있다.
+   */
+  function isSyntheticHandoffClick(event) {
+    if (!event || event.type !== 'click') return false;
+    if (event.isTrusted === false || event.detail === 0) return true;
+    var target = event.target;
+    return !!(target && typeof target.closest === 'function' && target.closest('[data-pvw-cta-bypass]'));
+  }
+
   function isCardScrollTarget(node) {
     return !!(node && node.closest && node.closest(CARD_SCROLL_SELECTORS));
   }
@@ -1110,7 +1133,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-6849faf75da0').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-94e16bc9998c').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1201,24 +1224,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-6849faf75da0'
+      'js/animal-totem-experience.js?v=build-94e16bc9998c'
     ],
     openHwatuModal: ['HwatuFortune.js?v=h5be3c5cb5489'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-6849faf75da0'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-6849faf75da0'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-6849faf75da0'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-94e16bc9998c'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-94e16bc9998c'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-94e16bc9998c'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-6849faf75da0'],
-    openDreamModal: ['js/dream-ledger.js?v=build-6849faf75da0'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-6849faf75da0'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-94e16bc9998c'],
+    openDreamModal: ['js/dream-ledger.js?v=build-94e16bc9998c'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-94e16bc9998c'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-6849faf75da0']
+    openSibylModal: ['js/sibyl-system.js?v=build-94e16bc9998c']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -1534,7 +1557,12 @@
     var action = actionEl.getAttribute('data-action');
     if (!action) return false;
     var actionArgsRaw = actionEl.getAttribute('data-action-args') || '';
-    if (shouldSkipDuplicateAction(action + '::' + actionArgsRaw)) return true;
+    // 🔴 인계는 디듀프 대상이 아니다. invokeBusinessAction 에는 같은 예외가 있는데
+    // (_fromPreviewBypass) 여기에는 없어서, 사용자 탭 → 인계 클릭이 ACTION_DEDUPE_MS(650ms)
+    // 안에 연달아 들어오면 두 번째가 "이미 처리함"(return true)으로 위장돼 호출부가
+    // preventDefault 까지 하고 끝났다. 겉으로는 눌러도 아무 일이 없는 것과 같다.
+    var _fromPreviewBypass = !!(actionEl.closest && actionEl.closest('[data-pvw-bypass]'));
+    if (!_fromPreviewBypass && shouldSkipDuplicateAction(action + '::' + actionArgsRaw)) return true;
 
     var hasActionConfig = !!actionArgsRaw
       || !!actionEl.getAttribute('data-action-pass-self')
@@ -1761,7 +1789,9 @@
       // 🔴 막기로 판정했으면 실제로 막아야 한다. 예전에는 여기서 그냥 return 해서 클릭이 계속
       // 전파됐고, 아래 bindDirectFeatureCardActions 가 노드에 직접 건 무가드 클릭 핸들러가
       // 그 클릭을 받아 액션을 실행했다 — 판정을 내려놓고 버리는 구조였다.
-      if (now < suppressClickUntil || recentScrollGuard || gestureBlocksActivation()) {
+      // 🔴 인계 클릭은 예외다. 아래 2284 의 document 게이트에는 이 예외가 2026-08-14 에 들어갔는데
+      // 조건식이 똑같은 여기에는 안 들어가서, rule 매칭이 안 되는 타일에서는 인계가 그대로 죽었다.
+      if (!isSyntheticHandoffClick(event) && (now < suppressClickUntil || recentScrollGuard || gestureBlocksActivation())) {
         event.preventDefault();
         event.stopPropagation();
         return;
@@ -1827,8 +1857,8 @@
         if (!shouldEnableMobileInteractionBridge()) return;
         if (!event || event.__cdMobileBridgeHandled) return;
         // 이 핸들러엔 원래 스크롤 검사가 하나도 없었다 — 위 fallback 이 "막자"고 판정한 클릭도
-        // 여기까지 흘러와 그대로 실행됐다.
-        if (gestureBlocksActivation()) return;
+        // 여기까지 흘러와 그대로 실행됐다. 인계 클릭은 위 게이트와 같은 기준으로 예외다.
+        if (!isSyntheticHandoffClick(event) && gestureBlocksActivation()) return;
         if (!invokeDataActionFallback(node, event)) return;
         event.__cdMobileBridgeHandled = true;
         showTapFeedback(node);
@@ -2258,8 +2288,9 @@
       // 그래서 이 합성 클릭이 자기 터치가 만든 고스트로 오인돼 stopPropagation 으로 죽고,
       // 클릭이 타일까지 못 가 액션이 영영 실행되지 않는다(실측: 스크립트 로드 0회).
       // 증상은 유료 진입 타일을 눌러도 아무 반응 없음 — 이동도 에러도 없다.
-      var _ctaHandoff = !!(event.target.closest && event.target.closest('[data-pvw-cta-bypass]'));
-      if (!_ctaHandoff && (now < suppressClickUntil || recentScrollGuard)) {
+      // 판정은 isSyntheticHandoffClick 하나로 모았다. 예전에는 이 조건이 여기에만 인라인으로
+      // 있어서, 조건식이 같은 다른 게이트 두 벌에는 예외가 없는 채로 남아 있었다.
+      if (!isSyntheticHandoffClick(event) && (now < suppressClickUntil || recentScrollGuard)) {
         event.preventDefault();
         event.stopPropagation();
         return;
