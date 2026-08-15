@@ -269,6 +269,37 @@ function runInstantPgWindowTests() {
   assertContains(paymentsRouteSource, "const orderCustomer = await buildSinglePaymentCustomer(currentUser, auth.userId, env);", "membership-pass order must carry the saved customer phone");
   assertContains(destinyProfileSource, "orderCustomer.phoneNumber,", "dp must read the server-supplied order.customer phone");
 
+  // ②-b 🔴 "이미 저장된 번호가 있으면 결제 때 다시 묻지 않는다"를 성질로 고정한다.
+  // 성립 조건은 두 가지뿐이다: ⓐ 주문 응답의 order.customer.phoneNumber 를 **가장 먼저** 본다
+  // ⓑ payment-phone 조회/입력 모달은 그게 비었을 때(if (!customerPhone))에만 돈다.
+  // 후보 배열 맨 앞에서 orderCustomer 가 빠지거나 ensure 가 조건 밖으로 나오면, 번호를 가진
+  // 사용자에게도 매 결제마다 왕복 1회 + 입력창이 붙는다(2026-08 이전의 실제 증상).
+  for (const [label, source, ensureCall] of [
+    ["shell", indexSource, "var paymentPhoneState = await _cdEnsureDirectCheckoutPaymentPhoneNumber();"],
+    ["dp", destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber();"],
+  ]) {
+    const resolverIndex = source.indexOf("customerPhone = ");
+    assert.ok(resolverIndex >= 0, `${label} must resolve a customer phone before requesting payment`);
+    const firstCandidate = source.slice(resolverIndex, source.indexOf("]", resolverIndex));
+    assert.ok(
+      /customerPhone = [^;]*?orderCustomer\.phoneNumber/s.test(firstCandidate),
+      `${label} must read order.customer.phoneNumber before any other phone source`,
+    );
+    const ensureIndex = source.indexOf(ensureCall);
+    assert.ok(ensureIndex > 0, `${label} must keep its payment-phone fallback: ${ensureCall}`);
+    // 폴백 호출 바로 앞 200자 안에 "번호가 없을 때만" 가드가 있어야 한다.
+    assert.ok(
+      /if \(!customerPhone\)/.test(source.slice(Math.max(0, ensureIndex - 200), ensureIndex)),
+      `${label} must only look up / prompt for a phone when the order carried none`,
+    );
+  }
+  // React 상점 경로도 같은 순서다 — prepare 응답 번호를 먼저 쓰고, 없을 때만 ensure 로 내려간다.
+  assertContains(
+    readFileSync(resolve(root, "app/points/PointsClient.tsx"), "utf8"),
+    'normalizePaymentPhoneNumber(order.customer?.phoneNumber || "")',
+    "points checkout must prefer the phone the prepare response already carried",
+  );
+
   // ③ 🔴 규칙 정정(2026-07): 예전 규칙은 "클릭~PG창 사이 오버레이 0"이었다. 그 구간이 완전히 비어
   // 무반응으로 보이자 사용자가 규칙을 뒤집었다 — 이제 그 구간은 **꽃돼지 'card' 오버레이 하나로만**
   // 채운다(다른 문구가 끼어드는 것은 계속 금지). 억제 창은 유지하되 우리 호출만 통과시킨다.
