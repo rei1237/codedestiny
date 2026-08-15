@@ -265,6 +265,22 @@ function generationKey(idempotencyKey, generation) {
 export const MAX_ORDER_GENERATIONS = 3;
 
 /**
+ * 🔴 고정 사다리가 다 막혔을 때 쓰는 마지막 세대. 접미가 난수라 **기존 문서와 절대 겹치지 않는다** —
+ * 곧 이 upsert 는 반드시 insert 이고 반드시 `pending` 이다.
+ *
+ * 왜 여기서 409 를 던지지 않는가: 고정 세대 3개가 전부 종료 상태라는 것은 "이 멱등키로 만들 수 있는
+ * 주문을 다 써 버렸다"는 뜻이지 "이 결제가 잘못됐다"는 뜻이 아니다. 결정적 requestId 를 쓰는 호출부는
+ * 같은 키를 계속 보내므로, 그 사용자는 **그 기능의 모든 결제가 영구히 409 로 시작**하게 된다
+ * (클라가 새 키로 1회 재시도해 복구하지만 그 복구 비용이 결제창 앞 왕복 하나다).
+ * 결제창이 열리기 전이고 새 merchantUid = 새 PortOne paymentId 이므로 이중결제 위험은 없다 —
+ * 위 머리주석이 세대 승격을 정당화한 논리 그대로다.
+ */
+function terminalGenerationKey(idempotencyKey) {
+  const suffix = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
+  return `${idempotencyKey}#x${suffix}`;
+}
+
+/**
  * T1' · **결제 가능한 주문을 반드시 돌려준다.** 카드 경로에서 409 를 없애는 지점.
  *
  * 구 구현은 `createOrder` 한 번으로 얻은 주문이 현재 의도와 다르면 409 를 던졌다. 그런데 멱등키의
@@ -275,8 +291,12 @@ export const MAX_ORDER_GENERATIONS = 3;
  *
  * 왕복 수: 정상 경로 **1회 그대로**. 재사용 불가일 때만 세대당 1회가 더 붙는다.
  *
- * 세대를 다 써도 못 얻으면 종전대로 IDEMPOTENCY_CONFLICT 를 던진다(fail-closed) — 셸·독립 정적의
- * 기존 새-키 재시도가 그 코드에 걸려 있어 계약이 그대로 남는다.
+ * 고정 세대를 다 쓰면 **난수 세대 1회로 반드시 새 주문을 발급한다**(terminalGenerationKey).
+ * 예전에는 여기서 409 를 던졌는데, 결정적 requestId 를 쓰는 호출부(정적 셸의 숙요점·사주 AI 상담)는
+ * 같은 키를 계속 보내므로 종료 주문 3개가 쌓인 뒤부터 **모든 결제가 409 로 시작**했다. 클라이언트가
+ * 새 키로 1회 재시도해 복구는 했지만, 그 복구가 결제창 앞 checkout 왕복 하나를 통째로 더 쓴다
+ * (= "PG 결제창이 늦게 뜬다"의 본체). IDEMPOTENCY_CONFLICT 자체는 남는다 — 난수 세대마저 재사용
+ * 불가로 돌아오는 도달 불가 경로의 fail-closed 이고, 클라이언트의 새-키 재시도가 그 코드에 걸려 있다.
  */
 export async function createPayableOrder(db, input) {
   const baseKey = String(input?.idempotencyKey || "").trim();
@@ -296,8 +316,12 @@ export async function createPayableOrder(db, input) {
     // 그 사이 누가 PENDING 밖으로 옮겼다 → 다음 세대로.
   }
 
+  // 고정 사다리 소진 — 겹칠 수 없는 키로 새 주문을 발급한다(위 terminalGenerationKey 머리주석).
+  const fresh = await createOrder(db, { ...input, idempotencyKey: terminalGenerationKey(baseKey) });
+  if (isPayableOrder(fresh) && !hasPriceDrift(fresh, product)) return fresh;
+
   throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing product payment preparation.", {
-    orderId: lastOrderId,
+    orderId: String(fresh?.merchantUid || lastOrderId || ""),
   });
 }
 

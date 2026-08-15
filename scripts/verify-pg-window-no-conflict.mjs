@@ -16,6 +16,8 @@
  *   ④ 중복 paymentId → confirm 422 → **새 키로 1회** 재시도한다(셸과 같은 계약).
  *   ⑤ 409 IDEMPOTENCY_CONFLICT → 새 키로 1회 재시도하고 결제창까지 간다.
  *   ⑥ 결제창에서 단건을 고르면 세 카드가 모두 disabled 가 된다.
+ *   ⑦ **결정적 requestId 만 주면 시도마다 다른 멱등키가 나간다**(2026-08-16).
+ *   ⑧ 셸(index.html)의 게이트도 같은 성질을 갖는다 — 스코프를 재제안 루프 **바깥**에서 뽑는다.
  *
  * 🔴 mock 응답은 반드시 setTimeout 경유로 resolve 한다. 즉시(동일 마이크로태스크) resolve 는
  * in-flight/단일비행 창을 0폭으로 만들어, 실제로 존재하는 경쟁·데드락을 가린 채 통과시킨다
@@ -25,6 +27,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM, VirtualConsole } from "jsdom";
+import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // 순서는 실제 독립 정적 페이지의 로드 순서다(__tests__/ui/payment-service.static.test.js 가 강제).
@@ -298,6 +301,56 @@ await check("결제창에서 단건을 고르면 [data-mode] 카드가 모두 di
   direct.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
   const locked = cards.filter((node) => node.hasAttribute("disabled"));
   assertEqual(locked.length, cards.length, "고른 순간 모든 결제수단 카드가 잠겨야 한다");
+});
+
+/* ⑦ 결정적 requestId 만 줘도 시도마다 멱등키가 갈린다 ────────────────────────────────
+   requestId 는 결정적이어야 하는 값이다(연타 디듀프·서버 증빙 조회). 그런데 그것을 그대로 멱등키로
+   쓰면 서버 merchantUid 가 (userId, 멱등키) 순수 파생이라 영원히 같은 주문 문서를 가리키고, 그 문서가
+   pending 을 벗어난 뒤부터 createPayableOrder 가 고정 세대를 태우다 409 를 낸다 — 사용자에게는
+   "409 가 떴다가 회복되는데 결제창이 늦게 뜬다"로 보인다(회복이 checkout 왕복 하나를 더 쓴다). */
+await check("결정적 requestId 만 넘겨도 시도마다 다른 idempotencyKey 가 나간다", async () => {
+  // 503 으로 거절해 단일비행 슬롯을 rejected 로 만든다 — 안 그러면 두 번째 클릭이 1800ms 안에
+  // 첫 시도의 resolved 슬롯에 합류해 서버까지 가지 않는다(①번이 고정하는 성질과 같은 이유).
+  const { window, calls } = bootRuntime({
+    routes: { "/api/billing/checkout": () => jsonResponse(503, { ok: false, code: "DB_UNAVAILABLE" }) },
+  });
+  // 숙요점·사주 AI 상담이 실제로 넘기는 형태 — 프로필·연도 파생이라 영구 고정이다.
+  const fixed = { requestId: "sukuyo-yearly:profile-1:2026", idempotencyKey: undefined };
+  await runCheckout(window, fixed).catch(() => {});
+  await flush(40);
+  await runCheckout(window, fixed).catch(() => {});
+  await flush(40);
+  const keys = checkoutCalls(calls).map((c) => String((c.body && c.body.idempotencyKey) || ""));
+  if (keys.length < 2) throw new Error(`두 번째 시도가 서버에 도달하지 않았다(요청 ${keys.length}건)`);
+  for (const key of keys) {
+    if (!key.startsWith("sukuyo-yearly:profile-1:2026")) {
+      throw new Error(`requestId 를 키의 뿌리로 유지해야 한다(실제 ${key})`);
+    }
+  }
+  if (keys[0] === keys[1]) {
+    throw new Error(`고정 requestId 가 그대로 멱등키가 됐다 — 세대 소진 뒤 영구 409 다(${keys[0]})`);
+  }
+});
+
+/* ⑧ 셸 게이트도 같은 성질을 갖는다 ────────────────────────────────────────────────
+   셸(index.html)은 40k 줄 인라인이라 여기서 통째로 구동하지 않는다. 대신 게이트 본문을 중괄호 균형으로
+   잘라 **스코프를 재제안 루프 바깥에서 뽑는지**를 본다 — 루프 안에서 뽑으면 회차마다 값이 달라져
+   같은 시도의 더블클릭이 서로 다른 주문이 되고, 아예 없으면 게이트 재진입마다 'R:a0' 이 반복된다.
+   🔴 결정적 requestId 를 넘기는 호출부는 실제로 셸 전용 번들에만 있다(js/saju-engine*.js). */
+await check("셸 게이트가 멱등키 스코프를 재제안 루프 바깥에서 뽑는다", () => {
+  const shell = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+  const gate = stripComments(sliceFunction(shell, "async function _cdOpenPaidServiceGate(options) {", "셸 게이트"));
+  const scopeAt = gate.indexOf("_cdGateAttemptScope =");
+  const loopAt = gate.indexOf("for (var _cdGateAttempt");
+  const keyAt = gate.indexOf("_cdAttemptIdempotencyKey =");
+  if (scopeAt < 0) throw new Error("게이트 진입 스코프(_cdGateAttemptScope)가 없다");
+  if (loopAt < 0) throw new Error("재제안 루프를 찾지 못했다 — 마커가 바뀌었으면 이 가드를 함께 고칠 것");
+  if (keyAt < 0) throw new Error("_cdAttemptIdempotencyKey 대입을 찾지 못했다");
+  if (scopeAt > loopAt) throw new Error("스코프를 루프 안에서 뽑으면 같은 시도의 더블클릭이 다른 주문이 된다");
+  const keyLine = gate.slice(keyAt, gate.indexOf("\n", keyAt));
+  if (!keyLine.includes("_cdGateAttemptScope")) {
+    throw new Error(`멱등키가 스코프를 쓰지 않는다 — 게이트 재진입마다 같은 키다(실제 ${keyLine.trim()})`);
+  }
 });
 
 if (failures.length) {

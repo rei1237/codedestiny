@@ -2786,6 +2786,15 @@
   function _dpCheckoutEntry() {
     try { return window.__cdCheckoutEntry || null; } catch (_checkoutEntryError) { return null; }
   }
+  // 🔴 멱등키 스코프 정본도 checkout-entry 하나다(mintPaymentAttemptScope 머리주석에 이유 전부).
+  // 모듈이 아직 안 붙었을 때만 같은 형식의 값을 자체 생성한다 — 결제 흐름을 죽이지 않는다.
+  function _dpMintPaymentAttemptScope() {
+    var api = _dpCheckoutEntry();
+    if (api && typeof api.mintPaymentAttemptScope === 'function') {
+      try { return api.mintPaymentAttemptScope(); } catch (_scopeError) { /* 아래 폴백 */ }
+    }
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
   // 🔴 결제창 단일 인스턴스 정본도 checkout-entry 하나다. 이 렌더러는 고정 id(#cdStandalonePaymentChoice)
   // 를 기존 노드 확인 없이 append 하고 있어, 연속 클릭이면 같은 id 오버레이가 2개 깔렸다(셸 쌍둥이엔
   // 있는 가드가 여기만 빠져 있었다). 자체 락을 새로 만들지 않고 공용 것을 쓴다.
@@ -3415,7 +3424,10 @@
     return resolved;
   }
 
-  function _dpLoadPortOneV2Sdk() {
+  // 이 로더 한 번의 대기 상한. 인자로 줄이면 그만큼만 기다린다(재시도가 상한을 두 번 쓰지 않게 하는 용도).
+  var DP_PORTONE_SDK_BUDGET_MS = 8000;
+  function _dpLoadPortOneV2Sdk(budgetMs) {
+    var _dpSdkBudget = Math.max(0, Math.floor(Number(budgetMs)) || DP_PORTONE_SDK_BUDGET_MS);
     if (window.PortOne && typeof window.PortOne.requestPayment === 'function') return Promise.resolve();
     return new Promise(function(resolve, reject) {
       var settled = false;
@@ -3477,11 +3489,13 @@
          시작)이 끝나 있는 정상 경로는 폴링이 즉시 resolve 한다 — 이 상한은 SDK가 실제로 느리거나
          실패한 드문 경우의 안전망일 뿐이다. 1500ms 는 그 안전망을 CDN 왕복이 1.5초를 넘는 네트워크
          (모바일 등)에서 매번 발동시켜 결제창을 원천 차단했다(만료 시 미완료 태그를 제거하고 새로
-         시작하므로 재시도도 같은 상한에 다시 걸린다). 8000ms 는 오래 실사용된 값이다(#243). */
+         시작하므로 재시도도 같은 상한에 다시 걸린다). 8000ms 는 오래 실사용된 값이다(#243).
+         🔴 상한은 인자로 줄일 수 있다. 결제 임계경로의 재시도가 이 8초를 **두 번** 쓰면 최악 16초가
+         클릭→결제창 구간에 통째로 얹힌다 — 재시도는 남은 예산만 쓴다(셸 index.html 과 같은 계약). */
       setTimeout(function() {
         clearPoll();
         finish(!!(window.PortOne && typeof window.PortOne.requestPayment === 'function'));
-      }, 8000);
+      }, _dpSdkBudget);
     });
   }
 
@@ -3489,10 +3503,10 @@
   // 받은 뒤에야 <script> 를 붙여, CDN 왕복이 클릭~결제창 사이에 그대로 얹혔다(모바일에서 그 지연으로
   // user-gesture 가 소멸해 결제창이 아예 안 열리는 원인).
   // 정적 셸과 같은 전역 promise·같은 script#portone-v2-sdk 를 공유하므로 이중 로드가 되지 않는다.
-  function _dpPortOneV2SdkPromise() {
+  function _dpPortOneV2SdkPromise(budgetMs) {
     var shared = window.__cdPortOneV2PreloadPromise;
     if (shared && typeof shared.then === 'function') return shared;
-    var created = _dpLoadPortOneV2Sdk();
+    var created = _dpLoadPortOneV2Sdk(budgetMs);
     window.__cdPortOneV2PreloadPromise = created;
     // 실패한 promise 를 캐시에 남기면 재시도가 영구히 같은 실패를 재사용한다.
     created.catch(function() {
@@ -3535,7 +3549,17 @@
     // 안 뜬다). 여기서 opts.idempotencyKey 를 빠뜨리고 있어서, 게이트가 만든 시도별 키(`req:a0`)도
     // 409·중복 재시도가 발급한 새 키도 이 경로에서는 통째로 버려졌다 — 셸이 고친 것이 App Router
     // 유료 기능 전체가 타는 이 코어에는 도달하지 않았다.
-    checkoutPayload.idempotencyKey = String(checkoutPayload.idempotencyKey || opts.idempotencyKey || checkoutPayload.requestId || '').trim();
+    // 🔴 requestId 폴백에는 **시도 스코프를 곱한다.** 앞의 두 갈래(호출부가 준 시도별 키)는 그대로
+    // 존중한다 — 그 계약은 verify-pg-window-no-conflict ①-b 가 고정한다. requestId 는 결정적이어야
+    // 하는 값이라(연타 디듀프·서버 증빙 조회) 그것을 그대로 멱등키로 쓰면 서버 merchantUid 가 영원히
+    // 같아지고, 종료 주문이 세대만큼 쌓인 뒤부터 매 결제가 409 로 시작한다(정본 설명은
+    // js/core/checkout-entry.js mintPaymentAttemptScope 머리주석).
+    checkoutPayload.idempotencyKey = String(
+      checkoutPayload.idempotencyKey
+      || opts.idempotencyKey
+      || (checkoutPayload.requestId ? (checkoutPayload.requestId + ':g' + _dpMintPaymentAttemptScope()) : '')
+      || ''
+    ).trim();
     if (opts.categoryKey) checkoutPayload.categoryKey = opts.categoryKey;
     if (opts.subFeatureKey) checkoutPayload.subFeatureKey = opts.subFeatureKey;
     if (opts.productId) checkoutPayload.productId = opts.productId;
@@ -4263,10 +4287,14 @@
       // 위에서 checkout 과 동시에 발사한 로드를 여기서 회수한다 — 정상 경로에서는 이미 resolve 상태다.
       // 실패했으면 캐시는 이미 비워져 있다(_dpPortOneV2SdkPromise 의 catch). 그래서 재호출이
       // 곧 새 요청이다 — 셸의 _cdRunDirectKrwCheckout(index.html)과 같은 자리에서 1회 재시도한다.
+      // 🔴 두 시도가 **하나의 예산(8초)을 나눠 쓴다.** 예전에는 각자 8초 상한을 따로 걸어, CDN 이 죽은
+      // 네트워크에서 최악 16초가 클릭→결제창 구간에 통째로 얹혔다. 재시도의 가치는 "죽은 태그를 걷어내고
+      // 새로 받는 것"이지 "두 배로 기다리는 것"이 아니다(셸 index.html 과 같은 계약).
+      var _dpSdkDeadline = Date.now() + DP_PORTONE_SDK_BUDGET_MS;
       try {
         await (_dpSdkPending || _dpPortOneV2SdkPromise());
       } catch (_dpSdkFirstError) {
-        await _dpPortOneV2SdkPromise();
+        await _dpPortOneV2SdkPromise(Math.max(250, _dpSdkDeadline - Date.now()));
       }
       _dpMarkPgStep('sdk');
       // storeId/channelKey 는 checkout 응답에 이미 실려 온다(worker/routes/payments.js). 그걸 쓰면
