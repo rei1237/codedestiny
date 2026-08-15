@@ -17,11 +17,63 @@
 | G-5 | `verify:*` 미배선 다수 | 존재하나 아무도 호출 안 함 | ✅ PR #558 |
 | G-6 | `deploy:critical` ↔ paid-flow-gates 커버리지 차이 | 검증 안 됨 | ✅ PR #558 (G-5 와 같은 가드) |
 | G-7 | `verify-auth-event-loop-guard` 대상 목록 | **G-3 재발** — 프로필 카드 무한 로딩으로 프로덕션 표면화 | ✅ PR #567 + 커버리지 메타 가드 |
+| G-8 | `verify:mobile-cdp-smoke` | 로컬에서 **낡은 `dist/` 를 서빙**해 소스 대신 옛 셸을 검사 | 🔴 미조치 (2026-08-15 발견) |
 
 > **G-5·G-6 후속 정정 (2026-08-13)**
 > - 위 "54개"는 손으로 센 값이라 **믿지 말 것.** 정본은 `npm run verify:guard-wiring` 이 계산한다(실측: `verify:*` 178개 중 88개 배선 / 90개 미배선 선언).
 > - 아래 G-5 표의 `verify:public-parity` 는 **오류**였다 — 실제로는 `scripts/build-cf-main.mjs` 안에서 `build:cf` 의 blocking 스텝으로 이미 돌고 있었다. 이런 "파일·배열 형태의 배선"을 손으로 세다 놓친 것이 애초에 숫자가 틀린 이유다.
 > - 배선한 것은 `verify:mobile-detail-nonintrusive` 하나뿐이다(문서가 이미 "CI 차단"이라 약속하고 있었다). 나머지는 사유와 함께 **미배선으로 선언**했다 — 게이트 추가는 사용자 승인 사항이기 때문이다.
+
+---
+
+## 🔴 미조치
+
+### G-8. `verify:mobile-cdp-smoke` 가 로컬에서 낡은 `dist/` 를 검사한다 (2026-08-15 발견)
+
+**증상.** 하네스 첫머리가 이렇다:
+
+```js
+// scripts/verify-mobile-cdp-smoke.mjs:9
+const staticRoot = fs.existsSync(path.join(root, "dist", "index.html")) ? path.join(root, "dist") : root;
+```
+
+`dist/index.html` 이 있으면 **무조건** 그것을 서빙한다. 신선도는 보지 않는다. `dist/` 는 gitignore 된 로컬 산출물이라 마지막으로 빌드한 시점에 그대로 멈춰 있고, 그동안 셸을 아무리 고쳐도 스모크는 옛 파일을 계속 검사한다. 실패하지 않으니 아무도 모른다 — 이 문서의 공통 증상 그대로다.
+
+**실측 (2026-08-15, 로컬 `dist/`).** 마커 존재 여부로 잰 신선도:
+
+| 마커 | `dist/index.html` | 루트 `index.html` |
+|---|---|---|
+| `data-pvw-cta-bypass` | **0** | 21 |
+| `_cdShouldSuppressActionDuringScroll` | **0** | 6 |
+| 파일 크기 | 1.47 MB | 2.65 MB |
+
+`data-pvw-cta-bypass` 는 2026-08-14 `13cc7e6d7` 이 유료 진입 CTA 사망을 고치며 넣은 마커다. 즉 그 로컬 `dist/` 는 **그 수정조차 들어 있지 않은 셸**이었고, 크기 차이로 보아 하루 이틀 낡은 정도가 아니다.
+
+**왜 위험한가.** 이 하네스는 "탭이 실제로 기능을 여는가"를 재는 몇 안 되는 실브라우저 검증이다. 그런데 옛 셸을 검사하면 **방금 만든 회귀는 물론 방금 만든 수정도 보이지 않는다.** `13cc7e6d7` 커밋 메시지가 남긴 교훈("스모크가 초록인데 유료 진입이 두 릴리스 동안 죽어 있었다")과 정확히 같은 함정을 한 겹 더 만든다.
+
+**당장의 우회 (2026-08-15 에 실제로 쓴 방법).** `dist/` 를 잠시 옆으로 치우면 하네스가 레포 루트를 서빙한다:
+
+```bash
+mv dist dist.bak && npm run verify:mobile-cdp-smoke ; mv dist.bak dist
+```
+
+단, 루트를 서빙하면 Next 라우트(`/tarot/mingri` 등)가 파일로 존재하지 않아 **라우트 도달을 축으로 삼는 단언은 환경 탓으로 실패한다.** 그래서 이때 추가한 스크롤 오탭 회귀 케이스는 `location.href` 대신 `window.__cdLastMobileAction`(액션 발화 기록)을 축으로 쓴다 — 라우트가 없어도 "열렸는가"를 잴 수 있다. 같은 이유로 `mobile membership benefits button is visible and action-wired` 1건은 수정 전후 모두 실패하는 **환경성 실패**다.
+
+**조치 방향 (택일, 다음 세션 몫).**
+1. **fail-closed 로 바꾼다** — `dist/index.html` 의 mtime 이나 내장 SHA 가 현재 `HEAD`/워킹트리보다 오래됐으면 **통과시키지 말고 실패**시킨다. 이 문서의 교훈 5번("대상이 없거나 낡았을 때 통과시키는 가드는 가드가 아니다")에 맞는 형태다.
+2. **서빙 대상을 명시적으로 만든다** — `MOBILE_CDP_TARGET=dist|source` 를 받고 기본값을 `source` 로 둔다. CI 는 빌드 직후 `dist` 를 지정한다. "있으면 쓴다"는 암묵 규칙을 없애는 게 핵심.
+
+🔴 **어느 쪽이든 `dist/` 존재 여부로 조용히 갈리는 현재 동작은 남기지 말 것.**
+
+**배선 상태 (2026-08-15 실측).** 이 가드는 `.github/workflows/` 어디에도 없고, `npm` 스크립트 체인에도 물려 있지 않다(`grep -rn "mobile-cdp" .github/workflows/` → 0건). 사고가 아니라 **의도된 미배선**이며 `scripts/verify-guard-wiring.mjs:70` 에 사유와 함께 선언돼 있다:
+
+```js
+["verify:mobile-cdp-smoke", "실브라우저 CDP — 로컬 개발 서버 필요"],
+```
+
+그래서 G-8 의 무게가 커진다 — **CI 가 안 돌리는 로컬 전용 가드인데, 그 로컬에서조차 낡은 산출물을 검사하고 있었다.** 둘을 합치면 이 검증기는 사실상 누구의 현재 코드도 보고 있지 않았다.
+
+> 참고: 선언된 사유("로컬 개발 서버 필요")는 코드와 어긋나 보인다 — 하네스는 `startStaticServer()` 로 **자기 정적 서버를 직접 띄운다**. 배선 가능 여부를 다시 볼 때 이 사유부터 확인할 것. 다만 **게이트 추가는 사용자 승인 사항**이므로 임의로 배선하지 말 것.
 
 ---
 
