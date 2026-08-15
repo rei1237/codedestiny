@@ -7,7 +7,7 @@
 //   실행: node scripts/verify-nakshatra-premium.mjs
 
 import { build } from "esbuild";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
 import path from "node:path";
@@ -573,10 +573,24 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
     vvip.indexOf("<GenderPrompt") > 0 && vvip.indexOf("<GenderPrompt") < vvip.indexOf("styles.gatePrice"));
   check("VVIP: 성별이 이미 있으면 묻지 않는다", /!birth\.gender && \(/.test(vvip));
 
-  const claudeMd = readFileSync(path.join(repoRoot, "CLAUDE.md"), "utf8");
-  check("CLAUDE.md: PERSISTENT_UNLOCK_KEY_SET 위치가 fortune.js 로 정정됐다",
-    /worker\/routes\/fortune\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(claudeMd)
-    && !/content-unlocks\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(claudeMd));
+  /* 🔴 문서를 손으로 열거하지 않는다(원칙 10). 이 문장은 2026-08-15 CLAUDE.md 분할로
+     docs/context/payment-gating.md 로 옮겨갔는데, 가드가 CLAUDE.md 만 읽고 있어서 **main 에서 상시
+     실패**하고 있었다(=Paid Flow Gates 가 모든 PR 을 막았다). 규약 문서 전체에서 심볼을 언급하는
+     줄을 전수 발견하고, 하나도 없으면 실패시킨다 — 문장이 또 옮겨가도 따라간다.
+     아카이브(편집 금지 스냅샷)는 대조용이라 판정 대상에서 뺀다. */
+  const policyDocs = [path.join(repoRoot, "CLAUDE.md")].concat(
+    readdirSync(path.join(repoRoot, "docs/context"))
+      .filter((name) => name.endsWith(".md") && !name.startsWith("CLAUDE.archive-"))
+      .map((name) => path.join(repoRoot, "docs/context", name)),
+  );
+  const unlockKeySetLines = policyDocs
+    .flatMap((file) => readFileSync(file, "utf8").split("\n"))
+    .filter((line) => line.includes("PERSISTENT_UNLOCK_KEY_SET"));
+  check("규약 문서가 PERSISTENT_UNLOCK_KEY_SET 를 설명한다(전수 발견 · 0건이면 실패)",
+    unlockKeySetLines.length > 0);
+  check("문서: PERSISTENT_UNLOCK_KEY_SET 위치가 fortune.js 로 정정됐다",
+    unlockKeySetLines.some((line) => line.includes("worker/routes/fortune.js"))
+    && !unlockKeySetLines.some((line) => /content-unlocks\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(line)));
 }
 
 console.log("\n[11] 일시 503 내성 — 블립에 결제·생성이 죽지 않는가");

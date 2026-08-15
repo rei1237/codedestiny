@@ -721,9 +721,20 @@ assertNotContains(bridgeDirectCheckoutSource, "ApplyMembershipPassBeforePayment"
 // 🔴 게이트 재제안 루프(_cdGateAttempt, 최대 4회)가 같은 requestId 를 Idempotency-Key 로 재사용하면
 // 서버가 같은 주문(merchantUid)을 멱등 반환하고, PortOne 이 **paymentId 중복**을 결제창 렌더 전에
 // 거절한다 → "첫 실패 후에는 몇 번 눌러도 결제창이 안 뜬다". 시도별 키 파생을 고정한다.
-assertContains(indexSource, "var _cdAttemptIdempotencyKey = requestId + ':a' + _cdGateAttempt;", "each payment attempt must derive its own Idempotency-Key (duplicate paymentId = PG window never opens)");
+// 🔴 2026-08-16: 회차(:a)만으로는 부족하다. _cdGateAttempt 는 게이트에 다시 들어올 때마다 0 으로
+// 리셋되므로, 결정적 requestId 를 넘기는 호출부(js/saju-engine*.js 의 숙요점·사주 AI 상담)는 매 클릭이
+// 같은 base key 'R:a0' 이었다. 서버는 그 키의 세대를 3개까지만 발급하므로(worker/payments/orders.js
+// MAX_ORDER_GENERATIONS) 종료 주문이 세 개 쌓인 뒤부터 **모든 결제가 409 로 시작**했다 — 클라가 새 키로
+// 복구하지만 그 복구가 결제창 앞 checkout 왕복 하나다. 게이트 진입 스코프(:g)를 함께 고정한다.
+assertContains(indexSource, "var _cdAttemptIdempotencyKey = requestId + ':g' + _cdGateAttemptScope + ':a' + _cdGateAttempt;", "each payment attempt must derive its own Idempotency-Key (duplicate paymentId = PG window never opens)");
+assertContains(indexSource, "var _cdGateAttemptScope = _cdMintPaymentAttemptScope();", "the gate must mint its idempotency scope once, from the shared checkout-entry canon");
 assertContains(indexSource, "idempotencyKey: _cdAttemptIdempotencyKey", "the per-attempt key must reach the explicit direct checkout call");
-assertContains(indexSource, "checkoutPayload.idempotencyKey || opts.idempotencyKey || checkoutPayload.requestId", "the payload builder must prefer the per-attempt key over the loop-stable requestId");
+// 🔴 폴백 갈래(게이트를 거치지 않는 직접 호출 3곳: 잠금해제·회당결제·타일)에도 스코프가 붙어야 한다.
+// 셸·dp 양쪽 같은 계약이다 — 한쪽만 고치면 정적 셸에서만 409 가 나던 그 격차가 그대로 재현된다.
+for (const [label, source] of [["index.html", indexSource], ["js/destiny-profile.js", destinyProfileSource]]) {
+  assertContains(source, "checkoutPayload.idempotencyKey\n      || opts.idempotencyKey", `${label}: the payload builder must prefer the per-attempt key over the loop-stable requestId`);
+  assertContains(source, "checkoutPayload.requestId + ':g' +", `${label}: the requestId fallback must carry a per-attempt scope (deterministic requestId = permanent 409 after the order generations are spent)`);
+}
 // 중복 코드로 거절되면 새 키로 1회 재시도해 사용자가 고착되지 않게 한다.
 assertContains(indexSource, "_cdIsPortOneDuplicatePaymentCode", "duplicate paymentId rejection must be detected and retried once with a fresh key");
 assertContains(indexSource, "__cdDuplicatePaymentRetry", "the duplicate-paymentId retry must be bounded to a single attempt");
