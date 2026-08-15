@@ -21,9 +21,11 @@ test("shared auth shell keeps email and social login in one mobile-first surface
   assert.match(shell, /autoComplete=\{isSignup \? \"new-password\" : \"current-password\"\}/);
   assert.match(shell, /\["google", "naver", "kakao"\]/);
   assert.match(shell, /ageAttested: age/);
-  assert.match(shell, /phoneNumber/);
   assert.match(shell, /min-h-\[100dvh\]/);
+  // 가입 화면이 받는 것은 이름·이메일·비밀번호·필수동의뿐이다. 생년월일과 마찬가지로
+  // 휴대폰 번호도 여기서 받지 않는다 — 번호는 소셜 공급자 값이거나 첫 결제 때 1회 입력이다.
   assert.doesNotMatch(shell, /birthDate|birthTime|gender/);
+  assert.doesNotMatch(shell, /phoneNumber|phoneHelp|type="tel"/);
 });
 
 test("web auth response does not expose bearer tokens and post-login bootstrap is bounded", () => {

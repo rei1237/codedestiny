@@ -22338,7 +22338,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-0db41e7e2b59" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-61ee5e155bd3" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-0db41e7e2b59" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-0db41e7e2b59" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -24112,7 +24112,7 @@ return you.name.restore();</span>
       input.inputMode = 'tel';
       input.autocomplete = 'tel';
       input.placeholder = '01012345678';
-      notice.textContent = '입력한 번호는 결제 진행 목적으로만 사용되며 서버에 저장됩니다.';
+      notice.textContent = '입력한 번호는 결제 진행 목적으로만 사용되며 서버에 암호화해 저장됩니다.';
       cancelButton.type = 'button';
       cancelButton.textContent = '\uCDE8\uC18C';
       submitButton.type = 'submit';
