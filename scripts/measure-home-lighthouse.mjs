@@ -217,7 +217,10 @@ function extractLcpElement(lhr) {
   for (const id of ["largest-contentful-paint-element", "lcp-discovery-insight", "lcp-breakdown-insight"]) {
     const items = lhr.audits?.[id]?.details?.items || [];
     for (const item of items) {
-      const node = item.type === "node" ? item : item.node || (item.items || []).map((sub) => sub.node).find(Boolean);
+      // 🔴 `items` 가 항상 배열은 아니다 — 체크리스트 항목은 이름을 키로 가진 **객체**라
+      //    `.map` 이 없다. 데스크탑 프리셋이 여기서 죽었다(모바일은 이 모양을 안 만든다).
+      const subItems = Array.isArray(item.items) ? item.items : [];
+      const node = item.type === "node" ? item : item.node || subItems.map((sub) => sub.node).find(Boolean);
       if (!node?.selector && !node?.snippet) continue;
       const rect = node.boundingRect;
       return {
@@ -241,7 +244,7 @@ function extractForcedReflow(lhr) {
   const tables = lhr.audits?.["forced-reflow-insight"]?.details?.items || [];
   const out = [];
   for (const table of tables) {
-    for (const row of table.items || []) {
+    for (const row of Array.isArray(table.items) ? table.items : []) {
       const source = row.source || {};
       const where = source.url ? `${source.url}:${source.line ?? 0}:${source.column ?? 0}` : source.value || "(unattributed)";
       out.push({ url: where, ms: row.reflowTime || 0 });
@@ -258,7 +261,7 @@ function extractLcpPhases(lhr) {
   const items = lhr.audits?.["lcp-breakdown-insight"]?.details?.items || [];
   const out = {};
   for (const item of items) {
-    for (const row of item.items || []) {
+    for (const row of Array.isArray(item.items) ? item.items : []) {
       if (row.label && typeof row.duration === "number") out[String(row.label)] = row.duration;
     }
   }
@@ -293,7 +296,7 @@ function extractOversizedImages(lhr) {
       url: item.url || "",
       total: item.totalBytes || 0,
       wasted: item.wastedBytes || 0,
-      reasons: (item.subItems?.items || []).map((sub) => sub.reason).filter(Boolean),
+      reasons: (Array.isArray(item.subItems?.items) ? item.subItems.items : []).map((sub) => sub.reason).filter(Boolean),
     }));
   }
   return [];
