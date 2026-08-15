@@ -536,15 +536,13 @@ for (const [feature, path, timeoutVar] of [
 }
 
 // ── 8. 단일 호출로 남아 있는 유료 라우트 ────────────────────────────────────
-// 이 둘은 아직 섹션 병렬이 아니다. 그래서 요구 하한을 한 호출이 실제로 채울 수 있는 크기
+// 이건 아직 섹션 병렬이 아니다. 그래서 요구 하한을 한 호출이 실제로 채울 수 있는 크기
 // (모델은 6천자 근처에서 스스로 멈춘다) 위로 올리면 분량이 느는 게 아니라 실패·재시도만 는다.
 // 여기서 막는 것은 "섹션화 없이 하한만 올리는 변경"이다 — 섹션화하면 이 단언을 그때 함께 옮긴다.
+// 운명 찻집 3종은 2026-08-15 에 섹션 병렬로 옮겨 아래 전용 블록이 대신 지킨다.
 const SINGLE_CALL_FLOOR_CEILING = 6000;
 for (const [feature, path, constantName] of [
   ["naming-prompt", "worker/routes/naming-prompt.js", "NAMING_MIN_TOTAL_CONTENT_CHARS"],
-  ["fortune-tea-house:saju", "worker/routes/fortune-tea-house.js", "SAJU_MIN_RESULT_CHARS"],
-  ["fortune-tea-house:tarot", "worker/routes/fortune-tea-house.js", "TAROT_MIN_RESULT_CHARS"],
-  ["fortune-tea-house:sukuyo", "worker/routes/fortune-tea-house.js", "SUKUYO_MIN_RESULT_CHARS"],
 ]) {
   const value = Number((read(path).match(new RegExp(`const ${constantName} = (\\d+);`)) || [])[1]);
   checks += 1;
@@ -552,6 +550,95 @@ for (const [feature, path, constantName] of [
     Number.isFinite(value) && value <= SINGLE_CALL_FLOOR_CEILING,
     `${feature}: ${constantName} = ${value} 는 단일 호출이 채울 수 있는 한계(${SINGLE_CALL_FLOOR_CEILING}자)를 넘는다.`
     + " 분량을 늘리려면 먼저 섹션 병렬로 쪼개라(astrology-ai.js · vedic-ai.js 패턴)",
+  );
+}
+
+// ── 운명의 찻집: 섹션 병렬 예산 ─────────────────────────────────────────────
+// 통짜 한 호출이던 3종(타로·사주·숙요)을 그룹 병렬로 옮기면서 하한이 6천자 천장을 넘었다.
+// 여기서 지키는 것은 "그룹 하나가 받는 몫이 여전히 단일 호출로 채울 수 있는가"다 — 그룹을
+// 줄이거나 share 를 몰아주면 하한만 높고 채우지 못하는 예전 상태로 조용히 되돌아간다.
+{
+  const feature = "fortune-tea-house";
+  const source = read("worker/routes/fortune-tea-house.js");
+  const constant = (name) => Number((source.match(new RegExp(`const ${name} = (\\d+);`)) || [])[1]);
+
+  const modeFloors = {
+    saju: constant("SAJU_MIN_RESULT_CHARS"),
+    // 5카드는 가산이 붙으므로 가장 큰 하한으로 본다.
+    tarot: constant("TAROT_MIN_RESULT_CHARS") + constant("TAROT_FIVE_CARD_EXTRA_CHARS"),
+    sukuyo: constant("SUKUYO_MIN_RESULT_CHARS"),
+  };
+  const shareBlocks = {
+    saju: (source.match(/const FORTUNE_TEA_SAJU_GROUPS = Object\.freeze\(\[[\s\S]*?\n\]\);/) || [])[0],
+    tarot: (source.match(/\n  tarot: Object\.freeze\(\[[\s\S]*?\n  \]\),/) || [])[0],
+    sukuyo: (source.match(/\n  sukuyo: Object\.freeze\(\[[\s\S]*?\n  \]\),/) || [])[0],
+  };
+
+  for (const [mode, block] of Object.entries(shareBlocks)) {
+    const shares = block ? [...block.matchAll(/share: (0?\.\d+)/g)].map((match) => Number(match[1])) : [];
+    const floor = modeFloors[mode];
+
+    checks += 1;
+    assert(
+      shares.length >= 2 && Number.isFinite(floor) && floor > 0,
+      `${feature}:${mode}: 그룹 share 또는 모드 하한을 읽지 못했다 — 레지스트리 형태가 바뀌었으면 이 가드도 함께 옮겨라`,
+    );
+
+    checks += 1;
+    const total = shares.reduce((sum, share) => sum + share, 0);
+    assert(
+      Math.abs(total - 1) < 0.001,
+      `${feature}:${mode}: share 합계가 ${total} 다 — 1이 아니면 그룹 몫의 합이 상담 하한과 어긋난다`,
+    );
+
+    checks += 1;
+    const widest = Math.round(Math.max(...shares) * floor);
+    assert(
+      widest <= SINGLE_CALL_FLOOR_CEILING,
+      `${feature}:${mode}: 가장 큰 그룹이 ${widest}자를 요구한다 — 한 호출이 채울 수 있는 한계(${SINGLE_CALL_FLOOR_CEILING}자)를 넘으면`
+      + " 분량이 느는 게 아니라 재시도만 는다. 그룹을 더 쪼개라",
+    );
+  }
+
+  // 카테고리 규칙이 하한을 덮어쓰던 구조(리터럴 12벌)로 되돌아가면 상수만 고쳐도 아무 일이 없다.
+  checks += 1;
+  assert(
+    !/\n    minChars: \d+,/.test(source),
+    `${feature}: 카테고리 규칙이 minChars 를 리터럴로 다시 들고 있다 — 상수를 참조해야 한 곳에서 조절된다`,
+  );
+
+  // 🔴 clampSyncLlmTimeoutMs 는 0/음수를 받으면 상한 85s 로 되돌아간다.
+  checks += 1;
+  assert(
+    /if \(!\(timeoutMs > 0\)\) return fail\("BUDGET_EXHAUSTED"\);/.test(source),
+    `${feature}: 그룹 생성기에 남은 예산 하한 가드가 없다 — clampSyncLlmTimeoutMs(0)은 85s로 되돌아간다`,
+  );
+
+  checks += 1;
+  assert(
+    /timeoutMs: clampSyncLlmTimeoutMs\(timeoutMs\)/.test(source),
+    `${feature}: 그룹 호출 타임아웃이 clampSyncLlmTimeoutMs로 깎이지 않는다`,
+  );
+
+  checks += 1;
+  assert(
+    source.includes("group_hard_deadline"),
+    `${feature}: 그룹 호출에 하드 데드라인 레이스가 없다 — Workers AI 폴백이 예산을 넘긴다`,
+  );
+
+  checks += 1;
+  const deadlineMatch = source.match(/const FORTUNE_TEA_LLM_DEADLINE_MS = (\d+);/);
+  assert(
+    deadlineMatch && Number(deadlineMatch[1]) <= SYNC_LLM_TIMEOUT_CEILING_MS + 5000,
+    `${feature}: 총 LLM 예산이 엣지 한계(${SYNC_LLM_TIMEOUT_CEILING_MS}ms) 대비 과하다`,
+  );
+
+  // 그룹 생성기는 절대 throw 하지 않아야 한 그룹의 실패가 나머지를 죽이지 않는다.
+  checks += 1;
+  assert(
+    /async function generateFortuneTeaGroup\(env, \{[\s\S]*?\n\}/.test(source)
+    && /\} catch \(error\) \{\n    return fail\(/.test(source),
+    `${feature}: generateFortuneTeaGroup이 실패를 값으로 돌리지 않는다`,
   );
 }
 

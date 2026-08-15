@@ -18,6 +18,7 @@ import {
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
+import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
@@ -27,19 +28,19 @@ const MECHANICAL_COPY_PATTERN = /이 기능은|이 결과는|분석 결과는|�
 const SYSTEM_COPY_PATTERN = /AI cannot|I cannot|language model|system prompt|prompt 원문|\bmock\b|dry[_-]?run|providerReason|\bGemini\b|\bOpenAI\b|Workers AI|\bschema\b|\bpayload\b|\bJSON\b/i;
 const TAROT_GENERIC_COPY_PATTERN = /긍정적으로 생각|대화가 중요|마음을 차분히|작은 행동 하나|기다려 보세요|당신의 선택입니다|인간 상담사 연이로서|결과를 맞히는 것보다/i;
 const TAROT_DETERMINISTIC_CLAIM_PATTERN = /반드시.*사랑|상대는 반드시|재회됩니다|절대 안 됩니다|계속 연락|포기하지 말고 계속/i;
-const SAJU_MIN_RESULT_CHARS = 6000;
-const SAJU_TARGET_RESULT_CHARS = 8000;
-// 🔴 이 세 하한은 **단일 호출** 결과에 걸린다(3697행의 attempt 루프 하나가 전부를 만든다).
-//    모델은 한 호출에서 6천자 근처면 스스로 멈추므로, 하한만 올리면 분량이 느는 게 아니라
-//    재시도가 늘고 끝내 결정론 degrade 로 빠진다. 분량을 실제로 늘리려면 먼저 섹션 병렬로
-//    쪼개야 한다(정본 패턴: worker/routes/astrology-ai.js, worker/routes/vedic-ai.js).
-//    또 하나 — 타로/사주 하한은 카테고리 규칙(175~345행 minChars)이 이 상수를 덮어쓴다.
-//    여기만 고치면 대부분의 경로에서 아무 일도 일어나지 않는다.
-const TAROT_MIN_RESULT_CHARS = 3200;
+const SAJU_MIN_RESULT_CHARS = 10000;
+const SAJU_TARGET_RESULT_CHARS = 12000;
+// 🔴 이 세 하한은 이제 **섹션 병렬** 결과 전체에 걸린다(FORTUNE_TEA_SECTION_GROUPS 가 한 요청 안에서
+//    동시에 돈다). 한 호출은 6천자 근처에서 스스로 멈추므로, 하한을 올릴 때는 그룹 하나가 받는
+//    몫(share × 이 값)이 그 한계 아래인지 함께 봐야 한다 — 그룹 몫이 6천을 넘으면 분량이 느는 게
+//    아니라 재시도만 늘고 끝내 결정론 degrade 로 빠진다. 가드: verify:llm-generation-resilience.
+//    카테고리 규칙(아래 teaCategory*PromptMap)의 minChars 는 이 상수를 그대로 참조한다 —
+//    숫자를 다시 적지 말 것. 예전에 리터럴로 12벌 흩어져 있어 여기만 고치면 아무 일도 없었다.
+const TAROT_MIN_RESULT_CHARS = 6000;
 const TAROT_FIVE_CARD_EXTRA_CHARS = 1200;
 // 카드 한 장당 detail(핵심의미·현재상황·질문연결·조언·주의) 합계 하한(공백 제외).
 const TAROT_CARD_DETAIL_MIN_CHARS = 500;
-const SUKUYO_MIN_RESULT_CHARS = 5000;
+const SUKUYO_MIN_RESULT_CHARS = 8000;
 const FORTUNE_TEA_HOUSE_SCOPE = "FORTUNE_TEA_HOUSE";
 const HONEY_LETTER_COST = 10;
 const TAROT_ALBUM_UNLOCK_COST = 10;
@@ -175,7 +176,7 @@ const teaCategorySajuPromptMap = {
     resultKey: "loveReunionSajuReading",
     category: "연애 · 재회",
     concept: "미련과 가능성 사이에서 내 사주의 관계 패턴과 현재 운의 흐름을 통해 가장 덜 다치는 다음 걸음을 찾는 상담",
-    minChars: 6000,
+    minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간의 관계 방식", "배우자성/관성/재성의 작동", "식상 표현 방식", "인성의 미련과 회상", "비겁의 자존심", "현재 대운·세운의 관계 흐름", "합충형해파가 만드는 거리감"],
     requiredSections: ["타고난 결 — 내 일간이 사랑을 붙잡는 방식", "첫 잔 — 이 질문이 찻집까지 온 이유", "마음의 물길 — 미련과 가능성을 가르는 십성", "잘 풀리는 결 — 이 관계에서 살아 있는 힘", "삐걱대는 결 — 재회를 닫아버리는 반복 패턴", "지금 이 시기 — 운이 관계를 다시 여는 조건", "지금 연락해도 되는가", "찻집의 처방 — 7일 관계 정리 플랜", "연이의 한마디"],
     gauges: [
@@ -193,7 +194,7 @@ const teaCategorySajuPromptMap = {
     resultKey: "connectionSajuReading",
     category: "썸 · 인연",
     concept: "아직 이름 붙지 않은 설렘이 내 사주에서 어떻게 피어나는지, 인연의 속도와 접근 방식을 읽는 상담",
-    minChars: 6000,
+    minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간의 호감 표현", "식상으로 드러나는 매력", "재성/관성의 관계 욕구", "도화·홍염·천희 신살이 있으면 참고", "비겁의 경쟁심", "인성의 신중함", "새 인연이 들어오기 쉬운 운"],
     requiredSections: ["타고난 결 — 내 일간이 호감을 표현하는 방식", "첫 잔 — 설렘이 피어난 자리", "마음의 물길 — 설렘을 키우거나 망설이게 하는 십성", "잘 풀리는 결 — 이 인연에서 살아 있는 힘", "삐걱대는 결 — 속도가 어긋나기 쉬운 지점", "지금 이 시기 — 인연이 커지는 타이밍", "좋은 연락 리듬과 만남 전략", "찻집의 처방 — 7일 썸 리듬 플랜", "연이의 한마디"],
     gauges: [
@@ -211,7 +212,7 @@ const teaCategorySajuPromptMap = {
     resultKey: "careerBusinessSajuReading",
     category: "진로 · 사업",
     concept: "막막한 길 위에서 내 명식이 가진 일의 방향, 재능, 실행력, 확장 타이밍을 읽는 상담",
-    minChars: 6000,
+    minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간의 일하는 방식", "월령과 격국의 사회적 방향", "식상·재성·관성 연결", "인성의 공부와 보호막", "비겁의 독립성/협업", "현재 대운·세운의 확장/전환/정체 신호"],
     requiredSections: ["타고난 결 — 내 명식이 일하는 방식", "첫 잔 — 막막함이 찾아온 이유", "마음의 물길 — 식상·재성·관성이 만드는 일의 구조", "잘 풀리는 결 — 강하게 써야 할 재능", "삐걱대는 결 — 확장을 막는 패턴과 피해야 할 선택", "지금 이 시기 — 움직여도 되는 운의 신호", "리스크 체크리스트", "찻집의 처방 — 14일 실행 플랜", "연이의 한마디"],
     gauges: [
@@ -229,7 +230,7 @@ const teaCategorySajuPromptMap = {
     resultKey: "moneySajuReading",
     category: "금전운",
     concept: "내 명식의 돈 흐름, 수익화 방식, 소비 패턴, 회복 전략을 읽는 상담",
-    minChars: 6000,
+    minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["재성의 강약과 위치", "식상이 재성을 생하는지", "비겁이 재성을 나누는지", "관성이 재성을 지키는지", "인성이 재성 흐름을 막거나 안정시키는지", "현재 대운·세운의 재물 흐름"],
     requiredSections: ["타고난 결 — 내 명식의 돈 그릇", "첫 잔 — 돈 걱정이 놓인 자리", "마음의 물길 — 재성을 살리고 새게 하는 십성", "잘 풀리는 결 — 돈이 들어오는 방식", "삐걱대는 결 — 소비가 새는 패턴", "지금 이 시기 — 금전 흐름이 움직이는 지점", "돈을 지키는 현실 기준", "찻집의 처방 — 30일 금전 회복 플랜", "연이의 한마디"],
     gauges: [
@@ -247,7 +248,7 @@ const teaCategorySajuPromptMap = {
     resultKey: "healingSajuReading",
     category: "마음회복",
     concept: "내 명식 안에서 반복되는 소모 패턴을 보고 스스로에게 돌아오는 회복의 숨을 찾는 상담",
-    minChars: 6000,
+    minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간의 피로 방식", "오행 과다/부족의 정서적 긴장", "인성의 생각 과부하", "식상의 표현/해소", "관성의 압박", "비겁의 비교와 버티기", "재성의 현실 부담", "회복에 필요한 오행 균형"],
     requiredSections: ["타고난 결 — 내 명식이 지치는 방식", "첫 잔 — 무거워진 마음이 앉는 자리", "마음의 물길 — 생각을 붙드는 십성", "잘 풀리는 결 — 회복에 쓸 수 있는 기운", "삐걱대는 결 — 반복되는 자기 소모 패턴", "지금 이 시기 — 숨을 고를 수 있는 운", "나에게 해도 되는 말", "찻집의 처방 — 7일 회복 루틴", "연이의 한마디"],
     gauges: [
@@ -265,7 +266,7 @@ const teaCategorySajuPromptMap = {
     resultKey: "crisisSajuReading",
     category: "이별 · 위기",
     concept: "끝내야 할 것과 지켜야 할 것 사이에서 내 사주의 관계 위기 패턴과 안전한 판단 기준을 찾는 상담",
-    minChars: 6000,
+    minChars: SAJU_MIN_RESULT_CHARS,
     focus: ["일간이 위기에서 반응하는 방식", "관성/재성의 관계 압박", "식상의 말의 날카로움 또는 표현 부족", "인성의 집착/회상", "비겁의 자존심 싸움", "합충형해파가 만드는 단절과 충돌", "현재 운에서 위기가 커지는 이유"],
     requiredSections: ["타고난 결 — 내 일간이 위기에서 반응하는 방식", "첫 잔 — 위기가 커진 장면", "마음의 물길 — 긴장을 키우는 십성", "잘 풀리는 결 — 나를 지키는 힘", "삐걱대는 결 — 더 다치게 하는 반복 패턴", "지금 이 시기 — 흔들림이 지나가는 운", "지금 대화해도 되는가, 지켜야 할 경계선", "찻집의 처방 — 72시간 안전 플랜", "연이의 한마디"],
     gauges: [
@@ -285,7 +286,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "loveReunionReading",
     category: "연애 · 재회",
     concept: "미련과 가능성 사이에서 지금 연락, 기다림, 정리, 재회 조건을 구분하는 타로 상담",
-    minChars: 3200,
+    minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["미련과 실제 가능성 분리", "상대의 침묵·거리두기 존중", "과거 방식 그대로의 재회 경계", "연락 가능 조건", "재회를 닫는 행동", "7일 관계 정리/접근 플랜"],
     requiredSections: ["카드가 비춘 관계의 현재 장면", "아직 남아 있는 마음과 현실 가능성의 차이", "두 사람 사이에서 반복된 패턴", "재회 가능성이 열리는 조건", "재회 가능성을 닫는 행동", "지금 연락해도 되는가", "보낸다면 어떤 톤이어야 하는가", "오늘 하지 말아야 할 행동 3가지", "7일 행동 플랜", "연이의 마지막 한마디"],
     gauges: ["기대", "불안", "미련", "망설임", "회복"],
@@ -297,7 +298,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "connectionReading",
     category: "썸 · 인연",
     concept: "아직 이름 붙지 않은 설렘의 온도, 호감 신호, 다가가도 좋은 속도를 읽는 타로 상담",
-    minChars: 3200,
+    minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["호감 단정 금지", "관찰 가능한 신호", "다가가는 속도", "어색해지기 쉬운 행동", "연락과 대화의 리듬", "7일 썸 리듬 플랜"],
     requiredSections: ["카드가 비춘 설렘의 첫 장면", "이 인연의 현재 온도", "상대와 나 사이의 신호 읽기", "가까워질 가능성을 키우는 행동", "어색해지기 쉬운 행동", "연락/대화의 좋은 리듬", "다음 만남 또는 대화에서 쓸 사인", "오늘 보내기 좋은 가벼운 문장 예시", "7일 썸 리듬 플랜", "연이의 마지막 한마디"],
     gauges: ["설렘", "호기심", "조심스러움", "기대", "타이밍"],
@@ -309,7 +310,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "careerBusinessReading",
     category: "진로 · 사업",
     concept: "막막한 길 위에서 방향, 준비도, 실행 순서, 리스크를 나누어 읽는 타로 상담",
-    minChars: 3200,
+    minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["막연한 성공 예언 금지", "현재 길의 정체", "확장 가능성", "아직 부족한 준비", "이번 주 실행 우선순위", "리스크 체크", "14일 실행 플랜"],
     requiredSections: ["카드가 비춘 현재 진로의 장면", "지금 막막함의 정체", "가능성이 있는 방향", "아직 준비가 부족한 부분", "올해/이번 달 선택 기준", "이번 주 실행 우선순위", "리스크 체크리스트", "작은 실험으로 검증할 방법", "14일 실행 플랜", "연이의 마지막 한마디"],
     gauges: ["방향감", "막막함", "실행력", "리스크", "가능성"],
@@ -321,7 +322,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "moneyReading",
     category: "금전운",
     concept: "수입, 지출, 누수, 현실 기준, 금전 회복 루틴을 나누어 읽는 타로 상담",
-    minChars: 3200,
+    minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["금전 확정 예언 금지", "현재 돈의 온도", "수입 기회", "충동 소비와 손실 위험", "이번 달 관리 기준", "투자 판단 단정 금지", "30일 금전 회복 플랜"],
     requiredSections: ["카드가 비춘 돈의 현재 온도", "지금 돈이 새는 지점", "수입 기회가 열리는 방향", "충동 소비 또는 손실 위험", "이번 달 돈 관리 기준", "지금 하면 좋은 정리", "하지 말아야 할 금전 행동", "30일 금전 회복 플랜", "현실 체크리스트", "연이의 마지막 한마디"],
     gauges: ["안정감", "소비 충동", "회복력", "기회감", "현실감"],
@@ -333,7 +334,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "healingReading",
     category: "마음회복",
     concept: "예언보다 회복, 정리, 자기 돌봄, 안전한 감정 루틴을 먼저 찾는 타로 상담",
-    minChars: 3200,
+    minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["회복 중심", "자기 비난 완화", "지친 마음의 반복 패턴", "오늘 멈춰야 할 마음 습관", "작은 회복 행동", "도움을 요청해야 할 신호", "7일 회복 루틴"],
     requiredSections: ["카드가 비춘 마음의 현재 상태", "가장 지친 부분", "반복되는 자기 소모 패턴", "지금 멈춰야 할 마음 습관", "회복을 여는 작은 행동", "나에게 해도 되는 말", "오늘 피해야 할 감정 소비", "7일 회복 루틴", "연이가 건네는 짧은 위로", "마지막 한마디"],
     gauges: ["피로", "자책", "안정", "회복", "자기돌봄"],
@@ -345,7 +346,7 @@ const teaCategoryTarotPromptMap = {
     resultKey: "crisisReading",
     category: "이별 · 위기",
     concept: "끝내야 할 것과 지켜야 할 것 사이에서 안전, 경계, 정리 기준을 먼저 확인하는 타로 상담",
-    minChars: 3200,
+    minChars: TAROT_MIN_RESULT_CHARS,
     focus: ["안전과 경계 우선", "무조건 붙잡으라는 조언 금지", "위험 신호 확인", "관계 회복 조건", "악화시키는 행동", "지금 대화 가능 여부", "72시간 안정 플랜"],
     requiredSections: ["카드가 비춘 위기의 장면", "지금 가장 위험한 반복 패턴", "지켜야 할 것과 내려놓아야 할 것", "관계 회복 가능성을 여는 조건", "더 악화시키는 행동", "지금 대화해도 되는가", "대화한다면 지켜야 할 경계선", "오늘 하면 안 되는 행동", "72시간 안정 플랜", "연이의 마지막 한마디"],
     gauges: ["긴장", "상처", "경계", "정리 필요", "안전감"],
@@ -3335,7 +3336,126 @@ function describeQualityIssue(message) {
   return "품질 기준에 미달했다. 필수 구조, 요구 분량, 근거 연결을 모두 지킨다.";
 }
 
-function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") {
+// ── 섹션 병렬 생성 ───────────────────────────────────────────────────────────
+// 통짜 한 호출은 6천 자 근처에서 스스로 멈춘다 — 예전 하한(타로 3,200·사주 6,000)이 거기 묶여
+// 있던 이유다. 그래서 결과 JSON 을 서로 겹치지 않는 그룹으로 나눠 한 요청 안에서 동시에 돌린다.
+// 벽시계는 합계가 아니라 최댓값이다. 정본 패턴: worker/routes/love-secret-ai.js
+// (실패를 값으로 돌리는 그룹 생성기 + Workers AI 폴백까지 덮는 하드 데드라인 레이스).
+//
+// share 는 모드 하한을 나눠 갖는 비율이다. 카테고리 규칙이나 5카드 가산으로 하한이 달라져도
+// 그룹 정의는 그대로 두면 되고, "그룹 하나가 단일 호출 한계를 넘는가"를 한 자리에서 볼 수 있다.
+const FORTUNE_TEA_GROUP_MAX_OUTPUT_TOKENS = 12000;
+const FORTUNE_TEA_GROUP_TIMEOUT_MS = 62000;
+const FORTUNE_TEA_REPAIR_TIMEOUT_MS = 30000;
+const FORTUNE_TEA_MIN_REMAINING_MS = 9000;
+const FORTUNE_TEA_LLM_DEADLINE_MS = 86000;
+
+// 서버가 고정하는 필드 — 어느 그룹의 스키마에서도 preserve 로 남는다.
+const FORTUNE_TEA_PRESERVED_SCHEMA_KEYS = Object.freeze(["consultationMode", "teaCup", "tarotSpread", "tarotSpreadCards"]);
+
+const FORTUNE_TEA_READING_FIELDS = Object.freeze(["emotionAnalysis", "yeoniReading"]);
+const FORTUNE_TEA_PRESCRIPTION_FIELDS = Object.freeze([
+  "synthesis", "choiceSimulation", "actionPrescription", "luckyKeywords", "closingLine",
+]);
+const FORTUNE_TEA_SAJU_GROUPS = Object.freeze([
+  Object.freeze({ key: "core", label: "명식 심층 판독", share: 0.56, fields: Object.freeze(["sessionTitle", "questionSummary", "saju"]) }),
+  Object.freeze({ key: "reading", label: "연이의 리딩", share: 0.22, fields: FORTUNE_TEA_READING_FIELDS }),
+  Object.freeze({ key: "prescription", label: "종합과 처방", share: 0.22, fields: FORTUNE_TEA_PRESCRIPTION_FIELDS }),
+]);
+const FORTUNE_TEA_SECTION_GROUPS = Object.freeze({
+  saju: FORTUNE_TEA_SAJU_GROUPS,
+  sajuCompatibility: FORTUNE_TEA_SAJU_GROUPS,
+  tarot: Object.freeze([
+    Object.freeze({
+      key: "cards",
+      label: "카드 판독",
+      share: 0.5,
+      fields: Object.freeze(["sessionTitle", "questionSummary", "tarot", "tarotCardReadings", "cardInteractions", "heartScent"]),
+    }),
+    Object.freeze({ key: "reading", label: "연이의 리딩", share: 0.25, fields: FORTUNE_TEA_READING_FIELDS }),
+    Object.freeze({ key: "prescription", label: "종합과 처방", share: 0.25, fields: FORTUNE_TEA_PRESCRIPTION_FIELDS }),
+  ]),
+  sukuyo: Object.freeze([
+    Object.freeze({ key: "compatibility", label: "본명숙 궁합 판독", share: 0.45, fields: Object.freeze(["sessionTitle", "questionSummary", "sukuyoCompatibility"]) }),
+    Object.freeze({ key: "reading", label: "연이의 리딩", share: 0.275, fields: FORTUNE_TEA_READING_FIELDS }),
+    Object.freeze({ key: "prescription", label: "종합과 처방", share: 0.275, fields: FORTUNE_TEA_PRESCRIPTION_FIELDS }),
+  ]),
+});
+
+/** 모드 하한(카테고리 규칙·5카드 가산 반영)을 그룹별 몫으로 나눈다. */
+function resolveFortuneTeaGroups(request, fallback, consultationMode) {
+  const groups = FORTUNE_TEA_SECTION_GROUPS[consultationMode] || FORTUNE_TEA_SECTION_GROUPS.tarot;
+  const modeMinChars = isSajuFamilyMode(consultationMode)
+    ? getSajuMinResultChars(request)
+    : consultationMode === "sukuyo"
+      ? SUKUYO_MIN_RESULT_CHARS
+      : getTarotMinResultChars({
+        selectedTeaCupId: request?.selectedTeaCupId || fallback?.teaCup?.id,
+        selectedTeaCupName: request?.selectedTeaCupName || fallback?.teaCup?.name,
+        selectedTeaCupTopic: request?.selectedTeaCupTopic || fallback?.teaCup?.topic,
+        teaCup: fallback?.teaCup,
+        tarotSpread: request?.tarotSpread || fallback?.tarotSpread,
+      });
+  return groups.map((group) => ({
+    ...group,
+    modeMinChars,
+    minChars: Math.round(modeMinChars * group.share),
+    handledElsewhere: groups.filter((other) => other.key !== group.key).map((other) => other.label),
+  }));
+}
+
+/**
+ * 그룹 호출은 사실 컨텍스트·문체 규칙을 그대로 물려받고 **출력 스키마만** 좁힌다.
+ * 그룹마다 프롬프트를 새로 쓰면 규칙이 갈라져 모드별 품질 게이트와 어긋난다.
+ */
+function applyFortuneTeaGroupScope(prompt, group) {
+  if (!group) return prompt;
+  const outputSchema = {};
+  for (const [key, value] of Object.entries(prompt.outputSchema || {})) {
+    outputSchema[key] = FORTUNE_TEA_PRESERVED_SCHEMA_KEYS.includes(key) || group.fields.includes(key)
+      ? value
+      : "omit — 이번 호출의 담당이 아니다. 이 키를 반환하지 않는다.";
+  }
+  return {
+    ...prompt,
+    groupRule: {
+      group: group.label,
+      writeOnly: group.fields,
+      minimumKoreanChars: group.minChars,
+      lengthRule: `이번 호출이 담당한 필드의 텍스트 합계가 공백 제외 ${group.minChars}자 이상이 되도록 쓴다.`
+        + ` 상담 전체 목표는 ${group.modeMinChars}자이고 나머지는 다른 그룹이 같은 시각에 쓰고 있다.`,
+      handledElsewhere: group.handledElsewhere,
+      noOverlapRule: "다른 그룹이 담당하는 내용을 미리 요약하거나 반복하지 않는다."
+        + " 같은 상담의 다른 장을 쓰는 중이라고 생각하고, 이 그룹의 각도로만 새 근거를 풀어 쓴다.",
+    },
+    sajuQualityRule: prompt.sajuQualityRule && {
+      ...prompt.sajuQualityRule,
+      minimumKoreanChars: group.minChars,
+      lengthRule: `이번 호출이 담당한 필드 합계가 공백 제외 ${group.minChars}자 이상이 되도록 쓴다.`
+        + " 챕터 구분은 requiredDeepSections의 부드러운 소제목으로 하고, 각 챕터는 호흡이 있는 문단으로 채운다.",
+    },
+    outputSchema,
+  };
+}
+
+/** 담당 밖 필드는 병합 전에 버린다 — 프롬프트가 새어 다른 그룹의 글을 덮어쓰지 못하게 한다. */
+function pickFortuneTeaGroupFields(parsed, group) {
+  if (!parsed || typeof parsed !== "object") return null;
+  const picked = {};
+  for (const field of group.fields) {
+    if (parsed[field] !== undefined) picked[field] = parsed[field];
+  }
+  return picked;
+}
+
+function countFortuneTeaGroupChars(value) {
+  if (typeof value === "string") return value.replace(/\s/g, "").length;
+  if (Array.isArray(value)) return value.reduce((sum, item) => sum + countFortuneTeaGroupChars(item), 0);
+  if (value && typeof value === "object") return Object.values(value).reduce((sum, item) => sum + countFortuneTeaGroupChars(item), 0);
+  return 0;
+}
+
+function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "", group = null) {
   const consultationMode = normalizeConsultationMode(request.consultationMode);
   const sajuRule = resolveSajuCategoryRule(request);
   const tarotRule = resolveTarotCategoryRule(request);
@@ -3362,7 +3482,7 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
         ? "synthesis.sajuTarotBridge는 이름과 달라도 숙요점 궁합-only 요약으로 쓴다. 타로, 카드, 사주, 오행, 십성을 상담 근거처럼 쓰지 않는다."
       : "synthesis.sajuTarotBridge는 이름과 달라도 타로-only 요약으로 쓴다. 사주, 오행, 십성을 상담 근거처럼 쓰지 않는다.";
   return JSON.stringify(
-    {
+    applyFortuneTeaGroupScope({
       task: "운명의 찻집 상담 결과를 연이의 목소리로 자연스럽고 깊게 다듬는다.",
       consultationMode,
       focusRule,
@@ -3654,10 +3774,49 @@ function buildUserPrompt(request, fallback, attempt = 0, lastQualityError = "") 
         luckyKeywords: "string[]",
         closingLine: "string",
       },
-    },
+    }, group),
     null,
     2,
   );
+}
+
+/**
+ * 그룹 하나를 생성한다. **절대 throw 하지 않는다** — 한 그룹의 실패가 나머지를 죽이면
+ * 결제한 상담이 통째로 사라진다(love-secret-ai.js 와 같은 계약).
+ */
+async function generateFortuneTeaGroup(env, { request, fallback, group, consultationMode, timeoutMs, qualityHint = "", attempt = 0 }) {
+  const fail = (reason, provider = "", model = "") => ({ key: group.key, ok: false, parsed: null, chars: 0, reason, provider, model });
+  // 🔴 clampSyncLlmTimeoutMs 는 0/음수를 받으면 상한 85s 로 되돌아간다 — 그 앞에서 막아야 한다.
+  if (!(timeoutMs > 0)) return fail("BUDGET_EXHAUSTED");
+
+  try {
+    const call = callGeminiText(env, buildUserPrompt(request, fallback, attempt, qualityHint, group), {
+      systemPrompt: buildSystemPrompt(consultationMode),
+      taskType: "fortune",
+      temperature: attempt > 0 ? 0.54 : 0.62,
+      maxOutputTokens: FORTUNE_TEA_GROUP_MAX_OUTPUT_TOKENS,
+      timeoutMs: clampSyncLlmTimeoutMs(timeoutMs),
+      responseMimeType: "application/json",
+      // 그룹 최소 분량 × 0.4. 통짜 시절의 600 은 그룹 단위에서 아무것도 막지 못한다.
+      fallbackMinChars: Math.round(group.minChars * 0.4),
+    });
+    // lib/llm-client.ts 는 Gemini 타임아웃 뒤 Workers AI 폴백을 타임아웃 없이 돌린다.
+    // 그 경로가 예산을 넘겨 엣지 컷을 유발하지 않도록 하드 레이스를 건다.
+    const ai = await Promise.race([
+      call,
+      new Promise((resolve) => setTimeout(() => resolve({ ok: false, error: "group_hard_deadline" }), timeoutMs + 4000)),
+    ]);
+
+    const provider = cleanText(ai?.provider, 60);
+    const model = cleanText(ai?.model, 80);
+    if (!ai?.ok) return fail(cleanText(ai?.error || ai?.message || "LLM_FAILED", 60), provider, model);
+
+    const picked = pickFortuneTeaGroupFields(extractJson(ai.text), group);
+    if (!picked || !Object.keys(picked).length) return fail("EMPTY_GROUP_FIELDS", provider, model);
+    return { key: group.key, ok: true, parsed: picked, chars: countFortuneTeaGroupChars(picked), reason: "", provider, model };
+  } catch (error) {
+    return fail(cleanText(error instanceof Error ? error.message : error, 60));
+  }
 }
 
 async function generateConsultResult(request, fallback, env) {
@@ -3678,69 +3837,90 @@ async function generateConsultResult(request, fallback, env) {
   }
 
   const consultationMode = normalizeConsultationMode(request.consultationMode);
-  // 하드 실패(LLM/JSON/잘림)만 재시도한다. 소프트 품질게이트 미스는 아래 catch에서 즉시 degrade로
-  // 빠지므로, 재시도 상한은 2로 캡해 최악 지연(구 3회 풀 재생성 225~360s)을 줄인다.
-  const maxAttempts = 2;
-  // 잘림(MAX_TOKENS) 발생 시 다음 시도에서 출력 토큰을 상향해 긴 상담문이 완결되도록 한다.
-  // gemini-2.5-flash 출력 상한 아래(40k)로 캡, 잘림이 없으면 base 토큰 그대로 유지.
-  // 타로는 카드별 상세 해석(카드당 5항목) + 카드 조합 + 마음의 향이 추가되어 출력이 커졌다.
-  // 3카드/5카드의 카드 수 차이만큼 예산을 나눈다.
-  const isFiveCardTarot = consultationMode === "tarot" && normalizeTarotSpread(request.tarotSpread) === "five";
-  const tarotMaxOutputTokens = isFiveCardTarot ? 32000 : 24000;
-  const baseMaxOutputTokens = consultationMode === "sajuCompatibility" ? 24000 : consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : tarotMaxOutputTokens;
-  const maxOutputTokensCap = 40000;
-  const tarotTimeoutMs = isFiveCardTarot ? 110000 : 95000;
-  const timeoutMs = consultationMode === "sajuCompatibility" ? 115000 : consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : tarotTimeoutMs;
-  let lastError = null;
+  const groups = resolveFortuneTeaGroups(request, fallback, consultationMode);
+  // 전 그룹이 한 요청 안에서 동시에 도므로 예산은 그룹별이 아니라 요청 전체에 걸린다.
+  const deadlineAt = Date.now() + FORTUNE_TEA_LLM_DEADLINE_MS;
+  const budgetedTimeout = (cap) => {
+    const remaining = deadlineAt - Date.now();
+    if (remaining < FORTUNE_TEA_MIN_REMAINING_MS) return 0;
+    return Math.min(cap, remaining);
+  };
+
+  // 웨이브 1 — 전 그룹 동시 생성.
+  const results = await Promise.all(groups.map((group) => generateFortuneTeaGroup(env, {
+    request,
+    fallback,
+    group,
+    consultationMode,
+    timeoutMs: budgetedTimeout(FORTUNE_TEA_GROUP_TIMEOUT_MS),
+  })));
+
+  // 웨이브 2 — 실패했거나 제 몫을 못 채운 그룹만 다시 쓴다(전체 재생성 금지).
+  const isShort = (result, group) => !result.ok || result.chars < Math.round(group.minChars * 0.75);
+  const retryIndexes = results.map((result, index) => (isShort(result, groups[index]) ? index : -1)).filter((index) => index >= 0);
+  if (retryIndexes.length && budgetedTimeout(FORTUNE_TEA_REPAIR_TIMEOUT_MS) > 0) {
+    const repaired = await Promise.all(retryIndexes.map((index) => generateFortuneTeaGroup(env, {
+      request,
+      fallback,
+      group: groups[index],
+      consultationMode,
+      timeoutMs: budgetedTimeout(FORTUNE_TEA_REPAIR_TIMEOUT_MS),
+      attempt: 1,
+      qualityHint: results[index].ok
+        ? `이전 응답이 담당 분량 ${groups[index].minChars}자에 못 미쳤다`
+        : results[index].reason,
+    })));
+    repaired.forEach((result, order) => {
+      const index = retryIndexes[order];
+      // 재생성이 더 짧으면 버린다 — 첫 응답이 유일한 렌더 후보일 수 있다.
+      if (result.ok && result.chars >= Number(results[index].chars || 0)) results[index] = result;
+    });
+  }
+
   let lastCandidate = null;
-  let truncationRetries = 0;
+  let lastError = null;
+  let roundResults = results;
 
-  for (let attempt = 0; attempt < maxAttempts; attempt += 1) {
-    const maxOutputTokens = Math.min(maxOutputTokensCap, Math.round(baseMaxOutputTokens * (1 + 0.3 * truncationRetries)));
-    let attemptTruncated = false;
-    let reachedQualityGate = false;
+  for (let round = 0; round < 2; round += 1) {
+    const produced = roundResults.filter((result) => result.ok && result.parsed);
+    if (!produced.length) {
+      lastError = new Error(roundResults.map((result) => `${result.key}:${result.reason}`).join(", ") || "gemini_failed");
+      break;
+    }
+
+    let merged = fallback;
+    for (const result of produced) merged = mergeLlmResult(merged, result.parsed);
+    // 품질 게이트 실패에도 렌더 가능한 최선 후보를 보존한다 (결제 후 결과 유실 방지).
+    lastCandidate = merged;
     try {
-      const ai = await callGeminiText(env, buildUserPrompt(request, fallback, attempt, lastError?.message || lastError), {
-        systemPrompt: buildSystemPrompt(consultationMode),
-        taskType: "fortune",
-        temperature: attempt > 1 ? 0.48 : attempt > 0 ? 0.54 : 0.62,
-        maxOutputTokens,
-        timeoutMs,
-        responseMimeType: "application/json",
-        // 폴백 허용. structured-consultation 이 폴백 JSON 의 코드펜스를 정화하므로 파싱된다.
-        // 너무 짧으면 실패로 돌려 기존 결정론 degrade 경로를 그대로 탄다.
-        fallbackMinChars: 600,
-      });
-
-      if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
-      // 잘렸으면 다음 시도에서 토큰을 늘린다(extractJson가 곧 throw해도 카운터는 반영됨).
-      if (ai.truncated) { truncationRetries += 1; attemptTruncated = true; }
-      const parsed = extractJson(ai.text);
-      const result = mergeLlmResult(fallback, parsed);
-      // 품질 게이트 실패에도 렌더 가능한 최선 후보를 보존한다 (결제 후 결과 유실 방지).
-      lastCandidate = result;
-      reachedQualityGate = true;
-      assertConsultQuality(result, fallback);
-
+      assertConsultQuality(merged, fallback);
       return {
-        result,
+        result: merged,
         generationMeta: {
           mode: "gemini",
-          provider: ai.provider || "gemini",
-          model: ai.model,
+          provider: produced[0].provider || "gemini",
+          model: produced[0].model,
           generatedAt: new Date().toISOString(),
         },
       };
     } catch (error) {
       lastError = error;
-      // 소프트 미스(이번 시도가 렌더 가능한 후보를 냈으나 품질게이트만 불통과, 잘림 아님)는
-      // 다음 시도도 같은 결정론적 이유로 실패할 확률이 높다 — 풀 재생성 낭비 대신 즉시 degrade로 배출한다.
-      const shouldRewriteRepeatedNarrative = /repeated/i.test(
-        error instanceof Error ? error.message : String(error || ""),
-      );
-      if (reachedQualityGate && !attemptTruncated && hasRenderableLlmText(lastCandidate) && !shouldRewriteRepeatedNarrative) break;
-      if (attempt + 1 < maxAttempts) continue;
     }
+
+    // 반복 장문만 다시 쓴다 — 통짜 시절의 전면 재작성과 같은 처방을 그룹 단위로 유지한다.
+    // 그 외 소프트 미스는 다음 시도도 같은 결정론적 이유로 실패하므로 즉시 degrade 로 배출한다.
+    const message = lastError instanceof Error ? lastError.message : String(lastError || "");
+    if (round > 0 || !/repeated/i.test(message) || !(budgetedTimeout(FORTUNE_TEA_REPAIR_TIMEOUT_MS) > 0)) break;
+    const previous = roundResults;
+    roundResults = await Promise.all(groups.map((group, index) => generateFortuneTeaGroup(env, {
+      request,
+      fallback,
+      group,
+      consultationMode,
+      timeoutMs: budgetedTimeout(FORTUNE_TEA_REPAIR_TIMEOUT_MS),
+      attempt: 1,
+      qualityHint: message,
+    }).then((result) => (result.ok ? result : previous[index]))));
   }
 
   console.warn("[fortune-tea-house/consult] LLM fallback used", lastError);
@@ -3796,10 +3976,12 @@ function buildFortuneTeaResultStorageId(userId, resultId) {
   return `fortune-tea-house-result:${createHash("sha256").update(`${userId}:${resultId}`).digest("hex").slice(0, 48)}`;
 }
 
-// 동기 생성은 최악의 경우 maxAttempts(3) × 최장 per-mode timeout(숙요 120s) = 360s까지 걸린다.
-// 잠금 유효 창이 그보다 짧으면(구 120s), 재시도 클라이언트가 진행 중 문서를 "만료"로 오인해
-// 두 번째 생성을 띄운다(중복 LLM 비용 + 저장 경쟁). 최악 시간 + 마진으로 창을 확장한다.
-const FORTUNE_TEA_GENERATION_LOCK_TTL_MS = 390000;
+// 잠금 유효 창이 생성 시간보다 짧으면 재시도 클라이언트가 진행 중 문서를 "만료"로 오인해
+// 두 번째 생성을 띄운다(중복 LLM 비용 + 저장 경쟁). 반대로 너무 길면 죽은 요청 뒤의 정당한
+// 재시도가 그만큼 막힌다. 섹션 병렬 전환(2026-08-15) 이후 생성은 FORTUNE_TEA_LLM_DEADLINE_MS
+// 안에서 끝나고 엣지도 그 전에 끊으므로, 엣지 한계 + 마진으로 창을 잡는다(구 390s는 통짜
+// 재시도 3회 × 모드별 120s 를 전제한 값이라 이제 4배 과하다).
+const FORTUNE_TEA_GENERATION_LOCK_TTL_MS = EDGE_RESPONSE_DEADLINE_MS + 50000;
 
 function isFreshFortuneTeaGeneration(doc, now = Date.now()) {
   if (!doc || doc.status !== "generating") return false;

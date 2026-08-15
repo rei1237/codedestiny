@@ -377,18 +377,18 @@
   },
 
   "shell.cdSigCardBody.cdSigCardMeta.n32006000": {
-    "ko": "3,200~6,000자",
-    "en": "3,200–6,000 characters",
-    "ja": "3,200〜6,000字",
-    "zh-CN": "3,200~6,000字",
-    "zh-TW": "3,200~6,000字",
-    "vi": "3.200–6.000 ký tự",
-    "hi": "3,200–6,000 अक्षर",
-    "es": "3.200–6.000 caracteres",
-    "fr": "3 200–6 000 caractères",
-    "de": "3.200–6.000 Zeichen",
-    "nl": "3.200–6.000 tekens",
-    "ms": "3,200–6,000 aksara"
+    "ko": "6,000~10,000자",
+    "en": "6,000–10,000 characters",
+    "ja": "6,000〜10,000字",
+    "zh-CN": "6,000~10,000字",
+    "zh-TW": "6,000~10,000字",
+    "vi": "6.000–10.000 ký tự",
+    "hi": "6,000–10,000 अक्षर",
+    "es": "6.000–10.000 caracteres",
+    "fr": "6 000–10 000 caractères",
+    "de": "6.000–10.000 Zeichen",
+    "nl": "6.000–10.000 tekens",
+    "ms": "6,000–10,000 aksara"
   },
 
   "shell.cdSigCardBody.cdSigCardMeta.k1l2ndq72": {
