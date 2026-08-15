@@ -28662,9 +28662,15 @@ function showDwDetail(age,gan,zhi,evaluation,score){
     if (window.__cdSajuDirectTapGuardBound) return;
     window.__cdSajuDirectTapGuardBound = true;
 
-    var MOVE_THRESHOLD = 8;
-    var MOVE_DETECT = 2;
-    var VERTICAL_BLOCK = 6;
+    /* 🔴 "손가락이 조금이라도 움직였나"(구 MOVE_DETECT=2px)를 억제 조건에 **단독으로** 넣지 말 것.
+       2px 은 정지 탭의 손떨림 범위 안이라 정상 탭이 그대로 삼켜졌고, 2 < MOVE_THRESHOLD 라
+       아래 moved 판정(=진짜 스크롤인지 보는 쪽)을 통째로 가려 죽은 코드로 만들었다.
+       형제 구현들은 그 신호를 "직전에 스크롤이 있었다"와 **AND** 로만 쓴다
+       (mobile-interaction-patch.js 의 recentScrollGuard, index.html 의 _cdShouldSuppressActionDuringScroll).
+       여기서는 아래 lastScrollAt 절이 그 역할을 이미 하므로 신호 자체를 없앤다.
+       임계값은 같은 파일의 bindManseCharTap(12px)에 맞췄다 — 같은 화면의 직접 탭 바인딩이다. */
+    var MOVE_THRESHOLD = 12;
+    var VERTICAL_BLOCK = 8;
     var RECENT_SCROLL_BLOCK_MS = 200;
     var MAX_TAP_DURATION_MS = 500;
     var state = {
@@ -28672,7 +28678,6 @@ function showDwDetail(age,gan,zhi,evaluation,score){
       startX: 0,
       startY: 0,
       startAt: 0,
-      hadMove: false,
       moved: false,
       lastScrollAt: 0,
       suppressUntil: 0
@@ -28722,7 +28727,6 @@ function showDwDetail(age,gan,zhi,evaluation,score){
       state.startX = t.clientX;
       state.startY = t.clientY;
       state.startAt = Date.now();
-      state.hadMove = false;
       state.moved = false;
     }, { capture: true, passive: true });
 
@@ -28731,7 +28735,6 @@ function showDwDetail(age,gan,zhi,evaluation,score){
       var t = event.touches[0];
       var dx = Math.abs(t.clientX - state.startX);
       var dy = Math.abs(t.clientY - state.startY);
-      if (dx > MOVE_DETECT || dy > MOVE_DETECT) state.hadMove = true;
       if (dx > MOVE_THRESHOLD || dy > MOVE_THRESHOLD || (dy >= VERTICAL_BLOCK && dy >= dx)) {
         state.moved = true;
       }
@@ -28743,7 +28746,6 @@ function showDwDetail(age,gan,zhi,evaluation,score){
       var duration = state.startAt ? (now - state.startAt) : 0;
       if (
         state.moved
-        || state.hadMove
         || duration > MAX_TAP_DURATION_MS
         || (now - state.lastScrollAt) < RECENT_SCROLL_BLOCK_MS
       ) {
