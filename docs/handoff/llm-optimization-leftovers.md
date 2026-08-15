@@ -275,7 +275,11 @@ npm run test:jest
 
 🔴 **2026-08-15 실측으로 순서를 갈아엎었다.** 아래가 현재 판단이다.
 
-0. **[먼저] 프로덕션에서 `cachedContentTokenCount` 를 본다** — `npx wrangler tail --format json > llm.log` → `node scripts/report-llm-token-usage.mjs llm.log`. **이 숫자 없이는 프롬프트 구조 최적화를 고를 수 없다.** 사주 프롬프트의 79.5%(246,192자)가 접두사 캐싱 대상인데(PR #648), 실제 할인이 걸리는지가 미검증이라 다음 작업의 방향이 정반대로 갈린다. 자세한 근거는 [llm-prompt-json-slicing.md §3-1](llm-prompt-json-slicing.md).
+0. ~~**[먼저] `cachedContentTokenCount` 를 본다**~~ — **2026-08-15 실측 완료. 답이 나왔고 계획이 바뀌었다.**
+   - **암묵 캐싱은 웨이브1에서 0%** 다(병렬 5개 전부 0, 즉시 0, +30초 0, +90초에야 27%). 즉 **PR #648 의 접두사 재배치는 한 상담 안에서 절감이 0** 이다(되돌릴 필요는 없다 — 공짜이고, 아래 1번의 전제가 된다).
+   - **명시적 컨텍스트 캐싱은 병렬에서도 99% 걸린다.** 입력 비용 **≈55% 절감, 프롬프트 무변경 → 품질 위험 0**.
+   - 근거·수치: [llm-prompt-json-slicing.md §3-2](llm-prompt-json-slicing.md)
+1. 🔴 **[최우선] 명시적 컨텍스트 캐싱 도입** — **[llm-explicit-context-caching.md](llm-explicit-context-caching.md)**. 실측 기준 이 목록에서 가장 큰 절감이고 유일하게 품질 위험이 0 이다.
 1. ~~**【B】 `.gitattributes`**~~ — **2026-08-15 조치 완료.**
 2. **【E】 집계 사각지대** — 0번을 제대로 하려면 이게 먼저다. `mindscan`·`love-reading` 두 경로가 집계에 안 잡혀 "어느 라우트가 큰가" 판단이 실제보다 작게 나온다.
 3. **【A】 모델 오버라이드** — 절감 그 자체는 아니지만 **다른 모든 단가 절감안의 전제**다. 🔴 착수 전에 프로덕션 env 6개 키 상태를 사용자에게 확인할 것.
@@ -285,7 +289,7 @@ npm run test:jest
 
 **끝난 큰 작업**: [sukuyo 중복 생성 창](sukuyo-duplicate-generation-window.md) → **PR #652 머지됨(2026-08-15)**. 중복 1회당 LLM 6회를 막았고, 22초 클라 abort 도 202+폴링으로 수렴시켰다.
 
-**남은 큰 작업**: [JSON 슬라이싱](llm-prompt-json-slicing.md) — 🔴 **사주에는 적용하지 말 것**(그 문서 §3-1 정정 참조. 접두사 캐싱을 무너뜨려 2배 이상 손해). 다른 라우트는 절대 크기를 먼저 재라.
+**남은 큰 작업**: [JSON 슬라이싱](llm-prompt-json-slicing.md) — 🔴 **명시적 캐싱(1번)을 먼저 하라.** 그걸 넣고 나면 그룹당 고유부가 379자뿐이라 슬라이싱의 대상 자체가 사라진다. 슬라이싱은 절감 12.7%에 그룹별 `evidenceRefs` 선언이라는 품질 위험을 지는 반면, 명시적 캐싱은 55% 절감에 위험이 0 이다.
 
 ---
 
