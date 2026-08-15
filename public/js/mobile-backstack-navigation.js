@@ -22,8 +22,10 @@
     toastTimer: null
   };
 
+  // 사주 화면은 오버레이가 아니라 셸 안에서 자리를 바꾸는 #resultPage 다. 그래서 여기에 여는
+  // 액션만 있고 대응하는 오버레이 id 는 없다 — KNOWN_OVERLAY_IDS 에 없으니 아래 일괄 닫기에도
+  // 걸리지 않아 하위 기능을 열어도 사주 결과는 그대로 남는다.
   var SAJU_MAIN_ACTIONS = {
-    openSajuModal: true,
     checkPrivacyAndCalculate: true,
     agreeAndCalculate: true,
     calculate: true,
@@ -101,7 +103,6 @@
   };
 
   var ACTION_TO_OVERLAY_ID = {
-    openSajuModal: 'sajuModalOverlay',
     openSukuyoModal: 'sukuyoModalOverlay',
     openZiweiModal: 'ziweiModalOverlay',
     openAstroModal: 'astroModalOverlay',
@@ -127,7 +128,6 @@
   var KNOWN_OVERLAY_IDS = [
     'tilePvwOverlay',
     'tsModal',
-    'sajuModalOverlay',
     'sukuyoModalOverlay',
     'ziweiModalOverlay',
     'astroModalOverlay',
@@ -291,7 +291,7 @@
   }
 
   function resetToSaju() {
-    closeAllKnownOverlays('sajuModalOverlay');
+    closeAllKnownOverlays();
     setSurface('saju', 'saju');
   }
 
@@ -452,9 +452,6 @@
     }
 
     var keepOverlay = ACTION_TO_OVERLAY_ID[action] || '';
-    if (SAJU_SUB_ACTIONS[action] && keepOverlay !== 'sajuModalOverlay') {
-      keepOverlay = 'sajuModalOverlay';
-    }
     if (FEATURE_OPEN_ACTIONS[action] || SAJU_MAIN_ACTIONS[action] || SAJU_SUB_ACTIONS[action]) {
       closeAllKnownOverlays(keepOverlay || null);
     }
