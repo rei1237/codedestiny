@@ -27,6 +27,9 @@ const steps = [
   // 🔴 externalize → minify 순서를 지킬 것. 그래야 셸에서 빠져나온 스크립트도 minify 를 탄다.
   "scripts/externalize-dist-inline-scripts.mjs",
   "scripts/minify-dist-js.mjs",
+  // 🔴 externalize 뒤에 둔다. 그래야 셸에서 빠져나간 인라인 <script> 안의 `<style>` 문자열이
+  //    HTML 에 남아 있지 않고, CSS minify 가 볼 <style> 은 전부 진짜 마크업이다.
+  "scripts/minify-dist-css.mjs",
 ];
 
 function wait(ms) {
