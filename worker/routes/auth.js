@@ -3082,15 +3082,20 @@ const ME_USER_PROJECTION = {
 };
 
 async function handleMe(request, env) {
-  // 확정적 미인증(만료/무효 토큰·유저없음·철회) 응답에는 만료 쿠키 삭제 헤더를 부착해
-  // 클라이언트의 유령 로그인 힌트(fortune_auth_role 등)를 서버가 직접 정리한다.
-  // 일시 오류(degraded)·토큰 폴백 경로에서는 호출하지 않는다(로그인 유지).
+  /* 🔴 여기서 쿠키를 지우지 않는다(2026-08-15). GET /api/auth/me 는 **읽기 전용**이고 서버 세션을
+     아무것도 바꾸지 않는데, 종전에는 이 응답에 만료 쿠키 삭제 헤더를 붙였다. 그 결과:
+       ① 로그아웃 직후 재로그인하면, 그 전에 떠난 /me 요청의 늦은 401 응답이 **방금 발급된**
+          access·refresh·role·csrf 쿠키를 지워 사용자가 즉시 튕겼다(증상은 app/_lib/auth-store.ts
+          주석에 문자 그대로 기록돼 있다).
+       ② authFetch 의 retryOn401(app/_lib/auth-client.ts)이 401 후 refresh 로 회복하려는데, /me 가
+          이미 refresh 쿠키를 지워 버려 그 refresh 가 "쿠키 없음"으로 확정 실패했다 — 회복 경로를
+          스스로 무력화하고 있었다.
+     세션 종료 의도가 있는 logout·withdraw 와 자격증명이 확정 무효인 refresh 분기는 그대로 쿠키를
+     지운다. 클라이언트도 401/확정 미인증에서 자기 상태와 힌트 쿠키(fortune_auth_role 등)를 스스로
+     정리하므로(auth-client.ts clearClientAuthState · index.html __cdForceSignOut) 실해가 없다.
+     🔴 되살리지 말 것 — 되살리면 위 ①②가 같이 돌아온다. */
   const timer = createAuthTimer("/api/auth/me");
-  const unauthenticatedJson = (body, init) => {
-    const res = json(body, init);
-    clearAuthCookies(res, request, env);
-    return res;
-  };
+  const unauthenticatedJson = (body, init) => json(body, init);
   try {
     const timeoutMs = getAuthOpTimeoutMs(env);
     const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
@@ -3444,16 +3449,32 @@ async function handleRefresh(request, env) {
     if (withinGrace) {
       session = priorSession;
     } else {
-      await revokeAllUserRefreshSessions(userId);
-      timer.log("reuse_detected");
+      /* 🔴 '재사용'은 **회전으로 죽은** 토큰의 재생일 때만이다(2026-08-15).
+         replacedByTokenHash 는 회전만 기록하고 로그아웃·탈퇴는 "" 로 남긴다. 로그아웃으로 죽은
+         토큰의 늦게 도착한 요청까지 재사용으로 보면, 사용자가 그 사이 재로그인해 만든 새 세션까지
+         revokeAllUserRefreshSessions 가 쓸어 **"로그아웃 → 재로그인 → 즉시 튕김"** 이 된다.
+         로그아웃이 이미 전부 폐기했으므로 여기서 한 번 더 쓰는 것은 새 세션을 죽이는 효과밖에 없다.
+         🔴 보안은 그대로다 — 진짜 탈취(공격자가 회전을 선점)면 replacedByTokenHash 가 채워져 있어
+         전 세션 폐기가 유지된다. **공격자가 만든 세션을 면제하지 않는다**(기준을 "제시된 토큰의
+         createdAt" 으로 잡는 안은 정확히 그 세션을 면제해 의미가 뒤집힌다 — 채택하지 않은 이유).
+         priorSession 이 아예 없으면(토큰 미상·조회 실패) 판별 근거가 없으므로 보수적으로 전부 끊는다. */
+      const revokedByRotation = !priorSession || Boolean(priorSession.replacedByTokenHash);
+      if (revokedByRotation) await revokeAllUserRefreshSessions(userId);
+      timer.log(revokedByRotation ? "reuse_detected" : "stale_refresh_after_logout");
       const response = json({ ok: false, message: "Refresh token reuse detected. Please sign in again." }, { status: 401 });
-      clearAuthCookies(response, request, env);
+      /* 🔴 낡은 토큰(로그아웃으로 죽은 것)일 때는 쿠키도 지우지 않는다. 이 요청은 재로그인 **이전에**
+         출발해 옛 쿠키를 싣고 온 것이므로, 응답이 늦게 도착해 Set-Cookie 를 적용하면 그 사이 발급된
+         **새 세션의 쿠키**를 지운다 — 세션 폐기를 막아도 여기서 쿠키를 지우면 결국 튕기는 건 같다.
+         진짜 재사용(회전으로 죽은 토큰의 재생)은 실제 보안 사건이므로 종전대로 지운다. */
+      if (revokedByRotation) clearAuthCookies(response, request, env);
       return response;
     }
   }
 
   if (!refreshSessionMatchesRequest(session, request)) {
-    await revokeAllUserRefreshSessions(userId);
+    /* 🔴 이 세션은 위 회전 선점에서 **이미 revoked** 다 — 제시된 토큰은 이 시점에 죽어 있다.
+       따라서 전 세션 일괄 폐기는 이 토큰을 무력화하는 데 필요하지 않고, 정당한 UA 변경(브라우저·OS
+       업데이트)일 때 다른 기기까지 끊는 부수 피해만 남는다. 이 세션만 끝내고 401 을 돌려준다(2026-08-15). */
     const response = json({ ok: false, message: "Session changed. Please sign in again." }, { status: 401 });
     clearAuthCookies(response, request, env);
     return response;
