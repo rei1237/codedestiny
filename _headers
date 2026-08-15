@@ -1,6 +1,7 @@
 ﻿# Cloudflare Pages cache policy
 # Strategy:
-#   - HTML, SW, manifest, and version.json: no-store
+#   - HTML: no-cache (조건부 재검증 — 아래 "HTML entry points" 블록 주석 참고)
+#   - SW, manifest, and version.json: no-store
 #   - Hashed Next.js build assets: immutable long cache
 #   - Fixed-name JS/CSS/assets: short edge cache
 
@@ -22,7 +23,24 @@
 # 이유는 그 자리에 남긴 주석 참고 — 요약하면 `/*.js` 가 같은 경로에 매칭되는데 뒤에 있어서 이겼다.
 # (규칙 100개 상한 안에 있어야 한다는 제약은 그대로다. 옮긴 위치도 100개 안이다.)
 
-# HTML entry points: no-store cache
+# HTML entry points: no-cache (NOT no-store)
+#
+# 🔴 `no-cache` 는 "캐시하지 마라"가 아니라 "쓰기 전에 반드시 오리진에 재검증하라"다.
+# 배포 직후 stale HTML 을 막는다는 원래 의도는 글자 그대로 유지된다 — 브라우저도 엣지도
+# 매 요청 오리진에 물어본다. 달라지는 건 응답에 ETag/Last-Modified 가 살아나서
+# 조건부 요청이 304(본문 0바이트)를 받을 수 있게 된다는 것뿐이다.
+#
+# 왜 바꿨나: `no-store` 는 검증자까지 죽여서 조건부 요청 자체를 불가능하게 만든다.
+# 실측(2026-08-15) — 사이트맵 329 URL 전량이 cf-cache-status: DYNAMIC, ETag 없음.
+# Googlebot 이 매 크롤마다 40.4MB(홈 1.32MB, 로케일 홈 각 1.42MB)를 통째로 재다운로드하고
+# 있었다. 등록 5개월 도메인의 빈약한 크롤 예산에서 이건 그대로 손실이다.
+#
+# 🔴 `Pragma: no-cache` / `Expires: 0` 은 함께 지웠다. HTTP/1.0 잔재인데, 남겨 두면
+# 일부 중간 캐시가 조건부 요청 자체를 막아 `no-cache` 로 바꾼 의미가 사라진다.
+# 🔴 엣지 TTL(예: CDN-Cache-Control: max-age=300)은 **일부러 넣지 않았다** — 엣지가 본문을
+# 들고 있으면 배포 N+1 이 _next/static 매니페스트를 갈아치운 뒤 배포 N 의 HTML 이 죽은
+# 청크를 가리켜 흰 화면이 난다. 지금 형태는 본문을 저장하지 않으므로 그 위험이 구조적으로 0이다.
+# 🔴 `/version.json` 과 `/service-worker.js` 는 no-store 를 유지한다(배포 신선도 프로브·SW 갱신).
 /music*
   Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' 'unsafe-eval' 'wasm-unsafe-eval' https://static.cloudflareinsights.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://cdn.portone.io https://t1.kakaocdn.net https://cdnjs.cloudflare.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net; script-src-elem 'self' 'unsafe-inline' https://static.cloudflareinsights.com https://www.googletagmanager.com https://pagead2.googlesyndication.com https://cdn.portone.io https://t1.kakaocdn.net https://cdnjs.cloudflare.com https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net; connect-src 'self' https://code-destiny.com https://www.code-destiny.com https://code-destiny-web.bulegyung.workers.dev https://cdn.portone.io https://checkout-service.prod.iamport.co https://tx-gateway-service.prod.iamport.co https://t1.kakaocdn.net https://*.kakao.com https://*.kakaocdn.net https://translate.google.com https://translate.googleapis.com https://translate-pa.googleapis.com https://cdn.jsdelivr.net https://www.googletagmanager.com https://www.google-analytics.com https://*.google-analytics.com https://*.analytics.google.com; media-src 'self' https://music.code-destiny.com https://assets.code-destiny.com; style-src 'self' 'unsafe-inline' https://translate.googleapis.com https://www.gstatic.com; style-src-elem 'self' 'unsafe-inline' https://translate.googleapis.com https://www.gstatic.com; img-src 'self' data: blob: https:; font-src 'self' data: https://assets.code-destiny.com; frame-src 'self' https://checkout-service.prod.iamport.co https://tx-gateway-service.prod.iamport.co https://translate.google.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self' https://tx-gateway-service.prod.iamport.co https://*.inicis.com; frame-ancestors 'self'; manifest-src 'self'; upgrade-insecure-requests
 
@@ -166,35 +184,27 @@
 
 /
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Pragma: no-cache
-  Expires: 0
+  Cache-Control: no-cache
+  CDN-Cache-Control: no-cache
+  Cloudflare-CDN-Cache-Control: no-cache
 
 /index.html
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Pragma: no-cache
-  Expires: 0
+  Cache-Control: no-cache
+  CDN-Cache-Control: no-cache
+  Cloudflare-CDN-Cache-Control: no-cache
 
 /*.html
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Pragma: no-cache
-  Expires: 0
+  Cache-Control: no-cache
+  CDN-Cache-Control: no-cache
+  Cloudflare-CDN-Cache-Control: no-cache
 
 /*/
   Content-Type: text/html; charset=utf-8
-  Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Cloudflare-CDN-Cache-Control: no-store, no-cache, must-revalidate, proxy-revalidate
-  Pragma: no-cache
-  Expires: 0
+  Cache-Control: no-cache
+  CDN-Cache-Control: no-cache
+  Cloudflare-CDN-Cache-Control: no-cache
 
 # 🔴 `/*/index.html`·`/*/*/`·`/*/*/index.html`·`/*/*/*/`·`/*/*/*/index.html` 5개를 지웠다
 # (2026-08-14). Cloudflare 의 splat 은 **슬래시를 건너뛴다** — 이 파일 아래쪽 `_next/static`
