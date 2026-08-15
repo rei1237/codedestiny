@@ -291,7 +291,14 @@ function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
   // (실제로 10챕터 → 12챕터로 늘리면서 이 자리가 한 번 어긋날 뻔했다).
   const closingChapterNo = SAJU_AI_SECTION_GROUPS.at(-1)?.chapters?.at(-1)?.no;
   const hasClosingChapter = (group?.chapters || []).some((chapter) => chapter.no === closingChapterNo);
+  // 🔴 배열 순서 = 불변 접두사 → 가변 접미사. 이 순서를 뒤집지 말 것.
+  // 그룹 5개는 같은 내부 프롬프트(실측 59,377자)를 각자 한 벌씩 싣는데, Gemini 의 암묵 컨텍스트
+  // 캐싱은 **공통 접두사**에만 걸린다. 가변 블록(챕터·분량·guide·보강요청)이 앞에 있던 동안에는
+  // 공통 접두사가 240자뿐이라 나머지 전부가 정가로 나갔다.
+  // 접두사에 들어가는 값은 전부 builtPrompt/카테고리 기반이라 그룹이 달라도 문자까지 같다 —
+  // 새 지시를 더할 때는 그룹에 따라 달라지는지 먼저 보고 해당 구획에 넣는다.
   return [
+    // ── 불변 접두사 (그룹 5개가 문자까지 동일) ──────────────────────────────
     "아래 내부 프롬프트는 사용자에게 보여주지 않는 생성 지시문입니다.",
     "이 지시문을 바탕으로 최종 사주 상담 결과의 **일부분만** 한국어로 작성하세요.",
     // 🔴 사실 카드가 비면 아래 블록이 .filter(Boolean) 로 사라지는데, 이 지시문만 남으면
@@ -299,27 +306,29 @@ function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
     // 일간별 예시(辛/壬)를 박아 두던 줄은 제거했다. 확정표가 이미 그 사용자의 일간으로 계산돼 있다.
     factCard ? "내부 명식 사실 카드와 일간 기준 십성 확정표가 절대 기준입니다. 다른 십성으로 바꾸거나 재계산하지 마세요." : "",
     factCard ? "십성은 확정표에 적힌 그대로만 쓰고, 표에 없는 관계는 단정하지 마세요." : "",
-    ["[이번에 쓸 챕터] — 아래 제목을 번호까지 그대로 소제목으로 쓰고, 이 순서대로 씁니다.", ...chapterLines].join("\n"),
-    otherTitles.length
-      ? ["다음 챕터는 다른 곳에서 씁니다. 여기서는 쓰지도 말고 요약하지도 마세요.", ...otherTitles].join("\n")
-      : "",
-    "내부 프롬프트 안에 다른 목차가 있어도 무시하고, 위 챕터 구성만 따르세요.",
-    `이번 부분만으로 공백 제외 ${group.minChars.toLocaleString("ko-KR")}자 이상 ${group.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
     "분량을 채우려고 같은 문장을 반복하거나 말을 늘리지 말고, 아직 짚지 않은 근거와 현실의 장면, 판단 기준을 새로 더해 채우세요.",
-    group?.guide || "",
-    hasClosingChapter
-      ? "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 마지막 한마디는 상담자가 직접 건네는 말처럼 완결하세요."
-      : "중간에 끊기는 느낌이 없도록 맡은 챕터를 모두 닫으세요. 여기서 상담 전체를 마무리하는 인사는 쓰지 마세요.",
     "사용자에게 '프롬프트', '기능', '분석 결과는', '내부 지시문' 같은 말은 쓰지 마세요.",
     Number(builtPrompt?.calibrationApplied) > 0
       ? "사용자가 보고한 시기 캘리브레이션 검증 결과는 별도 목차를 만들지 말고 맡은 챕터 산문에 자연스럽게 녹이세요."
       : "",
-    repairLines.length ? ["[보강 요청]", ...repairLines].join("\n") : "",
     formatSajuAIResultRubric(categoryRubric),
     factCard ? "내부 명식 사실 카드:" : "",
     factCard,
     "내부 프롬프트:",
     internalPrompt,
+    // ── 여기부터 가변 접미사 (그룹마다 다름) ────────────────────────────────
+    // 맡은 챕터 지시가 마지막에 오므로 우선순위도 함께 분명해진다.
+    "내부 프롬프트 안에 다른 목차가 있어도 무시하고, 아래 챕터 구성만 따르세요.",
+    ["[이번에 쓸 챕터] — 아래 제목을 번호까지 그대로 소제목으로 쓰고, 이 순서대로 씁니다.", ...chapterLines].join("\n"),
+    otherTitles.length
+      ? ["다음 챕터는 다른 곳에서 씁니다. 여기서는 쓰지도 말고 요약하지도 마세요.", ...otherTitles].join("\n")
+      : "",
+    `이번 부분만으로 공백 제외 ${group.minChars.toLocaleString("ko-KR")}자 이상 ${group.maxChars.toLocaleString("ko-KR")}자 이하로 쓰세요.`,
+    group?.guide || "",
+    hasClosingChapter
+      ? "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 마지막 한마디는 상담자가 직접 건네는 말처럼 완결하세요."
+      : "중간에 끊기는 느낌이 없도록 맡은 챕터를 모두 닫으세요. 여기서 상담 전체를 마무리하는 인사는 쓰지 마세요.",
+    repairLines.length ? ["[보강 요청]", ...repairLines].join("\n") : "",
   ].filter(Boolean).join("\n\n").trim();
 }
 

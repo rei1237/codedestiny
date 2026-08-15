@@ -71,6 +71,22 @@ Last curated: `2026-08-14`
 - 가드 무결성 7건(G-1~G-7)은 모두 조치됐다. 재발 방지는 `verify:guard-wiring`(배선 누락 fail-closed)과 `verify:auth-changed-coverage`(리스너 전수 발견)가 맡는다 — 이 둘을 약화시키는 변경은 하지 않는다.
 - 머지된 작업이 프로덕션에 도달하지 못하는 조용한 실패는 `landing-watchdog.yml` 이 이슈 하나로 모은다(스택 PR 좌초 · 릴리스 런 취소 · 프로덕션 드리프트).
 
+### 7. LLM 토큰 사용량 (2026-08-15 — 사용자 지시로 착수)
+
+방침은 **출력 분량(결제 계약) 유지, 낭비만 제거**다. 분량 상수(`SAJU_AI_MIN_RESULT_CHARS` 등)는 건드리지 않는다.
+
+- **입력이 출력보다 비싼 기능이 있다.** 사주 AI 상담 1건은 LLM 5회 × 각 10만자 = 입력 50만자인데 출력은 15,200자였다. 최적화 판단은 출력 단가($2.5/1M)만 보지 말고 **총량**으로 한다.
+- 계측은 이미 있다 — `lib/llm-client.ts` 의 `[llm token_usage]` 로그를 `scripts/report-llm-token-usage.mjs` 가 라우트별로 집계한다(`cacheHit`·`duplicateBlocked`·`providerCallCount`·`cachedContentTokenCount` 포함). **전후 동일 방식 재실행이 이 스크립트의 설계 용도다.**
+- 🔴 **캐시를 새로 배선할 때는 `cache.minChars` 를 함께 준다.** `withLLMCache` 의 저장 조건은 `!truncated` 뿐이라, 잘리지 않았지만 분량 미달인 응답이 TTL 30일 동안 굳는다. 실패 후 재생성이 같은 키에서 같은 미달을 다시 받는다. 직전 시도가 실패였으면 `skipRead` 도 함께(쓰기는 유지 — 성공한 재생성이 스스로 덮어쓴다).
+- 🔴 **사주 그룹 프롬프트의 배열 순서(`worker/routes/fortune.js` `buildSajuAISectionPrompt`)는 불변 접두사 → 가변 접미사다.** Gemini 암묵 캐싱은 공통 **접두사**에만 걸린다. 뒤집으면 6만자가 정가로 돌아간다.
+- 🟡 **넘긴 작업 2건 — 둘 다 미해결이다.**
+  - 숙요 궁합의 서버측 중복 생성 창(`findOne`~`create` 사이 60~100초, 중복 1회 = LLM 6회)은 스키마·계약 변경이 함께 필요하다 → [docs/handoff/sukuyo-duplicate-generation-window.md](handoff/sukuyo-duplicate-generation-window.md)
+  - 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자, 그중 `earthStorageOpenings` 하나가 9,853자). 사주 5그룹에 `evidenceRefs` 선언이 없어 새 설계가 필요하고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [docs/handoff/llm-prompt-json-slicing.md](handoff/llm-prompt-json-slicing.md)
+- 🟡 **남은 개별 항목 5건**(각각 작고 서로 무관해 골라서 하면 된다) → [docs/handoff/llm-optimization-leftovers.md](handoff/llm-optimization-leftovers.md)
+  - 🔴 그중 **모델 오버라이드 무효 버그**(`lib/llm-client.ts:159-170`)가 가장 중요하다 — `apiEndpoint` 를 함께 주지 않으면 URL 에 하드코딩된 `gemini-2.5-flash` 가 그대로 쓰여, `model` 은 로그·메타에만 반영된다. 영향 6개 라우트 실측 확인. **더 싼 모델로 내리는 단가 절감안이 현재 코드로는 불가능하다.**
+  - 나머지: `.gitattributes` 의 `zh-tw` 캐시버스트 누락 · sukuyo 의 `attempts: 2` 와 `capTokens` 불일치 · JSON 스키마를 프롬프트 텍스트로 보내는 것(Gemini 네이티브 `responseSchema` 미사용) · 토큰 집계 사각지대 2곳(`lib/tarot/mindscan-reading.mjs` · `love-reading-llm.mjs` 가 `llm-client` 미경유)
+- 🔴 **thinking 토큰은 이미 전역 OFF다**(`lib/llm-client.ts:456` + `:139-145`, 옵트인 호출자 0건). 여기서 더 아낄 것이 없으니 다시 조사하지 말 것.
+
 ## Working Rules For Current Tasks
 
 1. Start with this file only for what is current right now. If it drifts, update it instead of adding another summary document.
