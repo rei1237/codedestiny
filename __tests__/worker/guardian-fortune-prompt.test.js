@@ -63,11 +63,11 @@ describe("Guardian Fortune prompt builder", () => {
       const formatted = promptModule.formatGuardianFortuneContextForPrompt(context);
       expect(prompt.category).toBe(category);
       expect(prompt.userPrompt).toContain(`상담 체계: ${category}`);
-      expect(formatted).toContain(`"category": "${category}"`);
+      expect(JSON.parse(formatted).inputSummary.category).toBe(category);
     }
     const tarotContext = { ...fixtures.mockContext, inputSummary: { ...fixtures.mockContext.inputSummary, category: "tarot" }, availableSystems: ["tarot"] };
     const tarotFormatted = promptModule.formatGuardianFortuneContextForPrompt(tarotContext);
-    expect(tarotFormatted).toContain('"category": "tarot"');
+    expect(JSON.parse(tarotFormatted).inputSummary.category).toBe("tarot");
     expect(tarotFormatted).not.toContain('"saju"');
   });
 

@@ -75,7 +75,17 @@ function buildQuestionContextLine({
   if (focusWords.length) context.push(`원문에서 강하게 떠오른 말: ${focusWords.join(", ")}`);
   if (compatibilityTarget && typeof compatibilityTarget === "object") context.push("관계의 상대 축이 함께 놓여 있음");
   if (safeAngles.length) context.push(`우선 비출 축: ${safeAngles.slice(0, 3).join(", ")}`);
-  if (safeDomainLines.length) context.push(`참조 기류: ${safeDomainLines.slice(0, 2).join(" / ")}`);
+  if (safeDomainLines.length) {
+    // domainDataLines 의 첫 항목이 멀티라인 fact card 전문인 경우가 있어(사주: 실측 1,540자),
+    // 그대로 join 하면 "짧은 힌트 2줄"을 의도한 이 줄이 카드 전체를 한 번 더 싣는다.
+    // 각 항목의 첫 줄만, 길이도 잘라 요약으로 유지한다. 단일 라인 항목은 동작이 그대로다.
+    const domainHints = safeDomainLines
+      .map((line) => String(line).split("\n", 1)[0].trim())
+      .filter(Boolean)
+      .slice(0, 2)
+      .map((line) => (line.length > 120 ? `${line.slice(0, 120)}…` : line));
+    if (domainHints.length) context.push(`참조 기류: ${domainHints.join(" / ")}`);
+  }
 
   return context.length ? context.join(" / ") : "원문 질문의 표현과 요청 맥락을 중심에 둠";
 }
