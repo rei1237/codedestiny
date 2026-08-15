@@ -240,7 +240,9 @@ function runInstantPgWindowTests() {
   // 결제 UX 프리필일 뿐 인증/결제 검증의 source of truth가 아니다(개인정보 취급 방침, C1). 서버 값이
   // 진실의 원천이고, 로컬 값은 서버 조회가 실패했을 때만(checked!==true) 폴백으로 쓴다.
   assertContains(destinyProfileSource, "function _dpReadLocalPaymentPhoneNumber()", "dp local payment-phone reader");
-  assertBefore(destinyProfileSource, "var current = await _dpGetPaymentPhoneStatus();", "var fallbackPhone = _dpReadLocalPaymentPhoneNumber();", "dp must confirm with the server before falling back to the cached phone");
+  // 대입문 형태가 아니라 조회 호출 자체를 마커로 쓴다 — serverConfirmedNoPhone 단축이 붙으면서
+  // `var current = await …` 가 삼항으로 바뀌었지만, 지켜야 할 성질(서버 조회가 로컬 폴백보다 앞)은 같다.
+  assertBefore(destinyProfileSource, "await _dpGetPaymentPhoneStatus();", "var fallbackPhone = _dpReadLocalPaymentPhoneNumber();", "dp must confirm with the server before falling back to the cached phone");
   assertContains(destinyProfileSource, "var fallbackPhone = _dpReadLocalPaymentPhoneNumber();", "dp must fall back to the cached phone when the lookup fails (503 must not mean 'no phone')");
   // ① 번호 입력창은 대기 오버레이·게이트 패널을 내린 뒤에 뜬다(가려져서 입력 불가였던 회귀).
   assertContains(destinyProfileSource, "function _dpCloseBlockingLayersBeforePhonePrompt()", "dp must close blocking layers before the phone prompt");
@@ -274,9 +276,12 @@ function runInstantPgWindowTests() {
   // ⓑ payment-phone 조회/입력 모달은 그게 비었을 때(if (!customerPhone))에만 돈다.
   // 후보 배열 맨 앞에서 orderCustomer 가 빠지거나 ensure 가 조건 밖으로 나오면, 번호를 가진
   // 사용자에게도 매 결제마다 왕복 1회 + 입력창이 붙는다(2026-08 이전의 실제 증상).
+  // 🔴 호출 형태가 아니라 **함수 이름**으로 찾는다. 예전에는 `…PaymentPhoneNumber();` 를 리터럴로
+  // 박아 뒀는데, 인자 하나(serverConfirmedNoPhone)를 넘기는 순간 마커가 통째로 안 맞아 가드가
+  // "폴백이 사라졌다"고 오탐했다. 여기서 지키려는 성질은 인자 유무가 아니라 호출 위치다.
   for (const [label, source, ensureCall] of [
-    ["shell", indexSource, "var paymentPhoneState = await _cdEnsureDirectCheckoutPaymentPhoneNumber();"],
-    ["dp", destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber();"],
+    ["shell", indexSource, /await _cdEnsureDirectCheckoutPaymentPhoneNumber\(/],
+    ["dp", destinyProfileSource, /await _dpEnsurePaymentPhoneNumber\(/],
   ]) {
     const resolverIndex = source.indexOf("customerPhone = ");
     assert.ok(resolverIndex >= 0, `${label} must resolve a customer phone before requesting payment`);
@@ -285,14 +290,39 @@ function runInstantPgWindowTests() {
       /customerPhone = [^;]*?orderCustomer\.phoneNumber/s.test(firstCandidate),
       `${label} must read order.customer.phoneNumber before any other phone source`,
     );
-    const ensureIndex = source.indexOf(ensureCall);
+    const ensureIndex = source.search(ensureCall);
     assert.ok(ensureIndex > 0, `${label} must keep its payment-phone fallback: ${ensureCall}`);
-    // 폴백 호출 바로 앞 200자 안에 "번호가 없을 때만" 가드가 있어야 한다.
+    // 폴백 호출 앞 400자 안에 "번호가 없을 때만" 가드가 있어야 한다(설명 주석이 사이에 들어간다).
     assert.ok(
-      /if \(!customerPhone\)/.test(source.slice(Math.max(0, ensureIndex - 200), ensureIndex)),
+      /if \(!customerPhone\)/.test(source.slice(Math.max(0, ensureIndex - 400), ensureIndex)),
       `${label} must only look up / prompt for a phone when the order carried none`,
     );
   }
+  // ②-c 🔴 GET 을 건너뛰는 단축(serverConfirmedNoPhone)의 **근거**를 고정한다.
+  // 이 플래그는 "서버가 이 사용자의 User 문서를 실제로 읽었다"는 증거에서만 나와야 한다 —
+  // 그 증거가 order.customer.email 이다(buildLegacyPrepareCustomer 만 채우고, 못 읽으면 prepare 가
+  // 통째로 실패한다). true 로 굳히거나 "customer 객체가 있으면"으로 느슨하게 바꾸면, customer 를
+  // 안 싣는 응답에서도 조회를 건너뛰어 **번호가 있는 사용자에게 입력창이 뜬다**.
+  // 셸·dp 는 이름 있는 옵션으로, points 는 4번째 위치 인자로 넘긴다 — 넘기는 **식**을 각각 고정한다.
+  for (const [label, source, evidence] of [
+    ["shell", indexSource, /serverConfirmedNoPhone:\s*Boolean\(orderCustomer && orderCustomer\.email\)/],
+    ["dp", destinyProfileSource, /serverConfirmedNoPhone:\s*Boolean\(orderCustomer && orderCustomer\.email\)/],
+    [
+      "points",
+      readFileSync(resolve(root, "app/points/PointsClient.tsx"), "utf8"),
+      /ensurePaymentPhoneNumber\(apiBase, authUser, null, Boolean\(order\.customer\?\.email\)\)/,
+    ],
+  ]) {
+    assert.ok(
+      evidence.test(source),
+      `${label} must derive the payment-phone lookup shortcut from the order customer email, not a constant`,
+    );
+    assert.ok(
+      !/serverConfirmedNoPhone:\s*true/.test(source),
+      `${label} must not hard-code the payment-phone lookup shortcut to true`,
+    );
+  }
+
   // React 상점 경로도 같은 순서다 — prepare 응답 번호를 먼저 쓰고, 없을 때만 ensure 로 내려간다.
   assertContains(
     readFileSync(resolve(root, "app/points/PointsClient.tsx"), "utf8"),
@@ -1031,13 +1061,24 @@ function runClientStaticTests() {
   assertContains(indexSource, "_cdPromptDirectCheckoutPhoneNumber", "Inicis checkout phone prompt");
   assertContains(indexSource, "phoneNumber: customerPhone", "PortOne V2 customer phoneNumber");
   assertContains(indexSource, "hasBuyerPhoneNumber: Boolean(customerPhone)", "direct checkout safe phone presence log");
-  assertContains(destinyProfileSource, "async function _dpEnsurePaymentPhoneNumber()", "runtime Inicis phone prompt");
-  assertContains(destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber()", "runtime direct checkout phone fallback");
+  // 시그니처가 아니라 존재를 본다 — 인자 추가로 깨지면 안 되는 단언이다(위 ②-b 주석과 같은 이유).
+  assert.ok(
+    /async function _dpEnsurePaymentPhoneNumber\(/.test(destinyProfileSource),
+    "runtime Inicis phone prompt: missing marker",
+  );
+  assert.ok(
+    /customerPhone = await _dpEnsurePaymentPhoneNumber\(/.test(destinyProfileSource),
+    "runtime direct checkout phone fallback: missing marker",
+  );
   assertContains(destinyProfileSource, "phoneNumber: customerPhone", "runtime PortOne V2 customer phoneNumber");
-  assertBefore(destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber()", "window.PortOne.requestPayment(requestData)", "runtime phone fallback must run before PortOne window opens");
+  assertBefore(destinyProfileSource, "customerPhone = await _dpEnsurePaymentPhoneNumber(", "window.PortOne.requestPayment(requestData)", "runtime phone fallback must run before PortOne window opens");
   // 결제 프로필은 결제 모달을 여는 순간이 아니라 실제 결제 버튼을 누른 뒤에만 조회한다.
   // 상점/결제창 진입만으로 payment-phone을 호출하면 503과 사용자별 조회 폭주를 다시 만들 수 있다.
-  assertContains(pointsPageSource, "ensurePaymentPhoneNumber(apiBase, authUser, null)", "points page resolves payment phone only during checkout");
+  // 3번째 인자 null = 프리페치 없음. 4번째(serverConfirmedNoPhone)는 나중에 붙었으므로 열어 둔다.
+  assert.ok(
+    /ensurePaymentPhoneNumber\(apiBase, authUser, null[,)]/.test(pointsPageSource),
+    "points page resolves payment phone only during checkout (no prefetch)",
+  );
   assertNotContains(pointsPageSource, "paymentPhonePrefetchRef", "points page must not prefetch payment phone before checkout");
   assertContains(pointsPageSource, "phoneNumber: resolvedPhoneNumber", "points page PortOne phoneNumber");
   // 프로필 카드 관리는 React(app/me)에서 정적 셸 하나로 합쳐졌다. 같은 보장을 셸 기준으로 계속 건다 —

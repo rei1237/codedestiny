@@ -103,7 +103,9 @@ test("payment profile and prepare stay behind the actual KRW payment button", ()
   assert.doesNotMatch(planSelectionEffect, /getSavedPaymentPhoneNumber/);
   assert.doesNotMatch(planSelectionEffect, /startSubscriptionPrepare/);
   assert.doesNotMatch(planSelectionEffect, /fetchPortOnePaymentConfigCached/);
-  assert.match(pointsSource, /ensurePaymentPhoneNumber\(apiBase, authUser, null\)/);
+  // 3번째 인자 null = 프리페치 없음(이 테스트가 지키는 성질). 그 뒤 인자는 열어 둔다 —
+  // serverConfirmedNoPhone 단축이 4번째로 붙었고, 인자 추가로 깨질 단언이 아니다.
+  assert.match(pointsSource, /ensurePaymentPhoneNumber\(apiBase, authUser, null[,)]/);
 });
 
 test("subscription prepare does not auto retry with a new idempotency key", () => {

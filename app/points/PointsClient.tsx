@@ -493,12 +493,18 @@ async function ensurePaymentPhoneNumber(
   apiBase: string,
   user: AuthUser | null,
   prefetchedSaved?: Promise<string> | null,
+  serverConfirmedNoPhone = false,
 ): Promise<string> {
   // 서버 값이 진실의 원천이다 — localStorage(fortune_auth_user)의 phoneNumber는 결제 UX용
   // 임시 프리필일 뿐이라 먼저 신뢰하지 않는다. 서버 조회가 비었거나 실패했을 때만(네트워크 문제 등)
   // 결제가 완전히 막히지 않도록 로컬 값으로 최후 폴백한다.
   // prompt 는 절대 프리페치하지 않는다 — 조회분만 미리 받고, 입력이 필요하면 이 시점에 띄운다.
-  const saved = await (prefetchedSaved || getSavedPaymentPhoneNumber(apiBase)).catch(() => "");
+  // 🔴 셸·dp 와 같은 단축(2026-08-15): prepare 응답의 customer.email 이 채워져 왔다면 서버가
+  // User 문서를 읽고 customer 를 만든 것이고, 그때 비어 있던 phoneNumber 는 이 조회가 읽을 값과
+  // 같은 필드·같은 복호화의 결과다 — 다시 물어도 같은 "" 이므로 왕복 1회를 버린다.
+  const saved = serverConfirmedNoPhone
+    ? ""
+    : await (prefetchedSaved || getSavedPaymentPhoneNumber(apiBase)).catch(() => "");
   if (saved) return saved;
   const cachedUser = readSanitizedAuthUser() as AuthUser | null;
   const current = normalizePaymentPhoneNumber(user?.phoneNumber || user?.phone || cachedUser?.phoneNumber || cachedUser?.phone || "");
@@ -4137,9 +4143,10 @@ export default function PointsPage() {
       redirectUrl.searchParams.set("portone_subscription_redirect", "1");
 
       // prepare 응답이 이미 구매자 번호를 실어 왔으면 그걸 쓴다 — 결제창 직전의 왕복 1회가 통째로 사라진다.
-      // 서버가 못 준 경우(미저장·복호화 실패)에만 조회하고, 그래도 없으면 입력 모달을 띄운다.
+      // 못 준 경우에도 customer.email 이 채워져 있으면 서버가 User 문서를 읽고 답한 것이므로
+      // "번호 없음"이 확정이다 → 재조회를 건너뛰고 곧바로 입력 모달로 간다.
       const customerPhoneNumber = normalizePaymentPhoneNumber(order.customer?.phoneNumber || "")
-        || await ensurePaymentPhoneNumber(apiBase, authUser, null);
+        || await ensurePaymentPhoneNumber(apiBase, authUser, null, Boolean(order.customer?.email));
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
