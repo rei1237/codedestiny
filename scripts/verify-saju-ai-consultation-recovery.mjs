@@ -58,9 +58,18 @@ assert(
   cache.includes('if (deterministic && store && config?.skipRead !== true)'),
   "캐시 조회 게이트가 skipRead 를 보지 않는다",
 );
+// 🔴 이 단언이 지키는 것은 "쓰기 조건에 skipRead 가 없다" 하나다. 예전에는 조건 줄을 문자열
+// 완전일치로 박아 두었는데, 그러면 무관한 가드가 하나 늘 때마다(예: 분량 미달 응답을 저장하지
+// 않는 minChars) 의도가 멀쩡한데도 깨진다. 조건 줄을 잘라내 성질만 본다.
+const cacheWriteGate = cache.match(/if \(deterministic && store && result\?\.text[^)]*\)/);
+assert(cacheWriteGate, "캐시 쓰기 게이트를 찾지 못했다(조건 형태가 통째로 바뀌었다)");
 assert(
-  cache.includes("if (deterministic && store && result?.text && !result.truncated)"),
-  "캐시 쓰기 조건이 바뀌었다 — skipRead 는 읽기만 막아야 자가 치유가 된다",
+  !/skipRead/.test(cacheWriteGate[0]),
+  "캐시 쓰기 조건이 skipRead 를 본다 — skipRead 는 읽기만 막아야 성공 재생성이 덮어써 자가 치유가 된다",
+);
+assert(
+  /!result\.truncated/.test(cacheWriteGate[0]),
+  "잘린 응답을 저장하지 않는 가드가 사라졌다 — TTL 동안 잘린 텍스트가 고정된다",
 );
 assert(
   /function resolveSajuAIPromptFailureBilling\(execution/.test(route),
