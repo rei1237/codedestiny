@@ -17,6 +17,8 @@
     MONTHLY: "MONTHLY",
     DIRECT_KRW: "DIRECT_KRW",
   });
+  /** 결제 커맨드 단일비행 슬롯의 유효 시간. 셸·dp 의 단건 체크아웃 슬롯(60초)과 같은 값이다. */
+  var COMMAND_IN_FLIGHT_TTL_MS = 60000;
   var commandInFlight = Object.create(null);
   var backgroundVerification = Object.create(null);
   var snapshotSyncInFlight = Object.create(null);
@@ -193,10 +195,17 @@
     if (!command.requestId || !command.method) {
       return Promise.reject(Object.assign(new Error("Payment command requires method and requestId."), { code: "INVALID_PAYMENT_COMMAND" }));
     }
-    if (commandInFlight[key]) {
+    // 🔴 슬롯은 TTL 로 스스로 낫는다. 이 레포의 다른 인플라이트 슬롯은 전부 TTL 을 갖는데
+    // (셸·dp 의 _cdJoinPaidServiceSingleFlight 60s, React 결제창 45s) 여기만 없어서, executor 가
+    // 한 번 settle 하지 않으면 finally 가 영영 안 돌아 그 commandKey 가 페이지 수명 내내 잠겼다 —
+    // 사용자에게는 "다시 눌러도 결제창이 안 뜬다"로 보이고 새 요청조차 나가지 않는다.
+    // 상한은 단건 체크아웃 슬롯과 같은 60초다(그 안쪽 fetch 상한이 25초라 정상 경로는 못 닿는다).
+    var active = commandInFlight[key];
+    if (active && Date.now() - Number(active.startedAt || 0) < COMMAND_IN_FLIGHT_TTL_MS) {
       log("DUPLICATE_CLIENT_COMMAND", { requestId: command.requestId, method: command.method, duplicate: true });
-      return commandInFlight[key];
+      return active.promise;
     }
+    if (active) log("STALE_CLIENT_COMMAND_SLOT_RELEASED", { requestId: command.requestId, method: command.method });
 
     if (command.method === METHODS.MEMBERSHIP_PASS && command.snapshotCovered === true) {
       var optimisticEvent = reducePaymentSuccess({
@@ -224,9 +233,10 @@
       if (result && result.paymentSuccessEvent) reducePaymentSuccess(result.paymentSuccessEvent);
       return result;
     }).finally(function () {
-      delete commandInFlight[key];
+      // TTL 만료 뒤 다른 시도가 슬롯을 차지했을 수 있다 — 내 것일 때만 지운다.
+      if (commandInFlight[key] && commandInFlight[key].promise === promise) delete commandInFlight[key];
     });
-    commandInFlight[key] = promise;
+    commandInFlight[key] = { promise: promise, startedAt: Date.now() };
     return promise;
   }
 

@@ -196,6 +196,15 @@ jobs:
       - name: Verify checkout pass card behaviour (jsdom)
         run: npm run verify:checkout-pass-card
 
+      # 🔴 App Router 유료 기능 전체는 셸 코어가 아니라 js/destiny-profile.js 코어를 탄다
+      # (React 는 window._cdRunDirectKrwCheckout 에 위임하고, 셸이 없는 페이지에서 그 함수를 까는 것이
+      # 이 파일이다). 그래서 셸만 고친 수정이 이 경로에 도달하지 않아 "결제창이 안 뜬다"가 반복됐다
+      # (#467·#471·#497). 여기서는 그 코어를 jsdom 에서 실제로 돌려, 시도별 멱등키가 서버까지 가는지 ·
+      # 실패 직후 재클릭이 새 요청을 내는지 · SDK 가 checkout 과 동시에 뜨는지 · 409/422 재시도가
+      # 결제창까지 도달하는지를 실행으로 확인한다.
+      - name: Verify PG window opens without conflict (jsdom)
+        run: npm run verify:pg-window-no-conflict
+
       # 홈 진입 팬아웃 계약. 진입에서 없앤 두 호출(/api/subscription/status 워밍 · POST /api/rpg/adopt)이
       # 되살아나면 콜드 아이솔레이트에서 공유 admission 레인이 다시 포화되고, 넘친 요청은
       # MongoOperationOverloadedError(재시도 **불가**) → 503 이 된다.

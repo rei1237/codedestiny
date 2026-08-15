@@ -94,6 +94,7 @@ export async function deriveOrderId(userId, idempotencyKey) {
 export async function createOrder(db, {
   userId, product, idempotencyKey, paymentType = "digital_content",
   profileId = "", contentKey = "", scope = "", returnPath = "", paymentMethod = "unknown",
+  requestId = "",
 }) {
   const uid = toObjectId(userId);
   if (!uid) throw paymentError("UNAUTHORIZED", "로그인이 필요합니다.");
@@ -108,6 +109,11 @@ export async function createOrder(db, {
         userId: uid,
         merchantUid: orderId,
         idempotencyKey: String(idempotencyKey).trim(),
+        // 🔴 증빙 조회의 열쇠다. verifyPerUsePayment(nakshatra-paid-access.js)·기능 라우트들이
+        // Payment 를 {requestId}·{idempotencyKey}·{merchantUid}·{impUid} 중 하나로 찾는데, 구
+        // prepare(payments.js)는 이 필드를 썼고 V2 로 넘어오며 빠졌다. 클라이언트가 requestId 와
+        // idempotencyKey 를 다른 값으로 보내면 {requestId} 절이 영영 매칭되지 않는다.
+        requestId: String(requestId || "").trim(),
         paymentType,
         accessType: "single_purchase",
         status: "pending",
@@ -201,6 +207,72 @@ export async function repricePendingOrder(db, { orderId, product, now = new Date
     { returnDocument: "after" },
   );
   return unwrap(result);
+}
+
+/**
+ * 🔴 "이 주문으로 지금 결제창을 열어도 되는가"의 **단 하나의 술어.** 재사용 판정과 재가격 CAS 가
+ * 반드시 같은 것을 봐야 한다 — 예전엔 게이트가 `toOrderStatus(...) === "PENDING"`(레거시 값
+ * processing·retryable·"" 까지 PENDING 으로 접는다)이고 재가격 CAS 는 `status: "pending"` 정확
+ * 일치라, 그 사이에 낀 주문이 게이트를 통과하고 CAS 는 빗나가 **영구 409** 가 됐다.
+ * 여기서 정확 일치를 쓰므로 그 값들은 "재사용 불가"로 분류돼 새 세대를 받는다.
+ */
+function isPayableOrder(order) {
+  return String(order?.status || "") === "pending";
+}
+
+function hasPriceDrift(order, product) {
+  return Number(order?.paymentAmount) !== Number(product.priceKRW)
+    || Number(order?.expectedChargedPoints ?? order?.coinPrice ?? 0) !== Number(product.priceCoins);
+}
+
+function hasFeatureDrift(order, product) {
+  return Boolean(String(order?.featureKey || "") && String(product.featureKey || "")
+    && String(order.featureKey) !== String(product.featureKey));
+}
+
+/** 세대 0 은 원본 키 그대로 — 배포 시점에 살아 있는 PENDING 주문이 그대로 이어진다. */
+function generationKey(idempotencyKey, generation) {
+  return generation === 0 ? idempotencyKey : `${idempotencyKey}#${generation}`;
+}
+
+/** 한 요청이 시도할 수 있는 세대 수. 첫 신규 발급은 반드시 재사용 가능하므로 실질 상한은 2다. */
+export const MAX_ORDER_GENERATIONS = 3;
+
+/**
+ * T1' · **결제 가능한 주문을 반드시 돌려준다.** 카드 경로에서 409 를 없애는 지점.
+ *
+ * 구 구현은 `createOrder` 한 번으로 얻은 주문이 현재 의도와 다르면 409 를 던졌다. 그런데 멱등키의
+ * 목적은 "같은 의도의 재전송을 이중청구하지 않는 것"이지 "의도가 달라졌을 때 거절하는 것"이 아니다 —
+ * 의도가 다르다는 사실 자체가 이미 다른 주문이라는 증거다. 그래서 재사용할 수 없는 경우엔 거절하는
+ * 대신 **세대를 올려 새 주문을 발급한다.** 새 merchantUid = 새 PortOne paymentId 이므로,
+ * 결제 완료·만료 주문의 id 를 재사용해 PortOne 이 결제창을 그리기 전에 거절하던 형제 결함도 함께 닫힌다.
+ *
+ * 왕복 수: 정상 경로 **1회 그대로**. 재사용 불가일 때만 세대당 1회가 더 붙는다.
+ *
+ * 세대를 다 써도 못 얻으면 종전대로 IDEMPOTENCY_CONFLICT 를 던진다(fail-closed) — 셸·독립 정적의
+ * 기존 새-키 재시도가 그 코드에 걸려 있어 계약이 그대로 남는다.
+ */
+export async function createPayableOrder(db, input) {
+  const baseKey = String(input?.idempotencyKey || "").trim();
+  if (!baseKey) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "결제 요청 식별자가 필요합니다.");
+  const product = input.product;
+  let lastOrderId = "";
+
+  for (let generation = 0; generation < MAX_ORDER_GENERATIONS; generation += 1) {
+    const order = await createOrder(db, { ...input, idempotencyKey: generationKey(baseKey, generation) });
+    lastOrderId = String(order.merchantUid || "");
+    if (!isPayableOrder(order)) continue; // 결제완료·실패·만료취소·레거시 상태 → 재사용하지 않는다
+    if (hasFeatureDrift(order, product)) continue; // 다른 기능으로의 키 재사용 → 재가격 금지, 새 주문
+    if (!hasPriceDrift(order, product)) return order;
+    // 같은 기능·미결제·옛 가격 → 충돌이 아니라 승계 대상이다(#497).
+    const repriced = await repricePendingOrder(db, { orderId: lastOrderId, product });
+    if (repriced) return repriced;
+    // 그 사이 누가 PENDING 밖으로 옮겼다 → 다음 세대로.
+  }
+
+  throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing product payment preparation.", {
+    orderId: lastOrderId,
+  });
 }
 
 /** T3 · PENDING → FAILED. `status: "pending"` 정확 일치 — **PAID 는 절대 FAILED 가 될 수 없다.** */
