@@ -171,6 +171,14 @@ jobs:
       - name: Verify auth session stability
         run: npm run verify:auth-session-stability
 
+      # 🔴 이 가드는 지금까지 어느 워크플로에도 배선돼 있지 않았다(docs/orphan-audit 03-plan.md B-8 이
+      # "미배선 verify 가드 7종" 으로 이미 기록했다). 지키던 것이 P0 회귀라 조용히 안 도는 것이 특히
+      # 나쁘다 — handleMe 가 쿠키를 지우지 않는다는 단언은 jest 커버가 아예 없어서, 여기 없으면
+      # "로그아웃 → 재로그인 → 즉시 튕김" 의 절반이 CI 검증 0 이 된다.
+      # 배선하지 않고 package.json 에만 넣으면 verify:guard-wiring 이 fail-closed 로 떨어뜨린다.
+      - name: Verify auth P0/P1 regression guards
+        run: npm run verify:auth-p0p1
+
       - name: Verify paid feature billing policy
         run: npm run verify:paid-feature-billing-policy
 
