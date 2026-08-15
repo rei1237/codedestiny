@@ -2222,61 +2222,55 @@ async function handleSinglePaymentStart(request, env, auth) {
   const user = await User.findById(auth.userId).select("name email phone phoneNumber fullName displayName username").lean();
   const customer = await buildSinglePaymentCustomer(user, auth.userId, env);
 
-  if (idempotencyKey) {
-    const existing = await Payment.findOne({
-      userId: auth.userId,
-      idempotencyKey,
-      paymentType: "digital_content",
-    }).sort({ createdAt: -1 }).lean();
-
-    if (existing) {
-      const existingAmount = Number(existing.paymentAmount || 0);
-      const existingCoins = Number(existing.coinPrice || existing.expectedChargedPoints || 0);
-      const existingProfileId = String(existing.pricingSnapshot?.profileId || existing.pricingSnapshot?.selectedProfileId || "");
-      const existingContentId = String(existing.pricingSnapshot?.contentId || existing.featureKey || "");
-      const existingContentKey = String(existing.pricingSnapshot?.contentKey || (isSukuyoYearlyPaymentKey(existing.featureKey) ? existing.pricingSnapshot?.contentId : "") || "");
-      const existingTargetYear = existing.pricingSnapshot?.targetYear === undefined || existing.pricingSnapshot?.targetYear === null ? undefined : Number(existing.pricingSnapshot.targetYear);
-      const targetYearConflicts = targetYear !== undefined && existingTargetYear !== targetYear;
-      if (existingAmount !== resolved.amountKRW || existingCoins !== resolved.coinPrice || existingProfileId !== profileId || existingContentId !== contentId || (contentKey && existingContentKey !== contentKey) || targetYearConflicts) {
-        return json({
-          message: "Idempotency key conflict. Request payload does not match existing single payment order.",
-          code: "IDEMPOTENCY_CONFLICT",
-        }, { status: 409 });
-      }
-
-      const existingPaymentId = String(existing.merchantUid || "");
-      const redirectUrl = buildSinglePaymentRedirectUrl({ env, request, returnPath, paymentId: existingPaymentId });
-      return json({
-        ok: true,
-        alreadyUnlocked: false,
-        idempotent: true,
-        order: buildSinglePaymentOrderResponse({
-          config,
-          paymentId: existingPaymentId,
-          orderName,
-          amountKRW: existingAmount,
-          coinPrice: existingCoins,
-          payMethod,
-          redirectUrl,
-          customer,
-          profileId,
-          serviceId,
-          contentId,
-          contentKey,
-          contentType,
-          featureKey: resolved.featureKey,
-          targetYear,
-          returnPath,
-        }),
-      });
-    }
-  }
-
   const paymentId = buildSinglePaymentId(auth.userId);
   const redirectUrl = buildSinglePaymentRedirectUrl({ env, request, returnPath, paymentId });
 
+  /* 멱등 재요청 경로와 E11000 복구 경로가 **같은 판정**을 써야 한다(handlePrepare :3598 과 같은 이유).
+     🔴 응답의 paymentId·redirectUrl 은 반드시 승자 문서의 merchantUid 로 다시 계산한다 — 여기 uid 는
+     buildSinglePaymentId 랜덤이라, 진 쪽 uid 를 돌려주면 없는 주문으로 PG 창이 열린다. */
+  const buildSingleIdempotentResponse = (existing) => {
+    const existingAmount = Number(existing.paymentAmount || 0);
+    const existingCoins = Number(existing.coinPrice || existing.expectedChargedPoints || 0);
+    const existingProfileId = String(existing.pricingSnapshot?.profileId || existing.pricingSnapshot?.selectedProfileId || "");
+    const existingContentId = String(existing.pricingSnapshot?.contentId || existing.featureKey || "");
+    const existingContentKey = String(existing.pricingSnapshot?.contentKey || (isSukuyoYearlyPaymentKey(existing.featureKey) ? existing.pricingSnapshot?.contentId : "") || "");
+    const existingTargetYear = existing.pricingSnapshot?.targetYear === undefined || existing.pricingSnapshot?.targetYear === null ? undefined : Number(existing.pricingSnapshot.targetYear);
+    const targetYearConflicts = targetYear !== undefined && existingTargetYear !== targetYear;
+    if (existingAmount !== resolved.amountKRW || existingCoins !== resolved.coinPrice || existingProfileId !== profileId || existingContentId !== contentId || (contentKey && existingContentKey !== contentKey) || targetYearConflicts) {
+      return json({
+        message: "Idempotency key conflict. Request payload does not match existing single payment order.",
+        code: "IDEMPOTENCY_CONFLICT",
+      }, { status: 409 });
+    }
+
+    const existingPaymentId = String(existing.merchantUid || "");
+    return json({
+      ok: true,
+      alreadyUnlocked: false,
+      idempotent: true,
+      order: buildSinglePaymentOrderResponse({
+        config,
+        paymentId: existingPaymentId,
+        orderName,
+        amountKRW: existingAmount,
+        coinPrice: existingCoins,
+        payMethod,
+        redirectUrl: buildSinglePaymentRedirectUrl({ env, request, returnPath, paymentId: existingPaymentId }),
+        customer,
+        profileId,
+        serviceId,
+        contentId,
+        contentKey,
+        contentType,
+        featureKey: resolved.featureKey,
+        targetYear,
+        returnPath,
+      }),
+    });
+  };
+
   // 내부 주문을 먼저 PENDING으로 저장한다. 이후 confirm/webhook에서 포트원 단건 조회로 금액/상태를 검증한 뒤 unlock을 저장한다.
-  await Payment.create({
+  const paymentDoc = {
     userId: auth.userId,
     merchantUid: paymentId,
     idempotencyKey,
@@ -2315,7 +2309,47 @@ async function handleSinglePaymentStart(request, env, auth) {
     source: "prepare",
     paymentType: "digital_content",
     subscriptionTier: "",
-  });
+  };
+
+  try {
+    if (idempotencyKey) {
+      /* 🔴 read-then-create 레이스 제거(2026-08-15). 종전에는 findOne 과 Payment.create 사이가 비어
+         있어 동시 클릭 두 건이 모두 null 을 보면 둘 다 create 했고, 진 쪽이 E11000 → 라우터
+         catch-all(:5930)의 `{"message":"Duplicate payment key."}` **409(code 없음)** 로 죽었다.
+         형제 handlePrepare(:3664)에는 이 복구가 있었고 **여기만 빠져 있었다.** 레이스라 간헐적이고
+         재클릭하면 문서가 있어 멱등 응답이 나간다 — "실패해도 자동 복구"되는 증상과 일치한다.
+         필터 3키 = 유니크 부분 인덱스. $setOnInsert 에서 빼는 이유·sort 는 :3664 참조.
+         🔴 형제와 달리 여기는 아직 withMongoRetry 로 감싸지 않았다 — 이 경로를 감싸면
+         verify-portone-single-payment-regression.mjs 가 Mongo 없이 도는 스크립트라 connectDb 에서
+         죽는다. 별건(DB 지연발 503)이므로 검증 배관과 함께 별도 PR 로 간다. */
+      const { userId: _f1, idempotencyKey: _f2, paymentType: _f3, ...insertOnly } = paymentDoc;
+      const upserted = await Payment.findOneAndUpdate(
+        { userId: auth.userId, idempotencyKey, paymentType: "digital_content" },
+        { $setOnInsert: insertOnly },
+        { upsert: true, new: true, includeResultMetadata: true, sort: { createdAt: -1 } },
+      );
+      const insertedNow = upserted?.lastErrorObject?.updatedExisting === false;
+      const doc = upserted?.value || null;
+      // 기존 행을 만난 경우($setOnInsert 는 no-op) 멱등 응답 또는 409 — 종전 findOne 분기와 같은 판정이다.
+      if (!insertedNow && doc) return buildSingleIdempotentResponse(doc);
+    } else {
+      // 🔴 키가 없으면 upsert 금지 — 부분 인덱스가 idempotencyKey:"" 를 안 덮어 전부 한 문서로 접힌다(:3683).
+      await Payment.create(paymentDoc);
+    }
+  } catch (error) {
+    if (Number(error?.code) !== 11000) throw error;
+    // 동시 요청의 패자. 승자의 주문을 그대로 돌려주는 것이 멱등 계약이다 — 여기가 없어서 409 로 죽었다.
+    const existing = await Payment.findOne({
+      userId: auth.userId,
+      paymentType: "digital_content",
+      $or: [
+        { merchantUid: paymentId },
+        ...(idempotencyKey ? [{ idempotencyKey }] : []),
+      ],
+    }).sort({ createdAt: -1 }).lean();
+    if (!existing) throw error;
+    return buildSingleIdempotentResponse(existing);
+  }
 
   return json({
     ok: true,

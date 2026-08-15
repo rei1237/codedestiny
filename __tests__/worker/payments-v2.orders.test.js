@@ -92,6 +92,50 @@ describe("T1 · 주문 생성은 멱등이다", () => {
     const db = makeFakeDb();
     await expect(createOrder(db, { userId: "", product: PRODUCT, idempotencyKey: "x" })).rejects.toThrow(PaymentError);
   });
+
+  /* 🔴 2026-08-15 회귀 재현. 11000 을 잡지 않으면 lib/http.js 가 MongoServerError 를 /^Mongo/ 로
+     삼켜 **503 DB_UNAVAILABLE** 로 내보내고, 클라이언트의 status>=500 폴백이 결제창을 다시 연다
+     ("503은 고질적인 문제였다"). Atlas 는 멀쩡한데 중복키가 DB 장애로 둔갑하던 경로다. */
+  test("🔴 동시 요청의 패자는 503 이 아니라 승자의 주문을 받는다", async () => {
+    const winnerId = await deriveOrderId(USER, "idem-1");
+    const winnerRow = {
+      _id: "oid-winner",
+      userId: USER,
+      merchantUid: winnerId,
+      idempotencyKey: "idem-1",
+      paymentType: "digital_content",
+      status: "pending",
+      paymentAmount: PRODUCT.priceKRW,
+      expectedChargedPoints: PRODUCT.priceCoins,
+      featureKey: PRODUCT.featureKey,
+    };
+    const db = makeFakeDb({
+      // 승자가 우리 필터 조회와 insert 사이에 커밋한 상황. upsert 는 11000 으로 진다.
+      onDuplicate: () => {
+        if (db.rows.length) return false;
+        db.rows.push(winnerRow);
+        return true;
+      },
+    });
+
+    const order = await createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" });
+    expect(order.merchantUid).toBe(winnerId); // 승자와 같은 문서 = 같은 PG 창
+    expect(order._id).toBe("oid-winner");
+    expect(db.rows).toHaveLength(1); // 패자가 주문을 하나 더 만들지 않는다
+    // upsert(11000) + 재조회. 재조회는 이 콜드 패스에서만 돌고 정상 경로는 1회 그대로다(위 테스트).
+    expect(db.ctx.ops).toBe(2);
+  });
+
+  test("🔴 11000 이 아닌 Mongo 오류는 삼키지 않고 그대로 올린다", async () => {
+    const db = makeFakeDb();
+    db.findOneAndUpdate = async () => {
+      const error = new Error("ConflictingUpdateOperators");
+      error.code = 40; // 영구 코드 버그 — 500 으로 나가 눈에 띄어야 한다
+      throw error;
+    };
+    await expect(createOrder(db, { userId: USER, product: PRODUCT, idempotencyKey: "idem-1" }))
+      .rejects.toThrow("ConflictingUpdateOperators");
+  });
 });
 
 // ── T2 ─────────────────────────────────────────────────────────────────

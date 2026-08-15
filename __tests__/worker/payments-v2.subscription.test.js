@@ -203,6 +203,33 @@ describe("prepare — 구 계약 승계", () => {
     expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
   });
 
+  /* 🔴 2026-08-15 회귀 재현. createPassOrder 에도 orders.js createOrder 와 **같은** 11000 catch
+     누락이 있었다. 잡지 않으면 lib/http.js 가 MongoServerError 를 /^Mongo/ 로 삼켜 503
+     DB_UNAVAILABLE 로 내보내고, 클라이언트의 status>=500 폴백이 결제창을 다시 연다. */
+  test("🔴 동시 요청의 패자는 503 이 아니라 승자의 이용권 주문을 받는다", async () => {
+    const winnerUid = `sub_s1m_${"a".repeat(28)}`;
+    const db = makeFakePaymentDb({
+      // 승자가 우리 필터 조회와 insert 사이에 커밋한 상황. upsert 는 11000 으로 진다.
+      onDuplicate: () => {
+        if (db.rows.some((r) => r.paymentType === "membership_pass")) return false;
+        db.rows.push({
+          _id: "oid-pass-winner",
+          userId: USER, idempotencyKey: "sub-key-race", paymentType: "membership_pass",
+          merchantUid: winnerUid, paymentAmount: 9900, subscriptionTier: "standard",
+          status: "pending", orderState: "PENDING", createdAt: new Date(),
+        });
+        return true;
+      },
+    });
+    seedUser(db);
+    const { response, payload } = await post(db, "/api/payments/subscription/prepare", passBody("standard"), {
+      headers: { "Idempotency-Key": "sub-key-race" },
+    });
+    expect(response.status).toBe(201);
+    expect(payload.order.merchantUid).toBe(winnerUid); // 승자와 같은 문서 = 같은 PG 창
+    expect(db.rows.filter((r) => r.paymentType === "membership_pass")).toHaveLength(1);
+  });
+
   test("이용권으로 이용권 구매 시도: 403 PURCHASE_POLICY_DENIED", async () => {
     const db = makeFakePaymentDb();
     seedUser(db);

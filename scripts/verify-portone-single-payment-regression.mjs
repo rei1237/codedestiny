@@ -779,9 +779,29 @@ function resetState() {
     return query(state.payment);
   };
   Payment.findById = () => query(state.payment);
-  Payment.findOneAndUpdate = (_criteria, update = {}) => {
+  Payment.findOneAndUpdate = (_criteria, update = {}, options = {}) => {
     if (Array.isArray(_criteria?.status?.$nin) && _criteria.status.$nin.includes(state.payment.status)) {
       return query(null);
+    }
+    /* 🔴 upsert($setOnInsert) 경로는 Payment.create 와 **같은 부기**를 해야 한다. /single/start 가
+       read-then-create 레이스를 없애며 create → upsert 로 바뀌었는데(worker/routes/payments.js
+       handleSinglePaymentStart, 2026-08-15), 목이 $setOnInsert 를 무시하면 state.createdPayments 가
+       비어 아래 "주문이 생성됐다" 단언들이 아무것도 검증하지 않는다(가짜 초록불).
+       includeResultMetadata:true 는 드라이버 그대로 {value, lastErrorObject} 를 돌려주고,
+       호출부는 lastErrorObject.updatedExisting 으로 신규/기존을 가른다. */
+    if (options.upsert && update.$setOnInsert) {
+      const key = String(_criteria?.idempotencyKey || "");
+      const existing = key
+        ? state.createdPayments.find((doc) => String(doc.idempotencyKey || "") === key) || null
+        : null;
+      let doc = existing;
+      if (!doc) {
+        doc = { _id: `pay_created_${state.createdPayments.length + 1}`, ..._criteria, ...update.$setOnInsert };
+        state.createdPayments.push(doc);
+        state.payment = { ...state.payment, ...doc };
+      }
+      if (!options.includeResultMetadata) return Promise.resolve(doc);
+      return Promise.resolve({ value: doc, lastErrorObject: { updatedExisting: Boolean(existing) } });
     }
     state.payment = {
       ...state.payment,
@@ -962,6 +982,65 @@ async function runServerTests() {
   assert.equal(state.createdPayments[0].paymentAmount, 5000, "server amount should ignore client amount");
   assert.equal(JSON.stringify(result.payload).includes(ENV.PORTONE_API_SECRET), false, "client response should not include API secret");
   assert.equal(JSON.stringify(result.payload).includes(ENV.INIsignkey), false, "client response should not include Inicis signkey");
+
+  /* 🔴 2026-08-15 회귀 재현 — /single/start 의 read-then-create 레이스.
+     종전에는 findOne(읽기)과 Payment.create(쓰기) 사이가 비어 동시 클릭 두 건이 모두 create 했고,
+     진 쪽이 E11000 → 라우터 catch-all 의 `{"message":"Duplicate payment key."}` 409(code 없음)로
+     죽었다. 형제 handlePrepare 에는 복구가 있었고 여기만 없었다(비대칭이 결함). */
+  const raceBody = {
+    profileId: "profile-a",
+    contentId: "section_summary",
+    contentType: "saju",
+    productName: "Code Destiny 운세",
+    coinPrice: 50,
+    idempotencyKey: "single-race-key",
+  };
+
+  // ① 같은 멱등키 재요청은 새 주문을 만들지 않고 같은 merchantUid 를 돌려준다(upsert 멱등).
+  resetState();
+  response = await handleSinglePaymentStart(startRequest(raceBody), ENV, AUTH);
+  result = await jsonResponse(response);
+  assert.equal(result.status, 201, "first keyed start should create order");
+  assert.equal(state.createdPayments.length, 1, "first keyed start should insert exactly one order");
+  const firstKeyedPaymentId = readPaymentId(result.payload);
+  response = await handleSinglePaymentStart(startRequest(raceBody), ENV, AUTH);
+  result = await jsonResponse(response);
+  assert.equal(result.status, 200, "repeat keyed start should be idempotent, not 201");
+  assert.equal(result.payload.idempotent, true, "repeat keyed start should report idempotent");
+  assert.equal(state.createdPayments.length, 1, "repeat keyed start must not insert a second order");
+  assert.equal(readPaymentId(result.payload), firstKeyedPaymentId, "repeat keyed start should reuse the same merchantUid");
+
+  // ② 패자가 받는 E11000 은 409 가 아니라 **승자 문서**의 멱등 응답이어야 한다.
+  //    🔴 응답 paymentId 가 승자의 merchantUid 여야 한다 — 여기 uid 는 랜덤이라, 진 쪽 uid 를
+  //    돌려주면 사용자가 존재하지 않는 주문으로 PG 창을 연다.
+  resetState();
+  const winnerOrder = {
+    ...makePayment(),
+    _id: "pay_created_winner",
+    merchantUid: "cd-single-winner-1710000000000-abcd1234",
+    idempotencyKey: "single-race-key",
+  };
+  state.createdPayments.push(winnerOrder);
+  Payment.findOneAndUpdate = () => {
+    const error = new Error("E11000 duplicate key error");
+    error.code = 11000;
+    throw error;
+  };
+  /* 🔴 복구 조회만 가로챈다. Payment.findOne 을 통째로 덮으면 hasExistingSinglePaymentUnlock
+     (worker/routes/payments.js)의 "이미 해금됨" 조회까지 승자 문서를 받아 핸들러가 결제창 대신
+     alreadyUnlocked 200 을 돌려주고, 그러면 이 테스트는 정작 보려던 경로를 안 밟는다.
+     복구 조회만 top-level $or 를 쓰고 status 필터가 없다 — 그것으로 가른다. */
+  const originalFindOne = Payment.findOne;
+  Payment.findOne = (criteria = {}) => (criteria?.$or && !criteria?.status
+    ? query(winnerOrder)
+    : originalFindOne(criteria));
+  response = await handleSinglePaymentStart(startRequest(raceBody), ENV, AUTH);
+  result = await jsonResponse(response);
+  assert.notEqual(result.status, 409, "E11000 loser must not surface as 409 Duplicate payment key");
+  assert.equal(result.status, 200, "E11000 loser should receive the winner's idempotent response");
+  assert.equal(result.payload.idempotent, true, "E11000 loser should report idempotent");
+  assert.equal(readPaymentId(result.payload), winnerOrder.merchantUid, "E11000 loser must return the winner's merchantUid");
+  assert.equal(state.createdPayments.length, 1, "E11000 loser must not create a second order");
 
   resetState();
   response = await handleSinglePaymentStart(startRequest({
