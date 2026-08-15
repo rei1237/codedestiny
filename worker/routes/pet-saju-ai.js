@@ -307,6 +307,7 @@ async function generateNarration(env, prompt, cacheKeyExtra, baseTokens, minChar
     systemPrompt: SYSTEM_PROMPT,
     taskType: "fortune",
     temperature: 0.55,
+    attempts: 2,
     timeoutMs: Number(env.PET_SAJU_PROVIDER_TIMEOUT_MS || 45000),
     baseTokens,
     capTokens: Math.round(baseTokens * 1.8),

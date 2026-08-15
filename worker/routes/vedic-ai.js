@@ -20,6 +20,7 @@ import {
   buildReasoningSectionSchema,
 } from "../lib/fortune-reasoning-contract.js";
 import { buildVedicKnowledgeContext } from "../lib/vedic-ai-knowledge.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 
 const SERVICE_KEY = "vedic-ai";
 const FEATURE_KEY = "vedic-ai-consultation";
@@ -1310,7 +1311,7 @@ async function resolveStartAccess({ env, auth, body, normalized, idempotencyKey,
  * 그룹 하나를 생성한다. **절대 던지지 않는다** — 한 그룹의 실패가 나머지 그룹까지 죽이면
  * 결제까지 끝난 사용자가 아무것도 못 받는다. 실패는 빈 텍스트로 돌려주고 병합이 알아서 뺀다.
  */
-async function generateVedicGroup(env, input, chart, group, context, repairLines = []) {
+async function generateVedicGroup(env, input, chart, group, context, repairLines = [], options = {}) {
   // 동기 생성이라 엣지가 100초에 요청을 끊는다. clamp 를 걸어야 라우트가 먼저 판정해
   // 짧아진 결과라도 degrade 경로로 전달하고, 생성 실패 기록·선차감 복원이 실행된다.
   const vedicTimeoutMs = clampSyncLlmTimeoutMs(Number(env?.VEDIC_AI_TIMEOUT_MS) || 180000);
@@ -1319,12 +1320,26 @@ async function generateVedicGroup(env, input, chart, group, context, repairLines
       systemPrompt: await cmsPromptText(env, "vedic-ai", SYSTEM_PROMPT),
       taskType: "fortune",
       temperature: repairLines.length ? 0.62 : 0.72,
+      attempts: 2,
       baseTokens: VEDIC_GROUP_MAX_OUTPUT_TOKENS,
       capTokens: Math.round(VEDIC_GROUP_MAX_OUTPUT_TOKENS * 1.3),
       responseMimeType: "application/json",
       timeoutMs: vedicTimeoutMs,
       // 그룹 단위 문턱 — 전체 목표가 아니라 이 그룹 목표의 40%.
       fallbackMinChars: Math.round(group.minChars * 0.4),
+      // 캐시가 없으면 같은 입력의 재요청이 그룹 5개를 통째로 다시 생성한다. 인메모리 startLocks 는
+      // 같은 isolate 안에서만 막으므로 다른 isolate 로 들어온 동시 요청은 그대로 통과했다.
+      // 웨이브 2·3 의 재생성은 repairLines 와 temperature 가 함께 달라져 프롬프트 해시가 갈린다.
+      // minChars: 목표 미달 응답을 저장하지 않는다 — 저장하면 라우트가 실패로 판정한 뒤에도
+      // 같은 키에서 같은 미달 결과가 30일간 재현된다.
+      cache: {
+        store: createLlmCacheStore(env),
+        deterministic: true,
+        ttlSeconds: 30 * 24 * 60 * 60,
+        keyExtra: "vedic-ai-group-v1",
+        minChars: group.minChars,
+        skipRead: options.skipCacheRead || undefined,
+      },
       logContext: { ...context, group: group.key },
     });
     const provider = clean(result?.provider || result?.model || "gemini");
@@ -1358,7 +1373,7 @@ function mergeVedicGroupPayloads(rows) {
   return JSON.stringify({ scores: scores || {}, sections });
 }
 
-async function generateInitialReading(env, input, chart, context) {
+async function generateInitialReading(env, input, chart, context, options = {}) {
   logVedicAi("LLM Provider Selected", { ...context, ...getProviderDiagnostics(env) });
   const qualityOptions = {
     minTotalChars: MIN_INITIAL_READING_CHARS,
@@ -1368,7 +1383,7 @@ async function generateInitialReading(env, input, chart, context) {
   };
 
   // 웨이브 1 — 전 그룹 동시 생성. 벽시계는 그룹 시간의 합이 아니라 가장 느린 그룹 하나다.
-  let rows = await Promise.all(VEDIC_SECTION_GROUPS.map((group) => generateVedicGroup(env, input, chart, group, context)));
+  let rows = await Promise.all(VEDIC_SECTION_GROUPS.map((group) => generateVedicGroup(env, input, chart, group, context, [], options)));
 
   // 웨이브 2 — 비었거나 목표에 못 미치는 그룹만 다시 쓴다(전면 재생성 금지).
   const groupChars = (row) => {
@@ -1382,7 +1397,7 @@ async function generateInitialReading(env, input, chart, context) {
     const repaired = await Promise.all(shortfall.map((row) => generateVedicGroup(env, input, chart, row.group, context, [
       `직전 응답이 ${groupChars(row).toLocaleString("ko-KR")}자로 목표에 못 미칩니다. ${row.group.minChars.toLocaleString("ko-KR")}자 이상이 되도록 근거와 장면을 더해 다시 쓰세요.`,
       "분량만 늘리지 말고, 아직 짚지 않은 계산 근거와 실제 장면을 새로 더하세요.",
-    ])));
+    ], options)));
     // 다시 쓴 결과가 더 짧으면 원본을 지킨다 — 보강이 개악이 되는 경우가 있다.
     rows = rows.map((row) => {
       const next = repaired.find((item) => item.group.key === row.group.key);
@@ -1402,7 +1417,7 @@ async function generateInitialReading(env, input, chart, context) {
     ));
     if (targets.length) {
       logVedicAi("Group Quality Repair", { ...context, groups: targets.map((row) => row.group.key), issues: quality.issues }, "warn");
-      const requalified = await Promise.all(targets.map((row) => generateVedicGroup(env, input, chart, row.group, context, repairHints)));
+      const requalified = await Promise.all(targets.map((row) => generateVedicGroup(env, input, chart, row.group, context, repairHints, options)));
       rows = rows.map((row) => {
         const next = requalified.find((item) => item.group.key === row.group.key);
         return next?.text && groupChars(next) >= groupChars(row) ? next : row;
@@ -1454,6 +1469,10 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
   if (!access) return paymentVerifyFailed();
   logVedicAi("LLM Payment Guard Passed", { ...context, accessCheckResult: access.source || access.accessType });
 
+  // 직전 시도가 실패로 끝났으면 이번 생성만 캐시 조회를 건너뛴다(쓰기는 유지 — 성공한 재생성이
+  // 같은 키를 덮어써 스스로 낫는다). 아래에서 doc.generationError 를 지우므로 그 전에 판정한다.
+  const skipCacheRead = Boolean(existing && (existing.generationError || existing.status === "failed"));
+
   const sessionId = existing?.id || `vedic-ai-${Date.now()}-${randomSuffix()}`;
   const doc = existing || new VedicAiConsultation({
     id: sessionId,
@@ -1494,7 +1513,7 @@ async function generateConsultation({ request, env, auth, body, normalized, idem
 
   try {
     logVedicAi("LLM Generate Start", context);
-    const { content, meta } = await generateInitialReading(env, normalized.input, chart, context);
+    const { content, meta } = await generateInitialReading(env, normalized.input, chart, context, { skipCacheRead });
     doc.vedicChart = chart;
     doc.messages = [
       ...(normalized.input.userQuestion ? [{ role: "user", content: normalized.input.userQuestion, createdAt: new Date() }] : []),

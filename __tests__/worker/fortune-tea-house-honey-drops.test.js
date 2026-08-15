@@ -237,6 +237,8 @@ beforeAll(async () => {
     PointHistory: modelForCollection("point_histories"),
     MonthlyCreditLedger: modelForCollection("monthly_credit_ledger"),
     Payment: modelForCollection("payments"),
+    // 라우트가 llm-cache-store 를 통해 참조한다. 이 스위트는 캐시 동작을 검증하지 않으므로 빈 스텁.
+    LlmResponseCache: {},
   }));
   jest.unstable_mockModule("../../worker/routes/billing.js", () => ({
     handleBillingRoutes: jest.fn(async () => new Response(JSON.stringify({

@@ -18,6 +18,7 @@ import {
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 20;
@@ -3689,6 +3690,11 @@ async function generateConsultResult(request, fallback, env) {
   const tarotMaxOutputTokens = isFiveCardTarot ? 32000 : 24000;
   const baseMaxOutputTokens = consultationMode === "sajuCompatibility" ? 24000 : consultationMode === "saju" ? 20000 : consultationMode === "sukuyo" ? 26000 : tarotMaxOutputTokens;
   const maxOutputTokensCap = 40000;
+  // 캐시 저장 문턱 — 이 모드의 미달 판정 문턱과 같은 값. 공백 제외 raw JSON 길이에 적용되므로
+  // 렌더 텍스트 기준 판정보다는 관대하지만, 빈·반쪽 응답이 30일간 굳는 것은 확실히 막는다.
+  const cacheMinChars = consultationMode === "saju" || consultationMode === "sajuCompatibility"
+    ? SAJU_MIN_RESULT_CHARS
+    : consultationMode === "sukuyo" ? SUKUYO_MIN_RESULT_CHARS : TAROT_MIN_RESULT_CHARS;
   const tarotTimeoutMs = isFiveCardTarot ? 110000 : 95000;
   const timeoutMs = consultationMode === "sajuCompatibility" ? 115000 : consultationMode === "saju" ? 100000 : consultationMode === "sukuyo" ? 120000 : tarotTimeoutMs;
   let lastError = null;
@@ -3710,6 +3716,18 @@ async function generateConsultResult(request, fallback, env) {
         // 폴백 허용. structured-consultation 이 폴백 JSON 의 코드펜스를 정화하므로 파싱된다.
         // 너무 짧으면 실패로 돌려 기존 결정론 degrade 경로를 그대로 탄다.
         fallbackMinChars: 600,
+        // 이 라우트의 한 호출은 출력 상한이 20,000~32,000 토큰으로 코드베이스에서 가장 크다.
+        // 캐시가 없어 같은 입력의 재요청이 그대로 다시 생성되고 있었다. 재시도는 attempt 가
+        // 프롬프트와 temperature 를 함께 바꾸므로 실패한 시도의 응답이 같은 키를 차지하지 않는다.
+        // minChars 는 그 모드의 미달 판정 문턱과 같다 — 미달 응답이 캐시에 굳으면 degrade 가
+        // 30일간 반복된다.
+        cache: {
+          store: createLlmCacheStore(env),
+          deterministic: true,
+          ttlSeconds: 30 * 24 * 60 * 60,
+          keyExtra: `tea-house-${consultationMode}-v1`,
+          minChars: cacheMinChars,
+        },
       });
 
       if (!ai.ok) throw new Error(ai.message || ai.error || "gemini_failed");
