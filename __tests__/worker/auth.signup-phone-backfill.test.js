@@ -27,6 +27,7 @@ const mockDecryptPhoneNumber = jest.fn(async (value) => {
 });
 
 const mockUserSave = jest.fn(async () => undefined);
+const mockUserCreate = jest.fn(async (doc) => ({ ...doc, _id: "64f0a1b2c3d4e5f678901234" }));
 const mockUserFindOne = jest.fn(async () => null);
 const mockCollectionFindOne = jest.fn(async () => null);
 const mockCollectionUpdateOne = jest.fn(async () => ({ matchedCount: 1, modifiedCount: 1 }));
@@ -89,11 +90,12 @@ jest.unstable_mockModule("../../worker/lib/models.js", () => ({
   },
   User: {
     findOne: mockUserFindOne,
-    create: jest.fn(async (doc) => ({ ...doc, _id: "64f0a1b2c3d4e5f678901234" })),
+    create: mockUserCreate,
     collection: { findOne: mockCollectionFindOne, updateOne: mockCollectionUpdateOne },
   },
   PointHistory: { create: jest.fn(async () => ({})) },
-  MonthlyCreditLedger: { create: jest.fn(async () => ({})) },
+  // updateOne 은 신규 생성 경로(가입 보너스 원장)에서만 쓰인다 — 없으면 라우트가 삼키고 로그만 남긴다.
+  MonthlyCreditLedger: { create: jest.fn(async () => ({})), updateOne: jest.fn(async () => ({})) },
   ProfileCard: {},
   Payment: {},
   Insight: {},
@@ -133,6 +135,7 @@ beforeAll(async () => {
 
 beforeEach(() => {
   jest.clearAllMocks();
+  mockUserCreate.mockImplementation(async (doc) => ({ ...doc, _id: "64f0a1b2c3d4e5f678901234" }));
   mockUserFindOne.mockResolvedValue(null);
   mockCollectionFindOne.mockResolvedValue(null);
   mockCollectionUpdateOne.mockResolvedValue({ matchedCount: 1, modifiedCount: 1 });
@@ -200,22 +203,75 @@ describe("소셜 가입 마무리 — 기존 계정 분기", () => {
   });
 });
 
+function buildRegisterRequest(overrides = {}) {
+  return new Request("https://example.com/api/auth/register", {
+    method: "POST",
+    headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.77" },
+    body: JSON.stringify({
+      name: "Tester",
+      email: "tester@example.com",
+      password: "Quiet!Harbor42",
+      phoneNumber: TYPED_PHONE,
+      ageAttested: true,
+      termsAccepted: true,
+      privacyAccepted: true,
+      ...overrides,
+    }),
+  });
+}
+
+/**
+ * 2026-08-15 정책 전환: 가입 화면이 번호를 묻지 않는다. 서버는 번호 없는 본문을 거절하면 안 되고,
+ * 그 계정은 phoneNumber: "" 로 만들어져 첫 단건결제 때 POST /api/me/payment-phone 로 1회 채운다.
+ * 예전에는 두 가입 경로가 각각 400 invalid_phone_number 로 막았다.
+ */
+describe("번호 없는 가입", () => {
+  test("이메일 가입 — 번호가 없어도 계정이 만들어진다", async () => {
+    const request = buildRegisterRequest({ phoneNumber: undefined });
+    const response = await authRoutes.__authTestUtils.handleRegister(request, ENV);
+
+    expect(response.status).toBe(201);
+    expect(mockUserCreate).toHaveBeenCalledTimes(1);
+    expect(mockUserCreate.mock.calls[0][0].phoneNumber).toBe("");
+    // 🔴 번호가 없으면 암호화 키를 만질 이유도 없다. 여기서 호출되면 키 부재가 곧 가입 실패가 된다.
+    expect(mockEncryptPhoneNumber).toHaveBeenCalledWith("", ENV);
+  });
+
+  test("이메일 가입 — 번호를 실어 보내면(구버전 앱) 여전히 암호화 저장한다", async () => {
+    const response = await authRoutes.__authTestUtils.handleRegister(buildRegisterRequest(), ENV);
+
+    expect(response.status).toBe(201);
+    expect(mockUserCreate.mock.calls[0][0].phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${TYPED_PHONE})`);
+  });
+
+  test("소셜 가입 — 공급자도 사용자도 번호를 안 주면 번호 없이 생성된다", async () => {
+    await authRoutes.__authTestUtils.findOrCreateSocialUser(
+      "google",
+      { providerId: "g-2", email: "nophone@example.com", phoneNumber: "", emailVerified: true },
+      ENV,
+      { createIfMissing: true, signupProfile: { name: "No Phone", phoneNumber: "" } },
+    );
+
+    expect(mockUserCreate).toHaveBeenCalledTimes(1);
+    // 조건부 스프레드라 키 자체가 붙지 않는다(스키마 default "" 가 그대로 적용된다).
+    expect(mockUserCreate.mock.calls[0][0]).not.toHaveProperty("phoneNumber");
+    expect(mockEncryptPhoneNumber).not.toHaveBeenCalled();
+  });
+
+  test("소셜 가입 — 공급자가 번호를 주면 암호화해 저장한다", async () => {
+    await authRoutes.__authTestUtils.findOrCreateSocialUser(
+      "kakao",
+      { providerId: "k-2", email: "withphone@example.com", phoneNumber: PROVIDER_PHONE, emailVerified: true },
+      ENV,
+      { createIfMissing: true, signupProfile: { name: "With Phone", phoneNumber: "" } },
+    );
+
+    expect(mockEncryptPhoneNumber).toHaveBeenCalledWith(PROVIDER_PHONE, ENV);
+    expect(mockUserCreate.mock.calls[0][0].phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${PROVIDER_PHONE})`);
+  });
+});
+
 describe("이메일 재가입(idempotent) 경로", () => {
-  function buildRegisterRequest() {
-    return new Request("https://example.com/api/auth/register", {
-      method: "POST",
-      headers: { "content-type": "application/json", "cf-connecting-ip": "203.0.113.77" },
-      body: JSON.stringify({
-        name: "Tester",
-        email: "tester@example.com",
-        password: "Quiet!Harbor42",
-        phoneNumber: TYPED_PHONE,
-        ageAttested: true,
-        termsAccepted: true,
-        privacyAccepted: true,
-      }),
-    });
-  }
 
   test("번호가 비어 있던 기존 계정에 입력한 번호를 백필한다", async () => {
     mockCollectionFindOne.mockResolvedValueOnce({

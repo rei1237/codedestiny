@@ -1426,6 +1426,30 @@ async function verifySocialGrant(token, env) {
 }
 
 
+/**
+ * 전화번호 제공 동의항목은 공급자 검수를 통과한 앱만 요청할 수 있다.
+ *
+ * 🔴 승인 전에 요청하면 카카오는 authorize 단계에서 KOE205(등록되지 않은 scope)로 거절한다 —
+ * 즉 코드에 박아 두는 순간 승인이 날 때까지 **카카오 로그인이 전면 중단**된다. 승인 시점은
+ * 우리가 통제하지 못하므로 요청 여부만 env 로 뺐다. 파싱·암호화·저장·백필은 이미 완성되어
+ * 있어(mapSocialProfile → findOrCreateSocialUser) 이 스위치를 켜는 것 말고 할 일이 없다.
+ *
+ * 값은 쉼표 구분 공급자 목록이다. 승인은 공급자별로 따로 떨어지므로 개별 활성화를 허용한다.
+ *   ""(기본, 요청 안 함) / "kakao" / "naver" / "kakao,naver"
+ * 🔴 프로덕션 값은 worker/wrangler.toml [vars] 에 있다 — env 가 코드 기본값을 이긴다.
+ */
+const PHONE_SCOPE_BY_PROVIDER = { kakao: "phone_number", naver: "mobile" };
+
+function phoneScopeSuffix(provider, env) {
+  const scope = PHONE_SCOPE_BY_PROVIDER[provider];
+  if (!scope) return "";
+  const enabled = String(getEnv(env, "SOCIAL_PHONE_SCOPE_PROVIDERS") || "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+  return enabled.includes(provider) ? ` ${scope}` : "";
+}
+
 function buildProviderConfig(provider, request, env) {
   const redirectUri = resolveProviderCallbackUrl(provider, request, env);
 
@@ -1448,7 +1472,8 @@ function buildProviderConfig(provider, request, env) {
       authorizationEndpoint: "https://nid.naver.com/oauth2.0/authorize",
       tokenEndpoint: "https://nid.naver.com/oauth2.0/token",
       userInfoEndpoint: "https://openapi.naver.com/v1/nid/me",
-      scope: "name email",
+      // mobile 이 붙으면 프로필 응답의 response.mobile / mobile_e164 가 채워진다(mapSocialProfile 이 이미 읽는다).
+      scope: `name email${phoneScopeSuffix("naver", env)}`,
       redirectUri,
     };
   }
@@ -1460,7 +1485,9 @@ function buildProviderConfig(provider, request, env) {
       authorizationEndpoint: "https://kauth.kakao.com/oauth/authorize",
       tokenEndpoint: "https://kauth.kakao.com/oauth/token",
       userInfoEndpoint: "https://kapi.kakao.com/v2/user/me",
-      scope: "profile_nickname account_email",
+      // phone_number 가 붙으면 kakao_account.phone_number 가 "+82 10-1234-5678" 형태로 온다.
+      // normalizeKoreanPhoneNumber 의 82 분기가 그대로 01… 로 되돌린다(pii-crypto.js:71).
+      scope: `profile_nickname account_email${phoneScopeSuffix("kakao", env)}`,
       redirectUri,
     };
   }
@@ -2420,16 +2447,10 @@ async function handleRegister(request, env) {
   }
 
   const { name, email, password } = validated.sanitized;
+  // 🔴 번호는 선택이다(2026-08-15 정책). 가입 화면은 더 이상 묻지 않고, 번호가 필요한 시점은
+  // 첫 단건결제 하나뿐이라 거기서 1회 받는다(POST /api/me/payment-phone). 그래도 값이 오면
+  // 계속 저장한다 — 스토어에 이미 배포된 구버전 앱이 여전히 실어 보내기 때문이다.
   const phoneNumber = normalizeKoreanPhoneNumber(body.phoneNumber || body.phone);
-  if (!phoneNumber) {
-    return signupErrorResponse(
-      request,
-      env,
-      400,
-      "invalid_phone_number",
-      "Phone number is required for payment customer information.",
-    );
-  }
 
   try {
     const users = User.collection;
@@ -2565,7 +2586,9 @@ async function handleRegister(request, env) {
   }
 
   // 🔴 키가 없으면 평문으로 폴백하지 않고 가입을 중단한다(fail-closed).
-  // "암호화해서 보관한다"는 가입 화면 문구가 조용히 거짓이 되는 쪽이 더 나쁘다.
+  // "암호화해서 보관한다"는 개인정보처리방침 문구가 조용히 거짓이 되는 쪽이 더 나쁘다.
+  // 번호가 비어 있으면 encryptPhoneNumber 가 키를 만지기 전에 ""를 돌려주므로(pii-crypto.js:82),
+  // 번호 없는 일반 가입은 이 catch 에 걸리지 않는다 — 키 문제로 막히는 것은 번호를 실어 보낸 요청뿐이다.
   let storedPhoneNumber = "";
   try {
     storedPhoneNumber = await encryptPhoneNumber(phoneNumber, env);
@@ -4345,18 +4368,10 @@ async function handleOAuthCompleteSignup(request, env) {
     return signupErrorResponse(request, env, 400, "invalid_name", "Name must be at least 2 characters.");
   }
 
-  // 이메일 가입(handleRegister)과 같은 기준으로 번호를 받는다. 소셜만 면제하면 그 계정들은
-  // 첫 단건결제 때 별도 입력 단계를 타야 하고, 그 저장이 실패하면 결제가 그대로 막힌다.
+  // 이메일 가입(handleRegister)과 같은 기준 — 번호는 선택이다(2026-08-15 정책).
+  // 소셜은 공급자가 주면 그 값이 티켓(profile.phoneNumber)으로 흘러와 아래 findOrCreateSocialUser
+  // 에서 암호화 저장되고, 안 주면 번호 없이 계정이 만들어져 첫 단건결제 때 1회 입력받는다.
   const phoneNumber = normalizeKoreanPhoneNumber(body?.phoneNumber || body?.phone);
-  if (!phoneNumber) {
-    return signupErrorResponse(
-      request,
-      env,
-      400,
-      "invalid_phone_number",
-      "결제에 사용할 휴대폰 번호를 정확히 입력해주세요.",
-    );
-  }
 
   try {
     await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_social_signup_connect_db");
@@ -4541,6 +4556,7 @@ export const __authTestUtils = {
   handleWithdraw,
   handleWithdrawCsrfIssue,
   findOrCreateSocialUser,
+  buildProviderConfig,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
   clearWithdrawRateLimitState: () => withdrawRateLimitMap.clear(),
 };
