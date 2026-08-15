@@ -7,4 +7,18 @@ async function callLLM() {
   throw new Error("callLLM is not available in the test environment (see __tests__/__mocks__/llm-client.js).");
 }
 
-module.exports = { callLLM };
+// 🔴 worker/lib/gemini.js 가 named import 로 가져가므로 여기 없으면 **파싱 단계에서** 깨진다
+//    ("does not provide an export named ..."). 그러면 gemini.js 를 거치는 라우트 테스트가
+//    기능과 무관하게 전부 실패한다 — 실제로 19개 스위트가 그렇게 넘어졌다.
+//    null 을 돌려주는 것이 "컨텍스트 캐시 없음" = 기존 동작이므로 테스트 기대값이 바뀌지 않는다.
+//    컨텍스트 캐시 자체의 계약은 scripts/verify-llm-token-usage.mjs 와
+//    scripts/verify-saju-ai-section-plan.mjs 가 진짜 구현으로 검증한다.
+async function createGeminiContextCache() {
+  return null;
+}
+
+async function deleteGeminiContextCache() {
+  // no-op
+}
+
+module.exports = { callLLM, createGeminiContextCache, deleteGeminiContextCache };

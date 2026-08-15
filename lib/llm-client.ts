@@ -40,6 +40,39 @@ export interface LLMRequest {
     duplicateBlocked?: boolean;
   };
   cache?: LLMCacheConfig;
+  /**
+   * Gemini 명시적 컨텍스트 캐시 핸들(createGeminiContextCache 의 반환값).
+   *
+   * 🔴 이것은 `cache`(응답 캐시, lib/llm-cache.ts)와 전혀 다른 것이다. 여기 있는 것은
+   *    Gemini 경로에서만 쓰이는 **전송 최적화**로, prompt 앞부분을 재전송하지 않고
+   *    프로바이더가 들고 있는 사본을 가리킨다.
+   *
+   * 🔴 그래서 `prompt` 는 언제나 접두사를 포함한 **전체 프롬프트**로 둔다. 접두사를 prompt
+   *    밖으로 빼면 buildCacheKey(lib/llm-cache.ts)가 사용자를 구분하지 못해 다른 사용자의
+   *    유료 결과가 캐시 히트로 새어 나가고, Workers AI 폴백도 접두사를 통째로 잃는다.
+   *    접두사 제거는 callGeminiPrimary 가 전송 직전에만 한다.
+   */
+  geminiCachedContent?: GeminiContextCache;
+}
+
+/** createGeminiContextCache 가 돌려주는 핸들. 이 세 값이 모두 맞아야 캐시를 참조한다. */
+export interface GeminiContextCache {
+  /** "cachedContents/<id>". generateContent 바디의 cachedContent 에 그대로 넣는다. */
+  name: string;
+  /** 캐시에 담은 프롬프트 접두사. 요청 프롬프트가 이것으로 시작할 때만 캐시를 쓴다. */
+  prefix: string;
+  /** 캐시에 구워 넣은 systemInstruction. 요청의 systemPrompt 와 다르면 캐시를 쓰지 않는다. */
+  systemPrompt: string;
+}
+
+export interface GeminiContextCacheInput {
+  /** 캐시에 담을 불변 접두사. 호출자가 만드는 프롬프트의 선두와 문자까지 같아야 한다. */
+  prefix: string;
+  systemPrompt?: string;
+  locale?: string;
+  model?: string;
+  ttlSeconds?: number;
+  timeoutMs?: number;
 }
 
 /**
@@ -75,8 +108,9 @@ export interface CloudflareEnv {
 }
 
 const GEMINI_MODEL = "gemini-2.5-flash";
-const GEMINI_ENDPOINT =
-  "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent";
+// cachedContents CRUD 가 같은 베이스를 쓰므로 상수를 나눠 두 곳이 어긋나지 않게 한다.
+const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
+const GEMINI_ENDPOINT = `${GEMINI_API_BASE}/models/gemini-2.5-flash:generateContent`;
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 type GeminiPayload = {
@@ -427,6 +461,177 @@ function buildWorkersAiInput(
   return input;
 }
 
+/**
+ * 명시적 컨텍스트 캐시를 만들 최소 접두사 길이(문자).
+ *
+ * gemini-2.5-flash 의 캐시 최소 토큰은 1,024 이고, 한국어 실측 비율은 2.39자/토큰
+ * (2026-08-15 측정: 접두사 61,463자 → 25,733토큰)이라 4,000자 ≈ 1,674토큰으로 여유가 있다.
+ * 미달이면 만들지 않는다 — 만들어 봐야 API 가 거절하고 왕복만 낭비한다.
+ */
+const GEMINI_CONTEXT_CACHE_MIN_PREFIX_CHARS = 4000;
+
+/**
+ * 캐시 TTL. 사주 웨이브의 LLM 예산 상한이 80초(FEATURE_AI_LLM_BUDGET_MS)라 300초면
+ * 웨이브2(보강)까지 덮고도 남는다. 저장은 시간당 과금이므로 길게 잡지 말고, 다 쓰면 지운다.
+ */
+const GEMINI_CONTEXT_CACHE_TTL_SECONDS = 300;
+
+/** 캐시 생성/삭제가 상담 예산을 잠식하지 않도록 하는 자체 상한. 넘기면 캐시 없이 간다. */
+const GEMINI_CONTEXT_CACHE_TIMEOUT_MS = 10_000;
+
+/** 프로덕션 킬 스위치. 값 하나로 되돌릴 수 있어야 장애 중에 PR·CI·배포를 기다리지 않는다. */
+function isGeminiContextCacheEnabled(env?: CloudflareEnv): boolean {
+  const raw = String(
+    (env as Record<string, unknown> | undefined)?.["GEMINI_CONTEXT_CACHE"] ?? "",
+  ).trim().toLowerCase();
+  return raw !== "0" && raw !== "false" && raw !== "off";
+}
+
+/**
+ * 실제로 호출될 모델 이름.
+ *
+ * 🔴 캐시를 만든 모델과 호출 모델이 다르면 참조가 성립하지 않는다. 그런데
+ *    resolveGeminiEndpoint 는 apiEndpoint 오버라이드가 없으면 model 인자를 무시하고
+ *    모델명이 URL 에 박힌 GEMINI_ENDPOINT 를 그대로 쓴다. 그래서 resolveGeminiModel 이
+ *    아니라 **최종 URL 에서 읽어야** 정확하다.
+ */
+function resolveGeminiEndpointModel(request: LLMRequest, env?: CloudflareEnv): string {
+  const endpoint = resolveGeminiEndpoint(request, resolveGeminiModel(request, env));
+  const matched = /\/models\/([^/:?#]+)/.exec(endpoint);
+  return matched ? decodeURIComponent(matched[1]) : GEMINI_MODEL;
+}
+
+/**
+ * 병렬 팬아웃이 공유하는 불변 접두사를 Gemini 쪽에 한 벌만 올려 두고 핸들을 받는다.
+ *
+ * 왜 필요한가(2026-08-15 실측): 암묵 캐싱은 90초가 지나야 27%만 걸려서, 5그룹이 ~40초에
+ * 끝나는 사주 웨이브에서는 할인이 0/5 였다. 명시적 캐싱은 같은 병렬 구성에서 99.0% 걸린다.
+ *
+ * 🔴 실패는 전부 null 로 접는다 — 절대 던지지 않는다. 이 함수 뒤에는 이미 결제가 끝난
+ *    상담 생성이 있고, 캐시는 순수 부가기능이라 없으면 지금까지처럼 전체 프롬프트를 보내면 된다.
+ */
+export async function createGeminiContextCache(
+  input: GeminiContextCacheInput,
+  env?: CloudflareEnv,
+): Promise<GeminiContextCache | null> {
+  if (!isGeminiContextCacheEnabled(env)) return null;
+
+  const prefix = String(input?.prefix || "");
+  if (prefix.length < GEMINI_CONTEXT_CACHE_MIN_PREFIX_CHARS) return null;
+
+  const apiKey = getGeminiApiKey(env);
+  if (!apiKey) return null;
+
+  // 🔴 callLLM 이 applyOutputLocale 로 systemPrompt 를 바꾸므로, 캐시에 굽는 값도 같은 변환을
+  //    거쳐야 한다. 한 글자라도 다르면 callGeminiPrimary 가 캐시를 쓰지 않고 조용히 정가로 나간다.
+  //    (worker/lib/gemini.js 가 systemPrompt 를 trim 해서 넘기므로 여기서도 먼저 trim 한다.)
+  const localized = applyOutputLocale({
+    prompt: "",
+    systemPrompt: String(input?.systemPrompt || "").trim(),
+    locale: input?.locale,
+  });
+  const systemPrompt = String(localized.systemPrompt || "");
+
+  const model = resolveGeminiEndpointModel({ prompt: "", model: input?.model }, env);
+  const ttlSeconds = Number(input?.ttlSeconds) > 0
+    ? Number(input.ttlSeconds)
+    : GEMINI_CONTEXT_CACHE_TTL_SECONDS;
+
+  const timeout = createTimeoutSignal(
+    Number(input?.timeoutMs) > 0 ? Number(input.timeoutMs) : GEMINI_CONTEXT_CACHE_TIMEOUT_MS,
+  );
+  try {
+    const url = new URL(`${GEMINI_API_BASE}/cachedContents`);
+    url.searchParams.set("key", apiKey);
+    const response = await fetch(url.toString(), {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        // 🔴 "models/" 접두사가 붙어야 한다.
+        model: `models/${model}`,
+        contents: [{ role: "user", parts: [{ text: prefix }] }],
+        // 🔴 systemInstruction 은 캐시가 소유한다. Gemini 는 cachedContent 와
+        //    systemInstruction 을 같은 generateContent 요청에 함께 받지 않으므로,
+        //    여기에 굽고 호출 쪽에서는 빼는 것이 유일하게 성립하는 조합이다.
+        ...(systemPrompt ? { systemInstruction: { parts: [{ text: systemPrompt }] } } : {}),
+        ttl: `${ttlSeconds}s`,
+      }),
+      signal: timeout.signal,
+    });
+
+    const payload = (await response.json().catch(() => ({}))) as {
+      name?: string;
+      error?: { message?: string };
+    };
+    const name = String(payload?.name || "").trim();
+    if (!response.ok || !name) {
+      console.warn("[llm context_cache] create failed; sending the full prompt instead.", {
+        status: response.status,
+        message: cleanLogValue(payload?.error?.message, 200),
+      });
+      return null;
+    }
+
+    console.info("[llm context_cache]", {
+      action: "create",
+      model,
+      prefixChars: prefix.length,
+      ttlSeconds,
+    });
+    return { name, prefix, systemPrompt };
+  } catch (error) {
+    console.warn("[llm context_cache] create failed; sending the full prompt instead.", {
+      error: getErrorMessage(error),
+    });
+    return null;
+  } finally {
+    timeout.clear();
+  }
+}
+
+/**
+ * 다 쓴 캐시를 지운다. 저장이 시간당 과금이라 방치하면 절감분을 갉아먹는다.
+ * 🔴 실패는 삼킨다 — TTL 이 안전망이고, 여기서 던지면 이미 만들어진 상담 결과를 잃는다.
+ */
+export async function deleteGeminiContextCache(
+  cache: GeminiContextCache | null | undefined,
+  env?: CloudflareEnv,
+): Promise<void> {
+  const name = String(cache?.name || "").trim();
+  if (!name) return;
+  const apiKey = getGeminiApiKey(env);
+  if (!apiKey) return;
+
+  const timeout = createTimeoutSignal(GEMINI_CONTEXT_CACHE_TIMEOUT_MS);
+  try {
+    const url = new URL(`${GEMINI_API_BASE}/${name}`);
+    url.searchParams.set("key", apiKey);
+    await fetch(url.toString(), { method: "DELETE", signal: timeout.signal });
+  } catch (error) {
+    console.warn("[llm context_cache] delete failed; relying on TTL.", {
+      error: getErrorMessage(error),
+    });
+  } finally {
+    timeout.clear();
+  }
+}
+
+/**
+ * 이 요청에 컨텍스트 캐시를 실제로 쓸 수 있는가.
+ * 하나라도 어긋나면 캐시를 무시하고 지금까지와 완전히 같은 바디를 보낸다(fail-safe).
+ */
+function canUseGeminiContextCache(
+  normalized: ReturnType<typeof normalizeRequest>,
+): normalized is ReturnType<typeof normalizeRequest> & { geminiCachedContent: GeminiContextCache } {
+  const cache = normalized.geminiCachedContent;
+  if (!cache?.name || !cache.prefix) return false;
+  // 멀티모달 입력은 parts 를 통째로 대체하므로 접두사 슬라이스가 성립하지 않는다.
+  if (Array.isArray(normalized.geminiParts) && normalized.geminiParts.length) return false;
+  if (!normalized.prompt.startsWith(cache.prefix)) return false;
+  // 캐시에 구운 systemInstruction 과 지금 보내려는 systemPrompt 가 다르면 지시가 뒤바뀐다.
+  return String(normalized.systemPrompt || "") === String(cache.systemPrompt || "");
+}
+
 async function callGeminiPrimary(
   request: LLMRequest,
   env?: CloudflareEnv,
@@ -440,9 +645,16 @@ async function callGeminiPrimary(
   const model = resolveGeminiModel(normalized, env);
   const endpoint = resolveGeminiEndpoint(normalized, model);
 
+  // 컨텍스트 캐시를 쓸 때만 접두사를 떼고 보낸다. normalized.prompt 자체는 건드리지 않는다 —
+  // 응답 캐시 키(buildCacheKey)와 Workers AI 폴백이 전체 프롬프트를 그대로 봐야 하기 때문이다.
+  const useContextCache = canUseGeminiContextCache(normalized);
+  const promptForGemini = useContextCache
+    ? normalized.prompt.slice(normalized.geminiCachedContent.prefix.length).trimStart()
+    : normalized.prompt;
+
   const parts = Array.isArray(normalized.geminiParts) && normalized.geminiParts.length
     ? normalized.geminiParts
-    : [{ text: normalized.prompt }];
+    : [{ text: promptForGemini }];
 
   const body: Record<string, unknown> = {
     contents: [{ role: "user", parts }],
@@ -457,7 +669,11 @@ async function callGeminiPrimary(
     },
   };
 
-  if (normalized.systemPrompt) {
+  if (useContextCache) {
+    // 🔴 systemInstruction 은 여기서 보내지 않는다 — 캐시가 갖고 있다(createGeminiContextCache).
+    //    함께 보내면 Gemini 가 요청 자체를 거절한다.
+    body.cachedContent = normalized.geminiCachedContent.name;
+  } else if (normalized.systemPrompt) {
     body.systemInstruction = {
       parts: [{ text: normalized.systemPrompt }],
     };
@@ -650,29 +866,52 @@ async function callLLMUncached(
   // timeoutMs 를 독자적으로 다시 배정하면 총 소요시간이 호출자가 준 예산을 넘어 엣지 실행
   // 한도에 걸리고, 그 경우 앱 자체 에러 응답도 환불 처리도 돌지 못한 채 연결이 끊긴다.
   const deadlineAt = Date.now() + resolveTimeoutMs(request.timeoutMs);
+
+  let geminiError: unknown;
   try {
     return await callGeminiWithRetry(request, env, deadlineAt);
-  } catch (geminiError) {
-    if (request.fallbackToWorkersAI === false) {
-      throw geminiError;
-    }
+  } catch (error) {
+    geminiError = error;
+  }
 
-    console.warn("[llm-client] Gemini primary failed. Falling back to Cloudflare Workers AI.", {
+  // 강등 사다리의 중간 단계: Gemini(캐시) → Gemini(무캐시) → Workers AI.
+  // 🔴 이 단계가 없으면 캐시 핸들 하나가 잘못됐을 때 그 웨이브의 전 그룹이 **동시에**
+  //    Workers AI 로 떨어진다. 폴백은 목표 분량의 60~77%만 쓰고 멈추므로 유료 라우트의
+  //    fallbackMinChars 게이트에 걸려 상담 전체가 실패한다. 같은 deadlineAt 을 쓰므로
+  //    예산이 남아 있지 않으면 이 시도는 즉시 실패하고 벽시계를 늘리지 않는다.
+  if (request.geminiCachedContent) {
+    const withoutContextCache: LLMRequest = { ...request };
+    delete withoutContextCache.geminiCachedContent;
+    console.warn("[llm context_cache] reference failed; retrying without the cache.", {
       error: getErrorMessage(geminiError),
-      model: requestModel,
-      apiEndpoint: String(request?.apiEndpoint || request?.endpoint || ""),
       taskType: request.taskType || "general",
     });
-
     try {
-      return await callCloudflareWorkersAI(request, env, deadlineAt);
-    } catch (cloudflareError) {
-      throw new Error(
-        `LLM request failed. Gemini: ${getErrorMessage(geminiError)}; Cloudflare Workers AI: ${getErrorMessage(
-          cloudflareError,
-        )}`,
-      );
+      return await callGeminiWithRetry(withoutContextCache, env, deadlineAt);
+    } catch (error) {
+      geminiError = error;
     }
+  }
+
+  if (request.fallbackToWorkersAI === false) {
+    throw geminiError;
+  }
+
+  console.warn("[llm-client] Gemini primary failed. Falling back to Cloudflare Workers AI.", {
+    error: getErrorMessage(geminiError),
+    model: requestModel,
+    apiEndpoint: String(request?.apiEndpoint || request?.endpoint || ""),
+    taskType: request.taskType || "general",
+  });
+
+  try {
+    return await callCloudflareWorkersAI(request, env, deadlineAt);
+  } catch (cloudflareError) {
+    throw new Error(
+      `LLM request failed. Gemini: ${getErrorMessage(geminiError)}; Cloudflare Workers AI: ${getErrorMessage(
+        cloudflareError,
+      )}`,
+    );
   }
 }
 
