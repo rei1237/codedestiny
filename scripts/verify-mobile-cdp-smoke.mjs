@@ -204,6 +204,94 @@ try {
     await delay(400);
   }
 
+  // ── 중재자를 안 묻던 스택의 회귀 (2026-08-15) ────────────────────────────────
+  // 위 블록은 .moon-preview-card 한 종류만 본다. 그런데 판정 정본을 도입한 #640 은
+  // index.html 4곳과 js/mobile-interaction-patch.js 1곳만 배선했고 js/core/* 는 통째로
+  // 빠져 있었다(그 커밋의 js/core 변경은 전부 캐시키 재스탬프였다). 애니멀 토템 타일은
+  // 그중에서도 완전 무방비였다 — 자체 판정은 TAP_THRESH(10px)뿐이고, 타일에
+  // data-coin-cost·data-tile-lock-cost 가 없어 index.html 의 touchend 게이트 셀렉터
+  // ([data-coin-cost],[data-tile-lock-cost],.rpt-v2-toggle-btn)에도 매칭되지 않았다.
+  //
+  // 🔴 두 단언을 쌍으로 둔다. 오탭을 막는 코드는 언제든 "아무것도 안 열림"으로 넘어가므로
+  //    차단 단언만 두면 죽은 UI 를 초록으로 통과시킨다(2026-08-14 13cc7e6d7 의 교훈).
+  {
+    const totemHomeUrl = `http://127.0.0.1:${server.port}/index.html`;
+    const totemTile = ".tarot-tile--animal-totem";
+    const totemProbe = `(() => {
+      const overlay = document.getElementById('animalTotemOverlay');
+      const sheet = document.getElementById('tilePvwOverlay');
+      const last = window.__cdLastMobileAction || null;
+      return {
+        totemOpen: !!(overlay && (overlay.classList.contains('is-open') || overlay.style.display === 'block')),
+        sheetOpen: !!(sheet && sheet.classList.contains('pvw-open')),
+        lastAction: last ? String(last.action || '') + '@' + String(last.at || '') : '',
+        href: location.href,
+        now: Date.now()
+      };
+    })()`;
+
+    await navigate(cdp, totemHomeUrl);
+    await delay(400);
+    // 컬렉션은 접힌 채 시작한다 — 열어야 타일이 히트 테스트를 받는다.
+    // 셸이 로드 직후 스크롤 위치를 복원하므로(index.html 의 window.scrollTo(0, savedScrollY)),
+    // tapSelector 안의 scrollIntoView 만 믿으면 그 복원에 밀려 좌표가 뷰포트 밖으로 나간다.
+    // 먼저 스크롤을 잡아 두고 충분히 기다린 뒤 탭한다.
+    const animalToggle = '.fc-toggle-btn[data-target="animalCollection"]';
+    await waitForSelector(cdp, animalToggle);
+    await evaluate(cdp, scrollSelectorIntoViewExpression(animalToggle), "scroll animal collection toggle into view");
+    await delay(500);
+    await tapSelector(cdp, animalToggle);
+    await delay(600);
+    await waitForSelector(cdp, totemTile);
+
+    // 🔴 여기에 out-and-back 드래그의 **차단** 단언을 두려다 뺐다. 근거를 남긴다.
+    //
+    // 이 제스처는 시작점에서 손을 떼므로 touchend 뒤에 브라우저가 click 도 쏜다. touchend 경로는
+    // 이 PR 이 배선한 대로 확실히 막히지만(가드를 끄고 재면 250ms 안에 totemOpen:true 로 열린다 —
+    // 실측), 뒤따르는 click 은 중재자의 VERDICT_TTL_MS(700ms, gesture-arbiter.js)에 걸려 있어
+    // 그 창을 넘겨 도착하면 판정이 만료된 채 통과한다. 하네스가 부하를 받으면 그 창을 넘기므로
+    // 단언이 실행마다 뒤집혔다(같은 커밋에서 통과·실패 양쪽 실측).
+    //
+    // 🔴 간헐 실패하는 가드는 없느니만 못하다 — 사람이 재실행으로 넘기는 법을 배우고, 그때부터
+    //    진짜 회귀도 함께 넘어간다. TTL 노출 자체는 이 PR 이 만든 것이 아니라 중재자의 기존
+    //    성질이고, 늘리면 과차단(죽은 UI) 위험이 붙어 검증 없이 손댈 수 없다.
+    //    후속 과제로 넘겼다 — docs/handoff/mobile-fling-catch-arbiter.md.
+    //
+    // 아래 포지티브 컨트롤은 그대로 둔다. 이 PR 이 만들 수 있는 가장 비싼 실수는 과차단이고,
+    // 그걸 잡는 것이 이 단언이다.
+
+    // 🔴 정상 동작 보존 — 스크롤이 멎은 뒤의 의도적 탭은 여전히 열려야 한다.
+    // 앞 단언이 깨진 상태(모달이 열려 버린 상태)에서 이어가면 모달 캔버스가 타일을 덮어
+    // tapSelector 가 throw 하고, throw 는 쌓인 실패 목록을 통째로 잃는다. 항상 새 페이지에서 시작한다.
+    await navigate(cdp, totemHomeUrl);
+    await delay(400);
+    await waitForSelector(cdp, animalToggle);
+    await evaluate(cdp, scrollSelectorIntoViewExpression(animalToggle), "re-scroll animal collection toggle into view");
+    await delay(500);
+    await tapSelector(cdp, animalToggle);
+    await delay(600);
+    await waitForSelector(cdp, totemTile);
+    await delay(500);
+    const beforeTotemTap = await evaluate(cdp, totemProbe, "before totem tap");
+    await tapSelector(cdp, totemTile);
+    let afterTotemTap = beforeTotemTap;
+    for (let i = 0; i < 8; i += 1) {
+      await delay(250);
+      afterTotemTap = await evaluate(cdp, totemProbe, "after totem tap");
+      if (afterTotemTap.totemOpen || afterTotemTap.sheetOpen
+        || afterTotemTap.lastAction !== beforeTotemTap.lastAction) break;
+    }
+    assert(
+      afterTotemTap.totemOpen || afterTotemTap.sheetOpen
+        || afterTotemTap.lastAction !== beforeTotemTap.lastAction,
+      "a deliberate tap on the animal totem tile still opens it",
+      { before: beforeTotemTap, after: afterTotemTap },
+    );
+
+    await navigate(cdp, totemHomeUrl);
+    await delay(400);
+  }
+
   if (!focusAllFortunes) {
   await tapSelector(cdp, ".moon-hero__cta--primary[href=\"/codedestiny-novel.html\"]");
   // 단일 반응형 홈의 주 CTA는 운명 여정으로 이동한다. 정적 셸의 문서 전환은 고정 대기보다 짧은 폴링이 안정적이다.
