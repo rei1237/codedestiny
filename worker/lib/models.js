@@ -1256,6 +1256,14 @@ const sukuyoCompatibilityAiConsultationSchema = new mongoose.Schema({
   messages: { type: [sukuyoCompatibilityAiMessageSchema], default: [] },
   provider: { type: String, default: "", trim: true, maxlength: 80 },
   model: { type: String, default: "", trim: true, maxlength: 120 },
+  // 생성 시작 시점에 시드를 먼저 쓰고 완료/실패에서 뒤집는다(worker/routes/sukuyo-compatibility-ai.js).
+  // 이 필드가 없던 시절에는 findOne 과 create 사이 60~100초가 통째로 중복 생성 창이었다.
+  // 🔴 이 필드 도입 이전 문서에는 status 자체가 없다. 라우트는 없는 값을 "completed" 로 읽어야 한다
+  //    (consultationStatus) — 직접 비교하면 결제된 상담이 빈 시드로 덮인다.
+  // index 를 달지 않은 이유: status 단독으로 조회하는 쿼리가 없고(목록은 {userId, status}),
+  // 달면 autoIndex:false 인 프로덕션에서 verify:mongo-launch-indexes 가 누락으로 잡는다.
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating" },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { timestamps: true, collection: "sukuyoCompatibilityAiConsultations" });
 
 sukuyoCompatibilityAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
