@@ -377,12 +377,17 @@ try {
   const restoredFortunesState = await evaluate(cdp, "({ currentCollection: window.cdMobileCollectionFullscreen?.getCurrent?.() || null, overlayOpen: !!window.cdMobileCollectionFullscreen?.isOpen?.() })", "restored all-fortunes state");
   assert(restoredFortunesState.overlayOpen && restoredFortunesState.currentCollection === "miscCollection", "reopening all-fortunes preserves its selected collection", restoredFortunesState);
 
-  // ── 상세 팝업 → 진입 버튼 구간 ──────────────────────────────────────────────
-  // 여기가 비어 있어서 "카드는 눌리는데 진입 버튼을 누르면 화면이 프리징"을 놓쳤다.
-  // 상세 팝업은 열릴 때 body 자식 전체에 inert 를 걸고 닫을 때 되돌리는데, 열려 있는 채로
-  // _open 이 재진입하면(가격 조회 완료, touchend+pointerup 이중 발화) 이미 true 인 값을
-  // "원래값"으로 다시 스냅샷해 닫는 순간 배경이 inert 로 고착됐다. 화면은 보이고 스크롤도
-  // 되는데 아무것도 안 눌리는 상태라 육안·기존 단언 모두 통과했다.
+  // ── 모바일 직접 진입 구간 (2026-08-15 계약 변경) ────────────────────────────
+  // 🔴 모바일은 이제 카드 탭 = 즉시 진입이다. 기능 상세 팝업(바텀시트)은 데스크톱 전용이 됐고,
+  // 셸이 __cdFeatureMarketingPreviewEnabled 를 false 로 세워 두 생산 지점을 모두 끈다.
+  //
+  // 왜 바꿨나: ①상세 팝업이 있는 타일은 46개고 나머지 44개는 원래 바로 진입해, 같은 자리에서
+  // 같은 동작이 갈렸다 ②유료 타일은 가격 조회가 끝날 때까지 팝업 CTA 가 disabled +
+  // pointer-events:none 이라 "열자마자 누르면 아무 일도 안 일어나는" 창이 있었다.
+  //
+  // 데스크톱 팝업 계약은 scripts/verify-rpt-preview-cta-flow.mjs 가 1280x900 에서 계속 고정한다.
+  // 아래 단언들은 예전 CTA 경로에 걸려 있던 것을 타일 탭 뒤로 옮긴 것이다 — 값은 그대로다:
+  // inert 누수 0, 컬렉션이 접히지 않음, 진입한 기능이 히트 테스트를 소유, 닫기 버튼이 안 덮임.
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await tapSelector(cdp, "#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key=\"fortunes\"]");
   await delay(700);
@@ -405,20 +410,53 @@ try {
 
   await waitForSelector(cdp, GATED_TILE);
   await tapSelector(cdp, GATED_TILE);
-  await delay(500);
-  const afterTileTap = await evaluate(cdp, inertProbe, "after gated fortune tile tap");
-  assert(afterTileTap.sheetOpen, "tapping a gated fortune tile opens the detail sheet", afterTileTap);
+  // 진입은 스크립트 로드를 동반한다. CTA 경로에서 쓰던 대기와 같은 예산을 준다.
+  await delay(2600);
 
-  // 가격 조회가 끝나면서 _open 이 재진입하는 구간. 여기를 지나야 회귀가 재현된다.
-  await delay(1800);
-  await tapSelector(cdp, "#tilePvwClose");
-  await delay(600);
-  const afterSheetClose = await evaluate(cdp, inertProbe, "after detail sheet close");
-  assert(!afterSheetClose.sheetOpen, "the detail sheet closes on its ✕", afterSheetClose);
-  assert(!afterSheetClose.wrapInert && afterSheetClose.stuckInert.length === 0, "closing the detail sheet leaves no inert body child", afterSheetClose);
+  // 🔴 두 단언을 쌍으로 둔다. "시트가 안 뜬다"만 보면 아무것도 안 열리는 상태도 초록이 된다 —
+  //    2026-08-14 13cc7e6d7 이 정확히 그렇게 두 릴리스를 통과했다.
+  const directEntry = await evaluate(cdp, `(() => {
+    const sheetEl = document.getElementById('tilePvwOverlay');
+    const ov = document.getElementById('tarotLoveOverlay');
+    const cs = ov ? getComputedStyle(ov) : null;
+    return {
+      previewFlag: window.__cdFeatureMarketingPreviewEnabled,
+      sheetOpen: !!(sheetEl && sheetEl.classList.contains('pvw-open')),
+      path: location.pathname,
+      scriptLoaded: typeof window.openTarotLoveModal === 'function',
+      inDocument: !!(ov && document.documentElement.contains(ov)),
+      display: cs ? cs.display : null,
+      visibility: cs ? cs.visibility : null,
+      isOpen: !!(ov && ov.classList.contains('is-open'))
+    };
+  })()`, "gated tile tap opens the feature directly");
+  assert(
+    directEntry.previewFlag === false && !directEntry.sheetOpen,
+    "on mobile a gated fortune tile tap does not open the detail sheet",
+    directEntry,
+  );
+  assert(
+    directEntry.scriptLoaded && directEntry.inDocument
+      && directEntry.display !== "none" && directEntry.visibility !== "hidden"
+      && directEntry.isOpen,
+    "a gated fortune tile tap opens the paid feature directly",
+    directEntry,
+  );
+  assert(
+    directEntry.path === "/index.html" || directEntry.path === "/",
+    "direct entry opens in place instead of navigating away",
+    directEntry,
+  );
 
-  // 상세 팝업 ✕ 는 pointerup 에서 시트를 닫는다. 그 뒤 touchend 의 좌표 기반 컬렉션 토글 조회가
-  // 시트가 사라진 자리의 컬렉션 헤더를 집으면, 닫기 한 번에 컬렉션이 접히고 카드가 전부 사라진다.
+  const afterDirectEntry = await evaluate(cdp, inertProbe, "after direct feature entry");
+  assert(
+    !afterDirectEntry.wrapInert && afterDirectEntry.stuckInert.length === 0,
+    "direct entry leaves no inert body child",
+    afterDirectEntry,
+  );
+
+  // 진입 뒤에도 뒤의 컬렉션은 카드와 함께 열려 있어야 한다. 예전에는 상세 팝업 ✕ 의
+  // pointerup 뒤에 오는 touchend 의 좌표 조회가 컬렉션 헤더를 집어 통째로 접혔다.
   const postCloseState = await evaluate(cdp, `(() => {
     const api = window.cdMobileCollectionFullscreen;
     const coll = document.getElementById('tarotCollection');
@@ -434,51 +472,12 @@ try {
       tiles: coll ? coll.querySelectorAll('.tarot-tile').length : -1,
       placeholders: coll ? coll.querySelectorAll('.cd-mobile-card-placeholder').length : -1
     };
-  })()`, "post sheet-close collection state");
+  })()`, "collection state after direct entry");
   assert(
     postCloseState.overlayOpen && postCloseState.collOpenAttr === "true" && postCloseState.tiles > 0,
-    "closing the detail sheet keeps the fortune collection open with its cards",
+    "direct entry keeps the fortune collection open with its cards",
     postCloseState,
   );
-
-  // 진입 버튼(CTA) 경로 — _onCta 는 _close() 를 먼저 부르고 타일을 다시 클릭한다.
-  await delay(700);
-  await waitForSelector(cdp, GATED_TILE);
-  await tapSelector(cdp, GATED_TILE);
-  await delay(2000);
-  await tapSelector(cdp, "#tilePvwCtaBtn");
-  await delay(2600);
-
-  // 🔴 이 단언이 없어서 진입이 완전히 죽은 채로 두 번의 릴리스를 통과했다.
-  // 예전에는 CTA 를 누른 뒤 inert 누수만 봤고, 아래 닫기버튼 검사가 오버레이를 손으로 열어
-  // (style.display='block') 검사했기 때문에, 기능이 아예 안 열려도 스모크는 초록이었다.
-  const ctaEntryOpened = await evaluate(cdp, `(() => {
-    const ov = document.getElementById('tarotLoveOverlay');
-    const cs = ov ? getComputedStyle(ov) : null;
-    return {
-      path: location.pathname,
-      scriptLoaded: typeof window.openTarotLoveModal === 'function',
-      inDocument: !!(ov && document.documentElement.contains(ov)),
-      display: cs ? cs.display : null,
-      visibility: cs ? cs.visibility : null,
-      isOpen: !!(ov && ov.classList.contains('is-open'))
-    };
-  })()`, "detail sheet CTA actually opens the feature");
-  assert(
-    ctaEntryOpened.scriptLoaded && ctaEntryOpened.inDocument
-      && ctaEntryOpened.display !== "none" && ctaEntryOpened.visibility !== "hidden"
-      && ctaEntryOpened.isOpen,
-    "the detail sheet CTA actually opens the paid feature",
-    ctaEntryOpened,
-  );
-  assert(
-    ctaEntryOpened.path === "/index.html" || ctaEntryOpened.path === "/",
-    "entering from the detail sheet opens in place instead of navigating away",
-    ctaEntryOpened,
-  );
-
-  const afterCtaEntry = await evaluate(cdp, inertProbe, "after detail sheet CTA entry");
-  assert(!afterCtaEntry.wrapInert && afterCtaEntry.stuckInert.length === 0, "entering a feature from the detail sheet leaves the page interactive", afterCtaEntry);
 
   // 기능적 증명: 배경이 살아 있어야 모든 운세 ✕ 가 실제로 먹는다.
   const closeStillWorks = await evaluate(cdp, `(() => {
@@ -492,13 +491,13 @@ try {
       topEl: top ? (top.id || top.className || top.tagName) : null
     };
   })()`, "all-fortunes close reachability after feature entry");
-  assert(!closeStillWorks.present || closeStillWorks.hits, "the opened feature owns the hit test after entering from the detail sheet", closeStillWorks);
+  assert(!closeStillWorks.present || closeStillWorks.hits, "the opened feature owns the hit test after direct entry", closeStillWorks);
 
   // "우리는 무슨 사이?" 닫기 버튼 — .tarot-love-hero 가 position:relative 로 DOM 상 뒤에 와서
   // 둘 다 z-index:auto 면 히어로가 버튼 위에 그려진다(모바일에서 48px 중 38px 가 덮였다).
   const tarotLoveClose = await evaluate(cdp, `(() => {
     document.querySelectorAll('link[rel="stylesheet"][media="print"]').forEach((l) => { l.media = 'all'; });
-    // 🔴 오버레이를 손으로 열지 않는다 — 위 CTA 진입이 실제로 연 상태를 그대로 검사해야
+    // 🔴 오버레이를 손으로 열지 않는다 — 위 타일 탭이 실제로 연 상태를 그대로 검사해야
     // "진입은 죽었는데 닫기버튼만 초록"인 예전 구멍이 되살아나지 않는다.
     const ov = document.getElementById('tarotLoveOverlay');
     if (!ov) return { present: false };

@@ -235,7 +235,7 @@ const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
 // SHA-256(js/mobile-interaction-patch.js) prefix. Keep it independent of the
 // general shell cache key so a mobile bridge-only hotfix cannot be served from
 // a previously cached query URL.
-const MOBILE_INTERACTION_PATCH_CACHE_KEY = "build-8c683c6dc4da";
+const MOBILE_INTERACTION_PATCH_CACHE_KEY = "build-4c31b34a2ffe";
 const CACHE_KEY_SOURCE_FILES = [
   "index.html",
 ];
