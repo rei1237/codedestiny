@@ -14,6 +14,11 @@ export interface LLMCacheConfig {
   // 검증에서 떨어진 응답도 저장되는데, 그 뒤 재시도가 같은 키로 같은 실패를 반복한다.
   // 쓰기를 살려 두면 성공한 재시도가 그 키를 덮어써 스스로 낫는다.
   skipRead?: boolean;
+  // 공백 제외 이 길이에 못 미치는 응답은 저장하지 않는다. truncated 와 같은 이유다 —
+  // 잘리지는 않았지만 분량 계약에 못 미치는 응답이 TTL 동안 굳으면, 라우트가 실패로 판정한 뒤
+  // 사용자가 재생성해도 같은 키에서 같은 미달 결과를 다시 받는다.
+  // 관례는 그 호출의 미달 판정 문턱(fallbackMinChars 가 아니라 목표 분량)과 같은 값이다.
+  minChars?: number;
 }
 
 const DEFAULT_TTL_SECONDS = 30 * 24 * 60 * 60;
@@ -147,7 +152,11 @@ export async function withLLMCache(
 
   // 3. 캐시 저장 (결정적 호출만, best-effort). 응답을 지연시키지 않도록 상한을 둔다.
   // 잘린 응답(truncated)은 저장하지 않는다 — TTL 동안 잘린 텍스트가 고정되는 것을 방지.
-  if (deterministic && store && result?.text && !result.truncated) {
+  // 같은 이유로 minChars 미달 응답도 저장하지 않는다(공백 제외 기준 — rejectShortFallback 과 동일).
+  const minChars = Number(config?.minChars) > 0 ? Number(config.minChars) : 0;
+  const longEnough = minChars <= 0
+    || String(result?.text || "").replace(/\s+/g, "").length >= minChars;
+  if (deterministic && store && result?.text && !result.truncated && longEnough) {
     try {
       await withTimeout(
         store.set(cacheKey, result, ttlSeconds).catch((error) => {

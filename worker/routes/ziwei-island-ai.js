@@ -521,7 +521,7 @@ async function generatePalaceText(env, prompt, options = {}) {
   const timeoutMs = clampSyncLlmTimeoutMs(Number(env?.ZIWEI_ISLAND_TIMEOUT_MS) || 120000);
   const baseTokens = options.maxOutputTokens || PALACE_CONSULT_MAX_OUTPUT_TOKENS;
   const ai = await callGeminiJsonWithRetry(env, prompt, {
-    systemPrompt: buildSystemPrompt(), taskType: "fortune", temperature: 0.72, timeoutMs, cache,
+    systemPrompt: buildSystemPrompt(), taskType: "fortune", temperature: 0.72, timeoutMs, cache, attempts: 2,
     baseTokens, capTokens: Math.round(baseTokens * 1.3), responseMimeType: "application/json", fallbackMinChars: 600,
   });
   const provider = clean(ai?.provider || ai?.model || "gemini");

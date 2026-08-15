@@ -18,6 +18,7 @@ import {
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
+import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
@@ -3799,6 +3800,18 @@ async function generateFortuneTeaGroup(env, { request, fallback, group, consulta
       responseMimeType: "application/json",
       // 그룹 최소 분량 × 0.4. 통짜 시절의 600 은 그룹 단위에서 아무것도 막지 못한다.
       fallbackMinChars: Math.round(group.minChars * 0.4),
+      // 이 라우트는 캐시도 in-flight dedup 도 없어 같은 입력의 재요청이 전 그룹을 다시 생성했다.
+      // 웨이브 2 의 재생성은 attempt 와 qualityHint 가 프롬프트·temperature 를 함께 바꾸므로
+      // 실패한 시도의 응답이 같은 키를 차지하지 않는다.
+      // minChars: 그룹 목표에 못 미친 응답은 저장하지 않는다 — 저장하면 웨이브 2 가 판정한
+      // 미달 결과가 30일간 같은 키에서 재현된다.
+      cache: {
+        store: createLlmCacheStore(env),
+        deterministic: true,
+        ttlSeconds: 30 * 24 * 60 * 60,
+        keyExtra: `tea-house-${consultationMode}-${group.key}-v1`,
+        minChars: group.minChars,
+      },
     });
     // lib/llm-client.ts 는 Gemini 타임아웃 뒤 Workers AI 폴백을 타임아웃 없이 돌린다.
     // 그 경로가 예산을 넘겨 엣지 컷을 유발하지 않도록 하드 레이스를 건다.
