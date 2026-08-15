@@ -538,6 +538,9 @@ const checkoutFunnelEventSchema = new mongoose.Schema({
   coinPrice: { type: Number, default: 0, min: 0 },
   hasPassHint: { type: String, default: "", trim: true, maxlength: 20 },
   dwellMs: { type: Number, default: 0, min: 0 },
+  // checkout_pg_opened 전용. 클릭→PG창 단계 소요를 "checkout=812ms sdk=3ms …" 로 담는다.
+  // 개인식별자가 아니며, 이 컬렉션의 90일 TTL 을 그대로 따른다.
+  steps: { type: String, default: "", trim: true, maxlength: 120 },
   createdAt: { type: Date, default: Date.now },
 }, { collection: "checkout_funnel_events", versionKey: false });
 

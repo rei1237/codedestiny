@@ -37,6 +37,11 @@
     pass_verified_free: true,
     pass_store_entered: true,
     checkout_dismissed: true,
+    // 🔴 "PG 결제창이 느리다"를 추측 없이 판정하기 위한 단계 계측(2026-08-15).
+    // 셸·dp 는 예전부터 checkout/sdk/config/customer 소요를 재고 있었지만 console.info 로만 남겨,
+    // 사용자가 DevTools 를 열어 복사해 주지 않으면 아무도 볼 수 없었다 — 그래서 한 번도 측정되지
+    // 않았다. 같은 값을 이미 있는 퍼널 채널로 흘려보내 프로덕션에서 저절로 모이게 한다.
+    checkout_pg_opened: true,
   };
 
   function text(value) {
@@ -391,6 +396,9 @@
         coinPrice: Math.max(0, Math.floor(Number((payload && payload.coinPrice) || 0))),
         hasPassHint: text(payload && payload.hasPassHint),
         dwellMs: Math.max(0, Math.floor(Number((payload && payload.dwellMs) || 0))),
+        // 클릭→PG창 단계 소요. "checkout=812ms sdk=3ms config=0ms customer=0ms" 형태의 짧은 문자열이고
+        // 개인식별자가 없다(이 채널의 계약 그대로). 총합은 dwellMs 로 따로 싣는다.
+        steps: text(payload && payload.steps).slice(0, 120),
         runtime: shouldUseAppStoreEntry() ? "app" : "web",
       });
       // 같은 이벤트를 GA4 로도 흘려보낸다. 1st-party 적재(위 fetch)는 읽는 경로가 아직 없어

@@ -7171,6 +7171,8 @@ const CHECKOUT_FUNNEL_EVENT_NAMES = new Set([
   "pass_verified_free",
   "pass_store_entered",
   "checkout_dismissed",
+  // 클릭→PG창 단계 소요(steps). 계측이 콘솔에만 있어 "결제창이 느리다"를 한 번도 재지 못했다.
+  "checkout_pg_opened",
 ]);
 const CHECKOUT_FUNNEL_MAX_BODY_BYTES = 1024;
 
@@ -7218,6 +7220,7 @@ async function handleCheckoutFunnelEvent(request, env, ctx = null) {
         coinPrice: clampFunnelNumber(body?.coinPrice, 1000000),
         hasPassHint: clampFunnelText(body?.hasPassHint, 20),
         dwellMs: clampFunnelNumber(body?.dwellMs, 24 * 60 * 60 * 1000),
+        steps: clampFunnelText(body?.steps, 120),
         createdAt: new Date(),
       });
     }, FUNNEL_EVENT_DB_OPERATION_OPTIONS).catch(() => {});
