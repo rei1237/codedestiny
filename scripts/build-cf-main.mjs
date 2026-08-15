@@ -24,6 +24,11 @@ const steps = [
   { command: npmCommand, args: npmArgs(["run", "clean:build"]) },
   { command: npmCommand, args: npmArgs(["run", "sync:public"]) },
   { command: npmCommand, args: npmArgs(["run", "sitemap:generate"]) },
+  // 🔴 sitemap 과 함께 돌아야 한다. 여기 없던 동안 rss.xml 의 lastBuildDate 가 2026-05-06 에
+  // 멈춰 있었고(sitemap 은 2026-08-15) 네이버 서치어드바이저에 제출할 피드가 3개월 낡아 있었다.
+  // `seo:generate`(sitemap && rss)로 합치지 않는 이유: 스텝 하나가 npm 을 두 번 spawn 하면
+  // 종료코드로 어느 쪽이 죽었는지 구분할 수 없다.
+  { command: npmCommand, args: npmArgs(["run", "rss:generate"]) },
   { command: npmCommand, args: npmArgs(["run", "verify:public-parity"]) },
   { command: npmCommand, args: npmArgs(["run", "i18n:check"]), optional: true },
   { command: npmCommand, args: npmArgs(["run", "verify:locale-main-sync"]) },

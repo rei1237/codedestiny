@@ -125,7 +125,10 @@ async function fetchInsightsFromApi() {
 
   while (hasMore && page <= 200 && out.length < MAX_ITEMS * 2) {
     const url = `${INSIGHTS_API_BASE_URL}/api/insights?sort=latest&pageSize=50&page=${page}&excludeNoIndex=1`;
-    const response = await fetch(url, { method: "GET" });
+    // 🔴 타임아웃 없이 두면 안 된다 — 이 생성기는 빌드 파이프라인(build-cf-main.mjs)에서 돌고,
+    // 프로덕션 API 가 느린 순간에 응답을 무한정 기다리면 배포 잡이 워크플로 timeout 까지 매달린다.
+    // 호출자가 실패를 삼키므로(main() 의 .catch(() => [])) 끊기면 소스 파싱 폴백으로 넘어간다.
+    const response = await fetch(url, { method: "GET", signal: AbortSignal.timeout(10_000) });
     if (!response.ok) break;
 
     const data = await response.json().catch(() => ({}));
@@ -145,11 +148,50 @@ async function fetchInsightsFromApi() {
   return out;
 }
 
+/**
+ * 사이트맵에 실재하는 `/insights/<slug>` 만 남긴다.
+ *
+ * 🔴 이 필터가 없으면 죽은 URL 을 피드로 내보낸다. `/api/insights`(MongoDB)에는 정적 페이지가
+ * 생성되지 않은 문서가 섞여 있어서, 2026-08-15 실측 기준 51개 중 14개가 404 였다
+ * (예: /insights/compatibility-reading-ethics, /insights/day-master-survival-winning-strategy).
+ * 같은 사고로 `sitemap-insights.xml` 이 2026-07 에 제거됐다 — 피드는 사이트맵의 부분집합이어야 한다.
+ *
+ * 사이트맵은 build-cf-main.mjs 에서 이 생성기 바로 앞 스텝(`sitemap:generate`)이 만든다.
+ */
+function filterToSitemapArticles(articles) {
+  const sitemapPath = resolve(rootDir, "sitemap.xml");
+  let sitemap;
+  try {
+    sitemap = readFileSync(sitemapPath, "utf8");
+  } catch {
+    throw new Error("[rss] sitemap.xml 이 없다 — `npm run sitemap:generate` 를 먼저 돌려야 한다. 걸러지지 않은 피드는 내보내지 않는다.");
+  }
+
+  const sitemapSlugs = new Set(
+    [...sitemap.matchAll(/<loc>[^<]*\/insights\/([^/<]+)\/?<\/loc>/g)].map((match) => decodeURIComponent(match[1])),
+  );
+  if (sitemapSlugs.size === 0) {
+    throw new Error("[rss] sitemap.xml 에서 /insights/<slug> 를 하나도 찾지 못했다 — 파서가 깨졌다.");
+  }
+
+  const kept = articles.filter((article) => sitemapSlugs.has(article.slug));
+  const dropped = articles.length - kept.length;
+  if (kept.length === 0) {
+    throw new Error(`[rss] 사이트맵과 겹치는 기사가 0건이다(입력 ${articles.length}건) — 슬러그 규칙이 어긋났다.`);
+  }
+  if (dropped > 0) {
+    console.log(`[rss] 사이트맵에 없는 기사 ${dropped}건 제외 (입력 ${articles.length} → 발행 ${kept.length})`);
+  }
+  return kept;
+}
+
 async function main() {
   const fromApi = await fetchInsightsFromApi().catch(() => []);
-  const articles = fromApi.length > 0
-    ? fromApi
-    : parseArticlesFromSource(readFileSync(insightsSourcePath, "utf8"));
+  const articles = filterToSitemapArticles(
+    fromApi.length > 0
+      ? fromApi
+      : parseArticlesFromSource(readFileSync(insightsSourcePath, "utf8")),
+  );
 
   const xml = buildRssXml(articles);
   const insightsXml = xml.replace(FEED_URL, INSIGHTS_FEED_URL);
