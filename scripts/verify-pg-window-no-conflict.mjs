@@ -353,6 +353,21 @@ await check("셸 게이트가 멱등키 스코프를 재제안 루프 바깥에�
   }
 });
 
+/* ⑨ 결제창을 거치지 않은 단건 실행은 코어가 물리적으로 거절한다 ────────────────────────
+   결제 정책 4번(단건은 사용자가 결제창에서 '단건'을 고른 뒤에만 실행)을 셸은 하드 스로우로 강제하는데
+   이 코어에는 없어서, 이 함수를 직접 부르면 결제창 없이 주문이 나갔다. App Router 유료 기능 전체가
+   타는 코어라 그 구멍이 더 넓다. */
+await check("결제창 선택 확인 없이 부르면 checkout 이 나가지 않는다", async () => {
+  const { window, calls } = bootRuntime({
+    routes: { "/api/billing/checkout": () => jsonResponse(200, { ok: true, data: { order: ORDER } }) },
+  });
+  let threw = false;
+  await runCheckout(window, { __cdDirectPaymentChoiceConfirmed: false }).catch(() => { threw = true; });
+  await flush(40);
+  if (!threw) throw new Error("결제창 확인 없이도 통과했다");
+  assertEqual(checkoutCalls(calls).length, 0, "결제창을 거치지 않았는데 주문이 나갔다");
+});
+
 if (failures.length) {
   console.error(`\n[verify-pg-window-no-conflict] 실패 ${failures.length}건`);
   for (const failure of failures) console.error(`  · ${failure}`);

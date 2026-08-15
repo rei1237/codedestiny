@@ -256,8 +256,12 @@ function hasFeatureDrift(order, product) {
     && String(order.featureKey) !== String(product.featureKey));
 }
 
-/** 세대 0 은 원본 키 그대로 — 배포 시점에 살아 있는 PENDING 주문이 그대로 이어진다. */
-function generationKey(idempotencyKey, generation) {
+/**
+ * 세대 0 은 원본 키 그대로 — 배포 시점에 살아 있는 PENDING 주문이 그대로 이어진다.
+ * 🔴 이용권 주문(passes.js)도 같은 사다리를 쓴다. 구현을 두 벌 두면 한쪽만 고쳐 두 상품의
+ * 멱등 계약이 갈라진다(셸·dp 코어가 실제로 그렇게 갈라져 있었다).
+ */
+export function generationKey(idempotencyKey, generation) {
   return generation === 0 ? idempotencyKey : `${idempotencyKey}#${generation}`;
 }
 
@@ -275,7 +279,7 @@ export const MAX_ORDER_GENERATIONS = 3;
  * 결제창이 열리기 전이고 새 merchantUid = 새 PortOne paymentId 이므로 이중결제 위험은 없다 —
  * 위 머리주석이 세대 승격을 정당화한 논리 그대로다.
  */
-function terminalGenerationKey(idempotencyKey) {
+export function terminalGenerationKey(idempotencyKey) {
   const suffix = crypto.randomUUID().replace(/-/g, "").slice(0, 12);
   return `${idempotencyKey}#x${suffix}`;
 }

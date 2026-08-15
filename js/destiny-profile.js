@@ -4189,7 +4189,7 @@
       if (choice === 'monthly') _dpSetPaymentPending(true, '월정석 잔량으로 콘텐츠 이용 권한을 확인하고 있습니다.', 'monthly');
       // [regression-guard] Moonlight settles server-side immediately so a wait overlay is correct there;
       // single payment shows NO wait UI until the PG window is open.
-      var payload = choice === 'monthly' ? await _dpRunMonthlyCreditFromMainGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId })) : await window._cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, forceDirectPayment: true, internalMainGate: true }));
+      var payload = choice === 'monthly' ? await _dpRunMonthlyCreditFromMainGate(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId })) : await window._cdRunDirectKrwCheckout(Object.assign({}, opts, { title: title, coinPrice: coinPrice, cost: coinPrice, requestId: requestId, forceDirectPayment: true, internalMainGate: true, __cdDirectPaymentChoiceConfirmed: true }));
       // 월정석 완료 프레임 표시(단건은 _cdRunDirectKrwCheckout 내부에서 이미 표시). 완료 오버레이 표시 중 onGranted(생성)는 병렬 진행.
       if (choice === 'monthly') _dpShowPaymentCompleteOverlay(_dpText('monthlyAppliedOverlay'));
       var txId = _dpPaidPassPayloadTransactionId(payload, requestId);
@@ -4199,6 +4199,14 @@
   }  if (typeof window._cdRunDirectKrwCheckout !== 'function') {
     window._cdRunDirectKrwCheckout = async function(options) {
       var opts = options || {};
+      /* 🔴 셸(index.html _cdRunDirectKrwCheckout)과 같은 자리·같은 가드다. 결제 정책 4번 —
+         "단건 결제는 사용자가 결제창에서 '단건'을 고른 뒤에만 실행" — 을 셸만 물리적으로 강제하고
+         이 코어에는 없어서, 이 함수를 직접 부르면 결제창 없이 주문이 나갈 수 있었다. App Router 유료
+         기능 전체가 타는 코어라 그 구멍이 더 넓다. React 는 자체 결제창에서 단건을 고른 뒤에만
+         이 플래그를 켠다(app/_lib/billing-client.ts: requestedMode === "DIRECT_KRW"). */
+      if (opts.__cdDirectPaymentChoiceConfirmed !== true) {
+        throw new Error('단건결제는 결제 방식 선택창에서 단건결제를 선택한 뒤에만 열 수 있습니다.');
+      }
       var _dpDirectBuilt = _dpBuildDirectCheckoutPayload(opts);
       var checkoutPayload = _dpDirectBuilt.checkoutPayload;
       var coinPrice = _dpDirectBuilt.coinPrice;
@@ -4888,6 +4896,7 @@
               forceDirectPayment: true,
               internalMainGate: true,
               __cdPaymentGateAuthorized: true,
+              __cdDirectPaymentChoiceConfirmed: true,
               checkoutPayload: {
                 paymentMode: 'DIRECT_KRW',
                 reportType: optionBag.reportType,
@@ -4975,6 +4984,7 @@
             forceDirectPayment: true,
             internalMainGate: true,
             __cdPaymentGateAuthorized: true,
+            __cdDirectPaymentChoiceConfirmed: true,
             checkoutPayload: {
               paymentMode: 'DIRECT_KRW',
             },
@@ -5253,6 +5263,7 @@
             forceDirectPayment: true,
             internalMainGate: true,
             __cdPaymentGateAuthorized: true,
+            __cdDirectPaymentChoiceConfirmed: true,
             checkoutPayload: {
               productId: unlockProductId,
               paymentMode: 'DIRECT_KRW'
@@ -6391,6 +6402,7 @@
       forceDirectPayment: true,
       internalMainGate: true,
       __cdPaymentGateAuthorized: true,
+      __cdDirectPaymentChoiceConfirmed: true,
       checkoutPayload: Object.assign({}, base, {
         paymentType: 'digital_content',
         paymentMode: 'DIRECT_KRW',
@@ -11253,6 +11265,7 @@
         forceDirectPayment: true,
         internalMainGate: true,
         __cdPaymentGateAuthorized: true,
+        __cdDirectPaymentChoiceConfirmed: true,
         checkoutPayload: {
           categoryKey: optionBag.categoryKey,
           subFeatureKey: optionBag.subFeatureKey,

@@ -42,6 +42,11 @@ on:
       - "worker/routes/profile.js"
       - "app/_lib/billing-client.ts"
       - "app/hooks/useCoinGate.ts"
+      # 🔴 이용권 상점 클라이언트. verify:billing-pass-policy 와 verify:portone-single-payment 이 이 파일을
+      #    실제로 열어 검사하는데 트리거에는 없었다 — "가드가 보는 파일은 그 가드를 부르는 워크플로
+      #    트리거 paths 에도 있어야 한다"(CLAUDE.md 원칙 10)를 그대로 어긴 구멍이다. 여기만 고친 PR 은
+      #    이용권 결제 UI 를 바꿔도 결제 게이트가 깨어나지 않았다.
+      - "app/points/PointsClient.tsx"
       - "lib/payment/**"
       - "js/core/access-store.js"
       - "js/core/pass-verdict.js"

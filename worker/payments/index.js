@@ -39,7 +39,7 @@ import {
   buildPassCustomerUid,
   computePassExpiry,
   consumePassCoverage,
-  createPassOrder,
+  createPayablePassOrder,
   evaluatePassCoverage,
   evaluatePassTierTransition,
   presentPassSubscription,
@@ -360,7 +360,10 @@ async function handlePassPrepare({ request, env, ctx, userId, body, withDb }) {
     if (transition.code === "DOWNGRADE_BLOCKED") {
       throw paymentError("SUBSCRIPTION_DOWNGRADE_BLOCKED", "이미 더 높은 등급의 이용권이 활성화되어 있습니다.", { activeTier: transition.activeTier });
     }
-    const created = await createPassOrder(db, { userId, plan, idempotencyKey, paymentMethod });
+    /* 🔴 재사용할 수 없는 주문(다른 플랜·이미 결제됨·취소됨)은 409 가 아니라 **새 세대 주문**으로 답한다
+       (passes.js createPayablePassOrder). /points 는 409 를 새 키로 재시도하지 않고 토스트만 띄워,
+       그 키가 바뀔 때까지 이용권을 살 수 없는 막다른 길이었다. 카드 상품과 같은 계약이다. */
+    const created = await createPayablePassOrder(db, { userId, plan, idempotencyKey, paymentMethod });
     return { order: created, user: userDoc };
   });
   ctx.orderId = String(order.merchantUid || "");
