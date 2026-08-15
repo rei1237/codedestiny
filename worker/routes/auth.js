@@ -2420,16 +2420,10 @@ async function handleRegister(request, env) {
   }
 
   const { name, email, password } = validated.sanitized;
+  // 🔴 번호는 선택이다(2026-08-15 정책). 가입 화면은 더 이상 묻지 않고, 번호가 필요한 시점은
+  // 첫 단건결제 하나뿐이라 거기서 1회 받는다(POST /api/me/payment-phone). 그래도 값이 오면
+  // 계속 저장한다 — 스토어에 이미 배포된 구버전 앱이 여전히 실어 보내기 때문이다.
   const phoneNumber = normalizeKoreanPhoneNumber(body.phoneNumber || body.phone);
-  if (!phoneNumber) {
-    return signupErrorResponse(
-      request,
-      env,
-      400,
-      "invalid_phone_number",
-      "Phone number is required for payment customer information.",
-    );
-  }
 
   try {
     const users = User.collection;
@@ -2565,7 +2559,9 @@ async function handleRegister(request, env) {
   }
 
   // 🔴 키가 없으면 평문으로 폴백하지 않고 가입을 중단한다(fail-closed).
-  // "암호화해서 보관한다"는 가입 화면 문구가 조용히 거짓이 되는 쪽이 더 나쁘다.
+  // "암호화해서 보관한다"는 개인정보처리방침 문구가 조용히 거짓이 되는 쪽이 더 나쁘다.
+  // 번호가 비어 있으면 encryptPhoneNumber 가 키를 만지기 전에 ""를 돌려주므로(pii-crypto.js:82),
+  // 번호 없는 일반 가입은 이 catch 에 걸리지 않는다 — 키 문제로 막히는 것은 번호를 실어 보낸 요청뿐이다.
   let storedPhoneNumber = "";
   try {
     storedPhoneNumber = await encryptPhoneNumber(phoneNumber, env);
@@ -4345,18 +4341,10 @@ async function handleOAuthCompleteSignup(request, env) {
     return signupErrorResponse(request, env, 400, "invalid_name", "Name must be at least 2 characters.");
   }
 
-  // 이메일 가입(handleRegister)과 같은 기준으로 번호를 받는다. 소셜만 면제하면 그 계정들은
-  // 첫 단건결제 때 별도 입력 단계를 타야 하고, 그 저장이 실패하면 결제가 그대로 막힌다.
+  // 이메일 가입(handleRegister)과 같은 기준 — 번호는 선택이다(2026-08-15 정책).
+  // 소셜은 공급자가 주면 그 값이 티켓(profile.phoneNumber)으로 흘러와 아래 findOrCreateSocialUser
+  // 에서 암호화 저장되고, 안 주면 번호 없이 계정이 만들어져 첫 단건결제 때 1회 입력받는다.
   const phoneNumber = normalizeKoreanPhoneNumber(body?.phoneNumber || body?.phone);
-  if (!phoneNumber) {
-    return signupErrorResponse(
-      request,
-      env,
-      400,
-      "invalid_phone_number",
-      "결제에 사용할 휴대폰 번호를 정확히 입력해주세요.",
-    );
-  }
 
   try {
     await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_social_signup_connect_db");

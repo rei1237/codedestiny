@@ -179,15 +179,25 @@ assert.equal(entry.secret, true, "PII_ENC_KEY must be marked as a secret");
 assert.ok(entry.required_in?.includes("production"), "PII_ENC_KEY must be required in production");
 assert.ok(entry.targets?.includes("worker"), "PII_ENC_KEY must target the worker");
 
-// 12. 가입 화면과 개인정보처리방침이 실제 동작(암호화 보관)을 말하는지.
+// 12. 🔴 수집 지점이 하나뿐인지 — 가입 화면은 번호를 받지 않는다(2026-08-15 정책 전환).
+//     예전에는 이 절이 "가입 화면이 암호화 보관을 안내하는지"를 봤다. 정책이 뒤집혔으므로
+//     같은 자리에서 **반대 방향**을 고정한다: 가입 폼에 번호 입력이 되살아나면 실패한다.
+//     번호는 ①소셜 공급자가 준 값 ②첫 단건결제의 입력 모달, 두 경로로만 들어온다.
 const authShellSource = read("app/components/auth/AuthShell.tsx");
-assertContains(authShellSource, "암호화(AES-256)해서 보관해요",
-  "signup phone helper text must state that the number is stored encrypted");
-assertContains(authShellSource, "휴대폰 번호(암호화 보관)",
-  "signup consent summary must state that the number is stored encrypted");
-assertContains(authShellSource, "stored encrypted",
-  "English signup copy must state that the number is stored encrypted");
+for (const forbidden of ["phoneNumber", "phoneHelp", 'type="tel"', "휴대폰 번호"]) {
+  assert.ok(
+    !authShellSource.includes(forbidden),
+    `signup form must not collect a phone number any more (found: ${forbidden})`,
+  );
+}
+
+// 수집을 실제로 하는 지점(결제 모달)이 서버 보관 사실을 알리는지. 가입 화면에서 뺀 고지를
+// 아무 데서도 안 하게 되는 것이 이 전환의 유일한 퇴행 경로다.
+assertContains(read("app/_lib/payment-phone-prompt.ts"), "서버에",
+  "payment-phone prompt must tell the user the number is stored on the server");
 assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "AES-256 방식으로 암호화해 보관합니다",
   "privacy policy must state that the phone number is stored encrypted");
+assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 가입 시 받지 않으며",
+  "privacy policy must state that the phone number is not collected at signup");
 
 console.log("verify-phone-encryption: OK");
