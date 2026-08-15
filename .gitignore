@@ -106,3 +106,19 @@ i18n/.translate-run*.log
 
 # 관상 보정용 사용자 사진 (npm run physio:measure) — 절대 커밋 금지
 calibration/
+
+# ── 2026-08-15 정리 ────────────────────────────────────────────────────────
+# 감사·측정 산출물. 전부 재생성 가능하며(psi/lighthouse/i18n/unused-files 등),
+# scripts/verify-doc-freshness.mjs 가 `reports/` 를 활성 문서에서 참조 금지 경로로 이미 규정한다.
+# scripts/safe-clean-repo.mjs 와 generate-adsense-route-audit.mjs 가 이 디렉터리에 다시 쓰므로
+# 디렉터리 자체는 없어도 되고, 실행 시 새로 만들어진다.
+reports/
+
+# Claude Code 로컬 세션 상태 — 머신마다 다르고 PR 에 들어갈 이유가 없다.
+# 공유 규칙은 .claude/settings.json 에 둔다.
+.claude/settings.local.json
+.claude/worktrees/
+
+# 외부 에이전트/도구의 로컬 스크래치
+.codex-tmp/
+.playwright-mcp/
