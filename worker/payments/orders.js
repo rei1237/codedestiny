@@ -101,52 +101,78 @@ export async function createOrder(db, {
   const orderId = await deriveOrderId(userId, idempotencyKey);
   const now = new Date();
 
-  const result = await db.findOneAndUpdate(
-    Payment,
-    { userId: uid, idempotencyKey: String(idempotencyKey).trim(), paymentType },
-    {
-      $setOnInsert: {
-        userId: uid,
-        merchantUid: orderId,
-        idempotencyKey: String(idempotencyKey).trim(),
-        // 🔴 증빙 조회의 열쇠다. verifyPerUsePayment(nakshatra-paid-access.js)·기능 라우트들이
-        // Payment 를 {requestId}·{idempotencyKey}·{merchantUid}·{impUid} 중 하나로 찾는데, 구
-        // prepare(payments.js)는 이 필드를 썼고 V2 로 넘어오며 빠졌다. 클라이언트가 requestId 와
-        // idempotencyKey 를 다른 값으로 보내면 {requestId} 절이 영영 매칭되지 않는다.
-        requestId: String(requestId || "").trim(),
-        paymentType,
-        accessType: "single_purchase",
-        status: "pending",
-        orderState: "PENDING",
-        paymentAmount: product.priceKRW,
-        expectedChargedPoints: product.priceCoins,
-        chargedPoints: 0,
-        coinPrice: product.priceCoins,
-        membershipCreditCost: product.monthlyCost,
-        featureKey: product.featureKey,
-        productId: product.productId,
-        paymentMethod,
-        source: "prepare",
-        subscriptionTier: "",
-        confirmAttempts: 0,
-        // 가격을 주문 시점에 박아 둔다. 나중에 가격표가 바뀌어도 이 주문의 대조 기준은 흔들리지 않는다.
-        pricingSnapshot: {
-          priceKRW: product.priceKRW,
-          priceCoins: product.priceCoins,
-          monthlyCost: product.monthlyCost,
-          billingType: product.billingType,
-          profileId, contentKey, scope, returnPath,
-          createdAt: now.toISOString(),
+  let result = null;
+  try {
+    result = await db.findOneAndUpdate(
+      Payment,
+      { userId: uid, idempotencyKey: String(idempotencyKey).trim(), paymentType },
+      {
+        $setOnInsert: {
+          userId: uid,
+          merchantUid: orderId,
+          idempotencyKey: String(idempotencyKey).trim(),
+          // 🔴 증빙 조회의 열쇠다. verifyPerUsePayment(nakshatra-paid-access.js)·기능 라우트들이
+          // Payment 를 {requestId}·{idempotencyKey}·{merchantUid}·{impUid} 중 하나로 찾는데, 구
+          // prepare(payments.js)는 이 필드를 썼고 V2 로 넘어오며 빠졌다. 클라이언트가 requestId 와
+          // idempotencyKey 를 다른 값으로 보내면 {requestId} 절이 영영 매칭되지 않는다.
+          requestId: String(requestId || "").trim(),
+          paymentType,
+          accessType: "single_purchase",
+          status: "pending",
+          orderState: "PENDING",
+          paymentAmount: product.priceKRW,
+          expectedChargedPoints: product.priceCoins,
+          chargedPoints: 0,
+          coinPrice: product.priceCoins,
+          membershipCreditCost: product.monthlyCost,
+          featureKey: product.featureKey,
+          productId: product.productId,
+          paymentMethod,
+          source: "prepare",
+          subscriptionTier: "",
+          confirmAttempts: 0,
+          // 가격을 주문 시점에 박아 둔다. 나중에 가격표가 바뀌어도 이 주문의 대조 기준은 흔들리지 않는다.
+          pricingSnapshot: {
+            priceKRW: product.priceKRW,
+            priceCoins: product.priceCoins,
+            monthlyCost: product.monthlyCost,
+            billingType: product.billingType,
+            profileId, contentKey, scope, returnPath,
+            createdAt: now.toISOString(),
+          },
+          createdAt: now,
+          updatedAt: now,
         },
-        createdAt: now,
-        updatedAt: now,
+        // 🔴 impUid 는 unique+sparse 다. 빈 문자열로 넣으면 두 번째 주문부터 전부 충돌한다 — 넣지 않는다.
       },
-      // 🔴 impUid 는 unique+sparse 다. 빈 문자열로 넣으면 두 번째 주문부터 전부 충돌한다 — 넣지 않는다.
-    },
-    { upsert: true, returnDocument: "after" },
-  );
+      { upsert: true, returnDocument: "after" },
+    );
+  } catch (error) {
+    /* 🔴 동시 요청의 패자다. 위 deriveOrderId 주석의 "가드가 2중"이 여기서 값을 치른다 —
+       merchantUid unique 와 부분 유니크 {userId,idempotencyKey,paymentType} **두 면 모두**에서
+       11000 이 날 수 있다. 승자의 문서를 그대로 돌려주는 것이 이 함수의 멱등 계약이다.
 
-  const order = unwrap(result);
+       이걸 잡지 않으면 11000 이 그대로 위로 올라가고, 11000 은 PERMANENT_MONGO_ERROR_CODES
+       (lib/http.js)에 **없어서** error.name "MongoServerError" 가 /^Mongo/ 에 매치된다 →
+       isDbUnavailableError → 503 DB_UNAVAILABLE + Retry-After. 그러면 클라이언트의
+       status>=500 폴백(billing-client.ts shouldOpenRuntimePaymentFallback)이 발동해
+       **결제창이 다시 열린다.** Atlas 는 멀쩡한데 중복키가 DB 장애로 둔갑하던 경로다.
+       형제 정본: moonstone.js reserve() · entitlements.js · webhook.js. */
+    if (Number(error?.code) !== 11000) throw error;
+    result = null;
+  }
+
+  let order = unwrap(result);
+  if (!order) {
+    /* 재조회는 11000 이 났을 때만 도는 **콜드 패스**다 — 정상 경로의 mongoOps 예산(orders 1회)은
+       그대로이고, 이 경로에서만 2회가 된다(payments/db.js makeCountingDb 의 카운터가 실측한다).
+       createPayableOrder 가 세대를 올려 부를 때도 그 세대의 키가 그대로 여기 필터에 쓰인다. */
+    order = unwrap(await db.findOne(Payment, {
+      userId: uid,
+      paymentType,
+      $or: [{ merchantUid: orderId }, { idempotencyKey: String(idempotencyKey).trim() }],
+    }));
+  }
   if (!order) throw paymentError("INTERNAL_ERROR", "주문을 생성하지 못했습니다.", { orderId });
   return order;
 }

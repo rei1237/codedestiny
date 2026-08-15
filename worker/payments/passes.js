@@ -117,39 +117,59 @@ export async function createPassOrder(db, { userId, plan, idempotencyKey, paymen
   const orderId = await derivePassOrderId(userId, idempotencyKey, plan.tier);
   const now = new Date();
 
-  const result = await db.findOneAndUpdate(
-    Payment,
-    { userId: uid, idempotencyKey: String(idempotencyKey).trim(), paymentType: PASS_PRODUCT_TYPE },
-    {
-      $setOnInsert: {
-        userId: uid,
-        merchantUid: orderId,
-        idempotencyKey: String(idempotencyKey).trim(),
-        paymentType: PASS_PRODUCT_TYPE,
-        paymentAmount: plan.wonPrice,
-        expectedChargedPoints: 0,
-        chargedPoints: 0,
-        paymentMethod,
-        status: "pending",
-        orderState: "PENDING",
-        source: "prepare",
-        subscriptionTier: plan.tier,
-        productId: plan.planId,
-        confirmAttempts: 0,
-        metadata: {
-          planId: plan.planId,
-          durationMonths: plan.durationMonths,
-          durationDays: plan.durationDays,
-          productType: plan.productType,
-          currency: "KRW",
+  let result = null;
+  try {
+    result = await db.findOneAndUpdate(
+      Payment,
+      { userId: uid, idempotencyKey: String(idempotencyKey).trim(), paymentType: PASS_PRODUCT_TYPE },
+      {
+        $setOnInsert: {
+          userId: uid,
+          merchantUid: orderId,
+          idempotencyKey: String(idempotencyKey).trim(),
+          paymentType: PASS_PRODUCT_TYPE,
+          paymentAmount: plan.wonPrice,
+          expectedChargedPoints: 0,
+          chargedPoints: 0,
+          paymentMethod,
+          status: "pending",
+          orderState: "PENDING",
+          source: "prepare",
+          subscriptionTier: plan.tier,
+          productId: plan.planId,
+          confirmAttempts: 0,
+          metadata: {
+            planId: plan.planId,
+            durationMonths: plan.durationMonths,
+            durationDays: plan.durationDays,
+            productType: plan.productType,
+            currency: "KRW",
+          },
+          createdAt: now,
+          updatedAt: now,
         },
-        createdAt: now,
-        updatedAt: now,
       },
-    },
-    { upsert: true, returnDocument: "after" },
-  );
-  const order = result && typeof result === "object" && "value" in result && !("_id" in result) ? result.value : result;
+      { upsert: true, returnDocument: "after" },
+    );
+  } catch (error) {
+    /* 🔴 orders.js createOrder 와 **완전히 같은 결함**이었다(2026-08-15). 동시 클릭의 패자가 내는
+       11000 을 잡지 않으면 lib/http.js 가 MongoServerError 를 /^Mongo/ 로 삼켜 503 DB_UNAVAILABLE
+       로 내보내고, 클라이언트의 status>=500 폴백이 결제창을 다시 연다. 이용권 구매도 같은 길을
+       탔다. 승자 문서를 돌려주는 것이 멱등 계약이고, 아래 금액·등급 대조가 그 문서에 그대로
+       적용되므로 다른 플랜의 주문이면 종전대로 IDEMPOTENCY_CONFLICT(409)가 된다. */
+    if (Number(error?.code) !== 11000) throw error;
+    result = null;
+  }
+  let order = result && typeof result === "object" && "value" in result && !("_id" in result) ? result.value : result;
+  if (!order) {
+    // 11000 이 났을 때만 도는 콜드 패스. 정상 경로의 Mongo 왕복 수는 그대로 1회다.
+    // findOne 은 드라이버 7·6 모두 문서를 직접 주므로 위 {value} 되감기가 필요 없다.
+    order = await db.findOne(Payment, {
+      userId: uid,
+      paymentType: PASS_PRODUCT_TYPE,
+      $or: [{ merchantUid: orderId }, { idempotencyKey: String(idempotencyKey).trim() }],
+    });
+  }
   if (!order) throw paymentError("INTERNAL_ERROR", "이용권 주문을 생성하지 못했습니다.", { orderId });
   if (Number(order.paymentAmount) !== Number(plan.wonPrice) || String(order.subscriptionTier || "") !== plan.tier) {
     throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing membership pass preparation.", {
