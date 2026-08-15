@@ -90,6 +90,48 @@ export interface DayRelation {
   detail: string;
 }
 
+/**
+ * 한자 천간·지지 → 오행.
+ *
+ * 오행끼리의 생극 판정은 여기서 다시 구현하지 않는다 — lib/lock-screen-daily-fortune.ts 의
+ * `elementRelation` 이 정본이고 이 파일은 "한자 → 오행" 변환만 책임진다. 그 모듈은 한글
+ * 오행명(목화토금수)을 쓰므로 값도 한글로 맞춘다.
+ */
+const STEM_ELEMENT_HANJA: Record<string, string> = {
+  甲: "목", 乙: "목",
+  丙: "화", 丁: "화",
+  戊: "토", 己: "토",
+  庚: "금", 辛: "금",
+  壬: "수", 癸: "수",
+};
+
+const BRANCH_ELEMENT_HANJA: Record<string, string> = {
+  寅: "목", 卯: "목",
+  巳: "화", 午: "화",
+  申: "금", 酉: "금",
+  亥: "수", 子: "수",
+  辰: "토", 戌: "토", 丑: "토", 未: "토",
+};
+
+/** 일진 간지("辛酉")에서 천간 한 글자를 뽑는다 */
+export function dayStemOf(ilchin: string): string | null {
+  const stem = Array.from(String(ilchin || "").trim())[0];
+  return stem && STEM_ELEMENT_HANJA[stem] ? stem : null;
+}
+
+export function elementOfStem(stem: string): string | null {
+  return STEM_ELEMENT_HANJA[stem] || null;
+}
+
+export function elementOfBranch(branch: string): string | null {
+  return BRANCH_ELEMENT_HANJA[branch] || null;
+}
+
+/** 띠 → 지지. 별자리에는 지지가 없으므로 null 이다. */
+export function branchOfAnimal(animalId: string): string | null {
+  return BRANCH_BY_ANIMAL[animalId] || null;
+}
+
 /** 일진 간지("辛酉")에서 지지 한 글자를 뽑는다 */
 export function dayBranchOf(ilchin: string): string | null {
   const chars = Array.from(String(ilchin || "").trim());

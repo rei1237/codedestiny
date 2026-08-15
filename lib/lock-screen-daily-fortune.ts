@@ -103,7 +103,17 @@ function parseYmd(s?: string | null): { y: number; m: number; d: number } | null
 
 // ── 오행 관계(일진 원소 → 원국 일간 원소) ──────────────────────
 const ELEMENT_ORDER = ["목", "화", "토", "금", "수"]; // 상생 순환
-function elementRelation(dayEl: string, natalEl: string): "생" | "극" | "비화" | "설기" | "재" {
+
+export type ElementRelation = "생" | "극" | "비화" | "설기" | "재";
+
+/**
+ * 두 오행 사이의 생극 관계.
+ *
+ * 🔴 이 판정은 레포에서 여기 한 곳만 구현한다. lib/fortune/fortune-score.ts 가 띠·별자리
+ *    운세 점수를 낼 때 그대로 import 한다 — 같은 규칙을 두 벌로 두면 두 화면이 같은 날
+ *    서로 다른 길흉을 말하게 된다(CLAUDE.md 코딩 원칙 6).
+ */
+export function elementRelation(dayEl: string, natalEl: string): ElementRelation {
   if (dayEl === natalEl) return "비화";
   const di = ELEMENT_ORDER.indexOf(dayEl);
   const ni = ELEMENT_ORDER.indexOf(natalEl);
