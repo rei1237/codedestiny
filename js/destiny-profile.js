@@ -3313,7 +3313,7 @@
       input.inputMode = 'tel';
       input.autocomplete = 'tel';
       input.placeholder = '01012345678';
-      notice.textContent = '입력한 번호는 결제 진행 목적으로만 사용되며 서버에 저장됩니다.';
+      notice.textContent = '입력한 번호는 결제 진행 목적으로만 사용되며 서버에 암호화해 저장됩니다.';
       cancelButton.type = 'button';
       cancelButton.textContent = '취소';
       submitButton.type = 'submit';
