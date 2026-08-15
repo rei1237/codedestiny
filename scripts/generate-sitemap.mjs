@@ -364,19 +364,21 @@ function famousCategorySlug(value) {
 
 function extractFamousSajuRoutes() {
   const source = readFileSync(famousSajuSourcePath, "utf8");
+  // 🔴 5번째 필드는 **생년월일**이다(RawCelebritySeed 튜플: slug, nameKo, category, country, birthDate).
+  // 갱신일 필드는 이 튜플에 애초에 없다. 예전에는 이 값을 `updatedAt` 으로 받아 최대값을
+  // lastmod 로 썼고, 그 결과 가장 늦게 태어난 인물의 생일(2008-04-21)이 아래 13개 URL 의
+  // lastmod 로 나갔다 — 구글에 "18년간 미갱신"으로 신고하던 셈이다. 여기서는 튜플 모양을
+  // 확인하는 앵커로만 쓰고 날짜로는 절대 쓰지 않는다.
   const itemRegex = /\[\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"[^"]+"\s*,\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
   const categoryRoutes = new Set();
   const seen = new Set();
-  let latest = "";
 
   let match;
   while ((match = itemRegex.exec(source)) !== null) {
     const slug = String(match[1] || "").trim();
     const category = String(match[3] || "").trim();
-    const updatedAt = String(match[4] || "").trim();
     if (!slug || seen.has(slug)) continue;
     seen.add(slug);
-    if (updatedAt > latest) latest = updatedAt;
 
     // 상세 페이지(/insights/famous-saju/<slug>)는 사이트맵에 넣지 않는다.
     // app/insights/famous-saju/[slug]/page.tsx 가 전량 noindex 이며, 이름·생일만
@@ -385,11 +387,11 @@ function extractFamousSajuRoutes() {
     if (cSlug) categoryRoutes.add(cSlug);
   }
 
-  const lastmod = normalizeDate(latest) || today;
-
+  // lastmod 를 붙이지 않는다 — 이 라우트들의 실제 갱신 시각을 알 수 있는 소스가 없다.
+  // 아래 조립부의 `route.lastmod || today` 폴백을 타서 다른 라우트와 같은 취급을 받는다.
   return [
-    { path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89, lastmod },
-    ...Array.from(categoryRoutes).map((slug) => ({ path: `/famous-saju/category/${slug}`, changefreq: "weekly", priority: 0.72, lastmod })),
+    { path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89 },
+    ...Array.from(categoryRoutes).map((slug) => ({ path: `/famous-saju/category/${slug}`, changefreq: "weekly", priority: 0.72 })),
   ];
 }
 
