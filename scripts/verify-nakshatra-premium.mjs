@@ -573,10 +573,17 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
     vvip.indexOf("<GenderPrompt") > 0 && vvip.indexOf("<GenderPrompt") < vvip.indexOf("styles.gatePrice"));
   check("VVIP: 성별이 이미 있으면 묻지 않는다", /!birth\.gender && \(/.test(vvip));
 
-  const claudeMd = readFileSync(path.join(repoRoot, "CLAUDE.md"), "utf8");
-  check("CLAUDE.md: PERSISTENT_UNLOCK_KEY_SET 위치가 fortune.js 로 정정됐다",
-    /worker\/routes\/fortune\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(claudeMd)
-    && !/content-unlocks\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(claudeMd));
+  /* 🔴 이 단언은 CLAUDE.md 를 읽고 있었는데, `075a23981`(CLAUDE.md 컨텍스트 분할)이 이 문단을
+     docs/context/payment-gating.md 로 **글자 그대로** 옮겼다. 가드는 따라가지 않아 그때부터
+     main 에서 계속 실패했다 — 지키려던 내용은 멀쩡한데 보는 곳이 낡은 경우다.
+     CLAUDE.md 는 이제 "몰라서 사고가 나는 것"만 두고 결제·잠금 콘텐츠의 상세는 저 문서가 정본이다
+     (CLAUDE.md 의 라우팅 표가 그렇게 가리킨다). **단언 내용은 한 글자도 바꾸지 않는다.**
+     ⚠ 이 문단을 또 옮기면 여기 경로도 함께 옮길 것. */
+  const PAYMENT_GATING_DOC = "docs/context/payment-gating.md";
+  const gatingDoc = readFileSync(path.join(repoRoot, PAYMENT_GATING_DOC), "utf8");
+  check(`${PAYMENT_GATING_DOC}: PERSISTENT_UNLOCK_KEY_SET 위치가 fortune.js 로 정정됐다`,
+    /worker\/routes\/fortune\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(gatingDoc)
+    && !/content-unlocks\.js[^\n]*PERSISTENT_UNLOCK_KEY_SET/.test(gatingDoc));
 }
 
 console.log("\n[11] 일시 503 내성 — 블립에 결제·생성이 죽지 않는가");
