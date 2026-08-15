@@ -302,6 +302,17 @@ function assertNeverThrows(feature, label, run) {
     tokenConstantName: "SUKUYO_SECTION_CAP_TOKENS",
     sourcePath: "worker/routes/sukuyo-compatibility-ai.js",
   });
+
+  // 숙요 generating 신선도 창이 엣지보다 길면, 잘린 좀비 세션이 그동안 재시도를 202로 막는다.
+  // 이 라우트는 동기 생성이라 엣지 컷(100s)을 넘겨 살아남을 수 없으므로 그보다 오래된 generating 은
+  // 진행 중일 수 없다. 창을 늘리면 환급까지 끝난 사용자가 그동안 재생성도 못 하는 상태로 갇힌다.
+  const sukuyoFreshWindow = read("worker/routes/sukuyo-compatibility-ai.js")
+    .match(/const SUKUYO_COMPAT_AI_GENERATING_FRESH_MS = ([^;]+);/);
+  checks += 1;
+  assert(
+    sukuyoFreshWindow && /EDGE_RESPONSE_DEADLINE_MS \+ 20000/.test(sukuyoFreshWindow[1]),
+    `${feature}: SUKUYO_COMPAT_AI_GENERATING_FRESH_MS가 엣지 기준 창(EDGE_RESPONSE_DEADLINE_MS + 20000)이 아니다`,
+  );
 }
 
 // ── 5. 사주 ───────────────────────────────────────────

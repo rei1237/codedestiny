@@ -1,7 +1,7 @@
 import { Lunar, Solar } from "lunar-javascript";
 import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
+import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
@@ -92,6 +92,13 @@ const SUKUYO_SECTION_TIMEOUT_MS = clampSyncLlmTimeoutMs(60000);
 const SUKUYO_SECTION_BODY_MAX_CHARS = 6000;
 const SUKUYO_SECTION_BASE_TOKENS = 8000;
 const SUKUYO_SECTION_CAP_TOKENS = 12000;
+// 이 라우트는 요청 안에서 생성을 끝낸다(백그라운드 waitUntil 없음). 그룹 하나가 최악
+// attempts:2 × 60s = 120s 지만, 그보다 먼저 엣지가 100초에 요청을 끊으므로 엣지 컷이 실질 상한이다.
+// 따라서 엣지 컷 + 저장 마진(20s)보다 오래된 generating 문서는 진행 중일 수 없다 — 그걸 쓴 요청은 이미 죽었다.
+// 창을 이보다 길게 잡으면(astrology 480s / vedic 420s 는 백그라운드 파이프라인 시절 값이다) 아무도
+// 생성하지 않는 동안 재-POST 를 202 로만 돌려보내, 환급까지 끝난 사용자가 재생성도 못 하고 갇힌다.
+// 같은 식의 선례: fortune.js SAJU_AI_PROMPT_STALE_GENERATING_MS · love-secret-ai.js · new-year-ai.js.
+const SUKUYO_COMPAT_AI_GENERATING_FRESH_MS = EDGE_RESPONSE_DEADLINE_MS + 20000;
 
 const MESSAGES = {
   login: "상담을 시작하려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.",
@@ -102,6 +109,8 @@ const MESSAGES = {
   serverFailed: "상담 준비 중 문제가 발생했어요. 결제나 이용권은 차감되지 않았습니다.",
   llmFailed: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
   networkFailed: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
+  generating: "두 사람의 별을 읽어 상담문을 쓰고 있어요. 잠시만 기다려 주세요.",
+  generationInterrupted: "상담 생성이 중간에 끊겼어요. 이용권은 그대로 보존되니 다시 시도해 주세요.",
 };
 
 /** 관리자 CMS 기본값 노출용(worker/lib/cms-prompt-defaults.js). */
@@ -1598,10 +1607,30 @@ function safeSukuyoAnalysisBasis(raw) {
   }
 }
 
+// 🔴 시드가 생기기 전에 저장된 문서에는 status 필드 자체가 없다(스키마에 없었다). 그 문서들은 전부
+// "생성이 끝난 뒤에만" 저장됐으므로 완료로 읽어야 한다. status 를 그대로 비교하면
+// (undefined === "completed") 가 거짓이라 옛 상담이 전부 미완료로 분류되고, 재-POST 가 결제된 본문을
+// 빈 시드(messages: [])로 덮어쓴 뒤 6회 생성을 다시 태운다. 상담문은 사본이 없어 복구도 안 된다.
+// 그래서 status 를 읽는 모든 지점이 이 함수만 쓴다 — doc.status 를 직접 비교하지 말 것.
+function consultationStatus(doc) {
+  return clean(doc?.status) || "completed";
+}
+
+// 창을 넘긴 generating 은 아무도 만들고 있지 않다(그 요청은 엣지 컷에 이미 죽었다).
+// 타임스탬프가 없으면 stale 로 보지 않는다 — 살아 있는 생성을 오판으로 죽이는 쪽이 더 나쁘다.
+function isStaleGenerating(doc) {
+  const stampedAt = doc?.updatedAt || doc?.createdAt;
+  if (!stampedAt) return false;
+  const stampedMs = new Date(stampedAt).getTime();
+  if (!Number.isFinite(stampedMs)) return false;
+  return Date.now() - stampedMs >= SUKUYO_COMPAT_AI_GENERATING_FRESH_MS;
+}
+
 function serializeConsultation(doc) {
   const raw = typeof doc.toObject === "function" ? doc.toObject() : doc;
   return {
     id: String(raw._id || raw.id || ""),
+    status: consultationStatus(raw),
     personA: raw.personA,
     personB: raw.personB,
     sukuyoResult: raw.sukuyoResult,
@@ -1780,7 +1809,21 @@ async function handleStart(request, env) {
   const pending = (async () => {
     await connectDb(env);
     const existing = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
-    if (existing) return json({ ok: true, consultation: serializeConsultation(existing), reused: true });
+    const existingStatus = existing ? consultationStatus(existing) : "";
+    // 완료본(그리고 status 가 없던 옛 문서)은 지금까지처럼 그대로 재사용한다.
+    if (existingStatus === "completed") {
+      return json({ ok: true, consultation: serializeConsultation(existing), reused: true });
+    }
+    // 진행 중 생성에 대한 재-POST 는 재생성하지 않고 202 로 안내한다(클라가 /result 를 폴링한다).
+    // 클라 authFetch 가 22초에 요청을 끊으므로(app/_lib/auth-client.ts) 이 분기는 예외가 아니라
+    // 정상 경로다 — 첫 POST 가 끊긴 뒤 같은 키로 오는 재시도가 여기로 들어온다.
+    if (existingStatus === "generating" && !isStaleGenerating(existing)) {
+      return json(
+        { ok: true, sessionId: String(existing._id), status: "generating", message: MESSAGES.generating },
+        { status: 202 },
+      );
+    }
+    // generation_failed 이거나 창을 넘긴 generating 은 재생성 대상이라 아래로 흘려보낸다.
     const accessHash = await inputHash(normalized);
     logSukyoAi("[Sukyo AI LLM Access Check Start]", {
       route: "/api/sukuyo-compatibility-ai/generate",
@@ -1805,24 +1848,18 @@ async function handleStart(request, env) {
       accessType: access.accessType,
     });
     let calculation;
-    let firstAnswer;
     try {
       calculation = calculateSukuyo(normalized);
-      firstAnswer = normalized.consultationType === "compatibility"
-        // 궁합은 웨이브 1만 만들고 응답한다. 나머지 4웨이브는 /continue 가 이어 받는다 —
-        // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
-        ? await createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation)
-        : await createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation);
-    } catch (genError) {
-      // 선차감된 코인/월정석이 있으면 되돌린 뒤 에러를 전파한다.
-      const restored = await restorePrepaidAccessOnFailure(env, auth, access, genError).catch(() => false);
+    } catch (calcError) {
+      // 아직 시드가 없다 — 뒤집을 문서가 없으므로 기존과 동일하게 환급 후 전파한다.
+      const restored = await restorePrepaidAccessOnFailure(env, auth, access, calcError).catch(() => false);
       logSukyoAi("[Sukyo AI LLM Refund Or Restore]", {
         route: "/api/sukuyo-compatibility-ai/generate",
         requestId: idempotencyKey,
         consultationType: normalized.consultationType,
         restored,
-      }, restored ? null : genError, env);
-      throw genError;
+      }, restored ? null : calcError, env);
+      throw calcError;
     }
     const now = new Date();
     const storedPersonB = normalized.consultationType === "personal" ? {
@@ -1844,42 +1881,141 @@ async function handleStart(request, env) {
       shuku: calculation.sukuyoResult.personBShuku,
       shukuIndex: calculation.personBSukuyo.index,
     };
-    try {
-      const created = await SukuyoCompatibilityAiConsultation.create({
-        userId: auth.userId,
-        idempotencyKey,
-        personA: {
-          name: normalized.personA.name,
-          gender: normalized.personA.gender,
-          birthDate: normalized.personA.birthDate,
-          birthTime: normalized.personA.birthTime,
-          calendarType: normalized.personA.calendarType,
-          isLeapMonth: normalized.personA.isLeapMonth,
-          shuku: calculation.sukuyoResult.personAShuku,
-          shukuIndex: calculation.personASukuyo.index,
+    // 시드 = 완성본에서 messages·provider·model 만 빠진 문서. 계산이 끝난 지금이 스키마상 가능한
+    // 가장 이른 지점이다(personA·personB·sukuyoResult 가 전부 required 라 계산 전에는 못 쓴다).
+    const seedFields = {
+      userId: auth.userId,
+      idempotencyKey,
+      personA: {
+        name: normalized.personA.name,
+        gender: normalized.personA.gender,
+        birthDate: normalized.personA.birthDate,
+        birthTime: normalized.personA.birthTime,
+        calendarType: normalized.personA.calendarType,
+        isLeapMonth: normalized.personA.isLeapMonth,
+        shuku: calculation.sukuyoResult.personAShuku,
+        shukuIndex: calculation.personASukuyo.index,
+      },
+      personB: storedPersonB,
+      sukuyoResult: calculation.sukuyoResult,
+      relationshipType: normalized.relationshipType,
+      topic: normalized.topic,
+      accessType: access.accessType,
+      paymentId: access.paymentId || paymentIdFromBody(body),
+      messages: [],
+      provider: "",
+      model: "",
+      status: "generating",
+      generationError: null,
+    };
+    // 🔴 여기부터 중복 생성 창이 닫힌다. 예전에는 LLM 6회를 다 태운 뒤에야 문서가 생겨서,
+    // 그 60~100초 사이에 들어온 같은 키의 요청이 findOne 에서 아무것도 못 찾고 또 생성했다.
+    let sessionId = "";
+    if (existing) {
+      // 재시드(실패했거나 창을 넘긴 문서). 조건부 갱신이라, 그 사이 다른 isolate 가 먼저 재시드했으면
+      // matchedCount 가 0 이 되어 이중 생성 대신 202 로 합류한다. modifiedCount 는 $set 이 no-op 일 때
+      // 거짓 신호가 되므로 쓰지 않는다.
+      const staleCutoff = new Date(Date.now() - SUKUYO_COMPAT_AI_GENERATING_FRESH_MS);
+      const claimed = await SukuyoCompatibilityAiConsultation.updateOne(
+        {
+          _id: existing._id,
+          userId: auth.userId,
+          $or: [{ status: { $ne: "generating" } }, { updatedAt: { $lt: staleCutoff } }],
         },
-        personB: storedPersonB,
-        sukuyoResult: calculation.sukuyoResult,
-        relationshipType: normalized.relationshipType,
-        topic: normalized.topic,
-        accessType: access.accessType,
-        paymentId: access.paymentId || paymentIdFromBody(body),
-        messages: [
-          { role: "user", content: normalized.question, createdAt: now },
-          { role: "assistant", content: firstAnswer.content, createdAt: now },
-        ],
+        { $set: { ...seedFields, updatedAt: now } },
+      );
+      sessionId = String(existing._id);
+      if (!claimed?.matchedCount) {
+        return json(
+          { ok: true, sessionId, status: "generating", message: MESSAGES.generating },
+          { status: 202 },
+        );
+      }
+    } else {
+      try {
+        const seeded = await SukuyoCompatibilityAiConsultation.create(seedFields);
+        sessionId = String(seeded._id);
+      } catch (seedError) {
+        if (Number(seedError?.code) !== 11000) throw seedError;
+        // 같은 키의 시드를 다른 isolate 가 방금 먼저 넣었다 — 우리는 생성하지 않고 합류한다.
+        // LLM 6회가 실제로 절약되는 지점이다(예전에는 생성이 끝난 뒤에야 이 에러를 만났다).
+        const duplicate = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
+        if (duplicate && consultationStatus(duplicate) === "completed") {
+          return json({ ok: true, consultation: serializeConsultation(duplicate), reused: true });
+        }
+        return json(
+          { ok: true, sessionId: String(duplicate?._id || ""), status: "generating", message: MESSAGES.generating },
+          { status: 202 },
+        );
+      }
+    }
+    let firstAnswer;
+    try {
+      firstAnswer = normalized.consultationType === "compatibility"
+        // 궁합은 웨이브 1만 만들고 응답한다. 나머지 4웨이브는 /continue 가 이어 받는다 —
+        // 20장을 한 요청에 몰면 엣지 100초 컷에 걸려 결제만 되고 결과가 사라진다.
+        ? await createCompatibilityAnswer(env, { ...normalized, idempotencyKey }, calculation)
+        : await createPersonalAnswer(env, { ...normalized, idempotencyKey }, calculation);
+    } catch (genError) {
+      // 선차감된 코인/월정석이 있으면 되돌린 뒤 에러를 전파한다. 환급을 상태 뒤집기보다 먼저 두는 이유:
+      // 이 사이에서 isolate 가 죽으면 "환급 안 됨 + 즉시 재시도 가능"(재과금 위험)보다
+      // "환급됨 + 창(120s)만큼 대기"가 낫다.
+      const restored = await restorePrepaidAccessOnFailure(env, auth, access, genError).catch(() => false);
+      logSukyoAi("[Sukyo AI LLM Refund Or Restore]", {
+        route: "/api/sukuyo-compatibility-ai/generate",
+        requestId: idempotencyKey,
+        consultationType: normalized.consultationType,
+        restored,
+      }, restored ? null : genError, env);
+      // 시드를 지우지 않고 generation_failed 로 뒤집는다 — 그래야 다음 POST 가 202 에 막히지 않고
+      // 재생성으로 떨어진다. 상태 쓰기 실패가 원래 에러를 가리면 안 되므로 삼킨다(창이 안전망이다).
+      await SukuyoCompatibilityAiConsultation.updateOne(
+        { _id: sessionId, userId: auth.userId },
+        {
+          $set: {
+            status: "generation_failed",
+            generationError: {
+              code: clean(genError?.code || "LLM_GENERATION_FAILED", 80),
+              message: clean(genError?.message || genError, 500),
+              at: new Date().toISOString(),
+            },
+          },
+        },
+      ).catch(() => {});
+      throw genError;
+    }
+    const messages = [
+      { role: "user", content: normalized.question, createdAt: now },
+      { role: "assistant", content: firstAnswer.content, createdAt: now },
+    ];
+    const completed = await SukuyoCompatibilityAiConsultation.findOneAndUpdate(
+      { _id: sessionId, userId: auth.userId },
+      {
+        $set: {
+          status: "completed",
+          generationError: null,
+          messages,
+          provider: firstAnswer.provider,
+          model: firstAnswer.model,
+        },
+      },
+      { new: true },
+    ).lean();
+    await recordSuccessfulUsage(auth, idempotencyKey, access, { _id: sessionId }, now);
+    // 문서가 그 사이 사라졌더라도(수동 삭제 등) 이미 만든 결과물은 그대로 배달한다.
+    return json({
+      ok: true,
+      consultation: serializeConsultation(completed || {
+        ...seedFields,
+        _id: sessionId,
+        status: "completed",
+        messages,
         provider: firstAnswer.provider,
         model: firstAnswer.model,
-      });
-      await recordSuccessfulUsage(auth, idempotencyKey, access, created, now);
-      return json({ ok: true, consultation: serializeConsultation(created) });
-    } catch (error) {
-      if (Number(error?.code) === 11000) {
-        const duplicate = await SukuyoCompatibilityAiConsultation.findOne({ userId: auth.userId, idempotencyKey }).lean();
-        if (duplicate) return json({ ok: true, consultation: serializeConsultation(duplicate), reused: true });
-      }
-      throw error;
-    }
+        createdAt: now,
+        updatedAt: new Date(),
+      }),
+    });
   })().catch((error) => {
     const status = Number(error?.status || 500);
     const code = clean(error?.code || "SERVER_ERROR");
@@ -1942,6 +2078,16 @@ async function handleMessage(request, env) {
   await connectDb(env);
   const consultation = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId });
   if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾지 못했습니다." }, { status: 404 });
+  // 시드/실패본에는 이어 붙일 맥락이 없다. 빈 messages 로 만든 프롬프트는 근거 없는 답을 내고,
+  // 그 답이 시드에 append 되어 미완성 문서가 "결과 있는 문서"로 둔갑한다. LLM 호출 앞에서 막는다.
+  // 옛 문서(status 없음)는 completed 로 읽혀 그대로 통과한다.
+  const consultationState = consultationStatus(consultation);
+  if (consultationState === "generating") {
+    return json({ ok: false, sessionId, status: consultationState, reason: "GENERATION_IN_PROGRESS", message: MESSAGES.generating }, { status: 409 });
+  }
+  if (consultationState === "generation_failed") {
+    return json({ ok: false, sessionId, status: consultationState, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 409 });
+  }
   const ai = await callGeminiText(env, buildFollowupPrompt(consultation, content), {
     systemPrompt: await cmsPromptText(env, "sukuyo-compatibility", SYSTEM_PROMPT),
     taskType: "fortune",
@@ -1987,7 +2133,13 @@ async function handleResult(request, env) {
 
   await connectDb(env);
   if (!sessionId) {
-    const rows = await SukuyoCompatibilityAiConsultation.find({ userId: auth.userId })
+    const rows = await SukuyoCompatibilityAiConsultation.find({
+      userId: auth.userId,
+      // 시드(generating)와 실패본은 messages 가 비어 있어 목록에서 빈 줄로 보인다.
+      // $nin 은 필드가 없는 문서도 매칭하므로 status 가 없던 옛 문서는 그대로 남는다 —
+      // 🔴 여기를 status: "completed" 양성 매칭으로 바꾸면 기존 사용자의 목록이 통째로 사라진다.
+      status: { $nin: ["generating", "generation_failed"] },
+    })
       .sort({ updatedAt: -1 })
       .limit(10)
       .select("personA.name personA.shuku personB.name personB.shuku sukuyoResult.relationType relationshipType createdAt updatedAt")
@@ -2013,6 +2165,29 @@ async function handleResult(request, env) {
   }
   const consultation = await SukuyoCompatibilityAiConsultation.findOne({ _id: sessionId, userId: auth.userId }).lean();
   if (!consultation) return json({ ok: false, reason: "NOT_FOUND", message: "상담 내역을 찾지 못했습니다." }, { status: 404 });
+  const status = consultationStatus(consultation);
+  if (status === "generating") {
+    // 창을 넘긴 generating 은 아무도 만들고 있지 않다. 202 를 계속 돌려주면 폴링이 상한까지 헛돌므로
+    // 종결 신호를 준다. 🔴 503 이 아니라 409 여야 한다 — isRetriableResultPollFailure
+    // (app/_lib/consultationResultPolling.ts)가 503 을 전부 재시도로 읽고, 이 라우트의 래퍼도
+    // 진짜 DB 장애에 이미 503 을 쓰고 있어 둘이 구분되지 않는다.
+    if (isStaleGenerating(consultation)) {
+      return json({
+        ok: false,
+        sessionId,
+        status: "generating",
+        reason: "GENERATION_INTERRUPTED",
+        message: MESSAGES.generationInterrupted,
+      }, { status: 409 });
+    }
+    return json(
+      { ok: true, sessionId, status: "generating", message: MESSAGES.generating },
+      { status: 202, headers: { "Retry-After": "3" } },
+    );
+  }
+  if (status === "generation_failed") {
+    return json({ ok: false, sessionId, status, reason: "LLM_FAILED", message: MESSAGES.llmFailed }, { status: 503 });
+  }
   return json({ ok: true, consultation: serializeConsultation(consultation) });
 }
 
@@ -2074,4 +2249,10 @@ export const __sukuyoCompatibilityAiTestUtils = {
   SUKUYO_SECTION_GROUPS,
   SUKUYO_COMPATIBILITY_TARGET_MIN_CHARS,
   SUKUYO_COMPATIBILITY_TARGET_MAX_CHARS,
+  SUKUYO_COMPAT_AI_GENERATING_FRESH_MS,
+  consultationStatus,
+  isStaleGenerating,
+  // 테스트 전용: 두 요청이 서로 다른 isolate 에 떨어진 상황을 재현한다. 이 훅이 없으면 인메모리
+  // startLocks 가 두 번째 요청을 먹어 DB 경로를 한 번도 안 밟고, 테스트가 통과하면서 아무것도 증명하지 못한다.
+  clearStartLocks: () => startLocks.clear(),
 };
