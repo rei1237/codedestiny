@@ -127,6 +127,59 @@
 /fortune/tomorrow/rooster.html /fortune/tomorrow/rooster/ 301
 /fortune/tomorrow/dog.html     /fortune/tomorrow/dog/    301
 /fortune/tomorrow/pig.html     /fortune/tomorrow/pig/    301
+
+# 2026-08-16 /fortune/{weekly,monthly}/*.html 48개도 App Router 라우트로 이전했다.
+# 구 셸은 js/fortune-engine.js 의 getDateStr 이 weekly/monthly 를 분기하지 않아
+# today 와 같은 일일 JSON 을 읽었다 — 네 기간의 본문이 100% 같았다는 뜻이다.
+# 신규 라우트는 주간=7일 일진 지도, 월간=월건·절기·삭망으로 축 자체가 다르다.
+/fortune/weekly/aries.html     /fortune/weekly/aries/    301
+/fortune/weekly/taurus.html    /fortune/weekly/taurus/   301
+/fortune/weekly/gemini.html    /fortune/weekly/gemini/   301
+/fortune/weekly/cancer.html    /fortune/weekly/cancer/   301
+/fortune/weekly/leo.html       /fortune/weekly/leo/      301
+/fortune/weekly/virgo.html     /fortune/weekly/virgo/    301
+/fortune/weekly/libra.html     /fortune/weekly/libra/    301
+/fortune/weekly/scorpio.html   /fortune/weekly/scorpio/  301
+/fortune/weekly/sagittarius.html /fortune/weekly/sagittarius/ 301
+/fortune/weekly/capricorn.html /fortune/weekly/capricorn/ 301
+/fortune/weekly/aquarius.html  /fortune/weekly/aquarius/ 301
+/fortune/weekly/pisces.html    /fortune/weekly/pisces/   301
+/fortune/weekly/rat.html       /fortune/weekly/rat/      301
+/fortune/weekly/ox.html        /fortune/weekly/ox/       301
+/fortune/weekly/tiger.html     /fortune/weekly/tiger/    301
+/fortune/weekly/rabbit.html    /fortune/weekly/rabbit/   301
+/fortune/weekly/dragon.html    /fortune/weekly/dragon/   301
+/fortune/weekly/snake.html     /fortune/weekly/snake/    301
+/fortune/weekly/horse.html     /fortune/weekly/horse/    301
+/fortune/weekly/goat.html      /fortune/weekly/goat/     301
+/fortune/weekly/monkey.html    /fortune/weekly/monkey/   301
+/fortune/weekly/rooster.html   /fortune/weekly/rooster/  301
+/fortune/weekly/dog.html       /fortune/weekly/dog/      301
+/fortune/weekly/pig.html       /fortune/weekly/pig/      301
+/fortune/monthly/aries.html    /fortune/monthly/aries/   301
+/fortune/monthly/taurus.html   /fortune/monthly/taurus/  301
+/fortune/monthly/gemini.html   /fortune/monthly/gemini/  301
+/fortune/monthly/cancer.html   /fortune/monthly/cancer/  301
+/fortune/monthly/leo.html      /fortune/monthly/leo/     301
+/fortune/monthly/virgo.html    /fortune/monthly/virgo/   301
+/fortune/monthly/libra.html    /fortune/monthly/libra/   301
+/fortune/monthly/scorpio.html  /fortune/monthly/scorpio/ 301
+/fortune/monthly/sagittarius.html /fortune/monthly/sagittarius/ 301
+/fortune/monthly/capricorn.html /fortune/monthly/capricorn/ 301
+/fortune/monthly/aquarius.html /fortune/monthly/aquarius/ 301
+/fortune/monthly/pisces.html   /fortune/monthly/pisces/  301
+/fortune/monthly/rat.html      /fortune/monthly/rat/     301
+/fortune/monthly/ox.html       /fortune/monthly/ox/      301
+/fortune/monthly/tiger.html    /fortune/monthly/tiger/   301
+/fortune/monthly/rabbit.html   /fortune/monthly/rabbit/  301
+/fortune/monthly/dragon.html   /fortune/monthly/dragon/  301
+/fortune/monthly/snake.html    /fortune/monthly/snake/   301
+/fortune/monthly/horse.html    /fortune/monthly/horse/   301
+/fortune/monthly/goat.html     /fortune/monthly/goat/    301
+/fortune/monthly/monkey.html   /fortune/monthly/monkey/  301
+/fortune/monthly/rooster.html  /fortune/monthly/rooster/ 301
+/fortune/monthly/dog.html      /fortune/monthly/dog/     301
+/fortune/monthly/pig.html      /fortune/monthly/pig/     301
 /fortune                       /today/                   301
 /fortune/                      /today/                   301
 

@@ -420,7 +420,10 @@ function extractFortuneSignRoutes() {
     );
   }
 
-  const periods = ["today", "tomorrow"];
+  // lib/fortune/periods.ts 의 FORTUNE_PERIOD_IDS 와 같아야 한다.
+  // 주간·월간은 갱신 주기가 길지만 changefreq 는 크롤러의 참고값일 뿐이고,
+  // 실제로는 매일 재배포되며 요일별 표와 월건 구간이 함께 갱신되므로 daily 로 둔다.
+  const periods = ["today", "tomorrow", "weekly", "monthly"];
   const routes = [];
   for (const period of periods) {
     routes.push({ path: `/fortune/${period}`, changefreq: "daily", priority: 0.9 });
