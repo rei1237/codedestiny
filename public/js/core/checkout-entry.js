@@ -48,6 +48,29 @@
     return String(value === null || value === undefined ? "" : value).trim();
   }
 
+  /**
+   * 🔴 게이트 진입 1회짜리 멱등키 스코프. **requestId 와 멱등키를 떼어내는 지점이다.**
+   *
+   * requestId 는 결정적이어야 하는 값이다 — 연타 디듀프(js/core/payment-service.js commandKey)와
+   * 서버 증빙 조회(worker/lib/nakshatra-paid-access.js findPaidPayment 의 {requestId} 절)가 그
+   * 안정성에 기대고 있고, 정적 셸의 숙요점·사주 AI 상담은 실제로 영구 고정값을 넘긴다
+   * (js/saju-engine-tarot-sukuyo-quantum.js 의 'sukuyo-paid:'·'sukuyo-yearly:', js/saju-engine.js 의
+   * 'saju-ai-prompt:').
+   *
+   * 그런데 셸은 거기서 **멱등키까지** 파생했다. 서버 merchantUid 는 (userId, 멱등키)의 순수 파생이라
+   * (worker/payments/orders.js deriveOrderId) 같은 사용자·같은 기능이 영원히 같은 주문 문서를 가리키고,
+   * 그 문서가 pending 을 벗어나면 createPayableOrder 가 고정 세대를 태우다가 409 를 낸다. 결제·취소를
+   * 세 번 겪은 사용자는 이후 **모든 결제가 409 로 시작**했다(클라가 새 키로 복구하지만 그 복구가
+   * 결제창 앞 checkout 왕복 하나다 = "PG 결제창이 늦게 뜬다").
+   *
+   * 409 가 나지 않는 두 환경(React·독립 정적)이 정확히 이 동작이다 — 게이트에 들어올 때마다 새 값.
+   * 동시·연타 클릭은 게이트 진입 **앞의** 단일비행(_cdJoinPaidServiceSingleFlight 45s)과 payment-service
+   * commandKey(60s)가 이미 하나로 합치므로 스코프도 하나이고, 이중결제 방어는 그대로다.
+   */
+  function mintPaymentAttemptScope() {
+    return Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
+  }
+
   function interpolate(template, vars) {
     var source = String(template === null || template === undefined ? "" : template);
     if (!vars) return source;
@@ -439,6 +462,7 @@
     sweepOrphanChoiceModals: sweepOrphanChoiceModals,
     hasOpenPaymentChoiceModal: hasOpenPaymentChoiceModal,
     text: checkoutText,
+    mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
     resolveStorePlan: resolveStorePlan,
     buildPassStoreUrl: buildPassStoreUrl,

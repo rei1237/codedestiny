@@ -230,24 +230,33 @@ test("같은 키로 동시에 두 번 들어와도 주문은 하나다", async (
   expect(orderRows(db)).toHaveLength(1);
 });
 
-test("🔴 세대를 다 써도 못 얻으면 여전히 409 IDEMPOTENCY_CONFLICT (fail-closed)", async () => {
-  // 클라이언트(셸·독립 정적)의 새-키 1회 재시도가 이 top-level code 에 걸려 있다. 세대 발급이
-  // 실패하는 상황에서도 그 안전망이 살아 있어야 한다.
+/* 🔴 2026-08-16 계약 변경 — 이 자리는 예전에 "세대를 다 쓰면 여전히 409(fail-closed)"를 고정했다.
+   그 409 가 실제 장애였다. merchantUid 는 (userId, 멱등키)의 순수 파생이라, 결정적 requestId 를
+   넘기는 호출부(정적 셸의 숙요점·사주 AI 상담)는 같은 base key 를 영구히 보낸다. 결제 성공·취소·실패가
+   각각 세대를 하나씩 태우므로 세 번이면 사다리가 소진되고, 그 뒤로는 **모든 결제가 409 로 시작**했다.
+   클라이언트가 새 키로 1회 재시도해 복구는 하지만 그 복구가 결제창 앞 checkout 왕복 하나를 통째로 더
+   쓴다 — 사용자 신고 "409 가 떴다가 회복되는데 PG 결제창이 늦게 뜬다"의 본체다.
+   IDEMPOTENCY_CONFLICT 자체는 errors.js·클라이언트 재시도 갈래와 함께 그대로 남는다(난수 세대마저
+   재사용 불가로 돌아오는 도달 불가 경로의 fail-closed). */
+test("🔴 세대를 다 써도 409 가 아니라 새 주문을 발급한다", async () => {
   const db = makeFakePaymentDb();
   seedUser(db);
-  seedExistingOrder(db, { key: "k-exhaust", merchantUid: "cdgen0exhaust000000000000000000000000000", status: "paid" });
+  const burned = ["cdgen0exhaust000000000000000000000000000"];
+  seedExistingOrder(db, { key: "k-exhaust", merchantUid: burned[0], status: "paid" });
   for (let generation = 1; generation < MAX_ORDER_GENERATIONS; generation += 1) {
-    seedExistingOrder(db, {
-      key: `k-exhaust#${generation}`,
-      merchantUid: `cdgen${generation}exhaust00000000000000000000000000`,
-      status: "paid",
-    });
+    const merchantUid = `cdgen${generation}exhaust00000000000000000000000000`;
+    burned.push(merchantUid);
+    seedExistingOrder(db, { key: `k-exhaust#${generation}`, merchantUid, status: "paid" });
   }
 
   const { response, payload } = await postPrepare(db, {
     paymentType: "digital_content", featureKey: PRODUCT.featureKey, idempotencyKey: "k-exhaust",
   });
 
-  expect(response.status).toBe(409);
-  expect(payload.code).toBe("IDEMPOTENCY_CONFLICT");
+  expect(response.status).toBeLessThan(400);
+  // 새 merchantUid = 새 PortOne paymentId. 결제 완료 주문은 하나도 건드리지 않는다.
+  expect(burned).not.toContain(payload.order.merchantUid);
+  for (const merchantUid of burned) {
+    expect(db.rows.find((row) => row.merchantUid === merchantUid).status).toBe("paid");
+  }
 });

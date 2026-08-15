@@ -194,8 +194,11 @@ function runReactSdkPreloadAndRetryTests() {
     ["js/destiny-profile.js", destinyProfileSource, "window._cdRunDirectKrwCheckout = async function(options) {"],
   ]) {
     const fnBody = stripComments(sliceFunction(source, fnMarker, `${label} direct checkout`));
+    // 🔴 인자는 허용한다 — 2026-08-16 부터 재시도는 **남은 예산**을 받는다. 두 시도가 각자 8초 상한을
+    // 따로 걸면 최악 16초가 클릭→결제창 구간에 얹혔다. 고정하는 계약은 "재시도가 1회 있다"이지
+    // "인자가 없다"가 아니다. 재시도 자체가 사라지면 여기서 다시 걸린다.
     assert.ok(
-      /catch\s*\([^)]*\)\s*\{\s*await\s+_(?:cd|dp)PortOneV2SdkPromise\(\);/.test(fnBody),
+      /catch\s*\([^)]*\)\s*\{\s*await\s+_(?:cd|dp)PortOneV2SdkPromise\([^;]*\);/.test(fnBody),
       `${label}: direct checkout must retry the PortOne SDK load once on failure (no silent hard-fail on a single network hiccup)`,
     );
   }
