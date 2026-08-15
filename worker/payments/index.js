@@ -70,13 +70,13 @@ import {
 import {
   assertOrderOwner,
   createOrder,
+  createPayableOrder,
   findOrder,
   markEntitlementGranted,
   markOrderCancelled,
   markOrderFailed,
   markOrderPaid,
   recordPgCancellationMarkers,
-  repricePendingOrder,
   settleRefund,
   toOrderStatus,
 } from "./orders.js";
@@ -729,14 +729,15 @@ const ROUTES = {
 
   /**
    * 🔴 컷오버 어댑터 — 구 주문 발급 URL(/api/payments/prepare · /api/billing/checkout 재작성)을
-   * V2 createOrder 로 잇는다. 클라이언트는 그대로이므로 응답 키가 계약이다(compat.js 초집합).
-   * 구 prepare 와의 의도적 차이 없음 · 승계한 계약 셋:
+   * V2 주문 발급으로 잇는다. 클라이언트는 그대로이므로 응답 키가 계약이다(compat.js 초집합).
    *   ① CLIENT_AMOUNT_MISMATCH(400) — 낡은 가격의 요청으로 결제창을 열지 않는다
-   *   ② IDEMPOTENCY_CONFLICT(409) — 같은 키의 기존 주문이 현재 가격·기능과 다르면 옛 주문을
-   *      조용히 돌려주지 않는다(V2 createOrder 단독이면 그렇게 된다). 클라이언트의 새-키 1회
-   *      재시도가 이 코드에 걸려 있다.
-   *   ③ 멱등키 부재 시(구 PointsClient) 합성 키 — 구 partial 인덱스의 "키 없음 = 클릭마다 새 주문"
+   *   ② 멱등키 부재 시(구 PointsClient) 합성 키 — 구 partial 인덱스의 "키 없음 = 클릭마다 새 주문"
    *      의미를 보존한다.
+   *
+   * 🔴 구 prepare 와의 **의도적 차이 하나**: 같은 키의 기존 주문이 현재 의도와 다르거나 이미 결제
+   * 가능한 상태가 아니면 IDEMPOTENCY_CONFLICT(409) 대신 **새 세대 주문을 발급한다**. 409 는 세대를
+   * 다 쓴 뒤에만 남고(fail-closed), 클라이언트의 새-키 1회 재시도는 그 코드에 그대로 걸려 있다.
+   * 근거는 orders.js createPayableOrder 머리주석.
    */
   "POST /prepare": {
     auth: "required",
@@ -775,36 +776,23 @@ const ROUTES = {
         userPromise.catch(() => {}); // 미관측 거부 경고만 막는다 — 실제 처리는 아래 await 가 한다.
         const bodyProfileId = String(body.profileId || body.selectedProfileId || "");
         const profileId = bodyProfileId || String((await userPromise)?.destinyProfilesCurrentId || "");
-        let created = await createOrder(db, {
+        /* 🔴 재사용할 수 없는 주문(결제완료·실패·만료취소·레거시 상태)이나 의도가 달라진 주문은
+           409 가 아니라 **새 세대 주문**으로 답한다(orders.js createPayableOrder). 예전에는 여기서
+           거절했고, 그 결과 복구가 전적으로 클라이언트의 새-키 재시도에 달려 있었다 — 그 재시도가
+           빠진 경로가 하나만 생겨도 결제창이 영영 안 열렸다(#467·#471·#497 이 같은 증상을 반복 수정).
+           같은 기능·미결제·옛 가격은 종전대로 재가격 승계이고, 같은 의도의 재전송은 여전히 같은
+           주문을 돌려준다(멱등 계약 불변). */
+        const created = await createPayableOrder(db, {
           userId,
           product,
           idempotencyKey,
+          requestId: body.requestId,
           profileId,
           contentKey: body.contentKey,
           scope: body.scope,
           returnPath: body.returnPath,
           paymentMethod: String(body.paymentMethod || body.payMethod || "card_general"),
         });
-        const priceDrift = Number(created.paymentAmount) !== Number(product.priceKRW)
-          || Number(created.expectedChargedPoints ?? created.coinPrice ?? 0) !== Number(product.priceCoins);
-        const featureDrift = Boolean(String(created.featureKey || "") && String(product.featureKey || "")
-          && String(created.featureKey) !== String(product.featureKey));
-        if (priceDrift || featureDrift) {
-          // 🔴 같은 기능의 미결제(PENDING) 주문이 옛 가격으로 남은 경우는 충돌이 아니라 승계 대상이다.
-          // 가격 해석 정본 교체(#492)·가격 개정 뒤 세션 고정 requestId 조합이 셸·React·정적 외부
-          // 전 환경에서 결제창을 영구 409 로 막았다(2026-08-12 실장애 — 클라이언트 새-키 재시도가
-          // 없는 환경은 자력 복구 불가). 서버가 재가격해 돌려주면 환경 무관하게 해소된다.
-          // 다른 기능으로의 키 재사용(featureDrift)·이미 결제된 주문은 종전대로 409 다.
-          const repriced = !featureDrift && toOrderStatus(created) === "PENDING"
-            ? await repricePendingOrder(db, { orderId: String(created.merchantUid || ""), product })
-            : null;
-          if (!repriced) {
-            throw paymentError("IDEMPOTENCY_CONFLICT", "Idempotency key conflict. Request payload does not match existing product payment preparation.", {
-              orderId: String(created.merchantUid || ""),
-            });
-          }
-          created = repriced;
-        }
         return { order: created, user: await userPromise };
       });
       ctx.orderId = String(order.merchantUid || "");

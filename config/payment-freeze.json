@@ -25,7 +25,7 @@
       "file": "js/destiny-profile.js",
       "marker": "  function _dpRenderStandalonePaymentChoice(options) {",
       "why": "독립 정적 폴백 렌더러. 셸 정본과 CSS·문구가 같아야 한다(verify:payment-choice-parity).",
-      "sha256": "f4c29b4ae4474360"
+      "sha256": "b750461dde151676"
     }
   ],
   "wholeFiles": [

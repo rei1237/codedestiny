@@ -48,6 +48,7 @@ type ConsultationMessage = {
 };
 type Consultation = {
   id: string;
+  status?: string;
   consultationType?: ConsultationType;
   personA: { name?: string; shuku?: string };
   personB: { name?: string; shuku?: string };
@@ -388,6 +389,8 @@ const ERROR_TEXT: Record<string, string> = {
   LLM_FAILED: "전문가 상담문을 생성하는 중 문제가 발생했어요. 차감된 내역이 있다면 자동 복구됩니다.",
   NETWORK_ERROR: "연결이 불안정해요. 잠시 후 다시 시도해 주세요.",
   TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정해요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
+  GENERATION_TIMEOUT: "상담문이 아직 완성되지 않았어요. 이용권은 그대로 보존되니, 잠시 후 다시 시도해 주세요.",
+  GENERATION_INTERRUPTED: "상담 생성이 중간에 끊겼어요. 이용권은 그대로 보존되니 다시 시도해 주세요.",
 };
 
 function makeIdempotencyKey() {
@@ -506,6 +509,51 @@ async function postJson<T>(path: string, body: Record<string, unknown>, idempote
   }, { retryOn401: false });
   const data = await response.json().catch(() => ({}));
   return { status: response.status, data: data as T };
+}
+
+function sleep(ms: number) {
+  return new Promise((resolve) => window.setTimeout(resolve, ms));
+}
+
+// 생성이 오래 걸릴 때(202) 결과 엔드포인트를 폴링해 수렴시킨다.
+// 첫 폴은 빠르게(0.7s) 프로브해 조기 완료를 잡고 이후 3~8s 로 램프한다.
+// 상한 25회(≈193s)는 서버 신선도 창(120s)을 덮는 값이다 — 그 창을 넘기면 서버가
+// 409(GENERATION_INTERRUPTED)로 폴링을 끊으므로 vedic/astrology 의 40회는 죽은 무게가 된다.
+const RESULT_POLL_BACKOFF_MS = [700, 3000, 5000, 8000];
+const RESULT_POLL_MAX_ATTEMPTS = 25;
+
+type StartResult = {
+  ok?: boolean;
+  reason?: string;
+  message?: string;
+  status?: string;
+  sessionId?: string;
+  consultation?: Consultation;
+};
+
+async function pollSukuyoResult(sessionId: string): Promise<StartResult> {
+  for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+    await sleep(RESULT_POLL_BACKOFF_MS[Math.min(attempt, RESULT_POLL_BACKOFF_MS.length - 1)]);
+    let response: Response;
+    try {
+      response = await authFetch(
+        `/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(sessionId)}`,
+        { method: "GET" },
+        { retryOn401: false },
+      );
+    } catch {
+      continue;
+    }
+    if (response.status === 202) continue;
+    if (response.status === 429) throw new Error("TEMPORARY_UNAVAILABLE");
+    const data = (await response.json().catch(() => ({}))) as StartResult;
+    // 일시적 DB/인증 장애(503 DB_DEGRADED 등)로 폴링을 끊지 않는다 — 이미 결제·생성이 끝난 결과를
+    // 순단 하나로 잃는다. 단 서버의 generation_failed 도 503 이라 그건 종결로 빠져나가야 한다.
+    if (isRetriableResultPollFailure(response.status, data) && data.reason !== "LLM_FAILED") continue;
+    if (!response.ok) throw new Error(toText(data.reason) || "SERVER_ERROR");
+    return data;
+  }
+  throw new Error("GENERATION_TIMEOUT");
 }
 
 function distanceLabel(value?: string) {
@@ -1276,6 +1324,11 @@ export default function SukuyoCompatibilityAiClient() {
   async function loadRecentConsultation(id: string) {
     try {
       const response = await authFetch(`/api/sukuyo-compatibility-ai/result?id=${encodeURIComponent(id)}`);
+      // 목록이 더는 생성 중 문서를 내려주지 않으므로 여기는 경합 방어용이다(목록을 받은 직후 재생성 등).
+      if (response.status === 202) {
+        setNotice("이 상담은 아직 생성 중이에요. 잠시 후 다시 열어 주세요.");
+        return;
+      }
       const data = await response.json().catch(() => ({}));
       if (data?.ok && data.consultation) {
         setConsultation(data.consultation as Consultation);
@@ -1366,19 +1419,45 @@ export default function SukuyoCompatibilityAiClient() {
 
   async function startConsultation(idempotencyKey: string, access: Record<string, unknown>, paymentWasRequired = false) {
     setPhase("start");
-    const { status, data } = await postJson<{ ok?: boolean; reason?: string; message?: string; consultation?: Consultation }>(
-      "/api/sukuyo-compatibility-ai/generate",
-      { ...payload, ...access, idempotencyKey },
-      idempotencyKey,
-    );
-    if (data.ok && data.consultation) {
-      setConsultation(data.consultation);
-      if (data.consultation.id) rememberConsultationUrl(data.consultation.id);
+    let started: { status: number; data: StartResult };
+    try {
+      started = await postJson<StartResult>(
+        "/api/sukuyo-compatibility-ai/generate",
+        { ...payload, ...access, idempotencyKey },
+        idempotencyKey,
+      );
+    } catch {
+      // authFetch 는 22초에 요청을 끊는다(app/_lib/auth-client.ts). 이 라우트의 생성은 60~100초라
+      // 첫 POST 는 사실상 항상 여기로 온다 — 예외가 아니라 정상 경로다. 같은 idempotencyKey 로
+      // 1회만 다시 보낸다. 서버는 이미 시드를 써 뒀으므로 재생성 대신 202(sessionId)로 답하고,
+      // 아래에서 폴링으로 수렴한다. 같은 access 객체를 재사용하므로 추가 과금은 없다.
+      started = await postJson<StartResult>(
+        "/api/sukuyo-compatibility-ai/generate",
+        { ...payload, ...access, idempotencyKey },
+        idempotencyKey,
+      );
+    }
+    const { status, data } = started;
+    const applyConsultation = (next: Consultation) => {
+      setConsultation(next);
+      if (next.id) rememberConsultationUrl(next.id);
       setError("");
       setNotice("");
       setPhase("idle");
       submitKeyRef.current = "";
+    };
+    if (data.ok && data.consultation) {
+      applyConsultation(data.consultation);
       return;
+    }
+    if (status === 202 && data.sessionId) {
+      setNotice(toText(data.message) || "두 사람의 별을 읽고 있어요. 잠시만 기다려 주세요.");
+      const resolved = await pollSukuyoResult(data.sessionId);
+      if (resolved.ok && resolved.consultation) {
+        applyConsultation(resolved.consultation);
+        return;
+      }
+      throw new Error(toText(resolved.reason) || "SERVER_ERROR");
     }
     if (status === 402 && paymentWasRequired) throw new Error("PAYMENT_VERIFY_FAILED");
     if (data.reason === "LLM_FAILED") throw new Error("LLM_FAILED");
