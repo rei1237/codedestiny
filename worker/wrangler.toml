@@ -82,6 +82,10 @@ NEXTAUTH_URL = "https://code-destiny.com"
 GOOGLE_OAUTH_CALLBACK = "https://code-destiny.com/api/auth/oauth/google/callback"
 NAVER_OAUTH_CALLBACK = "https://code-destiny.com/api/auth/oauth/naver/callback"
 KAKAO_OAUTH_CALLBACK = "https://code-destiny.com/api/auth/oauth/kakao/callback"
+# Gemini 명시적 컨텍스트 캐싱 킬 스위치. 사주 AI 웨이브가 5그룹이 공유하는 불변 접두사를
+# Gemini 쪽에 한 벌만 올려 두고 참조한다(입력 비용 약 -55%). 문제가 생기면 "0" 으로 바꿔
+# 배포만 다시 하면 전체 프롬프트를 보내던 기존 동작으로 즉시 돌아간다.
+GEMINI_CONTEXT_CACHE = "1"
 AUTH_SIGNUP_BONUS_POINTS = "50"
 AUTH_OPERATION_TIMEOUT_MS = "12000"
 # 🔴 아래 세 값과 MONGO_WAIT_QUEUE_TIMEOUT_MS 는 worker/lib/db.js 의 코드 기본값과 **한 세트**다
