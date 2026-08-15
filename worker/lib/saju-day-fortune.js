@@ -100,6 +100,24 @@ function weigh(mode, group, element, extremes) {
   return 5;
 }
 
+/**
+ * 지지 하나가 이 명식에 갖는 기여도(억부 기준). 십이지시 시간대 점수(today-saju-detail.js)가 쓴다.
+ * 억부 규칙을 두 벌로 만들지 않으려고 여기서 내보낸다 — judgeSajuDayFortune 과 같은 weigh() 를 탄다.
+ *
+ * @returns {{tenGod:string, group:string, element:string, weight:number}|null}
+ */
+export function scoreBranchForNatal({ dayMaster, branch, strengthMode, lackingElement, excessElement }) {
+  const day = String(dayMaster || "").trim();
+  const zhi = String(branch || "").trim();
+  if (!STEM_ELEMENT[day] || !BRANCH_ELEMENT[zhi]) return null;
+  const mainStem = (HIDDEN_STEMS[zhi] || [])[0] || "";
+  const tenGod = mainStem ? tenGodFor(day, mainStem) : "";
+  const group = TEN_GOD_GROUP[tenGod] || "비겁";
+  const element = BRANCH_ELEMENT[zhi];
+  const extremes = { lacking: lackingElement || "", excess: excessElement || "" };
+  return { tenGod, group, element, weight: weigh(strengthMode, group, element, extremes) };
+}
+
 function tierFromScore(score) {
   if (score >= 82) return "great-auspicious";
   if (score >= 66) return "auspicious";

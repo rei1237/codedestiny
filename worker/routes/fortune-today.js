@@ -12,6 +12,12 @@
 //
 // 🔴 베다는 Swiss WASM 이 필요해 실패할 수 있다. 그때 세 장을 통째로 버리지 않고
 //    vedic: null 로 내려 나머지 두 장은 살린다(홈 첫 화면이 통째로 비는 것을 막는다).
+//
+// 응답의 두 축:
+//   birth 유무   있으면 개인 길흉(등급·점수·십성 관계·타라발라), 없으면 날짜만으로 참인 부분만.
+//                birth 를 아예 안 준 것은 공개 모드이고, **형식이 틀린 것만** 400 이다.
+//   detail=1     각 점술의 sections(전문 상세)를 함께 싣는다. 플래그가 없으면 홈 카드용
+//                highlights(≤3)까지만 실어 홈 payload 를 가볍게 유지한다.
 
 import { Solar } from "lunar-javascript";
 import { getRoutePath, json, methodNotAllowed, notFound } from "../lib/http.js";
@@ -22,6 +28,10 @@ import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
 import { assembleTodayMoon } from "../lib/nakshatra-codex.js";
 import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { primeCmsRecords } from "../lib/cms-records.js";
+import { buildTodaySajuDetail, buildTodaySajuPublic } from "../lib/today-saju-detail.js";
+import { buildTodaySukuyoDetail, buildTodaySukuyoPublic } from "../lib/today-sukuyo-detail.js";
+import { buildTodayVedicDetail, buildTodayVedicPublic, computePanchanga } from "../lib/today-vedic-detail.js";
+import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
@@ -58,6 +68,19 @@ function dateKey({ year, month, day }) {
   return `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 }
 
+// 판창가의 바라(요일). kstParts 가 이미 KST 로 옮긴 Y/M/D 라 UTC 로 다시 세면 된다.
+function weekdayOf({ year, month, day }) {
+  return new Date(Date.UTC(year, month - 1, day)).getUTCDay();
+}
+
+// 본명 나크샤트라 이름. assembleTodayMoon 이 타라발라를 잴 때 쓰는 것과 같은 대응
+// (본명수 index + 13) % 27 을 그대로 따른다 — 여기서 다른 규칙을 쓰면 두 값이 어긋난다.
+function natalNakshatraNameKo(natalMansionIndex) {
+  if (!Number.isInteger(natalMansionIndex)) return "";
+  const attrs = getNakshatraAttributes((natalMansionIndex + 13) % 27);
+  return attrs ? attrs.nameKo : "";
+}
+
 function clean(value) {
   return String(value == null ? "" : value).trim();
 }
@@ -70,14 +93,17 @@ function normalizeCalendarType(raw) {
   return "solar";
 }
 
+// birth 가 아예 없으면 공개 모드(null), 있는데 형식이 틀리면 거부(false).
+// 두 경우를 한 값으로 뭉뚱그리면 "생년 없이 들어온 방문자"와 "잘못 만든 링크"를 구분할 수 없다.
 function parseBirthQuery(query) {
   const birth = clean(query.get("birth"));
+  if (!birth) return null;
   const match = birth.match(/^(\d{4})-(\d{2})-(\d{2})$/);
-  if (!match) return null;
+  if (!match) return false;
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1900 || year > 2100) return null;
+  if (month < 1 || month > 12 || day < 1 || day > 31 || year < 1900 || year > 2100) return false;
 
   const timeRaw = clean(query.get("time"));
   const timeMatch = timeRaw.match(/^(\d{1,2}):(\d{2})$/);
@@ -116,7 +142,35 @@ function todayDayPillar(today) {
   return { stem: clean(eightChar.getDayGan()), branch: clean(eightChar.getDayZhi()) };
 }
 
-function buildSaju(input, today) {
+// detail=1 이 아니면 sections 를 싣지 않는다(홈 payload 를 가볍게 유지).
+function withDepth(card, depth, wantDetail) {
+  if (!card) return null;
+  const out = { ...card, highlights: depth?.highlights || [] };
+  if (wantDetail) out.sections = depth?.sections || [];
+  return out;
+}
+
+function buildSaju(input, today, wantDetail) {
+  const dayPillar = todayDayPillar(today);
+  if (!input) {
+    const publicCard = buildTodaySajuPublic(dayPillar);
+    if (!publicCard) return null;
+    return {
+      system: "saju",
+      label: "사주",
+      anchor: publicCard.anchor,
+      headline: publicCard.headline,
+      body: publicCard.body,
+      tier: null,
+      tierLabel: null,
+      score: null,
+      detail: "",
+      personalized: false,
+      highlights: publicCard.highlights,
+      ...(wantDetail ? { sections: publicCard.sections } : {}),
+    };
+  }
+
   const natal = calculateLifeBookAiSaju({
     birthDate: input.birthDate,
     birthTime: input.birthTime,
@@ -124,9 +178,9 @@ function buildSaju(input, today) {
     calendarType: input.calendarType === "solar" ? "solar" : "lunar",
     gender: input.gender,
   });
-  const verdict = judgeSajuDayFortune(natal, todayDayPillar(today));
+  const verdict = judgeSajuDayFortune(natal, dayPillar);
   if (!verdict) return null;
-  return {
+  return withDepth({
     system: "saju",
     label: "사주",
     anchor: verdict.anchor,
@@ -136,15 +190,36 @@ function buildSaju(input, today) {
     tierLabel: verdict.tierLabel,
     score: verdict.score,
     detail: `내 일간 ${verdict.dayMasterKo}(${verdict.dayMaster}) · 오늘 ${verdict.tenGod}`,
-  };
+    personalized: true,
+  }, buildTodaySajuDetail({ verdict, natal }), wantDetail);
 }
 
-function buildSukuyo(natalIndex, todayLunar) {
+function buildSukuyo(natalIndex, natalSukuyo, todayLunar, wantDetail) {
   const todaySukuyo = buildSukuyoFromLunar(todayLunar.month, todayLunar.day, { isLeapMonth: todayLunar.isLeap });
   if (!todaySukuyo) return null;
+
+  if (natalIndex == null) {
+    const publicCard = buildTodaySukuyoPublic(todaySukuyo);
+    if (!publicCard) return null;
+    return {
+      system: "sukuyo",
+      label: "숙요점",
+      anchor: publicCard.anchor,
+      headline: publicCard.headline,
+      body: publicCard.body,
+      tier: null,
+      tierLabel: null,
+      score: null,
+      detail: "",
+      personalized: false,
+      highlights: publicCard.highlights,
+      ...(wantDetail ? { sections: publicCard.sections } : {}),
+    };
+  }
+
   const verdict = judgeDayFortune(natalIndex, todaySukuyo.index);
   if (!verdict) return null;
-  return {
+  return withDepth({
     system: "sukuyo",
     label: "숙요점",
     anchor: `오늘의 수(宿) · ${todaySukuyo.nameKo}(${todaySukuyo.nameHan})`,
@@ -154,15 +229,39 @@ function buildSukuyo(natalIndex, todayLunar) {
     tierLabel: verdict.tierLabel,
     score: verdict.score,
     detail: `내 본명수 대비 ${verdict.relationType}(${verdict.relationTypeHan})`,
-  };
+    personalized: true,
+  }, buildTodaySukuyoDetail({ verdict, todayMansion: todaySukuyo, natalMansion: natalSukuyo }), wantDetail);
 }
 
-function buildVedic(todayMoon, natalSukuyoName) {
-  const tara = todayMoon?.personal?.taraBala;
-  const nakshatra = todayMoon?.todayNakshatra;
-  if (!tara || !nakshatra) return null;
+function buildVedic(sky, natalSukuyoName, wantDetail) {
+  if (!sky) return null;
+  const tara = sky.todayMoon?.personal?.taraBala;
+  const nakshatra = sky.todayMoon?.todayNakshatra;
+
+  // 판창가는 태양 황경이 있어야 나온다. 없으면 개인 카드는 타라 발라만으로 그대로 살리고
+  // (기존 동작), 공개 모드만 포기한다.
+  if (!tara || !nakshatra) {
+    if (!sky.panchanga) return null;
+    const publicCard = buildTodayVedicPublic({ panchanga: sky.panchanga, moonLon: sky.moonLon });
+    if (!publicCard) return null;
+    return {
+      system: "vedic",
+      label: "베다점",
+      anchor: publicCard.anchor,
+      headline: publicCard.headline,
+      body: publicCard.body,
+      tier: null,
+      tierLabel: null,
+      score: null,
+      detail: "",
+      personalized: false,
+      highlights: publicCard.highlights,
+      ...(wantDetail ? { sections: publicCard.sections } : {}),
+    };
+  }
+
   const tier = TARA_TIER_TO_DAY_TIER[tara.tier] || "auspicious";
-  return {
+  return withDepth({
     system: "vedic",
     label: "베다점",
     anchor: `오늘의 달자리 · ${nakshatra.nameKo || nakshatra.nameEn} (지배성 ${nakshatra.lordKo})`,
@@ -172,11 +271,18 @@ function buildVedic(todayMoon, natalSukuyoName) {
     tierLabel: DAY_TIER_LABEL[tier],
     score: TARA_SCORE[tara.key] || 60,
     detail: `내 본명 별자리에서 ${tara.count}번째 자리${natalSukuyoName ? ` · 본명수 ${natalSukuyoName}` : ""}`,
-  };
+    personalized: true,
+  }, buildTodayVedicDetail({
+    panchanga: sky.panchanga,
+    moonLon: sky.moonLon,
+    taraBala: tara,
+    natalNakshatraKo: sky.natalNakshatraKo,
+  }), wantDetail);
 }
 
-// 오늘 달의 시데리얼 황경. Swiss 가 죽어도 나머지 두 점술은 살려야 하므로 예외를 삼킨다.
-async function resolveTodayMoon(env, today, natalIndex, requestUrl) {
+// 오늘 하늘(해·달의 시데리얼 황경 + 판창가 + 타라발라).
+// Swiss 가 죽어도 나머지 두 점술은 살려야 하므로 예외를 삼킨다.
+async function resolveTodaySky(env, today, natalIndex, requestUrl) {
   try {
     const swiss = await getSwissVedicPlanets(
       env,
@@ -184,14 +290,20 @@ async function resolveTodayMoon(env, today, natalIndex, requestUrl) {
       { requestUrl },
     );
     const moonLon = Number(swiss?.planets?.Moon);
+    const sunLon = Number(swiss?.planets?.Sun);
     if (!Number.isFinite(moonLon)) return null;
     const lunar = Solar.fromYmdHms(today.year, today.month, today.day, 12, 0, 0).getLunar();
     const lunarMonth = Number(lunar.getMonth());
-    return assembleTodayMoon({
+    const todayMoon = assembleTodayMoon({
       moonLon,
       lunar: { month: Math.abs(lunarMonth), day: Number(lunar.getDay()), isLeap: lunarMonth < 0 },
       myMansionIndex: natalIndex,
     });
+    // 판창가는 니라야나(시데리얼) 황경으로 계산한다 — swiss 가 주는 값 그대로다.
+    const panchanga = Number.isFinite(sunLon)
+      ? computePanchanga({ sunLon, moonLon, weekday: weekdayOf(today) })
+      : null;
+    return { moonLon, sunLon, todayMoon, panchanga, natalNakshatraKo: natalNakshatraNameKo(natalIndex) };
   } catch (error) {
     console.warn("[today-hub-vedic-skip]", String(error?.message || error).slice(0, 200));
     return null;
@@ -201,13 +313,15 @@ async function resolveTodayMoon(env, today, natalIndex, requestUrl) {
 async function handleTodayHub(request, env) {
   const url = new URL(request.url);
   const input = parseBirthQuery(url.searchParams);
-  if (!input) {
+  // 형식이 틀린 birth 만 거부한다. 아예 없는 것(null)은 공개 모드다.
+  if (input === false) {
     return json({
       ok: false,
       code: "INVALID_BIRTH",
-      message: "프로필 카드의 생년월일(birth=YYYY-MM-DD)이 필요합니다.",
+      message: "생년월일 형식이 올바르지 않습니다(birth=YYYY-MM-DD).",
     }, { status: 400 });
   }
+  const wantDetail = clean(url.searchParams.get("detail")) === "1";
 
   // 숙요 본명수별 조언 표의 CMS 오버라이드를 judgeDayFortune 호출 전에 채운다.
   // 실패해도 내부에서 삼키고 코드 기본값으로 진행한다(기본 숙요점과 같은 관례).
@@ -215,20 +329,22 @@ async function handleTodayHub(request, env) {
 
   const today = kstParts(new Date());
   const todayLunar = toLunarParts({ ...today, hour: 12, minute: 0, calendarType: "solar" });
-  const natalLunar = toLunarParts(input);
-  const natalSukuyo = buildSukuyoFromLunar(natalLunar.month, natalLunar.day, { isLeapMonth: natalLunar.isLeap });
+  const natalLunar = input ? toLunarParts(input) : null;
+  const natalSukuyo = natalLunar
+    ? buildSukuyoFromLunar(natalLunar.month, natalLunar.day, { isLeapMonth: natalLunar.isLeap })
+    : null;
   const natalIndex = Number.isInteger(Number(natalSukuyo?.index)) ? Number(natalSukuyo.index) : null;
 
   let saju = null;
   try {
-    saju = buildSaju(input, today);
+    saju = buildSaju(input, today, wantDetail);
   } catch (error) {
     console.warn("[today-hub-saju-skip]", String(error?.message || error).slice(0, 200));
   }
 
-  const sukuyo = natalIndex == null ? null : buildSukuyo(natalIndex, todayLunar);
-  const todayMoon = await resolveTodayMoon(env, today, natalIndex, request.url);
-  const vedic = buildVedic(todayMoon, natalSukuyo?.nameKo ? `${natalSukuyo.nameKo}수` : "");
+  const sukuyo = buildSukuyo(natalIndex, natalSukuyo, todayLunar, wantDetail);
+  const sky = await resolveTodaySky(env, today, natalIndex, request.url);
+  const vedic = buildVedic(sky, natalSukuyo?.nameKo ? `${natalSukuyo.nameKo}수` : "", wantDetail);
 
   if (!saju && !sukuyo && !vedic) {
     return json({
@@ -241,10 +357,12 @@ async function handleTodayHub(request, env) {
   return json({
     ok: true,
     date: dateKey(today),
+    personalized: Boolean(input),
     systems: { saju, sukuyo, vedic },
   }, {
-    // 생년이 쿼리에 실리므로 공유 캐시에 올리지 않는다. 날짜가 바뀌면 어차피 값이 바뀐다.
-    headers: { "Cache-Control": "private, max-age=1800" },
+    // 생년이 쿼리에 실리면 공유 캐시에 올리지 않는다. 날짜가 바뀌면 어차피 값이 바뀐다.
+    // 공개 모드는 개인 정보가 없어 모두에게 같은 응답이므로 공유 캐시에 올려도 된다.
+    headers: { "Cache-Control": input ? "private, max-age=1800" : "public, max-age=1800" },
   });
 }
 

@@ -18,6 +18,8 @@ import { resolve } from "node:path";
 import { JSDOM } from "jsdom";
 
 const rootDir = process.cwd();
+// 🔴 이 블록을 가진 셸은 **전부** 여기 있어야 한다. public/zh-tw/index.html 은 같은 블록을
+//    갖고 있으면서 오래 목록 밖이라 드리프트가 탐지되지 않았다(2026-08-15 추가).
 const SHELLS = [
   "index.html",
   "public/index.html",
@@ -25,6 +27,7 @@ const SHELLS = [
   "public/en/index.html",
   "public/ja/index.html",
   "public/zh/index.html",
+  "public/zh-tw/index.html",
 ];
 const BLOCK_START = '<style id="cd-today-hub-v20260808">';
 const BLOCK_END = "<!-- 대표 운명 상담";
@@ -51,6 +54,9 @@ function buildResponse(overrides = {}) {
     tierLabel,
     score,
     detail: `${label} 근거`,
+    personalized: true,
+    // 서버는 4개를 보낼 수 있어도 홈은 3개까지만 그린다(홈은 요약, 전체는 /today).
+    highlights: [`${label} 핵심1`, `${label} 핵심2`, `${label} 핵심3`, `${label} 핵심4`],
   });
   return {
     ok: true,
@@ -181,7 +187,40 @@ for (const rel of SHELLS.slice(1)) {
     }
     const detail = panel.querySelector('[data-cd-today-field="detail"]');
     if (!detail || detail.hidden) fail(`[결과] ${system} 판정 근거 줄이 보이지 않습니다.`);
+
+    // 오늘의 핵심 줄 — 서버가 고른 것만, 최대 3개까지 그린다.
+    const highlights = panel.querySelector('[data-cd-today-field="highlights"]');
+    if (!highlights || highlights.hidden) {
+      fail(`[결과] ${system} 오늘의 핵심 줄이 보이지 않습니다.`);
+      continue;
+    }
+    const lines = [...highlights.querySelectorAll("li")].map((el) => el.textContent.trim());
+    if (lines.length !== 3) fail(`[결과] ${system} 핵심 줄이 3개여야 하는데 ${lines.length}개입니다(서버가 4개를 보내도 3개까지).`);
+    if (lines[0] !== `${{ saju: "사주", sukuyo: "숙요점", vedic: "베다점" }[system]} 핵심1`) {
+      fail(`[결과] ${system} 핵심 줄이 서버 값으로 채워지지 않았습니다: ${lines[0]}`);
+    }
   }
+  dom.window.close();
+}
+
+// ── 3-b) 생년 없는 공개 응답 → 등급 배지를 그리지 않는다 ─────────────────
+{
+  const response = buildResponse({ personalized: false });
+  for (const key of Object.keys(response.systems)) {
+    response.systems[key] = { ...response.systems[key], tier: null, tierLabel: null, score: null, detail: "", personalized: false };
+  }
+  const dom = await mount(block, {
+    profile: PROFILE,
+    fetchImpl: () => Promise.resolve({ ok: true, json: () => Promise.resolve(response) }),
+  });
+  await flush();
+  await flush();
+
+  const doc = dom.window.document;
+  const verdicts = [...doc.querySelectorAll('[data-cd-today-field="verdict"]')].filter((el) => !el.hidden);
+  if (verdicts.length) fail("[공개 응답] 등급이 없는 응답인데 배지가 그려졌습니다(없는 등급을 지어내면 안 됩니다).");
+  const headline = doc.querySelector('[data-cd-today-panel="saju"] [data-cd-today-field="headline"]');
+  if (!headline || !headline.textContent.includes("헤드라인")) fail("[공개 응답] 등급이 없다고 본문까지 비었습니다.");
   dom.window.close();
 }
 
@@ -252,4 +291,4 @@ if (failures.length) {
   process.exit(1);
 }
 
-console.log(`[today-hub-gate] OK — 셸 ${SHELLS.length}개 미러 일치, 게이트/결과/실패/부분실패/지연공개 5개 시나리오 통과`);
+console.log(`[today-hub-gate] OK — 셸 ${SHELLS.length}개 미러 일치, 게이트/결과/공개응답/실패/부분실패/지연공개 6개 시나리오 통과`);
