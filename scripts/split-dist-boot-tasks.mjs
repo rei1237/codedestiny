@@ -188,8 +188,12 @@ for (const file of collectHtml(DIST)) {
 const unmatched = [...matched].filter(([, n]) => n === 0).map(([id]) => id);
 if (unmatched.length > 0) {
   errors.push(
-    `허용목록 항목이 dist 어디에도 없다: ${unmatched.join(", ")} — 셸이 바뀌었으면 목록을 고치고, ` +
-      "블록이 사라졌으면 항목을 지워라. 조용히 통과시키지 않는다.",
+    `허용목록 항목이 dist 어디에도 없다: ${unmatched.join(", ")}\n` +
+      "    🔴 가장 흔한 원인은 블록이 사라진 게 아니라 **8KB 를 넘긴 것**이다. " +
+      "externalize-dist-inline-scripts 의 MIN_BYTES(8KB) 를 넘으면 그 블록은 외부 청크로 빠지고, " +
+      "그때 data-marker 를 포함한 속성이 전부 버려져 여기서 키를 잃는다. " +
+      "소스 블록에 몇 줄 더한 직후라면 그 크기를 먼저 재 볼 것 — 주석을 줄여 8KB 아래로 되돌리거나, " +
+      "정말 커져야 하는 블록이면 이 목록에서 빼고 그 사실을 기록해라. 조용히 통과시키지 않는다.",
   );
 }
 
