@@ -1,6 +1,6 @@
 # Current Dev Baseline
 
-Last curated: `2026-08-14`
+Last curated: `2026-08-15`
 
 ## Curation Rules
 
@@ -61,7 +61,7 @@ Last curated: `2026-08-14`
 
 - 지금 CI 에서 **자동으로 도는 SEO 게이트는 둘뿐**이다: `verify-adsense-readiness`(postbuild, 라우트별 렌더 텍스트 분량 미달 시 빌드 실패)와 `verify:sitemap`(`cloudflare-pages-deploy.yml`).
 - `seo:check`(프로덕션 URL 200 확인) · `seo:audit`(메타·canonical 리포트) · `verify:seo-entity-registry` 는 **어느 워크플로에도 배선돼 있지 않다.** 마지막 것은 `scripts/verify-guard-wiring.mjs` 에서 "수동"으로 선언돼 있다. 배선 여부는 게이트 추가이므로 사용자 승인 사항이다.
-- `scripts/seo-audit.mjs` 의 `indexablePaths` 는 낡았다 — `/pdf/life-book` · `/pdf/love-report` 가 남아 있는데 인생의 책 정본 경로는 `/life-book-ai` 이고 구 경로는 리다이렉트다. 이 목록으로 감사하면 결과가 현실과 어긋난다.
+- **`scripts/seo-audit.mjs` 의 색인 대상 정본은 배열이 아니라 사이트맵이다** (2026-08-14 에 전환됨, 2026-08-15 재확인). 예전에는 하드코딩 목록이 판정을 지배해 **이슈 11건 중 10건이 거짓**이었고, 그래서 목록을 고치는 대신 사이트맵에서 유도하도록 바꿨다. 남은 `seedIndexablePaths`(`:26~`)는 **판정 기준이 아니라** ①사이트맵을 못 읽었을 때의 폴백 ②사이트맵과 어긋나면 이슈로 신고해 목록이 다시 썩지 않게 하는 장치다. 🔴 그 seed 를 "색인 대상 정본"으로 다시 취급하지 말 것.
 - 라우트를 추가할 때는 `canLoadAdsense()` 기준 게재 가능 여부에 따라 sitemap self-canonical 정합과 최소 렌더 텍스트 분량이 배포를 막는다는 점을 먼저 본다(CLAUDE.md "SEO 콘텐츠 게이트" 절).
 
 **안정성 — 지금 가장 얇은 곳**
