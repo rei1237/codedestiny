@@ -18,6 +18,7 @@ const sitemapRootPath = resolve(rootDir, "sitemap.xml");
 const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
 const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
+const fortuneSignSourcePath = resolve(rootDir, "lib", "fortune", "sign-profiles.ts");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
@@ -395,6 +396,41 @@ function extractFamousSajuRoutes() {
   ];
 }
 
+/**
+ * /fortune/{today,tomorrow} 허브 2개 + 별자리·띠 24종 상세 48개.
+ *
+ * 🔴 목록을 여기에 손으로 적지 않는다. app/fortune/[period]/[sign] 의 generateStaticParams 는
+ *    lib/fortune/sign-profiles.ts 를 읽으므로, 사이트맵도 같은 파일에서 전수 발견해야 둘이
+ *    어긋나지 않는다. 24종이 아니면 실패시킨다(fail-closed) — 사이트맵에만 있고 산출물이 없으면
+ *    verify-seo-heading-integrity 가 PR CI 에서 막고, 반대면 색인에서 조용히 빠진다.
+ */
+function extractFortuneSignRoutes() {
+  const source = readFileSync(fortuneSignSourcePath, "utf8");
+  const idRegex = /^\s{4}id:\s*"([a-z]+)",/gm;
+  const ids = [];
+  let match;
+  while ((match = idRegex.exec(source)) !== null) {
+    if (!ids.includes(match[1])) ids.push(match[1]);
+  }
+
+  if (ids.length !== 24) {
+    throw new Error(
+      `[sitemap] lib/fortune/sign-profiles.ts 에서 별자리·띠 24종을 찾지 못했습니다(발견 ${ids.length}종). ` +
+        "파일 구조가 바뀌었다면 이 추출기를 함께 고쳐야 합니다.",
+    );
+  }
+
+  const periods = ["today", "tomorrow"];
+  const routes = [];
+  for (const period of periods) {
+    routes.push({ path: `/fortune/${period}`, changefreq: "daily", priority: 0.9 });
+    for (const id of ids) {
+      routes.push({ path: `/fortune/${period}/${id}`, changefreq: "daily", priority: 0.82 });
+    }
+  }
+  return routes;
+}
+
 function extractHighValueRoutes() {
   const source = readFileSync(highValueSourcePath, "utf8");
   const pageRegex =
@@ -566,6 +602,7 @@ async function main() {
     ...extractFamousSajuRoutes(),
     ...extractPsychotestRoutes(),
     ...extractHighValueRoutes(),
+    ...extractFortuneSignRoutes(),
   ];
 
   const entryMap = new Map();
