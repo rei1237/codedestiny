@@ -105,6 +105,12 @@ const CONTENT_EXACT_PATHS = new Set([
 
 const CONTENT_PREFIXES = [
   "/famous-saju/category",
+  // 별자리·띠 하루 운세(허브 2 + 상세 48). 본문이 전부 서버 렌더라 게재 가능 라우트의
+  // 최소 렌더 텍스트 기준을 실제 콘텐츠로 채운다.
+  // 🔴 "/fortune" 전체를 열지 않는다 — /fortune/prompt-hub 는 BLOCKED_PREFIXES 대상이고
+  //    /fortune/sikojen-povailu 는 noindex 라, 상위 접두사로 열면 게이트끼리 충돌한다.
+  "/fortune/today",
+  "/fortune/tomorrow",
   "/high-value",
   "/insights",
 ];
