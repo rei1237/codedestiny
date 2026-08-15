@@ -18,6 +18,11 @@
   <script src="/js/inline/canonical-redirect.js?v=build-d6797429a112"></script>
   <script src="/js/inline/legacy-action-launcher.js" defer></script>
       <script src="/js/inline/global-error-guard.js"></script>
+<!-- 🔴 스크롤/탭 단일 판정기. defer 를 붙이지 말 것 — window capture 리스너를 아래 인라인
+     스택들(openWindowTap 등)보다 먼저 등록해야 판정이 선두에 선다. defer 로 내리면 등록이
+     뒤로 밀려 그 스택들이 판정 전에 기능을 열어 버린다. 순수 이벤트 리스너 등록뿐이라
+     렌더 블로킹 비용은 무시 가능하다. -->
+      <script src="/js/inline/gesture-arbiter.js?v=build-d6797429a112"></script>
 <!-- 🔴 이 블록의 defer 여부는 취향이 아니라 "파싱 시점에 그 전역을 읽는 코드가 있는가" 하나로 갈린다
      (2026-08-14 감사). 첫 스타일시트가 아래 500번대 줄이라, 여기서 동기로 받는 바이트는 전부
      첫 페인트 앞에 쌓인다. 그래서 파싱 시점 소비자가 없는 것은 전부 defer 로 내렸다.
@@ -16184,6 +16189,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       function activateNavItem(event){
         var item = event.target instanceof Element ? event.target.closest('#cdMobileBottomNav [data-nav-key]') : null;
         if (!item || !isMobile()) return;
+        // 퀵칩 레일도 가로 스크롤이다. 여기엔 450ms 디듀프만 있어 스와이프가 탭으로 처리됐다.
+        if (window.__cdGesture && window.__cdGesture.blocksActivation()) return;
         var collectionId = String(item.getAttribute('data-cd-mobile-open-collection') || '').trim();
         var fullscreenId = String(item.getAttribute('data-cd-mobile-collection-fullscreen') || '').trim();
         var scrollId = String(item.getAttribute('data-cd-mobile-scroll') || '').trim();
@@ -17448,6 +17455,9 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         function handleHubControl(event, source){
           var origin = event.target instanceof Element ? event.target.closest('[data-cd-mobile-profile-list],[data-cd-mobile-open-collection],[data-cd-mobile-scroll]') : null;
           if (!origin || !isMobileView()) return false;
+          // 허브 칩은 가로 스크롤 레일(.cd-mobile-hub__chips, overflow-x:auto) 안에 있다.
+          // 여기엔 시간 기반 디듀프만 있어 가로 스와이프가 그대로 컬렉션을 열었다.
+          if (window.__cdGesture && window.__cdGesture.blocksActivation()) return false;
           // 하단 네비 안의 요소(퀵칩 레일)는 Script A(mobile-bottom-navigation-v20260701)가 전담한다.
           // 메인 5탭은 링크로 바뀌어 이 선택자에 걸리지도 않는다.
           if (origin.closest('#cdMobileBottomNav')) return false;
@@ -18199,6 +18209,11 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
             }
             function openWindowTap(event) {
               if (!event) return;
+              // 🔴 이 세 window 리스너에는 원래 이동·지속시간 검사가 하나도 없었다. 여섯 줄 아래
+              // document 스택(touchstart/touchmove/touchend)이 제대로 판정하고 있는데도, window
+              // 캡처가 먼저 돌아 그 판정을 무의미하게 만들고 있었다 — 드래그로 이 타일 위에서
+              // 손을 떼면 그대로 하드 내비게이션됐다.
+              if (window.__cdGesture && window.__cdGesture.blocksActivation()) return;
               var tile = findTile(event.target);
               if (!tile && typeof document.elementFromPoint === 'function') {
                 var p = event.changedTouches && event.changedTouches[0] || event;
@@ -22024,6 +22039,8 @@ return you.name.restore();</span>
           var target = event && event.target;
           var card = target && target.closest ? target.closest('[data-vedic-ai-card-marker="vedic-ai-direct-route-v20260627"]') : null;
           if (!card) return;
+          // 이 경로엔 이동·지속시간 검사가 없어 드래그로 카드 위에서 손을 떼면 그대로 이동했다.
+          if (window.__cdGesture && window.__cdGesture.blocksActivation()) return;
           var href = String(card.getAttribute('href') || '/vedic-ai').trim();
           if (href !== '/vedic-ai') return;
           if (event.cancelable && typeof event.preventDefault === 'function') event.preventDefault();
@@ -22284,7 +22301,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-d6797429a112" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-8c683c6dc4da" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-d6797429a112" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-d6797429a112" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -33102,6 +33119,13 @@ function updateBadge() {
 
   function _cdShouldSuppressActionDuringScroll(event, actionNode) {
     if (!actionNode) return false;
+    // 🔴 스크롤/탭 판정 정본(js/inline/gesture-arbiter.js)을 먼저 묻는다.
+    // 아래 isCardLike 는 손으로 유지하는 셀렉터 배열이라 가로 레일(.moon-collection-nav 안의
+    // .moon-preview-card)·허브 칩·최근본 레일이 통째로 빠져 있었고, 거기서는 가로 스와이프가
+    // 아무 억제 없이 기능을 열었다. 중재자는 목록 없이 판정하므로 그 구멍을 함께 덮는다.
+    // 합성 클릭(상세 시트 CTA 의 tile.click() 인계)은 아래 기존 규칙과 같은 기준으로 예외다.
+    var _cdSyntheticClick = !!(event && event.type === 'click' && (event.detail === 0 || event.isTrusted === false));
+    if (!_cdSyntheticClick && window.__cdGesture && window.__cdGesture.blocksActivation()) return true;
     var isCardLike = !!(actionNode.closest && actionNode.closest(
       '.feature-card-grid,.feat-collection,.tarot-collection,.feat-collection__grid,.tarot-collection__grid,.tarot-tile,.lifebook-tile,.lovebible-tile,.lovesim-tile,.sibyl-entry-tile,.prem-card,.fc-toggle-btn,#resultPage,#reportDashboardCard,.rpt-v2-grid,.rpt-v2-block,.rpt-v2-detail,.rpt-v2-detail-inner,.rpt-v2-toggle-btn'
     ));
