@@ -29,6 +29,30 @@ describe("shared browser Payment Service", () => {
     expect(results).toHaveLength(20);
   });
 
+  test("🔴 a hung command releases its slot after the TTL instead of wedging it forever", async () => {
+    // 이 슬롯에만 TTL 이 없어서, executor 가 한 번 settle 하지 않으면 finally 가 영영 안 돌아
+    // 그 commandKey 가 페이지 수명 내내 잠겼다 — 사용자에게는 "다시 눌러도 결제창이 안 뜬다"로
+    // 보이고 새 요청조차 나가지 않는다. 다른 인플라이트 슬롯은 전부 TTL 로 스스로 낫는다.
+    const service = loadFreshService();
+    const hung = jest.fn(() => new Promise(() => {})); // 영원히 settle 하지 않는다
+    const recovered = jest.fn(async () => ({ ok: true }));
+    const command = { method: "DIRECT_KRW", requestId: "wedged-1", featureKey: "feature-1" };
+
+    service.executePayment(command, hung);
+    service.executePayment(command, hung); // TTL 안쪽 → 합류(중복 실행 없음)
+    await new Promise((resolve) => setImmediate(resolve)); // executor 는 마이크로태스크로 미뤄진다
+    expect(hung).toHaveBeenCalledTimes(1);
+
+    const realNow = Date.now;
+    Date.now = () => realNow() + 60001; // TTL 경과
+    try {
+      await expect(service.executePayment(command, recovered)).resolves.toEqual({ ok: true });
+    } finally {
+      Date.now = realNow;
+    }
+    expect(recovered).toHaveBeenCalledTimes(1);
+  });
+
   test("snapshot coverage returns immediately and verifies once in background", async () => {
     const service = loadFreshService();
     const backgroundVerify = jest.fn(async () => ({ ok: true }));
