@@ -54,14 +54,16 @@ async function skipAudit(reason) {
   console.log(`[psi-audit] wrote ${summaryPath}`);
 }
 
+// 🔴 예전에는 키가 없으면 여기서 exit 0 으로 조용히 건너뛰었다. 그건 "건너뜀"을 "통과"로 보이게
+//    만드는 형태라, 점수를 기준으로 판단해야 하는 순간에 아무 값도 못 준다.
+//    PSI v5 는 **키 없이도 호출된다**(할당량만 낮다). 그러니 키가 없으면 건너뛰지 말고 그냥 부른다.
+//    키를 강제하고 싶은 호출자만 PSI_FAIL_ON_API_KEY_ERROR=true 로 막는다.
 if (!API_KEY) {
-  const reason = 'missing API key';
   if (FAIL_ON_API_KEY_ERROR) {
-    console.error(`[psi-audit] ${reason}: set PAGESPEED_API_KEY, LIGHTHOUSE_KEY (or lighthouse_key), or PSI_KEY`);
+    console.error('[psi-audit] missing API key: set PAGESPEED_API_KEY, LIGHTHOUSE_KEY (or lighthouse_key), or PSI_KEY');
     process.exit(1);
   }
-  await skipAudit(reason);
-  process.exit(0);
+  console.warn('[psi-audit] API 키 없음 — 키 없이 호출한다(할당량 낮음, 429 가 나면 잠시 뒤 재시도).');
 }
 
 function toScore(v) {
@@ -84,8 +86,8 @@ async function fetchPsi(strategy) {
     url: TARGET_URL,
     strategy,
     category: 'PERFORMANCE',
-    key: API_KEY,
   });
+  if (API_KEY) qs.set('key', API_KEY);
   qs.append('category', 'ACCESSIBILITY');
   qs.append('category', 'SEO');
 
