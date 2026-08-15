@@ -3523,7 +3523,13 @@
       requestId: String(opts.requestId || '').trim(),
     }, opts.checkoutPayload || {});
 
-    checkoutPayload.idempotencyKey = String(checkoutPayload.idempotencyKey || checkoutPayload.requestId || '').trim();
+    // 🔴 결제 시도별 키(opts.idempotencyKey)를 requestId 보다 먼저 본다(셸 index.html 과 같은 순서).
+    // requestId 는 게이트 재제안 루프 전체에서 고정이라 그것을 키로 쓰면 서버가 같은 주문(=같은
+    // paymentId)을 멱등 반환하고, PortOne 이 paymentId 중복을 결제창 렌더 전에 거절한다(=결제창이
+    // 안 뜬다). 여기서 opts.idempotencyKey 를 빠뜨리고 있어서, 게이트가 만든 시도별 키(`req:a0`)도
+    // 409·중복 재시도가 발급한 새 키도 이 경로에서는 통째로 버려졌다 — 셸이 고친 것이 App Router
+    // 유료 기능 전체가 타는 이 코어에는 도달하지 않았다.
+    checkoutPayload.idempotencyKey = String(checkoutPayload.idempotencyKey || opts.idempotencyKey || checkoutPayload.requestId || '').trim();
     if (opts.categoryKey) checkoutPayload.categoryKey = opts.categoryKey;
     if (opts.subFeatureKey) checkoutPayload.subFeatureKey = opts.subFeatureKey;
     if (opts.productId) checkoutPayload.productId = opts.productId;
@@ -3749,18 +3755,26 @@
     // 재현: 체크아웃 409 IDEMPOTENCY_CONFLICT 직후 100% 재현). dedup 키가 idempotencyKey를 반영하지
     // 않아 재시도도 원본과 같은 키를 갖기 때문 — 내부 재시도만 이 합류를 건너뛰고 새로 실행한다.
     var isInternalRetry = !!(opts && (opts.__cdIdempotencyConflictRetry === true || opts.__cdDuplicatePaymentRetry === true || opts.__cdPaymentPhoneResume === true));
-    if (!isInternalRetry && active && active.promise && active.key === key && now - Number(active.startedAt || 0) < ttlMs) {
+    // 이미 '거절된' 시도에는 합류시키지 않는다 — clear가 1800ms 지연이라, 그 사이 재시도가 서버 왕복 없이
+    // 옛 실패를 그대로 돌려받아 재제안 시도만 소진했다. 해소된(resolved) 시도 합류는 그대로 유지해야
+    // 더블클릭 이중결제 방어가 살아있다.
+    if (!isInternalRetry && active && active.promise && active.key === key && active.rejected !== true && now - Number(active.startedAt || 0) < ttlMs) {
       return active.promise;
     }
     var promise = Promise.resolve().then(producer);
-    window[slotName] = { key: key, startedAt: now, promise: promise };
+    var slot = { key: key, startedAt: now, promise: promise, rejected: false };
+    window[slotName] = slot;
     var clear = function() {
       window.setTimeout(function() {
         var current = window[slotName];
         if (current && current.promise === promise) window[slotName] = null;
       }, 1800);
     };
-    promise.then(clear, clear);
+    promise.then(clear, function(error) {
+      slot.rejected = true;
+      clear();
+      return error;
+    });
     return promise;
   }
 
@@ -4165,6 +4179,18 @@
       // checkout 요청 시작이 밀린다 — 대기 UI 때문에 PG창이 늦어지지 않게 하는 것이 이 순서의 목적이다.
       // 명시적인 단건 선택 뒤 주문을 한 번만 발급한다.
       var checkoutPending = _dpTakeDirectCheckoutResponse(checkoutPayload);
+      // 🔴 PortOne SDK 를 checkout 과 **동시에** 받는다(셸 index.html 과 같은 순서). 예전에는 checkout
+      // 응답을 기다린 뒤에야 SDK 를 로드해, 모달 열림 시점의 예열이 실패했거나 늦으면 CDN 다운로드
+      // 시간이 통째로 임계경로에 얹혔다(상한 8초). 둘은 서로를 필요로 하지 않는다 — SDK 는
+      // cdn.portone.io, checkout 은 우리 API 라 대역폭·커넥션을 다투지도 않는다. 실패는 여기서 삼키고
+      // 아래 await 지점의 기존 재시도가 그대로 처리한다(여기서 던지면 주문만 만들어지고 창이 안 뜬다).
+      var _dpSdkPending = null;
+      try {
+        _dpSdkPending = _dpPortOneV2SdkPromise();
+        if (_dpSdkPending && typeof _dpSdkPending.catch === 'function') _dpSdkPending.catch(function () {});
+      } catch (_dpSdkPrefetchError) {
+        _dpSdkPending = null;
+      }
       // 클릭~PG창 구간을 꽃돼지 '단건 결제창 준비 중'(mode 'card') 오버레이로 채운다. 빈 화면은
       // 이탈로 이어진다. 결제수단 선택 모달이 이미 닫힌 뒤라 겹치지 않고, PG창 렌더 직전의
       // _dpSetPaymentPending(false) 가 내린다. 문구는 mode 'card' 정본 카피에 맡긴다.
@@ -4228,11 +4254,11 @@
       if (!Number.isFinite(orderAmount) || orderAmount <= 0) {
         throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\uc5d0 \uacb0\uc81c \uae08\uc561\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.');
       }
-      // 결제수단 모달 렌더 시점에 시작된 프리로드를 기다린다 — 정상 경로에서는 이미 resolve 상태다.
-      // 프리로드가 실패했으면 캐시는 이미 비워져 있다(_dpPortOneV2SdkPromise 의 catch). 그래서 재호출이
+      // 위에서 checkout 과 동시에 발사한 로드를 여기서 회수한다 — 정상 경로에서는 이미 resolve 상태다.
+      // 실패했으면 캐시는 이미 비워져 있다(_dpPortOneV2SdkPromise 의 catch). 그래서 재호출이
       // 곧 새 요청이다 — 셸의 _cdRunDirectKrwCheckout(index.html)과 같은 자리에서 1회 재시도한다.
       try {
-        await _dpPortOneV2SdkPromise();
+        await (_dpSdkPending || _dpPortOneV2SdkPromise());
       } catch (_dpSdkFirstError) {
         await _dpPortOneV2SdkPromise();
       }
@@ -4409,13 +4435,15 @@
       var rsp = await window.PortOne.requestPayment(requestData);
       window.__cdSuppressPaymentUnloadBlock = false;
       var paymentId = String((rsp && rsp.paymentId) || merchantUid || '').trim();
+      // 아래 confirm 실패 분기(422 새-키 재시도)가 이 값을 읽는다 — var 호이스팅에 기대지 않고 여기서 연다.
+      var dpDuplicateConfirm = false;
       if (!rsp || rsp.code || !paymentId) {
         var dpRspCode = String((rsp && rsp.code) || '').trim();
         // 🔴 중복 결제 코드(ALREADY_PAID 등)는 승인이 "나지 않은" 것이 아니다 — 그 주문은 PG 에
         // 이미 있고 돈이 들어갔을 수 있다. 여기서 티켓을 지우고 실패로 닫으면 복구 수단이 사라진
         // 채 "결제가 완료되지 않았습니다"가 떠서 사용자가 다시 결제한다(이중결제). 기존 주문으로
         // 확정을 먼저 태워 서버가 멱등 200 으로 마무리하게 한다.
-        var dpDuplicateConfirm = !_dpIsPortOneUserCancelCode(dpRspCode)
+        dpDuplicateConfirm = !_dpIsPortOneUserCancelCode(dpRspCode)
           && !!String(merchantUid || '').trim()
           && _dpIsPortOneDuplicatePaymentCode(dpRspCode, rsp && rsp.message);
         if (!dpDuplicateConfirm) {
@@ -4453,7 +4481,24 @@
         paymentId: paymentId,
       }));
       var confirmRes = await _dpPaymentFetchJson('/api/billing/confirm', { method: 'POST', body: dpConfirmBody }, { retryOn401: true, refreshOn401: true });
-      if (!confirmRes.ok) throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
+      if (!confirmRes.ok) {
+        // 🔴 중복 결제 폴백에서 받은 422 = PG 가 "그 주문은 결제되지 않았다"고 확정한 것이다
+        // (worker/payments/pg.js 의 PG_PAYMENT_NOT_PAID — 서버가 주문을 FAILED 로 닫는다).
+        // 돈이 나가지 않았음이 확정된 이 경우에만 새 키로 1회 재시도해 "몇 번을 눌러도 결제창이
+        // 안 뜨는" 갇힘을 푼다. 503(PG 미도달)은 결제 여부를 모르므로 새 주문을 만들지 않는다.
+        // 셸(index.html _cdRunDirectKrwCheckout)과 같은 자리·같은 조건이다 — 이 갈래가 dp 에만
+        // 없어서 독립 정적·App Router 페이지는 같은 상황에서 자력 복구가 불가능했다.
+        if (dpDuplicateConfirm && Number(confirmRes.status) === 422 && opts.__cdDuplicatePaymentRetry !== true) {
+          try { if (window.console) console.warn('[dp-direct-checkout] 기존 주문은 미결제로 확정됨 — 새 키로 1회 재시도합니다'); } catch (_dpRetryLogError) {}
+          var _dpDuplicateRetryKey = String(checkoutPayload.idempotencyKey || checkoutPayload.requestId || '') + ':r' + Date.now().toString(36);
+          return await window._cdRunDirectKrwCheckout(Object.assign({}, opts, {
+            idempotencyKey: _dpDuplicateRetryKey,
+            checkoutPayload: Object.assign({}, opts.checkoutPayload || {}, { idempotencyKey: _dpDuplicateRetryKey }),
+            __cdDuplicatePaymentRetry: true
+          }));
+        }
+        throw new Error(_dpReadBillingMessage(confirmRes.payload, '결제 검증에 실패했습니다.'));
+      }
       // 확정됐으니 이제 복귀 티켓을 회수한다.
       _dpClearDirectResumeTicket();
       // \uB2E8\uAC74 \uACB0\uC81C \uC644\uB8CC \uD504\uB808\uC784(\uC81C\uBAA9 "\uACB0\uC81C \uC644\uB8CC"\u00B7\uC2A4\uD53C\uB108 off) \uD45C\uC2DC \uD6C4 ~1.2s \uC790\uB3D9 \uB2EB\uD798. \uC774\uD6C4 \uCF58\uD150\uCE20 \uC0DD\uC131\uC740 \uBCD1\uB82C \uC9C4\uD589.
@@ -4479,6 +4524,12 @@
         // 정상 경로는 PG창 직전에 이미 내려가 있으므로 무해하다.
         return Promise.resolve(_dpRunDirectKrwCheckoutCore(opts)).catch(function(_dpDirectCheckoutError) {
           _dpSetPaymentPending(false);
+          // 🔴 억제 플래그도 여기서 되돌린다. core 는 requestPayment 직전에 이 값을 true 로 세우고
+          // **반환 직후 한 줄로** 되돌리는데(그 두 줄 사이에 아무것도 두지 않는 것을 verify:paid-gate-ui
+          // 가 고정한다), requestPayment 가 던지면 그 줄에 도달하지 못해 페이지 수명 내내 true 로 남는다.
+          // 그 상태에서는 PaymentProcessingContext 의 beforeunload 차단이 죽어, 결제 진행 중 이탈이
+          // 경고 없이 일어난다. 실패 정리를 이미 맡고 있는 이 자리가 그 복원의 제자리다.
+          try { window.__cdSuppressPaymentUnloadBlock = false; } catch (_dpUnloadFlagError) {}
           throw _dpDirectCheckoutError;
         });
       }, opts);
@@ -10872,6 +10923,14 @@
           if (hit.hasAttribute('disabled')) return; // 잔량 부족으로 비활성화된 월정석 버튼
           if (act === 'direct' || act === 'monthly') {
             _dpTrackCheckoutEvent('checkout_option_click', { option: act, coinPrice: cost, featureKey: opts.featureKey });
+            // 🔴 고른 즉시 세 카드를 모두 잠근다(셸 index.html · React billing-client 와 같은 계약).
+            // 여기만 그 표시가 없어서, 주문 발급이 도는 동안 카드가 그대로 눌리는 상태로 보였다 —
+            // finish() 의 settled 가 중복 실행은 이미 막지만, 반응이 없는 것처럼 보이면 사용자는
+            // 다시 누른다. 모달은 바로 아래 finish() 에서 제거되므로 이 잠금은 그 찰나만 산다.
+            Array.prototype.forEach.call(root.querySelectorAll('[data-mode]'), function(node) {
+              node.setAttribute('disabled', 'disabled');
+              node.classList.add('is-loading');
+            });
           }
           finish(act);
           return;
