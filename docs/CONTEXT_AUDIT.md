@@ -50,6 +50,22 @@ If the first three documents disagree, do not merge rules silently. Record the m
 - Local production deploys are blocked by `scripts/lib/production-deploy-guard.mjs`. Do not work around it.
 - Historical drift: notes describing "preview-then-promote", a `[y/N]` promotion gate, or a preview created as part of a release predate 2026-08-11.
 
+### 결제 방식 우선순위 — `Rules/agent-regression-guard.md` 와 정면 충돌 (2026-08-15, **해결**)
+
+- **충돌 내용**: `Rules/agent-regression-guard.md` 10항은 해제·차감 판정 순서를 **①단건 결제 ②월정석 ③이용권** 으로 규정한다. `CLAUDE.md` 와 `docs/payment-policy-*.md` 는 **①이용권 ②월정석 ③코인** 이며, 결제창에서 단건과 월정석은 **동등 우선순위**(`equalPriorityMethods`)다. 두 규칙은 양립할 수 없다.
+- **왜 지금 발견됐나**: `Rules/agent-regression-guard.md` 는 `AGENTS.md`·`CLAUDE.md`·`docs/**` 어디에서도 참조되지 않는 고아 문서였다(2026-08-15 확인 — 검색 범위: `scripts/**`, `.github/**`, `package.json`, `AGENTS.md`, `CLAUDE.md`, `docs/CONTEXT_AUDIT.md`, `docs/CURRENT_DEV_BASELINE.md`). 읽히지 않았기 때문에 충돌이 드러나지 않았을 뿐이다.
+- 🔴 **결정 (2026-08-15, 사용자): 이용권 우선으로 확정, `Rules/` 10항 폐기.** 이전에는 "조용히 합치지 말 것"으로 보류했으나(Active Document Precedence 규칙) 사용자가 정본을 정했다.
+  - 실제 코드·verify 가드가 강제하는 것은 `CLAUDE.md` 쪽(이용권 우선)이다 — `verify:billing-pass-policy`·`verify:checkout-pass-card` 가 "이용권 카드가 결제창 맨 위 + `추천` 배지" 를 단언한다.
+  - **`Rules/` 10항 폐기가 현행 구현·verify 가드와 일치**한다(위 두 verify 가 이용권 우선을 단언).
+- **정본**: 결제 순서는 `CLAUDE.md` §결제 게이팅 과 `docs/payment-policy-flow.md`. `Rules/` 10항은 폐기 표시로 이력만 보존한다(1~9항은 유효).
+
+### `Rules/agent-regression-guard.md` 의 나머지 항목 (2026-08-15)
+
+- 5항(커밋 전 `git diff --name-only`/`--numstat` 점검)·8항(내부 탐색 과정 비노출)은 `CLAUDE.md` §Workflow 와 §검색 & 수정 원칙 에 반영했다.
+- 1·3·4항은 `CLAUDE.md` 코딩 원칙 3·7 과 결제 규칙에 이미 같은 취지가 있다.
+- 2항(대규모 롤백 금지)·6항(커밋 메시지 범위 제한)·7항(회귀 시 복구 우선순위)·9항(프리미엄/기본 운세 가격 분리)은 **다른 활성 문서에 대응 항목이 없다.** 살릴지 폐기할지 결정되지 않았으므로 `Rules/` 파일을 그대로 둔다.
+- 🔴 `Rules/` 는 `scripts/verify-doc-freshness.mjs` 의 `REPO_PREFIXES`·`ROOT_REPO_PATHS` 어디에도 없어 **참조 무결성 검사를 받지 않는다.** 이 디렉터리를 계속 쓸 거라면 그 목록에 넣어야 한다.
+
 ## Historical-Only References
 
 The following may still be useful as evidence, but they are not active coding baselines.

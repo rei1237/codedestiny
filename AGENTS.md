@@ -20,6 +20,8 @@
 
 ## Non-Negotiable Rules
 
+> 🔴 정본은 `CLAUDE.md` §절대 규칙 이다. 아래는 Codex 실행 계약용 미러이며, 새 규칙은 `CLAUDE.md` 에 먼저 넣고 여기 반영한다. 두 곳이 어긋나면 `CLAUDE.md` 가 이긴다.
+
 - Do not run real payments without explicit user approval.
 - Do not call real LLM APIs without explicit user approval.
 - Do not write to production MongoDB without explicit user approval.
@@ -186,7 +188,7 @@ It reads real git state — uncommitted changes plus commits not yet in `origin/
 
 ## Development Workflow
 
-🔴 **The top-level contract for *how* to work is `CLAUDE.md` §코딩 원칙 (1~12).** Where it disagrees with the procedural steps below, it wins. It is not duplicated here — read it there.
+🔴 **The top-level contract for *how* to work is `CLAUDE.md` §코딩 원칙 (1~13).** Where it disagrees with the procedural steps below, it wins. It is not duplicated here — read it there.
 
 1. Read the relevant docs first.
 2. Start with `AGENTS.md` -> `docs/CURRENT_DEV_BASELINE.md` -> `CLAUDE.md` -> `docs/CONTEXT_AUDIT.md`, then move to the most specific feature docs.
