@@ -6,7 +6,21 @@
  */
 
 const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.dev";
-const DYNAMIC_FEED_PATHS = new Set(["/sitemap.xml", "/rss.xml", "/insights/rss.xml"]);
+// 🔴 `/sitemap.xml` 을 이 집합에 다시 넣지 말 것.
+//
+// 사이트맵 정본은 scripts/generate-sitemap.mjs 가 만드는 정적 종합 사이트맵이고 Pages 정적
+// 자산으로 그대로 서빙된다. worker/index.js 의 같은 분기도 `/sitemap-insights.xml` 만 동적으로
+// 만들고 `/sitemap.xml` 은 명시적으로 제외하며 그 이유를 주석으로 남기고 있다.
+//
+// 이 파일에는 2026-07-04 `a59451b69`("serve comprehensive static sitemap at /sitemap.xml")
+// 이후로도 `/sitemap.xml` 이 남아 있었지만, `_routes.json` 의 include 에 그 경로가 없어
+// 라우팅되지 않았다 — 죽은 선언이 살아 있는 결정과 정반대로 적혀 있던 셈이다.
+//
+// 되살리면 안 되는 이유는 취향이 아니다. 엣지에서 병합된 URL 은 빌드 게이트를 하나도 거치지
+// 않는다 — verify-sitemap-integrity(리다이렉트·noindex 충돌) · verify-seo-heading-integrity(H1
+// 단일) · verify-adsense-readiness(라우트별 렌더 텍스트 분량)는 전부 정적 산출물을 검사한다.
+// 그 상태로 켜면 검증되지 않은 URL 이 색인 요청만 나가게 된다.
+const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 
 function ensureUtf8Charset(contentType, fallbackType) {
   const value = String(contentType || "").trim();
@@ -142,26 +156,6 @@ function extractFirstTagText(xml, tagName) {
   return match ? String(match[1] || "").trim() : "";
 }
 
-function mergeSitemapXml(staticXml, dynamicXml) {
-  const base = String(staticXml || "");
-  if (!/<\/urlset>/i.test(base)) return dynamicXml;
-
-  const seen = new Set(
-    extractXmlBlocks(base, "url")
-      .map((block) => extractFirstTagText(block, "loc"))
-      .filter(Boolean),
-  );
-  const extraBlocks = extractXmlBlocks(dynamicXml, "url").filter((block) => {
-    const loc = extractFirstTagText(block, "loc");
-    if (!loc || seen.has(loc)) return false;
-    seen.add(loc);
-    return true;
-  });
-
-  if (extraBlocks.length === 0) return base;
-  return base.replace(/<\/urlset>/i, `${extraBlocks.join("\n")}\n</urlset>`);
-}
-
 function mergeRssXml(staticXml, dynamicXml) {
   const base = String(staticXml || "");
   if (!/<\/channel>/i.test(base)) return dynamicXml;
@@ -209,9 +203,7 @@ async function serveDynamicFeed(request, env) {
     assetResponse.text().catch(() => ""),
     apiResponse.text().catch(() => ""),
   ]);
-  const mergedXml = url.pathname === "/sitemap.xml"
-    ? mergeSitemapXml(staticXml, dynamicXml)
-    : mergeRssXml(staticXml, dynamicXml);
+  const mergedXml = mergeRssXml(staticXml, dynamicXml);
 
   return new Response(mergedXml, {
     status: assetResponse.ok ? assetResponse.status : 200,
