@@ -57,26 +57,26 @@ const __lazyActionLoaders = {
   agreeAndCalculate: () => __ensureSajuCoreScripts(),
   calculate: () => __ensureSajuCoreScripts(),
   runCompat: () => __ensureSajuCoreScripts(),
-  openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=h3ae4b189f4d3').then(() => __loadScriptOnce('PhysiognomyUI.js?v=h3ae4b189f4d3')),
-  openPastLifeFaceApp: () => __loadScriptOnce('AnalysisEngine.js?v=h3ae4b189f4d3').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=h3ae4b189f4d3')),
-  openHwatuModal: () => __loadScriptOnce('HwatuFortune.js?v=h3ae4b189f4d3'),
+  openPhysiognomyApp: () => __loadScriptOnce('AnalysisEngine.js?v=h3ae4b189f4d3').then(() => __loadScriptOnce('PhysiognomyUI.js?v=h0d3f9fdda03e')),
+  openPastLifeFaceApp: () => __loadScriptOnce('AnalysisEngine.js?v=h3ae4b189f4d3').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=hc1c3840957e8')),
+  openHwatuModal: () => __loadScriptOnce('HwatuFortune.js?v=h5be3c5cb5489'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-d6797429a112'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-d6797429a112'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-d6797429a112'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-a28f79e6cb35'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-a28f79e6cb35'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-a28f79e6cb35'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-d6797429a112')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-a28f79e6cb35')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-d6797429a112'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-d6797429a112'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-a28f79e6cb35'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-a28f79e6cb35'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-d6797429a112'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-d6797429a112'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-a28f79e6cb35'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-a28f79e6cb35'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -106,14 +106,14 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-d6797429a112').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-a28f79e6cb35').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-d6797429a112')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-a28f79e6cb35')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
