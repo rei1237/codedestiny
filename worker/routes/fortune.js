@@ -94,7 +94,7 @@ import {
   createPremiumAccessToken,
   resolvePremiumAccessReportType,
 } from "../lib/premium-access-token.js";
-import { callGeminiText } from "../lib/gemini.js";
+import { callGeminiText, createGeminiContextCache, deleteGeminiContextCache } from "../lib/gemini.js";
 import { cmsPromptText, primePromptTemplateOverrides } from "../lib/cms-prompts.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -272,33 +272,19 @@ function formatSajuAIOtherChapterTitles(group) {
 }
 
 /**
- * 그룹 하나의 상담문 프롬프트.
+ * 그룹 5개가 **문자까지 똑같이** 공유하는 불변 접두사.
  *
- * 🔴 목차 우선순위를 못박는 줄이 반드시 있어야 한다 — 내부 프롬프트에는 공유 모듈
- *    (worker/lib/fortune-question-prompt.js `[답변 형식]`)의 14항목 목차와 카테고리 루브릭이
- *    함께 들어 있어, 그냥 두면 모델이 서로 다른 목차 세 벌 사이에서 어느 것도 제대로 채우지
- *    못한다. 클라이언트 렌더러가 이해하는 것은 12챕터 하나뿐이다.
- *    공유 모듈은 다른 기능도 함께 쓰므로 건드리지 않고 여기서 우선순위만 선언한다.
+ * 🔴 group 을 인자로 받지 않는다. 그것이 5그룹 동일성의 근거이고, 동일성이 깨지면 컨텍스트
+ *    캐시가 통째로 무효가 된다(접두사 불일치 → llm-client 가 조용히 정가로 보낸다).
+ *    새 지시를 더할 때는 그룹에 따라 달라지는지 먼저 보고, 달라지면 접미사 쪽에 넣는다.
+ *
+ * 🔴 순서를 뒤집지 말 것 — 접두사가 선두에 한 덩어리로 모여 있어야 캐시에 넣을 수 있다.
  */
-function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
+function buildSajuAISectionPromptPrefix(builtPrompt) {
   const internalPrompt = String(builtPrompt?.generatedPrompt || builtPrompt?.prompt || "").trim();
   const factCard = String(builtPrompt?.factCard || "").trim();
-  const repairLines = Array.isArray(options?.repairLines) ? options.repairLines.filter(Boolean) : [];
   const categoryRubric = resolveSajuAIResultRubric(builtPrompt);
-  const chapterLines = formatSajuAIGroupChapterLines(group);
-  const otherTitles = formatSajuAIOtherChapterTitles(group);
-  // 닫는 챕터는 "마지막 그룹의 마지막 챕터"다. 번호를 박아 두면 챕터를 늘릴 때마다 조용히 어긋난다
-  // (실제로 10챕터 → 12챕터로 늘리면서 이 자리가 한 번 어긋날 뻔했다).
-  const closingChapterNo = SAJU_AI_SECTION_GROUPS.at(-1)?.chapters?.at(-1)?.no;
-  const hasClosingChapter = (group?.chapters || []).some((chapter) => chapter.no === closingChapterNo);
-  // 🔴 배열 순서 = 불변 접두사 → 가변 접미사. 이 순서를 뒤집지 말 것.
-  // 그룹 5개는 같은 내부 프롬프트(실측 59,377자)를 각자 한 벌씩 싣는데, Gemini 의 암묵 컨텍스트
-  // 캐싱은 **공통 접두사**에만 걸린다. 가변 블록(챕터·분량·guide·보강요청)이 앞에 있던 동안에는
-  // 공통 접두사가 240자뿐이라 나머지 전부가 정가로 나갔다.
-  // 접두사에 들어가는 값은 전부 builtPrompt/카테고리 기반이라 그룹이 달라도 문자까지 같다 —
-  // 새 지시를 더할 때는 그룹에 따라 달라지는지 먼저 보고 해당 구획에 넣는다.
   return [
-    // ── 불변 접두사 (그룹 5개가 문자까지 동일) ──────────────────────────────
     "아래 내부 프롬프트는 사용자에게 보여주지 않는 생성 지시문입니다.",
     "이 지시문을 바탕으로 최종 사주 상담 결과의 **일부분만** 한국어로 작성하세요.",
     // 🔴 사실 카드가 비면 아래 블록이 .filter(Boolean) 로 사라지는데, 이 지시문만 남으면
@@ -316,8 +302,24 @@ function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
     factCard,
     "내부 프롬프트:",
     internalPrompt,
-    // ── 여기부터 가변 접미사 (그룹마다 다름) ────────────────────────────────
-    // 맡은 챕터 지시가 마지막에 오므로 우선순위도 함께 분명해진다.
+  ].filter(Boolean).join("\n\n").trim();
+}
+
+/**
+ * 그룹마다 달라지는 가변 접미사.
+ *
+ * 맡은 챕터 지시가 마지막에 오므로 목차 우선순위도 함께 분명해진다.
+ * 웨이브2의 보강 요청(repairLines)도 여기 들어가므로 캐시된 접두사를 그대로 재사용할 수 있다.
+ */
+function buildSajuAISectionPromptSuffix(group, options = {}) {
+  const repairLines = Array.isArray(options?.repairLines) ? options.repairLines.filter(Boolean) : [];
+  const chapterLines = formatSajuAIGroupChapterLines(group);
+  const otherTitles = formatSajuAIOtherChapterTitles(group);
+  // 닫는 챕터는 "마지막 그룹의 마지막 챕터"다. 번호를 박아 두면 챕터를 늘릴 때마다 조용히 어긋난다
+  // (실제로 10챕터 → 12챕터로 늘리면서 이 자리가 한 번 어긋날 뻔했다).
+  const closingChapterNo = SAJU_AI_SECTION_GROUPS.at(-1)?.chapters?.at(-1)?.no;
+  const hasClosingChapter = (group?.chapters || []).some((chapter) => chapter.no === closingChapterNo);
+  return [
     "내부 프롬프트 안에 다른 목차가 있어도 무시하고, 아래 챕터 구성만 따르세요.",
     ["[이번에 쓸 챕터] — 아래 제목을 번호까지 그대로 소제목으로 쓰고, 이 순서대로 씁니다.", ...chapterLines].join("\n"),
     otherTitles.length
@@ -329,6 +331,26 @@ function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
       ? "중간에 끊기는 느낌이 없도록 각 챕터를 닫고, 마지막 한마디는 상담자가 직접 건네는 말처럼 완결하세요."
       : "중간에 끊기는 느낌이 없도록 맡은 챕터를 모두 닫으세요. 여기서 상담 전체를 마무리하는 인사는 쓰지 마세요.",
     repairLines.length ? ["[보강 요청]", ...repairLines].join("\n") : "",
+  ].filter(Boolean).join("\n\n").trim();
+}
+
+/**
+ * 그룹 하나의 상담문 프롬프트 = 불변 접두사 + 가변 접미사.
+ *
+ * 🔴 목차 우선순위를 못박는 줄이 반드시 있어야 한다 — 내부 프롬프트에는 공유 모듈
+ *    (worker/lib/fortune-question-prompt.js `[답변 형식]`)의 14항목 목차와 카테고리 루브릭이
+ *    함께 들어 있어, 그냥 두면 모델이 서로 다른 목차 세 벌 사이에서 어느 것도 제대로 채우지
+ *    못한다. 클라이언트 렌더러가 이해하는 것은 12챕터 하나뿐이다.
+ *    공유 모듈은 다른 기능도 함께 쓰므로 건드리지 않고 여기서 우선순위만 선언한다.
+ *
+ * 🔴 컨텍스트 캐시를 쓸 때도 이 **전체 프롬프트**를 그대로 llm-client 에 넘긴다. 접두사 제거는
+ *    전송 직전에만 일어난다 — 접두사를 여기서 빼면 응답 캐시 키(lib/llm-cache.ts)가 사용자를
+ *    구분하지 못해 남의 유료 결과가 캐시 히트로 새어 나간다.
+ */
+function buildSajuAISectionPrompt(builtPrompt, group, options = {}) {
+  return [
+    buildSajuAISectionPromptPrefix(builtPrompt),
+    buildSajuAISectionPromptSuffix(group, options),
   ].filter(Boolean).join("\n\n").trim();
 }
 
@@ -440,6 +462,11 @@ function isSajuAISectionRowShort(row) {
  *    세 그룹이 멀쩡한데 한 그룹 때문에 결제한 사용자가 빈손이 된다.
  */
 async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, deadlineAt, requestId, promptVersion } = {}) {
+  // 그룹 5개가 문자까지 같은 접두사를 각자 정가로 싣던 것을, Gemini 쪽에 한 벌만 올려 두고
+  // 참조한다(명시적 컨텍스트 캐싱). null 이면 아무 일도 일어나지 않고 지금까지처럼 전체
+  // 프롬프트가 나간다 — 웨이브1 직전에 채워지고, 웨이브가 끝나면 finally 에서 지운다.
+  let contextCache = null;
+
   const runSectionGroup = async (group, { repairLines = [], attempt = 0, timeoutMs, maxOutputTokens }) => {
     try {
       const ai = await callGeminiText(env, buildSajuAISectionPrompt(builtPrompt, group, { repairLines }), {
@@ -453,6 +480,10 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
         fallbackMinChars: Math.round(group.minChars * 0.4),
         // 캐시 키를 그룹·시도별로 갈라야 네 그룹이 서로의 응답을 집어가지 않는다.
         cache: cache ? { ...cache, keyExtra: `${cache.keyExtra}-${group.key}-a${attempt}` } : undefined,
+        // 🔴 프롬프트는 위에서 보듯 **전체**를 넘긴다. 접두사 제거는 llm-client 가 Gemini
+        //    전송 직전에만 하고, 응답 캐시 키와 Workers AI 폴백은 전체 프롬프트를 그대로 본다.
+        //    웨이브2의 보강 요청은 접미사에 들어가므로 같은 핸들이 그대로 유효하다.
+        geminiCachedContent: contextCache || undefined,
       });
       return { group, ok: ai?.ok === true, text: normalizeSajuAIResultText(ai?.text), ai };
     } catch (groupError) {
@@ -474,53 +505,65 @@ async function runSajuAISectionWaves(env, { builtPrompt, systemPrompt, cache, de
   if (!(wave1TimeoutMs > 0)) {
     console.warn("[SajuMyeongsikAI] llm budget exhausted before generation", { requestId });
   } else {
-    console.info("[SajuMyeongsikAI] LLM request created", {
-      requestId,
-      promptVersion,
-      groups: SAJU_AI_SECTION_GROUPS.length,
-    });
-    sectionResults = await Promise.all(SAJU_AI_SECTION_GROUPS.map((group) => runSectionGroup(group, {
-      attempt: 0,
-      timeoutMs: wave1TimeoutMs,
-      maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
-    })));
-
-    // ── 웨이브2 — 모자란 그룹만 다시 쓴다(전체 재생성 금지) ──────────────
-    const shortGroups = sectionResults.filter(isSajuAISectionRowShort);
-    // 시작해 놓고 예산이 끊기면 그 호출은 통째로 버려진다(비스트리밍 abort 는 부분 텍스트가 0).
-    const wave2TimeoutMs = deadlineAt - Date.now() >= SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS
-      ? featureAiCallTimeoutMs(deadlineAt, SAJU_AI_SECTION_REPAIR_TIMEOUT_MS)
-      : 0;
-    if (shortGroups.length && wave2TimeoutMs > 0) {
-      console.warn("[SajuMyeongsikAI] section groups short", {
+    try {
+      console.info("[SajuMyeongsikAI] LLM request created", {
         requestId,
         promptVersion,
-        groups: shortGroups.map((row) => row.group.key).join(","),
+        groups: SAJU_AI_SECTION_GROUPS.length,
       });
-      const repaired = await Promise.all(shortGroups.map((row) => {
-        const currentChars = countSajuAIVisibleChars(row.text);
-        // 🔴 보강 지시는 형용사가 아니라 숫자로 준다. "더 길게"로는 분량이 늘지 않는다.
-        const repairLines = row.ok && currentChars > 0
-          ? [
-            `현재 이 부분은 공백 제외 ${currentChars.toLocaleString("ko-KR")}자로 목표에 못 미칩니다.`,
-            `${row.group.minChars.toLocaleString("ko-KR")}자 이상이 되도록 아직 쓰지 않은 근거와 장면, 판단 기준을 새로 더해 처음부터 다시 쓰세요.`,
-          ]
-          : [];
-        return runSectionGroup(row.group, {
-          repairLines,
-          attempt: 1,
-          timeoutMs: wave2TimeoutMs,
-          maxOutputTokens: SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS,
+      // 🔴 예산 확인 뒤에 만든다 — 어차피 안 부를 웨이브를 위해 왕복을 낭비하지 않는다.
+      //    실측(2026-08-15): 암묵 캐싱은 이 병렬 구성에서 0/5 로 안 걸리고 명시적 캐싱은 99.0%.
+      contextCache = await createGeminiContextCache(env, {
+        prefix: buildSajuAISectionPromptPrefix(builtPrompt),
+        systemPrompt,
+      });
+      sectionResults = await Promise.all(SAJU_AI_SECTION_GROUPS.map((group) => runSectionGroup(group, {
+        attempt: 0,
+        timeoutMs: wave1TimeoutMs,
+        maxOutputTokens: SAJU_AI_SECTION_MAX_OUTPUT_TOKENS,
+      })));
+
+      // ── 웨이브2 — 모자란 그룹만 다시 쓴다(전체 재생성 금지) ──────────────
+      const shortGroups = sectionResults.filter(isSajuAISectionRowShort);
+      // 시작해 놓고 예산이 끊기면 그 호출은 통째로 버려진다(비스트리밍 abort 는 부분 텍스트가 0).
+      const wave2TimeoutMs = deadlineAt - Date.now() >= SAJU_AI_SECTION_REPAIR_MIN_REMAINING_MS
+        ? featureAiCallTimeoutMs(deadlineAt, SAJU_AI_SECTION_REPAIR_TIMEOUT_MS)
+        : 0;
+      if (shortGroups.length && wave2TimeoutMs > 0) {
+        console.warn("[SajuMyeongsikAI] section groups short", {
+          requestId,
+          promptVersion,
+          groups: shortGroups.map((row) => row.group.key).join(","),
         });
-      }));
-      for (const candidate of repaired) {
-        const index = sectionResults.findIndex((row) => row.group.key === candidate.group.key);
-        if (index < 0 || !candidate.ok || !candidate.text) continue;
-        // 재시도가 더 짧거나 잘려 나오는 경우가 있다 — 나아졌을 때만 갈아끼운다.
-        if (scoreSajuAISectionRow(candidate) > scoreSajuAISectionRow(sectionResults[index])) {
-          sectionResults[index] = candidate;
+        const repaired = await Promise.all(shortGroups.map((row) => {
+          const currentChars = countSajuAIVisibleChars(row.text);
+          // 🔴 보강 지시는 형용사가 아니라 숫자로 준다. "더 길게"로는 분량이 늘지 않는다.
+          const repairLines = row.ok && currentChars > 0
+            ? [
+              `현재 이 부분은 공백 제외 ${currentChars.toLocaleString("ko-KR")}자로 목표에 못 미칩니다.`,
+              `${row.group.minChars.toLocaleString("ko-KR")}자 이상이 되도록 아직 쓰지 않은 근거와 장면, 판단 기준을 새로 더해 처음부터 다시 쓰세요.`,
+            ]
+            : [];
+          return runSectionGroup(row.group, {
+            repairLines,
+            attempt: 1,
+            timeoutMs: wave2TimeoutMs,
+            maxOutputTokens: SAJU_AI_SECTION_REPAIR_MAX_OUTPUT_TOKENS,
+          });
+        }));
+        for (const candidate of repaired) {
+          const index = sectionResults.findIndex((row) => row.group.key === candidate.group.key);
+          if (index < 0 || !candidate.ok || !candidate.text) continue;
+          // 재시도가 더 짧거나 잘려 나오는 경우가 있다 — 나아졌을 때만 갈아끼운다.
+          if (scoreSajuAISectionRow(candidate) > scoreSajuAISectionRow(sectionResults[index])) {
+            sectionResults[index] = candidate;
+          }
         }
       }
+    } finally {
+      // 저장이 시간당 과금이라 다 쓰면 지운다. 실패는 삼키고 TTL(300초)에 맡긴다 —
+      // 여기서 던지면 이미 만들어 놓은 상담 결과를 통째로 잃는다.
+      await deleteGeminiContextCache(env, contextCache);
     }
   }
 
@@ -6762,6 +6805,7 @@ export const __fortuneAccessTestUtils = {
 export const __sajuAiSectionTestUtils = {
   runSajuAISectionWaves,
   buildSajuAISectionPrompt,
+  buildSajuAISectionPromptPrefix,
   isSajuAISectionRowShort,
   scoreSajuAISectionRow,
   countSajuAIVisibleChars,
