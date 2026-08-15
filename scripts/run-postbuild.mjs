@@ -26,6 +26,9 @@ const steps = [
   //    dist/js 의 한국어 문구를 읽는 유일한 소비자라, 앞에 두면 가공된 산출물을 검사하게 된다.
   // 🔴 externalize → minify 순서를 지킬 것. 그래야 셸에서 빠져나온 스크립트도 minify 를 탄다.
   "scripts/externalize-dist-inline-scripts.mjs",
+  // 🔴 externalize 뒤 · minify 앞. 앞에 두면 8KB 이상 블록이 아직 인라인이라 대상이 달라지고,
+  //    뒤에 두면 우리가 감싼 코드가 minify 를 못 탄다.
+  "scripts/split-dist-boot-tasks.mjs",
   "scripts/minify-dist-js.mjs",
   // 🔴 externalize 뒤에 둔다. 그래야 셸에서 빠져나간 인라인 <script> 안의 `<style>` 문자열이
   //    HTML 에 남아 있지 않고, CSS minify 가 볼 <style> 은 전부 진짜 마크업이다.
