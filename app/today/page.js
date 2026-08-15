@@ -1,5 +1,6 @@
 import TodayHubClient from "./TodayHubClient";
 import TodayReadingGuide from "./TodayReadingGuide";
+import TodaySystemPrimer from "./TodaySystemPrimer";
 import { buildSeoMetadata } from "../../lib/seo";
 import { createHreflangFromRoutes } from "../../lib/seo/createHreflang";
 import { getAlternatesByRouteKey } from "../../lib/i18n/routes";
@@ -52,7 +53,11 @@ const faqJsonLd = buildFaqPageJsonLd(page.faqs || []);
 export default function TodayLandingPage() {
   return (
     <>
+      {/* 🔴 이 라우트는 몰입형(AppChrome.CHROMELESS_ROUTES)이라 SiteFooterHub 가 붙지 않는다.
+          예전에 배포 게이트(1,800자)를 떠받치던 것이 그 푸터(실측 2,265자)였으므로,
+          아래 두 서버 컴포넌트를 지우거나 줄이면 build:cf 의 verify-adsense-readiness 가 실패한다. */}
       <TodayHubClient>
+        <TodaySystemPrimer />
         <TodayReadingGuide />
       </TodayHubClient>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
