@@ -3500,12 +3500,16 @@
     }
   }
 
-  function getTodayHealthElement() {
+  // 일간 오행은 넘겨받은 원국(p/natal)에서 먼저 읽는다. 예전에는 w.G_BAZI 전역만 봤는데,
+  // 그 전역은 이 페이지에서 사주를 직접 계산했을 때만 채워진다 — 프로필 카드로 결과를 여는
+  // 경로에서는 비어 있어서, resolveHealthReportInputs 가 p·natal 을 되살려도 이 값만 null 이
+  // 되고 리포트가 축소본(5개 섹션 누락 + 다른 문구)으로 떨어졌다.
+  // getHealthDayStem 이 후보 목록 맨 뒤에서 w.G_BAZI.getDayGan() 도 그대로 보므로 기존 경로는 유지된다.
+  function getTodayHealthElement(p, natal) {
     try {
-      if (w.G_BAZI && typeof w.G_BAZI.getDayGan === 'function') {
-        var gan = w.G_BAZI.getDayGan();
-        return (w.GAN && w.GAN[gan] && w.GAN[gan].e) || getHealthElementFromToken(gan) || null;
-      }
+      var stem = getHealthDayStem(p, natal);
+      var view = stem ? DAY_MASTER_HEALTH_VIEW[stem] : null;
+      if (view && view.element) return view.element;
     } catch (_) {}
     return null;
   }
@@ -4864,7 +4868,7 @@
     var weakestEls = sorted.slice(-2).reverse();
     var controlImpacts = getHealthControlImpacts(ratios);
     var axes = getHealthTargetAxes(pw, jg, johu, controlImpacts);
-    var rawTodayEl = getTodayHealthElement();
+    var rawTodayEl = getTodayHealthElement(p, natal);
     var computedTodayEl = rawTodayEl || getHealthFallbackTodayElement();
     var hasTodayElement = !!rawTodayEl;
     var todayEl = computedTodayEl || strongestEl;

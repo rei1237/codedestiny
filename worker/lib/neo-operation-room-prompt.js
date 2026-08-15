@@ -690,7 +690,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "opening",
     title: "작전 개시 — 네오의 첫 진단",
-    minChars: 900,
+    minChars: 1150,
     scope: "사용자의 질문을 첫 두 문장에서 직접 짚고, 현재 운명의 전선(핵심 국면)을 단정한다.",
     schema: { operationTitle: "작전명", neoOpening: "네오의 첫 판단(질문 직격)", frontlineSummary: "현재 운명의 전선 요약" },
     rules: [
@@ -701,7 +701,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "innateCore",
     title: "병력 판독 Ⅰ — 타고난 성향의 핵",
-    minChars: 1300,
+    minChars: 1650,
     scope: "타고난 구조상 이 사람의 자아·중심·기본 동기가 무엇인지 전문가답게 깊이 진단한다. 신뢰를 쌓는 챕터다.",
     schema: { innateNature: { title: "타고난 성향의 핵", description: "중심 구조·자아·기본 동기 심층 해석", keyTraits: ["핵심 기질1", "핵심 기질2", "핵심 기질3"] } },
     rules: [
@@ -713,7 +713,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "innateStrength",
     title: "병력 판독 Ⅱ — 타고난 강점과 약점",
-    minChars: 1200,
+    minChars: 1550,
     scope: "타고난 구조에서 강한 기운과 약한 기운을 나눠, 어디를 밀고 어디를 지켜야 하는지 판단한다.",
     schema: { innateStrength: { title: "타고난 강점과 약점", description: "강한 기운/약한 기운 심층 해석", strongPoints: ["강점1", "강점2"], weakPoints: ["약점1", "약점2"] } },
     rules: [
@@ -725,7 +725,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "topicStyle",
     title: "주제 맞춤 판독 — 이 영역에서 너의 방식",
-    minChars: 1400,
+    minChars: 1800,
     scope: "[상담 맥락]의 topic 주제에서 이 사람의 타고난 방식·성향을 술수 근거로 진단한다. 예: 돈이면 돈을 버는 방식, 연애면 연애 성향, 직업이면 일하는 방식, 인간관계면 사람을 대하는 방식.",
     schema: { topicStyle: { title: "이 주제에서 너의 방식", description: "주제에 대한 타고난 성향·방식 심층 해석", keyPoints: ["핵심1", "핵심2", "핵심3"] } },
     rules: [
@@ -738,7 +738,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "topicAreaBreakdown",
     title: "주제 영역별 심층 — 자리마다 다른 결",
-    minChars: 1600,
+    minChars: 2000,
     scope: "[상담 맥락]의 topic과 직접 연결되는 각 영역을 하나씩 나눠 분석한다. 자미두수=관련 궁들(예: 돈이면 재백궁·관록궁·전택궁), 사주=관련 십성/자리, 베다·점성술=관련 하우스/행성. 각 자리가 이 주제에 대해 어떻게 말하는지 전문가답게 풀어낸다.",
     schema: { topicAreas: [{ area: "영역(궁/자리/하우스) 이름", reading: "그 영역이 이 주제에 대해 말하는 것(구체 계산 근거 포함)" }] },
     rules: [
@@ -750,7 +750,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "topicTiming",
     title: "주제 시기 흐름 — 언제 열리고 닫히는가",
-    minChars: 1100,
+    minChars: 1400,
     scope: "[상담 맥락]의 topic에 대해 대운/세운/유년/다샤/트랜짓 등 시기 데이터로 언제가 열리고 닫히는지 판단한다.",
     schema: { topicTiming: { title: "이 주제의 시기 흐름", description: "주제 관련 시기 해석", windows: ["열리는/닫히는 시기 포인트1", "포인트2"] } },
     rules: [
@@ -762,7 +762,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "originalStrategy",
     title: "본래 무기 체계 — 이렇게 움직여야 한다",
-    minChars: 1100,
+    minChars: 1400,
     scope: "타고난 구조상 이 사람이 힘이 나는 본래의 방식과, 지켜야 할 핵심 규칙을 제시한다.",
     schema: { originalStrategy: { title: "본래 너는 이렇게 움직여야 한다", description: "타고난 구조상 힘이 나는 방식", keyRules: ["규칙1", "규칙2", "규칙3"] } },
     rules: ["keyRules는 3~5개로, 계산 근거와 연결된 실행 규칙으로 쓴다."],
@@ -770,7 +770,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "repeatedChoice",
     title: "반복되는 패전 — 되풀이하는 선택",
-    minChars: 1000,
+    minChars: 1300,
     scope: "사용자가 반복하기 쉬운 선택 방식과 그 뿌리를 계산 근거로 짚는다.",
     schema: { repeatedChoice: { title: "반복되는 선택", description: "사용자가 반복하기 쉬운 선택 방식과 그 뿌리" } },
     rules: ["반복 패턴의 방아쇠를 계산값(사주 합충/자미 살성·화기/베다 라후·케투/점성 하드 애스펙트 등)으로 특정한다."],
@@ -778,7 +778,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "misalignedFlow",
     title: "어긋난 전선 — 지금 흐름이 밀리는 자리",
-    minChars: 1000,
+    minChars: 1300,
     scope: "타고난 방식과 현재 삶이 어긋난 지점을 진단한다.",
     schema: { misalignedFlow: { title: "지금 흐름이 어긋난 자리", description: "본래 방식과 현재 삶의 간극" } },
     rules: ["본래 무기 체계와 현재 반복 선택의 간극을 대비해 어긋난 자리를 단정한다."],
@@ -786,7 +786,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "methodEvidence",
     title: "정찰 보고 — 술수 근거",
-    minChars: 1300,
+    minChars: 1650,
     scope: "선택한 술수의 실제 계산 근거를 전문가 시선으로 1~4개 항목으로 정리한다.",
     schema: { methodEvidence: [{ label: "근거 제목", summary: "계산 요약에서 확인되는 구체 근거" }] },
     rules: [
@@ -797,7 +797,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "bluntTruth",
     title: "급소 타격 — 네오의 팩폭",
-    minChars: 1000,
+    minChars: 1300,
     scope: "정찰 보고의 계산값과 연결해, 사용자가 인정하기 싫어할 사실을 직격으로 때린다.",
     schema: { bluntTruth: "네오의 팩폭" },
     rules: [
@@ -808,7 +808,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "todayOrders",
     title: "즉시 작전 — 오늘 금지 행동과 바로 할 작전",
-    minChars: 900,
+    minChars: 1150,
     scope: "오늘 당장 금지할 행동 하나와, 바로 실행할 작전 3개를 준다.",
     schema: { forbiddenAction: { title: "오늘 금지 행동", reason: "왜 금지해야 하는지" }, actionOrders: ["바로 해야 할 작전 1", "바로 해야 할 작전 2", "바로 해야 할 작전 3"] },
     rules: ["actionOrders는 정확히 3개, 각각 오늘~이번 주에 실행 가능한 구체 행동으로 쓴다."],
@@ -816,7 +816,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "sevenDayMission",
     title: "7일 전투 계획",
-    minChars: 1300,
+    minChars: 1650,
     scope: "1일차부터 7일차까지 하루 단위 작전을 설계한다.",
     schema: { sevenDayMission: [{ day: 1, mission: "1일차 작전" }] },
     rules: ["sevenDayMission은 day 1부터 7까지 반드시 7개, 각 mission은 그날 실행할 구체 행동으로 쓴다."],
@@ -824,7 +824,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "meta",
     title: "전황 점검 + 사자 휘장",
-    minChars: 600,
+    minChars: 750,
     scope: "2차 수정 작전으로 이어질 현실 점검 질문과 오늘의 사자 휘장, 츤데레 마무리를 준다.",
     schema: {
       realityCheckQuestions: [{ question: "현실 점검 질문", whyItMatters: "왜 중요한지" }],
