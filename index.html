@@ -22352,7 +22352,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-0a571bc7fe22" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-61ee5e155bd3" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-0a571bc7fe22" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-0a571bc7fe22" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -24048,9 +24048,17 @@ return you.name.restore();</span>
     }
   }
 
-  async function _cdEnsureDirectCheckoutPaymentPhoneNumber() {
-    // 서버 값이 진실의 원천이다 — 로컬 캐시는 서버 조회가 실패했을 때만(아래 checked!==true 분기) 폴백으로 쓴다.
-    var current = await _cdGetPaymentPhoneStatus();
+  async function _cdEnsureDirectCheckoutPaymentPhoneNumber(options) {
+    var ensureOpts = options || {};
+    // 🔴 주문 응답이 이미 확정 답을 실어 왔으면 GET 을 건너뛴다(2026-08-15).
+    // 판정 근거는 order.customer.email 이다 — 그 값은 서버가 User 문서를 실제로 읽고
+    // buildLegacyPrepareCustomer 를 통과했을 때만 채워진다(못 읽으면 prepare 자체가 실패한다).
+    // 그 응답의 phoneNumber 는 **여기 GET 과 같은 필드를 같은 복호화로 읽은 값**이라, 비어 있으면
+    // 다시 물어도 같은 "" 가 돌아온다. 가입에서 번호를 받지 않게 된 뒤로 첫 결제가 흔한 경로가 됐고,
+    // 그 경로에서 인증 왕복 1회(예산 20초)가 통째로 사라진다.
+    var current = ensureOpts.serverConfirmedNoPhone === true
+      ? { hasPhone: false, maskedPhone: '', checked: true }
+      : await _cdGetPaymentPhoneStatus();
     if (current && current.hasPhone && current.phoneNumber) return current;
     // 🔴 조회에 실패했을 때만(확정 미보유가 아닐 때만) 두 번째 소스를 본다. /api/auth/me 는 같은 번호를
     // 함께 실어 보내고(ME_USER_PROJECTION.phoneNumber), 성공하면 _cdPersistCoinApiUser 가 로컬 캐시에
@@ -24544,7 +24552,11 @@ return you.name.restore();</span>
       throw new Error('결제 주문 정보를 확인할 수 없습니다. 구매자 이메일이 필요합니다.');
     }
     if (!customerPhone) {
-      var paymentPhoneState = await _cdEnsureDirectCheckoutPaymentPhoneNumber();
+      // customer.email 이 채워져 왔다 = 서버가 이 사용자의 User 문서를 읽고 customer 를 만들었다.
+      // 그렇다면 위에서 비어 있던 phoneNumber 는 확정 미보유이므로 재조회 없이 바로 입력창으로 간다.
+      var paymentPhoneState = await _cdEnsureDirectCheckoutPaymentPhoneNumber({
+        serverConfirmedNoPhone: Boolean(orderCustomer && orderCustomer.email)
+      });
       customerPhone = _cdResolveDirectCheckoutPhoneNumber([
         paymentPhoneState && paymentPhoneState.phoneNumber,
         paymentPhoneState && paymentPhoneState.phone,

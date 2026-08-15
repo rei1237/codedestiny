@@ -3380,9 +3380,15 @@
     } catch (_) {}
   }
 
-  async function _dpEnsurePaymentPhoneNumber() {
-    // 서버 값이 진실의 원천이다 — 로컬 캐시는 서버 조회가 실패했을 때만(아래 checked!==true 분기) 폴백으로 쓴다.
-    var current = await _dpGetPaymentPhoneStatus();
+  async function _dpEnsurePaymentPhoneNumber(options) {
+    var ensureOpts = options || {};
+    // 🔴 셸(_cdEnsureDirectCheckoutPaymentPhoneNumber)과 같은 단축이다(2026-08-15).
+    // 주문 응답의 customer.email 이 채워져 왔다면 서버가 User 문서를 실제로 읽었다는 뜻이고,
+    // 그때 비어 있던 phoneNumber 는 이 GET 이 읽을 값과 같은 필드·같은 복호화의 결과다.
+    // 다시 물어도 같은 "" 이므로 첫 결제에서 인증 왕복 1회를 그냥 버린다.
+    var current = ensureOpts.serverConfirmedNoPhone === true
+      ? { phoneNumber: '', checked: true }
+      : await _dpGetPaymentPhoneStatus();
     if (current && current.phoneNumber) return current.phoneNumber;
     // 조회 실패(503 등)를 '번호 없음'으로 단정하지 않는다. 확정 미보유가 아닐 때만 두 번째 소스를 본다 —
     // /api/auth/me 는 같은 번호를 함께 실어 보내고(ME_USER_PROJECTION.phoneNumber), 성공하면
@@ -4350,7 +4356,11 @@
       }
 
       if (!customerPhone) {
-        customerPhone = await _dpEnsurePaymentPhoneNumber();
+        // customer.email 이 있으면 서버가 User 문서를 읽고 customer 를 만든 것이므로,
+        // 위에서 비어 있던 phoneNumber 는 확정 미보유다 — 재조회 없이 바로 입력창으로 간다.
+        customerPhone = await _dpEnsurePaymentPhoneNumber({
+          serverConfirmedNoPhone: Boolean(orderCustomer && orderCustomer.email)
+        });
       }
       if (!customerPhone) {
         throw new Error('\uC774\uB2C8\uC2DC\uC2A4 \uACB0\uC81C\uB97C \uC9C4\uD589\uD558\uB824\uBA74 \uAD6C\uB9E4\uC790 \uD734\uB300\uD3F0 \uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.');
