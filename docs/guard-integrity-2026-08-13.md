@@ -17,7 +17,7 @@
 | G-5 | `verify:*` 미배선 다수 | 존재하나 아무도 호출 안 함 | ✅ PR #558 |
 | G-6 | `deploy:critical` ↔ paid-flow-gates 커버리지 차이 | 검증 안 됨 | ✅ PR #558 (G-5 와 같은 가드) |
 | G-7 | `verify-auth-event-loop-guard` 대상 목록 | **G-3 재발** — 프로필 카드 무한 로딩으로 프로덕션 표면화 | ✅ PR #567 + 커버리지 메타 가드 |
-| G-8 | `verify:mobile-cdp-smoke` | 로컬에서 **낡은 `dist/` 를 서빙**해 소스 대신 옛 셸을 검사 | 🔴 미조치 (2026-08-15 발견) |
+| G-8 | `verify:mobile-cdp-smoke` | 로컬에서 **낡은 `dist/` 를 서빙**해 소스 대신 옛 셸을 검사 | ✅ PR #640 (2026-08-15) |
 
 > **G-5·G-6 후속 정정 (2026-08-13)**
 > - 위 "54개"는 손으로 센 값이라 **믿지 말 것.** 정본은 `npm run verify:guard-wiring` 이 계산한다(실측: `verify:*` 178개 중 88개 배선 / 90개 미배선 선언).
@@ -26,9 +26,17 @@
 
 ---
 
-## 🔴 미조치
+## ✅ 해결됨 — G-8 (2026-08-15)
 
-### G-8. `verify:mobile-cdp-smoke` 가 로컬에서 낡은 `dist/` 를 검사한다 (2026-08-15 발견)
+### G-8. `verify:mobile-cdp-smoke` 가 로컬에서 낡은 `dist/` 를 검사했다 (2026-08-15)
+
+> **닫힘 (PR #640)**: 서빙 대상이 명시적이 됐다. `MOBILE_CDP_TARGET=source`(기본)는 레포 루트를,
+> `dist` 는 산출물을 서빙하되 **`index.html`·`js/**`·`styles/**` 중 하나라도 산출물보다 새로우면
+> 실패**한다(어느 파일 때문인지 이름까지 찍는다). "쓸 만한 대상이 없다"가 조용한 통과가 아니라
+> 에러가 됐다 — 아래 교훈 5번(fail-closed)의 형태다.
+>
+> 🔴 **그리고 소스를 실제로 검사하자마자, 낡은 산출물이 가리고 있던 단언 2건이 즉시 드러났다.**
+> 아래 "가려져 있던 것" 참고 — 이 항목의 진짜 비용은 그쪽이다.
 
 **증상.** 하네스 첫머리가 이렇다:
 
@@ -51,19 +59,36 @@ const staticRoot = fs.existsSync(path.join(root, "dist", "index.html")) ? path.j
 
 **왜 위험한가.** 이 하네스는 "탭이 실제로 기능을 여는가"를 재는 몇 안 되는 실브라우저 검증이다. 그런데 옛 셸을 검사하면 **방금 만든 회귀는 물론 방금 만든 수정도 보이지 않는다.** `13cc7e6d7` 커밋 메시지가 남긴 교훈("스모크가 초록인데 유료 진입이 두 릴리스 동안 죽어 있었다")과 정확히 같은 함정을 한 겹 더 만든다.
 
-**당장의 우회 (2026-08-15 에 실제로 쓴 방법).** `dist/` 를 잠시 옆으로 치우면 하네스가 레포 루트를 서빙한다:
+**루트를 서빙할 때 주의할 점 (지금의 기본 동작).** Next 라우트(`/tarot/mingri` 등)는 파일로 존재하지 않으므로 **"그 URL 에 도달했는가"를 축으로 삼는 단언은 환경 탓으로 실패한다.** 그래서 이때 추가한 스크롤 오탭 회귀 케이스는 `location.href` 대신 `window.__cdLastMobileAction`(액션 발화 기록)을 축으로 쓴다 — 라우트가 없어도 "열렸는가"를 잴 수 있다. 새 단언을 쓸 때 같은 규칙을 따를 것.
 
-```bash
-mv dist dist.bak && npm run verify:mobile-cdp-smoke ; mv dist.bak dist
+> 처음에는 `mobile membership benefits button is visible and action-wired` 실패도 이 부류(환경성)로 적었는데, **틀린 진단이었다.** 실제로는 모바일에서 `display:none` 인 버튼을 재고 있었다 — 아래 참고. 낡은 산출물을 걷어내면 "환경 탓"으로 보이던 것 중 진짜 결함이 섞여 있다.
+
+**조치 (PR #640 — 위 두 안을 함께 적용했다).**
+
+```
+MOBILE_CDP_TARGET=source  (기본)  → 레포 루트. 방금 고친 소스를 검사한다.
+MOBILE_CDP_TARGET=dist            → 산출물. 낡았으면 실패하고 원인 파일을 찍는다.
+그 외 값                          → 즉시 거부.
 ```
 
-단, 루트를 서빙하면 Next 라우트(`/tarot/mingri` 등)가 파일로 존재하지 않아 **라우트 도달을 축으로 삼는 단언은 환경 탓으로 실패한다.** 그래서 이때 추가한 스크롤 오탭 회귀 케이스는 `location.href` 대신 `window.__cdLastMobileAction`(액션 발화 기록)을 축으로 쓴다 — 라우트가 없어도 "열렸는가"를 잴 수 있다. 같은 이유로 `mobile membership benefits button is visible and action-wired` 1건은 수정 전후 모두 실패하는 **환경성 실패**다.
+```
+$ MOBILE_CDP_TARGET=dist npm run verify:mobile-cdp-smoke
+Error: dist/index.html is older than js\saju-engine.js - this run would test a stale shell.
+  Rebuild (npm run build:cf) or use MOBILE_CDP_TARGET=source.
+```
 
-**조치 방향 (택일, 다음 세션 몫).**
-1. **fail-closed 로 바꾼다** — `dist/index.html` 의 mtime 이나 내장 SHA 가 현재 `HEAD`/워킹트리보다 오래됐으면 **통과시키지 말고 실패**시킨다. 이 문서의 교훈 5번("대상이 없거나 낡았을 때 통과시키는 가드는 가드가 아니다")에 맞는 형태다.
-2. **서빙 대상을 명시적으로 만든다** — `MOBILE_CDP_TARGET=dist|source` 를 받고 기본값을 `source` 로 둔다. CI 는 빌드 직후 `dist` 를 지정한다. "있으면 쓴다"는 암묵 규칙을 없애는 게 핵심.
+### 가려져 있던 것 — 낡은 산출물의 실제 비용
 
-🔴 **어느 쪽이든 `dist/` 존재 여부로 조용히 갈리는 현재 동작은 남기지 말 것.**
+소스를 서빙하자마자 **단언 2건이 오래 틀려 있었다는 게 드러났다.** 둘 다 이번 스크롤 오탭 작업과 무관하며, 산출물이 낡아 있는 동안에는 볼 방법이 없었다.
+
+1. **모바일에서 `display:none` 인 버튼을 검사하고 있었다.**
+   `#honeyMembershipMini [data-membership-cta="benefits"]` 의 **첫 매치**는 `.honey-membership-mini__hero` 인데, `index.html` 이 모바일에서 그걸 `display:none!important` 로 숨긴다. 그래서 `visible:false`(0×0)로 잡혔고, **바로 뒤의 탭은 애초에 발화할 수 없었다.** 지금은 실제로 보이는 CTA 를 골라 표식을 달고 그것을 탭한다 — 계약("모바일에 눌리는 benefits CTA 가 있다")은 그대로 두고 DOM 순서 의존만 없앴다.
+2. **그 탭이 처음으로 발화하자, 그 다음 단언이 정상 동작을 실패로 판정했다.**
+   로그인 리다이렉트는 `?next=%2Fpoints%3F…` 로 **퍼센트 인코딩**돼 오는데 검사는 인코딩된 문자열에 `indexOf("/points")` 를 걸고 있었다. 비교 전에 디코드하도록 고쳤고, "리다이렉트가 이용권 안내를 가리켜야 한다"는 요구는 그대로다.
+
+**결과**: `verify:mobile-cdp-smoke` 가 **37개 단언 전부 통과(exit 0)** 한다. 직전은 35 통과 / 1 실패였고, 그 1건이 위 ①의 숨은 버튼이었다.
+
+🔴 **`dist/` 존재 여부로 서빙 대상이 조용히 갈리던 동작으로 되돌리지 말 것.** 되돌리는 순간 이 항목 전체가 그대로 재발하고, 재발했다는 사실조차 초록불에 가려진다.
 
 **배선 상태 (2026-08-15 실측).** 이 가드는 `.github/workflows/` 어디에도 없고, `npm` 스크립트 체인에도 물려 있지 않다(`grep -rn "mobile-cdp" .github/workflows/` → 0건). 사고가 아니라 **의도된 미배선**이며 `scripts/verify-guard-wiring.mjs:70` 에 사유와 함께 선언돼 있다:
 
