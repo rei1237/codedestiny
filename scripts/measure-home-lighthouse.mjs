@@ -74,6 +74,10 @@ try {
         dom: extractDom(lhr),
         unusedCss: extractUnusedCss(lhr),
         renderBlocking: extractRenderBlocking(lhr),
+        lcpElement: extractLcpElement(lhr),
+        lcpPhases: extractLcpPhases(lhr),
+        imageRequests: extractImageRequests(lhr),
+        oversizedImages: extractOversizedImages(lhr),
       });
       console.log(`score ${metrics.performance} · TBT ${Math.round(metrics.tbt)}ms`);
     }
@@ -198,6 +202,83 @@ function extractRenderBlocking(lhr) {
   }));
 }
 
+/**
+ * LCP 는 점수의 25% 인데 지금까지 이 스크립트는 **누가 LCP 인지**를 말해 주지 않았다.
+ * 히어로 섬 이미지인지·로고인지·부트 베일인지에 따라 처방이 완전히 갈린다.
+ *
+ * 🔴 감사 id 는 LH 13 에서 갈렸다 — `largest-contentful-paint-element` 가 사라지고
+ *    인사이트 감사가 대신한다(그 안의 `type:"node"` 항목이 요소다). 셋을 순서대로 훑는다.
+ *    `lcp-discovery-insight` 는 **LCP 가 이미지일 때만** 값이 있으므로(checklist 가 없으면
+ *    감사 자체가 빈다) 텍스트 LCP 면 `lcp-breakdown-insight` 만 답을 준다.
+ *    한쪽만 보면 조용히 빈 값이 나온다 — 실제로 그랬다.
+ */
+function extractLcpElement(lhr) {
+  for (const id of ["largest-contentful-paint-element", "lcp-discovery-insight", "lcp-breakdown-insight"]) {
+    const items = lhr.audits?.[id]?.details?.items || [];
+    for (const item of items) {
+      const node = item.type === "node" ? item : item.node || (item.items || []).map((sub) => sub.node).find(Boolean);
+      if (!node?.selector && !node?.snippet) continue;
+      const rect = node.boundingRect;
+      return {
+        selector: node.selector || "",
+        snippet: node.snippet || "",
+        label: node.nodeLabel || "",
+        rendered: rect ? `${Math.round(rect.width)}x${Math.round(rect.height)}` : "",
+      };
+    }
+  }
+  return null;
+}
+
+/**
+ * LCP 를 TTFB / 자원 로드 지연 / 로드 시간 / 렌더 지연으로 쪼갠다.
+ * 어느 칸이 큰지에 따라 처방이 갈린다 — 네트워크를 고칠지 메인스레드를 고칠지.
+ */
+function extractLcpPhases(lhr) {
+  const items = lhr.audits?.["lcp-breakdown-insight"]?.details?.items || [];
+  const out = {};
+  for (const item of items) {
+    for (const row of item.items || []) {
+      if (row.label && typeof row.duration === "number") out[String(row.label)] = row.duration;
+    }
+  }
+  return out;
+}
+
+/**
+ * 홈 이미지는 거의 전부 loading="lazy" 라 **마크업에 있다고 실제로 받는 것이 아니다.**
+ * 어떤 이미지가 정말 다운로드되고 몇 바이트인지 모르면 리사이즈 대상을 고를 근거가 없다.
+ */
+function extractImageRequests(lhr) {
+  const items = lhr.audits?.["network-requests"]?.details?.items || [];
+  return items
+    .filter((item) => (item.resourceType || "") === "Image")
+    .map((item) => ({
+      url: item.url || "",
+      transfer: item.transferSize || 0,
+      resource: item.resourceSize || 0,
+    }));
+}
+
+/**
+ * 표시 크기 대비 과대 이미지 — 리사이즈 폭을 정하는 근거.
+ * 🔴 LH 13 이 `uses-responsive-images` 를 `image-delivery-insight` 로 흡수했다(replacesAudits).
+ *    하위 항목의 reason 이 "왜 낭비인지"(포맷/크기)를 말해 주므로 함께 가져온다.
+ */
+function extractOversizedImages(lhr) {
+  for (const id of ["uses-responsive-images", "image-delivery-insight"]) {
+    const items = lhr.audits?.[id]?.details?.items || [];
+    if (!items.length) continue;
+    return items.map((item) => ({
+      url: item.url || "",
+      total: item.totalBytes || 0,
+      wasted: item.wastedBytes || 0,
+      reasons: (item.subItems?.items || []).map((sub) => sub.reason).filter(Boolean),
+    }));
+  }
+  return [];
+}
+
 /* ───────────────────────────── aggregate ───────────────────────────── */
 
 function median(values) {
@@ -231,8 +312,58 @@ function summarize(runs) {
     bootup: rankByUrl(runs, (run) => run.bootup, "total"),
     unusedCss: rankByUrl(runs, (run) => run.unusedCss, "wasted"),
     renderBlocking: rankByUrl(runs, (run) => run.renderBlocking, "wasted"),
+    lcpElements: rankLcpElements(runs),
+    lcpPhases: Object.fromEntries(
+      [...new Set(runs.flatMap((run) => Object.keys(run.lcpPhases || {})))]
+        .map((key) => [key, median(runs.map((run) => run.lcpPhases?.[key] ?? NaN))]),
+    ),
+    imageRequests: rankBytesByUrl(runs, (run) => run.imageRequests, "transfer", 30),
+    oversizedImages: withReasons(runs, rankBytesByUrl(runs, (run) => run.oversizedImages, "wasted", 15)),
     rawRuns: runs.map((run) => run.metrics),
   };
+}
+
+/** 회차마다 LCP 요소가 갈릴 수 있다. 빈도와 함께 전부 보여 준다(빈도순). */
+function rankLcpElements(runs) {
+  const seen = new Map();
+  for (const run of runs) {
+    const el = run.lcpElement;
+    if (!el) continue;
+    const key = el.selector || el.snippet;
+    const hit = seen.get(key) || { ...el, count: 0 };
+    hit.count += 1;
+    seen.set(key, hit);
+  }
+  return [...seen.values()].sort((a, b) => b.count - a.count);
+}
+
+/** 바이트 순위는 회차 중앙값이지만, "왜 낭비인지"는 회차마다 같으므로 합쳐서 붙인다. */
+function withReasons(runs, ranked) {
+  const byUrl = new Map();
+  for (const run of runs) {
+    for (const item of run.oversizedImages) {
+      const hit = byUrl.get(item.url) || new Set();
+      for (const reason of item.reasons || []) hit.add(reason);
+      byUrl.set(item.url, hit);
+    }
+  }
+  return ranked.map((row) => ({ ...row, reasons: [...(byUrl.get(row.url) || [])] }));
+}
+
+/** rankByUrl 의 바이트판. 시간이 아니라 바이트로 줄을 세운다. */
+function rankBytesByUrl(runs, pick, field, limit) {
+  const perRun = runs.map((run) => {
+    const totals = new Map();
+    for (const item of pick(run)) totals.set(item.url, (totals.get(item.url) || 0) + (item[field] || 0));
+    return totals;
+  });
+  const urls = new Set();
+  for (const totals of perRun) for (const url of totals.keys()) urls.add(url);
+  return [...urls]
+    .map((url) => ({ url, bytes: median(perRun.map((totals) => totals.get(url) || 0)) }))
+    .filter((row) => row.bytes > 0)
+    .sort((a, b) => b.bytes - a.bytes)
+    .slice(0, limit);
 }
 
 function rankByUrl(runs, pick, field) {
@@ -313,6 +444,42 @@ function printTables() {
     for (const row of bootup.slice(0, 5)) {
       console.log(`    ${fmt(row.ms).padStart(6)} ms  ${kb(row.bytes).padStart(7)}  ${row.url}`);
     }
+
+    const { lcpElements, lcpPhases, imageRequests, oversizedImages } = results[preset];
+    if (Object.keys(lcpPhases).length) {
+      console.log(`\n  LCP breakdown (median):`);
+      for (const [label, ms] of Object.entries(lcpPhases).sort((a, b) => b[1] - a[1])) {
+        console.log(`    ${fmt(ms).padStart(7)} ms  ${label}`);
+      }
+    }
+    console.log(`\n  LCP element:`);
+    if (!lcpElements.length) console.log(`    (lighthouse reported none)`);
+    for (const row of lcpElements) {
+      console.log(`    ${row.count}/${args.runs} runs  ${row.selector || row.label}${row.rendered ? `  (rendered ${row.rendered})` : ""}`);
+      if (row.snippet) console.log(`             ${row.snippet.slice(0, 160)}`);
+    }
+
+    const imageTotal = imageRequests.reduce((sum, row) => sum + row.bytes, 0);
+    console.log(`\n  Images actually downloaded — ${imageRequests.length} files, ${kb(imageTotal)} transferred:`);
+    for (const row of imageRequests.slice(0, 12)) {
+      console.log(`    ${kb(row.bytes).padStart(8)}  ${shortUrl(row.url)}`);
+    }
+    if (oversizedImages.length) {
+      console.log(`\n  Image delivery savings available:`);
+      for (const row of oversizedImages.slice(0, 8)) {
+        console.log(`    ${kb(row.bytes).padStart(8)} wasted  ${shortUrl(row.url)}`);
+        for (const reason of row.reasons) console.log(`               ↳ ${reason}`);
+      }
+    }
+  }
+}
+
+/** 프로덕션 절대 URL 은 길어서 표를 망친다. 경로만 남긴다. */
+function shortUrl(url) {
+  try {
+    return decodeURIComponent(new URL(url, "http://127.0.0.1").pathname);
+  } catch {
+    return url;
   }
 }
 
@@ -330,6 +497,18 @@ function renderMarkdown() {
     for (const row of longTasks) lines.push(`| ${fmt(row.ms)} | ${kb(row.bytes)} | \`${row.url}\` |`);
     lines.push("", "### Top script CPU (bootup-time)", "", "| ms | size | url |", "|---:|---:|---|");
     for (const row of bootup) lines.push(`| ${fmt(row.ms)} | ${kb(row.bytes)} | \`${row.url}\` |`);
+
+    const { lcpElements, lcpPhases, imageRequests, oversizedImages } = results[preset];
+    lines.push("", "### LCP breakdown", "", "| subpart | ms |", "|---|---:|");
+    for (const [label, ms] of Object.entries(lcpPhases).sort((a, b) => b[1] - a[1])) lines.push(`| ${label} | ${fmt(ms)} |`);
+    lines.push("", "### LCP element", "", "| runs | rendered | selector | snippet |", "|---:|---|---|---|");
+    for (const row of lcpElements) {
+      lines.push(`| ${row.count}/${args.runs} | ${row.rendered || "-"} | \`${row.selector || row.label}\` | \`${(row.snippet || "").slice(0, 160)}\` |`);
+    }
+    lines.push("", "### Images actually downloaded", "", "| transferred | url |", "|---:|---|");
+    for (const row of imageRequests) lines.push(`| ${kb(row.bytes)} | \`${shortUrl(row.url)}\` |`);
+    lines.push("", "### Image delivery savings", "", "| wasted | url | why |", "|---:|---|---|");
+    for (const row of oversizedImages) lines.push(`| ${kb(row.bytes)} | \`${shortUrl(row.url)}\` | ${row.reasons.join("; ") || "-"} |`);
     lines.push("");
   }
   return lines.join("\n");
