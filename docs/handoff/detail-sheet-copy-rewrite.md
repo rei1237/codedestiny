@@ -85,7 +85,7 @@
 | featureId | 팝업이 주장하던 값 | 실측 | 근거 |
 |---|---|---|---|
 | `love-secret-ai-consultation` | 15섹션 | ❌ **28섹션 / 6그룹**, 하한 18,000자 | `worker/lib/love-secret-ai-prompt.js:39,183,424` · `worker/routes/love-secret-ai.js:919` |
-| `sukuyo-compatibility-ai` | 14섹션 · 12,000자 | ❌ **15섹션 · 18,400자** | `worker/routes/sukuyo-compatibility-ai.js:49-67` |
+| `sukuyo-compatibility-ai` | 14섹션 · 12,000자 | ❌ **15섹션 · 18,400자**(표기는 #635 를 따라 18,000) | `worker/routes/sukuyo-compatibility-ai.js:49-67` |
 | `new-year-ai-consultation` | 10섹션 · 12,000자 · "2026년" | ❌ **5섹션 · 15,000자**, 연도는 사용자가 고름(기본=내년) | `worker/routes/new-year-ai.js:26,42` · `app/new-year-ai-consultation/NewYearAiClient.tsx:191,1889` |
 | `life-book-ai-consultation` | 10챕터 · 10,000자 | ⚠️ 챕터는 맞고 분량이 과소 — **하한 15,000자** | `worker/routes/life-book-ai.js:78,82` |
 | `master-love-codex` | 20챕터 · 50,000자 | ✅ 일치(하한 46,000) | `worker/lib/master-love-codex-prompt.mjs` `_CHAPTERS`/`_META` |
@@ -96,6 +96,13 @@
 | `nakshatra-ai-consultation` | 21섹션 · 14,000자 | ✅ 일치(5+6+10, 하한 14,700) | `worker/lib/nakshatra-ai-prompt.js:151,174` · `worker/routes/nakshatra-ai.js:86-90` |
 | `karma-destiny-ai-consultation` | 15챕터 | ✅ 일치 | `worker/routes/karma-destiny-ai.js:134` |
 | `life-fortune-ai-consultation` | 10챕터 · 30,000자 | ✅ 일치(+전문가 리딩 4편) | `worker/routes/life-book-ai.js:86,193` · `:1352` |
+
+🔴 **`minWords` 는 목표가 아니라 서버가 강제하는 하한을 쓴다** — 작업 중 #635(`fix/paid-volume-copy-sync`)가 먼저 머지돼
+`valueCompare` 의 분량 문구를 **하한**으로 고쳐 뒀는데, `reportScale` 은 손대지 않아 두 값이 한 팝업 안에서 어긋나 있었다.
+필드 이름이 `minWords` 이므로 **하한이 맞다**. 배치 1 에서 양쪽을 하한으로 통일했다 —
+마스터 인연의 서 본편·궁합 `minTotalChars` 46,000(목표 50,000), 자미두수 심층 PDF 34,000(목표 36,000),
+숙요 궁합 18,000(실측 합 18,400 — #635 의 표기를 따랐다).
+**다음 배치도 같은 규칙을 쓸 것**: `totalCharTarget` 이 아니라 `minTotalChars`/섹션 `minChars` 합.
 
 **숫자 외에 함께 한 것**
 - `unlockBenefits` 를 **구현이 갖고 있는 실제 목차**로 교체했다(예: `MASTER_LOVE_CODEX_CHAPTERS` 의 "제1장 · 운명의 문 …" 20장).
