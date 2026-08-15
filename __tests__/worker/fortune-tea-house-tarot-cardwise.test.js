@@ -108,6 +108,10 @@ function pad(cardName, label) {
     `황금 계피차 위에서 ${cardName}은 정방향으로 ${label}의 결을 비춥니다.`,
     `이 자리에서 재성의 흐름은 ${label}을 기준으로 갈리며, 돈이 들어오고 나가는 지점을 감정이 아니라 숫자로 보게 합니다.`,
     `역방향으로 기울 때는 소비의 속도를 30일 단위로 조정하고, 확인 가능한 항목 ${padSeq}개를 먼저 붙잡는 편이 안전합니다.`,
+    // 2026-08-15 섹션 병렬 전환으로 타로 하한이 3,200 → 6,000(5카드 7,200)이 됐다. 문장을 더 얹지
+    // 않으면 이 픽스처가 하한에 걸려 모든 케이스가 gemini_degraded 로 떨어진다(품질 회귀가 아니다).
+    `${cardName}이 ${label}의 자리에서 말하는 것은 결과가 아니라 순서라, ${padSeq}번째 확인 항목부터 손에 잡히는 숫자로 바꿔 두면 흔들릴 때 돌아올 기준이 남습니다.`,
+    `황금 계피차의 온기가 식기 전에 ${label} 쪽 지출을 한 번 더 훑어보면, ${cardName}이 정방향으로 가리키던 여유가 어디서 새는지 ${padSeq}주 안에 드러납니다.`,
   ].join(" ");
 }
 
@@ -287,6 +291,8 @@ describe("운명 찻집 타로 — 카드별 해석", () => {
     repeatedPayload.tarotCardReadings[0].coreMeaning = repeatedPassage;
     repeatedPayload.tarotCardReadings[0].currentSituation = repeatedPassage;
 
+    // 섹션 병렬 전환(2026-08-15) 이후 웨이브 1은 그룹 수만큼 호출된다. 카드 판독 그룹이
+    // 첫 호출이라 거기에만 반복 문단을 심고, 재작성 웨이브는 기본 목으로 정상 응답을 받는다.
     callGeminiTextMock
       .mockResolvedValueOnce({
         ok: true,
@@ -294,7 +300,7 @@ describe("운명 찻집 타로 — 카드별 해석", () => {
         model: "gemini-2.5-flash",
         text: JSON.stringify(repeatedPayload),
       })
-      .mockResolvedValueOnce({
+      .mockResolvedValue({
         ok: true,
         provider: "gemini",
         model: "gemini-2.5-flash",
@@ -305,8 +311,13 @@ describe("운명 찻집 타로 — 카드별 해석", () => {
 
     expect(status).toBe(200);
     expect(payload.generationMeta.mode).toBe("gemini");
-    expect(callGeminiTextMock).toHaveBeenCalledTimes(2);
-    expect(JSON.parse(callGeminiTextMock.mock.calls[1][1]).qualityRecovery).toContain("같은 문단");
+    // 웨이브 1(그룹 수) + 반복 재작성 웨이브가 돌았다.
+    const groupCount = 3;
+    expect(callGeminiTextMock.mock.calls.length).toBeGreaterThan(groupCount);
+    const recoveryPrompts = callGeminiTextMock.mock.calls
+      .map((call) => JSON.parse(call[1]).qualityRecovery)
+      .filter(Boolean);
+    expect(recoveryPrompts.some((text) => text.includes("같은 문단"))).toBe(true);
     expect(payload.result.tarotSpreadCards[0].detail.coreMeaning).not.toBe(payload.result.tarotSpreadCards[0].detail.currentSituation);
   });
 
