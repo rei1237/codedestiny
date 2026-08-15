@@ -22332,7 +22332,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-de50fa82cb1d" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-61ee5e155bd3" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-de50fa82cb1d" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-de50fa82cb1d" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -24601,12 +24601,19 @@ return you.name.restore();</span>
       });
       // 🔴 한 줄 문자열로 남긴다 — 객체로 남기면 콘솔에서 'Object' 로 접혀 사용자가 펼쳐 복사하지
       // 않으면 못 읽는다(과거에 그래서 진단 한 사이클을 잃었다).
-      console.info(
-        '[direct-checkout] click→PG steps ' + _cdPgSteps.join(' ')
-        + ' total=' + Math.round(
-          ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - _cdPgStepBase
-        ) + 'ms'
+      var _cdPgTotalMs = Math.round(
+        ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - _cdPgStepBase
       );
+      console.info('[direct-checkout] click→PG steps ' + _cdPgSteps.join(' ') + ' total=' + _cdPgTotalMs + 'ms');
+      // 🔴 같은 값을 퍼널 채널로도 보낸다(2026-08-15). 콘솔에만 있던 동안은 사용자가 DevTools 를
+      // 열어 복사해 주지 않으면 아무도 볼 수 없어서 "결제창이 느리다"가 한 번도 측정되지 않았다.
+      // 계측은 fire-and-forget 이고 실패해도 삼켜진다(trackCheckoutEvent 계약).
+      _cdTrackCheckoutEvent('checkout_pg_opened', {
+        featureKey: String(order.featureKey || checkoutPayload.featureKey || directFeatureKey || ''),
+        coinPrice: Number(order.coinPrice || coinPrice || 0),
+        dwellMs: _cdPgTotalMs,
+        steps: _cdPgSteps.join(' ')
+      });
     } catch (_) {}
     // \uD83D\uDD34 \uC5EC\uAE30\uC11C \uB300\uAE30 \uD654\uBA74\uC744 \uC0C8\uB85C \uB744\uC6B0\uAC70\uB098 \uD398\uC778\uD2B8\uB97C \uAE30\uB2E4\uB9AC\uC9C0 \uC54A\uB294\uB2E4(_cdWaitForPaymentOverlayPaint \uAE08\uC9C0) \u2014
     // \uD55C \uD504\uB808\uC784\uC744 \uB354 \uBA39\uC73C\uBA74 user-gesture \uAC00 \uC18C\uBA78\uD574 PG \uD31D\uC5C5\uC774 \uCC28\uB2E8\uB420 \uC218 \uC788\uB2E4. \uC900\uBE44 \uAD6C\uAC04\uC744 \uCC44\uC6B0\uB294 \uC624\uBC84\uB808\uC774\uB294

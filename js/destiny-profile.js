@@ -4430,12 +4430,17 @@
       // 🔴 한 줄 문자열로 남긴다 — 객체로 남기면 콘솔에서 'Object' 로 접혀 펼쳐 보지 않으면 못 읽는다
       // (셸의 [direct-checkout] 계측과 동일 포맷 — React·독립 정적 신고를 같은 방식으로 진단하기 위함).
       try {
-        console.info(
-          '[dp-direct-checkout] click→PG steps ' + _dpPgSteps.join(' ')
-          + ' total=' + Math.round(
-            ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - _dpPgStepBase
-          ) + 'ms'
+        var _dpPgTotalMs = Math.round(
+          ((typeof performance !== 'undefined' && performance.now) ? performance.now() : Date.now()) - _dpPgStepBase
         );
+        console.info('[dp-direct-checkout] click→PG steps ' + _dpPgSteps.join(' ') + ' total=' + _dpPgTotalMs + 'ms');
+        // 셸과 같은 이유로 퍼널 채널에도 보낸다 — 콘솔에만 있으면 프로덕션에서 볼 방법이 없다.
+        _dpTrackCheckoutEvent('checkout_pg_opened', {
+          featureKey: String((order && order.featureKey) || checkoutPayload.featureKey || ''),
+          coinPrice: Number((order && order.coinPrice) || 0),
+          dwellMs: _dpPgTotalMs,
+          steps: _dpPgSteps.join(' ')
+        });
       } catch (_dpStepLogError) {}
 
       // PG의 상위 프레임 리다이렉트는 의도된 이동이다 — PaymentProcessingContext 의 beforeunload
