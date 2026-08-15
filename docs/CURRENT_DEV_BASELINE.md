@@ -79,7 +79,9 @@ Last curated: `2026-08-14`
 - 계측은 이미 있다 — `lib/llm-client.ts` 의 `[llm token_usage]` 로그를 `scripts/report-llm-token-usage.mjs` 가 라우트별로 집계한다(`cacheHit`·`duplicateBlocked`·`providerCallCount`·`cachedContentTokenCount` 포함). **전후 동일 방식 재실행이 이 스크립트의 설계 용도다.**
 - 🔴 **캐시를 새로 배선할 때는 `cache.minChars` 를 함께 준다.** `withLLMCache` 의 저장 조건은 `!truncated` 뿐이라, 잘리지 않았지만 분량 미달인 응답이 TTL 30일 동안 굳는다. 실패 후 재생성이 같은 키에서 같은 미달을 다시 받는다. 직전 시도가 실패였으면 `skipRead` 도 함께(쓰기는 유지 — 성공한 재생성이 스스로 덮어쓴다).
 - 🔴 **사주 그룹 프롬프트의 배열 순서(`worker/routes/fortune.js` `buildSajuAISectionPrompt`)는 불변 접두사 → 가변 접미사다.** Gemini 암묵 캐싱은 공통 **접두사**에만 걸린다. 뒤집으면 6만자가 정가로 돌아간다.
-- 🟡 **넘긴 작업**: 숙요 궁합의 서버측 중복 생성 창(`findOne`~`create` 사이 60~100초, 중복 1회 = LLM 6회)은 스키마·계약 변경이 함께 필요해 [docs/handoff/sukuyo-duplicate-generation-window.md](handoff/sukuyo-duplicate-generation-window.md) 로 넘겼다. **아직 미해결이다.**
+- 🟡 **넘긴 작업 2건 — 둘 다 미해결이다.**
+  - 숙요 궁합의 서버측 중복 생성 창(`findOne`~`create` 사이 60~100초, 중복 1회 = LLM 6회)은 스키마·계약 변경이 함께 필요하다 → [docs/handoff/sukuyo-duplicate-generation-window.md](handoff/sukuyo-duplicate-generation-window.md)
+  - 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자, 그중 `earthStorageOpenings` 하나가 9,853자). 사주 5그룹에 `evidenceRefs` 선언이 없어 새 설계가 필요하고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [docs/handoff/llm-prompt-json-slicing.md](handoff/llm-prompt-json-slicing.md)
 - 🟡 **미조치로 남은 것**: `lib/llm-client.ts:159-170` 의 모델 오버라이드 무효 버그(`apiEndpoint` 를 함께 주지 않으면 URL 에 하드코딩된 `gemini-2.5-flash` 가 그대로 쓰인다 — 영향 6개 라우트). 더 싼 모델로 내리는 단가 절감안이 현재 코드로는 불가능하다.
 
 ## Working Rules For Current Tasks
