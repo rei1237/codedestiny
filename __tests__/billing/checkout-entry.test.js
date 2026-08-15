@@ -150,4 +150,35 @@ describe("trackCheckoutEvent", () => {
     expect(checkoutEntry.trackCheckoutEvent("checkout_opened", {})).toBe(true);
     await new Promise((resolve) => { setTimeout(resolve, 0); });
   });
+
+  /**
+   * 🔴 클라 화이트리스트와 서버 화이트리스트가 어긋나면 **조용히** 유실된다 —
+   * 서버는 모르는 이벤트에도 204 를 돌려주고 클라는 응답을 읽지 않는다(둘 다 의도된 계약).
+   * 그래서 "계측을 넣었는데 데이터가 안 쌓인다"가 아무 신호 없이 발생할 수 있다.
+   * 이름을 배열에 나열하지 않고 **양쪽 소스에서 전수 추출해** 대조한다.
+   */
+  it("클라·서버 퍼널 이벤트 화이트리스트가 일치한다", () => {
+    const fs = require("node:fs");
+    const path = require("node:path");
+    const root = path.resolve(__dirname, "../..");
+
+    const clientSource = fs.readFileSync(path.join(root, "js/core/checkout-entry.js"), "utf8");
+    const clientBlock = clientSource.slice(
+      clientSource.indexOf("var FUNNEL_EVENTS = {"),
+      clientSource.indexOf("};", clientSource.indexOf("var FUNNEL_EVENTS = {")),
+    );
+    const clientNames = (clientBlock.match(/^\s{4}(\w+): true,/gm) || [])
+      .map((line) => line.trim().replace(": true,", ""));
+
+    const serverSource = fs.readFileSync(path.join(root, "worker/routes/billing.js"), "utf8");
+    const serverBlock = serverSource.slice(
+      serverSource.indexOf("const CHECKOUT_FUNNEL_EVENT_NAMES = new Set(["),
+      serverSource.indexOf("]);", serverSource.indexOf("const CHECKOUT_FUNNEL_EVENT_NAMES = new Set([")),
+    );
+    const serverNames = (serverBlock.match(/"(\w+)"/g) || []).map((quoted) => quoted.replace(/"/g, ""));
+
+    expect(clientNames.length).toBeGreaterThan(0);
+    expect(serverNames.length).toBeGreaterThan(0);
+    expect([...clientNames].sort()).toEqual([...serverNames].sort());
+  });
 });
