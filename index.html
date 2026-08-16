@@ -459,6 +459,12 @@
 <!-- PortOne V2 브라우저 SDK 는 결제 클릭 임계경로에서 처음 내려받는다. DNS+TLS 를 미리 끝내 두면
      그 왕복이 클릭 이후 구간에서 빠진다(SDK 자체는 결제 진입 때만 로드 — 여기서는 연결만 예열). -->
 <link rel="dns-prefetch" href="https://cdn.portone.io">
+<!-- 🔴 두 모드를 다 예열한다. SDK <script> 는 crossOrigin 을 지정하지 않아 no-cors 로 나가는데,
+     crossorigin 이 붙은 preconnect 는 anonymous-CORS 소켓을 열어 커넥션 풀 키가 달라진다 —
+     그 상태에서는 예열한 TLS 를 SDK 다운로드가 재사용하지 못해 예열이 사실상 무효였다.
+     스크립트 쪽에 crossOrigin 을 붙이는 방법은 쓰지 않는다: CDN 이 CORS 헤더를 주지 않으면
+     SDK 로드 자체가 실패한다(되돌리기 어려운 방향). -->
+<link rel="preconnect" href="https://cdn.portone.io">
 <link rel="preconnect" href="https://cdn.portone.io" crossorigin>
 <!-- 조기 테마·모바일 런타임 클래스 확정 (FOUC 방지: 렌더차단 CSS 이전 · cd-early-runtime-class-hoist-v20260712)
      cd-mobile-runtime 과 mobile-safe-render 는 반드시 함께 붙인다 — 모바일 레이아웃 정본이
@@ -22324,7 +22330,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-2dad0dc1f3c5" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-9edeaf4719a9" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-2dad0dc1f3c5" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-2dad0dc1f3c5" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -27492,7 +27498,8 @@ return you.name.restore();</span>
         preconnect.id = 'portone-v2-preconnect';
         preconnect.rel = 'preconnect';
         preconnect.href = 'https://cdn.portone.io';
-        preconnect.crossOrigin = 'anonymous';
+        // 🔴 crossOrigin 을 붙이지 않는다 — 바로 아래에서 받는 SDK <script> 가 crossOrigin 없이
+        // (no-cors 로) 나가므로, anonymous-CORS 소켓을 열면 커넥션 풀 키가 달라 예열이 무효가 된다.
         document.head.appendChild(preconnect);
       }
       _cdPortOneV2SdkPromise();
@@ -28643,17 +28650,50 @@ return you.name.restore();</span>
         var art = new Image();
         art.decoding = 'async';
         art.src = '/icons/app-logo-512.webp';
-        // 결제창 안내자 꽃돼지도 같이 데워 둔다 — 결제 클릭 시점에 새 요청이 나가지 않게 하려는 것이라,
-        // 결제 임계경로에 이미지를 하나 추가해도 실제 네트워크 비용은 0 이 된다.
+        // 🔴 결제창이 **실제로 그리는** 안내자 이미지를 데운다. 예전에는 결제창이 더 이상 쓰지
+        // 않는 flower-pig-honey-hug.webp 를 데워, 정작 모달이 쓰는 176 은 첫 오픈에 새로 받았다
+        // (head preload 는 512 만 있고, 176 은 쿼리스트링 때문에 512 캐시와도 무관하다).
+        // 상수를 그대로 참조해 이미지 경로가 바뀌어도 다시 어긋나지 않게 한다.
         var guide = new Image();
         guide.decoding = 'async';
-        guide.src = '/images/fortune-tea-house/flower-pig-honey-hug.webp';
+        guide.src = CD_CHECKOUT_GUIDE_PIG_SRC;
       } catch (_cdWarmOverlayArtError) {}
     };
+    // 🔴 유료 게이트 셸과 결제창 CSS 를 유휴 시점에 미리 만든다. 네트워크는 0회 — 전용 <style>,
+    // 게이트 DOM, 리스너 3개를 붙이는 순수 로컬 작업이다.
+    //
+    // 왜 필요한가: 예열 API(window.__cdPaidFeatureGate.preload)는 예전부터 있었지만 **호출부가
+    // 하나도 없었다.** 그래서 게이트 셸은 언제나 '첫 유료 클릭' 순간에 만들어졌고, 코드 스스로
+    // first frame 이 100ms 를 넘으면 경고를 찍고 있었다(_cdOpenPaidFeatureGate). 결제창 CSS 68룰
+    // 주입도 같은 순간이라 전체 문서 스타일 재계산이 모달 첫 페인트를 밀어냈다. 둘 다 두 번째
+    // 클릭부터는 존재 검사로 건너뛴다 — "처음만 느리다"의 클라이언트 쪽 몫이 정확히 이것이다.
+    //
+    // 🔴 pointerdown 에 얹지 않는다. DOM·스타일 주입은 스타일을 무효화해서 뒤이은 탭을 강제
+    // 레이아웃으로 만든다 — 탭 고정비를 걷어낸 INP 작업이 정확히 그걸 유휴로 옮겼고, 그 판단을
+    // 되돌리지 않는다. 마감은 '첫 유료 클릭 이전'이라 유휴로 충분하다.
+    var _cdWarmPaidGateShell = function() {
+      try {
+        if (window.__cdPaidGateShellWarmed) return;
+        window.__cdPaidGateShellWarmed = true;
+        if (window.__cdPaidFeatureGate && typeof window.__cdPaidFeatureGate.preload === 'function') {
+          window.__cdPaidFeatureGate.preload();
+        }
+        if (typeof _cdEnsureDirectPaymentStyles === 'function') _cdEnsureDirectPaymentStyles();
+      } catch (_cdWarmPaidGateShellError) {}
+    };
+    // 🔴 SDK 예열을 부팅 유휴에서도 시작한다. 예전에는 **pointerdown 에서만** 시작했는데,
+    // 데스크톱에서는 페이지의 첫 클릭이 곧 유료 진입 클릭인 경우가 흔하다 — 그러면 예열이
+    // 그 클릭과 동시에 출발해 CDN 다운로드(상한 8초)가 임계경로에 그대로 얹힌다. 두 번째
+    // 시도부터는 window.PortOne 이 이미 있어 로더가 첫 줄에서 즉시 반환하므로 빠르다.
+    // 사용자가 보고한 "최초 1회만 결제창이 안 뜨거나 느리다"의 클라이언트 쪽 본체가 이것이다.
+    // 게이트는 pointerdown 과 **같다** — 게스트는 결제까지 갈 수 없으니 여전히 예열하지 않는다.
+    var _cdWarmPortOneV2SdkIfPayable = function() {
+      if (hasAuthSessionHint()) _cdWarmPortOneV2Sdk();
+    };
     if ('requestIdleCallback' in window) {
-      window.requestIdleCallback(function() { _cdWarmSubscriptionSnapshotIfMissing('idle'); _cdWarmPaymentOverlayArt(); }, { timeout: 2200 });
+      window.requestIdleCallback(function() { _cdWarmSubscriptionSnapshotIfMissing('idle'); _cdWarmPaymentOverlayArt(); _cdWarmPaidGateShell(); _cdWarmPortOneV2SdkIfPayable(); }, { timeout: 2200 });
     } else {
-      window.setTimeout(function() { _cdWarmSubscriptionSnapshotIfMissing('idle'); _cdWarmPaymentOverlayArt(); }, 1200);
+      window.setTimeout(function() { _cdWarmSubscriptionSnapshotIfMissing('idle'); _cdWarmPaymentOverlayArt(); _cdWarmPaidGateShell(); _cdWarmPortOneV2SdkIfPayable(); }, 1200);
     }
     // 🔴 pointerdown 캡처가 **모든 진입점을 한 번에 덮는다**는 판단은 그대로 유지한다 —
     // 셀렉터로 결제 진입점을 열거하지 않는다(열거하면 빠뜨린 진입점이 조용히 느려진다).

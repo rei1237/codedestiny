@@ -3456,7 +3456,8 @@
             preconnect.id = 'portone-v2-preconnect';
             preconnect.rel = 'preconnect';
             preconnect.href = 'https://cdn.portone.io';
-            preconnect.crossOrigin = 'anonymous';
+            // 🔴 crossOrigin 을 붙이지 않는다 — 바로 아래 SDK <script> 가 crossOrigin 없이
+            // (no-cors 로) 나가므로, anonymous-CORS 소켓을 열면 커넥션 풀 키가 달라 예열이 무효다.
             document.head.appendChild(preconnect);
           }
         } catch (_preconnectError) {}
