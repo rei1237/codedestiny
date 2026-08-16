@@ -34,6 +34,9 @@ Thumbs.db
 
 # Local worktree/session coordination (never part of feature PRs)
 .codex-worktrees/
+# run-paid-gate-suite.mjs 가 귀책 판정에 쓰는 merge-base 워크트리. 정상 종료면 스스로 지우지만,
+# 러너가 죽으면 껍데기가 남는다 — 그게 커밋에 섞이지 않게 한다.
+.paid-gate-base/
 .work-locks/
 WORKING_ON.md
 

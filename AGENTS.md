@@ -85,7 +85,9 @@ Every PR is not worth the same amount of CI. A copy tweak and a payment-route ch
 - **If the changed-file list cannot be resolved, the tier is `critical`.** "Unknown" is not "safe".
 - 🔴 All four jobs (`Risk tier`, `Typecheck and lint`, `Build Pages and Worker`, `Critical checks`) **always run**. What the tier skips is steps, not jobs. A job gated by a top-level `if` never reports, and a required check that never reports blocks every merge forever. The job names are the ruleset's required check names — `verify:worker-single-deploy` fails if they drift.
 - The `full-ci` label lifts a PR to `critical`. Use it for changes the paths cannot see but you can — a shared utility edit that reaches payment or auth indirectly, for instance. There is no label that lowers a tier; that would be a button for turning the gate off.
-- `paid-flow-gates.yml` is separate from the tiers: on `pull_request` it runs the 36 payment/auth/fortune verifiers when those specific files change. It is not a required check.
+- `paid-flow-gates.yml` is separate from the tiers: on `pull_request` it runs the 48 payment/auth/fortune verifiers plus `npm test` when those specific files change. It is not a required check.
+  - 🔴 The suite list lives in exactly one place: `scripts/run-paid-gate-suite.mjs`. Do not spell the steps back out in the YAML. The runner does not stop at the first failure, and it re-runs each failing guard against the merge-base worktree to tell `PRE-EXISTING` (main is already red — warn and pass, fix it in its own PR) from a failure this change introduced (fail). No base means every failure counts against the change (fail-closed), which is why the checkout uses `fetch-depth: 0`.
+  - 🔴 `push: main` is a health signal, not a gate. The guards read files outside the trigger `paths:`, so a PR that never wakes this workflow can still break them — PR #678 (the `CLAUDE.md` split) did exactly that on 2026-08-15, and 80 minutes later two unrelated branches died on the same step. Widening `paths:` is the wrong fix; it would undo the 2026-08-08 narrowing. Look at merged `main` directly instead.
   - 🔴 The six static shells (`index.html` plus its five `public/**` mirrors) were added to its paths on 2026-08-11. The payment dialog has three renderers and the **source of truth is the shell inline one** (`_cdChooseServicePaymentMode`, styles in `_cdEnsureDirectPaymentStyles`) — yet that was the one renderer missing from the trigger list, so deleting the pass card or rewording the three options never woke `verify:payment-choice-parity`. The shell doubles as home content, so its PR CI tier stays `fast`; only the payment verifiers are woken here.
 
 ### What runs where
@@ -121,7 +123,7 @@ There is no preview environment, and there never really was one. `public/_worker
 
 Payment and auth confidence comes from three places instead:
 
-1. **Before merge** — the `critical` tier runs the full test suite, and `paid-flow-gates.yml` runs the 36 payment/auth/fortune verifiers whenever those files change. They are source- and jsdom-level guards, so they hold without touching a real payment.
+1. **Before merge** — the `critical` tier runs the full test suite, and `paid-flow-gates.yml` runs the 48 payment/auth/fortune verifiers whenever those files change. They are source- and jsdom-level guards, so they hold without touching a real payment.
 2. **During the release** — the job builds, uploads a Pages deployment, and smokes it before promoting anything.
 3. **After promotion** — production smoke, then `verify:deployed-sha` on both layers. Any failure rolls Pages and the Worker back together.
 

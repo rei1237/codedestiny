@@ -270,7 +270,21 @@ if (existsSync(resolve(repoRoot, GATE_WORKFLOW))) {
   const declaredPaths = new Set(
     Array.from(triggerBlock.matchAll(/^\s*-\s*"([^"]+)"\s*$/gm)).map((m) => m[1]),
   );
-  if (!workflow.includes("verify:auth-changed-coverage")) {
+  /* 🔴 주석은 배선이 아니다. 2026-08-16 에 스위트가 러너(scripts/run-paid-gate-suite.mjs) 한 벌로
+     모이면서 이 YAML 에서 스텝 이름이 사라졌는데, 정작 이 검사는 **설명 주석**에 적힌 가드 이름에
+     걸려 초록불을 냈다 — 실행되는 것이 하나도 없어도 통과하는 상태였다. 주석을 걷어낸 본문과,
+     그 본문이 실제로 실행하는 스크립트까지 함께 본다. */
+  const gateSources = [workflow.replace(/^[ \t]*#.*$/gm, "")];
+  for (const match of gateSources[0].matchAll(/scripts\/[A-Za-z0-9/._-]+\.mjs/g)) {
+    const runnerPath = resolve(repoRoot, match[0]);
+    if (!existsSync(runnerPath)) continue;
+    gateSources.push(
+      readFileSync(runnerPath, "utf8")
+        .replace(/\/\*[\s\S]*?\*\//g, "")
+        .replace(/(^|[^:])\/\/[^\n]*/g, "$1"),
+    );
+  }
+  if (!gateSources.some((source) => source.includes("verify:auth-changed-coverage"))) {
     fail(`${GATE_WORKFLOW}: 이 가드를 부르는 스텝이 없다 — 배선되지 않은 가드는 가드가 아니다`);
   }
   for (const file of SCAN_FILES) {
