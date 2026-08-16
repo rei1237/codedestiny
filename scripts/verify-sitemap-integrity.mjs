@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { indexerGroups } from "./lib/robots-groups.mjs";
 
 const rootDir = process.cwd();
 const sitemapPath = resolve(rootDir, "sitemap.xml");
@@ -78,13 +79,21 @@ function parseNoindexHeaderRules(headersText) {
   return rules;
 }
 
+/**
+ * 색인 크롤러에 적용되는 Disallow 만 모은다.
+ *
+ * 🔴 예전에는 User-agent 블록을 무시하고 파일 안의 모든 `Disallow:` 를 전역 규칙처럼 모았다.
+ * robots.txt 는 그렇게 동작하지 않는다 — 특정 봇 그룹의 규칙은 그 봇에만 적용된다.
+ * 그래서 학습 전용 크롤러 하나를 막으려고 `User-agent: CCBot` + `Disallow: /` 를 넣는 순간
+ * 그 줄이 전역으로 읽혀 **홈(`/`)이 "사이트맵에 있는 비공개 경로"로 잡히고 빌드가 죽었다.**
+ *
+ * 이 검사의 목적은 "사이트맵에 실은 URL 을 색인 크롤러가 못 읽게 막아 두지 않았는가" 이므로
+ * 색인 크롤러 그룹만 본다. 쿼리 패턴(`/*?token=`)은 경로 비교 대상이 아니라 제외한다.
+ */
 function parseRobotsDisallowRules(robotsText) {
-  return robotsText
-    .split(/\r?\n/)
-    .map((line) => line.trim())
-    .filter((line) => /^Disallow:/i.test(line))
-    .map((line) => line.replace(/^Disallow:\s*/i, "").trim())
-    .filter((value) => value && !value.includes("?"));
+  return indexerGroups(robotsText)
+    .flatMap((group) => group.disallow)
+    .filter((value) => !value.includes("?"));
 }
 
 function matchesHeaderRule(rulePath, pathname) {

@@ -55,6 +55,216 @@ Disallow: /*?session=
 Disallow: /*?token=
 Disallow: /*?auth=
 
+# ── AI 크롤러 정책 ─────────────────────────────────────────────
+# 인용을 원하는 봇은 허용한다. 막으면 그 플랫폼은 우리를 인용할 수 없다.
+# 🔴 특정 User-agent 그룹은 `*` 를 상속하지 않고 대체하므로 비공개 경로를 함께 적는다.
+# 정본은 app/robots.ts 이고 이 파일은 정적 폴백이다 — 한쪽만 고치지 말 것.
+
+User-agent: GPTBot
+Allow: /
+
+Disallow: /api/
+Disallow: /api-hello-test/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /payments/
+Disallow: /checkout/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
+Disallow: /*?session=
+Disallow: /*?token=
+Disallow: /*?auth=
+
+User-agent: ChatGPT-User
+Allow: /
+
+Disallow: /api/
+Disallow: /api-hello-test/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /payments/
+Disallow: /checkout/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
+Disallow: /*?session=
+Disallow: /*?token=
+Disallow: /*?auth=
+
+User-agent: OAI-SearchBot
+Allow: /
+
+Disallow: /api/
+Disallow: /api-hello-test/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /payments/
+Disallow: /checkout/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
+Disallow: /*?session=
+Disallow: /*?token=
+Disallow: /*?auth=
+
+User-agent: ClaudeBot
+Allow: /
+
+Disallow: /api/
+Disallow: /api-hello-test/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /payments/
+Disallow: /checkout/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
+Disallow: /*?session=
+Disallow: /*?token=
+Disallow: /*?auth=
+
+User-agent: anthropic-ai
+Allow: /
+
+Disallow: /api/
+Disallow: /api-hello-test/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /payments/
+Disallow: /checkout/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
+Disallow: /*?session=
+Disallow: /*?token=
+Disallow: /*?auth=
+
+User-agent: Claude-Web
+Allow: /
+
+Disallow: /api/
+Disallow: /api-hello-test/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /payments/
+Disallow: /checkout/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
+Disallow: /*?session=
+Disallow: /*?token=
+Disallow: /*?auth=
+
+User-agent: PerplexityBot
+Allow: /
+
+Disallow: /api/
+Disallow: /api-hello-test/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /payments/
+Disallow: /checkout/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
+Disallow: /*?session=
+Disallow: /*?token=
+Disallow: /*?auth=
+
+User-agent: Google-Extended
+Allow: /
+
+Disallow: /api/
+Disallow: /api-hello-test/
+Disallow: /admin/
+Disallow: /auth/
+Disallow: /debug/
+Disallow: /test/
+Disallow: /profile/
+Disallow: /payment/
+Disallow: /payments/
+Disallow: /checkout/
+Disallow: /success/
+Disallow: /fail/
+Disallow: /result/
+Disallow: /results/
+Disallow: /report/progress/
+Disallow: /my/
+Disallow: /me/
+Disallow: /mypage/private/
+Disallow: /*?session=
+Disallow: /*?token=
+Disallow: /*?auth=
+
+# 학습 말뭉치 수집 전용. 인용 경로에 관여하지 않으므로 막아도 인용은 줄지 않는다.
+
+User-agent: CCBot
+Disallow: /
+
 Host: code-destiny.com
 
 Sitemap: https://code-destiny.com/sitemap.xml
