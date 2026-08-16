@@ -5,6 +5,7 @@ import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
@@ -962,23 +963,13 @@ async function verifyMonthlyEvidence(env, auth, ctx = {}) {
   const transactionId = firstClean(ctx.accessGrant.transactionId, ctx.consume.transactionId, ctx.payload.transactionId);
   const purchaseId = firstClean(ctx.accessGrant.purchaseId, ctx.consume.purchaseId, ctx.payload.purchaseId, ctx.accessGrant.requestId, ctx.consume.requestId, ctx.payload.requestId);
   await connectDb(env);
-  const ledgerOr = [
-    isObjectId(ledgerId) ? { _id: ledgerId } : null,
-    isObjectId(transactionId) ? { "metadata.pointHistoryId": transactionId } : null,
-    purchaseId ? { sourceId: purchaseId } : null,
-    purchaseId ? { "metadata.purchaseId": purchaseId } : null,
-    purchaseId ? { "metadata.requestId": purchaseId } : null,
-  ].filter(Boolean);
-  if (ledgerOr.length) {
-    const ledger = await withMongoRetry(env, () => MonthlyCreditLedger.findOne({
-      userId: auth.userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: { $in: [FEATURE_KEY, LEGACY_FEATURE_KEY] },
-      "metadata.refundedForUnlockFailure": { $ne: true },
-      $or: ledgerOr,
-    }).lean());
-    if (ledger) return { source: "monthly_ledger", evidenceId: String(ledger._id || "") };
-  }
+  // 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
+  const monthlyEvidence = await withMongoRetry(env, () => findMoonstoneSpendEvidence(env, {
+    userId: auth.userId,
+    featureKeys: [FEATURE_KEY, LEGACY_FEATURE_KEY],
+    tokens: [purchaseId, ledgerId, transactionId],
+  }));
+  if (monthlyEvidence) return { source: "monthly_ledger", evidenceId: String(monthlyEvidence.ledgerId || "") };
   const historyOr = [
     isObjectId(transactionId) ? { _id: transactionId } : null,
     purchaseId ? { "metadata.purchaseId": purchaseId } : null,

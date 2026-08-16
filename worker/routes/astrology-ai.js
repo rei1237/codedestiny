@@ -6,12 +6,11 @@ import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import {
   AstrologyAiConsultation,
-  MonthlyCreditLedger,
   PaidExecutionRecord,
   Payment,
-  PointHistory,
   User,
 } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -536,30 +535,18 @@ async function hasPaidPayment(auth, paymentId, idempotencyKey) {
   }).sort({ updatedAt: -1, paidAt: -1, createdAt: -1 }).lean();
 }
 
-async function hasMonthlyConsume(auth, ctx, idempotencyKey) {
+// 🔴 클라이언트가 되돌려 준 ledgerId/transactionId 를 ObjectId 로 요구하던 구현은 결제 V2 에서
+//    항상 실패한다(V2 는 ledgerId 를 비우고 transactionId 자리에 requestId 문자열을 싣는다).
+//    증빙은 원장을 직접 읽는 정본(worker/lib/moonstone-spend-proof.js)이 판정한다.
+async function hasMonthlyConsume(env, auth, ctx, idempotencyKey) {
   if (ctx.featureKey && ctx.featureKey !== FEATURE_KEY) return false;
   if (ctx.requestId && ctx.requestId !== idempotencyKey) return false;
-  const userId = auth.userId;
-  if (ctx.ledgerId && mongoose.Types.ObjectId.isValid(ctx.ledgerId)) {
-    const ledger = await MonthlyCreditLedger.exists({
-      _id: ctx.ledgerId,
-      userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: FEATURE_KEY,
-    });
-    if (ledger) return true;
-  }
-  if (ctx.transactionId && mongoose.Types.ObjectId.isValid(ctx.transactionId)) {
-    const history = await PointHistory.exists({
-      _id: ctx.transactionId,
-      userId,
-      kind: "deduct",
-      featureKey: FEATURE_KEY,
-      "metadata.accessType": "membership_credit",
-    });
-    if (history) return true;
-  }
-  return false;
+  const evidence = await findMoonstoneSpendEvidence(env, {
+    userId: auth.userId,
+    featureKeys: [FEATURE_KEY, SERVICE_KEY],
+    tokens: [idempotencyKey, ctx.requestId, ctx.ledgerId, ctx.transactionId, ctx.paymentId],
+  });
+  return Boolean(evidence);
 }
 
 async function resolveStartAccess({ request, env, auth, body, normalized, pricing, idempotencyKey }) {
@@ -585,7 +572,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   }
 
   if (ctx.accessType === "membership_credit" || ctx.accessMethod === "MONTHLY") {
-    if (await withMongoRetry(env, () => hasMonthlyConsume(auth, ctx, idempotencyKey))) {
+    if (await withMongoRetry(env, () => hasMonthlyConsume(env, auth, ctx, idempotencyKey))) {
       return {
         ok: true,
         accessType: "subscription",

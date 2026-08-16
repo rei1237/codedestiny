@@ -3,7 +3,8 @@ import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
-import { KarmaDestinyAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { KarmaDestinyAiConsultation, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
@@ -772,7 +773,7 @@ function normalizeDeferredAccessType(value) {
   return "paid";
 }
 
-async function findBillingGateEvidence({ userId, idempotencyKey, body = {} }) {
+async function findBillingGateEvidence({ env, userId, idempotencyKey, body = {} }) {
   const tokens = collectBillingTokens(body, idempotencyKey);
   const signal = readBillingAccessSignal(body);
   const ctx = readBillingContext(body);
@@ -801,25 +802,24 @@ async function findBillingGateEvidence({ userId, idempotencyKey, body = {} }) {
     }
   }
 
-  const monthlyClauses = billingTokenClauses(tokens);
-  if (monthlyClauses.length && mongoose.Types.ObjectId.isValid(String(userId || ""))) {
-    const ledger = await MonthlyCreditLedger.findOne({
+  // 🔴 `metadata.featureKey` 로 걸렀는데 결제 V2 원장의 metadata 에는 그 필드가 없다 — V2 이후
+  //    이 조회는 한 번도 매치되지 않았다(월정석 차감 후 결과 미전달). 기능키 매칭·정산 확인은
+  //    정본(worker/lib/moonstone-spend-proof.js)이 담당한다.
+  const monthlyEvidence = mongoose.Types.ObjectId.isValid(String(userId || ""))
+    ? await findMoonstoneSpendEvidence(env, {
       userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      "metadata.featureKey": FEATURE_KEY,
-      "metadata.refundedForUnlockFailure": { $ne: true },
-      "metadata.refundedForServiceExecution": { $ne: true },
-      $or: monthlyClauses,
-    }).sort({ createdAt: -1 }).lean();
-    if (ledger) {
-      return {
-        ok: true,
-        accessType: "monthly_credit",
-        paymentId: clean(ledger._id, 160),
-        billingRequestId: clean(ledger?.metadata?.requestId || idempotencyKey, 180),
-        usageAlreadyApplied: true,
-      };
-    }
+      featureKeys: [FEATURE_KEY, SERVICE_KEY],
+      tokens,
+    })
+    : null;
+  if (monthlyEvidence) {
+    return {
+      ok: true,
+      accessType: "monthly_credit",
+      paymentId: clean(monthlyEvidence.ledgerId, 160),
+      billingRequestId: clean(monthlyEvidence.sourceId || idempotencyKey, 180),
+      usageAlreadyApplied: true,
+    };
   }
 
   const deferredClauses = deferredTokenClauses(tokens);
@@ -864,7 +864,7 @@ async function findBillingGateEvidence({ userId, idempotencyKey, body = {} }) {
   return null;
 }
 
-async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash, body = {} }) {
+async function resolveServerAccess({ env, auth, user, pricing, idempotencyKey, inputHash, body = {} }) {
   if (isAdmin(auth) || clean(user?.role).toLowerCase() === "admin") {
     return { ok: true, accessType: "admin", paymentId: "", usageAlreadyApplied: true };
   }
@@ -885,7 +885,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
     };
   }
 
-  const billing = await findBillingGateEvidence({ userId: auth.userId, idempotencyKey, body });
+  const billing = await findBillingGateEvidence({ env, userId: auth.userId, idempotencyKey, body });
   if (billing?.ok) return {
     ...billing,
     usageAlreadyApplied: billing.usageAlreadyApplied === true,
@@ -2341,7 +2341,7 @@ async function handleEnsureAccess(request, env) {
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (!user) return loginRequired();
 
-  const access = await withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
+  const access = await withMongoRetry(env, () => resolveServerAccess({ env, auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
   if (access.ok) {
     logKarmaAi("LLM Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
@@ -2386,7 +2386,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
     };
   }
 
-  const billing = await withMongoRetry(env, () => findBillingGateEvidence({ userId: auth.userId, idempotencyKey, body }));
+  const billing = await withMongoRetry(env, () => findBillingGateEvidence({ env, userId: auth.userId, idempotencyKey, body }));
   if (billing?.ok) return {
     ...billing,
     usageAlreadyApplied: billing.usageAlreadyApplied === true,
