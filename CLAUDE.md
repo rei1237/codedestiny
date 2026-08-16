@@ -21,7 +21,7 @@
 | 가드·검증기 수정, 워커 크기 | [docs/context/doc-precedence.md](docs/context/doc-precedence.md) |
 | 코딩 원칙의 "왜"가 궁금하거나 반박하고 싶을 때 | [docs/context/coding-principles.md](docs/context/coding-principles.md) |
 | 검색 범위·재실행 판단 | [docs/context/search-discipline.md](docs/context/search-discipline.md) |
-| 전체 npm 명령·폴더 구조·스택·수정 금지 목록 원문 | [docs/context/reference-basics.md](docs/context/reference-basics.md) |
+| 전체 npm 명령·폴더 구조·기술 스택·**코드 규칙**·수정 금지 목록 원문 | [docs/context/reference-basics.md](docs/context/reference-basics.md) |
 | 파일·디렉터리를 지우기 전 (삭제 가능/금지 실측 목록) | [docs/context/cleanup-2026-08-15.md](docs/context/cleanup-2026-08-15.md) |
 
 - 분할 직전 원문 스냅샷: [docs/context/CLAUDE.archive-2026-08-15.md](docs/context/CLAUDE.archive-2026-08-15.md) (편집 금지, 대조용)
@@ -49,7 +49,7 @@
 6. 🔴 **중첩 사전검사** — 방어 장치나 UI 계층을 **추가하기 전에 안팎에 같은 장치가 이미 있는지 확인**하고, 있으면 감싸지 말고 그 지점을 고친다. 대상: 재시도·타임아웃·캐시·락/단일비행·트랜잭션·에러 폴백 / 모달·오버레이·스크롤락·결제 게이트·`z-index`·이벤트 델리게이션·지연로딩. **이름 grep으로 판단하지 말고 함수 본문을 중괄호 균형으로 잘라 실제로 열어본다**(이름 스캔이 9곳 오탐). 검사: `npm run verify:no-nested-retry`
 7. **회귀 위험 상시 점검·선보고** — 공유 모듈·공통 훅·다중 참조 함수·조건 분기·기본값 변경처럼 회귀 가능성이 있으면, 끝내고 결과만 보고하지 말고 **어떤 위험이 어떤 시나리오에서 생기는지 먼저 안내**한다. 애매하면 생략하지 않는다.
 8. 🔴 **실측으로만 말한다 — 부정 단언 금지** — "없다/안 쓴다/영향 없다/이미 고쳐졌다"는 **전수 검색을 실제로 돌린 뒤에만** 쓰고 **검색 범위를 함께 적는다**. 확인 못 한 것은 `추정`·`미검증`으로 표시한다. 문서의 수치도 근거가 아니라 그날의 측정값이므로 날짜와 재현 명령을 함께 남긴다.
-9. 🔴 **삭제·리네임은 3면 grep** — 소스 + `__tests__/` + `scripts/verify-*` 를 함께 본다. **"임포터 0"은 죽었다는 증거가 아니다**(`lib/payment/portone.ts` 는 import 0이지만 verify 스크립트가 파일로 읽어 단언한다). 삭제가 2개 이상 PR로 나뉘면 마지막 `main` 에서 `npm run check:critical` 을 한 번 돌린다.
+9. 🔴 **삭제·리네임은 3면 grep** — 소스 + `__tests__/` + `scripts/verify-*` 를 함께 본다. **"임포터 0"은 죽었다는 증거가 아니다**(`lib/payment/portone.ts` 는 import 0이지만 verify 스크립트가 파일로 읽어 단언한다). 🔴 **이 grep 은 반드시 `git grep`** — 리포 루트 `.ignore` 가 `sync:public` 미러 169개를 Grep/Glob 에서 빼므로 rg 로는 미러의 참조를 못 본다([docs/context/search-discipline.md](docs/context/search-discipline.md)). 삭제가 2개 이상 PR로 나뉘면 마지막 `main` 에서 `npm run check:critical` 을 한 번 돌린다.
 10. 🔴 **가드는 fail-closed 여야 하고, 손으로 쓴 대상 목록은 가드가 아니다** — 검사 대상이 없을 때 통과시키는 가드는 가드가 아니다. 배열에 파일명을 열거하지 말고 **소스에서 전수 발견해 미분류를 실패시킨다**(정본: `verify:auth-changed-coverage`·`verify:guard-wiring`). 가드가 보는 파일은 그 가드를 부르는 워크플로 트리거 `paths` 에도 있어야 한다.
 11. 🔴 **끝은 "검증했다"까지다** — 변경마다 **실행한 명령과 그 출력**을 근거로 보고한다. 출력을 안 보고 "통과"라고 쓰지 않는다. 못 돌린 검증은 **"미검증"으로 명시**한다. 최종 보고에 수정 파일 · 의도 · 안 건드린 영역 · 검증 명령 · 추가 확인 필요 지점을 남긴다.
 12. 🔴 **컨텍스트가 모자라면 밀어붙이지 말고 인수인계** — 남은 작업이 컨텍스트에 안 들어오면 절반만 하고 "했다"고 하거나 후반부를 근거 없이 채우지 않는다. [docs/handoff/](docs/handoff/) 아래에 주제별 문서를 만들어 **그 문서만 읽고 시작할 수 있게** 넘기고, 무엇이 남았는지 사용자에게 분명히 보고한다(넘긴 범위를 "완료"로 적지 않는다). 판단은 **작업 시작 전에** 한다. 담을 항목: [docs/context/coding-principles.md](docs/context/coding-principles.md) 13번 · 정본 예시 [docs/handoff/detail-sheet-copy-rewrite.md](docs/handoff/detail-sheet-copy-rewrite.md)
@@ -65,57 +65,15 @@
 | `deletion-auditor` | 심볼·파일 삭제/리네임 전 3면 grep (원칙 9) |
 | `paid-gate-auditor` | 결제·이용권·게이팅 변경의 정책 정합성 확인 |
 
-## Quick Start
+## 검증 — 고친 기능의 `verify:*` 를 먼저 돌린다
 
-```bash
-npm run dev            # 로컬 개발 서버 (local-auth 포함)
-npm run build:cf       # prebuild:cf && build (SEO/AdSense 게이트가 여기서 돈다)
-npm run lint           # next lint
-npm run typecheck      # tsc --noEmit
-npm run deploy:check   # 업로드 없이 변경 집합만 확인 (프로덕션 배포는 로컬 불가)
-```
+`verify:*` 스크립트가 190개 이상 있다. 결제 수정 시 최소: `verify:billing-pass-policy` · `verify:portone-single-payment` · `verify:paid-gate-ui` · `verify:payment-choice-parity` · `verify:checkout-pass-card`. UI 수정 시: `verify:hero-contrast` + `verify:mobile-detail-nonintrusive`.
 
-`verify:*` 스크립트가 190개 이상 있다. **기능을 고쳤으면 그 기능의 `verify:*` 를 먼저 돌린다.** 결제 수정 시 최소: `verify:billing-pass-policy` · `verify:portone-single-payment` · `verify:paid-gate-ui` · `verify:payment-choice-parity` · `verify:checkout-pass-card`. UI 수정 시: `verify:hero-contrast` + `verify:mobile-detail-nonintrusive`.
+## 레포 함정 (모르면 사고 나는 것)
 
-## Folder Structure
-
-```
-app/            # Next.js App Router (라우트, app/api/*, [locale]/)
-worker/         # Cloudflare Worker 백엔드 (routes/, lib/ — billing/AI/pdf/music)
-lib/            # 공유 라이브러리 (llm-client, mongodb, i18n, payment, vedic*)
-components/     # 공용 React 컴포넌트 (yeon/, stories/, ui/, fortune/)
-src/features/   # 기능 단위 모듈 (fortune-tea-house, neo-war-room)
-pages/          # 레거시 Pages Router (_app, _document, 에러 페이지)
-scripts/        # 빌드/배포/검증/마이그레이션 스크립트
-apps/mobile/    # Capacitor 래퍼 + Android 네이티브
-js/             # 정적 셸이 동적 로드하는 레거시 브라우저 번들 (public/js/ 는 sync:public 미러)
-public/, dist/, out/   # 정적 자산 및 빌드 산출물
-```
-
-- **죽은 코드는 격리하지 말고 지운다** — 격리 디렉터리는 빌드에서만 빠지고 grep·AI 읽기에는 그대로 노출돼 다음 세션이 복제한다. 안전망은 git 히스토리다(복구: [docs/cleanup-2026-08/06-deleted.md](docs/cleanup-2026-08/06-deleted.md)).
-- **`veda/` 와 `models/` 는 존재하지 않는다.** 실체는 `lib/vedicSwissChart.js`·`lib/vedicCalculator.js`·`worker/lib/vedic-*.js`·`worker/lib/nakshatra-*.js`. `tsconfig.json` `exclude` 등에 남은 `veda` 는 잔재이니 근거로 삼지 말 것.
 - **홈 `/` 은 정적 셸 `index.html` 의 승격본이다** — 홈 콘텐츠·메타는 `app/page.js` 가 아니라 정적 셸에 둔다. `public/**/index.html` 은 `sync:public` 이 만드는 미러이므로 직접 패치하지 않는다.
-
-## Tech Stack
-
-- **Framework**: Next.js 15 (App Router, `output: "export"` 정적 빌드), React 18.3.1
-- **언어/스타일**: TypeScript 5.5 (`strict: false`, `strictNullChecks: true`), Tailwind 3.4
-- **DB**: MongoDB Atlas **M10** (Mongoose) — 프로덕션 경로 `worker/lib/db.js`, App Router 잔여 경로 `app/_lib/dbConnect.js`
-- **AI**: Gemini REST 직접 호출(`gemini-2.5-flash`) + 실패 시 Cloudflare Workers AI **체인** 폴백
-- **배포**: Cloudflare Pages + Workers (wrangler 4.73, `@opennextjs/cloudflare`)
-- **결제**: PortOne V2 (+ KG Inicis 채널), 포인트/코인 기반 유료 기능
-- **인증**: 커스텀 JWT (NextAuth 아님), Google/Kakao/Naver OAuth
-- **i18n**: `ko`(기본, prefix 없음) / `ja`, `zh`, `en`(경로 prefix)
-
-## Code Rules
-
-- ES Modules만, `any` 지양, `strictNullChecks` 위반 금지(`strict` 자체는 off이므로 과신 금지)
-- 환경변수 하드코딩 금지 — 반드시 `process.env`/`env` 바인딩 경유
-- 스타일은 Tailwind 클래스만(인라인 스타일 지양), 애니메이션은 `transition-*`/`animate-*`(`framer-motion` 은 기존 의존성)
-- 외부 API 호출·DB 접근에 try-catch 필수
-- `worker/` 는 Node 내장 API(`fs`, `net`) 금지 — 순수 fetch/Web API. 번들 **1MB(gzip 3MiB)** 제한 유의
-- 네이밍: 컴포넌트 `PascalCase`, 유틸 `camelCase`, 라우트 폴더 `kebab-case`. 서버 컴포넌트 기본, 클라이언트는 `'use client'` 명시
-- 이미지는 `<Image>` 사용(`img` 금지), `alt` 필수, 인터랙티브 버튼 `aria-label` 필수, 모바일 퍼스트 + `dark:` 병행
+- **`veda/` 와 `models/` 는 존재하지 않는다.** 실체는 `lib/vedicSwissChart.js`·`lib/vedicCalculator.js`·`worker/lib/vedic-*.js`·`worker/lib/nakshatra-*.js`. `tsconfig.json` `exclude` 등에 남은 `veda` 는 잔재이니 근거로 삼지 말 것.
+- **죽은 코드는 격리하지 말고 지운다** — 격리 디렉터리는 빌드에서만 빠지고 grep·AI 읽기에는 그대로 노출돼 다음 세션이 복제한다. 안전망은 git 히스토리다(복구: [docs/cleanup-2026-08/06-deleted.md](docs/cleanup-2026-08/06-deleted.md)).
 
 ## 결제 게이팅 — 절대 순서
 
@@ -130,17 +88,6 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - **코인은 폐지된 개념** — 사용자에게는 항상 KRW 환산 표시(`1코인=100원`). 신규 UI에 `coinPrice`/`cost` 를 그대로 렌더링하지 않는다.
 - 위 순서를 벗어나는 결제 구현은 금지이며 **작업 중 우연히 발견해도 그냥 지나치지 말고 사용자에게 보고**한다.
 - 🔴 `config/payment-freeze.json` 에 등록된 파일·함수를 건드렸으면 `node scripts/verify-payment-freeze.mjs --update` 로 매니페스트를 갱신해 **같은 커밋에** 담는다. 순수 CSS/문구 변경도 예외 없다. 체크 무력화 금지.
-
-## 검색 & 수정 원칙
-
-> 🔴 **읽기 제한과 수정 제한은 다르다.** 아래는 *목적 없는 훑기*를 막는 규칙이지 *확인*을 막는 규칙이 아니다. 회귀 추적(원칙 7)·삭제 전 3면 grep(원칙 9)·부정 단언의 근거 확보(원칙 8)에 필요한 읽기는 **사용자 확인 없이 한다.** 코딩 원칙이 이 섹션보다 우선한다.
-
-- 요청 키워드(기능명/함수명/에러 문구/라우트명)를 먼저 뽑아 Grep/Glob 으로 좁혀 읽는다. **파일 수로 읽기를 끊지 않는다** — 회귀 경로가 20개 파일에 걸치면 20개를 본다. 다만 범위가 요청보다 훨씬 넓어지면 그때 사용자에게 알린다.
-- 🔴 **`sync:public` 이 만든 `public/` 사본 169개는 Grep/Glob 에 안 잡힌다**(리포 루트 `.ignore`, `sync:public` 이 자동 생성). 정본만 보라는 뜻이지 미러가 없다는 뜻이 아니다 — **미러를 봐야 하면 `git grep` 또는 `rg -u`**, 특정 파일은 경로를 직접 준 Read. 🔴 **삭제 전 3면 grep(원칙 9)은 반드시 `git grep`** 으로 한다(미러의 참조를 못 보면 "임포터 0" 을 죽음의 증거로 오독한다). 상세: [docs/context/search-discipline.md](docs/context/search-discipline.md)
-- **읽는 범위와 고치는 범위는 별개다.** 범위 밖 파일은 근거 확인용으로 읽되 **수정하지 않는다.**
-- 이미 얻은 정보를 다시 사지 않는다: 방금 내가 만든 `git diff` 를 통째로 다시 읽지 않고(`git diff -- <path>`), 실패한 검증만 재실행하며, 이미 통과한 check 는 그 파일이 안 바뀌었으면 신뢰한다. 🔴 **예외 — 심볼·파일 삭제가 포함된 변경은 CI 와 같은 전체 명령을 한 번 돌린다.**
-- `deploy:preview` 를 습관적으로 돌리지 않는다(Cloudflare 아티팩트가 남는다). 점검은 업로드 없는 `deploy:check`.
-- 최종 보고에 어떤 키워드로 어떤 파일을 좁혔는지 한 줄 남긴다. 탐색 과정과 중간 추론을 장황하게 노출하지 않는다.
 
 ## Workflow
 
