@@ -71,15 +71,35 @@ async function findDeduction(userId, featureKey, requestId) {
   }).select("_id metadata").lean();
 }
 
-// 월정석은 원장에도 남는다. PointHistory 가 늦게 써지는 경로를 대비해 함께 본다.
+// 월정석 차감의 회계 정본은 이 원장 하나다(worker/payments/moonstone.js — V2 는 PointHistory 를
+// 일부러 쓰지 않는다). 그래서 이 조회가 월정석의 **유일한** 증빙 경로다.
+//
+// 🔴 조회 필드는 writer 가 실제로 쓰는 이름이어야 한다. 예전 이 함수는 top-level `requestId`·
+//    `idempotencyKey` 로 찾았는데 **원장 스키마에 그런 필드가 없다**(models.js monthlyCreditLedgerSchema —
+//    멱등키는 `sourceId` 다). 구 billing.js 시절에는 그 경로가 함께 남기던 PointHistory 로 증빙이
+//    서서 결함이 가려져 있었고, V2 컷오버가 PointHistory 쓰기를 없애자 월정석으로 결제한 사용자가
+//    차감만 당하고 402(미결제)를 받았다(초융합 운세 ₩30,000 실사고). 계약은
+//    __tests__/worker/per-use-proof-roundtrip.test.js 가 writer↔reader 왕복으로 고정한다.
 async function findMonthlyLedger(userId, featureKey, requestId) {
   if (!requestId) return null;
-  const clauses = [{ requestId }, { idempotencyKey: requestId }];
+  const clauses = [
+    { sourceId: requestId },                    // V2 정본(worker/payments/moonstone.js)
+    { "metadata.purchaseId": requestId },       // V2 가 함께 남기는 값
+    { "metadata.requestId": requestId },        // 구 billing.js 행
+    { "metadata.idempotencyKey": requestId },
+    { "metadata.orderId": requestId },
+  ];
   if (isObjectId(requestId)) clauses.push({ _id: requestId });
   return MonthlyCreditLedger.findOne({
     userId,
     type: "MONTHLY_CREDIT_SPEND",
     serviceKey: featureKey,
+    // 🔴 미정산 예약행은 증빙이 아니다. V2 는 "원장 예약 → lot 차감 → 정산" 순으로 도는데
+    //    (moonstone.js), 예약과 차감 사이에서 죽으면 **차감되지 않은 행**이 남는다. 이 조건을
+    //    빼면 결제에 실패한 요청이 유료 결과를 공짜로 연다.
+    settledAt: { $exists: true },
+    // 해금 실패로 되돌린 차감은 증빙이 아니다 — billing.js 의 멱등 재조회와 같은 제외 조건.
+    "metadata.refundedForUnlockFailure": { $ne: true },
     $or: clauses,
   }).select("_id").lean();
 }
