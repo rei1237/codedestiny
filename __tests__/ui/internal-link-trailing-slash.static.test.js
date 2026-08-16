@@ -95,9 +95,12 @@ test("로케일 링크 재작성이 후행 슬래시를 보존하면서 언어 �
   assert.notEqual(ja, "/insights/", "슬래시가 붙으면 로케일 재작성이 통째로 죽는다");
   assert.ok(ja.endsWith("/insights/"), `이동 경로의 후행 슬래시가 사라졌다(308 을 한 번 더 탄다): ${ja}`);
 
-  const zh = resolve("/oracle/rune/", "zh");
-  assert.notEqual(zh, "/oracle/rune/");
-  assert.ok(zh.endsWith("/oracle/rune/"), `후행 슬래시가 사라졌다: ${zh}`);
+  const zh = resolve("/insights/", "zh");
+  assert.notEqual(zh, "/insights/");
+  assert.ok(zh.endsWith("/insights/"), `후행 슬래시가 사라졌다: ${zh}`);
+
+  // 이미 로케일 프리픽스가 붙은 링크도 슬래시를 잃지 않는다.
+  assert.equal(resolve("/ja/insights/", "ja"), "/ja/insights/");
 
   // 한국어는 프리픽스가 없으므로 그대로 둔다.
   assert.equal(resolve("/insights/", "ko"), "/insights/");
