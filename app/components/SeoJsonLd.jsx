@@ -1,4 +1,6 @@
-const BRAND_NAME = "Code Destiny";
+// 🔴 Organization(회사) 이름이다. 브랜드(WebSite)는 "꿀꿀 운세" 로 따로 있다.
+//    lib/seo/siteSeo.ts 의 organization.name 과 같아야 한다.
+const BRAND_NAME = "CODE DESTINY";
 const BRAND_URL = "https://code-destiny.com";
 const DEFAULT_IMAGE = `${BRAND_URL}/og/code-destiny-og.png`;
 

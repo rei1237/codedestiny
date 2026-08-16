@@ -169,23 +169,39 @@ test("LocaleFooterHub 는 서버 컴포넌트이고 법률 번역을 새로 만�
   );
 });
 
-test("WebSite 엔티티 이름이 셸과 Next 레이아웃에서 같다", () => {
-  // 같은 @id(https://code-destiny.com/#website)를 홈(정적 셸)과 400여 Next 라우트(app/layout.js)가
-  // 각각 선언한다. 이름이 갈리면 Google 이 한 엔티티에 대해 서로 다른 이름을 본다.
+test("WebSite 엔티티 이름이 셸과 정본에서 같다", () => {
+  // 같은 @id(https://code-destiny.com/#website)를 홈(정적 셸)과 400여 Next 라우트가 각각 선언한다.
+  // 이름이 갈리면 Google 이 한 엔티티에 대해 서로 다른 이름을 본다.
+  //
+  // 예전에는 app/layout.js 가 이름을 손으로 적어 두어서 그 리터럴과 셸을 비교했다. 지금은
+  // override 를 없애고 lib/seo/siteSeo.ts 의 brandName 하나만 정본으로 두므로, 셸을 **정본과**
+  // 대조한다. 레이아웃이 다시 이름을 손으로 적으면 세 번째 값이 생기므로 그것도 함께 막는다.
   const shell = read("index.html");
+  const siteSeoSource = read("lib/seo/siteSeo.ts");
   const layout = read("app/layout.js");
 
   const shellName = (shell.match(/"@type":\s*"WebSite"[\s\S]{0,200}?"name":\s*"([^"]+)"/) || [])[1];
   assert.ok(shellName, "정적 셸에서 WebSite name 을 찾지 못했다");
 
-  const layoutName = (layout.match(/BRAND_WEBSITE_JSON_LD[\s\S]{0,300}?name:\s*"([^"]+)"/) || [])[1];
-  assert.ok(layoutName, "app/layout.js 에서 BRAND_WEBSITE_JSON_LD name 을 찾지 못했다");
+  const brandName = (siteSeoSource.match(/brandName:\s*"([^"]+)"/) || [])[1];
+  assert.ok(brandName, "lib/seo/siteSeo.ts 에서 brandName 을 찾지 못했다");
 
   assert.equal(
-    layoutName,
     shellName,
-    `WebSite name 이 갈렸다 — 셸 "${shellName}" vs layout "${layoutName}". 같은 @id 다.`,
+    brandName,
+    `WebSite name 이 갈렸다 — 셸 "${shellName}" vs siteSeo.brandName "${brandName}". 같은 @id 다.`,
   );
+
+  const layoutOverride = layout.match(/BRAND_WEBSITE_JSON_LD\s*=\s*\{[\s\S]{0,300}?\bname:\s*"/);
+  assert.ok(
+    !layoutOverride,
+    "app/layout.js 가 WebSite name 을 다시 손으로 적고 있다 — 정본은 siteSeo.brandName 하나여야 한다",
+  );
+
+  // 브랜드(WebSite)와 회사(Organization)는 서로 다른 엔티티다. 같은 값으로 되돌리지 말 것.
+  const orgName = (siteSeoSource.match(/organization:\s*\{[\s\S]{0,200}?name:\s*"([^"]+)"/) || [])[1];
+  assert.ok(orgName, "lib/seo/siteSeo.ts 에서 organization.name 을 찾지 못했다");
+  assert.notEqual(orgName, brandName, "브랜드와 회사 이름이 같아졌다 — 두 엔티티가 한 덩어리로 읽힌다");
 });
 
 test("로케일 푸터는 같은 언어 목적지 링크를 제공한다", () => {

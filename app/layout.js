@@ -157,16 +157,16 @@ export const viewport = {
   colorScheme: "dark light",
 };
 
-// 🔴 name 은 정적 셸 index.html 의 WebSite 노드와 **글자 단위로 같아야 한다.**
-// 둘 다 @id 가 https://code-destiny.com/#website 인 같은 엔티티인데, 홈 `/` 은 승격된 셸이,
-// 나머지 400여 Next 라우트는 이 레이아웃이 서빙한다. 이름이 갈리면 Google 이 같은 엔티티에
-// 대해 서로 다른 이름을 보게 된다(2026-08-16 이전 실측: 셸 "CODE DESTINY (꿀꿀 운세)" vs
-// 여기 "꿀꿀 운세 — Code Destiny" vs buildWebsiteJsonLd 기본값 "Code Destiny" 의 3중 드리프트).
-// 셸이 홈이자 이 엔티티의 앵커이므로 셸 표기를 정본으로 삼는다.
-// 드리프트는 __tests__/ui/locale-footer.static.test.js 가 잡는다.
+// 🔴 name 을 여기에 손으로 적지 않는다. 정본은 lib/seo/siteSeo.ts 의 brandName 이다.
+//
+// 같은 @id(https://code-destiny.com/#website)를 홈(승격된 정적 셸)과 나머지 400여 Next 라우트
+// (이 레이아웃)가 각각 선언하므로 두 값이 글자 단위로 같아야 한다. 예전에는 여기 이름을 손으로
+// 적어 두는 바람에 **3중 드리프트**가 났다 — 셸 "CODE DESTINY (꿀꿀 운세)" vs 여기
+// "꿀꿀 운세 — Code Destiny" vs buildWebsiteJsonLd 기본값 "Code Destiny"(2026-08-16 실측).
+// 이제 override 를 없애 세 번째 값이 생길 자리를 아예 지웠다. 셸과의 일치는
+// __tests__/ui/locale-footer.static.test.js 가 강제한다.
 const BRAND_WEBSITE_JSON_LD = {
   ...buildWebsiteJsonLd("ko"),
-  name: "CODE DESTINY (꿀꿀 운세)",
   description: "생년월일로 무료 사주팔자·타로·궁합·신년운세를 제공하는 한국 운세 플랫폼",
 };
 
