@@ -3,7 +3,8 @@
   "include": [
     "/api/*",
     "/rss.xml",
-    "/insights/rss.xml"
+    "/insights/rss.xml",
+    "/fortune/*"
   ],
   "exclude": []
 }

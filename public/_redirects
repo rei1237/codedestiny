@@ -1,29 +1,30 @@
 # Cloudflare Pages _redirects
 # 저장 경로: public/_redirects
 # ─────────────────────────────────────────────
+#
+# 🔴 규칙 수에 상한이 있다. 2026-08-16 라이브 실측: 파일 순서 기준 **첫 102개만 적용**되고
+#    #103 부터는 에러도 경고도 없이 무시돼 그 경로가 404 가 된다. 규칙 303개였을 때
+#    `/fortune/{weekly,monthly}/*.html` 38개가 그렇게 죽어 네이버 "접근 불가 38건"이 됐다.
+#    → `npm run verify:redirects-budget` 가 95개를 넘으면 빌드를 실패시킨다(마진 7).
+#    → 상한을 넘겨 잘려나갈 위험이 있으므로 **가치가 높은 규칙일수록 위에 둔다.**
+#    → 상한의 정확한 근거(규칙 수 vs 바이트)는 미확정이다. 배포 후 `npm run verify:redirects:live`
+#      로 **파일 마지막 규칙**이 실제 적용되는지 반드시 확인한다.
+#
+# 🔴 규칙은 정적 에셋을 이긴다(실측). `/fortune/today/*` 같은 넓은 splat 은 사이트맵에 있는
+#    살아 있는 라우트를 통째로 삼킨다. 가드가 사이트맵과의 교집합을 검사한다.
+#
+# 🔴 `X/*` 는 `X/`(빈 splat)를 매칭하지만 `X` 는 매칭하지 않는다(실측).
+#    그래서 별칭은 `X` + `X/*` 두 줄이 한 쌍이다.
+#
+# 🔴 목적지에는 후행 슬래시를 붙인다. 빼면 trailingSlash:true 의 308 이 뒤에 붙어 2홉 체인이 된다.
+#    예외는 확장자 없는 레거시 정적 파일(`/ifa-oracle` ← public/ifa-oracle.html)뿐이다.
+#
+# 🔴 `/fortune/**` 의 레거시 리다이렉트는 이 파일에 없다 — 예산에 들어가지 않아
+#    `public/_worker.js` 로 옮겼다(`public/_routes.json` 의 `/fortune/*`). 거기서 관리한다.
 
-# canonical 경로 정규화
-# Next.js trailingSlash=true 정책과 충돌하는 slash 제거 리다이렉트는 제거합니다.
-# (예: /about -> /about/ 과 /about/ -> /about 이 공존하면 무한 루프 발생)
-/sukyo                         /sukuyo                   301
-/sukyo/                        /sukuyo                   301
-/sukyo/*                       /sukuyo/:splat            301
-/face-reading                  /physiognomy              301
-/face-reading/                 /physiognomy              301
-/saju/lifebook                 /life-book-ai             301
-/saju/lifebook/                /life-book-ai             301
-/saju/lifebook/*               /life-book-ai             301
-/saju/animal-test              /saju/animal-destiny      301
-/saju/animal-test/             /saju/animal-destiny      301
-/saju/animal-test/*            /saju/animal-destiny      301
-/oracle/ifa                    /ifa-oracle.html          301
-/oracle/ifa/                   /ifa-oracle.html          301
-/oracle/ifa/*                  /ifa-oracle.html          301
-
-# 유명인 사주 상세의 중복 경로 제거 (2026-08-13)
-# 같은 인물 페이지가 /famous-saju/<slug> 와 /insights/famous-saju/<slug> 두 URL 로
-# 빌드되어 130개가 중복 크롤됐다. 정본은 insights 쪽이고 alias 는 이미 그쪽을
-# canonical 로 가리키고 있었으므로 라우트를 지우고 301 로 대체한다.
+# ── 유명인 사주 상세의 중복 경로 제거 (2026-08-13) ─────────────────────────
+# 같은 인물 페이지가 /famous-saju/<slug> 와 /insights/famous-saju/<slug> 두 URL 로 빌드되어
+# 130개가 중복 크롤됐다. 정본은 insights 쪽이다.
 # ⚠️ :slug 는 한 세그먼트만 매칭하므로 /famous-saju/category/<x>/ 를 삼키지 않는다.
 #    splat(*) 로 바꾸면 사이트맵에 있는 카테고리 12개가 리다이렉트로 사라진다.
 #    아래 category 규칙이 먼저 와야 /famous-saju/category/ (끝 세그먼트 없음)도 안전하다.
@@ -31,382 +32,149 @@
 /famous-saju/:slug             /insights/famous-saju/:slug/         301
 /famous-saju/:slug/            /insights/famous-saju/:slug/         301
 
-# 폐지된 React /me → 달빛 이용권 상점
-# 프로필 카드 관리가 정적 셸로 이관되며(bd54e99eb) /me 라우트가 빌드에서 사라졌다. 오리진은
-# 한동안 옛 HTML 을 200 으로 계속 내려줬지만(실측 Age: 5256, ?cdcb= 우회는 404) 그 캐시가
-# 만료되면 북마크·검색 유입이 하드 404 를 받는다.
-# 🔴 `/me*` 로 쓰지 말 것 — 그러면 sitemap 에 있는 `/methodology` 까지 삼킨다.
-/me                            /points                   301
-/me/                           /points                   301
-/me/*                          /points                   301
+# ── canonical 경로 정규화 ────────────────────────────────────────────────
+/sukyo                         /sukuyo/                  301
+/sukyo/*                       /sukuyo/:splat            301
+/face-reading                  /physiognomy/             301
+/face-reading/*                /physiognomy/             301
+/saju/lifebook                 /life-book-ai/            301
+/saju/lifebook/*               /life-book-ai/            301
+/saju/animal-test              /saju/animal-destiny/     301
+/saju/animal-test/*            /saju/animal-destiny/     301
+# /ifa-oracle 은 확장자 없는 레거시 정적 파일이다. `.html` 도 `/` 도 붙이면 308 이 한 번 더 붙는다.
+/oracle/ifa                    /ifa-oracle               301
+/oracle/ifa/*                  /ifa-oracle               301
 
-# 구 웹소설 리더(/stories/code-destiny/*) → 신 텍스트 리더(/stories/)
+# ── 폐지된 React /me → 달빛 이용권 상점 ───────────────────────────────────
+# 프로필 카드 관리가 정적 셸로 이관되며(bd54e99eb) /me 라우트가 빌드에서 사라졌다.
+# 🔴 `/me*` 로 쓰지 말 것 — 그러면 sitemap 에 있는 `/methodology` 까지 삼킨다.
+/me                            /points/                  301
+/me/*                          /points/                  301
+
+# ── 구 웹소설 리더(/stories/code-destiny/*) → 신 텍스트 리더(/stories/) ────
 # 주의: /stories/* 와일드카드를 쓰면 신규 화 라우트(/stories/ep-01/ 등)까지 삼킨다.
-# 반드시 /stories/code-destiny 하위로만 좁힐 것.
+# prologue 는 splat 보다 먼저 와야 개별 목적지를 유지한다.
 /stories/code-destiny             /stories/            301
-/stories/code-destiny/            /stories/            301
 /stories/code-destiny/prologue    /stories/prologue/   301
 /stories/code-destiny/*           /stories/            301
 
-# 브랜드/핵심 서비스 별칭
-/ggulggul                      /manse                    301
-/ggulggul/                     /manse                    301
-/ggulggul-manse                /manse                    301
-/ggulggul-manse/               /manse                    301
+# ── 브랜드/핵심 서비스 별칭 ───────────────────────────────────────────────
+/ggulggul                      /manse/                   301
+/ggulggul/*                    /manse/                   301
+/ggulggul-manse                /manse/                   301
+/ggulggul-manse/*              /manse/                   301
 /code-destiny                  /                         301
-/code-destiny/                 /                         301
+/code-destiny/*                /                         301
 /codedestiny                   /                         301
-/codedestiny/                  /                         301
-# 2026-05-10 a38052ea6 이 삭제한 운세 시스템 페이지 204개(4기간 × 3체계).
-# 삭제 이후 줄곧 hard 404 였고 301 이 없어 6월 노출 급감의 원인 중 하나였다.
-# 체계별 정본 허브로 보내 주제 관련성을 유지한다(전부 /daily-fortune 으로 몰면 소프트404 위험).
-# Cloudflare Pages 는 splat 을 경로 끝에서만 지원하므로 기간 × 체계를 명시한다.
-# 타겟에 trailing slash 를 붙여야 trailingSlash:true 의 308 과 겹친 리다이렉트 체인이 생기지 않는다.
-/fortune/today/sukuyo/*        /sukuyo/                  301
-/fortune/tomorrow/sukuyo/*     /sukuyo/                  301
-/fortune/weekly/sukuyo/*       /sukuyo/                  301
-/fortune/monthly/sukuyo/*      /sukuyo/                  301
-/fortune/today/vedic/*         /vedic/                   301
-/fortune/tomorrow/vedic/*      /vedic/                   301
-/fortune/weekly/vedic/*        /vedic/                   301
-/fortune/monthly/vedic/*       /vedic/                   301
-/fortune/today/ziwei/*         /ziwei/                   301
-/fortune/tomorrow/ziwei/*      /ziwei/                   301
-/fortune/weekly/ziwei/*        /ziwei/                   301
-/fortune/monthly/ziwei/*       /ziwei/                   301
+/codedestiny/*                 /                         301
 
-# 2026-08-15 /fortune/{today,tomorrow}/*.html 48개를 App Router 라우트로 이전했다.
-# 구 셸은 본문을 브라우저에서 그려 크롤러가 받는 텍스트가 0자였고 JSON-LD 도 비어 있었다.
-# 구 URL 이 색인에 남아 있으므로 신규 경로로 301 한다. 타겟에 trailing slash 를 붙여
-# trailingSlash:true 의 308 과 겹친 리다이렉트 체인이 생기지 않게 한다.
-/fortune/today/aries.html      /fortune/today/aries/     301
-/fortune/today/taurus.html     /fortune/today/taurus/    301
-/fortune/today/gemini.html     /fortune/today/gemini/    301
-/fortune/today/cancer.html     /fortune/today/cancer/    301
-/fortune/today/leo.html        /fortune/today/leo/       301
-/fortune/today/virgo.html      /fortune/today/virgo/     301
-/fortune/today/libra.html      /fortune/today/libra/     301
-/fortune/today/scorpio.html    /fortune/today/scorpio/   301
-/fortune/today/sagittarius.html /fortune/today/sagittarius/ 301
-/fortune/today/capricorn.html  /fortune/today/capricorn/ 301
-/fortune/today/aquarius.html   /fortune/today/aquarius/  301
-/fortune/today/pisces.html     /fortune/today/pisces/    301
-/fortune/today/rat.html        /fortune/today/rat/       301
-/fortune/today/ox.html         /fortune/today/ox/        301
-/fortune/today/tiger.html      /fortune/today/tiger/     301
-/fortune/today/rabbit.html     /fortune/today/rabbit/    301
-/fortune/today/dragon.html     /fortune/today/dragon/    301
-/fortune/today/snake.html      /fortune/today/snake/     301
-/fortune/today/horse.html      /fortune/today/horse/     301
-/fortune/today/goat.html       /fortune/today/goat/      301
-/fortune/today/monkey.html     /fortune/today/monkey/    301
-/fortune/today/rooster.html    /fortune/today/rooster/   301
-/fortune/today/dog.html        /fortune/today/dog/       301
-/fortune/today/pig.html        /fortune/today/pig/       301
-/fortune/tomorrow/aries.html   /fortune/tomorrow/aries/  301
-/fortune/tomorrow/taurus.html  /fortune/tomorrow/taurus/ 301
-/fortune/tomorrow/gemini.html  /fortune/tomorrow/gemini/ 301
-/fortune/tomorrow/cancer.html  /fortune/tomorrow/cancer/ 301
-/fortune/tomorrow/leo.html     /fortune/tomorrow/leo/    301
-/fortune/tomorrow/virgo.html   /fortune/tomorrow/virgo/  301
-/fortune/tomorrow/libra.html   /fortune/tomorrow/libra/  301
-/fortune/tomorrow/scorpio.html /fortune/tomorrow/scorpio/ 301
-/fortune/tomorrow/sagittarius.html /fortune/tomorrow/sagittarius/ 301
-/fortune/tomorrow/capricorn.html /fortune/tomorrow/capricorn/ 301
-/fortune/tomorrow/aquarius.html /fortune/tomorrow/aquarius/ 301
-/fortune/tomorrow/pisces.html  /fortune/tomorrow/pisces/ 301
-/fortune/tomorrow/rat.html     /fortune/tomorrow/rat/    301
-/fortune/tomorrow/ox.html      /fortune/tomorrow/ox/     301
-/fortune/tomorrow/tiger.html   /fortune/tomorrow/tiger/  301
-/fortune/tomorrow/rabbit.html  /fortune/tomorrow/rabbit/ 301
-/fortune/tomorrow/dragon.html  /fortune/tomorrow/dragon/ 301
-/fortune/tomorrow/snake.html   /fortune/tomorrow/snake/  301
-/fortune/tomorrow/horse.html   /fortune/tomorrow/horse/  301
-/fortune/tomorrow/goat.html    /fortune/tomorrow/goat/   301
-/fortune/tomorrow/monkey.html  /fortune/tomorrow/monkey/ 301
-/fortune/tomorrow/rooster.html /fortune/tomorrow/rooster/ 301
-/fortune/tomorrow/dog.html     /fortune/tomorrow/dog/    301
-/fortune/tomorrow/pig.html     /fortune/tomorrow/pig/    301
-
-# 2026-08-16 /fortune/{weekly,monthly}/*.html 48개도 App Router 라우트로 이전했다.
-# 구 셸은 js/fortune-engine.js 의 getDateStr 이 weekly/monthly 를 분기하지 않아
-# today 와 같은 일일 JSON 을 읽었다 — 네 기간의 본문이 100% 같았다는 뜻이다.
-# 신규 라우트는 주간=7일 일진 지도, 월간=월건·절기·삭망으로 축 자체가 다르다.
-/fortune/weekly/aries.html     /fortune/weekly/aries/    301
-/fortune/weekly/taurus.html    /fortune/weekly/taurus/   301
-/fortune/weekly/gemini.html    /fortune/weekly/gemini/   301
-/fortune/weekly/cancer.html    /fortune/weekly/cancer/   301
-/fortune/weekly/leo.html       /fortune/weekly/leo/      301
-/fortune/weekly/virgo.html     /fortune/weekly/virgo/    301
-/fortune/weekly/libra.html     /fortune/weekly/libra/    301
-/fortune/weekly/scorpio.html   /fortune/weekly/scorpio/  301
-/fortune/weekly/sagittarius.html /fortune/weekly/sagittarius/ 301
-/fortune/weekly/capricorn.html /fortune/weekly/capricorn/ 301
-/fortune/weekly/aquarius.html  /fortune/weekly/aquarius/ 301
-/fortune/weekly/pisces.html    /fortune/weekly/pisces/   301
-/fortune/weekly/rat.html       /fortune/weekly/rat/      301
-/fortune/weekly/ox.html        /fortune/weekly/ox/       301
-/fortune/weekly/tiger.html     /fortune/weekly/tiger/    301
-/fortune/weekly/rabbit.html    /fortune/weekly/rabbit/   301
-/fortune/weekly/dragon.html    /fortune/weekly/dragon/   301
-/fortune/weekly/snake.html     /fortune/weekly/snake/    301
-/fortune/weekly/horse.html     /fortune/weekly/horse/    301
-/fortune/weekly/goat.html      /fortune/weekly/goat/     301
-/fortune/weekly/monkey.html    /fortune/weekly/monkey/   301
-/fortune/weekly/rooster.html   /fortune/weekly/rooster/  301
-/fortune/weekly/dog.html       /fortune/weekly/dog/      301
-/fortune/weekly/pig.html       /fortune/weekly/pig/      301
-/fortune/monthly/aries.html    /fortune/monthly/aries/   301
-/fortune/monthly/taurus.html   /fortune/monthly/taurus/  301
-/fortune/monthly/gemini.html   /fortune/monthly/gemini/  301
-/fortune/monthly/cancer.html   /fortune/monthly/cancer/  301
-/fortune/monthly/leo.html      /fortune/monthly/leo/     301
-/fortune/monthly/virgo.html    /fortune/monthly/virgo/   301
-/fortune/monthly/libra.html    /fortune/monthly/libra/   301
-/fortune/monthly/scorpio.html  /fortune/monthly/scorpio/ 301
-/fortune/monthly/sagittarius.html /fortune/monthly/sagittarius/ 301
-/fortune/monthly/capricorn.html /fortune/monthly/capricorn/ 301
-/fortune/monthly/aquarius.html /fortune/monthly/aquarius/ 301
-/fortune/monthly/pisces.html   /fortune/monthly/pisces/  301
-/fortune/monthly/rat.html      /fortune/monthly/rat/     301
-/fortune/monthly/ox.html       /fortune/monthly/ox/      301
-/fortune/monthly/tiger.html    /fortune/monthly/tiger/   301
-/fortune/monthly/rabbit.html   /fortune/monthly/rabbit/  301
-/fortune/monthly/dragon.html   /fortune/monthly/dragon/  301
-/fortune/monthly/snake.html    /fortune/monthly/snake/   301
-/fortune/monthly/horse.html    /fortune/monthly/horse/   301
-/fortune/monthly/goat.html     /fortune/monthly/goat/    301
-/fortune/monthly/monkey.html   /fortune/monthly/monkey/  301
-/fortune/monthly/rooster.html  /fortune/monthly/rooster/ 301
-/fortune/monthly/dog.html      /fortune/monthly/dog/     301
-/fortune/monthly/pig.html      /fortune/monthly/pig/     301
-/fortune                       /today/                   301
-/fortune/                      /today/                   301
-
-# 2026-08-13 /daily-fortune 을 /today 로 통합.
-# 둘 다 "오늘의 운세"를 노렸고 설명문까지 거의 같아 서로를 잠식했다. /today 를 남긴 이유:
-# ko/ja/zh/zh-TW/en hreflang 클러스터를 가진 쪽이고(daily-fortune 은 로케일 변형이 없다),
-# scripts/check-seo-health.mjs 가 /today/ 를 allowRedirect:false + 정확히 200 으로 단언한다.
-# 위 /fortune 도 함께 /today/ 로 돌린다 — 안 그러면 /fortune → /daily-fortune → /today 2홉 체인이 된다.
-/daily-fortune                 /today/                   301
-/daily-fortune/                /today/                   301
-# 2026-05-28 abdb642f5 가 app/saju/love-secret 을 삭제하고 남긴 404.
-/saju/love-secret              /love-secret-ai/          301
-/saju/love-secret/             /love-secret-ai/          301
-/saju-free                     /saju                     301
-/saju-free/                    /saju                     301
-
-# 쿼리스트링 → 클린 URL 리다이렉트 (301 영구)
-# 구형 /insights?topic=XXX 구조를 새 /insights/XXX 경로로 리다이렉트
-
-# insights 쿼리스트링 리다이렉트는 Cloudflare Pages _redirects에서 지원되지 않음
-# (쿼리스트링 매칭 미지원: ?topic=XXX 전부 /insights로 인식 → 중복 오류)
-# 구형 클라이언트는 /insights 페이지 자체에서 JS로 처리
-
-# 로케일 루트는 trailing slash canonical을 유지합니다.
-# /{locale}/index.html 형태의 직접 접근만 /{locale}/로 정규화합니다.
-/en/index.html                 /en/            301
-/ja/index.html                 /ja/            301
-/zh/index.html                 /zh/            301
-
-# 레거시 locale slug -> 신규 locale slug
-/en-us                         /en             301
-/en-us/                        /en             301
+# ── 레거시 locale slug → 신규 locale slug ────────────────────────────────
+# /{locale}/index.html 은 Pages 가 이미 308 로 정규화하므로 규칙을 두지 않는다(실측).
+/en-us                         /en/            301
 /en-us/*                       /en/:splat      301
-/ja-jp                         /ja             301
-/ja-jp/                        /ja             301
+/ja-jp                         /ja/            301
 /ja-jp/*                       /ja/:splat      301
-/zh-cn                         /zh             301
-/zh-cn/                        /zh             301
+/zh-cn                         /zh/            301
 /zh-cn/*                       /zh/:splat      301
 
-# 구형 /blog/* → /insights/*
-# 🔴 대상은 후행 슬래시까지 적는다 — 빼면 301 뒤에 308(/insights/<slug>/ 정규화)이 한 번 더 붙는다.
-/blog/saju-pallja               /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
-/blog/saju-pallja/              /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
-/blog/ohang                     /insights/five-elements-ohang-complete-guide/           301
-/blog/ohang/                    /insights/five-elements-ohang-complete-guide/           301
-/blog/tarot-arcana              /insights/tarot-major-arcana-22-complete-meanings/       301
-/blog/tarot-arcana/             /insights/tarot-major-arcana-22-complete-meanings/       301
-/blog/ziwei                     /insights/ziwei-what-is/                                 301
-/blog/ziwei/                    /insights/ziwei-what-is/                                 301
-/blog/cheongan-jiji             /insights/cheongan-jiji-complete-explanation/            301
-/blog/cheongan-jiji/            /insights/cheongan-jiji-complete-explanation/            301
-/blog/singang-sinyak            /insights/singang-sinyak-judgment-complete-guide/        301
-/blog/singang-sinyak/           /insights/singang-sinyak-judgment-complete-guide/        301
-/blog/yongshin                  /insights/yongshin-finding-method-practical-guide/       301
-/blog/yongshin/                 /insights/yongshin-finding-method-practical-guide/       301
-/blog/goonghap                  /insights/saju-compatibility-how-to/                     301
-/blog/goonghap/                 /insights/saju-compatibility-how-to/                     301
-/blog/iljoo                     /insights/iljoo-personality-complete-guide-60-pillars/   301
-/blog/iljoo/                    /insights/iljoo-personality-complete-guide-60-pillars/   301
-/blog/daewoon-sewoon            /insights/daewoon-sewoon-reading-complete-guide/         301
-/blog/daewoon-sewoon/           /insights/daewoon-sewoon-reading-complete-guide/         301
+# ── 통합된 단일 라우트 ───────────────────────────────────────────────────
+# 2026-08-13 /daily-fortune 을 /today 로 통합. 둘 다 "오늘의 운세"를 노렸고 설명문까지 거의
+# 같아 서로를 잠식했다. /today 를 남긴 이유: ko/ja/zh/zh-TW/en hreflang 클러스터를 가진 쪽이고
+# scripts/check-seo-health.mjs 가 /today/ 를 allowRedirect:false + 정확히 200 으로 단언한다.
+# 🔴 `/fortune` `/fortune/` 은 여기 두지 않는다 — 지금 `/fortune/` 은 200 을 내는 살아 있는
+#    운세 허브다(2026-08-16 실측). 옛 규칙은 상한 밖이라 적용된 적이 없었고, 되살리면 허브가 죽는다.
+/daily-fortune                 /today/                   301
+/daily-fortune/*               /today/                   301
+# 2026-05-28 abdb642f5 가 app/saju/love-secret 을 삭제하고 남긴 404.
+/saju/love-secret              /love-secret-ai/          301
+/saju/love-secret/*            /love-secret-ai/          301
+/saju-free                     /saju/                    301
+/saju-free/*                   /saju/                    301
 
-# /blog 은퇴 (2026-08-14) — public/blog/*.html 손글 10편을 삭제하고 /insights 정본으로 통합했다.
-# 10편 전부 대응하는 저자 원고가 /insights 에 있고(조립물 마커 0) 본문도 9/10 에서 더 길다.
-# 색인은 원래부터 _headers 의 noindex 로 막혀 있었고 색인 페이지發 인바운드 링크도 0이라 잃는 자산이 없다.
-# 🔴 `.html` 형태도 함께 적는다 — 파일이 사라지면 확장자 정규화(308 → 확장자 없는 경로)가
-#    더는 걸리지 않으므로, 규칙이 없으면 옛 링크가 404 가 된다.
-/blog/saju-basics               /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
-/blog/saju-basics/              /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
-/blog/saju-basics.html          /insights/saju-how-to-read-step-by-step-beginner-guide/ 301
-/blog/ohang-five-elements       /insights/five-elements-ohang-complete-guide/            301
-/blog/ohang-five-elements/      /insights/five-elements-ohang-complete-guide/            301
-/blog/ohang-five-elements.html  /insights/five-elements-ohang-complete-guide/            301
-/blog/tarot-major-arcana        /insights/tarot-major-arcana-22-complete-meanings/       301
-/blog/tarot-major-arcana/       /insights/tarot-major-arcana-22-complete-meanings/       301
-/blog/tarot-major-arcana.html   /insights/tarot-major-arcana-22-complete-meanings/       301
-/blog/tarot-spread-howto        /insights/tarot-spread-design-principles/                301
-/blog/tarot-spread-howto/       /insights/tarot-spread-design-principles/                301
-/blog/tarot-spread-howto.html   /insights/tarot-spread-design-principles/                301
-/blog/ziwei-intro               /insights/ziwei-what-is/                                 301
-/blog/ziwei-intro/              /insights/ziwei-what-is/                                 301
-/blog/ziwei-intro.html          /insights/ziwei-what-is/                                 301
-/blog/yongshin-guide            /insights/yongshin-finding-method-practical-guide/       301
-/blog/yongshin-guide/           /insights/yongshin-finding-method-practical-guide/       301
-/blog/yongshin-guide.html       /insights/yongshin-finding-method-practical-guide/       301
-/blog/goonghap-guide            /insights/saju-compatibility-how-to/                     301
-/blog/goonghap-guide/           /insights/saju-compatibility-how-to/                     301
-/blog/goonghap-guide.html       /insights/saju-compatibility-how-to/                     301
-/blog/ilju-personality          /insights/iljoo-personality-complete-guide-60-pillars/   301
-/blog/ilju-personality/         /insights/iljoo-personality-complete-guide-60-pillars/   301
-/blog/ilju-personality.html     /insights/iljoo-personality-complete-guide-60-pillars/   301
-/blog/saju-career               /insights/ten-gods-beginner-map/                         301
-/blog/saju-career/              /insights/ten-gods-beginner-map/                         301
-/blog/saju-career.html          /insights/ten-gods-beginner-map/                         301
-/blog/daewoon-sewoon.html       /insights/daewoon-sewoon-reading-complete-guide/         301
-/blog/index.html                /insights/                                               301
-/blog/                          /insights/                                               301
-/blog                           /insights/                                               301
+# ── 구형 /blog/* → /insights/ ────────────────────────────────────────────
+# /blog 은퇴(2026-08-14). 개별 매핑 28개를 포괄 2줄로 압축했다 — 상한 때문이고, 이 블록은
+# 원래부터 _headers 의 noindex 로 색인이 막혀 있었으며 색인 페이지發 인바운드 링크가 0이라
+# 개별 매핑의 값이 가장 낮았다(파일 구 :246-248 의 실측 기록).
+/blog                          /insights/                301
+/blog/*                        /insights/                301
 
-# insights 중복 통합 (canonical 병합)
-# 사주 입문 4편 → saju-how-to-read-step-by-step-beginner-guide
-/insights/saju-four-pillars-basics                     /insights/saju-how-to-read-step-by-step-beginner-guide   301
-/insights/saju-four-pillars-basics/                    /insights/saju-how-to-read-step-by-step-beginner-guide   301
-/insights/saju-free-guide                              /insights/saju-how-to-read-step-by-step-beginner-guide   301
-/insights/saju-free-guide/                             /insights/saju-how-to-read-step-by-step-beginner-guide   301
-/insights/saju-pallja-basic-principles-complete-guide  /insights/saju-how-to-read-step-by-step-beginner-guide   301
-/insights/saju-pallja-basic-principles-complete-guide/ /insights/saju-how-to-read-step-by-step-beginner-guide   301
+# ── insights 근중복 통합 (canonical 병합) ────────────────────────────────
+# 🔴 `X/*` 형태 한 줄만 둔다 — 상한 때문에 `X`(무슬래시) 형태를 포기했다.
+#    색인된 형태는 사이트맵·canonical 이 쓰던 후행 슬래시 쪽이라 이쪽을 남긴다.
+# 사주 입문 → saju-how-to-read-step-by-step-beginner-guide
+/insights/saju-four-pillars-basics/*                    /insights/saju-how-to-read-step-by-step-beginner-guide/   301
+/insights/saju-free-guide/*                             /insights/saju-how-to-read-step-by-step-beginner-guide/   301
+/insights/saju-pallja-basic-principles-complete-guide/* /insights/saju-how-to-read-step-by-step-beginner-guide/   301
 # 만세력 입문 → manseoryeok-what-is
-/insights/manseoryeok-reading-for-beginners-no-jargon  /insights/manseoryeok-what-is                            301
-/insights/manseoryeok-reading-for-beginners-no-jargon/ /insights/manseoryeok-what-is                            301
+/insights/manseoryeok-reading-for-beginners-no-jargon/* /insights/manseoryeok-what-is/                            301
 # 천간·지지 → cheongan-jiji-complete-explanation
-/insights/ten-heavenly-stems-practical                 /insights/cheongan-jiji-complete-explanation             301
-/insights/ten-heavenly-stems-practical/                /insights/cheongan-jiji-complete-explanation             301
-/insights/twelve-earthly-branches-and-seasons          /insights/cheongan-jiji-complete-explanation             301
-/insights/twelve-earthly-branches-and-seasons/         /insights/cheongan-jiji-complete-explanation             301
+/insights/ten-heavenly-stems-practical/*                /insights/cheongan-jiji-complete-explanation/             301
+/insights/twelve-earthly-branches-and-seasons/*         /insights/cheongan-jiji-complete-explanation/             301
 # 일간·일주(60갑자) → iljoo-personality-complete-guide-60-pillars
-/insights/day-master-personality-guide                 /insights/iljoo-personality-complete-guide-60-pillars    301
-/insights/day-master-personality-guide/                /insights/iljoo-personality-complete-guide-60-pillars    301
-/insights/day-master-survival-winning-strategy         /insights/iljoo-personality-complete-guide-60-pillars    301
-/insights/day-master-survival-winning-strategy/        /insights/iljoo-personality-complete-guide-60-pillars    301
+/insights/day-master-personality-guide/*                /insights/iljoo-personality-complete-guide-60-pillars/    301
+/insights/day-master-survival-winning-strategy/*        /insights/iljoo-personality-complete-guide-60-pillars/    301
 # 십성 입문 → ten-gods-beginner-map
-/insights/ten-gods-career-relationship                 /insights/ten-gods-beginner-map                          301
-/insights/ten-gods-career-relationship/                /insights/ten-gods-beginner-map                          301
-/insights/ten-gods-career-aptitude-fun-guide            /insights/ten-gods-beginner-map                          301
-/insights/ten-gods-career-aptitude-fun-guide/           /insights/ten-gods-beginner-map                          301
+/insights/ten-gods-career-relationship/*                /insights/ten-gods-beginner-map/                          301
+/insights/ten-gods-career-aptitude-fun-guide/*          /insights/ten-gods-beginner-map/                          301
 # 오행 → five-elements-ohang-complete-guide
-/insights/five-elements-balance-practical               /insights/five-elements-ohang-complete-guide             301
-/insights/five-elements-balance-practical/              /insights/five-elements-ohang-complete-guide             301
-/insights/five-elements-balance-guide-for-real-life      /insights/five-elements-ohang-complete-guide             301
-/insights/five-elements-balance-guide-for-real-life/     /insights/five-elements-ohang-complete-guide             301
-/insights/five-elements-personality-deep-dive            /insights/five-elements-ohang-complete-guide             301
-/insights/five-elements-personality-deep-dive/           /insights/five-elements-ohang-complete-guide             301
+/insights/five-elements-balance-practical/*             /insights/five-elements-ohang-complete-guide/             301
+/insights/five-elements-balance-guide-for-real-life/*   /insights/five-elements-ohang-complete-guide/             301
+/insights/five-elements-personality-deep-dive/*         /insights/five-elements-ohang-complete-guide/             301
 # 용신 → yongshin-finding-method-practical-guide
-/insights/yongshin-how-to-think                          /insights/yongshin-finding-method-practical-guide        301
-/insights/yongshin-how-to-think/                         /insights/yongshin-finding-method-practical-guide        301
+/insights/yongshin-how-to-think/*                       /insights/yongshin-finding-method-practical-guide/        301
 # 대운·세운 → daewoon-sewoon-reading-complete-guide
-/insights/daewoon-vs-sewoon                              /insights/daewoon-sewoon-reading-complete-guide          301
-/insights/daewoon-vs-sewoon/                             /insights/daewoon-sewoon-reading-complete-guide          301
+/insights/daewoon-vs-sewoon/*                           /insights/daewoon-sewoon-reading-complete-guide/          301
 # 2026 병오년 종합운세 → byeongo-year-reorder-signals
-/insights/byeongo-year-wealth-winning-strategy           /insights/byeongo-year-reorder-signals                   301
-/insights/byeongo-year-wealth-winning-strategy/          /insights/byeongo-year-reorder-signals                   301
-/insights/byeongo-year-love-winning-strategy             /insights/byeongo-year-reorder-signals                   301
-/insights/byeongo-year-love-winning-strategy/            /insights/byeongo-year-reorder-signals                   301
-# 삭제(요청) — 월간 운세 저널·피드백 루프 → 사주 인사이트 허브로 안내
-/insights/monthly-fortune-journal-and-feedback-loop      /insights/saju                                           301
-/insights/monthly-fortune-journal-and-feedback-loop/     /insights/saju                                           301
-# 길일 택일 + 운이 막혔을 때 리셋 루틴 통합 → lucky-day-selection-without-superstition
-/insights/reset-routine-when-luck-feels-stuck            /insights/lucky-day-selection-without-superstition       301
-/insights/reset-routine-when-luck-feels-stuck/           /insights/lucky-day-selection-without-superstition       301
+/insights/byeongo-year-wealth-winning-strategy/*        /insights/byeongo-year-reorder-signals/                   301
+/insights/byeongo-year-love-winning-strategy/*          /insights/byeongo-year-reorder-signals/                   301
+# 삭제(요청) — 월간 운세 저널·피드백 루프 → 사주 인사이트 허브
+/insights/monthly-fortune-journal-and-feedback-loop/*   /insights/saju/                                           301
+# 길일 택일 + 운이 막혔을 때 리셋 루틴 통합
+/insights/reset-routine-when-luck-feels-stuck/*         /insights/lucky-day-selection-without-superstition/       301
 # 자미두수란 → ziwei-what-is
-/insights/ziwei-doushu-stars-intro                       /insights/ziwei-what-is                                  301
-/insights/ziwei-doushu-stars-intro/                      /insights/ziwei-what-is                                  301
-/insights/ziwei-doushu-complete-beginner-guide           /insights/ziwei-what-is                                  301
-/insights/ziwei-doushu-complete-beginner-guide/          /insights/ziwei-what-is                                  301
+/insights/ziwei-doushu-stars-intro/*                    /insights/ziwei-what-is/                                  301
+/insights/ziwei-doushu-complete-beginner-guide/*        /insights/ziwei-what-is/                                  301
 # 자미두수 명궁 → ziwei-minggong
-/insights/ziwei-minggong-self-analysis-checklist         /insights/ziwei-minggong                                 301
-/insights/ziwei-minggong-self-analysis-checklist/        /insights/ziwei-minggong                                 301
+/insights/ziwei-minggong-self-analysis-checklist/*      /insights/ziwei-minggong/                                 301
 # 자미두수 12궁 전체 해석 → ziwei-life-palaces
-/insights/ziwei-palaces-career-finance-love              /insights/ziwei-life-palaces                             301
-/insights/ziwei-palaces-career-finance-love/             /insights/ziwei-life-palaces                             301
-/insights/ziwei-wealth-career                             /insights/ziwei-life-palaces                             301
-/insights/ziwei-wealth-career/                            /insights/ziwei-life-palaces                             301
+/insights/ziwei-palaces-career-finance-love/*           /insights/ziwei-life-palaces/                             301
+/insights/ziwei-wealth-career/*                         /insights/ziwei-life-palaces/                             301
 # 자미두수 사화 → ziwei-four-transformations-lu-quan-ke-ji-guide
-/insights/ziwei-sihua                                     /insights/ziwei-four-transformations-lu-quan-ke-ji-guide 301
-/insights/ziwei-sihua/                                    /insights/ziwei-four-transformations-lu-quan-ke-ji-guide 301
-/insights/ziwei-lucun-and-huaji-practical                 /insights/ziwei-four-transformations-lu-quan-ke-ji-guide 301
-/insights/ziwei-lucun-and-huaji-practical/                /insights/ziwei-four-transformations-lu-quan-ke-ji-guide 301
+/insights/ziwei-sihua/*                                 /insights/ziwei-four-transformations-lu-quan-ke-ji-guide/ 301
+/insights/ziwei-lucun-and-huaji-practical/*             /insights/ziwei-four-transformations-lu-quan-ke-ji-guide/ 301
 # 자미두수 궁합(부처궁) → ziwei-compatibility-palace-method
-/insights/ziwei-love-compatibility                        /insights/ziwei-compatibility-palace-method              301
-/insights/ziwei-love-compatibility/                       /insights/ziwei-compatibility-palace-method              301
+/insights/ziwei-love-compatibility/*                    /insights/ziwei-compatibility-palace-method/              301
 # 자미두수 궁별 실천 체크(직업·승진) → ziwei-career-palace-action
-/insights/ziwei-monthly-action-checklist-by-palace        /insights/ziwei-career-palace-action                     301
-/insights/ziwei-monthly-action-checklist-by-palace/       /insights/ziwei-career-palace-action                     301
-/insights/ziwei-promotion-signals-practical-guide         /insights/ziwei-career-palace-action                     301
-/insights/ziwei-promotion-signals-practical-guide/        /insights/ziwei-career-palace-action                     301
+/insights/ziwei-monthly-action-checklist-by-palace/*    /insights/ziwei-career-palace-action/                     301
+/insights/ziwei-promotion-signals-practical-guide/*     /insights/ziwei-career-palace-action/                     301
 # 숙요점이란(재정비) → sukuyo-what-is
-/insights/sukuyo-lunar-mansion-primer                      /insights/sukuyo-what-is                                 301
-/insights/sukuyo-lunar-mansion-primer/                     /insights/sukuyo-what-is                                 301
-/insights/sukuyo-what-is-27-lunar-mansions                  /insights/sukuyo-what-is                                 301
-/insights/sukuyo-what-is-27-lunar-mansions/                 /insights/sukuyo-what-is                                 301
-# 메이저 아르카나 22장 완전 해설 → tarot-major-arcana-22-complete-meanings
-/insights/tarot-major-arcana-symbols                        /insights/tarot-major-arcana-22-complete-meanings        301
-/insights/tarot-major-arcana-symbols/                       /insights/tarot-major-arcana-22-complete-meanings        301
-/insights/tarot-major-arcana-0-to-21-with-images             /insights/tarot-major-arcana-22-complete-meanings        301
-/insights/tarot-major-arcana-0-to-21-with-images/            /insights/tarot-major-arcana-22-complete-meanings        301
+/insights/sukuyo-lunar-mansion-primer/*                 /insights/sukuyo-what-is/                                 301
+/insights/sukuyo-what-is-27-lunar-mansions/*            /insights/sukuyo-what-is/                                 301
+# 메이저 아르카나 22장 완전 해설
+/insights/tarot-major-arcana-symbols/*                  /insights/tarot-major-arcana-22-complete-meanings/        301
+/insights/tarot-major-arcana-0-to-21-with-images/*      /insights/tarot-major-arcana-22-complete-meanings/        301
 # 타로 보는 법 & 질문 설계 → tarot-how-to-read
-/insights/tarot-love-question-design                        /insights/tarot-how-to-read                              301
-/insights/tarot-love-question-design/                       /insights/tarot-how-to-read                              301
-# 사주+타로 통합 리딩 → saju-and-tarot-combined-reading-framework
-/insights/tarot-vs-saju                                     /insights/saju-and-tarot-combined-reading-framework      301
-/insights/tarot-vs-saju/                                    /insights/saju-and-tarot-combined-reading-framework      301
-# 네이탈 차트 완전 가이드(3축 통합) → astrology-birth-chart-guide
-/insights/sun-moon-rising-difference                        /insights/astrology-birth-chart-guide                    301
-/insights/sun-moon-rising-difference/                       /insights/astrology-birth-chart-guide                    301
-# 점성술 하우스란 완전 가이드 → astrology-houses-what-is
-/insights/astrology-houses-quick-guide                      /insights/astrology-houses-what-is                       301
-/insights/astrology-houses-quick-guide/                     /insights/astrology-houses-what-is                       301
-# 다샤·고차르·우파야 완전 실전 가이드 → vedic-dasha-transit-remedy-practical-guide
-/insights/vedic-dasha-monthly-action-guide                  /insights/vedic-dasha-transit-remedy-practical-guide     301
-/insights/vedic-dasha-monthly-action-guide/                 /insights/vedic-dasha-transit-remedy-practical-guide     301
-# 사주 궁합 보는 법 완전 가이드 → saju-compatibility-how-to
-/insights/saju-compatibility-fun-method                     /insights/saju-compatibility-how-to                      301
-/insights/saju-compatibility-fun-method/                    /insights/saju-compatibility-how-to                      301
-/insights/goonghap-compatibility-basics-complete             /insights/saju-compatibility-how-to                      301
-/insights/goonghap-compatibility-basics-complete/            /insights/saju-compatibility-how-to                      301
+/insights/tarot-love-question-design/*                  /insights/tarot-how-to-read/                              301
+/insights/how-to-ask-better-fortune-questions/*         /insights/tarot-how-to-read/                              301
+# 사주+타로 통합 리딩
+/insights/tarot-vs-saju/*                               /insights/saju-and-tarot-combined-reading-framework/      301
+# 네이탈 차트 완전 가이드(3축 통합)
+/insights/sun-moon-rising-difference/*                  /insights/astrology-birth-chart-guide/                    301
+# 점성술 하우스란 완전 가이드
+/insights/astrology-houses-quick-guide/*                /insights/astrology-houses-what-is/                       301
+# 다샤·고차르·우파야 완전 실전 가이드
+/insights/vedic-dasha-monthly-action-guide/*            /insights/vedic-dasha-transit-remedy-practical-guide/     301
+# 사주 궁합 보는 법 완전 가이드
+/insights/saju-compatibility-fun-method/*               /insights/saju-compatibility-how-to/                      301
+/insights/goonghap-compatibility-basics-complete/*      /insights/saju-compatibility-how-to/                      301
+# 숙요 궁합 — 조립물 3편을 정본으로 통합 (docs/insight-hub-authoring.md §1-3 · §2)
+/insights/sukuyo-compatibility-rhythm-guide/*           /insights/sukuyo-compatibility-guide/                     301
+/insights/sukuyo-compatibility-simple-checklist/*       /insights/sukuyo-compatibility-guide/                     301
 
-# 샘플 페이지 단축 경로
-/sample/saju                    /saju/guide/                     301
-/sample/saju/                   /saju/guide/         301
-/sample/tarot                   /tarot/guide/                   301
-/sample/tarot/                  /tarot/guide/        301
-/sample/today                   /today/                        301
-/sample/today/                  /today/       301
-
-# 인사이트 통합 리다이렉트 (docs/insight-hub-authoring.md §1-3 · §2)
-# 본문이 buildMysticSections 템플릿으로 조립되던 마지막 3편을 정본 아티클로 합친다.
-# 글 객체의 category 를 "통합 리다이렉트" 로 바꿔 렌더·사이트맵에서 빠졌으므로
-# 이 301 이 실제로 적용된다. noindex 대신 통합을 택한 이유는 링크 자산이 버려지지 않고
-# 정본으로 모이기 때문이다.
-/insights/sukuyo-compatibility-rhythm-guide     /insights/sukuyo-compatibility-guide/  301
-/insights/sukuyo-compatibility-rhythm-guide/    /insights/sukuyo-compatibility-guide/  301
-/insights/sukuyo-compatibility-simple-checklist /insights/sukuyo-compatibility-guide/  301
-/insights/sukuyo-compatibility-simple-checklist/ /insights/sukuyo-compatibility-guide/ 301
-/insights/how-to-ask-better-fortune-questions   /insights/tarot-how-to-read/           301
-/insights/how-to-ask-better-fortune-questions/  /insights/tarot-how-to-read/           301
-
-# SPA 폴백 (Next.js가 처리하지 않는 경로)
-# Next.js App Router와 Pages 출력 Worker가 /api/* 를 동일 오리진에서 처리하므로
-# 외부 Worker로의 200 프록시 규칙은 두지 않습니다.
+# ── 샘플 페이지 단축 경로 (가치가 가장 낮아 맨 아래) ──────────────────────
+/sample/saju                   /saju/guide/              301
+/sample/saju/*                 /saju/guide/              301
+/sample/tarot                  /tarot/guide/             301
+/sample/tarot/*                /tarot/guide/             301
+/sample/today                  /today/                   301
+/sample/today/*                /today/                   301
