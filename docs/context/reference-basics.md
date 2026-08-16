@@ -8,9 +8,10 @@
 npm run dev            # 로컬 개발 서버 (local-auth 포함)
 npm run dev:next       # Next.js dev 서버만
 npm run build          # UTF-8 콘솔 + Cloudflare 빌드
-npm run build:cf       # prebuild:cf && build
+npm run build:cf       # prebuild:cf && build (SEO/AdSense 게이트가 여기서 돈다)
 npm run lint           # next lint
 npm run typecheck      # tsc --noEmit
+npm run deploy:check       # 업로드 없이 변경 집합만 확인 (프로덕션 배포는 로컬 불가)
 npm run deploy:cf:pages    # Cloudflare Pages 배포
 npm run deploy:cf:worker   # Cloudflare Worker 배포
 npm run deploy:cf:opennext # OpenNext 경유 배포
@@ -34,16 +35,18 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 
 > **죽은 코드는 격리하지 말고 지운다** — 격리 디렉터리(`_graveyard/` 등)는 빌드에서만 빠질 뿐 grep·AI 코드 읽기에는 그대로 노출돼 "다음 세션이 보고 복제하는" 문제를 못 막는다. 안전망은 git 히스토리다. 2026-08-09 에 116파일을 삭제했고 복구 명령은 [docs/cleanup-2026-08/06-deleted.md](../cleanup-2026-08/06-deleted.md) 에 있다.
 
+> **홈 `/` 은 정적 셸 `index.html` 의 승격본이다** — 홈 콘텐츠·메타는 `app/page.js` 가 아니라 정적 셸에 둔다. `public/**/index.html` 은 `sync:public` 이 만드는 미러이므로 직접 패치하지 않는다.
+
 > **없는 디렉터리 주의** — `veda/` 와 `models/` 는 **존재하지 않는다**(2026-08-09 확인). 베다/나크샤트라 엔진의 실체는 `lib/vedicSwissChart.js`·`lib/vedicCalculator.js`·`worker/lib/vedic-*.js`·`worker/lib/nakshatra-*.js` 다. `tsconfig.json` `exclude` 와 `config/env.contract.json` `scanRoots` 에 남아 있던 `veda` 는 잔재이므로 새 코드의 근거로 삼지 말 것.
 
 ## Tech Stack
 
 - **Framework**: Next.js 15 (App Router, `output: "export"` 정적 빌드), React 18.3.1
 - **언어/스타일**: TypeScript 5.5 (`strict: false`, `strictNullChecks: true`), Tailwind 3.4
-- **DB**: MongoDB (Mongoose) — 프로덕션 경로는 `worker/lib/db.js`, App Router 잔여 경로는 `app/_lib/dbConnect.js`
-- **AI**: Gemini REST 직접 호출(`gemini-2.5-flash`) + 실패 시 Cloudflare Workers AI 폴백
+- **DB**: MongoDB Atlas **M10** (Mongoose) — 프로덕션 경로는 `worker/lib/db.js`, App Router 잔여 경로는 `app/_lib/dbConnect.js`
+- **AI**: Gemini REST 직접 호출(`gemini-2.5-flash`) + 실패 시 Cloudflare Workers AI **체인** 폴백
 - **배포**: Cloudflare Pages + Workers (wrangler 4.73, `@opennextjs/cloudflare`)
-- **결제**: PortOne V2 (+ Inicis 일부 연동), 포인트/코인 기반 유료 기능
+- **결제**: PortOne V2 (+ KG Inicis 채널), 포인트/코인 기반 유료 기능
 - **인증**: 커스텀 JWT (NextAuth 아님), Google/Kakao/Naver OAuth
 - **i18n**: `ko`(기본, prefix 없음) / `ja`, `zh`, `en`(경로 prefix)
 
@@ -52,11 +55,12 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - ES Modules만 사용, `any` 타입 지양
 - `strictNullChecks` 위반 금지 (tsconfig `strict` 자체는 off이므로 과신 금지)
 - 환경변수 하드코딩 금지 — 반드시 `process.env`/`env` 바인딩 경유
-- 스타일은 Tailwind 클래스만 (인라인 스타일 지양)
+- 스타일은 Tailwind 클래스만 (인라인 스타일 지양), 애니메이션은 `transition-*`/`animate-*` (`framer-motion` 은 기존 의존성)
 - 외부 API 호출·DB 접근에는 try-catch 필수
-- Cloudflare Worker 코드는 번들 1MB 제한 유의
+- `worker/` 는 Node 내장 API(`fs`, `net`) 금지 — 순수 fetch/Web API. 번들 **1MB(gzip 3MiB)** 제한 유의
 - 네이밍: 컴포넌트 `PascalCase`, 유틸 `camelCase`, 라우트 폴더 `kebab-case`
 - 컴포넌트: 서버 컴포넌트 기본, 클라이언트는 `'use client'` 명시, Props `interface`는 파일 상단 정의
+- 이미지는 `<Image>` 사용(`img` 금지), `alt` 필수, 인터랙티브 버튼 `aria-label` 필수, 모바일 퍼스트 + `dark:` 병행
 
 ## Forbidden (수정 금지)
 
