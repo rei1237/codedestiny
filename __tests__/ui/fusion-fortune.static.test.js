@@ -239,6 +239,43 @@ test("the result screen can be exported to PDF without blank pages", () => {
   assert.match(thread, /exporting \? "" : "animate-fade-in-up opacity-0/);
 });
 
+test("fusion colour and type come from one scoped token set", () => {
+  const css = read("app/fusion-fortune/fusion-fortune.module.css");
+
+  // 🔴 예전에는 리터럴 hex 30여 개가 네 파일에 흩어져 있었고, 본문 회색만 여섯 종류였다.
+  //    위계가 읽히지 않았던 실제 원인이 그것이다. 색은 .page 스코프에서 **세트로** 나온다.
+  for (const token of ["--fx-ink-1", "--fx-ink-2", "--fx-ink-3", "--fx-ink-4", "--fx-gold", "--fx-violet", "--fx-serif"]) {
+    assert.match(css, new RegExp(`${token}:`), `토큰 누락: ${token}`);
+  }
+  // 리딩 본문은 자체 호스팅 세리프, 조작 UI 는 Pretendard 로 나뉜다.
+  assert.match(css, /\.reading\s*\{[\s\S]*?font-family:\s*var\(--fx-serif\)/);
+  assert.match(css, /\.readingTitle\s*\{[\s\S]*?font-family:\s*var\(--fx-serif\)/);
+  // 새 서체를 들이지 않는다 — styles/fonts-serif.css 가 이미 R2 에서 싣는다.
+  assert.match(css, /--fx-serif:\s*var\(--font-serif/);
+
+  // 토큰 밖으로 새는 리터럴 색을 막는다. 대상은 **전수 발견**한다 — 파일명을 손으로 나열한
+  // 목록은 가드가 아니다(새 파일이 생기면 조용히 빠진다).
+  //
+  // 예외는 셋뿐이고 전부 var() 를 안전하게 쓸 수 없는 자리다:
+  //  · html2canvas 의 backgroundColor — JS 문자열이라 CSS 변수를 못 읽는다
+  //  · SVG presentation attribute(fill=/stroke=) — var() 지원이 브라우저마다 갈리고,
+  //    이 SVG 는 PDF 캡처를 타므로 캡처기가 변수를 못 풀면 도표가 통째로 사라진다
+  //  · `|| "#…"` 형태의 JS 폴백 값 — 런타임에 문자열로 쓰인다
+  const dir = path.join(root, "app/fusion-fortune");
+  const offenders = [];
+  for (const name of fs.readdirSync(dir).filter((file) => file.endsWith(".tsx"))) {
+    const source = read(`app/fusion-fortune/${name}`);
+    for (const [index, line] of source.split("\n").entries()) {
+      if (/backgroundColor:\s*"#/.test(line)) continue;
+      if (/(?:fill|stroke)="#/.test(line)) continue;
+      if (/\|\|\s*"#/.test(line)) continue;
+      const hex = line.match(/#[0-9a-fA-F]{6}\b/);
+      if (hex) offenders.push(`${name}:${index + 1} ${hex[0]}`);
+    }
+  }
+  assert.deepEqual(offenders, [], `토큰 대신 리터럴 색을 쓴 곳: ${offenders.join(", ")}`);
+});
+
 test("a paid request survives a page reload so nobody is charged twice", () => {
   const client = read(CLIENT);
 

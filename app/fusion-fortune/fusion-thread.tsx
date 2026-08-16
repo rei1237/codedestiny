@@ -47,9 +47,9 @@ export const STANCE_LABEL: Record<VerdictStance, string> = {
 };
 /** 입장별 색은 기존 판정 패널과 같은 값을 유지한다 — 색이 바뀌면 같은 판정이 다르게 읽힌다. */
 export const STANCE_CLASS: Record<VerdictStance, string> = {
-  agree: "bg-[rgba(134,220,184,0.18)] text-[#a8e8cb]",
-  conditional: "bg-[rgba(232,213,163,0.18)] text-[#f0dda8]",
-  caution: "bg-[rgba(244,190,209,0.18)] text-[#f6cadb]",
+  agree: "bg-[rgba(134,220,184,0.18)] text-[var(--fx-mint)]",
+  conditional: "bg-[rgba(232,213,163,0.18)] text-[var(--fx-gold)]",
+  caution: "bg-[rgba(244,190,209,0.18)] text-[var(--fx-rose)]",
 };
 
 export const SECTION_KEYS = ["sajuSection", "ziweiSection", "vedicSection", "sukuyoSection", "astrologySection", "tarotSection", "integratedReading"] as const;
@@ -83,7 +83,7 @@ export function withAlpha(hex: string, alpha: number) {
 }
 
 export function tintVars(systemKey?: FusionSystemKey | "fusion") {
-  const tint = (systemKey && systemKey !== "fusion" ? FUSION_ORB_BY_KEY[systemKey]?.tint : "") || "#e8d5a3";
+  const tint = (systemKey && systemKey !== "fusion" ? FUSION_ORB_BY_KEY[systemKey]?.tint : "") || "var(--fx-gold-2)";
   return { "--tint": tint, "--tint-ring": withAlpha(tint, 0.42), "--tint-veil": withAlpha(tint, 0.14) } as CSSProperties;
 }
 
@@ -130,7 +130,7 @@ export function ThreadAvatar({ systemKey, dimmed = false }: { systemKey?: Fusion
     <span
       aria-hidden
       style={tintVars(systemKey)}
-      className={`relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-[#0d0a1c] ring-1 ring-[color:var(--tint-ring)] ${dimmed ? "opacity-40 grayscale" : "shadow-[0_0_20px_-7px_var(--tint)]"}`}
+      className={`relative grid size-9 shrink-0 place-items-center overflow-hidden rounded-full bg-[var(--fx-deep)] ring-1 ring-[color:var(--tint-ring)] ${dimmed ? "opacity-40 grayscale" : "shadow-[0_0_20px_-7px_var(--tint)]"}`}
     >
       {core || orb?.image
         ? <Image src={core ? FUSION_CORE_ORB : (orb?.image as string)} alt="" width={320} height={320} className="size-full object-cover" />
