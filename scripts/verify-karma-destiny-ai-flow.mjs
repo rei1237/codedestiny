@@ -36,7 +36,7 @@ function assertNotIncludes(source, needle, label) {
   assert.ok(!source.includes(needle), `${label}: unexpected ${needle}`);
 }
 
-assertIncludes(indexSource, 'href="/karma-destiny-ai"', "main entry");
+assertIncludes(indexSource, 'href="/karma-destiny-ai/"', "main entry");
 assertIncludes(indexSource, 'data-feature-key="karma-destiny-ai-consultation"', "main entry feature key");
 assertIncludes(indexSource, "/fuctionassets/soul-origin-cover.webp", "image asset preserved");
 assertIncludes(indexSource, "전문가 상담 · 30,000원", "price marker");

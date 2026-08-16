@@ -1211,7 +1211,13 @@ for (const shellPath of staticShells) {
   assert(!embedsAdsenseCode(html), `${shellPath}: static shell must not embed AdSense directly`);
 
   for (const route of staticShellTrustLinks) {
-    assert(html.includes(`href="${route}"`), `${shellPath}: missing trust link ${route}`);
+    // 내부 링크에는 후행 슬래시가 붙는다(next.config.mjs 의 trailingSlash:true — 없으면 308 을
+    // 한 번 탄다). 목록은 라우트 **정체**이고 policyContentExpectations 의 키이기도 하므로
+    // 목록을 고치지 않고 여기서 두 표기를 모두 인정한다.
+    assert(
+      html.includes(`href="${route}"`) || html.includes(`href="${route}/"`),
+      `${shellPath}: missing trust link ${route}`,
+    );
   }
 }
 

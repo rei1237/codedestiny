@@ -123,7 +123,7 @@ try {
   // js/inline/gesture-arbiter.js 하나이며 아래가 그 계약을 고정한다.
   // 판정 축은 하드 내비게이션(href) 이다 — 오탭의 실제 대가가 셸 전체 재로드이기 때문.
   {
-    const scrollTapTarget = '.moon-preview-card[href="/tarot/mingri"]';
+    const scrollTapTarget = '.moon-preview-card[href="/tarot/mingri/"]';
     const homeUrl = `http://127.0.0.1:${server.port}/index.html`;
 
     const arbiter = await evaluate(cdp, gestureProbeExpression(), "gesture arbiter presence");
@@ -308,7 +308,7 @@ try {
   );
 
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
-  await tapSelector(cdp, ".moon-preview-card[href=\"/tarot/mingri\"]");
+  await tapSelector(cdp, ".moon-preview-card[href=\"/tarot/mingri/\"]");
   await delay(450);
   const afterTarotTap = await evaluate(cdp, `(() => {
     const modal = ${modalStateExpression()};
