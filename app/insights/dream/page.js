@@ -1,4 +1,5 @@
 import InsightTopicArchive from "../InsightTopicArchive";
+import { getEditorNote } from "../../_content/editor-notes";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/structured-data";
 
@@ -51,6 +52,7 @@ export default function InsightsDreamPage() {
   return (
     <>
       <InsightTopicArchive
+        editorNote={getEditorNote("/insights/dream")}
         topic="dream"
         title={insightsDreamPageCopy.archiveTitle}
         intro={insightsDreamPageCopy.intro}

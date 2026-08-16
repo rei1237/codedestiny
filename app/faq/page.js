@@ -4,6 +4,8 @@ import { buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../lib/structured-
 import { publicSeoPages } from "../../lib/seo/siteSeo";
 import { cmsQaList } from "../../lib/cms/build-text";
 import { FAQS_DEFAULT } from "../_content/faq-copy";
+import { getEditorNote } from "../_content/editor-notes";
+import EditorNote from "../components/EditorNote";
 
 const seo = publicSeoPages.faq;
 
@@ -36,6 +38,8 @@ export default function FaqPage() {
           무료 사주, 만세력, 타로, 오늘의 운세, 궁합, 결제와 개인정보 처리에 관해 자주 묻는 질문을 정리했습니다.
         </p>
       </header>
+
+      <EditorNote note={getEditorNote("/faq")} className="cd-editor-note" />
 
       <section className="cd-card-grid">
         {faqs.map((item) => (

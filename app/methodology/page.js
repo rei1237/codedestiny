@@ -2,6 +2,8 @@ import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
 import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
 import { publicSeoPages } from "../../lib/seo/siteSeo";
+import { getEditorNote } from "../_content/editor-notes";
+import EditorNote from "../components/EditorNote";
 
 const seo = publicSeoPages.methodology;
 
@@ -30,6 +32,18 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
       {
         title: "계산과 AI의 역할",
         body: "명식·별자리·27수 같은 기초 값은 AI가 아니라 결정론적 계산 엔진이 산출합니다. 같은 생년월일시를 넣으면 언제나 같은 값이 나옵니다. 그 값을 사람이 읽을 수 있는 해설 문장으로 옮기는 단계에서 생성형 AI를 사용하며, 공개 문서는 게시 전에 과장 표현, 불안 조장, 의료·법률·금융 조언으로 오해될 수 있는 문장을 기준에 따라 점검합니다. 자세한 제작·검수 기준은 콘텐츠 제작 및 AI 활용 고지에서 확인할 수 있습니다.",
+      },
+      {
+        title: "체계별 계산 근거",
+        body: "체계마다 무엇을 계산하는지가 다릅니다. 사주는 만세력에서 연·월·일·시의 간지를 세워 천간 10개와 지지 12개의 조합으로 여덟 글자를 만들고, 그 오행 분포와 십성 관계를 봅니다. 자미두수는 같은 출생 정보로 명궁을 정한 뒤 12궁에 주성·보성·사화를 배치합니다. 점성술은 출생 시각과 위도·경도로 행성의 황경과 하우스를 계산하며, 베다 점성술은 같은 계산을 사이더리얼 좌표에서 수행해 결과가 서양식과 어긋납니다. 숙요점은 음력을 기준으로 27수 중 본명숙을 산출합니다. 이 값들은 모두 결정론적이라 같은 입력에 항상 같은 결과가 나오며, 검증이 필요하면 문의로 산출 근거를 요청할 수 있습니다.",
+      },
+      {
+        title: "무엇을 근거로 쓰지 않는가",
+        body: "출처를 확인할 수 없는 속설, 특정 인물이나 집단을 단정하는 서술, 공포를 유발해 결제를 유도하는 표현은 근거로 쓰지 않습니다. 전통 문헌에 나오더라도 현대의 상식이나 인권 기준에 어긋나는 해석은 그대로 옮기지 않고, 옮겨야 할 맥락이 있으면 그것이 옛 서술임을 밝힙니다. 특정 날짜에 사고가 난다거나 특정 질병에 걸린다는 식의 단정은 어떤 체계에서도 지지되지 않으므로 쓰지 않습니다.",
+      },
+      {
+        title: "한계와 반증 가능성",
+        body: "운세 해석은 반증 가능한 과학적 예측이 아닙니다. 같은 명식을 두 사람이 읽으면 강조점이 달라질 수 있고, 맞았다고 느끼는 문장은 누구에게나 해당하는 서술일 수 있습니다. Code Destiny는 이 한계를 감추지 않는 것을 원칙으로 하며, 해석을 읽을 때 맞은 문장과 틀린 문장을 함께 세어 보기를 권합니다. 결과가 현실 판단을 대신하도록 쓰이는 순간, 이 콘텐츠는 의도한 용도에서 벗어납니다.",
       },
       {
         title: "면책 고지",
@@ -104,6 +118,8 @@ export default function MethodologyPage() {
           {methodologyCopy.intro}
         </p>
       </header>
+
+      <EditorNote note={getEditorNote("/methodology")} className="cd-editor-note" />
 
       <section className="cd-card-grid">
         {sections.map((section) => (

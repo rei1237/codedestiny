@@ -5,6 +5,8 @@ import { buildSeoMetadata } from "../../../lib/seo";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd, buildFaqPageJsonLd } from "../../../lib/structured-data";
 import ContentIntegrityNote from "../../components/ContentIntegrityNote";
 import DeferredShareWidget from "../../components/DeferredShareWidget";
+import EditorNote from "../../components/EditorNote";
+import { getEditorNote } from "../../_content/editor-notes";
 import { HIGH_VALUE_PAGES, getHighValuePageBySlug } from "../content";
 
 export const dynamicParams = false;
@@ -162,6 +164,11 @@ export default function HighValueDetailPage({ params }) {
             </aside>
 
             <div className="min-w-0">
+              {/* 헤더(:136)가 이미 page.summary 를 내므로 여기 노트는 요약이 아니라
+                  "무엇을 주의해서 읽는가" 각도다. 사이드 목차는 page.sections 로만
+                  만들어지므로 이 블록이 목차를 오염시키지 않는다. */}
+              <EditorNote note={getEditorNote(path)} className="mb-10" />
+
               <div className="space-y-10">
                 {page.sections.map((section, index) => (
                   <section

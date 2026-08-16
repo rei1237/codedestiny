@@ -29,6 +29,7 @@
     "verify:analytics-events": "node scripts/verify-analytics-events.mjs",
     "verify:adsense-route-policy": "node scripts/verify-adsense-route-policy.mjs",
     "verify:adsense-readiness": "node scripts/verify-adsense-readiness.mjs",
+    "verify:editor-notes": "node scripts/verify-editor-notes.mjs",
     "verify:sitemap": "node scripts/verify-sitemap-integrity.mjs",
     "verify:fortune-freshness": "node scripts/verify-fortune-freshness.mjs",
     "verify:fortune-hub-shell": "node scripts/build-fortune-hub-shell.mjs --check",
