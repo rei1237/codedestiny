@@ -79,6 +79,31 @@
 
 ## 2. 남은 작업
 
+### 시작 절차 (다음 세션이 제일 먼저 할 것)
+
+```bash
+# 1) 격리된 워크트리 — 기본 디렉터리에는 다른 세션의 미커밋 변경이 있다(§6)
+cd /d/Development/code-destiny/.claude/worktrees/seo-indexing-fixes   # node_modules 있음
+pwd                                                                   # 🔴 매번 확인
+git fetch origin && git checkout -B fix/<주제> origin/main
+
+# 2) 고치기 전에 결함을 먼저 재현한다 — 수치가 안 나오면 이미 남이 고친 것이다
+npm run verify:redirects:live          # #708 이후 상한 재발 감지 (아직 안 돌렸다면 이게 최우선)
+node scripts/verify-redirects-budget.mjs
+npm run test:node
+```
+
+**착수 순서 추천** — 앞의 것이 뒤의 것을 막지 않으므로 병렬 분기해도 되지만, 효과 대비 위험은 이 순서다.
+
+| # | 항목 | 왜 이 순서인가 | 예상 분량 |
+|---|---|---|---|
+| 1 | **C. description 19건** | 위험이 가장 낮고 네이버 항목 하나를 통째로 닫는다. 판정만 하면 되고 공유 코드에 손대지 않는다 | 작음 |
+| 2 | **E. 루트 layout 메타 상속** | `robots`-only layout 17개에 메타를 채우는 기계적 작업. 전부 noindex 라 색인 회귀 위험 0 | 중간 |
+| 3 | **B. H1 하이드레이션 중복** | 공유 템플릿 2개(각 18페이지)를 건드릴 수 있어 회귀 점검이 필요하다. 가드 확장이 본체 | 중간~큼 |
+| 4 | **A. 내부 링크 후행 슬래시** | SEO 효과는 가장 크지만 CI 단언 9곳 + 조용히 깨지는 로케일 분기 + 결제 동결이 얽혀 있다. **한 세션을 통째로 쓸 것** | 큼 |
+
+🔴 A 와 B 는 **같은 PR 에 넣지 말 것.** 둘 다 회귀 표면이 넓어서 CI 가 빨개졌을 때 원인 분리가 안 된다.
+
 ### A. 🔴 P0 — 내부 링크 후행 슬래시 (리다이렉션 140건의 나머지 102건)
 
 **증상:** `next.config.mjs:184` `trailingSlash: true` 인데 셸 내부 링크가 무슬래시다.
@@ -118,6 +143,20 @@ var isStandaloneHtml = (basePath === '/vedic-ai' || …);
 
 **새 가드 권장**: `verify:internal-link-trailing-slash` — 대상 파일을 소스에서 전수 발견, 예외는 인라인 마커로만 선언(배열 열거 금지), 대상 0개면 실패. `scripts/build-cf-main.mjs` steps 에 `["run","<name>"]` 로 배선하면 워크플로를 안 건드린다.
 
+**실행 계획**
+
+| 단계 | 하는 일 | 검증 |
+|---|---|---|
+| 1 | `js/core/index-inline-runtime.js:624-636` 의 `basePath` 비교를 **먼저** 슬래시 정규화(`basePath.replace(/\/$/,"")`)로 고친다 | 이 커밋만으로 기존 동작이 안 바뀌는지 `npm run test:node` |
+| 2 | 루트 `index.html` 의 `href`·`data-fallback-href`·`data-service-detail-href` 를 스크립트로 일괄 정규화(제외 규칙은 위 목록) | `npm run verify:entry-encoding`(한글 `\uXXXX` 0) + `git diff` 육안 |
+| 3 | `npm run sync:public` 으로 미러 6개 + `public/js/*` 재생성 | `npm run verify:public-parity`, `npm run verify:runtime-cache-sync` |
+| 4 | CI 단언 9곳을 `href="/x/"` 로 갱신 | 각 `verify:*` 개별 실행 |
+| 5 | `config/payment-freeze.json` 등재 확인 → 필요 시 `node scripts/verify-payment-freeze.mjs --update` 를 **같은 커밋**에 | PR 의 paid-gate scope 잡 출력 확인 |
+| 6 | 새 가드 작성 + `build-cf-main.mjs` 배선 | 가드를 **역방향으로도 증명**(슬래시 하나 지웠을 때 실패하는지) |
+| 7 | `npm run build:cf` | exit 0 + `[adsense-readiness] OK` |
+
+**완료 판정**: 배포 후 `curl -s -o /dev/null -w "%{http_code}" https://code-destiny.com/about` 가 308 이 아니라 200 인 게 아니라(그건 안 바뀐다), **셸에서 나가는 링크가 308 을 안 타는 것** — `node scratchpad/live-outside.mjs` 류로 셸 링크 집합을 뽑아 3xx 가 0인지 본다.
+
 ### B. 🔴 P1 — H1 중복 53건은 **하이드레이션 이후** DOM 에서 생긴다
 
 서버 HTML 전수 스캔에서 h1 ≥2 인 파일은 `out/pet-saju.html` **1개뿐**이다. 네이버가 본 53건은 `ssr:false` 클라이언트가 그리는 h1 과 `page.tsx` 의 서버 h1 이 합쳐진 결과다.
@@ -141,6 +180,21 @@ var isStandaloneHtml = (basePath === '/vedic-ai' || …);
 
 **가드 확장(사용자 승인 완료)**: 라우트별로 (서버 HTML h1) + (그 라우트가 `ssr:false` 로 마운트하는 클라이언트 컴포넌트의 h1)을 **정적 분석으로 합산**해 1개 초과면 실패. 브라우저 불필요. 대상은 사이트맵뿐 아니라 **빌드 산출물 전수**로 넓힌다(현재는 `/pet-saju.html` 처럼 사이트맵 밖이 영구 미검사).
 
+**실행 계획**
+
+| 단계 | 하는 일 | 검증 |
+|---|---|---|
+| 1 | 가드를 **먼저** 확장한다 — 지금 상태에서 7개 라우트가 실패로 잡히는지 확인 | 실패 목록이 위 표와 일치해야 한다. 다르면 표가 낡은 것이니 표부터 갱신 |
+| 2 | 라우트별로 h1 하나를 h2 로 내린다. 관례상 **`page.tsx`/`ServiceIntroSection` 이 h1 을 소유**하고 클라이언트 히어로가 h2 (선례 `91c644e5d`) | 각 수정마다 가드 재실행 |
+| 3 | `/points` 는 반대로 판단할 것 — 레이아웃 h1(`layout.tsx:39`)이 하위 전체에 주입되므로 **레이아웃 쪽을 지우고** 클라이언트 h1 을 남기는 게 자연스럽다 | `/points`·`/points/history` 둘 다 1개 |
+| 4 | `app/insights/page.js:161` 의 `sr-only` h1 은 Hidden-text 정책 소지라 함께 정리 | — |
+| 5 | `app/saju-guardian/SajuGuardianClient.tsx` 의 h1 4개가 상호배타인지 확인(**미검증**) — 아니면 목록에 추가 | 분기 조건을 실제로 열어볼 것 |
+| 6 | `npm run build:cf` | `npm run verify:seo-heading-integrity` + 확장 가드 |
+
+🔴 **2단계 전에 반드시**: 대상 라우트가 `SeoLandingTemplate.jsx:224` / `FeatureLandingPage.tsx:808` 을 쓰는지 확인한다. 그 둘은 h1 을 소유한 채 각각 18페이지에 공유되므로, 소비 페이지에 h1 을 더하면 그 18개가 즉시 깨진다. `FeatureLandingPage` 의 h1 은 인라인 그라디언트 클립 스타일이라 JSX 만 바꾸면 디자인도 깨진다.
+
+**완료 판정**: 확장 가드가 산출물 전수에서 0건. 네이버 「H1 2개 이상」은 재크롤까지 2~4주 걸리므로 그걸로 판정하지 않는다.
+
 ### C. P1 — description 누락 19건 (레거시 단독 HTML)
 
 `scripts/sync-legacy-static-to-public.mjs` 가 루트→`public/` 로 복사하는 정적 HTML 은 Next metadata 파이프라인을 타지 않아 아무도 `description` 을 채우지 않는다.
@@ -156,6 +210,19 @@ tadagochi       vedic-astrology    yoga-guru          static/geomancy-oracle-v4
 
 색인 대상은 description 을 채우고, 실서비스가 아닌 것은 noindex 로 확정한다 — **둘 중 하나로 전부 분류**하고 미분류를 남기지 않는다. 판정 근거는 `public/_headers` 의 `X-Robots-Tag`(예: `/tadagochi*` 는 이미 noindex).
 
+**실행 계획** — 가장 먼저 하기 좋은 항목이다(위험 낮음, 공유 코드 무관).
+
+| 단계 | 하는 일 | 검증 |
+|---|---|---|
+| 1 | 19개 각각에 대해 `public/_headers` 의 `X-Robots-Tag` 를 조회해 **색인 대상 / noindex** 두 통으로 나눈다 | 미분류 0건 |
+| 2 | 색인 대상: `<meta name="description">` 을 그 페이지 실제 내용으로 작성(템플릿 복붙 금지 — 그러면 "동일 설명문" 을 새로 만든다) | — |
+| 3 | noindex 대상: HTML 에 `<meta name="robots" content="noindex, nofollow">` 를 직접 넣는다. `_headers` 만 믿지 않는다 — `/insights/famous-saju/*`·`/fortune/*` 처럼 워커가 가로채는 경로에서는 `_headers` 적용이 **미검증**이다(#708 에서 같은 이유로 `public/fortune/sikojen-povailu/index.html` 에 meta 를 직접 넣었다) | `node scripts/verify-redirects-budget.mjs` 가 이 쌍을 강제한다 |
+| 4 | `prompt-hub-3004.html` 은 `<title>` 도 없다 — 함께 채운다 | — |
+| 5 | 루트 파일을 고치고 `npm run sync:public` 으로 미러 재생성 | `npm run verify:public-parity` |
+| 6 | `npm run build:cf` 후 산출물 전수 스캔 | description 없는 색인가능 페이지 0건 |
+
+**완료 판정**: 산출물에서 `description` 없는 파일이 전부 noindex.
+
 ### D. P2 — 판단이 필요한 2건
 
 1. 🔴 **`google-site-verification` 이 프로덕션에 리터럴 플레이스홀더로 나간다** — `content="GOOGLE_SITE_VERIFICATION_CODE_HERE"` (`app/layout.js` + 정적 셸 6개, 라이브 확인). 실제 코드가 있어야 고칠 수 있다. **사용자에게 Search Console 코드를 받을 것.** 값이 리터럴 플레이스홀더라 지금 아무 검증도 하고 있지 않다(= 지워도 인증이 깨지지 않는다).
@@ -167,6 +234,27 @@ tadagochi       vedic-astrology    yoga-guru          static/geomancy-oracle-v4
 
 - **(a) `redirect()` 스텁 13개** — `app/{en-us,ja-jp,zh-cn,face-reading,fpti,landing,sukyo}/page.js` 등. `export const metadata` 가 정적 export 에서 **실효 없이 버려진다**(실측). #708 의 `_redirects` 가 엣지에서 잡으므로 도달 불가 — 라우트 삭제는 하지 말 것(절대규칙 6, 원칙 9).
 - **(b) `robots` 만 선언한 layout 17개** — `app/astrology-ai/result/layout.tsx:5-11` 등. title·description·canonical 을 채운다. 전부 noindex 라 색인 영향은 없지만 네이버 중복 카운트에 들어간다. 저비용.
+
+**실행 계획**
+
+| 단계 | 하는 일 | 검증 |
+|---|---|---|
+| 1 | `app/**` 에서 `metadata` 에 `robots` 만 있고 `title`/`description` 이 없는 layout·page 를 **전수 발견**(손으로 목록 만들지 말 것) | 발견 수가 17 근처인지 대조 |
+| 2 | 각각에 `buildSeoMetadata`(`lib/seo.ts:34`)를 쓰거나 title·description·`alternates.canonical` 을 직접 채운다 | — |
+| 3 | 🔴 `app/layout.js:91` 의 `alternates.canonical: "/"` 자체는 **건드리지 말 것** — 하위가 안 덮는 페이지의 폴백이라, 지우면 canonical 이 아예 없는 페이지가 생긴다. 하위를 채우는 방향으로만 고친다 | 산출물에서 `canonical=https://code-destiny.com/` 인 문서 수가 51 → 1(홈)로 줄어드는지 |
+| 4 | (a) 의 redirect 스텁 13개는 **건드리지 않는다** — `_redirects` 가 엣지에서 잡아 도달 불가고, 라우트 삭제는 절대규칙 6·원칙 9 위반이다 | — |
+
+**완료 판정**: 산출물에서 루트 기본 title 을 그대로 쓰는 문서가 홈 1개.
+
+---
+
+## 2-Z. 시도했다가 기각한 접근 (다시 하지 말 것)
+
+- ❌ **`_redirects` 압축만으로 해결** — 압축 최소치가 **240개**인데 상한이 102다. 별칭 정규화를 거의 다 포기해도 fortune 구 `.html` 96개를 담을 수 없다(최소 구조 21 + 96 = 117). 그래서 워커 이관이 유일한 길이었다.
+- ❌ **`/fortune/today/*` 같은 넓은 splat 으로 압축** — `_redirects` 는 정적 에셋을 이기므로(실측) 사이트맵에 있는 살아 있는 96개를 통째로 삼킨다.
+- ❌ **`/fortune/{period}/:sign` placeholder 로 96줄 압축** — placeholder 는 세그먼트 전체를 잡아 `aries.html` 을 통째로 캡처한다. 목적지에서 확장자를 벗길 수단이 없다.
+- ❌ **famous-saju 별칭을 "알 수 없는 slug 는 허브로" 폴백 처리** — 한 줄로 끝나지만 정상 404 까지 삼켜 소프트404 가 된다. 목록을 정본에서 파생하는 쪽이 이 레포 관례(원칙 10)에도 맞다.
+- ⚠️ **미검증으로 남은 것**: `X*`(슬래시 없이 붙는 splat)가 `X`·`X/`·`X/...` 를 한 줄로 잡는지. 되면 `_redirects` 압축 여력이 크게 는다. 확인하려면 규칙 하나를 그 형태로 배포한 뒤 `verify:redirects:live` 로 찔러 보면 된다.
 
 ---
 
