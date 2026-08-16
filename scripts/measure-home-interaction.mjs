@@ -174,8 +174,10 @@ async function measureOnce(url) {
   const browser = await chromium.launch({ headless: true });
   try {
     const context = await browser.newContext({
-      viewport: { width: 390, height: 844 },
-      deviceScaleFactor: 3,
+      // Lighthouse/PSI 기본 모바일과 같은 값(Moto G Power 412x823, DPR 1.75) —
+      // node_modules/lighthouse/core/config/constants.js 의 MOTOGPOWER_EMULATION_METRICS.
+      viewport: { width: 412, height: 823 },
+      deviceScaleFactor: 1.75,
       isMobile: true,
       hasTouch: true,
       userAgent: MOBILE_UA,

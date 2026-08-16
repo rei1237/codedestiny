@@ -44,9 +44,20 @@ const HEADER = `/* 생성물 — 손으로 고치지 말 것. 재생성: node sc
 const COMPRESSIBLE = new Set([".html", ".js", ".mjs", ".css", ".json", ".svg", ".xml", ".txt"]);
 const MOBILE_UA =
   "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36";
+// 🔴 모바일 셀은 **Lighthouse 가 실제로 쓰는 값**이어야 한다 — 이 블록이 덮어야 하는 첫 페인트가
+//    그 뷰포트에서 일어나기 때문이다. Lighthouse 기본 모바일은 Moto G Power **412x823, DPR 1.75**
+//    (node_modules/lighthouse/core/config/constants.js 의 MOTOGPOWER_EMULATION_METRICS).
+//    예전 값 390x844(DPR 3)는 어느 프리셋에도 대응하지 않았다.
+//    실측(2026-08-16): 390↔412 사이에 걸리는 브레이크포인트는 `@media (min-width:400px)` 하나뿐이고
+//    (styles/fortune-ui.css:15012) 그 안은 `.res-section-card--stats` = 결과 페이지 셀렉터라
+//    홈 문서에는 없다. 즉 **뽑히는 규칙 집합은 사실상 그대로**이고, 달라지는 것은 텍스트 랩과
+//    그로 인한 높이다. DPR 도 규칙 매칭을 바꾸지 않는다(전 시트의 해상도 미디어쿼리는
+//    `min-resolution: 0.001dpcm` 하나이고 어느 DPR 에서도 참이다).
+// 🔴 데스크탑은 1440x1000 그대로 둔다. Lighthouse 데스크탑은 1350x940 이지만 두 값 사이에
+//    걸리는 브레이크포인트가 **0개**임을 실측했다(styles/{fortune-ui,cosmic-main,core-ui}.css).
 const BASE_CELLS = [
-  { name: "mobile-yeon", neo: false, ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
-  { name: "mobile-neo", neo: true, ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
+  { name: "mobile-yeon", neo: false, ctx: { viewport: { width: 412, height: 823 }, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
+  { name: "mobile-neo", neo: true, ctx: { viewport: { width: 412, height: 823 }, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
   { name: "desktop-yeon", neo: false, ctx: { viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 } },
   { name: "desktop-neo", neo: true, ctx: { viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 } },
 ];
@@ -156,6 +167,7 @@ if (!kept.size) {
 }
 
 const css = renderCss([...kept.values()].sort((a, b) => a.order - b.order));
+assertNoEmptyDeclarations(css);
 console.log(`[critical-css] rules ${kept.size} · ${css.length} bytes`);
 
 if (dryRun) process.exit(0);
@@ -250,6 +262,29 @@ function collectMatchingRules() {
 }
 
 /* ───────────────────────────── output ───────────────────────────── */
+
+/**
+ * 🔴 값이 빈 선언(`padding-top: ;`)이 산출물에 들어가면 **실패한다.**
+ *
+ * 왜 가드가 필요한가 — CSSOM 은 `env()`/`var()` 가 든 **단축속성**을 롱핸드로 되돌려 쓰지 못하고
+ * 값이 빈 선언을 내놓는다. 우리는 `rule.cssText` 를 그대로 담으므로 그게 산출물로 새어 나가고,
+ * 빈 선언은 무효라 조용히 드롭된다 = **그 속성이 크리티컬 블록에서 사라진다.**
+ * 실제로 `styles/fortune-ui.css` 의 `.wrap` 이 `padding:0 8px calc(… env(…))` 단축속성이라
+ * `padding-top/right/left` 3면이 index.html 의 크리티컬 블록과 styles/fortune-ui-home.css
+ * 양쪽에서 빠져 있었다(2026-08-17 발견).
+ *
+ * 조용히 지우지 않고 **실패시킨다** — 소스를 롱핸드로 고쳐야 하는 문제이고, 여기서 손대면
+ * 원인은 그대로 둔 채 증상만 감춘다(CLAUDE.md 코딩 원칙 10: 가드는 fail-closed).
+ */
+function assertNoEmptyDeclarations(css) {
+  const hits = [...css.matchAll(/([-a-zA-Z]+)\s*:\s*(?=[;}])/g)].map((m) => m[1]);
+  if (!hits.length) return;
+  const uniq = [...new Set(hits)];
+  console.error(`[critical-css] 🔴 값이 빈 선언 ${hits.length}건: ${uniq.join(", ")}`);
+  console.error("  CSSOM 이 되돌려 쓰지 못하는 단축속성이 원인이다(env()/var() 를 담은 padding·margin 등).");
+  console.error("  산출물이 아니라 **소스 시트**를 롱핸드로 고칠 것. 예: styles/fortune-ui.css 의 .wrap");
+  process.exit(1);
+}
 
 /** 같은 조건 스택끼리 묶어 @media 중첩을 한 번만 연다. 원래 순서(특이도 동률 시 뒤가 이김)를 지킨다. */
 function renderCss(rows) {

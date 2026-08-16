@@ -176,7 +176,16 @@ body::after{
   margin:0 auto;
   position: relative;
   overflow-x: hidden;
-  padding:0 8px calc(22px + env(safe-area-inset-bottom));
+  /* 🔴 padding 을 단축속성으로 쓰지 말 것. `env()` 가 든 단축속성은 CSSOM 이 롱핸드로 되돌려
+     쓰지 못해 `rule.cssText` 가 `padding-top: ; padding-right: ; padding-left: ;` 처럼
+     **값이 빈 선언**을 낸다. scripts/build-fortune-ui-critical.mjs 는 그 cssText 를 그대로
+     크리티컬 블록에 담으므로 빈 선언이 무효로 드롭되고 `.wrap` 의 padding 3면이 첫 페인트에서
+     사라진다 — index.html 의 cd-fortune-ui-critical 블록과 styles/fortune-ui-home.css 양쪽에
+     실제로 그 형태로 박혀 있었다. 롱핸드로 쓰면 그대로 살아남는다.
+     계산 결과는 동일하다: 아래 padding-bottom 이 어차피 단축속성의 bottom 값을 덮고 있었다. */
+  padding-top:0;
+  padding-right:8px;
+  padding-left:8px;
   padding-bottom:max(22px, calc(22px + env(safe-area-inset-bottom)));
   display:flex;
   flex-direction:column;
