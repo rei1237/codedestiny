@@ -67,6 +67,7 @@ const SEO_LINK_GROUPS = [
       { href: "/tarot/year", text: "십이지신 천운 타로" },
       { href: "/tarot/mindscan/", text: "속마음 알아보기" },
       { href: "/tarot/crystal-soul/", text: "원석 소울 타로" },
+      { href: "/animal/mbti/", text: "MBTI 동물 궁합 테스트" },
     ],
   },
   {
@@ -88,6 +89,12 @@ const SEO_LINK_GROUPS = [
       { href: "/oracle/rune", text: "스톤헨지 룬 오라클" },
       { href: "/oracle/sikojen-povailu", text: "핀란드 주석점" },
       { href: "/high-value", text: "하이밸류 아카이브" },
+      // 아래 4개는 2026-08-16 실측에서 사이트맵에 있으면서 내부 링크가 0이던 고아 라우트다.
+      // 새 링크는 처음부터 후행 슬래시를 단다(trailingSlash:true 이므로 슬래시가 없으면 308 을 한 번 탄다).
+      { href: "/flower/destiny/", text: "운명의 꽃 아틀리에" },
+      { href: "/flower/astrology/", text: "점성술 운명의 꽃" },
+      { href: "/flower/jamidusu/", text: "자미두수 운명의 꽃" },
+      { href: "/flower/sukuyo/", text: "숙요 운명의 꽃" },
     ],
   },
   {
@@ -98,6 +105,8 @@ const SEO_LINK_GROUPS = [
       { href: "/high-value/complete-guide-to-saju", text: "사주 완전 가이드" },
       { href: "/high-value/how-tarot-actually-works", text: "타로 리딩 구조 이해" },
       { href: "/high-value/understanding-your-destiny", text: "운명 해석 프레임" },
+      { href: "/insights/fusion/", text: "초융합 운세 인사이트 허브" },
+      { href: "/reviews/", text: "실시간 사용자 후기" },
       { href: "/faq", text: "자주 묻는 질문" },
     ],
   },
