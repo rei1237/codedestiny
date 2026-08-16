@@ -1604,11 +1604,11 @@
   "privacy": {
     "consentTitle": "Consentement à la collecte et à l'utilisation de renseignements personnels",
     "collectedItemsLabel": "Objets collectés:",
-    "collectedItemsBody": "Date de naissance, heure de naissance et sexe (obligatoire pour les calculs de Saju et du calendrier)",
+    "collectedItemsBody": "Date de naissance, heure de naissance, sexe et lieu de naissance (obligatoires pour les calculs de Saju et du calendrier). Si vous enregistrez une fiche de profil, le nom ou le pseudonyme saisi sur cette fiche est conservé avec elle.",
     "collectionPurposeLabel": "Finalité de la collecte et de l'utilisation:",
     "collectionPurposeBody": "Pour fournir des résultats personnalisés Saju, Zi Wei Dou Shu, I Ching et fortune",
     "retentionLabel": "Durée de conservation et d'utilisation:",
-    "retentionBody": "Ce service ne stocke pas les informations que vous saisissez sur le serveur. Il est supprimé immédiatement lorsque vous actualisez ou fermez la page. Si vous l'enregistrez dans le stockage local, il peut rester jusqu'à ce que vous supprimiez les données du navigateur.",
+    "retentionBody": "Si vous effectuez seulement le calcul sans être connecté, les informations saisies sont traitées dans ce navigateur et disparaissent lorsque vous actualisez ou fermez la page (ce que vous choisissez d'enregistrer dans le navigateur reste jusqu'à la suppression des données de navigation). Si vous êtes connecté et enregistrez une fiche de profil, ou utilisez une fonctionnalité qui conserve ses résultats, ces informations sont liées à votre compte et stockées sur nos serveurs ; la suppression de la fiche de profil les supprime également de nos serveurs. Les autres éléments conservés et les procédures de destruction suivent la Politique de confidentialité.",
     "refusalNotice": "Vous pouvez refuser votre consentement, mais les services de lecture de fortune peuvent être limités sans ce consentement.",
     "agreeAndViewResult": "Accepter et afficher le résultat"
   },

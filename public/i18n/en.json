@@ -1604,11 +1604,11 @@
   "privacy": {
     "consentTitle": "Consent to collect and use personal information",
     "collectedItemsLabel": "Items collected:",
-    "collectedItemsBody": "Date of birth, birth time, and gender (required for Saju and calendar calculations)",
+    "collectedItemsBody": "Date of birth, birth time, gender, and birth place (required for Saju and calendar calculations). If you save a profile card, the name or nickname you enter on that card is stored with it.",
     "collectionPurposeLabel": "Purpose of collection and use:",
     "collectionPurposeBody": "To provide personalized Saju, Zi Wei Dou Shu, I Ching, and fortune results",
     "retentionLabel": "Retention and use period:",
-    "retentionBody": "This service does not store the information you enter on the server. It is deleted immediately when you refresh or close the page. If you save it in local storage, it may remain until you delete browser data.",
+    "retentionBody": "If you only run the calculation without signing in, what you enter is processed in this browser and disappears when you refresh or close the page (anything you choose to save in the browser stays until you clear your browser data). If you are signed in and save a profile card, or use a feature that keeps its results, that information is linked to your account and stored on our servers; deleting the profile card deletes it from our servers as well. Other retained items and our deletion procedures follow the Privacy Policy.",
     "refusalNotice": "You may refuse consent, but fortune reading services may be limited without it.",
     "agreeAndViewResult": "Agree and view result"
   },

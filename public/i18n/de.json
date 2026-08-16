@@ -1604,11 +1604,11 @@
   "privacy": {
     "consentTitle": "Einwilligung zur Erhebung und Nutzung personenbezogener Daten",
     "collectedItemsLabel": "Gesammelte Artikel:",
-    "collectedItemsBody": "Geburtsdatum, Geburtszeit und Geschlecht (erforderlich für Saju- und Kalenderberechnungen)",
+    "collectedItemsBody": "Geburtsdatum, Geburtszeit, Geschlecht und Geburtsort (erforderlich für Saju- und Kalenderberechnungen). Wenn Sie eine Profilkarte speichern, wird der dort eingegebene Name oder Spitzname mitgespeichert.",
     "collectionPurposeLabel": "Zweck der Erhebung und Verwendung:",
     "collectionPurposeBody": "Um personalisierte Saju-, Zi Wei Dou Shu-, I Ging- und Glücksergebnisse bereitzustellen",
     "retentionLabel": "Aufbewahrungs- und Nutzungszeitraum:",
-    "retentionBody": "Dieser Dienst speichert die von Ihnen eingegebenen Informationen nicht auf dem Server. Es wird sofort gelöscht, wenn Sie die Seite aktualisieren oder schließen. Wenn Sie sie im lokalen Speicher speichern, bleiben sie möglicherweise bestehen, bis Sie die Browserdaten löschen.",
+    "retentionBody": "Wenn Sie ohne Anmeldung nur die Berechnung durchführen, werden Ihre Eingaben in diesem Browser verarbeitet und verschwinden, sobald Sie die Seite aktualisieren oder schließen (was Sie im Browser speichern, bleibt, bis Sie die Browserdaten löschen). Wenn Sie angemeldet sind und eine Profilkarte speichern oder eine Funktion nutzen, die ihre Ergebnisse aufbewahrt, werden diese Angaben mit Ihrem Konto verknüpft und auf unseren Servern gespeichert; mit dem Löschen der Profilkarte werden sie auch von unseren Servern gelöscht. Für weitere gespeicherte Daten und die Löschverfahren gilt die Datenschutzerklärung.",
     "refusalNotice": "Sie können Ihre Einwilligung verweigern, aber die Wahrsagedienste können ohne diese Einwilligung eingeschränkt sein.",
     "agreeAndViewResult": "Zustimmen und Ergebnis ansehen"
   },

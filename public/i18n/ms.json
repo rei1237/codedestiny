@@ -1604,11 +1604,11 @@
   "privacy": {
     "consentTitle": "Persetujuan untuk mengumpul dan menggunakan maklumat peribadi",
     "collectedItemsLabel": "Item dikumpul:",
-    "collectedItemsBody": "Tarikh lahir, masa lahir dan jantina (diperlukan untuk pengiraan Saju dan kalendar)",
+    "collectedItemsBody": "Tarikh lahir, masa lahir, jantina dan tempat lahir (diperlukan untuk pengiraan Saju dan kalendar). Jika anda menyimpan kad profil, nama atau nama panggilan yang anda masukkan pada kad itu turut disimpan.",
     "collectionPurposeLabel": "Tujuan pengumpulan dan penggunaan:",
     "collectionPurposeBody": "Untuk menyediakan Saju yang diperibadikan, Zi Wei Dou Shu, I Ching, dan keputusan nasib",
     "retentionLabel": "Tempoh pengekalan dan penggunaan:",
-    "retentionBody": "Perkhidmatan ini tidak menyimpan maklumat yang anda masukkan pada pelayan. Ia dipadamkan serta-merta apabila anda memuat semula atau menutup halaman. Jika anda menyimpannya dalam storan setempat, ia mungkin kekal sehingga anda memadamkan data penyemak imbas.",
+    "retentionBody": "Jika anda hanya membuat pengiraan tanpa log masuk, maklumat yang anda masukkan diproses dalam pelayar ini dan hilang apabila anda memuat semula atau menutup halaman (apa yang anda simpan dalam pelayar akan kekal sehingga anda memadamkan data pelayar). Jika anda telah log masuk dan menyimpan kad profil, atau menggunakan ciri yang menyimpan keputusannya, maklumat itu dikaitkan dengan akaun anda dan disimpan pada pelayan kami; memadamkan kad profil turut memadamkannya daripada pelayan kami. Item simpanan lain dan prosedur pemusnahan mengikut Dasar Privasi.",
     "refusalNotice": "Anda boleh menolak kebenaran, tetapi perkhidmatan membaca nasib mungkin terhad tanpanya.",
     "agreeAndViewResult": "Setuju dan lihat keputusan"
   },

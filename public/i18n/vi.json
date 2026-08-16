@@ -1604,11 +1604,11 @@
   "privacy": {
     "consentTitle": "Đồng ý thu thập và sử dụng thông tin cá nhân",
     "collectedItemsLabel": "Vật phẩm đã thu thập:",
-    "collectedItemsBody": "Ngày sinh, giờ sinh và giới tính (bắt buộc để tính Saju và lịch)",
+    "collectedItemsBody": "Ngày sinh, giờ sinh, giới tính và nơi sinh (bắt buộc để tính Saju và lịch). Nếu bạn lưu thành thẻ hồ sơ, tên hoặc biệt danh bạn nhập trên thẻ cũng được lưu cùng.",
     "collectionPurposeLabel": "Mục đích thu thập và sử dụng:",
     "collectionPurposeBody": "Để cung cấp kết quả Saju, Zi Wei Dou Shu, I Ching và vận may được cá nhân hóa",
     "retentionLabel": "Thời gian lưu giữ và sử dụng:",
-    "retentionBody": "Dịch vụ này không lưu trữ thông tin bạn nhập trên máy chủ. Nó sẽ bị xóa ngay lập tức khi bạn làm mới hoặc đóng trang. Nếu bạn lưu nó vào bộ nhớ cục bộ, nó có thể vẫn còn cho đến khi bạn xóa dữ liệu trình duyệt.",
+    "retentionBody": "Nếu bạn chỉ tính toán mà không đăng nhập, thông tin bạn nhập được xử lý trong trình duyệt này và biến mất khi bạn làm mới hoặc đóng trang (nội dung bạn chọn lưu trong trình duyệt sẽ còn cho đến khi bạn xóa dữ liệu trình duyệt). Nếu bạn đã đăng nhập và lưu thẻ hồ sơ, hoặc dùng tính năng cần lưu kết quả, thông tin đó được liên kết với tài khoản của bạn và lưu trên máy chủ của chúng tôi; khi bạn xóa thẻ hồ sơ, dữ liệu trên máy chủ cũng bị xóa. Các mục lưu trữ khác và quy trình hủy dữ liệu tuân theo Chính sách quyền riêng tư.",
     "refusalNotice": "Bạn có thể từ chối sự đồng ý nhưng dịch vụ xem bói có thể bị hạn chế nếu không có sự đồng ý đó.",
     "agreeAndViewResult": "Đồng ý và xem kết quả"
   },
