@@ -405,6 +405,93 @@ styleLink.textContent = `
     border-color: #f59e0b;
     box-shadow: 0 6px 14px rgba(249,115,22,0.28);
   }
+
+  /* ── 동물상 TOP3 ──
+     1위만 단정적으로 보여주던 것을 세 기운의 배합으로 바꾼 블록.
+     실측(2026-08-16, 라벨 24종 150장)에서 1위 적중은 특징 한계상 낮지만
+     TOP3 안에 정답이 들어오는 비율은 그 2배 이상이라, 후보권을 보여주는 쪽이 정직하다. */
+  .phy-top3 {
+    margin-bottom: 12px;
+  }
+  .phy-top3[hidden] { display: none; }
+  .phy-top3__lead {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 14px;
+    background: linear-gradient(132deg, #1f1405 0%, #2c1d07 55%, #3a2708 100%);
+    border: 1px solid rgba(245,158,11,0.55);
+    box-shadow: 0 10px 28px rgba(120,53,15,0.28);
+  }
+  .phy-top3__emoji {
+    font-size: 2.3rem;
+    line-height: 1;
+    flex: none;
+  }
+  .phy-top3__lead-body { flex: 1 1 auto; min-width: 0; }
+  .phy-top3__rank {
+    margin: 0;
+    font-size: 0.66rem;
+    letter-spacing: 0.12em;
+    font-weight: 800;
+    color: #fcd34d;
+  }
+  .phy-top3__name {
+    margin: 3px 0 0;
+    font-size: 1.24rem;
+    font-weight: 900;
+    color: #fffbeb;
+    line-height: 1.25;
+  }
+  .phy-top3__pct {
+    margin: 2px 0 0;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: #fde68a;
+  }
+  .phy-top3__rest {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+    margin-top: 8px;
+  }
+  .phy-top3__item {
+    padding: 10px 11px;
+    border-radius: 12px;
+    background: linear-gradient(132deg, #0f172a 0%, #1e293b 100%);
+    border: 1px solid rgba(148,163,184,0.42);
+  }
+  .phy-top3__item .phy-top3__rank { color: #94a3b8; }
+  .phy-top3__item .phy-top3__name {
+    font-size: 0.98rem;
+    color: #f1f5f9;
+  }
+  .phy-top3__item .phy-top3__pct { color: #cbd5e1; }
+  .phy-top3__bar {
+    margin-top: 7px;
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(148,163,184,0.28);
+    overflow: hidden;
+  }
+  .phy-top3__bar > span {
+    display: block;
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #f59e0b 0%, #f97316 100%);
+  }
+  .phy-top3__note {
+    margin: 8px 0 0;
+    font-size: 0.75rem;
+    line-height: 1.5;
+    /* 이 문구만 카드 밖 .result-card(흰 배경) 위에 놓인다. 위 카드들의 회색(#94a3b8)을
+       그대로 쓰면 흰 바탕에서 2.56:1 로 무너진다 — 실측 후 7.58:1 로 교체(2026-08-16). */
+    color: #475569;
+  }
+  @media (max-width: 380px) {
+    .phy-top3__rest { grid-template-columns: 1fr; }
+  }
   .phy-section-card {
     margin-bottom: 12px;
     opacity: 0;
@@ -630,7 +717,10 @@ const appHtml = `
           <p class="phy-result-summary" id="phyResultSummary"></p>
           <div class="phy-category-nav" id="phyCategoryNav"></div>
         </div>
-        
+
+        <!-- 동물상 TOP3 — 결과의 첫 화면. 1위 단독 제시가 아니라 세 기운의 배합으로 보여준다. -->
+        <div class="phy-top3" id="phyTop3"></div>
+
         <!-- 고도화된 Expert Report 컨테이너 -->
         <div id="expertReportContainer"></div>
 
@@ -1316,13 +1406,96 @@ function clearResultMeta() {
   const titleEl = getEl('phyResultTitle');
   const summaryEl = getEl('phyResultSummary');
   const categoryNavEl = getEl('phyCategoryNav');
+  const top3El = getEl('phyTop3');
   if (titleEl) titleEl.innerText = '';
   if (summaryEl) summaryEl.innerText = '';
   if (categoryNavEl) {
     categoryNavEl.innerHTML = '';
     categoryNavEl.style.display = 'none';
   }
+  if (top3El) {
+    top3El.innerHTML = '';
+    top3El.hidden = true;
+  }
   _phyActiveSectionIndex = 0;
+}
+
+// ── 동물상 TOP3 히어로 ──
+// 🔴 result.top3 의 pct 는 여기 쓰지 않는다. 그 값은 top3 점수 합에 대한 지분이라
+// 세 후보가 늘 33% 근처로 붙는다 — 실측 150장에서 1위·3위 격차 중앙값이 0.3%p 였고
+// 133장이 1%p 미만이었다(2026-08-16). 화면에 "33.5% / 33.3% / 33.2%" 를 띄우면
+// 없는 정밀도를 주장하는 셈이라, 순위와 배합 여부만 말한다.
+// 격차를 다시 의미 있게 만들려면 점수 분리도부터 손봐야 하고 그건 별개 작업이다.
+const PHY_TOP3_CLEAR_GAP = 3; // %p — 이 이상 벌어지면 1위를 뚜렷한 우세로 본다
+
+function hidePhyTop3() {
+  const host = getEl('phyTop3');
+  if (!host) return;
+  host.innerHTML = '';
+  host.hidden = true;
+}
+
+function renderTop3(result) {
+  const host = getEl('phyTop3');
+  if (!host) return;
+  const top3 = Array.isArray(result && result.top3) ? result.top3.slice(0, 3) : [];
+  if (!top3.length) {
+    host.innerHTML = '';
+    host.hidden = true;
+    return;
+  }
+
+  const pctOf = (item) => Number(item && item.pct) || 0;
+  const gap = top3.length >= 2 ? pctOf(top3[0]) - pctOf(top3[top3.length - 1]) : Infinity;
+  const isBlend = Number.isFinite(gap) && gap < PHY_TOP3_CLEAR_GAP;
+  const nameOf = (item) => (item && item.animal && item.animal.name) || '-';
+  const emojiOf = (item) => (item && item.animal && item.animal.emoji) || '🐾';
+
+  const lead = top3[0];
+  const rest = top3.slice(1);
+  // 막대는 확률이 아니라 "1위 대비 근접도"다. 붙어 있으면 실제로 비슷하게 보여야 한다.
+  const barWidth = (item) => {
+    const first = pctOf(top3[0]) || 1;
+    return Math.max(24, Math.min(100, Math.round((pctOf(item) / first) * 100)));
+  };
+
+  const fragment = document.createDocumentFragment();
+
+  const leadEl = document.createElement('div');
+  leadEl.className = 'phy-top3__lead';
+  leadEl.innerHTML = `
+    <div class="phy-top3__emoji" aria-hidden="true">${emojiOf(lead)}</div>
+    <div class="phy-top3__lead-body">
+      <p class="phy-top3__rank">${isBlend ? '가장 두드러진 기운' : '주 기운'}</p>
+      <p class="phy-top3__name">${nameOf(lead)}</p>
+      <p class="phy-top3__pct">${isBlend ? '아래 두 기운과 근소한 차이' : '2·3위와 뚜렷한 차이'}</p>
+      <div class="phy-top3__bar"><span style="width:100%"></span></div>
+    </div>`;
+  fragment.appendChild(leadEl);
+
+  if (rest.length) {
+    const restEl = document.createElement('div');
+    restEl.className = 'phy-top3__rest';
+    restEl.innerHTML = rest.map((item, i) => `
+      <div class="phy-top3__item">
+        <p class="phy-top3__rank">${i + 2}순위</p>
+        <p class="phy-top3__name">${emojiOf(item)} ${nameOf(item)}</p>
+        <p class="phy-top3__pct">함께 감지된 기운</p>
+        <div class="phy-top3__bar"><span style="width:${barWidth(item)}%"></span></div>
+      </div>`).join('');
+    fragment.appendChild(restEl);
+  }
+
+  const noteEl = document.createElement('p');
+  noteEl.className = 'phy-top3__note';
+  noteEl.innerText = isBlend
+    ? '세 기운의 점수가 서로 가깝습니다. 하나로 단정하기보다 셋이 섞인 배합으로 읽어 주세요.'
+    : '1위 기운이 나머지보다 뚜렷하게 앞섭니다.';
+  fragment.appendChild(noteEl);
+
+  host.innerHTML = '';
+  host.appendChild(fragment);
+  host.hidden = false;
 }
 
 function setResultMeta(result, sections) {
@@ -1331,17 +1504,17 @@ function setResultMeta(result, sections) {
   const top3 = Array.isArray(result && result.top3) ? result.top3 : [];
 
   const titleText = `${result && result.emoji ? `${result.emoji} ` : ''}${result && result.primaryAnimal ? `${result.primaryAnimal} 관상 리포트` : '관상 리포트'}`;
-  const top3Text = top3.length
-    ? top3.slice(0, 3).map((item, index) => `${index + 1}위 ${item && item.animal && item.animal.name ? item.animal.name : '-'}`).join(' · ')
-    : '카테고리별 세부 해석을 펼쳐서 확인할 수 있습니다.';
+  // 순위 나열은 아래 TOP3 히어로(renderTop3)가 맡는다. 여기서 되풀이하면 같은 정보가 두 번 나온다.
+  const fallbackText = top3.length ? '' : '카테고리별 세부 해석을 펼쳐서 확인할 수 있습니다.';
   const confidenceText = result && result.confidence ? `${result.confidence}% 신뢰도` : '';
   const qualityScore = Number(result && result.qualityScore || 0);
   const qualityText = qualityScore ? `사진 품질 ${qualityScore}점` : '';
   const retryText = qualityScore && qualityScore < 62 ? '정면 사진 재시도 권장' : '';
-  const summaryText = [`${sections.length}개 카테고리 분석`, top3Text, confidenceText, qualityText, retryText].filter(Boolean).join(' · ');
+  const summaryText = [`${sections.length}개 카테고리 분석`, fallbackText, confidenceText, qualityText, retryText].filter(Boolean).join(' · ');
 
   if (titleEl) titleEl.innerText = titleText;
   if (summaryEl) summaryEl.innerText = summaryText;
+  renderTop3(result);
 }
 
 function setActiveSectionChip(index) {
@@ -2064,6 +2237,7 @@ window.startCapture = async function() {
           categoryNavEl.innerHTML = '';
           categoryNavEl.style.display = 'none';
         }
+        hidePhyTop3(); // 솔로 분석의 TOP3 가 궁합 화면에 남지 않도록
         document.getElementById('expertReportContainer').innerHTML = `
           <div style="padding:20px; text-align:center; color:#e11d48;">
             <div style="font-size:2rem; margin-bottom:10px;">💕</div>
@@ -2265,6 +2439,7 @@ window.openPastLifeFaceFromPhysiognomy = async function openPastLifeFaceFromPhys
       categoryNavEl.innerHTML = '';
       categoryNavEl.style.display = 'none';
     }
+    hidePhyTop3(); // 솔로 분석의 TOP3 가 궁합 화면에 남지 않도록
 
     document.getElementById('expertReportContainer').innerHTML = compatResult.compatHtml;
     document.getElementById('pastLifeBridgeBtn').style.display = 'none';
