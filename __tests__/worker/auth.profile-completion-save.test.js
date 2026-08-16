@@ -154,7 +154,7 @@ function makeRequest(body) {
 const lastUpdate = () => mockCollectionFindOneAndUpdate.mock.calls[0][1].$set;
 
 test("🔴 번호는 봉투로만 저장된다 — 평문이 DB 로 나가면 실패", async () => {
-  const response = await handleProfileCompletion(makeRequest({ name: "홍길동", phoneNumber: TYPED_PHONE }), ENV);
+  const response = await handleProfileCompletion(makeRequest({ name: "홍길동", phoneNumber: TYPED_PHONE, phoneConsent: true }), ENV);
   expect(response.status).toBe(200);
 
   const update = lastUpdate();
@@ -172,7 +172,7 @@ test("🔴 이미 번호가 있으면 덮지 않는다(write-once) — 이름만
     _id: USER_ID, name: "Kakao user", phoneNumber: `${ENCRYPTED_PREFIX}enc(${EXISTING_PHONE})`,
   });
 
-  const response = await handleProfileCompletion(makeRequest({ name: "홍길동", phoneNumber: TYPED_PHONE }), ENV);
+  const response = await handleProfileCompletion(makeRequest({ name: "홍길동", phoneNumber: TYPED_PHONE, phoneConsent: true }), ENV);
   expect(response.status).toBe(200);
 
   const update = lastUpdate();
@@ -184,7 +184,7 @@ test("🔴 이미 번호가 있으면 덮지 않는다(write-once) — 이름만
 test("🔴 암호화 키가 없으면 503 이고 아무것도 쓰지 않는다(fail-closed)", async () => {
   mockEncryptPhoneNumber.mockRejectedValue(new Error("pii_encryption_key_missing"));
 
-  const response = await handleProfileCompletion(makeRequest({ phoneNumber: TYPED_PHONE }), ENV);
+  const response = await handleProfileCompletion(makeRequest({ phoneNumber: TYPED_PHONE, phoneConsent: true }), ENV);
   expect(response.status).toBe(503);
   expect(await response.json()).toMatchObject({ ok: false, code: "phone_encryption_unavailable" });
   expect(mockCollectionFindOneAndUpdate).not.toHaveBeenCalled();
@@ -222,8 +222,51 @@ test("1자 이름은 400 이다(스키마 minlength 2 와 같은 기준)", async
   expect(mockCollectionFindOneAndUpdate).not.toHaveBeenCalled();
 });
 
+test("🔴 동의 없이 온 번호는 400 이고 아무것도 저장하지 않는다 (제15조·제22조)", async () => {
+  const response = await handleProfileCompletion(makeRequest({ name: "홍길동", phoneNumber: TYPED_PHONE }), ENV);
+  expect(response.status).toBe(400);
+  expect(await response.json()).toMatchObject({ ok: false, code: "phone_consent_required" });
+  expect(mockEncryptPhoneNumber).not.toHaveBeenCalled();
+  expect(mockCollectionFindOneAndUpdate).not.toHaveBeenCalled();
+});
+
+test("🔴 phoneConsent 가 truthy 문자열이어도 통과시키지 않는다 (=== true 만 인정)", async () => {
+  const response = await handleProfileCompletion(makeRequest({ phoneNumber: TYPED_PHONE, phoneConsent: "true" }), ENV);
+  expect(response.status).toBe(400);
+  expect(await response.json()).toMatchObject({ code: "phone_consent_required" });
+});
+
+test("🔴 동의를 받으면 그 사실이 legalConsents 에 남는다 (제22조 입증책임)", async () => {
+  const response = await handleProfileCompletion(makeRequest({ phoneNumber: TYPED_PHONE, phoneConsent: true }), ENV);
+  expect(response.status).toBe(200);
+
+  const update = lastUpdate();
+  expect(update["legalConsents.phoneAcceptedAt"]).toBeInstanceOf(Date);
+  // 버전은 사용자가 그때 본 방침을 가리켜야 한다 — 값 자체보다 "비어 있지 않다"가 계약이다.
+  expect(String(update["legalConsents.phoneVersion"] || "")).toMatch(/^\d{4}-\d{2}-\d{2}$/);
+});
+
+test("🔴 번호 없는 요청은 동의 없이도 통과한다 — 건너뛰기가 막히면 안 된다", async () => {
+  const response = await handleProfileCompletion(makeRequest({ name: "홍길동" }), ENV);
+  expect(response.status).toBe(200);
+
+  const update = lastUpdate();
+  expect(update["legalConsents.phoneAcceptedAt"]).toBeUndefined();
+  expect(update["legalConsents.phoneVersion"]).toBeUndefined();
+});
+
+test("이미 번호가 있어 저장을 건너뛰면 동의 기록도 남기지 않는다", async () => {
+  mockCollectionFindOne.mockResolvedValue({
+    _id: USER_ID, name: "Kakao user", phoneNumber: `${ENCRYPTED_PREFIX}enc(${EXISTING_PHONE})`,
+  });
+
+  const response = await handleProfileCompletion(makeRequest({ phoneNumber: TYPED_PHONE, phoneConsent: true }), ENV);
+  expect(response.status).toBe(200);
+  expect(lastUpdate()["legalConsents.phoneAcceptedAt"]).toBeUndefined();
+});
+
 test("하이픈이 섞여 들어와도 정규화해 저장한다", async () => {
-  const response = await handleProfileCompletion(makeRequest({ phoneNumber: "010-7180-7398" }), ENV);
+  const response = await handleProfileCompletion(makeRequest({ phoneNumber: "010-7180-7398", phoneConsent: true }), ENV);
   expect(response.status).toBe(200);
   expect(mockEncryptPhoneNumber).toHaveBeenCalledWith(TYPED_PHONE, ENV);
 });
