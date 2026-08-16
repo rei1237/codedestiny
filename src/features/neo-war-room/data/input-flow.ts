@@ -174,6 +174,51 @@ export function createNeoWarRoomIdempotencyKey() {
   return `neo-war-room-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 12)}`;
 }
 
+/**
+ * 🔴 요청키는 새로고침을 견뎌야 한다. 이 값이 결제의 멱등키(서버 원장의 sourceId)이므로,
+ * 메모리에만 두면 "결제 실패 → 새로고침 → 다시 시도"가 **새 키 = 두 번째 차감**이 된다.
+ * 같은 입력(지문)이면 같은 키를 돌려줘 서버가 replay 로 흡수하게 한다.
+ *
+ * 탭 단위(sessionStorage)로 충분하다 — 결제-생성 흐름은 한 탭 안에서 끝나고, 탭을 새로 열면
+ * 새 상담으로 보는 것이 맞다. 저장소를 못 쓰면 조용히 새 키로 폴백한다(기능은 계속 동작한다).
+ */
+const NEO_WAR_ROOM_REQUEST_KEY_PREFIX = "cd_neo_war_room_request_key::";
+
+function neoWarRoomRequestKeyStorageKey(inputFingerprint: string) {
+  // 지문 원문은 생년월일·질문을 담고 있어 그대로 키로 쓰지 않는다(저장소 노출 최소화 + 길이 제한).
+  let hash = 5381;
+  for (let index = 0; index < inputFingerprint.length; index += 1) {
+    hash = ((hash * 33) ^ inputFingerprint.charCodeAt(index)) >>> 0;
+  }
+  return `${NEO_WAR_ROOM_REQUEST_KEY_PREFIX}${hash.toString(36)}`;
+}
+
+export function resolveNeoWarRoomIdempotencyKey(inputFingerprint: string) {
+  const storageKey = neoWarRoomRequestKeyStorageKey(inputFingerprint);
+  try {
+    const saved = window.sessionStorage.getItem(storageKey);
+    if (saved) return saved;
+  } catch {
+    return createNeoWarRoomIdempotencyKey();
+  }
+  const created = createNeoWarRoomIdempotencyKey();
+  try {
+    window.sessionStorage.setItem(storageKey, created);
+  } catch {
+    /* 저장 실패는 치명적이지 않다 — 이번 시도는 그대로 진행한다. */
+  }
+  return created;
+}
+
+/** 결과를 받은 뒤에는 같은 입력이라도 새 상담이므로 저장된 키를 비운다(재사용 = 무료 재열람 오해). */
+export function clearNeoWarRoomIdempotencyKey(inputFingerprint: string) {
+  try {
+    window.sessionStorage.removeItem(neoWarRoomRequestKeyStorageKey(inputFingerprint));
+  } catch {
+    /* 무시 */
+  }
+}
+
 export function buildNeoWarRoomAccessPayload(input: NeoWarRoomValidationInput, idempotencyKey: string): NeoWarRoomAccessPayload {
   if (!input.method || !input.intensity) {
     throw new Error("INVALID_NEO_WAR_ROOM_INPUT");

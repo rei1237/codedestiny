@@ -523,7 +523,14 @@ console.log("\n[10] 회당결제 서버 검증 — 결제 증빙을 DB 로 확�
     /Payment\.findOne/.test(access) && /status:\s*\{\s*\$in:\s*\["paid", "success", "fulfilled"\]/.test(access));
   check(`${accessPath}: 코인·월정석 차감을 PointHistory 로 확인한다`,
     /PointHistory\.findOne/.test(access) && /kind:\s*"deduct"/.test(access));
-  check(`${accessPath}: 월정석 원장도 함께 본다`, /MonthlyCreditLedger\.findOne/.test(access) && /MONTHLY_CREDIT_SPEND/.test(access));
+  // 월정석 원장 조회는 라우트별 사본을 없애고 정본 하나로 모았다(worker/lib/moonstone-spend-proof.js).
+  // 사본을 두던 시절 writer 변경이 몇 곳을 조용히 죽여 결제자가 402 를 받았으므로, 여기서는
+  // "위임했는가" 와 "정본이 실제로 원장을 읽는가" 를 함께 본다.
+  const proofPath = "worker/lib/moonstone-spend-proof.js";
+  const proof = stripComments(readFileSync(path.join(repoRoot, proofPath), "utf8"));
+  check(`${accessPath}: 월정석 원장도 함께 본다(정본에 위임)`, /findMoonstoneSpendEvidence/.test(access));
+  check(`${proofPath}: 정본이 월정석 원장을 읽는다`, /MonthlyCreditLedger\.find\(/.test(proof) && /MONTHLY_CREDIT_SPEND/.test(proof));
+  check(`${proofPath}: 🔴 미정산 예약행을 그냥 통과시키지 않는다`, /settledAt/.test(proof) && /recentConsumeRequestIds/.test(proof));
   check(`${accessPath}: 이용권 커버는 서버가 직접 판정한다(클라 주장 미신뢰)`,
     /canUseByPass\(normalizeHoneyPassEntitlement\(/.test(access));
   check(`${accessPath}: 🔴 DB 블립을 '미결제'로 세탁하지 않는다(proven: null)`,

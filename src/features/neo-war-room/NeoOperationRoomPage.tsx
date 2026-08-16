@@ -34,8 +34,9 @@ import {
   buildInitialNeoWarRoomBirthState,
   buildDefaultNeoWarRoomBirthState,
   buildNeoWarRoomAccessPayload,
-  createNeoWarRoomIdempotencyKey,
+  clearNeoWarRoomIdempotencyKey,
   createNeoWarRoomInputFingerprint,
+  resolveNeoWarRoomIdempotencyKey,
   validateNeoWarRoomInput,
   type NeoWarRoomAccessPayload,
   type NeoWarRoomBirthInput,
@@ -1059,6 +1060,9 @@ export default function NeoOperationRoomPage() {
   const [isPageVisible, setIsPageVisible] = useState(true);
   const [isSpriteMobile, setIsSpriteMobile] = useState(false);
   const idempotencyKeyRef = useRef("");
+  // 저장된 요청키를 되돌려 지울 때 쓰는 지문. 상태(pendingAccess)는 비동기 핸들러 클로저에서
+  // 낡은 값을 보므로 ref 로 둔다.
+  const idempotencyFingerprintRef = useRef("");
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
   const localPreviewEnabled = process.env.NODE_ENV !== "production";
 
@@ -1648,6 +1652,13 @@ export default function NeoOperationRoomPage() {
   }
 
   function completeWithSession(session: NeoSession) {
+    // 결과를 받았으면 저장된 요청키를 비운다 — 남겨 두면 같은 입력의 다음 상담이 옛 키로 나가
+    // 서버가 replay 로 흡수해 "새 상담인데 옛 결과"가 된다. (실패는 비우지 않는다 — 재시도가 같은
+    // 키로 나가야 이미 끝난 차감이 이중 결제가 되지 않는다.)
+    if (idempotencyFingerprintRef.current) {
+      clearNeoWarRoomIdempotencyKey(idempotencyFingerprintRef.current);
+      idempotencyFingerprintRef.current = "";
+    }
     setSessionId(session.sessionId || session.id || "");
     setBriefing(session.initialBriefing || null);
     setRefinedOrder(session.refinedOrder || null);
@@ -1805,11 +1816,14 @@ export default function NeoOperationRoomPage() {
     }
 
     const inputFingerprint = createNeoWarRoomInputFingerprint(validationInput);
+    // 🔴 마지막 폴백을 useRef 에서 sessionStorage 로 바꿨다. ref 는 새로고침에 사라지므로
+    //    "결제 실패 → 새로고침 → 재시도"가 새 멱등키로 나가 **두 번째 월정석 차감**이 됐다.
     const idempotencyKey =
       pendingAccess?.inputFingerprint === inputFingerprint
         ? pendingAccess.idempotencyKey
-        : idempotencyKeyRef.current || createNeoWarRoomIdempotencyKey();
+        : idempotencyKeyRef.current || resolveNeoWarRoomIdempotencyKey(inputFingerprint);
     idempotencyKeyRef.current = idempotencyKey;
+    idempotencyFingerprintRef.current = inputFingerprint;
     const payload = buildNeoWarRoomAccessPayload(validationInput, idempotencyKey);
     setPendingAccess({
       endpoint: NEO_WAR_ROOM_ACCESS_ENDPOINT,
@@ -1906,10 +1920,17 @@ export default function NeoOperationRoomPage() {
       const isGenerationCode = code === "LLM_ERROR" || code === "CALCULATION_ERROR" || code === "GENERATION_PENDING";
       // 일시적 접속 장애도 이용권 결함이 아니므로 "이용권 확인 실패"로 표기하지 않는다.
       const isTransientCode = code === "TEMPORARY_UNAVAILABLE";
+      // 🔴 PAYMENT_VERIFY_FAILED 는 이용권이 아니라 **결제 증빙 확인**이 안 된 것이다. 예전에는 이것까지
+      //    "이용권 확인 실패"로 찍혀서, 월정석으로 결제한 사용자가 자기 이용권을 의심하게 만들었다.
+      const isPaymentVerifyCode = code === "PAYMENT_VERIFY_FAILED" || code === "PAYMENT_REQUIRED";
       failPaidFeatureGateCheck({
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
-        title: isGenerationCode ? "작전 브리핑 생성 실패" : isTransientCode ? "잠시 후 다시 시도" : "이용권 확인 실패",
+        title: isGenerationCode
+          ? "작전 브리핑 생성 실패"
+          : isTransientCode
+            ? "잠시 후 다시 시도"
+            : isPaymentVerifyCode ? "결제 확인 실패" : "이용권 확인 실패",
         reason: FEATURE_TITLE,
         paymentMode: "MEMBERSHIP_PASS",
         message: errorCopy[code] || errorCopy.SERVER_ERROR,

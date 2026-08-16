@@ -140,15 +140,26 @@ function collection(name) {
 }
 
 function modelForCollection(name) {
+  /* find/findById 도 있어야 한다 — 월정석 증빙 정본(worker/lib/moonstone-spend-proof.js)이
+     find().select().sort().limit().lean() 과 User.findById().select().lean() 을 쓴다. */
+  const chainOver = (produce) => {
+    const chain = {
+      sort() { return chain; },
+      select() { return chain; },
+      limit() { return chain; },
+      lean: async () => produce(),
+    };
+    return chain;
+  };
   return {
     findOne(query) {
-      const row = collection(name).all().find((doc) => matchesQuery(doc, query)) || null;
-      const chain = {
-        sort() { return chain; },
-        select() { return chain; },
-        lean: async () => clone(row),
-      };
-      return chain;
+      return chainOver(() => clone(collection(name).all().find((doc) => matchesQuery(doc, query)) || null));
+    },
+    find(query) {
+      return chainOver(() => collection(name).all().filter((doc) => matchesQuery(doc, query)).map(clone));
+    },
+    findById(id) {
+      return chainOver(() => clone(collection(name).all().find((doc) => String(doc._id) === String(id)) || null));
     },
     exists: async (query) => Boolean(collection(name).all().find((doc) => matchesQuery(doc, query))),
   };
@@ -237,6 +248,8 @@ beforeAll(async () => {
     PointHistory: modelForCollection("point_histories"),
     MonthlyCreditLedger: modelForCollection("monthly_credit_ledger"),
     Payment: modelForCollection("payments"),
+    // 월정석 증빙 정본이 미정산 예약행을 판정할 때 읽는다(recentConsumeRequestIds).
+    User: modelForCollection("users"),
     // 라우트가 llm-cache-store 를 통해 참조한다. 이 스위트는 캐시 동작을 검증하지 않으므로 빈 스텁.
     LlmResponseCache: {},
   }));
