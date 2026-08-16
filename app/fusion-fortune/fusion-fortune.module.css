@@ -1,4 +1,33 @@
+/*
+ * 이 화면의 색·서체 정본.
+ *
+ * 🔴 예전에는 리터럴 hex 30여 개가 네 파일의 Tailwind 클래스 문자열에 흩어져 있었다.
+ *    본문 회색만 여섯 종류(#e6ddf2·#e7dff4·#e4dbf2·#e9e1f5·#eee6f8·#f4eefb)여서 위계가
+ *    읽히지 않았고 — 화면이 심심했던 실제 원인이 그것이다 — 한 곳을 고치면 나머지가 어긋났다.
+ *    surface·text·accent 를 **세트로** 여기서 갈아 끼운다(정본 패턴: love-secret-theme .onDark).
+ *
+ * 색 계열은 네오(퍼플)를 유지한다. 연이 다크(딥 플럼)로 새면 같은 화면이 다른 브랜드가 된다.
+ */
 .page {
+  --fx-ink-1: #fbf5ff;
+  --fx-ink-2: #e7dff4;
+  --fx-ink-3: #c6b9dc;
+  --fx-ink-4: #a99cc0;
+  --fx-gold: #f0dda8;
+  --fx-gold-2: #e8d5a3;
+  --fx-violet: #a05cd6;
+  --fx-violet-soft: #c9b5f3;
+  --fx-rose: #f6cadb;
+  --fx-rose-dim: #e0b6c8;
+  --fx-mint: #a8e8cb;
+  --fx-deep: #12102a;
+  --fx-line: rgba(255, 255, 255, 0.09);
+  --fx-line-strong: rgba(255, 255, 255, 0.16);
+  --fx-surface: rgba(255, 255, 255, 0.035);
+  --fx-surface-deep: rgba(0, 0, 0, 0.25);
+  /* 자체 호스팅 세리프(나눔명조 + Cinzel). 새 서체를 들이지 않는다 — styles/fonts-serif.css 가 이미 싣는다. */
+  --fx-serif: var(--font-serif, Georgia, serif);
+
   min-height: 100vh;
   background:
     radial-gradient(
@@ -7,10 +36,27 @@
       transparent 32%
     ),
     linear-gradient(180deg, #080714 0%, #0e0a1d 46%, #090713 100%);
-  color: #f7f1ff;
+  color: var(--fx-ink-1);
   padding: clamp(14px, 3vw, 42px);
   font-family: var(--font-body, system-ui);
   overflow: hidden;
+}
+
+/*
+ * 리딩 본문의 서체. 2만 자를 읽는 상품이라 조작 UI(버튼·라벨·상태 칩)와 글을 나눈다 —
+ * 글은 세리프, 조작은 Pretendard. 디스플레이 서체(Mulmaru)는 굵기가 400 하나뿐이라
+ * 제목에 무게를 줄 수 없었고, 그래서 위계가 평평했다.
+ */
+.reading {
+  font-family: var(--fx-serif);
+  letter-spacing: -0.005em;
+  word-break: keep-all;
+}
+.readingTitle {
+  font-family: var(--fx-serif);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  word-break: keep-all;
 }
 .page :focus-visible {
   outline: 3px solid #f1d896;
