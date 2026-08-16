@@ -169,6 +169,48 @@ test("LocaleFooterHub 는 서버 컴포넌트이고 법률 번역을 새로 만�
   );
 });
 
+test("WebSite 엔티티 이름이 셸과 Next 레이아웃에서 같다", () => {
+  // 같은 @id(https://code-destiny.com/#website)를 홈(정적 셸)과 400여 Next 라우트(app/layout.js)가
+  // 각각 선언한다. 이름이 갈리면 Google 이 한 엔티티에 대해 서로 다른 이름을 본다.
+  const shell = read("index.html");
+  const layout = read("app/layout.js");
+
+  const shellName = (shell.match(/"@type":\s*"WebSite"[\s\S]{0,200}?"name":\s*"([^"]+)"/) || [])[1];
+  assert.ok(shellName, "정적 셸에서 WebSite name 을 찾지 못했다");
+
+  const layoutName = (layout.match(/BRAND_WEBSITE_JSON_LD[\s\S]{0,300}?name:\s*"([^"]+)"/) || [])[1];
+  assert.ok(layoutName, "app/layout.js 에서 BRAND_WEBSITE_JSON_LD name 을 찾지 못했다");
+
+  assert.equal(
+    layoutName,
+    shellName,
+    `WebSite name 이 갈렸다 — 셸 "${shellName}" vs layout "${layoutName}". 같은 @id 다.`,
+  );
+});
+
+test("로케일 푸터는 같은 언어 목적지 링크를 제공한다", () => {
+  const footer = read("app/components/LocaleFooterHub.jsx");
+
+  // 로케일 페이지에서 한국어 허브로만 나가면 그 언어의 내부 링크 그래프가 생기지 않는다.
+  assert.ok(footer.includes("I18N_ROUTE_MAP"), "로케일 네이티브 링크를 I18N_ROUTE_MAP 에서 만들지 않는다");
+
+  // /ja/tokushoho 는 사이트맵에 있으면서 내부 링크가 0이던 고아다. ja 에만 붙어야 한다.
+  assert.ok(footer.includes('"/ja/tokushoho/"'), "/ja/tokushoho/ 링크가 없다 — 고아가 그대로 남는다");
+  assert.ok(
+    /locale === "ja"/.test(footer),
+    "tokushoho 가 ja 로 한정되지 않는다 — 다른 로케일에 일본 법정 고지가 나간다",
+  );
+
+  const copy = read("lib/i18n/siteFooterHubCopy.ts");
+  const tokushohoLabels = copy.match(/tokushoho\??:/g) || [];
+  // 타입 선언 1 + ja 값 1 = 2. 다른 로케일에 값이 생기면 늘어난다.
+  assert.equal(
+    tokushohoLabels.length,
+    2,
+    "tokushoho 라벨이 ja 외 로케일에도 있다 — 일본 특정상거래법 고지는 ja 전용이다",
+  );
+});
+
 test("클라이언트 번들에 로케일 카피 테이블이 새지 않는다", () => {
   // 🔴 이 테스트가 막는 회귀: SocialFooter 는 SiteFooterHub -> AppChrome("use client") 경로에 있어
   // 클라이언트 번들에 포함된다. 거기서 5개 로케일 카피 테이블을 import 하면 layout 청크가

@@ -6,6 +6,7 @@ import {
   SITE_FOOTER_HUB_COPY,
 } from "../../lib/i18n/siteFooterHubCopy";
 import { getRefundSection, LEGAL_TRANSLATION_NOTICE } from "../../lib/legal/refundContent";
+import { I18N_ROUTE_MAP } from "../../lib/i18n/routes";
 
 /**
  * 로케일(`/ja`·`/zh`·`/zh-tw`·`/en`) 전용 푸터.
@@ -50,10 +51,31 @@ function stripEmphasis(text) {
   return String(text).replace(/\*\*/g, "");
 }
 
+/**
+ * 같은 언어 목적지 링크. 경로는 `I18N_ROUTE_MAP` 에서 오므로 로케일별 실제 URL 과 어긋날 수 없다.
+ * `/ja/tokushoho/` 는 사이트맵에 있으면서 내부 링크가 0이던 고아라 여기서 해소한다 —
+ * 🔴 일본 특정상거래법 고지이므로 **한국어 푸터나 다른 로케일에 넣지 않는다**(관련성 신호 오염).
+ */
+function buildLocaleNavLinks(locale, labels) {
+  const links = [
+    { href: I18N_ROUTE_MAP.home[locale], text: labels.home },
+    { href: I18N_ROUTE_MAP.ziwei[locale], text: labels.ziwei },
+    { href: I18N_ROUTE_MAP.sukuyo[locale], text: labels.sukuyo },
+    { href: I18N_ROUTE_MAP.today[locale], text: labels.today },
+    { href: I18N_ROUTE_MAP.insights[locale], text: labels.insights },
+  ].map((link) => ({ ...link, href: link.href.endsWith("/") ? link.href : `${link.href}/` }));
+
+  if (locale === "ja" && labels.tokushoho) {
+    links.push({ href: "/ja/tokushoho/", text: labels.tokushoho });
+  }
+  return links;
+}
+
 export default function LocaleFooterHub({ locale }) {
   const copy = SITE_FOOTER_HUB_COPY[locale];
   const refundSection = getRefundSection(locale);
   const translationNotice = LEGAL_TRANSLATION_NOTICE[locale];
+  const localeNavLinks = buildLocaleNavLinks(locale, copy.localeNavLabels);
 
   return (
     <footer className={styles.sfhRoot} aria-label={copy.footerAriaLabel}>
@@ -69,6 +91,16 @@ export default function LocaleFooterHub({ locale }) {
           <p className={styles.sfhSubtitle}>{copy.subtitle}</p>
 
           <div className={styles.sfhGroupGrid}>
+            <section className={styles.sfhCard} aria-label={copy.localeNavTitle}>
+              <h2 className={styles.sfhGroupTitle}>{copy.localeNavTitle}</h2>
+              <nav className={styles.sfhLinkNav} aria-label={`${copy.localeNavTitle} ${copy.linkNavSuffix}`}>
+                {localeNavLinks.map((link) => (
+                  <a key={link.href} href={link.href} className={styles.sfhLink}>
+                    {link.text}
+                  </a>
+                ))}
+              </nav>
+            </section>
             {FOOTER_LINK_GROUPS.map((group) => {
               const groupTitle = copy.groupTitles[group.titleKey];
               return (

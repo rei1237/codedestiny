@@ -1,5 +1,36 @@
 # 로케일 페이지 한국어 크롬 제거 (C안) — 인수인계 (2026-08-16)
 
+> ## ✅ 이 문서의 §3 은 **구현 완료**됐다 (PR #720, 2026-08-16)
+>
+> 아래 본문은 착수 전에 쓴 계획이며 **그대로 실행됐다.** 실측 결과와 계획이 어긋난 지점만 여기 적는다.
+>
+> | 항목 | 계획 | 실측 결과 |
+> |---|---|---|
+> | 한국어 문자수 | 1,433 → 36 예상 | **1,433 → 66~99 (평균 70)** |
+> | 1,800자 게이트 | 마진 ≈410자 예상 | **41/41 통과, 최소 마진 +584자** (`/zh-tw/insights/` 2,384자) |
+> | 클라이언트 번들 | **+0 바이트** 예상 | **+1,650B** (41,007 → 42,657B) |
+> | 신규 번역 | 약 230문자열 | **약 308** (77 × 4로케일) + SocialFooter·로케일 네비 |
+>
+> **계획이 놓쳤던 것 2가지 (다음에 같은 실수를 하지 말 것):**
+>
+> 1. **`SocialFooter` 가 로케일 푸터 안에서도 한국어였다.** 계획은 `SiteFooterHub` 만 봤는데
+>    `SocialFooter` 는 두 푸터가 공유하는 컴포넌트였다. 잔여 한국어가 예상 36자보다 많은
+>    84~117자로 나와 출처를 열어 보고 발견했다.
+> 2. 🔴 **그걸 순진하게 고치면 A안 기각 사유가 그대로 재현된다.** `SocialFooter` 는
+>    `SiteFooterHub → AppChrome("use client")` 경로라 **클라이언트 번들에 포함된다.**
+>    거기서 5개 로케일 카피 테이블을 import 하니 layout 청크가 **41,007B → 63,469B(+22KB)** 가 됐다.
+>    → 카피는 **prop 으로 내린다**(`SiteFooterHub` 는 자기 ko 문자열만 보유).
+>    `__tests__/ui/locale-footer.static.test.js` 가 두 파일의 `siteFooterHubCopy` import 를 막는다.
+>
+> **`+1,650B` 를 0으로 만들지 말 것** — `AppChrome` 이 `localeFromPathname` 을 쓰면서 `LOCALE_CONFIG` 가
+> 클라이언트 그래프에 들어온 값이다. 프리픽스를 `AppChrome` 에 손으로 박으면 0이 되지만 같은 목록이
+> 두 곳에 생겨(CLAUDE.md 원칙 10) 어긋나는 순간 푸터가 중복되거나 사라진다. 테스트가 그 하드코딩을 막는다.
+>
+> **함께 처리된 것**: `/ja/tokushoho` 고아 해소(로케일 네이티브 링크 그룹, ja 한정) ·
+> WebSite `name` 3중 드리프트 정리 · 기계 번역 고지 공유 상수화.
+>
+> **다음 작업은 §7 로.**
+
 > **이 문서만 읽고 시작할 수 있게 쓴다.** 수치는 전부 2026-08-16 실측이고 재현 명령을 함께 남긴다.
 >
 > 브랜치 `feature/locale-footer-hub` 와 worktree `D:/Development/cd-wt-locale-footer` 가 **이미 준비돼 있다**
@@ -243,3 +274,123 @@ grep -c "서비스 링크 허브" out/about/index.html out/insights/index.html  
 | §3-F 고아 페이지 8개 (P2) | ✅ **7개 #718 에서 해결**, `/ja/tokushoho` 만 잔존(위 §5) |
 | 부록 §5-5 페이지 단위 WebPage 노드 | 미착수. #718 이후 524페이지가 WebPage 0개(이전엔 **틀린** 노드 1개라 손실 아님) |
 | 부록 §5-6 WebSite `name` 3중 드리프트 | 미착수 |
+
+---
+
+# 7. 다음 작업 — §3-B 와 §3-C (2026-08-16 실측 갱신)
+
+§3-A(위)가 끝난 뒤 남은 P1 두 건이다. 원본 핸드오프
+`docs/handoff/seo-indexing-2026-08-15.md` §3-B·§3-C 의 수치를 **오늘 다시 쟀다.**
+
+## 7-1. §3-B — 내부 링크 후행 슬래시 (P1)
+
+`next.config.mjs:184` 가 `trailingSlash: true` 인데 내부 링크에 슬래시가 없어 **크롤러가 발견하는
+모든 URL 이 2회 요청**된다(`/about` → 308 → `/about/`). 크롤 예산 낭비다.
+
+**2026-08-16 실측 대상 수:**
+
+| 대상 | 슬래시 없는 링크 수 |
+|---|---|
+| `index.html` (루트 셸) | **160** (확장자 있는 경로 제외) |
+| `app/components/SiteFooterHub.jsx` | **48** |
+| `index.html` 의 `data-fallback-href` + `data-service-detail-href` | **40** |
+
+> `LocaleFooterHub` 는 이미 전부 슬래시가 붙어 있다(§3-A 에서 처음부터 그렇게 만들었다).
+
+**🔴 동반 수정 필수 — 안 하면 CI 가 즉사한다.** `href="/x"` 를 **문자열로 단언**하는 verify 스크립트
+(2026-08-16 재확인, 괄호 안이 오늘 센 매치 수):
+
+```
+scripts/verify-public-parity.mjs            (2)
+scripts/verify-naming-prompt-flow.mjs       (1)
+scripts/verify-karma-destiny-ai-flow.mjs    (1)
+scripts/verify-life-book-ai-flow.mjs        (1)
+scripts/verify-master-love-codex-flow.mjs   (1)
+scripts/verify-new-year-ai-flow.mjs         (1)
+scripts/verify-mobile-cdp-smoke.mjs         (1)
+scripts/verify-mobile-entry-actions.mjs     (0 — 매치 0. 원본 핸드오프의 :40 단언이 이미 바뀐 듯하니
+                                                 고치기 전에 파일을 직접 열어 확인할 것)
+```
+
+**🔴 가장 위험한 것 — `js/core/index-inline-runtime.js`** (원본 핸드오프의 `:624-636` → **오늘 `:618`·`:647-652`** 로 이동):
+
+```js
+function cdStripLocalePrefix(pathname) { ... }        // :618
+var basePath = cdStripLocalePrefix(u.pathname);        // :647
+var isAppLocalized = (basePath === '/oracle/rune' ||
+  basePath === '/oracle/sikojen-povailu' ||
+  basePath === '/insights' || basePath === '/olympus'); // :649-652
+```
+
+`href="/insights"` → `"/insights/"` 가 되면 `basePath` 가 `/insights/` 라 **모든 비교가 조용히 false**
+가 되고, ja/zh/en 사용자가 `/ja/insights` 대신 한국어 `/insights/` 로 간다.
+**에러도 테스트도 없다 — 사용자 제보로만 발견된다.** 이 함수의 슬래시 정규화가 **반드시 같은 PR** 에 들어가야 한다.
+미러(`public/js/core/index-inline-runtime.js`)는 `verify:runtime-cache-sync` 가 강제하므로 `sync:public` 으로 함께 간다.
+
+**그 외 주의**
+- 🔴 미러 6개(`public/index.html`, `public/{en,ja,zh,zh-tw,static}/index.html`)는 **직접 패치 금지** —
+  `npm run sync:public` 이 루트 `index.html` 에서 재생성한다. 같은 커밋에 담을 것.
+- 제외 대상: 확장자 있는 경로(`/ifa-oracle.html` 등), `#`·`?` 시작, 외부 URL, `javascript:`.
+- `_redirects` 충돌: 셸 링크 94개 중 소스와 겹치는 것은 `/daily-fortune` 1건뿐이고 슬래시 유무 양쪽
+  규칙이 이미 있어 **무해**. 이 PR 은 `_redirects` 를 건드리지 않는다.
+- GA4: `js/core/analytics.js` 의 `cross_sell_click.to_service` 값이 `/ziwei` → `/ziwei/` 로 바뀐다.
+  기능 문제는 아니나 대시보드 세그먼트가 끊긴다.
+- 🔴 `paid-flow-gates`: `index.html` 은 결제창 정본이라 셸 변경이 검증기를 대량 깨울 수 있다
+  (`scripts/resolve-paid-gate-scope.mjs` 가 diff **내용**으로 판정). 순수 href 변경이면 결제 모달 함수
+  본문 밖이라 통과할 것으로 **추정** — PR 올린 뒤 scope 잡 출력을 확인할 것.
+- 모바일 앱 빌드: `scripts/build-mobile-app.mjs` 의 `HREF_RE` 가 `/x/` 도 캡처하고 뒤에서
+  `replace(/\/+$/,"")` 로 벗기므로 **결과 동일**(원본 핸드오프 실측). 그래도 `npm run build:mobile:app` 확인.
+
+## 7-2. §3-C — 사이트맵 lastmod 원장 (P1)
+
+**현재 상태 (2026-08-16 실측, 커밋된 `sitemap.xml` 429 URL):**
+
+```
+2026-08-15 : 315   ← 마지막 빌드 날짜. 이게 문제다
+2026-07-10 :  37
+2026-07-04 :  32
+2026-07-11 :  30
+2026-08-04 :   6
+2026-06-14 :   5
+2026-07-27 :   3
+2026-05-29 :   1
+```
+
+`scripts/generate-sitemap.mjs:619` 의 `lastmod: route.lastmod || today` 때문에 **429개 중 315개가
+빌드마다 "오늘 수정됨"** 으로 바뀐다 → Google 이 lastmod 신호를 통째로 신뢰하지 않게 된다.
+(#718·#720 이 사이트맵을 커밋에서 뺀 이유가 이 churn 이다 — 두 PR 모두 316줄이 날짜만 바뀌었다.)
+
+**사용자 확정 방식: 콘텐츠 서명 원장 `config/sitemap-lastmod.json`.**
+
+1. 라우트별 소스 해석기(**하드코딩 목록 금지**):
+   `app/<path>/page.*` → 그 파일 / `STATIC_CANONICAL_ROUTES` → `index.html` + 라우트 엔트리 /
+   로케일 루트 → `index.html` + `sync-legacy-static-to-public.mjs` 의 `LOCALE_SHELL_SEO` /
+   famous-saju → published slug·category 집합.
+   **어디에도 안 걸리면 exit 1** (원칙 10 — 미분류가 조용히 `today` 로 새는 경로를 막는다).
+2. 🔴 **서명 정규화 필수**: 해시 전에 `?v=[A-Za-z0-9_-]+` → `?v=__CACHE_KEY__` 치환.
+   빼면 `sync:public`(build-cf-main 순서상 `sitemap:generate` **앞**)이 매 빌드 캐시키를 다시 써서
+   `index.html` 해시가 매번 바뀌고 **지금과 똑같이 전부 오늘 날짜가 된다** — "고쳤다"고 착각하기 딱 좋다.
+   기존 로직은 `sync-legacy-static-to-public.mjs:267-272` 의 `normalizeForCacheKey` 다.
+   **`scripts/lib/` 로 공용 추출**하고 양쪽이 import 할 것(복제 금지).
+3. 서명이 원장과 같으면 저장된 lastmod 유지, 다르거나 신규면 `today` 로 갱신 후 원장 재기록.
+4. 🔴 **git log 방식은 쓸 수 없다** — `.github/workflows/pr-ci.yml` 의 build 잡에 `fetch-depth` 지정이
+   없어 shallow(=1) 다. `git log -1 -- <file>` 이 빈 값을 내고 `|| today` 로 되돌아간다.
+   (release 워크플로는 `fetch-depth: 0` 이라 두 환경이 다른 값을 낸다는 점이 더 나쁘다.)
+5. 원본 핸드오프가 권한 `verify:sitemap-lastmod` 가드는 **사용자가 이번 범위에서 제외 결정**했다.
+   다만 위 1번의 "미분류 시 exit 1" 은 가드가 아니라 **해석기 자체의 동작**이므로 반드시 넣을 것.
+
+**검증 방법**: `npm run build:cf` 를 **연속 2회** 돌려 `git diff sitemap.xml` 이 **비어 있으면** 성공.
+(지금은 2회차에 315줄이 바뀐다.)
+
+**착수 전 판단**: 이 작업은 빌드 경로에 있는 `generate-sitemap.mjs` 에 fail-closed 해석기를 넣는다.
+라우트 계열을 하나라도 빠뜨리면 **빌드가 막힌다.** 반쯤 하고 커밋하지 말 것 — 위 2회 빌드 검증까지가 한 단위다.
+
+## 7-3. 그 밖에 열려 있는 것
+
+| 항목 | 상태 |
+|---|---|
+| §3-D IndexNow 배선 (P1) | 미착수. §3-C 선행 필요 + 🔴 실제 POST 는 **최초 1회 실행 승인** 필요. `--dry-run` 함께 구현. 🔴 `lib/seo-site-urls.ts` 를 쓰지 말고 `sitemap.xml` 을 파싱할 것 |
+| 페이지 단위 WebPage 노드 | #718 이후 524페이지가 WebPage 0개다(이전엔 **틀린** 홈 노드 1개였으므로 손실은 아니다). `SeoLandingTemplate`·`buildFortuneJsonLd` 를 안 쓰는 라우트에 올바른 노드를 주는 건 별건 |
+| `verify:locale-table-coverage` `+41` | **기존 실패**. clean main 에서도 동일(2026-08-16 `f20a15596` 확인). 빌드·CI 미배선 수동 가드라 지금도 main 이 빨간 채로 굴러간다 |
+| `GlobalHeader`·`MobileBottomNav` 한국어 ~40자 | 로케일 페이지 잔여. 1,433 → 70 이면 언어 판정은 해소됐고 이건 별건 |
+| 근중복 페이지(famous-saju·codex 등) | GSC 「크롤링됨–색인되지 않음」 실데이터 확인 후 판단 |

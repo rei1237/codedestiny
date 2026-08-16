@@ -130,6 +130,20 @@ export type SiteFooterHubCopy = {
   linkLabels: Record<string, string>;
   policyLabels: Record<string, string>;
   policyNavAriaLabel: string;
+  /**
+   * 같은 언어 목적지로 보내는 링크. 로케일 페이지에서 한국어 허브로만 나가면 그 언어의
+   * 내부 링크 그래프가 생기지 않는다. 경로는 `lib/i18n/routes.ts` 의 `I18N_ROUTE_MAP` 에서 온다.
+   * `tokushoho` 는 일본 특정상거래법 고지라 ja 에만 있다(다른 로케일에 넣으면 관련성 신호가 오염된다).
+   */
+  localeNavTitle: string;
+  localeNavLabels: {
+    home: string;
+    ziwei: string;
+    sukuyo: string;
+    today: string;
+    insights: string;
+    tokushoho?: string;
+  };
   refundAriaLabel: string;
   refundTitle: string;
   refundIntro: string;
@@ -244,6 +258,14 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/insights": "인사이트 아카이브",
     },
     policyNavAriaLabel: "정책 및 안내 링크",
+    localeNavTitle: "한국어 바로가기",
+    localeNavLabels: {
+        home: "홈",
+        ziwei: "자미두수",
+        sukuyo: "숙요점",
+        today: "오늘의 운세",
+        insights: "인사이트",
+      },
     refundAriaLabel: "환불 정책 안내",
     refundTitle: "디지털 운세 서비스 환불 안내",
     refundIntro:
@@ -349,6 +371,15 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/insights": "インサイト・アーカイブ",
     },
     policyNavAriaLabel: "ポリシー・案内リンク",
+    localeNavTitle: "日本語のページ",
+    localeNavLabels: {
+        home: "ホーム",
+        ziwei: "紫微斗数",
+        sukuyo: "宿曜占星術",
+        today: "今日の運勢",
+        insights: "インサイト",
+        tokushoho: "特定商取引法に基づく表記",
+      },
     refundAriaLabel: "返金ポリシー案内",
     refundTitle: "デジタル占いサービスの返金案内",
     refundIntro:
@@ -454,6 +485,14 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/insights": "洞察归档",
     },
     policyNavAriaLabel: "政策与指南链接",
+    localeNavTitle: "简体中文页面",
+    localeNavLabels: {
+        home: "首页",
+        ziwei: "紫微斗数",
+        sukuyo: "宿曜占星",
+        today: "今日运势",
+        insights: "洞察",
+      },
     refundAriaLabel: "退款政策说明",
     refundTitle: "数字运势服务退款说明",
     refundIntro:
@@ -559,6 +598,14 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/insights": "洞察彙整",
     },
     policyNavAriaLabel: "政策與指南連結",
+    localeNavTitle: "繁體中文頁面",
+    localeNavLabels: {
+        home: "首頁",
+        ziwei: "紫微斗數",
+        sukuyo: "宿曜占星",
+        today: "今日運勢",
+        insights: "洞察",
+      },
     refundAriaLabel: "退款政策說明",
     refundTitle: "數位運勢服務退款說明",
     refundIntro:
@@ -664,6 +711,14 @@ export const SITE_FOOTER_HUB_COPY: Record<Locale, SiteFooterHubCopy> = {
       "/insights": "Insights Archive",
     },
     policyNavAriaLabel: "Policy and information links",
+    localeNavTitle: "Pages in English",
+    localeNavLabels: {
+        home: "Home",
+        ziwei: "Zi Wei Dou Shu",
+        sukuyo: "Sukuyo astrology",
+        today: "Today's fortune",
+        insights: "Insights",
+      },
     refundAriaLabel: "Refund policy information",
     refundTitle: "Refund guide for digital fortune services",
     refundIntro:
