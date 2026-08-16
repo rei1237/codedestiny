@@ -230,6 +230,27 @@ for (const [label, source] of promptRenderers) {
   assertContains(source, CONSENT_LABEL, `${label} prompt must carry the consent checkbox label`);
   assertContains(source, CONSENT_REQUIRED, `${label} prompt must refuse to save without consent`);
   assertContains(source, "consentInput.checked", `${label} prompt must gate submit on the checkbox`);
+  // 🔴 고지가 길어 카드가 스크롤될 수 있다. 방침 링크는 동의 근거를 확인할 유일한 경로라 3벌 모두에 있어야 한다.
+  assertContains(source, "개인정보처리방침 전문", `${label} prompt must link the full privacy policy`);
+  // 따옴표는 렌더러마다 다르다(셸·dp 는 홑따옴표) — 검사하려는 성질은 링크 대상이지 인용부호가 아니다.
+  assert.ok(
+    /policyLink\.href = ['"]\/privacy['"]/.test(source),
+    `${label} prompt must point that link at the policy route`,
+  );
+  // 문구만 같고 겉모습이 갈라지면 사용자는 화면마다 다른 결제창을 본다(결제수단 선택창이 CSS 텍스트
+  // 동일성을 강제하는 것과 같은 이유). 오버레이·카드·CTA 세 표면이 그 규격의 뼈대다.
+  for (const chunk of [
+    "width:min(420px,100%);max-height:calc(100vh - 36px)",
+    "background:radial-gradient(130% 100% at 50% 0%,rgba(36,26,74,.78),rgba(6,4,16,.92))",
+    "background:linear-gradient(135deg,#f0dcab,#d9bd7c)",
+  ]) {
+    assertContains(source, chunk, `${label} prompt must keep the shared modal skin: ${chunk.slice(0, 40)}...`);
+  }
+  // 접근성: 오버레이가 대화상자로 읽혀야 스크린리더가 제목과 함께 읽는다(예전에는 role="presentation" 이었다).
+  assert.ok(
+    /setAttribute\(['"]aria-modal['"], ['"]true['"]\)/.test(source),
+    `${label} prompt must expose the overlay as a modal dialog`,
+  );
 }
 // 저장 호출은 렌더러마다 주인이 다르다 — React 는 호출부(PointsClient)가, 나머지 둘은 자기 파일이 한다.
 // 세 경로 모두 동의 플래그를 서버로 실어 보내야 기록이 남는다(제22조).

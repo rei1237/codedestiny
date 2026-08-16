@@ -88,7 +88,6 @@
 /public/js/image-fallback.js
 /public/js/inline/api-base-init.js
 /public/js/inline/canonical-redirect.js
-/public/js/inline/fortune-tabs.js
 /public/js/inline/gesture-arbiter.js
 /public/js/inline/global-error-guard.js
 /public/js/inline/legacy-action-launcher.js

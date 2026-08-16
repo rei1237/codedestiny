@@ -51,6 +51,18 @@ export const PAYMENT_PHONE_CONSENT_LINES = [
 export const PAYMENT_PHONE_CONSENT_LABEL = "결제 진행 목적의 휴대폰 번호 수집·이용에 동의합니다. (필수)";
 export const PAYMENT_PHONE_CONSENT_REQUIRED = "휴대폰 번호 수집·이용에 동의해 주셔야 결제를 진행할 수 있어요.";
 
+/**
+ * 입력 중인 값을 `010-1234-5678` 모양으로 만든다. 저장 직전에 호출자의 `normalize` 가 하이픈을
+ * 다시 벗기므로 표시 전용이다(셸 `_cdFormatKoreanPhoneInput` · dp `_dpFormatKoreanPhoneInput` 과 같은 규칙).
+ */
+function formatKoreanPhoneInput(value: string): string {
+  const digits = String(value == null ? "" : value).replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) return digits;
+  const middleLength = digits.length > 10 ? 4 : 3;
+  if (digits.length <= 3 + middleLength) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  return `${digits.slice(0, 3)}-${digits.slice(3, 3 + middleLength)}-${digits.slice(3 + middleLength)}`;
+}
+
 interface PromptPaymentPhoneOptions {
   /** 입력된 번호를 정규화해 반환하는 함수(빈 문자열이면 실패로 본다). */
   normalize: (value: string) => string;
@@ -66,8 +78,10 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
     let settled = false;
     const overlay = document.createElement("div");
     const card = document.createElement("form");
+    const rule = document.createElement("div");
     const title = document.createElement("h2");
     const desc = document.createElement("p");
+    const fieldLabel = document.createElement("label");
     const input = document.createElement("input");
     const error = document.createElement("p");
     const notice = document.createElement("p");
@@ -75,13 +89,23 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
     const consentLabel = document.createElement("label");
     const consentInput = document.createElement("input");
     const consentText = document.createElement("span");
+    const policy = document.createElement("p");
+    const policyLink = document.createElement("a");
     const actions = document.createElement("div");
     const cancelButton = document.createElement("button");
     const submitButton = document.createElement("button");
 
+    const onOverlayKeydown = (event: KeyboardEvent) => {
+      if (event.key !== "Escape") return;
+      if (input.disabled) return;
+      event.preventDefault();
+      close("");
+    };
+
     const close = (value: string) => {
       if (settled) return;
       settled = true;
+      document.removeEventListener("keydown", onOverlayKeydown, true);
       input.value = "";
       overlay.remove();
       resolve(value);
@@ -92,36 +116,57 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
       consentInput.disabled = isBusy;
       cancelButton.disabled = isBusy;
       submitButton.disabled = isBusy;
+      submitButton.style.opacity = isBusy ? ".62" : "1";
       submitButton.textContent = isBusy ? "저장 중..." : "저장하고 결제 계속하기";
     };
 
-    overlay.setAttribute("role", "presentation");
-    overlay.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,13,31,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);";
-    card.style.cssText = "width:min(400px,100%);border:1px solid rgba(255,255,255,.22);border-radius:18px;background:linear-gradient(145deg,rgba(20,25,48,.98),rgba(45,31,82,.98));box-shadow:0 24px 80px rgba(0,0,0,.46);padding:22px;color:#fff;font-family:inherit;";
-    title.style.cssText = "margin:0 0 10px;font-size:19px;font-weight:800;";
-    desc.style.cssText = "margin:0 0 16px;color:rgba(238,242,255,.78);font-size:14px;line-height:1.6;";
-    input.style.cssText = "width:100%;height:48px;box-sizing:border-box;border-radius:12px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.78);color:#fff;font-size:16px;padding:0 14px;outline:none;";
-    error.style.cssText = "min-height:20px;margin:8px 0 0;color:#fecdd3;font-size:13px;line-height:1.45;";
-    notice.style.cssText = "margin:8px 0 0;color:rgba(221,214,254,.78);font-size:12px;line-height:1.45;";
-    disclosure.style.cssText = "margin:10px 0 0;padding:10px 12px;list-style:none;border:1px solid rgba(196,181,253,.28);border-radius:12px;background:rgba(10,8,24,.55);color:rgba(221,214,254,.86);font-size:12px;line-height:1.55;";
-    consentLabel.style.cssText = "display:flex;align-items:flex-start;gap:10px;margin-top:10px;min-height:44px;cursor:pointer;color:#eef2ff;font-size:13px;line-height:1.5;";
-    consentInput.style.cssText = "flex:0 0 auto;width:20px;height:20px;margin-top:2px;accent-color:#8f6ccc;";
-    actions.style.cssText = "display:flex;gap:10px;margin-top:18px;";
-    cancelButton.style.cssText = "flex:0 0 auto;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#e5e7eb;padding:0 16px;font-weight:700;";
-    submitButton.style.cssText = "flex:1;min-height:44px;border-radius:12px;border:0;background:linear-gradient(135deg,#f59e0b,#fb7185);color:#111827;padding:0 16px;font-weight:900;";
+    // 동의 여부에 따라 카드 테두리를 바꿔 '무엇을 더 해야 하는지'를 색으로도 알린다.
+    const syncConsentAffordance = () => {
+      consentLabel.style.borderColor = consentInput.checked ? "rgba(232,213,163,.55)" : "rgba(196,181,253,.22)";
+      consentLabel.style.background = consentInput.checked ? "rgba(38,29,74,.62)" : "rgba(16,12,38,.55)";
+    };
 
+    // 🔴 스타일·구조는 셸 정본(index.html _cdPromptDirectCheckoutPhoneNumber)과 같은 규격이다.
+    overlay.setAttribute("role", "dialog");
+    overlay.setAttribute("aria-modal", "true");
+    overlay.setAttribute("aria-labelledby", "cd-payment-phone-title");
+    overlay.style.cssText = "position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(130% 100% at 50% 0%,rgba(36,26,74,.78),rgba(6,4,16,.92));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);";
+    card.style.cssText = "width:min(420px,100%);max-height:calc(100vh - 36px);overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;border:1px solid rgba(232,213,163,.20);border-radius:22px;background:linear-gradient(168deg,#181334,#100c26 55%,#0b0819);box-shadow:0 30px 88px rgba(3,2,12,.66);padding:24px 22px 20px;color:#f6f3ff;font-family:inherit;";
+    rule.style.cssText = "width:34px;height:2px;margin:0 0 14px;border-radius:2px;background:linear-gradient(90deg,#e8d5a3,rgba(196,181,253,.35));";
+    title.style.cssText = "margin:0 0 8px;font-size:19px;font-weight:800;line-height:1.4;letter-spacing:-.01em;color:#f8f6ff;";
+    desc.style.cssText = "margin:0 0 18px;color:rgba(211,205,236,.8);font-size:13.5px;line-height:1.68;";
+    fieldLabel.style.cssText = "display:block;margin:0 0 8px;color:rgba(232,213,163,.9);font-size:12px;font-weight:700;";
+    input.style.cssText = "width:100%;height:52px;box-sizing:border-box;border-radius:14px;border:1px solid rgba(196,181,253,.30);background:rgba(8,6,20,.7);color:#f8f6ff;font-size:16px;font-weight:600;letter-spacing:.02em;padding:0 15px;outline:none;transition:border-color .16s ease,box-shadow .16s ease;";
+    error.style.cssText = "min-height:18px;margin:9px 0 0;color:#f7b7c4;font-size:12.5px;line-height:1.5;";
+    notice.style.cssText = "margin:9px 0 0;color:rgba(198,190,228,.72);font-size:11.5px;line-height:1.55;";
+    disclosure.style.cssText = "margin:12px 0 0;padding:12px 14px;list-style:none;border:1px solid rgba(196,181,253,.20);border-radius:14px;background:rgba(6,4,16,.5);color:rgba(210,203,238,.85);font-size:11.5px;line-height:1.6;";
+    consentLabel.style.cssText = "display:flex;align-items:flex-start;gap:11px;margin-top:12px;padding:11px 12px;box-sizing:border-box;min-height:44px;border:1px solid rgba(196,181,253,.22);border-radius:14px;background:rgba(16,12,38,.55);cursor:pointer;color:#eee9ff;font-size:12.5px;line-height:1.6;transition:border-color .16s ease,background-color .16s ease;";
+    consentInput.style.cssText = "flex:0 0 auto;width:19px;height:19px;margin:1px 0 0;accent-color:#c4b5fd;cursor:pointer;";
+    policy.style.cssText = "margin:9px 0 0;font-size:11.5px;line-height:1.5;";
+    policyLink.style.cssText = "color:rgba(232,213,163,.9);text-decoration:underline;text-underline-offset:3px;";
+    actions.style.cssText = "display:flex;gap:10px;margin-top:18px;";
+    cancelButton.style.cssText = "flex:0 0 auto;min-height:48px;border-radius:14px;border:1px solid rgba(196,181,253,.24);background:rgba(255,255,255,.04);color:#cfc7ea;padding:0 18px;font-size:14px;font-weight:700;cursor:pointer;";
+    submitButton.style.cssText = "flex:1;min-height:48px;border-radius:14px;border:0;background:linear-gradient(135deg,#f0dcab,#d9bd7c);color:#231a3a;padding:0 16px;font-size:14.5px;font-weight:800;letter-spacing:-.01em;cursor:pointer;box-shadow:0 10px 26px rgba(217,189,124,.24);";
+
+    title.id = "cd-payment-phone-title";
     title.textContent = "단건결제를 위해 휴대폰 번호가 필요해요";
     desc.textContent = "KG이니시스 결제 진행에 필요한 정보입니다. 최초 1회만 입력하면 다음 결제부터는 바로 결제창이 열립니다.";
+    input.id = "cd-payment-phone-input";
     input.type = "tel";
     input.inputMode = "tel";
     input.autocomplete = "tel";
-    input.placeholder = "01012345678";
+    input.placeholder = "010-1234-5678";
+    input.setAttribute("aria-describedby", "cd-payment-phone-notice");
+    fieldLabel.htmlFor = input.id;
+    fieldLabel.textContent = "휴대폰 번호";
+    notice.id = "cd-payment-phone-notice";
     notice.textContent = "입력한 번호는 결제 진행 목적으로만 사용되며 서버에 암호화해 저장됩니다.";
-    for (const line of PAYMENT_PHONE_CONSENT_LINES) {
+    PAYMENT_PHONE_CONSENT_LINES.forEach((line, lineIndex) => {
       const item = document.createElement("li");
       item.textContent = line;
+      if (lineIndex > 0) item.style.cssText = "margin-top:6px;padding-top:6px;border-top:1px solid rgba(196,181,253,.12);";
       disclosure.appendChild(item);
-    }
+    });
     consentInput.type = "checkbox";
     consentInput.id = "cd-payment-phone-consent";
     consentText.textContent = PAYMENT_PHONE_CONSENT_LABEL;
@@ -129,13 +174,33 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
     consentLabel.appendChild(consentInput);
     consentLabel.appendChild(consentText);
     consentInput.addEventListener("change", () => {
+      syncConsentAffordance();
       if (consentInput.checked && error.textContent === PAYMENT_PHONE_CONSENT_REQUIRED) error.textContent = "";
     });
+    policyLink.href = "/privacy";
+    policyLink.target = "_blank";
+    policyLink.rel = "noopener";
+    policyLink.textContent = "개인정보처리방침 전문";
+    policy.appendChild(policyLink);
     cancelButton.type = "button";
     cancelButton.textContent = "취소";
     submitButton.type = "submit";
     submitButton.textContent = "저장하고 결제 계속하기";
 
+    // 인라인 스타일이라 :focus 를 쓸 수 없다 — 포커스 링을 이벤트로 켠다(키보드 사용자에게 필요).
+    input.addEventListener("focus", () => {
+      input.style.borderColor = "rgba(232,213,163,.7)";
+      input.style.boxShadow = "0 0 0 3px rgba(196,181,253,.18)";
+    });
+    input.addEventListener("blur", () => {
+      input.style.borderColor = "rgba(196,181,253,.30)";
+      input.style.boxShadow = "none";
+    });
+    // 입력 즉시 010-1234-5678 로 정돈한다. 저장 직전 정규화가 하이픈을 다시 벗긴다.
+    input.addEventListener("input", () => {
+      const formatted = formatKoreanPhoneInput(input.value);
+      if (formatted !== input.value) input.value = formatted;
+    });
     cancelButton.addEventListener("click", () => close(""));
     card.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -163,18 +228,31 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
         });
     });
 
+    card.appendChild(rule);
     card.appendChild(title);
     card.appendChild(desc);
+    card.appendChild(fieldLabel);
     card.appendChild(input);
     card.appendChild(error);
     card.appendChild(notice);
     card.appendChild(disclosure);
     card.appendChild(consentLabel);
+    card.appendChild(policy);
     actions.appendChild(cancelButton);
     actions.appendChild(submitButton);
     card.appendChild(actions);
     overlay.appendChild(card);
+    syncConsentAffordance();
     document.body.appendChild(overlay);
+    document.addEventListener("keydown", onOverlayKeydown, true);
+    // 진입 모션은 Web Animations 로만 준다(인라인 스타일이라 @keyframes 를 쓸 수 없다).
+    if (!window.matchMedia?.("(prefers-reduced-motion: reduce)").matches && typeof card.animate === "function") {
+      overlay.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: "ease-out" });
+      card.animate(
+        [{ opacity: 0, transform: "translateY(12px) scale(.985)" }, { opacity: 1, transform: "none" }],
+        { duration: 240, easing: "cubic-bezier(.2,.8,.25,1)" },
+      );
+    }
     input.focus();
   });
 }
