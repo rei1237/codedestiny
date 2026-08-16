@@ -87,7 +87,10 @@ function daehanStatusPayload({ profileId, isPurchased, data = null }) {
 async function handleDaehanStatus(request, env) {
   const auth = await requireAuth(request, env);
   await connectDb(env);
-  await ensureDaehanIndexes();
+  // 🔴 여기서 ensureDaehanIndexes() 를 부르지 않는다. 조회 경로는 유니크 제약이 필요 없는데,
+  // 아이솔레이트가 새로 뜰 때마다 이 엔드포인트의 최초 요청이 createIndex 왕복을 지불하고 있었다.
+  // 인덱스 생성은 scripts/migrations/20260816-add-daehan-purchase-index.mjs 가 맡고,
+  // 중복 구매를 실제로 막아야 하는 unlock(쓰기) 경로에는 호출이 그대로 남아 있다.
 
   const profileId = await resolveDaehanProfileId(auth.userId, getRequestProfileSource(request));
   if (!profileId) {
