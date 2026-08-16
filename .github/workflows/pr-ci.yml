@@ -148,6 +148,13 @@ jobs:
       - name: Verify mobile lazy-mount overlays have an opening path
         run: npm run verify:mobile-lazy-mount-openers
 
+      # 🔴 이것도 **fast 잡**이어야 한다. `fortune/index.html` 단독 수정은 티어가 low/fast 라
+      # build 잡이 통째로 스킵된다 — 그런데 이 가드가 잡으려는 것이 바로 "정적 셸을 손으로 고쳐
+      # sign-profiles·periods 와 어긋나게 만든" 경우다. build 잡에 두면 지키려던 경로에서만 잠든다.
+      # 소스 두 개를 읽어 문자열을 비교할 뿐이라 네트워크 없이 1초 미만이다.
+      - name: Verify fortune hub shell matches its source
+        run: npm run verify:fortune-hub-shell
+
       # 배선을 검사하는 가드가 배선되지 않으면 농담이 된다. allowlist 만 고쳐 침묵시키는
       # 경로도 여기서 함께 막힌다 — scripts/ 만 바꾸면 critical 티어가 돌지 않는다.
       - name: Verify guard wiring

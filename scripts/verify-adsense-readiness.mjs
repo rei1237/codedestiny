@@ -218,7 +218,8 @@ const xRobotsNoindexHeaderPatterns = [
   "/blog/*",
   "/famous",
   "/famous/*",
-  "/fortune",
+  // `/fortune` 은 2026-08-17 에 이 목록에서 뺐다 — 얇은 셸이던 시절의 판정이었고, 지금은
+  // 사이트맵에 self-canonical 로 들어가는 색인 대상이다(_headers 의 같은 자리 주석 참고).
   "/fortune/sikojen-povailu",
   "/fortune/sikojen-povailu/*",
   // 정적 셸 사본 라우트: 본문이 루트 index.html 과 99.9% 동일(페이지당 고유 8~12자).

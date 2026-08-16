@@ -37,12 +37,18 @@ function seoText(periodParam: string, signParam: string) {
   if (!vm) return null;
 
   const kindLabel = profile.kind === "zodiac" ? "별자리" : "띠";
+  // 검색어로 쓰이는 형태는 "띠 운세" 가 아니라 "띠별 운세" 다. 화면 문구(kindLabel)와
+  // 분리해 둔다 — 브레드크럼·본문은 "띠" 가 자연스럽다.
+  const kindSearchLabel = profile.kind === "zodiac" ? "별자리" : "띠별";
   const title = PERIOD_TITLE[periodParam];
   return {
     vm,
     kindLabel,
     path: `/fortune/${periodParam}/${profile.id}`,
-    title: `${profile.nameKo} ${title} 운세 (${vm.rangeLabel}) | 무료 ${kindLabel} 운세 - 코드 데스티니`,
+    // 🔴 사이트 규약은 브랜드 접미사 없이 `무료 <키워드> | <보조 키워드>` 약 28자다
+    // (/saju·/manse·/today·/ziwei 실측 25~28자). 이 라우트만 44자에 브랜드까지 붙어
+    // 한국어 SERP 폭을 넘겼고, 잘린 꼬리가 하필 "무료 별자리 운세" 였다.
+    title: `${profile.nameKo} ${title} 운세 ${vm.titleDateLabel} | 무료 ${kindSearchLabel} 운세`,
     description:
       `${vm.rangeLabel} ${profile.nameKo} ${title} 운세. 총운 ${vm.score.overall}점, ` +
       `애정운·재물운·건강운·직장운과 행운의 색 ${vm.entry.lucky.color_kr}, 행운의 숫자 ${vm.entry.lucky.number}까지. ` +
@@ -51,7 +57,7 @@ function seoText(periodParam: string, signParam: string) {
       `${profile.nameKo} 운세`,
       `${profile.nameKo} ${PERIOD_LABEL[periodParam]} 운세`,
       `${title} 운세`,
-      `${kindLabel} 운세`,
+      `${kindSearchLabel} 운세`,
       "무료 운세",
       "오늘의 운세",
     ],

@@ -43,6 +43,15 @@ export interface SignViewModel {
   basis: ScoreAxis[];
   /** "2026년 8월 16일 (일)" · "8월 17일 ~ 8월 23일" · "2026년 8월" */
   rangeLabel: string;
+  /**
+   * `<title>` 전용 압축 날짜. 화면에는 쓰지 않는다.
+   *
+   * 🔴 `rangeLabel` 을 제목에 그대로 넣으면 한국어 SERP 폭(약 28자)을 넘긴다 — 예전 제목
+   * `양자리 오늘의 운세 (2026년 8월 16일 (일)) | 무료 별자리 운세 - 코드 데스티니` 는 44자였고
+   * 잘린 꼬리에 "무료 별자리 운세" 가 통째로 들어갔다. 연도·요일·괄호를 덜어 "8월 16일" ·
+   * "8월 10~16일" 로 줄인다(월간만 연도를 남긴다 — URL 이 고정이라 해가 바뀌면 모호해진다).
+   */
+  titleDateLabel: string;
   /** 메타 설명·구조화 데이터에 쓰는 짧은 날짜 키 */
   dateKey: string;
   facts: FactRow[];
@@ -89,6 +98,7 @@ function buildDaily(profile: SignProfile, period: "today" | "tomorrow"): SignVie
     score,
     basis: score.basis,
     rangeLabel: formatKoreanDate(date),
+    titleDateLabel: formatShortDate(date),
     dateKey: date,
     relation,
     facts: [
@@ -146,6 +156,12 @@ function buildWeekly(profile: SignProfile): SignViewModel | null {
     score: averageScores(perDay.map((p) => p.score)),
     basis: perDay[0].score.basis,
     rangeLabel: `${formatShortDate(week.start)} ~ ${formatShortDate(week.end)}`,
+    // 같은 달이면 "8월 17~23일", 달을 넘으면 "8월 31일~9월 6일". 뒤쪽 월을 생략하면
+    // 월말 주가 "8월 31~6일" 이 되어 거꾸로 읽힌다.
+    titleDateLabel:
+      week.start.slice(0, 7) === week.end.slice(0, 7)
+        ? `${formatShortDate(week.start)}~${Number(week.end.split("-")[2])}일`.replace("일~", "~")
+        : `${formatShortDate(week.start)}~${formatShortDate(week.end)}`,
     dateKey: week.start,
     relation: null,
     facts: [
@@ -202,6 +218,7 @@ function buildMonthly(profile: SignProfile): SignViewModel | null {
     score,
     basis: score.basis,
     rangeLabel: `${month.year}년 ${month.month}월`,
+    titleDateLabel: `${month.year}년 ${month.month}월`,
     dateKey: `${month.year}-${String(month.month).padStart(2, "0")}`,
     relation,
     facts: [
