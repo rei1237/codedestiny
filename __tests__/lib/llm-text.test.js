@@ -5,6 +5,9 @@ import {
   looksLikeRawJson,
   extractReadableTextFromJsonLike,
   splitIntoParagraphs,
+  trimToSentenceBoundary,
+  dedupeTextList,
+  salvageTruncatedJsonObject,
 } from "../../lib/llm-text.js";
 
 describe("toDisplayText", () => {
@@ -116,5 +119,93 @@ describe("extractReadableTextFromJsonLike", () => {
   });
   test("복원할 문장이 없으면 빈 문자열", () => {
     expect(extractReadableTextFromJsonLike('{"a": 1, "b": "ok"}')).toBe("");
+  });
+});
+
+describe("trimToSentenceBoundary", () => {
+  test("상한 이하면 원문 그대로", () => {
+    expect(trimToSentenceBoundary("짧은 문장이다.", 100)).toBe("짧은 문장이다.");
+    expect(trimToSentenceBoundary("상한이 0이면 무시한다.", 0)).toBe("상한이 0이면 무시한다.");
+  });
+
+  test("상한을 넘으면 마지막 완결 문장까지만 남기고 끊긴 문장을 버린다", () => {
+    const text = "첫 문장이다. 둘째 문장이다. 셋째 문장은 상한을 넘겨서 여기서 잘린다.";
+    const trimmed = trimToSentenceBoundary(text, 30);
+    expect(trimmed).toBe("첫 문장이다. 둘째 문장이다.");
+    expect(endsWithSentence(trimmed)).toBe(true);
+    expect(trimmed.length).toBeLessThanOrEqual(30);
+  });
+
+  test("전각 종결부호(ja/zh)도 문장 경계로 인정한다", () => {
+    const trimmed = trimToSentenceBoundary("最初の文です。次の文です。三番目はここで切れます。", 14);
+    expect(trimmed).toBe("最初の文です。次の文です。");
+  });
+
+  test("소수점을 문장 끝으로 오인해 거기서 자르지 않는다", () => {
+    // 상한이 "3.5" 한복판에 떨어져도 그 마침표를 완결 문장으로 취급하면 안 된다.
+    // 완결 문장이 없으므로 말줄임표 경로로 떨어지는 것이 정답이다.
+    const trimmed = trimToSentenceBoundary("작년 대비 3.5배 성장한 흐름이다.", 9);
+    expect(trimmed.endsWith("…")).toBe(true);
+    expect(trimmed).not.toBe("작년 대비 3.");
+  });
+
+  test("상한보다 긴 단일 문장은 절 경계까지 자르고 말줄임표를 붙인다", () => {
+    const trimmed = trimToSentenceBoundary("돈이 새는 자리를 먼저 막고, 그다음에 버는 통로를 넓혀야 흐름이 돌아온다", 20);
+    expect(trimmed).toBe("돈이 새는 자리를 먼저 막고,…");
+    expect(trimmed.length).toBeLessThanOrEqual(20);
+  });
+
+  test("절 경계도 없으면 말줄임표만 붙인다 — 결과가 비지 않는다", () => {
+    const trimmed = trimToSentenceBoundary("가".repeat(50), 10);
+    expect(trimmed).toBe(`${"가".repeat(9)}…`);
+    expect(trimmed.length).toBe(10);
+  });
+
+  test("null/undefined 에 throw 하지 않는다", () => {
+    expect(trimToSentenceBoundary(null, 10)).toBe("");
+    expect(trimToSentenceBoundary(undefined, 10)).toBe("");
+  });
+});
+
+describe("dedupeTextList", () => {
+  test("완전히 같은 항목은 앞의 것만 남긴다", () => {
+    expect(dedupeTextList(["작전 A", "작전 B", "작전 A"])).toEqual(["작전 A", "작전 B"]);
+  });
+
+  test("공백·구두점만 다른 항목도 같은 것으로 본다", () => {
+    expect(dedupeTextList(["오늘은 쉬어라.", "오늘은  쉬어라"])).toEqual(["오늘은 쉬어라."]);
+  });
+
+  test("의미가 다른 반복은 남긴다", () => {
+    expect(dedupeTextList(["돈을 아껴라", "돈을 벌어라"])).toHaveLength(2);
+  });
+
+  test("구두점뿐인 항목을 조용히 버리지 않는다", () => {
+    expect(dedupeTextList(["…", "!!"])).toEqual(["…", "!!"]);
+  });
+
+  test("배열이 아니면 빈 배열", () => {
+    expect(dedupeTextList(null)).toEqual([]);
+  });
+});
+
+describe("salvageTruncatedJsonObject", () => {
+  test("문자열 한복판에서 잘린 JSON 을 완결 값 경계까지 복구한다", () => {
+    const truncated = '{"title":"제목이다","body":"본문이다","tail":"여기서 잘린';
+    expect(salvageTruncatedJsonObject(truncated)).toEqual({ title: "제목이다", body: "본문이다" });
+  });
+
+  test("열린 배열/객체를 닫아 복구한다", () => {
+    const truncated = '{"items":[{"a":"1"},{"a":"2"}';
+    expect(salvageTruncatedJsonObject(truncated)).toEqual({ items: [{ a: "1" }, { a: "2" }] });
+  });
+
+  test("코드펜스를 벗기고 온전한 JSON 도 그대로 돌려준다", () => {
+    expect(salvageTruncatedJsonObject('```json\n{"a":"b"}\n```')).toEqual({ a: "b" });
+  });
+
+  test("객체가 아예 없으면 null", () => {
+    expect(salvageTruncatedJsonObject("설명만 있고 JSON 이 없다")).toBeNull();
+    expect(salvageTruncatedJsonObject("")).toBeNull();
   });
 });

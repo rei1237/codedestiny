@@ -1,3 +1,4 @@
+import { salvageTruncatedJsonObject } from "../../lib/llm-text.js";
 import { buildLoveSecretGroupFacts, compactSajuForFollowUp } from "./love-secret-ai-facts.js";
 
 const FORBIDDEN_RESULT_PATTERNS = Object.freeze([
@@ -66,63 +67,6 @@ function extractJsonObject(text) {
   const end = raw.lastIndexOf("}");
   if (start >= 0 && end > start) return raw.slice(start, end + 1);
   return "";
-}
-
-// 토큰 상한 절단으로 잘린 JSON을 마지막 완결 값 경계까지 잘라내고 열린 괄호를 닫아
-// 파싱 가능한 부분만이라도 복구한다(하드 실패 대신 degrade — 완결성 검증은 호출부가 수행).
-function salvageTruncatedJsonObject(text) {
-  const raw = stripCodeFence(text);
-  const start = raw.indexOf("{");
-  if (start < 0) return null;
-  const body = raw.slice(start);
-
-  // 한 번의 전방 스캔으로 "문자열 밖 완결 경계" 후보 위치와 그 시점의 괄호 스택을 수집.
-  const candidates = [];
-  const stack = [];
-  let inString = false;
-  let escaped = false;
-  for (let i = 0; i < body.length; i += 1) {
-    const ch = body[i];
-    if (escaped) {
-      escaped = false;
-      continue;
-    }
-    if (ch === "\\") {
-      if (inString) escaped = true;
-      continue;
-    }
-    if (ch === '"') {
-      inString = !inString;
-      if (!inString) candidates.push({ end: i + 1, stack: stack.slice() });
-      continue;
-    }
-    if (inString) continue;
-    if (ch === "{" || ch === "[") {
-      stack.push(ch);
-    } else if (ch === "}" || ch === "]") {
-      stack.pop();
-      candidates.push({ end: i + 1, stack: stack.slice() });
-    }
-  }
-
-  // 뒤쪽 후보부터(가장 많은 내용을 보존) 닫는 괄호를 보충해 파싱을 시도.
-  const maxTries = 40;
-  for (let idx = candidates.length - 1, tried = 0; idx >= 0 && tried < maxTries; idx -= 1, tried += 1) {
-    const { end, stack: openBrackets } = candidates[idx];
-    if (!openBrackets.length && end < body.length) continue;
-    const candidate = body.slice(0, end);
-    let closers = "";
-    for (let i = openBrackets.length - 1; i >= 0; i -= 1) {
-      closers += openBrackets[i] === "{" ? "}" : "]";
-    }
-    try {
-      const parsed = JSON.parse(candidate + closers);
-      if (parsed && typeof parsed === "object") return parsed;
-    } catch {
-      // 다음 후보로 계속
-    }
-  }
-  return null;
 }
 
 function hasForbiddenResultText(text) {

@@ -54,7 +54,11 @@ ok(prompt.includes("자미두수 명반 대가"), "자미두수 전문가 페르
 for (const line of REASONING_OUTPUT_RULE_LINES) {
   ok(prompt.includes(line), `공통 출력 계약 라인이 프롬프트에 없음: ${line.slice(0, 24)}…`);
 }
-ok(prompt.includes("[계산 요약 데이터]에 실제로 있는 항목명"), "근거 인용 지시가 프롬프트에 없음");
+// 🔴 이 지시는 반드시 한글 라벨 표([계산 확정값])를 가리켜야 한다. 예전에는 계산 객체를 JSON 으로
+// 통째로 실은 [계산 요약 데이터] 를 가리켜서, "이름 그대로 인용"이 camelCase 키를 인용하라는 뜻이
+// 됐고 상담문에 "sanFangSiZheng.lifePalace.mainStars" 가 노출됐다.
+ok(prompt.includes("[계산 확정값]에 실제로 있는 항목명"), "근거 인용 지시가 프롬프트에 없음");
+ok(!prompt.includes("[계산 요약 데이터]"), "raw JSON 덤프 블록이 되살아났다 — 내부 키가 다시 샌다");
 // 어조는 여전히 팩폭 강도 지침이 결정한다 — 공통 계약이 페르소나를 덮으면 안 된다.
 ok(prompt.includes("[팩폭 강도 지침]"), "팩폭 강도 지침이 프롬프트에서 사라짐");
 

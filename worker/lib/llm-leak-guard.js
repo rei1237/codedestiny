@@ -13,6 +13,7 @@
  *    ko 는 호출자가 넘긴 기존 패턴을 그대로 돌려준다.
  */
 
+import { stripEmptyParens } from "../../lib/llm-text.js";
 import { getAmbientAiLocale } from "./ai-locale-context.js";
 
 /** 어떤 언어의 출력에서도 진짜 누출인 신호. */
@@ -63,4 +64,76 @@ export function resolveForbiddenPatterns(koPatterns, locale = currentLeakGuardLo
  */
 export function canStripForbiddenText(locale = currentLeakGuardLocale()) {
   return locale === "ko";
+}
+
+/**
+ * 내부 데이터 키 경로("sanFangSiZheng.lifePalace.mainStars")를 본문에서 찾는다.
+ *
+ * 계산 요약 객체를 그대로 프롬프트에 실으면 모델이 그 키 이름을 상담문에 인용한다.
+ * 위 UNIVERSAL_LEAK_PATTERNS 는 Gemini 파라미터 이름 6개를 고정 나열한 것이라 임의 키를
+ * 잡지 못하므로 별도로 둔다.
+ *
+ * 🔴 낙타 등(`[a-z][A-Z]` 인접)이 있는 후보만 남긴다. 이게 오탐 방지의 전부다:
+ *    "code-destiny.com"(→ destiny.com) · "index.html" · "package.json" · "www.google.com"
+ *    은 낙타 등이 없어 탈락하고, "3.5" · "1.2.3" 은 문자로 시작하지 않아 애초에 안 걸린다.
+ *    낙타 등 없는 경로("chart.lagna")는 여기서 못 잡으므로 호출부가 실제 전송한 데이터의
+ *    키 목록을 labelByToken 으로 함께 넘겨 정확히 지운다.
+ *
+ * @param {string} text
+ * @returns {string[]} 중복 제거된 경로 목록
+ */
+const KEY_PATH_PATTERN = /\b[A-Za-z_$][A-Za-z0-9_$]*(?:\.[A-Za-z_$][A-Za-z0-9_$]*)+/g;
+
+export function findInternalKeyPaths(text) {
+  const raw = String(text || "");
+  KEY_PATH_PATTERN.lastIndex = 0;
+  const found = [];
+  let match = KEY_PATH_PATTERN.exec(raw);
+  while (match) {
+    if (/[a-z][A-Z]/.test(match[0]) && !found.includes(match[0])) found.push(match[0]);
+    match = KEY_PATH_PATTERN.exec(raw);
+  }
+  return found;
+}
+
+// 토큰을 들어낸 자리에 남는 빈 괄호·중복 공백·고아 구분자를 정리한다.
+function tidyScrubbedText(text) {
+  return stripEmptyParens(text)
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/[ \t]+([,.!?…、。])/g, "$1")
+    .replace(/([·、,])[ \t]*(?=[·、,])/g, "")
+    .replace(/(^|\n)[ \t]*[·、,][ \t]*/g, "$1")
+    .trim();
+}
+
+/**
+ * 본문에 새어 나온 내부 키 경로를 한글 라벨로 바꾸거나 지운다.
+ *
+ * 🔴 폐기가 아니라 치환이다 — 유료 상담문에서 키 하나 때문에 문단을 버리지 않는다.
+ * 치환 결과가 통째로 비면 원문을 그대로 돌려준다.
+ *
+ * @param {string} text
+ * @param {Map<string,string>|Record<string,string>} [labelByToken]
+ *   전체 경로 또는 마지막 세그먼트 → 한글 라벨. 없으면 토큰을 제거만 한다.
+ * @returns {string}
+ */
+export function scrubInternalKeyPaths(text, labelByToken) {
+  const raw = String(text || "");
+  const paths = findInternalKeyPaths(raw);
+  const extraTokens = labelByToken instanceof Map
+    ? [...labelByToken.keys()]
+    : Object.keys(labelByToken || {});
+  // 낙타 등 없는 경로도 호출부가 알려준 키 목록에 있으면 함께 지운다.
+  const targets = [...paths, ...extraTokens.filter((token) => token.includes(".") && raw.includes(token))];
+  if (!targets.length) return raw;
+
+  const labels = labelByToken instanceof Map ? labelByToken : new Map(Object.entries(labelByToken || {}));
+  // 긴 경로부터 치환해야 "a.b.c"가 "a.b"로 먼저 잘리지 않는다.
+  let out = raw;
+  for (const path of [...new Set(targets)].sort((a, b) => b.length - a.length)) {
+    const label = labels.get(path) || labels.get(path.split(".").pop()) || "";
+    out = out.split(path).join(label);
+  }
+  const cleaned = tidyScrubbedText(out);
+  return cleaned ? cleaned : raw;
 }
