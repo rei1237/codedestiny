@@ -82,8 +82,33 @@ for (const probe of fortuneProbes) {
   }
 }
 
+// ── 2-b. 유명인 사주 별칭이 정본으로 회수되는가 ──────────────────────────
+const aliasRaw = readFile("public/famous-saju-aliases.json");
+if (!aliasRaw) {
+  failures.push("🔴 public/famous-saju-aliases.json 이 없다.");
+} else {
+  const aliasMap = JSON.parse(aliasRaw);
+  const entries = Object.entries(aliasMap);
+  // 한글·라틴 별칭을 골고루 본다(퍼센트 인코딩 경로가 워커에서 디코딩되는지 확인).
+  const picks = [entries[0], entries[Math.floor(entries.length / 2)], entries[entries.length - 1]].filter(Boolean);
+  for (const [alias, canonicalSlug] of picks) {
+    const expect = `/insights/famous-saju/${canonicalSlug}/`;
+    const result = await head(`/insights/famous-saju/${encodeURIComponent(alias)}/`);
+    if (result.location !== expect) {
+      failures.push(`🔴 별칭 "${alias}" → ${result.status} ${result.location || "(리다이렉트 없음)"} (기대: 301 ${expect})`);
+    }
+  }
+  notes.push(`별칭 ${entries.length}개 중 표본 ${picks.length}개 확인`);
+}
+
 // ── 3. 워커가 가로챈 뒤에도 살아 있는 라우트는 200 인가 ──────────────────
-for (const path of ["/fortune/", "/fortune/today/aries/", "/fortune/monthly/pig/"]) {
+for (const path of [
+  "/fortune/",
+  "/fortune/today/aries/",
+  "/fortune/monthly/pig/",
+  "/insights/famous-saju/",
+  "/insights/famous-saju/king-sejong/",
+]) {
   const result = await head(path);
   if (result.status !== 200) {
     failures.push(`🔴 살아 있는 라우트 ${path} 가 ${result.status} ${result.location} — 워커/리다이렉트가 삼켰다.`);

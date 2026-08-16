@@ -29,6 +29,8 @@ const steps = [
   // `seo:generate`(sitemap && rss)로 합치지 않는 이유: 스텝 하나가 npm 을 두 번 spawn 하면
   // 종료코드로 어느 쪽이 죽었는지 구분할 수 없다.
   { command: npmCommand, args: npmArgs(["run", "rss:generate"]) },
+  // 🔴 verify:redirects-budget 앞이어야 한다 — 그 가드가 이 산출물의 최신 여부를 대조한다.
+  { command: process.execPath, args: ["scripts/generate-famous-saju-aliases.mjs"] },
   // 🔴 sitemap:generate 뒤여야 한다 — 이 가드가 "규칙이 사이트맵 라우트를 삼키는가" 를 검사한다.
   // Cloudflare Pages 는 _redirects 의 첫 102개만 적용하고 나머지를 조용히 무시한다(2026-08-16 실측).
   { command: npmCommand, args: npmArgs(["run", "verify:redirects-budget"]) },
