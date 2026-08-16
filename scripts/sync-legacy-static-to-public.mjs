@@ -229,13 +229,33 @@ function stripLeadingBom(buffer) {
 }
 
 const CACHE_BUST_QUERY_RE = /\?v=[a-zA-Z0-9_-]+/g;
-// 이 상수가 셸의 ?v= 를 빌드 때 덮어쓰므로, js/mobile-interaction-patch.js 를 수정하면
-// 반드시 여기도 함께 올려야 한다. 올리지 않으면 파일만 바뀌고 URL 이 그대로라 재방문
-// 사용자는 옛 캐시를 계속 쓴다(2026-07-02 값이 07-22 수정본까지 그대로 붙잡고 있었다).
-// SHA-256(js/mobile-interaction-patch.js) prefix. Keep it independent of the
-// general shell cache key so a mobile bridge-only hotfix cannot be served from
-// a previously cached query URL.
-const MOBILE_INTERACTION_PATCH_CACHE_KEY = "build-9edeaf4719a9";
+// 이 키가 셸의 `/js/mobile-interaction-patch.js?v=` 를 덮어쓴다. 일반 셸 키와 **독립**이어야
+// 하는 이유는 그대로다 — 모바일 브리지만 고친 핫픽스가 이전에 캐시된 쿼리 URL 로 서빙되면 안 된다.
+//
+// 🔴 예전에는 손으로 적은 상수였고 **두 번 낡았다.** 2026-07-02 값이 07-22 수정본까지 그대로
+//    붙잡고 있었고, 2026-08-16 에도 상수(build-9edeaf4719a9)와 실제 파일이 어긋나 있었다.
+//    파일은 바뀌는데 URL 이 그대로라 재방문 사용자가 옛 캐시를 계속 썼다. 손으로 유지하는 값은
+//    또 낡으므로(원칙 10) 파일에서 직접 계산한다.
+//
+// 🔴 **정규화한 내용**을 해싱한다. 원문 그대로 해싱하면 안 된다 — 이 파일 안에는
+//    `cacheBustMobileInteractionPatchScriptRefs` 가 매 빌드 다시 쓰는 `?v=<일반 빌드 키>` 참조가
+//    들어 있어서, 원문 해시는 **이 파일과 무관한 변경에도 매번 바뀐다.** 그러면 "일반 셸 키와
+//    독립"이라는 목적이 무너지고 무관한 배포마다 모바일 브리지 캐시가 통째로 날아간다.
+//    실측(2026-08-16): 원문 해시는 origin/main `build-8bc8b48b61e6` vs 워킹트리 `build-fa1097ce6100`
+//    로 갈렸지만, 정규화 해시는 양쪽 다 `build-1e92fb001e76` 로 같았다.
+let mobileInteractionPatchCacheKey = "";
+function resolveMobileInteractionPatchCacheKey() {
+  if (mobileInteractionPatchCacheKey) return mobileInteractionPatchCacheKey;
+  const abs = resolve(rootDir, "js/mobile-interaction-patch.js");
+  if (!existsSync(abs)) {
+    // 파일이 없으면 셸이 그 스크립트를 안 쓰는 상태다. 조용히 임의 값을 만들지 않는다.
+    throw new Error("[sync:public] js/mobile-interaction-patch.js 가 없다 — 캐시 키를 계산할 수 없다.");
+  }
+  const raw = stripLeadingBom(readFileSync(abs)).toString("utf8");
+  const digest = createHash("sha256").update(normalizeForCacheKey(raw)).digest("hex").slice(0, 12);
+  mobileInteractionPatchCacheKey = `build-${digest}`;
+  return mobileInteractionPatchCacheKey;
+}
 const CACHE_KEY_SOURCE_FILES = [
   "index.html",
 ];
@@ -426,7 +446,7 @@ function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
 function preserveIndependentCacheKeys(source) {
   return String(source || "").replace(
     /(\/js\/mobile-interaction-patch\.js\?v=)[a-zA-Z0-9_-]+/g,
-    `$1${MOBILE_INTERACTION_PATCH_CACHE_KEY}`,
+    `$1${resolveMobileInteractionPatchCacheKey()}`,
   );
 }
 
