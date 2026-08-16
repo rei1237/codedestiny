@@ -34,8 +34,7 @@ export default function MoonIcon({ phase = "half", progress = 0.5, className = "
             : 96;
 
   return (
-    <svg viewBox="0 0 64 64" className={className} role={title ? "img" : "presentation"} aria-hidden={title ? undefined : true}>
-      {title ? <title>{title}</title> : null}
+    <svg viewBox="0 0 64 64" className={className} role={title ? "img" : "presentation"} aria-label={title || undefined} aria-hidden={title ? undefined : true}>
       <defs>
         <radialGradient id={gradientId} cx="38%" cy="30%" r="62%">
           <stop offset="0%" stopColor="#F8FAFF" stopOpacity="1" />

@@ -617,11 +617,11 @@ function injectHwatuHTML() {
         
         <div class="vignette-overlay"></div><div id="goldAura" class="gold-aura"></div><div class="flickering-lamp"></div>
         <div class="tazza-hero-bg">
-            <img src="/sudda/goni.webp" class="tazza-hero-img">
-            <img src="/sudda/madam.webp" class="tazza-hero-img">
-            <img src="/sudda/agui.webp" class="tazza-hero-img">
-            <img src="/sudda/gosu.webp" class="tazza-hero-img">
-            <img src="/sudda/master.webp" class="tazza-hero-img">
+            <img src="/sudda/goni.webp" class="tazza-hero-img" alt="">
+            <img src="/sudda/madam.webp" class="tazza-hero-img" alt="">
+            <img src="/sudda/agui.webp" class="tazza-hero-img" alt="">
+            <img src="/sudda/gosu.webp" class="tazza-hero-img" alt="">
+            <img src="/sudda/master.webp" class="tazza-hero-img" alt="">
         </div>
         <div class="hwatu-table" style="position: relative; z-index: 2;">
             <h2 class="tazza-title" style="font-family: '궁서', cursive; font-size: 2.8rem; letter-spacing: -2px; color: #d4af37; text-shadow: 2px 2px 5px rgba(185,28,28,0.8);">화투 운세: 신의 손길</h2>
@@ -756,10 +756,10 @@ function injectHwatuHTML() {
         </div>
 
         <!-- 다중 타짜 캐릭터 팝업 인터랙션 -->
-        <div class="tazza-multi-popup" id="tcTop"><img id="tcTopImg" src=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcTopName"></span><span class="tazza-popup-quote" id="tcTopText"></span></div></div>
-        <div class="tazza-multi-popup" id="tcBottom"><img id="tcBottomImg" src=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcBottomName"></span><span class="tazza-popup-quote" id="tcBottomText"></span></div></div>
-        <div class="tazza-multi-popup" id="tcLeft"><img id="tcLeftImg" src=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcLeftName"></span><span class="tazza-popup-quote" id="tcLeftText"></span></div></div>
-        <div class="tazza-multi-popup" id="tcRight"><img id="tcRightImg" src=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcRightName"></span><span class="tazza-popup-quote" id="tcRightText"></span></div></div>
+        <div class="tazza-multi-popup" id="tcTop"><img id="tcTopImg" src="" alt=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcTopName"></span><span class="tazza-popup-quote" id="tcTopText"></span></div></div>
+        <div class="tazza-multi-popup" id="tcBottom"><img id="tcBottomImg" src="" alt=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcBottomName"></span><span class="tazza-popup-quote" id="tcBottomText"></span></div></div>
+        <div class="tazza-multi-popup" id="tcLeft"><img id="tcLeftImg" src="" alt=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcLeftName"></span><span class="tazza-popup-quote" id="tcLeftText"></span></div></div>
+        <div class="tazza-multi-popup" id="tcRight"><img id="tcRightImg" src="" alt=""><div class="tazza-popup-text-col"><span class="tazza-popup-name" id="tcRightName"></span><span class="tazza-popup-quote" id="tcRightText"></span></div></div>
     `;
     document.body.appendChild(overlay);
     loadGSAP(() => {});
@@ -1193,7 +1193,7 @@ function showReveal() {
         document.getElementById('jokboName').innerText = "【 " + jokbo + " 】";
         let charHTML = `
             <div style="display:flex;align-items:center;margin-bottom:20px;background:rgba(0,0,0,0.4);padding:15px;border-radius:10px;border-left:4px solid #d4af37;">
-                <img src="${character.image || '/icons/honey%20manse.png'}" style="width:70px;height:70px;border-radius:50%;margin-right:15px;border:2px solid #d4af37;box-shadow:0 0 10px rgba(251,191,36,0.2);">
+                <img src="${character.image || '/icons/honey%20manse.png'}" alt="" style="width:70px;height:70px;border-radius:50%;margin-right:15px;border:2px solid #d4af37;box-shadow:0 0 10px rgba(251,191,36,0.2);">
                 <div style="flex:1;">
                     <div style="color:#94a3b8;font-size:0.9rem;margin-bottom:5px;">${character.name} 가 말하길..</div>
                     <div style="color:#facc15;font-weight:bold;font-style:italic;line-height:1.4;">${character.catchphrase}</div>

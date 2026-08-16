@@ -584,7 +584,7 @@ const appHtml = `
 
       <div class="video-container" id="videoContainer">
         <video id="phyVideo" autoplay playsinline></video>
-        <img id="phyImage" style="display:none;" />
+        <img id="phyImage" alt="" style="display:none;" />
         <canvas id="phyCanvas" width="320" height="320"></canvas>
         <div class="scan-overlay" id="scanOverlay"></div>
         <div class="preview-skeleton" id="previewSkeleton"></div>
