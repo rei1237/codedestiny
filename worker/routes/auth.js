@@ -1118,7 +1118,8 @@ function requiresSameOriginAuthGuard(method, path) {
     || path === "/oauth/complete-signup"
     || path === "/referral/kakao-share"
     || path === "/me/phone-number"
-    || path === "/me/payment-phone";
+    || path === "/me/payment-phone"
+    || path === "/me/profile-completion";
 }
 
 // Capacitor 앱은 https://localhost 출처에서 이 API를 호출한다. 브라우저는 이걸 교차 사이트로
@@ -1208,6 +1209,69 @@ function sanitizeOAuthNextPath(rawNext) {
   const nextPath = sanitizeNextPath(rawNext);
   if (!nextPath || isUnsafeOAuthRedirectPath(nextPath)) return "/";
   return nextPath;
+}
+
+/**
+ * 프로필 보완 화면. `/signup` 이 아니라 별도 경로인 것은 취향이 아니라 강제다 —
+ * 위 isUnsafeOAuthRedirectPath 와 프론트의 AUTH_ROUTE_PREFIXES(app/_lib/auth-return.js:1)가
+ * 로그인 루프를 막으려고 `/signup*` 을 리다이렉트 대상에서 거부한다. 그 가드를 뚫는 대신 경로를 나눴다.
+ */
+const PROFILE_COMPLETION_PATH = "/onboarding/";
+
+/**
+ * 번호가 없고 아직 한 번도 묻지 않은 회원만 딱 1회 붙잡는다.
+ *
+ * 🔴 판정은 저장값이 아니라 **복호화 결과**로 한다 — 봉투든 평문이든 같은 답이 나와야 한다.
+ * 키 부재·복호 실패는 decryptPhoneNumber 가 "" 로 접으므로 "번호 없음"과 같게 취급되는데,
+ * 그 경우 온보딩을 한 번 보여주는 쪽이 결제 직전에 막히는 것보다 낫다.
+ *
+ * 🔴 앱(Capacitor)은 대상이 아니다 — 앱 번들에 /onboarding 이 없어 빈 화면이 된다.
+ */
+async function shouldPromptProfileCompletion(user, env, request = null) {
+  if (!user) return false;
+  if (request && isMobileAppAuthRequest(request)) return false;
+  if (user.phonePromptedAt) return false;
+  return !(await decryptPhoneNumber(user.phoneNumber || user.phone, env));
+}
+
+/** 원래 목적지를 next 로 실어 보낸다 — 온보딩이 저장/건너뛰기 후 그대로 이어 보낸다. */
+function buildProfileCompletionNextPath(nextPath) {
+  const target = sanitizeNextPath(nextPath) || "/";
+  // 이미 온보딩을 가리키면 중첩시키지 않는다(`?next=/onboarding/` 자기참조 방지).
+  if (target === "/" || target.split("?")[0].replace(/\/+$/, "") === "/onboarding") return PROFILE_COMPLETION_PATH;
+  return `${PROFILE_COMPLETION_PATH}?next=${encodeURIComponent(target)}`;
+}
+
+/**
+ * 물어봤다는 사실을 남긴다. 곁다리 쓰기이므로 실패해도 로그인은 그대로 진행한다.
+ *
+ * 🔴 try 가 withOptionalAuthSideEffect **바깥**을 감싸야 한다. 그 헬퍼는 이미 만들어진 프로미스를
+ * 받으므로 인자 자리에서 나는 **동기** 예외(잘못된 ObjectId 문자열 등)는 잡아 주지 못하고,
+ * 그대로 로그인 응답 생성까지 타고 올라가 로그인 자체를 실패시킨다.
+ */
+async function markProfileCompletionPrompted(userId, env) {
+  try {
+    await withOptionalAuthSideEffect(
+      User.collection.updateOne(
+        { _id: new mongoose.Types.ObjectId(String(userId)) },
+        { $set: { phonePromptedAt: new Date() } },
+      ),
+      Math.min(getAuthOpTimeoutMs(env), 2000),
+      "auth_profile_completion_mark_prompted",
+    );
+  } catch (error) {
+    console.warn("[auth/profile-completion] prompt marker skipped:", error);
+  }
+}
+
+/**
+ * 로그인 응답의 nextPath 를 온보딩으로 갈아끼운다(해당될 때만). 대상이면 그 자리에서 표식을 남겨
+ * 다음 로그인부터는 원래 목적지로 곧장 간다.
+ */
+async function applyProfileCompletionGate(user, env, nextPath, request = null) {
+  if (!(await shouldPromptProfileCompletion(user, env, request))) return nextPath;
+  await markProfileCompletionPrompted(user._id, env);
+  return buildProfileCompletionNextPath(nextPath);
 }
 
 function sanitizeAppOAuthRedirect(rawRedirect) {
@@ -2216,12 +2280,14 @@ async function createAuthSuccessResponse(request, env, user, status = 200, nextP
   const { refreshToken, tokenHash, expiresAt } = await issueRefreshTokenForUser(user._id, env);
   await createRefreshSession(request, env, user._id, tokenHash, expiresAt);
   const accessExpiresInSec = parseDurationToSeconds(getAccessTokenExpiresIn(env), 30 * 60);
+  // 번호가 없는 회원은 원래 목적지 대신 온보딩을 한 번 거친다(원래 목적지는 next 로 실려 간다).
+  const resolvedNextPath = await applyProfileCompletionGate(user, env, sanitizeNextPath(nextPath) || "/", request);
 
   const response = json({
     ok: true,
     message: status === 201 ? "Registration completed." : "Login completed.",
     user: await normalizeAuthUserResponse(user, env),
-    nextPath: sanitizeNextPath(nextPath) || "/",
+    nextPath: resolvedNextPath,
     ...(isMobileAppAuthRequest(request) ? {
       accessToken,
       tokenType: "Bearer",
@@ -2767,6 +2833,7 @@ async function handleLogin(request, env) {
               email: 1,
               phoneNumber: 1,
               phone: 1,
+              phonePromptedAt: 1,
               birthDate: 1,
               birthTime: 1,
               gender: 1,
@@ -3346,6 +3413,84 @@ async function handleSavePaymentPhoneNumber(request, env) {
 
 async function handleUpdatePhoneNumber(request, env) {
   return await handleSavePaymentPhoneNumber(request, env);
+}
+
+/**
+ * 프로필 보완(/onboarding) 저장 — 이름과 휴대폰 번호를 한 번에 받는다. 둘 다 선택이다.
+ *
+ * 🔴 번호는 write-once 다(handleSavePaymentPhoneNumber 와 같은 규칙) — 이미 값이 있으면 덮지 않는다.
+ * 이 화면은 "빈 곳을 채우는" 자리이지 번호 변경 창구가 아니고, 결제 이력이 붙은 번호를
+ * 임의로 갈아치우면 PG 구매자 정보와 어긋난다.
+ *
+ * 🔴 암호화 실패는 503 이며 평문으로 폴백하지 않는다(pii-crypto 의 fail-closed 계약).
+ */
+async function handleProfileCompletion(request, env) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+
+  const userId = String(auth.userId || "");
+  if (!mongoose.Types.ObjectId.isValid(userId)) {
+    return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
+  }
+
+  const name = String(body?.name || "").trim().slice(0, 40);
+  if (name && name.length < 2) {
+    return json({ ok: false, code: "invalid_name", message: "이름을 2자 이상 입력해 주세요." }, { status: 400 });
+  }
+  const phoneNumber = normalizeKoreanPhoneNumber(body?.phoneNumber || body?.phone);
+  // 값을 보냈는데 형식이 틀린 경우만 막는다. 아예 안 보낸 것(건너뛰기)은 정상 경로다.
+  if ((body?.phoneNumber || body?.phone) && !phoneNumber) {
+    return json({ ok: false, code: "invalid_phone_number", message: "휴대폰 번호를 정확히 입력해 주세요." }, { status: 400 });
+  }
+
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_profile_completion_connect_db");
+  const currentUser = await withAuthOpTimeout(
+    User.collection.findOne(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      { projection: { _id: 1, name: 1, phoneNumber: 1, phone: 1 }, maxTimeMS: dbMaxTimeMs },
+    ),
+    timeoutMs,
+    "auth_profile_completion_find_current",
+  );
+  if (!currentUser) {
+    return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
+  }
+
+  // 표식은 무엇을 채웠든 항상 갱신한다 — 이 화면을 봤다는 사실 자체가 "물어봤다"이다.
+  const update = { phonePromptedAt: new Date() };
+  if (name) update.name = name;
+
+  if (phoneNumber && !(await decryptPhoneNumber(currentUser.phoneNumber || currentUser.phone, env))) {
+    try {
+      update.phoneNumber = await encryptPhoneNumber(phoneNumber, env);
+    } catch (error) {
+      return json({
+        ok: false,
+        code: "phone_encryption_unavailable",
+        message: "휴대폰 번호를 안전하게 저장할 수 없어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
+    update.phoneUpdatedAt = new Date();
+  }
+
+  // 🔴 raw driver 라 Mongoose setter·검증이 돌지 않는다. 위에서 직접 정규화·암호화한 값만 넣는다.
+  const updatedResult = await withAuthOpTimeout(
+    User.collection.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      { $set: update },
+      { returnDocument: "after", projection: ME_USER_PROJECTION, maxTimeMS: dbMaxTimeMs },
+    ),
+    timeoutMs,
+    "auth_profile_completion_update_user",
+  );
+  const user = unwrapFindOneAndUpdateResult(updatedResult);
+  if (!user) {
+    return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
+  }
+
+  return json({ ok: true, user: await normalizeAuthUserResponse(user, env) });
 }
 
 async function handleRefresh(request, env) {
@@ -4174,7 +4319,12 @@ async function handleOAuthCallback(request, env, provider) {
         getAuthOpTimeoutMs(env),
         "auth_social_kakao_issue_session",
       );
-      const response = redirect(redirectTarget);
+      // 🔴 kakao 만 콜백에서 직접 세션을 발급하므로 온보딩 전환도 여기서 한다(다른 공급자는
+      // /oauth/complete 응답의 nextPath 가 담당한다). 앱 핸드오프는 위에서 이미 반환돼 여기 오지 않는다.
+      const gatedNextPath = await applyProfileCompletionGate(user, env, nextPath, request);
+      const response = redirect(
+        gatedNextPath === nextPath ? redirectTarget : buildOAuthFrontendUrl(safeFrontendBase, gatedNextPath),
+      );
       appendAuthCookies(response, request, env, appAccessToken, nextRefresh.refreshToken);
       appendAuthRoleCookie(response, request, env, user);
       if (referralReward) response.headers.set("X-Code-Destiny-Referral-Reward", "applied");
@@ -4233,6 +4383,7 @@ async function handleOAuthComplete(request, env) {
                 email: 1,
                 phoneNumber: 1,
                 phone: 1,
+                phonePromptedAt: 1,
                 birthDate: 1,
                 birthTime: 1,
                 gender: 1,
@@ -4274,7 +4425,9 @@ async function handleOAuthComplete(request, env) {
           ok: true,
           message: "Social login completed.",
           user: await normalizeAuthUserResponse(user, env),
-          nextPath: sanitizeOAuthNextPath(payload.nextPath),
+          // 콜백 페이지는 이 nextPath 를 그대로 따라간다(StaticOAuthCallbackRedirect.tsx:427) —
+          // 그래서 온보딩 전환은 서버에서 끝나고 클라 스크립트는 손대지 않는다.
+          nextPath: await applyProfileCompletionGate(user, env, sanitizeOAuthNextPath(payload.nextPath), request),
           provider: payload.provider,
           accessToken,
           tokenType: "Bearer",
@@ -4429,6 +4582,14 @@ async function handleOAuthCompleteSignup(request, env) {
     return signupErrorResponse(request, env, 500, "unknown_error", "Failed to create social account.");
   }
 
+  // 🔴 이 화면이 번호를 이미 물었다(선택). 표식을 남기지 않으면 createAuthSuccessResponse 의
+  // 온보딩 게이트가 곧바로 발동해 방금 건너뛴 질문을 한 번 더 하게 된다.
+  // 인메모리 값도 함께 세팅한다 — 아래 응답 생성이 이 문서를 그대로 읽는다.
+  if (!user.phonePromptedAt) {
+    user.phonePromptedAt = new Date();
+    await markProfileCompletionPrompted(user._id, env);
+  }
+
   // 티켓 재제출·동시 콜백 경합으로 과거 보호자 동의 대기 계정을 받았다면 세션을 주지 않는다.
   if (isGuardianConsentBlocked(user)) {
     return signupErrorResponse(
@@ -4498,6 +4659,7 @@ export async function handleAuthRoutes(request, env, ctx) {
       || path === "/referral/kakao-share"
       || path === "/me/phone-number"
       || path === "/me/payment-phone"
+      || path === "/me/profile-completion"
     ) {
       if (!isLocalDevAuthRoute(request, env, method, path)) {
         const configError = configMismatchResponse("auth-basic", env);
@@ -4525,6 +4687,7 @@ export async function handleAuthRoutes(request, env, ctx) {
     if (method === "GET" && path === "/me") return await handleMe(request, env);
     if (method === "GET" && path === "/me/payment-phone") return await handlePaymentPhoneStatus(request, env);
     if ((method === "PATCH" || method === "POST") && path === "/me/payment-phone") return await handleSavePaymentPhoneNumber(request, env);
+    if ((method === "PATCH" || method === "POST") && path === "/me/profile-completion") return await handleProfileCompletion(request, env);
     if ((method === "PATCH" || method === "POST") && path === "/me/phone-number") return await handleUpdatePhoneNumber(request, env);
     if (method === "POST" && path === "/password") return await handleChangePassword(request, env);
     if (method === "GET" && path === "/withdraw") return await handleWithdrawCsrfIssue(request, env);
@@ -4578,6 +4741,10 @@ export const __authTestUtils = {
   handleWithdrawCsrfIssue,
   findOrCreateSocialUser,
   buildProviderConfig,
+  shouldPromptProfileCompletion,
+  buildProfileCompletionNextPath,
+  applyProfileCompletionGate,
+  handleProfileCompletion,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
   clearWithdrawRateLimitState: () => withdrawRateLimitMap.clear(),
 };

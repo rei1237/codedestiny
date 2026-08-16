@@ -22,10 +22,15 @@ test("shared auth shell keeps email and social login in one mobile-first surface
   assert.match(shell, /\["google", "naver", "kakao"\]/);
   assert.match(shell, /ageAttested: age/);
   assert.match(shell, /min-h-\[100dvh\]/);
-  // 가입 화면이 받는 것은 이름·이메일·비밀번호·필수동의뿐이다. 생년월일과 마찬가지로
-  // 휴대폰 번호도 여기서 받지 않는다 — 번호는 소셜 공급자 값이거나 첫 결제 때 1회 입력이다.
+  // 가입 화면은 생년 정보를 받지 않는다 — 그건 각 운세 기능이 프로필 카드로 따로 받는다.
   assert.doesNotMatch(shell, /birthDate|birthTime|gender/);
-  assert.doesNotMatch(shell, /phoneNumber|phoneHelp|type="tel"/);
+  // 🔴 휴대폰 번호는 **소셜 가입 마무리(ticket)에서만** 묻는 선택 항목이다. 이메일 가입 폼으로
+  // 새면 2026-08-15 에 정리한 "가입 화면은 번호를 받지 않는다"로 되돌아가므로 노출 조건을 고정한다.
+  assert.match(shell, /\{ticket && <Field id="auth-phone"/);
+  assert.doesNotMatch(shell, /\{isSignup && <Field id="auth-phone"/);
+  // 값이 있을 때만 필수 동의를 요구하고, 없으면 그대로 통과해야 한다(건너뛰기 보존).
+  assert.match(shell, /if \(hasPhoneInput\(phone\) && !phoneNumber\)/);
+  assert.match(shell, /if \(phoneNumber && !phoneConsent\)/);
 });
 
 test("web auth response does not expose bearer tokens and post-login bootstrap is bounded", () => {

@@ -21,6 +21,9 @@ const userSchema = new mongoose.Schema({
   // 어느 한쪽만 허용하면 그쪽이 곧바로 저장/검증 실패가 된다.
   phoneNumber: { type: String, default: "", trim: true, match: /^$|^01\d{8,9}$|^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$/ },
   phoneUpdatedAt: { type: Date },
+  // 프로필 보완(/onboarding)을 이미 한 번 물어봤는지. "선택 입력"이라 건너뛴 사람을 로그인마다
+  // 다시 붙잡지 않기 위한 1회성 표식이며, 번호 보유 여부와는 별개다(건너뛰어도 찍힌다).
+  phonePromptedAt: { type: Date },
   passwordHash: { type: String, required: false, default: "", select: false },
   birthDate: { type: String, default: "", match: /^$|^\d{4}-\d{2}-\d{2}$/ },
   birthTime: { type: String, default: "", match: /^$|^(?:[01]\d|2[0-3]):[0-5]\d$/ },

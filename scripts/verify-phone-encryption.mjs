@@ -179,25 +179,55 @@ assert.equal(entry.secret, true, "PII_ENC_KEY must be marked as a secret");
 assert.ok(entry.required_in?.includes("production"), "PII_ENC_KEY must be required in production");
 assert.ok(entry.targets?.includes("worker"), "PII_ENC_KEY must target the worker");
 
-// 12. 🔴 수집 지점이 하나뿐인지 — 가입 화면은 번호를 받지 않는다(2026-08-15 정책 전환).
-//     예전에는 이 절이 "가입 화면이 암호화 보관을 안내하는지"를 봤다. 정책이 뒤집혔으므로
-//     같은 자리에서 **반대 방향**을 고정한다: 가입 폼에 번호 입력이 되살아나면 실패한다.
-//     번호는 ①소셜 공급자가 준 값 ②첫 단건결제의 입력 모달, 두 경로로만 들어온다.
+// 12. 🔴 수집 지점이 **선택**으로만 늘어나는지 (2026-08-17 정책 개정).
+//     이 절은 두 번 방향이 바뀌었다. ①원래는 "가입 화면이 암호화 보관을 안내하는지"
+//     ②2026-08-15 에 "가입 폼에 번호 입력이 있으면 실패"로 뒤집힘 ③지금은 수집 지점이
+//     소셜 가입 마무리·프로필 보완(/onboarding)까지 늘었다.
+//     되돌리면 안 되는 성질은 "번호는 언제나 선택이고, 건너뛸 수 있다" 하나다.
 const authShellSource = read("app/components/auth/AuthShell.tsx");
-for (const forbidden of ["phoneNumber", "phoneHelp", 'type="tel"', "휴대폰 번호"]) {
-  assert.ok(
-    !authShellSource.includes(forbidden),
-    `signup form must not collect a phone number any more (found: ${forbidden})`,
-  );
-}
+// 번호 입력은 소셜 가입 마무리(ticket)에서만 뜬다 — 이메일 가입 폼으로 새면 실패.
+assertContains(authShellSource, '{ticket && <Field id="auth-phone"',
+  "phone input must be scoped to the social signup completion step");
+assert.ok(
+  !authShellSource.includes('{isSignup && <Field id="auth-phone"'),
+  "phone input must not widen to the email signup form",
+);
+// 비워 두면 그대로 통과해야 한다. 아래 두 분기가 사라지면 번호가 사실상 필수가 된다.
+assertContains(authShellSource, "if (hasPhoneInput(phone) && !phoneNumber)",
+  "an empty phone field must stay valid (only a malformed entry is rejected)");
+assertContains(authShellSource, "if (phoneNumber && !phoneConsent)",
+  "consent must be required only when a phone number was actually entered");
 
-// 수집을 실제로 하는 지점(결제 모달)이 서버 보관 사실을 알리는지. 가입 화면에서 뺀 고지를
-// 아무 데서도 안 하게 되는 것이 이 전환의 유일한 퇴행 경로다.
+// /onboarding 도 같은 계약이어야 한다 — 저장은 서버가 암호화하고, 건너뛰기는 항상 열려 있다.
+const onboardingSource = read("app/onboarding/OnboardingClient.tsx");
+assertContains(onboardingSource, "if (hasPhoneInput(phone) && !phoneNumber)",
+  "onboarding must keep the phone field optional");
+assertContains(onboardingSource, "onClick={leave}",
+  "onboarding must keep a skip control");
+assert.ok(
+  !/phoneNumber:\s*phone\b/.test(onboardingSource),
+  "onboarding must send the normalized digits, never the display value",
+);
+
+// 서버 쓰기 경로 — 프로필 보완 저장도 봉투로만 저장한다.
+assertContains(authSource, "async function handleProfileCompletion(request, env) {",
+  "profile-completion handler must exist");
+assertContains(authSource, "update.phoneNumber = await encryptPhoneNumber(phoneNumber, env);",
+  "profile-completion must encrypt before writing");
+assertContains(authSource, 'code: "phone_encryption_unavailable"',
+  "profile-completion must fail closed when the key is missing");
+
+// 게이트는 복호화 결과로 판정해야 한다 — 저장값 문자열로 보면 봉투가 항상 '번호 있음'이 된다.
+assertContains(authSource, "return !(await decryptPhoneNumber(user.phoneNumber || user.phone, env));",
+  "the onboarding gate must decide on the decrypted value");
+
+// 수집을 실제로 하는 지점들이 서버 보관 사실을 알리는지. 고지가 어디에도 없게 되는 것이
+// 이 전환의 유일한 퇴행 경로다.
 assertContains(read("app/_lib/payment-phone-prompt.ts"), "서버에",
   "payment-phone prompt must tell the user the number is stored on the server");
 assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "AES-256 방식으로 암호화해 보관합니다",
   "privacy policy must state that the phone number is stored encrypted");
-assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 가입 시 받지 않으며",
-  "privacy policy must state that the phone number is not collected at signup");
+assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 필수 항목이 아니며",
+  "privacy policy must state that the phone number is optional");
 
 console.log("verify-phone-encryption: OK");
