@@ -41,8 +41,7 @@ const YANTRA_TRIANGLES = [
 /** 태극(홍청) — 동양 점(숙요점·사주)의 상징. viewBox 0 0 100 100. */
 export function Taegeuk({ className, style, title }: SymbolProps) {
   return (
-    <svg className={className} style={style} viewBox="0 0 100 100" role={title ? "img" : "presentation"} aria-hidden={title ? undefined : true}>
-      {title ? <title>{title}</title> : null}
+    <svg className={className} style={style} viewBox="0 0 100 100" role={title ? "img" : "presentation"} aria-label={title || undefined} aria-hidden={title ? undefined : true}>
       <circle cx="50" cy="50" r="47.5" fill="none" stroke="#e5c789" strokeWidth="1.4" opacity="0.8" />
       <circle cx="50" cy="50" r="44" fill="#2b8aa0" />
       <path d="M50 6 A44 44 0 0 1 50 94 A22 22 0 0 1 50 50 A22 22 0 0 0 50 6 Z" fill="#d83a63" />
@@ -55,8 +54,7 @@ export function Taegeuk({ className, style, title }: SymbolProps) {
 /** 스리 얀트라 만다라 — 인도 베다점의 상징. 골드 라인은 currentColor를 따른다. viewBox 0 0 240 240. */
 export function Yantra({ className, style, title }: SymbolProps) {
   return (
-    <svg className={className} style={style} viewBox="0 0 240 240" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" role={title ? "img" : "presentation"} aria-hidden={title ? undefined : true}>
-      {title ? <title>{title}</title> : null}
+    <svg className={className} style={style} viewBox="0 0 240 240" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinejoin="round" role={title ? "img" : "presentation"} aria-label={title || undefined} aria-hidden={title ? undefined : true}>
       <rect x="14" y="14" width="212" height="212" opacity="0.6" />
       <rect x="26" y="26" width="188" height="188" opacity="0.5" />
       <path d="M120 14 v14 M113 21 h14 M120 226 v-14 M113 219 h14 M14 120 h14 M21 113 v14 M226 120 h-14 M219 113 v14" opacity="0.7" />
