@@ -30,6 +30,8 @@
     "verify:adsense-route-policy": "node scripts/verify-adsense-route-policy.mjs",
     "verify:adsense-readiness": "node scripts/verify-adsense-readiness.mjs",
     "verify:sitemap": "node scripts/verify-sitemap-integrity.mjs",
+    "verify:redirects-budget": "node scripts/verify-redirects-budget.mjs",
+    "verify:redirects:live": "node scripts/verify-redirects-live.mjs",
     "verify:doc-freshness": "node scripts/verify-doc-freshness.mjs",
     "audit:content-headroom": "node scripts/audit-content-headroom.mjs",
     "audit:content-headroom:live": "node scripts/audit-content-headroom.mjs --live",
