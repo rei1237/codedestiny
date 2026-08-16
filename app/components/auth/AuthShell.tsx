@@ -15,6 +15,7 @@ import {
 } from "../../_lib/auth-client";
 import { resolveAuthReturnPath, sanitizeAuthReturnPath } from "../../_lib/auth-return";
 import { hydrateAuthSuccessUser, login } from "../../_lib/auth-store";
+import { formatKoreanPhoneInput, hasPhoneInput, toStoredPhoneDigits } from "./phone-input";
 
 type AuthMode = "login" | "signup";
 type SocialProvider = "google" | "naver" | "kakao";
@@ -42,6 +43,7 @@ type Copy = {
   loginTitle: string; signupTitle: string; loginDescription: string; signupDescription: string;
   socialLabel: string; google: string; naver: string; kakao: string; moving: string; orEmail: string;
   email: string; password: string; name: string;
+  phone: string; phoneOptional: string; phoneHint: string; phoneInvalid: string; phoneConsent: string;
   showPassword: string; hidePassword: string; capsLock: string; passwordHint: string; login: string; signup: string;
   processing: string; switchToSignup: string; switchToLogin: string; noAccount: string; hasAccount: string;
   privacy: string; privacySummary: string; terms: string; age: string; required: string; finishTitle: string;
@@ -56,15 +58,19 @@ const EN: Copy = {
   socialLabel: "Continue with a social account", google: "Continue with Google", naver: "Continue with Naver",
   kakao: "Continue with Kakao", moving: "Opening authentication…", orEmail: "or use email",
   email: "Email", password: "Password", name: "Name",
+  phone: "Phone number", phoneOptional: "optional",
+  phoneHint: "Only used for card payments. You can add it later at checkout instead.",
+  phoneInvalid: "Enter a valid mobile number.",
+  phoneConsent: "I agree to the collection and use of my phone number for payment processing.",
   showPassword: "Show password", hidePassword: "Hide password", capsLock: "Caps Lock is on.",
   passwordHint: `At least ${MIN_NEW_PASSWORD_LENGTH} characters. Passwords found in known breaches are rejected.`,
   login: "Log in", signup: "Create account", processing: "Checking securely…",
   switchToSignup: "Create account", switchToLogin: "Log in", noAccount: "New here?", hasAccount: "Already have an account?",
   privacy: "I agree to the collection and use of personal information.",
-  privacySummary: "Name and email / account management / until account deletion, except where law requires retention.",
+  privacySummary: "Name and email, plus an optional phone number / account management and payment processing / until account deletion, except where law requires retention.",
   terms: "I agree to the Terms of Service.",
   age: "I confirm that I am at least 14 years old.", required: "Required agreements",
-  finishTitle: "One last check", finishDescription: "We only need your name and the required agreements.",
+  finishTitle: "One last check", finishDescription: "We only need your name and the required agreements. The phone number is optional.",
   finish: "Finish and continue", invalidEmail: "Enter a valid email address.",
   invalidSignup: "Check your name, password, and required agreements.",
   credentialsError: "Check your email or password.", network: "The connection is unstable. Your entries are still here.",
@@ -80,15 +86,19 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     socialLabel: "소셜 계정으로 계속하기", google: "Google로 계속하기", naver: "네이버로 계속하기",
     kakao: "카카오로 계속하기", moving: "인증 화면으로 이동 중…", orEmail: "또는 이메일로 계속하기",
     email: "이메일", password: "비밀번호", name: "이름",
+    phone: "휴대폰 번호", phoneOptional: "선택",
+    phoneHint: "단건 결제(KG이니시스)에 필요한 정보예요. 지금 넣지 않아도 결제할 때 다시 여쭤봐요.",
+    phoneInvalid: "휴대폰 번호를 정확히 입력해 주세요.",
+    phoneConsent: "결제 진행 목적의 휴대폰 번호 수집·이용에 동의합니다.",
     showPassword: "비밀번호 보기", hidePassword: "비밀번호 숨기기", capsLock: "Caps Lock이 켜져 있어요.",
     passwordHint: `${MIN_NEW_PASSWORD_LENGTH}자 이상이어야 하고, 이미 유출된 것으로 알려진 비밀번호는 쓸 수 없어요.`,
     login: "로그인", signup: "가입하고 바로 시작하기", processing: "안전하게 확인 중…",
     switchToSignup: "회원가입", switchToLogin: "로그인", noAccount: "처음 오셨나요?", hasAccount: "이미 계정이 있나요?",
     privacy: "개인정보 수집·이용에 동의합니다.",
-    privacySummary: "수집: 이름·이메일 / 목적: 계정 관리 / 보유: 탈퇴 시까지(법령상 보존 제외)",
+    privacySummary: "수집: 이름·이메일(휴대폰 번호는 선택) / 목적: 계정 관리·결제 진행 / 보유: 탈퇴 시까지(법령상 보존 제외)",
     terms: "이용약관에 동의합니다.",
     age: "만 14세 이상임을 확인합니다.", required: "필수 동의",
-    finishTitle: "마지막으로 조금만 확인할게요", finishDescription: "이름과 필수 동의만 확인하면 바로 이용할 수 있어요.",
+    finishTitle: "마지막으로 조금만 확인할게요", finishDescription: "이름과 필수 동의만 확인하면 바로 이용할 수 있어요. 휴대폰 번호는 선택이에요.",
     finish: "확인하고 바로 시작하기", invalidEmail: "이메일 형식을 확인해 주세요.",
     invalidSignup: "이름·비밀번호와 필수 동의를 확인해 주세요.",
     credentialsError: "이메일 또는 비밀번호를 다시 확인해 주세요.",
@@ -117,6 +127,8 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const [ticket, setTicket] = useState("");
   const [name, setName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [phoneConsent, setPhoneConsent] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
@@ -219,11 +231,16 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     event.preventDefault();
     if (busy) return;
     if (name.trim().length < 2 || !privacy || !terms || !age) { setError(copy.invalidSignup); return; }
+    // 번호는 선택이다 — 비워 두면 그대로 통과하고, 첫 단건결제 때 다시 묻는다(2026-08-15 정책의 취지 보존).
+    // 다만 무언가 입력했는데 형식이 틀렸다면 조용히 버리지 않고 고칠 기회를 준다.
+    const phoneNumber = toStoredPhoneDigits(phone);
+    if (hasPhoneInput(phone) && !phoneNumber) { setError(copy.phoneInvalid); return; }
+    if (phoneNumber && !phoneConsent) { setError(copy.invalidSignup); return; }
     setBusy(true); setError("");
     try {
       const response = await authFetch(`${apiBase}/api/auth/oauth/complete-signup`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
-        body: JSON.stringify({ socialSignupTicket: ticket, name: name.trim(), privacyAccepted: privacy, termsAccepted: terms, ageAttested: age, nextPath: nextPath() }),
+        body: JSON.stringify({ socialSignupTicket: ticket, name: name.trim(), phoneNumber, privacyAccepted: privacy, termsAccepted: terms, ageAttested: age, nextPath: nextPath() }),
       });
       const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; appRedirectUrl?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
       if (!response.ok && response.status >= 500) { setError(withServerDiagnostics(copy.unavailable, payload)); return; }
@@ -246,8 +263,11 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
         {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["google", "naver", "kakao"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
         <form onSubmit={ticket ? finishSocialSignup : submitEmail} className="space-y-4" noValidate aria-describedby={error ? "auth-error" : undefined}>
           {isSignup && <Field id="auth-name" label={copy.name}><input id="auth-name" type="text" autoComplete="name" maxLength={40} value={name} onChange={(event) => setName(event.target.value)} className={inputClass} /></Field>}
+          {/* 🔴 번호는 소셜 가입 마무리(ticket)에서만 묻는다. 이메일 가입 폼에 새면 2026-08-15 에 되돌린
+              "가입 화면은 번호를 받지 않는다"로 되돌아간다 — 번호 없는 이메일 가입자는 /onboarding 이 받는다. */}
+          {ticket && <Field id="auth-phone" label={`${copy.phone} (${copy.phoneOptional})`}><input id="auth-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={13} placeholder="010-1234-5678" value={phone} onChange={(event) => setPhone(formatKoreanPhoneInput(event.target.value))} className={inputClass} /><p className="mt-1.5 text-xs leading-5 text-[#b9aecf]">{copy.phoneHint}</p></Field>}
           {!ticket && <><Field id="auth-email" label={copy.email}><input id="auth-email" type="email" inputMode="email" autoComplete={isSignup ? "email" : "username"} value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} /></Field><Field id="auth-password" label={copy.password}><div className="relative"><input id="auth-password" type={showPassword ? "text" : "password"} autoComplete={isSignup ? "new-password" : "current-password"} minLength={isSignup ? MIN_NEW_PASSWORD_LENGTH : 8} value={password} onChange={(event) => setPassword(event.target.value)} onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))} className={`${inputClass} pr-14`} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? copy.hidePassword : copy.showPassword} className="absolute inset-y-0 right-0 min-w-12 px-3 text-xs font-bold text-[#d6c9eb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#dbc9ff]">{showPassword ? "Hide" : "Show"}</button></div>{isSignup && <p className="mt-1.5 text-xs leading-5 text-[#b9aecf]">{copy.passwordHint}</p>}{capsLock && <p className="mt-1.5 text-xs text-[#ffd18a]">{copy.capsLock}</p>}</Field></>}
-          {isSignup && <fieldset className="space-y-2 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3"><legend className="px-1 text-xs font-bold text-[#cfc4e5]">{copy.required}</legend><Check id="auth-privacy" checked={privacy} onChange={setPrivacy}><Link href="/privacy" target="_blank" className="underline underline-offset-4">{copy.privacy}</Link></Check><p className="pl-9 text-[11px] leading-5 text-[#aa9fbd]">{copy.privacySummary}</p><Check id="auth-terms" checked={terms} onChange={setTerms}><Link href="/terms" target="_blank" className="underline underline-offset-4">{copy.terms}</Link></Check><Check id="auth-age" checked={age} onChange={setAge}>{copy.age}</Check></fieldset>}
+          {isSignup && <fieldset className="space-y-2 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3"><legend className="px-1 text-xs font-bold text-[#cfc4e5]">{copy.required}</legend><Check id="auth-privacy" checked={privacy} onChange={setPrivacy}><Link href="/privacy" target="_blank" className="underline underline-offset-4">{copy.privacy}</Link></Check><p className="pl-9 text-[11px] leading-5 text-[#aa9fbd]">{copy.privacySummary}</p><Check id="auth-terms" checked={terms} onChange={setTerms}><Link href="/terms" target="_blank" className="underline underline-offset-4">{copy.terms}</Link></Check><Check id="auth-age" checked={age} onChange={setAge}>{copy.age}</Check>{hasPhoneInput(phone) && <Check id="auth-phone-consent" checked={phoneConsent} onChange={setPhoneConsent}>{copy.phoneConsent}</Check>}</fieldset>}
           <button type="submit" disabled={busy || Boolean(socialBusy)} aria-busy={busy} className="min-h-12 w-full rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff] disabled:opacity-55">{busy ? copy.processing : ticket ? copy.finish : isSignup ? copy.signup : copy.login}</button>
         </form>
         {!ticket && <p className="mt-5 text-center text-sm text-[#cfc4e1]">{isSignup ? copy.hasAccount : copy.noAccount} <Link href={isSignup ? `/login?next=${encodeURIComponent(nextPath())}` : `/signup?next=${encodeURIComponent(nextPath())}`} onClick={() => { setMode(isSignup ? "login" : "signup"); setError(""); }} className="ml-1 min-h-11 font-black text-[#d7c1ff] underline underline-offset-4">{isSignup ? copy.switchToLogin : copy.switchToSignup}</Link></p>}
