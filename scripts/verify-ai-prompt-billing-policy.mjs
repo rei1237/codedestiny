@@ -7,6 +7,10 @@ import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "../worker/lib/
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "utf8");
+// 월정석 증빙 조회의 정본. 라우트마다 쿼리를 복제하던 시절 writer 변경이 몇 곳을 조용히
+// 죽여 결제자가 402 를 받았으므로(초융합·네오 실사고), 이 가드는 라우트가 정본에
+// 위임했는지와 정본이 실제로 원장을 읽는지를 함께 본다.
+const moonstoneProofSource = readFileSync(resolve(root, "worker/lib/moonstone-spend-proof.js"), "utf8");
 const coinGateSource = readFileSync(resolve(root, "app/hooks/useCoinGate.ts"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
 const sajuEngineSource = readFileSync(resolve(root, "js/saju-engine.js"), "utf8");
@@ -92,9 +96,12 @@ assert.match(fortuneSource, /hasAIPromptDirectPaymentEvidenceToken/, "AI prompt 
 assert.match(fortuneSource, /isAIPromptDirectAccessPayload\(body\) \|\| hasAIPromptDirectPaymentEvidenceToken\(body\)/, "AI prompt direct evidence lookup must not require paymentMode when payment ids are present");
 assert.match(fortuneSource, /hasAIPromptMonthlyCreditEvidenceToken/, "AI prompt monthly-credit evidence must fall back to ledger tokens");
 assert.match(fortuneSource, /!isAIPromptMonthlyCreditAccessPayload\(body\) && !hasAIPromptMonthlyCreditEvidenceToken\(body\)/, "AI prompt monthly-credit evidence lookup must not require paymentMode when ledger ids are present");
-assert.match(fortuneSource, /MonthlyCreditLedger\.findOne/, "AI prompt monthly-credit evidence must use the monthly credit ledger");
+assert.match(fortuneSource, /findMoonstoneSpendEvidence\(env, \{ userId, featureKeys, tokens \}\)/, "AI prompt monthly-credit evidence must delegate to the canonical moonstone proof reader");
+assert.match(moonstoneProofSource, /MonthlyCreditLedger\.find\(/, "canonical moonstone proof must read the monthly credit ledger");
+assert.match(moonstoneProofSource, /settledAt/, "canonical moonstone proof must consider settlement state");
+assert.match(moonstoneProofSource, /recentConsumeRequestIds/, "canonical moonstone proof must accept the deduction marker while settlement is in flight");
 assert.match(fortuneSource, /body\?\.ledgerId/, "AI prompt token collection must preserve monthly-credit ledger id");
-assert.match(fortuneSource, /metadata\.monthlyCreditLedgerId/, "AI prompt monthly-credit lookup must search ledger metadata ids");
+assert.match(moonstoneProofSource, /metadata\.monthlyCreditLedgerId/, "canonical moonstone proof must search ledger metadata ids");
 assert.match(billingSource, /ledgerId:\s*membershipConsume\.ledgerId \|\| ""/, "monthly-credit coin-gate success must return ledger id evidence");
 assert.match(billingSource, /transactionId:\s*membershipConsume\.transactionId \|\| ""/, "monthly-credit coin-gate success must return transaction id evidence");
 assert.match(billingSource, /purchaseId:\s*membershipConsume\.purchaseId \|\| requestId/, "monthly-credit coin-gate success must return purchase evidence");

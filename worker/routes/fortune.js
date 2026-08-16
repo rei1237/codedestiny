@@ -1,6 +1,7 @@
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import { invalidateAccessStateCacheForUser } from "../lib/access-state.js";
 import { User, PointHistory, Payment, MonthlyCreditLedger, PaidExecutionRecord, RECENT_CONSUME_REQUEST_ID_CAP, GuardianFortuneSharedSnapshot } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getUnlockedContentSnapshot } from "../lib/content-unlocks.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId, requireUserFromRequest, resolvePaidRouteAuth } from "../lib/auth.js";
@@ -1632,30 +1633,18 @@ function isAIPromptMonthlyCreditAccessPayload(body = {}) {
     || ctx.paymentMode === "MONTHLY";
 }
 
-function buildAIPromptMonthlyCreditLedgerClauses(tokens) {
-  const clauses = [];
-  for (const token of tokens) {
-    clauses.push({ sourceId: token });
-    clauses.push({ "metadata.requestId": token });
-    clauses.push({ "metadata.purchaseId": token });
-    clauses.push({ "metadata.idempotencyKey": token });
-    clauses.push({ "metadata.orderId": token });
-    clauses.push({ "metadata.pointHistoryId": token });
-    clauses.push({ "metadata.ledgerId": token });
-    clauses.push({ "metadata.monthlyCreditLedgerId": token });
-    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
-  }
-  return clauses;
-}
-
-async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId, cost }) {
+// 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
+// 가격 하한만 이 라우트가 계속 자기 책임으로 검사한다 — 정본은 "차감이 있었는가"만 판정한다.
+async function findAIPromptMonthlyCreditEvidence({ env, auth, featureKey, body, requestId, cost }) {
   if (!isAIPromptMonthlyCreditAccessPayload(body) && !hasAIPromptMonthlyCreditEvidenceToken(body)) return null;
   const userId = String(auth?.userId || "").trim();
   const normalizedFeatureKey = normalizeFeatureKey(featureKey);
   const featureKeys = uniqueStrings([featureKey, normalizedFeatureKey]);
   const tokens = collectAIPromptPaymentTokens(body, requestId);
-  const clauses = buildAIPromptMonthlyCreditLedgerClauses(tokens);
-  if (!userId || !featureKeys.length || !clauses.length) return null;
+  if (!userId || !featureKeys.length || !tokens.length) return null;
+
+  const evidence = await findMoonstoneSpendEvidence(env, { userId, featureKeys, tokens });
+  if (!evidence) return null;
 
   // 🔴 단위 주의: 원장의 amount 는 월정석, 인자 cost 는 코인이다. 하한은 반드시 정본 변환기를 거친다
   // (하드코딩 환산은 틀리는 순간 정상 결제가 402 로 떨어진다). billing 이 원장에 쓰는 amount 도
@@ -1663,21 +1652,16 @@ async function findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, reque
   const minCredit = isAIPromptPassAccessPayload(body)
     ? 0
     : Math.floor(Number(calculateMembershipCreditCost(cost) || 0));
+  if (minCredit > 0 ? !(evidence.amount >= minCredit) : !(evidence.amount > 0)) return null;
 
-  return MonthlyCreditLedger.findOne({
-    userId,
-    type: "MONTHLY_CREDIT_SPEND",
-    serviceKey: featureKeys.length > 1 ? { $in: featureKeys } : featureKeys[0],
-    amount: minCredit > 0 ? { $gte: minCredit } : { $gt: 0 },
-    "metadata.refundedForUnlockFailure": { $ne: true },
-    "metadata.monthlyCreditRefundedForUnlockFailure": { $ne: true },
-    "metadata.monthlyCreditRefundedForLedgerFailure": { $ne: true },
-    "metadata.monthlyCreditRefundedForServiceExecution": { $ne: true },
-    $or: clauses,
-  })
-    .select("_id amount afterBalance serviceKey reason sourceId metadata")
-    .sort({ createdAt: -1 })
-    .lean();
+  // 호출부(buildAIPromptVerifiedConsumePayload)가 읽는 record 모양으로 맞춘다.
+  return {
+    _id: evidence.ledgerId,
+    amount: evidence.amount,
+    afterBalance: evidence.afterBalance,
+    serviceKey: evidence.serviceKey,
+    sourceId: evidence.sourceId,
+  };
 }
 
 function readAIPromptAccessContext(body = {}) {
@@ -1854,7 +1838,7 @@ async function findAIPromptPaidAccessEvidence({ auth, featureKey, body, requestI
     if (payment) return { source: "payment", record: payment };
   }
 
-  const monthlyCredit = await findAIPromptMonthlyCreditEvidence({ auth, featureKey, body, requestId, cost });
+  const monthlyCredit = await findAIPromptMonthlyCreditEvidence({ env, auth, featureKey, body, requestId, cost });
   if (monthlyCredit) return { source: "monthly_credit_ledger", record: monthlyCredit };
 
   return null;

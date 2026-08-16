@@ -5,6 +5,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, VedicAiConsultation } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -547,22 +548,6 @@ function pointHistoryTokenClauses(tokens = []) {
   return clauses;
 }
 
-function monthlyCreditTokenClauses(tokens = []) {
-  const clauses = [];
-  tokens.forEach((token) => {
-    clauses.push({ sourceId: token });
-    clauses.push({ "metadata.requestId": token });
-    clauses.push({ "metadata.purchaseId": token });
-    clauses.push({ "metadata.idempotencyKey": token });
-    clauses.push({ "metadata.orderId": token });
-    clauses.push({ "metadata.pointHistoryId": token });
-    clauses.push({ "metadata.ledgerId": token });
-    clauses.push({ "metadata.monthlyCreditLedgerId": token });
-    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: new mongoose.Types.ObjectId(token) });
-  });
-  return clauses;
-}
-
 async function findDirectPayment(userObjectId, ids, idempotencyKey) {
   const clauses = [];
   if (idempotencyKey) clauses.push({ idempotencyKey }, { requestId: idempotencyKey });
@@ -605,27 +590,23 @@ async function findPointEvidence(userObjectId, ids, idempotencyKey, pricing) {
   };
 }
 
-async function findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing) {
-  const clauses = monthlyCreditTokenClauses(Array.from(new Set([idempotencyKey, ...ids].filter(Boolean))));
-  if (!clauses.length) return null;
-  const ledger = await MonthlyCreditLedger.findOne({
+// 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
+async function findMonthlyEvidence(env, userObjectId, ids, idempotencyKey, pricing) {
+  const evidence = await findMoonstoneSpendEvidence(env, {
     userId: userObjectId,
-    type: "MONTHLY_CREDIT_SPEND",
-    serviceKey: { $in: [FEATURE_KEY, SERVICE_KEY] },
-    "metadata.refundedForUnlockFailure": { $ne: true },
-    "metadata.refundedForServiceExecution": { $ne: true },
-    $or: clauses,
-  }).sort({ createdAt: -1 }).lean();
-  if (!ledger) return null;
+    featureKeys: [FEATURE_KEY, SERVICE_KEY],
+    tokens: [idempotencyKey, ...ids],
+  });
+  if (!evidence) return null;
   return {
     accessType: "subscription",
-    paymentId: clean(ledger._id, 160),
+    paymentId: clean(evidence.ledgerId, 160),
     source: "monthly-ledger",
     prepaid: true,
     evidenceType: "monthly_credit",
-    evidenceId: clean(ledger._id, 160),
-    amount: Math.max(0, Math.floor(Number(ledger.amount || pricing.membershipCreditCost || 0))),
-    purchaseId: clean(ledger.sourceId || ledger?.metadata?.purchaseId || ledger?.metadata?.idempotencyKey || idempotencyKey, 180),
+    evidenceId: clean(evidence.ledgerId, 160),
+    amount: Math.max(0, Math.floor(Number(evidence.amount || pricing.membershipCreditCost || 0))),
+    purchaseId: clean(evidence.sourceId || idempotencyKey, 180),
   };
 }
 
@@ -666,14 +647,14 @@ async function resolveBillingEvidence({ env, userId, body, idempotencyKey, prici
   }
 
   if (likelyAccessType === "subscription") {
-    const monthly = await withMongoRetry(env, () => findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing));
+    const monthly = await withMongoRetry(env, () => findMonthlyEvidence(env, userObjectId, ids, idempotencyKey, pricing));
     if (monthly) return monthly;
   }
 
   const point = await withMongoRetry(env, () => findPointEvidence(userObjectId, ids, idempotencyKey, pricing));
   if (point) return point;
 
-  const monthly = await withMongoRetry(env, () => findMonthlyEvidence(userObjectId, ids, idempotencyKey, pricing));
+  const monthly = await withMongoRetry(env, () => findMonthlyEvidence(env, userObjectId, ids, idempotencyKey, pricing));
   if (monthly) return monthly;
 
   return null;

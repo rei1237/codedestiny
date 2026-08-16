@@ -22,7 +22,8 @@
 import mongoose from "mongoose";
 import { connectDb, isTransientMongoError, withMongoRetry } from "./db.js";
 import { isAuthDbInfraError } from "./auth.js";
-import { User, Payment, PointHistory, MonthlyCreditLedger } from "./models.js";
+import { User, Payment, PointHistory } from "./models.js";
+import { findMoonstoneSpendEvidence } from "./moonstone-spend-proof.js";
 import { normalizeHoneyPassEntitlement, canUseByPass, resolveMonthlySpendQuota, resolvePremiumQuota } from "./profile-limits.js";
 // 🔴 family 공정이용 상한의 cycleKey 는 entitlement 의 expiresAt 에서 나온다. coin-gate 가 쓰는 것과
 // **같은 생산자**를 써야 두 곳의 cycleKey 가 일치하고, 저장된 카운터를 실제로 읽을 수 있다
@@ -71,37 +72,20 @@ async function findDeduction(userId, featureKey, requestId) {
   }).select("_id metadata").lean();
 }
 
-// 월정석 차감의 회계 정본은 이 원장 하나다(worker/payments/moonstone.js — V2 는 PointHistory 를
-// 일부러 쓰지 않는다). 그래서 이 조회가 월정석의 **유일한** 증빙 경로다.
+// 월정석 차감의 회계 정본은 MonthlyCreditLedger 하나다(worker/payments/moonstone.js — V2 는
+// PointHistory 를 일부러 쓰지 않는다). 그래서 이 조회가 월정석의 **유일한** 증빙 경로다.
 //
-// 🔴 조회 필드는 writer 가 실제로 쓰는 이름이어야 한다. 예전 이 함수는 top-level `requestId`·
-//    `idempotencyKey` 로 찾았는데 **원장 스키마에 그런 필드가 없다**(models.js monthlyCreditLedgerSchema —
-//    멱등키는 `sourceId` 다). 구 billing.js 시절에는 그 경로가 함께 남기던 PointHistory 로 증빙이
-//    서서 결함이 가려져 있었고, V2 컷오버가 PointHistory 쓰기를 없애자 월정석으로 결제한 사용자가
-//    차감만 당하고 402(미결제)를 받았다(초융합 운세 ₩30,000 실사고). 계약은
+// 🔴 쿼리 본문은 여기 두지 않는다. writer 가 바뀔 때마다 레포 곳곳의 사본이 하나씩 조용히 죽고,
+//    죽은 자리에서 월정석이 차감된 사용자가 402 를 받았다(초융합 ₩30,000 · 네오 팩폭 실사고).
+//    정본은 worker/lib/moonstone-spend-proof.js 하나이며, 계약은
 //    __tests__/worker/per-use-proof-roundtrip.test.js 가 writer↔reader 왕복으로 고정한다.
-async function findMonthlyLedger(userId, featureKey, requestId) {
+async function findMonthlyLedger(env, userId, featureKey, requestId) {
   if (!requestId) return null;
-  const clauses = [
-    { sourceId: requestId },                    // V2 정본(worker/payments/moonstone.js)
-    { "metadata.purchaseId": requestId },       // V2 가 함께 남기는 값
-    { "metadata.requestId": requestId },        // 구 billing.js 행
-    { "metadata.idempotencyKey": requestId },
-    { "metadata.orderId": requestId },
-  ];
-  if (isObjectId(requestId)) clauses.push({ _id: requestId });
-  return MonthlyCreditLedger.findOne({
+  return findMoonstoneSpendEvidence(env, {
     userId,
-    type: "MONTHLY_CREDIT_SPEND",
-    serviceKey: featureKey,
-    // 🔴 미정산 예약행은 증빙이 아니다. V2 는 "원장 예약 → lot 차감 → 정산" 순으로 도는데
-    //    (moonstone.js), 예약과 차감 사이에서 죽으면 **차감되지 않은 행**이 남는다. 이 조건을
-    //    빼면 결제에 실패한 요청이 유료 결과를 공짜로 연다.
-    settledAt: { $exists: true },
-    // 해금 실패로 되돌린 차감은 증빙이 아니다 — billing.js 의 멱등 재조회와 같은 제외 조건.
-    "metadata.refundedForUnlockFailure": { $ne: true },
-    $or: clauses,
-  }).select("_id").lean();
+    featureKeys: [featureKey],
+    tokens: [requestId],
+  });
 }
 
 /**
@@ -138,7 +122,7 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
         reason: "",
       };
     }
-    if (await withMongoRetry(env, () => findMonthlyLedger(uid, key, rid))) {
+    if (await withMongoRetry(env, () => findMonthlyLedger(env, uid, key, rid))) {
       return { proven: true, source: "monthly", reason: "" };
     }
 

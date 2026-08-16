@@ -37,10 +37,25 @@ const fakeDb = {
   },
 };
 
+/* 체이닝은 끝까지 이어져야 한다 — 월정석 증빙 정본(worker/lib/moonstone-spend-proof.js)이
+   find().select().sort().limit().lean() 을 쓰므로 중간에 끊기면 스위트 전체가 로드 단계에서 죽는다. */
+function chainStub(result) {
+  const chain = {
+    select: () => chain,
+    sort: () => chain,
+    limit: () => chain,
+    lean: async () => result,
+    exec: async () => result,
+  };
+  return chain;
+}
+
 function modelStub() {
   return {
-    findOne: () => ({ lean: async () => null, exec: async () => null }),
-    find: () => ({ sort: () => ({ limit: () => ({ lean: async () => [] }) }), lean: async () => [] }),
+    findOne: () => chainStub(null),
+    findById: () => chainStub(null),
+    find: () => chainStub([]),
+    exists: async () => null,
     create: async (doc) => doc,
     updateOne: async () => ({ matchedCount: 0 }),
   };
@@ -204,6 +219,8 @@ beforeAll(async () => {
     PointHistory: modelStub(),
     MonthlyCreditLedger: modelStub(),
     Payment: modelStub(),
+    // 월정석 증빙 정본이 미정산 예약행을 판정할 때 읽는다(recentConsumeRequestIds).
+    User: modelStub(),
     // 라우트가 llm-cache-store 를 통해 참조한다. 이 스위트는 캐시 동작을 검증하지 않으므로 빈 스텁.
     LlmResponseCache: {},
   }));
