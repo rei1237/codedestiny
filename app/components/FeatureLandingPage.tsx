@@ -1036,7 +1036,7 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
               ? copy.paidCta(paidPrice.label || (paidPrice.loading ? "가격 확인 중" : "가격 확인 필요"))
               : copy.freeCta}</span>
           </a>
-          <a href="/insights" className="flp-btn-s" style={{
+          <a href="/insights/" className="flp-btn-s" style={{
             display:"flex", alignItems:"center", justifyContent:"center",
             padding:"13px 24px", background:t.btnSec,
             border:`1px solid ${t.btnSecBorder}`,

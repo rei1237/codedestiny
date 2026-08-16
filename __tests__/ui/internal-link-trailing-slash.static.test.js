@@ -61,6 +61,64 @@ test("푸터 링크에는 후행 슬래시가 붙어 있다", () => {
 });
 
 /**
+ * 평문 `<a href>` 만 본다.
+ *
+ * `<Link href="/x">` 는 next/link 가 trailingSlash 설정을 적용해 **렌더할 때** 슬래시를 붙이므로
+ * 소스에 없어도 산출물에는 있다(2026-08-16 확인: `app/about/page.js` 의 `href="/contact"` →
+ * `out/about/index.html` 의 `href="/contact/"`). 그래서 `<Link>` 까지 훑으면 고칠 것이 없는데도
+ * 수백 건이 잡힌다. 반대로 평문 `<a>` 는 그냥 HTML 이라 아무도 안 고쳐 주므로 여기서 막는다.
+ */
+const ANCHOR_SOURCE_DIRS = ["app", "components", "src", "pages"];
+
+function collectSourceFiles(dir, out = []) {
+  let entries;
+  try {
+    entries = fs.readdirSync(path.join(root, dir));
+  } catch {
+    return out;
+  }
+  for (const name of entries) {
+    if (name === "node_modules" || name === ".next") continue;
+    const rel = `${dir}/${name}`;
+    if (fs.statSync(path.join(root, rel)).isDirectory()) collectSourceFiles(rel, out);
+    else if (/\.(tsx|jsx|ts|js)$/.test(name)) out.push(rel);
+  }
+  return out;
+}
+
+/**
+ * `<path>.html` 이 실재하면 슬래시를 붙이면 안 된다 — Cloudflare Pages 가 확장자를 떼고 서빙하는
+ * 경로라, `/destiny-island/` 로 바꾸면 `destiny-island/index.html` 을 찾다가 404 가 된다.
+ * 예외를 손으로 적지 않고 파일 존재로 판정한다.
+ */
+function isHtmlBackedCleanUrl(pathname) {
+  const candidate = `${pathname.replace(/^\//, "")}.html`;
+  return fs.existsSync(path.join(root, candidate)) || fs.existsSync(path.join(root, "public", candidate));
+}
+
+test("평문 <a> 의 내부 링크에는 후행 슬래시가 붙어 있다", () => {
+  const found = [];
+
+  for (const dir of ANCHOR_SOURCE_DIRS) {
+    for (const rel of collectSourceFiles(dir)) {
+      const source = read(rel);
+      for (const tag of source.matchAll(/<a\s[^>]*?>/g)) {
+        const href = /href=\{?["'`](\/[^"'`]*)["'`]\}?/.exec(tag[0]);
+        if (!href) continue;
+        const value = href[1];
+        // /api/** 는 링크가 아니라 엔드포인트다. OAuth 콜백에 슬래시를 붙이면 로그인이 깨진다.
+        if (value.startsWith("/api/")) continue;
+        if (!needsTrailingSlash(value)) continue;
+        if (isHtmlBackedCleanUrl(value.split(/[?#]/)[0])) continue;
+        found.push(`${rel} → ${value}`);
+      }
+    }
+  }
+
+  assert.deepEqual(found, [], `평문 <a> 에 슬래시 없는 내부 링크가 있다(각각 308 을 한 번 탄다):\n  ${found.join("\n  ")}`);
+});
+
+/**
  * 🔴 이 테스트가 지키는 회귀에는 **에러도 로그도 없다.**
  *
  * cdResolveLocalizedFeatureHref 는 경로를 `=== '/insights'` 처럼 슬래시 없는 값과 비교한다.

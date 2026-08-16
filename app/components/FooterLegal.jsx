@@ -80,15 +80,15 @@ export default function FooterLegal() {
       </p>
       <p>
         © 2026 Code Destiny. All rights reserved. <AdminTrigger /> &nbsp;·&nbsp;
-        <a href="/privacy">{footerLegalText("privacy")}</a>
+        <a href="/privacy/">{footerLegalText("privacy")}</a>
         &nbsp;·&nbsp;
-        <a href="/terms">{footerLegalText("terms")}</a>
+        <a href="/terms/">{footerLegalText("terms")}</a>
         &nbsp;·&nbsp;
-        <a href="/contact">{footerLegalText("contact")}</a>
+        <a href="/contact/">{footerLegalText("contact")}</a>
         &nbsp;·&nbsp;
-        <a href="/disclaimer">{footerLegalText("disclaimer")}</a>
+        <a href="/disclaimer/">{footerLegalText("disclaimer")}</a>
         &nbsp;·&nbsp;
-        <a href="/advertising-policy">{footerLegalText("advertising")}</a>
+        <a href="/advertising-policy/">{footerLegalText("advertising")}</a>
       </p>
     </div>
   );

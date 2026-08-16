@@ -510,7 +510,7 @@ export default function LoveSecretAiResultClient() {
       <section className="relative mx-auto w-full max-w-5xl px-4 pb-12 pt-16 sm:px-6 sm:pt-14 lg:px-8">
         <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
           <a
-            href="/love-secret-ai"
+            href="/love-secret-ai/"
             aria-label="입력 화면으로 돌아가기"
             className={`${theme.focusRing} inline-flex min-h-11 items-center gap-2 rounded-full border border-[var(--ls-line-control)] bg-[var(--ls-surface)] px-4 text-sm font-bold text-[var(--ls-text)] transition hover:bg-[var(--ls-surface-sunken)]`}
           >
@@ -780,7 +780,7 @@ function LoveSecretResultPageContent({
 
         <div className="mt-8 flex justify-center">
           <a
-            href="/love-secret-ai"
+            href="/love-secret-ai/"
             aria-label="새로운 질문으로 다시 상담하기"
             className={`${theme.focusRing} inline-flex min-h-12 items-center gap-2 rounded-full bg-[image:var(--ls-cta)] px-6 text-sm font-black text-[var(--ls-cta-ink)] transition hover:-translate-y-0.5`}
           >

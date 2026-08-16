@@ -27,10 +27,10 @@ export const metadata = {
 };
 
 const quickLinks = [
-  { href: "/insights", key: "errors.notFound.links.insights", fallback: NOT_FOUND_I18N.ko.links.insights },
-  { href: "/saju/guide", key: "errors.notFound.links.sajuGuide", fallback: NOT_FOUND_I18N.ko.links.sajuGuide },
-  { href: "/tarot/guide", key: "errors.notFound.links.tarotGuide", fallback: NOT_FOUND_I18N.ko.links.tarotGuide },
-  { href: "/faq", key: "errors.notFound.links.faq", fallback: NOT_FOUND_I18N.ko.links.faq },
+  { href: "/insights/", key: "errors.notFound.links.insights", fallback: NOT_FOUND_I18N.ko.links.insights },
+  { href: "/saju/guide/", key: "errors.notFound.links.sajuGuide", fallback: NOT_FOUND_I18N.ko.links.sajuGuide },
+  { href: "/tarot/guide/", key: "errors.notFound.links.tarotGuide", fallback: NOT_FOUND_I18N.ko.links.tarotGuide },
+  { href: "/faq/", key: "errors.notFound.links.faq", fallback: NOT_FOUND_I18N.ko.links.faq },
 ];
 
 const linkStyle = {
@@ -101,7 +101,7 @@ export default function NotFound() {
             <span data-cd-trans data-key="errors.notFound.home">{NOT_FOUND_I18N.ko.home}</span>
           </a>
           <a
-            href="/saju/basic"
+            href="/saju/basic/"
             style={{
               ...actionStyle,
               background: "linear-gradient(135deg, #f59e0b, #d97706)",
