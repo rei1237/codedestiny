@@ -1831,7 +1831,7 @@ var __cdLazyActionLoaders = {
   openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-dcefd032896f'); },
   openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-dcefd032896f'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
-  openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h5be3c5cb5489'); },
+  openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h9ee7eacf3957'); },
   openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-dcefd032896f').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-dcefd032896f'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
   openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-dcefd032896f').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-dcefd032896f'); }); },

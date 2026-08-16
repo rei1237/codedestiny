@@ -1346,18 +1346,18 @@
   var LAZY_LOAD_ACTIONS = {
     openPhysiognomyApp: [
       'AnalysisEngine.js?v=h3ae4b189f4d3',
-      'PhysiognomyUI.js?v=h3ae4b189f4d3'
+      'PhysiognomyUI.js?v=h9983865fd44c'
     ],
     openPastLifeFaceApp: [
       'AnalysisEngine.js?v=h3ae4b189f4d3',
-      'PastLifeFaceUI.js?v=h3ae4b189f4d3'
+      'PastLifeFaceUI.js?v=hc1c3840957e8'
     ],
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
       'js/animal-totem-experience.js?v=build-dcefd032896f'
     ],
-    openHwatuModal: ['HwatuFortune.js?v=h3ae4b189f4d3'],
+    openHwatuModal: ['HwatuFortune.js?v=h9ee7eacf3957'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
     openTarotLoveModal: ['js/tarot-love-experience.js?v=build-dcefd032896f'],
