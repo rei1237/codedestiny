@@ -1,0 +1,74 @@
+/* 네오 팩폭 콜아웃 — 입장 페이지와 결과 페이지가 같은 본문을 같은 규칙으로 그리도록 한 벌만 둔다.
+   색은 기존 전략실 팔레트(붉은 경고 rgba(185,34,43) · 골드 #f5d487) 안에서만 쓴다. */
+
+.punch {
+  margin: 0;
+  max-width: 62ch;
+  border: 1px solid rgba(185, 34, 43, 0.54);
+  border-radius: 8px;
+  padding: 16px 18px;
+  background: rgba(85, 13, 22, 0.5);
+  color: #fff7de;
+  font-family: var(--font-body);
+  font-size: 1.06rem;
+  font-weight: 560;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+
+.label {
+  display: block;
+  margin-bottom: 11px;
+  color: #f5d487;
+  font-family: var(--font-body);
+  font-size: 0.72rem;
+  font-weight: 950;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.punch p {
+  margin: 0;
+}
+
+/* 장문 팩폭은 문단 사이를 line-height(≈1.8 ≈ 30px) 보다 확실히 넓게 벌려야 덩어리로 뭉치지 않는다.
+   좌측 괘선은 쓰지 않는다 — 이 화면의 .summaryQuestion·.neoLetterBody 가 이미 그 모티프를 쓰고 있어
+   세 번째로 반복하면 중첩 인용처럼 보인다. 리듬은 여백·리드·용어 칩이 만든다. */
+.punch p + p {
+  margin-top: 22px;
+}
+
+/* 첫 문단을 리드로 승격 — 벽글에 읽기 시작점을 만든다. */
+.lead {
+  color: #ffe9bd;
+  font-size: 1.13rem;
+  font-weight: 720;
+  line-height: 1.72;
+}
+
+/* 대괄호 용어 칩 — [재백궁] · [화기:문창] 처럼 계산 근거를 본문에서 집어낼 수 있게 한다.
+   세로 패딩을 두지 않아 줄 간격 리듬을 흐트러뜨리지 않는다. */
+.term {
+  border-radius: 4px;
+  padding: 0 0.3em;
+  color: #f7dfa4;
+  background: rgba(245, 212, 135, 0.13);
+  box-shadow: inset 0 0 0 1px rgba(245, 212, 135, 0.32);
+  font-weight: 820;
+  white-space: nowrap;
+}
+
+@media (max-width: 680px) {
+  .punch {
+    font-size: 1.02rem;
+    padding: 14px 15px;
+  }
+
+  .lead {
+    font-size: 1.08rem;
+  }
+
+  .punch p + p {
+    margin-top: 19px;
+  }
+}

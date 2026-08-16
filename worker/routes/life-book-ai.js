@@ -4,6 +4,7 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { LifeBookAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -827,23 +828,6 @@ function paymentEvidenceClauses(ids = []) {
   return clauses;
 }
 
-function monthlyLedgerEvidenceClauses(ids = []) {
-  const clauses = [];
-  for (const id of ids) {
-    clauses.push({ sourceId: id });
-    clauses.push({ "metadata.requestId": id });
-    clauses.push({ "metadata.purchaseId": id });
-    clauses.push({ "metadata.idempotencyKey": id });
-    clauses.push({ "metadata.orderId": id });
-    clauses.push({ "metadata.pointHistoryId": id });
-    clauses.push({ "metadata.transactionId": id });
-    clauses.push({ "metadata.ledgerId": id });
-    clauses.push({ "metadata.evidenceId": id });
-    if (objectIdLike(id)) clauses.push({ _id: id });
-  }
-  return clauses;
-}
-
 function billingContractEvidenceClauses({ idempotencyKey = "", inputHash = "" } = {}) {
   const clauses = [];
   if (idempotencyKey) {
@@ -962,29 +946,25 @@ async function resolveBillingGateAccess({ env, auth, body, idempotencyKey = "", 
     };
   }
 
-  const ledgerClauses = monthlyLedgerEvidenceClauses(ids);
-  const ledger = ledgerClauses.length
-    ? await MonthlyCreditLedger.findOne({
-      userId: auth.userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: { $in: [...acceptedFeatureKeys, SERVICE_KEY] },
-      "metadata.refundedForServiceExecution": { $ne: true },
-      $and: [
-        { $or: ledgerClauses },
-        ...(contractClauses.length ? [{ $or: contractClauses }] : []),
-      ],
-    }).sort({ createdAt: -1 }).select("_id amount sourceId serviceKey").lean()
-    : null;
-  if (ledger) {
+  /* 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
+     🔴 idempotencyKey 가 있으면 그 키 **하나만** 토큰으로 넘긴다 — 예전 쿼리가 `$and: [ids, contractClauses]`
+     로 지키던 "이 요청에 묶인 증빙만 인정한다"는 계약을 그대로 유지하기 위해서다(그 계약을 ids 전체로
+     풀면 body 에 섞여 온 과거 결제 식별자가 이번 요청을 열어 준다). 키가 없을 때만 ids 로 넓힌다. */
+  const monthlyEvidence = await findMoonstoneSpendEvidence(env, {
+    userId: auth.userId,
+    featureKeys: [...acceptedFeatureKeys, SERVICE_KEY],
+    tokens: idempotencyKey ? [idempotencyKey] : ids,
+  });
+  if (monthlyEvidence) {
     return {
       ok: true,
       accessType: "subscription",
       accessSource: "billing_gate",
-      paymentId: String(ledger._id || ""),
+      paymentId: String(monthlyEvidence.ledgerId || ""),
       evidenceType: "monthly_credit",
-      evidenceId: String(ledger._id || ""),
-      amount: Math.max(0, Math.floor(Number(ledger.amount || 0))),
-      featureKey: acceptedFeatureKeys.includes(clean(ledger.serviceKey, 80)) ? clean(ledger.serviceKey, 80) : fallbackFeatureKey,
+      evidenceId: String(monthlyEvidence.ledgerId || ""),
+      amount: Math.max(0, Math.floor(Number(monthlyEvidence.amount || 0))),
+      featureKey: acceptedFeatureKeys.includes(clean(monthlyEvidence.serviceKey, 80)) ? clean(monthlyEvidence.serviceKey, 80) : fallbackFeatureKey,
     };
   }
 

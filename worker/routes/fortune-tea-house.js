@@ -17,7 +17,8 @@ import {
 } from "../../lib/fortune-tea-house/heart-scents.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
-import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
+import { PaidExecutionRecord, Payment, PointHistory } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 
@@ -1227,19 +1228,13 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
     };
   }
 
-  const monthlyClauses = idClauses(ids, ["sourceId", "metadata.requestId", "metadata.idempotencyKey", "metadata.purchaseId", "metadata.transactionId", "metadata.ledgerId", "metadata.evidenceId", "metadata.paymentId"]);
-  const monthlyLedger = monthlyClauses.length
-    ? await leanFindOne(MonthlyCreditLedger, {
-      userId: auth.userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      "metadata.refundedForServiceExecution": { $ne: true },
-      $and: [
-        { $or: [{ serviceKey: featureKey }, { serviceKey: FORTUNE_TEA_HOUSE_SERVICE_KEY }, { "metadata.featureKey": featureKey }] },
-        { $or: monthlyClauses },
-      ],
-    }, { sort: { createdAt: -1 }, select: "_id amount sourceId metadata" })
-    : null;
-  if (monthlyLedger) {
+  // 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
+  const monthlyEvidence = await findMoonstoneSpendEvidence(env, {
+    userId: auth.userId,
+    featureKeys: [featureKey, FORTUNE_TEA_HOUSE_SERVICE_KEY],
+    tokens: ids,
+  });
+  if (monthlyEvidence) {
     return {
       ok: true,
       allowed: true,
@@ -1248,7 +1243,7 @@ async function resolveFortuneTeaBillingEvidenceAccess({ env, auth, body, feature
       featureKey,
       accessSource: "billing_gate",
       licenseType: "subscription",
-      paymentId: cleanText(monthlyLedger._id || monthlyLedger.sourceId, 180),
+      paymentId: cleanText(monthlyEvidence.ledgerId || monthlyEvidence.sourceId, 180),
       pricing: null,
     };
   }

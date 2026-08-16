@@ -62,6 +62,34 @@ const DEFAULT_BIRTH_PLACES: BirthPlaceOption[] = [{ label: "대한민국 · 서�
 const FUSION_HANDOFF_KEY = "cdGuardianFusionHandoffV1";
 
 /**
+ * 결제 증빙 id 보관 키.
+ *
+ * 🔴 메모리(ref)에만 두면 생성이 멈춘 화면에서 사용자가 새로고침하는 순간 id 가 사라지고,
+ * 다음 제출이 **새 id 로 결제를 한 번 더** 요청한다. 서버는 requestId 로만 증빙을 찾으므로
+ * (worker/lib/nakshatra-paid-access.js 의 findPaidPayment) 잃어버린 id 에 묶인 30,000원은
+ * 회수할 방법이 없다. 결과를 실제로 받은 뒤에만 지운다.
+ */
+const PAID_REQUEST_KEY = "cdFusionPaidRequestIdV1";
+
+/** 서버 심박이 15초 간격이라 세 번을 놓치면 연결이 끊긴 것으로 본다. */
+const STREAM_SILENCE_MS = 45000;
+
+function readStoredPaidRequestId(): string {
+  if (typeof window === "undefined") return "";
+  try { return window.sessionStorage.getItem(PAID_REQUEST_KEY) || ""; } catch { return ""; }
+}
+
+function storePaidRequestId(value: string) {
+  if (typeof window === "undefined") return;
+  try {
+    if (value) window.sessionStorage.setItem(PAID_REQUEST_KEY, value);
+    else window.sessionStorage.removeItem(PAID_REQUEST_KEY);
+  } catch {
+    // 저장소를 못 써도 이번 화면의 ref 는 그대로 동작한다 — 새로고침 복구만 못 할 뿐이다.
+  }
+}
+
+/**
  * 입력폼의 각 항목을 실제로 읽는 체계. 장식이 아니라 "이 정보를 누가 쓰는가"의 축소판이다
  * — 근거는 각 필드의 기존 안내 문구(생시=명반·라그나·상승궁·하우스, 출생지=베다점·서양
  * 점성술)를 그대로 따른다. "all"은 여섯 체계 전부가 함께 읽는 항목(주제·고민)에 쓴다.
@@ -130,7 +158,13 @@ async function consumeFusionStream(
       // 서버는 status(402/503)·retryable 을 함께 싣는다. message 만 읽고 버리면 재시도로
       // 해결되는 실패인지 결제가 필요한 실패인지 화면이 구분할 수 없다.
       const failure = new Error(String(payload.message || "분석을 완료하지 못했어요."));
-      throw Object.assign(failure, { retryable: payload.retryable === true, httpStatus: Number(payload.status) || 0 });
+      throw Object.assign(failure, {
+        retryable: payload.retryable === true,
+        httpStatus: Number(payload.status) || 0,
+        // 계약 위반 코드만 온다(본문·개인정보 없음). 같은 실패가 반복될 때 사용자가 문의에 적을 근거다.
+        errorCode: String(payload.error || ""),
+        issues: Array.isArray(payload.issues) ? payload.issues.map(String) : [],
+      });
     }
   };
   try {
@@ -175,11 +209,21 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   const coreDialogRef = useRef<HTMLDialogElement>(null);
   const { seed: profileSeed, seedVersion, reload: reloadProfileSeed } = useAiProfileSeed();
   const [stageStates, setStageStates] = useState<Record<FusionStageKey, FusionStageState>>(initialStageStates);
-  /** 융합 단계의 하위 진행 — 서버가 네 그룹을 병렬로 쓰고 끝나는 대로 알려 준다. */
-  const [composeProgress, setComposeProgress] = useState<{ completed: number; total: number; label: string } | null>(null);
+  /** 융합 단계의 하위 진행 — 서버가 네 그룹을 병렬로 쓰고 끝나는 대로 알려 준다.
+   *  phase 가 "repair" 면 미달 묶음을 보완하는 국면이라 카운터의 총량이 다르다. */
+  const [composeProgress, setComposeProgress] = useState<{ completed: number; total: number; label: string; phase: string } | null>(null);
+  /** 스트림이 조용해진 지 얼마나 됐는지 판정한다. 서버 심박(ping)이 오면 다시 false 가 된다. */
+  const [stalled, setStalled] = useState(false);
+  const lastEventAtRef = useRef(0);
+  /** 결제는 끝났는데 결과를 못 받은 요청이 남아 있는가. 새로고침을 건너 살아남는다. */
+  const [pendingPaidRequest, setPendingPaidRequest] = useState(false);
+  /** 목표 분량에 못 미친 채 배달된 결과의 안내. 재열람에서도 같은 문구가 붙는다. */
+  const [qualityNotice, setQualityNotice] = useState("");
+  /** 재열람으로 연 보관본의 입력 요약. PDF 표지가 폼 대신 이걸 본다. */
+  const [openedSummary, setOpenedSummary] = useState<{ topic?: string; nickname?: string } | null>(null);
   const [openSection, setOpenSection] = useState<string>("");
   /** 생성 실패는 폼이 아니라 대화 안에 남는다 — 어디까지 진행됐는지와 함께 봐야 재시도를 고른다. */
-  const [failure, setFailure] = useState<{ message: string; retryable: boolean } | null>(null);
+  const [failure, setFailure] = useState<{ message: string; retryable: boolean; reason?: string } | null>(null);
   const formRef = useRef<HTMLFormElement>(null);
   const threadRef = useRef<HTMLElement>(null);
   const [guardianHandoff, setGuardianHandoff] = useState<{ topic: string; category: string } | null>(null);
@@ -209,6 +253,32 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
 
   useEffect(() => { void refresh(); }, [refresh]);
 
+  /** 결제 증빙 id 를 ref·저장소·화면 상태에 한꺼번에 반영한다. 세 곳이 어긋나면 이중 결제가 난다. */
+  const rememberPaidRequestId = useCallback((value: string) => {
+    paidRequestIdRef.current = value;
+    storePaidRequestId(value);
+    setPendingPaidRequest(Boolean(value));
+  }, []);
+
+  // 새로고침으로 돌아온 사용자의 결제 증빙을 되살린다 — 이게 없으면 다음 제출이 재결제다.
+  useEffect(() => {
+    const stored = readStoredPaidRequestId();
+    if (!stored) return;
+    paidRequestIdRef.current = stored;
+    setPendingPaidRequest(true);
+  }, []);
+
+  // 스트림 무음 감시. 서버가 15초마다 심박을 보내므로 45초 침묵은 연결이 끊겼다는 뜻이다.
+  // 🔴 이 화면에는 타임아웃이 하나도 없어서, 스트림이 조용히 죽으면 사용자는 영원히 기다렸다.
+  useEffect(() => {
+    if (!loading) { setStalled(false); return undefined; }
+    lastEventAtRef.current = Date.now();
+    const timer = window.setInterval(() => {
+      setStalled(Date.now() - lastEventAtRef.current > STREAM_SILENCE_MS);
+    }, 5000);
+    return () => window.clearInterval(timer);
+  }, [loading]);
+
   /** 보관본 목록 새로고침. 비로그인·장애는 조용히 넘긴다 — 재열람은 부가 기능이다. */
   const loadRecentList = useCallback(async () => {
     try {
@@ -228,9 +298,13 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     setError("");
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?id=${encodeURIComponent(id)}`, { credentials: "include" }, { retryOn401: true, apiBase });
-      const payload = await parseJson<{ ok?: boolean; consultation?: { id: string; result: Result }; message?: string }>(response);
+      const payload = await parseJson<{ ok?: boolean; consultation?: { id: string; result: Result; qualityTier?: string; qualityNotice?: string; inputSummary?: { topic?: string; nickname?: string } }; message?: string }>(response);
       if (!response.ok || !payload.ok || !payload.consultation?.result) throw new Error(payload.message || "저장된 결과를 불러오지 못했어요.");
       setResult(payload.consultation.result);
+      // 재열람 PDF 의 표지는 폼이 아니라 보관본의 요약에서 온다 — 새 탭에서 열면 폼이 비어 있다.
+      setOpenedSummary(payload.consultation.inputSummary || null);
+      // 강등 배달이었으면 다시 열었을 때도 같은 안내가 붙는다 — 화면에서만 알리면 근거가 사라진다.
+      setQualityNotice(payload.consultation.qualityTier === "degraded" ? (payload.consultation.qualityNotice || "") : "");
       setFailure(null);
       setOpenSection("");
       setOpenedConsultationId(payload.consultation.id);
@@ -308,7 +382,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   }, []);
 
   const submit = async (event: FormEvent) => {
-    event.preventDefault(); setError(""); setNotice(""); setFailure(null);
+    event.preventDefault(); setError(""); setNotice(""); setFailure(null); setQualityNotice(""); setOpenedSummary(null);
     // useSearchParams 를 쓰면 정적 내보내기에서 이 페이지 전체가 CSR 로 떨어져
     // (BAILOUT_TO_CLIENT_SIDE_RENDERING) 히어로 H1 을 포함한 서버 렌더 HTML 이 통째로 사라진다.
     // 이 값은 제출 시점에만 필요하므로 그때 URL 에서 직접 읽는다.
@@ -317,8 +391,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     if (!form.birthDate || (!form.birthTime && !form.birthTimeUnknown)) { setError("생년월일과 생시를 입력하거나, 생시를 모르는 경우를 선택해 주세요."); return; }
 
     // 앞선 시도가 결제까지 끝났다면 그 requestId 를 재사용한다 — 새 id 로 보내면 증빙을
-    // 못 찾아 이미 낸 3만원이 사라진다.
-    let requestId = paidRequestIdRef.current;
+    // 못 찾아 이미 낸 3만원이 사라진다. 저장소까지 보는 이유는 새로고침으로 ref 가 비기 때문이다.
+    let requestId = paidRequestIdRef.current || readStoredPaidRequestId();
     if (!requestId) {
       requestId = `${PAID_FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
       const gate = await ensurePaidAccess({
@@ -333,7 +407,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         if (gate.code !== "PAYMENT_CANCELLED") setError(gate.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
         return;
       }
-      paidRequestIdRef.current = requestId;
+      rememberPaidRequestId(requestId);
     }
 
     requestAbortRef.current?.abort();
@@ -362,12 +436,15 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         body: JSON.stringify({ ...requestBody, requestId }),
       }, { retryOn401: true, apiBase });
       const payload = await consumeFusionStream(response, (streamEvent, streamPayload) => {
+        // 심박(ping)을 포함한 **모든** 이벤트가 무음 감시를 되돌린다.
+        lastEventAtRef.current = Date.now();
         if (streamEvent !== "stage" || typeof streamPayload.stage !== "string") return;
         if (streamPayload.stage === "compose") {
           setComposeProgress({
             completed: Number(streamPayload.completedGroups) || 0,
             total: Number(streamPayload.totalGroups) || 4,
             label: String(streamPayload.groupLabel || ""),
+            phase: String(streamPayload.phase || "compose"),
           });
           setStageStates((current) => ({ ...current, fusion: "active" }));
           return;
@@ -392,6 +469,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       const fusionStatus = payload.fusionStatus as Status | undefined;
       if (!streamResult || !fusionStatus) throw new Error(String(payload.message || "결과를 생성하지 못했어요."));
       setResult(streamResult); setStatus(fusionStatus); setNotice("결과가 완성됐어요. 계정에 저장돼 언제든 다시 열 수 있어요.");
+      // 목표 분량에 못 미친 채 배달됐으면 숨기지 않고 그대로 말한다.
+      setQualityNotice(payload.qualityTier === "degraded" ? String(payload.qualityNotice || "") : "");
       // 보관본 id 가 오면 같은 링크로 다시 열 수 있게 URL 에 남기고 목록도 갱신한다.
       const savedId = String(payload.consultationId || "");
       if (savedId) {
@@ -407,7 +486,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         window.setTimeout(() => window.location.assign(`/fortune-chat?session=${encodeURIComponent(fortuneChatSessionId)}`), 300);
       }
       // 결과를 받았으면 이 결제는 소진됐다. 다음 상담은 새로 결제한다.
-      paidRequestIdRef.current = "";
+      rememberPaidRequestId("");
     } catch (cause) {
       // 결제는 생성 전에 끝났다. "차감되지 않았다"고 말하면 거짓이므로, 실제로 안전한 것
       // (같은 requestId 재시도에 추가 결제가 없다는 점)만 안내한다.
@@ -416,6 +495,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         message: cause instanceof Error ? cause.message : "결과를 생성하지 못했어요.",
         // 결제 증빙이 남아 있으면(=paidRequestIdRef) 같은 id 재시도에 추가 결제가 없다.
         retryable: Boolean(paidRequestIdRef.current) || (cause as { retryable?: boolean })?.retryable === true,
+        reason: [(cause as { errorCode?: string })?.errorCode, ...((cause as { issues?: string[] })?.issues || [])]
+          .filter(Boolean).join(" · "),
       });
     } finally {
       if (requestAbortRef.current === controller) requestAbortRef.current = null;
@@ -446,29 +527,50 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   };
 
   /**
-   * PDF 저장. 접힌 섹션은 display:none 이 아니라 아예 렌더되지 않으므로, 캡처 전에
-   * exporting 을 켜 모두 펼치고 두 프레임 + 여유를 기다린다(인생의 책과 같은 관용구).
+   * PDF 저장.
+   *
+   * 본문은 결과 JSON 에서 직접 조판한다(글자 선택·검색 가능, 용량은 캡처 방식의 수십분의 1).
+   * 도표만 그림이라 그 블록 하나를 캡처하므로, 캡처 전에 exporting 을 켜 지연 렌더를 풀고
+   * 두 프레임 + 여유를 기다린다(인생의 책과 같은 관용구).
+   *
+   * 🔴 R2 한글 폰트를 못 실으면 텍스트 조판은 통째로 깨진다. 그때만 기존 캡처 방식으로
+   *    되돌아간다 — 읽을 수 없는 문서를 내려주는 것보다 무거운 이미지 PDF 가 낫다.
    */
   const downloadPdf = async () => {
     if (!result || exporting) return;
     setError("");
     setExporting(true);
+    const fileName = `fusion-fortune-${openedConsultationId || new Date().toISOString().slice(0, 10)}.pdf`;
     try {
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       await new Promise((resolve) => setTimeout(resolve, 120));
-      const { exportResultPdf } = await import("../../lib/pdf/export-result-pdf");
-      await exportResultPdf({
-        captureTargets: ["[data-fusion-pdf-section]"],
-        fileName: `fusion-fortune-${openedConsultationId || new Date().toISOString().slice(0, 10)}.pdf`,
-        backgroundColor: "#12102a",
-        cover: {
-          title: result.title || "초융합 운세",
-          subtitle: `여섯 체계 교차 판정 · ${form.topic}`,
-          name: form.nickname || undefined,
+      const { exportFusionReportPdf, FusionPdfFontError } = await import("../../lib/pdf/export-fusion-report-pdf");
+      try {
+        await exportFusionReportPdf({
+          result,
+          fileName,
+          topic: openedSummary?.topic || form.topic,
+          nickname: openedSummary?.nickname || form.nickname || undefined,
           date: new Date().toLocaleDateString("ko-KR"),
-        },
-        watermarkText: "CODE DESTINY",
-      });
+          qualityNotice,
+          visualizationSelector: "[data-fusion-visual]",
+        });
+      } catch (cause) {
+        if (!(cause instanceof FusionPdfFontError)) throw cause;
+        const { exportResultPdf } = await import("../../lib/pdf/export-result-pdf");
+        await exportResultPdf({
+          captureTargets: ["[data-fusion-pdf-section]"],
+          fileName,
+          backgroundColor: "#12102a",
+          cover: {
+            title: result.title || "초융합 운세",
+            subtitle: `여섯 체계 교차 판정 · ${openedSummary?.topic || form.topic}`,
+            name: openedSummary?.nickname || form.nickname || undefined,
+            date: new Date().toLocaleDateString("ko-KR"),
+          },
+          watermarkText: "CODE DESTINY",
+        });
+      }
       setNotice("PDF 로 저장했어요.");
     } catch {
       setError("PDF 를 만들지 못했어요. 잠시 후 다시 시도해 주세요.");
@@ -483,8 +585,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       ? "결제를 확인하고 있어요"
       : status.nextAction === "login"
         ? "로그인하고 시작하기"
-        : paidRequestIdRef.current
-          ? "추가 결제 없이 다시 시도하기"
+        : pendingPaidRequest
+          ? "추가 결제 없이 이어서 받기"
           : "초융합 운세 생성하기";
   const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
   const completedStageCount = useMemo(
@@ -582,6 +684,11 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         <label><span className={styles.labelRow}>관심 주제<FieldSystems field="topic" /></span><select value={form.topic} onChange={(event) => setForm({ ...form, topic: event.target.value })}><option>삶의 전반적인 흐름</option><option>연애와 관계</option><option>일과 돈</option><option>마음과 회복</option></select></label>
         <label className={styles.wide}><span className={styles.labelRow}><span>고민 <em>(선택)</em></span><FieldSystems field="concern" /></span><textarea maxLength={1000} value={form.concern} onChange={(event) => setForm({ ...form, concern: event.target.value })} placeholder="개인 식별 정보는 적지 말아 주세요." /></label>
         {status.message && <p className={styles.notice}>{status.message}</p>}{notice && <p className={styles.success} role="status">{notice}</p>}
+        {/* 결제는 끝났는데 결과를 못 받은 요청이 남아 있으면 그것부터 알린다 — 이 안내가 없으면
+            사용자는 처음부터 다시 하는 줄 알고 결제를 한 번 더 한다. */}
+        {pendingPaidRequest && !loading && !result && <p className={`${styles.wide} ${styles.notice}`} role="status">
+          이미 결제가 끝난 요청이 남아 있어요. 아래 버튼을 누르면 <b>추가 결제 없이</b> 같은 요청으로 결과를 받습니다.
+        </p>}
         {error && <div className={styles.wide}>
           <p className={styles.error} role="alert">{error}</p>
           {statusUnavailable && <button type="button" className={styles.profileReload} onClick={() => { setError(""); void refresh(); }}>이용 상태 다시 확인하기</button>}
@@ -602,10 +709,10 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
       <header className="relative flex items-center gap-5 border-b border-white/[0.07] px-4 py-6 sm:px-9">
         <div className="hidden w-[7.5rem] shrink-0 sm:block"><FusionOrb stageStates={stageStates} /></div>
         <div className="min-w-0">
-          <h2 className="m-0 font-display text-[clamp(1.2rem,3.6vw,1.8rem)] leading-snug text-[#f7f1ff]">
+          <h2 className={`m-0 ${styles.readingTitle} text-[clamp(1.32rem,3.9vw,2.05rem)] leading-snug text-[var(--fx-ink-1)]`}>
             {result ? result.title : failure ? "상담이 중간에 멈췄어요" : "여섯 전문가가 차례로 답하고 있어요"}
           </h2>
-          <p className="m-0 mt-2.5 max-w-[56ch] text-[0.9rem] leading-[1.8] text-[#c6b9dc]" role={loading ? "status" : undefined} aria-live={loading ? "polite" : "off"}>
+          <p className="m-0 mt-2.5 max-w-[56ch] text-[0.9rem] leading-[1.8] text-[var(--fx-ink-3)]" role={loading ? "status" : undefined} aria-live={loading ? "polite" : "off"}>
             {result
               ? openedConsultationId && !loading
                 ? "계정에 저장된 상담입니다. 이 화면에서 바로 PDF 로 내려받을 수 있어요."
@@ -614,7 +721,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
                 ? "진행된 곳까지 그대로 남겨 뒀어요. 아래에서 이어서 다시 시도할 수 있습니다."
                 : FUSION_STAGES.find((stage) => stageStates[stage.key] === "active")?.message || "여섯 체계를 부를 준비를 하고 있어요."}
           </p>
-          {!result && loading && <p className="m-0 mt-2 text-[0.82rem] text-[#a99cc0]">여섯 체계 중 <b className="font-display text-[#f0dda8]">{completedStageCount}개</b> 완료</p>}
+          {!result && loading && <p className="m-0 mt-2 text-[0.82rem] text-[var(--fx-ink-4)]">여섯 체계 중 <b className="font-display text-[var(--fx-gold)]">{completedStageCount}개</b> 완료</p>}
         </div>
       </header>
 
@@ -635,15 +742,23 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
                   ? <span className="rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80">완료</span>
                   : <span className="inline-flex items-center gap-2 rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80"><TypingDots />쓰는 중</span>}
               />
-              <p className="m-0 max-w-[72ch] text-[0.95rem] leading-[1.85] text-[#e6ddf2]">{state === "completed" ? stage.done : stage.message}</p>
+              <p className={`m-0 max-w-[72ch] ${styles.reading} text-[1rem] leading-[1.9] text-[var(--fx-ink-2)]`}>{state === "completed" ? stage.done : stage.message}</p>
               {stage.key === "fusion" && composeProgress && <div className="mt-4 rounded-xl border border-white/[0.08] bg-black/25 px-4 py-3.5">
-                <p className="m-0 text-[0.85rem] text-[#d6cbe8]">
-                  <strong className="font-display text-[#f0dda8]">{composeProgress.completed} / {composeProgress.total}</strong> 리딩 묶음 완성{composeProgress.label ? ` · ${composeProgress.label}` : ""}
+                <p className="m-0 text-[0.85rem] text-[var(--fx-ink-3)]">
+                  <strong className="font-display text-[var(--fx-gold)]">{composeProgress.completed} / {composeProgress.total}</strong>
+                  {composeProgress.phase === "repair" ? " 묶음 보완 완료" : " 리딩 묶음 완성"}{composeProgress.label ? ` · ${composeProgress.label}` : ""}
                 </p>
                 <span aria-hidden className="mt-2.5 block h-1.5 overflow-hidden rounded-full bg-white/[0.09]">
-                  <em className="block h-full origin-left rounded-full bg-[linear-gradient(90deg,#a05cd6,#e8d5a3)] transition-transform duration-700 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${Math.min(1, composeProgress.completed / Math.max(1, composeProgress.total))})` }} />
+                  <em className="block h-full origin-left rounded-full bg-[linear-gradient(90deg,var(--fx-violet),var(--fx-gold-2))] transition-transform duration-700 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${Math.min(1, composeProgress.completed / Math.max(1, composeProgress.total))})` }} />
                 </span>
-                <small className="mt-2.5 block text-[0.78rem] leading-relaxed text-[#a99cc0]">2만 자가 넘는 분량이라 네 묶음을 동시에 씁니다. 먼저 끝난 묶음부터 표시돼요.</small>
+                <small className="mt-2.5 block text-[0.78rem] leading-relaxed text-[var(--fx-ink-4)]">
+                  {composeProgress.phase === "repair"
+                    ? "분량이 모자란 묶음만 다시 쓰고 있어요. 앞서 완성된 묶음은 그대로 남아 있습니다."
+                    : "2만 자가 넘는 분량이라 네 묶음을 동시에 씁니다. 먼저 끝난 묶음부터 표시돼요."}
+                </small>
+                {stalled && <p className="m-0 mt-3 border-t border-white/[0.08] pt-3 text-[0.78rem] leading-relaxed text-[var(--fx-rose)]">
+                  연결이 조용해진 지 좀 됐어요. 결과는 완성되는 즉시 계정에 저장되니, 화면이 멈춘 것 같으면 아래 보관함에서 다시 확인해 주세요.
+                </p>}
               </div>}
             </ThreadBubble>
           </ThreadRow>;
@@ -656,16 +771,24 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
           </p>
         </li>}
 
+        {result && qualityNotice && <li>
+          <div role="status" className="rounded-[1.375rem] border border-[rgba(232,213,163,0.3)] bg-[rgba(232,213,163,0.08)] px-5 py-4 sm:px-6">
+            <p className="m-0 font-display text-[0.82rem] text-[var(--fx-gold)]">분량 안내</p>
+            <p className="m-0 mt-1.5 max-w-[64ch] text-[0.9rem] leading-[1.8] text-[var(--fx-gold-2)]">{qualityNotice}</p>
+          </div>
+        </li>}
+
         {result && <FusionResultThread result={result} openSection={openSection} onToggleSection={toggleSection} exporting={exporting} />}
 
         {failure && <li className="animate-fade-in-up opacity-0 motion-reduce:animate-none motion-reduce:opacity-100">
           <div role="alert" className="relative overflow-hidden rounded-[1.375rem] border border-[rgba(244,190,209,0.34)] bg-[rgba(74,24,47,0.34)] px-5 py-5 sm:px-6">
-            <p className="m-0 font-display text-[0.85rem] text-[#f6cadb]">생성이 멈췄어요</p>
-            <p className="m-0 mt-2 max-w-[64ch] text-[0.95rem] leading-[1.8] text-[#fbeaf1]">{failure.message}</p>
+            <p className="m-0 font-display text-[0.85rem] text-[var(--fx-rose)]">생성이 멈췄어요</p>
+            <p className="m-0 mt-2 max-w-[64ch] text-[0.95rem] leading-[1.8] text-[var(--fx-rose)]">{failure.message}</p>
+            {failure.reason && <p className="m-0 mt-2 text-[0.75rem] leading-relaxed text-[var(--fx-rose-dim)]">사유 코드 <code className="font-mono">{failure.reason}</code> · 같은 실패가 반복되면 이 코드를 문의에 남겨 주세요.</p>}
             {failure.retryable && <button
               type="button"
               onClick={() => formRef.current?.requestSubmit()}
-              className="mt-4 min-h-11 rounded-full border border-[rgba(244,190,209,0.45)] bg-[rgba(244,190,209,0.14)] px-5 text-[0.9rem] text-[#fbeaf1] transition-colors hover:bg-[rgba(244,190,209,0.24)] motion-reduce:transition-none"
+              className="mt-4 min-h-11 rounded-full border border-[rgba(244,190,209,0.45)] bg-[rgba(244,190,209,0.14)] px-5 text-[0.9rem] text-[var(--fx-rose)] transition-colors hover:bg-[rgba(244,190,209,0.24)] motion-reduce:transition-none"
             >추가 결제 없이 다시 시도하기</button>}
           </div>
         </li>}
@@ -673,17 +796,17 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
 
       {(loading || result) && <footer className="relative flex flex-wrap gap-3 border-t border-white/[0.07] px-4 py-5 sm:px-9">
         {loading
-          ? <button type="button" onClick={cancelGeneration} className="min-h-11 rounded-full border border-white/[0.18] px-5 text-[0.88rem] text-[#cec3e0] transition-colors hover:border-[#c9b5f3] hover:text-[#f7f1ff] motion-reduce:transition-none">분석 중단하기</button>
+          ? <button type="button" onClick={cancelGeneration} className="min-h-11 rounded-full border border-white/[0.18] px-5 text-[0.88rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">분석 중단하기</button>
           : <>
             <button
               type="button"
               onClick={() => void downloadPdf()}
               disabled={exporting}
-              className="min-h-11 rounded-full border border-[rgba(232,213,163,0.42)] bg-[rgba(232,213,163,0.12)] px-5 text-[0.9rem] font-bold text-[#f6e8b4] transition-colors hover:bg-[rgba(232,213,163,0.2)] disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none"
+              className="min-h-11 rounded-full border border-[rgba(232,213,163,0.42)] bg-[rgba(232,213,163,0.12)] px-5 text-[0.9rem] font-bold text-[var(--fx-gold)] transition-colors hover:bg-[rgba(232,213,163,0.2)] disabled:cursor-wait disabled:opacity-60 motion-reduce:transition-none"
             >{exporting ? "PDF 를 만드는 중…" : "PDF 로 저장"}</button>
-            <button type="button" onClick={() => void share()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[#ded3ea] transition-colors hover:border-[#c9b5f3] hover:text-[#f7f1ff] motion-reduce:transition-none">개인정보 제외 요약 공유</button>
-            {openedConsultationId && <button type="button" onClick={() => void copyReopenLink()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[#ded3ea] transition-colors hover:border-[#c9b5f3] hover:text-[#f7f1ff] motion-reduce:transition-none">다시 열 링크 복사</button>}
-            <Link href="/#guardian-fortune" className="inline-flex min-h-11 items-center rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[#ded3ea] transition-colors hover:border-[#c9b5f3] hover:text-[#f7f1ff] motion-reduce:transition-none">오늘의 귀인에게 이어서 묻기</Link>
+            <button type="button" onClick={() => void share()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">개인정보 제외 요약 공유</button>
+            {openedConsultationId && <button type="button" onClick={() => void copyReopenLink()} className="min-h-11 rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">다시 열 링크 복사</button>}
+            <Link href="/#guardian-fortune" className="inline-flex min-h-11 items-center rounded-full border border-white/[0.16] px-5 text-[0.9rem] text-[var(--fx-ink-3)] transition-colors hover:border-[var(--fx-violet-soft)] hover:text-[var(--fx-ink-1)] motion-reduce:transition-none">오늘의 귀인에게 이어서 묻기</Link>
           </>}
       </footer>}
     </section>}

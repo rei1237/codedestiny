@@ -24,7 +24,8 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
-import { MasterLoveCodexSession, MonthlyCreditLedger, Payment, PointHistory, User } from "../lib/models.js";
+import { MasterLoveCodexSession, Payment, PointHistory, User } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canUseByPass, normalizeHoneyPassEntitlement, resolveMonthlySpendQuota, resolvePremiumQuota } from "../lib/profile-limits.js";
@@ -372,7 +373,7 @@ function paymentTokenClauses(tokens = []) {
  *      결제를 마친 사용자가 /start 에서 402 를 받는다(돈만 나간다).
  *      반대로 두 키를 함께 받아들이면 30,000원 결제로 50,000원 상품을 받게 되므로 정확히 일치시킨다.
  */
-async function findBillingEvidence({ userId, idempotencyKey, body, featureKey }) {
+async function findBillingEvidence({ env, userId, idempotencyKey, body, featureKey }) {
   if (!objectIdLike(userId)) return null;
   const evidenceFeatureKey = clean(featureKey) || FEATURE_KEY;
   const tokens = collectBillingTokens(body, idempotencyKey);
@@ -392,16 +393,18 @@ async function findBillingEvidence({ userId, idempotencyKey, body, featureKey })
     return { ok: true, accessType: "paid", paymentId: clean(point._id, 160), billingRequestId: clean(point?.metadata?.requestId || idempotencyKey, 180) };
   }
 
-  const ledger = await MonthlyCreditLedger.findOne({
+  // 🔴 예전에는 `metadata.featureKey` + metadataTokenClauses(= sourceId 없음)로 찾았다. 결제 V2 원장은
+  //    기능키를 top-level serviceKey 에, 멱등키를 top-level sourceId 에 적으므로 **두 조건 모두** 빗나가
+  //    V2 이후 월정석 결제자가 /start 에서 402 를 받았다. 정본은 worker/lib/moonstone-spend-proof.js.
+  //    🔴 featureKeys 에 SERVICE_KEY 를 섞지 않는다 — 개인판/궁합판을 서로 인정하면 30,000원 결제로
+  //    50,000원 상품이 열린다(위 함수 주석의 계약).
+  const monthlyEvidence = await findMoonstoneSpendEvidence(env, {
     userId,
-    type: "MONTHLY_CREDIT_SPEND",
-    "metadata.featureKey": evidenceFeatureKey,
-    "metadata.refundedForUnlockFailure": { $ne: true },
-    "metadata.refundedForServiceExecution": { $ne: true },
-    $or: pointClauses,
-  }).sort({ createdAt: -1 }).lean();
-  if (ledger) {
-    return { ok: true, accessType: "monthly_credit", paymentId: clean(ledger._id, 160), billingRequestId: clean(ledger?.metadata?.requestId || idempotencyKey, 180) };
+    featureKeys: [evidenceFeatureKey],
+    tokens,
+  });
+  if (monthlyEvidence) {
+    return { ok: true, accessType: "monthly_credit", paymentId: clean(monthlyEvidence.ledgerId, 160), billingRequestId: clean(monthlyEvidence.sourceId || idempotencyKey, 180) };
   }
 
   const payment = await Payment.findOne({
@@ -838,6 +841,7 @@ async function resolveStartAccess(request, env, auth, body, normalized, idempote
 
   await connectDb(env);
   const evidence = await findBillingEvidence({
+    env,
     userId: auth.userId,
     idempotencyKey,
     body,

@@ -692,8 +692,8 @@ function enc(p){return p.split("/").map(encodeURIComponent).join("/");}
 var ISLAND_ART="/images/destiny-island/gate-hero-desktop.webp";
 
 /* 캐릭터 스프라이트 — 노벨과 동일 자산·좌표 (신규 업로드 없음) */
-var NEO_SHEET=WAR+enc("전략실 네오-Photoroom.png"); /* 기존 사자 네오 4×4 */
-var NEOH_SHEET=WAR+enc("네오 스프라이트 배경없음4-Photoroom.png"); /* 기존 전략실 네오 */
+var NEO_SHEET=WAR+enc("전략실 네오-Photoroom.webp"); /* 기존 사자 네오 4×4 */
+var NEOH_SHEET=WAR+enc("네오 스프라이트 배경없음4-Photoroom.webp"); /* 기존 전략실 네오 */
 var PIGSHEET="/images/novel/pig-expressions.webp"; /* 기존 꽃돼지 연이 표정 4×4 */
 var RAB_SHEET="/images/novel/rab-sheet.webp";                    /* 청토끼 4×2 */
 var LNS_SHEET="/images/novel/lunas-sheet.webp";                  /* 루나 언니 3×2 */
@@ -827,13 +827,13 @@ var PALACES={
     greet:"오호, 손님이군! 이 광산엔 그대의 재물운이 잠들어 있지.",close:"금맥은 한 번에 캐지 않아. 오늘 쓴 돈을 한 줄만 적어봐, 그게 곡괭이야."},
   "질액궁":{x:39,y:77,icon:"💧",title:"치유의 성소",npc:{name:"성소의 수호 토끼",who:"heal",img:NOVEL+enc("루나 언니 회복2-Photoroom.webp")},
     greet:"이곳 샘물은 몸과 마음의 피로를 비춰줘요.",close:"오늘은 물 한 잔, 깊은 숨 한 번. 그거면 충분한 날도 있어요."},
-  "천이궁":{x:23,y:76,icon:"⛵",title:"항구",npc:{name:"항구의 전령 까마귀",who:"crow",img:NOVEL+enc("까마귀 빌런1.png")},
+  "천이궁":{x:23,y:76,icon:"⛵",title:"항구",npc:{name:"항구의 전령 까마귀",who:"crow",img:NOVEL+enc("까마귀 빌런1.webp")},
     greet:"까악— 먼 곳의 소식을 물어왔다. 여긴 떠남과 만남의 부두다.",close:"낯선 길이 두렵거든 반 걸음만 나가봐라. 바람은 그때 분다."},
-  "노복궁":{x:60,y:74,icon:"🤝",title:"동료의 광장",npc:{name:"열정 동료 모카",who:"moka",img:NOVEL+enc("모카 기본.png")},
+  "노복궁":{x:60,y:74,icon:"🤝",title:"동료의 광장",npc:{name:"열정 동료 모카",who:"moka",img:NOVEL+enc("모카 기본.webp")},
     greet:"요! 광장에 온 걸 환영해! 여긴 함께 뛰는 사람들의 자리야.",close:"고마운 동료가 있다면 오늘 말로 전해봐. 팀의 비트는 그렇게 맞춰지는 거야."},
   "관록궁":{x:61,y:56,icon:"📐",title:"전략실",npc:{name:"전략가 네오",who:"neoh",sheet:NEOH_SHEET,size:"400% 200%",pos:NEOH_CELL.hneutral},
     greet:"전략실에 온 것을 환영하지. 여긴 그대의 일과 명예가 설계되는 방이다.",close:"큰 그림보다 오늘의 한 수. 책상 위 일 하나만 끝내고 나가게."},
-  "전택궁":{x:50,y:68,icon:"🏡",title:"고향의 집",npc:{name:"집 지키는 연이",who:"yeonHuman",yeon:true,img:NOVEL+enc("반신상 기본-Photoroom.png")},
+  "전택궁":{x:50,y:68,icon:"🏡",title:"고향의 집",npc:{name:"집 지키는 연이",who:"yeonHuman",yeon:true,img:NOVEL+enc("반신상 기본-Photoroom.webp")},
     greet:"다녀오셨어요? 여긴 당신이 돌아와 쉬는 자리, 삶의 터전이에요.",close:"머무는 자리를 아끼는 만큼 운도 머물러요. 오늘 방 한 구석만 정돈해볼까요?"},
   "복덕궁":{x:64,y:32,icon:"📚",title:"신비한 도서관",npc:{name:"사서 백문",who:"baek",img:NOVEL+enc("백문 도서관-Photoroom.webp")},
     greet:"조용히 오시게. 이 서가엔 그대 마음의 복이 기록되어 있다네.",close:"복은 쌓는 것이 아니라 알아차리는 것. 오늘 좋았던 일 하나를 적어두시게."},
@@ -1668,8 +1668,8 @@ function initPanZoom(){
 }
 /* ---- 연이·네오 이야기 내레이터 (자미두수 지식 + 따뜻한 조언, 명반 개인화) ---- */
 var NEO_AV=(PROD||REMOTE_SHELL)
-  ? ASSETS+"cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/"+enc("전략실 네오 메인-Photoroom.png")
-  : WAR+enc("전략실 네오 메인-Photoroom.png");
+  ? ASSETS+"cdn-cgi/image/width=240,quality=80,format=auto/DestinyWar/"+enc("전략실 네오 메인-Photoroom.webp")
+  : WAR+enc("전략실 네오 메인-Photoroom.webp");
 /* 연이 아바타 = 인맵 NPC와 동일한 표정 시트의 활짝 웃는 프레임(밋밋한 정지 마스코트 대신 표정 크롭 → 더 귀엽게) */
 var AV={yeon:{sheet:PIGSHEET,size:"400% 400%",pos:PIG_CELL.talk,name:"연이"},neo:{img:NEO_AV,name:"네오"}};
 try{[PIGSHEET,NEO_AV,ISLAND_ART].forEach(function(u){var im=new Image();im.src=u;});}catch(_){}/* 전환 지연 방지 프리로드 */

@@ -31,7 +31,7 @@ function newConsultationId() {
  *
  * @returns {{ ok: true, doc: object } | { ok: false, reason: string }}
  */
-export function buildFusionConsultationDoc({ requestId, userId, input = {}, result, generationSource = "", llmMeta = null } = {}) {
+export function buildFusionConsultationDoc({ requestId, userId, input = {}, result, generationSource = "", llmMeta = null, qualityTier = "", qualityNotice = "" } = {}) {
   if (!text(userId, 120)) return { ok: false, reason: "missing_user" };
   if (!text(requestId, 180)) return { ok: false, reason: "missing_request_id" };
   if (!result || typeof result !== "object" || Array.isArray(result)) return { ok: false, reason: "missing_result" };
@@ -64,6 +64,10 @@ export function buildFusionConsultationDoc({ requestId, userId, input = {}, resu
       result,
       visibleTextLength: serialized.length,
       generationSource: text(generationSource, 40),
+      // 강등 배달이면 그 사실이 재열람·PDF 에도 따라가야 한다. 화면에서만 알리면
+      // 다시 열었을 때 "왜 짧지?"에 답할 근거가 사라진다.
+      qualityTier: text(qualityTier, 20) || "full",
+      qualityNotice: text(qualityNotice, 300),
       status: "completed",
       llmMeta: llmMeta && typeof llmMeta === "object" ? llmMeta : null,
     },
@@ -102,7 +106,7 @@ export async function listFusionFortuneConsultations({ userId, limit = 10 } = {}
   if (!text(userId, 120)) return [];
   const size = Math.min(Math.max(Number(limit) || 10, 1), 20);
   return FusionFortuneConsultation.find({ userId: text(userId, 120), status: "completed" })
-    .select("id title inputSummary generationSource createdAt")
+    .select("id title inputSummary generationSource qualityTier createdAt")
     .sort({ createdAt: -1 })
     .limit(size)
     .lean();

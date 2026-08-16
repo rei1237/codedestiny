@@ -102,9 +102,15 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
   const inProgress = () => paymentError(
     "MOONSTONE_IN_PROGRESS", "월정석 사용을 처리하는 중입니다. 잠시 후 다시 시도해 주세요.", { sourceId },
   );
+  /* 🔴 예약이 만든 행의 _id 를 붙들어 둔다. 예전에는 성공 경로가 `ledgerId: ""` 를 돌려줬고,
+     compat.legacyMoonstoneEnvelope 가 그것을 requestId 로 폴백해 consume.transactionId 에 실었다.
+     그러면 소비 라우트 중 "ObjectId 를 되돌려 받아야 조회하는" 구현들이 증빙을 못 찾아, 월정석이
+     차감된 사용자가 402(미결제)를 받는다(네오 팩폭 전략실 실사고). replay 경로만 실제 _id 를
+     돌려주던 비대칭도 여기서 사라진다. */
+  let reservedLedgerId = "";
   const reserve = async () => {
     try {
-      await db.insertOne(MonthlyCreditLedger, {
+      const inserted = await db.insertOne(MonthlyCreditLedger, {
         userId: uid,
         type: SPEND,
         amount: cost,
@@ -117,6 +123,7 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
         updatedAt: now,
         // settledAt 은 일부러 넣지 않는다 — 이 순간의 이 행이 '미정산 예약'이라는 표식이다.
       });
+      reservedLedgerId = String(inserted?.insertedId || "");
       return true;
     } catch (error) {
       if (Number(error?.code) !== 11000) throw error;
@@ -197,7 +204,7 @@ export async function spendMoonstone(db, { userId, product, purchaseId, profileI
     { $set: { beforeBalance: afterBalance + cost, afterBalance, settledAt: new Date(), updatedAt: new Date() } },
   );
 
-  return { balance: afterBalance, replayed: deducted.reason === "ALREADY_PROCESSED", ledgerId: "" };
+  return { balance: afterBalance, replayed: deducted.reason === "ALREADY_PROCESSED", ledgerId: reservedLedgerId };
 }
 
 /**

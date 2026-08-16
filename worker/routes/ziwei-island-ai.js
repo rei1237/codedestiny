@@ -8,6 +8,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { MonthlyCreditLedger, Payment, PointHistory, User, ZiweiAiConsultation } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
@@ -246,14 +247,6 @@ function pointHistoryTokenClauses(tokens = []) {
   });
   return clauses;
 }
-function monthlyCreditTokenClauses(tokens = []) {
-  const clauses = [];
-  tokens.forEach((token) => {
-    clauses.push({ sourceId: token }, { "metadata.requestId": token }, { "metadata.purchaseId": token }, { "metadata.idempotencyKey": token }, { "metadata.orderId": token }, { "metadata.pointHistoryId": token }, { "metadata.ledgerId": token }, { "metadata.monthlyCreditLedgerId": token });
-    if (mongoose.Types.ObjectId.isValid(token)) clauses.push({ _id: token });
-  });
-  return clauses;
-}
 async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash, paymentId = "" }) {
   if (isAdmin(auth) || clean(user?.role).toLowerCase() === "admin") return { ok: true, accessType: "admin", paymentId: "" };
   const paidPayment = await findPaidPayment({ userId: auth.userId, idempotencyKey, paymentId });
@@ -267,7 +260,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey, inputH
   if (hasMonthlyCredit(user, pricing.membershipCreditCost)) return { ok: true, accessType: "subscription", paymentId: "" };
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
-async function resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey }) {
+async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempotencyKey }) {
   const signal = readBillingAccessSignal(body);
   const tokens = collectBillingTokens(body, idempotencyKey);
   const featureKeys = [FEATURE_KEY];
@@ -298,18 +291,16 @@ async function resolveBillingGateAccess({ auth, user, body, pricing, idempotency
       purchaseId: clean(pointHistory?.metadata?.purchaseId || pointHistory?.metadata?.idempotencyKey || pointHistory?.metadata?.orderId || "", 180),
     };
   }
-  const monthlyClauses = monthlyCreditTokenClauses(tokens);
-  if (monthlyClauses.length) {
-    const ledger = await MonthlyCreditLedger.findOne({
-      userId: auth.userId, type: "MONTHLY_CREDIT_SPEND", serviceKey: { $in: [FEATURE_KEY, SERVICE_KEY] },
-      "metadata.refundedForUnlockFailure": { $ne: true }, "metadata.refundedForServiceExecution": { $ne: true }, $or: monthlyClauses,
-    }).sort({ createdAt: -1 }).lean();
-    if (ledger) return {
-      ok: true, accessType: "subscription", paymentId: clean(ledger._id, 160), prepaid: true, evidenceType: "monthly_credit", evidenceId: clean(ledger._id, 160),
-      amount: Math.max(0, Math.floor(Number(ledger.amount || pricing.membershipCreditCost || 0))),
-      purchaseId: clean(ledger.sourceId || ledger?.metadata?.purchaseId || ledger?.metadata?.idempotencyKey || "", 180),
-    };
-  }
+  // 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
+  const monthlyEvidence = await findMoonstoneSpendEvidence(env, {
+    userId: auth.userId, featureKeys: [FEATURE_KEY, SERVICE_KEY], tokens,
+  });
+  if (monthlyEvidence) return {
+    ok: true, accessType: "subscription", paymentId: clean(monthlyEvidence.ledgerId, 160), prepaid: true,
+    evidenceType: "monthly_credit", evidenceId: clean(monthlyEvidence.ledgerId, 160),
+    amount: Math.max(0, Math.floor(Number(monthlyEvidence.amount || pricing.membershipCreditCost || 0))),
+    purchaseId: clean(monthlyEvidence.sourceId, 180),
+  };
   return null;
 }
 function customerFromUser(user, userId) {
@@ -584,7 +575,7 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
   }
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId, env));
   if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
-  const billingAccess = await withMongoRetry(env, () => resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey }));
+  const billingAccess = await withMongoRetry(env, () => resolveBillingGateAccess({ env, auth, user, body, pricing, idempotencyKey }));
   if (billingAccess?.ok) return billingAccess;
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }
