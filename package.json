@@ -200,6 +200,7 @@
     "verify:animal-totem-render": "node scripts/verify-animal-totem-render.mjs",
     "verify:physiognomy-scoring": "node scripts/verify-physiognomy-scoring.mjs",
     "physio:measure": "node scripts/physiognomy-calibrate.mjs",
+    "physio:replay": "node scripts/physiognomy-replay.mjs",
     "verify:past-life-face": "node scripts/verify-past-life-face.mjs",
     "verify:static-asset-cache-keys": "node scripts/verify-static-asset-cache-keys.mjs",
     "verify:palm-flow": "node scripts/verify-palm-flow.mjs",

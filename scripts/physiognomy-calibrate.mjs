@@ -17,7 +17,7 @@
 //
 // calibration/ 은 .gitignore 에 있다 — 사용자 사진은 절대 커밋되지 않는다.
 
-import { readFileSync, readdirSync, statSync, existsSync } from 'node:fs';
+import { readFileSync, readdirSync, statSync, existsSync, writeFileSync } from 'node:fs';
 import { createServer } from 'node:http';
 import { resolve, extname, join, relative, basename, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -108,19 +108,38 @@ window.__measure = async (dataUrl) => {
   // 엔진과 동일한 종횡비 보정을 적용한 사본에서 폭 후보들을 잰다 (AnalysisEngine.js:373-376)
   const c = aspect === 1 ? lm : lm.map((p) => ({ x: p.x * aspect, y: p.y, z: (p.z || 0) * aspect }));
   const faceLength = dist3(c[10], c[152]);
+  const faceLength2d = dist2(c[10], c[152]);
   const widths = {
     jaw_149_378:   dist3(c[149], c[378]) / faceLength,   // 현재 엔진이 쓰는 쌍 (턱끝에서 3칸)
-    oval_234_454:  dist3(c[234], c[454]) / faceLength,   // 얼굴 최대 폭 후보
-    oval_2d:       dist2(c[234], c[454]) / faceLength,   // 위의 2D 변형 (yaw 민감도 비교용)
+    oval_234_454:  dist3(c[234], c[454]) / faceLength,   // 얼굴 최대 폭 후보 — 현재 엔진이 쓰는 값
+    oval_2d:       dist2(c[234], c[454]) / faceLength,   // 폭만 2D (yaw 민감도 비교용)
     temple_127_356: dist3(c[127], c[356]) / faceLength,
     cheek_116_345: dist3(c[116], c[345]) / faceLength,
+    // 폭·길이를 모두 2D 로 통일한 값. 234/454 는 귀 앞이라 |z| 가 크고 10/152 는 정면이라 작다 —
+    // 3D 거리를 쓰면 폭만 계통적으로 부풀어 모든 얼굴이 표의 넓은 쪽(bear 0.90 / pig 0.93)으로 민다.
+    // 이 열이 oval_234_454 보다 뚜렷이 작으면 그 부풀림이 실재한다는 뜻이다.
+    all_2d:        dist2(c[234], c[454]) / faceLength2d,
     faceLength
   };
 
+  // ── eyeSlant 스케일 후보 ──
+  // 현재 엔진 값은 (OUT.y - IN.y) × 100 인 정규화 y차라 얼굴이 화면에서 차지하는 크기에 비례한다.
+  // 같은 사람을 크게/작게 찍으면 값이 달라지므로 아키타입 표(-6.5~+4.5)와 스케일이 맞을 수 없다.
+  // 비교용으로 눈 폭으로 정규화한 각도(도)를 함께 찍는다. c 는 x 에 이미 A 가 곱해져 있어
+  // atan2(dy, |dx|) 가 곧 실제 픽셀 공간의 눈꼬리 각도다. 부호는 엔진과 같다(음수 = 올라간 눈매).
+  const slantDeg = (out, inn) =>
+    Math.atan2(c[out].y - c[inn].y, Math.abs(c[out].x - c[inn].x)) * (180 / Math.PI);
+  const eyeSlantDeg = (slantDeg(226, 133) + slantDeg(446, 362)) / 2;
+
   const f = window.faceAnalysisEngine.extractGeometricFeatures(lm, aspect);
   const res = await window.faceAnalysisEngine.analyze(lm, null, aspect);
+  // 랜드마크 원본을 함께 돌려준다. 축 계산식(extractGeometricFeatures)을 바꿔 가며
+  // 적중률을 비교하려면 저장된 features 만으로는 부족하고 좌표가 있어야 한다. 이게 있으면
+  // 사진을 다시 안 돌리고 (브라우저 왕복 ≈ 3분) 오프라인에서 즉시 재계산할 수 있다.
+  const r5 = (v) => Math.round((v || 0) * 1e5) / 1e5;
   return {
-    ok: true, widths,
+    ok: true, widths, eyeSlantDeg, aspect,
+    landmarks: lm.map((p) => [r5(p.x), r5(p.y), r5(p.z)]),
     features: {
       faceRatio: f.faceRatio, eyeSlant: f.eyeSlant, eyeDistRatio: f.eyeDistRatio,
       noseWidthRatio: f.noseWidthRatio, mouthRatio: f.mouthRatio, eyeRatio: f.eyeRatio,
@@ -216,6 +235,12 @@ async function main() {
     process.exit(1);
   }
 
+  // 브라우저 왕복이 사진당 수 초라 재실행이 비싸다. 원자료를 남겨 두면 축 스케일 분석은
+  // 사진을 다시 안 돌리고 할 수 있다. calibration/ 은 .gitignore 라 같이 묻히지 않는다.
+  const dump = resolve(dir, opt('json', '.measurements.json'));
+  writeFileSync(dump, JSON.stringify({ animals, rows }, null, 2), 'utf8');
+  console.log(`\n[physio-calibrate] 원자료 → ${relative(root, dump)}`);
+
   report(rows);
   if (flag('emit')) emit(rows, animals);
 }
@@ -240,7 +265,7 @@ function report(rows) {
   };
 
   console.log('\n── 폭 후보별 faceRatio 중앙값 (아키타입 표 중앙값 ' + fmt(archMed.face) + ' 과 비교) ──');
-  for (const key of ['jaw_149_378', 'oval_234_454', 'oval_2d', 'temple_127_356', 'cheek_116_345']) {
+  for (const key of ['jaw_149_378', 'oval_234_454', 'oval_2d', 'all_2d', 'temple_127_356', 'cheek_116_345']) {
     const xs = rows.map((r) => r.widths[key]);
     const m = median(xs);
     const spread = Math.max(...xs) - Math.min(...xs);
@@ -258,11 +283,83 @@ function report(rows) {
     console.log(`  ${fk.padEnd(16)} 측정 ${fmt(median(xs))}  범위 ${fmt(Math.min(...xs))}~${fmt(Math.max(...xs))}   표 ${fmt(archMed[ak])}`);
   }
 
+  // ── eyeSlant 스케일 대조 ──
+  // 표는 -6.5~+4.5 를 쓰는데 실측이 그 대역에 못 미치면, slant 가 0 근처인 동물(bear 0.5,
+  // monkey 0.0, pig 1.0)만 이 축 페널티를 면하고 cat(-5.5)·fox(-6.5) 는 상시 페널티를 먹는다.
+  const slantNow = rows.map((r) => r.features.eyeSlant);
+  const slantDeg = rows.map((r) => r.eyeSlantDeg);
+  console.log('\n── eyeSlant 스케일 대조 ──');
+  console.log(`  현재(정규화 y차×100)  중앙 ${fmt(median(slantNow), 2)}  범위 ${fmt(Math.min(...slantNow), 2)}~${fmt(Math.max(...slantNow), 2)}   표 대역 ${fmt(Math.min(...arch.map((a) => a.slant)), 1)}~${fmt(Math.max(...arch.map((a) => a.slant)), 1)}`);
+  console.log(`  눈꼬리 각도(도)       중앙 ${fmt(median(slantDeg), 2)}  범위 ${fmt(Math.min(...slantDeg), 2)}~${fmt(Math.max(...slantDeg), 2)}`);
+
+  reportGateCoverage(rows);
+
   const winners = {};
   rows.forEach((r) => { winners[r.winner] = (winners[r.winner] || 0) + 1; });
   const sorted = Object.entries(winners).sort((a, b) => b[1] - a[1]);
   console.log(`\n── 현재 판정 분포 ── ${sorted.map(([k, v]) => `${k} ${v}`).join(' · ')}`);
   console.log(`   사진 품질 중앙 ${fmt(median(rows.map((r) => r.features.qualityScore)), 0)} · 여성형 점수 중앙 ${fmt(median(rows.map((r) => r.femininity)), 0)}\n`);
+
+  // 라벨이 있으면 라벨 대비 적중률을 찍는다 — 이 숫자가 개선의 before/after 근거다.
+  const labeled = rows.filter((r) => r.label !== '(라벨없음)');
+  if (labeled.length) {
+    const hit = labeled.filter((r) => r.winner === r.label || r.winner === `${r.label}상`).length;
+    const top3hit = labeled.filter((r) => r.top.some((t) => t === r.label || t === `${r.label}상`)).length;
+    console.log(`── 라벨 적중 ── 1위 ${hit}/${labeled.length} (${((hit / labeled.length) * 100).toFixed(1)}%) · TOP3 ${top3hit}/${labeled.length} (${((top3hit / labeled.length) * 100).toFixed(1)}%)`);
+    const miss = labeled.filter((r) => r.winner !== r.label && r.winner !== `${r.label}상`);
+    if (miss.length) {
+      console.log('   오판:');
+      miss.forEach((r) => console.log(`     ${r.file.slice(0, 24).padEnd(25)} ${r.label} → ${r.winner}`));
+    }
+    console.log('');
+  }
+}
+
+// ── 죽은 게이트 탐지 ──
+// 보너스 사다리의 임계값은 전부 손으로 적힌 값이라, 측정 스케일이 표와 어긋나면 조용히
+// "한 번도 발화하지 않는 조건"이 된다. 사진 한 장도 통과 못 하는 게이트를 축별로 찍는다.
+// (기존 --emit 경고는 faceRatio 축, 그것도 중심점 하나만 봤다. 여기서는 6축 × 전 사진.)
+const GATE_AXES = ['faceRatio', 'eyeSlant', 'eyeDistRatio', 'noseWidthRatio', 'mouthRatio', 'eyeRatio'];
+
+function readAllGates(src) {
+  const lines = src.split('\n');
+  const gates = [];
+  let owner = null, depth = 0;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const open = /c\.animal\.id === '(\w+)'/.exec(line);
+    if (open && !owner) { owner = open[1]; depth = 0; }
+    if (!owner) continue;
+    depth += (line.match(/\{/g) || []).length - (line.match(/\}/g) || []).length;
+    const re = new RegExp(`features\\.(${GATE_AXES.join('|')})\\s*(<=|>=)\\s*(-?[\\d.]+)`, 'g');
+    for (const m of line.matchAll(re)) gates.push({ line: i + 1, animal: owner, axis: m[1], op: m[2], value: +m[3] });
+    if (depth <= 0 && /\}/.test(line)) owner = null;
+  }
+  return gates;
+}
+
+function reportGateCoverage(rows) {
+  const gates = readAllGates(readFileSync(resolve(root, 'AnalysisEngine.js'), 'utf8'));
+  const dead = [];
+  for (const g of gates) {
+    const hits = rows.filter((r) => {
+      const v = r.features[g.axis];
+      return Number.isFinite(v) && (g.op === '<=' ? v <= g.value : v >= g.value);
+    }).length;
+    if (hits === 0) dead.push(g);
+  }
+  console.log(`\n── 게이트 발화율 ── 전체 ${gates.length}개 중 한 장도 통과 못 한 게이트 ${dead.length}개`);
+  if (!dead.length) { console.log('  (없음)'); return; }
+  const byAxis = {};
+  dead.forEach((g) => { (byAxis[g.axis] = byAxis[g.axis] || []).push(g); });
+  for (const axis of GATE_AXES) {
+    if (!byAxis[axis]) continue;
+    const list = byAxis[axis];
+    const animals = [...new Set(list.map((g) => g.animal))].join(' ');
+    console.log(`  ${axis.padEnd(15)} ${String(list.length).padStart(2)}개 사문 — ${animals}`);
+    list.slice(0, 6).forEach((g) => console.log(`      AnalysisEngine.js:${g.line}  ${g.animal}  ${axis} ${g.op} ${g.value}`));
+    if (list.length > 6) console.log(`      … 외 ${list.length - 6}개`);
+  }
 }
 
 // ── --emit: 라벨(폴더명) 사진에서 아키타입 중심점을 뽑아 붙여넣을 코드를 찍는다 ──

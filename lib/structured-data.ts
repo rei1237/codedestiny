@@ -8,6 +8,15 @@ type FaqItem = {
   answer: string;
 };
 
+/**
+ * 기사 저자로 표기하는 필명. 운영자가 정한 이름이다(2026-08-16).
+ *
+ * 🔴 이 이름에 경력·자격·전문 분야를 덧붙이지 말 것. 필명은 출판 관행이지만 없는 이력을
+ * 만들어 붙이는 순간 SEO 요청서 22장의 가짜 저자·가짜 자격 금지에 걸린다.
+ * `app/insights/seed-articles.js` 의 DEFAULT_AUTHOR 와 같은 값이어야 한다.
+ */
+export const AUTHOR_PEN_NAME = "네오";
+
 export function buildOrganizationJsonLd() {
   return {
     "@context": "https://schema.org",
@@ -209,9 +218,15 @@ export function buildArticleJsonLd(input: {
     headline: input.title,
     description: input.description,
     image: toAbsoluteUrl(input.image || siteSeo.defaultOgImage),
+    // 저자는 필명 `네오`(운영자 결정, 2026-08-16). 예전에는 조직명으로 폴백돼
+    // 모든 기사가 "Code Destiny" 를 저자로 선언했고, 그건 저자 신호가 아니라 발행처 신호였다.
+    //
+    // 🔴 이름만 선언하고 경력·자격·소개는 넣지 않는다. 필명 자체는 출판에서 정상이지만
+    // **없는 경력을 지어내는 것**은 SEO 요청서 22장의 가짜 저자·가짜 자격 금지에 직접 걸린다.
+    // 전문성 신호가 필요하면 사람을 꾸미지 말고 실재하는 방법론 문서를 연결한다(아래 isBasedOn).
     author: {
-      "@type": "Organization",
-      name: input.author || siteSeo.siteName,
+      "@type": "Person",
+      name: input.author || AUTHOR_PEN_NAME,
     },
     publisher: {
       "@type": "Organization",
@@ -222,6 +237,9 @@ export function buildArticleJsonLd(input: {
         url: siteSeo.organization.logo,
       },
     },
+    // 해석 기준을 공개한 문서를 근거로 건다. 사실 관계를 지어내지 않으면서 만들 수 있는
+    // 신뢰 신호이고, /methodology 는 실제로 존재하는 색인 대상 페이지다.
+    isBasedOn: toAbsoluteUrl("/methodology"),
     articleSection: input.category || "운세 인사이트",
     keywords: (input.keywords || []).join(", "),
     mainEntityOfPage: url,
