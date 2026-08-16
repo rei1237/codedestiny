@@ -35,6 +35,7 @@ const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 // 마커와 _routes.json 의 드리프트를 fail-closed 로 막는다. 워커에서 리다이렉트를 하나 더
 // 다루려면 마커를 한 줄 추가해야 하고, 안 하면 가드가 실패한다.
 // @routes-include: /fortune/*
+// @routes-include: /insights/famous-saju/*
 //
 // 🔴 살아 있는 라우트를 삼키면 안 된다. `/fortune/`, `/fortune/{period}/`,
 //    `/fortune/{period}/{sign}/` 96개는 사이트맵에 있는 200 페이지다. 아래 두 분기는
@@ -47,6 +48,45 @@ const FORTUNE_LEGACY_SYSTEMS = new Map([
   ["vedic", "/vedic/"],
   ["ziwei", "/ziwei/"],
 ]);
+
+// 유명인 사주 별칭 → 정본 리다이렉트.
+//
+// 2026-06-04 `9396dc8ce` 이전에는 인물 1명이 slug·이름·영문명·수동별칭만큼 URL 을 만들었다
+// (134명 → 303 URL, 두 트리라 파일 606개). 정본만 프리렌더하도록 고치면서 구 URL 을 회수하지
+// 않아 별칭 169개가 지금도 404 다. `/famous-saju/<별칭>` 은 _redirects 의 :slug 규칙을 타고
+// 그 404 로 들어간다 — 리다이렉트 체인이 죽은 곳으로 가는 최악의 조합이다.
+//
+// 맵은 scripts/generate-famous-saju-aliases.mjs 가 celebrity-data.ts 에서 전수 파생해
+// public/famous-saju-aliases.json 으로 굽는다. 이 파일은 lib/ 에서 import 할 수 없으므로
+// 자산으로 읽는다. isolate 당 한 번만 읽고 재사용한다.
+const FAMOUS_SAJU_PREFIX = "/insights/famous-saju/";
+let famousSajuAliasesPromise = null;
+
+function loadFamousSajuAliases(env, url) {
+  if (!famousSajuAliasesPromise) {
+    famousSajuAliasesPromise = env.ASSETS.fetch(new URL("/famous-saju-aliases.json", url).toString())
+      .then((response) => (response.ok ? response.json() : {}))
+      .catch(() => ({}));
+  }
+  return famousSajuAliasesPromise;
+}
+
+async function famousSajuAliasTarget(pathname, env, url) {
+  if (!pathname.startsWith(FAMOUS_SAJU_PREFIX)) return null;
+  const rest = pathname.slice(FAMOUS_SAJU_PREFIX.length).replace(/\/+$/, "");
+  if (!rest || rest.includes("/")) return null;
+
+  let slug = rest;
+  try {
+    slug = decodeURIComponent(rest);
+  } catch {
+    // 잘못 인코딩된 경로는 그대로 자산 서빙에 넘긴다.
+  }
+
+  const aliases = await loadFamousSajuAliases(env, url);
+  const canonical = aliases[slug];
+  return canonical ? `${FAMOUS_SAJU_PREFIX}${canonical}/` : null;
+}
 
 function fortuneLegacyTarget(pathname) {
   const segments = pathname.split("/").filter(Boolean);
@@ -278,6 +318,13 @@ export default {
       // 쿼리스트링은 유지한다 — Cloudflare 의 _redirects 기본 동작과 같게 두어야
       // 이 경로만 utm 파라미터를 잃는 일이 없다.
       const target = new URL(legacyFortuneTarget, url);
+      target.search = url.search;
+      return Response.redirect(target.toString(), 301);
+    }
+
+    const famousAliasTarget = await famousSajuAliasTarget(url.pathname, env, url);
+    if (famousAliasTarget) {
+      const target = new URL(famousAliasTarget, url);
       target.search = url.search;
       return Response.redirect(target.toString(), 301);
     }

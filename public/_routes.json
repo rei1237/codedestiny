@@ -4,7 +4,8 @@
     "/api/*",
     "/rss.xml",
     "/insights/rss.xml",
-    "/fortune/*"
+    "/fortune/*",
+    "/insights/famous-saju/*"
   ],
   "exclude": []
 }

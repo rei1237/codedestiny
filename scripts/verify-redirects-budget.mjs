@@ -184,6 +184,28 @@ if (normalize(canonicalPeriods) !== normalize(workerPeriods)) {
   );
 }
 
+// ── 6-b. 유명인 사주 별칭 맵이 정본 데이터와 어긋나지 않는가 ──────────────
+// 워커는 public/famous-saju-aliases.json 을 자산으로 읽어 301 한다. 그 파일이 낡으면
+// 새로 추가된 인물의 별칭이 조용히 404 로 남는다(지금 고치고 있는 그 결함 그대로다).
+const aliasFile = read("public/famous-saju-aliases.json");
+if (aliasFile === null) {
+  console.error("[redirects-budget] public/famous-saju-aliases.json 이 없다. `node scripts/generate-famous-saju-aliases.mjs` 를 돌릴 것.");
+  process.exit(1);
+}
+const { buildAliasMap, readSource, serialize } = await import("./generate-famous-saju-aliases.mjs");
+const regenerated = serialize(buildAliasMap(readSource(rootDir)).map);
+if (regenerated !== aliasFile) {
+  fail("public/famous-saju-aliases.json 이 lib/famous-saju/celebrity-data.ts 와 어긋난다. `node scripts/generate-famous-saju-aliases.mjs` 로 재생성해 같은 커밋에 담을 것.");
+}
+const aliasMap = JSON.parse(aliasFile);
+const aliasCount = Object.keys(aliasMap).length;
+if (aliasCount === 0) fail("유명인 사주 별칭이 0개다 — 검사 대상이 없다.");
+for (const [alias, canonicalSlug] of Object.entries(aliasMap)) {
+  if (aliasMap[canonicalSlug]) {
+    fail(`별칭 "${alias}" 의 목적지 "${canonicalSlug}" 가 그 자체로 별칭이다 — 리다이렉트가 두 번 걸린다.`);
+  }
+}
+
 // ── 7. 워커가 가로채는 경로에서 _headers 의 noindex 가 사라지지 않는가 ────
 // `_headers` 가 워커 처리 경로에도 적용되는지는 **미검증**이다. 그래서 워커가 가로채는
 // 프리픽스 아래의 X-Robots-Tag noindex 규칙은 HTML 자체에도 noindex 가 있어야 한다.
@@ -249,5 +271,6 @@ if (failures.length > 0) {
 
 console.log(
   `[redirects-budget] OK — 규칙 ${rules.length}/${RULE_BUDGET}개, ` +
-    `사이트맵 ${sitemapPaths.length}개와 교집합 0, 워커 include ${workerIncludes.length}개 정합.`,
+    `사이트맵 ${sitemapPaths.length}개와 교집합 0, 워커 include ${workerIncludes.length}개 정합, ` +
+    `유명인 사주 별칭 ${aliasCount}개 최신.`,
 );
