@@ -61,22 +61,22 @@ const __lazyActionLoaders = {
   openPastLifeFaceApp: () => __loadScriptOnce('AnalysisEngine.js?v=h3ae4b189f4d3').then(() => __loadScriptOnce('PastLifeFaceUI.js?v=hc1c3840957e8')),
   openHwatuModal: () => __loadScriptOnce('HwatuFortune.js?v=h5be3c5cb5489'),
   openMbtiModal: () => __loadScriptOnce('js/astral-soul.js'),
-  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-c4e33c8be38f'),
-  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-c4e33c8be38f'),
-  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-c4e33c8be38f'),
+  openKemetModal: () => __loadScriptOnce('/js/oracle-kcg.js?v=build-a2def4f39e61'),
+  openDreamModal: () => __loadScriptOnce('/js/dream-ledger.js?v=build-a2def4f39e61'),
+  openPsychoDreamModal: () => __loadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-a2def4f39e61'),
   openAnimalTotemModal: () =>
     __loadScriptOnce('/js/services/animal-totem-content-engine.js').then(() =>
-      __loadScriptOnce('/js/animal-totem-experience.js?v=build-c4e33c8be38f')
+      __loadScriptOnce('/js/animal-totem-experience.js?v=build-a2def4f39e61')
     ),
   openSajuAnimalPage: () => Promise.resolve(window.location.assign('/saju-guardian')),
   openDestinyEggPage: () => Promise.resolve(window.location.assign('/tadagochi')),
   openFortuneTellerFishPage: () => Promise.resolve(window.location.assign('/fortune-teller-fish.html')),
-  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-c4e33c8be38f'),
-  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-c4e33c8be38f'),
+  openTarotLoveModal: () => __loadScriptOnce('/js/tarot-love-experience.js?v=build-a2def4f39e61'),
+  openTarotReunionModal: () => __loadScriptOnce('/js/tarot-reunion-experience.js?v=build-a2def4f39e61'),
   openTarotHealingPage: () => Promise.resolve(window.location.assign('/tarot/healing')),
   openTarotHealingModal: () => Promise.resolve(window.location.assign('/tarot/healing')),
-  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-c4e33c8be38f'),
-  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-c4e33c8be38f'),
+  openTarotSelfEsteemModal: () => __loadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-a2def4f39e61'),
+  openTarotYearFortuneModal: () => __loadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-a2def4f39e61'),
   openLifeBookModal: () => Promise.resolve(window.location.assign('/life-book-ai')),
   closeLifeBookModal: () => Promise.resolve(),
   generateLifeBook: () => Promise.resolve(window.location.assign('/life-book-ai')),
@@ -106,14 +106,14 @@ const __lazyActionLoaders = {
   generateLoveSecret: () => Promise.resolve(window.location.assign('/love-secret-ai')),
   openOlympusOracleModal: () => __loadScriptOnce('/js/olympus-oracle.js'),
   openRuneOracle: () => Promise.resolve(window.location.assign('/oracle/rune/')),
-  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-c4e33c8be38f').then(() => {
+  openSibylModal: () => __loadScriptOnce('/js/sibyl-system.js?v=build-a2def4f39e61').then(() => {
     if (typeof window.openSibylModal === 'function') window.openSibylModal();
   }),
   
 };
 
 function __ensureSajuCoreScripts() {
-  return __loadScriptOnce('/js/destiny-profile.js?v=build-c4e33c8be38f')
+  return __loadScriptOnce('/js/destiny-profile.js?v=build-a2def4f39e61')
     .then(() => __loadScriptOnce('/js/services/sajuService.js'))
     .then(() => __loadScriptOnce('/js/core/saju/modalProfileState.js'))
     .then(() => __loadScriptOnce('/js/admin-flower.js'));
@@ -452,17 +452,20 @@ function __bindCollectionImageFallback(img, fallbackSrc, placeholder, skeleton) 
   });
 }
 
-function __scheduleCollectionHydration(collection, forceHydrateAll = false) {
-  const start = () => __hydrateCollectionImagesChunked(collection, forceHydrateAll);
+function __scheduleCollectionTask(run) {
   if (typeof window !== 'undefined' && typeof window.requestIdleCallback === 'function') {
-    window.requestIdleCallback(start, { timeout: 350 });
+    window.requestIdleCallback(run, { timeout: 350 });
     return;
   }
   if (typeof window !== 'undefined' && typeof window.requestAnimationFrame === 'function') {
-    window.requestAnimationFrame(start);
+    window.requestAnimationFrame(run);
     return;
   }
-  setTimeout(start, 0);
+  setTimeout(run, 0);
+}
+
+function __scheduleCollectionHydration(collection, forceHydrateAll = false) {
+  __scheduleCollectionTask(() => __hydrateCollectionImagesChunked(collection, forceHydrateAll));
 }
 
 function __runChunked(listLike, fn, opts = {}) {
@@ -601,10 +604,23 @@ function __hydrateCollectionImagesChunked(collection, forceHydrateAll = false) {
   }, { minBatch: 2, maxBatch: 10, budgetMs: 7 });
 }
 
+/* 인라인 런타임의 __cdScheduleCollectionToggleWork 와 같은 것이다 — 열기·닫기가 같은 사다리를 타고,
+   지연 실행 시점에 data-collection-open 을 다시 읽어 상태가 뒤집혔으면 건너뛴다. */
+function __scheduleCollectionToggleWork(collection, isOpen) {
+  __scheduleCollectionTask(() => {
+    if ((collection.getAttribute('data-collection-open') === 'true') !== isOpen) return;
+    if (isOpen) __hydrateCollectionImagesChunked(collection, true);
+    else __releaseCollectionImagesChunked(collection);
+  });
+}
+
+/* 🔴 가드 플래그 이름은 인라인 런타임 쌍둥이(index-inline-runtime.js)와 **같아야** 한다. 예전에는
+   __cdUiCollectionToggleHydrationBound 와 __cdCollectionToggleHydrationBound 로 갈려 있어 서로를
+   못 막았고, 토글 한 번에 하이드레이션/해제가 통째로 두 벌 돌았다. */
 function __bindCollectionToggleHydration(root) {
   if (!root || typeof root.addEventListener !== 'function') return;
-  if (typeof window !== 'undefined' && window.__cdUiCollectionToggleHydrationBound) return;
-  if (typeof window !== 'undefined') window.__cdUiCollectionToggleHydrationBound = true;
+  if (typeof window !== 'undefined' && window.__cdCollectionToggleHydrationBound) return;
+  if (typeof window !== 'undefined') window.__cdCollectionToggleHydrationBound = true;
   root.addEventListener('cd:collection-toggle', (event) => {
     const detail = event && event.detail ? event.detail : {};
     const targetId = String(detail.targetId || '').trim();
@@ -612,9 +628,9 @@ function __bindCollectionToggleHydration(root) {
     const collection = document.getElementById(targetId);
     if (!collection) return;
     if (detail.isOpen === true) {
-      __scheduleCollectionHydration(collection, true);
+      __scheduleCollectionToggleWork(collection, true);
     } else if (detail.isOpen === false) {
-      __releaseCollectionImagesChunked(collection);
+      __scheduleCollectionToggleWork(collection, false);
     }
   });
 }
@@ -727,11 +743,9 @@ export function bindGlobalActions(root) {
         detail: { targetId, isOpen: newState }
       }));
 
-      if (newState) {
-        __scheduleCollectionHydration(collection);
-      } else {
-        __releaseCollectionImagesChunked(collection);
-      }
+      /* 🔴 여기서 하이드레이션/해제를 다시 부르지 않는다 — 바로 위 dispatch 가 이미
+         __bindCollectionToggleHydration 의 리스너를 깨워 같은 일을 시킨다(같은 bindGlobalActions
+         안에서 등록되므로 이 분기가 도는 시점엔 항상 붙어 있다). */
       return;
     }
 
