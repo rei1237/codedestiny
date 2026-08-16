@@ -22,6 +22,19 @@ const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
 function siteFooterHubText(key) {
   return SITE_FOOTER_HUB_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
+
+// SocialFooter 의 한국어 카피. 🔴 lib/i18n/siteFooterHubCopy 에서 가져오지 말 것 — 이 파일은
+// AppChrome("use client") 이 import 해 **클라이언트 번들에 들어간다.** 5개 로케일 표를 끌어오면
+// layout 청크가 41KB → 63KB 로 커진다(2026-08-16 실측). 로케일 카피는 서버 전용
+// LocaleFooterHub 가 넘기고, 여기에는 ko 문자열만 둔다.
+const KO_SOCIAL_COPY = {
+  sectionAriaLabel: "Code Destiny 공식 SNS 채널",
+  kicker: "Official Channels",
+  title: "Code Destiny 공식 채널",
+  navAriaLabel: "Code Destiny SNS 바로가기",
+  linkAriaTemplate: "Code Destiny 공식 {channel} 새 창으로 열기",
+  labels: { youtube: "유튜브", threads: "쓰레드", instagram: "인스타그램", naverBlog: "블로그", x: "X" },
+};
 const POLICY_LINKS = [
   { href: "/privacy", text: "개인정보처리방침 / Privacy" },
   { href: "/terms", text: "이용약관 / Terms" },
@@ -185,7 +198,7 @@ export default function SiteFooterHub() {
           </section>
         </section>
 
-        <SocialFooter />
+        <SocialFooter copy={KO_SOCIAL_COPY} />
 
         <section aria-label="사업자 정보" style={{ marginTop: '1.5rem', fontSize: '0.8rem', lineHeight: 1.7, opacity: 0.85 }}>
           <h2 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>사업자 정보</h2>

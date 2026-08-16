@@ -10,6 +10,8 @@ import DisclaimerBanner from "./DisclaimerBanner";
 import MobileBottomNav from "./MobileBottomNav";
 import SiteFooterHub from "./SiteFooterHub";
 import { SHELL_HOME_PATH, hardNavigateToShellHome } from "@/lib/navigation/shellHome";
+// 함수만 가져온다 — 번역 테이블이 아니라 프리픽스 판정 로직이라 클라이언트 번들 비용이 사실상 없다.
+import { localeFromPathname } from "@/lib/i18n/locales";
 
 const HOME_ROUTE = SHELL_HOME_PATH;
 
@@ -171,6 +173,9 @@ export default function AppChrome({ children }: { children: ReactNode }) {
     || /\/(result|play|start)(?=\/|$)/.test(pathname)
   );
   const isAppShellRoute = pathname === APP_SHELL_ROUTE || pathname.startsWith(`${APP_SHELL_ROUTE}/`);
+  // 로케일 경로(/ja·/zh·/zh-tw·/en)는 app/[locale]/layout.js 와 app/ja/layout.js 가 서버 컴포넌트
+  // LocaleFooterHub 를 붙인다. 여기서 한국어 SiteFooterHub 까지 렌더하면 푸터가 두 개가 된다.
+  const isLocaleRoute = localeFromPathname(pathname) !== null;
   return (
     <LazyMotion features={loadFramerFeatures} strict>
       {!hideChrome && <GlobalHeader />}
@@ -180,7 +185,7 @@ export default function AppChrome({ children }: { children: ReactNode }) {
       {/* 푸터는 서버 렌더한다. 과거 IntersectionObserver 로 지연시키고 그동안 영문 플레이스홀더를
           보여 줬는데, 정적 HTML 에 남는 것이 그 영문 문구뿐이라 전 페이지가 동일 보일러플레이트를
           갖고 크롤러는 내부 링크 51개를 전혀 보지 못했다. SiteFooterHub 는 훅·브라우저 API 가 없다. */}
-      {!hideChrome && <SiteFooterHub />}
+      {!hideChrome && !isLocaleRoute && <SiteFooterHub />}
       {/* App-shell and fully immersive routes own their mobile navigation. */}
       {/* App-shell, auth, and fully immersive routes own their navigation. */}
       {!isAppShellRoute && !isAuthRoute && !isImmersiveFortuneRoute && <MobileBottomNav />}

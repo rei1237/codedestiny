@@ -18,6 +18,18 @@ export type RefundJurisdictionNote = {
   paragraphs: string[];
 };
 
+/**
+ * 기계 보조 번역 고지. `app/[locale]/refund-policy/page.js` 와 로케일 푸터
+ * (`app/components/LocaleFooterHub.jsx`)가 **같은 문장**을 써야 하므로 여기서 한 번만 정의한다.
+ * 두 곳에 따로 적어 두면 한쪽만 고쳐졌을 때 어느 쪽이 정본인지 다투게 된다.
+ */
+export const LEGAL_TRANSLATION_NOTICE: Record<NonKoLocale, string> = {
+  en: "This page is a machine-assisted translation for reference. In case of any discrepancy, the Korean-language original (Terms of Service, Section 12) governs.",
+  ja: "本ページは参考用の機械補助翻訳です。内容に相違がある場合は、韓国語原文（利用規約12条）が優先します。",
+  zh: "本页面为参考用的机器辅助翻译。如与韩语原文（服务条款第12条）存在出入，以韩语原文为准。",
+  "zh-TW": "本頁面為參考用之機器輔助翻譯。如與韓語原文（服務條款第12條）有出入，以韓語原文為準。",
+};
+
 export const REFUND_INTRO: Record<NonKoLocale, string> = {
   en: "This page summarizes Code Destiny's refund and withdrawal terms for paid Passes and single-item payments. It is the same policy set out in Section 12 of the Terms of Service; this standalone page exists to make it easier to find and review.",
   ja: "このページは、有料パスおよび都度決済に関するCode Destinyの返金・契約解除条件をまとめたものです。内容は利用規約12条と同一であり、確認しやすいよう独立ページとして提供しています。",
