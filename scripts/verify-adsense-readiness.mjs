@@ -253,13 +253,17 @@ const xRobotsNoindexHeaderPatterns = [
   "/blood-type-app.html",
   "/celestial-harmony.html",
   "/cosmic-soul-meditation.html",
-  "/destiny-poker.html",
+  // destiny-poker 는 여기 없다 — 무료 기능이라 2026-08-16 에 색인 대상으로 전환했다
+  // (본문 838자 → 1,918자, canonical·description·사이트맵 등재 동반).
   "/emoi_omikuji_v2.html",
   "/fortune-teller-fish.html",
   "/geomancy-oracle-v4.html",
   "/ifa-oracle.html",
   "/ifa-oracle-about.html",
   "/neville-meditation.html",
+  // 2026-08-16 추가 — 같은 부류인데 선언만 빠져 있어 색인이 열려 있었다.
+  // 가시 텍스트 647자(한글 420자)로 이 목록의 어느 셸보다도 얇다.
+  "/pet-saju.html",
   "/royal-tea-oracle.html",
   "/tadagochi.html",
   "/tarot-ijik.html",
@@ -516,9 +520,18 @@ function collectSourceFiles(target, files = []) {
   return files;
 }
 
+// 🔴 라우트 대부분은 `<route>/index.html` 로 떨어지지만, 루트 정적 셸은 `<route>.html` 파일
+// 하나가 전부다(Cloudflare Pages 가 확장자를 떼고 `/destiny-poker` 로 서빙한다).
+// 디렉터리 형태만 찾으면 그런 라우트는 `readOptional` 이 null 을 돌려 **검사가 조용히 건너뛴다**.
+// 2026-08-16: 이것과 `collectIndexHtmlFiles`(=`**/index.html` 만 수집) 때문에 루트 셸 21개가
+// 본문 두께·canonical·noindex 검사를 통째로 비껴가 있었다. 파일이 있는 쪽으로 폴백한다.
 function routeHtmlPath(baseDir, route) {
   const trimmed = route.replace(/^\/+|\/+$/g, "");
-  return trimmed ? `${baseDir}/${trimmed}/index.html` : `${baseDir}/index.html`;
+  if (!trimmed) return `${baseDir}/index.html`;
+  const directoryForm = `${baseDir}/${trimmed}/index.html`;
+  if (existsSync(resolve(rootDir, directoryForm))) return directoryForm;
+  const flatForm = `${baseDir}/${trimmed}.html`;
+  return existsSync(resolve(rootDir, flatForm)) ? flatForm : directoryForm;
 }
 
 function routeFromHtmlPath(baseDir, absolutePath) {

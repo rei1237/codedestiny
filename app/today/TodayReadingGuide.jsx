@@ -1,4 +1,6 @@
 import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
+import { FORTUNE_PERIOD_IDS, PERIOD_LABEL } from "../../lib/fortune/periods";
+import { SIGN_PROFILES } from "../../lib/fortune/sign-profiles";
 
 /**
  * /today 의 서버 렌더 해설 섹션.
@@ -48,6 +50,58 @@ export default function TodayReadingGuide() {
             </li>
           ))}
         </ul>
+      </section>
+
+      {/* 🔴 /today 는 AppChrome.CHROMELESS_ROUTES 라 SiteFooterHub 가 붙지 않는다. 그래서
+          푸터에 건 /fortune/* 기간 허브 링크가 이 라우트에는 도달하지 않는다. /today 는 홈이
+          직접 링크하는 페이지이므로, 매일 재생성되는 별자리·띠 클러스터 96개를 여기서
+          깊이 2로 끌어올린다(2026-08-16 이전에는 사이트맵이 유일한 진입이었다).
+          목록은 lib/fortune/{periods,sign-profiles} 에서 전수 발견한다 — 손으로 적으면
+          종수가 늘 때 사이트맵과 어긋난다(scripts/generate-sitemap.mjs 와 같은 규약). */}
+      <section aria-labelledby="today-signs-heading" className="mt-16">
+        <h2 id="today-signs-heading" className="break-keep text-lg font-extrabold text-white">
+          별자리·띠로 보는 기간별 운세
+        </h2>
+        <p className="mt-3 max-w-[62ch] break-keep text-sm leading-7 text-slate-300">
+          위 오늘의 운세가 생년월일시로 계산한 개인 운세라면, 아래는 별자리 12종과 띠 12종을 기준으로
+          매일 새로 계산해 공개하는 무료 운세입니다. 기간마다 보는 축이 달라 오늘·내일은 일진을,
+          이번 주는 한 주의 간지 흐름을, 이번 달은 월건과 절기 구간을 근거로 삼습니다.
+        </p>
+
+        <nav aria-label="기간별 운세 허브" className="mt-5 flex flex-wrap gap-2">
+          {FORTUNE_PERIOD_IDS.map((period) => (
+            <a
+              key={period}
+              href={`/fortune/${period}/`}
+              className="rounded-full border border-amber-400/40 bg-amber-400/10 px-4 py-2 text-xs font-bold text-amber-200 transition-colors hover:border-amber-300 hover:bg-amber-400/20"
+            >
+              {PERIOD_LABEL[period]} 운세
+            </a>
+          ))}
+        </nav>
+
+        {[
+          { kind: "zodiac", title: "별자리 12종 오늘의 운세" },
+          { kind: "animal", title: "띠 12종 오늘의 운세" },
+        ].map((group) => (
+          <div key={group.kind}>
+            <h3 className="mt-10 break-keep text-base font-extrabold text-amber-200">{group.title}</h3>
+            <nav aria-label={group.title} className="mt-3 flex flex-wrap gap-2">
+              {SIGN_PROFILES.filter((profile) => profile.kind === group.kind).map((profile) => (
+                <a
+                  key={profile.id}
+                  href={`/fortune/today/${profile.id}/`}
+                  className="rounded-xl border border-slate-700/60 bg-slate-900/80 px-3 py-2 text-sm text-slate-200 transition-colors hover:border-amber-400/40 hover:text-amber-100"
+                >
+                  <span aria-hidden="true" className="mr-1.5 text-slate-400">
+                    {profile.symbol}
+                  </span>
+                  {profile.nameKo}
+                </a>
+              ))}
+            </nav>
+          </div>
+        ))}
       </section>
 
       <section aria-labelledby="today-faq-heading" className="mt-16">

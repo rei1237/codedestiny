@@ -11,6 +11,9 @@
  *
  * `deny` 가 아니라 `ask` 인 이유: 원칙 8이 요구하는 것은 금지가 아니라 "사용자의 명시적
  * 허락(그 1회 한정)"이고, 명령 전문을 보여주는 승인창이 정확히 그 절차다.
+ *
+ * 2026-08-17 추가 — 걸리는 대가가 돈만은 아니다. CI 로그 전량 조회·완료 대기 폴링은
+ * 세션 토큰을 통째로 태우는데 결과값은 사용자가 대시보드에서 보면 되는 것뿐이다(`ci-poll`).
  */
 
 const ASK = (reason) => {
@@ -87,6 +90,13 @@ const RULES = [
     id: "workflow-dispatch",
     re: /\bgh\s+workflow\s+run\b/i,
     why: "GitHub Actions 수동 실행 — 배포·롤백이 트리거될 수 있습니다",
+  },
+  {
+    id: "ci-poll",
+    // `--log` 는 잡고 `--log-failed` 는 통과시킨다 — 실패 구간만 보는 건 이미 허용된 절차다
+    // (docs/context/search-discipline.md "배포 로그 전체를 읽어 분석하지 않는다").
+    re: /\bgh\s+run\s+watch\b|\bgh\s+pr\s+checks\b[^|;&]*--watch|\bgh\s+run\s+view\b[^|;&]*--log(?!-)/i,
+    why: "CI 완료 대기 폴링 또는 로그 전량 조회 — 세션 토큰을 크게 소모합니다. CI 결과는 사용자가 전달합니다",
   },
   {
     id: "git-danger",
