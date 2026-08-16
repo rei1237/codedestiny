@@ -43,9 +43,13 @@ try {
     deviceScaleFactor: 1,
     mobile: false,
   } : {
-    width: 390,
-    height: 844,
-    deviceScaleFactor: 3,
+    // Lighthouse/PSI 기본 모바일과 같은 값(Moto G Power 412x823, DPR 1.75) —
+    // node_modules/lighthouse/core/config/constants.js 의 MOTOGPOWER_EMULATION_METRICS.
+    // 예전 390x844(DPR 3)는 어느 프리셋에도 대응하지 않아, 여기서 통과한 화면이
+    // Lighthouse 가 보는 화면과 달랐다.
+    width: 412,
+    height: 823,
+    deviceScaleFactor: 1.75,
     mobile: true,
   });
   await send(cdp, "Emulation.setTouchEmulationEnabled", desktopProfile ? { enabled: false } : { enabled: true, maxTouchPoints: 5 });
@@ -99,7 +103,7 @@ try {
     assert(!clickState.bridgeReady && !clickState.touchBridgeBound, "desktop click flow never activates the mobile bridge", clickState);
   } else {
   const initial = await evaluate(cdp, mobileStateExpression(), "initial mobile state");
-  assert(initial.viewportWidth === 390, "viewport width is 390", initial);
+  assert(initial.viewportWidth === 412, "viewport width is 412", initial);
   if (!focusAllFortunes) {
     assert(initial.responsiveHomeVisible, "responsive mobile home is visible", initial);
     assert(initial.primaryCtaInFirstView, "primary CTA is in first view", initial);
@@ -599,7 +603,7 @@ try {
       console.log("- Consecutive tarot collection clicks: OK");
     } else {
       console.log("Mobile CDP smoke OK");
-      console.log("- Viewport: 390x844");
+      console.log("- Viewport: 412x823");
       if (!focusAllFortunes) {
         console.log("- Primary CTA opens the destiny journey: OK");
         console.log("- Tarot touch: OK");

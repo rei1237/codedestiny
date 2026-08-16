@@ -41,9 +41,12 @@ const outRoot = args.out || path.join(os.tmpdir(), "code-destiny-perf", "visual-
 const MOBILE_UA =
   "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36";
 
+// 🔴 모바일 셀은 Lighthouse/PSI 기본값과 같은 Moto G Power **412x823, DPR 1.75** 다
+//    (node_modules/lighthouse/core/config/constants.js 의 MOTOGPOWER_EMULATION_METRICS).
+//    파리티를 보증해야 하는 화면이 그 뷰포트이므로 여기도 같아야 한다.
 const CELLS = [
-  { name: "mobile-yeon", theme: "yeon", ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
-  { name: "mobile-neo", theme: "neo", ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
+  { name: "mobile-yeon", theme: "yeon", ctx: { viewport: { width: 412, height: 823 }, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
+  { name: "mobile-neo", theme: "neo", ctx: { viewport: { width: 412, height: 823 }, deviceScaleFactor: 1.75, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
   { name: "desktop-yeon", theme: "yeon", ctx: { viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1, isMobile: false, hasTouch: false } },
   { name: "desktop-neo", theme: "neo", ctx: { viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1, isMobile: false, hasTouch: false } },
 ];
