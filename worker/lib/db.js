@@ -437,8 +437,19 @@ function sleep(ms) {
   });
 }
 
-export async function connectDb(env = {}) {
+/**
+ * @param {object} [env]
+ * @param {object} [options]
+ * @param {number} [options.activeOpsOwned=0] 호출부가 **이미 회계에 등록해 둔** 자기 op 수.
+ *   웜 커넥션 재수립이 "남의 소켓을 끊는 것"인지 판정하는 데만 쓴다(아래 웜 분기).
+ *   withMongoRetry 는 슬롯을 잡은 뒤 부르므로 1 을 넘기고, 라우트가 직접 부르는 경우는 0(기본)이라
+ *   다른 요청이 하나라도 살아 있으면 끊지 않는 보수적인 쪽으로 떨어진다.
+ *   🔴 countActiveMongoOps() 만으로는 이 둘을 구분할 수 없다 — 구분하지 않으면 직접 호출 경로가
+ *   동시 요청 하나를 자기 자신으로 착각해 그 요청의 소켓을 끊는다(2026-08-08 재연결 폭풍의 형태).
+ */
+export async function connectDb(env = {}, options = {}) {
   installProcessEnv(env);
+  const activeOpsOwned = Number.isFinite(options?.activeOpsOwned) ? Math.max(0, options.activeOpsOwned) : 0;
 
   const guardTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "10000"), 10000, 3000, 20000);
   // 🔴 8000 → 3000 (2026-08-12, M10 전환의 두 번째 축). 8000 의 근거는 **M0 의 공유 vCPU 스로틀링**
@@ -488,30 +499,38 @@ export async function connectDb(env = {}) {
   const retryBaseDelayMS = clampInt(getEnv(env, "MONGO_WORKER_RETRY_DELAY_MS", "220"), 220, 0, 2000);
 
   if (mongoose.connection.readyState === 1) {
-    // 최근에 건강을 확인했다면(유휴 임계 이내) ping 왕복을 생략해 요청 지연을 줄인다.
-    //
-    // 🔴 20000 → 50000 (2026-08-12, M0 → M10 전환의 후속). 이 값은 maxIdleTimeMS 와 한 세트로
-    // 움직여야 하는데, 그것만 20s → 60s 로 올리고 여기를 두면 계산이 어긋난다.
-    //
-    // 이 ping 이 존재하는 이유는 **Atlas 유휴 리핑으로 편도 사망한 좀비(half-open) 소켓**을 쿼리
-    // 전에 걸러내는 것이다. 그런데 그 1차 방어선은 ping 이 아니라 maxIdleTimeMS 다 — 드라이버가
-    // Atlas 유휴 컷보다 **먼저** 유휴 소켓을 닫아 좀비가 생길 창 자체를 없앤다. 즉 지금 풀에 남아
-    // 있는 소켓은 정의상 유휴 60초 미만이고, 그 구간에서 20초마다 ping 을 한 번 더 던지는 것은
-    // 좀비를 잡는 게 아니라 대부분 **살아 있는 소켓에 왕복 한 번을 더 얹는 것**이다.
-    //
-    // 이 서비스는 저트래픽이라 그 비용이 특히 크다. 요청 간격이 20초를 넘는 일이 흔해서, 웜
-    // 아이솔레이트로 들어온 사용자 요청이 자기 쿼리 앞에 ping 왕복을 먼저 치르는 경우가 많다.
-    // 50000 은 maxIdleTimeMS(60000) 바로 안쪽이라 "소켓 한 생애당 최대 한 번"으로 수렴한다.
-    //
-    // 안전한 이유: ping 실패는 연결을 끊지 않는다(아래 catch — readyState 가 1 이면 그대로 반환하고
-    // lastHealthyAt 만 무효화한다). 게다가 드라이버 SDAM 하트비트가 별도로 서버 상태를 감시한다.
-    // 즉 이 값을 늘려도 잃는 것은 "죽은 소켓을 조금 늦게 발견"뿐이고, 그 소켓은 어차피 쿼리가
-    // 실패하면 withMongoRetry 가 재시도·재연결로 복구한다.
-    const pingMinIntervalMS = clampTimeoutMs(getEnv(env, "MONGO_PING_MIN_INTERVAL_MS", "50000"), 50000, 0, 60000);
+    /* 🔴 웜 커넥션을 **검증 없이 재사용하지 않는다**(2026-08-16 프로덕션 실측 후 방향 반전).
+     *
+     * 여기 있던 "최근에 건강을 확인했으면 ping 을 생략한다"(50초)는 M0→M10 전환기에 넣은 것이고,
+     * 그 전제는 "지금 풀에 있는 소켓은 maxIdleTimeMS(60초) 덕에 살아 있다" 였다. 프로덕션에서
+     * 재 보니 그 전제가 성립하지 않는다 — Mongo 읽기 **한 건**짜리 라우트
+     * (GET /api/payments/orders/:id)를 간격을 바꿔 7회 호출한 결과(Server-Timing, 2026-08-16):
+     *
+     *   gap=    0ms  cdconn=0     cdop=7843   ← 무검증 재사용 → 쿼리가 죽은 소켓을 밟는다
+     *   gap=  300ms  cdconn=1416  cdop=2218
+     *   gap=  300ms  cdconn=1269  cdop=135    ← 앞 시도 8121ms 통째 타임아웃 후, 새 커넥션에서 재시도
+     *   gap= 1000ms  cdconn=1302  cdop=2212
+     *   gap= 3000ms  cdconn=1285  cdop=139    ← 위와 같음
+     *   gap=10000ms  cdconn=0     cdop=7852
+     *   gap=30000ms  cdconn=0     cdop=7833
+     *
+     * 300ms 만에 다시 들어온 요청도 죽은 소켓을 만난다 — 즉 원인은 Atlas 유휴 리핑이 아니라
+     * **요청 컨텍스트가 끝나면 그 컨텍스트에서 연 소켓이 못 쓰게 되는** Cloudflare 의 성질이고,
+     * maxIdleTimeMS 로는 막을 수 없다. 반면 **그 요청 안에서 새로 세운 커넥션**은
+     * cdconn≈1280 + cdop≈137 = **1.4초**로 일관되게 빠르다(n=3).
+     *
+     * 그래서 재사용 판단을 "얼마나 최근에 확인했나"에서 "지금 살아 있음을 확인했나"로 바꾼다.
+     * 기본값은 [vars] 와 코드 양쪽 모두 MONGO_PING_MIN_INTERVAL_MS=0 (= 매 요청 검증)이며,
+     * 되돌리기는 그 값을 올리는 것 하나다(둘을 함께 — db.vars-code-default-parity.test.js).
+     */
+    const pingMinIntervalMS = clampTimeoutMs(getEnv(env, "MONGO_PING_MIN_INTERVAL_MS", "0"), 0, 0, 60000);
     if (lastHealthyAt && Date.now() - lastHealthyAt < pingMinIntervalMS) {
       return mongoose.connection;
     }
-    const pingTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_PING_TIMEOUT_MS", "3500"), 3500, 1000, 10000);
+    /* 3500 → 1000. 이 타이머는 이제 "느린 서버를 기다리는 예산"이 아니라 **죽은 커넥션을 얼마나 빨리
+       포기하는가**이다. 위 실측에서 살아 있는 소켓의 ping 은 왕복 한 번이고, 죽은 쪽은 1.3초를
+       넘겨서야 돌아왔다 — 1000 은 그 사이를 가른다. 늦게 포기할수록 그만큼이 그대로 결제창 앞 지연이다. */
+    const pingTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_PING_TIMEOUT_MS", "1000"), 1000, 300, 10000);
     try {
       await withTimeout(
         mongoose.connection.db.command({ ping: 1 }),
@@ -521,17 +540,20 @@ export async function connectDb(env = {}) {
       lastHealthyAt = Date.now();
       return mongoose.connection;
     } catch (e) {
-      // ping 실패가 곧 '죽은 연결'을 뜻하지는 않는다(Cloudflare 아이솔레이트가 유휴 후 재개될 때
-      // 순간적으로 느려 ping이 상한을 넘길 수 있다). 연결 상태(readyState)가 여전히 1이면 공유 연결을
-      // 절대 disconnect하지 않는다 — 프로덕션 tail 실측에서 이 disconnect가 동시 요청(4초 폴링+생성)까지
-      // 끊어 재연결 폭풍(resetMonitorState 반복·timeout listener 누수·쿼리 serverSelection 타임아웃)을
-      // 일으키는 주범이었다. 드라이버 SDAM이 개별 소켓을 스스로 치유하도록 연결을 그대로 반환하고,
-      // lastHealthyAt만 무효화해 다음 요청이 다시 ping하게 한다(단, 연결 객체는 유지).
-      if (mongoose.connection.readyState === 1) {
+      /* 🔴 검증에 실패한 커넥션을 그대로 돌려주지 않는다. 예전에는 readyState 가 1 이기만 하면
+         돌려줬고, 그 뒤 쿼리가 죽은 소켓 위에서 7.8초(위 표 1·6·7행)를 태웠다.
+         "느린 성공"은 사용자에게 실패와 구분되지 않는다.
+
+         🔴 다만 **동시 요청이 있으면 끊지 않는다** — 여기의 전역 disconnect 가 같은 아이솔레이트의
+         살아 있는 요청까지 함께 죽여 재연결 폭풍을 일으킨 실사고가 있다(2026-08-08). 그때의 처방은
+         "절대 끊지 않는다"였는데, 그건 필요조건을 과하게 잡은 것이었다 — 실제로 위험한 것은
+         **남의 작업을 끊는 것**이지 내 커넥션을 새로 세우는 것이 아니다. 그래서 조건을
+         requestPoolRecovery 와 같은 가드(활성 op 이 나뿐인가)로 좁힌다. 남이 쓰고 있으면 종전대로
+         커넥션을 그대로 돌려주고 lastHealthyAt 만 무효화한다(그쪽은 느려도 동작한다). */
+      if (mongoose.connection.readyState === 1 && countActiveMongoOps() > activeOpsOwned) {
         lastHealthyAt = 0;
         return mongoose.connection;
       }
-      // 실제로 끊어진 경우에만 리셋(이때는 아래 콜드 연결 루프가 재수립).
       await resetMongooseConnection();
       connectPromise = null;
       lastHealthyAt = 0;
@@ -1076,7 +1098,9 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
       let connectFinishedAt = 0;
       try {
         const attemptTask = (async () => {
-          if (ownsSharedConnection) await connectDb(env);
+          // activeOpsOwned:1 — 이 op 은 위에서 이미 activeMongoOps 에 등록됐다. 웜 커넥션 재수립
+          // 판정이 자기 자신을 '동시 요청'으로 세지 않게 알려 준다(connectDb 머리주석).
+          if (ownsSharedConnection) await connectDb(env, { activeOpsOwned: 1 });
           connectFinishedAt = Date.now();
           return await operation();
         })();
