@@ -1,4 +1,5 @@
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
+import { I18N_POLICY_ROUTE_MAP } from "../../lib/i18n/routes";
 import TermsOfServicePage from "../terms-of-service/page";
 
 const TERMS_METADATA_COPY = {
@@ -35,6 +36,8 @@ export function generateMetadata() {
     title: copy.title,
     description: copy.description,
     keywords: copy.keywords,
+    // 리턴 태그. 이게 없으면 /ja·/zh·/zh-tw·/en 쪽에서 ko 를 가리켜도 한 방향이라 쌍이 통째로 버려진다.
+    hreflangPaths: I18N_POLICY_ROUTE_MAP.terms,
   });
 }
 

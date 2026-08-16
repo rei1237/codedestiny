@@ -15,7 +15,6 @@ import { SEO_CORE_KEYWORDS } from "../lib/seo-metadata";
 import { siteSeo } from "../lib/seo/siteSeo";
 import {
   buildOrganizationJsonLd,
-  buildWebPageJsonLd,
   buildWebsiteJsonLd,
 } from "../lib/structured-data";
 
@@ -164,17 +163,15 @@ const BRAND_WEBSITE_JSON_LD = {
   description: "생년월일로 무료 사주팔자·타로·궁합·신년운세를 제공하는 한국 운세 플랫폼",
 };
 
+// 🔴 WebPage 노드를 여기에 넣지 말 것. 이 layout 은 모든 Next 라우트의 <head> 이므로
+// 홈 기준 WebPage 를 박으면 전 페이지가 "나는 홈페이지"라고 선언하게 된다
+// (2026-08-16 실측: out/saju/index.html 에 `/#webpage`(홈 name·url)와 `/saju/#webpage` 가 공존).
+// 게다가 홈 `/` 은 승격된 정적 셸이 서빙하므로 이 노드는 홈에는 애초에 닿지도 않았다.
+// Organization·WebSite 는 @id 앵커된 사이트 단위 엔티티라 전 페이지 반복이 정상이다.
+// 페이지별 WebPage 는 각 라우트가 만든다(SeoLandingTemplate·buildFortuneJsonLd·I18nSeoPageTemplate).
 const jsonLdGraph = {
   "@context": "https://schema.org",
-  "@graph": [
-    buildOrganizationJsonLd(),
-    BRAND_WEBSITE_JSON_LD,
-    buildWebPageJsonLd({
-      title: ROOT_SEO.title,
-      description: ROOT_SEO.description,
-      path: "/",
-    }),
-  ],
+  "@graph": [buildOrganizationJsonLd(), BRAND_WEBSITE_JSON_LD],
 };
 
 export default function RootLayout({ children }) {
