@@ -2,6 +2,9 @@ import fs from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
+// 참조 추출은 `npm run docs:stale`(미참조 문서 탐색)과 **같은 판정**을 써야 한다.
+import { extractRefsFromLine } from './lib/doc-refs.mjs';
+
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 const repoRoot = path.resolve(__dirname, '..');
@@ -28,65 +31,6 @@ const ROOT_ONE_OFF_REPORT_PATTERNS = [
 ];
 
 const MAX_BASELINE_AGE_DAYS = 14;
-const REPO_PREFIXES = [
-  'docs/',
-  'app/',
-  'apps/',
-  'components/',
-  'worker/',
-  'lib/',
-  'js/',
-  'styles/',
-  'public/',
-  'scripts/',
-  '__tests__/',
-  '.github/',
-  '.claude/',
-];
-
-const ROOT_REPO_PATHS = new Set([
-  'AGENTS.md',
-  'CLAUDE.md',
-  'PROJECT_STRUCTURE.md',
-  'PAYMENT_POLICY.md',
-  'PAYMENT_CONCURRENCY_AUDIT.md',
-  'CLOUDFLARE_PAGES_SETUP.md',
-  'DEPLOY_CHECKLIST.md',
-  'index.html',
-  'package.json',
-  'PhysiognomyUI.js',
-  '_headers',
-]);
-
-function normalizeRef(rawRef) {
-  let ref = rawRef.trim();
-  ref = ref.replace(/^["']|["']$/g, '');
-  ref = ref.replace(/^\.\/+/, '');
-  ref = ref.replace(/\\/g, '/');
-  ref = ref.replace(/#.*$/, '');
-  ref = ref.replace(/:[0-9]+(?::[0-9]+)?$/, '');
-  ref = ref.replace(/[),.;]+$/g, '');
-  return ref;
-}
-
-function looksLikeRepoPath(ref) {
-  if (!ref || /\s/.test(ref)) {
-    return false;
-  }
-  if (/^(https?:|mailto:|#)/i.test(ref)) {
-    return false;
-  }
-  if (/^(npm|node|npx|pnpm|yarn|git|wrangler)\b/i.test(ref)) {
-    return false;
-  }
-  if (ref.startsWith('/')) {
-    return false;
-  }
-  if (ROOT_REPO_PATHS.has(ref)) {
-    return true;
-  }
-  return REPO_PREFIXES.some((prefix) => ref.startsWith(prefix));
-}
 
 function isGlobLike(ref) {
   return ref.includes('*') || ref.includes('{') || ref.includes('}');
@@ -99,23 +43,6 @@ function isAllowedForbiddenContext(lines, index) {
     context.includes('exclude these paths from default reference') ||
     context.includes('unless the user explicitly asks for them')
   );
-}
-
-function extractRefsFromLine(line) {
-  const refs = [];
-  const patterns = [/\]\(([^)]+)\)/g, /`([^`\n]+)`/g];
-
-  for (const pattern of patterns) {
-    let match;
-    while ((match = pattern.exec(line)) !== null) {
-      const normalized = normalizeRef(match[1]);
-      if (looksLikeRepoPath(normalized)) {
-        refs.push(normalized);
-      }
-    }
-  }
-
-  return refs;
 }
 
 async function existsWithinRepo(relPath) {
