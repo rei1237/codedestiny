@@ -64,6 +64,47 @@ export const I18N_ROUTE_MAP: Record<I18nRouteKey, Record<Locale, string>> = {
   },
 };
 
+/**
+ * 약관·정책 페이지의 로케일별 URL. `I18N_ROUTE_MAP` 과 분리한 이유는 refund-policy 에 ko 전용 URL 이
+ * 없어(실질 내용은 /terms 12조) `Record<Locale, string>` 를 만족하지 못하기 때문이다.
+ *
+ * 🔴 이 표는 `scripts/generate-sitemap.mjs` 의 `i18nRouteGroups` 마지막 3개 그룹과 **같은 값이어야 한다.**
+ * HTML 의 hreflang 과 사이트맵의 `xhtml:link` 가 어긋나면 Google 은 그 쌍을 통째로 버린다.
+ * 2026-08-16 이전에는 실제로 어긋나 있었다 — HTML 쪽에 `zh-TW` 가 아예 없어서 `/zh-tw/**` 정책 페이지가
+ * 자기 자신을 hreflang 집합에 포함하지 못했고(자기참조 누락 = 전체 무시), `x-default` 는
+ * `/privacy-policy`·`/terms-of-service` 를 가리켰는데 그 두 URL 은 각각 `/privacy`·`/terms` 로
+ * canonical 되는 별칭이라 "hreflang 대상이 비정본" 조건에도 걸렸다.
+ *
+ * ko 가 짧은 별칭(`/privacy`·`/terms`)인 것도 사이트맵과 같은 이유다 — 두 URL 이 같은 컴포넌트를 렌더해
+ * title/description 이 동일하므로 사이트맵에 둘 다 넣으면 중복 title 검사에 걸린다.
+ */
+export const I18N_POLICY_ROUTE_MAP = {
+  privacy: {
+    ko: "/privacy",
+    ja: "/ja/privacy-policy",
+    zh: "/zh/privacy-policy",
+    "zh-TW": "/zh-tw/privacy-policy",
+    en: "/en/privacy-policy",
+    "x-default": "/privacy",
+  },
+  terms: {
+    ko: "/terms",
+    ja: "/ja/terms-of-service",
+    zh: "/zh/terms-of-service",
+    "zh-TW": "/zh-tw/terms-of-service",
+    en: "/en/terms-of-service",
+    "x-default": "/terms",
+  },
+  refundPolicy: {
+    ja: "/ja/refund-policy",
+    zh: "/zh/refund-policy",
+    "zh-TW": "/zh-tw/refund-policy",
+    en: "/en/refund-policy",
+    // ko 전용 URL 이 없어 사이트맵의 buildI18nAlternates 도 이 그룹만 "/" 로 폴백한다.
+    "x-default": "/",
+  },
+} as const;
+
 export function getLocalizedRoute(routeKey: I18nRouteKey, locale: Locale): string {
   return I18N_ROUTE_MAP[routeKey][locale];
 }

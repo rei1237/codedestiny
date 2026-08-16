@@ -365,3 +365,101 @@ Google 이 lastmod 신호를 통째로 신뢰하지 않게 된다.
 GSC 「페이지」 리포트의 `크롤링됨–색인되지 않음` / `발견됨–색인되지 않음` 수를 **머지 전에 기록**해 둔다.
 색인 개선 판정에는 최소 **2~4주**가 걸린다 — 그 전에 "개선됐다"고 말하지 않는다.
 GA4 는 2026-08-14 설치라 비교 기준선 자체가 아직 얇다는 점도 감안할 것.
+
+---
+
+# 부록 — 2026-08-16 후속 감사 (구조 결함 4건 수정)
+
+> 이 절은 위 본문(2026-08-15)을 **대체하지 않는다.** 위 §1 의 결론
+> *"사이트맵·robots·canonical 자체에는 결함이 없다"* 는 이번 재감사에서도 유지된다.
+> 이번에 고친 것은 위 문서가 다루지 않은 **구조화 데이터·hreflang 클러스터·내부 링크** 결함이다.
+> 위 §3 의 잔여 작업 A~F 는 A·B·C·D 가 **여전히 미착수**이고, E·F 는 이번에 처리했다.
+
+## 1. 감사 범위와 방법
+
+- 감사 프레임: `.claude/skills/{seo-audit,schema,site-architecture,ai-seo}` (2026-08-16 설치,
+  `npx skills add coreyhaines31/marketingskills`). 프레임만 차용했고 스킬이 권하는
+  "페이지 대량 생성·키워드 삽입·스키마 추가"류는 적용하지 않았다(CLAUDE.md 절대규칙 6).
+- 판정 근거는 **빌드 산출물 실측**이다. 소스 grep 만으로 단언한 항목은 없다.
+  탐색 중간 단계에서 나온 "hreflang 이 슬래시 없이 나간다", "루트 languages 맵이 전 페이지로 샌다"
+  두 주장은 **산출물 대조로 오판임을 확인해 기각**했다(아래 §4).
+
+## 2. 고친 것 (PR `fix/seo-structural-defects`)
+
+| # | 문제 | 실측 근거 | 수정 |
+|---|---|---|---|
+| P1 | **전 페이지가 "나는 홈페이지"라고 선언** | 직전 빌드 산출물 **593개 중 587개**가 `"@id":"https://code-destiny.com/#webpage"` 를 홈 name·url 로 달고 있었다. 그중 **518개는 자기 WebPage 가 아예 없어** 그 잘못된 노드가 유일한 WebPage 였다 | `app/layout.js` 의 `@graph` 에서 WebPage 노드 제거. Organization·WebSite 는 `@id` 앵커 사이트 엔티티라 유지 |
+| P1 | **정책 페이지 hreflang 클러스터가 통째로 버려지는 상태** | `HreflangPathMap` 에 `zh-TW` 키가 없어 `/zh-tw/**` 정책 3종이 **자기 자신을 hreflang 집합에 못 넣었다**(자기참조 누락 = 전체 무시). `x-default` 는 `/privacy-policy`·`/terms-of-service` 를 가리켰는데 둘 다 `/privacy`·`/terms` 로 canonical 되는 **별칭**이다(비정본 대상 = 클러스터 폐기). ko 원본은 hreflang 을 **아예 안 냈다**(리턴 태그 없음 = 단방향 = 쌍 폐기) | `lib/i18n/routes.ts` 에 `I18N_POLICY_ROUTE_MAP` 신설(사이트맵 `i18nRouteGroups` 마지막 3그룹과 동일 값). 5개 페이지가 이 하나를 공유 |
+| P1 | **`sameAs` 가 타인 블로그를 공식 계정으로 신고** | `blog.naver.com/codedestiny` = **"수고했어 오늘도."**(타인), `instagram.com/code_destiny_official/` = **없는 계정**, 나머지 2개는 자기 사이트 URL(`sameAs` 는 외부 프로필 전용) | 실계정 5개로 교체. `SOCIAL_PROFILES` 하나에서 `sameAs` 와 푸터 링크를 **함께 파생**시켜 재드리프트 차단 |
+| P2 | **고아 라우트 7개** (사이트맵 등재, 내부 링크 0) | `app/ components/ src/ index.html` 전수 `href="<path>/?"` 검색 결과 7개 전부 0건 | `SiteFooterHub.jsx` 에 후행 슬래시 포함 링크 추가 (41→48 SEO 링크) |
+| P3 | `lib/seo.v2.ts` 죽은 export 2개 | 3면 grep(소스 + `__tests__/` + `scripts/verify-*`) 결과 참조 파일이 자기 정의부 1개뿐 | `buildSeoMetadataV2`·`buildWebPageJsonLdV2` 삭제. 파일 자체는 `app/robots.ts`·`lib/share.v2.ts`·`lib/generate-page-metadata.ts` 가 쓰므로 **유지** |
+
+### 수정 후 실측
+
+```
+WebPage 노드 분포 (out/, HTML 693개)
+  2개 이상: 0     (before 69)
+  1개:      169
+  0개:      524
+  홈 노드 오염: 1  (out/index.html = 홈 자신, 정상)   before: 587/593
+
+hreflang — out/zh-tw/privacy-policy/ 가 자기 자신 포함 6개 선언, 전부 후행 슬래시,
+           x-default → https://code-destiny.com/privacy/ (실제 정본)
+           out/privacy/ 가 동일 집합을 리턴 태그로 선언
+sameAs   — 실계정 5개만
+고아 7개  — out/about/ 에서 전부 1건씩 링크 확인
+사이트맵  — 429 URL 불변
+```
+
+검증 명령과 결과: `lint`(에러 0) · `typecheck` · `build:cf`(`[adsense-readiness] OK`) ·
+`verify:sitemap`(429) · `verify:seo-heading-integrity`(429 라우트 H1 정확히 1개) ·
+`verify:seo-entity-registry`(profiles=17) · `test:node`(221/221).
+
+🔴 **커밋에서 뺀 것**: 빌드가 재생성한 `sitemap.xml`·`public/sitemap.xml`(316줄, **전부 `lastmod` 날짜만**)과
+`rss.xml` 4종(`lastBuildDate` 1줄씩). 이번 변경과 무관한 §3-C 의 날짜 churn 이고, 배포되는 사이트맵은
+커밋본이 아니라 빌드 산출물(`promote-static-shell` 이 `out/sitemap.xml` → `dist/`)이라 프로덕션 영향이 없다.
+
+## 3. 점수 (판단값 — 측정값이 아님)
+
+| 영역 | before | after | 근거 |
+|---|---|---|---|
+| Technical SEO | 78 | 78 | 이번 변경 대상 아님. 감점 요인은 §3-C(lastmod 202/429 가 빌드 날짜), 사이트맵 인덱스·크기 가드 부재, `verify:sitemap` 이 PR CI 에 없음 |
+| On-page SEO | 82 | 82 | 제목·설명 전역 유일성과 H1 1개는 이미 게이트가 강제 중 |
+| International SEO | 55 | 68 | 정책 3그룹 클러스터 복구. **§3-A(로케일 페이지 한국어 78%)가 미해결이라 상한이 낮다** |
+| Structured Data | 45 | 78 | WebPage 오염·`sameAs` 오등록 제거. 잔여: 518페이지에 페이지 단위 WebPage 부재, WebSite `name` 이 3곳에서 서로 다름 |
+| Site Architecture | 72 | 78 | 고아 7개 해소. 잔여: `coreRoutes` 15개가 선언만 되고 사이트맵에 못 들어감 |
+| Internal Linking | 65 | 68 | 링크는 늘었으나 **§3-B(내부 링크 후행 슬래시 미적용 → 전 경로 308)** 미해결 |
+| AI/GEO SEO | 58 | 70 | 엔티티 일관성(공식 채널 5개) 복구가 핵심. 잔여: `llms.txt` 없음 |
+| **Overall** | **64** | **74** | |
+
+## 4. 조사했으나 **고치지 않은** 것 (근거 포함 — 다시 파지 말 것)
+
+| 항목 | 판정 |
+|---|---|
+| hreflang 후행 슬래시 / `createHreflang.ts` 가 슬래시 없는 URL 을 낸다는 의심 | ❌ **오판**. `out/ja/ziwei/index.html` 에 11개 + x-default 가 **전부 후행 슬래시로** 정상 출력된다. Next 가 `trailingSlash:true` 에 맞춰 정규화한다 |
+| 루트 `alternates.languages` 가 전 페이지로 샌다는 의심 | ❌ **오판**. `out/saju`·`out/tarot` hreflang 0건. 자체 `alternates` 를 세우는 페이지가 루트 값을 통째로 대체한다 |
+| SEO 유틸 9파일 통합 | `docs/seo-strategy/08-technical-seo-checklist.md:11` 에서 이미 감사 후 "죽은 파일 0개 → 통합하지 않는다"로 결론. 뒤집을 근거 없음 |
+| `lib/seo-site-urls.ts`·`app/components/SeoJsonLd.jsx` 삭제 | 🔴 **임포터 0이지만 살아있는 가드 참조다.** `verify-master-love-codex-flow.mjs:482,488` 과 `verify-seo-entity-registry.mjs:78` 이 **파일로 읽어 단언**한다. 지우면 CI 즉사 |
+| `app/oracle/ifa/page.tsx:32` canonical → noindex 대상(`/ifa-oracle.html`) | `_redirects:45-46` 이 `/oracle/ifa` 를 `/ifa-oracle` 로 301 시키고 리다이렉트가 정적 자산을 이긴다 → **이 페이지는 서빙되지 않는다**. 게다가 자체 `index:false`. 실 영향 0이라 방치가 더 안전 |
+| noindex 26개 페이지가 루트 canonical `/` 상속 | 실측: hreflang 은 안 새고 canonical 만 상속. 전부 `noindex, nofollow` 라 noindex 가 우선 |
+| 근중복 페이지(famous-saju·codex 등) 정책 | §4 그대로 — GSC 「크롤링됨–색인되지 않음」 실데이터 확인 후 판단 |
+| 신규 fail-closed 가드 3종 | 사용자가 이번 범위에서 제외 결정 |
+
+## 5. 다음에 할 일 (우선순위)
+
+1. **§3-A 로케일 한국어 크롬 (P0, 색인 최대 레버)** — 승인된 C안. 실질 분량은 ja/zh/zh-TW/en 약 230문자열 신규 번역.
+   🔴 푸터를 **삭제**하면 `verify-adsense-readiness` 의 1,800자 게이트에서 41개 중 28개가 FAIL 한다 — **번역만이 통과 경로**.
+2. **§3-B 내부 링크 후행 슬래시 (P1)** — 동반 수정 9곳 + `js/core/index-inline-runtime.js:624-636` 이 같은 PR 에 반드시 포함.
+3. **§3-C lastmod 원장 (P1)** — 이번 PR 이 사이트맵 churn 을 뺀 이유가 이 미해결 항목이다.
+4. **§3-D IndexNow (P1)** — C 선행 필요. 외부 POST 1회 승인 필요.
+5. 페이지 단위 WebPage 노드 — 이번 수정으로 524페이지가 WebPage 0개가 됐다(이전엔 **틀린** 노드 1개). 손실은 아니지만
+   `SeoLandingTemplate`·`buildFortuneJsonLd` 를 안 쓰는 라우트에 올바른 노드를 주는 것은 별건으로 남는다.
+6. WebSite `name` 3중 드리프트 — `lib/structured-data.ts`(오버라이드) / 정적 셸 `index.html:876` / `prompt-hub-3004.html` 이
+   같은 `@id` 에 서로 다른 이름을 선언한다.
+
+## 6. 코드로 해결 불가 — 사람이 해야 하는 것
+
+- GSC 「페이지」 리포트 사유별 분포 회신 (§1 의 층 2 vs 층 3 우선순위 확정에 필요)
+- 네이버 서치어드바이저 사이트 + RSS 제출 / Bing Webmaster (GSC 임포트) / 다음 검색등록
+- 백링크 (§5) — 특히 네이버 블로그 주 2~3회 포스팅
+- 색인 재요청 및 2~4주 후 재측정. **그 전에 "개선됐다"고 말하지 않는다.**
