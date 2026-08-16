@@ -8,6 +8,8 @@ const META = {
     "내가 태어난 날 달이 머문 숙명의 자리, 27수와 오늘의 월상이 겹치며 달빛을 머금은 나만의 꽃이 피어납니다.",
   keywords: ["숙요 꽃", "27숙", "달 꽃", "sukuyo flower"],
   image: "https://code-destiny.com/fuctionassets/flower4.webp",
+  // 색인 제외 사유와 "왜 siteSeo 목록이 아니라 페이지 단위인가"는 app/flower/destiny/page.tsx 참고.
+  noindex: true,
 } as const;
 
 export function generateMetadata() {

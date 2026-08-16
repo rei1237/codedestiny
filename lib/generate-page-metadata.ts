@@ -113,6 +113,15 @@ export interface FortunePageMeta {
   /** 같은 path 내 query/topic 등 변형 페이지를 구분하는 키 */
   variantKey?: string;
   /**
+   * 경로 자체는 공개인데 이 페이지만 색인에서 빼야 할 때 쓴다.
+   *
+   * 🔴 `lib/seo/siteSeo.ts` 의 `noindexPathPrefixes` 에 넣는 것과 결과가 다르다. 그 목록은
+   * `isPrivateRoute`(lib/seo.v2.ts:85)를 거쳐 `lib/share.v2.ts:36` 까지 흘러 ShareWidget 을
+   * 통째로 숨긴다. 공유 버튼을 살린 채 색인만 끄려면 이 옵션을 쓴다.
+   * `buildSeoMetadata`(lib/seo.ts:26)의 같은 이름 옵션과 짝이다.
+   */
+  noindex?: boolean;
+  /**
    * 번역이 실제 존재하는 경우에만 전달한다.
    * 미전역 페이지에서 가짜 alternates를 생성하지 않기 위해 기본값은 undefined.
    */
@@ -132,9 +141,11 @@ export function generatePageMetadata(opts: FortunePageMeta) {
     inLanguage = "ko-KR",
     variantKey,
     hreflangPaths,
+    noindex = false,
   } = opts;
 
   const canonicalPath = normalizePath(path);
+  const indexable = isIndexableRoute(canonicalPath, noindex);
   const canonicalUrl = getCanonicalUrl(canonicalPath);
   const routeMetaCode = buildRouteMetaCode(canonicalPath, variantKey, inLanguage);
   const uniqueTitle = appendUniqueTitle(title, routeMetaCode);
@@ -177,11 +188,11 @@ export function generatePageMetadata(opts: FortunePageMeta) {
       images: [ogImage],
     },
     robots: {
-      index: isIndexableRoute(canonicalPath),
-      follow: isIndexableRoute(canonicalPath),
+      index: indexable,
+      follow: indexable,
       googleBot: {
-        index: isIndexableRoute(canonicalPath),
-        follow: isIndexableRoute(canonicalPath),
+        index: indexable,
+        follow: indexable,
         "max-image-preview": "large",
         "max-snippet": -1,
         "max-video-preview": -1,

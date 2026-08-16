@@ -8,6 +8,12 @@ const META = {
     "사주의 오행과 십성, 점성술의 행성 배치, 자미두수의 명궁, 숙요점의 27수 — 네 학문이 각각 짚어낸 기운을 소스 탭으로 넘겨 보며, 나만의 운명 꽃 한 송이로 모읍니다.",
   keywords: ["운명의 꽃", "사주 꽃", "점성술 꽃", "자미두수 꽃", "숙요 꽃", "destiny flower"],
   image: "https://code-destiny.com/fuctionassets/flower.webp",
+  // 결제 유도 스텁이라 크롤러가 보는 고유 본문이 449자뿐이다(2026-08-17 out/ 실측).
+  // AdSense 가 "가치 없는 콘텐츠"로 거절한 표본이라 색인에서 뺀다. 기능·링크는 그대로다.
+  // 🔴 lib/seo/siteSeo.ts 의 noindexPathPrefixes 에 "/flower" 를 넣는 방식은 쓰지 않는다 —
+  //    그 목록은 isPrivateRoute 를 거쳐 ShareWidget 을 숨겨(lib/share.v2.ts:36) 이 유료
+  //    랜딩의 공유 버튼까지 지운다. 페이지 단위 noindex 가 정답이다.
+  noindex: true,
 } as const;
 
 export function generateMetadata() {

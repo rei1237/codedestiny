@@ -81,6 +81,12 @@ const noindexPathPrefixes = [
   "/blog",
   "/famous",
   "/fortune/sikojen-povailu",
+  // AdSense "가치 없는 콘텐츠" 거절 대응 — 얇은 목록형·스텁 22개(2026-08-17 out/ 실측).
+  // lib/seo/siteSeo.ts 의 noindexPathPrefixes 와 짝이다. 한쪽만 고치면
+  // "사이트맵에 있는데 noindex" 가 되어 GSC 가 「제출된 URL에 noindex」로 잡는다.
+  "/high-value/category",
+  "/famous-saju/category",
+  "/flower",
 ];
 const privateRoutePatterns = [
   /^\/api(?:\/|$)/,
@@ -223,12 +229,6 @@ const coreRoutes = [
   { path: "/famous-saju", changefreq: "weekly", priority: 0.88 },
   { path: "/high-value", changefreq: "weekly", priority: 0.84 },
   { path: "/high-value/complete-guide-to-saju", changefreq: "monthly", priority: 0.82 },
-  { path: "/high-value/category/saju-beginner", changefreq: "monthly", priority: 0.78 },
-  { path: "/high-value/category/tarot-reading", changefreq: "monthly", priority: 0.78 },
-  { path: "/high-value/category/compatibility-relationship", changefreq: "monthly", priority: 0.78 },
-  { path: "/high-value/category/daily-fortune", changefreq: "monthly", priority: 0.78 },
-  { path: "/high-value/category/astrology-ziwei", changefreq: "monthly", priority: 0.78 },
-  { path: "/high-value/category/methodology", changefreq: "monthly", priority: 0.78 },
   { path: "/saju/guide", changefreq: "monthly", priority: 0.8 },
   { path: "/saju/ten-gods", changefreq: "monthly", priority: 0.78 },
   { path: "/saju/five-elements", changefreq: "monthly", priority: 0.78 },
@@ -242,10 +242,6 @@ const coreRoutes = [
   { path: "/calendar/guide", changefreq: "monthly", priority: 0.78 },
   { path: "/health-report/guide", changefreq: "monthly", priority: 0.78 },
   { path: "/music/guide", changefreq: "monthly", priority: 0.78 },
-  { path: "/flower/destiny", changefreq: "weekly", priority: 0.85 },
-  { path: "/flower/astrology", changefreq: "weekly", priority: 0.82 },
-  { path: "/flower/jamidusu", changefreq: "weekly", priority: 0.82 },
-  { path: "/flower/sukuyo", changefreq: "weekly", priority: 0.82 },
 ];
 
 const localeHreflangAliases = {
