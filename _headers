@@ -139,47 +139,52 @@
 # 기능·링크는 그대로 두고 색인만 막는다(AdSense inventory value: 저가치 화면).
 /neo-operation-room*
   X-Robots-Tag: noindex, nofollow
-# `/tadagochi*` 이 `/tadagochi.html` 까지 덮으므로 별도 규칙은 두지 않는다(규칙 100개 예산).
+# 🔴 이 셸들은 `/x.html` 이 아니라 **`/x` 로 서빙된다.** Cloudflare Pages 가 확장자를 떼고,
+# `/x.html` 은 `/x` 로 308 을 준다. 리다이렉트 응답의 헤더는 목적지로 이어지지 않으므로
+# `.html` 에만 규칙을 걸면 크롤러가 보는 200 응답에는 noindex 가 없다.
+# 2026-08-16 실측: `/tadagochi*` 만 와일드카드형이라 유일하게 적용됐고, `.html` 로만 적힌
+# 나머지 18개는 전부 색인이 열려 있었다(`/destiny-poker?lang=en` 등이 GSC 「사용자가 선택한
+# 표준이 없는 중복 페이지」로 보고됨). 그래서 **확장자 없는 형태까지 덮는 `*` 로 적는다.**
+# 규칙 수는 그대로다 — `/x*` 하나가 `/x` 와 `/x.html` 을 함께 덮는다(규칙 100개 예산).
 /tadagochi*
   X-Robots-Tag: noindex, nofollow
-/ifa-oracle.html
-  X-Robots-Tag: noindex, nofollow
-/ifa-oracle-about.html
+# `/ifa-oracle*` 이 `/ifa-oracle-about` 까지 덮으므로 별도 규칙은 두지 않는다(규칙 100개 예산).
+/ifa-oracle*
   X-Robots-Tag: noindex, nofollow
 # 아래 5개는 사이트맵에도 없고 canonical 도 없는 고아 셸인데 색인은 열려 있었다.
 # 실측 본문이 130~1,342자라 그대로 두면 "낮은 가치의 콘텐츠" 표본이 된다.
 # (destiny-island·codedestiny-novel 은 HTML meta 로만 막혀 있어 헤더로 이중 확정한다.)
-/vedic-astrology.html
+/vedic-astrology*
   X-Robots-Tag: noindex, nofollow
-/myungwun_final.html
+/myungwun_final*
   X-Robots-Tag: noindex, nofollow
-/secret-house_real.html
+/secret-house_real*
   X-Robots-Tag: noindex, nofollow
-/destiny-island.html
+/destiny-island*
   X-Robots-Tag: noindex, nofollow
-/codedestiny-novel.html
+/codedestiny-novel*
   X-Robots-Tag: noindex, nofollow
-/fortune-teller-fish.html
+/fortune-teller-fish*
   X-Robots-Tag: noindex, nofollow
-/royal-tea-oracle.html
+/royal-tea-oracle*
   X-Robots-Tag: noindex, nofollow
-/blood-type-app.html
+/blood-type-app*
   X-Robots-Tag: noindex, nofollow
-/neville-meditation.html
+/neville-meditation*
   X-Robots-Tag: noindex, nofollow
-/geomancy-oracle-v4.html
+/geomancy-oracle-v4*
   X-Robots-Tag: noindex, nofollow
-/yoga-guru.html
+/yoga-guru*
   X-Robots-Tag: noindex, nofollow
-/destiny-poker.html
+/destiny-poker*
   X-Robots-Tag: noindex, nofollow
-/celestial-harmony.html
+/celestial-harmony*
   X-Robots-Tag: noindex, nofollow
-/tarot-ijik.html
+/tarot-ijik*
   X-Robots-Tag: noindex, nofollow
-/emoi_omikuji_v2.html
+/emoi_omikuji_v2*
   X-Robots-Tag: noindex, nofollow
-/cosmic-soul-meditation.html
+/cosmic-soul-meditation*
   X-Robots-Tag: noindex, nofollow
 
 /
