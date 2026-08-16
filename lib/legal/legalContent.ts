@@ -334,14 +334,14 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
 
 export const PRIVACY_CONTENT: Record<NonKoLocale, LegalDocument> = {
   en: {
-    effectiveDate: "2026-08-04",
+    effectiveDate: "2026-08-17",
     sections: [
       { id: "principles", heading: "1. Basic Principles", paragraphs: [
         "Code Destiny processes the minimum personal information necessary while providing fortune readings, reports, and consultation-style content, and publishes this policy to clearly explain the purpose of collection and the retention period.",
         `Personal information controller: ${op}\nSite: https://code-destiny.com`,
       ]},
       { id: "collected-data", heading: "2. Data Collected and Purpose of Use", paragraphs: [
-        "At sign-up, we process your name, email, mobile number, and required consent records for account management, providing purchaser information to payment processors, customer support, sending notifications, and preventing fraudulent use. Your mobile number cannot be deleted because it must be provided to the payment processor as purchaser information, but it is encrypted with AES-256 when stored on our servers. For email sign-up, we store a securely hashed value rather than your plaintext password; for social sign-up, we link the account identifier from your chosen authentication provider. Inputs required for fortune calculations — such as date of birth, gender, birth time, and birthplace — are collected separately when you use the relevant fortune feature or profile after sign-up, and are used to generate results.",
+        "At sign-up, we process your name, email, and required consent records for account management, customer support, sending notifications, and preventing fraudulent use. Your mobile number is optional and you can use the service without it. We collect it only when your social login provider (Naver or Kakao) passes it on with your consent, when you enter it yourself with separate consent on the sign-up completion or profile screen, or when you enter it at your first paid checkout — and the only purpose is processing payments. Because the number must be provided to our payment processors as purchaser information it cannot be deleted, but it is encrypted with AES-256 when stored on our servers. For email sign-up, we store a securely hashed value rather than your plaintext password; for social sign-up, we link the account identifier from your chosen authentication provider. Inputs required for fortune calculations — such as date of birth, gender, birth time, and birthplace — are collected separately when you use the relevant fortune feature or profile after sign-up, and are used to generate results.",
         "Payment information may be processed together with our payment processor for payment processing, refunds, issuing receipts, and pass verification; Code Destiny does not directly store sensitive raw payment data such as full card numbers.",
         "The subject, content, attached images, and reported URL you submit through the bug report inbox (/feedback), along with environment information such as browser, screen size, language, and time zone, are used to reproduce and fix errors and to respond to you. You can opt out of sending environment information on the report screen.",
       ]},
@@ -381,14 +381,14 @@ export const PRIVACY_CONTENT: Record<NonKoLocale, LegalDocument> = {
     ],
   },
   ja: {
-    effectiveDate: "2026-08-04",
+    effectiveDate: "2026-08-17",
     sections: [
       { id: "principles", heading: "1. 基本原則", paragraphs: [
         "Code Destinyは、運勢、レポート、相談型コンテンツを提供する過程で必要な個人情報を最小限に処理し、収集目的と保管期間を明確にお知らせするため、本方針を公開します。",
         `個人情報処理者：${op}\nサイト：https://code-destiny.com`,
       ]},
       { id: "collected-data", heading: "2. 収集項目と利用目的", paragraphs: [
-        "会員登録時、氏名、メールアドレス、携帯電話番号、必須同意記録を、アカウント管理、決済のための購入者情報提供、カスタマーサポート、通知の送信、不正利用防止のために処理します。携帯電話番号は決済代行会社に購入者情報として提供する必要があるため削除できませんが、サーバーに保存する際はAES-256方式で暗号化して保管します。メール登録の場合はパスワードの原文ではなく安全にハッシュ化された値が保存され、ソーシャル登録の場合は選択した認証プロバイダーのアカウント識別子が連携されます。生年月日、性別、出生時刻、出生地等、運勢計算に必要な入力値は、登録後に該当する運勢機能またはプロフィールを使用する際に別途入力を受け、結果生成に使用します。",
+        "会員登録時、氏名、メールアドレス、必須同意記録を、アカウント管理、カスタマーサポート、通知の送信、不正利用防止のために処理します。携帯電話番号は必須項目ではなく、入力しなくてもサービスをご利用いただけます。番号は、ソーシャルログイン提供者（ネイバー・カカオ）がお客様の同意を得て提供した場合、登録の仕上げ・プロフィール補完画面でお客様が別途同意のうえ直接入力した場合、または初回の有料決済時にお客様が直接入力した場合にのみ収集し、利用目的は決済の遂行のみです。携帯電話番号は決済代行会社に購入者情報として提供する必要があるため削除できませんが、サーバーに保存する際はAES-256方式で暗号化して保管します。メール登録の場合はパスワードの原文ではなく安全にハッシュ化された値が保存され、ソーシャル登録の場合は選択した認証プロバイダーのアカウント識別子が連携されます。生年月日、性別、出生時刻、出生地等、運勢計算に必要な入力値は、登録後に該当する運勢機能またはプロフィールを使用する際に別途入力を受け、結果生成に使用します。",
         "決済情報は、決済処理、返金、領収書発行、パス確認のために決済代行会社と共に処理される場合があり、Code Destinyはカード番号全体のような機密性の高い決済原本情報を直接保存しません。",
         "不具合報告窓口（/feedback）にお送りいただいたタイトル、内容、添付画像、報告対象URLおよびブラウザ、画面サイズ、言語、タイムゾーン等の環境情報は、エラーの再現・修正・返信のために使用され、環境情報の送信は報告画面で解除できます。",
       ]},
@@ -428,14 +428,14 @@ export const PRIVACY_CONTENT: Record<NonKoLocale, LegalDocument> = {
     ],
   },
   zh: {
-    effectiveDate: "2026-08-04",
+    effectiveDate: "2026-08-17",
     sections: [
       { id: "principles", heading: "1. 基本原则", paragraphs: [
         "Code Destiny 在提供运势、报告、咨询型内容的过程中，仅处理必要的最小范围个人信息，并公开本方针以明确告知收集目的与保存期限。",
         `个人信息处理者：${op}\n网站：https://code-destiny.com`,
       ]},
       { id: "collected-data", heading: "2. 收集项目与使用目的", paragraphs: [
-        "会员注册时，公司出于账号管理、向支付机构提供购买者信息、客户服务、通知发送及防止不当使用等目的，处理姓名、邮箱、手机号码及必要同意记录。由于手机号码须作为购买者信息提供给支付代理机构，故无法删除，但存储于服务器时将以AES-256方式加密保管。以邮箱注册时，保存的并非密码原文，而是经过安全哈希处理的数值；以社交账号注册时，将关联所选身份验证提供商的账号识别符。生辰、性别、出生时间、出生地等运势计算所需的输入值，将在注册后使用相应运势功能或个人资料时另行收集，并用于结果生成。",
+        "会员注册时，公司出于账号管理、客户服务、通知发送及防止不当使用等目的，处理姓名、邮箱及必要同意记录。手机号码并非必填项，不填写也可以使用服务。仅在社交登录提供商（Naver·Kakao）经您同意后提供、您在注册收尾或资料补全页面另行同意并亲自填写、或您在首次付费结算时亲自填写的情况下收集，且用途仅限于结算处理。由于手机号码须作为购买者信息提供给支付代理机构，故无法删除，但存储于服务器时将以AES-256方式加密保管。以邮箱注册时，保存的并非密码原文，而是经过安全哈希处理的数值；以社交账号注册时，将关联所选身份验证提供商的账号识别符。生辰、性别、出生时间、出生地等运势计算所需的输入值，将在注册后使用相应运势功能或个人资料时另行收集，并用于结果生成。",
         "支付信息可能出于支付处理、退款、开具收据、通行证确认等目的与支付代理机构共同处理，Code Destiny 不会直接存储完整卡号等敏感支付原始信息。",
         "通过错误反馈通道（/feedback）提交的标题、内容、附件图片、反馈对象网址，以及浏览器、屏幕尺寸、语言、时区等环境信息，将用于错误重现、修复与回复，环境信息的发送可在反馈页面中取消。",
       ]},
@@ -475,14 +475,14 @@ export const PRIVACY_CONTENT: Record<NonKoLocale, LegalDocument> = {
     ],
   },
   "zh-TW": {
-    effectiveDate: "2026-08-04",
+    effectiveDate: "2026-08-17",
     sections: [
       { id: "principles", heading: "1. 基本原則", paragraphs: [
         "Code Destiny 在提供運勢、報告、諮詢型內容的過程中，僅處理必要的最小範圍個人資料，並公開本政策以明確告知蒐集目的與保存期限。",
         `個人資料管理者：${op}\n網站：https://code-destiny.com`,
       ]},
       { id: "collected-data", heading: "2. 蒐集項目與使用目的", paragraphs: [
-        "會員註冊時，公司基於帳號管理、向支付機構提供購買者資訊、客戶服務、通知發送及防止不當使用等目的，處理姓名、電子郵件、行動電話號碼及必要同意紀錄。由於行動電話號碼須作為購買者資訊提供予支付代理機構，故無法刪除，但儲存於伺服器時將以AES-256方式加密保管。以電子郵件註冊時，儲存的並非密碼原文，而是經過安全雜湊處理之數值；以社群帳號註冊時，將連結所選身分驗證提供商之帳號識別碼。出生年月日、性別、出生時間、出生地等運勢計算所需之輸入值，將於註冊後使用相應運勢功能或個人檔案時另行收集，並用於結果生成。",
+        "會員註冊時，公司基於帳號管理、客戶服務、通知發送及防止不當使用等目的，處理姓名、電子郵件及必要同意紀錄。行動電話號碼並非必填項目，不填寫亦可使用服務。僅在社群登入提供商（Naver·Kakao）經您同意後提供、您於註冊收尾或個人檔案補全畫面另行同意並親自填寫、或您於首次付費結帳時親自填寫的情況下收集，且用途僅限於結帳處理。由於行動電話號碼須作為購買者資訊提供予支付代理機構，故無法刪除，但儲存於伺服器時將以AES-256方式加密保管。以電子郵件註冊時，儲存的並非密碼原文，而是經過安全雜湊處理之數值；以社群帳號註冊時，將連結所選身分驗證提供商之帳號識別碼。出生年月日、性別、出生時間、出生地等運勢計算所需之輸入值，將於註冊後使用相應運勢功能或個人檔案時另行收集，並用於結果生成。",
         "付款資訊可能基於付款處理、退款、開立收據、通行證確認等目的與支付代理機構共同處理，Code Destiny 不會直接儲存完整卡號等敏感付款原始資訊。",
         "透過錯誤回報信箱（/feedback）提交之標題、內容、附件圖片、回報對象網址，以及瀏覽器、螢幕尺寸、語言、時區等環境資訊，將用於錯誤重現、修復與回覆，環境資訊之傳送可於回報畫面中取消。",
       ]},

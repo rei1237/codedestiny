@@ -59,21 +59,32 @@ console.log(`[perf:home] presets ${args.presets.join(", ")} · runs ${args.runs}
 
 const results = {};
 
+// 🔴 측정 루프보다 **앞에서** 만든다 — 회차마다 전체 LHR 을 여기에 떨구기 때문이다(아래 참고).
+const outDir = args.out || path.join(os.tmpdir(), "code-destiny-perf");
+fs.mkdirSync(outDir, { recursive: true });
+
 try {
   for (const preset of args.presets) {
     const runs = [];
     for (let i = 0; i < args.runs; i += 1) {
       process.stdout.write(`[perf:home] ${preset} run ${i + 1}/${args.runs} ... `);
       const lhr = await runOnce(targetUrl, preset);
+      /* 🔴 전체 LHR 을 남긴다. 이 스크립트의 요약본은 필요한 감사만 뽑는데, 정작
+         **어떤 감사 id 가 살아 있는지**를 요약본으로는 알 수 없다. 실제로 render-blocking-resources
+         와 dom-size 가 LH13 에서 사라진 것을 여러 라운드 동안 못 봤다(빈 값이 그냥 빈 값으로 보였다).
+         원본이 있으면 그런 착오를 사후에라도 잡을 수 있다. fullPageScreenshot 은 flags 에서 껐다. */
+      fs.writeFileSync(path.join(outDir, `lhr-${args.label}-${preset}-${i + 1}.json`), JSON.stringify(lhr), "utf8");
       const metrics = extractMetrics(lhr);
       runs.push({
         metrics,
+        observed: extractObserved(lhr),
         longTasks: extractLongTasks(lhr),
         bootup: extractBootup(lhr),
         breakdown: extractBreakdown(lhr),
         dom: extractDom(lhr),
         unusedCss: extractUnusedCss(lhr),
         renderBlocking: extractRenderBlocking(lhr),
+        diagnostics: extractDiagnostics(lhr),
         lcpElement: extractLcpElement(lhr),
         lcpPhases: extractLcpPhases(lhr),
         forcedReflow: extractForcedReflow(lhr),
@@ -88,8 +99,6 @@ try {
   await new Promise((resolve) => server.close(resolve));
 }
 
-const outDir = args.out || path.join(os.tmpdir(), "code-destiny-perf");
-fs.mkdirSync(outDir, { recursive: true });
 const jsonPath = path.join(outDir, `perf-${args.label}.json`);
 const mdPath = path.join(outDir, `perf-${args.label}.md`);
 fs.writeFileSync(jsonPath, JSON.stringify({ label: args.label, url: targetUrl, runs: args.runs, results }, null, 2), "utf8");
@@ -114,6 +123,9 @@ async function runOnce(url, preset) {
       output: "json",
       logLevel: "error",
       onlyCategories: ["performance"],
+      // 전체 LHR 을 회차마다 저장하므로(측정 루프 참고) base64 스크린샷을 빼 용량을 억제한다.
+      // 스크린샷은 측정이 전부 끝난 뒤에 찍히므로 수치에는 영향이 없다.
+      disableFullPageScreenshot: true,
     };
     // 데스크탑은 lighthouse 가 제공하는 정본 config 를 그대로 쓴다(스로틀링·화면 에뮬레이션 포함).
     // 모바일은 기본 config 가 곧 모바일이라 넘기지 않는다.
@@ -128,6 +140,68 @@ async function runOnce(url, preset) {
 function numeric(lhr, id) {
   const audit = lhr.audits && lhr.audits[id];
   return audit && typeof audit.numericValue === "number" ? audit.numericValue : NaN;
+}
+
+/**
+ * 🔴 감사 id 를 후보 목록으로 찾고, **하나도 없으면 실패한다.**
+ *
+ * 왜 fail-closed 인가 — 이 스크립트는 예전에 `render-blocking-resources` 와 `dom-size` 를
+ * 읽고 있었는데 둘 다 Lighthouse 13 에서 삭제됐다(각각 `render-blocking-insight`,
+ * `dom-size-insight` 가 대체). 없는 id 를 읽으면 `undefined?.details?.items || []` 가
+ * **조용히 빈 값**을 내놓았고, 그 빈 값이 "렌더 블로킹 리소스가 0개"라는 잘못된 결론의
+ * 근거로 쓰였다(2026-08-17 정정). 측정 도구가 못 재는 것을 못 잰다고 말하지 않으면
+ * 그 구멍은 반드시 결론으로 샌다 — CLAUDE.md 코딩 원칙 10.
+ */
+function auditOrFail(lhr, ids, label) {
+  for (const id of ids) {
+    const audit = lhr.audits && lhr.audits[id];
+    if (audit) return audit;
+  }
+  const have = Object.keys(lhr.audits || {}).filter((k) => k.includes(ids[0].split("-")[0]));
+  throw new Error(
+    `[perf:home] ${label}: 감사 id 를 못 찾았다 — 시도한 것: ${ids.join(", ")}\n` +
+      `  Lighthouse ${lhr.lighthouseVersion} 에서 이름이 또 바뀐 것으로 보인다. 비슷한 id: ${have.join(", ") || "(없음)"}\n` +
+      `  🔴 빈 값으로 넘기지 않는다 — 예전에 그렇게 해서 "렌더 블로킹 0개"라는 틀린 결론이 나왔다.`
+  );
+}
+
+/**
+ * 🔴 점수에 쓰이는 FCP/LCP/SI 는 **실측이 아니라 Lantern 시뮬레이션 값**이다.
+ * throttlingMethod 기본값이 `simulate` 라 측정 중에는 네트워크·CPU 스로틀이 실제로 걸리지 않고
+ * (core/lib/emulation.js), 관측된 의존 그래프를 mobileSlow4G(150ms RTT·1.6Mbps·CPU×4) 조건에서
+ * 사후 재계산한다. 실측 예(PSI, 2026-08-14): FCP 시뮬 6,452ms vs **관측 2,468ms**,
+ * LCP 시뮬 11,101ms vs **관측 2,468ms**.
+ *
+ * 두 값을 나란히 봐야 하는 이유: 시뮬레이션 값은 "느린 4G 에서 어떨까"이고 관측값은
+ * "이 기계에서 실제로 언제 그려졌나"다. 최적화가 둘 중 어느 쪽을 움직였는지 구분하지 못하면
+ * 개선을 오판한다.
+ */
+function extractObserved(lhr) {
+  const it = lhr.audits?.metrics?.details?.items?.[0] || {};
+  return {
+    fcp: it.observedFirstContentfulPaint ?? null,
+    lcp: it.observedLargestContentfulPaint ?? null,
+    speedIndex: it.observedSpeedIndex ?? null,
+    firstPaint: it.observedFirstPaint ?? null,
+    domContentLoaded: it.observedDomContentLoaded ?? null,
+    load: it.observedLoad ?? null,
+    throttlingMethod: lhr.configSettings?.throttlingMethod ?? "(미기록)",
+  };
+}
+
+/** diagnostics: 문서 전송량·요청 수·RTT. FCP 의 선행 구간이 문서 전송이라 이게 필요하다. */
+function extractDiagnostics(lhr) {
+  const it = lhr.audits?.diagnostics?.details?.items?.[0] || {};
+  return {
+    numRequests: it.numRequests ?? null,
+    numScripts: it.numScripts ?? null,
+    numStylesheets: it.numStylesheets ?? null,
+    mainDocumentTransferSize: it.mainDocumentTransferSize ?? null,
+    totalByteWeight: it.totalByteWeight ?? null,
+    maxRtt: it.maxRtt ?? null,
+    maxServerLatency: it.maxServerLatency ?? null,
+    totalTaskTime: it.totalTaskTime ?? null,
+  };
 }
 
 function extractMetrics(lhr) {
@@ -176,10 +250,13 @@ function extractBreakdown(lhr) {
 }
 
 function extractDom(lhr) {
-  const items = lhr.audits?.["dom-size"]?.details?.items || [];
+  // LH13 에서 `dom-size` → `dom-size-insight`. 항목 중 `statistic` 이 있는 것만 통계이고
+  // 나머지는 최악 노드(`node`)라 건너뛴다.
+  const items = auditOrFail(lhr, ["dom-size-insight", "dom-size"], "DOM 크기").details?.items || [];
   const out = {};
   for (const item of items) {
     const label = item.statistic || "";
+    if (!label) continue;
     out[label] = Number(item.value?.value ?? item.value ?? 0);
   }
   return out;
@@ -194,13 +271,30 @@ function extractUnusedCss(lhr) {
   }));
 }
 
+/**
+ * 🔴 FCP 처방을 고르는 정본 감사다. LH13 에서 `render-blocking-resources` 가 삭제되고
+ * `render-blocking-insight` 가 대체했다(core/audits/insights/render-blocking-insight.js 의
+ * `replacesAudits`). 이걸 모르고 옛 id 를 읽는 동안 이 필드는 **항상 빈 배열**이었다.
+ *
+ * `savingsFcp`(= `metricSavings.FCP`)가 핵심이다 — **렌더 블로킹 노드를 전부 뺀 그래프로
+ * 재시뮬레이션한 차이**, 즉 "이걸 다 없애면 FCP 가 얼마 빨라지나"의 정답이다.
+ * 🔴 항목별 `wasted`(= `wastedMs`)는 **그 리소스의 다운로드 시간이지 한계 절감이 아니다.**
+ *    12개가 병렬로 받아지므로 하나만 빼면 나머지가 그대로 경로를 잡아 순변화가 0에 가깝다
+ *    (2026-08-16 실측: 1위 cosmic-main.css 2,120ms 만 제거 → FCP 변화 +1ms).
+ *    합계가 아니라 `savingsFcp` 를 목표로 삼을 것.
+ */
 function extractRenderBlocking(lhr) {
-  const items = lhr.audits?.["render-blocking-resources"]?.details?.items || [];
-  return items.map((item) => ({
-    url: item.url || "",
-    total: item.totalBytes || 0,
-    wasted: item.wastedMs || 0,
-  }));
+  const audit = auditOrFail(lhr, ["render-blocking-insight", "render-blocking-resources"], "렌더 블로킹");
+  const items = audit.details?.items || [];
+  return {
+    savingsFcp: audit.metricSavings?.FCP ?? null,
+    savingsLcp: audit.metricSavings?.LCP ?? null,
+    items: items.map((item) => ({
+      url: item.url || "",
+      total: item.totalBytes || 0,
+      wasted: item.wastedMs || 0,
+    })),
+  };
 }
 
 /**
@@ -327,14 +421,32 @@ function summarize(runs) {
   for (const key of new Set(runs.flatMap((run) => Object.keys(run.dom || {})))) {
     dom[key] = median(runs.map((run) => run.dom?.[key] || 0));
   }
+  const observed = {};
+  for (const key of new Set(runs.flatMap((run) => Object.keys(run.observed || {})))) {
+    const values = runs.map((run) => run.observed?.[key]);
+    // throttlingMethod 는 문자열이라 중앙값을 못 낸다 — 그대로 들고 간다.
+    observed[key] = typeof values[0] === "number" ? median(values) : values[0];
+  }
+  const diagnostics = {};
+  for (const key of new Set(runs.flatMap((run) => Object.keys(run.diagnostics || {})))) {
+    const values = runs.map((run) => run.diagnostics?.[key]).filter((v) => typeof v === "number");
+    diagnostics[key] = values.length ? median(values) : null;
+  }
   return {
     metrics,
+    observed,
+    diagnostics,
     breakdown,
     dom,
     longTasks: rankByUrl(runs, (run) => run.longTasks, "duration"),
     bootup: rankByUrl(runs, (run) => run.bootup, "total"),
     unusedCss: rankByUrl(runs, (run) => run.unusedCss, "wasted"),
-    renderBlocking: rankByUrl(runs, (run) => run.renderBlocking, "wasted"),
+    renderBlocking: {
+      // 🔴 목표로 삼을 값은 항목별 wasted 합계가 아니라 이 savingsFcp 다(extractRenderBlocking 주석 참고).
+      savingsFcp: median(runs.map((run) => run.renderBlocking?.savingsFcp ?? NaN)),
+      savingsLcp: median(runs.map((run) => run.renderBlocking?.savingsLcp ?? NaN)),
+      items: rankByUrl(runs, (run) => run.renderBlocking?.items || [], "wasted"),
+    },
     forcedReflow: rankByUrl(runs, (run) => run.forcedReflow, "ms"),
     lcpElements: rankLcpElements(runs),
     lcpPhases: Object.fromEntries(
@@ -447,6 +559,22 @@ function printTables() {
     console.log(`  CLS           ${fmt(metrics.cls.median, 3)}`);
     console.log(`  Speed Index   ${fmt(metrics.speedIndex.median)} ms`);
 
+    // 🔴 위 값은 Lantern 시뮬레이션이다. 실제로 언제 그려졌는지는 아래가 답한다.
+    const { observed, diagnostics, renderBlocking } = results[preset];
+    console.log(`\n  관측값 vs 시뮬레이션 (throttlingMethod=${observed.throttlingMethod}):`);
+    console.log(`    FCP  관측 ${fmt(observed.fcp)} ms  ↔  시뮬 ${fmt(metrics.fcp.median)} ms`);
+    console.log(`    LCP  관측 ${fmt(observed.lcp)} ms  ↔  시뮬 ${fmt(metrics.lcp.median)} ms`);
+    console.log(`    SI   관측 ${fmt(observed.speedIndex)} ms  ↔  시뮬 ${fmt(metrics.speedIndex.median)} ms`);
+    console.log(`    DOMContentLoaded ${fmt(observed.domContentLoaded)} ms · load ${fmt(observed.load)} ms`);
+
+    console.log(`\n  렌더 블로킹 — 전부 없앴을 때의 FCP 절감: ${fmt(renderBlocking.savingsFcp)} ms`);
+    console.log(`    (항목별 아래 수치는 다운로드 시간이지 한계 절감이 아니다 — 하나만 빼면 나머지가 경로를 잡는다)`);
+    for (const row of renderBlocking.items.slice(0, 12)) {
+      console.log(`    ${fmt(row.ms).padStart(6)} ms  ${kb(row.bytes).padStart(7)}  ${row.url}`);
+    }
+
+    console.log(`\n  문서/요청: HTML 전송 ${kb(diagnostics.mainDocumentTransferSize)} · 요청 ${fmt(diagnostics.numRequests)}개 · 시트 ${fmt(diagnostics.numStylesheets)}개 · 총 ${kb(diagnostics.totalByteWeight)}`);
+
     const { breakdown, dom, unusedCss } = results[preset];
     console.log(`\n  Main-thread work breakdown (median):`);
     for (const [label, ms] of Object.entries(breakdown).sort((a, b) => b[1] - a[1])) {
@@ -523,6 +651,31 @@ function renderMarkdown() {
       const m = metrics[key];
       lines.push(`| ${label} | ${fmt(m.median, digits)} | ${fmt(m.min, digits)} | ${fmt(m.max, digits)} |`);
     }
+    // 🔴 위 표는 Lantern 시뮬레이션 값이다. 관측값을 나란히 남긴다 — 둘을 섞어 읽으면 오판한다.
+    const { observed, diagnostics, renderBlocking } = results[preset];
+    lines.push("", `### 관측값 vs 시뮬레이션 (throttlingMethod=\`${observed.throttlingMethod}\`)`, "",
+      "| 지표 | 관측 | 시뮬레이션(점수 근거) |", "|---|---:|---:|",
+      `| FCP | ${fmt(observed.fcp)} ms | ${fmt(metrics.fcp.median)} ms |`,
+      `| LCP | ${fmt(observed.lcp)} ms | ${fmt(metrics.lcp.median)} ms |`,
+      `| Speed Index | ${fmt(observed.speedIndex)} ms | ${fmt(metrics.speedIndex.median)} ms |`,
+      `| DOMContentLoaded | ${fmt(observed.domContentLoaded)} ms | — |`,
+      `| load | ${fmt(observed.load)} ms | — |`);
+
+    lines.push("", "### 렌더 블로킹", "",
+      `**전부 없앴을 때의 FCP 절감: ${fmt(renderBlocking.savingsFcp)} ms** (\`render-blocking-insight.metricSavings.FCP\`)`, "",
+      "🔴 아래 항목별 ms 는 **다운로드 시간이지 한계 절감이 아니다.** 병렬로 받아지므로 하나만 빼면 나머지가 경로를 잡는다.", "",
+      "| ms | size | url |", "|---:|---:|---|");
+    for (const row of renderBlocking.items) lines.push(`| ${fmt(row.ms)} | ${kb(row.bytes)} | \`${row.url}\` |`);
+
+    lines.push("", "### 문서 / 요청", "", "| 항목 | 값 |", "|---|---:|",
+      `| HTML 전송 크기 | ${kb(diagnostics.mainDocumentTransferSize)} |`,
+      `| 요청 수 | ${fmt(diagnostics.numRequests)} |`,
+      `| 스타일시트 수 | ${fmt(diagnostics.numStylesheets)} |`,
+      `| 스크립트 수 | ${fmt(diagnostics.numScripts)} |`,
+      `| 총 바이트 | ${kb(diagnostics.totalByteWeight)} |`,
+      `| maxRtt | ${fmt(diagnostics.maxRtt, 1)} ms |`,
+      `| maxServerLatency | ${fmt(diagnostics.maxServerLatency)} ms |`);
+
     lines.push("", "### Top long tasks", "", "| ms | size | url |", "|---:|---:|---|");
     for (const row of longTasks) lines.push(`| ${fmt(row.ms)} | ${kb(row.bytes)} | \`${row.url}\` |`);
     lines.push("", "### Top script CPU (bootup-time)", "", "| ms | size | url |", "|---:|---:|---|");

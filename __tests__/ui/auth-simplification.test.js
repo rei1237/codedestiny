@@ -31,6 +31,11 @@ test("shared auth shell keeps email and social login in one mobile-first surface
   // 값이 있을 때만 필수 동의를 요구하고, 없으면 그대로 통과해야 한다(건너뛰기 보존).
   assert.match(shell, /if \(hasPhoneInput\(phone\) && !phoneNumber\)/);
   assert.match(shell, /if \(phoneNumber && !phoneConsent\)/);
+  // 🔴 선택 동의(전화번호)는 "필수 동의" fieldset 밖에 있어야 한다 — 개인정보 보호법 제22조는
+  // 선택 동의를 필수와 구분해 알리고 따로 받도록 한다. 예전에는 legend 가 "필수 동의"인
+  // fieldset 안에 이 체크박스가 들어 있었다.
+  assert.doesNotMatch(shell, /\{copy\.required\}[\s\S]{0,600}auth-phone-consent/);
+  assert.match(shell, /<PhoneConsentNotice/);
 });
 
 test("web auth response does not expose bearer tokens and post-login bootstrap is bounded", () => {

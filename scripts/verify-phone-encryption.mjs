@@ -208,6 +208,13 @@ assert.ok(
   !/phoneNumber:\s*phone\b/.test(onboardingSource),
   "onboarding must send the normalized digits, never the display value",
 );
+// 번호를 지우면 동의도 내려가야 한다 — 안 그러면 사용자가 본 적 없는 동의가 서버로 실려 간다.
+for (const [label, source] of [["AuthShell", authShellSource], ["onboarding", onboardingSource]]) {
+  assertContains(source, "if (!hasPhoneInput(formatted)) setPhoneConsent(false);",
+    `${label} must clear the consent checkbox when the phone field is emptied`);
+  assertContains(source, "phoneConsent: phoneNumber ? phoneConsent : false",
+    `${label} must send the consent flag to the server alongside the number`);
+}
 
 // 서버 쓰기 경로 — 프로필 보완 저장도 봉투로만 저장한다.
 assertContains(authSource, "async function handleProfileCompletion(request, env) {",
@@ -216,6 +223,66 @@ assertContains(authSource, "update.phoneNumber = await encryptPhoneNumber(phoneN
   "profile-completion must encrypt before writing");
 assertContains(authSource, 'code: "phone_encryption_unavailable"',
   "profile-completion must fail closed when the key is missing");
+
+// 13. 🔴 선택 동의 (개인정보 보호법 제15조 제2항 · 제22조).
+//     화면 체크박스는 우회 가능하고 기록도 남지 않는다 — 서버가 요구하고 서버가 남겨야 한다.
+assertContains(authSource, "if (phoneNumber && body?.phoneConsent !== true) {",
+  "profile-completion must refuse to store a phone number without consent");
+assertContains(authSource, 'code: "phone_consent_required"',
+  "the missing-consent refusal must be identifiable by code");
+assertContains(authSource, 'update["legalConsents.phoneAcceptedAt"] = new Date();',
+  "profile-completion must record when the phone consent was given (제22조 입증책임)");
+assertContains(authSource, "const phoneConsented = phoneNumber && body?.phoneConsent === true;",
+  "social signup must only keep a phone number that came with consent");
+assertContains(authSource, "phoneNumber: consentedPhoneNumber,",
+  "social signup must never pass an unconsented number into account creation");
+// 스키마에 기록 자리가 없으면 위 쓰기가 조용히 버려진다.
+const modelsConsentBlock = modelsSource.match(/legalConsents: \{[\s\S]*?\n {2}\},/);
+assert.ok(modelsConsentBlock, "models.js must still declare a legalConsents block");
+for (const field of ["phoneVersion", "phoneAcceptedAt"]) {
+  assert.ok(
+    modelsConsentBlock[0].includes(field),
+    `legalConsents must carry ${field} — otherwise the consent write is silently dropped`,
+  );
+}
+
+// 14. 🔴 법정 고지 4항목이 실제로 화면에 있는지 (제15조 제2항).
+//     하나라도 빠지면 "동의를 받았다"고 보기 어렵다. 문구는 바뀔 수 있으므로 **라벨 키**를 고정한다.
+const consentSource = read("app/components/auth/PhoneConsentNotice.tsx");
+for (const [key, label] of [
+  ["itemLabel", "수집 항목"],
+  ["purposeLabel", "이용 목적"],
+  ["retentionLabel", "보유·이용 기간"],
+  ["refusalLabel", "거부 권리"],
+]) {
+  assertContains(consentSource, `${key}:`, `phone consent notice must declare ${key}`);
+  assertContains(consentSource, label, `phone consent notice must disclose "${label}" (제15조 제2항)`);
+}
+// 위탁 사실과 수탁자를 고지에서 밝혀야 한다 — 화면에만 "KG이니시스"가 있고 방침에는 없던 상태를 막는다.
+for (const processor of ["포트원", "KG이니시스"]) {
+  assertContains(consentSource, processor, `consent notice must name the payment processor ${processor}`);
+  assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), processor,
+    `privacy policy must name the payment processor ${processor} as a consignee`);
+}
+// "거부해도 불이익 없음"이 사실이려면 두 화면 모두에 실제로 빠져나갈 길이 있어야 한다.
+assertContains(consentSource, "불이익이 없습니다",
+  "consent notice must state that refusing carries no disadvantage");
+assertContains(onboardingSource, "onClick={leave}",
+  "the skip control must exist for the no-disadvantage statement to be true");
+// 선택 동의가 '필수 동의' fieldset 안으로 다시 들어가면 제22조 구분 요건이 깨진다.
+assert.ok(
+  !/\{copy\.required\}[\s\S]{0,600}auth-phone-consent/.test(authShellSource),
+  "the optional phone consent must not sit inside the required-consent fieldset (제22조)",
+);
+// 방침 시행일과 서버가 기록하는 동의 버전은 수동 동기화라 어긋나기 쉽다.
+const policyDate = read("app/privacy-policy/PrivacyPolicyContent.jsx")
+  .match(/PRIVACY_POLICY_EFFECTIVE_DATE = "([\d-]+)"/);
+const workerPrivacyVersion = authSource.match(/AUTH_PRIVACY_VERSION = "([\d-]+)"/);
+assert.ok(policyDate && workerPrivacyVersion, "both privacy version constants must be readable");
+assert.equal(
+  workerPrivacyVersion[1], policyDate[1],
+  "AUTH_PRIVACY_VERSION must equal PRIVACY_POLICY_EFFECTIVE_DATE — otherwise the recorded consent version lies",
+);
 
 // 게이트는 복호화 결과로 판정해야 한다 — 저장값 문자열로 보면 봉투가 항상 '번호 있음'이 된다.
 assertContains(authSource, "return !(await decryptPhoneNumber(user.phoneNumber || user.phone, env));",
