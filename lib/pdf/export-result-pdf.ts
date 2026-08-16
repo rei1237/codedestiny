@@ -67,8 +67,13 @@ async function loadFontBase64Map(): Promise<PdfFontMap> {
   return fontBase64Promise;
 }
 
-/** 한글 폰트를 PDF에 임베딩한다. 네트워크 실패 시 null을 반환하고(기본 폰트로 폴백), 캡처 이미지 콘텐츠에는 영향 없다. */
-async function registerPdfFontsSafely(pdf: JsPDFInstance): Promise<{ title: string; body: string } | null> {
+/**
+ * 한글 폰트를 PDF에 임베딩한다. 네트워크 실패 시 null을 반환하고(기본 폰트로 폴백), 캡처 이미지 콘텐츠에는 영향 없다.
+ *
+ * 🔴 export 인 이유: 텍스트 조판 PDF(lib/pdf/export-fusion-report-pdf.ts)가 같은 R2 폰트를
+ *    같은 방식으로 실어야 한다. 로더를 복제하면 두 벌이 서로 다른 파일명·캐시 정책으로 갈라진다.
+ */
+export async function registerPdfFontsSafely(pdf: JsPDFInstance): Promise<{ title: string; body: string } | null> {
   try {
     const base64Map = await loadFontBase64Map();
     for (const [key, { file, family }] of Object.entries(PDF_FONT_FILES) as [PdfFontKey, (typeof PDF_FONT_FILES)[PdfFontKey]][]) {

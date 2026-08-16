@@ -31,6 +31,10 @@ function getPath(doc, key) {
 export function matches(doc, filter) {
   return Object.entries(filter).every(([key, cond]) => {
     if (key === "$or") return cond.some((sub) => matches(doc, sub));
+    // 같은 필드에 조건 두 개를 AND 로 걸 때 쓴다(월정석 증빙 조회: 기능키 매칭 ∧ 토큰 매칭).
+    // 없으면 $and 가 평범한 필드명으로 취급돼 **항상 false** 가 되고, 그 쿼리를 쓰는 테스트는
+    // "아무것도 못 찾는다"만 확인하게 된다.
+    if (key === "$and") return cond.every((sub) => matches(doc, sub));
     const value = getPath(doc, key);
     // ObjectId·Date 처럼 프로퍼티를 가진 '값 객체'를 연산자 맵으로 오인하면 안 된다.
     if (isOperatorMap(cond)) {

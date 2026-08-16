@@ -74,6 +74,13 @@ function writeFusionFortuneSse(writer, event, payload) {
   return writer.write(new TextEncoder().encode(formatFusionFortuneSseEvent(event, payload)));
 }
 
+/**
+ * 무음 구간을 없애는 심박. 네 묶음을 병렬로 쓰는 동안 이벤트가 55~110초 동안 하나도 안 나가는데,
+ * 그 침묵을 중간 프록시가 끊으면 클라이언트는 result 없이 스트림이 닫힌 것만 보고 "결과를 받지
+ * 못했어요"로 떨어진다. 진행 상황을 새로 만들어 내지 않고 "아직 살아 있다"만 보낸다.
+ */
+const FUSION_SSE_HEARTBEAT_MS = 15000;
+
 function canGenerateFusionFortune(env) {
   return isFusionFortuneMockFlowEnabled(env) || isFusionFortuneRealLlmAllowed(env);
 }
@@ -92,6 +99,8 @@ async function persistFusionDelivery({ userId, input, delivery }) {
       input: input || {},
       result: delivery?.result,
       generationSource: delivery?.generationSource,
+      qualityTier: delivery?.qualityTier,
+      qualityNotice: delivery?.qualityNotice,
     });
   } catch (error) {
     console.warn("[fusion-fortune-persist-failed]", {
@@ -131,6 +140,7 @@ async function handleFusionFortuneResultRoute(request, env) {
         title: item.title || "초융합 운세",
         topic: item.inputSummary?.topic || "",
         nickname: item.inputSummary?.nickname || "",
+        qualityTier: item.qualityTier || "full",
         createdAt: item.createdAt,
       })),
     });
@@ -148,6 +158,9 @@ async function handleFusionFortuneResultRoute(request, env) {
       result: consultation.result,
       inputSummary: consultation.inputSummary || {},
       generationSource: consultation.generationSource || "",
+      // 옛 보관본에는 이 필드가 없다 — 없으면 완전 등급으로 읽는다.
+      qualityTier: consultation.qualityTier || "full",
+      qualityNotice: consultation.qualityNotice || "",
       createdAt: consultation.createdAt,
     },
   });
@@ -169,9 +182,18 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
   const transformer = new TransformStream();
   const writer = transformer.writable.getWriter();
   let consultationId = "";
+  let heartbeat = null;
+  const stopHeartbeat = () => {
+    if (heartbeat === null) return;
+    clearInterval(heartbeat);
+    heartbeat = null;
+  };
   const run = (async () => {
     try {
       await writeFusionFortuneSse(writer, "status", { status: "started" });
+      heartbeat = setInterval(() => {
+        writeFusionFortuneSse(writer, "ping", {}).catch(stopHeartbeat);
+      }, FUSION_SSE_HEARTBEAT_MS);
       const result = await generateFusionFortuneRequest({
         input: body,
         userId: String(auth.userId),
@@ -201,6 +223,8 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
           pricing: result.pricing || undefined,
           retryable: result.retryable === true ? true : undefined,
           retryRequestId: result.retryRequestId || undefined,
+          // 어느 관문에서 죽었는지. 계약 위반 코드만 나가고 본문·개인정보는 실리지 않는다.
+          issues: Array.isArray(result.issues) && result.issues.length ? result.issues.slice(0, 8) : undefined,
         });
         return;
       }
@@ -209,6 +233,8 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         fusionStatus: result.fusionStatus,
         // 클라이언트가 ?cid= 딥링크를 남기는 데 쓴다. 저장이 실패했으면 빈 문자열이다.
         consultationId,
+        qualityTier: result.qualityTier || undefined,
+        qualityNotice: result.qualityNotice || undefined,
       });
     } catch {
       await writeFusionFortuneSse(writer, "error", {
@@ -216,6 +242,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         message: "결과를 준비하지 못했어요. 같은 요청으로 다시 시도하면 추가 결제는 없습니다.",
       }).catch(() => {});
     } finally {
+      stopHeartbeat();
       await writer.close().catch(() => {});
     }
   })();
@@ -262,7 +289,7 @@ export async function handleFusionFortuneRoutes(request, env, ctx = null) {
         const consultationId = await persistFusionDelivery({
           userId: String(auth.userId),
           input: body,
-          delivery: { requestId: result.requestId, result: result.result, generationSource: result.generationSource },
+          delivery: { requestId: result.requestId, result: result.result, generationSource: result.generationSource, qualityTier: result.qualityTier, qualityNotice: result.qualityNotice },
         });
         return respond({ ...result, consultationId });
       }

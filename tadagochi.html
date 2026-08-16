@@ -541,7 +541,7 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
       <div class="absolute inset-0 rounded-full animate-glow" style="background:radial-gradient(circle,var(--al)44,transparent 70%);transform:scale(1.5)"></div>
 
-      <div class="pet-wrap relative z-10 animate-float" style="filter:drop-shadow(0 8px 28px rgba(0,0,0,.18)) drop-shadow(0 0 18px rgba(251,191,36,.35));width:160px;height:160px"><img id="t-egg" src="/icons/fortune-tama-180.png" class="pet-img" style="animation:none;clip-path:none;width:160px;height:160px"></div>
+      <div class="pet-wrap relative z-10 animate-float" style="filter:drop-shadow(0 8px 28px rgba(0,0,0,.18)) drop-shadow(0 0 18px rgba(251,191,36,.35));width:160px;height:160px"><img id="t-egg" src="/icons/fortune-tama-180.webp" class="pet-img" style="animation:none;clip-path:none;width:160px;height:160px"></div>
 
     </div>
 
@@ -1159,10 +1159,10 @@ function calcFortuneScore(birthYear,element){
 
 
 // Use stable on-disk egg assets to avoid broken inline/base64 placeholders.
-EGG.moon = '/fuctionassets/tadagochi/%EB%8B%AC%20%EC%BB%A8%EC%85%89/%EB%8B%AC%20%EC%BB%A8%EC%85%89%20%EC%95%8C.png';
+EGG.moon = '/fuctionassets/tadagochi/%EB%8B%AC%20%EC%BB%A8%EC%85%89/%EB%8B%AC%20%EC%BB%A8%EC%85%89%20%EC%95%8C.webp';
 EGG.strawberry = '/fuctionassets/tadagochi-local/%EB%94%B8%EA%B8%B0%20%EC%BB%A8%EC%85%89/%EB%94%B8%EA%B8%B0%20%EC%95%8C-Photoroom.webp';
-EGG.cherry = '/fuctionassets/tadagochi-local/%EB%B2%9A%EA%BD%83%20%EC%BB%A8%EC%85%89/%EB%B2%9A%EA%BD%83%EC%9D%98%20%EC%95%8C.png';
-EGG.star = '/fuctionassets/tadagochi/%EA%B2%80%EC%9D%80%20%EB%B3%84%20%EC%BB%A8%EC%85%89/%EA%B2%80%EC%9D%80%EB%B3%84%20%EC%95%8C-Photoroom.png';
+EGG.cherry = '/fuctionassets/tadagochi-local/%EB%B2%9A%EA%BD%83%20%EC%BB%A8%EC%85%89/%EB%B2%9A%EA%BD%83%EC%9D%98%20%EC%95%8C.webp';
+EGG.star = '/fuctionassets/tadagochi/%EA%B2%80%EC%9D%80%20%EB%B3%84%20%EC%BB%A8%EC%85%89/%EA%B2%80%EC%9D%80%EB%B3%84%20%EC%95%8C-Photoroom.webp';
 EGG.angel = '/fuctionassets/tadagochi/%EC%B2%9C%EC%82%AC%20%EC%BB%A8%EC%85%89/%EC%B2%9C%EC%82%AC%20%EC%95%8C-Photoroom.webp';
 
 var _touchGuardInited=false;
@@ -1257,13 +1257,13 @@ function initUI(){
       el2.src=EGG[t];
       el2.onerror=function(){
         this.onerror=null;
-        this.src='/icons/fortune-tama-180.png';
+        this.src='/icons/fortune-tama-180.webp';
       };
     }
   });
   // 타이틀 화면 병아리 이미지 (이미 src 고정)
   var tEgg=document.getElementById('t-egg');
-  if(tEgg&&!tEgg.complete) tEgg.src='/icons/fortune-tama-180.png';
+  if(tEgg&&!tEgg.complete) tEgg.src='/icons/fortune-tama-180.webp';
   var bg=document.getElementById('star-bg');
   for(var i=0;i<30;i++){var s=document.createElement('div');var sz=1+Math.random()*2.5;var delay=Math.random()*3;var dur=1.8+Math.random()*3;s.style.cssText='position:absolute;border-radius:50%;background:var(--c2);width:'+sz+'px;height:'+sz+'px;left:'+(Math.random()*100)+'%;top:'+(Math.random()*100)+'%;animation:twinkle '+dur+'s '+delay+'s ease-in-out infinite';bg.appendChild(s);}
   document.getElementById('s-title').addEventListener('click',function(e){if(e.target.tagName!=='BUTTON')gS();});
@@ -1572,7 +1572,7 @@ function openMain(){
 
 }
 
-var FALLBACK_PET_IMAGE='/icons/fortune-tama-96.png';
+var FALLBACK_PET_IMAGE='/icons/fortune-tama-96.webp';
 
 var THEME_CONCEPT_KR={moon:'달 컨셉',strawberry:'딸기 컨셉',cherry:'벚꽃 컨셉',star:'별 컨셉',angel:'천사 컨셉'};
 var ZODIAC_ANIMAL_KR={rat:'쥐',cow:'소',tiger:'호랑이',rabbit:'토끼',dragon:'용',snake:'뱀',horse:'말',sheep:'양',monkey:'원숭이',chicken:'닭',dog:'강아지',pig:'돼지'};

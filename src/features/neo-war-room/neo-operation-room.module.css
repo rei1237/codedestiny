@@ -2885,16 +2885,27 @@
   line-height: 1.35;
 }
 
+/* 장문 프로즈라 굵기를 낮추고 줄간격을 넓힌다. 결과 페이지가 2026-07-12 에 같은 이유로
+   본문을 950→560 으로 내렸다(눈 피로). 제목(strong 950)과의 대비는 그대로 유지된다. */
 .briefingGrid p,
 .evidenceList p,
 .realityQuestions p,
 .realityQuestions span {
   margin: 0;
-  color: rgba(239, 244, 252, 0.84);
-  font-size: 0.92rem;
-  font-weight: 720;
-  line-height: 1.65;
+  color: rgba(239, 244, 252, 0.86);
+  font-size: 0.95rem;
+  font-weight: 560;
+  line-height: 1.75;
   word-break: keep-all;
+}
+
+/* LlmParagraphs 가 장문을 여러 <p> 로 쪼갠다. 카드가 grid(gap 8px)라 붙지는 않지만
+   문단 경계로는 좁아 한 덩어리로 읽힌다. */
+.briefingGrid p + p,
+.evidenceList p + p,
+.realityBriefGrid p + p,
+.refinedListBlock p + p {
+  margin-top: 8px;
 }
 
 .briefingGrid ul {
@@ -2912,19 +2923,10 @@
   gap: 10px;
 }
 
-.bluntTruth {
-  margin: 0;
-  border: 1px solid rgba(185, 34, 43, 0.5);
-  border-radius: 8px;
-  padding: 16px;
-  background: rgba(85, 13, 22, 0.34);
-  color: #ffe0b1;
-  font-family: var(--font-display);
-  font-size: 1.12rem;
-  font-weight: 950;
-  line-height: 1.65;
-  word-break: keep-all;
-}
+/* 팩폭 콜아웃(.bluntTruth)은 components/NeoFactPunch 로 옮겼다.
+   여기 있던 규칙은 display 폰트 + font-weight 950 + 줄 길이 무제한이라, 1300자 이상 장문이
+   문단 없이 통째로 들어가면서 벽글이 됐다. 결과 페이지와 같은 렌더러를 쓰도록 통합했다.
+   강도 연출(.bluntTruthImpact)은 그대로 남아 NeoFactPunch 위에 얹힌다. */
 
 .realityCheckPanel,
 .refinedOrderPanel {
@@ -3015,10 +3017,10 @@
 .realityQuestionDeck p,
 .realityQuestionDeck span {
   margin: 0;
-  color: rgba(239, 244, 252, 0.84);
-  font-size: 0.92rem;
-  font-weight: 720;
-  line-height: 1.65;
+  color: rgba(239, 244, 252, 0.86);
+  font-size: 0.95rem;
+  font-weight: 560;
+  line-height: 1.75;
   word-break: keep-all;
 }
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState, type CSSProperties } from "react";
 import Image from "next/image";
+import { buildResizedAssetUrl } from "@/lib/r2-public-url";
 import type { NeoWarRoomAsset } from "../data/assets";
 
 type NeoWarRoomAssetImageProps = {
@@ -18,6 +19,12 @@ type NeoWarRoomAssetImageProps = {
   width?: number;
   height?: number;
   style?: CSSProperties;
+  /**
+   * 원격 자산을 Cloudflare Image Resizing 으로 줄여 받는다. 표시 CSS 폭의 2배(레티나)를 준다.
+   * 기본값 없음 = 원본 그대로라 기존 사용처 동작은 바뀌지 않는다.
+   * 🔴 스프라이트 시트에는 주지 말 것 — 배경 크롭 좌표가 어긋난다.
+   */
+  resizeWidth?: number;
 };
 
 export default function NeoWarRoomAssetImage({
@@ -34,6 +41,7 @@ export default function NeoWarRoomAssetImage({
   width,
   height,
   style,
+  resizeWidth,
 }: NeoWarRoomAssetImageProps) {
   const primarySrc = src || asset?.src || "";
   const primaryAlt = alt ?? asset?.alt ?? "";
@@ -45,6 +53,8 @@ export default function NeoWarRoomAssetImage({
   const activeSrc = useFallback ? secondarySrc : primarySrc;
   const hasFailedCompletely = failed && (!secondarySrc || fallbackFailed);
   const shouldShowPlaceholder = Boolean(activeSrc) && !loaded && !hasFailedCompletely;
+  // 로컬 /public 경로와 code-destiny.com 밖 호스트는 헬퍼가 그대로 돌려주므로 폴백 경로도 안전하다.
+  const renderedSrc = resizeWidth ? buildResizedAssetUrl(activeSrc, { width: resizeWidth }) : activeSrc;
 
   useEffect(() => {
     setFailed(false);
@@ -69,7 +79,7 @@ export default function NeoWarRoomAssetImage({
       {!hasFailedCompletely && activeSrc ? (
         <Image
           className={imageClassName}
-          src={activeSrc}
+          src={renderedSrc}
           alt={primaryAlt}
           fill={fill}
           width={fill ? undefined : width}

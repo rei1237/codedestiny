@@ -7,15 +7,18 @@
   },
   "remote": [
     "CodeDestinyNovel/까마귀 빌런1.png",
+    "CodeDestinyNovel/까마귀 빌런1.webp",
     "CodeDestinyNovel/까마귀 빌런2.png",
     "CodeDestinyNovel/두려움-Photoroom.png",
     "CodeDestinyNovel/모카 감동.png",
     "CodeDestinyNovel/모카 기본.png",
+    "CodeDestinyNovel/모카 기본.webp",
     "CodeDestinyNovel/모카 화남.png",
     "CodeDestinyNovel/모카1.png",
     "CodeDestinyNovel/모카2.png",
     "CodeDestinyNovel/모카3.png",
     "CodeDestinyNovel/반신상 기본-Photoroom.png",
+    "CodeDestinyNovel/반신상 기본-Photoroom.webp",
     "CodeDestinyNovel/반신상 우측-Photoroom.png",
     "CodeDestinyNovel/반신상 좌측-Photoroom.png",
     "CodeDestinyNovel/사주의 강 진입.mp3",
@@ -71,8 +74,11 @@
     "DestinyCafe/nobackground/연이 스프라이트1-Photoroom.png",
     "DestinyCafe/nobackground/연이 타로 카드-Photoroom.png",
     "DestinyWar/검은 그림자-Photoroom.png",
+    "DestinyWar/네오 스프라이트 배경없음4-Photoroom.webp",
     "DestinyWar/전략실 네오 메인-Photoroom.png",
+    "DestinyWar/전략실 네오 메인-Photoroom.webp",
     "DestinyWar/전략실 네오-Photoroom.png",
+    "DestinyWar/전략실 네오-Photoroom.webp",
     "music/DEST1NOVA/오행 FLEX.mp3",
     "music/DEST1NOVA/운세 soda pop.mp3",
     "music/DEST1NOVA/DEST1NOVA 2집/불꽃의 운명.mp3",
@@ -83,7 +89,6 @@
   ],
   "bundledLocalOnly": [
     "CodeDestinyNovel/두려움-Photoroom.webp",
-    "CodeDestinyNovel/반신상 기본-Photoroom.webp",
     "CodeDestinyNovel/반신상 우측-Photoroom.webp",
     "CodeDestinyNovel/반신상 좌측-Photoroom.webp",
     "CodeDestinyNovel/삼각김밥-Photoroom.webp",
@@ -99,8 +104,6 @@
     "DestinyCafe/nobackground/꽃돼지2-Photoroom.webp",
     "DestinyCafe/nobackground/연이 스프라이트1-Photoroom.webp",
     "DestinyCafe/nobackground/연이 타로 카드-Photoroom.webp",
-    "DestinyWar/검은 그림자-Photoroom.webp",
-    "DestinyWar/전략실 네오 메인-Photoroom.webp",
-    "DestinyWar/전략실 네오-Photoroom.webp"
+    "DestinyWar/검은 그림자-Photoroom.webp"
   ]
 }
