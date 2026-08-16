@@ -73,7 +73,9 @@ export function buildWebsiteJsonLd(locale?: string) {
     "@type": "WebSite",
     "@id": `${siteSeo.siteUrl}/#website`,
     url: siteSeo.siteUrl,
-    name: siteSeo.siteName,
+    // 🔴 브랜드 이름이다(꿀꿀 운세). 회사 이름(CODE DESTINY)은 Organization 노드가 갖는다.
+    // 정적 셸 index.html 의 #website 노드와 글자 단위로 같아야 한다.
+    name: siteSeo.brandName,
     alternateName: siteSeo.alternateName,
     inLanguage: toInLanguage(locale),
     publisher: { "@id": `${siteSeo.siteUrl}/#organization` },
@@ -170,7 +172,9 @@ export function buildServiceJsonLd(input: {
     provider: {
       "@type": "Organization",
       "@id": `${siteSeo.siteUrl}/#organization`,
-      name: siteSeo.siteName,
+      // 🔴 같은 @id 의 Organization 이다. 회사 이름(siteSeo.organization.name)을 쓴다 —
+      // siteSeo.siteName 은 제목 접미사용 표기라 여기 쓰면 한 엔티티에 두 이름이 생긴다.
+      name: siteSeo.organization.name,
     },
     areaServed: {
       "@type": "Country",
@@ -231,7 +235,9 @@ export function buildArticleJsonLd(input: {
     publisher: {
       "@type": "Organization",
       "@id": `${siteSeo.siteUrl}/#organization`,
-      name: siteSeo.siteName,
+      // 🔴 같은 @id 의 Organization 이다. 회사 이름(siteSeo.organization.name)을 쓴다 —
+      // siteSeo.siteName 은 제목 접미사용 표기라 여기 쓰면 한 엔티티에 두 이름이 생긴다.
+      name: siteSeo.organization.name,
       logo: {
         "@type": "ImageObject",
         url: siteSeo.organization.logo,

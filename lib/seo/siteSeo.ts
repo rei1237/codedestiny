@@ -51,7 +51,24 @@ export const SOCIAL_PROFILES = [
 ] as const;
 
 export const siteSeo = {
+  /**
+   * 제목 접미사 등 **표기용** 이름. `WebSite`·`Organization` 스키마의 이름과는 별개다 —
+   * 그쪽은 아래 brandName / organization.name 을 쓴다.
+   */
   siteName: "Code Destiny",
+  /**
+   * `WebSite` 엔티티의 이름 = 서비스 브랜드.
+   *
+   * 회사 이름과 다르다(운영자 확인, 2026-08-16): 브랜드는 **꿀꿀 운세**, 회사는 **CODE DESTINY**.
+   * schema.org 에서 WebSite 와 Organization 은 서로 다른 엔티티이므로 이름이 갈리는 것이 정상이고,
+   * 오히려 둘을 같은 이름으로 두면 브랜드와 발행처가 한 덩어리로 읽힌다.
+   *
+   * 🔴 이 값은 정적 셸 index.html 의 `#website` 노드 name 과 **글자 단위로 같아야 한다.**
+   * 홈 `/` 은 승격된 셸이, 나머지 400여 라우트는 app/layout.js 가 서빙하는데 `@id` 가 같다.
+   * 갈리면 Google 이 한 엔티티에 두 이름을 보게 된다.
+   * `__tests__/ui/locale-footer.static.test.js` 가 그 일치를 강제한다.
+   */
+  brandName: "꿀꿀 운세",
   alternateName: [
     "CODE DESTINY",
     "CodeDestiny",
@@ -75,7 +92,8 @@ export const siteSeo = {
   defaultOgImage: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba",
   twitterCard: "summary_large_image",
   organization: {
-    name: "Code Destiny",
+    // 회사 이름(운영자 확인, 2026-08-16). 브랜드(brandName = 꿀꿀 운세)와 의도적으로 다르다.
+    name: "CODE DESTINY",
     legalName: "코드 데스티니",
     url: "https://code-destiny.com",
     logo: "https://code-destiny.com/og/code-destiny-og.png",

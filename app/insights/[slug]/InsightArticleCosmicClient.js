@@ -450,11 +450,11 @@ export default function InsightArticleCosmicClient({
       // 부활하지 않도록 함께 고친다).
       author: {
         "@type": "Organization",
-        name: String(item?.author || "Code Destiny 편집팀"),
+        name: String(item?.author || "CODE DESTINY"),
       },
       publisher: {
         "@type": "Organization",
-        name: "Code Destiny",
+        name: "CODE DESTINY",
         logo: {
           "@type": "ImageObject",
           url: "https://code-destiny.com/icons/꿀꿀 운세 로고.webp",

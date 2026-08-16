@@ -135,7 +135,8 @@ const webPageJsonLd = {
   isPartOf: {
     "@type": "WebSite",
     "@id": "https://code-destiny.com/#website",
-    name: "꿀꿀 운세 — Code Destiny",
+    // 🔴 같은 @id 의 WebSite 다. lib/seo/siteSeo.ts 의 brandName 과 같아야 한다.
+    name: "꿀꿀 운세",
     url: "https://code-destiny.com",
   },
   about: {
