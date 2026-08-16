@@ -179,6 +179,7 @@ const coreRoutes = [
   // 체계 간 비교 문서. 경쟁사 비교가 아니라 우리가 실제로 제공하는 체계끼리의 비교라
   // 지어낸 내용이 없고, 각 체계 허브를 잇는 내부 링크 역할도 한다.
   { path: "/compare/saju-vs-ziwei", changefreq: "monthly", priority: 0.8 },
+  { path: "/compare/sukuyo-vs-vedic", changefreq: "monthly", priority: 0.8 },
   { path: "/insights", changefreq: "weekly", priority: 0.85 },
   // 연이의 운명 노벨 텍스트 리더 — 허브 + 44화.
   // 슬러그는 생성물(lib/stories/vn/episodes.generated.json)에서 읽어 하드코딩 드리프트를 막는다.
