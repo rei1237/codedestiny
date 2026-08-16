@@ -1,4 +1,4 @@
-import { readFileSync, writeFileSync } from "node:fs";
+import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { register } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -15,6 +15,20 @@ const { INSIGHT_SEED_ARTICLES } = await import(
 );
 
 const rootDir = process.cwd();
+
+// 🔴 루트 정적 셸 라우트는 후행 슬래시를 붙이면 안 된다.
+// 실체가 저장소 루트의 `<name>.html` 이고 Cloudflare Pages 가 확장자를 떼어 `/name` 으로 서빙한다.
+// `/name/` 은 308 로 `/name` 에 되돌려지므로(2026-08-16 실측), 슬래시를 붙여 사이트맵에 넣으면
+// 등재한 URL 이 곧바로 리다이렉트가 되어 GSC 「리디렉션이 포함된 페이지」로 잡힌다.
+// 목록을 손으로 적지 않고 루트의 실제 파일에서 파생한다(CLAUDE.md 원칙 10).
+// 🔴 normalizeSitemapPath 보다 먼저 선언해야 한다 — const 는 호이스팅되지 않아 모듈 최상단의
+// staticCanonicalAliasPaths 계산이 이걸 먼저 읽는다.
+const rootShellRoutes = new Set(
+  readdirSync(rootDir)
+    .filter((name) => name.endsWith(".html") && name !== "index.html")
+    .map((name) => `/${name.slice(0, -".html".length)}`),
+);
+
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
 const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
 const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
@@ -117,6 +131,11 @@ const coreRoutes = [
   { path: "/saju", changefreq: "daily", priority: 0.98 },
   { path: "/manse", changefreq: "daily", priority: 0.98 },
   { path: "/destiny-compass", changefreq: "weekly", priority: 0.9 },
+  // 🔴 루트 정적 셸 라우트다 — 실체는 `destiny-poker.html` 이고 app 페이지가 없다.
+  // Cloudflare Pages 가 확장자를 떼고 `/destiny-poker` 로 서빙한다(`.html` 은 308).
+  // 무료 기능이라 색인 대상으로 두되, 본문이 얇으면 "낮은 가치의 콘텐츠" 표본이 되므로
+  // `verify-adsense-readiness` 의 1,800자 게이트를 반드시 통과시킨 채로 유지할 것.
+  { path: "/destiny-poker", changefreq: "monthly", priority: 0.6 },
   { path: "/reviews", changefreq: "daily", priority: 0.85 },
   { path: "/today", changefreq: "daily", priority: 0.97 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
@@ -499,6 +518,7 @@ function normalizeSitemapPath(pathname) {
   const compact = leading.replace(/\/{2,}/g, "/");
   if (compact === "/") return "/";
   const trimmed = compact.replace(/\/+$/, "");
+  if (rootShellRoutes.has(trimmed)) return trimmed;
   return /\.[a-z0-9]+$/i.test(trimmed) ? trimmed : `${trimmed}/`;
 }
 
