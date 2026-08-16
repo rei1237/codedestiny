@@ -7,7 +7,7 @@
 
 | 항목 | 수 | 정체 (실측으로 규명됨) | 상태 |
 |---|---|---|---|
-| 접근 불가한 페이지 | 38 | `_redirects` 상한에 잘려 죽은 `/fortune/{weekly,monthly}/*.html` | ✅ #708 |
+| 접근 불가한 페이지 | 38 | `_redirects` 상한에 잘려 죽은 `/fortune/{weekly,monthly}/*.html` | ✅ #708 — **38/38 라이브 301 확인** |
 | `<title>` 2개 이상 | 2 | `/nakshatra/` 의 SVG `<title>` 2개 | ✅ #714 |
 | Alt 속성 누락 | 11 | `HwatuFortune.js` 10 + `PhysiognomyUI.js` 1 (런타임 주입) | ✅ #714 |
 | 리다이렉션된 페이지 | 140 | RSS 링크 38개 무슬래시 + 셸 내부 링크 고유 94경로 무슬래시 | 🟡 RSS 는 #710, 내부 링크는 **미착수(§3-A)** |
@@ -36,17 +36,37 @@
 - 즉 네이버 수치는 **그 이전 크롤의 누적**이다. 새 크롤이 돌면 빠진다.
 - 다만 **구 URL 을 회수하지 않아** 별칭 169개가 404 였고 `/famous-saju/<별칭>` 은 301→404 였다 → #713 에서 회수.
 
-## 1. 완료 (PR 4건)
+## 1. 완료 (PR 5건 — 전부 머지됨)
 
 | PR | 브랜치 | 내용 | 상태 |
 |---|---|---|---|
 | #708 | `fix/seo-redirect-budget` | `_redirects` 상한 사고 — §2-1 | ✅ 머지 |
 | #712 | `docs/seo-naver-diagnostic-handoff` | 이 문서 최초본 | ✅ 머지 |
 | #713 | `fix/seo-famous-saju-alias-redirects` | 별칭 169개 회수 — §2-3 | ✅ 머지 |
-| #710 | `fix/seo-canonical-link-slash` | RSS·동적 사이트맵 링크 후행 슬래시 — §2-2 | 🟡 오픈 |
-| #714 | `fix/seo-metadata-defects` | SVG `<title>` + alt 18개 — §2-4 | 🟡 오픈 |
+| #710 | `fix/seo-canonical-link-slash` | RSS·동적 사이트맵 링크 후행 슬래시 — §2-2 | ✅ 머지 |
+| #714 | `fix/seo-metadata-defects` | SVG `<title>` + alt 18개 — §2-4 | ✅ 머지 |
 
-🔴 **#708 은 이미 라이브다. `npm run verify:redirects:live` 를 아직 안 돌렸다면 지금 돌릴 것.** 개수 가드가 구조적으로 볼 수 없는 것(상한이 규칙 수인지 바이트인지)을 이것만 본다.
+### ✅ 배포 후 라이브 검증 (2026-08-16, `npm run verify:redirects:live`)
+
+```
+[redirects-live] 마지막 규칙 #89 "/sample/today/*" 적용 확인 (301 → /today/)
+[redirects-live] 별칭 169개 중 표본 3개 확인
+[redirects-live] OK — 규칙 89개, 사이트맵 429개 전수 200.
+```
+
+추가 실측:
+
+| 확인한 것 | 결과 |
+|---|---|
+| 이전에 404 였던 `/fortune/{weekly,monthly}/*.html` **38개** | **38/38 이 301 정상** — 네이버 "접근 불가 38건" 해소 |
+| `_redirects` **마지막 규칙(#89)** 이 적용되는가 | ✅ 적용됨 → 상한이 89 보다 크다. 예산 95 는 안전 |
+| 사이트맵 429개 | 전수 200 — 리다이렉트가 살아 있는 라우트를 삼키지 않았다 |
+| 한글 별칭 `/insights/famous-saju/이순신/` | 301 → `/insights/famous-saju/yi-sun-sin/` (퍼센트 인코딩 디코딩 정상) |
+| `/famous-saju/<별칭>/` 체인 | `301 → 301 → 200` 으로 **종료 확인**(별칭은 2홉, 정본은 1홉 — 예상대로) |
+
+🟢 **미검증이었던 것 하나가 해소됐다** — `_headers` 는 **워커가 가로채는 경로에도 적용된다.**
+`curl -sI /fortune/sikojen-povailu/` → `x-robots-tag: noindex, nofollow` 확인.
+`/fortune/*` 와 `/insights/famous-saju/*` 를 `_routes.json` 에 넣어도 헤더를 잃지 않는다. (#708 에서 안전장치로 넣은 HTML 쪽 `robots` meta 는 그대로 둔다 — 이중이지만 무해하고, 가드가 그 쌍을 강제한다.)
 
 ### 2-1. `_redirects` 규칙 상한 — "접근 불가 38건" 의 정체
 
@@ -59,9 +79,9 @@
 2. `X/*` 는 `X/`(빈 splat)를 매칭하지만 `X` 는 매칭하지 않는다. → 별칭은 `X` + `X/*` 두 줄이 한 쌍.
 3. `.html`·`index.html`·`www`·`http` 정규화는 Pages 가 이미 308/301 로 처리한다. 규칙을 둘 필요가 없다.
 
-**미확정**: 상한의 근거가 규칙 수(100)인지 바이트(#102 까지 9,477B)인지.
+**미확정(여전히)**: 상한의 근거가 규칙 수(100)인지 바이트(#102 까지 9,477B)인지. 다만 2026-08-16 라이브 검증에서 **89개 파일의 마지막 규칙이 적용됨을 확인**했으므로 상한 > 89 다. 규칙을 늘릴 때는 `verify:redirects:live` 를 다시 돌려 마지막 규칙을 재확인할 것.
 
-### 2-2. RSS 링크 38개가 전부 308 (#710, 오픈)
+### 2-2. RSS 링크 38개가 전부 308 (#710)
 
 `trailingSlash: true` 인데 `scripts/generate-rss.mjs` 가 무슬래시로 링크를 만들었다. 네이버 제출 피드의 `<link>` 38개가 전부 리다이렉트였고 사이트맵 `<loc>` 과 하나도 일치하지 않았다. `worker/routes/content.js` 의 동적 피드(정적 rss.xml 에 병합됨)와 동적 사이트맵 `<loc>` 도 함께 고쳤다.
 
@@ -69,7 +89,7 @@
 
 `scripts/generate-famous-saju-aliases.mjs` 가 `celebrity-data.ts` 에서 별칭→정본 맵을 전수 파생 → `public/famous-saju-aliases.json` → 워커가 `env.ASSETS` 로 읽어 한 홉 301. `_routes.json` 에 `/insights/famous-saju/*` 추가. 드리프트·충돌·2홉 체인·무한 루프를 `verify:redirects-budget` 과 `__tests__/ui/famous-saju-alias-map.static.test.js` 가 fail-closed 로 막는다.
 
-### 2-4. SVG `<title>` + alt (#714, 오픈)
+### 2-4. SVG `<title>` + alt (#714)
 
 - `NakshatraSymbols.tsx:45,59`·`MoonIcon.tsx:38` 의 `<title>` → `aria-label`. **빌드 산출물 687개 중 `<title>` 2개 이상 0건** 실측.
 - `HwatuFortune.js` 10 + `PhysiognomyUI.js` 1 + `tadagochi.html` 7 에 alt. **산출물 alt 누락 0건** 실측.
@@ -88,7 +108,7 @@ pwd                                                                   # 🔴 매
 git fetch origin && git checkout -B fix/<주제> origin/main
 
 # 2) 고치기 전에 결함을 먼저 재현한다 — 수치가 안 나오면 이미 남이 고친 것이다
-npm run verify:redirects:live          # #708 이후 상한 재발 감지 (아직 안 돌렸다면 이게 최우선)
+npm run verify:redirects:live          # 상한 재발 감지. _redirects 규칙을 늘렸다면 반드시
 node scripts/verify-redirects-budget.mjs
 npm run test:node
 ```
@@ -216,7 +236,7 @@ tadagochi       vedic-astrology    yoga-guru          static/geomancy-oracle-v4
 |---|---|---|
 | 1 | 19개 각각에 대해 `public/_headers` 의 `X-Robots-Tag` 를 조회해 **색인 대상 / noindex** 두 통으로 나눈다 | 미분류 0건 |
 | 2 | 색인 대상: `<meta name="description">` 을 그 페이지 실제 내용으로 작성(템플릿 복붙 금지 — 그러면 "동일 설명문" 을 새로 만든다) | — |
-| 3 | noindex 대상: HTML 에 `<meta name="robots" content="noindex, nofollow">` 를 직접 넣는다. `_headers` 만 믿지 않는다 — `/insights/famous-saju/*`·`/fortune/*` 처럼 워커가 가로채는 경로에서는 `_headers` 적용이 **미검증**이다(#708 에서 같은 이유로 `public/fortune/sikojen-povailu/index.html` 에 meta 를 직접 넣었다) | `node scripts/verify-redirects-budget.mjs` 가 이 쌍을 강제한다 |
+| 3 | noindex 대상: HTML 에 `<meta name="robots" content="noindex, nofollow">` 를 직접 넣는다. `_headers` 만 믿지 않는다 — 워커가 가로채는 경로에서도 `_headers` 는 적용된다(2026-08-16 실측 — §1 참조). 그래도 HTML 에 두는 편이 낫다 — 헤더는 배포 설정 하나가 바뀌면 통째로 사라지지만 meta 는 산출물에 박혀 있다 | `node scripts/verify-redirects-budget.mjs` 가 이 쌍을 강제한다 |
 | 4 | `prompt-hub-3004.html` 은 `<title>` 도 없다 — 함께 채운다 | — |
 | 5 | 루트 파일을 고치고 `npm run sync:public` 으로 미러 재생성 | `npm run verify:public-parity` |
 | 6 | `npm run build:cf` 후 산출물 전수 스캔 | description 없는 색인가능 페이지 0건 |
