@@ -31,6 +31,8 @@
     "verify:adsense-readiness": "node scripts/verify-adsense-readiness.mjs",
     "verify:sitemap": "node scripts/verify-sitemap-integrity.mjs",
     "verify:fortune-freshness": "node scripts/verify-fortune-freshness.mjs",
+    "verify:fortune-hub-shell": "node scripts/build-fortune-hub-shell.mjs --check",
+    "build:fortune-hub-shell": "node scripts/build-fortune-hub-shell.mjs",
     "verify:redirects-budget": "node scripts/verify-redirects-budget.mjs",
     "verify:redirects:live": "node scripts/verify-redirects-live.mjs",
     "verify:doc-freshness": "node scripts/verify-doc-freshness.mjs",

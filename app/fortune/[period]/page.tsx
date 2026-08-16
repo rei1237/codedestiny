@@ -54,7 +54,9 @@ function seoText(periodParam: string) {
   return {
     hub,
     path: `/fortune/${hub.period}`,
-    title: `${title} 운세 - 별자리 12종·띠 12종 무료 운세 (${sample.rangeLabel}) | 코드 데스티니`,
+    // 상세 페이지와 같은 규약 — 브랜드 접미사 없이 약 28자. "별자리 12종·띠 12종" 은
+    // 검색어가 아니라 설명이므로 제목에서 빼고 description·H1 에 남긴다.
+    title: `${title} 운세 ${sample.titleDateLabel} | 무료 별자리·띠별 운세`,
     description:
       `${sample.rangeLabel} 별자리 12종과 띠 12종의 ${title} 운세를 한자리에서 확인하세요. ` +
       `${sample.facts[0]?.label} ${sample.facts[0]?.value} 기준으로 계산했으며 산출 근거를 함께 공개합니다. ` +

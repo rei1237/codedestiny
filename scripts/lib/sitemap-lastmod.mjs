@@ -61,6 +61,30 @@ const SPECIFIER_PATTERNS = [
 const SHELL_BACKED_PAGES = new Set(["app/page.js", "app/[locale]/page.js"]);
 
 /**
+ * App Router 페이지가 **아예 없고** 정적 셸 하나가 본문 전부인 라우트.
+ *
+ * `/` 와는 다르다 — 홈은 `app/page.js` 가 존재하고 셸이 그것을 덮는 구조라 위
+ * `SHELL_BACKED_PAGES` 로 다룬다. `/fortune` 은 라우트 자체가 없고 `fortune/index.html`
+ * 이 곧 페이지다. 그래서 `matchAppPage` 가 해석에 실패하고 fail-closed 로 빌드를 세운다.
+ *
+ * 🔴 셸 파일만 해싱하면 안 된다. 이 셸은 `scripts/build-fortune-hub-shell.mjs` 가
+ * `lib/fortune/{sign-profiles,periods}` 에서 생성한 산출물이라, 소스가 바뀌었는데 셸을
+ * 다시 만들지 않은 상태에서는 lastmod 가 조용히 멈춘다. 생성기와 그 입력을 함께 넣는다
+ * (셸을 다시 만들지 않은 것 자체는 `verify:fortune-hub-shell` 가 따로 막는다).
+ */
+const STANDALONE_SHELL_ROUTES = new Map([
+  [
+    "/fortune",
+    [
+      "fortune/index.html",
+      "lib/fortune/periods.ts",
+      "lib/fortune/sign-profiles.ts",
+      "scripts/build-fortune-hub-shell.mjs",
+    ],
+  ],
+]);
+
+/**
  * 런타임에 파일을 읽어 import 그래프에 안 잡히는 데이터 의존.
  * 값은 그 의존의 현재 상태를 나타내는 서명 조각을 돌려준다.
  *
@@ -287,6 +311,11 @@ export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath
   }
 
   function sourcesFor(pathname) {
+    const standaloneShell = STANDALONE_SHELL_ROUTES.get(pathname.replace(/\/+$/, "") || "/");
+    if (standaloneShell) {
+      return { pageFile: standaloneShell[0], files: [...standaloneShell].sort(), extras: [] };
+    }
+
     const page = matchAppPage(appPages, pathname, constrainedValues);
     if (!page) {
       // 루트 정적 셸 라우트: app 페이지가 없고 저장소 루트의 `<route>.html` 하나가 실체다.

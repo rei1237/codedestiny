@@ -174,6 +174,13 @@ const coreRoutes = [
   { path: "/oracle/sikojen-povailu", changefreq: "weekly", priority: 0.87 },
   { path: "/saju-picture", changefreq: "weekly", priority: 0.86 },
   { path: "/fortune-tea-house", changefreq: "weekly", priority: 0.86 },
+  // 🔴 `/fortune` 은 정적 셸(fortune/index.html)이라 App Router 라우트 발견에 안 잡힌다.
+  // 2026-08-17 이전에는 사이트맵에 없었을 뿐 아니라 `_headers` 에서 `noindex, nofollow` 였다
+  // — 렌더 텍스트가 531자뿐이던 시절의 정당한 판정이다. 셸을 2,955자 클러스터 루트로 다시
+  // 만들면서 그 근거가 사라져 셋(사이트맵·_headers·verify-adsense-readiness 목록)을 함께 풀었다.
+  // 클러스터 96개의 루트이므로 기간 허브와 같은 0.9 로 둔다. AdSense 비대상 라우트라
+  // verify-adsense-readiness 가 렌더 텍스트 1,800자를 요구한다.
+  { path: "/fortune", changefreq: "daily", priority: 0.9 },
   { path: "/fortune/prompt-hub", changefreq: "monthly", priority: 0.7 },
   { path: "/oracle/rune", changefreq: "weekly", priority: 0.86 },
   { path: "/love-secret-ai", changefreq: "monthly", priority: 0.86 },
