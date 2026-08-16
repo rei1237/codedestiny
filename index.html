@@ -7214,7 +7214,27 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
      부드럽게 따라간다. 시간만 보고 채우는 가짜 진행 바는 쓰지 않는다. */
   var target = 0.30;   // 이 스크립트가 도는 시점 = body 파싱 시작
   var shown = 0.10;
-  function paint() { d.style.setProperty('--cd-boot-progress', shown.toFixed(3)); }
+  /* 🔴 진행률 변수는 <html> 이 아니라 **그 값을 읽는 요소**에만 쓴다.
+     루트의 커스텀 프로퍼티는 상속되므로 한 번 쓸 때마다 문서 전체 스타일이 무효화된다.
+     이 문서의 CSSOM 은 인라인 ~700KB + 렌더차단 420KB 이고, 아래 루프는 게이트가 걷힐
+     때까지(= 2.68MB 문서의 DOMContentLoaded. 하드 상한 8초) 매 프레임 돈다.
+     실측 근거 — dc6129747 트레이스: Recalculate Style **681회 × 평균 12.3ms**,
+     Style & Layout 이 메인스레드의 **59%(5,361ms)**.
+     🔴 읽는 곳이 :533 의 `.cd-boot-gate__bar i` **한 곳뿐**임을 전 레포 grep 으로 확인하고
+     옮겼다. 새로 읽는 규칙을 추가하려면 그 셀렉터가 이 요소의 후손인지 먼저 볼 것 —
+     아니면 상속이 안 닿아 값이 0 으로 읽힌다.
+     바 마크업(:7185)이 이 스크립트보다 앞이라 조회는 항상 성공하지만, 못 찾으면
+     예전처럼 루트에 써서 기능은 유지한다. */
+  var bar = document.querySelector('.cd-boot-gate__bar i') || d;
+  var painted = '';
+  function paint() {
+    var v = shown.toFixed(3);
+    /* 같은 값을 다시 쓰면 그림은 그대로인데 무효화만 일어난다. 마일스톤 사이에는
+       shown === target 이라 이 분기가 대부분의 프레임을 막는다. */
+    if (v === painted) return;
+    painted = v;
+    bar.style.setProperty('--cd-boot-progress', v);
+  }
   function to(v) { if (v > target) target = v; }
   paint();
   var raf = function (fn) { return (window.requestAnimationFrame || window.setTimeout)(fn, 16); };
@@ -22430,7 +22450,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-9328bce74d19" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-9328bce74d19" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-9328bce74d19" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
