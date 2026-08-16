@@ -16,6 +16,7 @@ model: inherit
 1. **게이팅 4단계 순서** — ①진입은 로컬 스냅샷만 ②결제창이 이용권 검사 지점 ③스냅샷 없는 보유자의 구제 지점은 결제창 이용권 카드 하나 ④단건 결제는 사용자가 '단건'을 고른 뒤에만.
 2. **금지 패턴이 들어왔는지** — 결제창의 [이용권으로 구매] 카드 제거/상점 링크 격하 · 진입 경로에 서버 이용권 선검사 부활 · 카드 주문 경로에 서버 이용권 조회 재삽입 · 단건 또는 월정석 한쪽만 노출 · `paymentMode:"DIRECT_KRW"` 하드코딩 · 공유 게이트 우회 커스텀 체크아웃 · 앱에서 `/points` 로 프로그래매틱 이동.
 3. **결제창 렌더러 3종 정합성** — 정본은 셸 인라인이다. 세 렌더러가 같은 3옵션·같은 설명 문구·같은 CSS 텍스트를 쓰는지 본다. `data-mode` 를 잔량 확인 버튼에 붙이면 결제창이 닫힌다.
+   🔴 **셸 미러와 `public/js/destiny-profile.js` 는 Grep 툴로 안 잡힌다** — 리포 루트 `.ignore` 가 `sync:public` 사본 169개를 검색에서 빼기 때문이다(2026-08-16). 정합성 대조는 **`git grep`**(git 은 `.ignore` 를 안 본다) 또는 경로를 직접 준 Read 로 한다. `verify:payment-choice-parity` 가 그 미러를 실제로 열어 단언하므로, 미러를 못 본 채 "정합"이라고 답하면 CI 에서 뒤집힌다.
 4. **재화·표시 규칙** — 이용권 → 월정석 → 코인 순서. 코인은 사용자 노출 금지(KRW 환산 표시). 결제 문구는 `이용권`·`월정석`·`단건 결제` 용어를 유지한다.
 5. **결제 동결** — 변경 파일이 `config/payment-freeze.json` 에 걸리는지 확인하고, 걸리면 `node scripts/verify-payment-freeze.mjs --update` 를 **같은 커밋에** 담아야 한다고 명시한다. 순수 CSS/문구 변경도 예외 없다.
 6. **CI 배선** — 변경 경로가 `paid-flow-gates.yml` 의 트리거와 `scripts/lib/change-risk.mjs` 의 `deepRequired` 에 걸리는지 확인한다. `deepRequired` 는 `level` 과 **함께** 본다(`app/hooks/useCoinGate.ts` 는 `level=medium` 이지만 critical 이어야 한다).

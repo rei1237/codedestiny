@@ -15,10 +15,12 @@ model: inherit
 
 ## 절차
 
-1. **3면 grep 을 반드시 모두 돌린다.**
+1. **3면 grep 을 반드시 모두 돌린다. 🔴 이 검색은 `git grep` 으로 한다.**
    - 소스 전체(정적 셸 `index.html` 과 5개 미러 포함)
    - `__tests__/`
    - `scripts/verify-*` · `scripts/lib/` · `.github/workflows/**`
+
+   🔴 **Grep 툴을 쓰면 `public/` 미러 169개가 안 나온다** — 리포 루트 `.ignore` 가 검색에서 빼기 때문이다(2026-08-16). 미러가 참조를 갖고 있는데 그것을 못 보면 **"임포터 0" 을 죽었다는 증거로 오독**해 그대로 삭제 사고가 된다(`verify:payment-choice-parity` 가 `public/js/destiny-profile.js` 를 파일로 열어 단언하는 것이 실례다). 삭제 판정의 전수 검색은 **`git grep`**(git 은 `.ignore` 를 안 본다) 또는 `rg -u` 로 하고, 보고에 그 명령을 그대로 적는다.
 2. import/require 뿐 아니라 **문자열 참조**를 찾는다: 파일 경로 문자열, `readFileSync`/`fs.readFile` 대상, 동적 import, `data-*` 속성, 이벤트명, `featureKey`, 정규식 패턴, 워크플로 `paths:`.
 3. 줄 범위로 코드를 자르는 계획이라면 **블록의 끝을 눈으로 믿지 말고** 잘라낼 첫 줄·마지막 줄을 실제로 출력해 확인한다.
 4. `config/payment-freeze.json` · `scripts/verify-guard-wiring.mjs` 의 `UNWIRED_BY_DESIGN` 에 대상이 등록돼 있는지 확인한다.
