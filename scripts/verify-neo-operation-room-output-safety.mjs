@@ -20,10 +20,14 @@
 import {
   NEO_INITIAL_SECTIONS,
   NEO_REFINED_SECTIONS,
+  buildNeoInitialSectionPrompt,
+  buildNeoRefinedSectionPrompt,
   parseNeoSectionResponse,
   mergeNeoInitialSections,
   mergeNeoRefinedSections,
 } from "../worker/lib/neo-operation-room-prompt.js";
+import { NEO_BASIS_GROUP_KEYS, buildNeoBasisPayload, measureNeoBasisCoverage } from "../worker/lib/neo-operation-room-basis.js";
+import { findInternalKeyPaths } from "../worker/lib/llm-leak-guard.js";
 import { endsWithSentence } from "../lib/llm-text.js";
 
 const failures = [];
@@ -188,6 +192,73 @@ for (const [label, results] of [
     failures.push(`${label}: 병합이 throw 했다 — ${error?.message}`);
   }
 }
+
+// ── 7) 내부 키 경로가 결과에 남지 않는다 ─────────────────────────────────
+const ZIWEI_SUMMARY = {
+  method: "ziwei",
+  mingGong: "명궁",
+  palaces: [{ name: "명궁", mainStars: ["자미"] }],
+  sanFangSiZheng: { lifePalace: { self: "명궁", mainStars: ["자미"], opposite: "천이궁" } },
+  keyFeatures: { keyStars: ["자미"] },
+  evidenceTokens: ["자미"],
+};
+const LEAKED = "명궁의 힘은 sanFangSiZheng.lifePalace.mainStars 와 keyFeatures.keyStars 에서 확인된다. 흐름은 그대로 이어진다.";
+const leakedMerge = mergeNeoInitialSections(
+  [{ id: "bluntTruth", ok: true, parsed: { bluntTruth: LEAKED } },
+   { id: "opening", ok: true, parsed: { neoOpening: LEAKED, frontlineSummary: LEAKED } }],
+  { selectedMethod: "ziwei" },
+  ZIWEI_SUMMARY,
+);
+let leakedPaths = [];
+let scrubbedChars = 0;
+walkStrings(leakedMerge, "", (text) => {
+  leakedPaths = leakedPaths.concat(findInternalKeyPaths(text));
+  scrubbedChars += text.length;
+});
+ok(leakedPaths.length === 0, `병합 결과에 내부 키 경로가 남았다 — ${JSON.stringify(leakedPaths)}`);
+// 폐기가 아니라 치환이어야 한다 — 키 하나 때문에 유료 문단을 버리면 안 된다.
+ok(scrubbedChars >= LEAKED.length * 2, `치환이 아니라 폐기됐다 — 남은 ${scrubbedChars}자`);
+
+// 오탐: 도메인·파일명·소수점은 그대로 살아야 한다.
+const SAFE = "자세한 것은 code-destiny.com 과 README.md 를 봐라. 작년 대비 3.5배 늘었다.";
+const safeMerge = mergeNeoInitialSections(
+  [{ id: "bluntTruth", ok: true, parsed: { bluntTruth: SAFE } }], { selectedMethod: "ziwei" }, ZIWEI_SUMMARY,
+);
+ok(safeMerge.bluntTruth === SAFE, `오탐으로 정상 문장이 바뀌었다 — ${JSON.stringify(safeMerge.bluntTruth)}`);
+
+// ── 8) 프롬프트: 내부 키 0건 + 챕터별 데이터 슬라이싱 ────────────────────
+const promptCtx = { selectedMethod: "ziwei", topic: "돈/재물", intensity: "roar", question: "돈이 안 모인다", methodSummary: ZIWEI_SUMMARY };
+for (const section of NEO_INITIAL_SECTIONS) {
+  ok(section.basisGroups !== undefined, `${section.id}: basisGroups 선언이 없다(어떤 계산값을 볼지 정해야 한다).`);
+  const prompt = buildNeoInitialSectionPrompt(section, promptCtx);
+  const found = findInternalKeyPaths(prompt);
+  ok(found.length === 0, `${section.id} 프롬프트에 내부 키 경로가 있다 — ${JSON.stringify(found)}`);
+  // 챕터 id 는 [반환 JSON 스키마] 의 키라서 프롬프트에 있어야 한다. 대신 서술 지시부(스키마 앞)에
+  // camelCase 가 새지 않는지만 본다 — 거기 있으면 모델이 본문에 인용한다.
+  const narrative = prompt.slice(0, prompt.indexOf("[반환 JSON 스키마]"));
+  ok(!/[a-z][A-Z]/.test(narrative), `${section.id}: 서술 지시부에 camelCase 식별자가 있다 — ${JSON.stringify((narrative.match(/\w*[a-z][A-Z]\w*/g) || []).slice(0, 5))}`);
+  ok(prompt.includes("[계산 확정값]"), `${section.id}: [계산 확정값] 블록이 없다.`);
+  ok(!prompt.includes("[계산 요약 데이터]"), `${section.id}: raw JSON 덤프 블록이 되살아났다.`);
+}
+for (const section of NEO_REFINED_SECTIONS) {
+  ok(section.basisGroups !== undefined, `${section.id}: basisGroups 선언이 없다.`);
+  const found = findInternalKeyPaths(buildNeoRefinedSectionPrompt(section, { ...promptCtx, initialBriefing: {}, realityCheck: {} }));
+  ok(found.length === 0, `${section.id}(2차) 프롬프트에 내부 키 경로가 있다 — ${JSON.stringify(found)}`);
+}
+// 선언한 그룹 키는 실재해야 하고, 어떤 그룹도 사장되면 안 된다.
+const declared = new Set([...NEO_INITIAL_SECTIONS, ...NEO_REFINED_SECTIONS].flatMap((s) => (s.basisGroups === "*" ? NEO_BASIS_GROUP_KEYS : s.basisGroups)));
+for (const key of declared) ok(NEO_BASIS_GROUP_KEYS.includes(key), `알 수 없는 basisGroups 키: ${key}`);
+for (const key of NEO_BASIS_GROUP_KEYS) ok(declared.has(key), `basisGroups "${key}" 를 보는 챕터가 하나도 없다(사장된 계산값).`);
+// 슬라이싱이 실제로 작동하는가 — 시기 챕터는 12궁 표를 보면 안 된다.
+const timingPrompt = buildNeoInitialSectionPrompt(NEO_INITIAL_SECTIONS.find((s) => s.id === "topicTiming"), promptCtx);
+ok(!timingPrompt.includes("12궁 주성"), "topicTiming 이 자리별 판독 표까지 보고 있다 — 슬라이싱이 안 먹었다.");
+
+// ── 9) 라벨 표가 계산값을 잃지 않았는가 ──────────────────────────────────
+const coverage = measureNeoBasisCoverage(ZIWEI_SUMMARY, buildNeoBasisPayload(ZIWEI_SUMMARY));
+ok(
+  coverage.total === 0 || coverage.covered / coverage.total >= 0.85,
+  `라벨 표가 계산값을 잃었다 — ${coverage.covered}/${coverage.total}, 누락 ${JSON.stringify(coverage.missing.slice(0, 8))}`,
+);
 
 if (failures.length) {
   console.error("[verify-neo-output-safety] 실패:");
