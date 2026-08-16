@@ -22,6 +22,50 @@ const DEFAULT_API_WORKER_ORIGIN = "https://code-destiny-web.bulegyung.workers.de
 // 그 상태로 켜면 검증되지 않은 URL 이 색인 요청만 나가게 된다.
 const DYNAMIC_FEED_PATHS = new Set(["/rss.xml", "/insights/rss.xml"]);
 
+// 🔴 /fortune/** 레거시 리다이렉트가 _redirects 가 아니라 여기 있는 이유.
+//
+// Cloudflare Pages 는 `public/_redirects` 의 **첫 102개 규칙만** 적용하고 나머지는 에러도
+// 경고도 없이 무시한다(2026-08-16 라이브 실측). 규칙 303개였을 때 #103 부터가 죽어
+// `/fortune/{weekly,monthly}/*.html` 38개가 404 였고, 그게 네이버 서치어드바이저의
+// "접근 불가 38건" 이었다. 여기에 필요한 규칙은 fortune 계열만 108개라 _redirects 예산
+// (구조적 별칭·insights 통합과 나눠 써야 한다)에 들어갈 수 없다.
+//
+// 이 파일에는 개수 제한이 없다. 대신 `public/_routes.json` 의 include 에 그 경로가 있어야
+// 이 코드가 실행된다. 아래 마커가 그 계약이고, scripts/verify-redirects-budget.mjs 가
+// 마커와 _routes.json 의 드리프트를 fail-closed 로 막는다. 워커에서 리다이렉트를 하나 더
+// 다루려면 마커를 한 줄 추가해야 하고, 안 하면 가드가 실패한다.
+// @routes-include: /fortune/*
+//
+// 🔴 살아 있는 라우트를 삼키면 안 된다. `/fortune/`, `/fortune/{period}/`,
+//    `/fortune/{period}/{sign}/` 96개는 사이트맵에 있는 200 페이지다. 아래 두 분기는
+//    (a) `.html` 확장자 (b) 사인이 아닌 체계 세그먼트 만 매칭하므로 겹치지 않는다.
+const FORTUNE_PERIODS = new Set(["today", "tomorrow", "weekly", "monthly"]);
+// 2026-05-10 a38052ea6 이 삭제한 운세 시스템 페이지 204개(4기간 × 3체계). 체계별 정본 허브로
+// 보내 주제 관련성을 유지한다(전부 /today 로 몰면 소프트404 위험).
+const FORTUNE_LEGACY_SYSTEMS = new Map([
+  ["sukuyo", "/sukuyo/"],
+  ["vedic", "/vedic/"],
+  ["ziwei", "/ziwei/"],
+]);
+
+function fortuneLegacyTarget(pathname) {
+  const segments = pathname.split("/").filter(Boolean);
+  if (segments[0] !== "fortune" || segments.length < 3) return null;
+  if (!FORTUNE_PERIODS.has(segments[1])) return null;
+
+  const systemTarget = FORTUNE_LEGACY_SYSTEMS.get(segments[2]);
+  if (systemTarget) return systemTarget;
+
+  // 2026-08 이전의 정적 셸 96개. 본문을 브라우저에서 그려 크롤러가 받는 텍스트가 0자였고,
+  // App Router 라우트로 이전하며 파일이 사라졌다. 구 URL 이 색인에 남아 있어 301 이 필요하다.
+  if (segments.length === 3 && segments[2].endsWith(".html")) {
+    const sign = segments[2].slice(0, -".html".length);
+    if (/^[a-z]+$/.test(sign)) return `/fortune/${segments[1]}/${sign}/`;
+  }
+
+  return null;
+}
+
 function ensureUtf8Charset(contentType, fallbackType) {
   const value = String(contentType || "").trim();
   if (!value) return `${fallbackType}; charset=utf-8`;
@@ -227,6 +271,15 @@ export default {
 
     if (DYNAMIC_FEED_PATHS.has(url.pathname)) {
       return serveDynamicFeed(request, env);
+    }
+
+    const legacyFortuneTarget = fortuneLegacyTarget(url.pathname);
+    if (legacyFortuneTarget) {
+      // 쿼리스트링은 유지한다 — Cloudflare 의 _redirects 기본 동작과 같게 두어야
+      // 이 경로만 utm 파라미터를 잃는 일이 없다.
+      const target = new URL(legacyFortuneTarget, url);
+      target.search = url.search;
+      return Response.redirect(target.toString(), 301);
     }
 
     const assetResponse = await env.ASSETS.fetch(request);
