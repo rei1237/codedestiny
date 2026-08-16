@@ -1240,6 +1240,7 @@ function InitialBriefingDocument({
         pages={withCharacterBreaks(pages, neoInitialBreaks, styles.neoBustBreak)}
         deckLabel="1차 작전 브리핑"
         className={styles.pagedViewer}
+        pageClassName={styles.neoPage}
         viewAll={viewAll}
         onViewAllChange={onViewAllChange}
         activePage={activePage}
@@ -1420,6 +1421,7 @@ function RefinedOrderDocument({
         pages={withCharacterBreaks(pages, neoRefinedBreaks, styles.neoBustBreak)}
         deckLabel="2차 수정 작전 명령서"
         className={styles.pagedViewer}
+        pageClassName={styles.neoPage}
         viewAll={viewAll}
         onViewAllChange={onViewAllChange}
         activePage={activePage}

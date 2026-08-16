@@ -443,7 +443,10 @@
 .sectionCard,
 .questionList section {
   display: grid;
-  gap: 10px;
+  /* LlmParagraphs 가 뿜은 <p> 들이 이 grid 의 형제라, 이 gap 이 곧 문단 간격이다.
+     10px 은 줄간(0.97rem × 1.72 ≈ 26.7px)보다 좁아 문단 경계가 시각적으로 생기지 않았다.
+     공용 프로즈 토큰의 --cd-prose-paragraph-gap(1.15em ≈ 18.4px)에 맞춘다. */
+  gap: 18px;
   border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 8px;
   padding: 14px;
@@ -462,11 +465,13 @@
 }
 
 /* 섹션 제목 앞 골드 액센트 바 — 섹션 시작점을 또렷하게 (신규 색 없음) */
+/* 본문 0.97rem 대비 1.05rem 은 1.08배라 섹션 제목이 본문처럼 읽혔다. 색(#f5d487)과 액센트 바에만
+   의존하던 위계를 크기로도 세운다. */
 .sectionCard h3 {
   display: flex;
   align-items: center;
   gap: 9px;
-  font-size: 1.05rem;
+  font-size: 1.2rem;
   letter-spacing: 0.01em;
 }
 
@@ -549,9 +554,16 @@
   color: #e9d9a9;
 }
 
-.pagedViewer > div[role="region"] > div {
-  display: grid;
-  gap: 12px;
+/* 🔴 여기에 `.pagedViewer > div[role="region"] > div` 같은 자손 셀렉터로 페이지를 잡지 말 것.
+   그 선택자는 특정성 (0,2,2) 라 PagedResultViewer 의 `.page { display: none }` (0,1,0) 을 이겨,
+   페이지 넘김 모드인데도 비활성 페이지가 전부 표시된다(브리핑 10장·명령서 6장이 세로로 쌓이고
+   인디케이터만 1/10 을 가리켰다 — 가독성이 무너진 진짜 원인). 정본은 pageClassName prop 이다
+   (sukuyo-compatibility-ai·life-book-ai 와 동일). */
+/* display 는 지정하지 않는다 — 뷰어가 .page 의 display 로 페이지 표시/숨김을 제어하므로
+   여기서 건드리면 같은 싸움을 다시 시작한다(정본 sukuyo .pagedPage·life-book .bookPage 도 미지정).
+   블록/그리드 어느 쪽으로 표시되든 동일하게 먹는 인접 여백으로 섹션 간격만 준다. */
+.neoPage > * + * {
+  margin-top: 12px;
 }
 
 /* 섹션 사이 삽입되는 네오 투명 삽화 뒤에 은은한 라벤더 글로우 */
@@ -1017,6 +1029,21 @@
 @media (max-width: 680px) {
   .shell {
     padding: 16px;
+  }
+
+  /* 본문에 모바일 규칙이 아예 없어 320~390px 폭에서도 0.97rem(15.52px)로 읽혔다 — 카드 패딩을 빼면
+     한 줄에 한글 17자 안팎이다. 공용 프로즈 토큰의 16px 기준으로 올린다. */
+  .sectionCard p,
+  .questionList p,
+  .questionList span,
+  .missionGrid p,
+  .badgeBlock p,
+  .stateCard p {
+    font-size: 1rem;
+  }
+
+  .sectionCard ul {
+    font-size: 0.98rem;
   }
 
   .bg {
