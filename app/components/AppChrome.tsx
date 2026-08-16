@@ -18,10 +18,7 @@ const HOME_ROUTE = SHELL_HOME_PATH;
 // /app/** 은 AppShell 이 같은 MobileBottomNav 를 직접 렌더한다(앱 팔레트 스킨은 app-shell.css).
 // 여기서 또 깔면 탭바가 두 겹으로 쌓인다.
 const APP_SHELL_ROUTE = "/app";
-// /onboarding 은 로그인 직후의 프로필 보완 화면이라 인증 퍼널의 일부다.
-// 🔴 CHROMELESS_ROUTES 에 넣으면 안 된다 — 그쪽은 hideChrome 을 켜면서 showFeatureNav 도 함께
-// 켜져(아래 :168-172) 운세 기능용 하단 네비가 이 화면에 붙는다.
-const AUTH_ROUTES = ["/login", "/signup", "/auth", "/onboarding"];
+const AUTH_ROUTES = ["/login", "/signup", "/auth"];
 
 // framer-motion feature 번들을 비동기 청크로 로드 (m.* 컴포넌트 전용).
 const loadFramerFeatures = () => import("@/lib/framer-features").then((mod) => mod.default);

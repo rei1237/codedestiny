@@ -21,9 +21,6 @@ const userSchema = new mongoose.Schema({
   // 어느 한쪽만 허용하면 그쪽이 곧바로 저장/검증 실패가 된다.
   phoneNumber: { type: String, default: "", trim: true, match: /^$|^01\d{8,9}$|^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$/ },
   phoneUpdatedAt: { type: Date },
-  // 프로필 보완(/onboarding)을 이미 한 번 물어봤는지. "선택 입력"이라 건너뛴 사람을 로그인마다
-  // 다시 붙잡지 않기 위한 1회성 표식이며, 번호 보유 여부와는 별개다(건너뛰어도 찍힌다).
-  phonePromptedAt: { type: Date },
   passwordHash: { type: String, required: false, default: "", select: false },
   birthDate: { type: String, default: "", match: /^$|^\d{4}-\d{2}-\d{2}$/ },
   birthTime: { type: String, default: "", match: /^$|^(?:[01]\d|2[0-3]):[0-5]\d$/ },
@@ -53,10 +50,9 @@ const userSchema = new mongoose.Schema({
     privacyVersion: { type: String, default: "", trim: true },
     privacyAcceptedAt: { type: Date, default: null },
     age14AttestedAt: { type: Date, default: null },
-    // 🔴 결제용 휴대폰 번호는 **선택** 동의라 위 필수 동의와 분리해 기록한다
-    // (개인정보 보호법 제22조: 선택 동의는 구분해 받아야 하고, 받은 사실을 입증할 수 있어야 한다).
-    // 이 두 필드가 없으면 "동의를 받고 저장했다"를 증명할 근거가 남지 않는다.
-    // phonePromptedAt(위)은 "물어봤다"이지 "동의했다"가 아니므로 대체재가 아니다.
+    // 🔴 결제용 휴대폰 번호 동의는 첫 단건결제 모달에서 별도로 받으므로 위 가입 동의와
+    // 분리해 기록한다(개인정보 보호법 제22조: 받은 사실을 입증할 수 있어야 한다).
+    // 이 두 필드가 없으면 "고지하고 동의를 받은 뒤 저장했다"를 증명할 근거가 남지 않는다.
     phoneVersion: { type: String, default: "", trim: true },
     phoneAcceptedAt: { type: Date, default: null },
   },

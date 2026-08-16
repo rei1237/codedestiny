@@ -41,7 +41,6 @@ const BLOCKED_PREFIXES = [
   "/login",
   "/me",
   "/my",
-  "/onboarding",
   "/payment",
   "/payments",
   "/palm-reading",

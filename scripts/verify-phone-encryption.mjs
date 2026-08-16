@@ -7,7 +7,7 @@
  *     만드는 경로에서 복호화를 빠뜨리면 단건 결제가 통째로 막힌다. 소스 단언으로 고정한다.
  */
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { existsSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 
@@ -101,7 +101,8 @@ assertContains(authSource, "storedPhoneNumber = await encryptPhoneNumber(phoneNu
   "email signup and payment-phone save must encrypt before writing");
 assertContains(authSource, "phoneNumber: storedPhoneNumber,",
   "email signup User.create must store the encrypted value");
-assertContains(authSource, "{ $set: { phoneNumber: storedPhoneNumber, phoneUpdatedAt: new Date() } }",
+// $set 의 모양은 동의 기록이 붙으면서 바뀌었다 — 문장 전체가 아니라 **성질**을 고정한다.
+assertContains(authSource, "          phoneNumber: storedPhoneNumber,",
   "raw-driver payment-phone update must store the encrypted value (Mongoose setters do not run there)");
 // 변수명이 아니라 성질을 고정한다 — 백필에 들어가는 값은 반드시 encryptBackfillPhoneNumber 를 통과한다.
 // (예전에는 `profilePhoneNumber` 라는 이름까지 문자열로 박아 두어, 가입 입력값 우선 수정에서
@@ -179,64 +180,80 @@ assert.equal(entry.secret, true, "PII_ENC_KEY must be marked as a secret");
 assert.ok(entry.required_in?.includes("production"), "PII_ENC_KEY must be required in production");
 assert.ok(entry.targets?.includes("worker"), "PII_ENC_KEY must target the worker");
 
-// 12. 🔴 수집 지점이 **선택**으로만 늘어나는지 (2026-08-17 정책 개정).
-//     이 절은 두 번 방향이 바뀌었다. ①원래는 "가입 화면이 암호화 보관을 안내하는지"
-//     ②2026-08-15 에 "가입 폼에 번호 입력이 있으면 실패"로 뒤집힘 ③지금은 수집 지점이
-//     소셜 가입 마무리·프로필 보완(/onboarding)까지 늘었다.
-//     되돌리면 안 되는 성질은 "번호는 언제나 선택이고, 건너뛸 수 있다" 하나다.
+// 12. 🔴 수집 지점은 **첫 카드 단건결제 모달 하나뿐**이다 (2026-08-17 정책 확정).
+//     이 절은 세 번 방향이 바뀌었다. ①"가입 화면이 암호화 보관을 안내하는지" ②2026-08-15
+//     "가입 폼에 번호 입력이 있으면 실패" ③2026-08-17 잠깐 가입 마무리·/onboarding 까지 넓혔다가
+//     ④지금은 다시 결제 모달 하나로 좁혔다. 수집 지점을 늘리는 쪽이 늘 되돌려졌다는 것이 요지다.
+//     번호는 ①소셜 공급자가 자기 동의로 넘긴 값 ②첫 카드결제 모달, 두 경로로만 들어온다.
 const authShellSource = read("app/components/auth/AuthShell.tsx");
-// 번호 입력은 소셜 가입 마무리(ticket)에서만 뜬다 — 이메일 가입 폼으로 새면 실패.
-assertContains(authShellSource, '{ticket && <Field id="auth-phone"',
-  "phone input must be scoped to the social signup completion step");
+// 주석은 걷어내고 본다 — "왜 여기서 안 받는가"를 적어 둔 설명까지 금지어로 잡으면
+// 다음 사람이 그 기록을 지우게 된다. 막아야 하는 것은 실제 코드다.
+const authShellCode = authShellSource
+  .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
+  .replace(/\/\*[\s\S]*?\*\//g, "")
+  .replace(/^\s*\/\/.*$/gm, "");
+for (const forbidden of ["phoneNumber", "phoneConsent", 'type="tel"', "휴대폰 번호"]) {
+  assert.ok(
+    !authShellCode.includes(forbidden),
+    `signup screens must not collect a phone number (found: ${forbidden})`,
+  );
+}
 assert.ok(
-  !authShellSource.includes('{isSignup && <Field id="auth-phone"'),
-  "phone input must not widen to the email signup form",
+  !existsSync(join(repoRoot, "app/onboarding")),
+  "/onboarding must stay removed — the phone is collected at checkout only",
 );
-// 비워 두면 그대로 통과해야 한다. 아래 두 분기가 사라지면 번호가 사실상 필수가 된다.
-assertContains(authShellSource, "if (hasPhoneInput(phone) && !phoneNumber)",
-  "an empty phone field must stay valid (only a malformed entry is rejected)");
-assertContains(authShellSource, "if (phoneNumber && !phoneConsent)",
-  "consent must be required only when a phone number was actually entered");
+// 가입 경로가 본문으로 온 번호를 저장하면 고지 없는 수집이 된다.
+assertContains(authSource, 'phoneNumber: "",',
+  "social signup must not persist a client-supplied phone number");
 
-// /onboarding 도 같은 계약이어야 한다 — 저장은 서버가 암호화하고, 건너뛰기는 항상 열려 있다.
-const onboardingSource = read("app/onboarding/OnboardingClient.tsx");
-assertContains(onboardingSource, "if (hasPhoneInput(phone) && !phoneNumber)",
-  "onboarding must keep the phone field optional");
-assertContains(onboardingSource, "onClick={leave}",
-  "onboarding must keep a skip control");
-assert.ok(
-  !/phoneNumber:\s*phone\b/.test(onboardingSource),
-  "onboarding must send the normalized digits, never the display value",
-);
-// 번호를 지우면 동의도 내려가야 한다 — 안 그러면 사용자가 본 적 없는 동의가 서버로 실려 간다.
-for (const [label, source] of [["AuthShell", authShellSource], ["onboarding", onboardingSource]]) {
-  assertContains(source, "if (!hasPhoneInput(formatted)) setPhoneConsent(false);",
-    `${label} must clear the consent checkbox when the phone field is emptied`);
-  assertContains(source, "phoneConsent: phoneNumber ? phoneConsent : false",
-    `${label} must send the consent flag to the server alongside the number`);
+// 13. 🔴 결제 모달 3벌의 고지·동의가 **글자 그대로 같은지** (제15조 제2항 · 제22조).
+//     렌더러가 React·셸·독립 폴백 3벌이라, 한 곳만 고치면 사용자마다 다른 고지를 받는다
+//     (결제수단 선택창이 같은 이유로 verify:payment-choice-parity 를 갖고 있다).
+const CONSENT_LINES = [
+  "수집 항목 · 휴대폰 번호",
+  "이용 목적 · 결제 진행 및 구매자 확인 (결제대행사 포트원·KG이니시스에 전달)",
+  "보유·이용 기간 · 회원 탈퇴 시까지 (법령상 보존 의무가 있는 거래기록은 그 기간)",
+  "거부 권리 · 동의하지 않아도 됩니다. 다만 이용권 구매를 포함한 모든 카드 결제에 번호가 필요해 진행할 수 없고, 보유하신 월정석으로만 이용하실 수 있어요.",
+];
+const CONSENT_LABEL = "결제 진행 목적의 휴대폰 번호 수집·이용에 동의합니다. (필수)";
+const CONSENT_REQUIRED = "휴대폰 번호 수집·이용에 동의해 주셔야 결제를 진행할 수 있어요.";
+
+const promptRenderers = [
+  ["react", read("app/_lib/payment-phone-prompt.ts")],
+  ["shell", read("index.html")],
+  ["standalone", read("js/destiny-profile.js")],
+];
+for (const [label, source] of promptRenderers) {
+  for (const line of CONSENT_LINES) {
+    assertContains(source, line, `${label} prompt must disclose: ${line.split(" · ")[0]} (제15조 제2항)`);
+  }
+  assertContains(source, CONSENT_LABEL, `${label} prompt must carry the consent checkbox label`);
+  assertContains(source, CONSENT_REQUIRED, `${label} prompt must refuse to save without consent`);
+  assertContains(source, "consentInput.checked", `${label} prompt must gate submit on the checkbox`);
+}
+// 저장 호출은 렌더러마다 주인이 다르다 — React 는 호출부(PointsClient)가, 나머지 둘은 자기 파일이 한다.
+// 세 경로 모두 동의 플래그를 서버로 실어 보내야 기록이 남는다(제22조).
+for (const [label, path] of [
+  ["react", "app/points/PointsClient.tsx"],
+  ["shell", "index.html"],
+  ["standalone", "js/destiny-profile.js"],
+]) {
+  assertContains(read(path), "phoneConsent: consented === true",
+    `${label} save call must forward the consent flag to the server`);
+}
+// 위탁 사실과 수탁자는 방침 본문에도 있어야 한다 — 화면에만 이름이 있던 역전 상태를 막는다.
+for (const processor of ["포트원", "KG이니시스"]) {
+  assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), processor,
+    `privacy policy must name the payment processor ${processor} as a consignee`);
 }
 
-// 서버 쓰기 경로 — 프로필 보완 저장도 봉투로만 저장한다.
-assertContains(authSource, "async function handleProfileCompletion(request, env) {",
-  "profile-completion handler must exist");
-assertContains(authSource, "update.phoneNumber = await encryptPhoneNumber(phoneNumber, env);",
-  "profile-completion must encrypt before writing");
-assertContains(authSource, 'code: "phone_encryption_unavailable"',
-  "profile-completion must fail closed when the key is missing");
-
-// 13. 🔴 선택 동의 (개인정보 보호법 제15조 제2항 · 제22조).
-//     화면 체크박스는 우회 가능하고 기록도 남지 않는다 — 서버가 요구하고 서버가 남겨야 한다.
-assertContains(authSource, "if (phoneNumber && body?.phoneConsent !== true) {",
-  "profile-completion must refuse to store a phone number without consent");
-assertContains(authSource, 'code: "phone_consent_required"',
-  "the missing-consent refusal must be identifiable by code");
-assertContains(authSource, 'update["legalConsents.phoneAcceptedAt"] = new Date();',
-  "profile-completion must record when the phone consent was given (제22조 입증책임)");
-assertContains(authSource, "const phoneConsented = phoneNumber && body?.phoneConsent === true;",
-  "social signup must only keep a phone number that came with consent");
-assertContains(authSource, "phoneNumber: consentedPhoneNumber,",
-  "social signup must never pass an unconsented number into account creation");
-// 스키마에 기록 자리가 없으면 위 쓰기가 조용히 버려진다.
+// 14. 🔴 서버가 동의를 기록하는지 (제22조 입증책임).
+//     여기서 동의를 강제하지는 않는다 — 결제 시점은 계약 이행 근거가 함께 서고, 400 으로 막으면
+//     스토어에 남은 구버전 앱이 결제를 통째로 못 한다. 다만 **기록은 반드시 남아야** 한다.
+assertContains(authSource, "const consentedAt = body?.phoneConsent === true ? new Date() : null;",
+  "payment-phone save must read the consent flag");
+assertContains(authSource, '"legalConsents.phoneAcceptedAt": consentedAt',
+  "payment-phone save must record when the consent was given");
 const modelsConsentBlock = modelsSource.match(/legalConsents: \{[\s\S]*?\n {2}\},/);
 assert.ok(modelsConsentBlock, "models.js must still declare a legalConsents block");
 for (const field of ["phoneVersion", "phoneAcceptedAt"]) {
@@ -246,34 +263,6 @@ for (const field of ["phoneVersion", "phoneAcceptedAt"]) {
   );
 }
 
-// 14. 🔴 법정 고지 4항목이 실제로 화면에 있는지 (제15조 제2항).
-//     하나라도 빠지면 "동의를 받았다"고 보기 어렵다. 문구는 바뀔 수 있으므로 **라벨 키**를 고정한다.
-const consentSource = read("app/components/auth/PhoneConsentNotice.tsx");
-for (const [key, label] of [
-  ["itemLabel", "수집 항목"],
-  ["purposeLabel", "이용 목적"],
-  ["retentionLabel", "보유·이용 기간"],
-  ["refusalLabel", "거부 권리"],
-]) {
-  assertContains(consentSource, `${key}:`, `phone consent notice must declare ${key}`);
-  assertContains(consentSource, label, `phone consent notice must disclose "${label}" (제15조 제2항)`);
-}
-// 위탁 사실과 수탁자를 고지에서 밝혀야 한다 — 화면에만 "KG이니시스"가 있고 방침에는 없던 상태를 막는다.
-for (const processor of ["포트원", "KG이니시스"]) {
-  assertContains(consentSource, processor, `consent notice must name the payment processor ${processor}`);
-  assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), processor,
-    `privacy policy must name the payment processor ${processor} as a consignee`);
-}
-// "거부해도 불이익 없음"이 사실이려면 두 화면 모두에 실제로 빠져나갈 길이 있어야 한다.
-assertContains(consentSource, "불이익이 없습니다",
-  "consent notice must state that refusing carries no disadvantage");
-assertContains(onboardingSource, "onClick={leave}",
-  "the skip control must exist for the no-disadvantage statement to be true");
-// 선택 동의가 '필수 동의' fieldset 안으로 다시 들어가면 제22조 구분 요건이 깨진다.
-assert.ok(
-  !/\{copy\.required\}[\s\S]{0,600}auth-phone-consent/.test(authShellSource),
-  "the optional phone consent must not sit inside the required-consent fieldset (제22조)",
-);
 // 방침 시행일과 서버가 기록하는 동의 버전은 수동 동기화라 어긋나기 쉽다.
 const policyDate = read("app/privacy-policy/PrivacyPolicyContent.jsx")
   .match(/PRIVACY_POLICY_EFFECTIVE_DATE = "([\d-]+)"/);
@@ -284,17 +273,12 @@ assert.equal(
   "AUTH_PRIVACY_VERSION must equal PRIVACY_POLICY_EFFECTIVE_DATE — otherwise the recorded consent version lies",
 );
 
-// 게이트는 복호화 결과로 판정해야 한다 — 저장값 문자열로 보면 봉투가 항상 '번호 있음'이 된다.
-assertContains(authSource, "return !(await decryptPhoneNumber(user.phoneNumber || user.phone, env));",
-  "the onboarding gate must decide on the decrypted value");
-
-// 수집을 실제로 하는 지점들이 서버 보관 사실을 알리는지. 고지가 어디에도 없게 되는 것이
-// 이 전환의 유일한 퇴행 경로다.
+// 수집을 실제로 하는 지점이 서버 보관 사실을 알리는지.
 assertContains(read("app/_lib/payment-phone-prompt.ts"), "서버에",
   "payment-phone prompt must tell the user the number is stored on the server");
 assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "AES-256 방식으로 암호화해 보관합니다",
   "privacy policy must state that the phone number is stored encrypted");
-assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 필수 항목이 아니며",
-  "privacy policy must state that the phone number is optional");
+assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 가입 시 받지 않으며",
+  "privacy policy must state that the phone number is not collected at signup");
 
 console.log("verify-phone-encryption: OK");
