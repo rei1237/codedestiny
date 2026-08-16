@@ -418,38 +418,93 @@ function hasRepeatedLongSentence(result = {}) {
   return [...seen.values()].some((occurrences) => occurrences >= 3);
 }
 
-export function validateFusionFortuneResult(result = {}, { birthTimeKnown = true, birthPlaceKnown = true, sensitiveValues = [], selectedTarotCards = [] } = {}) {
+// 결과 계약에는 성격이 다른 두 판정이 섞여 있다. 이 구분이 "3만원 내고 0을 받는" 경로를 없앤다.
+//  · 안전 — 개인정보 노출·위험 표현·타로 환각·생시/출생지 단정. 어기면 배달하지 않는다.
+//  · 품질 — 분량 하한/상한·섹션 깊이·문장 반복. 미달이면 사유를 밝히고 강등 배달한다.
+const FUSION_QUALITY_ISSUES = Object.freeze(new Set([
+  "section_depth", "summary_or_action_depth", "final_verdict_depth", "repeated_sentence", "length",
+]));
+
+export const FUSION_DEGRADED_NOTICE = "일부 묶음이 목표 분량에 못 미친 상태로 전해 드립니다. 같은 요청으로 다시 시도하면 추가 결제 없이 새로 씁니다.";
+
+/**
+ * 결과 계약을 **끝까지** 평가해 위반을 순서대로 모은다.
+ *
+ * 🔴 왜 끝까지 평가하나: 예전에는 첫 위반에서 곧바로 반려했는데, 품질 판정(섹션 깊이·반복)이
+ *    안전 판정(개인정보 노출·타로 환각)보다 **앞**에 있어서 "품질만 미달"인지 "안전도 위반"인지
+ *    가릴 근거가 없었다. 그래서 결제가 끝난 결과를 강등 배달할지 정할 수 없었다.
+ *    검사 순서는 예전 그대로다 — `validateFusionFortuneResult` 가 돌려주는 첫 위반이 바뀌지 않는다.
+ */
+export function evaluateFusionFortuneResult(result = {}, { birthTimeKnown = true, birthPlaceKnown = true, sensitiveValues = [], selectedTarotCards = [] } = {}) {
   const source = JSON.stringify(result || {});
-  if (REQUIRED_KEYS.some((key) => !text(result[key], 20000))) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_required"] };
+  const issues = [];
   const sectionMinChars = (key) => (key === "integratedReading" ? FUSION_FORTUNE_LENGTH.integratedReading : FUSION_FORTUNE_LENGTH.section);
-  if (SECTION_KEYS.some((key) => text(result[key]?.content, 50000).length < sectionMinChars(key) || !Array.isArray(result[key]?.keyPoints) || result[key].keyPoints.length < 3)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["section_depth"] };
-  if (text(result.executiveSummary, 50000).length < FUSION_FORTUNE_LENGTH.executiveSummary || text(result.timingAndAction?.content, 50000).length < FUSION_FORTUNE_LENGTH.timingAndAction) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["summary_or_action_depth"] };
+  if (REQUIRED_KEYS.some((key) => !text(result[key], 20000))) issues.push("missing_required");
+  if (SECTION_KEYS.some((key) => text(result[key]?.content, 50000).length < sectionMinChars(key) || !Array.isArray(result[key]?.keyPoints) || result[key].keyPoints.length < 3)) issues.push("section_depth");
+  if (text(result.executiveSummary, 50000).length < FUSION_FORTUNE_LENGTH.executiveSummary || text(result.timingAndAction?.content, 50000).length < FUSION_FORTUNE_LENGTH.timingAndAction) issues.push("summary_or_action_depth");
   // 시각화는 normalizeFusionVisualization 이 항상 채워 준다. 여기서 걸린다면 정규화를
   // 건너뛴 경로가 생겼다는 뜻이지, 모델이 못 쓴 게 아니다.
-  if (!isFusionVisualizationShaped(result.visualization)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_visualization"] };
+  if (!isFusionVisualizationShaped(result.visualization)) issues.push("missing_visualization");
   // 🔴 최종 교차 판정이 이 상품의 마지막 답이다. 없으면 여섯 해석만 남고 결론이 사라진다.
   const verdict = normalizeFusionFinalVerdict(result.finalVerdict);
-  if (!verdict.ok) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["final_verdict:" + verdict.reason] };
-  if (text(result.finalVerdict?.rationale, 50000).length < FUSION_FORTUNE_LENGTH.finalVerdictRationale) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["final_verdict_depth"] };
-  if (!Array.isArray(result.timingAndAction?.luckyActions) || result.timingAndAction.luckyActions.length < 3 || !Array.isArray(result.timingAndAction?.cautionPatterns) || result.timingAndAction.cautionPatterns.length < 3) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_actions"] };
-  if (hasRepeatedLongSentence(result)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["repeated_sentence"] };
-  if (FORBIDDEN.some((phrase) => source.includes(phrase))) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["unsafe_phrase"] };
-  if (INTERNAL_DATA_PATTERN.test(source)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["internal_data_exposed"] };
+  if (!verdict.ok) issues.push("final_verdict:" + verdict.reason);
+  if (text(result.finalVerdict?.rationale, 50000).length < FUSION_FORTUNE_LENGTH.finalVerdictRationale) issues.push("final_verdict_depth");
+  if (!Array.isArray(result.timingAndAction?.luckyActions) || result.timingAndAction.luckyActions.length < 3 || !Array.isArray(result.timingAndAction?.cautionPatterns) || result.timingAndAction.cautionPatterns.length < 3) issues.push("missing_actions");
+  if (hasRepeatedLongSentence(result)) issues.push("repeated_sentence");
+  if (FORBIDDEN.some((phrase) => source.includes(phrase))) issues.push("unsafe_phrase");
+  if (INTERNAL_DATA_PATTERN.test(source)) issues.push("internal_data_exposed");
   const exposedSensitiveValue = sensitiveValues.map((value) => text(value, 100)).find((value) => value.length >= 4 && source.includes(value));
-  if (exposedSensitiveValue) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["private_input_exposed"] };
-  if (!birthTimeKnown && BIRTH_TIME_OVERCLAIM_PATTERN.test(source)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["birth_time_overclaim"] };
-  if (!birthPlaceKnown && BIRTH_PLACE_OVERCLAIM_PATTERN.test(source)) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["birth_place_overclaim"] };
+  if (exposedSensitiveValue) issues.push("private_input_exposed");
+  if (!birthTimeKnown && BIRTH_TIME_OVERCLAIM_PATTERN.test(source)) issues.push("birth_time_overclaim");
+  if (!birthPlaceKnown && BIRTH_PLACE_OVERCLAIM_PATTERN.test(source)) issues.push("birth_place_overclaim");
   const selectedNames = selectedTarotCards.map((card) => text(card?.name, 100)).filter(Boolean);
   if (selectedNames.length) {
     const tarotText = `${text(result.tarotSection?.title, 1000)} ${text(result.tarotSection?.content, 50000)} ${(result.tarotSection?.keyPoints || []).join(" ")}`;
     const knownNames = TAROT_CARDS.flatMap((card) => [text(card?.nameKo, 100), text(card?.nameEn, 100)]).filter(Boolean);
     const unexpected = knownNames.find((name) => !selectedNames.includes(name) && (tarotText.includes(`${name} 카드`) || tarotText.includes(`카드 ${name}`)));
-    if (unexpected) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["invented_tarot_card"] };
-    if (selectedNames.some((name) => !tarotText.includes(name))) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["missing_selected_tarot_card"] };
+    if (unexpected) issues.push("invented_tarot_card");
+    if (selectedNames.some((name) => !tarotText.includes(name))) issues.push("missing_selected_tarot_card");
   }
   const length = countFusionFortuneVisibleText(result);
-  if (length < FUSION_FORTUNE_LENGTH.total.min || length > FUSION_FORTUNE_LENGTH.total.max) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: ["length"], length };
-  return { ok: true, value: result, length };
+  if (length < FUSION_FORTUNE_LENGTH.total.min || length > FUSION_FORTUNE_LENGTH.total.max) issues.push("length");
+  return {
+    issues,
+    length,
+    safetyIssues: issues.filter((issue) => !FUSION_QUALITY_ISSUES.has(issue)),
+    qualityIssues: issues.filter((issue) => FUSION_QUALITY_ISSUES.has(issue)),
+  };
+}
+
+/** 계약 전체를 만족해야 통과. 첫 위반만 돌려주는 기존 계약 그대로다(가드 단언이 이 모양을 본다). */
+export function validateFusionFortuneResult(result = {}, options = {}) {
+  const evaluated = evaluateFusionFortuneResult(result, options);
+  const firstIssue = evaluated.issues[0];
+  if (!firstIssue) return { ok: true, value: result, length: evaluated.length };
+  return {
+    ok: false,
+    errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID,
+    issues: [firstIssue],
+    ...(firstIssue === "length" ? { length: evaluated.length } : {}),
+  };
+}
+
+/**
+ * 배달 판정. 안전 위반이면 반려하고, 품질만 미달이면 사유와 함께 **강등 배달**한다.
+ *
+ * 🔴 왜 강등 배달인가: 결제는 생성 **전에** 끝난다. 검증 실패로 아무것도 주지 않으면 30,000원을
+ *    낸 사용자가 0을 받는데, 최후 폴백까지 같은 검증기를 통과해야 했던 예전 구조에서는 입력에
+ *    종속적인 판정(선택된 타로 카드 이름·생시 단정·분량 밴드) 하나가 걸리는 순간 **같은 requestId
+ *    재시도가 영원히 같은 자리에서 죽었다.** 안전 판정은 그대로 막고 품질 판정만 열어 준다.
+ */
+export function resolveFusionFortuneDelivery(result = {}, options = {}) {
+  const evaluated = evaluateFusionFortuneResult(result, options);
+  if (evaluated.safetyIssues.length) {
+    return { deliverable: false, tier: "rejected", errorCode: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: evaluated.issues, length: evaluated.length };
+  }
+  if (evaluated.qualityIssues.length) {
+    return { deliverable: true, tier: "degraded", value: result, length: evaluated.length, issues: evaluated.qualityIssues, qualityNotice: FUSION_DEGRADED_NOTICE };
+  }
+  return { deliverable: true, tier: "full", value: result, length: evaluated.length, issues: [] };
 }
 
 export function parseFusionFortuneLLMResponse(rawResponse) {
@@ -494,8 +549,9 @@ function attachQuestionFocusedFusionReading(result, context = {}) {
 
 async function buildValidatedFusionFallback({ context, input, now = new Date() }) {
   const result = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM({ context, now }), context);
-  const checked = validateFusionFortuneResult(result, fusionValidationOptions(context, input));
-  return checked.ok ? checked.value : undefined;
+  // 🔴 최후 폴백은 품질 미달로 버리지 않는다. 여기서 undefined 를 돌려주면 결제가 끝난
+  //    사용자가 받는 것이 0 이 되고, 결정론 폴백이라 재시도해도 결과가 같다.
+  return resolveFusionFortuneDelivery(result, fusionValidationOptions(context, input));
 }
 
 // ── 4그룹 병렬 생성 ───────────────────────────────────────────────────
@@ -625,6 +681,7 @@ export async function generateFusionFortuneWithRealLLM({
   providerCall = callFusionGroupProvider,
   onStage,
   now = new Date(),
+  abortSignal,
 } = {}) {
   if (!isFusionFortuneRealLlmAllowed(env)) {
     const error = new Error("FUSION_REAL_LLM_NOT_ALLOWED");
@@ -638,10 +695,12 @@ export async function generateFusionFortuneWithRealLLM({
   const providers = new Set();
   const models = new Set();
   let providerCalls = 0;
-  let completedGroups = 0;
+  // 🔴 진행 카운터는 **국면마다 새로** 센다. 예전에는 하나를 1차 병렬과 재생성이 공유해
+  //    화면에 "6 / 4 묶음 완성"이 떴다 — 총량을 넘는 진행률은 사용자에게 고장으로 보인다.
+  const composeProgress = { phase: "compose", total: FUSION_SECTION_GROUP_SPECS.length, done: 0 };
 
   const groupTimeoutMs = fusionGroupTimeoutMs(env);
-  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "" } = {}) => {
+  const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "", progress = composeProgress } = {}) => {
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, extraInstruction });
     providerCalls += 1;
     let response;
@@ -664,8 +723,8 @@ export async function generateFusionFortuneWithRealLLM({
     } catch (error) {
       response = { ok: false, error: text(error?.code, 80) || "provider_exception" };
     }
-    completedGroups += 1;
-    await emitFusionFortuneStage(onStage, "compose", { group: group.id, groupLabel: group.stageLabel, completedGroups, totalGroups: FUSION_SECTION_GROUP_SPECS.length });
+    progress.done += 1;
+    await emitFusionFortuneStage(onStage, "compose", { group: group.id, groupLabel: group.stageLabel, phase: progress.phase, completedGroups: progress.done, totalGroups: progress.total });
     if (!response?.ok) return { ok: false, group, issue: text(response?.error, 80) || "provider_failed" };
     const parsed = parseFusionFortuneLLMResponse(response.text);
     if (!parsed.ok) return { ok: false, group, issue: "parse_failed" };
@@ -693,12 +752,16 @@ export async function generateFusionFortuneWithRealLLM({
   // 실패했거나 목표를 크게 밑돈 그룹만 다시 부른다. 그룹 단위라 예산 안에 들어온다.
   const shortGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => !failedGroups.includes(group) && countFusionGroupChars(merged, group) < group.targetChars * FUSION_GROUP_RETRY_RATIO);
   const retryTargets = [...failedGroups, ...shortGroups];
-  if (retryTargets.length && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
+  // 연결이 끊긴 뒤에 보완 호출을 또 태우지 않는다. 1차 호출은 provider 안에서 이미 진행 중이라
+  // 여기서 못 끊지만, **두 번째 물결**은 막을 수 있다(비용의 절반이 여기다).
+  if (retryTargets.length && !abortSignal?.aborted && remainingMs() > FUSION_GROUP_RETRY_MIN_BUDGET_MS) {
     const retryTimeoutMs = Math.max(20000, Math.min(groupTimeoutMs, remainingMs() - 8000));
+    const repairProgress = { phase: "repair", total: retryTargets.length, done: 0 };
     const retried = await Promise.allSettled(retryTargets.map((group) => runGroup(group, {
       attempts: 1,
       timeoutMs: retryTimeoutMs,
       extraInstruction: buildFusionShortfallInstruction(group, countFusionGroupChars(merged, group)),
+      progress: repairProgress,
     })));
     retried.forEach((outcome, index) => {
       if (outcome.status !== "fulfilled" || !outcome.value.ok) return;
@@ -710,7 +773,7 @@ export async function generateFusionFortuneWithRealLLM({
       if (stillFailedIndex >= 0) failedGroups.splice(stillFailedIndex, 1);
     });
   } else if (retryTargets.length) {
-    console.warn("[fusion-fortune-group-retry-skipped]", { requestId: text(requestId, 120), remainingMs: remainingMs(), groups: retryTargets.map((group) => group.id) });
+    console.warn("[fusion-fortune-group-retry-skipped]", { requestId: text(requestId, 120), remainingMs: remainingMs(), aborted: abortSignal?.aborted === true, groups: retryTargets.map((group) => group.id) });
   }
 
   // 남은 실패 그룹은 결정론 폴백으로 메운다. 세 그룹이 멀쩡한데 한 그룹 때문에 전체를
@@ -719,20 +782,22 @@ export async function generateFusionFortuneWithRealLLM({
   const composed = { ...pickKeys(fallbackBase, Object.keys(fallbackBase)), ...merged };
   composed.visualization = normalizeFusionVisualization(composed.visualization, context, { now });
 
-  const checked = validateFusionFortuneResult(composed, validationOptions);
+  // 🔴 품질 미달이어도 모델이 실제로 쓴 본문을 우선한다. 여기서 결정론 폴백으로 갈아타면
+  //    3만원짜리 결과가 통째로 템플릿 문장으로 바뀐다 — 안전 위반일 때만 갈아탄다.
+  const decision = resolveFusionFortuneDelivery(composed, validationOptions);
   const usedFallbackGroups = FUSION_SECTION_GROUP_SPECS.filter((group) => failedGroups.includes(group)).map((group) => group.id);
   const provider = [...providers][0] || "gemini";
   const resolvedModel = [...models][0] || model;
 
-  if (checked.ok) {
+  if (decision.deliverable) {
     const generationSource = usedFallbackGroups.length === 0 ? "gemini" : usedFallbackGroups.length === FUSION_SECTION_GROUP_SPECS.length ? "context_fallback" : "gemini_partial";
-    console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: true, fallbackUsed: usedFallbackGroups.length > 0, fallbackGroups: usedFallbackGroups, length: checked.length });
-    return { result: checked.value, deliverable: true, generationSource, providerCalls };
+    console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: true, fallbackUsed: usedFallbackGroups.length > 0, fallbackGroups: usedFallbackGroups, length: decision.length, qualityTier: decision.tier, qualityIssues: decision.issues });
+    return { result: decision.value, deliverable: true, generationSource, providerCalls, qualityTier: decision.tier, qualityIssues: decision.issues, qualityNotice: decision.qualityNotice };
   }
 
   const fallback = await buildValidatedFusionFallback({ context, input, now });
-  console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: Boolean(fallback), fallbackUsed: Boolean(fallback), errorCode: text(checked.errorCode, 80) || "validation_failed", issues: checked.issues || [] });
-  return { result: fallback, deliverable: Boolean(fallback), generationSource: "context_fallback", providerCalls };
+  console.info("[fusion-fortune-llm-metric]", { requestId: text(requestId, 120), provider, model: resolvedModel, providerCalls, success: fallback.deliverable === true, fallbackUsed: true, errorCode: text(decision.errorCode, 80) || "validation_failed", issues: decision.issues || [], fallbackIssues: fallback.issues || [] });
+  return { result: fallback.value, deliverable: fallback.deliverable === true, generationSource: "context_fallback", providerCalls, qualityTier: fallback.tier, qualityIssues: fallback.issues, qualityNotice: fallback.qualityNotice };
 }
 
 export async function generateFusionFortuneWithConfiguredLLM(args = {}) {
@@ -741,7 +806,7 @@ export async function generateFusionFortuneWithConfiguredLLM(args = {}) {
     const result = attachQuestionFocusedFusionReading(await generateFusionFortuneWithMockLLM(args), args.context);
     // mock 도 그룹 진행 이벤트를 흘려보내 로딩 화면이 같은 계약을 보게 한다.
     for (const [index, group] of FUSION_SECTION_GROUP_SPECS.entries()) {
-      await emitFusionFortuneStage(args.onStage, "compose", { group: group.id, groupLabel: group.stageLabel, completedGroups: index + 1, totalGroups: FUSION_SECTION_GROUP_SPECS.length });
+      await emitFusionFortuneStage(args.onStage, "compose", { group: group.id, groupLabel: group.stageLabel, phase: "compose", completedGroups: index + 1, totalGroups: FUSION_SECTION_GROUP_SPECS.length });
     }
     return { result, deliverable: true, generationSource: "mock" };
   }
@@ -837,19 +902,27 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     return { ok: false, status: reservation.status, error: reservation.errorCode, message: "이미 처리 중인 요청입니다." };
   }
   let committed = false;
+  // 실패 진단용. 어느 관문에서 얼마 만에 죽었는지가 프로덕션에서 유일한 단서다.
+  const startedAt = Date.now();
+  let generationSourceForLog = "";
   try {
     throwIfFusionFortuneAborted(abortSignal);
     const contextResult = await contextBuilder(normalized, { now, env, onStage });
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
     throwIfFusionFortuneAborted(abortSignal);
-    const generated = await generator({ input: normalized, context: contextResult.context, env, requestId: safeId, userId, onStage, now });
+    const generated = await generator({ input: normalized, context: contextResult.context, env, requestId: safeId, userId, onStage, now, abortSignal });
+    generationSourceForLog = generated?.generationSource || "";
     const result = generated?.result && generated?.deliverable !== undefined ? generated.result : generated;
-    if (generated?.deliverable === false || !result) throw Object.assign(new Error("generation"), { code: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED });
-    const validated = validateFusionFortuneResult(result, fusionValidationOptions(contextResult.context, normalized));
-    if (!validated.ok) throw Object.assign(new Error("result"), { code: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID });
+    if (generated?.deliverable === false || !result) throw Object.assign(new Error("generation"), { code: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED, issues: generated?.qualityIssues });
+    // 생성기가 이미 등급을 냈으면 그 판정을 쓴다 — 같은 결과를 두 번 재는 것은 비용일 뿐이고,
+    // 두 호출이 서로 다른 답을 내면 배달 직전에 이유 없이 죽는다(중첩 사전검사).
+    const delivery = generated?.qualityTier
+      ? { deliverable: true, tier: generated.qualityTier, value: result, issues: generated.qualityIssues || [], qualityNotice: generated.qualityNotice }
+      : resolveFusionFortuneDelivery(result, fusionValidationOptions(contextResult.context, normalized));
+    if (!delivery.deliverable) throw Object.assign(new Error("result"), { code: FUSION_FORTUNE_ERROR_CODES.RESULT_INVALID, issues: delivery.issues });
     throwIfFusionFortuneAborted(abortSignal);
     if (typeof onDelivery === "function") {
-      await onDelivery({ requestId: safeId, result: validated.value, generationSource: generated?.generationSource || "mock" });
+      await onDelivery({ requestId: safeId, result: delivery.value, generationSource: generated?.generationSource || "mock", qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice });
     }
     throwIfFusionFortuneAborted(abortSignal);
     const commitResult = await store.commit(reservation, now);
@@ -863,12 +936,33 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
       nextAction: "generate",
       message: "초융합 운세 결과가 완성되었어요.",
     }));
-    return { ok: true, status: 200, requestId: safeId, result: validated.value, fusionStatus: status, generationSource: generated?.generationSource || "mock", providerCalls: count(generated?.providerCalls) || undefined };
+    return { ok: true, status: 200, requestId: safeId, result: delivery.value, fusionStatus: status, generationSource: generated?.generationSource || "mock", providerCalls: count(generated?.providerCalls) || undefined, qualityTier: delivery.tier, qualityNotice: delivery.qualityNotice };
   } catch (error) {
     if (!committed) await store.release(reservation, now).catch(() => {});
     const code = error?.code || FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED;
+    const cancelled = code === FUSION_FORTUNE_ERROR_CODES.CANCELLED;
+    // 🔴 실패해도 어느 관문에서 죽었는지 남겨야 한다. 예전에는 사용자에게 보낸 문구가 전부라
+    //    프로덕션에서 검증 실패인지 타임아웃인지 예외인지 가릴 방법이 없었다.
+    console.warn("[fusion-fortune-failed]", {
+      requestId: safeId,
+      stage: text(error?.message, 40),
+      errorCode: text(code, 80),
+      issues: Array.isArray(error?.issues) ? error.issues.slice(0, 8) : [],
+      elapsedMs: Date.now() - startedAt,
+      generationSource: text(generationSourceForLog, 40),
+    });
     // 결제는 생성 전에 이미 끝났으므로 "차감되지 않았다"고 말하면 거짓이 된다. 실제로 안전한 것은
     // 같은 requestId 로 다시 시도하면 추가 결제가 없다는 점이다.
-    return { ok: false, status: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500, error: code, message: code === FUSION_FORTUNE_ERROR_CODES.CANCELLED ? "분석을 중단했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다." : "결과를 준비하지 못했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다.", retryRequestId: safeId };
+    // 🔴 retryable 을 함께 준다 — 이 값이 없으면 새로고침으로 메모리 상태를 잃은 사용자에게
+    //    재시도 버튼이 사라지고, 3만원을 낸 요청을 회수할 방법이 화면에서 없어진다.
+    return {
+      ok: false,
+      status: cancelled ? 499 : code === FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED ? 502 : code === FUSION_FORTUNE_ERROR_CODES.FEATURE_DISABLED ? 503 : 500,
+      error: code,
+      message: cancelled ? "분석을 중단했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다." : "결과를 준비하지 못했어요. 같은 요청으로 다시 시도해도 추가 결제는 없습니다.",
+      retryRequestId: safeId,
+      retryable: true,
+      issues: Array.isArray(error?.issues) ? error.issues.slice(0, 8) : undefined,
+    };
   }
 }

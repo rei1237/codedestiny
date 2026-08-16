@@ -1574,6 +1574,10 @@ const fusionFortuneConsultationSchema = new mongoose.Schema({
   result: { type: mongoose.Schema.Types.Mixed, required: true },
   visibleTextLength: { type: Number, default: 0 },
   generationSource: { type: String, default: "", trim: true, maxlength: 40 },
+  // 분량이 목표에 못 미친 채로 배달된 결과인지. 재열람·PDF 에서도 같은 안내를 보여 주려면
+  // 보관본에 남아 있어야 한다(옛 보관본에는 없으므로 기본값은 완전 등급으로 읽는다).
+  qualityTier: { type: String, default: "full", trim: true, maxlength: 20 },
+  qualityNotice: { type: String, default: "", trim: true, maxlength: 300 },
   status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "completed", index: true },
   featureKey: { type: String, default: "fusion-fortune-consultation", trim: true, maxlength: 80 },
   accessType: { type: String, default: "paid", trim: true, maxlength: 40 },

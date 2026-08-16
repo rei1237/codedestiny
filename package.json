@@ -169,6 +169,7 @@
     "verify:fortune-chat-reading": "node scripts/verify-fortune-chat-reading.mjs",
     "verify:guardian-fortune-failure": "node scripts/verify-guardian-fortune-failure-contract.mjs",
     "verify:no-timestamp-conflict": "node scripts/verify-no-timestamp-update-conflict.mjs",
+    "verify:fusion-fortune-delivery-floor": "node scripts/verify-fusion-fortune-delivery-floor.mjs",
     "verify:fusion-fortune-quality": "node scripts/verify-fusion-fortune-quality.mjs",
     "verify:fusion-fortune-reopen": "node scripts/verify-fusion-fortune-reopen.mjs",
     "report:llm-tokens": "node scripts/report-llm-token-usage.mjs",

@@ -228,3 +228,50 @@ test("the result screen can be exported to PDF without blank pages", () => {
   assert.match(thread, /deferRender && !exporting/);
   assert.match(thread, /exporting \? "" : "animate-fade-in-up opacity-0/);
 });
+
+test("a paid request survives a page reload so nobody is charged twice", () => {
+  const client = read(CLIENT);
+
+  // 🔴 결제 증빙 id 가 메모리에만 있으면, 멈춤 화면을 본 사용자가 새로고침하는 순간 id 가
+  //    사라지고 다음 제출이 **새 id 로 결제를 한 번 더** 요청한다. 서버는 requestId 로만
+  //    증빙을 찾으므로(findPaidPayment) 잃어버린 id 의 30,000원은 회수할 방법이 없다.
+  assert.match(client, /sessionStorage\.setItem\(PAID_REQUEST_KEY/);
+  assert.match(client, /sessionStorage\.getItem\(PAID_REQUEST_KEY/);
+  // 제출 시 저장소까지 본다 — ref 만 보면 새로고침 뒤 복구가 안 된다.
+  assert.match(client, /paidRequestIdRef\.current \|\| readStoredPaidRequestId\(\)/);
+  // 지우는 시점은 결과를 실제로 받은 뒤 하나뿐이다.
+  assert.match(client, /결과를 받았으면 이 결제는 소진됐다[\s\S]{0,120}rememberPaidRequestId\(""\)/);
+  // 남아 있는 결제를 사용자에게 먼저 알린다(모르면 처음부터 다시 하는 줄 알고 또 결제한다).
+  assert.match(client, /이미 결제가 끝난 요청이 남아 있어요/);
+
+  // 서버도 실패 응답에 retryable 을 실어야 화면이 메모리 상태에 기대지 않는다.
+  assert.match(read("worker/lib/fusion-fortune.js"), /retryable: true,\s*\n\s*issues:/);
+});
+
+test("the stream never goes silent long enough to look dead", () => {
+  const client = read(CLIENT);
+  const route = read("worker/routes/fusion-fortune.js");
+
+  // 네 묶음을 병렬로 쓰는 동안 이벤트가 55~110초 나가지 않는다. 그 침묵을 중간 프록시가 끊으면
+  // 클라이언트는 result 없이 스트림이 닫힌 것만 본다.
+  assert.match(route, /FUSION_SSE_HEARTBEAT_MS = \d+/);
+  assert.match(route, /writeFusionFortuneSse\(writer, "ping"/);
+  // 심박은 반드시 멈춰야 한다 — 안 멈추면 닫힌 writer 에 계속 쓴다.
+  assert.match(route, /stopHeartbeat\(\);\s*\n\s*await writer\.close/);
+
+  // 클라이언트는 무음을 감지해 보관함으로 안내한다(이 화면에는 타임아웃이 하나도 없었다).
+  assert.match(client, /STREAM_SILENCE_MS = \d+/);
+  assert.match(client, /lastEventAtRef\.current = Date\.now\(\)/);
+  assert.match(client, /연결이 조용해진 지 좀 됐어요/);
+});
+
+test("progress never reports more groups than there are", () => {
+  const lib = read("worker/lib/fusion-fortune.js");
+
+  // 🔴 예전에는 1차 병렬과 재생성이 카운터 하나를 공유해 화면에 "6 / 4 묶음 완성"이 떴다.
+  assert.match(lib, /composeProgress = \{ phase: "compose", total: FUSION_SECTION_GROUP_SPECS\.length, done: 0 \}/);
+  assert.match(lib, /repairProgress = \{ phase: "repair", total: retryTargets\.length, done: 0 \}/);
+  assert.match(lib, /completedGroups: progress\.done, totalGroups: progress\.total/);
+  // 국면 이름이 SSE 로 나가야 화면이 "보완 중"을 구분해 그린다.
+  assert.match(lib, /phase: progress\.phase/);
+});
