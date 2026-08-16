@@ -51,12 +51,6 @@ module.exports = {
         "serif-ko": ["Nanum Myeongjo", "Noto Serif KR", "var(--font-display)", "serif"],
       },
       keyframes: {
-        // 폼 안에서 조건부로 나타나는 블록(선택 동의 고지 등)의 등장. 상태 변화를 알리는 용도라
-        // fade-in-up(780ms)보다 훨씬 짧다 — 사용자가 입력 흐름 안에 있으므로 기다리게 하면 안 된다.
-        "consent-reveal": {
-          "0%": { opacity: "0", transform: "translateY(-4px)" },
-          "100%": { opacity: "1", transform: "translateY(0)" },
-        },
         "fade-in-up": {
           "0%": { opacity: "0", transform: "translateY(18px) scale(0.985)" },
           "100%": { opacity: "1", transform: "translateY(0) scale(1)" },
@@ -137,7 +131,6 @@ module.exports = {
         },
       },
       animation: {
-        "consent-reveal": "consent-reveal 180ms cubic-bezier(0.16, 1, 0.3, 1) both",
         "fade-in-up": "fade-in-up 780ms cubic-bezier(0.18, 0.83, 0.34, 1) forwards",
         twinkle: "twinkle 6s ease-in-out infinite",
         "spin-slow": "spin-slow 10s linear infinite",

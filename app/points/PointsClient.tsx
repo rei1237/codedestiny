@@ -476,12 +476,13 @@ async function getSavedPaymentPhoneNumber(apiBase: string): Promise<string> {
   return normalizePaymentPhoneNumber(attempt.data.phoneNumber || attempt.data.phone || "");
 }
 
-async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string): Promise<string> {
+async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string, consented: boolean): Promise<string> {
   const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ phone: phoneNumber }),
+    // phoneConsent 는 모달에서 받은 동의를 서버에 남기기 위한 값이다(제22조 입증책임).
+    body: JSON.stringify({ phone: phoneNumber, phoneConsent: consented === true }),
     }, {
       retryOn401: true,
       apiBase,
@@ -515,7 +516,7 @@ async function ensurePaymentPhoneNumber(
   // 모달이 저장까지 끝낸 번호를 돌려준다(인앱 웹뷰에서 억제되는 window.prompt 대체).
   const nextPhone = await promptPaymentPhoneNumber({
     normalize: normalizePaymentPhoneNumber,
-    onSave: (phone) => savePaymentPhoneNumber(apiBase, phone),
+    onSave: (phone, consented) => savePaymentPhoneNumber(apiBase, phone, consented),
   });
   if (!nextPhone) throw new Error("단건 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.");
   const latestUser = readSanitizedAuthUser() as AuthUser | null;

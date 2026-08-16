@@ -3244,10 +3244,24 @@
     return state;
   }
 
-  async function _dpSavePaymentPhoneNumber(phoneNumber) {
+  // 🔴 결제용 휴대폰 번호 선택 동의 고지 (개인정보 보호법 제15조 제2항).
+  // 렌더러가 3벌이라(React app/_lib/payment-phone-prompt.ts · 셸 index.html · 이 독립 폴백)
+  // 아래 문자열은 **글자 그대로 같아야 한다** — verify:payment-phone-consent 가 동일성을 강제한다.
+  // 거부 시 불이익은 사실대로 적는다: 여기서 거부하면 카드 단건결제는 못 하지만 이용권·월정석은 된다.
+  var DP_PAYMENT_PHONE_CONSENT_LINES = [
+    '수집 항목 · 휴대폰 번호',
+    '이용 목적 · 결제 진행 및 구매자 확인 (결제대행사 포트원·KG이니시스에 전달)',
+    '보유·이용 기간 · 회원 탈퇴 시까지 (법령상 보존 의무가 있는 거래기록은 그 기간)',
+    '거부 권리 · 동의하지 않아도 됩니다. 다만 카드 단건결제는 진행할 수 없고, 이용권·월정석으로는 이용하실 수 있어요.'
+  ];
+  var DP_PAYMENT_PHONE_CONSENT_LABEL = '결제 진행 목적의 휴대폰 번호 수집·이용에 동의합니다. (필수)';
+  var DP_PAYMENT_PHONE_CONSENT_REQUIRED = '휴대폰 번호 수집·이용에 동의해 주셔야 결제를 진행할 수 있어요.';
+
+  async function _dpSavePaymentPhoneNumber(phoneNumber, consented) {
     var result = await _dpPaymentFetchJson('/api/me/payment-phone', {
       method: 'POST',
-      body: JSON.stringify({ phone: phoneNumber })
+      // phoneConsent 는 모달에서 받은 동의를 서버에 남기기 위한 값이다(제22조 입증책임).
+      body: JSON.stringify({ phone: phoneNumber, phoneConsent: consented === true })
     });
     if (!result || !result.ok) throw new Error(_dpDescribePaymentPhoneSaveFailure(result));
     var saved = _dpReadPaymentPhoneState(result.payload);
@@ -3285,6 +3299,10 @@
       var input = document.createElement('input');
       var error = document.createElement('p');
       var notice = document.createElement('p');
+      var disclosure = document.createElement('ul');
+      var consentLabel = document.createElement('label');
+      var consentInput = document.createElement('input');
+      var consentText = document.createElement('span');
       var actions = document.createElement('div');
       var cancelButton = document.createElement('button');
       var submitButton = document.createElement('button');
@@ -3299,6 +3317,7 @@
 
       function setBusy(isBusy) {
         input.disabled = !!isBusy;
+        consentInput.disabled = !!isBusy;
         cancelButton.disabled = !!isBusy;
         submitButton.disabled = !!isBusy;
         submitButton.textContent = isBusy ? '저장 중...' : '저장하고 결제 계속하기';
@@ -3312,6 +3331,9 @@
       input.style.cssText = 'width:100%;height:48px;box-sizing:border-box;border-radius:12px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.78);color:#fff;font-size:16px;padding:0 14px;outline:none;';
       error.style.cssText = 'min-height:20px;margin:8px 0 0;color:#fecdd3;font-size:13px;line-height:1.45;';
       notice.style.cssText = 'margin:8px 0 0;color:rgba(221,214,254,.78);font-size:12px;line-height:1.45;';
+      disclosure.style.cssText = 'margin:10px 0 0;padding:10px 12px;list-style:none;border:1px solid rgba(196,181,253,.28);border-radius:12px;background:rgba(10,8,24,.55);color:rgba(221,214,254,.86);font-size:12px;line-height:1.55;';
+      consentLabel.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-top:10px;min-height:44px;cursor:pointer;color:#eef2ff;font-size:13px;line-height:1.5;';
+      consentInput.style.cssText = 'flex:0 0 auto;width:20px;height:20px;margin-top:2px;accent-color:#8f6ccc;';
       actions.style.cssText = 'display:flex;gap:10px;margin-top:18px;';
       cancelButton.style.cssText = 'flex:0 0 auto;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#e5e7eb;padding:0 16px;font-weight:700;';
       submitButton.style.cssText = 'flex:1;min-height:44px;border-radius:12px;border:0;background:linear-gradient(135deg,#f59e0b,#fb7185);color:#111827;padding:0 16px;font-weight:900;';
@@ -3323,6 +3345,20 @@
       input.autocomplete = 'tel';
       input.placeholder = '01012345678';
       notice.textContent = '입력한 번호는 결제 진행 목적으로만 사용되며 서버에 암호화해 저장됩니다.';
+      DP_PAYMENT_PHONE_CONSENT_LINES.forEach(function(line) {
+        var item = document.createElement('li');
+        item.textContent = line;
+        disclosure.appendChild(item);
+      });
+      consentInput.type = 'checkbox';
+      consentInput.id = 'dp-payment-phone-consent';
+      consentText.textContent = DP_PAYMENT_PHONE_CONSENT_LABEL;
+      consentLabel.htmlFor = consentInput.id;
+      consentLabel.appendChild(consentInput);
+      consentLabel.appendChild(consentText);
+      consentInput.addEventListener('change', function() {
+        if (consentInput.checked && error.textContent === DP_PAYMENT_PHONE_CONSENT_REQUIRED) error.textContent = '';
+      });
       cancelButton.type = 'button';
       cancelButton.textContent = '취소';
       submitButton.type = 'submit';
@@ -3337,9 +3373,15 @@
           input.focus();
           return;
         }
+        // 🔴 동의 없이는 저장하지 않는다. 이 검사가 사라지면 고지만 있고 동의는 없는 상태가 된다.
+        if (!consentInput.checked) {
+          error.textContent = DP_PAYMENT_PHONE_CONSENT_REQUIRED;
+          try { consentInput.focus(); } catch (_) {}
+          return;
+        }
         setBusy(true);
         error.textContent = '';
-        _dpSavePaymentPhoneNumber(normalized).then(function(saved) {
+        _dpSavePaymentPhoneNumber(normalized, true).then(function(saved) {
           close(saved || { phoneNumber: normalized, hasPhone: true });
         }).catch(function(saveError) {
           setBusy(false);
@@ -3353,6 +3395,8 @@
       card.appendChild(input);
       card.appendChild(error);
       card.appendChild(notice);
+      card.appendChild(disclosure);
+      card.appendChild(consentLabel);
       actions.appendChild(cancelButton);
       actions.appendChild(submitButton);
       card.appendChild(actions);
