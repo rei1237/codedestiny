@@ -1731,6 +1731,41 @@ export default function NeoOperationRoomPage() {
     throw new Error("GENERATION_PENDING");
   }
 
+  // /refine 도 8챕터를 요청 안에서 동기로 생성한다. 엣지(100s)나 네트워크가 먼저 끊기면 서버는 계속
+  // 쓰고 있는데 클라이언트만 실패로 끝나, 사용자는 "재시도를 계속해야 나온다"를 겪는다. 1차 브리핑은
+  // pollPendingBriefing 이 이 구멍을 막아 왔고 2차만 단발 fetch 였다 — 같은 예산·같은 종료 조건으로 맞춘다.
+  async function pollPendingRefinedOrder(resultId: string) {
+    for (let attempt = 0; attempt < PENDING_RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, PENDING_RESULT_POLL_INTERVAL_MS));
+      try {
+        const response = await authFetch(`${API_ENDPOINTS.result}?attemptId=${encodeURIComponent(resultId)}`, {
+          headers: { Accept: "application/json" },
+        });
+        const data = (await response.json().catch(() => ({}))) as NeoSession & {
+          refinementStatus?: string;
+          refinementError?: { code?: string };
+          reason?: string;
+          retryable?: boolean;
+        };
+        if (data.ok && data.refinedOrder) {
+          completeWithSession(data);
+          setStatusMessage("수정 작전 명령서가 도착했다.");
+          return;
+        }
+        // 서버가 실패를 확정해 기록했으면 더 기다릴 이유가 없다. DB 일시 장애와 LLM 실패는 구분해 안내한다.
+        if (toText(data.refinementStatus) === "generation_failed") {
+          throw new Error(toText(data.refinementError?.code) === "DB_DEGRADED" ? "TEMPORARY_UNAVAILABLE" : "LLM_ERROR");
+        }
+        if (isRetriableResultPollFailure(response.status, data)) continue;
+        if (response.status === 401) throw new Error("LOGIN_REQUIRED");
+        // 그 외(아직 refinedOrder 가 안 붙은 200 등)는 계속 폴링한다.
+      } catch (caught) {
+        if (caught instanceof Error && ["LLM_ERROR", "TEMPORARY_UNAVAILABLE", "LOGIN_REQUIRED"].includes(caught.message)) throw caught;
+      }
+    }
+    throw new Error("GENERATION_PENDING");
+  }
+
   async function startBriefing(idempotencyKey: string, payload: NeoWarRoomAccessPayload, access: Record<string, unknown>) {
     setFlowPhase("generating");
     setStatusMessage("운명의 작전 지도를 펼치는 중이다.");
@@ -1777,22 +1812,37 @@ export default function NeoOperationRoomPage() {
     setRefineError("");
     setStatusMessage("현실 점검 답변을 반영해 수정 작전 명령서를 작성하는 중이다.");
     try {
-      const { response, data } = await postJson<NeoSession | { ok?: false; reason?: string; message?: string }>(
-        API_ENDPOINTS.refine,
-        {
-          sessionId,
-          selectedChecks: selectedRealityChecks,
-          freeform: realityFreeform.trim(),
-        },
-        idempotencyKeyRef.current || sessionId,
-      );
-      if (data.ok && data.refinedOrder) {
-        completeWithSession(data);
+      type RefineReply = (NeoSession | { ok?: false; message?: string }) & { reason?: string; retryable?: boolean };
+      let response: Response | null = null;
+      let data: RefineReply = {} as RefineReply;
+      try {
+        const sent = await postJson<RefineReply>(
+          API_ENDPOINTS.refine,
+          {
+            sessionId,
+            selectedChecks: selectedRealityChecks,
+            freeform: realityFreeform.trim(),
+          },
+          idempotencyKeyRef.current || sessionId,
+        );
+        response = sent.response;
+        data = sent.data;
+      } catch {
+        // 응답 자체를 못 받았다(네트워크·엣지 컷). 서버는 계속 쓰고 있을 수 있으니 폴링으로 수렴한다.
+        response = null;
+      }
+      if (response && (data as NeoSession).ok && (data as NeoSession).refinedOrder) {
+        completeWithSession(data as NeoSession);
         setStatusMessage("수정 작전 명령서가 도착했다.");
         return;
       }
-      if (response.status === 401) throw new Error("LOGIN_REQUIRED");
-      throw new Error(toText((data as { reason?: string }).reason) || "SERVER_ERROR");
+      if (response?.status === 401) throw new Error("LOGIN_REQUIRED");
+      // 202(이미 같은 답변으로 생성 중)와 503(일시 장애)은 결과가 나올 수 있다 → 폴링.
+      // 404·422 처럼 확정된 실패만 즉시 끝낸다(폴링해도 달라지지 않는다).
+      if (response && response.status !== 202 && !isRetriableResultPollFailure(response.status, data)) {
+        throw new Error(toText((data as { reason?: string }).reason) || "SERVER_ERROR");
+      }
+      await pollPendingRefinedOrder(sessionId);
     } catch (caught) {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       setRefinePhase("failed");

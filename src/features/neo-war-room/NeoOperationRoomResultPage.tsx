@@ -112,6 +112,9 @@ const realityCheckOptions = [
 
 const NEO_RESULT_PREVIEW_MODES = new Set<NeoResultPreviewMode>(["loading", "briefing", "reality", "refined"]);
 const NEO_LETTER_BADGE_COST = 5;
+// 1차 브리핑 로딩과 2차 명령서 폴링이 같은 예산을 쓴다. 4s×60=240s, CF rate-limit(10s당 100회) 여유 안.
+const RESULT_POLL_INTERVAL_MS = 4000;
+const RESULT_POLL_MAX_ATTEMPTS = 60;
 const NEO_RESULT_BADGE_COLUMNS = 4;
 const NEO_RESULT_BADGE_ROWS = 3;
 const NEO_RESULT_BADGE_COUNT = 10;
@@ -410,8 +413,6 @@ export default function NeoOperationRoomResultPage() {
     let cancelled = false;
     // 생성은 서버 백그라운드에서 진행되므로, 결과 페이지를 직접 열면 아직 generating(202)일 수 있다.
     // 완료(또는 실패)로 수렴할 때까지 폴링한다. 4s×60=240s, CF rate-limit(10s당 100회) 여유 안.
-    const RESULT_POLL_INTERVAL_MS = 4000;
-    const RESULT_POLL_MAX_ATTEMPTS = 60;
     async function loadResult() {
       if (localPreviewMode) {
         const previewSession = buildLocalPreviewSession(localPreviewMode);
@@ -501,26 +502,65 @@ export default function NeoOperationRoomResultPage() {
     setRefining(true);
     setRefineError("");
     try {
-      const response = await authFetch("/api/neo-operation-room/refine", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          sessionId: session.sessionId,
-          selectedChecks,
-          freeform: freeform.trim(),
-        }),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok || !data?.ok) {
+      let response: Response | null = null;
+      let data: Record<string, unknown> = {};
+      try {
+        response = await authFetch("/api/neo-operation-room/refine", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            sessionId: session.sessionId,
+            selectedChecks,
+            freeform: freeform.trim(),
+          }),
+        });
+        data = await response.json().catch(() => ({}));
+      } catch {
+        // 응답을 못 받았다(네트워크·엣지 컷). /refine 은 8챕터를 동기로 쓰므로 서버는 아직 진행 중일
+        // 수 있다 — 단발 실패로 끝내면 사용자는 "재시도를 계속해야 나온다"를 겪는다.
+        response = null;
+      }
+      if (response?.ok && (data as { ok?: boolean }).ok && (data as { refinedOrder?: unknown }).refinedOrder) {
+        setSession(data as NeoResultSession);
+        setShowRealityForm(false);
+        return;
+      }
+      // 202(이미 같은 답변으로 생성 중)·503(일시 장애)·응답 없음은 결과가 나올 수 있다 → 폴링으로 수렴.
+      // 그 외 확정 실패(404·422)만 즉시 끝낸다.
+      const retriable = !response || response.status === 202 || response.status === 503;
+      if (!retriable) {
         throw new Error(asErrorMessage(data) || "수정 작전 명령서 작성에 실패했다.");
       }
-      setSession(data as NeoResultSession);
+      const refined = await pollRefinedOrder(session.sessionId);
+      setSession(refined);
       setShowRealityForm(false);
     } catch (caught) {
       setRefineError(caught instanceof Error ? caught.message : "수정 작전 명령서 작성에 실패했다.");
     } finally {
       setRefining(false);
     }
+  }
+
+  // 1차 브리핑 로딩이 쓰는 예산(4s × 60)과 같다. refinedOrder 가 붙거나 서버가 실패를 확정할 때까지 본다.
+  async function pollRefinedOrder(resultId: string): Promise<NeoResultSession> {
+    for (let attempt = 0; attempt < RESULT_POLL_MAX_ATTEMPTS; attempt += 1) {
+      await new Promise((resolve) => window.setTimeout(resolve, RESULT_POLL_INTERVAL_MS));
+      let response: Response;
+      let data: Record<string, unknown>;
+      try {
+        response = await authFetch(`/api/neo-operation-room/result?attemptId=${encodeURIComponent(resultId)}`);
+        data = await response.json().catch(() => ({}));
+      } catch {
+        // 일시적 네트워크 오류 — 다음 회차에 다시 본다(여기서 던지면 폴링 자체가 죽는다).
+        continue;
+      }
+      if (data.ok && data.refinedOrder) return data as NeoResultSession;
+      if (data.refinementStatus === "generation_failed") {
+        throw new Error(asErrorMessage(data.refinementError) || "수정 작전 명령서 작성에 실패했다. 답변은 남아 있으니 다시 시도해라.");
+      }
+      if (response.status === 401) throw new Error("로그인이 필요하다.");
+    }
+    throw new Error("수정 작전 명령서를 아직 작성 중이다. 잠시 후 새로고침해라.");
   }
 
   async function handleUnlockNeoBenefits() {
