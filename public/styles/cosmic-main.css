@@ -570,7 +570,6 @@ body.neo-mode .moon-hero__moon {
 		14px -10px 0 8px rgba(160,195,255,0.55),
 		14px -10px 0 22px rgba(140,175,240,0.14);
 	animation: moonCrescentFloat 7s ease-in-out infinite;
-	will-change: transform;
 }
 body.neo-mode .moon-hero__moon {
 	box-shadow:
@@ -591,7 +590,6 @@ body.neo-mode .moon-hero__moon::before {
 		rgba(120,160,240,0.09) 50%,
 		transparent 70%);
 	animation: moonHaloPulse 4.8s ease-in-out infinite;
-	will-change: opacity, transform;
 	pointer-events: none;
 }
 body.neo-mode .moon-hero__moon::before {
@@ -903,13 +901,11 @@ body.neo-mode .cd-shooting-star {
 	top: 8%;
 	right: 20%;
 	animation: shootingStarA 38s ease-in 0s infinite;
-	will-change: transform, opacity;
 }
 .cd-shooting-star--b {
 	top: 5%;
 	right: 55%;
 	animation: shootingStarB 38s ease-in 18s infinite;
-	will-change: transform, opacity;
 }
 
 /* ── 별 파티클 강화 (logo-area 내 추가 레이어) ── */
@@ -927,7 +923,6 @@ body:not(.neo-mode) .logo-cosmos .logo-nebula--1 {
 	filter: blur(18px);
 	pointer-events: none;
 	animation: nebulaShift 9s ease-in-out infinite;
-	will-change: opacity, transform;
 }
 body:not(.neo-mode) .logo-cosmos .logo-nebula--2 {
 	position: absolute;
@@ -942,7 +937,6 @@ body:not(.neo-mode) .logo-cosmos .logo-nebula--2 {
 	filter: blur(14px);
 	pointer-events: none;
 	animation: nebulaShift 11s ease-in-out 2s infinite;
-	will-change: opacity, transform;
 }
 body.neo-mode .logo-cosmos .logo-nebula--1 {
 	position: absolute;
@@ -957,7 +951,6 @@ body.neo-mode .logo-cosmos .logo-nebula--1 {
 	filter: blur(18px);
 	pointer-events: none;
 	animation: nebulaShift 9s ease-in-out infinite;
-	will-change: opacity, transform;
 }
 body.neo-mode .logo-cosmos .logo-nebula--2 {
 	position: absolute;
@@ -972,14 +965,12 @@ body.neo-mode .logo-cosmos .logo-nebula--2 {
 	filter: blur(14px);
 	pointer-events: none;
 	animation: nebulaShift 11s ease-in-out 2s infinite;
-	will-change: opacity, transform;
 }
 
 /* 개별 별 — 네오 모드 (골드 톤) */
 body.neo-mode .logo-area .logo-star {
 	background: rgba(243,221,154,0.9) !important;
 	box-shadow: 0 0 5px 1px rgba(243,200,100,0.6), 0 0 10px 2px rgba(220,165,40,0.28) !important;
-	will-change: transform, opacity;
 }
 body.neo-mode .logo-area .logo-star--5 {
 	box-shadow: 0 0 8px 2px rgba(243,221,154,0.75), 0 0 16px 4px rgba(220,180,60,0.38) !important;
