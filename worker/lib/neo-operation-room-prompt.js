@@ -1,3 +1,4 @@
+import { dedupeTextList, salvageTruncatedJsonObject, trimToSentenceBoundary } from "../../lib/llm-text.js";
 import { REASONING_OUTPUT_RULE_LINES } from "./fortune-reasoning-contract.js";
 
 const METHOD_LABELS = Object.freeze({
@@ -168,10 +169,24 @@ function coerceText(value, depth = 0) {
   return "";
 }
 
+// 식별자·제목·enum 전용. 상한을 넘기면 글자 한복판에서 자른다 — 문장이 아니므로 그래도 된다.
 function clean(value, maxLength = 0) {
   const text = coerceText(value).trim();
   return maxLength > 0 ? text.slice(0, maxLength) : text;
 }
+
+// 상담 문장·리스트 항목 전용. 상한을 넘기면 마지막 완결 문장까지만 남긴다.
+// 🔴 clean() 을 여기에 쓰면 "그는 반복되는 선택을 하"처럼 끊긴 문장이 결과에 그대로 남는다.
+//    반대로 cleanProse() 를 제목·enum 에 쓰면 안 된다 — 종결부호가 없어 통째로 날아간다.
+function cleanProse(value, maxLength = 0) {
+  return trimToSentenceBoundary(coerceText(value).trim(), maxLength);
+}
+
+// 리스트 항목(핵심 기질·강점·약점·핵심 포인트·시기 포인트·규칙) 공통 상한.
+// 챕터 minChars 1400~1800 을 description 과 나눠 지므로, 항목 하나가 여기에 닿으면
+// 이미 설계보다 훨씬 길게 쓴 것이다. scripts/verify-neo-operation-room-output-safety.mjs
+// 가 "이 상한으로 챕터 minChars 를 채울 수 있는가"를 실제 병합 결과로 단언한다.
+const LIST_ITEM_CAP = 500;
 
 function safeArray(value) {
   return Array.isArray(value) ? value : [];
@@ -686,6 +701,9 @@ function neoSectionClosingLines(section) {
 }
 
 // ─── 1차(초기 브리핑) 챕터 레지스트리 ──────────────────────────────────────
+// counts: 리스트 필드가 최소 몇 개인지. rules 산문("정확히 3개", "3~5개")에만 있으면 기계가
+// 못 읽어서 "상한 × 개수가 minChars 를 지탱하는가"를 검사할 수 없다. schema 의 배열 리프와
+// 1:1 로 맞아야 하며, 어긋나면 verify-neo-operation-room-output-safety.mjs 가 실패시킨다.
 export const NEO_INITIAL_SECTIONS = Object.freeze([
   {
     id: "opening",
@@ -704,6 +722,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     minChars: 1650,
     scope: "타고난 구조상 이 사람의 자아·중심·기본 동기가 무엇인지 전문가답게 깊이 진단한다. 신뢰를 쌓는 챕터다.",
     schema: { innateNature: { title: "타고난 성향의 핵", description: "중심 구조·자아·기본 동기 심층 해석", keyTraits: ["핵심 기질1", "핵심 기질2", "핵심 기질3"] } },
+    counts: { "innateNature.keyTraits": 3 },
     rules: [
       "[계산 요약 데이터]의 중심 지표(사주=일간, 자미두수=명궁 주성, 베다=라그나/달, 점성술=태양/달/상승)를 반드시 인용해 근거를 남긴다.",
       "자미두수라면 명궁 주성의 별 세기(◎묘·O득·△평·X함)를 명시해 강약을 판단한다.",
@@ -716,6 +735,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     minChars: 1550,
     scope: "타고난 구조에서 강한 기운과 약한 기운을 나눠, 어디를 밀고 어디를 지켜야 하는지 판단한다.",
     schema: { innateStrength: { title: "타고난 강점과 약점", description: "강한 기운/약한 기운 심층 해석", strongPoints: ["강점1", "강점2"], weakPoints: ["약점1", "약점2"] } },
+    counts: { "innateStrength.strongPoints": 2, "innateStrength.weakPoints": 2 },
     rules: [
       "자미두수라면 강한 궁(◎·O에 앉은 주성)과 약한 궁(X 함)을 구체적으로 대비해 밀 자리/지킬 자리를 나눈다.",
       "사주라면 오행 과다·결핍과 십성 강약으로, 베다·점성술이라면 디그니티/애스펙트로 강약을 판단한다.",
@@ -728,6 +748,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     minChars: 1800,
     scope: "[상담 맥락]의 topic 주제에서 이 사람의 타고난 방식·성향을 술수 근거로 진단한다. 예: 돈이면 돈을 버는 방식, 연애면 연애 성향, 직업이면 일하는 방식, 인간관계면 사람을 대하는 방식.",
     schema: { topicStyle: { title: "이 주제에서 너의 방식", description: "주제에 대한 타고난 성향·방식 심층 해석", keyPoints: ["핵심1", "핵심2", "핵심3"] } },
+    counts: { "topicStyle.keyPoints": 3 },
     rules: [
       "반드시 [상담 맥락]의 topic에 밀착한다. 주제와 무관한 일반론으로 새지 않는다.",
       "[주제별 판독 지침]에 제시된 술수별 판독 포인트를 근거로 삼는다.",
@@ -741,6 +762,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     minChars: 2000,
     scope: "[상담 맥락]의 topic과 직접 연결되는 각 영역을 하나씩 나눠 분석한다. 자미두수=관련 궁들(예: 돈이면 재백궁·관록궁·전택궁), 사주=관련 십성/자리, 베다·점성술=관련 하우스/행성. 각 자리가 이 주제에 대해 어떻게 말하는지 전문가답게 풀어낸다.",
     schema: { topicAreas: [{ area: "영역(궁/자리/하우스) 이름", reading: "그 영역이 이 주제에 대해 말하는 것(구체 계산 근거 포함)" }] },
+    counts: { topicAreas: 3 },
     rules: [
       "topicAreas는 3~5개. 각 area는 [계산 요약 데이터]에 실재하는 궁/자리/하우스 이름으로 쓴다.",
       "각 reading에 계산 근거(궁 주성·별 세기·사화·십성·행성-사인-하우스 등)를 최소 1개 인용한다. 없는 값은 지어내지 않는다.",
@@ -753,6 +775,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     minChars: 1400,
     scope: "[상담 맥락]의 topic에 대해 대운/세운/유년/다샤/트랜짓 등 시기 데이터로 언제가 열리고 닫히는지 판단한다.",
     schema: { topicTiming: { title: "이 주제의 시기 흐름", description: "주제 관련 시기 해석", windows: ["열리는/닫히는 시기 포인트1", "포인트2"] } },
+    counts: { "topicTiming.windows": 1 },
     rules: [
       "계산 요약에 시기 데이터(대운·세운·유년·다샤·트랜짓)가 있으면 그 시기를 구체적으로 명시한다.",
       "시기 데이터가 없으면 '현재 계산 가능한 범위'임을 밝히고 무리하게 시기를 만들지 않는다.",
@@ -765,6 +788,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     minChars: 1400,
     scope: "타고난 구조상 이 사람이 힘이 나는 본래의 방식과, 지켜야 할 핵심 규칙을 제시한다.",
     schema: { originalStrategy: { title: "본래 너는 이렇게 움직여야 한다", description: "타고난 구조상 힘이 나는 방식", keyRules: ["규칙1", "규칙2", "규칙3"] } },
+    counts: { "originalStrategy.keyRules": 3 },
     rules: ["keyRules는 3~5개로, 계산 근거와 연결된 실행 규칙으로 쓴다."],
   },
   {
@@ -789,6 +813,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     minChars: 1650,
     scope: "선택한 술수의 실제 계산 근거를 전문가 시선으로 1~4개 항목으로 정리한다.",
     schema: { methodEvidence: [{ label: "근거 제목", summary: "계산 요약에서 확인되는 구체 근거" }] },
+    counts: { methodEvidence: 1 },
     rules: [
       "각 summary에는 [계산 요약 데이터]에 실제로 존재하는 구체 값(간지·일간·십성·궁 이름·별 이름·별 세기·사화·행성-사인-하우스·나크샤트라·다샤 중 해당 술수의 것)을 최소 1개 그대로 인용한다.",
       "methodEvidence는 1~4개.",
@@ -811,6 +836,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     minChars: 1150,
     scope: "오늘 당장 금지할 행동 하나와, 바로 실행할 작전 3개를 준다.",
     schema: { forbiddenAction: { title: "오늘 금지 행동", reason: "왜 금지해야 하는지" }, actionOrders: ["바로 해야 할 작전 1", "바로 해야 할 작전 2", "바로 해야 할 작전 3"] },
+    counts: { actionOrders: 3 },
     rules: ["actionOrders는 정확히 3개, 각각 오늘~이번 주에 실행 가능한 구체 행동으로 쓴다."],
   },
   {
@@ -819,6 +845,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     minChars: 1650,
     scope: "1일차부터 7일차까지 하루 단위 작전을 설계한다.",
     schema: { sevenDayMission: [{ day: 1, mission: "1일차 작전" }] },
+    counts: { sevenDayMission: 7 },
     rules: ["sevenDayMission은 day 1부터 7까지 반드시 7개, 각 mission은 그날 실행할 구체 행동으로 쓴다."],
   },
   {
@@ -826,6 +853,7 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     title: "전황 점검 + 사자 휘장",
     minChars: 750,
     scope: "2차 수정 작전으로 이어질 현실 점검 질문과 오늘의 사자 휘장, 츤데레 마무리를 준다.",
+    counts: { realityCheckQuestions: 2 },
     schema: {
       realityCheckQuestions: [{ question: "현실 점검 질문", whyItMatters: "왜 중요한지" }],
       badge: { name: "사자 휘장 이름", description: "휘장 설명" },
@@ -898,6 +926,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     minChars: 1400,
     scope: "시기·행동·근거가 붙은 구체 대안 행동 3~5개를 준다.",
     schema: { actionAlternatives: [{ timing: "언제부터 언제까지(구체 시기)", action: "무엇을 어떻게(구체 행동)", rationale: "왜 지금 이 행동이 흐름에 맞는지(계산 근거 연결)" }] },
+    counts: { actionAlternatives: 3 },
     rules: [
       "actionAlternatives는 3~5개, 각 항목에 timing/action/rationale 셋을 모두 채운다.",
       "[이미 제시한 조언]과 겹치지 않게 새로 만든다. '케이스마다 다르다', '노력하면 좋아진다' 같은 회피성·추상 답변 금지.",
@@ -909,6 +938,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     minChars: 1000,
     scope: "사용자에게 부족한 기운을 보완할 사람의 역할과 만날 경로를 구체화한다.",
     schema: { peopleToMeet: [{ role: "만나야 할 사람의 역할/직업/경험", complementaryEnergy: "사용자에게 부족한 기운을 어떻게 보완하는지", whereToFind: "어디서 만날 가능성이 높은지(커뮤니티/모임/소개 경로)" }] },
+    counts: { peopleToMeet: 2 },
     rules: ["peopleToMeet은 2~3개, 각 항목에 role/complementaryEnergy/whereToFind 셋을 모두 채운다. '좋은 사람을 만나라' 같은 막연한 표현 금지."],
   },
   {
@@ -917,6 +947,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     minChars: 1200,
     scope: "30일 전략의 1주차·2주차를, 주차별 목표·근거·구체 행동으로 두텁게 설계한다.",
     schema: { thirtyDayWeek12: ["1주차: 목표·근거·구체 행동", "2주차: 목표·근거·구체 행동"] },
+    counts: { thirtyDayWeek12: 2 },
     rules: ["thirtyDayWeek12는 정확히 2개(1주차, 2주차). 각 항목에 그 주의 목표·계산 근거·구체 행동을 담는다."],
   },
   {
@@ -925,6 +956,7 @@ export const NEO_REFINED_SECTIONS = Object.freeze([
     minChars: 1200,
     scope: "30일 전략의 3주차·4주차를, 주차별 목표·근거·구체 행동으로 두텁게 설계한다.",
     schema: { thirtyDayWeek34: ["3주차: 목표·근거·구체 행동", "4주차: 목표·근거·구체 행동"] },
+    counts: { thirtyDayWeek34: 2 },
     rules: ["thirtyDayWeek34는 정확히 2개(3주차, 4주차). 1·2주차와 이어지되 반복하지 않는다."],
   },
   {
@@ -992,11 +1024,13 @@ export function buildNeoRefinedSectionPrompt(section, ctx) {
 }
 
 // 챕터 JSON 하나를 안전 파싱(실패 시 {}). merge* 에서 fallback 처리.
+// 🔴 잘린 JSON 은 extractJsonObject 의 lastIndexOf("}") 가 못 살려서 챕터가 통째로 사라진다.
+//    괄호를 보충해 완결된 필드만이라도 건진다 — 유료 챕터를 0으로 만드는 것보다 낫다.
 export function parseNeoSectionResponse(text) {
   try {
     return extractJsonObject(text);
   } catch {
-    return {};
+    return salvageTruncatedJsonObject(text) || {};
   }
 }
 
@@ -1020,52 +1054,55 @@ export function mergeNeoInitialSections(results, input, methodSummary) {
   const misalignedFlowRaw = firstObject(firstObject(map.misalignedFlow).misalignedFlow);
   const meta = firstObject(map.meta);
   const today = firstObject(map.todayOrders);
-  const frontlineSummary = clean(opening.frontlineSummary, 4000);
+  const frontlineSummary = cleanProse(opening.frontlineSummary, 4000);
   const repeatedChoice = {
     title: clean(repeatedChoiceRaw.title || "반복되는 선택", 120),
-    description: clean(repeatedChoiceRaw.description, 4000),
+    description: cleanProse(repeatedChoiceRaw.description, 4000),
   };
   const misalignedFlow = {
     title: clean(misalignedFlowRaw.title || "지금 흐름이 어긋난 자리", 120),
-    description: clean(misalignedFlowRaw.description, 4000),
+    description: cleanProse(misalignedFlowRaw.description, 4000),
   };
   const briefing = {
     version: 1,
     documentType: "initial_briefing",
     selectedMethod,
     operationTitle: clean(opening.operationTitle, 120),
-    neoOpening: clean(opening.neoOpening, 2000),
+    neoOpening: cleanProse(opening.neoOpening, 2000),
     frontlineSummary,
     coreDiagnosis: frontlineSummary,
     innateNature: {
       title: clean(innateNatureRaw.title || "타고난 성향의 핵", 120),
-      description: clean(innateNatureRaw.description, 5000),
-      keyTraits: safeArray(innateNatureRaw.keyTraits).map((item) => clean(item, 300)).filter(Boolean).slice(0, 6),
+      description: cleanProse(innateNatureRaw.description, 5000),
+      keyTraits: dedupeTextList(safeArray(innateNatureRaw.keyTraits).map((item) => cleanProse(item, LIST_ITEM_CAP)).filter(Boolean)).slice(0, 6),
     },
     innateStrength: {
       title: clean(innateStrengthRaw.title || "타고난 강점과 약점", 120),
-      description: clean(innateStrengthRaw.description, 5000),
-      strongPoints: safeArray(innateStrengthRaw.strongPoints).map((item) => clean(item, 300)).filter(Boolean).slice(0, 5),
-      weakPoints: safeArray(innateStrengthRaw.weakPoints).map((item) => clean(item, 300)).filter(Boolean).slice(0, 5),
+      description: cleanProse(innateStrengthRaw.description, 5000),
+      strongPoints: dedupeTextList(safeArray(innateStrengthRaw.strongPoints).map((item) => cleanProse(item, LIST_ITEM_CAP)).filter(Boolean)).slice(0, 5),
+      weakPoints: dedupeTextList(safeArray(innateStrengthRaw.weakPoints).map((item) => cleanProse(item, LIST_ITEM_CAP)).filter(Boolean)).slice(0, 5),
     },
     topicStyle: {
       title: clean(firstObject(firstObject(map.topicStyle).topicStyle).title || "이 주제에서 너의 방식", 120),
-      description: clean(firstObject(firstObject(map.topicStyle).topicStyle).description, 5000),
-      keyPoints: safeArray(firstObject(firstObject(map.topicStyle).topicStyle).keyPoints).map((item) => clean(item, 300)).filter(Boolean).slice(0, 6),
+      description: cleanProse(firstObject(firstObject(map.topicStyle).topicStyle).description, 5000),
+      keyPoints: dedupeTextList(safeArray(firstObject(firstObject(map.topicStyle).topicStyle).keyPoints).map((item) => cleanProse(item, LIST_ITEM_CAP)).filter(Boolean)).slice(0, 6),
     },
-    topicAreas: safeArray(firstObject(map.topicAreaBreakdown).topicAreas).map((item) => ({
-      area: clean(firstObject(item).area, 120),
-      reading: clean(firstObject(item).reading, 2000),
-    })).filter((item) => item.area && item.reading).slice(0, 6),
+    topicAreas: dedupeTextList(
+      safeArray(firstObject(map.topicAreaBreakdown).topicAreas).map((item) => ({
+        area: clean(firstObject(item).area, 120),
+        reading: cleanProse(firstObject(item).reading, 2000),
+      })).filter((item) => item.area && item.reading),
+      (item) => item.area,
+    ).slice(0, 6),
     topicTiming: {
       title: clean(firstObject(firstObject(map.topicTiming).topicTiming).title || "이 주제의 시기 흐름", 120),
-      description: clean(firstObject(firstObject(map.topicTiming).topicTiming).description, 4000),
-      windows: safeArray(firstObject(firstObject(map.topicTiming).topicTiming).windows).map((item) => clean(item, 300)).filter(Boolean).slice(0, 5),
+      description: cleanProse(firstObject(firstObject(map.topicTiming).topicTiming).description, 4000),
+      windows: dedupeTextList(safeArray(firstObject(firstObject(map.topicTiming).topicTiming).windows).map((item) => cleanProse(item, LIST_ITEM_CAP)).filter(Boolean)).slice(0, 5),
     },
     originalStrategy: {
       title: clean(originalStrategyRaw.title || "본래 너는 이렇게 움직여야 한다", 120),
-      description: clean(originalStrategyRaw.description, 4000),
-      keyRules: safeArray(originalStrategyRaw.keyRules).map((item) => clean(item, 300)).filter(Boolean).slice(0, 6),
+      description: cleanProse(originalStrategyRaw.description, 4000),
+      keyRules: dedupeTextList(safeArray(originalStrategyRaw.keyRules).map((item) => cleanProse(item, LIST_ITEM_CAP)).filter(Boolean)).slice(0, 6),
     },
     repeatedChoice,
     repeatedPattern: repeatedChoice,
@@ -1074,31 +1111,38 @@ export function mergeNeoInitialSections(results, input, methodSummary) {
     methodEvidence: safeArray(firstObject(map.methodEvidence).methodEvidence).map((item) => ({
       method: clean(firstObject(item).method || selectedMethod, 30),
       label: clean(firstObject(item).label, 160),
-      summary: clean(firstObject(item).summary, 2000),
+      // 규칙이 1~4개를 허용하므로 1개만 왔을 때 이 항목 하나가 챕터 1650자를 혼자 져야 한다.
+      summary: cleanProse(firstObject(item).summary, 3000),
     })).filter((item) => item.summary).slice(0, 4),
-    bluntTruth: clean(firstObject(map.bluntTruth).bluntTruth, 3000),
+    bluntTruth: cleanProse(firstObject(map.bluntTruth).bluntTruth, 3000),
     forbiddenAction: {
       title: clean(firstObject(today.forbiddenAction).title, 120),
-      reason: clean(firstObject(today.forbiddenAction).reason, 2000),
+      reason: cleanProse(firstObject(today.forbiddenAction).reason, 2000),
     },
-    actionOrders: safeArray(today.actionOrders).map((item) => clean(item, 400)).filter(Boolean).slice(0, 3),
-    sevenDayMission: safeArray(firstObject(map.sevenDayMission).sevenDayMission).map((item, index) => ({
-      day: Number(firstObject(item).day) || index + 1,
-      mission: clean(firstObject(item).mission, 600),
-    })).filter((item) => item.mission).slice(0, 7),
-    realityCheckQuestions: safeArray(meta.realityCheckQuestions).map((item) => ({
-      question: clean(firstObject(item).question, 300),
-      whyItMatters: clean(firstObject(item).whyItMatters, 900),
-    })).filter((item) => item.question).slice(0, 5),
+    actionOrders: dedupeTextList(safeArray(today.actionOrders).map((item) => cleanProse(item, 700)).filter(Boolean)).slice(0, 3),
+    sevenDayMission: dedupeTextList(
+      safeArray(firstObject(map.sevenDayMission).sevenDayMission).map((item, index) => ({
+        day: Number(firstObject(item).day) || index + 1,
+        mission: cleanProse(firstObject(item).mission, 600),
+      })).filter((item) => item.mission),
+      (item) => item.mission,
+    ).slice(0, 7),
+    realityCheckQuestions: dedupeTextList(
+      safeArray(meta.realityCheckQuestions).map((item) => ({
+        question: cleanProse(firstObject(item).question, 400),
+        whyItMatters: cleanProse(firstObject(item).whyItMatters, 900),
+      })).filter((item) => item.question),
+      (item) => item.question,
+    ).slice(0, 5),
     badge: {
       name: clean(firstObject(meta.badge).name, 80),
-      description: clean(firstObject(meta.badge).description, 900),
+      description: cleanProse(firstObject(meta.badge).description, 900),
     },
-    tsundereClosing: clean(meta.tsundereClosing, 900),
-    nextStepPrompt: clean(meta.tsundereClosing, 900),
+    tsundereClosing: cleanProse(meta.tsundereClosing, 900),
+    nextStepPrompt: cleanProse(meta.tsundereClosing, 900),
   };
   if (!briefing.methodEvidence.length) {
-    const fallback = clean(methodSummary?.evidenceSummary || methodSummary?.summary, 1200);
+    const fallback = cleanProse(methodSummary?.evidenceSummary || methodSummary?.summary, 1200);
     if (fallback) {
       const label = METHOD_LABELS[selectedMethod] || selectedMethod;
       briefing.methodEvidence = [{ method: selectedMethod, label: `${label} 근거`, summary: fallback }];
@@ -1114,41 +1158,49 @@ export function mergeNeoRefinedSections(results, consultation) {
   const verdictRaw = firstObject(firstObject(map.verdict).verdict);
   const step = firstObject(map.thisWeekFirstStep);
   const meta = firstObject(map.meta);
-  const thirtyDayStrategy = [
+  const thirtyDayStrategy = dedupeTextList([
     ...safeArray(firstObject(map.thirtyDayWeek12).thirtyDayWeek12),
     ...safeArray(firstObject(map.thirtyDayWeek34).thirtyDayWeek34),
-  ].map((item) => clean(item, 700)).filter(Boolean).slice(0, 6);
+  ].map((item) => cleanProse(item, 1100)).filter(Boolean)).slice(0, 6);
   return {
     version: 2,
     documentType: "refined_order",
     selectedMethod,
     operationTitle: clean(review.operationTitle, 120),
-    neoReview: clean(review.neoReview, 3000),
+    neoReview: cleanProse(review.neoReview, 3000),
     verdict: {
       status: normalizeVerdictStatus(verdictRaw.status) || "방향은 맞지만 부족하다",
-      statement: clean(verdictRaw.statement, 1600),
+      statement: cleanProse(verdictRaw.statement, 1600),
     },
-    verdictBasis: clean(firstObject(map.verdict).verdictBasis, 1600),
-    actionAlternatives: safeArray(firstObject(map.actionAlternatives).actionAlternatives).map((item) => ({
-      timing: clean(firstObject(item).timing, 200),
-      action: clean(firstObject(item).action, 600),
-      rationale: clean(firstObject(item).rationale, 700),
-    })).filter((item) => item.action).slice(0, 5),
-    peopleToMeet: safeArray(firstObject(map.peopleToMeet).peopleToMeet).map((item) => ({
-      role: clean(firstObject(item).role, 240),
-      complementaryEnergy: clean(firstObject(item).complementaryEnergy, 600),
-      whereToFind: clean(firstObject(item).whereToFind, 600),
-    })).filter((item) => item.role).slice(0, 4),
+    verdictBasis: cleanProse(firstObject(map.verdict).verdictBasis, 1600),
+    actionAlternatives: dedupeTextList(
+      safeArray(firstObject(map.actionAlternatives).actionAlternatives).map((item) => ({
+        // 보통은 "3월 초부터 4월 중순까지" 같은 구절이라 상한에 닿지 않는다. 닿았다면 모델이
+        // 문장을 쓴 것이므로 하드 슬라이스하지 않는다.
+        timing: cleanProse(firstObject(item).timing, 200),
+        action: cleanProse(firstObject(item).action, 600),
+        rationale: cleanProse(firstObject(item).rationale, 700),
+      })).filter((item) => item.action),
+      (item) => item.action,
+    ).slice(0, 5),
+    peopleToMeet: dedupeTextList(
+      safeArray(firstObject(map.peopleToMeet).peopleToMeet).map((item) => ({
+        role: cleanProse(firstObject(item).role, 400),
+        complementaryEnergy: cleanProse(firstObject(item).complementaryEnergy, 600),
+        whereToFind: cleanProse(firstObject(item).whereToFind, 600),
+      })).filter((item) => item.role),
+      (item) => item.role,
+    ).slice(0, 4),
     thirtyDayStrategy,
-    thisWeekFirstStep: clean(step.thisWeekFirstStep, 600),
+    thisWeekFirstStep: cleanProse(step.thisWeekFirstStep, 900),
     forbiddenAction: {
       title: clean(firstObject(step.forbiddenAction).title, 120),
-      reason: clean(firstObject(step.forbiddenAction).reason, 1600),
+      reason: cleanProse(firstObject(step.forbiddenAction).reason, 1600),
     },
     badge: {
       name: clean(firstObject(meta.badge).name, 80),
-      description: clean(firstObject(meta.badge).description, 900),
+      description: cleanProse(firstObject(meta.badge).description, 900),
     },
-    tsundereClosing: clean(meta.tsundereClosing, 900),
+    tsundereClosing: cleanProse(meta.tsundereClosing, 900),
   };
 }

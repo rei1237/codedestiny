@@ -16,6 +16,7 @@ import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../li
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
+import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
@@ -797,6 +798,20 @@ function briefingCitesEvidence(briefing, tokens) {
 
 // 챕터 동시 생성(레이트리밋·subrequest 안전 상한). ziwei-deep-report 패턴 재사용.
 const NEO_SECTION_CONCURRENCY = 4;
+const NEO_SECTION_MAX_OUTPUT_TOKENS = 8192;
+const NEO_SECTION_TIMEOUT_MS = 45000;
+
+// 🔴 handleStart/handleRefine 은 요청 안에서 챕터 LLM 호출을 전부 끝낸다(waitUntil 미사용).
+//    섹션당 45초 × 재시도 2회 × 4웨이브면 최악 360초라 엣지 100초를 넘고, 그러면 라우트의
+//    실패·환불 처리(failServiceExecution)가 아예 돌지 못해 "결제만 되고 결과도 환불도 없음"이 된다.
+//    체인 전체 예산을 한 번 잡고, 남은 시간이 1회분에 못 미치면 재시도를 포기한다.
+function createNeoDeadline() {
+  return Date.now() + clampSyncLlmTimeoutMs(NEO_SECTION_TIMEOUT_MS * NEO_SECTION_CONCURRENCY);
+}
+
+function remainingBudgetMs(deadlineAt) {
+  return Math.max(0, deadlineAt - Date.now());
+}
 
 async function runWithConcurrency(items, limit, worker) {
   const results = new Array(items.length);
@@ -822,22 +837,29 @@ function countNeoTextChars(value) {
 
 // 챕터 하나 생성 → { id, parsed, provider, model, ok }. 실패해도 parsed={}로 폴백(전체 실패 방지).
 // 잘림(MAX_TOKENS)이나 빈 파싱이면 캐시를 우회해 1회 재시도한다(잘린 문장이 결과에 남는 것 방지).
-async function generateNeoSectionOnce(env, section, prompt, cacheConfig) {
+async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt) {
   try {
     let ai = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
+      const remainingMs = remainingBudgetMs(deadlineAt);
+      // 남은 예산이 1회분에 못 미치면 재시도하지 않는다 — 엣지가 요청을 끊으면 환불 경로가 죽는다.
+      if (attempt > 0 && remainingMs < NEO_SECTION_TIMEOUT_MS) break;
       const useCache = attempt === 0 && cacheConfig;
       ai = await callGeminiText(env, prompt, {
-        maxOutputTokens: 8192,
+        // 재시도는 토큰을 올려서 부른다. 같은 상한으로 다시 부르면 또 같은 자리에서 잘린다.
+        // 계수는 structured-consultation.js 의 ×(1+0.3n) 과 같은 식.
+        maxOutputTokens: Math.min(16384, Math.round(NEO_SECTION_MAX_OUTPUT_TOKENS * (1 + 0.3 * attempt))),
         temperature: 0.65,
         thinkingBudget: 0,
-        timeoutMs: 45000,
+        timeoutMs: Math.min(NEO_SECTION_TIMEOUT_MS, remainingMs || NEO_SECTION_TIMEOUT_MS),
         // Workers AI 폴백이 이 챕터 최소 분량의 40% 미만이면 실패로 돌린다.
         // 아래 40자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 응답" 하한.
         fallbackMinChars: Math.round((section.minChars || 500) * 0.4),
         ...(useCache ? { cache: cacheConfig } : {}),
       });
-      const needsRetry = ai?.ok && (ai.truncated === true || Object.keys(parseNeoSectionResponse(ai.text)).length === 0);
+      // Gemini 는 truncated(MAX_TOKENS)로, Workers AI 는 finishReason("length")로만 잘림을 알린다.
+      const truncated = ai?.truncated === true || /^(MAX_TOKENS|length)$/i.test(clean(ai?.finishReason, 40));
+      const needsRetry = ai?.ok && (truncated || Object.keys(parseNeoSectionResponse(ai.text)).length === 0);
       if (!needsRetry) break;
     }
     const provider = clean(ai?.provider || "");
@@ -866,6 +888,7 @@ async function generateBriefing(env, normalized, methodSummary) {
     methodSummary,
   };
   const cacheStore = createLlmCacheStore(env);
+  const deadlineAt = createNeoDeadline();
   const results = await runWithConcurrency(NEO_INITIAL_SECTIONS, NEO_SECTION_CONCURRENCY, (section) => {
     const prompt = buildNeoInitialSectionPrompt(section, ctx);
     const cacheConfig = {
@@ -873,8 +896,15 @@ async function generateBriefing(env, normalized, methodSummary) {
       deterministic: true,
       ttlSeconds: 30 * 24 * 60 * 60,
       keyExtra: `neo-operation-room-v2-init-${section.id}`,
+      // 🔴 minChars 없이 저장하면 llm-cache 가 !truncated 만 보므로, 폴백이 40% 게이트를 겨우
+      //    넘긴 짧은 응답이 TTL 30일 동안 고착된다.
+      //    llm-cache 의 관례값은 "라우트의 미달 판정 문턱"인데, 네오에는 챕터 단위 분량 판정이
+      //    없다(라우트 게이트는 브리핑 전체 200자와 응답 40자뿐). 실제로 존재하는 유일한 하한인
+      //    fallbackMinChars 와 같은 값을 쓴다 — section.minChars 를 그대로 쓰면 목표에 살짝
+      //    못 미친 정상 응답까지 전부 캐시 미스가 되어 챕터 14개가 매번 정가가 된다.
+      minChars: Math.round((section.minChars || 500) * 0.4),
     };
-    return generateNeoSectionOnce(env, section, prompt, cacheConfig);
+    return generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt);
   });
 
   let briefing = mergeNeoInitialSections(results, normalized.input, methodSummary);
@@ -890,7 +920,7 @@ async function generateBriefing(env, normalized, methodSummary) {
         "[재작성 지시]",
         `각 methodEvidence.summary 안에 다음 값 중 최소 2개를 그대로 인용해 다시 작성한다: ${tokens.slice(0, 14).join(", ")}`,
       ].join("\n");
-      const retried = await generateNeoSectionOnce(env, evidenceSection, retryPrompt, null);
+      const retried = await generateNeoSectionOnce(env, evidenceSection, retryPrompt, null, deadlineAt);
       if (retried.ok) {
         briefing = mergeNeoInitialSections(results.map((entry) => (entry.id === "methodEvidence" ? retried : entry)), normalized.input, methodSummary);
       }
@@ -943,9 +973,10 @@ async function generateRefinedOrder(env, consultation, realityCheck) {
     previousAdviceLog: buildPreviousAdviceLog(consultation?.initialBriefing),
   };
   // 2차는 현실 점검(자유 입력) 반영이라 비결정적 → 캐시 미사용.
+  const deadlineAt = createNeoDeadline();
   const results = await runWithConcurrency(NEO_REFINED_SECTIONS, NEO_SECTION_CONCURRENCY, (section) => {
     const prompt = buildNeoRefinedSectionPrompt(section, ctx);
-    return generateNeoSectionOnce(env, section, prompt, null);
+    return generateNeoSectionOnce(env, section, prompt, null, deadlineAt);
   });
   const refinedOrder = mergeNeoRefinedSections(results, consultation);
   if (countNeoTextChars(refinedOrder) < 200) {
