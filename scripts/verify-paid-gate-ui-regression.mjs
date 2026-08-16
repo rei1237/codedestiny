@@ -488,7 +488,15 @@ for (const source of [indexSource, staticIndexSource]) {
   assertContains(source, "@media (max-width:860px)", "mobile critical layout");
   assertContains(source, ".moon-start-grid{grid-template-columns:1fr}", "mobile card layout fallback");
   assertContains(source, '<link rel="stylesheet" href="/styles/core-ui.css', "core CSS blocking stylesheet");
-  assertContains(source, '<link rel="stylesheet" href="/styles/fortune-ui.css', "fortune CSS blocking stylesheet");
+  // 🔴 fortune-ui 는 a8565083a(2026-08-15) 부터 두 갈래로 나간다 — 홈이 실제로 매칭하는 부분집합
+  //    (fortune-ui-home.css, preload + rel 스왑)과 나머지 전체 시트(지연 로더). 예전 단언은
+  //    `<link rel="stylesheet" href="/styles/fortune-ui.css` 였는데 그 문자열은 그 커밋 이후
+  //    <noscript> 안에만 남아 **공허하게 통과**했다(원칙 10 — 대상이 없을 때 통과하는 가드는 가드가
+  //    아니다). 실제로 그 사이 프로필 카드 규칙이 지연 시트에 남아 FOUC 가 났는데 이 가드는 초록이었다.
+  //    이제 세 갈래를 각각 고정한다.
+  assertContains(source, 'href="/styles/fortune-ui-home.css', "fortune critical subset stylesheet");
+  assertContains(source, 'data-cd-noncritical-style-src="/styles/fortune-ui.css', "fortune full sheet still delivered");
+  assertContains(source, '<noscript><link rel="stylesheet" href="/styles/fortune-ui.css', "fortune sheet noscript fallback");
 }
 
 // ── 🔴 대기 화면 정책: '진행 중' 전체화면은 이용권 확인에서만 ──────────────────────────────

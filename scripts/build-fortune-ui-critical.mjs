@@ -44,12 +44,23 @@ const HEADER = `/* 생성물 — 손으로 고치지 말 것. 재생성: node sc
 const COMPRESSIBLE = new Set([".html", ".js", ".mjs", ".css", ".json", ".svg", ".xml", ".txt"]);
 const MOBILE_UA =
   "Mozilla/5.0 (Linux; Android 11; moto g power (2022)) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Mobile Safari/537.36";
-const CELLS = [
+const BASE_CELLS = [
   { name: "mobile-yeon", neo: false, ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
   { name: "mobile-neo", neo: true, ctx: { viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, userAgent: MOBILE_UA } },
   { name: "desktop-yeon", neo: false, ctx: { viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 } },
   { name: "desktop-neo", neo: true, ctx: { viewport: { width: 1440, height: 1000 }, deviceScaleFactor: 1 } },
 ];
+
+// 🔴 비로그인만 재면 저장된 프로필 카드가 통째로 빠진다. 이 4셀은 프로필 카드가 **없는** 상태라
+//    #dpMasterCard 가 --empty/--moon-loading 으로만 관측되고, .dp-master-card--active 안쪽
+//    (.dp-mc-inner·.dp-mc-name·.dp-mc-birth·.dp-mc-info-* 등 34규칙)은 매칭 0으로 탈락한다.
+//    그러면 그 규칙들은 지연 로더(index.html 의 data-cd-noncritical-style-src)에 남아 모바일에서
+//    최대 45초 뒤에 도착한다 — 카드가 무스타일로 먼저 그려지는 실제 증상이 이것이었다.
+//    특히 .dp-mc-flower 는 svg 에 width/height 속성이 없어, 규칙이 늦으면 셸의
+//    `svg{max-width:100%;height:auto}` 가 먹어 390px 뷰포트에서 358px 인플로 블록이 된다.
+// 🔴 기존 4셀을 프로필 상태로 **바꾸지 않는다.** 바꾸면 이번엔 --empty 규칙이 탈락해 FOUC 가
+//    반대편(카드 없는 사용자)으로 옮겨갈 뿐이다. 두 상태의 합집합이어야 한다.
+const CELLS = [...BASE_CELLS, ...BASE_CELLS.map((cell) => ({ ...cell, name: `${cell.name}-profile`, profile: true }))];
 
 if (!fs.existsSync(path.join(staticRoot, "index.html"))) {
   console.error("[critical-css] dist/index.html 이 없다. 먼저 `npm run build:cf` 를 돌릴 것.");
@@ -75,6 +86,26 @@ try {
         } catch (_) {}
       });
     }
+    if (cell.profile) {
+      // 🔴 키에 스코프 접미사가 붙는다(`.list::guest`). 접미사 없는 `.list` 에 넣으면
+      //    _dpReadStoredProfileState 가 읽지 않아 조용히 무시된다(scripts/measure-home-interaction.mjs
+      //    가 같은 이유로 같은 키를 쓴다).
+      // 🔴 전역(window.__cdCurrentDestinyProfile)만 심으면 안 된다 — _dpEnsureScopedStorageReady 가
+      //    저장소를 읽어 카드가 없으면 그 전역을 지우고 카드가 다시 --empty 로 돌아간다.
+      await page.addInitScript(() => {
+        try {
+          const profile = {
+            id: "critical-css-fixture",
+            profileId: "critical-css-fixture",
+            name: "측정",
+            gender: "F",
+            birth: { year: 1990, month: 5, day: 14, hour: 9, minute: 30, calType: "solar" },
+          };
+          localStorage.setItem("FORTUNE_APP_USER_PROFILES.list::guest", JSON.stringify([profile]));
+          localStorage.setItem("FORTUNE_APP_USER_PROFILES.current::guest", "critical-css-fixture");
+        } catch (_) {}
+      });
+    }
     await page.goto(`http://127.0.0.1:${port}/`, { waitUntil: "load", timeout: 120000 });
     await page.waitForTimeout(6000);
     // 🔴 추출원을 셸의 로딩 방식에 의존하지 않는다. 이 스크립트가 만든 부분집합을 셸이 쓰기
@@ -94,6 +125,21 @@ try {
       "/styles/fortune-ui.css",
     );
     await page.waitForTimeout(1000);
+    // 🔴 fail-closed. 시드가 먹지 않으면 카드는 --empty 로 남고, 그러면 이 스크립트는 아무 경고 없이
+    //    "고치기 전과 똑같은" 부분집합을 다시 뽑는다. 저장 키가 바뀌면 조용히 회귀하므로 실행으로 막는다.
+    if (cell.profile) {
+      const rendered = await page.evaluate(() => ({
+        active: !!document.querySelector(".dp-master-card--active"),
+        cls: (document.querySelector(".dp-master-card") || {}).className || "(카드 없음)",
+      }));
+      if (!rendered.active) {
+        throw new Error(
+          `[critical-css] ${cell.name}: 프로필 카드가 --active 로 렌더되지 않았다(현재 클래스: ${rendered.cls}). ` +
+            "시드 키(FORTUNE_APP_USER_PROFILES.list::guest / .current::guest)가 바뀌었는지 확인할 것 — " +
+            "이대로 뽑으면 .dp-mc-* 규칙이 다시 지연 시트에 남는다.",
+        );
+      }
+    }
     const found = await page.evaluate(collectMatchingRules);
     for (const row of found) if (!kept.has(row.text)) kept.set(row.text, row);
     console.log(`[critical-css] ${cell.name.padEnd(13)} matched ${String(found.length).padStart(5)} · union ${kept.size}`);
