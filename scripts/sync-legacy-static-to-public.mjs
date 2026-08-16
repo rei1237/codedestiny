@@ -1030,8 +1030,124 @@ function syncRootAssetCacheKeys() {
   }
 }
 
+/**
+ * 이 스크립트가 만든 public/ 사본을 리포 루트 `.ignore` 에 적어 **검색에서만** 뺀다.
+ * ripgrep 은 .gitignore·.ignore·.rgignore 를 모두 읽으므로, git 은 이 파일을 안 보는 채로
+ * Grep/Glob 결과에서 사본이 사라진다(추적·빌드·배포·CI 는 그대로다).
+ *
+ * 왜 필요한가 (2026-08-16 실측): public/ 은 추적 코드파일의 10%(266/2536)인데, 실제 심볼
+ * 검색 히트의 19~58%를 차지한다 — 미러된 것이 정확히 자주 찾는 파일(js/core/*, 루트 엔진,
+ * 정적 셸)이기 때문이다. 게다가 셸 사본 한 장이 2.68MB라 한 번 열면 컨텍스트가 통째로 날아간다.
+ *
+ * 🔴 판정은 **선언이 아니라 실제 내용**으로 한다. staticTargets 를 그대로 믿으면 안 된다:
+ *   · staticTargets 는 icons·sudda 를 복사 대상이라 선언하지만 루트에 원본 디렉터리가 없어
+ *     복사 루프에서 skip 된다 → public/icons/(20) · public/sudda/(53) 은 **원본**이다.
+ *   · cpSync 는 삭제를 하지 않는다 → 루트에서 지워진 파일이 public/ 에 고아로 남는다
+ *     (public/js/ 의 18개가 그것이고, 이들은 다른 사본이 없어 빼면 검색에서 영영 사라진다).
+ * 그래서 ①루트에 바이트 동일한 원본이 있는 파일만 사본으로 본다. 내용이 **어긋난** 사본은
+ * 일부러 남긴다 — 드리프트야말로 사람이 찾아야 할 것이다.
+ *
+ * ②③은 ①에 안 걸리는 파생물이다(변형이 있어 바이트가 다르다).
+ */
+const SEARCH_IGNORE_PATH = resolve(rootDir, ".ignore");
+const SEARCH_IGNORE_BEGIN = "# >>> sync:public 생성 미러 — 자동 생성, 직접 편집 금지 >>>";
+const SEARCH_IGNORE_END = "# <<< sync:public 생성 미러 <<<";
+
+const SEARCH_IGNORE_HEADER = `# ripgrep 전용 제외 목록 — git 은 이 파일을 읽지 않는다(.gitignore 아님).
+# 여기 적힌 것은 sync:public 이 루트에서 복사·파생한 사본이라, 검색에서 정본과 나란히
+# 나오면 같은 내용을 두 번 읽게 된다. 원본은 들어오지 않는다(아래 블록은 자동 생성).
+#
+# 미러까지 포함해 찾아야 할 때 — 셋 다 살아 있다:
+#   git grep <패턴>     git 은 .ignore 를 보지 않는다
+#   rg -u <패턴>        --no-ignore
+#   Read <경로>         경로를 직접 주는 읽기는 막히지 않는다
+#
+# 🔴 심볼·파일을 지우기 전 3면 grep(CLAUDE.md 원칙 9)에는 이 제외를 적용하지 말 것.
+#    미러가 참조를 갖고 있는데 못 보면 "임포터 0" 을 죽음의 증거로 오독하게 된다.
+#
+# 갱신: npm run sync:public (마커 안쪽만 다시 쓴다)
+`;
+
+/** gitignore 문법의 메타문자를 escape 해서 경로를 리터럴로 만든다. */
+function escapeIgnorePattern(relPath) {
+  return relPath.replace(/[[\]*?!#\\]/g, (ch) => `\\${ch}`);
+}
+
+/** public/ 아래에서 "루트에 바이트 동일한 원본이 있는" 파일만 모은다. */
+function collectMirroredPublicPaths(absDir, relDir, out) {
+  for (const entry of readdirSync(absDir, { withFileTypes: true })) {
+    const rel = relDir ? `${relDir}/${entry.name}` : entry.name;
+    const abs = join(absDir, entry.name);
+    if (entry.isDirectory()) {
+      collectMirroredPublicPaths(abs, rel, out);
+      continue;
+    }
+    if (!entry.isFile()) continue;
+    const rootAbs = resolve(rootDir, rel);
+    // 루트에 대응 파일이 없으면 원본이다(고아 사본 포함). 여기서 걸러야 원본을 안 삼킨다.
+    if (!existsSync(rootAbs) || !statSync(rootAbs).isFile()) continue;
+    // 크기부터 본다 — 2.6MB 셸 같은 대형 파일을 매번 통째로 읽지 않기 위한 선필터다.
+    if (statSync(abs).size !== statSync(rootAbs).size) continue;
+    if (!readFileSync(abs).equals(readFileSync(rootAbs))) continue;
+    out.add(`public/${rel}`);
+  }
+}
+
+function syncSearchIgnoreList() {
+  if (!existsSync(publicDir)) return;
+
+  const mirrors = new Set();
+
+  // ① 루트와 바이트 동일한 사본
+  collectMirroredPublicPaths(publicDir, "", mirrors);
+
+  // ② 루트 index.html 에서 파생한 셸 6벌 — applyLocaleSeoMeta 등으로 변형돼 ①에 안 걸린다.
+  const derivedShells = ["index.html", "static/index.html", ...localeLandingDirs.map((loc) => `${loc}/index.html`)];
+  for (const rel of derivedShells) {
+    if (existsSync(resolve(publicDir, rel))) mirrors.add(`public/${rel}`);
+  }
+
+  // ③ public/manifest.json 에서 파생한 로케일 매니페스트 (writeLocaleManifest)
+  for (const loc of localeLandingDirs) {
+    const rel = `manifest.${loc}.json`;
+    if (existsSync(resolve(publicDir, rel))) mirrors.add(`public/${rel}`);
+  }
+
+  const body = [...mirrors].sort().map((rel) => `/${escapeIgnorePattern(rel)}`);
+  const block = [SEARCH_IGNORE_BEGIN, ...body, SEARCH_IGNORE_END].join("\n");
+
+  const before = existsSync(SEARCH_IGNORE_PATH)
+    ? stripLeadingBom(readFileSync(SEARCH_IGNORE_PATH)).toString("utf8")
+    : null;
+
+  let next;
+  if (before === null) {
+    next = `${SEARCH_IGNORE_HEADER}\n${block}\n`;
+  } else {
+    const beginAt = before.indexOf(SEARCH_IGNORE_BEGIN);
+    const endAt = before.indexOf(SEARCH_IGNORE_END);
+    if (beginAt !== -1 && endAt !== -1 && endAt > beginAt) {
+      next = `${before.slice(0, beginAt)}${block}${before.slice(endAt + SEARCH_IGNORE_END.length)}`;
+    } else {
+      // 마커가 없으면 사람이 쓴 내용을 지우지 않고 뒤에 덧붙인다.
+      next = `${before.replace(/\s*$/, "")}\n\n${block}\n`;
+    }
+  }
+
+  if (before === next) {
+    console.log(`[sync-legacy-static-to-public] Search ignore list unchanged (${body.length} mirrors).`);
+    return;
+  }
+  writeFileSyncWithRetry(SEARCH_IGNORE_PATH, Buffer.from(next, "utf8"));
+  console.log(`[sync-legacy-static-to-public] Wrote .ignore search-exclusion block (${body.length} mirrors).`);
+}
+
 syncRootAssetCacheKeys();
 
 sanitizePublicGoogleFontReferences(publicDir);
+
+// 🔴 반드시 마지막이다 — 위의 캐시키 재작성·폰트 정리가 사본 내용을 바꾸므로,
+//    그전에 돌면 방금 어긋난 파일을 "미러 아님"으로 잘못 판정한다.
+syncSearchIgnoreList();
 
 console.log("[sync-legacy-static-to-public] Completed static asset sync.");

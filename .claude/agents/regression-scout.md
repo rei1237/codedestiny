@@ -16,10 +16,12 @@ model: inherit
 1. **정확 키워드 → 동의어/별칭 → 호출 경로** 순으로 검색한다. 대상 심볼의 export 이름뿐 아니라 문자열 참조(`data-*` 속성, 이벤트명, `featureKey`, env 키)도 함께 본다.
 2. **다음 다섯 축을 모두 훑는다. 하나라도 건너뛰면 그 사실을 보고에 적는다.**
    - 소스: `app/` `worker/` `lib/` `components/` `src/` `js/` `pages/`
-   - 정적 셸: 루트 `index.html` 과 미러 `public/index.html`·`public/{en,ja,zh,static}/index.html`
+   - 정적 셸: 루트 `index.html` 과 미러 `public/index.html`·`public/{en,ja,zh,zh-tw,static}/index.html`
    - 테스트: `__tests__/`
    - 검증기: `scripts/verify-*` · `scripts/lib/`
    - CI 배선: `.github/workflows/**` 의 트리거 `paths:` 와 잡 이름
+
+   🔴 **미러 축은 Grep 툴로 안 잡힌다** — 리포 루트 `.ignore` 가 `sync:public` 사본 169개를 검색에서 빼기 때문이다(2026-08-16). 셸 미러와 `public/js/**` 를 훑을 때는 **`git grep`**(git 은 `.ignore` 를 안 본다) 또는 `rg -u` 를 쓴다. 그냥 Grep 으로 훑고 "영향 없음"이라고 적으면 그것이 곧 부정 단언 위반이다(원칙 8).
 3. **이름 grep 결과로 결론을 내지 않는다.** 후보를 찾으면 `Read` 로 해당 함수 본문을 실제로 열어 중괄호 균형으로 구간을 확인한다(이 레포에서 이름 기반 스캔이 9곳을 오탐한 이력이 있다).
 4. 방어 장치(재시도·타임아웃·캐시·락·트랜잭션·에러 폴백 / 모달·오버레이·스크롤락·결제 게이트·`z-index`·지연로딩)가 대상 안팎에 **이미 있는지** 확인한다 — 중첩은 비용만 배가되거나 서로를 무력화한다(원칙 6).
 5. `worker/lib/db.js` 와 `worker/wrangler.toml [vars]` 처럼 **같은 값이 두 곳에 있는 쌍**이 걸리면 둘 다 보고한다. env 가 코드를 이기므로 한쪽만 고치면 조용히 무효가 된다.
