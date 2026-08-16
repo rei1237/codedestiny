@@ -7664,7 +7664,10 @@
     el.innerHTML =
       '<div class="dp-mc-glow"></div>'
       + '<div class="dp-mc-stars" aria-hidden="true"></div>'
-      + '<svg class="dp-mc-flower" viewBox="0 0 120 120" fill="none" aria-hidden="true" style="color:#FFD700">'
+      /* width/height 는 CSS(.dp-mc-flower 150px)와 같은 값이지만 속성으로도 박아 둔다 — 속성이 없으면
+         규칙이 도착하기 전까지 셸의 `svg{max-width:100%;height:auto}` 가 먹어 390px 뷰포트에서
+         358px 인플로 블록이 되고 카드 내용을 통째로 아래로 민다. */
+      + '<svg class="dp-mc-flower" width="150" height="150" viewBox="0 0 120 120" fill="none" aria-hidden="true" style="color:#FFD700">'
         + '<circle cx="60" cy="60" r="52" stroke="currentColor" stroke-width="0.5"/>'
         + '<circle cx="60" cy="60" r="32" stroke="currentColor" stroke-width="0.4"/>'
         + '<ellipse cx="60" cy="60" rx="52" ry="13" stroke="currentColor" stroke-width="0.4"/>'
