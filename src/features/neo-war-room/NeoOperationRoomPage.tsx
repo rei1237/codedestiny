@@ -4,6 +4,7 @@ import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSPr
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
 import { toDisplayText } from "@/lib/llm-text";
+import { buildResizedAssetUrl } from "@/lib/r2-public-url";
 import {
   beginPaidFeatureGateCheck,
   completePaidFeatureGateCheck,
@@ -12,6 +13,8 @@ import {
   runBillingCoinGate,
 } from "@/app/_lib/billing-client";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
+import LlmParagraphs from "@/components/fortune/LlmParagraphs";
+import NeoFactPunch from "./components/NeoFactPunch";
 import NeoSpriteActor from "./components/NeoSpriteActor";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import {
@@ -1338,8 +1341,9 @@ export default function NeoOperationRoomPage() {
           : "READY";
 
   const backgroundStyle = {
-    "--neo-bg-desktop": `url("${neoWarRoomAssets.backgrounds.desktop.src}")`,
-    "--neo-bg-mobile": `url("${neoWarRoomAssets.backgrounds.mobile.src}")`,
+    // 배경은 CSS 변수로 나가 NeoWarRoomAssetImage 를 우회하므로 리사이즈를 여기서 직접 건다.
+    "--neo-bg-desktop": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.desktop.src, { width: 1600, quality: 82 })}")`,
+    "--neo-bg-mobile": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.mobile.src, { width: 820, quality: 82 })}")`,
     "--neo-prologue-bg": `url("${neoWarRoomAssets.backgrounds.strategyCity.src}")`,
   } as CSSProperties;
   const playNeoBgm = useCallback(async (forceEnabled = false) => {
@@ -2128,6 +2132,7 @@ export default function NeoOperationRoomPage() {
                     asset={neoWarRoomAssets.decor.asset1}
                     alt=""
                     sizes="72px"
+                    resizeWidth={160}
                     className={styles.ctaOrbitFrame}
                     imageClassName={styles.ctaOrbitImage}
                   />
@@ -2215,6 +2220,7 @@ export default function NeoOperationRoomPage() {
           asset={neoWarRoomAssets.decor.asset1}
           alt=""
           sizes="72px"
+          resizeWidth={160}
           className={`${styles.lionSealFrame} ${styles.commandDeckLionDecor}`.trim()}
           imageClassName={styles.lionSealImage}
         />
@@ -2297,6 +2303,9 @@ export default function NeoOperationRoomPage() {
                       asset={item.coverAsset}
                       alt={`${item.label} 분석 방식`}
                       sizes="(max-width: 720px) 92vw, (max-width: 1200px) 44vw, 380px"
+                      // 표시 폭은 데스크톱 380px / 모바일 92vw(≈390px). 실측 곡선상 760(레티나 2배)은
+                      // 176KB 인데 640 은 122KB 라, 4장을 함께 받는 선택 화면에서는 640 이 균형점이다.
+                      resizeWidth={640}
                       loading="lazy"
                       className={styles.methodImageFrame}
                       imageClassName={styles.methodImage}
@@ -2580,6 +2589,7 @@ export default function NeoOperationRoomPage() {
                 asset={neoWarRoomAssets.decor.asset1}
                 alt=""
                 sizes="72px"
+                resizeWidth={160}
                 className={styles.lionSealFrame}
                 imageClassName={styles.lionSealImage}
               />
@@ -2625,6 +2635,7 @@ export default function NeoOperationRoomPage() {
                   asset={neoWarRoomAssets.decor.asset1}
                   alt=""
                   sizes="72px"
+                  resizeWidth={160}
                   className={`${styles.lionSealFrame} ${styles.panelLionDecor}`.trim()}
                   imageClassName={styles.lionSealImage}
                 />
@@ -2648,16 +2659,16 @@ export default function NeoOperationRoomPage() {
                 <div className={`${styles.briefingGrid} ${styles.revealBlock}`}>
                   <article>
                     <strong>현재 운명의 전선</strong>
-                    <p>{displayBriefingFrontline}</p>
+                    <LlmParagraphs text={displayBriefingFrontline} />
                   </article>
                   <article>
                     <strong>{displayBriefingRepeatedChoice.title || "반복되는 선택"}</strong>
-                    <p>{displayBriefingRepeatedChoice.description}</p>
+                    <LlmParagraphs text={displayBriefingRepeatedChoice.description} />
                   </article>
                   {displayBriefing.innateNature?.description ? (
                     <article>
                       <strong>{displayBriefing.innateNature.title || "타고난 성향의 핵"}</strong>
-                      <p>{displayBriefing.innateNature.description}</p>
+                      <LlmParagraphs text={displayBriefing.innateNature.description} />
                       {displayBriefing.innateNature.keyTraits?.length ? (
                         <ul>
                           {displayBriefing.innateNature.keyTraits.map((trait) => <li key={trait}>{trait}</li>)}
@@ -2668,7 +2679,7 @@ export default function NeoOperationRoomPage() {
                   {displayBriefing.innateStrength?.description ? (
                     <article>
                       <strong>{displayBriefing.innateStrength.title || "타고난 강점과 약점"}</strong>
-                      <p>{displayBriefing.innateStrength.description}</p>
+                      <LlmParagraphs text={displayBriefing.innateStrength.description} />
                       {displayBriefing.innateStrength.strongPoints?.length ? (
                         <ul>
                           {displayBriefing.innateStrength.strongPoints.map((point) => <li key={`strong-${point}`}>💪 {point}</li>)}
@@ -2684,7 +2695,7 @@ export default function NeoOperationRoomPage() {
                   {displayBriefing.topicStyle?.description ? (
                     <article>
                       <strong>{displayBriefing.topicStyle.title || "이 주제에서 너의 방식"}</strong>
-                      <p>{displayBriefing.topicStyle.description}</p>
+                      <LlmParagraphs text={displayBriefing.topicStyle.description} />
                       {displayBriefing.topicStyle.keyPoints?.length ? (
                         <ul>
                           {displayBriefing.topicStyle.keyPoints.map((point) => <li key={point}>{point}</li>)}
@@ -2705,7 +2716,7 @@ export default function NeoOperationRoomPage() {
                   {displayBriefing.topicTiming?.description ? (
                     <article>
                       <strong>{displayBriefing.topicTiming.title || "이 주제의 시기 흐름"}</strong>
-                      <p>{displayBriefing.topicTiming.description}</p>
+                      <LlmParagraphs text={displayBriefing.topicTiming.description} />
                       {displayBriefing.topicTiming.windows?.length ? (
                         <ul>
                           {displayBriefing.topicTiming.windows.map((w) => <li key={w}>{w}</li>)}
@@ -2715,7 +2726,7 @@ export default function NeoOperationRoomPage() {
                   ) : null}
                   <article>
                     <strong>{displayBriefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"}</strong>
-                    <p>{displayBriefing.originalStrategy?.description}</p>
+                    <LlmParagraphs text={displayBriefing.originalStrategy?.description} />
                     {displayBriefing.originalStrategy?.keyRules?.length ? (
                       <ul>
                         {displayBriefing.originalStrategy.keyRules.map((rule) => <li key={rule}>{rule}</li>)}
@@ -2724,32 +2735,44 @@ export default function NeoOperationRoomPage() {
                   </article>
                   <article>
                     <strong>{displayBriefingMisalignedFlow.title || "지금 흐름이 어긋난 자리"}</strong>
-                    <p>{displayBriefingMisalignedFlow.description}</p>
+                    <LlmParagraphs text={displayBriefingMisalignedFlow.description} />
                   </article>
                 </div>
+                ) : null}
+                {/* 브리핑 카드 8장이 연달아 나오는 구간 뒤에 삽화 1컷 — 시선이 쉬는 지점.
+                    기존 .missionBust 크롭과 로컬 투명 스프라이트(약 65KB)를 재사용한다. 7일 작전 중간에
+                    들어가는 반신상과 다른 포즈를 써서 같은 그림이 두 번 나오지 않게 한다. */}
+                {briefingRevealStep >= 2 && displayBriefing.methodEvidence?.length ? (
+                  <NeoWarRoomAssetImage
+                    src="/neo-operation-room/sprites/transparent/neo-transparent-s3-f01.webp"
+                    alt=""
+                    className={`${styles.missionBust} ${styles.revealBlock}`}
+                    imageClassName={styles.missionBustImg}
+                    sizes="(max-width: 720px) 92vw, 640px"
+                    style={{ background: "linear-gradient(180deg, rgba(19, 16, 42, 0.72), rgba(10, 8, 24, 0.86))" }}
+                  />
                 ) : null}
                 {briefingRevealStep >= 2 && displayBriefing.methodEvidence?.length ? (
                   <div className={`${styles.evidenceList} ${styles.revealBlock}`}>
                     {displayBriefing.methodEvidence.map((item) => (
                       <article key={`${item.method}-${item.label}`}>
                         <strong>{item.label}</strong>
-                        <p>{item.summary}</p>
+                        <LlmParagraphs text={item.summary} />
                       </article>
                     ))}
                   </div>
                 ) : null}
                 {briefingRevealStep >= 3 && displayBriefing.bluntTruth ? (
-                  <blockquote
-                    className={`${styles.bluntTruth} ${styles.bluntTruthImpact}`}
-                    data-intensity={displayBriefing && intensity ? intensity : "standard"}
-                  >
-                    {displayBriefing.bluntTruth}
-                  </blockquote>
+                  <NeoFactPunch
+                    text={displayBriefing.bluntTruth}
+                    className={styles.bluntTruthImpact}
+                    intensity={displayBriefing && intensity ? intensity : "standard"}
+                  />
                 ) : null}
                 {briefingRevealStep >= 4 && (displayBriefing.forbiddenAction?.title || displayBriefing.forbiddenAction?.reason) ? (
                   <div className={`${styles.refinedListBlock} ${styles.revealBlock}`}>
                     <strong>{displayBriefing.forbiddenAction?.title || "오늘 금지 행동"}</strong>
-                    <p>{displayBriefing.forbiddenAction?.reason}</p>
+                    <LlmParagraphs text={displayBriefing.forbiddenAction?.reason} />
                   </div>
                 ) : null}
                 {briefingRevealStep >= 4 && displayBriefing.actionOrders?.length ? (
@@ -2830,6 +2853,7 @@ export default function NeoOperationRoomPage() {
                   asset={neoWarRoomAssets.decor.asset1}
                   alt=""
                   sizes="72px"
+                  resizeWidth={160}
                   className={`${styles.lionSealFrame} ${styles.panelLionDecor}`.trim()}
                   imageClassName={styles.lionSealImage}
                 />
@@ -2846,11 +2870,11 @@ export default function NeoOperationRoomPage() {
                   </article>
                   <article>
                     <strong>{displayBriefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"}</strong>
-                    <p>{displayBriefing.originalStrategy?.description}</p>
+                    <LlmParagraphs text={displayBriefing.originalStrategy?.description} />
                   </article>
                   <article>
                     <strong>{displayBriefingMisalignedFlow.title || "지금 흐름이 어긋난 자리"}</strong>
-                    <p>{displayBriefingMisalignedFlow.description}</p>
+                    <LlmParagraphs text={displayBriefingMisalignedFlow.description} />
                   </article>
                 </div>
 
@@ -2923,6 +2947,7 @@ export default function NeoOperationRoomPage() {
                     asset={neoWarRoomAssets.decor.asset1}
                     alt=""
                     sizes="56px"
+                    resizeWidth={128}
                     className={styles.refineBadge}
                     imageClassName={styles.lionSealImage}
                   />
@@ -2937,6 +2962,7 @@ export default function NeoOperationRoomPage() {
                   asset={neoWarRoomAssets.decor.asset1}
                   alt=""
                   sizes="72px"
+                  resizeWidth={160}
                   className={`${styles.lionSealFrame} ${styles.panelLionDecor}`.trim()}
                   imageClassName={styles.lionSealImage}
                 />
@@ -2992,7 +3018,7 @@ export default function NeoOperationRoomPage() {
                 <div className={styles.briefingGrid}>
                   <article>
                     <strong>{displayRefinedOrder.forbiddenAction?.title || "오늘 금지 행동"}</strong>
-                    <p>{displayRefinedOrder.forbiddenAction?.reason}</p>
+                    <LlmParagraphs text={displayRefinedOrder.forbiddenAction?.reason} />
                   </article>
                   {displayRefinedOrder.thisWeekFirstStep ? (
                     <article>
@@ -3007,7 +3033,7 @@ export default function NeoOperationRoomPage() {
                     <p>{`${getNeoTopicBadge(topic).name} · ${displayRefinedOrder.badge.description}`}</p>
                   </div>
                 ) : null}
-                {displayRefinedOrder.tsundereClosing ? <blockquote className={styles.bluntTruth}>{displayRefinedOrder.tsundereClosing}</blockquote> : null}
+                {displayRefinedOrder.tsundereClosing ? <NeoFactPunch text={displayRefinedOrder.tsundereClosing} label="NEO · 마무리 한마디" /> : null}
               </section>
             ) : null}
           </div>
