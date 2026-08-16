@@ -252,6 +252,23 @@ jobs:
             --origin="${CD_PRODUCTION_ORIGIN}" \
             ${{ steps.state.outputs.worker_promoted == 'false' && '--skip-worker' || '' }}
 
+      # 배포된 SHA 가 확인된 **뒤**에만 알린다 — 아직 안 뜬 URL 을 크롤하라고 부르면 404 를 학습시킨다.
+      # 제출 대상은 sitemap.xml 에서 lastmod 가 오늘인 URL 뿐이다(델타). 변경이 없으면 그냥 건너뛴다.
+      #
+      # 🔴 continue-on-error 를 반드시 붙인다. IndexNow 는 외부 서비스이고 색인 신호는 부가 기능인데,
+      # 이 스텝이 빨간불이 되면 deploy-safe 를 통해 **멀쩡한 배포가 롤백된다.** 붙이지 않으면
+      # Bing 쪽 장애가 우리 릴리스를 되돌린다. verify:indexnow-wiring 이 이 플래그를 강제한다.
+      #
+      # 배선 가드를 제출 직전에 함께 돌린다 — 새 CI 게이트를 만들지 않으면서(CLAUDE.md CI gate scope)
+      # 가드가 실제로 보호하는 순간에 돌게 하는 자리다. 키가 어긋났거나 제출 소스가 사이트맵이
+      # 아니면 여기서 멈춰 잘못 제출하지 않는다.
+      - name: Notify IndexNow of changed URLs
+        if: ${{ success() && env.RELEASE_MODE == 'production' }}
+        continue-on-error: true
+        run: |
+          npm run verify:indexnow-wiring
+          npm run seo:indexnow
+
       - name: Summarize the result
         if: always()
         env:
