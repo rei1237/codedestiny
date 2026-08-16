@@ -129,7 +129,7 @@ assert(appChrome.includes('"/astrology-ai"'), "chromeless route missing");
 
 const html = read("index.html");
 assert(html.includes('data-action="gotoAstrologyPremium"'), "main astrology action missing");
-assert(html.includes('data-service-detail-href="/astrology-ai"'), "main card route missing");
+assert(html.includes('data-service-detail-href="/astrology-ai/"'), "main card route missing");
 assert(html.includes("/fuctionassets/premiumstar.webp"), "representative image asset missing");
 assert(html.includes("astrology-ai-consultation-v20260627"), "main card marker missing");
 assertMissing(html, retiredRuntimeTerms, "index.html");

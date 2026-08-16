@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import { LOCALE_CONFIG, PUBLIC_LOCALES, localeUrlSegment } from "../../../lib/i18n/locales";
+import { I18N_POLICY_ROUTE_MAP } from "../../../lib/i18n/routes";
 import { PRIVACY_CONTENT } from "../../../lib/legal/legalContent";
 import LegalDocumentBody from "../../components/LegalDocumentBody";
 import { resolveLocale } from "../_lib";
@@ -68,12 +69,7 @@ export async function generateMetadata({ params }) {
     title: copy.title,
     description: copy.description,
     inLanguage: LOCALE_CONFIG[locale].htmlLang,
-    hreflangPaths: {
-      en: "/en/privacy-policy",
-      ja: "/ja/privacy-policy",
-      zh: "/zh/privacy-policy",
-      "x-default": "/privacy-policy",
-    },
+    hreflangPaths: I18N_POLICY_ROUTE_MAP.privacy,
   });
 }
 

@@ -82,6 +82,8 @@ type HreflangPathMap = Partial<{
   ko: string;
   ja: string;
   zh: string;
+  /** 🔴 빠뜨리지 말 것 — 없으면 /zh-tw/** 페이지가 자기 자신을 hreflang 집합에 못 넣어 전체가 무시된다. */
+  "zh-TW": string;
   en: string;
   "x-default": string;
 }>;

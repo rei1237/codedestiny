@@ -23,7 +23,7 @@ const html = read("index.html");
 const markerIndex = html.indexOf('data-vedic-ai-card-marker="vedic-ai-direct-route-v20260627"');
 assert(markerIndex >= 0, "[verify:vedic-ai-flow] direct route marker missing");
 const cardSlice = html.slice(Math.max(0, markerIndex - 800), markerIndex + 1800);
-assertIncludes(cardSlice, 'href="/vedic-ai"', "main card href");
+assertIncludes(cardSlice, 'href="/vedic-ai/"', "main card href");
 assertIncludes(cardSlice, "전문가 상담 · 30,000원", "main card price");
 assertIncludes(html, "__cdVedicAiDirectClickGuard", "main card direct click guard");
 assertMissing(cardSlice, ['data-action="gotoVedicPremium"', 'data-coin-cost="300"'], "vedic card");

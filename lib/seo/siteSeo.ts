@@ -30,6 +30,26 @@ const SITE_SEO_TEXT_TRANSLATIONS = {
 function siteSeoText(key: keyof typeof SITE_SEO_TEXT_TRANSLATIONS.ko) {
   return SITE_SEO_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
+/**
+ * 공식 외부 채널 정본. 🔴 schema.org Organization 의 `sameAs` 와 푸터 SNS 링크가 **여기서만** 파생된다.
+ *
+ * 2026-08-16 이전에는 두 목록이 갈라져 있었고, `sameAs` 쪽이 타인의 블로그
+ * (blog.naver.com/codedestiny = "수고했어 오늘도.")와 존재하지 않는 인스타 계정
+ * (instagram.com/code_destiny_official)을 공식 계정으로 선언하고 있었다. 그 상태에서는
+ * Google 이 브랜드 엔티티를 통합하지 못해 실채널의 신호가 스키마에 실리지 않는다.
+ *
+ * 🔴 `sameAs` 는 **외부 프로필 전용**이다 — 자기 사이트 URL(/about, /insights)을 넣지 말 것.
+ * 표시용 라벨·아이콘은 app/_components/SocialFooter.js 가 key 로 매핑한다.
+ * 순서는 푸터 렌더 순서다.
+ */
+export const SOCIAL_PROFILES = [
+  { key: "youtube", url: "https://www.youtube.com/@CodeDestiny_Official" },
+  { key: "threads", url: "https://www.threads.com/@codedestiny_official" },
+  { key: "instagram", url: "https://www.instagram.com/codedestiny_official/" },
+  { key: "naverBlog", url: "https://blog.naver.com/goodbyejieun" },
+  { key: "x", url: "https://x.com/sajuseongj97497" },
+] as const;
+
 export const siteSeo = {
   siteName: "Code Destiny",
   alternateName: [
@@ -65,12 +85,7 @@ export const siteSeo = {
     contactType: "customer support",
     availableLanguage: ["Korean"],
   },
-  sameAs: [
-    "https://code-destiny.com/about",
-    "https://code-destiny.com/insights",
-    "https://blog.naver.com/codedestiny",
-    "https://www.instagram.com/code_destiny_official/",
-  ],
+  sameAs: SOCIAL_PROFILES.map((profile) => profile.url),
 } as const;
 
 export type PublicSeoPage = {

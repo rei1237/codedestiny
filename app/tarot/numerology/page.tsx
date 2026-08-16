@@ -201,9 +201,9 @@ const faqItems = [
 ];
 
 const relatedLinks = [
-  { href: "/tarot/guide", label: numerologyTarotPageText("related.tarotGuide") },
-  { href: "/saju/guide", label: numerologyTarotPageText("related.sajuGuide") },
-  { href: "/disclaimer", label: numerologyTarotPageText("related.disclaimer") },
+  { href: "/tarot/guide/", label: numerologyTarotPageText("related.tarotGuide") },
+  { href: "/saju/guide/", label: numerologyTarotPageText("related.sajuGuide") },
+  { href: "/disclaimer/", label: numerologyTarotPageText("related.disclaimer") },
 ];
 
 export default function NumerologyTarotPage() {

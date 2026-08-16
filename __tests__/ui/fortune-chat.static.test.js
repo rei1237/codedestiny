@@ -89,7 +89,7 @@ test("flower pig chat hands an existing session to the real Fusion Fortune route
 
   assert.match(client, /\/fusion-fortune\?fortuneChatSession=/);
   assert.match(client, /초융합 심층 리딩 이어가기/);
-  assert.match(home, /fortune-gateway__door--fusion" href="\/fusion-fortune"/);
+  assert.match(home, /fortune-gateway__door--fusion" href="\/fusion-fortune\/"/);
 });
 
 test("Yeoni chat sends everything the server requires to build a reading", () => {

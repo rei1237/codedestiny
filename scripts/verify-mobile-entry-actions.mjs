@@ -37,7 +37,7 @@ for (const row of rows) {
 }
 
 const mobileActionButtons = [
-  ["mobile tarot preview CTA", ".moon-preview-card", 'href="/tarot/mingri"'],
+  ["mobile tarot preview CTA", ".moon-preview-card", 'href="/tarot/mingri/"'],
   ["mobile membership guide CTA", "#honeyMembershipMini", 'data-membership-cta="benefits"'],
   ["bottom nav all-fortunes CTA", "#cdMobileBottomNav", "cdOpenAllFortunes"],
 ];

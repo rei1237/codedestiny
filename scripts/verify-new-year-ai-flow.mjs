@@ -51,7 +51,7 @@ for (const relPath of deletedPaths) {
   assert(!exists(relPath), `${relPath} should be removed`);
 }
 
-assertIncludes("index.html", 'href="/new-year-ai-consultation"', "main new-year card should link to the consultation page");
+assertIncludes("index.html", 'href="/new-year-ai-consultation/"', "main new-year card should link to the consultation page");
 assertIncludes("index.html", 'data-cd-marker="new-year-ai-card-v20260627"', "main new-year card marker should exist");
 assertExcludes("index.html", 'data-action="openSajuNewYearModal"', "main shell should not open the old modal action");
 assertExcludes("index.html", "/js/saju-new-year.js?v=", "main shell should not preload the old new-year client");

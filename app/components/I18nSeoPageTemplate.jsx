@@ -112,12 +112,12 @@ export default function I18nSeoPageTemplate({
     description: content.description,
     url: toAbsolute(currentPath),
     inLanguage,
-    isPartOf: {
-      "@type": "WebSite",
-      name: "Code Destiny",
-      url: SEO_SITE_CONFIG.siteUrl,
-      inLanguage,
-    },
+    // 🔴 여기에 WebSite 노드를 인라인으로 펼치지 말 것. 예전에는 @id 없이
+    // `{ "@type": "WebSite", name: "Code Destiny", ... }` 를 박아서 같은 페이지에 이름이 다른
+    // WebSite 가 둘 나갔다(레이아웃의 "CODE DESTINY (꿀꿀 운세)" + 여기 "Code Destiny").
+    // @id 로 참조하면 레이아웃이 선언한 사이트 엔티티에 그대로 합류한다
+    // — lib/structured-data.ts:102 의 buildWebPageJsonLd 와 같은 관례다.
+    isPartOf: { "@id": `${SEO_SITE_CONFIG.siteUrl}/#website` },
   };
 
   const faqJsonLd = {

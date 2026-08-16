@@ -289,7 +289,7 @@ function xmlResponse(xml, status = 200) {
 function buildContentSitemapXml(items, env) {
   const origin = resolveSiteOrigin(env);
   const urls = items.map((item) => {
-    const loc = `${origin}/insights/${encodeURIComponent(item.slug)}`;
+    const loc = `${origin}/insights/${encodeURIComponent(item.slug)}/`;
     const lastmod = toIsoDate(item.updatedAt || item.publishedAt || item.createdAt);
     return [
       "  <url>",
@@ -315,7 +315,9 @@ function buildContentRssXml(items, env, requestPath = "/rss.xml") {
   const feedUrl = `${origin}${requestPath === "/insights/rss.xml" ? "/insights/rss.xml" : "/rss.xml"}`;
   const now = new Date();
   const rssItems = items.slice(0, FEED_MAX_ITEMS).map((item) => {
-    const link = `${origin}/insights/${encodeURIComponent(item.slug)}`;
+    // 🔴 후행 슬래시 필수 — 이 항목들은 public/_worker.js 가 정적 rss.xml 에 병합하므로,
+    // 형태가 다르면 라이브 피드 안에서 리다이렉트되는 URL 과 아닌 URL 이 섞인다.
+    const link = `${origin}/insights/${encodeURIComponent(item.slug)}/`;
     return [
       "    <item>",
       `      <title>${escapeXml(item.title || "Untitled")}</title>`,

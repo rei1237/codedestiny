@@ -65,7 +65,7 @@ for (const file of shellFiles) {
   ]) {
     assertNotIncludes(file, html, marker);
   }
-  assertIncludes(file, html, 'href="/naming-ai"');
+  assertIncludes(file, html, 'href="/naming-ai/"');
   assertIncludes(file, html, 'data-feature-key="premium-naming-prompt"');
 }
 

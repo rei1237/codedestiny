@@ -77,7 +77,7 @@ const appChrome = read("app/components/AppChrome.tsx");
 
 assertIncludes("index.html", indexHtml, 'data-cd-marker="love-secret-ai-entry-v20260627"');
 assertIncludes("index.html", indexHtml, 'data-action="goLoveSecretAi"');
-assertIncludes("index.html", indexHtml, 'data-service-detail-href="/love-secret-ai"');
+assertIncludes("index.html", indexHtml, 'data-service-detail-href="/love-secret-ai/"');
 assertNotIncludes("index.html", indexHtml, `/js/${legacyLoveSecretSlug}-v2.js`);
 assertNotIncludes("index.html", indexHtml, 'id="loveSecretModal"');
 assertNotIncludes("index.html", indexHtml, "love-secret-pdf");

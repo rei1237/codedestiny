@@ -22,51 +22,65 @@ const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
 function siteFooterHubText(key) {
   return SITE_FOOTER_HUB_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
+
+// SocialFooter 의 한국어 카피. 🔴 lib/i18n/siteFooterHubCopy 에서 가져오지 말 것 — 이 파일은
+// AppChrome("use client") 이 import 해 **클라이언트 번들에 들어간다.** 5개 로케일 표를 끌어오면
+// layout 청크가 41KB → 63KB 로 커진다(2026-08-16 실측). 로케일 카피는 서버 전용
+// LocaleFooterHub 가 넘기고, 여기에는 ko 문자열만 둔다.
+const KO_SOCIAL_COPY = {
+  sectionAriaLabel: "Code Destiny 공식 SNS 채널",
+  kicker: "Official Channels",
+  title: "Code Destiny 공식 채널",
+  navAriaLabel: "Code Destiny SNS 바로가기",
+  linkAriaTemplate: "Code Destiny 공식 {channel} 새 창으로 열기",
+  labels: { youtube: "유튜브", threads: "쓰레드", instagram: "인스타그램", naverBlog: "블로그", x: "X" },
+};
 const POLICY_LINKS = [
-  { href: "/privacy", text: "개인정보처리방침 / Privacy" },
-  { href: "/terms", text: "이용약관 / Terms" },
-  { href: "/contact", text: "문의하기 / Contact" },
-  { href: "/about", text: "서비스 소개 / About" },
-  { href: "/disclaimer", text: "면책 고지 / Disclaimer" },
-  { href: "/advertising-policy", text: "광고 운영정책 / Advertising Policy" },
-  { href: "/terms#refund-policy", text: "교환/환불 정책" },
-  { href: "/faq", text: "FAQ" },
-  { href: "/methodology", text: "콘텐츠 방법론" },
-  { href: "/insights", text: "인사이트 아카이브" },
+  { href: "/privacy/", text: "개인정보처리방침 / Privacy" },
+  { href: "/terms/", text: "이용약관 / Terms" },
+  { href: "/contact/", text: "문의하기 / Contact" },
+  { href: "/about/", text: "서비스 소개 / About" },
+  { href: "/disclaimer/", text: "면책 고지 / Disclaimer" },
+  { href: "/advertising-policy/", text: "광고 운영정책 / Advertising Policy" },
+  { href: "/terms/#refund-policy", text: "교환/환불 정책" },
+  { href: "/faq/", text: "FAQ" },
+  { href: "/methodology/", text: "콘텐츠 방법론" },
+  { href: "/insights/", text: "인사이트 아카이브" },
 ];
 
 const SEO_LINK_GROUPS = [
   {
     title: siteFooterHubText("siteFooter.001"),
     links: [
-      { href: "/kkul-kkul-unse", text: "꿀꿀 운세 — 코드 데스티니 브랜드 안내" },
-      { href: "/saju", text: "무료 사주풀이 보기" },
-      { href: "/manse", text: "꿀꿀 만세력 확인하기" },
-      { href: "/today", text: "오늘의 운세 확인하기" },
-      { href: "/compatibility", text: "사주 궁합 분석하기" },
-      { href: "/premium", text: "프리미엄 운세 리포트" },
-      { href: "/saju/basic", text: "사주 만세력 기본 해석" },
-      { href: "/ziwei/chart", text: "자미두수 12궁 명반" },
-      { href: "/astrology/cosmic", text: "점성술 코즈믹 차트" },
-      { href: "/saju/sibyl", text: "시빌라 시스템" },
-      { href: "/life-book-ai", text: "인생의 책" },
-      { href: "/love-secret-ai", text: "연애 비책 AI 상담" },
+      { href: "/kkul-kkul-unse/", text: "꿀꿀 운세 — 코드 데스티니 브랜드 안내" },
+      { href: "/saju/", text: "무료 사주풀이 보기" },
+      { href: "/manse/", text: "꿀꿀 만세력 확인하기" },
+      { href: "/today/", text: "오늘의 운세 확인하기" },
+      { href: "/compatibility/", text: "사주 궁합 분석하기" },
+      { href: "/premium/", text: "프리미엄 운세 리포트" },
+      { href: "/saju/basic/", text: "사주 만세력 기본 해석" },
+      { href: "/ziwei/chart/", text: "자미두수 12궁 명반" },
+      { href: "/astrology/cosmic/", text: "점성술 코즈믹 차트" },
+      { href: "/saju/sibyl/", text: "시빌라 시스템" },
+      { href: "/life-book-ai/", text: "인생의 책" },
+      { href: "/love-secret-ai/", text: "연애 비책 AI 상담" },
     ],
   },
   {
     title: siteFooterHubText("siteFooter.002"),
     links: [
-      { href: "/tarot", text: "명리학 타로 시작하기" },
-      { href: "/physiognomy", text: "동물관상 분석하기" },
-      { href: "/tarot/mingri", text: "명리학 타로" },
-      { href: "/tarot/love", text: "우리는 무슨 사이" },
-      { href: "/tarot/healing", text: "따뜻한 태양 회복 타로" },
-      { href: "/tarot/self-esteem", text: "자존감 레벨업 타로" },
-      { href: "/tarot/reunion", text: "재회운 타로" },
-      { href: "/tarot/prompt-maker", text: "타로 프롬프트 라이브러리" },
-      { href: "/tarot/year", text: "십이지신 천운 타로" },
+      { href: "/tarot/", text: "명리학 타로 시작하기" },
+      { href: "/physiognomy/", text: "동물관상 분석하기" },
+      { href: "/tarot/mingri/", text: "명리학 타로" },
+      { href: "/tarot/love/", text: "우리는 무슨 사이" },
+      { href: "/tarot/healing/", text: "따뜻한 태양 회복 타로" },
+      { href: "/tarot/self-esteem/", text: "자존감 레벨업 타로" },
+      { href: "/tarot/reunion/", text: "재회운 타로" },
+      { href: "/tarot/prompt-maker/", text: "타로 프롬프트 라이브러리" },
+      { href: "/tarot/year/", text: "십이지신 천운 타로" },
       { href: "/tarot/mindscan/", text: "속마음 알아보기" },
       { href: "/tarot/crystal-soul/", text: "원석 소울 타로" },
+      { href: "/animal/mbti/", text: "MBTI 동물 궁합 테스트" },
     ],
   },
   {
@@ -76,29 +90,37 @@ const SEO_LINK_GROUPS = [
       // noindex,nofollow 인 인터랙티브 라우트만 가리켜서, 전 페이지 푸터의 링크 자산이
       // 색인되지 않는 화면에서 끊겼고 정작 허브는 유입 링크가 0이었다.
       // 각 허브 페이지가 자체 CTA 로 인터랙티브 화면까지 이어 준다.
-      { href: "/ziwei", text: "무료 자미두수 12궁 명반 보기" },
-      { href: "/astrology", text: "무료 점성술 운세 출생차트 보기" },
-      { href: "/sukuyo", text: "무료 숙요점 27수 궁합 보기" },
-      { href: "/vedic", text: "무료 베다 점성술(베다점) 운세" },
-      { href: "/nakshatra", text: "숙요점 × 베다 점성술 통합 별자리" },
-      { href: "/dream", text: "꿈해몽 무료 해석" },
-      { href: "/oracle/hwatu-life", text: "화투 인생 패 테스트" },
+      { href: "/ziwei/", text: "무료 자미두수 12궁 명반 보기" },
+      { href: "/astrology/", text: "무료 점성술 운세 출생차트 보기" },
+      { href: "/sukuyo/", text: "무료 숙요점 27수 궁합 보기" },
+      { href: "/vedic/", text: "무료 베다 점성술(베다점) 운세" },
+      { href: "/nakshatra/", text: "숙요점 × 베다 점성술 통합 별자리" },
+      { href: "/dream/", text: "꿈해몽 무료 해석" },
+      { href: "/oracle/hwatu-life/", text: "화투 인생 패 테스트" },
       { href: "/ifa-oracle.html", text: "IFA 오라클" },
-      { href: "/oracle/royal-tea", text: "로열 티 오라클" },
-      { href: "/oracle/rune", text: "스톤헨지 룬 오라클" },
-      { href: "/oracle/sikojen-povailu", text: "핀란드 주석점" },
-      { href: "/high-value", text: "하이밸류 아카이브" },
+      { href: "/oracle/royal-tea/", text: "로열 티 오라클" },
+      { href: "/oracle/rune/", text: "스톤헨지 룬 오라클" },
+      { href: "/oracle/sikojen-povailu/", text: "핀란드 주석점" },
+      { href: "/high-value/", text: "하이밸류 아카이브" },
+      // 아래 4개는 2026-08-16 실측에서 사이트맵에 있으면서 내부 링크가 0이던 고아 라우트다.
+      // 새 링크는 처음부터 후행 슬래시를 단다(trailingSlash:true 이므로 슬래시가 없으면 308 을 한 번 탄다).
+      { href: "/flower/destiny/", text: "운명의 꽃 아틀리에" },
+      { href: "/flower/astrology/", text: "점성술 운명의 꽃" },
+      { href: "/flower/jamidusu/", text: "자미두수 운명의 꽃" },
+      { href: "/flower/sukuyo/", text: "숙요 운명의 꽃" },
     ],
   },
   {
     title: siteFooterHubText("siteFooter.004"),
     links: [
-      { href: "/insights", text: "운명 인사이트 허브" },
-      { href: "/high-value", text: "하이밸류 아카이브" },
-      { href: "/high-value/complete-guide-to-saju", text: "사주 완전 가이드" },
-      { href: "/high-value/how-tarot-actually-works", text: "타로 리딩 구조 이해" },
-      { href: "/high-value/understanding-your-destiny", text: "운명 해석 프레임" },
-      { href: "/faq", text: "자주 묻는 질문" },
+      { href: "/insights/", text: "운명 인사이트 허브" },
+      { href: "/high-value/", text: "하이밸류 아카이브" },
+      { href: "/high-value/complete-guide-to-saju/", text: "사주 완전 가이드" },
+      { href: "/high-value/how-tarot-actually-works/", text: "타로 리딩 구조 이해" },
+      { href: "/high-value/understanding-your-destiny/", text: "운명 해석 프레임" },
+      { href: "/insights/fusion/", text: "초융합 운세 인사이트 허브" },
+      { href: "/reviews/", text: "실시간 사용자 후기" },
+      { href: "/faq/", text: "자주 묻는 질문" },
     ],
   },
 ];
@@ -176,7 +198,7 @@ export default function SiteFooterHub() {
           </section>
         </section>
 
-        <SocialFooter />
+        <SocialFooter copy={KO_SOCIAL_COPY} />
 
         <section aria-label="사업자 정보" style={{ marginTop: '1.5rem', fontSize: '0.8rem', lineHeight: 1.7, opacity: 0.85 }}>
           <h2 style={{ fontSize: '0.9rem', fontWeight: 600, marginBottom: '0.5rem' }}>사업자 정보</h2>

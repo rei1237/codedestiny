@@ -14,7 +14,7 @@ const SITE_TITLE = "Code Destiny Insights RSS";
 const SITE_DESCRIPTION = "사주·타로·자미두수·점성술 인사이트 업데이트 피드";
 const FEED_URL = `${BASE_URL}/rss.xml`;
 const INSIGHTS_FEED_URL = `${BASE_URL}/insights/rss.xml`;
-const SITE_LINK = `${BASE_URL}/insights`;
+const SITE_LINK = `${BASE_URL}/insights/`;
 const MAX_ITEMS = 60;
 
 const NON_ESSENTIAL_CATEGORIES = new Set([
@@ -73,7 +73,10 @@ function buildRssXml(articles) {
   const sorted = [...articles].sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
 
   const items = sorted.slice(0, MAX_ITEMS).map((article) => {
-    const link = `${BASE_URL}/insights/${encodeURIComponent(article.slug)}`;
+    // 🔴 후행 슬래시 필수. next.config.mjs 의 trailingSlash:true 때문에 `/insights/<slug>` 는
+    // 308 을 받는다. 2026-08-16 실측: 이 피드의 <link> 38개가 **전부** 리다이렉트였고,
+    // 네이버 서치어드바이저에 제출하는 피드가 그 상태였다. 사이트맵의 loc 과 같은 형태여야 한다.
+    const link = `${BASE_URL}/insights/${encodeURIComponent(article.slug)}/`;
     return [
       "    <item>",
       `      <title>${escapeXml(article.title || "Untitled")}</title>`,

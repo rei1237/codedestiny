@@ -246,7 +246,7 @@ const SHELL_FILES = [
 for (const shellFile of SHELL_FILES) {
   const shell = shellFile === "index.html" ? indexHtml : read(shellFile);
   if (!shell) continue;
-  includes(shellFile, shell, 'href="/premium-unlock"');
+  includes(shellFile, shell, 'href="/premium-unlock/"');
   includes(shellFile, shell, "life-fortune-ai-vvip-card-v20260701");
   includes(shellFile, shell, 'data-pvw-bypass="1"');
   const cardStart = shell.indexOf("tarot-tile--life-fortune-ai");

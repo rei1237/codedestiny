@@ -110,6 +110,33 @@ export function localeUrlSegment(locale: Locale): string {
   return LOCALE_CONFIG[locale].pathPrefix.replace(/^\//, "");
 }
 
+/**
+ * 로케일 URL 프리픽스 전량. 🔴 손으로 열거하지 말고 `LOCALE_CONFIG` 에서 **파생**한다 —
+ * 같은 목록이 두 곳에 있으면 어긋났을 때 로케일 푸터가 중복되거나 통째로 사라진다
+ * (`AppChrome` 의 스킵 판정과 `app/[locale]/layout.js` 의 커버리지가 이 하나를 공유한다).
+ * ko 는 `pathPrefix` 가 빈 문자열이라 자연히 빠진다.
+ */
+export const LOCALE_ROUTE_PREFIXES: string[] = LOCALES
+  .map((locale) => LOCALE_CONFIG[locale].pathPrefix)
+  .filter((prefix) => prefix.length > 0);
+
+/**
+ * 경로가 로케일 프리픽스 아래인지 판정하고 그 로케일을 돌려준다. 아니면 null(= 한국어 기본).
+ * `/january` 가 `/ja` 로 오인되지 않도록 **정확히 프리픽스이거나 그 다음이 `/`** 인 경우만 매칭한다.
+ * 더 긴 프리픽스(`/zh-tw`)를 먼저 보므로 `/zh` 가 `/zh-tw/...` 를 가로채지 않는다.
+ */
+export function localeFromPathname(pathname: string): Locale | null {
+  const path = normalizePath(pathname);
+  const matched = LOCALES
+    .filter((locale) => LOCALE_CONFIG[locale].pathPrefix.length > 0)
+    .sort((a, b) => LOCALE_CONFIG[b].pathPrefix.length - LOCALE_CONFIG[a].pathPrefix.length)
+    .find((locale) => {
+      const prefix = LOCALE_CONFIG[locale].pathPrefix;
+      return path === prefix || path.startsWith(`${prefix}/`);
+    });
+  return matched ?? null;
+}
+
 export function localizePath(locale: Locale, routePath: string): string {
   const normalized = normalizePath(routePath);
   const prefix = LOCALE_CONFIG[locale].pathPrefix;
