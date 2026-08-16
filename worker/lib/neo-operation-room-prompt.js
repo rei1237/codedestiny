@@ -1,4 +1,5 @@
 import { REASONING_OUTPUT_RULE_LINES } from "./fortune-reasoning-contract.js";
+import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 
 const METHOD_LABELS = Object.freeze({
   saju: "사주",
@@ -190,7 +191,13 @@ function extractJsonObject(text) {
     error.code = "LLM_RESPONSE_INVALID";
     throw error;
   }
-  return JSON.parse(raw.slice(start, end + 1));
+  const jsonText = raw.slice(start, end + 1);
+  try {
+    return JSON.parse(jsonText);
+  } catch {
+    // 1차 실패는 대개 문자열 안 raw 개행이다(자미두수 실측 2026-08-01). 이스케이프해 한 번 더.
+    return JSON.parse(escapeRawControlCharsInJsonStrings(jsonText));
+  }
 }
 
 function normalizeEvidence(input, methodSummary) {
@@ -399,6 +406,30 @@ export function parseNeoOperationRoomBriefingResponse(text, input, methodSummary
     throw error;
   }
   return briefing;
+}
+
+/**
+ * 2차 프롬프트에 실을 1차 브리핑 요약.
+ *
+ * 🔴 전문(JSON.stringify)을 그대로 실으면 안 된다. 1차는 20,050자 계약이고 2차는 8챕터를 각각
+ * 부르므로 같은 20,050자가 8번 실려 입력이 부풀고, 그만큼 응답 지연·잘림·비용이 함께 올라간다.
+ * 무엇보다 프롬프트 끝의 [사용자 현실 점검 답변]이 그 더미에 묻힌다 — 2차의 존재 이유가 그 답변인데.
+ *
+ * 여기 담는 것은 2차가 "고쳐 쓸 대상"인 진단뿐이다. 이미 준 조언은 buildPreviousAdviceLog 가
+ * 반복 금지 목록으로 따로 싣고, 계산 근거는 [계산 요약 데이터]가 공통 라인으로 이미 싣는다.
+ */
+function summarizeInitialBriefingForRefine(initialBriefing) {
+  const briefing = firstObject(initialBriefing);
+  const repeated = firstObject(briefing.repeatedPattern);
+  const problem = firstObject(briefing.currentProblem);
+  return {
+    operationTitle: clean(briefing.operationTitle, 120),
+    coreDiagnosis: clean(briefing.coreDiagnosis, 900),
+    bluntTruth: clean(briefing.bluntTruth, 900),
+    originalStrategy: clean(firstObject(briefing.originalStrategy).description, 700),
+    repeatedPattern: { title: clean(repeated.title, 120), description: clean(repeated.description, 700) },
+    currentProblem: { title: clean(problem.title, 120), description: clean(problem.description, 700) },
+  };
 }
 
 export function buildPreviousAdviceLog(initialBriefing) {
@@ -975,18 +1006,21 @@ export function buildNeoRefinedSectionPrompt(section, ctx) {
       originalQuestion: ctx.question || "",
     }),
     "",
-    "[1차 작전 브리핑]",
-    JSON.stringify(ctx.initialBriefing || {}),
-    "",
-    "[이미 제시한 조언 (반복 금지)]",
-    clean(ctx.previousAdviceLog) || "(없음)",
-    "이 목록에 있는 조언·행동·표현은 그대로 다시 쓰지 않는다. 주제가 겹치면 반드시 다른 각도로 새로 만든다.",
-    "",
-    "[사용자 현실 점검 답변]",
+    // 사용자 답변을 1차 브리핑 앞에 둔다 — 뒤에 두면 긴 맥락에 묻혀 "이 답변을 반영한 수정본"이
+    // 아니라 "1차의 재탕"이 나온다. 2차 명령서의 입력 중 가장 중요한 것은 이 블록이다.
+    "[사용자 현실 점검 답변] ← 이번 수정의 출발점",
     JSON.stringify({
       selectedChecks: safeArray(ctx.realityCheck?.selectedChecks),
       freeform: ctx.realityCheck?.freeform || "",
     }),
+    "위 답변을 이번 챕터의 내용에 반드시 반영한다. 답변이 이번 챕터와 직접 닿지 않더라도, 답변이 드러낸 상황·제약·감정을 전제로 삼아 쓴다.",
+    "",
+    "[1차 작전 브리핑 요약 (고쳐 쓸 대상)]",
+    JSON.stringify(summarizeInitialBriefingForRefine(ctx.initialBriefing)),
+    "",
+    "[이미 제시한 조언 (반복 금지)]",
+    clean(ctx.previousAdviceLog) || "(없음)",
+    "이 목록에 있는 조언·행동·표현은 그대로 다시 쓰지 않는다. 주제가 겹치면 반드시 다른 각도로 새로 만든다.",
     ...neoSectionClosingLines(section),
   ].join("\n");
 }

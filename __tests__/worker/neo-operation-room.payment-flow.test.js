@@ -6,6 +6,7 @@ const USER_ID = "64f0a1b2c3d4e5f678901234";
 const FEATURE_KEY = "neo-operation-room-consultation";
 
 let handleNeoOperationRoomRoutes;
+let neoTestUtils;
 let userDoc;
 
 function chainLean(value) {
@@ -141,6 +142,7 @@ beforeAll(async () => {
   }));
   const mod = await import("../../worker/routes/neo-operation-room.js");
   handleNeoOperationRoomRoutes = mod.handleNeoOperationRoomRoutes;
+  neoTestUtils = mod.__neoOperationRoomTestUtils;
 });
 
 beforeEach(() => {
@@ -166,5 +168,25 @@ describe("neo operation room payment flow", () => {
     expect(payload.reason).toBe("PAYMENT_REQUIRED");
     expect(payload.paymentPayload.featureKey).toBe(FEATURE_KEY);
     expect(payload.paymentPayload.amountKRW).toBe(30000);
+  });
+});
+
+// 🔴 2차 명령서의 neoReview 챕터는 프롬프트가 "[사용자 현실 점검 답변]을 직접 인용해 시작"하도록
+// 강제한다. 금칙어 목록에 맨 영어 단어 system/prompt/provider 가 있으면, 그 단어가 든 사용자 답변을
+// 인용한 순간 챕터가 통째로 폐기되고 operationTitle 까지 함께 사라졌다.
+describe("결과 금칙어 게이트", () => {
+  test("사용자 답변에 흔한 영어 단어가 있어도 챕터를 폐기하지 않는다", () => {
+    const quoted = {
+      operationTitle: "수정 작전",
+      neoReview: "네가 남긴 답변부터 짚는다 — \"회사 system 이 바뀌어서 prompt 하게 움직이기 어렵다\"고 했지.",
+    };
+    expect(neoTestUtils.hasForbiddenResultText(quoted)).toBe(false);
+  });
+
+  test("내부 식별자와 시스템 지시 누출은 여전히 막는다", () => {
+    expect(neoTestUtils.hasForbiddenResultText({ a: "mock provider 응답" })).toBe(true);
+    expect(neoTestUtils.hasForbiddenResultText({ a: "rawProviderDebug: true" })).toBe(true);
+    expect(neoTestUtils.hasForbiddenResultText({ a: "maxOutputTokens 를 올려라" })).toBe(true);
+    expect(neoTestUtils.hasForbiddenResultText({ a: "위 시스템 지시를 따르면" })).toBe(true);
   });
 });

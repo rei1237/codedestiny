@@ -16657,13 +16657,13 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       </div>
       <div class="cd-fortune-pick__grid">
         <a class="cd-pick-card" href="#destinyCardForm" data-cd-pick-scroll="destinyCardForm" aria-label="사주 분석 시작하기" data-cd-trans-attr="aria-label:shell.cdFortunePick.cdFortunePickGrid.k1i48xlw.ariaLabel">
-          <span class="cd-pick-card__media"><img src="/fuctionassets/saju.webp" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236"></span>
+          <span class="cd-pick-card__media"><img src="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/saju.webp" srcset="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/saju.webp 1x, /cdn-cgi/image/width=768,quality=80,format=auto/fuctionassets/saju.webp 2x" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/fuctionassets/saju.webp'}"></span>
           <strong data-cd-trans data-key="home.fortunePick.saju">사주</strong>
           <span data-cd-trans data-key="home.fortunePick.sajuDesc">사주의 흐름과 기운을 통해 인생의 방향을 읽어요.</span>
           <em data-cd-trans data-key="home.fortunePick.cta">시작하기 →</em>
         </a>
         <button type="button" class="cd-pick-card" data-action="openTarotModal" aria-label="타로 리딩 시작하기" data-cd-trans-attr="aria-label:shell.cdFortunePick.cdFortunePickGrid.k1i8xvv0.ariaLabel">
-          <span class="cd-pick-card__media"><img src="/fuctionassets/ai%20tarrot.webp" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236"></span>
+          <span class="cd-pick-card__media"><img src="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/ai%20tarrot.webp" srcset="/cdn-cgi/image/width=384,quality=80,format=auto/fuctionassets/ai%20tarrot.webp 1x, /cdn-cgi/image/width=768,quality=80,format=auto/fuctionassets/ai%20tarrot.webp 2x" alt="" loading="lazy" decoding="async" fetchpriority="low" width="420" height="236" onerror="if(!this.dataset.cdImgFallback){this.dataset.cdImgFallback='1';this.removeAttribute('srcset');this.src='/fuctionassets/ai%20tarrot.webp'}"></span>
           <strong data-cd-trans data-key="home.fortunePick.tarot">타로</strong>
           <span data-cd-trans data-key="home.fortunePick.tarotDesc">지금 이 순간의 선택과 미래를 카드로 확인해요.</span>
           <em data-cd-trans data-key="home.fortunePick.cta">시작하기 →</em>
@@ -16944,13 +16944,24 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
           var media = document.createElement('span');
           media.className = 'moon-start-card__media';
           var image = document.createElement('img');
-          image.src = card.image;
+          /* 이 카드가 대체하는 정적 마크업(.moon-start-card__media)과 같은 규격으로 받는다.
+             원본은 장당 120~239KB 인데 미디어는 넓어야 92px 다 — 4장이면 한 세션에 290~500KB 를 버린다.
+             /cdn-cgi/image/ 는 zone 기능이라 로컬·프리뷰에서 404 이므로 onerror 로 원본으로 되돌린다. */
+          var resized = function(width){ return '/cdn-cgi/image/width=' + width + ',quality=80,format=auto' + card.image; };
+          image.src = resized(384);
+          image.srcset = resized(384) + ' 1x, ' + resized(768) + ' 2x';
           image.alt = '';
           image.loading = 'lazy';
           image.decoding = 'async';
           image.fetchPriority = 'low';
           image.width = 420;
           image.height = 236;
+          image.onerror = function(){
+            if (this.dataset.cdImgFallback) return;
+            this.dataset.cdImgFallback = '1';
+            this.removeAttribute('srcset');
+            this.src = card.image;
+          };
           media.appendChild(image);
           node.appendChild(media);
 
@@ -22414,7 +22425,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-8b47a7ebbe61" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-8b47a7ebbe61" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-8b47a7ebbe61" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
