@@ -507,7 +507,7 @@ for (const shell of [
   "public/zh/index.html",
 ]) {
   const source = read(shell);
-  assertIncludes(shell, source, 'href="/master-love-codex"');
+  assertIncludes(shell, source, 'href="/master-love-codex/"');
   assertIncludes(shell, source, "cd-sig-card--master");
   assert(
     source.includes("html.neo-mode body .cd-sig-card__title"),
@@ -523,8 +523,13 @@ for (const shell of [
     (sectionHtml.match(/<a class="cd-sig-card/g) || []).length === 4,
     `${shell}: 대표 운명 상담 카드는 4장이어야 합니다 (현재 ${(sectionHtml.match(/<a class="cd-sig-card/g) || []).length}장)`,
   );
+  // 🔴 슬래시 유무를 둘 다 본다. 내부 링크에 후행 슬래시를 붙이면서 `href="/destiny-compass"` 만
+  // 보던 이 부정 단언이 하마터면 **영원히 통과하는 빈 검사**가 될 뻔했다.
   for (const moved of ["/destiny-compass", "/destiny-island.html"]) {
-    assert(!sectionHtml.includes(`href="${moved}"`), `${shell}: ${moved} 는 VVIP 서고로 이관했으므로 대표 상담에 남아 있으면 중복 노출입니다`);
+    const variants = /\.[a-z0-9]+$/i.test(moved) ? [moved] : [moved, `${moved}/`];
+    for (const variant of variants) {
+      assert(!sectionHtml.includes(`href="${variant}"`), `${shell}: ${variant} 는 VVIP 서고로 이관했으므로 대표 상담에 남아 있으면 중복 노출입니다`);
+    }
   }
   assertIncludes(shell, source, "destiny-compass-vvip-card-v20260729");
   assertIncludes(shell, source, "ziwei-island-vvip-card-v20260723");

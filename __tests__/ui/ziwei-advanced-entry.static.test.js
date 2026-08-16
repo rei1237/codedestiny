@@ -11,7 +11,7 @@ const routeMap = fs.readFileSync(path.join(root, "scripts/static-canonical-route
 test("자미두수 심화 카드는 공통 프리뷰를 거치지 않고 심화 경로로 이동한다", () => {
   assert.match(
     shell,
-    /<a class="tarot-tile tarot-tile--ziwei-deep" href="\/ziwei\/chart"[\s\S]*?data-action="navigateToZiweiChart"[\s\S]*?<\/a>/,
+    /<a class="tarot-tile tarot-tile--ziwei-deep" href="\/ziwei\/chart\/"[\s\S]*?data-action="navigateToZiweiChart"[\s\S]*?<\/a>/,
   );
   assert.doesNotMatch(
     shell,
