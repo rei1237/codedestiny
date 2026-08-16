@@ -30,6 +30,11 @@ const CASES = [
   ["PASS", "Bash", "grep -rn 'maintenance' worker/"],
   ["PASS", "Bash", "gh pr create --title x --body y"],
   ["PASS", "Bash", "gh pr view 648 --json statusCheckRollup"],
+  // CI 상태 1회 조회와 실패 구간만 보는 것은 계속 허용된다 (ci-poll 이 잡으면 안 되는 쪽)
+  ["PASS", "Bash", "gh run list --limit 5"],
+  ["PASS", "Bash", "gh run view 31889129456 --json status,conclusion"],
+  ["PASS", "Bash", "gh run view 31889129456 --log-failed"],
+  ["PASS", "Bash", "gh pr checks 648"],
   ["PASS", "PowerShell", "npm run typecheck"],
   ["PASS", "Read", "(command 필드 없음 — 다른 도구는 건드리지 않는다)"],
 
@@ -74,6 +79,15 @@ const CASES = [
   // --- 머지 = 배포, 워크플로 수동 실행 ---
   ["ASK ", "Bash", "gh pr merge 648 --squash"],
   ["ASK ", "Bash", "gh workflow run release.yml -f mode=preview"],
+  // --- CI 완료 대기 폴링·로그 전량 (토큰 소모) ---
+  ["ASK ", "Bash", "gh run watch 31889129456 --exit-status"],
+  ["ASK ", "Bash", "gh run view 31889129456 --log"],
+  ["ASK ", "Bash", "gh pr checks 648 --watch"],
+  [
+    "ASK ",
+    "PowerShell",
+    'gh run watch 31889129456 --exit-status; echo "=== FINAL ==="; gh run view 31889129456 --json status,conclusion',
+  ],
   // --- git ---
   ["ASK ", "Bash", "git push origin main"],
   ["ASK ", "Bash", "git push --force-with-lease"],
