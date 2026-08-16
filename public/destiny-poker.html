@@ -3,7 +3,9 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>데스티니 포커 : 심판의 카지노</title>
+<title>데스티니 포커 — 하루 한 번 운을 겨루는 카드 게임 | 코드 데스티니</title>
+<meta name="description" content="바이탈 럭을 걸고 네 명의 딜러와 다섯 번의 베팅 라운드를 겨루는 무료 카드 게임입니다. 아몬·이슈타르·타나토스·메타트론 중 오늘의 상대를 고르고 최후 심판까지 진행해 보세요.">
+<link rel="canonical" href="https://code-destiny.com/destiny-poker">
 <style>
 :root {
   --bg: #05000c;
@@ -49,7 +51,14 @@ body::before{
 @keyframes fadeInUp{from{opacity:0;transform:translateY(12px);}to{opacity:1;transform:translateY(0);}}
 
 /* ── INTRO ── */
-#screen-intro{gap:1.6rem;padding:2rem;}
+/* 🔴 .screen 은 flex 컨테이너이면서 스크롤 컨테이너다(overflow-y:auto).
+   justify-content:center 인 채로 내용이 뷰포트보다 길어지면 위쪽이 넘쳐 스크롤로도 닿지 않는다
+   — 안내 섹션을 붙인 뒤 작은 화면에서 이름 입력창이 가려지는 경로가 여기였다.
+   auto 여백은 남는 공간이 있을 때만 늘어나고 넘칠 때는 0으로 접히므로, 가운데 정렬을
+   유지하면서도 전 구간이 스크롤로 닿는다(전 브라우저 지원). */
+#screen-intro{gap:1.6rem;padding:2rem;justify-content:flex-start;}
+#screen-intro > .intro-sigil{margin-top:auto;}
+#screen-intro > .intro-guide{margin-bottom:auto;}
 .intro-sigil{animation:floatSigil 4s ease-in-out infinite;
   filter:drop-shadow(0 0 28px rgba(201,148,15,.65));
   display:flex;align-items:center;justify-content:center;}
@@ -88,6 +97,17 @@ body::before{
 .intro-lore{max-width:480px;text-align:center;font-size:1rem;line-height:2;
   color:var(--text-dim);font-style:italic;font-family:'Noto Serif KR',serif;word-break:keep-all;}
 .name-group{display:flex;flex-direction:column;align-items:center;gap:.9rem;width:100%;max-width:380px;}
+.intro-guide{max-width:640px;width:100%;margin-top:2.4rem;padding-top:1.8rem;
+  border-top:1px solid rgba(201,148,15,.22);color:var(--text-dim);
+  font-size:.94rem;line-height:1.9;text-align:left;}
+.intro-guide h2{color:var(--gold-l);font-size:1.05rem;margin-bottom:.7rem;}
+.intro-guide h3{color:var(--gold);font-size:.98rem;margin:1.4rem 0 .5rem;}
+.intro-guide p{margin-bottom:.7rem;}
+.intro-guide ul{margin:0 0 .7rem;padding-left:1.1rem;}
+.intro-guide li{margin-bottom:.35rem;}
+.intro-guide strong{color:var(--text);}
+.intro-guide em{color:var(--gold-l);font-style:normal;}
+.intro-guide a{color:var(--gold-l);}
 .name-label{font-family:'Cinzel',serif;font-size:.78rem;letter-spacing:.35em;
   color:var(--gold);text-transform:uppercase;}
 .name-input{
@@ -808,6 +828,30 @@ button,input,select,textarea{font-family:var(--font-body)!important}
     <input class="name-input" id="name-input" type="text" placeholder="이름을 입력하시오…" maxlength="10" autocomplete="off">
     <button class="btn-fate" onclick="goToDealer()">운명의 문을 열어라</button>
   </div>
+
+  <section class="intro-guide">
+    <h2>데스티니 포커는 어떤 게임인가</h2>
+    <p>데스티니 포커는 카드 한 판으로 하루의 운을 가늠해 보는 무료 웹 게임입니다. 칩 대신 <em>바이탈 럭(Vital Luck)</em> 100을 들고 시작해, 프로비던스 홀의 딜러와 다섯 번의 베팅 라운드를 주고받습니다. 운명의 카지노는 하루에 한 번만 문을 열기 때문에, 오늘의 도전을 끝내면 다음 날 다시 들어올 수 있습니다. 가입이나 결제 없이 이름만 적고 바로 시작합니다.</p>
+
+    <h3>네 명의 딜러, 네 가지 영역</h3>
+    <p>입장하면 먼저 상대할 딜러를 고릅니다. 딜러마다 다루는 주제가 달라서, 누구를 고르느냐에 따라 그날 펼쳐지는 카드의 이야기도 달라집니다.</p>
+    <ul>
+      <li><strong>탐욕의 아몬</strong> — 재물과 권력. 금전적 야망의 무게를 묻는 자리입니다.</li>
+      <li><strong>매혹의 이슈타르</strong> — 인연과 애정. 관계에 얽힌 기대와 망설임을 다룹니다.</li>
+      <li><strong>침묵의 타나토스</strong> — 건강과 수명. 몸과 시간을 주제로 삼습니다.</li>
+      <li><strong>공허의 메타트론</strong> — 명예와 지혜. 앎과 인정에 관한 판을 벌입니다.</li>
+    </ul>
+
+    <h3>진행 방식과 폴드 규칙</h3>
+    <p>대결은 서드 스트리트에서 시작해 라운드마다 팟(POT)이 쌓이는 순서로 이어집니다. 딜러의 패와 당신의 패가 차례로 열리고, 다섯 라운드를 마치면 그날의 결과가 정해집니다. 일반 대결에서는 중간에 물러설 수 없습니다.</p>
+    <p>네 신과 연속으로 맞붙는 <strong>최후 심판</strong>은 예외입니다. 이 대결에서만 폴드(Fold)가 허용되며, 운명의 증폭 수치가 999%에 이르렀을 때 잠금이 풀립니다. 폴드로 판을 접을 수는 있지만 네 명을 연달아 상대해야 하므로 일반 대결보다 길게 이어집니다.</p>
+
+    <h3>바이탈 럭은 어떻게 움직이나</h3>
+    <p>바이탈 럭은 이 게임 안에서만 쓰는 판돈입니다. 100에서 시작해 라운드 결과에 따라 오르내리고, 팟에 쌓인 만큼이 승부에 걸립니다. 남은 바이탈 럭이 바닥나면 그날의 대결은 거기서 끝납니다. 실제 재화나 결제와는 아무 관련이 없으며, 하루가 지나면 다시 100에서 시작합니다.</p>
+
+    <h3>이용 전 알아 둘 것</h3>
+    <p>결과는 재미로 즐기는 오락 콘텐츠이며 실제 운세나 미래를 단정하지 않습니다. 건강·재정·법률처럼 중요한 판단의 근거로 삼지 마세요. 사주·타로·자미두수 같은 다른 해석이 궁금하다면 <a href="/">코드 데스티니 홈</a>에서 이어서 살펴볼 수 있습니다.</p>
+  </section>
 </div>
 
 <!-- SCREEN 2: DEALER SELECT -->
