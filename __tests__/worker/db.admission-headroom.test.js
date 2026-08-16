@@ -123,16 +123,20 @@ test("wrangler.toml 의 프로덕션 값도 진입 팬아웃보다 여유가 있
   const idle = readVar("MONGO_MAX_IDLE_TIME_MS");
   if (idle !== null) expect(idle).toBeGreaterThanOrEqual(60000);
 
-  // 🔴 ping 간격은 maxIdleTimeMS 와 **한 세트**다. 좀비 소켓의 1차 방어선은 ping 이 아니라
-  // maxIdleTimeMS(Atlas 유휴 컷보다 먼저 닫는다)이므로, ping 을 그보다 훨씬 짧게 두면 대부분
-  // 살아 있는 소켓에 왕복만 하나 더 얹는다. 저트래픽에서는 그게 사용자 요청마다 붙는다.
-  // 상한(maxIdleTimeMS)을 넘지 않는 선에서 최대한 붙여 "소켓 한 생애당 ping 최대 1회"로 만든다.
+  /* 🔴 방향 반전(2026-08-16). 이 자리에는 "ping 간격은 maxIdleTimeMS 와 한 세트이니 그에 가깝게
+     붙여라"(= 50000)가 있었다. 근거는 "좀비 소켓의 1차 방어선은 maxIdleTimeMS 이므로 웜 소켓은
+     살아 있다" 였는데, 프로덕션 실측이 그 전제를 반증했다 — Mongo 읽기 1건짜리 라우트를 간격을
+     바꿔 7회 부른 결과 **300ms 뒤에 들어온 요청도 죽은 소켓을 밟았고**, 검증을 건너뛴 요청은
+     쿼리에서 7.8초를 태웠다(표는 worker/lib/db.js connectDb 웜 분기 주석).
+     유휴 시간과 무관하므로 maxIdleTimeMS 와의 비례 관계 자체가 성립하지 않는다.
+     이제 노브의 의미는 "검증을 건너뛰어도 되는 창"이고, 답은 0(= 매 요청 검증)이다. */
   const ping = readVar("MONGO_PING_MIN_INTERVAL_MS");
-  if (ping !== null && idle !== null) {
-    expect(ping).toBeLessThanOrEqual(idle);
-    // 한쪽만 되돌리는 드리프트를 막는다 — 20000 으로 회귀하면 여기서 잡힌다.
-    expect(ping).toBeGreaterThanOrEqual(Math.floor(idle * 0.5));
-  }
+  if (ping !== null) expect(ping).toBe(0);
+
+  /* 죽은 커넥션을 포기하는 속도. 늦게 포기한 만큼이 그대로 결제창 앞 지연이 된다
+     (실측에서 죽은 쪽 ping 은 1.3초를 넘겨서야 돌아왔다). 3500 으로 되돌리면 여기서 잡힌다. */
+  const pingTimeout = readVar("MONGO_PING_TIMEOUT_MS");
+  if (pingTimeout !== null) expect(pingTimeout).toBeLessThanOrEqual(1500);
 });
 
 test("a low-limit waiter does not head-of-line block higher-limit waiters", async () => {
