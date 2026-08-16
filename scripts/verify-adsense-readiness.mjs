@@ -6,6 +6,7 @@ import {
   canLoadAdsenseForCanonicalUrl,
 } from "../app/components/adsense-route-policy.js";
 import { MIN_SELF_CONSENT_AGE } from "../worker/lib/validation.js";
+import { blocksEntireSite } from "./lib/robots-groups.mjs";
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
 // 나이 고지 마커는 정책 상수에서 파생한다. 문구를 그대로 박아두면 정책이 바뀔 때
@@ -1243,9 +1244,15 @@ function verifyRobots(baseDir) {
     /sitemap:\s*https:\/\/code-destiny\.com\/sitemap\.xml/i.test(robotsText),
     `${robotsPath}: missing sitemap directive`,
   );
-  assert(!/^disallow:\s*\/\s*$/im.test(robotsText), `${robotsPath}: blocks the entire site`);
+  // 🔴 User-agent 그룹 단위로 본다. 예전에는 파일 어디든 `Disallow: /` 가 있으면 실패시켰는데,
+  // 그러면 학습 전용 크롤러(CCBot) 하나를 막는 것만으로 "사이트 전체 차단" 으로 오인한다.
+  // 아래 Googlebot 검사도 `[\s\S]*?` 가 파일을 가로질러 **다른 그룹**의 줄에 매치되는 오탐이 있었다.
   assert(
-    !/user-agent:\s*(googlebot|mediapartners-google)[\s\S]*?disallow:\s*\/\s*$/im.test(robotsText),
+    !blocksEntireSite(robotsText, (agent) => agent === "*"),
+    `${robotsPath}: blocks the entire site`,
+  );
+  assert(
+    !blocksEntireSite(robotsText, (agent) => /^googlebot(-|$)/i.test(agent) || /^mediapartners-google$/i.test(agent)),
     `${robotsPath}: blocks Googlebot or Mediapartners-Google`,
   );
 }
