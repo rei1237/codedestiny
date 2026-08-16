@@ -219,6 +219,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   const [pendingPaidRequest, setPendingPaidRequest] = useState(false);
   /** 목표 분량에 못 미친 채 배달된 결과의 안내. 재열람에서도 같은 문구가 붙는다. */
   const [qualityNotice, setQualityNotice] = useState("");
+  /** 재열람으로 연 보관본의 입력 요약. PDF 표지가 폼 대신 이걸 본다. */
+  const [openedSummary, setOpenedSummary] = useState<{ topic?: string; nickname?: string } | null>(null);
   const [openSection, setOpenSection] = useState<string>("");
   /** 생성 실패는 폼이 아니라 대화 안에 남는다 — 어디까지 진행됐는지와 함께 봐야 재시도를 고른다. */
   const [failure, setFailure] = useState<{ message: string; retryable: boolean; reason?: string } | null>(null);
@@ -296,9 +298,11 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     setError("");
     try {
       const response = await authFetch(`${apiBase}/api/fusion-fortune/result?id=${encodeURIComponent(id)}`, { credentials: "include" }, { retryOn401: true, apiBase });
-      const payload = await parseJson<{ ok?: boolean; consultation?: { id: string; result: Result; qualityTier?: string; qualityNotice?: string }; message?: string }>(response);
+      const payload = await parseJson<{ ok?: boolean; consultation?: { id: string; result: Result; qualityTier?: string; qualityNotice?: string; inputSummary?: { topic?: string; nickname?: string } }; message?: string }>(response);
       if (!response.ok || !payload.ok || !payload.consultation?.result) throw new Error(payload.message || "저장된 결과를 불러오지 못했어요.");
       setResult(payload.consultation.result);
+      // 재열람 PDF 의 표지는 폼이 아니라 보관본의 요약에서 온다 — 새 탭에서 열면 폼이 비어 있다.
+      setOpenedSummary(payload.consultation.inputSummary || null);
       // 강등 배달이었으면 다시 열었을 때도 같은 안내가 붙는다 — 화면에서만 알리면 근거가 사라진다.
       setQualityNotice(payload.consultation.qualityTier === "degraded" ? (payload.consultation.qualityNotice || "") : "");
       setFailure(null);
@@ -378,7 +382,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   }, []);
 
   const submit = async (event: FormEvent) => {
-    event.preventDefault(); setError(""); setNotice(""); setFailure(null); setQualityNotice("");
+    event.preventDefault(); setError(""); setNotice(""); setFailure(null); setQualityNotice(""); setOpenedSummary(null);
     // useSearchParams 를 쓰면 정적 내보내기에서 이 페이지 전체가 CSR 로 떨어져
     // (BAILOUT_TO_CLIENT_SIDE_RENDERING) 히어로 H1 을 포함한 서버 렌더 HTML 이 통째로 사라진다.
     // 이 값은 제출 시점에만 필요하므로 그때 URL 에서 직접 읽는다.
@@ -523,29 +527,50 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   };
 
   /**
-   * PDF 저장. 접힌 섹션은 display:none 이 아니라 아예 렌더되지 않으므로, 캡처 전에
-   * exporting 을 켜 모두 펼치고 두 프레임 + 여유를 기다린다(인생의 책과 같은 관용구).
+   * PDF 저장.
+   *
+   * 본문은 결과 JSON 에서 직접 조판한다(글자 선택·검색 가능, 용량은 캡처 방식의 수십분의 1).
+   * 도표만 그림이라 그 블록 하나를 캡처하므로, 캡처 전에 exporting 을 켜 지연 렌더를 풀고
+   * 두 프레임 + 여유를 기다린다(인생의 책과 같은 관용구).
+   *
+   * 🔴 R2 한글 폰트를 못 실으면 텍스트 조판은 통째로 깨진다. 그때만 기존 캡처 방식으로
+   *    되돌아간다 — 읽을 수 없는 문서를 내려주는 것보다 무거운 이미지 PDF 가 낫다.
    */
   const downloadPdf = async () => {
     if (!result || exporting) return;
     setError("");
     setExporting(true);
+    const fileName = `fusion-fortune-${openedConsultationId || new Date().toISOString().slice(0, 10)}.pdf`;
     try {
       await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
       await new Promise((resolve) => setTimeout(resolve, 120));
-      const { exportResultPdf } = await import("../../lib/pdf/export-result-pdf");
-      await exportResultPdf({
-        captureTargets: ["[data-fusion-pdf-section]"],
-        fileName: `fusion-fortune-${openedConsultationId || new Date().toISOString().slice(0, 10)}.pdf`,
-        backgroundColor: "#12102a",
-        cover: {
-          title: result.title || "초융합 운세",
-          subtitle: `여섯 체계 교차 판정 · ${form.topic}`,
-          name: form.nickname || undefined,
+      const { exportFusionReportPdf, FusionPdfFontError } = await import("../../lib/pdf/export-fusion-report-pdf");
+      try {
+        await exportFusionReportPdf({
+          result,
+          fileName,
+          topic: openedSummary?.topic || form.topic,
+          nickname: openedSummary?.nickname || form.nickname || undefined,
           date: new Date().toLocaleDateString("ko-KR"),
-        },
-        watermarkText: "CODE DESTINY",
-      });
+          qualityNotice,
+          visualizationSelector: "[data-fusion-visual]",
+        });
+      } catch (cause) {
+        if (!(cause instanceof FusionPdfFontError)) throw cause;
+        const { exportResultPdf } = await import("../../lib/pdf/export-result-pdf");
+        await exportResultPdf({
+          captureTargets: ["[data-fusion-pdf-section]"],
+          fileName,
+          backgroundColor: "#12102a",
+          cover: {
+            title: result.title || "초융합 운세",
+            subtitle: `여섯 체계 교차 판정 · ${openedSummary?.topic || form.topic}`,
+            name: openedSummary?.nickname || form.nickname || undefined,
+            date: new Date().toLocaleDateString("ko-KR"),
+          },
+          watermarkText: "CODE DESTINY",
+        });
+      }
       setNotice("PDF 로 저장했어요.");
     } catch {
       setError("PDF 를 만들지 못했어요. 잠시 후 다시 시도해 주세요.");

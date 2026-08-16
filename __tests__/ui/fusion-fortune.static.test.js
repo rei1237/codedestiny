@@ -213,11 +213,21 @@ test("the result screen can be exported to PDF without blank pages", () => {
   const resultThread = read(RESULT);
   const thread = read(THREAD);
 
-  // 공용 PDF 유틸을 쓴다(13개 기능이 공유). 페이지 전용 PDF 구현을 새로 만들지 말 것.
+  // 본문은 결과 JSON 에서 직접 조판한다 — 2만 자를 JPEG 로 찍으면 용량이 크고 글자 선택이 안 된다.
+  assert.match(client, /exportFusionReportPdf\(/);
+  assert.match(client, /lib\/pdf\/export-fusion-report-pdf/);
+  // 🔴 R2 한글 폰트를 못 실으면 텍스트 조판은 통째로 깨진다. 그때만 캡처 방식으로 되돌아간다.
+  assert.match(client, /FusionPdfFontError/);
   assert.match(client, /exportResultPdf\(/);
   assert.match(client, /lib\/pdf\/export-result-pdf/);
+  // 도표만 그림이라 그 블록 하나를 캡처한다.
+  assert.match(client, /data-fusion-visual/);
+  assert.match(resultThread, /data-fusion-visual/);
+  // 폴백 캡처가 쓰는 마커는 그대로 남아 있어야 한다.
   assert.match(client, /data-fusion-pdf-section/);
   assert.match(resultThread, /data-fusion-pdf-section/);
+  // 재열람 PDF 의 표지는 폼이 아니라 보관본 요약에서 온다(새 탭에서 열면 폼이 비어 있다).
+  assert.match(client, /openedSummary\?\.topic \|\| form\.topic/);
 
   // 🔴 캡처 전에 접힌 섹션을 모두 펼치고 두 프레임을 기다린다 — 접힌 섹션은 display:none 이
   //    아니라 아예 렌더되지 않으므로 그냥 캡처하면 본문이 통째로 빠진다.

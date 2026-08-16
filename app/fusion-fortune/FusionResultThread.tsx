@@ -51,7 +51,8 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
     {result.visualization && <ThreadRow systemKey="fusion" index={2} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" exporting={exporting} className="px-3 sm:px-5">
         <ThreadSpeaker label="여섯 체계가 가리키는 방향" />
-        <FusionVisualization data={result.visualization} />
+        {/* 텍스트 PDF 는 본문을 직접 조판하지만 이 도표만은 그림이라 여기만 캡처한다. */}
+        <div data-fusion-visual="true"><FusionVisualization data={result.visualization} /></div>
       </ThreadBubble>
     </ThreadRow>}
 
