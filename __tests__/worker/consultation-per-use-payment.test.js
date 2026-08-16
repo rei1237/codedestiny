@@ -20,7 +20,7 @@ const REQUEST_ID = "req-per-use-0001";
 
 const paymentFindOne = jest.fn();
 const pointHistoryFindOne = jest.fn();
-const monthlyLedgerFindOne = jest.fn();
+const monthlyLedgerFind = jest.fn();
 const userFindById = jest.fn();
 
 let verifyPerUsePayment;
@@ -39,17 +39,25 @@ function query(result) {
  * V2 컷오버로 PointHistory 증빙이 사라지자 그 결함이 그대로 드러나 월정석 결제자가 402 를 받았다.
  * 행의 모양 정본은 worker/payments/moonstone.js 이고, writer↔reader 왕복 계약은
  * __tests__/worker/per-use-proof-roundtrip.test.js 가 지킨다.
+ *
+ * 증빙 정본(worker/lib/moonstone-spend-proof.js)은 find().select().sort().limit().lean() 을 쓴다.
  */
 function ledgerQuery(row) {
-  return (filter) => ({
-    select: () => ({ lean: async () => (row && matches(row, filter) ? row : null) }),
-  });
+  return (filter) => {
+    const chain = {
+      select: () => chain,
+      sort: () => chain,
+      limit: () => chain,
+      lean: async () => (row && matches(row, filter) ? [row] : []),
+    };
+    return chain;
+  };
 }
 
 function resetModels() {
   paymentFindOne.mockReset().mockReturnValue(query(null));
   pointHistoryFindOne.mockReset().mockReturnValue(query(null));
-  monthlyLedgerFindOne.mockReset().mockReturnValue(query(null));
+  monthlyLedgerFind.mockReset().mockImplementation(ledgerQuery(null));
   userFindById.mockReset().mockReturnValue(query({ _id: USER_ID, role: "user" }));
 }
 
@@ -68,7 +76,7 @@ beforeAll(async () => {
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({
       Payment: { findOne: paymentFindOne },
       PointHistory: { findOne: pointHistoryFindOne },
-      MonthlyCreditLedger: { findOne: monthlyLedgerFindOne },
+      MonthlyCreditLedger: { find: monthlyLedgerFind },
       User: { findById: userFindById },
     })),
   ]);
@@ -99,7 +107,7 @@ describe("회당 결제 증빙 — 5경로", () => {
 
   // 월정석은 PointHistory 를 남기지 않는다(V2). 이 원장 조회가 유일한 증빙 경로다.
   it("월정석 원장(sourceId)으로 증빙된다", async () => {
-    monthlyLedgerFindOne.mockImplementation(ledgerQuery({
+    monthlyLedgerFind.mockImplementation(ledgerQuery({
       _id: "ledger-1",
       userId: USER_ID,
       type: "MONTHLY_CREDIT_SPEND",
@@ -113,7 +121,7 @@ describe("회당 결제 증빙 — 5경로", () => {
 
   // 🔴 정산되지 않은 예약행 = 차감이 일어나지 않은 상태. 증빙으로 인정하면 유료 결과가 공짜로 열린다.
   it("정산되지 않은 월정석 예약행은 증빙이 아니다", async () => {
-    monthlyLedgerFindOne.mockImplementation(ledgerQuery({
+    monthlyLedgerFind.mockImplementation(ledgerQuery({
       _id: "ledger-2",
       userId: USER_ID,
       type: "MONTHLY_CREDIT_SPEND",

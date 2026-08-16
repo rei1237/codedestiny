@@ -5,6 +5,7 @@ import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-ll
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, SukuyoCompatibilityAiConsultation, User } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "../lib/sukuyo-ai-calculation.js";
 import { callGeminiText } from "../lib/gemini.js";
@@ -1056,25 +1057,6 @@ function buildPointHistoryEvidenceQuery(ids) {
   return or;
 }
 
-function buildMonthlyLedgerEvidenceQuery(ids) {
-  const or = [];
-  ids.forEach((id) => {
-    or.push(
-      { sourceId: id },
-      { "metadata.requestId": id },
-      { "metadata.purchaseId": id },
-      { "metadata.idempotencyKey": id },
-      { "metadata.orderId": id },
-      { "metadata.pointHistoryId": id },
-      { "metadata.transactionId": id },
-      { "metadata.ledgerId": id },
-      { "metadata.evidenceId": id },
-    );
-    if (isObjectIdLike(id)) or.push({ _id: id });
-  });
-  return or;
-}
-
 async function resolveBillingUsageEvidence(env, auth, body = {}) {
   const ids = collectBillingEvidenceIds(body);
   if (!ids.length) return null;
@@ -1106,17 +1088,14 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
       paymentId: String(pointHistory._id || paymentIdFromBody(body) || ""),
     };
   }
-  const ledgerOr = buildMonthlyLedgerEvidenceQuery(ids);
-  const ledger = ledgerOr.length
-    ? await MonthlyCreditLedger.findOne({
-      userId: auth.userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: FEATURE_KEY,
-      $or: ledgerOr,
-    }).select("_id metadata").lean()
-    : null;
-  if (ledger) {
-    return { ok: true, accessType: "subscription", paymentId: String(ledger._id || paymentIdFromBody(body) || "") };
+  // 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
+  const monthlyEvidence = await findMoonstoneSpendEvidence(env, {
+    userId: auth.userId,
+    featureKeys: [FEATURE_KEY],
+    tokens: ids,
+  });
+  if (monthlyEvidence) {
+    return { ok: true, accessType: "subscription", paymentId: String(monthlyEvidence.ledgerId || paymentIdFromBody(body) || "") };
   }
   return null;
 }

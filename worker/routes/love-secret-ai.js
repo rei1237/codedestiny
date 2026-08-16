@@ -5,6 +5,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
 import { LoveSecretAiConsultation, MonthlyCreditLedger, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
@@ -592,26 +593,6 @@ function buildPointHistoryEvidenceQuery(ids) {
   return or;
 }
 
-function buildMonthlyLedgerEvidenceQuery(ids) {
-  const or = [];
-  ids.forEach((id) => {
-    or.push(
-      { sourceId: id },
-      { "metadata.requestId": id },
-      { "metadata.purchaseId": id },
-      { "metadata.idempotencyKey": id },
-      { "metadata.orderId": id },
-      { "metadata.pointHistoryId": id },
-      { "metadata.transactionId": id },
-      { "metadata.ledgerId": id },
-      { "metadata.evidenceId": id },
-      { "metadata.paymentId": id },
-    );
-    if (isObjectIdLike(id)) or.push({ _id: id });
-  });
-  return or;
-}
-
 function buildPaymentEvidenceQuery(ids) {
   const or = [];
   ids.forEach((id) => {
@@ -712,27 +693,24 @@ async function resolveBillingUsageEvidence(env, auth, body = {}) {
     };
   }
 
-  const ledgerOr = buildMonthlyLedgerEvidenceQuery(ids);
-  const ledger = ledgerOr.length
-    ? await MonthlyCreditLedger.findOne({
-      userId: auth.userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      serviceKey: FEATURE_KEY,
-      "metadata.refundedForLoveSecretAiFailure": { $ne: true },
-      $or: ledgerOr,
-    }).select("_id amount sourceId metadata").lean()
-    : null;
-  if (ledger) {
+  /* 월정석 증빙 정본은 worker/lib/moonstone-spend-proof.js 하나다(미정산 예약행 배제·구 원장 호환 포함).
+     이 라우트 전용 되돌림 표식 refundedForLoveSecretAiFailure 도 그 정본의 제외 목록에 들어 있다. */
+  const monthlyEvidence = await findMoonstoneSpendEvidence(env, {
+    userId: auth.userId,
+    featureKeys: [FEATURE_KEY],
+    tokens: ids,
+  });
+  if (monthlyEvidence) {
     return {
       ok: true,
       accessType: "subscription",
       accessSource: "billing_gate_membership_credit",
-      paymentId: String(ledger._id || body.paymentId || ""),
+      paymentId: String(monthlyEvidence.ledgerId || body.paymentId || ""),
       billingEvidence: {
-        ledgerId: String(ledger._id || ""),
-        pointHistoryId: clean(ledger?.metadata?.pointHistoryId, 160),
-        purchaseId: clean(ledger.sourceId || ledger?.metadata?.purchaseId || ledger?.metadata?.requestId, 160),
-        membershipCreditCost: Math.max(0, Math.floor(Number(ledger.amount || ledger?.metadata?.requiredMonthlyCredits || 0))),
+        ledgerId: String(monthlyEvidence.ledgerId || ""),
+        pointHistoryId: "",
+        purchaseId: clean(monthlyEvidence.sourceId, 160),
+        membershipCreditCost: Math.max(0, Math.floor(Number(monthlyEvidence.amount || 0))),
       },
     };
   }
