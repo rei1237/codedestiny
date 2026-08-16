@@ -4,7 +4,8 @@ import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFrom
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
-import { MonthlyCreditLedger, NewYearAiConsultation, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { NewYearAiConsultation, PaidExecutionRecord, Payment, PointHistory, User } from "../lib/models.js";
+import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { getBillingFeaturePricing } from "../lib/billing-feature-registry.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { resolveFeatureAccessPolicy } from "../lib/entitlement-policy.js";
@@ -997,22 +998,6 @@ function pointHistoryTokenClauses(tokens = []) {
   return clauses;
 }
 
-function monthlyCreditTokenClauses(tokens = []) {
-  const clauses = [];
-  tokens.forEach((token) => {
-    clauses.push({ sourceId: token });
-    clauses.push({ "metadata.requestId": token });
-    clauses.push({ "metadata.purchaseId": token });
-    clauses.push({ "metadata.idempotencyKey": token });
-    clauses.push({ "metadata.orderId": token });
-    clauses.push({ "metadata.pointHistoryId": token });
-    clauses.push({ "metadata.ledgerId": token });
-    clauses.push({ "metadata.monthlyCreditLedgerId": token });
-    if (objectIdLike(token)) clauses.push({ _id: token });
-  });
-  return clauses;
-}
-
 function deferredTokenClauses(tokens = []) {
   const clauses = [];
   tokens.forEach((token) => {
@@ -1049,7 +1034,7 @@ function normalizeBillingAccessType(value) {
   return "paid";
 }
 
-async function resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey }) {
+async function resolveBillingGateAccess({ env, auth, user, body, pricing, idempotencyKey }) {
   const signal = readBillingAccessSignal(body);
   const tokens = collectBillingTokens(body, idempotencyKey);
   const ctx = readBillingContext(body);
@@ -1092,19 +1077,17 @@ async function resolveBillingGateAccess({ auth, user, body, pricing, idempotency
     }
   }
 
-  const monthlyClauses = monthlyCreditTokenClauses(tokens);
-  if (monthlyClauses.length) {
-    const ledger = await MonthlyCreditLedger.findOne({
-      userId: auth.userId,
-      type: "MONTHLY_CREDIT_SPEND",
-      "metadata.featureKey": FEATURE_KEY,
-      "metadata.refundedForUnlockFailure": { $ne: true },
-      "metadata.refundedForServiceExecution": { $ne: true },
-      $or: monthlyClauses,
-    }).sort({ createdAt: -1 }).lean();
-    if (ledger) {
-      return { ok: true, accessType: "subscription", paymentId: clean(ledger._id, 160), prepaid: true };
-    }
+  // 🔴 예전에는 `metadata.featureKey` 로 걸렀는데 결제 V2 원장의 metadata 에는 그 필드가 없다
+  //    (worker/payments/moonstone.js 는 기능키를 top-level serviceKey 에 적는다) — 그래서 이 조회는
+  //    V2 이후 **한 번도 매치되지 않았고** 월정석 결제자가 차감만 당하고 결과를 못 받았다.
+  //    기능키 매칭과 정산 확인은 정본(worker/lib/moonstone-spend-proof.js)이 담당한다.
+  const monthlyEvidence = await findMoonstoneSpendEvidence(env, {
+    userId: auth.userId,
+    featureKeys: [FEATURE_KEY, SERVICE_KEY],
+    tokens,
+  });
+  if (monthlyEvidence) {
+    return { ok: true, accessType: "subscription", paymentId: clean(monthlyEvidence.ledgerId, 160), prepaid: true };
   }
 
   const deferredClauses = deferredTokenClauses(tokens);
@@ -1190,7 +1173,7 @@ function buildBillingGatePayload({ pricing, idempotencyKey }) {
   };
 }
 
-async function resolveServerAccess({ auth, user, pricing, idempotencyKey = "", inputHash = "", body = {} }) {
+async function resolveServerAccess({ env, auth, user, pricing, idempotencyKey = "", inputHash = "", body = {} }) {
   if (isAdmin(auth) || clean(user?.role).toLowerCase() === "admin") {
     return { ok: true, accessType: "admin", paymentId: "", usageAlreadyApplied: true };
   }
@@ -1213,7 +1196,7 @@ async function resolveServerAccess({ auth, user, pricing, idempotencyKey = "", i
     }
   }
 
-  const billing = await resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey });
+  const billing = await resolveBillingGateAccess({ env, auth, user, body, pricing, idempotencyKey });
   if (billing?.ok) {
     return {
       ...billing,
@@ -2170,7 +2153,7 @@ async function handleEnsureAccess(request, env) {
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (!user) return loginRequired();
 
-  const access = await withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
+  const access = await withMongoRetry(env, () => resolveServerAccess({ env, auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
   if (access.ok) {
     logNewYearAi("Access Check Success", safeLogPayload({ route, requestId: idempotencyKey, body, normalized, access: access.accessType, env }));
     return json({
@@ -2217,14 +2200,14 @@ async function resolveStartAccess({ request, env, auth, body, normalized, pricin
 
   const user = await withMongoRetry(env, () => loadBillingUser(auth.userId));
   if (!user && !isAdmin(auth)) return { ok: false, reason: "LOGIN_REQUIRED" };
-  const billingAccess = await withMongoRetry(env, () => resolveBillingGateAccess({ auth, user, body, pricing, idempotencyKey }));
+  const billingAccess = await withMongoRetry(env, () => resolveBillingGateAccess({ env, auth, user, body, pricing, idempotencyKey }));
   if (billingAccess?.ok) {
     return {
       ...billingAccess,
       usageAlreadyApplied: billingAccess.usageAlreadyApplied === true,
     };
   }
-  return withMongoRetry(env, () => resolveServerAccess({ auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
+  return withMongoRetry(env, () => resolveServerAccess({ env, auth, user, pricing, idempotencyKey, inputHash: normalized.inputHash, body }));
 }
 
 async function handleStart(request, env, ctx) {

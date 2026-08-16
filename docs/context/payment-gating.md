@@ -35,6 +35,9 @@
 | `worker/lib/models.js` | DB 스키마 (`profileSubscription`, `MonthlyCreditLedger`, `pointHistorySchema`) |
 | `worker/routes/fortune.js` | 사주/자미두수 접근 게이팅 (`accessSource` 분기) · `PERSISTENT_UNLOCK_KEY_SET` |
 | `worker/lib/nakshatra-paid-access.js` | 회당결제 라우트의 서버측 결제 증빙 확인 (`verifyPerUsePayment`) |
+| `worker/lib/moonstone-spend-proof.js` | 🔴 **월정석 차감 증빙 조회의 유일한 정본** (`findMoonstoneSpendEvidence`) — 새 사본을 만들지 말 것 |
 | `app/hooks/useCoinGate.ts` | 프론트 단건 결제 훅 |
+
+🔴 **월정석 증빙 쿼리를 라우트에 복제하지 말 것** (2026-08-16) — 월정석의 회계 정본은 `MonthlyCreditLedger` 하나이고 쓰는 곳도 `worker/payments/moonstone.js` 하나인데, **읽는 곳이 15곳에 각자 손으로 적힌 쿼리로** 흩어져 있었다. writer 가 바뀔 때마다 그중 몇 곳이 조용히 죽고, 죽은 자리에서 **월정석이 차감된 사용자가 402(미결제)** 를 받았다(초융합 ₩30,000 · 네오 팩폭 전략실, 두 번 재발). 이제 조회는 `worker/lib/moonstone-spend-proof.js` 하나이며, 정산 판정은 `settledAt` 단독이 아니라 **① `settledAt` ② 구 billing.js 행의 `afterBalance` ③ 미정산이면 `User.recentConsumeRequestIds`(차감의 정본 증거)** 3갈래다 — ③ 이 없으면 "차감은 끝났는데 정산 write 가 아직 안 내려앉은 창"에서 돈 낸 사용자가 402 를 맞는다(크론 sweep 은 5~10분 뒤). writer↔reader 왕복 계약은 `__tests__/worker/per-use-proof-roundtrip.test.js` 가 **소비 라우트 전수**로 고정한다.
 
 🔴 **`PERSISTENT_UNLOCK_KEY_SET`은 영구 해금의 기록 주체가 아니다** — 위치도 `content-unlocks.js`가 아니라 `worker/routes/fortune.js`다. 해금을 실제로 기록하는 곳은 `User.unlockedFeatures`이고, coin-gate(`billing.js`)와 카드 단건결제(`payments.js` `recordUserPaidFeature`)가 `isUnlockPaidFeatureKey` 기준으로 함께 쓴다. 저 상수는 `/api/fortune/*` 응답의 `unlockedFeatures`/`unlockMap` 필터와 PointHistory 복구 경로 전용이라, **신규 잠금 기능을 추가할 때 여기 등록하지 않아도 결제·재열람은 정상 동작한다**(같은 계약의 `ziwei-island-deep-report`·`nakshatra-lord-report`·`nakshatra-dasha-map`이 모두 미등록 상태로 동작 중). 등록이 필요한 경우는 그 키를 `/api/fortune/*` 응답으로 내보내야 할 때뿐이다.
