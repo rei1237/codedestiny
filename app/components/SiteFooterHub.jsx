@@ -56,6 +56,14 @@ const SEO_LINK_GROUPS = [
       { href: "/saju/", text: "무료 사주풀이 보기" },
       { href: "/manse/", text: "꿀꿀 만세력 확인하기" },
       { href: "/today/", text: "오늘의 운세 확인하기" },
+      // 🔴 /fortune/{today,tomorrow,weekly,monthly} 101개는 사이트맵에만 있고 **유입 내부 링크가
+      // 0이었다**(2026-08-16 실측: 홈·/today·푸터 전수 grep). 매일 재생성되는 클러스터가
+      // 링크 그래프에서 고아면 크롤 우선순위가 서지 않으므로, 위 "신탁 & 특화" 블록이
+      // 노index 허브를 정본 허브로 바꾼 것과 같은 이유로 기간 허브 4개를 여기에 건다.
+      { href: "/fortune/today/", text: "오늘의 별자리·띠 운세 24종" },
+      { href: "/fortune/tomorrow/", text: "내일의 별자리·띠 운세" },
+      { href: "/fortune/weekly/", text: "이번 주 별자리·띠 운세" },
+      { href: "/fortune/monthly/", text: "이번 달 별자리·띠 운세" },
       { href: "/compatibility/", text: "사주 궁합 분석하기" },
       { href: "/premium/", text: "프리미엄 운세 리포트" },
       { href: "/saju/basic/", text: "사주 만세력 기본 해석" },
