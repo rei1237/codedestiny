@@ -1,3 +1,17 @@
+// 관상 동물상 스코어링 회귀 검증
+//
+// 2026-08-16 개편: 손튜닝 상수를 정규식으로 고정하던 방식을 걷어내고, 실제 얼굴에서 뽑은
+// 랜드마크 픽스처로 실엔진을 돌려 "라벨을 맞히는가"를 직접 잰다.
+//
+// 왜 바꿨나: 종전 가드는 eyeSlant 를 [-5,-2.5,0,2.5,5] 로 훑는 합성 스윕이었는데, 실제
+// 사진에서 나오는 eyeSlant 폭은 1.11(중앙 -0.20)뿐이었다. 즉 가드가 실제 얼굴이 도달할 수
+// 없는 좌표만 검사해 초록불을 켜는 동안, 실사용에서는 31장 중 16장(51.6%)이 곰상으로
+// 몰리고 라벨 적중률이 12.9% 였다. 합성 좌표로는 이 부류의 사고를 잡을 수 없다.
+//
+// 픽스처: scripts/fixtures/physiognomy-landmark-vectors.json
+//   calibration/ 사진(gitignore)에서 뽑은 랜드마크 중 엔진이 실제로 인덱싱하는 38점만 담았다.
+//   얼굴 이미지도, 신원 정보도, 메시 전체도 들어 있지 않다. 사진이 늘면 다시 생성한다:
+//     npm run physio:measure  →  픽스처 재생성  →  npm run physio:replay 로 수치 확인
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
@@ -8,6 +22,7 @@ const root = resolve(fileURLToPath(new URL('..', import.meta.url)));
 const analysis = readFileSync(resolve(root, 'AnalysisEngine.js'), 'utf8');
 const ui = readFileSync(resolve(root, 'PhysiognomyUI.js'), 'utf8');
 
+// ── 1. 결과 계약 ──
 assert.match(analysis, /eyeDistance:\s*eyeDistRatio/, 'eyeDistance alias must map to eyeDistRatio');
 assert.doesNotMatch(analysis, /features\.eyeDistance/, 'scoring must read eyeDistRatio directly');
 assert.match(analysis, /qualityScore/, 'analysis result must include qualityScore');
@@ -16,158 +31,96 @@ assert.doesNotMatch(analysis, /pctArr\[0\]\s*\*\s*1\.25/, 'confidence must not u
 assert.match(ui, /사진 품질/, 'result UI must expose photo quality guidance');
 assert.match(ui, /판정 근거/, 'result UI must expose readable scoring evidence');
 
-// ── 동물상 정확도 튜닝 (갸름→고양이, 둥금→강아지) ──
-// 소스에 수정 로직이 실재하는지 확인해 아래 복제 하네스와의 drift를 막는다.
-assert.match(analysis, /if \(features\.faceRatio <= 0\.86\) catBonus \+= 300;/, 'cat base: faceRatio 하한 제거(갸름 우대)');
-assert.match(analysis, /if \(features\.faceRatio <= 0\.80\) catBonus \+= 150;/, 'cat base: 매우 갸름 보강');
-assert.match(analysis, /if \(features\.faceRatio >= 0\.85 && Math\.abs\(features\.eyeSlant\) <= 1\.5\) bearBonus \+= 140;/, 'bear base: 평온눈매 보너스에 넓은얼굴 게이트');
-assert.doesNotMatch(analysis, /else if \(features\.faceRatio >= 0\.84\) bonus \+= 145;\n {12}bonus \+= 145;/, 'bear floor 무조건 지급 제거');
-assert.match(analysis, /\/\/ 1-b\) 고양이상 — 갸름한 얼굴/, 'cat 남성형 분기 신설');
+// ── 2. 축 스케일 보정이 살아 있는가 ──
+// 이게 빠지면 실측값이 아키타입 표와 다른 대역으로 돌아가 곰상 쏠림이 그대로 재발한다.
+assert.match(analysis, /const PHY_AXIS_CALIBRATION = \{/, '축 보정 표가 있어야 함');
+assert.match(analysis, /const PHY_AXIS_CLAMP = \{/, '축 클램프가 있어야 함 (눈 감은 사진의 eyeRatio 폭주 차단)');
+assert.match(analysis, /function phyCalibrateAxis\(/, 'phyCalibrateAxis 가 있어야 함');
+for (const axis of ['faceRatio', 'eyeSlant', 'eyeDistRatio', 'noseWidthRatio', 'mouthRatio', 'eyeRatio']) {
+  assert.match(analysis, new RegExp(`${axis}:\\s*\\{ from:`), `PHY_AXIS_CALIBRATION 에 ${axis} 항목`);
+  assert.match(analysis, new RegExp(`phyCalibrateAxis\\('${axis}'`), `${axis} 가 보정을 거쳐야 함`);
+}
+assert.match(analysis, /const PHY_PROFILE_BONUS_WEIGHT = /, '보너스 반영 비율은 명명된 상수여야 함');
+assert.match(analysis, /Math\.min\(profileRaw, 700\) \* PHY_PROFILE_BONUS_WEIGHT/, '보너스 전달함수가 상수를 써야 함');
 
-// 보너스 로직 복제 하네스: 세 시나리오에서 상대 점수 역전 확인
-const ARCH = {
-  dog:  { face: 0.85, slant: 4.5,  dist: 1.12, nose: 0.90, mouth: 1.28, eye: 2.5 },
-  cat:  { face: 0.83, slant: -5.5, dist: 1.12, nose: 0.84, mouth: 1.30, eye: 2.6 },
-  bear: { face: 0.90, slant: 0.5,  dist: 1.18, nose: 1.10, mouth: 1.38, eye: 3.0 },
-};
-const geo = (f, a) => Math.max(0, 2000 - (
-  (f.faceRatio - a.face) ** 2 * 1800 + (f.eyeSlant - a.slant) ** 2 * 12 +
-  (f.eyeDistRatio - a.dist) ** 2 * 1000 + (f.noseWidthRatio - a.nose) ** 2 * 1200 +
-  (f.mouthRatio - a.mouth) ** 2 * 500 + (f.eyeRatio - a.eye) ** 2 * 150));
-const baseBonus = (id, f) => {
-  let b = 0;
-  if (id === 'cat') {
-    if (f.eyeSlant <= -4) b += 500; else if (f.eyeSlant <= -2.5) b += 300;
-    if (f.faceRatio <= 0.86) b += 300;
-    if (f.faceRatio <= 0.80) b += 150;
-    if (f.eyeRatio <= 2.6) b += 200;
-  }
-  if (id === 'bear') {
-    if (f.faceRatio >= 0.88) b += 220;
-    if (f.noseWidthRatio >= 1.05) b += 180;
-    if (f.faceRatio >= 0.85 && Math.abs(f.eyeSlant) <= 1.5) b += 140;
-  }
-  return b;
-};
-const genderBonus = (id, f, fem) => {
-  let b = 0;
-  if (fem >= 40) {
-    const p = 1.0 + (fem - 40) / 40;
-    if (id === 'cat') { if (f.faceRatio <= 0.82) b += 700; else if (f.faceRatio <= 0.85) b += 400; if (f.eyeRatio <= 2.5) b += 450; if (f.eyeSlant <= -2.0) b += 400; b += 500; }
-    if (id === 'dog') { if (f.faceRatio >= 0.83) b += 1100; else if (f.faceRatio >= 0.80) b += 650; if (f.eyeRatio <= 2.6) b += 800; if (f.eyeSlant >= 0.0) b += 600; b += 600; }
-    if (id === 'bear') { if (f.faceRatio >= 0.87) b += 290; else if (f.faceRatio >= 0.84) b += 145; if (f.faceRatio >= 0.84) b += 145; }
-    return b * p;
-  }
-  const p = 1.0 + (40 - fem) / 40;
-  if (id === 'dog') { if (f.faceRatio >= 0.83) b += 550; else if (f.faceRatio >= 0.80) b += 300; if (f.eyeSlant >= 0.5) b += 350; else if (f.eyeSlant >= -0.5) b += 180; if (f.mouthCurve > 0) b += 150; b += 250; }
-  if (id === 'cat') { if (f.faceRatio <= 0.82) b += 550; else if (f.faceRatio <= 0.85) b += 300; if (f.eyeSlant <= -2.0) b += 350; else if (f.eyeSlant <= -0.5) b += 150; if (f.eyeRatio <= 2.6) b += 200; b += 250; }
-  if (id === 'bear') { if (f.faceRatio >= 0.87) b += 290; else if (f.faceRatio >= 0.84) b += 145; if (f.noseWidthRatio >= 1.00) b += 220; else if (f.noseWidthRatio >= 0.93) b += 110; if (f.faceRatio >= 0.84) b += 145; }
-  return b * p;
-};
-const score = (id, f, fem) => geo(f, ARCH[id]) * 0.82 + baseBonus(id, f) + genderBonus(id, f, fem);
-const mk = (o) => ({ eyeDistRatio: 1.05, noseWidthRatio: 0.88, mouthRatio: 1.35, eyeRatio: 2.5, mouthCurve: 0.002, ...o });
-const winner = (f, fem) => ['cat', 'dog', 'bear'].map((id) => [id, score(id, f, fem)]).sort((a, b) => b[1] - a[1])[0][0];
-
-assert.equal(winner(mk({ faceRatio: 0.76, eyeSlant: -3 }), 60), 'cat', '갸름 여성 → 고양이');
-assert.equal(winner(mk({ faceRatio: 0.76, eyeSlant: -1 }), 20), 'cat', '갸름 남성(중립눈) → 고양이 (남성형 cat 분기)');
-assert.equal(winner(mk({ faceRatio: 0.86, eyeSlant: 2, eyeRatio: 2.4 }), 60), 'dog', '둥금 여성 → 강아지');
-assert.equal(winner(mk({ faceRatio: 0.86, eyeSlant: 2, eyeRatio: 2.4 }), 20), 'dog', '둥금 남성 → 강아지');
-assert.equal(genderBonus('bear', mk({ faceRatio: 0.76, eyeSlant: -1 }), 20), 0, '갸름 얼굴엔 곰 floor 미지급');
-assert.ok(genderBonus('bear', mk({ faceRatio: 0.90, eyeSlant: 0.5, noseWidthRatio: 1.10 }), 20) > 0, '넓은 얼굴엔 곰 floor 지급');
-
-// ── 종횡비 보정 (문제 1-B): 같은 얼굴이 이미지 종횡비와 무관하게 동일 faceRatio를 내야 함 ──
-// AnalysisEngine.js를 window-stub 환경에서 실제 로드해 extractGeometricFeatures를 호출한다.
+// ── 3. 축 스케일 · 전달함수 drift 가드 (기린상 42% 쏠림 재발 방지) ──
+assert.match(analysis, /const FACE_LEFT = landmarks\[234\];/, 'faceRatio는 얼굴 최대폭(234/454) 기준');
+assert.match(analysis, /const jawWidth = this\.calculateDistance\(JAW_LEFT, JAW_RIGHT\);/, '하관 폭은 별도 변수로 보존');
+assert.match(analysis, /eyeToFaceRatio: \(eyeWidth \* 2 \+ interEyeDistance\) \/ \(jawWidth \|\| 1\)/, '여성형 판별은 하관 기준 유지');
 assert.match(analysis, /extractGeometricFeatures\(landmarks, aspect\)/, 'extractGeometricFeatures에 aspect 파라미터');
 assert.match(analysis, /landmarks = landmarks\.map\(\(p\) => \(\{ x: p\.x \* A, y: p\.y, z: \(p\.z \|\| 0\) \* A \}\)\)/, '종횡비 보정(x·z × W/H)');
 assert.match(analysis, /analyze\(landmarksData, expressionData, imageAspect\)/, 'analyze가 imageAspect 수신');
 assert.match(ui, /window\.faceAnalysisEngine\.analyze\(analysisLandmarks, expressionData, imageAspect\)/, '프론트가 imageAspect 전달');
 
-// ── 축 스케일 · 전달함수 drift 가드 (기린상 42% 쏠림 재발 방지) ──
-assert.match(analysis, /const FACE_LEFT = landmarks\[234\];/, 'faceRatio는 얼굴 최대폭(234/454) 기준');
-assert.match(analysis, /const jawWidth = this\.calculateDistance\(JAW_LEFT, JAW_RIGHT\);/, '하관 폭은 별도 변수로 보존');
-assert.match(analysis, /eyeToFaceRatio: \(eyeWidth \* 2 \+ interEyeDistance\) \/ \(jawWidth \|\| 1\)/, '여성형 판별은 하관 기준 유지');
-// 상한을 올릴수록 승자 다양성이 단조 악화된다(700→25종, 1500→20종, 2000→18종 + 판정 붕괴).
-// 바꾸려면 아래 분포 가드로 먼저 재측정할 것.
-assert.match(analysis, /const profileBonus = Math\.min\(profileRaw, 700\) \* 0\.10;/, '프로파일 보정 전달함수(실측 확정값)');
+// 여성형 억제 목록과 animalDb 가 모순되지 않아야 한다.
+// 억제는 baseScore 비율(-30~-95%)이라 기하 격차(100~200)를 통째로 덮어쓴다 — 목록에 넣는 것은
+// 사실상 "여성 얼굴에서 이 동물상을 없앤다"와 같다. 그래서 여성 대표 연예인이 등록된
+// 동물상은 목록에 있으면 안 된다. 뱀상(카리나·청하·현아)이 여기 들어 있어 8장 전원이 샜다.
+assert.match(analysis, /const mildCrush = \['wolf'\];/, "mildCrush 에 snake·tiger 재추가 금지 (여성 대표가 animalDb 에 등록돼 있음)");
 
 const dom = new JSDOM('<!doctype html><body></body>');
 const engine = new Function('window', 'document', analysis + '\nreturn window.faceAnalysisEngine;')(dom.window, dom.window.document);
 assert.ok(engine && typeof engine.extractGeometricFeatures === 'function', '엔진 로드 실패');
+await engine.loadDatabase();
+
+// ── 4. 종횡비 불변 ──
+// 보정은 축마다 아핀 변환이라 불변성을 보존한다. 절대값이 아니라 "이미지 비율이 달라도
+// 같은 값이 나오는가"를 본다 (보정 때문에 절대값은 표 좌표계로 옮겨진다).
 const mkLm = (W, H, r) => {
   const L = 400, Wd = L * r;
   const lm = Array.from({ length: 468 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
   lm[10] = { x: 0.5, y: (500 - L / 2) / H, z: 0 };
   lm[152] = { x: 0.5, y: (500 + L / 2) / H, z: 0 };
-  // faceRatio 기준은 얼굴 최대 폭(234/454)이다.
   lm[234] = { x: (500 - Wd / 2) / W, y: 0.5, z: 0 };
   lm[454] = { x: (500 + Wd / 2) / W, y: 0.5, z: 0 };
-  // 하관(149/378)은 최대폭의 62% 지점 — jawWidth·qualityScore가 현실적인 값으로 남게 한다.
   lm[149] = { x: (500 - Wd * 0.31) / W, y: 0.6, z: 0 };
   lm[378] = { x: (500 + Wd * 0.31) / W, y: 0.6, z: 0 };
   return lm;
 };
-const truth = 0.72; // 실제 갸름한 얼굴
+const truth = 0.72;
 const sq = engine.extractGeometricFeatures(mkLm(1000, 1000, truth), 1);
-const portRaw = engine.extractGeometricFeatures(mkLm(800, 1000, truth), 1);     // 세로형, 보정 미적용
+const portRaw = engine.extractGeometricFeatures(mkLm(800, 1000, truth), 1);      // 세로형, 보정 미적용
 const port = engine.extractGeometricFeatures(mkLm(800, 1000, truth), 800 / 1000); // 세로형, 보정
 const land = engine.extractGeometricFeatures(mkLm(1000, 800, truth), 1000 / 800); // 가로형, 보정
-assert.ok(portRaw.faceRatio > 0.88, `보정 없는 세로형 셀카는 곰 영역으로 팽창(재현): ${portRaw.faceRatio.toFixed(3)}`);
-for (const [label, f] of [['정사각', sq], ['세로형보정', port], ['가로형보정', land]]) {
-  assert.ok(Math.abs(f.faceRatio - truth) < 0.01, `${label} faceRatio ≈ ${truth} (실제 ${f.faceRatio.toFixed(3)})`);
-}
 const spread = Math.max(sq.faceRatio, port.faceRatio, land.faceRatio) - Math.min(sq.faceRatio, port.faceRatio, land.faceRatio);
 assert.ok(spread < 0.01, `종횡비 불변(편차 ${spread.toFixed(4)})`);
+assert.ok(portRaw.faceRatio > sq.faceRatio + 0.03,
+  `보정 없는 세로형 셀카는 여전히 넓은 쪽으로 팽창해야 함(재현): ${portRaw.faceRatio.toFixed(3)} vs ${sq.faceRatio.toFixed(3)}`);
 
-// ── 승자 분포 붕괴 가드 ──
-// 2026-08 사고: faceRatio 축이 아키타입 표와 다른 스케일이라 기린상 42.6% + 알파카상 30.8%
-// (27종 중 실질 12종만 도달 가능)이었다. 위 복제 하네스(cat/dog/bear)는 재조합 블록을
-// 포함하지 않아 이걸 못 잡았으므로, 여기서는 실엔진 analyze()를 그대로 호출한다.
-const baseFeatures = {
-  faceRatio: 0.80, faceLength: 0.4, faceWidth: 0.32, eyeRatio: 2.7, eyeSlant: 0,
-  eyeDistRatio: 1.08, eyeDistance: 1.08, eyeAsymmetry: 0.02, eyeSlantDelta: 0.5,
-  eyeHeight: 0.012, eyeWidth: 0.032, leftEyeWidth: 0.032, rightEyeWidth: 0.032,
-  noseRatio: 1.6, noseWidthRatio: 0.92, noseZ: 0.02, noseWidth: 0.035,
-  mouthCurve: 0.001, mouthRatio: 1.35, mouthWidth: 0.047,
-  earRatio: 0.28, earPosition: 'normal', browSlant: -1, browArch: 1.2, browEyeGap: 1.5,
-  jawSquareness: 0.80, qualityScore: 92, eyeToFaceRatio: 0.9, lipThickness: 0.02,
-  chinLength: 0.34, samjung: { upper: 0.33, middle: 0.33, lower: 0.34 }
-};
-const stubLm = Array.from({ length: 478 }, (_, i) => ({ x: 0.5 + ((i * 37) % 100) / 2000, y: 0.5 + ((i * 53) % 100) / 2000, z: 0 }));
-const realExtract = engine.extractGeometricFeatures.bind(engine);
-const analyzeWith = async (over) => {
-  engine.extractGeometricFeatures = () => ({ ...baseFeatures, ...over, jawSquareness: over.faceRatio ?? baseFeatures.faceRatio });
-  try { return await engine.analyze(stubLm, null, 1); }
-  finally { engine.extractGeometricFeatures = realExtract; }
-};
-
-const wins = Object.create(null);
-let total = 0;
-for (const faceRatio of [0.70, 0.75, 0.80, 0.85, 0.90])
-  for (const eyeSlant of [-5, -2.5, 0, 2.5, 5])
-    for (const eyeDistRatio of [0.95, 1.08, 1.20])
-      for (const noseWidthRatio of [0.82, 0.95, 1.08])
-        for (const mouthRatio of [1.15, 1.35, 1.55])
-          for (const eyeRatio of [2.2, 2.7, 3.2]) {
-            const r = await analyzeWith({ faceRatio, eyeSlant, eyeDistRatio, eyeDistance: eyeDistRatio, noseWidthRatio, mouthRatio, eyeRatio });
-            wins[r.primaryAnimal] = (wins[r.primaryAnimal] || 0) + 1;
-            total += 1;
-          }
-
-const ranked = Object.entries(wins).sort((a, b) => b[1] - a[1]);
-const [topName, topCount] = ranked[0];
-assert.ok(topCount / total <= 0.35, `단일 동물 편중: ${topName} ${(topCount * 100 / total).toFixed(1)}% — 축 스케일/전달함수 붕괴 의심`);
-assert.ok(ranked.length >= 18, `승자 다양성 ${ranked.length}/27 — 다수 동물이 도달 불가`);
-for (const name of ['강아지상', '고양이상', '햄스터상', '사슴상']) {
-  assert.ok(wins[name] > 0, `${name}이 전 구간에서 단 한 번도 1위가 아님 (도달 불가)`);
+// ── 5. 실제 얼굴 픽스처로 라벨 적중률 ──
+// 이 가드가 이 파일의 본체다. 위의 문자열 단언들은 구조가 사라졌는지만 보고,
+// "판정이 맞는가"는 여기서만 잰다.
+const fx = JSON.parse(readFileSync(resolve(root, 'scripts/fixtures/physiognomy-landmark-vectors.json'), 'utf8'));
+const norm = (s) => String(s || '').replace(/상$/, '');
+const results = [];
+for (const s of fx.samples) {
+  const lm = Array.from({ length: 478 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
+  fx.indices.forEach((idx, i) => { lm[idx] = { x: s.points[i][0], y: s.points[i][1], z: s.points[i][2] }; });
+  const out = await engine.analyze(lm, null, s.aspect);
+  results.push({ label: s.label, winner: out.primaryAnimal, top3: (out.top3 || []).map((t) => t.animal.name) });
 }
-assert.ok((wins['기린상'] || 0) / total <= 0.12, `기린상은 매우 긴 얼굴에서만 나와야 함 (실제 ${((wins['기린상'] || 0) * 100 / total).toFixed(1)}%)`);
-// 갸름 + 순한 눈매 + 큰 둥근 눈 + 작은 코 → 부드러운 계열이어야 한다 (기린상 금지)
-const soft = await analyzeWith({
-  faceRatio: 0.78, eyeSlant: 1.0, eyeDistRatio: 1.12, eyeDistance: 1.12,
-  noseWidthRatio: 0.82, mouthRatio: 1.22, eyeRatio: 2.25, eyeToFaceRatio: 0.75, chinLength: 0.33
-});
-assert.notEqual(soft.primaryAnimal, '기린상', '갸름+순한 얼굴이 기린상으로 새면 안 됨');
-assert.ok(['강아지상', '햄스터상', '사슴상', '토끼상', '고양이상'].includes(soft.primaryAnimal),
-  `갸름+순한 얼굴 → 부드러운 계열이어야 함 (실제 ${soft.primaryAnimal})`);
+const n = results.length;
+const top1 = results.filter((r) => norm(r.winner) === norm(r.label)).length;
+const top3 = results.filter((r) => r.top3.some((t) => norm(t) === norm(r.label))).length;
+const wins = {};
+results.forEach((r) => { wins[r.winner] = (wins[r.winner] || 0) + 1; });
+const [topName, topCount] = Object.entries(wins).sort((a, b) => b[1] - a[1])[0];
+const reached = Object.keys(wins).length;
 
-console.log(`[verify-physiognomy-scoring] ok — 승자 ${ranked.length}/27종, 최다 ${topName} ${(topCount * 100 / total).toFixed(1)}%, 갸름+순한 얼굴 → ${soft.primaryAnimal}`);
+// 🔴 이 적중률은 in-sample 이다. 아키타입 18행이 바로 이 사진들의 중앙값으로 만들어졌으므로
+//    일반화 성능이 아니라 "파이프라인이 안 깨졌는가"를 재는 회귀 지표로만 읽어야 한다.
+//    같은 데이터의 leave-one-out 일반화 추정치는 약 9% 로 훨씬 낮다(라벨 24종, 다수결 10.0%).
+//    이 기능의 정확도 한계는 특징에 있다 — 상세는 아래 주석과 docs 참고.
+// 하한은 2026-08-16 실측(1위 36/150 · TOP3 75/150 · 최다 10.7% · 도달 20/27)보다 아래로 둔다.
+// 개편 전(같은 150장): 1위 19(12.7%) · TOP3 33(22.0%) · 뱀상 쏠림 29장.
+assert.ok(top1 >= 28, `라벨 1위 적중 ${top1}/${n} — 하한 28 미만 (개편 전 19)`);
+assert.ok(top3 >= 60, `라벨 TOP3 적중 ${top3}/${n} — 하한 60 미만 (개편 전 33)`);
+assert.ok(reached >= 15, `도달 동물 ${reached}/27 — 다수 동물이 판정 불가`);
+// 단일 동물 쏠림은 이 기능의 고질 사고다 (2026-08 곰상 51.6%, 그 전 기린상 42.6%).
+assert.ok(topCount / n <= 0.20, `단일 동물 편중: ${topName} ${(topCount * 100 / n).toFixed(1)}% — 축 스케일/전달함수 붕괴 의심`);
+// 사용자 신고(카리나 → 곰상)의 회귀 가드. 여성 얼굴이 뱀상 후보권에 들어와야 한다.
+// 1위 고정은 특징 한계상 불안정해서 TOP3 로 건다.
+const snakeTop3 = results.filter((r) => r.label === '뱀상' && r.top3.some((t) => norm(t) === '뱀')).length;
+assert.ok(snakeTop3 >= 5, `뱀상 TOP3 재현 ${snakeTop3} — 여성형 억제/보너스 포화로 다시 막혔는지 확인 (개편 전 0)`);
+
+console.log(`[verify-physiognomy-scoring] ok — 픽스처 ${n}장(in-sample): 1위 ${top1} (${(top1 * 100 / n).toFixed(1)}%) · TOP3 ${top3} · 도달 ${reached}/27 · 최다 ${topName} ${(topCount * 100 / n).toFixed(1)}% · 뱀상 TOP3 ${snakeTop3}`);

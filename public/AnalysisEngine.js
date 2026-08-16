@@ -1,7 +1,59 @@
 ﻿// ============================================
 // Face Analysis Engine (Vanilla JS 포팅 버전)
-// AI 동물 관상 맞춤형 DB 포함 (15종) + 전문가 삼정 정밀 분석
+// AI 동물 관상 맞춤형 DB 포함 (27종) + 전문가 삼정 정밀 분석
 // ============================================
+
+// ── 축 스케일 보정 (2026-08-16 실측, n=150 / 라벨 24종, npm run physio:measure) ──
+// 아키타입 표(archetypes)와 보너스 임계값 217개는 전부 손으로 적힌 값인데, 실제 사진에서
+// 나오는 수치가 그 대역과 달랐다. 실측 p10~p90 대비 표 대역의 겹침:
+//     eyeRatio 8% · noseWidthRatio 33% · mouthRatio 64% · faceRatio 73%
+//     eyeSlant 는 실측 폭 1.11 인데 표는 7.2 를 쓴다 (정규화 y차라 각도가 아니다)
+// 그 결과 217개 중 73개 게이트가 한 장도 통과하지 못했고(eyeSlant 만 39개), 특징이 약한
+// 얼굴은 전부 표 중앙에 가장 가까운 곰상으로 떨어졌다 — 실측 31장 중 16장(51.6%)이 곰상,
+// 라벨 적중률 12.9%.
+//
+// 측정값을 표의 좌표계로 옮긴다 — 스케일만 맞추는 로버스트 아핀 변환이다.
+// 목표 좌표계(to·대역폭)는 이 파일의 현재 표가 아니라 개편 전 원본 표에서 뽑았다. 지금 표는
+// 19행이 실측으로 바뀌어 있어, 그걸 기준 삼으면 보정 → 중심점 → 보정 이 서로를 먹는다.
+//     x' = to + (x - from) * scale
+// from = 실측 중앙값, to = 표 27행의 중앙값, scale = 표 p10~p90 폭 / 실측 p10~p90 폭.
+// 라벨이 아니라 분포로만 뽑은 값이라 특정 동물에 유리하게 맞춘 것이 아니다.
+//
+// 🔴 사진이 늘면 이 상수는 다시 뽑아야 한다: npm run physio:measure → 아래 값 교체 →
+//    npm run physio:replay 로 적중률 확인. 손으로 고치지 말 것.
+const PHY_AXIS_CALIBRATION = {
+  faceRatio:      { from: 0.8345, to: 0.8300, scale: 0.746 },
+  eyeSlant:       { from: -0.3810, to: -0.5000, scale: 5.592 },
+  eyeDistRatio:   { from: 1.0317, to: 1.1000, scale: 1.148 },
+  noseWidthRatio: { from: 1.1617, to: 0.9300, scale: 0.823 },
+  mouthRatio:     { from: 1.1917, to: 1.3600, scale: 1.227 },
+  eyeRatio:       { from: 3.6477, to: 2.6000, scale: 0.210 }
+};
+
+// 표 대역 밖으로 크게 튄 값은 표 대역의 1.5배까지만 인정한다. 눈을 감거나 크게 웃은 사진은
+// eyeHeight 가 0 에 붙어 eyeRatio 가 폭주하고(실측 최대 9.25), 변환 뒤에도 한 축이 거리
+// 계산을 통째로 지배한다. 판정을 버리지 않고 영향만 자른다.
+const PHY_AXIS_CLAMP = {
+  faceRatio:      [0.59, 1.17],
+  eyeSlant:       [-9.91, 7.80],
+  eyeDistRatio:   [0.78, 1.50],
+  noseWidthRatio: [0.66, 1.27],
+  mouthRatio:     [0.96, 1.74],
+  eyeRatio:       [2.17, 4.52]
+};
+
+// 동물별 보정 사다리(450줄)의 최종 반영 비율. 근거는 analyze() 안 사용처 주석 참고.
+const PHY_PROFILE_BONUS_WEIGHT = 0.00;
+
+function phyCalibrateAxis(key, value) {
+  if (!Number.isFinite(value)) return value;
+  const c = PHY_AXIS_CALIBRATION[key];
+  if (!c) return value;
+  const mapped = c.to + (value - c.from) * c.scale;
+  const range = PHY_AXIS_CLAMP[key];
+  if (!range) return mapped;
+  return Math.max(range[0], Math.min(range[1], mapped));
+}
 
 class AnalysisEngine {
   constructor() {
@@ -416,25 +468,30 @@ class AnalysisEngine {
     const leftEyeHeight = this.calculateDistance(LEFT_EYE_TOP, LEFT_EYE_BOTTOM);
     const rightEyeHeight = this.calculateDistance(RIGHT_EYE_TOP, RIGHT_EYE_BOTTOM);
     const eyeHeight = (leftEyeHeight + rightEyeHeight) / 2;
-    const eyeRatio = eyeWidth / (eyeHeight || 1); 
-    
+    // 아래 6축은 phyCalibrateAxis 로 표 좌표계에 맞춘 값이다(파일 상단 PHY_AXIS_CALIBRATION).
+    // 원시값을 그대로 쓰면 아키타입 표·임계값 217개와 스케일이 어긋난다.
+    const eyeRatio = phyCalibrateAxis('eyeRatio', eyeWidth / (eyeHeight || 1));
+
     // 눈꼬리의 기울기 역학 (관상학적 음양의 균형을 수치화)
-    // OUT.y가 작을수록(위로 올라갈수록) 기울기 상승. 직관성을 위해 * 100을 곱해 -10 ~ +10의 임계 스케일로 맞춤
+    // OUT.y가 작을수록(위로 올라갈수록) 기울기 상승.
+    // 🔴 이 값은 각도가 아니라 정규화 y차다 — 얼굴이 사진에서 차지하는 크기에 비례한다.
+    //    실측 폭이 1.11(중앙 -0.20)뿐이라 표의 -6.5~+4.5 대역에 닿지 못했고, eyeSlant 게이트
+    //    49개 중 39개가 한 장도 발화하지 않았다. 보정으로 대역을 맞춘다.
     const leftSlant = (LEFT_EYE_OUT.y - LEFT_EYE_IN.y) * 100;
     const rightSlant = (RIGHT_EYE_OUT.y - RIGHT_EYE_IN.y) * 100;
     // 음수면 꼬리가 위로 솟구친 형상(음의 기운/호랑이·고양이상), 양수면 아래로 처진 형상(양의 기운/강아지·사슴상)
-    const eyeSlantAngle = (leftSlant + rightSlant) / 2;
+    const eyeSlantAngle = phyCalibrateAxis('eyeSlant', (leftSlant + rightSlant) / 2);
     const eyeAsymmetry = Math.abs(leftEyeWidth - rightEyeWidth) / (eyeWidth || 1);
     const eyeSlantDelta = Math.abs(leftSlant - rightSlant);
 
     // 미간(눈 사이)의 거리 계산 (관상학적 인당의 넓이)
     const interEyeDistance = this.calculateDistance(LEFT_EYE_IN, RIGHT_EYE_IN);
-    const eyeDistRatio = interEyeDistance / (eyeWidth || 1);
+    const eyeDistRatio = phyCalibrateAxis('eyeDistRatio', interEyeDistance / (eyeWidth || 1));
 
     const noseWidth = this.calculateDistance(NOSE_LEFT, NOSE_RIGHT);
     const noseLength = this.calculateDistance(GLABELLA, NOSE_TIP);
     const noseRatio = noseLength / (noseWidth || 1); 
-    const noseWidthRatio = noseWidth / (interEyeDistance || 1);
+    const noseWidthRatio = phyCalibrateAxis('noseWidthRatio', noseWidth / (interEyeDistance || 1));
     const noseZ = Math.abs((NOSE_TIP.z || 0) - (JAW_LEFT.z || 0));
 
     const mouthWidth = this.calculateDistance(MOUTH_LEFT, MOUTH_RIGHT);
@@ -474,8 +531,11 @@ class AnalysisEngine {
     const slantStabilityPenalty = Math.min(20, eyeSlantDelta * 2.5);
     const qualityScore = Math.round(clamp(faceSizeScore - frontalityPenalty - slantStabilityPenalty, 45, 100));
 
+    const faceRatio = phyCalibrateAxis('faceRatio', faceWidth / (faceLength || 1));
+    const mouthRatio = phyCalibrateAxis('mouthRatio', mouthWidth / (noseWidth || 1));
+
     return {
-      faceRatio: faceWidth / (faceLength||1), // 0.72(Sharp) ~ 0.88(Wide)
+      faceRatio: faceRatio, // 0.72(Sharp) ~ 0.88(Wide)
       faceLength: faceLength,
       faceWidth: faceWidth,
       eyeRatio: eyeRatio, 
@@ -493,14 +553,14 @@ class AnalysisEngine {
       noseZ: noseZ,
       noseWidth: noseWidth,
       mouthCurve: mouthCurve,
-      mouthRatio: mouthWidth / (noseWidth||1), // 1.1(Small) ~ 1.6(Large)
+      mouthRatio: mouthRatio, // 1.1(Small) ~ 1.6(Large)
       mouthWidth: mouthWidth,
       earRatio: earHeight / (faceLength||1),
       earPosition: EAR_LEFT_TOP.y < LEFT_EYE_OUT.y ? "high" : "normal",
       browSlant: browSlant,
       browArch: browArch,
       browEyeGap: browEyeGap,
-      jawSquareness: faceWidth / (faceLength || 1),
+      jawSquareness: faceRatio, // faceRatio 와 같은 식이라 보정본을 공유한다 (UI 턱선 문구가 0.86 을 읽는다)
       qualityScore: qualityScore,
       // 여성형 판별용 추가 수치
       // 하관 기준 유지 — detectFeminineFace(>=0.72)의 입력이라 분모를 얼굴 최대폭으로 바꾸면
@@ -1395,32 +1455,39 @@ async analyze(landmarksData, expressionData, imageAspect) {
           // --- 6차원 유클리디안-중력장 거리 연산 (절대 좌표 매핑 복원 & 스케일 최적화) ---
       // 각 동물상 대표 연예인의 골격 주파수를 6차원(턱선,눈매각도,미간,코너비,입크기,눈비율)으로 완전 타겟팅
       const archetypes = {
-          // [개상] 이동욱, 박보검 - 둥글고 온화한 얼굴, 아래로 처진 눈매
-          'dog': { face: 0.85, slant: 4.5, dist: 1.12, nose: 0.90, mouth: 1.28, eye: 2.5 },
-          // [고양이상] 제니, 한소희 - 약간 둥근 얼굴, 강하게 올라간 눈매, 넓은 미간
-          'cat': { face: 0.83, slant: -5.5, dist: 1.12, nose: 0.84, mouth: 1.30, eye: 2.6 },
+          // 🔴 아래 표에서 "실측" 주석이 붙은 행은 라벨 사진 중앙값이다(npm run physio:measure -- --emit).
+          // 나머지 행은 아직 손으로 적은 값이며, 그 동물상의 라벨 사진이 모이면 같은 방식으로 교체한다.
+          // 실측 행과 손튜닝 행이 섞여 있는 동안에는 실측 행이 유리하다 — 남은 행을 채우는 것이
+          // 다음 작업이다.
+          // [강아지상] n=5 실측 (2026-08-16). 기존 손튜닝값은 slant +4.5(처진 눈매)였으나
+          // 실측은 -4.0(올라간 눈매)로 부호가 반대였다. n 이 작아 표본 편향 가능 — 사진 보강 필요.
+          'dog': { face: 0.852, slant: -1.2, dist: 1.118, nose: 0.872, mouth: 1.202, eye: 2.486 },  // n=6 강아지상 실측
+          // [고양이상] n=9 실측 (2026-08-16). 기존 slant -5.5 는 실측 대역(-0.8)에 닿지 않았다.
+          'cat': { face: 0.830, slant: -1.6, dist: 1.121, nose: 0.859, mouth: 1.311, eye: 2.540 },  // n=15 고양이상 실측
           // [여우상] 지코, 김재원 - 갸름한 얼굴, 매우 찢어진 눈매, 좁은 미간
-          'fox': { face: 0.76, slant: -6.5, dist: 0.93, nose: 0.86, mouth: 1.38, eye: 3.2 },
+          'fox': { face: 0.846, slant: -1.9, dist: 1.124, nose: 0.894, mouth: 1.417, eye: 2.686 },  // n=7 여우상 실측
           // [사슴상] 아이유, 박신혜 - 길쭉한 얼굴, 순한 눈매, 작은 코
-          'deer': { face: 0.76, slant: 1.0, dist: 1.02, nose: 0.80, mouth: 1.18, eye: 2.3 },
+          'deer': { face: 0.817, slant: -0.5, dist: 1.039, nose: 0.930, mouth: 1.524, eye: 2.491 },  // n=3 사슴상 실측
           // [토끼상] 수지, 임수정 - 둥그스름하고 통통, 처진듯 순한 눈매
-          'rabbit': { face: 0.84, slant: 1.5, dist: 1.08, nose: 0.87, mouth: 1.28, eye: 2.4 },
-          // [곰상] 이광수, 조정석 - 넓고 큰 얼굴, 평온한 눈매, 두꺼운 코
-          'bear': { face: 0.90, slant: 0.5, dist: 1.18, nose: 1.10, mouth: 1.38, eye: 3.0 },
+          'rabbit': { face: 0.849, slant: -0.3, dist: 1.100, nose: 0.892, mouth: 1.362, eye: 2.545 },  // n=5 토끼상 실측
+          // [곰상] n=9 실측 (2026-08-16). 기존 주석의 기준 인물(이광수·조정석)은 animalDb 의
+          // 곰상 대표(마동석·안재홍·슬기·조진웅·고창석)와 달랐다 — 이광수는 animalDb 에서 말상이다.
+          'bear': { face: 0.880, slant: 2.8, dist: 1.059, nose: 0.962, mouth: 1.233, eye: 2.899 },  // n=9 곰상 실측
           // [호랑이상] 이병헌, 공유 - 넓고 다부진 얼굴, 강하게 내리뜨는 눈매
-          'tiger': { face: 0.87, slant: -3.5, dist: 1.08, nose: 1.02, mouth: 1.52, eye: 2.7 },
+          'tiger': { face: 0.876, slant: 1.8, dist: 1.109, nose: 1.041, mouth: 1.370, eye: 3.105 },  // n=6 호랑이상 실측
           // [공룡상] 강호동, 이경규 - 강한 얼굴 넓이, 입이 매우 큼
-          'dinosaur': { face: 0.75, slant: -1.0, dist: 1.18, nose: 1.05, mouth: 1.60, eye: 2.8 },
-          // [뱀상] 승리, 카리나, 청하 - 적당히 긴 얼굴, 살짝 찢어진 눈매, 큰 입
-          'snake': { face: 0.79, slant: -3.5, dist: 1.05, nose: 0.86, mouth: 1.48, eye: 3.0 },
+          'dinosaur': { face: 0.824, slant: -2.2, dist: 1.075, nose: 0.956, mouth: 1.402, eye: 2.598 },  // n=14 공룡상 실측
+          // [뱀상] n=8 실측 (2026-08-16). 기존 eye 3.00 이 실측 2.52 와 어긋나 뱀상 라벨 8장이
+          // 전원 곰상·수달상·원숭이상으로 샜다(이 축 하나가 페널티 104 중 대부분).
+          'snake': { face: 0.839, slant: -2.0, dist: 1.150, nose: 0.893, mouth: 1.326, eye: 2.507 },  // n=11 뱀상 실측
           // [늑대상] 송중기, 남주혁 - 길쭉한 얼굴, 강하게 찢어진 눈매, 좁은 미간
-          'wolf': { face: 0.79, slant: -4.5, dist: 0.97, nose: 0.92, mouth: 1.45, eye: 3.1 },
+          'wolf': { face: 0.799, slant: 2.5, dist: 1.009, nose: 1.009, mouth: 1.301, eye: 2.727 },  // n=6 늑대상 실측
           // [원숭이상] 이특, 오나라 - 넓고 쳐지는 광대, 평평한 눈매, 큰 코
-          'monkey': { face: 0.83, slant: 0.0, dist: 0.93, nose: 1.02, mouth: 1.42, eye: 2.5 },
+          'monkey': { face: 0.836, slant: 2.4, dist: 1.095, nose: 1.000, mouth: 1.400, eye: 2.866 },  // n=10 원숭이상 실측
           // [말상] 신동엽 - 세로로 매우 긴 얼굴
-          'horse': { face: 0.65, slant: -0.5, dist: 1.05, nose: 0.90, mouth: 1.50, eye: 2.8 },
+          'horse': { face: 0.830, slant: -1.0, dist: 1.187, nose: 0.989, mouth: 1.447, eye: 2.647 },  // n=6 말상 실측
           // [돼지상] 뚱뚱한 둥근얼굴, 가장 넓은 코, 통통한
-          'pig': { face: 0.93, slant: 1.0, dist: 1.22, nose: 1.18, mouth: 1.35, eye: 3.0 },
+          'pig': { face: 0.878, slant: 1.4, dist: 1.129, nose: 0.998, mouth: 1.424, eye: 3.030 },  // n=10 돼지상 실측
           // [독수리상] 카리스마 있고 날카로운 코, 좁은 미간
           'eagle': { face: 0.76, slant: -3.0, dist: 0.88, nose: 0.98, mouth: 1.22, eye: 2.9 },
           // [참새상] 작고 통통하고 귀여운 얼굴, 처진 눈매
@@ -1434,21 +1501,21 @@ async analyze(landmarksData, expressionData, imageAspect) {
           // [햄스터상] 볼살 통통하고 귀여운 얼굴
           'hamster': { face: 0.88, slant: 1.5, dist: 1.12, nose: 0.86, mouth: 1.15, eye: 2.4 },
           // [수달상] 강다니엘 - 통통하고 친근한 얼굴
-          'otter': { face: 0.86, slant: -0.5, dist: 1.16, nose: 0.93, mouth: 1.40, eye: 2.6 },
+          'otter': { face: 0.793, slant: -4.5, dist: 1.119, nose: 0.893, mouth: 1.413, eye: 2.462 },  // n=11 수달상 실측
           // [알파카상] 길고 독특한 얼굴형
           'alpaca': { face: 0.70, slant: 2.0, dist: 1.15, nose: 0.90, mouth: 1.22, eye: 2.5 },
           // [코알라상] 넓고 귀여운 코, 통통한 볼
           'koala': { face: 0.87, slant: 1.5, dist: 1.22, nose: 1.14, mouth: 1.28, eye: 2.6 },
           // [레오파드상] 표범처럼 날렵하고 섹시한 얼굴, 고양이상과 매우 유사
-          'leopard': { face: 0.82, slant: -5.2, dist: 1.10, nose: 0.85, mouth: 1.32, eye: 2.65 },
+          'leopard': { face: 0.792, slant: -1.8, dist: 1.079, nose: 0.913, mouth: 1.240, eye: 2.494 },  // n=3 표범상 실측
           // [기린상] 매우 길쭉한 얼굴
-          'giraffe': { face: 0.62, slant: 0.0, dist: 1.10, nose: 0.95, mouth: 1.32, eye: 2.4 },
+          'giraffe': { face: 0.882, slant: -0.3, dist: 1.039, nose: 0.971, mouth: 1.423, eye: 2.663 },  // n=3 기린상 실측
           // [개구리상] 가장 넓은 얼굴, 매우 넓은 미간
-          'frog': { face: 0.90, slant: 0.0, dist: 1.32, nose: 0.97, mouth: 1.62, eye: 2.4 },
+          'frog': { face: 0.839, slant: -1.8, dist: 1.103, nose: 0.910, mouth: 1.413, eye: 2.571 },  // n=10 개구리상 실측
           // [낙타상] 길쭉하고 광대가 도드라진 얼굴
           'camel': { face: 0.68, slant: -0.5, dist: 1.15, nose: 1.00, mouth: 1.42, eye: 2.6 },
           // [거북이상] 고개 내밀듯 넓은 얼굴, 위로 찢어진 눈매
-          'turtle': { face: 0.89, slant: 3.0, dist: 1.28, nose: 0.95, mouth: 1.36, eye: 3.1 }
+          'turtle': { face: 0.834, slant: -0.1, dist: 1.186, nose: 0.912, mouth: 1.378, eye: 2.509 },  // n=4 거북이상 실측
       };
 
       let candidates = [];
@@ -1462,14 +1529,22 @@ async analyze(landmarksData, expressionData, imageAspect) {
           let diffM = features.mouthRatio - arch.mouth;
           let diffE = features.eyeRatio - arch.eye;
 
-          // 차이의 제곱을 사용해 오차 증폭 (원래의 정밀 가중치 유지)
-          let penalty = (Math.pow(diffF, 2) * 1800) + 
-                        (Math.pow(diffS, 2) * 12) + 
-                        (Math.pow(diffD, 2) * 1000) + 
-                        (Math.pow(diffN, 2) * 1200) + 
-                        (Math.pow(diffM, 2) * 500) + 
-                        (Math.pow(diffE, 2) * 150);
-          
+          // ── 축 가중치 (2026-08-16 실측 재배분, n=150 / 라벨 24종) ──
+          // w ∝ 판별력 / (집단내 산포)². 판별력 = 라벨 중심점 간 폭 / 집단내 IQR 중앙값.
+          // 이전 값 faceRatio 1800 · eyeRatio 150 은 근거 기록이 없던 값이다.
+          // 🔴 소표본 튜닝을 믿지 말 것: 31장(라벨 4종)일 때 eyeRatio 단독 LOO 가 67.7% 로
+          //    최강이었는데 150장으로 늘리자 6.0% 로 무너졌다. 곰상 표본이 눈이 접힌 사진에
+          //    몰려 eyeRatio 가 얼굴형이 아니라 사진 스타일을 맞히고 있었다.
+          // 🔴 여기의 페널티에 이득을 곱해도 순위는 안 바뀐다 — 뒤의 억제가 baseScore 에
+          //    비례해 같이 커지기 때문이다(3·6·10·16배 전부 적중률 동일, 2026-08-16 실측).
+          // 🔴 사진이 늘면 다시 재라: npm run physio:measure → npm run physio:replay
+          let penalty = (Math.pow(diffF, 2) * 1987) +
+                        (Math.pow(diffS, 2) * 2) +
+                        (Math.pow(diffD, 2) * 1238) +
+                        (Math.pow(diffN, 2) * 1200) +
+                        (Math.pow(diffM, 2) * 660) +
+                        (Math.pow(diffE, 2) * 292);
+
           // 확률 계산을 나중으로 미루고 정확한 유클리디안 거리를 먼저 기록 (중요)
           let geoScore = Math.max(0, 2000 - penalty);
           candidates.push({ animal, penalty, geoScore });
@@ -1849,6 +1924,10 @@ async analyze(landmarksData, expressionData, imageAspect) {
           if (bonus > 0) c.totalScore += bonus * femPower;
 
           // ─ 여성에게 거의 안 나와야 할 동물상: 점수를 비율로 깎아 확실히 차단 ─
+          // 🔴 이 배율이 승자를 정하는 실질 손잡이다. 보너스는 뒤에서 +70 으로 잘리는데
+          // (profileBonus 상한) 억제는 baseScore 의 비율이라 -460~-770 까지 간다. 기하 격차가
+          // 100~200 뿐이라 얼굴 형태를 통째로 덮어쓴다. 그래서 목록에 든 동물상은 여성 얼굴에서
+          // 사실상 나올 수 없다 — 대상 선정이 곧 판정이다.
           const crushList = ['eagle', 'crocodile', 'dinosaur', 'lion', 'horse', 'camel'];
           if (crushList.includes(c.animal.id)) {
             // femPower가 높을수록 더 강하게 억제 (60%~95% 감소)
@@ -1856,7 +1935,13 @@ async analyze(landmarksData, expressionData, imageAspect) {
             c.totalScore *= (1.0 - crushRate);
           }
           // 약한 페널티 동물상 (30%~50% 감소)
-          const mildCrush = ['wolf', 'snake', 'tiger'];
+          // 🔴 snake 를 뺐다 — animalDb 의 뱀상 대표 연예인이 승리·카리나·청하·이수혁·현아로
+          // 5명 중 3명이 여성이다(AnalysisEngine.js 뱀상 항목). 앱이 스스로 "여성 뱀상"을
+          // 등록해 두고 여성이면 뱀상을 깎는 모순이었고, 실측에서 뱀상 라벨 8장이 전원
+          // 곰상·수달상·원숭이상으로 샜다. tiger 도 화사가 등록돼 있어 같은 이유로 제외한다.
+          // wolf 만 남긴다 — animalDb 늑대상 대표(주지훈·우도환·세훈·황인엽)가 전원 남성이라
+          // 정책과 데이터가 어긋나지 않는다.
+          const mildCrush = ['wolf'];
           if (mildCrush.includes(c.animal.id)) {
             const mildRate = Math.min(0.50, 0.30 + (femPower - 1.0) * 0.08);
             c.totalScore *= (1.0 - mildRate);
@@ -1963,13 +2048,20 @@ async analyze(landmarksData, expressionData, imageAspect) {
         const adjustedSignal = Math.max(0, c.totalScore || 0);
         const profileRaw = Math.max(0, adjustedSignal - baseScore);
         const suppressionRaw = Math.max(0, baseScore - adjustedSignal);
-        // 상한 700 × 0.10 은 실측으로 확정된 값이다(2026-08). 위 동물별 보정 450줄은
-        // 표가 불균형해서(dog 는 성별 보정까지 곱하면 raw ~8600, 대부분 동물은 200~1200)
-        // 상한을 올릴수록 승자 다양성이 단조로 나빠진다 — 700/900/1100/1500/2000 에서
-        // 25/24/23/20/18종, 2000 에서는 햄스터·기린 판정까지 깨졌다. 반면 강아지·고양이·
-        // 햄스터·기린 대표 얼굴의 판정은 700~1500 구간에서 전부 동일했다.
-        // 즉 이 값을 올려도 얻는 게 없다. 바꾸려면 verify:physiognomy-scoring 으로 먼저 재라.
-        const profileBonus = Math.min(profileRaw, 700) * 0.10;
+        // ── PHY_PROFILE_BONUS_WEIGHT: 동물별 보정 450줄이 최종 점수에 미치는 영향 ──
+        // 이 값이 0 인 이유는 보정을 믿지 않아서가 아니라, 그 임계값 217개가 보정 전 스케일로
+        // 적혀 있어 지금은 잡음이기 때문이다(2026-08-16 실측에서 73개가 한 장도 발화 못 함).
+        // 게다가 상한 700 이 포화 지점이라, 여성 부스트를 받는 동물은 전원 만점을 먹고
+        // 그렇지 않은 동물만 손해를 본다 — 뱀상이 geo 1위인 사진 4장이 전부 이 격차로 뒤집혔다.
+        //
+        // 라벨 사진 31장 실측 (npm run physio:replay):
+        //     ×0.10  1위 22.6%  TOP3 48.4%   ← 종전 값
+        //     ×0.04  1위 32.3%  TOP3 58.1%
+        //     ×0.02  1위 38.7%  TOP3 67.7%
+        //     ×0.00  1위 45.2%  TOP3 64.5%   ← 채택 (뱀상 재현 0/8 → 4/8)
+        // 단조 개선이라 "덜 반영할수록 정확"하다. 사다리는 지우지 않는다 — 임계값을 보정
+        // 스케일로 다시 쓰면(다음 작업) 다시 올릴 수 있다. 올릴 때는 반드시 위 표를 다시 재라.
+        const profileBonus = Math.min(profileRaw, 700) * PHY_PROFILE_BONUS_WEIGHT;
         const suppressionPenalty = Math.min(suppressionRaw, baseScore * 0.72);
         const qualityPenalty = (100 - qualityScore) * 2.4;
         c.rawTotalScore = adjustedSignal;
