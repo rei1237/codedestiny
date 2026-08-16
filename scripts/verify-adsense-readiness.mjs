@@ -1141,9 +1141,27 @@ function verifyXRobotsNoindexHeaders(headersPath) {
 
     // 셸 사본 라우트는 색인만 막고 링크는 통과시키려고 `noindex, follow` 를 쓴다.
     // 게이트가 지켜야 할 것은 noindex 이므로 follow/nofollow 는 둘 다 허용한다.
-    const covered = rules.some((rule) => headersRuleCovers(rule.path, pattern)
+    const noindexCovers = (target) => rules.some((rule) => headersRuleCovers(rule.path, target)
       && rule.headers.some((header) => /^X-Robots-Tag:\s*noindex,\s*(?:no)?follow$/i.test(header)));
-    assert(covered, `${headersPath}: missing X-Robots-Tag noindex rule for ${pattern}`);
+
+    assert(noindexCovers(pattern), `${headersPath}: missing X-Robots-Tag noindex rule for ${pattern}`);
+
+    // 🔴 `.html` 만 덮는 규칙은 초록불이면서 아무것도 막지 못한다.
+    // Cloudflare Pages 는 확장자를 떼고 서빙하며 `/x.html` 은 `/x` 로 **308** 을 준다.
+    // 리다이렉트 응답의 헤더는 목적지로 이어지지 않으므로, 크롤러가 실제로 보는 200 응답
+    // (`/x`, `/x?lang=en` …)에는 noindex 가 붙지 않는다.
+    // 2026-08-16 실측: 이 검사가 없어서 19개 중 18개가 색인된 채로 게이트는 통과했고,
+    // `/destiny-poker?lang=en` 등이 GSC 「사용자가 선택한 표준이 없는 중복 페이지」로 잡혔다.
+    // 유일하게 정상이던 `/tadagochi` 만 `_headers` 에 `/tadagochi*` 로 적혀 있었다.
+    if (pattern.endsWith(".html")) {
+      const servedPath = pattern.slice(0, -".html".length);
+      assert(
+        noindexCovers(servedPath),
+        `${headersPath}: ${pattern} 의 noindex 가 실제 서빙 경로 ${servedPath} 를 덮지 않는다. `
+          + `${pattern} 은 ${servedPath} 로 308 리다이렉트되고 헤더는 목적지로 이어지지 않는다. `
+          + `규칙을 ${servedPath}* 로 적으면 양쪽을 함께 덮는다(규칙 수 증가 없음).`,
+      );
+    }
   }
 }
 
