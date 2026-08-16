@@ -227,6 +227,70 @@ console.log("\n[5] POST /api/rpg/adopt 는 DB 장애에 503 을 내지 않는다
   });
 }
 
+/* ── 6. 결제 콜드스타트 예열 계약 (2026-08-16) ────────────────────────
+   "정적 셸에서만 최초 1회 PG 결제창이 안 뜨거나 아주 느리다"의 클라이언트 쪽 원인 4개를 고정한다.
+   넷 다 "예열 장치는 있는데 배선이 없거나, 엉뚱한 대상을 데우거나, 데워도 재사용되지 않는다"
+   형태였다 — 가드가 없으면 조용히 되돌아간다.
+   🔴 대상 경로 문자열을 여기 열거하지 않는다. 셸 소스에서 정본을 찾아 대조한다. */
+console.log("\n[6] 결제 콜드스타트 예열 (셸 " + SHELLS.length + "종)");
+for (const rel of SHELLS) {
+  const source = read(rel);
+
+  check(`${rel}: 유료 게이트 셸 예열 API 에 호출부가 있다`, () => {
+    // preload 는 오래전부터 정의돼 있었지만 **호출부가 0건**이라, 게이트 셸(전용 <style> + DOM +
+    // 리스너 3개)이 언제나 첫 유료 클릭에서 만들어졌다. 코드 스스로 first frame 100ms 초과를
+    // 경고하고 있었는데도 아무도 몰랐다 — "정의만 있고 아무도 안 부른다"를 기계로 막는다.
+    assert.ok(
+      /window\.__cdPaidFeatureGate\.preload\(\)/.test(source),
+      "게이트 셸 예열(__cdPaidFeatureGate.preload) 호출부가 사라졌다 — 셸이 다시 첫 클릭에 만들어진다.",
+    );
+  });
+
+  check(`${rel}: 결제창이 그리는 이미지를 그대로 예열한다`, () => {
+    // 예전에는 결제창이 더는 쓰지 않는 이미지를 데우고, 정작 모달이 쓰는 것은 첫 오픈에 새로 받았다.
+    // 경로 문자열을 가드에 박으면 같은 드리프트가 재발하므로 **상수 참조 여부**만 본다.
+    const fn = sliceFunction(source, "var _cdWarmPaymentOverlayArt = function()", `${rel} _cdWarmPaymentOverlayArt`);
+    assert.ok(
+      fn.includes("CD_CHECKOUT_GUIDE_PIG_SRC"),
+      "워밍이 결제창 이미지 상수(CD_CHECKOUT_GUIDE_PIG_SRC)를 참조하지 않는다 — 엉뚱한 파일을 데우게 된다.",
+    );
+  });
+
+  check(`${rel}: SDK 예열이 부팅 유휴에서도 시작된다`, () => {
+    // pointerdown 에서만 예열하면, 페이지의 첫 클릭이 곧 유료 진입 클릭인 경우(데스크톱에서 흔하다)
+    // CDN 다운로드가 임계경로에 통째로 얹힌다. 유휴 워밍 콜백 두 갈래 모두에 들어 있어야 한다.
+    for (const marker of ["requestIdleCallback(function()", "setTimeout(function()"]) {
+      const at = source.indexOf(marker + " { _cdWarmSubscriptionSnapshotIfMissing('idle')");
+      assert.ok(at >= 0, `유휴 워밍 콜백(${marker})을 찾지 못했다 — 마커가 바뀌었으면 이 가드도 함께 고칠 것.`);
+      const line = source.slice(at, source.indexOf("\n", at));
+      assert.ok(
+        line.includes("_cdWarmPortOneV2SdkIfPayable()"),
+        "유휴 워밍이 PortOne SDK 를 데우지 않는다 — 첫 클릭이 첫 pointerdown 이면 예열이 클릭과 동시에 출발한다.",
+      );
+    }
+  });
+
+  check(`${rel}: cdn.portone.io preconnect 가 두 모드 모두 있다`, () => {
+    // SDK <script> 는 crossOrigin 없이(no-cors) 나간다. crossorigin 붙은 preconnect 만 있으면
+    // 커넥션 풀 키가 달라 예열한 TLS 를 재사용하지 못한다 — 예열해 놓고 못 쓰는 상태였다.
+    const hints = source.match(/<link rel="preconnect" href="https:\/\/cdn\.portone\.io"[^>]*>/g) || [];
+    assert.ok(hints.some((tag) => /crossorigin/i.test(tag)), "crossorigin preconnect 가 없다.");
+    assert.ok(hints.some((tag) => !/crossorigin/i.test(tag)), "crossorigin 없는 preconnect 가 없다 — no-cors 스크립트 요청이 예열을 못 쓴다.");
+  });
+}
+
+for (const rel of CLIENTS) {
+  const source = read(rel);
+  check(`${rel}: 런타임 preconnect 가 실제 요청 모드와 같다`, () => {
+    const fn = sliceFunction(source, "function _dpLoadPortOneV2Sdk(", `${rel} _dpLoadPortOneV2Sdk`);
+    assert.ok(fn.includes("portone-v2-preconnect"), "런타임 preconnect 주입이 사라졌다.");
+    assert.ok(
+      !/preconnect\.crossOrigin/.test(fn),
+      "런타임 preconnect 에 crossOrigin 이 붙었다 — 같은 함수가 crossOrigin 없이 붙이는 <script> 와 커넥션이 갈린다.",
+    );
+  });
+}
+
 console.log("");
 if (failures.length) {
   console.error(`[verify-entry-fanout] FAIL — ${failures.length}건\n`);

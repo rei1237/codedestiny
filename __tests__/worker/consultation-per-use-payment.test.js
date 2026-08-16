@@ -11,6 +11,7 @@
  */
 
 import { jest } from "@jest/globals";
+import { matches } from "../fixtures/fake-payment-db.mjs";
 
 const CHAT_FEATURE_KEY = "fortune-chat-consultation";
 const FUSION_FEATURE_KEY = "fusion-fortune-consultation";
@@ -28,6 +29,21 @@ let transientError;
 /** Mongoose 체이닝(.select().lean())을 흉내내는 최소 스텁. */
 function query(result) {
   return { select: () => ({ lean: async () => result }) };
+}
+
+/**
+ * 🔴 월정석 원장만은 **필터를 실제로 평가한다.**
+ *
+ * 예전에는 이 조회도 `query(row)` 로 쿼리와 무관하게 행을 돌려줬고, 그래서 reader 가 원장
+ * 스키마에 존재하지도 않는 필드(top-level requestId/idempotencyKey)로 찾고 있는데도 초록불이었다.
+ * V2 컷오버로 PointHistory 증빙이 사라지자 그 결함이 그대로 드러나 월정석 결제자가 402 를 받았다.
+ * 행의 모양 정본은 worker/payments/moonstone.js 이고, writer↔reader 왕복 계약은
+ * __tests__/worker/per-use-proof-roundtrip.test.js 가 지킨다.
+ */
+function ledgerQuery(row) {
+  return (filter) => ({
+    select: () => ({ lean: async () => (row && matches(row, filter) ? row : null) }),
+  });
 }
 
 function resetModels() {
@@ -81,10 +97,31 @@ describe("회당 결제 증빙 — 5경로", () => {
       .resolves.toMatchObject({ proven: true, source: "monthly" });
   });
 
-  it("PointHistory 가 아직 안 써졌어도 월정석 원장으로 증빙된다", async () => {
-    monthlyLedgerFindOne.mockReturnValue(query({ _id: "ledger-1" }));
+  // 월정석은 PointHistory 를 남기지 않는다(V2). 이 원장 조회가 유일한 증빙 경로다.
+  it("월정석 원장(sourceId)으로 증빙된다", async () => {
+    monthlyLedgerFindOne.mockImplementation(ledgerQuery({
+      _id: "ledger-1",
+      userId: USER_ID,
+      type: "MONTHLY_CREDIT_SPEND",
+      serviceKey: FUSION_FEATURE_KEY,
+      sourceId: REQUEST_ID,
+      settledAt: new Date(),
+    }));
     await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
       .resolves.toMatchObject({ proven: true, source: "monthly" });
+  });
+
+  // 🔴 정산되지 않은 예약행 = 차감이 일어나지 않은 상태. 증빙으로 인정하면 유료 결과가 공짜로 열린다.
+  it("정산되지 않은 월정석 예약행은 증빙이 아니다", async () => {
+    monthlyLedgerFindOne.mockImplementation(ledgerQuery({
+      _id: "ledger-2",
+      userId: USER_ID,
+      type: "MONTHLY_CREDIT_SPEND",
+      serviceKey: FUSION_FEATURE_KEY,
+      sourceId: REQUEST_ID,
+    }));
+    await expect(verifyPerUsePayment({}, { userId: USER_ID, featureKey: FUSION_FEATURE_KEY, coinPrice: 300, requestId: REQUEST_ID }))
+      .resolves.toMatchObject({ proven: false, reason: "NO_RECORD" });
   });
 
   it("admin 은 차감 기록 없이 통과한다", async () => {
