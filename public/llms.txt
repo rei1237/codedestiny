@@ -1,0 +1,56 @@
+# Code Destiny (코드데스티니)
+
+> 생년월일과 태어난 시각을 입력하면 사주·자미두수·숙요점·베다 점성술·서양 점성술·타로 여섯 체계로 운세를 읽어 주는 한국어 웹 서비스입니다. 각 체계를 그 체계의 기준으로 해석하고, 결과 문장은 AI 가 생성합니다.
+
+- 사이트: https://code-destiny.com/
+- 다른 이름: CODE DESTINY, Code Destiny, CodeDestiny, code-destiny, 코드데스티니, 코드 데스티니, CODEDESTINY, 꿀꿀운세, 꿀꿀 운세, 꿀꿀만세력, 꿀꿀 만세력
+- 캐릭터 브랜드: 꽃돼지
+- 언어: 한국어(기본), 일본어 `/ja/`, 중국어 간체 `/zh/`, 중국어 번체 `/zh-tw/`, 영어 `/en/`
+
+## 콘텐츠의 성격
+
+전통 명리·점성 문헌의 해석 규칙을 계산해 얻은 구조를 바탕으로, 읽을 수 있는 문장을 AI 가 만듭니다. 문화적 해석 콘텐츠이며 의학·법률·금융 자문이 아닙니다. 결정을 대신하지 않고 관점을 더하는 용도입니다.
+
+해석 기준과 데이터 출처는 https://code-destiny.com/methodology/ 에 공개돼 있습니다.
+
+## 운세 체계
+
+각 체계는 서로 다른 좌표계와 질문 방식을 씁니다. 같은 생년월일이라도 체계에 따라 보이는 것이 다릅니다.
+
+- [사주 해석](https://code-destiny.com/saju/): 사주의 기초 구조를 중심으로 다른 운세 체계와 비교해 보는 출발점입니다.
+- [만세력](https://code-destiny.com/manse/): 만세력의 입력과 명식 읽기를 사주 해석 및 관계 운세로 연결합니다.
+- [자미두수](https://code-destiny.com/ziwei/): 자미두수 명반을 중심으로 사주·숙요점·베다 점성술의 해석 축을 구분해 탐색합니다.
+- [숙요점](https://code-destiny.com/sukuyo/): 숙요점의 관계 해석을 자미두수·베다 점성술과 혼동하지 않고 이어서 살펴봅니다.
+- [베다 점성술](https://code-destiny.com/vedic/): 베다 점성술의 조티쉬 해석을 서양 점성술 및 숙요점과 구분해 탐색합니다.
+- [서양 점성술](https://code-destiny.com/astrology/): 서양 출생차트를 중심으로 베다 점성술과 숙요점의 다른 해석 기준을 안내합니다.
+- [타로](https://code-destiny.com/tarot/): 타로의 질문형 해석을 오늘의 운세, 궁합, 꿈해몽 콘텐츠와 연결합니다.
+
+## 주제별 해석
+
+- [궁합](https://code-destiny.com/compatibility/): 궁합을 사주·숙요점·타로의 서로 다른 관계 해석 관점으로 이어서 살펴봅니다.
+- [사주 궁합](https://code-destiny.com/saju/compatibility/): 사주 궁합의 관계 해석을 숙요점 궁합과 타로의 질문형 해석으로 이어서 살펴봅니다.
+- [연애운](https://code-destiny.com/love/): 연애운을 사주 궁합·숙요점·타로의 다른 관계 해석 관점으로 확장합니다.
+- [오늘의 운세](https://code-destiny.com/today/): 하루의 흐름을 사주·점성술·타로 콘텐츠의 실천 질문으로 확장합니다.
+- [꿈해몽](https://code-destiny.com/dream/): 꿈의 상징과 감정을 타로·점성술·자기성찰 콘텐츠로 이어서 살펴봅니다.
+
+## 통합 리포트
+
+- [초융합 운세](https://code-destiny.com/fusion-fortune/): 사주, 자미두수, 숙요점, 베다 점성술, 서양 점성술, 타로를 각 체계의 기준으로 읽고 AI가 공통점과 차이를 한 리포트로 정리합니다.
+
+## 읽을거리와 방법론
+
+- [운세 가이드](https://code-destiny.com/high-value/): 정보성 가이드를 각 운세 기능 허브로 연결하는 콘텐츠 클러스터입니다.
+- [운세 인사이트](https://code-destiny.com/insights/): 정보성 인사이트를 실제 사주·타로·점성술 서비스 허브로 연결합니다.
+- [운세 콘텐츠 방법론](https://code-destiny.com/methodology/): Code Destiny의 운세 콘텐츠 원칙과 각 체계의 역할을 확인하는 신뢰 정보입니다.
+
+## 브랜드
+
+- [꿀꿀 운세 브랜드 안내](https://code-destiny.com/kkul-kkul-unse/): Code Destiny와 꿀꿀운세, 꽃돼지 캐릭터 브랜드의 관계와 제공 서비스를 안내합니다.
+
+## 이용
+
+무료로 볼 수 있는 해석이 있고, 분량이 긴 AI 리포트 일부는 유료입니다. 유료 이용권은 30일 단위이며 자동 갱신되지 않습니다. 실제 금액은 서비스 안에서 결제 단계에 표시됩니다.
+
+- 환불 정책: https://code-destiny.com/terms/#refund-policy
+- 서비스 소개: https://code-destiny.com/about/
+- 문의: https://code-destiny.com/contact/

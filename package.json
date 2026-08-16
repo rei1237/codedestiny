@@ -41,6 +41,7 @@
     "verify:deployed-assets": "node scripts/verify-deployed-assets.mjs",
     "rss:generate": "node scripts/generate-rss.mjs",
     "sitemap:generate": "node scripts/generate-sitemap.mjs",
+    "llms:generate": "node scripts/generate-llms-txt.mjs",
     "seo:generate": "npm run sitemap:generate && npm run rss:generate",
     "seo:indexnow": "node scripts/indexnow-submit.mjs",
     "verify:indexnow-wiring": "node scripts/verify-indexnow-wiring.mjs",

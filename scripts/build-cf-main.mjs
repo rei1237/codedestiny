@@ -29,6 +29,10 @@ const steps = [
   // `seo:generate`(sitemap && rss)로 합치지 않는 이유: 스텝 하나가 npm 을 두 번 spawn 하면
   // 종료코드로 어느 쪽이 죽었는지 구분할 수 없다.
   { command: npmCommand, args: npmArgs(["run", "rss:generate"]) },
+  // llms.txt 는 lib/seo/entity-registry.mjs 에서 파생한다. 빌드마다 다시 만들면 레지스트리와
+  // 갈라질 수가 없다 — 손으로 관리하는 사본이었다면 허브가 바뀔 때마다 조용히 낡았을 것이다.
+  // sync:public 뒤여야 public/ 이 준비돼 있다.
+  { command: npmCommand, args: npmArgs(["run", "llms:generate"]) },
   // 🔴 verify:redirects-budget 앞이어야 한다 — 그 가드가 이 산출물의 최신 여부를 대조한다.
   { command: process.execPath, args: ["scripts/generate-famous-saju-aliases.mjs"] },
   // 🔴 sitemap:generate 뒤여야 한다 — 이 가드가 "규칙이 사이트맵 라우트를 삼키는가" 를 검사한다.
