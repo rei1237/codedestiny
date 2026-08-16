@@ -1,0 +1,5565 @@
+{
+  "summary": {
+    "database": "code_destiny",
+    "generatedAt": "2026-08-16T11:54:40.773Z",
+    "collectionCount": 71,
+    "registeredModelCount": 51,
+    "totalDocuments": 26537,
+    "emptyCollections": [
+      "app_purchase_intents",
+      "contentoverrides",
+      "daehan_purchases",
+      "debug_runtime_checks",
+      "destinybiascards",
+      "destinyCompassReports",
+      "fusionFortuneConsultations",
+      "fusionFortuneDailyLimits",
+      "fusionFortuneGenerationAttempts",
+      "guardianFortuneDailyUsages",
+      "guardianFortuneGenerationAttempts",
+      "guardianFortuneSharedSnapshots",
+      "honeysubscriptiontransactions",
+      "idempotency_keys",
+      "loveSecretAiConsultations",
+      "membershipcontentaccessconsents",
+      "premium_runtime_store",
+      "reviews",
+      "translationcaches",
+      "ziweiDeepReports"
+    ],
+    "orphanCollections": [
+      {
+        "collection": "daehan_purchases",
+        "documentCount": 0,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "debug_runtime_checks",
+        "documentCount": 0,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "deleted_account_logs",
+        "documentCount": 1,
+        "lastObjectIdAt": "2026-05-03T02:50:06.000Z"
+      },
+      {
+        "collection": "fortune_tea_honey_reward_logs",
+        "documentCount": 2,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "fortune_tea_honey_states",
+        "documentCount": 1,
+        "lastObjectIdAt": "2026-06-29T13:44:25.000Z"
+      },
+      {
+        "collection": "fortune_tea_house_honey_ledgers",
+        "documentCount": 19,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "fortune_tea_house_honey_wallets",
+        "documentCount": 2,
+        "lastObjectIdAt": "2026-06-30T01:00:19.000Z"
+      },
+      {
+        "collection": "fortune_tea_house_results",
+        "documentCount": 33,
+        "lastObjectIdAt": "2026-06-30T01:00:19.000Z"
+      },
+      {
+        "collection": "fusionFortuneDailyLimits",
+        "documentCount": 0,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "honeysubscriptions",
+        "documentCount": 2,
+        "lastObjectIdAt": "2026-05-15T01:38:23.000Z"
+      },
+      {
+        "collection": "honeysubscriptiontransactions",
+        "documentCount": 0,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "membershipcontentaccessconsents",
+        "documentCount": 0,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "neo_operation_room_badge_ledgers",
+        "documentCount": 12,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "neo_operation_room_badge_wallets",
+        "documentCount": 2,
+        "lastObjectIdAt": "2026-08-16T03:26:14.000Z"
+      },
+      {
+        "collection": "oauthHandoffCache",
+        "documentCount": 1,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "premium_report_jobs",
+        "documentCount": 27,
+        "lastObjectIdAt": "2026-06-02T14:50:09.000Z"
+      },
+      {
+        "collection": "premium_runtime_store",
+        "documentCount": 0,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "premiumpdfreports",
+        "documentCount": 7,
+        "lastObjectIdAt": "2026-05-28T01:54:42.000Z"
+      },
+      {
+        "collection": "translationcaches",
+        "documentCount": 0,
+        "lastObjectIdAt": null
+      },
+      {
+        "collection": "translationusages",
+        "documentCount": 1,
+        "lastObjectIdAt": "2026-03-18T08:31:28.000Z"
+      }
+    ],
+    "neverMaterialized": [],
+    "missingIndexes": [
+      {
+        "collection": "content_entitlements",
+        "model": "ContentEntitlement",
+        "key": {
+          "featureKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "checkout_funnel_events",
+        "model": "CheckoutFunnelEvent",
+        "key": {
+          "name": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "checkout_funnel_events",
+        "model": "CheckoutFunnelEvent",
+        "key": {
+          "featureKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "checkout_funnel_events",
+        "model": "CheckoutFunnelEvent",
+        "key": {
+          "createdAt": 1
+        },
+        "options": {
+          "expireAfterSeconds": 7776000
+        },
+        "indexName": null
+      },
+      {
+        "collection": "checkout_funnel_events",
+        "model": "CheckoutFunnelEvent",
+        "key": {
+          "name": 1,
+          "createdAt": -1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "adminauditlogs",
+        "model": "AdminAuditLog",
+        "key": {
+          "actorLabel": 1,
+          "createdAt": -1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "paid_execution_records",
+        "model": "PaidExecutionRecord",
+        "key": {
+          "paymentId": 1
+        },
+        "options": {
+          "name": "paymentId_unique_nonempty",
+          "unique": true,
+          "partialFilterExpression": {
+            "paymentId": {
+              "$exists": true,
+              "$type": "string",
+              "$gt": ""
+            }
+          }
+        },
+        "indexName": "paymentId_unique_nonempty"
+      },
+      {
+        "collection": "karmaDestinyAiConsultations",
+        "model": "KarmaDestinyAiConsultation",
+        "key": {
+          "schemaVersion": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "ziweiAiConsultations",
+        "model": "ZiweiAiConsultation",
+        "key": {
+          "serviceType": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "loveSecretAiConsultations",
+        "model": "LoveSecretAiConsultation",
+        "key": {
+          "degraded": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "destinyCompassReports",
+        "model": "DestinyCompassReport",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "destinyCompassReports",
+        "model": "DestinyCompassReport",
+        "key": {
+          "idempotencyKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "destinyCompassReports",
+        "model": "DestinyCompassReport",
+        "key": {
+          "inputHash": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "ziweiDeepReports",
+        "model": "ZiweiDeepReport",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "ziweiDeepReports",
+        "model": "ZiweiDeepReport",
+        "key": {
+          "idempotencyKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "ziweiDeepReports",
+        "model": "ZiweiDeepReport",
+        "key": {
+          "inputHash": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "id": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "mode": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "accessType": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "paymentId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "billingRequestId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "idempotencyKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "inputHash": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "status": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "userId": 1,
+          "idempotencyKey": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "masterLoveCodexSessions",
+        "model": "MasterLoveCodexSession",
+        "key": {
+          "userId": 1,
+          "createdAt": -1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "lifeBookAiConsultations",
+        "model": "LifeBookAiConsultation",
+        "key": {
+          "featureKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "astrologyAiConsultations",
+        "model": "AstrologyAiConsultation",
+        "key": {
+          "id": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "nakshatraAiConsultations",
+        "model": "NakshatraAiConsultation",
+        "key": {
+          "id": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "nakshatraAiConsultations",
+        "model": "NakshatraAiConsultation",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "nakshatraAiConsultations",
+        "model": "NakshatraAiConsultation",
+        "key": {
+          "inputHash": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "nakshatraAiConsultations",
+        "model": "NakshatraAiConsultation",
+        "key": {
+          "accessType": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "nakshatraAiConsultations",
+        "model": "NakshatraAiConsultation",
+        "key": {
+          "paymentId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "nakshatraAiConsultations",
+        "model": "NakshatraAiConsultation",
+        "key": {
+          "status": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "nakshatraAiConsultations",
+        "model": "NakshatraAiConsultation",
+        "key": {
+          "userId": 1,
+          "idempotencyKey": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "nakshatraAiConsultations",
+        "model": "NakshatraAiConsultation",
+        "key": {
+          "userId": 1,
+          "createdAt": -1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneDailyUsages",
+        "model": "GuardianFortuneDailyUsage",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneDailyUsages",
+        "model": "GuardianFortuneDailyUsage",
+        "key": {
+          "dateKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneDailyUsages",
+        "model": "GuardianFortuneDailyUsage",
+        "key": {
+          "userId": 1,
+          "dateKey": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneAnonymousMerges",
+        "model": "GuardianFortuneAnonymousMerge",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "fortuneChatSessions",
+        "model": "FortuneChatSession",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "fortuneChatSessions",
+        "model": "FortuneChatSession",
+        "key": {
+          "anonymousSessionId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneGenerationAttempts",
+        "model": "GuardianFortuneGenerationAttempt",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneGenerationAttempts",
+        "model": "GuardianFortuneGenerationAttempt",
+        "key": {
+          "guestIdHash": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneGenerationAttempts",
+        "model": "GuardianFortuneGenerationAttempt",
+        "key": {
+          "dateKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneGenerationAttempts",
+        "model": "GuardianFortuneGenerationAttempt",
+        "key": {
+          "status": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneSharedSnapshots",
+        "model": "GuardianFortuneSharedSnapshot",
+        "key": {
+          "shareId": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneSharedSnapshots",
+        "model": "GuardianFortuneSharedSnapshot",
+        "key": {
+          "status": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneSharedSnapshots",
+        "model": "GuardianFortuneSharedSnapshot",
+        "key": {
+          "sourceRequestId": 1
+        },
+        "options": {
+          "sparse": true,
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneSharedSnapshots",
+        "model": "GuardianFortuneSharedSnapshot",
+        "key": {
+          "createdAt": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneSharedSnapshots",
+        "model": "GuardianFortuneSharedSnapshot",
+        "key": {
+          "expiresAt": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneSharedSnapshots",
+        "model": "GuardianFortuneSharedSnapshot",
+        "key": {
+          "expiresAt": 1
+        },
+        "options": {
+          "expireAfterSeconds": 0
+        },
+        "indexName": null
+      },
+      {
+        "collection": "guardianFortuneSharedSnapshots",
+        "model": "GuardianFortuneSharedSnapshot",
+        "key": {
+          "status": 1,
+          "createdAt": -1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "fusionFortuneGenerationAttempts",
+        "model": "FusionFortuneGenerationAttempt",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "fusionFortuneGenerationAttempts",
+        "model": "FusionFortuneGenerationAttempt",
+        "key": {
+          "dateKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "fusionFortuneGenerationAttempts",
+        "model": "FusionFortuneGenerationAttempt",
+        "key": {
+          "status": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "fusionFortuneConsultations",
+        "model": "FusionFortuneConsultation",
+        "key": {
+          "id": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "fusionFortuneConsultations",
+        "model": "FusionFortuneConsultation",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "fusionFortuneConsultations",
+        "model": "FusionFortuneConsultation",
+        "key": {
+          "idempotencyKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "fusionFortuneConsultations",
+        "model": "FusionFortuneConsultation",
+        "key": {
+          "status": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "fusionFortuneConsultations",
+        "model": "FusionFortuneConsultation",
+        "key": {
+          "userId": 1,
+          "idempotencyKey": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "fusionFortuneConsultations",
+        "model": "FusionFortuneConsultation",
+        "key": {
+          "userId": 1,
+          "createdAt": -1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "cmsentries",
+        "model": "CmsEntry",
+        "key": {
+          "namespace": 1,
+          "key": 1,
+          "locale": 1
+        },
+        "options": {
+          "unique": true
+        },
+        "indexName": null
+      },
+      {
+        "collection": "cmsentries",
+        "model": "CmsEntry",
+        "key": {
+          "status": 1,
+          "updatedAt": -1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "cmsentries",
+        "model": "CmsEntry",
+        "key": {
+          "channel": 1,
+          "status": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "cmsrevisions",
+        "model": "CmsRevision",
+        "key": {
+          "namespace": 1,
+          "key": 1,
+          "locale": 1,
+          "version": -1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "productId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "featureKey": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "orderId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "rating": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "locale": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "status": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "isVerifiedPurchase": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "createdByAdmin": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "reviews",
+        "model": "Review",
+        "key": {
+          "displayedAt": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "feedbacks",
+        "model": "Feedback",
+        "key": {
+          "userId": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "feedbacks",
+        "model": "Feedback",
+        "key": {
+          "category": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "feedbacks",
+        "model": "Feedback",
+        "key": {
+          "status": 1
+        },
+        "options": {},
+        "indexName": null
+      },
+      {
+        "collection": "feedbacks",
+        "model": "Feedback",
+        "key": {
+          "contentHash": 1
+        },
+        "options": {},
+        "indexName": null
+      }
+    ]
+  },
+  "collections": [
+    {
+      "collection": "abuse_scores",
+      "type": "collection",
+      "modeledBy": [
+        "AbuseScore"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 2,
+      "exactCount": 2,
+      "documentCount": 2,
+      "indexCount": 9,
+      "ttlIndexes": [
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "kind_1",
+          "key": {
+            "kind": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "subjectHash_1_endpoint_1_kind_1",
+          "key": {
+            "subjectHash": 1,
+            "endpoint": 1,
+            "kind": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_endpoint_1_updatedAt_-1",
+          "key": {
+            "userId": 1,
+            "endpoint": 1,
+            "updatedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "subjectHash_1",
+          "key": {
+            "subjectHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "endpoint_1",
+          "key": {
+            "endpoint": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "blockedUntil_1",
+          "key": {
+            "blockedUntil": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T01:54:59.000Z",
+      "lastCreatedAt": "2026-08-16T01:54:59.359Z",
+      "lastUpdatedAt": "2026-08-16T01:54:59.359Z"
+    },
+    {
+      "collection": "adminauditlogs",
+      "type": "collection",
+      "modeledBy": [
+        "AdminAuditLog"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 6,
+      "exactCount": 6,
+      "documentCount": 6,
+      "indexCount": 5,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "actorUserId_1",
+          "key": {
+            "actorUserId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "ip_1",
+          "key": {
+            "ip": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "createdAt_-1",
+          "key": {
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "action_1",
+          "key": {
+            "action": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-13T03:38:59.000Z",
+      "lastCreatedAt": "2026-08-13T03:38:59.663Z",
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "app_purchase_intents",
+      "type": "collection",
+      "modeledBy": [
+        "AppPurchaseIntent"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 3,
+      "ttlIndexes": [
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        },
+        {
+          "name": "userId_1_productId_1_status_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "productId": 1,
+            "status": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "astrologyAiConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "AstrologyAiConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 9,
+      "exactCount": 9,
+      "documentCount": 9,
+      "indexCount": 7,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "inputHash_1",
+          "key": {
+            "inputHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-07-08T02:27:36.000Z",
+      "lastCreatedAt": "2026-07-08T02:27:36.726Z",
+      "lastUpdatedAt": "2026-07-08T02:28:29.293Z"
+    },
+    {
+      "collection": "checkout_funnel_events",
+      "type": "collection",
+      "modeledBy": [
+        "CheckoutFunnelEvent"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 588,
+      "exactCount": 588,
+      "documentCount": 588,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T01:47:01.000Z",
+      "lastCreatedAt": "2026-08-16T01:47:01.497Z",
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "cmsentries",
+      "type": "collection",
+      "modeledBy": [
+        "CmsEntry"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-07-30T05:12:40.000Z",
+      "lastCreatedAt": "2026-07-30T05:12:39.950Z",
+      "lastUpdatedAt": "2026-07-30T05:12:39.950Z"
+    },
+    {
+      "collection": "cmsrevisions",
+      "type": "collection",
+      "modeledBy": [
+        "CmsRevision"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-07-30T05:12:40.000Z",
+      "lastCreatedAt": "2026-07-30T05:12:40.100Z",
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "content_entitlements",
+      "type": "collection",
+      "modeledBy": [
+        "ContentEntitlement"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 1384,
+      "exactCount": 1384,
+      "documentCount": 1384,
+      "indexCount": 19,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "contentType_1",
+          "key": {
+            "contentType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "unlockedBy_1",
+          "key": {
+            "unlockedBy": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "unlockedAt_1",
+          "key": {
+            "unlockedAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "contentKey_1",
+          "key": {
+            "contentKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "scope_1",
+          "key": {
+            "scope": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_profileId_1_serviceKey_1_contentKey_1_scope_1",
+          "key": {
+            "userId": 1,
+            "profileId": 1,
+            "serviceKey": 1,
+            "contentKey": 1,
+            "scope": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "serviceId_1",
+          "key": {
+            "serviceId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "serviceKey_1",
+          "key": {
+            "serviceKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "contentId_1",
+          "key": {
+            "contentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_serviceKey_1_status_1_expiresAt_1",
+          "key": {
+            "userId": 1,
+            "serviceKey": 1,
+            "status": 1,
+            "expiresAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "profileId_1",
+          "key": {
+            "profileId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "orderId_1",
+          "key": {
+            "orderId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "passId_1",
+          "key": {
+            "passId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "permanent_unlock_identity",
+          "key": {
+            "userId": 1,
+            "profileId": 1,
+            "featureKey": 1,
+            "contentKey": 1,
+            "scope": 1
+          },
+          "flags": [
+            "unique",
+            "partial"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-09T17:09:58.000Z",
+      "lastCreatedAt": "2026-08-09T17:09:58.356Z",
+      "lastUpdatedAt": "2026-08-09T17:09:58.356Z"
+    },
+    {
+      "collection": "contentoverrides",
+      "type": "collection",
+      "modeledBy": [
+        "ContentOverride"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 2,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "source_1_key_1",
+          "key": {
+            "source": 1,
+            "key": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "daehan_purchases",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 2,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "uniq_daehan_purchase_user_profile",
+          "key": {
+            "userId": 1,
+            "profileId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "dailyfortunesubscriptions",
+      "type": "collection",
+      "modeledBy": [
+        "DailyFortuneSubscription"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 2,
+      "exactCount": 2,
+      "documentCount": 2,
+      "indexCount": 4,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "email_1",
+          "key": {
+            "email": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "isActive_1",
+          "key": {
+            "isActive": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "isActive_1_subDaily_1",
+          "key": {
+            "isActive": 1,
+            "subDaily": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-07-25T08:42:07.000Z",
+      "lastCreatedAt": "2026-07-25T08:42:04.891Z",
+      "lastUpdatedAt": "2026-07-25T08:43:20.049Z"
+    },
+    {
+      "collection": "debug_runtime_checks",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "deleted_account_logs",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-05-03T02:50:06.000Z",
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "destinybiascards",
+      "type": "collection",
+      "modeledBy": [
+        "DestinyBiasCard"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 3,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "destinyCompassReports",
+      "type": "collection",
+      "modeledBy": [
+        "DestinyCompassReport"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 5,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "report_id_unique",
+          "key": {
+            "id": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "user_idem_unique",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "feedbacks",
+      "type": "collection",
+      "modeledBy": [
+        "Feedback"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 7,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "contentHash_1_createdAt_-1",
+          "key": {
+            "contentHash": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "public_resolved_feed",
+          "key": {
+            "isPublic": 1,
+            "publishedAt": -1
+          },
+          "flags": [
+            "partial"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1_createdAt_-1",
+          "key": {
+            "status": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1_priorityRank_1_createdAt_-1",
+          "key": {
+            "status": 1,
+            "priorityRank": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "category_1_status_1_createdAt_-1",
+          "key": {
+            "category": 1,
+            "status": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-07-31T13:10:17.000Z",
+      "lastCreatedAt": "2026-07-31T13:10:19.602Z",
+      "lastUpdatedAt": "2026-07-31T13:10:20.003Z"
+    },
+    {
+      "collection": "fortune_tea_honey_reward_logs",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 2,
+      "exactCount": 2,
+      "documentCount": 2,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": "2026-06-29T13:52:04.546Z",
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "fortune_tea_honey_states",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-06-29T13:44:25.000Z",
+      "lastCreatedAt": "2026-06-29T13:44:23.363Z",
+      "lastUpdatedAt": "2026-06-29T13:52:04.546Z"
+    },
+    {
+      "collection": "fortune_tea_house_honey_ledgers",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 19,
+      "exactCount": 19,
+      "documentCount": 19,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": "2026-07-11T11:07:55.039Z",
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "fortune_tea_house_honey_wallets",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 2,
+      "exactCount": 2,
+      "documentCount": 2,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-06-30T01:00:19.000Z",
+      "lastCreatedAt": "2026-06-30T01:00:19.398Z",
+      "lastUpdatedAt": "2026-08-03T14:49:59.821Z"
+    },
+    {
+      "collection": "fortune_tea_house_results",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 33,
+      "exactCount": 33,
+      "documentCount": 33,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-06-30T01:00:19.000Z",
+      "lastCreatedAt": "2026-06-30T01:00:18.813Z",
+      "lastUpdatedAt": "2026-06-30T01:00:18.813Z"
+    },
+    {
+      "collection": "fortuneChatSessions",
+      "type": "collection",
+      "modeledBy": [
+        "FortuneChatSession"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 12,
+      "exactCount": 12,
+      "documentCount": 12,
+      "indexCount": 3,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "fortune_chat_user_updated",
+          "key": {
+            "userId": 1,
+            "updatedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "fortune_chat_session_unique",
+          "key": {
+            "sessionId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-14T01:06:06.000Z",
+      "lastCreatedAt": "2026-08-14T01:06:06.381Z",
+      "lastUpdatedAt": "2026-08-14T01:08:04.345Z"
+    },
+    {
+      "collection": "fusionFortuneConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "FusionFortuneConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "fusionFortuneDailyLimits",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 2,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "fusion_daily_date_unique",
+          "key": {
+            "dateKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "fusionFortuneGenerationAttempts",
+      "type": "collection",
+      "modeledBy": [
+        "FusionFortuneGenerationAttempt"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 3,
+      "ttlIndexes": [
+        {
+          "name": "fusion_attempt_expiry_ttl",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "fusion_attempt_request_unique",
+          "key": {
+            "requestId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "fusion_attempt_expiry_ttl",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "guardianFortuneAccountUsages",
+      "type": "collection",
+      "modeledBy": [
+        "GuardianFortuneAccountUsage"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 3,
+      "exactCount": 3,
+      "documentCount": 3,
+      "indexCount": 2,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "guardian_account_user_unique",
+          "key": {
+            "userId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-13T14:06:41.000Z",
+      "lastCreatedAt": "2026-08-13T14:06:41.242Z",
+      "lastUpdatedAt": "2026-08-13T14:09:15.932Z"
+    },
+    {
+      "collection": "guardianFortuneAnonymousMerges",
+      "type": "collection",
+      "modeledBy": [
+        "GuardianFortuneAnonymousMerge"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 9,
+      "exactCount": 9,
+      "documentCount": 9,
+      "indexCount": 2,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "guardian_anonymous_merge_unique",
+          "key": {
+            "userId": 1,
+            "guestIdHash": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-13T14:06:41.000Z",
+      "lastCreatedAt": "2026-08-13T14:06:41.601Z",
+      "lastUpdatedAt": "2026-08-13T14:06:41.601Z"
+    },
+    {
+      "collection": "guardianFortuneDailyUsages",
+      "type": "collection",
+      "modeledBy": [
+        "GuardianFortuneDailyUsage"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "guardianFortuneGenerationAttempts",
+      "type": "collection",
+      "modeledBy": [
+        "GuardianFortuneGenerationAttempt"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 3,
+      "ttlIndexes": [
+        {
+          "name": "guardian_attempt_expiry_ttl",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "guardian_attempt_request_unique",
+          "key": {
+            "requestId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "guardian_attempt_expiry_ttl",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "guardianFortuneGuestUsages",
+      "type": "collection",
+      "modeledBy": [
+        "GuardianFortuneGuestUsage"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 4,
+      "exactCount": 4,
+      "documentCount": 4,
+      "indexCount": 2,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "guardian_guest_hash_unique",
+          "key": {
+            "guestIdHash": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-14T01:07:17.000Z",
+      "lastCreatedAt": "2026-08-14T01:07:17.370Z",
+      "lastUpdatedAt": "2026-08-14T01:07:49.459Z"
+    },
+    {
+      "collection": "guardianFortuneSharedSnapshots",
+      "type": "collection",
+      "modeledBy": [
+        "GuardianFortuneSharedSnapshot"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "honeysubscriptions",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 2,
+      "exactCount": 2,
+      "documentCount": 2,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-05-15T01:38:23.000Z",
+      "lastCreatedAt": "2026-05-15T01:38:23.482Z",
+      "lastUpdatedAt": "2026-05-15T01:38:23.482Z"
+    },
+    {
+      "collection": "honeysubscriptiontransactions",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "idempotency_keys",
+      "type": "collection",
+      "modeledBy": [
+        "IdempotencyKey"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 7,
+      "ttlIndexes": [
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "endpoint_1",
+          "key": {
+            "endpoint": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "keyHash_1",
+          "key": {
+            "keyHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_endpoint_1_keyHash_1",
+          "key": {
+            "userId": 1,
+            "endpoint": 1,
+            "keyHash": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "insights",
+      "type": "collection",
+      "modeledBy": [
+        "Insight"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 7,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "slug_1",
+          "key": {
+            "slug": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1_updatedAt_-1",
+          "key": {
+            "status": 1,
+            "updatedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "category_1_updatedAt_-1",
+          "key": {
+            "category": 1,
+            "updatedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "isFeatured_1_updatedAt_-1",
+          "key": {
+            "isFeatured": 1,
+            "updatedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "type_1",
+          "key": {
+            "type": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "type_1_status_1_updatedAt_-1",
+          "key": {
+            "type": 1,
+            "status": 1,
+            "updatedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-05-09T20:39:23.000Z",
+      "lastCreatedAt": "2026-05-09T20:39:23.521Z",
+      "lastUpdatedAt": "2026-07-09T10:37:03.785Z"
+    },
+    {
+      "collection": "karmaDestinyAiConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "KarmaDestinyAiConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 2,
+      "exactCount": 2,
+      "documentCount": 2,
+      "indexCount": 13,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "idempotencyKey_1",
+          "key": {
+            "idempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "inputHash_1",
+          "key": {
+            "inputHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "id_1",
+          "key": {
+            "id": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessType_1",
+          "key": {
+            "accessType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "billingRequestId_1",
+          "key": {
+            "billingRequestId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "reportId_1",
+          "key": {
+            "reportId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "attemptId_1",
+          "key": {
+            "attemptId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-07-07T04:15:23.000Z",
+      "lastCreatedAt": "2026-07-07T04:15:23.475Z",
+      "lastUpdatedAt": "2026-07-07T04:19:02.899Z"
+    },
+    {
+      "collection": "lifeBookAiConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "LifeBookAiConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 4,
+      "exactCount": 4,
+      "documentCount": 4,
+      "indexCount": 10,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "id_1",
+          "key": {
+            "id": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "inputHash_1",
+          "key": {
+            "inputHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessType_1",
+          "key": {
+            "accessType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "idempotencyKey_1",
+          "key": {
+            "idempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-07-07T03:58:14.000Z",
+      "lastCreatedAt": "2026-07-07T03:58:14.127Z",
+      "lastUpdatedAt": "2026-07-07T04:01:06.263Z"
+    },
+    {
+      "collection": "llm_response_cache",
+      "type": "collection",
+      "modeledBy": [
+        "LlmResponseCache"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 37,
+      "exactCount": 37,
+      "documentCount": 37,
+      "indexCount": 3,
+      "ttlIndexes": [
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "cacheKey_1",
+          "key": {
+            "cacheKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T03:26:09.000Z",
+      "lastCreatedAt": "2026-08-16T03:26:08.200Z",
+      "lastUpdatedAt": "2026-08-16T03:26:08.200Z"
+    },
+    {
+      "collection": "loveSecretAiConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "LoveSecretAiConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 14,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "id_1",
+          "key": {
+            "id": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "inputHash_1",
+          "key": {
+            "inputHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "topic_1",
+          "key": {
+            "topic": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "relationshipStatus_1",
+          "key": {
+            "relationshipStatus": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "idempotencyKey_1",
+          "key": {
+            "idempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "attemptId_1",
+          "key": {
+            "attemptId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_attemptId_1",
+          "key": {
+            "userId": 1,
+            "attemptId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessType_1",
+          "key": {
+            "accessType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "masterLoveCodexSessions",
+      "type": "collection",
+      "modeledBy": [
+        "MasterLoveCodexSession"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-01T03:24:42.000Z",
+      "lastCreatedAt": "2026-08-01T03:24:42.524Z",
+      "lastUpdatedAt": "2026-08-01T03:24:42.524Z"
+    },
+    {
+      "collection": "membershipcontentaccessconsents",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "monthly_credit_ledger",
+      "type": "collection",
+      "modeledBy": [
+        "MonthlyCreditLedger"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 279,
+      "exactCount": 279,
+      "documentCount": 279,
+      "indexCount": 8,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "sourceId_1",
+          "key": {
+            "sourceId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "serviceKey_1",
+          "key": {
+            "serviceKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "profileId_1",
+          "key": {
+            "profileId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_type_1_sourceId_1",
+          "key": {
+            "userId": 1,
+            "type": 1,
+            "sourceId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "type_1",
+          "key": {
+            "type": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T03:25:24.000Z",
+      "lastCreatedAt": "2026-08-16T03:25:24.635Z",
+      "lastUpdatedAt": "2026-08-16T03:25:25.056Z"
+    },
+    {
+      "collection": "nakshatraAiConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "NakshatraAiConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-01T01:33:03.000Z",
+      "lastCreatedAt": "2026-08-01T01:33:03.722Z",
+      "lastUpdatedAt": "2026-08-01T01:33:11.440Z"
+    },
+    {
+      "collection": "neo_operation_room_badge_ledgers",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 12,
+      "exactCount": 12,
+      "documentCount": 12,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": "2026-08-16T03:26:14.391Z",
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "neo_operation_room_badge_wallets",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 2,
+      "exactCount": 2,
+      "documentCount": 2,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T03:26:14.000Z",
+      "lastCreatedAt": "2026-08-16T03:26:14.391Z",
+      "lastUpdatedAt": "2026-08-16T03:26:15.084Z"
+    },
+    {
+      "collection": "neoOperationRoomConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "NeoOperationRoomConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 27,
+      "exactCount": 27,
+      "documentCount": 27,
+      "indexCount": 11,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "id_1",
+          "key": {
+            "id": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "inputHash_1",
+          "key": {
+            "inputHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessType_1",
+          "key": {
+            "accessType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "selectedMethod_1",
+          "key": {
+            "selectedMethod": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "refinementStatus_1",
+          "key": {
+            "refinementStatus": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T03:25:34.000Z",
+      "lastCreatedAt": "2026-08-16T03:25:34.839Z",
+      "lastUpdatedAt": "2026-08-16T03:45:39.679Z"
+    },
+    {
+      "collection": "newYearAiConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "NewYearAiConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 11,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "id_1",
+          "key": {
+            "id": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessType_1",
+          "key": {
+            "accessType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "year_1",
+          "key": {
+            "year": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "idempotencyKey_1",
+          "key": {
+            "idempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "inputHash_1",
+          "key": {
+            "inputHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-06-27T14:25:00.000Z",
+      "lastCreatedAt": "2026-06-27T14:25:00.867Z",
+      "lastUpdatedAt": "2026-06-27T14:25:00.867Z"
+    },
+    {
+      "collection": "oauthHandoffCache",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": "2026-07-26T21:09:49.673Z",
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "paid_execution_records",
+      "type": "collection",
+      "modeledBy": [
+        "PaidExecutionRecord"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 33,
+      "exactCount": 33,
+      "documentCount": 33,
+      "indexCount": 13,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "featureId_1",
+          "key": {
+            "featureId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessMode_1",
+          "key": {
+            "accessMode": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "profileId_1",
+          "key": {
+            "profileId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "idempotencyKey_1",
+          "key": {
+            "idempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "requestId_1",
+          "key": {
+            "requestId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_featureId_1_profileId_1_requestId_1",
+          "key": {
+            "userId": 1,
+            "featureId": 1,
+            "profileId": 1,
+            "requestId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "executionId_1",
+          "key": {
+            "executionId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessMethod_1",
+          "key": {
+            "accessMethod": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "orderId_1",
+          "key": {
+            "orderId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T03:26:09.000Z",
+      "lastCreatedAt": "2026-08-16T03:26:09.441Z",
+      "lastUpdatedAt": "2026-08-16T03:26:09.441Z"
+    },
+    {
+      "collection": "payment_webhook_events",
+      "type": "collection",
+      "modeledBy": [
+        "PaymentWebhookEvent"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 201,
+      "exactCount": 201,
+      "documentCount": 201,
+      "indexCount": 7,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1_createdAt_-1",
+          "key": {
+            "paymentId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "eventType_1",
+          "key": {
+            "eventType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "receivedAt_1",
+          "key": {
+            "receivedAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "provider_1_eventId_1",
+          "key": {
+            "provider": 1,
+            "eventId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T11:48:36.000Z",
+      "lastCreatedAt": "2026-08-16T11:48:36.587Z",
+      "lastUpdatedAt": "2026-08-16T11:48:36.600Z"
+    },
+    {
+      "collection": "paymentfailurelogs",
+      "type": "collection",
+      "modeledBy": [
+        "PaymentFailureLog"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 27,
+      "exactCount": 27,
+      "documentCount": 27,
+      "indexCount": 7,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "impUid_1",
+          "key": {
+            "impUid": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "merchantUid_1",
+          "key": {
+            "merchantUid": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "source_1",
+          "key": {
+            "source": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "createdAt_-1",
+          "key": {
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "source_1_createdAt_-1",
+          "key": {
+            "source": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-15T16:06:53.000Z",
+      "lastCreatedAt": "2026-08-15T16:06:53.097Z",
+      "lastUpdatedAt": "2026-08-15T16:06:53.097Z"
+    },
+    {
+      "collection": "payments",
+      "type": "collection",
+      "modeledBy": [
+        "Payment"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 314,
+      "exactCount": 314,
+      "documentCount": 314,
+      "indexCount": 16,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1_paymentType_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1,
+            "paymentType": 1
+          },
+          "flags": [
+            "unique",
+            "partial"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessType_1",
+          "key": {
+            "accessType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "impUid_1",
+          "key": {
+            "impUid": 1
+          },
+          "flags": [
+            "unique",
+            "sparse"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "merchantUid_1",
+          "key": {
+            "merchantUid": 1
+          },
+          "flags": [
+            "unique",
+            "sparse"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentType_1",
+          "key": {
+            "paymentType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "idempotencyKey_1",
+          "key": {
+            "idempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "featureKey_1",
+          "key": {
+            "featureKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "reportId_1",
+          "key": {
+            "reportId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "productId_1",
+          "key": {
+            "productId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "requestId_1",
+          "key": {
+            "requestId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "sessionId_1",
+          "key": {
+            "sessionId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "orderState_1",
+          "key": {
+            "orderState": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T11:48:07.000Z",
+      "lastCreatedAt": "2026-08-16T11:48:07.068Z",
+      "lastUpdatedAt": "2026-08-16T11:48:36.594Z"
+    },
+    {
+      "collection": "pointhistories",
+      "type": "collection",
+      "modeledBy": [
+        "PointHistory"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 19684,
+      "exactCount": 19684,
+      "documentCount": 19684,
+      "indexCount": 10,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "impUid_1",
+          "key": {
+            "impUid": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "dedupeKey_1",
+          "key": {
+            "dedupeKey": 1
+          },
+          "flags": [
+            "unique",
+            "partial"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "kind_1",
+          "key": {
+            "kind": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "merchantUid_1",
+          "key": {
+            "merchantUid": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_kind_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "kind": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "user_kind_feature_lookup",
+          "key": {
+            "userId": 1,
+            "kind": 1,
+            "featureKey": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-12T06:29:52.000Z",
+      "lastCreatedAt": "2026-08-12T06:29:52.300Z",
+      "lastUpdatedAt": "2026-08-12T06:29:52.300Z"
+    },
+    {
+      "collection": "premium_report_jobs",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 27,
+      "exactCount": 27,
+      "documentCount": 27,
+      "indexCount": 1,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-06-02T14:50:09.000Z",
+      "lastCreatedAt": "2026-06-02T14:50:09.274Z",
+      "lastUpdatedAt": "2026-06-02T14:50:11.787Z"
+    },
+    {
+      "collection": "premium_runtime_store",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 3,
+      "ttlIndexes": [
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        },
+        {
+          "name": "bucket_1_reportId_1",
+          "key": {
+            "bucket": 1,
+            "reportId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "premiumpdfreports",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 7,
+      "exactCount": 7,
+      "documentCount": 7,
+      "indexCount": 8,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "reportType_1",
+          "key": {
+            "reportType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "isComplete_1",
+          "key": {
+            "isComplete": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_updatedAt_-1",
+          "key": {
+            "userId": 1,
+            "updatedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_reportType_1_updatedAt_-1",
+          "key": {
+            "userId": 1,
+            "reportType": 1,
+            "updatedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_reportId_1",
+          "key": {
+            "userId": 1,
+            "reportId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "sessionKind_1",
+          "key": {
+            "sessionKind": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-05-28T01:54:42.000Z",
+      "lastCreatedAt": "2026-05-28T01:54:42.622Z",
+      "lastUpdatedAt": "2026-05-28T02:27:58.928Z"
+    },
+    {
+      "collection": "profilecards",
+      "type": "collection",
+      "modeledBy": [
+        "ProfileCard"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 68,
+      "exactCount": 68,
+      "documentCount": 68,
+      "indexCount": 4,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_1",
+          "key": {
+            "userId": 1,
+            "createdAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_profileId_1",
+          "key": {
+            "userId": 1,
+            "profileId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-12T20:57:11.000Z",
+      "lastCreatedAt": "2026-08-12T20:57:11.048Z",
+      "lastUpdatedAt": "2026-08-12T20:57:11.048Z"
+    },
+    {
+      "collection": "refresh_tokens",
+      "type": "collection",
+      "modeledBy": [
+        "RefreshTokenSession"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 107,
+      "exactCount": 107,
+      "documentCount": 107,
+      "indexCount": 6,
+      "ttlIndexes": [
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "expiresAt_1",
+          "key": {
+            "expiresAt": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "tokenHash_1",
+          "key": {
+            "tokenHash": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "revokedAt_1",
+          "key": {
+            "revokedAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_revokedAt_1_expiresAt_-1",
+          "key": {
+            "userId": 1,
+            "revokedAt": 1,
+            "expiresAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T03:18:02.000Z",
+      "lastCreatedAt": "2026-08-16T03:18:02.005Z",
+      "lastUpdatedAt": "2026-08-16T03:18:02.005Z"
+    },
+    {
+      "collection": "reviews",
+      "type": "collection",
+      "modeledBy": [
+        "Review"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 6,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "productId_1_status_1_displayedAt_-1",
+          "key": {
+            "productId": 1,
+            "status": 1,
+            "displayedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "productId_1_status_1_rating_-1",
+          "key": {
+            "productId": 1,
+            "status": 1,
+            "rating": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1_createdAt_-1",
+          "key": {
+            "status": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "user_product_unique_nonadmin",
+          "key": {
+            "userId": 1,
+            "productId": 1
+          },
+          "flags": [
+            "unique",
+            "partial"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1_displayedAt_-1",
+          "key": {
+            "status": 1,
+            "displayedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "security_events",
+      "type": "collection",
+      "modeledBy": [
+        "SecurityEvent"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 3301,
+      "exactCount": 3301,
+      "documentCount": 3301,
+      "indexCount": 10,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "createdAt_1",
+          "key": {
+            "createdAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "ipHash_1_createdAt_-1",
+          "key": {
+            "ipHash": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "reason_1_createdAt_-1",
+          "key": {
+            "reason": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "ipHash_1",
+          "key": {
+            "ipHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "endpoint_1",
+          "key": {
+            "endpoint": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "level_1",
+          "key": {
+            "level": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "reason_1",
+          "key": {
+            "reason": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-10T20:11:37.000Z",
+      "lastCreatedAt": "2026-08-10T20:11:37.982Z",
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "serviceexecutiontransactions",
+      "type": "collection",
+      "modeledBy": [
+        "ServiceExecutionTransaction"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 5,
+      "exactCount": 5,
+      "documentCount": 5,
+      "indexCount": 29,
+      "ttlIndexes": [
+        {
+          "name": "retentionUntil_1",
+          "key": {
+            "retentionUntil": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        }
+      ],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "productId_1",
+          "key": {
+            "productId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "jobId_1",
+          "key": {
+            "jobId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_executionKey_1",
+          "key": {
+            "userId": 1,
+            "executionKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "retentionUntil_1",
+          "key": {
+            "retentionUntil": 1
+          },
+          "flags": [
+            "TTL=0s"
+          ],
+          "expireAfterSeconds": 0
+        },
+        {
+          "name": "profileId_1",
+          "key": {
+            "profileId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "merchantUid_1",
+          "key": {
+            "merchantUid": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "lock.until_1",
+          "key": {
+            "lock.until": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "reportType_1",
+          "key": {
+            "reportType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "premiumStatus_1",
+          "key": {
+            "premiumStatus": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1_timeoutAt_1_nextRetryAt_1",
+          "key": {
+            "status": 1,
+            "timeoutAt": 1,
+            "nextRetryAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "refundStatus_1",
+          "key": {
+            "refundStatus": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1_serviceId_1_jobId_1",
+          "key": {
+            "paymentId": 1,
+            "serviceId": 1,
+            "jobId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "sourceTransactionId_1",
+          "key": {
+            "sourceTransactionId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "nextRetryAt_1",
+          "key": {
+            "nextRetryAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "serviceId_1",
+          "key": {
+            "serviceId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "orderId_1",
+          "key": {
+            "orderId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "deliveryStatus_1",
+          "key": {
+            "deliveryStatus": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "timeoutAt_1",
+          "key": {
+            "timeoutAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "reportId_1",
+          "key": {
+            "reportId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "sessionId_1",
+          "key": {
+            "sessionId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "coinTransactionId_1",
+          "key": {
+            "coinTransactionId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "refundIdempotencyKey_1",
+          "key": {
+            "refundIdempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "featureKey_1",
+          "key": {
+            "featureKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "idempotencyKey_1",
+          "key": {
+            "idempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "impUid_1",
+          "key": {
+            "impUid": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-16T03:25:35.000Z",
+      "lastCreatedAt": "2026-08-16T03:25:35.011Z",
+      "lastUpdatedAt": "2026-08-16T03:26:10.535Z"
+    },
+    {
+      "collection": "sukuyoCompatibilityAiConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "SukuyoCompatibilityAiConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 4,
+      "exactCount": 4,
+      "documentCount": 4,
+      "indexCount": 5,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-07-11T12:45:54.000Z",
+      "lastCreatedAt": "2026-07-11T12:45:54.601Z",
+      "lastUpdatedAt": "2026-07-11T12:45:54.601Z"
+    },
+    {
+      "collection": "translationcaches",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 6,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "provider_1_sourceLang_1_targetLang_1_originalTextHash_1",
+          "key": {
+            "provider": 1,
+            "sourceLang": 1,
+            "targetLang": 1,
+            "originalTextHash": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "provider_1",
+          "key": {
+            "provider": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "sourceLang_1",
+          "key": {
+            "sourceLang": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "targetLang_1",
+          "key": {
+            "targetLang": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "originalTextHash_1",
+          "key": {
+            "originalTextHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    },
+    {
+      "collection": "translationusages",
+      "type": "collection",
+      "modeledBy": [],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 4,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "monthKey_1",
+          "key": {
+            "monthKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "provider_1_monthKey_1",
+          "key": {
+            "provider": 1,
+            "monthKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "provider_1",
+          "key": {
+            "provider": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-03-18T08:31:28.000Z",
+      "lastCreatedAt": "2026-03-18T08:31:27.330Z",
+      "lastUpdatedAt": "2026-03-18T08:48:59.127Z"
+    },
+    {
+      "collection": "user_daily_quest_logs",
+      "type": "collection",
+      "modeledBy": [
+        "UserDailyQuestLog"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 26,
+      "exactCount": 26,
+      "documentCount": 26,
+      "indexCount": 8,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "questDateKst_1",
+          "key": {
+            "questDateKst": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "completedAt_1",
+          "key": {
+            "completedAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_profileId_1_questDateKst_1_questId_1",
+          "key": {
+            "userId": 1,
+            "profileId": 1,
+            "questDateKst": 1,
+            "questId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_questDateKst_1",
+          "key": {
+            "userId": 1,
+            "questDateKst": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_profileId_1_questDateKst_1",
+          "key": {
+            "userId": 1,
+            "profileId": 1,
+            "questDateKst": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-15T15:57:09.000Z",
+      "lastCreatedAt": "2026-08-15T15:57:09.650Z",
+      "lastUpdatedAt": "2026-08-15T15:57:09.650Z"
+    },
+    {
+      "collection": "user_rpg_progresses",
+      "type": "collection",
+      "modeledBy": [
+        "UserRpgProgress"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 20,
+      "exactCount": 20,
+      "documentCount": 20,
+      "indexCount": 7,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_currentLevel_1",
+          "key": {
+            "userId": 1,
+            "currentLevel": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "currentLevel_1",
+          "key": {
+            "currentLevel": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "lastQuestDateKst_1",
+          "key": {
+            "lastQuestDateKst": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_profileId_1",
+          "key": {
+            "userId": 1,
+            "profileId": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_updatedAt_-1",
+          "key": {
+            "userId": 1,
+            "updatedAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-13T22:56:51.000Z",
+      "lastCreatedAt": "2026-08-13T22:56:51.807Z",
+      "lastUpdatedAt": "2026-08-13T22:56:52.255Z"
+    },
+    {
+      "collection": "user_rpg_reward_logs",
+      "type": "collection",
+      "modeledBy": [
+        "UserRpgRewardLog"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 7,
+      "exactCount": 7,
+      "documentCount": 7,
+      "indexCount": 7,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "rewardType_1",
+          "key": {
+            "rewardType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "level_1",
+          "key": {
+            "level": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_profileId_1_rewardType_1_rewardKey_1",
+          "key": {
+            "userId": 1,
+            "profileId": 1,
+            "rewardType": 1,
+            "rewardKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_profileId_1_level_1",
+          "key": {
+            "userId": 1,
+            "profileId": 1,
+            "level": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-10T20:11:03.000Z",
+      "lastCreatedAt": "2026-08-10T20:11:03.079Z",
+      "lastUpdatedAt": "2026-08-10T20:11:03.079Z"
+    },
+    {
+      "collection": "users",
+      "type": "collection",
+      "modeledBy": [
+        "User"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 250,
+      "exactCount": 250,
+      "documentCount": 250,
+      "indexCount": 9,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "has_started_paid_service_1",
+          "key": {
+            "has_started_paid_service": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "socialAccounts.google.id_1",
+          "key": {
+            "socialAccounts.google.id": 1
+          },
+          "flags": [
+            "partial"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "profileSubscription.membershipCreditLots.expiresAt_1",
+          "key": {
+            "profileSubscription.membershipCreditLots.expiresAt": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "email_1",
+          "key": {
+            "email": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "twoFA.enabled_1",
+          "key": {
+            "twoFA.enabled": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "socialAccounts.naver.id_1",
+          "key": {
+            "socialAccounts.naver.id": 1
+          },
+          "flags": [
+            "partial"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "socialAccounts.kakao.id_1",
+          "key": {
+            "socialAccounts.kakao.id": 1
+          },
+          "flags": [
+            "partial"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-08-13T13:18:22.000Z",
+      "lastCreatedAt": "2026-08-13T13:18:22.053Z",
+      "lastUpdatedAt": "2026-08-13T13:18:22.053Z"
+    },
+    {
+      "collection": "vedicAiConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "VedicAiConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 1,
+      "exactCount": 1,
+      "documentCount": 1,
+      "indexCount": 11,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "topic_1",
+          "key": {
+            "topic": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessType_1",
+          "key": {
+            "accessType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "idempotencyKey_1",
+          "key": {
+            "idempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "inputHash_1",
+          "key": {
+            "inputHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "id_1",
+          "key": {
+            "id": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-06-27T13:56:06.000Z",
+      "lastCreatedAt": "2026-06-27T13:56:06.451Z",
+      "lastUpdatedAt": "2026-06-27T13:56:06.665Z"
+    },
+    {
+      "collection": "ziweiAiConsultations",
+      "type": "collection",
+      "modeledBy": [
+        "ZiweiAiConsultation"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 4,
+      "exactCount": 4,
+      "documentCount": 4,
+      "indexCount": 10,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "accessType_1",
+          "key": {
+            "accessType": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "idempotencyKey_1",
+          "key": {
+            "idempotencyKey": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_idempotencyKey_1",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "paymentId_1",
+          "key": {
+            "paymentId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "inputHash_1",
+          "key": {
+            "inputHash": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "id_1",
+          "key": {
+            "id": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1",
+          "key": {
+            "userId": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": "2026-07-31T18:43:59.000Z",
+      "lastCreatedAt": "2026-07-31T18:43:59.426Z",
+      "lastUpdatedAt": "2026-07-31T18:45:27.982Z"
+    },
+    {
+      "collection": "ziweiDeepReports",
+      "type": "collection",
+      "modeledBy": [
+        "ZiweiDeepReport"
+      ],
+      "hasValidator": false,
+      "estimatedCount": 0,
+      "exactCount": 0,
+      "documentCount": 0,
+      "indexCount": 5,
+      "ttlIndexes": [],
+      "indexes": [
+        {
+          "name": "_id_",
+          "key": {
+            "_id": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "report_id_unique",
+          "key": {
+            "id": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "user_idem_unique",
+          "key": {
+            "userId": 1,
+            "idempotencyKey": 1
+          },
+          "flags": [
+            "unique"
+          ],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "userId_1_createdAt_-1",
+          "key": {
+            "userId": 1,
+            "createdAt": -1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        },
+        {
+          "name": "status_1",
+          "key": {
+            "status": 1
+          },
+          "flags": [],
+          "expireAfterSeconds": null
+        }
+      ],
+      "lastObjectIdAt": null,
+      "lastCreatedAt": null,
+      "lastUpdatedAt": null
+    }
+  ]
+}

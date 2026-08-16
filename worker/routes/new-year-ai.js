@@ -2456,7 +2456,9 @@ async function handleResult(request, env) {
   await connectDb(env);
   if (!sessionId) {
     const rows = await NewYearAiConsultation.find({ userId: clean(auth.userId), status: "completed" })
-      .sort({ updatedAt: -1 })
+      // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
+      // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.
+      .sort({ createdAt: -1 })
       .limit(10)
       .select("id year birthInfo llmMeta.fortuneData.targetYear createdAt updatedAt")
       .lean();

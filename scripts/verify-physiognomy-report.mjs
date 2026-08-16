@@ -110,4 +110,52 @@ assert.ok(!isPremium('강아지상 관상 총평 둥글고'), '총평=무료');
 assert.ok(!isPremium('강아지상 상세 성격 분석'), '상세 성격=무료');
 assert.ok(!isPremium('삶의 지혜 (Advise)'), '삶의 지혜=무료');
 
-console.log('[verify-physiognomy-report] PASS — 7섹션 무중복, 오관 5부위, 오관·점 프리미엄 게이트 등록');
+// ── 6. 동물상 TOP3 히어로 실렌더 ──
+// 결과 화면의 첫 블록이다. 1위만 단정 제시하던 것을 세 후보의 배합으로 바꿨고, 실측상
+// 1위 적중보다 TOP3 적중이 2배 이상 높아 이 표현이 더 정직하다(verify:physiognomy-scoring 참고).
+// 문자열 단언이 아니라 실제로 모달을 열고 실엔진 결과를 흘려 넣어 DOM 을 확인한다.
+{
+  const renderDom = new JSDOM('<!doctype html><body></body>', { url: 'https://code-destiny.com/', runScripts: 'outside-only' });
+  const w = renderDom.window;
+  w.matchMedia = () => ({ matches: false, addEventListener() {}, removeEventListener() {} });
+  w.requestAnimationFrame = (cb) => setTimeout(cb, 0);
+  w.scrollTo = () => {};
+  w.eval(read('AnalysisEngine.js'));
+  w.eval(read('PhysiognomyUI.js'));
+  await w.faceAnalysisEngine.loadDatabase();
+  w.openPhysiognomyApp();
+
+  const host = w.document.getElementById('phyTop3');
+  assert.ok(host, '#phyTop3 컨테이너가 결과 카드에 있어야 함');
+  assert.equal(host.hidden, true, '분석 전에는 TOP3 가 숨겨져 있어야 함');
+
+  const fx = JSON.parse(read('scripts/fixtures/physiognomy-landmark-vectors.json'));
+  const sample = fx.samples[0];
+  const lm = Array.from({ length: 478 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
+  fx.indices.forEach((idx, i) => { lm[idx] = { x: sample.points[i][0], y: sample.points[i][1], z: sample.points[i][2] }; });
+  const result = await w.faceAnalysisEngine.analyze(lm, null, sample.aspect);
+  w.setResultMeta(result, [{ title: 'A' }, { title: 'B' }]);
+
+  assert.equal(host.hidden, false, '결과가 있으면 TOP3 가 보여야 함');
+  assert.equal(host.querySelectorAll('.phy-top3__name').length, 3, 'TOP3 이름 3개');
+  assert.equal(host.querySelectorAll('.phy-top3__bar > span').length, 3, 'TOP3 막대 3개');
+  assert.ok(host.querySelector('.phy-top3__note'), '배합/우세 안내 문구가 있어야 함');
+  const heroText = host.textContent;
+  result.top3.slice(0, 3).forEach((t) => {
+    assert.ok(heroText.includes(t.animal.name), `TOP3 히어로에 ${t.animal.name} 노출`);
+  });
+
+  // 🔴 퍼센트를 다시 찍지 말 것: top3 의 pct 는 top3 점수 합에 대한 지분이라 세 후보가 늘
+  // 33% 근처로 붙는다(실측 150장에서 1·3위 격차 중앙값 0.3%p, 133장이 1%p 미만).
+  assert.doesNotMatch(heroText, /\d+\.\d\s*%/, 'TOP3 히어로에 소수점 퍼센트 표기 금지 (없는 정밀도 주장)');
+
+  // 순위 나열이 요약줄과 히어로에 두 번 나오지 않아야 한다.
+  const summary = w.document.getElementById('phyResultSummary').innerText;
+  assert.doesNotMatch(summary, /1위\s/, '요약줄이 순위를 되풀이하지 않아야 함 (히어로가 담당)');
+
+  // 궁합 화면으로 전환하면 솔로 분석의 TOP3 가 남으면 안 된다.
+  assert.match(ui, /hidePhyTop3\(\); \/\/ 솔로 분석의 TOP3 가 궁합 화면에 남지 않도록/, '궁합 전환 시 TOP3 정리');
+  assert.equal((ui.match(/hidePhyTop3\(\);/g) || []).length, 2, '궁합 성공·실패 두 경로 모두에서 정리');
+}
+
+console.log('[verify-physiognomy-report] PASS — 7섹션 무중복, 오관 5부위, 오관·점 프리미엄 게이트 등록, TOP3 히어로 실렌더');

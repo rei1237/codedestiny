@@ -1006,7 +1006,11 @@ async function handleGoogleRestore(request, env) {
     userId: new mongoose.Types.ObjectId(String(auth.userId)),
     paymentMethod: "GOOGLE_PLAY",
     status: "success",
-  }).sort({ createdAt: -1 }).limit(200).lean();
+  })
+    // 아래에서 실제로 읽는 필드는 이 5개뿐인데, projection 이 없어 Payment 문서를 통째로
+    // (PG 원본 응답 rawPortOne 포함) 최대 200건 읽고 있었다. 응답 형태는 그대로다.
+    .select("_id featureKey paymentType productId createdAt")
+    .sort({ createdAt: -1 }).limit(200).lean();
   // 복원은 '영구 해금'만 되돌린다. 회당 결제(PER_USE)는 1회 소비로 끝난 거래라
   // 여기서 다시 unlockedFeatures에 넣으면 결제 없이 영구 무료가 되어버린다.
   const restorableRows = rows.filter((row) => (
