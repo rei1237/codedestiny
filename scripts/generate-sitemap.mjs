@@ -3,6 +3,7 @@ import { register } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
+import { createSitemapLastmodLedger } from "./lib/sitemap-lastmod.mjs";
 import { createRequire } from "node:module";
 const requireJson = createRequire(import.meta.url);
 const STORY_EPISODE_SLUGS = requireJson("../lib/stories/vn/episodes.generated.json").episodes.map((e) => e.slug);
@@ -340,7 +341,9 @@ function extractInsightRoutes() {
 function extractPsychotestRoutes() {
   // 상세(/psychotest/<slug>) 14개는 app/psychotest/[slug]/page.tsx 에서 전량 noindex 다.
   // 서로 텍스트의 81.5% 를 공유하는 템플릿 산출물이라 색인 대상이 아니다. 허브만 남긴다.
-  const routes = [{ path: "/psychotest", changefreq: "weekly", priority: 0.84, lastmod: today }];
+  // lastmod 를 붙이지 않는다 — 실제 갱신일을 아는 소스가 없다. 예전에는 여기 `today` 가 박혀 있어
+  // 이 URL 하나가 빌드마다 "오늘 수정됨" 으로 나갔다. 아래 조립부의 서명 원장을 타게 둔다.
+  const routes = [{ path: "/psychotest", changefreq: "weekly", priority: 0.84 }];
 
   return routes;
 }
@@ -608,15 +611,24 @@ async function main() {
     ...extractFortuneSignRoutes(),
   ];
 
+  // 자체 갱신일이 없는 라우트는 여기서 콘텐츠 서명으로 날짜를 정한다.
+  // 예전에는 그냥 `|| today` 였고, 그 결과 429개 중 315개가 빌드마다 "오늘 수정됨" 으로 나갔다.
+  const lastmodLedger = createSitemapLastmodLedger({
+    rootDir,
+    today,
+    previousSitemapPath: sitemapRootPath,
+  });
+
   const entryMap = new Map();
 
   for (const route of routeEntries) {
     if (!isPublicSitemapPath(route.path)) continue;
 
-    const loc = toUrl(normalizeSitemapPath(route.path));
+    const normalizedPath = normalizeSitemapPath(route.path);
+    const loc = toUrl(normalizedPath);
     const next = {
       loc,
-      lastmod: route.lastmod || today,
+      lastmod: route.lastmod || lastmodLedger.lastmodFor(normalizedPath),
       changefreq: route.changefreq || "weekly",
       priority: Number(route.priority ?? 0.7).toFixed(2),
       alternates: Array.isArray(route.alternates) ? route.alternates : [],
@@ -669,9 +681,19 @@ async function main() {
     "",
   ].join("\n");
 
+  // 🔴 사이트맵을 쓰기 **전**에 원장을 확정한다. 여기서 던지는 검사(미분류 런타임 데이터 의존,
+  // 풀리지 않는 로컬 import)가 통과 못 하면 서명이 부실하다는 뜻이므로, 그 상태의 사이트맵을
+  // 디스크에 남기면 안 된다.
+  const ledger = lastmodLedger.save();
+
   writeFileSync(sitemapRootPath, xml, "utf8");
   writeFileSync(sitemapPublicPath, xml, "utf8");
+
+  const { kept, updated, seeded } = lastmodLedger.summary();
   console.log(`[sitemap] Generated ${sorted.length} URLs -> sitemap.xml, public/sitemap.xml`);
+  console.log(
+    `[sitemap] lastmod 원장 ${ledger.path}: ${ledger.count}개 (유지 ${kept} / 갱신 ${updated} / 이전 사이트맵에서 승계 ${seeded})`,
+  );
 }
 
 main();
