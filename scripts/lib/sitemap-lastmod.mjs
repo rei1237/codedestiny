@@ -318,6 +318,14 @@ export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath
 
     const page = matchAppPage(appPages, pathname, constrainedValues);
     if (!page) {
+      // 루트 정적 셸 라우트: app 페이지가 없고 저장소 루트의 `<route>.html` 하나가 실체다.
+      // Cloudflare Pages 가 확장자를 떼고 `/destiny-poker` 로 서빙한다(`/destiny-poker.html` 은 308).
+      // 🔴 존재 확인을 반드시 거친다 — 없는 파일을 받아 주면 "미분류가 today 로 새는 것을 막는다"는
+      // 이 원장의 목적이 무너진다. 파일이 없으면 아래 throw 로 그대로 떨어진다.
+      const flatShell = `${pathname.replace(/^\/+|\/+$/g, "")}.html`;
+      if (flatShell !== ".html" && existsSync(resolve(rootDir, flatShell))) {
+        return { pageFile: flatShell, files: [flatShell], extras: [] };
+      }
       throw new Error(
         `[sitemap-lastmod] 사이트맵 라우트 ${pathname} 를 app/**/page.* 로 해석하지 못했습니다. ` +
           "라우트 계열이 늘었다면 scripts/lib/sitemap-lastmod.mjs 의 해석기를 함께 고쳐야 합니다.",

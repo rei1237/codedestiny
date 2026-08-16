@@ -179,8 +179,10 @@
   X-Robots-Tag: noindex, nofollow
 /yoga-guru*
   X-Robots-Tag: noindex, nofollow
-/destiny-poker*
-  X-Robots-Tag: noindex, nofollow
+# destiny-poker 는 여기 없다 — 무료 기능이라 2026-08-16 에 색인 대상으로 전환했다.
+# 본문을 838자 → 1,918자로 보강하고 canonical·description·사이트맵 등재를 함께 붙였다.
+# 되돌리려면 `_headers` 규칙만 넣지 말고 사이트맵 등재도 함께 빼야 한다
+# (`verify-adsense-readiness` 의 indexable-route-coverage 가 어긋난 조합을 잡는다).
 /celestial-harmony*
   X-Robots-Tag: noindex, nofollow
 /tarot-ijik*
@@ -188,6 +190,10 @@
 /emoi_omikuji_v2*
   X-Robots-Tag: noindex, nofollow
 /cosmic-soul-meditation*
+  X-Robots-Tag: noindex, nofollow
+# 2026-08-16 추가 — 위 셸들과 같은 부류인데 선언만 빠져 있었다. 사이트맵 미등재, 내부 링크는
+# 홈 타일 1개(`/` 로만 나간다), 가시 텍스트 647자 중 한글 420자로 tadagochi(458)보다도 얇다.
+/pet-saju*
   X-Robots-Tag: noindex, nofollow
 
 /
