@@ -53,6 +53,12 @@ const userSchema = new mongoose.Schema({
     privacyVersion: { type: String, default: "", trim: true },
     privacyAcceptedAt: { type: Date, default: null },
     age14AttestedAt: { type: Date, default: null },
+    // 🔴 결제용 휴대폰 번호는 **선택** 동의라 위 필수 동의와 분리해 기록한다
+    // (개인정보 보호법 제22조: 선택 동의는 구분해 받아야 하고, 받은 사실을 입증할 수 있어야 한다).
+    // 이 두 필드가 없으면 "동의를 받고 저장했다"를 증명할 근거가 남지 않는다.
+    // phonePromptedAt(위)은 "물어봤다"이지 "동의했다"가 아니므로 대체재가 아니다.
+    phoneVersion: { type: String, default: "", trim: true },
+    phoneAcceptedAt: { type: Date, default: null },
   },
   // 만 14세 미만 가입자의 법정대리인 동의 기록 (개인정보보호법 제22조의2).
   // 만 14세 이상 계정에는 이 필드가 아예 생기지 않는다(status 기본값 "none").

@@ -66,7 +66,8 @@ const LOGIN_RATE_LIMIT_DEFAULT_MAX = 20;
 const LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS = 60 * 1000;
 const SIGNUP_MONTHLY_CREDIT_GRANT = 500;
 const AUTH_TERMS_VERSION = "2026-04-11";
-const AUTH_PRIVACY_VERSION = "2026-08-04";
+// 🔴 app/privacy-policy/PrivacyPolicyContent.jsx 의 PRIVACY_POLICY_EFFECTIVE_DATE 와 같아야 한다.
+const AUTH_PRIVACY_VERSION = "2026-08-17";
 const REFERRAL_REWARD_MONTHLY_CREDIT = 100;
 const REFERRAL_DAILY_MONTHLY_CREDIT_CAP = 500;
 const withdrawRateLimitMap = new Map();
@@ -3444,6 +3445,17 @@ async function handleProfileCompletion(request, env) {
   if ((body?.phoneNumber || body?.phone) && !phoneNumber) {
     return json({ ok: false, code: "invalid_phone_number", message: "휴대폰 번호를 정확히 입력해 주세요." }, { status: 400 });
   }
+  // 🔴 번호를 저장하려면 선택 동의가 있어야 한다(개인정보 보호법 제15조·제22조). 화면 체크박스만으로는
+  // 우회가 가능하고 동의 사실이 서버에 남지도 않는다 — 여기서 요구하고 아래에서 기록한다.
+  // 🔴 번호가 없는 요청(건너뛰기·이름만)은 종전대로 통과시킨다. 배포 직후 캐시된 구버전 클라이언트가
+  // 동의 필드를 안 실어 보내더라도 온보딩 자체가 막히면 안 된다.
+  if (phoneNumber && body?.phoneConsent !== true) {
+    return json({
+      ok: false,
+      code: "phone_consent_required",
+      message: "휴대폰 번호 수집·이용에 동의해 주셔야 저장할 수 있어요.",
+    }, { status: 400 });
+  }
 
   await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_profile_completion_connect_db");
   const currentUser = await withAuthOpTimeout(
@@ -3473,6 +3485,9 @@ async function handleProfileCompletion(request, env) {
       }, { status: 503 });
     }
     update.phoneUpdatedAt = new Date();
+    // 동의 사실을 번호와 같은 쓰기에 담는다 — 따로 쓰면 한쪽만 남는 창이 생긴다.
+    update["legalConsents.phoneVersion"] = AUTH_PRIVACY_VERSION;
+    update["legalConsents.phoneAcceptedAt"] = new Date();
   }
 
   // 🔴 raw driver 라 Mongoose setter·검증이 돌지 않는다. 위에서 직접 정규화·암호화한 값만 넣는다.
@@ -4546,6 +4561,12 @@ async function handleOAuthCompleteSignup(request, env) {
   // 소셜은 공급자가 주면 그 값이 티켓(profile.phoneNumber)으로 흘러와 아래 findOrCreateSocialUser
   // 에서 암호화 저장되고, 안 주면 번호 없이 계정이 만들어져 첫 단건결제 때 1회 입력받는다.
   const phoneNumber = normalizeKoreanPhoneNumber(body?.phoneNumber || body?.phone);
+  // 🔴 사용자가 이 화면에서 직접 입력한 번호는 선택 동의 대상이다(제15조·제22조). 동의 없이 온 번호는
+  // 거절이 아니라 **버린다** — 가입 자체는 번호와 무관하게 끝나야 하고(번호는 선택), 스토어에 남아
+  // 있는 구버전 앱이 동의 필드 없이 번호를 실어 보내도 가입이 깨지면 안 된다.
+  // 공급자(네이버·카카오)가 동의를 받아 준 값은 티켓으로 따로 흘러와 여기 걸리지 않는다.
+  const phoneConsented = phoneNumber && body?.phoneConsent === true;
+  const consentedPhoneNumber = phoneConsented ? phoneNumber : "";
 
   try {
     await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_social_signup_connect_db");
@@ -4555,13 +4576,16 @@ async function handleOAuthCompleteSignup(request, env) {
 
   const signupProfile = {
     name: signupName,
-    phoneNumber,
+    phoneNumber: consentedPhoneNumber,
     legalConsents: {
       termsVersion: AUTH_TERMS_VERSION,
       termsAcceptedAt: new Date(),
       privacyVersion: AUTH_PRIVACY_VERSION,
       privacyAcceptedAt: new Date(),
       age14AttestedAt: new Date(),
+      // 선택 동의는 실제로 받았을 때만 찍는다 — 필수 동의와 같은 시각으로 뭉뚱그리면
+      // "번호 동의를 따로 받았다"가 기록상 구분되지 않는다.
+      ...(phoneConsented ? { phoneVersion: AUTH_PRIVACY_VERSION, phoneAcceptedAt: new Date() } : {}),
     },
   };
 

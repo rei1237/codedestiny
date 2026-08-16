@@ -15,7 +15,13 @@ import {
 } from "../../_lib/auth-client";
 import { resolveAuthReturnPath, sanitizeAuthReturnPath } from "../../_lib/auth-return";
 import { hydrateAuthSuccessUser, login } from "../../_lib/auth-store";
+import PhoneConsentNotice, {
+  PHONE_CONSENT_COPY_EN,
+  PHONE_CONSENT_COPY_KO,
+  type PhoneConsentCopy,
+} from "./PhoneConsentNotice";
 import { formatKoreanPhoneInput, hasPhoneInput, toStoredPhoneDigits } from "./phone-input";
+import { AUTH_HINT, AUTH_INPUT, AUTH_LABEL, AUTH_LABEL_CHIP, AUTH_TABULAR } from "./styles";
 
 type AuthMode = "login" | "signup";
 type SocialProvider = "google" | "naver" | "kakao";
@@ -43,7 +49,7 @@ type Copy = {
   loginTitle: string; signupTitle: string; loginDescription: string; signupDescription: string;
   socialLabel: string; google: string; naver: string; kakao: string; moving: string; orEmail: string;
   email: string; password: string; name: string;
-  phone: string; phoneOptional: string; phoneHint: string; phoneInvalid: string; phoneConsent: string;
+  phone: string; phoneOptional: string; phoneHint: string; phoneInvalid: string; consent: PhoneConsentCopy;
   showPassword: string; hidePassword: string; capsLock: string; passwordHint: string; login: string; signup: string;
   processing: string; switchToSignup: string; switchToLogin: string; noAccount: string; hasAccount: string;
   privacy: string; privacySummary: string; terms: string; age: string; required: string; finishTitle: string;
@@ -61,7 +67,7 @@ const EN: Copy = {
   phone: "Phone number", phoneOptional: "optional",
   phoneHint: "Only used for card payments. You can add it later at checkout instead.",
   phoneInvalid: "Enter a valid mobile number.",
-  phoneConsent: "I agree to the collection and use of my phone number for payment processing.",
+  consent: PHONE_CONSENT_COPY_EN,
   showPassword: "Show password", hidePassword: "Hide password", capsLock: "Caps Lock is on.",
   passwordHint: `At least ${MIN_NEW_PASSWORD_LENGTH} characters. Passwords found in known breaches are rejected.`,
   login: "Log in", signup: "Create account", processing: "Checking securely…",
@@ -89,7 +95,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     phone: "휴대폰 번호", phoneOptional: "선택",
     phoneHint: "단건 결제(KG이니시스)에 필요한 정보예요. 지금 넣지 않아도 결제할 때 다시 여쭤봐요.",
     phoneInvalid: "휴대폰 번호를 정확히 입력해 주세요.",
-    phoneConsent: "결제 진행 목적의 휴대폰 번호 수집·이용에 동의합니다.",
+    consent: PHONE_CONSENT_COPY_KO,
     showPassword: "비밀번호 보기", hidePassword: "비밀번호 숨기기", capsLock: "Caps Lock이 켜져 있어요.",
     passwordHint: `${MIN_NEW_PASSWORD_LENGTH}자 이상이어야 하고, 이미 유출된 것으로 알려진 비밀번호는 쓸 수 없어요.`,
     login: "로그인", signup: "가입하고 바로 시작하기", processing: "안전하게 확인 중…",
@@ -169,6 +175,14 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     if (payload.user) hydrateAuthSuccessUser(payload.user);
   };
 
+  // 번호를 지우면 동의도 함께 내린다 — 화면에서 사라진 체크박스가 체크된 채로 남으면
+  // 서버에 "동의했다"가 실려 가는데 사용자는 그 화면을 본 적이 없게 된다.
+  const changePhone = (raw: string) => {
+    const formatted = formatKoreanPhoneInput(raw);
+    setPhone(formatted);
+    if (!hasPhoneInput(formatted)) setPhoneConsent(false);
+  };
+
   const startSocial = (provider: SocialProvider) => {
     if (socialBusy || busy) return;
     setError(""); setSocialBusy(provider);
@@ -235,12 +249,14 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     // 다만 무언가 입력했는데 형식이 틀렸다면 조용히 버리지 않고 고칠 기회를 준다.
     const phoneNumber = toStoredPhoneDigits(phone);
     if (hasPhoneInput(phone) && !phoneNumber) { setError(copy.phoneInvalid); return; }
-    if (phoneNumber && !phoneConsent) { setError(copy.invalidSignup); return; }
+    if (phoneNumber && !phoneConsent) { setError(copy.consent.agree); return; }
     setBusy(true); setError("");
     try {
       const response = await authFetch(`${apiBase}/api/auth/oauth/complete-signup`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
-        body: JSON.stringify({ socialSignupTicket: ticket, name: name.trim(), phoneNumber, privacyAccepted: privacy, termsAccepted: terms, ageAttested: age, nextPath: nextPath() }),
+        // 🔴 phoneConsent 를 함께 보낸다 — 서버가 번호를 저장하기 전에 이 값을 요구하고,
+        // legalConsents.phoneAcceptedAt 으로 남긴다(제22조 동의 입증책임).
+        body: JSON.stringify({ socialSignupTicket: ticket, name: name.trim(), phoneNumber, phoneConsent: phoneNumber ? phoneConsent : false, privacyAccepted: privacy, termsAccepted: terms, ageAttested: age, nextPath: nextPath() }),
       });
       const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; appRedirectUrl?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
       if (!response.ok && response.status >= 500) { setError(withServerDiagnostics(copy.unavailable, payload)); return; }
@@ -265,9 +281,19 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
           {isSignup && <Field id="auth-name" label={copy.name}><input id="auth-name" type="text" autoComplete="name" maxLength={40} value={name} onChange={(event) => setName(event.target.value)} className={inputClass} /></Field>}
           {/* 🔴 번호는 소셜 가입 마무리(ticket)에서만 묻는다. 이메일 가입 폼에 새면 2026-08-15 에 되돌린
               "가입 화면은 번호를 받지 않는다"로 되돌아간다 — 번호 없는 이메일 가입자는 /onboarding 이 받는다. */}
-          {ticket && <Field id="auth-phone" label={`${copy.phone} (${copy.phoneOptional})`}><input id="auth-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={13} placeholder="010-1234-5678" value={phone} onChange={(event) => setPhone(formatKoreanPhoneInput(event.target.value))} className={inputClass} /><p className="mt-1.5 text-xs leading-5 text-[#b9aecf]">{copy.phoneHint}</p></Field>}
+          {ticket && <Field id="auth-phone" label={copy.phone} chip={copy.phoneOptional}><input id="auth-phone" type="tel" inputMode="tel" autoComplete="tel" maxLength={13} placeholder="010-1234-5678" value={phone} onChange={(event) => changePhone(event.target.value)} aria-describedby="auth-phone-hint" className={`${AUTH_INPUT} ${AUTH_TABULAR}`} /><p id="auth-phone-hint" className={AUTH_HINT}>{copy.phoneHint}</p></Field>}
           {!ticket && <><Field id="auth-email" label={copy.email}><input id="auth-email" type="email" inputMode="email" autoComplete={isSignup ? "email" : "username"} value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} /></Field><Field id="auth-password" label={copy.password}><div className="relative"><input id="auth-password" type={showPassword ? "text" : "password"} autoComplete={isSignup ? "new-password" : "current-password"} minLength={isSignup ? MIN_NEW_PASSWORD_LENGTH : 8} value={password} onChange={(event) => setPassword(event.target.value)} onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))} className={`${inputClass} pr-14`} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? copy.hidePassword : copy.showPassword} className="absolute inset-y-0 right-0 min-w-12 px-3 text-xs font-bold text-[#d6c9eb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#dbc9ff]">{showPassword ? "Hide" : "Show"}</button></div>{isSignup && <p className="mt-1.5 text-xs leading-5 text-[#b9aecf]">{copy.passwordHint}</p>}{capsLock && <p className="mt-1.5 text-xs text-[#ffd18a]">{copy.capsLock}</p>}</Field></>}
-          {isSignup && <fieldset className="space-y-2 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3"><legend className="px-1 text-xs font-bold text-[#cfc4e5]">{copy.required}</legend><Check id="auth-privacy" checked={privacy} onChange={setPrivacy}><Link href="/privacy" target="_blank" className="underline underline-offset-4">{copy.privacy}</Link></Check><p className="pl-9 text-[11px] leading-5 text-[#aa9fbd]">{copy.privacySummary}</p><Check id="auth-terms" checked={terms} onChange={setTerms}><Link href="/terms" target="_blank" className="underline underline-offset-4">{copy.terms}</Link></Check><Check id="auth-age" checked={age} onChange={setAge}>{copy.age}</Check>{hasPhoneInput(phone) && <Check id="auth-phone-consent" checked={phoneConsent} onChange={setPhoneConsent}>{copy.phoneConsent}</Check>}</fieldset>}
+          {isSignup && <fieldset className="space-y-2 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3"><legend className="px-1 text-xs font-bold text-[#cfc4e5]">{copy.required}</legend><Check id="auth-privacy" checked={privacy} onChange={setPrivacy}><Link href="/privacy" target="_blank" className="underline underline-offset-4">{copy.privacy}</Link></Check><p className="pl-9 text-[11px] leading-5 text-[#aa9fbd]">{copy.privacySummary}</p><Check id="auth-terms" checked={terms} onChange={setTerms}><Link href="/terms" target="_blank" className="underline underline-offset-4">{copy.terms}</Link></Check><Check id="auth-age" checked={age} onChange={setAge}>{copy.age}</Check></fieldset>}
+          {/* 🔴 전화번호 동의는 **선택**이라 위의 "필수 동의" fieldset 안에 두면 안 된다
+              (개인정보 보호법 제22조: 선택 동의는 필수와 구분해 알리고 따로 받아야 한다).
+              고지 4항목도 여기서 함께 보여준다 — 별도 컴포넌트가 /onboarding 과 같은 문구를 쓴다. */}
+          {ticket && <PhoneConsentNotice
+            id="auth-phone-consent"
+            phone={phone}
+            checked={phoneConsent}
+            onChange={setPhoneConsent}
+            copy={copy.consent}
+          />}
           <button type="submit" disabled={busy || Boolean(socialBusy)} aria-busy={busy} className="min-h-12 w-full rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff] disabled:opacity-55">{busy ? copy.processing : ticket ? copy.finish : isSignup ? copy.signup : copy.login}</button>
         </form>
         {!ticket && <p className="mt-5 text-center text-sm text-[#cfc4e1]">{isSignup ? copy.hasAccount : copy.noAccount} <Link href={isSignup ? `/login?next=${encodeURIComponent(nextPath())}` : `/signup?next=${encodeURIComponent(nextPath())}`} onClick={() => { setMode(isSignup ? "login" : "signup"); setError(""); }} className="ml-1 min-h-11 font-black text-[#d7c1ff] underline underline-offset-4">{isSignup ? copy.switchToLogin : copy.switchToSignup}</Link></p>}
@@ -276,6 +302,9 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   </main>;
 }
 
-const inputClass = "min-h-12 w-full rounded-xl border border-[#c9b7f0]/25 bg-[#090b1a] px-3 text-base text-white outline-none placeholder:text-[#8e84a2] focus:border-[#b89ae8] focus:ring-2 focus:ring-[#8f6ccc]/35";
-function Field({ id, label, children }: { id: string; label: string; children: ReactNode }) { return <div><label htmlFor={id} className="mb-1.5 block text-sm font-bold text-[#e7def7]">{label}</label>{children}</div>; }
+// 입력 클래스 정본은 ./styles.ts 다 — /onboarding 과 같은 문자열을 써야 퍼널 안에서 이음매가 없다.
+const inputClass = AUTH_INPUT;
+function Field({ id, label, chip, children }: { id: string; label: string; chip?: string; children: ReactNode }) {
+  return <div><label htmlFor={id} className={AUTH_LABEL}>{label}{chip ? <span className={AUTH_LABEL_CHIP}>{chip}</span> : null}</label>{children}</div>;
+}
 function Check({ id, checked, onChange, children }: { id: string; checked: boolean; onChange: (value: boolean) => void; children: ReactNode }) { return <label htmlFor={id} className="flex min-h-11 cursor-pointer items-center gap-3 rounded-lg px-1 text-sm leading-5 text-[#ddd4ec]"><input id={id} type="checkbox" checked={checked} onChange={(event) => onChange(event.target.checked)} className="h-5 w-5 shrink-0 accent-[#8f6ccc]" /><span>{children}</span></label>; }
