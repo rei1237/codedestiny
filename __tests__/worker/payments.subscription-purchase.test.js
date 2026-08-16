@@ -128,9 +128,15 @@ beforeAll(async () => {
     new Error("Transaction numbers are only allowed on a replica set member or mongos"),
   );
 
-  // withMongoRetry 는 시도마다 connectDb 를 부른다. 이미 연결된 것으로 보이게 해서(readyState=1)
-  // 실제 Mongo URI 없이도 재시도 래퍼를 통과시킨다 — ping 은 실패해도 연결을 그대로 반환하는 설계다.
+  // withMongoRetry 는 시도마다 connectDb 를 부른다. 실제 Mongo URI 없이 재시도 래퍼를 통과시키려면
+  // **건강한 연결**로 보여야 한다 — readyState=1 만으로는 부족하고 건강확인 ping 에도 답해야 한다
+  // (2026-08-16). 예전에는 ping 이 실패해도 connectDb 가 연결을 그대로 돌려줬지만, 그 관대함이
+  // 프로덕션에서 죽은 소켓 위의 쿼리를 7.8초 매다는 원인이라 걷어냈다(worker/lib/db.js 웜 분기).
   Object.defineProperty(dbMod.mongoose.connection, "readyState", { value: 1, configurable: true });
+  Object.defineProperty(dbMod.mongoose.connection, "db", {
+    value: { command: async () => ({ ok: 1 }) },
+    configurable: true,
+  });
   PaymentFailureLog.create = jest.fn().mockResolvedValue({});
 });
 
