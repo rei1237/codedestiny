@@ -373,6 +373,23 @@ function joinWorkersAiParts(content: WorkersAiContent): string {
  *    `@cf/zai-org/*` 등 신세대 모델은 OpenAI 호환 `{ choices: [{ message: { content } }] }`
  *    를 준다. `choices` 경로가 없으면 그 모델의 응답은 전부 "빈 응답" 으로 실패한다.
  */
+/**
+ * Workers AI 응답의 종료 사유. OpenAI 형(`choices[].finish_reason`)과 레거시 형(`finish_reason`)을 모두 본다.
+ *
+ * 🔴 이 값을 `truncated` 로 접지 않는다. 폴백 1차 `@cf/zai-org/glm-4.7-flash` 는 상한에 걸리면
+ *    정상적으로 `"length"` 를 돌려주는데, 그걸 `truncated` 로 올리면 잘림에 재생성하는 호출부들이
+ *    Gemini 부터 체인을 다시 탄다 — Gemini 장애로 이미 폴백 중인 요청만 골라 3배 느려진다.
+ *    사유는 진단·로그용으로만 싣고, 재시도 여부는 호출부가 provider 를 보고 정한다.
+ */
+function extractWorkersAiFinishReason(result: unknown): string {
+  if (!result || typeof result !== "object") return "";
+  const payload = result as {
+    finish_reason?: string;
+    choices?: Array<{ finish_reason?: string }>;
+  };
+  return String(payload.choices?.[0]?.finish_reason || payload.finish_reason || "").trim();
+}
+
 function extractWorkersAiText(result: unknown): string {
   if (!result) return "";
   if (typeof result === "string") return result.trim();
@@ -786,6 +803,7 @@ async function callCloudflareWorkersAI(
 
       const text = extractWorkersAiText(result);
       if (!text) throw new Error("Cloudflare Workers AI returned an empty response.");
+      const finishReason = extractWorkersAiFinishReason(result);
 
       // Workers AI 는 사용량 필드를 안 주는 모델이 있어 문자수 기반 추정으로 통일한다.
       const usage: LLMUsage = {
@@ -800,6 +818,7 @@ async function callCloudflareWorkersAI(
         provider: "cloudflare",
         model,
         usage,
+        ...(finishReason ? { finishReason } : {}),
       };
     } catch (error) {
       // 폐기(5028)·스키마 거부·빈 응답 — 사유를 가리지 않고 다음 모델로 넘긴다.

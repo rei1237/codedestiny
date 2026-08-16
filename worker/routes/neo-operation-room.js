@@ -839,20 +839,19 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
   try {
     let ai = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
+      // 🔴 예산 검사는 여기 한 곳뿐이다. 시작 가드와 재시도 가드를 따로 두지 말 것(중첩 사전검사).
+      const remaining = deadlineAt > 0 ? deadlineAt - Date.now() : NEO_SECTION_TIMEOUT_MS;
+      // 남은 예산이 의미 있는 생성을 담기엔 모자라면 시작하지 않는다 — 시작해 봐야 엣지가 끊는다.
+      if (remaining < 5000) break;
+      // 재시도는 한 챕터분이 온전히 남았을 때만. 반쯤 가다 끊기면 이미 받아 둔 응답까지 버린다.
+      if (attempt > 0 && remaining < NEO_SECTION_TIMEOUT_MS) break;
       const useCache = attempt === 0 && cacheConfig;
-      let timeoutMs = NEO_SECTION_TIMEOUT_MS;
-      if (deadlineAt > 0) {
-        const remaining = deadlineAt - Date.now();
-        // 남은 예산이 의미 있는 생성을 담기엔 모자라면 시작하지 않는다 — 시작해 봐야 엣지가 끊는다.
-        if (remaining < 5000) break;
-        timeoutMs = Math.min(NEO_SECTION_TIMEOUT_MS, remaining);
-      }
       ai = await callGeminiText(env, prompt, {
         // 잘렸으면 다음 시도에서 출력 상한을 올린다(같은 상한으로 다시 부르면 또 잘린다).
         maxOutputTokens: attempt === 0 ? NEO_SECTION_BASE_TOKENS : Math.round(NEO_SECTION_BASE_TOKENS * 1.3),
         temperature: 0.65,
         thinkingBudget: 0,
-        timeoutMs,
+        timeoutMs: Math.min(NEO_SECTION_TIMEOUT_MS, remaining),
         // 순수 JSON 을 강제해 코드펜스·서론으로 토큰을 낭비하지 않게 한다. 이것만으로 충분하지는
         // 않다 — 긴 한국어 본문에서 문자열 안 raw 개행이 섞여 오므로 파서가 복구까지 한다
         // (neo-operation-room-prompt.js 의 extractJsonObject).
@@ -862,7 +861,9 @@ async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlin
         fallbackMinChars: Math.round((section.minChars || 500) * 0.4),
         ...(useCache ? { cache: cacheConfig } : {}),
       });
-      const needsRetry = ai?.ok && (ai.truncated === true || Object.keys(parseNeoSectionResponse(ai.text)).length === 0);
+      // Gemini 는 truncated(MAX_TOKENS)로, Workers AI 는 finishReason("length")로만 잘림을 알린다.
+      const truncated = ai?.truncated === true || /^(MAX_TOKENS|length)$/i.test(clean(ai?.finishReason, 40));
+      const needsRetry = ai?.ok && (truncated || Object.keys(parseNeoSectionResponse(ai.text)).length === 0);
       if (!needsRetry) break;
     }
     const provider = clean(ai?.provider || "");
@@ -891,6 +892,11 @@ async function generateBriefing(env, normalized, methodSummary) {
     methodSummary,
   };
   const cacheStore = createLlmCacheStore(env);
+  // #706 은 /refine 에만 예산을 넣고 /start 는 "안정적으로 도는 경로"라 손대지 않았다. 여기서 함께
+  // 건다 — 1차는 14챕터/동시성 4 = 4웨이브라 2차(2웨이브)보다 노출이 크고, 이 PR 이 폴백 잘림까지
+  // 재시도 대상으로 넓혔다. 예산은 일을 앞당겨 끊을 뿐 늘리지 않으므로, 엣지가 요청을 통째로
+  // 끊어 환불 경로까지 죽는 것보다 부분 결과라도 라우트가 판정하는 쪽이 낫다.
+  const deadlineAt = Date.now() + SYNC_LLM_TIMEOUT_CEILING_MS;
   const results = await runWithConcurrency(NEO_INITIAL_SECTIONS, NEO_SECTION_CONCURRENCY, (section) => {
     const prompt = buildNeoInitialSectionPrompt(section, ctx);
     const cacheConfig = {
@@ -898,8 +904,15 @@ async function generateBriefing(env, normalized, methodSummary) {
       deterministic: true,
       ttlSeconds: 30 * 24 * 60 * 60,
       keyExtra: `neo-operation-room-v2-init-${section.id}`,
+      // 🔴 minChars 없이 저장하면 llm-cache 가 !truncated 만 보므로, 폴백이 40% 게이트를 겨우
+      //    넘긴 짧은 응답이 TTL 30일 동안 고착된다.
+      //    llm-cache 의 관례값은 "라우트의 미달 판정 문턱"인데, 네오에는 챕터 단위 분량 판정이
+      //    없다(라우트 게이트는 브리핑 전체 200자와 응답 40자뿐). 실제로 존재하는 유일한 하한인
+      //    fallbackMinChars 와 같은 값을 쓴다 — section.minChars 를 그대로 쓰면 목표에 살짝
+      //    못 미친 정상 응답까지 전부 캐시 미스가 되어 챕터 14개가 매번 정가가 된다.
+      minChars: Math.round((section.minChars || 500) * 0.4),
     };
-    return generateNeoSectionOnce(env, section, prompt, cacheConfig);
+    return generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt);
   });
 
   let briefing = mergeNeoInitialSections(results, normalized.input, methodSummary);
@@ -915,7 +928,7 @@ async function generateBriefing(env, normalized, methodSummary) {
         "[재작성 지시]",
         `각 methodEvidence.summary 안에 다음 값 중 최소 2개를 그대로 인용해 다시 작성한다: ${tokens.slice(0, 14).join(", ")}`,
       ].join("\n");
-      const retried = await generateNeoSectionOnce(env, evidenceSection, retryPrompt, null);
+      const retried = await generateNeoSectionOnce(env, evidenceSection, retryPrompt, null, deadlineAt);
       if (retried.ok) {
         briefing = mergeNeoInitialSections(results.map((entry) => (entry.id === "methodEvidence" ? retried : entry)), normalized.input, methodSummary);
       }
@@ -970,7 +983,6 @@ async function generateRefinedOrder(env, consultation, realityCheck) {
   // 8챕터 ÷ 동시성 4 = 2웨이브, 웨이브마다 최대 2시도 × 45s → 최악 180s 로 엣지(100s)를 넘긴다.
   // 그러면 라우트가 실패를 판정하기 전에 요청이 잘려 refinementStatus 도 못 남기고 사용자만
   // 정체불명의 오류를 본다. 예산 안에서 끝내 부분 결과라도 반드시 응답으로 전달한다.
-  // 1차(/start)의 타이밍은 손대지 않았다 — 지금 안정적으로 도는 경로다.
   const deadlineAt = Date.now() + SYNC_LLM_TIMEOUT_CEILING_MS;
   // 2차는 현실 점검(자유 입력) 반영이라 비결정적 → 캐시 미사용.
   const results = await runWithConcurrency(NEO_REFINED_SECTIONS, NEO_SECTION_CONCURRENCY, (section) => {
