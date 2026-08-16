@@ -7,10 +7,12 @@ import { CheckCircle2, Download, Loader2, Lock } from "lucide-react";
 import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { toDisplayText } from "@/lib/llm-text";
+import { buildResizedAssetUrl } from "@/lib/r2-public-url";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import { neoInitialBreaks, neoRefinedBreaks, withCharacterBreaks } from "@/components/fortune/result-character-breaks";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
+import NeoFactPunch from "./components/NeoFactPunch";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import { type NeoWarRoomConsultMode, neoWarRoomAssets } from "./data/assets";
 import { getNeoWarRoomMethodDefinition, neoWarRoomMethodRegistry } from "./data/method-registry";
@@ -648,9 +650,10 @@ export default function NeoOperationRoomResultPage() {
     () => neoBenefitsUnlocked && session ? buildNeoSincereLetter(session, methodLabel(selectedMethod)) : "",
     [neoBenefitsUnlocked, selectedMethod, session],
   );
+  // 배경은 CSS 변수로 나가 NeoWarRoomAssetImage 를 우회하므로 리사이즈를 여기서 직접 건다.
   const backgroundStyle = {
-    "--neo-bg-desktop": `url("${neoWarRoomAssets.backgrounds.desktop.src}")`,
-    "--neo-bg-mobile": `url("${neoWarRoomAssets.backgrounds.mobile.src}")`,
+    "--neo-bg-desktop": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.desktop.src, { width: 1600, quality: 82 })}")`,
+    "--neo-bg-mobile": `url("${buildResizedAssetUrl(neoWarRoomAssets.backgrounds.mobile.src, { width: 820, quality: 82 })}")`,
   } as CSSProperties;
   const neoResultStampAsset = resultSealGate.isMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
 
@@ -694,8 +697,8 @@ export default function NeoOperationRoomResultPage() {
             className={styles.neoPortrait}
             imageClassName={styles.neoPortraitImage}
           />
-          <NeoWarRoomAssetImage asset={neoWarRoomAssets.decor.asset1} alt="" sizes="110px" className={styles.decorOne} imageClassName={styles.decorImage} />
-          <NeoWarRoomAssetImage asset={neoWarRoomAssets.decor.asset2} alt="" sizes="110px" className={styles.decorTwo} imageClassName={styles.decorImage} />
+          <NeoWarRoomAssetImage asset={neoWarRoomAssets.decor.asset1} alt="" sizes="110px" resizeWidth={240} className={styles.decorOne} imageClassName={styles.decorImage} />
+          <NeoWarRoomAssetImage asset={neoWarRoomAssets.decor.asset2} alt="" sizes="110px" resizeWidth={240} className={styles.decorTwo} imageClassName={styles.decorImage} />
         </div>
       </section>
 
@@ -716,6 +719,7 @@ export default function NeoOperationRoomResultPage() {
             fallbackSrc="/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp"
             alt=""
             sizes="200px"
+            resizeWidth={440}
             className={styles.stateNeo}
             imageClassName={styles.stateNeoImage}
           />
@@ -728,6 +732,7 @@ export default function NeoOperationRoomResultPage() {
               asset={selectedMethodDefinition.coverAsset}
               alt=""
               sizes="120px"
+              resizeWidth={260}
               className={styles.stateMethodChip}
               imageClassName={styles.stateMethodChipImage}
             />
@@ -751,6 +756,7 @@ export default function NeoOperationRoomResultPage() {
               asset={selectedMethodDefinition.coverAsset}
               alt={`${methodLabel(selectedMethod)} 표지`}
               sizes="280px"
+              resizeWidth={560}
               className={styles.methodCover}
               imageClassName={styles.methodCoverImage}
             />
@@ -1007,6 +1013,7 @@ function InitialBriefingDocument({
   onViewAllChange: (viewAll: boolean) => void;
   expandForExport: boolean;
 }) {
+  const [activePage, setActivePage] = useState(0);
   const frontlineSummary = getBriefingFrontline(briefing);
   const repeatedChoice = getBriefingRepeatedChoice(briefing);
   const misalignedFlow = getBriefingMisalignedFlow(briefing);
@@ -1170,9 +1177,7 @@ function InitialBriefingDocument({
             </div>
           ) : null}
           {closing ? (
-            <blockquote className={styles.blunt}>
-              <LlmParagraphs text={closing} />
-            </blockquote>
+            <NeoFactPunch text={closing} label="NEO · 마무리 한마디" />
           ) : null}
         </>
       ),
@@ -1187,12 +1192,18 @@ function InitialBriefingDocument({
         <span>1차 작전 브리핑</span>
         <h2>{toDisplayText(briefing.operationTitle) || "무명 작전"}</h2>
       </header>
+      {/* 전체 보기·PDF 펼침에서는 모든 장이 이미 보이므로 목차는 감춘다. */}
+      {!viewAll && !expandForExport ? (
+        <ResultDeckToc pages={pages} activePage={activePage} onSelect={setActivePage} label="1차 작전 브리핑 목차" />
+      ) : null}
       <PagedResultViewer
         pages={withCharacterBreaks(pages, neoInitialBreaks, styles.neoBustBreak)}
         deckLabel="1차 작전 브리핑"
         className={styles.pagedViewer}
         viewAll={viewAll}
         onViewAllChange={onViewAllChange}
+        activePage={activePage}
+        onPageChange={setActivePage}
         expandForExport={expandForExport}
       />
     </article>
@@ -1266,6 +1277,7 @@ function RefinedOrderDocument({
   onViewAllChange: (viewAll: boolean) => void;
   expandForExport: boolean;
 }) {
+  const [activePage, setActivePage] = useState(0);
   const closing = toDisplayText(refined.tsundereClosing);
   const pageCandidates: Array<ResultViewerPage & { when: boolean }> = [
     {
@@ -1346,9 +1358,7 @@ function RefinedOrderDocument({
             <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
           </div>
           {closing ? (
-            <blockquote className={styles.blunt}>
-              <LlmParagraphs text={closing} />
-            </blockquote>
+            <NeoFactPunch text={closing} label="NEO · 마무리 한마디" />
           ) : null}
         </>
       ),
@@ -1363,15 +1373,52 @@ function RefinedOrderDocument({
         <span>2차 수정 작전 명령서</span>
         <h2>{toDisplayText(refined.operationTitle) || "수정 작전"}</h2>
       </header>
+      {!viewAll && !expandForExport ? (
+        <ResultDeckToc pages={pages} activePage={activePage} onSelect={setActivePage} label="2차 수정 작전 명령서 목차" />
+      ) : null}
       <PagedResultViewer
         pages={withCharacterBreaks(pages, neoRefinedBreaks, styles.neoBustBreak)}
         deckLabel="2차 수정 작전 명령서"
         className={styles.pagedViewer}
         viewAll={viewAll}
         onViewAllChange={onViewAllChange}
+        activePage={activePage}
+        onPageChange={setActivePage}
         expandForExport={expandForExport}
       />
     </article>
+  );
+}
+
+// 세로로 긴 덱을 순서대로만 넘기게 두지 않는 목차. PagedResultViewer 가 이미 가진
+// activePage/onPageChange 를 연결할 뿐이라 뷰어 로직은 새로 만들지 않는다.
+// (정본 패턴: app/love-secret-ai/result/LoveSecretAiResultClient.tsx)
+function ResultDeckToc({
+  pages,
+  activePage,
+  onSelect,
+  label,
+}: {
+  pages: ResultViewerPage[];
+  activePage: number;
+  onSelect: (index: number) => void;
+  label: string;
+}) {
+  if (pages.length < 2) return null;
+  return (
+    <nav className={styles.deckToc} aria-label={label}>
+      {pages.map((page, index) => (
+        <button
+          key={page.id}
+          type="button"
+          onClick={() => onSelect(index)}
+          data-active={activePage === index ? "true" : "false"}
+          aria-current={activePage === index ? "true" : undefined}
+        >
+          {page.label || `${index + 1}장`}
+        </button>
+      ))}
+    </nav>
   );
 }
 
@@ -1405,9 +1452,7 @@ function NeoBluntCallout({ text }: { text: string }) {
           loading="lazy"
         />
       </figure>
-      <blockquote className={styles.blunt}>
-        <LlmParagraphs text={text} />
-      </blockquote>
+      <NeoFactPunch text={text} />
     </div>
   );
 }
