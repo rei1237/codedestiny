@@ -4,10 +4,10 @@ import React from "react";
 // 유명인 사주 상세는 전량 noindex 로 바뀌었으므로, 색인·광고 대상인 허브와
 // 기능 가이드로 보낸다. app/not-found.js 와 같은 세트를 유지한다.
 const quickLinks = [
-  { href: "/insights", label: "운세 인사이트" },
-  { href: "/saju/guide", label: "사주 입문 가이드" },
-  { href: "/tarot/guide", label: "타로 가이드" },
-  { href: "/faq", label: "자주 묻는 질문" },
+  { href: "/insights/", label: "운세 인사이트" },
+  { href: "/saju/guide/", label: "사주 입문 가이드" },
+  { href: "/tarot/guide/", label: "타로 가이드" },
+  { href: "/faq/", label: "자주 묻는 질문" },
 ];
 
 const chipStyle: React.CSSProperties = {
@@ -93,7 +93,7 @@ export default function NotFoundPage() {
           React.createElement(
             "a",
             {
-              href: "/insights",
+              href: "/insights/",
               style: {
                 ...actionStyle,
                 background: "#f8fafc",
@@ -105,7 +105,7 @@ export default function NotFoundPage() {
           React.createElement(
             "a",
             {
-              href: "/saju",
+              href: "/saju/",
               style: {
                 ...actionStyle,
                 background: "linear-gradient(135deg, #f59e0b, #d97706)",

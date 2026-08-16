@@ -593,7 +593,7 @@ export default function SubscriptionStatusCard({ subscription }: Props) {
             <div className="rounded-[12px] bg-white/8 border border-white/12 px-3 py-2">
               <p className="text-[10px] text-slate-300 font-bold">{copy.autoPayment}</p>
               <p className="text-[12px] font-black text-white">{copy.autoPaymentValue}</p>
-              <a href="/terms#refund-policy" className="mt-1 inline-flex text-[11.5px] font-black text-[#cab8ff] underline">
+              <a href="/terms/#refund-policy" className="mt-1 inline-flex text-[11.5px] font-black text-[#cab8ff] underline">
                 {copy.refundLink}
               </a>
             </div>

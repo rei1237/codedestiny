@@ -195,7 +195,7 @@ export default function AnimalDestinyPage() {
                 다른 생년월일로 테스트하기
               </button>
               <a
-                href="/saju"
+                href="/saju/"
                 className="h-12 w-full rounded-2xl border border-[#d7b792] bg-[linear-gradient(180deg,#fff9ed,#fdeccc)] py-3 text-center font-bold text-[#8a5a2b] transition-all hover:brightness-[1.02]"
               >
                 사주 운세 메인으로
