@@ -16,7 +16,7 @@
 
 | # | 대상 | ops 절감 | 바이트/CPU 절감 | 상태 |
 |:--:|---|:--:|:--:|---|
-| 1 | **`/api/me/access-state` 중복 호출** — 로그인 React 라우트 진입마다 2회 | 🔴 **-1 op/진입** | 있음 | 별도 PR 진행 중 |
+| 1 | **`/api/me/access-state` 중복 호출** — 로그인 React 라우트 진입마다 2회 | 🔴 **-1 op/진입** | 있음 | ⏸ **보류** — 감사 결과 아래 |
 | 2 | **AI 상담 목록 정렬 키 불일치 5곳** | 없음 | 🔴 큼 | ✅ **수정됨** |
 | 3 | `/google/restore` — `Payment` 전체 문서 200건 | 없음 | 🟡 있음 | ✅ **수정됨** |
 | 4 | `ziwei-daehan` 조회 경로의 런타임 `createIndex` | 🟡 -1 op/콜드 아이솔레이트 | 미미 | ✅ **수정됨** |
@@ -42,6 +42,67 @@
 
 🔴 **`profileId` 를 `VOLATILE_QUERY_KEYS` 에 넣는 해법은 금지.** 프로필마다 응답이 다르므로
 다른 프로필의 권한 상태를 반환하게 된다.
+
+### 소비자는 2개가 아니라 3개다
+
+`app/_lib/auth-store.ts:521` `refreshAccessState()` 도 쿼리 없는 `/api/me/access-state` 를 부른다.
+이쪽은 `user-session-cache` 의 60초 fetch 캐시와 **같은 키를 공유해 dedupe 된다**
+(`user-session-cache.ts:249-251`, `:262`). 따라서 중복을 없앨 때 셋 중 무엇이 남는지에 따라
+실제 절감폭이 달라진다.
+
+`auth-store.ts:533` 의 `if (!data || data.degraded === true || !data.userId) return true;` 는
+**이 레포에서 이미 올바르게 쓰인 조건의 정본**이다. 재사용 가드를 만든다면 여기를 베껴야 한다.
+
+### 🔴 보류 결정 (2026-08-16) — `paid-gate-auditor` 감사 결과
+
+"store 스냅샷이 신선하면 재사용" 정도의 단순 구현은 **위험**으로 판정됐다. 핵심 2건은 직접 확인했다.
+
+**(1) degraded 응답이 "확답"으로 승격된다.**
+`js/core/access-store.js:579-583` 의 `applyServerPayload` 는 payload 가 degraded 여도 무조건
+`state.status='ready'` · `state.checkedAt=Date.now()` · `state.lastPayload=<봉투>` 를 찍는다.
+그리고 degraded 응답은 `userId: ""` 라(`worker/routes/access-state.js:261-268` →
+`worker/lib/access-state.js:107-128`) `applyAccessStateSnapshot`(`:598` `!source.userId`)이 false 를
+반환해 **정확히 이 경로로 빠진다.** 즉 "`status==='ready'` + 60초 이내" 조건은 장애 응답을 통과시킨다.
+
+덧붙여 `restoreCache`(`access-store.js:400-402`)는 localStorage 에서 `status`/`checkedAt` 은 복원하되
+**`lastPayload` 는 복원하지 않는다** — 같은 조건이 `lastPayload === null` 상태도 통과시킨다.
+
+**(2) 타입 함정.** `lastPayload.checkedAt` 은 ISO 문자열, `snapshot.checkedAt` 은 number(`:665`)다.
+전자를 산술에 쓰면 NaN 이라 조건이 조용히 무력화된다. 그 number 도 로컬 수신 시각이 아니라
+**서버의 `fetchedAt`** 이라, 워커 60초 TTL 캐시 히트를 감안하면 실효 신선도는 최대 ~120초다.
+
+**안전하게 하려면 조건 9개가 필요하다**: `lastPayload` 존재 · 봉투면 `.data` 언랩(`:583` 과 `:667` 의
+형태가 다르다) · `degraded !== true` · `completeness === 'full'` · `authority === 'server'` ·
+`userId` 가 현재 사용자와 일치 · `currentProfileId` 가 현재 활성 프로필과 일치 ·
+`options.force !== true`(결제 직후 `refreshUserAccessAfterPayment` 가 `force:true` 로 부른다,
+`user-session-cache.ts:510-516`) · 동기 `getSnapshot()` 만 사용(`ensureLoaded()` await 금지 —
+진입에 새 대기를 만들면 게이팅 1항 위반).
+
+레포에 이미 정답이 있다: `index.html:22866-22868` 이 같은 `lastPayload` 를 소비할 때 쓰는
+`status==='ready' && completeness==='full' && authority==='server'` 조합이다.
+
+**보류 사유**: M10 고정요금 아래서 절감액이 0원인데 대상이 결제 게이팅 부트스트랩이다.
+[티어 결정](04-tier-decision.md)이 Flex 로 확정되면 ops 절감이 곧 요금이 되므로 그때 재개한다.
+
+**재개 시 주의 — 기존 가드가 이 회귀에 눈이 멀어 있다.** 같은 PR 에 단언을 새로 넣어야 한다:
+- `__tests__/ui/access-state-bootstrap.static.test.js:12-23` 은 파일 전체 문자열 존재 검사라
+  앞에 short-circuit 을 넣어도 그대로 통과한다.
+- `scripts/verify-auth-session-stability.mjs:379-411`(T5)은 `/api/me/access-state` 호출 수를 세지만
+  그 jsdom 하네스에 `CodeDestinyAccessStore` 가 설치되지 않아 새 분기가 한 번도 실행되지 않는다.
+
+### 곁가지로 발견한 CI 구멍 — 닫았다
+
+`app/_lib/user-session-cache.ts` 가 `paid-flow-gates.yml` 의 `paths` 에 없어
+(짝인 `js/core/access-store.js` 는 `:51` 에 있다) **이 파일만 고친 PR 은 결제 게이트가 깨어나지 않았다.**
+실측: `node scripts/lib/change-risk.mjs app/_lib/user-session-cache.ts` → `level=medium deepRequired=false`.
+
+CLAUDE.md 원칙 10 위반이라 별도 PR 로 `paths` 에 추가했다.
+`scripts/resolve-paid-gate-scope.mjs:172` 가 워크플로 YAML 의 `paths` 를 직접 읽으므로 목록은 하나뿐이고,
+이 파일은 `SHELLS` 가 아니라 실변경이 있으면 `run: true` 가 된다(리졸버 본문 확인).
+
+🟡 **남은 비대칭**: `scripts/lib/change-risk.mjs:53` 은 `js/core/access-store.js` 를
+`deepVerificationRules`("접근 상태 저장소")로 올려 `deepRequired=true` 인데 React 짝은 `medium` 이다.
+`deepVerificationRules` 추가는 전체 `deploy:critical` 을 강제하는 **게이트 범위 변경**이라 보고만 한다.
 
 ### 검토했으나 채택하지 않은 것
 
