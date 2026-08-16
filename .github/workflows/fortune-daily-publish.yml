@@ -68,3 +68,29 @@ jobs:
             echo "빌드가 \`prebuild:cf\` 에서 그날의 일일 패키지를 생성하고, /fortune/today 와"
             echo "/fortune/tomorrow 의 50개 라우트가 그 값을 서버 렌더로 굳혀 배포됩니다."
           } >> "$GITHUB_STEP_SUMMARY"
+
+  # 🔴 디스패치는 "요청했다"까지만 증명한다. 이 워크플로가 4개월간 사라졌을 때 아무도 몰랐던
+  # 이유가 정확히 그것이다 — 릴리스도 초록불이었고 HTTP 도 200 이었으며 본문만 비어 있었다.
+  # landing-watchdog 은 "프로덕션 SHA == main HEAD" 를 보므로 이 사각을 덮지 못한다(운세는
+  # SHA 가 같아도 낡는다). 그래서 발행 결과를 실제 URL 에서 되읽어 확인하고, 갱신되지 않으면
+  # 잡을 실패시킨다 — 예약 워크플로 실패는 GitHub 이 레포 소유자에게 메일로 알린다.
+  verify-published:
+    name: Verify today's fortune reached production
+    needs: trigger-release
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+
+      # npm ci 를 돌리지 않는다 — 이 스크립트는 Node 내장 fetch 와 fs 만 쓴다.
+      # 릴리스는 실측 4~7분이 걸리므로 넉넉히 25분까지 기다린 뒤에 판정한다.
+      - name: Poll production until today's fortune is live
+        env:
+          CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
+        run: node scripts/verify-fortune-freshness.mjs --wait-minutes=25 --poll-seconds=90
