@@ -3212,6 +3212,16 @@
     return _dpToText(value).replace(/\D+/g, '');
   }
 
+  // 입력 중인 값을 010-1234-5678 모양으로 만든다. 저장 직전에 _dpNormalizePaymentPhoneNumber 가
+  // 하이픈을 다시 벗기므로 표시 전용이다(셸 _cdFormatKoreanPhoneInput 과 같은 규칙).
+  function _dpFormatKoreanPhoneInput(value) {
+    var digits = String(value == null ? '' : value).replace(/\D/g, '').slice(0, 11);
+    if (digits.length <= 3) return digits;
+    var middleLength = digits.length > 10 ? 4 : 3;
+    if (digits.length <= 3 + middleLength) return digits.slice(0, 3) + '-' + digits.slice(3);
+    return digits.slice(0, 3) + '-' + digits.slice(3, 3 + middleLength) + '-' + digits.slice(3 + middleLength);
+  }
+
   function _dpNormalizePaymentPhoneNumber(value) {
     var digits = _dpDigitsOnly(value);
     var normalized = digits.indexOf('82') === 0 && digits.length >= 11 ? ('0' + digits.slice(2)) : digits;
@@ -3295,8 +3305,10 @@
       var settled = false;
       var overlay = document.createElement('div');
       var card = document.createElement('form');
+      var rule = document.createElement('div');
       var title = document.createElement('h2');
       var desc = document.createElement('p');
+      var fieldLabel = document.createElement('label');
       var input = document.createElement('input');
       var error = document.createElement('p');
       var notice = document.createElement('p');
@@ -3304,13 +3316,24 @@
       var consentLabel = document.createElement('label');
       var consentInput = document.createElement('input');
       var consentText = document.createElement('span');
+      var policy = document.createElement('p');
+      var policyLink = document.createElement('a');
       var actions = document.createElement('div');
       var cancelButton = document.createElement('button');
       var submitButton = document.createElement('button');
 
+      function onOverlayKeydown(event) {
+        if (event.key === 'Escape' || event.keyCode === 27) {
+          if (input.disabled) return;
+          event.preventDefault();
+          close(null);
+        }
+      }
+
       function close(value) {
         if (settled) return;
         settled = true;
+        try { document.removeEventListener('keydown', onOverlayKeydown, true); } catch (_) {}
         try { input.value = ''; } catch (_) {}
         try { overlay.remove(); } catch (_) {}
         resolve(value || null);
@@ -3321,34 +3344,55 @@
         consentInput.disabled = !!isBusy;
         cancelButton.disabled = !!isBusy;
         submitButton.disabled = !!isBusy;
+        submitButton.style.opacity = isBusy ? '.62' : '1';
         submitButton.textContent = isBusy ? '저장 중...' : '저장하고 결제 계속하기';
       }
 
-      overlay.setAttribute('role', 'presentation');
-      overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:rgba(8,13,31,.72);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);';
-      card.style.cssText = 'width:min(400px,100%);border:1px solid rgba(255,255,255,.22);border-radius:18px;background:linear-gradient(145deg,rgba(20,25,48,.98),rgba(45,31,82,.98));box-shadow:0 24px 80px rgba(0,0,0,.46);padding:22px;color:#fff;font-family:inherit;';
-      title.style.cssText = 'margin:0 0 10px;font-size:19px;font-weight:800;letter-spacing:0;';
-      desc.style.cssText = 'margin:0 0 16px;color:rgba(238,242,255,.78);font-size:14px;line-height:1.6;';
-      input.style.cssText = 'width:100%;height:48px;box-sizing:border-box;border-radius:12px;border:1px solid rgba(196,181,253,.45);background:rgba(15,23,42,.78);color:#fff;font-size:16px;padding:0 14px;outline:none;';
-      error.style.cssText = 'min-height:20px;margin:8px 0 0;color:#fecdd3;font-size:13px;line-height:1.45;';
-      notice.style.cssText = 'margin:8px 0 0;color:rgba(221,214,254,.78);font-size:12px;line-height:1.45;';
-      disclosure.style.cssText = 'margin:10px 0 0;padding:10px 12px;list-style:none;border:1px solid rgba(196,181,253,.28);border-radius:12px;background:rgba(10,8,24,.55);color:rgba(221,214,254,.86);font-size:12px;line-height:1.55;';
-      consentLabel.style.cssText = 'display:flex;align-items:flex-start;gap:10px;margin-top:10px;min-height:44px;cursor:pointer;color:#eef2ff;font-size:13px;line-height:1.5;';
-      consentInput.style.cssText = 'flex:0 0 auto;width:20px;height:20px;margin-top:2px;accent-color:#8f6ccc;';
-      actions.style.cssText = 'display:flex;gap:10px;margin-top:18px;';
-      cancelButton.style.cssText = 'flex:0 0 auto;min-height:44px;border-radius:12px;border:1px solid rgba(255,255,255,.22);background:rgba(255,255,255,.08);color:#e5e7eb;padding:0 16px;font-weight:700;';
-      submitButton.style.cssText = 'flex:1;min-height:44px;border-radius:12px;border:0;background:linear-gradient(135deg,#f59e0b,#fb7185);color:#111827;padding:0 16px;font-weight:900;';
+      // 동의 여부에 따라 카드 테두리를 바꿔 '무엇을 더 해야 하는지'를 색으로도 알린다.
+      function syncConsentAffordance() {
+        consentLabel.style.borderColor = consentInput.checked ? 'rgba(232,213,163,.55)' : 'rgba(196,181,253,.22)';
+        consentLabel.style.background = consentInput.checked ? 'rgba(38,29,74,.62)' : 'rgba(16,12,38,.55)';
+      }
 
+      // 🔴 스타일·구조는 셸 정본(index.html _cdPromptDirectCheckoutPhoneNumber)과 같은 규격이다.
+      overlay.setAttribute('role', 'dialog');
+      overlay.setAttribute('aria-modal', 'true');
+      overlay.setAttribute('aria-labelledby', 'dp-payment-phone-title');
+      overlay.style.cssText = 'position:fixed;inset:0;z-index:2147483647;display:flex;align-items:center;justify-content:center;padding:18px;background:radial-gradient(130% 100% at 50% 0%,rgba(36,26,74,.78),rgba(6,4,16,.92));backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);';
+      card.style.cssText = 'width:min(420px,100%);max-height:calc(100vh - 36px);overflow-y:auto;-webkit-overflow-scrolling:touch;box-sizing:border-box;border:1px solid rgba(232,213,163,.20);border-radius:22px;background:linear-gradient(168deg,#181334,#100c26 55%,#0b0819);box-shadow:0 30px 88px rgba(3,2,12,.66);padding:24px 22px 20px;color:#f6f3ff;font-family:inherit;';
+      rule.style.cssText = 'width:34px;height:2px;margin:0 0 14px;border-radius:2px;background:linear-gradient(90deg,#e8d5a3,rgba(196,181,253,.35));';
+      title.style.cssText = 'margin:0 0 8px;font-size:19px;font-weight:800;line-height:1.4;letter-spacing:-.01em;color:#f8f6ff;';
+      desc.style.cssText = 'margin:0 0 18px;color:rgba(211,205,236,.8);font-size:13.5px;line-height:1.68;';
+      fieldLabel.style.cssText = 'display:block;margin:0 0 8px;color:rgba(232,213,163,.9);font-size:12px;font-weight:700;';
+      input.style.cssText = 'width:100%;height:52px;box-sizing:border-box;border-radius:14px;border:1px solid rgba(196,181,253,.30);background:rgba(8,6,20,.7);color:#f8f6ff;font-size:16px;font-weight:600;letter-spacing:.02em;padding:0 15px;outline:none;transition:border-color .16s ease,box-shadow .16s ease;';
+      error.style.cssText = 'min-height:18px;margin:9px 0 0;color:#f7b7c4;font-size:12.5px;line-height:1.5;';
+      notice.style.cssText = 'margin:9px 0 0;color:rgba(198,190,228,.72);font-size:11.5px;line-height:1.55;';
+      disclosure.style.cssText = 'margin:12px 0 0;padding:12px 14px;list-style:none;border:1px solid rgba(196,181,253,.20);border-radius:14px;background:rgba(6,4,16,.5);color:rgba(210,203,238,.85);font-size:11.5px;line-height:1.6;';
+      consentLabel.style.cssText = 'display:flex;align-items:flex-start;gap:11px;margin-top:12px;padding:11px 12px;box-sizing:border-box;min-height:44px;border:1px solid rgba(196,181,253,.22);border-radius:14px;background:rgba(16,12,38,.55);cursor:pointer;color:#eee9ff;font-size:12.5px;line-height:1.6;transition:border-color .16s ease,background-color .16s ease;';
+      consentInput.style.cssText = 'flex:0 0 auto;width:19px;height:19px;margin:1px 0 0;accent-color:#c4b5fd;cursor:pointer;';
+      policy.style.cssText = 'margin:9px 0 0;font-size:11.5px;line-height:1.5;';
+      policyLink.style.cssText = 'color:rgba(232,213,163,.9);text-decoration:underline;text-underline-offset:3px;';
+      actions.style.cssText = 'display:flex;gap:10px;margin-top:18px;';
+      cancelButton.style.cssText = 'flex:0 0 auto;min-height:48px;border-radius:14px;border:1px solid rgba(196,181,253,.24);background:rgba(255,255,255,.04);color:#cfc7ea;padding:0 18px;font-size:14px;font-weight:700;cursor:pointer;';
+      submitButton.style.cssText = 'flex:1;min-height:48px;border-radius:14px;border:0;background:linear-gradient(135deg,#f0dcab,#d9bd7c);color:#231a3a;padding:0 16px;font-size:14.5px;font-weight:800;letter-spacing:-.01em;cursor:pointer;box-shadow:0 10px 26px rgba(217,189,124,.24);';
+
+      title.id = 'dp-payment-phone-title';
       title.textContent = '단건결제를 위해 휴대폰 번호가 필요해요';
       desc.textContent = 'KG이니시스 결제 진행에 필요한 정보입니다. 최초 1회만 입력하면 다음 결제부터는 바로 결제창이 열립니다.';
+      input.id = 'dp-payment-phone-input';
       input.type = 'tel';
       input.inputMode = 'tel';
       input.autocomplete = 'tel';
-      input.placeholder = '01012345678';
+      input.placeholder = '010-1234-5678';
+      input.setAttribute('aria-describedby', 'dp-payment-phone-notice');
+      fieldLabel.htmlFor = input.id;
+      fieldLabel.textContent = '휴대폰 번호';
+      notice.id = 'dp-payment-phone-notice';
       notice.textContent = '입력한 번호는 결제 진행 목적으로만 사용되며 서버에 암호화해 저장됩니다.';
-      DP_PAYMENT_PHONE_CONSENT_LINES.forEach(function(line) {
+      DP_PAYMENT_PHONE_CONSENT_LINES.forEach(function(line, lineIndex) {
         var item = document.createElement('li');
         item.textContent = line;
+        if (lineIndex > 0) item.style.cssText = 'margin-top:6px;padding-top:6px;border-top:1px solid rgba(196,181,253,.12);';
         disclosure.appendChild(item);
       });
       consentInput.type = 'checkbox';
@@ -3358,13 +3402,33 @@
       consentLabel.appendChild(consentInput);
       consentLabel.appendChild(consentText);
       consentInput.addEventListener('change', function() {
+        syncConsentAffordance();
         if (consentInput.checked && error.textContent === DP_PAYMENT_PHONE_CONSENT_REQUIRED) error.textContent = '';
       });
+      policyLink.href = '/privacy';
+      policyLink.target = '_blank';
+      policyLink.rel = 'noopener';
+      policyLink.textContent = '개인정보처리방침 전문';
+      policy.appendChild(policyLink);
       cancelButton.type = 'button';
       cancelButton.textContent = '취소';
       submitButton.type = 'submit';
       submitButton.textContent = '저장하고 결제 계속하기';
 
+      // 인라인 스타일이라 :focus 를 쓸 수 없다 — 포커스 링을 이벤트로 켠다(키보드 사용자에게 필요).
+      input.addEventListener('focus', function() {
+        input.style.borderColor = 'rgba(232,213,163,.7)';
+        input.style.boxShadow = '0 0 0 3px rgba(196,181,253,.18)';
+      });
+      input.addEventListener('blur', function() {
+        input.style.borderColor = 'rgba(196,181,253,.30)';
+        input.style.boxShadow = 'none';
+      });
+      // 입력 즉시 010-1234-5678 로 정돈한다. 저장 직전 정규화가 하이픈을 다시 벗긴다.
+      input.addEventListener('input', function() {
+        var formatted = _dpFormatKoreanPhoneInput(input.value);
+        if (formatted !== input.value) input.value = formatted;
+      });
       cancelButton.addEventListener('click', function() { close(null); });
       card.addEventListener('submit', function(event) {
         event.preventDefault();
@@ -3398,12 +3462,30 @@
       card.appendChild(notice);
       card.appendChild(disclosure);
       card.appendChild(consentLabel);
+      card.appendChild(policy);
       actions.appendChild(cancelButton);
       actions.appendChild(submitButton);
       card.appendChild(actions);
       overlay.appendChild(card);
+      syncConsentAffordance();
       document.body.appendChild(overlay);
-      try { input.focus(); } catch (_) {}
+      document.addEventListener('keydown', onOverlayKeydown, true);
+      // 진입 모션은 Web Animations 로만 준다(인라인 스타일이라 @keyframes 를 쓸 수 없다).
+      try {
+        var _dpPromptReduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);
+        if (!_dpPromptReduceMotion && typeof card.animate === 'function') {
+          overlay.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 140, easing: 'ease-out' });
+          card.animate(
+            [{ opacity: 0, transform: 'translateY(12px) scale(.985)' }, { opacity: 1, transform: 'none' }],
+            { duration: 240, easing: 'cubic-bezier(.2,.8,.25,1)' }
+          );
+        }
+      } catch (_promptMotionError) {}
+      if (typeof requestAnimationFrame === 'function') {
+        requestAnimationFrame(function() { try { input.focus(); } catch (_) {} });
+      } else {
+        try { input.focus(); } catch (_) {}
+      }
     });
   }
 
@@ -4338,41 +4420,6 @@
       if (!Number.isFinite(orderAmount) || orderAmount <= 0) {
         throw new Error('\uacb0\uc81c \uc8fc\ubb38 \uc815\ubcf4\uc5d0 \uacb0\uc81c \uae08\uc561\uc774 \uc5c6\uc2b5\ub2c8\ub2e4.');
       }
-      // 위에서 checkout 과 동시에 발사한 로드를 여기서 회수한다 — 정상 경로에서는 이미 resolve 상태다.
-      // 실패했으면 캐시는 이미 비워져 있다(_dpPortOneV2SdkPromise 의 catch). 그래서 재호출이
-      // 곧 새 요청이다 — 셸의 _cdRunDirectKrwCheckout(index.html)과 같은 자리에서 1회 재시도한다.
-      // 🔴 두 시도가 **하나의 예산(8초)을 나눠 쓴다.** 예전에는 각자 8초 상한을 따로 걸어, CDN 이 죽은
-      // 네트워크에서 최악 16초가 클릭→결제창 구간에 통째로 얹혔다. 재시도의 가치는 "죽은 태그를 걷어내고
-      // 새로 받는 것"이지 "두 배로 기다리는 것"이 아니다(셸 index.html 과 같은 계약).
-      var _dpSdkDeadline = Date.now() + DP_PORTONE_SDK_BUDGET_MS;
-      try {
-        await (_dpSdkPending || _dpPortOneV2SdkPromise());
-      } catch (_dpSdkFirstError) {
-        await _dpPortOneV2SdkPromise(Math.max(250, _dpSdkDeadline - Date.now()));
-      }
-      _dpMarkPgStep('sdk');
-      // storeId/channelKey 는 checkout 응답에 이미 실려 온다(worker/routes/payments.js). 그걸 쓰면
-      // /api/payments/config 왕복이 통째로 사라진다. 정적 셸의 _cdResolveDirectCheckoutConfig 와 같은 방식.
-      // currency/payMethod/noticeUrl 도 함께 받는다 — storeId/channelKey 만 읽으면 /api/payments/config
-      // 폴백이 사라진 순간 noticeUrls(웹훅 통지 URL)가 조용히 빠진다. 셸의 _cdResolveDirectCheckoutConfig
-      // 와 같은 필드 집합으로 맞춘다.
-      var config = {
-        storeId: String((order && order.storeId) || (checkoutData && checkoutData.storeId) || '').trim(),
-        channelKey: String((order && order.channelKey) || (checkoutData && checkoutData.channelKey) || '').trim(),
-        currency: (order && order.currency) || (checkoutData && checkoutData.currency),
-        payMethod: (order && order.payMethod) || (checkoutData && checkoutData.payMethod),
-        noticeUrl: (order && order.noticeUrl) || (checkoutData && checkoutData.noticeUrl),
-      };
-      if (!config.storeId || !config.channelKey) {
-        var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
-        if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '결제 환경 설정을 확인할 수 없습니다.'));
-        config = _dpExtractBillingData(configRes.payload);
-      }
-      if (!config.storeId || !config.channelKey) {
-        throw new Error('포트원 V2 결제 설정이 없습니다.');
-      }
-      _dpMarkPgStep('config');
-
       var checkoutUser = _dpReadAuthUser() || {};
       if ((!checkoutUser.email && !checkoutUser.userEmail) && typeof _dpVerifyLoginSession === 'function') {
         try { await _dpVerifyLoginSession(true); } catch (_) {}
@@ -4447,6 +4494,44 @@
       if (!customerPhone) {
         throw new Error('\uC774\uB2C8\uC2DC\uC2A4 \uACB0\uC81C\uB97C \uC9C4\uD589\uD558\uB824\uBA74 \uAD6C\uB9E4\uC790 \uD734\uB300\uD3F0 \uBC88\uD638\uAC00 \uD544\uC694\uD569\uB2C8\uB2E4.');
       }
+
+      // \uD83D\uDD34 SDK\u00B7config \uB300\uAE30\uB294 \uAD6C\uB9E4\uC790 \uD655\uC815(=\uBC88\uD638 \uC785\uB825\uCC3D)\uBCF4\uB2E4 **\uB4A4**\uC5D0 \uC628\uB2E4(2026-08-17, \uC178\uACFC \uAC19\uC740 \uC21C\uC11C).
+      // \uB458 \uB2E4 checkout \uACFC \uB3D9\uC2DC\uC5D0 \uC774\uBBF8 \uBC1C\uC0AC\uB3FC \uC788\uC5B4 \uC5EC\uAE30\uC11C \uAE30\uB2E4\uB9AC\uB294 \uAC83\uC740 \uB0A8\uC740 \uC2DC\uAC04\uBFD0\uC778\uB370, \uC55E\uC5D0 \uB450\uBA74
+      // \uBC88\uD638\uAC00 \uC5C6\uB294 \uCCAB \uACB0\uC81C \uC0AC\uC6A9\uC790\uAC00 SDK \uB2E4\uC6B4\uB85C\uB4DC(\uC608\uC0B0 8\uCD08)\uB97C \uB2E4 \uAE30\uB2E4\uB9B0 \uB4A4\uC5D0\uC57C \uC785\uB825\uCC3D\uC744 \uBD24\uB2E4.
+      // \uC704\uC5D0\uC11C checkout \uACFC \uB3D9\uC2DC\uC5D0 \uBC1C\uC0AC\uD55C \uB85C\uB4DC\uB97C \uC5EC\uAE30\uC11C \uD68C\uC218\uD55C\uB2E4 \u2014 \uC815\uC0C1 \uACBD\uB85C\uC5D0\uC11C\uB294 \uC774\uBBF8 resolve \uC0C1\uD0DC\uB2E4.
+      // \uC2E4\uD328\uD588\uC73C\uBA74 \uCE90\uC2DC\uB294 \uC774\uBBF8 \uBE44\uC6CC\uC838 \uC788\uB2E4(_dpPortOneV2SdkPromise \uC758 catch). \uADF8\uB798\uC11C \uC7AC\uD638\uCD9C\uC774
+      // \uACE7 \uC0C8 \uC694\uCCAD\uC774\uB2E4 \u2014 \uC178\uC758 _cdRunDirectKrwCheckout(index.html)\uACFC \uAC19\uC740 \uC790\uB9AC\uC5D0\uC11C 1\uD68C \uC7AC\uC2DC\uB3C4\uD55C\uB2E4.
+      // \uD83D\uDD34 \uB450 \uC2DC\uB3C4\uAC00 **\uD558\uB098\uC758 \uC608\uC0B0(8\uCD08)\uC744 \uB098\uB220 \uC4F4\uB2E4.** \uC608\uC804\uC5D0\uB294 \uAC01\uC790 8\uCD08 \uC0C1\uD55C\uC744 \uB530\uB85C \uAC78\uC5B4, CDN \uC774 \uC8FD\uC740
+      // \uB124\uD2B8\uC6CC\uD06C\uC5D0\uC11C \uCD5C\uC545 16\uCD08\uAC00 \uD074\uB9AD\u2192\uACB0\uC81C\uCC3D \uAD6C\uAC04\uC5D0 \uD1B5\uC9F8\uB85C \uC5B9\uD614\uB2E4. \uC7AC\uC2DC\uB3C4\uC758 \uAC00\uCE58\uB294 "\uC8FD\uC740 \uD0DC\uADF8\uB97C \uAC77\uC5B4\uB0B4\uACE0
+      // \uC0C8\uB85C \uBC1B\uB294 \uAC83"\uC774\uC9C0 "\uB450 \uBC30\uB85C \uAE30\uB2E4\uB9AC\uB294 \uAC83"\uC774 \uC544\uB2C8\uB2E4(\uC178 index.html \uACFC \uAC19\uC740 \uACC4\uC57D).
+      var _dpSdkDeadline = Date.now() + DP_PORTONE_SDK_BUDGET_MS;
+      try {
+        await (_dpSdkPending || _dpPortOneV2SdkPromise());
+      } catch (_dpSdkFirstError) {
+        await _dpPortOneV2SdkPromise(Math.max(250, _dpSdkDeadline - Date.now()));
+      }
+      _dpMarkPgStep('sdk');
+      // storeId/channelKey \uB294 checkout \uC751\uB2F5\uC5D0 \uC774\uBBF8 \uC2E4\uB824 \uC628\uB2E4(worker/routes/payments.js). \uADF8\uAC78 \uC4F0\uBA74
+      // /api/payments/config \uC655\uBCF5\uC774 \uD1B5\uC9F8\uB85C \uC0AC\uB77C\uC9C4\uB2E4. \uC815\uC801 \uC178\uC758 _cdResolveDirectCheckoutConfig \uC640 \uAC19\uC740 \uBC29\uC2DD.
+      // currency/payMethod/noticeUrl \uB3C4 \uD568\uAED8 \uBC1B\uB294\uB2E4 \u2014 storeId/channelKey \uB9CC \uC77D\uC73C\uBA74 /api/payments/config
+      // \uD3F4\uBC31\uC774 \uC0AC\uB77C\uC9C4 \uC21C\uAC04 noticeUrls(\uC6F9\uD6C5 \uD1B5\uC9C0 URL)\uAC00 \uC870\uC6A9\uD788 \uBE60\uC9C4\uB2E4. \uC178\uC758 _cdResolveDirectCheckoutConfig
+      // \uC640 \uAC19\uC740 \uD544\uB4DC \uC9D1\uD569\uC73C\uB85C \uB9DE\uCD98\uB2E4.
+      var config = {
+        storeId: String((order && order.storeId) || (checkoutData && checkoutData.storeId) || '').trim(),
+        channelKey: String((order && order.channelKey) || (checkoutData && checkoutData.channelKey) || '').trim(),
+        currency: (order && order.currency) || (checkoutData && checkoutData.currency),
+        payMethod: (order && order.payMethod) || (checkoutData && checkoutData.payMethod),
+        noticeUrl: (order && order.noticeUrl) || (checkoutData && checkoutData.noticeUrl),
+      };
+      if (!config.storeId || !config.channelKey) {
+        var configRes = await _dpPaymentFetchJson('/api/payments/config', { method: 'GET' });
+        if (!configRes.ok) throw new Error(_dpReadBillingMessage(configRes.payload, '\uACB0\uC81C \uD658\uACBD \uC124\uC815\uC744 \uD655\uC778\uD560 \uC218 \uC5C6\uC2B5\uB2C8\uB2E4.'));
+        config = _dpExtractBillingData(configRes.payload);
+      }
+      if (!config.storeId || !config.channelKey) {
+        throw new Error('\uD3EC\uD2B8\uC6D0 V2 \uACB0\uC81C \uC124\uC815\uC774 \uC5C6\uC2B5\uB2C8\uB2E4.');
+      }
+      _dpMarkPgStep('config');
 
       // [regression-guard] redirectUrl is built from the current page URL. PR #104 changed this to
       // prefer the server-built order.redirectUrl and the PG window stopped opening. Mobile return is

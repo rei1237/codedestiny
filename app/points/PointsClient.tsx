@@ -4150,10 +4150,6 @@ export default function PointsPage() {
         return;
       }
 
-      // 클릭 시점에 prepare 와 함께 발사해 둔 것을 여기서 회수한다(대개 이미 끝나 있다).
-      const [, paymentConfig] = await checkoutAssets;
-      if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
-
       // prepareData 가 재시도로 재대입될 수 있어(let) 타입 내로잉이 유지되지 않는다 — 명시적으로 좁힌다.
       // 위 블록에서 이미 걸러지므로 런타임에는 도달하지 않는 방어 분기다.
       const order = prepareData.order;
@@ -4168,9 +4164,16 @@ export default function PointsPage() {
       // prepare 응답이 이미 구매자 번호를 실어 왔으면 그걸 쓴다 — 결제창 직전의 왕복 1회가 통째로 사라진다.
       // 못 준 경우에도 customer.email 이 채워져 있으면 서버가 User 문서를 읽고 답한 것이므로
       // "번호 없음"이 확정이다 → 재조회를 건너뛰고 곧바로 입력 모달로 간다.
+      // 🔴 이 확보는 checkoutAssets(SDK·config) 회수보다 **앞**에 온다(2026-08-17, 셸·dp 와 같은 순서).
+      // 둘은 클릭 시점에 이미 발사돼 있고 서로 의존이 없는데, 뒤에 두면 번호가 없는 첫 결제 사용자가
+      // SDK 다운로드를 다 기다린 뒤에야 입력창을 봤다. 앞에 두면 그 다운로드가 입력 시간 뒤에 숨는다.
       const customerPhoneNumber = normalizePaymentPhoneNumber(order.customer?.phoneNumber || "")
         || await ensurePaymentPhoneNumber(apiBase, authUser, null, Boolean(order.customer?.email));
       setAuthUser((prev) => prev ? { ...prev, phoneNumber: customerPhoneNumber, phone: prev.phone || customerPhoneNumber } : prev);
+
+      // 클릭 시점에 prepare 와 함께 발사해 둔 것을 여기서 회수한다(대개 이미 끝나 있다).
+      const [, paymentConfig] = await checkoutAssets;
+      if (!window.PortOne?.requestPayment) throw new Error("포트원 V2 결제 SDK가 초기화되지 않았습니다.");
       const customer = buildPortOneCustomer(authUser, order.merchantUid, customerPhoneNumber);
 
       const requestData: PortOnePaymentRequest = {
