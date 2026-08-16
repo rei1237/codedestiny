@@ -3898,6 +3898,13 @@ async function handleWithdraw(request, env) {
           points: 0,
           status: "withdrawn",
           withdrawnAt: now,
+          // 프로필 카드는 별도 컬렉션(아래 profilecards 삭제)이지만, 레거시 계정은 같은
+          // 생년월일·출생지를 이 배열에도 들고 있다. 한쪽만 지우면 탈퇴 후에도 남는다.
+          destinyProfiles: [],
+          destinyProfilesCurrentId: "",
+          destinyProfilesCurrentIdUpdatedAt: null,
+          destinyProfilesLockedCurrentId: "",
+          destinyProfilesLockedAt: null,
           localAuth: {
             enabled: false,
             activatedAt: null,
@@ -3942,6 +3949,19 @@ async function handleWithdraw(request, env) {
   } catch (error) {
     partialFailure = true;
     console.error("[auth/withdraw] point history delete failed:", error);
+  }
+
+  /* 프로필 카드는 이름·성별·생년월일·출생시각·출생지 좌표를 담고 있고 TTL 이 없다.
+     결제 이력처럼 보존해야 할 근거가 없으므로 익명화가 아니라 삭제한다 —
+     동의 모달의 "프로필 카드를 삭제하시면 서버에서도 함께 삭제됩니다" 와 같은 선이다. */
+  try {
+    await User.db.collection("profilecards").deleteMany(
+      { userId: objectId },
+      { maxTimeMS: 8000 },
+    );
+  } catch (error) {
+    partialFailure = true;
+    console.error("[auth/withdraw] profile card delete failed:", error);
   }
 
   try {

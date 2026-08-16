@@ -314,6 +314,25 @@ describe("탈퇴 처리 — 비식별화 범위", () => {
     expect(collectionCalls.get("pointhistories").deleteMany).toHaveBeenCalledTimes(1);
   });
 
+  // 🔴 프로필 카드는 생년월일·출생시각·출생지 좌표를 담고 TTL 이 없다. 익명화로는 남는다.
+  test("ProfileCard 는 삭제된다 — 탈퇴 후 생년월일·출생지가 서버에 남지 않는다", async () => {
+    await callWithdraw();
+    const profileCards = collectionCalls.get("profilecards");
+    expect(profileCards.deleteMany).toHaveBeenCalledTimes(1);
+    const [filter] = profileCards.deleteMany.mock.calls[0];
+    expect(String(filter.userId)).toBe(USER_ID);
+    expect(profileCards.updateMany).not.toHaveBeenCalled();
+  });
+
+  // 레거시 계정은 같은 생년월일을 User.destinyProfiles[] 에도 들고 있다.
+  test("User 문서의 프로필 카드 사본도 비워진다", async () => {
+    await callWithdraw();
+    const update = mockUserUpdateOne.mock.calls[0][1].$set;
+    expect(update.destinyProfiles).toEqual([]);
+    expect(update.destinyProfilesCurrentId).toBe("");
+    expect(update.destinyProfilesLockedCurrentId).toBe("");
+  });
+
   test("감사 로그에 원문 PII 가 들어가지 않는다", async () => {
     await callWithdraw();
     const [entry] = collectionCalls.get("deleted_account_logs").insertOne.mock.calls[0];
