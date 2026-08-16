@@ -92,6 +92,18 @@ function leanable(value) {
   return Object.assign(Promise.resolve(value), { lean: async () => value });
 }
 
+// Payment.find() 쿼리 빌더 흉내. select/sort/limit 은 순서와 무관하게 자기 자신을 돌려주므로
+// 라우트가 체인 순서를 바꿔도(예: projection 추가) 이 mock 은 따라 깨지지 않는다.
+function paymentFindChain(rows) {
+  const chain = {
+    select: () => chain,
+    sort: () => chain,
+    limit: () => chain,
+    lean: async () => rows,
+  };
+  return chain;
+}
+
 function sha256Hex(value) {
   return createHash("sha256").update(String(value)).digest("hex");
 }
@@ -203,7 +215,7 @@ beforeEach(() => {
     _id: "pay-new",
     toObject() { return { ...doc, _id: "pay-new" }; },
   }));
-  mockPaymentFind.mockReturnValue({ sort: () => ({ limit: () => ({ lean: async () => [] }) }) });
+  mockPaymentFind.mockReturnValue(paymentFindChain([]));
   mockUserFindById.mockReturnValue({ lean: async () => ({ points: 0, unlockedFeatures: [] }) });
   mockUserFindByIdAndUpdate.mockImplementation(() => leanable({
     points: 0,
@@ -401,16 +413,10 @@ describe("verify — 멱등·탈취 방어", () => {
 
 describe("restore — 복원 범위", () => {
   test("영구 해금만 되살리고 회당 결제는 복원하지 않는다", async () => {
-    mockPaymentFind.mockReturnValue({
-      sort: () => ({
-        limit: () => ({
-          lean: async () => [
-            { _id: "p1", featureKey: unlock.key, productId: unlock.tier.productId, createdAt: new Date() },
-            { _id: "p2", featureKey: perUse.key, productId: perUse.tier.productId, createdAt: new Date() },
-          ],
-        }),
-      }),
-    });
+    mockPaymentFind.mockReturnValue(paymentFindChain([
+      { _id: "p1", featureKey: unlock.key, productId: unlock.tier.productId, createdAt: new Date() },
+      { _id: "p2", featureKey: perUse.key, productId: perUse.tier.productId, createdAt: new Date() },
+    ]));
     const { status, payload } = await callRoute(postJson("/google/restore", {}));
     expect(status).toBe(200);
     expect(payload.data.restoredFeatures).toContain(unlock.key);

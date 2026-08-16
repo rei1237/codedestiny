@@ -2119,7 +2119,9 @@ async function handleResult(request, env) {
       // 🔴 여기를 status: "completed" 양성 매칭으로 바꾸면 기존 사용자의 목록이 통째로 사라진다.
       status: { $nin: ["generating", "generation_failed"] },
     })
-      .sort({ updatedAt: -1 })
+      // createdAt 정렬은 기존 {userId,createdAt:-1} 인덱스를 그대로 탄다. updatedAt 에는 인덱스가
+      // 없어 해당 사용자의 문서를 전부 FETCH 한 뒤 메모리 정렬하므로 아래 select 가 무력화된다.
+      .sort({ createdAt: -1 })
       .limit(10)
       .select("personA.name personA.shuku personB.name personB.shuku sukuyoResult.relationType relationshipType createdAt updatedAt")
       .lean();
