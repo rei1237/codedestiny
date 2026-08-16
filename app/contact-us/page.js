@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
-import { SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
+import { BUSINESS_IDENTITY, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-policy-config";
 import ContactForm from "./ContactForm";
 
 const CONTACT_US_PAGE_TEXT_TRANSLATIONS = {
@@ -63,15 +63,52 @@ export default function ContactUsPage() {
             </section>
 
             <section className="policy-embed-section">
-              <h2 className="policy-embed-heading">문의 유형</h2>
+              <h2 className="policy-embed-heading">문의 유형과 처리 기한</h2>
               <p>
                 아래 유형의 문의를 접수합니다. 제목에 유형을 함께 적어주시면 처리가 빨라집니다. Please include your request type in the subject line for faster handling.
               </p>
               <ul>
-                <li>일반 문의 — 서비스 이용, 오류 신고</li>
-                <li>개인정보 요청 — 열람, 정정, 삭제, 처리정지, 동의철회</li>
-                <li>권리침해 신고</li>
-                <li>제휴 및 비즈니스 문의</li>
+                <li>
+                  <strong>일반 문의</strong> — 서비스 이용 방법, 오류 신고, 결과가 보이지 않는 문제. 영업일 기준 1~3일 내 회신합니다.
+                </li>
+                <li>
+                  <strong>개인정보 요청</strong> — 열람, 정정, 삭제, 처리정지, 동의철회. 본인 확인 후 처리하며, 처리 결과를 회신 메일로 알려드립니다.
+                </li>
+                <li>
+                  <strong>콘텐츠 정정 요청</strong> — 부정확한 설명, 과장 표현, 출처가 불명확한 내용. 확인 후 해당 문서를 수정하거나 보강하고, 수정 여부를 회신합니다. 제작·검수 기준은 <Link href="/editorial-policy">콘텐츠 제작 및 AI 활용 고지</Link>에 있습니다.
+                </li>
+                <li>
+                  <strong>결제·환불 문의</strong> — 중복 결제, 결과 미제공, 청약철회. 환불 기준은 <Link href="/terms#refund-policy">이용약관의 환불 및 청약철회</Link>를 따릅니다.
+                </li>
+                <li>
+                  <strong>권리침해 신고</strong> — 저작권, 초상권, 명예훼손. 침해 사실을 특정할 수 있는 URL 과 근거를 함께 보내주세요.
+                </li>
+                <li>
+                  <strong>제휴 및 비즈니스 문의</strong> — 콘텐츠 제휴, 광고, 기타 협업.
+                </li>
+              </ul>
+              <p>
+                회신은 보내주신 메일 주소로만 드립니다. 영업일 기준 3일이 지나도 회신이 없으면 스팸함을 확인하신 뒤 다시 보내주세요.
+              </p>
+            </section>
+
+            <section className="policy-embed-section">
+              <h2 className="policy-embed-heading">운영자 정보 / Operator</h2>
+              <p>
+                이 사이트를 운영하는 사업자 정보입니다. 전자상거래 등에서의 소비자보호에 관한 법률에 따라 표기합니다.
+              </p>
+              <ul>
+                <li>상호명: {BUSINESS_IDENTITY.companyName}</li>
+                <li>대표자: {BUSINESS_IDENTITY.representative}</li>
+                <li>사업자등록번호: {BUSINESS_IDENTITY.registrationNumber}</li>
+                <li>통신판매업 신고번호: {BUSINESS_IDENTITY.mailOrderNumber}</li>
+                <li>사업장 주소: {BUSINESS_IDENTITY.address}</li>
+                <li>
+                  전화: <a href={`tel:${BUSINESS_IDENTITY.phone.replace(/[^0-9]/g, "")}`}>{BUSINESS_IDENTITY.phone}</a>
+                </li>
+                <li>
+                  이메일: <a href={SUPPORT_MAILTO}>{BUSINESS_IDENTITY.email}</a>
+                </li>
               </ul>
             </section>
 

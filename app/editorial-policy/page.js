@@ -103,6 +103,23 @@ export default function EditorialPolicyPage() {
       </section>
 
       <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>3-1. 제작 절차</h2>
+        <p style={paragraphStyle}>
+          공개 문서는 아래 순서로 만듭니다. 각 단계에서 무엇을 확인하는지 밝혀 두는 이유는, 어떤 문서가 사람의 손을 거쳤고 어떤 문서가 규칙에 따라 조립된 것인지 독자가 구분할 수 있어야 하기 때문입니다.
+        </p>
+        <ul style={paragraphStyle}>
+          <li>① 주제 선정 — 실제로 들어오는 질문과 각 체계의 기초 개념 중 설명이 비어 있는 지점을 고릅니다.</li>
+          <li>② 근거 정리 — 사주의 천간지지·오행, 자미두수의 12궁과 사화, 점성술의 행성·하우스, 숙요점의 27수처럼 해당 체계 안에서 검증 가능한 규칙만 근거로 씁니다. 출처가 불분명한 속설은 쓰지 않거나 속설임을 밝힙니다.</li>
+          <li>③ 초안 — 계산 결과를 읽기 쉬운 문장으로 옮기는 단계에서 생성형 AI 의 도움을 받습니다. 방향과 최종 문장은 사람이 정합니다.</li>
+          <li>④ 검수 — 과장·불안 조장 표현, 의료·법률·금융 조언으로 오해될 문장, 단정적 예언, 내부 작업 문구 노출을 점검합니다.</li>
+          <li>⑤ 발행과 갱신 — 발행일과 최종 수정일을 표기하고, 정책이나 기능이 바뀌면 관련 문서와 내부 링크를 함께 갱신합니다.</li>
+        </ul>
+        <p style={paragraphStyle}>
+          규칙에 따라 자동으로 조립된 페이지는 한 건씩 사람이 검토하지 않습니다. 그런 페이지는 문서 하단에 그 사실을 밝히고 검색 색인 대상에서 제외합니다.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
         <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>4. 운세 표현 안전 기준</h2>
         <p style={paragraphStyle}>
           운세 문장은 &ldquo;반드시 성공한다&rdquo;, &ldquo;무조건 이혼한다&rdquo;, &ldquo;특정 달에 병이 생긴다&rdquo;, &ldquo;투자하면 돈을 번다&rdquo;처럼 현실 판단을 대신하는 단정으로 쓰지 않습니다. &ldquo;이런 흐름으로 해석할 수 있다&rdquo;, &ldquo;현실적 판단과 함께 참고하라&rdquo;처럼 조언형 문장을 우선합니다.
