@@ -1604,11 +1604,11 @@
   "privacy": {
     "consentTitle": "Toestemming voor het verzamelen en gebruiken van persoonlijke informatie",
     "collectedItemsLabel": "Verzamelde voorwerpen:",
-    "collectedItemsBody": "Geboortedatum, geboortetijd en geslacht (vereist voor Saju- en kalenderberekeningen)",
+    "collectedItemsBody": "Geboortedatum, geboortetijd, geslacht en geboorteplaats (vereist voor Saju- en kalenderberekeningen). Als je een profielkaart opslaat, wordt de naam of bijnaam die je daarop invult mee opgeslagen.",
     "collectionPurposeLabel": "Doel van verzameling en gebruik:",
     "collectionPurposeBody": "Om gepersonaliseerde Saju-, Zi Wei Dou Shu-, I Ching- en fortuinresultaten te bieden",
     "retentionLabel": "Bewaar- en gebruikstermijn:",
-    "retentionBody": "Deze service slaat de informatie die u invoert niet op de server op. Het wordt onmiddellijk verwijderd wanneer u de pagina vernieuwt of sluit. Als u het in de lokale opslag opslaat, kan het blijven totdat u browsergegevens verwijdert.",
+    "retentionBody": "Als je alleen rekent zonder in te loggen, worden je invoergegevens in deze browser verwerkt en verdwijnen ze wanneer je de pagina vernieuwt of sluit (wat je in de browser bewaart, blijft tot je je browsergegevens wist). Ben je ingelogd en sla je een profielkaart op, of gebruik je een functie die de resultaten bewaart, dan wordt die informatie aan je account gekoppeld en op onze servers bewaard; verwijder je de profielkaart, dan wordt ze ook van onze servers verwijderd. Overige bewaarde gegevens en de vernietigingsprocedures volgen het privacybeleid.",
     "refusalNotice": "U kunt uw toestemming weigeren, maar zonder deze toestemming kunnen de diensten voor waarzeggerij beperkt zijn.",
     "agreeAndViewResult": "Akkoord en resultaat bekijken"
   },
