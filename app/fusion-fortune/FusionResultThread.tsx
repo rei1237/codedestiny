@@ -22,6 +22,7 @@ import {
   tintVars,
   type Result,
 } from "./fusion-thread";
+import styles from "./fusion-fortune.module.css";
 
 export function FusionResultThread({ result, openSection, onToggleSection, exporting }: {
   result: Result;
@@ -37,14 +38,14 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
     <ThreadRow systemKey="fusion" index={0} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" exporting={exporting}>
         <ThreadSpeaker label="Fusion Core" note={<span className="rounded-full bg-[var(--tint-veil)] px-2.5 py-0.5 text-[0.7rem] text-white/80">여섯 체계 분석 완료</span>} />
-        <p className="m-0 max-w-[72ch] whitespace-pre-wrap font-body text-[1rem] leading-[1.9] text-[#eee6f8] [text-wrap:pretty]">{result.openingMessage}</p>
+        <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.openingMessage}</p>
       </ThreadBubble>
     </ThreadRow>
 
     <ThreadRow systemKey="fusion" index={1} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" tone="gold" exporting={exporting}>
         <ThreadSpeaker label="먼저, 한 문단으로" />
-        <p className="m-0 max-w-[72ch] whitespace-pre-wrap font-body text-[1rem] leading-[1.92] text-[#f4eefb] [text-wrap:pretty]">{result.executiveSummary}</p>
+        <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-1)] [text-wrap:pretty]`}>{result.executiveSummary}</p>
       </ThreadBubble>
     </ThreadRow>
 
@@ -68,16 +69,16 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
               aria-expanded={expanded}
               aria-controls={`fusion-section-${key}`}
               onClick={() => onToggleSection(key)}
-              className="flex min-h-11 w-full items-center justify-between gap-3 text-left font-display text-[1.02rem] leading-snug text-[#f7f1ff] transition-colors hover:text-[color:var(--tint)] motion-reduce:transition-none"
+              className={`flex min-h-11 w-full items-center justify-between gap-3 text-left ${styles.readingTitle} text-[1.14rem] leading-snug text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint)] motion-reduce:transition-none`}
             >
               <span className="min-w-0">{result[key].title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? "접기" : "근거 보기"}</b>
             </button>
           </h3>
           {expanded && <div id={`fusion-section-${key}`} className="mt-3 border-t border-white/[0.07] pt-4">
-            <p className="m-0 max-w-[72ch] whitespace-pre-wrap font-body text-[1rem] leading-[1.92] text-[#e7dff4] [text-wrap:pretty]">{result[key].content}</p>
+            <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result[key].content}</p>
             <ul className="mt-4 grid max-w-[72ch] list-none gap-2.5 p-0">
-              {result[key].keyPoints.map((point) => <li key={point} className="grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 text-[0.94rem] leading-[1.8] text-[#d8cee9]">
+              {result[key].keyPoints.map((point) => <li key={point} className="grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 text-[0.94rem] leading-[1.8] text-[var(--fx-ink-3)]">
                 <i aria-hidden className="mt-[0.62em] size-1.5 rounded-full bg-[color:var(--tint)]" /><span>{point}</span>
               </li>)}
             </ul>
@@ -97,19 +98,19 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
               aria-expanded={expanded}
               aria-controls="fusion-section-timing"
               onClick={() => onToggleSection("timing")}
-              className="flex min-h-11 w-full items-center justify-between gap-3 text-left font-display text-[1.02rem] leading-snug text-[#f7f1ff] transition-colors hover:text-[color:var(--tint)] motion-reduce:transition-none"
+              className={`flex min-h-11 w-full items-center justify-between gap-3 text-left ${styles.readingTitle} text-[1.14rem] leading-snug text-[var(--fx-ink-1)] transition-colors hover:text-[color:var(--tint)] motion-reduce:transition-none`}
             >
               <span className="min-w-0">{result.timingAndAction.title}</span>
               <b className="shrink-0 rounded-full border border-white/[0.16] px-3 py-1 text-[0.74rem] font-normal text-white/75">{expanded ? "접기" : "행동 보기"}</b>
             </button>
           </h3>
           {expanded && <div id="fusion-section-timing" className="mt-3 border-t border-white/[0.07] pt-4">
-            <p className="m-0 max-w-[72ch] whitespace-pre-wrap font-body text-[1rem] leading-[1.92] text-[#e7dff4] [text-wrap:pretty]">{result.timingAndAction.content}</p>
+            <p className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.timingAndAction.content}</p>
             {([["이번 흐름에서 해볼 일", result.timingAndAction.luckyActions], ["주의해서 볼 반복 패턴", result.timingAndAction.cautionPatterns]] as const).map(([heading, items]) => (
               <div key={heading} className="mt-5">
-                <h4 className="m-0 font-display text-[0.92rem] text-[#f0dda8]">{heading}</h4>
+                <h4 className="m-0 font-display text-[0.92rem] text-[var(--fx-gold)]">{heading}</h4>
                 <ul className="mt-2.5 grid max-w-[72ch] list-none gap-2.5 p-0">
-                  {items.map((item) => <li key={item} className="grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 text-[0.94rem] leading-[1.8] text-[#d8cee9]">
+                  {items.map((item) => <li key={item} className="grid grid-cols-[0.375rem_minmax(0,1fr)] items-start gap-3 text-[0.94rem] leading-[1.8] text-[var(--fx-ink-3)]">
                     <i aria-hidden className="mt-[0.62em] size-1.5 rounded-full bg-[color:var(--tint)]" /><span>{item}</span>
                   </li>)}
                 </ul>
@@ -127,35 +128,35 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
       style={exporting ? undefined : { animationDelay: "660ms" }}
     >
       <section aria-labelledby="fusion-final-verdict-heading" className="relative overflow-hidden rounded-[1.5rem] border border-[rgba(232,213,163,0.34)] bg-[linear-gradient(160deg,rgba(48,34,80,0.86),rgba(16,12,32,0.95))] px-5 py-6 sm:px-8 sm:py-8">
-        <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,#e8d5a3,transparent)]" />
-        <p className="m-0 font-display text-[0.72rem] uppercase tracking-[0.3em] text-[#e8d5a3]">여섯 체계의 최종 교차 판정</p>
-        <h3 id="fusion-final-verdict-heading" className="m-0 mt-3.5 max-w-[28ch] font-display text-[clamp(1.35rem,4vw,2rem)] leading-[1.35] text-[#fbf5ff]">{result.finalVerdict.headline}</h3>
+        <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--fx-gold-2),transparent)]" />
+        <p className="m-0 font-display text-[0.72rem] uppercase tracking-[0.3em] text-[var(--fx-gold-2)]">여섯 체계의 최종 교차 판정</p>
+        <h3 id="fusion-final-verdict-heading" className={`m-0 mt-3.5 max-w-[28ch] ${styles.readingTitle} text-[clamp(1.5rem,4.4vw,2.25rem)] leading-[1.3] text-[var(--fx-ink-1)]`}>{result.finalVerdict.headline}</h3>
         <div className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2.5">
-          <span className="text-[0.85rem] text-[#c9bcdd]">체계 간 합의</span>
+          <span className="text-[0.85rem] text-[var(--fx-ink-3)]">체계 간 합의</span>
           <span aria-hidden className="h-1.5 min-w-[8rem] flex-1 overflow-hidden rounded-full bg-white/[0.09]">
-            <em className="block h-full origin-left rounded-full bg-[linear-gradient(90deg,#a05cd6,#e8d5a3)] transition-transform duration-700 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${Math.min(1, Math.max(0, result.finalVerdict.confidence / 100))})` }} />
+            <em className="block h-full origin-left rounded-full bg-[linear-gradient(90deg,var(--fx-violet),var(--fx-gold-2))] transition-transform duration-700 ease-out motion-reduce:transition-none" style={{ transform: `scaleX(${Math.min(1, Math.max(0, result.finalVerdict.confidence / 100))})` }} />
           </span>
-          <b className="font-display text-[1.05rem] text-[#f0dda8]">{result.finalVerdict.confidence}%</b>
+          <b className="font-display text-[1.05rem] text-[var(--fx-gold)]">{result.finalVerdict.confidence}%</b>
         </div>
         <ul className="mt-6 grid list-none gap-3 p-0 sm:grid-cols-2 lg:grid-cols-3">
           {result.finalVerdict.systemVerdicts.map((item) => (
             <li key={item.key} data-stance={item.stance} style={tintVars(item.key)} className="relative overflow-hidden rounded-xl border border-white/[0.1] bg-black/25 p-4">
               <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-px bg-[linear-gradient(90deg,transparent,var(--tint),transparent)]" />
               <div className="flex items-center justify-between gap-2">
-                <strong className="font-display text-[0.95rem] text-[#f7f1ff]">{item.label}</strong>
+                <strong className="font-display text-[0.95rem] text-[var(--fx-ink-1)]">{item.label}</strong>
                 <span className={`shrink-0 rounded-full px-2.5 py-1 text-[0.72rem] ${STANCE_CLASS[item.stance]}`}>{STANCE_LABEL[item.stance]}</span>
               </div>
-              <p className="m-0 mt-2.5 text-[0.88rem] leading-[1.75] text-[#cfc4e2]">{item.note}</p>
+              <p className="m-0 mt-2.5 text-[0.88rem] leading-[1.75] text-[var(--fx-ink-3)]">{item.note}</p>
             </li>
           ))}
         </ul>
-        <p className="m-0 mt-6 max-w-[72ch] whitespace-pre-wrap font-body text-[0.98rem] leading-[1.9] text-[#e4dbf2] [text-wrap:pretty]">{result.finalVerdict.rationale}</p>
+        <p className={`m-0 mt-6 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.04rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.finalVerdict.rationale}</p>
         <div className="mt-6 grid gap-5 sm:grid-cols-2">
-          {([["지금 할 일", result.finalVerdict.doNow, "text-[#a8e8cb]"], ["지금은 피할 일", result.finalVerdict.avoid, "text-[#f6cadb]"]] as const).map(([heading, items, tone]) => (
+          {([["지금 할 일", result.finalVerdict.doNow, "text-[var(--fx-mint)]"], ["지금은 피할 일", result.finalVerdict.avoid, "text-[var(--fx-rose)]"]] as const).map(([heading, items, tone]) => (
             <div key={heading}>
               <h4 className={`m-0 font-display text-[0.92rem] ${tone}`}>{heading}</h4>
               <ul className="mt-3 grid list-none gap-2.5 p-0">
-                {items.map((item) => <li key={item} className="rounded-lg border border-white/[0.09] bg-white/[0.03] px-3.5 py-3 text-[0.92rem] leading-[1.75] text-[#ded3ea]">{item}</li>)}
+                {items.map((item) => <li key={item} className="rounded-lg border border-white/[0.09] bg-white/[0.03] px-3.5 py-3 text-[0.92rem] leading-[1.75] text-[var(--fx-ink-3)]">{item}</li>)}
               </ul>
             </div>
           ))}
@@ -166,7 +167,7 @@ export function FusionResultThread({ result, openSection, onToggleSection, expor
     <ThreadRow systemKey="fusion" index={12} exporting={exporting} pdfSection>
       <ThreadBubble systemKey="fusion" exporting={exporting}>
         <ThreadSpeaker label="Fusion Core" />
-        <p id="fusion-closing-message" className="m-0 max-w-[72ch] whitespace-pre-wrap font-body text-[1rem] leading-[1.9] text-[#e9e1f5] [text-wrap:pretty]">{result.closingMessage}</p>
+        <p id="fusion-closing-message" className={`m-0 max-w-[72ch] whitespace-pre-wrap ${styles.reading} text-[1.06rem] leading-[1.95] text-[var(--fx-ink-2)] [text-wrap:pretty]`}>{result.closingMessage}</p>
       </ThreadBubble>
     </ThreadRow>
   </>;
