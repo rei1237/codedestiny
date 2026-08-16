@@ -2,15 +2,19 @@
 <html lang="ko">
 <head>
   <meta charset="UTF-8" />
-  <meta http-equiv="refresh" content="0;url=/oracle/sikojen-povailu" />
+  <!-- 이 경로는 public/_worker.js 가 가로채므로(_routes.json 의 /fortune/*) public/_headers 의
+       X-Robots-Tag 가 적용된다는 보장이 없다. noindex 를 HTML 에도 둔다 —
+       scripts/verify-redirects-budget.mjs 가 이 쌍을 fail-closed 로 강제한다. -->
+  <meta name="robots" content="noindex, nofollow" />
+  <meta http-equiv="refresh" content="0;url=/oracle/sikojen-povailu/" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>핀란드 꽃돼지 주석점 이동 중...</title>
   <script>
-    window.location.replace('/oracle/sikojen-povailu');
+    window.location.replace('/oracle/sikojen-povailu/');
   </script>
 </head>
 <body>
   <p>최신 핀란드 꽃돼지 주석점으로 이동 중입니다.</p>
-  <p><a href="/oracle/sikojen-povailu">자동 이동이 안 되면 여기를 눌러주세요.</a></p>
+  <p><a href="/oracle/sikojen-povailu/">자동 이동이 안 되면 여기를 눌러주세요.</a></p>
 </body>
 </html>

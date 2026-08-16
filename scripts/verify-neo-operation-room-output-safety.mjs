@@ -165,6 +165,11 @@ ok(Object.keys(salvaged).length > 0, "잘린 JSON 이 빈 객체로 떨어졌다
 ok(salvaged?.innateNature?.description === "중심이 단단한 구조다.", "잘린 JSON 에서 완결 필드를 못 건졌다");
 ok(parseNeoSectionResponse("설명만 있고 JSON 이 없다") && Object.keys(parseNeoSectionResponse("설명만 있고 JSON 이 없다")).length === 0,
   "JSON 이 아예 없는 응답은 빈 객체여야 한다");
+// 🔴 잘림과 "문자열 안 raw 개행"(gemini-2.5-flash 실측)은 긴 챕터에서 함께 온다.
+//    한쪽만 복구하면 이 조합에서 챕터가 통째로 사라진다.
+const bothDamaged = '{"bluntTruth":"첫 문단이다.\n둘째 문단이다.","tail":"여기서 잘린';
+ok(parseNeoSectionResponse(bothDamaged)?.bluntTruth === "첫 문단이다.\n둘째 문단이다.",
+  `잘림 + raw 개행이 겹치면 복구를 못 한다 — ${JSON.stringify(parseNeoSectionResponse(bothDamaged))}`);
 
 // ── 5) 중복 제거 ──────────────────────────────────────────────────────────
 const duplicated = mergeNeoInitialSections([

@@ -15,8 +15,8 @@ import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { canUseByPass, normalizeHoneyPassEntitlement } from "../lib/profile-limits.js";
 import { callGeminiText } from "../lib/gemini.js";
+import { SYNC_LLM_TIMEOUT_CEILING_MS } from "../lib/sync-llm-timeout.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
-import { clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { calculateZiweiAiChart, describeBrightness, formatStarWithBrightness } from "../lib/ziwei-ai-chart.js";
 import { calculateVedicAiChart } from "../lib/vedic-ai-chart.js";
@@ -781,9 +781,14 @@ async function calculateMethodSummary(env, normalized, request) {
   }, { requestUrl: request.url }));
 }
 
+// 🔴 맨 영어 단어 provider/system/prompt 를 여기 두면 안 된다. 2차 명령서의 neoReview 챕터는
+// "[사용자 현실 점검 답변]을 직접 인용해 시작"하도록 프롬프트가 강제하는데(neo-operation-room-prompt.js
+// 의 neoReview rules), 사용자 자유입력(최대 1800자)에 그 흔한 단어가 하나만 들어가도 인용한 챕터가
+// 통째로 폐기됐다 — operationTitle 까지 같이 사라진다. 내부 누출 탐지는 실제 내부 식별자와
+// 한국어 지시어로 좁힌다(karma-destiny-ai.js·new-year-ai.js 의 FORBIDDEN_RESULT_PATTERN 과 같은 계열).
 function hasForbiddenResultText(value) {
   const text = JSON.stringify(value || "");
-  return /\b(mock|dry-run|provider|system|prompt)\b/i.test(text);
+  return /\b(mock|dry-run|systemPrompt|rawProviderDebug|providerReason|maxOutputTokens)\b|시스템\s*(?:메시지|지시)/i.test(text);
 }
 
 function briefingCitesEvidence(briefing, tokens) {
@@ -798,20 +803,6 @@ function briefingCitesEvidence(briefing, tokens) {
 
 // 챕터 동시 생성(레이트리밋·subrequest 안전 상한). ziwei-deep-report 패턴 재사용.
 const NEO_SECTION_CONCURRENCY = 4;
-const NEO_SECTION_MAX_OUTPUT_TOKENS = 8192;
-const NEO_SECTION_TIMEOUT_MS = 45000;
-
-// 🔴 handleStart/handleRefine 은 요청 안에서 챕터 LLM 호출을 전부 끝낸다(waitUntil 미사용).
-//    섹션당 45초 × 재시도 2회 × 4웨이브면 최악 360초라 엣지 100초를 넘고, 그러면 라우트의
-//    실패·환불 처리(failServiceExecution)가 아예 돌지 못해 "결제만 되고 결과도 환불도 없음"이 된다.
-//    체인 전체 예산을 한 번 잡고, 남은 시간이 1회분에 못 미치면 재시도를 포기한다.
-function createNeoDeadline() {
-  return Date.now() + clampSyncLlmTimeoutMs(NEO_SECTION_TIMEOUT_MS * NEO_SECTION_CONCURRENCY);
-}
-
-function remainingBudgetMs(deadlineAt) {
-  return Math.max(0, deadlineAt - Date.now());
-}
 
 async function runWithConcurrency(items, limit, worker) {
   const results = new Array(items.length);
@@ -835,23 +826,36 @@ function countNeoTextChars(value) {
   return 0;
 }
 
+const NEO_SECTION_BASE_TOKENS = 8192;
+const NEO_SECTION_TIMEOUT_MS = 45000;
+
 // 챕터 하나 생성 → { id, parsed, provider, model, ok }. 실패해도 parsed={}로 폴백(전체 실패 방지).
 // 잘림(MAX_TOKENS)이나 빈 파싱이면 캐시를 우회해 1회 재시도한다(잘린 문장이 결과에 남는 것 방지).
-async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt) {
+//
+// 🔴 이 루프를 공유 헬퍼 callGeminiJsonWithRetry 로 갈아끼우지 말 것. 그쪽은 잘림에만 재시도하고
+// (빈 파싱은 재시도 안 함) 재시도에도 cache 를 그대로 넘긴다 — 여기서 필요한 두 가지를 다 잃는다.
+// deadlineAt 을 주면 남은 예산 안에서만 호출한다(엣지 100s 전에 라우트가 먼저 판정하도록).
+async function generateNeoSectionOnce(env, section, prompt, cacheConfig, deadlineAt = 0) {
   try {
     let ai = null;
     for (let attempt = 0; attempt < 2; attempt += 1) {
-      const remainingMs = remainingBudgetMs(deadlineAt);
-      // 남은 예산이 1회분에 못 미치면 재시도하지 않는다 — 엣지가 요청을 끊으면 환불 경로가 죽는다.
-      if (attempt > 0 && remainingMs < NEO_SECTION_TIMEOUT_MS) break;
+      // 🔴 예산 검사는 여기 한 곳뿐이다. 시작 가드와 재시도 가드를 따로 두지 말 것(중첩 사전검사).
+      const remaining = deadlineAt > 0 ? deadlineAt - Date.now() : NEO_SECTION_TIMEOUT_MS;
+      // 남은 예산이 의미 있는 생성을 담기엔 모자라면 시작하지 않는다 — 시작해 봐야 엣지가 끊는다.
+      if (remaining < 5000) break;
+      // 재시도는 한 챕터분이 온전히 남았을 때만. 반쯤 가다 끊기면 이미 받아 둔 응답까지 버린다.
+      if (attempt > 0 && remaining < NEO_SECTION_TIMEOUT_MS) break;
       const useCache = attempt === 0 && cacheConfig;
       ai = await callGeminiText(env, prompt, {
-        // 재시도는 토큰을 올려서 부른다. 같은 상한으로 다시 부르면 또 같은 자리에서 잘린다.
-        // 계수는 structured-consultation.js 의 ×(1+0.3n) 과 같은 식.
-        maxOutputTokens: Math.min(16384, Math.round(NEO_SECTION_MAX_OUTPUT_TOKENS * (1 + 0.3 * attempt))),
+        // 잘렸으면 다음 시도에서 출력 상한을 올린다(같은 상한으로 다시 부르면 또 잘린다).
+        maxOutputTokens: attempt === 0 ? NEO_SECTION_BASE_TOKENS : Math.round(NEO_SECTION_BASE_TOKENS * 1.3),
         temperature: 0.65,
         thinkingBudget: 0,
-        timeoutMs: Math.min(NEO_SECTION_TIMEOUT_MS, remainingMs || NEO_SECTION_TIMEOUT_MS),
+        timeoutMs: Math.min(NEO_SECTION_TIMEOUT_MS, remaining),
+        // 순수 JSON 을 강제해 코드펜스·서론으로 토큰을 낭비하지 않게 한다. 이것만으로 충분하지는
+        // 않다 — 긴 한국어 본문에서 문자열 안 raw 개행이 섞여 오므로 파서가 복구까지 한다
+        // (neo-operation-room-prompt.js 의 extractJsonObject).
+        responseMimeType: "application/json",
         // Workers AI 폴백이 이 챕터 최소 분량의 40% 미만이면 실패로 돌린다.
         // 아래 40자 게이트는 목적이 다르다 — 전 provider 대상 "렌더 가능한 응답" 하한.
         fallbackMinChars: Math.round((section.minChars || 500) * 0.4),
@@ -888,7 +892,11 @@ async function generateBriefing(env, normalized, methodSummary) {
     methodSummary,
   };
   const cacheStore = createLlmCacheStore(env);
-  const deadlineAt = createNeoDeadline();
+  // #706 은 /refine 에만 예산을 넣고 /start 는 "안정적으로 도는 경로"라 손대지 않았다. 여기서 함께
+  // 건다 — 1차는 14챕터/동시성 4 = 4웨이브라 2차(2웨이브)보다 노출이 크고, 이 PR 이 폴백 잘림까지
+  // 재시도 대상으로 넓혔다. 예산은 일을 앞당겨 끊을 뿐 늘리지 않으므로, 엣지가 요청을 통째로
+  // 끊어 환불 경로까지 죽는 것보다 부분 결과라도 라우트가 판정하는 쪽이 낫다.
+  const deadlineAt = Date.now() + SYNC_LLM_TIMEOUT_CEILING_MS;
   const results = await runWithConcurrency(NEO_INITIAL_SECTIONS, NEO_SECTION_CONCURRENCY, (section) => {
     const prompt = buildNeoInitialSectionPrompt(section, ctx);
     const cacheConfig = {
@@ -972,8 +980,11 @@ async function generateRefinedOrder(env, consultation, realityCheck) {
     realityCheck,
     previousAdviceLog: buildPreviousAdviceLog(consultation?.initialBriefing),
   };
+  // 8챕터 ÷ 동시성 4 = 2웨이브, 웨이브마다 최대 2시도 × 45s → 최악 180s 로 엣지(100s)를 넘긴다.
+  // 그러면 라우트가 실패를 판정하기 전에 요청이 잘려 refinementStatus 도 못 남기고 사용자만
+  // 정체불명의 오류를 본다. 예산 안에서 끝내 부분 결과라도 반드시 응답으로 전달한다.
+  const deadlineAt = Date.now() + SYNC_LLM_TIMEOUT_CEILING_MS;
   // 2차는 현실 점검(자유 입력) 반영이라 비결정적 → 캐시 미사용.
-  const deadlineAt = createNeoDeadline();
   const results = await runWithConcurrency(NEO_REFINED_SECTIONS, NEO_SECTION_CONCURRENCY, (section) => {
     const prompt = buildNeoRefinedSectionPrompt(section, ctx);
     return generateNeoSectionOnce(env, section, prompt, null, deadlineAt);
@@ -1550,19 +1561,34 @@ async function handleRefine(request, env) {
   if (!auth) return loginRequired();
 
   await connectDb(env);
-  const existing = await NeoOperationRoomConsultation.findOne({
+  // 🔴 withMongoRetry 없이 생짜로 부르면 풀 재연결 시점의 일시 오류가 그대로 아래 catch 로 떨어져
+  // "LLM 실패"로 오표시된다. 이 파일의 다른 DB 접근 8곳은 전부 감싸고 있는데 여기만 빠져 있었다.
+  const existing = await withMongoRetry(env, () => NeoOperationRoomConsultation.findOne({
     id: normalized.sessionId,
     userId: auth.userId,
     status: "completed",
-  }).lean();
+  }).lean());
   if (!existing?.initialBriefing) {
     return json({ ok: false, reason: "RESULT_NOT_FOUND", message: RESULT_NOT_FOUND_MESSAGE }, { status: 404 });
   }
   if (existing?.refinedOrder && existing?.realityCheck?.answerHash === normalized.realityCheck.answerHash) {
     return json(publicSession(existing));
   }
+  // 같은 답변으로 이미 생성이 돌고 있으면 새로 기동하지 않고 202 로 흡수한다 — 없으면 사용자가
+  // 재시도할 때마다 8챕터 생성이 통째로 중복 기동돼 LLM 비용과 쓰기 경합이 같이 늘어난다.
+  // /start 의 GENERATION_FRESHNESS_MS 흡수(위 handleStart)와 같은 규칙이다.
+  if (
+    existing?.refinementStatus === "generating"
+    && existing?.realityCheck?.answerHash === normalized.realityCheck.answerHash
+    && Date.now() - new Date(existing.updatedAt || existing.createdAt).getTime() < GENERATION_FRESHNESS_MS
+  ) {
+    return json(
+      { ok: true, sessionId: existing.id, refinementStatus: "generating", message: "수정 작전 명령서를 다시 쓰는 중이다." },
+      { status: 202, headers: { "Retry-After": "3" } },
+    );
+  }
 
-  await NeoOperationRoomConsultation.updateOne(
+  await withMongoRetry(env, () => NeoOperationRoomConsultation.updateOne(
     { id: normalized.sessionId, userId: auth.userId },
     {
       $set: {
@@ -1571,7 +1597,7 @@ async function handleRefine(request, env) {
         realityCheck: normalized.realityCheck,
       },
     },
-  );
+  ));
 
   try {
     const generated = await generateRefinedOrder(env, existing, normalized.realityCheck);
@@ -1582,7 +1608,7 @@ async function handleRefine(request, env) {
       realityCheck: normalized.realityCheck,
       createdAt: new Date().toISOString(),
     };
-    const updated = await NeoOperationRoomConsultation.findOneAndUpdate(
+    const updated = await withMongoRetry(env, () => NeoOperationRoomConsultation.findOneAndUpdate(
       { id: normalized.sessionId, userId: auth.userId },
       {
         $set: {
@@ -1608,22 +1634,34 @@ async function handleRefine(request, env) {
         },
       },
       { new: true },
-    ).lean();
+    ).lean());
     return json(publicSession(updated));
   } catch (error) {
+    // 🔴 DB 일시 장애를 LLM 실패로 적으면 두 가지가 같이 망가진다 — 사용자는 "운세 생성 실패"를 보고,
+    // refinementStatus 에도 LLM 실패로 남아 원인 추적이 어긋난다. 최상위 catch 가 하던 구분을
+    // 여기서도 한다(이 try/catch 가 먼저 삼켜 거기까지 가지 않는다).
+    const isInfra = isTransientMongoError(error) || isAuthDbInfraError(error);
     await NeoOperationRoomConsultation.updateOne(
       { id: normalized.sessionId, userId: auth.userId },
       {
         $set: {
           refinementStatus: "generation_failed",
           refinementError: {
-            code: clean(error?.code || "REFINEMENT_FAILED", 80),
+            code: clean(error?.code || (isInfra ? "DB_DEGRADED" : "REFINEMENT_FAILED"), 80),
             message: clean(error?.message || error, 500),
             at: new Date().toISOString(),
           },
         },
       },
     ).catch(() => {});
+    if (isInfra) {
+      return json({
+        ok: false,
+        retryable: true,
+        reason: "DB_DEGRADED",
+        message: "일시적인 연결 문제가 있어요. 잠시 후 다시 시도해 주세요.",
+      }, { status: 503 });
+    }
     return json({ ok: false, reason: "LLM_ERROR", message: LLM_ERROR_MESSAGE }, { status: 503 });
   }
 }
@@ -1664,6 +1702,7 @@ export async function handleNeoOperationRoomRoutes(request, env = {}, ctx = null
 export const __neoOperationRoomTestUtils = {
   FEATURE_KEY,
   SERVICE_KEY,
+  hasForbiddenResultText,
   normalizeInput,
   summarizeSaju,
   summarizeZiwei,

@@ -10,6 +10,7 @@ import {
 } from "./guardian-fortune-runtime-contract.js";
 import { GUARDIAN_TOPIC_ADAPTER_PRIORITY } from "./guardian-fortune-adapter-utils.js";
 import { buildContextDrivenGuardianFallback } from "./guardian-fortune-fallback.js";
+import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 
 const VISIBLE_RESULT_FIELDS = Object.freeze([
   "openingLine",
@@ -82,38 +83,6 @@ function stripCodeFence(value) {
     .replace(/^\s*```(?:json)?\s*/i, "")
     .replace(/\s*```\s*$/i, "")
     .trim();
-}
-
-function escapeRawControlCharsInJsonStrings(value) {
-  let output = "";
-  let inString = false;
-  let escaped = false;
-  for (const char of value) {
-    if (escaped) {
-      output += char;
-      escaped = false;
-      continue;
-    }
-    if (char === "\\" && inString) {
-      output += char;
-      escaped = true;
-      continue;
-    }
-    if (char === '"') {
-      inString = !inString;
-      output += char;
-      continue;
-    }
-    if (inString && char.charCodeAt(0) < 32) {
-      if (char === "\n") output += "\\n";
-      else if (char === "\r") output += "\\r";
-      else if (char === "\t") output += "\\t";
-      else output += `\\u${char.charCodeAt(0).toString(16).padStart(4, "0")}`;
-      continue;
-    }
-    output += char;
-  }
-  return output;
 }
 
 function removeTrailingCommas(value) {

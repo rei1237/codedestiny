@@ -6,6 +6,7 @@ import {
   NEO_INITIAL_SECTIONS,
   NEO_REFINED_SECTIONS,
   buildNeoInitialSectionPrompt,
+  buildNeoRefinedSectionPrompt,
   parseNeoSectionResponse,
   mergeNeoInitialSections,
   mergeNeoRefinedSections,
@@ -140,5 +141,58 @@ describe("parseNeoSectionResponse", () => {
   test("깨진 JSON은 빈 객체로 폴백한다", () => {
     expect(parseNeoSectionResponse("설명만 있고 JSON 없음")).toEqual({});
     expect(parseNeoSectionResponse('앞말 {"a":1} 뒷말')).toEqual({ a: 1 });
+  });
+
+  // 🔴 실서비스 실패 모드(자미두수 실측 2026-08-01과 동일): gemini-2.5-flash 는 긴 한국어 본문에서
+  // 문단을 나누며 JSON 문자열 값 안에 raw 개행을 그대로 넣는다. 복구 전에는 이 챕터가 통째로
+  // {} 가 되어 사라졌고, 2차(8챕터)는 폴백이 얇아 몇 개만 날아가도 문서가 무너졌다.
+  test("문자열 값 안의 raw 개행이 섞여도 복구해서 파싱한다", () => {
+    const withRawNewlines = '{"neoReview":"첫 문단이다.\n\n둘째 문단이다.","verdictBasis":"자미◎\t재백궁"}';
+    expect(() => JSON.parse(withRawNewlines)).toThrow();
+    expect(parseNeoSectionResponse(withRawNewlines)).toEqual({
+      neoReview: "첫 문단이다.\n\n둘째 문단이다.",
+      verdictBasis: "자미◎\t재백궁",
+    });
+  });
+});
+
+describe("buildNeoRefinedSectionPrompt", () => {
+  const refinedCtx = {
+    selectedMethod: "ziwei",
+    topic: "돈/재물",
+    intensity: "roar",
+    question: "돈을 어떻게 벌어야 할까",
+    methodSummary,
+    initialBriefing: {
+      operationTitle: "1차 작전명",
+      coreDiagnosis: "핵심 진단이다.",
+      bluntTruth: "팩폭이다.",
+      neoOpening: "여는말은_2차_프롬프트에_실리지_않는다",
+      topicAreas: [{ area: "주제영역은_2차_프롬프트에_실리지_않는다" }],
+      repeatedPattern: { title: "반복", description: "반복 설명" },
+      currentProblem: { title: "문제", description: "문제 설명" },
+    },
+    realityCheck: { selectedChecks: ["시간이 없다"], freeform: "이직을 준비 중이다." },
+    previousAdviceLog: "- [바로 작전] 이미 준 조언",
+  };
+  const section = NEO_REFINED_SECTIONS.find((s) => s.id === "neoReview");
+
+  test("사용자 현실 점검 답변이 1차 브리핑보다 앞에 온다", () => {
+    const prompt = buildNeoRefinedSectionPrompt(section, refinedCtx);
+    const answerAt = prompt.indexOf("[사용자 현실 점검 답변]");
+    const briefingAt = prompt.indexOf("[1차 작전 브리핑 요약");
+    expect(answerAt).toBeGreaterThan(-1);
+    expect(briefingAt).toBeGreaterThan(-1);
+    expect(answerAt).toBeLessThan(briefingAt);
+    expect(prompt).toContain("이직을 준비 중이다.");
+  });
+
+  // 1차는 20,050자 계약이고 2차는 챕터마다 프롬프트를 새로 만든다 — 전문을 실으면 같은 분량이
+  // 8번 실려 지연·잘림·비용이 함께 오르고, 정작 중요한 사용자 답변이 그 더미에 묻힌다.
+  test("1차 브리핑은 진단 요약만 싣고 전문을 덤프하지 않는다", () => {
+    const prompt = buildNeoRefinedSectionPrompt(section, refinedCtx);
+    expect(prompt).toContain("핵심 진단이다.");
+    expect(prompt).not.toContain("여는말은_2차_프롬프트에_실리지_않는다");
+    expect(prompt).not.toContain("주제영역은_2차_프롬프트에_실리지_않는다");
   });
 });
