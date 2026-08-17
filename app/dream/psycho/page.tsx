@@ -45,7 +45,13 @@ const META = {
 } as const;
 
 export function generateMetadata() {
-  return generatePageMetadata(META);
+  // AdSense 재심사 대응 2차 — 부모 `/dream` 을 색인에서 빼면 이 페이지의 **유일한 인바운드
+  // 링크**가 nofollow 가 된다(실측: `grep -rl 'href="/dream/psycho' out` → out/dream 하나).
+  // 사이트맵에만 남은 고아를 만들지 않으려고 함께 뺀다. 고유 본문 1,529자로 임계 근처였다.
+  // 🔴 lib/seo/siteSeo.ts 목록으로는 처리하지 못한다 — FeatureLandingPage 가 ShareWidget 을
+  //    렌더하므로 `/flower` 와 같은 사유로 공유 버튼이 사라진다. 사이트맵 제외는
+  //    scripts/generate-sitemap.mjs 의 `/dream` 접두사가 셋을 함께 처리한다.
+  return generatePageMetadata({ ...META, noindex: true });
 }
 
 const JSON_LD = buildFortuneJsonLd(META);

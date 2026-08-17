@@ -452,6 +452,17 @@ export const noindexPathPrefixes = [
   //    아래 카테고리 18개는 ShareWidget 을 쓰지 않아(실측) 이 경로로 안전하다.
   "/high-value/category",
   "/famous-saju/category",
+  // AdSense 재심사 대응 2차(2026-08-17 out/ 실측). 같은 sign 의 today/tomorrow 와
+  // 크롬 제거 8-gram Jaccard 24~38% 로 겹치는 기간 축 48개(+허브 2)를 색인에서 뺀다.
+  // 광고 인벤토리 손실 0 — adsense-route-policy.js 의 CONTENT_PREFIXES 에는
+  // `/fortune/today`·`/fortune/tomorrow` 만 있어 weekly·monthly 는 이미 canLoadAdsense=false 다.
+  // `verify:fortune-freshness` 는 라우트가 살아 있으면 통과한다(404 가 아니다) — 지우지 말 것.
+  // 🔴 SeoLandingTemplate 계열(/physiognomy·/love·/compatibility·/saju/compatibility·/dream)은
+  //    **일부러 여기 없다.** SeoLandingTemplate.jsx:375 가 DeferredShareWidget 을 렌더하므로
+  //    /flower 와 같은 사유로 공유 버튼이 사라진다. 그쪽은 페이지 단위 noindex 로 처리했다.
+  // 🔴 이 목록을 고치면 scripts/generate-sitemap.mjs 의 복사본도 같은 커밋에서 함께 고친다.
+  "/fortune/weekly",
+  "/fortune/monthly",
 ] as const;
 
 export function normalizeSeoPath(pathOrUrl: string): string {
