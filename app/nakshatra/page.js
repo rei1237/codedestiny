@@ -3,7 +3,9 @@ import { SEO_LANDING_PAGES } from "../../lib/seo-landing-pages";
 import { siteSeo } from "../../lib/seo/siteSeo";
 
 const page = SEO_LANDING_PAGES.nakshatra;
-const PAGE_PATH = "/nakshatra";
+// 🔴 후행 슬래시 필수 — next.config 가 trailingSlash: true 라 실제 산출물과 sitemap <loc> 이
+// 모두 `/nakshatra/` 다. 슬래시를 빼면 self-canonical 이 자기 자신이 아닌 리다이렉트 원본을 가리킨다.
+const PAGE_PATH = "/nakshatra/";
 // 동양 별자리 문양 × 인도 만다라 융합 대표 이미지(R2) — OG/트위터 소셜 프리뷰용.
 const NAKSHATRA_OG_IMAGE = "https://assets.code-destiny.com/%EC%88%99%EC%9A%94%EC%A0%90x%EB%B2%A0%EB%8B%A4%EC%A0%90.webp";
 
