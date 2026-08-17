@@ -1,5 +1,6 @@
 import styles from "./SiteFooterHub.module.css";
 import SocialFooter from "../_components/SocialFooter";
+import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
 
 const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
   ko: {
@@ -133,14 +134,16 @@ const SEO_LINK_GROUPS = [
   },
 ];
 
+// 값은 lib/site-policy-config.js 의 BUSINESS_IDENTITY 가 정본이다 — /contact 본문이 같은
+// 값을 쓰므로 여기 다시 적으면 두 화면이 갈린다. 라벨(key)만 이 파일이 정한다.
 const BUSINESS_INFO_ROWS = [
-  { key: "siteFooter.005", value: "코드 데스티니 (Code Destiny)" },
-  { key: "siteFooter.006", value: "박병하" },
-  { key: "siteFooter.007", value: "372-23-02329" },
-  { key: "siteFooter.008", value: "제 2026-화성호-0264 호" },
-  { key: "siteFooter.009", value: "050-6664-7398" },
-  { key: "siteFooter.010", value: "admin@code-destiny.com" },
-  { key: "siteFooter.011", value: "경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호" },
+  { key: "siteFooter.005", value: BUSINESS_IDENTITY.companyName },
+  { key: "siteFooter.006", value: BUSINESS_IDENTITY.representative },
+  { key: "siteFooter.007", value: BUSINESS_IDENTITY.registrationNumber },
+  { key: "siteFooter.008", value: BUSINESS_IDENTITY.mailOrderNumber },
+  { key: "siteFooter.009", value: BUSINESS_IDENTITY.phone },
+  { key: "siteFooter.010", value: BUSINESS_IDENTITY.email },
+  { key: "siteFooter.011", value: BUSINESS_IDENTITY.address },
 ];
 
 const REFUND_POLICY_ROWS = [
