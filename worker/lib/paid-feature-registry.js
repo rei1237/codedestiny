@@ -151,9 +151,13 @@ const RAW_FEATURE_KEY_REASON_COSTS = Object.freeze({
     "openNevilleMeditationPage 30분 코스": 30,
     "openNevilleMeditationPage 60분 코스": 50,
   }),
+  // 2026-05-30 09:11 `75b6820f3` 가 코스 가격을 2배로 올렸는데(30분 50→100, 60분 100→200)
+  // 같은 날 06:49 `b79bfc405` 가 추가한 이 표는 함께 갱신되지 않았다. resolveByFeatureReason 이
+  // resolveByFeatureKey 보다 먼저 타므로 이 표가 실제 차감액이고, 그동안 표시가(10,000·20,000원)의
+  // 절반만 빠져나갔다. 표시가 정본은 12개 로케일 `home.tiles.cosmicSoulPrice` 와 페이지 카드다.
   "cosmic-soul-meditation": Object.freeze({
-    "openCosmicSoulMeditation 30분 코스": 50,
-    "openCosmicSoulMeditation 60분 코스": 100,
+    "openCosmicSoulMeditation 30분 코스": 100,
+    "openCosmicSoulMeditation 60분 코스": 200,
   }),
   "yoga-guru-per-use": Object.freeze({
     "openYogaGuru 30분 코스": 30,
