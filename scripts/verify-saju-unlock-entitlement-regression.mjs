@@ -678,4 +678,59 @@ for (const marker of ["runPaidAccessGate", "openPaidFeatureGate", "LOVE_SIMULATI
   );
 }
 
+// ── 잠긴 프리미엄 섹션은 본문을 만들지 않는다 (2026-08-17) ──────────────────────
+// 예전에는 renderSummary/renderDaewun 이 결제 여부와 무관하게 #summaryArea·#dwGrid 를 채우고
+// CSS blur 만 씌웠다(index.html 의 .cd-section-gate__body filter:blur). 개발자도구로 그 클래스
+// 하나만 지우면 5,000원짜리 종합 풀이(A4 20페이지)와 대운표가 그대로 읽혔다. 이제 잠긴 동안에는
+// 렌더러가 DOM 을 만들지 않고, 해금 시 applySectionGates 가 한 번 만든다.
+const sajuEngineSource = fs.readFileSync(path.join(root, "js/saju-engine.js"), "utf8");
+
+assert.ok(
+  /function _cdSajuGateUnlocked\(/.test(sajuEngineSource),
+  "saju-engine 에 섹션 게이트 판정 헬퍼(_cdSajuGateUnlocked)가 있다",
+);
+
+// 호출부를 전수로 훑는다 — 새 호출부가 게이트 없이 추가되면 여기서 실패한다.
+const summaryCallLines = sajuEngineSource
+  .split("\n")
+  .filter((line) => line.includes("renderSummary(") && !line.includes("function renderSummary("));
+assert.ok(
+  summaryCallLines.length > 0,
+  "renderSummary 호출부를 하나도 찾지 못했다 — 마커가 바뀌었는지 확인할 것(검사 대상 0은 통과가 아니다)",
+);
+for (const line of summaryCallLines) {
+  assert.ok(
+    line.includes("_cdSajuGateUnlocked('section_summary')"),
+    `renderSummary 는 section_summary 해금 뒤에서만 호출한다: ${line.trim()}`,
+  );
+}
+
+// window.G_DAEWUN 은 시빌라·퀀텀 등 다른 기능이 소비하므로 게이트보다 먼저 채워야 한다.
+const daewunGlobalAt = sajuEngineSource.indexOf("if(_dwGlobalArr.length>0)window.G_DAEWUN=_dwGlobalArr;");
+const daewunGateAt = sajuEngineSource.indexOf("if(_cdSajuGateUnlocked('section_daewun')){");
+assert.ok(daewunGlobalAt > 0 && daewunGateAt > 0, "대운 전역 기록과 게이트 마커가 둘 다 있다");
+assert.ok(
+  daewunGlobalAt < daewunGateAt,
+  "window.G_DAEWUN 기록은 게이트 밖(앞)이어야 한다 — 잠금이 시빌라·퀀텀의 대운 소비를 끊으면 안 된다",
+);
+for (const guarded of [
+  "if(_cdSajuGateUnlocked('section_daewun')){\n      document.getElementById('dwGrid').innerHTML=",
+  "if(_cdSajuGateUnlocked('section_daewun')){\n      var grid=document.getElementById('dwGrid');",
+]) {
+  assert.ok(
+    sajuEngineSource.includes(guarded),
+    `대운표 DOM 기록이 section_daewun 게이트 안에 있다: ${guarded.split("\n")[1].trim()}`,
+  );
+}
+
+// 잠긴 동안 본문이 만들어진 적이 없으므로, 해금은 클래스 토글만으로 끝나지 않는다.
+for (const marker of [
+  "window.__cdLastSummaryArgs={p:p,johu:johu,natal:natal};",
+  "if(unlocked&&sg.unlockKey==='section_summary'",
+  "if(unlocked&&sg.unlockKey==='section_daewun'",
+]) {
+  const source = marker.startsWith("window.__cdLastSummaryArgs") ? sajuEngineSource : indexHtml;
+  assert.ok(source.includes(marker), `해금 시 본문 생성 배선 유지: ${marker}`);
+}
+
 console.log("[saju-unlock-entitlement-regression] OK");

@@ -51,6 +51,15 @@ assert.match(registry, /"physiognomy-ogwan-mole-deep":\s*\{\s*cost:\s*50/, '오�
 assert.match(registry, /PER_USE_PAID_FEATURE_KEY_LIST[\s\S]*?"physiognomy-ogwan-mole-deep"/, '오관·점 회당결제 목록 등록');
 assert.match(ui, /featureKey: 'physiognomy-ogwan-mole-deep'/, '프론트 게이트 featureKey 배선');
 
+// ── 3b. 잠긴 오관·점 섹션은 본문을 DOM 에 넣지 않는다 (2026-08-17) ──
+// 예전에는 계산이 끝난 section.body 를 그대로 .phy-premium-blur 안에 넣어서, 개발자도구로
+// blur 클래스만 지우면 5,000원 정밀 분석이 전부 읽혔다. 인자를 받지 않는 함수로 만들어
+// 구조적으로 본문이 들어갈 수 없게 한다.
+assert.match(ui, /function buildLockedSectionHtml\(\)/, '잠금 카드 빌더는 인자를 받지 않는다(본문 유입 구조적 차단)');
+assert.doesNotMatch(ui, /buildLockedSectionHtml\(section\)/, '잠금 카드 빌더에 section 을 넘기지 않는다');
+assert.doesNotMatch(ui, /phy-premium-blur[^\n]*\$\{section\.body\}/, '.phy-premium-blur 에 section.body 를 넣지 않는다');
+assert.match(ui, /phy-premium-blur--skeleton/, '잠금 카드는 내용 없는 스켈레톤으로 높이를 만든다');
+
 // ── 4. jsdom: 파서가 섹션을 중복 없이 분리 ──
 const dom = new JSDOM('<!doctype html><body></body>');
 const { document } = dom.window;
