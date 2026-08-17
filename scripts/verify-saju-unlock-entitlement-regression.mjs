@@ -733,4 +733,35 @@ for (const marker of [
   assert.ok(source.includes(marker), `해금 시 본문 생성 배선 유지: ${marker}`);
 }
 
+// 자미두수 기본 심화(각 10,000원)·대한 10년운(10,000원)·점성술 심화(각 5,000원)도 같은 형태로
+// 새고 있었다 — 게이트 컨테이너에 계산된 본문을 넣고 blur 만 씌웠다. 생산자를 전수로 훑어
+// 게이트 본문 슬롯에 _cdGateBody 를 거치지 않은 값이 들어가면 실패시킨다.
+const gateBodySlots = sajuEngineSource
+  .split("\n")
+  .filter((line) => /class="cd-section-gate__body"/.test(line) && /\+/.test(line));
+assert.ok(
+  gateBodySlots.length >= 3,
+  `게이트 본문 생산자를 3개 이상 찾지 못했다(발견 ${gateBodySlots.length}) — 마커가 바뀌었는지 확인할 것`,
+);
+for (const line of gateBodySlots) {
+  const trailing = line.slice(line.indexOf('class="cd-section-gate__body"'));
+  const interpolates = /\+\s*[A-Za-z_$]/.test(trailing);
+  if (!interpolates) continue;
+  assert.ok(
+    trailing.includes("_cdGateBody("),
+    `게이트 본문에 값을 끼워 넣으려면 _cdGateBody 를 거쳐야 한다(잠금 시 빈 컨테이너): ${line.trim().slice(0, 120)}`,
+  );
+}
+for (const marker of [
+  "function _cdGateBody(",
+  "function _cdFillGateBodyIfPending(",
+  "_cdGateBody('ziwei_decade_luck',",
+]) {
+  assert.ok(sajuEngineSource.includes(marker), `잠금 본문 보류/주입 배선 유지: ${marker}`);
+}
+assert.ok(
+  indexHtml.includes("window.__cdFillGateBodyIfPending(gate, key)"),
+  "applyDynamicPaidContentGates 가 해금 시 보류된 본문을 채운다",
+);
+
 console.log("[saju-unlock-entitlement-regression] OK");

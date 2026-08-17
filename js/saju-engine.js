@@ -24155,12 +24155,13 @@ function renderZiwei(p, natal, targetId) {
               +'<div data-zw-paid-gate-message style="min-height:14px;color:#a78bfa;font-size:0.68rem;font-weight:900;"></div>'
             +'</div>'
             +'<div class="cd-section-gate__body">'
-              +'<div style="background:rgba(15,23,42,0.62);border:1px solid rgba(125,211,252,0.22);border-radius:11px;padding:13px 14px;">'
+              +_cdGateBody('ziwei_decade_luck',
+                '<div style="background:rgba(15,23,42,0.62);border:1px solid rgba(125,211,252,0.22);border-radius:11px;padding:13px 14px;">'
                 +'<h3 style="margin:0 0 8px;color:#93c5fd;font-size:1rem;">⏳ '+zwFlowEsc(decadeTitle)+'</h3>'
                 +'<p style="font-size:0.78rem;color:#cbd5e1;line-height:1.65;margin:0 0 8px;">이 10년은 월운보다 깊게 작동하는 대한의 바닥 기류입니다. 기회는 반복되는 궁에서 열리고, 위험은 같은 사화가 겹칠 때 선명해집니다.</p>'
                 +decadeSummaryHtml
                 +decadeRowsHtml
-              +'</div>'
+              +'</div>')
             +'</div>'
           +'</div>'
         +'</div>';
@@ -25023,6 +25024,8 @@ function renderZiwei(p, natal, targetId) {
         }
         function zwSetBasicPaidGateUnlocked(shell, unlocked) {
           if (!shell) return;
+          // 잠긴 동안에는 본문이 만들어진 적이 없다 — 클래스 토글만으로는 빈 화면이 된다.
+          if (unlocked) _cdFillGateBodyIfPending(shell, shell.getAttribute('data-unlock-key'));
           shell.classList.toggle('cd-section-gate--unlocked', !!unlocked);
           shell.classList.toggle('cd-section-gate--checking', false);
           shell.classList.toggle('cd-section-gate--error', false);
@@ -25076,7 +25079,7 @@ function renderZiwei(p, natal, targetId) {
               +'<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="'+zwFlowEsc(key)+'"'+(contentKey ? ' data-content-key="'+zwFlowEsc(contentKey)+'"' : '')+' data-service-key="ziwei" data-unlock-cost="'+cost+'" style="min-height:36px;padding:9px 14px;font-size:0.78rem;">🪙 '+(cost * 100).toLocaleString('ko-KR')+'원으로 열기</button>'
               +'<div data-zw-paid-gate-message style="min-height:14px;color:'+color+';font-size:0.68rem;font-weight:900;"></div>'
             +'</div>'
-            +'<div class="cd-section-gate__body" style="max-height:none;">'+bodyHtml+'</div>'
+            +'<div class="cd-section-gate__body" style="max-height:none;">'+_cdGateBody(key, bodyHtml)+'</div>'
           +'</div>';
         }
 
@@ -25834,6 +25837,29 @@ function _cdSajuGateUnlocked(featureKey){
   try{ if(window.unlockedFeatureMap&&window.unlockedFeatureMap[key]===true)return true; }catch(_){}
   return false;
 }
+
+// 🔴 잠긴 게이트 본문은 DOM 에 넣지 않는다. 자미두수 기본 심화(각 10,000원)·대한 10년운
+// (10,000원)·점성술 심화(각 5,000원)는 본문을 게이트 컨테이너에 넣고 CSS blur 만 씌우고
+// 있어서, 개발자도구로 클래스 하나만 지우면 전부 읽혔다. 잠긴 동안에는 빈 컨테이너를 내고
+// 해금 시 _cdFillGateBodyIfPending 이 그 자리에 채운다.
+var _cdPendingGateBodies = Object.create(null);
+function _cdGateBody(featureKey, bodyHtml){
+  var key=String(featureKey||'').trim();
+  if(!key||_cdSajuGateUnlocked(key))return bodyHtml;
+  _cdPendingGateBodies[key]=bodyHtml;
+  return '';
+}
+function _cdFillGateBodyIfPending(gateEl, featureKey){
+  if(!gateEl||!gateEl.querySelector)return;
+  var body=gateEl.querySelector('.cd-section-gate__body');
+  if(!body||body.innerHTML)return;
+  var key=String(featureKey||'').trim();
+  var pending=_cdPendingGateBodies[key];
+  if(pending===undefined)return;
+  delete _cdPendingGateBodies[key];
+  body.innerHTML=pending;
+}
+try{ window.__cdFillGateBodyIfPending=_cdFillGateBodyIfPending; }catch(_){}
 
 function renderSummary(p,johu,natal){
   var dg=p.d.g,dayMaster=p.d.gE||'earth';
@@ -31679,7 +31705,7 @@ function showQuantumResult() {
       + '<span class="cd-section-gate__badge">' + (Number(cost || 0) * 100).toLocaleString('ko-KR') + '원 영구 해금</span>'
       + '<button type="button" class="cd-section-gate__btn" data-action="unlockPremiumFeature" data-unlock-key="' + _astroCounselEscape(key) + '" data-service-key="astrology" data-unlock-cost="' + Number(cost || 0) + '" style="min-height:36px;padding:9px 14px;font-size:0.78rem;"' + buttonAttrs + '>' + _astroCounselEscape(buttonText) + '</button>'
       + '</div>'
-      + '<div class="cd-section-gate__body" style="max-height:none;">' + bodyHtml + '</div>'
+      + '<div class="cd-section-gate__body" style="max-height:none;">' + _cdGateBody(key, bodyHtml) + '</div>'
       + '</div>';
   }
 
@@ -31693,6 +31719,7 @@ function showQuantumResult() {
         var gate = gates[i];
         var key = gate.getAttribute('data-unlock-key') || '';
         var unlocked = _astroCounselIsUnlocked(key);
+        if (unlocked) _cdFillGateBodyIfPending(gate, key);
         gate.classList.toggle('cd-section-gate--unlocked', unlocked);
         var body = gate.querySelector('.cd-section-gate__body');
         if (body) {
