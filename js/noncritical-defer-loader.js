@@ -139,10 +139,14 @@
     });
   }
 
+  // 🔴 #dpMasterCard 는 data-action 도 .feature-card 도 아니다(버튼이 <button class="dp-mc-load-btn">).
+  //    그래서 홈에서 다른 카드를 건드리지 않고 곧장 프로필 카드를 누른 모바일 사용자는 여기에
+  //    걸리지 않아, styles/fortune-ui.css 가 아래 45초 폴백까지 오지 않았다. 그 시트에 프로필
+  //    카드가 여는 운세 유형 선택 모달과 실제 운세 화면의 규칙이 들어 있다.
   function isFeatureIntentEvent(event) {
     var target = event && event.target;
     if (!target || !(target instanceof Element)) return false;
-    return !!target.closest('[data-action], [data-touchend-action], .tarot-tile, .feature-card, .feat-collection-toggle, .fc-toggle-btn');
+    return !!target.closest('[data-action], [data-touchend-action], .tarot-tile, .feature-card, .feat-collection-toggle, .fc-toggle-btn, #dpMasterCard');
   }
 
   function boot() {

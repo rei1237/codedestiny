@@ -9718,65 +9718,73 @@
     if (!p) { _toast('⚠️ 불러올 프로필이 없습니다', 'warn'); return; }
 
     var card = document.getElementById('dpMasterCard');
-    spawnStardust(card);
-
-    /* 사주 폼 동기화 (사주 실행 경로 사전 준비) */
     var b = p.birth, l = p.location || {};
-    var nameEl = document.getElementById('nameInput');
-    if (nameEl) nameEl.value = p.name || '';
-    var bdEl = document.getElementById('birthDate');
-    if (bdEl) {
-      bdEl.value = _dpBuildProfileBirthDateValue(b.year, b.month, b.day);
-      try { bdEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
-    }
-    var calBtns = document.querySelectorAll('input[name="calType"]');
-    calBtns.forEach(function(btn) {
-      btn.checked = btn.value === (b.calType || 'solar');
-      if (btn.checked) try { btn.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
-    });
-    var hourEl = document.getElementById('birthHour');
-    var minEl  = document.getElementById('birthMinute');
-    if (hourEl) {
-      var hVal = String((b.hour !== undefined && b.hour !== null) ? b.hour : 12);
-      hourEl.value = hVal;
-      try { hourEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
-    }
-    if (minEl) {
-      var mVal = String((b.minute !== undefined && b.minute !== null) ? b.minute : 0);
-      minEl.value = mVal;
-      try { minEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
-    }
-    var countrySel = document.getElementById('birthCountry');
-    if (countrySel && l.tz) {
-      _dpSelectBirthPlaceOption(countrySel, l.tz, l.lng, (l.lat != null ? l.lat : l.latitude));
-    }
-    if (window.setGender) window.setGender(p.gender || 'F');
-    window._gender = p.gender || 'F';
-    /* 성별 버튼 UI 동기화 */
-    var dpBtnF = document.getElementById('btnF');
-    var dpBtnM = document.getElementById('btnM');
-    if (dpBtnF || dpBtnM) {
-      var dpGender = p.gender || 'F';
-      if (dpBtnF) {
-        if (dpGender === 'F') {
-          dpBtnF.classList.add('selected');
-          dpBtnM && dpBtnM.classList.remove('selected');
-        } else {
-          dpBtnF.classList.remove('selected');
+
+    /* 사주 폼 동기화 (사주 실행 경로 사전 준비)
+       🔴 이 블록은 창을 붙인 **뒤** 다음 태스크에서 돈다(아래 _dpSyncFormFromProfile 호출부).
+       같은 태스크에 두면 창이 그 작업이 끝난 뒤에야 페인트된다.
+       A/B 실측(dist·412x823·CPU 4×·5회, 탭→창이 보이기까지 중앙값):
+         같은 태스크 388ms [326–428]  →  다음 태스크 294ms [281–327]  (−94ms)
+       운세 실행 경로는 이 동기화에 의존하지 않는다: _injectAndRun 이 프로필 객체로 폼을 다시
+       주입하고(:8364), #birthCountry 폴백은 l.tz 가 없을 때만 쓰는데 아래 _dpSelectBirthPlaceOption
+       은 l.tz 가 있을 때만 돈다 = 두 조건이 서로 배타적이다. */
+    function _dpSyncFormFromProfile() {
+      var nameEl = document.getElementById('nameInput');
+      if (nameEl) nameEl.value = p.name || '';
+      var bdEl = document.getElementById('birthDate');
+      if (bdEl) {
+        bdEl.value = _dpBuildProfileBirthDateValue(b.year, b.month, b.day);
+        try { bdEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+      }
+      var calBtns = document.querySelectorAll('input[name="calType"]');
+      calBtns.forEach(function(btn) {
+        btn.checked = btn.value === (b.calType || 'solar');
+        if (btn.checked) try { btn.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+      });
+      var hourEl = document.getElementById('birthHour');
+      var minEl  = document.getElementById('birthMinute');
+      if (hourEl) {
+        var hVal = String((b.hour !== undefined && b.hour !== null) ? b.hour : 12);
+        hourEl.value = hVal;
+        try { hourEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+      }
+      if (minEl) {
+        var mVal = String((b.minute !== undefined && b.minute !== null) ? b.minute : 0);
+        minEl.value = mVal;
+        try { minEl.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+      }
+      var countrySel = document.getElementById('birthCountry');
+      if (countrySel && l.tz) {
+        _dpSelectBirthPlaceOption(countrySel, l.tz, l.lng, (l.lat != null ? l.lat : l.latitude));
+      }
+      if (window.setGender) window.setGender(p.gender || 'F');
+      window._gender = p.gender || 'F';
+      /* 성별 버튼 UI 동기화 */
+      var dpBtnF = document.getElementById('btnF');
+      var dpBtnM = document.getElementById('btnM');
+      if (dpBtnF || dpBtnM) {
+        var dpGender = p.gender || 'F';
+        if (dpBtnF) {
+          if (dpGender === 'F') {
+            dpBtnF.classList.add('selected');
+            dpBtnM && dpBtnM.classList.remove('selected');
+          } else {
+            dpBtnF.classList.remove('selected');
+          }
+        }
+        if (dpBtnM) {
+          if (dpGender === 'M') {
+            dpBtnM.classList.add('selected');
+            dpBtnF && dpBtnF.classList.remove('selected');
+          } else {
+            dpBtnM.classList.remove('selected');
+          }
         }
       }
-      if (dpBtnM) {
-        if (dpGender === 'M') {
-          dpBtnM.classList.add('selected');
-          dpBtnF && dpBtnF.classList.remove('selected');
-        } else {
-          dpBtnM.classList.remove('selected');
-        }
-      }
+      if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
+      if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
+      broadcastProfileChange(p);
     }
-    if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
-    if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
-    broadcastProfileChange(p);
 
     /* ── 운세 유형 선택 모달 ── */
     var zodiac   = _zodiacEmoji(b.year);
@@ -9810,6 +9818,15 @@
       + '</div>';
     document.body.appendChild(ov);
     window._dpFortuneSelEl = ov;
+    /* 🔴 창이 먼저 페인트되도록, 폼 동기화와 장식(파티클 12개 + getBoundingClientRect 강제 레이아웃)은
+       다음 태스크로 넘긴다. 사용자가 유형을 고르기까지는 최소 모달 진입 0.38s + 이탈 0.35s 가 있어
+       그 전에 반드시 끝난다.
+       ⚠ 아래 rAF 안으로 옮겨 "페인트 뒤"로 더 미뤄도 봤는데 **차이가 노이즈 범위 안이었다**
+       (n=3 에서 나빠 보였으나 n=5 밴드가 겹쳤다). 이득이 없으므로 단순한 쪽을 남긴다. */
+    setTimeout(function() {
+      spawnStardust(card);
+      _dpSyncFormFromProfile();
+    }, 0);
     var doClose = function(e) {
       if (e && e.cancelable) e.preventDefault();
       if (typeof window._dpCloseFortuneSel === 'function') window._dpCloseFortuneSel();
