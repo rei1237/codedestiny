@@ -16,12 +16,16 @@ import type { AnimalDestinyInput } from "../../animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { readCurrentDestinyProfile } from "@/app/_lib/profile-card-storage";
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 
 const LoveCharacterStorySection = lazy(() => import("./LoveCharacterStorySection"));
 
 const LOVE_SIMULATION_FEATURE_KEY = "loveSimulation";
 const LOVE_SIMULATION_FEATURE_REASON = "LOVE CODE 사주 연애 시뮬레이션";
-const LOVE_SIMULATION_FEATURE_COST = 100;
+// 가격은 서버 가격표에서 읽는다. 정본: worker/lib/paid-feature-registry.js → loveSimulation = 100코인 / 10,000원
+const LOVE_SIMULATION_PRICING = resolveServerFeaturePricing({ featureKey: LOVE_SIMULATION_FEATURE_KEY });
+const LOVE_SIMULATION_FEATURE_COST = LOVE_SIMULATION_PRICING?.cost ?? 0;
+const LOVE_SIMULATION_FEATURE_AMOUNT_KRW = LOVE_SIMULATION_PRICING?.amountKRW ?? 0;
 
 type PartnerCalendarType = "solar" | "lunar" | "lunar_leap";
 type PartnerGender = "female" | "male";
@@ -1454,8 +1458,8 @@ export const LoveSimulationEngine: React.FC = () => {
 
   // 유료 게이트는 이 한 곳(시뮬레이션 시작)에서만 돈다. 진입점(메인 타일·사주 분석 카드·직접 URL)에는
   // 게이트를 걸지 않는다 — 사용자가 상대를 고르기도 전에 결제가 돌기 때문이다.
-  // 가격은 서버 정본(loveSimulation)에 맡긴다. 클라이언트 cost 를 넘기면 서버 이용권 프로브를 건너뛰고
-  // 로컬 스냅샷만 신뢰해 이용권 보유자가 확인을 못 받는다(인연의 장소와 동일 계약).
+  // 🔴 가격은 게이트에 반드시 함께 넘긴다. "클라이언트 cost 를 넘기면 서버 이용권 프로브를 건너뛴다"는
+  //    옛 주석은 틀렸다 — cost 는 스냅샷 판정을 켜는 입력이고, 빼면 결제창이 0원으로 뜬다.
   const startWithCharacter = async (id: CharacterId, mode: "preset" | "sajuMatch" = "preset") => {
     if (isStartingSimulation) return;
     const requestId = `love-simulation:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
@@ -1474,6 +1478,9 @@ export const LoveSimulationEngine: React.FC = () => {
         featureKey: LOVE_SIMULATION_FEATURE_KEY,
         reason: LOVE_SIMULATION_FEATURE_REASON,
         requestId,
+        cost: LOVE_SIMULATION_FEATURE_COST,
+        coinPrice: LOVE_SIMULATION_FEATURE_COST,
+        amountKRW: LOVE_SIMULATION_FEATURE_AMOUNT_KRW,
       });
 
       if (!gate.ok) {

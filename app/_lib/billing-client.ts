@@ -19,6 +19,9 @@ import {
   type PaymentType,
 } from "@/constants/loadingMessages";
 import { resolvePaidFeatureBillingType } from "@/lib/payment/feature-billing-type";
+// 🔴 결제창 금액의 정본 해석기. 호출부가 가격을 넘기지 않아도 서버와 같은 함수로 값을 풀어
+// "0원 결제창"이 구조적으로 불가능하게 만든다. 사본을 만들지 말 것.
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 // 앱 가격표 정본. import가 없는 순수 테이블이라 클라이언트 번들에 안전하게 들어간다
 // (미러를 두면 Play Console 등록가와 조용히 어긋나므로 정본을 직접 읽는다).
 import { resolveAppPassCoverageKRW } from "@/worker/lib/app-store-pricing.js";
@@ -2124,12 +2127,20 @@ function resolveKnownCoinCost(input: BillingCoinGateInput, eligibility: PaymentE
     ?? input.paymentAmount,
     0,
   )));
-  return Math.max(0, Math.floor(toNumber(
+  const known = Math.max(0, Math.floor(toNumber(
     eligibility?.coinCost
     ?? input.coinPrice
     ?? input.cost,
     amountKRW > 0 ? Math.ceil(amountKRW / 100) : 0,
   )));
+  if (known > 0) return known;
+  // 🔴 여기까지 왔다는 것은 호출부도 eligibility 도 가격을 모른다는 뜻이다. 예전에는 그대로 0 을
+  //    돌려줬고, 그 0 이 결제창의 coinPrice·directAmount·monthlyCost 가 되어 **"0원 + 월정석 카드
+  //    영구 비활성"** 으로 렌더됐다. 회당 결제(per-use)는 eligibility 왕복을 건너뛰므로(runBillingCoinGate
+  //    의 mayBeAlreadyUnlocked 분기) 호출부가 가격을 빼먹으면 0 을 메울 곳이 아예 없었다.
+  //    서버 가격표에 직접 묻는다 — 서버 coin-gate 가 같은 함수(getBillingFeaturePricing)로 같은 답을
+  //    내므로 표시가와 청구액이 갈릴 수 없다. 못 풀면 종전대로 0 이라 미등록 기능의 동작은 불변이다.
+  return resolveServerFeaturePricing(input)?.cost ?? 0;
 }
 
 export type SnapshotPassVerdict = {
@@ -2149,7 +2160,12 @@ export type SnapshotPassVerdict = {
 // 여부 같은 React 입력을 규칙에 얹기만 한다.
 export function resolveSnapshotPassVerdict(input: BillingCoinGateInput): SnapshotPassVerdict {
   const requestedMode = normalizePaymentMode(input.paymentMode);
-  const passDisabled = input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
+  // 🔴 이용권 커버 대상이 아닌 기능(프로필 카드 관리)은 스냅샷 즉시통과 후보에서 뺀다.
+  //    서버 정본은 isPassExcludedPricing 하나이고 그 판정이 라우트 안에 있어 여기서 볼 수 없었다.
+  //    가격이 호출부 인자로만 오던 동안에는 이 구멍이 드러나지 않았는데, 이제 featureKey 만으로도
+  //    가격이 풀리므로 "featureKey 만 넘기는 호출부 = 이용권 무료 통과" 가 될 수 있다. 미리 막는다.
+  const passExcluded = resolveServerFeaturePricing(input)?.passExcluded === true;
+  const passDisabled = passExcluded || input.disablePassFirst === true || input.disablePassChoice === true || input.skipPassProbe === true;
   const explicitPassMode = requestedMode === "MEMBERSHIP_PASS" && !passDisabled;
   const directKrwUsesNativeBilling = requestedMode === "DIRECT_KRW" && isMobileAppRuntime();
   const explicitPaymentMode = explicitPassMode || requestedMode === "MOONLIGHT_STONE" || (requestedMode === "DIRECT_KRW" && !directKrwUsesNativeBilling);
@@ -2170,15 +2186,51 @@ export function resolveSnapshotPassVerdict(input: BillingCoinGateInput): Snapsho
 }
 
 function resolveKnownAmountKRW(input: BillingCoinGateInput, eligibility: PaymentEligibility | null, coinCost: number) {
-  return Math.max(0, Math.floor(toNumber(
+  const known = Math.max(0, Math.floor(toNumber(
     eligibility?.priceKRW
     ?? input.amountKRW
     ?? input.amountKrw
     ?? input.cashPrice
-    ?? input.paymentAmount
-    ?? (coinCost > 0 ? coinCost * 100 : 0),
+    ?? input.paymentAmount,
     0,
   )));
+  if (known > 0) return known;
+  // 🔴 코인가 × 100 으로 파생하기 전에 서버 가격표의 amountKRW 를 먼저 본다. 현재는 레지스트리
+  //    130개 항목 전부가 amountKRW === cost × 100 이라 두 값이 같지만(2026-08-17 실측), 환율이
+  //    100 이 아닌 항목이 하나라도 생기면 파생값은 그 순간 청구액과 어긋난다.
+  const registryAmountKRW = resolveServerFeaturePricing(input)?.amountKRW ?? 0;
+  if (registryAmountKRW > 0) return registryAmountKRW;
+  return Math.max(0, Math.floor(coinCost > 0 ? coinCost * 100 : 0));
+}
+
+// 402(결제 필요) 응답에 실려 온 서버 정본 가격을 결제창 입력에 얹는다.
+//
+// 🔴 두 번째 안전망이지 첫 번째가 아니다. 서버는 402 본문에 pricing 을 이미 최상위로 펼쳐 보내는데
+//    (worker/routes/billing.js 의 failure(..., { pricing, ... })), 폴백 결제창은 그 값을 읽지 않고
+//    호출부 input 만 그대로 다시 넘겨 왔다 — 그래서 가격을 모르는 호출부는 402 를 받고도 0원 결제창을
+//    열었다. 레지스트리 폴백과 직교하므로, 가격표에 없는 기능(음원·신규 SKU·reason 전용 가격)까지 덮는다.
+//    호출부가 이미 가격을 넘겼으면 건드리지 않는다(서버 값으로 덮어쓰지 않는다 — 금액 대조는 서버가 한다).
+function withServerDeniedPricing(
+  input: BillingCoinGateInput,
+  denied: BillingResult<BillingCoinGateData>,
+): BillingCoinGateInput {
+  const hasCallerPrice = toNumber(input.coinPrice ?? input.cost, 0) > 0
+    || toNumber(input.amountKRW ?? input.amountKrw ?? input.cashPrice ?? input.paymentAmount, 0) > 0;
+  if (hasCallerPrice) return input;
+
+  const raw = asRecord(denied.raw) || {};
+  const serverPricing = asRecord(raw.pricing) || asRecord(asRecord(raw.data)?.pricing);
+  if (!serverPricing) return input;
+
+  const cost = Math.max(0, Math.floor(toNumber(serverPricing.coinPrice ?? serverPricing.cost, 0)));
+  const amountKRW = Math.max(0, Math.floor(toNumber(serverPricing.amountKRW ?? serverPricing.cashPrice, 0)));
+  if (cost <= 0 && amountKRW <= 0) return input;
+
+  return {
+    ...input,
+    ...(cost > 0 ? { cost, coinPrice: cost } : {}),
+    ...(amountKRW > 0 ? { amountKRW } : {}),
+  };
 }
 
 function resolveRuntimeBillingPricing(input: BillingCoinGateInput, eligibility: PaymentEligibility | null, payload: Record<string, unknown>, featureId: string): BillingFeaturePricing {
@@ -4478,7 +4530,7 @@ async function runBillingCoinGateInternal(input: BillingCoinGateInput): Promise<
           requestId: gateRequestId,
           reason: input.reason,
         });
-        const runtimePaymentResult = await runPaidServiceRuntimePayment(input, {
+        const runtimePaymentResult = await runPaidServiceRuntimePayment(withServerDeniedPricing(input, parsed), {
           featureId,
           requestId: gateRequestId,
           eligibility,

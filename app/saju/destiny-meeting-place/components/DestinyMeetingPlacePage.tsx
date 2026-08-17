@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Toaster, toast } from "sonner";
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runPaidAccessGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 import { getAuthState } from "@/app/_lib/auth-store";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
@@ -40,12 +41,18 @@ function destinyMeetingPlacePageText(key: keyof typeof DESTINY_MEETING_PLACE_PAG
 }
 const FEATURE_KEY = "destiny_meeting_place";
 const FEATURE_REASON = "사주로 보는 인연의 장소 1회 분석";
-const FEATURE_COST = 100;
+// 가격은 서버 가격표에서 읽는다(하드코딩하면 인상·인하 때 결제창과 청구액이 조용히 갈라진다).
+// 정본: worker/lib/paid-feature-registry.js → destiny_meeting_place = 100코인 / 10,000원
+const FEATURE_PRICING = resolveServerFeaturePricing({ featureKey: FEATURE_KEY });
+const FEATURE_COST = FEATURE_PRICING?.cost ?? 0;
+const FEATURE_AMOUNT_KRW = FEATURE_PRICING?.amountKRW ?? 0;
 const HERO_IMAGE = "/fuctionassets/%EC%82%AC%EC%A3%BC%EB%A1%9C%EB%B3%B4%EB%8A%94%20%EC%9D%B8%EC%97%B0%EC%9D%98%20%EC%9E%A5%EC%86%8C.webp";
 const PREFILL_KEY = "cd.destinyMeetingPlace.prefill.v1";
 
-function formatFeatureCost(amount: number) {
-  return `${Math.max(0, Math.floor(Number(amount || 0) * 100)).toLocaleString("ko-KR")}원`;
+// 코인가에 100을 곱하지 않는다 — 환산은 서버 가격표가 이미 끝냈고(amountKRW), 여기서 다시 곱하면
+// 100원 환율이 바뀌는 날 표시가만 조용히 어긋난다.
+function formatFeatureAmountKRW(amountKRW: number) {
+  return `${Math.max(0, Math.floor(Number(amountKRW || 0))).toLocaleString("ko-KR")}원`;
 }
 
 const INITIAL_INPUT: AnimalDestinyInput = {
@@ -78,7 +85,7 @@ export default function DestinyMeetingPlacePage() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [isCharging, setIsCharging] = useState(false);
-  const [chargedCoins, setChargedCoins] = useState(100);
+  const [chargedCoins, setChargedCoins] = useState(FEATURE_COST);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [showPremiumDemo, setShowPremiumDemo] = useState(false);
 
@@ -156,13 +163,18 @@ export default function DestinyMeetingPlacePage() {
       // release는 아래 setIsLoading(true) 및 finally에서 호출한다(안전장치 상한 8초).
       holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
 
-      // 클라이언트 cost/coinPrice를 넘기면 snapshotPassServerCheckFirst가 켜져 서버 이용권
-      // 프로브를 건너뛰고 로컬 스냅샷만 신뢰한다(→ '이용권 확인이 제대로 안 됨'). 정상 형제
-      // destiny-bias처럼 가격은 서버 정본(가격표 destiny_meeting_place=100)에 맡겨 프로브를 강제한다.
+      // 🔴 가격을 반드시 함께 넘긴다. 예전 주석은 "클라이언트 cost 를 넘기면 서버 이용권 프로브를
+      // 건너뛴다"며 이 세 줄을 지웠는데, 그 서술은 틀렸다 — cost 는 프로브를 끄는 것이 아니라
+      // 스냅샷 판정(js/core/pass-verdict.js resolveVerdict)을 **켜는** 입력이고, 빼면
+      // resolveVerdict 가 cost<=0 에서 즉시 반환해 판정 자체가 사라진다. 실제 결과는
+      // 결제창 금액 **0원** + 월정석 카드 영구 비활성이었다(월정석 비용이 coinPrice*10=0).
       const gate = await runPaidAccessGate({
         featureKey: FEATURE_KEY,
         reason: FEATURE_REASON,
         requestId,
+        cost: FEATURE_COST,
+        coinPrice: FEATURE_COST,
+        amountKRW: FEATURE_AMOUNT_KRW,
       });
 
       if (!gate.ok) {
@@ -336,7 +348,7 @@ export default function DestinyMeetingPlacePage() {
             />
             <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(7,7,24,0.08)_20%,rgba(6,7,24,0.82)_100%)]" />
             <div className="absolute left-4 top-4 rounded-full border border-[#ffd88a]/70 bg-[#160b2f]/82 px-4 py-2 text-xs font-black text-[#fff4d6] shadow-[0_12px_28px_rgba(0,0,0,0.34),0_0_24px_rgba(255,216,138,0.2)] backdrop-blur-md">
-              1회 {formatFeatureCost(FEATURE_COST)}
+              1회 {formatFeatureAmountKRW(FEATURE_AMOUNT_KRW)}
             </div>
             <div className="absolute right-4 top-4 hidden rounded-full border border-[#bce6ff]/45 bg-[#0b122f]/65 px-3 py-1 text-[11px] font-black uppercase tracking-[0.18em] text-[#cff0ff] [text-shadow:0_0_10px_rgba(161,230,255,0.8)] sm:block">
               Pass · Single · Moonlight
@@ -356,7 +368,7 @@ export default function DestinyMeetingPlacePage() {
 
         <section className="rounded-[2rem] border border-[#ffd4a5]/45 bg-[linear-gradient(160deg,rgba(20,15,56,0.92),rgba(26,16,64,0.9))] p-5 shadow-[0_20px_48px_rgba(8,9,32,0.5)] sm:p-8">
           <div className="mb-5 flex flex-wrap items-center gap-2 text-xs font-bold">
-            <span className="rounded-full border border-[#ffd88a]/45 bg-[#ffd88a]/15 px-3 py-1 text-[#ffe9bb]">1회 {formatFeatureCost(FEATURE_COST)}</span>
+            <span className="rounded-full border border-[#ffd88a]/45 bg-[#ffd88a]/15 px-3 py-1 text-[#ffe9bb]">1회 {formatFeatureAmountKRW(FEATURE_AMOUNT_KRW)}</span>
             <span className="rounded-full border border-[#c8f7dc]/45 bg-[#6ee7a7]/14 px-3 py-1 text-[#ddffe9]">이용권 확인 후 단건 결제/월정석 사용</span>
             <span className="rounded-full border border-[#ffb4e6]/45 bg-[#ff9dd9]/15 px-3 py-1 text-[#ffd6ef]">별빛/야경 인연 무드 추천</span>
             <span className="rounded-full border border-[#9fd0ff]/45 bg-[#81bbff]/14 px-3 py-1 text-[#d6ebff]">장소 + 시기 + 국가 + 스타일</span>
@@ -462,7 +474,7 @@ export default function DestinyMeetingPlacePage() {
             disabled={!canSubmit || isLoading || isCharging}
             className="mt-6 w-full rounded-2xl bg-[linear-gradient(92deg,#ff9dd9,#8a6bff,#66b4ff)] px-5 py-4 text-base font-black text-white shadow-[0_0_18px_rgba(151,211,255,0.6),0_18px_30px_rgba(8,7,28,0.45)] transition-transform hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-55"
           >
-            {isCharging ? "이용권 확인 중..." : isLoading ? "별빛 지도를 분석하는 중..." : "인연의 장소 분석 시작"}
+            {isCharging ? "결제 확인 중…" : isLoading ? "별빛 지도를 분석하는 중..." : "인연의 장소 분석 시작"}
           </button>
           <p className="mt-3 text-center text-xs leading-relaxed text-[#ddd7f2]">
             결과는 오락 및 자기이해 참고용입니다. 중요한 재무/법률/의료 판단은 반드시 전문 상담을 함께 진행해 주세요.

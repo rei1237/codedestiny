@@ -23,6 +23,14 @@ on:
       - "config/payment-freeze.json"
       - "worker/lib/paid-feature-registry.js"
       - "worker/lib/billing-policy.js"
+      # 🔴 서버가 실제로 가격을 푸는 함수(getBillingFeaturePricing)가 여기 산다. 가격표 자체가 아니라
+      #    (categoryKey, subFeatureKey) → featureKey 매핑과 reason 해석 체인을 소유하는 파일이라,
+      #    여기만 고치면 손금(categoryKey 로만 가격이 풀리는 유일한 React 경로)의 결제 금액이 바뀐다.
+      #    그런데 트리거에 없어서 결제 게이트가 깨어나지 않았다 — 정본(셸 인라인)이 빠져 있던 것과
+      #    같은 형태의 구멍이고, verify:paid-gate-price-coverage 가 이 파일을 import 해 실행한다.
+      - "worker/lib/billing-feature-registry.js"
+      # 위 파일이 import 하는 음원 해금 가격 정책. 같은 이유로 함께 건다.
+      - "lib/music-access-policy.js"
       - "worker/lib/payment-refund.js"
       - "worker/lib/content-unlocks.js"
       - "worker/lib/profile-limits.js"
