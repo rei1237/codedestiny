@@ -45,14 +45,12 @@ const MAX_CROSS_ROUTE_OVERLAP = 0.5;
  * 노트를 붙이지 않기로 한 라우트와 그 사유. 비어 있는 것이 기본이다.
  * 🔴 사유가 사라졌는데 항목이 남아 있으면 실패한다(죽은 선언이 쌓여 목록이 거짓말이 되는 것을 막는다).
  */
-const DECLARED_EXCEPTIONS = new Map([
-  [
-    "/fortune/",
-    "기간(today·tomorrow·weekly·monthly) 4개가 lib/fortune/sign-profiles.ts 의 sign 단위 산문을 "
-      + "그대로 공유한다. sign 단위 노트를 붙이면 노트도 똑같이 4개 URL 에 복제되어 고유 본문이 1자도 "
-      + "오르지 않는다. 실제로 올리려면 (기간 × sign) 96개를 손으로 써야 하므로 별건으로 둔다.",
-  ],
-]);
+// 🔴 2026-08-17: `/fortune/` 예외를 지웠다. 이 가드가 스스로 지우라고 요구했다 —
+//    단언 F(아래 "쓰이지 않는 예외 선언은 실패")가 걸렸기 때문이다.
+//    사유: scripts/gen-daily.mjs 의 일일 문안이 24개 sign 전부 동일하던 것을 날짜×sign 해시
+//    선택으로 바꾸자, 광고 게재 대상 `/fortune/{today,tomorrow}/*` 가 전부 1,500자 임계를 넘겼다.
+//    즉 예외가 필요 없어졌다. 되살리지 말 것 — 되살리면 단언 F 가 다시 빌드를 세운다.
+const DECLARED_EXCEPTIONS = new Map([]);
 
 const failures = [];
 function assert(condition, message) {
