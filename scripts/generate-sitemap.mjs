@@ -87,6 +87,27 @@ const noindexPathPrefixes = [
   "/high-value/category",
   "/famous-saju/category",
   "/flower",
+  // AdSense 재심사 대응 2차(2026-08-17 out/ 실측, 코퍼스=사이트맵 411개).
+  // ① 기간 근중복: /fortune/{weekly,monthly} 는 같은 sign 의 today/tomorrow 와
+  //    크롬 제거 8-gram Jaccard 24~38% 로 겹친다. 광고는 이미 못 붙는 라우트라
+  //    (adsense-route-policy.js 의 CONTENT_PREFIXES 에 today·tomorrow 만 있다)
+  //    색인만 빼면 광고 인벤토리 손실이 0이다. lib/seo/siteSeo.ts 와 짝으로 유지할 것.
+  "/fortune/weekly",
+  "/fortune/monthly",
+  // ② SeoLandingTemplate 얇은 라우트 — 고유 본문 915~1,104자(가시 3,332~3,488자).
+  //    🔴 siteSeo.ts 의 목록에는 **일부러 넣지 않는다.** SeoLandingTemplate.jsx:375 가
+  //    DeferredShareWidget 을 렌더하므로 그쪽에 넣으면 isNoindexPath → isPrivateRoute →
+  //    share.v2 경로로 공유 버튼이 통째로 사라진다(/flower 와 같은 사유).
+  //    대신 각 page.js 에서 buildSeoMetadata({ noindex: true }) 로 선언한다.
+  //    🔴 `/dream` 은 자식 `/dream/psycho`(1,529자)·`/dream/tarot`(1,559자)까지 삼키는데,
+  //    그게 의도다 — 실측 결과 그 둘의 **유일한 인바운드 링크가 `/dream` 하나**였다
+  //    (`grep -rl 'href="/dream/psycho' out` → out/dream 만). `/dream` 이 noindex,nofollow 가
+  //    되면 둘은 사이트맵에만 남은 고아가 된다. 셋을 함께 뺀다.
+  "/physiognomy",
+  "/love",
+  "/compatibility",
+  "/saju/compatibility",
+  "/dream",
 ];
 const privateRoutePatterns = [
   /^\/api(?:\/|$)/,

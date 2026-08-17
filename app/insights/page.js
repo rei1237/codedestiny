@@ -173,10 +173,18 @@ export default async function InsightsPage() {
             ))}
           </ul>
         </nav>
+        {/*
+          🔴 유명인 사주 134개(slug 가 `famous-saju/` 로 시작)는 이 목록에서 뺀다.
+          상세는 이름·생일만 갈아 끼운 noindex 템플릿인데, 여기 있으면 색인·광고 대상인
+          이 허브가 **숨긴 링크로** 134개 전부에 크롤 경로를 열어 준다. 위 sr-only 안내가
+          "은닉 텍스트만 늘어난다"고 적어 둔 것과 같은 이유다. 허브 자체로 가는 길은
+          바로 위 topicHubs 의 `/insights/famous-saju/` 한 줄로 남는다.
+          (제거 후 이 페이지 고유 본문 6,212 → 4,600자대, MIN_UNIQUE_BODY 1,500 대비 여유.)
+        */}
         <nav aria-label="전체 인사이트 글 목록">
           <ul>
             {initialAllItems
-              .filter((item) => item.isPublished && item.slug)
+              .filter((item) => item.isPublished && item.slug && !item.slug.startsWith("famous-saju/"))
               .map((item) => (
                 <li key={item.slug}>
                   <a href={`/insights/${item.slug}/`}>{item.title}</a>
