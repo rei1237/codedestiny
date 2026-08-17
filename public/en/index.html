@@ -22461,7 +22461,7 @@ return you.name.restore();</span>
 <!-- 오늘의 운세 허브 계산 코어. 히어로 직후 첫 화면이라 지연 로더(data-cd-noncritical-src)에 태우지 않는다.
      defer 라 DOMContentLoaded 전에 실행이 끝나고, destiny-profile.js 뒤에 두어 dpGetDataForVedic() 이 먼저 준비된다. -->
 <script defer src="/js/fortune-gateway.js?v=build-edfece0a35a4" data-marker="fortune-gateway-v1"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-edfece0a35a4" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-edfece0a35a4" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -30456,7 +30456,21 @@ return you.name.restore();</span>
         }
       }
       applySectionGateOverlayState(el,sg,checking?'checking':(errored?'error':'locked'));
-      if(unlocked&&sg.unlockKey==='section_daewun'&&typeof renderLifeGraph==='function'&&window.__cdLastDaewunBazi){requestAnimationFrame(function(){renderLifeGraph(window.__cdLastDaewunBazi);});}
+      // 잠금 상태에서는 렌더러가 본문을 아예 만들지 않는다(js/saju-engine.js). 그래서 해금 시
+      // 여기서 한 번 만들어 준다 — 예전에는 본문이 이미 DOM 에 있고 blur 만 씌워져 있어 클래스
+      // 토글만으로 끝났지만, 이제는 만들어진 적이 없어 토글만으로는 빈 화면이 된다.
+      if(unlocked&&sg.unlockKey==='section_daewun'&&window.__cdLastDaewunBazi){
+        var dwGridEl=document.getElementById('dwGrid');
+        if(dwGridEl&&!dwGridEl.innerHTML&&typeof renderDaewun==='function'){try{renderDaewun(window.__cdLastDaewunBazi);}catch(_dwRenderErr){}}
+        else if(typeof renderLifeGraph==='function'){requestAnimationFrame(function(){renderLifeGraph(window.__cdLastDaewunBazi);});}
+      }
+      if(unlocked&&sg.unlockKey==='section_summary'&&typeof renderSummary==='function'&&window.__cdLastSummaryArgs){
+        var summaryAreaEl=document.getElementById('summaryArea');
+        if(summaryAreaEl&&!summaryAreaEl.innerHTML){
+          var summaryArgs=window.__cdLastSummaryArgs;
+          try{renderSummary(summaryArgs.p,summaryArgs.johu,summaryArgs.natal);}catch(_summaryRenderErr){}
+        }
+      }
     });
     applyDynamicPaidContentGates();
   }
@@ -30468,6 +30482,8 @@ return you.name.restore();</span>
       var key = String(gate.getAttribute('data-unlock-key') || '').trim();
       if (!key) continue;
       var unlocked = isTileKeyUnlocked(key);
+      // 잠긴 동안에는 본문이 만들어진 적이 없다(js/saju-engine.js _cdGateBody) — 여기서 채운다.
+      if (unlocked && typeof window.__cdFillGateBodyIfPending === 'function') window.__cdFillGateBodyIfPending(gate, key);
       gate.classList.toggle('cd-section-gate--unlocked', unlocked);
       gate.classList.toggle('cd-section-gate--checking', false);
       gate.classList.toggle('cd-section-gate--error', false);

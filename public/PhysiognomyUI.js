@@ -625,6 +625,24 @@ styleLink.textContent = `
     overflow: hidden;
     opacity: 0.7;
   }
+  /* 본문이 비어 있어도 오버레이(inset:0)가 접히지 않도록 높이를 스켈레톤이 만든다. */
+  .phy-premium-blur--skeleton {
+    display: flex;
+    flex-direction: column;
+    gap: 11px;
+    min-height: 210px;
+    padding: 18px 16px;
+  }
+  .phy-premium-blur--skeleton span {
+    display: block;
+    height: 13px;
+    border-radius: 4px;
+    background: rgba(6, 95, 70, 0.16);
+  }
+  .phy-premium-blur--skeleton span:nth-child(2) { width: 88%; }
+  .phy-premium-blur--skeleton span:nth-child(3) { width: 94%; }
+  .phy-premium-blur--skeleton span:nth-child(4) { width: 71%; }
+  .phy-premium-blur--skeleton span:nth-child(5) { width: 84%; }
   .phy-premium-overlay {
     position: absolute;
     inset: 0;
@@ -1563,10 +1581,13 @@ function isPremiumOgwanMoleSection(title) {
   return t.includes('오관') || t.includes('점(痣)') || t.includes('피부와 점');
 }
 
-function buildLockedSectionHtml(section) {
+// 🔴 잠긴 섹션의 본문을 여기에 넣지 말 것. 예전에는 계산이 끝난 section.body 를 그대로 blur div
+// 안에 넣어서, 개발자도구로 blur 클래스만 지우면 5,000원 정밀 분석이 전부 보였다. 블러 층은 잠금
+// 카드의 배경 질감일 뿐이므로 내용이 없는 스켈레톤으로 채운다.
+function buildLockedSectionHtml() {
   return `
     <div class="phy-premium-lock">
-      <div class="phy-premium-blur" aria-hidden="true">${section.body}</div>
+      <div class="phy-premium-blur phy-premium-blur--skeleton" aria-hidden="true"><span></span><span></span><span></span><span></span><span></span></div>
       <div class="phy-premium-overlay">
         <div class="phy-premium-lock-icon">🔒</div>
         <div class="phy-premium-lock-title">정밀 분석 잠금</div>
@@ -1621,7 +1642,7 @@ function renderSectionCards(container, sections) {
     const body = document.createElement('div');
     body.className = 'phy-section-body';
     if (locked) {
-      body.innerHTML = buildLockedSectionHtml(section);
+      body.innerHTML = buildLockedSectionHtml();
       const cta = body.querySelector('.phy-premium-cta');
       if (cta) cta.addEventListener('click', triggerOgwanMoleUnlock);
     } else {
