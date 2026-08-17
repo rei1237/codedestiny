@@ -188,6 +188,17 @@ npm run worktree:status
 
 It reads real git state — uncommitted changes plus commits not yet in `origin/main` — across every worktree and reports files touched by more than one. Overlap is not automatically wrong; it means those branches will conflict and should be merged in a deliberate order.
 
+## 토큰 효율과 핀셋 검색
+
+> 세부 규칙은 `CLAUDE.md` §코딩 원칙과 `docs/context/search-discipline.md` 를 따른다. 여기서는 작업을 시작하기 전에 반드시 지키는 최소 규약만 적는다.
+
+1. **핀셋 검색**: 검색 전 요청에서 키워드를 좁힌다 — 정확한 route/featureKey/컴포넌트/에러 텍스트/API 경로 → 동의어·별칭 → 호출 경로 순으로. 목적 없이 전체를 훑는 광범위한 탐색은 금지.
+2. **부정 단언 금지**: "없다 / 안 쓴다 / 호출되지 않는다"고 판단하려면 전수 검색 후 `검색 범위 + 키워드`와 함께 보고한다. 검색하지 않고 없다고 단정하지 않는다.
+3. **3면 grep은 반드시 `git grep`**: 삭제 예정 파일을 삼중 조사할 때 ripgrep은 `.ignore` 때문에 미러를 안 볼 수 있다. `git grep`으로 조회한다. 세부: `docs/context/search-discipline.md`.
+4. **반복 작업 금지**: 이미 읽은 파일·이미 확인한 사실은 재조회하지 않는다. 실패 시 처음부터 다시 돌지 말고 실패한 스크립트만 재실행한다.
+5. **탐색은 메인 대신 서브에이전트·병렬로**: 파일 위치 조회나 넓은 영역 훑기는 메인 컨텍스트를 아끼기 위해 서브에이전트(`.claude/agents/*`)에 위임할 수 있다. 단, 위임 결과는 컨텍스트로 가져올 필요가 있을 때만 요약본을 받는다.
+6. **최종 보고에 검색 좁힘 기록**: "어떤 키워드로 어디서 좁혔는가"를 한 줄로 남긴다. 재현 가능한 근거가 된다.
+
 ## Development Workflow
 
 🔴 **The top-level contract for *how* to work is `CLAUDE.md` §코딩 원칙 (1~13).** Where it disagrees with the procedural steps below, it wins. It is not duplicated here — read it there.
