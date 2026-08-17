@@ -281,6 +281,12 @@ const xRobotsNoindexHeaderPatterns = [
   "/secret-house_real.html",
   "/destiny-island.html",
   "/codedestiny-novel.html",
+  // 2026-08-17 추가 — AdSense 거절 대응 중 발견한 마지막 2개. 색인 신호가 전무했다
+  // (헤더 규칙 0 · 사이트맵 미등재 · robots meta 없음).
+  // 🔴 /ifa_oracle_v2_full 은 `/ifa-oracle*` 규칙이 하이픈이라 매칭에서 샜다 — 파일명과
+  //    규칙의 구분자가 다르면 `*` 로도 못 덮는다. 그래서 이름을 통째로 고정한다.
+  "/ifa_oracle_v2_full.html",
+  "/prompt-hub-3004.html",
 ];
 
 const sitemapRequiredRoutes = [
