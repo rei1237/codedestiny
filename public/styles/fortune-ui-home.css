@@ -1209,6 +1209,44 @@ html.neo-mode .dp-qp, body.neo-mode .dp-qp { --dp-qp-title: #e8d5a3; --dp-qp-sub
   0%, 100% { opacity: 0.5; letter-spacing: 4px; }
   50% { opacity: 1; letter-spacing: 8px; }
 }
+.dp-fsel-overlay { position: fixed; inset: 0px; z-index: 2050000; background: rgba(0, 0, 0, 0); display: flex; align-items: flex-end; justify-content: center; transition: background 0.32s; pointer-events: none; }
+.dp-fsel-overlay--in { background: rgba(4, 6, 18, 0.93); pointer-events: auto; }
+.dp-fsel-modal { position: relative; background: linear-gradient(160deg, rgba(10, 8, 30, 0.99), rgba(20, 10, 55, 0.99)); border: 1px solid rgba(255, 215, 0, 0.28); border-radius: 24px 24px 0px 0px; padding: 36px 24px 40px; width: 100%; max-width: 480px; max-height: 80dvh; overflow-y: auto; box-shadow: rgba(130, 60, 255, 0.28) 0px -8px 60px; transform: translateY(100%); transition: transform 0.38s cubic-bezier(0.22, 1, 0.36, 1); }
+.dp-fsel-overlay--in .dp-fsel-modal { transform: translateY(0px); }
+.dp-fsel-close-btn { position: absolute; top: 16px; right: 18px; z-index: 10; min-width: 44px; min-height: 44px; width: 44px; height: 44px; padding: 0px; border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 50%; background: rgba(255, 255, 255, 0.07); color: rgba(255, 255, 255, 0.4); font-size: 0.85rem; display: flex; align-items: center; justify-content: center; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; pointer-events: auto; }
+.dp-fsel-close-btn:active { background: rgba(255, 255, 255, 0.14); }
+.dp-fsel-profile { text-align: center; margin-bottom: 20px; }
+.dp-fsel-zodiac { display: block; font-size: 2.6rem; margin-bottom: 8px; filter: drop-shadow(rgba(255, 215, 0, 0.5) 0px 0px 12px); }
+.dp-fsel-pname { font-family: "Gowun Dodum", serif; font-size: 1.15rem; font-weight: 900; color: rgb(255, 255, 255); margin-bottom: 5px; }
+.dp-fsel-pdate { font-size: 0.78rem; color: rgba(200, 185, 255, 0.65); margin-bottom: 3px; }
+.dp-fsel-ploc { font-size: 0.72rem; color: rgba(180, 180, 220, 0.45); }
+.dp-fsel-divider { height: 1px; background: rgba(255, 215, 0, 0.15); margin: 18px 0px; }
+.dp-fsel-ask { font-family: "Gowun Dodum", serif; font-size: 0.88rem; color: rgba(220, 200, 255, 0.7); text-align: center; letter-spacing: 1px; margin-bottom: 20px; }
+.dp-fsel-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.dp-fsel-btn { display: flex; align-items: center; gap: 10px; padding: 14px 16px; background: rgba(255, 255, 255, 0.04); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 14px; cursor: pointer; touch-action: manipulation; -webkit-tap-highlight-color: transparent; transition: background 0.18s, border-color 0.18s, transform 0.12s; }
+.dp-fsel-btn:active { transform: scale(0.96); }
+.dp-fsel-btn-icon { font-size: 1.6rem; flex-shrink: 0; }
+.dp-fsel-btn-label { font-family: "Gowun Dodum", serif; font-size: 0.88rem; font-weight: 700; color: rgba(255, 255, 255, 0.8); white-space: nowrap; }
+.dp-fsel-btn--saju { border-color: rgba(255, 200, 50, 0.3); }
+.dp-fsel-btn--saju:hover { background: rgba(255, 200, 50, 0.1); border-color: rgba(255, 200, 50, 0.5); }
+.dp-fsel-btn--sukuyo { border-color: rgba(167, 139, 250, 0.3); }
+.dp-fsel-btn--sukuyo:hover { background: rgba(167, 139, 250, 0.1); border-color: rgba(167, 139, 250, 0.5); }
+.dp-fsel-btn--ziwei { border-color: rgba(232, 121, 249, 0.3); }
+.dp-fsel-btn--ziwei:hover { background: rgba(232, 121, 249, 0.1); border-color: rgba(232, 121, 249, 0.5); }
+.dp-fsel-btn--astro { border-color: rgba(167, 209, 255, 0.3); }
+.dp-fsel-btn--astro:hover { background: rgba(167, 209, 255, 0.1); border-color: rgba(167, 209, 255, 0.5); }
+.dp-fsel-btn--olympus { border-color: rgba(201, 168, 76, 0.3); }
+.dp-fsel-btn--olympus:hover { background: rgba(201, 168, 76, 0.12); border-color: rgba(201, 168, 76, 0.55); }
+.dp-fsel-btn--tarot { border-color: rgba(139, 92, 246, 0.35); }
+.dp-fsel-btn--tarot:hover { background: rgba(139, 92, 246, 0.12); border-color: rgba(139, 92, 246, 0.55); }
+.dp-fsel-btn--flower { border-color: rgba(244, 114, 182, 0.32); }
+.dp-fsel-btn--flower:hover { background: rgba(244, 114, 182, 0.11); border-color: rgba(244, 114, 182, 0.55); }
+.dp-fsel-btn--vedic { border-color: rgba(99, 176, 255, 0.3); }
+.dp-fsel-btn--vedic:hover { background: rgba(99, 176, 255, 0.1); border-color: rgba(99, 176, 255, 0.5); }
+.dp-fsel-btn--locked { opacity: 0.75; border-color: rgba(255, 255, 255, 0.15) !important; background: rgba(0, 0, 0, 0.18) !important; }
+.dp-fsel-btn--locked .dp-fsel-btn-icon { filter: grayscale(0.6); }
+.dp-fsel-btn--locked .dp-fsel-btn-label { color: rgba(255, 255, 255, 0.55); }
+.dp-fsel-btn-cost { display: block; font-size: 0.68rem; font-weight: 600; color: rgba(251, 191, 36, 0.82); margin-top: 2px; letter-spacing: 0.01em; }
 .glass-oracle-modal { position: relative; background: linear-gradient(135deg, rgb(26, 11, 46), rgb(45, 27, 78)); border-radius: 20px; padding: 24px; box-shadow: rgba(0, 0, 0, 0.6) 0px 10px 40px, rgba(139, 92, 246, 0.15) 0px 0px 30px inset; border: 1px solid rgba(139, 92, 246, 0.3); overflow: hidden; }
 .glass-oracle-modal::before { content: ""; position: absolute; inset: 0px; width: 100%; height: 100%; box-sizing: border-box; transform-origin: center center; background: radial-gradient(circle, rgba(139, 92, 246, 0.08) 0%, transparent 60%); animation: 25s linear 0s infinite normal none running rotateBgModal; pointer-events: none; z-index: 0; will-change: transform; }
 @keyframes rotateBgModal { 

@@ -111,6 +111,9 @@ try {
             name: "측정",
             gender: "F",
             birth: { year: 1990, month: 5, day: 14, hour: 9, minute: 30, calType: "solar" },
+            // 🔴 location.label 이 없으면 카드와 모달의 위치 줄(.dp-fsel-ploc 등)이 아예 렌더되지
+            //    않아 그 규칙이 조용히 부분집합에서 빠진다. 픽스처는 **분기를 다 켜는** 값이어야 한다.
+            location: { label: "서울특별시", tz: "Asia/Seoul", lat: 37.5665, lng: 126.978 },
           };
           localStorage.setItem("FORTUNE_APP_USER_PROFILES.list::guest", JSON.stringify([profile]));
           localStorage.setItem("FORTUNE_APP_USER_PROFILES.current::guest", "critical-css-fixture");
@@ -154,6 +157,40 @@ try {
     const found = await page.evaluate(collectMatchingRules);
     for (const row of found) if (!kept.has(row.text)) kept.set(row.text, row);
     console.log(`[critical-css] ${cell.name.padEnd(13)} matched ${String(found.length).padStart(5)} · union ${kept.size}`);
+
+    // 🔴 클릭해야 생기는 표면은 렌더 수확으로 영원히 발견되지 않는다.
+    //    운세 유형 선택 모달(.dp-fsel-*)이 정확히 그랬다 — 39규칙 전부가 지연 시트에만 남아,
+    //    홈에서 다른 기능 카드를 건드리지 않고 곧장 프로필 카드를 누른 모바일 사용자는
+    //    무스타일 블록이 문서 끝에 붙는 것만 보고(= 아무 일도 안 일어난 것처럼 보인다)
+    //    시트가 도착할 때까지 창을 못 봤다. 지연 로더의 최후 폴백이 45초다.
+    //    .dp-mc-* 카드 FOUC 와 같은 사고가 한 단계 깊은 곳에서 재발한 것이므로, 여기서 연다.
+    if (cell.profile) {
+      // page.click 이 아니라 el.click() 인 이유: 헤드리스에서 PWA 설치 배너 backdrop 이 탭 지점을
+      // 가리는 기존 문제가 있어(verify:mobile-cdp-smoke 의 알려진 실패) actionability 로 죽는다.
+      // 여는 경로 자체는 동일하다 — .dp-mc-load-btn 의 click 리스너가 dpLoadProfile 을 부른다.
+      await page.$eval(".dp-mc-load-btn", (el) => el.click());
+      await page.waitForSelector(".dp-fsel-overlay", { state: "attached", timeout: 15000 }).catch(() => {});
+      // 열림 상태 클래스는 다음 rAF 에 붙는다(js/destiny-profile.js). 그 상태 규칙도 필요하다.
+      await page.waitForFunction(() => !!document.querySelector(".dp-fsel-overlay--in"), null, { timeout: 15000 }).catch(() => {});
+      const modalOpen = await page.evaluate(() => !!document.querySelector(".dp-fsel-overlay--in"));
+      if (!modalOpen) {
+        throw new Error(
+          `[critical-css] ${cell.name}: .dp-mc-load-btn 을 눌렀는데 .dp-fsel-overlay--in 이 뜨지 않았다. ` +
+            "여는 경로(dpLoadProfile)나 클래스 이름이 바뀌었는지 확인할 것 — " +
+            "이대로 뽑으면 모달 규칙이 다시 지연 시트에 남아 모바일에서 창이 늦게 뜬다.",
+        );
+      }
+      const modalFound = await page.evaluate(collectMatchingRules, ".dp-fsel-overlay");
+      let added = 0;
+      for (const row of modalFound) {
+        if (kept.has(row.text)) continue;
+        kept.set(row.text, row);
+        added += 1;
+      }
+      console.log(
+        `[critical-css] ${`${cell.name}+fsel`.padEnd(13)} matched ${String(modalFound.length).padStart(5)} · new ${added} · union ${kept.size}`,
+      );
+    }
     await context.close();
   }
 } finally {
@@ -168,6 +205,7 @@ if (!kept.size) {
 
 const css = renderCss([...kept.values()].sort((a, b) => a.order - b.order));
 assertNoEmptyDeclarations(css);
+assertInteractionSurfacesPresent(css);
 console.log(`[critical-css] rules ${kept.size} · ${css.length} bytes`);
 
 if (dryRun) process.exit(0);
@@ -191,10 +229,16 @@ function argValue(name) {
  * 브라우저 안에서 돈다. fortune-ui.css 의 규칙을 훑어 이 문서에 매칭되는 것만 돌려준다.
  * 반환: [{ text, conditions: ["@media (...)", ...] }]
  */
-function collectMatchingRules() {
+function collectMatchingRules(scopeSelector) {
   // 🔴 "fortune-ui.css" 부분일치로 잡으면 우리가 만든 fortune-ui-home.css 까지 걸린다.
   const sheets = [...document.styleSheets].filter((sheet) => (sheet.href || "").includes("/styles/fortune-ui.css"));
   const out = [];
+  // scopeSelector 가 있으면 그 요소와 자손만 대상으로 삼는다(상호작용으로 생긴 표면 전용 수확).
+  // 🔴 fail-closed. 선택자가 안 맞을 때 문서 전체 수확으로 흘러내리면, 이름이 바뀐 것을 아무도
+  //    모른 채 부분집합만 조용히 불어난다(실측: 1,141 → 1,152 규칙, +1.5KB). 그래서 던진다.
+  const scopeRoot = scopeSelector ? document.querySelector(scopeSelector) : null;
+  if (scopeSelector && !scopeRoot) throw new Error(`[critical-css] 스코프 수확 대상이 없다: ${scopeSelector}`);
+  const scopeEls = scopeRoot ? [scopeRoot, ...scopeRoot.querySelectorAll("*")] : null;
   // 동적 의사클래스·의사요소는 querySelector 로 검사할 수 없다. 떼고 구조만 본다.
   const DYNAMIC = /::?(?:hover|focus|focus-visible|focus-within|active|checked|disabled|enabled|target|visited|link|placeholder-shown|user-invalid|invalid|valid|indeterminate|default|read-only|read-write|autofill|-webkit-[a-z-]+|-moz-[a-z-]+|before|after|marker|selection|backdrop|first-line|first-letter|placeholder|file-selector-button)\b(?:\([^()]*\))?/g;
 
@@ -208,11 +252,24 @@ function collectMatchingRules() {
   function selectorMatches(selectorText) {
     for (const part of selectorText.split(",")) {
       const probe = structural(part);
-      if (probe === null) return true;
+      // 🔴 판정 불가일 때의 기본값이 두 모드에서 반대다.
+      //    문서 전체 수확은 남긴다(빠지면 홈이 깨진다 — 주의 1).
+      //    스코프 수확은 버린다(남기면 홈과 무관한 규칙까지 부분집합에 끌려와,
+      //    부분집합의 존재 이유인 "매칭 후보 축소"가 무너진다). 버려도 전체 시트가 늦게 오므로
+      //    사라지는 게 아니다.
+      if (probe === null) {
+        if (scopeEls) continue;
+        return true;
+      }
       try {
-        if (document.querySelector(probe)) return true;
+        if (scopeEls) {
+          if (scopeEls.some((el) => el.matches(probe))) return true;
+        } else if (document.querySelector(probe)) {
+          return true;
+        }
       } catch (_) {
-        // 브라우저가 못 파싱하는 셀렉터는 판정 불가 — 남긴다.
+        // 브라우저가 못 파싱하는 셀렉터는 판정 불가.
+        if (scopeEls) continue;
         return true;
       }
     }
@@ -245,7 +302,9 @@ function collectMatchingRules() {
       //    처음엔 `!rule.cssRules` 인 것만 남겼다가, 자식을 가진 @keyframes 류가 통째로 빠져
       //    시각 파리티에서 transform 이 none 으로 죽고 #destinyFlowerStudioSheet 가 드러났다.
       //    모르는 at-규칙은 버리지 말고 그대로 내보내는 쪽이 항상 안전하다.
-      if (rule.cssText) out.push({ text: rule.cssText, conditions: conditions.slice(), order: seq });
+      //    단 스코프 수확에서는 건너뛴다 — 문서 전체 수확이 이미 **매칭과 무관하게** 전부 담으므로
+      //    여기서 또 담으면 잃는 것 없이 로그의 규칙 수만 부풀린다.
+      if (rule.cssText && !scopeEls) out.push({ text: rule.cssText, conditions: conditions.slice(), order: seq });
     }
   }
 
@@ -283,6 +342,30 @@ function assertNoEmptyDeclarations(css) {
   console.error(`[critical-css] 🔴 값이 빈 선언 ${hits.length}건: ${uniq.join(", ")}`);
   console.error("  CSSOM 이 되돌려 쓰지 못하는 단축속성이 원인이다(env()/var() 를 담은 padding·margin 등).");
   console.error("  산출물이 아니라 **소스 시트**를 롱핸드로 고칠 것. 예: styles/fortune-ui.css 의 .wrap");
+  process.exit(1);
+}
+
+/**
+ * 🔴 상호작용으로만 생기는 표면의 규칙이 산출물에서 빠지면 **실패한다.**
+ *
+ * 왜 가드가 필요한가 — 이 스크립트의 수확은 "렌더된 문서에 매칭되는 규칙"이라, 클릭해야
+ * 만들어지는 DOM 은 원리상 발견되지 않는다. 그래서 운세 유형 선택 모달(.dp-fsel-*)의 39규칙이
+ * 통째로 지연 시트에만 남았고, 모바일에서 프로필 카드를 눌러도 창이 한참 안 뜨는 버그가 됐다.
+ * 위 셀 루프가 모달을 실제로 열어 수확하지만, 그 코드가 조용히 무력화되면(선택자 변경·타임아웃)
+ * 산출물만 예전 모습으로 돌아가고 아무도 모른다. 그래서 결과물을 직접 단언한다.
+ *
+ * 🔴 손으로 쓴 선택자 목록이 아니라 **여는 경로가 실재함이 이미 위에서 단언된** 표면만 적는다.
+ *    새 상호작용 표면을 부분집합에 넣었으면 여기에도 함께 넣는다(CLAUDE.md 코딩 원칙 10).
+ */
+function assertInteractionSurfacesPresent(css) {
+  // .dp-fsel-ploc 은 프로필에 location.label 이 있을 때만 렌더된다 — 픽스처가 그 분기를 끄면
+  // 조용히 빠지므로 여기서 함께 잡는다(실제로 첫 수확에서 이것만 빠졌다).
+  const REQUIRED = [".dp-fsel-overlay", ".dp-fsel-modal", ".dp-fsel-btn", ".dp-fsel-ploc"];
+  const missing = REQUIRED.filter((token) => !css.includes(token));
+  if (!missing.length) return;
+  console.error(`[critical-css] 🔴 상호작용 표면 규칙이 산출물에 없다: ${missing.join(", ")}`);
+  console.error("  셀 루프의 모달 수확(.dp-mc-load-btn 클릭 → .dp-fsel-overlay)이 실제로 돌았는지 확인할 것.");
+  console.error("  이대로 쓰면 모바일에서 프로필 카드를 눌러도 창이 지연 시트 도착까지 안 뜬다.");
   process.exit(1);
 }
 
