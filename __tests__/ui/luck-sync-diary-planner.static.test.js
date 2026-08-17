@@ -23,7 +23,10 @@ test("fortune planner entry is folded into the diary modal", () => {
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);
   assert.match(html, /id="cdDiaryPlannerEntry"[\s\S]*data-action="openLuckSyncDiary"/);
   assert.match(html, /id="cdDiaryPlannerTitle">운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
-  assert.ok(html.indexOf('id="cdSignatureConsult"') < html.indexOf('id="cdDiaryPlannerEntry"'));
+  // 홈 축약(cd-home-secondary-v20260817) 이후 대표 상담은 무료 사주 폼 뒤로 내려갔고,
+  // 다이어리 진입은 접힌 섹션 안에 남는다 — 지운 것이 아니라 감춘 것임을 여기서 못박는다.
+  assert.match(html, /<section data-cd-home-secondary class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
+  assert.ok(html.indexOf('id="destinyCardForm"') < html.indexOf('id="cdSignatureConsult"'));
   assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="fortuneGatewayEntry"'));
   assert.match(html, /cdDiaryPlannerEntry'\) \|\| document\.getElementById\('cdSignatureConsult'/);
   assert.match(dashboard, /label:'갓생 다이어리'/);

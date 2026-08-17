@@ -1284,7 +1284,9 @@
       "lead": "Tarot, oracles, méditation, rapports premium — cherchez ou ouvrez les collections ci-dessous.",
       "placeholder": "Rechercher (ex. : tarot, compatibilité, rêve)",
       "searchAria": "Rechercher tous les services",
-      "empty": "Aucun résultat. Essayez un autre mot-clé."
+      "empty": "Aucun résultat. Essayez un autre mot-clé.",
+      "expandCta": "Afficher toutes les sections repliées de l'accueil",
+      "collapseCta": "Replier ces sections"
     },
     "todayHub": {
       "title": "La fortune du jour",

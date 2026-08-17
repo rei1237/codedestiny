@@ -1284,7 +1284,9 @@
       "lead": "Tarot, thần dụ, thiền, báo cáo cao cấp — tìm kiếm hoặc mở các bộ sưu tập bên dưới.",
       "placeholder": "Tìm dịch vụ (vd: tarot, hợp đôi, giấc mơ)",
       "searchAria": "Tìm mọi dịch vụ",
-      "empty": "Không có kết quả. Hãy thử từ khóa khác."
+      "empty": "Không có kết quả. Hãy thử từ khóa khác.",
+      "expandCta": "Hiện tất cả các mục đã thu gọn ở trang chủ",
+      "collapseCta": "Thu gọn lại các mục đó"
     },
     "todayHub": {
       "title": "Vận trình hôm nay",

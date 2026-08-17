@@ -1284,7 +1284,9 @@
       "lead": "Tarot, oracles, meditation, premium reports — search or open the collections below.",
       "placeholder": "Search services (e.g. tarot, match, dream)",
       "searchAria": "Search all services",
-      "empty": "No results. Try another keyword."
+      "empty": "No results. Try another keyword.",
+      "expandCta": "Show everything folded away on the home page",
+      "collapseCta": "Fold those sections back"
     },
     "todayHub": {
       "title": "Today's Fortune",

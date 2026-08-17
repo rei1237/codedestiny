@@ -1284,7 +1284,9 @@
       "lead": "Tarot, Orakel, Meditation, Premium-Berichte — suche oder öffne die Sammlungen unten.",
       "placeholder": "Dienste suchen (z. B. Tarot, Partnerschaft, Traum)",
       "searchAria": "Alle Dienste durchsuchen",
-      "empty": "Keine Ergebnisse. Versuche ein anderes Stichwort."
+      "empty": "Keine Ergebnisse. Versuche ein anderes Stichwort.",
+      "expandCta": "Alle auf der Startseite eingeklappten Bereiche zeigen",
+      "collapseCta": "Bereiche wieder einklappen"
     },
     "todayHub": {
       "title": "Das Tagesorakel",

@@ -1284,7 +1284,9 @@
       "lead": "Tarot, orakels, meditatie, premium rapporten — zoek of open de collecties hieronder.",
       "placeholder": "Diensten zoeken (bijv. tarot, match, droom)",
       "searchAria": "Alle diensten zoeken",
-      "empty": "Geen resultaten. Probeer een ander trefwoord."
+      "empty": "Geen resultaten. Probeer een ander trefwoord.",
+      "expandCta": "Toon alle op de homepage ingeklapte secties",
+      "collapseCta": "Klap die secties weer in"
     },
     "todayHub": {
       "title": "Het fortuin van vandaag",

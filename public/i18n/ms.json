@@ -1284,7 +1284,9 @@
       "lead": "Tarot, orakel, meditasi, laporan premium — cari atau buka koleksi di bawah.",
       "placeholder": "Cari perkhidmatan (cth: tarot, keserasian, mimpi)",
       "searchAria": "Cari semua perkhidmatan",
-      "empty": "Tiada hasil. Cuba kata kunci lain."
+      "empty": "Tiada hasil. Cuba kata kunci lain.",
+      "expandCta": "Tunjukkan semua bahagian yang dilipat di laman utama",
+      "collapseCta": "Lipat semula bahagian tersebut"
     },
     "todayHub": {
       "title": "Nasib hari ini",

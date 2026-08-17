@@ -1284,7 +1284,9 @@
       "lead": "Tarot, oráculos, meditación, informes premium: busca o abre las colecciones de abajo.",
       "placeholder": "Buscar servicios (ej.: tarot, compatibilidad, sueño)",
       "searchAria": "Buscar todos los servicios",
-      "empty": "Sin resultados. Prueba otra palabra clave."
+      "empty": "Sin resultados. Prueba otra palabra clave.",
+      "expandCta": "Mostrar todas las secciones plegadas en el inicio",
+      "collapseCta": "Volver a plegar las secciones"
     },
     "todayHub": {
       "title": "La fortuna de hoy",

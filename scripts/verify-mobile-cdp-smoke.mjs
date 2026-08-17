@@ -116,6 +116,9 @@ try {
   // 리디자인에도 살아남는 불변식은 "카드가 주 CTA 를 덮고 올라오지 않는다"이다.
   if (!focusAllFortunes) {
     assert(initial.membershipBelowPrimaryCta, "membership guidance begins below the primary CTA", initial);
+    // 홈 축약(cd-home-secondary-v20260817): 이용권 안내는 첫 구매 결정을 방해하지 않도록
+    // 첫 화면에서 접혀 있어야 한다. 지운 것이 아니라 "모두 펼치기"로 되찾을 수 있다.
+    assert(initial.membershipFolded, "membership guidance stays folded on first view", initial);
   }
   assert(initial.noHorizontalOverflow, "no horizontal overflow", initial);
   assert(initial.audioVideoCount === 0, "home has no initial audio/video elements", initial);
@@ -298,16 +301,27 @@ try {
 
   if (!focusAllFortunes) {
   await tapSelector(cdp, ".moon-hero__cta--primary[href=\"#cdConcernPick\"]");
-  // 단일 반응형 홈의 주 CTA는 고민 선택 블록으로 내려간다(문서 전환 없음). 해시 반영은 짧은 폴링이 안정적이다.
-  let afterPrimaryTap = { hash: "" };
+  // 단일 반응형 홈의 주 CTA는 고민 선택 블록으로 내려간다(문서 전환 없음). 히어로 스크립트가
+  // preventDefault 후 스무스 스크롤하므로 해시가 아니라 **실제 위치**로 재야 한다 — 해시로 재면
+  // 스크롤이 정상이어도 틀리게 실패한다. 스무스 스크롤 완료까지 짧은 폴링이 안정적이다.
+  let afterPrimaryTap = { top: null, inView: false };
   for (let i = 0; i < 12; i += 1) {
     await delay(250);
-    afterPrimaryTap = await evaluate(cdp, "({ hash: location.hash })", "after primary CTA tap");
-    if (afterPrimaryTap.hash === "#cdConcernPick") break;
+    afterPrimaryTap = await evaluate(
+      cdp,
+      `(() => {
+        const el = document.getElementById('cdConcernPick');
+        if (!el) return { top: null, inView: false };
+        const r = el.getBoundingClientRect();
+        return { top: Math.round(r.top), inView: r.top < innerHeight * 0.5 && r.bottom > 0 };
+      })()`,
+      "after primary CTA tap",
+    );
+    if (afterPrimaryTap.inView) break;
   }
   assert(
-    afterPrimaryTap.hash === "#cdConcernPick",
-    "primary CTA jumps to the concern picker",
+    afterPrimaryTap.inView,
+    "primary CTA scrolls the concern picker into view",
     afterPrimaryTap,
   );
 
@@ -529,6 +543,18 @@ try {
   if (!focusAllFortunes) {
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
   await navigate(cdp, `http://127.0.0.1:${server.port}/index.html`);
+  // 홈 축약(cd-home-secondary-v20260817) 이후 이용권 섹션은 첫 화면에서 접혀 있다.
+  // 가드를 낮추지 않고, 사용자와 같은 경로("모두 펼치기")로 먼저 펼친 뒤에 잰다.
+  await dismissCookieConsent(cdp);
+  await tapSelector(cdp, "#cdHomeExpandToggle");
+  await delay(400);
+  const homeExpandedState = await evaluate(
+    cdp,
+    "({ expanded: document.documentElement.classList.contains('cd-home-expanded') })",
+    "home expanded after toggle",
+  );
+  assert(homeExpandedState.expanded === true, "home expand toggle reveals the folded sections", homeExpandedState);
+
   // 🔴 첫 매치를 그냥 집으면 안 된다. 이 섹션에는 benefits CTA 가 둘 있고, 앞의
   // .honey-membership-mini__hero 는 모바일에서 display:none 이다(index.html 의
   // "#honeyMembershipMini .honey-membership-mini__hero{display:none!important}").
@@ -560,6 +586,7 @@ try {
   })()`, "membership benefits button state");
   assert(membershipButtonState.exists && membershipButtonState.visible && membershipButtonState.action === "benefits", "mobile membership benefits button is visible and action-wired", membershipButtonState);
 
+  await dismissCookieConsent(cdp);
   await tapSelector(cdp, '#honeyMembershipMini [data-cdp-benefits-target="1"]');
   let membershipBenefitsDestination = { pathname: "", search: "" };
   for (let i = 0; i < 12; i += 1) {
@@ -605,7 +632,7 @@ try {
       console.log("Mobile CDP smoke OK");
       console.log("- Viewport: 412x823");
       if (!focusAllFortunes) {
-        console.log("- Primary CTA jumps to the concern picker: OK");
+        console.log("- Primary CTA scrolls the concern picker into view: OK");
         console.log("- Tarot touch: OK");
         console.log("- Bottom nav 5-tab tarot touch: OK");
         console.log("- Membership benefits CTA routes to the pass guide: OK");
@@ -1133,6 +1160,26 @@ async function waitForSelector(cdp, selector, timeoutMs) {
   }
 }
 
+// 쿠키 동의 배너는 부팅 몇 초 뒤에 뜨고 하단에 고정되므로, 그때 화면 아래쪽을 노리는 탭 좌표를
+// 통째로 덮는다. 어떤 요소가 덮이는지는 스크롤 위치에 따라 달라지므로 특정 탭만의 문제가 아니다.
+// 가드를 낮추는 대신, 사용자와 같은 방법("필수만 허용")으로 닫고 나서 잰다.
+async function dismissCookieConsent(cdp) {
+  const state = await evaluate(
+    cdp,
+    `(() => {
+      const banner = document.getElementById('cdCookieConsent');
+      if (!banner || banner.getAttribute('aria-hidden') === 'true') return { present: false, dismissed: false };
+      const btn = document.getElementById('cdCookieEssentialBtn');
+      if (!btn) return { present: true, dismissed: false };
+      btn.click();
+      return { present: true, dismissed: true };
+    })()`,
+    "dismiss cookie consent",
+  );
+  if (state.dismissed) await delay(250);
+  return state;
+}
+
 async function tapSelector(cdp, selector) {
   let box = await evaluate(cdp, selectorBoxExpression(selector));
   if (!box.exists || !box.visible) {
@@ -1363,7 +1410,12 @@ function mobileStateExpression() {
       bottomNavMainKeys: mainNavItems.map((node) => node.getAttribute('data-nav-key')),
       bottomNavQuickHidden: !!quickRail && (quickRail.hidden || quickStyle.display === 'none' || quickStyle.visibility === 'hidden'),
       languageDropdownClosed: !!langDropdown && langDropdown.getAttribute('aria-hidden') === 'true' && langStyle.display === 'none' && visibleLangButtons.length === 0,
-      membershipBelowPrimaryCta: !!membershipRect && !!ctaRect && membershipRect.top >= ctaRect.bottom,
+      // 홈 축약 이후 이용권 안내는 첫 화면에서 접혀 있다(display:none → 사각형이 0). 접힌 것도
+      // "주 CTA 를 가리지 않는다"는 원래 계약을 만족하므로 통과시키되, 접힘 여부를 따로 싣는다.
+      membershipFolded: !!membership && getComputedStyle(membership).display === 'none',
+      membershipBelowPrimaryCta:
+        (!!membership && getComputedStyle(membership).display === 'none') ||
+        (!!membershipRect && !!ctaRect && membershipRect.top >= ctaRect.bottom),
       membershipRect: membershipRect ? { top: Math.round(membershipRect.top), bottom: Math.round(membershipRect.bottom) } : null,
       audioVideoCount: document.querySelectorAll('audio,video').length,
       bodyClass: document.body.className,
