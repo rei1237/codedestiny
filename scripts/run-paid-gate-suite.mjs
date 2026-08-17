@@ -84,6 +84,7 @@ const SUITE = [
   { run: "npm run verify:checkout-auth-recovery", why: "결제 POST(checkout·confirm)의 401 리프레시 복구 계약 — fetchJsonWithAuth 본문을 실제로 구동해 같은 키·같은 body 1회 재전송(이중 주문 금지)과 coin-gate 제외, 확정 401 의 로그인 모달 종단, PR #470 단일비행 바이패스 회귀까지 실행으로 확인한다." },
   { run: "npm run verify:direct-confirm-pending-recovery", why: "승인 후 복구 계약 — 복귀 티켓 수명과 202 PENDING_CONFIRMATION 이 '결제가 완료되지 않았어요'(재결제 유도)로 세탁되지 않는 분기를 브레이스 균형 슬라이스로 7셸+dp 에서 고정한다." },
   { run: "npm run verify:paid-feature-common-flow", why: "유료 기능 공통 플로우." },
+  { run: "npm run verify:paid-gate-price-coverage", why: "결제창 '0원' 회귀 방지. 9bc21abc6 이 호출부 3곳에서 cost 를 지웠는데 가드 36개 중 하나도 울지 않았다 — 전부 '공통 게이트를 쓰는가'만 보고 '그 게이트가 가격을 푸는가'는 아무도 안 봤다. 결과는 단건 0원 + 월정석 카드 영구 비활성이었다. 이 가드는 호출부를 전수 발견해 출하되는 해석기로 실제 실행해 본다." },
   { run: "npm run verify:static-paid-gate-failsafe", why: "정적 셸 유료 게이트 페일세이프." },
   { run: "npm run verify:saju-unlock-entitlement-regression", why: "배선이 없던 시절 결제창 문구가 재작성된 뒤 깨진 채로 방치됐고, 아무도 알아채지 못했다." },
   { run: "npm run verify:profile-card-action-policy", why: "프로필 카드 액션 정책." },

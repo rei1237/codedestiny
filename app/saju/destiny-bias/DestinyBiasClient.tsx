@@ -42,6 +42,7 @@ import { normalizeBirthDateInput } from "./engine/birthEnergy";
 import { downloadSvg } from "./utils/downloadSvg";
 import { buildPngBlobFromDestinyBiasCard, downloadPngFromSvg } from "./utils/downloadPngFromSvg";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 
 const DESTINY_BIAS_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
@@ -90,7 +91,13 @@ function destinyBiasClientText(key: keyof typeof DESTINY_BIAS_CLIENT_TEXT_TRANSL
   return DESTINY_BIAS_CLIENT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
 
-const DEFAULT_ANALYZE_COST = 50;
+const ANALYZE_FEATURE_KEY = "destiny-bias-analyze";
+const ANALYZE_CATEGORY_KEY = "destiny-bias";
+const ANALYZE_REASON = "최애운명 분석";
+// 가격은 서버 가격표에서 읽는다. 정본: worker/lib/paid-feature-registry.js → destiny-bias-analyze = 50코인 / 5,000원
+const ANALYZE_PRICING = resolveServerFeaturePricing({ featureKey: ANALYZE_FEATURE_KEY });
+const DEFAULT_ANALYZE_COST = ANALYZE_PRICING?.cost ?? 0;
+const DEFAULT_ANALYZE_AMOUNT_KRW = ANALYZE_PRICING?.amountKRW ?? 0;
 const MAX_BIAS_IMAGE_SIZE_MB = 12;
 
 const BIAS_MOODS = ["청량", "카리스마", "몽환", "러블리", "시크", "힐링"] as const;
@@ -670,18 +677,23 @@ export default function DestinyBiasClient() {
     try {
       const requestId = `destiny-bias:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
       openPaidFeatureGate({
-        categoryKey: "destiny-bias",
-        featureKey: "destiny-bias-analyze",
+        categoryKey: ANALYZE_CATEGORY_KEY,
+        featureKey: ANALYZE_FEATURE_KEY,
         requestId,
         cost: DEFAULT_ANALYZE_COST,
         message: destinyBiasClientText("destinyBiasClient.message.002"),
       });
 
+      // 🔴 가격을 게이트에 함께 넘긴다. 빼면 결제창이 0원으로 뜨고 월정석 카드가 비활성이 된다
+      //    (결제창은 coinPrice 를 그대로 렌더하고 월정석 비용은 coinPrice*10 이다).
       let coinGateResult = await runBillingCoinGate({
-        categoryKey: "destiny-bias",
-        featureKey: "destiny-bias-analyze",
-        reason: "최애운명 분석",
+        categoryKey: ANALYZE_CATEGORY_KEY,
+        featureKey: ANALYZE_FEATURE_KEY,
+        reason: ANALYZE_REASON,
         requestId,
+        cost: DEFAULT_ANALYZE_COST,
+        coinPrice: DEFAULT_ANALYZE_COST,
+        amountKRW: DEFAULT_ANALYZE_AMOUNT_KRW,
       });
 
       if (!coinGateResult.ok) {
@@ -694,10 +706,13 @@ export default function DestinyBiasClient() {
         if (shouldRetryOnce) {
           await sleep(450);
           coinGateResult = await runBillingCoinGate({
-            categoryKey: "destiny-bias",
-            featureKey: "destiny-bias-analyze",
-            reason: "최애운명 분석",
+            categoryKey: ANALYZE_CATEGORY_KEY,
+            featureKey: ANALYZE_FEATURE_KEY,
+            reason: ANALYZE_REASON,
             requestId,
+            cost: DEFAULT_ANALYZE_COST,
+            coinPrice: DEFAULT_ANALYZE_COST,
+            amountKRW: DEFAULT_ANALYZE_AMOUNT_KRW,
           });
         }
       }

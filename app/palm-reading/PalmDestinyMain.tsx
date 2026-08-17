@@ -17,6 +17,7 @@ import PalmLineOverlay, {
 import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
+import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 
 const PALM_DESTINY_TEXT_TRANSLATIONS = {
   ko: {
@@ -302,6 +303,14 @@ const DEFAULT_ANALYSIS_PURPOSE: AnalysisPurpose = "general";
 // worker/lib/billing-feature-registry.js 에 존재한 적이 없다(가격 조회가 빈다).
 // UI 가 purpose 를 general 로 고정해 두어 드러나지 않았을 뿐인 잠재 결함이라 여기서 정리한다.
 const PALM_BILLING_SUB_FEATURE_KEY = "general";
+const PALM_BILLING_CATEGORY_KEY = "palm-reading";
+// 가격 정본은 서버 카테고리 표다(palm-reading.general → palm-reading-general = 100코인 / 10,000원).
+// featureKey 가 아니라 categoryKey+subFeatureKey 로 풀리는 유일한 React 유료 경로라, 하위키가
+// 어긋나면 여기서 null 이 되어 결제창이 0원으로 뜬다.
+const PALM_BILLING_PRICING = resolveServerFeaturePricing({
+  categoryKey: PALM_BILLING_CATEGORY_KEY,
+  subFeatureKey: PALM_BILLING_SUB_FEATURE_KEY,
+});
 
 const DOMINANT_HAND_OPTIONS: Array<{ value: DominantHand; label: string }> = [
   { value: "right", label: palmDestinyText("palmDestiny.label.005") },
@@ -2326,12 +2335,16 @@ export default function PalmDestinyMain() {
         return;
       }
 
-      setSubmitMessage("분석 결과를 확인했습니다. 이용권을 확인하고 있습니다...");
+      setSubmitMessage("분석 결과를 확인했습니다. 결제를 확인하고 있습니다...");
       const coinGateResult = await runBillingCoinGate({
-        categoryKey: "palm-reading",
+        categoryKey: PALM_BILLING_CATEGORY_KEY,
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
         payloadHash: `${requestSignature}:charge`,
+        // 카테고리 표로도 풀리지만 명시해 둔다 — 결제창 금액의 근거를 호출부에서 읽을 수 있게.
+        cost: PALM_BILLING_PRICING?.cost,
+        coinPrice: PALM_BILLING_PRICING?.cost,
+        amountKRW: PALM_BILLING_PRICING?.amountKRW,
       });
 
       if (!coinGateResult.ok) {

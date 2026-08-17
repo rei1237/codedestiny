@@ -54,7 +54,10 @@ const deepVerificationRules = [
 
   // ── 결제·권한
   [/^worker\/routes\/(payments|billing|access|app-store)\.js$/i, "결제·권한 라우트"],
-  [/^worker\/lib\/(portone|billing-policy|paid-feature-registry|content-unlocks|nakshatra-paid-access|profile-card-mutation-policy)\.js$/i, "결제 정책 정본"],
+  // billing-feature-registry 는 (categoryKey, subFeatureKey) → featureKey 매핑과 reason 해석 체인을
+  // 소유한다 — 서버 coin-gate 와 React 결제창이 같은 함수(getBillingFeaturePricing)로 가격을 푸는 지점이라
+  // 여기가 바뀌면 표시가와 청구액이 동시에 움직인다. 목록에 없어서 deepRequired 가 아니었다.
+  [/^worker\/lib\/(portone|billing-policy|paid-feature-registry|billing-feature-registry|content-unlocks|nakshatra-paid-access|profile-card-mutation-policy)\.js$/i, "결제 정책 정본"],
   [/^lib\/payment\//i, "결제 클라이언트"],
   [/^app\/_lib\/billing-client\.ts$/i, "React 결제 게이트"],
   [/^app\/hooks\/useCoinGate\.ts$/i, "단건 결제 훅"],
