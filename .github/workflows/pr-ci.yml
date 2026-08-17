@@ -208,6 +208,13 @@ jobs:
         if: needs.classify.outputs.runs_build == 'true'
         run: npm run verify:editor-notes
 
+      # /fortune/{period}/{sign} 96개가 기간마다 실제로 다른 글을 내보내는지 본다.
+      # 소스에서 sign 을 전수 발견하므로 sign 을 늘리고 기간 문안을 빠뜨리면 여기서 걸린다.
+      # out/ 을 읽지 않으므로 빌드 앞에 두어도 되지만, 같은 성격의 SEO 가드끼리 모아 둔다.
+      - name: Verify fortune period axis
+        if: needs.classify.outputs.runs_build == 'true'
+        run: npm run verify:fortune-period-axis
+
       # 번들 1MB 제한과 문법 오류를 업로드 없이 잡는다(--dry-run 은 아무것도 올리지 않는다).
       - name: Build Worker bundle (dry run)
         if: needs.classify.outputs.runs_build == 'true'

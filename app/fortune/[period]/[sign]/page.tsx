@@ -17,6 +17,7 @@ import {
   buildWebPageJsonLd,
 } from "@/lib/structured-data";
 import { buildSignViewModel } from "@/lib/fortune/build-view";
+import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import { FORTUNE_PERIOD_IDS, PERIOD_LABEL, PERIOD_TITLE, isFortunePeriodId } from "@/lib/fortune/periods";
 import { SIGN_PROFILES, getSignProfile } from "@/lib/fortune/sign-profiles";
 import SignFortuneView from "./SignFortuneView";
@@ -103,7 +104,7 @@ export default function SignFortunePage({ params }: { params: { period: string; 
     { name: `${PERIOD_LABEL[vm.period]} ${kindLabel} 운세`, path: `/fortune/${vm.period}` },
     { name: vm.profile.nameKo, path: seo.path },
   ]);
-  const faqJsonLd = buildFaqPageJsonLd(vm.profile.faqs);
+  const faqJsonLd = buildFaqPageJsonLd(buildPeriodFaqs(vm.profile, vm.period));
 
   return (
     <>
