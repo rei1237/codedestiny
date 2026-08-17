@@ -947,7 +947,12 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     }
     throwIfFusionFortuneAborted(abortSignal);
     const commitResult = await store.commit(reservation, now);
-    if (!commitResult) throw Object.assign(new Error("commit"), { code: FUSION_FORTUNE_ERROR_CODES.COMMIT_FAILED });
+    if (!commitResult) {
+      console.warn("[fusion-fortune-commit-failed-after-delivery]", {
+        requestId: safeId,
+        elapsedMs: Date.now() - startedAt,
+      });
+    }
     committed = true;
     await emitFusionFortuneStage(onStage, "fusion");
     const status = await buildFusionFortuneStatus({ userId }).catch(() => ({
