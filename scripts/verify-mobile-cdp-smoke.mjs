@@ -297,17 +297,17 @@ try {
   }
 
   if (!focusAllFortunes) {
-  await tapSelector(cdp, ".moon-hero__cta--primary[href=\"/codedestiny-novel.html\"]");
-  // 단일 반응형 홈의 주 CTA는 운명 여정으로 이동한다. 정적 셸의 문서 전환은 고정 대기보다 짧은 폴링이 안정적이다.
-  let afterPrimaryTap = { pathname: "" };
+  await tapSelector(cdp, ".moon-hero__cta--primary[href=\"#destinyCardForm\"]");
+  // 단일 반응형 홈의 주 CTA는 무료 사주 입력폼으로 내려간다(문서 전환 없음). 해시 반영은 짧은 폴링이 안정적이다.
+  let afterPrimaryTap = { hash: "" };
   for (let i = 0; i < 12; i += 1) {
     await delay(250);
-    afterPrimaryTap = await evaluate(cdp, "({ pathname: location.pathname })", "after primary CTA tap");
-    if (afterPrimaryTap.pathname.indexOf("/codedestiny-novel.html") === 0) break;
+    afterPrimaryTap = await evaluate(cdp, "({ hash: location.hash })", "after primary CTA tap");
+    if (afterPrimaryTap.hash === "#destinyCardForm") break;
   }
   assert(
-    afterPrimaryTap.pathname.indexOf("/codedestiny-novel.html") === 0,
-    "primary CTA opens the destiny journey",
+    afterPrimaryTap.hash === "#destinyCardForm",
+    "primary CTA jumps to the free saju form",
     afterPrimaryTap,
   );
 
@@ -605,7 +605,7 @@ try {
       console.log("Mobile CDP smoke OK");
       console.log("- Viewport: 412x823");
       if (!focusAllFortunes) {
-        console.log("- Primary CTA opens the destiny journey: OK");
+        console.log("- Primary CTA jumps to the free saju form: OK");
         console.log("- Tarot touch: OK");
         console.log("- Bottom nav 5-tab tarot touch: OK");
         console.log("- Membership benefits CTA routes to the pass guide: OK");
@@ -1335,7 +1335,7 @@ function mobileStateExpression() {
   return `(() => {
     const home = document.querySelector('#inputPage');
     const nav = document.querySelector('#cdMobileBottomNav');
-    const cta = document.querySelector('.moon-hero__cta--primary[href="/codedestiny-novel.html"]');
+    const cta = document.querySelector('.moon-hero__cta--primary[href="#destinyCardForm"]');
     const quickRail = document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__quick');
     const mainNavItems = Array.from(document.querySelectorAll('#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key]'));
     const langDropdown = document.querySelector('#langDropdown');

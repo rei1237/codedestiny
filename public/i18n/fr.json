@@ -1225,7 +1225,7 @@
       "neoLogoAlt": "Logo du mode Néo"
     },
     "hero2": {
-      "title": "Les experts qui lisent votre destin le plus profondément",
+      "title": "Ne vous fiez pas à une seule lecture",
       "lead": "La sagesse d'Orient et d'Occident rencontre l'expertise pour interpréter votre histoire.",
       "primaryCta": "✦ Commencer gratuitement",
       "journeyCta": "✦ Commencez votre voyage du destin"
@@ -6382,7 +6382,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Le chemin de la lecture des étoiles",
-        "kbm4p3d": "Nous relions Quatre Piliers, Zi Wei Dou Shu, Sukuyo, astrologie et tarot à votre question, puis les réunissons en une lecture fusionnée qui clarifie le choix du jour."
+        "kbm4p3d": "Nous lisons séparément les Quatre Piliers, le Zi Wei Dou Shu, l'astrologie védique, le Sukuyo, l'astrologie occidentale et le tarot, puis nous vérifions s'ils désignent le même point."
       }
     },
     "premiumVvipCollection": {
@@ -6733,7 +6733,7 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "✦ Voir ma lecture fusionnée"
+        "kerryje": "Qu'est-ce que Fusion Fortune ?"
       }
     },
     "cdTodayPanelSaju": {
