@@ -195,11 +195,25 @@ noindex 만 걸고 `app/components/adsense-route-policy.js` 를 그대로 두면
 `verify-adsense-readiness.mjs:186 xRobotsNoindexHeaderPatterns` 계약 목록에 2개 추가.
 검증에 `npm run build:cf` 전체가 필요하다. **미조치 — 별도 PR 로 남긴다.**
 
-### 4-2c. `_headers` 는 famous-saju 에 쓸 수 없다 (헛수고 방지)
+### 4-2c. 🔴 워커가 가로채는 경로에서도 `_headers` 는 **적용된다** (초판 정정)
 
 `public/_routes.json:8` 이 `/insights/famous-saju/*` 를 Worker(`public/_worker.js`)로 보낸다.
-Cloudflare `_headers` 는 **Worker 응답을 장식하지 않으므로** 그 접두사에 헤더 규칙을 넣어도 무동작이다.
-그쪽 noindex 는 `app/insights/famous-saju/[slug]/page.tsx:79-94` 의 페이지 metadata 가 유일한 레버다.
+여기서 "그러니 `_headers` 가 안 먹는다"고 추론하기 쉽고 **이 문서 초판이 실제로 그렇게 적었다가
+정정했다.** 레포에 라이브 실측이 이미 있다
+([seo-naver-diagnostic-2026-08-16.md](seo-naver-diagnostic-2026-08-16.md) §1):
+
+```
+curl -sI /fortune/sikojen-povailu/  → x-robots-tag: noindex, nofollow
+```
+> `/fortune/*` 와 `/insights/famous-saju/*` 를 `_routes.json` 에 넣어도 헤더를 잃지 않는다.
+
+다만 **헤더만 믿지는 않는다** — `scripts/verify-redirects-budget.mjs:209-259` 가
+*"`public/_headers` 에 noindex 규칙이 있는 경로는 HTML 에도 `<meta name="robots" … noindex>` 가
+있어야 한다"* 를 강제한다. 헤더는 배포 설정 하나가 바뀌면 통째로 사라지지만 meta 는 산출물에
+박혀 있기 때문이다.
+
+**→ 정적 셸의 noindex 는 `_headers` + HTML meta 쌍으로 넣는다.** 다만 `_headers` 예산이 94/100
+이라 무한정 쓸 수 없고, App Router 라우트는 여전히 metadata `robots` 가 맞다(비용 0).
 
 ### 4-3. 홈 `/` 이 광고 차단 목록에 있다
 `app/components/adsense-route-policy.js:4`. 승인 후 홈 광고 인벤토리가 0이 된다.
