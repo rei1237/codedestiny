@@ -30,6 +30,17 @@
 
   min-height: 100vh;
   background:
+    /* 우주색(거의 검은 남색) 위에 아주 희미한 별빛을 뿌린다. 인수인계 문서 §3.3 의
+       "거의 검은 남색 + 우주색" 통일을 CSS 만으로 구현한다 — 새 이미지 에셋 없이,
+       기능·결과 구조·여섯 체계 프레임은 그대로 둔 채 분위기만 우주로 끌어올린다. */
+    radial-gradient(1px 1px at 12% 22%, rgba(255, 255, 255, 0.5), transparent 100%),
+    radial-gradient(1px 1px at 28% 68%, rgba(255, 255, 255, 0.4), transparent 100%),
+    radial-gradient(1.5px 1.5px at 44% 12%, rgba(255, 255, 255, 0.45), transparent 100%),
+    radial-gradient(1px 1px at 61% 82%, rgba(255, 255, 255, 0.38), transparent 100%),
+    radial-gradient(1.5px 1.5px at 74% 34%, rgba(255, 255, 255, 0.42), transparent 100%),
+    radial-gradient(1px 1px at 88% 58%, rgba(255, 255, 255, 0.4), transparent 100%),
+    radial-gradient(1px 1px at 6% 88%, rgba(255, 255, 255, 0.35), transparent 100%),
+    radial-gradient(1.5px 1.5px at 94% 8%, rgba(255, 255, 255, 0.4), transparent 100%),
     radial-gradient(
       circle at 18% 8%,
       rgba(107, 75, 154, 0.28),
@@ -41,6 +52,7 @@
   font-family: var(--font-body, system-ui);
   overflow: hidden;
 }
+
 
 /*
  * 리딩 본문의 서체. 2만 자를 읽는 상품이라 조작 UI(버튼·라벨·상태 칩)와 글을 나눈다 —
@@ -113,6 +125,15 @@
   inset: 0;
   z-index: -2;
   background:
+    /* 운명의 핵(DESTINY CORE)이 놓인 오른쪽에 은하수 같은 성운 빛을 깐다. 인수인계
+       문서 §3.2 ② 의 "화면 중앙에 거대한 원형 운명의 핵" 분위기를 CSS 만으로 보강한다 —
+       새 에셋 없이, 오브가 도는 자리 뒤에 우주색 성운이 드리워져 핵이 더 깊게 읽힌다. */
+    radial-gradient(
+      120% 90% at 82% 46%,
+      rgba(160, 92, 214, 0.2),
+      rgba(107, 75, 154, 0.08) 46%,
+      transparent 72%
+    ),
     linear-gradient(
       90deg,
       rgba(8, 7, 20, 0.97) 0%,
@@ -121,6 +142,7 @@
     ),
     linear-gradient(0deg, rgba(8, 7, 20, 0.66), transparent 42%);
 }
+
 .heroCopy {
   padding: clamp(28px, 6vw, 72px);
   align-self: end;
@@ -210,11 +232,25 @@
   filter: drop-shadow(0 0 42px rgba(199, 179, 255, 0.42));
 }
 
+/* 운명의 핵(DESTINY CORE) 뒤에 도는 궤도 링을 한 겹 더 깐다 — 인수인계 문서 §3.2 ② 의
+   "주변 5개 궤도가 회전"하는 구조를 CSS 만으로 보강한다. 새 에셋 없이, 코어가 도는
+   자리에 은은한 궤도 원이 드리워져 핵이 더 깊게 읽힌다. */
+.orbStage::before {
+  content: "";
+  position: absolute;
+  inset: 6%;
+  border-radius: 50%;
+  border: 1px dashed rgba(199, 179, 255, 0.16);
+  animation: orbitSpin 60s linear infinite;
+  pointer-events: none;
+}
+
 .orbRing {
   position: absolute;
   inset: 0;
   animation: orbitSpin 34s linear infinite;
 }
+
 
 .orbSatellite {
   position: absolute;
