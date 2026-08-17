@@ -44,8 +44,8 @@ test('the destiny gate shows both paid consultations with their price in every s
     assert.match(html, /class="fortune-gateway__door fortune-gateway__door--fusion" href="\/fusion-fortune\/"/, shell);
     // 가격과 무료 횟수를 카드에서 바로 읽을 수 있어야 한다.
     // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
-    assert.match(html, /<b[^>]*>무료 3회<\/b>/, shell);
-    assert.match(html, /비로그인 1회 · 이후 1회 5,000원/, shell);
+    assert.match(html, /<b[^>]*>로그인 무료 1회<\/b>/, shell);
+    assert.match(html, /회원가입 후 1회 무료 · 이후 1회 5,000원/, shell);
     // 계정 무료 3회는 총량이라 "매일" 로 약속하면 안 된다.
     assert.doesNotMatch(html, /매일 무료|하루 무료/, shell);
     assert.match(html, /1회 30,000원/, shell);
