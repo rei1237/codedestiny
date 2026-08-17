@@ -41,7 +41,7 @@ test('the destiny gate shows both paid consultations with their price in every s
     // 두 경로가 각각 자기 화면으로 바로 간다. 예전에는 "운명의 문 열기" 하나뿐이었고 초융합으로
     // 가는 길이 이 화면에 없었다.
     assert.match(html, /class="fortune-gateway__door fortune-gateway__door--chat" href="\/fortune-chat\/"/, shell);
-    assert.match(html, /class="fortune-gateway__door fortune-gateway__door--fusion" href="\/fusion-fortune\/"/, shell);
+    assert.match(html, /class="fortune-gateway__door fortune-gateway__door--fusion"(?: style="[^"]*")? href="\/fusion-fortune\/"/, shell);
     // 가격과 무료 횟수를 카드에서 바로 읽을 수 있어야 한다.
     // 태그에 속성을 허용한다 — i18n 마커(data-cd-trans)가 붙어도 계약은 그대로다.
     assert.match(html, /<b[^>]*>로그인 무료 1회<\/b>/, shell);

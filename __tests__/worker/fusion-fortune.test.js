@@ -347,6 +347,28 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     expect([...store.attempts.values()].filter((item) => item.status === "completed")).toHaveLength(0);
   });
 
+  it("keeps a delivered paid result successful when the final attempt commit fails", async () => {
+    const dateKey = getFusionFortuneDateKey(new Date("2026-08-04T05:00:00.000Z"));
+    const store = emptyStore();
+    store.commit = async () => null;
+    const delivered = [];
+    const generated = await generateFusionFortuneRequest({
+      input,
+      userId: "user",
+      requestId: "stream-delivered-commit-failed",
+      dateKey,
+      store,
+      resolvePaidAccess: paidAccess,
+      contextBuilder,
+      generator: generateFusionFortuneWithMockLLM,
+      onDelivery: async (delivery) => { delivered.push(delivery); },
+    });
+
+    expect(delivered).toHaveLength(1);
+    expect(generated).toMatchObject({ ok: true, requestId: "stream-delivered-commit-failed" });
+    expect(generated.result).toBe(delivered[0].result);
+  });
+
   it.each([
     ["context", async () => ({ ok: false })],
     ["llm", async () => { throw new Error("mock llm failure"); }],
