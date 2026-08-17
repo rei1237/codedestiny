@@ -12089,7 +12089,7 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           <h1 class="moon-hero__title tracking-tight [text-wrap:balance]" data-cd-trans data-key="home.hero2.title">하나의 운세만 믿지 마세요</h1>
           <p class="moon-hero__lead" data-cd-trans="shell.normalLogo.moonHeroCopy.kbm4p3d">사주·자미두수·베다점·숙요점·점성술·타로를 각각 읽은 뒤, 서로 같은 곳을 가리키는지 교차해서 확인합니다.</p>
           <div class="moon-hero__actions">
-            <a class="moon-hero__cta moon-hero__cta--primary" href="#destinyCardForm" data-cd-trans data-key="home.hero2.primaryCta">✦ 무료 운세 시작하기</a>
+            <a class="moon-hero__cta moon-hero__cta--primary" href="#cdConcernPick" data-cd-trans data-key="home.hero2.primaryCta">✦ 무료 운세 시작하기</a>
             <a class="moon-hero__cta" href="/fusion-fortune/" data-cd-trans="shell.moonHeroCopy.moonHeroActions.kerryje">초융합이 무엇인가요?</a>
           </div>
         </div>
@@ -12161,6 +12161,118 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           </div>
         </div>
       </div>
+      <!-- 고민 선택 진입 — 히어로 직후. 체계(사주·타로·자미두수…)가 아니라 고민으로 묻는다.
+           방문자는 운세 전문가가 아니라서 "사주를 볼까 자미두수를 볼까"를 판단하게 하면 이탈한다.
+           고른 고민 하나에 대해 무료 진입 1개 + 추천 상담 1개만 낸다 — 상품 목록을 다시 늘어놓지 않는 것이 이 블록의 존재 이유다.
+           🔴 가격을 여기 쓰지 않는다. 정본은 worker/lib/paid-feature-registry.js 이고, 라우트로 보내면
+              각 상품 페이지의 기존 결제 게이트가 그대로 처리한다(커스텀 체크아웃은 금지 패턴).
+           패널 6개는 전부 DOM 에 두고 hidden 으로만 감춘다 — 정적 텍스트가 색인·AdSense 분량에 집계된다. -->
+      <style id="cd-concern-pick-v20260817">
+html body .cd-concern{max-width:var(--cd-w-grid,1280px);margin:26px auto 8px;padding:0 clamp(12px,3vw,24px)}
+html body .cd-concern__head{margin:0 0 16px;text-align:center}
+html body .cd-concern__chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 16px}
+html body .cd-concern__chip{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:10px 16px;margin:0;font:inherit;font-weight:800;font-size:.95rem;line-height:1.2;color:var(--cd-text,#3c1830);cursor:pointer;border-radius:999px;background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),border-color var(--cd-dur-base,220ms) ease,background var(--cd-dur-base,220ms) ease}
+html body .cd-concern__chip[aria-expanded="true"]{color:#fff;background:linear-gradient(135deg,#d83f78,#b31955);border-color:rgba(179,25,85,.34)}
+html.neo-mode body .cd-concern__chip[aria-expanded="true"]{color:#13102a;background:linear-gradient(135deg,#c4b5fd,#a78bfa);border-color:rgba(196,181,253,.5)}
+html body .cd-concern__chip:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
+html body .cd-concern__panel{display:grid;gap:12px;padding:18px clamp(14px,3vw,22px);border-radius:var(--cd-card-radius,14px);background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));box-shadow:var(--cd-elev-1,0 10px 24px rgba(0,0,0,.08))}
+html body .cd-concern__panel[hidden]{display:none}
+html body .cd-concern__why{margin:0;font-size:1rem;line-height:1.6;color:var(--cd-text,#3c1830)}
+html body .cd-concern__actions{display:flex;flex-wrap:wrap;gap:10px}
+html body .cd-concern__free,html body .cd-concern__paid{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:12px 20px;border-radius:999px;font-weight:850;text-decoration:none}
+html body .cd-concern__free{color:var(--cd-accent,#b31955);background:color-mix(in srgb,var(--cd-accent,#b31955) 8%,transparent);border:1.5px solid color-mix(in srgb,var(--cd-accent,#b31955) 42%,transparent)}
+html body .cd-concern__paid{color:#fff;background:linear-gradient(135deg,#d83f78,#b31955);border:1px solid rgba(179,25,85,.34)}
+html.neo-mode body .cd-concern__free{color:var(--cd-gold,#e8d5a3);border-color:rgba(196,181,253,.5)}
+html.neo-mode body .cd-concern__paid{color:#13102a;background:linear-gradient(135deg,#c4b5fd,#a78bfa);border-color:rgba(196,181,253,.5)}
+html body .cd-concern__paid em{font-style:normal;font-weight:700;opacity:.82}
+html body .cd-concern__fusion{margin:14px 0 0;text-align:center;font-size:.94rem}
+html body .cd-concern__fusion a{color:var(--cd-accent,#b31955);font-weight:800;text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--cd-accent,#b31955) 40%,transparent)}
+html.neo-mode body .cd-concern__fusion a{color:var(--cd-gold,#e8d5a3)}
+@media (hover:hover) and (pointer:fine){
+  html body .cd-concern__chip:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--cd-accent,#b31955) 44%,var(--cd-border,transparent))}
+}
+@media (prefers-reduced-motion:reduce){ html body .cd-concern__chip{transition:none} }
+      </style>
+      <section class="cd-concern" id="cdConcernPick" aria-labelledby="cdConcernPickTitle" data-marker="cd-concern-pick-v20260817">
+        <div class="moon-section-head cd-concern__head">
+          <span class="moon-section-kicker">START HERE</span>
+          <h2 id="cdConcernPickTitle" data-cd-trans data-key="home.concernPick.title">지금 가장 궁금한 건 무엇인가요?</h2>
+          <p data-cd-trans data-key="home.concernPick.lead">고민을 하나 고르면, 무료로 확인하는 방법과 그 고민에 가장 맞는 상담 하나만 알려드립니다.</p>
+        </div>
+        <div class="cd-concern__chips">
+          <button type="button" class="cd-concern__chip" data-cd-concern="love" aria-expanded="true" aria-controls="cdConcernPanelLove"><span aria-hidden="true">❤️</span><span data-cd-trans data-key="home.concernPick.love">연애·인연</span></button>
+          <button type="button" class="cd-concern__chip" data-cd-concern="person" aria-expanded="false" aria-controls="cdConcernPanelPerson"><span aria-hidden="true">👤</span><span data-cd-trans data-key="home.concernPick.person">특정 사람</span></button>
+          <button type="button" class="cd-concern__chip" data-cd-concern="money" aria-expanded="false" aria-controls="cdConcernPanelMoney"><span aria-hidden="true">💰</span><span data-cd-trans data-key="home.concernPick.money">돈·재물</span></button>
+          <button type="button" class="cd-concern__chip" data-cd-concern="career" aria-expanded="false" aria-controls="cdConcernPanelCareer"><span aria-hidden="true">💼</span><span data-cd-trans data-key="home.concernPick.career">직업·사업</span></button>
+          <button type="button" class="cd-concern__chip" data-cd-concern="year" aria-expanded="false" aria-controls="cdConcernPanelYear"><span aria-hidden="true">📅</span><span data-cd-trans data-key="home.concernPick.year">올해의 흐름</span></button>
+          <button type="button" class="cd-concern__chip" data-cd-concern="all" aria-expanded="false" aria-controls="cdConcernPanelAll"><span aria-hidden="true">🔮</span><span data-cd-trans data-key="home.concernPick.all">내 전체 운</span></button>
+        </div>
+        <div class="cd-concern__panel" id="cdConcernPanelLove" data-cd-concern-panel="love">
+          <p class="cd-concern__why" data-cd-trans data-key="home.concernPick.loveWhy">관계가 어떤 구조로 반복되는지, 그리고 언제 움직이는지를 함께 봅니다.</p>
+          <div class="cd-concern__actions">
+            <a class="cd-concern__free" href="#destinyCardForm" data-cd-trans data-key="home.concernPick.freeCta">무료로 먼저 확인하기</a>
+            <a class="cd-concern__paid" href="/master-love-codex/"><span data-cd-trans="shell.cdSigCard.cdSigCardBody.k1sw19cg">마스터 인연의 서</span><em data-cd-trans data-key="home.concernPick.paidCta">추천 상담 열기</em></a>
+          </div>
+        </div>
+        <div class="cd-concern__panel" id="cdConcernPanelPerson" data-cd-concern-panel="person" hidden>
+          <p class="cd-concern__why" data-cd-trans data-key="home.concernPick.personWhy">두 사람의 명식을 각각 읽은 뒤, 겹치는 자리와 어긋나는 자리를 대조합니다.</p>
+          <div class="cd-concern__actions">
+            <a class="cd-concern__free" href="#destinyCardForm" data-cd-trans data-key="home.concernPick.freeCta">무료로 먼저 확인하기</a>
+            <a class="cd-concern__paid" href="/master-love-codex/"><span data-cd-trans="shell.cdSigCard.cdSigCardBody.k1sw19cg">마스터 인연의 서</span><em data-cd-trans data-key="home.concernPick.paidCta">추천 상담 열기</em></a>
+          </div>
+        </div>
+        <div class="cd-concern__panel" id="cdConcernPanelMoney" data-cd-concern-panel="money" hidden>
+          <p class="cd-concern__why" data-cd-trans data-key="home.concernPick.moneyWhy">돈이 들어오고 나가는 시기와, 지금 버틸 것과 바꿀 것을 구분합니다.</p>
+          <div class="cd-concern__actions">
+            <a class="cd-concern__free" href="#destinyCardForm" data-cd-trans data-key="home.concernPick.freeCta">무료로 먼저 확인하기</a>
+            <a class="cd-concern__paid" href="/fortune-tea-house/"><span data-cd-trans="shell.cdSigCard.cdSigCardBody.k1dc5spb">운명의 찻집</span><em data-cd-trans data-key="home.concernPick.paidCta">추천 상담 열기</em></a>
+          </div>
+        </div>
+        <div class="cd-concern__panel" id="cdConcernPanelCareer" data-cd-concern-panel="career" hidden>
+          <p class="cd-concern__why" data-cd-trans data-key="home.concernPick.careerWhy">여러 갈래로 흩어진 선택에 우선순위를 매기고, 다음 행동까지 정리합니다.</p>
+          <div class="cd-concern__actions">
+            <a class="cd-concern__free" href="#destinyCardForm" data-cd-trans data-key="home.concernPick.freeCta">무료로 먼저 확인하기</a>
+            <a class="cd-concern__paid" href="/neo-operation-room/"><span data-cd-trans="shell.cdSigCard.cdSigCardBody.kk0w8v">팩폭 전략소</span><em data-cd-trans data-key="home.concernPick.paidCta">추천 상담 열기</em></a>
+          </div>
+        </div>
+        <div class="cd-concern__panel" id="cdConcernPanelYear" data-cd-concern-panel="year" hidden>
+          <p class="cd-concern__why" data-cd-trans data-key="home.concernPick.yearWhy">올해 세운이 명식을 어디서 누르는지, 달 단위 흐름으로 나눠 봅니다.</p>
+          <div class="cd-concern__actions">
+            <a class="cd-concern__free" href="#destinyCardForm" data-cd-trans data-key="home.concernPick.freeCta">무료로 먼저 확인하기</a>
+            <a class="cd-concern__paid" href="/new-year-ai-consultation/"><span data-cd-trans="shell.fgGroupCards.lifebookTile.kwnx8m7">신년운세 전문가 상담</span><em data-cd-trans data-key="home.concernPick.paidCta">추천 상담 열기</em></a>
+          </div>
+        </div>
+        <div class="cd-concern__panel" id="cdConcernPanelAll" data-cd-concern-panel="all" hidden>
+          <p class="cd-concern__why" data-cd-trans data-key="home.concernPick.allWhy">여섯 체계가 같은 곳을 가리키는지 교차검증해 하나의 판정으로 묶습니다.</p>
+          <div class="cd-concern__actions">
+            <a class="cd-concern__free" href="#destinyCardForm" data-cd-trans data-key="home.concernPick.freeCta">무료로 먼저 확인하기</a>
+            <a class="cd-concern__paid" href="/fusion-fortune/"><span data-cd-trans="shell.fortuneGatewayDoors.fortuneGatewayDoor.k12pdy0g">초융합 심층 리딩</span><em data-cd-trans data-key="home.concernPick.paidCta">추천 상담 열기</em></a>
+          </div>
+        </div>
+        <p class="cd-concern__fusion"><a href="/fusion-fortune/"><span data-cd-trans data-key="home.concernPick.fusionLine">여섯 체계를 모두 교차검증하고 싶다면</span> · <span data-cd-trans="shell.fortuneGatewayDoors.fortuneGatewayDoor.k12pdy0g">초융합 심층 리딩</span></a></p>
+      </section>
+      <script data-marker="cd-concern-pick-v20260817">
+        /* 위임 핸들러 1개. 칩을 누르면 그 고민의 패널만 남긴다.
+           패널은 마크업에 전부 들어 있고 hidden 만 오간다 — 새 진입점·새 결제 경로를 만들지 않는다. */
+        (function () {
+          var root = document.getElementById('cdConcernPick');
+          if (!root) return;
+          var chips = root.querySelectorAll('[data-cd-concern]');
+          var panels = root.querySelectorAll('[data-cd-concern-panel]');
+          root.addEventListener('click', function (event) {
+            var chip = event.target && event.target.closest ? event.target.closest('[data-cd-concern]') : null;
+            if (!chip || !root.contains(chip)) return;
+            var picked = chip.getAttribute('data-cd-concern');
+            for (var i = 0; i < chips.length; i += 1) {
+              chips[i].setAttribute('aria-expanded', chips[i] === chip ? 'true' : 'false');
+            }
+            for (var j = 0; j < panels.length; j += 1) {
+              if (panels[j].getAttribute('data-cd-concern-panel') === picked) panels[j].removeAttribute('hidden');
+              else panels[j].setAttribute('hidden', '');
+            }
+          });
+        })();
+      </script>
       <!-- 오늘의 운세 허브 — 히어로 직후 최상단. 결제·로그인 게이트는 없지만 프로필 카드는 필수다:
            길흉은 생년월일에서 나오므로 카드가 없으면 결과를 그리지 않고 카드 만들기 안내만 남긴다.
            계산은 전부 서버(/api/fortune/today-hub)가 각 점술의 기존 엔진으로 한다 —
@@ -13181,15 +13293,15 @@ html.neo-mode body footer .cd-footer-langpick__btn.active,html.neo-mode body foo
 @media (max-width:560px){ html body footer .cd-footer-shell{grid-template-columns:1fr;gap:16px}html body footer .cd-footer-legal{justify-content:center;text-align:center}html body footer .cd-footer-legal__links{justify-content:center} }
 
 /* ── 섹션 공통 헤드(중앙 정렬 변형) — #inputPage 강화로 옛 크림 헤드 규칙을 이긴다 ── */
-html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index) .moon-section-head{background:none!important;border:0!important;box-shadow:none!important;padding:0!important}
-html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index) .moon-section-head h2{font-family:var(--font-display,serif)!important;font-size:clamp(1.24rem,2.6vw,1.7rem)!important;line-height:1.32!important;margin:6px 0 0!important;background:none!important;-webkit-background-clip:initial!important}
-html:not(.neo-mode) body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index) .moon-section-head h2{color:#3c1830!important;-webkit-text-fill-color:#3c1830!important;text-shadow:none!important}
-html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index) .moon-section-head h2{color:#f4eeff!important;-webkit-text-fill-color:#f4eeff!important}
-html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index) .moon-section-head p{max-width:46em;margin:8px auto 0!important;font-size:.9rem!important;line-height:1.66!important}
-html:not(.neo-mode) body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index) .moon-section-head p{color:#5c2c47!important;-webkit-text-fill-color:#5c2c47!important;text-shadow:none!important}
-html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index) .moon-section-head p{color:rgba(228,214,255,.86)!important;-webkit-text-fill-color:rgba(228,214,255,.86)!important}
-html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index) .moon-section-kicker{display:inline-flex!important;padding:6px 12px!important;border-radius:999px!important;font-size:.66rem!important;font-weight:900!important;letter-spacing:.18em!important;text-transform:uppercase!important;color:var(--cd-accent,#b31955)!important;background:color-mix(in srgb,var(--cd-accent,#b31955) 9%,transparent)!important;border:1px solid var(--cd-border,rgba(216,63,120,.16))!important}
-html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index) .moon-section-kicker{color:var(--cd-gold,#e8d5a3)!important}
+html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head{background:none!important;border:0!important;box-shadow:none!important;padding:0!important}
+html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head h2{font-family:var(--font-display,serif)!important;font-size:clamp(1.24rem,2.6vw,1.7rem)!important;line-height:1.32!important;margin:6px 0 0!important;background:none!important;-webkit-background-clip:initial!important}
+html:not(.neo-mode) body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head h2{color:#3c1830!important;-webkit-text-fill-color:#3c1830!important;text-shadow:none!important}
+html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head h2{color:#f4eeff!important;-webkit-text-fill-color:#f4eeff!important}
+html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head p{max-width:46em;margin:8px auto 0!important;font-size:.9rem!important;line-height:1.66!important}
+html:not(.neo-mode) body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head p{color:#5c2c47!important;-webkit-text-fill-color:#5c2c47!important;text-shadow:none!important}
+html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head p{color:rgba(228,214,255,.86)!important;-webkit-text-fill-color:rgba(228,214,255,.86)!important}
+html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-kicker{display:inline-flex!important;padding:6px 12px!important;border-radius:999px!important;font-size:.66rem!important;font-weight:900!important;letter-spacing:.18em!important;text-transform:uppercase!important;color:var(--cd-accent,#b31955)!important;background:color-mix(in srgb,var(--cd-accent,#b31955) 9%,transparent)!important;border:1px solid var(--cd-border,rgba(216,63,120,.16))!important}
+html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-kicker{color:var(--cd-gold,#e8d5a3)!important}
 /* cd-expert-consult-luxe-v20260731 — 위 헤더 규칙은 .cd-fortune-pick·.cd-svc-index 와 공유한다.
    전문가 상담 섹션만 다크 패널로 갈아입었으므로 #cdAiFeatures 로 스코프해 여기서만 덮는다
    (id 2개로 위 :is() 규칙보다 특이도가 확실히 높다 — 나머지 두 섹션은 그대로 둔다). */

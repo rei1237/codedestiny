@@ -297,17 +297,17 @@ try {
   }
 
   if (!focusAllFortunes) {
-  await tapSelector(cdp, ".moon-hero__cta--primary[href=\"#destinyCardForm\"]");
-  // 단일 반응형 홈의 주 CTA는 무료 사주 입력폼으로 내려간다(문서 전환 없음). 해시 반영은 짧은 폴링이 안정적이다.
+  await tapSelector(cdp, ".moon-hero__cta--primary[href=\"#cdConcernPick\"]");
+  // 단일 반응형 홈의 주 CTA는 고민 선택 블록으로 내려간다(문서 전환 없음). 해시 반영은 짧은 폴링이 안정적이다.
   let afterPrimaryTap = { hash: "" };
   for (let i = 0; i < 12; i += 1) {
     await delay(250);
     afterPrimaryTap = await evaluate(cdp, "({ hash: location.hash })", "after primary CTA tap");
-    if (afterPrimaryTap.hash === "#destinyCardForm") break;
+    if (afterPrimaryTap.hash === "#cdConcernPick") break;
   }
   assert(
-    afterPrimaryTap.hash === "#destinyCardForm",
-    "primary CTA jumps to the free saju form",
+    afterPrimaryTap.hash === "#cdConcernPick",
+    "primary CTA jumps to the concern picker",
     afterPrimaryTap,
   );
 
@@ -605,7 +605,7 @@ try {
       console.log("Mobile CDP smoke OK");
       console.log("- Viewport: 412x823");
       if (!focusAllFortunes) {
-        console.log("- Primary CTA jumps to the free saju form: OK");
+        console.log("- Primary CTA jumps to the concern picker: OK");
         console.log("- Tarot touch: OK");
         console.log("- Bottom nav 5-tab tarot touch: OK");
         console.log("- Membership benefits CTA routes to the pass guide: OK");
@@ -1335,7 +1335,7 @@ function mobileStateExpression() {
   return `(() => {
     const home = document.querySelector('#inputPage');
     const nav = document.querySelector('#cdMobileBottomNav');
-    const cta = document.querySelector('.moon-hero__cta--primary[href="#destinyCardForm"]');
+    const cta = document.querySelector('.moon-hero__cta--primary[href="#cdConcernPick"]');
     const quickRail = document.querySelector('#cdMobileBottomNav .cd-mobile-bottom-nav__quick');
     const mainNavItems = Array.from(document.querySelectorAll('#cdMobileBottomNav .cd-mobile-bottom-nav__main [data-nav-key]'));
     const langDropdown = document.querySelector('#langDropdown');

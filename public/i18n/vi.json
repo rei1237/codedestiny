@@ -1304,6 +1304,25 @@
       "scoreUnit": " điểm",
       "ctaAll": "Xem toàn bộ vận trình hôm nay",
       "share": "Chia sẻ"
+    },
+    "concernPick": {
+      "title": "Điều bạn băn khoăn nhất lúc này là gì?",
+      "lead": "Chọn một điều bạn đang băn khoăn — chúng tôi sẽ chỉ cách xem miễn phí và đúng một bản luận phù hợp nhất.",
+      "love": "Tình cảm & nhân duyên",
+      "person": "Một người cụ thể",
+      "money": "Tiền bạc",
+      "career": "Công việc & kinh doanh",
+      "year": "Dòng chảy năm nay",
+      "all": "Vận thế tổng thể",
+      "loveWhy": "Chúng tôi nhìn ra cấu trúc lặp lại trong các mối quan hệ của bạn và thời điểm chúng thực sự chuyển động.",
+      "personWhy": "Chúng tôi đọc riêng lá số của hai người, rồi đối chiếu chỗ trùng khớp và chỗ lệch nhau.",
+      "moneyWhy": "Chúng tôi tách rõ thời điểm tiền vào và ra khỏi những gì nên giữ và nên thay đổi lúc này.",
+      "careerWhy": "Chúng tôi xếp thứ tự ưu tiên cho những lựa chọn đang kéo về nhiều hướng, đến tận bước tiếp theo.",
+      "yearWhy": "Chúng tôi tách theo từng tháng xem vận năm nay đè lên chỗ nào trong lá số của bạn.",
+      "allWhy": "Chúng tôi đối chiếu xem sáu hệ thống có cùng chỉ về một chỗ hay không, rồi gộp thành một kết luận.",
+      "freeCta": "Xem miễn phí trước",
+      "paidCta": "Mở bản luận được đề xuất",
+      "fusionLine": "Nếu muốn đối chiếu cả sáu hệ thống"
     }
   },
   "terms": {

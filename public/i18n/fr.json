@@ -1304,6 +1304,25 @@
       "scoreUnit": " pts",
       "ctaAll": "Voir toute la lecture du jour",
       "share": "Partager"
+    },
+    "concernPick": {
+      "title": "Qu'est-ce qui vous préoccupe le plus en ce moment ?",
+      "lead": "Choisissez une préoccupation : nous vous montrons comment la vérifier gratuitement et la seule lecture qui lui correspond.",
+      "love": "Amour et liens",
+      "person": "Une personne précise",
+      "money": "Argent",
+      "career": "Travail et affaires",
+      "year": "Le cours de cette année",
+      "all": "Ma fortune globale",
+      "loveWhy": "Nous observons la structure qui se répète dans vos relations et le moment où elles bougent vraiment.",
+      "personWhy": "Nous lisons les deux thèmes séparément, puis comparons où ils se recoupent et où ils divergent.",
+      "moneyWhy": "Nous distinguons les périodes d'entrée et de sortie d'argent de ce qu'il faut garder ou changer maintenant.",
+      "careerWhy": "Nous hiérarchisons les choix qui tirent dans des directions opposées, jusqu'au prochain geste.",
+      "yearWhy": "Nous détaillons mois par mois où le cycle de cette année appuie sur votre thème.",
+      "allWhy": "Nous vérifions si les six systèmes désignent le même point et les réunissons en un seul verdict.",
+      "freeCta": "Vérifier gratuitement d'abord",
+      "paidCta": "Ouvrir la lecture recommandée",
+      "fusionLine": "Pour recouper les six systèmes"
     }
   },
   "terms": {

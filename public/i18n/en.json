@@ -1304,6 +1304,25 @@
       "scoreUnit": " pts",
       "ctaAll": "See the full daily reading",
       "share": "Share"
+    },
+    "concernPick": {
+      "title": "What's on your mind right now?",
+      "lead": "Pick one concern and we'll show you how to check it for free, plus the single reading that fits it best.",
+      "love": "Love & connection",
+      "person": "A specific person",
+      "money": "Money",
+      "career": "Work & business",
+      "year": "This year's flow",
+      "all": "My overall fortune",
+      "loveWhy": "We look at the structure your relationships keep repeating, and when things actually move.",
+      "personWhy": "We read both charts separately, then compare where they overlap and where they pull apart.",
+      "moneyWhy": "We separate when money comes and goes from what to hold and what to change now.",
+      "careerWhy": "We rank the choices pulling you in different directions, down to the next move.",
+      "yearWhy": "We break down where this year's cycle presses on your chart, month by month.",
+      "allWhy": "We cross-check whether all six systems point to the same place and settle on one verdict.",
+      "freeCta": "Check it free first",
+      "paidCta": "Open the suggested reading",
+      "fusionLine": "If you want all six systems cross-checked"
     }
   },
   "terms": {

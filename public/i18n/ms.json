@@ -1304,6 +1304,25 @@
       "scoreUnit": " mata",
       "ctaAll": "Lihat bacaan penuh hari ini",
       "share": "Kongsi"
+    },
+    "concernPick": {
+      "title": "Apa yang paling anda fikirkan sekarang?",
+      "lead": "Pilih satu kerisauan — kami tunjukkan cara menyemaknya secara percuma dan satu bacaan yang paling sesuai untuknya.",
+      "love": "Cinta & jodoh",
+      "person": "Seseorang tertentu",
+      "money": "Wang & rezeki",
+      "career": "Kerjaya & perniagaan",
+      "year": "Aliran tahun ini",
+      "all": "Nasib keseluruhan",
+      "loveWhy": "Kami melihat struktur yang berulang dalam hubungan anda dan bila ia benar-benar berubah.",
+      "personWhy": "Kami membaca kedua-dua carta secara berasingan, kemudian membandingkan di mana ia bertindih dan di mana ia bercanggah.",
+      "moneyWhy": "Kami memisahkan masa wang masuk dan keluar daripada apa yang perlu dikekalkan atau diubah sekarang.",
+      "careerWhy": "Kami menyusun keutamaan pilihan yang menarik ke arah berbeza, sehingga langkah seterusnya.",
+      "yearWhy": "Kami memecahkan bulan demi bulan di mana kitaran tahun ini menekan carta anda.",
+      "allWhy": "Kami menyemak sama ada keenam-enam sistem menunjuk ke tempat yang sama, lalu merumuskannya menjadi satu keputusan.",
+      "freeCta": "Semak percuma dahulu",
+      "paidCta": "Buka bacaan yang disyorkan",
+      "fusionLine": "Jika mahu keenam-enam sistem disemak silang"
     }
   },
   "terms": {

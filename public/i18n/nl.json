@@ -1304,6 +1304,25 @@
       "scoreUnit": " ptn",
       "ctaAll": "De volledige daglezing bekijken",
       "share": "Delen"
+    },
+    "concernPick": {
+      "title": "Wat houdt je op dit moment het meest bezig?",
+      "lead": "Kies één vraag – we laten zien hoe je die gratis kunt checken en welke ene duiding er het best bij past.",
+      "love": "Liefde & verbinding",
+      "person": "Een specifiek persoon",
+      "money": "Geld",
+      "career": "Werk & zaken",
+      "year": "Het verloop van dit jaar",
+      "all": "Mijn totaalbeeld",
+      "loveWhy": "We kijken naar het patroon dat zich in je relaties herhaalt en wanneer er echt iets beweegt.",
+      "personWhy": "We lezen beide horoscopen apart en vergelijken daarna waar ze samenvallen en waar ze uiteenlopen.",
+      "moneyWhy": "We scheiden wanneer geld komt en gaat van wat je nu moet vasthouden of veranderen.",
+      "careerWhy": "We ordenen de keuzes die in verschillende richtingen trekken, tot en met de volgende stap.",
+      "yearWhy": "We splitsen per maand uit waar de cyclus van dit jaar op je horoscoop drukt.",
+      "allWhy": "We controleren of alle zes systemen dezelfde kant op wijzen en vatten dat samen in één oordeel.",
+      "freeCta": "Eerst gratis checken",
+      "paidCta": "Aanbevolen duiding openen",
+      "fusionLine": "Wil je alle zes systemen naast elkaar leggen"
     }
   },
   "terms": {
