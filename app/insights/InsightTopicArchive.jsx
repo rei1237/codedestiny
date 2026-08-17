@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { INSIGHT_ARTICLES, getArticlesByTopic, getArticleBySlug } from "./articles";
 import { getFeatureGuidesByTopic } from "./feature-guides";
+import EditorNote from "../components/EditorNote";
 
 function topicMatcher(topic) {
   const normalized = String(topic || "all").toLowerCase();
@@ -143,7 +144,7 @@ const TOPIC_STORY_LINKS = {
   compatibility: { href: "/stories/ep-38/", label: "끊을 수 없는 실 — 관계를 다루는 화" },
 };
 
-export default function InsightTopicArchive({ topic, title, intro, serviceCtaPath, curatedSlugs }) {
+export default function InsightTopicArchive({ topic, title, intro, serviceCtaPath, curatedSlugs, editorNote }) {
   const topicKey = String(topic || "").toLowerCase();
   const guide = TOPIC_GUIDES[topicKey];
   const sources = TOPIC_SOURCES[topicKey] || [];
@@ -181,6 +182,10 @@ export default function InsightTopicArchive({ topic, title, intro, serviceCtaPat
           </Link>
         </div>
       </header>
+
+      {/* 이 컴포넌트가 <main> 을 소유해서 호출부에서 노트를 끼울 수 없다. curatedSlugs 와
+          같은 선택적 prop 으로 받는다 — 안 넘기면 null 이라 나머지 허브 7개의 출력은 그대로다. */}
+      <EditorNote note={editorNote} className="mt-6" />
 
       {guide ? (
         <section className="mt-6 rounded-3xl border border-white/10 bg-[#0f1629] px-5 py-6 md:px-8 md:py-8">

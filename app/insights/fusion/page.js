@@ -1,4 +1,5 @@
 import InsightTopicArchive from "../InsightTopicArchive";
+import { getEditorNote } from "../../_content/editor-notes";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/structured-data";
 import { FUSION_FORTUNE_PROFILE } from "../../../lib/seo/entity-registry.mjs";
@@ -59,6 +60,7 @@ export default function InsightsFusionPage() {
   return (
     <>
       <InsightTopicArchive
+        editorNote={getEditorNote("/insights/fusion")}
         topic="fusion"
         title={insightsFusionPageCopy.archiveTitle}
         intro={insightsFusionPageCopy.intro}

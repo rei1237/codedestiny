@@ -2,6 +2,8 @@ import Link from "next/link";
 import { createI18nMetadata } from "../../../lib/seo/createI18nMetadata";
 import { getAlternatesByRouteKey, getLocaleLinksForRoute, I18N_ROUTE_MAP } from "../../../lib/i18n/routes";
 import { I18N_INSIGHT_ARTICLES } from "../../../lib/seo/i18nInsights";
+import { getEditorNote } from "../../_content/editor-notes";
+import EditorNote from "../../components/EditorNote";
 
 const article = I18N_INSIGHT_ARTICLES.find((item) => item.id === "insightZiweiBasics");
 
@@ -37,6 +39,8 @@ export default function ZiweiBasicsInsightPage() {
         <h1 className="text-2xl font-semibold leading-tight text-amber-50 md:text-4xl">{article.h1ByLocale.ko}</h1>
         <p className="mt-4 text-sm leading-7 text-slate-200 md:text-base">{article.descriptionByLocale.ko}</p>
       </div>
+
+      <EditorNote note={getEditorNote("/insights/ziwei-basics")} className="mt-6" />
 
       <article className="mt-6 rounded-3xl border border-white/10 bg-[#0f172a] px-5 py-6 md:px-8 md:py-8">
         {article.bodyByLocale.ko.map((paragraph, index) => (
