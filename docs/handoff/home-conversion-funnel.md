@@ -1,9 +1,27 @@
 # 홈 전환 퍼널 개선 3건 (핸드오프)
 
-작성: 2026-08-17 · 상태: **미착수 (계획만)**
+작성: 2026-08-17 · 상태: **1·2번 구현됨 (PR #775) · 3번 부분**
 
 이 문서만 읽고 시작할 수 있게 쓴다. 배경 전체는 [monetization-free-paid-boundary.md](monetization-free-paid-boundary.md) 에 있고,
 여기는 사용자가 지목한 **3건만** 다룬다.
+
+## 진행 상황 (2026-08-17, PR #775)
+
+| 항목 | 상태 |
+|---|---|
+| 1. 히어로 1차 CTA | ✅ 완료 — 1차는 `#cdConcernPick`, 2차는 `/fusion-fortune/`. 노벨은 nav·세계관 존·푸터·검색에 유지 |
+| 2. 고민 선택 → 상품 추천 | ✅ 마크업 완료 — `#cdConcernPick` 칩 6개, 고민당 상담 1개. **무료 AI 상담 `premiumCta` 연결은 미착수** |
+| 3. 브랜드 분산 | 🔶 부분 — Moonlight Pass 노출 2곳(`membership-recap-cta`·`honeyMembershipMini`)은 홈에서 접었다. **캐릭터·상품명 정리는 미착수** |
+| (추가 지시) 홈 IA 축약 | ✅ 완료 — 초기 노출 5개, 나머지 9개는 `data-cd-home-secondary` 로 감춤 + "모두 펼치기" 토글 |
+
+이 작업에서 새로 확인한 것 — 다음 세션이 다시 재지 않도록:
+
+- 🔴 `verify-adsense-readiness` 의 `getVisibleText`(`scripts/verify-adsense-readiness.mjs:618`)는 **태그만 벗기고 `hidden`·CSS 를 보지 않는다.** DOM 에 두고 감추면 광고·색인 글자수가 그대로 유지된다. 실제로 감춘 뒤 빌드해 `[adsense-readiness] OK` 를 확인했다.
+- 🔴 전체 서비스 검색은 **가시성을 보지 않고** 인덱스를 만들고, 결과를 새 `a[href]`/`button[data-action]` 노드로 다시 만든다. 그래서 섹션을 감춰도 검색은 안 깨진다. 다만 `.moon-preview-card, .tarot-tile, .cd-pick-card, .moon-start-card, .prem-card, .feature-card` 에 안 걸리는 진입점(예: `fortune-gateway__door`)은 인덱스에 안 들어가니 EXTRA 목록에 손으로 넣어야 한다.
+- 🔴 검색 EXTRA 목록은 `cd-service-search-extra-v20260817` **별도 블록**에 있다. 배선 블록(`cd-service-index-search-v20260723`)으로 되돌리지 말 것 — 8KB 를 넘으면 externalize 가 `data-marker` 를 버리고 `split-dist-boot-tasks` 허용목록이 죽어 **빌드가 실패한다**.
+- 🔴 `i18n:translate-pending` 은 **Gemini 유료 실호출**이다(절대 규칙 1). 이 PR 의 신규 키 19개 × 12로케일은 전부 손으로 썼다.
+- 인라인 스크립트는 파싱 중 실행된다 — 토글 핸들러를 히어로 근처에 두면 아래쪽 버튼을 못 찾아 **조용히 아무 일도 안 한다**(실제로 겪음). 대상 섹션 뒤에 둘 것.
+- 기존 결함(이 PR 과 무관): `verify:mobile-bottom-nav-sync` 는 `/points/` vs `/points` 로 `origin/main`(bfb6dfa96)에서도 실패한다.
 
 ## 왜 하는가 — 진단
 
