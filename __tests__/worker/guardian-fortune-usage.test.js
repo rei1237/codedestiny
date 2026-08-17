@@ -42,27 +42,24 @@ describe("Guardian Fortune usage service", () => {
     expect(different).not.toBe(first);
   });
 
-  it("allows one guest reservation and does not allow the second", async () => {
+  // 무료 상담은 로그인해야 받는다(2026-08-17 정책). 비로그인은 0회다.
+  it("gives guests no free reservation and sends them to login", async () => {
     const store = createMemoryGuardianFortuneStore();
     const first = await reserveGuardianFortuneUsage({ guestIdHash: "guest-hash-0001", dateKey: DATE_KEY, requestId: "guest-request-1", store, now: NOW });
-    expect(first).toMatchObject({ ok: true, source: "guest_free" });
-    await commitGuardianFortuneUsage(first, { store, now: NOW });
+    expect(first).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED, status: 429 });
 
     const status = await buildGuardianFortuneUsageStatus({ guestIdHash: "guest-hash-0001", dateKey: DATE_KEY, store, now: NOW });
-    expect(status).toMatchObject({ guestFreeUsed: 1, guestFreeRemaining: 0, canGenerate: false, nextAction: "login" });
-
-    const second = await reserveGuardianFortuneUsage({ guestIdHash: "guest-hash-0001", dateKey: DATE_KEY, requestId: "guest-request-2", store, now: NOW });
-    expect(second).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED, status: 429 });
+    expect(status).toMatchObject({ guestFreeUsed: 0, guestFreeRemaining: 0, canGenerate: false, nextAction: "login" });
   });
 
-  it("allows exactly three account reservations and never resets at KST midnight", async () => {
+  it("allows exactly one account reservation and never resets at KST midnight", async () => {
     const store = createMemoryGuardianFortuneStore();
-    for (let index = 0; index < 3; index += 1) {
+    for (let index = 0; index < 1; index += 1) {
       const reservation = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: DATE_KEY, requestId: `daily-request-${index}`, store, now: NOW });
       expect(reservation).toMatchObject({ ok: true, source: "daily_free" });
       await commitGuardianFortuneUsage(reservation, { store, now: NOW });
     }
-    const blocked = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: DATE_KEY, requestId: "daily-request-4", store, now: NOW });
+    const blocked = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: DATE_KEY, requestId: "daily-request-2", store, now: NOW });
     expect(blocked).toMatchObject({ ok: false, errorCode: GUARDIAN_FORTUNE_ERROR_CODES.PAYMENT_REQUIRED });
 
     const nextDay = await reserveGuardianFortuneUsage({ userId: "user-1", dateKey: "2026-08-03", requestId: "daily-request-next", store, now: new Date("2026-08-02T15:00:00.000Z") });
@@ -138,7 +135,7 @@ describe("Guardian Fortune usage service", () => {
       store: dailyStore,
       now: NOW,
     })));
-    expect(dailyResults.filter((item) => item.ok)).toHaveLength(3);
+    expect(dailyResults.filter((item) => item.ok)).toHaveLength(1);
 
     // 결제 경로는 무료 자리를 잡지 않으므로 동시성 상한이 없다. 중복을 막는 것은 requestId
     // 멱등성뿐이라, 같은 requestId 를 동시에 세 번 보내도 하나만 통과해야 한다.
@@ -159,7 +156,7 @@ describe("Guardian Fortune usage service", () => {
     const reservation = await reserveGuardianFortuneUsage({ userId: "user-release", dateKey: DATE_KEY, requestId: "release-request-1", store, now: NOW });
     await releaseGuardianFortuneUsage(reservation, { store, errorCode: "TEST_FAILURE", now: NOW });
     const status = await buildGuardianFortuneUsageStatus({ userId: "user-release", dateKey: DATE_KEY, store, now: NOW });
-    expect(status).toMatchObject({ dailyFreeUsed: 0, dailyFreeRemaining: 3, canGenerate: true });
+    expect(status).toMatchObject({ dailyFreeUsed: 0, dailyFreeRemaining: 1, canGenerate: true });
     expect(store.state.daily.get("user-release")).toMatchObject({ reserved: 0, freeUsed: 0 });
   });
 

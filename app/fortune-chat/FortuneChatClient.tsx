@@ -183,7 +183,7 @@ export default function FortuneChatClient() {
 
   const usageLabel = useMemo(() => {
     if (!usage) return "상담 가능 여부를 확인하는 중";
-    if (!usage.isLoggedIn) return usage.guestFreeRemaining > 0 ? "첫 상담을 무료로 시작할 수 있어요" : "로그인하면 3회까지 무료로 이어갈 수 있어요";
+    if (!usage.isLoggedIn) return usage.guestFreeRemaining > 0 ? "첫 상담을 무료로 시작할 수 있어요" : "로그인하면 1회 무료로 상담할 수 있어요";
     return usage.dailyFreeRemaining > 0 ? `무료 상담 ${usage.dailyFreeRemaining}회 남음` : "무료 상담을 모두 사용했어요";
   }, [usage]);
 
