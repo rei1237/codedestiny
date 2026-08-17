@@ -5522,7 +5522,12 @@ async function calculate(){
     try { renderUkbu(p); } catch(e) { console.error('Ukbu 에러:', e); }
     try { if (typeof window.renderAstroInsight === 'function') window.renderAstroInsight(); } catch(e) { console.error('AstroInsight 에러:', e); }
     try { renderSkillTree(p,natal); } catch(e) { console.error('SkillTree 에러:', e); }
-    try { renderSummary(p,johu,natal); } catch(e) { console.error('Summary 에러:', e); }
+    // 🔴 종합 풀이(section_summary)는 5,000원 유료다. 미해금이면 본문을 아예 만들지 않는다 —
+    // 예전에는 결제 여부와 무관하게 #summaryArea 를 채우고 CSS blur 만 씌워서, 개발자도구로
+    // 클래스 하나만 지우면 A4 20페이지 분량이 그대로 보였다. 해금 시 재렌더는 index.html 의
+    // applySectionGates 가 아래 __cdLastSummaryArgs 로 수행한다(renderLifeGraph 재호출과 같은 패턴).
+    window.__cdLastSummaryArgs={p:p,johu:johu,natal:natal};
+    try { if(_cdSajuGateUnlocked('section_summary')) renderSummary(p,johu,natal); } catch(e) { console.error('Summary 에러:', e); }
     try {
       if (!invokeOptionalGlobalRenderer('renderEnergyCoord', [natal])) {
         runDeferredSajuTasks([function(){ try { invokeOptionalGlobalRenderer('renderEnergyCoord', [natal]); } catch(_){ } }]);
@@ -25820,6 +25825,16 @@ function _buildMonthCommandFromEngine(p, natal, pw) {
   };
 }
 
+// 🔴 사주 섹션 게이트 판정. 잠금 상태의 단일 소유자는 index.html 의 unlockedFeatureMap 이고
+// 노출 지점은 window.isTileKeyUnlocked 다(zwBasicPaidFeatureUnlocked 와 같은 계약).
+function _cdSajuGateUnlocked(featureKey){
+  var key=String(featureKey||'').trim();
+  if(!key)return false;
+  try{ if(typeof window.isTileKeyUnlocked==='function'&&window.isTileKeyUnlocked(key))return true; }catch(_){}
+  try{ if(window.unlockedFeatureMap&&window.unlockedFeatureMap[key]===true)return true; }catch(_){}
+  return false;
+}
+
 function renderSummary(p,johu,natal){
   var dg=p.d.g,dayMaster=p.d.gE||'earth';
   var health=HEALTH_DATA[dayMaster]||HEALTH_DATA.earth;
@@ -28429,17 +28444,24 @@ function renderDaewun(bazi){
         qBadge+
         '</div>';
     });
-    document.getElementById('dwGrid').innerHTML=h||'<p style="font-size:.83rem;color:#999">대운 데이터 없음</p>';
+    // 🔴 window.G_DAEWUN 은 시빌라·퀀텀 등 6곳이 소비하므로 잠금과 무관하게 항상 채운다.
+    // 반대로 눈에 보이는 것(대운표·인생 그래프)은 해금 전에 만들지 않는다 — 예전에는 blur 만
+    // 씌워서 개발자도구로 클래스를 지우면 5,000원 콘텐츠가 그대로 보였다.
     if(_dwGlobalArr.length>0)window.G_DAEWUN=_dwGlobalArr;
     window.__cdLastDaewunBazi=bazi;
-    renderLifeGraph(bazi);
-    requestAnimationFrame(function(){ setTimeout(function(){ renderLifeGraph(window.__cdLastDaewunBazi||bazi); }, 160); });
+    if(_cdSajuGateUnlocked('section_daewun')){
+      document.getElementById('dwGrid').innerHTML=h||'<p style="font-size:.83rem;color:#999">대운 데이터 없음</p>';
+      renderLifeGraph(bazi);
+      requestAnimationFrame(function(){ setTimeout(function(){ renderLifeGraph(window.__cdLastDaewunBazi||bazi); }, 160); });
+    }
   }catch(err){
     console.error('대운 오류',err);
     window.G_DAEWUN=[];
-    var grid=document.getElementById('dwGrid');
-    if(grid)grid.innerHTML='<p style="font-size:.83rem;color:#999">대운 데이터 연결을 다시 준비하고 있습니다.</p>';
-    renderLifeGraph(bazi);
+    if(_cdSajuGateUnlocked('section_daewun')){
+      var grid=document.getElementById('dwGrid');
+      if(grid)grid.innerHTML='<p style="font-size:.83rem;color:#999">대운 데이터 연결을 다시 준비하고 있습니다.</p>';
+      renderLifeGraph(bazi);
+    }
   }
 }
 
