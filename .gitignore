@@ -126,7 +126,9 @@ reports/
 
 # Claude Code 로컬 세션 상태 — 머신마다 다르고 PR 에 들어갈 이유가 없다.
 # 공유 규칙은 .claude/settings.json 에 둔다.
-.claude/settings.local.json
+# settings.local.json* 로 잡는 이유: .bak 사본에 절대경로와 권한 규칙 100개 이상이
+# 그대로 남아 있는데 정확히 이 확장자만 빠져서 git add -A 에 딸려 들어간다.
+.claude/settings.local.json*
 .claude/worktrees/
 
 # 외부 에이전트/도구의 로컬 스크래치
