@@ -6,9 +6,15 @@ import {
   GuardianFortuneGuestUsage,
 } from "./models.js";
 
-export const GUARDIAN_FORTUNE_GUEST_LIMIT = 1;
-export const GUARDIAN_FORTUNE_DAILY_LIMIT = 3;
-export const GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT = 3;
+// 🔴 무료 상담 정책 (2026-08-17 변경): **로그인해야 무료 1회**.
+// 예전에는 비로그인 1회 + 계정 하루 3회였다. 무료만으로 궁금증이 해소돼 유료 상담으로
+// 넘어갈 이유가 남지 않았다. 이제 비로그인은 0회(로그인 유도)이고 계정은 총 1회다.
+// 🔴 계정 문서에 freeLimit 이 $setOnInsert 로 박제돼 있어서(아래 :497) 상수만 낮추면
+//    기존 회원은 계속 3회를 받는다. 그래서 아래 판정들은 박제값이 아니라 이 상수를
+//    상한으로 쓴다 — 정책을 낮추면 기존 계정도 함께 내려온다.
+export const GUARDIAN_FORTUNE_GUEST_LIMIT = 0;
+export const GUARDIAN_FORTUNE_DAILY_LIMIT = 1;
+export const GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT = 1;
 export const GUARDIAN_FORTUNE_DEFAULT_TIMEZONE = "Asia/Seoul";
 export const GUARDIAN_FORTUNE_GUEST_COOKIE = "guardian_fortune_guest_id";
 export const GUARDIAN_FORTUNE_RESERVATION_TTL_MS = 10 * 60 * 1000;
@@ -216,7 +222,8 @@ export async function buildGuardianFortuneUsageStatus({ userId, guestIdHash, dat
 
   const daily = snapshot || await store.findDaily(normalizedUserId, safeDateKey);
   status.dailyFreeUsed = clampNonNegative(daily?.freeUsed);
-  status.dailyFreeRemaining = Math.max(0, clampNonNegative(daily?.freeLimit || GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT) - status.dailyFreeUsed);
+  // 박제된 freeLimit 보다 현재 정책이 낮으면 정책을 따른다(기존 계정도 함께 내려온다).
+  status.dailyFreeRemaining = Math.max(0, Math.min(clampNonNegative(daily?.freeLimit || GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT), GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT) - status.dailyFreeUsed);
   // 무료를 다 써도 회당 결제로 계속 이용할 수 있으므로 canGenerate 는 항상 true 다.
   // 결제 여부는 생성 요청 시점에 판정한다(진입 시 서버 이용권 선검사 금지 규칙과 같은 이유).
   status.canGenerate = true;
@@ -321,7 +328,7 @@ export function createMemoryGuardianFortuneStore(seed = {}) {
     },
     async reserveDaily(userId, dateKey, now = new Date()) {
       const doc = await store.ensureDaily(userId, dateKey, now);
-      if (clampNonNegative(doc.freeUsed) + clampNonNegative(doc.reserved) >= clampNonNegative(doc.freeLimit || GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT)) return null;
+      if (clampNonNegative(doc.freeUsed) + clampNonNegative(doc.reserved) >= Math.min(clampNonNegative(doc.freeLimit || GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT), GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT)) return null;
       doc.reserved = clampNonNegative(doc.reserved) + 1;
       doc.reservationUpdatedAt = now;
       doc.updatedAt = now;
@@ -501,7 +508,7 @@ export function createMongoGuardianFortuneStore({ env } = {}) {
     async reserveDaily(userId, dateKey, now = new Date()) {
       await store.ensureDaily(userId, dateKey, now);
       return run(() => leanQuery(GuardianFortuneAccountUsage.findOneAndUpdate(
-        { userId: objectIdOrString(userId), $expr: { $lt: [{ $add: [{ $ifNull: ["$freeUsed", 0] }, { $ifNull: ["$reserved", 0] }] }, { $ifNull: ["$freeLimit", GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT] }] } },
+        { userId: objectIdOrString(userId), $expr: { $lt: [{ $add: [{ $ifNull: ["$freeUsed", 0] }, { $ifNull: ["$reserved", 0] }] }, { $min: [{ $ifNull: ["$freeLimit", GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT] }, GUARDIAN_FORTUNE_ACCOUNT_FREE_LIMIT] }] } },
         { $inc: { reserved: 1 }, $set: { reservationUpdatedAt: now, updatedAt: now } },
         { new: true },
       )));
@@ -699,7 +706,7 @@ export async function commitGuardianFortuneUsage(reservation, { store, now = new
 
 export function buildGuardianFortuneLimitCta(errorCode, isLoggedIn) {
   if (!isLoggedIn || errorCode === GUARDIAN_FORTUNE_ERROR_CODES.GUEST_LIMIT_EXCEEDED) {
-    return { label: "로그인하고 3회 무료로 보기", targetPath: "/auth/login", reason: "로그인하면 3번까지 연이와 네오에게 물어볼 수 있어요." };
+    return { label: "로그인하고 무료로 보기", targetPath: "/auth/login", reason: "회원가입하고 로그인하면 연이와 네오에게 1회 무료로 물어볼 수 있어요." };
   }
   // 결제창은 클라이언트의 공용 게이트(useCoinGate)가 연다. 여기서 /points 로 보내면
   // 이용권 보유자가 결제창의 [이용권으로 구매] 카드를 만나지 못한다.

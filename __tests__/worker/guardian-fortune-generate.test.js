@@ -69,12 +69,12 @@ describe("Guardian Fortune mock generate controller", () => {
     expect(store.state.guests.get("guest-invalid-category")).toBeUndefined();
   });
 
-  it("generates for a guest and commits exactly one guest use", async () => {
+  it("generates for a logged-in user and commits the single free use", async () => {
     const store = createMemoryGuardianFortuneStore();
     const mockGenerator = jest.fn(async () => ({ result, usedFallback: false }));
     const response = await generateGuardianFortuneRequest({
       input,
-      guestIdHash: "guest-generate-0001",
+      userId: "user-generate-free",
       requestId: "generate-guest-1",
       dateKey: "2026-08-02",
       store,
@@ -82,8 +82,8 @@ describe("Guardian Fortune mock generate controller", () => {
       contextBuilder: successfulContextBuilder,
       mockGenerator,
     });
-    expect(response).toMatchObject({ ok: true, generationSource: "guest_free", result });
-    expect(response.usage.guestFreeUsed).toBe(1);
+    expect(response).toMatchObject({ ok: true, generationSource: "daily_free", result });
+    expect(response.usage.dailyFreeRemaining).toBe(0);
     expect(mockGenerator).toHaveBeenCalledTimes(1);
   });
 
@@ -91,7 +91,7 @@ describe("Guardian Fortune mock generate controller", () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       input,
-      guestIdHash: "guest-context-0001",
+      userId: "user-context-0001",
       requestId: "generate-context-1",
       dateKey: "2026-08-02",
       store,
@@ -99,8 +99,8 @@ describe("Guardian Fortune mock generate controller", () => {
       contextBuilder: async () => ({ ok: false, errorCode: "GUARDIAN_CONTEXT_ALL_ADAPTERS_FAILED" }),
     });
     expect(response).toMatchObject({ ok: false, error: "GUARDIAN_FORTUNE_CONTEXT_FAILED", status: 502 });
-    expect(response.usage.guestFreeUsed).toBe(0);
-    expect(store.state.guests.get("guest-context-0001")).toMatchObject({ totalUsed: 0, reserved: 0 });
+    expect(response.usage.dailyFreeUsed).toBe(0);
+    expect(store.state.daily.get("user-context-0001")).toMatchObject({ freeUsed: 0, reserved: 0 });
   });
 
   it("releases the reserved use when a chat stream is cancelled before delivery", async () => {
@@ -109,7 +109,7 @@ describe("Guardian Fortune mock generate controller", () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       input,
-      guestIdHash: "guest-chat-cancelled-01",
+      userId: "user-chat-cancelled-01",
       requestId: "guardian-chat-cancelled",
       dateKey: "2026-08-02",
       store,
@@ -119,14 +119,14 @@ describe("Guardian Fortune mock generate controller", () => {
       abortSignal: controller.signal,
     });
     expect(response).toMatchObject({ ok: false, error: "GUARDIAN_FORTUNE_CANCELLED", status: 499 });
-    expect(store.state.guests.get("guest-chat-cancelled-01")).toMatchObject({ totalUsed: 0, reserved: 0 });
+    expect(store.state.daily.get("user-chat-cancelled-01")).toMatchObject({ freeUsed: 0, reserved: 0 });
   });
 
   it("does not consume a use when the chat result cannot be delivered to its stream", async () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       input,
-      guestIdHash: "guest-chat-undelivered-01",
+      userId: "user-chat-undelivered-01",
       requestId: "guardian-chat-undelivered",
       dateKey: "2026-08-02",
       store,
@@ -136,14 +136,14 @@ describe("Guardian Fortune mock generate controller", () => {
       onDelivery: async () => { throw new Error("stream disconnected"); },
     });
     expect(response).toMatchObject({ ok: false, error: "GUARDIAN_FORTUNE_SERVER_ERROR" });
-    expect(store.state.guests.get("guest-chat-undelivered-01")).toMatchObject({ totalUsed: 0, reserved: 0 });
+    expect(store.state.daily.get("user-chat-undelivered-01")).toMatchObject({ freeUsed: 0, reserved: 0 });
   });
 
   it("does not consume quota when mock generation returns a fallback", async () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       input,
-      guestIdHash: "guest-mock-fail-01",
+      userId: "user-mock-fail-01",
       requestId: "generate-mock-fail-1",
       dateKey: "2026-08-02",
       store,
@@ -152,14 +152,14 @@ describe("Guardian Fortune mock generate controller", () => {
       mockGenerator: async () => ({ result, usedFallback: true, errorCode: "MOCK_LLM_FAILURE" }),
     });
     expect(response).toMatchObject({ ok: false, error: "GUARDIAN_FORTUNE_GENERATION_FAILED", status: 502 });
-    expect(response.usage.guestFreeUsed).toBe(0);
+    expect(response.usage.dailyFreeUsed).toBe(0);
   });
 
   it("commits usage when a validated fallback is actually delivered", async () => {
     const store = createMemoryGuardianFortuneStore();
     const response = await generateGuardianFortuneRequest({
       input,
-      guestIdHash: "guest-visible-fallback-01",
+      userId: "user-visible-fallback",
       requestId: "generate-visible-fallback-1",
       dateKey: "2026-08-02",
       store,
@@ -167,13 +167,13 @@ describe("Guardian Fortune mock generate controller", () => {
       contextBuilder: successfulContextBuilder,
       mockGenerator: async () => ({ result, usedFallback: true, deliverable: true, errorCode: "PROVIDER_TIMEOUT" }),
     });
-    expect(response).toMatchObject({ ok: true, generationSource: "guest_free", result });
-    expect(response.usage.guestFreeUsed).toBe(1);
+    expect(response).toMatchObject({ ok: true, generationSource: "daily_free", result });
+    expect(response.usage.dailyFreeRemaining).toBe(0);
   });
 
   it("generates on a verified per-use payment after the free quota is exhausted", async () => {
     const store = createMemoryGuardianFortuneStore({
-      daily: { "user-generate:2026-08-02": { userId: "user-generate", dateKey: "2026-08-02", freeLimit: 3, freeUsed: 3, reserved: 0 } },
+      daily: { "user-generate:2026-08-02": { userId: "user-generate", dateKey: "2026-08-02", freeLimit: 1, freeUsed: 1, reserved: 0 } },
     });
     const response = await generateGuardianFortuneRequest({
       input,
@@ -193,7 +193,7 @@ describe("Guardian Fortune mock generate controller", () => {
 
   it("does not call the context or mock provider when the payment is missing", async () => {
     const store = createMemoryGuardianFortuneStore({
-      daily: { "user-blocked:2026-08-02": { userId: "user-blocked", dateKey: "2026-08-02", freeLimit: 3, freeUsed: 3, reserved: 0 } },
+      daily: { "user-blocked:2026-08-02": { userId: "user-blocked", dateKey: "2026-08-02", freeLimit: 1, freeUsed: 1, reserved: 0 } },
     });
     const contextBuilder = jest.fn(successfulContextBuilder);
     const mockGenerator = jest.fn(async () => ({ result, usedFallback: false }));
