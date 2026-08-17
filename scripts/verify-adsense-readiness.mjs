@@ -103,6 +103,12 @@ const adsenseAllowedContentRoutes = [
 
 const adsenseBlockedRoutes = [
   "/",
+  // 2026-08-17 에 색인·광고에서 뺀 얇은 목록형·스텁 라우트의 표본. 정책 함수 단위 검사는
+  // verify-adsense-route-policy.mjs 가 하고, 여기서는 **산출물 HTML 에 광고 코드가 실제로
+  // 안 실렸는지**를 본다(둘은 다른 실패를 잡는다).
+  "/famous-saju/category/actor",
+  "/high-value/category/saju-beginner",
+  "/flower/destiny",
   "/advertising-policy",
   "/contact",
   "/contact-us",

@@ -104,7 +104,6 @@ const CONTENT_EXACT_PATHS = new Set([
 ]);
 
 const CONTENT_PREFIXES = [
-  "/famous-saju/category",
   // 별자리·띠 하루 운세(허브 2 + 상세 48). 본문이 전부 서버 렌더라 게재 가능 라우트의
   // 최소 렌더 텍스트 기준을 실제 콘텐츠로 채운다.
   // 🔴 "/fortune" 전체를 열지 않는다 — /fortune/prompt-hub 는 BLOCKED_PREFIXES 대상이고
@@ -120,8 +119,17 @@ const CONTENT_PREFIXES = [
 // 이름·생일만 갈아 끼운 템플릿 양산물이라 noindex + 사이트맵 제외로 돌렸다.
 // 광고까지 같이 끄지 않으면 verify-adsense-readiness 의
 // "광고 가능 + self-canonical → noindex 금지 + 사이트맵 필수" 단언과 충돌한다.
+// /high-value 허브와 상세 12개는 계속 광고·색인 대상이지만, 카테고리 페이지는 목록만 있는
+// 얇은 페이지라(고유 본문 272~558자, 2026-08-17 out/ 실측) noindex + 사이트맵 제외로 돌렸다.
+// 자손만 막는 이 목록에 두어야 `/high-value/<slug>` 를 삼키지 않는다. `canLoadAdsense` 가
+// CONTENT_PREFIXES 보다 먼저 평가하므로 `/high-value` 허용과 공존한다.
+// 🔴 광고까지 같이 끄지 않으면 verify-adsense-readiness 의
+//    "광고 가능 + self-canonical → noindex 금지 + 사이트맵 필수" 단언과 충돌한다.
+// (/famous-saju/category 는 CONTENT_PREFIXES 에서 뺐다 — 허브 `/famous-saju` 는
+//  CONTENT_EXACT_PATHS 에 있어 그대로 광고·색인 대상이다.)
 const BLOCKED_DESCENDANT_PREFIXES = [
   "/insights/famous-saju",
+  "/high-value/category",
 ];
 
 const SAFE_QUERY_KEYS = new Set([

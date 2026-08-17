@@ -8,6 +8,8 @@ const META = {
     "태양 별자리가 그려내는 본래 기질 위로, 상승궁의 첫인상과 달 별자리의 감정 결이 함께 포개지며 나만의 점성술 꽃이 성운처럼 피어납니다.",
   keywords: ["점성술 운명의 꽃", "네온 성운", "natal flower", "astrology flower"],
   image: "https://code-destiny.com/fuctionassets/flower2.webp",
+  // 색인 제외 사유와 "왜 siteSeo 목록이 아니라 페이지 단위인가"는 app/flower/destiny/page.tsx 참고.
+  noindex: true,
 } as const;
 
 export function generateMetadata() {
