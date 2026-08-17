@@ -1225,7 +1225,7 @@
       "neoLogoAlt": "Neo-Modus-Logo"
     },
     "hero2": {
-      "title": "Die Experten, die dein Schicksal am tiefsten lesen",
+      "title": "Vertrauen Sie nicht nur einer Deutung",
       "lead": "Östliche und westliche Weisheit trifft Experten-Einsicht, um deine Geschichte zu deuten.",
       "primaryCta": "✦ Kostenlos starten",
       "journeyCta": "✦ Deine Schicksalsreise beginnen"
@@ -1284,7 +1284,9 @@
       "lead": "Tarot, Orakel, Meditation, Premium-Berichte — suche oder öffne die Sammlungen unten.",
       "placeholder": "Dienste suchen (z. B. Tarot, Partnerschaft, Traum)",
       "searchAria": "Alle Dienste durchsuchen",
-      "empty": "Keine Ergebnisse. Versuche ein anderes Stichwort."
+      "empty": "Keine Ergebnisse. Versuche ein anderes Stichwort.",
+      "expandCta": "Alle auf der Startseite eingeklappten Bereiche zeigen",
+      "collapseCta": "Bereiche wieder einklappen"
     },
     "todayHub": {
       "title": "Das Tagesorakel",
@@ -1304,6 +1306,25 @@
       "scoreUnit": " Pkt.",
       "ctaAll": "Die ganze Tagesdeutung ansehen",
       "share": "Teilen"
+    },
+    "concernPick": {
+      "title": "Was beschäftigt Sie gerade am meisten?",
+      "lead": "Wählen Sie ein Anliegen – wir zeigen Ihnen, wie Sie es kostenlos prüfen, und genau eine passende Deutung dazu.",
+      "love": "Liebe & Bindung",
+      "person": "Eine bestimmte Person",
+      "money": "Geld & Finanzen",
+      "career": "Beruf & Geschäft",
+      "year": "Der Verlauf dieses Jahres",
+      "all": "Mein Gesamtbild",
+      "loveWhy": "Wir sehen, nach welchem Muster sich Ihre Beziehungen wiederholen und wann sich wirklich etwas bewegt.",
+      "personWhy": "Wir lesen beide Horoskope getrennt und vergleichen dann, wo sie sich decken und wo sie auseinandergehen.",
+      "moneyWhy": "Wir trennen die Zeiten, in denen Geld kommt und geht, von dem, was Sie jetzt halten oder ändern sollten.",
+      "careerWhy": "Wir ordnen die Entscheidungen, die in verschiedene Richtungen ziehen, bis hin zum nächsten Schritt.",
+      "yearWhy": "Wir zeigen Monat für Monat, wo der Jahreszyklus auf Ihr Horoskop drückt.",
+      "allWhy": "Wir prüfen, ob alle sechs Systeme auf dieselbe Stelle deuten, und fassen es zu einem Urteil zusammen.",
+      "freeCta": "Erst kostenlos prüfen",
+      "paidCta": "Empfohlene Deutung öffnen",
+      "fusionLine": "Wenn Sie alle sechs Systeme abgleichen möchten"
     }
   },
   "terms": {
@@ -6382,7 +6403,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Der Weg der Sternen-Deutung",
-        "kbm4p3d": "Vier Säulen, Zi Wei Dou Shu, Sukuyo, Astrologie und Tarot – auf Ihre Frage abgestimmt und zu einer Fusionsdeutung verbunden, die die heutige Entscheidung ruhig ordnet."
+        "kbm4p3d": "Wir lesen Vier Säulen, Zi Wei Dou Shu, vedische Astrologie, Sukuyo, westliche Astrologie und Tarot einzeln und prüfen dann, ob sie in dieselbe Richtung weisen."
       }
     },
     "premiumVvipCollection": {
@@ -6733,7 +6754,7 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "✦ Fusionsdeutung ansehen"
+        "kerryje": "Was ist Fusion Fortune?"
       }
     },
     "cdTodayPanelSaju": {

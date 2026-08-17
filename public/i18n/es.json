@@ -1225,7 +1225,7 @@
       "neoLogoAlt": "Logotipo del modo Neo"
     },
     "hero2": {
-      "title": "Los expertos que leen tu destino con más profundidad",
+      "title": "No confíes en una sola lectura",
       "lead": "La sabiduría de Oriente y Occidente se une a los expertos para interpretar tu historia.",
       "primaryCta": "✦ Empieza gratis",
       "journeyCta": "✦ Comienza tu viaje del destino"
@@ -1284,7 +1284,9 @@
       "lead": "Tarot, oráculos, meditación, informes premium: busca o abre las colecciones de abajo.",
       "placeholder": "Buscar servicios (ej.: tarot, compatibilidad, sueño)",
       "searchAria": "Buscar todos los servicios",
-      "empty": "Sin resultados. Prueba otra palabra clave."
+      "empty": "Sin resultados. Prueba otra palabra clave.",
+      "expandCta": "Mostrar todas las secciones plegadas en el inicio",
+      "collapseCta": "Volver a plegar las secciones"
     },
     "todayHub": {
       "title": "La fortuna de hoy",
@@ -1304,6 +1306,25 @@
       "scoreUnit": " pts",
       "ctaAll": "Ver la lectura completa de hoy",
       "share": "Compartir"
+    },
+    "concernPick": {
+      "title": "¿Qué es lo que más te inquieta ahora?",
+      "lead": "Elige una inquietud y te mostraremos cómo comprobarla gratis y la única lectura que mejor le encaja.",
+      "love": "Amor y vínculos",
+      "person": "Una persona concreta",
+      "money": "Dinero",
+      "career": "Trabajo y negocio",
+      "year": "El curso de este año",
+      "all": "Mi fortuna general",
+      "loveWhy": "Vemos con qué estructura se repiten tus relaciones y cuándo se mueven de verdad.",
+      "personWhy": "Leemos ambas cartas por separado y luego comparamos dónde coinciden y dónde se separan.",
+      "moneyWhy": "Separamos cuándo entra y sale el dinero de lo que conviene mantener o cambiar ahora.",
+      "careerWhy": "Ordenamos por prioridad las opciones que tiran en direcciones distintas, hasta el siguiente paso.",
+      "yearWhy": "Desglosamos mes a mes dónde presiona el ciclo de este año sobre tu carta.",
+      "allWhy": "Comprobamos si los seis sistemas apuntan al mismo lugar y lo reunimos en un solo veredicto.",
+      "freeCta": "Compruébalo gratis primero",
+      "paidCta": "Abrir la lectura recomendada",
+      "fusionLine": "Si quieres contrastar los seis sistemas"
     }
   },
   "terms": {
@@ -6382,7 +6403,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "El camino de la lectura estelar",
-        "kbm4p3d": "Conectamos Cuatro Pilares, Zi Wei Dou Shu, Sukuyo, astrología y tarot según tu pregunta, y los reunimos en una lectura de fusión que ordena con calma la decisión de hoy."
+        "kbm4p3d": "Leemos por separado los Cuatro Pilares, el Zi Wei Dou Shu, la astrología védica, el Sukuyo, la astrología occidental y el tarot, y después comprobamos si apuntan al mismo lugar."
       }
     },
     "premiumVvipCollection": {
@@ -6733,7 +6754,7 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "✦ Ver mi lectura de fusión"
+        "kerryje": "¿Qué es Fusion Fortune?"
       }
     },
     "cdTodayPanelSaju": {

@@ -1225,7 +1225,7 @@
       "neoLogoAlt": "Neo-moduslogo"
     },
     "hero2": {
-      "title": "De experts die jouw lot het diepst lezen",
+      "title": "Vertrouw niet op één enkele duiding",
       "lead": "Oosterse en westerse wijsheid ontmoet expertinzicht om jouw verhaal te duiden.",
       "primaryCta": "✦ Gratis beginnen",
       "journeyCta": "✦ Begin je lotsreis"
@@ -1284,7 +1284,9 @@
       "lead": "Tarot, orakels, meditatie, premium rapporten — zoek of open de collecties hieronder.",
       "placeholder": "Diensten zoeken (bijv. tarot, match, droom)",
       "searchAria": "Alle diensten zoeken",
-      "empty": "Geen resultaten. Probeer een ander trefwoord."
+      "empty": "Geen resultaten. Probeer een ander trefwoord.",
+      "expandCta": "Toon alle op de homepage ingeklapte secties",
+      "collapseCta": "Klap die secties weer in"
     },
     "todayHub": {
       "title": "Het fortuin van vandaag",
@@ -1304,6 +1306,25 @@
       "scoreUnit": " ptn",
       "ctaAll": "De volledige daglezing bekijken",
       "share": "Delen"
+    },
+    "concernPick": {
+      "title": "Wat houdt je op dit moment het meest bezig?",
+      "lead": "Kies één vraag – we laten zien hoe je die gratis kunt checken en welke ene duiding er het best bij past.",
+      "love": "Liefde & verbinding",
+      "person": "Een specifiek persoon",
+      "money": "Geld",
+      "career": "Werk & zaken",
+      "year": "Het verloop van dit jaar",
+      "all": "Mijn totaalbeeld",
+      "loveWhy": "We kijken naar het patroon dat zich in je relaties herhaalt en wanneer er echt iets beweegt.",
+      "personWhy": "We lezen beide horoscopen apart en vergelijken daarna waar ze samenvallen en waar ze uiteenlopen.",
+      "moneyWhy": "We scheiden wanneer geld komt en gaat van wat je nu moet vasthouden of veranderen.",
+      "careerWhy": "We ordenen de keuzes die in verschillende richtingen trekken, tot en met de volgende stap.",
+      "yearWhy": "We splitsen per maand uit waar de cyclus van dit jaar op je horoscoop drukt.",
+      "allWhy": "We controleren of alle zes systemen dezelfde kant op wijzen en vatten dat samen in één oordeel.",
+      "freeCta": "Eerst gratis checken",
+      "paidCta": "Aanbevolen duiding openen",
+      "fusionLine": "Wil je alle zes systemen naast elkaar leggen"
     }
   },
   "terms": {
@@ -6382,7 +6403,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Pad van de sterrenreading",
-        "kbm4p3d": "Vier Pijlers, Zi Wei Dou Shu, Sukuyo, astrologie en tarot — afgestemd op je vraag en samengebracht in één fusion-reading die de keuze van vandaag rustig ordent."
+        "kbm4p3d": "We lezen de Vier Pijlers, Zi Wei Dou Shu, Vedische astrologie, Sukuyo, westerse astrologie en tarot apart, en controleren daarna of ze dezelfde kant op wijzen."
       }
     },
     "premiumVvipCollection": {
@@ -6733,7 +6754,7 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "✦ Bekijk je fusion-reading"
+        "kerryje": "Wat is Fusion Fortune?"
       }
     },
     "cdTodayPanelSaju": {

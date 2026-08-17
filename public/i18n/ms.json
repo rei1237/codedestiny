@@ -1225,7 +1225,7 @@
       "neoLogoAlt": "Logo mod Neo"
     },
     "hero2": {
-      "title": "Pakar yang membaca takdir anda paling mendalam",
+      "title": "Jangan percaya satu bacaan sahaja",
       "lead": "Kebijaksanaan Timur-Barat bertemu wawasan pakar untuk mentafsir kisah anda.",
       "primaryCta": "✦ Mula percuma",
       "journeyCta": "✦ Mulakan Perjalanan Takdir Anda"
@@ -1284,7 +1284,9 @@
       "lead": "Tarot, orakel, meditasi, laporan premium — cari atau buka koleksi di bawah.",
       "placeholder": "Cari perkhidmatan (cth: tarot, keserasian, mimpi)",
       "searchAria": "Cari semua perkhidmatan",
-      "empty": "Tiada hasil. Cuba kata kunci lain."
+      "empty": "Tiada hasil. Cuba kata kunci lain.",
+      "expandCta": "Tunjukkan semua bahagian yang dilipat di laman utama",
+      "collapseCta": "Lipat semula bahagian tersebut"
     },
     "todayHub": {
       "title": "Nasib hari ini",
@@ -1304,6 +1306,25 @@
       "scoreUnit": " mata",
       "ctaAll": "Lihat bacaan penuh hari ini",
       "share": "Kongsi"
+    },
+    "concernPick": {
+      "title": "Apa yang paling anda fikirkan sekarang?",
+      "lead": "Pilih satu kerisauan — kami tunjukkan cara menyemaknya secara percuma dan satu bacaan yang paling sesuai untuknya.",
+      "love": "Cinta & jodoh",
+      "person": "Seseorang tertentu",
+      "money": "Wang & rezeki",
+      "career": "Kerjaya & perniagaan",
+      "year": "Aliran tahun ini",
+      "all": "Nasib keseluruhan",
+      "loveWhy": "Kami melihat struktur yang berulang dalam hubungan anda dan bila ia benar-benar berubah.",
+      "personWhy": "Kami membaca kedua-dua carta secara berasingan, kemudian membandingkan di mana ia bertindih dan di mana ia bercanggah.",
+      "moneyWhy": "Kami memisahkan masa wang masuk dan keluar daripada apa yang perlu dikekalkan atau diubah sekarang.",
+      "careerWhy": "Kami menyusun keutamaan pilihan yang menarik ke arah berbeza, sehingga langkah seterusnya.",
+      "yearWhy": "Kami memecahkan bulan demi bulan di mana kitaran tahun ini menekan carta anda.",
+      "allWhy": "Kami menyemak sama ada keenam-enam sistem menunjuk ke tempat yang sama, lalu merumuskannya menjadi satu keputusan.",
+      "freeCta": "Semak percuma dahulu",
+      "paidCta": "Buka bacaan yang disyorkan",
+      "fusionLine": "Jika mahu keenam-enam sistem disemak silang"
     }
   },
   "terms": {
@@ -6382,7 +6403,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Jalan Bacaan Bintang",
-        "kbm4p3d": "Empat Tiang, Zi Wei Dou Shu, Sukuyo, astrologi dan tarot dihubungkan mengikut soalan anda, lalu disatukan menjadi bacaan gabungan yang menjernihkan pilihan hari ini."
+        "kbm4p3d": "Kami membaca Empat Tiang, Zi Wei Dou Shu, astrologi Veda, Sukuyo, astrologi Barat dan tarot secara berasingan, kemudian menyemak sama ada semuanya menunjuk ke arah yang sama."
       }
     },
     "premiumVvipCollection": {
@@ -6733,7 +6754,7 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "✦ Lihat bacaan gabungan"
+        "kerryje": "Apakah itu Fusion Fortune?"
       }
     },
     "cdTodayPanelSaju": {
