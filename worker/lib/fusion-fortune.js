@@ -682,14 +682,19 @@ export async function generateFusionFortuneWithRealLLM({
   onStage,
   now = new Date(),
   abortSignal,
+  deadlineStartAt,
 } = {}) {
   if (!isFusionFortuneRealLlmAllowed(env)) {
     const error = new Error("FUSION_REAL_LLM_NOT_ALLOWED");
     error.code = "FUSION_REAL_LLM_NOT_ALLOWED";
     throw error;
   }
-  const startedAt = Date.now();
+  // 🔴 데드라인 시계는 요청 시작 시점(결제 증빙 직후)부터 돈다. 컨텍스트 빌드(6개 계산기)가
+  //    LLM 그룹보다 먼저 같은 예산을 소모하므로, 여기서 새로 시작하면 컨텍스트 시간이 예산에
+  //    안 잡혀 Cloudflare 엣지 한도(~100s)를 넘겨 요청이 도중에 죽는다.
+  const startedAt = Number.isFinite(Number(deadlineStartAt)) && Number(deadlineStartAt) > 0 ? Number(deadlineStartAt) : Date.now();
   const remainingMs = () => FUSION_GENERATION_DEADLINE_MS - (Date.now() - startedAt);
+
   const model = text(env.FUSION_FORTUNE_LLM_MODEL, 100) || "gemini-2.5-flash";
   const validationOptions = fusionValidationOptions(context, input);
   const providers = new Set();
@@ -701,6 +706,17 @@ export async function generateFusionFortuneWithRealLLM({
 
   const groupTimeoutMs = fusionGroupTimeoutMs(env);
   const runGroup = async (group, { attempts = FUSION_GROUP_ATTEMPTS, timeoutMs = groupTimeoutMs, extraInstruction = "", progress = composeProgress } = {}) => {
+    // 🔴 데드라인을 그룹 호출 **안에서** 강제한다. 예전에는 1차 병렬이 예산을 전혀 보지 않고
+    //    attempts×timeoutMs(최악 110초)를 다 쓴 뒤에야 다음 물결에서 남은 예산을 확인했다.
+    //    컨텍스트 빌드(6개 계산기)까지 같은 120초 예산을 소모하므로, 그대로면 Cloudflare 엣지
+    //    한도(~100s)를 넘겨 요청이 도중에 죽고 SSE 스트림이 끊긴다. 남은 예산으로 호출 상한을
+    //    조여 요청이 끝까지 완주하게 한다.
+    const remainingBeforeCall = remainingMs();
+    if (remainingBeforeCall <= 0) {
+      console.warn("[fusion-fortune-group-skipped-deadline]", { requestId: text(requestId, 120), sectionGroup: group.id, remainingMs: remainingBeforeCall });
+      return { ok: false, group, issue: "deadline_exhausted" };
+    }
+    const clampedTimeoutMs = Math.max(1000, Math.min(timeoutMs, remainingBeforeCall - 8000));
     const groupPrompt = buildFusionSectionGroupPrompt({ context, group, extraInstruction });
     providerCalls += 1;
     let response;
@@ -711,9 +727,10 @@ export async function generateFusionFortuneWithRealLLM({
         attempts,
         maxOutputTokens: fusionGroupTokens(group, env),
         temperature: 0.62,
-        timeoutMs,
+        timeoutMs: clampedTimeoutMs,
         model,
         taskType: "fortune",
+
         // 🔴 초융합은 Workers AI 폴백을 켜지 않는다. 폴백 모델은 목표의 60~77%에서 스스로
         // 멈춰(2026-07-30 실측) 20,000자 계약을 구조적으로 채울 수 없다. 켜면 호출만 더
         // 태우고 결국 반려된다. 폴백을 켜게 되면 fallbackMinChars 를 함께 줘야 한다.
@@ -910,7 +927,11 @@ export async function generateFusionFortuneRequest({ input = {}, userId = "", re
     const contextResult = await contextBuilder(normalized, { now, env, onStage });
     if (!contextResult?.ok) throw Object.assign(new Error("context"), { code: FUSION_FORTUNE_ERROR_CODES.CONTEXT_FAILED });
     throwIfFusionFortuneAborted(abortSignal);
-    const generated = await generator({ input: normalized, context: contextResult.context, env, requestId: safeId, userId, onStage, now, abortSignal });
+    // 🔴 데드라인 시계를 요청 시작 시점(결제 증빙 직후)으로 고정해 넘긴다. 컨텍스트 빌드(6개
+    //    계산기)가 LLM 그룹보다 먼저 같은 120초 예산을 소모하므로, 생성기가 시계를 새로 시작하면
+    //    컨텍스트 시간이 예산에 안 잡혀 Cloudflare 엣지 한도(~100s)를 넘겨 요청이 도중에 죽는다.
+    const generated = await generator({ input: normalized, context: contextResult.context, env, requestId: safeId, userId, onStage, now, abortSignal, deadlineStartAt: startedAt });
+
     generationSourceForLog = generated?.generationSource || "";
     const result = generated?.result && generated?.deliverable !== undefined ? generated.result : generated;
     if (generated?.deliverable === false || !result) throw Object.assign(new Error("generation"), { code: FUSION_FORTUNE_ERROR_CODES.GENERATION_FAILED, issues: generated?.qualityIssues });

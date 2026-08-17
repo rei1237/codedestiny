@@ -188,6 +188,15 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
     clearInterval(heartbeat);
     heartbeat = null;
   };
+  // 🔴 전체 벽시계 가드. 컨텍스트 빌드(6개 계산기) + 4그룹 병렬 + 재생성 + 폴백이 Cloudflare
+  //    엣지 한도(~100s)를 넘으면 요청이 도중에 죽고 SSE 스트림이 끊겨 사용자는 "결과를 받지
+  //    못했어요"만 본다. 여기서 한도를 넘기기 **전에** 생성기를 중단시키고 error 이벤트로
+  //    retryRequestId 를 보내면, 같은 requestId 재시도가 추가 결제 없이 결과를 받을 수 있다.
+  const edgeDeadlineMs = 90000;
+  const abortController = new AbortController();
+  const onClientAbort = () => abortController.abort();
+  request.signal?.addEventListener?.("abort", onClientAbort, { once: true });
+  const edgeTimer = setTimeout(() => abortController.abort(), edgeDeadlineMs);
   const run = (async () => {
     try {
       await writeFusionFortuneSse(writer, "status", { status: "started" });
@@ -203,8 +212,9 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         resolvePaidAccess: buildFusionFortunePaidAccessResolver(env),
         env,
         ctx,
-        abortSignal: request.signal,
+        abortSignal: abortController.signal,
         onStage: (stage) => writeFusionFortuneSse(writer, "stage", stage),
+
         // 저장을 배달보다 **먼저** 한다. 마지막 write 직전 연결이 끊겨도 결과는 남아
         // 재열람이 복구 경로가 된다(예전에는 그 순간 3만원짜리 결과가 그대로 사라졌다).
         onDelivery: async (delivery) => {
@@ -242,6 +252,8 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
         message: "결과를 준비하지 못했어요. 같은 요청으로 다시 시도하면 추가 결제는 없습니다.",
       }).catch(() => {});
     } finally {
+      clearTimeout(edgeTimer);
+      request.signal?.removeEventListener?.("abort", onClientAbort);
       stopHeartbeat();
       await writer.close().catch(() => {});
     }
@@ -250,6 +262,7 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
   else void run;
   return new Response(transformer.readable, { headers: SSE_HEADERS });
 }
+
 
 export async function handleFusionFortuneRoutes(request, env, ctx = null) {
   const method = request.method.toUpperCase();
