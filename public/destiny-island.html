@@ -207,11 +207,25 @@ body.ph-night #mapSvg{filter:brightness(0.86) saturate(0.92)}
 /* 궁 인터랙션 */
 .palace{cursor:pointer;outline:none}
 .palace .pbody{transition:transform .22s var(--ease-out)}
-.palace:hover .pbody,.palace:focus-visible .pbody{transform:translateY(-4px)}
 .palace .pring{opacity:0;transition:opacity .2s ease}
-.palace:hover .pring,.palace:focus-visible .pring{opacity:1}
 .palace .ptip{opacity:0;pointer-events:none;transition:opacity .16s ease}
-.palace:hover .ptip,.palace:focus-visible .ptip{opacity:1}
+/* 키보드 경로는 미디어쿼리 밖에 둔다 — Tab 포커스로도 툴팁과 부양이 보여야 한다(Enter/Space 배선과 짝). */
+.palace:focus-visible .pbody{transform:translateY(-4px)}
+.palace:focus-visible .pring{opacity:1}
+.palace:focus-visible .ptip{opacity:1}
+/* 🔴 :hover 를 터치 기기에서 격리한다. 모바일에서는 탭 뒤 hover 가 눌어붙어 건물이 4px 뜬 채 고정되고
+   툴팁이 상주해 "탭이 반만 먹는다"로 읽혔다. any-hover 가 아니라 hover:hover 를 쓴다 — 터치+마우스
+   겸용 기기에서 주 입력이 터치면 끄는 쪽이 맞다. */
+@media (hover:hover){
+  .palace:hover .pbody{transform:translateY(-4px)}
+  .palace:hover .pring{opacity:1}
+  .palace:hover .ptip{opacity:1}
+}
+/* 눌림 피드백. 전역 -webkit-tap-highlight-color:transparent 때문에 궁에는 아무 신호가 없었고,
+   그래서 사용자가 한 번 더 탭하게 됐다. :active 는 못 쓴다 — setPointerCapture 가 이벤트를 SVG 루트로
+   재타깃해 자식에 걸리지 않는다(같은 이유로 click 배선도 포기돼 있다). 그래서 클래스로 준다. */
+.palace.tapping .pbody{transform:translateY(-1px) scale(.965)}
+.palace.tapping .pring{opacity:1}
 .palace .emis{opacity:.35;transition:opacity 1.4s ease}
 body.ph-night .palace .emis,body.ph-dusk .palace .emis{opacity:1}
 /* 야간 따뜻한 창불빛 + 수면 반사(파스텔 트와일라잇 유지: 지형은 어둡히지 않고 창만 앰버로) */
@@ -219,8 +233,18 @@ body.ph-night .palace .emis{fill:#ffc97a}
 .palace .nreflect{opacity:0;transition:opacity 1.6s ease}
 body.ph-night .palace .nreflect{opacity:.2}
 .leyline{fill:none;stroke-linecap:round}
-.leyline.flow{stroke-dasharray:5 9;animation:leyFlow 2.4s linear infinite}
+/* 🔴 타이밍이 linear 가 아니라 steps() 인 이유 — 성능이다. 실측(perf:island, 2026-08-17 · CPU 4배 ·
+   n=18)에서 맵 렌더 부하가 만든 탭 입력 지연의 몫은 **사실상 전부 이 stroke-dashoffset 애니메이션**
+   이었다(입력 지연 base 31.5~59.1ms → 이것만 끄면 7.8~30.3ms, min~max 밴드 비겹침).
+   같은 실험에서 #mapSvg 의 CSS filter · backdrop-filter · SVG 필터 3종 · 날씨/반딧불 파티클은
+   전부 밴드가 겹쳤다 — 그래서 그것들은 건드리지 않았다.
+   dashoffset 은 값이 바뀔 때마다 패스의 대시 지오메트리를 다시 만든다. linear 는 프레임마다(60Hz)
+   새 값을 내지만, steps(28) 은 2.4초에 28번(≈11.7Hz)만 낸다. 값이 안 바뀌는 프레임은 Blink 가
+   스타일·페인트를 건너뛴다. 대시 주기가 14 유저단위이므로 28스텝 = 반 유저단위씩 흐른다. */
+.leyline.flow{stroke-dasharray:5 9;animation:leyFlow 2.4s steps(28,end) infinite}
 @keyframes leyFlow{to{stroke-dashoffset:-14}}
+/* 저사양 기기에서는 아예 멈춘다. 점선(stroke-dasharray)은 남으므로 '공명선' 자체는 그대로 보인다. */
+body.fx-low .leyline.flow{animation:none}
 .chip-ic{vertical-align:-3px;margin-right:1px}
 .mk-badge{transform-origin:center;transform-box:fill-box}
 .mk-badge.pulse{animation:mkPulse 2.6s ease-in-out infinite}
@@ -564,7 +588,10 @@ body.ph-night .fireflies{opacity:1}
 <section class="screen" id="scrLoading" aria-label="섬을 그리는 중">
   <div class="starfield" aria-hidden="true" data-stars="50"></div>
   <div class="loading-wrap">
-    <div class="loading-art" aria-hidden="true"><img src="/images/destiny-island/consult-reading.webp" alt="" /></div>
+    <!-- 로딩 화면은 게이트에서 버튼을 누른 뒤에야 보인다. display:none 이어도 파싱 시점에 요청되던
+         131KB 를 진입 경로에서 빼낸다. 🔴 이 페이지에는 홈의 IntersectionObserver 하이드레이션
+         게이트가 없으므로 "지연 장치 이중 적용" 함정에 걸리지 않는다(홈 규칙을 그대로 옮기지 말 것). -->
+    <div class="loading-art" aria-hidden="true"><img src="/images/destiny-island/consult-reading.webp" alt="" loading="lazy" decoding="async" /></div>
     <div class="loading-orb" aria-hidden="true"></div>
     <p class="loading-line" id="loadingLine">…당신의 별을 찾고 있어요.</p>
   </div>
@@ -576,7 +603,12 @@ body.ph-night .fireflies{opacity:1}
     <div class="starfield" aria-hidden="true" data-stars="90"></div>
     <div class="intro-dot" id="inDot" aria-hidden="true"></div>
     <div class="intro-ring" id="inRing" aria-hidden="true"><svg id="inLines"></svg></div>
-    <div class="intro-island" id="inIsland" aria-hidden="true"><div class="intro-island-orb"></div><img src="/images/destiny-island/gate-hero-desktop.webp" alt="" /></div>
+    <!-- 게이트 히어로와 같은 그림인데 여기만 데스크톱본(312KB)을 무조건 받고 있었다.
+         모바일은 게이트와 같은 소스(193KB)를 쓴다. -->
+    <div class="intro-island" id="inIsland" aria-hidden="true"><div class="intro-island-orb"></div><picture>
+      <source media="(max-width: 640px)" srcset="/images/destiny-island/gate-hero-mobile.webp" />
+      <img src="/images/destiny-island/gate-hero-desktop.webp" alt="" decoding="async" />
+    </picture></div>
     <p class="intro-caption" id="inCap" aria-live="polite"></p>
     <button class="intro-skip" id="inSkip" type="button">건너뛰기 ›</button>
     <div class="intro-name" id="inName" role="dialog" aria-modal="true" aria-labelledby="inNameTitle">
@@ -886,6 +918,28 @@ function setBgm(on){
    ============================================================ */
 var $=function(id){return document.getElementById(id);};
 var reduceMotion=window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+/* 저사양 기기 등급. 판정식은 레포 정본 js/inline/mobile-safe-render-init.js 의 isLikelyLowGpu()
+   와 같다 — 이 페이지는 외부 JS 를 하나도 로드하지 않으므로 import 대신 인라인으로 둔다
+   (정적 셸 index.html 도 같은 방식으로 인라인 판정한다).
+   🔴 reduceMotion 은 건드리지 않는다(a11y 의미). fxLow 가 그 상위집합이라 기존 동작은 전부 보존된다.
+   🔴 신규 전역은 fxLow 하나, 신규 클래스는 fx-low 하나. applyPhase() 는 ph-* 만 지우므로 충돌 없다.
+   🔴 navigator.deviceMemory 는 iOS Safari 에 없다 — 이 식만으로는 저사양 아이폰을 놓칠 수 있다.
+      그 구멍은 아래 enterIsland 의 실측 승격이 메운다. */
+var fxLow=(function(){
+  try{
+    var dm=navigator.deviceMemory||0,cores=navigator.hardwareConcurrency||0;
+    var ua=String(navigator.userAgent||"").toLowerCase();
+    var am=/android\s([0-9]+)/.exec(ua);
+    if(reduceMotion)return true;
+    if(dm&&dm<=4)return true;
+    if(cores&&cores<=4)return true;
+    if(/android/.test(ua)&&am&&parseInt(am[1],10)<=10)return true;
+    if(/wv\)|; wv/.test(ua))return true;
+  }catch(_){}
+  return false;
+})();
+function markFxLow(){fxLow=true;try{document.body.classList.add("fx-low");}catch(_){}}
+if(fxLow)markFxLow();
 function showScreen(id){
   ["scrGate","scrForm","scrLoading","scrIntro"].forEach(function(s){$(s).classList.toggle("on",s===id);});
   $("scrIsland").classList.toggle("on",id==="scrIsland");
@@ -1593,7 +1647,22 @@ function renderNightBits(){
 }
 /* ---- 팬/줌 (뷰박스 좌표 기반, 전체 fit이 기본) ---- */
 var _mapDragged=false,_mapPanInit=false,_mapScale=1,_mapTx=0,_mapTy=0;
+/* 탭 판정 상수 — 레포 정본 js/inline/gesture-arbiter.js 의 SLOP_PX=12 / MAX_TAP_MS=700 과 같은 값.
+   그 파일 머리말이 적어 두었듯 임계가 스택마다 흩어지면 탭이 죽는다. 여기만 다른 값을 쓰지 않는다.
+   🔴 척도는 축별 max(체비셰프)다. 예전의 맨해튼 합 6 은 **대각선에서 축당 3px** 로 조여져,
+      실측(perf:island M2, 2026-08-17)에서 대각선 6px 지터의 탭 성공률이 0/18 이었다. */
+var TAP_SLOP_TOUCH=12,TAP_SLOP_MOUSE=5,TAP_MAX_MS=700;
+/* elementFromPoint 가 아무 궁도 못 맞혔을 때만 쓰는 최근접 폴백의 허용 반경(화면 px).
+   히트 밀도 실측에서 궁 중심 44×44px 안의 자기 적중률 중앙값이 60% 였다(오목한 실루엣이 곧 히트영역). */
+var TAP_NEAR_PX=30;
 function applyMapTransform(){var z=$("mapZoom");if(z)z.setAttribute("transform","translate("+_mapTx.toFixed(1)+","+_mapTy.toFixed(1)+") scale("+_mapScale.toFixed(3)+")");}
+/* 제스처 중 transform 적용을 프레임당 1회로 묶는다. move 는 프레임당 여러 번 들어온다.
+   🔴 resetMapView·wheel 은 이 스케줄러를 타지 않는다 — 한 프레임 늦으면 더블탭/휠 반응이 둔해 보인다. */
+var _mapRaf=0;
+function scheduleMapTransform(){
+  if(_mapRaf)return;
+  _mapRaf=requestAnimationFrame(function(){_mapRaf=0;applyMapTransform();});
+}
 function clampMap(){var mx=(_mapScale-1)*VBW,my=(_mapScale-1)*VBH;
   _mapTx=Math.min(0,Math.max(-mx,_mapTx));_mapTy=Math.min(0,Math.max(-my,_mapTy));}
 function mobileFitScale(){
@@ -1623,16 +1692,56 @@ function goPalaceConsult(pal){
   }catch(_){}
   location.href="/island-consult?palace="+encodeURIComponent(pal.name);
 }
+/* 아무 궁도 못 맞혔을 때의 최근접 폴백. 궁의 히트영역은 SVG 실루엣 그 자체(투명 히트박스가 없다)라
+   오목한 부분은 놓치기 쉽다. 🔴 투명 히트 rect 를 깔지 않는 이유: .palace 는 y 순 뒤→앞 렌더라
+   앞 궁의 보이지 않는 rect 가 뒤 궁의 건물을 덮어 "정확히 눌렀는데 옆 궁이 열린다"가 된다. */
+function nearestPalaceAt(cx,cy){
+  var z=$("mapZoom");if(!z||!BP)return null;
+  var m=null;try{m=z.getScreenCTM();}catch(_){}
+  if(!m)return null;
+  var best=null,bestD=Infinity;
+  BP.palaces.forEach(function(p){
+    var L=LAYOUT[p.name];if(!L)return;
+    var d=Math.hypot(m.a*L.cx+m.c*L.cy+m.e-cx,m.b*L.cx+m.d*L.cy+m.f-cy);
+    if(d<bestD){bestD=d;best=p;}
+  });
+  return bestD<=TAP_NEAR_PX?best:null;
+}
 function initPanZoom(){
   if(_mapPanInit)return;_mapPanInit=true;
   var svg=$("mapSvg");if(!svg)return;
-  var pointers={},startDist=0,startScale=1,downX=0,downY=0,downTx=0,downTy=0,dragging=false,tapCandidate=false;
+  var pointers={},startDist=0,startScale=1,downX=0,downY=0,downTx=0,downTy=0,downAt=0;
+  var dragging=false,tapCandidate=false,multiTouch=false,slop=TAP_SLOP_TOUCH,pressed=null;
+  /* 제스처 동안 SVG 의 rect 는 변하지 않는다. move 마다 읽으면 읽기→쓰기가 반복돼 강제 동기
+     레이아웃이 프레임마다 걸린다(실측: 60스텝 팬에 getBoundingClientRect 60회). down 에서 한 번만 읽는다. */
+  var _vbCache=0;
   function vbScale(){var r=svg.getBoundingClientRect();return VBW/(r.width||VBW);}
+  function setPressed(node){
+    if(pressed===node)return;
+    if(pressed)pressed.classList.remove("tapping");
+    pressed=node||null;
+    if(pressed)pressed.classList.add("tapping");
+  }
+  function endGesture(){
+    dragging=false;multiTouch=false;setPressed(null);
+    $("mapZoom").classList.remove("panning");
+    if(_mapRaf){cancelAnimationFrame(_mapRaf);_mapRaf=0;applyMapTransform();}
+  }
   svg.addEventListener("pointerdown",function(e){
     pointers[e.pointerId]={x:e.clientX,y:e.clientY};
-    if(Object.keys(pointers).length===1){dragging=true;_mapDragged=false;tapCandidate=true;downX=e.clientX;downY=e.clientY;downTx=_mapTx;downTy=_mapTy;
-      $("mapZoom").classList.add("panning");try{svg.setPointerCapture(e.pointerId);}catch(_){}}
-    else if(Object.keys(pointers).length===2){tapCandidate=false;var ps=Object.keys(pointers).map(function(k){return pointers[k];});
+    if(Object.keys(pointers).length===1){
+      dragging=true;_mapDragged=false;tapCandidate=true;multiTouch=false;
+      downX=e.clientX;downY=e.clientY;downTx=_mapTx;downTy=_mapTy;downAt=Date.now();
+      _vbCache=vbScale();
+      slop=e.pointerType==="mouse"?TAP_SLOP_MOUSE:TAP_SLOP_TOUCH;
+      /* 🔴 눌림 피드백의 대상은 여기서 공짜로 얻는다 — setPointerCapture 는 이 이벤트가 dispatch 된
+         **뒤에** 걸리므로 pointerdown 의 e.target 은 아직 실제로 맞은 도형이다.
+         (pointerup 은 캡처로 SVG 에 재타깃되므로 거기서는 elementFromPoint 가 필요하다.) */
+      setPressed(e.target&&e.target.closest?e.target.closest(".palace"):null);
+      $("mapZoom").classList.add("panning");try{svg.setPointerCapture(e.pointerId);}catch(_){}
+    }
+    else if(Object.keys(pointers).length===2){tapCandidate=false;multiTouch=true;setPressed(null);
+      var ps=Object.keys(pointers).map(function(k){return pointers[k];});
       startDist=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y);startScale=_mapScale;}
   });
   svg.addEventListener("pointermove",function(e){
@@ -1640,21 +1749,44 @@ function initPanZoom(){
     var keys=Object.keys(pointers);
     if(keys.length>=2){var ps=keys.map(function(k){return pointers[k];});
       var d=Math.hypot(ps[0].x-ps[1].x,ps[0].y-ps[1].y);
-      _mapScale=Math.min(3,Math.max(1,startScale*(d/(startDist||d))));clampMap();applyMapTransform();_mapDragged=true;return;}
-    if(dragging){var f=vbScale();var dx=(e.clientX-downX)*f,dy=(e.clientY-downY)*f;
-      if(Math.abs(e.clientX-downX)+Math.abs(e.clientY-downY)>6)_mapDragged=true;
-      _mapTx=downTx+dx;_mapTy=downTy+dy;clampMap();applyMapTransform();}
+      _mapScale=Math.min(3,Math.max(1,startScale*(d/(startDist||d))));clampMap();scheduleMapTransform();_mapDragged=true;return;}
+    if(!dragging)return;
+    if(!_mapDragged){
+      /* 임계를 넘기 전에는 맵을 움직이지 않는다 — 탭 중 맵이 미세하게 흔들리는 것도 막고,
+         탭 1회당 transform 쓰기가 0회가 된다. */
+      if(Math.max(Math.abs(e.clientX-downX),Math.abs(e.clientY-downY))<=slop)return;
+      _mapDragged=true;setPressed(null);
+      /* 🔴 재기준화. 안 하면 팬이 시작되는 순간 임계만큼(최대 12px) 툭 튄다. */
+      downX=e.clientX;downY=e.clientY;downTx=_mapTx;downTy=_mapTy;
+      return;
+    }
+    _mapTx=downTx+(e.clientX-downX)*_vbCache;_mapTy=downTy+(e.clientY-downY)*_vbCache;
+    clampMap();scheduleMapTransform();
   });
+  var lastTap=0;
   function up(e){
-    /* 드래그/핀치가 아닌 순수 단일 탭이면, 캡처로 자식 click이 안 뜨므로 좌표로 궁을 해석해 안내 개시 */
-    var wasTap=Object.keys(pointers).length===1&&tapCandidate&&!_mapDragged;
+    /* 드래그/핀치가 아닌 순수 단일 탭이면, 캡처로 자식 click이 안 뜨므로 좌표로 궁을 해석해 안내 개시.
+       🔴 판정에 `pointers` 의 개수를 쓰지 않는다 — 정리되지 않은 포인터가 하나라도 남으면 그 뒤의
+          모든 탭이 새로고침 전까지 영구히 죽는다(fail-open: gesture-arbiter.js 머리말과 같은 원칙).
+          대신 "이 제스처에서 두 번째 포인터가 눌린 적 있는가"를 본다. */
+    var wasTap=!multiTouch&&tapCandidate&&!_mapDragged&&(Date.now()-downAt)<=TAP_MAX_MS;
     delete pointers[e.pointerId];
-    if(Object.keys(pointers).length===0){dragging=false;$("mapZoom").classList.remove("panning");}
-    if(wasTap){var el=null;try{el=document.elementFromPoint(e.clientX,e.clientY);}catch(_){}
-      var node=el&&el.closest?el.closest(".palace"):null;
-      if(node)openPalace(palaceFromNode(node));}
+    if(Object.keys(pointers).length===0)endGesture();
+    if(!wasTap)return;
+    var el=null;try{el=document.elementFromPoint(e.clientX,e.clientY);}catch(_){}
+    var node=el&&el.closest?el.closest(".palace"):null;
+    var pal=node?palaceFromNode(node):nearestPalaceAt(e.clientX,e.clientY);
+    if(pal){openPalace(pal);return;}
+    /* 🔴 더블탭 리셋은 **탭으로 확정된 것끼리만** 센다. 예전에는 별도 pointerup 리스너가 탭 여부를
+       보지 않아, 핀치의 두 손가락 pointerup 2건이 300ms 안에 들어오면 방금 만든 줌을 되돌렸다
+       (실측 3/3 회 되돌아감). 드래그 종료도 lastTap 을 오염시켜 팬 직후 정상 탭이 더블탭이 됐다. */
+    var now=Date.now();
+    if(now-lastTap<300&&_mapScale>1.02)resetMapView();
+    lastTap=now;
   }
   svg.addEventListener("pointerup",up);svg.addEventListener("pointercancel",up);
+  /* 캡처를 잃으면 pointerup 이 안 올 수 있다 — 상태를 여기서도 되돌린다. */
+  svg.addEventListener("lostpointercapture",function(){pointers={};endGesture();});
   svg.addEventListener("wheel",function(e){e.preventDefault();
     var f=vbScale(),r=svg.getBoundingClientRect();
     var vx=(e.clientX-r.left)*f,vy=(e.clientY-r.top)*f;
@@ -1662,9 +1794,19 @@ function initPanZoom(){
     _mapScale=Math.min(3,Math.max(1,_mapScale*(e.deltaY<0?1.12:0.89)));
     _mapTx=vx-wx*_mapScale;_mapTy=vy-wy*_mapScale;clampMap();applyMapTransform();
   },{passive:false});
-  var lastTap=0;
   svg.addEventListener("dblclick",function(){resetMapView();});
-  svg.addEventListener("pointerup",function(){var now=Date.now();if(now-lastTap<300&&_mapScale>1.02){resetMapView();}lastTap=now;});
+  /* 회전/리사이즈 — 예전에는 핸들러가 아예 없어서 가로↔세로를 돌리면 mobileFitScale() 결과가 낡은 채
+     남아 맵이 잘리거나 레터박스가 생겼다. 🔴 제스처 중에는 되돌리지 않는다(손가락 밑에서 튄다). */
+  var fitTimer=null;
+  function refit(){
+    clearTimeout(fitTimer);
+    fitTimer=setTimeout(function(){
+      _vbCache=vbScale();
+      if(!dragging&&!Object.keys(pointers).length)resetMapView();
+    },180);
+  }
+  window.addEventListener("resize",refit,{passive:true});
+  window.addEventListener("orientationchange",refit,{passive:true});
 }
 /* ---- 연이·네오 이야기 내레이터 (자미두수 지식 + 따뜻한 조언, 명반 개인화) ---- */
 var NEO_AV=(PROD||REMOTE_SHELL)
