@@ -1013,7 +1013,10 @@ function _buildCard(idx, card) {
 
 function _fspCardHref(card) {
   var slug = card && FAMOUS_ROUTE_SLUGS[card.name];
-  return slug ? '/famous-saju/' + slug : '';
+  // 정본은 `/insights/famous-saju/<slug>` 다. 예전엔 `/famous-saju/<slug>` 를 만들고
+  // public/_redirects 의 301 에 기댔는데, 2026-08-17 에 `/famous-saju` 라우트가 삭제되면서
+  // 그 홉이 순전한 낭비가 됐다. 리다이렉트는 외부 유입 회수용으로만 남는다.
+  return slug ? '/insights/famous-saju/' + slug : '';
 }
 
 function renderFamousCard(idx) {

@@ -1,7 +1,7 @@
 /** Shared with app/sitemap.ts — single source for public indexable URLs. */
 
 import { PSYCHOTESTS } from "./psychotest-catalog";
-import { categoryToSlug, publishedCelebritySajuSeeds } from "./famous-saju/celebrity-data";
+import { publishedCelebritySajuSeeds } from "./famous-saju/celebrity-data";
 import { isNoindexPath } from "./seo/siteSeo";
 
 export const BASE_URL = "https://code-destiny.com";
@@ -34,19 +34,8 @@ const PSYCHOTEST_ROUTE_ENTRIES: SitemapRouteEntry[] = [
   })),
 ];
 
-const FAMOUS_SAJU_CATEGORY_ROUTE_ENTRIES: SitemapRouteEntry[] = Array.from(
-  new Set(publishedCelebritySajuSeeds.map((item) => categoryToSlug(item.category))),
-).map((slug) => ({
-  path: `/famous-saju/category/${slug}`,
-  changeFrequency: "weekly" as const,
-  priority: 0.72,
-}));
-
-const FAMOUS_SAJU_ROUTE_ENTRIES: SitemapRouteEntry[] = [
-  { path: "/famous-saju", changeFrequency: "weekly", priority: 0.88 },
-  ...FAMOUS_SAJU_CATEGORY_ROUTE_ENTRIES,
-];
-
+// `/famous-saju` 허브와 카테고리 12개는 2026-08-17 에 라우트째 삭제하고 `public/_redirects`
+// 로 `/insights/famous-saju/` 에 접었다. 정본은 아래 INSIGHT 항목 하나뿐이다.
 const FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES: SitemapRouteEntry[] = [
   { path: "/insights/famous-saju", changeFrequency: "weekly", priority: 0.89 },
   ...publishedCelebritySajuSeeds.map((item) => ({
@@ -133,7 +122,6 @@ const ROUTE_CANDIDATES: SitemapRouteEntry[] = [
   { path: "/insights/dream", changeFrequency: "weekly", priority: 0.84 },
   { path: "/insights/compatibility", changeFrequency: "weekly", priority: 0.84 },
   ...FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES,
-  ...FAMOUS_SAJU_ROUTE_ENTRIES,
   { path: "/high-value",  changeFrequency: "weekly", priority: 0.88 },
 
   // ── High-Value 개별 문서 ──────────────────────────────────────

@@ -133,11 +133,8 @@ export default function FamousSajuInsightIndexPage() {
             {famousSajuInsightCopy.intro}
           </p>
           <p className="mt-3 text-sm text-slate-400">
-            카테고리별로 살펴보려면{" "}
-            <Link href="/famous-saju" className="text-amber-100 underline">
-              유명인 사주 분석 아카이브
-            </Link>
-            도 함께 확인해 보세요.
+            아래 태그와 검색으로 인물·분야를 좁혀 볼 수 있습니다. 출생 시간이 확인되지 않은
+            인물은 시주를 비운 삼주 기준으로 계산하며, 그 사실을 상세 페이지에 함께 적습니다.
           </p>
         </div>
 
