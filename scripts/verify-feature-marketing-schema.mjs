@@ -165,6 +165,49 @@ for (const [key, entry] of Object.entries(TEMPLATES)) {
   }
 }
 
+/* ── 3-b. 카테고리 템플릿이 상품 주장을 흘리지 못하게 한다 ─────────────
+ *
+ * 팝업이 "실제 기능과 다른 설명"을 하던 경로는 하나였다: 자기 마케팅 카피가 없는 타일이
+ * 카테고리 템플릿을 통째로 상속받아, 혈액형 테스트가 '명식 계산' 단계를, 화투점이
+ * '태어난 시간을 모르면 못 보나요?' FAQ 를, 무료 타일 전부가 '왜 유료인가요' 비교표를
+ * 달고 있었다. 셸의 _TEMPLATE_CLAIM_FIELDS 가 그 상속을 끊는데, 나중에 템플릿에 새 필드가
+ * 생기면 그 필드만 조용히 다시 새어 나간다. 그래서 목록을 손으로 믿지 않고,
+ * 템플릿의 실제 키를 전수 발견해 미분류를 실패시킨다(원칙 10).
+ */
+const TEMPLATE_TONE_FIELDS = new Set(["badge"]);
+
+function extractStringArray(name) {
+  const match = html.match(new RegExp(`var\\s+${name}\\s*=\\s*(\\[[^\\]]*\\])`));
+  if (!match) return null;
+  return new Function(`return ${match[1]};`)();
+}
+
+const claimFields = extractStringArray("_TEMPLATE_CLAIM_FIELDS");
+if (!Array.isArray(claimFields) || !claimFields.length) {
+  fail("_TEMPLATE_CLAIM_FIELDS 를 셸에서 찾지 못했습니다 — 카테고리 템플릿 상속 차단이 사라졌습니다.");
+} else {
+  const claimSet = new Set(claimFields);
+  for (const [key, entry] of Object.entries(TEMPLATES)) {
+    for (const field of Object.keys(entry || {})) {
+      if (claimSet.has(field) || TEMPLATE_TONE_FIELDS.has(field)) continue;
+      fail(
+        `TEMPLATES['${key}'].${field} 가 미분류입니다 — 카테고리 값이 자기 카피 없는 타일로 새어 나갑니다. ` +
+        `상품별 사실 주장이면 index.html 의 _TEMPLATE_CLAIM_FIELDS 에, 분류/톤이면 이 가드의 TEMPLATE_TONE_FIELDS 에 등록하세요.`,
+      );
+    }
+  }
+}
+
+if (!/_templateForTile\(/.test(html)) {
+  fail("_templateForTile 이 사라졌습니다 — 카피 없는 타일이 카테고리 템플릿을 통째로 상속합니다.");
+}
+if (!/if\(merged\.ct!=='paid'\)merged\.valueCompare=null;/.test(html)) {
+  fail("무료 타깃의 '왜 유료인가요' 비교표 차단이 사라졌습니다 — 무료 기능이 다시 유료로 설명됩니다.");
+}
+if (!/d\.ct==='paid'\?_pvwTr\('preview\.ctaNoteDefault'/.test(html)) {
+  fail("CTA 보조 문구가 다시 무조건 '결제 후 …' 로 붙습니다 — 무료 타깃에서는 기본 문구를 쓰지 않습니다.");
+}
+
 /* ── 4. 고가 상품은 자기 샘플을 갖는다 ─────────────────────────────── */
 
 function resolveCopy(key, depth = 0) {
