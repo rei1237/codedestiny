@@ -326,7 +326,7 @@ const ANIMAL_ITEMS_COPY: ServiceCardModel[] = [
 const MEDITATION_ITEMS_COPY: ServiceCardModel[] = [
   { title: "네빌 명상", description: "상상 창조 집중 루틴", href: "/neville-meditation.html", emoji: "🧘", badges: [{ text: "3,000원~5,000원", tone: "coin" }] },
   { title: "Divya Yoga", description: "요가 기반 집중 리셋", href: "/yoga-guru.html", emoji: "🧘‍♀️", badges: [{ text: "3,000원~5,000원", tone: "coin" }] },
-  { title: "코즈믹 소울 명상", description: "R=VD 현실화 프로토콜", href: "/cosmic-soul-meditation.html", emoji: "🌠", badges: [{ text: "5,000원~10,000원", tone: "coin" }] },
+  { title: "코즈믹 소울 명상", description: "R=VD 현실화 프로토콜", href: "/cosmic-soul-meditation.html", emoji: "🌠", badges: [{ text: "10,000원~20,000원", tone: "coin" }] },
   { title: "드림 타로", description: "꿈 문장 AI 프롬프트", href: "/dream/tarot", emoji: "🌙", badges: [{ text: "무료", tone: "free" }, { text: "NEW", tone: "new" }] },
   { title: "정신분석 해몽", description: "Freud 관점 심층 해석", href: "/dream/psycho", emoji: "🕯️", badges: [{ text: "1회 3,000원", tone: "coin" }] },
   { title: "심리테스트 허브", description: "성격·연애·직장 14종 모음", href: "/psychotest", emoji: "🧩", badges: [{ text: "무료", tone: "free" }, { text: "추천", tone: "soft" }] },

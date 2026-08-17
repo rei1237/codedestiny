@@ -48,8 +48,8 @@
 | AI 손금 | 관상 & 심볼 컬렉션 | `/palm-reading`, `/services/palm-reading` | 기본 진입 무료, 세부 분석 30~50스톤, AI 상담 50스톤 | 홈에서 직접 CTA 없음 | 이미지 업로드/AI 분석 route | 심볼 컬렉션 내부 유지, 결과/결제는 route에서 처리 |
 | 네빌 명상 실습 | 명상 컬렉션 | `/neville-meditation.html` | 30분 3,000원, 60분 5,000원 | 명상 기능이 타로 사이에 묻힘 | static HTML | 명상 chip으로 별도 묶음 |
 | Divya Yoga 맞춤 명상 | 명상 컬렉션 | `/yoga-guru.html` | 30분 3,000원, 60분 5,000원 | 설명이 길어질 수 있음 | static HTML | 명상 컬렉션 접힘 유지 |
-| 코스믹 소울 명상 | 명상 컬렉션 | `/cosmic-soul-meditation.html` | 30분 5,000원, 60분 10,000원 | 고가 옵션 설명이 길어짐 | static HTML/audio 가능 | 별도 route로 이동 |
-| R=VD 현실 렌더링 | 명상 컬렉션의 코스믹 소울 명상 카드 | `/cosmic-soul-meditation.html` | 30분 5,000원, 60분 10,000원 | 명상/현실화 맥락을 함께 봐야 이해됨 | `r=vd.webp`와 정적 명상 페이지 | 모바일은 코스믹 소울 명상 상세로 딥링크 |
+| 코스믹 소울 명상 | 명상 컬렉션 | `/cosmic-soul-meditation.html` | 30분 10,000원, 60분 20,000원 | 고가 옵션 설명이 길어짐 | static HTML/audio 가능 | 별도 route로 이동 |
+| R=VD 현실 렌더링 | 명상 컬렉션의 코스믹 소울 명상 카드 | `/cosmic-soul-meditation.html` | 30분 10,000원, 60분 20,000원 | 명상/현실화 맥락을 함께 봐야 이해됨 | `r=vd.webp`와 정적 명상 페이지 | 모바일은 코스믹 소울 명상 상세로 딥링크 |
 | 명상 | 모바일 빠른 탐색, 명상 컬렉션 | `#cdMobileBottomNav`, 명상 컬렉션 | 무료/유료 혼합 | 타로/신탁 카드 사이에 묻힘 | 정적 HTML, audio 가능 route 혼합 | 카테고리 탭에서 접힌 rail로 진입 |
 | 타로 | 모바일 빠른 탐색, 타로 컬렉션 | `tarotCollection`, `openTarotModal` | 무료/유료 혼합 | 카드 수가 많아 세로 피로가 큼 | 모달/route/정적 HTML 혼합 | 대표 무료 카드와 더보기 구조 |
 | 우리는 무슨 사이? | 타로 컬렉션 | `openTarotLoveModal`, `/tarot/love` | 1회 5,000원 | 모바일에서 타로 카드가 많음 | hidden modal + lazy script | 타로 chip 후 노출 |

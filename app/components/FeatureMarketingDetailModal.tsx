@@ -381,6 +381,11 @@ function explicitCopy(target: FeatureMarketingTarget) {
 
 export function isPaidMarketingTarget(target: FeatureMarketingTarget) {
   if (target.accessType && target.accessType !== "free") return true;
+  // 🔴 accessType="free" 는 선언이고 아래는 휴리스틱이다. 선언이 이긴다 —
+  // 그러지 않으면 priceLabel "부분 유료"/"20,000원" 같은 문구 하나로 무료 기능이 유료로 잡혀
+  // 팝업이 "왜 유료인가요" 표를 띄우고, featureKey 가 없어 가격도 못 받으므로
+  // priceReady 가 영영 false 라 CTA 까지 잠긴다(사주·타로·숙요·베다·점성술 5종 실측).
+  if (target.accessType === "free") return false;
   if ((target.coinPrice || 0) > 0) return true;
   const badgeText = (target.badges || []).map((badge) => badge.text || "").join(" ");
   const raw = `${target.href} ${target.description || ""} ${target.subtitle || ""} ${target.priceLabel || ""} ${badgeText}`;
