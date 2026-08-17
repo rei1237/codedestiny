@@ -28,13 +28,13 @@ node scripts/verify-editor-notes.mjs   # build:cf 뒤에 실행
 
 ## 1. 착지한 것 — PR 3개
 
-| PR | 범위 | 상태 |
+| PR | 범위 | 상태 (2026-08-17 갱신) |
 |---|---|---|
-| #757 `fix/adsense-thin-route-deindex` | 얇은 카테고리·스텁 22개를 색인·광고에서 제외 | 머지 대기 |
-| #758 `fix/adsense-trust-page-depth` | `/contact`·`/editorial-policy` 본문 보강 | 머지 대기 |
-| #759 `feature/adsense-editor-notes` | 편집자 노트 18개 + 발견형 가드 | 머지 대기 |
+| #757 `fix/adsense-thin-route-deindex` | 얇은 카테고리·스텁 22개를 색인·광고에서 제외 | **MERGED** |
+| #758 `fix/adsense-trust-page-depth` | `/contact`·`/editorial-policy` 본문 보강 | **MERGED** |
+| #759 `feature/adsense-editor-notes` | 편집자 노트 18개 + 발견형 가드 + 가드 배선 | **OPEN** — §4-1 참고 |
 
-🔴 **머지 순서: #757 → #759** (#759 가 #757 위에 쌓여 있다). **#758 은 독립**이라 아무 때나.
+머지 순서(#757 → #759)는 지켜졌고 #758 은 독립적으로 들어갔다.
 
 ### 결과 (실측)
 - 사이트맵 **433 → 411**
@@ -55,17 +55,23 @@ node scripts/verify-editor-notes.mjs   # build:cf 뒤에 실행
 **새 라우트를 noindex 할 때마다 이 질문을 할 것: 이 페이지가 ShareWidget 을 쓰는가?**
 
 ### 2-2. 🔴 noindex 목록이 **3벌** 이고 손으로 맞춘다
-| 위치 | 개수 |
-|---|---|
-| `_headers` X-Robots-Tag | 55 |
-| `scripts/generate-sitemap.mjs:49` | 39 |
-| `lib/seo/siteSeo.ts:384` | 64 |
+| 위치 | 개수 | 재현 명령 |
+|---|---|---|
+| `_headers` X-Robots-Tag | 55 | `grep -c "X-Robots-Tag: noindex" _headers` |
+| `scripts/generate-sitemap.mjs:49` | **35** | 배열 파싱 |
+| `lib/seo/siteSeo.ts:384` | **57** | 배열 파싱(주석 줄 제외) |
+
+> 🔴 **정정(2026-08-17 재측정)**: 초판에 39·64 로 적혀 있었으나 실제는 35·57 이다.
+> `siteSeo.ts` 는 주석 안의 따옴표 문자열까지 세면 59 가 나온다 — 주석을 걷어내고 세야 57 이다.
+> 두 목록의 차집합: `siteSeo` 에만 있는 23개는 전부 private/auth/commerce 접두사이고,
+> `generate-sitemap` 에만 있는 것은 **`/flower` 하나**다(§2-1 의 ShareWidget 사유로 의도적 제외).
 
 셋이 서로 다르다. 한쪽만 고치면 "사이트맵에 있는데 noindex" 가 되어 GSC 가 「제출된 URL에 noindex」로
 잡는다. **같은 커밋에 함께 담을 것.**
 
-`_headers` 는 Cloudflare Pages 상한 **100개** 중 현재 **94~95개**다(`verify-adsense-readiness.mjs:1137`).
-여유가 거의 없으므로 App Router 라우트는 헤더 대신 metadata `robots` 로 처리하는 게 맞다(비용 0).
+`_headers` 는 Cloudflare Pages 상한 **100개** 중 현재 **94개**다(`grep -c "^/" _headers`,
+검사기는 `verify-adsense-readiness.mjs:1143 CLOUDFLARE_HEADERS_RULE_LIMIT`).
+**여유 6칸뿐**이므로 App Router 라우트는 헤더 대신 metadata `robots` 로 처리하는 게 맞다(비용 0).
 
 ### 2-3. 🔴 광고 정책을 함께 끄지 않으면 **배포가 막힌다**
 `verify-adsense-readiness.mjs:1355 verifyAdsenseEligibleRouteSitemapAlignment` 가
@@ -100,25 +106,100 @@ noindex 만 걸고 `app/components/adsense-route-policy.js` 를 그대로 두면
 `complete-guide-to-saju` 다. 손으로 적은 목록이었다면 노트가 렌더되지 않은 채
 "12개 완료" 로 보고됐을 것이다. 발견형 가드가 아니면 못 잡는 종류의 실수다.
 
-## 4. 🔴 남은 일 — 사용자 결정이 필요한 것
+## 4. 남은 일
 
-### 4-1. 가드를 배포 게이트로 승격할지 (미결정)
-`verify:editor-notes` 는 지금 **수동 실행 전용**이다. `scripts/run-postbuild.mjs` 의 `steps` 에
-(`verify-adsense-readiness.mjs` 뒤 · `externalize-dist-inline-scripts.mjs` 앞) 넣으면 배포 차단 게이트가 된다.
-**CI 게이트 추가는 지시 없이 하지 않는 규칙이라 넣지 않았다.** 승격하려면 사용자 승인을 받을 것.
+### 4-1. ✅ 해결됨 (2026-08-17, 사용자 승인) — PR CI 스텝으로 배선
 
-### 4-2. 🔴 심사자가 볼 수 있는 저가치 페이지가 아직 많다 — **이번 거절의 실제 원인일 수 있다**
-**noindex 는 색인만 막고 AdSense 크롤러의 접근은 막지 않는다.** 실측:
+초판은 "수동 실행 전용이라 놔뒀다"고만 적었는데, **그게 #759 를 CI 빨간불로 만들고 있었다.**
+`scripts/verify-guard-wiring.mjs` 는 fail-closed 라 *"아무 게이트도 안 부르는데 사유 선언도 없는
+검증기"* 를 실패시킨다 — 배선은 선택이 아니라 **머지의 전제조건**이었다:
 
-| 대상 | 개수 | 분량 |
+```
+[verify-guard-wiring] FAIL
+  아무 게이트도 부르지 않는데 사유 선언도 없는 검증기 1개: verify:editor-notes
+```
+
+**조치**: `.github/workflows/pr-ci.yml` 의 `Build Pages and Worker` 잡, `verify:seo-heading-integrity`
+바로 뒤에 `npm run verify:editor-notes` 스텝 추가.
+
+- **왜 `run-postbuild.mjs` 가 아니라 PR CI 인가** — ① `verify:seo-heading-integrity` 가 정확히 같은
+  성격(build:cf 뒤 `out/` 을 읽는 SEO 가드)으로 이미 그 자리에 있다. 새 패턴을 만들지 않는다.
+  ② `run-postbuild.mjs` 는 `optional` 개념이 없어(steps 가 평문 문자열 배열, 비-0이면 `process.exit`)
+  넣는 순간 **릴리스 배포까지 하드 차단**된다. 이 가드는 코퍼스 크기에 결합돼 있어(아래) 무관한
+  PR 에서도 빨간불이 날 수 있는데, 그 대가를 릴리스가 치르게 할 이유가 없다.
+- 🔴 **코퍼스 결합 주의** — `uniqueBodyLength`(`scripts/verify-editor-notes.mjs:184-192`)가
+  `총 광고 라우트 수 × 0.1` 을 boilerplate 임계로 쓴다. **다른 라우트를 광고 목록에서 빼기만 해도**
+  무관한 라우트의 측정 분량이 흔들려 실패할 수 있다. 실패가 diff 와 무관해 보이면 이걸 먼저 의심할 것.
+- 🔴 **`fast` 티어 PR 에서는 안 돈다** (`runs_build != 'true'` → 빌드 잡 스텝 스킵). 문구·CSS·
+  `index.html`·docs 전용 PR 이 해당한다. `verify:adsense-readiness`·`verify:seo-heading-integrity`
+  와 **똑같은 구멍**이고 이번에 넓히지 않았다.
+- 이 스텝을 지우려면 `UNWIRED_BY_DESIGN`(`verify-guard-wiring.mjs:46`)에 사유와 함께 옮겨야 한다.
+  그냥 지우면 가드가 다시 빨간불이 된다.
+
+### 4-2. 심사자가 볼 수 있는 저가치 페이지 — 조사 완료 (2026-08-17). 🔴 **①robots.txt Disallow 는 하지 말 것**
+
+전제("noindex 는 색인만 막고 크롤러 접근은 막지 않는다")는 **맞다.** 대상도 여전히 많다:
+
+| 대상 | 개수 | 비고 |
 |---|---|---|
-| `/insights/famous-saju/<slug>` | **136** | 이름·생일만 바뀌는 템플릿 |
-| `/psychotest/<slug>` | 14 | — |
-| 정적 셸 (`/myungwun_final`, `/fortune-teller-fish` 등) | 19 | **130~1,344자** |
+| `/insights/famous-saju/<slug>` | **134** (초판 136 은 오기) | 이름·생일만 바뀌는 템플릿. `ls -d out/insights/famous-saju/*/ \| wc -l` |
+| `/psychotest/<slug>` | 14 | 상세끼리 텍스트 81.5% 공유, 실제 테스트는 외부 링크 |
+| 정적 셸 | 19 | 가시 텍스트 **130~1,344자** |
 
-전부 이미 noindex 이지만 robots.txt 로는 안 막혀 있어 심사 크롤에 그대로 노출된다.
-처리하려면 ① robots.txt `Disallow` ② 삭제 ③ 허브에서 링크 제거 중 하나가 필요한데,
-②는 절대규칙 6(기능 삭제 금지), ①은 noindex 신호를 죽이는 부작용이 있어 **별도 판단이 필요하다.**
+**그런데 초판이 제시한 대응 ①(robots.txt `Disallow`)은 이 사이트에서 효과가 없고 오히려 해롭다.**
+구글 1차 출처로 확인한 근거 4가지 — **다시 파지 말 것**:
+
+1. **AdSense 크롤러는 광고 태그가 있는 URL 만 가져간다.**
+   구글: *"The crawler attempts to access URLs only where our ad tags are implemented."*
+   ([AdSense 크롤러 안내](https://support.google.com/adsense/answer/99376))
+   그런데 이 세 클러스터는 `app/components/adsense-route-policy.js` 에서 전부 `canLoadAdsense=false` 다
+   — `/insights/famous-saju/*`는 `BLOCKED_DESCENDANT_PREFIXES:131`, `/psychotest`는 `BLOCKED_PREFIXES:53`,
+   정적 셸은 허용목록 미포함이라 기본 deny(`:254`). **→ Mediapartners-Google 은 애초에 안 가져간다.
+   막을 대상 자체가 없다.**
+2. **`Disallow` 를 걸면 noindex 가 죽는다.** 구글:
+   *"If the page is blocked by a robots.txt file … the crawler will never see the `noindex` rule,
+   and the page can still appear in search results."*
+   ([noindex 문서](https://developers.google.com/search/docs/crawling-indexing/block-indexing))
+   **이미 색인된 URL 이 영영 안 빠진다.** 지금 필요한 건 정확히 그 반대다 — 색인에서 빼려면
+   Googlebot 이 계속 들어와 noindex 를 읽어야 한다.
+3. **`User-agent: *` 로는 애초에 안 막힌다.** 구글: Mediapartners-Google·AdsBot 은
+   *"The global user agent (`*`) is ignored."*
+   ([특수 크롤러 문서](https://developers.google.com/search/docs/crawling-indexing/google-special-case-crawlers))
+   레포도 이미 알고 있어 `app/robots.ts` 가 21개 규칙을 **11개 그룹에 각각 복제**한다
+   (`scripts/lib/robots-groups.mjs` 헤더에 그 사고 이력이 적혀 있다).
+4. **막으면 승인 후 광고가 안 나간다.** 구글: 차단 시 *"we can't serve Google ads on the site."*
+   ([robots.txt 접근 허용 안내](https://support.google.com/adsense/answer/10532))
+   `verify-adsense-readiness.mjs:1276` 이 Mediapartners-Google 그룹의 `Allow: /` 를 **강제**하고 있다.
+
+**→ 남는 진짜 레버는 ②링크 정리와 ③본문 보강뿐이다.** ②의 진입점은 딱 두 줄이다:
+`app/insights/famous-saju/page.tsx:187` (134개 전부 링크) · `app/psychotest/page.tsx:104` (14개 전부).
+지금은 홈에서 2클릭이면 닿는다. 다만 링크 제거는 절대규칙 6 경계라 **사용자 판단이 필요하고,
+2026-08-17 세션에서는 사용자 지시로 기록만 하고 손대지 않았다.**
+
+### 4-2b. 🔴 새로 발견 — noindex 신호가 **아예 없는** 정적 셸 2개
+
+세 목록 어디에도 없고 `<meta robots>` 도 없다. 즉 **색인 가능한 얇은 페이지**다:
+
+| 라우트 | 크기 | `_headers` | sitemap | `<meta robots>` |
+|---|---|---|---|---|
+| `/prompt-hub-3004` | 105 KB | 0개 | 없음 | 없음 |
+| `/ifa_oracle_v2_full` | 38 KB | 0개 | 없음 | 없음 |
+
+`/ifa_oracle_v2_full` 이 새는 이유가 고약하다 — `_headers:155` 의 규칙이 `/ifa-oracle*`(하이픈)인데
+실제 파일명은 `ifa_oracle_v2_full.html`(언더스코어)이라 **매치되지 않는다.**
+
+🔴 **`/destiny-poker` 도 규칙 0개지만 이건 2026-08-16 에 의도적으로 색인 대상으로 승격한 것이다
+(`_headers:182` 에 사유). 건드리지 말 것.**
+
+고치려면 `_headers` + `public/_headers` 에 2줄(94→96, 상한 100 이내)과
+`verify-adsense-readiness.mjs:186 xRobotsNoindexHeaderPatterns` 계약 목록에 2개 추가.
+검증에 `npm run build:cf` 전체가 필요하다. **미조치 — 별도 PR 로 남긴다.**
+
+### 4-2c. `_headers` 는 famous-saju 에 쓸 수 없다 (헛수고 방지)
+
+`public/_routes.json:8` 이 `/insights/famous-saju/*` 를 Worker(`public/_worker.js`)로 보낸다.
+Cloudflare `_headers` 는 **Worker 응답을 장식하지 않으므로** 그 접두사에 헤더 규칙을 넣어도 무동작이다.
+그쪽 noindex 는 `app/insights/famous-saju/[slug]/page.tsx:79-94` 의 페이지 metadata 가 유일한 레버다.
 
 ### 4-3. 홈 `/` 이 광고 차단 목록에 있다
 `app/components/adsense-route-policy.js:4`. 승인 후 홈 광고 인벤토리가 0이 된다.
@@ -147,7 +228,20 @@ npm run build:cf     # sitemap:generate → verify:redirects-budget → verify:p
                      # → i18n:check(🔴 optional 이라 실패해도 안 멈춘다, 로그를 직접 읽을 것)
                      # → verify:adsense-route-policy → next build → postbuild verify:adsense-readiness
 npm run verify:sitemap        # build:cf 체인에는 없다. 배포 워크플로가 따로 돈다
-npm run verify:editor-notes   # build:cf 뒤에 실행 (out/ 를 읽는다)
+npm run verify:editor-notes   # build:cf 뒤에 실행 (out/ 를 읽는다). 약 6초
+npm run verify:guard-wiring   # 🔴 새 verify:* 를 추가했다면 반드시. 배선/선언 없으면 실패한다
 npx tsc --noEmit
 npm test                      # 236개
 ```
+
+### 어디서 자동으로 도는가 (2026-08-17 기준)
+
+| 검증기 | PR CI (`standard`+) | 릴리스 배포 |
+|---|---|---|
+| `verify:adsense-readiness` | ✅ `build:cf` 의 postbuild | ✅ postbuild |
+| `verify:seo-heading-integrity` | ✅ `pr-ci.yml` 스텝 | ❌ |
+| `verify:editor-notes` | ✅ `pr-ci.yml` 스텝 (§4-1) | ❌ |
+| `verify:guard-wiring` | ✅ `Typecheck and lint` 잡 (티어 무관 항상) | ❌ |
+
+🔴 `fast` 티어(문구·CSS·`index.html`·docs 전용 PR)는 빌드 잡 스텝을 통째로 건너뛰므로
+위 표의 앞 세 개가 **안 돈다.** 얇은 라우트에 영향이 갈 변경이면 로컬에서 직접 돌릴 것.
