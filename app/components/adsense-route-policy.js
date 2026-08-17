@@ -85,7 +85,9 @@ const LOCALE_ROOT_PATHS = new Set([
 const CONTENT_EXACT_PATHS = new Set([
   "/about",
   "/faq",
-  "/famous-saju",
+  // `/famous-saju` 허브는 2026-08-17 에 라우트째 삭제하고 `/insights/famous-saju` 로 접었다
+  // — 같은 134명을 나열하는 근중복 허브였고, 상세 134개는 원래 insights 쪽에만 있었다.
+  // `public/_redirects` 가 `/famous-saju/**` 를 전량 301 로 회수하므로 여기 되살리지 말 것.
   "/methodology",
   "/reviews",
   "/astrology/guide",
@@ -125,8 +127,7 @@ const CONTENT_PREFIXES = [
 // CONTENT_PREFIXES 보다 먼저 평가하므로 `/high-value` 허용과 공존한다.
 // 🔴 광고까지 같이 끄지 않으면 verify-adsense-readiness 의
 //    "광고 가능 + self-canonical → noindex 금지 + 사이트맵 필수" 단언과 충돌한다.
-// (/famous-saju/category 는 CONTENT_PREFIXES 에서 뺐다 — 허브 `/famous-saju` 는
-//  CONTENT_EXACT_PATHS 에 있어 그대로 광고·색인 대상이다.)
+// (`/famous-saju/**` 는 라우트가 없어졌다 — 접두사 항목도 필요 없다. 기본 deny 로 떨어진다.)
 const BLOCKED_DESCENDANT_PREFIXES = [
   "/insights/famous-saju",
   "/high-value/category",

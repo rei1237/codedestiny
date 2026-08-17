@@ -391,10 +391,6 @@ export function getCelebrityStaticSlugs() {
   return slugs;
 }
 
-export function getCelebritiesByCategory(category: string) {
-  return publishedCelebritySajuSeeds.filter((item) => categoryToSlug(item.category) === category);
-}
-
 // 행적↔명리 수동 큐레이션 데이터.
 // 계산 엔진으로는 인물의 실제 행적을 알 수 없으므로, 공개된 역사 기록(나무위키 등)을
 // 근거로 "실제 행적 → 연결되는 십성/오행 → 해석 노트"를 slug별로 직접 매핑한다.

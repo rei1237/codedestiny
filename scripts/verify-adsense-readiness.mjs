@@ -95,9 +95,9 @@ const adsenseAllowedContentRoutes = [
   "/tarot/prompt-maker",
   "/high-value",
   "/high-value/complete-guide-to-saju",
-  "/famous-saju",
   // 상세(/insights/famous-saju/<slug>)는 전량 noindex + 사이트맵 제외로 바뀌어
   // 광고 대상이 아니다. 허브만 광고 허용 라우트로 검사한다.
+  // (근중복 허브였던 `/famous-saju` 는 2026-08-17 에 라우트째 삭제했다 — 이제 허브는 여기 하나뿐이다.)
   "/insights/famous-saju",
 ];
 
@@ -106,7 +106,8 @@ const adsenseBlockedRoutes = [
   // 2026-08-17 에 색인·광고에서 뺀 얇은 목록형·스텁 라우트의 표본. 정책 함수 단위 검사는
   // verify-adsense-route-policy.mjs 가 하고, 여기서는 **산출물 HTML 에 광고 코드가 실제로
   // 안 실렸는지**를 본다(둘은 다른 실패를 잡는다).
-  "/famous-saju/category/actor",
+  // (`/famous-saju/category/actor` 는 라우트가 삭제돼 산출물이 없다 — 정책 함수 쪽 단언만
+  //  verify-adsense-route-policy.mjs 에 남겼다.)
   "/high-value/category/saju-beginner",
   "/flower/destiny",
   "/advertising-policy",
@@ -660,10 +661,11 @@ function matchesPaidFeatureRoute(pathname) {
   return paidFeatureRoutePrefixes.some((prefix) => matchesPrefix(pathname, prefix));
 }
 
+// 2026-08-17 부터 `/famous-saju/**` 는 **하나도** 빌드되면 안 된다. 허브와 카테고리 12개까지
+// 라우트째 삭제하고 `public/_redirects` 가 전량 301 로 `/insights/famous-saju/` 에 접었기 때문이다.
+// (그전에는 허브·카테고리가 살아 있어 여기서 예외로 빼 두었다 — 그 예외를 되살리지 말 것.)
 function matchesFamousSajuAliasRoute(pathname) {
-  return matchesPrefix(pathname, "/famous-saju") &&
-    pathname !== "/famous-saju" &&
-    !matchesPrefix(pathname, "/famous-saju/category");
+  return matchesPrefix(pathname, "/famous-saju");
 }
 
 function matchesInsightsFamousSajuDetailRoute(pathname) {

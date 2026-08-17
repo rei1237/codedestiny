@@ -85,7 +85,8 @@ const noindexPathPrefixes = [
   // lib/seo/siteSeo.ts 의 noindexPathPrefixes 와 짝이다. 한쪽만 고치면
   // "사이트맵에 있는데 noindex" 가 되어 GSC 가 「제출된 URL에 noindex」로 잡는다.
   "/high-value/category",
-  "/famous-saju/category",
+  // (`/famous-saju/category` 는 2026-08-17 에 라우트째 삭제해 여기서 뺐다 — 사이트맵에
+  //  넣을 라우트 자체가 없다. `public/_redirects` 가 301 로 회수한다.)
   "/flower",
   // AdSense 재심사 대응 2차(2026-08-17 out/ 실측, 코퍼스=사이트맵 411개).
   // ① 기간 근중복: /fortune/{weekly,monthly} 는 같은 sign 의 today/tomorrow 와
@@ -247,7 +248,8 @@ const coreRoutes = [
   { path: "/insights/dream", changefreq: "weekly", priority: 0.82 },
   { path: "/insights/compatibility", changefreq: "weekly", priority: 0.82 },
   { path: "/insights/fusion", changefreq: "weekly", priority: 0.83 },
-  { path: "/famous-saju", changefreq: "weekly", priority: 0.88 },
+  // (`/famous-saju` 허브는 2026-08-17 에 라우트째 삭제했다 — 정본은 `/insights/famous-saju`
+  //  하나이고, `public/_redirects` 가 `/famous-saju/**` 를 전량 301 로 회수한다.)
   { path: "/high-value", changefreq: "weekly", priority: 0.84 },
   { path: "/high-value/complete-guide-to-saju", changefreq: "monthly", priority: 0.82 },
   { path: "/saju/guide", changefreq: "monthly", priority: 0.8 },
@@ -395,24 +397,6 @@ function extractPsychotestRoutes() {
   return routes;
 }
 
-function famousCategorySlug(value) {
-  const table = {
-    "역사 위인": "history",
-    "왕족·정치인": "politics",
-    "K-스타": "k-star",
-    "배우": "actor",
-    "가수": "singer",
-    "스포츠": "sports",
-    "기업인": "business",
-    "감독·작가": "director-writer",
-    "JP 일본": "jp",
-    "CN 중국": "cn",
-    "US 미국": "us",
-    "사상가·예술가": "thinker-artist",
-  };
-  return table[value] || String(value || "").trim().toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "");
-}
-
 function extractFamousSajuRoutes() {
   const source = readFileSync(famousSajuSourcePath, "utf8");
   // 🔴 5번째 필드는 **생년월일**이다(RawCelebritySeed 튜플: slug, nameKo, category, country, birthDate).
@@ -421,29 +405,27 @@ function extractFamousSajuRoutes() {
   // lastmod 로 나갔다 — 구글에 "18년간 미갱신"으로 신고하던 셈이다. 여기서는 튜플 모양을
   // 확인하는 앵커로만 쓰고 날짜로는 절대 쓰지 않는다.
   const itemRegex = /\[\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"([^"]+)"\s*,\s*"[^"]+"\s*,\s*"([0-9]{4}-[0-9]{2}-[0-9]{2})"/g;
-  const categoryRoutes = new Set();
   const seen = new Set();
 
   let match;
   while ((match = itemRegex.exec(source)) !== null) {
     const slug = String(match[1] || "").trim();
-    const category = String(match[3] || "").trim();
-    if (!slug || seen.has(slug)) continue;
-    seen.add(slug);
-
-    // 상세 페이지(/insights/famous-saju/<slug>)는 사이트맵에 넣지 않는다.
-    // app/insights/famous-saju/[slug]/page.tsx 가 전량 noindex 이며, 이름·생일만
-    // 바뀌는 템플릿 조립물이라 색인 대상이 아니다. 허브와 카테고리만 남긴다.
-    const cSlug = famousCategorySlug(category);
-    if (cSlug) categoryRoutes.add(cSlug);
+    if (slug) seen.add(slug);
   }
 
-  // lastmod 를 붙이지 않는다 — 이 라우트들의 실제 갱신 시각을 알 수 있는 소스가 없다.
+  // 상세 페이지(/insights/famous-saju/<slug>)는 사이트맵에 넣지 않는다.
+  // app/insights/famous-saju/[slug]/page.tsx 가 전량 noindex 이며, 이름·생일만
+  // 바뀌는 템플릿 조립물이라 색인 대상이 아니다.
+  // 카테고리 12개(`/famous-saju/category/<slug>`)도 2026-08-17 에 라우트째 삭제해서 뺐다.
+  // 🔴 그래서 사이트맵에 남는 것은 허브 하나뿐이다. 위 튜플 스캔은 이제 셀럽 데이터의 모양이
+  //    깨지지 않았는지 보는 앵커로만 남는다 — 0건이면 파싱이 깨진 것이므로 통과시키지 않는다.
+  if (seen.size === 0) {
+    throw new Error("[sitemap] celebrity-data.ts 에서 인물을 하나도 파싱하지 못했다 — 튜플 모양이 바뀌었다.");
+  }
+
+  // lastmod 를 붙이지 않는다 — 이 라우트의 실제 갱신 시각을 알 수 있는 소스가 없다.
   // 아래 조립부의 `route.lastmod || today` 폴백을 타서 다른 라우트와 같은 취급을 받는다.
-  return [
-    { path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89 },
-    ...Array.from(categoryRoutes).map((slug) => ({ path: `/famous-saju/category/${slug}`, changefreq: "weekly", priority: 0.72 })),
-  ];
+  return [{ path: "/insights/famous-saju", changefreq: "weekly", priority: 0.89 }];
 }
 
 /**

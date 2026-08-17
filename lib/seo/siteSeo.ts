@@ -440,9 +440,9 @@ export const noindexPathPrefixes = [
   // AdSense 가 "가치 없는 콘텐츠"로 거절한 뒤 실측(out/, 2026-08-17)해 뺀 얇은 목록형·스텁 라우트.
   // 고유본문(8-gram shingle 로 공통 크롬 제거) 기준: high-value 카테고리 272~558자,
   // famous-saju 카테고리 289~1,859자(4-gram Jaccard 중복도 84.4%), flower 399~449자.
-  // 🔴 접두 3개 모두 `isNoindexPath` 의 `=== prefix || startsWith(prefix + "/")` 매칭이라
-  //    이웃을 삼키지 않는다 — `/high-value/<slug>` 12개, `/famous-saju` 허브,
-  //    `/famous-saju/<name>` 별칭은 계속 색인 대상이다. 상위 접두로 줄이지 말 것.
+  // 🔴 `isNoindexPath` 의 `=== prefix || startsWith(prefix + "/")` 매칭이라 이웃을 삼키지
+  //    않는다 — `/high-value/<slug>` 12개는 계속 색인 대상이다. 상위 접두로 줄이지 말 것.
+  //    (`/famous-saju/category` 는 2026-08-17 에 라우트째 삭제해 여기서 뺐다.)
   // 🔴 이 목록을 고치면 scripts/generate-sitemap.mjs 의 복사본도 같은 커밋에서 함께 고친다.
   // 🔴 `/flower` 는 **일부러 여기 없다.** 이 목록은 isNoindexPath → lib/seo.v2.ts:85
   //    isPrivateRoute → lib/share.v2.ts:36 까지 흘러 ShareWidget 을 통째로 숨긴다
@@ -451,7 +451,6 @@ export const noindexPathPrefixes = [
   //    대신 각 페이지에서 generatePageMetadata({ noindex: true }) 로 선언한다.
   //    아래 카테고리 18개는 ShareWidget 을 쓰지 않아(실측) 이 경로로 안전하다.
   "/high-value/category",
-  "/famous-saju/category",
   // AdSense 재심사 대응 2차(2026-08-17 out/ 실측). 같은 sign 의 today/tomorrow 와
   // 크롬 제거 8-gram Jaccard 24~38% 로 겹치는 기간 축 48개(+허브 2)를 색인에서 뺀다.
   // 광고 인벤토리 손실 0 — adsense-route-policy.js 의 CONTENT_PREFIXES 에는

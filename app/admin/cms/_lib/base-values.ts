@@ -100,7 +100,7 @@ const loaders: Record<string, Loader> = {
       return {
         key: seed.slug,
         label: seed.nameKo,
-        hint: `${seed.category} · /famous-saju/${seed.slug}`,
+        hint: `${seed.category} · /insights/famous-saju/${seed.slug}`,
         fields: {
           shortDescription: seed.shortDescription || "",
           heroCopy: article.heroCopy || "",

@@ -7,7 +7,6 @@ import {
   getCelebrityBySlug,
   getCelebrityStaticSlugs,
   getFamousSajuArticleOverride,
-  getCelebritiesByCategory,
   publishedCelebritySajuSeeds,
   type CelebritySajuAnnotation,
   type CelebritySajuAnnotationFact,
@@ -2989,8 +2988,8 @@ export function getPublishedCelebrityStaticSlugs() {
   return getCelebrityStaticSlugs();
 }
 
-export function getPublishedCelebrityCategoryRoutes() {
-  return Array.from(new Set(publishedCelebritySajuSeeds.map((item) => categoryToSlug(item.category)))).map((slug) => `/famous-saju/category/${slug}`);
-}
-
-export { categoryToSlug, famousSajuCategories, getCelebritiesByCategory, publishedCelebritySajuSeeds };
+// `getPublishedCelebrityCategoryRoutes` 와 `getCelebritiesByCategory` 재export 는
+// `/famous-saju/category/<slug>` 12개만을 위해 있었다. 그 라우트를 2026-08-17 에 삭제하면서
+// 참조가 0이 되어(전 리포 git grep, 미러 포함) 함께 지웠다. `categoryToSlug`·`famousSajuCategories`
+// 는 `/insights/famous-saju` 허브의 태그 필터가 계속 쓴다.
+export { categoryToSlug, famousSajuCategories, publishedCelebritySajuSeeds };

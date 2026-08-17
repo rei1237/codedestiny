@@ -98,7 +98,8 @@
 # 끊으면 통합의 목적(자산을 /insights 로 모으기)을 스스로 막는다(위 셸 사본과 같은 이유).
 /blog*
   X-Robots-Tag: noindex, follow
-# 🔴 `/famous*` 로 합치지 말 것 — 색인 대상인 `/famous-saju` 와 카테고리 12개를 삼킨다.
+# 🔴 `/famous*` 로 합치지 말 것 — `/famous-saju/**` 를 삼켜 그 301 응답에 nofollow 가 붙고,
+#    그러면 `/insights/famous-saju/` 로 가는 회수 경로가 링크 신호를 잃는다.
 /famous
   X-Robots-Tag: noindex, nofollow
 /famous/*
