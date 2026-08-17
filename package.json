@@ -31,6 +31,7 @@
     "verify:adsense-readiness": "node scripts/verify-adsense-readiness.mjs",
     "verify:editor-notes": "node scripts/verify-editor-notes.mjs",
     "verify:sitemap": "node scripts/verify-sitemap-integrity.mjs",
+    "verify:fortune-period-axis": "node scripts/verify-fortune-period-axis.mjs",
     "verify:fortune-freshness": "node scripts/verify-fortune-freshness.mjs",
     "verify:fortune-hub-shell": "node scripts/build-fortune-hub-shell.mjs --check",
     "build:fortune-hub-shell": "node scripts/build-fortune-hub-shell.mjs",

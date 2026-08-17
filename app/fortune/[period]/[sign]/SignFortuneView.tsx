@@ -13,6 +13,8 @@ import Link from "next/link";
 import type { SignViewModel } from "@/lib/fortune/build-view";
 import { PERIOD_LABEL, PERIOD_TITLE, type FortunePeriodId } from "@/lib/fortune/periods";
 import { getSignProfile, getSiblingProfiles, type SignProfile } from "@/lib/fortune/sign-profiles";
+import { getPeriodReading } from "@/lib/fortune/period-readings";
+import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
 import YeoniPortrait, { moodForScore } from "../YeoniPortrait";
 
 const SCORE_AXES = [
@@ -310,7 +312,9 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>{profile.luckyHabit}</p>
 
           <h3 className={`mt-5 break-keep text-sm font-extrabold ${ACCENT}`}>이 운세를 읽는 법</h3>
-          <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>{profile.reading}</p>
+          <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
+            {getPeriodReading(profile.id, period, profile.reading)}
+          </p>
         </section>
 
         {/* 궁합 */}
@@ -361,7 +365,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
         <section aria-labelledby="faq-heading" className="mt-12">
           <h2 id="faq-heading" className="break-keep text-lg font-extrabold">자주 묻는 질문</h2>
           <div className="mt-4 space-y-3">
-            {profile.faqs.map((faq) => (
+            {buildPeriodFaqs(profile, period).map((faq) => (
               <details key={faq.question} className={`px-5 py-4 ${CARD}`}>
                 <summary className="cursor-pointer list-none break-keep text-sm font-bold marker:content-none">
                   {faq.question}
