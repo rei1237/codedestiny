@@ -23,6 +23,12 @@
 /.agents/
 /.impeccable/
 
+# 대용량 데이터/콘텐츠 파일 — 관련 없는 작업에서 검색 노이즈 방지.
+# 위 헤더와 같은 계약이다 — Grep/Glob 에서만 빠지고 Read·git grep 은 그대로 된다.
+# 직접 읽어야 할 때는 Read <경로> 로 가능.
+/app/insights/articles.js
+/app/saju/love-simulation/_data/loveCodeMvp.ts
+
 # >>> sync:public 생성 미러 — 자동 생성, 직접 편집 금지 >>>
 /public/AnalysisEngine.js
 /public/HwatuFortune.js
