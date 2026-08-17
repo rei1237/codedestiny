@@ -65,6 +65,12 @@
       "PowerShell(Get-Item *)",
       "PowerShell(Test-Path *)"
     ],
+    "deny": [
+      "Read(./.env)",
+      "Read(./.env.*)",
+      "Read(./key/**)",
+      "Read(./backups/**)"
+    ],
     "additionalDirectories": [
       "\\tmp"
     ]

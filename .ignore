@@ -12,6 +12,17 @@
 #
 # 갱신: npm run sync:public (마커 안쪽만 다시 쓴다)
 
+# 에이전트 도구 자산 — 레포 코드가 아니라 검색 노이즈다.
+# .claude/skills 는 impeccable 번들이 무겁고(live-browser.js 425KB,
+# detect-antipatterns-browser.js 214KB, checks.mjs 120KB) "color"·"modal" 같은
+# 일반어 검색이 룰셋에 무더기로 걸린다. .agents/skills 는 .claude/skills/caveman* 의
+# 완전 중복본이라 같은 내용이 두 번 나온다.
+# 위 헤더와 같은 계약이다 — Grep/Glob 에서만 빠지고 Read·git grep 은 그대로 된다.
+# 단 여기 셋은 숨김 디렉터리라 rg 탈출구는 -u 가 아니라 -uu 다(-u 는 hidden 을 안 켠다).
+/.claude/skills/
+/.agents/
+/.impeccable/
+
 # >>> sync:public 생성 미러 — 자동 생성, 직접 편집 금지 >>>
 /public/AnalysisEngine.js
 /public/HwatuFortune.js
