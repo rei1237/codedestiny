@@ -195,6 +195,17 @@
 # 홈 타일 1개(`/` 로만 나간다), 가시 텍스트 647자 중 한글 420자로 tadagochi(458)보다도 얇다.
 /pet-saju*
   X-Robots-Tag: noindex, nofollow
+# 2026-08-17 추가 — AdSense "가치 없는 콘텐츠" 거절 대응 중에 발견한 마지막 2개.
+# 사이트맵 미등재 · canonical 없음 · robots meta 없음이라 **색인 신호가 전무**했다.
+# 🔴 /ifa_oracle_v2_full 이 샌 이유: 위의 `/ifa-oracle*` 은 하이픈이라 언더스코어 파일명을
+#    매칭하지 못한다. 파일명과 규칙의 구분자가 다르면 `*` 도 구해주지 않는다.
+/ifa_oracle_v2_full*
+  X-Robots-Tag: noindex, nofollow
+# prompt-hub-3004 은 App Router `/fortune/prompt-hub` 를 프리렌더한 사본이다(head 에 그 청크가
+# 박혀 있다). 정본이 이미 noindex 이므로 사본도 같이 닫는다. `<title>` 이 비어 있는 것은 별건
+# (seo-naver-diagnostic-2026-08-16.md §3-D 의 "description 누락 13" 과 같은 묶음).
+/prompt-hub-3004*
+  X-Robots-Tag: noindex, nofollow
 
 /
   Content-Type: text/html; charset=utf-8
