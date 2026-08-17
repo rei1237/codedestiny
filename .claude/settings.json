@@ -75,6 +75,23 @@
       "\\tmp"
     ]
   },
+  "skillOverrides": {
+    "ai-seo": "user-invocable-only",
+    "audit": "user-invocable-only",
+    "caveman": "user-invocable-only",
+    "caveman-commit": "user-invocable-only",
+    "caveman-compress": "user-invocable-only",
+    "caveman-help": "user-invocable-only",
+    "caveman-review": "user-invocable-only",
+    "content-strategy": "user-invocable-only",
+    "critique": "user-invocable-only",
+    "impeccable": "user-invocable-only",
+    "polish": "user-invocable-only",
+    "programmatic-seo": "user-invocable-only",
+    "schema": "user-invocable-only",
+    "seo-audit": "user-invocable-only",
+    "site-architecture": "user-invocable-only"
+  },
   "worktree": {
     "symlinkDirectories": [
       "node_modules"
