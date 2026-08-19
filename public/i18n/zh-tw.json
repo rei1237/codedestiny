@@ -1683,12 +1683,17 @@
           "sub": "正在先確認月光的紋理"
         },
         "single": {
-          "title": "正在確認餘額"
+          "title": "正在確認餘額",
+          "sub": "正在安全核對付款紀錄"
         },
         "pass": {
           "title": "正在確認使用券",
           "sub": "正在調整會員等級和通行證狀態"
         }
+      },
+      "fallback": {
+        "title": "正在處理",
+        "sub": "請稍候"
       }
     },
     "pending": {
@@ -1701,7 +1706,7 @@
       "passChecking": "正在確認使用券權限。",
       "subscriptionPrepare": "正在準備韓元基準的使用券付款資訊。",
       "subscriptionConfirm": "正在確認使用券付款核准與啟用。",
-      "confirm": "正在伺服器驗證付款核准。",
+      "confirm": "付款已生效。正在開啟內容。",
       "purchase": "正在確認付款核准與使用權限。",
       "pdfGeneration": "正在確認生成 PDF 的付款權限。"
     },
@@ -1799,6 +1804,10 @@
       "unlockPreparing": {
         "title": "正在准备保存权限",
         "message": "正在准备保存阅览权限。"
+      },
+      "applied": {
+        "title": "付款已生效",
+        "message": "正在開啟內容"
       },
       "unlockSaving": {
         "title": "正在保存阅览权限",
@@ -1946,31 +1955,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "付款已完成。正在確認付費內容的提供狀態。請稍候。",
+        "message": "付款已完成。\n正在確認付費內容的提供狀態。\n請稍候。",
         "title": "正在確認提供狀態"
       },
       "refundFailed": {
-        "message": "自動退款請求時發生問題。付款已正常記錄，需要管理員確認才能處理退款。請稍後再確認。",
+        "message": "自動退款請求時發生問題。\n付款已正常記錄，需要管理員確認才能處理退款。\n請稍後再確認。",
         "title": "需管理員確認"
       },
       "refundPending": {
-        "message": "抱歉。由於付費內容未能正常提供，正在進行自動退款。付款金額將 100% 退還。",
+        "message": "抱歉。\n由於付費內容未能正常提供，正在進行自動退款。\n付款金額將 100% 退還。",
         "title": "正在進行自動退款"
       },
       "refunded": {
-        "message": "由於付費內容未能正常提供，付款金額已 100% 退還。不會再次收取相同款項。",
+        "message": "由於付費內容未能正常提供，付款金額已 100% 退還。\n不會再次收取相同款項。",
         "title": "退款完成"
       }
     },
     "passShop": {
       "monthlyStatus": "月定石支付中。月光余额正静静对齐。",
       "chargeButton": "前往 {amount} 支付页面",
-      "chargeNotice": "月定石基准 {credits} · 支付金额 {price} · 这是30天通行券，不是自动续费商品。",
+      "chargeNotice": "通行證商品 {price} · 這是 30 天通行證，並非自動續約。通行證僅能以韓元單次付款購買。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
       "profileUnlimited": "不限资料",
       "profileLimit": "{count}个资料",
-      "allFeatures": "3萬韓元以下無限 · 含專家諮詢10次",
+      "allFeatures": "可使用全部功能",
       "upTo": "可使用 {amount} 以下",
       "benefits": "权益一览",
       "closeAria": "关闭月光通行券商店说明",
@@ -2027,12 +2036,15 @@
     "memberTagline": "今天也繼續探索命運星座",
     "greeting": "✦ 你好",
     "userNameSuffix": "{name}",
-    "logout": "🔓 登出",
+    "logout": "🔓 登出",
+    "changePhone": "📱 變更手機號碼",
+    "changePassword": "🔑 變更密碼",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ 管理員工作階段",
     "adminAccessChip": "管理員存取權限",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "管理員面板工作階段",
-    "exit": "🔓 離開",
+    "exit": "🔓 離開",
     "loginKeyword": "登录",
     "providers": {
       "kakao": "Kakao",

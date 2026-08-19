@@ -1683,12 +1683,17 @@
           "sub": "Eerst het maanlicht controleren"
         },
         "single": {
-          "title": "Saldo controleren"
+          "title": "Saldo controleren",
+          "sub": "Je betalingsgegevens worden veilig gecontroleerd"
         },
         "pass": {
           "title": "Controle van uw pas",
           "sub": "We stemmen uw lidmaatschapsniveau en Pas-status af"
         }
+      },
+      "fallback": {
+        "title": "Bezig met verwerken",
+        "sub": "Even geduld alsjeblieft"
       }
     },
     "pending": {
@@ -1701,7 +1706,7 @@
       "passChecking": "Toegangscontrole controleren.",
       "subscriptionPrepare": "Betalingsinformatie voor KRW-pas voorbereiden.",
       "subscriptionConfirm": "Goedkeuring en activering van de pasbetaling controleren.",
-      "confirm": "Betalingsgoedkeuring op de server verifiëren.",
+      "confirm": "Betaling toegepast. Je content wordt geopend.",
       "purchase": "Controle van betalingsgoedkeuring en toegangsrechten.",
       "pdfGeneration": "We controleren de betalingsautorisatie voor het genereren van de PDF."
     },
@@ -1799,6 +1804,10 @@
       "unlockPreparing": {
         "title": "Toegangsopslag voorbereiden",
         "message": "Voorbereiden om toegangsrechten op te slaan."
+      },
+      "applied": {
+        "title": "Betaling toegepast",
+        "message": "Je content wordt geopend"
       },
       "unlockSaving": {
         "title": "Toegangsrechten opslaan",
@@ -1946,31 +1955,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "De betaling is voltooid. We controleren de leveringsstatus van de betaalde content. Even geduld alstublieft.",
+        "message": "De betaling is voltooid.\nWe controleren de leveringsstatus van de betaalde content.\nEven geduld alstublieft.",
         "title": "Leveringsstatus controleren"
       },
       "refundFailed": {
-        "message": "Er is een probleem opgetreden bij het aanvragen van een automatische terugbetaling. De betaling is correct geregistreerd en een handmatige controle door de beheerder is vereist voor de terugbetaling. Controleer het later opnieuw.",
+        "message": "Er is een probleem opgetreden bij het aanvragen van een automatische terugbetaling.\nDe betaling is correct geregistreerd en een handmatige controle door de beheerder is vereist voor de terugbetaling.\nControleer het later opnieuw.",
         "title": "Beheerder controle vereist"
       },
       "refundPending": {
-        "message": "Excuses. De betaalde content is niet correct geleverd, dus we voeren een automatische terugbetaling uit. Het volledige bedrag wordt terugbetaald.",
+        "message": "Excuses.\nDe betaalde content is niet correct geleverd, dus we voeren een automatische terugbetaling uit.\nHet volledige bedrag wordt terugbetaald.",
         "title": "Automatische terugbetaling bezig"
       },
       "refunded": {
-        "message": "De betaalde content is niet correct geleverd, dus het volledige bedrag is terugbetaald. Er wordt geen nieuwe betaling voor dezelfde transactie in rekening gebracht.",
+        "message": "De betaalde content is niet correct geleverd, dus het volledige bedrag is terugbetaald.\nEr wordt geen nieuwe betaling voor dezelfde transactie in rekening gebracht.",
         "title": "Terugbetaling voltooid"
       }
     },
     "passShop": {
       "monthlyStatus": "Maandelijkse kredietbetaling wordt uitgevoerd. De maanlichtbalans wordt rustig uitgelijnd.",
       "chargeButton": "Ga naar de betalingspagina voor {amount}",
-      "chargeNotice": "Maandelijkse kredietbasis {credits} · Betalingsbedrag {price} · Dit is een pas voor 30 dagen, geen betaling die automatisch wordt verlengd.",
+      "chargeNotice": "Pas-product {price} · Dit is een pas van 30 dagen, geen automatische verlenging. Passen koop je alleen met een eenmalige betaling in KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Maandelijkse kredietbasis {credits} · {price}",
       "profileUnlimited": "Onbeperkt aantal profielen",
       "profileLimit": "{count} profielen",
-      "allFeatures": "Onbeperkt onder KRW 30.000 · 10 expertconsulten inbegrepen",
+      "allFeatures": "Alle functies beschikbaar",
       "upTo": "Beschikbaar tot {amount}",
       "benefits": "Voordelen in één oogopslag",
       "closeAria": "Sluit de Moonlight Pass Shop-gids",
@@ -2027,12 +2036,15 @@
     "memberTagline": "Ontdek vandaag nog jouw constellatie van het lot",
     "greeting": "✦ Hallo",
     "userNameSuffix": "{name}",
-    "logout": "🔓 Uitloggen",
+    "logout": "🔓 Uitloggen",
+    "changePhone": "📱 Telefoonnummer wijzigen",
+    "changePassword": "🔑 Wachtwoord wijzigen",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ Beheerderssessie",
     "adminAccessChip": "BEHEERDERTOEGANG",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "Sessie van het beheerdersdashboard",
-    "exit": "🔓 Afsluiten",
+    "exit": "🔓 Afsluiten",
     "loginKeyword": "inloggen",
     "providers": {
       "kakao": "Kakao",

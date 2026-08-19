@@ -1683,12 +1683,17 @@
           "sub": "正在先确认月光的纹理"
         },
         "single": {
-          "title": "正在确认余额"
+          "title": "正在确认余额",
+          "sub": "正在安全核对支付记录"
         },
         "pass": {
           "title": "正在确认使用券",
           "sub": "正在匹配会员等级和通行证状态"
         }
+      },
+      "fallback": {
+        "title": "正在处理",
+        "sub": "请稍候"
       }
     },
     "pending": {
@@ -1701,7 +1706,7 @@
       "passChecking": "正在确认使用券权限。",
       "subscriptionPrepare": "正在准备韩元基准的使用券支付信息。",
       "subscriptionConfirm": "正在确认使用券支付批准与启用。",
-      "confirm": "正在服务器验证支付批准。",
+      "confirm": "支付已生效。正在打开内容。",
       "purchase": "正在确认支付批准和使用权限。",
       "pdfGeneration": "正在确认生成PDF的支付权限。"
     },
@@ -1799,6 +1804,10 @@
       "unlockPreparing": {
         "title": "正在准备保存权限",
         "message": "正在准备保存阅览权限。"
+      },
+      "applied": {
+        "title": "支付已生效",
+        "message": "正在打开内容"
       },
       "unlockSaving": {
         "title": "正在保存阅览权限",
@@ -1946,31 +1955,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "支付已完成。正在确认付费内容提供状态。请稍候。",
+        "message": "支付已完成。\n正在确认付费内容提供状态。\n请稍候。",
         "title": "正在确认提供状态"
       },
       "refundFailed": {
-        "message": "自动退款请求过程中发生问题。支付已正常记录，退款处理需要管理员确认。请稍后再次确认。",
+        "message": "自动退款请求过程中发生问题。\n支付已正常记录，退款处理需要管理员确认。\n请稍后再次确认。",
         "title": "需要管理员确认"
       },
       "refundPending": {
-        "message": "抱歉。付费内容未能正常提供，正在进行自动退款。支付金额将100%退还。",
+        "message": "抱歉。\n付费内容未能正常提供，正在进行自动退款。\n支付金额将100%退还。",
         "title": "正在进行自动退款"
       },
       "refunded": {
-        "message": "付费内容未能正常提供，支付金额已100%退还。不会再次收取相同支付款项。",
+        "message": "付费内容未能正常提供，支付金额已100%退还。\n不会再次收取相同支付款项。",
         "title": "退款完成"
       }
     },
     "passShop": {
       "monthlyStatus": "月定石支付中。月光余额正静静对齐。",
       "chargeButton": "前往 {amount} 支付页面",
-      "chargeNotice": "月定石基准 {credits} · 支付金额 {price} · 这是30天通行券，不是自动续费商品。",
+      "chargeNotice": "通行证商品 {price} · 这是 30 天通行证，并非自动续费。通行证仅可通过韩元单次支付购买。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
       "profileUnlimited": "不限资料",
       "profileLimit": "{count}个资料",
-      "allFeatures": "3万韩元以下无限 · 含专家咨询10次",
+      "allFeatures": "可使用全部功能",
       "upTo": "可使用 {amount} 以下",
       "benefits": "权益一览",
       "closeAria": "关闭月光通行券商店说明",
@@ -2027,12 +2036,15 @@
     "memberTagline": "今天也继续探索命运星座",
     "greeting": "✦ 你好",
     "userNameSuffix": "{name}",
-    "logout": "🔓 退出登录",
+    "logout": "🔓 退出登录",
+    "changePhone": "📱 修改手机号",
+    "changePassword": "🔑 修改密码",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ 管理员会话",
     "adminAccessChip": "管理员访问权限",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "管理员面板会话",
-    "exit": "🔓 离开",
+    "exit": "🔓 离开",
     "loginKeyword": "登录",
     "providers": {
       "kakao": "Kakao",

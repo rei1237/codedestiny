@@ -367,8 +367,25 @@ function extractKeyedCopy(body, wrapper) {
   );
   const found = new Map();
   let match;
-  while ((match = pattern.exec(body))) found.set(match[2], match[4]);
+  while ((match = pattern.exec(body))) found.set(match[2], unescapeJsString(match[4]));
   return found;
+}
+
+// 🔴 소스에서 읽은 것은 **문자열 리터럴의 표기**이고 사전에 든 것은 **값**이다. 풀지 않으면
+// 폴백에 `\n` 이나 U+00A0 를 쓰는 순간 같은 문구인데도 다르다고 실패한다 — 결제 오버레이
+// 본문 4개와 로그아웃/나가기 라벨이 정확히 그 형태다.
+function unescapeJsString(raw) {
+  const SHORT = { n: "\n", r: "\r", t: "\t", b: "\b", f: "\f", v: "\v", 0: "\0" };
+  return raw.replace(
+    /\\(?:u\{([0-9a-fA-F]+)\}|u([0-9a-fA-F]{4})|x([0-9a-fA-F]{2})|([nrtbfv0])|(.))/g,
+    (_, uBrace, u4, x2, short, other) => {
+      if (uBrace) return String.fromCodePoint(parseInt(uBrace, 16));
+      if (u4) return String.fromCharCode(parseInt(u4, 16));
+      if (x2) return String.fromCharCode(parseInt(x2, 16));
+      if (short) return SHORT[short];
+      return other;
+    },
+  );
 }
 
 const KO_DICTIONARY = JSON.parse(read("public/i18n/ko.json"));

@@ -1683,12 +1683,17 @@
           "sub": "Memeriksa cahaya bulan dahulu"
         },
         "single": {
-          "title": "Menyemak baki"
+          "title": "Menyemak baki",
+          "sub": "Menyemak rekod pembayaran anda dengan selamat"
         },
         "pass": {
           "title": "Menyemak pas anda",
           "sub": "Menyelaraskan tahap keahlian dan status Pas anda"
         }
+      },
+      "fallback": {
+        "title": "Sedang diproses",
+        "sub": "Sila tunggu sebentar"
       }
     },
     "pending": {
@@ -1701,7 +1706,7 @@
       "passChecking": "Menyemak akses pas.",
       "subscriptionPrepare": "Menyediakan maklumat pembayaran pas KRW.",
       "subscriptionConfirm": "Menyemak kelulusan pembayaran pas dan pengaktifan.",
-      "confirm": "Mengesahkan kelulusan pembayaran pada pelayan.",
+      "confirm": "Pembayaran digunakan. Membuka kandungan anda.",
       "purchase": "Menyemak kelulusan pembayaran dan hak akses.",
       "pdfGeneration": "Mengesahkan kebenaran pembayaran untuk penjanaan PDF."
     },
@@ -1799,6 +1804,10 @@
       "unlockPreparing": {
         "title": "Menyediakan akses simpan",
         "message": "Bersedia untuk menyimpan hak akses."
+      },
+      "applied": {
+        "title": "Pembayaran digunakan",
+        "message": "Membuka kandungan anda"
       },
       "unlockSaving": {
         "title": "Menyimpan hak akses",
@@ -1946,31 +1955,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "Pembayaran telah selesai. Kami sedang mengesahkan status penyediaan kandungan berbayar. Sila tunggu sebentar.",
+        "message": "Pembayaran telah selesai.\nKami sedang mengesahkan status penyediaan kandungan berbayar.\nSila tunggu sebentar.",
         "title": "Mengesahkan Status Penyediaan"
       },
       "refundFailed": {
-        "message": "Masalah berlaku semasa permintaan bayaran balik automatik. Pembayaran telah direkodkan dengan betul, dan pengesahan pentadbir diperlukan untuk memproses bayaran balik. Sila semak semula sebentar lagi.",
+        "message": "Masalah berlaku semasa permintaan bayaran balik automatik.\nPembayaran telah direkodkan dengan betul, dan pengesahan pentadbir diperlukan untuk memproses bayaran balik.\nSila semak semula sebentar lagi.",
         "title": "Pengesahan Pentadbir Diperlukan"
       },
       "refundPending": {
-        "message": "Maaf. Kandungan berbayar tidak disediakan dengan betul, jadi kami sedang memproses bayaran balik automatik. 100% daripada jumlah pembayaran akan dikembalikan.",
+        "message": "Maaf.\nKandungan berbayar tidak disediakan dengan betul, jadi kami sedang memproses bayaran balik automatik.\n100% daripada jumlah pembayaran akan dikembalikan.",
         "title": "Bayaran Balik Automatik Sedang Diproses"
       },
       "refunded": {
-        "message": "Kandungan berbayar tidak disediakan dengan betul, jadi 100% daripada jumlah pembayaran telah dikembalikan. Anda tidak akan dicaj semula untuk transaksi pembayaran yang sama.",
+        "message": "Kandungan berbayar tidak disediakan dengan betul, jadi 100% daripada jumlah pembayaran telah dikembalikan.\nAnda tidak akan dicaj semula untuk transaksi pembayaran yang sama.",
         "title": "Bayaran Balik Selesai"
       }
     },
     "passShop": {
       "monthlyStatus": "Pembayaran kredit bulanan sedang dijalankan. Imbangan cahaya bulan menjajar dengan senyap.",
       "chargeButton": "Pergi ke halaman pembayaran untuk {amount}",
-      "chargeNotice": "Asas kredit bulanan {credits} · Amaun pembayaran {price} · Ini ialah pas 30 hari, bukan pembayaran yang diperbaharui secara automatik.",
+      "chargeNotice": "Produk Pass {price} · Ini Pass 30 hari, bukan bayaran auto-perbaharui. Pass hanya boleh dibeli dengan bayaran sekali dalam KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Asas kredit bulanan {credits} · {price}",
       "profileUnlimited": "Profil tanpa had",
       "profileLimit": "{count} profil",
-      "allFeatures": "Tanpa had di bawah KRW 30,000 · 10 sesi perundingan pakar disertakan",
+      "allFeatures": "Semua ciri tersedia",
       "upTo": "Tersedia sehingga {amount}",
       "benefits": "Manfaat sepintas lalu",
       "closeAria": "Tutup panduan Kedai Moonlight Pass",
@@ -2027,12 +2036,15 @@
     "memberTagline": "Terokai buruj takdir anda hari ini",
     "greeting": "✦ Hello",
     "userNameSuffix": "{name}",
-    "logout": "🔓 Log keluar",
+    "logout": "🔓 Log keluar",
+    "changePhone": "📱 Tukar nombor telefon",
+    "changePassword": "🔑 Tukar kata laluan",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ Sesi pentadbir",
     "adminAccessChip": "AKSES ADMIN",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "Sesi panel pentadbir",
-    "exit": "🔓 Keluar",
+    "exit": "🔓 Keluar",
     "loginKeyword": "log masuk",
     "providers": {
       "kakao": "Kakao",
