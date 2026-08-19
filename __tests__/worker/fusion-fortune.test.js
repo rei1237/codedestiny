@@ -2,6 +2,7 @@
 import { describe, expect, it, jest } from "@jest/globals";
 import {
   FUSION_FORTUNE_PAID_FEATURE_KEY,
+  FUSION_RESERVATION_FRESHNESS_MS,
   buildFusionFortuneContext,
   buildFusionFortuneStatus,
   createMemoryFusionFortuneStore,
@@ -165,6 +166,38 @@ describe("Fusion Fortune per-use billing and mock generation", () => {
     await generateFusionFortuneRequest({ input, userId: "user", requestId: "replay-id", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
     const replay = await generateFusionFortuneRequest({ input, userId: "user", requestId: "replay-id", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM });
     expect(replay).toMatchObject({ ok: false, error: "FUSION_FORTUNE_REQUEST_IN_PROGRESS" });
+  });
+
+  it("keeps a fresh 'reserved' attempt locked — it may still be in flight", async () => {
+    const store = emptyStore();
+    const dateKey = getFusionFortuneDateKey();
+    const first = await store.reserve("user", dateKey, "fresh-reserved");
+    expect(first.ok).toBe(true);
+    const second = await store.reserve("user", dateKey, "fresh-reserved");
+    expect(second).toMatchObject({ ok: false, errorCode: "FUSION_FORTUNE_REQUEST_IN_PROGRESS", status: 409 });
+  });
+
+  it("🔴 reopens a paid reservation stuck in 'reserved' past the freshness window instead of locking it for the full TTL", async () => {
+    // 플랫폼이 생성 도중 워커를 강제 종료하면 store.release()가 아예 호출되지 못해 예약이
+    // "reserved"로 멈춘다. 신선도 창(FUSION_RESERVATION_FRESHNESS_MS)이 없으면 결제한 사용자는
+    // 만료 TTL(10분) 내내 같은 requestId로 재시도해도 409만 받는다.
+    const store = emptyStore();
+    const dateKey = getFusionFortuneDateKey();
+    const stuckAt = new Date("2026-08-19T00:00:00.000Z");
+    const stuck = await store.reserve("user", dateKey, "stuck-reserved", stuckAt);
+    expect(stuck.ok).toBe(true);
+
+    // 신선도 창 안에서는 계속 진행 중일 수 있으므로 여전히 막는다.
+    const stillWithinWindow = new Date(stuckAt.getTime() + FUSION_RESERVATION_FRESHNESS_MS - 1000);
+    const tooSoon = await store.reserve("user", dateKey, "stuck-reserved", stillWithinWindow);
+    expect(tooSoon).toMatchObject({ ok: false, errorCode: "FUSION_FORTUNE_REQUEST_IN_PROGRESS", status: 409 });
+
+    // 창을 넘기면 같은 requestId로 다시 열리고, 생성도 정상적으로 이어서 끝까지 완료된다 —
+    // 재시도가 실제로 살아 있어야 결제한 사용자가 결과를 받을 수 있다.
+    const pastWindow = new Date(stuckAt.getTime() + FUSION_RESERVATION_FRESHNESS_MS + 1000);
+    const retried = await generateFusionFortuneRequest({ input, userId: "user", requestId: "stuck-reserved", dateKey, store, resolvePaidAccess: paidAccess, contextBuilder, generator: generateFusionFortuneWithMockLLM, now: pastWindow });
+    expect(retried.ok).toBe(true);
+    expect(store.attempts.get("stuck-reserved")).toMatchObject({ status: "completed" });
   });
 
   it("reports login and disabled status without consulting a wallet", async () => {

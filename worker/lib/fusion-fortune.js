@@ -557,13 +557,25 @@ async function buildValidatedFusionFallback({ context, input, now = new Date() }
 // ── 4그룹 병렬 생성 ───────────────────────────────────────────────────
 // 그룹 하나의 LLM 대기 상한. 네 그룹이 병렬이라 1차 벽시계는 가장 느린 그룹 기준이다.
 const FUSION_GROUP_TIMEOUT_MS = 55000;
-// callGeminiJsonWithRetry 기본값 attempts=3 은 최악 timeout×3 을 쓴다 — 그룹은 2회로 묶는다.
-const FUSION_GROUP_ATTEMPTS = 2;
+// 🔴 1회로 고정한다(과거 2). callGeminiJsonWithRetry 내부 재시도는 FUSION_GENERATION_DEADLINE_MS
+//    예산을 전혀 보지 않고 timeoutMs 를 그대로 또 쓴다 — attempts:2 면 그룹 하나가 최악
+//    timeoutMs×2(≈110초)를 예산 확인 없이 써서, 데드라인 안쪽으로 맞춘 클램프(runGroup 의
+//    clampedTimeoutMs)를 무력화하고 전체 요청이 플랫폼 한도를 넘겨 죽을 수 있었다(2026-08-19
+//    분석: 이게 결제 후 생성이 죽던 실제 경로였고, 그 순간 store.release 도 못 불려 예약이
+//    FUSION_RESERVATION_FRESHNESS_MS 창까지 "reserved"로 묶여 재시도가 409로 막혔다).
+//    미달·실패 그룹의 재시도는 아래 retryTargets(보완 물결)가 대신한다 — 그쪽은 매 호출 전
+//    remainingMs()로 남은 예산을 실제로 확인하므로 데드라인을 존중한다.
+const FUSION_GROUP_ATTEMPTS = 1;
 // 목표의 이 비율에 못 미친 그룹은 다시 부른다. 낮게 잡으면 65%짜리 그룹이 통과해 합계가 무너진다.
 const FUSION_GROUP_RETRY_RATIO = 0.8;
 // 생성 전체(1차 병렬 + 미달 그룹 재생성)의 벽시계 예산.
-const FUSION_GENERATION_DEADLINE_MS = 120000;
+export const FUSION_GENERATION_DEADLINE_MS = 120000;
 const FUSION_GROUP_RETRY_MIN_BUDGET_MS = 25000;
+// 🔴 예약(FusionFortuneGenerationAttempt) 이 "reserved"로 멈춘 채 발견되면 이 시간이 지나야
+//    같은 requestId 재시도를 허용한다. 생성 예산(FUSION_GENERATION_DEADLINE_MS) + 여유(컨텍스트
+//    빌드·검증·onDelivery·store.commit 소요)를 더해, 정상 진행 중인 요청을 조기에 이중 실행하지
+//    않으면서도 기존 10분 TTL 전부를 기다리게 하지 않는다. 근거: docs/HANDOFF_FUSION_FORTUNE_UX.md.
+export const FUSION_RESERVATION_FRESHNESS_MS = FUSION_GENERATION_DEADLINE_MS + 60000;
 /**
  * 한국어 1자 ≈ 1.6 출력 토큰(JSON 키·이스케이프 몫 포함) + 여유.
  * 단일 호출 시절의 운영 노브 FUSION_FORTUNE_MAX_OUTPUT_TOKENS 는 이제 **그룹당** 상한으로 읽는다.
@@ -845,12 +857,15 @@ export function createMemoryFusionFortuneStore(seed = {}) {
   };
   return {
     attempts,
-    async reserve(userId, dateKey, requestId) { return withReservationLock(async () => {
+    async reserve(userId, dateKey, requestId, now = new Date()) { return withReservationLock(async () => {
       // released(실패·중단)는 끝난 시도다. 409 로 막으면 그 requestId 로 결제한 사용자가
       // 결과를 영원히 못 받는다 — 증빙이 requestId 에 묶여 있어 새 id 로는 안 잡힌다.
+      // 🔴 "reserved"가 신선도 창(FUSION_RESERVATION_FRESHNESS_MS)을 넘겨도 마찬가지로 다시 연다
+      //    — 플랫폼이 생성 도중 워커를 강제 종료하면 release()가 아예 호출되지 못해 그대로 묶인다.
       const previous = attempts.get(requestId);
-      if (previous && previous.status !== "released") return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
-      attempts.set(requestId, { userId: String(userId), dateKey, status: "reserved" });
+      const stale = previous?.status === "reserved" && now.getTime() - Number(previous.reservedAt || 0) >= FUSION_RESERVATION_FRESHNESS_MS;
+      if (previous && previous.status !== "released" && !stale) return { ok: false, errorCode: FUSION_FORTUNE_ERROR_CODES.REQUEST_IN_PROGRESS, status: 409 };
+      attempts.set(requestId, { userId: String(userId), dateKey, status: "reserved", reservedAt: now.getTime() });
       return { ok: true, userId: String(userId), dateKey, requestId };
     }); },
     async release(reservation) { attempts.set(reservation.requestId, { ...attempts.get(reservation.requestId), status: "released" }); },
@@ -862,11 +877,14 @@ export function createMongoFusionFortuneStore() {
   return {
     async reserve(userId, dateKey, requestId, now = new Date()) {
       const expiresAt = new Date(now.getTime() + 10 * 60 * 1000);
+      const staleReservedBefore = new Date(now.getTime() - FUSION_RESERVATION_FRESHNESS_MS);
       try {
-        // released(실패·중단)된 시도는 같은 requestId 로 다시 연다. 결제 증빙이 requestId 에
-        // 묶여 있어, 여기서 막으면 이미 결제한 사용자가 결과를 받을 길이 사라진다.
+        // released(실패·중단)된 시도, 또는 신선도 창(FUSION_RESERVATION_FRESHNESS_MS)을 넘기고도
+        // "reserved"에 멈춘 시도는 같은 requestId 로 다시 연다. 후자는 플랫폼이 생성 도중 워커를
+        // 강제 종료해 release()가 호출되지 못한 경우다 — 결제 증빙이 requestId 에 묶여 있어,
+        // 여기서 계속 막으면 이미 결제한 사용자가 만료 TTL(10분)까지 결과를 받을 길이 사라진다.
         const reopened = await FusionFortuneGenerationAttempt.findOneAndUpdate(
-          { requestId, status: "released" },
+          { requestId, $or: [{ status: "released" }, { status: "reserved", updatedAt: { $lt: staleReservedBefore } }] },
           { $set: { status: "reserved", dateKey, expiresAt } },
         ).lean();
         if (!reopened) {
