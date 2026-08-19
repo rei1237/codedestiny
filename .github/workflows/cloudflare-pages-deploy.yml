@@ -221,6 +221,7 @@ jobs:
           npm run verify:pages-single-deploy-guard
           npm run verify:worker-single-deploy
           npm run verify:worker-config-parity
+          npm run verify:staging-noindex
 
       # Environment key mismatches only surface at runtime, long after the deploy
       # succeeds. This step runs before the build so a missing or drifted key stops
@@ -447,6 +448,7 @@ jobs:
           npm run verify:pages-single-deploy-guard
           npm run verify:worker-single-deploy
           npm run verify:worker-config-parity
+          npm run verify:staging-noindex
 
       - name: Verify environment key parity
         run: npm run verify:env-parity -- --remote --target=staging
@@ -466,6 +468,27 @@ jobs:
           npm run verify:deployed-sha -- \
             --sha="${GITHUB_SHA}" \
             --origin="${CD_STAGING_ORIGIN}"
+
+      # 🔴 정적 가드는 배선을 지키고, 실제로 색인을 막는 것은 이 프로브다. 빌드 파이프라인의
+      # 어떤 단계가 산출물을 다시 써서 메타가 사라져도 여기서 잡힌다. 실패하면 배포를 실패로
+      # 남겨 다음 릴리스 전에 반드시 보게 한다.
+      - name: Probe staging is not indexable
+        if: ${{ !cancelled() }}
+        run: |
+          set -euo pipefail
+          ROBOTS=$(curl -fsS "${CD_STAGING_ORIGIN}/robots.txt")
+          printf '%s\n' "$ROBOTS" | grep -qx 'Disallow: /' || {
+            echo "::error::${CD_STAGING_ORIGIN}/robots.txt 에 전면 Disallow 가 없습니다. 스테이징이 색인될 수 있습니다.";
+            printf '%s\n' "$ROBOTS";
+            exit 1;
+          }
+          HEADERS=$(curl -fsSI "${CD_STAGING_ORIGIN}/")
+          printf '%s\n' "$HEADERS" | grep -qi 'x-robots-tag:.*noindex' || {
+            echo "::error::${CD_STAGING_ORIGIN} 응답에 X-Robots-Tag: noindex 가 없습니다.";
+            printf '%s\n' "$HEADERS";
+            exit 1;
+          }
+          echo "스테이징 색인 차단 확인: robots.txt 전면 Disallow + X-Robots-Tag noindex."
 
       - name: Summarize the staging result
         if: always()

@@ -217,7 +217,11 @@ function originFromTargetEnv() {
 }
 
 function envForChecks() {
-  return { ...process.env, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", DEPLOY_SAFE_MODE: "true" };
+  // 🔴 CD_DEPLOY_TARGET 은 **여기서** 넣는다. 워크플로 env 에만 두면 잡을 하나 더 만들 때
+  //    빠뜨릴 수 있고, 그러면 스테이징 산출물이 색인 가능한 채로 나간다. 타깃은 --stage 가
+  //    이미 정했으므로 같은 결정에서 파생시키면 어긋날 수 없다.
+  //    소비처: scripts/run-postbuild.mjs → scripts/apply-staging-noindex.mjs.
+  return { ...process.env, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", DEPLOY_SAFE_MODE: "true", CD_DEPLOY_TARGET: target.id };
 }
 function npmCommand() { return process.platform === "win32" ? "npm.cmd" : "npm"; }
 function npxCommand() { return process.platform === "win32" ? "npx.cmd" : "npx"; }

@@ -285,6 +285,10 @@ jobs:
           npm run verify:worker-single-deploy
           npm run verify:worker-config-parity
           npm run verify:worker-config-parity -- --self-test
+          npm run verify:staging-noindex
+          npm run verify:staging-noindex -- --self-test
+          # 배선을 지키는 가드와 별개로, 실제 변환기가 하는 일도 픽스처로 증명한다.
+          node scripts/apply-staging-noindex.mjs --self-test
           npm run verify:pages-worker-parity-test
           npm run verify:deployed-sha -- --self-test
           npm run verify:merge-landed-test
