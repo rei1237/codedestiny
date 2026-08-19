@@ -14,7 +14,7 @@ const requiredHtmlMarkers = [
   'class="post-saju-services-intro"',
   'data-action="openTarotHealingModal"',
   'href="/naming-ai/"',
-  'href="/privacy-policy/"',
+  'href="/privacy/"',
   'id="cdAdminFlowerBtn"',
 ];
 

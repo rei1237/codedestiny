@@ -35,6 +35,14 @@ const steps = [
   "scripts/minify-dist-css.mjs",
 ];
 
+// 🔴 스테이징 배포본만 색인·광고에서 뺀다. **마지막 단계**여야 한다 — 앞에 두면 minify·externalize
+//    가 산출물을 다시 쓰면서 주입한 메타가 어떤 경로로든 사라질 여지가 남는다.
+//    마커는 scripts/deploy-safe.mjs 가 --stage 에서 직접 넣으므로 워크플로 env 가 새거나 빠져도
+//    타깃과 어긋나지 않는다. 프로덕션 빌드에서는 이 줄이 아예 추가되지 않는다.
+if (String(process.env.CD_DEPLOY_TARGET || "").trim().toLowerCase() === "staging") {
+  steps.push("scripts/apply-staging-noindex.mjs");
+}
+
 function wait(ms) {
   Atomics.wait(new Int32Array(new SharedArrayBuffer(4)), 0, 0, ms);
 }

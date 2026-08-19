@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "4591690f0112e95d",
+      "signature": "117575057a7c37b5",
       "lastmod": "2026-08-19"
     },
     "/about/": {
@@ -79,7 +79,7 @@
       "lastmod": "2026-08-19"
     },
     "/en/": {
-      "signature": "7e42c7ad0e867257",
+      "signature": "3fbdc0a9cf3a53a4",
       "lastmod": "2026-08-19"
     },
     "/en/insights/": {
@@ -347,7 +347,7 @@
       "lastmod": "2026-08-19"
     },
     "/insights/": {
-      "signature": "d36f1219de5158ab",
+      "signature": "29ce2671b97b4f3a",
       "lastmod": "2026-08-19"
     },
     "/insights/astrology/": {
@@ -399,7 +399,7 @@
       "lastmod": "2026-08-19"
     },
     "/ja/": {
-      "signature": "7e42c7ad0e867257",
+      "signature": "3fbdc0a9cf3a53a4",
       "lastmod": "2026-08-19"
     },
     "/ja/insights/": {
@@ -899,7 +899,7 @@
       "lastmod": "2026-08-15"
     },
     "/zh-tw/": {
-      "signature": "7e42c7ad0e867257",
+      "signature": "3fbdc0a9cf3a53a4",
       "lastmod": "2026-08-19"
     },
     "/zh-tw/insights/": {
@@ -939,7 +939,7 @@
       "lastmod": "2026-08-19"
     },
     "/zh/": {
-      "signature": "7e42c7ad0e867257",
+      "signature": "3fbdc0a9cf3a53a4",
       "lastmod": "2026-08-19"
     },
     "/zh/insights/": {
