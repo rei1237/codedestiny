@@ -1225,9 +1225,9 @@
       "neoLogoAlt": "Logo du mode Néo"
     },
     "hero2": {
-      "title": "Ne vous fiez pas à une seule lecture",
+      "title": "Quatre Piliers et almanach lunaire gratuits : votre thème et la fortune du jour",
       "lead": "La sagesse d'Orient et d'Occident rencontre l'expertise pour interpréter votre histoire.",
-      "primaryCta": "✦ Commencer gratuitement",
+      "primaryCta": "✦ Voir la fortune du jour gratuitement",
       "journeyCta": "✦ Commencez votre voyage du destin"
     },
     "oneStep": {
@@ -1292,7 +1292,7 @@
       "title": "La fortune du jour",
       "lead": "Le pilier du jour en Saju, les 27 demeures lunaires et le signe lunaire védique : les présages du jour.",
       "gateTitle": "Créez une carte de profil pour voir les présages du jour",
-      "gateDesc": "La fortune du jour se calcule à partir de votre date de naissance. Avec une carte de profil, nous confrontons le pilier du jour en Saju, les 27 demeures lunaires et le signe lunaire védique à votre propre thème — jusqu'à vous dire si aujourd'hui est un jour faste ou un jour de prudence.",
+      "gateDesc": "La fortune du jour se calcule à partir de votre date de naissance. Avec une carte de profil, nous confrontons le pilier du jour en Saju, les 27 demeures lunaires et le signe lunaire védique à votre propre thème — jusqu'à vous dire si aujourd'hui est un jour faste ou un jour de prudence. La conversion lunaire-solaire et les heures des termes solaires s'appuient d'abord sur les données calendaires de l'Institut coréen d'astronomie et des sciences spatiales (KASI).",
       "gateCta": "Créer une carte de profil",
       "tabsAria": "Changer le système de la fortune du jour",
       "tabSaju": "Saju",
@@ -1309,7 +1309,7 @@
     },
     "concernPick": {
       "title": "Qu'est-ce qui vous préoccupe le plus en ce moment ?",
-      "lead": "Choisissez une préoccupation : nous vous montrons comment la vérifier gratuitement et la seule lecture qui lui correspond.",
+      "lead": "Choisissez une préoccupation : nous vous montrons comment la vérifier gratuitement et la seule lecture qui lui correspond. Ce choix part d'abord de la place qu'occupe cette préoccupation dans votre thème.",
       "love": "Amour et liens",
       "person": "Une personne précise",
       "money": "Argent",
@@ -6408,7 +6408,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Le chemin de la lecture des étoiles",
-        "kbm4p3d": "Nous lisons séparément les Quatre Piliers, le Zi Wei Dou Shu, l'astrologie védique, le Sukuyo, l'astrologie occidentale et le tarot, puis nous vérifions s'ils désignent le même point."
+        "kbm4p3d": "Nous établissons les huit caractères selon les règles fixées par un praticien fort de dix ans de Myeongni, puis nous lisons la force du maître du jour, le dieu utile et le flux des piliers de chance."
       }
     },
     "premiumVvipCollection": {

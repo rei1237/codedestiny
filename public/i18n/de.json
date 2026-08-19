@@ -1225,9 +1225,9 @@
       "neoLogoAlt": "Neo-Modus-Logo"
     },
     "hero2": {
-      "title": "Vertrauen Sie nicht nur einer Deutung",
+      "title": "Vier Säulen und Mondkalender gratis – dein Chart und das Tagesorakel",
       "lead": "Östliche und westliche Weisheit trifft Experten-Einsicht, um deine Geschichte zu deuten.",
-      "primaryCta": "✦ Kostenlos starten",
+      "primaryCta": "✦ Tagesorakel gratis ansehen",
       "journeyCta": "✦ Deine Schicksalsreise beginnen"
     },
     "oneStep": {
@@ -1292,7 +1292,7 @@
       "title": "Das Tagesorakel",
       "lead": "Saju-Tagessäule, die 27 Mondhäuser und das vedische Mondzeichen — die Vorzeichen für heute.",
       "gateTitle": "Lege eine Profilkarte an, um die Vorzeichen für heute zu sehen",
-      "gateDesc": "Das Tagesorakel wird aus deinem Geburtsdatum berechnet. Mit einer Profilkarte lesen wir die Saju-Tagessäule, die 27 Mondhäuser und das vedische Mondzeichen gegen dein eigenes Chart — bis hin zu der Frage, ob heute ein Glückstag oder ein Tag der Vorsicht ist.",
+      "gateDesc": "Das Tagesorakel wird aus deinem Geburtsdatum berechnet. Mit einer Profilkarte lesen wir die Saju-Tagessäule, die 27 Mondhäuser und das vedische Mondzeichen gegen dein eigenes Chart — bis hin zu der Frage, ob heute ein Glückstag oder ein Tag der Vorsicht ist. Die Umrechnung von Mond- auf Sonnenkalender und die Zeiten der Solarterme stützen sich zuerst auf die Kalenderdaten des Korea Astronomy and Space Science Institute (KASI).",
       "gateCta": "Profilkarte anlegen",
       "tabsAria": "System des Tagesorakels wechseln",
       "tabSaju": "Saju",
@@ -1309,7 +1309,7 @@
     },
     "concernPick": {
       "title": "Was beschäftigt Sie gerade am meisten?",
-      "lead": "Wählen Sie ein Anliegen – wir zeigen Ihnen, wie Sie es kostenlos prüfen, und genau eine passende Deutung dazu.",
+      "lead": "Wählen Sie ein Anliegen – wir zeigen Ihnen, wie Sie es kostenlos prüfen, und genau eine passende Deutung dazu. Diese Wahl entsteht daraus, wo das Anliegen in Ihrem Chart sitzt.",
       "love": "Liebe & Bindung",
       "person": "Eine bestimmte Person",
       "money": "Geld & Finanzen",
@@ -6408,7 +6408,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Der Weg der Sternen-Deutung",
-        "kbm4p3d": "Wir lesen Vier Säulen, Zi Wei Dou Shu, vedische Astrologie, Sukuyo, westliche Astrologie und Tarot einzeln und prüfen dann, ob sie in dieselbe Richtung weisen."
+        "kbm4p3d": "Wir stellen die acht Zeichen nach Regeln auf, die ein Praktiker mit zehn Jahren Myeongni-Erfahrung festgelegt hat, und lesen die Stärke des Tagesherrn, den nützlichen Gott und den Lauf der Glückssäulen."
       }
     },
     "premiumVvipCollection": {

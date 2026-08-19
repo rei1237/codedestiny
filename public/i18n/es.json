@@ -1225,9 +1225,9 @@
       "neoLogoAlt": "Logotipo del modo Neo"
     },
     "hero2": {
-      "title": "No confíes en una sola lectura",
+      "title": "Cuatro Pilares y almanaque lunar gratis: tu carta y la fortuna de hoy",
       "lead": "La sabiduría de Oriente y Occidente se une a los expertos para interpretar tu historia.",
-      "primaryCta": "✦ Empieza gratis",
+      "primaryCta": "✦ Ver la fortuna de hoy gratis",
       "journeyCta": "✦ Comienza tu viaje del destino"
     },
     "oneStep": {
@@ -1292,7 +1292,7 @@
       "title": "La fortuna de hoy",
       "lead": "El pilar del día del Saju, las 27 mansiones lunares y el signo lunar védico: los presagios de hoy.",
       "gateTitle": "Crea una tarjeta de perfil para ver los presagios de hoy",
-      "gateDesc": "La fortuna de hoy se calcula a partir de tu fecha de nacimiento. Con una tarjeta de perfil leemos el pilar del día del Saju, las 27 mansiones lunares y el signo lunar védico frente a tu propia carta, hasta decirte si hoy es un día favorable o un día de cautela.",
+      "gateDesc": "La fortuna de hoy se calcula a partir de tu fecha de nacimiento. Con una tarjeta de perfil leemos el pilar del día del Saju, las 27 mansiones lunares y el signo lunar védico frente a tu propia carta, hasta decirte si hoy es un día favorable o un día de cautela. La conversión lunar-solar y las horas de los términos solares parten de los datos calendáricos del Instituto Coreano de Astronomía y Ciencias del Espacio (KASI).",
       "gateCta": "Crear tarjeta de perfil",
       "tabsAria": "Cambiar el sistema de la fortuna de hoy",
       "tabSaju": "Saju",
@@ -1309,7 +1309,7 @@
     },
     "concernPick": {
       "title": "¿Qué es lo que más te inquieta ahora?",
-      "lead": "Elige una inquietud y te mostraremos cómo comprobarla gratis y la única lectura que mejor le encaja.",
+      "lead": "Elige una inquietud y te mostraremos cómo comprobarla gratis y la única lectura que mejor le encaja. Esa elección parte de mirar primero dónde se sitúa la inquietud en tu carta.",
       "love": "Amor y vínculos",
       "person": "Una persona concreta",
       "money": "Dinero",
@@ -6408,7 +6408,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "El camino de la lectura estelar",
-        "kbm4p3d": "Leemos por separado los Cuatro Pilares, el Zi Wei Dou Shu, la astrología védica, el Sukuyo, la astrología occidental y el tarot, y después comprobamos si apuntan al mismo lugar."
+        "kbm4p3d": "Levantamos los ocho caracteres según las reglas fijadas por un practicante con diez años en Myeongni, y leemos la fuerza del amo del día, el dios útil y el flujo de los pilares de suerte."
       }
     },
     "premiumVvipCollection": {

@@ -1225,9 +1225,9 @@
       "neoLogoAlt": "Logo chế độ Neo"
     },
     "hero2": {
-      "title": "Đừng chỉ tin vào một môn xem vận mệnh",
+      "title": "Tứ Trụ và lịch vạn niên miễn phí — lá số của bạn và vận trình hôm nay",
       "lead": "Trí tuệ Đông-Tây kết hợp cùng chuyên gia để giải mã câu chuyện của riêng bạn.",
-      "primaryCta": "✦ Bắt đầu miễn phí",
+      "primaryCta": "✦ Xem vận trình hôm nay miễn phí",
       "journeyCta": "✦ Bắt đầu hành trình định mệnh"
     },
     "oneStep": {
@@ -1292,7 +1292,7 @@
       "title": "Vận trình hôm nay",
       "lead": "Trụ ngày Tứ trụ, 27 chòm sao mặt trăng và cung trăng Vệ Đà — điềm lành dữ của hôm nay.",
       "gateTitle": "Tạo thẻ hồ sơ để xem điềm lành dữ hôm nay",
-      "gateDesc": "Vận trình hôm nay được tính từ ngày sinh của bạn. Khi có thẻ hồ sơ, chúng tôi đối chiếu trụ ngày Tứ trụ, 27 chòm sao mặt trăng và cung trăng Vệ Đà với lá số của chính bạn — kể cả việc hôm nay là ngày đại cát hay ngày cần thận trọng.",
+      "gateDesc": "Vận trình hôm nay được tính từ ngày sinh của bạn. Khi có thẻ hồ sơ, chúng tôi đối chiếu trụ ngày Tứ trụ, 27 chòm sao mặt trăng và cung trăng Vệ Đà với lá số của chính bạn — kể cả việc hôm nay là ngày đại cát hay ngày cần thận trọng. Việc quy đổi âm lịch sang dương lịch và giờ tiết khí ưu tiên dùng dữ liệu lịch pháp của Viện Thiên văn và Khoa học Vũ trụ Hàn Quốc (KASI).",
       "gateCta": "Tạo thẻ hồ sơ",
       "tabsAria": "Chuyển hệ bói vận trình hôm nay",
       "tabSaju": "Tứ Trụ",
@@ -1309,7 +1309,7 @@
     },
     "concernPick": {
       "title": "Điều bạn băn khoăn nhất lúc này là gì?",
-      "lead": "Chọn một điều bạn đang băn khoăn — chúng tôi sẽ chỉ cách xem miễn phí và đúng một bản luận phù hợp nhất.",
+      "lead": "Chọn một điều bạn đang băn khoăn — chúng tôi sẽ chỉ cách xem miễn phí và đúng một bản luận phù hợp nhất. Lựa chọn đó dựa trên việc xem trước điều băn khoăn ấy nằm ở đâu trong lá số.",
       "love": "Tình cảm & nhân duyên",
       "person": "Một người cụ thể",
       "money": "Tiền bạc",
@@ -6408,7 +6408,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Con đường vận mệnh ánh sao",
-        "kbm4p3d": "Chúng tôi đọc riêng Tứ Trụ, Tử Vi Đẩu Số, chiêm tinh Vệ Đà, Sukuyo, chiêm tinh phương Tây và tarot, rồi đối chiếu xem chúng có cùng chỉ về một hướng hay không."
+        "kbm4p3d": "Chúng tôi lập tám chữ theo quy tắc do một người mười năm hành nghề mệnh lý đặt ra, rồi đọc sức mạnh của nhật can, dụng thần và dòng chảy của đại vận."
       }
     },
     "premiumVvipCollection": {
