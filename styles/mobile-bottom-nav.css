@@ -13,156 +13,148 @@
   --cd-mnav-offset: 0px;
 }
 
-.cd-mnav {
+:root {
+  --cd-mnav-offset: calc(56px + env(safe-area-inset-bottom, 0px));
+}
+
+/**
+ * 하단 네비가 보이는 뷰포트에서는 좌상단 고정 나브(AppChrome 의 FeatureBackHomeNav)를 숨긴다.
+ * 홈은 아래 '홈' 탭이 이미 담당하므로 중복이고, position:fixed 라 스크롤 내내 같은 좌표에서
+ * 기능 화면 UI 를 덮는다. 정적 셸은 같은 판단을 이미 내려 뒀다 —
+ * index.html 의 `.result-home-shortcut{display:none}`.
+ * 🔴 이 규칙은 반드시 하단 네비 표시 규칙과 함께 바뀐다. 두 나브는 서로의 대체재라
+ *    한쪽만 다른 조건으로 뒤집으면 둘 다 보이는 구간이 생긴다.
+ */
+.cd-feature-nav {
   display: none;
 }
 
-@media (max-width: 768px), (hover: none) and (pointer: coarse) {
-  :root {
-    --cd-mnav-offset: calc(56px + env(safe-area-inset-bottom, 0px));
-  }
+.cd-mnav {
+  position: fixed;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 960;
+  display: block;
+  padding: 6px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px))
+    max(12px, env(safe-area-inset-left, 0px));
+  background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 241, 224, 0.96));
+  border-top: 1px solid rgba(244, 190, 209, 0.42);
+  box-shadow: 0 -12px 28px rgba(179, 25, 85, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transform: translateY(0);
+  opacity: 1;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+  will-change: transform;
+}
 
-  /**
-   * 하단 네비가 보이는 뷰포트에서는 좌상단 고정 나브(AppChrome 의 FeatureBackHomeNav)를 숨긴다.
-   * 홈은 아래 '홈' 탭이 이미 담당하므로 중복이고, position:fixed 라 스크롤 내내 같은 좌표에서
-   * 기능 화면 UI 를 덮는다. 정적 셸은 같은 판단을 이미 내려 뒀다 —
-   * index.html 의 `.result-home-shortcut{display:none}` 이 같은 쿼리 안에 있다.
-   * 🔴 이 규칙은 반드시 하단 네비와 같은 미디어 쿼리에 둔다. 두 나브는 서로의 대체재라
-   *    한쪽만 다른 브레이크포인트(예: Tailwind sm: = 640px)로 뒤집으면 둘 다 보이는 구간이 생긴다.
-   */
-  .cd-feature-nav {
-    display: none;
-  }
+.cd-mnav__list {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 4px;
+  margin: 0 auto;
+  padding: 0;
+  max-width: 560px;
+  list-style: none;
+}
 
+.cd-mnav__item {
+  min-width: 0;
+}
+
+.cd-mnav__link {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  min-width: 0;
+  min-height: 48px;
+  padding: 4px 2px;
+  border: 1px solid transparent;
+  border-radius: 12px;
+  background: transparent;
+  color: #7a3457;
+  font: inherit;
+  font-size: 0.6875rem; /* 11px */
+  font-weight: 800;
+  line-height: 1.1;
+  text-align: center;
+  text-decoration: none;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.cd-mnav__icon {
+  display: block;
+  width: 24px;
+  height: 24px;
+  font-size: 1.125rem;
+  line-height: 24px;
+}
+
+.cd-mnav__label {
+  display: block;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.cd-mnav__link[aria-current="page"],
+.cd-mnav__link.is-active {
+  transform: translateY(-2px);
+  border-color: rgba(244, 190, 209, 0.66);
+  background: linear-gradient(150deg, rgba(255, 248, 220, 0.96), rgba(244, 190, 209, 0.72));
+  color: #7a1038;
+  box-shadow: 0 8px 20px rgba(179, 25, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+.cd-mnav__link:focus-visible {
+  outline: 2px solid #b31955;
+  outline-offset: 2px;
+}
+
+.cd-mnav__link:active {
+  transform: scale(0.97);
+}
+
+/* 오버레이·모달이 열리면 셸 스크립트가 body 에 붙이는 클래스로 함께 숨는다. */
+body.cd-mobile-nav-hidden .cd-mnav {
+  transform: translateY(calc(100% + 18px));
+  opacity: 0;
+  pointer-events: none;
+}
+
+/* 하단 고정 네비에 가려지지 않도록 본문 여백 확보. */
+body.cd-mnav-mounted {
+  padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
+}
+
+/* 연이 다크(핑크 다크) — DESIGN.md "연이 Dark" 팔레트. 표면·텍스트·강조를 한 세트로 바꾼다. */
+@media (prefers-color-scheme: dark) {
   .cd-mnav {
-    position: fixed;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    z-index: 960;
-    display: block;
-    padding: 6px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px))
-      max(12px, env(safe-area-inset-left, 0px));
-    background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 241, 224, 0.96));
-    border-top: 1px solid rgba(244, 190, 209, 0.42);
-    box-shadow: 0 -12px 28px rgba(179, 25, 85, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.86);
-    backdrop-filter: blur(14px);
-    -webkit-backdrop-filter: blur(14px);
-    transform: translateY(0);
-    opacity: 1;
-    transition: transform 0.2s ease, opacity 0.2s ease;
-    will-change: transform;
-  }
-
-  .cd-mnav__list {
-    display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
-    gap: 4px;
-    margin: 0 auto;
-    padding: 0;
-    max-width: 560px;
-    list-style: none;
-  }
-
-  .cd-mnav__item {
-    min-width: 0;
+    background: linear-gradient(180deg, #3a0e28, #24081a);
+    border-top-color: rgba(244, 190, 209, 0.38);
+    box-shadow: 0 -12px 28px rgba(174, 45, 104, 0.32), inset 0 1px 0 rgba(255, 214, 232, 0.14);
   }
 
   .cd-mnav__link {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: 3px;
-    min-width: 0;
-    min-height: 48px;
-    padding: 4px 2px;
-    border: 1px solid transparent;
-    border-radius: 12px;
-    background: transparent;
-    color: #7a3457;
-    font: inherit;
-    font-size: 0.6875rem; /* 11px */
-    font-weight: 800;
-    line-height: 1.1;
-    text-align: center;
-    text-decoration: none;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-    transition: transform 0.2s ease, background 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
-  }
-
-  .cd-mnav__icon {
-    display: block;
-    width: 24px;
-    height: 24px;
-    font-size: 1.125rem;
-    line-height: 24px;
-  }
-
-  .cd-mnav__label {
-    display: block;
-    max-width: 100%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    color: rgba(255, 214, 232, 0.86);
   }
 
   .cd-mnav__link[aria-current="page"],
   .cd-mnav__link.is-active {
-    transform: translateY(-2px);
-    border-color: rgba(244, 190, 209, 0.66);
-    background: linear-gradient(150deg, rgba(255, 248, 220, 0.96), rgba(244, 190, 209, 0.72));
-    color: #7a1038;
-    box-shadow: 0 8px 20px rgba(179, 25, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+    border-color: rgba(255, 196, 222, 0.5);
+    background: linear-gradient(150deg, rgba(179, 25, 85, 0.62), rgba(174, 45, 104, 0.36));
+    color: #fff1f7;
+    box-shadow: 0 8px 20px rgba(174, 45, 104, 0.42), inset 0 1px 0 rgba(255, 214, 232, 0.2);
   }
 
   .cd-mnav__link:focus-visible {
-    outline: 2px solid #b31955;
-    outline-offset: 2px;
-  }
-
-  .cd-mnav__link:active {
-    transform: scale(0.97);
-  }
-
-  /* 오버레이·모달이 열리면 셸 스크립트가 body 에 붙이는 클래스로 함께 숨는다. */
-  body.cd-mobile-nav-hidden .cd-mnav {
-    transform: translateY(calc(100% + 18px));
-    opacity: 0;
-    pointer-events: none;
-  }
-
-  /* 하단 고정 네비에 가려지지 않도록 본문 여백 확보. */
-  body.cd-mnav-mounted {
-    padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
-  }
-}
-
-/* 연이 다크(핑크 다크) — DESIGN.md "연이 Dark" 팔레트. 표면·텍스트·강조를 한 세트로 바꾼다. */
-@media (max-width: 768px), (hover: none) and (pointer: coarse) {
-  @media (prefers-color-scheme: dark) {
-    .cd-mnav {
-      background: linear-gradient(180deg, #3a0e28, #24081a);
-      border-top-color: rgba(244, 190, 209, 0.38);
-      box-shadow: 0 -12px 28px rgba(174, 45, 104, 0.32), inset 0 1px 0 rgba(255, 214, 232, 0.14);
-    }
-
-    .cd-mnav__link {
-      color: rgba(255, 214, 232, 0.86);
-    }
-
-    .cd-mnav__link[aria-current="page"],
-    .cd-mnav__link.is-active {
-      border-color: rgba(255, 196, 222, 0.5);
-      background: linear-gradient(150deg, rgba(179, 25, 85, 0.62), rgba(174, 45, 104, 0.36));
-      color: #fff1f7;
-      box-shadow: 0 8px 20px rgba(174, 45, 104, 0.42), inset 0 1px 0 rgba(255, 214, 232, 0.2);
-    }
-
-    .cd-mnav__link:focus-visible {
-      outline-color: #f4bed1;
-    }
+    outline-color: #f4bed1;
   }
 }
 
