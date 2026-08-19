@@ -59,7 +59,7 @@ export const MOBILE_TABS: readonly MobileTab[] = [
     glyph: "✦",
     shellAction: ALL_FORTUNES_ACTION,
   },
-  { key: "pass", label: "이용권", href: "/points", ariaLabel: "이용권 상점", glyph: "◈" },
+  { key: "pass", label: "이용권", href: "/points/", ariaLabel: "이용권 상점", glyph: "◈" },
   // 셸에서는 프로필 시트를 열고, React 페이지에서는 셸로 넘어가 같은 시트를 연다(사주·모든 운세 탭과 동일).
   {
     key: "my",

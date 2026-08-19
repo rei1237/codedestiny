@@ -8695,6 +8695,8 @@
     window._gender = profile.gender || 'F';
     if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
     if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
+    /* 카드를 폼에 올린 뒤 보이는 시간 입력도 맞춘다 — 안 맞추면 select 만 바뀌고 텍스트는 옛 값이 남는다. */
+    _dpSyncBirthTimeTextFromSelects();
   }
 
   function _dpDispatchProfileFieldRefresh(el) {
@@ -8950,6 +8952,8 @@
       optimisticState = null;
       // 저장이 끝났으면 편집 모드를 닫아, 다음 저장이 이 카드를 다시 덮어쓰지 않게 한다.
       _dpClearProfileEditMode();
+      // 시트 안에서 저장했다면 폼을 홈으로 돌려보내 아래 renderProfileList() 결과를 보여 준다.
+      _dpReturnFormHome();
 
       // 저장 성공 직후에는 로컬 상태를 즉시 렌더링해 체감 반응 속도를 우선한다.
       var curr = DPStorage.current();
@@ -9078,6 +9082,74 @@
   }
 
   var _dpListOpenedAt = 0;
+  /* ── 시트 ↔ 홈 폼 노드 대여 ──────────────────────────────────────────────
+     시트의 "새로 만들기"/"수정"은 원래 시트를 닫고 홈의 #destinyCardForm 까지 스크롤했다.
+     화면이 통째로 바뀌어 맥락이 끊기므로, 시트가 열려 있는 동안에는 그 폼 노드를 시트 안으로
+     그대로 옮겨 온다.
+     🔴 마크업을 복제하지 않는다 — #birthDate·#birthHour·#birthMinute·#birthCountry 를 id 로
+     읽는 곳이 8개 파일 28곳이라 두 벌이 되면 어느 쪽을 읽는지 알 수 없어진다. 노드를 옮기면
+     입력값(select 선택·타이핑 중인 값)도 그대로 따라오므로 동기화 코드도 필요 없다. */
+  var _dpFormHomeAnchor = null;
+
+  function _dpBorrowFormIntoSheet(sheet) {
+    if (_dpFormHomeAnchor) return true;
+    var form = document.getElementById('destinyCardForm');
+    var host = sheet ? sheet.querySelector('#dpFormHost') : null;
+    if (!form || !host || !form.parentNode) return false;
+    _dpFormHomeAnchor = {
+      parent: form.parentNode,
+      next: form.nextSibling,
+      /* 홈 축약 규칙(html:not(.cd-home-expanded) body [data-cd-home-secondary]{display:none})은
+         자손 선택자라 시트 안에서도 그대로 먹는다. 속성을 잠시 떼고 되돌릴 때 복구한다. */
+      secondary: form.hasAttribute('data-cd-home-secondary')
+    };
+    if (_dpFormHomeAnchor.secondary) form.removeAttribute('data-cd-home-secondary');
+    host.appendChild(form);
+    host.hidden = false;
+    sheet.classList.add('dp-sheet--form-view');
+    return true;
+  }
+
+  function _dpReturnFormHome() {
+    var anchor = _dpFormHomeAnchor;
+    if (!anchor) return;
+    _dpFormHomeAnchor = null;
+    var form = document.getElementById('destinyCardForm');
+    if (form && anchor.parent) {
+      if (anchor.secondary) form.setAttribute('data-cd-home-secondary', '');
+      var before = (anchor.next && anchor.next.parentNode === anchor.parent) ? anchor.next : null;
+      anchor.parent.insertBefore(form, before);
+    }
+    var host = document.getElementById('dpFormHost');
+    if (host) host.hidden = true;
+    var sheet = document.getElementById('dpListSheet');
+    if (sheet) sheet.classList.remove('dp-sheet--form-view');
+  }
+
+  /* 폼을 사용자 앞에 내놓는 단일 지점. 시트가 열려 있으면 시트 안에서 보여 주고, 아니면
+     종전대로 시트를 닫고 홈의 폼으로 내려간다. 펼치기·스크롤 구현은 dpScrollToForm 하나뿐이다. */
+  function _dpRevealProfileForm() {
+    var sheet = document.getElementById('dpListSheet');
+    if (sheet && sheet.classList.contains('dp-sheet--open') && _dpBorrowFormIntoSheet(sheet)) {
+      var scroller = sheet.querySelector('.dp-list-scroll');
+      if (scroller) scroller.scrollTop = 0;
+      return;
+    }
+    dpCloseList();
+    if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+  }
+
+  /* 가입 직후 1회. 카드 0장이 확정이라 빈 홈에 사용자를 세워 둘 이유가 없어 폼까지 데려간다.
+     dpScrollToForm 이 이미 __cdExpandHome 을 부르므로 여기서 또 펼치지 않는다. */
+  function _dpNudgeFreshSignupToForm() {
+    if (typeof window.dpScrollToForm !== 'function') return;
+    var run = function() {
+      try { window.dpScrollToForm(); } catch (e) {}
+    };
+    if (typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(run);
+    else window.setTimeout(run, 0);
+  }
+
   function _dpEnsureListSheetMounted() {
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
@@ -9111,7 +9183,13 @@
   function _dpUnmountListSheetAfterClose(sheet, overlay) {
     window.setTimeout(function() {
       var currentSheet = document.getElementById('dpListSheet');
-      if (currentSheet && !currentSheet.classList.contains('dp-sheet--open')) currentSheet.remove();
+      /* 260ms 안에 시트를 다시 열었다면 이 타이머는 남의 시트를 건드리는 셈이라 아무것도 하지 않는다.
+         (여기서 무조건 되돌리면 새로 연 시트가 빌려간 폼을 빼앗는다.) */
+      if (currentSheet && currentSheet.classList.contains('dp-sheet--open')) return;
+      /* 🔴 시트는 닫히고 260ms 뒤 DOM 에서 제거된다. 폼을 빌려간 채로 지우면 홈의 입력 폼이
+         통째로 사라지므로, 제거 전에 반드시 되돌린다(dpCloseList 가 이미 돌려놨으면 무동작). */
+      _dpReturnFormHome();
+      if (currentSheet) currentSheet.remove();
       var currentOverlay = document.getElementById('dpListOverlay');
       if (currentOverlay && (!currentSheet || !currentSheet.classList.contains('dp-sheet--open'))) currentOverlay.remove();
     }, 260);
@@ -9178,6 +9256,7 @@
   };
 
   window.dpCloseList = function() {
+    _dpReturnFormHome();
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
     if (sheet) {
@@ -9211,8 +9290,7 @@
     renderMasterCard(profile);
     renderProfileList();
     _dpUpdateSaveBtn();
-    dpCloseList();
-    if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+    _dpRevealProfileForm();
   };
 
   /* 새 카드 작성 진입점. 편집 모드를 해제하므로 "편집 취소" 역할도 겸한다. */
@@ -9221,8 +9299,7 @@
     _dpClearProfileForm();
     renderProfileList();
     _dpUpdateSaveBtn();
-    dpCloseList();
-    if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+    _dpRevealProfileForm();
   };
 
   window.dpSelectProfile = function(id) {
@@ -10083,6 +10160,12 @@
   };
 
   window.dpScrollToForm = function() {
+    /* 🔴 폼(#destinyCardForm)은 홈 축약(cd-home-secondary-v20260817) 대상이라 기본 display:none 이다.
+       펼치지 않고 스크롤하면 사용자는 빈 화면을 본다 — 시트의 "새로 만들기"/"수정"이 정확히 그랬다.
+       펼치기는 셸이 노출한 __cdExpandHome 하나만 쓴다(구현을 여기서 복제하지 말 것). */
+    if (typeof window.__cdExpandHome === 'function') {
+      try { window.__cdExpandHome(); } catch (_) {}
+    }
     var el = document.querySelector('.input-section');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -10210,6 +10293,7 @@
     if (initialProfile) renderMasterCard(initialProfile);
     else if (shouldShowProfileLoading) renderProfileLoadingCard();
     else renderMasterCard(null);
+    if (freshSignup) _dpNudgeFreshSignupToForm();
 
     if (shouldShowProfileLoading && !initialProfile) _dpArmProfileLoadingFailsafe();
 
@@ -10464,7 +10548,7 @@
       if (_dpHasSessionHint()) {
         if (_dpScopedCurrent) renderMasterCard(_dpScopedCurrent);
         // 가입 직후면 카드 0장이 확정이므로 로딩 카드를 건너뛰고 작성 유도 카드를 즉시 그린다.
-        else if (_dpConsumeFreshSignupHint(_dpGetProfileScope())) renderMasterCard(null);
+        else if (_dpConsumeFreshSignupHint(_dpGetProfileScope())) { renderMasterCard(null); _dpNudgeFreshSignupToForm(); }
         // 이미 동기화한 적 있는 스코프에서 카드가 없다면 "없음이 확정"이다 — 로딩이 아니라 작성 유도.
         else if (_dpHasSyncedScopeState(_dpNextScope)) renderMasterCard(null);
         else {
@@ -10674,10 +10758,105 @@
     } catch (_bootstrapError) {}
   }
 
+  /* ── 생년월일·출생시간 직접 타이핑 (birth-time-text-sync-v20260819) ──────────────
+     생년월일은 type="date" 를, 출생시간은 select 2개를 쓰고 있어 둘 다 타이핑이 막혀 있었다.
+     🔴 select 는 없애지 않는다 — #birthHour/#birthMinute 를 .value 로 읽는 곳이
+        8개 파일 28곳(js/saju-engine.js 7 · index.html 6 · 이 파일 6 …)이라
+        제거하면 전부 손봐야 한다. 보이는 텍스트 입력과 양방향으로 맞추기만 한다.
+     정규화는 이미 있는 _dpNormalizeBirthDateInputValue 를 재사용한다(새 파서 금지). */
+  function _dpNormalizeBirthTimeText(raw) {
+    var text = String(raw || '').trim();
+    if (!text) return '';
+    var digits = text.replace(/\D/g, '');
+    var hour;
+    var minute;
+    if (digits.length === 3) { hour = digits.slice(0, 1); minute = digits.slice(1); }
+    else if (digits.length === 4) { hour = digits.slice(0, 2); minute = digits.slice(2); }
+    else if (digits.length === 2) { hour = digits; minute = '0'; }
+    else if (digits.length === 1) { hour = digits; minute = '0'; }
+    else return '';
+    var h = parseInt(hour, 10);
+    var m = parseInt(minute, 10);
+    if (!isFinite(h) || !isFinite(m) || h < 0 || h > 23 || m < 0 || m > 59) return '';
+    return _dpPad2(h) + ':' + _dpPad2(m);
+  }
+
+  function _dpBirthTimeEls() {
+    return {
+      text: document.getElementById('birthTimeText'),
+      hour: document.getElementById('birthHour'),
+      minute: document.getElementById('birthMinute')
+    };
+  }
+
+  /** select → 텍스트 입력. "시간 모름"(12:00 설정)과 프로필 불러오기가 이 경로를 탄다. */
+  function _dpSyncBirthTimeTextFromSelects() {
+    var els = _dpBirthTimeEls();
+    if (!els.text || !els.hour || !els.minute) return;
+    var h = parseInt(els.hour.value, 10);
+    var m = parseInt(els.minute.value, 10);
+    if (!isFinite(h) || !isFinite(m)) return;
+    els.text.value = _dpPad2(h) + ':' + _dpPad2(m);
+  }
+
+  /** 텍스트 입력 → select. 해석 못 하면 select 를 건드리지 않고 텍스트도 되돌린다. */
+  function _dpSyncBirthTimeSelectsFromText() {
+    var els = _dpBirthTimeEls();
+    if (!els.text || !els.hour || !els.minute) return;
+    var normalized = _dpNormalizeBirthTimeText(els.text.value);
+    if (!normalized) { _dpSyncBirthTimeTextFromSelects(); return; }
+    var parts = normalized.split(':');
+    els.hour.value = String(parseInt(parts[0], 10));
+    els.minute.value = String(parseInt(parts[1], 10));
+    els.text.value = normalized;
+    /* 보정 시각 프리뷰 등 기존 change 구독자가 있으므로 실제 이벤트를 쏜다. */
+    try {
+      els.hour.dispatchEvent(new Event('change', { bubbles: true }));
+      els.minute.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (_) {}
+  }
+
+  function _dpBindTypedBirthInputs() {
+    if (window.__cdTypedBirthInputsBound) return;
+    window.__cdTypedBirthInputsBound = true;
+
+    /* blur 는 버블링하지 않으므로 캡처로 받는다. 폼이 나중에 시트로 옮겨가도 계속 동작한다. */
+    document.addEventListener('blur', function (event) {
+      var el = event.target;
+      if (!el || !el.id) return;
+      if (el.id === 'birthDate') {
+        /* 입력 중에는 아무것도 막지 않고, 필드를 떠날 때만 정규화한다(프롬프트 §6).
+           #birthDate.value 를 읽는 곳이 8곳이라 필드 자체를 YYYY-MM-DD 로 만들어 둔다. */
+        var normalizedDate = _dpNormalizeBirthDateInputValue(el.value);
+        if (normalizedDate && normalizedDate !== el.value) {
+          el.value = normalizedDate;
+          try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+        }
+        return;
+      }
+      if (el.id === 'birthTimeText') _dpSyncBirthTimeSelectsFromText();
+    }, true);
+
+    document.addEventListener('change', function (event) {
+      var el = event.target;
+      if (!el || !el.id) return;
+      if (el.id === 'birthHour' || el.id === 'birthMinute') _dpSyncBirthTimeTextFromSelects();
+    });
+
+    /* "출생 시간 모름"은 셸 핸들러가 select 를 12:00 으로 바꾼다. 버블 단계라 그 뒤에 돈다. */
+    document.addEventListener('click', function (event) {
+      var btn = event.target && event.target.closest ? event.target.closest('[data-cd-set-unknown-time]') : null;
+      if (btn) window.setTimeout(_dpSyncBirthTimeTextFromSelects, 0);
+    });
+
+    _dpSyncBirthTimeTextFromSelects();
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { init(); _dpBootstrapAccessStore(); });
+    document.addEventListener('DOMContentLoaded', function() { init(); _dpBindTypedBirthInputs(); _dpBootstrapAccessStore(); });
   } else {
     init();
+    _dpBindTypedBirthInputs();
     _dpBootstrapAccessStore();
   }
 
