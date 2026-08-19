@@ -14,7 +14,6 @@ import { dirname, join } from "node:path";
 import {
   decryptPhoneNumber,
   encryptPhoneNumber,
-  hashPhoneNumber,
   isEncryptedPiiValue,
   maskKoreanPhoneNumber,
   normalizeKoreanPhoneNumber,
@@ -72,41 +71,15 @@ await assert.rejects(
 assert.equal(await encryptPhoneNumber("not-a-phone", KEY_A), "", "invalid input encrypts to an empty string");
 
 
-// 6-b. 🔴 중복 판정용 결정적 해시 — 암호문으로는 같은 번호를 못 알아보기 때문에 따로 있다.
-const hashA = await hashPhoneNumber(PHONE, KEY_A);
-assert.match(hashA, /^[a-f0-9]{64}$/, "phone hash must be lowercase hex sha-256 output");
-assert.equal(await hashPhoneNumber(PHONE, KEY_A), hashA, "same input and key must yield the same hash");
-// 표기가 달라도 같은 번호면 같은 해시여야 중복이 잡힌다.
-assert.equal(await hashPhoneNumber("+82 10-1234-5678", KEY_A), hashA, "normalization must fold into one hash");
-assert.equal(await hashPhoneNumber("010-1234-5678", KEY_A), hashA, "hyphenated input must fold into one hash");
-// 🔴 키 분리 — 암호화 키를 그대로 HMAC 키로 쓰면 한쪽의 약점이 다른 쪽으로 번진다.
-assert.notEqual(await hashPhoneNumber(PHONE, KEY_B), hashA, "a different key must yield a different hash");
-assert.ok(!hashA.includes(PHONE), "hash must not leak the plaintext number");
-assert.notEqual(hashA, envelope, "hash and ciphertext must not be the same value");
-assert.equal(await hashPhoneNumber("not-a-phone", KEY_A), "", "invalid input hashes to an empty string");
-// 해시도 암호화와 같은 이유로 fail-closed 다 — 해시 없이 저장하면 그 계정만 중복 차단에서 빠진다.
-await assert.rejects(
-  () => hashPhoneNumber(PHONE, {}),
-  /pii_encryption_key_missing/,
-  "hash must fail closed when PII_ENC_KEY is absent",
-);
-await assert.rejects(
-  () => hashPhoneNumber(PHONE, { PII_ENC_KEY: "dG9vLXNob3J0" }),
-  /pii_encryption_key_invalid/,
-  "hash must reject a key that is not 32 bytes",
-);
-// 스키마가 해시 컬럼과 unique 인덱스를 갖고 있는지 — 없으면 서버 검사만 남아 경합에 뚫린다.
+// 6-b. 🔴 같은 번호를 알아보는 수단이 없어야 한다 — 한 번호로 계정을 여러 개 만드는 것을
+// 허용하기로 한 이상(2026-08-19), 비교용 결정적 해시는 목적 없는 식별자가 되고 방침에 적을
+// 수집 목적이 없어진다. 되살리려면 개인정보처리방침 4개 로케일을 같은 커밋에서 고칠 것.
 {
-  const source = read("worker/lib/models.js");
-  assert.ok(/phoneHash: \{ type: String/.test(source), "models.js must declare phoneHash");
-  assert.ok(
-    /userSchema\.index\(\s*\{ phoneHash: 1 \},[\s\S]{0,200}?unique: true/.test(source),
-    "phoneHash must carry a unique index — the server-side pre-check alone loses races",
-  );
-  assert.ok(
-    /partialFilterExpression: \{ phoneHash:/.test(source),
-    "the unique index must be partial so accounts without a number do not collide",
-  );
+  const cryptoSource = read("worker/lib/pii-crypto.js");
+  assert.ok(!/export async function hashPhoneNumber/.test(cryptoSource),
+    "pii-crypto.js must not export a deterministic phone hash");
+  const modelsSource = read("worker/lib/models.js");
+  assert.ok(!/\bphoneHash\b/.test(modelsSource), "models.js must not declare a phone hash column");
 }
 
 // 7. 하위 소비자 무해성 — 복호화 결과는 기존 정규화기를 그대로 통과한다.
@@ -134,10 +107,10 @@ assert.ok(schemaRegex.test(""), "schema must accept the empty default");
 
 // 9. 🔴 소스 가드 — 쓰기 경로가 암호화를 거치는지.
 const authSource = read("worker/routes/auth.js");
-assertContains(authSource, 'import { decryptPhoneNumber, encryptPhoneNumber, hashPhoneNumber } from "../lib/pii-crypto.js";',
+assertContains(authSource, 'import { decryptPhoneNumber, encryptPhoneNumber } from "../lib/pii-crypto.js";',
   "auth.js must import the PII crypto helpers");
-// 🔴 암호화와 해시는 한 헬퍼에서 함께 나온다 — 따로 부르면 해시 없는 쓰기가 생긴다.
-assertContains(authSource, "({ storedPhoneNumber, phoneHash } = await preparePhoneForStorage(phoneNumber, env));",
+// 🔴 봉투 생성은 한 헬퍼에서만 나온다 — 직접 부르면 정규화를 건너뛴 값이 저장될 수 있다.
+assertContains(authSource, "({ storedPhoneNumber } = await preparePhoneForStorage(phoneNumber, env));",
   "email signup and payment-phone save must go through preparePhoneForStorage");
 assertContains(authSource, "phoneNumber: storedPhoneNumber,",
   "email signup User.create must store the encrypted value");
@@ -273,10 +246,6 @@ for (const [label, source] of promptRenderers) {
   }
   assertContains(source, CONSENT_LABEL, `${label} prompt must carry the consent checkbox label`);
   assertContains(source, CONSENT_REQUIRED, `${label} prompt must refuse to save without consent`);
-  // 🔴 중복 번호 409 안내도 3벌이 같아야 한다 — 재시도해도 소용없는 실패라, 기본 문구("잠시 후
-  // 다시 시도")로 떨어지면 사용자는 같은 화면을 반복하게 된다.
-  assertContains(source, "이미 다른 계정에서 사용 중인 번호예요.",
-    `${label} prompt must explain a duplicate number instead of the generic retry message`);
   assertContains(source, "consentInput.checked", `${label} prompt must gate submit on the checkbox`);
   // 🔴 고지가 길어 카드가 스크롤될 수 있다. 방침 링크는 동의 근거를 확인할 유일한 경로라 3벌 모두에 있어야 한다.
   assertContains(source, "개인정보처리방침 전문", `${label} prompt must link the full privacy policy`);
@@ -345,7 +314,7 @@ assert.equal(
 // 수집을 실제로 하는 지점이 서버 보관 사실을 알리는지.
 assertContains(read("app/_lib/payment-phone-prompt.ts"), "서버에",
   "payment-phone prompt must tell the user the number is stored on the server");
-assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "AES-256 방식으로 암호화해 보관하고",
+assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "AES-256 방식으로 암호화해 보관합니다",
   "privacy policy must state that the phone number is stored encrypted");
 assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 회원가입 시 필수로 수집하며",
   "privacy policy must state that the phone number is a required signup field");

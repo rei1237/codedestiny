@@ -19,7 +19,6 @@ const COPY = {
   processing: "변경 중...",
   invalid: "휴대폰 번호를 정확히 입력해 주세요.",
   same: "지금 등록된 번호와 같아요.",
-  duplicate: "이미 다른 계정에서 사용 중인 번호예요.",
   rateLimited: "번호 변경을 너무 자주 시도했어요. 잠시 후 다시 시도해 주세요.",
   network: "연결이 불안정해 변경하지 못했어요. 잠시 후 다시 시도해 주세요.",
   needLogin: "로그인이 만료됐어요. 다시 로그인한 뒤 시도해 주세요.",
@@ -86,7 +85,6 @@ export default function PhoneChangeClient() {
       const payload = await response.json().catch(() => ({})) as PhonePayload;
       if (!response.ok) {
         if (response.status === 401) setError(COPY.needLogin);
-        else if (payload.code === "duplicate_phone") setError(COPY.duplicate);
         else if (response.status === 429) setError(COPY.rateLimited);
         else setError(payload.message || COPY.network);
         return;

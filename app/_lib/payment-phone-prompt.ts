@@ -26,7 +26,6 @@ export function describePaymentPhoneFailure(status: number, payload?: PaymentPho
   if (code === "csrf_origin_mismatch") return "일시적인 문제로 저장하지 못했어요. 다시 시도해 주세요.";
   if (status === 401) return "로그인이 만료됐어요. 다시 로그인한 뒤 시도해 주세요.";
   if (status === 400) return "휴대폰 번호를 정확히 입력해 주세요.";
-  if (code === "duplicate_phone") return "이미 다른 계정에서 사용 중인 번호예요. 다른 번호를 입력하시거나 admin@code-destiny.com 으로 문의해 주세요.";
   if (status >= 500) return "서버가 잠시 불안정해요. 잠시 후 다시 시도해 주세요.";
   return "휴대폰 번호 저장에 실패했어요. 잠시 후 다시 시도해 주세요.";
 }

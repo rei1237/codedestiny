@@ -8,16 +8,15 @@
  * 번호가 가입 필수가 된 이상 오타를 고칠 경로가 없으면 개인정보 보호법 제36조(정정 요구권)를
  * 만족시킬 수 없어 갈라 놓았다.
  *
- * 여기서 못박는 것은 셋이다.
+ * 여기서 못박는 것은 둘이다.
  *   ① 남의 번호를 바꿀 수 없다(대상은 언제나 토큰의 userId).
- *   ② 다른 계정이 쓰는 번호는 409 로 거절한다(계정을 자동 병합하지 않는다).
- *   ③ 시도 횟수에 상한이 있다 — 409 가 "이 번호는 이미 가입돼 있다"를 알려주므로,
- *      무제한이면 번호를 하나씩 넣어 보며 가입 여부를 훑을 수 있다.
+ *   ② 시도 횟수에 상한이 있다 — 무제한이면 남의 세션을 쥔 쪽이 번호를 마음대로 갈아치울 수 있다.
+ *
+ * 🔴 번호 중복은 막지 않는다(2026-08-19 결정) — 가족이 한 번호를 나눠 쓰는 경우를 위해서다.
  */
 
 const ENCRYPTED_PREFIX = "v1:";
 const mockEncryptPhoneNumber = jest.fn(async (value) => (value ? `${ENCRYPTED_PREFIX}enc(${value})` : ""));
-const mockHashPhoneNumber = jest.fn(async (value) => (value ? "hash(" + value + ")" : ""));
 const mockDecryptPhoneNumber = jest.fn(async (value) => {
   const stored = String(value || "");
   const match = stored.match(/^v1:enc\((\d+)\)$/);
@@ -51,7 +50,6 @@ jest.unstable_mockModule("../../worker/lib/db.js", () => ({
 jest.unstable_mockModule("../../worker/lib/pii-crypto.js", () => ({
   encryptPhoneNumber: mockEncryptPhoneNumber,
   decryptPhoneNumber: mockDecryptPhoneNumber,
-  hashPhoneNumber: mockHashPhoneNumber,
   normalizeKoreanPhoneNumber: jest.fn((value) => {
     const digits = String(value || "").replace(/\D/g, "");
     const local = digits.startsWith("82") && /^821\d{8,9}$/.test(digits) ? `0${digits.slice(2)}` : digits;
@@ -110,8 +108,6 @@ const NEW_PHONE = "01033334444";
 
 let authRoutes;
 let accessToken;
-// phoneHash 선점 조회가 돌려줄 주인. null 이면 "아무도 안 쓰는 번호".
-let phoneHashOwner;
 
 /** findById(...).select(...).maxTimeMS(...).lean() 체인을 그대로 흉내낸다. */
 function findByIdChain(doc) {
@@ -150,18 +146,12 @@ beforeAll(async () => {
 beforeEach(() => {
   jest.clearAllMocks();
   authRoutes.__authTestUtils.clearPhoneChangeRateLimitState();
-  phoneHashOwner = null;
-  // User.collection.findOne 은 두 목적으로 불린다 — 인증(resolveActiveUserAuth)과 번호 선점 조회.
-  // 질의 모양으로 갈라 주지 않으면 선점 조회가 인증용 문서를 받아 "항상 중복"이 된다.
-  mockCollectionFindOne.mockImplementation(async (query) => (
-    query && "phoneHash" in query
-      ? phoneHashOwner
-      : { _id: USER_ID, email: "tester@example.com", role: "user", status: "active" }
-  ));
+  mockCollectionFindOne.mockResolvedValue({
+    _id: USER_ID, email: "tester@example.com", role: "user", status: "active",
+  });
   mockUserFindById.mockReturnValue(findByIdChain({
     _id: USER_ID,
     phoneNumber: `${ENCRYPTED_PREFIX}enc(${OLD_PHONE})`,
-    phoneHash: `hash(${OLD_PHONE})`,
   }));
   mockCollectionFindOneAndUpdate.mockResolvedValue({
     value: { _id: USER_ID, phoneNumber: `${ENCRYPTED_PREFIX}enc(${NEW_PHONE})` },
@@ -177,7 +167,6 @@ describe("번호 변경", () => {
     const [, update] = mockCollectionFindOneAndUpdate.mock.calls[0];
     expect(update.$set.phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${NEW_PHONE})`);
     // 🔴 해시가 같이 안 바뀌면 옛 번호가 unique 인덱스를 계속 점유한다.
-    expect(update.$set.phoneHash).toBe(`hash(${NEW_PHONE})`);
     expect(update.$set["legalConsents.phoneAcceptedAt"]).toBeInstanceOf(Date);
   });
 
@@ -198,24 +187,12 @@ describe("번호 변경", () => {
     expect(mockCollectionFindOneAndUpdate).not.toHaveBeenCalled();
   });
 
-  test("다른 계정이 쓰는 번호는 409 로 거절하고 계정을 합치지 않는다", async () => {
-    phoneHashOwner = { _id: OTHER_USER_ID };
+  // 🔴 중복 허용 정책의 회귀 가드 — 선점 조회가 되살아나면 여기서 409 가 나며 깨진다.
+  test("다른 계정이 이미 쓰는 번호로도 바꿀 수 있다", async () => {
+    const { status } = await callChange({ phoneNumber: NEW_PHONE });
 
-    const { status, payload } = await callChange({ phoneNumber: NEW_PHONE });
-
-    expect(status).toBe(409);
-    expect(payload.code).toBe("duplicate_phone");
-    expect(mockCollectionFindOneAndUpdate).not.toHaveBeenCalled();
-  });
-
-  test("선점 조회는 자기 문서를 제외한다 — 아니면 아무도 번호를 못 바꾼다", async () => {
-    await callChange({ phoneNumber: NEW_PHONE });
-
-    const takenQuery = mockCollectionFindOne.mock.calls
-      .map(([query]) => query)
-      .find((query) => query && "phoneHash" in query);
-    expect(takenQuery).toBeDefined();
-    expect(String(takenQuery._id.$ne)).toBe(USER_ID);
+    expect(status).toBe(200);
+    expect(mockCollectionFindOneAndUpdate).toHaveBeenCalled();
   });
 
   test("🔴 대상은 언제나 토큰의 userId 다 — 본문의 userId 를 읽지 않는다", async () => {

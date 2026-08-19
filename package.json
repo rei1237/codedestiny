@@ -97,8 +97,6 @@
     "migrate:withdraw": "node scripts/migrate-withdraw-indexes.mjs",
     "migrate:payments-read-indexes": "node scripts/migrate-payments-read-indexes.mjs",
     "migrate:auth-core-indexes": "node scripts/migrations/20260705-add-auth-core-indexes.mjs",
-    "migrate:phone-hash-backfill": "node scripts/migrate-backfill-phone-hash.mjs",
-    "migrate:phone-hash-index": "node scripts/migrations/20260819-add-phone-hash-unique-index.mjs",
     "migrate:llm-cache-indexes": "node scripts/migrations/20260705-add-llm-response-cache-indexes.mjs",
     "migrate:rpg-indexes": "node scripts/migrations/20260721-add-rpg-progress-indexes.mjs",
     "verify:rpg-indexes": "node scripts/migrations/20260721-add-rpg-progress-indexes.mjs --check",

@@ -26,7 +26,7 @@ import { buildProfilePolicySnapshot } from "../lib/profile-limits.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, needsPasswordRehash, verifyPassword } from "../lib/password.js";
 import { checkPasswordBreached } from "../lib/password-breach.js";
-import { decryptPhoneNumber, encryptPhoneNumber, hashPhoneNumber } from "../lib/pii-crypto.js";
+import { decryptPhoneNumber, encryptPhoneNumber } from "../lib/pii-crypto.js";
 import { MIN_NEW_PASSWORD_LENGTH, validateLoginPayload, validateNewPassword, validateRegisterPayload } from "../lib/validation.js";
 import {
   buildSocialSignupRedirectUrl,
@@ -1649,27 +1649,24 @@ async function fetchSocialProfile(provider, accessToken, request, env) {
   return mapped;
 }
 
-const EMPTY_PHONE_FIELDS = { phoneNumber: "", storedPhoneNumber: "", phoneHash: "" };
+const EMPTY_PHONE_FIELDS = { phoneNumber: "", storedPhoneNumber: "" };
 
 /**
- * 번호 하나를 저장 가능한 세 값(정규화 평문 · 암호화 봉투 · 중복 판정용 해시)으로 만든다.
+ * 번호 하나를 저장 가능한 두 값(정규화 평문 · 암호화 봉투)으로 만든다.
  *
- * 🔴 encryptPhoneNumber 를 이 함수 밖에서 직접 부르지 말 것 — 해시가 빠진 쓰기가 하나라도
- * 생기면 그 계정은 phoneHash unique 인덱스에 잡히지 않아 중복 차단에 조용한 구멍이 된다.
+ * 🔴 encryptPhoneNumber 를 이 함수 밖에서 직접 부르지 말 것 — 정규화를 건너뛴 값이 봉투가 되면
+ * 복호화 결과가 하위 소비자(결제창 customer.phoneNumber)의 기대 형식을 벗어난다.
  * 전수 강제: scripts/verify-signup-phone-required.mjs
  *
- * 형식이 어긋나면 세 값 모두 "" 이므로 호출자의 기존 검증에 그대로 걸린다.
+ * 형식이 어긋나면 두 값 모두 "" 이므로 호출자의 기존 검증에 그대로 걸린다.
  * 키가 없으면 throw 한다(fail-closed) — 가입·결제 경로는 그 편이 맞다.
  */
 async function preparePhoneForStorage(rawValue, env) {
   const phoneNumber = normalizeKoreanPhoneNumber(rawValue);
   if (!phoneNumber) return { ...EMPTY_PHONE_FIELDS };
 
-  const [storedPhoneNumber, phoneHash] = await Promise.all([
-    encryptPhoneNumber(phoneNumber, env),
-    hashPhoneNumber(phoneNumber, env),
-  ]);
-  return { phoneNumber, storedPhoneNumber, phoneHash };
+  const storedPhoneNumber = await encryptPhoneNumber(phoneNumber, env);
+  return { phoneNumber, storedPhoneNumber };
 }
 
 // 공급자가 준 번호를 기존 계정에 채워 넣을 때 쓴다. 실패하면 빈 값을 돌려 백필을 건너뛴다.
@@ -1685,32 +1682,6 @@ async function preparePhoneBackfill(value, env) {
 }
 
 /**
- * 이 번호를 이미 다른 계정이 쓰고 있는가.
- *
- * 🔴 유일성의 정본은 DB 의 phoneHash unique 인덱스이고, 이 선행 조회는 사용자에게 이유를
- * 알려주기 위한 것이다. 조회와 저장 사이의 경합으로 빠져나간 건은 저장 시점의 E11000 을
- * isDuplicatePhoneNumberError 로 잡아 같은 409 로 접는다.
- */
-async function isPhoneNumberTaken(phoneHash, env, options = {}) {
-  if (!phoneHash) return false;
-  const query = { phoneHash };
-  const excludeUserId = options.excludeUserId || null;
-  if (excludeUserId) query._id = { $ne: excludeUserId };
-
-  const owner = await User.collection.findOne(query, {
-    projection: { _id: 1 },
-    maxTimeMS: Number(options.dbMaxTimeMs) > 0 ? Number(options.dbMaxTimeMs) : 8000,
-  });
-  return Boolean(owner);
-}
-
-function isDuplicatePhoneNumberError(error) {
-  const message = String(error?.message || "");
-  if (error?.code !== 11000 && !message.includes("E11000")) return false;
-  return message.includes("phoneHash");
-}
-
-/**
  * "번호가 없어 가입을 못 한다"를 알리는 문구.
  *
  * 🔴 앱은 dist/ 를 통째로 번들해 배포되므로, 스토어에 남은 **구버전 앱의 가입 화면에는 번호
@@ -1721,14 +1692,6 @@ function phoneRequiredMessage(request) {
   return isMobileAppAuthRequest(request)
     ? "가입에 휴대폰 번호가 필요해요. 앱을 최신 버전으로 업데이트한 뒤 다시 시도해 주세요."
     : "휴대폰 번호를 정확히 입력해 주세요.";
-}
-
-function duplicatePhoneResponse() {
-  return json({
-    ok: false,
-    code: "duplicate_phone",
-    message: "이미 다른 계정에서 사용 중인 휴대폰 번호예요. 다른 번호를 입력하시거나 admin@code-destiny.com 으로 문의해 주세요.",
-  }, { status: 409 });
 }
 
 // 기존 소셜/이메일 유저 조회 + 연결 로직. findOrCreateSocialUser의 최초 조회와,
@@ -1747,11 +1710,8 @@ async function findExistingSocialUser(provider, profile, socialField, env, signu
     if (isWithdrawnAuthUser(user)) throw new Error(`${provider}_account_withdrawn`);
     if (signupPhoneNumber && !(await decryptPhoneNumber(user.phoneNumber || user.phone, env))) {
       const backfill = await preparePhoneBackfill(signupPhoneNumber, env);
-      // 🔴 다른 계정이 쓰는 번호면 조용히 건너뛴다 — 백필 때문에 소셜 "로그인"이 죽으면 안 된다.
-      // 이 계정은 번호 없이 로그인되고, 필요해지는 시점(첫 결제)에 안내와 함께 다시 받는다.
-      if (backfill.storedPhoneNumber && !(await isPhoneNumberTaken(backfill.phoneHash, env, { excludeUserId: user._id }))) {
+      if (backfill.storedPhoneNumber) {
         user.set("phoneNumber", backfill.storedPhoneNumber);
-        user.set("phoneHash", backfill.phoneHash);
         user.set("phoneUpdatedAt", new Date());
         if (!user.phoneSource) user.set("phoneSource", "social");
         await user.save();
@@ -1774,9 +1734,8 @@ async function findExistingSocialUser(provider, profile, socialField, env, signu
       }
       if (signupPhoneNumber && !(await decryptPhoneNumber(user.phoneNumber || user.phone, env))) {
         const backfill = await preparePhoneBackfill(signupPhoneNumber, env);
-        if (backfill.storedPhoneNumber && !(await isPhoneNumberTaken(backfill.phoneHash, env, { excludeUserId: user._id }))) {
+        if (backfill.storedPhoneNumber) {
           user.set("phoneNumber", backfill.storedPhoneNumber);
-          user.set("phoneHash", backfill.phoneHash);
           user.set("phoneUpdatedAt", new Date());
           if (!user.phoneSource) user.set("phoneSource", "social");
         }
@@ -1811,14 +1770,10 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
   // (구글은 항상, 카카오도 동의항목 미승인 시) 가입 마무리 화면에서 받은 값이 쓰인다.
   const providerPhoneNumber = normalizeKoreanPhoneNumber(profile.phoneNumber);
   const profilePhoneNumber = providerPhoneNumber || normalizeKoreanPhoneNumber(signupProfile?.phoneNumber);
-  // 저장 전 암호화 + 중복 판정용 해시. 키가 없으면 여기서 throw 되어 소셜 가입도 fail-closed 다.
-  const { storedPhoneNumber, phoneHash } = profilePhoneNumber
+  // 저장 전 암호화. 키가 없으면 여기서 throw 되어 소셜 가입도 fail-closed 다.
+  const { storedPhoneNumber } = profilePhoneNumber
     ? await preparePhoneForStorage(profilePhoneNumber, env)
     : { ...EMPTY_PHONE_FIELDS };
-  // 한 번호로 계정을 여러 개 만들 수 없다. 계정을 자동으로 합치지 않고 거절만 한다.
-  if (phoneHash && await isPhoneNumberTaken(phoneHash, env)) {
-    throw new Error("social_duplicate_phone");
-  }
   let createdUser;
   try {
     createdUser = await User.create({
@@ -1828,7 +1783,6 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
       ...(storedPhoneNumber
         ? {
           phoneNumber: storedPhoneNumber,
-          phoneHash,
           phoneSource: providerPhoneNumber ? "social" : "signup",
           phoneUpdatedAt: joinedAt,
         }
@@ -2661,12 +2615,7 @@ async function handleRegister(request, env) {
         // 이미 번호가 있으면 덮어쓰지 않고, 저장이 실패해도 로그인은 막지 않는다(백필은 곁다리다).
         if (!(await decryptPhoneNumber(existing.phoneNumber || existing.phone, env))) {
           const backfill = await preparePhoneBackfill(phoneNumber, env);
-          // 다른 계정이 쓰는 번호면 백필만 건너뛴다 — 이 경로는 이미 비밀번호가 확인된 재제출이라
-          // 세션은 그대로 내주는 게 맞다(번호는 첫 결제 때 안내와 함께 다시 받는다).
-          const backfillTaken = backfill.phoneHash
-            ? await isPhoneNumberTaken(backfill.phoneHash, env, { excludeUserId: existing._id, dbMaxTimeMs })
-            : false;
-          if (backfill.storedPhoneNumber && !backfillTaken) {
+          if (backfill.storedPhoneNumber) {
             try {
               // 필터에 방금 읽은 값을 함께 넣어, 그 사이 다른 요청이 번호를 채웠으면 덮어쓰지 않는다
               // (upgradeLegacyPasswordHash 가 해시에 쓰는 것과 같은 compare-and-set).
@@ -2682,7 +2631,6 @@ async function handleRegister(request, env) {
                   {
                     $set: {
                       phoneNumber: backfill.storedPhoneNumber,
-                      phoneHash: backfill.phoneHash,
                       phoneSource: existing.phoneSource || "signup",
                       phoneUpdatedAt: new Date(),
                     },
@@ -2754,9 +2702,8 @@ async function handleRegister(request, env) {
   // 🔴 번호가 필수가 된 뒤로는 이 실패가 곧 "가입 전체 중단"이다(예전에는 번호를 실어 보낸
   // 요청만 막혔다). 배포 전 npm run verify:phone-encryption-key 로 프로덕션 키를 확인할 것.
   let storedPhoneNumber = "";
-  let phoneHash = "";
   try {
-    ({ storedPhoneNumber, phoneHash } = await preparePhoneForStorage(phoneNumber, env));
+    ({ storedPhoneNumber } = await preparePhoneForStorage(phoneNumber, env));
   } catch (error) {
     return signupErrorResponse(
       request,
@@ -2767,26 +2714,6 @@ async function handleRegister(request, env) {
     );
   }
 
-  // 한 번호로 계정을 여러 개 만들 수 없다. 계정을 자동으로 합치지 않고 거절만 한다 —
-  // 유일성의 정본은 phoneHash unique 인덱스이고, 이 조회는 이유를 알려주기 위한 선행 검사다.
-  try {
-    if (await withAuthOpTimeout(
-      isPhoneNumberTaken(phoneHash, env, { dbMaxTimeMs }),
-      timeoutMs,
-      "auth_register_phone_taken",
-    )) {
-      return duplicatePhoneResponse();
-    }
-  } catch (error) {
-    return signupErrorResponse(
-      request,
-      env,
-      503,
-      "db_connection_failed",
-      toErrorMessage(error) || "Failed to query existing user.",
-    );
-  }
-
   let user;
   try {
     user = await withAuthOpTimeout(
@@ -2794,7 +2721,6 @@ async function handleRegister(request, env) {
         name,
         email,
         phoneNumber: storedPhoneNumber,
-        phoneHash,
         phoneSource: "signup",
         phoneUpdatedAt: new Date(),
         passwordHash,
@@ -2822,8 +2748,6 @@ async function handleRegister(request, env) {
       "auth_register_create_user",
     );
   } catch (error) {
-    // 선행 조회와 저장 사이의 경합으로 빠져나간 번호 중복은 여기서 잡힌다.
-    if (isDuplicatePhoneNumberError(error)) return duplicatePhoneResponse();
     if (error && error.code === 11000) {
       return signupErrorResponse(
         request,
@@ -3495,28 +3419,17 @@ async function handleSavePaymentPhoneNumber(request, env) {
     });
   }
 
-  // 🔴 raw driver 경로라 Mongoose setter 가 돌지 않는다 — 여기서 직접 암호화·해시해야 한다.
+  // 🔴 raw driver 경로라 Mongoose setter 가 돌지 않는다 — 여기서 직접 암호화해야 한다.
   // 키가 없으면 preparePhoneForStorage 가 throw 하고, 평문으로 폴백하지 않는다(fail-closed).
   let storedPhoneNumber = "";
-  let phoneHash = "";
   try {
-    ({ storedPhoneNumber, phoneHash } = await preparePhoneForStorage(phoneNumber, env));
+    ({ storedPhoneNumber } = await preparePhoneForStorage(phoneNumber, env));
   } catch (error) {
     return json({
       ok: false,
       code: "phone_encryption_unavailable",
       message: "휴대폰 번호를 안전하게 저장할 수 없어요. 잠시 후 다시 시도해 주세요.",
     }, { status: 503 });
-  }
-
-  // 다른 계정이 쓰는 번호면 저장하지 않는다. 여기서 막히면 카드 결제를 못 하므로 안내 문구에
-  // 문의 경로를 넣어 둔다(duplicatePhoneResponse).
-  if (await withAuthOpTimeout(
-    isPhoneNumberTaken(phoneHash, env, { excludeUserId: new mongoose.Types.ObjectId(userId), dbMaxTimeMs }),
-    timeoutMs,
-    "auth_payment_phone_taken",
-  )) {
-    return duplicatePhoneResponse();
   }
 
   // 🔴 모달에서 받은 선택 동의를 번호와 **같은 쓰기**에 담는다(개인정보 보호법 제22조 입증책임).
@@ -3533,7 +3446,6 @@ async function handleSavePaymentPhoneNumber(request, env) {
       {
         $set: {
           phoneNumber: storedPhoneNumber,
-          phoneHash,
           phoneSource: "checkout",
           phoneUpdatedAt: new Date(),
           ...(consentedAt
@@ -3588,16 +3500,16 @@ async function handleChangePhoneNumber(request, env) {
 
   await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_change_connect_db");
 
-  // 무제한 시도로 "이 번호가 어느 계정에 있는지"를 훑어보지 못하게 막는다.
+  // 세션을 쥔 쪽이 번호를 무제한으로 갈아치우지 못하게 막는다(계정 탈취 후의 연락처 세탁).
   // 🔴 새 구현을 만들지 말 것 — 탈퇴가 쓰는 레이트리밋과 같은 저장소·같은 헬퍼다.
   const rateLimited = await enforcePhoneChangeRateLimit(request, env, userId);
   if (rateLimited) return rateLimited;
 
   const body = await readJson(request);
   let storedPhoneNumber = "";
-  let phoneHash = "";
+  let normalizedPhoneNumber = "";
   try {
-    ({ storedPhoneNumber, phoneHash } = await preparePhoneForStorage(body?.phoneNumber || body?.phone, env));
+    ({ storedPhoneNumber, phoneNumber: normalizedPhoneNumber } = await preparePhoneForStorage(body?.phoneNumber || body?.phone, env));
   } catch (error) {
     return json({
       ok: false,
@@ -3616,7 +3528,7 @@ async function handleChangePhoneNumber(request, env) {
 
   const objectId = new mongoose.Types.ObjectId(userId);
   const currentUser = await withAuthOpTimeout(
-    User.findById(userId).select("phoneHash phoneNumber phone").maxTimeMS(dbMaxTimeMs).lean(),
+    User.findById(userId).select("phoneNumber phone").maxTimeMS(dbMaxTimeMs).lean(),
     timeoutMs,
     "auth_phone_change_find_current",
   );
@@ -3625,46 +3537,33 @@ async function handleChangePhoneNumber(request, env) {
   }
 
   // 같은 번호를 다시 보낸 것은 오류가 아니다 — 저장 없이 현재 상태를 그대로 돌려준다.
-  if (currentUser.phoneHash && currentUser.phoneHash === phoneHash) {
+  // 봉투끼리는 IV 가 달라 비교가 안 되므로 복호화한 평문으로 비교한다.
+  const currentPhoneNumber = await decryptPhoneNumber(currentUser.phoneNumber || currentUser.phone, env);
+  if (currentPhoneNumber && currentPhoneNumber === normalizedPhoneNumber) {
     return json({ ok: true, updated: false, ...(await buildPaymentPhoneResponse(currentUser, env)) });
   }
 
-  if (await withAuthOpTimeout(
-    isPhoneNumberTaken(phoneHash, env, { excludeUserId: objectId, dbMaxTimeMs }),
+  const updatedResult = await withAuthOpTimeout(
+    User.collection.findOneAndUpdate(
+      { _id: objectId },
+      {
+        $set: {
+          phoneNumber: storedPhoneNumber,
+          phoneUpdatedAt: new Date(),
+          // 바뀐 번호에 대해 동의 기록을 다시 남긴다 — 화면이 같은 고지를 다시 보여준다.
+          "legalConsents.phoneVersion": AUTH_PRIVACY_VERSION,
+          "legalConsents.phoneAcceptedAt": new Date(),
+        },
+      },
+      {
+        returnDocument: "after",
+        projection: { _id: 1, phoneNumber: 1, phone: 1 },
+        maxTimeMS: dbMaxTimeMs,
+      },
+    ),
     timeoutMs,
-    "auth_phone_change_taken",
-  )) {
-    return duplicatePhoneResponse();
-  }
-
-  let updatedResult;
-  try {
-    updatedResult = await withAuthOpTimeout(
-      User.collection.findOneAndUpdate(
-        { _id: objectId },
-        {
-          $set: {
-            phoneNumber: storedPhoneNumber,
-            phoneHash,
-            phoneUpdatedAt: new Date(),
-            // 바뀐 번호에 대해 동의 기록을 다시 남긴다 — 화면이 같은 고지를 다시 보여준다.
-            "legalConsents.phoneVersion": AUTH_PRIVACY_VERSION,
-            "legalConsents.phoneAcceptedAt": new Date(),
-          },
-        },
-        {
-          returnDocument: "after",
-          projection: { _id: 1, phoneNumber: 1, phone: 1 },
-          maxTimeMS: dbMaxTimeMs,
-        },
-      ),
-      timeoutMs,
-      "auth_phone_change_update_user",
-    );
-  } catch (error) {
-    if (isDuplicatePhoneNumberError(error)) return duplicatePhoneResponse();
-    throw error;
-  }
+    "auth_phone_change_update_user",
+  );
 
   const user = unwrapFindOneAndUpdateResult(updatedResult);
   if (!user) {
@@ -4060,9 +3959,7 @@ async function handleWithdraw(request, env) {
           // 🔴 개인정보처리방침 6항이 "휴대폰 번호는 회원 탈퇴 시 지체 없이 파기한다"고 고지하는데
           // 예전에는 이 익명화가 번호를 그대로 남겨 고지와 코드가 어긋나 있었다.
           // 결제 기록 쪽 구매자 정보는 아래 payments 익명화가 따로 처리하므로 여기서 지워도 된다.
-          // phoneHash 를 함께 비워야 탈퇴 계정이 unique 인덱스를 쥐고 재가입을 막지 않는다.
           phoneNumber: "",
-          phoneHash: "",
           phoneSource: "",
           phoneUpdatedAt: null,
           birthDate: "1900-01-01",
@@ -4793,11 +4690,6 @@ async function handleOAuthCompleteSignup(request, env) {
       { createIfMissing: true, signupProfile },
     );
   } catch (error) {
-    // 번호 중복은 인프라 실패가 아니라 사용자에게 알려야 할 거절이다 — 503 으로 접으면
-    // 클라이언트가 재시도해도 영원히 같은 결과가 나온다.
-    if (String(error?.message || "") === "social_duplicate_phone" || isDuplicatePhoneNumberError(error)) {
-      return duplicatePhoneResponse();
-    }
     return signupErrorResponse(request, env, 503, "db_write_failed", toErrorMessage(error) || "Failed to create user.");
   }
 
@@ -4927,7 +4819,6 @@ export async function handleAuthRoutes(request, env, ctx) {
     const providerMatch = path.match(/^\/oauth\/([^/]+)/);
     const provider = providerMatch ? String(providerMatch[1] || "") : "";
     logAuthDiagnostic(request, env, `/api/auth${path || ""}`, provider, "auth_route_failed", error);
-    if (isDuplicatePhoneNumberError(error)) return duplicatePhoneResponse();
     if (error && error.code === 11000) {
       return json({
         message: "이미 사용 중인 이메일이에요.",

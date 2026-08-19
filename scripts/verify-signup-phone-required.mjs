@@ -6,12 +6,12 @@
  * 직전 정책(2026-08-15)은 정반대였고, 그때의 가드가 이 파일과 반대 방향으로 걸려 있었다.
  *
  * 이 가드가 지키는 것:
- *  1) 🔴 **해시 누락 방지** — User.phoneNumber 를 쓰는 지점은 반드시 같은 쓰기에서 phoneHash 를
- *     갱신해야 한다. 한 곳이라도 빠지면 그 계정은 unique 인덱스에 잡히지 않아 중복 차단에
- *     조용한 구멍이 생긴다. **손으로 쓴 목록을 두지 않고 소스에서 전수 발견해, 분류되지 않는
- *     쓰기가 나타나면 실패**시킨다(CLAUDE.md 코딩 원칙 10).
+ *  1) 🔴 **평문 저장 방지** — User.phoneNumber 에 들어가는 값은 preparePhoneForStorage 가 만든
+ *     암호화 봉투이거나 빈 문자열뿐이어야 한다. **손으로 쓴 목록을 두지 않고 소스에서 전수
+ *     발견해, 분류되지 않는 쓰기가 나타나면 실패**시킨다(CLAUDE.md 코딩 원칙 10).
  *  2) 필수화 자체 — 프론트·서버 양쪽이 번호 없는 가입을 거절하는지.
- *  3) 고지 일치 — 실제 수집 행위와 개인정보처리방침·동의 요약 문구가 어긋나지 않는지.
+ *  3) 중복 허용 유지 — 번호로 계정을 막는 로직이 되살아나면 방침 문구와 다시 어긋난다.
+ *  4) 고지 일치 — 실제 수집 행위와 개인정보처리방침·동의 요약 문구가 어긋나지 않는지.
  *
  * 실행: npm run verify:signup-phone-required
  */
@@ -32,9 +32,9 @@ const authSource = read(AUTH_ROUTE);
 const authLines = authSource.split("\n");
 
 // ─────────────────────────────────────────────────────────────────────────────
-// 1. 🔴 해시 누락 방지 — phoneNumber 를 다루는 모든 지점을 전수 발견해 분류한다.
+// 1. 🔴 평문 저장 방지 — phoneNumber 를 다루는 모든 지점을 전수 발견해 분류한다.
 //    분류 규칙은 "값의 모양"이다. User 문서에 실제로 들어가는 값은 암호화 봉투(storedPhoneNumber
-//    계열)나 빈 문자열뿐이므로, 그 둘이면 쓰기로 보고 phoneHash 동반을 요구한다.
+//    계열)나 빈 문자열뿐이므로, 그 둘이 아닌 값이 저장 자리에 오면 평문 유출이다.
 //    어느 규칙에도 걸리지 않으면 **실패**시킨다 — 새 쓰기가 조용히 추가되는 것이 이 가드가
 //    막으려는 사고이므로, 모르는 모양을 통과시키면 가드가 아니다.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -47,8 +47,10 @@ const PHONE_IN_MEMORY_VALUE = /^(normalizeKoreanPhoneNumber\(|bodyPhoneNumber\b)
 // CAS(compare-and-set) 필터에서 **이미 저장돼 있는 값**을 조건으로 그대로 쓰는 자리.
 // 새 값을 만들지 않으므로 쓰기가 아니다 — Mongo 연산자 객체이거나, 방금 읽은 문서의 필드다.
 const PHONE_FILTER_VALUE = /^(\{\s*\$|existing\.phoneNumber$|user\.phoneNumber$)/;
+// preparePhoneForStorage 의 반환값을 받는 구조 분해 대입(`{ phoneNumber: x } = await …`).
+// 왼쪽의 phoneNumber 는 저장 대상이 아니라 그 함수가 돌려주는 정규화 평문의 이름이다.
+const PHONE_DESTRUCTURE_LINE = /=\s*await preparePhoneForStorage\(/;
 
-const HASH_WINDOW = 8;
 const unclassified = [];
 const writeSites = [];
 
@@ -65,6 +67,7 @@ authLines.forEach((line, index) => {
   if (PHONE_PROJECTION_VALUE.test(value)) return;      // Mongo projection — 읽기다.
   if (PHONE_IN_MEMORY_VALUE.test(value)) return;       // DB 에 닿지 않는 중간 값이다.
   if (PHONE_FILTER_VALUE.test(value)) return;         // CAS 필터 조건이다.
+  if (PHONE_DESTRUCTURE_LINE.test(line)) return;      // 구조 분해 대입이다.
 
   if (PHONE_WRITE_VALUES.test(value)) {
     writeSites.push({ where, index, value });
@@ -77,7 +80,7 @@ assert.equal(
   unclassified.length,
   0,
   "휴대폰 번호를 다루는 새 지점이 분류되지 않았다. 저장이라면 preparePhoneForStorage 를 거쳐\n"
-  + "phoneHash 와 함께 쓰고, 저장이 아니라면 이 스크립트의 분류 규칙에 근거와 함께 추가할 것:\n  "
+  + "저장이 아니라면 이 스크립트의 분류 규칙에 근거와 함께 추가할 것:\n  "
   + unclassified.join("\n  "),
 );
 
@@ -88,23 +91,11 @@ assert.ok(
   + "정규식이 소스와 어긋났을 가능성이 크다",
 );
 
-// 🔴 \bphoneHash\b 로 본다 — 예전에는 /phoneHash/ 였고, phoneHashRemoved 같은 이름이
-// 그대로 통과했다(음성 테스트에서 발견).
-for (const site of writeSites) {
-  const window = authLines
-    .slice(Math.max(0, site.index - HASH_WINDOW), site.index + HASH_WINDOW + 1)
-    .join("\n");
-  assert.ok(
-    /\bphoneHash\b/.test(window),
-    `${site.where} writes phoneNumber without phoneHash in the same write.\n`
-    + "  해시가 빠진 계정은 phoneHash unique 인덱스에 잡히지 않아 중복 가입 차단에서 빠진다.",
-  );
-}
-
 /**
- * 값이 아니라 **구조**로 한 번 더 본다 — `{ phoneNumber }` 축약형은 위 값 분류에 걸리지 않는다.
- * `$set: {` · `User.create({` 뒤를 중괄호 균형으로 잘라, 그 안에 phoneNumber 가 있으면
- * phoneHash 도 있어야 한다(CLAUDE.md 코딩 원칙 6의 "이름 grep 말고 본문을 잘라 본다").
+ * 값이 아니라 **구조**로 한 번 더 본다 — `{ phoneNumber }` 축약형은 위 값 분류에 걸리지 않고
+ * 그대로 지나가는데, 그 축약형이 담는 값은 십중팔구 정규화된 평문이다.
+ * `$set: {` · `User.create({` 뒤를 중괄호 균형으로 잘라 축약형을 금지한다
+ * (CLAUDE.md 코딩 원칙 6의 "이름 grep 말고 본문을 잘라 본다").
  */
 function sliceBalanced(source, openIndex) {
   let depth = 0;
@@ -131,24 +122,25 @@ for (const marker of ["$set: {", "User.create({"]) {
     writeBlocks += 1;
     const line = authSource.slice(0, at).split("\n").length;
     assert.ok(
-      /\bphoneHash\b/.test(block),
-      `${AUTH_ROUTE}:${line} — this ${marker} block writes phoneNumber without phoneHash.`,
+      !/\bphoneNumber\b\s*[,}]/.test(block),
+      `${AUTH_ROUTE}:${line} — this ${marker} block uses the { phoneNumber } shorthand.\n`
+      + "  축약형은 정규화된 평문을 그대로 담게 된다. storedPhoneNumber 를 명시할 것.",
     );
   }
 }
 assert.ok(writeBlocks >= 4, `expected at least 4 phone-writing $set/create blocks, found ${writeBlocks}`);
 
 // 암호화를 우회해 직접 부르는 곳이 생기면 위 분류가 무의미해진다 — 봉투 생성은 한 자리뿐이어야 한다.
-for (const helper of ["encryptPhoneNumber", "hashPhoneNumber"]) {
-  const calls = authSource.split(helper + "(").length - 1;
+{
+  const calls = authSource.split("encryptPhoneNumber(").length - 1;
   assert.equal(
     calls,
     1,
-    `${AUTH_ROUTE} must call ${helper} in exactly one place (preparePhoneForStorage), found ${calls}`,
+    `${AUTH_ROUTE} must call encryptPhoneNumber in exactly one place (preparePhoneForStorage), found ${calls}`,
   );
 }
 assertContains(authSource, "async function preparePhoneForStorage(rawValue, env) {",
-  "preparePhoneForStorage must stay the single place that builds the stored envelope and hash");
+  "preparePhoneForStorage must stay the single place that builds the stored envelope");
 
 // 다른 워커 파일이 몰래 쓰기 시작하면 위 전수 검사 밖으로 새어 나간다.
 for (const path of [
@@ -194,25 +186,29 @@ assertContains(authSource, "if (!ticketPhoneNumber && !bodyPhoneNumber) {",
 assertContains(authSource, '"phone_required"',
   "social signup must answer with a phone_required code the client can branch on");
 
-// 중복 번호는 계정을 합치지 않고 거절한다.
-assertContains(authSource, "async function isPhoneNumberTaken(phoneHash, env, options = {}) {",
-  "duplicate detection must live in one helper so the policy can be changed in one place");
-assertContains(authSource, "function isDuplicatePhoneNumberError(error) {",
-  "the unique-index race must be folded into the same 409 as the pre-check");
-assert.ok(
-  !/merge|mergeAccount|linkAccounts/i.test(authSource.match(/function duplicatePhoneResponse[\s\S]{0,400}/)?.[0] || ""),
-  "a duplicate number must never trigger an automatic account merge",
-);
-
-// 탈퇴 시 번호·해시가 함께 지워지는지 — 방침 6항이 "탈퇴 시 지체 없이 파기"라고 고지한다.
-const withdrawSet = authSource.match(/name: "\[탈퇴한 회원\]"[\s\S]{0,900}/)?.[0] || "";
-for (const field of ['phoneNumber: ""', 'phoneHash: ""']) {
-  assertContains(withdrawSet, field,
-    `withdrawal must clear ${field} — the privacy policy promises destruction at withdrawal`);
+// ─────────────────────────────────────────────────────────────────────────────
+// 3. 🔴 중복 허용 유지 (2026-08-19 결정).
+//    한 번호로 계정을 여러 개 만드는 것을 허용한다. 가입 시 지급되는 재화가 없어서
+//    (전수 검색: worker/ 에 $inc moonstone·grant 계열 0건) 번호는 계정 수 제한 장치가 아니었고,
+//    가족 공용 번호를 막는 부작용만 남았다.
+//    🔴 차단을 되살리면 개인정보처리방침의 이용 목적("회원 식별 및 계정 관리, 결제 진행")과
+//    다시 어긋난다 — 되살릴 때는 방침 4개 로케일을 같은 커밋에서 고칠 것.
+// ─────────────────────────────────────────────────────────────────────────────
+for (const banned of ["isPhoneNumberTaken", "duplicate_phone", "phoneHash"]) {
+  assert.ok(
+    !authSource.includes(banned),
+    `${AUTH_ROUTE} must not reintroduce ${banned} — 번호 중복은 허용 정책이다.\n`
+    + "  정말 막아야 한다면 이 가드와 개인정보처리방침(ko/en/ja/zh/zh-TW)을 같은 커밋에서 함께 고칠 것.",
+  );
 }
 
+// 탈퇴 시 번호가 지워지는지 — 방침 6항이 "탈퇴 시 지체 없이 파기"라고 고지한다.
+const withdrawSet = authSource.match(/name: "\[탈퇴한 회원\]"[\s\S]{0,900}/)?.[0] || "";
+assertContains(withdrawSet, 'phoneNumber: ""',
+  'withdrawal must clear the number — the privacy policy promises destruction at withdrawal');
+
 // ─────────────────────────────────────────────────────────────────────────────
-// 3. 고지 일치 — 실제 수집 행위와 방침·동의 요약이 어긋나지 않는지.
+// 4. 고지 일치 — 실제 수집 행위와 방침·동의 요약이 어긋나지 않는지.
 //    회원가입 화면은 방침 본문을 임베드하지 않고 한 줄 요약만 보여주므로, 둘이 따로 논다.
 // ─────────────────────────────────────────────────────────────────────────────
 const policy = read("app/privacy-policy/PrivacyPolicyContent.jsx");
