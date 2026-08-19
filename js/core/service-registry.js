@@ -86,7 +86,7 @@ window.__cdServiceRegistry = [
     id: "compatibility",
     name: "궁합 보기",
     desc: "두 사람의 운명을 겹쳐 보는 궁합",
-    href: "/compatibility",
+    href: "/compatibility/",
     price: "무료",
     purposes: ["love", "compatibility"],
     methods: ["saju"],
