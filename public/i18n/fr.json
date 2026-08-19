@@ -159,8 +159,6 @@
       "nameLabel": "Nom",
       "nameHint": "Indiquez le nom à afficher dans votre lecture.",
       "birthDateLabel": "Date de naissance",
-      "quickPickTitle": "✦ Saju express",
-      "quickPickSubtitle": "Consultez une carte enregistrée en un instant",
       "birthDateHint": "Choisissez votre date de naissance pour ouvrir la première base du thème Saju.",
       "solar": "Solaire",
       "lunar": "Lunaire",

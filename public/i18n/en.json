@@ -159,8 +159,6 @@
       "nameLabel": "Name",
       "nameHint": "Enter the name to show in your reading.",
       "birthDateLabel": "Date of birth",
-      "quickPickTitle": "✦ Quick Saju",
-      "quickPickSubtitle": "Check a saved chart in seconds",
       "birthDateHint": "Choose your birth date to open the first basis of your Saju chart.",
       "solar": "Solar",
       "lunar": "Lunar",

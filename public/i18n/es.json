@@ -159,8 +159,6 @@
       "nameLabel": "Nombre",
       "nameHint": "Escribe el nombre que se mostrará en el resultado.",
       "birthDateLabel": "Fecha de nacimiento",
-      "quickPickTitle": "✦ Saju rápido",
-      "quickPickSubtitle": "Consulta una carta guardada al instante",
       "birthDateHint": "Elige tu fecha de nacimiento para abrir la primera base de tu carta Saju.",
       "solar": "Solar",
       "lunar": "Lunar",

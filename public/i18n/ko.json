@@ -118,8 +118,6 @@
       "nameLabel": "이름",
       "nameHint": "분석 결과에 표시할 이름을 적어 주세요.",
       "birthDateLabel": "생년월일",
-      "quickPickTitle": "✦ 사주 바로보기",
-      "quickPickSubtitle": "빠르게 사주 명식을 확인해보세요",
       "birthDateHint": "태어난 날을 선택하면 사주 명식의 첫 기준이 열립니다.",
       "solar": "양력",
       "lunar": "음력(평달)",

@@ -678,7 +678,6 @@ html { margin-top: 0px !important; }
 }
 #sajuLoaderOverlay { position: fixed; inset: 0px; background: radial-gradient(circle, rgb(27, 23, 37) 0%, rgb(5, 5, 5) 100%); z-index: 9999999; display: none; align-items: center; justify-content: center; flex-direction: column; color: rgb(229, 192, 123); font-family: "Noto Serif KR", serif; overflow: hidden; }
 :root { --dp-gold: #FFD700; --dp-gold-dim: rgba(255,215,0,0.55); --dp-gold-glow: rgba(255,215,0,0.25); --dp-space: #0B0E14; --dp-glass: rgba(255,255,255,0.05); --dp-glass-border: rgba(255,215,0,0.18); --dp-purple: rgba(120,80,220,0.35); }
-.dp-qp[hidden] { display: none; }
 .dp-form-quota[hidden] { display: none !important; }
 .oracle-result-box-m.is-empty .oracle-result-inner { display: none; }
 .kemet-loading { padding: 60px 20px; text-align: center; display: none; position: relative; z-index: 1; }
@@ -17183,18 +17182,6 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       </div>
     </section>
 
-    <!-- 저장된 프로필 카드 바로가기.
-         칩 하나를 누르면 아래 폼에 생년월일·시간·성별이 주입되고 곧바로 사주가 계산된다
-         (data-action 디스패처 → window.dpRunWithProfile → _injectAndRun).
-         카드가 없거나 비로그인이면 renderProfileQuickStrip()이 hidden 을 유지한다. -->
-    <section class="dp-qp" id="dpQuickPickStrip" hidden aria-labelledby="dpQuickPickTitle" data-marker="saju-quick-profile-strip-v20260731">
-      <div class="dp-qp__head">
-        <h2 class="dp-qp__title" id="dpQuickPickTitle" data-cd-trans data-key="home.input.quickPickTitle">✦ 사주 바로보기</h2>
-        <p class="dp-qp__subtitle" data-cd-trans data-key="home.input.quickPickSubtitle">빠르게 사주 명식을 확인해보세요</p>
-      </div>
-      <div class="dp-qp__scroll" id="dpQuickPickInner" role="list"></div>
-    </section>
-
     <!-- 프로필 카드 + 종합 운세 입력폼 한 몸 패널 (home-profile-card-form-panel-v20260820).
          프로필 카드는 홈 초기 화면에 보이고, 입력폼은 아래 토글로 열기 전까지 접혀 있다.
          🔴 폼을 #dpMasterCard 의 자식으로 넣지 말 것 — renderMasterCard() 가 카드의
@@ -23034,7 +23021,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-7b45126977b4" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-7b45126977b4" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-7b45126977b4" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-7b45126977b4" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
