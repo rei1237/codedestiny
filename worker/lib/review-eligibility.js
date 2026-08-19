@@ -28,6 +28,16 @@ const SINGLE_PAYMENT_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 const PASS_ACCESS_METHODS = new Set(["PASS", "FAMILY", "MONTHLY"]);
 const LOOKBACK_LIMIT = 300;
 
+// 리뷰쓰기 모달을 열 때(GET eligibility)와 실제 제출할 때(POST create)가 같은 세션에서
+// 수 초~수십 초 안에 같은 userId로 이 함수를 두 번 호출한다. TTL을 짧게 잡아 그 구간만
+// 캐시로 흡수한다 — access-state.js와 같은 isolate 재사용 캐시 패턴(무효화 훅은 두지 않고
+// 시간 경과로 자연 해소시킨다. handleCreate가 최종적으로 서버에서 다시 검증하므로 정합성엔
+// 영향 없다).
+const REVIEW_ELIGIBILITY_CACHE_TTL_MS = 25000;
+const cache = globalThis.__codeDestinyReviewEligibilityCache || (globalThis.__codeDestinyReviewEligibilityCache = {
+  entries: new Map(),
+});
+
 function toText(value) {
   return String(value || "").trim();
 }
@@ -82,6 +92,16 @@ export async function listUsedReviewProducts({ userId, env = {} }) {
   const normalizedUserId = toText(userId);
   if (!normalizedUserId) return [];
 
+  const now = Date.now();
+  const cached = cache.entries.get(normalizedUserId);
+  if (cached && cached.expiresAt > now) return cached.value.slice();
+
+  const value = await fetchUsedReviewProducts(normalizedUserId, env);
+  cache.entries.set(normalizedUserId, { value, expiresAt: now + REVIEW_ELIGIBILITY_CACHE_TTL_MS });
+  return value.slice();
+}
+
+async function fetchUsedReviewProducts(normalizedUserId, env) {
   const paymentUserClause = buildPaymentUserIdClause(normalizedUserId);
   const now = new Date();
 
