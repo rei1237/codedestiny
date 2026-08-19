@@ -38,6 +38,10 @@ on:
         description: "rollback 전용: 되돌릴 Worker 버전 ID"
         type: string
         required: false
+      allow_redeploy:
+        description: "같은 SHA 를 다시 빌드해 배포한다. 일일 운세 재발행처럼 커밋은 그대로인데 산출물이 달라지는 릴리스 전용."
+        type: boolean
+        default: false
 
 # A release is an ordered Worker then Pages transaction. Never cancel a running
 # deployment midway; newer merges queue behind it instead.
@@ -132,6 +136,17 @@ jobs:
       # schedule 은 push 와 같은 취급이다 — 드리프트가 확인됐을 때만 여기까지 오고,
       # 그때 필요한 것은 정확히 프로덕션 승격이다.
       RELEASE_MODE: ${{ (github.event_name == 'push' || github.event_name == 'schedule') && 'production' || inputs.mode }}
+      # 🔴 deploy-safe 는 "HEAD 가 이미 라이브면 아무것도 하지 않는다"로 자기중단한다. 청크 이름만
+      # 바뀌는 무의미한 재배포가 전환 틈새 404 를 만들기 때문이고, 그 판단은 **커밋이 같으면
+      # 산출물도 같다**는 전제 위에 있다. 운세는 그 전제가 깨지는 유일한 축이다 — 날짜가 빌드
+      # 시각에 굳으므로 같은 커밋이 KST 날마다 다른 HTML 을 낳는다.
+      #
+      # 2026-08-18 15:17Z 의 일일 발행이 정확히 여기서 죽었다. 디스패치도 릴리스도 초록불이었고
+      # 배포 스텝만 2초 만에 "이미 라이브"로 빠져나가, KST 08-19 의 운세가 17시간 동안 08-18 로
+      # 서빙됐다. 08-17 까지 안 보였던 이유는 머지가 잦아 SHA 가 늘 달랐기 때문이다.
+      #
+      # 그래서 예외는 **명시적으로 요청한 디스패치에만** 준다. push·schedule 은 여전히 자기중단한다.
+      REDEPLOY_FLAG: ${{ (github.event_name == 'workflow_dispatch' && inputs.allow_redeploy) && '--allow-redeploy' || '' }}
 
     steps:
       # 🔴 push 이벤트에서 actions/checkout 은 github.sha 를 그대로 꺼낸다. 브랜치 이름이나
@@ -152,6 +167,7 @@ jobs:
             echo "| Deployment SHA | \`${GITHUB_SHA}\` |"
             echo "| Short SHA | \`${GITHUB_SHA:0:7}\` |"
             echo "| Mode | ${RELEASE_MODE} |"
+            echo "| Same-SHA redeploy | ${REDEPLOY_FLAG:-아니오 (이미 라이브면 자기중단)} |"
             echo "| Branch | ${GITHUB_REF_NAME} |"
             echo "| Workflow run | [${GITHUB_RUN_ID}](${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}) |"
             echo "| Triggered by | ${GITHUB_EVENT_NAME} |"
@@ -228,7 +244,7 @@ jobs:
       # '옛 클라이언트 + 새 워커' 가 '새 클라이언트 + 옛 워커' 보다 안전하다.
       - name: Deploy Pages and Worker at the exact SHA
         if: env.RELEASE_MODE == 'production'
-        run: npm run deploy:safe -- --ci --yes
+        run: npm run deploy:safe -- --ci --yes ${REDEPLOY_FLAG}
 
       - name: Read deployment state
         id: state

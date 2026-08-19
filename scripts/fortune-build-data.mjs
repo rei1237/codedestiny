@@ -14,7 +14,7 @@
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { kstYmdToday, kstYmdTomorrow } from './lib/fortune-date.mjs';
+import { kstYmdToday, kstYmdNextDay } from './lib/fortune-date.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
@@ -22,10 +22,16 @@ const onceScript = path.join(__dirname, 'fortune-daily-once.mjs');
 
 // `FORTUNE_DATE=... node ...` 인라인 접두사는 Windows PowerShell 에서 동작하지 않는다.
 // 레포가 with-utf8-console.mjs 를 쓰는 것과 같은 이유로 env 주입을 래퍼가 맡는다.
+
+// 🔴 시계는 한 번만 읽는다. 오늘과 내일을 각각 `new Date()` 로 구하면 두 호출 사이에
+// KST 자정이 지날 때 today=D / tomorrow=D+2 가 나온다(이 빌드는 00:10 KST 에 돈다).
+const runDateKst = kstYmdToday();
 const targets = [
-  { label: 'today', date: kstYmdToday() },
-  { label: 'tomorrow', date: kstYmdTomorrow() },
+  { label: 'today', date: runDateKst },
+  { label: 'tomorrow', date: kstYmdNextDay(runDateKst) },
 ];
+
+console.log(`[fortune-build-data] RUN_DATE_KST=${runDateKst}`);
 
 for (const target of targets) {
   console.log(`[fortune-build-data] ${target.label} = ${target.date}`);
