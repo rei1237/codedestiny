@@ -37,6 +37,12 @@
       "linkPhysiognomy": "Face Reading",
       "linkGuideHub": "Fortune Guides"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "Ulasan pengguna",
+      "lead": "Ulasan daripada mereka yang benar-benar membuat bacaan.",
+      "allCta": "Lihat semua ulasan →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Koleksi Takdir Cakerawala",

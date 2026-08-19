@@ -37,6 +37,12 @@
       "linkPhysiognomy": "Face Reading",
       "linkGuideHub": "Fortune Guides"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "Avis des utilisateurs",
+      "lead": "Des avis laissés par des personnes qui ont réellement fait une consultation.",
+      "allCta": "Voir tous les avis →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Collection céleste des destinées",

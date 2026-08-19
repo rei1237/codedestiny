@@ -37,6 +37,12 @@
       "linkPhysiognomy": "Face Reading",
       "linkGuideHub": "Fortune Guides"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "Gebruikersreviews",
+      "lead": "Reviews van mensen die echt een consult hebben gedaan.",
+      "allCta": "Bekijk alle reviews →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Hemelse collectie voor je lot",

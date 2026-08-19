@@ -37,6 +37,12 @@
       "linkPhysiognomy": "Face Reading",
       "linkGuideHub": "Fortune Guides"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "Đánh giá của người dùng",
+      "lead": "Những đánh giá do người thật sự đã xem để lại.",
+      "allCta": "Xem tất cả đánh giá →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Bộ sưu tập thiên tài",

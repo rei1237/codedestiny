@@ -37,6 +37,12 @@
       "linkPhysiognomy": "Face Reading",
       "linkGuideHub": "Fortune Guides"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "उपयोगकर्ता समीक्षाएँ",
+      "lead": "ये समीक्षाएँ उन लोगों की हैं जिन्होंने वास्तव में परामर्श लिया।",
+      "allCta": "सभी समीक्षाएँ देखें →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "आकाशीय भाग्य संग्रह",
