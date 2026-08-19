@@ -1,5 +1,36 @@
 # 월정석 환불 뒤 재구매 — 얽혀 있는 결함 3건 (2026-08-13)
 
+> ## ✅ 이 문서의 1·2·3단계는 모두 반영됐다 (2026-08-20 확인)
+>
+> 작성 당일인 **2026-08-13에 세 커밋으로 전부 들어갔고 셋 다 `main`에 있다.** 이 문서는 그때
+> 착수 계획으로 쓰였는데 커밋이 푸시되지 않은 워크트리에 일주일간 묶여 있었다. 지금은 **왜 코드가
+> 이 모양인지를 설명하는 기록**이지 남은 작업 지시서가 아니다 — 아래 인터록을 모르고 한쪽만
+> 되돌리면 2장 표의 사고가 그대로 재발한다.
+>
+> | 단계 | 커밋 | 들어간 곳 |
+> |---|---|---|
+> | 1 — 환불이 유니크 키를 놓는다 | `c3edf4699` | `refundSajuAIPromptMonthlyCredit`(fortune.js) · `service-execution-task.js` 양쪽에 표식 2종 |
+> | 2 — 환불된 증거를 증거로 안 본다 | `b7075b285` | `findAIPromptPaymentEvidence` 에 배제 4종 |
+> | 3 — 월정석 증빙 금액 하한 | `34505ffb9` | `findAIPromptMonthlyCreditEvidence` 가 `cost` 를 받아 `calculateMembershipCreditCost` 로 환산 |
+>
+> **7장의 열린 질문(다른 기능도 같은 구멍을 공유한다)도 닫혔다.** 2026-08-16 에 월정석 증빙 조회가
+> `worker/lib/moonstone-spend-proof.js` 한 곳으로 통합되면서 환불 표식 **6종을 정본에서 일괄 배제**하고,
+> 소비 라우트 **16곳**이 그 정본을 쓴다. 기능마다 배제를 따로 확인할 필요가 없어졌다.
+>
+> **가드**: `scripts/verify-payment-concurrency-guards.mjs` 의 6c-6 이 "생성 실패 환불은 표식을 두 곳
+> 모두에 찍는다"를 `fortune.js`·`service-execution-task.js` 에 대해 강제한다. 5장이 걱정한 단언
+> (6c-3)은 추천안을 택한 덕에 그대로 살아 있다.
+>
+> 🔴 **남은 약점 하나** — 6c-6 의 검사 대상이 **손으로 쓴 파일 2개**라, 새 환불 지점이 표식을 한쪽만
+> 찍으면 통과한다(코딩 원칙 10). 2026-08-20 실측으로 환불 표식을 쓰는 4곳
+> (`fortune.js`·`service-execution-task.js`·`love-secret-ai.js`·`naming-prompt.js`)은 전부 대칭이므로
+> 지금 결함은 없다. 소스 전수 발견으로 바꾸려면 그 4곳을 자동으로 찾아 미분류를 실패시키면 된다.
+>
+> 2026-08-20 검증: `verify:payment-concurrency-guards` · `verify:billing-pass-policy` ·
+> `verify:ai-prompt-billing-policy` · `verify:paid-feature-billing-policy` · `verify:ai-consultation-flows`
+> 전부 통과, `per-use-proof-roundtrip` + `saju-ai-consultation-stale.guard` + `ai-prompt-card-refund.guard`
+> **59개 테스트 통과**.
+
 > PR #577(사주 AI 상담 결제창 무한 재오픈 수정)에서 **의도적으로 분리한** 작업이다.
 > 세 결함이 서로를 가리고 있어서 **하나만 고치면 지금보다 나빠진다.** 반드시 한 PR에서 순서대로 처리한다.
 >
