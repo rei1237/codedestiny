@@ -37,6 +37,12 @@
       "linkPhysiognomy": "観相",
       "linkGuideHub": "運勢ガイド"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "利用者の口コミ",
+      "lead": "実際に鑑定を受けた方が残した口コミです。",
+      "allCta": "すべての口コミを見る →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "星明かりの占いコレクション",

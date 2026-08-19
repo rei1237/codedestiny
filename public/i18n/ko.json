@@ -29,6 +29,12 @@
       "linkPhysiognomy": "관상",
       "linkGuideHub": "운세 가이드"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "이용자 후기",
+      "lead": "실제 이용자들이 남긴 상담 후기입니다.",
+      "allCta": "전체 후기 보기 →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Celestial Fortune Collection",

@@ -37,6 +37,12 @@
       "linkPhysiognomy": "面相",
       "linkGuideHub": "運勢指南"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "使用者評價",
+      "lead": "這些是真實使用者在諮詢後留下的評價。",
+      "allCta": "查看全部評價 →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "月光裡的占卜合集",

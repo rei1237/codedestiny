@@ -37,6 +37,12 @@
       "linkPhysiognomy": "Face Reading",
       "linkGuideHub": "Fortune Guides"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "Nutzerbewertungen",
+      "lead": "Bewertungen von Menschen, die tatsächlich eine Deutung erhalten haben.",
+      "allCta": "Alle Bewertungen ansehen →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Himmlische Schicksalssammlung",
