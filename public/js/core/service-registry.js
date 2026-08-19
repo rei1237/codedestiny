@@ -92,7 +92,6 @@ window.__cdServiceRegistry = [
     methods: ["saju"],
     keys: "궁합 커플 인연 상성",
     badge: "무료",
-    roles: ["quick"],
   },
   {
     id: "fortune-chat",
@@ -266,6 +265,7 @@ window.__cdServiceRegistry = [
     purposes: ["life", "self", "career", "money"],
     methods: ["astrology"],
     keys: "점성술 별자리 호로스코프 차트",
+    roles: ["quick"],
   },
   {
     id: "nakshatra",

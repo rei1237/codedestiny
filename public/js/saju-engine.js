@@ -27194,7 +27194,14 @@ function cdEnsureCompatLlmHost() {
 
 async function runCompat(){
   if(!G_PILLARS||!G_NATAL||!G_POWER||!G_JOHU){
-    alert('먼저 내 사주를 계산한 뒤에 궁합을 볼 수 있어요 🐷');return;
+    // 사주 미계산 안내는 궁합 UI가 실제로 화면에 있을 때만 띄운다. 메인 진입 시
+    // 액션 스텁 리플레이 등으로 runCompat 이 자동 호출되면, 숨겨진 #resultPage 위에서
+    // alert 가 빈 메인 화면에 떠 버린다(회귀 방지 — getClientRects 로 실렌더 확인).
+    var _compatBtn = document.getElementById('compatRunBtn');
+    if (_compatBtn && _compatBtn.getClientRects().length) {
+      alert('먼저 내 사주를 계산한 뒤에 궁합을 볼 수 있어요 🐷');
+    }
+    return;
   }
   var compatRunBtn = document.getElementById('compatRunBtn');
   if (compatRunBtn) {
