@@ -51,8 +51,11 @@ function jsonResponse(body) {
 async function boot() {
   const markup = [
     '<main id="inputPage">',
+    '<div class="dp-destiny-panel" id="dpDestinyPanel">',
     '<div id="dpMasterCard"></div>',
+    '<button type="button" id="dpDestinyFormToggle" aria-expanded="false"></button>',
     sliceById(shell, "destinyCardForm"),
+    "</div>",
     "</main>",
   ].join("\n");
 
@@ -70,20 +73,46 @@ async function boot() {
     expandCalls.push(1);
     window.document.documentElement.classList.add("cd-home-expanded");
   };
-  window.fetch = () => Promise.resolve(jsonResponse({ ok: true, profiles: [], currentId: "" }));
+  const openFormCalls = [];
+  window.__cdOpenDestinyForm = () => {
+    openFormCalls.push(1);
+    const panel = window.document.getElementById("dpDestinyPanel");
+    if (panel) panel.classList.add("is-form-open");
+  };
+  window.fetch =() => Promise.resolve(jsonResponse({ ok: true, profiles: [], currentId: "" }));
 
   window.eval(profileJs);
   if (window.document.readyState === "loading") {
     await new Promise((r) => window.addEventListener("DOMContentLoaded", r, { once: true }));
   }
-  return { window, doc: window.document, expandCalls };
+  return { window, doc: window.document, expandCalls, openFormCalls };
 }
 
 const fire = (window, el, type) => el.dispatchEvent(new window.Event(type, { bubbles: true }));
 
 test("셸이 펼치기 함수를 전역으로 노출한다", () => {
-  // dpScrollToForm 이 이것을 부른다. 이름이 바뀌면 폼이 다시 안 보이게 된다.
+  // dpScrollToForm 이 이것들을 부른다. 이름이 바뀌면 폼이 다시 안 보이게 된다.
   assert.match(shell, /window\.__cdExpandHome = expand;/);
+  assert.match(shell, /window\.__cdOpenDestinyForm = open;/);
+});
+
+test("프로필 카드는 홈 초기 화면에 보이고 입력폼만 접혀 있다", () => {
+  // 요청의 핵심이 이 한 줄이다: 카드는 복구, 폼은 숨김. 둘 중 하나라도 뒤집히면 여기서 깨진다.
+  const panel = sliceById(shell, "dpDestinyPanel");
+  const card = /<div[^>]*id="dpMasterCard"[^>]*>/.exec(panel);
+  const form = /<section[^>]*id="destinyCardForm"[^>]*>/.exec(panel);
+  assert.ok(card, "프로필 카드가 패널 안에 없다");
+  assert.ok(form, "입력폼이 패널 안에 없다");
+
+  assert.doesNotMatch(card[0], /data-cd-home-secondary/, "프로필 카드가 아직 접힌 섹션이다 — 홈에서 안 보인다");
+  assert.doesNotMatch(
+    form[0],
+    /data-cd-home-secondary/,
+    "폼 접기는 패널 클래스로 한다 — 속성 방식은 시트 대여(_dpBorrowFormIntoSheet)에서 다시 문제가 된다",
+  );
+
+  // 폼은 패널이 열리기 전까지 감춰져 있어야 한다. 지우는 것이 아니라 감추는 것이다(절대 규칙 6).
+  assert.match(shell, /\.dp-destiny-panel:not\(\.is-form-open\) > #destinyCardForm\{display:none!important\}/);
 });
 
 test("생년월일 입력은 달력이 아니라 텍스트다", () => {
@@ -95,15 +124,18 @@ test("생년월일 입력은 달력이 아니라 텍스트다", () => {
   assert.match(input[0], /inputmode="numeric"/, "모바일에서 숫자 키패드가 안 뜬다");
 });
 
-test("dpScrollToForm 은 스크롤 전에 홈을 펼친다", async () => {
-  const { window, doc, expandCalls } = await boot();
+test("dpScrollToForm 은 스크롤 전에 홈과 폼 패널을 함께 연다", async () => {
+  const { window, doc, expandCalls, openFormCalls } = await boot();
   assert.equal(typeof window.dpScrollToForm, "function");
   assert.equal(expandCalls.length, 0);
+  assert.equal(openFormCalls.length, 0);
 
   window.dpScrollToForm();
 
   assert.equal(expandCalls.length, 1, "펼치지 않고 스크롤했다 — 사용자는 빈 화면을 본다");
+  assert.equal(openFormCalls.length, 1, "폼 패널을 열지 않고 스크롤했다 — 카드만 보이고 폼은 계속 접혀 있다");
   assert.ok(doc.documentElement.classList.contains("cd-home-expanded"));
+  assert.ok(doc.getElementById("dpDestinyPanel").classList.contains("is-form-open"));
   assert.ok(doc.querySelector(".input-section"), "스크롤 대상 폼이 없다");
 });
 
@@ -140,6 +172,31 @@ test("입력 중에는 값을 건드리지 않는다", async () => {
   el.value = "1991";
   fire(window, el, "input");
   assert.equal(el.value, "1991", "타이핑 도중에 값이 바뀌면 입력을 이어갈 수 없다");
+});
+
+test("입력 중에는 캐럿이 끝일 때만 하이픈이 붙는다", async () => {
+  const { window, doc } = await boot();
+  const el = doc.getElementById("birthDate");
+
+  for (const [typed, expected] of [
+    ["1991", "1991"],
+    ["19910", "1991-0"],
+    ["199102", "1991-02"],
+    ["19910220", "1991-02-20"],
+  ]) {
+    el.value = typed;
+    el.selectionStart = el.value.length;
+    el.selectionEnd = el.value.length;
+    fire(window, el, "input");
+    assert.equal(el.value, expected, `"${typed}" 마스크 실패`);
+  }
+
+  // 중간을 고치는 중이면 손대지 않는다 — 값을 바꾸면 커서가 끝으로 튀어 이어서 못 친다.
+  el.value = "199102";
+  el.selectionStart = 2;
+  el.selectionEnd = 2;
+  fire(window, el, "input");
+  assert.equal(el.value, "199102", "캐럿이 중간인데 값을 건드렸다");
 });
 
 test("출생시간을 타이핑하면 기존 select 두 개가 함께 맞춰진다", async () => {
@@ -240,20 +297,25 @@ test("생년월일 입력에 달력 피커가 남아 있지 않다", () => {
   // 대상 디렉터리를 전수로 훑는다. 문맥에 birth/생년월일/생일 이 보이는 type="date" 만 잡는다
   // (일정 날짜·택일 시작일은 달력이 옳은 입력이라 제외).
   const roots = ["app", "src", "components"];
+  const files = ["index.html"];
   const offenders = [];
+
+  const scanLines = (label, lines) => {
+    lines.forEach((line, index) => {
+      if (!line.includes('type="date"')) return;
+      const context = lines.slice(Math.max(0, index - 8), index + 6).join(" ");
+      if (!/birth|생년월일|생일/i.test(context)) return;
+      offenders.push(label + ":" + (index + 1));
+    });
+  };
 
   const walk = (dir) => {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
       const full = path.join(dir, entry.name);
       if (entry.isDirectory()) { walk(full); continue; }
       if (!/\.(tsx|ts|jsx|js)$/.test(entry.name)) continue;
-      const lines = fs.readFileSync(full, "utf8").split("\n");
-      lines.forEach((line, index) => {
-        if (!line.includes('type="date"')) return;
-        const context = lines.slice(Math.max(0, index - 8), index + 6).join(" ");
-        if (!/birth|생년월일|생일/i.test(context)) return;
-        offenders.push(path.relative(root, full).split(path.sep).join("/") + ":" + (index + 1));
-      });
+      const label = path.relative(root, full).split(path.sep).join("/");
+      scanLines(label, fs.readFileSync(full, "utf8").split("\n"));
     }
   };
 
@@ -264,7 +326,14 @@ test("생년월일 입력에 달력 피커가 남아 있지 않다", () => {
     scanned += 1;
     walk(full);
   }
+  // 정적 셸도 같은 규칙을 받는다 — 홈 폼과 궁합 모달의 생년월일이 여기 있다.
+  for (const file of files) {
+    const full = path.join(root, file);
+    assert.ok(fs.existsSync(full), `${file} 가 없다 — 가드가 셸을 못 본다`);
+    scanned += 1;
+    scanLines(file, fs.readFileSync(full, "utf8").split("\n"));
+  }
   // 대상이 없을 때 통과시키는 가드는 가드가 아니다.
-  assert.ok(scanned > 0, "스캔 대상 디렉터리를 하나도 못 찾았다 — 가드가 무력화됐다");
+  assert.ok(scanned >= roots.length + files.length, "스캔 대상을 다 못 찾았다 — 가드가 무력화됐다");
   assert.deepEqual(offenders, [], `생년월일이 아직 달력 피커다:\n  ${offenders.join("\n  ")}`);
 });
