@@ -275,7 +275,8 @@ if (failed.length > 0) {
     hint =
       `라이브 빌드가 KST ${buildDateKst} 자입니다 — 오늘의 릴리스가 배포되지 않았습니다. ` +
       "릴리스 런의 'Deploy Pages and Worker' 스텝을 보세요. deploy-safe 가 '이미 라이브'로 " +
-      "자기중단했다면 디스패치에 allow_redeploy=true 가 빠진 것입니다.";
+      "자기중단했다면 디스패치에 allow_redeploy=true 가 빠진 것이고, --pages-only 로 거부됐다면 " +
+      "라이브 Worker 가 main HEAD 가 아니라는 뜻입니다(그 경우 Worker 를 포함한 릴리스가 먼저 나가야 합니다).";
   } else if (missingData.length > 0) {
     hint =
       `빌드는 오늘 것인데 ${missingData.map((p) => p.date).join(", ")} 의 일일 패키지가 없습니다 — ` +
