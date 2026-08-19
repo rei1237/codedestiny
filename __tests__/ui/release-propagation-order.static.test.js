@@ -39,7 +39,7 @@ test("promote verifies the immutable deployment before it looks at the productio
 
   const body = promoteBody();
   const artifactIndex = body.indexOf("verifyDeployedArtifact(value, pages.url)");
-  const aliasIndex = body.indexOf("awaitProductionAssets(value, productionOrigin(value))");
+  const aliasIndex = body.indexOf("awaitProductionAssets(value, targetOrigin(value))");
   const smokeIndex = body.indexOf("await postDeployHealth(value, workerPromoted)");
   assert.ok(artifactIndex > 0, "promote() 가 배포본 완전성 검사를 호출하지 않습니다");
   assert.ok(aliasIndex > 0, "promote() 가 별칭 전환 확인을 호출하지 않습니다");
@@ -55,7 +55,7 @@ test("promote verifies the immutable deployment before it looks at the productio
 // 배포본이었다. 엣지 캐시 404 도 롤백으로는 안 풀린다(내용이 같으면 해시가 같아 같은 URL 이다).
 test("a lagging production alias never triggers a rollback", () => {
   const start = deploySafe.indexOf("function awaitProductionAssets(");
-  const end = deploySafe.indexOf("function productionOrigin(");
+  const end = deploySafe.indexOf("function targetOrigin(");
   assert.ok(start > 0 && end > start, "awaitProductionAssets() 범위를 찾지 못했습니다");
   const waitBody = deploySafe.slice(start, end);
 
