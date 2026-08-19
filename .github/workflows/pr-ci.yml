@@ -163,6 +163,14 @@ jobs:
       - name: Verify home service registry matches billing source of truth
         run: npm run verify:home-service-registry
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 입력이 index.html 하나뿐이라 티어가 low/fast 로 잡히는데,
+      # build 잡에 두면 정작 지켜야 할 "홈 히어로 CSS 한 줄 수정"에 깨어나지 않는다.
+      # 지키는 것: 히어로 확정 레이아웃이 마크업보다 뒤에 도착해 홈 전체가 446px 밀려 내려가던
+      # 회귀(실측 layout-shift 0.5433 → 0.0000, 2026-08-20). 정적 파일 하나를 읽고 두 CSS 블록을
+      # 문자열로 대조할 뿐이라 네트워크 없이 1초 미만이다.
+      - name: Verify hero first-paint lock matches its authoritative block
+        run: npm run verify:hero-firstpaint-lock
+
       # 배선을 검사하는 가드가 배선되지 않으면 농담이 된다. allowlist 만 고쳐 침묵시키는
       # 경로도 여기서 함께 막힌다 — scripts/ 만 바꾸면 critical 티어가 돌지 않는다.
       - name: Verify guard wiring
