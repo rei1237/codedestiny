@@ -75,34 +75,9 @@ test("레지스트리와 엔진이 실려 서로 맞물린다", async () => {
   assert.ok(window.__cdServiceRegistryMeta.methods.includes("ziwei"));
 });
 
-test("전체 서비스 인덱스의 주제 칩이 결과를 만든다 (예전에는 아무 일도 없었다)", async () => {
-  const { doc } = await boot();
-  const panel = doc.getElementById("cdServiceSearchResults");
-  assert.equal(panel.hidden, true, "초기 상태에서 결과 패널이 열려 있다");
-
-  doc.querySelector('#cdServiceIndex [data-fpurpose="money"]').click();
-
-  assert.equal(panel.hidden, false, "주제 칩을 눌렀는데 결과 패널이 그대로 닫혀 있다 — 회귀");
-  const hits = names(panel);
-  assert.ok(hits.length > 0, "재물 주제에 결과가 하나도 없다");
-  assert.ok(hits.includes("팩폭 전략소"), `재물 결과에 팩폭 전략소가 없다: ${hits.join(", ")}`);
-  assert.ok(!hits.includes("꿈해몽"), "재물과 무관한 항목이 섞였다");
-});
-
-test("주제 × 가격을 겹치면 더 좁아진다", async () => {
-  const { doc } = await boot();
-  const panel = doc.getElementById("cdServiceSearchResults");
-
-  doc.querySelector('#cdServiceIndex [data-fpurpose="life"]').click();
-  const beforeCount = names(panel).length;
-
-  doc.querySelector('#cdServiceIndex [data-fprice="free"]').click();
-  const after = names(panel);
-
-  assert.ok(after.length > 0, "무료 필터가 결과를 전부 날렸다");
-  assert.ok(after.length < beforeCount, `가격 필터가 결과를 좁히지 못했다 (${beforeCount} → ${after.length})`);
-  assert.ok(!after.includes("운명의 업"), "무료로 좁혔는데 30,000원 상담이 남아 있다");
-});
+// (제거) #cdServiceIndex 의 주제·가격 칩 테스트 2건 — 2026-08-19 #cdFinder 하나로 통합하며
+// 중복 검색 UI(#cdServiceIndex 검색·칩)를 걷어냈다. 축 필터의 회귀 커버리지는 아래
+// "운명의 문 디스커버는 고민 × 방식 × 가격을 한 상태로 겹친다" 등 #fortuneGateway 테스트가 담당한다.
 
 test("운명의 문 디스커버는 고민 × 방식 × 가격을 한 상태로 겹친다", async () => {
   const { doc } = await boot();
@@ -159,8 +134,8 @@ test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다",
 
 test("검색은 레지스트리에 없는 컬렉션 타일도 찾아 준다", async () => {
   const { doc, window } = await boot();
-  const input = doc.getElementById("cdServiceSearchInput");
-  const panel = doc.getElementById("cdServiceSearchResults");
+  const input = doc.getElementById("fortuneGatewaySearch");
+  const panel = doc.getElementById("fortuneGatewayRecs");
 
   input.value = "우리는 무슨 사이";
   input.dispatchEvent(new window.Event("input"));
@@ -178,9 +153,9 @@ test("검색은 레지스트리에 없는 컬렉션 타일도 찾아 준다", as
 
 test("필터가 켜지면 태그 없는 스크래핑 항목은 후보에서 빠진다", async () => {
   const { doc } = await boot();
-  const panel = doc.getElementById("cdServiceSearchResults");
+  const panel = doc.getElementById("fortuneGatewayRecs");
 
-  doc.querySelector('#cdServiceIndex [data-fpurpose="love"]').click();
+  doc.querySelector('#fortuneGatewayDiscover [data-purpose="love"]').click();
   const hits = names(panel);
 
   assert.ok(hits.includes("마스터 인연의 서"), "연애 결과에 대표 상담이 없다");

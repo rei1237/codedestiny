@@ -367,16 +367,9 @@
       layout: "rich"
     });
 
-    mount({
-      rootId: "cdServiceIndex",
-      resultsId: "cdServiceSearchResults",
-      inputId: "cdServiceSearchInput",
-      chipSelector: ".cd-svc-index__fchip",
-      filterChipSelector: ".cd-svc-index__fchip",
-      purposeAttr: "data-fpurpose",
-      priceAttr: "data-fprice",
-      layout: "compact"
-    });
+    /* #cdServiceIndex 의 검색·칩은 #cdFinder(fortuneGateway) 와 완전 중복이라 제거했다
+       (2026-08-19, 사용자 요청). 이제 홈 검색은 #cdFinder 하나뿐이고, #cdServiceIndex 는
+       헤더 + 펼치기 토글 + 컬렉션 그리드(#featureBegin) 로만 남는다. 두 번째 mount() 제거. */
 
     warmCatalogue();
 
