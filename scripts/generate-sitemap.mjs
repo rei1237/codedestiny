@@ -226,10 +226,14 @@ const coreRoutes = [
   { path: "/disclaimer", changefreq: "yearly", priority: 0.54 },
   { path: "/advertising-policy", changefreq: "yearly", priority: 0.54 },
   { path: "/editorial-policy", changefreq: "yearly", priority: 0.54 },
-  // 체계 간 비교 문서. 경쟁사 비교가 아니라 우리가 실제로 제공하는 체계끼리의 비교라
-  // 지어낸 내용이 없고, 각 체계 허브를 잇는 내부 링크 역할도 한다.
+  // 체계 간 비교 문서. 앞의 둘은 우리가 실제로 제공하는 체계끼리의 비교라 지어낸 내용이 없고,
+  // 각 체계 허브를 잇는 내부 링크 역할도 한다.
+  // fortune-apps 는 처음으로 외부 서비스 이름이 들어간 문서다 — 대표 검색어("무료 사주" 등)는
+  // 신규 도메인이 이기지 못하는 자리라, 이길 수 있는 질문("앱마다 왜 답이 다른가")으로 옮긴 것이다.
+  // 🔴 그 페이지의 사실 가드(단정 금지·우열 금지·후기 인상임을 본문에 명시)는 파일 상단 주석에 있다.
   { path: "/compare/saju-vs-ziwei", changefreq: "monthly", priority: 0.8 },
   { path: "/compare/sukuyo-vs-vedic", changefreq: "monthly", priority: 0.8 },
+  { path: "/compare/fortune-apps", changefreq: "monthly", priority: 0.82 },
   { path: "/insights", changefreq: "weekly", priority: 0.85 },
   // 연이의 운명 노벨 텍스트 리더 — 허브 + 44화.
   // 슬러그는 생성물(lib/stories/vn/episodes.generated.json)에서 읽어 하드코딩 드리프트를 막는다.

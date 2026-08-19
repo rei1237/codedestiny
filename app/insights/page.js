@@ -145,6 +145,16 @@ export default async function InsightsPage() {
     { href: "/insights/famous-saju/", label: "유명인 사주 아카이브" },
   ];
 
+  // 비교 문서. 🔴 2026-08-20 실측: /compare/ 세 문서 전부 사이트맵에만 있고 인바운드 내부
+  // 링크가 0건이었다(git grep, app·index.html·js·lib 전수) — 색인은 되지만 크롤 경로가 없었다.
+  // FEATURE_GUIDES 에 섞지 않는다: 그 배열은 verify-adsense-readiness 의 featureGuideRoutes 와
+  // 같은 집합이어야 하므로 항목을 더하면 그 가드가 깨진다.
+  const compareDocs = [
+    { href: "/compare/fortune-apps/", label: "운세 앱마다 답이 다른 이유" },
+    { href: "/compare/saju-vs-ziwei/", label: "사주와 자미두수는 무엇이 다른가" },
+    { href: "/compare/sukuyo-vs-vedic/", label: "숙요점과 베다 점성술은 같은 27수를 왜 다르게 읽는가" },
+  ];
+
   return (
     <>
       <InsightsCosmicRouteClient
@@ -169,6 +179,15 @@ export default async function InsightsPage() {
             {topicHubs.map((topic) => (
               <li key={topic.href}>
                 <a href={topic.href}>{topic.label}</a>
+              </li>
+            ))}
+          </ul>
+        </nav>
+        <nav aria-label="체계 비교 문서">
+          <ul>
+            {compareDocs.map((doc) => (
+              <li key={doc.href}>
+                <a href={doc.href}>{doc.label}</a>
               </li>
             ))}
           </ul>
