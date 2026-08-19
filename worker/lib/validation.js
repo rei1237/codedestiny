@@ -1,3 +1,7 @@
+// 번호 정규화는 저장 경로(worker/lib/pii-crypto.js)와 **같은 규칙**이어야 한다 —
+// 여기서 통과시킨 표기를 저장 쪽이 다시 ""로 접으면 검증을 지난 요청이 조용히 번호 없이 저장된다.
+import { normalizeKoreanPhoneNumber } from "./pii-crypto.js";
+
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const birthDateRegex = /^\d{4}-\d{2}-\d{2}$/;
 const birthTimeRegex = /^(?:[01]\d|2[0-3]):[0-5]\d$/;
@@ -148,6 +152,8 @@ export function validateRegisterPayload(payload = {}) {
   const name = String(payload.name || "").trim();
   const email = String(payload.email || "").trim().toLowerCase();
   const password = String(payload.password || "");
+  // 구버전 앱이 phone 으로 보내던 것을 계속 받는다(현재 웹은 phoneNumber 로 보낸다).
+  const phoneNumber = normalizeKoreanPhoneNumber(payload.phoneNumber || payload.phone);
   const ageAttested = payload.ageAttested === true;
   const termsAccepted = payload.termsAccepted === true;
   const privacyAccepted = payload.privacyAccepted === true;
@@ -155,6 +161,8 @@ export function validateRegisterPayload(payload = {}) {
   if (!name || name.length < 2) errors.push("Name must be at least 2 characters.");
   if (name.length > 40) errors.push("Name must be 40 characters or fewer.");
   if (!emailRegex.test(email)) errors.push("Email format is invalid.");
+  // 🔴 휴대폰 번호는 필수다(2026-08-19 정책). 프론트 우회를 막기 위해 서버에서도 판정한다.
+  if (!phoneNumber) errors.push("Phone number is invalid.");
   errors.push(...validateNewPassword(password, { email, name }).errors);
   if (!termsAccepted) errors.push("Terms acceptance is required.");
   if (!privacyAccepted) errors.push("Privacy policy acceptance is required.");
@@ -168,6 +176,7 @@ export function validateRegisterPayload(payload = {}) {
       name,
       email,
       password,
+      phoneNumber,
       ageAttested,
       termsAccepted,
       privacyAccepted,

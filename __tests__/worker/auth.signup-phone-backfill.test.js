@@ -26,6 +26,7 @@ const mockDecryptPhoneNumber = jest.fn(async (value) => {
   return /^01\d{8,9}$/.test(stored) ? stored : "";
 });
 
+const mockHashPhoneNumber = jest.fn(async (value) => (value ? "hash(" + value + ")" : ""));
 const mockUserSave = jest.fn(async () => undefined);
 const mockUserCreate = jest.fn(async (doc) => ({ ...doc, _id: "64f0a1b2c3d4e5f678901234" }));
 const mockUserFindOne = jest.fn(async () => null);
@@ -59,6 +60,7 @@ jest.unstable_mockModule("../../worker/lib/pii-crypto.js", () => ({
     return /^01\d{8,9}$/.test(digits) ? digits : "";
   }),
   maskKoreanPhoneNumber: jest.fn(() => ""),
+  hashPhoneNumber: mockHashPhoneNumber,
   isEncryptedPiiValue: jest.fn((value) => String(value || "").startsWith(ENCRYPTED_PREFIX)),
   ENCRYPTED_PII_PATTERN: /^v1:.+$/,
 }));
@@ -156,7 +158,9 @@ function makeExistingSocialUser(storedPhone) {
 }
 
 describe("소셜 가입 마무리 — 기존 계정 분기", () => {
-  test("사용자가 입력한 번호가 공급자 값보다 우선 저장된다", async () => {
+  // 🔴 2026-08-19 정책: 공급자 값이 사용자 입력값을 이긴다. 공급자 값은 우리 서버가 카카오/네이버
+  // API 에서 직접 받아 티켓에 서명해 둔 것이라, 폼으로 올라온 값보다 신뢰도가 높다.
+  test("공급자가 준 번호가 사용자 입력값보다 우선 저장된다", async () => {
     const existing = makeExistingSocialUser("");
     mockUserFindOne.mockResolvedValueOnce(existing);
 
@@ -167,13 +171,32 @@ describe("소셜 가입 마무리 — 기존 계정 분기", () => {
       { createIfMissing: true, signupProfile: { name: "Social User", phoneNumber: TYPED_PHONE } },
     );
 
-    expect(mockEncryptPhoneNumber).toHaveBeenCalledWith(TYPED_PHONE, ENV);
-    expect(mockEncryptPhoneNumber).not.toHaveBeenCalledWith(PROVIDER_PHONE, ENV);
-    expect(existing.phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${TYPED_PHONE})`);
+    expect(mockEncryptPhoneNumber).toHaveBeenCalledWith(PROVIDER_PHONE, ENV);
+    expect(mockEncryptPhoneNumber).not.toHaveBeenCalledWith(TYPED_PHONE, ENV);
+    expect(existing.phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${PROVIDER_PHONE})`);
+    expect(existing.phoneHash).toBe(`hash(${PROVIDER_PHONE})`);
     expect(mockUserSave).toHaveBeenCalled();
   });
 
-  test("입력값이 없으면 공급자 값으로 백필하는 기존 동작은 유지된다", async () => {
+  // 🔴 백필은 로그인의 곁다리다 — 다른 계정이 쓰는 번호를 만나도 로그인 자체는 살아야 한다.
+  test("다른 계정이 쓰는 번호면 백필만 조용히 건너뛴다", async () => {
+    const existing = makeExistingSocialUser("");
+    mockUserFindOne.mockResolvedValueOnce(existing);
+    mockCollectionFindOne.mockResolvedValueOnce({ _id: "someone-else" });
+
+    const result = await authRoutes.__authTestUtils.findOrCreateSocialUser(
+      "google",
+      { providerId: "g-1", email: "social@example.com", phoneNumber: PROVIDER_PHONE, emailVerified: true },
+      ENV,
+      { createIfMissing: true },
+    );
+
+    expect(result.user).toBe(existing);
+    expect(existing.phoneNumber).toBe("");
+    expect(mockUserSave).not.toHaveBeenCalled();
+  });
+
+  test("공급자가 번호를 안 주면 사용자 입력값으로 백필한다", async () => {
     const existing = makeExistingSocialUser("");
     mockUserFindOne.mockResolvedValueOnce(existing);
 
@@ -221,30 +244,89 @@ function buildRegisterRequest(overrides = {}) {
 }
 
 /**
- * 2026-08-15 정책 전환: 가입 화면이 번호를 묻지 않는다. 서버는 번호 없는 본문을 거절하면 안 되고,
- * 그 계정은 phoneNumber: "" 로 만들어져 첫 단건결제 때 POST /api/me/payment-phone 로 1회 채운다.
- * 예전에는 두 가입 경로가 각각 400 invalid_phone_number 로 막았다.
+ * 2026-08-19 정책: 휴대폰 번호는 회원가입 필수 항목이다(카카오 개인정보 동의항목 심사 대응 —
+ * "자체 회원가입에서도 전화번호를 수집한다"를 코드로 만족시키기 위해서다).
+ * 직전 정책(2026-08-15)은 "가입 화면이 번호를 묻지 않고 첫 결제 때 1회 받는다"였고, 그때는
+ * 번호 없는 본문을 거절하면 안 됐다. 이 describe 가 그 뒤집힌 계약을 고정한다.
  */
-describe("번호 없는 가입", () => {
-  test("이메일 가입 — 번호가 없어도 계정이 만들어진다", async () => {
+describe("번호 필수 가입", () => {
+  test("이메일 가입 — 번호가 없으면 phone_required 로 거절한다", async () => {
     const request = buildRegisterRequest({ phoneNumber: undefined });
     const response = await authRoutes.__authTestUtils.handleRegister(request, ENV);
 
-    expect(response.status).toBe(201);
-    expect(mockUserCreate).toHaveBeenCalledTimes(1);
-    expect(mockUserCreate.mock.calls[0][0].phoneNumber).toBe("");
-    // 🔴 번호가 없으면 암호화 키를 만질 이유도 없다. 여기서 호출되면 키 부재가 곧 가입 실패가 된다.
-    expect(mockEncryptPhoneNumber).toHaveBeenCalledWith("", ENV);
+    expect(response.status).toBe(400);
+    // 🔴 뭉뚱그린 invalid_request_body 로 내보내면 클라이언트가 "이름·비밀번호 확인"으로 접는다.
+    expect((await response.json()).code).toBe("phone_required");
+    expect(mockUserCreate).not.toHaveBeenCalled();
   });
 
-  test("이메일 가입 — 번호를 실어 보내면(구버전 앱) 여전히 암호화 저장한다", async () => {
+  // 🔴 앱은 dist/ 를 통째로 번들하므로 스토어에 남은 구버전 앱에는 번호 입력칸이 아예 없다.
+  // "정확히 입력해 주세요"만 보내면 입력할 곳이 없어 영영 막힌다.
+  test("구버전 앱에는 업데이트 안내를 준다", async () => {
+    const request = new Request("https://example.com/api/auth/register", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        "cf-connecting-ip": "203.0.113.78",
+        // 앱 판정은 런타임 헤더 + 허용 Origin 조합이다(isMobileAppAuthRequest).
+        "x-code-destiny-runtime": "mobile-app",
+        origin: "https://localhost",
+      },
+      body: JSON.stringify({
+        name: "Tester",
+        email: "app@example.com",
+        password: "Quiet!Harbor42",
+        ageAttested: true,
+        termsAccepted: true,
+        privacyAccepted: true,
+      }),
+    });
+    const response = await authRoutes.__authTestUtils.handleRegister(request, ENV);
+    const payload = await response.json();
+
+    expect(response.status).toBe(400);
+    expect(payload.code).toBe("phone_required");
+    expect(payload.message).toContain("업데이트");
+  });
+
+  test("이메일 가입 — 형식이 어긋난 번호도 거절한다", async () => {
+    for (const phoneNumber of ["02-123-4567", "0101234", "번호없음"]) {
+      jest.clearAllMocks();
+      const response = await authRoutes.__authTestUtils.handleRegister(buildRegisterRequest({ phoneNumber }), ENV);
+      expect(response.status).toBe(400);
+      expect(mockUserCreate).not.toHaveBeenCalled();
+    }
+  });
+
+  test("이메일 가입 — 번호는 암호화 봉투와 해시를 함께 저장한다", async () => {
     const response = await authRoutes.__authTestUtils.handleRegister(buildRegisterRequest(), ENV);
 
     expect(response.status).toBe(201);
-    expect(mockUserCreate.mock.calls[0][0].phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${TYPED_PHONE})`);
+    const created = mockUserCreate.mock.calls[0][0];
+    expect(created.phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${TYPED_PHONE})`);
+    // 🔴 해시가 빠지면 그 계정은 unique 인덱스에 잡히지 않아 중복 차단에 구멍이 난다.
+    expect(created.phoneHash).toBe(`hash(${TYPED_PHONE})`);
+    expect(created.phoneSource).toBe("signup");
+    // 번호 수집 동의는 계정 생성과 같은 쓰기에 담긴다(개인정보 보호법 제22조 입증책임).
+    expect(created.legalConsents.phoneAcceptedAt).toBeInstanceOf(Date);
+  });
+
+  test("이메일 가입 — 다른 계정이 쓰는 번호면 409 로 거절하고 계정을 만들지 않는다", async () => {
+    mockCollectionFindOne
+      .mockResolvedValueOnce(null)                    // 이메일 중복 조회
+      .mockResolvedValueOnce({ _id: "someone-else" }); // 번호 선점 조회
+
+    const response = await authRoutes.__authTestUtils.handleRegister(buildRegisterRequest(), ENV);
+
+    expect(response.status).toBe(409);
+    expect((await response.json()).code).toBe("duplicate_phone");
+    expect(mockUserCreate).not.toHaveBeenCalled();
   });
 
   test("소셜 가입 — 공급자도 사용자도 번호를 안 주면 번호 없이 생성된다", async () => {
+    // 🔴 이 갈래는 계정 생성 함수의 계약이고, "둘 다 없으면 거절"은 그 앞단
+    // (handleOAuthCompleteSignup)이 판정한다 — 소셜 로그인 백필 경로가 같은 함수를 쓰기 때문에
+    // 여기서 던지면 번호 없는 기존 회원의 로그인까지 막힌다.
     await authRoutes.__authTestUtils.findOrCreateSocialUser(
       "google",
       { providerId: "g-2", email: "nophone@example.com", phoneNumber: "", emailVerified: true },
@@ -258,7 +340,7 @@ describe("번호 없는 가입", () => {
     expect(mockEncryptPhoneNumber).not.toHaveBeenCalled();
   });
 
-  test("소셜 가입 — 공급자가 번호를 주면 암호화해 저장한다", async () => {
+  test("소셜 가입 — 공급자가 번호를 주면 암호화·해시해 저장한다", async () => {
     await authRoutes.__authTestUtils.findOrCreateSocialUser(
       "kakao",
       { providerId: "k-2", email: "withphone@example.com", phoneNumber: PROVIDER_PHONE, emailVerified: true },
@@ -267,7 +349,35 @@ describe("번호 없는 가입", () => {
     );
 
     expect(mockEncryptPhoneNumber).toHaveBeenCalledWith(PROVIDER_PHONE, ENV);
-    expect(mockUserCreate.mock.calls[0][0].phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${PROVIDER_PHONE})`);
+    const created = mockUserCreate.mock.calls[0][0];
+    expect(created.phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${PROVIDER_PHONE})`);
+    expect(created.phoneHash).toBe(`hash(${PROVIDER_PHONE})`);
+    // 공급자가 준 값과 사용자가 적어 넣은 값을 구분해 둔다(카카오 심사 보고용).
+    expect(created.phoneSource).toBe("social");
+  });
+
+  test("소셜 가입 — 사용자가 입력한 번호로 만들어지면 출처는 signup 이다", async () => {
+    await authRoutes.__authTestUtils.findOrCreateSocialUser(
+      "google",
+      { providerId: "g-3", email: "typed@example.com", phoneNumber: "", emailVerified: true },
+      ENV,
+      { createIfMissing: true, signupProfile: { name: "Typed", phoneNumber: TYPED_PHONE } },
+    );
+
+    expect(mockUserCreate.mock.calls[0][0].phoneSource).toBe("signup");
+  });
+
+  test("소셜 가입 — 다른 계정이 쓰는 번호면 계정을 만들지 않는다", async () => {
+    mockCollectionFindOne.mockResolvedValueOnce({ _id: "someone-else" });
+
+    await expect(authRoutes.__authTestUtils.findOrCreateSocialUser(
+      "kakao",
+      { providerId: "k-3", email: "dup@example.com", phoneNumber: PROVIDER_PHONE, emailVerified: true },
+      ENV,
+      { createIfMissing: true, signupProfile: { name: "Dup", phoneNumber: "" } },
+    )).rejects.toThrow("social_duplicate_phone");
+
+    expect(mockUserCreate).not.toHaveBeenCalled();
   });
 });
 
@@ -296,6 +406,8 @@ describe("이메일 재가입(idempotent) 경로", () => {
     expect(backfillCall[1].$set.phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${TYPED_PHONE})`);
     // 🔴 평문이 그대로 저장되면 안 된다.
     expect(backfillCall[1].$set.phoneNumber).not.toBe(TYPED_PHONE);
+    // 🔴 해시를 같은 쓰기에 담지 않으면 이 계정만 중복 차단에서 빠진다.
+    expect(backfillCall[1].$set.phoneHash).toBe(`hash(${TYPED_PHONE})`);
     // 그 사이 다른 요청이 채웠으면 덮어쓰지 않도록 필터에 읽은 값이 함께 들어간다.
     expect(backfillCall[0]).toHaveProperty("phoneNumber");
   });

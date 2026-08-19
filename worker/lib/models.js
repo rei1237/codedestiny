@@ -21,6 +21,17 @@ const userSchema = new mongoose.Schema({
   // 어느 한쪽만 허용하면 그쪽이 곧바로 저장/검증 실패가 된다.
   phoneNumber: { type: String, default: "", trim: true, match: /^$|^01\d{8,9}$|^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$/ },
   phoneUpdatedAt: { type: Date },
+  // 중복 가입 판정 전용 결정적 해시(worker/lib/pii-crypto.js hashPhoneNumber). 암호문은 IV 가
+  // 레코드마다 랜덤이라 같은 번호끼리도 값이 달라 비교에 쓸 수 없어서 이 필드가 따로 있다.
+  // 🔴 phoneNumber 를 쓰는 곳은 반드시 이 필드도 같은 쓰기에서 갱신한다 — 한 곳이라도 빠지면
+  // 아래 unique 인덱스가 그 계정을 못 보고 중복 차단에 조용한 구멍이 생긴다.
+  // 전수 강제: scripts/verify-signup-phone-required.mjs
+  phoneHash: { type: String, default: "", trim: true, match: /^$|^[a-f0-9]{64}$/ },
+  // 번호의 출처. 카카오 심사 대응("공급자가 준 값인가, 자체 가입에서 받은 값인가")을 실측으로
+  // 답하기 위한 기록이며 권한·게이팅 판정에는 쓰지 않는다.
+  // 🔴 phoneVerified 류 필드를 여기 만들지 말 것 — 이 서비스에는 SMS/OTP·본인확인 절차가
+  // 아예 없어서(2026-08-19 전수 검색) "검증됨"을 주장하는 순간 그 필드가 거짓이 된다.
+  phoneSource: { type: String, enum: ["", "signup", "social", "checkout"], default: "" },
   passwordHash: { type: String, required: false, default: "", select: false },
   birthDate: { type: String, default: "", match: /^$|^\d{4}-\d{2}-\d{2}$/ },
   birthTime: { type: String, default: "", match: /^$|^(?:[01]\d|2[0-3]):[0-5]\d$/ },
@@ -1610,6 +1621,20 @@ fusionFortuneConsultationSchema.index({ userId: 1, createdAt: -1 });
     },
   );
 });
+
+// 한 번호로 여러 계정을 만들지 못하게 막는다. phoneHash 의 기본값이 빈 문자열이라 sparse 로는
+// 안 되고(번호 없는 계정이 전부 서로 충돌한다) 비어 있지 않은 값만 보는 partial 필터를 쓴다 —
+// socialAccounts.<provider>.id 인덱스와 같은 이유·같은 모양이다.
+// NOTE: db.js 는 autoIndex:false 로 연결하므로 이 선언만으로는 인덱스가 생기지 않는다 —
+// scripts/migrate-backfill-phone-hash.mjs 로 해시를 채우고 중복이 없음을 확인한 뒤
+// scripts/migrations/20260819-add-phone-hash-unique-index.mjs 를 1회 실행할 것.
+userSchema.index(
+  { phoneHash: 1 },
+  {
+    unique: true,
+    partialFilterExpression: { phoneHash: { $exists: true, $type: "string", $gt: "" } },
+  },
+);
 
 // 월정석 만료 스윕(runMonthlyCreditExpiryTask)이 만료 예정 lot을 가진 유저만 좁혀 조회하도록.
 // NOTE: db.js는 autoIndex:false로 연결하므로 이 선언만으로는 실제 인덱스가 생성되지 않는다 —
