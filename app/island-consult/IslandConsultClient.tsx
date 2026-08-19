@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -572,7 +573,7 @@ export default function IslandConsultClient() {
             </div>
           ) : (
             <>
-              <label className="ic-field"><span>생년월일</span><input type="date" value={form.birthDate} min="1900-01-01" max="2100-12-31" onChange={(e) => patchForm({ birthDate: e.target.value })} required /></label>
+              <label className="ic-field"><span>생년월일</span><input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => patchForm({ birthDate: nextBirthDate }))} required /></label>
               <label className="ic-field"><span>태어난 시간</span><input type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTime: e.target.value })} /></label>
               <label className="ic-check"><input type="checkbox" checked={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTimeUnknown: e.target.checked })} /> 태어난 시간을 몰라요 (정오 기준)</label>
               <div className="ic-segrow">

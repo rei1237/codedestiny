@@ -1,8 +1,9 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { formatBirthDateDigits, normalizeBirthDateFromDigits, normalizeBirthDateInput } from "@/lib/birthDateInput";
+import { normalizeBirthDateInput } from "@/lib/birthDateInput";
 import MobileStepFortuneForm from "./MobileStepFortuneForm";
 
 const MAIN_HERO_FORTUNE_FORM_TEXT_TRANSLATIONS = {
@@ -138,13 +139,7 @@ export default function MainHeroFortuneForm({ onProfileReady }: Props) {
           <label className="text-xs font-semibold text-violet-900">
             생년월일
             <input
-              type="text"
-              inputMode="numeric"
-              maxLength={8}
-              pattern="[0-9]{8}"
-              placeholder="YYYYMMDD"
-              value={formatBirthDateDigits(state.birthDate)}
-              onChange={(e) => setField("birthDate", normalizeBirthDateFromDigits(e.target.value))}
+              {...birthDateTextInputProps(state.birthDate, (nextBirthDate) => setField("birthDate", nextBirthDate))}
               className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
             />
           </label>

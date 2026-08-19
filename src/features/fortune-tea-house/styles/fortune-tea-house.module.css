@@ -5304,7 +5304,7 @@
   outline: none;
 }
 
-.questionInput[type="date"],
+.questionInput[data-cd-birth-date],
 .questionInput[type="time"] {
   min-width: 0;
   font-variant-numeric: tabular-nums;

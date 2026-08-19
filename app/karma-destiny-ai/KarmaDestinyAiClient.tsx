@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { CalendarDays, Clock3, Download, Loader2, MapPin, Maximize2, Moon, Send, Sparkles, WalletCards, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type FormEvent } from "react";
 import {
@@ -1004,7 +1005,7 @@ export default function KarmaDestinyAiPage() {
             </label>
             <label>
               생년월일
-              <input type="date" value={form.birthDate} onChange={updateField("birthDate")} required />
+              <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => { setForm((prev) => ({ ...prev, birthDate: nextBirthDate })); resetAttempt(); })} required />
             </label>
             <label>
               양력/음력

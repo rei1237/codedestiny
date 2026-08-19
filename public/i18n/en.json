@@ -1231,9 +1231,9 @@
       "neoLogoAlt": "Neo mode logo"
     },
     "hero2": {
-      "title": "Don't trust just one reading",
+      "title": "Free Four Pillars and lunar almanac — your chart and today's fortune",
       "lead": "East-West wisdom meets expert insight to interpret your own story.",
-      "primaryCta": "✦ Start Free Reading",
+      "primaryCta": "✦ See Today's Fortune Free",
       "journeyCta": "✦ Start Your Destiny Journey"
     },
     "oneStep": {
@@ -1298,7 +1298,7 @@
       "title": "Today's Fortune",
       "lead": "The Saju day pillar, the 27 lunar mansions and the Vedic moon sign — today's auspicious and cautious signs.",
       "gateTitle": "Create a profile card to see today's reading",
-      "gateDesc": "Today's fortune is calculated from your birth date. With a profile card we read the Saju day pillar, the 27 lunar mansions and the Vedic moon sign against your own chart — right down to whether today is a lucky day or a day for caution.",
+      "gateDesc": "Today's fortune is calculated from your birth date. With a profile card we read the Saju day pillar, the 27 lunar mansions and the Vedic moon sign against your own chart — right down to whether today is a lucky day or a day for caution. Lunar-to-solar conversion and solar-term times come first from the Korea Astronomy and Space Science Institute (KASI) calendar data.",
       "gateCta": "Create a profile card",
       "tabsAria": "Switch today's fortune system",
       "tabSaju": "Saju",
@@ -1315,7 +1315,7 @@
     },
     "concernPick": {
       "title": "What's on your mind right now?",
-      "lead": "Pick one concern and we'll show you how to check it for free, plus the single reading that fits it best.",
+      "lead": "Pick one concern and we'll show you how to check it for free, plus the single reading that fits it best. That pick comes from first looking at where the concern sits in your chart.",
       "love": "Love & connection",
       "person": "A specific person",
       "money": "Money",
@@ -6414,7 +6414,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Path of Starlight Reading",
-        "kbm4p3d": "We read Four Pillars, Zi Wei Dou Shu, Vedic astrology, Sukuyo, Western astrology and tarot separately, then cross-check whether they point to the same place."
+        "kbm4p3d": "We build the eight characters by rules set by a practitioner with ten years in Myeongni, then read the strength of the day master, the useful god and the flow of the luck pillars."
       }
     },
     "premiumVvipCollection": {
