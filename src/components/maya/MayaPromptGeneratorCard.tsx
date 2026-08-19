@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Copy, LockKeyhole, RefreshCw, WandSparkles } from "lucide-react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
@@ -174,12 +175,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
         </label>
         <label className="block min-w-0 text-sm font-bold text-[#eee5cb]">
           생년월일, 선택
-          <input
-            type="date"
-            value={birthDate}
-            onChange={(event) => setBirthDate(event.target.value)}
-            className="mt-2 w-full rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm text-[#f8efd2] outline-none transition focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70"
-          />
+          <input {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} className="mt-2 w-full rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm text-[#f8efd2] outline-none transition focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70" />
         </label>
         <label className="block min-w-0 text-sm font-bold text-[#eee5cb] md:col-span-2">
           상담 주제

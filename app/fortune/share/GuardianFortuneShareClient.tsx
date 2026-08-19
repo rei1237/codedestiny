@@ -168,7 +168,7 @@ export default function GuardianFortuneShareClient() {
 
         <section className={styles.cta} aria-labelledby="guardianShareCtaTitle">
           <h2 id="guardianShareCtaTitle">내 생년월일로 다시 보면 더 구체적으로 볼 수 있어요.</h2>
-          <p>첫 1회는 로그인 없이 무료로 확인할 수 있어요.</p>
+          <p>로그인하면 첫 1회를 무료로 확인할 수 있어요.</p>
           <div className={styles.ctaGrid}>
             <a className={styles.primaryButton} href={modeLink}>내 생년월일로 다시 보기</a>
             <a className={styles.secondaryButton} href={getModeLink("yeoni", snapshot.topic)}>나도 연이에게 물어보기</a>

@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import {
   AlertCircle,
   Check,
@@ -1166,13 +1167,7 @@ function PersonFields({
       <div className="grid gap-4 sm:grid-cols-2">
         <label className="grid gap-2">
           <span className="text-sm font-bold text-[var(--ls-text)]">{label} 생년월일{required ? "" : " · 선택"}</span>
-          <input
-            type="date"
-            value={value.birthDate}
-            onChange={(event) => onChange("birthDate", event.target.value)}
-            disabled={disabled}
-            className={inputClass}
-          />
+          <input {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => onChange("birthDate", nextBirthDate))} disabled={disabled} className={inputClass} />
         </label>
         <label className="grid gap-2">
           <span className="text-sm font-bold text-[var(--ls-text)]">{label} 출생시간{required ? "" : " · 선택"}</span>

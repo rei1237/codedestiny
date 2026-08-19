@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent } from "react";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -1023,7 +1024,7 @@ export default function ZiweiAiPage() {
             </label>
             <label>
               <span>생년월일</span>
-              <input type="date" value={form.birthDate} onChange={(event) => update("birthDate", event.target.value)} disabled={busy} />
+              <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => update("birthDate", nextBirthDate))} disabled={busy} />
             </label>
           </div>
 

@@ -6,6 +6,7 @@ import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
 import { getPexelsInsightImage } from "../../../lib/server/pexels";
 import ContentIntegrityNote from "../../components/ContentIntegrityNote";
+import { FusionCrossSell } from "../../components/FusionCrossSell";
 
 export const dynamicParams = false;
 
@@ -220,6 +221,8 @@ export default async function InsightArticlePage({ params }) {
         )}
 
         <ContentIntegrityNote contentSource={article.contentSource} datePublished={article.publishedAt || article.updatedAt} dateModified={article.updatedAt || article.publishedAt} />
+
+        <FusionCrossSell fromPath={`/insights/${slug}`} tone="neo" />
 
         {hub ? (
           <section className="mt-10 rounded-3xl border border-amber-200/25 bg-amber-100/[0.05] p-5 md:p-7">

@@ -123,3 +123,15 @@ export function validateBirthDateWithAge(birthDateStr: string): {
 
   return { isValid: true, age, error: null };
 }
+
+/**
+ * 입력 중 자동 하이픈 마스크. 숫자만 남기고 8자리까지 잘라 YYYY-MM-DD 모양으로 만든다.
+ * 4자리 이하에서는 하이픈을 붙이지 않는다 — 붙이면 연도를 다 치기도 전에 커서가 튄다.
+ * 유효성은 보지 않는다(1991-02-31 도 그대로 통과). 판정은 normalizeBirthDateInput 의 몫이다.
+ */
+export function maskBirthDateInput(value: unknown): string {
+  const digits = String(value ?? "").replace(/[^0-9]/g, "").slice(0, 8);
+  if (digits.length <= 4) return digits;
+  if (digits.length <= 6) return `${digits.slice(0, 4)}-${digits.slice(4)}`;
+  return `${digits.slice(0, 4)}-${digits.slice(4, 6)}-${digits.slice(6)}`;
+}

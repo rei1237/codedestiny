@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import React, { useEffect, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -374,14 +375,7 @@ export default function EmailSubscriptionSection({ birthYear }: EmailSubscriptio
             {showBirth && (
               <div className="space-y-2 rounded-2xl border border-indigo-100 bg-white/70 p-3">
                 <div className="flex gap-2">
-                  <input
-                    type="date"
-                    value={birthDate}
-                    onChange={(e) => setBirthDate(e.target.value)}
-                    disabled={loading || status === "success"}
-                    aria-label={copy.birthToggle}
-                    className="min-w-0 flex-1 rounded-xl border border-indigo-100 bg-white px-3 py-2.5 text-sm font-medium focus:border-indigo-500 focus:outline-none"
-                  />
+                  <input {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} disabled={loading || status === "success"} aria-label={copy.birthToggle} className="min-w-0 flex-1 rounded-xl border border-indigo-100 bg-white px-3 py-2.5 text-sm font-medium focus:border-indigo-500 focus:outline-none" />
                   <input
                     type="time"
                     value={birthTime}

@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { BookOpen, Download, Loader2, RefreshCcw, ShieldCheck, Sparkles } from "lucide-react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -759,14 +760,7 @@ export default function PremiumSalesContent() {
             <div className="grid grid-cols-2 gap-3">
               <label className="grid gap-2 text-sm font-bold text-[#f4dfb7]">
                 생년월일
-                <input
-                  type="date"
-                  value={form.birthDate}
-                  min={MIN_BIRTH_DATE}
-                  max={MAX_BIRTH_DATE}
-                  onChange={(event) => updateForm("birthDate", event.target.value)}
-                  className="min-h-11 border border-[#d8b56d]/25 bg-black/25 px-3 text-base text-[#fff8ed] outline-none transition focus:border-[#f2cf82]"
-                />
+                <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => updateForm("birthDate", nextBirthDate))} min={MIN_BIRTH_DATE} max={MAX_BIRTH_DATE} className="min-h-11 border border-[#d8b56d]/25 bg-black/25 px-3 text-base text-[#fff8ed] outline-none transition focus:border-[#f2cf82]" />
               </label>
               <label className="grid gap-2 text-sm font-bold text-[#f4dfb7]">
                 출생시간
