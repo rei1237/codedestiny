@@ -6,6 +6,7 @@ import {
   buildPsychotestExternalUrl,
   getPsychotestBySlug,
 } from "../../../lib/psychotest-catalog";
+import ContentIntegrityNote from "../../components/ContentIntegrityNote";
 import DeferredShareWidget from "../../components/DeferredShareWidget";
 import DestinyBiasPromoSection from "../_components/DestinyBiasPromoSection";
 
@@ -265,6 +266,10 @@ export default function PsychotestDetailPage({ params }: PageProps) {
           ))}
         </div>
       </section>
+
+      {/* 카탈로그 항목을 같은 틀에 대입해 만든 페이지다. 한 건씩 검토하지 않으므로
+          그렇게 주장하지 않는다(그래서 이 라우트는 noindex 다). */}
+      <ContentIntegrityNote contentSource="template" tone="light" />
 
       <DeferredShareWidget
         title={test.title}

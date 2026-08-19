@@ -1,0 +1,245 @@
+# 스테이징 워커 설정 — worker/wrangler.toml 의 파생본이다.
+#
+# 🔴 프로덕션과의 차이는 scripts/verify-worker-config-parity.mjs 가 허용목록으로 고정한다.
+# 허용목록에 없는 키가 한쪽에만 있거나 값이 다르면 CI 가 실패한다. 새 vars 를 넣을 때는
+# 프로덕션 파일에도 같은 키를 넣을 것 — "스테이징에서만 켜져 있는 플래그"를 막는 것이 그 가드의 목적이다.
+#
+# 별도 파일인 이유: wrangler 의 [env.*] 는 vars·r2_buckets·ai 를 상속하지 않아 어차피 전부 다시
+# 적어야 하고, worker/wrangler.toml 의 구조(라우트·크론·바인딩) 변경은 CLAUDE.md 규칙 4 가 막는다.
+# scripts/deploy-worker.mjs 의 정규식 파서도 [env.*] 를 모른다.
+#
+# 🔴 크론이 비어 있는 것은 실수가 아니다. 같은 스케줄을 스테이징에서도 돌리면 일일 태스크와
+# 결제 재조정이 이중으로 실행된다(DB 는 갈라져 있지만 PortOne 테스트 채널 조회는 겹친다).
+#
+# 🔴 AI 실호출 차단은 여기 값만으로 끝나지 않는다 — 스테이징 워커에 GEMINIF_API_KEY 를 넣지
+# 않는 것이 실제 잠금이다. LLM_DRY_RUN 은 빌드/CI 전용이라 런타임에 아무 일도 하지 않는다
+# (worker/ 안에 소비처 0건, 2026-08-20 git grep 실측). 생성 품질을 봐야 할 때만 키를 넣고
+# 위 세 값(WORKERS_AI_ENABLED·GUARDIAN_FORTUNE_LLM_PROVIDER·ENABLE_FUSION_FORTUNE_MOCK_FLOW)을
+# 프로덕션과 같게 되돌린 뒤 재배포하고, 확인이 끝나면 되돌린다.
+name = "code-destiny-web-staging"
+main = "index.js"
+compatibility_date = "2026-05-02"
+# no_handle_cross_request_promise_resolution 플래그는 제거했다: 이 플래그가 켜지면 교차 요청 프로미스를
+# 취소하지 않고 '영원히 대기'시켜, 이전 요청 컨텍스트의 I/O에 묶인 프로미스가 완료되지 못해 Cloudflare가
+# "Promise will never complete"로 요청을 죽였다(hang → 500). 플래그를 끄면(기본값) 교차 요청 프로미스는
+# 빠르게 취소되고, withMongoRetry가 이 요청 컨텍스트에서 새 연결을 세워 재시도해 자가복구한다.
+# (스트리밍 모니터의 교차요청 I/O는 db.js serverMonitoringMode:"poll"로 이미 근원 제거.)
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+# 🔴 여기에 두는 이유 — 프로덕션 업로드는 `wrangler versions upload --config worker/wrangler.toml`
+# (scripts/deploy-safe.mjs)이고 크기 측정은 `npm run build:worker`(wrangler deploy --dry-run)다.
+# 두 곳에 `--minify` 플래그를 따로 붙이면 한쪽만 고쳤을 때 **가드가 프로덕션이 안 쓰는 값을 잰다.**
+# 설정 파일에 두면 두 경로가 같은 것을 본다.
+#
+# 실측(2026-08-14): gzip 2.91 MiB(무료 한도 3 MiB 의 97.0%, 여유 0.09) → 2.36 MiB(78.7%, 여유 0.64).
+# 켜기 전에는 다음 워커 추가가 예산을 넘겨 PR CI 를 막는 위치였다.
+#
+# 안전성 확인: wrangler 는 minify 와 함께 esbuild `keepNames` 를 유지하므로 함수명에 의존하는 코드
+# (mongoose 등)가 살아 있고, `TokenExpiredError`·`MongoServerError` 같은 판별 문자열은 리터럴이라
+# 맹글링되지 않는다. `/api` 경로 문자열 254개가 minify 전후 완전히 동일했다.
+#
+# 대가: 프로덕션 스택트레이스가 읽기 어려워진다. 필요해지면 `upload_source_maps` 를 검토하되,
+# 소스맵이 3 MiB 한도에 산입되는지 **먼저 실측**할 것(미검증).
+minify = true
+routes = [
+  { pattern = "staging-api.code-destiny.com", custom_domain = true },
+  { pattern = "staging.code-destiny.com/api/*", zone_name = "code-destiny.com" },
+]
+
+[ai]
+binding = "AI"
+
+# 이미지 저장소 바인딩.
+# 🔴 대시보드에서만 걸면 안 된다 — wrangler deploy 는 이 설정에 없는 바인딩을 배포에서 제거한다.
+#    이 선언이 통째로 빠져 있던 동안 제보 첨부 업로드(503 ATTACHMENT_STORAGE_NOT_CONFIGURED)와
+#    인사이트 이미지 조회(500)가 모두 죽어 있었다.
+
+# 버그 제보 첨부 전용. 사용자가 올린 사적인 스크린샷이라 공개 자산 버킷과 물리적으로 분리한다.
+[[r2_buckets]]
+binding = "FEEDBACK_IMAGES_BUCKET"
+bucket_name = "bugs-staging"
+
+# 관리자 인사이트 이미지(기존 자산 버킷).
+[[r2_buckets]]
+binding = "INSIGHT_IMAGES_BUCKET"
+bucket_name = "codedestinyassets-staging"
+
+# Non-secret defaults. Secrets and deployment-specific values should be set
+# with `wrangler secret put` or in the Cloudflare dashboard.
+# Turnstile secret:
+# `wrangler secret put TURNSTILE_SECRET_KEY`
+[vars]
+NODE_ENV = "production"
+# 🔴 NODE_ENV 를 development 로 내리지 말 것. worker/lib/auth.js 의 isExplicitLocalDevEnv 가
+# development/test 에서만 dev 시크릿 폴백을 여는데, 스테이징이 그 문을 열면 "실제와 동일"이 깨진다.
+# 환경 구분은 아래 APP_ENV 가 맡는다.
+# 🔴 여기에 달린 것이 하나 더 있다 — worker/routes/billing.js 의 requireDevPaymentTesterAccess 는
+# `NODE_ENV || APP_ENV || DEPLOY_ENV || ENVIRONMENT` 순으로 첫 truthy 를 읽는다. NODE_ENV 가
+# "production" 이라 그 값이 이겨서 /dev-payment-tester(이용권·월정석 무제한 지급구)가 403 으로
+# 닫혀 있다. NODE_ENV 를 "staging" 으로 바꾸면 공개 URL 에서 그 지급구가 열린다.
+APP_ENV = "staging"
+# 프론트와 워커가 같은 오리진(staging.code-destiny.com)이라 평소엔 쓰이지 않지만,
+# staging-api. 직접 호출 경로를 위해 명시한다. worker/index.js 가 CSV 로 읽어 허용목록에 병합한다.
+CORS_ORIGIN = "https://staging.code-destiny.com"
+ACCESS_STATE_ENABLED = "true"
+# 관리자 인증을 통과한 마케팅 월정석 예외 지급 UI/API를 운영에서 활성화한다.
+ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
+# Guardian Fortune uses the API-backed production flow with the real Gemini LLM
+# (GUARDIAN_FORTUNE_LLM_PROVIDER gates worker/lib/guardian-fortune-llm-policy.js;
+# without it the real-LLM flags below are necessary but not sufficient and the
+# route silently falls back to the mock generator).
+ENABLE_GUARDIAN_FORTUNE_API = "true"
+ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
+ENABLE_GUARDIAN_FORTUNE_CREDITS = "true"
+ENABLE_GUARDIAN_FORTUNE_REAL_LLM = "true"
+ALLOW_REAL_GUARDIAN_FORTUNE_LLM = "true"
+GUARDIAN_FORTUNE_LLM_PROVIDER = "mock"
+# Fusion Fortune stays fail-closed until the separate sales, API, and real-LLM
+# activation checklist has been approved and completed in production.
+ENABLE_FUSION_FORTUNE_UI = "true"
+ENABLE_FUSION_FORTUNE_API = "true"
+ENABLE_FUSION_FORTUNE_MOCK_FLOW = "true"
+ENABLE_FUSION_FORTUNE_TICKET_SALES = "true"
+ENABLE_FUSION_FORTUNE_REAL_LLM = "true"
+ALLOW_FUSION_FORTUNE_REAL_LLM = "true"
+AUTH_FRONTEND_BASE_URL = "https://staging.code-destiny.com"
+SITE_BASE_URL = "https://staging.code-destiny.com"
+AUTH_API_BASE_URL = "https://staging.code-destiny.com"
+AUTH_URL = "https://staging.code-destiny.com"
+NEXTAUTH_URL = "https://staging.code-destiny.com"
+GOOGLE_OAUTH_CALLBACK = "https://staging.code-destiny.com/api/auth/oauth/google/callback"
+NAVER_OAUTH_CALLBACK = "https://staging.code-destiny.com/api/auth/oauth/naver/callback"
+KAKAO_OAUTH_CALLBACK = "https://staging.code-destiny.com/api/auth/oauth/kakao/callback"
+# 전화번호 제공 동의항목을 OAuth scope 로 요청할 공급자(쉼표 구분). 빈 값이면 요청하지 않는다.
+# 🔴 카카오·네이버 검수 **승인 후에만** 켠다. 승인 전에 켜면 카카오가 authorize 단계에서
+# KOE205(등록되지 않은 scope)로 거절해 카카오 로그인이 전면 중단된다.
+# 승인되면 "kakao" → "kakao,naver" 처럼 공급자별로 따로 켜고, 문제가 생기면 ""로 되돌린다.
+SOCIAL_PHONE_SCOPE_PROVIDERS = ""
+# Gemini 명시적 컨텍스트 캐싱 킬 스위치. 사주 AI 웨이브가 5그룹이 공유하는 불변 접두사를
+# Gemini 쪽에 한 벌만 올려 두고 참조한다(입력 비용 약 -55%). 문제가 생기면 "0" 으로 바꿔
+# 배포만 다시 하면 전체 프롬프트를 보내던 기존 동작으로 즉시 돌아간다.
+GEMINI_CONTEXT_CACHE = "1"
+AUTH_SIGNUP_BONUS_POINTS = "50"
+AUTH_OPERATION_TIMEOUT_MS = "12000"
+# 🔴 아래 세 값과 MONGO_WAIT_QUEUE_TIMEOUT_MS 는 worker/lib/db.js 의 코드 기본값과 **한 세트**다
+#    (2026-08-13 정렬). 앞선 커밋이 코드 기본값만 낮추고 여기를 안 고쳐서, env 가 코드를 이기는 바람에
+#    슬롯 점유 단축이 프로덕션에서 통째로 무효였다. 지렛대는 파생 하한이다 —
+#    attemptTimeoutFloor = serverSelectionTimeoutMS + 3500 (db.js). 8000 이면 하한이 11500 이라
+#    op 예산 8000 을 무시하고 시도당 11.5초를 점유하고, 3000 이면 하한이 6500 이라 8000 이 실효가 된다.
+#    되올리려면 db.js 의 기본값도 같이 올릴 것. 한쪽만 올리면 조용히 원래 병목으로 돌아간다.
+MONGO_SERVER_SELECTION_TIMEOUT_MS = "3000"
+MONGO_CONNECT_TIMEOUT_MS = "5000"
+MONGO_SOCKET_TIMEOUT_MS = "7000"
+MONGO_WORKER_CONNECT_GUARD_MS = "10000"
+MONGO_WORKER_CONNECT_RETRIES = "2"
+# 건강확인 ping 상한. 🔴 3500 → 1000 (2026-08-16). 이 타이머는 "느린 서버를 기다리는 예산"이
+# 아니라 **죽은 커넥션을 얼마나 빨리 포기하는가**다 — 늦게 포기한 만큼이 그대로 결제창 앞 지연이 된다.
+MONGO_PING_TIMEOUT_MS = "1000"
+MONGO_IP_FAMILY = "4"
+MONGO_IP_FAMILY_AUTO_FALLBACK = "true"
+MONGODB_DB_NAME = "code_destiny_staging"
+# ── Atlas M10 커넥션 예산 (2026-08-12 M0 → M10 전환) ──────────────────────────
+# 🔴 여기 값이 곧 프로덕션 값이다. 이 줄들을 지우면 worker/lib/db.js 의 코드 기본값으로 떨어진다
+#    (같은 값으로 맞춰 뒀으니 지워도 동작은 같다). 여기 두는 이유는 하나다 — 장애 중에 배포 없이
+#    되돌릴 수 있어야 하기 때문이다. M0 시절엔 이 노브들이 코드에만 있어서 값 하나 바꾸는 데도
+#    PR + CI + 배포 사이클이 필요했다.
+#
+# M10 의 제약은 M0 와 종류가 다르다:
+#   · 총 연결: 노드당 1,490 (M0 는 500 공유) → 총량은 더 이상 병목이 아니다
+#   · 🔴 신규 커넥션 생성률: **노드당 초당 15개** (M0 에는 없던 제약, M30 이상엔 다시 없다)
+#     초과분은 큐잉되고 포화가 지속되면 드롭된다.
+# 그래서 튜닝 방향이 "커넥션을 아껴 쓴다"에서 "커넥션을 자주 새로 만들지 않는다"로 바뀐다.
+# 아래 값을 만질 때는 항상 Atlas Metrics → Connections 그래프를 함께 볼 것 —
+# 톱니(sawtooth)면 churn 이고, 계단식 상승이면 누수다.
+MONGO_MAX_POOL_SIZE = "10"
+MONGO_PAYMENT_POOL_SIZE = "6"
+# 유휴 소켓 상한. 짧을수록 커넥션 생성률이 올라간다(= 15/s 예산을 태운다).
+# M0 시절 20000 이었던 것을 M10 전환과 함께 되돌렸다. 더 줄이지 말 것.
+MONGO_MAX_IDLE_TIME_MS = "60000"
+# 쿼리 전 건강확인 ping 을 생략해도 되는 최소 간격. 🔴 50000 → 0 (2026-08-16 실측).
+# maxIdleTimeMS 가 좀비 소켓을 막아 준다는 전제로 ping 을 건너뛰고 있었는데, 프로덕션에서
+# **300ms 만에 다시 들어온 요청도 죽은 소켓을 밟았다**(worker/lib/db.js connectDb 웜 분기 주석의
+# 7회 실측표). 원인이 Atlas 유휴 리핑이 아니라 Cloudflare 의 요청 컨텍스트 종료라 유휴 시간과
+# 무관하고, 건너뛴 대가는 쿼리에서 7.8초로 나왔다. 0 = 매 요청 검증.
+# 되돌리기는 이 값을 올리는 것 하나이며, 코드 기본값과 **함께** 움직여야 한다
+# (__tests__/worker/db.vars-code-default-parity.test.js).
+MONGO_PING_MIN_INTERVAL_MS = "0"
+# 동시에 새로 여는 커넥션 수. 15/s 예산에 직접 대응하는 유일한 드라이버 노브다.
+MONGO_MAX_CONNECTING = "2"
+# 🔴 poll 모니터가 노드마다 hello 를 던지는 주기(드라이버 기본 10000). M10 은 3노드라 클라이언트
+# 하나당 초당 0.3회가 **요청과 무관하게** 상시 발생하고, 살아 있는 아이솔레이트 수만큼 배수가 된다
+# (트래픽 없는 새벽에도 Atlas Opcounters 가 평평하게 떠 있는 성분). 30000 으로 3분의 1로 줄인다.
+# 서버 선택은 느려지지 않는다 — 적합한 서버가 없으면 즉시 모니터 확인이 트리거된다.
+MONGO_HEARTBEAT_FREQUENCY_MS = "30000"
+# 자작 admission 게이트. 한도 > 풀 이어야 초과분이 재시도 가능한 waitQueue 로 간다.
+MONGO_MAX_IN_FLIGHT_OPS = "24"
+MONGO_PAYMENT_MAX_IN_FLIGHT_OPS = "12"
+# 위 세 타임아웃과 한 세트(2026-08-13). 소켓 대기 상한이며 op 예산(8000) 안쪽에 있어야 한다.
+MONGO_WAIT_QUEUE_TIMEOUT_MS = "4000"
+# 결제 레인 수립 재시도. 이게 없던 것이 "결제가 한 번에 안 되고 재시도하면 되는" 증상이었다.
+MONGO_PAYMENT_CONNECT_RETRIES = "1"
+MONGO_PAYMENT_CONNECT_GUARD_MS = "9000"
+# Atlas Query Profiler 에서 부하 주체를 가르는 라벨. 둘을 다르게 유지할 것.
+MONGO_APP_NAME = "code-destiny-worker-staging"
+MONGO_PAYMENT_APP_NAME = "code-destiny-payments-staging"
+# ── op 예산 (2026-08-14) ────────────────────────────────────────────────────
+# 여기 있는 값은 전부 worker/lib/db.js 의 코드 기본값과 **같다**. 동작을 바꾸려고 올린 것이 아니라,
+# 장애 중에 배포 없이 되돌릴 수 있는 범위를 커넥션 계층에서 op 계층까지 넓히려고 올렸다.
+# 그 전까지 커넥션 노브(위 블록)는 여기서 되돌릴 수 있었는데 정작 op 예산은 코드에만 있어서,
+# 시도 상한 하나 줄이는 데도 PR + CI + 배포 사이클이 필요했다.
+# 🔴 값을 고칠 때는 db.js 의 기본값도 같이 고칠 것. env 가 코드를 이기므로 한쪽만 고치면
+#    가드가 프로덕션이 안 읽는 값을 지키게 된다. __tests__/worker/db.vars-code-default-parity.test.js
+#    가 두 곳의 일치를 강제한다.
+#
+# 시도당 예산. 파생 하한(serverSelectionTimeoutMS + 3500 = 6500)보다 커야 실효가 있다.
+# 상한은 withMongoRetry 의 clamp(18000)이고, 확정 경로 검산은 attempt×2 + PortOne < 25000(셸 상한)이다.
+MONGO_OP_ATTEMPT_TIMEOUT_MS = "8000"
+# 트랜잭션 CSOT. 드라이버 기본은 120000(mongodb/lib/sessions.js MAX_TIMEOUT)이라, 이게 없으면
+# "사용자에겐 실패라고 답했는데 트랜잭션은 뒤에서 커밋"이 가능해진다. op 예산과 같은 값으로 맞춰 둔다.
+MONGO_TXN_TIMEOUT_MS = "8000"
+# op 재시도. 선거 내성은 retryWrites/retryReads 와 이 재시도가 나눠 맡는다.
+MONGO_OP_RETRIES = "1"
+MONGO_OP_RETRY_DELAY_MS = "120"
+# admission 슬롯 대기 상한. 예산 검산: 2500 + waitQueue 4000 + 쿼리 < 시도 상한.
+MONGO_OP_ADMISSION_TIMEOUT_MS = "2500"
+# 풀 리셋 억제. 연속 커넥션 실패가 이 횟수에 닿아야 리셋하고, 리셋 사이엔 쿨다운을 둔다.
+# 낮추면 자기증폭(리셋 → 재연결 폭증 → 15/s 예산 소진)이 된다.
+MONGO_POOL_RESET_COOLDOWN_MS = "2000"
+MONGO_POOL_FORCE_RESET_AFTER = "3"
+# 커넥션 수립 재시도 사이의 기본 대기(백오프는 이 값 × (시도+1)).
+MONGO_WORKER_RETRY_DELAY_MS = "220"
+GEMINI_MODEL = "gemini-2.5-flash"
+PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
+ZIWEI_PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
+PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL = "gemini-2.5-flash"
+PREMIUM_GEMINI_TIMEOUT_MS = "45000"
+ZIWEI_PREMIUM_LLM_TIMEOUT_MS = "75000"
+ZIWEI_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"
+SUKYO_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"
+PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS = "45000"
+# Keep production dry-run disabled unless a production override explicitly requires it
+LLM_DRY_RUN = "false"
+PDF_LLM_PROVIDER = "workers-ai"
+WORKERS_AI_ENABLED = "false"
+PDF_LLM_MAX_CALLS_PER_JOB = "1"
+PDF_REAL_LLM_CHAPTER_IDS = "intro"
+PDF_DEBUG_MODE = "true"
+# Worker-native route groups:
+# - /api/auth/*
+# - /api/payments/*
+# - /api/points/me (alias)
+# - /api/fortune/*
+# - /api/subscription/status (alias)
+#
+# Required secrets include JWT_ACCESS_SECRET, JWT_REFRESH_SECRET,
+# ACCESS_TOKEN_EXPIRES_IN, REFRESH_TOKEN_EXPIRES_IN, MONGO_URI,
+# OAuth provider credentials, and PortOne credentials.
+# API_UPSTREAM_ORIGIN is optional and only used as a fallback for API groups
+# that have not been ported to this Worker yet.
+
+[triggers]
+# "0 22 * * *"   = 7:00 AM KST — 일일 태스크(운세 발송·구독 정산·실행 타임아웃·월정석 만료·웹훅 재조정)
+# "*/10 * * * *" = pending 주문 재조정(PortOne 실제 상태 대조). 문자열은 worker/index.js 의
+#                  PAYMENT_RECONCILE_CRON 과 정확히 일치해야 한다.
+crons = []

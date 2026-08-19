@@ -78,12 +78,18 @@ try {
     process.exit(1);
   }
 
-  if (
-    configuredApiBase === "https://code-destiny.com"
-    && !hasRoutePattern(configText, "code-destiny.com/api/*")
-  ) {
-    console.error("[deploy-worker] AUTH_API_BASE_URL=https://code-destiny.com requires Worker route pattern code-destiny.com/api/* so auth cookies stay same-origin.");
-    process.exit(1);
+  // 인증 쿠키는 Domain 속성 없이 SameSite=Lax 로 발급된다(worker/routes/auth.js). 그래서 API 가
+  // 프론트와 다른 호스트에 있으면 교차 사이트가 되어 로그인이 성립하지 않는다.
+  //
+  // 예전에는 이 검사가 `https://code-destiny.com` 리터럴이었다. apex 를 박아 두면 apex 가 아닌
+  // 배포(스테이징 등)에 대해서는 아무것도 지키지 않는다 — 약화가 아니라 일반화가 필요한 자리다.
+  // 아래 형태는 프로덕션에 대해 예전과 정확히 같은 결론을 낸다.
+  if (configuredApiBase) {
+    const apiHost = new URL(configuredApiBase).host;
+    if (!hasRoutePattern(configText, `${apiHost}/api/*`)) {
+      console.error(`[deploy-worker] AUTH_API_BASE_URL=${configuredApiBase} requires Worker route pattern ${apiHost}/api/* so auth cookies stay same-origin.`);
+      process.exit(1);
+    }
   }
 } catch (error) {
   console.error("[deploy-worker] Failed to read worker config:", error?.message || String(error));
