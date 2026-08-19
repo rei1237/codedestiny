@@ -159,8 +159,6 @@
       "nameLabel": "Name",
       "nameHint": "Gib den Namen ein, der in der Deutung erscheinen soll.",
       "birthDateLabel": "Geburtsdatum",
-      "quickPickTitle": "✦ Saju sofort",
-      "quickPickSubtitle": "Ein gespeichertes Chart in Sekunden prüfen",
       "birthDateHint": "Wähle deinen Geburtstag, um die erste Grundlage deines Saju-Charts zu öffnen.",
       "solar": "Solar",
       "lunar": "Mond",
