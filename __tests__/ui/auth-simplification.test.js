@@ -22,10 +22,14 @@ test("shared auth shell keeps email and social login in one mobile-first surface
   assert.match(shell, /\["google", "naver", "kakao"\]/);
   assert.match(shell, /ageAttested: age/);
   assert.match(shell, /min-h-\[100dvh\]/);
-  // 가입 화면이 받는 것은 이름·이메일·비밀번호·필수동의뿐이다. 생년월일과 마찬가지로
-  // 휴대폰 번호도 여기서 받지 않는다 — 번호는 소셜 공급자 값이거나 첫 카드결제 때 1회 입력이다.
+  // 가입 화면이 받는 것은 이름·이메일·비밀번호·휴대폰 번호·필수동의뿐이다.
+  // 🔴 번호는 2026-08-19 부터 필수 입력이다 — 카카오 개인정보 동의항목 심사가 "자체 회원가입에서도
+  // 전화번호를 수집할 것"을 요구한다. 생년월일은 예전과 같이 여기서 받지 않는다(운세 기능에서 받는다).
   assert.doesNotMatch(shell, /birthDate|birthTime|gender/);
-  assert.doesNotMatch(shell, /type="tel"|auth-phone/);
+  assert.match(shell, /id="auth-phone"/);
+  assert.match(shell, /type="tel"/);
+  // 공급자가 번호를 넘긴 소셜 가입에서만 입력칸이 숨는다.
+  assert.match(shell, /socialPhoneProvided/);
 });
 
 test("web auth response does not expose bearer tokens and post-login bootstrap is bounded", () => {

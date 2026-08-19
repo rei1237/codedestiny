@@ -21,6 +21,14 @@ const userSchema = new mongoose.Schema({
   // 어느 한쪽만 허용하면 그쪽이 곧바로 저장/검증 실패가 된다.
   phoneNumber: { type: String, default: "", trim: true, match: /^$|^01\d{8,9}$|^v1:[A-Za-z0-9+/=]+:[A-Za-z0-9+/=]+$/ },
   phoneUpdatedAt: { type: Date },
+  // 🔴 번호 중복을 판정하는 필드(해시 등)를 여기 만들지 말 것 — 한 번호로 계정을 여러 개 만드는
+  // 것을 허용하기로 했으므로(2026-08-19) 비교용 값은 목적 없는 식별자가 되고, 개인정보처리방침에
+  // 적을 수집 목적이 없어진다. 가족 공용 번호가 막히던 문제도 이 결정으로 사라졌다.
+  // 번호의 출처. 카카오 심사 대응("공급자가 준 값인가, 자체 가입에서 받은 값인가")을 실측으로
+  // 답하기 위한 기록이며 권한·게이팅 판정에는 쓰지 않는다.
+  // 🔴 phoneVerified 류 필드를 여기 만들지 말 것 — 이 서비스에는 SMS/OTP·본인확인 절차가
+  // 아예 없어서(2026-08-19 전수 검색) "검증됨"을 주장하는 순간 그 필드가 거짓이 된다.
+  phoneSource: { type: String, enum: ["", "signup", "social", "checkout"], default: "" },
   passwordHash: { type: String, required: false, default: "", select: false },
   birthDate: { type: String, default: "", match: /^$|^\d{4}-\d{2}-\d{2}$/ },
   birthTime: { type: String, default: "", match: /^$|^(?:[01]\d|2[0-3]):[0-5]\d$/ },

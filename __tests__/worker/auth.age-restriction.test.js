@@ -16,6 +16,8 @@ function baseSignupPayload(overrides = {}) {
     name: "테스트",
     email: "user@example.com",
     password: "password123",
+    // 2026-08-19 정책: 가입 페이로드에 휴대폰 번호가 없으면 검증을 통과하지 못한다.
+    phoneNumber: "010-1234-5678",
     ageAttested: true,
     termsAccepted: true,
     privacyAccepted: true,
@@ -71,6 +73,25 @@ describe("minimal signup validation", () => {
     expect(result.sanitized.ageAttested).toBe(true);
     expect(result.sanitized.birthDate).toBeUndefined();
     expect(result.sanitized.gender).toBeUndefined();
+  });
+
+  // 🔴 번호는 생년월일과 달리 가입 시점에 필수다(카카오 개인정보 동의항목 심사 대응).
+  // 프론트를 우회해도 막히는지가 이 단언의 요점이다.
+  test("requires a Korean mobile number", () => {
+    for (const value of [undefined, "", "   ", "02-123-4567", "0101234", "abcd"]) {
+      const result = validateRegisterPayload(baseSignupPayload({ phoneNumber: value }));
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain("Phone number is invalid.");
+    }
+  });
+
+  test("normalizes the stored number the same way the server does", () => {
+    expect(validateRegisterPayload(baseSignupPayload({ phoneNumber: "+82 10-1234-5678" })).sanitized.phoneNumber)
+      .toBe("01012345678");
+    // 구버전 앱은 phone 키로 보낸다.
+    const legacy = validateRegisterPayload({ ...baseSignupPayload(), phoneNumber: undefined, phone: "010 1234 5678" });
+    expect(legacy.isValid).toBe(true);
+    expect(legacy.sanitized.phoneNumber).toBe("01012345678");
   });
 });
 

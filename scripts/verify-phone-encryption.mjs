@@ -70,6 +70,18 @@ await assert.rejects(
 );
 assert.equal(await encryptPhoneNumber("not-a-phone", KEY_A), "", "invalid input encrypts to an empty string");
 
+
+// 6-b. 🔴 같은 번호를 알아보는 수단이 없어야 한다 — 한 번호로 계정을 여러 개 만드는 것을
+// 허용하기로 한 이상(2026-08-19), 비교용 결정적 해시는 목적 없는 식별자가 되고 방침에 적을
+// 수집 목적이 없어진다. 되살리려면 개인정보처리방침 4개 로케일을 같은 커밋에서 고칠 것.
+{
+  const cryptoSource = read("worker/lib/pii-crypto.js");
+  assert.ok(!/export async function hashPhoneNumber/.test(cryptoSource),
+    "pii-crypto.js must not export a deterministic phone hash");
+  const modelsSource = read("worker/lib/models.js");
+  assert.ok(!/\bphoneHash\b/.test(modelsSource), "models.js must not declare a phone hash column");
+}
+
 // 7. 하위 소비자 무해성 — 복호화 결과는 기존 정규화기를 그대로 통과한다.
 const decrypted = await decryptPhoneNumber(envelope, KEY_A);
 assert.equal(normalizeKoreanPhoneNumber(decrypted), PHONE, "decrypted value must survive re-normalization");
@@ -97,39 +109,40 @@ assert.ok(schemaRegex.test(""), "schema must accept the empty default");
 const authSource = read("worker/routes/auth.js");
 assertContains(authSource, 'import { decryptPhoneNumber, encryptPhoneNumber } from "../lib/pii-crypto.js";',
   "auth.js must import the PII crypto helpers");
-assertContains(authSource, "storedPhoneNumber = await encryptPhoneNumber(phoneNumber, env);",
-  "email signup and payment-phone save must encrypt before writing");
+// 🔴 봉투 생성은 한 헬퍼에서만 나온다 — 직접 부르면 정규화를 건너뛴 값이 저장될 수 있다.
+assertContains(authSource, "({ storedPhoneNumber } = await preparePhoneForStorage(phoneNumber, env));",
+  "email signup and payment-phone save must go through preparePhoneForStorage");
 assertContains(authSource, "phoneNumber: storedPhoneNumber,",
   "email signup User.create must store the encrypted value");
 // $set 의 모양은 동의 기록이 붙으면서 바뀌었다 — 문장 전체가 아니라 **성질**을 고정한다.
 assertContains(authSource, "          phoneNumber: storedPhoneNumber,",
   "raw-driver payment-phone update must store the encrypted value (Mongoose setters do not run there)");
-// 변수명이 아니라 성질을 고정한다 — 백필에 들어가는 값은 반드시 encryptBackfillPhoneNumber 를 통과한다.
+// 변수명이 아니라 성질을 고정한다 — 백필에 들어가는 값은 반드시 preparePhoneBackfill 을 통과한다.
 // (예전에는 `profilePhoneNumber` 라는 이름까지 문자열로 박아 두어, 가입 입력값 우선 수정에서
 //  이름만 바뀌었는데도 실패했다.)
 assert.ok(
-  /const backfill = await encryptBackfillPhoneNumber\(\w+, env\);/.test(authSource),
+  /const backfill = await preparePhoneBackfill\(\w+, env\);/.test(authSource),
   "OAuth backfill must encrypt before writing",
 );
 assert.equal(
-  (authSource.match(/const backfill = await encryptBackfillPhoneNumber\(/g) || []).length,
+  (authSource.match(/const backfill = await preparePhoneBackfill\(/g) || []).length,
   3,
   "backfill must stay in all three write paths (social providerId / social email / email re-signup)",
 );
 // 이메일 재가입 백필도 raw driver 라 Mongoose setter 가 돌지 않는다 — 봉투를 직접 넣어야 한다.
-assertContains(authSource, "{ $set: { phoneNumber: backfill, phoneUpdatedAt: new Date() } }",
+assertContains(authSource, "phoneNumber: backfill.storedPhoneNumber,",
   "email re-signup backfill must store the encrypted envelope, not the raw number");
 assert.ok(
   !/\$set: \{ phoneNumber: phoneNumber\b/.test(authSource),
   "no write path may $set the raw phone number",
 );
-assertContains(authSource, "if (backfill) user.set(\"phoneNumber\", backfill);",
+assertContains(authSource, 'user.set("phoneNumber", backfill.storedPhoneNumber);',
   "OAuth backfill must skip (never store plaintext) when encryption is unavailable");
 assert.ok(
   !/user\.set\("phoneNumber", profilePhoneNumber\)/.test(authSource),
   "OAuth backfill must never write the raw phone number",
 );
-assertContains(authSource, "const storedPhoneNumber = profilePhoneNumber ? await encryptPhoneNumber(profilePhoneNumber, env) : \"\";",
+assertContains(authSource, "? await preparePhoneForStorage(profilePhoneNumber, env)",
   "OAuth new-user creation must encrypt before writing");
 assert.ok(
   !/phoneNumber,\n\s+passwordHash,/.test(authSource),
@@ -180,31 +193,35 @@ assert.equal(entry.secret, true, "PII_ENC_KEY must be marked as a secret");
 assert.ok(entry.required_in?.includes("production"), "PII_ENC_KEY must be required in production");
 assert.ok(entry.targets?.includes("worker"), "PII_ENC_KEY must target the worker");
 
-// 12. 🔴 수집 지점은 **첫 카드 단건결제 모달 하나뿐**이다 (2026-08-17 정책 확정).
-//     이 절은 세 번 방향이 바뀌었다. ①"가입 화면이 암호화 보관을 안내하는지" ②2026-08-15
-//     "가입 폼에 번호 입력이 있으면 실패" ③2026-08-17 잠깐 가입 마무리·/onboarding 까지 넓혔다가
-//     ④지금은 다시 결제 모달 하나로 좁혔다. 수집 지점을 늘리는 쪽이 늘 되돌려졌다는 것이 요지다.
-//     번호는 ①소셜 공급자가 자기 동의로 넘긴 값 ②첫 카드결제 모달, 두 경로로만 들어온다.
+// 12. 🔴 수집 지점 — 2026-08-19 부터 **회원가입이 1차 수집 지점**이다.
+//     이 절은 여러 번 방향이 바뀌었다. ①가입 화면이 암호화 보관을 안내 ②2026-08-15 "가입 폼에
+//     번호 입력이 있으면 실패"(수집 지점을 첫 결제 모달 하나로 좁힘) ③2026-08-19 다시 가입 필수 —
+//     카카오 개인정보 동의항목 심사가 "자체 회원가입에서도 전화번호를 수집할 것"을 요구한다.
+//     지금 번호가 들어오는 경로는 셋이고, 방침 2항의 서술이 이 목록과 같아야 한다:
+//     ①가입 화면 직접 입력 ②소셜 공급자가 자기 동의로 넘긴 값 ③기존 회원의 첫 카드결제 모달.
 const authShellSource = read("app/components/auth/AuthShell.tsx");
-// 주석은 걷어내고 본다 — "왜 여기서 안 받는가"를 적어 둔 설명까지 금지어로 잡으면
-// 다음 사람이 그 기록을 지우게 된다. 막아야 하는 것은 실제 코드다.
-const authShellCode = authShellSource
-  .replace(/\{\/\*[\s\S]*?\*\/\}/g, "")
-  .replace(/\/\*[\s\S]*?\*\//g, "")
-  .replace(/^\s*\/\/.*$/gm, "");
-for (const forbidden of ["phoneNumber", "phoneConsent", 'type="tel"', "휴대폰 번호"]) {
-  assert.ok(
-    !authShellCode.includes(forbidden),
-    `signup screens must not collect a phone number (found: ${forbidden})`,
-  );
-}
+assertContains(authShellSource, 'id="auth-phone"',
+  "signup screen must collect a phone number (Kakao consent-item review requires it)");
+assertContains(authShellSource, 'type="tel"',
+  "the phone field must use the tel input type so mobile shows a numeric keypad");
+assertContains(authShellSource, "socialPhoneProvided",
+  "the field may only be hidden when the provider already supplied a number");
+// 🔴 프론트 검증은 서버와 **같은 규칙**을 써야 한다 — 갈라지면 화면은 통과시키고 서버가 400 을 낸다.
+assertContains(authShellSource, 'from "../../_lib/korean-phone"',
+  "AuthShell must normalize with the shared front-end helper, not a private copy");
+// 서버가 프론트 우회를 다시 막는지.
+const validationSource = read("worker/lib/validation.js");
+assertContains(validationSource, 'from "./pii-crypto.js"',
+  "validateRegisterPayload must normalize with the same rule the storage path uses");
+assertContains(validationSource, 'errors.push("Phone number is invalid.")',
+  "server-side signup validation must reject a missing or malformed number");
+// 소셜 가입은 공급자 값과 입력값이 **둘 다** 없을 때만 거절한다.
+assertContains(authSource, "if (!ticketPhoneNumber && !bodyPhoneNumber) {",
+  "social signup must require a number from either the provider ticket or the form");
 assert.ok(
   !existsSync(join(repoRoot, "app/onboarding")),
-  "/onboarding must stay removed — the phone is collected at checkout only",
+  "/onboarding must stay removed — signup and checkout are the only collection surfaces",
 );
-// 가입 경로가 본문으로 온 번호를 저장하면 고지 없는 수집이 된다.
-assertContains(authSource, 'phoneNumber: "",',
-  "social signup must not persist a client-supplied phone number");
 
 // 13. 🔴 결제 모달 3벌의 고지·동의가 **글자 그대로 같은지** (제15조 제2항 · 제22조).
 //     렌더러가 React·셸·독립 폴백 3벌이라, 한 곳만 고치면 사용자마다 다른 고지를 받는다
@@ -299,7 +316,10 @@ assertContains(read("app/_lib/payment-phone-prompt.ts"), "서버에",
   "payment-phone prompt must tell the user the number is stored on the server");
 assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "AES-256 방식으로 암호화해 보관합니다",
   "privacy policy must state that the phone number is stored encrypted");
-assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 가입 시 받지 않으며",
-  "privacy policy must state that the phone number is not collected at signup");
+assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 회원가입 시 필수로 수집하며",
+  "privacy policy must state that the phone number is a required signup field");
+// 실제로 하지 않는 목적을 방침에 적으면 그 자체가 허위 고지다 — 이 서비스에는 SMS 발송 기능이 없다.
+assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "광고성 문자나 전화를 보내지 않습니다",
+  "privacy policy must not claim a messaging purpose the service does not have");
 
 console.log("verify-phone-encryption: OK");

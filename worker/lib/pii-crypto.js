@@ -9,6 +9,10 @@
  *
  * 🔴 decrypt 는 프리픽스가 없으면 평문으로 간주해 그대로 통과시킨다(하위호환 읽기).
  * 이게 없으면 마이그레이션 전 기존 회원의 단건 결제가 전부 막힌다.
+ *
+ * 🔴 같은 번호끼리 비교하는 수단은 일부러 두지 않는다 — IV 가 레코드마다 랜덤이라 봉투로는
+ * 비교가 안 되고, 비교용 결정적 해시를 따로 저장하면 목적 없는 식별자가 하나 더 생긴다.
+ * 이 서비스는 한 번호로 계정을 여러 개 만드는 것을 허용하므로 비교할 이유 자체가 없다.
  */
 
 const ENVELOPE_PREFIX = "v1:";
@@ -39,11 +43,10 @@ function bytesToBase64(bytes) {
   return btoa(binary);
 }
 
-async function getEncryptionKey(env) {
+/** 키 문자열 → 32바이트 원본. 형식이 어긋나면 암호화와 같은 이유로 던진다(fail-closed). */
+function readRawKeyBytes(env) {
   const material = readKeyMaterial(env);
   if (!material) throw new Error("pii_encryption_key_missing");
-
-  if (cachedKeyMaterial === material && cachedKeyPromise) return await cachedKeyPromise;
 
   let rawKey;
   try {
@@ -52,6 +55,12 @@ async function getEncryptionKey(env) {
     throw new Error("pii_encryption_key_invalid");
   }
   if (rawKey.length !== KEY_BYTE_LENGTH) throw new Error("pii_encryption_key_invalid");
+  return { material, rawKey };
+}
+
+async function getEncryptionKey(env) {
+  const { material, rawKey } = readRawKeyBytes(env);
+  if (cachedKeyMaterial === material && cachedKeyPromise) return await cachedKeyPromise;
 
   cachedKeyMaterial = material;
   cachedKeyPromise = crypto.subtle.importKey("raw", rawKey, { name: "AES-GCM" }, false, ["encrypt", "decrypt"]);
