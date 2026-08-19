@@ -95,20 +95,16 @@ const noindexPathPrefixes = [
   //    색인만 빼면 광고 인벤토리 손실이 0이다. lib/seo/siteSeo.ts 와 짝으로 유지할 것.
   "/fortune/weekly",
   "/fortune/monthly",
-  // ② SeoLandingTemplate 얇은 라우트 — 고유 본문 915~1,104자(가시 3,332~3,488자).
-  //    🔴 siteSeo.ts 의 목록에는 **일부러 넣지 않는다.** SeoLandingTemplate.jsx:375 가
+  // ② 2026-08-17 에 여기 있던 SeoLandingTemplate 얇은 라우트 5개
+  //    (/physiognomy·/love·/compatibility·/saju/compatibility·/dream)는 2026-08-20 에
+  //    본문을 채우고 색인으로 되돌렸다. 고유 본문 577~690자 → 1,294~1,638자로,
+  //    색인을 유지 중인 /tarot(1,153자)·/today(1,304자) 위다. 각 page.js 의
+  //    buildSeoMetadata({ noindex: true }) 도 같은 커밋에서 함께 걷어냈다.
+  //    `/dream` 을 되살리면 자식 `/dream/psycho`·`/dream/tarot` 의 유일한 인바운드
+  //    링크가 살아나므로 그 둘도 함께 색인된다 — coreRoutes 에 이미 등재돼 있다.
+  //    🔴 되돌릴 일이 생겨도 siteSeo.ts 의 목록에는 넣지 말 것. SeoLandingTemplate.jsx:375 가
   //    DeferredShareWidget 을 렌더하므로 그쪽에 넣으면 isNoindexPath → isPrivateRoute →
   //    share.v2 경로로 공유 버튼이 통째로 사라진다(/flower 와 같은 사유).
-  //    대신 각 page.js 에서 buildSeoMetadata({ noindex: true }) 로 선언한다.
-  //    🔴 `/dream` 은 자식 `/dream/psycho`(1,529자)·`/dream/tarot`(1,559자)까지 삼키는데,
-  //    그게 의도다 — 실측 결과 그 둘의 **유일한 인바운드 링크가 `/dream` 하나**였다
-  //    (`grep -rl 'href="/dream/psycho' out` → out/dream 만). `/dream` 이 noindex,nofollow 가
-  //    되면 둘은 사이트맵에만 남은 고아가 된다. 셋을 함께 뺀다.
-  "/physiognomy",
-  "/love",
-  "/compatibility",
-  "/saju/compatibility",
-  "/dream",
 ];
 const privateRoutePatterns = [
   /^\/api(?:\/|$)/,
