@@ -8952,6 +8952,8 @@
       optimisticState = null;
       // 저장이 끝났으면 편집 모드를 닫아, 다음 저장이 이 카드를 다시 덮어쓰지 않게 한다.
       _dpClearProfileEditMode();
+      // 시트 안에서 저장했다면 폼을 홈으로 돌려보내 아래 renderProfileList() 결과를 보여 준다.
+      _dpReturnFormHome();
 
       // 저장 성공 직후에는 로컬 상태를 즉시 렌더링해 체감 반응 속도를 우선한다.
       var curr = DPStorage.current();
@@ -9080,6 +9082,74 @@
   }
 
   var _dpListOpenedAt = 0;
+  /* ── 시트 ↔ 홈 폼 노드 대여 ──────────────────────────────────────────────
+     시트의 "새로 만들기"/"수정"은 원래 시트를 닫고 홈의 #destinyCardForm 까지 스크롤했다.
+     화면이 통째로 바뀌어 맥락이 끊기므로, 시트가 열려 있는 동안에는 그 폼 노드를 시트 안으로
+     그대로 옮겨 온다.
+     🔴 마크업을 복제하지 않는다 — #birthDate·#birthHour·#birthMinute·#birthCountry 를 id 로
+     읽는 곳이 8개 파일 28곳이라 두 벌이 되면 어느 쪽을 읽는지 알 수 없어진다. 노드를 옮기면
+     입력값(select 선택·타이핑 중인 값)도 그대로 따라오므로 동기화 코드도 필요 없다. */
+  var _dpFormHomeAnchor = null;
+
+  function _dpBorrowFormIntoSheet(sheet) {
+    if (_dpFormHomeAnchor) return true;
+    var form = document.getElementById('destinyCardForm');
+    var host = sheet ? sheet.querySelector('#dpFormHost') : null;
+    if (!form || !host || !form.parentNode) return false;
+    _dpFormHomeAnchor = {
+      parent: form.parentNode,
+      next: form.nextSibling,
+      /* 홈 축약 규칙(html:not(.cd-home-expanded) body [data-cd-home-secondary]{display:none})은
+         자손 선택자라 시트 안에서도 그대로 먹는다. 속성을 잠시 떼고 되돌릴 때 복구한다. */
+      secondary: form.hasAttribute('data-cd-home-secondary')
+    };
+    if (_dpFormHomeAnchor.secondary) form.removeAttribute('data-cd-home-secondary');
+    host.appendChild(form);
+    host.hidden = false;
+    sheet.classList.add('dp-sheet--form-view');
+    return true;
+  }
+
+  function _dpReturnFormHome() {
+    var anchor = _dpFormHomeAnchor;
+    if (!anchor) return;
+    _dpFormHomeAnchor = null;
+    var form = document.getElementById('destinyCardForm');
+    if (form && anchor.parent) {
+      if (anchor.secondary) form.setAttribute('data-cd-home-secondary', '');
+      var before = (anchor.next && anchor.next.parentNode === anchor.parent) ? anchor.next : null;
+      anchor.parent.insertBefore(form, before);
+    }
+    var host = document.getElementById('dpFormHost');
+    if (host) host.hidden = true;
+    var sheet = document.getElementById('dpListSheet');
+    if (sheet) sheet.classList.remove('dp-sheet--form-view');
+  }
+
+  /* 폼을 사용자 앞에 내놓는 단일 지점. 시트가 열려 있으면 시트 안에서 보여 주고, 아니면
+     종전대로 시트를 닫고 홈의 폼으로 내려간다. 펼치기·스크롤 구현은 dpScrollToForm 하나뿐이다. */
+  function _dpRevealProfileForm() {
+    var sheet = document.getElementById('dpListSheet');
+    if (sheet && sheet.classList.contains('dp-sheet--open') && _dpBorrowFormIntoSheet(sheet)) {
+      var scroller = sheet.querySelector('.dp-list-scroll');
+      if (scroller) scroller.scrollTop = 0;
+      return;
+    }
+    dpCloseList();
+    if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+  }
+
+  /* 가입 직후 1회. 카드 0장이 확정이라 빈 홈에 사용자를 세워 둘 이유가 없어 폼까지 데려간다.
+     dpScrollToForm 이 이미 __cdExpandHome 을 부르므로 여기서 또 펼치지 않는다. */
+  function _dpNudgeFreshSignupToForm() {
+    if (typeof window.dpScrollToForm !== 'function') return;
+    var run = function() {
+      try { window.dpScrollToForm(); } catch (e) {}
+    };
+    if (typeof window.requestAnimationFrame === 'function') window.requestAnimationFrame(run);
+    else window.setTimeout(run, 0);
+  }
+
   function _dpEnsureListSheetMounted() {
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
@@ -9113,7 +9183,13 @@
   function _dpUnmountListSheetAfterClose(sheet, overlay) {
     window.setTimeout(function() {
       var currentSheet = document.getElementById('dpListSheet');
-      if (currentSheet && !currentSheet.classList.contains('dp-sheet--open')) currentSheet.remove();
+      /* 260ms 안에 시트를 다시 열었다면 이 타이머는 남의 시트를 건드리는 셈이라 아무것도 하지 않는다.
+         (여기서 무조건 되돌리면 새로 연 시트가 빌려간 폼을 빼앗는다.) */
+      if (currentSheet && currentSheet.classList.contains('dp-sheet--open')) return;
+      /* 🔴 시트는 닫히고 260ms 뒤 DOM 에서 제거된다. 폼을 빌려간 채로 지우면 홈의 입력 폼이
+         통째로 사라지므로, 제거 전에 반드시 되돌린다(dpCloseList 가 이미 돌려놨으면 무동작). */
+      _dpReturnFormHome();
+      if (currentSheet) currentSheet.remove();
       var currentOverlay = document.getElementById('dpListOverlay');
       if (currentOverlay && (!currentSheet || !currentSheet.classList.contains('dp-sheet--open'))) currentOverlay.remove();
     }, 260);
@@ -9180,6 +9256,7 @@
   };
 
   window.dpCloseList = function() {
+    _dpReturnFormHome();
     var sheet = document.getElementById('dpListSheet');
     var overlay = document.getElementById('dpListOverlay');
     if (sheet) {
@@ -9213,8 +9290,7 @@
     renderMasterCard(profile);
     renderProfileList();
     _dpUpdateSaveBtn();
-    dpCloseList();
-    if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+    _dpRevealProfileForm();
   };
 
   /* 새 카드 작성 진입점. 편집 모드를 해제하므로 "편집 취소" 역할도 겸한다. */
@@ -9223,8 +9299,7 @@
     _dpClearProfileForm();
     renderProfileList();
     _dpUpdateSaveBtn();
-    dpCloseList();
-    if (typeof window.dpScrollToForm === 'function') window.dpScrollToForm();
+    _dpRevealProfileForm();
   };
 
   window.dpSelectProfile = function(id) {
@@ -10218,6 +10293,7 @@
     if (initialProfile) renderMasterCard(initialProfile);
     else if (shouldShowProfileLoading) renderProfileLoadingCard();
     else renderMasterCard(null);
+    if (freshSignup) _dpNudgeFreshSignupToForm();
 
     if (shouldShowProfileLoading && !initialProfile) _dpArmProfileLoadingFailsafe();
 
@@ -10472,7 +10548,7 @@
       if (_dpHasSessionHint()) {
         if (_dpScopedCurrent) renderMasterCard(_dpScopedCurrent);
         // 가입 직후면 카드 0장이 확정이므로 로딩 카드를 건너뛰고 작성 유도 카드를 즉시 그린다.
-        else if (_dpConsumeFreshSignupHint(_dpGetProfileScope())) renderMasterCard(null);
+        else if (_dpConsumeFreshSignupHint(_dpGetProfileScope())) { renderMasterCard(null); _dpNudgeFreshSignupToForm(); }
         // 이미 동기화한 적 있는 스코프에서 카드가 없다면 "없음이 확정"이다 — 로딩이 아니라 작성 유도.
         else if (_dpHasSyncedScopeState(_dpNextScope)) renderMasterCard(null);
         else {
