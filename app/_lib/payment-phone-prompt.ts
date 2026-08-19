@@ -9,6 +9,8 @@
  * `/me` 는 단순 저장을 쓰는 등 화면별 재시도 정책이 다르므로 여기서 통일하지 않는다.
  */
 
+import { formatKoreanPhoneInput } from "./korean-phone";
+
 interface PaymentPhoneFailurePayload {
   code?: string;
   message?: string;
@@ -50,18 +52,6 @@ export const PAYMENT_PHONE_CONSENT_LINES = [
 
 export const PAYMENT_PHONE_CONSENT_LABEL = "결제 진행 목적의 휴대폰 번호 수집·이용에 동의합니다. (필수)";
 export const PAYMENT_PHONE_CONSENT_REQUIRED = "휴대폰 번호 수집·이용에 동의해 주셔야 결제를 진행할 수 있어요.";
-
-/**
- * 입력 중인 값을 `010-1234-5678` 모양으로 만든다. 저장 직전에 호출자의 `normalize` 가 하이픈을
- * 다시 벗기므로 표시 전용이다(셸 `_cdFormatKoreanPhoneInput` · dp `_dpFormatKoreanPhoneInput` 과 같은 규칙).
- */
-function formatKoreanPhoneInput(value: string): string {
-  const digits = String(value == null ? "" : value).replace(/\D/g, "").slice(0, 11);
-  if (digits.length <= 3) return digits;
-  const middleLength = digits.length > 10 ? 4 : 3;
-  if (digits.length <= 3 + middleLength) return `${digits.slice(0, 3)}-${digits.slice(3)}`;
-  return `${digits.slice(0, 3)}-${digits.slice(3, 3 + middleLength)}-${digits.slice(3 + middleLength)}`;
-}
 
 interface PromptPaymentPhoneOptions {
   /** 입력된 번호를 정규화해 반환하는 함수(빈 문자열이면 실패로 본다). */

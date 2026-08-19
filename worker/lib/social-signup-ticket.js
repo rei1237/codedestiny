@@ -52,8 +52,12 @@ export function socialProfileFromSignupTicket(ticket) {
  * 가입 마무리 화면 URL. 앱(Capacitor) 경로도 딥링크 대신 이 웹 화면을 거친다 —
  * 패키징된 구버전 앱 브릿지는 social_grant 만 이해하므로, 계정이 만들어진 뒤 딥링크로 돌려보낸다.
  */
-export function buildSocialSignupRedirectUrl(frontendBase, ticket, { nextPath, flow } = {}) {
+export function buildSocialSignupRedirectUrl(frontendBase, ticket, { nextPath, flow, hasPhoneNumber } = {}) {
   const params = new URLSearchParams({ social_signup: ticket, flow: flow || "signup" });
   if (nextPath && nextPath !== "/") params.set("next", nextPath);
+  // 공급자가 번호를 넘겼으면 가입 마무리 화면이 번호 입력칸을 감춘다.
+  // 🔴 표시 힌트일 뿐 판정이 아니다 — 이 값을 지우고 번호를 적어 보내도 서버는 티켓의 번호를
+  // 우선하고(handleOAuthCompleteSignup), 붙여 보내도 번호 없이 가입되지는 않는다.
+  if (hasPhoneNumber) params.set("social_phone", "1");
   return `${String(frontendBase || "").replace(/\/+$/, "")}/signup?${params.toString()}`;
 }

@@ -253,6 +253,9 @@ function buildInlineScript(provider: StaticOAuthCallbackRedirectProps["provider"
       var signupParams = new URLSearchParams({ social_signup: socialSignupTicket });
       var signupNext = params.get("next");
       if (signupNext) signupParams.set("next", signupNext);
+      // 공급자가 번호를 넘겼다는 표시를 그대로 옮긴다 — 빠뜨리면 가입 마무리 화면이 이미 확보된
+      // 번호를 다시 묻는다(서버는 티켓 값을 쓰므로 그 입력값은 어차피 버려진다).
+      if (params.get("social_phone") === "1") signupParams.set("social_phone", "1");
       window.location.replace("/signup?" + signupParams.toString());
       return;
     }

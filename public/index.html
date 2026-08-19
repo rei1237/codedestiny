@@ -14882,6 +14882,15 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
               ? '<a href="/account/password/" class="auth-btn auth-btn--logout">'
                 + __cdText('auth.changePassword', '🔑 비밀번호 변경') + '</a>'
               : '';
+            /* 휴대폰 번호 변경 진입점. 번호가 가입 필수가 된 뒤(2026-08-19) 오타를 고칠 유일한
+               경로라, 개인정보처리방침 7항이 이 페이지를 정정 수단으로 안내한다.
+               🔴 앱 런타임에서 렌더하지 않는 이유는 위 비밀번호 링크와 같다 — 앱 번들에
+               /account/phone 파일이 없어 이동하면 빈 화면이 된다.
+               hasLocalAuth 는 보지 않는다: 소셜 전용 계정에도 번호는 있다. */
+            var phoneLinkHtml = !_cdIsAppRuntime
+              ? '<a href="/account/phone/" class="auth-btn auth-btn--logout">'
+                + __cdText('auth.changePhone', '📱 전화번호 변경') + '</a>'
+              : '';
             el.innerHTML =
               '<div class="' + cardClass + '">' +
               '<span class="cd-user-star" style="width:2px;height:2px;top:14%;left:7%;--dur:2.1s"></span>' +
@@ -14906,6 +14915,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
               '<div class="cd-user-card__actions">' +
               adminBadgeHtml +
               passwordLinkHtml +
+              phoneLinkHtml +
               '<button type="button" id="cdAuthLogoutBtn" class="auth-btn auth-btn--logout">' + __cdText('auth.logout', '🔓\u00a0로그아웃') + '</button>' +
               '</div>' +
               '</div>';
@@ -22807,7 +22817,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-20d5aaee946f" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-20d5aaee946f" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-20d5aaee946f" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-20d5aaee946f" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -24424,7 +24434,7 @@ return you.name.restore();</span>
   }
 
   // 입력 중인 값을 010-1234-5678 모양으로 만든다. 저장 직전에 _cdNormalizeKoreanPhoneNumber 가
-  // 하이픈을 다시 벗기므로 표시 전용이다(app/components/auth/phone-input.ts 와 같은 규칙).
+  // 하이픈을 다시 벗기므로 표시 전용이다(app/_lib/korean-phone.ts 와 같은 규칙).
   function _cdFormatKoreanPhoneInput(value) {
     var digits = String(value == null ? '' : value).replace(/\D/g, '').slice(0, 11);
     if (digits.length <= 3) return digits;
