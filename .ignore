@@ -46,8 +46,8 @@
 /public/emoi_omikuji_v2.html
 /public/en/index.html
 /public/fortune-teller-fish.html
-/public/fortune/data/daily-2026-08-17.json
-/public/fortune/data/daily-2026-08-18.json
+/public/fortune/data/daily-2026-08-19.json
+/public/fortune/data/daily-2026-08-20.json
 /public/fortune/index.html
 /public/fortune/tarot/tarot-data.json
 /public/fuctionassets/comprehensive-fortune-prompt.webp
@@ -78,6 +78,7 @@
 /public/js/core/checkout-entry.js
 /public/js/core/cms-static.js
 /public/js/core/feature-pricing-store.js
+/public/js/core/home-service-finder.js
 /public/js/core/index-inline-runtime.js
 /public/js/core/init.js
 /public/js/core/kasi-calendar-service.js
@@ -91,6 +92,7 @@
 /public/js/core/saju/extremeTResult.js
 /public/js/core/saju/modalProfileState.js
 /public/js/core/saju/reportDashboard.js
+/public/js/core/service-registry.js
 /public/js/core/uiBindings.js
 /public/js/data/chinese-astrology.js
 /public/js/destiny-profile.js

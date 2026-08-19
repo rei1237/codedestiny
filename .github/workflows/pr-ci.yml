@@ -155,6 +155,14 @@ jobs:
       - name: Verify fortune hub shell matches its source
         run: npm run verify:fortune-hub-shell
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 입력이 index.html 과 js/core/service-registry.js 라
+      # 티어가 low/fast 로 잡히는데, build/critical 잡에 두면 정작 지켜야 할 "홈 가격 라벨 한 줄
+      # 수정"에 깨어나지 않는다. 홈 표시가격이 결제 정본(worker/lib/paid-feature-registry.js)과
+      # 어긋난 채로 배포된 전력이 있다(IFÀ 오라클: 30코인=3,000원짜리를 5,000원으로 표시,
+      # 2026-08-19 실측). 정적 파일 읽기 + 정본 import 라 네트워크 없이 1초 미만이다.
+      - name: Verify home service registry matches billing source of truth
+        run: npm run verify:home-service-registry
+
       # 배선을 검사하는 가드가 배선되지 않으면 농담이 된다. allowlist 만 고쳐 침묵시키는
       # 경로도 여기서 함께 막힌다 — scripts/ 만 바꾸면 critical 티어가 돌지 않는다.
       - name: Verify guard wiring
