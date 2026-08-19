@@ -13,12 +13,36 @@ const onlyKey = onlyKeyArg ? normalizeEnvKey(onlyKeyArg.slice("--only-key=".leng
 const continueOnTransientApiError = args.has("--continue-on-transient-api-error");
 const retryDelayMs = Number(process.env.CF_SECRET_SYNC_RETRY_DELAY_MS || 15000);
 
-const envFiles = [
-  ".env.local",
-  ".env.cloudflare.local",
-  ".env.cloudflare",
-  ".env",
-];
+/**
+ * 동기화 타깃. 🔴 환경변수가 아니라 명시 인자로만 갈린다 — "남아 있는 변수"로 타깃을 정하면
+ * 변수가 새는 날 스테이징 값이 프로덕션 워커를 덮어쓴다.
+ *
+ *   npm run secrets:cf:worker -- --target=staging --dry-run
+ */
+const targetArg = [...args].find((arg) => arg.startsWith("--target="));
+const syncTarget = targetArg ? targetArg.slice("--target=".length).trim() : "production";
+if (!["production", "staging"].includes(syncTarget)) {
+  console.error(`[secrets] Unknown --target=${syncTarget}. Use production or staging.`);
+  process.exit(1);
+}
+const workerConfigPath = syncTarget === "staging" ? "worker/wrangler.staging.toml" : "worker/wrangler.toml";
+
+// 스테이징은 .env.staging.local 이 가장 먼저다. 프로덕션 파일을 그대로 두고 그 위에 PortOne
+// 테스트 채널 값만 덮어쓸 수 있어야 한다(같은 MONGO_URI, 다른 결제 자격증명).
+const envFiles = syncTarget === "staging"
+  ? [
+    ".env.staging.local",
+    ".env.local",
+    ".env.cloudflare.local",
+    ".env.cloudflare",
+    ".env",
+  ]
+  : [
+    ".env.local",
+    ".env.cloudflare.local",
+    ".env.cloudflare",
+    ".env",
+  ];
 
 function isUsableEnvValue(rawValue) {
   if (rawValue == null) return false;
@@ -122,10 +146,18 @@ if (!process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_APITOKEN) {
   process.env.CLOUDFLARE_API_TOKEN = process.env.CLOUDFLARE_APITOKEN;
 }
 
+const PRODUCTION_WORKER_NAME = "code-destiny-web";
 const workerName =
   process.env.CF_WORKER_NAME ||
   process.env.CLOUDFLARE_WORKER_NAME ||
-  "code-destiny-web";
+  (syncTarget === "staging" ? "code-destiny-web-staging" : PRODUCTION_WORKER_NAME);
+
+// 🔴 --target=staging 인데 프로덕션 워커를 가리키면 여기서 끝낸다. 이 스크립트는 인자 없이 돌면
+//    시크릿을 통째로 덮어쓰므로, 타깃이 어긋난 채 진행되는 것이 가장 비싼 실패다.
+if (syncTarget === "staging" && workerName === PRODUCTION_WORKER_NAME) {
+  console.error(`[secrets] --target=staging resolved to the production Worker '${PRODUCTION_WORKER_NAME}'. Unset CF_WORKER_NAME or point it at the staging Worker.`);
+  process.exit(1);
+}
 
 const SECRET_KEYS = [
   "API_UPSTREAM_ORIGIN",
@@ -281,8 +313,8 @@ function getSecretValue(key) {
 
 function runSecretPutCommand(key, value, useVersions = false) {
   const wranglerArgs = useVersions
-    ? ["wrangler", "versions", "secret", "put", key, "--name", workerName, "--config", "worker/wrangler.toml"]
-    : ["wrangler", "secret", "put", key, "--name", workerName, "--config", "worker/wrangler.toml"];
+    ? ["wrangler", "versions", "secret", "put", key, "--name", workerName, "--config", workerConfigPath]
+    : ["wrangler", "secret", "put", key, "--name", workerName, "--config", workerConfigPath];
 
   const command = process.platform === "win32" ? "cmd.exe" : "npx";
   const commandArgs = process.platform === "win32"
@@ -336,7 +368,7 @@ function isAliasRelatedKey(keyA, keyB) {
 
 function putWorkerSecret(key, value) {
   if (isDryRun) {
-    console.log(`[dry-run] npx wrangler secret put ${key} --name ${workerName} --config worker/wrangler.toml`);
+    console.log(`[dry-run] npx wrangler secret put ${key} --name ${workerName} --config ${workerConfigPath}`);
     return 0;
   }
 
@@ -399,9 +431,26 @@ const activeSecretKeys = onlyPortone
   ? ["PORTONE_API_SECRET", "PORTONE_API_Secret", "PORTONE_WEBHOOK_URL", "PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOK_SECRET", "PORTONE_webhook", "PORTONE_webhook_Secret", "PORTONE_CHANNEL_KEY", "PORTONE_channel", "PORTONE_STORE_ID", "PORTONE_Store", "MID", "INICISMID", "INIsignkey", "INIAPIKEY", "INIAPI_IV"]
   : SECRET_KEYS;
 
-const selectedSecretKeys = onlyKey
-  ? activeSecretKeys.filter((key) => normalizeEnvKey(key) === onlyKey)
+/**
+ * 🔴 스테이징에 넣지 않는 시크릿.
+ *
+ * .env.staging.local 은 프로덕션 .env.local 위에 얹히므로, 막지 않으면 과금 LLM 키가 그대로
+ * 상속되어 스테이징 테스트가 조용히 유료 경로를 탄다. 스테이징에서 실제 생성 품질을 봐야 할 때만
+ * `--target=staging --only-key=GEMINIF_API_KEY` 로 한 번 넣고, 확인이 끝나면 대시보드에서 지운다.
+ */
+const STAGING_EXCLUDED_KEYS = new Set(["GEMINIF_API_KEY", "ANTHROPIC_API_KEY"]);
+
+const targetFilteredKeys = syncTarget === "staging" && !onlyKey
+  ? activeSecretKeys.filter((key) => {
+    if (!STAGING_EXCLUDED_KEYS.has(normalizeEnvKey(key))) return true;
+    console.warn(`[worker-secrets] Skipping ${key}: excluded from staging (과금 LLM 키).`);
+    return false;
+  })
   : activeSecretKeys;
+
+const selectedSecretKeys = onlyKey
+  ? targetFilteredKeys.filter((key) => normalizeEnvKey(key) === onlyKey)
+  : targetFilteredKeys;
 
 const available = [];
 for (const key of selectedSecretKeys) {

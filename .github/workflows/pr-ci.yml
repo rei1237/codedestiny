@@ -275,6 +275,8 @@ jobs:
           npm run verify:deploy-safe
           npm run verify:pages-single-deploy-guard
           npm run verify:worker-single-deploy
+          npm run verify:worker-config-parity
+          npm run verify:worker-config-parity -- --self-test
           npm run verify:pages-worker-parity-test
           npm run verify:deployed-sha -- --self-test
           npm run verify:merge-landed-test

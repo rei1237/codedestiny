@@ -54,7 +54,8 @@ function primaryWorktree() {
 const stateDir = path.join(root, ".deploy-state");
 const stateFile = path.join(stateDir, "state.json");
 const lockDir = path.join(primaryWorktree(), ".deploy-state");
-const lockFile = path.join(lockDir, "promote.lock");
+// 실제 잠금 파일 이름은 배포 타깃이 정한다(TARGETS). 스테이징 배포가 프로덕션 릴리스를
+// 대기시키면 안 되므로 두 타깃은 서로 다른 잠금을 잡는다. 정의는 타깃 해석 뒤로 미룬다.
 
 const DEPLOY_KEY_RE = /^(CLOUDFLARE_|CF_|CD_)/;
 // 파일 전체를 process.env 에 붓지 않는다. 배포에 쓰는 접두사만 통과시키고, 이미 값이 있으면
@@ -127,6 +128,94 @@ const openPreview = !ciMode && !cli.flags.has("--no-open");
 const skipPush = cli.flags.has("--no-push");
 const allowEmptyChangeSet = ciMode && process.env.CD_ALLOW_EMPTY_CHANGESET === "true";
 
+/**
+ * 배포 타깃. `--stage` 하나가 정한다.
+ *
+ * 🔴 환경변수만으로 프로덕션/스테이징을 가르지 않는다. "어떤 변수가 남아 있는가"로 구분하면
+ *    변수가 새거나 빠진 순간 반대쪽이 배포된다 — 그리고 그 사고는 조용하다. 타깃은 명시적
+ *    stage 로만 결정되고, 아래 이름 해석기가 두 타깃의 자원이 겹치지 않는지 한 번 더 본다.
+ */
+const TARGETS = {
+  production: {
+    id: "production",
+    label: "prod",
+    workerConfig: "worker/wrangler.toml",
+    lockName: "promote.lock",
+    projectEnv: ["CF_PAGES_PROJECT_NAME", "CLOUDFLARE_PAGES_PROJECT_NAME"],
+    workerEnv: ["CF_WORKER_NAME", "CLOUDFLARE_WORKER_NAME"],
+    originEnv: ["CD_PRODUCTION_ORIGIN"],
+    // 로컬 wrangler.toml 의 name 폴백. 프로덕션에서는 예전부터 있던 동작이라 유지한다.
+    allowPagesNameFallback: true,
+  },
+  staging: {
+    id: "staging",
+    label: "staging",
+    workerConfig: "worker/wrangler.staging.toml",
+    lockName: "promote-staging.lock",
+    projectEnv: ["CF_STAGING_PAGES_PROJECT_NAME"],
+    workerEnv: ["CF_STAGING_WORKER_NAME"],
+    originEnv: ["CD_STAGING_ORIGIN"],
+    // 🔴 스테이징에는 폴백이 없다. 루트 wrangler.toml 의 name 은 프로덕션 Pages 프로젝트라,
+    //    폴백을 허용하면 변수 하나가 비었을 때 스테이징 코드가 프로덕션에 나간다.
+    allowPagesNameFallback: false,
+  },
+};
+const target = TARGETS[stage === "staging" ? "staging" : "production"];
+const lockFile = path.join(lockDir, target.lockName);
+
+/** 타깃별 이름 해석. 폴백과 교차오염을 여기 한 곳에서 막는다. */
+function resolveTargetNames(pagesLocal, workerLocal, activeTarget = target) {
+  const firstEnv = (keys) => {
+    for (const key of keys) {
+      const value = String(process.env[key] || "").trim();
+      if (value) return value;
+    }
+    return "";
+  };
+  const project = firstEnv(activeTarget.projectEnv) || (activeTarget.allowPagesNameFallback ? String(pagesLocal.name || "").trim() : "");
+  const worker = firstEnv(activeTarget.workerEnv) || String(workerLocal.name || "").trim();
+  if (!project) {
+    throw new Error("Pages project name for target '" + activeTarget.id + "' is unset. Set " + activeTarget.projectEnv[0] + "."
+      + (activeTarget.allowPagesNameFallback ? "" : "\n  스테이징에는 로컬 wrangler.toml 폴백이 없다 — 폴백을 허용하면 프로덕션 프로젝트로 떨어진다."));
+  }
+  if (!worker) throw new Error("Worker name for target '" + activeTarget.id + "' could not be detected.");
+  if (activeTarget.id !== "production") {
+    // 스테이징이 프로덕션 자원을 가리키는 경우를 여기서 끝낸다. 오늘 타깃이 둘뿐이라
+    // 이 불일치 클래스는 스테이징 도입과 함께 생겼다.
+    const productionProject = String(pagesLocal.name || "").trim();
+    const productionWorker = tomlValue(path.join(root, "worker", "wrangler.toml"), "name");
+    if (project === productionProject) throw new Error("Staging Pages project resolved to the production project '" + project + "'.");
+    if (worker === productionWorker) throw new Error("Staging Worker resolved to the production Worker '" + worker + "'.");
+  }
+  return { project, worker };
+}
+
+/**
+ * 승격 직전 최종 확인 — 요청한 타깃과 실제로 배포될 자원이 같은가.
+ * resolveTargetNames 가 이미 막지만, 그 사이에 discover 결과가 다른 경로로 만들어졌을 가능성을
+ * 남기지 않는다. 프로덕션 승격이 스테이징 이름을 들고 오는 경우도 여기서 끝난다.
+ */
+function assertResolvedTargetMatches(value) {
+  const project = String(value?.cf?.project || "");
+  const worker = String(value?.cf?.worker || "");
+  const looksStaging = /staging/i.test(project) || /staging/i.test(worker);
+  if (target.id === "staging" && !looksStaging) {
+    throw new Error("Staging promotion resolved to non-staging resources (project=" + project + ", worker=" + worker + ").");
+  }
+  if (target.id === "production" && looksStaging) {
+    throw new Error("Production promotion resolved to staging resources (project=" + project + ", worker=" + worker + ").");
+  }
+}
+
+/** 타깃 오리진. 🔴 타깃끼리 폴백하지 않는다 — 스테이징이 프로덕션을 스모크하고 통과하면 안 된다. */
+function targetOriginFromEnv() {
+  for (const key of target.originEnv) {
+    const value = String(process.env[key] || "").trim();
+    if (value) return value.replace(/\/+$/, "");
+  }
+  return "";
+}
+
 function envForChecks() {
   return { ...process.env, LLM_DRY_RUN: "true", WORKERS_AI_ENABLED: "false", DEPLOY_SAFE_MODE: "true" };
 }
@@ -197,11 +286,11 @@ function localPages() {
   };
 }
 function localWorker() {
-  const file = path.join(root, "worker", "wrangler.toml");
-  if (!fs.existsSync(file)) throw new Error("Missing worker/wrangler.toml.");
+  const file = path.join(root, target.workerConfig);
+  if (!fs.existsSync(file)) throw new Error("Missing " + target.workerConfig + ".");
   const text = fs.readFileSync(file, "utf8");
   return {
-    file: "worker/wrangler.toml",
+    file: target.workerConfig,
     name: tomlValue(file, "name"),
     main: tomlValue(file, "main"),
     bindings: [...text.matchAll(/^\s*binding\s*=\s*[\"']([^\"']+)[\"']/gm)].map((m) => m[1]),
@@ -255,9 +344,7 @@ function gitInfo(files) {
 
 async function discover(pagesLocal, workerLocal) {
   ensureCredentials();
-  const project = String(process.env.CF_PAGES_PROJECT_NAME || process.env.CLOUDFLARE_PAGES_PROJECT_NAME || pagesLocal.name || "").trim();
-  const worker = String(process.env.CF_WORKER_NAME || process.env.CLOUDFLARE_WORKER_NAME || workerLocal.name || "").trim();
-  if (!project || !worker) throw new Error("Pages project or Worker name could not be detected.");
+  const { project, worker } = resolveTargetNames(pagesLocal, workerLocal);
   // 로컬 배포에서 가장 흔한 첫 실패다. 맨 "403 Authentication error" 만 던지면 토큰이
   // 죽은 건지 권한 한 종류가 빠진 건지 구분이 안 돼 한참 헤맨다.
   const pages = await cfFetch(apiBase() + "/accounts/" + process.env.CLOUDFLARE_ACCOUNT_ID + "/pages/projects/" + encodeURIComponent(project))
@@ -308,7 +395,7 @@ function needsWorker(files) {
  */
 async function workerBehindHead(cf, head) {
   const domain = cf.pages.domains.find((item) => !item.includes(".pages.dev")) || cf.pages.domains[0];
-  const origin = process.env.CD_PRODUCTION_ORIGIN
+  const origin = targetOriginFromEnv()
     || (domain ? "https://" + domain.replace(/^https?:\/\//, "").replace(/\/+$/, "") : "");
   if (!origin) return "";
   let live = "";
@@ -619,7 +706,7 @@ function previewBranch(gitState, productionBranch) {
 }
 
 async function deployPages(value, branch, production) {
-  const message = deployLabel(value.git, production ? "prod" : "preview");
+  const message = deployLabel(value.git, production ? target.label : "preview");
   const args = wrangler(["pages", "deploy", value.cf.pages.outputDir, "--project-name", value.cf.project, "--branch", branch, "--commit-hash", value.git.head, "--commit-message", message]);
   if (!production) args.push("--skip-caching");
   const text = capture("Pages " + (production ? "production" : "preview") + " deployment", npxCommand(), args, { env: envForChecks() });
@@ -632,7 +719,7 @@ async function deployPages(value, branch, production) {
 }
 async function uploadWorker(value) {
   const alias = "preview-" + value.git.head.slice(0, 12);
-  const text = capture("Worker preview version upload", npxCommand(), wrangler(["versions", "upload", "--config", "worker/wrangler.toml", "--name", value.cf.worker, "--tag", alias, "--preview-alias", alias, "--message", deployLabel(value.git, "preview"), "--var", "COMMIT_SHA:" + value.git.head]), { env: envForChecks() });
+  const text = capture("Worker preview version upload", npxCommand(), wrangler(["versions", "upload", "--config", target.workerConfig, "--name", value.cf.worker, "--tag", alias, "--preview-alias", alias, "--message", deployLabel(value.git, "preview"), "--var", "COMMIT_SHA:" + value.git.head]), { env: envForChecks() });
   const versionId = lastUuid(text);
   const previewUrl = parseUrls(text).find((item) => /workers\.dev/i.test(item)) || process.env.CD_WORKER_PREVIEW_ORIGIN || "";
   if (!versionId) throw new Error("Worker preview upload returned no version ID.");
@@ -717,8 +804,9 @@ function awaitProductionAssets(value, base) {
   }
 }
 
-function productionOrigin(value) {
-  if (process.env.CD_PRODUCTION_ORIGIN) return String(process.env.CD_PRODUCTION_ORIGIN).replace(/\/+$/, "");
+function targetOrigin(value) {
+  const fromEnv = targetOriginFromEnv();
+  if (fromEnv) return fromEnv;
   const domain = value.cf.pages.domains.find((item) => !item.includes(".pages.dev")) || value.cf.pages.domains[0];
   return domain ? "https://" + domain.replace(/^https?:\/\//, "").replace(/\/+$/, "") : "";
 }
@@ -727,7 +815,7 @@ function productionOrigin(value) {
 // 여기서는 그것만으로는 못 잡는 두 가지를 더 본다. 둘 다 이미 있던 스크립트인데 통합
 // 릴리스로 개편될 때 호출부가 사라져 죽어 있었다.
 async function postDeployHealth(value, workerPromoted) {
-  const origin = productionOrigin(value);
+  const origin = targetOrigin(value);
   await smoke(origin);
   // verify-pages-worker-parity 는 "방금 배포한 커밋"을 GITHUB_SHA 로 읽는다. 로컬 배포에는
   // 그 변수가 없으므로 HEAD 를 넣어 준다.
@@ -802,7 +890,7 @@ async function assertPromotionIsNotRegression(value) {
     console.warn("[deploy-safe] --allow-regression: 라이브 커밋 포함 여부를 확인하지 않습니다. 남의 배포를 되돌릴 수 있습니다.");
     return;
   }
-  const origin = productionOrigin(value);
+  const origin = targetOrigin(value);
   if (!origin) return;
   const read = async (pathname) => {
     try {
@@ -869,7 +957,12 @@ async function promote(value, state, yes) {
   if (!yes) throw new Error("Production promotion requires --yes.");
   // 🔴 프로덕션 승격은 GitHub Actions 안에서만 일어난다. 로컬에서 부르면 여기서 끝난다.
   //    (preview·check·smoke 는 그대로 로컬에서 돌아간다 — 막는 것은 프로덕션 쓰기뿐이다.)
-  assertProductionDeployIsCi("Production promotion (Worker + Pages)");
+  // 🔴 조건부로 감싸지 않는다. `if (target.id === "production")` 로 감싸는 순간, 언젠가 부호가
+  //    뒤집혀 로컬 프로덕션 배포가 열린다. 스테이징 승격도 CI 전용으로 두는 데 드는 비용이 없다.
+  assertProductionDeployIsCi((target.id === "staging" ? "Staging" : "Production") + " promotion (Worker + Pages)");
+  // 타깃과 실제로 해석된 자원이 일치하는지 승격 직전에 한 번 더 본다. 오늘 타깃이 둘이라
+  // "요청한 타깃 ≠ 배포될 자원" 이라는 불일치 클래스가 존재한다.
+  assertResolvedTargetMatches(value);
   await assertPromotionIsNotRegression(value);
   pushHeadToOrigin(value);
   assertArtifact(state);
@@ -891,21 +984,21 @@ async function promote(value, state, yes) {
   let pagesPromoted = false;
   try {
     if (shouldPromoteWorker) {
-      capture("Worker 100% promotion", npxCommand(), wrangler(["versions", "deploy", state.worker.versionId + "@100", "--name", value.cf.worker, "--message", deployLabel(value.git, "prod"), "--yes"]), { env: envForChecks() });
+      capture("Worker 100% promotion", npxCommand(), wrangler(["versions", "deploy", state.worker.versionId + "@100", "--name", value.cf.worker, "--message", deployLabel(value.git, target.label), "--yes"]), { env: envForChecks() });
       workerPromoted = true;
     }
     const pages = await deployPages(value, value.cf.pages.productionBranch, true);
     pagesPromoted = true;
     const next = {
       ...state,
-      production: { deployedAt: new Date().toISOString(), pagesDeploymentId: pages.id, pagesUrl: productionOrigin(value), workerVersionId: state.worker?.versionId || "" },
+      production: { deployedAt: new Date().toISOString(), pagesDeploymentId: pages.id, pagesUrl: targetOrigin(value), workerVersionId: state.worker?.versionId || "" },
       rollback: { pagesDeploymentId: oldPages?.id || "", workerVersionId: oldWorker?.versionId || "" },
     };
     writeState(next);
     // ① 배포본 자체가 완전한지. 불변 URL 이라 결정적이고, 여기서 깨지면 롤백이 옳다.
     verifyDeployedArtifact(value, pages.url);
     // ② 별칭이 전환됐는지. 관측 전용 — 전환 지연으로 릴리스를 되돌리지 않는다.
-    awaitProductionAssets(value, productionOrigin(value));
+    awaitProductionAssets(value, targetOrigin(value));
     // ③ 그 다음에 스모크 + Pages/Worker 커밋 패리티(postDeployHealth 가 smoke 를 품는다).
     await postDeployHealth(value, workerPromoted);
     writeState({ ...next, production: { ...next.production, smokePassed: true } });
@@ -1067,7 +1160,7 @@ async function rollbackStage() {
   writeState({ ...(state || {}), lastRollback: { at: new Date().toISOString(), ...result } });
   console.log("[deploy-safe] rollback completed; verifying production.");
   // 롤백도 검증한다. 되돌린 상태가 멀쩡한지 확인하지 않으면 롤백이 두 번째 장애가 된다.
-  await smoke(productionOrigin(value));
+  await smoke(targetOrigin(value));
   console.log("[deploy-safe] rollback smoke passed.");
 }
 async function smokeOnlyStage() {
@@ -1125,7 +1218,50 @@ async function selfTest() {
   if (path.dirname(stateFile) !== stateDir) throw new Error("state file must live in the state directory.");
   if (path.resolve(stateDir) !== path.resolve(root, ".deploy-state")) throw new Error("state must be per-worktree.");
   if (path.resolve(lockDir) !== path.resolve(primaryWorktree(), ".deploy-state")) throw new Error("promote lock must live in the primary worktree.");
+  // self-test 는 stage 없이 돌므로 타깃은 production 이다. 두 타깃의 잠금 이름이 서로 달라야
+  // 스테이징 배포가 프로덕션 릴리스를 대기시키지 않는다 — 같아지면 여기서 잡힌다.
   if (path.basename(lockFile) !== "promote.lock") throw new Error("promote lock name drifted.");
+  if (TARGETS.production.lockName === TARGETS.staging.lockName) throw new Error("staging must not share the production promote lock.");
+  if (TARGETS.production.workerConfig === TARGETS.staging.workerConfig) throw new Error("staging must not share the production Worker config.");
+  if (TARGETS.staging.originEnv.includes("CD_PRODUCTION_ORIGIN")) throw new Error("staging must never fall back to the production origin.");
+  if (TARGETS.staging.allowPagesNameFallback) throw new Error("staging must not fall back to the local Pages project name.");
+  // 타깃 해석기: 스테이징이 프로덕션 자원으로 떨어지는 경로를 각각 증명한다.
+  // env 를 건드리므로 끝나면 반드시 되돌린다.
+  const pagesSample = { name: "codedestiny" };
+  const savedProject = process.env.CF_STAGING_PAGES_PROJECT_NAME;
+  const savedWorker = process.env.CF_STAGING_WORKER_NAME;
+  const expectReject = (label, work) => {
+    let rejected = false;
+    try { work(); } catch { rejected = true; }
+    if (!rejected) throw new Error(label);
+  };
+  try {
+    delete process.env.CF_STAGING_PAGES_PROJECT_NAME;
+    delete process.env.CF_STAGING_WORKER_NAME;
+    expectReject("staging must reject an unset Pages project instead of falling back.",
+      () => resolveTargetNames(pagesSample, { name: "code-destiny-web-staging" }, TARGETS.staging));
+
+    process.env.CF_STAGING_PAGES_PROJECT_NAME = "codedestiny";
+    expectReject("staging must reject the production Pages project.",
+      () => resolveTargetNames(pagesSample, { name: "code-destiny-web-staging" }, TARGETS.staging));
+
+    process.env.CF_STAGING_PAGES_PROJECT_NAME = "codedestiny-staging";
+    expectReject("staging must reject the production Worker name.",
+      () => resolveTargetNames(pagesSample, { name: "code-destiny-web" }, TARGETS.staging));
+
+    const resolved = resolveTargetNames(pagesSample, { name: "code-destiny-web-staging" }, TARGETS.staging);
+    if (resolved.project !== "codedestiny-staging" || resolved.worker !== "code-destiny-web-staging") {
+      throw new Error("staging target resolution drifted: " + JSON.stringify(resolved));
+    }
+  } finally {
+    if (savedProject === undefined) delete process.env.CF_STAGING_PAGES_PROJECT_NAME;
+    else process.env.CF_STAGING_PAGES_PROJECT_NAME = savedProject;
+    if (savedWorker === undefined) delete process.env.CF_STAGING_WORKER_NAME;
+    else process.env.CF_STAGING_WORKER_NAME = savedWorker;
+  }
+  // 승격 직전 타깃 대조도 양방향으로 증명한다.
+  expectReject("production promotion must reject staging resources.",
+    () => assertResolvedTargetMatches({ cf: { project: "codedestiny-staging", worker: "code-destiny-web-staging" } }));
 
   console.log("[deploy-safe] self-test passed.");
 }
@@ -1158,7 +1294,7 @@ async function abortIfAlreadyLive() {
   if (cli.flags.has("--allow-redeploy")) return false;
   const head = git(["rev-parse", "HEAD"]);
   const value = await context();
-  const origin = productionOrigin(value);
+  const origin = targetOrigin(value);
   if (!origin) return false;
   const read = async (path) => {
     try {
@@ -1181,7 +1317,7 @@ async function abortIfAlreadyLive() {
 async function main() {
   if (cli.flags.has("--self-test")) return selfTest();
   if (stage === "check") return checkStage();
-  if (["preview", "production", "safe"].includes(stage) && await abortIfAlreadyLive()) return;
+  if (["preview", "production", "safe", "staging"].includes(stage) && await abortIfAlreadyLive()) return;
   // preview 는 잠그지 않는다. 워크트리마다 다른 URL 로 나가고 상태도 각자 것이라 서로를
   // 건드리지 않는다. 여기를 잠그면 병렬 세션이 서로의 빌드를 기다리기만 한다.
   if (stage === "preview") return previewStageStandalone();
@@ -1190,6 +1326,9 @@ async function main() {
   // 목록 조회는 읽기 전용이라 잠금을 잡지 않는다. 배포가 도는 중에도 봐야 한다.
   if (stage === "rollback") return listOnly ? rollbackStage() : withLock(rollbackStage);
   if (stage === "safe") return safeStage();
-  throw new Error("Unknown stage. Use deploy:check, deploy:preview, deploy:smoke, deploy:production, deploy:rollback, or deploy:safe.");
+  // 스테이징은 프로덕션과 **같은 흐름**을 탄다(preview → 스모크 → 승격). 다른 코드 경로를 만들면
+  // 스테이징이 프로덕션의 리허설이기를 그만둔다 — 평소 안 도는 코드가 정작 필요할 때 처음 돈다.
+  if (stage === "staging") return safeStage();
+  throw new Error("Unknown stage. Use deploy:check, deploy:preview, deploy:smoke, deploy:production, deploy:rollback, deploy:staging, or deploy:safe.");
 }
 main().catch((error) => { unlock(); console.error("[deploy-safe] BLOCKED: " + (error?.stack || error)); process.exitCode = 1; });

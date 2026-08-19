@@ -42,3 +42,15 @@ jobs:
 
       - name: Check Pages automatic deployment configuration
         run: node scripts/ensure-pages-single-deploy.mjs --check
+
+      # 스테이징 Pages 프로젝트도 같은 규칙을 따라야 한다. Git 연동이 켜지면 릴리스 워크플로
+      # 밖에 두 번째 배포 경로가 생기는데, 그건 여기서만 보인다.
+      #
+      # 🔴 조건부인 이유는 부트스트랩 하나뿐이다 — 프로젝트를 만들기 전에는 var 가 비어 있고,
+      #    그때 이 스텝이 매일 실패하면 실제 드리프트 경보가 소음에 묻힌다. var 를 넣는 순간
+      #    검사가 켜지고, 그 뒤로는 프로덕션과 똑같이 fail-closed 다.
+      - name: Check staging Pages automatic deployment configuration
+        if: vars.CF_STAGING_PAGES_PROJECT_NAME != ''
+        env:
+          CF_PAGES_PROJECT_NAME: ${{ vars.CF_STAGING_PAGES_PROJECT_NAME }}
+        run: node scripts/ensure-pages-single-deploy.mjs --check
