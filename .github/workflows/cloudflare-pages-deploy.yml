@@ -23,10 +23,11 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "production = code-destiny.com 승격. preview = 빌드·스모크만. rollback = 지정 버전으로 되돌리기."
+        description: "production = code-destiny.com 승격. staging = staging.code-destiny.com 승격. preview = 빌드·스모크만. rollback = 지정 버전으로 되돌리기."
         type: choice
         options:
           - production
+          - staging
           - preview
           - rollback
         default: preview
@@ -70,6 +71,11 @@ jobs:
     timeout-minutes: 10
     outputs:
       proceed: ${{ steps.decide.outputs.proceed }}
+      # 🔴 스테이징 전용 출력. `proceed` 를 재사용하지 않는 이유는 두 가지다 —
+      #   (1) verify-worker-single-deploy-guard 가 리터럴 `needs.gate.outputs.proceed == 'true'`
+      #       를 매칭하므로 그 이름과 의미를 건드리면 릴리스와 PR CI 가 동시에 멈춘다.
+      #   (2) 한 출력이 두 타깃을 뜻하면 표현식 오타 하나가 곧 프로덕션 배포다.
+      proceed_staging: ${{ steps.decide.outputs.proceed_staging }}
     steps:
       - name: Checkout release SHA
         uses: actions/checkout@v4
@@ -85,25 +91,45 @@ jobs:
         id: decide
         env:
           CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
+          DISPATCH_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '' }}
         run: |
           set -uo pipefail
+          # 🔴 두 판정을 변수에 모으고 **끝에서 한 번만** 쓴다. 갈래마다 echo 하면 갈래를
+          #    하나 더할 때 한쪽 출력을 빠뜨리기 쉽고, 빠뜨린 출력은 빈 문자열이 되어
+          #    "그 잡은 그냥 안 돈다"로 조용히 끝난다.
+          PROCEED=false
+          PROCEED_STAGING=false
+          emit() {
+            echo "proceed=${PROCEED}" >> "$GITHUB_OUTPUT"
+            echo "proceed_staging=${PROCEED_STAGING}" >> "$GITHUB_OUTPUT"
+          }
+          # 스테이징 디스패치는 프로덕션 잡에 도달하지 않는다. 두 값이 동시에 true 가 되는
+          # 갈래가 없어야 한다 — 있으면 스테이징을 골랐는데 프로덕션이 나간다.
+          if [ "${DISPATCH_MODE}" = "staging" ]; then
+            PROCEED_STAGING=true
+            emit
+            echo "::notice::스테이징 배포 요청 — 프로덕션은 건드리지 않습니다."
+            exit 0
+          fi
           if [ "${GITHUB_EVENT_NAME}" != "schedule" ]; then
-            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            PROCEED=true
+            emit
             echo "::notice::${GITHUB_EVENT_NAME} 이벤트 — 드리프트 판정 없이 배포합니다."
             exit 0
           fi
           # 얕은 체크아웃이라 origin/main 이 없다. HEAD 가 곧 main tip 이다.
           if ! OUT=$(node scripts/verify-merge-landed.mjs --check=drift --json --base=HEAD --origin="${CD_PRODUCTION_ORIGIN}"); then
-            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            emit
             echo "::warning::드리프트를 판정하지 못했습니다. 이번 주기는 건너뜁니다."
             exit 0
           fi
           DRIFTED=$(printf '%s' "$OUT" | jq -r '.drifted // "error"')
           if [ "${DRIFTED}" = "true" ]; then
-            echo "proceed=true" >> "$GITHUB_OUTPUT"
+            PROCEED=true
+            emit
             echo "::warning::프로덕션이 main HEAD 와 다릅니다. 자동으로 재배포합니다."
           else
-            echo "proceed=false" >> "$GITHUB_OUTPUT"
+            emit
             echo "프로덕션이 main HEAD 와 같습니다. 배포할 것이 없습니다."
           fi
 
@@ -194,6 +220,7 @@ jobs:
           npm run verify:deploy-safe
           npm run verify:pages-single-deploy-guard
           npm run verify:worker-single-deploy
+          npm run verify:worker-config-parity
 
       # Environment key mismatches only surface at runtime, long after the deploy
       # succeeds. This step runs before the build so a missing or drifted key stops
@@ -357,6 +384,99 @@ jobs:
               issue_number: pr.number,
               body,
             });
+
+  # 스테이징 배포. 프로덕션과 **같은 파일·같은 흐름**에 두는 이유는 하나다 — 별도 워크플로로
+  # 빼면 스테이징이 프로덕션의 리허설이기를 그만두고, "배포 경로는 하나"라는 명제가 규약에서
+  # 관습으로 강등된다(verify-worker-single-deploy-guard 가 지키는 것이 그 명제다).
+  #
+  # 🔴 이 잡에는 CD_PRODUCTION_ORIGIN 을 두지 않는다. deploy-safe 의 targetOrigin 이 그 값을
+  #    먼저 읽으므로, 새어 들어오면 스테이징 배포가 프로덕션을 스모크하고 초록불이 된다.
+  staging:
+    name: Deploy staging
+    needs: gate
+    if: needs.gate.outputs.proceed_staging == 'true'
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CF_PAGES_PROJECT_NAME: ${{ vars.CF_STAGING_PAGES_PROJECT_NAME }}
+      CF_STAGING_PAGES_PROJECT_NAME: ${{ vars.CF_STAGING_PAGES_PROJECT_NAME }}
+      CF_STAGING_WORKER_NAME: ${{ vars.CF_STAGING_WORKER_NAME || 'code-destiny-web-staging' }}
+      CD_STAGING_ORIGIN: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
+      CD_DEPLOY_HEAD_SHA: ${{ github.sha }}
+      CD_ALLOW_EMPTY_CHANGESET: "true"
+      # 프론트가 자기 오리진의 /api 를 치게 한다. 안 세우면 next.config.mjs 가 NODE_ENV=production
+      # 이라는 이유로 https://code-destiny.com 을 빌드에 인라인해, 스테이징 화면이 프로덕션 API 를
+      # 호출하고 CSP(connect-src 'self')에도 걸린다.
+      NEXT_PUBLIC_API_BASE_URL: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
+      NEXT_PUBLIC_SITE_URL: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
+
+    steps:
+      - name: Checkout exact release SHA
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Playwright Chromium
+        run: npx playwright install chromium
+
+      - name: Fail fast when the staging project is unconfigured
+        run: |
+          set -euo pipefail
+          test -n "${CF_STAGING_PAGES_PROJECT_NAME:-}" || {
+            echo "::error::CF_STAGING_PAGES_PROJECT_NAME 레포 변수가 없습니다. Cloudflare 에 스테이징 Pages 프로젝트를 만든 뒤 변수를 등록하세요.";
+            exit 1;
+          }
+
+      - name: Verify release pipeline contract
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+        run: |
+          npm run verify:deploy-safe
+          npm run verify:pages-single-deploy-guard
+          npm run verify:worker-single-deploy
+          npm run verify:worker-config-parity
+
+      - name: Verify environment key parity
+        run: npm run verify:env-parity -- --remote --target=staging
+
+      - name: Verify Pages Git deployments stay disabled
+        run: npm run verify:pages-single-deploy
+
+      - name: Scan for leaked secrets
+        run: npm run verify:no-secret-leak
+
+      - name: Deploy staging Pages and Worker at the exact SHA
+        run: npm run deploy:staging -- --ci --yes
+
+      - name: Verify deployed SHA on staging
+        if: ${{ !cancelled() }}
+        run: |
+          npm run verify:deployed-sha -- \
+            --sha="${GITHUB_SHA}" \
+            --origin="${CD_STAGING_ORIGIN}"
+
+      - name: Summarize the staging result
+        if: always()
+        run: |
+          {
+            echo "### 스테이징 배포"
+            echo ""
+            echo "- SHA: \`${GITHUB_SHA}\`"
+            echo "- 오리진: ${CD_STAGING_ORIGIN}"
+            echo "- 프로덕션은 이 실행에서 건드리지 않았습니다."
+          } >> "$GITHUB_STEP_SUMMARY"
 
   rollback:
     if: github.event_name == 'workflow_dispatch' && inputs.mode == 'rollback'

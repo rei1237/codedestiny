@@ -347,7 +347,12 @@ if (exampleKeys) {
 if (remote) {
   const trackedUpper = new Set([...contractKeys.keys(), ...aliasToCanonical.keys()].map((name) => name.toUpperCase()));
 
-  const workerSecrets = remoteSecretNames("worker", ["secret", "list", "--config", "worker/wrangler.toml"]);
+  // 타깃별 워커 설정. 스테이징 잡이 프로덕션 워커의 시크릿을 검사하면, 정작 스테이징 워커는
+  // 무검증으로 남아 "프로덕션에는 없는 런타임 실패"가 배포 뒤에야 드러난다.
+  const workerConfigPath = process.argv.includes("--target=staging")
+    ? "worker/wrangler.staging.toml"
+    : "worker/wrangler.toml";
+  const workerSecrets = remoteSecretNames("worker", ["secret", "list", "--config", workerConfigPath]);
   if (workerSecrets) {
     for (const entry of contract.keys) {
       if (!entry.secret || !entry.targets?.includes("worker")) continue;
