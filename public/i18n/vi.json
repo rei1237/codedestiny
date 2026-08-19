@@ -159,8 +159,6 @@
       "nameLabel": "Tên",
       "nameHint": "Nhập tên để hiển thị trong bài đọc của bạn.",
       "birthDateLabel": "Ngày sinh",
-      "quickPickTitle": "✦ Xem Tứ Trụ nhanh",
-      "quickPickSubtitle": "Xem nhanh lá số đã lưu",
       "birthDateHint": "Chọn ngày sinh của bạn để mở cơ sở đầu tiên trong biểu đồ Tứ trụ của bạn.",
       "solar": "Mặt trời",
       "lunar": "Âm lịch",
