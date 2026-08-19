@@ -6,6 +6,7 @@ import { ArrowLeft, BadgeCheck, PenLine, RefreshCw, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { authFetch } from "../_lib/auth-client";
+import YeonSpriteFrame from "@/components/yeon/YeonSpriteFrame";
 
 type SortKey = "latest" | "rating_desc" | "rating_asc";
 
@@ -320,7 +321,14 @@ export default function ReviewsClient() {
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
             홈
           </Link>
-          <p className="text-sm font-semibold">실시간 사용자 리뷰</p>
+          <span className="flex items-center gap-1.5">
+            <YeonSpriteFrame
+              frame={1}
+              ariaLabel="꽃돼지 연이"
+              className="h-8 w-8 shrink-0 rounded-full sm:h-9 sm:w-9"
+            />
+            <p className="text-sm font-semibold">실시간 사용자 리뷰</p>
+          </span>
           <button
             type="button"
             onClick={() => { void openWriter(); }}
@@ -479,7 +487,14 @@ export default function ReviewsClient() {
             className="max-h-[92vh] w-full max-w-lg overflow-y-auto rounded-t-3xl border border-[#f0d4de] bg-[#fffaf7] p-5 dark:border-[#5a3348] dark:bg-[#24081a] sm:rounded-3xl sm:p-6"
           >
             <div className="flex items-center justify-between">
-              <h2 className="text-base font-semibold">리뷰 쓰기</h2>
+              <span className="flex items-center gap-2">
+                <YeonSpriteFrame
+                  frame={4}
+                  ariaLabel="꽃돼지 연이"
+                  className="h-11 w-11 shrink-0 rounded-full sm:h-12 sm:w-12"
+                />
+                <h2 className="text-base font-semibold">리뷰 쓰기</h2>
+              </span>
               <button
                 type="button"
                 onClick={() => setWriterOpen(false)}

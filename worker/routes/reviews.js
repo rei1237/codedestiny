@@ -246,14 +246,16 @@ async function handleCreate(request, env) {
   const locale = SUPPORTED_LOCALES.has(localeRaw) ? localeRaw : "ko";
 
   // 🔴 구매 여부는 클라이언트 입력을 믿지 않고 서버가 다시 조회한다.
-  const usage = await findUsedReviewProduct({ userId: auth.userId, productId, env });
+  // 두 조회는 서로 독립이라 병렬로 실행한다.
+  const [usage, userDoc] = await Promise.all([
+    findUsedReviewProduct({ userId: auth.userId, productId, env }),
+    withMongoRetry(env, () => User.findById(auth.userId)
+      .select("name profileImage")
+      .lean()).catch(() => null),
+  ]);
   if (!usage) {
     throw createHttpError(403, "이 상품을 구매한 사용자만 리뷰를 작성할 수 있습니다.", { code: "PURCHASE_REQUIRED" });
   }
-
-  const userDoc = await withMongoRetry(env, () => User.findById(auth.userId)
-    .select("name profileImage")
-    .lean()).catch(() => null);
 
   const authorName = toText(userDoc?.name) || toText(auth.name) || "코드데스티니 이용자";
   const screening = screenReviewText({ title, body: reviewBody, isVerifiedPurchase: true });

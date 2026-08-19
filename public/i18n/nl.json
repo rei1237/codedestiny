@@ -159,8 +159,6 @@
       "nameLabel": "Naam",
       "nameHint": "Vul de naam in die in je reading moet verschijnen.",
       "birthDateLabel": "Geboortedatum",
-      "quickPickTitle": "✦ Saju direct",
-      "quickPickSubtitle": "Bekijk een opgeslagen kaart in seconden",
       "birthDateHint": "Kies je geboortedatum om de eerste basis van je Saju-chart te openen.",
       "solar": "Zonnekalender",
       "lunar": "Maankalender",

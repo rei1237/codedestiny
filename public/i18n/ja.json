@@ -159,8 +159,6 @@
       "nameLabel": "名前",
       "nameHint": "分析結果に表示する名前を入力してください。",
       "birthDateLabel": "生年月日",
-      "quickPickTitle": "✦ 四柱をすぐ見る",
-      "quickPickSubtitle": "保存した命式をすばやく確認",
       "birthDateHint": "生まれた日を選ぶと、四柱命式の最初の基準が開きます。",
       "solar": "新暦",
       "lunar": "旧暦",

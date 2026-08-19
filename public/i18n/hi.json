@@ -159,8 +159,6 @@
       "nameLabel": "नाम",
       "nameHint": "रीडिंग में दिखाने वाला नाम लिखें।",
       "birthDateLabel": "जन्म तिथि",
-      "quickPickTitle": "✦ त्वरित साजू",
-      "quickPickSubtitle": "सहेजी गई कुंडली तुरंत देखें",
       "birthDateHint": "जन्म दिन चुनते ही साजू चार्ट का पहला आधार खुलता है।",
       "solar": "सौर",
       "lunar": "चंद्र",
