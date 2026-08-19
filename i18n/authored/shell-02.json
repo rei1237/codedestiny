@@ -167,33 +167,33 @@
   },
 
   "shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.k18ykrep": {
-    "ko": "무료 3회",
-    "en": "3 free readings",
-    "ja": "無料3回",
-    "zh-CN": "免费3次",
-    "zh-TW": "免費3次",
-    "vi": "3 lượt miễn phí",
-    "hi": "3 निःशुल्क पाठ",
-    "es": "3 lecturas gratis",
-    "fr": "3 lectures gratuites",
-    "de": "3 kostenlose Deutungen",
-    "nl": "3 gratis readings",
-    "ms": "3 bacaan percuma"
+    "ko": "로그인 무료 1회",
+    "en": "1 free after signing in",
+    "ja": "ログインで無料1回",
+    "zh-CN": "登录后免费1次",
+    "zh-TW": "登入後免費1次",
+    "vi": "1 lượt miễn phí sau khi đăng nhập",
+    "hi": "साइन-इन के बाद 1 निःशुल्क",
+    "es": "1 gratis al iniciar sesión",
+    "fr": "1 gratuite après connexion",
+    "de": "1× kostenlos nach Anmeldung",
+    "nl": "1 gratis na inloggen",
+    "ms": "1 percuma selepas log masuk"
   },
 
   "shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n115000": {
-    "ko": "비로그인 1회 · 이후 1회 5,000원",
-    "en": "1 without signing in · ₩5,000 each after",
-    "ja": "未ログインで1回・以降1回5,000ウォン",
-    "zh-CN": "未登录1次 · 之后每次5,000韩元",
-    "zh-TW": "未登入1次 · 之後每次5,000韓元",
-    "vi": "1 lượt khi chưa đăng nhập · sau đó 5.000 KRW mỗi lượt",
-    "hi": "बिना साइन-इन 1 बार · उसके बाद ₩5,000 प्रति बार",
-    "es": "1 sin iniciar sesión · ₩5.000 cada una después",
-    "fr": "1 sans connexion · 5 000 ₩ ensuite par lecture",
-    "de": "1× ohne Anmeldung · danach 5.000 ₩ je Deutung",
-    "nl": "1 zonder inloggen · daarna ₩5.000 per stuk",
-    "ms": "1 tanpa log masuk · selepas itu ₩5,000 setiap satu"
+    "ko": "회원가입 후 1회 무료 · 이후 1회 5,000원",
+    "en": "1 free after signing up · ₩5,000 each after",
+    "ja": "会員登録後1回無料・以降1回5,000ウォン",
+    "zh-CN": "注册后免费1次 · 之后每次5,000韩元",
+    "zh-TW": "註冊後免費1次 · 之後每次5,000韓元",
+    "vi": "1 lượt miễn phí sau khi đăng ký · sau đó 5.000 KRW mỗi lượt",
+    "hi": "साइन-अप के बाद 1 बार निःशुल्क · उसके बाद ₩5,000 प्रति बार",
+    "es": "1 gratis tras registrarte · ₩5.000 cada una después",
+    "fr": "1 gratuite après inscription · 5 000 ₩ ensuite par lecture",
+    "de": "1× kostenlos nach Registrierung · danach 5.000 ₩ je Deutung",
+    "nl": "1 gratis na registreren · daarna ₩5.000 per stuk",
+    "ms": "1 percuma selepas mendaftar · selepas itu ₩5,000 setiap satu"
   },
 
   "shell.fortuneGatewayDoors.fortuneGatewayDoor.k12pdy0g": {
