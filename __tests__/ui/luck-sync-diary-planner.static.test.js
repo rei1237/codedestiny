@@ -23,10 +23,13 @@ test("fortune planner entry is folded into the diary modal", () => {
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);
   assert.match(html, /id="cdDiaryPlannerEntry"[\s\S]*data-action="openLuckSyncDiary"/);
   assert.match(html, /id="cdDiaryPlannerTitle">운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
-  // 홈 축약(cd-home-secondary-v20260817) 이후 대표 상담은 무료 사주 폼 뒤로 내려갔고,
   // 다이어리 진입은 접힌 섹션 안에 남는다 — 지운 것이 아니라 감춘 것임을 여기서 못박는다.
   assert.match(html, /<section data-cd-home-secondary class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
-  assert.ok(html.indexOf('id="destinyCardForm"') < html.indexOf('id="cdSignatureConsult"'));
+  // 2026-08-19(cd-finder-v20260819): 대표 상담이 통합 탐색기 바로 아래로 승격되면서 무료 사주 폼
+  // **앞**으로 올라왔다. 그 전(cd-home-secondary-v20260817)에는 폼 뒤였다 — 순서가 뒤집힌 것은
+  // 회귀가 아니라 이 개편의 의도다. 폼 자체는 접힌 채 그대로 있다.
+  assert.ok(html.indexOf('id="cdSignatureConsult"') < html.indexOf('id="destinyCardForm"'));
+  assert.match(html, /<section class="card input-section moon-destiny-form" id="destinyCardForm"[\s\S]{0,400}?data-cd-home-secondary/);
   assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="fortuneGatewayEntry"'));
   assert.match(html, /cdDiaryPlannerEntry'\) \|\| document\.getElementById\('cdSignatureConsult'/);
   assert.match(dashboard, /label:'갓생 다이어리'/);

@@ -1325,6 +1325,11 @@
       "freeCta": "Eerst gratis checken",
       "paidCta": "Aanbevolen duiding openen",
       "fusionLine": "Wil je alle zes systemen naast elkaar leggen"
+    },
+    "quickServices": {
+      "title": "Gratis direct beginnen",
+      "freeStart": "Gratis starten",
+      "compat": "Compatibiliteit"
     }
   },
   "terms": {

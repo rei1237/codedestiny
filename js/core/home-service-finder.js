@@ -357,7 +357,8 @@
       rootId: "fortuneGatewayDiscover",
       resultsId: "fortuneGatewayRecs",
       inputId: "fortuneGatewaySearch",
-      filtersId: "fortuneGatewayFilters",
+      /* filtersId 를 주지 않는다 — 방식·가격 필터는 처음부터 보인다.
+         예전에는 고민 칩을 눌러야 드러나서 "방식만으로 찾기"가 불가능했다. */
       chipSelector: ".fortune-gateway__chip",
       filterChipSelector: ".fortune-gateway__fchip",
       purposeAttr: "data-purpose",
