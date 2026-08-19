@@ -1325,6 +1325,11 @@
       "freeCta": "先免費確認",
       "paidCta": "打開推薦諮詢",
       "fusionLine": "想把六個體系全部交叉驗證的話"
+    },
+    "quickServices": {
+      "title": "免費立即開始",
+      "freeStart": "免費開始",
+      "compat": "查看合盤"
     }
   },
   "terms": {

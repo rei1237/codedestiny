@@ -1325,6 +1325,11 @@
       "freeCta": "Vérifier gratuitement d'abord",
       "paidCta": "Ouvrir la lecture recommandée",
       "fusionLine": "Pour recouper les six systèmes"
+    },
+    "quickServices": {
+      "title": "Commencer gratuitement",
+      "freeStart": "Début gratuit",
+      "compat": "Compatibilité"
     }
   },
   "terms": {

@@ -548,14 +548,6 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
   gap: 12px;
   margin-top: 4px;
 }
-.fortune-gateway__discover-q {
-  margin: 0;
-  color: #3c1830;
-  font-family: var(--font-display, inherit);
-  font-size: 15px;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-}
 .fortune-gateway__chips {
   display: flex;
   flex-wrap: wrap;
@@ -692,7 +684,6 @@ html.neo-mode body .fortune-gateway__door:focus-visible { outline-color: #e8d5a3
 .fortune-gateway__all:hover em { transform: translateX(3px); }
 
 /* neo-mode */
-html.neo-mode body .fortune-gateway__discover-q { color: #e8dfc8; }
 html.neo-mode body .fortune-gateway__chip {
   background: rgba(10, 11, 26, 0.6);
   border-color: rgba(201, 168, 76, 0.28);
@@ -759,4 +750,229 @@ html.neo-mode body .fortune-gateway__all:hover {
 .fortune-gateway__rec:hover,
 .fortune-gateway__all:hover,
 .fortune-gateway__all:hover em { transform: none; }
+}
+
+
+/* ===== 빠른 서비스 + 통합 운세 탐색기 (cd-quick-services-v20260819 / cd-finder-v20260819) =====
+   🔴 폰트는 rem 이 아니라 px 다 — fortune-ui.css 171행이 ≤480px 에서 html{font-size:14px} 을
+      걸어 rem 이 12.5% 줄어든다. 카드 본문이 10px 대로 떨어지던 원인.
+   🔴 상위 셸(.logo-area)이 text-align:center 를 상속시키므로 두 섹션 모두 여기서 끊는다.
+   연이(핑크) 기본 + html.neo-mode(퍼플) 오버라이드를 표면·텍스트·강조색 한 세트로 함께 바꾼다. */
+
+.cd-quick,
+.cd-finder {
+  text-align: left;
+  max-width: 1180px;
+  margin: 24px auto 0;
+  padding: 0 20px;
+  color: #3c1830;
+  font-family: var(--font-body, "Apple SD Gothic Neo", "Malgun Gothic", system-ui, sans-serif);
+}
+
+.cd-quick__head,
+.cd-finder__head { margin: 0 0 14px; text-align: center; }
+
+.cd-quick__head h2,
+.cd-finder__head h2 {
+  margin: 0;
+  font-family: var(--font-display, "Noto Serif KR", serif);
+  font-size: clamp(20px, 4.6vw, 28px);
+  font-weight: 700;
+  line-height: 1.3;
+  letter-spacing: -0.01em;
+  color: #3c1830;
+  word-break: keep-all;
+  text-wrap: balance;
+}
+
+/* ── 빠른 서비스 카드 ── */
+.cd-quick__grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.cd-quick-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 10px 14px;
+  border: 1px solid rgba(179, 25, 85, .2);
+  border-radius: 18px;
+  background: linear-gradient(160deg, #fffdfb 0%, #fff4f8 100%);
+  box-shadow: 0 10px 24px -22px rgba(102, 29, 74, .7);
+  text-decoration: none;
+  transition: transform .25s cubic-bezier(.22, 1, .36, 1), border-color .25s ease;
+}
+
+.cd-quick-card:hover { transform: translateY(-2px); border-color: rgba(179, 25, 85, .42); }
+.cd-quick-card:focus-visible { outline: 2px solid #b31955; outline-offset: 3px; }
+
+.cd-quick-card__sigil {
+  font-size: 24px;
+  line-height: 1;
+  color: #b31955;
+}
+
+.cd-quick-card__name {
+  font-size: 14px;
+  font-weight: 700;
+  line-height: 1.35;
+  color: #3c1830;
+  text-align: center;
+  word-break: keep-all;
+}
+
+.cd-quick-card__price {
+  font-size: 12px;
+  font-weight: 800;
+  color: #b31955;
+  white-space: nowrap;
+}
+
+/* ── 탐색기 컨테이너 ── */
+.cd-finder .fortune-gateway__discover {
+  padding: 18px 16px 20px;
+  border: 1px solid rgba(179, 25, 85, .22);
+  border-radius: 26px;
+  background: linear-gradient(150deg, #fffdfb 0%, #fff4f8 62%, #f7ecff 100%);
+  box-shadow: 0 18px 42px -34px rgba(102, 29, 74, .66);
+}
+
+/* ── 검색창 (마크업은 v20260817 부터 있었으나 CSS 가 아예 없었다) ── */
+.fortune-gateway__search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 0 14px;
+  border: 1px solid rgba(179, 25, 85, .26);
+  border-radius: 999px;
+  background: #fff;
+}
+
+.fortune-gateway__search-icon { font-size: 15px; line-height: 1; }
+
+.fortune-gateway__search-input {
+  flex: 1 1 auto;
+  min-width: 0;
+  padding: 12px 0;
+  border: 0;
+  background: transparent;
+  color: #3c1830;
+  /* 🔴 16px 미만이면 iOS 가 포커스 때 화면을 확대한다. */
+  font-size: 16px;
+  font-family: inherit;
+}
+
+.fortune-gateway__search-input::placeholder { color: rgba(60, 24, 48, .68); }
+.fortune-gateway__search-input:focus { outline: none; }
+.fortune-gateway__search:focus-within { border-color: #b31955; box-shadow: 0 0 0 3px rgba(179, 25, 85, .12); }
+
+/* ── 방식·가격 필터 (역시 CSS 가 없었다) ── */
+.fortune-gateway__filters { margin-top: 12px; display: grid; gap: 10px; }
+.fortune-gateway__filters[hidden] { display: none; }
+
+.fortune-gateway__filter-row {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.fortune-gateway__filter-label {
+  flex: 0 0 auto;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  color: rgba(60, 24, 48, .74);
+}
+
+.fortune-gateway__filter-chips { display: flex; flex-wrap: wrap; gap: 6px; }
+
+.fortune-gateway__fchip {
+  padding: 7px 12px;
+  border: 1px solid rgba(179, 25, 85, .24);
+  border-radius: 999px;
+  background: #fff;
+  color: #3c1830;
+  font-size: 13px;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: border-color .2s ease, background .2s ease, color .2s ease;
+}
+
+.fortune-gateway__fchip:hover { border-color: rgba(179, 25, 85, .5); }
+.fortune-gateway__fchip:focus-visible { outline: 2px solid #b31955; outline-offset: 2px; }
+
+.fortune-gateway__fchip[aria-pressed="true"] {
+  border-color: #b31955;
+  background: #b31955;
+  color: #fff;
+}
+
+/* ── 네오(퍼플) — 표면·텍스트·강조색을 한 세트로 교체한다 ── */
+html.neo-mode body .cd-quick__head h2,
+html.neo-mode body .cd-finder__head h2 { color: #f4eeff; }
+
+html.neo-mode body .cd-quick-card {
+  border-color: rgba(196, 181, 253, .24);
+  background: linear-gradient(160deg, rgba(19, 16, 42, .92) 0%, rgba(10, 8, 24, .92) 100%);
+  box-shadow: 0 10px 24px -22px rgba(0, 0, 0, .9);
+}
+
+html.neo-mode body .cd-quick-card:hover { border-color: rgba(196, 181, 253, .5); }
+html.neo-mode body .cd-quick-card__sigil { color: #e8d5a3; }
+html.neo-mode body .cd-quick-card__name { color: #f4eeff; }
+html.neo-mode body .cd-quick-card__price { color: #e8d5a3; }
+
+html.neo-mode body .cd-finder .fortune-gateway__discover {
+  border-color: rgba(196, 181, 253, .24);
+  background: linear-gradient(150deg, rgba(19, 16, 42, .94) 0%, rgba(10, 8, 24, .94) 100%);
+}
+
+html.neo-mode body .fortune-gateway__search {
+  border-color: rgba(196, 181, 253, .3);
+  background: rgba(10, 8, 24, .72);
+}
+
+html.neo-mode body .fortune-gateway__search-input { color: #f4eeff; }
+html.neo-mode body .fortune-gateway__search-input::placeholder { color: rgba(218, 206, 255, .62); }
+html.neo-mode body .fortune-gateway__search:focus-within { border-color: #c4b5fd; box-shadow: 0 0 0 3px rgba(196, 181, 253, .16); }
+html.neo-mode body .fortune-gateway__filter-label { color: rgba(218, 206, 255, .88); }
+
+html.neo-mode body .fortune-gateway__fchip {
+  border-color: rgba(196, 181, 253, .26);
+  background: rgba(10, 8, 24, .6);
+  color: #eee6ff;
+}
+
+html.neo-mode body .fortune-gateway__fchip:hover { border-color: rgba(196, 181, 253, .55); }
+html.neo-mode body .fortune-gateway__fchip[aria-pressed="true"] {
+  border-color: #c4b5fd;
+  background: #c4b5fd;
+  color: #17122e;
+}
+
+/* ── 모바일: 빠른 서비스 2열, 탐색기 여백 축소 ── */
+@media (max-width: 760px) {
+  .cd-quick__grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 520px) {
+  .cd-quick,
+  .cd-finder { padding: 0 14px; margin-top: 18px; }
+  .cd-quick__grid { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+  .cd-quick-card { padding: 14px 8px 12px; border-radius: 16px; }
+  .cd-quick-card__sigil { font-size: 21px; }
+  .cd-quick-card__name { font-size: 13px; }
+  .cd-finder .fortune-gateway__discover { padding: 14px 12px 16px; border-radius: 22px; }
+  .fortune-gateway__filter-row { gap: 6px; }
+  .fortune-gateway__fchip { padding: 8px 11px; font-size: 12.5px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .cd-quick-card { transition: none; }
+  .cd-quick-card:hover { transform: none; }
 }

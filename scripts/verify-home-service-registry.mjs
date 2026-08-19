@@ -196,6 +196,88 @@ if (tileCount === 0) {
 notes.push(`레지스트리 ${registry.length}개 · 셸 결제 타일 ${tileCount}개 대조`);
 if (freeMarkerKeys.size) notes.push(`무료 마커 키 ${freeMarkerKeys.size}개 통과(${[...freeMarkerKeys].join(", ")})`);
 
+/* ── 3. 홈 배치 섹션 ↔ 레지스트리 roles 전수 대조 ────────────────
+ * 빠른 서비스·대표 상담 카드는 정적 마크업이다(CLS·SEO 때문). 그래서 레지스트리와 갈라질 수
+ * 있으므로 **양방향**으로 본다: 카드는 반드시 레지스트리에 있어야 하고, roles 를 선언한
+ * 레지스트리 항목은 반드시 그 섹션에 정확히 한 번 나와야 한다. */
+function sectionOf(id) {
+  const idAt = shell.indexOf(`id="${id}"`);
+  if (idAt < 0) return null;
+  const start = shell.lastIndexOf("<", idAt);
+  const tag = /^<([a-z]+)/i.exec(shell.slice(start))[1];
+  const re = new RegExp(`<${tag}\\b|</${tag}>`, "gi");
+  re.lastIndex = start;
+  let depth = 0;
+  let m;
+  while ((m = re.exec(shell))) {
+    depth += m[0][1] === "/" ? -1 : 1;
+    if (depth === 0) return shell.slice(start, m.index + m[0].length);
+  }
+  return null;
+}
+
+const byId = new Map(registry.map((item) => [item.id, item]));
+const PLACEMENTS = [
+  { role: "quick", sectionId: "cdQuickServices", label: "빠른 서비스" },
+  { role: "recommended", sectionId: "cdSignatureConsult", label: "대표 상담" },
+];
+
+const placed = new Map();
+for (const { role, sectionId, label } of PLACEMENTS) {
+  const html = sectionOf(sectionId);
+  if (!html) {
+    fail(`${label}: index.html 에 #${sectionId} 가 없다`);
+    continue;
+  }
+  const cardRe = /<a\b([^>]*\bdata-cd-service-id="([^"]+)"[^>]*)>/g;
+  const found = [];
+  let card;
+  while ((card = cardRe.exec(html))) {
+    const [, head, id] = card;
+    found.push(id);
+    const item = byId.get(id);
+    if (!item) {
+      fail(`${label} 카드 "${id}": 레지스트리에 없는 id`);
+      continue;
+    }
+    if (!(item.roles || []).includes(role)) {
+      fail(`${label} 카드 "${id}": 레지스트리 roles 에 "${role}" 이 없다 — 배치와 데이터가 어긋난다`);
+    }
+    const href = attrOf(head, "href");
+    if (href && item.href && href !== item.href) {
+      fail(`${label} 카드 "${id}": href "${href}" / 레지스트리 "${item.href}"`);
+    }
+    // 카드에 적힌 가격은 레지스트리와 같은 가격대여야 하고, 유료면 금액까지 같아야 한다.
+    const body = html.slice(card.index, html.indexOf("</a>", card.index));
+    const priceText = (body.match(/class="(?:cd-quick-card__price|cd-sig-card__price[^"]*)"[^>]*>([^<]{1,40})/) || [])[1];
+    if (priceText) {
+      const shownWon = priceText.replace(/,/g, "").match(/(\d{3,7})\s*원/);
+      const wanted = readPrice(item.price);
+      if (shownWon && wanted && wanted.krw !== null && Number(shownWon[1]) !== wanted.krw) {
+        fail(`${label} 카드 "${id}": 표시 "${priceText.trim()}" / 레지스트리 ${item.price}`);
+      }
+      if (!shownWon && wanted && wanted.krw !== null) {
+        fail(`${label} 카드 "${id}": 유료(${item.price})인데 카드에 금액이 없다 ("${priceText.trim()}")`);
+      }
+      if (shownWon && wanted && wanted.krw === null) {
+        fail(`${label} 카드 "${id}": 무료 표기(${item.price})인데 카드가 금액을 보여 준다 ("${priceText.trim()}")`);
+      }
+    }
+  }
+  placed.set(role, found);
+  if (found.length === 0) fail(`${label}: data-cd-service-id 카드를 하나도 못 찾았다 (fail-closed)`);
+}
+
+for (const { role, label } of PLACEMENTS) {
+  const declared = registry.filter((item) => (item.roles || []).includes(role)).map((item) => item.id);
+  const found = placed.get(role) || [];
+  for (const id of declared) {
+    const times = found.filter((f) => f === id).length;
+    if (times !== 1) fail(`${label}: roles 에 "${role}" 을 선언한 "${id}" 가 섹션에 ${times}번 나온다 (1번이어야 한다)`);
+  }
+}
+notes.push(`배치 대조 quick ${(placed.get("quick") || []).length}개 · recommended ${(placed.get("recommended") || []).length}개`);
+
 /* ── 결과 ──────────────────────────────────────────────────────── */
 if (errors.length) {
   console.error(`[home-service-registry] 실패 ${errors.length}건 (${notes.join(" · ")})`);
