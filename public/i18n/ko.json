@@ -1159,6 +1159,11 @@
       "freeCta": "무료로 먼저 확인하기",
       "paidCta": "추천 상담 열기",
       "fusionLine": "여섯 체계를 모두 교차검증하고 싶다면"
+    },
+    "quickServices": {
+      "title": "무료로 바로 시작하기",
+      "freeStart": "무료 시작",
+      "compat": "궁합 보기"
     }
   },
   "footer": {

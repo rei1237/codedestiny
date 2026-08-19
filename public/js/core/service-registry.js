@@ -69,7 +69,7 @@ window.__cdServiceRegistry = [
     methods: ["tarot", "saju", "ai"],
     keys: "찻집 상담 연이 마음 고민",
     badge: "대표",
-    roles: ["quick"],
+    roles: ["recommended"],
   },
   {
     id: "love-secret-ai",
@@ -105,7 +105,6 @@ window.__cdServiceRegistry = [
     methods: ["ai"],
     keys: "상담 채팅 대화 연이 네오 고민 무료상담",
     badge: "가입 후 1회 무료",
-    roles: ["quick"],
   },
 
   /* ── 재물 · 직업 ─────────────────────────────────────────────── */
@@ -167,7 +166,6 @@ window.__cdServiceRegistry = [
     purposes: ["life", "self"],
     methods: ["saju", "ai"],
     keys: "인생의책 라이프북 pdf 리포트",
-    roles: ["recommended"],
   },
   {
     id: "karma-destiny-ai",
@@ -191,7 +189,6 @@ window.__cdServiceRegistry = [
     methods: ["saju"],
     keys: "가디언 수호 인장 소환진 60갑자",
     badge: "영구 해금",
-    roles: ["recommended"],
   },
   {
     id: "naming-ai",
@@ -237,6 +234,7 @@ window.__cdServiceRegistry = [
     purposes: ["money", "career", "life"],
     methods: ["ziwei"],
     keys: "자미두수 명반 12궁",
+    roles: ["quick"],
   },
   {
     id: "sukuyo",
@@ -247,6 +245,7 @@ window.__cdServiceRegistry = [
     purposes: ["life", "self"],
     methods: ["sukuyo"],
     keys: "숙요 27수 숙요점 달",
+    roles: ["quick"],
   },
   {
     id: "vedic",
@@ -278,6 +277,7 @@ window.__cdServiceRegistry = [
     methods: ["vedic"],
     keys: "나크샤트라 베다 달자리 27수",
     badge: "무료",
+    roles: ["recommended"],
   },
   {
     id: "maya",

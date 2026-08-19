@@ -1325,6 +1325,11 @@
       "freeCta": "まず無料で確かめる",
       "paidCta": "おすすめの鑑定を開く",
       "fusionLine": "六つの体系をすべて照合したいなら"
+    },
+    "quickServices": {
+      "title": "無料でいますぐ始める",
+      "freeStart": "無料で開始",
+      "compat": "相性を見る"
     }
   },
   "terms": {

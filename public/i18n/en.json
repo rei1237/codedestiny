@@ -1325,6 +1325,11 @@
       "freeCta": "Check it free first",
       "paidCta": "Open the suggested reading",
       "fusionLine": "If you want all six systems cross-checked"
+    },
+    "quickServices": {
+      "title": "Start free, right now",
+      "freeStart": "Free to start",
+      "compat": "Compatibility"
     }
   },
   "terms": {

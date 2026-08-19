@@ -1325,6 +1325,11 @@
       "freeCta": "Compruébalo gratis primero",
       "paidCta": "Abrir la lectura recomendada",
       "fusionLine": "Si quieres contrastar los seis sistemas"
+    },
+    "quickServices": {
+      "title": "Empieza gratis ahora",
+      "freeStart": "Inicio gratis",
+      "compat": "Compatibilidad"
     }
   },
   "terms": {

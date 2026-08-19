@@ -108,18 +108,42 @@ test("운명의 문 디스커버는 고민 × 방식 × 가격을 한 상태로 
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
 
+  // 필터 3행은 처음부터 보인다. 예전에는 고민 칩을 눌러야 드러나서 "방식만으로 찾기"가 불가능했다.
+  assert.equal(doc.getElementById("fortuneGatewayFilters").hidden, false, "방식·가격 필터가 처음부터 보이지 않는다");
+
   doc.querySelector('#fortuneGatewayDiscover [data-purpose="life"]').click();
   const purposeOnly = names(panel);
   assert.ok(purposeOnly.length > 0, "고민 칩만으로 결과가 없다");
-
-  // 고민을 고르면 방식·가격 필터가 드러난다(단계적 탐색).
-  assert.equal(doc.getElementById("fortuneGatewayFilters").hidden, false);
 
   doc.querySelector('#fortuneGatewayDiscover [data-method="vedic"]').click();
   const withMethod = names(panel);
   assert.ok(withMethod.length < purposeOnly.length, "방식 필터가 결과를 좁히지 못했다");
   assert.ok(withMethod.includes("베다점"), `베다 방식에 베다점이 없다: ${withMethod.join(", ")}`);
   assert.ok(!withMethod.includes("숙요점"), "베다로 좁혔는데 숙요점이 남아 있다");
+});
+
+test("고민을 고르지 않아도 방식만으로 찾을 수 있다", async () => {
+  // 필터가 고민 칩 뒤에 숨어 있던 동안은 이 경로 자체가 막혀 있었다.
+  const { doc } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+
+  doc.querySelector('#fortuneGatewayDiscover [data-method="sukuyo"]').click();
+
+  const hits = names(panel);
+  assert.ok(hits.length > 0, "방식만 골랐을 때 결과가 없다");
+  assert.ok(hits.includes("숙요점"), `숙요 방식 결과가 비었다: ${hits.join(", ")}`);
+  assert.ok(!hits.includes("타로"), "숙요로 좁혔는데 타로가 남아 있다");
+});
+
+test("가격만으로도 찾을 수 있다", async () => {
+  const { doc } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+
+  doc.querySelector('#fortuneGatewayDiscover [data-price="free"]').click();
+
+  const hits = names(panel);
+  assert.ok(hits.length > 0, "무료만 골랐을 때 결과가 없다");
+  assert.ok(!hits.includes("운명의 업"), "무료로 좁혔는데 30,000원 상담이 남아 있다");
 });
 
 test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다", async () => {
