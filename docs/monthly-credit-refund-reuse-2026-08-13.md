@@ -2,6 +2,14 @@
 
 > PR #577(사주 AI 상담 결제창 무한 재오픈 수정)에서 **의도적으로 분리한** 작업이다.
 > 세 결함이 서로를 가리고 있어서 **하나만 고치면 지금보다 나빠진다.** 반드시 한 PR에서 순서대로 처리한다.
+>
+> 🔴 **줄 번호는 2026-08-13 기준이며 이미 낡았다.** 2026-08-20 실측으로 이 문서의 코드 인용
+> 20곳 중 **14곳이 어긋났다**(대조: 작성 시점 커밋 `bcb811b85` ↔ 그날의 `origin/main`).
+> 줄 번호가 아니라 **심볼 이름으로 찾을 것.** 같은 날 확인으로 `buildRefundedSpendSourceId` ·
+> `releaseRefundedSpendSourceId` · `readIdempotentSpendResult` · `findAIPromptMonthlyCreditEvidence` ·
+> `refundedForUnlockFailure` · `MEMBERSHIP_CREDIT_PER_COIN` 은 모두 그대로 있으므로
+> **아래 분석과 권장 순서는 여전히 유효하다.** 재측정:
+> `git grep -n '<심볼>' -- worker/ lib/ scripts/`
 
 ---
 
