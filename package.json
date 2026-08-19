@@ -202,6 +202,7 @@
     "verify:paid-feature-common-flow": "node scripts/verify-paid-feature-common-flow.mjs",
     "verify:paid-gate-price-coverage": "node scripts/verify-paid-gate-price-coverage.mjs",
     "verify:home-service-registry": "node scripts/verify-home-service-registry.mjs",
+    "verify:hero-firstpaint-lock": "node scripts/verify-hero-firstpaint-lock.mjs",
     "verify:naming-prompt": "node scripts/verify-naming-prompt-flow.mjs",
     "verify:numerology-tarot-flow": "node scripts/verify-numerology-tarot-flow.mjs",
     "verify:physiognomy-report": "node scripts/verify-physiognomy-report.mjs",
