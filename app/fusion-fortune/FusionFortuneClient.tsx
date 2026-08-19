@@ -188,7 +188,7 @@ async function consumeFusionStream(
   return finalPayload;
 }
 
-export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) {
+export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?: ReactNode; valuePreview?: ReactNode }) {
   const apiBase = getApiBaseUrl();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [status, setStatus] = useState<Status>(EMPTY_STATUS);
@@ -589,13 +589,17 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         : pendingPaidRequest
           ? "추가 결제 없이 이어서 받기"
           : "초융합 운세 생성하기";
+  // 결제 결정이 실제로 일어나는 지점은 이 버튼이다 — 여기까지 금액이 따라오지 않으면
+  // 사용자는 일반적인 이름의 버튼을 누른 뒤에야 결제창에서 금액을 처음 본다. 재개·로그인·
+  // 진행 중 상태는 결제가 아니므로 붙이지 않는다(재개는 추가 결제가 없다).
+  const showSubmitPrice = !loading && !isPaying && status.nextAction !== "login" && !pendingPaidRequest;
   const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
   const completedStageCount = useMemo(
     () => FUSION_STAGES.filter((stage) => stage.key !== "fusion" && stageStates[stage.key] === "completed").length,
     [stageStates],
   );
   const leaveExperience = useCallback(() => {
-    const fallback = "/#fortune-gateway";
+    const fallback = "/#fortuneGatewayEntry";
     if (typeof window === "undefined") return;
     try {
       const previous = document.referrer ? new URL(document.referrer) : null;
@@ -612,7 +616,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   return <main className={styles.page}>
     <nav className={styles.experienceNav} aria-label="초융합 사주 탐색">
       <button type="button" onClick={leaveExperience}>이전</button>
-      <Link href="/#fortune-gateway">홈으로</Link>
+      <Link href="/#fortuneGatewayEntry">홈으로</Link>
     </nav>
     <section className={styles.hero}>
       <Image className={styles.heroImage} src="/images/fusion-fortune/fusion-guardian-celestial-hero.webp" alt="" fill priority sizes="(max-width: 720px) 100vw, 1080px" />
@@ -651,6 +655,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
     </section>
 
     <FusionRecentList items={recentList} activeId={openedConsultationId} busyId={reopeningId} onOpen={(id) => void openConsultation(id)} />
+
+    {valuePreview}
 
     <section className={styles.panel}>
       <div className={styles.status}>
@@ -694,7 +700,10 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
           <p className={styles.error} role="alert">{error}</p>
           {statusUnavailable && <button type="button" className={styles.profileReload} onClick={() => { setError(""); void refresh(); }}>이용 상태 다시 확인하기</button>}
         </div>}
-        <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">{buttonLabel}</button>
+        <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">
+          <span>{buttonLabel}</span>
+          {showSubmitPrice && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="30,000원" prefix="1회 " className={styles.submitPrice} />}
+        </button>
       </form>}
     </section>
 
