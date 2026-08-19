@@ -190,3 +190,81 @@ test("select 를 바꾸면 텍스트 입력이 따라온다", async () => {
 
   assert.equal(text.value, "05:07", "select → 텍스트 동기화가 끊겼다");
 });
+
+// ── 생년월일 텍스트 입력 전면 통일 (birth-date-text-everywhere-v20260820) ─────────
+//
+// 배경: 셸 홈만 텍스트로 바뀌어 있었고 App Router·src 화면 29곳은 여전히 type="date" 였다.
+// 아래 두 가지를 지킨다.
+//   ① lib/birthDateInput.ts 의 maskBirthDateInput 이 YYYY-MM-DD 자동 하이픈 규칙을 지킨다.
+//   ② 생년월일 필드에 type="date" 가 하나라도 남아 있으면 실패한다(전수 발견 — 손으로 쓴
+//      대상 목록을 쓰지 않는다. 새 화면이 달력 피커로 들어오면 여기서 먼저 깨져야 한다).
+
+const libSrc = fs.readFileSync(path.join(root, "lib/birthDateInput.ts"), "utf8");
+
+function loadMask() {
+  const at = libSrc.indexOf("export function maskBirthDateInput");
+  assert.notEqual(at, -1, "lib/birthDateInput.ts 에 maskBirthDateInput 이 없다");
+  const open = libSrc.indexOf("{", at);
+  let depth = 0;
+  let end = -1;
+  for (let i = open; i < libSrc.length; i += 1) {
+    if (libSrc[i] === "{") depth += 1;
+    else if (libSrc[i] === "}") { depth -= 1; if (depth === 0) { end = i + 1; break; } }
+  }
+  assert.notEqual(end, -1, "maskBirthDateInput 의 닫는 중괄호를 못 찾았다");
+  // 타입 표기만 걷어내고 그대로 평가한다 — 규칙을 여기서 다시 구현하지 않는다.
+  const js = libSrc.slice(at, end).replace("export function", "function").replace(": unknown", "").replace("): string", ")");
+  // eslint-disable-next-line no-new-func
+  return new Function(`${js}; return maskBirthDateInput;`)();
+}
+
+test("생년월일 마스크는 5자리째부터 하이픈을 붙인다", () => {
+  const mask = loadMask();
+  for (const [typed, expected] of [
+    ["", ""],
+    ["1", "1"],
+    ["1991", "1991"],
+    ["19910", "1991-0"],
+    ["199102", "1991-02"],
+    ["1991022", "1991-02-2"],
+    ["19910220", "1991-02-20"],
+    ["1991.02.20", "1991-02-20"],
+    ["1991-02-20", "1991-02-20"],
+    ["199102201", "1991-02-20"],
+  ]) {
+    assert.equal(mask(typed), expected, `"${typed}" 마스크 실패`);
+  }
+});
+
+test("생년월일 입력에 달력 피커가 남아 있지 않다", () => {
+  // 대상 디렉터리를 전수로 훑는다. 문맥에 birth/생년월일/생일 이 보이는 type="date" 만 잡는다
+  // (일정 날짜·택일 시작일은 달력이 옳은 입력이라 제외).
+  const roots = ["app", "src", "components"];
+  const offenders = [];
+
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) { walk(full); continue; }
+      if (!/\.(tsx|ts|jsx|js)$/.test(entry.name)) continue;
+      const lines = fs.readFileSync(full, "utf8").split("\n");
+      lines.forEach((line, index) => {
+        if (!line.includes('type="date"')) return;
+        const context = lines.slice(Math.max(0, index - 8), index + 6).join(" ");
+        if (!/birth|생년월일|생일/i.test(context)) return;
+        offenders.push(path.relative(root, full).split(path.sep).join("/") + ":" + (index + 1));
+      });
+    }
+  };
+
+  let scanned = 0;
+  for (const dir of roots) {
+    const full = path.join(root, dir);
+    if (!fs.existsSync(full)) continue;
+    scanned += 1;
+    walk(full);
+  }
+  // 대상이 없을 때 통과시키는 가드는 가드가 아니다.
+  assert.ok(scanned > 0, "스캔 대상 디렉터리를 하나도 못 찾았다 — 가드가 무력화됐다");
+  assert.deepEqual(offenders, [], `생년월일이 아직 달력 피커다:\n  ${offenders.join("\n  ")}`);
+});

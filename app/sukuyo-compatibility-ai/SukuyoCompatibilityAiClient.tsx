@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { m, useReducedMotion } from "framer-motion";
@@ -1602,7 +1603,7 @@ export default function SukuyoCompatibilityAiClient() {
         </div>
         <div className={styles.field}>
           <label htmlFor={`${prefix}-birth-date`}>생년월일</label>
-          <input id={`${prefix}-birth-date`} type="date" value={value.birthDate} onChange={(event) => updatePerson(target, { birthDate: event.target.value })} disabled={busy} />
+          <input id={`${prefix}-birth-date`} {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => updatePerson(target, { birthDate: nextBirthDate }))} disabled={busy} />
           {!value.birthDate && <span className={styles.fieldHint}>{owner} 생년월일을 입력해 주세요.</span>}
         </div>
         <div className={styles.field}>

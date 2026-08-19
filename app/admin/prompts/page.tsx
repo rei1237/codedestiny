@@ -8,10 +8,10 @@
 //
 // 🔴 이 화면은 LLM 을 호출하지 않는다. 서버가 프롬프트 문자열만 조립해 돌려준다(과금 0).
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import Link from "next/link";
 import { useCallback, useMemo, useState } from "react";
 import { ArrowLeft, Check, Copy, Loader2, Sparkles, TriangleAlert } from "lucide-react";
-
 import {
   ADMIN_PROMPT_LAB_GROUPS,
   ADMIN_PROMPT_LAB_SERVICES,
@@ -295,12 +295,7 @@ export default function AdminPromptLabPage() {
                   </label>
                   <label className={labelClass()}>
                     생년월일
-                    <input
-                      type="date"
-                      value={form.birthDate}
-                      onChange={(event) => update("birthDate", event.target.value)}
-                      className={fieldClass()}
-                    />
+                    <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => update("birthDate", nextBirthDate))} className={fieldClass()} />
                   </label>
                   <label className={labelClass()}>
                     달력
@@ -371,7 +366,7 @@ export default function AdminPromptLabPage() {
                   </label>
                   <label className={labelClass()}>
                     생년월일
-                    <input type="date" value={form.partnerBirthDate} onChange={(e) => update("partnerBirthDate", e.target.value)} className={fieldClass()} />
+                    <input {...birthDateTextInputProps(form.partnerBirthDate, (nextBirthDate) => update("partnerBirthDate", nextBirthDate))} className={fieldClass()} />
                   </label>
                   <label className={labelClass()}>
                     달력
@@ -414,7 +409,7 @@ export default function AdminPromptLabPage() {
                   </label>
                   <label className={labelClass()}>
                     생년월일
-                    <input type="date" value={form.petBirthDate} onChange={(e) => update("petBirthDate", e.target.value)} className={fieldClass()} />
+                    <input {...birthDateTextInputProps(form.petBirthDate, (nextBirthDate) => update("petBirthDate", nextBirthDate))} className={fieldClass()} />
                   </label>
                   <label className={labelClass()}>
                     성별

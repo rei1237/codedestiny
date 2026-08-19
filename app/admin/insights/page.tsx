@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
@@ -1803,12 +1804,7 @@ export default function AdminInsightsPage() {
               <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
                 <label className="block text-xs text-amber-100/70">
                   {copy.birthDateLabel}
-                  <input
-                    type="date"
-                    value={promptLabForm.birthDate}
-                    onChange={(e) => updatePromptLabField("birthDate", e.target.value)}
-                    className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50"
-                  />
+                  <input {...birthDateTextInputProps(promptLabForm.birthDate, (nextBirthDate) => updatePromptLabField("birthDate", nextBirthDate))} className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#201811] px-3 py-2 text-sm text-amber-50" />
                 </label>
                 <label className="block text-xs text-amber-100/70">
                   {copy.calendarLabel}
@@ -1877,12 +1873,7 @@ export default function AdminInsightsPage() {
                     </label>
                     <label className="block text-xs text-amber-100/70">
                       {copy.partnerBirthDateLabel}
-                      <input
-                        type="date"
-                        value={promptLabForm.partnerBirthDate}
-                        onChange={(e) => updatePromptLabField("partnerBirthDate", e.target.value)}
-                        className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#15110d] px-3 py-2 text-sm text-amber-50"
-                      />
+                      <input {...birthDateTextInputProps(promptLabForm.partnerBirthDate, (nextBirthDate) => updatePromptLabField("partnerBirthDate", nextBirthDate))} className="mt-1 w-full rounded-lg border border-amber-900/70 bg-[#15110d] px-3 py-2 text-sm text-amber-50" />
                     </label>
                     <label className="block text-xs text-amber-100/70">
                       {copy.partnerCalendarLabel}

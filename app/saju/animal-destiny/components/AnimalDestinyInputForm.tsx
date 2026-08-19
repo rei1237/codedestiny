@@ -1,8 +1,8 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useState } from "react";
 import type { AnimalDestinyInput } from "../lib/types";
-import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 interface Props {
@@ -184,13 +184,7 @@ export default function AnimalDestinyInputForm({ input, onChange, onSubmit, isBu
         <label className="space-y-2 text-sm font-bold text-[#6b3f1d]">
           {copy.birthDateLabel} <span className="text-rose-600">*</span>
           <input
-            type="text"
-            inputMode="numeric"
-            maxLength={8}
-            pattern="[0-9]{8}"
-            placeholder="YYYYMMDD"
-            value={formatBirthDateDigits(input.birthDate)}
-            onChange={(e) => onChange({ birthDate: normalizeBirthDateFromDigits(e.target.value) })}
+            {...birthDateTextInputProps(input.birthDate, (nextBirthDate) => onChange({ birthDate: nextBirthDate }))}
             className="min-h-[46px] w-full rounded-2xl border border-[#dcc39b] bg-white px-4 py-3 text-base text-[#5f3818] shadow-[inset_0_1px_0_rgba(255,255,255,0.65)] transition-all focus:border-[#8a5a2b] focus:outline-none"
           />
         </label>
