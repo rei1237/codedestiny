@@ -198,7 +198,10 @@ export default function DeferredAdsense() {
       scheduleRefreshViewerAdsenseState();
     }
 
-    scheduleRefreshViewerAdsenseState(800);
+    // 이 컴포넌트는 이미 RuntimeClientGuards 의 유휴 지연 뒤에 마운트된다.
+    // 여기서 다시 800ms 를 기다리면 광고가 그려지는 시점이 첫 페인트에서 2.5초 넘게 밀렸고,
+    // AdSense 심사는 광고가 실제로 나가는 것을 봐야 한다. 첫 페인트 보호는 위쪽 지연이 맡는다.
+    scheduleRefreshViewerAdsenseState(150);
 
     const accessStore = (window as AdsenseWindow).CodeDestinyAccessStore;
     const unsubscribeAccessStore = accessStore?.subscribe?.(() => scheduleRefreshViewerAdsenseState(50));
@@ -231,7 +234,7 @@ export default function DeferredAdsense() {
       <Script
         id="cd-adsense"
         src={ADSENSE_SRC}
-        strategy="lazyOnload"
+        strategy="afterInteractive"
         async
         crossOrigin="anonymous"
         data-cd-adsense="1"
