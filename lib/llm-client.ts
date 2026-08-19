@@ -110,7 +110,6 @@ export interface CloudflareEnv {
 const GEMINI_MODEL = "gemini-2.5-flash";
 // cachedContents CRUD 가 같은 베이스를 쓰므로 상수를 나눠 두 곳이 어긋나지 않게 한다.
 const GEMINI_API_BASE = "https://generativelanguage.googleapis.com/v1beta";
-const GEMINI_ENDPOINT = `${GEMINI_API_BASE}/models/gemini-2.5-flash:generateContent`;
 const DEFAULT_TIMEOUT_MS = 30_000;
 
 type GeminiPayload = {
@@ -192,9 +191,9 @@ function resolveGeminiModel(request: LLMRequest, env?: CloudflareEnv): string {
 
 function resolveGeminiEndpoint(request: LLMRequest, model: string): string {
   const providedEndpoint = String(request.apiEndpoint || request.endpoint || "").trim();
-  if (!providedEndpoint) return `${GEMINI_ENDPOINT}`;
-
   const safeModel = encodeURIComponent(String(model || GEMINI_MODEL).trim() || GEMINI_MODEL);
+  if (!providedEndpoint) return `${GEMINI_API_BASE}/models/${safeModel}:generateContent`;
+
   const endpointWithModel = providedEndpoint.includes("/models/")
     ? providedEndpoint.replace(/\/models\/[^/?#\:]+(?=:generateContent|$)/, `/models/${safeModel}`)
     : `${providedEndpoint.replace(/\/$/, "")}/models/${safeModel}:generateContent`;
@@ -505,17 +504,11 @@ function isGeminiContextCacheEnabled(env?: CloudflareEnv): boolean {
 }
 
 /**
- * 실제로 호출될 모델 이름.
- *
- * 🔴 캐시를 만든 모델과 호출 모델이 다르면 참조가 성립하지 않는다. 그런데
- *    resolveGeminiEndpoint 는 apiEndpoint 오버라이드가 없으면 model 인자를 무시하고
- *    모델명이 URL 에 박힌 GEMINI_ENDPOINT 를 그대로 쓴다. 그래서 resolveGeminiModel 이
- *    아니라 **최종 URL 에서 읽어야** 정확하다.
+ * 실제로 호출될 모델 이름. 캐시를 만든 모델과 호출 모델이 다르면 참조가 성립하지 않으므로
+ * 캐시 생성 시점에도 실제 호출과 같은 해석 규칙(resolveGeminiModel)을 그대로 쓴다.
  */
 function resolveGeminiEndpointModel(request: LLMRequest, env?: CloudflareEnv): string {
-  const endpoint = resolveGeminiEndpoint(request, resolveGeminiModel(request, env));
-  const matched = /\/models\/([^/:?#]+)/.exec(endpoint);
-  return matched ? decodeURIComponent(matched[1]) : GEMINI_MODEL;
+  return resolveGeminiModel(request, env);
 }
 
 /**
