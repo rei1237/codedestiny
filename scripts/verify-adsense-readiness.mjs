@@ -749,10 +749,23 @@ function verifyAdsenseScriptOwnership() {
     deferredAdsenseSource.includes("canLoadAdsenseForCanonicalUrl"),
     `${deferredAdsensePath}: must guard AdSense by canonical route policy`,
   );
+  // 🔴 2026-08-20: 'lazyOnload' 문자열 단언에서 내려왔다. lazyOnload 는 window load 를
+  // 기다리는데, 이 사이트의 기사 지면에서는 그게 첫 페인트 +2.5초였고 광고가 실제로 그려지는
+  // 것을 봐야 하는 승인 심사에 불리했다. 지연을 없앤 것이 아니라 **지연의 주체를 옮긴 것**이라,
+  // 두 가지를 함께 강제한다: ① 스크립트가 next/script 의 지연 전략을 쓸 것
+  // ② 마운트 자체가 RuntimeClientGuards 의 유휴 지연 뒤에 남아 있을 것.
+  // 둘 중 하나만 남으면 "하이드레이션 즉시 광고 로드"로 조용히 후퇴할 수 있다.
   assert(
-    deferredAdsenseSource.includes('strategy="lazyOnload"'),
-    `${deferredAdsensePath}: AdSense script must stay lazily loaded`,
+    /strategy="(afterInteractive|lazyOnload)"/.test(deferredAdsenseSource),
+    `${deferredAdsensePath}: AdSense script must load through next/script afterInteractive or lazyOnload`,
   );
+  if (runtimeGuardsOwnDeferredAdsense) {
+    assert(
+      runtimeGuardsSource.includes("const mountAdsense = useDeferredMount(")
+        && runtimeGuardsSource.includes("{mountAdsense ? <DeferredAdsense /> : null}"),
+      `${runtimeGuardsPath}: AdSense mount must stay behind the idle-deferred gate`,
+    );
+  }
   const conditionalRenderingMarkers = [
     "AD_REMOVAL_CACHE_KEY",
     "AD_REMOVAL_FEATURE_KEYS",

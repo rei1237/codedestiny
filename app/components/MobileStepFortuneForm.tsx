@@ -1,7 +1,7 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useState } from "react";
-import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type FormState = {
@@ -336,13 +336,7 @@ export default function MobileStepFortuneForm({ step, setStep, state, setField, 
           <label className="block text-xs font-semibold text-violet-900">
             {copy.birthDate}
             <input
-              type="text"
-              inputMode="numeric"
-              maxLength={8}
-              pattern="[0-9]{8}"
-              placeholder="YYYYMMDD"
-              value={formatBirthDateDigits(state.birthDate)}
-              onChange={(e) => setField("birthDate", normalizeBirthDateFromDigits(e.target.value))}
+              {...birthDateTextInputProps(state.birthDate, (nextBirthDate) => setField("birthDate", nextBirthDate))}
               className="mt-1.5 w-full rounded-xl border border-violet-200/80 bg-white/95 px-3 py-2.5 text-sm text-slate-900"
             />
           </label>

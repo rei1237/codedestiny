@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState, type FormEvent } from "react";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -668,7 +669,7 @@ export default function AstrologyAiClient() {
                   </label>
                   <label className={LABEL_CLASS}>
                     생년월일
-                    <input className={FIELD_CLASS} type="date" value={form.birthDate} onChange={(event) => patchForm({ birthDate: event.target.value })} />
+                    <input className={FIELD_CLASS} {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => patchForm({ birthDate: nextBirthDate }))} />
                   </label>
                   <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_150px]">
                     <label className={LABEL_CLASS}>

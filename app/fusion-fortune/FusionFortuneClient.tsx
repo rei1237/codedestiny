@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import Image from "next/image";
 import Link from "next/link";
 import { FormEvent, ReactNode, useCallback, useEffect, useMemo, useRef, useState } from "react";
@@ -187,7 +188,7 @@ async function consumeFusionStream(
   return finalPayload;
 }
 
-export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) {
+export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?: ReactNode; valuePreview?: ReactNode }) {
   const apiBase = getApiBaseUrl();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [status, setStatus] = useState<Status>(EMPTY_STATUS);
@@ -588,13 +589,17 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
         : pendingPaidRequest
           ? "추가 결제 없이 이어서 받기"
           : "초융합 운세 생성하기";
+  // 결제 결정이 실제로 일어나는 지점은 이 버튼이다 — 여기까지 금액이 따라오지 않으면
+  // 사용자는 일반적인 이름의 버튼을 누른 뒤에야 결제창에서 금액을 처음 본다. 재개·로그인·
+  // 진행 중 상태는 결제가 아니므로 붙이지 않는다(재개는 추가 결제가 없다).
+  const showSubmitPrice = !loading && !isPaying && status.nextAction !== "login" && !pendingPaidRequest;
   const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
   const completedStageCount = useMemo(
     () => FUSION_STAGES.filter((stage) => stage.key !== "fusion" && stageStates[stage.key] === "completed").length,
     [stageStates],
   );
   const leaveExperience = useCallback(() => {
-    const fallback = "/#fortune-gateway";
+    const fallback = "/#fortuneGatewayEntry";
     if (typeof window === "undefined") return;
     try {
       const previous = document.referrer ? new URL(document.referrer) : null;
@@ -611,7 +616,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
   return <main className={styles.page}>
     <nav className={styles.experienceNav} aria-label="초융합 사주 탐색">
       <button type="button" onClick={leaveExperience}>이전</button>
-      <Link href="/#fortune-gateway">홈으로</Link>
+      <Link href="/#fortuneGatewayEntry">홈으로</Link>
     </nav>
     <section className={styles.hero}>
       <Image className={styles.heroImage} src="/images/fusion-fortune/fusion-guardian-celestial-hero.webp" alt="" fill priority sizes="(max-width: 720px) 100vw, 1080px" />
@@ -651,6 +656,8 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
 
     <FusionRecentList items={recentList} activeId={openedConsultationId} busyId={reopeningId} onOpen={(id) => void openConsultation(id)} />
 
+    {valuePreview}
+
     <section className={styles.panel}>
       <div className={styles.status}>
         <div><span>이번 리딩이 읽는 범위</span><strong>여섯 체계 · 20,000자 이상</strong><small>사주·자미두수·베다점·숙요점·점성술·타로를 각각 읽고 마지막에 교차 판정합니다.</small></div>
@@ -674,7 +681,7 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
           <button className={styles.profileReload} type="button" onClick={() => void reloadProfileSeed()}>저장한 프로필 다시 불러오기</button>
         </div>
         <p className={styles.formSectionFirst}>태어난 순간을 알려주세요</p>
-        <label><span className={styles.labelRow}>생년월일<FieldSystems field="birthDate" /></span><input type="date" required value={form.birthDate} onChange={(event) => setForm({ ...form, birthDate: event.target.value })} /></label>
+        <label><span className={styles.labelRow}>생년월일<FieldSystems field="birthDate" /></span><input required {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => setForm({ ...form, birthDate: nextBirthDate }))} /></label>
         <label><span className={styles.labelRow}>생시<FieldSystems field="birthTime" /></span><input type="time" required={!form.birthTimeUnknown} disabled={form.birthTimeUnknown} value={form.birthTime} onChange={(event) => setForm({ ...form, birthTime: event.target.value })} /><span className={styles.inlineCheck}><input type="checkbox" checked={form.birthTimeUnknown} onChange={(event) => setForm({ ...form, birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : form.birthTime })} /> 생시를 몰라요</span><small>모르면 시간 기반 명반·라그나·상승궁·하우스를 단정하지 않아요.</small></label>
         <label><span className={styles.labelRow}>출생지<FieldSystems field="birthPlace" /></span><select value={form.birthPlaceKey} onChange={(event) => setForm({ ...form, birthPlaceKey: event.target.value })}><option value="">출생지를 몰라요</option>{birthPlaces.map((place) => <option key={`${place.label}-${place.lat}-${place.lon}`} value={place.label}>{place.label}</option>)}</select><small>베다점·서양 점성술의 위치 계산에 사용해요.</small></label>
         <fieldset><legend><span className={styles.labelRow}>달력 기준<FieldSystems field="calendarType" /></span></legend><label><input type="radio" checked={form.calendarType === "solar"} onChange={() => setForm({ ...form, calendarType: "solar" })} /> 양력</label><label><input type="radio" checked={form.calendarType === "lunar"} onChange={() => setForm({ ...form, calendarType: "lunar" })} /> 음력</label></fieldset>
@@ -693,7 +700,10 @@ export function FusionFortuneClient({ seoContent }: { seoContent?: ReactNode }) 
           <p className={styles.error} role="alert">{error}</p>
           {statusUnavailable && <button type="button" className={styles.profileReload} onClick={() => { setError(""); void refresh(); }}>이용 상태 다시 확인하기</button>}
         </div>}
-        <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">{buttonLabel}</button>
+        <button disabled={loading || isPaying || status.nextAction === "disabled"} type="submit">
+          <span>{buttonLabel}</span>
+          {showSubmitPrice && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="30,000원" prefix="1회 " className={styles.submitPrice} />}
+        </button>
       </form>}
     </section>
 

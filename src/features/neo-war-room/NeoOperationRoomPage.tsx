@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { Fragment, useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type FormEvent, type KeyboardEvent } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
@@ -2480,12 +2481,7 @@ export default function NeoOperationRoomPage() {
                 </label>
                 <label className={styles.fieldLabel}>
                   생년월일
-                  <input
-                    type="date"
-                    value={birthState.birth.birthDate}
-                    disabled={birthFieldsDisabled}
-                    onChange={(event) => updateBirthInput("birthDate", event.target.value)}
-                  />
+                  <input {...birthDateTextInputProps(birthState.birth.birthDate, (nextBirthDate) => updateBirthInput("birthDate", nextBirthDate))} disabled={birthFieldsDisabled} />
                 </label>
                 <label className={styles.fieldLabel}>
                   출생시간

@@ -15,6 +15,7 @@
  * 금액을 계속 들고 있는다. 두 슬롯 모두 현재 모드(개인/궁합)의 SKU 를 따라간다.
  */
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useRef, useState } from "react";
 import { Loader2, RefreshCw } from "lucide-react";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -270,13 +271,7 @@ export default function CodexBirthGate({
 
           <div>
             <label className={labelClass} style={labelStyle} htmlFor="codex-birth-date">생년월일</label>
-            <input
-              id="codex-birth-date"
-              type="date"
-              className={styles.field}
-              value={value.birthDate}
-              onChange={(event) => patch({ birthDate: event.target.value })}
-            />
+            <input id="codex-birth-date" className={styles.field} {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => patch({ birthDate: nextBirthDate }))} />
           </div>
 
           <fieldset>
@@ -376,13 +371,7 @@ export default function CodexBirthGate({
 
                 <div>
                   <label className={labelClass} style={labelStyle} htmlFor="codex-partner-birth-date">상대 생년월일</label>
-                  <input
-                    id="codex-partner-birth-date"
-                    type="date"
-                    className={styles.field}
-                    value={partner.birthDate}
-                    onChange={(event) => patchPartner({ birthDate: event.target.value })}
-                  />
+                  <input id="codex-partner-birth-date" className={styles.field} {...birthDateTextInputProps(partner.birthDate, (nextBirthDate) => patchPartner({ birthDate: nextBirthDate }))} />
                 </div>
 
                 <fieldset>
