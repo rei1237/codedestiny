@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import {
   BookOpen,
   CalendarDays,
@@ -692,7 +693,7 @@ export default function LifeBookAiClient() {
               <div className="mt-3 grid gap-3 sm:grid-cols-2">
                 <label className="grid gap-2 text-sm font-bold">
                   <span className="flex items-center gap-2 text-[#f6e6c4]"><CalendarDays className="h-4 w-4" aria-hidden="true" /> 생년월일</span>
-                  <input type="date" value={form.birthDate} onChange={(event) => updateField("birthDate", event.target.value)} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]" />
+                  <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => updateField("birthDate", nextBirthDate))} className="min-h-11 rounded-2xl border border-amber-100/15 bg-[#0b1020cc] px-3 text-[#fff8ed] outline-none transition focus:border-[#f6cf7a] focus:ring-2 focus:ring-[#f6cf7a33]" />
                 </label>
 
                 <div className="grid gap-2 text-sm font-bold">

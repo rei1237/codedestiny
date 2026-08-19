@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import type { FormEvent } from "react";
 import { useCallback, useEffect, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
@@ -825,14 +826,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
           <div className={`${styles.questionFieldGrid} ${styles.birthInfoGrid}`}>
             <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaBirthDate">
               생년월일
-              <input
-                id="fortuneTeaBirthDate"
-                className={`${styles.questionInput} ${questionInputUi}`}
-                type="date"
-                value={birthDate}
-                onChange={(event) => setBirthDate(event.target.value)}
-                disabled={isSubmitting}
-              />
+              <input id="fortuneTeaBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} disabled={isSubmitting} />
             </label>
             <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaBirthTime">
               출생시간
@@ -938,14 +932,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   </label>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserBirthDate">
                     생년월일
-                    <input
-                      id="fortuneTeaSajuCompatUserBirthDate"
-                      className={`${styles.questionInput} ${questionInputUi}`}
-                      type="date"
-                      value={sajuCompatInput.user.birthDate || ""}
-                      onChange={(event) => updateSajuCompatPerson("user", { birthDate: event.target.value })}
-                      disabled={isSubmitting}
-                    />
+                    <input id="fortuneTeaSajuCompatUserBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(sajuCompatInput.user.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
                   </label>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatUserBirthTime">
                     출생시간
@@ -1015,14 +1002,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   </label>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerBirthDate">
                     생년월일
-                    <input
-                      id="fortuneTeaSajuCompatPartnerBirthDate"
-                      className={`${styles.questionInput} ${questionInputUi}`}
-                      type="date"
-                      value={sajuCompatInput.partner.birthDate || ""}
-                      onChange={(event) => updateSajuCompatPerson("partner", { birthDate: event.target.value })}
-                      disabled={isSubmitting}
-                    />
+                    <input id="fortuneTeaSajuCompatPartnerBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(sajuCompatInput.partner.birthDate || "", (nextBirthDate) => updateSajuCompatPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
                   </label>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSajuCompatPartnerBirthTime">
                     출생시간
@@ -1151,14 +1131,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   </label>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoUserBirthDate">
                     생년월일
-                    <input
-                      id="fortuneTeaSukuyoUserBirthDate"
-                      className={`${styles.questionInput} ${questionInputUi}`}
-                      type="date"
-                      value={sukuyoInput.user.birthDate || ""}
-                      onChange={(event) => updateSukuyoPerson("user", { birthDate: event.target.value })}
-                      disabled={isSubmitting}
-                    />
+                    <input id="fortuneTeaSukuyoUserBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(sukuyoInput.user.birthDate || "", (nextBirthDate) => updateSukuyoPerson("user", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
                   </label>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoUserCalendar">
                     양력/음력
@@ -1207,14 +1180,7 @@ export default function QuestionInputScene({ selectedCup, initialInput, onSubmit
                   </label>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoPartnerBirthDate">
                     생년월일
-                    <input
-                      id="fortuneTeaSukuyoPartnerBirthDate"
-                      className={`${styles.questionInput} ${questionInputUi}`}
-                      type="date"
-                      value={sukuyoInput.partner.birthDate || ""}
-                      onChange={(event) => updateSukuyoPerson("partner", { birthDate: event.target.value })}
-                      disabled={isSubmitting}
-                    />
+                    <input id="fortuneTeaSukuyoPartnerBirthDate" className={`${styles.questionInput} ${questionInputUi}`} {...birthDateTextInputProps(sukuyoInput.partner.birthDate || "", (nextBirthDate) => updateSukuyoPerson("partner", { birthDate: nextBirthDate }))} disabled={isSubmitting} />
                   </label>
                   <label className={`${styles.questionLabel} ${questionLabelUi}`} htmlFor="fortuneTeaSukuyoPartnerCalendar">
                     양력/음력

@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { CalendarDays, Clock3, Compass, Download, Loader2, MapPin, Moon, Sparkles, Star } from "lucide-react";
@@ -1416,7 +1417,7 @@ export default function VedicAiClient() {
             </label>
             <label>
               <span><CalendarDays size={15} /> 생년월일</span>
-              <input type="date" value={form.birthDate} onChange={(event) => updateForm({ birthDate: event.target.value })} disabled={busy} />
+              <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => updateForm({ birthDate: nextBirthDate }))} disabled={busy} />
             </label>
             <label>
               <span>달력 기준</span>

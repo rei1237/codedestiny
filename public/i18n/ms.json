@@ -37,6 +37,12 @@
       "linkPhysiognomy": "Face Reading",
       "linkGuideHub": "Fortune Guides"
     },
+    "reviews": {
+      "kicker": "REAL REVIEWS",
+      "title": "Ulasan pengguna",
+      "lead": "Ulasan daripada mereka yang benar-benar membuat bacaan.",
+      "allCta": "Lihat semua ulasan →"
+    },
     "hero": {
       "eyebrow": "CODE DESTINY",
       "brandLine": "Koleksi Takdir Cakerawala",
@@ -1225,9 +1231,9 @@
       "neoLogoAlt": "Logo mod Neo"
     },
     "hero2": {
-      "title": "Jangan percaya satu bacaan sahaja",
+      "title": "Empat Tiang dan almanak bulan percuma — carta anda dan nasib hari ini",
       "lead": "Kebijaksanaan Timur-Barat bertemu wawasan pakar untuk mentafsir kisah anda.",
-      "primaryCta": "✦ Mula percuma",
+      "primaryCta": "✦ Lihat nasib hari ini percuma",
       "journeyCta": "✦ Mulakan Perjalanan Takdir Anda"
     },
     "oneStep": {
@@ -1292,7 +1298,7 @@
       "title": "Nasib hari ini",
       "lead": "Tiang hari Saju, 27 rumah bulan dan bintang bulan Veda — petanda baik dan buruk hari ini.",
       "gateTitle": "Cipta kad profil untuk melihat petanda hari ini",
-      "gateDesc": "Nasib hari ini dikira daripada tarikh lahir anda. Dengan kad profil, kami membaca tiang hari Saju, 27 rumah bulan dan bintang bulan Veda berbanding carta anda sendiri — termasuk sama ada hari ini hari bertuah atau hari yang perlu berhati-hati.",
+      "gateDesc": "Nasib hari ini dikira daripada tarikh lahir anda. Dengan kad profil, kami membaca tiang hari Saju, 27 rumah bulan dan bintang bulan Veda berbanding carta anda sendiri — termasuk sama ada hari ini hari bertuah atau hari yang perlu berhati-hati. Penukaran kalendar lunar ke solar dan waktu istilah solar menggunakan data kalendar Institut Astronomi dan Sains Angkasa Korea (KASI) terlebih dahulu.",
       "gateCta": "Cipta kad profil",
       "tabsAria": "Tukar sistem nasib hari ini",
       "tabSaju": "Saju",
@@ -1309,7 +1315,7 @@
     },
     "concernPick": {
       "title": "Apa yang paling anda fikirkan sekarang?",
-      "lead": "Pilih satu kerisauan — kami tunjukkan cara menyemaknya secara percuma dan satu bacaan yang paling sesuai untuknya.",
+      "lead": "Pilih satu kerisauan — kami tunjukkan cara menyemaknya secara percuma dan satu bacaan yang paling sesuai untuknya. Pilihan itu dibuat selepas melihat dahulu di mana kerisauan itu terletak dalam carta anda.",
       "love": "Cinta & jodoh",
       "person": "Seseorang tertentu",
       "money": "Wang & rezeki",
@@ -6408,7 +6414,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Jalan Bacaan Bintang",
-        "kbm4p3d": "Kami membaca Empat Tiang, Zi Wei Dou Shu, astrologi Veda, Sukuyo, astrologi Barat dan tarot secara berasingan, kemudian menyemak sama ada semuanya menunjuk ke arah yang sama."
+        "kbm4p3d": "Kami menyusun lapan aksara mengikut peraturan yang ditetapkan pengamal dengan sepuluh tahun dalam Myeongni, lalu membaca kekuatan tuan hari, dewa berguna dan aliran tiang nasib."
       }
     },
     "premiumVvipCollection": {

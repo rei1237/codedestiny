@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { authFetch } from "@/app/_lib/auth-client";
 import { handleSessionInvalidated } from "@/app/_lib/auth-store";
@@ -802,13 +803,7 @@ export default function NamingAiClient() {
                     </label>
                     <label className={LABEL}>
                       생년월일
-                      <input
-                        type="date"
-                        value={form.birthDate}
-                        onChange={(event) => updateForm({ birthDate: event.target.value })}
-                        disabled={busy}
-                        className={FIELD}
-                      />
+                      <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => updateForm({ birthDate: nextBirthDate }))} disabled={busy} className={FIELD} />
                     </label>
                     <label className={LABEL}>
                       출생시간

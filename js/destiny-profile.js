@@ -10160,11 +10160,17 @@
   };
 
   window.dpScrollToForm = function() {
-    /* 🔴 폼(#destinyCardForm)은 홈 축약(cd-home-secondary-v20260817) 대상이라 기본 display:none 이다.
-       펼치지 않고 스크롤하면 사용자는 빈 화면을 본다 — 시트의 "새로 만들기"/"수정"이 정확히 그랬다.
-       펼치기는 셸이 노출한 __cdExpandHome 하나만 쓴다(구현을 여기서 복제하지 말 것). */
+    /* 🔴 폼(#destinyCardForm)은 기본이 접힘이다 — 프로필 카드 아래 패널(#dpDestinyPanel)이
+       닫혀 있으면 display:none 이다. 펼치지 않고 스크롤하면 사용자는 빈 화면을 본다 —
+       시트의 "새로 만들기"/"수정"이 정확히 그랬다.
+       펼치기 구현은 셸이 노출한 전역 둘만 쓴다(여기서 클래스를 직접 붙이지 말 것):
+         __cdExpandHome        홈 축약(cd-home-secondary-v20260817) 해제 — 폼 위아래 섹션용
+         __cdOpenDestinyForm   카드 아래 입력폼 패널 열기(home-profile-card-form-panel-v20260820) */
     if (typeof window.__cdExpandHome === 'function') {
       try { window.__cdExpandHome(); } catch (_) {}
+    }
+    if (typeof window.__cdOpenDestinyForm === 'function') {
+      try { window.__cdOpenDestinyForm(); } catch (_) {}
     }
     var el = document.querySelector('.input-section');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -10781,6 +10787,16 @@
     return _dpPad2(h) + ':' + _dpPad2(m);
   }
 
+  /* 생년월일 입력 중 자동 하이픈. 🔴 규칙은 lib/birthDateInput.ts 의 maskBirthDateInput 과
+     글자 그대로 같아야 한다 — 화면마다 다르면 같은 값을 치고도 다른 결과를 본다.
+     4자리 이하에서는 하이픈을 붙이지 않는다(연도를 다 치기 전에 커서가 튀는 것을 막는다). */
+  function _dpMaskBirthDateText(raw) {
+    var digits = String(raw == null ? '' : raw).replace(/[^0-9]/g, '').slice(0, 8);
+    if (digits.length <= 4) return digits;
+    if (digits.length <= 6) return digits.slice(0, 4) + '-' + digits.slice(4);
+    return digits.slice(0, 4) + '-' + digits.slice(4, 6) + '-' + digits.slice(6);
+  }
+
   function _dpBirthTimeEls() {
     return {
       text: document.getElementById('birthTimeText'),
@@ -10824,9 +10840,10 @@
     document.addEventListener('blur', function (event) {
       var el = event.target;
       if (!el || !el.id) return;
-      if (el.id === 'birthDate') {
+      if (el.id === 'birthDate' || el.id === 'compatBirthDate') {
         /* 입력 중에는 아무것도 막지 않고, 필드를 떠날 때만 정규화한다(프롬프트 §6).
-           #birthDate.value 를 읽는 곳이 8곳이라 필드 자체를 YYYY-MM-DD 로 만들어 둔다. */
+           #birthDate.value 를 읽는 곳이 8곳이라 필드 자체를 YYYY-MM-DD 로 만들어 둔다.
+           #compatBirthDate(궁합 모달 상대 생년월일)도 같은 규칙을 탄다. */
         var normalizedDate = _dpNormalizeBirthDateInputValue(el.value);
         if (normalizedDate && normalizedDate !== el.value) {
           el.value = normalizedDate;
@@ -10836,6 +10853,18 @@
       }
       if (el.id === 'birthTimeText') _dpSyncBirthTimeSelectsFromText();
     }, true);
+
+    /* 입력 중 자동 하이픈. 캐럿이 값 끝에 있을 때만 손댄다 — 중간을 고치는 중에 값을 바꾸면
+       커서가 끝으로 튀어 이어서 입력할 수 없다. */
+    document.addEventListener('input', function (event) {
+      var el = event.target;
+      if (!el || (el.id !== 'birthDate' && el.id !== 'compatBirthDate')) return;
+      var caretAtEnd = true;
+      try { caretAtEnd = el.selectionStart == null || el.selectionStart === String(el.value).length; } catch (_) {}
+      if (!caretAtEnd) return;
+      var masked = _dpMaskBirthDateText(el.value);
+      if (masked !== el.value) el.value = masked;
+    });
 
     document.addEventListener('change', function (event) {
       var el = event.target;

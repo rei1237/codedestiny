@@ -1,7 +1,8 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useRef, useState } from "react";
-import { normalizeBirthDateFromDigits, validateBirthDateWithAge } from "@/lib/birthDateInput";
+import { validateBirthDateWithAge } from "@/lib/birthDateInput";
 import { readCurrentDestinyProfile, publishDestinyProfileBridge, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 
@@ -132,12 +133,8 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
           <input
             id="cd-landing-birthdate"
             name="birthDate"
-            type="text"
-            inputMode="numeric"
             autoComplete="bday"
-            placeholder="19900101"
-            value={form.birthDate}
-            onChange={(event) => update({ birthDate: normalizeBirthDateFromDigits(event.target.value) })}
+            {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => update({ birthDate: nextBirthDate }))}
             className={`mt-1.5 ${INPUT_CLASS}`}
           />
         </div>

@@ -29,7 +29,13 @@ test("fortune planner entry is folded into the diary modal", () => {
   // **앞**으로 올라왔다. 그 전(cd-home-secondary-v20260817)에는 폼 뒤였다 — 순서가 뒤집힌 것은
   // 회귀가 아니라 이 개편의 의도다. 폼 자체는 접힌 채 그대로 있다.
   assert.ok(html.indexOf('id="cdSignatureConsult"') < html.indexOf('id="destinyCardForm"'));
-  assert.match(html, /<section class="card input-section moon-destiny-form" id="destinyCardForm"[\s\S]{0,400}?data-cd-home-secondary/);
+  // 2026-08-20(home-profile-card-form-panel-v20260820): 폼을 감추는 방식이 바뀌었다. 이제 폼은
+  // 프로필 카드와 한 패널(#dpDestinyPanel) 안에 있고, 패널이 열리기 전까지 CSS 로 감춘다.
+  // data-cd-home-secondary 를 쓰지 않는 이유는 그 속성이 프로필 시트로 노드째 대여될 때도
+  // 따라가서 뗐다 붙였다 해야 했기 때문이다. 지킬 것은 그대로다 — 폼은 지워지지 않고 감춰진다.
+  assert.ok(html.indexOf('id="dpDestinyPanel"') < html.indexOf('id="destinyCardForm"'));
+  assert.match(html, /\.dp-destiny-panel:not\(\.is-form-open\) > #destinyCardForm\{display:none!important\}/);
+  assert.doesNotMatch(html, /<section class="card input-section moon-destiny-form" id="destinyCardForm"[^>]*data-cd-home-secondary/);
   assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="fortuneGatewayEntry"'));
   assert.match(html, /cdDiaryPlannerEntry'\) \|\| document\.getElementById\('cdSignatureConsult'/);
   assert.match(dashboard, /label:'갓생 다이어리'/);

@@ -1,8 +1,8 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useState } from "react";
 import { m } from "framer-motion";
-import { formatBirthDateDigits, normalizeBirthDateFromDigits } from "@/lib/birthDateInput";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { getAnimalDisplayData } from "../lib/animalMapping";
 import type { AnimalDestinyData, AnimalDestinyInput, PartnerResult } from "../lib/types";
@@ -175,13 +175,7 @@ export default function AnimalCompatibilityGrid({ animal, partner, onSubmitPartn
             className="h-12 rounded-xl border border-[#EAD8B1] bg-white px-4 text-sm text-[#634832] focus:border-[#B88E2F] focus:outline-none"
           />
           <input
-            type="text"
-            inputMode="numeric"
-            maxLength={8}
-            pattern="[0-9]{8}"
-            placeholder="YYYYMMDD"
-            value={formatBirthDateDigits(partnerInput.birthDate)}
-            onChange={(e) => setPartnerInput((prev) => ({ ...prev, birthDate: normalizeBirthDateFromDigits(e.target.value) }))}
+            {...birthDateTextInputProps(partnerInput.birthDate, (nextBirthDate) => setPartnerInput((prev) => ({ ...prev, birthDate: nextBirthDate })))}
             className="h-12 rounded-xl border border-[#EAD8B1] bg-white px-4 text-sm text-[#634832]"
           />
           <input

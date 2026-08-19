@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { CalendarDays, Download, Loader2, Moon, Share2, Sparkles, WalletCards } from "lucide-react";
 import { motion, useReducedMotion } from "framer-motion";
 import { useCallback, useEffect, useMemo, useRef, useState, type ChangeEvent, type CSSProperties, type FormEvent, type ReactNode } from "react";
@@ -1868,7 +1869,7 @@ export default function NewYearAiConsultationPage() {
             </label>
             <label>
               생년월일
-              <input type="date" value={form.birthDate} onChange={updateField("birthDate")} required />
+              <input {...birthDateTextInputProps(form.birthDate, (nextBirthDate) => { formTouchedRef.current = true; setForm((prev) => ({ ...prev, birthDate: nextBirthDate })); resetAttempt(); })} required />
             </label>
             <label>
               출생시간

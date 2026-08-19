@@ -1,5 +1,6 @@
 "use client";
 
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type PointerEvent } from "react";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
@@ -213,7 +214,7 @@ function BirthProfilePanel({ onStart }: { onStart: (birth: AnimalDestinyInput) =
           )}
           <div className={hub.profileField}>
             <label htmlFor="compass-birth-date">생년월일</label>
-            <input id="compass-birth-date" type="date" value={birthDate} onChange={(event) => setBirthDate(event.target.value)} required />
+            <input id="compass-birth-date" {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} required />
           </div>
           <div className={hub.profileField}>
             <label htmlFor="compass-birth-time">태어난 시각</label>
