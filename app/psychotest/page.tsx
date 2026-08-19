@@ -85,6 +85,31 @@ export default function PsychotestHubPage() {
         </p>
       </header>
 
+      <section className="mb-8 max-w-3xl space-y-4 text-sm leading-7 text-slate-700 md:text-base">
+        <h2 className="text-lg font-bold text-slate-900">이 목록을 고른 기준</h2>
+        <p>
+          여기 모은 열네 가지는 임상에서 쓰는 심리검사가 아닙니다. 검사지의 신뢰도나 타당도를
+          검증받은 도구가 아니라, 자기 성향을 말로 꺼내 보게 하는 가벼운 문항 묶음입니다. 그래서
+          결과를 진단으로 읽지 마시고, 평소에 잘 설명하지 못했던 자기 반응에 이름을 붙여 보는
+          계기 정도로 쓰시길 권합니다. 우울·불안·수면 문제처럼 생활에 실제로 영향을 주는 어려움은
+          이런 테스트가 아니라 전문가와 상의해야 할 영역입니다.
+        </p>
+        <h2 className="text-lg font-bold text-slate-900">결과를 읽을 때</h2>
+        <p>
+          문항형 테스트는 답할 때의 기분에 크게 좌우됩니다. 같은 사람이 일주일 간격으로 다시
+          풀면 유형이 바뀌는 일이 흔합니다. 결과 화면에서 &quot;맞다&quot;고 느껴지는 문장만
+          기억에 남기 쉬운데, 틀렸다고 느낀 문장도 함께 세어 보면 이 결과를 어느 정도로 믿어야
+          할지 감이 잡힙니다. 유형 이름보다 그 안에 적힌 설명 문장이 실제로 쓸모 있는 부분입니다.
+        </p>
+        <h2 className="text-lg font-bold text-slate-900">상세 페이지가 어떻게 만들어졌는지</h2>
+        <p>
+          각 테스트의 상세 페이지는 카탈로그에 정리된 항목(주제·소요 시간·확인 포인트)을 공통 틀에
+          대입해 자동으로 구성한 안내문입니다. 편집팀이 한 건씩 검토하지 않기 때문에 그 사실을 각
+          페이지 하단에 밝혀 두었고, 검색 색인에서도 제외했습니다. 테스트 자체는 외부 서비스에서
+          진행되며, 이 사이트는 문항이나 채점 결과를 저장하지 않습니다.
+        </p>
+      </section>
+
       <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {PSYCHOTESTS.map((test) => (
           <article
