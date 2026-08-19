@@ -208,7 +208,7 @@ function assertResolvedTargetMatches(value) {
 }
 
 /** 타깃 오리진. 🔴 타깃끼리 폴백하지 않는다 — 스테이징이 프로덕션을 스모크하고 통과하면 안 된다. */
-function targetOriginFromEnv() {
+function originFromTargetEnv() {
   for (const key of target.originEnv) {
     const value = String(process.env[key] || "").trim();
     if (value) return value.replace(/\/+$/, "");
@@ -395,7 +395,7 @@ function needsWorker(files) {
  */
 async function workerBehindHead(cf, head) {
   const domain = cf.pages.domains.find((item) => !item.includes(".pages.dev")) || cf.pages.domains[0];
-  const origin = targetOriginFromEnv()
+  const origin = originFromTargetEnv()
     || (domain ? "https://" + domain.replace(/^https?:\/\//, "").replace(/\/+$/, "") : "");
   if (!origin) return "";
   let live = "";
@@ -805,7 +805,7 @@ function awaitProductionAssets(value, base) {
 }
 
 function targetOrigin(value) {
-  const fromEnv = targetOriginFromEnv();
+  const fromEnv = originFromTargetEnv();
   if (fromEnv) return fromEnv;
   const domain = value.cf.pages.domains.find((item) => !item.includes(".pages.dev")) || value.cf.pages.domains[0];
   return domain ? "https://" + domain.replace(/^https?:\/\//, "").replace(/\/+$/, "") : "";
