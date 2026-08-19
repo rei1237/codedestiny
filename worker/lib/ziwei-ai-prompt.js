@@ -3,6 +3,7 @@ import {
   classifyQuestionToZiweiDomain,
   getZiweiPromptTemplate,
 } from "./ziwei-ai-prompt-templates.mjs";
+import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.js";
 
 const DEFAULT_TEXT = "제공되지 않음";
 
@@ -719,6 +720,9 @@ export function buildZiweiAIPromptWithDomain({ question, chartResult, domain }) 
     `seed 타이밍 근거: ${evidence.timingTerms.join(" | ") || DEFAULT_TEXT}`,
     `상황별 후속 질문 템플릿: ${(domainTemplate.questionPatterns || []).join(" | ")}`,
     ...specificityGuardLines,
+    // 맨 끝에 둔다 — 이 배열의 앞 두 줄은 buildQuestionContextLine의 "참조 기류" 힌트에도 쓰이는데,
+    // 성향 Context를 앞에 두면 그 힌트가 실제 명반 사실 대신 이 지침의 머리말을 인용하게 된다.
+    ...buildZiweiPersonalityContextLines(chartResult),
   ];
 
   const analysisAngles = buildZiweiAngles(questionType).concat(

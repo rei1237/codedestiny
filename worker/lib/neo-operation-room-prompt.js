@@ -4,6 +4,7 @@ import { scrubInternalKeyPaths } from "./llm-leak-guard.js";
 import { buildNeoBasisPayload, sliceNeoBasisPayload } from "./neo-operation-room-basis.js";
 import { REASONING_OUTPUT_RULE_LINES } from "./fortune-reasoning-contract.js";
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
+import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.js";
 
 const METHOD_LABELS = Object.freeze({
   saju: "사주",
@@ -686,6 +687,12 @@ function starStrengthRuleFor(method) {
   return method === "ziwei" ? clean(METHOD_WRITING_GUIDES.ziwei?.starStrengthRule) : "";
 }
 
+// 자미두수일 때만 "성향을 먼저 종합하라"는 공유 지침을 덧붙인다. 다른 3개 술수(사주·베다·점성술)
+// 프롬프트는 이 함수를 거치지 않으므로 그대로 유지된다.
+function ziweiPersonalityContextLinesFor(method, methodSummary) {
+  return method === "ziwei" ? buildZiweiPersonalityContextLines(methodSummary) : [];
+}
+
 // 챕터 프롬프트 공통 컨텍스트 라인(1차/2차 공유).
 function neoSectionCommonLines(section, ctx) {
   const method = clean(ctx.selectedMethod, 30);
@@ -717,6 +724,7 @@ function neoSectionCommonLines(section, ctx) {
     "",
     ...neoBasisLines(section, ctx),
     ...otherChapterScopeLines(section),
+    ...ziweiPersonalityContextLinesFor(method, ctx.methodSummary),
   ];
 }
 

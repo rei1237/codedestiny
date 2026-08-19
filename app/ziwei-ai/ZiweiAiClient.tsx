@@ -289,6 +289,7 @@ const FOCUS_TOPIC: Record<FocusArea, string> = FOCUS_OPTIONS.reduce((acc, item) 
 // 아래 필터(body 있는 키만 통과)가 그대로 폴백 역할을 한다.
 const SECTION_ORDER = [
   "reading_guide",
+  "personality_profile",
   "structure_core",
   "influence_factors",
   "evidence_basis",
@@ -309,6 +310,7 @@ const SECTION_ORDER = [
 ];
 const SECTION_GLYPHS: Record<string, string> = {
   reading_guide: "序",
+  personality_profile: "性",
   structure_core: "核",
   influence_factors: "影",
   evidence_basis: "據",
