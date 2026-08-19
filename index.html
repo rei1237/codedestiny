@@ -12338,10 +12338,10 @@ html body .cd-home-more__btn[aria-expanded="true"] .cd-home-more__on{display:non
             <span class="cd-quick-card__name" data-cd-trans data-key="home.startCards.sukuyoTitle">숙요점</span>
             <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
           </a>
-          <a class="cd-quick-card" href="/compatibility/" data-cd-service-id="compatibility">
-            <span class="cd-quick-card__sigil" aria-hidden="true">💕</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.quickServices.compat">궁합 보기</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+          <a class="cd-quick-card" href="/astrology/" data-cd-service-id="astrology">
+            <span class="cd-quick-card__sigil" aria-hidden="true">✦</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.astrologyName">점성술</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
           </a>
         </div>
       </section>
@@ -12434,13 +12434,13 @@ html body .cd-home-more__btn[aria-expanded="true"] .cd-home-more__on{display:non
            아래 카드 3장의 초기 문구는 SEO 텍스트 분량(광고 불가·색인 가능 라우트 최소 1800자)에 집계되므로 비우지 말 것. -->
       <style id="cd-today-hub-v20260808">
         /* 폰트는 rem 이 아니라 px — fortune-ui.css 171행이 ≤480px 에서 html{font-size:14px}을 걸어 rem 이 12.5% 줄어든다. */
-        .cd-today{max-width:1240px;margin:24px auto 0;padding:0 20px}
+        .cd-today{max-width:1240px;margin:14px auto 0;padding:0 20px}
         .cd-today__head{text-align:center}
         .cd-today__title{margin:0;font-size:clamp(22px,5vw,30px);font-weight:900;letter-spacing:-.018em;line-height:1.25;color:var(--cd-text,#3c1830);text-wrap:balance}
         /* fortune-ui.css:791 의 `.logo-area p{color:#bbb;font-size:.85rem}` 가 (0,1,1) 로 이기므로 클래스를 겹쳐 (0,2,0) 으로 올린다. */
         html body .cd-today .cd-today__date{display:inline-flex;align-items:center;gap:6px;margin:8px auto 0;font-size:12.5px;line-height:1.5;font-weight:700;letter-spacing:.01em;color:color-mix(in srgb,var(--cd-accent,#b31955) 85%,var(--cd-text,#3c1830))}
         /* 프로필 카드가 없을 때의 잠금 안내. 결과는 감추고 진입로만 남긴다. */
-        .cd-today__gate{margin:16px 0 0;padding:22px 20px 24px;border-radius:24px;text-align:center;border:1px dashed color-mix(in srgb,var(--cd-accent,#b31955) 34%,transparent);background:linear-gradient(160deg,color-mix(in srgb,var(--cd-surface,#fff) 88%,transparent),color-mix(in srgb,var(--cd-surface,#fff) 64%,transparent));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+        .cd-today__gate{margin:12px 0 0;padding:16px 18px 18px;border-radius:20px;text-align:center;border:1px dashed color-mix(in srgb,var(--cd-accent,#b31955) 34%,transparent);background:linear-gradient(160deg,color-mix(in srgb,var(--cd-surface,#fff) 88%,transparent),color-mix(in srgb,var(--cd-surface,#fff) 64%,transparent));-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
         .cd-today__gate[hidden]{display:none}
         html body .cd-today .cd-today__gate-title{margin:0;font-size:17px;font-weight:900;line-height:1.4;letter-spacing:-.012em;color:var(--cd-text,#3c1830);text-wrap:balance}
         html body .cd-today .cd-today__gate-desc{margin:9px auto 0;max-width:44ch;font-size:13.5px;line-height:1.72;color:color-mix(in srgb,var(--cd-text,#3c1830) 82%,transparent);text-wrap:pretty}
@@ -12456,7 +12456,7 @@ html body .cd-home-more__btn[aria-expanded="true"] .cd-home-more__on{display:non
         .cd-today__tab[aria-selected="true"]{color:var(--cd-bg,#fffaf7);border-color:transparent;background:linear-gradient(145deg,color-mix(in srgb,var(--cd-accent,#b31955) 88%,#000),var(--cd-accent,#b31955));box-shadow:0 4px 16px -6px color-mix(in srgb,var(--cd-accent,#b31955) 65%,transparent),inset 0 1px 0 rgba(255,255,255,.18)}
         .cd-today__tab[aria-selected="true"] i{transform:scale(1.18)}
         /* min-height: 마크업의 초기 안내문(2~3줄)이 계산 결과(1~2줄)로 바뀌면서 카드가 줄어드는 CLS 를 막는다. */
-        .cd-today__panels{margin:12px 0 0;min-height:196px}
+        .cd-today__panels{margin:10px 0 0;min-height:150px}
         .cd-today-card{position:relative;overflow:hidden;border-radius:24px;padding:20px 20px 22px;border:1px solid var(--cd-border,rgba(216,63,120,.18));background:linear-gradient(160deg,color-mix(in srgb,var(--cd-surface,#fff) 92%,transparent) 0%,color-mix(in srgb,var(--cd-surface,#fff) 72%,transparent) 100%);-webkit-backdrop-filter:blur(12px);backdrop-filter:blur(12px);box-shadow:0 2px 0 0 color-mix(in srgb,var(--cd-accent,#b31955) 22%,transparent),0 8px 24px -12px color-mix(in srgb,var(--cd-accent,#b31955) 38%,transparent),0 24px 48px -24px color-mix(in srgb,var(--cd-accent,#b31955) 18%,transparent);text-align:left}
         /* 카드 상단 accent 하이라이트 라인 */
         .cd-today-card::before{content:'';position:absolute;top:0;left:20px;right:20px;height:2px;border-radius:0 0 2px 2px;background:linear-gradient(90deg,transparent,color-mix(in srgb,var(--cd-accent,#b31955) 55%,transparent),transparent)}
@@ -13516,15 +13516,15 @@ html.neo-mode body footer .cd-footer-langpick__btn.active,html.neo-mode body foo
 @media (max-width:560px){ html body footer .cd-footer-shell{grid-template-columns:1fr;gap:16px}html body footer .cd-footer-legal{justify-content:center;text-align:center}html body footer .cd-footer-legal__links{justify-content:center} }
 
 /* ── 섹션 공통 헤드(중앙 정렬 변형) — #inputPage 강화로 옛 크림 헤드 규칙을 이긴다 ── */
-html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head{background:none!important;border:0!important;box-shadow:none!important;padding:0!important}
-html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head h2{font-family:var(--font-display,serif)!important;font-size:clamp(1.24rem,2.6vw,1.7rem)!important;line-height:1.32!important;margin:6px 0 0!important;background:none!important;-webkit-background-clip:initial!important}
-html:not(.neo-mode) body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head h2{color:#3c1830!important;-webkit-text-fill-color:#3c1830!important;text-shadow:none!important}
-html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head h2{color:#f4eeff!important;-webkit-text-fill-color:#f4eeff!important}
-html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head p{max-width:46em;margin:8px auto 0!important;font-size:.9rem!important;line-height:1.66!important}
-html:not(.neo-mode) body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head p{color:#5c2c47!important;-webkit-text-fill-color:#5c2c47!important;text-shadow:none!important}
-html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-head p{color:rgba(228,214,255,.86)!important;-webkit-text-fill-color:rgba(228,214,255,.86)!important}
-html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-kicker{display:inline-flex!important;padding:6px 12px!important;border-radius:999px!important;font-size:.66rem!important;font-weight:900!important;letter-spacing:.18em!important;text-transform:uppercase!important;color:var(--cd-accent,#b31955)!important;background:color-mix(in srgb,var(--cd-accent,#b31955) 9%,transparent)!important;border:1px solid var(--cd-border,rgba(216,63,120,.16))!important}
-html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern) .moon-section-kicker{color:var(--cd-gold,#e8d5a3)!important}
+html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-head{background:none!important;border:0!important;box-shadow:none!important;padding:0!important}
+html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-head h2{font-family:var(--font-display,serif)!important;font-size:clamp(1.24rem,2.6vw,1.7rem)!important;line-height:1.32!important;margin:6px 0 0!important;background:none!important;-webkit-background-clip:initial!important}
+html:not(.neo-mode) body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-head h2{color:#3c1830!important;-webkit-text-fill-color:#3c1830!important;text-shadow:none!important}
+html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-head h2{color:#f4eeff!important;-webkit-text-fill-color:#f4eeff!important}
+html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-head p{max-width:46em;margin:8px auto 0!important;font-size:.9rem!important;line-height:1.66!important}
+html:not(.neo-mode) body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-head p{color:#5c2c47!important;-webkit-text-fill-color:#5c2c47!important;text-shadow:none!important}
+html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-head p{color:rgba(228,214,255,.86)!important;-webkit-text-fill-color:rgba(228,214,255,.86)!important}
+html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-kicker{display:inline-flex!important;padding:6px 12px!important;border-radius:999px!important;font-size:.66rem!important;font-weight:900!important;letter-spacing:.18em!important;text-transform:uppercase!important;color:var(--cd-accent,#b31955)!important;background:color-mix(in srgb,var(--cd-accent,#b31955) 9%,transparent)!important;border:1px solid var(--cd-border,rgba(216,63,120,.16))!important}
+html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-kicker{color:var(--cd-gold,#e8d5a3)!important}
 /* cd-expert-consult-luxe-v20260731 — 위 헤더 규칙은 .cd-fortune-pick·.cd-svc-index 와 공유한다.
    전문가 상담 섹션만 다크 패널로 갈아입었으므로 #cdAiFeatures 로 스코프해 여기서만 덮는다
    (id 2개로 위 :is() 규칙보다 특이도가 확실히 높다 — 나머지 두 섹션은 그대로 둔다). */
@@ -17448,46 +17448,12 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         <h2 id="cdServiceIndexTitle" data-cd-trans data-key="home.svcIndex.title">더 많은 운세가 궁금하다면</h2>
         <p data-cd-trans data-key="home.svcIndex.lead">타로·신탁·명상·프리미엄 리포트까지, 찾고 싶은 서비스를 검색하거나 아래 컬렉션을 열어보세요.</p>
       </div>
-      <div class="cd-svc-index__searchbar" role="search">
-        <span class="cd-svc-index__search-icon" aria-hidden="true">🔍</span>
-        <input type="search" id="cdServiceSearchInput" class="cd-svc-index__input" autocomplete="off" spellcheck="false"
-          placeholder="찾고 싶은 운세를 검색하세요 (예: 타로, 궁합, 꿈해몽, 관상)"
-          aria-label="전체 서비스 검색" data-cd-trans-attr="placeholder:home.svcIndex.placeholder,aria-label:home.svcIndex.searchAria">
-      </div>
       <div class="cd-home-more">
         <button type="button" class="cd-home-more__btn" id="cdHomeExpandToggle" aria-expanded="false">
           <span class="cd-home-more__on" data-cd-trans data-key="home.svcIndex.expandCta">홈에서 접어 둔 섹션도 모두 펼치기</span>
           <span class="cd-home-more__off" data-cd-trans data-key="home.svcIndex.collapseCta">펼친 섹션 다시 접기</span>
         </button>
       </div>
-      <div class="cd-svc-index__filters" id="cdServiceFilters" data-cd-service-filters>
-        <div class="cd-svc-index__filter-row" role="group" aria-label="궁금한 주제로 좁히기">
-          <span class="cd-svc-index__filter-label">주제</span>
-          <div class="cd-svc-index__filter-chips">
-            <button type="button" class="cd-svc-index__fchip" data-fpurpose="love" aria-pressed="false">❤️ 연애</button>
-            <button type="button" class="cd-svc-index__fchip" data-fpurpose="money" aria-pressed="false">💰 재물</button>
-            <button type="button" class="cd-svc-index__fchip" data-fpurpose="career" aria-pressed="false">💼 직업</button>
-            <button type="button" class="cd-svc-index__fchip" data-fpurpose="family" aria-pressed="false">🏠 가족/가정</button>
-            <button type="button" class="cd-svc-index__fchip" data-fpurpose="life" aria-pressed="false">🧭 인생</button>
-            <button type="button" class="cd-svc-index__fchip" data-fpurpose="today" aria-pressed="false">🌙 오늘</button>
-            <button type="button" class="cd-svc-index__fchip" data-fpurpose="compatibility" aria-pressed="false">💕 궁합</button>
-            <button type="button" class="cd-svc-index__fchip" data-fpurpose="self" aria-pressed="false">🔮 나 자신</button>
-            <button type="button" class="cd-svc-index__fchip" data-fpurpose="etc" aria-pressed="false">🎯 기타</button>
-          </div>
-        </div>
-        <div class="cd-svc-index__filter-row" role="group" aria-label="가격대로 좁히기">
-          <span class="cd-svc-index__filter-label">가격</span>
-          <div class="cd-svc-index__filter-chips">
-            <button type="button" class="cd-svc-index__fchip" data-fprice="free" aria-pressed="false">무료</button>
-            <button type="button" class="cd-svc-index__fchip" data-fprice="low" aria-pressed="false">1천원대</button>
-            <button type="button" class="cd-svc-index__fchip" data-fprice="mid" aria-pressed="false">3천원대</button>
-            <button type="button" class="cd-svc-index__fchip" data-fprice="high" aria-pressed="false">5천원대</button>
-            <button type="button" class="cd-svc-index__fchip" data-fprice="premium" aria-pressed="false">1만원대</button>
-            <button type="button" class="cd-svc-index__fchip" data-fprice="vvip" aria-pressed="false">프리미엄</button>
-          </div>
-        </div>
-      </div>
-      <div id="cdServiceSearchResults" class="cd-svc-index__results" hidden aria-live="polite"></div>
     </section>
       <script data-marker="cd-home-secondary-v20260817">
         /* 홈 축약 토글. 접어 둔 섹션은 DOM 에 그대로 있고 html.cd-home-expanded 로 한 번에 드러난다.
@@ -21584,6 +21550,110 @@ return you.name.restore();</span>
       </div>
       <p id="subEmailHomeStatus" class="sub-status" role="status" aria-live="polite" style="display:none;margin:12px auto 0;max-width:560px;padding:10px 12px;border-radius:12px;border:1px solid rgba(148,163,184,.28);background:rgba(15,23,42,.28);color:#e2e8f0;font-size:.9rem;line-height:1.55;text-align:center;"></p>
     </aside>
+      <!-- 이용자 후기 — 기존 리뷰 시스템(/api/reviews) 런타임 연동. 승인된 후기만 노출되며,
+           데이터가 없거나 조회 실패 시 섹션은 hidden 으로 남는다(오늘의 운세 허브와 동일한 패턴). -->
+      <section class="cd-reviews" id="cdReviews" aria-labelledby="cdReviewsTitle" hidden data-marker="cd-reviews-v20260819">
+        <style>
+          .cd-reviews{max-width:1240px;margin:8px auto 0;padding:44px 20px 12px}
+          .cd-reviews[hidden]{display:none}
+          .cd-reviews__head{text-align:center;max-width:640px;margin:0 auto}
+          .cd-reviews__kicker{display:inline-flex;padding:6px 12px;border-radius:999px;font-size:.66rem;font-weight:900;letter-spacing:.18em;text-transform:uppercase;color:var(--cd-accent,#b31955);background:color-mix(in srgb,var(--cd-accent,#b31955) 9%,transparent);border:1px solid var(--cd-border,rgba(216,63,120,.16))}
+          .cd-reviews__title{margin:10px 0 6px;font-family:var(--font-display,serif);font-size:clamp(1.24rem,2.6vw,1.7rem);font-weight:800;line-height:1.32;color:var(--cd-text,#3c1830)}
+          .cd-reviews__lead{margin:0 auto;font-size:.9rem;line-height:1.66;color:color-mix(in srgb,var(--cd-text,#3c1830) 72%,transparent)}
+          .cd-reviews__summary{display:flex;align-items:center;justify-content:center;gap:10px;margin:16px auto 0;flex-wrap:wrap}
+          .cd-reviews__summary[hidden]{display:none}
+          .cd-reviews__avg{font-size:1.8rem;font-weight:900;line-height:1;color:var(--cd-accent,#b31955)}
+          .cd-reviews__avg-stars{font-size:1.05rem;letter-spacing:.06em;color:var(--cd-gold,#e0a83c)}
+          .cd-reviews__count{font-size:.86rem;font-weight:700;color:color-mix(in srgb,var(--cd-text,#3c1830) 70%,transparent)}
+          .cd-reviews__grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin:22px auto 0;max-width:1120px}
+          .cd-review-card{display:flex;flex-direction:column;gap:8px;padding:18px 18px 16px;border-radius:18px;background:var(--cd-surface,#fff);border:1px solid var(--cd-border,rgba(216,63,120,.14));box-shadow:var(--cd-elev-1,0 10px 24px rgba(0,0,0,.06));text-align:left}
+          .cd-review-card__top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+          .cd-review-card__stars{font-size:1rem;letter-spacing:.05em;color:var(--cd-gold,#e0a83c)}
+          .cd-review-card__verified{font-size:.68rem;font-weight:800;padding:3px 8px;border-radius:999px;color:var(--cd-accent,#b31955);background:color-mix(in srgb,var(--cd-accent,#b31955) 8%,transparent);border:1px solid color-mix(in srgb,var(--cd-accent,#b31955) 22%,transparent)}
+          .cd-review-card__title{margin:0;font-size:.98rem;font-weight:800;line-height:1.4;color:var(--cd-text,#3c1830)}
+          .cd-review-card__body{margin:0;font-size:.9rem;line-height:1.66;color:color-mix(in srgb,var(--cd-text,#3c1830) 84%,transparent);display:-webkit-box;-webkit-line-clamp:4;-webkit-box-orient:vertical;overflow:hidden}
+          .cd-review-card__foot{display:flex;align-items:center;gap:8px;margin-top:2px;flex-wrap:wrap;font-size:.78rem;color:color-mix(in srgb,var(--cd-text,#3c1830) 62%,transparent)}
+          .cd-review-card__author{font-weight:800;color:color-mix(in srgb,var(--cd-text,#3c1830) 82%,transparent)}
+          .cd-review-card__product{padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--cd-accent,#b31955) 7%,transparent);color:var(--cd-accent,#b31955);font-weight:700}
+          .cd-review-card__date{margin-left:auto}
+          .cd-reviews__all-wrap{text-align:center}
+          .cd-reviews__all{display:inline-flex;align-items:center;gap:6px;margin:22px auto 0;padding:10px 18px;border-radius:999px;font-size:.86rem;font-weight:800;text-decoration:none;color:var(--cd-accent,#b31955);border:1px solid color-mix(in srgb,var(--cd-accent,#b31955) 30%,transparent);background:color-mix(in srgb,var(--cd-surface,#fff) 65%,transparent);transition:border-color .2s ease,background .2s ease}
+          .cd-reviews__all:hover{border-color:color-mix(in srgb,var(--cd-accent,#b31955) 55%,transparent);background:color-mix(in srgb,var(--cd-accent,#b31955) 6%,transparent)}
+          @media (max-width:860px){.cd-reviews{padding:32px 14px 8px}.cd-reviews__grid{grid-template-columns:1fr;gap:12px}}
+        </style>
+        <div class="cd-reviews__head">
+          <span class="cd-reviews__kicker" data-cd-trans data-key="home.reviews.kicker">REAL REVIEWS</span>
+          <h2 class="cd-reviews__title" id="cdReviewsTitle" data-cd-trans data-key="home.reviews.title">이용자 후기</h2>
+          <p class="cd-reviews__lead" data-cd-trans data-key="home.reviews.lead">실제 이용자들이 남긴 상담 후기입니다.</p>
+        </div>
+        <div class="cd-reviews__summary" id="cdReviewsSummary" hidden></div>
+        <div class="cd-reviews__grid" id="cdReviewsGrid" aria-live="polite"></div>
+        <div class="cd-reviews__all-wrap">
+          <a class="cd-reviews__all" href="/reviews/" data-cd-trans data-key="home.reviews.allCta">전체 후기 보기 →</a>
+        </div>
+      </section>
+      <script data-marker="cd-reviews-v20260819">
+        (function () {
+          var section = document.getElementById('cdReviews');
+          if (!section) return;
+          var grid = document.getElementById('cdReviewsGrid');
+          var summaryEl = document.getElementById('cdReviewsSummary');
+          function esc(s){ return String(s==null?'':s).replace(/[&<>"]/g, function(c){ return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'})[c]; }); }
+          function stars(r){ r = Math.max(0, Math.min(5, Math.round(Number(r)||0))); var s=''; for (var i=1;i<=5;i++) s += (i<=r ? '★' : '☆'); return s; }
+          function fmtDate(iso){ if(!iso) return ''; try{ var d=new Date(iso); if(isNaN(d)) return ''; return d.getFullYear()+'.'+('0'+(d.getMonth()+1)).slice(-2)+'.'+('0'+d.getDate()).slice(-2); }catch(_){ return ''; } }
+          function num(n){ try{ return (Number(n)||0).toLocaleString('ko-KR'); }catch(_){ return String(Number(n)||0); } }
+          function renderSummary(sum){
+            if(!sum || !Number(sum.total)){ summaryEl.hidden = true; return; }
+            summaryEl.hidden = false;
+            summaryEl.innerHTML = '<span class="cd-reviews__avg">'+ (Number(sum.average)||0).toFixed(1) +'</span>'
+              + '<span class="cd-reviews__avg-stars" aria-hidden="true">'+ stars(sum.average) +'</span>'
+              + '<span class="cd-reviews__count">후기 '+ num(sum.total) +'개</span>';
+          }
+          function renderList(items){
+            if(!items || !items.length) return false;
+            var html='';
+            for(var i=0;i<items.length;i++){
+              var it=items[i]||{};
+              var verified = it.isVerifiedPurchase ? '<span class="cd-review-card__verified">구매 확인</span>' : '';
+              var title = it.title ? '<p class="cd-review-card__title">'+ esc(it.title) +'</p>' : '';
+              var product = it.productName ? '<span class="cd-review-card__product">'+ esc(it.productName) +'</span>' : '';
+              var date = fmtDate(it.displayedAt);
+              html += '<article class="cd-review-card">'
+                + '<div class="cd-review-card__top"><span class="cd-review-card__stars" aria-label="별점 '+ (Number(it.rating)||0) +'점">'+ stars(it.rating) +'</span>'+ verified +'</div>'
+                + title
+                + '<p class="cd-review-card__body">'+ esc(it.body) +'</p>'
+                + '<div class="cd-review-card__foot"><span class="cd-review-card__author">'+ esc(it.authorName || '익명') +'</span>'+ product +'<span class="cd-review-card__date">'+ date +'</span></div>'
+                + '</article>';
+            }
+            grid.innerHTML = html;
+            return true;
+          }
+          /* 목데이터 렌더 검증용(정적 프리뷰에서 /api 없이 확인). 프로덕션 동작에는 영향 없음. */
+          /* 조작 인상 방지 — 승인된 실제 후기가 MIN_TO_SHOW 미만이면 섹션을 아예 숨긴다.
+             홈에는 최신 HOME_CAP 개까지만, 나머지는 '전체 후기 보기'. 후기는 관리자 승인으로
+             시간에 걸쳐 늘기 때문에 노출도 자연스럽게 점진적으로 증가한다. */
+          var MIN_TO_SHOW = 3;
+          var HOME_CAP = 6;
+          function show(items, sum){
+            if(!items || items.length < MIN_TO_SHOW){ section.hidden = true; return false; }
+            renderSummary(sum);
+            renderList(items.slice(0, HOME_CAP));
+            section.hidden = false;
+            return true;
+          }
+          /* 목데이터 렌더 검증용(정적 프리뷰에서 /api 없이 확인). 프로덕션 동작에는 영향 없음. */
+          window.__cdRenderReviews = function(items, sum){ return show(items, sum); };
+          function getJson(path){ return fetch(path, { headers: { accept: 'application/json' } }).then(function(r){ return r.ok ? r.json() : null; }).catch(function(){ return null; }); }
+          function load(){
+            Promise.all([ getJson('/api/reviews?sort=latest&limit=' + HOME_CAP), getJson('/api/reviews/summary') ]).then(function(res){
+              var list = res[0], sum = res[1];
+              var items = (list && Array.isArray(list.items)) ? list.items : [];
+              show(items, (sum && sum.ok) ? sum : null);
+            });
+          }
+          if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load); else load();
+        })();
+      </script>
   </main>
 
   <!-- ═══ 결과 페이지 (SEO: Result Content) ═══ -->
