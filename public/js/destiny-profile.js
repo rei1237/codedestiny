@@ -8695,6 +8695,8 @@
     window._gender = profile.gender || 'F';
     if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
     if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
+    /* 카드를 폼에 올린 뒤 보이는 시간 입력도 맞춘다 — 안 맞추면 select 만 바뀌고 텍스트는 옛 값이 남는다. */
+    _dpSyncBirthTimeTextFromSelects();
   }
 
   function _dpDispatchProfileFieldRefresh(el) {
@@ -10083,6 +10085,12 @@
   };
 
   window.dpScrollToForm = function() {
+    /* 🔴 폼(#destinyCardForm)은 홈 축약(cd-home-secondary-v20260817) 대상이라 기본 display:none 이다.
+       펼치지 않고 스크롤하면 사용자는 빈 화면을 본다 — 시트의 "새로 만들기"/"수정"이 정확히 그랬다.
+       펼치기는 셸이 노출한 __cdExpandHome 하나만 쓴다(구현을 여기서 복제하지 말 것). */
+    if (typeof window.__cdExpandHome === 'function') {
+      try { window.__cdExpandHome(); } catch (_) {}
+    }
     var el = document.querySelector('.input-section');
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
@@ -10674,10 +10682,105 @@
     } catch (_bootstrapError) {}
   }
 
+  /* ── 생년월일·출생시간 직접 타이핑 (birth-time-text-sync-v20260819) ──────────────
+     생년월일은 type="date" 를, 출생시간은 select 2개를 쓰고 있어 둘 다 타이핑이 막혀 있었다.
+     🔴 select 는 없애지 않는다 — #birthHour/#birthMinute 를 .value 로 읽는 곳이
+        8개 파일 28곳(js/saju-engine.js 7 · index.html 6 · 이 파일 6 …)이라
+        제거하면 전부 손봐야 한다. 보이는 텍스트 입력과 양방향으로 맞추기만 한다.
+     정규화는 이미 있는 _dpNormalizeBirthDateInputValue 를 재사용한다(새 파서 금지). */
+  function _dpNormalizeBirthTimeText(raw) {
+    var text = String(raw || '').trim();
+    if (!text) return '';
+    var digits = text.replace(/\D/g, '');
+    var hour;
+    var minute;
+    if (digits.length === 3) { hour = digits.slice(0, 1); minute = digits.slice(1); }
+    else if (digits.length === 4) { hour = digits.slice(0, 2); minute = digits.slice(2); }
+    else if (digits.length === 2) { hour = digits; minute = '0'; }
+    else if (digits.length === 1) { hour = digits; minute = '0'; }
+    else return '';
+    var h = parseInt(hour, 10);
+    var m = parseInt(minute, 10);
+    if (!isFinite(h) || !isFinite(m) || h < 0 || h > 23 || m < 0 || m > 59) return '';
+    return _dpPad2(h) + ':' + _dpPad2(m);
+  }
+
+  function _dpBirthTimeEls() {
+    return {
+      text: document.getElementById('birthTimeText'),
+      hour: document.getElementById('birthHour'),
+      minute: document.getElementById('birthMinute')
+    };
+  }
+
+  /** select → 텍스트 입력. "시간 모름"(12:00 설정)과 프로필 불러오기가 이 경로를 탄다. */
+  function _dpSyncBirthTimeTextFromSelects() {
+    var els = _dpBirthTimeEls();
+    if (!els.text || !els.hour || !els.minute) return;
+    var h = parseInt(els.hour.value, 10);
+    var m = parseInt(els.minute.value, 10);
+    if (!isFinite(h) || !isFinite(m)) return;
+    els.text.value = _dpPad2(h) + ':' + _dpPad2(m);
+  }
+
+  /** 텍스트 입력 → select. 해석 못 하면 select 를 건드리지 않고 텍스트도 되돌린다. */
+  function _dpSyncBirthTimeSelectsFromText() {
+    var els = _dpBirthTimeEls();
+    if (!els.text || !els.hour || !els.minute) return;
+    var normalized = _dpNormalizeBirthTimeText(els.text.value);
+    if (!normalized) { _dpSyncBirthTimeTextFromSelects(); return; }
+    var parts = normalized.split(':');
+    els.hour.value = String(parseInt(parts[0], 10));
+    els.minute.value = String(parseInt(parts[1], 10));
+    els.text.value = normalized;
+    /* 보정 시각 프리뷰 등 기존 change 구독자가 있으므로 실제 이벤트를 쏜다. */
+    try {
+      els.hour.dispatchEvent(new Event('change', { bubbles: true }));
+      els.minute.dispatchEvent(new Event('change', { bubbles: true }));
+    } catch (_) {}
+  }
+
+  function _dpBindTypedBirthInputs() {
+    if (window.__cdTypedBirthInputsBound) return;
+    window.__cdTypedBirthInputsBound = true;
+
+    /* blur 는 버블링하지 않으므로 캡처로 받는다. 폼이 나중에 시트로 옮겨가도 계속 동작한다. */
+    document.addEventListener('blur', function (event) {
+      var el = event.target;
+      if (!el || !el.id) return;
+      if (el.id === 'birthDate') {
+        /* 입력 중에는 아무것도 막지 않고, 필드를 떠날 때만 정규화한다(프롬프트 §6).
+           #birthDate.value 를 읽는 곳이 8곳이라 필드 자체를 YYYY-MM-DD 로 만들어 둔다. */
+        var normalizedDate = _dpNormalizeBirthDateInputValue(el.value);
+        if (normalizedDate && normalizedDate !== el.value) {
+          el.value = normalizedDate;
+          try { el.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+        }
+        return;
+      }
+      if (el.id === 'birthTimeText') _dpSyncBirthTimeSelectsFromText();
+    }, true);
+
+    document.addEventListener('change', function (event) {
+      var el = event.target;
+      if (!el || !el.id) return;
+      if (el.id === 'birthHour' || el.id === 'birthMinute') _dpSyncBirthTimeTextFromSelects();
+    });
+
+    /* "출생 시간 모름"은 셸 핸들러가 select 를 12:00 으로 바꾼다. 버블 단계라 그 뒤에 돈다. */
+    document.addEventListener('click', function (event) {
+      var btn = event.target && event.target.closest ? event.target.closest('[data-cd-set-unknown-time]') : null;
+      if (btn) window.setTimeout(_dpSyncBirthTimeTextFromSelects, 0);
+    });
+
+    _dpSyncBirthTimeTextFromSelects();
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { init(); _dpBootstrapAccessStore(); });
+    document.addEventListener('DOMContentLoaded', function() { init(); _dpBindTypedBirthInputs(); _dpBootstrapAccessStore(); });
   } else {
     init();
+    _dpBindTypedBirthInputs();
     _dpBootstrapAccessStore();
   }
 
