@@ -17,8 +17,13 @@
 이 작업에서 새로 확인한 것 — 다음 세션이 다시 재지 않도록:
 
 - 🔴 `verify-adsense-readiness` 의 `getVisibleText`(`scripts/verify-adsense-readiness.mjs:618`)는 **태그만 벗기고 `hidden`·CSS 를 보지 않는다.** DOM 에 두고 감추면 광고·색인 글자수가 그대로 유지된다. 실제로 감춘 뒤 빌드해 `[adsense-readiness] OK` 를 확인했다.
-- 🔴 전체 서비스 검색은 **가시성을 보지 않고** 인덱스를 만들고, 결과를 새 `a[href]`/`button[data-action]` 노드로 다시 만든다. 그래서 섹션을 감춰도 검색은 안 깨진다. 다만 `.moon-preview-card, .tarot-tile, .cd-pick-card, .moon-start-card, .prem-card, .feature-card` 에 안 걸리는 진입점(예: `fortune-gateway__door`)은 인덱스에 안 들어가니 EXTRA 목록에 손으로 넣어야 한다.
-- 🔴 검색 EXTRA 목록은 `cd-service-search-extra-v20260817` **별도 블록**에 있다. 배선 블록(`cd-service-index-search-v20260723`)으로 되돌리지 말 것 — 8KB 를 넘으면 externalize 가 `data-marker` 를 버리고 `split-dist-boot-tasks` 허용목록이 죽어 **빌드가 실패한다**.
+- 🔴 전체 서비스 검색은 **가시성을 보지 않고** 인덱스를 만들고, 결과를 새 `a[href]`/`button[data-action]` 노드로 다시 만든다. 그래서 섹션을 감춰도 검색은 안 깨진다. 다만 `.moon-preview-card, .tarot-tile, .cd-pick-card, .moon-start-card, .prem-card, .feature-card` 에 안 걸리는 진입점(예: `fortune-gateway__door`)은 인덱스에 안 들어간다.
+- 🔴 **2026-08-19 정정 — 아래 두 줄은 더 이상 코드와 맞지 않는다.** 인라인 3블록
+  (`cd-fortune-gateway-discover-v20260817` · `cd-service-search-extra-v20260817` ·
+  `cd-service-index-search-v20260723`)은 외부 파일 `js/core/service-registry.js` +
+  `js/core/home-service-finder.js` 로 나갔고, `split-dist-boot-tasks` 허용목록에서도 빠졌다.
+  진입점 보강은 EXTRA 목록이 아니라 **레지스트리에 항목을 추가**하는 것으로 한다.
+  - ~~검색 EXTRA 목록은 `cd-service-search-extra-v20260817` **별도 블록**에 있다. 배선 블록(`cd-service-index-search-v20260723`)으로 되돌리지 말 것~~ — 8KB 경계 자체는 여전히 유효하다. 인라인으로 되돌리지 말 것.
 - 🔴 `i18n:translate-pending` 은 **Gemini 유료 실호출**이다(절대 규칙 1). 이 PR 의 신규 키 19개 × 12로케일은 전부 손으로 썼다.
 - 인라인 스크립트는 파싱 중 실행된다 — 토글 핸들러를 히어로 근처에 두면 아래쪽 버튼을 못 찾아 **조용히 아무 일도 안 한다**(실제로 겪음). 대상 섹션 뒤에 둘 것.
 - 기존 결함(이 PR 과 무관): `verify:mobile-bottom-nav-sync` 는 `/points/` vs `/points` 로 `origin/main`(bfb6dfa96)에서도 실패한다.

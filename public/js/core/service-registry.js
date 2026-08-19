@@ -1,0 +1,424 @@
+/**
+ * 홈 통합 운세 탐색기의 단일 서비스 레지스트리 (cd-home-service-registry-v20260819)
+ *
+ * 왜 이 파일이 생겼나 — 같은 서비스 목록이 네 곳에 서로 다른 스키마로 흩어져 있었다.
+ *   ① index.html 인라인 `SVC` 30개 (고민 태그 보유, 가격은 한글 문자열)
+ *   ② index.html `window.__cdServiceSearchExtra` 18개 (검색 키워드만 보유)
+ *   ③ 전체 서비스 검색의 DOM 타일 스크래핑 (태그 없음)
+ *   ④ app/_lib/serviceSections.js 55개 (렌더되지 않는 데드코드)
+ * ①②를 여기로 합쳤다. ③은 폐기하지 않는다 — 컬렉션 타일 수백 개의 검색 커버리지가
+ * 거기에 있어서, home-service-finder.js 가 이 레지스트리와 스크래핑 결과를 **병합**한다.
+ * 태그(purposes/methods)를 가진 항목만 필터 대상이 되고, 스크래핑 항목은 검색어 매칭 전용이다.
+ *
+ * 🔴 인라인 <script> 로 되돌리지 말 것 — 8KB 를 넘으면 외부 청크로 빠지면서 data-marker 가
+ *    사라지고 scripts/split-dist-boot-tasks.mjs 의 허용목록이 죽는다(index.html 주석 참조).
+ *
+ * 🔴 파생값을 저장하지 않는다.
+ *   - 가격대(bucket)는 `price` 문자열에서 런타임 파생한다(home-service-finder.js `bucketOf`).
+ *   - 이용권 커버 여부는 저장하지 않는다 — `cost` 대 PASS_LIMITS(30/50/100,
+ *     worker/lib/profile-limits.js) 파생값이라 적어 두는 순간 드리프트한다.
+ *
+ * 🔴 `methods` 는 반드시 명시한다. 예전에는 서비스명 정규식(`methodOf`)으로 추론해서
+ *    신규 서비스가 조용히 'ai' 로 떨어졌다.
+ *
+ * 🔴 유료 표기(`price` 에 원 금액이 있는 항목)는 `featureKey` 가 필수이며, 그 키의 가격은
+ *    결제 정본 worker/lib/paid-feature-registry.js 와 일치해야 한다.
+ *    검사: npm run verify:home-service-registry (미분류·불일치는 실패)
+ *
+ * 필드
+ *   id         고유 슬러그
+ *   name/desc  표시 문구
+ *   href       라우트 (action 과 둘 중 하나는 필수)
+ *   action     href 없이 홈 런타임 액션으로만 열리는 항목
+ *   featureKey 결제 정본 키 (유료면 필수)
+ *   price      표시 가격 문자열 — '무료' | '무료 시작' | '이용권' | 'N,NNN원' | 'N,NNN원~'
+ *   purposes   고민 축 (meta.purposes)
+ *   methods    운세 방식 축 (meta.methods)
+ *   keys       추가 검색 키워드 (공백 구분)
+ *   badge      결과 카드 배지
+ *   roles      홈 배치 역할 — 'quick' | 'recommended'
+ */
+window.__cdServiceRegistryMeta = {
+  purposes: ["love", "money", "career", "family", "life", "today", "compatibility", "self", "etc"],
+  methods: ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot", "ai"],
+};
+
+window.__cdServiceRegistry = [
+  /* ── 연애 · 인연 ─────────────────────────────────────────────── */
+  {
+    id: "master-love-codex",
+    name: "마스터 인연의 서",
+    desc: "인연의 흐름과 만남의 시기를 깊이 읽는 연애 리딩",
+    href: "/master-love-codex/",
+    featureKey: "master-love-codex",
+    price: "20,000원~",
+    purposes: ["love", "compatibility"],
+    methods: ["saju", "ai"],
+    keys: "인연 연애 만남 시기 재회 짝사랑",
+    badge: "대표",
+    roles: ["recommended"],
+  },
+  {
+    id: "fortune-tea-house",
+    name: "운명의 찻집",
+    desc: "따뜻한 연이와 나누는 마음 상담",
+    href: "/fortune-tea-house/",
+    featureKey: "fortune-tea-house-tarot-consultation",
+    price: "5,000원~",
+    purposes: ["love", "self", "life"],
+    methods: ["tarot", "saju", "ai"],
+    keys: "찻집 상담 연이 마음 고민",
+    badge: "대표",
+    roles: ["quick"],
+  },
+  {
+    id: "love-secret-ai",
+    name: "연애 비책",
+    desc: "지금 연애의 흐름과 마음을 짚는 AI 상담",
+    href: "/love-secret-ai/",
+    featureKey: "love-secret-ai-consultation",
+    price: "30,000원",
+    purposes: ["love"],
+    methods: ["ai"],
+    keys: "연애 재회 짝사랑 이별 관계",
+  },
+  {
+    id: "compatibility",
+    name: "궁합 보기",
+    desc: "두 사람의 운명을 겹쳐 보는 궁합",
+    href: "/compatibility",
+    price: "무료",
+    purposes: ["love", "compatibility"],
+    methods: ["saju"],
+    keys: "궁합 커플 인연 상성",
+    badge: "무료",
+    roles: ["quick"],
+  },
+  {
+    id: "fortune-chat",
+    name: "연이 운명 상담",
+    desc: "연이·네오와 나누는 운명 대화",
+    href: "/fortune-chat/",
+    featureKey: "fortune-chat-consultation",
+    price: "5,000원",
+    purposes: ["love", "self", "life", "etc"],
+    methods: ["ai"],
+    keys: "상담 채팅 대화 연이 네오 고민 무료상담",
+    badge: "가입 후 1회 무료",
+    roles: ["quick"],
+  },
+
+  /* ── 재물 · 직업 ─────────────────────────────────────────────── */
+  {
+    id: "neo-operation-room",
+    name: "팩폭 전략소",
+    desc: "직설적인 네오가 짚는 현실 전략",
+    href: "/neo-operation-room/",
+    featureKey: "neo-operation-room-consultation",
+    price: "30,000원",
+    purposes: ["money", "career", "life"],
+    methods: ["saju", "ai"],
+    keys: "네오 작전실 팩폭 전략 현실",
+    badge: "대표",
+    roles: ["recommended"],
+  },
+  {
+    id: "destiny-compass",
+    name: "운명의 나침반",
+    desc: "삶의 방향과 선택을 가늠하는 리딩",
+    href: "/destiny-compass",
+    featureKey: "destiny-compass-life-voyage",
+    price: "10,000원",
+    purposes: ["money", "career", "life"],
+    methods: ["saju", "ai"],
+    keys: "나침반 방향 선택 갈림길 진로",
+  },
+  {
+    id: "saju-sibyl",
+    name: "사이빌 전문가 상담",
+    desc: "전문가가 풀어주는 사주 심층 상담",
+    href: "/saju/sibyl",
+    featureKey: "premium-sibyl-dominator",
+    price: "10,000원",
+    purposes: ["money", "career", "life"],
+    methods: ["saju", "ai"],
+    keys: "사이빌 시빌 ai 상담 심층",
+  },
+  {
+    id: "new-year-ai",
+    name: "신년운세",
+    desc: "새해의 큰 흐름과 기회를 미리 보는 운세",
+    href: "/new-year-ai-consultation/",
+    featureKey: "new-year-ai-consultation",
+    price: "30,000원",
+    purposes: ["career", "money", "life"],
+    methods: ["saju", "ai"],
+    keys: "신년 새해 올해 세운",
+  },
+
+  /* ── 인생 · 나 자신 ──────────────────────────────────────────── */
+  {
+    id: "life-book-ai",
+    name: "인생의 책",
+    desc: "삶의 이야기를 한 권의 책으로 엮는 리딩",
+    href: "/life-book-ai/",
+    featureKey: "life-book-ai-consultation",
+    price: "20,000원",
+    purposes: ["life", "self"],
+    methods: ["saju", "ai"],
+    keys: "인생의책 라이프북 pdf 리포트",
+    roles: ["recommended"],
+  },
+  {
+    id: "karma-destiny-ai",
+    name: "운명의 업",
+    desc: "지금의 흐름을 만든 업의 흐름을 읽는 상담",
+    href: "/karma-destiny-ai/",
+    featureKey: "karma-destiny-ai-consultation",
+    price: "30,000원",
+    purposes: ["life", "self"],
+    methods: ["vedic", "ai"],
+    keys: "업 카르마 전생 인과",
+  },
+  {
+    id: "saju-guardian",
+    name: "사주 가디언 소환진",
+    desc: "일주·월지·시지로 여는 60갑자 수호 인장",
+    action: "openSajuGuardianPage",
+    featureKey: "saju-guardian-unlock",
+    price: "10,000원",
+    purposes: ["self", "life"],
+    methods: ["saju"],
+    keys: "가디언 수호 인장 소환진 60갑자",
+    badge: "영구 해금",
+    roles: ["recommended"],
+  },
+  {
+    id: "naming-ai",
+    name: "전문가 작명소",
+    desc: "이름의 기운과 의미를 짚는 작명 상담",
+    href: "/naming-ai/",
+    featureKey: "premium-naming-prompt",
+    price: "30,000원",
+    purposes: ["family", "etc"],
+    methods: ["saju", "ai"],
+    keys: "작명 이름 개명 훈민정음",
+  },
+
+  /* ── 운세 체계 허브 (무료 진입) ──────────────────────────────── */
+  {
+    id: "saju",
+    name: "사주",
+    desc: "사주팔자로 보는 삶의 큰 흐름",
+    href: "/saju/",
+    price: "무료 시작",
+    purposes: ["money", "career", "life", "self"],
+    methods: ["saju"],
+    keys: "사주 팔자 명리 사주풀이",
+    roles: ["quick"],
+  },
+  {
+    id: "tarot",
+    name: "타로",
+    desc: "카드가 전하는 지금의 마음과 선택",
+    href: "/tarot/",
+    price: "무료 시작",
+    purposes: ["love", "today", "self"],
+    methods: ["tarot"],
+    keys: "타로 카드 리딩 스프레드",
+    roles: ["quick"],
+  },
+  {
+    id: "ziwei",
+    name: "자미두수",
+    desc: "별자리 궁위로 보는 재물과 직업",
+    href: "/ziwei/",
+    price: "무료 시작",
+    purposes: ["money", "career", "life"],
+    methods: ["ziwei"],
+    keys: "자미두수 명반 12궁",
+  },
+  {
+    id: "sukuyo",
+    name: "숙요점",
+    desc: "숙요로 보는 삶의 리듬",
+    href: "/sukuyo/",
+    price: "무료 시작",
+    purposes: ["life", "self"],
+    methods: ["sukuyo"],
+    keys: "숙요 27수 숙요점 달",
+  },
+  {
+    id: "vedic",
+    name: "베다점",
+    desc: "베다 점성술로 보는 운명의 지도",
+    href: "/vedic/",
+    price: "무료 시작",
+    purposes: ["life", "self"],
+    methods: ["vedic"],
+    keys: "베다 조티시 인도 점성",
+  },
+  {
+    id: "astrology",
+    name: "점성술",
+    desc: "별자리로 보는 나와 관계의 흐름",
+    href: "/astrology/",
+    price: "무료 시작",
+    purposes: ["life", "self", "career", "money"],
+    methods: ["astrology"],
+    keys: "점성술 별자리 호로스코프 차트",
+  },
+  {
+    id: "nakshatra",
+    name: "나크샤트라 결정판",
+    desc: "베다 별자리로 보는 나의 본질",
+    href: "/nakshatra/",
+    price: "무료",
+    purposes: ["life", "self"],
+    methods: ["vedic"],
+    keys: "나크샤트라 베다 달자리 27수",
+    badge: "무료",
+  },
+  {
+    id: "maya",
+    name: "마야점",
+    desc: "마야 달력으로 보는 오늘의 기운",
+    href: "/maya/",
+    price: "무료 시작",
+    purposes: ["today", "self"],
+    methods: ["astrology"],
+    keys: "마야 달력 촐킨 키체",
+  },
+
+  /* ── 오늘 ────────────────────────────────────────────────────── */
+  {
+    id: "daily-fortune",
+    name: "오늘의 운세",
+    desc: "지금 이 순간의 운세를 빠르게",
+    href: "/daily-fortune/",
+    price: "무료",
+    purposes: ["today"],
+    methods: ["saju"],
+    keys: "오늘 데일리 일일운세 하루",
+    badge: "무료",
+    roles: ["quick"],
+  },
+  {
+    id: "today-hub",
+    name: "오늘의 운세 허브",
+    desc: "사주·숙요점·베다점으로 보는 오늘",
+    href: "/today/",
+    price: "무료",
+    purposes: ["today"],
+    methods: ["saju", "sukuyo", "vedic"],
+    keys: "오늘 허브 하루 일진 오늘운세",
+    badge: "무료",
+  },
+
+  /* ── 나를 아는 도구 ─────────────────────────────────────────── */
+  {
+    id: "palm-reading",
+    name: "손금",
+    desc: "손금으로 보는 재물과 직업의 길",
+    href: "/palm-reading/",
+    price: "무료 시작",
+    purposes: ["self", "career", "money"],
+    methods: ["ai"],
+    keys: "손금 수상 손바닥",
+  },
+  {
+    id: "physiognomy",
+    name: "관상",
+    desc: "얼굴의 기운으로 보는 나의 길",
+    href: "/physiognomy/",
+    price: "무료 시작",
+    purposes: ["self", "career"],
+    methods: ["ai"],
+    keys: "관상 얼굴 인상 face",
+  },
+  {
+    id: "dream",
+    name: "꿈해몽",
+    desc: "꿈이 전하는 메시지를 풀어보는 해몽",
+    href: "/dream",
+    price: "무료",
+    purposes: ["self", "etc"],
+    methods: ["ai"],
+    keys: "꿈 해몽 악몽 태몽",
+    badge: "무료",
+  },
+  {
+    id: "psychotest",
+    name: "심리테스트",
+    desc: "나를 알아가는 가벼운 심리 탐구",
+    href: "/psychotest/",
+    price: "무료",
+    purposes: ["self", "etc"],
+    methods: ["ai"],
+    keys: "심리 테스트 성격 유형",
+    badge: "무료",
+  },
+  {
+    id: "manse",
+    name: "만세력",
+    desc: "사주를 직접 계산해 보는 만세력",
+    href: "/manse",
+    price: "무료",
+    purposes: ["self", "etc"],
+    methods: ["saju"],
+    keys: "만세력 달력 절기 음력",
+    badge: "무료",
+  },
+  {
+    id: "famous-saju",
+    name: "유명인 사주",
+    desc: "유명인의 사주로 배우는 운명의 원리",
+    href: "/insights/famous-saju",
+    price: "무료",
+    purposes: ["self", "etc"],
+    methods: ["saju"],
+    keys: "유명인 연예인 셀럽 명식",
+  },
+
+  /* ── 그 밖의 진입점 ─────────────────────────────────────────── */
+  {
+    id: "luck-sync-diary",
+    name: "운기 다이어리와 플래너",
+    desc: "오늘의 흐름 기록 · 월간 플래너",
+    action: "openLuckSyncDiary",
+    price: "무료",
+    purposes: ["today", "etc"],
+    methods: ["saju"],
+    keys: "다이어리 플래너 일기 기록 일정 캘린더 운기",
+  },
+  {
+    id: "music",
+    name: "달빛 음악 플레이어",
+    desc: "운세와 어울리는 음악으로 마음 달래기",
+    href: "/music/",
+    price: "무료",
+    purposes: ["etc"],
+    methods: ["ai"],
+    keys: "음악 뮤직 bgm 플레이리스트",
+  },
+  {
+    id: "novel",
+    name: "라이트 노벨",
+    desc: "운명의 서재 — 연이와 네오의 이야기",
+    href: "/codedestiny-novel.html",
+    price: "무료",
+    purposes: ["etc"],
+    methods: ["ai"],
+    keys: "스토리 소설 이야기 라이트노벨 비주얼노벨 노벨 연이 네오 세계관 캐릭터",
+  },
+  {
+    id: "points",
+    name: "달빛 이용권",
+    desc: "여러 운세를 편하게 이용하는 이용권",
+    href: "/points/",
+    price: "이용권",
+    purposes: ["etc"],
+    methods: ["ai"],
+    keys: "이용권 패스 문라이트 멤버십 구독 정기권",
+  },
+];
