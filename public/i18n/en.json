@@ -1765,7 +1765,7 @@
       "monthlyHint": {
         "use": "Uses the moonstones you already have. No extra spending.",
         "insufficient": "Not enough moonstones. You can open it with a single purchase.",
-        "checking": "Checking your moonstone balance. It's fine to tap anyway.",
+        "checking": "Your moonstone balance is confirmed the moment you select it. Go ahead and tap.",
         "after": "{balance} will remain after use."
       },
       "monthlyBalance": {

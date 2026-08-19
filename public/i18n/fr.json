@@ -1765,7 +1765,7 @@
       "monthlyHint": {
         "use": "Utilise vos pierres de lune existantes. Aucune dépense supplémentaire.",
         "insufficient": "Pas assez de pierres de lune. Vous pouvez l'ouvrir avec un achat unique.",
-        "checking": "Vérification de votre solde de pierres de lune. Vous pouvez toucher quand même.",
+        "checking": "Votre solde de pierres de lune est vérifié dès la sélection. Vous pouvez toucher sans souci.",
         "after": "Il restera {balance} après utilisation."
       },
       "monthlyBalance": {

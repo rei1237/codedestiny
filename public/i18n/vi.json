@@ -1765,7 +1765,7 @@
       "monthlyHint": {
         "use": "Dùng nguyệt tinh thạch bạn đang có. Không tốn thêm.",
         "insufficient": "Không đủ nguyệt tinh thạch. Bạn có thể mở bằng một lần mua.",
-        "checking": "Đang kiểm tra số dư nguyệt tinh thạch. Bạn vẫn có thể chạm.",
+        "checking": "Số dư nguyệt tinh thạch được kiểm tra ngay khi bạn chọn. Bạn cứ chạm là được.",
         "after": "Còn lại {balance} sau khi dùng."
       },
       "monthlyBalance": {

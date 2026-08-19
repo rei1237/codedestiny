@@ -1765,7 +1765,7 @@
       "monthlyHint": {
         "use": "使用你已有的月精石打开，无需额外支出。",
         "insufficient": "月精石不足。可以只购买这个内容来打开。",
-        "checking": "正在确认月精石余量。直接点也没关系。",
+        "checking": "月精石余量在选择时立即确认。直接点也没关系。",
         "after": "使用后将剩余 {balance}。"
       },
       "monthlyBalance": {

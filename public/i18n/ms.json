@@ -1765,7 +1765,7 @@
       "monthlyHint": {
         "use": "Menggunakan batu bulan sedia ada anda. Tiada perbelanjaan tambahan.",
         "insufficient": "Batu bulan tidak mencukupi. Anda boleh membukanya dengan pembelian tunggal.",
-        "checking": "Menyemak baki batu bulan anda. Anda masih boleh mengetik.",
+        "checking": "Baki batu bulan anda disemak sebaik anda memilih. Anda boleh terus mengetik.",
         "after": "{balance} akan berbaki selepas digunakan."
       },
       "monthlyBalance": {

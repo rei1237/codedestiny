@@ -1765,7 +1765,7 @@
       "monthlyHint": {
         "use": "Gebruikt je huidige maanstenen. Geen extra uitgaven.",
         "insufficient": "Niet genoeg maanstenen. Je kunt het openen met een eenmalige aankoop.",
-        "checking": "Je maansteensaldo wordt gecontroleerd. Je mag toch tikken.",
+        "checking": "Je maansteensaldo wordt bij het selecteren meteen gecontroleerd. Je kunt gewoon tikken.",
         "after": "Er blijft {balance} over na gebruik."
       },
       "monthlyBalance": {

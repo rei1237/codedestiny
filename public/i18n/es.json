@@ -1765,7 +1765,7 @@
       "monthlyHint": {
         "use": "Usa las piedras lunares que ya tienes. Sin gasto adicional.",
         "insufficient": "No tienes suficientes piedras lunares. Puedes abrirlo con una compra única.",
-        "checking": "Comprobando tu saldo de piedras lunares. Puedes tocar igualmente.",
+        "checking": "Tu saldo de piedras lunares se comprueba al seleccionarlo. Puedes tocar sin problema.",
         "after": "Quedarán {balance} después de usarlo."
       },
       "monthlyBalance": {

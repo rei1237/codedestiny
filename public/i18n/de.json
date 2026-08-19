@@ -1765,7 +1765,7 @@
       "monthlyHint": {
         "use": "Nutzt deine vorhandenen Mondsteine. Keine Zusatzkosten.",
         "insufficient": "Nicht genug Mondsteine. Du kannst ihn mit einem Einzelkauf öffnen.",
-        "checking": "Dein Mondstein-Guthaben wird geprüft. Du kannst trotzdem tippen.",
+        "checking": "Dein Mondstein-Guthaben wird beim Auswählen sofort geprüft. Du kannst einfach tippen.",
         "after": "Danach verbleiben {balance}."
       },
       "monthlyBalance": {
