@@ -40,7 +40,10 @@ const DIST = resolve(ROOT, "dist");
  * 확인했다(2026-08-15, dist/js 전수 + 인라인 블록 전수 검색).
  */
 const DEFERRABLE = [
-  { key: "cd-service-index-search-v20260723", why: "서비스 검색 입력 바인딩 — 사용자가 타이핑할 때부터 필요" },
+  /* 2026-08-19 제거: "cd-service-index-search-v20260723"
+     전체 서비스 검색 엔진이 인라인에서 외부 파일 js/core/home-service-finder.js 로 나갔다
+     (운명의 문 디스커버와 엔진·데이터를 합치면서 8KB 를 넘겼기 때문). 외부 defer 스크립트는
+     애초에 문서 파싱 태스크에 실리지 않으므로 이 단계가 미룰 대상이 아니다. */
   { key: "cd-home-renaissance-js-v20260723", why: "탑바 드롭다운 토글 — 클릭 리스너뿐" },
   { key: "cookie-request-policy-v20260704", why: "쿠키 동의 배너 배선 — window.cdSyncConsent 는 이 블록 안에서만 호출" },
   { key: "cd-mobile-footer-accordion-v20260723", why: "푸터 아코디언 — 첫 화면 밖" },
