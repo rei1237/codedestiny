@@ -192,6 +192,7 @@
     "verify:deploy-base-guard": "node scripts/verify-deploy-base-guard.mjs",
     "verify:worker-single-deploy": "node scripts/verify-worker-single-deploy-guard.mjs",
     "verify:worker-config-parity": "node scripts/verify-worker-config-parity.mjs",
+    "verify:staging-noindex": "node scripts/verify-staging-noindex.mjs",
     "verify:deployed-sha": "node scripts/verify-deployed-sha.mjs",
     "verify:merge-landed": "node scripts/verify-merge-landed.mjs",
     "verify:merge-landed-test": "node scripts/verify-merge-landed.mjs --self-test",

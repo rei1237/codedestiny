@@ -84,6 +84,16 @@ function readSitemapEntries() {
 }
 
 async function main() {
+  // 🔴 스테이징 릴리스에서는 절대 제출하지 않는다. 제출 목록은 sitemap.xml 에서 나오므로
+  //    스테이징에서 돌면 **프로덕션 URL** 을 아직 배포되지도 않은 변경 기준으로 알리게 된다.
+  //    워크플로가 이 스텝을 스테이징 잡에 넣지 않는 것이 1차 방어이고, 이것이 2차 방어다 —
+  //    잡을 하나 더 만들 때 실수로 복사해 오는 것을 여기서 끝낸다.
+  const deployTarget = String(process.env.CD_DEPLOY_TARGET || "").trim().toLowerCase();
+  if (deployTarget && deployTarget !== "production") {
+    console.error(`[indexnow] CD_DEPLOY_TARGET=${deployTarget} 에서는 제출하지 않습니다. 프로덕션 릴리스에서만 돕니다.`);
+    process.exit(1);
+  }
+
   const contract = readIndexNowContract();
   const entries = readSitemapEntries();
 

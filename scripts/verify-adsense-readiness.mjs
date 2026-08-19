@@ -352,6 +352,18 @@ const staticShellTrustLinks = [
   "/advertising-policy",
 ];
 
+// 위 목록은 라우트 **정체**(app/<route>/page.js 가 실제로 있는 경로)이고
+// policyContentExpectations 의 키이기도 하다. 그런데 사이트맵에 들어가는 정본은 짧은 별칭
+// 쪽이고(scripts/generate-sitemap.mjs 가 긴 경로를 dedupe 한다), 짧은 쪽 페이지는 같은
+// 컴포넌트를 재수출하며 self-canonical 이 짧은 URL 을 가리킨다(app/privacy/page.js 등).
+// 그래서 **링크 존재 검사만** 별칭을 함께 인정한다 — 셸이 정본으로 링크해도 신뢰 페이지
+// 도달성은 동일하기 때문이다. 본문 검사는 계속 라우트 정체를 키로 돈다.
+const staticShellTrustLinkAliases = {
+  "/privacy-policy": "/privacy",
+  "/terms-of-service": "/terms",
+  "/contact-us": "/contact",
+};
+
 const policyContentExpectations = {
   "/advertising-policy": [
     "Google AdSense",
@@ -1274,9 +1286,10 @@ for (const shellPath of staticShells) {
     // 내부 링크에는 후행 슬래시가 붙는다(next.config.mjs 의 trailingSlash:true — 없으면 308 을
     // 한 번 탄다). 목록은 라우트 **정체**이고 policyContentExpectations 의 키이기도 하므로
     // 목록을 고치지 않고 여기서 두 표기를 모두 인정한다.
+    const acceptedHrefs = [route, staticShellTrustLinkAliases[route]].filter(Boolean);
     assert(
-      html.includes(`href="${route}"`) || html.includes(`href="${route}/"`),
-      `${shellPath}: missing trust link ${route}`,
+      acceptedHrefs.some((href) => html.includes(`href="${href}"`) || html.includes(`href="${href}/"`)),
+      `${shellPath}: missing trust link ${acceptedHrefs.join(" or ")}`,
     );
   }
 }
