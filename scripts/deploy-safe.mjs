@@ -105,7 +105,7 @@ function parseArgs(argv) {
   const values = new Map();
   for (let i = 0; i < argv.length; i += 1) {
     const arg = argv[i];
-    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci", "--preview-only", "--no-open", "--list", "--allow-stale", "--allow-redeploy", "--allow-regression", "--no-push"].includes(arg)) flags.add(arg);
+    if (["--allow-dirty", "--yes", "--self-test", "--allow-no-worker-preview", "--ci", "--preview-only", "--no-open", "--list", "--allow-stale", "--allow-redeploy", "--pages-only", "--allow-regression", "--no-push"].includes(arg)) flags.add(arg);
     else if (arg.startsWith("--") && arg.includes("=")) {
       const separator = arg.indexOf("=");
       values.set(arg.slice(2, separator), arg.slice(separator + 1));
@@ -127,6 +127,15 @@ const listOnly = cli.flags.has("--list");
 const openPreview = !ciMode && !cli.flags.has("--no-open");
 const skipPush = cli.flags.has("--no-push");
 const allowEmptyChangeSet = ciMode && process.env.CD_ALLOW_EMPTY_CHANGESET === "true";
+// 🔴 --pages-only 는 "이번 릴리스는 Worker 를 건드리지 않는다"를 명시한다.
+//
+// CI 는 CD_ALLOW_EMPTY_CHANGESET=true 로 변경 집합 판정을 비워 두는데, needsWorker() 가 그 값
+// 하나로 무조건 true 를 낸다. 그래서 일일 운세 재발행처럼 **커밋은 그대로이고 빌드 산출물만
+// 달라지는** 릴리스도 결제·인증 워커를 매일 재업로드하고 100% 로 다시 승격했고, 발행이 실패하면
+// Worker 까지 함께 롤백됐다. 같은 코드를 다시 올리는 쓰기라 얻는 것이 없고 잃을 것만 있다.
+// 이 플래그가 그 결합을 끊는다. 전제("라이브 Worker == 이번 커밋")는 context() 가 fail-closed 로
+// 단언하므로, 전제가 깨지면 Pages 만 나가는 대신 배포 자체가 멈춘다.
+const pagesOnly = cli.flags.has("--pages-only");
 
 /**
  * 배포 타깃. `--stage` 하나가 정한다.
@@ -382,6 +391,40 @@ function needsWorker(files) {
   );
 }
 /**
+ * 이번 릴리스가 Worker 를 포함하는가에 대한 최종 판정.
+ *
+ * 🔴 순수 함수로 떼어 둔 이유는 --pages-only 가 **없을 때**의 결과가 예전과 1비트도 달라지면
+ * 안 되기 때문이다. 여기서 틀리면 모든 릴리스가 Worker 를 조용히 빠뜨린다(2026-08-08 에 실제로
+ * 그 직전까지 갔다). selfTest() 가 네 갈래를 전부 잠근다.
+ */
+function resolveNeedsWorker({ pagesOnly: only, files, staleWorkerCommit }) {
+  if (only) return false;
+  return needsWorker(files) || Boolean(staleWorkerCommit);
+}
+/**
+ * 라이브 Worker 가 어느 커밋으로 떠 있는지 읽는다.
+ *
+ * 🔴 "못 읽었다" 와 "읽었더니 같더라" 는 호출자에게 다른 사실이다. workerBehindHead 는 못 읽으면
+ * 기존 변경 집합 판정을 그대로 쓰지만(fail-open), --pages-only 는 반대로 못 읽으면 배포를 막아야
+ * 한다(fail-closed) — 근거 없이 Worker 를 빼면 '새 클라이언트 + 옛 워커' 가 그대로 남는다.
+ * 두 판정이 같은 응답을 서로 다르게 해석하므로 읽기만 여기로 모은다.
+ */
+async function liveWorkerCommit(cf) {
+  // 🔴 오리진은 배포 타깃을 따른다(originFromTargetEnv). CD_PRODUCTION_ORIGIN 을 직접 읽으면
+  // 스테이징 배포가 프로덕션 워커의 커밋으로 판정한다 — --pages-only 는 그 값으로 Worker 를
+  // 뺄지 정하므로, 그대로 두면 스테이징이 프로덕션 SHA 를 근거로 Worker 를 빼게 된다.
+  const domain = cf.pages.domains.find((item) => !item.includes(".pages.dev")) || cf.pages.domains[0];
+  const origin = originFromTargetEnv()
+    || (domain ? "https://" + domain.replace(/^https?:\/\//, "").replace(/\/+$/, "") : "");
+  if (!origin) return { readable: false, commit: "" };
+  try {
+    const res = await fetch(origin + "/api/version", { signal: AbortSignal.timeout(10_000) });
+    return { readable: true, commit: String((await res.json())?.commit || "").trim() };
+  } catch {
+    return { readable: false, commit: "" };
+  }
+}
+/**
  * 🔴 변경 집합만으로는 "워커를 올려야 하는가"를 못 정한다.
  *
  * 변경 집합은 origin/main 기준이라 **push 하는 순간 줄어든다.** worker/ 를 고친 커밋을 push 한 뒤
@@ -394,21 +437,23 @@ function needsWorker(files) {
  * 라이브 워커가 뒤처져 있고 그 사이에 워커 코드 변경이 있으면, 이번 변경 집합과 무관하게 함께 올린다.
  */
 async function workerBehindHead(cf, head) {
-  const domain = cf.pages.domains.find((item) => !item.includes(".pages.dev")) || cf.pages.domains[0];
-  const origin = originFromTargetEnv()
-    || (domain ? "https://" + domain.replace(/^https?:\/\//, "").replace(/\/+$/, "") : "");
-  if (!origin) return "";
-  let live = "";
-  try {
-    const res = await fetch(origin + "/api/version", { signal: AbortSignal.timeout(10_000) });
-    live = String((await res.json())?.commit || "").trim();
-  } catch {
-    // 워커가 안 떠 있거나 응답이 없으면 판단 근거가 없다. 기존 변경 집합 판정을 그대로 쓴다.
-    return "";
-  }
-  if (!live || live === head) return "";
+  // 워커가 안 떠 있거나 응답이 없으면 판단 근거가 없다. 기존 변경 집합 판정을 그대로 쓴다.
+  const { readable, commit: live } = await liveWorkerCommit(cf);
+  if (!readable || !live || live === head) return "";
   const drift = git(["diff", "--name-only", live + ".." + head, "--", "worker/", "lib/"], { allowFailure: true });
   return drift.trim() ? live : "";
+}
+/**
+ * --pages-only 의 전제를 단언한다: 지금 떠 있는 Worker 가 **이미 이번 릴리스의 커밋**이어야 한다.
+ *
+ * 전제가 참이면 Worker 재업로드·재승격은 같은 코드를 다시 올리는 쓰기일 뿐이라 빼도 안전하다.
+ * 거짓이면 Pages 만 올리는 순간 '새 클라이언트 + 옛 워커' 가 된다 — 2026-08-07 에 라이브 /me/ 의
+ * 청크 4개가 404 였던 그 형태다. 판단 근거가 없을 때도 막는다(fail-closed).
+ */
+async function assertWorkerIsAlreadyLiveAt(cf, head) {
+  const { readable, commit } = await liveWorkerCommit(cf);
+  if (!readable) throw new Error("--pages-only: 라이브 Worker 커밋(/api/version)을 읽지 못해 Worker 를 빼도 되는지 판단할 수 없습니다. 플래그 없이 릴리스하세요.");
+  if (commit !== head) throw new Error("--pages-only: 라이브 Worker 는 " + (commit ? commit.slice(0, 12) : "(알 수 없음)") + " 인데 이번 릴리스는 " + head.slice(0, 12) + " 입니다. Worker 를 함께 올려야 하므로 플래그 없이 릴리스하세요.");
 }
 
 async function context() {
@@ -421,10 +466,11 @@ async function context() {
   const deep = requiresDeepVerification(files);
   const cf = await discover(pagesLocal, workerLocal);
   const staleWorkerCommit = await workerBehindHead(cf, gitState.head);
+  if (pagesOnly) await assertWorkerIsAlreadyLiveAt(cf, gitState.head);
   return {
     pagesLocal, workerLocal, files, git: gitState, risk, deep, cf,
     staleWorkerCommit,
-    needsWorker: needsWorker(files) || Boolean(staleWorkerCommit),
+    needsWorker: resolveNeedsWorker({ pagesOnly, files, staleWorkerCommit }),
   };
 }
 function printContext(value) {
@@ -439,6 +485,7 @@ function printContext(value) {
     console.log("[deploy-safe] 라이브 Worker 가 " + value.staleWorkerCommit.slice(0, 12)
       + " 에 머물러 있고 그 뒤로 worker/·lib/ 변경이 있습니다 — 이번 릴리스에 Worker 를 함께 올립니다.");
   }
+  if (pagesOnly) console.log("[deploy-safe] --pages-only: Worker 는 이미 " + value.git.head.slice(0, 12) + " 로 떠 있어 이번 릴리스에서 건드리지 않습니다.");
   console.log("[deploy-safe] Worker included in this release: " + value.needsWorker);
 }
 
@@ -1203,6 +1250,14 @@ async function selfTest() {
   // 결제·인증·DB·배포 인프라는 risk level 과 무관하게 전체 회귀를 요구해야 한다.
   if (!requiresDeepVerification(["worker/routes/payments.js"]).required) throw new Error("payment paths must require deep verification.");
   if (requiresDeepVerification(["worker/routes/ziwei-ai.js"]).required) throw new Error("ordinary worker routes must not require deep verification.");
+
+  // 🔴 --pages-only 가 없을 때의 판정은 예전과 완전히 같아야 한다. 여기가 틀리면 일일 운세
+  // 발행 하나를 고치려다 **모든 릴리스**가 Worker 를 빠뜨린다.
+  if (resolveNeedsWorker({ pagesOnly: false, files: ["worker/index.js"], staleWorkerCommit: "" }) !== true) throw new Error("worker changes must keep the Worker in the release.");
+  if (resolveNeedsWorker({ pagesOnly: false, files: ["app/page.js"], staleWorkerCommit: "abc1234" }) !== true) throw new Error("a stale live Worker must keep the Worker in the release.");
+  if (resolveNeedsWorker({ pagesOnly: false, files: ["app/page.js"], staleWorkerCommit: "" }) !== allowEmptyChangeSet) throw new Error("unrelated changes must follow the empty-changeset rule, nothing else.");
+  // --pages-only 는 다른 모든 신호를 이긴다. 그 전제는 context() 의 fail-closed 단언이 지킨다.
+  if (resolveNeedsWorker({ pagesOnly: true, files: ["worker/index.js"], staleWorkerCommit: "abc1234" }) !== false) throw new Error("--pages-only must exclude the Worker from the release.");
 
   // writeState 가 남기는 것이 실제로 다시 읽히는 JSON 인지. 예전에는 리터럴 "\\n" 을 붙여
   // readState 가 반드시 터졌고, 한 프로세스로 도는 CI 에서는 드러나지 않았다.
