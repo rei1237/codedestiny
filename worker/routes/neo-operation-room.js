@@ -903,7 +903,9 @@ async function generateBriefing(env, normalized, methodSummary) {
       store: cacheStore,
       deterministic: true,
       ttlSeconds: 30 * 24 * 60 * 60,
-      keyExtra: `neo-operation-room-v2-init-${section.id}`,
+      // v3(2026-08-19): 자미두수 챕터 프롬프트에 성향 Context 지침을 추가했다. 버전은 4개 술수가
+      // 공유하지만, 캐시 무효화 부작용은 "추가 LLM 비용 없는 재생성"뿐이라 전체를 함께 올린다.
+      keyExtra: `neo-operation-room-v3-init-${section.id}`,
       // 🔴 minChars 없이 저장하면 llm-cache 가 !truncated 만 보므로, 폴백이 40% 게이트를 겨우
       //    넘긴 짧은 응답이 TTL 30일 동안 고착된다.
       //    llm-cache 의 관례값은 "라우트의 미달 판정 문턱"인데, 네오에는 챕터 단위 분량 판정이

@@ -27,6 +27,7 @@ import {
 } from "../lib/fortune-reasoning-contract.js";
 import { applyZiweiHanjaToStructuredText, stripEmptyParens } from "../lib/ziwei-hanja.js";
 import { buildZiweiDomainBriefLines, getZiweiPromptTemplate, resolveZiweiDomainFromFocus } from "../lib/ziwei-ai-prompt-templates.mjs";
+import { buildZiweiPersonalityContextLines } from "../lib/ziwei-personality-context.js";
 
 const SERVICE_KEY = "ziwei-ai";
 const FEATURE_KEY = "ziwei-ai-consultation";
@@ -35,7 +36,8 @@ const ACCESS_TOKEN_TTL = "45m";
 const ORDER_NAME = "자미두수 전문가 상담";
 const COIN_PRICE = 300;
 const AMOUNT_KRW = 30000;
-const MIN_INITIAL_CONSULTATION_BODY_CHARS = 20000;
+// personality_profile 섹션 신설분(+700자)을 essence 그룹 목표에 더하며 하한도 함께 올렸다(2026-08-19).
+const MIN_INITIAL_CONSULTATION_BODY_CHARS = 20700;
 const MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000;
 // 초기 상담 body 합산 20,000~30,000자 JSON 요구(한국어 1자≈1~1.5토큰) — 구 상한 26000은
 // 최소 분량도 여유가 없어 상시 잘림→JSON 파싱 실패→degraded 결과를 유발했다.
@@ -86,9 +88,9 @@ const SECTION_GROUP_SPECS = Object.freeze([
   },
   {
     id: "essence",
-    sections: ["evidence_basis", "essence"],
-    targetChars: 3800,
-    focus: "판단의 근거를 먼저 드러내고, 명궁·신궁이 말하는 타고난 본질로 잇는 흐름",
+    sections: ["evidence_basis", "personality_profile", "essence"],
+    targetChars: 4500,
+    focus: "판단의 근거를 먼저 드러내고, 이 명반 전체를 종합한 핵심 성향으로 이어, 명궁·신궁이 말하는 타고난 본질로 잇는 흐름",
   },
   {
     id: "flow",
@@ -118,6 +120,7 @@ const SECTION_GROUP_SPECS = Object.freeze([
 
 const SECTION_TITLES = Object.freeze({
   reading_guide: "이 명반을 읽는 순서",
+  personality_profile: "이 사람의 핵심 성향",
   essence: "명궁이 말하는 본질",
   flow: "사화와 흐름의 물결",
   triad_axis: "삼방사정이 여는 축",
@@ -135,7 +138,8 @@ const SECTION_TITLES = Object.freeze({
 // 섹션별 작성 규칙. 그룹 프롬프트는 자기가 맡은 섹션의 규칙만 싣는다.
 const SECTION_RULES = Object.freeze({
   reading_guide: "reading_guide는 이 명반을 어떤 순서로 읽으면 좋은지 안내하는 3~4문장입니다. '한 폭의 그림처럼'류의 상투적·일반론적 도입 대신, 실제 명궁 주성·신궁 위치·현재 대운궁을 직접 짚어 '먼저 명궁의 OO별로 타고난 성향을, 신궁으로 후천의 힘을 보고, 질문과 가까운 OO궁과 삼방사정으로 이어 읽으세요'처럼 이 사람의 명반에 맞춘 구체적 길잡이로 쓰세요. 이 문단만은 3단 구조를 적용하지 않습니다.",
-  essence: "essence는 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고, 신궁·보성·살성의 영향까지 통합하세요.",
+  personality_profile: "personality_profile은 [핵심 성향 Context]에 따라 이 명반 전체를 종합해 '이 사람은 기본적으로 어떤 사람인가'를 서술하는 자리입니다. 명궁·신궁·삼방사정·사화에서 반복되는 성향을 우선하여, 핵심 성격 → 겉과 속의 차이 → 장점과 그림자 → 인간관계를 맺는 방식과 화났을 때·상처받을 때의 반응 → 사고방식(직관형/분석형, 결정 속도) 순으로 자연스럽게 엮으세요. 이후 essence 이하 섹션들이 참조할 전제이므로, 개별 별의 사전적 정의 나열이 아니라 통합된 사람의 모습으로 마무리하세요.",
+  essence: "essence는 personality_profile에서 정리한 핵심 성향을 전제로, 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고 신궁·보성·살성의 영향까지 통합하세요.",
   flow: "flow는 화록·화권·화과·화기 네 별을 모두 별 이름으로 직접 언급하고, 계산 확정값의 궁 위치 그대로 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
   triad_axis: "triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요.",
   twelve_palaces: "twelve_palaces는 12궁 전체를 단순 나열하지 말고 명궁·재백궁·관록궁·부부궁·복덕궁·질액궁의 상호작용을 중심으로 연결해 주세요.",
@@ -1247,6 +1251,8 @@ function buildConsultationHeaderLines(input, chart) {
     "",
     // 주제별로 주궁·삼방사정·리딩 순서·필수 확인 성요가 달라진다(worker/lib/ziwei-ai-prompt-templates.mjs).
     ...buildZiweiDomainBriefLines(domainTemplate),
+    "",
+    ...buildZiweiPersonalityContextLines(chart),
   ].filter(Boolean);
 }
 
@@ -1457,6 +1463,7 @@ function buildFollowUpPrompt(consultation, question) {
     question,
     "",
     "이전 상담의 흐름을 이어받아 새 질문에 직접 답해 주세요. 질문과 가장 가까운 궁을 먼저 잡고, 명궁·신궁·주성 강약·사화·삼방사정·대운/세운 연결을 사용자가 이해할 수 있는 상담형 문장으로 풀어 주세요.",
+    "[이전 대화]에 이미 정리된 이 사람의 핵심 성향(겉과 속, 장점과 그림자, 인간관계·사고방식 등)을 전제로 답을 이어가고, 그 성향과 모순되는 서술은 하지 마세요.",
     "새 답변도 명반 근거, 현실에서 드러나는 모습, 지금 선택할 조언이 자연스럽게 이어져야 합니다. 절대적 예언, 건강 단정, 불안을 키우는 표현은 피하세요.",
   ].join("\n");
 }
@@ -1497,7 +1504,9 @@ async function generateConsultationText(env, prompt, options = {}) {
     store: createLlmCacheStore(env),
     deterministic: true,
     ttlSeconds: 30 * 24 * 60 * 60,
-    keyExtra: `ziwei-ai-v3${options.cacheKeyExtra ? `-${options.cacheKeyExtra}` : ""}`,
+    // v4(2026-08-19): essence 그룹에 personality_profile 섹션을 추가하고 공유 헤더에 성향 Context를
+    // 삽입했다. v3 캐시는 옛 섹션 구성으로 남아 있어 그대로 두면 30일간 새 구조 없이 히트한다.
+    keyExtra: `ziwei-ai-v4${options.cacheKeyExtra ? `-${options.cacheKeyExtra}` : ""}`,
   };
   // 초기 상담은 대형 구조화 JSON이라 JSON 모드(responseMimeType) + 잘림 반응형 재시도로
   // 첫 생성이 잘리지 않게 보장한다. follow-up 등 프로즈 응답은 기존 단발 호출을 유지한다.

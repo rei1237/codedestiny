@@ -44,7 +44,7 @@ assert(!existsSync("worker/lib/ziwei-premium-pdf-v3.js"), "retired ziwei premium
 const route = read("worker/routes/ziwei-ai.js");
 assert(route.includes("FEATURE_KEY = \"ziwei-ai-consultation\""), "feature key missing");
 assert(route.includes("const AMOUNT_KRW = 30000"), "30,000 KRW constant missing");
-assert(route.includes("MIN_INITIAL_CONSULTATION_BODY_CHARS = 20000"), "initial consultation 20,000 char guard missing");
+assert(route.includes("MIN_INITIAL_CONSULTATION_BODY_CHARS = 20700"), "initial consultation 20,700 char guard missing");
 assert(route.includes("MAX_INITIAL_CONSULTATION_BODY_CHARS = 30000"), "initial consultation 30,000 char cap missing");
 assert(route.includes("countStructuredConsultationBodyChars"), "structured body char counter missing");
 assert(route.includes("minBodyChars: MIN_INITIAL_CONSULTATION_BODY_CHARS"), "initial generation min body guard missing");
