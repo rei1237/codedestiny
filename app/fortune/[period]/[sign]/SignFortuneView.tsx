@@ -10,6 +10,7 @@
  * DESIGN.md 의 One Accent Rule · Glow-Not-Shadow · Hue-Stays Rule 을 지킨다.
  */
 import Link from "next/link";
+import { FusionCrossSell } from "@/app/components/FusionCrossSell";
 import type { SignViewModel } from "@/lib/fortune/build-view";
 import { PERIOD_LABEL, PERIOD_TITLE, type FortunePeriodId } from "@/lib/fortune/periods";
 import { getSignProfile, getSiblingProfiles, type SignProfile } from "@/lib/fortune/sign-profiles";
@@ -432,6 +433,8 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
             </Link>
           </div>
         </section>
+
+        <FusionCrossSell fromPath={`/fortune/${period}/${profile.id}`} tone="yeoni" />
 
         <p className={`mt-12 break-keep text-xs leading-6 ${MUTED}`}>
           이 페이지의 점수는 해당 기간의 일진·월건·절기·달의 위치를 실제로 계산해 각 별자리와 띠의 기질에 대입한 값이며,
