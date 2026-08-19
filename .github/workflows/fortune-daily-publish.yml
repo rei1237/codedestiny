@@ -14,6 +14,15 @@
 #   KST 오늘·내일분을 만들고, App Router 가 그 값을 HTML 에 굳힌다.
 #   따라서 이 워크플로가 할 일은 "그날의 빌드를 한 번 돌려라"는 신호 하나뿐이다.
 #
+# 🔴 2026-08-19 사고 — 신호만으로는 부족했다.
+#   디스패치는 성공했고 릴리스도 초록불이었는데 배포는 0건이었다. deploy-safe 가
+#   "HEAD 가 이미 프로덕션에 라이브"라며 2초 만에 자기중단했기 때문이다. 그 판단은
+#   '같은 커밋 = 같은 산출물' 전제 위에 있는데, 운세는 날짜가 빌드 시각에 굳으므로
+#   **같은 커밋이 날마다 다른 HTML 을 낳는** 유일한 축이다. main 이 조용한 날은
+#   매번 이 함정에 빠진다(08-18 밤: KST 08-19 운세가 17시간 동안 08-18 로 서빙됐다).
+#   그래서 지금은 ① 재배포를 명시적으로 요청하고 ② 릴리스 런이 끝날 때까지 지켜본 뒤
+#   ③ 실제 URL 에서 되읽어 확인하고 ④ 실패하면 한 번 더 시도한다.
+#
 # 🔴 과금 없음 — scripts/gen-daily.mjs 는 lunar-javascript 역법 계산과 날짜 해시 선택만 쓴다.
 #    LLM·외부 API 호출이 0이므로 매일 돌아도 비용이 발생하지 않는다.
 
@@ -23,7 +32,7 @@ on:
   schedule:
     # 15:10 UTC = 00:10 KST. 자정 정각이 아니라 10분을 두는 이유는 GitHub 의 예약 실행이
     # 부하에 따라 수 분 늦게 뜨기 때문이다. 날짜가 확실히 넘어간 뒤에 빌드가 시작돼야
-    # KST '오늘'이 의도한 날짜로 잡힌다.
+    # KST '오늘'이 의도한 날짜로 잡힌다. UTC 고정이라 서머타임이 개입하지 않는다.
     - cron: "10 15 * * *"
   workflow_dispatch:
 
@@ -34,51 +43,20 @@ concurrency:
   cancel-in-progress: false
 
 permissions:
-  # 다른 워크플로를 workflow_dispatch 로 깨우는 데 필요하다.
+  # 체크아웃에 필요하다.
+  contents: read
+  # 다른 워크플로를 workflow_dispatch 로 깨우고 그 런의 상태를 되읽는 데 필요하다.
   # GITHUB_TOKEN 이 일으킨 이벤트는 보통 새 워크플로 런을 만들지 않지만
   # workflow_dispatch 와 repository_dispatch 는 그 규칙의 명시적 예외다.
   actions: write
 
 jobs:
-  trigger-release:
-    name: Dispatch production release for today's fortune
+  # 자동 실행(schedule)과 수동 실행(workflow_dispatch)이 **같은 잡, 같은 스텝**을 탄다.
+  # 수동 경로만 다른 길로 가면 평소에 검증되지 않는 코드가 장애 대응 순간에 처음 돌게 된다.
+  publish:
+    name: Publish and verify today's fortune
     runs-on: ubuntu-latest
-    timeout-minutes: 10
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Dispatch release workflow
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          set -euo pipefail
-          TODAY_KST="$(node --input-type=module -e "import { kstYmdToday } from './scripts/lib/fortune-date.mjs'; console.log(kstYmdToday())")"
-          echo "::notice::KST ${TODAY_KST} 자 운세를 반영하기 위해 프로덕션 릴리스를 요청합니다."
-          gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production
-          {
-            echo "## 🔮 Fortune daily publish"
-            echo ""
-            echo "| 항목 | 값 |"
-            echo "|---|---|"
-            echo "| 대상 날짜 (KST) | \`${TODAY_KST}\` |"
-            echo "| 요청한 릴리스 | Release Cloudflare Pages and Worker (mode=production) |"
-            echo "| 트리거 | ${GITHUB_EVENT_NAME} |"
-            echo ""
-            echo "빌드가 \`prebuild:cf\` 에서 그날의 일일 패키지를 생성하고, /fortune/today 와"
-            echo "/fortune/tomorrow 의 50개 라우트가 그 값을 서버 렌더로 굳혀 배포됩니다."
-          } >> "$GITHUB_STEP_SUMMARY"
-
-  # 🔴 디스패치는 "요청했다"까지만 증명한다. 이 워크플로가 4개월간 사라졌을 때 아무도 몰랐던
-  # 이유가 정확히 그것이다 — 릴리스도 초록불이었고 HTTP 도 200 이었으며 본문만 비어 있었다.
-  # landing-watchdog 은 "프로덕션 SHA == main HEAD" 를 보므로 이 사각을 덮지 못한다(운세는
-  # SHA 가 같아도 낡는다). 그래서 발행 결과를 실제 URL 에서 되읽어 확인하고, 갱신되지 않으면
-  # 잡을 실패시킨다 — 예약 워크플로 실패는 GitHub 이 레포 소유자에게 메일로 알린다.
-  verify-published:
-    name: Verify today's fortune reached production
-    needs: trigger-release
-    runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 70
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -88,9 +66,123 @@ jobs:
         with:
           node-version: '24'
 
-      # npm ci 를 돌리지 않는다 — 이 스크립트는 Node 내장 fetch 와 fs 만 쓴다.
-      # 릴리스는 실측 4~7분이 걸리므로 넉넉히 25분까지 기다린 뒤에 판정한다.
-      - name: Poll production until today's fortune is live
+      # 🔴 업무 날짜는 여기서 **한 번만** 정한다. 이후 모든 단계가 이 값을 쓴다.
+      # 단계마다 시계를 다시 읽으면 자정 경계에서 기대값이 갈라진다.
+      - name: Resolve the KST business date
+        id: date
+        run: |
+          set -euo pipefail
+          RUN_DATE_KST="$(node --input-type=module -e "import { kstYmdToday } from './scripts/lib/fortune-date.mjs'; console.log(kstYmdToday())")"
+          TOMORROW_KST="$(node --input-type=module -e "import { kstYmdNextDay } from './scripts/lib/fortune-date.mjs'; console.log(kstYmdNextDay('${RUN_DATE_KST}'))")"
+          echo "run_date=${RUN_DATE_KST}" >> "$GITHUB_OUTPUT"
+          echo "::notice::KST ${RUN_DATE_KST} 자 운세를 발행합니다 (tomorrow=${TOMORROW_KST})."
+
+      # npm ci 를 돌리지 않는다 — 여기서 쓰는 것은 gh CLI 와 Node 내장 fetch·fs 뿐이다.
+      #
+      # 한 번의 시도는 세 가지를 **각각** 증명한다. 어느 하나라도 못 하면 그 시도는 실패다.
+      #   1. 배포 요청 — 릴리스 런을 만들고 그 런 ID 를 잡는다.
+      #   2. 배포 완료 — 그 런이 끝날 때까지 지켜보고 결론이 success 인지 본다.
+      #                  (동시성 그룹이 대기 중인 런을 취소하는 경로가 실재한다 → 여기서 잡힌다)
+      #   3. 실제 반영 — 프로덕션 URL 에서 그날 날짜를 되읽는다.
+      #
+      # 실패해도 프로덕션은 안전하다. 배포가 안 되면 어제 페이지가 그대로 남고, 배포 도중
+      # 실패하면 deploy-safe 가 Pages 와 Worker 를 함께 자동 롤백한다. 즉 "빈 운세가 올라가는"
+      # 경로는 없고, 최악이 "어제 것이 하루 더 서빙된다"이다.
+      - name: Publish and verify (up to 2 attempts)
         env:
+          GH_TOKEN: ${{ github.token }}
           CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
-        run: node scripts/verify-fortune-freshness.mjs --wait-minutes=25 --poll-seconds=90
+          RUN_DATE_KST: ${{ steps.date.outputs.run_date }}
+        run: |
+          set -uo pipefail
+          MAX_ATTEMPTS=2
+          FINAL_STATUS="failed"
+          LAST_STAGE="dispatch"
+          RUN_LINES=""
+
+          for ATTEMPT in $(seq 1 "${MAX_ATTEMPTS}"); do
+            echo "::group::시도 ${ATTEMPT}/${MAX_ATTEMPTS}"
+
+            # 1. 배포 요청 -------------------------------------------------
+            # allow_redeploy=true 가 이 워크플로의 핵심이다. 이것이 없으면 main 이 조용한 날
+            # deploy-safe 가 "이미 라이브"로 자기중단해 아무것도 배포되지 않는다.
+            DISPATCHED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+            LAST_STAGE="dispatch"
+            if ! gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production -f allow_redeploy=true; then
+              echo "::warning::릴리스 디스패치에 실패했습니다(시도 ${ATTEMPT})."
+              echo "::endgroup::"
+              sleep 60
+              continue
+            fi
+
+            # 디스패치는 런 ID 를 돌려주지 않는다. 디스패치 시각 이후에 생긴 workflow_dispatch
+            # 런을 찾아 잡는다. 못 잡으면 '요청했다'까지만 아는 옛 구조로 되돌아가는 것이므로
+            # 이 시도를 실패로 처리한다.
+            LAST_STAGE="resolve-run"
+            RELEASE_RUN_ID=""
+            for _ in $(seq 1 24); do
+              sleep 5
+              RELEASE_RUN_ID="$(gh run list --workflow=cloudflare-pages-deploy.yml --event=workflow_dispatch --limit=20 --json databaseId,createdAt --jq "[.[] | select(.createdAt >= \"${DISPATCHED_AT}\")] | sort_by(.createdAt) | .[0].databaseId // empty")"
+              if [ -n "${RELEASE_RUN_ID}" ]; then break; fi
+            done
+            if [ -z "${RELEASE_RUN_ID}" ]; then
+              echo "::warning::디스패치한 릴리스 런을 찾지 못했습니다(시도 ${ATTEMPT})."
+              echo "::endgroup::"
+              sleep 60
+              continue
+            fi
+            RUN_URL="${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${RELEASE_RUN_ID}"
+            RUN_LINES="${RUN_LINES}- 시도 ${ATTEMPT}: ${RUN_URL}%0A"
+            echo "릴리스 런: ${RUN_URL}"
+
+            # 2. 배포 완료 -------------------------------------------------
+            # 25분 상한을 두는 이유: 이 런이 다른 릴리스 뒤에 줄을 서면 대기가 길어질 수 있고,
+            # 그 상태로 무한정 붙잡혀 있으면 잡 타임아웃에 걸려 재시도 기회를 잃는다.
+            LAST_STAGE="release"
+            if ! timeout 25m gh run watch "${RELEASE_RUN_ID}" --exit-status --interval 20; then
+              CONCLUSION="$(gh run view "${RELEASE_RUN_ID}" --json conclusion --jq '.conclusion // "timed_out"' || echo unknown)"
+              echo "::warning::릴리스 런이 성공으로 끝나지 않았습니다: ${CONCLUSION} (${RUN_URL})"
+              echo "::endgroup::"
+              sleep 60
+              continue
+            fi
+
+            # 3. 실제 반영 -------------------------------------------------
+            # 배포 성공과 "사용자가 오늘 운세를 본다"는 다른 명제다. 릴리스가 끝난 뒤부터
+            # 재는 것이므로 여유는 8분이면 충분하다(엣지 전파 실측 1~3분).
+            LAST_STAGE="verify"
+            if node scripts/verify-fortune-freshness.mjs --expect-date="${RUN_DATE_KST}" --wait-minutes=8 --poll-seconds=45; then
+              FINAL_STATUS="ok"
+              echo "::endgroup::"
+              break
+            fi
+            echo "::warning::배포는 성공했지만 프로덕션이 아직 ${RUN_DATE_KST} 를 서빙하지 않습니다(시도 ${ATTEMPT})."
+            echo "::endgroup::"
+          done
+
+          {
+            echo "## 🔮 Fortune daily publish"
+            echo ""
+            echo "| 항목 | 값 |"
+            echo "|---|---|"
+            echo "| 대상 날짜 (KST) | \`${RUN_DATE_KST}\` |"
+            echo "| 트리거 | ${GITHUB_EVENT_NAME} |"
+            echo "| 결과 | ${FINAL_STATUS} |"
+            if [ "${FINAL_STATUS}" != "ok" ]; then
+              echo "| 마지막으로 실패한 단계 | ${LAST_STAGE} |"
+            fi
+            echo ""
+            echo "요청한 릴리스 런:"
+            echo ""
+            if [ -n "${RUN_LINES}" ]; then
+              printf '%s\n' "${RUN_LINES}" | tr -d '\n' | sed 's/%0A/\n/g'
+            else
+              echo "- 없음 (디스패치 자체가 실패했습니다)"
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
+          if [ "${FINAL_STATUS}" != "ok" ]; then
+            echo "::error::KST ${RUN_DATE_KST} 운세 발행이 ${MAX_ATTEMPTS}회 시도 후에도 실패했습니다(마지막 단계: ${LAST_STAGE})."
+            exit 1
+          fi
+          echo "KST ${RUN_DATE_KST} 운세가 프로덕션에 반영됐습니다."

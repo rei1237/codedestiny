@@ -28,5 +28,6 @@ module.exports = {
     // node:test 로 작성된 정적 검사들. `npm run test:node` 가 돌린다.
     "[\\\\/]__tests__[\\\\/]ui[\\\\/]",
     "[\\\\/]__tests__[\\\\/]fortune[\\\\/]maya-calendar\\.test\\.js$",
+    "[\\\\/]__tests__[\\\\/]fortune[\\\\/]kst-business-date\\.test\\.js$",
   ],
 };
