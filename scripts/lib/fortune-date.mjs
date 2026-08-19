@@ -29,18 +29,31 @@ function formatKstYmdFromDate(d) {
   return `${p.year}-${p.month}-${p.day}`;
 }
 
-/** KST 달력 기준 오늘 */
-export function kstYmdToday() {
-  return formatKstYmdFromDate(new Date());
+/**
+ * KST 달력 기준 오늘.
+ *
+ * `now` 를 받는 이유 — 하루치 발행은 **하나의 기준 날짜**로 오늘과 내일을 모두 도출해야 한다.
+ * 호출하는 곳마다 따로 `new Date()` 를 읽으면 자정 경계에서 두 값이 갈라져
+ * today=D 인데 tomorrow=D+2 가 될 수 있다. 기본값이 있어 기존 호출부는 그대로 동작한다.
+ */
+export function kstYmdToday(now = new Date()) {
+  return formatKstYmdFromDate(now);
+}
+
+/**
+ * YYYY-MM-DD 의 다음 날. 순수 함수라 시계나 OS 타임존에 의존하지 않는다.
+ * 날짜 산술을 UTC 자정에서 하므로 DST가 없는 KST 달력과 결과가 같다.
+ */
+export function kstYmdNextDay(ymd) {
+  if (!isValidYmd(ymd)) throw new Error(`[fortune-date] YYYY-MM-DD 가 아닙니다: ${ymd}`);
+  const [y, m, d] = ymd.split('-').map(Number);
+  const next = new Date(Date.UTC(y, m - 1, d + 1));
+  return next.toISOString().slice(0, 10);
 }
 
 /** KST 달력 기준 내일 (자정이 지난 ‘다음 날’ 파일을 미리 만들 때 등) */
-export function kstYmdTomorrow() {
-  const t = kstYmdToday();
-  const [y, m, d] = t.split('-').map(Number);
-  const base = new Date(`${y}-${String(m).padStart(2, '0')}-${String(d).padStart(2, '0')}T12:00:00+09:00`);
-  base.setDate(base.getDate() + 1);
-  return formatKstYmdFromDate(base);
+export function kstYmdTomorrow(now = new Date()) {
+  return kstYmdNextDay(kstYmdToday(now));
 }
 
 export function parseFortuneDate(argv) {
