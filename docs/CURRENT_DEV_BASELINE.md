@@ -82,9 +82,9 @@ Last curated: `2026-08-15`
 - 🟡 **넘긴 작업 2건 — 둘 다 미해결이다.**
   - 숙요 궁합의 서버측 중복 생성 창(`findOne`~`create` 사이 60~100초, 중복 1회 = LLM 6회)은 스키마·계약 변경이 함께 필요하다 → [docs/handoff/sukuyo-duplicate-generation-window.md](handoff/sukuyo-duplicate-generation-window.md)
   - 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자, 그중 `earthStorageOpenings` 하나가 9,853자). 사주 5그룹에 `evidenceRefs` 선언이 없어 새 설계가 필요하고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [docs/handoff/llm-prompt-json-slicing.md](handoff/llm-prompt-json-slicing.md)
-- 🟡 **남은 개별 항목 5건**(각각 작고 서로 무관해 골라서 하면 된다) → [docs/handoff/llm-optimization-leftovers.md](handoff/llm-optimization-leftovers.md)
-  - 🔴 그중 **모델 오버라이드 무효 버그**(`lib/llm-client.ts:159-170`)가 가장 중요하다 — `apiEndpoint` 를 함께 주지 않으면 URL 에 하드코딩된 `gemini-2.5-flash` 가 그대로 쓰여, `model` 은 로그·메타에만 반영된다. 영향 6개 라우트 실측 확인. **더 싼 모델로 내리는 단가 절감안이 현재 코드로는 불가능하다.**
-  - 나머지: `.gitattributes` 의 `zh-tw` 캐시버스트 누락 · sukuyo 의 `attempts: 2` 와 `capTokens` 불일치 · JSON 스키마를 프롬프트 텍스트로 보내는 것(Gemini 네이티브 `responseSchema` 미사용) · 토큰 집계 사각지대 2곳(`lib/tarot/mindscan-reading.mjs` · `love-reading-llm.mjs` 가 `llm-client` 미경유)
+- 🟡 **남은 개별 항목**(각각 작고 서로 무관해 골라서 하면 된다) → [docs/handoff/llm-optimization-leftovers.md](handoff/llm-optimization-leftovers.md)
+  - ~~모델 오버라이드 무효 버그(`lib/llm-client.ts:159-170`)~~ — **2026-08-19 조치 완료**(`resolveGeminiEndpoint` 가 `apiEndpoint` 없이도 해석된 `model` 로 URL 조립).
+  - 나머지: sukuyo 의 `attempts: 2` 와 `capTokens` 불일치 · JSON 스키마를 프롬프트 텍스트로 보내는 것(Gemini 네이티브 `responseSchema` 미사용) · 토큰 집계 사각지대 2곳(`lib/tarot/mindscan-reading.mjs` · `love-reading-llm.mjs` 가 `llm-client` 미경유)
 - 🔴 **thinking 토큰은 이미 전역 OFF다**(`lib/llm-client.ts:456` + `:139-145`, 옵트인 호출자 0건). 여기서 더 아낄 것이 없으니 다시 조사하지 말 것.
 
 ## Working Rules For Current Tasks

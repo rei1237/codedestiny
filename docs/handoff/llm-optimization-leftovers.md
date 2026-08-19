@@ -39,6 +39,8 @@
 
 ## 2. 【A】 모델 오버라이드가 무효다 — 단가 절감안을 막고 있음
 
+**2026-08-19 조치 완료.** `resolveGeminiEndpoint`가 `apiEndpoint` 오버라이드 없이도 해석된 `model`로 URL을 조립하도록 고쳤다(`lib/llm-client.ts`). 착수 전 6개 오버라이드 키(`CELESTIAL_HARMONY_GEMINI_MODEL`·`GEOMANCY_GEMINI_MODEL`·`YOGA_GURU_GEMINI_MODEL`·`DREAM_PSYCHO_GEMINI_MODEL`/`PSYCHO_DREAM_GEMINI_MODEL`·`FUSION_FORTUNE_LLM_MODEL`)가 `worker/wrangler.toml` `[vars]`·`config/env.contract.json`(`required_in: []`)·시크릿 동기화 목록 3곳 모두에 없음을 교차 확인해 "조용한 모델 교체" 위험이 없음을 확인한 뒤 사용자 승인을 받았다(라이브 조회는 미수행). 검증: `npm run typecheck`·`npm run lint`·`node scripts/verify-llm-generation-resilience.mjs`(810 checks)·`node scripts/verify-workers-ai-fallback.mjs`·`npm test`(1609 중 무관한 1건 제외 전부 통과, 격리 재실행으로 무관함 확인).
+
 ### 문제 (2026-08-15 실측 확인)
 
 `lib/llm-client.ts:159-170`:
@@ -282,7 +284,7 @@ npm run test:jest
 1. ~~**[최우선] 명시적 컨텍스트 캐싱 도입**~~ — **PR #659 머지됨(2026-08-15).** 사주 웨이브에 배선됐고 실호출로 99.4% 할인을 확인했다. 실제 구현이 계획과 다른 두 지점(응답 캐시 키 붕괴, `systemInstruction` 이관)은 [llm-prompt-json-slicing.md §3-2](llm-prompt-json-slicing.md) 에 적어 뒀다 — **다른 라우트로 넓힐 때 반드시 먼저 읽을 것.**
 1. ~~**【B】 `.gitattributes`**~~ — **2026-08-15 조치 완료.**
 2. **【E】 집계 사각지대** — 0번을 제대로 하려면 이게 먼저다. `mindscan`·`love-reading` 두 경로가 집계에 안 잡혀 "어느 라우트가 큰가" 판단이 실제보다 작게 나온다.
-3. **【A】 모델 오버라이드** — 절감 그 자체는 아니지만 **다른 모든 단가 절감안의 전제**다. 🔴 착수 전에 프로덕션 env 6개 키 상태를 사용자에게 확인할 것.
+3. ~~**【A】 모델 오버라이드**~~ — **2026-08-19 조치 완료.**
 4. **【F】 캐시 미배선 2곳** — 히트율이 나올 기능인지부터 판단(§6-1).
 5. **【D】 네이티브 스키마** — 절감 규모를 먼저 재고 판단.
 6. **【C】 cap 정합** — 🔴 **절감 0이다**(§4 실측). 코드 가독성 항목이므로 맨 뒤.
