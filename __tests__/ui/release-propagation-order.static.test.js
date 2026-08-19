@@ -6,6 +6,7 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "../..");
 const deploySafe = fs.readFileSync(path.join(root, "scripts/deploy-safe.mjs"), "utf8");
 const verifier = fs.readFileSync(path.join(root, "scripts/verify-deployed-assets.mjs"), "utf8");
+const smoke = fs.readFileSync(path.join(root, "scripts/deploy-smoke.mjs"), "utf8");
 
 function promoteBody() {
   const start = deploySafe.indexOf("async function promote(");
@@ -151,4 +152,34 @@ test("the verifier still fails on a real missing asset and on edge-cached 404s",
 
   // artifact 모드는 불변 URL 이라 세대 게이트를 걸지 않는다(걸면 진짜 결함을 놓친다).
   assert.match(verifier, /EXPECTED_DIR && MODE === "alias"/);
+});
+
+// 🔴 콘솔 에러 판정은 자원 URL 을 포함해서 한다.
+//
+// Chromium 의 "Failed to load resource: the server responded with a status of NNN ()" 본문에는
+// 자원 URL 이 없다 — URL 은 location().url 에만 실린다. 본문만 보고 판정하던 동안 호스트별
+// 예외(폰트 CDN·프리뷰 CORS)는 상태코드 오류에 한 번도 걸리지 않았고, 실패 로그에도 URL 이 없어
+// 무엇이 죽었는지 짚을 수 없었다. #807 릴리스가 정확히 그 형태로 530 두 건에 자동 롤백됐다.
+test("browser console errors are judged and reported with the resource URL", () => {
+  const start = smoke.indexOf('page.on("console"');
+  const end = smoke.indexOf('page.on("requestfailed"');
+  assert.ok(start > 0 && end > start, "console 핸들러 범위를 찾지 못했습니다");
+  const handler = smoke.slice(start, end);
+
+  // 판정에 쓰는 문자열에 URL 이 들어가야 한다.
+  assert.ok(
+    handler.includes('const detail = message.text() + " " + (message.location()?.url || "");'),
+    "console 판정이 location().url 을 포함하지 않습니다",
+  );
+  // 보고에도 같은 문자열을 쓴다 — 로그에 URL 이 없으면 사후 추적이 불가능하다.
+  assert.ok(
+    handler.includes('browserErrors.push("console.error: " + detail)'),
+    "console 에러 보고가 URL 없는 본문만 남깁니다",
+  );
+  // 본문만 보는 판정이 하나라도 남으면 예외는 다시 죽는다.
+  assert.ok(!handler.includes("test(message.text())"), "본문만 보는 정규식 판정이 남아 있습니다");
+  assert.ok(!handler.includes("Noise(message.text())"), "본문만 보는 소음 판정이 남아 있습니다");
+  // 소음으로 넘긴 것도 로그에 남긴다(예외가 조용히 넓어지는 것을 막는다).
+  assert.ok(handler.includes("ignoredConsoleErrors.push(detail)"), "넘긴 콘솔 에러를 모으지 않습니다");
+  assert.ok(smoke.includes("[deploy-smoke] ignored console error: "), "넘긴 콘솔 에러를 출력하지 않습니다");
 });

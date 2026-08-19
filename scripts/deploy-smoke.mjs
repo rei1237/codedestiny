@@ -24,6 +24,7 @@ if (!/^https?:\/\//i.test(base)) throw new Error("Smoke base must be an absolute
 
 const failures = [];
 const browserErrors = [];
+const ignoredConsoleErrors = [];
 function fail(message) { failures.push(message); }
 function allowedGuestStatus(status) { return status === 200 || status === 401 || status === 403; }
 function isExpectedFontNoise(value) {
@@ -42,6 +43,13 @@ function isExpectedPagesPreviewNoise(value) {
     (/code-destiny\.com\/api\//i.test(value) && /CORS policy/i.test(value)) ||
     /server responded with a status of 404/i.test(value)
   );
+}
+
+function isExpectedConsoleNoise(value) {
+  return isExpectedFontNoise(value) ||
+    isExpectedPreviewCorsNoise(value) ||
+    (isPagesPreview && /Failed to load resource: net::ERR_FAILED/i.test(value)) ||
+    isExpectedPagesPreviewNoise(value);
 }
 
 async function checkApi(pathname) {
@@ -110,18 +118,25 @@ async function checkPages() {
   page.on("pageerror", (error) => browserErrors.push("pageerror: " + error.message));
   page.on("console", (message) => {
     if (message.type() !== "error") return;
+    // 🔴 "Failed to load resource: the server responded with a status of NNN ()" 본문에는 자원
+    // URL 이 없다. URL 은 location().url 에만 실린다(실측 2026-08-19, Chromium 149). 그래서
+    // 본문만 보던 이전 판정에서는 아래 호스트별 예외가 **상태코드 오류에 하나도 걸리지 않았고**,
+    // 실패 로그도 "status of 530" 뿐이라 무엇이 죽었는지 알 수 없었다 — #807 릴리스가 정확히
+    // 그렇게 530 두 건으로 자동 롤백됐고 대상 URL 이 없어 사후 추적이 불가능했다.
+    // 판정도 보고도 URL 을 포함한 문자열로 한다.
+    const detail = message.text() + " " + (message.location()?.url || "");
     // Guest smoke intentionally visits auth-gated read-only endpoints; their
     // expected 401 boundary is already validated by checkApi().
-    if (/server responded with a status of 401/i.test(message.text())) return;
-    if (/server responded with a status of 403/i.test(message.text())) return;
+    if (/server responded with a status of 401/i.test(detail)) return;
+    if (/server responded with a status of 403/i.test(detail)) return;
     // A Pages preview has a different origin from the approved asset CDN. The
     // production site receives these font responses same-origin, so preview
     // CORS warnings do not indicate a broken page or runtime regression.
-    if (isExpectedFontNoise(message.text())) return;
-    if (isExpectedPreviewCorsNoise(message.text())) return;
-    if (isPagesPreview && /Failed to load resource: net::ERR_FAILED/i.test(message.text())) return;
-    if (isExpectedPagesPreviewNoise(message.text())) return;
-    browserErrors.push("console.error: " + message.text());
+    if (isExpectedConsoleNoise(detail)) {
+      ignoredConsoleErrors.push(detail);
+      return;
+    }
+    browserErrors.push("console.error: " + detail);
   });
   page.on("requestfailed", (request) => {
     const errorText = request.failure()?.errorText || "";
@@ -196,6 +211,8 @@ async function checkPages() {
   } catch (error) {
     fail("payment dialog smoke failed: " + error.message);
   }
+  // 예외로 넘긴 것도 남긴다 — 예외가 조용히 넓어지면 게이트가 눈을 감은 것을 알 수 없다.
+  for (const ignored of ignoredConsoleErrors) console.log("[deploy-smoke] ignored console error: " + ignored);
   await browser.close();
 }
 
