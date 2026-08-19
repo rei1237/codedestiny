@@ -23,6 +23,17 @@
 #   그래서 지금은 ① 재배포를 명시적으로 요청하고 ② 릴리스 런이 끝날 때까지 지켜본 뒤
 #   ③ 실제 URL 에서 되읽어 확인하고 ④ 실패하면 한 번 더 시도한다.
 #
+# 🔴 2026-08-20 — 발행 경로를 서비스 릴리스에서 떼어냈다.
+#   그전까지 이 워크플로가 부르는 릴리스는 **Pages 와 Worker 를 함께** 내보냈다. CI 가
+#   CD_ALLOW_EMPTY_CHANGESET=true 로 변경 집합을 비우고, deploy-safe 의 needsWorker() 가 그 값
+#   하나로 무조건 true 를 냈기 때문이다. 즉 운세 날짜를 하루 한 번 갱신하려고 결제·인증 워커를
+#   매일 재업로드하고 100% 로 다시 승격했으며, 발행이 실패하면 Worker 까지 함께 롤백됐다.
+#   커밋이 그대로이므로 그 쓰기는 얻는 것이 없고 잃을 것만 있었다.
+#
+#   지금은 pages_only=true 로 디스패치해 **Pages 만** 나간다. 전제("라이브 Worker == 이 커밋")는
+#   deploy-safe 가 빌드 전에 fail-closed 로 단언하므로, 전제가 깨지면 발행이 멈추지
+#   '새 클라이언트 + 옛 워커' 로 나가지 않는다. 서빙 URL·사이트맵·내부 링크는 그대로다.
+#
 # 🔴 과금 없음 — scripts/gen-daily.mjs 는 lunar-javascript 역법 계산과 날짜 해시 선택만 쓴다.
 #    LLM·외부 API 호출이 0이므로 매일 돌아도 비용이 발생하지 않는다.
 
@@ -106,9 +117,13 @@ jobs:
             # 1. 배포 요청 -------------------------------------------------
             # allow_redeploy=true 가 이 워크플로의 핵심이다. 이것이 없으면 main 이 조용한 날
             # deploy-safe 가 "이미 라이브"로 자기중단해 아무것도 배포되지 않는다.
+            #
+            # pages_only=true 는 그 재배포에서 Worker 를 뺀다. 발행이 바꾸는 것은 정적 HTML 의
+            # 날짜뿐이고 워커 코드는 이미 이 커밋으로 떠 있으므로, 매일 결제·인증 워커를 교체할
+            # 이유가 없다. 전제가 깨지면 deploy-safe 가 배포를 거부하고 이 시도는 실패로 잡힌다.
             DISPATCHED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
             LAST_STAGE="dispatch"
-            if ! gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production -f allow_redeploy=true; then
+            if ! gh workflow run cloudflare-pages-deploy.yml --ref main -f mode=production -f allow_redeploy=true -f pages_only=true; then
               echo "::warning::릴리스 디스패치에 실패했습니다(시도 ${ATTEMPT})."
               echo "::endgroup::"
               sleep 60

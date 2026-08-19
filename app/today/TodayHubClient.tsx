@@ -19,6 +19,7 @@
 // 서버 렌더 해설(TodaySystemPrimer + TodayReadingGuide)이다 — 아래 카드는 한 글자도 안 센다.
 
 import Link from "next/link";
+import { FusionCrossSell } from "../components/FusionCrossSell";
 import { ArrowLeft, Home } from "lucide-react";
 import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { getApiUrl } from "@/app/_lib/api-config";
@@ -437,6 +438,8 @@ export default function TodayHubClient({ children }: { children?: ReactNode }) {
             </Link>
           ))}
         </div>
+
+        <FusionCrossSell fromPath="/today" tone="neo" />
       </div>
     </main>
   );
