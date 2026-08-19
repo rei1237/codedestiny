@@ -12,6 +12,7 @@ import {
   isFusionFortuneUiEnabled,
   FUSION_FORTUNE_ERROR_CODES,
   FUSION_FORTUNE_PAID_FEATURE_KEY,
+  FUSION_GENERATION_DEADLINE_MS,
 } from "../lib/fusion-fortune.js";
 import {
   getFusionFortuneConsultation,
@@ -188,11 +189,17 @@ async function handleFusionFortuneStreamRoute(request, env, ctx) {
     clearInterval(heartbeat);
     heartbeat = null;
   };
-  // 🔴 전체 벽시계 가드. 컨텍스트 빌드(6개 계산기) + 4그룹 병렬 + 재생성 + 폴백이 Cloudflare
-  //    엣지 한도(~100s)를 넘으면 요청이 도중에 죽고 SSE 스트림이 끊겨 사용자는 "결과를 받지
-  //    못했어요"만 본다. 여기서 한도를 넘기기 **전에** 생성기를 중단시키고 error 이벤트로
-  //    retryRequestId 를 보내면, 같은 requestId 재시도가 추가 결제 없이 결과를 받을 수 있다.
-  const edgeDeadlineMs = 90000;
+  // 🔴 이 타이머는 이미 날아간 LLM fetch 를 실제로 끊지 못한다 — abortController.signal 은
+  //    providerCall(callGeminiJsonWithRetry → callGeminiText)에 전달되지 않아, 진행 중인
+  //    Promise.allSettled 는 각 호출 자신의 timeoutMs 로만 끝난다. 이 가드가 실제로 하는 일은
+  //    (1) 미달 그룹 보완 물결(retryTargets)을 새로 시작하지 않게 막고 (2) generator 호출 전/후
+  //    같은 await 경계에서 throwIfFusionFortuneAborted 로 CANCELLED 를 던져 release + 에러
+  //    SSE(retryRequestId 포함)를 내보내는 것뿐이다. 그래서 이 값은 생성기가 내부에서 쓰는
+  //    FUSION_GENERATION_DEADLINE_MS 와 **반드시 같아야** 한다 — 여기가 더 짧으면(과거 90000 vs
+  //    120000) 생성기가 "아직 예산이 남았다"고 판단해 진행 중인데 바깥은 이미 포기 판정을 내려
+  //    두 시계가 서로 다른 답을 낸다. 플랫폼이 실제로 요청을 강제 종료하는 경우(이 신호로는
+  //    막을 수 없다)의 안전망은 store 의 FUSION_RESERVATION_FRESHNESS_MS 신선도 창이다.
+  const edgeDeadlineMs = FUSION_GENERATION_DEADLINE_MS;
   const abortController = new AbortController();
   const onClientAbort = () => abortController.abort();
   request.signal?.addEventListener?.("abort", onClientAbort, { once: true });
