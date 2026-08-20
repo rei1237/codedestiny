@@ -189,9 +189,11 @@ export default function AppChrome({ children }: { children: ReactNode }) {
           보여 줬는데, 정적 HTML 에 남는 것이 그 영문 문구뿐이라 전 페이지가 동일 보일러플레이트를
           갖고 크롤러는 내부 링크 51개를 전혀 보지 못했다. SiteFooterHub 는 훅·브라우저 API 가 없다. */}
       {!hideChrome && !isLocaleRoute && <SiteFooterHub />}
-      {/* App-shell and fully immersive routes own their mobile navigation. */}
-      {/* App-shell, auth, and fully immersive routes own their navigation. */}
-      {!isAppShellRoute && !isAuthRoute && !isImmersiveFortuneRoute && <MobileBottomNav />}
+      {/* App-shell routes own their mobile navigation (AppShell renders the same
+          MobileBottomNav itself). Every chromeless route (auth, immersive-fortune,
+          and the rest of CHROMELESS_ROUTES) owns its own in-page exit control instead —
+          same boundary as the header/footer/banner above (hideChrome). */}
+      {!isAppShellRoute && !hideChrome && <MobileBottomNav />}
     </LazyMotion>
   );
 }
