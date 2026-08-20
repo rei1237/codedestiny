@@ -1740,6 +1740,15 @@
       "monthlyTitle": "Ouvrir avec des pierres de lune",
       "requiredMonthly": "Crédits requis",
       "currentMonthly": "Solde actuel",
+      "musicTrackSub": "Avec le Pass Clair de Lune, vous écoutez tous les morceaux immédiatement. Le téléchargement MP3 n'est possible que pour les morceaux achetés à l'unité ou avec des pierres de lune.",
+      "defaultTitle": "Service payant",
+      "passApplyFailed": "Nous n'avons pas pu appliquer votre pass.",
+      "monthlyInsufficient": "Pas assez de pierres de lune. Choisissez plutôt le paiement unique.",
+      "monthlyUnknown": "Nous n'avons pas pu vérifier votre solde de pierres de lune. Rouvrez la fenêtre.",
+      "monthlyAria": {
+        "insufficient": "Solde insuffisant",
+        "unknown": "Solde à vérifier"
+      },
       "subtitle": {
         "withPass": "Le montant affiché correspond à la base du crédit mensuel KRW. Vous pouvez ouvrir ce contenu avec un pass ou un paiement unique par carte.",
         "directOnly": "Le montant affiché correspond à la base du crédit mensuel KRW. Vous pouvez continuer avec un paiement unique par carte."
@@ -4415,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "Nom de l'entreprise",
-    "companyValue": ": Code Destin",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "Représentant",
-    "representativeValue": ": Parc Byeong-ha",
+    "representativeValue": ": 박병하",
     "registrationLabel": "Numéro d'enregistrement de l'entreprise",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "Numéro de rapport d'activité de vente par correspondance",
-    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "Contacter",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "E-mail",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Adresse",
     "officeAddressLabel": "Adresse du bureau",
-    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "Préparation du lien d'invitation Starlight...",

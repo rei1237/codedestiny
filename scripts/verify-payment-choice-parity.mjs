@@ -11,6 +11,8 @@
 //   4) 폐기된 별도 디자인(.cdpc-*, .celestial-pay-*, .cd-react-payment-choice-*)이 되살아나지 않는다.
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
+import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { sliceFunction } from "./lib/js-source-slice.mjs";
@@ -181,89 +183,25 @@ const BANNED_BALANCE_MARKERS = [
   "data-monthly-current",
 ];
 
-// 결제창 제목. 셸·독립 폴백은 `payment.directModal.moonTitle` 키로 해결하므로 §4 의 키 단언이
-// 덮는다. React 만 아직 자체 ko 전용 표(BILLING_CLIENT_TEXT_TRANSLATIONS)에 이 문구를 리터럴로
-// 들고 있어서 **모든 로케일에 한국어로 나간다** — 그 표가 키로 옮겨질 때까지의 임시 고정이다.
-// 🔴 이 상수는 늘어나면 안 되고, React 가 moonTitle 키를 채택하는 순간 함께 삭제한다.
-const REACT_UNKEYED_TITLE = "이 콘텐츠를 열어볼까요?";
-
 const RENDERERS = [
   ...SHELL_MIRRORS.map((rel) => ({ rel, label: "정적 셸" })),
   { rel: REACT_CLIENT, label: "React" },
   ...STANDALONE_FALLBACKS.map((rel) => ({ rel, label: "독립 폴백" })),
 ];
 
-assert.ok(
-  read(REACT_CLIENT).includes(REACT_UNKEYED_TITLE),
-  `${REACT_CLIENT}: 정본 제목("${REACT_UNKEYED_TITLE}") 없음 — moonTitle 키로 옮겼다면 REACT_UNKEYED_TITLE 을 지우고 §4 의 REQUIRED_ALL 에 payment.directModal.moonTitle 을 넣으세요`,
-);
-
-for (const renderer of RENDERERS) {
-  const source = read(renderer.rel);
-  for (const marker of STRUCTURE_MARKERS) {
-    assert.ok(source.includes(marker), `${renderer.label} ${renderer.rel}: 구조 마커 누락 — ${marker}`);
-  }
-  for (const marker of BANNED_BALANCE_MARKERS) {
-    assert.ok(
-      !source.includes(marker),
-      `${renderer.label} ${renderer.rel}: 제거된 월정석 잔량 UI 가 되살아났습니다 — ${marker} (결제창은 /api/billing/balance 를 부르지 않는다)`,
-    );
-  }
-  // 상점 카드는 결제 처리 없이 이용권 상점으로 보내야 한다(모든 결제창의 이용권 전환 경로).
-  assert.ok(
-    /__cdOpenChargeModal|openMembershipPassStore/.test(source),
-    `${renderer.label} ${renderer.rel}: 이용권 상점 바로가기 경로가 없습니다`,
-  );
-}
-
-// ── 3) 폐기된 별도 디자인 부활 금지 ──────────────────────────────────────────────────────
-const RETIRED = [
-  { needle: "cdpc-", why: "구형 독립 폴백 디자인(.cdpc-*)" },
-  { needle: "celestial-pay", why: "celestial-harmony 전용 2옵션 결제창(.celestial-pay-*)" },
-  // 하이픈 접미까지 봐야 모달 식별용 data 속성(data-cd-react-payment-choice)과 구분된다.
-  { needle: "cd-react-payment-choice-", why: "React 전용 결제창 프리픽스(.cd-react-payment-choice-*)" },
-];
-const RETIRED_SCAN = [
-  ...SHELL_MIRRORS,
-  REACT_CLIENT,
-  ...STANDALONE_FALLBACKS,
-  "celestial-harmony.html",
-  "public/celestial-harmony.html",
-];
-for (const rel of RETIRED_SCAN) {
-  const source = read(rel);
-  for (const retired of RETIRED) {
-    assert.ok(!source.includes(retired.needle), `${rel}: ${retired.why}가 되살아났습니다 — 정본 결제창으로 통일하세요`);
-  }
-}
-
-// celestial-harmony는 정본 폴백(destiny-profile.js)에 위임해야 한다 — 자체 chooser 설치 금지.
-for (const rel of ["celestial-harmony.html", "public/celestial-harmony.html"]) {
-  const source = read(rel);
-  assert.ok(
-    !source.includes("window._cdChooseServicePaymentMode ="),
-    `${rel}: 페이지 전용 결제창을 다시 설치하고 있습니다(정본 폴백 destiny-profile.js에 위임하세요)`,
-  );
-  assert.ok(source.includes("/js/destiny-profile.js"), `${rel}: 정본 폴백 런타임을 로드하지 않습니다`);
-}
-
-// ── 4) 결제창 문구는 3렌더러가 **같은 i18n 키**로 해결한다 ────────────────────────────────
-// 독립 정적 폴백은 결제창 제목·월정석 카드·잔량 상태 문구를 한국어로 하드코딩하고 있어서,
-// /en·/ja·/zh 등 비한국어 사용자에게 결제창만 한국어로 보였다(2026-08-01). 셸이 이미 쓰던 키를
-// 그대로 쓰게 하고, 되돌아가지 않도록 키 사용을 강제한다.
-//
-// 2026-08-20 확대: 예전에는 독립 폴백 2파일만 검사했다. 셸·React 는 검사 대상이 아니었고,
-// 그 자리는 위 STRUCTURE_MARKERS 의 한국어 리터럴이 대신 지키고 있었다 — 그래서 "세 렌더러가
-// 같은 문구를 쓰는가"만 보였고 "그 문구가 사전과 같은가"는 아무도 보지 않았다.
-// 이제 세 렌더러의 함수 본문을 각각 슬라이스해 **키 집합을 정확히** 비교하고, 각 호출의 ko
-// 폴백이 public/i18n/ko.json 값과 일치하는지까지 본다.
-//
-// 🔴 ko 폴백이 곧 ko 정본이다 — cdTranslate(js/cd-lang-native.js)는 lang === "ko" 일 때
-//    사전을 아예 보지 않고 폴백을 그대로 돌려준다. 그래서 폴백과 사전이 어긋나면 한국어
-//    사용자만 정상이고 나머지 11개 로케일이 조용히 옛 문구를 본다.
-
 // 세 렌더러가 **모두** 써야 하는 키. 조건 분기와 무관하게 항상 렌더되는 문구다.
 const REQUIRED_ALL = [
+  // 결제창 제목·취소. 2026-08-20 에 React 가 ko 전용 표(BILLING_CLIENT_TEXT_TRANSLATIONS)를
+  // 버리고 이 키를 채택하면서 세 렌더러 공통이 됐다.
+  "payment.directModal.moonTitle",
+  "common.cancel",
+  // 호출부가 제목을 주지 않았을 때 뜨는 기본 제목. 2026-08-20 이전에는 세 렌더러가 각자
+  // 한국어 리터럴로 들고 있었다.
+  "payment.directModal.defaultTitle",
+  // 청약철회 고지. 독립 폴백만 자체 표(_dpText)에 **다른 주장**을 담고 있었다 —
+  // "환불이 불가능합니다"(절대 단정) vs 셸·React 의 "청약철회가 제한될 수 있습니다".
+  // 게다가 그 표는 5개 언어뿐이라 나머지 7개 로케일은 영어 원문을 봤다.
+  "payment.directModal.legal.provisionTiming",
   // 꽃돼지 말풍선 문구 3종(추천 상태별). moonSubtitle 을 대체했다 — 이제 결제창 소개문은
   // 고정 안내가 아니라 "지금 당신에게 무엇이 가장 나은가"를 말한다.
   "payment.directModal.guide.pass",
@@ -312,24 +250,27 @@ const REQUIRED_ALL = [
 const RENDERER_EXTRA_KEYS = {
   shell: [
     // 셸만 갖는 "단건만 가능" 분기(이용권 결제가 불가능한 D유형 등)와 이용권 검사 진행 상태.
-    "payment.directModal.moonTitle",
     "payment.directModal.subtitle.directOnly",
     "payment.directModal.note.directOnly",
     "payment.directModal.passChecking",
     "payment.directModal.passMissGoStore",
-    "payment.directModal.legal.provisionTiming",
-    "common.cancel",
+    // 셸만 갖는 결제창 상태 문구 3종. React 는 자체 토스트 표(billingClient.message.*)를,
+    // 독립 폴백은 이 분기 자체를 갖고 있지 않다.
+    "payment.directModal.passApplyFailed",
+    "payment.directModal.monthlyInsufficient",
+    "payment.directModal.monthlyUnknown",
   ],
   react: [
     // React 만 호출부에서 월정석 잔량 스냅샷을 받아 "사용 후 남는 양"을 말할 수 있다.
     "payment.directModal.monthlyHint.after",
+    // 음원 결제는 React 경로에만 있다(셸·독립은 music-track 결제를 열지 않는다).
+    "payment.directModal.musicTrackSub",
+    // 월정석 카드에 aria-label 을 붙이는 것도 React 뿐이다.
+    "payment.directModal.monthlyAria.insufficient",
+    "payment.directModal.monthlyAria.unknown",
   ],
-  standalone: [
-    "payment.directModal.moonTitle",
-    // 셸은 이 키를 결제창 함수 **바깥**(formatWon)에서 쓴다.
-    "payment.currency.krw",
-    "common.cancel",
-  ],
+  // 🔴 비어 있는 것이 목표 상태다 — 독립 폴백이 결제창에서 쓰는 키가 나머지 둘의 부분집합이라는 뜻.
+  standalone: [],
 };
 
 // 각 렌더러의 결제창 함수 본문과, 그 안에서 i18n 을 부르는 래퍼 이름.
@@ -342,6 +283,7 @@ const KEYED_RENDERERS = [
     marker: "  async function _cdChooseServicePaymentMode(options) {",
     wrapper: "_cdPaymentI18n",
     extra: RENDERER_EXTRA_KEYS.shell,
+    hardcodedLocaleCeiling: 0,
   })),
   {
     rel: REACT_CLIENT,
@@ -349,6 +291,7 @@ const KEYED_RENDERERS = [
     marker: "async function openReactPaymentChoiceModalInner(",
     wrapper: "checkoutEntry\\.text",
     extra: RENDERER_EXTRA_KEYS.react,
+    hardcodedLocaleCeiling: 0,
   },
   ...STANDALONE_FALLBACKS.map((rel) => ({
     rel,
@@ -356,10 +299,17 @@ const KEYED_RENDERERS = [
     marker: "  function _dpRenderStandalonePaymentChoice(",
     wrapper: "_dpCheckoutText",
     extra: RENDERER_EXTRA_KEYS.standalone,
+    hardcodedLocaleCeiling: 0,
   })),
 ];
 
-/** `wrapper('key', 'fallback', …)` 호출을 전부 뽑아 key → ko 폴백 맵으로 돌려준다. */
+/**
+ * `wrapper('key', 'fallback', …)` 호출을 전부 뽑아 key → ko 폴백 맵으로 돌려준다.
+ *
+ * 🔴 같은 키가 한 본문에 두 번 나오면 **뒤엣것이 이긴다.** 앞선 폴백이 갈라져도 여기서는
+ *    보이지 않는다 — 그 판정은 verify-payment-copy-dictionary 의 '같은 키에 서로 다른 ko
+ *    폴백' 검사가 소유하며 같은 게이트에서 함께 돈다. 여기에 같은 검사를 또 두지 말 것.
+ */
 function extractKeyedCopy(body, wrapper) {
   const pattern = new RegExp(
     `${wrapper}\\(\\s*(["'])(.*?)\\1\\s*,\\s*(["'])((?:\\\\.|(?!\\3).)*)\\3`,
@@ -396,6 +346,17 @@ for (const renderer of KEYED_RENDERERS) {
   const body = sliceFunction(read(renderer.rel), renderer.marker, `${renderer.rel}/payment-choice`);
   const copy = extractKeyedCopy(body, renderer.wrapper);
   const expected = [...REQUIRED_ALL, ...renderer.extra].sort();
+
+  // 🔴 문구만 사전으로 옮기고 숫자를 `toLocaleString("ko-KR")` 로 굳혀 두면 영어 화면에
+  //    한국식 자릿수와 통화가 그대로 남는다 — 번역이 끝난 것처럼 보이는데 금액만 한국어인
+  //    상태다. 로케일 정본은 js/core/checkout-entry.js 의 displayLocale() 하나다.
+  const hardcodedLocales = (body.match(/["']ko-KR["']/g) || []).length;
+  assert.ok(
+    hardcodedLocales <= renderer.hardcodedLocaleCeiling,
+    `${renderer.label} ${renderer.rel}: 결제창 본문에 굳은 "ko-KR" 이 ${hardcodedLocales}곳입니다`
+      + ` (상한 ${renderer.hardcodedLocaleCeiling}). checkoutEntry.displayLocale() 를 쓰세요.`,
+  );
+
 
   assert.deepEqual(
     [...copy.keys()].sort(),
@@ -462,6 +423,83 @@ function gateCovers(rel) {
   });
 }
 
+// ── 결제 런타임 캐시 핀 ────────────────────────────────────────────────────────────────
+//
+// 🔴 `sync:public` 은 index.html 계열만 다시 쓴다. 독립 정적 페이지(celestial-harmony.html 등)의
+//    `?v=build-…` 는 **손으로 유지하는 값**이고, `_headers` 의 `/js/*.js` 는 max-age=604800 +
+//    stale-while-revalidate=2592000 이다 — 핀을 안 돌리면 결제 런타임 수정이 최대 7일(SWR 30일)
+//    동안 도달하지 않는다. 실제로 두 번 낡았고(sync-legacy-static-to-public.mjs 머리주석),
+//    2026-08-20 의 checkout-entry.js 변경도 핀이 그대로인 채 나갔다.
+//
+// 손으로 쓴 대상 목록은 가드가 아니므로(원칙 10) 참조 파일은 git ls-files 에서 전수 발견하고,
+// 기대값은 대상 파일 **내용**에서 유도한다. 통과하는 핀은 둘뿐이다:
+//   ① index.html 이 지금 들고 있는 값 — sync 가 관리하는 자리(같은 값이면 어느 파일이든 허용)
+//   ② derivePinKey() 가 유도한 콘텐츠 키 — 손으로 유지하는 자리
+// 🔴 `build-` 접두 핀만 본다. app/layout.js 는 2026-08-20 에 이름 있는 핀(`20260804-core-runtime-v1`)
+//    을 쓰다가 이 검사 밖에 있었고, 그래서 checkout-entry.js 가 바뀌어도 아무도 안 잡았다.
+//    같은 유도 키로 옮겨 검사 안으로 들여놨다 — 새로 이름 핀을 쓰면 다시 사각지대가 된다.
+const PIN_GROUPS = [
+  { label: "독립 결제 런타임", assets: ["js/destiny-profile.js"] },
+  // 이 둘은 한 핀을 함께 쓴다. 갈라지면 아래 '핀이 갈라졌습니다' 로 잡힌다.
+  { label: "core 런타임", assets: ["js/core/checkout-entry.js", "js/core/pass-verdict.js"] },
+];
+
+const normalizeForPin = (text) => text.replace(/\?v=[a-zA-Z0-9_-]+/g, "?v=__CACHE_KEY__").replace(/\r\n/g, "\n");
+function derivePinKey(assets) {
+  const hash = createHash("sha1");
+  for (const rel of assets) {
+    hash.update(rel);
+    hash.update("\n");
+    hash.update(normalizeForPin(read(rel)));
+    hash.update("\n---\n");
+  }
+  return `build-${hash.digest("hex").slice(0, 12)}`;
+}
+
+const trackedFiles = execFileSync("git", ["ls-files"], { cwd: root, encoding: "utf8" })
+  .split("\n")
+  .filter((rel) => /\.(html|ts|tsx|js|mjs)$/.test(rel));
+assert.ok(
+  trackedFiles.length > 100,
+  `git ls-files 가 ${trackedFiles.length}개만 돌려줬습니다 — 핀 검사가 대상 없이 통과할 뻔했습니다.`,
+);
+
+function collectPins(asset) {
+  const found = [];
+  const re = new RegExp(`${asset.replace(/[.\/]/g, "\\$&")}\\?v=(build-[A-Za-z0-9_-]+)`, "g");
+  for (const rel of trackedFiles) {
+    const raw = read(rel);
+    if (!raw.includes(asset)) continue;
+    re.lastIndex = 0;
+    let match;
+    while ((match = re.exec(raw))) found.push({ pin: match[1], rel });
+  }
+  return found;
+}
+
+for (const group of PIN_GROUPS) {
+  const expected = derivePinKey(group.assets);
+  const all = group.assets.flatMap((asset) => collectPins(asset));
+  assert.ok(all.length > 0, `${group.label}: ${group.assets.join(" + ")} 를 ?v= 로 참조하는 곳을 찾지 못했습니다.`);
+  // sync 가 관리하는 값 = index.html 계열이 들고 있는 값. 파일명 목록이 아니라 **값**으로 가른다.
+  const syncManaged = new Set(all.filter((h) => /(^|\/)index\.html$/.test(h.rel)).map((h) => h.pin));
+  const handMaintained = all.filter((h) => !syncManaged.has(h.pin));
+  const stale = [...new Map(handMaintained.filter((h) => h.pin !== expected).map((h) => [h.pin, h.rel]))];
+  assert.equal(
+    stale.length,
+    0,
+    `${group.label} 캐시 핀이 낡았습니다: ${stale.map(([pin, rel]) => `${pin} (예: ${rel})`).join(", ")}\n`
+      + `  기대: ${expected}  ← ${group.assets.join(" + ")} 내용에서 유도\n`
+      + `  독립 정적 페이지의 ?v= 는 sync:public 이 돌리지 않습니다. 그 핀 전부를 위 값으로 바꾸세요.\n`
+      + `  안 바꾸면 _headers 의 /js/*.js (max-age 7일 · SWR 30일) 때문에 이 변경이 도달하지 않습니다.`,
+  );
+  const distinct = new Set(handMaintained.map((h) => h.pin));
+  assert.ok(
+    distinct.size <= 1,
+    `${group.label} 핀이 갈라졌습니다: ${[...distinct].join(", ")} — 한 그룹은 한 값이어야 합니다.`,
+  );
+}
+
 // 🔴 렌더러 파일만이 아니라 **이 스크립트가 열어서 단언하는 파일 전부**가 트리거에 있어야 한다.
 // 2026-08-20 부터 결제창 문구의 12로케일 값을 public/i18n/*.json 에서 직접 읽으므로, 사전만
 // 바꾼 PR 에서도 이 게이트가 깨어나야 한다. 넣지 않으면 결제창 문구를 사전에서 지워도 게이트가
@@ -470,6 +508,9 @@ const GATED_PATHS = [
   ...SHELL_MIRRORS,
   REACT_CLIENT,
   ...STANDALONE_FALLBACKS,
+  // 캐시 핀의 기대값을 유도하는 원본. 이 파일들이 바뀔 때 게이트가 안 깨어나면
+  // 핀이 낡은 채로 머지된다 — 위 핀 검사가 정확히 그 사고를 막으려는 것이다.
+  ...PIN_GROUPS.flatMap((group) => group.assets),
   ...I18N_LOCALES.map((locale) => `public/i18n/${locale}.json`),
 ];
 for (const rel of GATED_PATHS) {

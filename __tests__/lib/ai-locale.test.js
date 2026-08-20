@@ -18,8 +18,8 @@ beforeAll(async () => {
 });
 
 describe("toAiLocale", () => {
-  test("지원 로케일은 그대로 통과한다", () => {
-    for (const locale of ["ko", "en", "ja", "zh-CN", "zh-TW"]) {
+  test("런타임 UI 로케일 12개가 그대로 통과한다", () => {
+    for (const locale of ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"]) {
       expect(aiLocale.toAiLocale(locale)).toBe(locale);
     }
   });
@@ -38,14 +38,20 @@ describe("toAiLocale", () => {
     expect(aiLocale.toAiLocale("ko-KR")).toBe("ko");
   });
 
-  test("AI 출력을 지원하지 않는 UI 로케일은 ko 로 떨어진다", () => {
-    // 런타임 UI 는 12개지만 상담문 품질을 책임질 수 있는 언어만 출력 대상이다.
-    for (const locale of ["vi", "hi", "es", "fr", "de", "nl", "ms"]) {
-      expect(aiLocale.toAiLocale(locale)).toBe("ko");
-    }
+  test("런타임 로케일이 아닌 값은 ko 로 떨어진다 (fail-safe)", () => {
     expect(aiLocale.toAiLocale("")).toBe("ko");
     expect(aiLocale.toAiLocale(null)).toBe("ko");
     expect(aiLocale.toAiLocale("klingon")).toBe("ko");
+  });
+
+  test("🔴 AI 출력 로케일은 UI 로케일 전부를 덮는다", async () => {
+    // 하나라도 빠지면 그 언어 사용자는 화면만 자기 언어이고 상담문은 한국어를 받는다.
+    // 2026-08-20 이전에 vi/hi/es/fr/de/nl/ms 7개가 정확히 그 상태였다.
+    const { RUNTIME_LOCALES } = await import("../../lib/i18n/locale-normalize.js");
+    expect(aiLocale.AI_OUTPUT_LOCALES).toEqual([...RUNTIME_LOCALES]);
+    for (const locale of RUNTIME_LOCALES) {
+      expect(aiLocale.AI_LOCALE_LABEL[locale]).toBeTruthy();
+    }
   });
 });
 
@@ -65,6 +71,24 @@ describe("buildOutputLanguageDirective", () => {
     expect(aiLocale.buildOutputLanguageDirective("ja")).toContain("日本語");
     expect(aiLocale.buildOutputLanguageDirective("zh-CN")).toContain("简体中文");
     expect(aiLocale.buildOutputLanguageDirective("zh-TW")).toContain("繁體中文");
+  });
+
+  test("2026-08-20 에 열린 7개 언어도 지시문이 있다", () => {
+    const expectations = {
+      vi: "tiếng Việt",
+      hi: "हिन्दी",
+      es: "español",
+      fr: "français",
+      de: "Deutsch",
+      nl: "Nederlands",
+      ms: "bahasa Melayu",
+    };
+    for (const [locale, native] of Object.entries(expectations)) {
+      const directive = aiLocale.buildOutputLanguageDirective(locale);
+      expect(directive).toContain(native);
+      expect(directive).toContain("HIGHEST PRIORITY");
+      expect(directive).toContain("한국어로 작성");
+    }
   });
 });
 

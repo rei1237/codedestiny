@@ -1740,6 +1740,15 @@
       "monthlyTitle": "Mit Mondsteinen öffnen",
       "requiredMonthly": "Erforderliche Credits",
       "currentMonthly": "Aktueller Kontostand",
+      "musicTrackSub": "Mit dem Mondscheinpass hörst du alle Titel sofort. MP3-Downloads gibt es nur für Titel, die per Einzelkauf oder mit Mondsteinen gekauft wurden.",
+      "defaultTitle": "Kostenpflichtiger Dienst",
+      "passApplyFailed": "Dein Pass konnte nicht angewendet werden.",
+      "monthlyInsufficient": "Nicht genug Mondsteine. Bitte wähle stattdessen den Einzelkauf.",
+      "monthlyUnknown": "Dein Mondstein-Guthaben konnte nicht geprüft werden. Bitte öffne es erneut.",
+      "monthlyAria": {
+        "insufficient": "Guthaben reicht nicht",
+        "unknown": "Guthaben muss geprüft werden"
+      },
       "subtitle": {
         "withPass": "Der angezeigte Betrag entspricht der monatlichen Kreditbasis KRW. Sie können diesen Inhalt mit einem Pass oder einer einmaligen Kartenzahlung öffnen.",
         "directOnly": "Der angezeigte Betrag entspricht der monatlichen Kreditbasis KRW. Sie können mit einer einmaligen Kartenzahlung fortfahren."
@@ -4415,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "Firmenname",
-    "companyValue": ": Code-Schicksal",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "Vertreter",
-    "representativeValue": ": Park Byeong-ha",
+    "representativeValue": ": 박병하",
     "registrationLabel": "Gewerberegistrierungsnummer",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "Geschäftsberichtsnummer für den Versandhandel",
-    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "Kontakt",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "E-Mail",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Adresse",
     "officeAddressLabel": "Büroadresse",
-    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "Starlight-Einladungslink wird vorbereitet …",

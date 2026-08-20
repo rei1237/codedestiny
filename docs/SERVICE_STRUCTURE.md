@@ -184,7 +184,7 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 - `lib/market-policy/market-policy-registry.js` is the single source for market enablement, supported UI locales, AI output locales, settlement/display currency, tax mode, legal pack ids, and launch gates.
 - `lib/market-policy/context.js` keeps `languageLocale`, `marketCode`, `billingCountry`, `paymentCountry`, `taxCountry`, `settlementCurrency`, `displayCurrency`, `residenceCountry`, `timeZone`, birth place, and current location separate.
 - `lib/market-policy/legal-packs/legal-market-packs.js` stores market-specific legal pack metadata and official source URLs. Draft packs are not publishable and cannot authorize live payment.
-- AI output locale support remains the existing five locales only: `ko`, `en`, `ja`, `zh-CN`, `zh-TW`. UI locale support can be broader, but it must not imply a payment market or legal jurisdiction.
+- AI output locale support equals the 12 runtime UI locales (2026-08-20; previously five). Serving a reading in a language must not imply a payment market, tax country, or legal jurisdiction — those stay in the market registry.
 - Current payment copy and policy are limited to `이용권`, `월정석`, and `단건 결제`. The current service must not invent auto-renewal, free-trial conversion, or subscription-cancellation rights.
 
 ## 운세 플래너 경계

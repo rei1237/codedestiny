@@ -1740,6 +1740,15 @@
       "monthlyTitle": "Buka dengan batu bulan",
       "requiredMonthly": "Kredit yang diperlukan",
       "currentMonthly": "Baki semasa",
+      "musicTrackSub": "Dengan Pas Cahaya Bulan, anda boleh terus mendengar semua lagu. Muat turun MP3 hanya untuk lagu yang dibeli secara tunggal atau dengan batu bulan.",
+      "defaultTitle": "Perkhidmatan berbayar",
+      "passApplyFailed": "Kami tidak dapat menggunakan Pas anda.",
+      "monthlyInsufficient": "Batu bulan tidak mencukupi. Sila pilih pembayaran tunggal.",
+      "monthlyUnknown": "Kami tidak dapat menyemak baki batu bulan anda. Sila buka semula.",
+      "monthlyAria": {
+        "insufficient": "Baki tidak mencukupi",
+        "unknown": "Baki perlu disemak"
+      },
       "subtitle": {
         "withPass": "Amaun yang dipaparkan sepadan dengan asas KRW kredit bulanan. Anda boleh membuka kandungan ini dengan pas atau pembayaran kad sekali.",
         "directOnly": "Amaun yang dipaparkan sepadan dengan asas KRW kredit bulanan. Anda boleh meneruskan dengan pembayaran kad sekali sahaja."
@@ -4415,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "Nama perniagaan",
-    "companyValue": ": Kod Takdir",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "Wakil",
-    "representativeValue": ": Park Byeong-ha",
+    "representativeValue": ": 박병하",
     "registrationLabel": "Nombor pendaftaran perniagaan",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "Nombor laporan perniagaan pesanan mel",
-    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "Kenalan",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "E-mel",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Alamat",
     "officeAddressLabel": "Alamat pejabat",
-    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "Menyediakan pautan jemputan cahaya bintang...",

@@ -123,6 +123,10 @@ const UNWIRED_BY_DESIGN = [
   ["verify:guardian-fortune-failure", "배선 후보(미승인) — 실패 계약(정적)"],
   ["verify:feature-marketing-schema", "배선 후보(미승인) — 기능 마케팅 스키마"],
   ["verify:market-policy-registry", "배선 후보(미승인) — 시장 정책 레지스트리"],
+  // 🔴 이건 배선을 권한다. 지키는 대상이 법정 표시(상호·대표자·신고번호·주소)이고, 되돌아가는
+  //    경로가 사람이 아니라 **번역 파이프라인**이라 조용히 재발한다(2026-08-20 에 12개 로케일
+  //    44개 값이 그렇게 번역돼 있었다). 게이트 추가는 사용자 승인 사항이라 일단 여기 둔다.
+  ["verify:business-identity", "배선 후보(미승인) — 법정 사업자 표기 정합(값 번역 금지)"],
   ["verify:payment-policy-md", "배선 후보(미승인) — 결제 정책 문서 정합"],
   ["verify:physiognomy-report", "배선 후보(미승인) — 관상 리포트 섹션 파서"],
   ["verify:physiognomy-scoring", "배선 후보(미승인) — 관상 점수 결정성"],

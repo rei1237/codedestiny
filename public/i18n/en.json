@@ -1740,6 +1740,15 @@
       "monthlyTitle": "Open with moonstones",
       "requiredMonthly": "Required credits",
       "currentMonthly": "Current balance",
+      "musicTrackSub": "With a Moonlight Pass you can stream every track right away. MP3 downloads are only for tracks bought with a single purchase or with moonstones.",
+      "defaultTitle": "Paid service",
+      "passApplyFailed": "We couldn't apply your pass.",
+      "monthlyInsufficient": "Not enough moonstones. Please choose the single payment instead.",
+      "monthlyUnknown": "We couldn't check your moonstone balance. Please open it again.",
+      "monthlyAria": {
+        "insufficient": "Not enough balance",
+        "unknown": "Balance needs checking"
+      },
       "subtitle": {
         "withPass": "The displayed amount matches the monthly credit KRW basis. You can open this content with a pass or one-time card payment.",
         "directOnly": "The displayed amount matches the monthly credit KRW basis. You can continue with a one-time card payment."
@@ -4415,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "Business name",
-    "companyValue": ": Code Destiny",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "Representative",
-    "representativeValue": ": Park Byeong-ha",
+    "representativeValue": ": 박병하",
     "registrationLabel": "Business registration number",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "Mail-order business report number",
-    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "Contact",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "Email",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Address",
     "officeAddressLabel": "Office address",
-    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "Preparing starlight invitation link...",

@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
@@ -199,6 +200,16 @@ const FOCUS_AREA_LABELS = Object.freeze({
 const FOCUS_AREAS = new Set(Object.keys(FOCUS_AREA_LABELS));
 
 const FORBIDDEN_RESULT_PATTERN = /\bAI\b|PDF|챕터|chapter|\bjob\b|\bprogress\b|프롬프트|시스템/i;
+
+// 🔴 위 패턴은 **ko 전용**이다. `\bjob\b`·`\bprogress\b`·`\bAI\b`·`chapter` 는 영어·독일어
+//    상담문에서 자연스러운 단어라, 비-ko 응답에 그대로 돌리면 모델이 정상적으로 답해도 반려된다
+//    (실측 2026-08-20: "Your job situation improves and progress comes steadily" → 반려).
+//    llm-leak-guard 가 정확히 이 상황을 위해 있다 — ko 면 넘긴 패턴을 그대로 돌려주므로
+//    **한국어 판정은 한 글자도 바뀌지 않고**, 비-ko 면 보편 패턴 + 로케일 패턴으로 갈아탄다.
+function hasForbiddenResult(value) {
+  const body = String(value ?? "");
+  return resolveForbiddenPatterns(FORBIDDEN_RESULT_PATTERN).some((pattern) => pattern.test(body));
+}
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -1555,7 +1566,7 @@ async function generateConsultationText(env, prompt, options = {}) {
   // 분량 미달을 한 번 더 부르는 "range repair"는 없앴다. 이 함수는 초기 상담에서 그룹 단위로 불리는데,
   // 그룹 안에서 추가 호출을 하면 한 그룹이 timeout×attempts + repair 를 써 엣지 100초를 넘긴다.
   // 분량 보강은 상위(generateInitialConsultation)가 미달 그룹만 골라 다시 부르는 쪽으로 일원화했다.
-  if (!FORBIDDEN_RESULT_PATTERN.test(text)) {
+  if (!hasForbiddenResult(text)) {
     const cleanText = cleanForbiddenResult(text);
     const finalBodyChars = countStructuredConsultationBodyChars(cleanText);
     const rangeProblem = bodyCharRangeProblem(finalBodyChars, minBodyChars, maxBodyChars);
@@ -1901,6 +1912,11 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
         {
           $set: {
             "metadata.refundedForServiceExecution": true,
+            // 키 해제 계약 표식 — billing.js 의 readIdempotentSpendResult 는 이 표식만 배제하고,
+            // releaseRefundedSpendSourceId 도 이것으로만 환불 원장을 골라 sourceId 를 비운다. 없으면
+            // 재구매가 "이미 결제됨"으로 replay 돼 재차감 없이 통과하는데, 증빙 정본
+            // (moonstone-spend-proof.js)은 환불분을 배제하므로 생성이 402 로 막힌다.
+            "metadata.refundedForUnlockFailure": true,
             "metadata.serviceExecutionRefundedAt": now,
             "metadata.serviceExecutionFailureMessage": failureMessage,
           },

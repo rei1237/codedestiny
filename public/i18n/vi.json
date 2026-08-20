@@ -1740,6 +1740,15 @@
       "monthlyTitle": "Mở bằng nguyệt tinh thạch",
       "requiredMonthly": "Tín dụng bắt buộc",
       "currentMonthly": "Số dư hiện tại",
+      "musicTrackSub": "Có Thẻ ánh trăng, bạn nghe được toàn bộ bài hát ngay lập tức. Tải MP3 chỉ áp dụng cho bài đã mua lẻ hoặc mua bằng nguyệt tinh thạch.",
+      "defaultTitle": "Dịch vụ trả phí",
+      "passApplyFailed": "Không thể áp dụng Pass của bạn.",
+      "monthlyInsufficient": "Không đủ nguyệt tinh thạch. Vui lòng chọn thanh toán một lần.",
+      "monthlyUnknown": "Không thể kiểm tra số dư nguyệt tinh thạch. Vui lòng mở lại.",
+      "monthlyAria": {
+        "insufficient": "Không đủ số dư",
+        "unknown": "Cần kiểm tra số dư"
+      },
       "subtitle": {
         "withPass": "Số tiền được hiển thị khớp với cơ sở tín dụng KRW hàng tháng. Bạn có thể mở nội dung này bằng thẻ hoặc thanh toán bằng thẻ một lần.",
         "directOnly": "Số tiền được hiển thị khớp với cơ sở tín dụng KRW hàng tháng. Bạn có thể tiếp tục thanh toán bằng thẻ một lần."
@@ -4415,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "Tên doanh nghiệp",
-    "companyValue": ": Mã số mệnh",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "Đại diện",
-    "representativeValue": ": Park Byeong-ha",
+    "representativeValue": ": 박병하",
     "registrationLabel": "Số đăng ký kinh doanh",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "Số báo cáo kinh doanh đặt hàng qua thư",
-    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "Liên hệ",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "Email",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Địa chỉ",
     "officeAddressLabel": "Địa chỉ văn phòng",
-    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Kyunggi-do, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "Đang chuẩn bị link mời ánh sao...",

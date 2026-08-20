@@ -1725,7 +1725,7 @@
     "krwPayment": "KRW भुगतान",
     "history": "भुगतान इतिहास जांचें",
     "currency": {
-      "krw": "{amount} KRW\nएकल पीडीएफ उत्पन्न करने के लिए",
+      "krw": "{amount} KRW",
       "monthlyCredits": "{count} क्रेडिट"
     },
     "directModal": {
@@ -1740,6 +1740,15 @@
       "monthlyTitle": "मूनस्टोन से खोलें",
       "requiredMonthly": "आवश्यक क्रेडिट",
       "currentMonthly": "वर्तमान शेष",
+      "musicTrackSub": "मूनलाइट पास होने पर आप सभी ट्रैक तुरंत सुन सकते हैं। MP3 डाउनलोड केवल उन्हीं ट्रैक के लिए है जो एकल खरीद या मूनस्टोन से खरीदे गए हों।",
+      "defaultTitle": "सशुल्क सेवा",
+      "passApplyFailed": "आपका पास लागू नहीं किया जा सका।",
+      "monthlyInsufficient": "पर्याप्त मूनस्टोन नहीं हैं। कृपया इसके बजाय एकल भुगतान चुनें।",
+      "monthlyUnknown": "आपका मूनस्टोन बैलेंस जाँचा नहीं जा सका। कृपया इसे दोबारा खोलें।",
+      "monthlyAria": {
+        "insufficient": "बैलेंस पर्याप्त नहीं",
+        "unknown": "बैलेंस जाँचना आवश्यक"
+      },
       "subtitle": {
         "withPass": "प्रदर्शित राशि मासिक क्रेडिट KRW आधार से मेल खाती है। आप इस सामग्री को पास या एकमुश्त कार्ड भुगतान से खोल सकते हैं।",
         "directOnly": "प्रदर्शित राशि मासिक क्रेडिट KRW आधार से मेल खाती है। आप एकमुश्त कार्ड भुगतान जारी रख सकते हैं।"
@@ -4415,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "व्यवसाय का नाम",
-    "companyValue": ": कोड डेस्टिनी",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "प्रतिनिधि",
-    "representativeValue": ": पार्क बियोंग-हा",
+    "representativeValue": ": 박병하",
     "registrationLabel": "व्यवसाय पंजीकरण संख्या",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "मेल-ऑर्डर बिजनेस रिपोर्ट नंबर",
-    "mailOrderValue": ": 2026-ह्वासेओंघो-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "संपर्क करें",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "ईमेल",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "पता",
     "officeAddressLabel": "कार्यालय का पता",
-    "addressValue": ": 37 सैबिबोंगडोंग-रो, बिबोंग-मायऑन, ह्योहेंग-गु, ह्वासेओंग-सी, ग्योंगगी-डो, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "स्टारलाईट आमंत्रण लिंक तैयार किया जा रहा है...",

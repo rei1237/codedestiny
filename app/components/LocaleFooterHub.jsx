@@ -7,6 +7,7 @@ import {
 } from "../../lib/i18n/siteFooterHubCopy";
 import { getRefundSection, LEGAL_TRANSLATION_NOTICE } from "../../lib/legal/refundContent";
 import { I18N_ROUTE_MAP } from "../../lib/i18n/routes";
+import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
 
 /**
  * 로케일(`/ja`·`/zh`·`/zh-tw`·`/en`) 전용 푸터.
@@ -25,15 +26,18 @@ import { I18N_ROUTE_MAP } from "../../lib/i18n/routes";
  * 약 729자라 마진이 400자 남짓밖에 없다.
  */
 
-/** 사업자 정보는 **등록된 원문이 곧 법적 형식**이라 값을 번역하지 않는다(라벨만 번역). */
+/**
+ * 사업자 정보는 **등록된 원문이 곧 법적 형식**이라 값을 번역하지 않는다(라벨만 번역).
+ * 🔴 값을 여기 다시 적지 않는다 — 정본은 `lib/site-policy-config.js` 하나다.
+ */
 const BUSINESS_INFO_VALUES = {
-  name: "코드 데스티니 (Code Destiny)",
-  representative: "박병하",
-  registrationNo: "372-23-02329",
-  mailOrderNo: "제 2026-화성호-0264 호",
-  phone: "050-6664-7398",
-  email: "admin@code-destiny.com",
-  address: "경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호",
+  name: BUSINESS_IDENTITY.companyName,
+  representative: BUSINESS_IDENTITY.representative,
+  registrationNo: BUSINESS_IDENTITY.registrationNumber,
+  mailOrderNo: BUSINESS_IDENTITY.mailOrderNumber,
+  phone: BUSINESS_IDENTITY.phone,
+  email: BUSINESS_IDENTITY.email,
+  address: BUSINESS_IDENTITY.address,
 };
 
 const BUSINESS_INFO_KEYS = [

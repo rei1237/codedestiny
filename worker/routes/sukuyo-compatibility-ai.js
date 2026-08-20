@@ -1656,17 +1656,24 @@ async function restorePrepaidAccessOnFailure(env, auth, access, error) {
       }).lean();
       if (!ledger) return false;
       const refundCredit = Math.max(0, Math.floor(Number(ledger.amount || 0)));
+      // "metadata.refundedForUnlockFailure" 는 키 해제 계약 표식이다 — billing.js 의
+      // readIdempotentSpendResult 가 이 표식만 배제하고 releaseRefundedSpendSourceId 도 이것으로만
+      // 환불 원장을 고른다. 없으면 재구매가 "이미 결제됨"으로 replay 돼 402 로 막힌다.
       const marked = await MonthlyCreditLedger.updateOne(
         { _id: ledger._id, userId, "metadata.refundedForServiceExecution": { $ne: true } },
-        { $set: { "metadata.refundedForServiceExecution": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } },
+        { $set: { "metadata.refundedForServiceExecution": true, "metadata.refundedForUnlockFailure": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } },
       );
       if (!marked.modifiedCount) return false;
       if (refundCredit > 0) {
         // 복원분은 신규 30일 lot으로 재적립(lotId=원장 id로 멱등).
+        // 🔴 pullRequestId 는 선택 인자가 아니다 — 차감 때 recentConsumeRequestIds 에 들어간 purchaseId
+        // (= 원장의 sourceId)를 빼 주지 않으면 재구매가 applyLotDeduction 에서 ALREADY_PROCESSED 로
+        // 402 를 맞고, E11000 이 안 나므로 키 해제 경로조차 돌지 않는다.
         await restoreMonthlyCreditLot({
           userId,
           lotId: `sukuyo-refund:${String(ledger._id)}`,
           amount: refundCredit,
+          pullRequestId: clean(ledger.sourceId, 180) || "",
         }).catch(() => {});
       }
       return true;

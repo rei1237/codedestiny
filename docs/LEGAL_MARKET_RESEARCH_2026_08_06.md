@@ -7,6 +7,11 @@ Product boundary for this snapshot:
 - Current paid access terms remain `이용권`, `월정석`, and `단건 결제`.
 - Current service does not provide an approved auto-renewing subscription, free trial to paid conversion, or subscription-cancellation right.
 - AI output locale support remains the existing five locales only: `ko`, `en`, `ja`, `zh-CN`, `zh-TW`.
+  > 🔴 **2026-08-20 이후로는 사실이 아니다.** AI 출력은 런타임 UI 로케일 12개 전부로 넓어졌다.
+  > 이 문서는 2026-08-06 시점의 스냅샷이라 본문을 고치지 않는다 — 현행은
+  > `lib/i18n/ai-locale.js` 와 [LLM_AND_AI_POLICY.md](LLM_AND_AI_POLICY.md) 를 본다.
+  > **아래 Locale Matrix 의 `AI output` 열도 같은 이유로 낡았다.** 언어를 서빙하는 것과
+  > 시장을 여는 것은 여전히 별개이고, 시장 차단(다음 줄)은 그대로다.
 - Every non-approved market remains blocked for live payment.
 
 ## Locale Matrix

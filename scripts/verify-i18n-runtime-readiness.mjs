@@ -134,9 +134,29 @@ function extractNativeScriptSrc(html) {
   return html.match(/<script\b[^>]*\bsrc=["']([^"']*\/js\/cd-lang-native\.js\?v=[^"']+)["'][^>]*>/i)?.[1] || "";
 }
 
-function findBadValues(flat) {
-  return Object.entries(flat).filter(([, value]) => {
+/**
+ * \uD83D\uDD34 \uD55C\uAE00\uC774 \uB0A8\uC544 \uC788\uC5B4\uC57C **\uC815\uC0C1**\uC778 \uD0A4. \uC0C1\uD638\u00B7\uB300\uD45C\uC790\u00B7\uC2E0\uACE0\uBC88\uD638\u00B7\uC8FC\uC18C\uB294 \uB4F1\uB85D\uB41C \uBB38\uC790\uC5F4 \uC790\uCCB4\uAC00
+ *    \uBC95\uC801 \uD615\uC2DD\uC774\uB77C \uBC88\uC5ED \uB300\uC0C1\uC774 \uC544\uB2C8\uB2E4(\uB77C\uBCA8\uB9CC \uBC88\uC5ED\uD55C\uB2E4). 2026-08-20 \uC774\uC804\uC5D0\uB294 \uC774 \uAC12\uB4E4\uC774
+ *    12\uAC1C \uB85C\uCF00\uC77C\uC5D0\uC11C \uBC88\uC5ED\uB3FC \uC788\uC5C8\uACE0 \u2014 es `Parque Byeong-ha`, fr `Parc Byeong-ha`,
+ *    ja `\u30B3\u30FC\u30C9\u306E\u904B\u547D` \u2014 \uADF8\uAC8C \uACE7 **\uB4F1\uB85D\uB418\uC9C0 \uC54A\uC740 \uC0AC\uC5C5\uC790 \uC815\uBCF4 \uD45C\uC2DC**\uC600\uB2E4.
+ *
+ *    \uBA74\uC81C\uB85C \uB05D\uB0B4\uC9C0 \uC54A\uB294\uB2E4: \uC544\uB798\uC5D0\uC11C ko.json \uAC12\uACFC \uAC19\uC740\uC9C0 \uB300\uC2E0 \uB2E8\uC5B8\uD55C\uB2E4. \uC804\uC6A9 \uAC00\uB4DC\uB294
+ *    `npm run verify:business-identity`(\uC815\uBCF8 lib/site-policy-config.js \uC640 \uB300\uC870).
+ */
+const LEGAL_VERBATIM_KEY = /^business\.[A-Za-z]+Value$/;
+
+/** \uB77C\uBCA8\uACFC \uAC12\uC744 \uC787\uB294 \uAD6C\uBD84\uC790(": " / "\uFF1A"). \uD45C\uC2DC \uADDC\uCE59\uC774\uB77C \uB85C\uCF00\uC77C \uAC83\uC744 \uADF8\uB300\uB85C \uB454\uB2E4. */
+function stripSeparator(value) {
+  return String(value).replace(/^\s*[:\uFF1A]\s*/, "");
+}
+
+function findBadValues(flat, koFlat) {
+  return Object.entries(flat).filter(([key, value]) => {
     if (typeof value !== "string") return false;
+    if (LEGAL_VERBATIM_KEY.test(key)) {
+      const registered = koFlat[key];
+      return registered === undefined || stripSeparator(value) !== stripSeparator(registered);
+    }
     return /^\?+$/.test(value) || value.includes("\uFFFD") || /[\uAC00-\uD7A3]/u.test(value);
   }).map(([key]) => key);
 }
@@ -144,6 +164,7 @@ function findBadValues(flat) {
 const indexHtml = readText(indexPath);
 const buttonLangs = extractLangButtons(indexHtml);
 const baseFlat = flatten(readJson("en.json"));
+const koFlat = flatten(readJson("ko.json"));
 const baseKeys = Object.keys(baseFlat).sort();
 const failures = [];
 const warnings = [];
@@ -171,7 +192,7 @@ for (const lang of buttonLangs) {
   const keys = Object.keys(flat).sort();
   const missing = baseKeys.filter((key) => !(key in flat));
   const extra = keys.filter((key) => !(key in baseFlat));
-  const badValues = findBadValues(flat);
+  const badValues = findBadValues(flat, koFlat);
 
   if (missing.length) failures.push(`${fileName} missing keys: ${missing.slice(0, 12).join(", ")}${missing.length > 12 ? " ..." : ""}`);
   if (extra.length) failures.push(`${fileName} extra keys: ${extra.slice(0, 12).join(", ")}${extra.length > 12 ? " ..." : ""}`);

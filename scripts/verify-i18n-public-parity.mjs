@@ -45,7 +45,20 @@ function targetFilesFromArgs() {
   return explicit.length > 0 ? explicit : readyLocaleFiles;
 }
 
+/**
+ * 🔴 한글이 남아 있어야 **정상**인 키. 상호·대표자·신고번호·주소는 등록된 문자열 자체가
+ *    법적 형식이라 번역 대상이 아니다(라벨만 번역한다). 2026-08-20 이전에는 이 값들이
+ *    12개 로케일에서 번역돼 있었고 — es `Parque Byeong-ha`, ja `コードの運命` — 그게 곧
+ *    등록되지 않은 사업자 정보 표시였다.
+ *
+ *    면제로 끝내지 않는다: 아래에서 ko.json 값과 같은지 대신 단언한다.
+ *    전용 가드는 `npm run verify:business-identity`(정본 lib/site-policy-config.js 와 대조).
+ */
+const LEGAL_VERBATIM_KEY = /^business\.[A-Za-z]+Value$/;
+const stripSeparator = (value) => String(value).replace(/^\s*[:：]\s*/, "");
+
 const baseFlat = flatten(readJson(baseFile));
+const koFlat = flatten(readJson("ko.json"));
 const baseKeys = Object.keys(baseFlat).sort();
 const targetFiles = targetFilesFromArgs();
 const failures = [];
@@ -57,9 +70,20 @@ for (const fileName of targetFiles) {
   const extra = keys.filter((key) => !(key in baseFlat));
   const badQuestionMarks = Object.entries(flat).filter(([, value]) => typeof value === "string" && /^\?+$/.test(value));
   const replacementChars = Object.entries(flat).filter(([, value]) => typeof value === "string" && value.includes("\uFFFD"));
-  const hangulValues = Object.entries(flat).filter(([, value]) => typeof value === "string" && /[가-힣]/.test(value));
+  const hangulValues = Object.entries(flat).filter(([key, value]) => {
+    if (typeof value !== "string") return false;
+    if (LEGAL_VERBATIM_KEY.test(key)) return false;
+    return /[가-힣]/.test(value);
+  });
+  // 법정 표기는 "한글이면 실패"가 아니라 "ko 와 다르면 실패"다.
+  const driftedLegalValues = Object.entries(flat).filter(([key, value]) => {
+    if (typeof value !== "string" || !LEGAL_VERBATIM_KEY.test(key)) return false;
+    const registered = koFlat[key];
+    return registered === undefined || stripSeparator(value) !== stripSeparator(registered);
+  });
 
-  if (missing.length || extra.length || badQuestionMarks.length || replacementChars.length || hangulValues.length) {
+  if (missing.length || extra.length || badQuestionMarks.length || replacementChars.length
+      || hangulValues.length || driftedLegalValues.length) {
     failures.push({
       fileName,
       missing,
@@ -67,6 +91,7 @@ for (const fileName of targetFiles) {
       badQuestionMarks: badQuestionMarks.map(([key]) => key),
       replacementChars: replacementChars.map(([key]) => key),
       hangulValues: hangulValues.map(([key]) => key),
+      driftedLegalValues: driftedLegalValues.map(([key]) => key),
     });
   }
 }

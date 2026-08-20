@@ -129,6 +129,75 @@ function runPortOneRequestShapeTests() {
   assertNotContains(portoneClientSource, "windowType", "lib/payment/portone.ts must stay the windowType-free reference shape");
 }
 
+// 🔴 PG 결제창 언어 가드 (2026-08-20)
+//
+// locale 을 안 보내면 PortOne 이 한국어 결제창을 연다 — UI·문구를 전부 번역해 놓고도
+// 사용자가 마지막 화면에서 한국어를 만난다. 요청을 만드는 곳이 네 군데라(정적 셸 ·
+// 독립 정적 · React 단건 · /points 이용권) 한 곳만 빠져도 그 경로만 조용히 한국어로 열린다.
+//
+// 🔴 쓸 수 있는 값은 우리가 아니라 PG 가 정한다. KG이니시스는 **PC 결제창에서
+//    KO_KR·EN_US·ZH_CN, 모바일 결제창에서 KO_KR·EN_US** 만 지원한다(포트원 inicis-v2
+//    연동 가이드, 2026-08-20 확인). 지원 밖 값을 보냈을 때의 동작은 실결제 없이 확인할 수
+//    없고 최악은 '결제창이 아예 안 뜬다' 이므로(PR #104 windowType 회귀와 같은 모양),
+//    두 결제창이 모두 지원하는 두 값으로 못 박는다.
+const PG_WINDOW_LOCALES = new Set(["KO_KR", "EN_US"]);
+
+function runPgWindowLocaleTests() {
+  // ① 네 경로 전부가 locale 을 실어야 한다. 위임 함수 이름까지 고정해 사본 구현을 막는다.
+  const CALLERS = [
+    ["index.html", indexSource, "locale: _cdPgWindowLocale()"],
+    ["js/destiny-profile.js", destinyProfileSource, "locale: _dpPgWindowLocale()"],
+    ["lib/payment/portone.ts", readFileSync(resolve(root, "lib/payment/portone.ts"), "utf8"), "locale: checkoutEntry.pgWindowLocale()"],
+    ["app/points/PointsClient.tsx", readFileSync(resolve(root, "app/points/PointsClient.tsx"), "utf8"), "locale: checkoutEntry.pgWindowLocale()"],
+  ];
+  for (const [label, source, marker] of CALLERS) {
+    assertContains(
+      source,
+      marker,
+      `${label}: PortOne requestPayment 이 locale 을 실어야 한다 — 빠지면 그 경로만 한국어 결제창으로 열린다`,
+    );
+  }
+
+  // ② 위임 래퍼는 모듈 미부착 시 종전 동작(한국어 결제창)으로 물러나야 한다.
+  //    결제 임계경로라 여기서 던지면 결제창 자체가 안 뜬다.
+  for (const [label, source, fnName] of [
+    ["index.html", indexSource, "_cdPgWindowLocale"],
+    ["js/destiny-profile.js", destinyProfileSource, "_dpPgWindowLocale"],
+  ]) {
+    const body = sliceFunctionBody(source, `function ${fnName}(`);
+    assert.ok(
+      /return 'KO_KR';/.test(body) && /catch \(/.test(body),
+      `${label}: ${fnName} 은 모듈 미부착·예외에서 'KO_KR' 로 물러나야 한다`,
+    );
+  }
+
+  // ③ 정본이 PG 지원 밖 값을 낼 수 없어야 한다. 문자열 리터럴을 전수로 본다.
+  const entryBody = sliceFunctionBody(readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8"), "function pgWindowLocale(");
+  const emitted = [...entryBody.matchAll(/return \"([A-Z_]+)\"/g)].map((m) => m[1]);
+  assert.ok(emitted.length >= 2, "js/core/checkout-entry.js: pgWindowLocale 이 값을 돌려주지 않는다 — 추출이 깨졌다");
+  for (const value of emitted) {
+    assert.ok(
+      PG_WINDOW_LOCALES.has(value),
+      `js/core/checkout-entry.js: pgWindowLocale 이 ${value} 를 냅니다 — KG이니시스 모바일 결제창이 지원하는 값은 `
+        + `${[...PG_WINDOW_LOCALES].join(" · ")} 뿐입니다(PC 는 ZH_CN 도 지원하지만 우리 UA 판정과 `
+        + `PG 의 PC/모바일 판정이 어긋나지 않는다는 근거가 아직 없습니다).`,
+    );
+  }
+}
+
+/** `function name(` 부터 중괄호 균형으로 본문을 잘라낸다. 이름 grep 으로 판단하지 않기 위해서다. */
+function sliceFunctionBody(source, marker) {
+  const start = source.indexOf(marker);
+  assert.ok(start >= 0, `${marker} 를 찾지 못했습니다`);
+  let depth = 0;
+  let started = false;
+  for (let i = start; i < source.length; i += 1) {
+    if (source[i] === "{") { depth += 1; started = true; }
+    else if (source[i] === "}") { depth -= 1; if (started && depth === 0) return source.slice(start, i + 1); }
+  }
+  throw new Error(`${marker}: 중괄호 균형이 맞지 않습니다`);
+}
+
 // 🔴 SDK 로더 영구 행 회귀 가드 (2026-08-01)
 // script 의 load/error 는 한 번만 발화한다. 로더가 **이미 끝난** 태그를 물려받아 리스너만 붙이면
 // 영영 resolve 도 reject 도 하지 않고, await 뒤의 requestPayment 에 도달하지 못해 PG 결제창이
@@ -1205,6 +1274,7 @@ try {
   await runServerTests();
   runClientStaticTests();
   runPortOneRequestShapeTests();
+  runPgWindowLocaleTests();
   runPortOneSdkLoaderResilienceTests();
   runReactSdkPreloadAndRetryTests();
   runInstantPgWindowTests();

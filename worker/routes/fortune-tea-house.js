@@ -8,6 +8,7 @@ import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirecti
 import { buildSajuAdvancedFactors, buildSajuMyeongsikFactSnapshot } from "../lib/saju-ai-prompt.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
+import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { toDisplayText } from "../../lib/llm-text.js";
 import {
   buildFallbackHeartScent,
@@ -395,6 +396,22 @@ function normalizeTarotQuestionTerm(value) {
     .trim();
 }
 
+/**
+ * 한국어 토큰 앵커 검사를 적용할 것인가.
+ *
+ * 🔴 아래 검사들은 **한국어 리터럴이 본문에 있어야** 통과한다 — 카드 이름(nameKo), 찻잔 이름,
+ *    상대 이름, 일간 천간(갑을병정…). 비-ko 로 답하면 모델이 그 이름들을 번역하므로 원리적으로
+ *    등장할 수 없고, 정상 응답이 **매번** 반려된다. 결과는 통째 실패가 아니라 degrade 지만
+ *    (상위가 흡수한다), 그 대가로 재생성 2회와 repair 왕복이 매 요청 헛돌고 상담문은 항상
+ *    품질 보정을 못 받은 채 내려가며, degraded 계측이 비-ko 에서 무의미해진다.
+ *
+ * 🔴 ko 판정은 한 글자도 바꾸지 않는다. 선례는 worker/routes/destiny-compass.js 의
+ *    isFaithful 이고, verify:ai-locale-pipeline 불변식 (7)이 그 형태를 고정하고 있다.
+ */
+function koreanAnchorsApply() {
+  return (getAmbientAiLocale() || "ko") === "ko";
+}
+
 function extractTarotQuestionTerms(value) {
   const terms = cleanText(value, 300).match(/[0-9A-Za-z가-힣]{2,}/g) || [];
   return Array.from(new Set(terms.map(normalizeTarotQuestionTerm)))
@@ -403,6 +420,7 @@ function extractTarotQuestionTerms(value) {
 }
 
 function assertTarotAnchorCoverage(joined, result, fallback) {
+  if (!koreanAnchorsApply()) return;
   const teaName = cleanText(fallback?.teaCup?.name || result?.teaCup?.name, 80);
   const cardName = cleanText(fallback?.tarot?.nameKo || result?.tarot?.nameKo, 80);
   const direction = tarotOrientationLabel(fallback?.tarot?.orientation || result?.tarot?.orientation);
@@ -3045,7 +3063,7 @@ function assertTarotDeepQuality(result, fallback) {
     }
     // 카드 해석이 다른 카드 자리로 밀리는 사고를 막는다.
     const cardName = cleanText(card?.nameKo, 80);
-    if (cardName && !detailText.includes(cardName)) {
+    if (koreanAnchorsApply() && cardName && !detailText.includes(cardName)) {
       throw new Error(`fortune tea house quality failed: tarot card ${index + 1} name missing`);
     }
   });
@@ -3193,7 +3211,7 @@ function assertConsultQuality(result, fallback) {
     assertSajuDeepQuality(result, fallback);
   }
   // 사주 궁합은 상대 명식 해석이 서사에 실제로 담겼는지 확인한다(본인 위주로 흐르는 것을 차단).
-  if (fallback.consultationMode === "sajuCompatibility" && fallback.sajuCompatibility?.available) {
+  if (koreanAnchorsApply() && fallback.consultationMode === "sajuCompatibility" && fallback.sajuCompatibility?.available) {
     const joined = collectConsultText(result);
     const compat = fallback.sajuCompatibility;
     const partner = compat.partner || {};
