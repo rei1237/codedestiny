@@ -293,6 +293,15 @@ jobs:
           npm run verify:deployed-sha -- --self-test
           npm run verify:merge-landed-test
 
+      # 공개 API 3개(리뷰 목록·요약·오늘의 운세 허브)가 엣지 캐시를 지나는지, 캐시 조회가
+      # connectDb 보다 앞인지, 그리고 🔴 생년이 실린 개인화 응답이 그 **공유** 캐시에 새지 않는지.
+      # 마지막 것은 사고가 나면 "다음 방문자가 남의 사주를 받는다" 이므로 self-test 를 함께 돌린다.
+      - name: Verify public API edge cache
+        if: needs.classify.outputs.runs_critical == 'true'
+        run: |
+          npm run verify:public-api-edge-cache
+          npm run verify:public-api-edge-cache -- --self-test
+
       - name: Verify ads.txt is present
         if: needs.classify.outputs.runs_critical == 'true'
         run: npm run verify:ads-txt
