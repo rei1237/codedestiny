@@ -77,11 +77,6 @@ const STAGING_ONLY_KEYS = new Set([
   // 프로덕션에도 켜기로 하면 이 줄을 지우고 두 toml 에 같은 값을 둔다 — 그때 이 가드가
   // "스테이징 전용 키인데 프로덕션에도 있다" 로 실패해 결정을 명시적으로 만든다.
   "vars.PAYMENTS_DB_SOCKET_LANE",
-  // Smart Placement 실측(2026-08-21). 워커(LAX)와 Atlas(서울) 사이 왕복이 415ms/건인 것을
-  // 스테이징에서 먼저 재고 판단한다. 프로덕션에도 켜기로 하면 이 줄을 지우고 두 toml 에 같은
-  // 블록을 둔다 — 그때 이 가드가 "스테이징 전용 키인데 프로덕션에도 있다" 로 실패해
-  // 결정을 명시적으로 만든다.
-  "placement.mode",
 ]);
 
 const PRODUCTION_ORIGIN = "https://code-destiny.com";
