@@ -1524,7 +1524,11 @@ const guardianFortuneGenerationAttemptSchema = new mongoose.Schema({
   dateKey: { type: String, required: true, trim: true, maxlength: 10, index: true },
   status: { type: String, enum: ["reserved", "completed", "released", "blocked"], default: "reserved", index: true },
   errorCode: { type: String, default: "", trim: true, maxlength: 100 },
-  expiresAt: { type: Date, required: true, index: true },
+  // expiresAt 는 아래 TTL 인덱스로만 색인한다(idempotency_keys 와 동일한 충돌 회피).
+  // 필드 레벨 index:true 를 함께 두면 같은 키의 plain 인덱스와 TTL 인덱스가 IndexOptionsConflict
+  // 로 충돌해 plain 쪽이 살아남고 TTL 이 적용되지 않는다. 실측 2026-08-21: 선언에서 인덱스를
+  // 만든 스테이징 DB 의 이 세 컬렉션이 전부 TTL 없는 expiresAt_1 만 갖고 있었다(= 영구 누적).
+  expiresAt: { type: Date, required: true },
 }, { timestamps: true, collection: "guardianFortuneGenerationAttempts" });
 
 guardianFortuneGenerationAttemptSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
@@ -1551,7 +1555,11 @@ const guardianFortuneSharedSnapshotSchema = new mongoose.Schema({
   status: { type: String, enum: ["active", "deleted", "expired"], default: "active", index: true },
   sourceRequestId: { type: String, trim: true, maxlength: 120, sparse: true, unique: true },
   createdAt: { type: Date, required: true, default: Date.now, index: true },
-  expiresAt: { type: Date, required: true, index: true },
+  // expiresAt 는 아래 TTL 인덱스로만 색인한다(idempotency_keys 와 동일한 충돌 회피).
+  // 필드 레벨 index:true 를 함께 두면 같은 키의 plain 인덱스와 TTL 인덱스가 IndexOptionsConflict
+  // 로 충돌해 plain 쪽이 살아남고 TTL 이 적용되지 않는다. 실측 2026-08-21: 선언에서 인덱스를
+  // 만든 스테이징 DB 의 이 세 컬렉션이 전부 TTL 없는 expiresAt_1 만 갖고 있었다(= 영구 누적).
+  expiresAt: { type: Date, required: true },
 }, { collection: "guardianFortuneSharedSnapshots" });
 guardianFortuneSharedSnapshotSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 guardianFortuneSharedSnapshotSchema.index({ status: 1, createdAt: -1 });
@@ -1562,7 +1570,11 @@ const fusionFortuneGenerationAttemptSchema = new mongoose.Schema({
   dateKey: { type: String, required: true, trim: true, maxlength: 10, index: true },
   status: { type: String, enum: ["reserved", "completed", "released", "blocked"], default: "reserved", index: true },
   errorCode: { type: String, default: "", trim: true, maxlength: 100 },
-  expiresAt: { type: Date, required: true, index: true },
+  // expiresAt 는 아래 TTL 인덱스로만 색인한다(idempotency_keys 와 동일한 충돌 회피).
+  // 필드 레벨 index:true 를 함께 두면 같은 키의 plain 인덱스와 TTL 인덱스가 IndexOptionsConflict
+  // 로 충돌해 plain 쪽이 살아남고 TTL 이 적용되지 않는다. 실측 2026-08-21: 선언에서 인덱스를
+  // 만든 스테이징 DB 의 이 세 컬렉션이 전부 TTL 없는 expiresAt_1 만 갖고 있었다(= 영구 누적).
+  expiresAt: { type: Date, required: true },
 }, { timestamps: true, collection: "fusionFortuneGenerationAttempts" });
 fusionFortuneGenerationAttemptSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
