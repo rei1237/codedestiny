@@ -815,7 +815,6 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
  *    #featureBegin — styles/cosmic-main.css:2232 이 .moon-collection-nav 에
  *      content-visibility:visible!important 를 @media (max-width:900px) 로 건다(계산값 실측: visible).
  *    #moonFreeStart — styles/cosmic-main.css:1122 이 값까지 똑같이 이미 건다(계산값 실측: auto 760px).
- *    #cdOneStepRail — 정적 마크업이 없다. index.html:13787 이 런타임에 만들어 :13832 에 넣는다.
  * 🔴 content-visibility:auto 는 paint containment 를 항상 건다 — 섹션 박스 밖으로 삐져나오는
  *    글로우·그림자는 잘린다. 목록에 섹션을 추가할 때는 그 섹션을 실제로 스크롤해 눈으로 확인할 것.
  */
@@ -12377,11 +12376,16 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
       <style id="cd-concern-pick-v20260817">
 html body .cd-concern{max-width:var(--cd-w-grid,1280px);margin:26px auto 8px;padding:0 clamp(12px,3vw,24px)}
 html body .cd-concern__head{margin:0 0 18px;text-align:center}
-html body .cd-concern__chips{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin:0 0 18px}
-html body .cd-concern__chip{display:inline-flex;align-items:center;gap:7px;min-height:44px;padding:10px 16px;margin:0;font:inherit;font-weight:800;font-size:.95rem;line-height:1.2;color:var(--cd-text,#3c1830);cursor:pointer;border-radius:999px;background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),border-color var(--cd-dur-base,220ms) ease,background var(--cd-dur-base,220ms) ease}
-html body .cd-concern__chip[aria-expanded="true"]{color:#fff;background:linear-gradient(135deg,#d83f78,#b31955);border-color:rgba(179,25,85,.34);box-shadow:0 6px 16px color-mix(in srgb,var(--cd-accent,#b31955) 24%,transparent)}
-html.neo-mode body .cd-concern__chip[aria-expanded="true"]{color:#13102a;background:linear-gradient(135deg,#c4b5fd,#a78bfa);border-color:rgba(196,181,253,.5);box-shadow:0 6px 16px rgba(167,139,250,.28)}
-html body .cd-concern__chip:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
+html body .cd-concern__cards{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin:0 0 18px}
+html body .cd-concern__card{display:flex;flex-direction:column;gap:4px;padding:16px;margin:0;font:inherit;text-align:left;color:var(--cd-text,#3c1830);cursor:pointer;border-radius:20px;background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),border-color var(--cd-dur-base,220ms) ease,background var(--cd-dur-base,220ms) ease,box-shadow var(--cd-dur-base,220ms) ease}
+html body .cd-concern__card-icon{font-size:24px;line-height:1}
+html body .cd-concern__card-label{font-size:15px;font-weight:900;line-height:1.3;letter-spacing:-.01em}
+html body .cd-concern__card-desc{font-size:12px;line-height:1.6;opacity:.78}
+html body .cd-concern__card[aria-expanded="true"]{color:#fff;background:linear-gradient(135deg,#d83f78,#b31955);border-color:rgba(179,25,85,.34);box-shadow:0 6px 16px color-mix(in srgb,var(--cd-accent,#b31955) 24%,transparent)}
+html body .cd-concern__card[aria-expanded="true"] .cd-concern__card-desc{opacity:.94}
+html.neo-mode body .cd-concern__card[aria-expanded="true"]{color:#13102a;background:linear-gradient(135deg,#c4b5fd,#a78bfa);border-color:rgba(196,181,253,.5);box-shadow:0 6px 16px rgba(167,139,250,.28)}
+html body .cd-concern__card:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
+@media(min-width:600px){html body .cd-concern__cards{grid-template-columns:repeat(3,1fr)}}
 /* 패널은 본문 폭(1280px)을 다 쓰면 문장 한 줄과 버튼 두 개가 빈 카드에 흩어져 보인다.
    읽기 좋은 폭으로 좁히고 안쪽을 전부 가운데 축으로 모은다 — 머리말·칩과 같은 축이 된다. */
 html body .cd-concern__panel{display:grid;justify-items:center;gap:16px;max-width:min(100%,720px);margin:0 auto;padding:clamp(20px,3.2vw,28px) clamp(16px,3vw,26px);text-align:center;border-radius:var(--cd-card-radius,14px);background:linear-gradient(180deg,color-mix(in srgb,var(--cd-accent,#b31955) 6%,transparent),transparent 46%),var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16));box-shadow:var(--cd-elev-1,0 10px 24px rgba(0,0,0,.08))}
@@ -12414,14 +12418,14 @@ html body .cd-result-fusion .cd-concern__fusion{margin:0;font-size:1rem}
   html body .cd-concern__actions{display:grid;grid-template-columns:1fr;width:100%;gap:8px}
 }
 @media (hover:hover) and (pointer:fine){
-  html body .cd-concern__chip:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--cd-accent,#b31955) 44%,var(--cd-border,transparent))}
+  html body .cd-concern__card:hover{transform:translate3d(0,-3px,0);border-color:color-mix(in srgb,var(--cd-accent,#b31955) 44%,var(--cd-border,transparent));box-shadow:0 10px 28px -10px color-mix(in srgb,var(--cd-accent,#b31955) 40%,transparent)}
   html body .cd-concern__free:hover{transform:translateY(-2px);background:color-mix(in srgb,var(--cd-accent,#b31955) 14%,transparent)}
   html body .cd-concern__paid:hover{transform:translateY(-2px);box-shadow:0 12px 26px color-mix(in srgb,var(--cd-accent,#b31955) 30%,transparent)}
 }
-@media (prefers-reduced-motion:reduce){ html body :is(.cd-concern__chip,.cd-concern__free,.cd-concern__paid){transition:none} }
+@media (prefers-reduced-motion:reduce){ html body :is(.cd-concern__card,.cd-concern__free,.cd-concern__paid){transition:none} }
       </style>
       <style id="cd-home-secondary-v20260817">
-/* 홈 초기 노출 대상에서 고민 선택(cdConcernPick)·목적 카드(cdPurposePick)·
+/* 홈 초기 노출 대상에서 고민 선택(cdConcernPick)·
    연이 상담·초융합 진입 도어(fortuneGatewayEntry)는 제외한다(대표 상품 동선 우선순위).
    🔴 지우지 않고 감추기만 한다(절대 규칙 6). 마크업은 DOM 에 남으므로
       verify-adsense-readiness 의 렌더 텍스트 분량과 색인 대상 본문이 그대로 유지된다.
@@ -12703,13 +12707,37 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
           <h2 id="cdConcernPickTitle" data-cd-trans data-key="home.concernPick.title">지금 가장 궁금한 건 무엇인가요?</h2>
           <p data-cd-trans data-key="home.concernPick.lead">고민을 하나 고르면, 무료로 확인하는 방법과 그 고민에 가장 맞는 상담 하나만 알려드립니다. 명식에서 그 고민이 걸리는 자리를 먼저 보고 고른 결과입니다.</p>
         </div>
-        <div class="cd-concern__chips">
-          <button type="button" class="cd-concern__chip" data-cd-concern="love" aria-expanded="true" aria-controls="cdConcernPanelLove"><span aria-hidden="true">❤️</span><span data-cd-trans data-key="home.concernPick.love">연애·인연</span></button>
-          <button type="button" class="cd-concern__chip" data-cd-concern="person" aria-expanded="false" aria-controls="cdConcernPanelPerson"><span aria-hidden="true">👤</span><span data-cd-trans data-key="home.concernPick.person">특정 사람</span></button>
-          <button type="button" class="cd-concern__chip" data-cd-concern="money" aria-expanded="false" aria-controls="cdConcernPanelMoney"><span aria-hidden="true">💰</span><span data-cd-trans data-key="home.concernPick.money">돈·재물</span></button>
-          <button type="button" class="cd-concern__chip" data-cd-concern="career" aria-expanded="false" aria-controls="cdConcernPanelCareer"><span aria-hidden="true">💼</span><span data-cd-trans data-key="home.concernPick.career">직업·사업</span></button>
-          <button type="button" class="cd-concern__chip" data-cd-concern="year" aria-expanded="false" aria-controls="cdConcernPanelYear"><span aria-hidden="true">📅</span><span data-cd-trans data-key="home.concernPick.year">올해의 흐름</span></button>
-          <button type="button" class="cd-concern__chip" data-cd-concern="all" aria-expanded="false" aria-controls="cdConcernPanelAll"><span aria-hidden="true">🔮</span><span data-cd-trans data-key="home.concernPick.all">내 전체 운</span></button>
+        <div class="cd-concern__cards">
+          <button type="button" class="cd-concern__card" data-cd-concern="love" aria-expanded="true" aria-controls="cdConcernPanelLove">
+            <span class="cd-concern__card-icon" aria-hidden="true">❤️</span>
+            <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.love">연애·인연</span>
+            <span class="cd-concern__card-desc">연애운 · 궁합 · 재회 · 인연</span>
+          </button>
+          <button type="button" class="cd-concern__card" data-cd-concern="person" aria-expanded="false" aria-controls="cdConcernPanelPerson">
+            <span class="cd-concern__card-icon" aria-hidden="true">👤</span>
+            <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.person">특정 사람</span>
+            <span class="cd-concern__card-desc">궁합 · 상성 · 관계 진단</span>
+          </button>
+          <button type="button" class="cd-concern__card" data-cd-concern="money" aria-expanded="false" aria-controls="cdConcernPanelMoney">
+            <span class="cd-concern__card-icon" aria-hidden="true">💰</span>
+            <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.money">돈·재물</span>
+            <span class="cd-concern__card-desc">재물운 · 수입 · 지출 흐름</span>
+          </button>
+          <button type="button" class="cd-concern__card" data-cd-concern="career" aria-expanded="false" aria-controls="cdConcernPanelCareer">
+            <span class="cd-concern__card-icon" aria-hidden="true">💼</span>
+            <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.career">직업·사업</span>
+            <span class="cd-concern__card-desc">이직 · 창업 · 사업 확장</span>
+          </button>
+          <button type="button" class="cd-concern__card" data-cd-concern="year" aria-expanded="false" aria-controls="cdConcernPanelYear">
+            <span class="cd-concern__card-icon" aria-hidden="true">📅</span>
+            <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.year">올해의 흐름</span>
+            <span class="cd-concern__card-desc">신년운세 · 월별 흐름 · 대운</span>
+          </button>
+          <button type="button" class="cd-concern__card" data-cd-concern="all" aria-expanded="false" aria-controls="cdConcernPanelAll">
+            <span class="cd-concern__card-icon" aria-hidden="true">🔮</span>
+            <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.all">내 전체 운</span>
+            <span class="cd-concern__card-desc">사주 · 자미두수 · 점성술</span>
+          </button>
         </div>
         <div class="cd-concern__panel" id="cdConcernPanelLove" data-cd-concern-panel="love">
           <p class="cd-concern__why" data-cd-trans data-key="home.concernPick.loveWhy">관계가 어떤 구조로 반복되는지, 그리고 언제 움직이는지를 함께 봅니다.</p>
@@ -12756,19 +12784,19 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
         <p class="cd-concern__fusion"><a href="/fusion-fortune/"><span data-cd-trans data-key="home.concernPick.fusionLine">여섯 체계를 모두 교차검증하고 싶다면</span> · <span data-cd-trans="shell.fortuneGatewayDoors.fortuneGatewayDoor.k12pdy0g">초융합 심층 리딩</span></a></p>
       </section>
       <script data-marker="cd-concern-pick-v20260817">
-        /* 위임 핸들러 1개. 칩을 누르면 그 고민의 패널만 남긴다.
+        /* 위임 핸들러 1개. 카드를 누르면 그 고민의 패널만 남긴다.
            패널은 마크업에 전부 들어 있고 hidden 만 오간다 — 새 진입점·새 결제 경로를 만들지 않는다. */
         (function () {
           var root = document.getElementById('cdConcernPick');
           if (!root) return;
-          var chips = root.querySelectorAll('[data-cd-concern]');
+          var cards = root.querySelectorAll('[data-cd-concern]');
           var panels = root.querySelectorAll('[data-cd-concern-panel]');
           root.addEventListener('click', function (event) {
-            var chip = event.target && event.target.closest ? event.target.closest('[data-cd-concern]') : null;
-            if (!chip || !root.contains(chip)) return;
-            var picked = chip.getAttribute('data-cd-concern');
-            for (var i = 0; i < chips.length; i += 1) {
-              chips[i].setAttribute('aria-expanded', chips[i] === chip ? 'true' : 'false');
+            var card = event.target && event.target.closest ? event.target.closest('[data-cd-concern]') : null;
+            if (!card || !root.contains(card)) return;
+            var picked = card.getAttribute('data-cd-concern');
+            for (var i = 0; i < cards.length; i += 1) {
+              cards[i].setAttribute('aria-expanded', cards[i] === card ? 'true' : 'false');
             }
             for (var j = 0; j < panels.length; j += 1) {
               if (panels[j].getAttribute('data-cd-concern-panel') === picked) panels[j].removeAttribute('hidden');
@@ -13247,77 +13275,6 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
 
         if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', bind);
         else bind();
-      })();
-      </script>
-      <!-- 목적별 운세 — 사용자가 뭘 알고 싶은지를 먼저 묻는다. 운세 체계가 아닌 목적 기준 진입점. -->
-      <style id="cd-purpose-pick-v20260817">
-        .cd-purpose{max-width:1240px;margin:28px auto 0;padding:0 20px}
-        .cd-purpose__head{text-align:center;margin-bottom:16px}
-        .cd-purpose__kicker{display:block;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cd-accent,#b31955);opacity:.75;margin-bottom:6px}
-        .cd-purpose__title{margin:0;font-size:clamp(18px,4vw,24px);font-weight:900;letter-spacing:-.016em;color:var(--cd-text,#3c1830)}
-        .cd-purpose__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:10px}
-        .cd-purpose-card{display:flex;flex-direction:column;gap:4px;padding:16px;border-radius:20px;text-decoration:none;border:1px solid var(--cd-border,rgba(216,63,120,.16));background:color-mix(in srgb,var(--cd-surface,#fff) 72%,transparent);-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:transform .22s cubic-bezier(.22,1,.36,1),box-shadow .22s ease}
-        .cd-purpose-card:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
-        .cd-purpose-card:active{transform:scale(.97)}
-        .cd-purpose-card__icon{font-size:24px;line-height:1;margin-bottom:2px}
-        .cd-purpose-card__label{font-size:15px;font-weight:900;line-height:1.3;color:var(--cd-text,#3c1830);letter-spacing:-.01em}
-        .cd-purpose-card__desc{font-size:12px;line-height:1.6;color:color-mix(in srgb,var(--cd-text,#3c1830) 72%,transparent)}
-        .cd-purpose-card__arrow{font-size:11px;color:var(--cd-accent,#b31955);font-weight:800;margin-top:4px;opacity:.8}
-        @media(hover:hover)and(pointer:fine){
-          .cd-purpose-card:hover{transform:translate3d(0,-3px,0);box-shadow:0 10px 28px -10px color-mix(in srgb,var(--cd-accent,#b31955) 45%,transparent)}
-        }
-        @media(min-width:600px){.cd-purpose__grid{grid-template-columns:repeat(4,1fr)}}
-        @media(min-width:768px){.cd-purpose{margin:36px auto 0}}
-        @media(prefers-reduced-motion:reduce){.cd-purpose-card{transition:none}}
-      </style>
-      <section class="cd-purpose" id="cdPurposePick" aria-labelledby="cdPurposeTitle">
-        <div class="cd-purpose__head">
-          <span class="cd-purpose__kicker">WHAT'S ON YOUR MIND</span>
-          <h2 class="cd-purpose__title" id="cdPurposeTitle">어떤 게 궁금하세요?</h2>
-        </div>
-        <div class="cd-purpose__grid">
-          <a class="cd-purpose-card" href="#cdConcernPick" data-cd-concern-target="love">
-            <span class="cd-purpose-card__icon" aria-hidden="true">❤️</span>
-            <span class="cd-purpose-card__label">사랑이 궁금해요</span>
-            <span class="cd-purpose-card__desc">연애운 · 궁합 · 재회 · 인연</span>
-            <span class="cd-purpose-card__arrow" aria-hidden="true">→</span>
-          </a>
-          <a class="cd-purpose-card" href="#cdConcernPick" data-cd-concern-target="money">
-            <span class="cd-purpose-card__icon" aria-hidden="true">💰</span>
-            <span class="cd-purpose-card__label">돈·일이 궁금해요</span>
-            <span class="cd-purpose-card__desc">재물운 · 직장 · 사업 · 커리어</span>
-            <span class="cd-purpose-card__arrow" aria-hidden="true">→</span>
-          </a>
-          <a class="cd-purpose-card" href="#cdConcernPick" data-cd-concern-target="all">
-            <span class="cd-purpose-card__icon" aria-hidden="true">🔮</span>
-            <span class="cd-purpose-card__label">나를 알고 싶어요</span>
-            <span class="cd-purpose-card__desc">사주 · 자미두수 · 점성술</span>
-            <span class="cd-purpose-card__arrow" aria-hidden="true">→</span>
-          </a>
-          <a class="cd-purpose-card" href="/today/">
-            <span class="cd-purpose-card__icon" aria-hidden="true">🌙</span>
-            <span class="cd-purpose-card__label">오늘이 궁금해요</span>
-            <span class="cd-purpose-card__desc">오늘의 운세 · 타로 · 숙요점</span>
-            <span class="cd-purpose-card__arrow" aria-hidden="true">→</span>
-          </a>
-        </div>
-      </section>
-      <script data-marker="cd-purpose-pick-v20260817">
-      /* 목적 카드 → cdConcernPick 칩 연동. 클릭 시 해당 칩을 자동 선택 후 스크롤. */
-      (function () {
-        var grid = document.getElementById('cdPurposePick');
-        if (!grid) return;
-        grid.addEventListener('click', function (ev) {
-          var card = ev.target && ev.target.closest ? ev.target.closest('[data-cd-concern-target]') : null;
-          if (!card) return;
-          var concern = card.getAttribute('data-cd-concern-target');
-          if (!concern) return;
-          ev.preventDefault();
-          var chip = document.querySelector('[data-cd-concern="' + concern + '"]');
-          if (chip) chip.click();
-          var target = document.getElementById('cdConcernPick');
-          if (target) { try { target.scrollIntoView({ behavior: 'smooth', block: 'start' }); } catch (_) {} }
-        });
       })();
       </script>
       <!-- 대표 운명 상담 — 히어로 직후, 4대 대표 상담을 소개 이미지와 함께 상시 노출(모바일 2열 · 데스크톱 4열, 연이 핑크/네오 퍼플 --cd-* 토큰 적응). 정적 마크업이라 SEO 콘텐츠 게이트에도 집계된다. -->
@@ -14155,79 +14112,6 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
   .cd-pick__cta:hover{transform:none}
 }
 </style>
-<style id="cdOneStepStyles" data-marker="cd-journey-timeline-v20260801">
-/* ═══ 오늘의 한 걸음 — 4단계 운명 여정 타임라인 ═══
-   이 태그가 문서에 있으면 아래 런타임 주입(`if (!document.getElementById('cdOneStepStyles'))`)이
-   스스로를 건너뛴다. CSS 를 JS 문자열 밖으로 꺼내기 위한 의도된 배치. */
-.cd-onestep{max-width:1240px;margin:20px auto 0;padding:0 20px}
-.cd-onestep__inner{position:relative;display:flex;flex-direction:column;gap:18px;padding:22px 20px 24px;border-radius:22px;border:1px solid var(--cd-border,rgba(216,63,120,.16));background:color-mix(in srgb,var(--cd-surface,#fff) 70%,transparent);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px);box-shadow:0 18px 44px -30px color-mix(in srgb,var(--cd-accent,#b31955) 40%,transparent)}
-.cd-onestep__head{display:flex;align-items:center;gap:12px;font-size:16px;font-weight:800;letter-spacing:-.01em;color:var(--cd-text,#3c1830)}
-.cd-onestep__head::after{content:"";order:1;flex:1;height:1px;background:linear-gradient(90deg,color-mix(in srgb,var(--cd-accent,#b31955) 36%,transparent),transparent)}
-.cd-onestep__count{order:2;flex:0 0 auto;font-size:11.5px;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:.04em;color:color-mix(in srgb,var(--cd-text,#3c1830) 70%,transparent)}
-.cd-onestep__steps{position:relative;display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
-/* 연결선은 카드 사이 간격에만 그린다 — 전폭 레일은 카드 뒤에 가려 사실상 안 보였다. */
-.cd-onestep__step:not(:last-child)::after{content:"";position:absolute;top:36px;right:-15px;width:16px;height:2px;border-radius:2px;background:color-mix(in srgb,var(--cd-accent,#b31955) 42%,transparent);pointer-events:none}
-.cd-onestep__step:nth-child(3)::after{background:color-mix(in srgb,var(--cd-sig-gold) 72%,transparent)}
-.cd-onestep__step{position:relative;z-index:1;display:flex;flex-direction:column;align-items:center;text-align:center;gap:8px;padding:18px 12px 16px;border-radius:18px;text-decoration:none;border:1px solid var(--cd-border,rgba(216,63,120,.16));background:color-mix(in srgb,var(--cd-surface,#fff) 66%,transparent);transition:border-color .22s cubic-bezier(.2,.7,.2,1),box-shadow .22s ease,transform .22s cubic-bezier(.2,.7,.2,1)}
-.cd-onestep__step:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
-.cd-onestep__num{display:grid;place-items:center;width:38px;height:38px;border-radius:999px;font-size:17px;line-height:1;color:var(--cd-accent,#b31955);background:color-mix(in srgb,var(--cd-accent,#b31955) 12%,var(--cd-surface,#fff));border:1.5px solid color-mix(in srgb,var(--cd-accent,#b31955) 42%,transparent);transition:background .22s ease,color .22s ease,border-color .22s ease}
-.cd-onestep__title{font-size:14.5px;font-weight:800;letter-spacing:-.01em;line-height:1.35;color:var(--cd-text,#3c1830)}
-.cd-onestep__desc{font-size:12.5px;line-height:1.55;color:color-mix(in srgb,var(--cd-text,#3c1830) 78%,transparent);text-wrap:pretty}
-.cd-onestep__step.is-done .cd-onestep__num{color:var(--cd-cta-text,#3c1830);background:color-mix(in srgb,var(--cd-accent,#b31955) 30%,var(--cd-surface,#fff));border-color:color-mix(in srgb,var(--cd-accent,#b31955) 50%,transparent)}
-.cd-onestep__step.is-current{border-color:color-mix(in srgb,var(--cd-accent,#b31955) 50%,transparent);box-shadow:0 0 0 1px color-mix(in srgb,var(--cd-accent,#b31955) 18%,transparent)}
-.cd-onestep__step.is-current .cd-onestep__num{background:var(--cd-accent,#b31955);color:#fff;border-color:var(--cd-accent,#b31955)}
-.cd-onestep__step:last-child .cd-onestep__num{color:#8a6110;background:color-mix(in srgb,var(--cd-sig-gold) 34%,var(--cd-surface,#fff));border-color:color-mix(in srgb,var(--cd-sig-gold) 66%,transparent)}
-.cd-onestep__step:last-child.is-current .cd-onestep__num{color:#3c1830;background:var(--cd-sig-gold);border-color:var(--cd-sig-gold)}
-.cd-onestep__step:last-child.is-current{border-color:color-mix(in srgb,var(--cd-sig-gold) 62%,transparent)}
-@media (prefers-reduced-motion:no-preference){
-  .cd-onestep__step.is-current .cd-onestep__num{animation:cdStepPulse 2.4s ease-in-out infinite}
-}
-@keyframes cdStepPulse{0%,100%{box-shadow:0 0 0 0 color-mix(in srgb,var(--cd-accent,#b31955) 40%,transparent)}70%,100%{box-shadow:0 0 0 9px color-mix(in srgb,var(--cd-accent,#b31955) 0%,transparent)}}
-@media (hover:hover) and (pointer:fine){
-  .cd-onestep__step:hover{border-color:var(--cd-accent,#b31955);box-shadow:0 0 0 1px color-mix(in srgb,var(--cd-accent,#b31955) 22%,transparent),0 18px 38px -22px color-mix(in srgb,var(--cd-accent,#b31955) 52%,transparent);transform:translate3d(0,-3px,0)}
-  .cd-onestep__step:hover .cd-onestep__num{background:var(--cd-accent,#b31955);color:#fff;border-color:var(--cd-accent,#b31955)}
-  .cd-onestep__step:last-child:hover .cd-onestep__num{color:#3c1830;background:var(--cd-sig-gold);border-color:var(--cd-sig-gold)}
-}
-@media (min-width:768px){
-  .cd-onestep{margin:26px auto 0}
-  .cd-onestep__title{font-size:15.5px}
-  .cd-onestep__desc{font-size:13px}
-}
-@media (max-width:640px){
-  .cd-onestep__steps{grid-template-columns:1fr;gap:14px}
-  .cd-onestep__step{padding:14px 12px 13px}
-  .cd-onestep__step:not(:last-child)::after{top:auto;bottom:-15px;right:auto;left:50%;width:2px;height:16px;transform:translateX(-1px)}
-}
-@media (prefers-reduced-motion:reduce){
-  .cd-onestep__step,.cd-onestep__num{transition:none;animation:none!important}
-  .cd-onestep__step:hover{transform:none}
-}
-html.neo-mode body .cd-onestep__inner{border-color:rgba(196,181,253,.3);background:rgba(19,16,42,.54)}
-html.neo-mode body .cd-onestep__head{color:#f4eeff}
-html.neo-mode body .cd-onestep__head::after{background:linear-gradient(90deg,rgba(196,181,253,.4),transparent)}
-html.neo-mode body .cd-onestep__count{color:rgba(244,238,255,.74)}
-html.neo-mode body .cd-onestep__step:not(:last-child)::after{background:rgba(196,181,253,.5)}
-html.neo-mode body .cd-onestep__step:nth-child(3)::after{background:rgba(232,213,163,.6)}
-html.neo-mode body .cd-onestep__step{border-color:rgba(196,181,253,.26);background:rgba(19,16,42,.46)}
-html.neo-mode body .cd-onestep__title{color:#f4eeff}
-html.neo-mode body .cd-onestep__desc{color:rgba(244,238,255,.8)}
-html.neo-mode body .cd-onestep__num{color:#c4b5fd;background:rgba(196,181,253,.14);border-color:rgba(196,181,253,.44)}
-html.neo-mode body .cd-onestep__step.is-done .cd-onestep__num{background:rgba(196,181,253,.3);color:#f4eeff;border-color:rgba(196,181,253,.56)}
-html.neo-mode body .cd-onestep__step.is-current{border-color:rgba(196,181,253,.62);box-shadow:0 0 0 1px rgba(196,181,253,.24)}
-html.neo-mode body .cd-onestep__step.is-current .cd-onestep__num{background:#c4b5fd;color:#13102a;border-color:#c4b5fd}
-html.neo-mode body .cd-onestep__step:last-child .cd-onestep__num{color:#e8d5a3;background:rgba(232,213,163,.14);border-color:rgba(232,213,163,.46)}
-html.neo-mode body .cd-onestep__step:last-child.is-current .cd-onestep__num{background:#e8d5a3;color:#13102a;border-color:#e8d5a3}
-html.neo-mode body .cd-onestep__step:last-child.is-current{border-color:rgba(232,213,163,.6)}
-html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
-@media (hover:hover) and (pointer:fine){
-  html.neo-mode body .cd-onestep__step:hover{border-color:rgba(196,181,253,.66);box-shadow:0 0 0 1px rgba(196,181,253,.3),0 18px 38px -22px rgba(124,58,237,.6)}
-  html.neo-mode body .cd-onestep__step:hover .cd-onestep__num{background:#c4b5fd;color:#13102a;border-color:#c4b5fd}
-  html.neo-mode body .cd-onestep__step:last-child:hover .cd-onestep__num{background:#e8d5a3;color:#13102a;border-color:#e8d5a3}
-}
-@media (prefers-reduced-motion:reduce){
-  html.neo-mode body .cd-onestep__step.is-current .cd-onestep__num{animation:none!important}
-}
-</style>
       <!-- 통합 운세 탐색기 — 홈의 유일한 서비스 탐색 UI (cd-finder-v20260819).
            검색 · 궁금한 것 · 운세 방식 · 가격이 하나의 필터 상태를 공유하고 결과가 바로 아래 붙는다.
            🔴 같은 목적의 섹션을 새로 만들지 말 것. 예전에는 이 역할이 네 곳에 흩어져 있었다
@@ -14583,94 +14467,6 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                 localStorage.setItem(CD_INTENT_KEY, JSON.stringify(d));
               } catch (_) {}
             }, false);
-          }
-          // 오늘의 한 걸음 — 정문 CTA 아래 3스텝 진입 funnel(테마 적응: 연이 핑크/네오 퍼플 --cd-* 토큰). i18n는 __cdHeroText 폴백(한국어).
-          if (hero.parentNode && !document.getElementById('cdOneStepRail')) {
-            /* CSS 는 문서의 <style id="cdOneStepStyles"> 로 이관됨(cd-journey-timeline-v20260801) — 런타임 주입 제거. */
-            // intent 개인화 — 반복된 관심사(≥2회 클릭)가 있으면 3번째 '심층' 스텝을 해당 상담으로 교체(없으면 기본 = 회귀 0).
-            var CD_STEP3_INTENT = {
-              love: { href:'/love-secret-ai', t:'연애 비책 상담', d:'사랑의 흐름을 깊이' },
-              wealth: { href:'/ziwei-ai', t:'재물 심층 상담', d:'재물의 길을 깊이' },
-              career: { href:'/journey', t:'운명 여정 상담', d:'진로를 깊이 들여다봐요' },
-              health: { href:'/saju', t:'건강 흐름 상담', d:'몸의 리듬을 깊이' }
-            };
-            var __cdIntentTop = (typeof window.__cdDominantIntent === 'function') ? window.__cdDominantIntent() : null;
-            var __cdStep3P = (__cdIntentTop && CD_STEP3_INTENT[__cdIntentTop]) || null;
-            // 4단계 운명 여정 — 숫자 대신 마커 글리프로 단계를 표현하고, 현재 단계만 발광한다.
-            var oneStepData = [
-              { href:'/saju/basic', mark:'○', tk:'home.oneStep.s1.title', t:'무료 사주 원국', dk:'home.oneStep.s1.desc', d:'먼저 나를 확인해요' },
-              { href:'/tarot/mingri', mark:'◇', tk:'home.oneStep.s2.title', t:'오늘의 운세·타로', dk:'home.oneStep.s2.desc', d:'지금의 흐름을 봐요' },
-              __cdStep3P ? { href:__cdStep3P.href, mark:'✦', tk:'', t:__cdStep3P.t, dk:'', d:__cdStep3P.d } : { href:'/journey', mark:'✦', tk:'home.oneStep.s3.title', t:'운명 여정 상담', dk:'home.oneStep.s3.desc', d:'깊이 들어가요' },
-              { href:'/life-book-ai', mark:'♛', tk:'', t:'AI 종합 해석', dk:'', d:'인생의 책으로 묶어요' }
-            ];
-            // 여정 진행 — 스텝을 누른 기록만 남기고, '첫 미방문 단계'를 현재 단계로 본다.
-            var CD_JOURNEY_KEY = 'cd_journey_progress_v1';
-            function __cdJourneyDone(){
-              try {
-                var raw = JSON.parse(localStorage.getItem(CD_JOURNEY_KEY) || 'null');
-                return (raw && typeof raw === 'object') ? raw : {};
-              } catch (_) { return {}; }
-            }
-            function __cdJourneyMark(href){
-              try {
-                var d = __cdJourneyDone();
-                d[href] = 1;
-                localStorage.setItem(CD_JOURNEY_KEY, JSON.stringify(d));
-              } catch (_) {}
-            }
-            var __cdJourneySeen = __cdJourneyDone();
-            var __cdStepCurrent = oneStepData.length - 1;
-            for (var __si = 0; __si < oneStepData.length; __si += 1) {
-              if (!__cdJourneySeen[oneStepData[__si].href]) { __cdStepCurrent = __si; break; }
-            }
-            var oneStepRail = document.createElement('section');
-            oneStepRail.id = 'cdOneStepRail';
-            oneStepRail.className = 'cd-onestep';
-            oneStepRail.setAttribute('aria-label', __cdHeroText('home.oneStep.heading', '오늘의 한 걸음'));
-            var oneStepInner = document.createElement('div');
-            oneStepInner.className = 'cd-onestep__inner';
-            var oneStepHead = document.createElement('div');
-            oneStepHead.className = 'cd-onestep__head';
-            oneStepHead.appendChild(document.createTextNode(__cdHeroText('home.oneStep.heading', '오늘의 한 걸음')));
-            var oneStepCount = document.createElement('span');
-            oneStepCount.className = 'cd-onestep__count';
-            oneStepCount.textContent = (__cdStepCurrent + 1) + ' / ' + oneStepData.length;
-            oneStepHead.appendChild(oneStepCount);
-            oneStepInner.appendChild(oneStepHead);
-            var oneStepSteps = document.createElement('div');
-            oneStepSteps.className = 'cd-onestep__steps';
-            oneStepData.forEach(function(step, idx){
-              var a = document.createElement('a');
-              a.className = 'cd-onestep__step' + (idx < __cdStepCurrent ? ' is-done' : '') + (idx === __cdStepCurrent ? ' is-current' : '');
-              a.href = step.href;
-              if (idx === __cdStepCurrent) a.setAttribute('aria-current', 'step');
-              var num = document.createElement('span');
-              num.className = 'cd-onestep__num';
-              num.setAttribute('aria-hidden', 'true');
-              num.textContent = step.mark;
-              var title = document.createElement('span');
-              title.className = 'cd-onestep__title';
-              title.textContent = __cdHeroText(step.tk, step.t);
-              var desc = document.createElement('span');
-              desc.className = 'cd-onestep__desc';
-              desc.textContent = __cdHeroText(step.dk, step.d);
-              a.setAttribute('aria-label', (idx + 1) + '단계 · ' + title.textContent);
-              a.appendChild(num); a.appendChild(title); a.appendChild(desc);
-              a.addEventListener('click', function(e){
-                __cdJourneyMark(step.href);
-                if (idx === 0 && typeof window.cdOneStepFreeSajuEntry === 'function') {
-                  e.preventDefault();
-                  window.cdOneStepFreeSajuEntry();
-                }
-              }, false);
-              oneStepSteps.appendChild(a);
-            });
-            oneStepInner.appendChild(oneStepSteps);
-            oneStepRail.appendChild(oneStepInner);
-            // 고민 선택 블록(cdConcernPick)이 히어로 직후 첫 단계이므로 oneStep 레일은 그 아래에 붙인다.
-            // 뒤의 두 후보는 하위호환 — 다이어리 진입은 홈 축약으로 접혀 있어 그 뒤에 붙이면 레일만 덩그러니 남는다.
-            var __cdRailAnchor = document.getElementById('cdConcernPick') || document.getElementById('cdDiaryPlannerEntry') || document.getElementById('cdSignatureConsult') || hero;
-            __cdRailAnchor.insertAdjacentElement('afterend', oneStepRail);
           }
         })();
       </script>
@@ -23156,7 +22952,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-08e772d804bc" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-08e772d804bc" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-08e772d804bc" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-08e772d804bc" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
