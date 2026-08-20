@@ -1649,6 +1649,12 @@
       "processing": "Đang tiến hành thanh toán.",
       "meta": "Xác thực thanh toán và quyền truy cập đang được kiểm tra theo thứ tự."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Đang kiểm tra thẻ của bạn",
+        "sub": "Đang điều chỉnh cấp độ thành viên và trạng thái Thẻ Pass"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1687,8 +1693,8 @@
           "sub": "Đang đối chiếu an toàn lịch sử thanh toán của bạn"
         },
         "pass": {
-          "title": "Đang kiểm tra thẻ của bạn",
-          "sub": "Đang điều chỉnh cấp độ thành viên và trạng thái Thẻ Pass"
+          "title": "Đang kiểm tra Pass của bạn",
+          "sub": "Nếu được bao gồm, chúng tôi mở ngay mà không hiện cửa sổ thanh toán"
         }
       },
       "fallback": {
@@ -1972,7 +1978,7 @@
       }
     },
     "passShop": {
-      "monthlyStatus": "Đang tiến hành thanh toán tín dụng hàng tháng. Cân bằng ánh trăng đang lặng lẽ sắp xếp.",
+      "monthlyStatus": "Đã xác nhận số dư nguyệt tinh thạch của bạn.",
       "chargeButton": "Chuyển đến trang thanh toán cho {amount}",
       "chargeNotice": "Sản phẩm Pass {price} · Đây là Pass 30 ngày, không tự động gia hạn. Pass chỉ mua được bằng thanh toán một lần theo KRW.",
       "best": "BEST",

@@ -1649,6 +1649,12 @@
       "processing": "Pembayaran sedang dijalankan.",
       "meta": "Pengesahan pembayaran dan hak akses sedang disemak mengikut urutan."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Menyemak pas anda",
+        "sub": "Menyelaraskan tahap keahlian dan status Pas anda"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1687,8 +1693,8 @@
           "sub": "Menyemak rekod pembayaran anda dengan selamat"
         },
         "pass": {
-          "title": "Menyemak pas anda",
-          "sub": "Menyelaraskan tahap keahlian dan status Pas anda"
+          "title": "Menyemak Pass anda",
+          "sub": "Jika dilindungi, kami buka terus tanpa tetingkap pembayaran"
         }
       },
       "fallback": {
@@ -1972,7 +1978,7 @@
       }
     },
     "passShop": {
-      "monthlyStatus": "Pembayaran kredit bulanan sedang dijalankan. Imbangan cahaya bulan menjajar dengan senyap.",
+      "monthlyStatus": "Baki batu bulan anda telah disahkan.",
       "chargeButton": "Pergi ke halaman pembayaran untuk {amount}",
       "chargeNotice": "Produk Pass {price} · Ini Pass 30 hari, bukan bayaran auto-perbaharui. Pass hanya boleh dibeli dengan bayaran sekali dalam KRW.",
       "best": "BEST",
