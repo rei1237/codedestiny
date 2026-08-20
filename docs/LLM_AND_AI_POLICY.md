@@ -36,9 +36,10 @@
 
 ## AI output locale boundary
 
-- AI output locale support remains exactly the existing five locales: `ko`, `en`, `ja`, `zh-CN`, `zh-TW`.
+- AI output locale support covers every runtime UI locale (12). It is pinned to `RUNTIME_LOCALES`, not written out by hand, so a new UI locale cannot ship with Korean-only AI output. 🔴 Until 2026-08-20 it was five (`ko`, `en`, `ja`, `zh-CN`, `zh-TW`) and the other seven (`vi`, `hi`, `es`, `fr`, `de`, `nl`, `ms`) received a Korean reading under a translated UI.
+- Prompt-directive quality per locale is **unmeasured** — measuring it requires paid live LLM calls, which are forbidden by default. What is asserted without live calls: the directive exists, is bilingual (target language + English), and overrides the Korean literals in the prompts.
 - `languageLocale` controls generated user-visible AI text only. It must not imply a payment market, tax country, billing country, legal jurisdiction, refund outcome, or legal-pack language.
-- UI runtime locales outside the five AI locales may exist, but server AI routes must normalize them through the AI output allowlist before prompt construction and cache lookup.
+- Server AI routes must still normalize any incoming locale tag through the AI output allowlist before prompt construction and cache lookup; anything not on it falls back to `ko`.
 - LLM cache keys must include the normalized AI output locale. Legal jurisdiction must stay out of fortune-result cache keys unless an approved policy notice is explicitly injected as policy data.
 - LLM prompts and fallbacks must not generate legal, refund, tax, subscription, or payment-rights advice. Those notices come from `lib/market-policy/market-policy-registry.js` and legal-pack metadata after approval.
 - All locale validation tests continue to use mock/fake/stub provider responses only.

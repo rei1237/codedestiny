@@ -63,6 +63,18 @@ declare const checkoutEntry: {
    */
   text(key: string, fallback: string, vars?: Record<string, string | number>): string;
   /**
+   * 결제창 숫자 표기에 쓸 BCP-47 로케일. 금액·잔량을 `toLocaleString("ko-KR")` 로 굳히지 않기
+   * 위한 정본이며, 조회기가 없는 환경에서는 ko-KR 로 떨어진다.
+   */
+  displayLocale(): string;
+  /**
+   * PG 결제창(이니시스) UI 언어. KG이니시스가 PC·모바일 양쪽에서 지원하는 두 값만 낸다
+   * — 지원 밖 값은 결제창 미노출 위험이 있어 쓰지 않는다.
+   */
+  pgWindowLocale(): "KO_KR" | "EN_US";
+  /** 금액을 현재 로케일 자릿수 + payment.currency.krw 문구로 그린다. */
+  formatKrwAmount(value: number, fallbackText?: string): string;
+  /**
    * 결제창의 추천 선택지와 카드 순서. 순수 함수이며 서버를 부르지 않는다 —
    * 표시 우선순위일 뿐 접근 권한 판정이 아니다(이용권 판정은 카드 클릭 시 서버가 한다).
    */

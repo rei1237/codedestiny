@@ -46,14 +46,6 @@ function resolvePaymentService(): typeof bundledPaymentService {
 
 const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
-    "billingClient.text.001": "이 콘텐츠를 열어볼까요?",
-    "billingClient.text.002": "가장 편한 방법으로 열어 드릴게요.",
-    "billingClient.text.003": "PortOne V2 · KG이니시스",
-    "billingClient.text.004": "지금 이 결과 하나만. 카드·간편결제로 바로 열립니다.",
-    "billingClient.text.005": "월정석 사용",
-    "billingClient.text.006": "본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다.",
-    "billingClient.text.007": "취소",
-    "billingClient.text.008": "달빛 이용권이 있으면 전곡을 바로 들을 수 있어요. MP3 다운로드는 단건 결제 또는 월정석으로 구매한 곡만 가능합니다.",
     "billingClient.message.001": "결제창을 열지 못했습니다.",
     "billingClient.message.002": "결제창을 열지 못했습니다.",
     "billingClient.error.001": "결제 처리 중 오류가 발생했습니다.",
@@ -80,18 +72,10 @@ const BILLING_CLIENT_TEXT_TRANSLATIONS = {
   },
 } as const;
 
-// 앱에서는 외부 결제(PortOne/이니시스)를 언급하면 안 되고, 실제로도 Play Billing으로 결제된다.
-// 결제수단을 알리는 문구만 앱용으로 갈아끼운다.
-const BILLING_CLIENT_TEXT_APP_OVERRIDES: Partial<Record<keyof typeof BILLING_CLIENT_TEXT_TRANSLATIONS.ko, string>> = {
-  "billingClient.text.003": "Google Play 결제",
-  "billingClient.text.004": "지금 이 결과 하나만. Google Play 결제로 바로 열립니다.",
-};
-
+// 🔴 결제창에 **보이는** 문구는 더 이상 여기 없다 — 세 렌더러가 공유하는 사전 키(checkoutEntry.text)로
+// 옮겼다. 이 표에 남은 것은 상태·오류 토스트(message.* / error.*)뿐이고, 그쪽은 아직 ko 전용이라
+// 비한국어 사용자에게 한국어가 그대로 나간다(별도 배치에서 키로 옮긴다).
 function billingClientText(key: keyof typeof BILLING_CLIENT_TEXT_TRANSLATIONS.ko) {
-  if (isMobileAppRuntime()) {
-    const appText = BILLING_CLIENT_TEXT_APP_OVERRIDES[key];
-    if (appText) return appText;
-  }
   return BILLING_CLIENT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
 
@@ -464,7 +448,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-79783f6f34b1";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-7e266167b7d4";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -856,8 +840,10 @@ async function fetchPricingForSubscriptionSnapshot(input: {
   return parsed.ok && parsed.data?.pricing && typeof parsed.data.pricing === "object" ? parsed.data.pricing : null;
 }
 
+// 🔴 `"ko-KR"` + `원` 을 굳혀 두면 영어 사용자에게도 "10,000원" 이 나간다. 자릿수 로케일과
+// 통화 문구를 정적 셸 formatWon 과 같은 정본(js/core/checkout-entry.js)에서 가져온다.
 export function formatPaymentWon(amount: number): string {
-  return `${Math.max(0, Math.floor(Number(amount || 0))).toLocaleString("ko-KR")}원`;
+  return checkoutEntry.formatKrwAmount(amount, "{amount}원");
 }
 
 function formatCoinValueWon(amount: number): string {
@@ -1109,7 +1095,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   } catch {}
 
   const opts = options || {};
-  const title = toText(opts.title || opts.reason || "유료 서비스") || "유료 서비스";
+  // 호출부가 제목을 주지 않았을 때의 기본값. 셸·독립 폴백과 같은 키를 쓴다.
+  const defaultTitle = checkoutEntry.text("payment.directModal.defaultTitle", "유료 서비스");
+  const title = toText(opts.title || opts.reason || defaultTitle) || defaultTitle;
   const coinPrice = Math.max(0, Math.floor(toNumber(opts.coinPrice ?? opts.cost, 0)));
   const normalizedCategoryKey = toText(opts.categoryKey).toLowerCase();
   const normalizedProductType = toText(opts.productType || opts.serviceType).toLowerCase();
@@ -1134,7 +1122,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   //  대칭으로, 실제 노출 제한은 allowedPaymentModes만 담당한다.)
   let canShowDirect = (!allowedPaymentModes || allowedPaymentModes.includes("direct") || allowedPaymentModes.includes("direct_krw") || allowedPaymentModes.includes("card"));
   const canShowPassStore = opts.disablePassChoice !== true && (!allowedPaymentModes || allowedPaymentModes.includes("pass") || allowedPaymentModes.includes("membership_pass"));
-  const paymentChoiceSub = isMusicTrackPayment ? billingClientText("billingClient.text.008") : billingClientText("billingClient.text.002");
+  const musicTrackSub = checkoutEntry.text("payment.directModal.musicTrackSub", "달빛 이용권이 있으면 전곡을 바로 들을 수 있어요. MP3 다운로드는 단건 결제 또는 월정석으로 구매한 곡만 가능합니다.");
   const monthlyCost = Math.max(0, Math.floor(toNumber(opts.membershipCreditCost, coinPrice * 10)));
   const callerMonthlyBalanceRaw = opts.monthlyBalance ?? opts.monthlyCredits ?? opts.membershipCreditBalance;
   const hasCallerMonthlyBalance = typeof callerMonthlyBalanceRaw === "number" && Number.isFinite(callerMonthlyBalanceRaw) && callerMonthlyBalanceRaw >= 0;
@@ -1213,7 +1201,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // 꽃돼지 연이가 지금 상황에서 가장 나은 방법을 한 줄로 말해 준다.
   // 음원은 이용권/다운로드 조건이 따로라 기존 전용 안내문을 그대로 쓴다.
   const guideBubbleText = isMusicTrackPayment
-    ? paymentChoiceSub
+    ? musicTrackSub
     : (recommendedOption === "monthly"
       ? checkoutEntry.text("payment.directModal.guide.monthly", "가지고 있는 월정석으로 추가 지출 없이 열 수 있어요!")
       : recommendedOption === "pass"
@@ -1238,14 +1226,16 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // 🔴 3렌더러(셸 index.html · 이 파일 · js/destiny-profile.js)가 같은 문구를 써야 한다.
   // 예전에는 이 카드만 "사용 후 N이 남습니다" 예측 문장을 더 달고 있어 셸과 눈에 띄게 달랐다.
   const monthlyDescInitial = monthlyCanUse
-    ? `${checkoutEntry.text("payment.directModal.monthlyHint.use", "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.")} ${checkoutEntry.text("payment.directModal.monthlyHint.after", "사용 후 {balance}이 남습니다.", { balance: monthlyAfterBalance.toLocaleString("ko-KR") })}`
+    ? `${checkoutEntry.text("payment.directModal.monthlyHint.use", "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.")} ${checkoutEntry.text("payment.directModal.monthlyHint.after", "사용 후 {balance}이 남습니다.", { balance: monthlyAfterBalance.toLocaleString(checkoutEntry.displayLocale()) })}`
     : (hasProvidedMonthlyBalance
       ? checkoutEntry.text("payment.directModal.monthlyHint.insufficient", "월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.")
       : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 잔량은 선택하면 바로 확인돼요. 그대로 눌러 봐도 괜찮아요."));
   const monthlyButtonHtml = canShowMonthly ? `
-          <button type="button" class="cd-direct-payment-option${monthlyDisabled ? " is-disabled" : ""}${optionVariantClass("monthly")}" data-mode="monthly" data-monthly-option${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="${escapePaymentText(monthlyTitleLabel)}${monthlyDisabled ? (hasProvidedMonthlyBalance ? " (잔량 부족)" : " (잔량 확인 필요)") : ""}${escapePaymentText(optionRecommendAria("monthly"))}">
+          <button type="button" class="cd-direct-payment-option${monthlyDisabled ? " is-disabled" : ""}${optionVariantClass("monthly")}" data-mode="monthly" data-monthly-option${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="${escapePaymentText(monthlyTitleLabel)}${monthlyDisabled ? ` (${escapePaymentText(hasProvidedMonthlyBalance
+              ? checkoutEntry.text("payment.directModal.monthlyAria.insufficient", "잔량 부족")
+              : checkoutEntry.text("payment.directModal.monthlyAria.unknown", "잔량 확인 필요"))})` : ""}${escapePaymentText(optionRecommendAria("monthly"))}">
             <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>${escapePaymentText(monthlyBadgeLabel)}</span>${optionRecommendHtml("monthly")}</span>
-            <strong>${escapePaymentText(monthlyTitleLabel)} · <span class="cd-direct-payment-amount">${monthlyCost.toLocaleString("ko-KR")}</span> ${escapePaymentText(monthlyUnitLabel)}</strong>
+            <strong>${escapePaymentText(monthlyTitleLabel)} · <span class="cd-direct-payment-amount">${monthlyCost.toLocaleString(checkoutEntry.displayLocale())}</span> ${escapePaymentText(monthlyUnitLabel)}</strong>
             <span class="cd-direct-payment-desc" data-monthly-hint>${monthlyDescInitial}</span>${optionGoHtml("monthly")}
           </button>` : "";
   const passStoreButtonHtml = canShowPassStore ? `
@@ -1289,7 +1279,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         <div class="cd-direct-payment-guide">
           <img class="cd-direct-payment-guide__pig" src="/icons/app-logo-176.webp?v=build-269f04a25a8b" alt="" width="88" height="88" loading="eager" decoding="async">
           <div class="cd-direct-payment-guide__copy">
-            <h2 class="cd-direct-payment-title">${billingClientText("billingClient.text.001")}</h2>
+            <h2 class="cd-direct-payment-title">${escapePaymentText(checkoutEntry.text("payment.directModal.moonTitle", "이 콘텐츠를 열어볼까요?"))}</h2>
             <p class="cd-direct-payment-sub">${escapePaymentText(guideBubbleText)}</p>
           </div>
         </div>
@@ -1298,9 +1288,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           ${paymentChoiceButtonsHtml}
         </div>
         <div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>
-        <p class="cd-direct-payment-legal">${billingClientText("billingClient.text.006")}</p>
+        <p class="cd-direct-payment-legal">${escapePaymentText(checkoutEntry.text("payment.directModal.legal.provisionTiming", "본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다."))}</p>
         <div class="cd-direct-payment-actions">
-          <button type="button" class="cd-direct-payment-cancel" data-mode="cancel">${billingClientText("billingClient.text.007")}</button>
+          <button type="button" class="cd-direct-payment-cancel" data-mode="cancel">${escapePaymentText(checkoutEntry.text("common.cancel", "취소"))}</button>
         </div>
       </div>
     `;
@@ -1369,7 +1359,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         const balance = toNumber(result?.data?.monthlyStoneBalance ?? result?.data?.membershipCreditBalance, Number.NaN);
         if (result?.ok && result.data?.authenticated !== false && result.data?.degraded !== true && Number.isFinite(balance) && balance >= 0) {
           monthlyBalanceShown = true;
-          paint(`${checkoutEntry.text("payment.directModal.currentMonthly", "현재 잔여")} ${Math.floor(balance).toLocaleString("ko-KR")}`, false);
+          paint(`${checkoutEntry.text("payment.directModal.currentMonthly", "현재 잔여")} ${Math.floor(balance).toLocaleString(checkoutEntry.displayLocale())}`, false);
         } else if (result?.data?.authenticated === false) {
           paint(checkoutEntry.text("payment.directModal.monthlyBalance.signedOut", "로그인 후 확인할 수 있어요."), true);
         } else {

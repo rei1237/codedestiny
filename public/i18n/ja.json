@@ -1649,6 +1649,12 @@
       "processing": "決済が進行中です。",
       "meta": "決済認証と利用権限を順番に確認しています。"
     },
+    "gate": {
+      "skeleton": {
+        "title": "利用券を確認しています",
+        "sub": "会員ランクとパスの状態を合わせています"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1683,12 +1689,17 @@
           "sub": "先に月明かりの流れを確認しています"
         },
         "single": {
-          "title": "残高を確認しています"
+          "title": "残高を確認しています",
+          "sub": "決済履歴を安全に照合しています"
         },
         "pass": {
-          "title": "利用券を確認しています",
-          "sub": "会員ランクとパスの状態を合わせています"
+          "title": "パスを確認しています",
+          "sub": "無料で開ける場合は決済画面なしでそのまま進みます"
         }
+      },
+      "fallback": {
+        "title": "処理しています",
+        "sub": "少々お待ちください"
       }
     },
     "pending": {
@@ -1701,7 +1712,7 @@
       "passChecking": "利用券を確認しています。",
       "subscriptionPrepare": "ウォン基準の利用券決済情報を準備しています。",
       "subscriptionConfirm": "利用券決済の承認と有効化を確認しています。",
-      "confirm": "サーバーで決済承認を確認しています。",
+      "confirm": "決済が適用されました。コンテンツを開いています。",
       "purchase": "決済承認と利用権限を確認しています。",
       "pdfGeneration": "PDF生成のための決済権限を確認しています。"
     },
@@ -1729,6 +1740,15 @@
       "monthlyTitle": "月精石で開く",
       "requiredMonthly": "必要月定石",
       "currentMonthly": "現在残高",
+      "musicTrackSub": "月光利用券があれば全曲をすぐに聴けます。MP3ダウンロードは単品購入または月精石で購入した曲のみ可能です。",
+      "defaultTitle": "有料サービス",
+      "passApplyFailed": "利用券の適用に失敗しました。",
+      "monthlyInsufficient": "月精石が足りません。単品決済を選んでください。",
+      "monthlyUnknown": "月精石の残量を確認できませんでした。もう一度開いてください。",
+      "monthlyAria": {
+        "insufficient": "残量不足",
+        "unknown": "残量の確認が必要"
+      },
       "subtitle": {
         "withPass": "表示金額は月定石基準と同じウォン基準です。利用券またはカード単発決済でこのコンテンツを開けます。",
         "directOnly": "表示金額は月定石基準と同じウォン基準です。カード単発決済で進めます。"
@@ -1763,7 +1783,7 @@
       "monthlyHint": {
         "use": "すでにお持ちの月精石で開きます。追加の出費はありません。",
         "insufficient": "月精石が足りません。このコンテンツだけの購入で開けます。",
-        "checking": "月精石の残量を確認しています。そのままタップしても大丈夫です。",
+        "checking": "月精石の残量は選択するとすぐに確認されます。そのままタップして大丈夫です。",
         "after": "使用後は {balance} が残ります。"
       },
       "monthlyBalance": {
@@ -1799,6 +1819,10 @@
       "unlockPreparing": {
         "title": "閲覧権限保存準備中",
         "message": "閲覧権限の保存を準備しています。"
+      },
+      "applied": {
+        "title": "決済が適用されました",
+        "message": "コンテンツを開いています"
       },
       "unlockSaving": {
         "title": "閲覧権限保存中",
@@ -1946,31 +1970,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "決済は完了しました。有料コンテンツの提供状況を確認しています。しばらくお待ちください。",
+        "message": "決済は完了しました。\n有料コンテンツの提供状況を確認しています。\nしばらくお待ちください。",
         "title": "提供状況確認中"
       },
       "refundFailed": {
-        "message": "自動返金リクエスト中に問題が発生しました。決済は正常に記録されており、返金処理には管理者による確認が必要です。しばらくしてから再度ご確認ください。",
+        "message": "自動返金リクエスト中に問題が発生しました。\n決済は正常に記録されており、返金処理には管理者による確認が必要です。\nしばらくしてから再度ご確認ください。",
         "title": "管理者確認が必要"
       },
       "refundPending": {
-        "message": "申し訳ありません。有料コンテンツが正常に提供されなかったため、自動返金処理を行っています。決済金額は100%返金されます。",
+        "message": "申し訳ありません。\n有料コンテンツが正常に提供されなかったため、自動返金処理を行っています。\n決済金額は100%返金されます。",
         "title": "自動返金処理中"
       },
       "refunded": {
-        "message": "有料コンテンツが正常に提供されなかったため、決済金額が100%返金されました。同じ決済で再度請求されることはありません。",
+        "message": "有料コンテンツが正常に提供されなかったため、決済金額が100%返金されました。\n同じ決済で再度請求されることはありません。",
         "title": "返金完了"
       }
     },
     "passShop": {
-      "monthlyStatus": "月定石決済中です。月光の残高が静かに整っています。",
+      "monthlyStatus": "月精石の残量を確認しました。",
       "chargeButton": "{amount} 決済ページへ移動",
-      "chargeNotice": "月定石基準 {credits} · 決済金額 {price} · 自動決済ではない30日利用券です。",
+      "chargeNotice": "パス商品 {price} · 自動決済ではない30日間のパスです。パスはウォン建ての単発決済でのみ購入できます。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月定石基準 {credits} · {price}",
       "profileUnlimited": "プロフィール無制限",
       "profileLimit": "プロフィール{count}件",
-      "allFeatures": "3万ウォン未満は無制限・専門家相談10回込み",
+      "allFeatures": "全機能を利用可能",
       "upTo": "{amount}以下利用可能",
       "benefits": "特典を一覧で見る",
       "closeAria": "月光利用券ショップ案内を閉じる",
@@ -2027,12 +2051,15 @@
     "memberTagline": "今日も運命の星座を探索しましょう",
     "greeting": "✦ こんにちは",
     "userNameSuffix": "{name}",
-    "logout": "🔓 ログアウト",
+    "logout": "🔓 ログアウト",
+    "changePhone": "📱 電話番号変更",
+    "changePassword": "🔑 パスワード変更",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ 管理者セッション",
     "adminAccessChip": "管理者アクセス",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "管理者パネルセッション",
-    "exit": "🔓 終了",
+    "exit": "🔓 終了",
     "loginKeyword": "ログイン",
     "providers": {
       "kakao": "Kakao",
@@ -4397,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "商号",
-    "companyValue": ": コードの運命",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "代表者",
-    "representativeValue": ": パク・ビョンハ",
+    "representativeValue": ": 박병하",
     "registrationLabel": "事業者登録番号",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "通信販売業申告番号",
-    "mailOrderValue": ": 2026-華城湖-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "連絡先",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "メール",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "住所",
     "officeAddressLabel": "事業所住所",
-    "addressValue": ": 101-1207 京畿道華城市孝興区飛峰面セビ峰洞路37"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "星明かり招待リンクを準備中...",

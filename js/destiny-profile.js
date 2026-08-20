@@ -81,7 +81,6 @@
       paymentCompleteOverlay: '결제가 완료되었습니다.\n콘텐츠를 여는 중입니다.\n잠시만 기다려 주세요.',
       subscriptionIncluded: '이용권으로 추가 결제 없이 이용합니다.',
       serviceTermDisclaimer: '결제 완료 후 즉시 서비스가 제공됩니다. 구매한 서비스는 결제가 확인되는 순간부터 이용이 시작됩니다.',
-      paymentBeforeWarning: '⚠️ 이 서비스는 결제 완료 후 즉시 제공되며, 구매 확인 후에는 환불이 불가능합니다.',
       openProfileList: '프로필 목록 열기',
       profileCardManage: '프로필 카드 관리',
       loginRequiredConfirm: '🔒 프로필 카드는 로그인 후에만 생성할 수 있습니다.\n로그인 페이지로 이동할까요?',
@@ -111,7 +110,6 @@
       paymentCompleteOverlay: 'Payment complete.\nOpening your content now.\nPlease wait a moment.',
       subscriptionIncluded: 'Using your pass with no additional payment.',
       serviceTermDisclaimer: 'The service is provided immediately upon payment completion. Your purchased service begins the moment payment is confirmed.',
-      paymentBeforeWarning: '⚠️ This service is provided immediately upon payment completion, and refunds are not possible after purchase confirmation.',
       openProfileList: 'Open profile list',
       profileCardManage: 'Manage profile cards',
       loginRequiredConfirm: '🔒 Profile cards can only be created after login.\nMove to the login page?',
@@ -141,7 +139,6 @@
       paymentCompleteOverlay: '決済が完了しました。\nコンテンツを開いています。\n少々お待ちください。',
       subscriptionIncluded: '利用券で追加決済なしに利用します。',
       serviceTermDisclaimer: '決済完了後、サービスが即座に提供されます。購入したサービスは、決済が確認された時点から利用が開始されます。',
-      paymentBeforeWarning: '⚠️ このサービスは決済完了後に即座に提供されるため、購入確認後の返金はできません。',
       openProfileList: 'プロフィール一覧を開く',
       profileCardManage: 'プロフィールカード管理',
       loginRequiredConfirm: '🔒 プロフィールカードはログイン後にのみ作成できます。\nログインページへ移動しますか？',
@@ -171,7 +168,6 @@
       paymentCompleteOverlay: '支付完成。\n正在为您开启内容。\n请稍候。',
       subscriptionIncluded: '使用券已生效，无需额外付款。',
       serviceTermDisclaimer: '付款完成后，服务将立即提供。购买的服务在付款确认的那一刻开始使用。',
-      paymentBeforeWarning: '⚠️ 本服务在完成付款后立即提供，购买确认后无法退款。',
       openProfileList: '打开个人资料列表',
       profileCardManage: '管理个人资料卡',
       loginRequiredConfirm: '🔒 个人资料卡只能在登录后创建。\n要前往登录页面吗？',
@@ -201,7 +197,6 @@
       paymentCompleteOverlay: '付款完成。\n正在為您開啟內容。\n請稍候。',
       subscriptionIncluded: '使用券已生效，無需額外付款。',
       serviceTermDisclaimer: '付款完成後，服務將立即提供。購買的服務在付款確認的那一刻開始使用。',
-      paymentBeforeWarning: '⚠️ 本服務在完成付款後立即提供，購買確認後無法退款。',
       openProfileList: '開啟個人資料列表',
       profileCardManage: '管理個人資料卡',
       loginRequiredConfirm: '🔒 個人資料卡只能在登入後建立。\n要前往登入頁面嗎？',
@@ -2844,6 +2839,25 @@
     if (!api || typeof api.text !== 'function') return _dpInterpolateText(fallback, vars);
     try { return api.text(key, fallback, vars); } catch (_checkoutTextError) { return _dpInterpolateText(fallback, vars); }
   }
+  // 숫자 자릿수·통화 문구도 문구와 같은 정본을 탄다. 여기에 표를 따로 두면 셸·React 와 갈라진다.
+  function _dpCheckoutDisplayLocale() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.displayLocale !== 'function') return 'ko-KR';
+    try { return api.displayLocale(); } catch (_displayLocaleError) { return 'ko-KR'; }
+  }
+  // PG 결제창 UI 언어도 같은 정본을 탄다. 모듈이 안 붙었으면 종전 동작(한국어 결제창)이다.
+  function _dpPgWindowLocale() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.pgWindowLocale !== 'function') return 'KO_KR';
+    try { return api.pgWindowLocale(); } catch (_pgLocaleError) { return 'KO_KR'; }
+  }
+  function _dpCheckoutFormatKrw(value) {
+    var api = _dpCheckoutEntry();
+    if (api && typeof api.formatKrwAmount === 'function') {
+      try { return api.formatKrwAmount(value, '{amount}원'); } catch (_formatKrwError) { /* 폴백으로 흡수 */ }
+    }
+    return Math.max(0, Math.floor(Number(value) || 0)).toLocaleString('ko-KR') + '원';
+  }
   // 추천 선택지 판정 위임. 모듈이 없으면 종전 동작(등급 미상이면 이용권이 첫 카드)으로 물러난다.
   function _dpResolveCheckoutRecommendation(input) {
     var api = _dpCheckoutEntry();
@@ -4556,6 +4570,8 @@
         totalAmount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
         payMethod: config.payMethod || 'CARD',
+        // 🔴 안 보내면 PG 가 한국어 결제창을 연다. 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
+        locale: _dpPgWindowLocale(),
         // [regression-guard] Do NOT send windowType. PR #104 added { pc:'IFRAME', mobile:'REDIRECTION' }
         // and the PG window stopped opening; no other working payment path in this repo sends it
         // (see lib/payment/portone.ts). Do not re-add without confirming PortOne per-PG support.
@@ -11144,7 +11160,7 @@
     var providedMonthlyBalance = Number(opts.monthlyBalance !== undefined ? opts.monthlyBalance : opts.membershipCreditBalance);
     var monthlyBalanceFresh = isFinite(providedMonthlyBalance) && providedMonthlyBalance >= 0;
     var monthlyInsufficient = monthlyBalanceFresh && Math.floor(providedMonthlyBalance) < monthlyStones;
-    var title = String(opts.title || opts.reason || '유료 서비스').trim();
+    var title = String(opts.title || opts.reason || _dpCheckoutText('payment.directModal.defaultTitle', '유료 서비스')).trim();
     var coverage = opts.membershipCoverage && typeof opts.membershipCoverage === 'object' ? opts.membershipCoverage : null;
     var tierName = String((coverage && (coverage.tier || coverage.passTier)) || '').trim();
     // 무료/미보유 등급을 등급명으로 오표기하지 않는다(무료 이용권이라는 재화는 없음).
@@ -11228,13 +11244,13 @@
       '</button>';
     var directButtonHtml = '<button type="button" class="cd-direct-payment-option' + optionVariantClass('direct') + '" data-mode="direct">' +
         '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>' + esc(directBadge) + '</span>' + optionRecommendHtml('direct') + '</span>' +
-        '<strong>' + esc(directTitleLabel) + ' · <span class="cd-direct-payment-amount">' + esc(_dpCheckoutText('payment.currency.krw', '{amount}원', { amount: amountKrw.toLocaleString('ko-KR') })) + '</span></strong>' +
+        '<strong>' + esc(directTitleLabel) + ' · <span class="cd-direct-payment-amount">' + esc(_dpCheckoutFormatKrw(amountKrw)) + '</span></strong>' +
         '<span class="cd-direct-payment-desc">' + esc(directHint) + '</span>' +
         optionGoHtml('direct') +
       '</button>';
     var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option' + (monthlyInsufficient ? ' is-disabled' : '') + optionVariantClass('monthly') + '" data-mode="monthly" data-monthly-option' + (monthlyInsufficient ? ' disabled aria-disabled="true"' : '') + '>' +
         '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>' + esc(monthlyBadgeText) + '</span>' + optionRecommendHtml('monthly') + '</span>' +
-        '<strong>' + esc(monthlyTitleText) + ' · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString('ko-KR')) + '</span> ' + esc(monthlyUnitText) + '</strong>' +
+        '<strong>' + esc(monthlyTitleText) + ' · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString(_dpCheckoutDisplayLocale())) + '</span> ' + esc(monthlyUnitText) + '</strong>' +
         '<span class="cd-direct-payment-desc" data-monthly-hint>' + esc(monthlyHintText) + '</span>' +
         optionGoHtml('monthly') +
       '</button>';
@@ -11287,14 +11303,14 @@
             '</div>' +
           '</div>' +
           '<div class="cd-direct-payment-note"><strong>' + esc(title) + '</strong>' +
-            '<span>' + esc(_dpCheckoutText('payment.directModal.note.basis', '결제 금액 {amount}', { amount: amountKrw.toLocaleString('ko-KR') + '원' })) + '</span>' +
+            '<span>' + esc(_dpCheckoutText('payment.directModal.note.basis', '결제 금액 {amount}', { amount: _dpCheckoutFormatKrw(amountKrw) })) + '</span>' +
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.')) + '</span>' +
           '</div>' +
           '<div class="cd-direct-payment-choice-grid">' +
             orderedChoiceCardsHtml +
           '</div>' +
           '<div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>' +
-          '<p class="cd-direct-payment-legal">' + _dpText('paymentBeforeWarning') + '</p>' +
+          '<p class="cd-direct-payment-legal">' + esc(_dpCheckoutText('payment.directModal.legal.provisionTiming', '본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다.')) + '</p>' +
           '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + esc(_dpCheckoutText('common.cancel', '취소')) + '</button></div>' +
         '</div>';
       var modalOpenedAt = Date.now();
@@ -11355,7 +11371,7 @@
             if (balanceResult && balanceResult.ok && !balanceResult.signedOut) {
               monthlyBalanceShown = true;
               balanceIsError = false;
-              balanceMessage = _dpCheckoutText('payment.directModal.currentMonthly', '현재 잔여') + ' ' + Math.max(0, Math.floor(Number(balanceResult.balance) || 0)).toLocaleString('ko-KR');
+              balanceMessage = _dpCheckoutText('payment.directModal.currentMonthly', '현재 잔여') + ' ' + Math.max(0, Math.floor(Number(balanceResult.balance) || 0)).toLocaleString(_dpCheckoutDisplayLocale());
             } else if (balanceResult && balanceResult.signedOut) {
               balanceMessage = _dpCheckoutText('payment.directModal.monthlyBalance.signedOut', '로그인 후 확인할 수 있어요.');
             }

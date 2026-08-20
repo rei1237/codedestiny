@@ -1649,6 +1649,12 @@
       "processing": "Pembayaran sedang dijalankan.",
       "meta": "Pengesahan pembayaran dan hak akses sedang disemak mengikut urutan."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Menyemak pas anda",
+        "sub": "Menyelaraskan tahap keahlian dan status Pas anda"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1683,12 +1689,17 @@
           "sub": "Memeriksa cahaya bulan dahulu"
         },
         "single": {
-          "title": "Menyemak baki"
+          "title": "Menyemak baki",
+          "sub": "Menyemak rekod pembayaran anda dengan selamat"
         },
         "pass": {
-          "title": "Menyemak pas anda",
-          "sub": "Menyelaraskan tahap keahlian dan status Pas anda"
+          "title": "Menyemak Pass anda",
+          "sub": "Jika dilindungi, kami buka terus tanpa tetingkap pembayaran"
         }
+      },
+      "fallback": {
+        "title": "Sedang diproses",
+        "sub": "Sila tunggu sebentar"
       }
     },
     "pending": {
@@ -1701,7 +1712,7 @@
       "passChecking": "Menyemak akses pas.",
       "subscriptionPrepare": "Menyediakan maklumat pembayaran pas KRW.",
       "subscriptionConfirm": "Menyemak kelulusan pembayaran pas dan pengaktifan.",
-      "confirm": "Mengesahkan kelulusan pembayaran pada pelayan.",
+      "confirm": "Pembayaran digunakan. Membuka kandungan anda.",
       "purchase": "Menyemak kelulusan pembayaran dan hak akses.",
       "pdfGeneration": "Mengesahkan kebenaran pembayaran untuk penjanaan PDF."
     },
@@ -1729,6 +1740,15 @@
       "monthlyTitle": "Buka dengan batu bulan",
       "requiredMonthly": "Kredit yang diperlukan",
       "currentMonthly": "Baki semasa",
+      "musicTrackSub": "Dengan Pas Cahaya Bulan, anda boleh terus mendengar semua lagu. Muat turun MP3 hanya untuk lagu yang dibeli secara tunggal atau dengan batu bulan.",
+      "defaultTitle": "Perkhidmatan berbayar",
+      "passApplyFailed": "Kami tidak dapat menggunakan Pas anda.",
+      "monthlyInsufficient": "Batu bulan tidak mencukupi. Sila pilih pembayaran tunggal.",
+      "monthlyUnknown": "Kami tidak dapat menyemak baki batu bulan anda. Sila buka semula.",
+      "monthlyAria": {
+        "insufficient": "Baki tidak mencukupi",
+        "unknown": "Baki perlu disemak"
+      },
       "subtitle": {
         "withPass": "Amaun yang dipaparkan sepadan dengan asas KRW kredit bulanan. Anda boleh membuka kandungan ini dengan pas atau pembayaran kad sekali.",
         "directOnly": "Amaun yang dipaparkan sepadan dengan asas KRW kredit bulanan. Anda boleh meneruskan dengan pembayaran kad sekali sahaja."
@@ -1763,7 +1783,7 @@
       "monthlyHint": {
         "use": "Menggunakan batu bulan sedia ada anda. Tiada perbelanjaan tambahan.",
         "insufficient": "Batu bulan tidak mencukupi. Anda boleh membukanya dengan pembelian tunggal.",
-        "checking": "Menyemak baki batu bulan anda. Anda masih boleh mengetik.",
+        "checking": "Baki batu bulan anda disemak sebaik anda memilih. Anda boleh terus mengetik.",
         "after": "{balance} akan berbaki selepas digunakan."
       },
       "monthlyBalance": {
@@ -1799,6 +1819,10 @@
       "unlockPreparing": {
         "title": "Menyediakan akses simpan",
         "message": "Bersedia untuk menyimpan hak akses."
+      },
+      "applied": {
+        "title": "Pembayaran digunakan",
+        "message": "Membuka kandungan anda"
       },
       "unlockSaving": {
         "title": "Menyimpan hak akses",
@@ -1946,31 +1970,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "Pembayaran telah selesai. Kami sedang mengesahkan status penyediaan kandungan berbayar. Sila tunggu sebentar.",
+        "message": "Pembayaran telah selesai.\nKami sedang mengesahkan status penyediaan kandungan berbayar.\nSila tunggu sebentar.",
         "title": "Mengesahkan Status Penyediaan"
       },
       "refundFailed": {
-        "message": "Masalah berlaku semasa permintaan bayaran balik automatik. Pembayaran telah direkodkan dengan betul, dan pengesahan pentadbir diperlukan untuk memproses bayaran balik. Sila semak semula sebentar lagi.",
+        "message": "Masalah berlaku semasa permintaan bayaran balik automatik.\nPembayaran telah direkodkan dengan betul, dan pengesahan pentadbir diperlukan untuk memproses bayaran balik.\nSila semak semula sebentar lagi.",
         "title": "Pengesahan Pentadbir Diperlukan"
       },
       "refundPending": {
-        "message": "Maaf. Kandungan berbayar tidak disediakan dengan betul, jadi kami sedang memproses bayaran balik automatik. 100% daripada jumlah pembayaran akan dikembalikan.",
+        "message": "Maaf.\nKandungan berbayar tidak disediakan dengan betul, jadi kami sedang memproses bayaran balik automatik.\n100% daripada jumlah pembayaran akan dikembalikan.",
         "title": "Bayaran Balik Automatik Sedang Diproses"
       },
       "refunded": {
-        "message": "Kandungan berbayar tidak disediakan dengan betul, jadi 100% daripada jumlah pembayaran telah dikembalikan. Anda tidak akan dicaj semula untuk transaksi pembayaran yang sama.",
+        "message": "Kandungan berbayar tidak disediakan dengan betul, jadi 100% daripada jumlah pembayaran telah dikembalikan.\nAnda tidak akan dicaj semula untuk transaksi pembayaran yang sama.",
         "title": "Bayaran Balik Selesai"
       }
     },
     "passShop": {
-      "monthlyStatus": "Pembayaran kredit bulanan sedang dijalankan. Imbangan cahaya bulan menjajar dengan senyap.",
+      "monthlyStatus": "Baki batu bulan anda telah disahkan.",
       "chargeButton": "Pergi ke halaman pembayaran untuk {amount}",
-      "chargeNotice": "Asas kredit bulanan {credits} · Amaun pembayaran {price} · Ini ialah pas 30 hari, bukan pembayaran yang diperbaharui secara automatik.",
+      "chargeNotice": "Produk Pass {price} · Ini Pass 30 hari, bukan bayaran auto-perbaharui. Pass hanya boleh dibeli dengan bayaran sekali dalam KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Asas kredit bulanan {credits} · {price}",
       "profileUnlimited": "Profil tanpa had",
       "profileLimit": "{count} profil",
-      "allFeatures": "Tanpa had di bawah KRW 30,000 · 10 sesi perundingan pakar disertakan",
+      "allFeatures": "Semua ciri tersedia",
       "upTo": "Tersedia sehingga {amount}",
       "benefits": "Manfaat sepintas lalu",
       "closeAria": "Tutup panduan Kedai Moonlight Pass",
@@ -2027,12 +2051,15 @@
     "memberTagline": "Terokai buruj takdir anda hari ini",
     "greeting": "✦ Hello",
     "userNameSuffix": "{name}",
-    "logout": "🔓 Log keluar",
+    "logout": "🔓 Log keluar",
+    "changePhone": "📱 Tukar nombor telefon",
+    "changePassword": "🔑 Tukar kata laluan",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ Sesi pentadbir",
     "adminAccessChip": "AKSES ADMIN",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "Sesi panel pentadbir",
-    "exit": "🔓 Keluar",
+    "exit": "🔓 Keluar",
     "loginKeyword": "log masuk",
     "providers": {
       "kakao": "Kakao",
@@ -4397,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "Nama perniagaan",
-    "companyValue": ": Kod Takdir",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "Wakil",
-    "representativeValue": ": Park Byeong-ha",
+    "representativeValue": ": 박병하",
     "registrationLabel": "Nombor pendaftaran perniagaan",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "Nombor laporan perniagaan pesanan mel",
-    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "Kenalan",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "E-mel",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Alamat",
     "officeAddressLabel": "Alamat pejabat",
-    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "Menyediakan pautan jemputan cahaya bintang...",

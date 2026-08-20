@@ -1649,6 +1649,12 @@
       "processing": "Le paiement est en cours.",
       "meta": "L'authentification du paiement et les droits d'accès sont en cours de vérification dans l'ordre."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Vérifier votre pass",
+        "sub": "Nous ajustons votre niveau de membre et l'état de votre Pass."
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1683,12 +1689,17 @@
           "sub": "Vérifier d'abord le clair de lune"
         },
         "single": {
-          "title": "Vérification du solde"
+          "title": "Vérification du solde",
+          "sub": "Vérification sécurisée de votre historique de paiement"
         },
         "pass": {
-          "title": "Vérifier votre pass",
-          "sub": "Nous ajustons votre niveau de membre et l'état de votre Pass."
+          "title": "Vérification de votre pass",
+          "sub": "Si c'est couvert, nous l'ouvrons aussitôt sans fenêtre de paiement"
         }
+      },
+      "fallback": {
+        "title": "Traitement en cours",
+        "sub": "Merci de patienter un instant"
       }
     },
     "pending": {
@@ -1701,7 +1712,7 @@
       "passChecking": "Vérification de l'accès au laissez-passer.",
       "subscriptionPrepare": "Préparation des informations de paiement du pass KRW.",
       "subscriptionConfirm": "Vérification de l'approbation et de l'activation du paiement du pass.",
-      "confirm": "Vérification de l'approbation du paiement sur le serveur.",
+      "confirm": "Paiement appliqué. Ouverture de votre contenu.",
       "purchase": "Vérification de l'approbation du paiement et des droits d'accès.",
       "pdfGeneration": "Vérification de l'autorisation de paiement pour la génération de PDF."
     },
@@ -1729,6 +1740,15 @@
       "monthlyTitle": "Ouvrir avec des pierres de lune",
       "requiredMonthly": "Crédits requis",
       "currentMonthly": "Solde actuel",
+      "musicTrackSub": "Avec le Pass Clair de Lune, vous écoutez tous les morceaux immédiatement. Le téléchargement MP3 n'est possible que pour les morceaux achetés à l'unité ou avec des pierres de lune.",
+      "defaultTitle": "Service payant",
+      "passApplyFailed": "Nous n'avons pas pu appliquer votre pass.",
+      "monthlyInsufficient": "Pas assez de pierres de lune. Choisissez plutôt le paiement unique.",
+      "monthlyUnknown": "Nous n'avons pas pu vérifier votre solde de pierres de lune. Rouvrez la fenêtre.",
+      "monthlyAria": {
+        "insufficient": "Solde insuffisant",
+        "unknown": "Solde à vérifier"
+      },
       "subtitle": {
         "withPass": "Le montant affiché correspond à la base du crédit mensuel KRW. Vous pouvez ouvrir ce contenu avec un pass ou un paiement unique par carte.",
         "directOnly": "Le montant affiché correspond à la base du crédit mensuel KRW. Vous pouvez continuer avec un paiement unique par carte."
@@ -1763,7 +1783,7 @@
       "monthlyHint": {
         "use": "Utilise vos pierres de lune existantes. Aucune dépense supplémentaire.",
         "insufficient": "Pas assez de pierres de lune. Vous pouvez l'ouvrir avec un achat unique.",
-        "checking": "Vérification de votre solde de pierres de lune. Vous pouvez toucher quand même.",
+        "checking": "Votre solde de pierres de lune est vérifié dès la sélection. Vous pouvez toucher sans souci.",
         "after": "Il restera {balance} après utilisation."
       },
       "monthlyBalance": {
@@ -1799,6 +1819,10 @@
       "unlockPreparing": {
         "title": "Préparation de la sauvegarde d'accès",
         "message": "Préparation de l'enregistrement des droits d'accès."
+      },
+      "applied": {
+        "title": "Paiement appliqué",
+        "message": "Ouverture de votre contenu"
       },
       "unlockSaving": {
         "title": "Sauvegarde des droits d'accès",
@@ -1946,31 +1970,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "Le paiement est terminé. Nous vérifions l'état de la fourniture du contenu payant. Veuillez patienter un instant.",
+        "message": "Le paiement est terminé.\nNous vérifions l'état de la fourniture du contenu payant.\nVeuillez patienter un instant.",
         "title": "Vérification de l'état de la fourniture"
       },
       "refundFailed": {
-        "message": "Un problème est survenu lors de la demande de remboursement automatique. Le paiement a été enregistré correctement, mais une vérification par l'administrateur est nécessaire pour traiter le remboursement. Veuillez réessayer plus tard.",
+        "message": "Un problème est survenu lors de la demande de remboursement automatique.\nLe paiement a été enregistré correctement, mais une vérification par l'administrateur est nécessaire pour traiter le remboursement.\nVeuillez réessayer plus tard.",
         "title": "Vérification par l'administrateur requise"
       },
       "refundPending": {
-        "message": "Désolé. Le contenu payant n'a pas été fourni correctement, nous procédons donc à un remboursement automatique. Le montant du paiement sera remboursé à 100 %.",
+        "message": "Désolé.\nLe contenu payant n'a pas été fourni correctement, nous procédons donc à un remboursement automatique.\nLe montant du paiement sera remboursé à 100 %.",
         "title": "Remboursement automatique en cours"
       },
       "refunded": {
-        "message": "Le contenu payant n'ayant pas été fourni correctement, le montant du paiement a été remboursé à 100 %. Cette transaction ne sera pas facturée à nouveau.",
+        "message": "Le contenu payant n'ayant pas été fourni correctement, le montant du paiement a été remboursé à 100 %.\nCette transaction ne sera pas facturée à nouveau.",
         "title": "Remboursement effectué"
       }
     },
     "passShop": {
-      "monthlyStatus": "Le paiement mensuel du crédit est en cours. La balance au clair de lune s’aligne tranquillement.",
+      "monthlyStatus": "Votre solde de pierres de lune est confirmé.",
       "chargeButton": "Accéder à la page de paiement pour {amount}",
-      "chargeNotice": "Base de crédit mensuelle {credits} · Montant du paiement {price} · Il s'agit d'un pass de 30 jours et non d'un paiement à renouvellement automatique.",
+      "chargeNotice": "Produit Pass {price} · Il s'agit d'un pass de 30 jours, sans renouvellement automatique. Les pass s'achètent uniquement par paiement unique en KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Base de crédit mensuelle {credits} · {price}",
       "profileUnlimited": "Profils illimités",
       "profileLimit": "{count} profils",
-      "allFeatures": "Illimité sous 30 000 KRW · 10 consultations d'expert incluses",
+      "allFeatures": "Toutes les fonctionnalités disponibles",
       "upTo": "Disponible jusqu'au {amount}",
       "benefits": "Avantages en un coup d'œil",
       "closeAria": "Fermer le guide de la boutique Moonlight Pass",
@@ -2027,7 +2051,10 @@
     "memberTagline": "Explorez votre constellation du destin aujourd'hui",
     "greeting": "✦ Bonjour",
     "userNameSuffix": "{name}",
-    "logout": "🔓 Déconnexion",
+    "logout": "🔓 Déconnexion",
+    "changePhone": "📱 Modifier le numéro de téléphone",
+    "changePassword": "🔑 Modifier le mot de passe",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ Session d'administration",
     "adminAccessChip": "ACCÈS ADMINISTRATEUR",
     "adminName": "ADMIN",
@@ -4397,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "Nom de l'entreprise",
-    "companyValue": ": Code Destin",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "Représentant",
-    "representativeValue": ": Parc Byeong-ha",
+    "representativeValue": ": 박병하",
     "registrationLabel": "Numéro d'enregistrement de l'entreprise",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "Numéro de rapport d'activité de vente par correspondance",
-    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "Contacter",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "E-mail",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Adresse",
     "officeAddressLabel": "Adresse du bureau",
-    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "Préparation du lien d'invitation Starlight...",

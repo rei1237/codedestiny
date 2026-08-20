@@ -3,16 +3,16 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "117575057a7c37b5",
-      "lastmod": "2026-08-19"
+      "signature": "23e45c35f621f358",
+      "lastmod": "2026-08-20"
     },
     "/about/": {
       "signature": "87d3edc7168dd57d",
       "lastmod": "2026-08-19"
     },
     "/advertising-policy/": {
-      "signature": "6370971a604ed1cb",
-      "lastmod": "2026-08-19"
+      "signature": "36a47ed11d5f242f",
+      "lastmod": "2026-08-20"
     },
     "/animal/mbti/": {
       "signature": "c13db8d7a97529cf",
@@ -47,20 +47,20 @@
       "lastmod": "2026-08-19"
     },
     "/contact/": {
-      "signature": "d14c21876f872a3b",
-      "lastmod": "2026-08-19"
+      "signature": "ecca82f5d54bc595",
+      "lastmod": "2026-08-20"
     },
     "/destiny-compass/": {
-      "signature": "69ed3828457eae1f",
-      "lastmod": "2026-08-19"
+      "signature": "f9c036721db8a2d8",
+      "lastmod": "2026-08-20"
     },
     "/destiny-poker": {
       "signature": "1f5a0ac5fa2db812",
       "lastmod": "2026-08-16"
     },
     "/disclaimer/": {
-      "signature": "e2b492c3e4e37a5f",
-      "lastmod": "2026-08-19"
+      "signature": "98d18676ba481210",
+      "lastmod": "2026-08-20"
     },
     "/dream/": {
       "signature": "291cfaf7653a026a",
@@ -75,64 +75,64 @@
       "lastmod": "2026-08-19"
     },
     "/editorial-policy/": {
-      "signature": "7ebbba157c6ee294",
-      "lastmod": "2026-08-19"
+      "signature": "ae472a50c98d0797",
+      "lastmod": "2026-08-20"
     },
     "/en/": {
-      "signature": "3fbdc0a9cf3a53a4",
-      "lastmod": "2026-08-19"
+      "signature": "7c791df6a782d212",
+      "lastmod": "2026-08-20"
     },
     "/en/insights/": {
-      "signature": "916b1d546e7c0e73",
-      "lastmod": "2026-08-19"
+      "signature": "9dcbcdd230c36573",
+      "lastmod": "2026-08-20"
     },
     "/en/insights/sukuyo-basics-en/": {
-      "signature": "b0b38653b2136a8c",
-      "lastmod": "2026-08-19"
+      "signature": "068dac1704cf7518",
+      "lastmod": "2026-08-20"
     },
     "/en/insights/ziwei-basics-en/": {
-      "signature": "b0b38653b2136a8c",
-      "lastmod": "2026-08-19"
+      "signature": "068dac1704cf7518",
+      "lastmod": "2026-08-20"
     },
     "/en/privacy-policy/": {
-      "signature": "78ba219adeba47fe",
-      "lastmod": "2026-08-19"
+      "signature": "717b27dfeaa5ff2f",
+      "lastmod": "2026-08-20"
     },
     "/en/refund-policy/": {
-      "signature": "99ec33ef31395c90",
-      "lastmod": "2026-08-19"
+      "signature": "0691abe410edbdd3",
+      "lastmod": "2026-08-20"
     },
     "/en/sukuyo/": {
-      "signature": "8defb4c0984d5670",
-      "lastmod": "2026-08-19"
+      "signature": "cc2276cb8618545a",
+      "lastmod": "2026-08-20"
     },
     "/en/terms-of-service/": {
-      "signature": "1d45c5acda74a11b",
-      "lastmod": "2026-08-19"
+      "signature": "193f7f0105455b23",
+      "lastmod": "2026-08-20"
     },
     "/en/today/": {
-      "signature": "c5ba5cb09aff90e2",
-      "lastmod": "2026-08-19"
+      "signature": "74cfce8081394b9e",
+      "lastmod": "2026-08-20"
     },
     "/en/ziwei/": {
-      "signature": "5297da01b528aced",
-      "lastmod": "2026-08-19"
+      "signature": "6fafb219ca676b4d",
+      "lastmod": "2026-08-20"
     },
     "/faq/": {
       "signature": "5b7d15e6bac6eba5",
       "lastmod": "2026-08-19"
     },
     "/fortune-tea-house/": {
-      "signature": "fd358eb5282a6c54",
-      "lastmod": "2026-08-19"
+      "signature": "a4d93cbd780de245",
+      "lastmod": "2026-08-20"
     },
     "/fortune/": {
       "signature": "abe22173688ca297",
       "lastmod": "2026-08-16"
     },
     "/fortune/prompt-hub/": {
-      "signature": "f9a8f5f63fb54f15",
-      "lastmod": "2026-08-19"
+      "signature": "f796504e8876babb",
+      "lastmod": "2026-08-20"
     },
     "/fortune/today/": {
       "signature": "b60b41f6463340b4",
@@ -347,8 +347,8 @@
       "lastmod": "2026-08-19"
     },
     "/insights/": {
-      "signature": "29ce2671b97b4f3a",
-      "lastmod": "2026-08-19"
+      "signature": "b6856bd776b52268",
+      "lastmod": "2026-08-20"
     },
     "/insights/astrology/": {
       "signature": "158ffc8db4ea841c",
@@ -375,8 +375,8 @@
       "lastmod": "2026-08-19"
     },
     "/insights/sukuyo-basics/": {
-      "signature": "ffdfd24d5379ef39",
-      "lastmod": "2026-08-19"
+      "signature": "f66a597470be7e6d",
+      "lastmod": "2026-08-20"
     },
     "/insights/sukuyo/": {
       "signature": "fdbb84107a18e42a",
@@ -391,72 +391,72 @@
       "lastmod": "2026-08-19"
     },
     "/insights/ziwei-basics/": {
-      "signature": "fd87464bb968a038",
-      "lastmod": "2026-08-19"
+      "signature": "ad569a118c67eafe",
+      "lastmod": "2026-08-20"
     },
     "/insights/ziwei/": {
       "signature": "b13f4f2b0b85b8c4",
       "lastmod": "2026-08-19"
     },
     "/ja/": {
-      "signature": "3fbdc0a9cf3a53a4",
-      "lastmod": "2026-08-19"
+      "signature": "7c791df6a782d212",
+      "lastmod": "2026-08-20"
     },
     "/ja/insights/": {
-      "signature": "916b1d546e7c0e73",
-      "lastmod": "2026-08-19"
+      "signature": "9dcbcdd230c36573",
+      "lastmod": "2026-08-20"
     },
     "/ja/insights/sukuyo-basics-jp/": {
-      "signature": "b0b38653b2136a8c",
-      "lastmod": "2026-08-19"
+      "signature": "068dac1704cf7518",
+      "lastmod": "2026-08-20"
     },
     "/ja/insights/ziwei-basics-jp/": {
-      "signature": "b0b38653b2136a8c",
-      "lastmod": "2026-08-19"
+      "signature": "068dac1704cf7518",
+      "lastmod": "2026-08-20"
     },
     "/ja/privacy-policy/": {
-      "signature": "78ba219adeba47fe",
-      "lastmod": "2026-08-19"
+      "signature": "717b27dfeaa5ff2f",
+      "lastmod": "2026-08-20"
     },
     "/ja/refund-policy/": {
-      "signature": "99ec33ef31395c90",
-      "lastmod": "2026-08-19"
+      "signature": "0691abe410edbdd3",
+      "lastmod": "2026-08-20"
     },
     "/ja/sukuyo/": {
-      "signature": "8defb4c0984d5670",
-      "lastmod": "2026-08-19"
+      "signature": "cc2276cb8618545a",
+      "lastmod": "2026-08-20"
     },
     "/ja/terms-of-service/": {
-      "signature": "1d45c5acda74a11b",
-      "lastmod": "2026-08-19"
+      "signature": "193f7f0105455b23",
+      "lastmod": "2026-08-20"
     },
     "/ja/today/": {
-      "signature": "c5ba5cb09aff90e2",
-      "lastmod": "2026-08-19"
+      "signature": "74cfce8081394b9e",
+      "lastmod": "2026-08-20"
     },
     "/ja/tokushoho/": {
-      "signature": "7061a881f13adf67",
-      "lastmod": "2026-08-19"
+      "signature": "e60487df6fb44e20",
+      "lastmod": "2026-08-20"
     },
     "/ja/ziwei/": {
-      "signature": "5297da01b528aced",
-      "lastmod": "2026-08-19"
+      "signature": "6fafb219ca676b4d",
+      "lastmod": "2026-08-20"
     },
     "/karma-destiny-ai/": {
-      "signature": "1d21c293bda05a37",
-      "lastmod": "2026-08-19"
+      "signature": "078bc04ae25b01df",
+      "lastmod": "2026-08-20"
     },
     "/kkul-kkul-unse/": {
       "signature": "27516b891c26f7e1",
       "lastmod": "2026-08-16"
     },
     "/life-book-ai/": {
-      "signature": "8238e8ea93ccb72a",
-      "lastmod": "2026-08-19"
+      "signature": "61c64341bcea0a1d",
+      "lastmod": "2026-08-20"
     },
     "/love-secret-ai/": {
-      "signature": "f44540c5cb02feb2",
-      "lastmod": "2026-08-19"
+      "signature": "f3e43c2814c7214e",
+      "lastmod": "2026-08-20"
     },
     "/love/": {
       "signature": "c99fc8cd9750132e",
@@ -467,8 +467,8 @@
       "lastmod": "2026-08-19"
     },
     "/master-love-codex/": {
-      "signature": "19c8af75c81063e6",
-      "lastmod": "2026-08-19"
+      "signature": "5821151b805a7fcb",
+      "lastmod": "2026-08-20"
     },
     "/mayan-calendar/guide/": {
       "signature": "a05949a61e7d21cc",
@@ -483,8 +483,8 @@
       "lastmod": "2026-08-19"
     },
     "/nakshatra/": {
-      "signature": "e8d77eaa5e6a5ab2",
-      "lastmod": "2026-08-19"
+      "signature": "6a683c282972918a",
+      "lastmod": "2026-08-20"
     },
     "/nakshatra/codex/0/": {
       "signature": "baea6bb8ee3b07fe",
@@ -595,36 +595,40 @@
       "lastmod": "2026-08-19"
     },
     "/naming-ai/": {
-      "signature": "bbf04b88526699a6",
-      "lastmod": "2026-08-19"
+      "signature": "0578fba3ea606f4d",
+      "lastmod": "2026-08-20"
     },
     "/new-year-ai-consultation/": {
-      "signature": "c371518f5b795a1a",
-      "lastmod": "2026-08-19"
+      "signature": "ad97429f18dd3492",
+      "lastmod": "2026-08-20"
     },
     "/oracle/hwatu-life/": {
       "signature": "b4df3485c3100c6a",
       "lastmod": "2026-08-19"
     },
     "/oracle/rune/": {
-      "signature": "702d3c67ef261aca",
-      "lastmod": "2026-08-19"
+      "signature": "35724a78e4201df0",
+      "lastmod": "2026-08-20"
     },
     "/physiognomy/": {
       "signature": "a4a8cc1cc941b338",
       "lastmod": "2026-08-19"
     },
     "/privacy/": {
-      "signature": "3efff021c555d197",
-      "lastmod": "2026-08-19"
+      "signature": "ecfd95b06c6d4160",
+      "lastmod": "2026-08-20"
     },
     "/psychotest/": {
       "signature": "0b640dcdb8d75813",
       "lastmod": "2026-08-19"
     },
+    "/refund-policy/": {
+      "signature": "7a787206f8756cbe",
+      "lastmod": "2026-08-20"
+    },
     "/reviews/": {
-      "signature": "9cf78a84f0e668d6",
-      "lastmod": "2026-08-19"
+      "signature": "23ae6db9ea3f662b",
+      "lastmod": "2026-08-20"
     },
     "/saju/": {
       "signature": "3fea96a302116901",
@@ -639,8 +643,8 @@
       "lastmod": "2026-08-19"
     },
     "/saju/destiny-meeting-place/": {
-      "signature": "7448aab6de06985b",
-      "lastmod": "2026-08-19"
+      "signature": "71d382dc5851b3fa",
+      "lastmod": "2026-08-20"
     },
     "/saju/five-elements/": {
       "signature": "ce5464aa9cc39bab",
@@ -835,12 +839,12 @@
       "lastmod": "2026-08-19"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "fa4889e3cba23b31",
-      "lastmod": "2026-08-19"
+      "signature": "bc4ec8b97146048b",
+      "lastmod": "2026-08-20"
     },
     "/sukuyo/": {
-      "signature": "8453701331720a15",
-      "lastmod": "2026-08-19"
+      "signature": "e3f4561a44d09cf6",
+      "lastmod": "2026-08-20"
     },
     "/sukuyo/compatibility/": {
       "signature": "5166ce33f02726db",
@@ -859,28 +863,28 @@
       "lastmod": "2026-08-19"
     },
     "/tarot/mindscan/": {
-      "signature": "d82fca4d28502a67",
-      "lastmod": "2026-08-19"
+      "signature": "e2bdf7a8c5c92705",
+      "lastmod": "2026-08-20"
     },
     "/tarot/numerology/": {
-      "signature": "74d76dc490593b94",
-      "lastmod": "2026-08-19"
+      "signature": "6215c1cbd5fd1561",
+      "lastmod": "2026-08-20"
     },
     "/tarot/prompt-maker/": {
-      "signature": "5d0524a4e48dd44d",
-      "lastmod": "2026-08-19"
+      "signature": "6c61e416f6b21f17",
+      "lastmod": "2026-08-20"
     },
     "/terms/": {
-      "signature": "f3e71a793fbffc2b",
-      "lastmod": "2026-08-19"
+      "signature": "681ccb72b8f559ff",
+      "lastmod": "2026-08-20"
     },
     "/today/": {
-      "signature": "aec1c68ac0520029",
-      "lastmod": "2026-08-19"
+      "signature": "01daaa6ebeb5dabb",
+      "lastmod": "2026-08-20"
     },
     "/vedic-ai/": {
-      "signature": "85dd2259a602bff4",
-      "lastmod": "2026-08-19"
+      "signature": "f10c44c244fe25ca",
+      "lastmod": "2026-08-20"
     },
     "/vedic/": {
       "signature": "6e2db9255e19c816",
@@ -895,96 +899,96 @@
       "lastmod": "2026-08-19"
     },
     "/yeon-star-hug/": {
-      "signature": "1f4110b23d1fda0c",
-      "lastmod": "2026-08-15"
+      "signature": "d6275604b646d0e4",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/": {
-      "signature": "3fbdc0a9cf3a53a4",
-      "lastmod": "2026-08-19"
+      "signature": "7c791df6a782d212",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/insights/": {
-      "signature": "916b1d546e7c0e73",
-      "lastmod": "2026-08-19"
+      "signature": "9dcbcdd230c36573",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/insights/sukuyo-basics-tw/": {
-      "signature": "b0b38653b2136a8c",
-      "lastmod": "2026-08-19"
+      "signature": "068dac1704cf7518",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/insights/ziwei-basics-tw/": {
-      "signature": "b0b38653b2136a8c",
-      "lastmod": "2026-08-19"
+      "signature": "068dac1704cf7518",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/privacy-policy/": {
-      "signature": "78ba219adeba47fe",
-      "lastmod": "2026-08-19"
+      "signature": "717b27dfeaa5ff2f",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/refund-policy/": {
-      "signature": "99ec33ef31395c90",
-      "lastmod": "2026-08-19"
+      "signature": "0691abe410edbdd3",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/sukuyo/": {
-      "signature": "8defb4c0984d5670",
-      "lastmod": "2026-08-19"
+      "signature": "cc2276cb8618545a",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/terms-of-service/": {
-      "signature": "1d45c5acda74a11b",
-      "lastmod": "2026-08-19"
+      "signature": "193f7f0105455b23",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/today/": {
-      "signature": "c5ba5cb09aff90e2",
-      "lastmod": "2026-08-19"
+      "signature": "74cfce8081394b9e",
+      "lastmod": "2026-08-20"
     },
     "/zh-tw/ziwei/": {
-      "signature": "5297da01b528aced",
-      "lastmod": "2026-08-19"
+      "signature": "6fafb219ca676b4d",
+      "lastmod": "2026-08-20"
     },
     "/zh/": {
-      "signature": "3fbdc0a9cf3a53a4",
-      "lastmod": "2026-08-19"
+      "signature": "7c791df6a782d212",
+      "lastmod": "2026-08-20"
     },
     "/zh/insights/": {
-      "signature": "916b1d546e7c0e73",
-      "lastmod": "2026-08-19"
+      "signature": "9dcbcdd230c36573",
+      "lastmod": "2026-08-20"
     },
     "/zh/insights/sukuyo-basics-zh/": {
-      "signature": "b0b38653b2136a8c",
-      "lastmod": "2026-08-19"
+      "signature": "068dac1704cf7518",
+      "lastmod": "2026-08-20"
     },
     "/zh/insights/ziwei-basics-zh/": {
-      "signature": "b0b38653b2136a8c",
-      "lastmod": "2026-08-19"
+      "signature": "068dac1704cf7518",
+      "lastmod": "2026-08-20"
     },
     "/zh/privacy-policy/": {
-      "signature": "78ba219adeba47fe",
-      "lastmod": "2026-08-19"
+      "signature": "717b27dfeaa5ff2f",
+      "lastmod": "2026-08-20"
     },
     "/zh/refund-policy/": {
-      "signature": "99ec33ef31395c90",
-      "lastmod": "2026-08-19"
+      "signature": "0691abe410edbdd3",
+      "lastmod": "2026-08-20"
     },
     "/zh/sukuyo/": {
-      "signature": "8defb4c0984d5670",
-      "lastmod": "2026-08-19"
+      "signature": "cc2276cb8618545a",
+      "lastmod": "2026-08-20"
     },
     "/zh/terms-of-service/": {
-      "signature": "1d45c5acda74a11b",
-      "lastmod": "2026-08-19"
+      "signature": "193f7f0105455b23",
+      "lastmod": "2026-08-20"
     },
     "/zh/today/": {
-      "signature": "c5ba5cb09aff90e2",
-      "lastmod": "2026-08-19"
+      "signature": "74cfce8081394b9e",
+      "lastmod": "2026-08-20"
     },
     "/zh/ziwei/": {
-      "signature": "5297da01b528aced",
-      "lastmod": "2026-08-19"
+      "signature": "6fafb219ca676b4d",
+      "lastmod": "2026-08-20"
     },
     "/ziwei-ai/": {
-      "signature": "1b01c1bfd18c73ed",
-      "lastmod": "2026-08-19"
+      "signature": "9e6075a3866ba45c",
+      "lastmod": "2026-08-20"
     },
     "/ziwei/": {
-      "signature": "b33bcb4e1a0273a0",
-      "lastmod": "2026-08-19"
+      "signature": "2bac25b4362e3365",
+      "lastmod": "2026-08-20"
     },
     "/ziwei/guide/": {
       "signature": "8dfd2b5f8b56a4a6",

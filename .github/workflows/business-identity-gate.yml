@@ -1,0 +1,63 @@
+name: Business Identity Gate
+
+# 법정 사업자 표기(상호·대표자·신고번호·주소)가 등록 원문 그대로인지 PR 에서 본다.
+#
+# 🔴 왜 게이트가 필요한가 — 되돌리는 주체가 사람이 아니라 **번역 파이프라인**이다.
+#    이 값들은 다른 문구와 똑같이 번역을 타서, 2026-08-20 에 12개 로케일 44개 값이
+#    번역돼 있었다(상호 `Code-Schicksal`, 대표자 `Parque Byeong-ha`, 신고번호 `2026-華城湖-0264`).
+#    사람이 실수한 게 아니라 자동화가 자기 일을 한 결과라, 다음 번역 회차에 조용히 재발한다.
+#
+# 🔴 트리거는 좁게(2026-08-20 사용자 지시). 가드가 **실제로 여는 파일**과 그 값을 파생시키는
+#    소비자만 건다. 정합성은 손으로 지키지 않는다 — 가드 자신의 불변식 (4)가 자기가 연 파일이
+#    아래 paths 에 전부 들어 있는지 대조하고, 하나라도 빠지면 실패한다(CLAUDE.md 원칙 10).
+#
+# ⚠️ 알려진 한계: 사본 확산 검사는 `git grep` 으로 레포 전체를 훑지만 트리거는 아래 경로뿐이다.
+#    완전히 새 파일 하나에만 값을 박고 아래 경로를 하나도 안 건드리는 PR 은 깨우지 못한다.
+#    그걸 덮으려면 app/** · lib/** 를 통째로 걸어야 하는데, 그건 사실상 전 PR 게이트다.
+#
+# 🔴 npm ci 를 돌리지 않는다 — 이 가드는 레포 파일과 node 내장 모듈만 쓴다.
+on:
+  pull_request:
+    branches: [main]
+    paths:
+      # ── 정본 ──────────────────────────────────────────────
+      - "lib/site-policy-config.js"
+      # ── 임포트가 닿지 않아 가드가 직접 읽는 곳 ────────────
+      - "index.html"
+      - "public/i18n/**"
+      # ── 정본에서 값을 파생시키는 소비자 ───────────────────
+      - "lib/legal/**"
+      - "app/components/LocaleFooterHub.jsx"
+      - "app/components/SiteFooterHub.jsx"
+      - "app/ja/tokushoho/**"
+      - "app/contact-us/**"
+      - "app/_content/seo-copy.js"
+      # ── 게이트 자신 ───────────────────────────────────────
+      - "scripts/verify-business-identity.mjs"
+      - ".github/workflows/business-identity-gate.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: business-identity-gate-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  business-identity:
+    name: Registered business details are verbatim
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout PR head
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # 의존성이 필요 없는 순수 모듈이라 npm ci 를 돌리지 않는다.
+      - name: Verify registered business details
+        run: npm run verify:business-identity

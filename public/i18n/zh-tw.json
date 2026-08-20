@@ -1649,6 +1649,12 @@
       "processing": "付款正在進行中。",
       "meta": "正在依序確認付款驗證與使用權限。"
     },
+    "gate": {
+      "skeleton": {
+        "title": "正在確認使用券",
+        "sub": "正在調整會員等級和通行證狀態"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1683,12 +1689,17 @@
           "sub": "正在先確認月光的紋理"
         },
         "single": {
-          "title": "正在確認餘額"
+          "title": "正在確認餘額",
+          "sub": "正在安全核對付款紀錄"
         },
         "pass": {
-          "title": "正在確認使用券",
-          "sub": "正在調整會員等級和通行證狀態"
+          "title": "正在確認通行證",
+          "sub": "若可免費開啟，將不顯示付款視窗直接繼續"
         }
+      },
+      "fallback": {
+        "title": "正在處理",
+        "sub": "請稍候"
       }
     },
     "pending": {
@@ -1701,7 +1712,7 @@
       "passChecking": "正在確認使用券權限。",
       "subscriptionPrepare": "正在準備韓元基準的使用券付款資訊。",
       "subscriptionConfirm": "正在確認使用券付款核准與啟用。",
-      "confirm": "正在伺服器驗證付款核准。",
+      "confirm": "付款已生效。正在開啟內容。",
       "purchase": "正在確認付款核准與使用權限。",
       "pdfGeneration": "正在確認生成 PDF 的付款權限。"
     },
@@ -1729,6 +1740,15 @@
       "monthlyTitle": "用月精石打開",
       "requiredMonthly": "所需月定石",
       "currentMonthly": "当前余额",
+      "musicTrackSub": "擁有月光通行券即可立即聆聽全部曲目。MP3 下載僅限單次購買或以月精石購買的曲目。",
+      "defaultTitle": "付費服務",
+      "passApplyFailed": "通行券套用失敗。",
+      "monthlyInsufficient": "月精石不足。請改選單次付款。",
+      "monthlyUnknown": "無法確認月精石餘量。請重新開啟。",
+      "monthlyAria": {
+        "insufficient": "餘量不足",
+        "unknown": "需要確認餘量"
+      },
       "subtitle": {
         "withPass": "显示金额与月定石基准相同。可使用通行券或银行卡单次支付开启此内容。",
         "directOnly": "显示金额与月定石基准相同。可继续银行卡单次支付。"
@@ -1763,7 +1783,7 @@
       "monthlyHint": {
         "use": "使用你已有的月精石打開，無需額外支出。",
         "insufficient": "月精石不足。可以只購買這個內容來打開。",
-        "checking": "正在確認月精石餘量。直接點也沒關係。",
+        "checking": "月精石餘量在選擇時立即確認。直接點也沒關係。",
         "after": "使用後將剩餘 {balance}。"
       },
       "monthlyBalance": {
@@ -1799,6 +1819,10 @@
       "unlockPreparing": {
         "title": "正在准备保存权限",
         "message": "正在准备保存阅览权限。"
+      },
+      "applied": {
+        "title": "付款已生效",
+        "message": "正在開啟內容"
       },
       "unlockSaving": {
         "title": "正在保存阅览权限",
@@ -1946,31 +1970,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "付款已完成。正在確認付費內容的提供狀態。請稍候。",
+        "message": "付款已完成。\n正在確認付費內容的提供狀態。\n請稍候。",
         "title": "正在確認提供狀態"
       },
       "refundFailed": {
-        "message": "自動退款請求時發生問題。付款已正常記錄，需要管理員確認才能處理退款。請稍後再確認。",
+        "message": "自動退款請求時發生問題。\n付款已正常記錄，需要管理員確認才能處理退款。\n請稍後再確認。",
         "title": "需管理員確認"
       },
       "refundPending": {
-        "message": "抱歉。由於付費內容未能正常提供，正在進行自動退款。付款金額將 100% 退還。",
+        "message": "抱歉。\n由於付費內容未能正常提供，正在進行自動退款。\n付款金額將 100% 退還。",
         "title": "正在進行自動退款"
       },
       "refunded": {
-        "message": "由於付費內容未能正常提供，付款金額已 100% 退還。不會再次收取相同款項。",
+        "message": "由於付費內容未能正常提供，付款金額已 100% 退還。\n不會再次收取相同款項。",
         "title": "退款完成"
       }
     },
     "passShop": {
-      "monthlyStatus": "月定石支付中。月光余额正静静对齐。",
+      "monthlyStatus": "已確認月精石餘量。",
       "chargeButton": "前往 {amount} 支付页面",
-      "chargeNotice": "月定石基准 {credits} · 支付金额 {price} · 这是30天通行券，不是自动续费商品。",
+      "chargeNotice": "通行證商品 {price} · 這是 30 天通行證，並非自動續約。通行證僅能以韓元單次付款購買。",
       "best": "BEST",
       "monthlyBasisWithPrice": "月定石基准 {credits} · {price}",
       "profileUnlimited": "不限资料",
       "profileLimit": "{count}个资料",
-      "allFeatures": "3萬韓元以下無限 · 含專家諮詢10次",
+      "allFeatures": "可使用全部功能",
       "upTo": "可使用 {amount} 以下",
       "benefits": "权益一览",
       "closeAria": "关闭月光通行券商店说明",
@@ -2027,12 +2051,15 @@
     "memberTagline": "今天也繼續探索命運星座",
     "greeting": "✦ 你好",
     "userNameSuffix": "{name}",
-    "logout": "🔓 登出",
+    "logout": "🔓 登出",
+    "changePhone": "📱 變更手機號碼",
+    "changePassword": "🔑 變更密碼",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ 管理員工作階段",
     "adminAccessChip": "管理員存取權限",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "管理員面板工作階段",
-    "exit": "🔓 離開",
+    "exit": "🔓 離開",
     "loginKeyword": "登录",
     "providers": {
       "kakao": "Kakao",
@@ -4397,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "商号",
-    "companyValue": "：代碼命運",
+    "companyValue": "：코드 데스티니 (Code Destiny)",
     "representativeLabel": "代表人",
-    "representativeValue": "：樸秉河",
+    "representativeValue": "：박병하",
     "registrationLabel": "营业执照号",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "通信销售备案号",
-    "mailOrderValue": "：2026-Hwaseongho-0264",
+    "mailOrderValue": "：제 2026-화성호-0264 호",
     "contactLabel": "联系方式",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "邮箱",
     "emailValue": "：admin@code-destiny.com",
     "addressLabel": "地址",
     "officeAddressLabel": "营业地址",
-    "addressValue": ": 京畿道華城市孝恆區飛峰面新飛峰東路 37 號 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "正在准备星光邀请链接...",

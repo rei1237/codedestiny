@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { EDGE_RESPONSE_DEADLINE_MS, clampSyncLlmTimeoutMs } from "../lib/sync-llm-timeout.js";
@@ -138,6 +139,16 @@ const NEW_YEAR_AI_REQUIRED_CATEGORY_LABELS = Object.freeze({
 //   ② cleanForbiddenResult가 배달 본문을 "면역 상담 흐름"·"소화 상담"으로 훼손 —
 //      validateConsultationQuality가 cleaned를 돌려주고 그게 그대로 사용자에게 나간다.
 const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bprogress\b|\bjob\b|프롬프트|시스템\s*(?:메시지|지시)|(?:AI|인공지능)\s*(?:가|이|는|은|를|을|로|로서|에\s*의해)?\s*(?:생성|작성|제작|답변|응답|만들)|(?:저는|제가|나는)\s*(?:AI|인공지능|언어\s*모델)/i;
+
+// 🔴 위 패턴은 **ko 전용**이다. `\bjob\b`·`\bprogress\b`·`\bAI\b`·`chapter` 는 영어·독일어
+//    상담문에서 자연스러운 단어라, 비-ko 응답에 그대로 돌리면 모델이 정상적으로 답해도 반려된다
+//    (실측 2026-08-20: "Your job situation improves and progress comes steadily" → 반려).
+//    llm-leak-guard 가 정확히 이 상황을 위해 있다 — ko 면 넘긴 패턴을 그대로 돌려주므로
+//    **한국어 판정은 한 글자도 바뀌지 않고**, 비-ko 면 보편 패턴 + 로케일 패턴으로 갈아탄다.
+function hasForbiddenResult(value) {
+  const body = String(value ?? "");
+  return resolveForbiddenPatterns(FORBIDDEN_RESULT_PATTERN).some((pattern) => pattern.test(body));
+}
 const FOCUS_AREA_LABELS = Object.freeze({
   overall: "전체운",
   love: "연애운",
@@ -1528,7 +1539,7 @@ function validateConsultationQuality(text, options = {}) {
   const issues = [];
   if (totalChars < minTotalChars) issues.push(`MIN_TOTAL_CHARS:${totalChars}/${minTotalChars}`);
   if (totalChars > maxTotalChars) issues.push(`MAX_TOTAL_CHARS:${totalChars}/${maxTotalChars}`);
-  if (FORBIDDEN_RESULT_PATTERN.test(cleaned)) issues.push("FORBIDDEN_RESULT_PATTERN");
+  if (hasForbiddenResult(cleaned)) issues.push("FORBIDDEN_RESULT_PATTERN");
   if (sections.length < 6) issues.push(`SECTION_COUNT:${sections.length}/6`);
   if (missingTopics.length) issues.push(`MISSING_EXPERT_TOPICS:${missingTopics.join("|")}`);
   issues.push(...validateFortuneDataConsistency(cleaned, options.fortuneData, options.hasCustomQuestion));
@@ -1647,7 +1658,7 @@ function mapIssuesToSections(quality, results) {
     }
     if (code === "FORBIDDEN_RESULT_PATTERN") {
       // 어느 섹션이 실제로 걸렸는지 본다. 전체를 다시 쓰지 않는다.
-      for (const row of results) if (FORBIDDEN_RESULT_PATTERN.test(row.text)) push(row.key, issue);
+      for (const row of results) if (hasForbiddenResult(row.text)) push(row.key, issue);
       continue;
     }
     // 분량 합계로는 책임 섹션을 알 수 없다 — 아래에서 섹션 실측으로 판정한다.

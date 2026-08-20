@@ -58,6 +58,7 @@ const indexablePublicRoutes = [
   "/editorial-policy",
   "/privacy",
   "/privacy-policy",
+  "/refund-policy",
   "/terms",
   "/terms-of-service",
   "/saju/guide",

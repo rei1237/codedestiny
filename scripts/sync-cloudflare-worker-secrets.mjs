@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
+import { isDeferredOnStaging, stagingDeferralReason } from "./lib/staging-secret-policy.mjs";
 
 const rootDir = process.cwd();
 const args = new Set(process.argv.slice(2));
@@ -147,10 +148,23 @@ if (!process.env.CLOUDFLARE_API_TOKEN && process.env.CLOUDFLARE_APITOKEN) {
 }
 
 const PRODUCTION_WORKER_NAME = "code-destiny-web";
-const workerName =
-  process.env.CF_WORKER_NAME ||
-  process.env.CLOUDFLARE_WORKER_NAME ||
-  (syncTarget === "staging" ? "code-destiny-web-staging" : PRODUCTION_WORKER_NAME);
+
+/** 대상 설정 파일의 `name` 을 읽는다. 이름을 두 곳에 적어 두면 언젠가 한쪽만 바뀐다. */
+function workerNameFromConfig() {
+  const configFile = resolve(rootDir, workerConfigPath);
+  if (!existsSync(configFile)) return "";
+  return readFileSync(configFile, "utf8").match(/^\s*name\s*=\s*"([^"]+)"/m)?.[1] || "";
+}
+
+// 🔴 스테이징은 CF_WORKER_NAME 을 보지 않는다.
+//
+// 그 변수는 프로덕션 배포용이라 .env.local 이나 셸에 `code-destiny-web` 으로 남아 있는 것이
+// 정상이다. 예전에는 스테이징도 같은 변수를 먼저 읽어서, 그 정상적인 값 하나 때문에 스테이징
+// 동기화가 "프로덕션 워커로 해석됐다"며 통째로 멈췄다 — 사용자가 자기 환경을 고쳐야 스크립트가
+// 도는 구조였다. 타깃이 다르면 읽는 변수도 달라야 한다.
+const workerName = syncTarget === "staging"
+  ? (process.env.CF_STAGING_WORKER_NAME || workerNameFromConfig() || "code-destiny-web-staging")
+  : (process.env.CF_WORKER_NAME || process.env.CLOUDFLARE_WORKER_NAME || workerNameFromConfig() || PRODUCTION_WORKER_NAME);
 
 // 🔴 --target=staging 인데 프로덕션 워커를 가리키면 여기서 끝낸다. 이 스크립트는 인자 없이 돌면
 //    시크릿을 통째로 덮어쓰므로, 타깃이 어긋난 채 진행되는 것이 가장 비싼 실패다.
@@ -366,6 +380,17 @@ function isAliasRelatedKey(keyA, keyB) {
   return false;
 }
 
+/** 마지막 실패의 wrangler 출력. 부트스트랩 안내를 조건부로 띄우는 데만 쓴다. */
+let lastFailureOutput = "";
+
+/**
+ * 워커가 아직 없다는 신호. Cloudflare·wrangler 가 이 경우를 여러 문구로 알린다
+ * (에러코드 10007 · "script not found" · "doesn't seem to be a Worker" 생성 프롬프트).
+ */
+function looksLikeMissingWorker(output) {
+  return /10007|script[_ ]not[_ ]found|doesn't seem to be a worker|does not exist/i.test(String(output || ""));
+}
+
 function putWorkerSecret(key, value) {
   if (isDryRun) {
     console.log(`[dry-run] npx wrangler secret put ${key} --name ${workerName} --config ${workerConfigPath}`);
@@ -424,6 +449,7 @@ function putWorkerSecret(key, value) {
     return 0;
   }
 
+  lastFailureOutput = lastOutput;
   return lastStatus;
 }
 
@@ -431,19 +457,13 @@ const activeSecretKeys = onlyPortone
   ? ["PORTONE_API_SECRET", "PORTONE_API_Secret", "PORTONE_WEBHOOK_URL", "PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOK_SECRET", "PORTONE_webhook", "PORTONE_webhook_Secret", "PORTONE_CHANNEL_KEY", "PORTONE_channel", "PORTONE_STORE_ID", "PORTONE_Store", "MID", "INICISMID", "INIsignkey", "INIAPIKEY", "INIAPI_IV"]
   : SECRET_KEYS;
 
-/**
- * 🔴 스테이징에 넣지 않는 시크릿.
- *
- * .env.staging.local 은 프로덕션 .env.local 위에 얹히므로, 막지 않으면 과금 LLM 키가 그대로
- * 상속되어 스테이징 테스트가 조용히 유료 경로를 탄다. 스테이징에서 실제 생성 품질을 봐야 할 때만
- * `--target=staging --only-key=GEMINIF_API_KEY` 로 한 번 넣고, 확인이 끝나면 대시보드에서 지운다.
- */
-const STAGING_EXCLUDED_KEYS = new Set(["GEMINIF_API_KEY", "ANTHROPIC_API_KEY"]);
-
+// 스테이징에서 의도적으로 비워 두는 시크릿. 목록의 정본은 scripts/lib/staging-secret-policy.mjs 다
+// — env-parity 도 같은 모듈을 보고 "없음"을 실패가 아니라 경고로 처리한다. 두 곳에 따로 적으면
+// 반드시 어긋나고, 어긋나면 한쪽을 풀다가 프로덕션 자격증명이 스테이징으로 돌아온다.
 const targetFilteredKeys = syncTarget === "staging" && !onlyKey
   ? activeSecretKeys.filter((key) => {
-    if (!STAGING_EXCLUDED_KEYS.has(normalizeEnvKey(key))) return true;
-    console.warn(`[worker-secrets] Skipping ${key}: excluded from staging (과금 LLM 키).`);
+    if (!isDeferredOnStaging(key)) return true;
+    console.warn(`[worker-secrets] Skipping ${key}: ${stagingDeferralReason(key)}`);
     return false;
   })
   : activeSecretKeys;
@@ -485,6 +505,14 @@ for (const { key, value } of available) {
   const code = putWorkerSecret(key, value);
   if (code !== 0) {
     console.error(`[worker-secrets] Failed while setting ${key}. Stopping.`);
+    // 🔴 순서 함정. 시크릿은 **워커가 이미 존재해야** 넣을 수 있는데, 워커는 첫 배포로 생긴다.
+    //    처음 스테이징을 세울 때 이 순서를 모르면 wrangler 원문 에러만 보고 한참 헤맨다.
+    if (looksLikeMissingWorker(lastFailureOutput)) {
+      console.error(`[worker-secrets] '${workerName}' 워커가 아직 없습니다. 시크릿은 워커가 존재해야 넣을 수 있습니다.`);
+      console.error("[worker-secrets] 먼저 워커를 한 번 만든 뒤 다시 실행하세요:");
+      console.error(`[worker-secrets]   npx wrangler deploy --config ${workerConfigPath}`);
+      console.error("[worker-secrets] 그 배포는 시크릿이 없어 런타임이 동작하지 않습니다 — 껍데기를 만드는 것이 목적입니다.");
+    }
     process.exit(code);
   }
 }
