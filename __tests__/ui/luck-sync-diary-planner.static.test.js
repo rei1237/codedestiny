@@ -38,12 +38,13 @@ test("fortune planner entry is folded into the diary modal", () => {
   assert.match(html, /\.dp-destiny-panel:not\(\.is-form-open\) > #destinyCardForm\{display:none!important\}/);
   assert.doesNotMatch(html, /<section class="card input-section moon-destiny-form" id="destinyCardForm"[^>]*data-cd-home-secondary/);
   assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="fortuneGatewayEntry"'));
-  // 2026-08-20(refactor/home-concern-picker-merge, PR #868)에서 "빈 온보딩 레일"이 통째로
-  // 제거되며 그 레일의 삽입 지점을 찾던 __cdRailAnchor 폴백 체인
-  // (getElementById('cdConcernPick') || ...('cdDiaryPlannerEntry') || ...('cdSignatureConsult') || hero)
-  // 도 함께 사라졌다. 이 어서션은 다이어리 플래너 자체가 아니라 그 죽은 온보딩 레일 코드를
-  // 검증하던 것 — cdDiaryPlannerEntry/cdSignatureConsult 마크업을 우연히 같이 참조했을 뿐이다.
-  // 온보딩 레일이 사라진 지금은 회귀가 아니라 의도된 삭제이므로 이 단정문을 제거한다.
+  /* 2026-08-21: 온보딩 레일 앵커(__cdRailAnchor)를 요구하던 단언을 걷어냈다.
+     b44bd7862 'remove empty onboarding rail' 이 그 줄을 통째로 지웠는데 이 단언은 남아
+     **main 이 빨간 채로** 머지됐다(PR #869 가 그 실패를 상속해 막혔다).
+     제거는 완전하고 옳았다 — 실측: index.html 에 __cdRailAnchor 참조 0개, 온보딩 레일 마크업 0개.
+     지킬 것은 앵커 표현식이 아니라 **다이어리 진입이 살아 있고 순서가 유지되는 것**이고,
+     그건 바로 위 순서 단언과 앞쪽의 존재·구조 단언 3개가 이미 지킨다.
+     🔴 되살리지 말 것 — 사라진 레일을 다시 요구하게 된다. */
   assert.match(dashboard, /label:'갓생 다이어리'/);
   assert.match(dashboard, /cta:'다이어리 열기'/);
 });
