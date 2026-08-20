@@ -21,6 +21,14 @@
 //
 // 🔴 사진이 늘면 이 상수는 다시 뽑아야 한다: npm run physio:measure → 아래 값 교체 →
 //    npm run physio:replay 로 적중률 확인. 손으로 고치지 말 것.
+//
+// ── 2026-08-21 재계측 (calibration/ 오염 사진 정리 후, n=157 / 라벨 24종) ──
+// calibration/ 하위 폴더 일부에 다른 동물상 사진이 섞여 있었다(사용자 확인, 정리 완료).
+// 재계측한 6축 풀링 중앙값이 이 표의 기존 중앙값과 거의 일치해(최대 편차 0.017) 위 from/to/
+// scale 은 그대로 둔다 — 흔들린 것은 축 스케일이 아니라 일부 동물상의 아키타입 중심점이었다.
+// 강아지·호랑이·공룡·원숭이·말·돼지·개구리·거북이 8종은 표본 수가 같아도 좌표가 유의하게
+// 이동해(오염 사진이 섞여 있던 폴더로 추정) 중심점을 교체했다. 나머지 16종(고양이·여우·사슴·
+// 토끼·곰·뱀·수달·표범·기린 등)은 재계측 결과가 기존 값과 사실상 동일해 그대로 둔다.
 const PHY_AXIS_CALIBRATION = {
   faceRatio:      { from: 0.8345, to: 0.8300, scale: 0.746 },
   eyeSlant:       { from: -0.3810, to: -0.5000, scale: 5.592 },
@@ -966,6 +974,13 @@ class AnalysisEngine {
     this._moleSample = null;
   }
 
+  // analyze() 의 시그니처는 검증 스크립트가 문자열로 고정하고 있어 인자를 늘릴 수 없다(위
+  // setMoleSource 주석과 같은 이유). 사용자가 선택 화면에서 성별을 직접 고르면 분석 직전에
+  // 이 메서드로 넘겨, detectFeminineFace() 의 얼굴 기하학 자동 추정을 대체한다.
+  setGenderOverride(gender) {
+    this._genderOverride = (gender === 'female' || gender === 'male') ? gender : null;
+  }
+
   /**
    * 한 구역에서 점을 찾는다.
    *
@@ -1461,7 +1476,7 @@ async analyze(landmarksData, expressionData, imageAspect) {
           // 다음 작업이다.
           // [강아지상] n=5 실측 (2026-08-16). 기존 손튜닝값은 slant +4.5(처진 눈매)였으나
           // 실측은 -4.0(올라간 눈매)로 부호가 반대였다. n 이 작아 표본 편향 가능 — 사진 보강 필요.
-          'dog': { face: 0.852, slant: -1.2, dist: 1.118, nose: 0.872, mouth: 1.202, eye: 2.486 },  // n=6 강아지상 실측
+          'dog': { face: 0.838, slant: -1.6, dist: 1.103, nose: 0.911, mouth: 1.257, eye: 2.513 },  // n=14 강아지상 실측 (2026-08-21 재계측)
           // [고양이상] n=9 실측 (2026-08-16). 기존 slant -5.5 는 실측 대역(-0.8)에 닿지 않았다.
           'cat': { face: 0.830, slant: -1.6, dist: 1.121, nose: 0.859, mouth: 1.311, eye: 2.540 },  // n=15 고양이상 실측
           // [여우상] 지코, 김재원 - 갸름한 얼굴, 매우 찢어진 눈매, 좁은 미간
@@ -1474,20 +1489,20 @@ async analyze(landmarksData, expressionData, imageAspect) {
           // 곰상 대표(마동석·안재홍·슬기·조진웅·고창석)와 달랐다 — 이광수는 animalDb 에서 말상이다.
           'bear': { face: 0.880, slant: 2.8, dist: 1.059, nose: 0.962, mouth: 1.233, eye: 2.899 },  // n=9 곰상 실측
           // [호랑이상] 이병헌, 공유 - 넓고 다부진 얼굴, 강하게 내리뜨는 눈매
-          'tiger': { face: 0.876, slant: 1.8, dist: 1.109, nose: 1.041, mouth: 1.370, eye: 3.105 },  // n=6 호랑이상 실측
+          'tiger': { face: 0.853, slant: 1.8, dist: 1.096, nose: 1.003, mouth: 1.311, eye: 2.990 },  // n=6 호랑이상 실측 (2026-08-21 재계측)
           // [공룡상] 강호동, 이경규 - 강한 얼굴 넓이, 입이 매우 큼
-          'dinosaur': { face: 0.824, slant: -2.2, dist: 1.075, nose: 0.956, mouth: 1.402, eye: 2.598 },  // n=14 공룡상 실측
+          'dinosaur': { face: 0.824, slant: -2.7, dist: 1.092, nose: 0.941, mouth: 1.447, eye: 2.502 },  // n=12 공룡상 실측 (2026-08-21 재계측)
           // [뱀상] n=8 실측 (2026-08-16). 기존 eye 3.00 이 실측 2.52 와 어긋나 뱀상 라벨 8장이
           // 전원 곰상·수달상·원숭이상으로 샜다(이 축 하나가 페널티 104 중 대부분).
           'snake': { face: 0.839, slant: -2.0, dist: 1.150, nose: 0.893, mouth: 1.326, eye: 2.507 },  // n=11 뱀상 실측
           // [늑대상] 송중기, 남주혁 - 길쭉한 얼굴, 강하게 찢어진 눈매, 좁은 미간
           'wolf': { face: 0.799, slant: 2.5, dist: 1.009, nose: 1.009, mouth: 1.301, eye: 2.727 },  // n=6 늑대상 실측
           // [원숭이상] 이특, 오나라 - 넓고 쳐지는 광대, 평평한 눈매, 큰 코
-          'monkey': { face: 0.836, slant: 2.4, dist: 1.095, nose: 1.000, mouth: 1.400, eye: 2.866 },  // n=10 원숭이상 실측
+          'monkey': { face: 0.834, slant: 1.6, dist: 1.093, nose: 0.992, mouth: 1.397, eye: 2.826 },  // n=10 원숭이상 실측 (2026-08-21 재계측)
           // [말상] 신동엽 - 세로로 매우 긴 얼굴
-          'horse': { face: 0.830, slant: -1.0, dist: 1.187, nose: 0.989, mouth: 1.447, eye: 2.647 },  // n=6 말상 실측
+          'horse': { face: 0.818, slant: -0.9, dist: 1.192, nose: 0.943, mouth: 1.400, eye: 2.595 },  // n=6 말상 실측 (2026-08-21 재계측)
           // [돼지상] 뚱뚱한 둥근얼굴, 가장 넓은 코, 통통한
-          'pig': { face: 0.878, slant: 1.4, dist: 1.129, nose: 0.998, mouth: 1.424, eye: 3.030 },  // n=10 돼지상 실측
+          'pig': { face: 0.868, slant: 1.4, dist: 1.124, nose: 0.996, mouth: 1.303, eye: 3.086 },  // n=12 돼지상 실측 (2026-08-21 재계측)
           // [독수리상] 카리스마 있고 날카로운 코, 좁은 미간
           'eagle': { face: 0.76, slant: -3.0, dist: 0.88, nose: 0.98, mouth: 1.22, eye: 2.9 },
           // [참새상] 작고 통통하고 귀여운 얼굴, 처진 눈매
@@ -1511,11 +1526,11 @@ async analyze(landmarksData, expressionData, imageAspect) {
           // [기린상] 매우 길쭉한 얼굴
           'giraffe': { face: 0.882, slant: -0.3, dist: 1.039, nose: 0.971, mouth: 1.423, eye: 2.663 },  // n=3 기린상 실측
           // [개구리상] 가장 넓은 얼굴, 매우 넓은 미간
-          'frog': { face: 0.839, slant: -1.8, dist: 1.103, nose: 0.910, mouth: 1.413, eye: 2.571 },  // n=10 개구리상 실측
+          'frog': { face: 0.828, slant: -1.8, dist: 1.090, nose: 0.915, mouth: 1.378, eye: 2.536 },  // n=9 개구리상 실측 (2026-08-21 재계측)
           // [낙타상] 길쭉하고 광대가 도드라진 얼굴
           'camel': { face: 0.68, slant: -0.5, dist: 1.15, nose: 1.00, mouth: 1.42, eye: 2.6 },
           // [거북이상] 고개 내밀듯 넓은 얼굴, 위로 찢어진 눈매
-          'turtle': { face: 0.834, slant: -0.1, dist: 1.186, nose: 0.912, mouth: 1.378, eye: 2.509 },  // n=4 거북이상 실측
+          'turtle': { face: 0.829, slant: -0.4, dist: 1.126, nose: 0.863, mouth: 1.364, eye: 2.496 },  // n=4 거북이상 실측 (2026-08-21 재계측)
       };
 
       let candidates = [];
@@ -1837,7 +1852,11 @@ async analyze(landmarksData, expressionData, imageAspect) {
       });
 
       // ── 여성형 얼굴 정밀 감지 (detectFeminineFace) → 동물상 부스트/페널티 ──
-      const femininityScore = this.detectFeminineFace(features);
+      // 사용자가 선택 화면에서 성별을 직접 골랐으면 그 값을 그대로 쓴다(자동 추정보다 신뢰도가
+      // 높다) — 아래 40점 기준 분기와 보너스/억제 로직은 그대로 재사용한다.
+      const femininityScore = this._genderOverride === 'female' ? 100
+        : this._genderOverride === 'male' ? 0
+        : this.detectFeminineFace(features);
       // 40점 이상이면 여성형으로 판단
       if (femininityScore >= 40) {
         // 여성성 강도 배율: 40→×1.0, 60→×1.5, 80→×2.0, 100→×2.5

@@ -87,16 +87,37 @@ assert.ok(spread < 0.01, `종횡비 불변(편차 ${spread.toFixed(4)})`);
 assert.ok(portRaw.faceRatio > sq.faceRatio + 0.03,
   `보정 없는 세로형 셀카는 여전히 넓은 쪽으로 팽창해야 함(재현): ${portRaw.faceRatio.toFixed(3)} vs ${sq.faceRatio.toFixed(3)}`);
 
-// ── 5. 실제 얼굴 픽스처로 라벨 적중률 ──
+// ── 5. 성별 오버라이드가 실제로 분기를 뒤집는가 ──
+// UI에서 사용자가 성별을 직접 고르면 detectFeminineFace() 자동 추정 대신 그 값을 써야 한다
+// (analyze() 시그니처는 위 setMoleSource 와 같은 이유로 못 늘려서 setGenderOverride 세터를 씀).
+// 같은 얼굴이라도 female 오버라이드면 crushList(eagle·crocodile·dinosaur·lion·horse·camel)가
+// 60~95% 억제되고 male 오버라이드면 억제가 없다 — 표본 20장 중 최소 1장은 판정이 갈려야 한다.
+const fx = JSON.parse(readFileSync(resolve(root, 'scripts/fixtures/physiognomy-landmark-vectors.json'), 'utf8'));
+const toLandmarks = (s) => {
+  const lm = Array.from({ length: 478 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
+  fx.indices.forEach((idx, i) => { lm[idx] = { x: s.points[i][0], y: s.points[i][1], z: s.points[i][2] }; });
+  return lm;
+};
+let genderOverrideFlips = false;
+for (const s of fx.samples.slice(0, 20)) {
+  const lm = toLandmarks(s);
+  engine.setGenderOverride('female');
+  const asFemale = await engine.analyze(lm, null, s.aspect);
+  engine.setGenderOverride('male');
+  const asMale = await engine.analyze(lm, null, s.aspect);
+  if (asFemale.primaryAnimal !== asMale.primaryAnimal) { genderOverrideFlips = true; break; }
+}
+engine.setGenderOverride(null); // 이후 적중률 측정은 실제 UI 기본값(자동 감지)과 같은 조건이어야 한다
+assert.ok(genderOverrideFlips,
+  '성별 오버라이드(female vs male)가 표본 20장에서 단 한 번도 판정을 안 바꿈 — setGenderOverride 배선 확인');
+
+// ── 6. 실제 얼굴 픽스처로 라벨 적중률 ──
 // 이 가드가 이 파일의 본체다. 위의 문자열 단언들은 구조가 사라졌는지만 보고,
 // "판정이 맞는가"는 여기서만 잰다.
-const fx = JSON.parse(readFileSync(resolve(root, 'scripts/fixtures/physiognomy-landmark-vectors.json'), 'utf8'));
 const norm = (s) => String(s || '').replace(/상$/, '');
 const results = [];
 for (const s of fx.samples) {
-  const lm = Array.from({ length: 478 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
-  fx.indices.forEach((idx, i) => { lm[idx] = { x: s.points[i][0], y: s.points[i][1], z: s.points[i][2] }; });
-  const out = await engine.analyze(lm, null, s.aspect);
+  const out = await engine.analyze(toLandmarks(s), null, s.aspect);
   results.push({ label: s.label, winner: out.primaryAnimal, top3: (out.top3 || []).map((t) => t.animal.name) });
 }
 const n = results.length;
@@ -111,10 +132,14 @@ const reached = Object.keys(wins).length;
 //    일반화 성능이 아니라 "파이프라인이 안 깨졌는가"를 재는 회귀 지표로만 읽어야 한다.
 //    같은 데이터의 leave-one-out 일반화 추정치는 약 9% 로 훨씬 낮다(라벨 24종, 다수결 10.0%).
 //    이 기능의 정확도 한계는 특징에 있다 — 상세는 아래 주석과 docs 참고.
-// 하한은 2026-08-16 실측(1위 36/150 · TOP3 75/150 · 최다 10.7% · 도달 20/27)보다 아래로 둔다.
-// 개편 전(같은 150장): 1위 19(12.7%) · TOP3 33(22.0%) · 뱀상 쏠림 29장.
-assert.ok(top1 >= 28, `라벨 1위 적중 ${top1}/${n} — 하한 28 미만 (개편 전 19)`);
-assert.ok(top3 >= 60, `라벨 TOP3 적중 ${top3}/${n} — 하한 60 미만 (개편 전 33)`);
+// 2026-08-21: calibration/ 일부 폴더에 다른 동물상 사진이 섞여 있어(사용자 확인) 정리 후
+// 재계측(n=150→157, 강아지·호랑이·공룡·원숭이·말·돼지·개구리·거북이 8종 중심점 교체).
+// 실측(1위 36/157 · TOP3 77/157 · 최다 11.5% · 도달 20/27)은 2026-08-16 기준(36/150·75/150)과
+// 거의 동일하다 — 오염 사진이 소수 종에 국한돼 있었고, 그 8종만 손대도 집계 지표 자체는
+// 크게 안 움직인다(개별 종 판정은 바뀐다). 하한은 그 실측보다 아래로 둔다.
+// 개편 전(2026-08-16 이전, 150장): 1위 19(12.7%) · TOP3 33(22.0%) · 뱀상 쏠림 29장.
+assert.ok(top1 >= 29, `라벨 1위 적중 ${top1}/${n} — 하한 29 미만 (개편 전 19)`);
+assert.ok(top3 >= 62, `라벨 TOP3 적중 ${top3}/${n} — 하한 62 미만 (개편 전 33)`);
 assert.ok(reached >= 15, `도달 동물 ${reached}/27 — 다수 동물이 판정 불가`);
 // 단일 동물 쏠림은 이 기능의 고질 사고다 (2026-08 곰상 51.6%, 그 전 기린상 42.6%).
 assert.ok(topCount / n <= 0.20, `단일 동물 편중: ${topName} ${(topCount * 100 / n).toFixed(1)}% — 축 스케일/전달함수 붕괴 의심`);
