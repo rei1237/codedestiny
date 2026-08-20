@@ -8630,8 +8630,9 @@
     window._gender = profile.gender || 'F';
     if (window.updateLunarPreview) window.updateLunarPreview('birthDate', 'calType', 'lunarPreview');
     if (window.updateCorrectedTimePreview) window.updateCorrectedTimePreview();
-    /* 카드를 폼에 올린 뒤 보이는 시간 입력도 맞춘다 — 안 맞추면 select 만 바뀌고 텍스트는 옛 값이 남는다. */
-    _dpSyncBirthTimeTextFromSelects();
+    /* 카드를 폼에 올린 뒤 보이는 시간 입력도 맞춘다 — 안 맞추면 select 만 바뀌고 텍스트는 옛 값이 남는다.
+       이 함수는 메인 폼의 #birthHour/#birthMinute/#birthCountry 만 다루므로 메인 필드셋으로 고정한다. */
+    _dpSyncBirthTimeTextFromSelects(_DP_BIRTH_TIME_FIELDSETS[0]);
   }
 
   function _dpDispatchProfileFieldRefresh(el) {
@@ -10704,7 +10705,9 @@
      🔴 select 는 없애지 않는다 — #birthHour/#birthMinute 를 .value 로 읽는 곳이
         8개 파일 28곳(js/saju-engine.js 7 · index.html 6 · 이 파일 6 …)이라
         제거하면 전부 손봐야 한다. 보이는 텍스트 입력과 양방향으로 맞추기만 한다.
-     정규화는 이미 있는 _dpNormalizeBirthDateInputValue 를 재사용한다(새 파서 금지). */
+     정규화는 이미 있는 _dpNormalizeBirthDateInputValue 를 재사용한다(새 파서 금지).
+     궁합 카드(#compatBirthTimeText/#compatBirthHour/#compatBirthMinute)도 같은 구조를 타므로
+     필드셋을 배열로 등록해 함수를 공유한다 — 복제하면 정규화 규칙이 갈라져 드리프트한다. */
   function _dpNormalizeBirthTimeText(raw) {
     var text = String(raw || '').trim();
     if (!text) return '';
@@ -10732,17 +10735,38 @@
     return digits.slice(0, 4) + '-' + digits.slice(4, 6) + '-' + digits.slice(6);
   }
 
-  function _dpBirthTimeEls() {
+  /* 출생시간 필드셋 — 메인 폼과 궁합 카드가 같은 구조(텍스트 1 + select 2)를 반복하므로
+     하드코딩 대신 배열로 등록해 함수를 공유한다. 새 폼이 생기면 여기에 한 줄만 추가한다. */
+  var _DP_BIRTH_TIME_FIELDSETS = [
+    { text: 'birthTimeText', hour: 'birthHour', minute: 'birthMinute' },
+    { text: 'compatBirthTimeText', hour: 'compatBirthHour', minute: 'compatBirthMinute' }
+  ];
+
+  function _dpBirthTimeEls(fieldset) {
     return {
-      text: document.getElementById('birthTimeText'),
-      hour: document.getElementById('birthHour'),
-      minute: document.getElementById('birthMinute')
+      text: document.getElementById(fieldset.text),
+      hour: document.getElementById(fieldset.hour),
+      minute: document.getElementById(fieldset.minute)
     };
   }
 
+  function _dpFindBirthTimeFieldsetByTextId(id) {
+    for (var i = 0; i < _DP_BIRTH_TIME_FIELDSETS.length; i += 1) {
+      if (_DP_BIRTH_TIME_FIELDSETS[i].text === id) return _DP_BIRTH_TIME_FIELDSETS[i];
+    }
+    return null;
+  }
+
+  function _dpFindBirthTimeFieldsetBySelectId(id) {
+    for (var i = 0; i < _DP_BIRTH_TIME_FIELDSETS.length; i += 1) {
+      if (_DP_BIRTH_TIME_FIELDSETS[i].hour === id || _DP_BIRTH_TIME_FIELDSETS[i].minute === id) return _DP_BIRTH_TIME_FIELDSETS[i];
+    }
+    return null;
+  }
+
   /** select → 텍스트 입력. "시간 모름"(12:00 설정)과 프로필 불러오기가 이 경로를 탄다. */
-  function _dpSyncBirthTimeTextFromSelects() {
-    var els = _dpBirthTimeEls();
+  function _dpSyncBirthTimeTextFromSelects(fieldset) {
+    var els = _dpBirthTimeEls(fieldset);
     if (!els.text || !els.hour || !els.minute) return;
     var h = parseInt(els.hour.value, 10);
     var m = parseInt(els.minute.value, 10);
@@ -10751,11 +10775,11 @@
   }
 
   /** 텍스트 입력 → select. 해석 못 하면 select 를 건드리지 않고 텍스트도 되돌린다. */
-  function _dpSyncBirthTimeSelectsFromText() {
-    var els = _dpBirthTimeEls();
+  function _dpSyncBirthTimeSelectsFromText(fieldset) {
+    var els = _dpBirthTimeEls(fieldset);
     if (!els.text || !els.hour || !els.minute) return;
     var normalized = _dpNormalizeBirthTimeText(els.text.value);
-    if (!normalized) { _dpSyncBirthTimeTextFromSelects(); return; }
+    if (!normalized) { _dpSyncBirthTimeTextFromSelects(fieldset); return; }
     var parts = normalized.split(':');
     els.hour.value = String(parseInt(parts[0], 10));
     els.minute.value = String(parseInt(parts[1], 10));
@@ -10775,10 +10799,11 @@
     document.addEventListener('blur', function (event) {
       var el = event.target;
       if (!el || !el.id) return;
-      if (el.id === 'birthDate' || el.id === 'compatBirthDate') {
+      if (el.hasAttribute && el.hasAttribute('data-cd-birth-date')) {
         /* 입력 중에는 아무것도 막지 않고, 필드를 떠날 때만 정규화한다(프롬프트 §6).
            #birthDate.value 를 읽는 곳이 8곳이라 필드 자체를 YYYY-MM-DD 로 만들어 둔다.
-           #compatBirthDate(궁합 모달 상대 생년월일)도 같은 규칙을 탄다. */
+           속성 기반이라 data-cd-birth-date 를 단 새 필드도 이 스크립트를 다시 안 고치고
+           같은 규칙을 상속한다(#compatBirthDate 포함). */
         var normalizedDate = _dpNormalizeBirthDateInputValue(el.value);
         if (normalizedDate && normalizedDate !== el.value) {
           el.value = normalizedDate;
@@ -10786,14 +10811,15 @@
         }
         return;
       }
-      if (el.id === 'birthTimeText') _dpSyncBirthTimeSelectsFromText();
+      var textFieldset = _dpFindBirthTimeFieldsetByTextId(el.id);
+      if (textFieldset) _dpSyncBirthTimeSelectsFromText(textFieldset);
     }, true);
 
     /* 입력 중 자동 하이픈. 캐럿이 값 끝에 있을 때만 손댄다 — 중간을 고치는 중에 값을 바꾸면
        커서가 끝으로 튀어 이어서 입력할 수 없다. */
     document.addEventListener('input', function (event) {
       var el = event.target;
-      if (!el || (el.id !== 'birthDate' && el.id !== 'compatBirthDate')) return;
+      if (!el || !el.hasAttribute || !el.hasAttribute('data-cd-birth-date')) return;
       var caretAtEnd = true;
       try { caretAtEnd = el.selectionStart == null || el.selectionStart === String(el.value).length; } catch (_) {}
       if (!caretAtEnd) return;
@@ -10804,16 +10830,20 @@
     document.addEventListener('change', function (event) {
       var el = event.target;
       if (!el || !el.id) return;
-      if (el.id === 'birthHour' || el.id === 'birthMinute') _dpSyncBirthTimeTextFromSelects();
+      var selectFieldset = _dpFindBirthTimeFieldsetBySelectId(el.id);
+      if (selectFieldset) _dpSyncBirthTimeTextFromSelects(selectFieldset);
     });
 
-    /* "출생 시간 모름"은 셸 핸들러가 select 를 12:00 으로 바꾼다. 버블 단계라 그 뒤에 돈다. */
+    /* "출생 시간 모름"은 셸 핸들러가 select 를 12:00 으로 바꾼다. 버블 단계라 그 뒤에 돈다.
+       이 버튼은 메인 폼에만 있으므로 첫 번째(메인) 필드셋으로 고정한다. */
     document.addEventListener('click', function (event) {
       var btn = event.target && event.target.closest ? event.target.closest('[data-cd-set-unknown-time]') : null;
-      if (btn) window.setTimeout(_dpSyncBirthTimeTextFromSelects, 0);
+      if (btn) window.setTimeout(function () { _dpSyncBirthTimeTextFromSelects(_DP_BIRTH_TIME_FIELDSETS[0]); }, 0);
     });
 
-    _dpSyncBirthTimeTextFromSelects();
+    for (var i = 0; i < _DP_BIRTH_TIME_FIELDSETS.length; i += 1) {
+      _dpSyncBirthTimeTextFromSelects(_DP_BIRTH_TIME_FIELDSETS[i]);
+    }
   }
 
   /* ── 태어난 장소 검색형 콤보박스(cd-birth-country-combo-v20260820) ──────────────────────────
