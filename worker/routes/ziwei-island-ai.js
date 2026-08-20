@@ -430,7 +430,10 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
       if (!ledger) return false;
       const refundCredit = Math.max(0, Math.floor(Number(ledger.amount || access.amount || pricing.membershipCreditCost || 0)));
       if (!refundCredit) return false;
-      const marked = await MonthlyCreditLedger.updateOne({ _id: ledger._id, userId, "metadata.refundedForServiceExecution": { $ne: true } }, { $set: { "metadata.refundedForServiceExecution": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } });
+      // "metadata.refundedForUnlockFailure" 는 키 해제 계약 표식이다 — billing.js 의
+      // readIdempotentSpendResult 가 이 표식만 배제하고 releaseRefundedSpendSourceId 도 이것으로만
+      // 환불 원장을 고른다. 없으면 재구매가 "이미 결제됨"으로 replay 돼 402 로 막힌다.
+      const marked = await MonthlyCreditLedger.updateOne({ _id: ledger._id, userId, "metadata.refundedForServiceExecution": { $ne: true } }, { $set: { "metadata.refundedForServiceExecution": true, "metadata.refundedForUnlockFailure": true, "metadata.serviceExecutionRefundedAt": now, "metadata.serviceExecutionFailureMessage": failureMessage } });
       if (!marked.modifiedCount) return false;
       const purchaseId = clean(access.purchaseId || ledger.sourceId || idempotencyKey, 180);
       await restoreMonthlyCreditLot({ userId, lotId: `ziwei-island-refund:${String(ledger._id)}`, amount: refundCredit, pullRequestId: purchaseId || "" }).catch(() => {});

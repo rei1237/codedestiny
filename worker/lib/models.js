@@ -320,6 +320,10 @@ const paymentSchema = new mongoose.Schema({
   // 지급까지 끝났는가. 크론이 "PAID 인데 이 값이 없는 주문"을 찾아 재지급하는 열쇠다.
   // 돈은 받았는데 권한이 없는 상태를 사람이 찾아내지 않아도 되게 하는 것이 목적이다.
   entitlementGrantedAt: { type: Date, default: null },
+  // 구매 확인 메일(전자상거래법 제13조 계약내용 확인)을 보냈는가. 크론이 "지급까지 끝났는데
+  // 이 값이 없는 최근 주문"을 찾아 보낸다. 🔴 발송 **전에** CAS 로 선점하고 실패하면 되돌린다 —
+  // 보낸 뒤에 찍으면 아이솔레이트가 죽었을 때 같은 영수증이 두 번 간다.
+  receiptEmailSentAt: { type: Date, default: null },
 }, { timestamps: true });
 
 paymentSchema.index({ userId: 1, createdAt: -1 });

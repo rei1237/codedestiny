@@ -11,7 +11,7 @@
  * 🔴 준거법은 번역 언어와 무관하게 항상 대한민국이다(각 문서 15조/11조 참고) — 언어 로케일이
  *    관할·준거법을 바꾸지 않는다는 원칙은 `lib/market-policy/context.js`와 동일.
  */
-import { OPERATOR_NAME, SUPPORT_EMAIL } from "../site-policy-config";
+import { BUSINESS_IDENTITY, BUSINESS_PHONE_INTL, OPERATOR_NAME, SUPPORT_EMAIL } from "../site-policy-config";
 
 export type NonKoLocale = "en" | "ja" | "zh" | "zh-TW";
 
@@ -28,6 +28,60 @@ export type LegalDocument = {
 
 const op = OPERATOR_NAME;
 const mail = SUPPORT_EMAIL;
+
+/**
+ * 사업자 표기 블록.
+ *
+ * 🔴 **라벨만 로케일별이고 값은 전부 정본에서 온다.** 2026-08-20 이전에는 네 로케일이 각자
+ *    문자열을 들고 있었고 ja/zh-CN/zh-TW 가 신고번호를 `第2026-火城湖-0264号` 로 음역했다 —
+ *    등록된 번호는 `제 2026-화성호-0264 호` 이고, 같은 페이지의 주소는 `華城市` 라 문서 안에서
+ *    같은 지명이 두 한자로 갈려 있었다. 번호와 상호는 식별자라 옮기는 순간 등록되지 않은
+ *    사업자 정보가 된다. en 블록은 처음부터 원문을 썼고, 이제 넷 다 그 모양이다.
+ */
+const BUSINESS_BLOCK_LABELS: Record<NonKoLocale, {
+  title: string; company: string; representative: string; registration: string;
+  mailOrder: string; phone: string; address: string; separator: string; tail?: string;
+}> = {
+  en: {
+    title: "Business registration details (Republic of Korea)",
+    company: "Company name", representative: "Representative",
+    registration: "Business registration no.", mailOrder: "Mail-order business registration no.",
+    phone: "Phone", address: "Address", separator: ": ",
+  },
+  ja: {
+    title: "事業者情報（大韓民国）",
+    company: "商号", representative: "代表者",
+    registration: "事業者登録番号", mailOrder: "通信販売業申告番号",
+    phone: "電話番号", address: "所在地", separator: "：",
+    tail: "特定商取引法に基づく表記は「特定商取引法に基づく表記」ページをご覧ください。",
+  },
+  zh: {
+    title: "工商登记信息（大韩民国）",
+    company: "公司名称", representative: "代表人",
+    registration: "事业者登记编号", mailOrder: "通讯销售业申报编号",
+    phone: "电话", address: "地址", separator: "：",
+  },
+  "zh-TW": {
+    title: "工商登記資訊（大韓民國）",
+    company: "公司名稱", representative: "代表人",
+    registration: "事業者登記編號", mailOrder: "通訊銷售業申報編號",
+    phone: "電話", address: "地址", separator: "：",
+  },
+};
+
+function businessBlock(locale: NonKoLocale): string {
+  const label = BUSINESS_BLOCK_LABELS[locale];
+  const rows = [
+    [label.company, BUSINESS_IDENTITY.companyName],
+    [label.representative, BUSINESS_IDENTITY.representative],
+    [label.registration, BUSINESS_IDENTITY.registrationNumber],
+    [label.mailOrder, BUSINESS_IDENTITY.mailOrderNumber],
+    [label.phone, BUSINESS_PHONE_INTL],
+    [label.address, BUSINESS_IDENTITY.address],
+  ].map(([name, value]) => `${name}${label.separator}${value}`);
+  const body = `${label.title}${label.separator.trim()}\n${rows.join("\n")}`;
+  return label.tail ? `${body}\n\n${label.tail}` : body;
+}
 
 export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
   en: {
@@ -101,7 +155,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
       ]},
       { id: "contact", heading: "16. Contact", paragraphs: [
         `Service name: Code Destiny\nSite: https://code-destiny.com\nOperator: ${op}\nTerms inquiries: ${mail}`,
-        "Business registration details (Republic of Korea):\nCompany name: 코드 데스티니 (Code Destiny)\nRepresentative: 박병하 (Park Byeong-ha)\nBusiness registration no.: 372-23-02329\nMail-order business registration no.: 제 2026-화성호-0264 호\nPhone: +82-50-6664-7398\nAddress: 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호, Republic of Korea",
+        businessBlock("en"),
       ]},
     ],
   },
@@ -176,7 +230,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
       ]},
       { id: "contact", heading: "16. お問い合わせ", paragraphs: [
         `サービス名：Code Destiny\nサイト：https://code-destiny.com\n運営者：${op}\n規約に関するお問い合わせ：${mail}`,
-        "事業者情報（大韓民国）：\n商号：코드 데스티니（Code Destiny）\n代表者：박병하（パク・ビョンハ）\n事業者登録番号：372-23-02329\n通信販売業申告番号：第2026-火城湖-0264号\n電話番号：+82-50-6664-7398\n所在地：大韓民国 京畿道 華城市 孝行区 飛鳳面 セビボンドン路 37, 101棟 1207号\n\n特定商取引法に基づく表記は「特定商取引法に基づく表記」ページをご覧ください。",
+        businessBlock("ja"),
       ]},
     ],
   },
@@ -251,7 +305,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
       ]},
       { id: "contact", heading: "16. 联系方式", paragraphs: [
         `服务名称：Code Destiny\n网站：https://code-destiny.com\n运营者：${op}\n条款咨询：${mail}`,
-        "工商登记信息（大韩民国）：\n公司名称：코드 데스티니（Code Destiny）\n代表人：박병하\n事业者登记编号：372-23-02329\n通讯销售业申报编号：第2026-火城湖-0264号\n电话：+82-50-6664-7398\n地址：大韩民国京畿道华城市孝行区飞凤面赛飞凤洞路37, 101栋1207号",
+        businessBlock("zh"),
       ]},
     ],
   },
@@ -326,7 +380,7 @@ export const TERMS_CONTENT: Record<NonKoLocale, LegalDocument> = {
       ]},
       { id: "contact", heading: "16. 聯絡方式", paragraphs: [
         `服務名稱：Code Destiny\n網站：https://code-destiny.com\n營運者：${op}\n條款諮詢：${mail}`,
-        "工商登記資訊（大韓民國）：\n公司名稱：코드 데스티니（Code Destiny）\n代表人：박병하\n事業者登記編號：372-23-02329\n通訊銷售業申報編號：第2026-火城湖-0264號\n電話：+82-50-6664-7398\n地址：大韓民國京畿道華城市孝行區飛鳳面賽飛鳳洞路37, 101棟1207號",
+        businessBlock("zh-TW"),
       ]},
     ],
   },

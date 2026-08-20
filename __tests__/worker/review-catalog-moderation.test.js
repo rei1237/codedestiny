@@ -3,6 +3,7 @@
  */
 
 let REVIEW_PRODUCTS;
+let REVIEW_EXCLUDED_FEATURE_KEYS;
 let getReviewProduct;
 let resolveReviewProductByContentKey;
 let resolveReviewProductByFeatureKey;
@@ -15,6 +16,7 @@ let REVIEW_FLAGS;
 beforeAll(async () => {
   const catalog = await import("../../worker/lib/review-product-catalog.js");
   REVIEW_PRODUCTS = catalog.REVIEW_PRODUCTS;
+  REVIEW_EXCLUDED_FEATURE_KEYS = catalog.REVIEW_EXCLUDED_FEATURE_KEYS;
   getReviewProduct = catalog.getReviewProduct;
   resolveReviewProductByContentKey = catalog.resolveReviewProductByContentKey;
   resolveReviewProductByFeatureKey = catalog.resolveReviewProductByFeatureKey;
@@ -90,6 +92,30 @@ describe("review product catalog", () => {
     for (const productId of ["saju-ai", "tarot", "ziwei", "destiny-island", "love-coach"]) {
       expect(getReviewProduct(productId)).not.toBeNull();
     }
+  });
+
+  test("레지스트리의 모든 유료 featureKey는 카탈로그에 있거나 명시적으로 제외돼야 한다", () => {
+    const catalogKeys = new Set();
+    for (const product of REVIEW_PRODUCTS) {
+      for (const rawKey of product.featureKeys) {
+        catalogKeys.add(normalizePaidFeatureKey(rawKey));
+      }
+    }
+
+    const excludedKeys = new Set(REVIEW_EXCLUDED_FEATURE_KEYS.map((key) => normalizePaidFeatureKey(key)));
+
+    const registryKeys = new Set([
+      ...Object.keys(FEATURE_KEY_PRICE_TABLE),
+      ...Object.keys(UNLOCK_PRODUCT_BY_FEATURE_KEY),
+    ]);
+
+    const unclassified = [];
+    for (const rawKey of registryKeys) {
+      const key = normalizePaidFeatureKey(rawKey);
+      if (!catalogKeys.has(key) && !excludedKeys.has(key)) unclassified.push(rawKey);
+    }
+
+    expect(unclassified).toEqual([]);
   });
 });
 

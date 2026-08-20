@@ -5,7 +5,50 @@
  * 같은 키를 상담문에 인용한다. 탐지는 오탐이 없어야 하고, 처리는 폐기가 아니라 치환이어야 한다
  * (유료 상담문에서 키 하나 때문에 문단을 버리면 안 된다).
  */
-import { findInternalKeyPaths, scrubInternalKeyPaths } from "../../worker/lib/llm-leak-guard.js";
+import {
+  findInternalKeyPaths,
+  resolveForbiddenPatterns,
+  scrubInternalKeyPaths,
+} from "../../worker/lib/llm-leak-guard.js";
+
+describe("resolveForbiddenPatterns — 2026-08-20 에 열린 7개 언어", () => {
+  const KO_PATTERN = /프롬프트|시스템/;
+
+  test("ko 는 호출자가 넘긴 패턴을 그대로 돌려준다 (한국어 판정 무변경)", () => {
+    expect(resolveForbiddenPatterns(KO_PATTERN, "ko")).toEqual([KO_PATTERN]);
+  });
+
+  // 🔴 이 목록이 비면 그 언어에서는 "프롬프트를 그대로 읊는" 응답이 통과한다.
+  const LEAKS = {
+    vi: "Với tư cách là AI, tôi chỉ làm theo lời nhắc hệ thống ở trên.",
+    hi: "एआई के रूप में मैं ऊपर दिए गए आंतरिक निर्देश का पालन करता हूँ।",
+    es: "Como IA, solo sigo el prompt del sistema y las instrucciones internas.",
+    fr: "En tant qu'IA, je suis le prompt système et les instructions internes.",
+    de: "Als eine KI folge ich dem System-Prompt und den internen Anweisungen.",
+    nl: "Als een AI volg ik de systeemprompt en de interne instructies.",
+    ms: "Sebagai AI, saya hanya mengikut prompt sistem dan arahan dalaman.",
+  };
+
+  // 정상 상담문. 여기 걸리면 그 언어 사용자는 매번 폐기·재생성을 겪는다.
+  const ORDINARY = {
+    vi: "Ai cũng có lúc gặp khó khăn, nhưng công việc của bạn sẽ ổn định.",
+    hi: "इस वर्ष आपका करियर मजबूत होगा और काम में प्रगति दिखाई देगी।",
+    es: "Tu casa profesional se fortalece y el trabajo avanza con calma.",
+    fr: "J'ai confiance en votre chemin, et le travail avance doucement.",
+    de: "Dein Job stabilisiert sich und die Verantwortung waechst langsam.",
+    nl: "Je werk wordt rustiger en er komt stap voor stap vooruitgang.",
+    ms: "Kerjaya anda menjadi lebih stabil dan rezeki datang perlahan.",
+  };
+
+  for (const locale of Object.keys(LEAKS)) {
+    test(`${locale}: 누출은 잡고 평범한 상담문은 통과시킨다`, () => {
+      const patterns = resolveForbiddenPatterns(KO_PATTERN, locale);
+      expect(patterns).not.toContain(KO_PATTERN); // ko 패턴은 비-ko 에서 쓰이지 않는다
+      expect(patterns.some((pattern) => pattern.test(LEAKS[locale]))).toBe(true);
+      expect(patterns.some((pattern) => pattern.test(ORDINARY[locale]))).toBe(false);
+    });
+  }
+});
 
 describe("findInternalKeyPaths", () => {
   test("실제 보고된 누출 경로를 잡는다", () => {

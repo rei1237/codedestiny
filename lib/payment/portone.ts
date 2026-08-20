@@ -1,5 +1,6 @@
 import { authFetch } from "../../app/_lib/auth-client";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import checkoutEntry from "@/js/core/checkout-entry.js";
 
 type AuthPortOneUser = {
   id?: string;
@@ -61,6 +62,8 @@ type PortOnePaymentRequest = {
   customer: PortOneCustomer;
   customData: Record<string, unknown>;
   noticeUrls?: string[];
+  /** 결제창 UI 언어. 값의 범위는 js/core/checkout-entry.js 의 pgWindowLocale 머리주석 참고. */
+  locale?: "KO_KR" | "EN_US";
 };
 
 export type PortOneSinglePaymentRequestResult =
@@ -404,6 +407,9 @@ export async function requestPortOneSinglePayment(
       totalAmount: amount,
       currency: config.currency || PORTONE_CURRENCY,
       payMethod: config.payMethod || "CARD",
+      // 🔴 안 보내면 PG 가 한국어 결제창을 연다 — 결제창까지 영어로 온 사용자가
+      //    마지막 화면에서 한국어를 만난다. 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
+      locale: checkoutEntry.pgWindowLocale(),
       redirectUrl: new URL(redirectPath, window.location.origin).toString(),
       customer,
       customData,
@@ -417,6 +423,7 @@ export async function requestPortOneSinglePayment(
       hasAmount: Number.isFinite(requestData.totalAmount),
       hasOrderName: Boolean(requestData.orderName),
       hasCustomerEmail: Boolean(requestData.customer?.email),
+      locale: requestData.locale,
     });
 
     const response = await window.PortOne!.requestPayment(requestData);

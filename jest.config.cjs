@@ -9,7 +9,11 @@
 module.exports = {
   roots: ["<rootDir>/__tests__"],
   moduleNameMapper: {
-    "^astronomy-engine$": "<rootDir>/node_modules/astronomy-engine/astronomy.js",
+    // 🔴 <rootDir>/node_modules 로 적지 말 것. 이 레포는 .claude/worktrees/ 아래 워크트리에서
+    //    작업하는데, 워크트리에는 node_modules 가 없어서 그 경로가 통째로 빗나간다
+    //    (실측 2026-08-20: 21개 스위트 · 146개 테스트가 그 이유 하나로 실패했다).
+    //    require.resolve 는 노드의 상위 탐색을 타므로 워크트리에서도 레포의 설치본을 찾는다.
+    "^astronomy-engine$": require.resolve("astronomy-engine"),
     "^\\.\\./\\.\\./lib/llm-client\\.ts$": "<rootDir>/__tests__/__mocks__/llm-client.js",
     // lib/cms/build-text.ts 도 같은 이유로 대역한다 — constants/*.js 같은 순수 JS 모듈이
     // CMS 폴백 유틸을 물면서 파싱 단계에서 깨졌다. 테스트 환경엔 발행본이 없으므로

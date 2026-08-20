@@ -406,6 +406,8 @@ type PortOnePaymentRequest = {
   customer: PortOneCustomer;
   customData: Record<string, unknown>;
   noticeUrls?: string[];
+  /** 결제창 UI 언어. 값의 범위는 js/core/checkout-entry.js 의 pgWindowLocale 머리주석 참고. */
+  locale?: "KO_KR" | "EN_US";
 };
 
 /** Toast 알림 하나의 데이터 구조 */
@@ -4184,6 +4186,8 @@ export default function PointsPage() {
         totalAmount: order.paymentAmount,
         currency: paymentConfig.currency || "CURRENCY_KRW",
         payMethod: paymentConfig.payMethod || "CARD",
+        // 🔴 안 보내면 PG 가 한국어 결제창을 연다. 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
+        locale: checkoutEntry.pgWindowLocale(),
         redirectUrl: redirectUrl.toString(),
         customer,
         customData: {

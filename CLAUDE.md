@@ -93,6 +93,16 @@
 - 위 순서를 벗어나는 결제 구현은 금지이며 **작업 중 우연히 발견해도 그냥 지나치지 말고 사용자에게 보고**한다.
 - 🔴 `config/payment-freeze.json` 에 등록된 파일·함수를 건드렸으면 `node scripts/verify-payment-freeze.mjs --update` 로 매니페스트를 갱신해 **같은 커밋에** 담는다. 순수 CSS/문구 변경도 예외 없다. 체크 무력화 금지.
 
+## 작업 격리 — 파일을 고치기 전에 worktree 로 들어간다
+
+🔴 **파일을 수정하는 작업은 시작 전에 `EnterWorktree` 로 격리된 git worktree 를 만들고 그 안에서 한다.** 사용자가 매번 지시하지 않아도 **이 문서가 그 지시다.**
+
+- 기본 작업 디렉터리는 **여러 세션이 동시에 쓴다.** 남의 미커밋 변경이 내 커밋에 휩쓸리고, 작업 중에 남이 브랜치를 갈아타면 내 HEAD 가 통째로 바뀐다(둘 다 실사고 — 2026-08-20 한 세션에서 두 번).
+- 워크트리는 `.claude/worktrees/<이름>` 에 **`origin/main` 에서** 분기해 생기고 `node_modules` 는 심링크로 딸려온다([.claude/settings.json](.claude/settings.json) 의 `worktree`). 낡은 로컬 브랜치로 진단하는 사고도 이걸로 같이 막힌다.
+- 워크트리에서 툴체인은 그대로 돈다 — 실측 2026-08-20: `npm test`(jest 158 스위트 1627개 · node 273개) · `typecheck` · `lint` · `verify:*` 전부 통과. 🔴 새 설정 파일에 `<rootDir>/node_modules` 같은 경로를 박으면 그 순간 워크트리에서만 깨진다(그렇게 21개 스위트가 죽어 있었다) — `require.resolve` 를 쓸 것.
+- 예외: 읽기만 하는 조사·질문, 그리고 사용자가 "여기서 하라"고 한 경우.
+- 끝나면 `ExitWorktree` — push·PR 까지 마쳤으면 `remove`, 이어서 할 일이 남았으면 `keep`.
+
 ## Workflow
 
 - 5줄 이상 변경은 코딩 전 계획(plan) 우선

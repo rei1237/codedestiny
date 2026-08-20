@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
@@ -328,38 +328,61 @@ assert.doesNotMatch(
   /MonthlyCreditLedger\.(deleteOne|deleteMany|findByIdAndDelete)/,
   "환불이 원장을 삭제하면 안 된다(감사 추적 보존 — 재기입+플래그로 처리)",
 );
-// 6c-6. 생성 실패 환불은 키 해제 계약 표식을 '두 곳 모두'에 찍어야 한다.
-// releaseRefundedSpendSourceId 는 원장의 refundedForUnlockFailure 로만 환불 원장을 고르고,
-// readIdempotentSpendResult 의 PointHistory 갈래는 monthlyCreditRefundedForUnlockFailure 만 배제한다.
-// 한쪽만 찍으면 replay 가 "이미 결제됨"으로 조기 반환해 E11000 복구(=키 해제)에 도달조차 못 한다.
-for (const [label, source] of Object.entries({
-  "fortune.js": fortuneSource,
-  "service-execution-task.js": serviceExecutionTaskSource,
-})) {
-  assert.match(
-    source,
-    /"metadata\.monthlyCreditRefundedForServiceExecution": true,\s*(?:\/\/[^\n]*\n\s*)*"metadata\.monthlyCreditRefundedForUnlockFailure": true/,
-    `${label}: 생성 실패 환불은 PointHistory 에 monthlyCreditRefundedForUnlockFailure 도 찍어야 한다(replay 배제)`,
-  );
-  assert.match(
-    source,
-    /"metadata\.refundedForServiceExecution": true,\s*(?:\/\/[^\n]*\n\s*)*"metadata\.refundedForUnlockFailure": true/,
-    `${label}: 생성 실패 환불은 원장에 refundedForUnlockFailure 도 찍어야 한다(키 해제)`,
-  );
+// 6c-6/6c-7. 월정석 환불 지점은 **전수 발견**한다 — 손으로 적은 목록은 가드가 아니다(코딩 원칙 10).
+// 예전에는 fortune.js·service-execution-task.js 두 개만 검사했고, 그 밖의 5개 라우트
+// (life-book-ai·sukuyo-compatibility-ai·vedic-ai·ziwei-ai·ziwei-island-ai)가 계약을 어긴 채
+// 통과하고 있었다(2026-08-20 실측).
+//
+// 대상 판별: worker/ 아래에서 restoreMonthlyCreditLot 을 부르면서 MonthlyCreditLedger 를 함께
+// 다루는 파일. profile.js 는 프로필 카드 변경 환불이라 원장을 건드리지 않아 자연히 빠진다
+// (이름으로 빼지 않는다 — 원장을 만지기 시작하면 자동으로 검사 대상이 된다).
+//
+// 지켜야 할 계약 둘:
+//   ① 원장에 refundedForUnlockFailure  → releaseRefundedSpendSourceId 가 sourceId 를 비운다
+//   ② 모든 restoreMonthlyCreditLot 호출에 pullRequestId → recentConsumeRequestIds 에서 purchaseId 제거
+// 하나만 지키면 재구매가 막힌다. ①이 없으면 replay 가 "이미 결제됨"으로 조기 반환해 재차감 없이
+// 통과하는데 증빙 정본은 환불분을 배제하므로 402, ②가 없으면 applyLotDeduction 이
+// ALREADY_PROCESSED 로 402 를 내고 E11000 복구(=키 해제)에 도달조차 못 한다.
+const monthlyRefundSites = [];
+for (const dir of ["worker/routes", "worker/lib"]) {
+  for (const name of readdirSync(resolve(root, dir))) {
+    if (!name.endsWith(".js")) continue;
+    const rel = `${dir}/${name}`;
+    if (rel === "worker/lib/monthly-credit-store.js") continue; // 헬퍼 정의부(호출부가 아니다)
+    const source = readFileSync(resolve(root, rel), "utf8");
+    if (!source.includes("restoreMonthlyCreditLot(")) continue;
+    if (!source.includes("MonthlyCreditLedger")) continue;
+    monthlyRefundSites.push([rel, source]);
+  }
 }
-// 6c-7. 환불은 recentConsumeRequestIds 마커도 빼야 한다. 안 빼면 재구매가 applyLotDeduction 에서
-// ALREADY_PROCESSED 로 걸려 402 가 되고, 원장 insert 까지 못 가 11000 복구 경로도 안 돈다
-// (= 환불받고 같은 질문을 영영 못 여는 락).
-assert.match(
-  serviceExecutionTaskSource,
-  /restoreMonthlyCreditLot\(\{[\s\S]{0,300}?pullRequestId/,
-  "service-execution-task 의 월정석 환불은 restoreMonthlyCreditLot 에 pullRequestId 를 넘겨야 한다",
+// 발견 규칙이 조용히 깨져 0건이 되면 가드가 그냥 통과해 버린다(fail-closed 유지).
+assert.ok(
+  monthlyRefundSites.length >= 9,
+  `월정석 환불 지점을 ${monthlyRefundSites.length}개만 찾았다 — 발견 규칙이 깨졌다(2026-08-20 실측 9개)`,
 );
-assert.match(
-  fortuneSource,
-  /restoreMonthlyCreditLot\(\{[\s\S]{0,300}?pullRequestId/,
-  "사주 월정석 환불은 restoreMonthlyCreditLot 에 pullRequestId 를 넘겨야 한다",
-);
+for (const [rel, source] of monthlyRefundSites) {
+  assert.match(
+    source,
+    /"metadata\.refundedForUnlockFailure": true/,
+    `${rel}: 월정석 환불은 원장에 refundedForUnlockFailure 를 찍어야 한다(키 해제) — 없으면 재구매가 402 로 막힌다`,
+  );
+  const calls = source.match(/restoreMonthlyCreditLot\(\{[\s\S]{0,600}?\}\)/g) || [];
+  assert.ok(calls.length > 0, `${rel}: restoreMonthlyCreditLot 호출을 파싱하지 못했다(가드 정규식 점검 필요)`);
+  for (const call of calls) {
+    assert.ok(
+      call.includes("pullRequestId"),
+      `${rel}: restoreMonthlyCreditLot 호출마다 pullRequestId 를 넘겨야 한다 — 빠지면 재구매가 ALREADY_PROCESSED 로 402`,
+    );
+  }
+  // PointHistory 에도 표식을 찍는 지점이라면 replay 배제 표식이 짝으로 있어야 한다.
+  if (source.includes('"metadata.monthlyCreditRefundedForServiceExecution": true')) {
+    assert.match(
+      source,
+      /"metadata\.monthlyCreditRefundedForServiceExecution": true,\s*(?:\/\/[^\n]*\n\s*)*"metadata\.monthlyCreditRefundedForUnlockFailure": true/,
+      `${rel}: PointHistory 에 monthlyCreditRefundedForUnlockFailure 도 찍어야 한다(replay 배제)`,
+    );
+  }
+}
 // 6c-8. 월정석 증빙에도 금액 하한이 있어야 한다(더 싼 차감이 비싼 상담 증거로 통과하는 것 방지).
 // 하한은 반드시 정본 변환기를 거친다 — 원장 amount 는 월정석, cost 는 코인이라 하드코딩 환산은
 // 틀리는 순간 정상 결제를 402 로 떨어뜨린다.

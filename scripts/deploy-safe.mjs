@@ -371,14 +371,32 @@ async function discover(pagesLocal, workerLocal) {
   const sourceConfig = source.config || {};
   const build = pages.build_config || {};
   if (source.type && source.type !== "github") throw new Error("Pages source drifted from GitHub: " + source.type);
-  if (!sourceConfig.production_branch) throw new Error("Pages production branch is missing.");
+  // 🔴 Git 연동 프로젝트와 직접 업로드 프로젝트는 프로덕션 브랜치를 **다른 자리**에 둔다.
+  //
+  // 프로덕션(codedestiny)은 GitHub 연동이라 source.config.production_branch 가 있다. 스테이징
+  // (codedestiny-staging)은 연동을 일부러 끈 직접 업로드 프로젝트라 source 자체가 비어 있고,
+  // 브랜치는 프로젝트 최상위 production_branch 에 있다. 앞쪽만 읽으면 스테이징 배포가
+  // "Pages production branch is missing" 으로 죽는다(2026-08-20 실측).
+  //
+  // 폴백은 여기서 끝난다 — 둘 다 없으면 실패다. 임의로 "main" 을 가정하면 엉뚱한 브랜치를
+  // 프로덕션 배포로 승격시킬 수 있다.
+  const productionBranch = sourceConfig.production_branch || pages.production_branch || "";
+  if (!productionBranch) {
+    // 다음 실행이 "또 없다"로 끝나지 않도록, 응답에 실제로 어떤 키가 있는지 함께 보고한다.
+    // (값이 아니라 키 이름만 — 응답에 자격증명은 없지만 습관을 지킨다.)
+    throw new Error("Pages production branch is missing for project '" + project + "'."
+      + "\n  Git 연동 프로젝트라면 source.config.production_branch 가, 직접 업로드 프로젝트라면"
+      + "\n  프로젝트의 production_branch 가 있어야 한다."
+      + "\n  응답 최상위 키: " + Object.keys(pages || {}).sort().join(", ")
+      + "\n  source.config 키: " + Object.keys(sourceConfig || {}).sort().join(", "));
+  }
   if (build.build_command && build.build_command !== "npm run build:cf") throw new Error("Pages build command drifted: " + build.build_command);
   if (build.destination_dir && build.destination_dir !== pagesLocal.outputDir) throw new Error("Pages output directory drifted.");
   return {
     project, worker,
     pages: {
       sourceType: source.type || "unknown",
-      productionBranch: sourceConfig.production_branch,
+      productionBranch,
       previewSetting: sourceConfig.preview_deployment_setting || "unknown",
       buildCommand: build.build_command || "unknown",
       outputDir: build.destination_dir || pagesLocal.outputDir,

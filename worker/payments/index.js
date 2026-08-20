@@ -32,6 +32,7 @@ import { dropEntitlementByIdentity, grantEntitlement, markUserFeatureUnlocked, r
 import { settleOrphanSpends, spendMoonstone } from "./moonstone.js";
 import { acceptWebhook, markEventFailed, markEventProcessed } from "./webhook.js";
 import { runPaymentReconcile } from "./reconcile.js";
+import { sendPendingReceiptEmails } from "./receipt-email.js";
 import { resolveLegacyProduct } from "./legacy-pricing.js";
 import {
   activatePassSubscription,
@@ -1370,7 +1371,16 @@ export async function runPaymentsV2Reconcile(env) {
       } catch (error) {
         console.error("[payments-v2-reconcile] moonstone orphan sweep failed:", String(error?.message || error));
       }
-      return { ...report, moonstone };
+      /* 구매 확인 메일(전자상거래법 제13조). 🔴 결제 경로가 아니라 여기서 보낸다 — 확정 경로에
+         외부 HTTP(Resend)를 얹으면 메일이 느려질 때 그 지연이 결제창 하드 503 으로 나온다.
+         같은 슬롯에서 이어 돌고, 실패해도 위 두 결과는 잃지 않는다(월정석 정리와 같은 규칙). */
+      let receipts = null;
+      try {
+        receipts = await sendPendingReceiptEmails(env, db);
+      } catch (error) {
+        console.error("[payments-v2-reconcile] receipt email sweep failed:", String(error?.message || error));
+      }
+      return { ...report, moonstone, receipts };
     });
   } catch (error) {
     const contract = classify(error);

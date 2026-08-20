@@ -36,6 +36,9 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "rpt_specialCharmCard",
       "rpt_secretHouseEntryCard",
       "secretHouseEpisodes",
+      "section_compat",
+      "rpgCharacter",
+      "fun.quantumLotto.ritualReport",
     ]),
   },
   {
@@ -82,6 +85,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
     href: "/ziwei/island",
     featureKeys: Object.freeze([
       "ziwei-island-palace-consult",
+      "ziwei-island-deep-report",
     ]),
   },
   {
@@ -165,6 +169,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "sukuyo-extreme-t-relationship",
       "sukuyo-relationship-encyclopedia",
       "sukuyo-past-life-reading",
+      "sukuyo-nature-deep-dive",
       "sukuyo-monthly-fortune",
       "sukyo_yearly_fortune_unlock",
       "premium-sukuyo",
@@ -186,6 +191,7 @@ export const REVIEW_PRODUCTS = Object.freeze([
     href: "/life-book-ai",
     featureKeys: Object.freeze([
       "life-book-ai-consultation",
+      "life-fortune-ai-consultation",
     ]),
   },
   {
@@ -328,8 +334,57 @@ export const REVIEW_PRODUCTS = Object.freeze([
       "destiny-compass-crossroads",
       "destiny-compass-life-voyage",
       "destiny-compass-future-sim",
+      "destiny-compass-deep-report",
     ]),
   },
+  {
+    productId: "fusion-fortune",
+    name: "초융합 운세",
+    summary: "여섯 체계를 한 번에 엮어 읽는 심층 통합 리딩",
+    href: "/fusion-fortune",
+    featureKeys: Object.freeze([
+      "fusion-fortune-consultation",
+    ]),
+  },
+  {
+    productId: "master-love-codex",
+    name: "마스터 인연의 서",
+    summary: "인연의 흐름과 궁합을 엮어 읽는 프리미엄 상담",
+    href: "/master-love-codex",
+    featureKeys: Object.freeze([
+      "master-love-codex",
+      "master-love-codex-compat",
+    ]),
+  },
+  {
+    productId: "fortune-chat",
+    name: "연이 운명 상담",
+    summary: "연이와 나누는 실시간 대화형 운세 상담",
+    href: "/fortune-chat",
+    featureKeys: Object.freeze([
+      "fortune-chat-consultation",
+    ]),
+  },
+  {
+    productId: "pet-saju",
+    name: "반려동물 사주",
+    summary: "반려동물의 사주와 궁합을 읽는 AI 상담",
+    href: "/pet-saju.html",
+    featureKeys: Object.freeze([
+      "pet-saju-ai-consultation",
+      "pet-compatibility-ai",
+    ]),
+  },
+]);
+
+// 레지스트리에는 있지만 리뷰 상품으로 다루지 않는 featureKey. 정방향 커버리지
+// 테스트(__tests__/worker/review-catalog-moderation.test.js)가 "미분류"를 잡아내므로,
+// 의도적으로 뺀 키는 반드시 여기에 사유와 함께 등록한다.
+export const REVIEW_EXCLUDED_FEATURE_KEYS = Object.freeze([
+  // 레거시 호환 전용 — Fortune Planner가 이 키를 읽거나 과금하지 않는다(paid-feature-registry.js 주석).
+  "sajuDiary",
+  // 프로필 카드 추가/수정/삭제라는 UI 조작 과금이라 "상담·리포트 후기" 성격과 맞지 않는다.
+  "profile-card-manage",
 ]);
 
 const PRODUCT_BY_ID = Object.freeze(
