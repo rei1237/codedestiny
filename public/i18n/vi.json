@@ -1740,6 +1740,11 @@
       "monthlyTitle": "Mở bằng nguyệt tinh thạch",
       "requiredMonthly": "Tín dụng bắt buộc",
       "currentMonthly": "Số dư hiện tại",
+      "musicTrackSub": "Có Thẻ ánh trăng, bạn nghe được toàn bộ bài hát ngay lập tức. Tải MP3 chỉ áp dụng cho bài đã mua lẻ hoặc mua bằng nguyệt tinh thạch.",
+      "monthlyAria": {
+        "insufficient": "Không đủ số dư",
+        "unknown": "Cần kiểm tra số dư"
+      },
       "subtitle": {
         "withPass": "Số tiền được hiển thị khớp với cơ sở tín dụng KRW hàng tháng. Bạn có thể mở nội dung này bằng thẻ hoặc thanh toán bằng thẻ một lần.",
         "directOnly": "Số tiền được hiển thị khớp với cơ sở tín dụng KRW hàng tháng. Bạn có thể tiếp tục thanh toán bằng thẻ một lần."
