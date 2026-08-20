@@ -1740,6 +1740,11 @@
       "monthlyTitle": "Abrir con piedras lunares",
       "requiredMonthly": "Créditos requeridos",
       "currentMonthly": "Saldo actual",
+      "musicTrackSub": "Con el Pase a la luz de la luna puedes escuchar todas las pistas al instante. La descarga en MP3 solo está disponible para las pistas compradas con una compra única o con piedras lunares.",
+      "monthlyAria": {
+        "insufficient": "Saldo insuficiente",
+        "unknown": "Hay que comprobar el saldo"
+      },
       "subtitle": {
         "withPass": "El monto mostrado coincide con el crédito mensual en KRW. Puede abrir este contenido con un pase o un pago único con tarjeta.",
         "directOnly": "El monto mostrado coincide con el crédito mensual en KRW. Puedes continuar con un pago único con tarjeta."

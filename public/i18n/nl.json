@@ -1740,6 +1740,11 @@
       "monthlyTitle": "Openen met maanstenen",
       "requiredMonthly": "Vereiste tegoeden",
       "currentMonthly": "Huidig saldo",
+      "musicTrackSub": "Met een Maanlichtpas luister je meteen naar alle nummers. MP3-downloads zijn alleen mogelijk voor nummers die met een eenmalige aankoop of met maanstenen zijn gekocht.",
+      "monthlyAria": {
+        "insufficient": "Saldo ontoereikend",
+        "unknown": "Saldo moet worden gecontroleerd"
+      },
       "subtitle": {
         "withPass": "Het weergegeven bedrag komt overeen met de maandelijkse KRW-kredietbasis. U kunt deze inhoud openen met een pas of eenmalige kaartbetaling.",
         "directOnly": "Het weergegeven bedrag komt overeen met de maandelijkse KRW-kredietbasis. U kunt doorgaan met een eenmalige kaartbetaling."
