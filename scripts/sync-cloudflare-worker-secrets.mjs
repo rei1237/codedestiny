@@ -476,6 +476,16 @@ const STAGING_EXCLUDED_KEYS = new Set([
   // 테스트 채널 값이 준비되면 그때 명시적으로 넣는다:
   //   npm run secrets:cf:worker -- --target=staging --only-key=PORTONE_CHANNEL_KEY
   "MID",
+  // 🔴 DB 이름. 이것이 시크릿으로 들어가면 **스테이징이 프로덕션 DB 를 본다.**
+  //
+  // worker/lib/db.js 의 resolveMongoDbName 은
+  //   MONGO_DB_NAME → MONGO_NAME → MONGODB_DB_NAME → URI → "code_destiny"
+  // 순으로 읽는다. 스테이징 분리는 wrangler.staging.toml 의 `MONGODB_DB_NAME` **세 번째**
+  // 자리에 걸려 있으므로, .env.local 에서 상속된 MONGO_DB_NAME 하나가 그 분리를 통째로 덮는다.
+  // 2026-08-20 에 실제로 그 상태로 배포됐다(발견 후 스테이징 워커에서 삭제).
+  // MONGO_URI 는 같은 클러스터를 공유하므로 그대로 둔다 — 가르는 것은 DB 이름 하나뿐이다.
+  "MONGO_DB_NAME",
+  "MONGO_NAME",
 ]);
 
 /**
@@ -495,7 +505,7 @@ function isExcludedFromStaging(key) {
 const targetFilteredKeys = syncTarget === "staging" && !onlyKey
   ? activeSecretKeys.filter((key) => {
     if (!isExcludedFromStaging(key)) return true;
-    console.warn(`[worker-secrets] Skipping ${key}: excluded from staging (과금 LLM 키 · 결제 자격증명).`);
+    console.warn(`[worker-secrets] Skipping ${key}: excluded from staging (과금 LLM 키 · 결제 자격증명 · DB 분리).`);
     return false;
   })
   : activeSecretKeys;
