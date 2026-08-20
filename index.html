@@ -1405,7 +1405,8 @@ body.neo-mode .logo-area p{color:rgba(200,170,255,0.7);font-size:.9rem;margin-to
 button,[role="button"],input[type="button"],input[type="submit"],input[type="reset"]{min-height:48px;min-width:48px;touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 a{touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 .card.input-section:not(#destinyCardForm){background:rgba(15,10,30,0.85);border-radius:20px;padding:20px 16px;margin-bottom:16px}
-.auth-quick-links{display:flex;justify-content:center;gap:10px;margin-top:20px;flex-wrap:wrap}
+.auth-quick-links{display:flex;align-items:center;justify-content:center;gap:12px;flex-wrap:wrap;margin:0 0 20px;padding:14px 16px;border-radius:22px;background:linear-gradient(135deg,rgba(255,255,255,.86),rgba(255,244,252,.74) 52%,rgba(236,248,255,.78));border:1px solid rgba(244,114,182,.22);box-shadow:0 12px 28px rgba(148,92,120,.14),inset 0 1px 0 rgba(255,255,255,.84)}
+body.neo-mode .auth-quick-links{background:linear-gradient(135deg,rgba(8,6,2,.95) 0%,rgba(22,16,4,.9) 52%,rgba(10,7,2,.95) 100%);border-color:rgba(243,221,154,.24);box-shadow:0 8px 32px rgba(0,0,0,.48),inset 0 1px 0 rgba(243,221,154,.14)}
 .auth-btn{display:inline-flex;align-items:center;justify-content:center;min-width:120px;min-height:44px;padding:10px 22px;border-radius:999px;text-decoration:none;font-weight:700;font-size:.9rem;transition:transform .22s ease,box-shadow .22s ease,filter .22s ease}
 .auth-btn--signup{color:#fff;background:linear-gradient(135deg,rgba(124,58,237,0.9),rgba(99,102,241,0.85));border:1px solid rgba(180,120,255,0.35);box-shadow:0 4px 18px rgba(124,58,237,0.35)}
 .auth-btn--signup:hover{transform:translateY(-1px);box-shadow:0 6px 24px rgba(124,58,237,0.5)}
@@ -3383,7 +3384,7 @@ html.neo-mode .tile-pvw-overlay.pvw-prem .tile-pvw-cta-sticky,body.neo-mode .til
   .moon-hero__trust a{min-width:0;min-height:36px;display:flex;align-items:center;justify-content:center;border-radius:8px;padding:7px 6px;font-size:.72rem;line-height:1.18;text-align:center;word-break:keep-all}
   .moon-hero__actions{display:grid!important;grid-template-columns:1fr!important;gap:8px!important}
   .moon-hero__cta{min-height:44px!important;border-radius:10px!important;padding:11px 12px!important;font-size:.88rem!important}
-  #authQuickLinks{margin:8px 12px 0!important}
+  #authQuickLinks{margin:0 12px 16px!important}
   .cd-mobile-destiny-hub{display:block;box-sizing:border-box;min-height:0;margin:0;padding:calc(env(safe-area-inset-top,0px) + 48px) 14px calc(12px + env(safe-area-inset-bottom,0px));background:radial-gradient(circle at 18% 0%,rgba(201,168,76,.1),transparent 28%),radial-gradient(circle at 88% 12%,rgba(45,212,191,.08),transparent 24%),linear-gradient(180deg,#07101f 0%,#101827 46%,#08111f 100%);color:#f8f7ef}
   .cd-mobile-hub__fold{min-height:0;display:flex;flex-direction:column;justify-content:flex-start;gap:9px;max-width:520px;margin:0 auto;padding-bottom:8px}
   .cd-mobile-hub__brand{display:flex;align-items:center;gap:10px;min-width:0}
@@ -12135,6 +12136,14 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
           <a href="#cdServiceIndex" data-cd-service-index-jump="1" data-cd-trans data-key="home.nav.allServices">전체 서비스</a>
         </nav>
       </div>
+      <!-- 상단바 바로 아래 상시 노출 계정 진입 바(cd-auth-topbar-entry-v20260820).
+           예전엔 히어로+여러 섹션 지난 뒤에야 나와 위치가 안 보이고 눈에 안 띈다는 신고가 있었다.
+           id="authQuickLinks" 는 그대로 유지 — __cdRenderGuestAuthLinks/__cdRenderAuthSummary 등이
+           getElementById 로만 찾으므로 DOM 위치를 옮겨도 인증 상태 동기화 로직은 그대로 동작한다. -->
+      <div class="auth-quick-links" id="authQuickLinks" data-marker="mobile-auth-luxe-entry-v20260702">
+        <a href="/signup/" class="auth-btn auth-btn--signup" data-cd-trans="auth.signup">✨ 회원가입</a>
+        <a href="/login/" class="auth-btn auth-btn--login" data-cd-trans="auth.login">🔐 로그인</a>
+      </div>
       <!-- Cosmic star particles + 별모양 꽃 -->
       <div class="logo-cosmos" aria-hidden="true">
         <span class="logo-star logo-star--1"></span>
@@ -14639,10 +14648,8 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         <p data-cd-trans="auth.neoSubline">감성 제로. 팩트만 남는다.</p>
       </div>
 
-      <div class="auth-quick-links" id="authQuickLinks" data-marker="mobile-auth-luxe-entry-v20260702">
-        <a href="/signup/" class="auth-btn auth-btn--signup" data-cd-trans="auth.signup">✨ 회원가입</a>
-        <a href="/login/" class="auth-btn auth-btn--login" data-cd-trans="auth.login">🔐 로그인</a>
-      </div>
+      <!-- #authQuickLinks 는 상단바 직후(cd-auth-topbar-entry-v20260820)로 옮겼다.
+           id 는 유지되므로 아래 스크립트의 getElementById('authQuickLinks') 는 그대로 동작한다. -->
       <script data-marker="main-shell-api-traffic-guard-v20260703">
         (function () {
           var __CD_LOGOUT_INFLIGHT_KEY = 'fortune_auth_logout_inflight_at';
