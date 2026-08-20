@@ -248,6 +248,62 @@ test("select 를 바꾸면 텍스트 입력이 따라온다", async () => {
   assert.equal(text.value, "05:07", "select → 텍스트 동기화가 끊겼다");
 });
 
+// ── 궁합 카드 출생시간 (compat-birth-time-text-v20260821) ─────────────────────────
+// #birthTimeText/#birthHour/#birthMinute 와 정확히 같은 구조를 궁합 카드에도 얹었다.
+// _DP_BIRTH_TIME_FIELDSETS 에 등록된 두 번째 필드셋이 실제로 동작하는지 확인한다 —
+// 메인 폼용으로만 검증됐던 동기화 함수가 궁합 카드에서도 똑같이 동작해야 한다.
+async function bootCompatTimeFields() {
+  assert.match(shell, /id="compatBirthTimeText"/, "index.html 에 #compatBirthTimeText 가 없다");
+  assert.match(shell, /id="compatBirthHour"[^>]*><\/select>/, "index.html 의 #compatBirthHour 마크업이 바뀌었다");
+  assert.match(shell, /id="compatBirthMinute"[^>]*><\/select>/, "index.html 의 #compatBirthMinute 마크업이 바뀌었다");
+
+  const hourOptions = Array.from({ length: 24 }, (_, h) => `<option value="${h}">${h}</option>`).join("");
+  const minuteOptions = Array.from({ length: 60 }, (_, m) => `<option value="${m}">${m}</option>`).join("");
+  const markup = [
+    '<input type="text" id="compatBirthTimeText">',
+    `<select id="compatBirthHour">${hourOptions}</select>`,
+    `<select id="compatBirthMinute">${minuteOptions}</select>`,
+  ].join("\n");
+
+  const dom = new JSDOM(`<!doctype html><html><body>${markup}</body></html>`, {
+    url: "https://code-destiny.com/",
+    runScripts: "outside-only",
+  });
+  const { window } = dom;
+  window.eval(profileJs);
+  if (window.document.readyState === "loading") {
+    await new Promise((r) => window.addEventListener("DOMContentLoaded", r, { once: true }));
+  }
+  return { window, doc: window.document };
+}
+
+test("궁합 카드 출생시간을 타이핑하면 그 카드의 select 두 개가 함께 맞춰진다(메인 폼 select 는 안 건드린다)", async () => {
+  const { window, doc } = await bootCompatTimeFields();
+  const text = doc.getElementById("compatBirthTimeText");
+  const hour = doc.getElementById("compatBirthHour");
+  const minute = doc.getElementById("compatBirthMinute");
+
+  text.value = "1942";
+  fire(window, text, "blur");
+
+  assert.equal(text.value, "19:42");
+  assert.equal(hour.value, "19");
+  assert.equal(minute.value, "42");
+});
+
+test("궁합 카드 select 를 바꾸면 그 카드의 텍스트 입력이 따라온다", async () => {
+  const { window, doc } = await bootCompatTimeFields();
+  const text = doc.getElementById("compatBirthTimeText");
+  const hour = doc.getElementById("compatBirthHour");
+  const minute = doc.getElementById("compatBirthMinute");
+
+  hour.value = "3";
+  minute.value = "9";
+  fire(window, hour, "change");
+
+  assert.equal(text.value, "03:09");
+});
+
 // ── 생년월일 텍스트 입력 전면 통일 (birth-date-text-everywhere-v20260820) ─────────
 //
 // 배경: 셸 홈만 텍스트로 바뀌어 있었고 App Router·src 화면 29곳은 여전히 type="date" 였다.
