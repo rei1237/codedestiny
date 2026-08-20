@@ -615,8 +615,10 @@ button,input,select,textarea{font-family:var(--font-body)!important}
       <div style="height:12px"></div>
       <div class="section-head" style="margin-bottom:10px">장소 · 시간대</div>
       <div style="margin-bottom:10px">
-        <label for="v_place">태어난 장소 선택 (자동 위도/경도)</label>
-        <select id="v_place" style="width:100%">
+        <label for="v_placeText">태어난 장소 선택 (자동 위도/경도)</label>
+        <input type="text" id="v_placeText" list="v_placeDatalist" placeholder="예: 서울, 도쿄, 뉴욕" style="width:100%" autocomplete="off">
+        <datalist id="v_placeDatalist"></datalist>
+        <select id="v_place" style="display:none" aria-hidden="true" tabindex="-1">
           <option value="" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">장소를 선택하세요 (기본: 서울)</option>
           <optgroup label="대한민국 (시/군 단위)">
             <option value="Asia/Seoul" data-long="126.9780" data-lat="37.5665" data-tz="9" data-base-tz="9">대한민국 · 서울</option>
@@ -828,6 +830,7 @@ function vedicInitBirthPlaceSelect(){
   }
   if(hasDataOptions){
     // HTML already has the options with coordinates, don't overwrite
+    vedicPopulatePlaceDatalist();
     return;
   }
   
@@ -1014,6 +1017,56 @@ function vedicInitBirthPlaceSelect(){
       });
     }
   }catch(e){ console.error('Error building place select:', e); }
+  vedicPopulatePlaceDatalist();
+}
+
+/* ── 태어난 장소 검색형 타이핑 입력(vedic-place-typed-combo) ──────────────────────
+   실제 값의 소스는 여전히 #v_place select 다(vedicApplySelectedPlace/
+   _syncVedicToProfileCardCompatFields/vedicReadManualProfile 등 여러 지점이
+   selectedIndex·data-* 를 직접 읽으므로 select 는 지우지 않고 display:none 으로만
+   숨긴다). #v_placeText 는 타이핑으로 select 의 selectedIndex 를 옮기고
+   change 이벤트만 대신 쏴 준다 — 기존 change 리스너(vedicApplySelectedPlace 등)가
+   그대로 동작한다. */
+function vedicPopulatePlaceDatalist(){
+  var sel=document.getElementById('v_place');
+  var dl=document.getElementById('v_placeDatalist');
+  if(!sel||!dl||dl.options.length) return;
+  for(var i=0;i<sel.options.length;i++){
+    var label=sel.options[i].text;
+    if(!label) continue;
+    var opt=document.createElement('option');
+    opt.value=label;
+    dl.appendChild(opt);
+  }
+}
+function vedicSyncPlaceTextFromSelect(){
+  var sel=document.getElementById('v_place');
+  var txt=document.getElementById('v_placeText');
+  if(!sel||!txt) return;
+  var opt=sel.options[sel.selectedIndex];
+  if(opt) txt.value=opt.text;
+}
+function vedicSyncPlaceSelectFromText(){
+  var sel=document.getElementById('v_place');
+  var txt=document.getElementById('v_placeText');
+  if(!sel||!txt) return;
+  var typed=txt.value.trim();
+  if(!typed) return;
+  for(var i=0;i<sel.options.length;i++){
+    if(sel.options[i].text===typed){
+      if(sel.selectedIndex!==i){
+        sel.selectedIndex=i;
+        try{
+          var evt=document.createEvent('HTMLEvents');
+          evt.initEvent('change',true,false);
+          sel.dispatchEvent(evt);
+        }catch(_){}
+      }
+      return;
+    }
+  }
+  /* 목록에 없는 자유 입력은 select 를 그대로 두고(마지막 유효 선택 유지) 텍스트만 사용자가
+     친 대로 둔다 — 기존 select 의 기본값(서울) 폴백 동작과 같다. */
 }
 
 function vedicApplySelectedPlace(){
@@ -5331,6 +5384,7 @@ function _selectBirthPlaceByProfile(loc){
     if(bestIdx<0||bestScore<20) return false;
     sel.selectedIndex=bestIdx;
     try{ vedicApplySelectedPlace(); }catch(_){ }
+    try{ vedicSyncPlaceTextFromSelect(); }catch(_){ }
     return true;
   }catch(_){
     return false;
@@ -5507,8 +5561,16 @@ document.addEventListener('DOMContentLoaded', function(){
       placeSel.addEventListener('change', function(){
         try{ vedicShowInputError(''); }catch(_){}
         try{ vedicApplySelectedPlace(); }catch(_){}
+        try{ vedicSyncPlaceTextFromSelect(); }catch(_){}
         try{ _syncVedicToProfileCardCompatFields(); }catch(_){}
       });
+    }
+    var placeTextEl=document.getElementById('v_placeText');
+    if(placeTextEl){
+      placeTextEl.addEventListener('input', function(){ try{ vedicSyncPlaceSelectFromText(); }catch(_){} });
+      placeTextEl.addEventListener('blur', function(){ try{ vedicSyncPlaceSelectFromText(); }catch(_){} });
+      try{ vedicPopulatePlaceDatalist(); }catch(_){}
+      try{ vedicSyncPlaceTextFromSelect(); }catch(_){}
     }
     ['v_name','v_year','v_month','v_day','v_hour','v_minute','v_gender','v_lat','v_lon','v_tz'].forEach(function(id){
       var el=document.getElementById(id);
