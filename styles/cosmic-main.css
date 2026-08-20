@@ -2186,7 +2186,7 @@ body:not(.neo-mode) .moon-hero{
       body:not(.neo-mode) #destinyCardForm .inp,body:not(.neo-mode) #destinyCardForm .form-country-select{min-height:54px!important;border-color:rgba(159,18,57,.14)!important;border-radius:22px 10px 22px 10px!important;background:rgba(255,255,255,.8)!important;color:var(--orchid-ink)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),0 1px 0 rgba(255,255,255,.7)!important;font-weight:600!important}
       body:not(.neo-mode) #destinyCardForm .inp:focus,body:not(.neo-mode) #destinyCardForm .form-country-select:focus{border-color:rgba(159,18,57,.5)!important;background:#fff!important;box-shadow:0 0 0 4px rgba(244,114,182,.14),0 10px 22px rgba(159,18,57,.08)!important}
       body:not(.neo-mode) #destinyCardForm .moon-radio-row label,body:not(.neo-mode) #destinyCardForm .tog-btn,body:not(.neo-mode) #destinyCardForm .birth-time-tip.moon-time-unknown,body:not(.neo-mode) #destinyCardForm .moon-correction-preview{border-radius:22px 10px 22px 10px!important;background:rgba(255,255,255,.66)!important;border-color:rgba(159,18,57,.14)!important}
-      body:not(.neo-mode) #destinyCardForm .moon-submit-btn--primary{border:1px solid rgba(159,18,57,.22)!important;border-radius:30px 14px 30px 14px!important;background:linear-gradient(135deg,#ffe8f3 0%,#f472b6 34%,#d4a03f 68%,#b7f0d2 100%)!important;color:#35143f!important;box-shadow:0 18px 36px rgba(159,18,57,.18),inset 0 1px 0 rgba(255,255,255,.58)!important}
+      body:not(.neo-mode) #destinyCardForm .moon-submit-btn--primary{border:1px solid rgba(159,18,57,.22)!important;border-radius:30px 14px 30px 14px!important;background:linear-gradient(135deg,#fbcfe8 0%,#f472b6 50%,#d4a03f 100%)!important;color:#35143f!important;box-shadow:0 18px 36px rgba(159,18,57,.18),inset 0 1px 0 rgba(255,255,255,.58)!important}
       @media (max-width:640px){body:not(.neo-mode) #destinyCardForm.moon-destiny-form{padding:24px 16px!important;border-radius:34px 16px 36px 16px!important}body:not(.neo-mode) #destinyCardForm .moon-form-header{align-items:flex-start!important;padding:20px 16px!important;border-radius:30px 14px 30px 14px!important}body:not(.neo-mode) #destinyCardForm .moon-form-header__icon{flex-basis:46px!important;width:46px!important;height:46px!important}body:not(.neo-mode) #destinyCardForm .destiny-input-head__title{font-size:24px!important}body:not(.neo-mode) #destinyCardForm .destiny-input-head__desc{font-size:13px!important}body:not(.neo-mode) #destinyCardForm .moon-field{border-radius:24px 12px 24px 12px!important}}
       .dp-master-card--moon-loading{position:relative;isolation:isolate;display:block!important;width:min(calc(100% - 32px),760px)!important;min-height:226px;margin:0 auto 16px!important;padding:34px 30px 28px!important;overflow:hidden!important;border:1px solid rgba(180,160,255,.2)!important;border-radius:20px!important;background:linear-gradient(145deg,#0a0d1a,#111628 52%,#090a16)!important;color:var(--moon-text-primary)!important;box-shadow:0 24px 66px rgba(2,6,23,.48),inset 0 1px 0 rgba(255,255,255,.06)!important;font-family:var(--font-body)!important}
       .dp-master-card--moon-loading::before,.dp-master-card--moon-loading::after{content:'';position:absolute;inset:0;z-index:0;pointer-events:none}
@@ -2290,3 +2290,43 @@ body:not(.neo-mode) .moon-preview-card__sigil--physio{background:linear-gradient
 body:not(.neo-mode) .moon-collection-nav .moon-preview-card__sigil:not([class*="__sigil--"]){
   background:linear-gradient(145deg,rgba(244,190,209,.34) 0%,rgba(179,25,85,.42) 48%,rgba(36,8,26,.72) 100%)!important;
 }
+
+/* 태어난 장소 검색형 콤보박스 — 열리면 리스트박스를 <body> 직계로 옮기고 position:fixed 로 배치한다
+   (.moon-field 의 overflow:hidden 이 절대배치 자식을 잘라내는 것을 피하기 위함).
+   그래서 아래 규칙은 #destinyCardForm 조상 없이도 홀로 동작해야 한다. */
+.moon-country-combo{position:relative}
+#birthCountryListbox{
+  position:fixed;
+  z-index:2000;
+  max-height:280px;
+  margin:0;
+  padding:6px;
+  overflow-y:auto;
+  list-style:none;
+  border-radius:14px;
+  border:1px solid rgba(140,100,255,.3);
+  background:#150f2e;
+  box-shadow:0 18px 40px rgba(0,0,0,.4);
+}
+#birthCountryListbox[hidden]{display:none}
+#birthCountryListbox li{
+  display:flex;
+  align-items:center;
+  min-height:44px;
+  padding:8px 12px;
+  border-radius:10px;
+  color:#f4eeff;
+  font-size:.92rem;
+  line-height:1.3;
+  cursor:pointer;
+}
+#birthCountryListbox li[aria-selected="true"],
+#birthCountryListbox li:hover{background:rgba(140,100,255,.2)}
+body:not(.neo-mode) #birthCountryListbox{
+  background:#fffafd;
+  border-color:rgba(159,18,57,.22);
+  box-shadow:0 18px 40px rgba(148,92,120,.22);
+}
+body:not(.neo-mode) #birthCountryListbox li{color:#35143f}
+body:not(.neo-mode) #birthCountryListbox li[aria-selected="true"],
+body:not(.neo-mode) #birthCountryListbox li:hover{background:rgba(244,190,209,.4)}

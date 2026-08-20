@@ -2407,6 +2407,7 @@ function __cdBindSajuIntentPrefetch() {
     '#birthHour',
     '#birthMinute',
     '#birthCountry',
+    '#birthCountryInput',
     '#btnF',
     '#btnM',
     '[data-action="checkPrivacyAndCalculate"]',

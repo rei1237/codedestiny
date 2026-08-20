@@ -12362,7 +12362,7 @@ html body .cd-home-more__btn[aria-expanded="true"] .cd-home-more__on{display:non
       verify-adsense-readiness 의 렌더 텍스트 분량이 유지된다. */
 html body .dp-destiny-panel{margin:0 16px 14px}
 html body #dpDestinyPanel > #dpMasterCard{margin:0!important}
-html body #dpDestinyPanel > #destinyCardForm{margin:0!important;border-top-left-radius:0;border-top-right-radius:0}
+html body #dpDestinyPanel > #destinyCardForm{margin:0 auto!important;border-top-left-radius:0;border-top-right-radius:0}
 html body .dp-destiny-panel:not(.is-form-open) > #destinyCardForm{display:none!important}
 html body .dp-destiny-panel__toggle{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin:10px 0 0;padding:12px 18px;font:inherit;font-weight:800;font-size:.95rem;line-height:1.2;color:var(--cd-accent,#b31955);cursor:pointer;border-radius:14px;background:color-mix(in srgb,var(--cd-accent,#b31955) 8%,transparent);border:1px solid var(--cd-border,rgba(216,63,120,.2))}
 html.neo-mode body .dp-destiny-panel__toggle{color:var(--cd-gold,#e8d5a3);background:rgba(196,181,253,.1);border-color:rgba(196,181,253,.4)}
@@ -17280,7 +17280,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         </div>
         <div class="form-group moon-field">
           <label class="form-label" for="birthDate" data-cd-trans data-key="home.input.birthDateLabel">생년월일</label>
-          <input class="inp moon-input" type="text" inputmode="numeric" maxlength="10" placeholder="1991-02-20" id="birthDate" data-cd-birth-date aria-label="생년월일" data-cd-trans-attr="aria-label:home.input.birthDateLabel" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview" autocomplete="bday" aria-describedby="birthDateHint lunarPreview">
+          <input class="inp moon-input" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" id="birthDate" data-cd-birth-date aria-label="생년월일" data-cd-trans-attr="aria-label:home.input.birthDateLabel" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview" autocomplete="bday" aria-describedby="birthDateHint lunarPreview">
           <p class="destiny-field-hint destiny-field-hint--birthdate" id="birthDateHint" data-cd-trans data-key="home.input.birthDateHint">태어난 날을 선택하면 사주 명식의 첫 기준이 열립니다.</p>
           <div class="form-radio-row moon-radio-row" role="radiogroup" aria-label="달력 종류" data-cd-trans-attr="aria-label:home.input.calendarTypeAria">
             <label><input type="radio" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"><span data-cd-trans data-key="home.input.solar">양력</span></label>
@@ -17321,10 +17321,17 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
 
       <div class="form-group form-group-surface moon-field moon-field--full" id="cdMobileSajuDetailPanel" data-mobile-saju-detail="place">
-        <label class="form-label form-label-dark" for="birthCountry"><span data-cd-trans data-key="home.input.birthCountryLabel">출생 국가/장소</span> <span class="form-label-hint" data-cd-trans data-key="home.input.birthCountryHint">서머타임 및 경도 보정 자동 적용</span></label>
-        <select class="inp form-country-select moon-input" id="birthCountry" aria-label="출생 국가" data-cd-trans-attr="aria-label:home.input.birthCountryAria" data-change-action="updateCorrectedTimePreview" aria-describedby="timeCorrectionInfo">
+        <label class="form-label form-label-dark" for="birthCountryInput"><span data-cd-trans data-key="home.input.birthCountryLabel">출생 국가/장소</span> <span class="form-label-hint" data-cd-trans data-key="home.input.birthCountryHint">서머타임 및 경도 보정 자동 적용</span></label>
+        <!-- 실제 값의 소스는 이 select다. 15개 지점(js/destiny-profile.js·saju-engine.js 등)이
+             .value/.options[selectedIndex]를 직접 읽으므로 지우지 않고 시각적으로만 숨긴다.
+             아래 검색형 입력이 selectedIndex를 옮기고 change 이벤트만 대신 쏴 준다. -->
+        <select class="inp form-country-select moon-input" id="birthCountry" style="display:none" aria-hidden="true" tabindex="-1" data-change-action="updateCorrectedTimePreview" aria-describedby="timeCorrectionInfo">
           <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected data-cd-trans data-key="home.input.birthPlaceLoading">출생지를 불러오는 중...</option>
         </select>
+        <div class="moon-country-combo" id="birthCountryComboWrap">
+          <input type="text" class="inp form-country-select moon-input" id="birthCountryInput" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-controls="birthCountryListbox" aria-autocomplete="list" aria-describedby="timeCorrectionInfo" autocomplete="off" inputmode="text" enterkeyhint="search" data-cd-trans-attr="aria-label:home.input.birthCountryAria,placeholder:home.input.birthPlaceLoading" aria-label="출생 국가" placeholder="출생지를 불러오는 중...">
+          <ul class="moon-country-listbox" id="birthCountryListbox" role="listbox" aria-label="출생지 검색 결과" hidden></ul>
+        </div>
         <details class="moon-correction-preview" open>
           <summary>
             <span class="moon-correction-preview__dot" aria-hidden="true"></span>
@@ -22257,7 +22264,7 @@ return you.name.restore();</span>
           </div>
           <div class="form-group form-group-mb10">
             <label class="form-label form-label-compact" data-cd-trans data-key="result.compat.birthLabel">상대 생년월일 · 시간</label>
-            <input class="inp" type="text" inputmode="numeric" maxlength="10" placeholder="1991-02-20" id="compatBirthDate" data-cd-birth-date data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview">
+            <input class="inp" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" id="compatBirthDate" data-cd-birth-date data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview">
             <div class="form-radio-row">
               <label><input type="radio" name="compatCalType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> <span data-cd-trans data-key="common.solar">양력</span></label>
               <label><input type="radio" name="compatCalType" value="lunar" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> <span data-cd-trans data-key="common.lunarRegular">음력(평달)</span></label>
