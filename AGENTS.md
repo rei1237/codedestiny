@@ -27,11 +27,11 @@
 - Do not write to production MongoDB without explicit user approval.
 - Do not deploy to production without explicit user approval.
 - Do not make real LLM API calls, run real payments, write to production DB, or deploy to production during ordinary coding work. Use mock/fake/stub, sandbox, local DB, or test DB validation only unless the user explicitly approves the exact live action.
-- Production is reached only by merging a PR into `main`. Merging is the user's action, and it is the approval.
+- 🔴 **2026-08-20 cutover**: merging a PR into `main` only reaches **staging** (`staging.code-destiny.com`) automatically. Production (`code-destiny.com`) is reached only by a manual `workflow_dispatch` (`mode: production`) on *Release Cloudflare Pages and Worker*, run by a human. Do not fire that dispatch without explicit user approval for that exact promotion — see [Delivery: Branch, PR, Merge, Deploy](#delivery-branch-pr-merge-deploy).
 - Never push to `main` directly, never force-push a shared branch, and never bypass the branch ruleset or a failing required check.
 - Never run a production deploy locally (`wrangler deploy`, `wrangler pages deploy`, `deploy:production`, `deploy:rollback`). `scripts/lib/production-deploy-guard.mjs` blocks these — do not work around it.
-- There is no preview step before production. Merging is what makes a change live. `npm run deploy:check` is the no-upload way to inspect a change set.
-- Do not re-deploy production to test something, and do not re-run a release because a step failed. Fix it on a branch and open another PR.
+- There is no preview step before staging. Merging is what makes a change live on staging; a separate manual dispatch is what makes it live on production. `npm run deploy:check` is the no-upload way to inspect a change set.
+- Do not re-deploy production to test something, and do not re-run a release because a step failed. Fix it on a branch and open another PR (staging redeploys itself on the next merge or on its 20-minute drift schedule; production does not).
 - Do not expose secrets, API keys, tokens, MongoDB URIs, R2 credentials, OAuth secrets, JWT secrets, or PortOne secrets.
 - Approved public-contact exception: `worker/routes/fortune.js` and `app/points/history/PointHistoryClient.tsx` may contain the homepage owner's designated contact metadata. The user has explicitly approved publishing these two files through the normal deployment workflow. Treat only that pre-approved project contact metadata as allowed; newly discovered personal data, credentials, payment data, auth material, or unrelated contact information remains blocked and must not be uploaded or logged.
 - Do not delete existing features, routes, badges, or content unless the user explicitly asks.
@@ -48,6 +48,8 @@
 
 The 2026-08-08 "work on main, ship with `deploy:safe`" contract is **retired**. It made the working tree the deployable unit, and `wrangler` pushes a working tree rather than a commit — so what production ran could not be named, and merged work vanished more than once. Production is now defined by a commit that exists on `main`, and `main` is only reachable through a merged PR. GitHub is the source of truth for what is deployed.
 
+🔴 **2026-08-20 cutover (commit `80d3660c1`)**: merging no longer promotes production by itself. Under the old contract, merge = live everywhere; a fix landed every few minutes and repeat visitors kept seeing the `AppVersionGuard` "새 버전이 배포되었습니다" banner. Now merges accumulate on **staging** and a human batches them into production with an explicit dispatch:
+
 ```
 git checkout -b fix/xxx → 코드 수정 → commit → push
    ↓
@@ -58,15 +60,20 @@ PR CI (자동 · 변경 경로에 따라 강도가 갈린다 · 배포하지 않
    standard 일반 프론트엔드               → + build
    critical 결제·인증·Worker·DB·배포설정   → + 전체 테스트 · 배포 가드
    ↓
-사용자가 Merge            ← 이 행동이 프로덕션 배포 승인이다 (= 머지가 곧 라이브)
+사용자가 Merge
    ↓
 push to main
    ↓
-Release Cloudflare Pages and Worker (자동)
-   github.sha 체크아웃 → 1회 빌드 → Worker 100% → Pages production
-   → 스모크 → Pages/Worker SHA 대조 → PR 에 결과 코멘트
+Release Cloudflare Pages and Worker — gate job routes by event
+   push · schedule(20분 드리프트)  → 스테이징 자동 배포 (code-destiny-web-staging, staging.code-destiny.com)
+   workflow_dispatch(mode=production) → 프로덕션 승격    ← 이 실행이 프로덕션 배포 승인이다 (사람이 직접 수동 실행)
+
+   어느 쪽이든: github.sha 체크아웃 → 1회 빌드 → Worker 100% → Pages 승격
+   → 스모크 → Pages/Worker SHA 대조 → (production push 경로일 때만) PR 에 결과 코멘트
    실패하면 Pages·Worker 를 함께 자동 롤백
 ```
+
+Production intentionally lags `main` HEAD between dispatches — that is the expected steady state, not drift to fix. `node scripts/verify-merge-landed.mjs --check=drift --json --soft --base=origin/main --origin=<production origin>` reports it as `severity: "ok"`. The daily fortune republish (`fortune-daily-publish`) is the one exception that still writes straight to production automatically, because that is where today's readers are.
 
 `main` has a branch ruleset: direct pushes are rejected, force-pushes and deletion are blocked, and the PR CI checks are required.
 
@@ -119,7 +126,9 @@ Both SHAs are injectable and inspectable:
 
 ### Verifying paid features
 
-There is no preview environment, and there never really was one. `public/_worker.js` proxies a preview's `/api` to the production Worker, which reads the production database — no staging DB exists. A signed-out preview showed the payment dialog on every paid screen and verified nothing, and a Worker preview version is not routed, so the preview URL's `/api/*` was answered by the Worker already live. The changes most worth checking were the ones it could not exercise.
+There is no *per-PR preview* environment, and there never really was one. `public/_worker.js` proxies a preview's `/api` to the production Worker, which reads the production database — a Worker preview version is not routed, so the preview URL's `/api/*` was answered by the Worker already live. The changes most worth checking were the ones it could not exercise.
+
+🔴 **This is different from the `staging` release target** introduced 2026-08-20. Staging is a real deployment (its own Pages project, its own Worker `code-destiny-web-staging`) with its own MongoDB database (`MONGODB_DB_NAME=code_destiny_staging` in `worker/wrangler.staging.toml`), isolated from production. It is `noindex`'d and gated behind `robots.txt: Disallow: /`, and it carries every merge automatically — so it is the closest thing this repo has to a real pre-production check, but it is still not a substitute for the guards below (no separate PortOne sandbox channel is wired to it as of this writing — verify before treating a staging payment as consequence-free).
 
 Payment and auth confidence comes from three places instead:
 

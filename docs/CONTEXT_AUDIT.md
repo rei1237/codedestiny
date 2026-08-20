@@ -59,9 +59,9 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ### Deployment safety
 
-- Active rule: production is reached only by merging a PR into `main`. **Merging is the user's action and it is the approval** — there is no separate promotion prompt and no preview stage before production.
+- 🔴 **Active rule (superseded 2026-08-20, commit `80d3660c1`)**: merging a PR into `main` reaches only **staging** (`staging.code-destiny.com`, isolated DB `code_destiny_staging`) automatically. Production (`code-destiny.com`) is reached only by a human running `workflow_dispatch(mode=production)` on *Release Cloudflare Pages and Worker* — **that dispatch is now the promotion approval**, not the merge. Production is expected to lag `main` HEAD between dispatches; `verify-merge-landed.mjs` reports that state as `severity: "ok"`. The one standing exception is `fortune-daily-publish`, which still writes straight to production.
 - Local production deploys are blocked by `scripts/lib/production-deploy-guard.mjs`. Do not work around it.
-- Historical drift: notes describing "preview-then-promote", a `[y/N]` promotion gate, or a preview created as part of a release predate 2026-08-11.
+- Historical drift: notes describing "preview-then-promote", a `[y/N]` promotion gate, or a preview created as part of a release predate 2026-08-11. Notes describing "merging is the user's action and it is the [production] approval" — including this file's own prior wording — predate 2026-08-20 and describe the pre-cutover contract, not the current one.
 
 ### 결제 방식 우선순위 — `Rules/agent-regression-guard.md` 와 정면 충돌 (2026-08-15, **해결**)
 
