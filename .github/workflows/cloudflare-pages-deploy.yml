@@ -60,8 +60,38 @@ on:
 
 # A release is an ordered Worker then Pages transaction. Never cancel a running
 # deployment midway; newer merges queue behind it instead.
+#
+# 🔴 그룹은 **배포 대상별로** 가른다. 하나로 묶으면 안 되는 이유(2026-08-20 실사고):
+#
+#   GitHub 는 그룹당 **실행 1 + 대기 1** 만 유지하고, 대기 슬롯에 새 런이 들어오면 기존 대기 런을
+#   **취소**한다. 한 그룹이면 20분마다 도는 스테이징 워치독(schedule)이 사람이 누른 프로덕션
+#   dispatch 를 밀어낸다. 실제로 19:09 의 dispatch(mode=production)가 19:15 의 schedule(스테이징)에
+#   밀려 cancelled 로 끝났고, 라이브는 그대로였다.
+#
+#   🔴 이 방향이 특히 나쁘다. push 가 밀리면 워치독이 20분 뒤 스스로 수렴하지만, 프로덕션
+#   dispatch 가 밀리면 **아무도 고치지 않는다** — 워치독은 설계상 프로덕션을 보지 않는다
+#   (아래 gate 잡: "여기서 프로덕션을 보면 안 된다"). 잡이 시작조차 안 해서 메일도 코멘트도
+#   PR 알림도 없다. 증상은 "Run workflow 를 눌렀는데 라이브가 안 바뀐다" 하나뿐이고,
+#   앞 런이 돌고 있을 확률은 **머지 직후에 가장 높다** = 가장 배포하고 싶은 순간에 가장 잘 실패한다.
+#
+#   직렬화가 필요한 것은 **같은 자원**에 대해서다. 프로덕션(code-destiny-web + 프로덕션 Pages)과
+#   스테이징(code-destiny-web-staging + 스테이징 Pages)은 서로 다른 자원이라 동시에 나가도 된다.
+#   preview 는 아무것도 배포하지 않으므로 어느 쪽에도 넣지 않는다 — 프로덕션 그룹에 넣으면
+#   preview 빌드가 프로덕션 배포를 밀어내고, 스테이징 그룹에 넣으면 머지 배포를 밀어낸다.
+#
+#   🔴 mode 선택지를 늘리면 여기에 **명시적으로 분류**해야 한다. 분류를 빠뜨리면 새 mode 가 조용히
+#   스테이징 그룹으로 떨어지므로, verify-worker-single-deploy-guard.mjs 가 inputs.mode.options 를
+#   전수로 읽어 이 식에 없는 선택지를 실패시킨다(손으로 쓴 목록이 아니라 소스에서 발견한다).
+#   마지막 fallback 은 inputs.mode 자체가 없는 push·schedule 용이며, 그 둘은 스테이징이다.
 concurrency:
-  group: cloudflare-production-release
+  # 🔴 이어지는 줄을 더 들여쓰지 말 것 — 접힘 블록은 더 깊은 들여쓰기를 만나면 개행을 보존한다.
+  group: >-
+    ${{
+    (github.event_name == 'workflow_dispatch' && (inputs.mode == 'production' || inputs.mode == 'rollback')) && 'cloudflare-production-release'
+    || (github.event_name == 'workflow_dispatch' && inputs.mode == 'preview') && 'cloudflare-preview-build'
+    || (github.event_name == 'workflow_dispatch' && inputs.mode == 'staging') && 'cloudflare-staging-release'
+    || 'cloudflare-staging-release'
+    }}
   cancel-in-progress: false
 
 permissions:
