@@ -82,6 +82,24 @@ APP_ENV = "staging"
 # 프론트와 워커가 같은 오리진(staging.code-destiny.com)이라 평소엔 쓰이지 않지만,
 # staging-api. 직접 호출 경로를 위해 명시한다. worker/index.js 가 CSV 로 읽어 허용목록에 병합한다.
 CORS_ORIGIN = "https://staging.code-destiny.com"
+
+# 🔴 결제 전용 소켓 레인 — **스테이징 전용 재실측**이다(2026-08-20).
+#
+# worker/payments/db.js 의 isSocketLaneEnabled 머리주석이 예약해 둔 실험이다: 레인은 M0 시절
+# 좀비 커넥션 때문에 껐지만 자가복구(resetPaymentConnection)를 배선해 두었고, "Mongo 티어를
+# 올린 뒤 다시 켜서 재실측할 수 있다" 고 적혀 있다. M10 전환이 끝났으므로 그 조건이 충족됐다.
+#
+# 켜는 근거(스테이징 실측 2026-08-20, wrangler tail):
+#   [pay] POST /api/payments/prepare status=503 DB_BUSY durationMs=10120 mongoOps=2 admissionMs=0
+#   [pay] POST /api/payments/prepare status=200          durationMs=6782  mongoOps=2 admissionMs=0
+#         attempts=2 connectMs=833 opMs=829
+# admissionMs=0 이므로 결제 admission 레인은 한가했다 — 굶은 것은 **공유 소켓 풀**이다.
+# 같은 창에 진입 요청 6개가 3.6~11.7초씩 물려 있었고 그중 둘은 이미 503 이었다.
+# 즉 db.js 결제 레인 주석이 적어 둔 "부팅 요청 폭풍이 공유 풀 소켓을 선점" 그대로다.
+#
+# 프로덕션에는 아직 켜지 않는다. 여기서 재보고 판단한다 — 스테이징이 존재하는 이유가 이것이다.
+# 되돌리기는 이 한 줄 제거다.
+PAYMENTS_DB_SOCKET_LANE = "1"
 ACCESS_STATE_ENABLED = "true"
 # 관리자 인증을 통과한 마케팅 월정석 예외 지급 UI/API를 운영에서 활성화한다.
 ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
