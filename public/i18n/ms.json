@@ -1740,6 +1740,11 @@
       "monthlyTitle": "Buka dengan batu bulan",
       "requiredMonthly": "Kredit yang diperlukan",
       "currentMonthly": "Baki semasa",
+      "musicTrackSub": "Dengan Pas Cahaya Bulan, anda boleh terus mendengar semua lagu. Muat turun MP3 hanya untuk lagu yang dibeli secara tunggal atau dengan batu bulan.",
+      "monthlyAria": {
+        "insufficient": "Baki tidak mencukupi",
+        "unknown": "Baki perlu disemak"
+      },
       "subtitle": {
         "withPass": "Amaun yang dipaparkan sepadan dengan asas KRW kredit bulanan. Anda boleh membuka kandungan ini dengan pas atau pembayaran kad sekali.",
         "directOnly": "Amaun yang dipaparkan sepadan dengan asas KRW kredit bulanan. Anda boleh meneruskan dengan pembayaran kad sekali sahaja."

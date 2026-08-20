@@ -1740,6 +1740,11 @@
       "monthlyTitle": "Mit Mondsteinen öffnen",
       "requiredMonthly": "Erforderliche Credits",
       "currentMonthly": "Aktueller Kontostand",
+      "musicTrackSub": "Mit dem Mondscheinpass hörst du alle Titel sofort. MP3-Downloads gibt es nur für Titel, die per Einzelkauf oder mit Mondsteinen gekauft wurden.",
+      "monthlyAria": {
+        "insufficient": "Guthaben reicht nicht",
+        "unknown": "Guthaben muss geprüft werden"
+      },
       "subtitle": {
         "withPass": "Der angezeigte Betrag entspricht der monatlichen Kreditbasis KRW. Sie können diesen Inhalt mit einem Pass oder einer einmaligen Kartenzahlung öffnen.",
         "directOnly": "Der angezeigte Betrag entspricht der monatlichen Kreditbasis KRW. Sie können mit einer einmaligen Kartenzahlung fortfahren."

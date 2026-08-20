@@ -1740,6 +1740,11 @@
       "monthlyTitle": "Ouvrir avec des pierres de lune",
       "requiredMonthly": "Crédits requis",
       "currentMonthly": "Solde actuel",
+      "musicTrackSub": "Avec le Pass Clair de Lune, vous écoutez tous les morceaux immédiatement. Le téléchargement MP3 n'est possible que pour les morceaux achetés à l'unité ou avec des pierres de lune.",
+      "monthlyAria": {
+        "insufficient": "Solde insuffisant",
+        "unknown": "Solde à vérifier"
+      },
       "subtitle": {
         "withPass": "Le montant affiché correspond à la base du crédit mensuel KRW. Vous pouvez ouvrir ce contenu avec un pass ou un paiement unique par carte.",
         "directOnly": "Le montant affiché correspond à la base du crédit mensuel KRW. Vous pouvez continuer avec un paiement unique par carte."
