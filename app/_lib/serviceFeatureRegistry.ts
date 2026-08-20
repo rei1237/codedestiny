@@ -4002,8 +4002,7 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     image: stableServiceAsset("/fuctionassets/%EC%B5%9C%EC%95%A0%EC%9A%B4%EB%AA%85.webp"),
     detailRoute: "/services/bias-destiny",
     launchRoute: "/saju/destiny-bias",
-    accessType: "paid",
-    featureKey: "destiny-bias-analyze",
+    accessType: "free",
   },
   {
     slug: "love-code",

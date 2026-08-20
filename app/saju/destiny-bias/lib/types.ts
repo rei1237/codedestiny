@@ -1,3 +1,5 @@
+import type { FandomProfile } from "../engine/fandomProfileEngine";
+
 export type PersonInputState = {
   name: string;
   birthDateInput: string;
@@ -82,6 +84,7 @@ export type DestinyBiasResultViewModel = {
     user: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
     favorite: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
   };
+  fandomProfile: FandomProfile;
   mzLayer: {
     relationMbti: { type: string; desc: string };
     pastLife: { title: string; story: string };
