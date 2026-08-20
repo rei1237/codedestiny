@@ -89,6 +89,7 @@
     "verify:cf:migration": "node scripts/verify-cloudflare-migration-readiness.mjs",
     "verify:style-sync": "node scripts/verify-style-sync.mjs",
     "verify:public-parity": "node scripts/verify-public-parity.mjs",
+    "verify:public-api-edge-cache": "node scripts/verify-public-api-edge-cache.mjs",
     "verify:today-hub-gate": "node scripts/verify-today-hub-gate.mjs",
     "verify:auth-event-loop": "node scripts/verify-auth-event-loop-guard.mjs",
     "verify:auth-changed-coverage": "node scripts/verify-auth-changed-listener-coverage.mjs",
