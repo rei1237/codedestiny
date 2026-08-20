@@ -1467,17 +1467,21 @@ async function refundNamingMonthlyCredit(env, auth, access) {
   let amount = 0;
   let ledgerId = "";
   let pointHistoryId = "";
+  // 차감 때 recentConsumeRequestIds 에 들어간 purchaseId. 원장에서는 sourceId 가 곧 그 값이다.
+  let purchaseId = "";
   if (evidence.source === "monthly_ledger" && isObjectId(evidence.evidenceId)) {
     const ledger = await MonthlyCreditLedger.findOne({ _id: evidence.evidenceId, userId: auth.userId }).lean();
     if (!ledger) return { refunded: false };
     amount = Math.abs(Math.floor(Number(ledger.amount || 0)));
     ledgerId = String(ledger._id);
     pointHistoryId = clean(ledger.metadata?.pointHistoryId, 160);
+    purchaseId = clean(ledger.sourceId || ledger.metadata?.purchaseId, 180);
   } else if (evidence.source === "monthly_history" && isObjectId(evidence.evidenceId)) {
     const history = await PointHistory.findOne({ _id: evidence.evidenceId, userId: auth.userId }).lean();
     if (!history) return { refunded: false };
     amount = Math.abs(Math.floor(Number(history.delta || 0)));
     pointHistoryId = String(history._id);
+    purchaseId = clean(history.metadata?.purchaseId || history.metadata?.idempotencyKey, 180);
   } else {
     return { refunded: false };
   }
@@ -1491,7 +1495,10 @@ async function refundNamingMonthlyCredit(env, auth, access) {
   }).lean();
   if (existingRefund) return { refunded: true, idempotent: true };
 
-  const updatedUser = await restoreMonthlyCreditLot({ userId: auth.userId, lotId: refundSourceId, amount });
+  // 🔴 pullRequestId 는 선택 인자가 아니다 — 이걸 빼면 재구매가 applyLotDeduction 에서
+  // ALREADY_PROCESSED 로 402 를 맞고, E11000 이 안 나므로 키 해제 경로조차 돌지 않는다
+  // (= 환불받고 같은 요청을 다시 열지 못하는 락). 표식만 찍는 것으로는 부족하다.
+  const updatedUser = await restoreMonthlyCreditLot({ userId: auth.userId, lotId: refundSourceId, amount, pullRequestId: purchaseId });
   if (!updatedUser) return { refunded: false };
 
   const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));

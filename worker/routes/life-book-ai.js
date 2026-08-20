@@ -1775,8 +1775,18 @@ async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESS
     const refundSourceId = `life-book-ai-restore:${access.evidenceId}`.slice(0, 180);
     const existing = await MonthlyCreditLedger.findOne({ userId, type: "MONTHLY_CREDIT_GRANT", sourceId: refundSourceId }).lean();
     if (existing) return true;
+    // 원본 차감 원장의 sourceId 가 곧 purchaseId 다. 아래 pullRequestId 와 키 해제 표식 양쪽에 필요하다.
+    const originalLedger = await MonthlyCreditLedger.findOne({ _id: access.evidenceId, userId }).select("sourceId").lean().catch(() => null);
     // 복원분은 신규 30일 lot으로 재적립. lotId=refundSourceId로 멱등.
-    const updatedUser = await restoreMonthlyCreditLot({ userId, lotId: refundSourceId, amount: access.amount });
+    // 🔴 pullRequestId 는 선택 인자가 아니다 — 차감 때 recentConsumeRequestIds 에 들어간 purchaseId 를
+    // 빼 주지 않으면 재구매가 applyLotDeduction 에서 ALREADY_PROCESSED 로 402 를 맞고,
+    // E11000 이 안 나므로 키 해제 경로조차 돌지 않는다.
+    const updatedUser = await restoreMonthlyCreditLot({
+      userId,
+      lotId: refundSourceId,
+      amount: access.amount,
+      pullRequestId: String(originalLedger?.sourceId || "").slice(0, 180),
+    });
     if (!updatedUser) return false;
     const afterBalance = Math.max(0, Math.floor(Number(updatedUser?.profileSubscription?.membershipCreditBalance || 0)));
     await MonthlyCreditLedger.create({
@@ -1798,9 +1808,12 @@ async function restoreBillingGateAccessOnFailure({ userId, access, reason = MESS
     }).catch((error) => {
       if (error?.code !== 11000) throw error;
     });
+    // "metadata.refundedForUnlockFailure" 는 키 해제 계약 표식이다 — billing.js 의
+    // readIdempotentSpendResult 가 이 표식만 배제하고 releaseRefundedSpendSourceId 도 이것으로만
+    // 환불 원장을 고른다. 없으면 재구매가 "이미 결제됨"으로 replay 돼 402 로 막힌다.
     await MonthlyCreditLedger.updateOne(
       { _id: access.evidenceId, userId },
-      { $set: { "metadata.refundedForServiceExecution": true, "metadata.refundedAt": new Date() } },
+      { $set: { "metadata.refundedForServiceExecution": true, "metadata.refundedForUnlockFailure": true, "metadata.refundedAt": new Date() } },
     ).catch(() => {});
     return true;
   }
