@@ -2,14 +2,20 @@ name: Release Cloudflare Pages and Worker
 
 # 🔴 프로덕션에 도달하는 유일한 경로다.
 #
-# feature 브랜치 → PR → PR CI 통과 → 사람이 Preview 확인 → main 머지 → **이 워크플로가 자동 배포**.
+# feature 브랜치 → PR → PR CI 통과 → main 머지 → **스테이징 자동 배포**.
+# 프로덕션은 사람이 Run workflow(mode=production)를 눌렀을 때만 나간다.
+#
+# 2026-08-20 컷오버로 push 의 의미가 뒤집혔다. 그 전에는 머지가 곧 프로덕션이라,
+# 수정 하나마다 라이브가 갈리고 재방문자가 매번 "새 버전이 배포되었습니다" 배너를 봤다
+# (app/components/AppVersionGuard.tsx). 이제 수정은 스테이징에 쌓이고, 사람이 묶어서 내보낸다.
+#
 # 로컬에서 wrangler 를 직접 부르는 길은 scripts/lib/production-deploy-guard.mjs 가 막는다.
 #
 # 배포 기준은 머지된 main 커밋의 정확한 SHA(`github.sha`) 하나이고, Pages 와 Worker 는 그 하나의
 # 체크아웃에서 함께 나간다. 두 시스템이 서로 다른 코드를 가리키는 상태가 결제·인증 사고의
 # 실제 원인이었기 때문에, 배포 후 양쪽 런타임에서 SHA 를 다시 읽어 대조한다.
 #
-# 🔴 schedule 이 붙어 있는 이유 — 머지가 배포로 이어지지 않는 구간이 실제로 존재한다.
+# 🔴 schedule 이 붙어 있는 이유 — 머지가 **스테이징** 배포로 이어지지 않는 구간이 실제로 존재한다.
 # concurrency 그룹은 실행 1 + 대기 1 만 유지하므로, 연속 머지 시 **대기 중이던 런이 취소된다**
 # (최근 60런 중 8건). 취소된 런은 잡이 시작조차 안 해서 PR 코멘트도 메일도 없다.
 # 2026-08-12 에는 8건 연속 머지 동안 성공한 배포가 0건이었고 프로덕션이 46분간 옛 SHA 에 머물렀다.
@@ -94,7 +100,7 @@ jobs:
       - name: Decide whether production needs this commit
         id: decide
         env:
-          CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
+          CD_STAGING_ORIGIN: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
           DISPATCH_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '' }}
         run: |
           set -uo pipefail
@@ -107,34 +113,45 @@ jobs:
             echo "proceed=${PROCEED}" >> "$GITHUB_OUTPUT"
             echo "proceed_staging=${PROCEED_STAGING}" >> "$GITHUB_OUTPUT"
           }
-          # 스테이징 디스패치는 프로덕션 잡에 도달하지 않는다. 두 값이 동시에 true 가 되는
-          # 갈래가 없어야 한다 — 있으면 스테이징을 골랐는데 프로덕션이 나간다.
+          # 🔴 프로덕션에 도달하는 갈래는 **workflow_dispatch 하나뿐**이다. 두 값이 동시에
+          #    true 가 되는 갈래는 없어야 한다 — 있으면 스테이징을 골랐는데 프로덕션이 나간다.
           if [ "${DISPATCH_MODE}" = "staging" ]; then
             PROCEED_STAGING=true
             emit
             echo "::notice::스테이징 배포 요청 — 프로덕션은 건드리지 않습니다."
             exit 0
           fi
-          if [ "${GITHUB_EVENT_NAME}" != "schedule" ]; then
+          if [ "${GITHUB_EVENT_NAME}" = "workflow_dispatch" ]; then
             PROCEED=true
             emit
-            echo "::notice::${GITHUB_EVENT_NAME} 이벤트 — 드리프트 판정 없이 배포합니다."
+            echo "::notice::수동 실행(mode=${DISPATCH_MODE}) — 프로덕션 경로로 갑니다."
             exit 0
           fi
-          # 얕은 체크아웃이라 origin/main 이 없다. HEAD 가 곧 main tip 이다.
-          if ! OUT=$(node scripts/verify-merge-landed.mjs --check=drift --json --base=HEAD --origin="${CD_PRODUCTION_ORIGIN}"); then
+          # 여기부터는 push·schedule 이고, 둘 다 **스테이징**이다.
+          # 머지는 더 이상 프로덕션에 나가지 않는다 — 프로덕션은 사람이 dispatch 할 때만 갱신된다.
+          if [ "${GITHUB_EVENT_NAME}" = "push" ]; then
+            PROCEED_STAGING=true
             emit
-            echo "::warning::드리프트를 판정하지 못했습니다. 이번 주기는 건너뜁니다."
+            echo "::notice::main 머지 — 스테이징에 반영합니다. 프로덕션은 수동 실행 전까지 그대로입니다."
+            exit 0
+          fi
+          # schedule — 스테이징이 main HEAD 와 어긋났는지만 본다.
+          # 🔴 여기서 프로덕션을 보면 안 된다. 새 체계에서 프로덕션은 **정상적으로** main 보다
+          #    뒤처져 있으므로, 프로덕션 기준으로 판정하면 20분마다 영원히 프로덕션을 자동 배포한다.
+          # 얕은 체크아웃이라 origin/main 이 없다. HEAD 가 곧 main tip 이다.
+          if ! OUT=$(node scripts/verify-merge-landed.mjs --check=drift --json --base=HEAD --origin="${CD_STAGING_ORIGIN}"); then
+            emit
+            echo "::warning::스테이징 드리프트를 판정하지 못했습니다. 이번 주기는 건너뜁니다."
             exit 0
           fi
           DRIFTED=$(printf '%s' "$OUT" | jq -r '.drifted // "error"')
           if [ "${DRIFTED}" = "true" ]; then
-            PROCEED=true
+            PROCEED_STAGING=true
             emit
-            echo "::warning::프로덕션이 main HEAD 와 다릅니다. 자동으로 재배포합니다."
+            echo "::warning::스테이징이 main HEAD 와 다릅니다. 자동으로 재배포합니다."
           else
             emit
-            echo "프로덕션이 main HEAD 와 같습니다. 배포할 것이 없습니다."
+            echo "스테이징이 main HEAD 와 같습니다. 배포할 것이 없습니다."
           fi
 
   release:
@@ -163,9 +180,9 @@ jobs:
       CD_ALLOW_EMPTY_CHANGESET: "true"
       CD_PRODUCTION_ORIGIN: ${{ vars.CD_PRODUCTION_ORIGIN || 'https://code-destiny.com' }}
       CD_WORKER_PREVIEW_ORIGIN: ${{ vars.CF_WORKER_PREVIEW_ORIGIN }}
-      # schedule 은 push 와 같은 취급이다 — 드리프트가 확인됐을 때만 여기까지 오고,
-      # 그때 필요한 것은 정확히 프로덕션 승격이다.
-      RELEASE_MODE: ${{ (github.event_name == 'push' || github.event_name == 'schedule') && 'production' || inputs.mode }}
+      # 🔴 이 잡에는 workflow_dispatch 만 도달한다(gate 가 push·schedule 을 스테이징으로 보낸다).
+      # 그래서 모드는 사람이 고른 값 하나뿐이고, 다른 이벤트에서 값이 새어 들어올 자리가 없다.
+      RELEASE_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '' }}
       # 🔴 deploy-safe 는 "HEAD 가 이미 라이브면 아무것도 하지 않는다"로 자기중단한다. 청크 이름만
       # 바뀌는 무의미한 재배포가 전환 틈새 404 를 만들기 때문이고, 그 판단은 **커밋이 같으면
       # 산출물도 같다**는 전제 위에 있다. 운세는 그 전제가 깨지는 유일한 축이다 — 날짜가 빌드
@@ -286,8 +303,11 @@ jobs:
       # Worker → Pages 순서로 승격하고, 실패하면 그 역순(Pages → Worker)으로 자동 롤백한다.
       # 순서의 근거는 scripts/deploy-safe.mjs promote() 주석 참고 — 중간 상태에서
       # '옛 클라이언트 + 새 워커' 가 '새 클라이언트 + 옛 워커' 보다 안전하다.
+      # 🔴 이벤트까지 못 박는다. `env.RELEASE_MODE == 'production'` 만으로는 부족하다 —
+      # 표현식 오타 하나가 push 를 프로덕션으로 흘려보내는 경로가 되고, 그 실패는 조용하다.
+      # 프로덕션은 사람이 Run workflow 를 눌렀을 때만 나간다.
       - name: Deploy Pages and Worker at the exact SHA
-        if: env.RELEASE_MODE == 'production'
+        if: env.RELEASE_MODE == 'production' && github.event_name == 'workflow_dispatch'
         run: npm run deploy:safe -- --ci --yes ${REDEPLOY_FLAG} ${PAGES_ONLY_FLAG}
 
       - name: Read deployment state
@@ -368,8 +388,13 @@ jobs:
           } >> "$GITHUB_STEP_SUMMARY"
 
       # 머지된 PR 하나만 봐도 프로덕션 반영 상태를 알 수 있어야 한다.
+      #
+      # 🔴 조건이 `github.event_name == 'push'` 였다. 컷오버로 push 는 스테이징으로 가므로
+      # 그대로 두면 이 스텝은 영원히 돌지 않는다 — 프로덕션 승격 기록이 통째로 사라지는데
+      # 증상은 "코멘트가 안 달린다" 뿐이라 한참 모른다. 승격 자체를 조건으로 바꾼다.
+      # (머지가 스테이징에 도달했는지는 landing-watchdog 이 스테이징 기준으로 본다.)
       - name: Report deployment status on the merged PR
-        if: always() && github.event_name == 'push'
+        if: always() && env.RELEASE_MODE == 'production'
         uses: actions/github-script@v7
         env:
           JOB_STATUS: ${{ job.status }}

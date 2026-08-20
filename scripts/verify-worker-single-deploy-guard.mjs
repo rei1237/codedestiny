@@ -14,7 +14,25 @@ const canonicalWorkflow = ".github/workflows/cloudflare-pages-deploy.yml";
  * 안의 스텝이다. 잡 자체를 if 로 막으면 룰셋이 보고를 못 받아 머지가 영영 막히기 때문이다.
  */
 const REQUIRED_CHECK_NAMES = ["Risk tier", "Typecheck and lint", "Build Pages and Worker", "Critical checks"];
-const forbiddenWorkerCommands = /(?:wrangler\s+deploy\b|wrangler\s+versions\s+upload|npm\s+run\s+deploy:cf:worker|npm\s+run\s+deploy:worker)/;
+/**
+ * 정본 워크플로 밖에서 배포를 부르는 명령.
+ *
+ * 🔴 2026-08-20: `wrangler pages deploy`·`npm run deploy:safe`·`npm run deploy:staging` 을 추가했다.
+ * 그 전에는 정규식에 없어서, 누구든 아무 워크플로에 `npm run deploy:safe` 를 넣어도 이 가드가
+ * 통과했다 — "배포 경로는 하나" 라는 명제가 규약이 아니라 관습이었다는 뜻이다.
+ */
+const forbiddenWorkerCommands = /(?:wrangler\s+(?:pages\s+)?deploy\b|wrangler\s+versions\s+(?:upload|deploy)\b|npm\s+run\s+deploy:(?:cf:worker|worker|safe|staging|production)\b)/;
+
+/**
+ * 정본 워크플로를 `mode=production` 으로 깨울 수 있는 워크플로. 여기 없는 파일이 그렇게 하면
+ * 프로덕션이 사람 손을 거치지 않고 나가는 경로가 하나 더 생긴다.
+ *
+ * 🔴 일일 운세 발행은 그 **유일한 자동화 예외**다. 사용자가 오늘 운세를 읽는 곳은 프로덕션이라
+ * 컷오버 뒤에도 이것만은 자동으로 나가야 한다. 구현에서 우연히 흘러나오는 게 아니라 여기에
+ * 명시적으로 선언한다.
+ */
+const productionDispatchAllowlist = new Set([".github/workflows/fortune-daily-publish.yml"]);
+const productionDispatchCall = /gh\s+workflow\s+run[^\n]*cloudflare-pages-deploy\.yml/;
 
 function assert(condition, message) {
   if (!condition) throw new Error(message);
@@ -33,14 +51,23 @@ async function readRepoFile(relativePath) {
 }
 
 async function verifyCanonicalWorkflow() {
-  const workflow = await readRepoFile(canonicalWorkflow);
+  assertWorkflowShape(await readRepoFile(canonicalWorkflow));
+}
+
+/**
+ * 정본 워크플로의 형태 단언. 파일 읽기와 분리해 둔 이유는 self-test 때문이다 —
+ * 합성 픽스처는 실제 파일과 닮지 않을 수 있으므로, self-test 는 **진짜 워크플로를 변형해서**
+ * 각 단언이 실제로 트립하는지 증명한다.
+ */
+function assertWorkflowShape(workflow) {
   const triggers = deploymentTriggerBlock(workflow);
 
   assert(/(^|\r?\n)\s+workflow_dispatch:\s*(?:#.*)?(?:\r?\n|$)/m.test(triggers), `${canonicalWorkflow} must support manual dispatch.`);
-  // 🔴 2026-08-11: 배포 경로가 로컬 승격에서 PR 기반 CI/CD 로 바뀌었다. 이제 프로덕션은
-  // "main 에 머지된 커밋"에서만 나가야 하므로 push 트리거는 필수다. 이 트리거가 사라지면
-  // 머지해도 아무것도 배포되지 않고, 그 상태는 "배포가 조용히 안 된다"로만 드러난다.
-  assert(/^\s+push:/m.test(triggers), `${canonicalWorkflow} must deploy on push to main; that merge is the only production trigger.`);
+  // 🔴 2026-08-20 컷오버로 push 의 **의미가 뒤집혔다.** 여전히 필수지만 이제 스테이징을 뜻한다.
+  // 사라지면 머지가 스테이징에도 도달하지 못하고, 그 상태는 "배포가 조용히 안 된다"로만 드러난다.
+  // (2026-08-11 에는 이 트리거가 프로덕션의 유일한 경로였다. 지금 프로덕션의 유일한 경로는
+  //  workflow_dispatch 이며, 아래에서 그 사실을 별도로 강제한다.)
+  assert(/^\s+push:/m.test(triggers), `${canonicalWorkflow} must run on push to main; that merge is the staging trigger.`);
   assert(/^\s+push:[\s\S]*?branches:\s*\[\s*main\s*\]/m.test(triggers), `${canonicalWorkflow} push trigger must be limited to the main branch.`);
   // PR 이벤트에서 배포하면 머지 전 코드가 프로덕션에 나간다. workflow_call 을 열면 아무
   // 워크플로나 릴리스를 부를 수 있게 된다. 둘 다 예외 없이 금지다.
@@ -63,14 +90,74 @@ async function verifyCanonicalWorkflow() {
     assert(/needs:\s*gate/.test(workflow), `${canonicalWorkflow} release job must depend on the drift gate.`);
     assert(/if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(workflow), `${canonicalWorkflow} release job must only run when the gate says production needs this commit.`);
   }
-  assert(workflow.includes("CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}"), `${canonicalWorkflow} must target the configured Worker.`);
   assert(workflow.includes("npm run deploy:safe -- --ci --preview-only"), `${canonicalWorkflow} must offer a preview-only run.`);
-  assert(workflow.includes("npm run deploy:safe -- --ci --yes"), `${canonicalWorkflow} must use the integrated SHA release command.`);
-  // 배포 대상은 "브랜치 팁"이 아니라 머지된 그 커밋이다. checkout 이 ref 를 고정하지 않으면
-  // 릴리스 도중 main 에 새 커밋이 들어왔을 때 다른 코드가 나간다.
-  assert(/ref:\s*\$\{\{\s*github\.sha\s*\}\}/.test(workflow), `${canonicalWorkflow} must check out the exact github.sha.`);
   // Pages 와 Worker 가 같은 커밋인지 배포 후 런타임에서 대조한다.
   assert(workflow.includes("npm run verify:deployed-sha"), `${canonicalWorkflow} must verify the deployed SHA on both Pages and Worker.`);
+
+  // 🔴 아래 검사들은 전부 **잡 스코프**다.
+  //
+  // 예전에는 `workflow.includes(...)` 로 파일 전체에서 문자열만 찾았다. 그러면 프로덕션 리터럴이
+  // 죽은 잡에 남아 있고 살아 있는 잡이 엉뚱한 워커를 가리켜도 통과한다 — 통과하지만 아무것도
+  // 지키지 않는, 가장 나쁜 종류의 가드다. 스테이징 잡이 생기면서 그 구멍이 하중을 받게 됐다.
+  const release = jobBody(workflow, "release");
+  const staging = jobBody(workflow, "staging");
+  assert(release, `${canonicalWorkflow} must define the release job.`);
+  assert(staging, `${canonicalWorkflow} must define the staging job.`);
+
+  assert(
+    release.includes("CF_WORKER_NAME: ${{ vars.CF_WORKER_NAME || 'code-destiny-web' }}"),
+    `${canonicalWorkflow} release job must target the production Worker.`,
+  );
+  assert(
+    /CF_STAGING_WORKER_NAME:\s*\$\{\{\s*vars\.CF_STAGING_WORKER_NAME\s*\|\|\s*'code-destiny-web-staging'\s*\}\}/.test(staging),
+    `${canonicalWorkflow} staging job must target the staging Worker.`,
+  );
+  // 교차오염 — 한쪽 잡이 상대 타깃의 자원을 들고 있으면 안 된다.
+  assert(
+    !staging.includes("CD_PRODUCTION_ORIGIN"),
+    `${canonicalWorkflow} staging job must not carry CD_PRODUCTION_ORIGIN; deploy-safe reads it first and would smoke production.`,
+  );
+  assert(
+    !release.includes("CF_STAGING_WORKER_NAME"),
+    `${canonicalWorkflow} release job must not carry staging Worker names.`,
+  );
+
+  // 배포 명령도 잡 스코프로 본다. 스테이징이 `deploy:safe -- --ci --yes` 의 변형이면 프로덕션
+  // 스텝을 통째로 지워도 아래 검사가 통과한다 — 그래서 어휘적으로 다른 이름을 쓴다.
+  assert(release.includes("npm run deploy:safe -- --ci --yes"), `${canonicalWorkflow} release job must use the integrated SHA release command.`);
+  assert(staging.includes("npm run deploy:staging -- --ci --yes"), `${canonicalWorkflow} staging job must use the staging release command.`);
+  assert(!staging.includes("npm run deploy:safe"), `${canonicalWorkflow} staging job must not invoke the production release command.`);
+
+  // 🔴 프로덕션은 사람이 Run workflow 를 눌렀을 때만 나간다. 모드 문자열만 보면 표현식 오타
+  // 하나가 push 를 프로덕션으로 흘려보내고, 그 실패는 조용하다.
+  assert(
+    /if:\s*env\.RELEASE_MODE\s*==\s*'production'\s*&&\s*github\.event_name\s*==\s*'workflow_dispatch'/.test(release),
+    `${canonicalWorkflow} production deploy step must also require the workflow_dispatch event.`,
+  );
+
+  // 배포 대상은 "브랜치 팁"이 아니라 그 커밋이다. 하나라도 고정하지 않은 checkout 이 있으면
+  // 릴리스 도중 들어온 새 커밋이 나갈 수 있다 — 그래서 존재가 아니라 **개수**를 대조한다.
+  const checkouts = (workflow.match(/uses:\s*actions\/checkout@/g) || []).length;
+  const pinnedRefs = (workflow.match(/ref:\s*\$\{\{\s*github\.sha\s*\}\}/g) || []).length;
+  assert(checkouts > 0, `${canonicalWorkflow} must check out the repository.`);
+  assert(
+    pinnedRefs === checkouts,
+    `${canonicalWorkflow} pins github.sha on ${pinnedRefs} of ${checkouts} checkouts; every deploy job must check out the exact commit.`,
+  );
+}
+
+/**
+ * 워크플로에서 잡 하나의 본문만 잘라낸다.
+ * 🔴 개행을 정규화한다 — 이 레포는 `* text=auto` 라 Windows 체크아웃에서 CRLF 로 내려오고,
+ *    그러면 경계 탐색이 조용히 빗나가 "잡을 못 찾았다"가 된다.
+ */
+function jobBody(workflow, jobName) {
+  const text = String(workflow).replace(/\r\n/g, "\n");
+  const start = text.indexOf(`\n  ${jobName}:\n`);
+  if (start === -1) return "";
+  const rest = text.slice(start + 1);
+  const next = rest.search(/\n {2}[a-z][a-z0-9_-]*:\n/);
+  return next === -1 ? rest : rest.slice(0, next);
 }
 
 /**
@@ -181,15 +268,25 @@ async function verifyNoOtherWorkflowDeploys() {
   const workflowDir = path.join(repoRoot, ".github/workflows");
   const workflowFiles = (await readdir(workflowDir)).filter((file) => /\.(yml|yaml)$/i.test(file));
   const duplicatePaths = [];
+  const dispatchPaths = [];
 
   for (const file of workflowFiles) {
     const relativePath = `.github/workflows/${file}`;
     if (relativePath === canonicalWorkflow) continue;
     const contents = await readRepoFile(relativePath);
     if (forbiddenWorkerCommands.test(contents)) duplicatePaths.push(relativePath);
+    // 두 번째 패스 — 배포 명령을 직접 부르지 않아도 정본 워크플로를 프로덕션 모드로 깨우면
+    // 결과는 같다. 허용목록 밖에서 그러는 파일은 실패다.
+    if (productionDispatchCall.test(contents) && !productionDispatchAllowlist.has(relativePath)) {
+      dispatchPaths.push(relativePath);
+    }
   }
 
   assert(duplicatePaths.length === 0, `Worker deploy commands found outside ${canonicalWorkflow}: ${duplicatePaths.join(", ")}`);
+  assert(
+    dispatchPaths.length === 0,
+    `Workflows outside the allowlist dispatch ${canonicalWorkflow}: ${dispatchPaths.join(", ")}. 프로덕션 자동화 예외는 명시 선언된 것만 허용된다.`,
+  );
 }
 
 function runSelfTest() {
@@ -225,6 +322,56 @@ function runSelfTest() {
   runProductionDeployGuardSelfTest();
 
   console.log("[verify-worker-single-deploy-guard] self-test passed");
+}
+
+/**
+ * 컷오버로 새로 생긴 단언들이 공허하지 않은지, **진짜 워크플로를 변형해** 증명한다.
+ *
+ * 🔴 이 절이 없으면 새 단언은 조용히 통과만 한다. 2026-08-20 이전의 워커 이름 검사가 정확히
+ *    그 상태였다 — 파일 전체 부분문자열이라 잡이 어긋나도 통과했고, 아무도 몰랐다.
+ */
+async function runWorkflowShapeMutationTests() {
+  const workflow = await readRepoFile(canonicalWorkflow);
+  assertWorkflowShape(workflow); // 기준선: 지금 파일은 통과해야 한다.
+
+  const mutations = [
+    [
+      "프로덕션 배포 스텝에서 이벤트 조건을 지우면 거부",
+      (text) => text.replace(
+        "if: env.RELEASE_MODE == 'production' && github.event_name == 'workflow_dispatch'",
+        "if: env.RELEASE_MODE == 'production'",
+      ),
+    ],
+    [
+      // 🔴 들여쓰기 폭으로 잡을 가른다. 문자열 포함 검사로는 gate 잡의 같은 이름 줄(10칸 들여쓰기)에
+      //    먼저 걸려 엉뚱한 곳을 변형한다. 잡 레벨 env 는 정확히 6칸이다.
+      "스테이징 잡이 프로덕션 오리진을 들고 있으면 거부",
+      (text) => text.replace(/\n {6}CD_STAGING_ORIGIN: /, "\n      CD_PRODUCTION_ORIGIN: https://code-destiny.com\n      CD_STAGING_ORIGIN: "),
+    ],
+    [
+      "스테이징 잡이 프로덕션 배포 명령을 쓰면 거부",
+      (text) => text.replace("npm run deploy:staging -- --ci --yes", "npm run deploy:safe -- --ci --yes"),
+    ],
+    [
+      // 개행은 CRLF/LF 가 섞여 있으므로 정규식으로 받는다.
+      "checkout 하나라도 github.sha 를 고정하지 않으면 거부",
+      (text) => text.replace(/ {10}ref: \$\{\{ github\.sha \}\}\r?\n/, ""),
+    ],
+  ];
+
+  for (const [label, mutate] of mutations) {
+    const mutated = mutate(workflow);
+    assert(mutated !== workflow, `mutation fixture did not change the workflow: ${label}`);
+    let rejected = false;
+    try {
+      assertWorkflowShape(mutated);
+    } catch {
+      rejected = true;
+    }
+    assert(rejected, `assertion is vacuous — ${label}`);
+  }
+
+  console.log(`[verify-worker-single-deploy-guard] workflow shape mutations rejected (${mutations.length}).`);
 }
 
 async function fetchJson(url, token) {
@@ -283,6 +430,7 @@ async function verifyNoExternalWorkerBuildCheck() {
 async function main() {
   if (process.argv.includes("--self-test")) {
     runSelfTest();
+    await runWorkflowShapeMutationTests();
     return;
   }
 
