@@ -29,6 +29,36 @@ routes = [
   { pattern = "code-destiny.com/api/*", zone_name = "code-destiny.com" },
 ]
 
+# 🔴 Smart Placement — 워커 실행을 백엔드(Atlas 서울) 근처 colo 로 옮긴다.
+#
+# 왜 필요한가 (실측 2026-08-21, 사용자 머신=서울):
+#   Cloudflare 가 이 존을 LAX/SJC 에서 서빙하는데(`/cdn-cgi/trace` → colo=LAX loc=KR)
+#   MongoDB Atlas 는 **서울**에 있다(159.143.226.227 → Seoul/KR, AS8011 MongoDB).
+#   그래서 Mongo 왕복 하나가 태평양을 두 번 건넌다:
+#     같은 쿼리, 로컬(서울→Atlas 서울)   39~48ms
+#     같은 쿼리, 워커(LAX→Atlas 서울)    ≈415ms
+#     Mongo 핸드셰이크(워커 tail 실측)   1,272~1,387ms — **요청마다** 낸다
+#   마지막 항목이 핵심이다. worker/lib/db.js 가 적어 둔 대로 요청 컨텍스트가 끝나면 그 소켓은
+#   못 쓰게 되므로(Cloudflare 의 성질) 재사용으로는 못 없앤다. 남는 길은 왕복 단가를 낮추는 것뿐이다.
+#
+# 왜 스테이징에서 못 정하고 여기서 켜는가:
+#   스테이징에 먼저 켜고(PR #859) API 로 상태를 읽으니 placement_status 가
+#   **INSUFFICIENT_INVOCATIONS** 였다 — 재배치를 판단할 만큼 요청이 안 들어온다는 뜻이다.
+#   UNSUPPORTED_APPLICATION 이 아니었으므로 "Mongo 가 TCP 라 인식 못 한다"는 가설은 기각됐다.
+#   스테이징은 구조상 트래픽이 없어 이 기능을 영원히 검증할 수 없다. 판정은 여기서만 난다.
+#
+# 상태 확인(수동, 읽기 전용 — wrangler OAuth 자격으로):
+#   GET /client/v4/accounts/{account}/workers/services/code-destiny-web/environments/production
+#   → placement_status: SUCCESS | INSUFFICIENT_INVOCATIONS | UNSUPPORTED_APPLICATION
+#   🔴 /settings 엔드포인트에는 mode 만 있고 status 가 없다. 거기만 보면 판정이 안 된다.
+#
+# 대가(미검증 추정): 워커가 옮겨가면 caches.default 조회도 함께 옮겨가므로 **엣지 캐시 히트가
+# 전달 홉만큼 느려질 수 있다**(실측 히트 ~950ms → ~1,250ms 추정). 반대로 DB 를 타는 경로는
+# 3,400ms → ~500ms 가 기대값이다. 결제·로그인은 항상 DB 를 타므로 그쪽을 택했다.
+# 되돌리기는 이 블록 삭제다.
+[placement]
+mode = "smart"
+
 [ai]
 binding = "AI"
 
