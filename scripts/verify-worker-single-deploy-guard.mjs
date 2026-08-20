@@ -86,7 +86,13 @@ function assertWorkflowShape(workflow) {
   // 게이트 없이 schedule 만 남으면 원래 금지하려던 그 상황이 되므로 배선을 함께 강제한다.
   if (/^\s+schedule:/m.test(triggers)) {
     assert(/^\s{2}gate:/m.test(workflow), `${canonicalWorkflow} has a schedule trigger, so it must define the drift gate job.`);
-    assert(/--check=drift/.test(workflow), `${canonicalWorkflow} gate must decide with the drift check, not deploy unconditionally.`);
+    // 🔴 --soft 까지 강제한다. verify-merge-landed 는 드리프트를 critical 로 보고 exit 1 로 끝나므로,
+    // --soft 없이 부르면 게이트의 `if !` 가 "드리프트 있음"을 "판정 실패"로 읽어 배포를 건너뛴다 —
+    // 자가 수렴이 필요한 바로 그 순간에만 꺼지는, 방향이 뒤집힌 게이트가 된다
+    // (2026-08-19 실사고: 스케줄 7주기 연속 skip, 프로덕션이 9시간 옛 SHA 에 머물렀다).
+    const driftCalls = workflow.split(/\r?\n/).filter((line) => line.includes("--check=drift") && !/^\s*#/.test(line));
+    assert(driftCalls.length > 0, `${canonicalWorkflow} gate must decide with the drift check, not deploy unconditionally.`);
+    assert(driftCalls.every((line) => line.includes("--soft")), `${canonicalWorkflow} gate must call the drift check with --soft, or a real drift exits 1 and the gate skips the very deploy it exists to trigger.`);
     assert(/needs:\s*gate/.test(workflow), `${canonicalWorkflow} release job must depend on the drift gate.`);
     assert(/if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(workflow), `${canonicalWorkflow} release job must only run when the gate says production needs this commit.`);
   }
@@ -305,12 +311,18 @@ function runSelfTest() {
 
   // 게이트 없는 스케줄 배포는 여전히 막혀야 한다 — 그게 원래 이 규칙이 지키려던 것이다.
   const scheduleOnly = `on:\n  push:\n    branches: [main]\n  schedule:\n    - cron: "*/20 * * * *"\n  workflow_dispatch:\n\njobs:\n  release:\n    runs-on: ubuntu-latest\n`;
-  const scheduleGated = `${scheduleOnly}    needs: gate\n    if: needs.gate.outputs.proceed == 'true'\n  gate:\n    steps:\n      - run: node x.js --check=drift\n`;
-  const gateWired = (text) =>
-    /^\s{2}gate:/m.test(text) && /--check=drift/.test(text) && /needs:\s*gate/.test(text) && /if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(text);
+  const gatedWith = (call) => `${scheduleOnly}    needs: gate\n    if: needs.gate.outputs.proceed == 'true'\n  gate:\n    steps:\n      - run: ${call}\n`;
+  const scheduleGated = gatedWith("node x.js --check=drift --soft");
+  const scheduleGatedHard = gatedWith("node x.js --check=drift");
+  const gateWired = (text) => {
+    const calls = text.split(/\r?\n/).filter((line) => line.includes("--check=drift") && !/^\s*#/.test(line));
+    return /^\s{2}gate:/m.test(text) && calls.length > 0 && calls.every((line) => line.includes("--soft"))
+      && /needs:\s*gate/.test(text) && /if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(text);
+  };
   assert(/^\s+schedule:/m.test(deploymentTriggerBlock(scheduleOnly)), "schedule fixture should be detected");
   assert(!gateWired(scheduleOnly), "a schedule trigger without the drift gate must be rejected");
   assert(gateWired(scheduleGated), "a schedule trigger wired to the drift gate must be accepted");
+  assert(!gateWired(scheduleGatedHard), "a drift gate called without --soft must be rejected: exit 1 on drift reads as a failed judgement and skips the deploy");
 
   assert(runsWranglerDeployDirectly("npx wrangler deploy --config worker/wrangler.toml"), "a raw worker deploy script should be detected");
   assert(runsWranglerDeployDirectly("npx wrangler versions upload --config worker/wrangler.toml"), "a raw versions upload script should be detected");

@@ -1271,11 +1271,53 @@
       "processing": "결제가 진행 중입니다.",
       "meta": "결제 인증과 이용 권한을 차례로 확인합니다."
     },
+    "gate": {
+      "skeleton": {
+        "title": "이용권 확인 중",
+        "sub": "회원 등급과 이용권 상태를 함께 맞추고 있어요"
+      }
+    },
     "wait": {
       "access_check": {
         "pass": {
-          "title": "이용권 확인 중",
-          "sub": "회원 등급과 이용권 상태를 함께 맞추고 있어요"
+          "title": "이용권을 확인하는 중이에요",
+          "sub": "무료로 열 수 있으면 결제창 없이 바로 이어드려요"
+        },
+        "single": {
+          "sub": "결제 내역을 안전하게 대조하고 있어요",
+          "title": "단건으로 카드 결제를 준비 중이에요"
+        },
+        "subscription": {
+          "title": "월정석 사용 준비 중입니다",
+          "sub": "보유 이벤트 재화 잔량을 먼저 살피고 있어요"
+        }
+      },
+      "fallback": {
+        "title": "처리 중이에요",
+        "sub": "잠시만 기다려 주세요"
+      },
+      "pg_processing": {
+        "subscription": {
+          "title": "월정석 사용 중입니다",
+          "sub": "보유 이벤트 재화 잔량을 확인하고 있어요"
+        },
+        "single": {
+          "title": "단건 결제 준비 중",
+          "sub": "주문 정보와 인증 흐름이 조용히 맞춰지고 있어요"
+        }
+      },
+      "result_loading": {
+        "subscription": {
+          "title": "월정석 사용이 완료되었습니다",
+          "sub": "곧 이용 가능해져요"
+        },
+        "single": {
+          "title": "결제가 완료됐어요",
+          "sub": "결과를 불러오는 중이에요"
+        },
+        "pass": {
+          "title": "이용권을 확인했어요",
+          "sub": "결과를 불러오는 중이에요"
         }
       }
     },
@@ -1289,7 +1331,7 @@
       "passChecking": "이용권 확인 중입니다.",
       "subscriptionPrepare": "원화 기준 이용권 결제 정보를 준비하고 있습니다.",
       "subscriptionConfirm": "이용권 결제 승인과 활성화를 확인하고 있습니다.",
-      "confirm": "결제 승인을 서버에서 검증하고 있습니다.",
+      "confirm": "결제가 적용되었습니다. 콘텐츠를 여는 중이에요.",
       "purchase": "결제 승인과 이용 권한을 확인하고 있습니다.",
       "pdfGeneration": "PDF 생성을 위한 결제 권한을 확인하고 있습니다."
     },
@@ -1349,7 +1391,7 @@
       "monthlyHint": {
         "use": "이미 가지고 있는 월정석으로 열어요. 추가 지출이 없어요.",
         "insufficient": "월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.",
-        "checking": "월정석 잔량을 확인하고 있어요. 그대로 눌러 봐도 괜찮아요.",
+        "checking": "월정석 잔량은 선택하면 바로 확인돼요. 그대로 눌러 봐도 괜찮아요.",
         "after": "사용 후 {balance}이 남습니다."
       },
       "monthlyBalance": {
@@ -1386,6 +1428,10 @@
         "title": "열람 권한 저장 준비 중",
         "message": "열람 권한 저장을 준비하고 있습니다."
       },
+      "applied": {
+        "title": "결제가 적용되었습니다",
+        "message": "콘텐츠를 여는 중이에요"
+      },
       "unlockSaving": {
         "title": "열람 권한 저장 중",
         "message": "열람 권한을 저장하고 있습니다.",
@@ -1401,30 +1447,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "결제는 완료되었습니다. 유료 콘텐츠 제공 상태를 확인하고 있습니다. 잠시만 기다려 주세요.",
+        "message": "결제는 완료되었습니다.\n유료 콘텐츠 제공 상태를 확인하고 있습니다.\n잠시만 기다려 주세요.",
         "title": "제공 상태 확인 중"
       },
       "refundFailed": {
-        "message": "자동 환불 요청 중 문제가 발생했습니다. 결제는 정상적으로 기록되어 있으며, 환불 처리를 위해 관리자 확인이 필요합니다. 잠시 후 다시 확인해 주세요.",
+        "message": "자동 환불 요청 중 문제가 발생했습니다.\n결제는 정상적으로 기록되어 있으며, 환불 처리를 위해 관리자 확인이 필요합니다.\n잠시 후 다시 확인해 주세요.",
         "title": "관리자 확인 필요"
       },
       "refundPending": {
-        "message": "죄송합니다. 유료 콘텐츠가 정상적으로 제공되지 않아 자동 환불을 진행하고 있습니다. 결제 금액은 100% 환불됩니다.",
+        "message": "죄송합니다.\n유료 콘텐츠가 정상적으로 제공되지 않아 자동 환불을 진행하고 있습니다.\n결제 금액은 100% 환불됩니다.",
         "title": "자동 환불 진행 중"
       },
       "refunded": {
-        "message": "유료 콘텐츠가 정상적으로 제공되지 않아 결제 금액이 100% 환불되었습니다. 같은 결제 건으로 다시 청구되지 않습니다.",
+        "message": "유료 콘텐츠가 정상적으로 제공되지 않아 결제 금액이 100% 환불되었습니다.\n같은 결제 건으로 다시 청구되지 않습니다.",
         "title": "환불 완료"
       }
     },
     "passShop": {
-      "monthlyStatus": "월정석 잔량을 확인했습니다. 월정석은 개별 유료 기능 결제에 사용됩니다.",
+      "monthlyStatus": "월정석 잔량이 확인되었습니다.",
       "chargeButton": "{amount} 결제 페이지로 이동",
-      "chargeNotice": "이용권 상품 {price} · 원화 단건 결제로만 구매할 수 있습니다. 자동결제가 아닌 30일 이용권입니다.{credits}",
+      "chargeNotice": "이용권 상품 {price} · 자동결제가 아닌 30일 이용권입니다. 이용권은 원화 단건 결제로만 구매할 수 있습니다.",
       "monthlyBasisWithPrice": "월정석 기준 {credits} · {price}",
       "profileUnlimited": "프로필 무제한",
       "profileLimit": "프로필 {count}개",
-      "allFeatures": "3만원 미만 무제한 · 전문가 상담 10회 포함",
+      "allFeatures": "전체 기능 이용 가능",
+      "best": "BEST",
       "upTo": "{amount} 이하 이용 가능",
       "benefits": "혜택 한눈에",
       "closeAria": "달빛이용권 상점 안내 닫기",
@@ -1432,8 +1479,8 @@
       "title": "달빛이용권 상점 안내",
       "subtitle": "30일 이용권은 원화 단건 결제로 구매하며, 월정석은 개별 유료 기능에 사용됩니다.",
       "footerNotice": "이 30일 이용권은 자동결제 상품이 아닙니다. 만료 후 다시 구매해야 합니다.",
-      "monthlyStatusChecking": "월정석 잔량을 확인하고 있습니다. 이용권은 원화 단건 결제로 구매할 수 있습니다.",
-      "monthlyStatusError": "월정석 잔량 확인이 지연되고 있습니다. 이용권은 원화 단건 결제로 구매할 수 있습니다.",
+      "monthlyStatusChecking": "잔량과 이용권 상태를 확인하고 있습니다.",
+      "monthlyStatusError": "잔량 확인이 지연되고 있습니다. 결제와 이용권 선택은 계속 진행할 수 있습니다.",
       "provisionNotice": "이용권은 결제 완료 즉시 활성화되어 바로 이용할 수 있으며, 활성화 이후에는 관련 법령에 따라 청약철회가 제한될 수 있습니다.",
       "monthlyButton": "월정석 {credits}로 결제",
       "monthlyButtonBusy": "월정석으로 이용권을 활성화하는 중...",
@@ -1456,11 +1503,16 @@
     "adminSessionTagline": "관리자 세션이 활성화되어 있습니다.",
     "memberTagline": "오늘도 운명의 별자리를 탐험해 보세요",
     "greeting": "✦ 안녕하세요",
-    "logout": "🔓 로그아웃",
+    "logout": "🔓 로그아웃",
+    "adminAccessChip": "ADMIN ACCESS",
+    "passDelayChip": "PASS SYNC",
+    "changePhone": "📱 전화번호 변경",
+    "changePassword": "🔑 비밀번호 변경",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ 관리자 세션",
     "adminName": "ADMIN 님",
     "adminPanelSessionTitle": "관리자 패널 세션",
-    "exit": "🔓 나가기",
+    "exit": "🔓 나가기",
     "loginModal": {
       "eyebrow": "로그인 필요",
       "title": "달빛 리딩을 이어가려면 로그인이 필요해요.",

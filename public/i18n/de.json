@@ -1649,6 +1649,12 @@
       "processing": "Die Zahlung läuft.",
       "meta": "Zahlungsauthentifizierung und Zugriffsrechte werden der Reihe nach überprüft."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Überprüfen Sie Ihren Pass",
+        "sub": "Wir gleichen Ihren Mitgliedsstatus und Pass-Status ab"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1683,12 +1689,17 @@
           "sub": "Zuerst das Mondlicht prüfen"
         },
         "single": {
-          "title": "Guthaben prüfen"
+          "title": "Guthaben prüfen",
+          "sub": "Deine Zahlungsdaten werden sicher abgeglichen"
         },
         "pass": {
-          "title": "Überprüfen Sie Ihren Pass",
-          "sub": "Wir gleichen Ihren Mitgliedsstatus und Pass-Status ab"
+          "title": "Dein Pass wird geprüft",
+          "sub": "Ist es abgedeckt, öffnen wir es sofort ohne Zahlungsfenster"
         }
+      },
+      "fallback": {
+        "title": "Wird verarbeitet",
+        "sub": "Bitte einen Moment Geduld"
       }
     },
     "pending": {
@@ -1701,7 +1712,7 @@
       "passChecking": "Passzugriff wird überprüft.",
       "subscriptionPrepare": "Zahlungsinformationen für den KRW-Pass werden vorbereitet.",
       "subscriptionConfirm": "Genehmigung und Aktivierung der Passzahlung werden geprüft.",
-      "confirm": "Überprüfung der Zahlungsgenehmigung auf dem Server.",
+      "confirm": "Zahlung übernommen. Dein Inhalt wird geöffnet.",
       "purchase": "Zahlungsgenehmigung und Zugriffsrechte prüfen.",
       "pdfGeneration": "Zahlungsberechtigung für PDF-Generierung wird geprüft."
     },
@@ -1763,7 +1774,7 @@
       "monthlyHint": {
         "use": "Nutzt deine vorhandenen Mondsteine. Keine Zusatzkosten.",
         "insufficient": "Nicht genug Mondsteine. Du kannst ihn mit einem Einzelkauf öffnen.",
-        "checking": "Dein Mondstein-Guthaben wird geprüft. Du kannst trotzdem tippen.",
+        "checking": "Dein Mondstein-Guthaben wird beim Auswählen sofort geprüft. Du kannst einfach tippen.",
         "after": "Danach verbleiben {balance}."
       },
       "monthlyBalance": {
@@ -1799,6 +1810,10 @@
       "unlockPreparing": {
         "title": "Zugriffsspeicherung wird vorbereitet",
         "message": "Speichern der Zugriffsrechte wird vorbereitet."
+      },
+      "applied": {
+        "title": "Zahlung übernommen",
+        "message": "Dein Inhalt wird geöffnet"
       },
       "unlockSaving": {
         "title": "Zugriffsrechte speichern",
@@ -1946,31 +1961,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "Die Zahlung wurde abgeschlossen. Der Status der Bereitstellung kostenpflichtiger Inhalte wird überprüft. Bitte warten Sie einen Moment.",
+        "message": "Die Zahlung wurde abgeschlossen.\nDer Status der Bereitstellung kostenpflichtiger Inhalte wird überprüft.\nBitte warten Sie einen Moment.",
         "title": "Bereitstellungsstatus wird geprüft"
       },
       "refundFailed": {
-        "message": "Bei der automatischen Rückerstattungsanfrage ist ein Problem aufgetreten. Die Zahlung wurde korrekt erfasst, aber eine Administratorprüfung ist für die Rückerstattung erforderlich. Bitte überprüfen Sie dies später erneut.",
+        "message": "Bei der automatischen Rückerstattungsanfrage ist ein Problem aufgetreten.\nDie Zahlung wurde korrekt erfasst, aber eine Administratorprüfung ist für die Rückerstattung erforderlich.\nBitte überprüfen Sie dies später erneut.",
         "title": "Administratorprüfung erforderlich"
       },
       "refundPending": {
-        "message": "Entschuldigung. Da die kostenpflichtigen Inhalte nicht ordnungsgemäß bereitgestellt wurden, wird eine automatische Rückerstattung durchgeführt. Der gezahlte Betrag wird zu 100% zurückerstattet.",
+        "message": "Entschuldigung.\nDa die kostenpflichtigen Inhalte nicht ordnungsgemäß bereitgestellt wurden, wird eine automatische Rückerstattung durchgeführt.\nDer gezahlte Betrag wird zu 100% zurückerstattet.",
         "title": "Automatische Rückerstattung läuft"
       },
       "refunded": {
-        "message": "Da die kostenpflichtigen Inhalte nicht ordnungsgemäß bereitgestellt wurden, wurde der gezahlte Betrag zu 100% zurückerstattet. Dieselbe Zahlung wird nicht erneut in Rechnung gestellt.",
+        "message": "Da die kostenpflichtigen Inhalte nicht ordnungsgemäß bereitgestellt wurden, wurde der gezahlte Betrag zu 100% zurückerstattet.\nDieselbe Zahlung wird nicht erneut in Rechnung gestellt.",
         "title": "Rückerstattung abgeschlossen"
       }
     },
     "passShop": {
-      "monthlyStatus": "Die monatliche Kreditzahlung ist im Gange. Die Mondlichtbalance gleicht sich ruhig aus.",
+      "monthlyStatus": "Dein Mondstein-Guthaben ist bestätigt.",
       "chargeButton": "Zur Zahlungsseite für {amount} gehen",
-      "chargeNotice": "Monatliche Guthabenbasis {credits} · Zahlungsbetrag {price} · Dies ist ein 30-Tage-Pass, keine sich automatisch verlängernde Zahlung.",
+      "chargeNotice": "Pass-Produkt {price} · Dies ist ein 30-Tage-Pass ohne automatische Verlängerung. Pässe sind nur per Einmalzahlung in KRW erhältlich.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Monatliche Kreditbasis {credits} · {price}",
       "profileUnlimited": "Unbegrenzte Profile",
       "profileLimit": "{count} Profile",
-      "allFeatures": "Unbegrenzt unter 30.000 KRW · 10 Expertenberatungen inklusive",
+      "allFeatures": "Alle Funktionen verfügbar",
       "upTo": "Verfügbar bis {amount}",
       "benefits": "Vorteile auf einen Blick",
       "closeAria": "Moonlight Pass Shop-Guide schließen",
@@ -2027,12 +2042,15 @@
     "memberTagline": "Erkunden Sie noch heute Ihre Schicksalskonstellation",
     "greeting": "✦ Hallo",
     "userNameSuffix": "{name}",
-    "logout": "🔓 Abmelden",
+    "logout": "🔓 Abmelden",
+    "changePhone": "📱 Telefonnummer ändern",
+    "changePassword": "🔑 Passwort ändern",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ Admin-Sitzung",
     "adminAccessChip": "ADMIN-ZUGRIFF",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "Admin-Panel-Sitzung",
-    "exit": "🔓 Beenden",
+    "exit": "🔓 Beenden",
     "loginKeyword": "anmelden",
     "providers": {
       "kakao": "Kakao",

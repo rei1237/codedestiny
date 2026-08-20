@@ -1649,6 +1649,12 @@
       "processing": "El pago está en curso.",
       "meta": "La autenticación de pago y los derechos de acceso se están verificando en orden."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Comprobando tu pase",
+        "sub": "Ajustando el nivel de membresía y el estado del Pase"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1683,12 +1689,17 @@
           "sub": "Comprobando primero la luz de la luna"
         },
         "single": {
-          "title": "Consultar saldo"
+          "title": "Consultar saldo",
+          "sub": "Verificando de forma segura tu registro de pago"
         },
         "pass": {
           "title": "Comprobando tu pase",
-          "sub": "Ajustando el nivel de membresía y el estado del Pase"
+          "sub": "Si está cubierto, lo abrimos al instante sin ventana de pago"
         }
+      },
+      "fallback": {
+        "title": "Procesando",
+        "sub": "Espera un momento, por favor"
       }
     },
     "pending": {
@@ -1701,7 +1712,7 @@
       "passChecking": "Comprobando el acceso al pase.",
       "subscriptionPrepare": "Preparando la información de pago del pase de KRW.",
       "subscriptionConfirm": "Comprobando la aprobación y activación del pago del pase.",
-      "confirm": "Verificando la aprobación del pago en el servidor.",
+      "confirm": "Pago aplicado. Abriendo tu contenido.",
       "purchase": "Comprobando la aprobación del pago y los derechos de acceso.",
       "pdfGeneration": "Verificando la autorización de pago para la generación de PDF."
     },
@@ -1763,7 +1774,7 @@
       "monthlyHint": {
         "use": "Usa las piedras lunares que ya tienes. Sin gasto adicional.",
         "insufficient": "No tienes suficientes piedras lunares. Puedes abrirlo con una compra única.",
-        "checking": "Comprobando tu saldo de piedras lunares. Puedes tocar igualmente.",
+        "checking": "Tu saldo de piedras lunares se comprueba al seleccionarlo. Puedes tocar sin problema.",
         "after": "Quedarán {balance} después de usarlo."
       },
       "monthlyBalance": {
@@ -1799,6 +1810,10 @@
       "unlockPreparing": {
         "title": "Preparando acceso guardar",
         "message": "Preparándose para guardar los derechos de acceso."
+      },
+      "applied": {
+        "title": "Pago aplicado",
+        "message": "Abriendo tu contenido"
       },
       "unlockSaving": {
         "title": "Guardando derechos de acceso",
@@ -1946,31 +1961,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "El pago se ha completado. Estamos verificando el estado de la entrega del contenido de pago. Por favor, espere un momento.",
+        "message": "El pago se ha completado.\nEstamos verificando el estado de la entrega del contenido de pago.\nPor favor, espere un momento.",
         "title": "Verificando estado de entrega"
       },
       "refundFailed": {
-        "message": "Ha ocurrido un problema al solicitar el reembolso automático. El pago se ha registrado correctamente y se requiere la verificación del administrador para procesar el reembolso. Por favor, inténtelo de nuevo más tarde.",
+        "message": "Ha ocurrido un problema al solicitar el reembolso automático.\nEl pago se ha registrado correctamente y se requiere la verificación del administrador para procesar el reembolso.\nPor favor, inténtelo de nuevo más tarde.",
         "title": "Se requiere verificación del administrador"
       },
       "refundPending": {
-        "message": "Lo sentimos. El contenido de pago no se ha entregado correctamente, por lo que estamos procesando un reembolso automático. El importe del pago se reembolsará al 100%.",
+        "message": "Lo sentimos.\nEl contenido de pago no se ha entregado correctamente, por lo que estamos procesando un reembolso automático.\nEl importe del pago se reembolsará al 100%.",
         "title": "Reembolso automático en curso"
       },
       "refunded": {
-        "message": "El contenido de pago no se ha entregado correctamente, por lo que el importe del pago se ha reembolsado al 100%. No se le volverá a cobrar por la misma transacción.",
+        "message": "El contenido de pago no se ha entregado correctamente, por lo que el importe del pago se ha reembolsado al 100%.\nNo se le volverá a cobrar por la misma transacción.",
         "title": "Reembolso completado"
       }
     },
     "passShop": {
-      "monthlyStatus": "El pago del crédito mensual está en curso. El equilibrio de la luz de la luna se está alineando silenciosamente.",
+      "monthlyStatus": "Tu saldo de piedras lunares está confirmado.",
       "chargeButton": "Ir a la página de pago de {amount}",
-      "chargeNotice": "Base de crédito mensual {credits} · Monto del pago {price} · Este es un pase de 30 días, no un pago de renovación automática.",
+      "chargeNotice": "Producto de pase {price} · Es un pase de 30 días, no un pago con renovación automática. Los pases solo se compran con un pago único en KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Base de crédito mensual {credits} · {price}",
       "profileUnlimited": "Perfiles ilimitados",
       "profileLimit": "{count} perfiles",
-      "allFeatures": "Ilimitado por debajo de KRW 30.000 · 10 consultas de experto incluidas",
+      "allFeatures": "Todas las funciones disponibles",
       "upTo": "Disponible hasta {amount}",
       "benefits": "Beneficios de un vistazo",
       "closeAria": "Cerrar Guía de la tienda Moonlight Pass",
@@ -2027,12 +2042,15 @@
     "memberTagline": "Explora tu constelación del destino hoy",
     "greeting": "✦ Hola",
     "userNameSuffix": "{name}",
-    "logout": "🔓 Cerrar sesión",
+    "logout": "🔓 Cerrar sesión",
+    "changePhone": "📱 Cambiar número de teléfono",
+    "changePassword": "🔑 Cambiar contraseña",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ Sesión de administrador",
     "adminAccessChip": "ACCESO DE ADMINISTRADOR",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "Sesión del panel de administración",
-    "exit": "🔓 Salir",
+    "exit": "🔓 Salir",
     "loginKeyword": "iniciar sesión",
     "providers": {
       "kakao": "Kakao",
