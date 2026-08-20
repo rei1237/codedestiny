@@ -378,11 +378,11 @@ h3{font-size:1.05rem; line-height:1.4}
       <div class="grid-2">
         <div class="field">
           <label class="field__label" for="fBirth">생년월일</label>
-          <input class="input" id="fBirth" name="birthDate" type="date" min="1900-01-01" required>
+          <input class="input" id="fBirth" name="birthDate" type="text" inputmode="numeric" maxlength="10" placeholder="1998-05-01" data-cd-birth-date required>
         </div>
         <div class="field">
           <label class="field__label" for="fTime">태어난 시각</label>
-          <input class="input" id="fTime" name="birthTime" type="time">
+          <input class="input" id="fTime" name="birthTime" type="text" inputmode="numeric" maxlength="5" placeholder="08:35">
           <p class="field__hint">모르면 비워 두세요 — 시주만 빠지고 나머지는 그대로 계산됩니다.</p>
         </div>
       </div>
@@ -481,7 +481,7 @@ h3{font-size:1.05rem; line-height:1.4}
 <script src="/js/core/pass-verdict.js?v=build-a300cf84f0f5"></script>
 <script src="/js/core/checkout-entry.js?v=build-a300cf84f0f5"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
-<script src="/js/destiny-profile.js?v=build-e50af344af33"></script>
+<script src="/js/destiny-profile.js?v=build-b485240bf075"></script>
 <script>
 (function(){
 "use strict";
@@ -573,6 +573,22 @@ function el(tag, cls, text){
 }
 function clear(node){ while (node && node.firstChild) node.removeChild(node.firstChild); }
 function kstToday(){ return new Date(Date.now() + 9 * 3600 * 1000).toISOString().slice(0, 10); }
+/* #fBirth 는 data-cd-birth-date 속성이 있어 js/destiny-profile.js 의 문서 레벨 리스너가
+   자동 하이픈·정규화를 맡는다. #fTime 은 짝이 되는 select 가 없는 "홀로 정규화" 케이스라
+   그 공용 파일에 없는 분기를 새로 추가하는 대신 6줄짜리 로컬 함수로 둔다. */
+function psNormalizeBirthTime(v){
+  var t = String(v || "").trim();
+  if (!t) return "";
+  var d = t.replace(/\D/g, "");
+  var h, m;
+  if (d.length === 4) { h = d.slice(0, 2); m = d.slice(2); }
+  else if (d.length === 3) { h = d.slice(0, 1); m = d.slice(1); }
+  else if (d.length <= 2) { h = d; m = "0"; }
+  else return "";
+  var hh = parseInt(h, 10), mm = parseInt(m, 10);
+  if (!isFinite(hh) || !isFinite(mm) || hh < 0 || hh > 23 || mm < 0 || mm > 59) return "";
+  return (hh < 10 ? "0" : "") + hh + ":" + (mm < 10 ? "0" : "") + mm;
+}
 function starsHtml(n){
   var full = Math.max(0, Math.min(5, Number(n) || 0));
   return "★".repeat(full) + (full < 5 ? "<b>" + "★".repeat(5 - full) + "</b>" : "");
@@ -1626,12 +1642,20 @@ function bindNav(){
       go("result");
     });
   });
+  $("fTime").addEventListener("blur", function(){
+    if (!this.value.trim()) return;
+    var normalized = psNormalizeBirthTime(this.value);
+    if (normalized) this.value = normalized;
+  });
   $("profileForm").addEventListener("submit", function(event){
     event.preventDefault();
     var profile = collectProfile();
     var error = "";
     if (!profile.name) error = "이름을 입력해 주세요.";
     else if (!profile.birthDate) error = "생년월일을 입력해 주세요.";
+    /* type="date" 가 사라지며 없어진 네이티브 형식 검증을 여기서 대신한다(폼은 원래도
+       novalidate 라 네이티브 검증에 의존한 적이 없다). */
+    else if (!/^\d{4}-\d{2}-\d{2}$/.test(profile.birthDate)) error = "생년월일을 YYYY-MM-DD 형식으로 입력해 주세요.";
     else if (profile.birthDate > kstToday()) error = "생년월일이 오늘보다 뒤일 수 없어요.";
     $("profileErr").textContent = error;
     if (error) return;
