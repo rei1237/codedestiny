@@ -730,15 +730,15 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
 <link rel="stylesheet" href="/styles/mobile-lite.css?v=build-23e60770a5f6" media="(max-width: 1024px), (hover: none) and (pointer: coarse)" data-cd-mobile-runtime-css="1">
 <style data-marker="cd-mobile-home-offscreen-containment-v20260816">
 /* 모바일 홈에서 첫 화면 아래 섹션은 화면에 들어오기 전까지 스타일·레이아웃을 건너뛴다.
- * recalc 한 번의 비용은 `요소 수 × 규칙 수` 이고, 여기 열거한 10개가 모바일 홈 2,031 요소 중
- * 861개(42%)다. 전부 뷰포트(844px) 한참 아래에서 시작하므로 첫 화면에 기여하지 않는다.
+ * recalc 한 번의 비용은 `요소 수 × 규칙 수` 이고, 여기 열거한 9개가 모바일 홈 2,031 요소 중
+ * 816개(약 40%)다. 전부 뷰포트(844px) 한참 아래에서 시작하므로 첫 화면에 기여하지 않는다.
  *
  * 실측(2026-08-16, dist·390×844·html.cd-mobile-runtime, `_tmp_belowfold_sections.mjs`) — top / 콘텐츠 높이 / 요소 수:
  *   #cdSignatureConsult  1434 /  792 / 135    #fortuneGatewayEntry  3302 /  862 /  32
- *   #dpMasterCard        4346 /  577 /  45    #cdAiFeatures         4987 /  917 /  98
- *   #cdFortunePick       5976 /  709 /  41    #destinyCardForm      6696 / 1173 / 205
- *   #honeyMembershipMini 11441 /  514 /  84   #moonMusicEntry      12277 /  208 /  28
- *   .cd-home-guide      13195 / 2359 /  51    .wrap > footer       15631 /  906 / 142
+ *   #cdAiFeatures        4987 /  917 /  98    #cdFortunePick        5976 /  709 /  41
+ *   #destinyCardForm     6696 / 1173 / 205    #honeyMembershipMini 11441 /  514 /  84
+ *   #moonMusicEntry     12277 /  208 /  28    .cd-home-guide       13195 / 2359 /  51
+ *   .wrap > footer      15631 /  906 / 142
  *
  * 🔴 값은 **콘텐츠 박스** 높이지 보더 박스가 아니다. contain-intrinsic-size 는 콘텐츠 박스에
  *    적용되므로 getBoundingClientRect().height(=보더 박스)를 그대로 넣으면 섹션마다 패딩·보더만큼
@@ -749,7 +749,11 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
  * 실패 모드이고 이 파일 :3405 에 아직 그 형태가 남아 있다.
  *
  * 🔴 데스크탑에는 걸지 않는다 — html.cd-mobile-runtime 아래에만 둔다.
- * 🔴 아래 4개는 실측으로 뺐다. 되살리지 말 것:
+ * 🔴 아래 5개는 실측으로 뺐다. 되살리지 말 것:
+ *    #dpMasterCard — 2026-08-20 프로필 카드 패널이 히어로 바로 아래로 옮겨지며 더는 폴드
+ *      한참 아래가 아니게 됐다(재실측 top ≈846px, 390×844 뷰포트 기준 폴드 경계). content-visibility
+ *      의 페인트 컨테인먼트가 카드 글로우를 자르고, contain-intrinsic-size 힌트(577px)와 실제 높이
+ *      (624~682px)의 차이가 초기 페인트 근처에서 CLS 로 드러날 수 있어 이 목록에서 뺐다.
  *    #inputPage > .feature-card-grid — 컬렉션 이미지 IntersectionObserver 의 root 가 이 서브트리
  *      안이다(js/core/index-inline-runtime.js:2840 `root: grid || null`, 쌍둥이 js/core/uiBindings.js).
  *      실측으로 그 root 그리드가 7개 들어 있다. root 가 스킵되면 타깃이 영영 isIntersecting:false 이고
@@ -763,7 +767,6 @@ button, .tog-btn, .btn-main, .btn-sub, .dw-item, .feature-card, .fortune-tab, .m
  */
 html.cd-mobile-runtime #cdSignatureConsult { content-visibility: auto; contain-intrinsic-size: auto 792px; }
 html.cd-mobile-runtime #fortuneGatewayEntry { content-visibility: auto; contain-intrinsic-size: auto 862px; }
-html.cd-mobile-runtime #dpMasterCard { content-visibility: auto; contain-intrinsic-size: auto 577px; }
 html.cd-mobile-runtime #cdAiFeatures { content-visibility: auto; contain-intrinsic-size: auto 917px; }
 html.cd-mobile-runtime #cdFortunePick { content-visibility: auto; contain-intrinsic-size: auto 709px; }
 html.cd-mobile-runtime #destinyCardForm { content-visibility: auto; contain-intrinsic-size: auto 1173px; }
@@ -12398,6 +12401,192 @@ html body .dp-destiny-panel__chevron{font-size:1.05rem;line-height:1;transition:
 html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__chevron{transform:rotate(180deg)}
 @media (prefers-reduced-motion:reduce){html body .dp-destiny-panel__chevron{transition:none}}
       </style>
+    <!-- 프로필 카드 + 종합 운세 입력폼 한 몸 패널 (home-profile-card-form-panel-v20260820).
+         프로필 카드는 홈 초기 화면에 보이고, 입력폼은 아래 토글로 열기 전까지 접혀 있다.
+         🔴 폼을 #dpMasterCard 의 자식으로 넣지 말 것 — renderMasterCard() 가 카드의
+            innerHTML 을 통째로 갈아끼우므로 그 안에 있으면 카드가 다시 그려질 때 폼이
+            통째로 사라진다. 형제로 두고 래퍼로만 묶는 이유가 그것이다.
+         🔴 접기는 래퍼 기준 자손 선택자로만 한다(data-cd-home-secondary 를 다시 붙이지 말 것).
+            폼은 프로필 시트로 노드째 대여되는데(_dpBorrowFormIntoSheet), 속성 방식은 시트
+            안에서도 먹어서 속성을 뗐다 붙였다 해야 했다. 자손 선택자는 시트로 옮겨가면
+            저절로 풀린다. -->
+    <div class="dp-destiny-panel" id="dpDestinyPanel" data-marker="home-profile-card-form-panel-v20260820">
+    <!-- Master Destiny Card -->
+    <div id="dpMasterCard" class="dp-master-card dp-master-card--empty dp-master-card--moon-loading moon-destiny-form" data-marker="profile-card-loading-uses-moon-form-ui-v20260625">
+      <svg class="moon-form-stars" aria-hidden="true" width="72" height="28" viewBox="0 0 72 28">
+        <circle class="moon-form-progress-dot moon-form-progress-dot--active" cx="8" cy="14" r="4"></circle>
+        <ellipse class="moon-form-progress-petal" cx="24" cy="14" rx="3" ry="6" transform="rotate(-24 24 14)"></ellipse>
+        <circle class="moon-form-progress-dot" cx="38" cy="14" r="3"></circle>
+        <ellipse class="moon-form-progress-petal" cx="52" cy="14" rx="3" ry="6" transform="rotate(24 52 14)"></ellipse>
+        <circle class="moon-form-progress-dot" cx="66" cy="14" r="3"></circle>
+      </svg>
+      <div class="dp-mc-empty-inner moon-form-header" role="status" aria-live="polite">
+        <span class="moon-form-header__icon" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <ellipse cx="16" cy="7.6" rx="4.2" ry="7.1" fill="currentColor" opacity="0.7"></ellipse>
+            <ellipse cx="16" cy="24.4" rx="4.2" ry="7.1" fill="currentColor" opacity="0.44"></ellipse>
+            <ellipse cx="7.6" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.52"></ellipse>
+            <ellipse cx="24.4" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.6"></ellipse>
+            <ellipse cx="10.1" cy="10.1" rx="3.5" ry="6.2" fill="currentColor" opacity="0.5" transform="rotate(-45 10.1 10.1)"></ellipse>
+            <ellipse cx="21.9" cy="21.9" rx="3.5" ry="6.2" fill="currentColor" opacity="0.38" transform="rotate(-45 21.9 21.9)"></ellipse>
+            <circle cx="16" cy="16" r="4.1" fill="rgba(255,250,235,0.96)" stroke="rgba(157,23,77,0.24)" stroke-width="0.8"></circle>
+          </svg>
+        </span>
+        <div class="moon-form-header__copy">
+          <span class="destiny-input-head__kicker" data-cd-trans="home.input.loadingKicker">DESTINY CARD</span>
+          <div class="dp-mc-empty-title destiny-input-head__title" data-cd-trans="home.input.loadingTitle">운명 카드가 피어날 자리를 밝히는 중입니다.</div>
+          <div class="dp-mc-empty-desc destiny-input-head__desc" data-cd-trans="home.input.loadingDesc">저장된 생년월일의 별빛을 맞추고 있습니다.</div>
+        </div>
+      </div>
+      <div class="dp-mc-loading-action moon-submit-btn moon-submit-btn--primary" aria-hidden="true">
+        <span class="moon-submit-btn__star lotus-icon"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0.8L4.9 3.1L7.2 4L4.9 4.9L4 7.2L3.1 4.9L0.8 4L3.1 3.1Z" fill="currentColor"></path></svg></span>
+        <span class="moon-submit-btn__text main-txt" data-cd-trans="home.input.loadingAction">나의 운명 카드로 이어지는 중</span>
+        <span class="moon-submit-btn__coin coin-pill">LOADING</span>
+      </div>
+    </div>
+
+      <!-- 폼을 여는 유일한 버튼. 문구는 폼 제목과 같은 키(home.input.title)를 재사용한다 —
+           셸에 새 카피를 추가하면 public/i18n 로케일 사전을 전부 손으로 채워야 한다. -->
+      <button type="button" class="dp-destiny-panel__toggle" id="dpDestinyFormToggle" aria-expanded="false" aria-controls="destinyCardForm">
+        <span class="dp-destiny-panel__toggle-text" data-cd-trans data-key="home.input.title">종합 운세의 꽃문 열기</span>
+        <span class="dp-destiny-panel__chevron" aria-hidden="true">⌄</span>
+      </button>
+
+    <section class="card input-section moon-destiny-form" id="destinyCardForm" aria-labelledby="destinyCardTitle" aria-describedby="destinyCardDesc" data-marker="moon-destiny-form-oracle-bloom-v20260618 mobile-saju-compact-intake-v20260702 mobile-saju-bloom-luxe-v20260702">
+      <svg class="moon-form-stars" aria-hidden="true" width="72" height="28" viewBox="0 0 72 28">
+        <circle class="moon-form-progress-dot moon-form-progress-dot--active" cx="8" cy="14" r="4"></circle>
+        <ellipse class="moon-form-progress-petal" cx="24" cy="14" rx="3" ry="6" transform="rotate(-24 24 14)"></ellipse>
+        <circle class="moon-form-progress-dot" cx="38" cy="14" r="3"></circle>
+        <ellipse class="moon-form-progress-petal" cx="52" cy="14" rx="3" ry="6" transform="rotate(24 52 14)"></ellipse>
+        <circle class="moon-form-progress-dot" cx="66" cy="14" r="3"></circle>
+      </svg>
+      <div class="moon-form-header">
+        <span class="moon-form-header__icon" aria-hidden="true">
+          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
+            <ellipse cx="16" cy="7.6" rx="4.2" ry="7.1" fill="currentColor" opacity="0.7"></ellipse>
+            <ellipse cx="16" cy="24.4" rx="4.2" ry="7.1" fill="currentColor" opacity="0.44"></ellipse>
+            <ellipse cx="7.6" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.52"></ellipse>
+            <ellipse cx="24.4" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.6"></ellipse>
+            <ellipse cx="10.1" cy="10.1" rx="3.5" ry="6.2" fill="currentColor" opacity="0.5" transform="rotate(-45 10.1 10.1)"></ellipse>
+            <ellipse cx="21.9" cy="21.9" rx="3.5" ry="6.2" fill="currentColor" opacity="0.38" transform="rotate(-45 21.9 21.9)"></ellipse>
+            <circle cx="16" cy="16" r="4.1" fill="rgba(255,250,235,0.96)" stroke="rgba(157,23,77,0.24)" stroke-width="0.8"></circle>
+          </svg>
+        </span>
+        <div class="moon-form-header__copy">
+          <span class="destiny-input-head__kicker">DESTINY ORACLE</span>
+          <h2 class="destiny-input-head__title" id="destinyCardTitle" data-cd-trans data-key="home.input.title">종합 운세의 꽃문 열기</h2>
+          <p class="destiny-input-head__desc" id="destinyCardDesc" data-cd-trans data-key="home.input.desc">이름과 태어난 순간을 올리면 사주·자미두수·베다점·점성술·숙요점도의 별빛이 한 송이 운명의 꽃으로 피어납니다.</p>
+        </div>
+      </div>
+
+      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
+
+      <div class="moon-form-grid">
+        <div class="form-group moon-field">
+          <label class="form-label" for="nameInput" data-cd-trans data-key="home.input.nameLabel">이름</label>
+          <input class="inp moon-input" type="text" id="nameInput" placeholder="이름을 입력하세요" data-cd-trans-attr="placeholder:home.input.namePlaceholder" autocomplete="name" inputmode="text" enterkeyhint="next" aria-describedby="destinyNameHint">
+          <p class="destiny-field-hint" id="destinyNameHint" data-cd-trans data-key="home.input.nameHint">분석 결과에 표시할 이름을 적어 주세요.</p>
+        </div>
+        <div class="form-group moon-field">
+          <label class="form-label" for="birthDate" data-cd-trans data-key="home.input.birthDateLabel">생년월일</label>
+          <input class="inp moon-input" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" id="birthDate" data-cd-birth-date aria-label="생년월일" data-cd-trans-attr="aria-label:home.input.birthDateLabel" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview" autocomplete="bday" aria-describedby="birthDateHint lunarPreview">
+          <p class="destiny-field-hint destiny-field-hint--birthdate" id="birthDateHint" data-cd-trans data-key="home.input.birthDateHint">태어난 날을 선택하면 사주 명식의 첫 기준이 열립니다.</p>
+          <div class="form-radio-row moon-radio-row" role="radiogroup" aria-label="달력 종류" data-cd-trans-attr="aria-label:home.input.calendarTypeAria">
+            <label><input type="radio" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"><span data-cd-trans data-key="home.input.solar">양력</span></label>
+            <label><input type="radio" name="calType" value="lunar" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"><span data-cd-trans data-key="home.input.lunar">음력(평달)</span></label>
+            <label><input type="radio" name="calType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"><span data-cd-trans data-key="home.input.lunarLeap">음력(윤달)</span></label>
+          </div>
+          <div id="lunarPreview" class="form-lunar-preview" aria-live="polite"></div>
+        </div>
+      </div>
+
+      <button type="button" class="cd-mobile-saju-detail-toggle" id="cdMobileSajuDetailToggle" aria-expanded="false" aria-controls="cdMobileSajuDetailPanel" data-mobile-saju-toggle>
+        <span class="cd-mobile-saju-detail-toggle__main" data-cd-trans="shell.cdMobileSajuDetailToggle.k1x09e8d">출생 시간·장소 더 정확히 입력</span>
+        <span class="cd-mobile-saju-detail-toggle__sub" data-cd-trans="shell.cdMobileSajuDetailToggle.kox0lg9">모르면 그대로 시작해도 괜찮아요</span>
+        <span class="cd-mobile-saju-detail-toggle__summary" data-mobile-saju-summary aria-hidden="true"></span>
+      </button>
+
+      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
+
+      <div class="form-group moon-field moon-field--full" data-mobile-saju-detail="time">
+        <div class="form-label" id="birthTimeLabel" data-cd-trans data-key="home.input.birthTimeLabel">출생 시간</div>
+        <!-- 직접 타이핑 입력. 아래 select 2개는 값 보관용으로 그대로 둔다 —
+             #birthHour/#birthMinute 를 .value 로 읽는 곳이 8개 파일 28곳이라 없애면 전부 깨진다.
+             js/destiny-profile.js 의 birth-time-text-sync 가 둘을 양방향으로 맞춘다. -->
+        <input class="inp moon-input" type="text" inputmode="numeric" maxlength="5" placeholder="08:35" id="birthTimeText" autocomplete="off" aria-labelledby="birthTimeLabel" aria-describedby="birthTimeTip">
+        <div class="row2 row2-mt8 moon-time-grid" role="group" aria-labelledby="birthTimeLabel" aria-describedby="birthTimeTip">
+          <label for="birthHour" class="sr-only" data-cd-trans="home.input.birthHourLabel">출생 시(시간)</label>
+          <select class="inp moon-input" id="birthHour" aria-label="출생 시(시간)" data-cd-trans-attr="aria-label:home.input.birthHourLabel">
+            <option value="0">00:00</option><option value="1">01:00</option><option value="2">02:00</option><option value="3">03:00</option><option value="4">04:00</option><option value="5">05:00</option><option value="6">06:00</option><option value="7">07:00</option><option value="8">08:00</option><option value="9">09:00</option><option value="10">10:00</option><option value="11">11:00</option><option value="12" selected>12:00</option><option value="13">13:00</option><option value="14">14:00</option><option value="15">15:00</option><option value="16">16:00</option><option value="17">17:00</option><option value="18">18:00</option><option value="19">19:00</option><option value="20">20:00</option><option value="21">21:00</option><option value="22">22:00</option><option value="23">23:00</option>
+          </select>
+          <label for="birthMinute" class="sr-only" data-cd-trans="home.input.birthMinuteLabel">출생 분(분)</label>
+          <select class="inp moon-input" id="birthMinute" aria-label="출생 분(분)" data-cd-trans-attr="aria-label:home.input.birthMinuteLabel">
+            <option value="0" selected>00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
+          </select>
+        </div>
+        <button type="button" class="birth-time-tip moon-time-unknown" id="birthTimeTip" data-cd-set-unknown-time aria-label="출생 시간을 모를 때 낮 12시 기준으로 설정" data-cd-trans-attr="aria-label:home.input.birthTimeUnknownAria" data-cd-trans data-key="home.input.birthTimeUnknown">출생 시간을 모르면 낮 12시 기준으로 보수 분석합니다</button>
+      </div>
+
+      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
+
+      <div class="form-group form-group-surface moon-field moon-field--full" id="cdMobileSajuDetailPanel" data-mobile-saju-detail="place">
+        <label class="form-label form-label-dark" for="birthCountryInput"><span data-cd-trans data-key="home.input.birthCountryLabel">출생 국가/장소</span> <span class="form-label-hint" data-cd-trans data-key="home.input.birthCountryHint">서머타임 및 경도 보정 자동 적용</span></label>
+        <!-- 실제 값의 소스는 이 select다. 15개 지점(js/destiny-profile.js·saju-engine.js 등)이
+             .value/.options[selectedIndex]를 직접 읽으므로 지우지 않고 시각적으로만 숨긴다.
+             아래 검색형 입력이 selectedIndex를 옮기고 change 이벤트만 대신 쏴 준다. -->
+        <select class="inp form-country-select moon-input" id="birthCountry" style="display:none" aria-hidden="true" tabindex="-1" data-change-action="updateCorrectedTimePreview" aria-describedby="timeCorrectionInfo">
+          <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected data-cd-trans data-key="home.input.birthPlaceLoading">출생지를 불러오는 중...</option>
+        </select>
+        <div class="moon-country-combo" id="birthCountryComboWrap">
+          <input type="text" class="inp form-country-select moon-input" id="birthCountryInput" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-controls="birthCountryListbox" aria-autocomplete="list" aria-describedby="timeCorrectionInfo" autocomplete="off" inputmode="text" enterkeyhint="search" data-cd-trans-attr="aria-label:home.input.birthCountryAria,placeholder:home.input.birthPlaceLoading" aria-label="출생 국가" placeholder="출생지를 불러오는 중...">
+          <ul class="moon-country-listbox" id="birthCountryListbox" role="listbox" aria-label="출생지 검색 결과" hidden></ul>
+        </div>
+        <details class="moon-correction-preview" open>
+          <summary>
+            <span class="moon-correction-preview__dot" aria-hidden="true"></span>
+            <span data-cd-trans data-key="home.input.timePreview">시간 보정 미리보기</span>
+            <span class="moon-correction-preview__chevron" aria-hidden="true">⌄</span>
+          </summary>
+          <div id="timeCorrectionInfo" class="time-correction-info time-correction-info--loading" aria-busy="true" aria-live="polite">
+            <span class="input-section-skeleton input-section-skeleton--line" aria-hidden="true"></span>
+            <span class="input-section-skeleton input-section-skeleton--line input-section-skeleton--line-short" aria-hidden="true"></span>
+            <span class="input-section-skeleton input-section-skeleton--line input-section-skeleton--line-short" aria-hidden="true"></span>
+          </div>
+        </details>
+      </div>
+
+      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
+
+      <div class="form-group form-group-mt15 moon-field moon-field--full">
+        <div class="form-label" id="genderLabel" data-cd-trans data-key="home.input.genderLabel">성별</div>
+        <div class="toggle-wrap moon-gender-toggle" role="group" aria-labelledby="genderLabel">
+          <button type="button" class="tog-btn on" id="btnF" data-action="setGender" data-action-args="F" data-cd-trans data-key="home.input.female">여성</button>
+          <button type="button" class="tog-btn" id="btnM" data-action="setGender" data-action-args="M" data-cd-trans data-key="home.input.male">남성</button>
+        </div>
+      </div>
+
+      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
+
+      <p id="sajuFormStatus" class="saju-form-status" role="status" aria-live="polite" aria-hidden="true" data-marker="saju-inline-validation-v20260615" hidden></p>
+
+      <button type="button" id="run-btn" class="moon-submit-btn moon-submit-btn--primary" data-action="checkPrivacyAndCalculate" aria-label="무료 사주 분석 시작" data-cd-trans-attr="aria-label:home.input.submit" aria-describedby="sajuFormStatus">
+        <span class="moon-submit-btn__star lotus-icon" aria-hidden="true"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0.8L4.9 3.1L7.2 4L4.9 4.9L4 7.2L3.1 4.9L0.8 4L3.1 3.1Z" fill="currentColor"></path></svg></span>
+        <span class="moon-submit-btn__text main-txt" data-cd-trans data-key="home.input.submit">무료 사주 분석 시작</span>
+        <span class="moon-submit-btn__coin coin-pill">FREE</span>
+      </button>
+      <button id="dpSaveBtn" class="dp-save-btn moon-submit-btn moon-submit-btn--secondary btn-flower" data-action="dpSaveProfile">
+        <span class="moon-submit-btn__star lotus-icon" aria-hidden="true"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0.8L4.9 3.1L7.2 4L4.9 4.9L4 7.2L3.1 4.9L0.8 4L3.1 3.1Z" fill="currentColor"></path></svg></span>
+        <span class="moon-submit-btn__text main-txt" data-cd-trans="home.input.saveProfile">프로필 카드 저장</span>
+        <span class="moon-submit-btn__coin coin-pill" data-cd-trans="home.input.saveOptional">선택</span>
+      </button>
+      <button type="button" id="dpKakaoReferralShareBtn" class="dp-kakao-referral-btn btn-kakao" onclick="dpShareKakaoReferral()" aria-describedby="dpKakaoReferralNote" aria-label="카카오 공유 이벤트 링크 만들기" data-cd-trans-attr="aria-label:home.input.kakaoEventAria">
+        <span class="moon-icon" aria-hidden="true"><svg width="14" height="16" viewBox="0 0 12 16"><ellipse cx="6" cy="8" rx="4" ry="7" fill="currentColor" opacity="0.78" transform="rotate(-20 6 8)"></ellipse></svg></span>
+        <span class="main-txt" data-cd-trans="home.input.kakaoEvent">카카오 공유 이벤트</span>
+        <span class="sub-txt" data-cd-trans="home.input.kakaoEventSub">친구 초대 링크 만들기</span>
+      </button>
+      <p class="dp-kakao-referral-note" id="dpKakaoReferralNote" aria-live="polite" data-cd-trans="home.input.referralNote">달빛 초대 링크로 친구를 초대할 수 있습니다.</p>
+    </section>
+    </div>
       <!-- 빠른 서비스 — 첫 방문자가 결제 없이 바로 시작할 수 있는 6개 (cd-quick-services-v20260819).
            카드 문구·가격은 js/core/service-registry.js 의 roles:['quick'] 항목과 1:1 이어야 하며
            npm run verify:home-service-registry 가 이름·가격·링크를 결제 정본까지 대조한다.
@@ -17217,192 +17406,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       </div>
     </section>
 
-    <!-- 프로필 카드 + 종합 운세 입력폼 한 몸 패널 (home-profile-card-form-panel-v20260820).
-         프로필 카드는 홈 초기 화면에 보이고, 입력폼은 아래 토글로 열기 전까지 접혀 있다.
-         🔴 폼을 #dpMasterCard 의 자식으로 넣지 말 것 — renderMasterCard() 가 카드의
-            innerHTML 을 통째로 갈아끼우므로 그 안에 있으면 카드가 다시 그려질 때 폼이
-            통째로 사라진다. 형제로 두고 래퍼로만 묶는 이유가 그것이다.
-         🔴 접기는 래퍼 기준 자손 선택자로만 한다(data-cd-home-secondary 를 다시 붙이지 말 것).
-            폼은 프로필 시트로 노드째 대여되는데(_dpBorrowFormIntoSheet), 속성 방식은 시트
-            안에서도 먹어서 속성을 뗐다 붙였다 해야 했다. 자손 선택자는 시트로 옮겨가면
-            저절로 풀린다. -->
-    <div class="dp-destiny-panel" id="dpDestinyPanel" data-marker="home-profile-card-form-panel-v20260820">
-    <!-- Master Destiny Card -->
-    <div id="dpMasterCard" class="dp-master-card dp-master-card--empty dp-master-card--moon-loading moon-destiny-form" data-marker="profile-card-loading-uses-moon-form-ui-v20260625">
-      <svg class="moon-form-stars" aria-hidden="true" width="72" height="28" viewBox="0 0 72 28">
-        <circle class="moon-form-progress-dot moon-form-progress-dot--active" cx="8" cy="14" r="4"></circle>
-        <ellipse class="moon-form-progress-petal" cx="24" cy="14" rx="3" ry="6" transform="rotate(-24 24 14)"></ellipse>
-        <circle class="moon-form-progress-dot" cx="38" cy="14" r="3"></circle>
-        <ellipse class="moon-form-progress-petal" cx="52" cy="14" rx="3" ry="6" transform="rotate(24 52 14)"></ellipse>
-        <circle class="moon-form-progress-dot" cx="66" cy="14" r="3"></circle>
-      </svg>
-      <div class="dp-mc-empty-inner moon-form-header" role="status" aria-live="polite">
-        <span class="moon-form-header__icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <ellipse cx="16" cy="7.6" rx="4.2" ry="7.1" fill="currentColor" opacity="0.7"></ellipse>
-            <ellipse cx="16" cy="24.4" rx="4.2" ry="7.1" fill="currentColor" opacity="0.44"></ellipse>
-            <ellipse cx="7.6" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.52"></ellipse>
-            <ellipse cx="24.4" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.6"></ellipse>
-            <ellipse cx="10.1" cy="10.1" rx="3.5" ry="6.2" fill="currentColor" opacity="0.5" transform="rotate(-45 10.1 10.1)"></ellipse>
-            <ellipse cx="21.9" cy="21.9" rx="3.5" ry="6.2" fill="currentColor" opacity="0.38" transform="rotate(-45 21.9 21.9)"></ellipse>
-            <circle cx="16" cy="16" r="4.1" fill="rgba(255,250,235,0.96)" stroke="rgba(157,23,77,0.24)" stroke-width="0.8"></circle>
-          </svg>
-        </span>
-        <div class="moon-form-header__copy">
-          <span class="destiny-input-head__kicker" data-cd-trans="home.input.loadingKicker">DESTINY CARD</span>
-          <div class="dp-mc-empty-title destiny-input-head__title" data-cd-trans="home.input.loadingTitle">운명 카드가 피어날 자리를 밝히는 중입니다.</div>
-          <div class="dp-mc-empty-desc destiny-input-head__desc" data-cd-trans="home.input.loadingDesc">저장된 생년월일의 별빛을 맞추고 있습니다.</div>
-        </div>
-      </div>
-      <div class="dp-mc-loading-action moon-submit-btn moon-submit-btn--primary" aria-hidden="true">
-        <span class="moon-submit-btn__star lotus-icon"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0.8L4.9 3.1L7.2 4L4.9 4.9L4 7.2L3.1 4.9L0.8 4L3.1 3.1Z" fill="currentColor"></path></svg></span>
-        <span class="moon-submit-btn__text main-txt" data-cd-trans="home.input.loadingAction">나의 운명 카드로 이어지는 중</span>
-        <span class="moon-submit-btn__coin coin-pill">LOADING</span>
-      </div>
-    </div>
 
-      <!-- 폼을 여는 유일한 버튼. 문구는 폼 제목과 같은 키(home.input.title)를 재사용한다 —
-           셸에 새 카피를 추가하면 public/i18n 로케일 사전을 전부 손으로 채워야 한다. -->
-      <button type="button" class="dp-destiny-panel__toggle" id="dpDestinyFormToggle" aria-expanded="false" aria-controls="destinyCardForm">
-        <span class="dp-destiny-panel__toggle-text" data-cd-trans data-key="home.input.title">종합 운세의 꽃문 열기</span>
-        <span class="dp-destiny-panel__chevron" aria-hidden="true">⌄</span>
-      </button>
-
-    <section class="card input-section moon-destiny-form" id="destinyCardForm" aria-labelledby="destinyCardTitle" aria-describedby="destinyCardDesc" data-marker="moon-destiny-form-oracle-bloom-v20260618 mobile-saju-compact-intake-v20260702 mobile-saju-bloom-luxe-v20260702">
-      <svg class="moon-form-stars" aria-hidden="true" width="72" height="28" viewBox="0 0 72 28">
-        <circle class="moon-form-progress-dot moon-form-progress-dot--active" cx="8" cy="14" r="4"></circle>
-        <ellipse class="moon-form-progress-petal" cx="24" cy="14" rx="3" ry="6" transform="rotate(-24 24 14)"></ellipse>
-        <circle class="moon-form-progress-dot" cx="38" cy="14" r="3"></circle>
-        <ellipse class="moon-form-progress-petal" cx="52" cy="14" rx="3" ry="6" transform="rotate(24 52 14)"></ellipse>
-        <circle class="moon-form-progress-dot" cx="66" cy="14" r="3"></circle>
-      </svg>
-      <div class="moon-form-header">
-        <span class="moon-form-header__icon" aria-hidden="true">
-          <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-            <ellipse cx="16" cy="7.6" rx="4.2" ry="7.1" fill="currentColor" opacity="0.7"></ellipse>
-            <ellipse cx="16" cy="24.4" rx="4.2" ry="7.1" fill="currentColor" opacity="0.44"></ellipse>
-            <ellipse cx="7.6" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.52"></ellipse>
-            <ellipse cx="24.4" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.6"></ellipse>
-            <ellipse cx="10.1" cy="10.1" rx="3.5" ry="6.2" fill="currentColor" opacity="0.5" transform="rotate(-45 10.1 10.1)"></ellipse>
-            <ellipse cx="21.9" cy="21.9" rx="3.5" ry="6.2" fill="currentColor" opacity="0.38" transform="rotate(-45 21.9 21.9)"></ellipse>
-            <circle cx="16" cy="16" r="4.1" fill="rgba(255,250,235,0.96)" stroke="rgba(157,23,77,0.24)" stroke-width="0.8"></circle>
-          </svg>
-        </span>
-        <div class="moon-form-header__copy">
-          <span class="destiny-input-head__kicker">DESTINY ORACLE</span>
-          <h2 class="destiny-input-head__title" id="destinyCardTitle" data-cd-trans data-key="home.input.title">종합 운세의 꽃문 열기</h2>
-          <p class="destiny-input-head__desc" id="destinyCardDesc" data-cd-trans data-key="home.input.desc">이름과 태어난 순간을 올리면 사주·자미두수·베다점·점성술·숙요점도의 별빛이 한 송이 운명의 꽃으로 피어납니다.</p>
-        </div>
-      </div>
-
-      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
-
-      <div class="moon-form-grid">
-        <div class="form-group moon-field">
-          <label class="form-label" for="nameInput" data-cd-trans data-key="home.input.nameLabel">이름</label>
-          <input class="inp moon-input" type="text" id="nameInput" placeholder="이름을 입력하세요" data-cd-trans-attr="placeholder:home.input.namePlaceholder" autocomplete="name" inputmode="text" enterkeyhint="next" aria-describedby="destinyNameHint">
-          <p class="destiny-field-hint" id="destinyNameHint" data-cd-trans data-key="home.input.nameHint">분석 결과에 표시할 이름을 적어 주세요.</p>
-        </div>
-        <div class="form-group moon-field">
-          <label class="form-label" for="birthDate" data-cd-trans data-key="home.input.birthDateLabel">생년월일</label>
-          <input class="inp moon-input" type="text" inputmode="numeric" maxlength="10" placeholder="YYYY-MM-DD" id="birthDate" data-cd-birth-date aria-label="생년월일" data-cd-trans-attr="aria-label:home.input.birthDateLabel" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview" autocomplete="bday" aria-describedby="birthDateHint lunarPreview">
-          <p class="destiny-field-hint destiny-field-hint--birthdate" id="birthDateHint" data-cd-trans data-key="home.input.birthDateHint">태어난 날을 선택하면 사주 명식의 첫 기준이 열립니다.</p>
-          <div class="form-radio-row moon-radio-row" role="radiogroup" aria-label="달력 종류" data-cd-trans-attr="aria-label:home.input.calendarTypeAria">
-            <label><input type="radio" name="calType" value="solar" checked data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"><span data-cd-trans data-key="home.input.solar">양력</span></label>
-            <label><input type="radio" name="calType" value="lunar" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"><span data-cd-trans data-key="home.input.lunar">음력(평달)</span></label>
-            <label><input type="radio" name="calType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="birthDate,calType,lunarPreview"><span data-cd-trans data-key="home.input.lunarLeap">음력(윤달)</span></label>
-          </div>
-          <div id="lunarPreview" class="form-lunar-preview" aria-live="polite"></div>
-        </div>
-      </div>
-
-      <button type="button" class="cd-mobile-saju-detail-toggle" id="cdMobileSajuDetailToggle" aria-expanded="false" aria-controls="cdMobileSajuDetailPanel" data-mobile-saju-toggle>
-        <span class="cd-mobile-saju-detail-toggle__main" data-cd-trans="shell.cdMobileSajuDetailToggle.k1x09e8d">출생 시간·장소 더 정확히 입력</span>
-        <span class="cd-mobile-saju-detail-toggle__sub" data-cd-trans="shell.cdMobileSajuDetailToggle.kox0lg9">모르면 그대로 시작해도 괜찮아요</span>
-        <span class="cd-mobile-saju-detail-toggle__summary" data-mobile-saju-summary aria-hidden="true"></span>
-      </button>
-
-      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
-
-      <div class="form-group moon-field moon-field--full" data-mobile-saju-detail="time">
-        <div class="form-label" id="birthTimeLabel" data-cd-trans data-key="home.input.birthTimeLabel">출생 시간</div>
-        <!-- 직접 타이핑 입력. 아래 select 2개는 값 보관용으로 그대로 둔다 —
-             #birthHour/#birthMinute 를 .value 로 읽는 곳이 8개 파일 28곳이라 없애면 전부 깨진다.
-             js/destiny-profile.js 의 birth-time-text-sync 가 둘을 양방향으로 맞춘다. -->
-        <input class="inp moon-input" type="text" inputmode="numeric" maxlength="5" placeholder="08:35" id="birthTimeText" autocomplete="off" aria-labelledby="birthTimeLabel" aria-describedby="birthTimeTip">
-        <div class="row2 row2-mt8 moon-time-grid" role="group" aria-labelledby="birthTimeLabel" aria-describedby="birthTimeTip">
-          <label for="birthHour" class="sr-only" data-cd-trans="home.input.birthHourLabel">출생 시(시간)</label>
-          <select class="inp moon-input" id="birthHour" aria-label="출생 시(시간)" data-cd-trans-attr="aria-label:home.input.birthHourLabel">
-            <option value="0">00:00</option><option value="1">01:00</option><option value="2">02:00</option><option value="3">03:00</option><option value="4">04:00</option><option value="5">05:00</option><option value="6">06:00</option><option value="7">07:00</option><option value="8">08:00</option><option value="9">09:00</option><option value="10">10:00</option><option value="11">11:00</option><option value="12" selected>12:00</option><option value="13">13:00</option><option value="14">14:00</option><option value="15">15:00</option><option value="16">16:00</option><option value="17">17:00</option><option value="18">18:00</option><option value="19">19:00</option><option value="20">20:00</option><option value="21">21:00</option><option value="22">22:00</option><option value="23">23:00</option>
-          </select>
-          <label for="birthMinute" class="sr-only" data-cd-trans="home.input.birthMinuteLabel">출생 분(분)</label>
-          <select class="inp moon-input" id="birthMinute" aria-label="출생 분(분)" data-cd-trans-attr="aria-label:home.input.birthMinuteLabel">
-            <option value="0" selected>00</option><option value="1">01</option><option value="2">02</option><option value="3">03</option><option value="4">04</option><option value="5">05</option><option value="6">06</option><option value="7">07</option><option value="8">08</option><option value="9">09</option><option value="10">10</option><option value="11">11</option><option value="12">12</option><option value="13">13</option><option value="14">14</option><option value="15">15</option><option value="16">16</option><option value="17">17</option><option value="18">18</option><option value="19">19</option><option value="20">20</option><option value="21">21</option><option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option><option value="27">27</option><option value="28">28</option><option value="29">29</option><option value="30">30</option><option value="31">31</option><option value="32">32</option><option value="33">33</option><option value="34">34</option><option value="35">35</option><option value="36">36</option><option value="37">37</option><option value="38">38</option><option value="39">39</option><option value="40">40</option><option value="41">41</option><option value="42">42</option><option value="43">43</option><option value="44">44</option><option value="45">45</option><option value="46">46</option><option value="47">47</option><option value="48">48</option><option value="49">49</option><option value="50">50</option><option value="51">51</option><option value="52">52</option><option value="53">53</option><option value="54">54</option><option value="55">55</option><option value="56">56</option><option value="57">57</option><option value="58">58</option><option value="59">59</option>
-          </select>
-        </div>
-        <button type="button" class="birth-time-tip moon-time-unknown" id="birthTimeTip" data-cd-set-unknown-time aria-label="출생 시간을 모를 때 낮 12시 기준으로 설정" data-cd-trans-attr="aria-label:home.input.birthTimeUnknownAria" data-cd-trans data-key="home.input.birthTimeUnknown">출생 시간을 모르면 낮 12시 기준으로 보수 분석합니다</button>
-      </div>
-
-      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
-
-      <div class="form-group form-group-surface moon-field moon-field--full" id="cdMobileSajuDetailPanel" data-mobile-saju-detail="place">
-        <label class="form-label form-label-dark" for="birthCountryInput"><span data-cd-trans data-key="home.input.birthCountryLabel">출생 국가/장소</span> <span class="form-label-hint" data-cd-trans data-key="home.input.birthCountryHint">서머타임 및 경도 보정 자동 적용</span></label>
-        <!-- 실제 값의 소스는 이 select다. 15개 지점(js/destiny-profile.js·saju-engine.js 등)이
-             .value/.options[selectedIndex]를 직접 읽으므로 지우지 않고 시각적으로만 숨긴다.
-             아래 검색형 입력이 selectedIndex를 옮기고 change 이벤트만 대신 쏴 준다. -->
-        <select class="inp form-country-select moon-input" id="birthCountry" style="display:none" aria-hidden="true" tabindex="-1" data-change-action="updateCorrectedTimePreview" aria-describedby="timeCorrectionInfo">
-          <option value="Asia/Seoul" data-long="127.0" data-lat="37.6" data-tz="9" selected data-cd-trans data-key="home.input.birthPlaceLoading">출생지를 불러오는 중...</option>
-        </select>
-        <div class="moon-country-combo" id="birthCountryComboWrap">
-          <input type="text" class="inp form-country-select moon-input" id="birthCountryInput" role="combobox" aria-expanded="false" aria-haspopup="listbox" aria-controls="birthCountryListbox" aria-autocomplete="list" aria-describedby="timeCorrectionInfo" autocomplete="off" inputmode="text" enterkeyhint="search" data-cd-trans-attr="aria-label:home.input.birthCountryAria,placeholder:home.input.birthPlaceLoading" aria-label="출생 국가" placeholder="출생지를 불러오는 중...">
-          <ul class="moon-country-listbox" id="birthCountryListbox" role="listbox" aria-label="출생지 검색 결과" hidden></ul>
-        </div>
-        <details class="moon-correction-preview" open>
-          <summary>
-            <span class="moon-correction-preview__dot" aria-hidden="true"></span>
-            <span data-cd-trans data-key="home.input.timePreview">시간 보정 미리보기</span>
-            <span class="moon-correction-preview__chevron" aria-hidden="true">⌄</span>
-          </summary>
-          <div id="timeCorrectionInfo" class="time-correction-info time-correction-info--loading" aria-busy="true" aria-live="polite">
-            <span class="input-section-skeleton input-section-skeleton--line" aria-hidden="true"></span>
-            <span class="input-section-skeleton input-section-skeleton--line input-section-skeleton--line-short" aria-hidden="true"></span>
-            <span class="input-section-skeleton input-section-skeleton--line input-section-skeleton--line-short" aria-hidden="true"></span>
-          </div>
-        </details>
-      </div>
-
-      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
-
-      <div class="form-group form-group-mt15 moon-field moon-field--full">
-        <div class="form-label" id="genderLabel" data-cd-trans data-key="home.input.genderLabel">성별</div>
-        <div class="toggle-wrap moon-gender-toggle" role="group" aria-labelledby="genderLabel">
-          <button type="button" class="tog-btn on" id="btnF" data-action="setGender" data-action-args="F" data-cd-trans data-key="home.input.female">여성</button>
-          <button type="button" class="tog-btn" id="btnM" data-action="setGender" data-action-args="M" data-cd-trans data-key="home.input.male">남성</button>
-        </div>
-      </div>
-
-      <div class="moon-form-divider" aria-hidden="true"><svg width="84" height="18" viewBox="0 0 84 18"><ellipse cx="30" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(-28 30 9)"></ellipse><ellipse cx="38" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(-12 38 9)"></ellipse><ellipse cx="46" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.55" transform="rotate(12 46 9)"></ellipse><ellipse cx="54" cy="9" rx="4" ry="7" fill="currentColor" opacity="0.35" transform="rotate(28 54 9)"></ellipse></svg></div>
-
-      <p id="sajuFormStatus" class="saju-form-status" role="status" aria-live="polite" aria-hidden="true" data-marker="saju-inline-validation-v20260615" hidden></p>
-
-      <button type="button" id="run-btn" class="moon-submit-btn moon-submit-btn--primary" data-action="checkPrivacyAndCalculate" aria-label="무료 사주 분석 시작" data-cd-trans-attr="aria-label:home.input.submit" aria-describedby="sajuFormStatus">
-        <span class="moon-submit-btn__star lotus-icon" aria-hidden="true"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0.8L4.9 3.1L7.2 4L4.9 4.9L4 7.2L3.1 4.9L0.8 4L3.1 3.1Z" fill="currentColor"></path></svg></span>
-        <span class="moon-submit-btn__text main-txt" data-cd-trans data-key="home.input.submit">무료 사주 분석 시작</span>
-        <span class="moon-submit-btn__coin coin-pill">FREE</span>
-      </button>
-      <button id="dpSaveBtn" class="dp-save-btn moon-submit-btn moon-submit-btn--secondary btn-flower" data-action="dpSaveProfile">
-        <span class="moon-submit-btn__star lotus-icon" aria-hidden="true"><svg width="8" height="8" viewBox="0 0 8 8"><path d="M4 0.8L4.9 3.1L7.2 4L4.9 4.9L4 7.2L3.1 4.9L0.8 4L3.1 3.1Z" fill="currentColor"></path></svg></span>
-        <span class="moon-submit-btn__text main-txt" data-cd-trans="home.input.saveProfile">프로필 카드 저장</span>
-        <span class="moon-submit-btn__coin coin-pill" data-cd-trans="home.input.saveOptional">선택</span>
-      </button>
-      <button type="button" id="dpKakaoReferralShareBtn" class="dp-kakao-referral-btn btn-kakao" onclick="dpShareKakaoReferral()" aria-describedby="dpKakaoReferralNote" aria-label="카카오 공유 이벤트 링크 만들기" data-cd-trans-attr="aria-label:home.input.kakaoEventAria">
-        <span class="moon-icon" aria-hidden="true"><svg width="14" height="16" viewBox="0 0 12 16"><ellipse cx="6" cy="8" rx="4" ry="7" fill="currentColor" opacity="0.78" transform="rotate(-20 6 8)"></ellipse></svg></span>
-        <span class="main-txt" data-cd-trans="home.input.kakaoEvent">카카오 공유 이벤트</span>
-        <span class="sub-txt" data-cd-trans="home.input.kakaoEventSub">친구 초대 링크 만들기</span>
-      </button>
-      <p class="dp-kakao-referral-note" id="dpKakaoReferralNote" aria-live="polite" data-cd-trans="home.input.referralNote">달빛 초대 링크로 친구를 초대할 수 있습니다.</p>
-    </section>
-    </div>
 
     
     
