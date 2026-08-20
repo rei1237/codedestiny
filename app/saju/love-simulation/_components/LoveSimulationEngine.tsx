@@ -97,7 +97,6 @@ type LoveSimulationCopy = {
   partnerNamePlaceholder: string;
   birthDateAria: string;
   birthHourAria: string;
-  birthMinuteAria: string;
   birthCountryAria: string;
   countryOptions: {
     seoul: string;
@@ -125,8 +124,7 @@ const LOVE_SIMULATION_COPY_TRANSLATIONS: Record<"ko" | "en", LoveSimulationCopy>
     matchFormAria: "상대 정보 입력 매칭",
     partnerNamePlaceholder: "이름을 입력하세요",
     birthDateAria: "생년월일",
-    birthHourAria: "출생 시(시간)",
-    birthMinuteAria: "출생 분(분)",
+    birthHourAria: "출생 시간",
     birthCountryAria: "출생 국가",
     countryOptions: {
       seoul: "대한민국 · 서울 기준",
@@ -170,8 +168,7 @@ const LOVE_SIMULATION_COPY_TRANSLATIONS: Record<"ko" | "en", LoveSimulationCopy>
     matchFormAria: "Match by partner information",
     partnerNamePlaceholder: "Enter a name",
     birthDateAria: "Birth date",
-    birthHourAria: "Birth hour",
-    birthMinuteAria: "Birth minute",
+    birthHourAria: "Birth time",
     birthCountryAria: "Birth country",
     countryOptions: {
       seoul: "Korea · Seoul time",
@@ -289,8 +286,6 @@ type ProfileSeed = {
   timezone: string;
 };
 
-const HOUR_OPTIONS = Array.from({ length: 24 }, (_, hour) => hour);
-const MINUTE_OPTIONS = Array.from({ length: 60 }, (_, minute) => minute);
 const MIN_PLAYABLE_SCENES = 10;
 const LOVE_CODE_HERO_ASSET = "/fuctionassets/love code.webp";
 
@@ -1441,6 +1436,17 @@ export const LoveSimulationEngine: React.FC = () => {
   }, []);
 
   const copy = useMemo(() => getLoveSimulationCopy(locale), [locale]);
+  // 값은 그대로 IANA 타임존 문자열 유지 — matchPartner/자동저장/onSubmit 이 이미 이 값을 그대로 쓴다.
+  const partnerCountryOptions = useMemo(
+    () => [
+      { value: "Asia/Seoul", label: copy.countryOptions.seoul },
+      { value: "Asia/Tokyo", label: copy.countryOptions.tokyo },
+      { value: "Asia/Shanghai", label: copy.countryOptions.shanghai },
+      { value: "America/New_York", label: copy.countryOptions.newYork },
+      { value: "Europe/Paris", label: copy.countryOptions.paris },
+    ],
+    [copy],
+  );
   const character = LOVE_CHARACTERS.find((item) => item.id === selectedId) ?? null;
   const localizedScenes = useMemo(() => getLocalizedLoveScenes(locale), [locale]);
   const scenes = useMemo(() => buildPlayableScenes(character, localizedScenes, copy), [character, localizedScenes, copy]);
@@ -1785,12 +1791,15 @@ export const LoveSimulationEngine: React.FC = () => {
               onSubmit={(event) => {
                 event.preventDefault();
                 const formData = new FormData(event.currentTarget);
+                // partnerHour/partnerMinute select 2개는 <input type="time" name="partnerTime"> 로 합쳤다 —
+                // 이 필드를 HH:MM 으로 분해해서 읽는다(옛 name 을 그대로 두면 매번 fallback 12:00 으로 조용히 제출된다).
+                const [rawHour, rawMinute] = String(formData.get("partnerTime") ?? "").split(":");
                 void matchPartner({
                   name: String(formData.get("partnerName") ?? ""),
                   birthDate: String(formData.get("partnerBirthDate") ?? ""),
                   calType: String(formData.get("partnerCalType") ?? "solar") as PartnerCalendarType,
-                  hour: String(formData.get("partnerHour") ?? "12"),
-                  minute: String(formData.get("partnerMinute") ?? "0"),
+                  hour: String(Number(rawHour) || 0),
+                  minute: String(Number(rawMinute) || 0),
                   country: String(formData.get("partnerCountry") ?? "Asia/Seoul"),
                   gender: partnerGender,
                   hasTime: partnerHasTime,
@@ -1863,61 +1872,48 @@ export const LoveSimulationEngine: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-black text-white/90">출생 시간</label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <select
-                      className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-4 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
-                      name="partnerHour"
-                      aria-label={copy.birthHourAria}
-                      value={partnerHour}
-                      onChange={(event) => {
-                        setPartnerHour(event.target.value);
-                        setPartnerHasTime(true);
-                      }}
-                    >
-                      {HOUR_OPTIONS.map((hour) => (
-                        <option key={hour} value={hour}>
-                          {String(hour).padStart(2, "0")}시
-                        </option>
-                      ))}
-                    </select>
-                    <select
-                      className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-4 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
-                      name="partnerMinute"
-                      aria-label={copy.birthMinuteAria}
-                      value={partnerMinute}
-                      onChange={(event) => {
-                        setPartnerMinute(event.target.value);
-                        setPartnerHasTime(true);
-                      }}
-                    >
-                      {MINUTE_OPTIONS.map((minute) => (
-                        <option key={minute} value={minute}>
-                          {String(minute).padStart(2, "0")}분
-                        </option>
-                      ))}
-                    </select>
-                  </div>
+                  <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerTime">출생 시간</label>
+                  <input
+                    className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-4 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
+                    type="time"
+                    id="lovePartnerTime"
+                    name="partnerTime"
+                    aria-label={copy.birthHourAria}
+                    value={`${String(Number(partnerHour) || 0).padStart(2, "0")}:${String(Number(partnerMinute) || 0).padStart(2, "0")}`}
+                    onChange={(event) => {
+                      const [hour, minute] = event.target.value.split(":");
+                      setPartnerHour(String(Number(hour) || 0));
+                      setPartnerMinute(String(Number(minute) || 0));
+                      setPartnerHasTime(true);
+                    }}
+                  />
                 </div>
 
                 <div className="rounded-lg border border-rose-100/28 bg-rose-50/95 p-4 text-zinc-950 shadow-[0_18px_40px_rgba(255,228,230,0.12)]">
                   <label className="mb-2 block text-sm font-black" htmlFor="lovePartnerCountry">
                     출생 국가 (장소) <span className="text-xs font-bold text-zinc-500">*서머타임 및 경도 보정 자동 적용</span>
                   </label>
-                  <select
+                  <input
                     className="min-h-14 w-full rounded-lg border border-zinc-200 bg-white px-4 text-sm font-bold outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-200/45"
+                    type="text"
+                    list="love-partner-country-presets"
                     id="lovePartnerCountry"
                     name="partnerCountry"
                     aria-label={copy.birthCountryAria}
+                    autoComplete="off"
                     value={partnerCountry}
                     onChange={(event) => setPartnerCountry(event.target.value)}
-                  >
-                    <option value="Asia/Seoul">{copy.countryOptions.seoul}</option>
-                    <option value="Asia/Tokyo">{copy.countryOptions.tokyo}</option>
-                    <option value="Asia/Shanghai">{copy.countryOptions.shanghai}</option>
-                    <option value="America/New_York">{copy.countryOptions.newYork}</option>
-                    <option value="Europe/Paris">{copy.countryOptions.paris}</option>
-                  </select>
+                  />
+                  <datalist id="love-partner-country-presets">
+                    {partnerCountryOptions.map((option) => (
+                      <option key={option.value} value={option.value}>
+                        {option.label}
+                      </option>
+                    ))}
+                  </datalist>
+                  <p className="mt-2 text-xs font-bold leading-5 text-zinc-600">
+                    {partnerCountryOptions.find((option) => option.value === partnerCountry)?.label ?? partnerCountry}
+                  </p>
                   <p className="mt-3 text-xs font-bold leading-5 text-zinc-600">현재 매칭은 입력 시간과 장소 신호를 함께 반영합니다.</p>
                 </div>
 
