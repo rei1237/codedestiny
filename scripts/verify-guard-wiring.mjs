@@ -58,6 +58,7 @@ const UNWIRED_BY_DESIGN = [
   ["verify:admin-audit-log-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:mongo-launch-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:checkout-funnel-ttl", "실 DB TTL 인덱스 점검 — MONGO_URI 필요"],
+  ["verify:guardian-fusion-ttl-indexes", "실 DB TTL·인덱스 점검 — MONGO_URI 필요"],
   ["verify:daehan-purchase-index", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:drop-redundant-prefix-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:monthly-credit-expiry", "실 DB 원장 점검 — MONGO_URI 필요"],

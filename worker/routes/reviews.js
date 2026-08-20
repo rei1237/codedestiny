@@ -4,6 +4,7 @@
 // 관리자 승인(worker/routes/admin.js의 /reviews/:id/status)을 거쳐야 보인다.
 
 import { connectDb, withMongoRetry } from "../lib/db.js";
+import { readCmsThroughCache } from "../lib/cms-cache.js";
 import { isAuthDbInfraError, requireUserFromRequest } from "../lib/auth.js";
 import { User } from "../lib/models.js";
 import {
@@ -35,6 +36,19 @@ import { screenReviewText } from "../lib/review-moderation.js";
 const DEFAULT_PAGE_SIZE = 20;
 const MAX_PAGE_SIZE = 50;
 const PUBLIC_CACHE_HEADERS = Object.freeze({ "Cache-Control": "public, max-age=60" });
+
+// 공개 조회(목록·요약)는 엣지 캐시를 지난다. TTL 은 위 Cache-Control 과 같은 60초라 클라이언트가
+// 보던 신선도 계약은 그대로다. 바뀌는 것은 "그 60초를 누가 지키느냐" 뿐이다 — 지금까지는 아무도
+// 지키지 않았다. Workers 라우트 응답은 Cloudflare 가 기본적으로 캐시하지 않는다(실측 2026-08-21:
+// code-destiny.com/api/reviews 응답에 cf-cache-status 헤더 자체가 없고, 빈 배열 82바이트를
+// 돌려주는 데 매번 3.8~5.5초가 걸렸다).
+//
+// 🔴 캐시 조회는 반드시 connectDb 보다 **앞**이어야 한다. 이 캐시의 목적은 쿼리 시간이 아니라
+//    콜드 아이솔레이트의 Mongo 핸드셰이크(워커 실측 833ms)와 왕복(415ms/건)을 통째로 건너뛰는
+//    것이기 때문이다. 그래서 connectDb 를 load() 안으로 옮겼다 — 위로 되돌리면 효과가 사라진다.
+const PUBLIC_CACHE_TTL_SECONDS = 60;
+// 실패했을 때만 쓰는 여유분. DB 가 흔들려도 마지막 성공 응답으로 화면을 살린다.
+const PUBLIC_CACHE_STALE_TTL_SECONDS = 900;
 const SUPPORTED_LOCALES = new Set(["ko", "ja", "zh", "en"]);
 
 function toText(value) {
@@ -45,6 +59,19 @@ function parsePositiveInt(value, fallback, max) {
   const parsed = Number.parseInt(String(value || ""), 10);
   if (!Number.isFinite(parsed) || parsed < 1) return fallback;
   return max ? Math.min(parsed, max) : parsed;
+}
+
+// 🔴 캐시 키에는 쿼리 파라미터만 들어간다. userId·쿠키·Authorization 이 섞이면 그 순간
+//    공개 캐시가 아니라 남의 응답을 나눠주는 장치가 된다(verify:public-api-edge-cache 가 막는다).
+function publicCacheHeaders(state) {
+  return { ...PUBLIC_CACHE_HEADERS, "X-CD-Cache": state };
+}
+
+// stale 은 "DB 가 실패해 옛 값을 내보냈다" 는 뜻이다. 헤더로 구분해 두지 않으면 엣지 캐시가
+// 장애를 정상처럼 가린다.
+function cacheState(loaded, stale) {
+  if (loaded) return "miss";
+  return stale ? "stale" : "hit";
 }
 
 function buildSort(sortKey) {
@@ -106,8 +133,6 @@ async function aggregateSummary(env, matchStage) {
 }
 
 async function handleList(request, env) {
-  await connectDb(env);
-
   const url = new URL(request.url);
   const productId = toText(url.searchParams.get("productId"));
   const sortKey = toText(url.searchParams.get("sort")) || "latest";
@@ -123,38 +148,62 @@ async function handleList(request, env) {
   if (productId) filter.productId = productId;
   if (verifiedOnly) filter.isVerifiedPurchase = true;
 
-  const [items, total] = await Promise.all([
-    withMongoRetry(env, () => Review.find(filter)
-      .sort(buildSort(sortKey))
-      .skip((page - 1) * limit)
-      .limit(limit)
-      .lean()),
-    withMongoRetry(env, () => Review.countDocuments(filter)),
-  ]);
+  let loaded = false;
+  const { value, stale } = await readCmsThroughCache({
+    key: `reviews:list:v1:${productId}:${sortKey}:${verifiedOnly ? "verified" : "all"}:${page}:${limit}`,
+    ttlSeconds: PUBLIC_CACHE_TTL_SECONDS,
+    staleTtlSeconds: PUBLIC_CACHE_STALE_TTL_SECONDS,
+    load: async () => {
+      loaded = true;
+      await connectDb(env);
+      // 이 요청 하나가 공유 admission 슬롯을 2개 동시에 먹는다(withMongoRetry 가 두 번 불린다).
+      // 캐시 히트면 슬롯을 아예 건드리지 않는다.
+      const [items, total] = await Promise.all([
+        withMongoRetry(env, () => Review.find(filter)
+          .sort(buildSort(sortKey))
+          .skip((page - 1) * limit)
+          .limit(limit)
+          .lean()),
+        withMongoRetry(env, () => Review.countDocuments(filter)),
+      ]);
 
-  return json({
-    ok: true,
-    items: (Array.isArray(items) ? items : []).map(toPublicReview),
-    pagination: {
-      page,
-      limit,
-      total,
-      totalPages: Math.max(1, Math.ceil(total / limit)),
+      return {
+        ok: true,
+        items: (Array.isArray(items) ? items : []).map(toPublicReview),
+        pagination: {
+          page,
+          limit,
+          total,
+          totalPages: Math.max(1, Math.ceil(total / limit)),
+        },
+      };
     },
-  }, { headers: PUBLIC_CACHE_HEADERS });
+  });
+
+  return json(value, { headers: publicCacheHeaders(cacheState(loaded, stale)) });
 }
 
 async function handleSummary(request, env) {
-  await connectDb(env);
-
   const url = new URL(request.url);
   const productId = toText(url.searchParams.get("productId"));
   if (productId && !getReviewProduct(productId)) {
     throw createHttpError(400, "존재하지 않는 상품입니다.", { code: "UNKNOWN_PRODUCT" });
   }
 
-  const summary = await aggregateSummary(env, productId ? { productId } : {});
-  return json({ ok: true, productId, ...summary }, { headers: PUBLIC_CACHE_HEADERS });
+  let loaded = false;
+  const { value, stale } = await readCmsThroughCache({
+    key: `reviews:summary:v1:${productId}`,
+    ttlSeconds: PUBLIC_CACHE_TTL_SECONDS,
+    staleTtlSeconds: PUBLIC_CACHE_STALE_TTL_SECONDS,
+    load: async () => {
+      loaded = true;
+      await connectDb(env);
+      const summary = await aggregateSummary(env, productId ? { productId } : {});
+      return { ok: true, productId, ...summary };
+    },
+  });
+
+  return json(value, { headers: publicCacheHeaders(cacheState(loaded, stale)) });
 }
 
 async function handleProducts(env) {
