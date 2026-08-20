@@ -1649,6 +1649,12 @@
       "processing": "El pago está en curso.",
       "meta": "La autenticación de pago y los derechos de acceso se están verificando en orden."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Comprobando tu pase",
+        "sub": "Ajustando el nivel de membresía y el estado del Pase"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1688,7 +1694,7 @@
         },
         "pass": {
           "title": "Comprobando tu pase",
-          "sub": "Ajustando el nivel de membresía y el estado del Pase"
+          "sub": "Si está cubierto, lo abrimos al instante sin ventana de pago"
         }
       },
       "fallback": {
@@ -1972,7 +1978,7 @@
       }
     },
     "passShop": {
-      "monthlyStatus": "El pago del crédito mensual está en curso. El equilibrio de la luz de la luna se está alineando silenciosamente.",
+      "monthlyStatus": "Tu saldo de piedras lunares está confirmado.",
       "chargeButton": "Ir a la página de pago de {amount}",
       "chargeNotice": "Producto de pase {price} · Es un pase de 30 días, no un pago con renovación automática. Los pases solo se compran con un pago único en KRW.",
       "best": "BEST",

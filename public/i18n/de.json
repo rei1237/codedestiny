@@ -1649,6 +1649,12 @@
       "processing": "Die Zahlung läuft.",
       "meta": "Zahlungsauthentifizierung und Zugriffsrechte werden der Reihe nach überprüft."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Überprüfen Sie Ihren Pass",
+        "sub": "Wir gleichen Ihren Mitgliedsstatus und Pass-Status ab"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1687,8 +1693,8 @@
           "sub": "Deine Zahlungsdaten werden sicher abgeglichen"
         },
         "pass": {
-          "title": "Überprüfen Sie Ihren Pass",
-          "sub": "Wir gleichen Ihren Mitgliedsstatus und Pass-Status ab"
+          "title": "Dein Pass wird geprüft",
+          "sub": "Ist es abgedeckt, öffnen wir es sofort ohne Zahlungsfenster"
         }
       },
       "fallback": {
@@ -1972,7 +1978,7 @@
       }
     },
     "passShop": {
-      "monthlyStatus": "Die monatliche Kreditzahlung ist im Gange. Die Mondlichtbalance gleicht sich ruhig aus.",
+      "monthlyStatus": "Dein Mondstein-Guthaben ist bestätigt.",
       "chargeButton": "Zur Zahlungsseite für {amount} gehen",
       "chargeNotice": "Pass-Produkt {price} · Dies ist ein 30-Tage-Pass ohne automatische Verlängerung. Pässe sind nur per Einmalzahlung in KRW erhältlich.",
       "best": "BEST",
