@@ -28,12 +28,19 @@ import { judgeDayFortune } from "../lib/sukuyo-relation-core.js";
 import { assembleTodayMoon } from "../lib/nakshatra-codex.js";
 import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
 import { primeCmsRecords } from "../lib/cms-records.js";
+import { readCmsThroughCache } from "../lib/cms-cache.js";
 import { buildTodaySajuDetail, buildTodaySajuPublic } from "../lib/today-saju-detail.js";
 import { buildTodaySukuyoDetail, buildTodaySukuyoPublic } from "../lib/today-sukuyo-detail.js";
 import { buildTodayVedicDetail, buildTodayVedicPublic, computePanchanga } from "../lib/today-vedic-detail.js";
 import { getNakshatraAttributes } from "../../constants/nakshatra-attributes.js";
 
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
+
+// 공개 모드(생년 없음) 응답의 엣지 캐시 수명. 아래 Cache-Control: public, max-age=1800 과 같은 값이라
+// 클라이언트가 보던 신선도 계약은 그대로다. 이 라우트는 DB 를 안 쓰지만 스위스 천문 서브리퀘스트와
+// 사주·숙요 계산 때문에 콜드 3.2초·웜 0.8초가 걸린다(실측 2026-08-21, code-destiny.com).
+const PUBLIC_HUB_CACHE_TTL_SECONDS = 1800;
+const PUBLIC_HUB_STALE_TTL_SECONDS = 3600;
 
 // 타라발라 9구간 tier → 숙요·사주와 같은 5티어 어휘. 세 점술이 서로 다른 등급 이름을
 // 쓰면 한 화면에서 비교가 안 된다. Janma(mixed)는 "본디 자리"라 양날 — pivotal 로 읽는다.
@@ -310,19 +317,9 @@ async function resolveTodaySky(env, today, natalIndex, requestUrl) {
   }
 }
 
-async function handleTodayHub(request, env) {
-  const url = new URL(request.url);
-  const input = parseBirthQuery(url.searchParams);
-  // 형식이 틀린 birth 만 거부한다. 아예 없는 것(null)은 공개 모드다.
-  if (input === false) {
-    return json({
-      ok: false,
-      code: "INVALID_BIRTH",
-      message: "생년월일 형식이 올바르지 않습니다(birth=YYYY-MM-DD).",
-    }, { status: 400 });
-  }
-  const wantDetail = clean(url.searchParams.get("detail")) === "1";
-
+// 세 체계가 모두 실패하면 null 을 돌려준다(호출부가 503 으로 바꾼다).
+// 🔴 실패를 payload 로 돌려주면 안 된다 — 공개 모드는 이 반환값을 30분 캐시하므로 실패가 굳는다.
+async function buildTodayHubPayload(request, env, input, wantDetail) {
   // 숙요 본명수별 조언 표의 CMS 오버라이드를 judgeDayFortune 호출 전에 채운다.
   // 실패해도 내부에서 삼키고 코드 기본값으로 진행한다(기본 숙요점과 같은 관례).
   await primeCmsRecords(env);
@@ -346,24 +343,74 @@ async function handleTodayHub(request, env) {
   const sky = await resolveTodaySky(env, today, natalIndex, request.url);
   const vedic = buildVedic(sky, natalSukuyo?.nameKo ? `${natalSukuyo.nameKo}수` : "", wantDetail);
 
-  if (!saju && !sukuyo && !vedic) {
-    return json({
-      ok: false,
-      code: "TODAY_HUB_UNAVAILABLE",
-      message: "오늘의 운세를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요.",
-    }, { status: 503 });
-  }
+  if (!saju && !sukuyo && !vedic) return null;
 
-  return json({
+  return {
     ok: true,
     date: dateKey(today),
     personalized: Boolean(input),
     systems: { saju, sukuyo, vedic },
-  }, {
-    // 생년이 쿼리에 실리면 공유 캐시에 올리지 않는다. 날짜가 바뀌면 어차피 값이 바뀐다.
-    // 공개 모드는 개인 정보가 없어 모두에게 같은 응답이므로 공유 캐시에 올려도 된다.
-    headers: { "Cache-Control": input ? "private, max-age=1800" : "public, max-age=1800" },
-  });
+  };
+}
+
+function todayHubUnavailable() {
+  return json({
+    ok: false,
+    code: "TODAY_HUB_UNAVAILABLE",
+    message: "오늘의 운세를 계산하지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  }, { status: 503 });
+}
+
+async function handleTodayHub(request, env) {
+  const url = new URL(request.url);
+  const input = parseBirthQuery(url.searchParams);
+  // 형식이 틀린 birth 만 거부한다. 아예 없는 것(null)은 공개 모드다.
+  if (input === false) {
+    return json({
+      ok: false,
+      code: "INVALID_BIRTH",
+      message: "생년월일 형식이 올바르지 않습니다(birth=YYYY-MM-DD).",
+    }, { status: 400 });
+  }
+  const wantDetail = clean(url.searchParams.get("detail")) === "1";
+
+  // 🔴 생년이 쿼리에 실린 개인화 응답은 공유 캐시에 **절대** 올리지 않는다. 올리는 순간 다음 방문자가
+  //    남의 사주를 받는다. 캐시 분기는 input 이 없을 때 하나뿐이며 verify:public-api-edge-cache 가
+  //    이 조건을 단언한다.
+  if (input) {
+    const payload = await buildTodayHubPayload(request, env, input, wantDetail);
+    if (!payload) return todayHubUnavailable();
+    return json(payload, { headers: { "Cache-Control": "private, max-age=1800" } });
+  }
+
+  // 공개 모드는 개인 정보가 없어 모두에게 같은 응답이다. 날짜(KST)가 키에 들어가므로 자정이 지나면
+  // 자연히 새 키가 되고, 옛 키는 TTL 로 사라진다.
+  let loaded = false;
+  try {
+    const { value, stale } = await readCmsThroughCache({
+      key: `today-hub:v1:${dateKey(kstParts(new Date()))}:${wantDetail ? "detail" : "summary"}`,
+      ttlSeconds: PUBLIC_HUB_CACHE_TTL_SECONDS,
+      staleTtlSeconds: PUBLIC_HUB_STALE_TTL_SECONDS,
+      load: async () => {
+        loaded = true;
+        const payload = await buildTodayHubPayload(request, env, null, wantDetail);
+        // throw 해야 캐시에 안 들어간다. 직전에 성공한 값이 있으면 아래 stale 로 살아난다.
+        if (!payload) throw new Error("TODAY_HUB_UNAVAILABLE");
+        return payload;
+      },
+    });
+    return json(value, {
+      headers: {
+        "Cache-Control": "public, max-age=1800",
+        // stale 은 "계산이 실패해 옛 값을 냈다" 는 뜻이다. 안 붙이면 캐시가 장애를 정상처럼 가린다.
+        "X-CD-Cache": loaded ? "miss" : stale ? "stale" : "hit",
+      },
+    });
+  } catch (error) {
+    // 위 sentinel 만 503 으로 바꾼다. 나머지 예외는 handleFortuneTodayRoutes 의 500 경로로 보낸다.
+    if (String(error?.message || "") === "TODAY_HUB_UNAVAILABLE") return todayHubUnavailable();
+    throw error;
+  }
 }
 
 export async function handleFortuneTodayRoutes(request, env) {
