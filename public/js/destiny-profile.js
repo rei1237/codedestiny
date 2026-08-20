@@ -38,6 +38,7 @@
     if (chosen < 0) return false;
     countrySel.selectedIndex = chosen;
     try { countrySel.dispatchEvent(new Event('change', { bubbles: true })); } catch (e) {}
+    if (typeof window._cdSyncBirthCountryDisplay === 'function') window._cdSyncBirthCountryDisplay();
     return true;
   }
 
@@ -10815,11 +10816,170 @@
     _dpSyncBirthTimeTextFromSelects();
   }
 
+  /* ── 태어난 장소 검색형 콤보박스(cd-birth-country-combo-v20260820) ──────────────────────────
+     실제 값의 소스는 여전히 #birthCountry select다(15개 지점이 .options[selectedIndex]를 직접
+     읽으므로 select는 지우지 않고 display:none으로만 숨긴다). 이 콤보박스는 그 select의
+     selectedIndex를 옮기고 change 이벤트만 대신 쏴 준다. 프로그래밍적으로 select가 바뀌는
+     지점(populateBirthCountrySelector/_applyBirthFormSnapshot/_dpSelectBirthPlaceOption)은
+     window._cdSyncBirthCountryDisplay()를 각자 호출해 입력창 표시값을 맞춘다. */
+  var _cdBirthCountryComboBound = false;
+  var _cdBirthCountryActiveIndex = -1;
+  var _cdBirthCountryMatches = [];
+
+  window._cdSyncBirthCountryDisplay = function() {
+    var sel = document.getElementById('birthCountry');
+    var input = document.getElementById('birthCountryInput');
+    if (!sel || !input) return;
+    var opt = sel.options[sel.selectedIndex];
+    if (opt) input.value = opt.text;
+  };
+
+  function _cdFilterBirthCountryOptions(query) {
+    var sel = document.getElementById('birthCountry');
+    var results = [];
+    if (!sel) return results;
+    var q = String(query || '').trim().toLowerCase();
+    var options = sel.options;
+    for (var i = 0; i < options.length; i++) {
+      var opt = options[i];
+      var text = opt.text || '';
+      var groupLabel = (opt.parentElement && opt.parentElement.tagName === 'OPTGROUP') ? opt.parentElement.label : '';
+      if (!q || text.toLowerCase().indexOf(q) !== -1 || String(groupLabel).toLowerCase().indexOf(q) !== -1) {
+        results.push({ optIndex: i, text: text });
+        if (results.length >= 20) break;
+      }
+    }
+    return results;
+  }
+
+  function _cdPositionBirthCountryListbox() {
+    var input = document.getElementById('birthCountryInput');
+    var listbox = document.getElementById('birthCountryListbox');
+    if (!input || !listbox) return;
+    if (listbox.parentElement !== document.body) document.body.appendChild(listbox);
+    var rect = input.getBoundingClientRect();
+    listbox.style.left = rect.left + 'px';
+    listbox.style.top = (rect.bottom + 4) + 'px';
+    listbox.style.width = rect.width + 'px';
+  }
+
+  function _cdCloseBirthCountryListbox() {
+    var listbox = document.getElementById('birthCountryListbox');
+    var input = document.getElementById('birthCountryInput');
+    if (listbox) listbox.hidden = true;
+    if (input) { input.setAttribute('aria-expanded', 'false'); input.removeAttribute('aria-activedescendant'); }
+    _cdBirthCountryActiveIndex = -1;
+  }
+
+  function _cdRenderBirthCountryListbox(matches) {
+    var listbox = document.getElementById('birthCountryListbox');
+    var input = document.getElementById('birthCountryInput');
+    if (!listbox || !input) return;
+    _cdBirthCountryMatches = matches;
+    _cdBirthCountryActiveIndex = -1;
+    if (!matches.length) { _cdCloseBirthCountryListbox(); return; }
+    listbox.innerHTML = '';
+    matches.forEach(function (m, i) {
+      var li = document.createElement('li');
+      li.setAttribute('role', 'option');
+      li.id = 'birthCountryOpt' + i;
+      li.setAttribute('aria-selected', 'false');
+      li.dataset.optIndex = String(m.optIndex);
+      li.textContent = m.text;
+      listbox.appendChild(li);
+    });
+    _cdPositionBirthCountryListbox();
+    listbox.hidden = false;
+    input.setAttribute('aria-expanded', 'true');
+  }
+
+  function _cdSetBirthCountryActiveIndex(nextIndex) {
+    var listbox = document.getElementById('birthCountryListbox');
+    if (!listbox) return;
+    var items = listbox.querySelectorAll('li');
+    if (!items.length) return;
+    if (nextIndex < 0) nextIndex = items.length - 1;
+    if (nextIndex >= items.length) nextIndex = 0;
+    Array.prototype.forEach.call(items, function (li, i) {
+      li.setAttribute('aria-selected', i === nextIndex ? 'true' : 'false');
+    });
+    _cdBirthCountryActiveIndex = nextIndex;
+    var input = document.getElementById('birthCountryInput');
+    if (input) input.setAttribute('aria-activedescendant', items[nextIndex].id);
+    try { items[nextIndex].scrollIntoView({ block: 'nearest' }); } catch (_) {}
+  }
+
+  function _cdApplyBirthCountrySelection(optIndex) {
+    var sel = document.getElementById('birthCountry');
+    if (!sel || !(optIndex >= 0) || optIndex >= sel.options.length) return;
+    sel.selectedIndex = optIndex;
+    try { sel.dispatchEvent(new Event('change', { bubbles: true })); } catch (_) {}
+    window._cdSyncBirthCountryDisplay();
+    _cdCloseBirthCountryListbox();
+  }
+
+  function _cdBindBirthCountryCombo() {
+    if (_cdBirthCountryComboBound) return;
+    var input = document.getElementById('birthCountryInput');
+    if (!input) return;
+    _cdBirthCountryComboBound = true;
+
+    input.addEventListener('focus', function () {
+      _cdRenderBirthCountryListbox(_cdFilterBirthCountryOptions(''));
+    });
+    input.addEventListener('input', function () {
+      _cdRenderBirthCountryListbox(_cdFilterBirthCountryOptions(input.value));
+    });
+    input.addEventListener('keydown', function (event) {
+      var listbox = document.getElementById('birthCountryListbox');
+      var isOpen = !!(listbox && !listbox.hidden);
+      if (event.key === 'ArrowDown') {
+        event.preventDefault();
+        if (!isOpen) { _cdRenderBirthCountryListbox(_cdFilterBirthCountryOptions(input.value)); }
+        _cdSetBirthCountryActiveIndex(_cdBirthCountryActiveIndex + 1);
+      } else if (event.key === 'ArrowUp') {
+        if (isOpen) { event.preventDefault(); _cdSetBirthCountryActiveIndex(_cdBirthCountryActiveIndex - 1); }
+      } else if (event.key === 'Enter') {
+        if (isOpen && _cdBirthCountryMatches[_cdBirthCountryActiveIndex]) {
+          event.preventDefault();
+          _cdApplyBirthCountrySelection(_cdBirthCountryMatches[_cdBirthCountryActiveIndex].optIndex);
+        }
+      } else if (event.key === 'Escape') {
+        if (isOpen) { event.preventDefault(); _cdCloseBirthCountryListbox(); }
+      }
+    });
+    /* mousedown에서 선택을 반영해야(preventDefault) 클릭이 input의 blur보다 먼저 처리된다. */
+    document.addEventListener('mousedown', function (event) {
+      var li = event.target && event.target.closest ? event.target.closest('#birthCountryListbox li') : null;
+      if (!li) return;
+      event.preventDefault();
+      _cdApplyBirthCountrySelection(parseInt(li.dataset.optIndex, 10));
+    });
+    /* blur는 버블링하지 않으므로 캡처로 받는다(_dpBindTypedBirthInputs와 동일 패턴). */
+    document.addEventListener('blur', function (event) {
+      if (event.target !== input) return;
+      window.setTimeout(function () {
+        var active = document.activeElement;
+        if (active && active.closest && active.closest('#birthCountryListbox')) return;
+        _cdCloseBirthCountryListbox();
+      }, 0);
+    }, true);
+    document.addEventListener('scroll', function () {
+      var listbox = document.getElementById('birthCountryListbox');
+      if (listbox && !listbox.hidden) _cdCloseBirthCountryListbox();
+    }, true);
+    window.addEventListener('resize', function () {
+      var listbox = document.getElementById('birthCountryListbox');
+      if (listbox && !listbox.hidden) _cdPositionBirthCountryListbox();
+    });
+  }
+
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() { init(); _dpBindTypedBirthInputs(); _dpBootstrapAccessStore(); });
+    document.addEventListener('DOMContentLoaded', function() { init(); _dpBindTypedBirthInputs(); _cdBindBirthCountryCombo(); _dpBootstrapAccessStore(); });
   } else {
     init();
     _dpBindTypedBirthInputs();
+    _cdBindBirthCountryCombo();
     _dpBootstrapAccessStore();
   }
 

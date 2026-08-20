@@ -795,6 +795,7 @@ function _applyBirthFormSnapshot(snapshot) {
         }
       }
       if (!restoredCountry && snapshot.birthCountry) countryEl.value = snapshot.birthCountry;
+      if (typeof window._cdSyncBirthCountryDisplay === 'function') window._cdSyncBirthCountryDisplay();
     }
 
     if (snapshot.calType) {
@@ -3664,6 +3665,7 @@ function populateBirthCountrySelector() {
     }
   }
   if (!found && sel.options.length > 0) sel.selectedIndex = 0;
+  if (typeof window._cdSyncBirthCountryDisplay === 'function') window._cdSyncBirthCountryDisplay();
 }
 
 /* 임의 select 엘리먼트에 출생지 목록 채우기 (모달 전용) */
