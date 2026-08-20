@@ -10,6 +10,7 @@ import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { showSubscriptionIncludedNotice } from "../../components/subscriptionNotice";
 import { showToast } from "../../components/Toast";
 import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
+import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { authFetch } from "../../_lib/auth-client";
 import styles from "./numerology-tarot.module.css";
 import {
@@ -328,8 +329,6 @@ const DECK_SLOT_COUNT = 22;
 
 const STEP_LABELS = ["정보 입력", "기초 리딩 · 무료", "카드 뽑기 · 무료", "심층 상담 · 유료"];
 
-const YEARS = Array.from({ length: 91 }, (_, idx) => String(new Date().getFullYear() - idx));
-const MONTHS = Array.from({ length: 12 }, (_, idx) => String(idx + 1).padStart(2, "0"));
 
 const TAROT_IMAGE_MAP: Record<number, string> = {
   0: "thefool.webp",
@@ -553,16 +552,6 @@ const FREE_TALENT_MAP: Record<number, {
   },
 };
 
-function createDays(month: string): string[] {
-  const monthNumber = Number(month || "1");
-  const max = [1, 3, 5, 7, 8, 10, 12].includes(monthNumber)
-    ? 31
-    : [4, 6, 9, 11].includes(monthNumber)
-      ? 30
-      : 29;
-  return Array.from({ length: max }, (_, idx) => String(idx + 1).padStart(2, "0"));
-}
-
 function toText(value: unknown): string {
   return String(value || "").trim();
 }
@@ -751,9 +740,6 @@ export default function NumerologyTarotClient() {
 
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
-  const [birthYear, setBirthYear] = useState("");
-  const [birthMonth, setBirthMonth] = useState("");
-  const [birthDay, setBirthDay] = useState("");
   const [topic, setTopic] = useState<TopicKey>("love");
   const [analysisDate, setAnalysisDate] = useState(getTodayDateInput());
   const [question, setQuestion] = useState("");
@@ -885,8 +871,6 @@ export default function NumerologyTarotClient() {
     };
   }, [lifeData?.keyword, lifeData?.meaning, name, numerology, topic]);
 
-  const dayOptions = useMemo(() => createDays(birthMonth), [birthMonth]);
-
   const allCardsPicked = cards.length >= SPREAD_CARD_COUNT;
 
   const activeStep = useMemo(() => {
@@ -900,21 +884,6 @@ export default function NumerologyTarotClient() {
 
   // 결제 버튼은 5장을 다 뽑았을 때만 열린다. 결제 여부와는 무관하다(뽑기까지는 무료).
   const readingEnabled = allCardsPicked && Boolean(numerology) && Boolean(toText(question));
-
-  useEffect(() => {
-    if (birthDate && /^\d{4}-\d{2}-\d{2}$/.test(birthDate)) {
-      const [y, m, d] = birthDate.split("-");
-      setBirthYear(y);
-      setBirthMonth(m);
-      setBirthDay(d);
-    }
-  }, [birthDate]);
-
-  useEffect(() => {
-    if (birthYear && birthMonth && birthDay) {
-      setBirthDate(`${birthYear}-${birthMonth}-${birthDay}`);
-    }
-  }, [birthDay, birthMonth, birthYear]);
 
   // 결제 전 단계의 흐름 상태는 입력 상태에서 파생된다.
   useEffect(() => {
@@ -1374,56 +1343,12 @@ export default function NumerologyTarotClient() {
                     />
                   </label>
 
-                  <label className={styles.field}>
-                    <span className={styles.label}>출생연도</span>
-                    <select
-                      className={styles.select}
-                      value={birthYear}
-                      onChange={(event) => setBirthYear(event.target.value)}
-                      disabled={formLocked}
-                    >
-                      <option value="">연도</option>
-                      {YEARS.map((year) => <option key={year} value={year}>{year}</option>)}
-                    </select>
-                  </label>
-
-                  <label className={styles.field}>
-                    <span className={styles.label}>월</span>
-                    <select
-                      className={styles.select}
-                      value={birthMonth}
-                      onChange={(event) => {
-                        setBirthMonth(event.target.value);
-                        setBirthDay("");
-                      }}
-                      disabled={formLocked}
-                    >
-                      <option value="">월</option>
-                      {MONTHS.map((month) => <option key={month} value={month}>{month}</option>)}
-                    </select>
-                  </label>
-
-                  <label className={styles.field}>
-                    <span className={styles.label}>일</span>
-                    <select
-                      className={styles.select}
-                      value={birthDay}
-                      onChange={(event) => setBirthDay(event.target.value)}
-                      disabled={formLocked}
-                    >
-                      <option value="">일</option>
-                      {dayOptions.map((day) => <option key={day} value={day}>{day}</option>)}
-                    </select>
-                  </label>
-
-                  <label className={styles.field}>
-                    <span className={styles.label}>분석 날짜</span>
+                  <label className={`${styles.field} ${styles.fieldWide}`}>
+                    <span className={styles.label}>생년월일</span>
                     <input
                       className={styles.input}
-                      type="date"
-                      value={analysisDate}
-                      onChange={(event) => setAnalysisDate(event.target.value)}
                       disabled={formLocked}
+                      {...birthDateTextInputProps(birthDate, setBirthDate)}
                     />
                   </label>
 
@@ -1434,6 +1359,19 @@ export default function NumerologyTarotClient() {
                       value={question}
                       onChange={(event) => setQuestion(event.target.value)}
                       placeholder="예: 지금 연락하고 있는 사람과 관계가 발전할 가능성이 궁금해요."
+                      disabled={formLocked}
+                    />
+                  </label>
+
+                  {/* 이 필드는 조회 기준일(오늘 등)이지 본인 정보가 아니다 — 위 필드와 붙이면
+                      "ui/typed" 로 시작하는 회귀 가드 테스트의 문맥 판정이 오탐한다. */}
+                  <label className={styles.field}>
+                    <span className={styles.label}>분석 날짜</span>
+                    <input
+                      className={styles.input}
+                      type="date"
+                      value={analysisDate}
+                      onChange={(event) => setAnalysisDate(event.target.value)}
                       disabled={formLocked}
                     />
                   </label>
