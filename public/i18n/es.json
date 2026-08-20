@@ -1741,6 +1741,10 @@
       "requiredMonthly": "Créditos requeridos",
       "currentMonthly": "Saldo actual",
       "musicTrackSub": "Con el Pase a la luz de la luna puedes escuchar todas las pistas al instante. La descarga en MP3 solo está disponible para las pistas compradas con una compra única o con piedras lunares.",
+      "defaultTitle": "Servicio de pago",
+      "passApplyFailed": "No hemos podido aplicar tu pase.",
+      "monthlyInsufficient": "No tienes suficientes piedras lunares. Elige el pago único.",
+      "monthlyUnknown": "No hemos podido comprobar tu saldo de piedras lunares. Ábrelo de nuevo.",
       "monthlyAria": {
         "insufficient": "Saldo insuficiente",
         "unknown": "Hay que comprobar el saldo"

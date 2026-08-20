@@ -1741,6 +1741,10 @@
       "requiredMonthly": "Kredit yang diperlukan",
       "currentMonthly": "Baki semasa",
       "musicTrackSub": "Dengan Pas Cahaya Bulan, anda boleh terus mendengar semua lagu. Muat turun MP3 hanya untuk lagu yang dibeli secara tunggal atau dengan batu bulan.",
+      "defaultTitle": "Perkhidmatan berbayar",
+      "passApplyFailed": "Kami tidak dapat menggunakan Pas anda.",
+      "monthlyInsufficient": "Batu bulan tidak mencukupi. Sila pilih pembayaran tunggal.",
+      "monthlyUnknown": "Kami tidak dapat menyemak baki batu bulan anda. Sila buka semula.",
       "monthlyAria": {
         "insufficient": "Baki tidak mencukupi",
         "unknown": "Baki perlu disemak"
