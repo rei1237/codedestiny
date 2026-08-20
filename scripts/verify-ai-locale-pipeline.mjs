@@ -18,7 +18,11 @@ import { resolveForbiddenPatterns } from "../worker/lib/llm-leak-guard.js";
 const root = process.cwd();
 const failures = [];
 
+// 🔴 이 가드가 **실제로 연 파일**을 모은다. (14)가 이 목록을 워크플로 트리거 paths 와 대조한다.
+const openedPaths = new Set();
+
 function read(relPath) {
+  openedPaths.add(relPath.replace(/\\/g, "/"));
   return readFileSync(resolve(root, relPath), "utf8");
 }
 
@@ -369,10 +373,59 @@ const ORDINARY_PROSE = [
   }
 }
 
+// (14) 이 가드를 부르는 워크플로의 트리거 paths 가 **가드가 여는 파일 전부**를 덮는가.
+//
+// 🔴 CLAUDE.md 원칙 10. 가드가 보는 파일이 트리거에 없으면 그 파일만 고친 PR 에서 가드가
+//    깨어나지 않는다 — 있으나 마나 한 게이트가 된다. 결제 게이트에서 실제로 5번 난 구멍이라
+//    (index.html · app/points/PointsClient.tsx · worker/lib/db.js · billing-feature-registry ·
+//    user-session-cache) 여기서는 처음부터 기계로 강제한다.
+//
+//    손으로 목록을 적지 않는다: read() 가 실제로 연 경로를 그대로 쓴다. 새 라우트가 git grep
+//    으로 발견돼 읽히면 그 경로도 자동으로 이 대조에 들어온다.
+{
+  const WORKFLOW = ".github/workflows/ai-locale-gate.yml";
+  const workflow = read(WORKFLOW);
+
+  // 🔴 이 워크플로가 실제로 이 가드를 부르는지부터 본다. verify:guard-wiring 은 못 잡는다 —
+  //    `i18n:check` → `build:cf` → 배포 워크플로라는 **머지 뒤에 도는 optional 경로**가 따로
+  //    있어서 "도달 가능" 판정이 계속 초록이기 때문이다(그 가드 헤더의 "알려진 한계" 그대로).
+  assert(
+    /run: npm run verify:ai-locale-pipeline\s*$/m.test(workflow),
+    `${WORKFLOW}: 이 워크플로가 verify:ai-locale-pipeline 을 부르지 않는다 — 게이트가 껍데기만 남았다`,
+  );
+
+  const pathsBlock = workflow.match(/^ {4}paths:$([\s\S]*?)^ {2}workflow_dispatch:$/m);
+  assert(pathsBlock, `${WORKFLOW}: pull_request.paths 블록을 찾지 못했다 — 트리거 대조가 무력화됐다`);
+
+  const globs = pathsBlock
+    ? [...pathsBlock[1].matchAll(/^ {6}- "([^"]+)"$/gm)].map((match) => match[1])
+    : [];
+  assert(globs.length >= 8, `${WORKFLOW}: 트리거 경로를 ${globs.length}개만 읽었다 — 대조가 무력화됐다`);
+
+  const covered = (relPath) => globs.some((glob) => (
+    glob.endsWith("/**") ? relPath.startsWith(glob.slice(0, -2)) : glob === relPath
+  ));
+
+  // 임포트로 들어오는 정본은 read() 를 거치지 않으므로 명시한다.
+  const IMPORTED = [
+    "lib/i18n/ai-locale.js",
+    "lib/i18n/locale-normalize.js",
+    "worker/lib/llm-leak-guard.js",
+  ];
+  for (const relPath of [...openedPaths, ...IMPORTED].sort()) {
+    if (relPath === WORKFLOW) continue;
+    assert(
+      covered(relPath),
+      `${WORKFLOW}: 이 가드는 ${relPath} 를 읽는데 트리거 paths 에 없다 — `
+        + `그 파일만 고친 PR 에서는 이 게이트가 깨어나지 않는다(CLAUDE.md 원칙 10)`,
+    );
+  }
+}
+
 if (failures.length) {
   console.error("[verify:ai-locale-pipeline] FAILED");
   for (const message of failures) console.error(`  - ${message}`);
   process.exit(1);
 }
 
-console.log("[verify:ai-locale-pipeline] ok (13 invariants)");
+console.log("[verify:ai-locale-pipeline] ok (14 invariants)");
