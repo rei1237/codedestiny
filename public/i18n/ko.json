@@ -1357,6 +1357,11 @@
       "monthlyTitle": "월정석으로 열기",
       "requiredMonthly": "필요 월정석",
       "currentMonthly": "현재 잔여",
+      "musicTrackSub": "달빛 이용권이 있으면 전곡을 바로 들을 수 있어요. MP3 다운로드는 단건 결제 또는 월정석으로 구매한 곡만 가능합니다.",
+      "monthlyAria": {
+        "insufficient": "잔량 부족",
+        "unknown": "잔량 확인 필요"
+      },
       "subtitle": {
         "withPass": "월정석은 이벤트성 선불 재화입니다. 이용권, 월정석 사용, 원화 단건 결제 중 가능한 방식으로 콘텐츠를 열 수 있어요.",
         "directOnly": "월정석은 이벤트성 선불 재화입니다. 원화 단건 결제로도 진행할 수 있어요."

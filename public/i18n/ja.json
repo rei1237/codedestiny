@@ -1740,6 +1740,11 @@
       "monthlyTitle": "月精石で開く",
       "requiredMonthly": "必要月定石",
       "currentMonthly": "現在残高",
+      "musicTrackSub": "月光利用券があれば全曲をすぐに聴けます。MP3ダウンロードは単品購入または月精石で購入した曲のみ可能です。",
+      "monthlyAria": {
+        "insufficient": "残量不足",
+        "unknown": "残量の確認が必要"
+      },
       "subtitle": {
         "withPass": "表示金額は月定石基準と同じウォン基準です。利用券またはカード単発決済でこのコンテンツを開けます。",
         "directOnly": "表示金額は月定石基準と同じウォン基準です。カード単発決済で進めます。"

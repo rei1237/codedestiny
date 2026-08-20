@@ -1740,6 +1740,11 @@
       "monthlyTitle": "Open with moonstones",
       "requiredMonthly": "Required credits",
       "currentMonthly": "Current balance",
+      "musicTrackSub": "With a Moonlight Pass you can stream every track right away. MP3 downloads are only for tracks bought with a single purchase or with moonstones.",
+      "monthlyAria": {
+        "insufficient": "Not enough balance",
+        "unknown": "Balance needs checking"
+      },
       "subtitle": {
         "withPass": "The displayed amount matches the monthly credit KRW basis. You can open this content with a pass or one-time card payment.",
         "directOnly": "The displayed amount matches the monthly credit KRW basis. You can continue with a one-time card payment."

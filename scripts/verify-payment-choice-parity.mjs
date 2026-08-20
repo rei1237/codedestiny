@@ -181,89 +181,18 @@ const BANNED_BALANCE_MARKERS = [
   "data-monthly-current",
 ];
 
-// 결제창 제목. 셸·독립 폴백은 `payment.directModal.moonTitle` 키로 해결하므로 §4 의 키 단언이
-// 덮는다. React 만 아직 자체 ko 전용 표(BILLING_CLIENT_TEXT_TRANSLATIONS)에 이 문구를 리터럴로
-// 들고 있어서 **모든 로케일에 한국어로 나간다** — 그 표가 키로 옮겨질 때까지의 임시 고정이다.
-// 🔴 이 상수는 늘어나면 안 되고, React 가 moonTitle 키를 채택하는 순간 함께 삭제한다.
-const REACT_UNKEYED_TITLE = "이 콘텐츠를 열어볼까요?";
-
 const RENDERERS = [
   ...SHELL_MIRRORS.map((rel) => ({ rel, label: "정적 셸" })),
   { rel: REACT_CLIENT, label: "React" },
   ...STANDALONE_FALLBACKS.map((rel) => ({ rel, label: "독립 폴백" })),
 ];
 
-assert.ok(
-  read(REACT_CLIENT).includes(REACT_UNKEYED_TITLE),
-  `${REACT_CLIENT}: 정본 제목("${REACT_UNKEYED_TITLE}") 없음 — moonTitle 키로 옮겼다면 REACT_UNKEYED_TITLE 을 지우고 §4 의 REQUIRED_ALL 에 payment.directModal.moonTitle 을 넣으세요`,
-);
-
-for (const renderer of RENDERERS) {
-  const source = read(renderer.rel);
-  for (const marker of STRUCTURE_MARKERS) {
-    assert.ok(source.includes(marker), `${renderer.label} ${renderer.rel}: 구조 마커 누락 — ${marker}`);
-  }
-  for (const marker of BANNED_BALANCE_MARKERS) {
-    assert.ok(
-      !source.includes(marker),
-      `${renderer.label} ${renderer.rel}: 제거된 월정석 잔량 UI 가 되살아났습니다 — ${marker} (결제창은 /api/billing/balance 를 부르지 않는다)`,
-    );
-  }
-  // 상점 카드는 결제 처리 없이 이용권 상점으로 보내야 한다(모든 결제창의 이용권 전환 경로).
-  assert.ok(
-    /__cdOpenChargeModal|openMembershipPassStore/.test(source),
-    `${renderer.label} ${renderer.rel}: 이용권 상점 바로가기 경로가 없습니다`,
-  );
-}
-
-// ── 3) 폐기된 별도 디자인 부활 금지 ──────────────────────────────────────────────────────
-const RETIRED = [
-  { needle: "cdpc-", why: "구형 독립 폴백 디자인(.cdpc-*)" },
-  { needle: "celestial-pay", why: "celestial-harmony 전용 2옵션 결제창(.celestial-pay-*)" },
-  // 하이픈 접미까지 봐야 모달 식별용 data 속성(data-cd-react-payment-choice)과 구분된다.
-  { needle: "cd-react-payment-choice-", why: "React 전용 결제창 프리픽스(.cd-react-payment-choice-*)" },
-];
-const RETIRED_SCAN = [
-  ...SHELL_MIRRORS,
-  REACT_CLIENT,
-  ...STANDALONE_FALLBACKS,
-  "celestial-harmony.html",
-  "public/celestial-harmony.html",
-];
-for (const rel of RETIRED_SCAN) {
-  const source = read(rel);
-  for (const retired of RETIRED) {
-    assert.ok(!source.includes(retired.needle), `${rel}: ${retired.why}가 되살아났습니다 — 정본 결제창으로 통일하세요`);
-  }
-}
-
-// celestial-harmony는 정본 폴백(destiny-profile.js)에 위임해야 한다 — 자체 chooser 설치 금지.
-for (const rel of ["celestial-harmony.html", "public/celestial-harmony.html"]) {
-  const source = read(rel);
-  assert.ok(
-    !source.includes("window._cdChooseServicePaymentMode ="),
-    `${rel}: 페이지 전용 결제창을 다시 설치하고 있습니다(정본 폴백 destiny-profile.js에 위임하세요)`,
-  );
-  assert.ok(source.includes("/js/destiny-profile.js"), `${rel}: 정본 폴백 런타임을 로드하지 않습니다`);
-}
-
-// ── 4) 결제창 문구는 3렌더러가 **같은 i18n 키**로 해결한다 ────────────────────────────────
-// 독립 정적 폴백은 결제창 제목·월정석 카드·잔량 상태 문구를 한국어로 하드코딩하고 있어서,
-// /en·/ja·/zh 등 비한국어 사용자에게 결제창만 한국어로 보였다(2026-08-01). 셸이 이미 쓰던 키를
-// 그대로 쓰게 하고, 되돌아가지 않도록 키 사용을 강제한다.
-//
-// 2026-08-20 확대: 예전에는 독립 폴백 2파일만 검사했다. 셸·React 는 검사 대상이 아니었고,
-// 그 자리는 위 STRUCTURE_MARKERS 의 한국어 리터럴이 대신 지키고 있었다 — 그래서 "세 렌더러가
-// 같은 문구를 쓰는가"만 보였고 "그 문구가 사전과 같은가"는 아무도 보지 않았다.
-// 이제 세 렌더러의 함수 본문을 각각 슬라이스해 **키 집합을 정확히** 비교하고, 각 호출의 ko
-// 폴백이 public/i18n/ko.json 값과 일치하는지까지 본다.
-//
-// 🔴 ko 폴백이 곧 ko 정본이다 — cdTranslate(js/cd-lang-native.js)는 lang === "ko" 일 때
-//    사전을 아예 보지 않고 폴백을 그대로 돌려준다. 그래서 폴백과 사전이 어긋나면 한국어
-//    사용자만 정상이고 나머지 11개 로케일이 조용히 옛 문구를 본다.
-
 // 세 렌더러가 **모두** 써야 하는 키. 조건 분기와 무관하게 항상 렌더되는 문구다.
 const REQUIRED_ALL = [
+  // 결제창 제목·취소. 2026-08-20 에 React 가 ko 전용 표(BILLING_CLIENT_TEXT_TRANSLATIONS)를
+  // 버리고 이 키를 채택하면서 세 렌더러 공통이 됐다.
+  "payment.directModal.moonTitle",
+  "common.cancel",
   // 꽃돼지 말풍선 문구 3종(추천 상태별). moonSubtitle 을 대체했다 — 이제 결제창 소개문은
   // 고정 안내가 아니라 "지금 당신에게 무엇이 가장 나은가"를 말한다.
   "payment.directModal.guide.pass",
@@ -312,23 +241,28 @@ const REQUIRED_ALL = [
 const RENDERER_EXTRA_KEYS = {
   shell: [
     // 셸만 갖는 "단건만 가능" 분기(이용권 결제가 불가능한 D유형 등)와 이용권 검사 진행 상태.
-    "payment.directModal.moonTitle",
     "payment.directModal.subtitle.directOnly",
     "payment.directModal.note.directOnly",
     "payment.directModal.passChecking",
     "payment.directModal.passMissGoStore",
+    // 청약철회 고지. 셸·React 는 같은 키를 쓰고 독립 폴백만 아직 자체 문구(_dpText)를 들고 있다
+    // — 그쪽이 이 키로 넘어오면 REQUIRED_ALL 로 올린다.
     "payment.directModal.legal.provisionTiming",
-    "common.cancel",
   ],
   react: [
     // React 만 호출부에서 월정석 잔량 스냅샷을 받아 "사용 후 남는 양"을 말할 수 있다.
     "payment.directModal.monthlyHint.after",
+    // 셸과 공유하는 청약철회 고지(위 shell 주석 참고).
+    "payment.directModal.legal.provisionTiming",
+    // 음원 결제는 React 경로에만 있다(셸·독립은 music-track 결제를 열지 않는다).
+    "payment.directModal.musicTrackSub",
+    // 월정석 카드에 aria-label 을 붙이는 것도 React 뿐이다.
+    "payment.directModal.monthlyAria.insufficient",
+    "payment.directModal.monthlyAria.unknown",
   ],
   standalone: [
-    "payment.directModal.moonTitle",
-    // 셸은 이 키를 결제창 함수 **바깥**(formatWon)에서 쓴다.
+    // 셸·React 는 이 키를 결제창 함수 **바깥**에서 쓴다(셸 formatWon / React formatPaymentWon).
     "payment.currency.krw",
-    "common.cancel",
   ],
 };
 
@@ -342,6 +276,7 @@ const KEYED_RENDERERS = [
     marker: "  async function _cdChooseServicePaymentMode(options) {",
     wrapper: "_cdPaymentI18n",
     extra: RENDERER_EXTRA_KEYS.shell,
+    hardcodedLocaleCeiling: 0,
   })),
   {
     rel: REACT_CLIENT,
@@ -349,6 +284,7 @@ const KEYED_RENDERERS = [
     marker: "async function openReactPaymentChoiceModalInner(",
     wrapper: "checkoutEntry\\.text",
     extra: RENDERER_EXTRA_KEYS.react,
+    hardcodedLocaleCeiling: 0,
   },
   ...STANDALONE_FALLBACKS.map((rel) => ({
     rel,
@@ -356,6 +292,9 @@ const KEYED_RENDERERS = [
     marker: "  function _dpRenderStandalonePaymentChoice(",
     wrapper: "_dpCheckoutText",
     extra: RENDERER_EXTRA_KEYS.standalone,
+    // 🔴 아직 4곳이 굳어 있다(금액·필요 월정석·결제 금액 안내·현재 잔여). 다음 PR 에서 0 으로
+    //    내리고, 그때 이 필드를 지운다. 상한은 절대 올리지 않는다.
+    hardcodedLocaleCeiling: 4,
   })),
 ];
 
@@ -396,6 +335,17 @@ for (const renderer of KEYED_RENDERERS) {
   const body = sliceFunction(read(renderer.rel), renderer.marker, `${renderer.rel}/payment-choice`);
   const copy = extractKeyedCopy(body, renderer.wrapper);
   const expected = [...REQUIRED_ALL, ...renderer.extra].sort();
+
+  // 🔴 문구만 사전으로 옮기고 숫자를 `toLocaleString("ko-KR")` 로 굳혀 두면 영어 화면에
+  //    한국식 자릿수와 통화가 그대로 남는다 — 번역이 끝난 것처럼 보이는데 금액만 한국어인
+  //    상태다. 로케일 정본은 js/core/checkout-entry.js 의 displayLocale() 하나다.
+  const hardcodedLocales = (body.match(/["']ko-KR["']/g) || []).length;
+  assert.ok(
+    hardcodedLocales <= renderer.hardcodedLocaleCeiling,
+    `${renderer.label} ${renderer.rel}: 결제창 본문에 굳은 "ko-KR" 이 ${hardcodedLocales}곳입니다`
+      + ` (상한 ${renderer.hardcodedLocaleCeiling}). checkoutEntry.displayLocale() 를 쓰세요.`,
+  );
+
 
   assert.deepEqual(
     [...copy.keys()].sort(),

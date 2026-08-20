@@ -1740,6 +1740,11 @@
       "monthlyTitle": "用月精石打開",
       "requiredMonthly": "所需月定石",
       "currentMonthly": "当前余额",
+      "musicTrackSub": "擁有月光通行券即可立即聆聽全部曲目。MP3 下載僅限單次購買或以月精石購買的曲目。",
+      "monthlyAria": {
+        "insufficient": "餘量不足",
+        "unknown": "需要確認餘量"
+      },
       "subtitle": {
         "withPass": "显示金额与月定石基准相同。可使用通行券或银行卡单次支付开启此内容。",
         "directOnly": "显示金额与月定石基准相同。可继续银行卡单次支付。"
