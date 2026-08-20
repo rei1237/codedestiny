@@ -9,6 +9,7 @@
  */
 
 import { readFileSync } from "node:fs";
+import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
 import { AI_OUTPUT_LOCALES, buildOutputLanguageDirective } from "../lib/i18n/ai-locale.js";
 
@@ -178,10 +179,111 @@ function assert(condition, message) {
   );
 }
 
+// (10)(11) 비-ko 응답을 망가뜨리는 두 형태를 소스에서 전수로 잡는다.
+//
+// 🔴 손으로 쓴 대상 목록을 두지 않는다(원칙 10) — LLM 을 부르는 worker 파일을 git 에서
+//    전수 발견하고, 새 라우트가 같은 실수를 하면 그 파일에서 실패한다.
+{
+  // git grep 은 0건이면 exit 1 이다. 그대로 두면 스크립트가 알 수 없는 오류로 죽어
+  // '왜 실패했는지' 가 사라진다 — 빈 목록으로 받아 아래 바닥 단언이 말하게 한다.
+  let aiFiles = [];
+  try {
+    aiFiles = execFileSync("git", ["grep", "-l", "callGeminiText\\|callLLM\\|callGeminiJson", "--", "worker/"], { cwd: root, encoding: "utf8" })
+      .split("\n")
+      .filter(Boolean);
+  } catch (grepError) {
+    aiFiles = [];
+  }
+  assert(
+    aiFiles.length >= 20,
+    `LLM 호출 파일을 ${aiFiles.length}개만 찾았다 — 이 검사가 대상 없이 통과할 뻔했다`,
+  );
+
+  // (11) ko 금지 패턴을 비-ko 응답에 그대로 돌리면 **평범한 단어가 반려된다.**
+  //
+  //      단어 목록으로 판정하지 않는다 — 목록은 낡는다. 12개 로케일의 평범한 상담 문장을
+  //      두고 패턴을 실제로 돌려 본다. 실측(2026-08-20)으로 잡힌 것:
+  //        · /\bjob\b|\bprogress\b/  → "Your job situation improves and progress comes" 반려
+  //        · /\bAI\b/i               → 프랑스어 "J'ai", 베트남어 "Ai" 반려 (두 언어의 최빈 단어)
+  //        · /chapter/i              → "A chapter of your life closes" 반려
+  //
+  //      걸리는 패턴은 worker/lib/llm-leak-guard.js 의 resolveForbiddenPatterns 를 거쳐야 한다.
+  //      ko 에서는 넘긴 패턴을 그대로 돌려주므로 한국어 판정은 바뀌지 않는다.
+  const ORDINARY_PROSE = [
+    ["en", "Your job situation improves and steady progress comes through the year."],
+    ["en", "A chapter of your life closes quietly and a calmer one opens."],
+    ["fr", "J'ai confiance en votre chemin, et le travail avance doucement."],
+    ["vi", "Ai cũng có lúc gặp khó khăn, nhưng công việc của bạn sẽ ổn định."],
+    ["de", "Dein Job stabilisiert sich und die Verantwortung waechst langsam."],
+    ["es", "Tu casa profesional se fortalece y el trabajo avanza con calma."],
+    ["nl", "Je werk wordt rustiger en er komt stap voor stap vooruitgang."],
+    ["ms", "Kerjaya anda menjadi lebih stabil dan rezeki datang perlahan."],
+    ["hi", "इस वर्ष आपका करियर मजबूत होगा और काम में प्रगति दिखाई देगी।"],
+    ["ja", "今年は仕事の流れが安定し、責任が少しずつ増えていきます。"],
+    ["zh-CN", "今年事业运稳定，工作上的责任会慢慢加重。"],
+    ["ko", "올해는 직장 운이 안정되고 꾸준한 성과가 따릅니다."],
+  ];
+  const HANGUL = /[가-힣]/;
+  for (const rel of aiFiles) {
+    const source = read(rel);
+    const decls = [...source.matchAll(/^const ([A-Z0-9_]+) = \/(.+?)\/([gimsuy]*);$/gm)];
+    for (const [, name, body, flags] of decls) {
+      if (!HANGUL.test(body)) continue; // ko 전용 패턴만 대상
+      if (!new RegExp(`${name}\\.test\\(`).test(source)) continue; // 응답에 안 쓰이면 무관
+      // 🔴 면제는 두지 않는다. leak-guard 를 거치는 패턴은 `${name}.test(` 형태가 아예 없어
+      //    위 조건에서 이미 걸러진다. '이 파일은 leak-guard 를 쓴다' 같은 파일 단위 면제를
+      //    두면 안 쓰이는 헬퍼 한 줄만 남겨도 그 파일이 통째로 검사 밖으로 나간다(실측 2026-08-20).
+      let pattern;
+      try { pattern = new RegExp(body, flags.replace("g", "")); } catch { continue; }
+      const hits = ORDINARY_PROSE.filter(([locale, text]) => locale !== "ko" && pattern.test(text));
+      assert(
+        hits.length === 0,
+        `${rel}: ${name} 이 비-ko 의 평범한 상담 문장을 반려한다 — `
+          + `${hits.map(([locale, text]) => `${locale} "${text.slice(0, 46)}…"`).join(" · ")}\n`
+          + `    worker/lib/llm-leak-guard.js 의 resolveForbiddenPatterns 를 거치게 하라(ko 판정은 안 바뀐다).`,
+      );
+    }
+  }
+  // (10) 한국어 토큰이 **있어야** 통과하는 앵커 검사. 비-ko 에서는 원리적으로 통과할 수 없어
+  //      정상 응답이 매번 반려되고, 재생성·repair 왕복이 헛돈다.
+  //      정본 선례: destiny-compass.js isFaithful · fortune-tea-house.js koreanAnchorsApply
+  const ANCHOR_GATES = [
+    {
+      rel: "worker/routes/fortune-tea-house.js",
+      marker: "function assertTarotAnchorCoverage(joined, result, fallback) {",
+      expect: /^function assertTarotAnchorCoverage\([^)]*\) \{\s*\n\s*if \(!koreanAnchorsApply\(\)\) return;/m,
+      hint: "assertTarotAnchorCoverage 는 비-ko 에서 통째로 건너뛰어야 한다",
+    },
+    {
+      rel: "worker/routes/fortune-tea-house.js",
+      marker: "fallback.consultationMode === \"sajuCompatibility\"",
+      expect: /if \(koreanAnchorsApply\(\) && fallback\.consultationMode === "sajuCompatibility"/,
+      hint: "사주 궁합 앵커(상대 이름·일간 천간)는 ko 에서만 검사해야 한다",
+    },
+    {
+      rel: "worker/routes/fortune-tea-house.js",
+      marker: "!detailText.includes(cardName)",
+      expect: /if \(koreanAnchorsApply\(\) && cardName && !detailText\.includes\(cardName\)\)/,
+      hint: "카드 이름(nameKo) 앵커는 ko 에서만 검사해야 한다",
+    },
+    {
+      rel: "worker/routes/destiny-compass.js",
+      marker: "function isFaithful(",
+      expect: /if \(\(getAmbientAiLocale\(\) \|\| "ko"\) !== "ko"\) return true;/,
+      hint: "isFaithful 의 라벨·금지어 검사는 ko 전용이어야 한다",
+    },
+  ];
+  for (const gate of ANCHOR_GATES) {
+    const source = read(gate.rel);
+    assert(source.includes(gate.marker), `${gate.rel}: 앵커 게이트 마커(${gate.marker})를 찾지 못했다 — 이 검사가 무력화됐다`);
+    assert(gate.expect.test(source), `${gate.rel}: ${gate.hint}`);
+  }
+}
+
 if (failures.length) {
   console.error("[verify:ai-locale-pipeline] FAILED");
   for (const message of failures) console.error(`  - ${message}`);
   process.exit(1);
 }
 
-console.log("[verify:ai-locale-pipeline] ok (9 invariants)");
+console.log("[verify:ai-locale-pipeline] ok (11 invariants)");

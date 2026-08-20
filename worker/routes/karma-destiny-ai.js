@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
@@ -384,6 +385,16 @@ const GENERATION_STAGES = Object.freeze([
 // 게다가 cleanForbiddenResult 가 배달 본문을 "면역 상담 흐름"으로 훼손한다.
 // 「건강 에너지」장(chapter-09)이 신설되면서 오탐은 가능성이 아니라 확정이 됐다.
 const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|챕터|\bchapter\b|\bprogress\b|\bjob\b|프롬프트|시스템\s*(?:메시지|지시)|rawProviderDebug|providerReason|maxOutputTokens|(?:AI|인공지능)\s*(?:가|이|는|은|를|을|로|로서|에\s*의해)?\s*(?:생성|작성|제작|답변|응답|만들)|(?:저는|제가|나는)\s*(?:AI|인공지능|언어\s*모델)|서버 계산 데이터/i;
+
+// 🔴 위 패턴은 **ko 전용**이다. `\bjob\b`·`\bprogress\b`·`\bAI\b`·`chapter` 는 영어·독일어
+//    상담문에서 자연스러운 단어라, 비-ko 응답에 그대로 돌리면 모델이 정상적으로 답해도 반려된다
+//    (실측 2026-08-20: "Your job situation improves and progress comes steadily" → 반려).
+//    llm-leak-guard 가 정확히 이 상황을 위해 있다 — ko 면 넘긴 패턴을 그대로 돌려주므로
+//    **한국어 판정은 한 글자도 바뀌지 않고**, 비-ko 면 보편 패턴 + 로케일 패턴으로 갈아탄다.
+function hasForbiddenResult(value) {
+  const body = String(value ?? "");
+  return resolveForbiddenPatterns(FORBIDDEN_RESULT_PATTERN).some((pattern) => pattern.test(body));
+}
 
 function clean(value, maxLength = 0) {
   const text = String(value ?? "").trim();
@@ -1435,7 +1446,7 @@ function validatePremiumReportQuality(chapters, options = {}) {
   // ⚠️ 아래 두 경고는 ok 계산에 넣지 않는다. 오탐이 하드 실패가 되면 결제 후 무결과가 된다.
   const lensRoleWarnings = detectLensRoleViolation(ordered);
   const conclusionOverlapWarnings = detectCrossChapterConclusionOverlap(ordered);
-  const promptLeakDetected = FORBIDDEN_RESULT_PATTERN.test(reportText);
+  const promptLeakDetected = hasForbiddenResult(reportText);
   const ok = totalChars >= minLength
     && ordered.length >= chapterMinCount
     && missingChapters.length === 0
@@ -1482,7 +1493,7 @@ function validateInitialConsultationQuality(text, options = {}) {
 }
 
 async function repairForbiddenConsultationText(env, text, systemPrompt, options = {}) {
-  if (!FORBIDDEN_RESULT_PATTERN.test(text)) return clean(text);
+  if (!hasForbiddenResult(text)) return clean(text);
   const repair = await callGeminiText(env, [
     "다음 상담 답변에서 시스템성 표현과 작업 용어를 모두 제거하고, 자연스러운 운명의 업 상담문으로만 다시 써주세요.",
     "16개 장 제목과 전체 분량은 유지하고, 상담가가 직접 말하는 문장만 남겨주세요.",
@@ -1632,7 +1643,7 @@ async function generateConsultationText(env, prompt, options = {}) {
     error.providerDiagnostics = providerDiagnostics;
     throw error;
   }
-  if (!FORBIDDEN_RESULT_PATTERN.test(text)) return { text, provider, model: clean(ai?.model) };
+  if (!hasForbiddenResult(text)) return { text, provider, model: clean(ai?.model) };
 
   const repair = await callGeminiText(env, [
     "다음 상담 답변에서 시스템성 표현과 작업 용어를 모두 제거하고, 자연스러운 운명의 업 상담문으로만 다시 써주세요.",
