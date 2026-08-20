@@ -328,8 +328,9 @@ const i18nRouteGroups = [
   // 두 URL이 완전히 같은 컴포넌트를 렌더해 title/description이 동일하므로, sitemap에 두 개를
   // 함께 넣으면 verify-adsense-readiness.mjs 의 "duplicate sitemap title" 검사에 걸린다.
   // /terms-of-service 자신도 canonical 을 /terms 로 잡아 이 dedup 을 이미 따르고 있다(coreRoutes
-  // 참고). refund-policy는 ko 전용 URL이 없으므로(실질은 /terms-of-service 12조에 있음) 이 그룹에
-  // ko를 넣지 않는다 — x-default는 이 그룹만 "/"로 폴백된다(buildI18nAlternates 참고).
+  // 참고). refund-policy는 2026-08-20 에 ko 전용 URL(/refund-policy)이 생겼다 — 그 전에는 이 그룹만
+  // x-default가 "/"로 폴백돼 정책 페이지 묶음이 홈을 기본값으로 가리키고 있었다.
+  // 🔴 이 세 그룹은 lib/i18n/routes.ts 의 I18N_POLICY_ROUTE_MAP 과 **같은 값이어야 한다.**
   {
     paths: { ko: "/terms", ja: "/ja/terms-of-service", zh: "/zh/terms-of-service", "zh-TW": "/zh-tw/terms-of-service", en: "/en/terms-of-service" },
     changefreq: "yearly",
@@ -341,7 +342,7 @@ const i18nRouteGroups = [
     priority: 0.55,
   },
   {
-    paths: { ja: "/ja/refund-policy", zh: "/zh/refund-policy", "zh-TW": "/zh-tw/refund-policy", en: "/en/refund-policy" },
+    paths: { ko: "/refund-policy", ja: "/ja/refund-policy", zh: "/zh/refund-policy", "zh-TW": "/zh-tw/refund-policy", en: "/en/refund-policy" },
     changefreq: "yearly",
     priority: 0.5,
   },
