@@ -167,7 +167,7 @@
   },
 
   "shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.k18ykrep": {
-    "ko": "로그인 무료 1회",
+    "ko": "회원가입 무료 1회",
     "en": "1 free after signing in",
     "ja": "ログインで無料1回",
     "zh-CN": "登录后免费1次",
@@ -182,7 +182,7 @@
   },
 
   "shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n115000": {
-    "ko": "회원가입 후 1회 무료 · 이후 1회 5,000원",
+    "ko": "이후 1회 5,000원",
     "en": "1 free after signing up · ₩5,000 each after",
     "ja": "会員登録後1回無料・以降1回5,000ウォン",
     "zh-CN": "注册后免费1次 · 之后每次5,000韩元",

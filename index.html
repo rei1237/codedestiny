@@ -12394,12 +12394,15 @@ html body .dp-destiny-panel{margin:0 16px 14px}
 html body #dpDestinyPanel > #dpMasterCard{margin:0!important}
 html body #dpDestinyPanel > #destinyCardForm{margin:0 auto!important;border-top-left-radius:0;border-top-right-radius:0}
 html body .dp-destiny-panel:not(.is-form-open) > #destinyCardForm{display:none!important}
-html body .dp-destiny-panel__toggle{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;min-height:48px;margin:10px 0 0;padding:12px 18px;font:inherit;font-weight:800;font-size:.95rem;line-height:1.2;color:var(--cd-accent,#b31955);cursor:pointer;border-radius:14px;background:color-mix(in srgb,var(--cd-accent,#b31955) 8%,transparent);border:1px solid var(--cd-border,rgba(216,63,120,.2))}
-html.neo-mode body .dp-destiny-panel__toggle{color:var(--cd-gold,#e8d5a3);background:rgba(196,181,253,.1);border-color:rgba(196,181,253,.4)}
+html body .dp-destiny-panel__toggle{position:relative;display:flex;align-items:center;justify-content:center;gap:10px;width:100%;min-height:64px;margin:16px 0 0;padding:16px 28px;font:inherit;font-weight:800;font-size:1.08rem;line-height:1.2;color:var(--cd-cta-text,#3c1830);cursor:pointer;border-radius:var(--cd-r-pill,999px);background:var(--cd-cta,linear-gradient(135deg,#fff8dc 0%,#ead089 48%,#f4bed1 100%));border:1px solid var(--cd-hairline,rgba(234,208,137,.55));box-shadow:var(--cd-elev-0,0 4px 12px rgba(150,72,104,.07),inset 0 1px 0 rgba(255,255,255,.82));transition:transform .2s var(--cd-ease-out,cubic-bezier(.22,.61,.36,1)),box-shadow .2s ease,filter .2s ease}
+html body .dp-destiny-panel__toggle:hover{transform:translateY(-2px);filter:brightness(1.05);box-shadow:0 0 0 1px var(--cd-hairline,rgba(234,208,137,.55)),0 18px 36px var(--cd-glow-color,rgba(179,25,85,.3))}
+html body .dp-destiny-panel__toggle:active{transform:translateY(0) scale(.98);filter:brightness(.97)}
 html body .dp-destiny-panel__toggle:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
-html body .dp-destiny-panel__chevron{font-size:1.05rem;line-height:1;transition:transform .18s ease}
+html body .dp-destiny-panel__toggle-icon{display:inline-flex;flex:none;width:28px;height:28px;color:var(--cd-cta-text,#3c1830)}
+html body .dp-destiny-panel__toggle-icon svg{display:block;width:100%;height:100%}
+html body .dp-destiny-panel__chevron{font-size:1.2rem;line-height:1;transition:transform .18s ease}
 html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__chevron{transform:rotate(180deg)}
-@media (prefers-reduced-motion:reduce){html body .dp-destiny-panel__chevron{transition:none}}
+@media (prefers-reduced-motion:reduce){html body .dp-destiny-panel__toggle{transition:none}html body .dp-destiny-panel__chevron{transition:none}}
       </style>
     <!-- 프로필 카드 + 종합 운세 입력폼 한 몸 패널 (home-profile-card-form-panel-v20260820).
          프로필 카드는 홈 초기 화면에 보이고, 입력폼은 아래 토글로 열기 전까지 접혀 있다.
@@ -12448,6 +12451,17 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
       <!-- 폼을 여는 유일한 버튼. 문구는 폼 제목과 같은 키(home.input.title)를 재사용한다 —
            셸에 새 카피를 추가하면 public/i18n 로케일 사전을 전부 손으로 채워야 한다. -->
       <button type="button" class="dp-destiny-panel__toggle" id="dpDestinyFormToggle" aria-expanded="false" aria-controls="destinyCardForm">
+        <span class="dp-destiny-panel__toggle-icon" aria-hidden="true">
+          <svg width="28" height="28" viewBox="0 0 32 32" fill="none">
+            <ellipse cx="16" cy="7.6" rx="4.2" ry="7.1" fill="currentColor" opacity="0.7"></ellipse>
+            <ellipse cx="16" cy="24.4" rx="4.2" ry="7.1" fill="currentColor" opacity="0.44"></ellipse>
+            <ellipse cx="7.6" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.52"></ellipse>
+            <ellipse cx="24.4" cy="16" rx="7.1" ry="4.2" fill="currentColor" opacity="0.6"></ellipse>
+            <ellipse cx="10.1" cy="10.1" rx="3.5" ry="6.2" fill="currentColor" opacity="0.5" transform="rotate(-45 10.1 10.1)"></ellipse>
+            <ellipse cx="21.9" cy="21.9" rx="3.5" ry="6.2" fill="currentColor" opacity="0.38" transform="rotate(-45 21.9 21.9)"></ellipse>
+            <circle cx="16" cy="16" r="4.1" fill="rgba(255,250,235,0.96)" stroke="rgba(157,23,77,0.24)" stroke-width="0.8"></circle>
+          </svg>
+        </span>
         <span class="dp-destiny-panel__toggle-text" data-cd-trans data-key="home.input.title">종합 운세의 꽃문 열기</span>
         <span class="dp-destiny-panel__chevron" aria-hidden="true">⌄</span>
       </button>
@@ -14375,12 +14389,12 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
             <a class="fortune-gateway__door fortune-gateway__door--chat" href="/fortune-chat/">
               <span class="fortune-gateway__door-art" aria-hidden="true">
                 <span class="fortune-gateway__door-halo"></span>
-                <img src="/images/fortune-tea-house/flower-pig-honey-hug.webp" alt="" width="360" height="360" loading="lazy" decoding="async">
+                <img src="/images/fortune-tea-house/flower-pig-single-b.webp" alt="" width="360" height="360" loading="lazy" decoding="async">
               </span>
               <span class="fortune-gateway__door-kicker">FORTUNE CHAT</span>
               <strong class="fortune-gateway__door-title" data-cd-trans="shell.fortuneGatewayDoors.fortuneGatewayDoor.k69nrae">연이 운명 상담</strong>
               <span class="fortune-gateway__door-desc" data-cd-trans="shell.fortuneGatewayDoors.fortuneGatewayDoor.k1tbc6n5">한 가지 고민에서 시작해, 따뜻한 연이와 직설적인 네오가 지금의 흐름을 정리해 드려요.</span>
-              <span class="fortune-gateway__door-meta"><b data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.k18ykrep">로그인 무료 1회</b><i data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n115000">회원가입 후 1회 무료 · 이후 1회 5,000원</i></span>
+              <span class="fortune-gateway__door-meta"><b data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.k18ykrep">회원가입 무료 1회</b><i data-cd-trans="shell.fortuneGatewayDoor.fortuneGatewayDoorMeta.n115000">이후 1회 5,000원</i></span>
               <span class="fortune-gateway__door-go">상담 시작하기<em aria-hidden="true">→</em></span>
             </a>
             <a class="fortune-gateway__door fortune-gateway__door--fusion" href="/fusion-fortune/">
@@ -17730,15 +17744,9 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
       </a>
     </nav>
 
-    <div class="post-saju-services-intro" role="note" aria-live="polite">
-      <span class="post-saju-services-intro__kicker" data-cd-trans data-key="home.mapIntro.kicker">DESTINY CARD COLLECTION</span>
-      <strong data-cd-trans data-key="home.mapIntro.title">달빛 지도 위에 놓인 운명의 문을 열어보세요</strong>
-      <span data-cd-trans data-key="home.mapIntro.desc">타로와 신탁, 운명의 꽃과 해몽, 명상과 프리미엄 리포트까지. 지금 필요한 징조가 은은한 카드의 결 안에서 조용히 빛납니다.</span>
-    </div>
 
 
-    
-    
+
 
     
 <script>
@@ -23086,7 +23094,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-7dbc3188e350" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-7dbc3188e350" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-7dbc3188e350" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-7dbc3188e350" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
