@@ -25,10 +25,11 @@ test("fortune planner entry is folded into the diary modal", () => {
   assert.match(html, /id="cdDiaryPlannerTitle">운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
   // 다이어리 진입은 접힌 섹션 안에 남는다 — 지운 것이 아니라 감춘 것임을 여기서 못박는다.
   assert.match(html, /<section data-cd-home-secondary class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
-  // 2026-08-19(cd-finder-v20260819): 대표 상담이 통합 탐색기 바로 아래로 승격되면서 무료 사주 폼
-  // **앞**으로 올라왔다. 그 전(cd-home-secondary-v20260817)에는 폼 뒤였다 — 순서가 뒤집힌 것은
-  // 회귀가 아니라 이 개편의 의도다. 폼 자체는 접힌 채 그대로 있다.
-  assert.ok(html.indexOf('id="cdSignatureConsult"') < html.indexOf('id="destinyCardForm"'));
+  // 2026-08-20(home-profile-card-form-panel-v20260820): 프로필 카드 + 폼 패널이 히어로 바로
+  // 아래·페이지 맨 위로 승격되며 대표 상담(cdSignatureConsult)보다도 앞으로 올라왔다.
+  // 2026-08-19(cd-finder-v20260819)에는 대표 상담이 통합 탐색기 바로 아래로 승격되며 폼보다
+  // 앞이었다 — 이번에 다시 뒤집힌 것은 회귀가 아니라 이 개편의 의도다. 폼 자체는 접힌 채 그대로 있다.
+  assert.ok(html.indexOf('id="destinyCardForm"') < html.indexOf('id="cdSignatureConsult"'));
   // 2026-08-20(home-profile-card-form-panel-v20260820): 폼을 감추는 방식이 바뀌었다. 이제 폼은
   // 프로필 카드와 한 패널(#dpDestinyPanel) 안에 있고, 패널이 열리기 전까지 CSS 로 감춘다.
   // data-cd-home-secondary 를 쓰지 않는 이유는 그 속성이 프로필 시트로 노드째 대여될 때도
