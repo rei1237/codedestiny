@@ -581,34 +581,11 @@ button,input,select,textarea{font-family:var(--font-body)!important}
 
     <div class="flex gap-2">
       <input id="by" type="number" placeholder="연도(예: 1998)" min="1900" max="2026" class="inp" style="flex:3" oninput="onY()">
-      <select id="bm" class="inp" style="flex:2">
-        <option value="">월</option>
-        <option value="1">1월</option><option value="2">2월</option><option value="3">3월</option>
-        <option value="4">4월</option><option value="5">5월</option><option value="6">6월</option>
-        <option value="7">7월</option><option value="8">8월</option><option value="9">9월</option>
-        <option value="10">10월</option><option value="11">11월</option><option value="12">12월</option>
-      </select>
-      <select id="bd" class="inp" style="flex:2">
-        <option value="">일</option>
-        <script>for(var _d=1;_d<=31;_d++){document.write('<option value="'+_d+'">'+_d+'일</option>');}</script>
-      </select>
+      <input id="bm" type="text" inputmode="numeric" maxlength="2" placeholder="월" class="inp" style="flex:2" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)">
+      <input id="bd" type="text" inputmode="numeric" maxlength="2" placeholder="일" class="inp" style="flex:2" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)">
     </div>
 
-    <select id="bh" class="inp">
-      <option value="">태어난 시 (모르면 선택 안 해도 됩니다)</option>
-      <option value="0">자시 (23~01시, 밤 11시~새벽 1시)</option>
-      <option value="2">축시 (01~03시)</option>
-      <option value="4">인시 (03~05시)</option>
-      <option value="6">묘시 (05~07시)</option>
-      <option value="8">진시 (07~09시)</option>
-      <option value="10">사시 (09~11시)</option>
-      <option value="12">오시 (11~13시, 정오)</option>
-      <option value="14">미시 (13~15시)</option>
-      <option value="16">신시 (15~17시)</option>
-      <option value="18">유시 (17~19시)</option>
-      <option value="20">술시 (19~21시)</option>
-      <option value="22">해시 (21~23시)</option>
-    </select>
+    <input id="bh" type="text" inputmode="numeric" maxlength="2" placeholder="태어난 시 0~23 (모르면 비워두세요)" class="inp" oninput="this.value=this.value.replace(/\D/g,'').slice(0,2)">
 
     <div id="zb" class="zbadge"><span class="font-n text-sm" style="color:#bbb">연도를 입력하면 띠가 나타납니다</span></div>
 
