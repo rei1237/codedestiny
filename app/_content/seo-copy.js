@@ -1,3 +1,5 @@
+import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
+
 export const HOME_FAQ_SECTION_COPY = {
   heading: "무료 사주 · 자미두수 운세 분석 기초 지식 & 자주 묻는 질문",
   intro:
@@ -95,10 +97,12 @@ export const ABOUT_PAGE_COPY = {
     ["서비스명", "Code Destiny — 꿀꿀 만세력"],
     ["사이트 주소", "https://code-destiny.com"],
     ["운영 주체", "코드 데스티니"],
-    ["사업자등록번호", "372-23-02329"],
+    ["사업자등록번호", BUSINESS_IDENTITY.registrationNumber],
     ["서비스 개시", "2026년"],
     ["주요 제공 서비스", "사주풀이, 타로, 점성술, 자미두수, 숙요점, 동물관상, 꿈 해몽, 궁합 등 20종 이상"],
-    ["지원 언어", "한국어·영어·일본어·중국어·힌디어·스페인어·프랑스어·독일어·네덜란드어·말레이어 (10개 언어)"],
+    // 🔴 베트남어가 빠져 있었고 중국어 간체·번체를 하나로 세어 10개로 적혀 있었다.
+    //    실제 런타임 로케일은 12개다(lib/i18n/locale-normalize.js RUNTIME_LOCALES).
+    ["지원 언어", "한국어·영어·일본어·중국어(간체·번체)·베트남어·힌디어·스페인어·프랑스어·독일어·네덜란드어·말레이어 (12개 언어)"],
   ],
   serviceItems: [
     "사주팔자 풀이 — 생년월일시 기반 사주 명반·대운·세운 해석 (무료)",

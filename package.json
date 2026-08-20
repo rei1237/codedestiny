@@ -168,6 +168,7 @@
     "verify:monthly-credit-expiry": "node scripts/verify-monthly-credit-expiry-flow.mjs",
     "verify:admin-feedback-bug-reward": "node scripts/verify-admin-feedback-bug-reward.mjs",
     "verify:billing-pass-policy": "node scripts/verify-billing-pass-policy.mjs",
+    "verify:business-identity": "node scripts/verify-business-identity.mjs",
     "verify:checkout-auth-recovery": "node scripts/verify-checkout-auth-recovery.mjs",
     "verify:direct-confirm-pending-recovery": "node scripts/verify-direct-confirm-pending-recovery.mjs",
     "verify:payment-service-boundary": "node scripts/verify-payment-service-boundary.mjs",

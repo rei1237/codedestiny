@@ -4424,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "商号",
-    "companyValue": "：代码命运",
+    "companyValue": "：코드 데스티니 (Code Destiny)",
     "representativeLabel": "代表人",
-    "representativeValue": "：朴秉河",
+    "representativeValue": "：박병하",
     "registrationLabel": "营业执照号",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "通信销售备案号",
-    "mailOrderValue": "：2026-Hwaseongho-0264",
+    "mailOrderValue": "：제 2026-화성호-0264 호",
     "contactLabel": "联系方式",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "邮箱",
     "emailValue": "：admin@code-destiny.com",
     "addressLabel": "地址",
     "officeAddressLabel": "营业地址",
-    "addressValue": ": 京畿道华城市孝恒区飞峰面新飞峰东路 37 号 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "正在准备星光邀请链接...",

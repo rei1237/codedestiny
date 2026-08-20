@@ -1,15 +1,29 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
-import { OPERATOR_NAME, SUPPORT_EMAIL } from "../../../lib/site-policy-config";
+import {
+  BUSINESS_IDENTITY,
+  BUSINESS_PHONE_INTL,
+  SUPPORT_EMAIL,
+} from "../../../lib/site-policy-config";
 
+/**
+ * 🔴 사업자 표기 값은 **등록된 원문 그대로** 쓴다. 라벨만 일본어다.
+ *
+ * 2026-08-20 이전에는 이 페이지가 신고번호를 `第2026-火城湖-0264号` 로, 대표자명을 `朴炳夏` 로,
+ * 주소를 `京畿道 華城市 孝行区 飛鳳面…` 으로 옮겨 적고 있었다. 셋 다 등록 원문이 아니고,
+ * 특히 신고번호는 같은 페이지 주소가 쓰는 `華城` 과도 어긋나 문서 안에서 지명이 두 한자로 갈렸다
+ * (사전 public/i18n/ja.json 은 또 다른 값 `2026-華城湖-0264` 를 갖고 있었다).
+ * 번호와 이름은 식별자라 음역 대상이 아니다 — 옮기는 순간 등록되지 않은 사업자 정보가 된다.
+ * 괄호 안 가나는 **읽기 보조**이며 값을 대체하지 않는다(en 약관이 이미 쓰는 방식).
+ */
 const TOKUSHOHO_ROWS = [
-  { label: "販売事業者名", value: `${OPERATOR_NAME}（コード デスティニー）` },
-  { label: "運営統括責任者", value: "朴炳夏（パク・ビョンハ）" },
-  { label: "所在地", value: "大韓民国 京畿道 華城市 孝行区 飛鳳面 セビボンドン路 37, 101棟 1207号" },
-  { label: "電話番号", value: "+82-50-6664-7398（受付時間内にお問い合わせください）" },
+  { label: "販売事業者名", value: BUSINESS_IDENTITY.companyName },
+  { label: "運営統括責任者", value: `${BUSINESS_IDENTITY.representative}（パク・ビョンハ）` },
+  { label: "所在地", value: `${BUSINESS_IDENTITY.address}（大韓民国）` },
+  { label: "電話番号", value: `${BUSINESS_PHONE_INTL}（受付時間内にお問い合わせください）` },
   { label: "メールアドレス", value: SUPPORT_EMAIL },
-  { label: "事業者登録番号（韓国）", value: "372-23-02329" },
-  { label: "通信販売業申告番号（韓国）", value: "第2026-火城湖-0264号" },
+  { label: "事業者登録番号（韓国）", value: BUSINESS_IDENTITY.registrationNumber },
+  { label: "通信販売業申告番号（韓国）", value: BUSINESS_IDENTITY.mailOrderNumber },
   { label: "販売価格", value: "各サービス画面に表示された金額（すべて大韓民国ウォン建て、付加価値税等込み）" },
   { label: "商品代金以外に必要な料金", value: "なし（利用者側のインターネット接続料金・通信費を除く）" },
   { label: "支払方法", value: "クレジットカード決済（決済代行: PortOne / KG Inicis）" },
