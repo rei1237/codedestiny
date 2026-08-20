@@ -2844,6 +2844,12 @@
     if (!api || typeof api.displayLocale !== 'function') return 'ko-KR';
     try { return api.displayLocale(); } catch (_displayLocaleError) { return 'ko-KR'; }
   }
+  // PG 결제창 UI 언어도 같은 정본을 탄다. 모듈이 안 붙었으면 종전 동작(한국어 결제창)이다.
+  function _dpPgWindowLocale() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.pgWindowLocale !== 'function') return 'KO_KR';
+    try { return api.pgWindowLocale(); } catch (_pgLocaleError) { return 'KO_KR'; }
+  }
   function _dpCheckoutFormatKrw(value) {
     var api = _dpCheckoutEntry();
     if (api && typeof api.formatKrwAmount === 'function') {
@@ -4563,6 +4569,8 @@
         totalAmount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
         payMethod: config.payMethod || 'CARD',
+        // 🔴 안 보내면 PG 가 한국어 결제창을 연다. 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
+        locale: _dpPgWindowLocale(),
         // [regression-guard] Do NOT send windowType. PR #104 added { pc:'IFRAME', mobile:'REDIRECTION' }
         // and the PG window stopped opening; no other working payment path in this repo sends it
         // (see lib/payment/portone.ts). Do not re-add without confirming PortOne per-PG support.

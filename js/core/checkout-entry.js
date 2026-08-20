@@ -131,6 +131,30 @@
     }
   }
 
+  /**
+   * PG 결제창(이니시스)의 UI 언어.
+   *
+   * 🔴 쓸 수 있는 값은 우리가 아니라 **PG 가 정한다.** KG이니시스는 PC 결제창에서
+   *    KO_KR·EN_US·ZH_CN 을, 모바일 결제창에서 KO_KR·EN_US 만 지원한다
+   *    (포트원 inicis-v2 연동 가이드, 2026-08-20 확인).
+   *
+   * 🔴 그래서 **두 결제창이 모두 지원하는 두 값만** 쓴다. 지원 밖 값을 보냈을 때 결제창이
+   *    어떻게 되는지는 실결제 없이 확인할 수 없고, 그 최악은 '결제창이 아예 안 뜬다' 이다
+   *    (PR #104 의 windowType 회귀가 정확히 그 모양이었다). zh-CN 을 PC 에서만 보내려면
+   *    우리 UA 판정과 PG 의 PC/모바일 판정이 어긋나지 않는다는 근거가 먼저 필요하다.
+   *
+   * 지금은 언어와 무관하게 전원이 한국어 결제창을 본다 — 한국어가 아니면 EN_US 로 연다.
+   */
+  function pgWindowLocale() {
+    try {
+      var win = runtimeWindow();
+      var lang = win && typeof win.cdGetCurrentLanguage === "function" ? text(win.cdGetCurrentLanguage()) : "";
+      if (!lang || lang.toLowerCase().indexOf("ko") === 0) return "KO_KR";
+      return "EN_US";
+    } catch (_pgLocaleError) {
+      return "KO_KR";
+    }
+  }
   /** 금액을 현재 로케일 자릿수 + 통화 문구로 그린다(정적 셸 formatWon 과 같은 계약). */
   function formatKrwAmount(value, fallbackText) {
     var amount = Math.max(0, Math.floor(Number(value) || 0)).toLocaleString(displayLocale());
@@ -502,6 +526,7 @@
     hasOpenPaymentChoiceModal: hasOpenPaymentChoiceModal,
     text: checkoutText,
     displayLocale: displayLocale,
+    pgWindowLocale: pgWindowLocale,
     formatKrwAmount: formatKrwAmount,
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,

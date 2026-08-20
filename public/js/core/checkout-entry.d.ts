@@ -67,6 +67,11 @@ declare const checkoutEntry: {
    * 위한 정본이며, 조회기가 없는 환경에서는 ko-KR 로 떨어진다.
    */
   displayLocale(): string;
+  /**
+   * PG 결제창(이니시스) UI 언어. KG이니시스가 PC·모바일 양쪽에서 지원하는 두 값만 낸다
+   * — 지원 밖 값은 결제창 미노출 위험이 있어 쓰지 않는다.
+   */
+  pgWindowLocale(): "KO_KR" | "EN_US";
   /** 금액을 현재 로케일 자릿수 + payment.currency.krw 문구로 그린다. */
   formatKrwAmount(value: number, fallbackText?: string): string;
   /**
