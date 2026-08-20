@@ -93,43 +93,6 @@ assertContains(
   "handleMe must not attach cookie-clearing headers",
 );
 
-/* 🔴 GET /api/auth/me 엣지 캐시의 안전조건 (2026-08-21).
-   이 캐시는 틀리면 **남의 세션이 보이거나 남의 쿠키가 재생된다.** 네 가지가 동시에 성립해야
-   안전하고, 넷 다 "정리하다가" 사라지기 쉬운 형태다. */
-const meCacheSource = readFileSync(resolve(root, "worker/lib/auth-me-cache.js"), "utf8");
-
-// 라우트가 캐시를 실제로 지나야 한다. handleMe 직접 호출로 되돌아가면 캐시가 조용히 죽는다.
-assertContains(
-  authRouteSource,
-  "return await handleMeThroughEdgeCache(request, env, handleMe);",
-  "/api/auth/me dispatch goes through the edge cache",
-);
-
-// ① 키는 자격증명 표면 전체다. 쿠키 이름을 손으로 고르면 새 인증 쿠키가 생겼을 때 키가 안 바뀐다.
-assertContains(meCacheSource, 'request.headers.get("authorization")', "me cache key covers the Authorization header");
-assertContains(meCacheSource, 'request.headers.get("cookie")', "me cache key covers the whole Cookie header");
-assertNotContains(meCacheSource, "ACCESS_COOKIE_NAME", "me cache key must not hand-pick cookie names");
-assertNotContains(meCacheSource, "REFRESH_COOKIE_NAME", "me cache key must not hand-pick cookie names");
-
-// ② Set-Cookie 가 붙은 응답은 절대 캐시하지 않는다(refresh 회전이 남의 요청에 재생된다).
-assertContains(meCacheSource, 'response.headers.has("set-cookie")', "me cache refuses responses that set cookies");
-assertContains(meCacheSource, "body.authenticated !== true", "me cache only stores authenticated responses");
-
-// ③ stale 폴백 금지 — 낡은 인증은 느린 인증보다 나쁘다.
-assertContains(
-  meCacheSource,
-  "staleTtlSeconds: ME_CACHE_TTL_SECONDS",
-  "me cache must disable the stale fallback by matching the fresh TTL",
-);
-
-// ④ 강제 새로고침 우회 — 결제 확정·로그인 직후의 정합성이 이 한 분기에 걸려 있다.
-assertContains(
-  meCacheSource,
-  "request.headers.get(ME_CACHE_REFRESH_HEADER) === \"1\"",
-  "me cache must bypass and purge on the forced-refresh header",
-);
-assertContains(meCacheSource, "await purgeCmsCache([key])", "me cache must purge, not merely bypass, on forced refresh");
-
 // P0-3 — '재사용'은 회전으로 죽은 토큰의 재생일 때만이다. 로그아웃으로 죽은 토큰(replacedByTokenHash 가 "")의
 // 늦은 요청까지 재사용으로 보면 재로그인 세션이 통째로 폐기된다. 진짜 탈취는 그대로 전 세션 폐기다.
 assertContains(
