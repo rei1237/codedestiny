@@ -16,6 +16,7 @@ import {
   type BranchKind,
   type RelationMbti,
 } from "./favoriteDestinyContent";
+import { buildFandomProfile, type FandomProfile } from "./fandomProfileEngine";
 
 type ElementKey = "wood" | "fire" | "earth" | "metal" | "water";
 type YinYang = "yin" | "yang";
@@ -114,6 +115,7 @@ export type FavoriteDestinyReading = {
     gradeMeme: string;
     hashtags: string[];
   };
+  fandomProfile: FandomProfile;
   meta: {
     engineVersion: string;
     apiUsed: false;
@@ -563,6 +565,19 @@ export function buildFavoriteDestinyFromSaju(
     longTermSignals,
   });
 
+  const fandomProfile = buildFandomProfile({
+    favName: favoriteChartInput.name,
+    dayMasterRelation,
+    tenGodRelation,
+    branchKinds: Array.from(branchKinds),
+    harmonySignals,
+    conflictSignals,
+    charmSignals,
+    longTermSignals,
+    elementGap,
+    scores,
+  });
+
   const keywords = unique([
     harmonySignals.length > 0 ? "합의흐름" : "감정리듬",
     conflictSignals.length > 0 ? "텐션주의" : "안정호흡",
@@ -769,6 +784,7 @@ export function buildFavoriteDestinyFromSaju(
       favorite: favoriteChart.elementScores,
     },
     mzLayer,
+    fandomProfile,
     meta: {
       engineVersion: "favorite-destiny-v2",
       apiUsed: false,

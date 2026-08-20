@@ -15,6 +15,7 @@ import {
   getPairingAlias,
   getStageAuraComment,
 } from "./destinyBiasMeta";
+import type { FandomProfile } from "./fandomProfileEngine";
 
 export type DestinyBiasAnalyzeInput = {
   userName: string;
@@ -92,6 +93,7 @@ export type DestinyBiasAnalyzeResult = {
     user: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
     favorite: Record<"wood" | "fire" | "earth" | "metal" | "water", number>;
   };
+  fandomProfile: FandomProfile;
   mzLayer: {
     relationMbti: { type: string; desc: string };
     pastLife: { title: string; story: string };
@@ -289,6 +291,20 @@ export function analyzeDestinyBias(input: DestinyBiasAnalyzeInput): DestinyBiasA
     chemistryType: reading.chemistryType,
     bottomNotice: reading.bottomNotice,
     elementDistribution: reading.elementDistribution,
+    fandomProfile: {
+      ...reading.fandomProfile,
+      biasCharacterOneLiner: sanitizeFavoriteDestinyText(reading.fandomProfile.biasCharacterOneLiner),
+      entryText: sanitizeFavoriteDestinyText(reading.fandomProfile.entryText),
+      tasteFirstAttraction: sanitizeFavoriteDestinyText(reading.fandomProfile.tasteFirstAttraction),
+      tasteLongTermReason: sanitizeFavoriteDestinyText(reading.fandomProfile.tasteLongTermReason),
+      deepDiveText: sanitizeFavoriteDestinyText(reading.fandomProfile.deepDiveText),
+      relationshipText: sanitizeFavoriteDestinyText(reading.fandomProfile.relationshipText),
+      obsessionText: sanitizeFavoriteDestinyText(reading.fandomProfile.obsessionText),
+      persistenceText: sanitizeFavoriteDestinyText(reading.fandomProfile.persistenceText),
+      detachmentReasonText: sanitizeFavoriteDestinyText(reading.fandomProfile.detachmentReasonText),
+      detachmentStyleText: sanitizeFavoriteDestinyText(reading.fandomProfile.detachmentStyleText),
+      finalPhilosophy: sanitizeFavoriteDestinyText(reading.fandomProfile.finalPhilosophy),
+    },
     mzLayer: reading.mzLayer,
     birthDataStatus: {
       user: reading.user.birthDataStatus,
