@@ -463,12 +463,39 @@ const activeSecretKeys = onlyPortone
  * 상속되어 스테이징 테스트가 조용히 유료 경로를 탄다. 스테이징에서 실제 생성 품질을 봐야 할 때만
  * `--target=staging --only-key=GEMINIF_API_KEY` 로 한 번 넣고, 확인이 끝나면 대시보드에서 지운다.
  */
-const STAGING_EXCLUDED_KEYS = new Set(["GEMINIF_API_KEY", "ANTHROPIC_API_KEY"]);
+const STAGING_EXCLUDED_KEYS = new Set([
+  // 과금 LLM 키
+  "GEMINIF_API_KEY",
+  "ANTHROPIC_API_KEY",
+  // 🔴 결제 자격증명. 스테이징은 PortOne **테스트 채널**로 돌아야 한다.
+  //
+  // .env.staging.local 은 .env.local 위에 얹히므로, 막지 않으면 프로덕션 채널키·스토어ID·
+  // 이니시스 상용 MID 가 그대로 상속되어 스테이징 테스트가 **실제 카드 승인**을 일으킨다.
+  // 기본값이 "상속"인 것과 "차단"인 것의 차이가 곧 실제 돈이 나가느냐다.
+  //
+  // 테스트 채널 값이 준비되면 그때 명시적으로 넣는다:
+  //   npm run secrets:cf:worker -- --target=staging --only-key=PORTONE_CHANNEL_KEY
+  "MID",
+]);
+
+/**
+ * 🔴 이름을 하나씩 적지 않는다. SECRET_KEYS 에는 같은 값의 별칭이 여러 표기로 들어 있고
+ * (PORTONE_channel · PORTONE_Store · PORTONE_webhookurl …), normalizeEnvKey 가 대문자로 접어도
+ * 서로 다른 키로 남는다. 목록으로 적으면 그중 하나가 빠지고, 빠진 그 하나가 프로덕션 채널키다.
+ * 계열 전체를 막고 필요한 것만 --only-key 로 여는 방향이 안전하다.
+ */
+const STAGING_EXCLUDED_PATTERNS = [/^PORTONE_/, /^INI/];
+
+function isExcludedFromStaging(key) {
+  const normalized = normalizeEnvKey(key);
+  return STAGING_EXCLUDED_KEYS.has(normalized)
+    || STAGING_EXCLUDED_PATTERNS.some((pattern) => pattern.test(normalized));
+}
 
 const targetFilteredKeys = syncTarget === "staging" && !onlyKey
   ? activeSecretKeys.filter((key) => {
-    if (!STAGING_EXCLUDED_KEYS.has(normalizeEnvKey(key))) return true;
-    console.warn(`[worker-secrets] Skipping ${key}: excluded from staging (과금 LLM 키).`);
+    if (!isExcludedFromStaging(key)) return true;
+    console.warn(`[worker-secrets] Skipping ${key}: excluded from staging (과금 LLM 키 · 결제 자격증명).`);
     return false;
   })
   : activeSecretKeys;
