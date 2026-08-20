@@ -744,6 +744,11 @@ async function restorePrepaidAccessOnFailure({ userId, access = {}, idempotencyK
         {
           $set: {
             "metadata.refundedForServiceExecution": true,
+            // 키 해제 계약 표식 — billing.js 의 readIdempotentSpendResult 는 이 표식만 배제하고,
+            // releaseRefundedSpendSourceId 도 이것으로만 환불 원장을 골라 sourceId 를 비운다. 없으면
+            // 재구매가 "이미 결제됨"으로 replay 돼 재차감 없이 통과하는데, 증빙 정본
+            // (moonstone-spend-proof.js)은 환불분을 배제하므로 생성이 402 로 막힌다.
+            "metadata.refundedForUnlockFailure": true,
             "metadata.serviceExecutionRefundedAt": now,
             "metadata.serviceExecutionFailureMessage": failureMessage,
           },
