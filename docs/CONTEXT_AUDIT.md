@@ -29,6 +29,19 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ## Current Conflict Resolutions
 
+### AI 출력 로케일 — 5개에서 12개로 (2026-08-20)
+
+- **Active rule**: AI 출력 로케일 = 런타임 UI 로케일 전부. 정본은 `lib/i18n/ai-locale.js` 의
+  `AI_OUTPUT_LOCALES` 이고 `lib/i18n/locale-normalize.js` 의 `RUNTIME_LOCALES` 와 **같은 값이어야 한다**
+  (`verify:ai-locale-pipeline` (9) 와 `verify:market-policy-registry` 가 대조한다).
+- 갱신한 문서: `docs/LLM_AND_AI_POLICY.md` · `docs/SERVICE_STRUCTURE.md` · `docs/INTERNATIONAL_MARKET_LOCALIZATION.md`.
+- **Historical, 고치지 않음**: `docs/LEGAL_MARKET_RESEARCH_2026_08_06.md` 는 2026-08-06 스냅샷이라
+  본문의 "five locales only" 와 Locale Matrix 의 `AI output` 열을 그대로 두고 정정 주석만 달았다.
+- 🔴 **언어 ≠ 시장.** 12개 언어로 상담문을 쓰는 것이 시장 개방·과세·관할·환불권을 뜻하지 않는다.
+  `KR` 외 모든 시장은 여전히 `enabled: false` 다.
+- 🔴 **미검증**: 각 언어의 상담문 품질은 과금 실호출 없이는 잴 수 없다. 가드가 단언하는 것은
+  "지시문이 존재하고 병기이며 프롬프트의 한국어 리터럴을 무효화한다"까지다.
+
 ### Static home source of truth
 
 - Active rule: root `index.html` is the live home source.

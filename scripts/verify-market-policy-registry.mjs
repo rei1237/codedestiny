@@ -24,10 +24,16 @@ const aiLocaleSource = read("lib/i18n/ai-locale.js");
 const marketSource = read("lib/market-policy/market-policy-registry.js");
 const legalPackSource = read("lib/market-policy/legal-packs/legal-market-packs.js");
 
+// AI 출력 로케일은 런타임 UI 로케일 전부를 덮어야 한다. 하나라도 빠지면 그 언어 사용자는
+// UI 만 자기 언어이고 상담문은 한국어를 받는다(2026-08-20 이전 상태). 손으로 쓴 목록으로
+// 고정하지 않고 정본 두 곳을 대조한다 — 새 UI 로케일이 늘어도 이 가드가 그때 실패한다.
+const runtimeLocaleSource = read("lib/i18n/locale-normalize.js");
+const runtimeLocales = extractArrayLiteral(runtimeLocaleSource, "RUNTIME_LOCALES");
 const aiLocales = extractArrayLiteral(aiLocaleSource, "AI_OUTPUT_LOCALES");
+assert(runtimeLocales.length >= 12, `RUNTIME_LOCALES 를 ${runtimeLocales.length}개만 읽었다 — 이 대조가 무력화됐다`);
 assert(
-  JSON.stringify(aiLocales) === JSON.stringify(["ko", "en", "ja", "zh-CN", "zh-TW"]),
-  `AI output locales must stay exactly ko,en,ja,zh-CN,zh-TW; got ${aiLocales.join(",")}`,
+  JSON.stringify(aiLocales) === JSON.stringify(runtimeLocales),
+  `AI output locales must cover every runtime UI locale (${runtimeLocales.join(",")}); got ${aiLocales.join(",")}`,
 );
 
 const policyAiLocales = extractArrayLiteral(marketSource, "AI_OUTPUT_MARKET_LOCALES");

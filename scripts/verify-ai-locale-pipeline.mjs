@@ -11,7 +11,9 @@
 import { readFileSync } from "node:fs";
 import { execFileSync } from "node:child_process";
 import { resolve } from "node:path";
-import { AI_OUTPUT_LOCALES, buildOutputLanguageDirective } from "../lib/i18n/ai-locale.js";
+import { AI_LOCALE_LABEL, AI_OUTPUT_LOCALES, buildOutputLanguageDirective } from "../lib/i18n/ai-locale.js";
+import { RUNTIME_LOCALES } from "../lib/i18n/locale-normalize.js";
+import { resolveForbiddenPatterns } from "../worker/lib/llm-leak-guard.js";
 
 const root = process.cwd();
 const failures = [];
@@ -23,6 +25,41 @@ function read(relPath) {
 function assert(condition, message) {
   if (!condition) failures.push(message);
 }
+
+/**
+ * 지시문 첫 줄이 "대상 언어 원문 / 영어" 병기인가.
+ *
+ * 🔴 "비ASCII 문자가 있는가" 로 판정하지 않는다 — 말레이어·네덜란드어 원문은 전부 ASCII 라
+ *    그 판정은 두 언어를 조용히 통과시킨다.
+ */
+function isBilingualHead(directive) {
+  const head = String(directive).split("\n")[1] || "";
+  if (!head.includes(" / ")) return false;
+  const native = head.split(" / ")[0].trim();
+  return native.length > 0 && !/^Write the ENTIRE/.test(native);
+}
+
+/**
+ * 12개 런타임 로케일의 **평범한 상담 문장**. 단어 목록으로 판정하지 않기 위한 재료다 —
+ * 목록은 낡지만 문장은 실제 고장을 잰다. (11)과 (13)이 둘 다 이걸 쓴다.
+ *
+ * 로케일당 최소 1문장이 있어야 하고, 없으면 그 로케일은 아무 검사도 못 받는다 → 아래에서 단언한다.
+ */
+const ORDINARY_PROSE = [
+  ["en", "Your job situation improves and steady progress comes through the year."],
+  ["en", "A chapter of your life closes quietly and a calmer one opens."],
+  ["fr", "J'ai confiance en votre chemin, et le travail avance doucement."],
+  ["vi", "Ai cũng có lúc gặp khó khăn, nhưng công việc của bạn sẽ ổn định."],
+  ["de", "Dein Job stabilisiert sich und die Verantwortung waechst langsam."],
+  ["es", "Tu casa profesional se fortalece y el trabajo avanza con calma."],
+  ["nl", "Je werk wordt rustiger en er komt stap voor stap vooruitgang."],
+  ["ms", "Kerjaya anda menjadi lebih stabil dan rezeki datang perlahan."],
+  ["hi", "इस वर्ष आपका करियर मजबूत होगा और काम में प्रगति दिखाई देगी।"],
+  ["ja", "今年は仕事の流れが安定し、責任が少しずつ増えていきます。"],
+  ["zh-CN", "今年事业运稳定，工作上的责任会慢慢加重。"],
+  ["zh-TW", "今年事業運穩定，工作上的責任會慢慢加重。"],
+  ["ko", "올해는 직장 운이 안정되고 꾸준한 성과가 따릅니다."],
+];
 
 // (1) 언어 지시는 캐시 키 계산 **이전에** 붙어야 한다.
 //     buildCacheKey 가 systemPrompt 를 해시에 포함하므로, 순서가 뒤집히면 ko 응답이
@@ -131,7 +168,7 @@ function assert(condition, message) {
   }
 }
 
-// (9) 지시문 빌더 자체가 5개 AI 출력 로케일 전부에서 올바른 모양을 낸다.
+// (9) 지시문 빌더 자체가 AI 출력 로케일 **전부**에서 올바른 모양을 낸다.
 //     실제 모델(Gemini/Workers AI) 호출 없이도 검증 가능한 순수 문자열 조립 단언이다 —
 //     "모델이 지시를 따르는지"는 이 스크립트로 확인할 수 없고(그건 실호출 영역), 이건
 //     "지시문 자체가 깨지지 않았는지"만 본다. zh-TW 는 2026-08 에 신설된 로케일이라
@@ -142,11 +179,38 @@ function assert(condition, message) {
     "buildOutputLanguageDirective('ko') 는 빈 문자열이어야 한다 (기존 트래픽 100% 보존)",
   );
 
+  // 🔴 개수를 손으로 박지 않는다 — 정본 두 곳이 같은 값인지 본다. 갈라지면 그 로케일 사용자는
+  //    UI 만 자기 언어이고 상담문은 한국어를 받는다(2026-08-20 이전 상태).
+  assert(
+    JSON.stringify(AI_OUTPUT_LOCALES) === JSON.stringify(RUNTIME_LOCALES),
+    `AI_OUTPUT_LOCALES 가 RUNTIME_LOCALES 와 다르다 — 빠진 로케일은 상담문을 한국어로 받는다\n`
+      + `    ai=${AI_OUTPUT_LOCALES.join(",")}\n    ui=${RUNTIME_LOCALES.join(",")}`,
+  );
+
   const nonKoLocales = AI_OUTPUT_LOCALES.filter((locale) => locale !== "ko");
-  assert(nonKoLocales.length === 4, "AI_OUTPUT_LOCALES 는 ko 외 4개(en/ja/zh-CN/zh-TW)여야 한다");
 
   for (const locale of nonKoLocales) {
     const directive = buildOutputLanguageDirective(locale);
+    assert(
+      directive !== "",
+      `buildOutputLanguageDirective('${locale}') 가 빈 문자열이다 — LOCALE_DIRECTIVE_HEAD 에 항목이 없어 `
+        + `이 로케일은 지시문 없이 한국어 프롬프트만 받는다`,
+    );
+    assert(
+      typeof AI_LOCALE_LABEL[locale] === "string" && AI_LOCALE_LABEL[locale].length > 0,
+      `AI_LOCALE_LABEL['${locale}'] 이 없다 — 로그·운영 도구에서 로케일이 사라진다`,
+    );
+    // 🔴 폴백 모델이 한국어 지시를 무시하고 영어로 답한 관측(2026-07-30) 때문에 대상 언어와
+    //    영어를 **병기**한다. en 은 영어 자체라 병기가 필요 없다.
+    assert(
+      /Write the ENTIRE response in [A-Z][A-Za-z ]+ only\./.test(directive),
+      `buildOutputLanguageDirective('${locale}') 에 영어 병기가 없다 (폴백 모델 지시 준수율 대비)`,
+    );
+    assert(
+      locale === "en" || isBilingualHead(directive),
+      `buildOutputLanguageDirective('${locale}') 가 "대상 언어 원문 / 영어" 병기 모양이 아니다 — `
+        + `영어 단독이면 폴백 모델이 지시를 흘린다`,
+    );
     assert(
       directive.startsWith("[OUTPUT LANGUAGE — HIGHEST PRIORITY]"),
       `buildOutputLanguageDirective('${locale}') 가 HIGHEST PRIORITY 헤더로 시작해야 한다`,
@@ -209,20 +273,6 @@ function assert(condition, message) {
   //
   //      걸리는 패턴은 worker/lib/llm-leak-guard.js 의 resolveForbiddenPatterns 를 거쳐야 한다.
   //      ko 에서는 넘긴 패턴을 그대로 돌려주므로 한국어 판정은 바뀌지 않는다.
-  const ORDINARY_PROSE = [
-    ["en", "Your job situation improves and steady progress comes through the year."],
-    ["en", "A chapter of your life closes quietly and a calmer one opens."],
-    ["fr", "J'ai confiance en votre chemin, et le travail avance doucement."],
-    ["vi", "Ai cũng có lúc gặp khó khăn, nhưng công việc của bạn sẽ ổn định."],
-    ["de", "Dein Job stabilisiert sich und die Verantwortung waechst langsam."],
-    ["es", "Tu casa profesional se fortalece y el trabajo avanza con calma."],
-    ["nl", "Je werk wordt rustiger en er komt stap voor stap vooruitgang."],
-    ["ms", "Kerjaya anda menjadi lebih stabil dan rezeki datang perlahan."],
-    ["hi", "इस वर्ष आपका करियर मजबूत होगा और काम में प्रगति दिखाई देगी।"],
-    ["ja", "今年は仕事の流れが安定し、責任が少しずつ増えていきます。"],
-    ["zh-CN", "今年事业运稳定，工作上的责任会慢慢加重。"],
-    ["ko", "올해는 직장 운이 안정되고 꾸준한 성과가 따릅니다."],
-  ];
   const HANGUL = /[가-힣]/;
   for (const rel of aiFiles) {
     const source = read(rel);
@@ -280,10 +330,49 @@ function assert(condition, message) {
   }
 }
 
+// (12)(13) 로케일이 5개에서 12개로 늘면서 새로 생긴 두 구멍.
+//
+//   (12) 누출 탐지가 그 언어에 존재하는가. resolveForbiddenPatterns 는 비-ko 에서 ko 패턴을
+//        버리고 UNIVERSAL + 로케일 패턴으로 갈아끼운다. 로케일 항목이 없으면 UNIVERSAL 6개만
+//        남아 "프롬프트 그대로 읊기"가 그 언어에서만 통과한다.
+//   (13) 그 패턴이 반대로 **평범한 상담문을 반려하지 않는가**. 이게 이 모듈이 생긴 이유다
+//        (/\bAI\b/i 가 프랑스어 J'ai·베트남어 Ai 를 잡았다, 2026-08-20 실측).
+{
+  const proseLocales = new Set(ORDINARY_PROSE.map(([locale]) => locale));
+  for (const locale of AI_OUTPUT_LOCALES) {
+    assert(
+      proseLocales.has(locale),
+      `ORDINARY_PROSE 에 ${locale} 문장이 없다 — 이 로케일은 (11)(13) 어느 검사도 못 받는다`,
+    );
+  }
+
+  // 미등록 로케일을 넣으면 UNIVERSAL 만 돌아온다. 그 개수를 바닥으로 삼는다(손으로 안 센다).
+  const universalOnly = resolveForbiddenPatterns([], "zz-unregistered").length;
+  assert(universalOnly > 0, "UNIVERSAL_LEAK_PATTERNS 가 비었다 — 누출 탐지가 통째로 꺼졌다");
+
+  for (const locale of AI_OUTPUT_LOCALES.filter((value) => value !== "ko")) {
+    const patterns = resolveForbiddenPatterns([], locale);
+    assert(
+      patterns.length > universalOnly,
+      `worker/lib/llm-leak-guard.js: LOCALE_LEAK_PATTERNS 에 ${locale} 항목이 없다 — `
+        + `이 언어에서는 프롬프트 누출이 UNIVERSAL 패턴에만 걸린다`,
+    );
+    const sentences = ORDINARY_PROSE.filter(([value]) => value === locale).map(([, text]) => text);
+    for (const pattern of patterns) {
+      const hit = sentences.find((text) => pattern.test(text));
+      assert(
+        !hit,
+        `worker/lib/llm-leak-guard.js: ${locale} 누출 패턴 ${pattern} 이 평범한 상담 문장을 반려한다 — `
+          + `"${String(hit).slice(0, 46)}…" (맨 단어 말고 구절로 잡아라)`,
+      );
+    }
+  }
+}
+
 if (failures.length) {
   console.error("[verify:ai-locale-pipeline] FAILED");
   for (const message of failures) console.error(`  - ${message}`);
   process.exit(1);
 }
 
-console.log("[verify:ai-locale-pipeline] ok (11 invariants)");
+console.log("[verify:ai-locale-pipeline] ok (13 invariants)");
