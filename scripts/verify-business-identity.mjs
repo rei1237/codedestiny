@@ -32,6 +32,18 @@ function read(relPath) {
   return readFileSync(resolve(root, relPath), "utf8");
 }
 
+/**
+ * 🔴 이 가드가 **반드시 열어야 하는** 파일을 모은다. (4)가 이 목록을 워크플로 트리거 paths 와
+ *    대조한다. 사본 확산 검사(3)가 우연히 읽는 파일은 여기 넣지 않는다 — 그건 "트리거에 넣어라"가
+ *    아니라 "그 사본을 지워라"가 정답이라, 섞으면 실패 메시지가 반대 방향을 가리킨다.
+ */
+const openedPaths = new Set();
+
+function readTracked(relPath) {
+  openedPaths.add(relPath.replace(/\\/g, "/"));
+  return read(relPath);
+}
+
 function assert(condition, message) {
   if (!condition) failures.push(message);
 }
@@ -59,7 +71,7 @@ function stripSeparator(value) {
   assert(files.length >= 12, `${dir}: 사전을 ${files.length}개만 찾았다 — 이 검사가 대상 없이 통과할 뻔했다`);
 
   for (const file of files) {
-    const dictionary = JSON.parse(read(`${dir}/${file}`));
+    const dictionary = JSON.parse(readTracked(`${dir}/${file}`));
     const business = dictionary.business;
     assert(business && typeof business === "object", `${dir}/${file}: business 블록이 없다 — 푸터 사업자 정보가 사라진다`);
     if (!business) continue;
@@ -77,7 +89,7 @@ function stripSeparator(value) {
 // (2) 정적 셸. 사전이 아니라 인라인 한국어가 곧 ko 정본이므로(cdTranslate 는 ko 에서 사전을
 //     건너뛴다) 여기 값이 틀리면 한국어 사용자가 틀린 표기를 본다.
 {
-  const shell = read("index.html");
+  const shell = readTracked("index.html");
   const spans = [...shell.matchAll(/<span data-cd-trans="business\.([A-Za-z]+Value)">([^<]*)<\/span>/g)];
   assert(spans.length >= 7, `index.html: business 값 스팬을 ${spans.length}개만 찾았다 — 이 검사가 무력화됐다`);
   for (const [, key, text] of spans) {
@@ -131,10 +143,46 @@ function stripSeparator(value) {
   }
 }
 
+// (4) 이 가드를 부르는 워크플로의 트리거 paths 가 **가드가 여는 파일 전부**를 덮는가.
+//
+// 🔴 CLAUDE.md 원칙 10. 가드가 보는 파일이 트리거에 없으면 그 파일만 고친 PR 에서 가드가
+//    깨어나지 않는다 — 있으나 마나 한 게이트가 된다. paid-flow-gates 에서 이 구멍이 다섯 번 났다.
+//    손으로 목록을 적지 않는다: readTracked() 가 실제로 연 경로를 그대로 쓴다.
+{
+  const WORKFLOW = ".github/workflows/business-identity-gate.yml";
+  const workflow = read(WORKFLOW);
+
+  assert(
+    /run: npm run verify:business-identity\s*$/m.test(workflow),
+    `${WORKFLOW}: 이 워크플로가 verify:business-identity 를 부르지 않는다 — 게이트가 껍데기만 남았다`,
+  );
+
+  const pathsBlock = workflow.match(/^ {4}paths:$([\s\S]*?)^ {2}workflow_dispatch:$/m);
+  assert(pathsBlock, `${WORKFLOW}: pull_request.paths 블록을 찾지 못했다 — 트리거 대조가 무력화됐다`);
+
+  const globs = pathsBlock
+    ? [...pathsBlock[1].matchAll(/^ {6}- "([^"]+)"$/gm)].map((match) => match[1])
+    : [];
+  assert(globs.length >= 8, `${WORKFLOW}: 트리거 경로를 ${globs.length}개만 읽었다 — 대조가 무력화됐다`);
+
+  const covered = (relPath) => globs.some((glob) => (
+    glob.endsWith("/**") ? relPath.startsWith(glob.slice(0, -2)) : glob === relPath
+  ));
+
+  // 임포트로 들어오는 정본은 readTracked() 를 거치지 않으므로 명시한다.
+  for (const relPath of [...openedPaths, "lib/site-policy-config.js"].sort()) {
+    assert(
+      covered(relPath),
+      `${WORKFLOW}: 이 가드는 ${relPath} 를 읽는데 트리거 paths 에 없다 — `
+        + `그 파일만 고친 PR 에서는 이 게이트가 깨어나지 않는다(CLAUDE.md 원칙 10)`,
+    );
+  }
+}
+
 if (failures.length) {
   console.error("[verify:business-identity] FAILED");
   for (const message of failures) console.error(`  - ${message}`);
   process.exit(1);
 }
 
-console.log("[verify:business-identity] ok — 등록 원문과 사전 12벌 · 정적 셸 · 소스 사본 검사 통과");
+console.log("[verify:business-identity] ok — 사전 12벌 · 정적 셸 · 소스 사본 · 게이트 트리거 커버리지 통과");
