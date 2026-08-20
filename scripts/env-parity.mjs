@@ -23,6 +23,7 @@ import { dirname, join, relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { isBuildArtifactDir } from "./lib/source-scan-ignore.mjs";
+import { stagingDeferralReason } from "./lib/staging-secret-policy.mjs";
 
 const repoRoot = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const args = new Set(process.argv.slice(2));
@@ -349,7 +350,8 @@ if (remote) {
 
   // 타깃별 워커 설정. 스테이징 잡이 프로덕션 워커의 시크릿을 검사하면, 정작 스테이징 워커는
   // 무검증으로 남아 "프로덕션에는 없는 런타임 실패"가 배포 뒤에야 드러난다.
-  const workerConfigPath = process.argv.includes("--target=staging")
+  const stagingTarget = process.argv.includes("--target=staging");
+  const workerConfigPath = stagingTarget
     ? "worker/wrangler.staging.toml"
     : "worker/wrangler.toml";
   const workerSecrets = remoteSecretNames("worker", ["secret", "list", "--config", workerConfigPath]);
@@ -359,7 +361,16 @@ if (remote) {
       if (!entry.required_in?.includes("production")) continue;
       const aliases = contract.aliases[entry.name] || [];
       const satisfied = [entry.name, ...aliases].some((name) => workerSecrets.has(name.toUpperCase()));
-      if (!satisfied) fail("remote-missing", `${entry.name} is required in production but is not set as a Worker secret.`);
+      if (satisfied) continue;
+      // 🔴 스테이징은 프로덕션 자격증명의 복제본이 아니다. 일부러 비워 두는 키를 여기서
+      //    실패로 처리하면 스테이징 배포가 통째로 막히고, 그걸 풀려다 결국 프로덕션
+      //    결제 자격증명을 스테이징에 넣게 된다. 목록의 정본은 lib/staging-secret-policy.mjs.
+      const deferral = stagingTarget ? stagingDeferralReason(entry.name) : "";
+      if (deferral) {
+        warn("staging-deferred", `${entry.name} is intentionally unset on staging — ${deferral}`);
+        continue;
+      }
+      fail("remote-missing", `${entry.name} is required in production but is not set as a Worker secret.`);
     }
     for (const name of workerSecrets) noteConfigured(name, "Worker secrets");
     const untracked = [...workerSecrets].filter((name) => !trackedUpper.has(name)).sort();
