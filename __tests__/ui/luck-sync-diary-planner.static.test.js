@@ -38,7 +38,12 @@ test("fortune planner entry is folded into the diary modal", () => {
   assert.match(html, /\.dp-destiny-panel:not\(\.is-form-open\) > #destinyCardForm\{display:none!important\}/);
   assert.doesNotMatch(html, /<section class="card input-section moon-destiny-form" id="destinyCardForm"[^>]*data-cd-home-secondary/);
   assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="fortuneGatewayEntry"'));
-  assert.match(html, /cdDiaryPlannerEntry'\) \|\| document\.getElementById\('cdSignatureConsult'/);
+  // 2026-08-20(refactor/home-concern-picker-merge, PR #868)에서 "빈 온보딩 레일"이 통째로
+  // 제거되며 그 레일의 삽입 지점을 찾던 __cdRailAnchor 폴백 체인
+  // (getElementById('cdConcernPick') || ...('cdDiaryPlannerEntry') || ...('cdSignatureConsult') || hero)
+  // 도 함께 사라졌다. 이 어서션은 다이어리 플래너 자체가 아니라 그 죽은 온보딩 레일 코드를
+  // 검증하던 것 — cdDiaryPlannerEntry/cdSignatureConsult 마크업을 우연히 같이 참조했을 뿐이다.
+  // 온보딩 레일이 사라진 지금은 회귀가 아니라 의도된 삭제이므로 이 단정문을 제거한다.
   assert.match(dashboard, /label:'갓생 다이어리'/);
   assert.match(dashboard, /cta:'다이어리 열기'/);
 });
