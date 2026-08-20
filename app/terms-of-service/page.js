@@ -76,6 +76,11 @@ export default function TermsOfServicePage() {
           <TermsContent />
 
           <nav className="policy-doc__related" aria-label="관련 문서">
+            {/* 12조를 단독 페이지로도 제공한다. 사이트맵에만 있고 내부 링크가 0인 고아 URL 을
+                만들지 않기 위해 여기서 잇는다(/ja/tokushoho 가 그 상태였다). */}
+            <Link className="policy-doc__toc-link" href="/refund-policy">
+              환불 및 청약철회 정책
+            </Link>
             <Link className="policy-doc__toc-link" href="/privacy">
               개인정보처리방침
             </Link>

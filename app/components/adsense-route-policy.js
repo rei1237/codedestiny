@@ -14,6 +14,8 @@ const BLOCKED_EXACT_PATHS = new Set([
   "/premium-reports",
   "/privacy",
   "/privacy-policy",
+  // 법률 고지 페이지에는 광고를 싣지 않는다 — /terms·/privacy 와 같은 취급이다.
+  "/refund-policy",
   "/fortune/prompt-hub",
   "/saju/animal-destiny",
   "/saju/destiny-bias",

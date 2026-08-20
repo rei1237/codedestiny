@@ -96,12 +96,14 @@ export const I18N_POLICY_ROUTE_MAP = {
     "x-default": "/terms",
   },
   refundPolicy: {
+    // 2026-08-20 에 ko 자리가 채워졌다(app/refund-policy). 그 전에는 ko URL 이 없어 이 그룹만
+    // x-default 가 홈으로 폴백했다 — 정책 페이지 묶음이 홈을 기본값으로 가리키는 모양이었다.
+    ko: "/refund-policy",
     ja: "/ja/refund-policy",
     zh: "/zh/refund-policy",
     "zh-TW": "/zh-tw/refund-policy",
     en: "/en/refund-policy",
-    // ko 전용 URL 이 없어 사이트맵의 buildI18nAlternates 도 이 그룹만 "/" 로 폴백한다.
-    "x-default": "/",
+    "x-default": "/refund-policy",
   },
 } as const;
 
