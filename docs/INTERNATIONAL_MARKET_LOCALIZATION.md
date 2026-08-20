@@ -35,15 +35,15 @@ The current international legal draft must not promise:
 - refund or withdrawal rights
 - international transfer notices
 
-AI output remains limited to the existing five locales:
+AI output covers every runtime UI locale (12 as of 2026-08-20):
 
-- `ko`
-- `en`
-- `ja`
-- `zh-CN`
-- `zh-TW`
+- `ko`, `en`, `ja`, `zh-CN`, `zh-TW`
+- `vi`, `hi`, `es`, `fr`, `de`, `nl`, `ms` — opened 2026-08-20; before that they saw a
+  translated UI with a **Korean** reading inside it.
 
-The 12 UI runtime locales are separate and do not expand AI output by themselves.
+The list is pinned to `RUNTIME_LOCALES` in `lib/i18n/locale-normalize.js`, so a new UI locale
+cannot ship without AI output. Language served ≠ market opened: every market except `KR` is
+still disabled below.
 
 ## Market Policy Registry
 

@@ -27,6 +27,13 @@ const UNIVERSAL_LEAK_PATTERNS = [
   /```/,
 ];
 
+/**
+ * 🔴 여기 넣는 패턴은 **그 언어의 평범한 상담 문장을 절대 건드리면 안 된다.**
+ *    맨 단어("AI"·"IA"·"KI"·"job")를 그대로 두면 프랑스어 "J'ai"·베트남어 "Ai" 처럼
+ *    최빈 단어가 걸린다(2026-08-20 실측, 그게 이 모듈이 생긴 이유다). 누출은 언제나
+ *    **구절**로 나타나므로("en tant qu'IA", "als eine KI") 구절로만 잡는다.
+ *    scripts/verify-ai-locale-pipeline.mjs (13)이 12개 로케일 평문에 실제로 돌려 본다.
+ */
 const LOCALE_LEAK_PATTERNS = {
   en: [
     /\bsystem prompt\b/i,
@@ -38,6 +45,44 @@ const LOCALE_LEAK_PATTERNS = {
   ja: [/プロンプト/, /内部指示/, /システムプロンプト/],
   "zh-CN": [/提示词/, /系统提示/, /内部指令/],
   "zh-TW": [/提示詞/, /系統提示/, /內部指令/],
+  vi: [
+    /\blời nhắc hệ thống\b/i,
+    /\bvới tư cách (là )?(một )?(AI|trí tuệ nhân tạo)\b/i,
+    /\bhướng dẫn (nội bộ|hệ thống)\b/i,
+    /\bmô hình ngôn ngữ\b/i,
+  ],
+  // 데바나가리는 \b(ASCII 단어 경계)가 의미 없으므로 구절 자체로 찾는다.
+  hi: [/सिस्टम प्रॉम्प्ट/, /आंतरिक निर्देश/, /भाषा मॉडल/, /एआई के रूप में/],
+  es: [
+    /\bprompt del sistema\b/i,
+    /\bcomo (una )?(IA|inteligencia artificial)\b/i,
+    /\binstrucciones (internas|del sistema|anteriores)\b/i,
+    /\bmodelo de lenguaje\b/i,
+  ],
+  fr: [
+    /\bprompt (système|systeme)\b/i,
+    /\ben tant qu'(IA|intelligence artificielle)\b/i,
+    /\binstructions (internes|système|ci-dessus)\b/i,
+    /\bmodèle de langage\b/i,
+  ],
+  de: [
+    /\bsystem-?prompt\b/i,
+    /\bals (eine )?KI\b/i,
+    /\binterne Anweisungen?\b/i,
+    /\bSprachmodell\b/i,
+  ],
+  nl: [
+    /\bsysteemprompt\b/i,
+    /\bals (een )?AI\b/i,
+    /\binterne instructies\b/i,
+    /\btaalmodel\b/i,
+  ],
+  ms: [
+    /\bprompt sistem\b/i,
+    /\bsebagai (satu |sebuah )?AI\b/i,
+    /\barahan (dalaman|sistem)\b/i,
+    /\bmodel bahasa\b/i,
+  ],
 };
 
 /** 현재 요청의 AI 출력 로케일. 컨텍스트 밖(cron 등)이면 ko. */
