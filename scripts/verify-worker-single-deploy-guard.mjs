@@ -166,12 +166,17 @@ function assertWorkflowShape(workflow) {
 
   // 배포 대상은 "브랜치 팁"이 아니라 그 커밋이다. 하나라도 고정하지 않은 checkout 이 있으면
   // 릴리스 도중 들어온 새 커밋이 나갈 수 있다 — 그래서 존재가 아니라 **개수**를 대조한다.
+  //
+  // 🔴 release 잡의 checkout 은 env.CD_DEPLOY_HEAD_SHA 도 고정으로 인정한다. 이 값은
+  // `target_sha 없으면 github.sha, 있으면 target_sha`(둘 다 고정된 단일 커밋)이므로 안전성은
+  // 그대로다 — 컷오버 이후 pages_only 재발행이 main 보다 뒤처진 라이브 커밋을 다시 빌드할 때
+  // 이 경로를 쓴다(fortune-daily-publish.yml).
   const checkouts = (workflow.match(/uses:\s*actions\/checkout@/g) || []).length;
-  const pinnedRefs = (workflow.match(/ref:\s*\$\{\{\s*github\.sha\s*\}\}/g) || []).length;
+  const pinnedRefs = (workflow.match(/ref:\s*\$\{\{\s*(?:github\.sha|env\.CD_DEPLOY_HEAD_SHA)\s*\}\}/g) || []).length;
   assert(checkouts > 0, `${canonicalWorkflow} must check out the repository.`);
   assert(
     pinnedRefs === checkouts,
-    `${canonicalWorkflow} pins github.sha on ${pinnedRefs} of ${checkouts} checkouts; every deploy job must check out the exact commit.`,
+    `${canonicalWorkflow} pins github.sha (or env.CD_DEPLOY_HEAD_SHA) on ${pinnedRefs} of ${checkouts} checkouts; every deploy job must check out a single fixed commit, never a floating branch ref.`,
   );
 }
 
