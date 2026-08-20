@@ -46,6 +46,40 @@ function deploymentTriggerBlock(workflow) {
   return nextTopLevelKey === -1 ? rest : rest.slice(0, nextTopLevelKey);
 }
 
+/**
+ * 최상위 concurrency 블록의 group 값을 한 줄로 펴서 돌려준다.
+ * 접힘 스칼라(`>-`)로 여러 줄에 걸쳐 있을 수 있으므로 블록 전체를 모아 공백으로 정규화한다.
+ */
+function concurrencyGroupExpression(workflow) {
+  const at = workflow.search(/^concurrency:\s*$/m);
+  if (at === -1) return "";
+  const parts = [];
+  for (const line of workflow.slice(at).split(/\r?\n/).slice(1)) {
+    if (/^\S/.test(line)) break; // 다음 최상위 키
+    if (/^\s*#/.test(line)) continue;
+    if (/^\s*cancel-in-progress:/.test(line)) continue;
+    parts.push(line.replace(/^\s*group:\s*/, ""));
+  }
+  return parts.join(" ").replace(/\s+/g, " ").trim();
+}
+
+/** workflow_dispatch 의 mode 선택지를 **소스에서 전수로** 읽는다(손으로 쓴 목록 금지). */
+function dispatchModeOptions(workflow) {
+  const at = workflow.search(/^ {6}mode:\s*$/m);
+  if (at === -1) return [];
+  const options = [];
+  let inOptions = false;
+  for (const line of workflow.slice(at).split(/\r?\n/).slice(1)) {
+    if (/^ {6}\S/.test(line)) break; // 다음 input 키
+    if (/^\s*options:\s*$/.test(line)) { inOptions = true; continue; }
+    if (!inOptions) continue;
+    const item = line.match(/^\s*-\s*([A-Za-z0-9_-]+)\s*$/);
+    if (!item) break;
+    options.push(item[1]);
+  }
+  return options;
+}
+
 async function readRepoFile(relativePath) {
   return readFile(path.join(repoRoot, relativePath), "utf8");
 }
@@ -96,6 +130,43 @@ function assertWorkflowShape(workflow) {
     assert(/needs:\s*gate/.test(workflow), `${canonicalWorkflow} release job must depend on the drift gate.`);
     assert(/if:\s*needs\.gate\.outputs\.proceed\s*==\s*'true'/.test(workflow), `${canonicalWorkflow} release job must only run when the gate says production needs this commit.`);
   }
+  // 🔴 concurrency 그룹은 **배포 대상별로** 갈라져 있어야 한다.
+  //
+  // GitHub 은 그룹당 실행 1 + 대기 1 만 유지하고, 대기 슬롯에 새 런이 들어오면 기존 대기 런을
+  // **취소**한다. 릴리스 전체가 한 그룹이면 20분마다 도는 스테이징 워치독(schedule)이 사람이 누른
+  // 프로덕션 dispatch 를 밀어낸다 — 2026-08-20 실사고: 19:09 의 dispatch(mode=production)가
+  // 19:15 의 schedule 에 밀려 cancelled 로 끝났고 라이브는 그대로였다.
+  //
+  // push 가 밀리는 것과 방향이 다르다. push 는 워치독이 20분 뒤 수렴시키지만, 프로덕션 dispatch 는
+  // 워치독이 설계상 보지 않으므로 아무도 고치지 않는다. 잡이 시작조차 안 해서 신호도 없다.
+  const concurrencyGroup = concurrencyGroupExpression(workflow);
+  assert(concurrencyGroup, `${canonicalWorkflow} must define a top-level concurrency.group.`);
+  assert(
+    concurrencyGroup.includes("${{"),
+    `${canonicalWorkflow} concurrency.group must branch on the deploy target. A single literal group lets a staging push or the schedule watchdog cancel a queued production dispatch, with no signal anywhere.`,
+  );
+  assert(
+    /production-release/.test(concurrencyGroup) && /staging-release/.test(concurrencyGroup),
+    `${canonicalWorkflow} concurrency.group must name separate production and staging groups.`,
+  );
+  // fallback 은 inputs.mode 가 없는 push·schedule 이 받는 값이다. 그게 프로덕션 그룹이면
+  // 머지가 다시 프로덕션 큐에 들어가 애초에 고치려던 상황으로 돌아간다.
+  assert(
+    !/\|\|\s*'[^']*production-release'\s*\}\}/.test(concurrencyGroup),
+    `${canonicalWorkflow} concurrency.group must not fall back to the production group; push and schedule would land in it.`,
+  );
+  // 🔴 fail-closed. mode 선택지를 소스에서 전수로 읽어 **분류되지 않은 선택지가 있으면 실패**한다.
+  // 새 mode 를 추가하고 여기를 잊으면 그 mode 가 조용히 스테이징 그룹으로 떨어진다 —
+  // 프로덕션을 배포하는 mode 라면 다시 워치독에 밀린다.
+  const modeOptions = dispatchModeOptions(workflow);
+  assert(modeOptions.length > 0, `${canonicalWorkflow} must enumerate workflow_dispatch mode options; the concurrency guard has nothing to check without them.`);
+  for (const mode of modeOptions) {
+    assert(
+      concurrencyGroup.includes(`inputs.mode == '${mode}'`),
+      `${canonicalWorkflow} concurrency.group does not classify mode '${mode}'. Every dispatch mode must be routed to a group explicitly.`,
+    );
+  }
+
   assert(workflow.includes("npm run deploy:safe -- --ci --preview-only"), `${canonicalWorkflow} must offer a preview-only run.`);
   // Pages 와 Worker 가 같은 커밋인지 배포 후 런타임에서 대조한다.
   assert(workflow.includes("npm run verify:deployed-sha"), `${canonicalWorkflow} must verify the deployed SHA on both Pages and Worker.`);
@@ -401,6 +472,24 @@ async function runWorkflowShapeMutationTests() {
       // release 잡이 먼저 나오므로 첫 번째가 그쪽이다.
       "release 잡이 퍼지 토큰을 잃으면 거부",
       (text) => text.replace(/ {6}CLOUDFLARE_CACHE_PURGE_TOKEN: .*\r?\n/, ""),
+    ],
+    [
+      "concurrency 가 단일 리터럴 그룹으로 돌아가면 거부",
+      (text) => text.replace(
+        /^concurrency:[\s\S]*?^ {2}cancel-in-progress: false/m,
+        "concurrency:\n  group: cloudflare-production-release\n  cancel-in-progress: false",
+      ),
+    ],
+    [
+      "새 mode 선택지를 concurrency 에 분류하지 않으면 거부",
+      (text) => text.replace(/^( {10}- rollback)/m, "$1\n          - canary"),
+    ],
+    [
+      "프로덕션 그룹이 fallback 자리에 오면 거부",
+      (text) => text.replace(
+        / {4}\|\| 'cloudflare-staging-release'(\r?\n) {4}\}\}/,
+        "    || 'cloudflare-production-release'$1    }}",
+      ),
     ],
     [
       "staging 잡이 퍼지 토큰을 잃으면 거부",
