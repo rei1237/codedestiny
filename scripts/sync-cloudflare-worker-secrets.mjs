@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
+import { isDeferredOnStaging, stagingDeferralReason } from "./lib/staging-secret-policy.mjs";
 
 const rootDir = process.cwd();
 const args = new Set(process.argv.slice(2));
@@ -456,19 +457,13 @@ const activeSecretKeys = onlyPortone
   ? ["PORTONE_API_SECRET", "PORTONE_API_Secret", "PORTONE_WEBHOOK_URL", "PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOK_SECRET", "PORTONE_webhook", "PORTONE_webhook_Secret", "PORTONE_CHANNEL_KEY", "PORTONE_channel", "PORTONE_STORE_ID", "PORTONE_Store", "MID", "INICISMID", "INIsignkey", "INIAPIKEY", "INIAPI_IV"]
   : SECRET_KEYS;
 
-/**
- * 🔴 스테이징에 넣지 않는 시크릿.
- *
- * .env.staging.local 은 프로덕션 .env.local 위에 얹히므로, 막지 않으면 과금 LLM 키가 그대로
- * 상속되어 스테이징 테스트가 조용히 유료 경로를 탄다. 스테이징에서 실제 생성 품질을 봐야 할 때만
- * `--target=staging --only-key=GEMINIF_API_KEY` 로 한 번 넣고, 확인이 끝나면 대시보드에서 지운다.
- */
-const STAGING_EXCLUDED_KEYS = new Set(["GEMINIF_API_KEY", "ANTHROPIC_API_KEY"]);
-
+// 스테이징에서 의도적으로 비워 두는 시크릿. 목록의 정본은 scripts/lib/staging-secret-policy.mjs 다
+// — env-parity 도 같은 모듈을 보고 "없음"을 실패가 아니라 경고로 처리한다. 두 곳에 따로 적으면
+// 반드시 어긋나고, 어긋나면 한쪽을 풀다가 프로덕션 자격증명이 스테이징으로 돌아온다.
 const targetFilteredKeys = syncTarget === "staging" && !onlyKey
   ? activeSecretKeys.filter((key) => {
-    if (!STAGING_EXCLUDED_KEYS.has(normalizeEnvKey(key))) return true;
-    console.warn(`[worker-secrets] Skipping ${key}: excluded from staging (과금 LLM 키).`);
+    if (!isDeferredOnStaging(key)) return true;
+    console.warn(`[worker-secrets] Skipping ${key}: ${stagingDeferralReason(key)}`);
     return false;
   })
   : activeSecretKeys;
