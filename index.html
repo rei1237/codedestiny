@@ -12660,47 +12660,6 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
       <p class="dp-kakao-referral-note" id="dpKakaoReferralNote" aria-live="polite" data-cd-trans="home.input.referralNote">달빛 초대 링크로 친구를 초대할 수 있습니다.</p>
     </section>
     </div>
-      <!-- 빠른 서비스 — 첫 방문자가 결제 없이 바로 시작할 수 있는 6개 (cd-quick-services-v20260819).
-           카드 문구·가격은 js/core/service-registry.js 의 roles:['quick'] 항목과 1:1 이어야 하며
-           npm run verify:home-service-registry 가 이름·가격·링크를 결제 정본까지 대조한다.
-           🔴 여기에 유료 대표 상담을 섞지 말 것 — 그 역할은 아래 #cdSignatureConsult 가 맡는다. -->
-      <section class="cd-quick" id="cdQuickServices" aria-labelledby="cdQuickTitle" data-marker="cd-quick-services-v20260819">
-        <div class="moon-section-head cd-quick__head">
-          <h2 id="cdQuickTitle" data-cd-trans data-key="home.quickServices.title">무료로 바로 시작하기</h2>
-        </div>
-        <div class="cd-quick__grid">
-          <a class="cd-quick-card" href="/daily-fortune/" data-cd-service-id="daily-fortune">
-            <span class="cd-quick-card__sigil" aria-hidden="true">🌙</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="footer.svc.daily">오늘의 운세</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
-          </a>
-          <a class="cd-quick-card" href="/saju/" data-cd-service-id="saju">
-            <span class="cd-quick-card__sigil" aria-hidden="true">☯</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.nav.saju">사주</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-          <a class="cd-quick-card" href="/tarot/" data-cd-service-id="tarot">
-            <span class="cd-quick-card__sigil" aria-hidden="true">🔮</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.tarotName">타로</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-          <a class="cd-quick-card" href="/ziwei/" data-cd-service-id="ziwei">
-            <span class="cd-quick-card__sigil" aria-hidden="true">✺</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.ziweiName">자미두수</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-          <a class="cd-quick-card" href="/sukuyo/" data-cd-service-id="sukuyo">
-            <span class="cd-quick-card__sigil" aria-hidden="true">宿</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.startCards.sukuyoTitle">숙요점</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-          <a class="cd-quick-card" href="/astrology/" data-cd-service-id="astrology">
-            <span class="cd-quick-card__sigil" aria-hidden="true">✦</span>
-            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.astrologyName">점성술</span>
-            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
-          </a>
-        </div>
-      </section>
       <section class="cd-concern" id="cdConcernPick" aria-labelledby="cdConcernPickTitle" data-marker="cd-concern-pick-v20260817">
         <div class="moon-section-head cd-concern__head">
           <span class="moon-section-kicker">START HERE</span>
@@ -14112,61 +14071,22 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
   .cd-pick__cta:hover{transform:none}
 }
 </style>
-      <!-- 통합 운세 탐색기 — 홈의 유일한 서비스 탐색 UI (cd-finder-v20260819).
-           검색 · 궁금한 것 · 운세 방식 · 가격이 하나의 필터 상태를 공유하고 결과가 바로 아래 붙는다.
-           🔴 같은 목적의 섹션을 새로 만들지 말 것. 예전에는 이 역할이 네 곳에 흩어져 있었다
-              (#cdConcernPick · #cdPurposePick · 운명의 문 디스커버 · #cdServiceIndex).
-           엔진과 데이터는 js/core/home-service-finder.js · js/core/service-registry.js 에 있다. -->
-      <section class="cd-finder" id="cdFinder" aria-labelledby="cdFinderTitle" data-marker="cd-finder-v20260819">
-        <div class="moon-section-head cd-finder__head">
-          <h2 id="cdFinderTitle">필요한 서비스를 찾아보세요</h2>
-        </div>
-<div class="fortune-gateway__discover" id="fortuneGatewayDiscover" data-fortune-gateway-discover>
-            <div class="fortune-gateway__search" role="search">
-              <span class="fortune-gateway__search-icon" aria-hidden="true">🔍</span>
-              <input type="search" id="fortuneGatewaySearch" class="fortune-gateway__search-input" placeholder="예: 연애, 돈, 이직, 오늘, 무료 연애운" autocomplete="off" aria-label="운세 서비스 검색">
-            </div>
-            <div class="fortune-gateway__chips" role="group" aria-label="궁금한 주제 선택">
-              <button type="button" class="fortune-gateway__chip" data-purpose="love" aria-pressed="false">❤️ 연애</button>
-              <button type="button" class="fortune-gateway__chip" data-purpose="money" aria-pressed="false">💰 재물</button>
-              <button type="button" class="fortune-gateway__chip" data-purpose="career" aria-pressed="false">💼 직업</button>
-              <button type="button" class="fortune-gateway__chip" data-purpose="family" aria-pressed="false">🏠 가족/가정</button>
-              <button type="button" class="fortune-gateway__chip" data-purpose="life" aria-pressed="false">🧭 인생</button>
-              <button type="button" class="fortune-gateway__chip" data-purpose="today" aria-pressed="false">🌙 오늘</button>
-              <button type="button" class="fortune-gateway__chip" data-purpose="compatibility" aria-pressed="false">💕 궁합</button>
-              <button type="button" class="fortune-gateway__chip" data-purpose="self" aria-pressed="false">🔮 나 자신</button>
-              <button type="button" class="fortune-gateway__chip" data-purpose="etc" aria-pressed="false">🎯 기타</button>
-            </div>
-            <div class="fortune-gateway__filters" id="fortuneGatewayFilters">
-              <div class="fortune-gateway__filter-row" role="group" aria-label="어떤 방식으로 볼까요">
-                <span class="fortune-gateway__filter-label">방식</span>
-                <div class="fortune-gateway__filter-chips">
-                  <button type="button" class="fortune-gateway__fchip" data-method="saju" aria-pressed="false">사주</button>
-                  <button type="button" class="fortune-gateway__fchip" data-method="tarot" aria-pressed="false">타로</button>
-                  <button type="button" class="fortune-gateway__fchip" data-method="ziwei" aria-pressed="false">자미두수</button>
-                  <button type="button" class="fortune-gateway__fchip" data-method="astrology" aria-pressed="false">점성술</button>
-                  <button type="button" class="fortune-gateway__fchip" data-method="sukuyo" aria-pressed="false">숙요점</button>
-                  <button type="button" class="fortune-gateway__fchip" data-method="vedic" aria-pressed="false">베다점</button>
-                  <button type="button" class="fortune-gateway__fchip" data-method="ai" aria-pressed="false">AI 상담</button>
-                </div>
-              </div>
-              <div class="fortune-gateway__filter-row" role="group" aria-label="가격대로 좁히기">
-                <span class="fortune-gateway__filter-label">가격</span>
-                <div class="fortune-gateway__filter-chips">
-                  <button type="button" class="fortune-gateway__fchip" data-price="free" aria-pressed="false">무료</button>
-                  <button type="button" class="fortune-gateway__fchip" data-price="low" aria-pressed="false">1천원대</button>
-                  <button type="button" class="fortune-gateway__fchip" data-price="mid" aria-pressed="false">3천원대</button>
-                  <button type="button" class="fortune-gateway__fchip" data-price="high" aria-pressed="false">5천원대</button>
-                  <button type="button" class="fortune-gateway__fchip" data-price="premium" aria-pressed="false">1만원대</button>
-                  <button type="button" class="fortune-gateway__fchip" data-price="vvip" aria-pressed="false">프리미엄</button>
-                </div>
-              </div>
-            </div>
-            <div class="fortune-gateway__recs" id="fortuneGatewayRecs" aria-live="polite" hidden></div>
-            <a class="fortune-gateway__all" href="#cdServiceIndex" data-cd-service-index-jump="1">
-              <span>전체 보기</span><em aria-hidden="true">→</em>
-            </a>
+      <!-- 오늘의 운명 — 오늘의 운세 허브 바로 뒤, 대표 상담 카드 앞에 놓인 개인화 추천 밴드
+           (2026-08-21 홈 개편으로 더보기 뒤에서 꺼내 기본 노출로 승격 — 관심사 기반 개인화를
+           히어로 바로 다음 구간에서 보여주기 위함, 새 로직 없이 기존 __cdTodayRecommendation() 재사용).
+           정적 기본값으로 먼저 그리고(CLS 0 · SEO 집계), __cdTodayRecommendation() 이 텍스트/링크만 개인화로 교체한다. -->
+      <section class="cd-pick" id="cdTodayPick" aria-label="오늘의 추천 상담" data-cd-trans-attr="aria-label:shell.inputPage.logoArea.k52dhv3.ariaLabel">
+        <div class="cd-pick__inner">
+          <span class="cd-pick__moon" aria-hidden="true"></span>
+          <div class="cd-pick__copy">
+            <span class="cd-pick__kicker" data-cd-trans="shell.cdPickInner.cdPickCopy.kl74p3h">오늘의 운명</span>
+            <p class="cd-pick__lede" data-cd-trans="shell.cdPickInner.cdPickCopy.kg9at99">오늘 당신에게 가장 어울리는 상담</p>
+            <p class="cd-pick__title" id="cdTodayPickTitle" data-cd-trans="shell.cdPickInner.cdPickCopy.kntw327">나크샤트라 결정판</p>
+            <p class="cd-pick__line" id="cdTodayPickLine" data-cd-trans="shell.cdPickInner.cdPickCopy.k4byd9a">하나의 별을 인도 베다점과 한국 명리학, 두 개의 언어로 동시에 읽습니다.</p>
           </div>
+          <a class="cd-pick__cta" id="cdTodayPickCta" href="/nakshatra/">바로 시작 <i aria-hidden="true">→</i></a>
+          <span class="cd-pick__badge" data-cd-trans="shell.cdTodayPick.cdPickInner.k16e565e">맞춤 추천</span>
+        </div>
       </section>
 <section class="cd-sig" id="cdSignatureConsult" data-marker="cd-signature-consult-v20260724" aria-label="대표 운명 상담" data-cd-trans-attr="aria-label:shell.inputPage.logoArea.k16nuyta.ariaLabel">
         <div class="cd-sig__head">
@@ -14280,20 +14200,150 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
           <a class="cd-pick-why__alt" id="cdPickWhyAlt" href="/fortune-tea-house/">대신 운명의 찻집 <i aria-hidden="true">→</i></a>
         </div>
       </section>
-      <!-- 오늘의 운명 — 대표 상담 바로 위 추천 밴드. 정적 기본값으로 먼저 그리고(CLS 0 · SEO 집계),
-           __cdTodayRecommendation() 이 텍스트/링크만 개인화로 교체한다. -->
-      <section data-cd-home-secondary class="cd-pick" id="cdTodayPick" aria-label="오늘의 추천 상담" data-cd-trans-attr="aria-label:shell.inputPage.logoArea.k52dhv3.ariaLabel">
-        <div class="cd-pick__inner">
-          <span class="cd-pick__moon" aria-hidden="true"></span>
-          <div class="cd-pick__copy">
-            <span class="cd-pick__kicker" data-cd-trans="shell.cdPickInner.cdPickCopy.kl74p3h">오늘의 운명</span>
-            <p class="cd-pick__lede" data-cd-trans="shell.cdPickInner.cdPickCopy.kg9at99">오늘 당신에게 가장 어울리는 상담</p>
-            <p class="cd-pick__title" id="cdTodayPickTitle" data-cd-trans="shell.cdPickInner.cdPickCopy.kntw327">나크샤트라 결정판</p>
-            <p class="cd-pick__line" id="cdTodayPickLine" data-cd-trans="shell.cdPickInner.cdPickCopy.k4byd9a">하나의 별을 인도 베다점과 한국 명리학, 두 개의 언어로 동시에 읽습니다.</p>
-          </div>
-          <a class="cd-pick__cta" id="cdTodayPickCta" href="/nakshatra/">바로 시작 <i aria-hidden="true">→</i></a>
-          <span class="cd-pick__badge" data-cd-trans="shell.cdTodayPick.cdPickInner.k16e565e">맞춤 추천</span>
+      <!-- 왜 Code Destiny인가 — 대표 상담 뒤, 무료 시작 앞. 상품 카드가 아니라 서비스 전체의
+           차별점 4가지를 설명한다(가격/링크 없음 — js/core/service-registry.js 등록 대상 아님). -->
+      <style id="cd-why-us-v20260821">
+html body .cd-why-us{max-width:var(--cd-w-grid,1280px);margin:32px auto 8px;padding:0 clamp(12px,3vw,24px)}
+html body .cd-why-us__head{margin:0 0 20px;text-align:center}
+html body .cd-why-us__kicker{display:block;font-size:11px;font-weight:800;letter-spacing:.12em;text-transform:uppercase;color:var(--cd-accent,#b31955);opacity:.75;margin-bottom:6px}
+html.neo-mode body .cd-why-us__kicker{color:var(--cd-gold,#e8d5a3)}
+html body .cd-why-us__title{margin:6px 0 0;font-family:var(--font-display,serif);font-size:clamp(1.24rem,2.6vw,1.7rem);font-weight:800;line-height:1.32;color:var(--cd-text,#3c1830)}
+html.neo-mode body .cd-why-us__title{color:#f4eeff}
+html body .cd-why-us__grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px;margin-top:20px}
+html body .cd-why-us__card{display:flex;flex-direction:column;gap:6px;padding:18px 16px;border-radius:18px;background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-border,rgba(216,63,120,.16))}
+html body .cd-why-us__icon{font-size:24px;line-height:1}
+html body .cd-why-us__card-title{font-size:15px;font-weight:900;line-height:1.3;color:var(--cd-text,#3c1830);letter-spacing:-.01em}
+html.neo-mode body .cd-why-us__card-title{color:#f4eeff}
+html body .cd-why-us__card-desc{font-size:12.5px;line-height:1.62;color:color-mix(in srgb,var(--cd-text,#3c1830) 78%,transparent)}
+html.neo-mode body .cd-why-us__card-desc{color:rgba(228,214,255,.86)}
+@media(min-width:600px){html body .cd-why-us__grid{grid-template-columns:repeat(4,1fr)}}
+@media(min-width:768px){html body .cd-why-us{margin:40px auto 0}}
+      </style>
+      <section class="cd-why-us" id="cdWhyUs" aria-labelledby="cdWhyUsTitle">
+        <div class="cd-why-us__head">
+          <span class="cd-why-us__kicker">WHY CODE DESTINY</span>
+          <h2 class="cd-why-us__title" id="cdWhyUsTitle">왜 Code Destiny인가</h2>
         </div>
+        <div class="cd-why-us__grid">
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true">🔭</span>
+            <span class="cd-why-us__card-title">여러 관점</span>
+            <span class="cd-why-us__card-desc">사주·자미두수·베다점·숙요점 같은 동양의 체계와 서양 점성술·타로를 함께 봅니다.</span>
+          </div>
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true">🎂</span>
+            <span class="cd-why-us__card-title">개인화</span>
+            <span class="cd-why-us__card-desc">생년월일·태어난 시간·출생지를 기반으로 나만의 결과를 계산합니다.</span>
+          </div>
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true">✦</span>
+            <span class="cd-why-us__card-title">AI 해석</span>
+            <span class="cd-why-us__card-desc">복잡한 운세 데이터를 이해하기 쉬운 언어로 풀어드립니다.</span>
+          </div>
+          <div class="cd-why-us__card">
+            <span class="cd-why-us__icon" aria-hidden="true">🔮</span>
+            <span class="cd-why-us__card-title">초융합</span>
+            <span class="cd-why-us__card-desc">서로 다른 체계가 같은 방향을 가리키는지 교차검증합니다.</span>
+          </div>
+        </div>
+      </section>
+      <!-- 빠른 서비스 — 첫 방문자가 결제 없이 바로 시작할 수 있는 6개 (cd-quick-services-v20260819).
+           카드 문구·가격은 js/core/service-registry.js 의 roles:['quick'] 항목과 1:1 이어야 하며
+           npm run verify:home-service-registry 가 이름·가격·링크를 결제 정본까지 대조한다.
+           🔴 여기에 유료 대표 상담을 섞지 말 것 — 그 역할은 위 #cdSignatureConsult 가 맡는다.
+           (2026-08-21 홈 개편으로 #cdConcernPick 뒤·#cdSignatureConsult/#cdWhyUs 뒤로 재배치됨.) -->
+      <section class="cd-quick" id="cdQuickServices" aria-labelledby="cdQuickTitle" data-marker="cd-quick-services-v20260819">
+        <div class="moon-section-head cd-quick__head">
+          <h2 id="cdQuickTitle" data-cd-trans data-key="home.quickServices.title">무료로 바로 시작하기</h2>
+        </div>
+        <div class="cd-quick__grid">
+          <a class="cd-quick-card" href="/daily-fortune/" data-cd-service-id="daily-fortune">
+            <span class="cd-quick-card__sigil" aria-hidden="true">🌙</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="footer.svc.daily">오늘의 운세</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.tiles.freeBadge">무료</span>
+          </a>
+          <a class="cd-quick-card" href="/saju/" data-cd-service-id="saju">
+            <span class="cd-quick-card__sigil" aria-hidden="true">☯</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.nav.saju">사주</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+          <a class="cd-quick-card" href="/tarot/" data-cd-service-id="tarot">
+            <span class="cd-quick-card__sigil" aria-hidden="true">🔮</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.tarotName">타로</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+          <a class="cd-quick-card" href="/ziwei/" data-cd-service-id="ziwei">
+            <span class="cd-quick-card__sigil" aria-hidden="true">✺</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.ziweiName">자미두수</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+          <a class="cd-quick-card" href="/sukuyo/" data-cd-service-id="sukuyo">
+            <span class="cd-quick-card__sigil" aria-hidden="true">宿</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.startCards.sukuyoTitle">숙요점</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+          <a class="cd-quick-card" href="/astrology/" data-cd-service-id="astrology">
+            <span class="cd-quick-card__sigil" aria-hidden="true">✦</span>
+            <span class="cd-quick-card__name" data-cd-trans data-key="home.previewCards.astrologyName">점성술</span>
+            <span class="cd-quick-card__price" data-cd-trans data-key="home.quickServices.freeStart">무료 시작</span>
+          </a>
+        </div>
+      </section>
+      <!-- 통합 운세 탐색기 — 홈의 유일한 서비스 탐색 UI (cd-finder-v20260819).
+           검색 · 궁금한 것 · 운세 방식 · 가격이 하나의 필터 상태를 공유하고 결과가 바로 아래 붙는다.
+           🔴 같은 목적의 섹션을 새로 만들지 말 것. 예전에는 이 역할이 네 곳에 흩어져 있었다
+              (#cdConcernPick · #cdPurposePick · 운명의 문 디스커버 · #cdServiceIndex).
+           엔진과 데이터는 js/core/home-service-finder.js · js/core/service-registry.js 에 있다. -->
+      <section class="cd-finder" id="cdFinder" aria-labelledby="cdFinderTitle" data-marker="cd-finder-v20260819">
+        <div class="moon-section-head cd-finder__head">
+          <h2 id="cdFinderTitle">필요한 서비스를 찾아보세요</h2>
+        </div>
+<div class="fortune-gateway__discover" id="fortuneGatewayDiscover" data-fortune-gateway-discover>
+            <div class="fortune-gateway__search" role="search">
+              <span class="fortune-gateway__search-icon" aria-hidden="true">🔍</span>
+              <input type="search" id="fortuneGatewaySearch" class="fortune-gateway__search-input" placeholder="예: 연애, 돈, 이직, 오늘, 무료 연애운" autocomplete="off" aria-label="운세 서비스 검색">
+            </div>
+            <div class="fortune-gateway__chips" role="group" aria-label="궁금한 주제 선택">
+              <button type="button" class="fortune-gateway__chip" data-purpose="love" aria-pressed="false">❤️ 연애</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="money" aria-pressed="false">💰 재물</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="career" aria-pressed="false">💼 직업</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="family" aria-pressed="false">🏠 가족/가정</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="life" aria-pressed="false">🧭 인생</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="today" aria-pressed="false">🌙 오늘</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="compatibility" aria-pressed="false">💕 궁합</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="self" aria-pressed="false">🔮 나 자신</button>
+              <button type="button" class="fortune-gateway__chip" data-purpose="etc" aria-pressed="false">🎯 기타</button>
+            </div>
+            <div class="fortune-gateway__filters" id="fortuneGatewayFilters">
+              <div class="fortune-gateway__filter-row" role="group" aria-label="어떤 방식으로 볼까요">
+                <span class="fortune-gateway__filter-label">방식</span>
+                <div class="fortune-gateway__filter-chips">
+                  <button type="button" class="fortune-gateway__fchip" data-method="saju" aria-pressed="false">사주</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="tarot" aria-pressed="false">타로</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="ziwei" aria-pressed="false">자미두수</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="astrology" aria-pressed="false">점성술</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="sukuyo" aria-pressed="false">숙요점</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="vedic" aria-pressed="false">베다점</button>
+                  <button type="button" class="fortune-gateway__fchip" data-method="ai" aria-pressed="false">AI 상담</button>
+                </div>
+              </div>
+              <div class="fortune-gateway__filter-row" role="group" aria-label="가격대로 좁히기">
+                <span class="fortune-gateway__filter-label">가격</span>
+                <div class="fortune-gateway__filter-chips">
+                  <button type="button" class="fortune-gateway__fchip" data-price="free" aria-pressed="false">무료</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="low" aria-pressed="false">1천원대</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="mid" aria-pressed="false">3천원대</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="high" aria-pressed="false">5천원대</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="premium" aria-pressed="false">1만원대</button>
+                  <button type="button" class="fortune-gateway__fchip" data-price="vvip" aria-pressed="false">프리미엄</button>
+                </div>
+              </div>
+            </div>
+            <div class="fortune-gateway__recs" id="fortuneGatewayRecs" aria-live="polite" hidden></div>
+            <a class="fortune-gateway__all" href="#cdServiceIndex" data-cd-service-index-jump="1">
+              <span>전체 보기</span><em aria-hidden="true">→</em>
+            </a>
+          </div>
       </section>
       <section data-cd-home-secondary class="cd-diary-planner-entry" id="cdDiaryPlannerEntry" aria-labelledby="cdDiaryPlannerTitle">
         <div class="cd-diary-planner-entry__copy">
@@ -14421,18 +14471,19 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
             });
           }
           // 무료 시작 CTA(앵커)만 스무스 스크롤로 가로챈다 — href로 선택해야 /journey 정문 CTA를 하이재킹하지 않는다.
-          var primaryCta = hero.querySelector('.moon-hero__cta[href="#cdConcernPick"]');
+          // 🔴 2026-08-21: 셀렉터가 과거 리팩터 이후 실제 href(#cdTodayHub)와 어긋나 있어 죽어 있던 것을 바로잡음.
+          var primaryCta = hero.querySelector('.moon-hero__cta[href="#cdTodayHub"]');
           if (primaryCta) {
             primaryCta.addEventListener('click', function(event){
-              var target = document.getElementById('cdConcernPick');
+              var target = document.getElementById('cdTodayHub');
               if (!target) return;
               event.preventDefault();
               var before = window.scrollY || 0;
               try { target.scrollIntoView({ behavior:'smooth', block:'start' }); }
-              catch (_) { location.hash = 'cdConcernPick'; }
+              catch (_) { location.hash = 'cdTodayHub'; }
               /* 스무스 스크롤이 다른 스크립트에 가로막히면 앵커 점프로 보정 */
               window.setTimeout(function(){
-                if (Math.abs((window.scrollY || 0) - before) < 40) { location.hash = 'cdConcernPick'; }
+                if (Math.abs((window.scrollY || 0) - before) < 40) { location.hash = 'cdTodayHub'; }
               }, 700);
             });
           }
