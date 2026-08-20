@@ -1741,6 +1741,10 @@
       "requiredMonthly": "Vereiste tegoeden",
       "currentMonthly": "Huidig saldo",
       "musicTrackSub": "Met een Maanlichtpas luister je meteen naar alle nummers. MP3-downloads zijn alleen mogelijk voor nummers die met een eenmalige aankoop of met maanstenen zijn gekocht.",
+      "defaultTitle": "Betaalde dienst",
+      "passApplyFailed": "We konden je pas niet toepassen.",
+      "monthlyInsufficient": "Niet genoeg maanstenen. Kies in plaats daarvan de eenmalige betaling.",
+      "monthlyUnknown": "We konden je maansteensaldo niet controleren. Open het opnieuw.",
       "monthlyAria": {
         "insufficient": "Saldo ontoereikend",
         "unknown": "Saldo moet worden gecontroleerd"

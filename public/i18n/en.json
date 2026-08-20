@@ -1741,6 +1741,10 @@
       "requiredMonthly": "Required credits",
       "currentMonthly": "Current balance",
       "musicTrackSub": "With a Moonlight Pass you can stream every track right away. MP3 downloads are only for tracks bought with a single purchase or with moonstones.",
+      "defaultTitle": "Paid service",
+      "passApplyFailed": "We couldn't apply your pass.",
+      "monthlyInsufficient": "Not enough moonstones. Please choose the single payment instead.",
+      "monthlyUnknown": "We couldn't check your moonstone balance. Please open it again.",
       "monthlyAria": {
         "insufficient": "Not enough balance",
         "unknown": "Balance needs checking"

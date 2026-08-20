@@ -1741,6 +1741,10 @@
       "requiredMonthly": "所需月定石",
       "currentMonthly": "当前余额",
       "musicTrackSub": "擁有月光通行券即可立即聆聽全部曲目。MP3 下載僅限單次購買或以月精石購買的曲目。",
+      "defaultTitle": "付費服務",
+      "passApplyFailed": "通行券套用失敗。",
+      "monthlyInsufficient": "月精石不足。請改選單次付款。",
+      "monthlyUnknown": "無法確認月精石餘量。請重新開啟。",
       "monthlyAria": {
         "insufficient": "餘量不足",
         "unknown": "需要確認餘量"

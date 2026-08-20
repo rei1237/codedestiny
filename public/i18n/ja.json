@@ -1741,6 +1741,10 @@
       "requiredMonthly": "必要月定石",
       "currentMonthly": "現在残高",
       "musicTrackSub": "月光利用券があれば全曲をすぐに聴けます。MP3ダウンロードは単品購入または月精石で購入した曲のみ可能です。",
+      "defaultTitle": "有料サービス",
+      "passApplyFailed": "利用券の適用に失敗しました。",
+      "monthlyInsufficient": "月精石が足りません。単品決済を選んでください。",
+      "monthlyUnknown": "月精石の残量を確認できませんでした。もう一度開いてください。",
       "monthlyAria": {
         "insufficient": "残量不足",
         "unknown": "残量の確認が必要"

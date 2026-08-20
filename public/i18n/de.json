@@ -1741,6 +1741,10 @@
       "requiredMonthly": "Erforderliche Credits",
       "currentMonthly": "Aktueller Kontostand",
       "musicTrackSub": "Mit dem Mondscheinpass hörst du alle Titel sofort. MP3-Downloads gibt es nur für Titel, die per Einzelkauf oder mit Mondsteinen gekauft wurden.",
+      "defaultTitle": "Kostenpflichtiger Dienst",
+      "passApplyFailed": "Dein Pass konnte nicht angewendet werden.",
+      "monthlyInsufficient": "Nicht genug Mondsteine. Bitte wähle stattdessen den Einzelkauf.",
+      "monthlyUnknown": "Dein Mondstein-Guthaben konnte nicht geprüft werden. Bitte öffne es erneut.",
       "monthlyAria": {
         "insufficient": "Guthaben reicht nicht",
         "unknown": "Guthaben muss geprüft werden"
