@@ -44,6 +44,23 @@
     checkout_pg_opened: true,
   };
 
+  // cdGetCurrentLanguage() 가 돌려주는 언어코드 → 숫자 표기용 BCP-47 로케일.
+  // 목록에 없는 언어는 en-US 로 떨어진다(사전에 없는 언어도 한국식 표기보다는 낫다).
+  var DISPLAY_LOCALE_BY_LANG = {
+    ko: "ko-KR",
+    en: "en-US",
+    ja: "ja-JP",
+    "zh-CN": "zh-CN",
+    "zh-TW": "zh-TW",
+    es: "es-ES",
+    fr: "fr-FR",
+    de: "de-DE",
+    nl: "nl-NL",
+    vi: "vi-VN",
+    ms: "ms-MY",
+    hi: "hi-IN",
+  };
+
   function text(value) {
     return String(value === null || value === undefined ? "" : value).trim();
   }
@@ -96,6 +113,28 @@
       }
     } catch (_translateError) { /* 조회 실패는 폴백으로 흡수한다 */ }
     return interpolate(fallback, vars);
+  }
+
+  /**
+   * 결제창 숫자 표기에 쓸 BCP-47 로케일. 🔴 금액·잔량을 `toLocaleString("ko-KR")` 로 굳히면
+   * 비한국어 사용자에게도 한국식 자릿수 표기가 나간다. 정본을 여기 한 곳에 두는 이유는
+   * 세 렌더러가 이미 이 모듈을 함께 쓰기 때문이다 — 렌더러마다 사본을 만들면 다시 갈라진다.
+   * 조회기가 없는 환경(React 단독 페이지 등)에서는 ko-KR 로 떨어져 기존 동작을 유지한다.
+   */
+  function displayLocale() {
+    try {
+      var win = runtimeWindow();
+      var lang = win && typeof win.cdGetCurrentLanguage === "function" ? text(win.cdGetCurrentLanguage()) : "ko";
+      return DISPLAY_LOCALE_BY_LANG[lang] || (lang ? "en-US" : "ko-KR");
+    } catch (_localeError) {
+      return "ko-KR";
+    }
+  }
+
+  /** 금액을 현재 로케일 자릿수 + 통화 문구로 그린다(정적 셸 formatWon 과 같은 계약). */
+  function formatKrwAmount(value, fallbackText) {
+    var amount = Math.max(0, Math.floor(Number(value) || 0)).toLocaleString(displayLocale());
+    return checkoutText("payment.currency.krw", fallbackText || "{amount}원", { amount: amount });
   }
 
   function runtimeWindow() {
@@ -462,6 +501,8 @@
     sweepOrphanChoiceModals: sweepOrphanChoiceModals,
     hasOpenPaymentChoiceModal: hasOpenPaymentChoiceModal,
     text: checkoutText,
+    displayLocale: displayLocale,
+    formatKrwAmount: formatKrwAmount,
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
     resolveStorePlan: resolveStorePlan,
