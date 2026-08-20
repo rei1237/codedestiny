@@ -562,8 +562,8 @@ body.ph-night .fireflies{opacity:1}
   <form class="form-card" id="birthForm" novalidate>
     <h2>당신의 별을 찾을게요</h2>
     <p class="hint">태어난 날과 시간으로 자미두수 명반을 그립니다. 입력한 정보는 섬을 그리는 데만 쓰여요.</p>
-    <div class="field"><label for="fDate">생년월일</label><input type="date" id="fDate" min="1900-01-01" max="2100-12-31" required /></div>
-    <div class="field"><label for="fTime">태어난 시간</label><input type="time" id="fTime" />
+    <div class="field"><label for="fDate">생년월일</label><input type="text" inputmode="numeric" maxlength="10" placeholder="1991-02-20" id="fDate" data-cd-birth-date required /></div>
+    <div class="field"><label for="fTime">태어난 시간</label><input type="text" inputmode="numeric" maxlength="5" placeholder="08:35" id="fTime" />
       <label class="check"><input type="checkbox" id="fTimeUnknown" /> 태어난 시간을 몰라요 (정오 기준으로 봐드려요)</label></div>
     <div class="field"><label id="labCal">달력</label>
       <div class="seg" role="group" aria-labelledby="labCal">
@@ -2314,6 +2314,40 @@ document.querySelectorAll("[data-gen]").forEach(function(b){
     formGen=b.dataset.gen;
     document.querySelectorAll("[data-gen]").forEach(function(x){x.setAttribute("aria-pressed",x===b?"true":"false");});
   });
+});
+/* 생년월일·출생시간 타이핑 마스킹 — 이 페이지는 js/destiny-profile.js 를 로드하지 않는 완전
+   독립 파일이라(공용 스크립트 신규 의존 추가하지 않음), 규칙만 그 파일의 _dpMaskBirthDateText/
+   _dpNormalizeBirthTimeText 와 글자 그대로 같게 로컬로 둔다. novalidate 라 네이티브 검증에
+   의존한 적이 없고, submit 핸들러의 정규식 게이트가 최종 방어선을 그대로 맡는다. */
+function diMaskBirthDate(v){
+  var d=String(v==null?"":v).replace(/[^0-9]/g,"").slice(0,8);
+  if(d.length<=4)return d;
+  if(d.length<=6)return d.slice(0,4)+"-"+d.slice(4);
+  return d.slice(0,4)+"-"+d.slice(4,6)+"-"+d.slice(6);
+}
+function diNormalizeBirthTime(v){
+  var t=String(v||"").trim();
+  if(!t)return "";
+  var digits=t.replace(/\D/g,"");
+  var h,m;
+  if(digits.length===4){h=digits.slice(0,2);m=digits.slice(2);}
+  else if(digits.length===3){h=digits.slice(0,1);m=digits.slice(1);}
+  else if(digits.length<=2){h=digits;m="0";}
+  else return "";
+  var hh=parseInt(h,10),mm=parseInt(m,10);
+  if(!isFinite(hh)||!isFinite(mm)||hh<0||hh>23||mm<0||mm>59)return "";
+  return (hh<10?"0":"")+hh+":"+(mm<10?"0":"")+mm;
+}
+$("fDate").addEventListener("input",function(){
+  var caretAtEnd=this.selectionStart==null||this.selectionStart===String(this.value).length;
+  if(!caretAtEnd)return;
+  var masked=diMaskBirthDate(this.value);
+  if(masked!==this.value)this.value=masked;
+});
+$("fTime").addEventListener("blur",function(){
+  if(!this.value.trim())return;
+  var normalized=diNormalizeBirthTime(this.value);
+  if(normalized)this.value=normalized;
 });
 $("fTimeUnknown").addEventListener("change",function(){$("fTime").disabled=this.checked;});
 $("birthForm").addEventListener("submit",function(e){
