@@ -1741,6 +1741,10 @@
       "requiredMonthly": "Tín dụng bắt buộc",
       "currentMonthly": "Số dư hiện tại",
       "musicTrackSub": "Có Thẻ ánh trăng, bạn nghe được toàn bộ bài hát ngay lập tức. Tải MP3 chỉ áp dụng cho bài đã mua lẻ hoặc mua bằng nguyệt tinh thạch.",
+      "defaultTitle": "Dịch vụ trả phí",
+      "passApplyFailed": "Không thể áp dụng Pass của bạn.",
+      "monthlyInsufficient": "Không đủ nguyệt tinh thạch. Vui lòng chọn thanh toán một lần.",
+      "monthlyUnknown": "Không thể kiểm tra số dư nguyệt tinh thạch. Vui lòng mở lại.",
       "monthlyAria": {
         "insufficient": "Không đủ số dư",
         "unknown": "Cần kiểm tra số dư"

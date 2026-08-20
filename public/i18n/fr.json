@@ -1741,6 +1741,10 @@
       "requiredMonthly": "Crédits requis",
       "currentMonthly": "Solde actuel",
       "musicTrackSub": "Avec le Pass Clair de Lune, vous écoutez tous les morceaux immédiatement. Le téléchargement MP3 n'est possible que pour les morceaux achetés à l'unité ou avec des pierres de lune.",
+      "defaultTitle": "Service payant",
+      "passApplyFailed": "Nous n'avons pas pu appliquer votre pass.",
+      "monthlyInsufficient": "Pas assez de pierres de lune. Choisissez plutôt le paiement unique.",
+      "monthlyUnknown": "Nous n'avons pas pu vérifier votre solde de pierres de lune. Rouvrez la fenêtre.",
       "monthlyAria": {
         "insufficient": "Solde insuffisant",
         "unknown": "Solde à vérifier"
