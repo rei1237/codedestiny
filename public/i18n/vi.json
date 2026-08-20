@@ -1683,12 +1683,17 @@
           "sub": "Kiểm tra ánh trăng trước"
         },
         "single": {
-          "title": "Kiểm tra số dư"
+          "title": "Kiểm tra số dư",
+          "sub": "Đang đối chiếu an toàn lịch sử thanh toán của bạn"
         },
         "pass": {
           "title": "Đang kiểm tra thẻ của bạn",
           "sub": "Đang điều chỉnh cấp độ thành viên và trạng thái Thẻ Pass"
         }
+      },
+      "fallback": {
+        "title": "Đang xử lý",
+        "sub": "Vui lòng đợi trong giây lát"
       }
     },
     "pending": {
@@ -1701,7 +1706,7 @@
       "passChecking": "Đang kiểm tra quyền truy cập thẻ.",
       "subscriptionPrepare": "Đang chuẩn bị thông tin thanh toán thẻ KRW.",
       "subscriptionConfirm": "Kiểm tra phê duyệt và kích hoạt thanh toán vượt qua.",
-      "confirm": "Đang xác minh phê duyệt thanh toán trên máy chủ.",
+      "confirm": "Đã áp dụng thanh toán. Đang mở nội dung của bạn.",
       "purchase": "Kiểm tra quyền truy cập và phê duyệt thanh toán.",
       "pdfGeneration": "Đang xác nhận quyền thanh toán để tạo PDF."
     },
@@ -1763,7 +1768,7 @@
       "monthlyHint": {
         "use": "Dùng nguyệt tinh thạch bạn đang có. Không tốn thêm.",
         "insufficient": "Không đủ nguyệt tinh thạch. Bạn có thể mở bằng một lần mua.",
-        "checking": "Đang kiểm tra số dư nguyệt tinh thạch. Bạn vẫn có thể chạm.",
+        "checking": "Số dư nguyệt tinh thạch được kiểm tra ngay khi bạn chọn. Bạn cứ chạm là được.",
         "after": "Còn lại {balance} sau khi dùng."
       },
       "monthlyBalance": {
@@ -1799,6 +1804,10 @@
       "unlockPreparing": {
         "title": "Đang chuẩn bị lưu quyền truy cập",
         "message": "Đang chuẩn bị lưu quyền truy cập."
+      },
+      "applied": {
+        "title": "Đã áp dụng thanh toán",
+        "message": "Đang mở nội dung của bạn"
       },
       "unlockSaving": {
         "title": "Lưu quyền truy cập",
@@ -1946,31 +1955,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "Thanh toán đã hoàn tất. Chúng tôi đang kiểm tra trạng thái cung cấp nội dung trả phí. Vui lòng chờ một lát.",
+        "message": "Thanh toán đã hoàn tất.\nChúng tôi đang kiểm tra trạng thái cung cấp nội dung trả phí.\nVui lòng chờ một lát.",
         "title": "Đang kiểm tra trạng thái cung cấp"
       },
       "refundFailed": {
-        "message": "Đã xảy ra sự cố khi yêu cầu hoàn tiền tự động. Thanh toán đã được ghi nhận bình thường và cần quản trị viên xác nhận để xử lý hoàn tiền. Vui lòng kiểm tra lại sau.",
+        "message": "Đã xảy ra sự cố khi yêu cầu hoàn tiền tự động.\nThanh toán đã được ghi nhận bình thường và cần quản trị viên xác nhận để xử lý hoàn tiền.\nVui lòng kiểm tra lại sau.",
         "title": "Cần quản trị viên xác nhận"
       },
       "refundPending": {
-        "message": "Xin lỗi. Nội dung trả phí chưa được cung cấp bình thường nên chúng tôi đang tiến hành hoàn tiền tự động. Số tiền thanh toán sẽ được hoàn 100%.",
+        "message": "Xin lỗi.\nNội dung trả phí chưa được cung cấp bình thường nên chúng tôi đang tiến hành hoàn tiền tự động.\nSố tiền thanh toán sẽ được hoàn 100%.",
         "title": "Đang tiến hành hoàn tiền tự động"
       },
       "refunded": {
-        "message": "Nội dung trả phí chưa được cung cấp bình thường nên số tiền thanh toán đã được hoàn 100%. Bạn sẽ không bị tính phí lại cho giao dịch này.",
+        "message": "Nội dung trả phí chưa được cung cấp bình thường nên số tiền thanh toán đã được hoàn 100%.\nBạn sẽ không bị tính phí lại cho giao dịch này.",
         "title": "Hoàn tiền hoàn tất"
       }
     },
     "passShop": {
       "monthlyStatus": "Đang tiến hành thanh toán tín dụng hàng tháng. Cân bằng ánh trăng đang lặng lẽ sắp xếp.",
       "chargeButton": "Chuyển đến trang thanh toán cho {amount}",
-      "chargeNotice": "Cơ sở tín dụng hàng tháng {credits} · Số tiền thanh toán {price} · Đây là thẻ có thời hạn 30 ngày, không phải là khoản thanh toán tự động gia hạn.",
+      "chargeNotice": "Sản phẩm Pass {price} · Đây là Pass 30 ngày, không tự động gia hạn. Pass chỉ mua được bằng thanh toán một lần theo KRW.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Cơ sở tín dụng hàng tháng {credits} · {price}",
       "profileUnlimited": "Hồ sơ không giới hạn",
       "profileLimit": "{count} hồ sơ",
-      "allFeatures": "Không giới hạn dưới 30.000 KRW · Bao gồm 10 lượt tư vấn chuyên gia",
+      "allFeatures": "Dùng được toàn bộ tính năng",
       "upTo": "Có sẵn tới {amount}",
       "benefits": "Sơ lược về lợi ích",
       "closeAria": "Đóng Hướng dẫn về cửa hàng Moonlight Pass",
@@ -2027,12 +2036,15 @@
     "memberTagline": "Khám phá chòm sao vận mệnh của bạn ngay hôm nay",
     "greeting": "✦ Xin chào",
     "userNameSuffix": "{name}",
-    "logout": "🔓 Đăng xuất",
+    "logout": "🔓 Đăng xuất",
+    "changePhone": "📱 Đổi số điện thoại",
+    "changePassword": "🔑 Đổi mật khẩu",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ Phiên quản trị",
     "adminAccessChip": "TRUY CẬP CỦA QUẢN TRỊ VIÊN",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "Phiên bảng quản trị",
-    "exit": "🔓 Thoát",
+    "exit": "🔓 Thoát",
     "loginKeyword": "đăng nhập",
     "providers": {
       "kakao": "Kakao",

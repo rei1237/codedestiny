@@ -35,7 +35,10 @@ function flatten(value, prefix = "") {
 function targetFilesFromArgs() {
   const args = process.argv.slice(2);
   if (args.includes("--all")) {
-    return ["de.json", "es.json", "fr.json", "hi.json", "ja.json", "ms.json", "nl.json", "zh-cn.json"];
+    // 🔴 vi.json 과 zh-tw.json 이 2026-08-20 까지 빠져 있었다. 둘 다 en.json 과 같은 5,845키를
+    // 담고 있고 런타임 로케일 12개에 포함되는데, --all 에도 readyLocaleFiles 에도 없어서
+    // 키 누락·한글 유입·U+FFFD 를 **어떤 모드로도** 검사받지 않았다.
+    return ["de.json", "es.json", "fr.json", "hi.json", "ja.json", "ms.json", "nl.json", "vi.json", "zh-cn.json", "zh-tw.json"];
   }
 
   const explicit = args.filter((arg) => arg.endsWith(".json"));

@@ -1683,12 +1683,17 @@
           "sub": "Checking the moonlight first"
         },
         "single": {
-          "title": "Checking balance"
+          "title": "Checking balance",
+          "sub": "Securely matching your payment record"
         },
         "pass": {
           "title": "Checking your pass",
           "sub": "Aligning your membership tier and Pass status."
         }
+      },
+      "fallback": {
+        "title": "Processing",
+        "sub": "Please wait a moment"
       }
     },
     "pending": {
@@ -1701,7 +1706,7 @@
       "passChecking": "Checking pass access.",
       "subscriptionPrepare": "Preparing KRW pass payment information.",
       "subscriptionConfirm": "Checking pass payment approval and activation.",
-      "confirm": "Verifying payment approval on the server.",
+      "confirm": "Payment applied. Opening your content.",
       "purchase": "Checking payment approval and access rights.",
       "pdfGeneration": "Checking payment authorization for PDF generation."
     },
@@ -1763,7 +1768,7 @@
       "monthlyHint": {
         "use": "Uses the moonstones you already have. No extra spending.",
         "insufficient": "Not enough moonstones. You can open it with a single purchase.",
-        "checking": "Checking your moonstone balance. It's fine to tap anyway.",
+        "checking": "Your moonstone balance is confirmed the moment you select it. Go ahead and tap.",
         "after": "{balance} will remain after use."
       },
       "monthlyBalance": {
@@ -1799,6 +1804,10 @@
       "unlockPreparing": {
         "title": "Preparing access save",
         "message": "Preparing to save access rights."
+      },
+      "applied": {
+        "title": "Payment applied",
+        "message": "Opening your content"
       },
       "unlockSaving": {
         "title": "Saving access rights",
@@ -1946,31 +1955,31 @@
         }
       },
       "deliveryProcessing": {
-        "message": "Payment is complete. We are checking the delivery status of your paid content. Please wait a moment.",
+        "message": "Payment is complete.\nWe are checking the delivery status of your paid content.\nPlease wait a moment.",
         "title": "Checking Delivery Status"
       },
       "refundFailed": {
-        "message": "An issue occurred during the automatic refund request. The payment has been successfully recorded, and administrator verification is required for refund processing. Please check again shortly.",
+        "message": "An issue occurred during the automatic refund request.\nThe payment has been successfully recorded, and administrator verification is required for refund processing.\nPlease check again shortly.",
         "title": "Admin Verification Required"
       },
       "refundPending": {
-        "message": "We apologize. As the paid content was not delivered correctly, an automatic refund is in progress. 100% of the payment will be refunded.",
+        "message": "We apologize.\nAs the paid content was not delivered correctly, an automatic refund is in progress.\n100% of the payment will be refunded.",
         "title": "Automatic Refund in Progress"
       },
       "refunded": {
-        "message": "As the paid content was not delivered correctly, 100% of the payment has been refunded. You will not be charged again for the same transaction.",
+        "message": "As the paid content was not delivered correctly, 100% of the payment has been refunded.\nYou will not be charged again for the same transaction.",
         "title": "Refund Complete"
       }
     },
     "passShop": {
       "monthlyStatus": "Monthly credit payment is in progress. The moonlight balance is aligning quietly.",
       "chargeButton": "Go to payment page for {amount}",
-      "chargeNotice": "Monthly credit basis {credits} · Payment amount {price} · This is a 30-day pass, not an auto-renewing payment.",
+      "chargeNotice": "Pass product {price} · This is a 30-day pass, not an auto-renewing payment. Passes can only be bought with a one-time KRW payment.",
       "best": "BEST",
       "monthlyBasisWithPrice": "Monthly credit basis {credits} · {price}",
       "profileUnlimited": "Unlimited profiles",
       "profileLimit": "{count} profiles",
-      "allFeatures": "Unlimited under KRW 30,000 · 10 expert consultations included",
+      "allFeatures": "All features available",
       "upTo": "Available up to {amount}",
       "benefits": "Benefits at a glance",
       "closeAria": "Close Moonlight Pass Shop guide",
@@ -2027,12 +2036,15 @@
     "memberTagline": "Explore your constellation of destiny today",
     "greeting": "✦ Hello",
     "userNameSuffix": "{name}",
-    "logout": "🔓 Log out",
+    "logout": "🔓 Log out",
+    "changePhone": "📱 Change phone number",
+    "changePassword": "🔑 Change password",
+    "passCheckingChip": "PASS CHECK",
     "adminSessionGreeting": "✦ Admin session",
     "adminAccessChip": "ADMIN ACCESS",
     "adminName": "ADMIN",
     "adminPanelSessionTitle": "Admin panel session",
-    "exit": "🔓 Exit",
+    "exit": "🔓 Exit",
     "loginKeyword": "log in",
     "providers": {
       "kakao": "Kakao",
