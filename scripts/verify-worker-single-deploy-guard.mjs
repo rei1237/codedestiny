@@ -128,6 +128,29 @@ function assertWorkflowShape(workflow) {
     `${canonicalWorkflow} release job must not carry staging Worker names.`,
   );
 
+  // 🔴 두 배포 잡 모두 엣지 캐시 퍼지 자격을 들고 있어야 한다.
+  //
+  // Pages 전환 틈새(또는 도메인의 첫 배포 전)에 나간 404 를 Cloudflare 가 max-age=172800 으로
+  // 캐시하면, 오리진에 파일이 멀쩡해도 그 URL 만 이틀간 죽는다(bare=404 / ?cdcb=200). 그러면
+  // 배포 후 스모크가 실패해 릴리스가 통째로 롤백되는데, 롤백해도 오염은 풀리지 않아 다음
+  // 실행도 같은 자리에서 죽는다. verify-deployed-assets.mjs 는 오염된 URL 만 골라 퍼지하는
+  // 기능을 갖고 있지만, 이 값이 잡 env 에 없으면 조용히 "퍼지 자격 없음"으로 건너뛴다 —
+  // 레포 시크릿에 토큰이 있어도 워크플로가 전달하지 않으면 스텝에서는 보이지 않는다.
+  //
+  // 실제로 두 번 물렸다: 프로덕션에서 한 번, 그리고 스테이징 잡을 새로 만들면서 같은 배선을
+  // 빠뜨려 또 한 번(2026-08-20 run 32353028401, 오염 URL 5개). 그래서 존재를 잡 단위로 고정한다.
+  // 스테이징은 프로덕션과 같은 code-destiny.com 존이라 값도 같은 시크릿을 쓴다.
+  for (const [jobName, body] of [["release", release], ["staging", staging]]) {
+    assert(
+      /CLOUDFLARE_CACHE_PURGE_TOKEN:\s*\$\{\{\s*secrets\.CLOUDFLARE_CACHE_PURGE_TOKEN\s*\}\}/.test(body),
+      `${canonicalWorkflow} ${jobName} job must pass CLOUDFLARE_CACHE_PURGE_TOKEN; without it verify-deployed-assets skips the purge and an edge-cached 404 fails the smoke test on every future run.`,
+    );
+    assert(
+      /CLOUDFLARE_ZONE_ID:\s*\$\{\{\s*secrets\.CLOUDFLARE_ZONE_ID\s*\}\}/.test(body),
+      `${canonicalWorkflow} ${jobName} job must pass CLOUDFLARE_ZONE_ID; zone lookup by hostname needs zone:read and fails closed without it.`,
+    );
+  }
+
   // 배포 명령도 잡 스코프로 본다. 스테이징이 `deploy:safe -- --ci --yes` 의 변형이면 프로덕션
   // 스텝을 통째로 지워도 아래 검사가 통과한다 — 그래서 어휘적으로 다른 이름을 쓴다.
   assert(release.includes("npm run deploy:safe -- --ci --yes"), `${canonicalWorkflow} release job must use the integrated SHA release command.`);
@@ -368,6 +391,21 @@ async function runWorkflowShapeMutationTests() {
       // 개행은 CRLF/LF 가 섞여 있으므로 정규식으로 받는다.
       "checkout 하나라도 github.sha 를 고정하지 않으면 거부",
       (text) => text.replace(/ {10}ref: \$\{\{ github\.sha \}\}\r?\n/, ""),
+    ],
+    [
+      // release 잡이 먼저 나오므로 첫 번째가 그쪽이다.
+      "release 잡이 퍼지 토큰을 잃으면 거부",
+      (text) => text.replace(/ {6}CLOUDFLARE_CACHE_PURGE_TOKEN: .*\r?\n/, ""),
+    ],
+    [
+      "staging 잡이 퍼지 토큰을 잃으면 거부",
+      (text) => {
+        const marker = "      CLOUDFLARE_CACHE_PURGE_TOKEN: ";
+        const at = text.lastIndexOf(marker);
+        if (at === -1) return text;
+        const lineEnd = text.indexOf("\n", at);
+        return text.slice(0, at) + text.slice(lineEnd + 1);
+      },
     ],
   ];
 
