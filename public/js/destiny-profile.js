@@ -1608,6 +1608,16 @@
     pending: null
   };
 
+  // checkedAt 을 셸의 공유 세션 시계에 묶는다. 셸이 있는 페이지에서는 헤더 프로브·코인 세션검증과
+  // 같은 시계를 보게 되어 "방금 물어봤다"가 셋 모두에게 적용된다.
+  // 🔴 이 파일은 셸 없는 독립 정적 페이지에서도 로드된다 — 그때는 __cdSessionSource 가 없고
+  //    종전처럼 자기 필드를 그대로 쓴다(동작 변화 없음).
+  try {
+    if (typeof window !== 'undefined' && window.__cdSessionSource && typeof window.__cdSessionSource.bind === 'function') {
+      window.__cdSessionSource.bind(_dpSessionVerify);
+    }
+  } catch (_dpClockErr) {}
+
   // 🔴 실패 TTL 이 2000ms 라 9개 호출부가 2초마다 /api/auth/me 를 재발사했고, DB 장애 중에는
   // 그게 /api/profile 과 짝을 이뤄 503 폭주의 박자를 만들었다. 인프라 실패는 곧 복구되지 않으므로
   // 확정 미인증(401/403)보다 훨씬 길게 잡는다.
