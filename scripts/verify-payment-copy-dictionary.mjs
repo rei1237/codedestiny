@@ -135,13 +135,36 @@ for (const [key, { fallback, at }] of copy) {
 }
 
 // ── 3) 12개 로케일 전수 ────────────────────────────────────────────────────────────────
+// 보간 토큰 집합. 번역이 `{amount}` 를 빠뜨리면 금액이 통째로 사라지고, 없던 토큰을 만들면
+// 사용자에게 `{count}` 가 그대로 보인다.
+const interpolationTokens = (value) => [...value.matchAll(/\{(\w+)\}/g)].map((m) => m[1]).sort().join(", ");
+
 function assertAllLocales(key, at) {
+  const koValue = readI18nKey(dictionaries.ko, key);
   for (const locale of I18N_LOCALES) {
     const value = readI18nKey(dictionaries[locale], key);
     assert.ok(
       typeof value === "string" && value.trim(),
       `public/i18n/${locale}.json: ${key} 가 없습니다 (${at}).\n`
         + `  키가 없으면 cdTranslate 가 폴백이 아니라 "Translation pending" 계열 문구를 냅니다.`,
+    );
+    if (typeof koValue !== "string") continue;
+    assert.equal(
+      interpolationTokens(value),
+      interpolationTokens(koValue),
+      `public/i18n/${locale}.json: ${key} 의 보간 토큰이 ko 와 다릅니다 (${at}).\n`
+        + `  ko      : ${JSON.stringify(koValue)}\n`
+        + `  ${locale} : ${JSON.stringify(value)}\n`
+        + `  토큰이 빠지면 금액·개수가 통째로 사라지고, 늘면 사용자가 중괄호를 그대로 봅니다.`,
+    );
+    // 🔴 저작 사고로 무관한 문장이 줄바꿈과 함께 붙어 들어온 적이 있다(2026-08-20, hi.json 의
+    //    payment.currency.krw). 값이 비어 있지도 않고 토큰도 맞아서 어떤 가드도 잡지 못했고,
+    //    힌디 화면의 모든 금액 뒤에 그 문장이 따라붙고 있었다.
+    assert.ok(
+      koValue.includes("\n") || !value.includes("\n"),
+      `public/i18n/${locale}.json: ${key} 에 ko 에는 없는 줄바꿈이 있습니다 (${at}).\n`
+        + `  ${locale} : ${JSON.stringify(value)}\n`
+        + `  저작 중 다른 문장이 섞여 들어왔을 가능성이 큽니다.`,
     );
   }
 }
