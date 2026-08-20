@@ -304,6 +304,10 @@ jobs:
           # 자격증명 단위 캐시(/api/auth/me · /api/profile)는 틀리면 남의 세션이 보인다.
           npm run verify:credential-cache
           npm run verify:credential-cache -- --self-test
+          # 🔴 public/ 미러가 소스보다 낡으면 테스트는 전부 통과하고 사용자만 옛 화면을 본다.
+          # 2026-08-20~21 이틀에 세 번 났고 세 번 다 CI 가 아무 말을 안 했다.
+          npm run verify:public-mirror-fresh
+          npm run verify:public-mirror-fresh -- --self-test
 
       - name: Verify ads.txt is present
         if: needs.classify.outputs.runs_critical == 'true'
