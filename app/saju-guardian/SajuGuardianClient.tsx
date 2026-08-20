@@ -764,10 +764,8 @@ async function verifyGuardianUnlockAccess() {
 }
 
 /* ─────────────────────── 선택 옵션 ─────────────────────────── */
+// 🔴 YEARS 는 select 옵션이 아니라 프로필 프리필 유효범위(seedToGuardianBirthFields)로도 쓰인다 — 지우지 않는다.
 const YEARS = Array.from({ length: 100 }, (_, i) => 2024 - i);
-const MONTHS = Array.from({ length: 12 }, (_, i) => i + 1);
-const DAYS = Array.from({ length: 31 }, (_, i) => i + 1);
-const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 function seedToGuardianBirthFields(seed: AiPrefillSeed | null): { year: string; month: string; day: string; hour: string } | null {
   if (!seed) return null;
@@ -1208,47 +1206,35 @@ const ELEMENT_GUARDIAN_READING = cmsRecord("saju-guardian", "element", ELEMENT_G
 const MONTH_BRANCH_READING = cmsRecord("saju-guardian", "month-branch", MONTH_BRANCH_READING_DEFAULT);
 const HOUR_BRANCH_READING = cmsRecord("saju-guardian", "hour-branch", HOUR_BRANCH_READING_DEFAULT);
 
-/* ─────────────────────────── 셀렉터 UI ─────────────────────── */
-function SelectField({
+/* ─────────────────────────── 입력 필드 UI ─────────────────────── */
+function TextField({
   label,
   value,
   onChange,
-  options,
   placeholder,
+  maxLength = 2,
 }: {
   label: string;
   value: string;
   onChange: (v: string) => void;
-  options: { value: string; label: string }[];
   placeholder: string;
+  maxLength?: number;
 }) {
   return (
     <div className="flex flex-col gap-1.5">
       <label className="text-xs font-semibold text-pink-400 tracking-widest uppercase pl-1">
         {label}
       </label>
-      <div className="relative">
-        <select
-          className="w-full appearance-none rounded-2xl bg-white/80 backdrop-blur-sm border border-pink-200/80 text-slate-700 text-sm font-medium px-4 py-3 pr-9 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 transition-all cursor-pointer shadow-sm hover:border-pink-300"
-          style={{ color: "#374151", colorScheme: "light", WebkitTextFillColor: "#374151" }}
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-        >
-          <option value="" style={{ color: "#9ca3af" }}>
-            {placeholder}
-          </option>
-          {options.map((o) => (
-            <option key={o.value} value={o.value} style={{ color: "#374151" }}>
-              {o.label}
-            </option>
-          ))}
-        </select>
-        <div className="pointer-events-none absolute inset-y-0 right-3 flex items-center">
-          <svg className="w-4 h-4 text-pink-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-          </svg>
-        </div>
-      </div>
+      <input
+        type="text"
+        inputMode="numeric"
+        maxLength={maxLength}
+        className="w-full rounded-2xl bg-white/80 backdrop-blur-sm border border-pink-200/80 text-slate-700 text-sm font-medium px-4 py-3 focus:outline-none focus:ring-2 focus:ring-pink-300 focus:border-pink-300 transition-all shadow-sm hover:border-pink-300"
+        style={{ color: "#374151", colorScheme: "light", WebkitTextFillColor: "#374151" }}
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, maxLength))}
+        placeholder={placeholder}
+      />
     </div>
   );
 }
@@ -2423,7 +2409,7 @@ export default function SajuGuardianPage() {
             </button>
           </div>
           <div className="grid grid-cols-3 gap-3">
-            <SelectField
+            <TextField
               label={tx("태어난 년도")}
               value={birthYear}
               onChange={(value) => {
@@ -2431,9 +2417,9 @@ export default function SajuGuardianPage() {
                 setBirthYear(value);
               }}
               placeholder={tx("년도")}
-              options={YEARS.map((y) => ({ value: String(y), label: `${y}${tx("년")}` }))}
+              maxLength={4}
             />
-            <SelectField
+            <TextField
               label={tx("월")}
               value={birthMonth}
               onChange={(value) => {
@@ -2441,9 +2427,8 @@ export default function SajuGuardianPage() {
                 setBirthMonth(value);
               }}
               placeholder={tx("월")}
-              options={MONTHS.map((m) => ({ value: String(m), label: locale === "ko" ? `${m}월` : `Month ${m}` }))}
             />
-            <SelectField
+            <TextField
               label={tx("일")}
               value={birthDay}
               onChange={(value) => {
@@ -2451,22 +2436,17 @@ export default function SajuGuardianPage() {
                 setBirthDay(value);
               }}
               placeholder={tx("일")}
-              options={DAYS.map((d) => ({ value: String(d), label: locale === "ko" ? `${d}일` : `Day ${d}` }))}
             />
           </div>
 
-          <SelectField
+          <TextField
             label={tx("태어난 시간 (선택)")}
             value={birthHour}
             onChange={(value) => {
               birthTouchedRef.current = true;
               setBirthHour(value);
             }}
-            placeholder={tx("시간을 모르면 건너뛰세요")}
-            options={HOURS.map((h) => ({
-              value: String(h),
-              label: `${String(h).padStart(2, "0")}${tx("시")} (${h < 12 ? tx("오전") : tx("오후")} ${h === 0 ? 12 : h > 12 ? h - 12 : h}${tx("시")})`,
-            }))}
+            placeholder={tx("시")}
           />
 
           <div className="bg-pink-50/80 rounded-2xl px-4 py-3 flex items-start gap-2.5">
