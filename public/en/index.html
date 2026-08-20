@@ -5691,30 +5691,43 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-form-header{
     position:relative!important;
     z-index:1!important;
-    grid-template-columns:48px minmax(0,1fr)!important;
-    gap:10px!important;
-    padding:12px!important;
-    border-radius:22px!important;
+    display:flex!important;
+    flex-direction:column!important;
+    align-items:center!important;
+    text-align:center!important;
+    gap:8px!important;
+    padding:18px 14px!important;
+    border-radius:26px!important;
     border:1px solid rgba(216,63,120,.15)!important;
     background:
-      radial-gradient(circle at 12% 22%,rgba(255,255,255,.94),transparent 64px),
+      radial-gradient(circle at 50% 0%,rgba(255,255,255,.94),transparent 64px),
       linear-gradient(150deg,rgba(255,255,255,.78),rgba(255,244,249,.76) 54%,rgba(245,252,248,.74))!important;
     box-shadow:0 12px 30px rgba(180,91,124,.12),inset 0 1px 0 rgba(255,255,255,.9)!important;
   }
+  section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-form-header__copy{
+    width:100%!important;
+  }
   section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-form-header__icon{
-    width:48px!important;
-    height:48px!important;
-    border-radius:18px!important;
+    width:56px!important;
+    height:56px!important;
+    border-radius:50% 16px 50% 16px!important;
     color:var(--cd-bloom-rose)!important;
     background:radial-gradient(circle at 34% 26%,#fff 0%,#ffe8f1 42%,#f5bfd2 100%)!important;
     border:1px solid rgba(216,63,120,.22)!important;
-    box-shadow:0 12px 24px rgba(216,63,120,.16),inset 0 1px 0 rgba(255,255,255,.88)!important;
+    box-shadow:0 0 0 8px rgba(244,190,209,.16),0 12px 24px rgba(216,63,120,.16),inset 0 1px 0 rgba(255,255,255,.88)!important;
+    transform:rotate(-6deg)!important;
+  }
+  section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-form-header__icon svg{
+    width:30px!important;
+    height:30px!important;
+    transform:rotate(6deg)!important;
   }
   section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .destiny-input-head__kicker{
     color:var(--cd-bloom-rose)!important;
     font-size:.68rem!important;
     letter-spacing:.08em!important;
     text-shadow:none!important;
+    text-align:center!important;
   }
   section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .destiny-input-head__title{
     color:var(--cd-bloom-ink)!important;
@@ -5722,12 +5735,14 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
     line-height:1.18!important;
     letter-spacing:0!important;
     text-shadow:0 1px 0 rgba(255,255,255,.86)!important;
+    text-align:center!important;
   }
   section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .destiny-input-head__desc{
     color:var(--cd-bloom-muted)!important;
     font-size:.78rem!important;
     line-height:1.36!important;
     -webkit-line-clamp:2!important;
+    text-align:center!important;
   }
   section#destinyCardForm.moon-destiny-form[data-marker*="mobile-saju-compact-intake"] .moon-field{
     position:relative!important;
@@ -12342,6 +12357,9 @@ html.neo-mode body .cd-home-more__btn{color:var(--cd-gold,#e8d5a3);border-color:
 html body .cd-home-more__btn:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
 html body .cd-home-more__btn[aria-expanded="false"] .cd-home-more__off{display:none}
 html body .cd-home-more__btn[aria-expanded="true"] .cd-home-more__on{display:none}
+html body .cd-home-more__chevron{font-size:1.05rem;line-height:1;transition:transform .18s ease}
+html body .cd-home-more__btn[aria-expanded="true"] .cd-home-more__chevron{transform:rotate(180deg)}
+@media (prefers-reduced-motion:reduce){html body .cd-home-more__chevron{transition:none}}
       </style>
       <style id="dp-destiny-panel-v20260820">
 /* 프로필 카드 + 종합 운세 입력폼 한 몸 패널 (home-profile-card-form-panel-v20260820).
@@ -17532,6 +17550,7 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
         <button type="button" class="cd-home-more__btn" id="cdHomeExpandToggle" aria-expanded="false">
           <span class="cd-home-more__on" data-cd-trans data-key="home.svcIndex.expandCta">홈에서 접어 둔 섹션도 모두 펼치기</span>
           <span class="cd-home-more__off" data-cd-trans data-key="home.svcIndex.collapseCta">펼친 섹션 다시 접기</span>
+          <span class="cd-home-more__chevron" aria-hidden="true">⌄</span>
         </button>
       </div>
     </section>
@@ -17559,9 +17578,11 @@ html.neo-mode body .cd-onestep__step:focus-visible{outline-color:#c4b5fd}
                 toggle.setAttribute("aria-expanded", "false");
                 return;
               }
+              /* 🔴 여기서 첫 번째 [data-cd-home-secondary] 로 scrollIntoView 하지 말 것 — 문서 순서상
+                 첫 섹션(#cdTodayPick)은 이 버튼보다 한참 위에 있어, 펼치는 순간 사용자를 페이지
+                 위쪽으로 되돌려 보내는 것처럼 보인다(2026-08-20 실측: 클릭 시 스크롤이 위로
+                 1450px 점프). 펼치기만 하고 스크롤 위치는 그대로 둔다. */
               expand();
-              var first = document.querySelector("[data-cd-home-secondary]");
-              if (first) { try { first.scrollIntoView({ behavior: "smooth", block: "start" }); } catch (_) {} }
             });
           }
           /* 접어 둔 섹션을 가리키는 인페이지 앵커(상단 nav 점성술 등)는 먼저 펼치고 나서 이동한다.
@@ -23021,7 +23042,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-e4ae3bf90097" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-e4ae3bf90097" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-e4ae3bf90097" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-e4ae3bf90097" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
