@@ -133,6 +133,11 @@ function pad2(value: number): string {
   return String(value).padStart(2, "0");
 }
 
+// 출생 월/일/시 타이핑 입력의 숫자 마스킹 — app/nakshatra/NakshatraFormClient.tsx 의 digits() 와 동일 규칙.
+function digitsOnly(value: string, max: number): string {
+  return value.replace(/\D/g, "").slice(0, max);
+}
+
 function normalizeZiweiProfileGender(profile: DestinyProfileCard | null): ZiweiGender {
   return String(profile?.gender || "").trim().toUpperCase() === "M" ? "M" : "F";
 }
@@ -1663,13 +1668,6 @@ export default function AdvancedZiweiSectionV2({
     handleCompute,
   ]);
 
-  const maxDay = useMemo(() => {
-    const y = Number(form.birthYear || 2000);
-    const m = Number(form.birthMonth || 1);
-    if (!Number.isFinite(y) || !Number.isFinite(m)) return 31;
-    return new Date(y, m, 0).getDate();
-  }, [form.birthMonth, form.birthYear]);
-
   if (showIntro) {
     return (
       <section className="font-premium relative overflow-hidden rounded-[2rem] border border-white/10 bg-[#020510] p-6 text-slate-100 md:p-8">
@@ -1771,49 +1769,40 @@ export default function AdvancedZiweiSectionV2({
               </label>
               <label className="space-y-2">
                 <span className="text-xs font-semibold text-cyan-100">출생 월</span>
-                <select
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={2}
+                  placeholder="MM"
                   value={form.birthMonth}
-                  onChange={(e) => setForm((prev) => ({ ...prev, birthMonth: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
-                >
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((m) => (
-                    <option key={m} value={m}>
-                      {m}월
-                    </option>
-                  ))}
-                </select>
+                  onChange={(e) => setForm((prev) => ({ ...prev, birthMonth: digitsOnly(e.target.value, 2) }))}
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                />
               </label>
               <label className="space-y-2">
                 <span className="text-xs font-semibold text-cyan-100">출생 일</span>
-                <select
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={2}
+                  placeholder="DD"
                   value={form.birthDay}
-                  onChange={(e) => setForm((prev) => ({ ...prev, birthDay: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
-                >
-                  {Array.from({ length: maxDay }, (_, i) => i + 1).map((d) => (
-                    <option key={d} value={d}>
-                      {d}일
-                    </option>
-                  ))}
-                </select>
+                  onChange={(e) => setForm((prev) => ({ ...prev, birthDay: digitsOnly(e.target.value, 2) }))}
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
+                />
               </label>
               <label className="space-y-2">
                 <span className="text-xs font-semibold text-cyan-100">출생 시</span>
-                <select
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={2}
+                  placeholder="HH"
                   value={form.birthHour}
-                  onChange={(e) => setForm((prev) => ({ ...prev, birthHour: e.target.value }))}
-                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
+                  onChange={(e) => setForm((prev) => ({ ...prev, birthHour: digitsOnly(e.target.value, 2) }))}
+                  className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
                   disabled={form.unknownHour}
-                >
-                  <option value="" disabled>
-                    출생 시 선택
-                  </option>
-                  {Array.from({ length: 24 }, (_, i) => i).map((h) => (
-                    <option key={h} value={h}>
-                      {String(h).padStart(2, "0")}시
-                    </option>
-                  ))}
-                </select>
+                />
               </label>
               <label className="space-y-2">
                 <span className="text-xs font-semibold text-cyan-100">양력/음력</span>
