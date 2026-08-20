@@ -365,6 +365,59 @@ export function auditClientSessionClock(source) {
   return problems;
 }
 
+/** 함수 본문을 중괄호 균형으로 잘라 낸다 — 이름 grep 은 이웃 코드·주석에 걸려 오탐이 난다. */
+function functionBody(source, signature) {
+  const at = source.indexOf(signature);
+  if (at === -1) return "";
+  const open = source.indexOf("{", at + signature.length - 1);
+  if (open === -1) return "";
+  let depth = 0;
+  for (let i = open; i < source.length; i += 1) {
+    if (source[i] === "{") depth += 1;
+    else if (source[i] === "}") {
+      depth -= 1;
+      if (depth === 0) return source.slice(open, i + 1);
+    }
+  }
+  return "";
+}
+
+/* 🔴 강제(캐시 우회) 세션 재검증 폭주 가드 (2026-08-21 실측: 480초 창에 /api/auth/me 32회).
+
+   강제 호출은 셸 5분 메모도, 워커 엣지 캐시도 우회하므로 한 건이 Mongo 핸드셰이크 ~2.5초다.
+   두 가지가 그걸 만들었고 둘 다 "방어를 더 확실히 한다"처럼 보여 되살아나기 쉽다:
+     ① 403(=이용권 거절)을 세션 신호로 읽는 것 — 유료 게이트 거절마다 DB 세션 확인이 나간다.
+     ② 라운드 간 쿨다운 없음 — 3000ms 는 한 라운드 안의 디바운스일 뿐이라 401 이 이어지면
+        3초마다 재장전된다. */
+export function auditForcedRevalidation(shellSource, runtimeSource) {
+  const problems = [];
+
+  const observer = functionBody(runtimeSource, "function __cdObserveApiAuthFailure(response, reqUrl)");
+  if (!observer) {
+    problems.push("js/core/index-inline-runtime.js: __cdObserveApiAuthFailure 본문을 못 찾았다 — 검사 대상이 없다.");
+  } else {
+    if (!/response\.status !== 401\)\s*return;/.test(observer)) {
+      problems.push("__cdObserveApiAuthFailure 가 401 만 세션 신호로 보지 않는다.");
+    }
+    // 주석에 403 이 등장하는 것은 정상이므로 **코드 비교식**만 본다.
+    if (/response\.status\s*[!=]==?\s*403/.test(observer)) {
+      problems.push("__cdObserveApiAuthFailure 가 403 을 다시 세션 신호로 취급한다 — 403 은 이용권 거절이라 유료 게이트 거절마다 강제 /api/auth/me 가 나간다.");
+    }
+  }
+
+  const scheduler = functionBody(shellSource, "function _cdScheduleSessionRevalidation()");
+  if (!scheduler) {
+    problems.push("index.html: _cdScheduleSessionRevalidation 본문을 못 찾았다 — 검사 대상이 없다.");
+  } else if (!scheduler.includes("_CD_SESSION_REVALIDATE_COOLDOWN_MS")) {
+    problems.push("_cdScheduleSessionRevalidation 에 라운드 간 쿨다운이 없다 — 401 이 이어지면 3초마다 강제 /api/auth/me 가 나간다.");
+  }
+  if (!/var _CD_SESSION_REVALIDATE_COOLDOWN_MS = \d/.test(shellSource)) {
+    problems.push("index.html: _CD_SESSION_REVALIDATE_COOLDOWN_MS 선언이 없다.");
+  }
+
+  return problems;
+}
+
 export function auditReactProfileFetch(source) {
   const problems = [];
   const need = (ok, message) => { if (!ok) problems.push(message); };
@@ -403,6 +456,14 @@ for (const rel of CLIENTS) {
     assert.ok(problems.length === 0, problems.join(" / "));
   });
 }
+{
+  const shell = read("index.html");
+  const runtime = read("js/core/index-inline-runtime.js");
+  check("강제 세션 재검증이 폭주하지 않는다(403 제외 · 라운드 간 쿨다운)", () => {
+    const problems = auditForcedRevalidation(shell, runtime);
+    assert.ok(problems.length === 0, problems.join(" / "));
+  });
+}
 
 /* ── self-test: 위 단언들이 실제로 변형을 잡는가 ───────────────────────── */
 if (process.argv.includes("--self-test")) {
@@ -411,7 +472,33 @@ if (process.argv.includes("--self-test")) {
   const clientSource = read("js/destiny-profile.js");
   const reactSource = read("app/_lib/profile-card-storage.ts");
 
+  const runtimeSource = read("js/core/index-inline-runtime.js");
+
   const mutations = [
+    [
+      "403 을 다시 세션 신호로 취급한다",
+      () => auditForcedRevalidation(shellSource, runtimeSource.replace(
+        "if (response.status !== 401) return;",
+        "if (response.status !== 401 && response.status !== 403) return;",
+      )),
+      /403 을 다시 세션 신호로 취급한다/,
+    ],
+    [
+      "라운드 간 쿨다운 검사를 지운다",
+      () => auditForcedRevalidation(shellSource.replace(
+        "    if (_cdSessionRevalidatedAt && (Date.now() - _cdSessionRevalidatedAt) < _CD_SESSION_REVALIDATE_COOLDOWN_MS) return;\n",
+        "",
+      ), runtimeSource),
+      /라운드 간 쿨다운이 없다/,
+    ],
+    [
+      "쿨다운 상수 선언을 지운다",
+      () => auditForcedRevalidation(shellSource.replace(
+        "var _CD_SESSION_REVALIDATE_COOLDOWN_MS = 60 * 1000;",
+        "var _CD_UNUSED_PLACEHOLDER = 0;",
+      ), runtimeSource),
+      /_CD_SESSION_REVALIDATE_COOLDOWN_MS 선언이 없다/,
+    ],
     [
       "force 합류를 되돌려 무조건 delete 로 바꾼다",
       () => auditShellSessionClock(shellSource.replace(
