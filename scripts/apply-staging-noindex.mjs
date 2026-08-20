@@ -50,15 +50,55 @@ export function rewriteHtml(html) {
   return { html: next, changed: true };
 }
 
+/**
+ * `_headers` 의 `/*` 블록 본문 줄 범위(헤더 줄은 들여쓰기로 이어진다). 블록이 없으면 null.
+ */
+function globBlockRange(lines) {
+  const start = lines.findIndex((line) => line.trim() === "/*");
+  if (start === -1) return null;
+  let end = start + 1;
+  while (end < lines.length && /^[ \t]/.test(lines[end])) end += 1;
+  return { start, end };
+}
+
+function globHasRobotsTag(lines, range) {
+  return lines.slice(range.start + 1, range.end).some((line) => /^\s*X-Robots-Tag:\s*noindex/i.test(line));
+}
+
+/**
+ * `/*` 블록에 전역 X-Robots-Tag 를 넣는다.
+ *
+ * 🔴 존재 판정은 반드시 `/*` 블록 **안에서만** 한다. 예전에는 파일 전체에
+ * `text.includes("X-Robots-Tag:")` 를 했는데, 이 레포의 `_headers` 에는 얇은 화면 20여
+ * 경로(`/premium*`·`/pdf*`·`/maya` …)에 그 헤더가 **이미** 있다. 그래서 스테이징 빌드는
+ * 매번 "이미 있음"으로 건너뛰었고 전역 헤더는 한 번도 붙지 않았다 — 스크립트는 OK 를
+ * 찍었고 배포도 성공했는데 `/` 응답에만 헤더가 없었다(2026-08-20 run 32359573695).
+ *
+ * 🔴 `/*` 블록이 없으면 조용히 넘기지 않는다. 넣을 자리가 없다는 것은 스테이징이 전역
+ * 헤더 없이 나간다는 뜻이고, 그걸 통과시키는 것은 가드가 아니다.
+ */
 export function rewriteHeaders(text) {
-  if (text.includes("X-Robots-Tag:")) return { text, changed: false };
-
   const lines = text.split(/\r?\n/);
-  const globIndex = lines.findIndex((line) => line.trim() === "/*");
-  if (globIndex === -1) return { text, changed: false };
+  const range = globBlockRange(lines);
+  if (!range) {
+    throw new Error("_headers 에 `/*` 블록이 없습니다. 전역 X-Robots-Tag 를 넣을 자리가 없으면 스테이징이 헤더 없이 나갑니다.");
+  }
+  if (globHasRobotsTag(lines, range)) return { text, changed: false };
 
-  lines.splice(globIndex + 1, 0, ROBOTS_TAG_HEADER);
+  lines.splice(range.start + 1, 0, ROBOTS_TAG_HEADER);
   return { text: lines.join("\n"), changed: true };
+}
+
+/**
+ * 쓰고 난 산출물을 **다시 읽어** 확인한다. 이번 사고의 본체는 잘못된 판정이 아니라,
+ * 그 판정이 틀렸는데도 스크립트가 OK 를 찍고 넘어간 것이다.
+ */
+function assertGlobRobotsTag(text) {
+  const lines = text.split(/\r?\n/);
+  const range = globBlockRange(lines);
+  if (!range || !globHasRobotsTag(lines, range)) {
+    throw new Error("_headers 의 `/*` 블록에 X-Robots-Tag: noindex 가 없습니다. 스테이징 응답에 전역 색인 차단 헤더가 붙지 않습니다.");
+  }
 }
 
 function listHtmlFiles(distDir) {
@@ -72,14 +112,13 @@ function applyTo(distDir) {
   writeFileSync(robotsPath, ROBOTS_BODY, "utf8");
 
   const headersPath = join(distDir, "_headers");
-  let headersChanged = false;
-  if (existsSync(headersPath)) {
-    const result = rewriteHeaders(readFileSync(headersPath, "utf8"));
-    if (result.changed) {
-      writeFileSync(headersPath, result.text, "utf8");
-      headersChanged = true;
-    }
+  if (!existsSync(headersPath)) {
+    throw new Error(`${headersPath} 가 없습니다. 전역 X-Robots-Tag 를 넣을 파일이 없으면 스테이징이 헤더 없이 나갑니다.`);
   }
+  const headersResult = rewriteHeaders(readFileSync(headersPath, "utf8"));
+  if (headersResult.changed) writeFileSync(headersPath, headersResult.text, "utf8");
+  const headersChanged = headersResult.changed;
+  assertGlobRobotsTag(readFileSync(headersPath, "utf8"));
 
   let htmlChanged = 0;
   let htmlSkipped = 0;
@@ -123,15 +162,36 @@ function runSelfTest() {
   const twice = rewriteHeaders(headers.text);
   expect(!twice.changed, "이미 있으면 두 번 넣지 않아야 한다.");
 
-  const noGlob = rewriteHeaders("/assets/*\n  Cache-Control: max-age=1\n");
-  expect(!noGlob.changed, "/* 블록이 없으면 아무것도 하지 않아야 한다.");
+  // 🔴 이 레포의 실제 _headers 모양. 다른 경로에 이미 X-Robots-Tag 가 있어도 전역 블록에는
+  //    반드시 넣어야 한다. 예전 픽스처에 이 경우가 없어서 결함이 그대로 통과했다.
+  const perPathOnly = rewriteHeaders(
+    "/premium*\n  X-Robots-Tag: noindex, nofollow\n\n/pdf*\n  X-Robots-Tag: noindex, nofollow\n\n/*\n  X-Content-Type-Options: nosniff\n",
+  );
+  expect(perPathOnly.changed, "다른 경로에 X-Robots-Tag 가 있어도 /* 블록에는 넣어야 한다.");
+  {
+    const lines = perPathOnly.text.split("\n");
+    const globAt = lines.findIndex((line) => line.trim() === "/*");
+    expect(lines[globAt + 1] === ROBOTS_TAG_HEADER, "전역 헤더는 /* 바로 아래에 있어야 한다.");
+  }
+
+  let globMissingThrew = false;
+  try {
+    rewriteHeaders("/assets/*\n  Cache-Control: max-age=1\n");
+  } catch {
+    globMissingThrew = true;
+  }
+  expect(globMissingThrew, "/* 블록이 없으면 조용히 넘기지 말고 실패해야 한다.");
 
   // 디렉터리 전체 적용까지 실제 파일로 확인한다.
   const fixture = mkdtempSync(join(tmpdir(), "staging-noindex-"));
   try {
     mkdirSync(join(fixture, "nested"), { recursive: true });
     writeFileSync(join(fixture, "robots.txt"), "User-agent: *\nAllow: /\nSitemap: https://code-destiny.com/sitemap.xml\n", "utf8");
-    writeFileSync(join(fixture, "_headers"), "/*\n  X-Content-Type-Options: nosniff\n", "utf8");
+    writeFileSync(
+      join(fixture, "_headers"),
+      "/premium*\n  X-Robots-Tag: noindex, nofollow\n\n/*\n  X-Content-Type-Options: nosniff\n",
+      "utf8",
+    );
     writeFileSync(join(fixture, "index.html"), "<html><head></head><body>home</body></html>", "utf8");
     writeFileSync(join(fixture, "nested", "page.html"), "<html><head></head><body>deep</body></html>", "utf8");
 
@@ -142,7 +202,13 @@ function runSelfTest() {
     expect(!robots.includes("Allow: /"), "robots.txt 에 Allow 가 남으면 안 된다.");
     expect(summary.htmlChanged === 2, `하위 디렉터리까지 처리해야 한다 (처리 ${summary.htmlChanged}건).`);
     expect(readFileSync(join(fixture, "nested", "page.html"), "utf8").includes(ROBOTS_META), "중첩 HTML 에도 메타가 있어야 한다.");
-    expect(readFileSync(join(fixture, "_headers"), "utf8").includes("X-Robots-Tag"), "_headers 에 X-Robots-Tag 가 있어야 한다.");
+    // 파일 어디든이 아니라 **전역 블록에** 있어야 한다. 이 구분이 이번 결함의 전부다.
+    {
+      const written = readFileSync(join(fixture, "_headers"), "utf8").split(/\r?\n/);
+      const globAt = written.findIndex((line) => line.trim() === "/*");
+      expect(globAt !== -1 && /^\s*X-Robots-Tag:\s*noindex/i.test(written[globAt + 1] || ""), "_headers 의 /* 블록에 X-Robots-Tag 가 있어야 한다.");
+      expect(summary.headersChanged, "다른 경로에만 있던 경우 전역 헤더를 추가했어야 한다.");
+    }
   } finally {
     rmSync(fixture, { recursive: true, force: true });
   }
