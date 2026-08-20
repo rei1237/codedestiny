@@ -152,6 +152,35 @@ describe("today-hub 라우트", () => {
     expect(new Set(results).size).toBeGreaterThan(1);
   });
 
+  // 🔴 공개 모드 응답은 caches.default 에 올라간다(worker/lib/cms-cache.js). 개인화 응답이 같은
+  //    캐시에 새면 다음 방문자가 남의 사주를 받는다. 개인화 요청을 **먼저** 보낸 뒤 공개 요청이
+  //    여전히 공개 응답인지 본다 — handleTodayHub 의 `if (input)` 조기 반환이 사라지면 여기서 깨진다.
+  //    (jest 는 caches 가 없어 아이솔레이트 memo 만 도는데, 오염 경로는 그 memo 도 똑같다.)
+  test("개인화 응답이 공개 모드 캐시를 오염시키지 않는다", async () => {
+    const personalized = await call("?birth=1988-03-07&detail=1");
+    expect(personalized.status).toBe(200);
+    const personalizedBody = await personalized.json();
+    expect(personalizedBody.personalized).toBe(true);
+    expect(personalized.headers.get("Cache-Control")).toContain("private");
+
+    const shared = await call("?detail=1");
+    expect(shared.status).toBe(200);
+    expect(shared.headers.get("Cache-Control")).toContain("public");
+
+    const sharedBody = await shared.json();
+    expect(sharedBody.personalized).toBe(false);
+    expectPublicCardShape(sharedBody.systems.saju);
+    expectPublicCardShape(sharedBody.systems.sukuyo);
+  });
+
+  // 같은 키의 두 번째 요청은 캐시에서 나온다. hit 이 안 나오면 엣지 캐시가 배선만 되고
+  // 실제로는 매번 다시 계산한다는 뜻이다(그러면 이 PR 의 목적이 사라진다).
+  test("공개 모드 재요청은 캐시에서 나온다", async () => {
+    await call("?detail=1");
+    const again = await call("?detail=1");
+    expect(again.headers.get("X-CD-Cache")).toBe("hit");
+  });
+
   test("today-hub 외의 경로는 404 — 이 모듈은 한 라우트만 맡는다", async () => {
     const res = await handleFortuneTodayRoutes(new Request("https://code-destiny.com/api/fortune/check"), {});
     expect(res.status).toBe(404);
