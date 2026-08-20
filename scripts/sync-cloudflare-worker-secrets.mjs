@@ -2,6 +2,7 @@ import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { spawnSync } from "node:child_process";
 import dotenv from "dotenv";
+import { isDeferredOnStaging, stagingDeferralReason } from "./lib/staging-secret-policy.mjs";
 
 const rootDir = process.cwd();
 const args = new Set(process.argv.slice(2));
@@ -456,56 +457,13 @@ const activeSecretKeys = onlyPortone
   ? ["PORTONE_API_SECRET", "PORTONE_API_Secret", "PORTONE_WEBHOOK_URL", "PORTONE_webhook_URL", "PORTONE_webhookurl", "PORTONE_WEBHOOK_SECRET", "PORTONE_webhook", "PORTONE_webhook_Secret", "PORTONE_CHANNEL_KEY", "PORTONE_channel", "PORTONE_STORE_ID", "PORTONE_Store", "MID", "INICISMID", "INIsignkey", "INIAPIKEY", "INIAPI_IV"]
   : SECRET_KEYS;
 
-/**
- * 🔴 스테이징에 넣지 않는 시크릿.
- *
- * .env.staging.local 은 프로덕션 .env.local 위에 얹히므로, 막지 않으면 과금 LLM 키가 그대로
- * 상속되어 스테이징 테스트가 조용히 유료 경로를 탄다. 스테이징에서 실제 생성 품질을 봐야 할 때만
- * `--target=staging --only-key=GEMINIF_API_KEY` 로 한 번 넣고, 확인이 끝나면 대시보드에서 지운다.
- */
-const STAGING_EXCLUDED_KEYS = new Set([
-  // 과금 LLM 키
-  "GEMINIF_API_KEY",
-  "ANTHROPIC_API_KEY",
-  // 🔴 결제 자격증명. 스테이징은 PortOne **테스트 채널**로 돌아야 한다.
-  //
-  // .env.staging.local 은 .env.local 위에 얹히므로, 막지 않으면 프로덕션 채널키·스토어ID·
-  // 이니시스 상용 MID 가 그대로 상속되어 스테이징 테스트가 **실제 카드 승인**을 일으킨다.
-  // 기본값이 "상속"인 것과 "차단"인 것의 차이가 곧 실제 돈이 나가느냐다.
-  //
-  // 테스트 채널 값이 준비되면 그때 명시적으로 넣는다:
-  //   npm run secrets:cf:worker -- --target=staging --only-key=PORTONE_CHANNEL_KEY
-  "MID",
-  // 🔴 DB 이름. 이것이 시크릿으로 들어가면 **스테이징이 프로덕션 DB 를 본다.**
-  //
-  // worker/lib/db.js 의 resolveMongoDbName 은
-  //   MONGO_DB_NAME → MONGO_NAME → MONGODB_DB_NAME → URI → "code_destiny"
-  // 순으로 읽는다. 스테이징 분리는 wrangler.staging.toml 의 `MONGODB_DB_NAME` **세 번째**
-  // 자리에 걸려 있으므로, .env.local 에서 상속된 MONGO_DB_NAME 하나가 그 분리를 통째로 덮는다.
-  // 2026-08-20 에 실제로 그 상태로 배포됐다(발견 후 스테이징 워커에서 삭제).
-  // MONGO_URI 는 같은 클러스터를 공유하므로 그대로 둔다 — 가르는 것은 DB 이름 하나뿐이다.
-  "MONGO_DB_NAME",
-  "MONGO_NAME",
-]);
-
-/**
- * 🔴 이름을 하나씩 적지 않는다. SECRET_KEYS 에는 같은 값의 별칭이 여러 표기로 들어 있고
- * (PORTONE_channel · PORTONE_Store · PORTONE_webhookurl …), normalizeEnvKey 가 대문자로 접어도
- * 서로 다른 키로 남는다. 목록으로 적으면 그중 하나가 빠지고, 빠진 그 하나가 프로덕션 채널키다.
- * 계열 전체를 막고 필요한 것만 --only-key 로 여는 방향이 안전하다.
- */
-const STAGING_EXCLUDED_PATTERNS = [/^PORTONE_/, /^INI/];
-
-function isExcludedFromStaging(key) {
-  const normalized = normalizeEnvKey(key);
-  return STAGING_EXCLUDED_KEYS.has(normalized)
-    || STAGING_EXCLUDED_PATTERNS.some((pattern) => pattern.test(normalized));
-}
-
+// 스테이징에서 의도적으로 비워 두는 시크릿. 목록의 정본은 scripts/lib/staging-secret-policy.mjs 다
+// — env-parity 도 같은 모듈을 보고 "없음"을 실패가 아니라 경고로 처리한다. 두 곳에 따로 적으면
+// 반드시 어긋나고, 어긋나면 한쪽을 풀다가 프로덕션 자격증명이 스테이징으로 돌아온다.
 const targetFilteredKeys = syncTarget === "staging" && !onlyKey
   ? activeSecretKeys.filter((key) => {
-    if (!isExcludedFromStaging(key)) return true;
-    console.warn(`[worker-secrets] Skipping ${key}: excluded from staging (과금 LLM 키 · 결제 자격증명 · DB 분리).`);
+    if (!isDeferredOnStaging(key)) return true;
+    console.warn(`[worker-secrets] Skipping ${key}: ${stagingDeferralReason(key)}`);
     return false;
   })
   : activeSecretKeys;
