@@ -52,10 +52,34 @@ routes = [
 #   → placement_status: SUCCESS | INSUFFICIENT_INVOCATIONS | UNSUPPORTED_APPLICATION
 #   🔴 /settings 엔드포인트에는 mode 만 있고 status 가 없다. 거기만 보면 판정이 안 된다.
 #
-# 대가(미검증 추정): 워커가 옮겨가면 caches.default 조회도 함께 옮겨가므로 **엣지 캐시 히트가
-# 전달 홉만큼 느려질 수 있다**(실측 히트 ~950ms → ~1,250ms 추정). 반대로 DB 를 타는 경로는
-# 3,400ms → ~500ms 가 기대값이다. 결제·로그인은 항상 DB 를 타므로 그쪽을 택했다.
-# 되돌리기는 이 블록 삭제다.
+# 🔴 배포 후 판정 (2026-08-21, 프로덕션 0c5fe19ff). **효과 0이다. 원인은 따로 있었다.**
+#
+#   placement_status = SUCCESS 로 바뀌었는데도 수치가 안 움직였다:
+#     캐시 미스 중앙값   배포 전 3,467ms → 배포 후 3,436ms   (노이즈)
+#     핸드셰이크         1,273~1,305ms                       (tail 실측, 3/3 요청)
+#     /api/health        168ms → 153ms                       (DB 없는 대조군)
+#
+#   🔴 재배치가 실제로 일어나지 않았다는 증거는 마지막 줄이다. 워커가 다른 colo 로 옮겨갔다면
+#   **DB 를 안 타는 /api/health 도** 전달 홉만큼 느려져야 한다. 그대로다.
+#
+#   위에 적었던 "캐시 히트 ~950ms → ~1,250ms" 는 **틀린 추정이었다.** 실측 히트는 155ms 다
+#   (/api/health 153ms 와 사실상 같다 — 캐시 히트는 DB 도 CPU 도 안 탄다).
+#
+# 🔴 진짜 원인 (2026-08-21 확정): 플랜도 워커 설정도 아니고 **이 존에 배정된 애니캐스트 IP** 다.
+#   같은 머신(KT/AS4766, 수원)에서 같은 시각에 잰 결과:
+#     code-destiny.com            104.21.7.195 / 172.67.187.253 → colo=LAX  422~465ms
+#     staging.code-destiny.com    (같은 IP)                     → colo=LAX  431ms
+#     api.code-destiny.com        (같은 IP)                     → colo=LAX  422ms
+#     *.workers.dev               104.21.43.189 / 172.67.184.77 → colo=LAX  423~483ms
+#     codedestiny-5md.pages.dev   172.66.47.137 / 172.66.44.119 → colo=ICN   21~48ms
+#     cloudflare.com              104.16.133.229                → colo=ICN     22ms
+#   즉 104.21.0.0/16 · 172.67.0.0/16 (프록시 존·workers.dev 대역)만 KT 에서 LAX 로 빠지고,
+#   172.66.0.0/16 (Pages CDN 대역)과 104.16.0.0/12 는 ICN 으로 제대로 들어간다.
+#   Cloudflare 커뮤니티에 2026-08 에 같은 신고가 다수 있다(KT/AS4766, 같은 두 프리픽스).
+#   우리 쪽에서 고칠 수 있는 것이 아니고, Smart Placement 로도 못 우회한다.
+#
+# 그럼 이 블록을 왜 남겨 두는가: 켜 두는 비용이 0 이고(재배치가 안 일어나므로 캐시 히트도
+# 그대로다), Cloudflare 가 백엔드를 인식하게 되면 그때부터 저절로 듣는다. 되돌리기는 삭제다.
 [placement]
 mode = "smart"
 
