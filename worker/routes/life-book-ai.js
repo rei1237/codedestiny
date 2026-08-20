@@ -1,5 +1,6 @@
 import { createHash } from "node:crypto";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
+import { resolveForbiddenPatterns } from "../lib/llm-leak-guard.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { connectDb, isTransientMongoError, mongoose, withMongoRetry } from "../lib/db.js";
@@ -74,7 +75,17 @@ const LEGACY_TOPIC_TO_FOCUS = Object.freeze({
 });
 
 const FOCUS_AREAS = new Set(Object.keys(FOCUS_AREA_LABELS));
-const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|인공지능|이 기능은|이 결과는|분석 결과는/gi;
+const FORBIDDEN_RESULT_PATTERN = /\bPDF\b|\bprogress\b|\bjob\b|프롬프트|시스템|\bAI\b|인공지능|이 기능은|이 결과는|분석 결과는/i;
+
+// 🔴 위 패턴은 **ko 전용**이다. `\bjob\b`·`\bprogress\b`·`\bAI\b`·`chapter` 는 영어·독일어
+//    상담문에서 자연스러운 단어라, 비-ko 응답에 그대로 돌리면 모델이 정상적으로 답해도 반려된다
+//    (실측 2026-08-20: "Your job situation improves and progress comes steadily" → 반려).
+//    llm-leak-guard 가 정확히 이 상황을 위해 있다 — ko 면 넘긴 패턴을 그대로 돌려주므로
+//    **한국어 판정은 한 글자도 바뀌지 않고**, 비-ko 면 보편 패턴 + 로케일 패턴으로 갈아탄다.
+function hasForbiddenResult(value) {
+  const body = String(value ?? "");
+  return resolveForbiddenPatterns(FORBIDDEN_RESULT_PATTERN).some((pattern) => pattern.test(body));
+}
 const CANONICAL_TEN_GODS = Object.freeze(["비견", "겁재", "식신", "상관", "편재", "정재", "편관", "정관", "편인", "정인"]);
 const LIFE_BOOK_EXPECTED_CHAPTER_COUNT = 10;
 // 10챕터 병렬 생성이라 분량은 챕터 목표를 키워서 올린다(챕터당 1,500~2,600자는 모델이 한 번에
@@ -1367,7 +1378,7 @@ function getLifeBookReportQualityIssues(content, input = {}) {
 
 function hasForbiddenResultTerms(value) {
   FORBIDDEN_RESULT_PATTERN.lastIndex = 0;
-  return FORBIDDEN_RESULT_PATTERN.test(value);
+  return hasForbiddenResult(value);
 }
 
 // nakshatra-ai.js / master-love-codex.js 와 같은 구현. 한 요청 = 1 웨이브라 동시성은 4로 고정한다
