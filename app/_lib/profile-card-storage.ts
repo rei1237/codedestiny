@@ -1,5 +1,7 @@
 "use client";
 
+import { authFetch } from "./auth-client";
+
 export type DestinyProfileCard = {
   id?: string;
   profileId?: string;
@@ -381,7 +383,13 @@ export async function fetchCurrentDestinyProfile(
     const token = getStoredAuthToken();
     if (token) headers.set("Authorization", `Bearer ${token}`);
 
-    const response = await fetch("/api/profile", {
+    // 🔴 여기는 raw fetch 였다. 그래서 auth-client 의 authGetInFlight 단일비행 밖에 있었고
+    //    (허용목록 authGetDedupeKey 에 /api/profile 이 이미 들어 있는데도) 같은 순간 다른
+    //    소비자가 /api/profile 을 부르면 네트워크 요청이 그대로 두 발이 됐다.
+    //    실측 2026-08-21: 로그인 홈 진입 150초 창에 /api/profile 5회.
+    //    Authorization 은 위에서 직접 넣는다 — buildAuthRequest 는 이미 있는 헤더를 덮지 않으므로
+    //    웹의 레거시 토큰 경로가 종전 그대로 유지된다.
+    const response = await authFetch("/api/profile", {
       method: "GET",
       credentials: "include",
       cache: "no-store",

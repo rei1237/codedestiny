@@ -12,6 +12,23 @@
  *   2) POST /api/rpg/adopt — 서버 캐시 없이 Mongo 4~5 왕복. 레벨 UI 를 실제로 열 때로 미뤘다.
  *
  * 🔴 되살리려면 여기 단언들을 함께 뒤집어야 한다. 그건 정책 변경이므로 임의로 하지 말 것.
+ *
+ * ── 2026-08-21 추가: 세션 검증 단일화 ──────────────────────────────────────────────
+ *
+ * 위 두 호출을 없앤 뒤에도 실측은 계약을 지키지 못하고 있었다. 로그인 홈 진입 150초 창에서
+ * /api/auth/me 5회 · /api/profile 5회(docs/DEBUGGING_GUIDE.md 의 계약은 각 1회). 원인이 둘이다:
+ *
+ *   ① 강제 새로고침이 in-flight 를 파괴했다. 머리쪽 세션 캐시의 force 분기가 무조건
+ *      delete inFlight[key] 를 해서, 같은 순간 세 주인이 force 로 들어오면 네트워크가 3발이 되고
+ *      먼저 기다리던 non-force 대기자들의 합류 대상까지 사라졌다.
+ *   ② /api/auth/me 의 주인이 셋인데 각자 다른 시계를 봤다. __cdGuestAuthProbeState(8초) ·
+ *      _cdCoinApiAuthState(30초) · _dpSessionVerify(30·15·2초)가 "이제 물어볼 때인가"를 따로
+ *      판단해, auth 이벤트 한 번에 요청이 최대 3발씩 나갔다.
+ *
+ * 처방은 **시계 하나 + in-flight 하나**다. 각 주인의 획득 경로(401 리프레시·타임아웃·degraded
+ * 판정)는 결제 경로라 손대지 않았다 — 통합한 것은 판단뿐이다.
+ *
+ * 실행: node scripts/verify-entry-fanout.mjs [--self-test]
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -289,6 +306,172 @@ for (const rel of CLIENTS) {
       "런타임 preconnect 에 crossOrigin 이 붙었다 — 같은 함수가 crossOrigin 없이 붙이는 <script> 와 커넥션이 갈린다.",
     );
   });
+}
+
+/* ── 6. 세션 검증 단일화 (2026-08-21) ─────────────────────────────────── */
+
+// 순수 함수로 둔다 — 아래 --self-test 가 같은 함수에 변형 소스를 먹여 단언이 공허하지 않은지 본다.
+export function auditShellSessionClock(source) {
+  const problems = [];
+  const need = (ok, message) => { if (!ok) problems.push(message); };
+
+  need(
+    source.includes("var inFlightForced = Object.create(null);"),
+    "inFlightForced 추적이 사라졌다 — force 요청이 서로 합류할 근거가 없어진다.",
+  );
+  need(
+    source.includes("if (inFlight[key] && inFlightForced[key]) {"),
+    "force 분기가 진행 중인 강제 요청에 합류하지 않는다. 동시 force 가 그대로 네트워크 N발이 된다.",
+  );
+  need(
+    source.includes("delete inFlightForced[key];"),
+    "inFlightForced 정리가 없다 — 끝난 요청이 forced 로 남으면 다음 force 가 죽은 promise 에 합류한다.",
+  );
+
+  // 합류 검사가 delete 보다 **앞**이어야 한다. 뒤로 가면 검사는 있으나 늘 거짓이다.
+  const joinAt = source.indexOf("if (inFlight[key] && inFlightForced[key]) {");
+  const forcedDeleteAt = source.indexOf("delete inFlight[key];", source.indexOf("var isForcedRefresh"));
+  need(
+    joinAt !== -1 && forcedDeleteAt !== -1 && joinAt < forcedDeleteAt,
+    "force 분기에서 delete inFlight[key] 가 합류 검사보다 앞에 있다 — 검사가 늘 실패한다.",
+  );
+
+  need(
+    source.includes("window.__cdSessionClock = window.__cdSessionClock || { value: 0, reason: '' };"),
+    "공유 세션 시계 선언이 없다.",
+  );
+  for (const owner of ["__cdGuestAuthProbeState", "_cdCoinApiAuthState"]) {
+    need(
+      source.includes(`window.__cdSessionSource.bind(${owner})`),
+      `${owner} 이 공유 세션 시계에 묶여 있지 않다 — 이 주인이 자기 쿨다운으로 따로 물어본다.`,
+    );
+  }
+  return problems;
+}
+
+export function auditClientSessionClock(source) {
+  const problems = [];
+  const need = (ok, message) => { if (!ok) problems.push(message); };
+
+  need(
+    source.includes("window.__cdSessionSource.bind(_dpSessionVerify)"),
+    "_dpSessionVerify 가 공유 세션 시계에 묶여 있지 않다.",
+  );
+  // 🔴 이 파일은 셸 없는 독립 정적 페이지에서도 로드된다. 가드 없이 부르면 그 페이지가 통째로 죽는다.
+  need(
+    /window\.__cdSessionSource\s*&&\s*typeof window\.__cdSessionSource\.bind === ["']function["']/.test(source),
+    "셸 부재 폴백 가드가 없다 — __cdSessionSource 가 없는 페이지에서 TypeError 가 난다.",
+  );
+  return problems;
+}
+
+export function auditReactProfileFetch(source) {
+  const problems = [];
+  const need = (ok, message) => { if (!ok) problems.push(message); };
+
+  need(
+    source.includes('authFetch("/api/profile"'),
+    "fetchCurrentDestinyProfile 이 authFetch 를 쓰지 않는다.",
+  );
+  need(
+    !/[^A-Za-z]fetch\(\s*["'`]\/api\/profile/.test(source),
+    "raw fetch 로 /api/profile 을 부른다 — auth-client 의 authGetInFlight 단일비행 밖이라 중복 요청이 난다.",
+  );
+  return problems;
+}
+
+console.log("\n[6] 세션 검증 단일화 (셸 " + SHELLS.length + "종 · 클라이언트 " + CLIENTS.length + "종)");
+for (const rel of SHELLS) {
+  const source = read(rel);
+  check(`${rel}: force 합류 + 공유 세션 시계`, () => {
+    const problems = auditShellSessionClock(source);
+    assert.ok(problems.length === 0, problems.join(" / "));
+  });
+}
+for (const rel of CLIENTS) {
+  const source = read(rel);
+  check(`${rel}: _dpSessionVerify 가 공유 시계에 묶여 있다`, () => {
+    const problems = auditClientSessionClock(source);
+    assert.ok(problems.length === 0, problems.join(" / "));
+  });
+}
+{
+  const rel = "app/_lib/profile-card-storage.ts";
+  const source = read(rel);
+  check(`${rel}: /api/profile 이 authFetch 단일비행을 탄다`, () => {
+    const problems = auditReactProfileFetch(source);
+    assert.ok(problems.length === 0, problems.join(" / "));
+  });
+}
+
+/* ── self-test: 위 단언들이 실제로 변형을 잡는가 ───────────────────────── */
+if (process.argv.includes("--self-test")) {
+  console.log("\n[self-test] 변형이 실제로 실패하는가");
+  const shellSource = read("index.html");
+  const clientSource = read("js/destiny-profile.js");
+  const reactSource = read("app/_lib/profile-card-storage.ts");
+
+  const mutations = [
+    [
+      "force 합류를 되돌려 무조건 delete 로 바꾼다",
+      () => auditShellSessionClock(shellSource.replace(
+        "if (inFlight[key] && inFlightForced[key]) {",
+        "if (false) {",
+      )),
+      /합류하지 않는다/,
+    ],
+    [
+      "inFlightForced 정리를 지운다",
+      () => auditShellSessionClock(shellSource.replace(
+        "              delete inFlightForced[key];\n",
+        "",
+      )),
+      /정리가 없다/,
+    ],
+    [
+      "헤더 프로브를 공유 시계에서 떼어낸다",
+      () => auditShellSessionClock(shellSource.replace(
+        "window.__cdSessionSource.bind(__cdGuestAuthProbeState)",
+        "void 0",
+      )),
+      /__cdGuestAuthProbeState 이 공유 세션 시계에 묶여 있지 않다/,
+    ],
+    [
+      "코인 세션검증을 공유 시계에서 떼어낸다",
+      () => auditShellSessionClock(shellSource.replace(
+        "window.__cdSessionSource.bind(_cdCoinApiAuthState)",
+        "void 0",
+      )),
+      /_cdCoinApiAuthState 이 공유 세션 시계에 묶여 있지 않다/,
+    ],
+    [
+      "destiny-profile 의 셸 부재 폴백 가드를 없앤다",
+      () => auditClientSessionClock(clientSource.replace(
+        "window.__cdSessionSource && typeof window.__cdSessionSource.bind === 'function'",
+        "true",
+      )),
+      /셸 부재 폴백 가드가 없다/,
+    ],
+    [
+      "React 를 raw fetch 로 되돌린다",
+      () => auditReactProfileFetch(reactSource.replace(
+        'authFetch("/api/profile"',
+        'fetch("/api/profile"',
+      )),
+      /raw fetch 로 \/api\/profile 을 부른다/,
+    ],
+  ];
+
+  for (const [label, run, expected] of mutations) {
+    const found = run();
+    if (found.some((message) => expected.test(message))) {
+      console.log(`  ✓ ${label}`);
+    } else {
+      failures.push(`self-test: ${label} — 이 변형이 통과했다. 단언이 공허하다.`);
+      console.log(`  ✗ ${label}`);
+      for (const f of found) console.log(`      ${f}`);
+    }
+  }
 }
 
 console.log("");
