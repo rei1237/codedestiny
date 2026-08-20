@@ -49,7 +49,7 @@ check("legacy mobile hub removed (single responsive home)", !index.includes("id=
 check("mobile slim header exists", includesAll(index, ["id=\"cdMobileHeader\"", "cd-mobile-header-v20260723", "cd-mobile-header__search"]));
 check("mobile header keeps a single theme toggle", (index.match(/id="themeCheckbox"/g) || []).length === 1);
 check("mobile header search reuses the service index", includesAll(index, ["cd-mobile-header__search", "data-cd-service-index-jump=\"1\""]));
-check("responsive home sections present", includesAll(index, ["cd-fortune-pick", "cd-ai-feats", "moon-start-section", "honey-membership-mini", "moon-story-entry"]));
+check("responsive home sections present", includesAll(index, ["cd-fortune-pick", "cd-ai-feats", "honey-membership-mini", "moon-story-entry"]));
 check("hero primary CTA present", index.includes("moon-hero__cta--primary"));
 check("sticky CTA sits above bottom nav", includesAll(index, ["id=\"cdStickyCta\"", "cd-sticky-cta", "cd-sticky-cta-v20260723"]));
 check("bottom navigation exists with safe area", includesAll(index, ["id=\"cdMobileBottomNav\"", "cd-mobile-bottom-navigation-v20260701", "env(safe-area-inset-bottom"]));

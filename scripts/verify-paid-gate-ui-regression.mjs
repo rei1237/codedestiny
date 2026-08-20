@@ -486,7 +486,7 @@ for (const source of [indexSource, staticIndexSource]) {
   assertContains(source, 'data-marker="moonstone-pass-ui-v20260605-starlight-cta"', "glass CSS marker mirrored");
   assertContains(source, ".moon-hero{grid-template-columns", "desktop critical layout");
   assertContains(source, "@media (max-width:860px)", "mobile critical layout");
-  assertContains(source, ".moon-start-grid{grid-template-columns:1fr}", "mobile card layout fallback");
+  assertContains(source, ".cd-fortune-pick__grid{grid-template-columns:1fr", "mobile card layout fallback");
   assertContains(source, '<link rel="stylesheet" href="/styles/core-ui.css', "core CSS blocking stylesheet");
   // 🔴 fortune-ui 는 a8565083a(2026-08-15) 부터 두 갈래로 나간다 — 홈이 실제로 매칭하는 부분집합
   //    (fortune-ui-home.css, preload + rel 스왑)과 나머지 전체 시트(지연 로더). 예전 단언은
