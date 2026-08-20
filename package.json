@@ -228,6 +228,7 @@
     "verify:payment-freeze": "node scripts/verify-payment-freeze.mjs",
     "verify:paid-gate-ui": "node scripts/verify-paid-gate-ui-regression.mjs",
     "verify:payment-choice-parity": "node scripts/verify-payment-choice-parity.mjs",
+    "verify:payment-copy-dictionary": "node scripts/verify-payment-copy-dictionary.mjs",
     "verify:checkout-pass-card": "node scripts/verify-checkout-pass-card.mjs",
     "verify:pg-window-no-conflict": "node scripts/verify-pg-window-no-conflict.mjs",
     "verify:payment-choice-single-instance": "node scripts/verify-payment-choice-single-instance.mjs",

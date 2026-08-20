@@ -1649,6 +1649,12 @@
       "processing": "Payment is in progress.",
       "meta": "Payment authentication and access rights are being checked in order."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Checking your pass",
+        "sub": "Aligning your membership tier and Pass status."
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1688,7 +1694,7 @@
         },
         "pass": {
           "title": "Checking your pass",
-          "sub": "Aligning your membership tier and Pass status."
+          "sub": "If it is covered, we open it right away without a payment window"
         }
       },
       "fallback": {
@@ -1972,7 +1978,7 @@
       }
     },
     "passShop": {
-      "monthlyStatus": "Monthly credit payment is in progress. The moonlight balance is aligning quietly.",
+      "monthlyStatus": "Your moonstone balance is confirmed.",
       "chargeButton": "Go to payment page for {amount}",
       "chargeNotice": "Pass product {price} · This is a 30-day pass, not an auto-renewing payment. Passes can only be bought with a one-time KRW payment.",
       "best": "BEST",

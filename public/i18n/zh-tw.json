@@ -1649,6 +1649,12 @@
       "processing": "付款正在進行中。",
       "meta": "正在依序確認付款驗證與使用權限。"
     },
+    "gate": {
+      "skeleton": {
+        "title": "正在確認使用券",
+        "sub": "正在調整會員等級和通行證狀態"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1687,8 +1693,8 @@
           "sub": "正在安全核對付款紀錄"
         },
         "pass": {
-          "title": "正在確認使用券",
-          "sub": "正在調整會員等級和通行證狀態"
+          "title": "正在確認通行證",
+          "sub": "若可免費開啟，將不顯示付款視窗直接繼續"
         }
       },
       "fallback": {
@@ -1972,7 +1978,7 @@
       }
     },
     "passShop": {
-      "monthlyStatus": "月定石支付中。月光余额正静静对齐。",
+      "monthlyStatus": "已確認月精石餘量。",
       "chargeButton": "前往 {amount} 支付页面",
       "chargeNotice": "通行證商品 {price} · 這是 30 天通行證，並非自動續約。通行證僅能以韓元單次付款購買。",
       "best": "BEST",

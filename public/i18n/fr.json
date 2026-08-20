@@ -1649,6 +1649,12 @@
       "processing": "Le paiement est en cours.",
       "meta": "L'authentification du paiement et les droits d'accès sont en cours de vérification dans l'ordre."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Vérifier votre pass",
+        "sub": "Nous ajustons votre niveau de membre et l'état de votre Pass."
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1687,8 +1693,8 @@
           "sub": "Vérification sécurisée de votre historique de paiement"
         },
         "pass": {
-          "title": "Vérifier votre pass",
-          "sub": "Nous ajustons votre niveau de membre et l'état de votre Pass."
+          "title": "Vérification de votre pass",
+          "sub": "Si c'est couvert, nous l'ouvrons aussitôt sans fenêtre de paiement"
         }
       },
       "fallback": {
@@ -1972,7 +1978,7 @@
       }
     },
     "passShop": {
-      "monthlyStatus": "Le paiement mensuel du crédit est en cours. La balance au clair de lune s’aligne tranquillement.",
+      "monthlyStatus": "Votre solde de pierres de lune est confirmé.",
       "chargeButton": "Accéder à la page de paiement pour {amount}",
       "chargeNotice": "Produit Pass {price} · Il s'agit d'un pass de 30 jours, sans renouvellement automatique. Les pass s'achètent uniquement par paiement unique en KRW.",
       "best": "BEST",

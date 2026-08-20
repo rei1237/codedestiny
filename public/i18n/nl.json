@@ -1649,6 +1649,12 @@
       "processing": "De betaling wordt verwerkt.",
       "meta": "Betalingsauthenticatie en toegangsrechten worden op volgorde gecontroleerd."
     },
+    "gate": {
+      "skeleton": {
+        "title": "Controle van uw pas",
+        "sub": "We stemmen uw lidmaatschapsniveau en Pas-status af"
+      }
+    },
     "wait": {
       "pg_processing": {
         "subscription": {
@@ -1687,8 +1693,8 @@
           "sub": "Je betalingsgegevens worden veilig gecontroleerd"
         },
         "pass": {
-          "title": "Controle van uw pas",
-          "sub": "We stemmen uw lidmaatschapsniveau en Pas-status af"
+          "title": "Je pas wordt gecontroleerd",
+          "sub": "Is het gedekt, dan openen we het meteen zonder betaalvenster"
         }
       },
       "fallback": {
@@ -1972,7 +1978,7 @@
       }
     },
     "passShop": {
-      "monthlyStatus": "Maandelijkse kredietbetaling wordt uitgevoerd. De maanlichtbalans wordt rustig uitgelijnd.",
+      "monthlyStatus": "Je maansteensaldo is bevestigd.",
       "chargeButton": "Ga naar de betalingspagina voor {amount}",
       "chargeNotice": "Pas-product {price} · Dit is een pas van 30 dagen, geen automatische verlenging. Passen koop je alleen met een eenmalige betaling in KRW.",
       "best": "BEST",
