@@ -226,7 +226,6 @@ const profileCardSchema = new mongoose.Schema({
     type: mongoose.Schema.Types.ObjectId,
     ref: "User",
     required: true,
-    index: true,
   },
   profileId: {
     type: String,
@@ -253,7 +252,7 @@ profileCardSchema.index({ userId: 1, profileId: 1 }, { unique: true });
 profileCardSchema.index({ userId: 1, createdAt: 1 });
 
 const paymentSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   impUid: { type: String, unique: true, sparse: true, index: true, trim: true },
   merchantUid: { type: String, unique: true, sparse: true, index: true, trim: true },
   idempotencyKey: { type: String, trim: true, default: "", index: true },
@@ -373,7 +372,7 @@ pointHistorySchema.index(
 );
 
 const monthlyCreditLedgerSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   type: {
     type: String,
     enum: ["MONTHLY_CREDIT_GRANT", "MONTHLY_CREDIT_SPEND", "MONTHLY_CREDIT_EXPIRE"],
@@ -434,7 +433,7 @@ export const CONTENT_ENTITLEMENT_SOURCES = Object.freeze({
 });
 
 const contentEntitlementSchema = new mongoose.Schema({
-  userId: { type: String, required: true, trim: true, index: true },
+  userId: { type: String, required: true, trim: true },
   profileId: { type: String, required: true, trim: true, maxlength: 80, index: true },
   featureKey: { type: String, default: "", trim: true, maxlength: 160, index: true },
   serviceId: { type: String, default: "", trim: true, maxlength: 80, index: true },
@@ -494,7 +493,7 @@ const paymentFailureLogSchema = new mongoose.Schema({
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true },
   impUid: { type: String, trim: true, index: true },
   merchantUid: { type: String, trim: true, index: true },
-  source: { type: String, enum: ["prepare", "confirm", "webhook", "client", "system"], default: "system", index: true },
+  source: { type: String, enum: ["prepare", "confirm", "webhook", "client", "system"], default: "system" },
   stage: { type: String, trim: true, default: "unknown" },
   code: { type: String, trim: true, maxlength: 80 },
   message: { type: String, trim: true, maxlength: 500 },
@@ -519,7 +518,7 @@ const paymentWebhookEventSchema = new mongoose.Schema({
   provider: { type: String, required: true, trim: true, maxlength: 40, default: "portone" },
   eventId: { type: String, required: true, trim: true, maxlength: 180 },
   eventType: { type: String, required: true, trim: true, maxlength: 120, index: true },
-  paymentId: { type: String, required: true, trim: true, maxlength: 180, index: true },
+  paymentId: { type: String, required: true, trim: true, maxlength: 180 },
   status: {
     type: String,
     enum: ["processing", "processed", "failed"],
@@ -625,7 +624,7 @@ idempotencyKeySchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
 
 const abuseScoreSchema = new mongoose.Schema({
   subjectHash: { type: String, trim: true, maxlength: 128, required: true, index: true },
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", index: true, default: null },
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", default: null },
   endpoint: { type: String, trim: true, maxlength: 160, index: true, default: "" },
   kind: { type: String, enum: ["abuse", "rate_limit"], default: "abuse", index: true },
   score: { type: Number, default: 0, min: 0 },
@@ -1398,7 +1397,7 @@ const neoOperationRoomMessageSchema = new mongoose.Schema({
 
 const neoOperationRoomConsultationSchema = new mongoose.Schema({
   id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
-  userId: { type: String, required: true, trim: true, index: true },
+  userId: { type: String, required: true, trim: true },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
   birthInfo: {
@@ -1700,7 +1699,7 @@ export const FusionFortuneConsultation = mongoose.models.FusionFortuneConsultati
   || mongoose.model("FusionFortuneConsultation", fusionFortuneConsultationSchema);
 
 const userRpgProgressSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true },
   profileId: { type: String, required: true, trim: true, maxlength: 120 },
   currentLevel: { type: Number, default: 1, min: 1, index: true },
   totalExp: { type: Number, default: 0, min: 0 },
@@ -1723,7 +1722,7 @@ export const UserRpgProgress = mongoose.models.UserRpgProgress
   || mongoose.model("UserRpgProgress", userRpgProgressSchema);
 
 const userDailyQuestLogSchema = new mongoose.Schema({
-  userId: { type: mongoose.Schema.Types.ObjectId, required: true, index: true },
+  userId: { type: mongoose.Schema.Types.ObjectId, required: true },
   profileId: { type: String, required: true, trim: true, maxlength: 120 },
   questDateKst: { type: String, required: true, trim: true, maxlength: 10, index: true },
   questId: { type: String, required: true, trim: true, maxlength: 150 },
@@ -1813,7 +1812,7 @@ const contentSeoSchema = new mongoose.Schema({
 }, { _id: false });
 
 const insightSchema = new mongoose.Schema({
-  type: { type: String, default: "fortune_insight", trim: true, index: true },
+  type: { type: String, default: "fortune_insight", trim: true },
   title: { type: String, required: true, trim: true },
   summary: { type: String, default: "", trim: true },
   subtitle: { type: String, default: "", trim: true },
