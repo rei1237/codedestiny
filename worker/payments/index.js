@@ -20,6 +20,7 @@
  */
 import { getRequestMeta, json } from "../lib/http.js";
 import { peekAccessTokenUserId } from "../lib/auth.js";
+import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credential-scoped-cache.js";
 import { User } from "../lib/models.js";
 import { getPortOnePublicConfig } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
@@ -447,6 +448,10 @@ async function handlePassConfirm({ request, env, ctx, userId, body, withDb }) {
 
   const subscription = presentPassSubscription(user?.profileSubscription, plan, { customerUid, paymentMethod });
   const payment = { merchantUid: orderId, impUid, paymentAmount: plan.wonPrice, paymentType: "membership_pass", status: "paid" };
+  // 🔴 이용권 활성화는 GET /api/auth/me 응답의 pass/membership/subscription 필드를 바꾼다. 그 응답은
+  // 30초 자격증명 단위 엣지 캐시(worker/lib/credential-scoped-cache.js)를 타므로, 여기서 지우지
+  // 않으면 결제 직후 다른 탭·새로고침이 최대 30초간 옛 이용권 상태를 본다.
+  await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
   if (activationPending) {
     /* 🔴 200 이다. 카드는 승인됐고 주문도 PAID 로 기록됐다 — 남은 것은 활성화 반영뿐이라 장애가 아니라
        마무리가 덜 끝난 성공이다. 여기는 오래 503 을 냈는데, 그건 confirmOrder 머리주석이 "구 코드의
@@ -819,10 +824,13 @@ const ROUTES = {
 
   "POST /orders/:id/confirm": {
     auth: "required",
-    async handle({ env, ctx, userId, params, withDb }) {
+    async handle({ request, env, ctx, userId, params, withDb }) {
       ctx.orderId = params.id;
       const result = await confirmOrder(env, ctx, { orderId: params.id, actorUserId: userId }, { withDb });
       ctx.paymentStatus = "PAID";
+      // 결제 확정이 GET /api/auth/me 의 entitlement/points 필드를 바꾼다 — 30초 엣지 캐시를 지운다
+      // (근거는 handlePassConfirm 의 같은 주석, worker/lib/credential-scoped-cache.js).
+      await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
       if (result.granted) return json({ ok: true, order: presentOrder(result.order), entitlementStatus: "granted" });
       // 🔴 200 이다. 카드는 승인됐고 주문도 기록됐다 — 장애가 아니라 마무리가 남은 성공이다.
       return json({
@@ -854,6 +862,9 @@ const ROUTES = {
       ctx.orderId = orderId;
       const result = await confirmOrder(env, ctx, { orderId, actorUserId: userId }, { withDb });
       ctx.paymentStatus = "PAID";
+      // 결제 확정이 GET /api/auth/me 의 entitlement/points 필드를 바꾼다 — 30초 엣지 캐시를 지운다
+      // (근거는 handlePassConfirm 의 같은 주석, worker/lib/credential-scoped-cache.js).
+      await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
       const envelope = legacyConfirmEnvelope(result.order, { granted: result.granted, replayed: result.replayed });
       // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
       // successWithPremiumAccess 승계. 빠지면 결제는 됐는데 콘텐츠 접근이 막힌다(2026-08-12 수정).
@@ -890,7 +901,7 @@ const ROUTES = {
    */
   "POST /coin-gate/moonstone": {
     auth: "required",
-    async handle({ env, ctx, userId, body, withDb }) {
+    async handle({ request, env, ctx, userId, body, withDb }) {
       const requestId = String(body.requestId || body.purchaseId || "").trim();
       if (!requestId) throw paymentError("IDEMPOTENCY_KEY_REQUIRED", "requestId 가 필요합니다.");
       const product = resolveLegacyProduct(body);
@@ -962,7 +973,12 @@ const ROUTES = {
 
       ctx.paymentStatus = alreadyUnlocked ? "ALREADY_UNLOCKED" : "MONTHLY";
       // 재열람은 잔액을 바꾸지 않는다 — 스냅샷을 굳이 비우면 다음 조회가 Mongo 를 다시 탄다.
-      if (!alreadyUnlocked) invalidateBalanceSnapshot(userId);
+      // GET /api/auth/me 의 entitlement/accessGateResult 엣지 캐시도 같은 이유로 같이 건너뛴다
+      // (근거는 handlePassConfirm 의 같은 주석, worker/lib/credential-scoped-cache.js).
+      if (!alreadyUnlocked) {
+        invalidateBalanceSnapshot(userId);
+        await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
+      }
       const reason = String(body.reason || "");
       const reportType = resolvePremiumAccessReportType(product.featureKey, reason);
       const premiumAccessToken = reportType
@@ -1001,7 +1017,7 @@ const ROUTES = {
    */
   "POST /coin-gate/pass-check": {
     auth: "required",
-    async handle({ env, ctx, userId, body, withDb }) {
+    async handle({ request, env, ctx, userId, body, withDb }) {
       const product = resolveLegacyProduct(body);
       ctx.productId = product.productId;
       const requestId = String(body.requestId || body.idempotencyKey || body.purchaseId || "").trim()
@@ -1089,7 +1105,10 @@ const ROUTES = {
 
       ctx.paymentStatus = "PASS";
       // 표시용 잔액 스냅샷에 이용권 커버 사용량이 반영된다 — 45s TTL 이라 무효화가 필수다.
+      // GET /api/auth/me 의 entitlement/accessGateResult 엣지 캐시도 같은 이유로 같이 지운다
+      // (근거는 handlePassConfirm 의 같은 주석, worker/lib/credential-scoped-cache.js).
       invalidateBalanceSnapshot(userId);
+      await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
       const reason = String(body.reason || "");
       const reportType = resolvePremiumAccessReportType(product.featureKey, reason);
       const premiumAccessToken = reportType
@@ -1144,7 +1163,7 @@ const ROUTES = {
 
   "POST /moonstone/spend": {
     auth: "required",
-    async handle({ env, ctx, userId, body, withDb }) {
+    async handle({ request, env, ctx, userId, body, withDb }) {
       const product = resolveProduct({ productId: body.productId, featureKey: body.featureKey, reason: body.reason });
       if (product.passExcluded) {
         throw paymentError("PASS_NOT_APPLICABLE", "이 기능은 월정석으로 결제할 수 없습니다.");
@@ -1161,6 +1180,9 @@ const ROUTES = {
         return spend;
       });
       invalidateBalanceSnapshot(userId); // 월정석 차감 반영
+      // GET /api/auth/me 의 entitlement/accessGateResult 엣지 캐시도 같은 이유로 같이 지운다
+      // (근거는 handlePassConfirm 의 같은 주석, worker/lib/credential-scoped-cache.js).
+      await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
       return json({ ok: true, balance: result.balance, replayed: result.replayed });
     },
   },
