@@ -5186,10 +5186,11 @@ body.cd-overlay-shell-open #langWrap{opacity:0;visibility:hidden;pointer-events:
   #destinyCardForm:not([data-mobile-saju-details-open="true"]) .cd-mobile-saju-detail-toggle[data-has-summary="1"] .cd-mobile-saju-detail-toggle__sub{
     display:none!important;
   }
+  /* #birthHour/#birthMinute 는 여전히 값 보관용(28곳이 .value 를 읽는다, js/destiny-profile.js
+     10693행 주석 참고) — 지우지 않고 시각적으로만 숨긴다. #birthTimeText 타이핑과
+     양방향 동기화는 이미 destiny-profile.js 의 _dpSyncBirthTime*(fieldset) 이 담당한다. */
   #destinyCardForm .moon-time-grid{
-    display:grid!important;
-    grid-template-columns:repeat(2,minmax(0,1fr))!important;
-    gap:7px!important;
+    display:none!important;
   }
   #destinyCardForm .moon-time-unknown{
     min-height:40px!important;
@@ -22316,7 +22317,10 @@ return you.name.restore();</span>
               <label><input type="radio" name="compatCalType" value="lunar_leap" data-change-action="updateLunarPreview" data-change-args="compatBirthDate,compatCalType,compatLunarPreview"> <span data-cd-trans data-key="common.lunarLeap">음력(윤달)</span></label>
             </div>
             <div id="compatLunarPreview" class="form-lunar-preview"></div>
-            <div class="row2 row2-mt8">
+            <input class="inp" type="text" inputmode="numeric" maxlength="5" placeholder="08:35" id="compatBirthTimeText" autocomplete="off">
+            <!-- select 2개는 값 보관용으로 남긴다(js/share.js·js/luck-sync-diary.js·js/saju-engine.js 가
+                 .value 를 직접 읽는다) — 지우지 않고 시각적으로만 숨긴다. -->
+            <div class="row2 row2-mt8" style="display:none">
               <select class="inp" id="compatBirthHour"></select>
               <select class="inp" id="compatBirthMinute"></select>
             </div>
