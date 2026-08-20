@@ -18,11 +18,6 @@ const FEATURE_KEYS = Object.freeze({
   deepProfile: "destiny-bias-deep-profile",
 });
 
-const FREE_COLLECTION_LIMIT = 3;
-// 회당 결제 정본은 worker/lib/paid-feature-registry.js 의 destiny-bias-analyze(=5,000원)다.
-// 여기 상수는 OG 카드에 가격을 렌더할 때만 쓴다(buildDestinyBiasOgSvg).
-const DESTINY_BIAS_ANALYZE_COST = 50;
-
 function normalizeText(value, maxLen = 1200) {
   return String(value || "").trim().slice(0, maxLen);
 }
@@ -36,23 +31,6 @@ function parsePositiveInt(value, fallback, min, max) {
 function normalizeThemeKey(value) {
   const key = normalizeText(value, 40).toLowerCase();
   return key || "moonlight_neon";
-}
-
-function isPremiumTier(value) {
-  const tier = String(value || "free").toLowerCase();
-  return tier === "premium" || tier === "vvip";
-}
-
-function normalizeFeatureList(value) {
-  if (!Array.isArray(value)) return [];
-  return value.map((item) => normalizeText(item, 80)).filter(Boolean);
-}
-
-function hasFeatureAccess(user, featureKey) {
-  if (!user) return false;
-  if (isPremiumTier(user?.profileSubscription?.tier)) return true;
-  const unlocked = normalizeFeatureList(user?.unlockedFeatures);
-  return unlocked.includes(featureKey);
 }
 
 function serializeCard(item) {
@@ -82,7 +60,8 @@ function parseCardsQuery(request) {
 }
 
 function buildGateState(auth, user) {
-  const canUsePremiumTheme = hasFeatureAccess(user, FEATURE_KEYS.premiumTheme);
+  // 최애운명은 전면 무료 기능이라 프리미엄 테마도 항상 열려 있다.
+  const canUsePremiumTheme = true;
   const canSaveCollection = Boolean(auth);
   return {
     isLoggedIn: Boolean(auth),
@@ -90,7 +69,6 @@ function buildGateState(auth, user) {
     profileTier: String(user?.profileSubscription?.tier || "free"),
     canUsePremiumTheme,
     canSaveCollection,
-    freeCollectionLimit: FREE_COLLECTION_LIMIT,
     featureKeys: FEATURE_KEYS,
   };
 }
@@ -118,8 +96,6 @@ function buildDestinyBiasOgSvg(request) {
   const score = normalizeOgText(params.get("score"), "88", 8);
   const grade = normalizeOgText(params.get("grade"), "A", 6);
   const relation = normalizeOgText(params.get("relation"), "운명 공명", 24);
-  const price = normalizeOgText(params.get("price"), String(DESTINY_BIAS_ANALYZE_COST), 8);
-  const priceWon = `${Math.max(0, Math.floor(Number(price || 0) * 100)).toLocaleString("ko-KR")}원`;
 
   return `<?xml version="1.0" encoding="UTF-8"?>
 <svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="Destiny Bias OG">
@@ -164,7 +140,7 @@ function buildDestinyBiasOgSvg(request) {
   <g transform="translate(580,330)">
     <rect x="0" y="0" rx="18" ry="18" width="330" height="128" fill="rgba(0,0,0,0.22)" stroke="rgba(255,255,255,0.25)"/>
     <text x="24" y="44" fill="#fef3c7" font-size="24" font-weight="700">이용 요금</text>
-    <text x="24" y="92" fill="#fde68a" font-size="42" font-weight="800">1회 ${escapeXml(priceWon)}</text>
+    <text x="24" y="92" fill="#fde68a" font-size="42" font-weight="800">무료 리딩</text>
   </g>
 
   <text x="122" y="520" fill="#cbd5e1" font-size="22" font-weight="600">Code Destiny · 내부 명식 엔진 계산 / 전문가 해석 전용</text>
@@ -186,25 +162,13 @@ async function handleCreateCard(request, env) {
   await connectDb(env);
 
   const [user, body] = await Promise.all([
-    User.findById(auth.userId)
-      .select("unlockedFeatures profileSubscription")
-      .lean(),
+    User.findById(auth.userId).select("_id").lean(),
     readJson(request),
   ]);
 
   if (!user) throw createHttpError(401, "로그인이 필요합니다.", { code: "UNAUTHORIZED" });
 
-  const canSaveUnlimited = hasFeatureAccess(user, FEATURE_KEYS.collectionSave);
-  if (!canSaveUnlimited) {
-    const currentCount = await DestinyBiasCard.countDocuments({ userId: auth.userId });
-    if (currentCount >= FREE_COLLECTION_LIMIT) {
-      throw createHttpError(402, "무료 저장 한도를 초과했습니다. 저장 해금 후 계속 이용해 주세요.", {
-        code: "FEATURE_LOCKED",
-        featureKey: FEATURE_KEYS.collectionSave,
-        freeCollectionLimit: FREE_COLLECTION_LIMIT,
-      });
-    }
-  }
+  // 최애운명은 전면 무료 기능이라 컬렉션 저장 개수 제한도 두지 않는다.
 
   const payload = {
     userId: new mongoose.Types.ObjectId(auth.userId),
@@ -240,7 +204,7 @@ async function handleListCards(request, env) {
       .limit(limit)
       .lean(),
     DestinyBiasCard.countDocuments({ userId: auth.userId }),
-    User.findById(auth.userId).select("unlockedFeatures profileSubscription points").lean(),
+    User.findById(auth.userId).select("profileSubscription points").lean(),
   ]);
 
   return json({

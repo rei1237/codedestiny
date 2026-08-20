@@ -301,6 +301,9 @@ jobs:
         run: |
           npm run verify:public-api-edge-cache
           npm run verify:public-api-edge-cache -- --self-test
+          # 자격증명 단위 캐시(/api/auth/me · /api/profile)는 틀리면 남의 세션이 보인다.
+          npm run verify:credential-cache
+          npm run verify:credential-cache -- --self-test
 
       - name: Verify ads.txt is present
         if: needs.classify.outputs.runs_critical == 'true'
