@@ -4424,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "व्यवसाय का नाम",
-    "companyValue": ": कोड डेस्टिनी",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "प्रतिनिधि",
-    "representativeValue": ": पार्क बियोंग-हा",
+    "representativeValue": ": 박병하",
     "registrationLabel": "व्यवसाय पंजीकरण संख्या",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "मेल-ऑर्डर बिजनेस रिपोर्ट नंबर",
-    "mailOrderValue": ": 2026-ह्वासेओंघो-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "संपर्क करें",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "ईमेल",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "पता",
     "officeAddressLabel": "कार्यालय का पता",
-    "addressValue": ": 37 सैबिबोंगडोंग-रो, बिबोंग-मायऑन, ह्योहेंग-गु, ह्वासेओंग-सी, ग्योंगगी-डो, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "स्टारलाईट आमंत्रण लिंक तैयार किया जा रहा है...",

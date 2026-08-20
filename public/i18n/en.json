@@ -4424,20 +4424,20 @@
   },
   "business": {
     "companyLabel": "Business name",
-    "companyValue": ": Code Destiny",
+    "companyValue": ": 코드 데스티니 (Code Destiny)",
     "representativeLabel": "Representative",
-    "representativeValue": ": Park Byeong-ha",
+    "representativeValue": ": 박병하",
     "registrationLabel": "Business registration number",
     "registrationValue": ": 372-23-02329",
     "mailOrderLabel": "Mail-order business report number",
-    "mailOrderValue": ": 2026-Hwaseongho-0264",
+    "mailOrderValue": ": 제 2026-화성호-0264 호",
     "contactLabel": "Contact",
     "contactValue": ": 050-6664-7398",
     "emailLabel": "Email",
     "emailValue": ": admin@code-destiny.com",
     "addressLabel": "Address",
     "officeAddressLabel": "Office address",
-    "addressValue": ": 37 Saebibongdong-ro, Bibong-myeon, Hyoheng-gu, Hwaseong-si, Gyeonggi-do, 101-1207"
+    "addressValue": ": 경기도 화성시 효행구 비봉면 새비봉동로 37, 101동 1207호"
   },
   "kakaoReferral": {
     "preparingTitle": "Preparing starlight invitation link...",
