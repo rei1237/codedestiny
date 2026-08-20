@@ -440,7 +440,13 @@ jobs:
       # 이라는 이유로 https://code-destiny.com 을 빌드에 인라인해, 스테이징 화면이 프로덕션 API 를
       # 호출하고 CSP(connect-src 'self')에도 걸린다.
       NEXT_PUBLIC_API_BASE_URL: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
-      NEXT_PUBLIC_SITE_URL: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
+      # 🔴 NEXT_PUBLIC_SITE_URL 을 스테이징으로 세우지 말 것. 이 값은 SEO 메타 전용이고
+      #    (lib/seo.v2.ts SEO_V2_SITE.siteUrl -> canonical·sitemap·robots host), 세우는 순간
+      #    Next 가 만든 robots.txt 의 Sitemap 이 스테이징 주소가 되어 postbuild 의
+      #    verify-adsense-readiness(프로덕션 오리진 고정)가 빌드를 세운다 — 2026-08-20 실측.
+      #    게다가 승격되는 정적 셸(index.html)은 프로덕션 URL 을 그대로 들고 있어 산출물이
+      #    반쪽만 스테이징이 된다. 스테이징 격리는 SEO 오리진이 아니라 apply-staging-noindex
+      #    (전면 Disallow + noindex 메타 + X-Robots-Tag)가 담당한다.
 
     steps:
       - name: Checkout exact release SHA

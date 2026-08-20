@@ -105,6 +105,17 @@ export function checkStagingNoindex(sources) {
       staging.includes("robots.txt") && /x-robots-tag/i.test(staging),
       `${SOURCES.workflow}: staging 잡에 색인 차단 라이브 프로브가 없다. 정적 배선만으로는 산출물이 실제로 막혔는지 알 수 없다.`,
     );
+    // ⑦ SEO 오리진은 프로덕션 그대로 둔다.
+    //    NEXT_PUBLIC_SITE_URL 은 lib/seo.v2.ts 의 SEO_V2_SITE.siteUrl 로 들어가 canonical·sitemap·
+    //    robots host 를 만든다. 스테이징으로 세우면 Next 가 만든 robots.txt 의 Sitemap 이 스테이징
+    //    주소가 되어 postbuild 의 verify-adsense-readiness(프로덕션 오리진 고정)가 빌드를 세운다
+    //    (2026-08-20 run 32344404435 실측). 승격되는 정적 셸은 여전히 프로덕션 URL 이라 산출물이
+    //    반쪽만 스테이징이 되기도 한다. 색인 차단은 apply-staging-noindex 가 담당하므로 SEO
+    //    오리진을 건드릴 이유가 없다.
+    need(
+      !/\n\s*NEXT_PUBLIC_SITE_URL:/.test(staging),
+      `${SOURCES.workflow}: staging 잡이 NEXT_PUBLIC_SITE_URL 을 세운다. SEO 오리진이 갈리면 verify-adsense-readiness 가 빌드를 세우고, 정적 셸과 Next 페이지의 canonical 이 서로 다른 오리진을 가리킨다.`,
+    );
   }
 
   return failures;
@@ -156,6 +167,22 @@ function runSelfTest() {
 
   // 잡 본문 추출이 실제로 경계를 지키는지.
   const staging = jobBody(sources.workflow, "staging");
+  {
+    // ⑦ 단언의 음성 시험. 워크플로 사본에만 그 줄을 되살려 본다(실파일은 건드리지 않는다).
+    // 🔴 staging 잡 시작점 뒤에서만 치환한다. CD_DEPLOY_HEAD_SHA 는 다른 잡에도 있어서
+    //    파일 앞에서부터 찾으면 엉뚱한 잡에 넣고 이 시험이 공허하게 통과한다.
+    const stagingStart = sources.workflow.indexOf("\n  staging:\n");
+    const revived = stagingStart === -1
+      ? sources.workflow
+      : sources.workflow.slice(0, stagingStart) + sources.workflow.slice(stagingStart).replace(
+        /\n( +)CD_DEPLOY_HEAD_SHA: /,
+        `\n$1NEXT_PUBLIC_SITE_URL: https://staging.code-destiny.com\n$1CD_DEPLOY_HEAD_SHA: `,
+      );
+    const joined = checkStagingNoindex({ ...sources, workflow: revived }).join(" | ");
+    if (!/NEXT_PUBLIC_SITE_URL 을 세운다/.test(joined)) {
+      problems.push(`workflow: NEXT_PUBLIC_SITE_URL 을 되살렸는데 잡히지 않았다 — ${joined || "(실패 없음)"}`);
+    }
+  }
   if (staging.includes("CD_PRODUCTION_ORIGIN")) {
     problems.push("staging 잡 본문에 CD_PRODUCTION_ORIGIN 이 있다 — 잡 경계 추출이 깨졌거나 실제로 새고 있다.");
   }
@@ -165,7 +192,7 @@ function runSelfTest() {
     for (const problem of problems) console.error(`  - ${problem}`);
     process.exit(1);
   }
-  console.log(`${TAG} self-test passed (${mutations.length} mutations + 잡 경계).`);
+  console.log(`${TAG} self-test passed (${mutations.length} mutations + SEO 오리진 음성시험 + 잡 경계).`);
 }
 
 // ── 진입점 ───────────────────────────────────────────────────────────────────
