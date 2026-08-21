@@ -53,6 +53,96 @@ describe("resolveStorePlan", () => {
   });
 });
 
+describe("buildPaymentChoiceCardsHtml", () => {
+  const escape = (value) => String(value ?? "").replace(/[&<>"']/g, (ch) => (
+    { "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[ch]
+  ));
+  const baseCtx = { escape, recommendLabel: "추천", goLabel: "이 방법으로 열기" };
+
+  function threeCards(overrides = {}) {
+    return {
+      pass: { allow: true, dataMode: "pass-store", glyph: "🎫", badgeLabel: "이용권", titleHtml: "이용권으로 열기", descHtml: "설명", ...overrides.pass },
+      direct: { allow: true, dataMode: "direct", glyph: "💳", badgeLabel: "카드", titleHtml: "이번 콘텐츠만", descHtml: "설명", ...overrides.direct },
+      monthly: { allow: true, dataMode: "monthly", glyph: "🌙", badgeLabel: "월정석", titleHtml: "월정석으로 열기", descHtml: "설명", ...overrides.monthly },
+    };
+  }
+
+  it("order 순서대로 카드를 이어 붙인다", () => {
+    const html = checkoutEntry.buildPaymentChoiceCardsHtml({
+      ...baseCtx,
+      order: ["monthly", "direct", "pass"],
+      recommendedOption: "monthly",
+      cards: threeCards(),
+    });
+    const positions = ["monthly", "direct", "pass-store"].map((mode) => html.indexOf(`data-mode="${mode}"`));
+    expect(positions[0]).toBeLessThan(positions[1]);
+    expect(positions[1]).toBeLessThan(positions[2]);
+  });
+
+  it("allow:false 인 카드는 렌더되지 않는다(빈 문자열)", () => {
+    const html = checkoutEntry.buildPaymentChoiceCardsHtml({
+      ...baseCtx,
+      order: ["pass", "direct", "monthly"],
+      recommendedOption: "direct",
+      cards: threeCards({ monthly: { allow: false } }),
+    });
+    expect(html).not.toContain('data-mode="monthly"');
+    expect(html).toContain('data-mode="pass-store"');
+    expect(html).toContain('data-mode="direct"');
+  });
+
+  it("추천 카드에만 --recommended 클래스와 추천 배지가 붙는다", () => {
+    const html = checkoutEntry.buildPaymentChoiceCardsHtml({
+      ...baseCtx,
+      order: ["pass", "direct", "monthly"],
+      recommendedOption: "direct",
+      cards: threeCards(),
+    });
+    expect((html.match(/cd-direct-payment-option--recommended/g) || []).length).toBe(1);
+    expect((html.match(/cd-direct-payment-recommend/g) || []).length).toBe(1);
+    expect((html.match(/cd-direct-payment-option--secondary/g) || []).length).toBe(2);
+  });
+
+  it("배지·추천·go 라벨을 이스케이프한다(badgeLabel 은 함수가 이스케이프)", () => {
+    const html = checkoutEntry.buildPaymentChoiceCardsHtml({
+      ...baseCtx,
+      order: ["direct"],
+      recommendedOption: "direct",
+      cards: { direct: { allow: true, dataMode: "direct", glyph: "💳", badgeLabel: '<b>"badge"</b>', titleHtml: "t", descHtml: "d" } },
+    });
+    expect(html).toContain(escape('<b>"badge"</b>'));
+    expect(html).not.toContain('<b>"badge"</b>');
+  });
+
+  it("extraClass·extraDataAttrs·ariaLabel·descAttr·afterHtml 을 그대로 반영한다", () => {
+    const html = checkoutEntry.buildPaymentChoiceCardsHtml({
+      ...baseCtx,
+      order: ["monthly"],
+      recommendedOption: "",
+      cards: {
+        monthly: {
+          allow: true,
+          dataMode: "monthly",
+          extraClass: " is-disabled",
+          extraDataAttrs: ' data-monthly-option disabled aria-disabled="true"',
+          ariaLabel: "월정석 (잔량 부족)",
+          descAttr: " data-monthly-hint",
+          afterHtml: "<button data-monthly-balance-check></button>",
+          glyph: "🌙",
+          badgeLabel: "월정석",
+          titleHtml: "월정석으로 열기",
+          descHtml: "설명",
+        },
+      },
+    });
+    expect(html).toContain("is-disabled");
+    expect(html).toContain('data-monthly-option disabled aria-disabled="true"');
+    expect(html).toContain(`aria-label="${escape("월정석 (잔량 부족)")}"`);
+    expect(html).toContain("data-monthly-hint");
+    expect(html).toContain("<button data-monthly-balance-check></button>");
+  });
+});
+
 describe("buildPassStoreUrl", () => {
   it("cdco=1 이 붙어야 /points 가 결제 확인 모달을 자동으로 연다", () => {
     const url = checkoutEntry.buildPassStoreUrl({ costCoins: 50, source: "shell" });

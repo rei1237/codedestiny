@@ -448,7 +448,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-44711d146c51";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-35c7aafea3e0";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1139,21 +1139,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         ? checkoutEntry.text("payment.directModal.guide.pass", "이용권이 있다면 결제 없이 바로 열려요. 먼저 확인해 볼까요?")
         : checkoutEntry.text("payment.directModal.guide.direct", "이번 콘텐츠 하나만 바로 열어볼 수 있어요."));
   // 추천 카드 하나만 크게, 나머지 둘은 컴팩트 행. 🔴 숨기거나 접지 않는다 — 세 옵션은 항상 함께 보인다.
-  const optionVariantClass = (option: string) =>
-    option === recommendedOption ? " cd-direct-payment-option--recommended" : " cd-direct-payment-option--secondary";
-  const optionRecommendHtml = (option: string) =>
-    option === recommendedOption ? `<span class="cd-direct-payment-recommend">${escapePaymentText(recommendBadgeLabel)}</span>` : "";
   const optionRecommendAria = (option: string) => (option === recommendedOption ? ` (${recommendBadgeLabel})` : "");
-  // 추천 카드 하단 골드 액션 스트립. 🔴 <button> 안에 <button> 을 넣을 수 없으므로 비인터랙티브 span 이다.
   const goLabel = checkoutEntry.text("payment.directModal.goLabel", "이 방법으로 열기");
-  const optionGoHtml = (option: string) =>
-    option === recommendedOption ? `<span class="cd-direct-payment-go">${escapePaymentText(goLabel)}</span>` : "";
-  const directButtonHtml = canShowDirect ? `
-          <button type="button" class="cd-direct-payment-option${optionVariantClass("direct")}" data-mode="direct" aria-label="${escapePaymentText(directTitleLabel)} ${formatPaymentWon(directAmount)}${escapePaymentText(optionRecommendAria("direct"))}">
-            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>${escapePaymentText(directBadgeLabel)}</span>${optionRecommendHtml("direct")}</span>
-            <strong>${escapePaymentText(directTitleLabel)} · <span class="cd-direct-payment-amount">${formatPaymentWon(directAmount)}</span></strong>
-            <span class="cd-direct-payment-desc">${escapePaymentText(directHintLabel)}</span>${optionGoHtml("direct")}
-          </button>` : "";
   // 🔴 3렌더러(셸 index.html · 이 파일 · js/destiny-profile.js)가 같은 문구를 써야 한다.
   // 예전에는 이 카드만 "사용 후 N이 남습니다" 예측 문장을 더 달고 있어 셸과 눈에 띄게 달랐다.
   const monthlyDescInitial = monthlyCanUse
@@ -1161,20 +1148,13 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     : (hasProvidedMonthlyBalance
       ? checkoutEntry.text("payment.directModal.monthlyHint.insufficient", "월정석이 모자라요. 이번 콘텐츠만 구매로 열 수 있어요.")
       : checkoutEntry.text("payment.directModal.monthlyHint.checking", "월정석 잔량은 선택하면 바로 확인돼요. 그대로 눌러 봐도 괜찮아요."));
-  const monthlyButtonHtml = canShowMonthly ? `
-          <button type="button" class="cd-direct-payment-option${monthlyDisabled ? " is-disabled" : ""}${optionVariantClass("monthly")}" data-mode="monthly" data-monthly-option${monthlyDisabled ? ' disabled aria-disabled="true"' : ""} aria-label="${escapePaymentText(monthlyTitleLabel)}${monthlyDisabled ? ` (${escapePaymentText(hasProvidedMonthlyBalance
-              ? checkoutEntry.text("payment.directModal.monthlyAria.insufficient", "잔량 부족")
-              : checkoutEntry.text("payment.directModal.monthlyAria.unknown", "잔량 확인 필요"))})` : ""}${escapePaymentText(optionRecommendAria("monthly"))}">
-            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>${escapePaymentText(monthlyBadgeLabel)}</span>${optionRecommendHtml("monthly")}</span>
-            <strong>${escapePaymentText(monthlyTitleLabel)} · <span class="cd-direct-payment-amount">${monthlyCost.toLocaleString(checkoutEntry.displayLocale())}</span> ${escapePaymentText(monthlyUnitLabel)}</strong>
-            <span class="cd-direct-payment-desc" data-monthly-hint>${monthlyDescInitial}</span>${optionGoHtml("monthly")}
-          </button>` : "";
-  const passStoreButtonHtml = canShowPassStore ? `
-          <button type="button" class="cd-direct-payment-option is-store${optionVariantClass("pass")}" data-mode="pass-store" aria-label="${escapePaymentText(passStoreTitle)}${escapePaymentText(optionRecommendAria("pass"))}">
-            <span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>${escapePaymentText(passLabel)}</span>${optionRecommendHtml("pass")}</span>
-            <strong>${escapePaymentText(passStoreTitle)}</strong>
-            <span class="cd-direct-payment-desc">${escapePaymentText(passHint ? `${passStoreHint} ${passHint}` : passStoreHint)}</span>${optionGoHtml("pass")}
-          </button>` : "";
+  // 🔴 ariaLabel 은 buildPaymentChoiceCardsHtml 이 한 번에 escape 하므로 여기서는 원문 그대로 넘긴다
+  // (이중 escape 방지 — escape(escape(x)) 는 & 같은 문자를 재이스케이프해 화면에 &amp; 로 노출한다).
+  const monthlyAriaSuffix = monthlyDisabled
+    ? ` (${hasProvidedMonthlyBalance
+        ? checkoutEntry.text("payment.directModal.monthlyAria.insufficient", "잔량 부족")
+        : checkoutEntry.text("payment.directModal.monthlyAria.unknown", "잔량 확인 필요")})`
+    : "";
   // 🔴 온디맨드 잔량 확인(2026-08-13). 결제창은 **열릴 때 잔량을 조회하지 않는다** — 그 자동 왕복 금지는
   // 2026-08-12 그대로다. 사용자가 눌러야만 조회하고, 실패해도 월정석 카드의 disabled 는 건드리지 않는다.
   // data-mode 를 주지 않는다 — [data-mode] 일괄 리스너가 "고르면 모달을 닫는" 동작이라 붙이면 창이 닫힌다.
@@ -1182,14 +1162,50 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   const monthlyBalanceCheckHtml = canShowMonthly ? `
           <button type="button" class="cd-direct-payment-balance-check" data-monthly-balance-check>${escapePaymentText(checkoutEntry.text("payment.directModal.monthlyBalance.checkButton", "보유 월정석 확인"))}</button>
           <span class="cd-direct-payment-balance-value" data-monthly-balance-text role="status" aria-live="polite" hidden></span>` : "";
-  const choiceCardHtmlByOption: Record<string, string> = {
-    pass: passStoreButtonHtml,
-    direct: directButtonHtml,
-    monthly: monthlyButtonHtml + monthlyBalanceCheckHtml,
-  };
-  const paymentChoiceButtonsHtml = (checkoutRecommendation.order || [])
-    .map((option) => choiceCardHtmlByOption[option] || "")
-    .join("");
+  // 카드 뼈대(배지·추천 리본·go 스트립·variant 클래스) 조립은 세 렌더러 공유 함수 하나가 맡는다
+  // (js/core/checkout-entry.js buildPaymentChoiceCardsHtml). React 만 갖는 aria-label·잔량 예측 문구는
+  // 여기서 계산해 spec 으로 넘긴다 — 렌더러별 실제 정보량 차이라 억지로 지우지 않는다.
+  const paymentChoiceButtonsHtml = checkoutEntry.buildPaymentChoiceCardsHtml({
+    order: checkoutRecommendation.order || [],
+    recommendedOption,
+    escape: escapePaymentText,
+    recommendLabel: recommendBadgeLabel,
+    goLabel,
+    cards: {
+      pass: {
+        allow: canShowPassStore,
+        dataMode: "pass-store",
+        extraClass: " is-store",
+        ariaLabel: `${passStoreTitle}${optionRecommendAria("pass")}`,
+        glyph: "🎫",
+        badgeLabel: passLabel,
+        titleHtml: escapePaymentText(passStoreTitle),
+        descHtml: escapePaymentText(passHint ? `${passStoreHint} ${passHint}` : passStoreHint),
+      },
+      direct: {
+        allow: canShowDirect,
+        dataMode: "direct",
+        ariaLabel: `${directTitleLabel} ${formatPaymentWon(directAmount)}${optionRecommendAria("direct")}`,
+        glyph: "💳",
+        badgeLabel: directBadgeLabel,
+        titleHtml: `${escapePaymentText(directTitleLabel)} · <span class="cd-direct-payment-amount">${formatPaymentWon(directAmount)}</span>`,
+        descHtml: escapePaymentText(directHintLabel),
+      },
+      monthly: {
+        allow: canShowMonthly,
+        dataMode: "monthly",
+        extraDataAttrs: ` data-monthly-option${monthlyDisabled ? ' disabled aria-disabled="true"' : ""}`,
+        extraClass: monthlyDisabled ? " is-disabled" : "",
+        ariaLabel: `${monthlyTitleLabel}${monthlyAriaSuffix}${optionRecommendAria("monthly")}`,
+        glyph: "🌙",
+        badgeLabel: monthlyBadgeLabel,
+        titleHtml: `${escapePaymentText(monthlyTitleLabel)} · <span class="cd-direct-payment-amount">${monthlyCost.toLocaleString(checkoutEntry.displayLocale())}</span> ${escapePaymentText(monthlyUnitLabel)}`,
+        descHtml: monthlyDescInitial,
+        descAttr: " data-monthly-hint",
+        afterHtml: monthlyBalanceCheckHtml,
+      },
+    },
+  });
   const noteBasisText = checkoutEntry.text("payment.directModal.note.basis", "결제 금액 {amount}", { amount: formatPaymentWon(directAmount) });
   const noteWithPassText = checkoutEntry.text("payment.directModal.note.withPass", "이용권 · 월정석 · 카드 중에서 고를 수 있어요.");
   const noteWithPassHtml = canShowPassStore ? `<span>${escapePaymentText(noteWithPassText)}</span>` : "";
