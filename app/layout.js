@@ -183,6 +183,7 @@ export default function RootLayout({ children }) {
     <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
         <Script src="/js/core/pass-verdict.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
+        <Script src="/js/core/auth-hint.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}
         <Script src="/js/core/app-context.js?v=20260812-app-context-v1" strategy="beforeInteractive" />
         <Script src="/js/core/checkout-entry.js?v=build-ce0e961efebc" strategy="beforeInteractive" />

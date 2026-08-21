@@ -122,6 +122,10 @@ function bootShell(source, options = {}) {
     for (const [key, value] of Object.entries(options.seedStorage)) window.localStorage.setItem(key, value);
   }
 
+  // _dpHasSessionHint() 는 js/core/auth-hint.js(window.__cdAuthHint)에 위임한다 — 실제 페이지는
+  // <script> 태그로 이 전역을 destiny-profile.js 보다 먼저 심어 두므로, 이 하네스도 같은 순서로
+  // 심어야 로그인 흔적(위 fortune_auth_token/fortune_auth_role) 시뮬레이션이 실제로 먹힌다.
+  window.eval(fs.readFileSync(path.join(root, "js/core/auth-hint.js"), "utf8"));
   window.eval(source);
 
   const card = () => window.document.getElementById("dpMasterCard");
