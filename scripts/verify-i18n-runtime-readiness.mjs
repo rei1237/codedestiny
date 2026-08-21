@@ -145,6 +145,12 @@ function extractNativeScriptSrc(html) {
  */
 const LEGAL_VERBATIM_KEY = /^business\.[A-Za-z]+Value$/;
 
+// withdrawModal.confirmMismatch는 서버(worker/routes/auth.js)가 confirmText를 "회원탈퇴"
+// 리터럴로 검증하므로, 모든 로케일(en 포함) 안내 문구가 이 한글 단어를 인용해야 한다 — 값 전체가
+// 아니라 인용된 한 단어만 불변이라 LEGAL_VERBATIM_KEY(전체 일치)와 달리 존재 여부만 면제한다.
+// scripts/verify-i18n-public-parity.mjs의 HANGUL_QUOTE_ALLOWED_KEYS와 짝을 이룬다.
+const HANGUL_QUOTE_ALLOWED_KEYS = new Set(["withdrawModal.confirmMismatch"]);
+
 /** \uB77C\uBCA8\uACFC \uAC12\uC744 \uC787\uB294 \uAD6C\uBD84\uC790(": " / "\uFF1A"). \uD45C\uC2DC \uADDC\uCE59\uC774\uB77C \uB85C\uCF00\uC77C \uAC83\uC744 \uADF8\uB300\uB85C \uB454\uB2E4. */
 function stripSeparator(value) {
   return String(value).replace(/^\s*[:\uFF1A]\s*/, "");
@@ -157,6 +163,7 @@ function findBadValues(flat, koFlat) {
       const registered = koFlat[key];
       return registered === undefined || stripSeparator(value) !== stripSeparator(registered);
     }
+    if (HANGUL_QUOTE_ALLOWED_KEYS.has(key)) return false;
     return /^\?+$/.test(value) || value.includes("\uFFFD") || /[\uAC00-\uD7A3]/u.test(value);
   }).map(([key]) => key);
 }
