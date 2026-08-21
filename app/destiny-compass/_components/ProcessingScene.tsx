@@ -12,47 +12,50 @@
  * 실제 계산이 끝날 때까지 켜진 상태로 남는다(가짜 100% 진행바를 두지 않는다).
  * 라이브 영역은 라인마다가 아니라 **요약 한 줄**이다 — 6개면 스크린리더가 지옥이 된다.
  */
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { CompassHero } from "./CompassHero";
-import { PROCESS_LINES } from "./reportSections";
+import { processLines } from "./reportSections";
 import { useFxTier } from "../_hooks/useFxTier";
-import { YEONI_VOYAGE_LINE } from "../_stage/mapDialogue";
+import { yeoniVoyageLine } from "../_stage/mapDialogue";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
 /** 라인 간격 — 다섯 라인이 최소 노출(2.2s) 안에서 순차로 켜진다. */
 const STEP_MS = 320;
 
 export function ProcessingScene() {
+  const copy = useDestinyCompassCopy();
   const fxTier = useFxTier();
-  const [lit, setLit] = useState(fxTier === "static" ? PROCESS_LINES.length - 1 : 0);
+  const lines = useMemo(() => processLines(copy), [copy]);
+  const [lit, setLit] = useState(fxTier === "static" ? lines.length - 1 : 0);
 
   useEffect(() => {
     if (fxTier === "static") {
-      setLit(PROCESS_LINES.length - 1);
+      setLit(lines.length - 1);
       return;
     }
     const timers: number[] = [];
-    for (let i = 1; i < PROCESS_LINES.length; i += 1) {
+    for (let i = 1; i < lines.length; i += 1) {
       timers.push(window.setTimeout(() => setLit(i), STEP_MS * i));
     }
     return () => {
       for (const t of timers) window.clearTimeout(t);
     };
-  }, [fxTier]);
+  }, [fxTier, lines.length]);
 
-  const current = PROCESS_LINES[Math.min(lit, PROCESS_LINES.length - 1)];
+  const current = lines[Math.min(lit, lines.length - 1)];
 
   return (
     <div className={styles.processing}>
-      <div className={styles.processTitle}>다섯 체계를 이어, 운명을 읽는 중…</div>
+      <div className={styles.processTitle}>{copy.processTitle}</div>
       <p className={styles.processNarration}>
-        <b>꽃돼지</b> &ldquo;{YEONI_VOYAGE_LINE}&rdquo;
+        <b>{copy.pigSpeakerName}</b> &ldquo;{yeoniVoyageLine(copy)}&rdquo;
       </p>
 
       <CompassHero state="spinning" compact />
 
       <ol className={styles.processLines}>
-        {PROCESS_LINES.map((line, i) => {
+        {lines.map((line, i) => {
           const state = i < lit ? "done" : i === lit ? "active" : "wait";
           return (
             <li key={line.key} className={styles.processLine} data-state={state}>
@@ -65,7 +68,7 @@ export function ProcessingScene() {
 
       {/* 라이브 영역은 여기 하나뿐 */}
       <p className={styles.processStatus} role="status" aria-live="polite">
-        {current.label} · {Math.min(lit + 1, PROCESS_LINES.length)}/{PROCESS_LINES.length}
+        {current.label} · {Math.min(lit + 1, lines.length)}/{lines.length}
       </p>
     </div>
   );

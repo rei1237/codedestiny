@@ -12,6 +12,7 @@
  * 🔴 term 이 없으면 용어 칩을 그리지 않는다 — 지어내지 않는다.
  */
 import GlossaryTerm from "@/components/fortune/GlossaryTerm";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
 export interface EvidenceGround {
@@ -31,6 +32,7 @@ function starsText(stars: number): string {
 }
 
 export function EvidenceCard({ ground }: { ground: EvidenceGround }) {
+  const copy = useDestinyCompassCopy();
   // grounding(서버가 이 근거에서 끌어낸 문장)이 있으면 그것을 본문에, 원 계산값(detail)은 용어 풀이에 둔다.
   // grounding 이 없으면 detail 을 본문으로 올리고 풀이는 비운다 — 같은 문장을 두 번 보여주지 않는다.
   const text = ground.grounding || ground.detail || "";
@@ -45,7 +47,7 @@ export function EvidenceCard({ ground }: { ground: EvidenceGround }) {
           <span
             className={styles.evidenceStars}
             role="img"
-            aria-label={`${ground.systemLabel} 근거 강도 5점 만점에 ${Math.round(ground.stars as number)}점`}
+            aria-label={copy.evidenceStarsAriaLabelShort(ground.systemLabel, Math.round(ground.stars as number))}
           >
             <span aria-hidden="true">{starsText(ground.stars as number)}</span>
           </span>
@@ -63,6 +65,7 @@ export function EvidenceCard({ ground }: { ground: EvidenceGround }) {
 
 /** 결론당 2장까지 펼쳐 두고, 나머지는 네이티브 details 로 접는다(키보드·스크린리더 무료). */
 export function EvidenceList({ grounds }: { grounds: EvidenceGround[] }) {
+  const copy = useDestinyCompassCopy();
   if (!grounds?.length) return null;
   const head = grounds.slice(0, 2);
   const rest = grounds.slice(2);
@@ -73,7 +76,7 @@ export function EvidenceList({ grounds }: { grounds: EvidenceGround[] }) {
       ))}
       {rest.length > 0 && (
         <details className={styles.evidenceMore}>
-          <summary>근거 {rest.length}개 더 보기</summary>
+          <summary>{copy.moreGroundsSummary(rest.length)}</summary>
           <div className={styles.evidenceRow}>
             {rest.map((g) => (
               <EvidenceCard key={g.evidenceId} ground={g} />

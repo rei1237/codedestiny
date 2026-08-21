@@ -8,7 +8,7 @@ import { useRef } from "react";
 import { ReportActions } from "./ReportActions";
 import { DestinyRadar } from "./DestinyRadar";
 import { regionByKey, DIRECTION_TO_REGION } from "./mapRegions";
-import { DIRECTION_LABEL_KO } from "../_engine/constants";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 import type { DirectionField } from "../_engine/types";
 
@@ -19,16 +19,18 @@ export function Arrival({
   field: DirectionField;
   onRestart: () => void;
 }) {
+  const copy = useDestinyCompassCopy();
   const stageRef = useRef<HTMLDivElement>(null);
   const dest = regionByKey(DIRECTION_TO_REGION[field.primary.key]);
-  const primaryLabel = DIRECTION_LABEL_KO[field.primary.key];
+  const destLabel = dest ? copy.regionLabel[dest.key as keyof typeof copy.regionLabel] : undefined;
+  const primaryLabel = copy.directionLabel[field.primary.key];
 
   return (
     <div className={`${styles.resultStage} ${styles.nightStage}`} ref={stageRef}>
       <Starfield />
       <header className={styles.mapHeader}>
         <span className={styles.mapKicker}>Destination Reached</span>
-        <h1 className={styles.mapTitle}>목적지에 도착했어요</h1>
+        <h1 className={styles.mapTitle}>{copy.arrivalTitle}</h1>
       </header>
 
       <div className={styles.resultBody} data-pdf-section>
@@ -37,25 +39,21 @@ export function Arrival({
             <span className={styles.arriveRays} aria-hidden="true" />
             <span className={styles.arriveIcon} aria-hidden="true">{dest?.icon}</span>
           </div>
-          <p className={styles.arriveLead}>
-            오늘의 항해를 마쳤어요. <b>{dest?.label}</b>의 문이 열렸어요.
-          </p>
-          <div className={styles.arriveStamp}>오늘의 항해 완료 · +10 EXP</div>
+          <p className={styles.arriveLead}>{copy.arrivalLead(destLabel ?? primaryLabel)}</p>
+          <div className={styles.arriveStamp}>{copy.arrivalStamp}</div>
         </div>
 
         <div className={styles.radarWrap}>
-          <span className={styles.flowLabel}>여정 요약 · 운명 레이더</span>
+          <span className={styles.flowLabel}>{copy.radarSummaryLabel}</span>
           <DestinyRadar directions={field.directions} />
-          <p className={styles.arriveNote}>
-            가장 열린 방향은 <b>{primaryLabel}</b>. 이 레이더는 오늘 당신의 기운 지도를 담고 있어요.
-          </p>
+          <p className={styles.arriveNote}>{copy.arrivalNote(primaryLabel)}</p>
         </div>
 
         <div className={styles.resultCtas}>
           {/* 스텁 토스트("다음 단계에서 연결돼요")를 실제 저장·공유로 교체. 공용 유틸만 쓴다. */}
-          <ReportActions targetRef={stageRef} coordinate={`${dest?.label ?? primaryLabel} 도착`} />
+          <ReportActions targetRef={stageRef} coordinate={`${destLabel ?? primaryLabel}${copy.shareCoordinateSuffix}`} />
           <button type="button" className={styles.resultCtaGhost} onClick={onRestart}>
-            새 고민 시작하기
+            {copy.restartQuestButton}
           </button>
         </div>
       </div>

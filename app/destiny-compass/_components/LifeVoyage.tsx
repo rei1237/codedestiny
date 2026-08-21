@@ -8,24 +8,20 @@ import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
 import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
+import { useDestinyCompassCopy } from "../_lib/copy";
+import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
+import { detectLocale } from "@/lib/i18n/dictionary";
 import styles from "./map.module.css";
 import type { DirectionField, TimelineKey, Weather } from "../_engine/types";
 
-const PERIODS: { key: TimelineKey; label: string }[] = [
-  { key: "d30", label: "30일" },
-  { key: "d90", label: "90일" },
-  { key: "y1", label: "1년" },
-  { key: "y3", label: "3년" },
-];
+const PERIOD_KEYS: TimelineKey[] = ["d30", "d90", "y1", "y3"];
 
-const WEATHER: Record<Weather, { icon: string; label: string; head: string; tone: string }> = {
-  clear: { icon: "☀️", label: "맑음", head: "순풍에 돛 단 듯, 크게 나아가도 좋은 때예요.", tone: "clear" },
-  breeze: { icon: "⛵", label: "순풍", head: "잔잔한 순풍이에요. 꾸준히 저어가면 닿아요.", tone: "breeze" },
-  fog: { icon: "🌫️", label: "안개", head: "안개 구간이에요. 속도를 줄이고 방향만 지켜요.", tone: "fog" },
-  storm: { icon: "🌊", label: "높은 물결", head: "물결이 높아요. 무리한 항해보다 잠시 정박이 현명해요.", tone: "storm" },
-};
+/** 날씨 이모지 — 로케일 무관(장식 아이콘). */
+const WEATHER_ICON: Record<Weather, string> = { clear: "☀️", breeze: "⛵", fog: "🌫️", storm: "🌊" };
 
 export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: () => void }) {
+  const copy = useDestinyCompassCopy();
+  const priceLabel = formatKrwFromCoins(100, detectLocale());
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [revealed, setRevealed] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -38,58 +34,54 @@ export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: (
       featureKey: "destiny-compass-life-voyage",
       coinPrice: 100,
       amountKRW: 10000,
-      reason: "삶의 항로 안내",
+      reason: copy.lifeVoyageGateReason,
       requestId: makeGateRequestId("destiny-compass-life-voyage"),
     });
     if (!r.ok) {
       if (redirectToLoginOnAuthRequired(r.code)) {
-        setError("로그인이 필요해요. 로그인 화면으로 이동할게요.");
+        setError(copy.loginRequiredError);
         return;
       }
       if (r.code !== "PAYMENT_CANCELLED") {
-        setError(r.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        setError(r.message || copy.paymentFailedError);
       }
       return;
     }
     setRevealed(true);
-  }, [isPaying, ensurePaidAccess]);
+  }, [isPaying, ensurePaidAccess, copy]);
 
   return (
     <div className={`${styles.resultStage} ${styles.nightStage}`}>
       <Starfield />
       <header className={styles.mapHeader}>
         <span className={styles.mapKicker}>The Life Voyage</span>
-        <h1 className={styles.mapTitle}>삶의 항로</h1>
+        <h1 className={styles.mapTitle}>{copy.lifeVoyageTitle}</h1>
       </header>
 
       <div className={styles.resultBody}>
         <div className={styles.resultSpeak}>
           <PigFace expression="talk" height={80} className={styles.speakPigDark} />
           <div className={styles.resultBubble}>
-            <div className={styles.resultWho}>꽃돼지</div>
-            <p>
-              {revealed
-                ? "여기서부터는 제가 항로를 짚어드릴게요. 날씨는 바뀌어요 — 지금 흐린 구간도 결국 지나가요."
-                : "앞으로의 항로를 30일·90일·1년·3년으로 짚어드릴게요. 날씨는 바뀌어요 — 지금 흐린 구간도 결국 지나가니까요."}
-            </p>
+            <div className={styles.resultWho}>{copy.pigSpeakerName}</div>
+            <p>{revealed ? copy.lifeVoyageRevealedPigLine : copy.lifeVoyageNotRevealedPigLine}</p>
           </div>
         </div>
 
         {revealed ? (
           <ol className={styles.voyageTrack}>
-            {PERIODS.map((p, i) => {
-              const phase = field.timeline[p.key];
-              const w = WEATHER[phase.weather];
+            {PERIOD_KEYS.map((key, i) => {
+              const phase = field.timeline[key];
+              const w = copy.lifeVoyageWeather[phase.weather];
               return (
-                <li key={p.key} className={styles.voyageStop} data-tone={w.tone}>
+                <li key={key} className={styles.voyageStop} data-tone={phase.weather}>
                   <div className={styles.voyageMark}>
-                    <span className={styles.voyageIcon} aria-hidden="true">{w.icon}</span>
-                    {i < PERIODS.length - 1 && <span className={styles.voyageLink} aria-hidden="true" />}
+                    <span className={styles.voyageIcon} aria-hidden="true">{WEATHER_ICON[phase.weather]}</span>
+                    {i < PERIOD_KEYS.length - 1 && <span className={styles.voyageLink} aria-hidden="true" />}
                   </div>
                   <div className={styles.voyageCard}>
-                    <div className={styles.voyagePeriod}>{p.label} 뒤</div>
+                    <div className={styles.voyagePeriod}>{copy.voyagePeriodLabel[key]}{copy.voyagePeriodSuffix}</div>
                     <div className={styles.voyageWeather}>
-                      {w.label} <span aria-hidden="true">·</span> 순항도 {phase.momentum}
+                      {w.label} <span aria-hidden="true">·</span> {copy.cruiseIndexSuffix} {phase.momentum}
                     </div>
                     <span className={styles.voyageBar}>
                       <i style={{ transform: `scaleX(${phase.momentum / 100})` }} />
@@ -103,20 +95,18 @@ export function LifeVoyage({ field, onBack }: { field: DirectionField; onBack: (
         ) : (
           <div className={styles.voyageLock}>
             <span className={styles.voyageLockIcon} aria-hidden="true">🧭</span>
-            <p className={styles.voyageLockText}>
-              30일 · 90일 · 1년 · 3년, 네 구간의 순항도와 날씨를 항해 지도로 펼쳐드려요.
-            </p>
+            <p className={styles.voyageLockText}>{copy.lifeVoyageLockText}</p>
           </div>
         )}
 
         <div className={styles.resultCtas}>
           {!revealed && (
             <button type="button" className={styles.resultCta} disabled={isPaying} onClick={reveal}>
-              {isPaying ? "결제 확인 중…" : "삶의 항로 펼치기 · 10,000원"}
+              {isPaying ? copy.revealButtonBusy : `${copy.lifeVoyageRevealButton} · ${priceLabel}`}
             </button>
           )}
           <button type="button" className={styles.resultCtaGhost} onClick={onBack}>
-            ← 나침반으로 돌아가기
+            ← {copy.backToCompassButton}
           </button>
         </div>
         {error && (
