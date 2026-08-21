@@ -1168,6 +1168,14 @@
       "title": "무료로 바로 시작하기",
       "freeStart": "무료 시작",
       "compat": "궁합 보기"
+    },
+    "heroTrust": {
+      "free": "무료 시작 가능",
+      "freeAria": "무료로 열어볼 수 있는 운명 카드로 이동",
+      "membership": "이용권 · 문라이트 패스 안내",
+      "membershipAria": "문라이트 패스 혜택을 살펴보고 달빛 이용권 안내 펼치기",
+      "search": "전체 서비스 검색",
+      "searchAria": "모든 운세 서비스를 검색으로 찾기"
     }
   },
   "footer": {
