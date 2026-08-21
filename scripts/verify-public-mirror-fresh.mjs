@@ -123,15 +123,6 @@ function detectDrift() {
   runSync();
   const drifted = newlyDirty(before, trackedDirtyPaths(git(["status", "--porcelain"])));
 
-  // TEMP DEBUG (2026-08-21, remove before merge): dump real diffs for drifted files so a
-  // platform-specific mismatch can be diagnosed from CI logs instead of guessed at locally.
-  if (drifted.length > 0 && process.env.MIRROR_DEBUG_DIFF !== "0") {
-    for (const p of drifted) {
-      console.error(`\n=== DEBUG DIFF: ${p} ===`);
-      console.error(git(["diff", "--", p]).slice(0, 4000));
-    }
-  }
-
   // 🔴 여기서 checkout 이 안전한 이유: 위에서 트리가 깨끗함을 **이미 증명했다.**
   //    (그 증명 없이 복원에 checkout 을 쓰면 그 파일의 미커밋 작업이 통째로 날아간다.)
   if (drifted.length > 0) git(["checkout", "--", ...drifted]);
