@@ -3,11 +3,231 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import type { SukuyoCalendarDay, SukuyoCalendarMonth } from "@/lib/sukuyo-calendar";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 type CalendarResponse = SukuyoCalendarMonth & {
   ok?: boolean;
   error?: string;
 };
+
+type SukuyoCalendarCopy = {
+  calendarShellAria: string;
+  monthSelectAria: string;
+  prevMonthAria: string;
+  nextMonthAria: string;
+  legendAria: string;
+  detailAria: string;
+  dayFortuneTitlePrefix: string;
+  coreTitle: string;
+  usagePointTitle: string;
+  cautionTitle: string;
+  loveTitle: string;
+  workMoneyTitle: string;
+  adviceTitle: string;
+};
+
+const SUKUYO_CALENDAR_EN: SukuyoCalendarCopy = {
+  calendarShellAria: "27 Sukuyo Calendar",
+  monthSelectAria: "Select month",
+  prevMonthAria: "Previous month",
+  nextMonthAria: "Next month",
+  legendAria: "Calendar legend",
+  detailAria: "Sukuyo flow for the selected date",
+  dayFortuneTitlePrefix: "My Fortune — ",
+  coreTitle: "Core Nature of the Mansion",
+  usagePointTitle: "Today's Key Point",
+  cautionTitle: "What to Watch",
+  loveTitle: "Love & Relationships",
+  workMoneyTitle: "Work & Money",
+  adviceTitle: "Today's Advice",
+};
+
+const SUKUYO_CALENDAR_COPY: Partial<Record<LoadingLocale, SukuyoCalendarCopy>> = {
+  ko: {
+    calendarShellAria: "27숙 달력",
+    monthSelectAria: "월 선택",
+    prevMonthAria: "이전 달",
+    nextMonthAria: "다음 달",
+    legendAria: "달력 범례",
+    detailAria: "선택한 날짜의 숙요 흐름",
+    dayFortuneTitlePrefix: "나의 길흉 — ",
+    coreTitle: "숙의 핵심 성향",
+    usagePointTitle: "오늘 사용 포인트",
+    cautionTitle: "주의할 결",
+    loveTitle: "연애와 관계",
+    workMoneyTitle: "일과 금전",
+    adviceTitle: "오늘의 조언",
+  },
+  en: SUKUYO_CALENDAR_EN,
+  ja: {
+    calendarShellAria: "27宿カレンダー",
+    monthSelectAria: "月を選択",
+    prevMonthAria: "前の月",
+    nextMonthAria: "次の月",
+    legendAria: "カレンダーの凡例",
+    detailAria: "選択した日の宿曜の流れ",
+    dayFortuneTitlePrefix: "私の吉凶 — ",
+    coreTitle: "宿の核心的な性質",
+    usagePointTitle: "今日使うポイント",
+    cautionTitle: "注意すべき点",
+    loveTitle: "恋愛と関係",
+    workMoneyTitle: "仕事とお金",
+    adviceTitle: "今日のアドバイス",
+  },
+  "zh-CN": {
+    calendarShellAria: "27宿日历",
+    monthSelectAria: "选择月份",
+    prevMonthAria: "上个月",
+    nextMonthAria: "下个月",
+    legendAria: "日历图例",
+    detailAria: "所选日期的宿曜运势",
+    dayFortuneTitlePrefix: "我的吉凶 — ",
+    coreTitle: "宿的核心性质",
+    usagePointTitle: "今日要点",
+    cautionTitle: "需要注意的地方",
+    loveTitle: "爱情与关系",
+    workMoneyTitle: "工作与金钱",
+    adviceTitle: "今日建议",
+  },
+  "zh-TW": {
+    calendarShellAria: "27宿日曆",
+    monthSelectAria: "選擇月份",
+    prevMonthAria: "上個月",
+    nextMonthAria: "下個月",
+    legendAria: "日曆圖例",
+    detailAria: "所選日期的宿曜運勢",
+    dayFortuneTitlePrefix: "我的吉凶 — ",
+    coreTitle: "宿的核心性質",
+    usagePointTitle: "今日要點",
+    cautionTitle: "需要注意的地方",
+    loveTitle: "愛情與關係",
+    workMoneyTitle: "工作與金錢",
+    adviceTitle: "今日建議",
+  },
+  vi: {
+    calendarShellAria: "Lịch 27 Sao (Sukuyo)",
+    monthSelectAria: "Chọn tháng",
+    prevMonthAria: "Tháng trước",
+    nextMonthAria: "Tháng sau",
+    legendAria: "Chú giải lịch",
+    detailAria: "Vận sao ngày đã chọn",
+    dayFortuneTitlePrefix: "Vận may của tôi — ",
+    coreTitle: "Bản chất cốt lõi của sao",
+    usagePointTitle: "Điểm cần lưu ý hôm nay",
+    cautionTitle: "Điều cần thận trọng",
+    loveTitle: "Tình yêu và các mối quan hệ",
+    workMoneyTitle: "Công việc và tiền bạc",
+    adviceTitle: "Lời khuyên hôm nay",
+  },
+  hi: {
+    calendarShellAria: "27 सुकुयो कैलेंडर",
+    monthSelectAria: "महीना चुनें",
+    prevMonthAria: "पिछला महीना",
+    nextMonthAria: "अगला महीना",
+    legendAria: "कैलेंडर लीजेंड",
+    detailAria: "चयनित तिथि का सुकुयो प्रवाह",
+    dayFortuneTitlePrefix: "मेरा भाग्य — ",
+    coreTitle: "मंज़िल की मूल प्रकृति",
+    usagePointTitle: "आज का मुख्य बिंदु",
+    cautionTitle: "सावधानी बरतें",
+    loveTitle: "प्रेम और रिश्ते",
+    workMoneyTitle: "काम और पैसा",
+    adviceTitle: "आज की सलाह",
+  },
+  es: {
+    calendarShellAria: "Calendario de 27 Sukuyo",
+    monthSelectAria: "Seleccionar mes",
+    prevMonthAria: "Mes anterior",
+    nextMonthAria: "Mes siguiente",
+    legendAria: "Leyenda del calendario",
+    detailAria: "Flujo de Sukuyo del día seleccionado",
+    dayFortuneTitlePrefix: "Mi fortuna — ",
+    coreTitle: "Naturaleza esencial de la mansión",
+    usagePointTitle: "Punto clave de hoy",
+    cautionTitle: "Qué tener en cuenta",
+    loveTitle: "Amor y relaciones",
+    workMoneyTitle: "Trabajo y dinero",
+    adviceTitle: "Consejo de hoy",
+  },
+  fr: {
+    calendarShellAria: "Calendrier des 27 Sukuyo",
+    monthSelectAria: "Sélectionner le mois",
+    prevMonthAria: "Mois précédent",
+    nextMonthAria: "Mois suivant",
+    legendAria: "Légende du calendrier",
+    detailAria: "Flux Sukuyo de la date sélectionnée",
+    dayFortuneTitlePrefix: "Ma fortune — ",
+    coreTitle: "Nature essentielle de la demeure",
+    usagePointTitle: "Point clé du jour",
+    cautionTitle: "À surveiller",
+    loveTitle: "Amour et relations",
+    workMoneyTitle: "Travail et argent",
+    adviceTitle: "Conseil du jour",
+  },
+  de: {
+    calendarShellAria: "27-Sukuyo-Kalender",
+    monthSelectAria: "Monat auswählen",
+    prevMonthAria: "Vorheriger Monat",
+    nextMonthAria: "Nächster Monat",
+    legendAria: "Kalenderlegende",
+    detailAria: "Sukuyo-Verlauf des gewählten Tages",
+    dayFortuneTitlePrefix: "Mein Glück — ",
+    coreTitle: "Kernwesen des Mondhauses",
+    usagePointTitle: "Wichtiger Punkt heute",
+    cautionTitle: "Worauf zu achten ist",
+    loveTitle: "Liebe und Beziehungen",
+    workMoneyTitle: "Arbeit und Geld",
+    adviceTitle: "Ratschlag für heute",
+  },
+  nl: {
+    calendarShellAria: "27-Sukuyo-kalender",
+    monthSelectAria: "Maand selecteren",
+    prevMonthAria: "Vorige maand",
+    nextMonthAria: "Volgende maand",
+    legendAria: "Kalenderlegenda",
+    detailAria: "Sukuyo-verloop van de geselecteerde dag",
+    dayFortuneTitlePrefix: "Mijn geluk — ",
+    coreTitle: "Kernaard van het maanhuis",
+    usagePointTitle: "Belangrijk punt van vandaag",
+    cautionTitle: "Waar je op moet letten",
+    loveTitle: "Liefde en relaties",
+    workMoneyTitle: "Werk en geld",
+    adviceTitle: "Advies van vandaag",
+  },
+  ms: {
+    calendarShellAria: "Kalendar 27 Sukuyo",
+    monthSelectAria: "Pilih bulan",
+    prevMonthAria: "Bulan sebelumnya",
+    nextMonthAria: "Bulan seterusnya",
+    legendAria: "Petunjuk kalendar",
+    detailAria: "Aliran Sukuyo bagi tarikh dipilih",
+    dayFortuneTitlePrefix: "Nasib saya — ",
+    coreTitle: "Sifat teras rumah bulan",
+    usagePointTitle: "Perkara penting hari ini",
+    cautionTitle: "Perkara yang perlu diberi perhatian",
+    loveTitle: "Cinta dan hubungan",
+    workMoneyTitle: "Kerja dan wang",
+    adviceTitle: "Nasihat hari ini",
+  },
+};
+
+function getSukuyoCalendarCopy(locale: LoadingLocale): SukuyoCalendarCopy {
+  return SUKUYO_CALENDAR_COPY[locale] || SUKUYO_CALENDAR_EN;
+}
+
+function useSukuyoCalendarCopy(): SukuyoCalendarCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const sync = () => setLocale(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      document.removeEventListener("cd:language-change", sync);
+    };
+  }, []);
+  return getSukuyoCalendarCopy(locale);
+}
 
 const WEEKDAY_LABELS = ["일", "월", "화", "수", "목", "금", "토"];
 
@@ -464,11 +684,12 @@ export default function SukuyoCalendarClient() {
   };
 
   const selectedProfile = selectedDay ? getMansionProfile(selectedDay) : null;
+  const copy = useSukuyoCalendarCopy();
 
   return (
     <main className="moon-calendar-page">
       <style>{MOON_CALENDAR_STYLES}</style>
-      <section className="moon-calendar-shell" aria-label="27숙 달력">
+      <section className="moon-calendar-shell" aria-label={copy.calendarShellAria}>
         <header className="moon-calendar-header">
           <div className="moon-calendar-titleline">
             <svg className="moon-calendar-crescent" viewBox="0 0 24 24" aria-hidden="true">
@@ -486,7 +707,7 @@ export default function SukuyoCalendarClient() {
                   max="2100-12"
                   onChange={(event) => handleMonthChange(event.target.value)}
                   className="moon-calendar-month-input"
-                  aria-label="월 선택"
+                  aria-label={copy.monthSelectAria}
                 />
               </label>
               <p className="moon-calendar-subtitle">달이 머무는 자리 · 이달의 숙(宿)</p>
@@ -500,10 +721,10 @@ export default function SukuyoCalendarClient() {
             <span />
           </div>
           <div className="moon-calendar-nav">
-            <button type="button" onClick={() => move(-1)} className="moon-calendar-nav-button" aria-label="이전 달">
+            <button type="button" onClick={() => move(-1)} className="moon-calendar-nav-button" aria-label={copy.prevMonthAria}>
               <ChevronLeft size={16} strokeWidth={2.2} aria-hidden="true" />
             </button>
-            <button type="button" onClick={() => move(1)} className="moon-calendar-nav-button" aria-label="다음 달">
+            <button type="button" onClick={() => move(1)} className="moon-calendar-nav-button" aria-label={copy.nextMonthAria}>
               <ChevronRight size={16} strokeWidth={2.2} aria-hidden="true" />
             </button>
           </div>
@@ -570,7 +791,7 @@ export default function SukuyoCalendarClient() {
           )}
         </div>
 
-        <footer className="moon-calendar-legend" aria-label="달력 범례">
+        <footer className="moon-calendar-legend" aria-label={copy.legendAria}>
           <div className="moon-calendar-legend__items">
             <span className="moon-calendar-legend__item"><span className="moon-calendar-legend__dot" />오늘</span>
             <span className="moon-calendar-legend__item"><span className="moon-calendar-legend__square is-bad" />흉일</span>
@@ -582,7 +803,7 @@ export default function SukuyoCalendarClient() {
           ) : null}
         </footer>
 
-        <aside className="moon-calendar-detail" id="selected-sukuyo-reading" aria-label="선택한 날짜의 숙요 흐름">
+        <aside className="moon-calendar-detail" id="selected-sukuyo-reading" aria-label={copy.detailAria}>
           {selectedDay && selectedProfile ? (
             <>
               <p className="moon-calendar-detail__kicker">{formatSelectedDate(selectedDay)}</p>
@@ -604,16 +825,16 @@ export default function SukuyoCalendarClient() {
               <div className="moon-calendar-notes">
                 {selectedDay.dayFortune ? (
                   <DetailBlock
-                    title={`나의 길흉 — ${selectedDay.dayFortune.tierLabel}`}
+                    title={`${copy.dayFortuneTitlePrefix}${selectedDay.dayFortune.tierLabel}`}
                     body={`${selectedDay.dayFortune.headline}. ${selectedDay.dayFortune.advice}`}
                   />
                 ) : null}
-                <DetailBlock title="숙의 핵심 성향" body={selectedDay.core} />
-                <DetailBlock title="오늘 사용 포인트" body={selectedDay.usagePoint} />
-                <DetailBlock title="주의할 결" body={selectedDay.caution} />
-                <DetailBlock title="연애와 관계" body={selectedDay.love} />
-                <DetailBlock title="일과 금전" body={selectedDay.workMoney} />
-                <DetailBlock title="오늘의 조언" body={selectedDay.advice} />
+                <DetailBlock title={copy.coreTitle} body={selectedDay.core} />
+                <DetailBlock title={copy.usagePointTitle} body={selectedDay.usagePoint} />
+                <DetailBlock title={copy.cautionTitle} body={selectedDay.caution} />
+                <DetailBlock title={copy.loveTitle} body={selectedDay.love} />
+                <DetailBlock title={copy.workMoneyTitle} body={selectedDay.workMoney} />
+                <DetailBlock title={copy.adviceTitle} body={selectedDay.advice} />
               </div>
             </>
           ) : (
