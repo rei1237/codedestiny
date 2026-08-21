@@ -7669,6 +7669,12 @@
       "guarantee": "Jedes zu kurze Kapitel wird automatisch neu geschrieben, bis zu zweimal. Wird die Vorgabe dennoch nicht erreicht, gilt die Anfrage als fehlgeschlagen statt ausgeliefert — Wiederholung und Erstattung bleiben damit offen."
     }
   },
+  "errorBoundary": {
+    "title": "Beim Laden der Seite ist ein Problem aufgetreten.",
+    "description": "Dies könnte ein vorübergehender Fehler sein. Ein erneuter Versuch löst das Problem meist.",
+    "retry": "Erneut versuchen",
+    "goHome": "Zur Startseite"
+  },
   "withdrawModal": {
     "title": "Konto löschen",
     "closeAriaLabel": "Dialog schließen",
