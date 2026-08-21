@@ -45,6 +45,8 @@ declare const checkoutEntry: {
   RETURN_TTL_MS: number;
   FUNNEL_PATH: string;
   PASS_STORE_PLAN_ORDER: CheckoutStorePlan[];
+  /** 결제 선택창 카드의 공용 CSS 규칙 정본. 세 렌더러가 이 배열을 참조해 <style> 을 채운다. */
+  PAYMENT_CHOICE_CSS_RULES: string[];
   /** 세 렌더러가 붙이는 결제창 노드를 모두 잡는 선택자. */
   CHOICE_MODAL_SELECTOR: string;
   CHOICE_LOCK_TTL_MS: number;
