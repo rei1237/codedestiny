@@ -7668,5 +7668,38 @@
       "keepValue": "Enregistrez en PDF et gardez-le à vie",
       "guarantee": "Tout chapitre trop court est réécrit automatiquement, jusqu'à deux fois. S'il n'y parvient toujours pas, la demande échoue au lieu d'être livrée — la relance et le remboursement restent donc possibles."
     }
+  },
+  "withdrawModal": {
+    "title": "Supprimer le compte",
+    "closeAriaLabel": "Fermer la boîte de dialogue",
+    "csrfFetchError": "Impossible de charger le jeton de sécurité. Réessayez dans un instant.",
+    "consentRequired": "Veuillez cocher tous les consentements obligatoires.",
+    "confirmMismatch": "Veuillez saisir exactement \"회원탈퇴\".",
+    "passwordTooShort": "Veuillez saisir votre mot de passe actuel (au moins 8 caractères).",
+    "csrfMissing": "Jeton de sécurité manquant. Actualisez la page et réessayez.",
+    "networkError": "Une erreur réseau s'est produite. Réessayez dans un instant.",
+    "genericError": "Une erreur s'est produite lors de la suppression du compte.",
+    "successTitle": "Votre compte a été supprimé",
+    "successThanks": "Merci d'avoir utilisé Code Destiny.",
+    "successErased": "Toutes vos informations personnelles ont été supprimées immédiatement.",
+    "successRedirect": "Redirection vers la page d'accueil dans 3 secondes…",
+    "warningHeading": "Veuillez confirmer avant de supprimer votre compte",
+    "warningPointsPrefix": "Vos points et toutes vos données seront",
+    "warningPointsStrong": "supprimés définitivement et immédiatement",
+    "warningPointsSuffix": ".",
+    "warningRejoinPrefix": "Si vous vous réinscrivez avec le même e-mail, vos données précédentes",
+    "warningRejoinStrong": "ne pourront pas être récupérées",
+    "warningRejoinSuffix": ".",
+    "warningRetention": "Les registres de paiement et de transaction sont conservés de manière anonymisée pendant 5 ans, comme l'exige la loi.",
+    "passwordLabel": "Confirmez votre mot de passe actuel",
+    "passwordPlaceholder": "Saisissez votre mot de passe actuel",
+    "confirmLabel": "Saisissez pour confirmer la suppression",
+    "confirmHintPrefix": "Saisissez \"",
+    "confirmHintSuffix": "\" (en coréen, signifiant « résiliation d'adhésion ») dans le champ ci-dessous.",
+    "agreeIrreversible": "Je comprends et j'accepte que la suppression de mon compte entraîne la suppression irréversible de toutes mes données.",
+    "agreeDataRetention": "J'accepte que les registres de paiement et de transaction soient conservés de manière anonymisée pendant 5 ans, conformément à la loi sur le commerce électronique.",
+    "cancel": "Annuler",
+    "submit": "Supprimer le compte",
+    "submitting": "Traitement en cours…"
   }
 }

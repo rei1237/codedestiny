@@ -7668,5 +7668,38 @@
       "keepValue": "导出PDF，永久保存",
       "guarantee": "篇幅未达标准的章节最多自动重写两次。若仍无法达标，则判定为失败而不交付结果，重试与退款通道保持有效。"
     }
+  },
+  "withdrawModal": {
+    "title": "会员注销",
+    "closeAriaLabel": "关闭对话框",
+    "csrfFetchError": "未能加载安全令牌。请稍后重试。",
+    "consentRequired": "请勾选所有必选同意项。",
+    "confirmMismatch": "请准确输入「회원탈퇴」。",
+    "passwordTooShort": "请输入当前密码(至少8个字符)。",
+    "csrfMissing": "缺少安全令牌。请刷新页面后重试。",
+    "networkError": "发生网络错误。请稍后重试。",
+    "genericError": "注销处理过程中发生错误。",
+    "successTitle": "注销已完成",
+    "successThanks": "感谢您一直以来使用Code Destiny。",
+    "successErased": "您的所有个人信息已立即销毁。",
+    "successRedirect": "3秒后将跳转至首页…",
+    "warningHeading": "注销前请务必确认",
+    "warningPointsPrefix": "您持有的积分及所有数据将",
+    "warningPointsStrong": "立即永久删除",
+    "warningPointsSuffix": "。",
+    "warningRejoinPrefix": "注销后若以相同邮箱重新注册,此前的数据",
+    "warningRejoinStrong": "将无法恢复",
+    "warningRejoinSuffix": "。",
+    "warningRetention": "根据法律义务,支付交易记录将匿名化保存5年。",
+    "passwordLabel": "确认当前密码",
+    "passwordPlaceholder": "请输入当前密码",
+    "confirmLabel": "输入注销确认文字",
+    "confirmHintPrefix": "请在下方输入框中输入「",
+    "confirmHintSuffix": "」(韩语,意为“注销会员”)。",
+    "agreeIrreversible": "我理解并同意,注销后所有数据将被不可恢复地删除。",
+    "agreeDataRetention": "我同意根据电子商务法规定,支付交易记录将被匿名化保存5年。",
+    "cancel": "取消",
+    "submit": "确认注销",
+    "submitting": "处理中…"
   }
 }
