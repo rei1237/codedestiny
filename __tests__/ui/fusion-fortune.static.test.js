@@ -106,7 +106,10 @@ test("the generating view and the result live in one conversation thread", () =>
   const client = read(CLIENT);
   // 생성 화면과 결과 화면이 갈라지면 3만원짜리 상담이 "로딩 → 리포트"로 끊긴다.
   assert.match(client, /\{\(loading \|\| result \|\| failure\) && <section/);
-  assert.match(client, /aria-label="초융합 상담 대화"/);
+  // 아리아 라벨 문구는 12로케일 카피 객체에서 온다(useFusionFortuneCopy) — 한국어 리터럴은
+  // ko 로케일 항목으로 남아 있고, JSX 는 그 항목을 가리키는 copy.threadAriaLabel 을 쓴다.
+  assert.match(client, /aria-label=\{copy\.threadAriaLabel\}/);
+  assert.match(client, /threadAriaLabel: "초융합 상담 대화"/);
   // 아직 끝나지 않은 체계에 말풍선을 미리 만들지 않는다(없는 내용을 자리로 약속하지 않기).
   assert.match(client, /if \(state === "pending"\) return null;/);
   // 실패는 폼이 아니라 대화 안에 남고, 결제 증빙이 있으면 그 자리에서 재시도한다.
