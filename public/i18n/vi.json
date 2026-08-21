@@ -7668,5 +7668,38 @@
       "keepValue": "Xuất PDF và giữ vĩnh viễn",
       "guarantee": "Chương nào chưa đạt độ dài sẽ được viết lại tự động, tối đa hai lần. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
     }
+  },
+  "withdrawModal": {
+    "title": "Rời khỏi thành viên",
+    "closeAriaLabel": "Đóng hộp thoại",
+    "csrfFetchError": "Không thể tải mã bảo mật. Vui lòng thử lại sau.",
+    "consentRequired": "Vui lòng đánh dấu tất cả các mục đồng ý bắt buộc.",
+    "confirmMismatch": "Vui lòng nhập chính xác \"회원탈퇴\".",
+    "passwordTooShort": "Vui lòng nhập mật khẩu hiện tại (ít nhất 8 ký tự).",
+    "csrfMissing": "Thiếu mã bảo mật. Vui lòng tải lại trang rồi thử lại.",
+    "networkError": "Đã xảy ra lỗi mạng. Vui lòng thử lại sau.",
+    "genericError": "Đã xảy ra lỗi trong quá trình xóa tài khoản.",
+    "successTitle": "Đã xóa tài khoản thành công",
+    "successThanks": "Cảm ơn bạn đã sử dụng Code Destiny.",
+    "successErased": "Toàn bộ thông tin cá nhân của bạn đã được xóa ngay lập tức.",
+    "successRedirect": "Sẽ chuyển về trang chủ sau 3 giây…",
+    "warningHeading": "Vui lòng xác nhận trước khi xóa tài khoản",
+    "warningPointsPrefix": "Điểm và toàn bộ dữ liệu của bạn sẽ bị",
+    "warningPointsStrong": "xóa vĩnh viễn ngay lập tức",
+    "warningPointsSuffix": ".",
+    "warningRejoinPrefix": "Nếu đăng ký lại bằng cùng email sau khi xóa, dữ liệu trước đó",
+    "warningRejoinStrong": "không thể khôi phục",
+    "warningRejoinSuffix": ".",
+    "warningRetention": "Hồ sơ giao dịch thanh toán được lưu giữ ẩn danh trong 5 năm theo yêu cầu pháp luật.",
+    "passwordLabel": "Xác nhận mật khẩu hiện tại",
+    "passwordPlaceholder": "Nhập mật khẩu hiện tại của bạn",
+    "confirmLabel": "Nhập để xác nhận xóa tài khoản",
+    "confirmHintPrefix": "Nhập \"",
+    "confirmHintSuffix": "\" (tiếng Hàn nghĩa là \"rời khỏi thành viên\") vào ô bên dưới.",
+    "agreeIrreversible": "Tôi hiểu và đồng ý rằng việc xóa tài khoản sẽ xóa vĩnh viễn toàn bộ dữ liệu của tôi.",
+    "agreeDataRetention": "Tôi đồng ý rằng hồ sơ giao dịch thanh toán sẽ được lưu giữ ẩn danh trong 5 năm theo luật thương mại điện tử.",
+    "cancel": "Hủy",
+    "submit": "Xóa tài khoản",
+    "submitting": "Đang xử lý…"
   }
 }
