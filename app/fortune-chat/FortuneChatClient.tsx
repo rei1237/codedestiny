@@ -9,6 +9,161 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import styles from "./fortune-chat.module.css";
 import { getApiBaseUrl } from "../_lib/api-config";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+type FortuneChatCopy = {
+  backAria: string;
+  newChatAria: string;
+  characterPickerAria: string;
+  composerAria: string;
+  followUpsAria: string;
+  topicChipsAria: string;
+  categoryChipsAria: string;
+  questionInputAria: string;
+};
+
+const FORTUNE_CHAT_EN: FortuneChatCopy = {
+  backAria: "Go to previous page",
+  newChatAria: "Start a new consultation",
+  characterPickerAria: "Choose a consultant",
+  composerAria: "Consultation input",
+  followUpsAria: "Suggested questions",
+  topicChipsAria: "Suggested question topics",
+  categoryChipsAria: "Choose a consultation system",
+  questionInputAria: "Type your consultation question",
+};
+
+const FORTUNE_CHAT_COPY: Partial<Record<LoadingLocale, FortuneChatCopy>> = {
+  ko: {
+    backAria: "이전 페이지로 이동",
+    newChatAria: "새 상담 시작",
+    characterPickerAria: "상담자 선택",
+    composerAria: "상담 입력",
+    followUpsAria: "추천 질문",
+    topicChipsAria: "추천 질문 분야",
+    categoryChipsAria: "상담 체계 선택",
+    questionInputAria: "상담 질문 입력",
+  },
+  en: FORTUNE_CHAT_EN,
+  ja: {
+    backAria: "前のページに戻る",
+    newChatAria: "新しい相談を始める",
+    characterPickerAria: "相談相手を選択",
+    composerAria: "相談入力",
+    followUpsAria: "おすすめの質問",
+    topicChipsAria: "おすすめの質問分野",
+    categoryChipsAria: "相談体系を選択",
+    questionInputAria: "相談の質問を入力",
+  },
+  "zh-CN": {
+    backAria: "返回上一页",
+    newChatAria: "开始新咨询",
+    characterPickerAria: "选择咨询对象",
+    composerAria: "咨询输入",
+    followUpsAria: "推荐问题",
+    topicChipsAria: "推荐问题领域",
+    categoryChipsAria: "选择咨询体系",
+    questionInputAria: "输入咨询问题",
+  },
+  "zh-TW": {
+    backAria: "返回上一頁",
+    newChatAria: "開始新諮詢",
+    characterPickerAria: "選擇諮詢對象",
+    composerAria: "諮詢輸入",
+    followUpsAria: "推薦問題",
+    topicChipsAria: "推薦問題領域",
+    categoryChipsAria: "選擇諮詢體系",
+    questionInputAria: "輸入諮詢問題",
+  },
+  vi: {
+    backAria: "Về trang trước",
+    newChatAria: "Bắt đầu tư vấn mới",
+    characterPickerAria: "Chọn người tư vấn",
+    composerAria: "Ô nhập tư vấn",
+    followUpsAria: "Câu hỏi gợi ý",
+    topicChipsAria: "Lĩnh vực câu hỏi gợi ý",
+    categoryChipsAria: "Chọn hệ thống tư vấn",
+    questionInputAria: "Nhập câu hỏi tư vấn",
+  },
+  hi: {
+    backAria: "पिछले पृष्ठ पर जाएं",
+    newChatAria: "नया परामर्श शुरू करें",
+    characterPickerAria: "परामर्शदाता चुनें",
+    composerAria: "परामर्श इनपुट",
+    followUpsAria: "सुझाए गए प्रश्न",
+    topicChipsAria: "सुझाए गए प्रश्न क्षेत्र",
+    categoryChipsAria: "परामर्श प्रणाली चुनें",
+    questionInputAria: "अपना परामर्श प्रश्न लिखें",
+  },
+  es: {
+    backAria: "Ir a la página anterior",
+    newChatAria: "Iniciar una nueva consulta",
+    characterPickerAria: "Elegir un consultor",
+    composerAria: "Entrada de consulta",
+    followUpsAria: "Preguntas sugeridas",
+    topicChipsAria: "Temas de preguntas sugeridas",
+    categoryChipsAria: "Elegir un sistema de consulta",
+    questionInputAria: "Escribe tu pregunta de consulta",
+  },
+  fr: {
+    backAria: "Retour à la page précédente",
+    newChatAria: "Démarrer une nouvelle consultation",
+    characterPickerAria: "Choisir un consultant",
+    composerAria: "Saisie de la consultation",
+    followUpsAria: "Questions suggérées",
+    topicChipsAria: "Domaines de questions suggérées",
+    categoryChipsAria: "Choisir un système de consultation",
+    questionInputAria: "Saisissez votre question de consultation",
+  },
+  de: {
+    backAria: "Zur vorherigen Seite",
+    newChatAria: "Neue Beratung starten",
+    characterPickerAria: "Berater auswählen",
+    composerAria: "Beratungseingabe",
+    followUpsAria: "Empfohlene Fragen",
+    topicChipsAria: "Empfohlene Fragebereiche",
+    categoryChipsAria: "Beratungssystem auswählen",
+    questionInputAria: "Ihre Beratungsfrage eingeben",
+  },
+  nl: {
+    backAria: "Naar vorige pagina",
+    newChatAria: "Nieuw consult starten",
+    characterPickerAria: "Kies een adviseur",
+    composerAria: "Consultinvoer",
+    followUpsAria: "Voorgestelde vragen",
+    topicChipsAria: "Voorgestelde vraaggebieden",
+    categoryChipsAria: "Kies een consultsysteem",
+    questionInputAria: "Typ je consultvraag",
+  },
+  ms: {
+    backAria: "Kembali ke halaman sebelumnya",
+    newChatAria: "Mulakan perundingan baharu",
+    characterPickerAria: "Pilih perunding",
+    composerAria: "Input perundingan",
+    followUpsAria: "Soalan dicadangkan",
+    topicChipsAria: "Bidang soalan dicadangkan",
+    categoryChipsAria: "Pilih sistem perundingan",
+    questionInputAria: "Taip soalan perundingan anda",
+  },
+};
+
+function getFortuneChatCopy(locale: LoadingLocale): FortuneChatCopy {
+  return FORTUNE_CHAT_COPY[locale] || FORTUNE_CHAT_EN;
+}
+
+function useFortuneChatCopy(): FortuneChatCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const sync = () => setLocale(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      document.removeEventListener("cd:language-change", sync);
+    };
+  }, []);
+  return getFortuneChatCopy(locale);
+}
 
 type Speaker = "assistant" | "user" | "system";
 type Character = "yeoni" | "neo";
@@ -103,6 +258,7 @@ function isRetiredSessionFormat(list: Message[]) {
 }
 
 export default function FortuneChatClient() {
+  const copy = useFortuneChatCopy();
   const apiBase = getApiBaseUrl();
   const router = useRouter();
   const params = useSearchParams();
@@ -366,12 +522,12 @@ export default function FortuneChatClient() {
 
   return <main className={styles.room} data-character={character}>
     <header className={styles.header}>
-      <button className={styles.backButton} type="button" onClick={() => router.back()} aria-label="이전 페이지로 이동">←</button>
+      <button className={styles.backButton} type="button" onClick={() => router.back()} aria-label={copy.backAria}>←</button>
       <div className={styles.brand}>
         <PersonaAvatar persona={character} mood="greet" size="sm" decorative />
         <div><strong>{CHARACTER_LABEL[character]} 운명 상담</strong><span>{character === "neo" ? "판세부터 정리해 드릴게요" : "작은 마음부터 천천히 살펴봐요"}</span></div>
       </div>
-      <button className={styles.resetButton} type="button" aria-label="새 상담 시작" onClick={startNewChat}>새 상담</button>
+      <button className={styles.resetButton} type="button" aria-label={copy.newChatAria} onClick={startNewChat}>새 상담</button>
     </header>
 
     <div className={styles.timeline} ref={timelineRef} aria-live="polite" aria-relevant="additions">
@@ -383,7 +539,7 @@ export default function FortuneChatClient() {
         </div>
         <PersonaAvatar persona={character} mood="greet" size="lg" decorative />
       </section>
-      <section className={styles.characterPicker} aria-label="상담자 선택">
+      <section className={styles.characterPicker} aria-label={copy.characterPickerAria}>
         {(["yeoni", "neo"] as Character[]).map((item) => <button key={item} type="button" aria-pressed={character === item} onClick={() => switchCharacter(item)}>
           <PersonaAvatar persona={item} mood={character === item ? "cheer" : "listen"} size="md" decorative />
           <strong>{CHARACTER_LABEL[item]}</strong><small>{CHARACTER_BLURB[item]}</small>
@@ -399,7 +555,7 @@ export default function FortuneChatClient() {
       {notice && <p className={styles.ticketStatus} role="status">{notice}</p>}
     </div>
 
-    <section className={styles.composer} aria-label="상담 입력">
+    <section className={styles.composer} aria-label={copy.composerAria}>
       <div className={styles.policyRow}>
         <p className={styles.policy}>{usageLabel}</p>
         {needsPayment && <PriceBadge featureKey={PAID_FEATURE_KEY} fallbackLabel="5,000원" prefix="1회 " className={styles.priceBadge} />}
@@ -416,15 +572,15 @@ export default function FortuneChatClient() {
         <button className={styles.birthReload} type="button" onClick={() => { birthTouchedRef.current = false; void reloadProfileSeed(); }}>저장한 프로필에서 불러오기</button>
       </details>
 
-      {suggestions.items.length > 0 && <div className={styles.followUps} aria-label="추천 질문">
+      {suggestions.items.length > 0 && <div className={styles.followUps} aria-label={copy.followUpsAria}>
         <span>{suggestions.label}</span>
         {suggestions.items.map((item) => <button key={item} type="button" onClick={() => { setQuestion(item); window.setTimeout(() => inputRef.current?.focus(), 0); }}>{item}</button>)}
       </div>}
 
-      <div className={styles.chips} aria-label="추천 질문 분야">{TOPICS.map((item) => <button key={item} type="button" aria-pressed={topic === item} onClick={() => selectTopic(item)}>{item}</button>)}</div>
-      <div className={styles.chips} aria-label="상담 체계 선택">{(Object.keys(CATEGORY_LABEL) as Category[]).map((item) => <button key={item} type="button" aria-pressed={activeCategory === item} onClick={() => setCategory(item)}>{CATEGORY_LABEL[item]}</button>)}</div>
+      <div className={styles.chips} aria-label={copy.topicChipsAria}>{TOPICS.map((item) => <button key={item} type="button" aria-pressed={topic === item} onClick={() => selectTopic(item)}>{item}</button>)}</div>
+      <div className={styles.chips} aria-label={copy.categoryChipsAria}>{(Object.keys(CATEGORY_LABEL) as Category[]).map((item) => <button key={item} type="button" aria-pressed={activeCategory === item} onClick={() => setCategory(item)}>{CATEGORY_LABEL[item]}</button>)}</div>
       <div className={styles.input}>
-        <input ref={inputRef} value={question} maxLength={CONCERN_MAX_LENGTH} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) void send(); }} placeholder="마음에 남은 질문을 적어 주세요" aria-label="상담 질문 입력" disabled={busy || isPaying} />
+        <input ref={inputRef} value={question} maxLength={CONCERN_MAX_LENGTH} onChange={(event) => setQuestion(event.target.value)} onKeyDown={(event) => { if (event.key === "Enter" && !event.nativeEvent.isComposing) void send(); }} placeholder="마음에 남은 질문을 적어 주세요" aria-label={copy.questionInputAria} disabled={busy || isPaying} />
         <button type="button" onClick={() => void send()} disabled={busy || isPaying}>{busy || isPaying ? "정리 중" : "보내기"}</button>
       </div>
       {error && <p className={styles.error} role="alert">{error}</p>}
