@@ -190,7 +190,7 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-celestial-harmony": { cost: 100, reason: "셀레스티얼 하모니 타로 리딩" },
   "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },
   "tarot-numerology-reading": { cost: 30, reason: "수비학 타로 리딩" },
-  "tarot-prompt-maker": { cost: 100, reason: "타로 프롬프트 라이브러리 영구 해금" },
+  "tarot-prompt-maker": { cost: 50, amountKRW: 5000, reason: "타로 오라클 상담" },
   "maya-prompt-generator": { cost: 30, reason: "마야점 상담 프롬프트 생성" },
   "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
   "royal-tea-oracle": { cost: 50, reason: "영국 홍차점 리딩" },
@@ -405,6 +405,7 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "tarot-celestial-harmony",
   "tarot-crystal-soul-reading",
   "tarot-numerology-reading",
+  "tarot-prompt-maker",
   "maya-prompt-generator",
   "tarot-ijik",
   "royal-tea-oracle",
@@ -532,11 +533,6 @@ const EXTRA_UNLOCK_PAID_FEATURE_KEY_LIST = Object.freeze([
   // 인연 도감·운명의 섬 심층 리포트와 같은 A유형으로 맞춘다.
   "sukuyo-extreme-t-relationship",
   "premium-fpti-report",
-  // 타로 프롬프트 라이브러리 — 생성기(app/tarot/prompt-maker 의 buildOraclePrompt)가 로컬 템플릿
-  // 빌더라 서버 LLM 호출이 없다. 한계비용이 0인 기능에 회당 과금하고 있었고, 사용자가 스프레드를
-  // 바꿔 가며 여러 장 뽑는 것이 정상 사용법이라 회당 결제가 사용 자체를 막고 있었다.
-  // 극T 관계 회로·인연 도감과 같은 A유형(LLM 미사용 고정 콘텐츠, 재열람 전제)으로 맞춘다.
-  "tarot-prompt-maker",
 ]);
 
 export const PER_USE_PAID_FEATURE_KEYS = Object.freeze([...PER_USE_PAID_FEATURE_KEY_LIST].sort());

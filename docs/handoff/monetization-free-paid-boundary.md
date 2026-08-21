@@ -103,8 +103,11 @@
 | `sukuyo_natal_reading` | 본명숙 해설 | unlock |
 | `physiognomy_basic_reading` | 관상 기본 해설 | **per_use** — 형제 키가 per_use 이고, unlock 이면 사진 1장 결제로 모든 사진이 무료가 된다 |
 
-**신설 금지 — 재사용할 기존 키**: 꿈 프롬프트메이커는 `tarot-prompt-maker`(100코인, unlock,
-가드가 unlock 임을 못박음). 정신분석 해몽 `dream-psycho-analysis` 는 이미 유료.
+**신설 금지 — 재사용할 기존 키**: 꿈 프롬프트메이커는 `tarot-prompt-maker`를 참고했으나,
+🔴 2026-08-21 "타로 오라클 상담" 전환으로 그 전제가 깨졌다 — 이제 실제 Gemini 호출이 붙은
+회당결제(50코인, per-use)이고 더 이상 LLM 미사용 unlock 키가 아니다. 이 키를 그대로 재사용하면
+꿈 프롬프트메이커가 타로 상담과 결제를 공유하게 되므로, 착수 전 재검토할 것. 정신분석 해몽
+`dream-psycho-analysis` 는 이미 유료.
 
 **구현 방식**: §0 에서 만든 `_cdGateBody()` / `_cdFillGateBodyIfPending()` 을 그대로 쓴다.
 잠긴 섹션의 본문을 보류하고 해금 시 채우는 계약이 이미 서 있으므로 새 유틸을 만들지 말 것.

@@ -344,12 +344,12 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "premiumOptions": []
     },
     "tarot-prompt-maker": {
-      "title": "타로 프롬프트 라이브러리",
-      "subtitle": "질문, 스프레드 선택, 카드 드로우를 묶어 Oracle Prompt까지 완성",
-      "description": "사용자의 질문을 카테고리로 분석하고, 상황에 맞는 스프레드를 추천한 뒤 직접 카드를 뽑아 포지션 의미와 해석 지침을 결합한 Oracle Prompt를 완성합니다.",
-      "heroImageAlt": "타로 프롬프트 라이브러리 대표 이미지",
-      "tags": ["타로", "프롬프트", "스프레드", "전문가 리딩"],
-      "highlights": ["질문 자동 분류", "63개 스프레드 라이브러리", "영구 해금 10,000원"],
+      "title": "타로 오라클 상담",
+      "subtitle": "질문과 스프레드, 카드 드로우를 실제 AI 타로 상담으로 완성",
+      "description": "사용자의 질문을 카테고리로 분석하고 상황에 맞는 스프레드를 추천한 뒤, 직접 뽑은 카드를 바탕으로 AI가 실제 상담 결과를 작성합니다. 상담에 쓰인 Oracle Prompt 원문도 함께 열람할 수 있습니다.",
+      "heroImageAlt": "타로 오라클 상담 대표 이미지",
+      "tags": ["타로", "AI 상담", "스프레드", "전문가 리딩"],
+      "highlights": ["질문 자동 분류", "63개 스프레드 라이브러리", "회당 5,000원 · 실제 AI 상담"],
       "howItWorks": [
         {
           "title": "질문 입력",
@@ -360,8 +360,8 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "질문 의도에 맞는 스프레드를 고르고 카드 수만큼 직접 드로우합니다."
         },
         {
-          "title": "프롬프트 생성",
-          "description": "카드 포지션, 방향, 해석 규칙이 포함된 Oracle Prompt를 완성합니다."
+          "title": "AI 상담 생성",
+          "description": "카드 포지션, 방향, 해석 규칙을 반영해 AI가 실제 상담 결과를 작성합니다."
         }
       ],
       "resultExamples": [
@@ -374,14 +374,14 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "질문 맞춤 스프레드와 포지션 구조 미리보기"
         },
         {
-          "title": "완성 프롬프트",
-          "description": "AI에 바로 붙여넣을 수 있는 구조형 Oracle Prompt"
+          "title": "AI 상담 결과",
+          "description": "포지션별 해석과 행동 조언을 담은 실제 상담 결과, 그리고 상담에 쓰인 Oracle Prompt 원문"
         }
       ],
       "seo": {
-        "title": "타로 프롬프트 라이브러리 소개 | Code Destiny",
-        "description": "질문 기반 스프레드 선택과 카드 드로우를 통해 Oracle Prompt를 완성하는 타로 프롬프트 라이브러리 소개 페이지입니다.",
-        "keywords": ["타로 프롬프트", "AI 타로", "타로 프롬프트 라이브러리", "타로 질문 생성기"]
+        "title": "타로 오라클 상담 | Code Destiny",
+        "description": "질문 기반 스프레드 선택과 카드 드로우로 실제 AI 타로 상담을 받는 타로 오라클 상담 소개 페이지입니다.",
+        "keywords": ["타로 오라클 상담", "AI 타로", "타로 AI 상담", "타로 프롬프트"]
       },
       "premiumOptions": []
     },
@@ -1108,45 +1108,45 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "tarot-prompt-maker": {
-      "title": "Tarot Prompt Library",
-      "subtitle": "Choose a spread, draw cards, and organize a polished oracle prompt for deeper reading.",
-      "description": "Choose a spread, draw cards, and organize a polished oracle prompt for deeper reading.",
-      "heroImageAlt": "Tarot Prompt Library symbolic preview",
-      "tags": ["Tarot Prompt", "Spread", "Oracle Text"],
-      "highlights": ["Guided input flow", "Clear result reading", "Follow-up guidance for the next step"],
+      "title": "Tarot Oracle Consultation",
+      "subtitle": "Your question, spread, and card draw become a real AI tarot consultation.",
+      "description": "The service classifies your question, recommends a matching spread, and once you draw your cards an AI writes an actual consultation result from the positions and orientations. The Oracle Prompt behind that consultation stays available for you to read too.",
+      "heroImageAlt": "Tarot Oracle Consultation symbolic preview",
+      "tags": ["Tarot", "AI Consultation", "Spread", "Oracle Reading"],
+      "highlights": ["Automatic question classification", "Library of 63 spreads", "5,000 KRW per session · real AI consultation"],
       "howItWorks": [
         {
-          "title": "Enter details",
-          "description": "Share only the details needed for this reading."
+          "title": "Ask your question",
+          "description": "Describe what's on your mind in your own words."
         },
         {
-          "title": "Open the reading",
-          "description": "The system aligns the selected tradition with your question."
+          "title": "Choose a spread",
+          "description": "Pick a spread that matches your question and draw the cards yourself."
         },
         {
-          "title": "Read the result",
-          "description": "Review the core message, cautions, and practical next step."
+          "title": "Get your AI consultation",
+          "description": "The AI writes a real consultation from the card positions, orientations, and reading rules."
         }
       ],
       "resultExamples": [
         {
-          "title": "Core signal",
-          "description": "The reading summarizes the strongest theme now."
+          "title": "Question analysis",
+          "description": "A summary of the core intent and category of your question"
         },
         {
-          "title": "Timing and caution",
-          "description": "Helpful timing and points to handle carefully are separated."
+          "title": "Spread board",
+          "description": "A preview of the spread and position layout matched to your question"
         },
         {
-          "title": "Next step",
-          "description": "A practical action is offered so the reading can be used immediately."
+          "title": "AI consultation result",
+          "description": "A real consultation with per-position readings and action advice, plus the Oracle Prompt behind it"
         }
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "Tarot Prompt Library | Code Destiny",
-        "description": "Choose a spread, draw cards, and organize a polished oracle prompt for deeper reading.",
-        "keywords": ["Tarot Prompt Library", "Tarot Prompt", "Spread", "Oracle Text"]
+        "title": "Tarot Oracle Consultation | Code Destiny",
+        "description": "Get a real AI tarot consultation by choosing a question-matched spread and drawing your own cards.",
+        "keywords": ["Tarot Oracle Consultation", "AI Tarot", "Tarot AI Consultation", "Tarot Prompt"]
       }
     },
     "palm-reading": {
@@ -1872,45 +1872,45 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "tarot-prompt-maker": {
-      "title": "タロットプロンプトライブラリ",
-      "subtitle": "スプレッド、カード、神託文を整え、深い相談につなげます。",
-      "description": "スプレッド、カード、神託文を整え、深い相談につなげます。",
-      "heroImageAlt": "タロットプロンプトライブラリの象徴イメージ",
-      "tags": ["Tarot Prompt", "Spread", "Oracle Text"],
-      "highlights": ["案内つき入力フロー", "見やすい鑑定結果", "次の一歩まで整える助言"],
+      "title": "タロットオラクル相談",
+      "subtitle": "質問とスプレッド、カードドローを実際のAIタロット相談に仕上げます。",
+      "description": "質問をカテゴリ分析し、状況に合ったスプレッドを提案したうえで、実際に引いたカードをもとにAIが本物の相談結果を作成します。相談に使われたOracle Promptの原文もあわせて確認できます。",
+      "heroImageAlt": "タロットオラクル相談の象徴イメージ",
+      "tags": ["タロット", "AI相談", "スプレッド", "専門家リーディング"],
+      "highlights": ["質問の自動分類", "63種のスプレッドライブラリ", "1回5,000円・実際のAI相談"],
       "howItWorks": [
         {
-          "title": "情報を入力",
-          "description": "鑑定に必要な内容だけを丁寧に受け取ります。"
+          "title": "質問を入力",
+          "description": "今気になっている状況を自分の言葉で入力します。"
         },
         {
-          "title": "鑑定を開く",
-          "description": "選んだ占術と問いを合わせて流れを整えます。"
+          "title": "スプレッドを選択",
+          "description": "質問の意図に合うスプレッドを選び、カード数だけ自分で引きます。"
         },
         {
-          "title": "結果を読む",
-          "description": "核心メッセージ、注意点、実践の一歩を確認します。"
+          "title": "AI相談を生成",
+          "description": "カードの位置・向き・解釈ルールを反映し、AIが実際の相談結果を作成します。"
         }
       ],
       "resultExamples": [
         {
-          "title": "核心サイン",
-          "description": "今もっとも強く浮かぶテーマをまとめます。"
+          "title": "質問分析",
+          "description": "質問の核心的な意図とカテゴリの要約"
         },
         {
-          "title": "時期と注意点",
-          "description": "動きやすい時期と慎重に扱う点を分けて読みます。"
+          "title": "スプレッドボード",
+          "description": "質問に合わせたスプレッドとポジション構成のプレビュー"
         },
         {
-          "title": "次の一歩",
-          "description": "今日から使える実践の方向を添えます。"
+          "title": "AI相談結果",
+          "description": "ポジションごとの解釈と行動アドバイスを含む実際の相談結果、そして相談に使われたOracle Prompt原文"
         }
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "タロットプロンプトライブラリ | Code Destiny",
-        "description": "スプレッド、カード、神託文を整え、深い相談につなげます。",
-        "keywords": ["タロットプロンプトライブラリ", "Tarot Prompt", "Spread", "Oracle Text"]
+        "title": "タロットオラクル相談 | Code Destiny",
+        "description": "質問に合わせたスプレッド選択とカードドローで、実際のAIタロット相談を受けられるタロットオラクル相談の紹介ページです。",
+        "keywords": ["タロットオラクル相談", "AIタロット", "タロットAI相談", "タロットプロンプト"]
       }
     },
     "palm-reading": {
@@ -2636,45 +2636,45 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "tarot-prompt-maker": {
-      "title": "塔罗提示词资料库",
-      "subtitle": "选择牌阵、抽牌，并整理适合深度咨询的神谕提示词。",
-      "description": "选择牌阵、抽牌，并整理适合深度咨询的神谕提示词。",
-      "heroImageAlt": "塔罗提示词资料库象征图像",
-      "tags": ["Tarot Prompt", "Spread", "Oracle Text"],
-      "highlights": ["引导式输入流程", "清晰的解读结果", "整理下一步行动建议"],
+      "title": "塔罗神谕咨询",
+      "subtitle": "把你的问题、牌阵与抽牌，交给AI完成一次真正的塔罗咨询。",
+      "description": "系统会分析你的问题类别，推荐合适的牌阵，在你抽牌后由AI根据牌位与正逆位撰写真实的咨询结果。咨询所使用的Oracle Prompt原文也会同时提供查看。",
+      "heroImageAlt": "塔罗神谕咨询象征图像",
+      "tags": ["塔罗", "AI咨询", "牌阵", "专家解读"],
+      "highlights": ["自动问题分类", "63种牌阵资料库", "每次5,000韩元 · 真实AI咨询"],
       "howItWorks": [
         {
-          "title": "输入资料",
-          "description": "只收集本次解读所需的内容。"
+          "title": "输入问题",
+          "description": "用自己的话说出现在最想知道的情况。"
         },
         {
-          "title": "开启解读",
-          "description": "系统会把所选占术与问题对齐。"
+          "title": "选择牌阵",
+          "description": "选一个符合问题意图的牌阵，并亲自抽出对应数量的牌。"
         },
         {
-          "title": "查看结果",
-          "description": "确认核心讯息、注意点与实际下一步。"
+          "title": "生成AI咨询",
+          "description": "AI会结合牌位、正逆位与解读规则，撰写真实的咨询结果。"
         }
       ],
       "resultExamples": [
         {
-          "title": "核心信号",
-          "description": "整理此刻最强的主题。"
+          "title": "问题分析",
+          "description": "问题核心意图与类别摘要"
         },
         {
-          "title": "时机与提醒",
-          "description": "把适合行动的时机和需要谨慎的点分开呈现。"
+          "title": "牌阵预览",
+          "description": "与问题匹配的牌阵与牌位结构预览"
         },
         {
-          "title": "下一步",
-          "description": "给出今天就能使用的行动方向。"
+          "title": "AI咨询结果",
+          "description": "包含各牌位解读与行动建议的真实咨询结果，以及咨询所用的Oracle Prompt原文"
         }
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "塔罗提示词资料库 | Code Destiny",
-        "description": "选择牌阵、抽牌，并整理适合深度咨询的神谕提示词。",
-        "keywords": ["塔罗提示词资料库", "Tarot Prompt", "Spread", "Oracle Text"]
+        "title": "塔罗神谕咨询 | Code Destiny",
+        "description": "通过问题匹配的牌阵选择与亲自抽牌，获得真实AI塔罗咨询的塔罗神谕咨询介绍页面。",
+        "keywords": ["塔罗神谕咨询", "AI塔罗", "塔罗AI咨询", "塔罗提示词"]
       }
     },
     "palm-reading": {
@@ -3400,45 +3400,45 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       }
     },
     "tarot-prompt-maker": {
-      "title": "塔羅提示詞資料庫",
-      "subtitle": "選擇牌陣、抽牌，並整理適合深度諮詢的神諭提示詞。",
-      "description": "選擇牌陣、抽牌，並整理適合深度諮詢的神諭提示詞。",
-      "heroImageAlt": "塔羅提示詞資料庫象徵圖像",
-      "tags": ["Tarot Prompt", "Spread", "Oracle Text"],
-      "highlights": ["引導式輸入流程", "清晰的解讀結果", "整理下一步行動建議"],
+      "title": "塔羅神諭諮詢",
+      "subtitle": "把你的問題、牌陣與抽牌，交給AI完成一次真正的塔羅諮詢。",
+      "description": "系統會分析你的問題類別，推薦合適的牌陣，在你抽牌後由AI根據牌位與正逆位撰寫真實的諮詢結果。諮詢所使用的Oracle Prompt原文也會同時提供查看。",
+      "heroImageAlt": "塔羅神諭諮詢象徵圖像",
+      "tags": ["塔羅", "AI諮詢", "牌陣", "專家解讀"],
+      "highlights": ["自動問題分類", "63種牌陣資料庫", "每次5,000韓元 · 真實AI諮詢"],
       "howItWorks": [
         {
-          "title": "輸入資料",
-          "description": "只收集本次解讀所需的內容。"
+          "title": "輸入問題",
+          "description": "用自己的話說出現在最想知道的情況。"
         },
         {
-          "title": "開啟解讀",
-          "description": "系統會把所選占術與問題對齊。"
+          "title": "選擇牌陣",
+          "description": "選一個符合問題意圖的牌陣，並親自抽出對應數量的牌。"
         },
         {
-          "title": "查看結果",
-          "description": "確認核心訊息、注意點與實際下一步。"
+          "title": "生成AI諮詢",
+          "description": "AI會結合牌位、正逆位與解讀規則，撰寫真實的諮詢結果。"
         }
       ],
       "resultExamples": [
         {
-          "title": "核心訊號",
-          "description": "整理此刻最強的主題。"
+          "title": "問題分析",
+          "description": "問題核心意圖與類別摘要"
         },
         {
-          "title": "時機與提醒",
-          "description": "把適合行動的時機和需要謹慎的點分開呈現。"
+          "title": "牌陣預覽",
+          "description": "與問題匹配的牌陣與牌位結構預覽"
         },
         {
-          "title": "下一步",
-          "description": "給出今天就能使用的行動方向。"
+          "title": "AI諮詢結果",
+          "description": "包含各牌位解讀與行動建議的真實諮詢結果，以及諮詢所用的Oracle Prompt原文"
         }
       ],
       "premiumOptions": [],
       "seo": {
-        "title": "塔羅提示詞資料庫 | Code Destiny",
-        "description": "選擇牌陣、抽牌，並整理適合深度諮詢的神諭提示詞。",
-        "keywords": ["塔羅提示詞資料庫", "Tarot Prompt", "Spread", "Oracle Text"]
+        "title": "塔羅神諭諮詢 | Code Destiny",
+        "description": "透過問題匹配的牌陣選擇與親自抽牌，獲得真實AI塔羅諮詢的塔羅神諭諮詢介紹頁面。",
+        "keywords": ["塔羅神諭諮詢", "AI塔羅", "塔羅AI諮詢", "塔羅提示詞"]
       }
     },
     "palm-reading": {

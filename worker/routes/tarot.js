@@ -14,6 +14,7 @@ import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mj
 import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.mjs";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { enhanceLoveReadingWithLlm } from "../../lib/tarot/love-reading-llm.mjs";
+import { generateOracleConsultation } from "../../lib/tarot/oracle-consultation.mjs";
 import {
   buildPremiumYearReading,
   drawPremiumYearCards,
@@ -44,6 +45,8 @@ function asText(value) {
 
 const NUMEROLOGY_TAROT_READING_FEATURE_KEY = "tarot-numerology-reading";
 const NUMEROLOGY_TAROT_READING_MIN_COST = 30;
+const ORACLE_CONSULTATION_FEATURE_KEY = "tarot-prompt-maker";
+const ORACLE_CONSULTATION_MIN_COST = 50;
 const YEAR_TAROT_FEATURE_KEY = "tarot-year-fortune";
 const YEAR_TAROT_PROFILE_PREFIX = "year:";
 const YEAR_TAROT_RESULT_PREFIX = "tarot-year-result:";
@@ -330,6 +333,88 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
     message: proof.reason === "NO_REQUEST_ID"
       ? "결제 요청 정보가 없어 확인하지 못했습니다. 결과 보기 버튼으로 다시 진행해 주세요."
       : "결제 완료 내역을 확인할 수 없습니다. 결과 보기 버튼으로 결제를 완료한 뒤 다시 시도해 주세요.",
+  };
+}
+
+// 타로 오라클 상담 — verifyNumerologyReadingAccess 와 동일한 회당결제 증빙 패턴을 그대로 따른다.
+// (canAccessPaidFeature 지름길 → 로그인/인프라 오류 분기 → verifyPerUsePayment 증빙 확인)
+async function verifyOracleConsultationAccess(request, env, body = {}) {
+  let auth = null;
+  let authError = null;
+  try {
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+  } catch (error) {
+    authError = error;
+  }
+
+  if (auth?.userId) {
+    let accessDecision = null;
+    try {
+      accessDecision = await canAccessPaidFeature(auth.userId, ORACLE_CONSULTATION_FEATURE_KEY, {
+        env,
+        userDoc: auth.authUserDoc,
+        reason: "타로 오라클 상담",
+      });
+    } catch (error) {
+      console.error("[tarot] oracle consultation entitlement precheck failed", JSON.stringify({
+        featureKey: ORACLE_CONSULTATION_FEATURE_KEY,
+        name: error?.name || "Error",
+        message: String(error?.message || "").slice(0, 200),
+      }));
+    }
+    if (accessDecision?.allowed) {
+      return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
+    }
+  }
+
+  if (!auth?.userId) {
+    const authStatus = Number(authError?.status) || 0;
+    if (authStatus === 401 || authStatus === 403) {
+      return { ok: false, status: authStatus, code: "ORACLE_CONSULTATION_AUTH_REQUIRED", message: "로그인 후 상담을 진행할 수 있습니다." };
+    }
+    if (!authError) {
+      return { ok: false, status: 401, code: "ORACLE_CONSULTATION_AUTH_REQUIRED", message: "로그인 후 상담을 진행할 수 있습니다." };
+    }
+    if (authStatus > 0 || isAuthDbInfraError(authError)) {
+      return {
+        ok: false,
+        status: 503,
+        code: "ORACLE_CONSULTATION_VERIFY_UNAVAILABLE",
+        message: "일시적인 서버 문제로 결제 확인이 지연되고 있습니다. 잠시 후 추가 결제 없이 다시 시도해 주세요.",
+      };
+    }
+    return { ok: false, status: 401, code: "ORACLE_CONSULTATION_AUTH_REQUIRED", message: "로그인 후 상담을 진행할 수 있습니다." };
+  }
+
+  const proof = await verifyPerUsePayment(env, {
+    userId: auth.userId,
+    featureKey: ORACLE_CONSULTATION_FEATURE_KEY,
+    coinPrice: ORACLE_CONSULTATION_MIN_COST,
+    requestId: asText(body?.requestId || body?.idempotencyKey),
+  });
+  logPerUsePaymentProof(ORACLE_CONSULTATION_FEATURE_KEY, proof);
+
+  if (proof.proven === true) {
+    return { ok: true, auth, evidence: { source: proof.source || "per_use_payment" } };
+  }
+
+  if (proof.proven === null) {
+    return {
+      ok: false,
+      status: 503,
+      code: "ORACLE_CONSULTATION_VERIFY_UNAVAILABLE",
+      message: "일시적인 서버 문제로 결제 확인이 지연되고 있습니다. 잠시 후 추가 결제 없이 다시 시도해 주세요.",
+    };
+  }
+
+  return {
+    ok: false,
+    status: 402,
+    code: "ORACLE_CONSULTATION_PAYMENT_NOT_VERIFIED",
+    reason: proof.reason || "NO_RECORD",
+    message: proof.reason === "NO_REQUEST_ID"
+      ? "결제 요청 정보가 없어 확인하지 못했습니다. 상담 시작 버튼으로 다시 진행해 주세요."
+      : "결제 완료 내역을 확인할 수 없습니다. 상담 시작 버튼으로 결제를 완료한 뒤 다시 시도해 주세요.",
   };
 }
 
@@ -1496,6 +1581,44 @@ export async function handleTarotRoutes(request, env = {}) {
       const payload = await buildNumerologyReadingPayload(body, env);
       return json({
         ...payload,
+        accessVerified: true,
+        accessSource: access.evidence?.source || "auth",
+      });
+    }
+
+    if (path === "/oracle-consultation") {
+      const access = await verifyOracleConsultationAccess(request, env, body);
+      if (!access.ok) {
+        return json(
+          {
+            ok: false,
+            code: access.code || "ORACLE_CONSULTATION_PAYMENT_NOT_VERIFIED",
+            reason: access.reason || "",
+            message: access.message,
+          },
+          { status: access.status || 402 },
+        );
+      }
+      const result = await generateOracleConsultation(body, {
+        env,
+        fetchImpl: globalThis.fetch,
+        locale: asText(body?.locale) || "ko",
+      });
+      // Gemini 실패는 결제를 되돌리지 않는다(이미 검증된 회당결제 증빙 기반) — 대신 클라이언트가
+      // 기존 "생성된 프롬프트" 폴백 화면으로 저하할 수 있게 ok:false + reason 만 돌려준다.
+      if (!result.ok) {
+        return json({
+          ok: false,
+          code: "ORACLE_CONSULTATION_GENERATION_FAILED",
+          reason: result.reason || "",
+          message: "AI 상담 생성에 실패했습니다. 아래 프롬프트를 복사해 다른 AI에 붙여넣어 보세요.",
+          accessVerified: true,
+        }, { status: 502 });
+      }
+      return json({
+        ok: true,
+        consultation: result.consultation,
+        source: result.source,
         accessVerified: true,
         accessSource: access.evidence?.source || "auth",
       });

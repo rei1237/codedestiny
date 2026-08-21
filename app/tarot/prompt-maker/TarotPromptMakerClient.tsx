@@ -186,12 +186,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "질문을 먼저 입력해 주세요. 짧아도 괜찮아요.",
     spreadNeedAll: (count) => `이 스프레드는 ${count}장을 모두 뽑아야 합니다.`,
     lenormandCompleteToast: "무료 레노먼드 프롬프트가 완성되었습니다.",
-    subscriptionPromptComplete: "이용권 혜택이 적용되어 타로 프롬프트 라이브러리가 열렸습니다. 달빛의 흐름 안에서 AI 오라클 프롬프트가 완성되었습니다.",
-    subscriptionReason: "타로 프롬프트 라이브러리",
+    subscriptionPromptComplete: "이용권 혜택이 적용되어 이번 타로 오라클 상담이 무료로 진행됩니다. 달빛의 흐름 안에서 AI 상담이 완성되었습니다.",
+    subscriptionReason: "타로 오라클 상담",
     stoneBenefit: "보유분",
     stoneRemaining: (amount) => ` 남은 월정석: ${amount}`,
-    stoneOpened: (spent, balance) => `월정석 ${spent}으로 타로 프롬프트 라이브러리가 열렸습니다.${balance}`,
-    paidApproved: (balance) => `타로 프롬프트 라이브러리 이용이 승인되었습니다. 잔여 원화 가치: ${balance}`,
+    stoneOpened: (spent, balance) => `월정석 ${spent}으로 타로 오라클 상담이 진행됩니다.${balance}`,
+    paidApproved: (balance) => `타로 오라클 상담 이용이 승인되었습니다. 잔여 원화 가치: ${balance}`,
     loginRequired: "로그인이 필요합니다.",
     insufficientCoins: (amount) => `결제 가능 금액이 부족합니다. ${amount} 결제가 필요합니다.`,
     priceNotFound: "서비스 이용 조건을 확인하지 못했습니다. 잠시 후 다시 시도해 주세요.",
@@ -229,12 +229,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "Please enter a question first. A short one is fine.",
     spreadNeedAll: (count) => `This spread needs all ${count} cards drawn.`,
     lenormandCompleteToast: "Your free Lenormand prompt is ready.",
-    subscriptionPromptComplete: "Your pass benefit opened the Tarot Prompt Library. The AI oracle prompt is complete in the moonlit flow.",
-    subscriptionReason: "Tarot Prompt Library",
+    subscriptionPromptComplete: "Your pass benefit covered this Tarot Oracle Consultation. The AI consultation is complete in the moonlit flow.",
+    subscriptionReason: "Tarot Oracle Consultation",
     stoneBenefit: "an available balance",
     stoneRemaining: (amount) => ` Remaining Moonlight Stones: ${amount}`,
-    stoneOpened: (spent, balance) => `The Tarot Prompt Library opened with Moonlight Stones (${spent}).${balance}`,
-    paidApproved: (balance) => `Tarot Prompt Library access was approved. Remaining KRW value: ${balance}`,
+    stoneOpened: (spent, balance) => `This Tarot Oracle Consultation proceeded with Moonlight Stones (${spent}).${balance}`,
+    paidApproved: (balance) => `Tarot Oracle Consultation access was approved. Remaining KRW value: ${balance}`,
     loginRequired: "Login is required.",
     insufficientCoins: (amount) => `Your available balance is not enough. ${amount} is required.`,
     priceNotFound: "Could not confirm the service terms. Please try again shortly.",
@@ -272,12 +272,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "先に質問を入力してください。短くても大丈夫です。",
     spreadNeedAll: (count) => `このスプレッドは${count}枚すべてを引く必要があります。`,
     lenormandCompleteToast: "無料ルノルマンプロンプトが完成しました。",
-    subscriptionPromptComplete: "利用券特典が適用され、タロットプロンプトライブラリが開きました。月明かりの流れの中でAIオラクルプロンプトが完成しました。",
-    subscriptionReason: "タロットプロンプトライブラリ",
+    subscriptionPromptComplete: "利用券特典が適用され、今回のタロットオラクル相談が無料で進みます。月明かりの流れの中でAI相談が完成しました。",
+    subscriptionReason: "タロットオラクル相談",
     stoneBenefit: "保有分",
     stoneRemaining: (amount) => ` 残りの月精石: ${amount}`,
-    stoneOpened: (spent, balance) => `月精石 ${spent} でタロットプロンプトライブラリが開きました。${balance}`,
-    paidApproved: (balance) => `タロットプロンプトライブラリの利用が承認されました。残りウォン価値: ${balance}`,
+    stoneOpened: (spent, balance) => `月精石 ${spent} でタロットオラクル相談が進みます。${balance}`,
+    paidApproved: (balance) => `タロットオラクル相談の利用が承認されました。残りウォン価値: ${balance}`,
     loginRequired: "ログインが必要です。",
     insufficientCoins: (amount) => `決済可能な残高が不足しています。${amount} の決済が必要です。`,
     priceNotFound: "サービス利用条件を確認できませんでした。しばらくしてからもう一度お試しください。",
@@ -315,12 +315,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "请先输入问题。简短也可以。",
     spreadNeedAll: (count) => `这个牌阵需要抽满 ${count} 张牌。`,
     lenormandCompleteToast: "免费雷诺曼提示词已完成。",
-    subscriptionPromptComplete: "已应用通行权益并开启塔罗提示词库。AI神谕提示词已在月光流动中完成。",
-    subscriptionReason: "塔罗提示词库",
+    subscriptionPromptComplete: "已应用通行权益，本次塔罗神谕咨询将免费进行。AI咨询已在月光流动中完成。",
+    subscriptionReason: "塔罗神谕咨询",
     stoneBenefit: "持有余额",
     stoneRemaining: (amount) => ` 剩余月精石：${amount}`,
-    stoneOpened: (spent, balance) => `已使用月精石 ${spent} 开启塔罗提示词库。${balance}`,
-    paidApproved: (balance) => `塔罗提示词库使用已通过。剩余韩元价值：${balance}`,
+    stoneOpened: (spent, balance) => `已使用月精石 ${spent} 进行塔罗神谕咨询。${balance}`,
+    paidApproved: (balance) => `塔罗神谕咨询使用已通过。剩余韩元价值：${balance}`,
     loginRequired: "需要登录。",
     insufficientCoins: (amount) => `可支付余额不足。需要支付 ${amount}。`,
     priceNotFound: "未能确认服务使用条件。请稍后再试。",
@@ -358,12 +358,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "請先輸入問題。簡短也可以。",
     spreadNeedAll: (count) => `這個牌陣需要抽滿 ${count} 張牌。`,
     lenormandCompleteToast: "免費雷諾曼提示詞已完成。",
-    subscriptionPromptComplete: "已套用通行權益並開啟塔羅提示詞庫。AI神諭提示詞已在月光流動中完成。",
-    subscriptionReason: "塔羅提示詞庫",
+    subscriptionPromptComplete: "已套用通行權益，本次塔羅神諭諮詢將免費進行。AI諮詢已在月光流動中完成。",
+    subscriptionReason: "塔羅神諭諮詢",
     stoneBenefit: "持有餘額",
     stoneRemaining: (amount) => ` 剩餘月精石：${amount}`,
-    stoneOpened: (spent, balance) => `已使用月精石 ${spent} 開啟塔羅提示詞庫。${balance}`,
-    paidApproved: (balance) => `塔羅提示詞庫使用已通過。剩餘韓元價值：${balance}`,
+    stoneOpened: (spent, balance) => `已使用月精石 ${spent} 進行塔羅神諭諮詢。${balance}`,
+    paidApproved: (balance) => `塔羅神諭諮詢使用已通過。剩餘韓元價值：${balance}`,
     loginRequired: "需要登入。",
     insufficientCoins: (amount) => `可付款餘額不足。需要支付 ${amount}。`,
     priceNotFound: "未能確認服務使用條件。請稍後再試。",
@@ -401,12 +401,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "Vui lòng nhập câu hỏi trước. Ngắn cũng được.",
     spreadNeedAll: (count) => `Trải bài này cần rút đủ ${count} lá.`,
     lenormandCompleteToast: "Prompt Lenormand miễn phí đã hoàn tất.",
-    subscriptionPromptComplete: "Quyền lợi đã được áp dụng và Tarot Prompt Library đã mở. Prompt AI oracle đã hoàn tất trong dòng trăng.",
-    subscriptionReason: "Tarot Prompt Library",
+    subscriptionPromptComplete: "Quyền lợi đã được áp dụng và buổi Tư vấn Tarot Oracle AI này được miễn phí. Tư vấn AI đã hoàn tất trong dòng trăng.",
+    subscriptionReason: "Tư vấn Tarot Oracle AI",
     stoneBenefit: "số dư hiện có",
     stoneRemaining: (amount) => ` Moonlight Stone còn lại: ${amount}`,
-    stoneOpened: (spent, balance) => `Tarot Prompt Library đã mở bằng Moonlight Stone (${spent}).${balance}`,
-    paidApproved: (balance) => `Quyền dùng Tarot Prompt Library đã được duyệt. Giá trị KRW còn lại: ${balance}`,
+    stoneOpened: (spent, balance) => `Buổi Tư vấn Tarot Oracle AI được tiến hành bằng Moonlight Stone (${spent}).${balance}`,
+    paidApproved: (balance) => `Quyền dùng Tư vấn Tarot Oracle AI đã được duyệt. Giá trị KRW còn lại: ${balance}`,
     loginRequired: "Cần đăng nhập.",
     insufficientCoins: (amount) => `Số dư khả dụng không đủ. Cần thanh toán ${amount}.`,
     priceNotFound: "Không thể xác nhận điều kiện sử dụng dịch vụ. Vui lòng thử lại sau.",
@@ -444,12 +444,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "कृपया पहले प्रश्न लिखें. छोटा प्रश्न भी ठीक है.",
     spreadNeedAll: (count) => `इस spread में सभी ${count} cards खींचने होंगे.`,
     lenormandCompleteToast: "Free Lenormand prompt तैयार है.",
-    subscriptionPromptComplete: "Pass benefit लागू हुआ और Tarot Prompt Library खुल गई. AI oracle prompt moonlit flow में पूरा हुआ.",
-    subscriptionReason: "Tarot Prompt Library",
+    subscriptionPromptComplete: "Pass benefit लागू हुआ और यह टैरो ओरेकल परामर्श मुफ़्त में आगे बढ़ रहा है. AI परामर्श moonlit flow में पूरा हुआ.",
+    subscriptionReason: "टैरो ओरेकल परामर्श",
     stoneBenefit: "उपलब्ध बैलेंस",
     stoneRemaining: (amount) => ` शेष मूनलाइट स्टोन: ${amount}`,
-    stoneOpened: (spent, balance) => `Tarot Prompt Library मूनलाइट स्टोन (${spent}) से खुल गई.${balance}`,
-    paidApproved: (balance) => `Tarot Prompt Library access approved. Remaining KRW value: ${balance}`,
+    stoneOpened: (spent, balance) => `यह टैरो ओरेकल परामर्श मूनलाइट स्टोन (${spent}) से आगे बढ़ता है.${balance}`,
+    paidApproved: (balance) => `टैरो ओरेकल परामर्श की पहुंच स्वीकृत हुई. शेष KRW मूल्य: ${balance}`,
     loginRequired: "Login आवश्यक है.",
     insufficientCoins: (amount) => `Available balance कम है. ${amount} required है.`,
     priceNotFound: "Service terms confirm नहीं हो सके. थोड़ी देर बाद फिर कोशिश करें.",
@@ -487,12 +487,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "Primero escribe una pregunta. Puede ser breve.",
     spreadNeedAll: (count) => `Esta tirada necesita sacar las ${count} cartas.`,
     lenormandCompleteToast: "El prompt Lenormand gratis está listo.",
-    subscriptionPromptComplete: "Se aplicó tu pase y se abrió Tarot Prompt Library. El prompt de oráculo AI está completo bajo la luz lunar.",
-    subscriptionReason: "Tarot Prompt Library",
+    subscriptionPromptComplete: "Se aplicó tu pase y esta Consulta de oráculo de tarot es gratuita. La consulta de IA está completa bajo la luz lunar.",
+    subscriptionReason: "Consulta de oráculo de tarot",
     stoneBenefit: "saldo disponible",
     stoneRemaining: (amount) => ` Moonlight Stones restantes: ${amount}`,
-    stoneOpened: (spent, balance) => `Tarot Prompt Library se abrió con Moonlight Stones (${spent}).${balance}`,
-    paidApproved: (balance) => `Acceso aprobado a Tarot Prompt Library. Valor KRW restante: ${balance}`,
+    stoneOpened: (spent, balance) => `Esta Consulta de oráculo de tarot continúa con Moonlight Stones (${spent}).${balance}`,
+    paidApproved: (balance) => `Acceso aprobado a la Consulta de oráculo de tarot. Valor KRW restante: ${balance}`,
     loginRequired: "Debes iniciar sesión.",
     insufficientCoins: (amount) => `Tu saldo disponible no alcanza. Se requiere ${amount}.`,
     priceNotFound: "No se pudieron confirmar las condiciones del servicio. Inténtalo en un momento.",
@@ -530,12 +530,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "Veuillez d'abord saisir une question. Elle peut être courte.",
     spreadNeedAll: (count) => `Ce tirage demande de tirer les ${count} cartes.`,
     lenormandCompleteToast: "Le prompt Lenormand gratuit est prêt.",
-    subscriptionPromptComplete: "Votre pass a ouvert Tarot Prompt Library. Le prompt d'oracle IA est complet dans le flux lunaire.",
-    subscriptionReason: "Tarot Prompt Library",
+    subscriptionPromptComplete: "Votre pass couvre cette Consultation oracle du tarot, offerte. La consultation IA est complète dans le flux lunaire.",
+    subscriptionReason: "Consultation oracle du tarot",
     stoneBenefit: "solde disponible",
     stoneRemaining: (amount) => ` Moonlight Stones restantes: ${amount}`,
-    stoneOpened: (spent, balance) => `Tarot Prompt Library s'est ouvert avec des Moonlight Stones (${spent}).${balance}`,
-    paidApproved: (balance) => `Accès approuvé à Tarot Prompt Library. Valeur KRW restante: ${balance}`,
+    stoneOpened: (spent, balance) => `Cette Consultation oracle du tarot se poursuit avec des Moonlight Stones (${spent}).${balance}`,
+    paidApproved: (balance) => `Accès approuvé à la Consultation oracle du tarot. Valeur KRW restante: ${balance}`,
     loginRequired: "Connexion requise.",
     insufficientCoins: (amount) => `Votre solde disponible est insuffisant. ${amount} est requis.`,
     priceNotFound: "Impossible de confirmer les conditions du service. Réessayez dans un instant.",
@@ -573,12 +573,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "Bitte gib zuerst eine Frage ein. Kurz ist in Ordnung.",
     spreadNeedAll: (count) => `Für diese Legung müssen alle ${count} Karten gezogen werden.`,
     lenormandCompleteToast: "Der kostenlose Lenormand-Prompt ist fertig.",
-    subscriptionPromptComplete: "Dein Passvorteil hat die Tarot Prompt Library geöffnet. Der KI-Orakel-Prompt ist im Mondlichtfluss fertig.",
-    subscriptionReason: "Tarot Prompt Library",
+    subscriptionPromptComplete: "Dein Passvorteil deckt diese Tarot-Orakel-Beratung kostenlos ab. Die KI-Beratung ist im Mondlichtfluss fertig.",
+    subscriptionReason: "Tarot-Orakel-Beratung",
     stoneBenefit: "verfügbares Guthaben",
     stoneRemaining: (amount) => ` Verbleibende Moonlight Stones: ${amount}`,
-    stoneOpened: (spent, balance) => `Die Tarot Prompt Library wurde mit Moonlight Stones (${spent}) geöffnet.${balance}`,
-    paidApproved: (balance) => `Zugang zur Tarot Prompt Library genehmigt. Verbleibender KRW-Wert: ${balance}`,
+    stoneOpened: (spent, balance) => `Diese Tarot-Orakel-Beratung wird mit Moonlight Stones (${spent}) fortgesetzt.${balance}`,
+    paidApproved: (balance) => `Zugang zur Tarot-Orakel-Beratung genehmigt. Verbleibender KRW-Wert: ${balance}`,
     loginRequired: "Login erforderlich.",
     insufficientCoins: (amount) => `Dein verfügbares Guthaben reicht nicht aus. ${amount} ist erforderlich.`,
     priceNotFound: "Die Nutzungsbedingungen konnten nicht bestätigt werden. Bitte versuche es gleich erneut.",
@@ -616,12 +616,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "Voer eerst een vraag in. Kort is prima.",
     spreadNeedAll: (count) => `Deze spread heeft alle ${count} kaarten nodig.`,
     lenormandCompleteToast: "De gratis Lenormand-prompt is klaar.",
-    subscriptionPromptComplete: "Je passvoordeel opende de Tarot Prompt Library. De AI-orakelprompt is klaar in de maanlichtstroom.",
-    subscriptionReason: "Tarot Prompt Library",
+    subscriptionPromptComplete: "Je passvoordeel dekt dit Tarot-orakelconsult gratis. Het AI-consult is klaar in de maanlichtstroom.",
+    subscriptionReason: "Tarot-orakelconsult",
     stoneBenefit: "beschikbaar saldo",
     stoneRemaining: (amount) => ` Resterende Moonlight Stones: ${amount}`,
-    stoneOpened: (spent, balance) => `Tarot Prompt Library is geopend met Moonlight Stones (${spent}).${balance}`,
-    paidApproved: (balance) => `Toegang tot Tarot Prompt Library goedgekeurd. Resterende KRW-waarde: ${balance}`,
+    stoneOpened: (spent, balance) => `Dit Tarot-orakelconsult gaat verder met Moonlight Stones (${spent}).${balance}`,
+    paidApproved: (balance) => `Toegang tot Tarot-orakelconsult goedgekeurd. Resterende KRW-waarde: ${balance}`,
     loginRequired: "Inloggen is vereist.",
     insufficientCoins: (amount) => `Je beschikbare saldo is niet genoeg. ${amount} is vereist.`,
     priceNotFound: "De servicevoorwaarden konden niet worden bevestigd. Probeer het zo opnieuw.",
@@ -659,12 +659,12 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
     askQuestionFirst: "Sila masukkan soalan dahulu. Pendek pun tidak mengapa.",
     spreadNeedAll: (count) => `Spread ini memerlukan semua ${count} kad dicabut.`,
     lenormandCompleteToast: "Prompt Lenormand percuma sudah siap.",
-    subscriptionPromptComplete: "Manfaat pas digunakan dan Tarot Prompt Library dibuka. Prompt oracle AI siap dalam aliran cahaya bulan.",
-    subscriptionReason: "Tarot Prompt Library",
+    subscriptionPromptComplete: "Manfaat pas digunakan dan Konsultasi Oracle Tarot ini adalah percuma. Konsultasi AI selesai dalam aliran cahaya bulan.",
+    subscriptionReason: "Konsultasi Oracle Tarot",
     stoneBenefit: "baki tersedia",
     stoneRemaining: (amount) => ` Baki Moonlight Stone: ${amount}`,
-    stoneOpened: (spent, balance) => `Tarot Prompt Library dibuka dengan Moonlight Stone (${spent}).${balance}`,
-    paidApproved: (balance) => `Akses Tarot Prompt Library diluluskan. Nilai KRW berbaki: ${balance}`,
+    stoneOpened: (spent, balance) => `Konsultasi Oracle Tarot ini diteruskan dengan Moonlight Stone (${spent}).${balance}`,
+    paidApproved: (balance) => `Akses Konsultasi Oracle Tarot diluluskan. Nilai KRW berbaki: ${balance}`,
     loginRequired: "Log masuk diperlukan.",
     insufficientCoins: (amount) => `Baki tersedia tidak mencukupi. ${amount} diperlukan.`,
     priceNotFound: "Syarat penggunaan servis tidak dapat disahkan. Cuba sebentar lagi.",
@@ -929,7 +929,7 @@ function formatCreditWonNumber(amount: number) {
 
 const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
   ko: {
-    heroBadge: "AI 오라클 프롬프트 아틀리에",
+    heroBadge: "타로 오라클 상담",
     heroSteps: ["질문을 올리고", "카드를 열어", "AI 프롬프트로"],
     questionTitle: { tarot: "마음 속 질문을 들려주세요", lenormand: "질문" },
     questionDescription: { tarot: "타로가 당신만의 이야기를 풀어낼 준비를 합니다.", lenormand: "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다." },
@@ -992,7 +992,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `${formatCreditWonNumber(amount)}원 상당`,
   },
   en: {
-    heroBadge: "AI Oracle Prompt Atelier",
+    heroBadge: "Tarot Oracle Consultation",
     heroSteps: ["Lift the question", "Open the cards", "Shape an AI prompt"],
     questionTitle: { tarot: "Tell the question in your heart", lenormand: "Question" },
     questionDescription: { tarot: "Tarot is preparing to unfold your own story.", lenormand: "Enter a topic and read the flow with six Lenormand cards and practical clues." },
@@ -1055,7 +1055,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `KRW ${formatCreditWonNumber(amount)} value`,
   },
   ja: {
-    heroBadge: "AIオラクルプロンプト・アトリエ",
+    heroBadge: "タロットオラクル相談",
     heroSteps: ["質問を掲げて", "カードを開き", "AIプロンプトへ"],
     questionTitle: { tarot: "心の中の質問を聞かせてください", lenormand: "質問" },
     questionDescription: { tarot: "タロットが、あなただけの物語をほどく準備をしています。", lenormand: "テーマを入力し、6枚のルノルマンカードで流れと行動の手がかりを見ます。" },
@@ -1118,7 +1118,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `${formatCreditWonNumber(amount)}ウォン相当`,
   },
   "zh-CN": {
-    heroBadge: "AI神谕提示词工坊",
+    heroBadge: "塔罗神谕咨询",
     heroSteps: ["托起问题", "开启卡牌", "化为AI提示词"],
     questionTitle: { tarot: "请说出心中的问题", lenormand: "问题" },
     questionDescription: { tarot: "塔罗正准备展开只属于你的故事。", lenormand: "输入主题，用6张雷诺曼牌查看流向和行动线索。" },
@@ -1181,7 +1181,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `${formatCreditWonNumber(amount)}韩元价值`,
   },
   "zh-TW": {
-    heroBadge: "AI神諭提示詞工坊",
+    heroBadge: "塔羅神諭諮詢",
     heroSteps: ["托起問題", "開啟卡牌", "化為AI提示詞"],
     questionTitle: { tarot: "請說出心中的問題", lenormand: "問題" },
     questionDescription: { tarot: "塔羅正準備展開只屬於你的故事。", lenormand: "輸入主題，用6張雷諾曼牌查看流向和行動線索。" },
@@ -1244,7 +1244,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `${formatCreditWonNumber(amount)}韓元價值`,
   },
   vi: {
-    heroBadge: "Xưởng prompt AI oracle",
+    heroBadge: "Tư vấn Tarot Oracle AI",
     heroSteps: ["Nâng câu hỏi", "Mở lá bài", "Thành prompt AI"],
     questionTitle: { tarot: "Hãy kể câu hỏi trong lòng bạn", lenormand: "Câu hỏi" },
     questionDescription: { tarot: "Tarot đang chuẩn bị mở câu chuyện riêng của bạn.", lenormand: "Nhập chủ đề và xem dòng chảy cùng manh mối hành động bằng 6 lá Lenormand." },
@@ -1307,7 +1307,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `giá trị KRW ${formatCreditWonNumber(amount)}`,
   },
   hi: {
-    heroBadge: "AI Oracle Prompt Atelier",
+    heroBadge: "Tarot Oracle Consultation",
     heroSteps: ["प्रश्न उठाएँ", "Cards खोलें", "AI prompt बनाएँ"],
     questionTitle: { tarot: "अपने मन का प्रश्न बताइए", lenormand: "प्रश्न" },
     questionDescription: { tarot: "Tarot आपकी अपनी कहानी खोलने की तैयारी कर रहा है.", lenormand: "विषय लिखें और 6 Lenormand cards से flow और action clues देखें." },
@@ -1370,7 +1370,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `KRW ${formatCreditWonNumber(amount)} value`,
   },
   es: {
-    heroBadge: "Atelier de prompts de oráculo AI",
+    heroBadge: "Consulta de oráculo de tarot",
     heroSteps: ["Eleva la pregunta", "Abre las cartas", "Llévala a prompt AI"],
     questionTitle: { tarot: "Cuéntame la pregunta que llevas dentro", lenormand: "Pregunta" },
     questionDescription: { tarot: "El tarot se prepara para desplegar tu propia historia.", lenormand: "Escribe un tema y mira el flujo con seis cartas Lenormand y pistas de acción." },
@@ -1433,7 +1433,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `valor KRW ${formatCreditWonNumber(amount)}`,
   },
   fr: {
-    heroBadge: "Atelier de prompts d'oracle IA",
+    heroBadge: "Consultation oracle du tarot",
     heroSteps: ["Élever la question", "Ouvrir les cartes", "En faire un prompt IA"],
     questionTitle: { tarot: "Confiez la question dans votre coeur", lenormand: "Question" },
     questionDescription: { tarot: "Le tarot se prépare à déplier votre propre histoire.", lenormand: "Saisissez un thème et lisez le flux avec six cartes Lenormand et des pistes d'action." },
@@ -1496,7 +1496,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `valeur KRW ${formatCreditWonNumber(amount)}`,
   },
   de: {
-    heroBadge: "KI-Orakel-Prompt-Atelier",
+    heroBadge: "Tarot-Orakel-Beratung",
     heroSteps: ["Frage erheben", "Karten öffnen", "Zum KI-Prompt formen"],
     questionTitle: { tarot: "Erzähle die Frage in deinem Herzen", lenormand: "Frage" },
     questionDescription: { tarot: "Tarot bereitet sich vor, deine eigene Geschichte zu entfalten.", lenormand: "Gib ein Thema ein und lies den Verlauf mit sechs Lenormandkarten und Handlungshinweisen." },
@@ -1559,7 +1559,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `KRW ${formatCreditWonNumber(amount)} Wert`,
   },
   nl: {
-    heroBadge: "AI-orakelprompt atelier",
+    heroBadge: "Tarot-orakelconsult",
     heroSteps: ["Til de vraag op", "Open de kaarten", "Vorm een AI-prompt"],
     questionTitle: { tarot: "Vertel de vraag in je hart", lenormand: "Vraag" },
     questionDescription: { tarot: "Tarot bereidt zich voor om jouw verhaal te ontvouwen.", lenormand: "Voer een thema in en lees de stroom met zes Lenormandkaarten en actietips." },
@@ -1622,7 +1622,7 @@ const PROMPT_MAKER_UI_COPY: Record<LoadingLocale, PromptMakerUiCopy> = {
     creditValue: (amount) => `KRW ${formatCreditWonNumber(amount)} waarde`,
   },
   ms: {
-    heroBadge: "Atelier prompt oracle AI",
+    heroBadge: "Konsultasi Oracle Tarot",
     heroSteps: ["Angkat soalan", "Buka kad", "Jadi prompt AI"],
     questionTitle: { tarot: "Ceritakan soalan dalam hati anda", lenormand: "Soalan" },
     questionDescription: { tarot: "Tarot sedang bersedia membuka cerita anda sendiri.", lenormand: "Masukkan tema dan baca aliran dengan enam kad Lenormand serta petunjuk tindakan." },
@@ -2379,11 +2379,51 @@ function StarField() {
   );
 }
 
-/* 영구 해금이라 사용자당 결제는 한 번뿐이다 — requestId 도 고정한다.
-   매 클릭마다 새 id 를 만들면 워커 consume 의 멱등이 무력화돼, 첫 결제가 네트워크 오류로
-   실패한 뒤의 '다시 시도'가 재결제가 된다. 멱등 유니크 인덱스는 둘 다 userId 로 스코프돼
-   있어(models.js 의 paymentSchema · idempotencyKeySchema) 고정 문자열이 사용자 간에 겹치지 않는다. */
-const TAROT_PROMPT_MAKER_UNLOCK_REQUEST_ID = "tarot-prompt-library:unlock:v1";
+const ORACLE_CONSULTATION_FEATURE_KEY = "tarot-prompt-maker";
+
+// 회당결제라 상담마다 새 requestId 가 필요하다(찻집·수비학 타로와 동일 계약) — 영구 해금이던
+// 시절의 고정 requestId(사용자당 결제 1회 전제)는 더 이상 맞지 않는다.
+function buildOracleConsultationRequestId(): string {
+  const random = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
+    ? crypto.randomUUID()
+    : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
+  return `${ORACLE_CONSULTATION_FEATURE_KEY}:req:${random}`;
+}
+
+type OracleConsultationPositionReading = { positionOrder: number; headline: string; reading: string };
+type OracleConsultation = {
+  coreQuestion: string;
+  bigPicture: string;
+  positionReadings: OracleConsultationPositionReading[];
+  tension: string;
+  caution: string;
+  actions: string[];
+  closingLine: string;
+};
+
+// 🔴 아래 신규 UI 문구는 ko/en 만 있다 — 나머지 10개 로케일은 이름/카피 전환(2단계) 때
+// 함께 손으로 번역해야 한다(자동번역 금지). 그때까지는 다른 로케일도 ko 로 폴백한다
+// (기존 PROMPT_MAKER_UI_COPY[locale] || PROMPT_MAKER_UI_COPY.ko 관례와 동일).
+const ORACLE_CONSULTATION_UI_COPY: Record<"ko" | "en", {
+  badge: string; title: string; loading: string; unavailable: string; showPrompt: string; hidePrompt: string;
+}> = {
+  ko: {
+    badge: "AI 타로 오라클 상담",
+    title: "당신을 위한 상담 결과",
+    loading: "AI가 카드를 읽고 상담을 준비하고 있어요…",
+    unavailable: "지금은 AI 상담 생성에 실패했어요. 아래 프롬프트를 복사해 다른 AI 챗봇에 붙여넣어 보세요.",
+    showPrompt: "이 상담에 쓰인 프롬프트 보기",
+    hidePrompt: "프롬프트 접기",
+  },
+  en: {
+    badge: "AI Tarot Oracle Consultation",
+    title: "Your consultation result",
+    loading: "The AI is reading your cards and preparing the consultation…",
+    unavailable: "AI consultation generation failed right now. Copy the prompt below and paste it into another AI chatbot.",
+    showPrompt: "View the prompt used for this consultation",
+    hidePrompt: "Hide prompt",
+  },
+};
 
 /* ─── Main Component ─── */
 export default function TarotPromptMakerPage() {
@@ -2399,6 +2439,11 @@ export default function TarotPromptMakerPage() {
   const [usedDeckSlots, setUsedDeckSlots] = useState<number[]>([]);
   const [drawnCards, setDrawnCards] = useState<DrawnTarotCard[]>([]);
   const [promptResult, setPromptResult] = useState<PromptResult | null>(null);
+  const [consultation, setConsultation] = useState<OracleConsultation | null>(null);
+  const [consultationLoading, setConsultationLoading] = useState(false);
+  // "llm" = 실제 AI 상담 성공 / "unavailable" = 결제는 됐지만 생성 실패해 프롬프트만 남은 상태
+  const [consultationSource, setConsultationSource] = useState<"llm" | "unavailable" | null>(null);
+  const [showPromptDetail, setShowPromptDetail] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [questionStatus, setQuestionStatus] = useState("");
   const [billingSnapshot, setBillingSnapshot] = useState<BillingSnapshot | null>(null);
@@ -2414,6 +2459,7 @@ export default function TarotPromptMakerPage() {
   const [cardCountFilter, setCardCountFilter] = useState<number | "all">("all");
   const uiCopy = PROMPT_MAKER_UI_COPY[locale] || PROMPT_MAKER_UI_COPY.ko;
   const feedbackCopy = PROMPT_MAKER_FEEDBACK_COPY[locale] || PROMPT_MAKER_FEEDBACK_COPY.ko;
+  const consultationCopy = ORACLE_CONSULTATION_UI_COPY[locale as "ko" | "en"] || ORACLE_CONSULTATION_UI_COPY.ko;
   const localizedPromptData = useMemo(() => getLocalizedPromptMakerData(locale), [locale]);
   const localizedSpreadLibrary = useMemo(() => getLocalizedSpreadLibrary(locale), [locale]);
   const categoryLabel = localizedPromptData.categoryLabel;
@@ -2607,6 +2653,10 @@ export default function TarotPromptMakerPage() {
     setUsedDeckSlots([]);
     setDrawnCards([]);
     setPromptResult(null);
+    setConsultation(null);
+    setConsultationSource(null);
+    setConsultationLoading(false);
+    setShowPromptDetail(false);
     setCopied(false);
     setShowFullDeck(false);
   }
@@ -2632,6 +2682,50 @@ export default function TarotPromptMakerPage() {
     const { buildLenormandPrompt, buildOraclePrompt } = await import("./utils/buildOraclePrompt");
     if (isLenormandMode) return buildLenormandPrompt(selectedSpread, effectiveQuestion, drawnCards, locale);
     return buildOraclePrompt(selectedSpread, effectiveQuestion, drawnCards, { questionCategory: selectedQuestionCategory, locale });
+  }
+
+  // 서버가 실제 Gemini 상담을 생성한다 — 결제는 이미 끝난 뒤라 여기서 실패해도 과금은 그대로다.
+  // 실패 시에는 이미 화면에 있는 프롬프트(promptResult)를 안전망으로 그대로 남겨 둔다.
+  // 레노먼드 모드는 서버 카드 카탈로그가 아직 없어 스코프 밖(항상 프롬프트 전용으로 남는다).
+  async function requestOracleConsultation(requestId: string) {
+    if (isLenormandMode) return;
+    setConsultationLoading(true);
+    setConsultation(null);
+    setConsultationSource(null);
+    try {
+      const { authFetch } = await import("../../_lib/auth-client");
+      const res = await authFetch("/api/tarot/oracle-consultation", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          requestId,
+          spreadTitle: selectedSpread.title,
+          category: selectedQuestionCategory,
+          question: effectiveQuestion,
+          tone: "consult",
+          locale,
+          cards: drawnCards.map((card) => ({
+            cardId: card.cardCode,
+            orientation: card.orientation,
+            positionLabel: card.positionLabel,
+            positionDescription: card.positionDescription,
+          })),
+        }),
+      });
+      const data = await res.json().catch(() => null);
+      if (res.ok && data?.ok && data?.consultation) {
+        setConsultation(data.consultation as OracleConsultation);
+        setConsultationSource("llm");
+      } else {
+        setConsultationSource("unavailable");
+        setShowPromptDetail(true);
+      }
+    } catch {
+      setConsultationSource("unavailable");
+      setShowPromptDetail(true);
+    } finally {
+      setConsultationLoading(false);
+    }
   }
 
   function handleQuestionChip(text: string) {
@@ -2749,13 +2843,16 @@ export default function TarotPromptMakerPage() {
         showToast(feedbackCopy.lenormandCompleteToast, "success");
         return;
       }
+      const requestId = buildOracleConsultationRequestId();
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-prompt-maker",
         cost: lookupServerCoinPrice("tarot-prompt-maker"),
         reason: feedbackCopy.subscriptionReason,
-        requestId: TAROT_PROMPT_MAKER_UNLOCK_REQUEST_ID,
+        requestId,
         onPaid: ({ chargedCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
           pendingGenerate = generate().then(() => {
+            // 결제는 이미 끝났으니 프롬프트 화면을 곧바로 보여주고, AI 상담은 뒤에서 이어서 불러온다.
+            void requestOracleConsultation(requestId);
             // 🔴 판정은 accessSource 로만 한다. 예전에는 `chargedCoins <= 0 && billingPassIncluded` 폴백이
             // 함께 걸려 있었는데, 월정석 결제도 chargedCoins 가 0 이고 billingPassIncluded 는 이용권을
             // 보유하기만 하면(커버 여부와 무관하게) true 라, 월정석 결제가 아래 월정석 분기에 닿기 전에
@@ -3475,8 +3572,57 @@ export default function TarotPromptMakerPage() {
                     </div>
                   </div>
 
-                  {/* Right: prompt output */}
+                  {/* Right: consultation + prompt output */}
                   <div className="space-y-4">
+                    {!isLenormandMode && (
+                      <div
+                        className="rounded-3xl border border-[#c084fc]/30 p-5 sm:p-6"
+                        style={{
+                          background: "linear-gradient(155deg, rgba(30,10,65,0.92), rgba(15,5,40,0.92))",
+                          boxShadow: "0 0 60px rgba(192,132,252,0.1), inset 0 1px 0 rgba(255,255,255,0.06)",
+                        }}
+                      >
+                        <div className="mb-4">
+                          <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60">{consultationCopy.badge}</div>
+                          <div className="text-base font-bold text-[#e9d5ff] mt-0.5">{consultationCopy.title}</div>
+                        </div>
+
+                        {consultationLoading && (
+                          <div className="flex items-center justify-center gap-3 py-8 text-[#c4b5fd]/80 text-sm">
+                            <span className="inline-block w-4 h-4 rounded-full border-2 border-[#c084fc]/40 border-t-[#c084fc] animate-spin" aria-hidden />
+                            {consultationCopy.loading}
+                          </div>
+                        )}
+
+                        {!consultationLoading && consultationSource === "llm" && consultation && (
+                          <div className="space-y-4 text-sm leading-7 text-[#f3e8ff]/90">
+                            <p>{consultation.coreQuestion}</p>
+                            <p className="text-[#f3e8ff]/80">{consultation.bigPicture}</p>
+                            <div className="space-y-3">
+                              {consultation.positionReadings.map((row) => (
+                                <div key={row.positionOrder} className="rounded-xl border border-white/10 p-3" style={{ background: "rgba(0,0,0,0.3)" }}>
+                                  <div className="text-xs font-semibold text-[#e9d5ff] mb-1">{row.headline}</div>
+                                  <p className="text-[#f3e8ff]/80 text-sm leading-6">{row.reading}</p>
+                                </div>
+                              ))}
+                            </div>
+                            <p className="text-[#f3e8ff]/80">{consultation.tension}</p>
+                            <p className="text-amber-200/80 text-xs leading-6">{consultation.caution}</p>
+                            {consultation.actions?.length > 0 && (
+                              <ul className="list-disc list-inside space-y-1 text-[#f3e8ff]/85">
+                                {consultation.actions.map((action, idx) => (<li key={idx}>{action}</li>))}
+                              </ul>
+                            )}
+                            <p className="italic text-[#e9d5ff] text-center pt-3 mt-2 border-t border-white/10">{consultation.closingLine}</p>
+                          </div>
+                        )}
+
+                        {!consultationLoading && consultationSource === "unavailable" && (
+                          <p className="text-amber-200/80 text-xs leading-6">{consultationCopy.unavailable}</p>
+                        )}
+                      </div>
+                    )}
+
                     <div
                       className="rounded-3xl border border-[#c084fc]/30 p-5 sm:p-6"
                       style={{
@@ -3489,23 +3635,36 @@ export default function TarotPromptMakerPage() {
                           <div className="text-[10px] uppercase tracking-[0.22em] text-[#7c3aed]/60">{oracleModeMeta.outputLabel}</div>
                           <div className="text-base font-bold text-[#e9d5ff] mt-0.5">{isLenormandMode ? uiCopy.outputTitle.lenormand : uiCopy.outputTitle.tarot}</div>
                         </div>
-                        <button
-                          type="button"
-                          onClick={handleCopyPrompt}
-                          className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#c084fc]/40 bg-[#c084fc]/10 text-[#e9d5ff] text-xs font-semibold hover:bg-[#c084fc]/20 transition-all"
-                        >
-                          {copied ? feedbackCopy.copiedDone : feedbackCopy.copyPrompt}
-                        </button>
-                      </div>
-
-                      <div
-                        className="rounded-2xl border border-[#6d28d9]/30 p-5"
-                        style={{ background: "rgba(0,0,0,0.45)" }}
-                      >
-                        <div className="max-h-[55vh] overflow-auto whitespace-pre-wrap text-sm leading-8 text-[#f3e8ff]/85 custom-scrollbar" style={{ fontFamily: "var(--font-sans, sans-serif)" }}>
-                          {promptResult.prompt}
+                        <div className="flex items-center gap-2">
+                          {!isLenormandMode && (
+                            <button
+                              type="button"
+                              onClick={() => setShowPromptDetail((value) => !value)}
+                              className="px-3 py-2 rounded-full border border-white/15 bg-white/5 text-[#c4b5fd] text-xs font-semibold hover:bg-white/10 transition-all"
+                            >
+                              {showPromptDetail ? consultationCopy.hidePrompt : consultationCopy.showPrompt}
+                            </button>
+                          )}
+                          <button
+                            type="button"
+                            onClick={handleCopyPrompt}
+                            className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-[#c084fc]/40 bg-[#c084fc]/10 text-[#e9d5ff] text-xs font-semibold hover:bg-[#c084fc]/20 transition-all"
+                          >
+                            {copied ? feedbackCopy.copiedDone : feedbackCopy.copyPrompt}
+                          </button>
                         </div>
                       </div>
+
+                      {(isLenormandMode || showPromptDetail) && (
+                        <div
+                          className="rounded-2xl border border-[#6d28d9]/30 p-5"
+                          style={{ background: "rgba(0,0,0,0.45)" }}
+                        >
+                          <div className="max-h-[55vh] overflow-auto whitespace-pre-wrap text-sm leading-8 text-[#f3e8ff]/85 custom-scrollbar" style={{ fontFamily: "var(--font-sans, sans-serif)" }}>
+                            {promptResult.prompt}
+                          </div>
+                        </div>
+                      )}
                     </div>
 
                     {/* Action buttons */}
