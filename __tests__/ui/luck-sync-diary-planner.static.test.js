@@ -23,8 +23,13 @@ test("fortune planner entry is folded into the diary modal", () => {
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);
   assert.match(html, /id="cdDiaryPlannerEntry"[\s\S]*data-action="openLuckSyncDiary"/);
   assert.match(html, /id="cdDiaryPlannerTitle">운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
-  // 다이어리 진입은 접힌 섹션 안에 남는다 — 지운 것이 아니라 감춘 것임을 여기서 못박는다.
-  assert.match(html, /<section data-cd-home-secondary class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
+  // 2026-08-21(cd-home-secondary-panel-v20260821): 다이어리 진입은 지운 것이 아니라
+  // #cdHomeSecondaryPanel 안으로 옮겨 감춘다. data-cd-home-secondary 속성 대신 래퍼
+  // 기준으로 접는 이유는 이 패널이 grid-template-rows 트랜지션으로 부드럽게 펼쳐져야 해서다
+  // (display:none 즉시 전환인 속성 방식과 같은 곳에 중첩하지 않는다 — 원칙 6).
+  assert.match(html, /<section class="cd-diary-planner-entry" id="cdDiaryPlannerEntry"/);
+  assert.ok(html.indexOf('id="cdHomeSecondaryPanel"') < html.indexOf('id="cdDiaryPlannerEntry"'));
+  assert.match(html, /html body \.cd-home-secondary-panel\{display:grid;grid-template-rows:0fr/);
   // 2026-08-20(home-profile-card-form-panel-v20260820): 프로필 카드 + 폼 패널이 히어로 바로
   // 아래·페이지 맨 위로 승격되며 대표 상담(cdSignatureConsult)보다도 앞으로 올라왔다.
   // 2026-08-19(cd-finder-v20260819)에는 대표 상담이 통합 탐색기 바로 아래로 승격되며 폼보다
@@ -37,7 +42,11 @@ test("fortune planner entry is folded into the diary modal", () => {
   assert.ok(html.indexOf('id="dpDestinyPanel"') < html.indexOf('id="destinyCardForm"'));
   assert.match(html, /\.dp-destiny-panel:not\(\.is-form-open\) > #destinyCardForm\{display:none!important\}/);
   assert.doesNotMatch(html, /<section class="card input-section moon-destiny-form" id="destinyCardForm"[^>]*data-cd-home-secondary/);
-  assert.ok(html.indexOf('id="cdDiaryPlannerEntry"') < html.indexOf('id="fortuneGatewayEntry"'));
+  // 2026-08-21: "ALL SERVICES 펼치기" 버튼이 숨은 섹션보다 DOM 상 위에 있어(cdServiceIndex가
+  // cdDiaryPlannerEntry보다 아래) 펼칠 때 콘텐츠가 버튼 위쪽에 나타나던 문제를 고치며
+  // cdDiaryPlannerEntry를 cdServiceIndex 뒤로 옮겼다 — 회귀가 아니라 이 개편의 의도다.
+  // (기존 "cdDiaryPlannerEntry < fortuneGatewayEntry" 단언은 이 재배치로 더는 성립하지 않아 대체한다.)
+  assert.ok(html.indexOf('id="cdServiceIndex"') < html.indexOf('id="cdDiaryPlannerEntry"'));
   /* 2026-08-21: 온보딩 레일 앵커(__cdRailAnchor)를 요구하던 단언을 걷어냈다.
      b44bd7862 'remove empty onboarding rail' 이 그 줄을 통째로 지웠는데 이 단언은 남아
      **main 이 빨간 채로** 머지됐다(PR #869 가 그 실패를 상속해 막혔다).
