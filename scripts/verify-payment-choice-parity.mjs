@@ -5,7 +5,7 @@
 // 다른 디자인이었고, 그중 일부는 "달빛 이용권 상점" 카드 자체가 없어 이용권 전환 경로가 끊겼다.
 //
 // 여기서 강제하는 계약:
-//   1) 세 구현 모두 동일한 정본 CSS(index.html의 _cdEnsureDirectPaymentStyles 규칙 배열)를 주입한다.
+//   1) 세 구현 모두 동일한 정본 CSS(js/core/checkout-entry.js의 PAYMENT_CHOICE_CSS_RULES 배열)를 주입한다.
 //   2) 세 구현 모두 동일한 구조 마커(달 헤더/카드헤드/추천 배지/금액 강조)를 렌더한다.
 //   3) 세 구현 모두 이용권 상점 · 단건 결제 · 월정석 세 옵션을 모두 렌더한다.
 //   4) 폐기된 별도 디자인(.cdpc-*, .celestial-pay-*, .cd-react-payment-choice-*)이 되살아나지 않는다.
@@ -40,57 +40,34 @@ const STANDALONE_FALLBACKS = ["js/destiny-profile.js", "public/js/destiny-profil
 // verify-pass-recovery-path.mjs 와 **같은 공용 모듈**을 쓴다(예전엔 같은 구현을 각자 복사해 갖고
 // 있었고 둘 다 정규식 리터럴을 문자열로 오인했다 — 경위는 모듈 상단 주석).
 // ── 1) 정본 CSS 규칙 집합 ────────────────────────────────────────────────────────────────
-// 정본은 셸 인라인. 규칙 배열을 실제로 평가해 문자열 집합으로 비교하므로 따옴표 스타일이나
-// 줄바꿈(배열 join vs 템플릿 리터럴) 차이는 무시하고 '적용되는 CSS가 같은가'만 본다.
+// 🔴 2026-08-21: 정본이 셸 인라인 배열에서 js/core/checkout-entry.js 의 PAYMENT_CHOICE_CSS_RULES
+// 하나로 옮겨갔다 — 세 렌더러가 각자 배열을 복붙하던 것을 그 배열 하나를 참조하는 것으로 바꿨다.
+// 그래서 이제 "값이 같은가"(문자열/딥이퀄 비교)가 아니라 "세 곳 모두 같은 배열을 참조하는가"만
+// 확인하면 된다 — 참조 확인만으로 값 동일성이 구조적으로 보장된다.
 function canonicalCssRules() {
-  const fn = sliceFunction(read("index.html"), "  function _cdEnsureDirectPaymentStyles() {", "index.html/css");
-  const arrayStart = fn.indexOf("[");
-  const arrayEnd = fn.lastIndexOf("].join(");
-  assert.ok(arrayStart >= 0 && arrayEnd > arrayStart, "index.html: CSS 규칙 배열을 찾지 못함");
-  const rules = new Function(`return ${fn.slice(arrayStart, arrayEnd + 1)}`)();
-  assert.ok(Array.isArray(rules) && rules.length >= 40, `index.html: CSS 규칙 수가 비정상 (${rules.length})`);
+  const source = read("js/core/checkout-entry.js");
+  const match = source.match(/var PAYMENT_CHOICE_CSS_RULES = \[([\s\S]*?)\n {2}\];/);
+  assert.ok(match, "checkout-entry.js: PAYMENT_CHOICE_CSS_RULES 배열을 찾지 못함");
+  const rules = new Function(`return [${match[1]}]`)();
+  assert.ok(Array.isArray(rules) && rules.length >= 40, `checkout-entry.js: CSS 규칙 수가 비정상 (${rules.length})`);
   return rules;
 }
 
 const CANONICAL_RULES = canonicalCssRules();
 const CANONICAL_CSS = CANONICAL_RULES.join("\n");
 
-// 주입된 CSS 텍스트를 규칙 단위로 정규화한다(선언 끝 '}' 뒤에서 자르되 media 블록은 통째로 유지).
-function normalizeCssText(text) {
-  return text
-    .split("\n")
-    .map((line) => line.trim().replace(/^["']|["'],?$/g, "").trim())
-    .filter(Boolean)
-    .join("\n");
-}
-
 const shellRuleSet = new Set(CANONICAL_RULES);
 
-// React: 템플릿 리터럴 한 덩어리로 주입한다.
-{
-  const fn = sliceFunction(read(REACT_CLIENT), "function ensureReactPaymentChoiceStyles() {", `${REACT_CLIENT}/css`);
-  const open = fn.indexOf("`");
-  const close = fn.lastIndexOf("`");
-  assert.ok(open >= 0 && close > open, `${REACT_CLIENT}: CSS 템플릿 리터럴을 찾지 못함`);
-  const injected = normalizeCssText(fn.slice(open + 1, close));
-  assert.equal(
-    injected,
-    CANONICAL_CSS,
-    `${REACT_CLIENT}: 주입 CSS가 정본(index.html _cdEnsureDirectPaymentStyles)과 다릅니다. 정본을 바꿨으면 세 구현을 함께 갱신하세요.`,
-  );
-}
-
-// 독립 폴백: 셸과 동일한 규칙 배열 형태로 주입한다.
-for (const rel of STANDALONE_FALLBACKS) {
-  const fn = sliceFunction(read(rel), "  function _dpEnsureStandalonePaymentChoiceStyle() {", `${rel}/css`);
-  const arrayStart = fn.indexOf("[");
-  const arrayEnd = fn.lastIndexOf("].join(");
-  assert.ok(arrayStart >= 0 && arrayEnd > arrayStart, `${rel}: CSS 규칙 배열을 찾지 못함`);
-  const rules = new Function(`return ${fn.slice(arrayStart, arrayEnd + 1)}`)();
-  assert.deepEqual(
-    rules,
-    CANONICAL_RULES,
-    `${rel}: 주입 CSS가 정본(index.html _cdEnsureDirectPaymentStyles)과 다릅니다.`,
+// 세 렌더러(셸/React/독립 폴백×2)가 각자 로컬 배열을 다시 만들지 않고 공유 배열을 참조하는지 확인한다.
+for (const [rel, marker] of [
+  ["index.html", "  function _cdEnsureDirectPaymentStyles() {"],
+  [REACT_CLIENT, "function ensureReactPaymentChoiceStyles() {"],
+  ...STANDALONE_FALLBACKS.map((fallbackRel) => [fallbackRel, "  function _dpEnsureStandalonePaymentChoiceStyle() {"]),
+]) {
+  const fn = sliceFunction(read(rel), marker, `${rel}/css`);
+  assert.ok(
+    fn.includes("PAYMENT_CHOICE_CSS_RULES"),
+    `${rel}: PAYMENT_CHOICE_CSS_RULES 를 참조하지 않습니다 — checkout-entry.js 의 공유 배열 대신 로컬 사본을 쓰고 있을 수 있습니다.`,
   );
 }
 

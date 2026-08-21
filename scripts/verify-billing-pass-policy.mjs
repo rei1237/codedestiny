@@ -32,6 +32,9 @@ const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "u
 const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
+// 결제 선택창 CSS 규칙 정본(2026-08-21 부터 js/core/checkout-entry.js 의 PAYMENT_CHOICE_CSS_RULES) —
+// 모달 치수 같은 CSS 값 단언은 이 파일을 봐야 한다.
+const checkoutEntrySource = readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8");
 const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
 const tarotPromptMakerSource = readFileSync(resolve(root, "app/tarot/prompt-maker/page.tsx"), "utf8");
@@ -805,7 +808,7 @@ assertNotContains(paymentsSource, ["pass", "Remaining", "Uses"].join(""), "subsc
 assertNotContains(paymentsSource, ["pass", "Used", "Count"].join(""), "subscription writes do not store service-use counts");
 assertContains(paymentsSource, "maxCoveredCoin: HONEY_PASS_POLICY.vvip.maxCoveredCoin", "subscription plan uses shared vvip coin policy");
 assertContains(indexSource, "cd-direct-payment-dialog", "legacy direct payment dialog");
-assertContains(indexSource, "width:min(520px,100%)", "legacy modal width");
+assertContains(checkoutEntrySource, "width:min(520px,100%)", "legacy modal width");
 assertContains(indexSource, "min-height:auto", "legacy option height");
 assertNotContains(indexSource, 'data-mode="membership"', "payment modal avoids legacy membership mode");
 assertNotContains(indexSource, "membershipButtonHtml", "payment modal avoids legacy membership variable");
