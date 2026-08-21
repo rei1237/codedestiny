@@ -121,6 +121,19 @@ test("가격만으로도 찾을 수 있다", async () => {
   assert.ok(!hits.includes("운명의 업"), "무료로 좁혔는데 30,000원 상담이 남아 있다");
 });
 
+// 회귀 배경: service-registry.js에 3,000원대 항목이 하나도 없어 "3천원대" 칩이 항상 0건이었다
+// (2026-08-21 실측). 실제 3,000원 서비스 8개를 등록하며 이 케이스를 추가한다.
+test("3천원대 가격만으로도 찾을 수 있다", async () => {
+  const { doc } = await boot();
+  const panel = doc.getElementById("fortuneGatewayRecs");
+
+  doc.querySelector('#fortuneGatewayDiscover [data-price="mid"]').click();
+
+  const hits = names(panel);
+  assert.ok(hits.length > 0, "3천원대만 골랐을 때 결과가 없다");
+  assert.ok(hits.includes("이집트 신탁"), `3천원대 결과에 이집트 신탁이 없다: ${hits.join(", ")}`);
+});
+
 test("방식은 이름 정규식이 아니라 선언된 값으로 판정한다", async () => {
   const { doc } = await boot();
   const panel = doc.getElementById("fortuneGatewayRecs");
