@@ -7668,5 +7668,38 @@
       "keepValue": "Simpan sebagai PDF dan miliki selamanya",
       "guarantee": "Mana-mana bab yang tidak cukup panjang akan ditulis semula secara automatik, sehingga dua kali. Jika masih tidak cukup, permintaan digagalkan dan bukannya dihantar — jadi laluan cuba semula dan bayaran balik kekal terbuka."
     }
+  },
+  "withdrawModal": {
+    "title": "Berhenti keahlian",
+    "closeAriaLabel": "Tutup dialog",
+    "csrfFetchError": "Tidak dapat memuatkan token keselamatan. Sila cuba lagi sebentar lagi.",
+    "consentRequired": "Sila tandakan semua persetujuan wajib.",
+    "confirmMismatch": "Sila masukkan \"회원탈퇴\" dengan tepat.",
+    "passwordTooShort": "Sila masukkan kata laluan semasa anda (sekurang-kurangnya 8 aksara).",
+    "csrfMissing": "Token keselamatan tiada. Sila muat semula halaman dan cuba lagi.",
+    "networkError": "Ralat rangkaian berlaku. Sila cuba lagi sebentar lagi.",
+    "genericError": "Ralat berlaku semasa memadam akaun.",
+    "successTitle": "Akaun anda telah dipadam",
+    "successThanks": "Terima kasih kerana menggunakan Code Destiny.",
+    "successErased": "Semua maklumat peribadi anda telah dipadam serta-merta.",
+    "successRedirect": "Akan diarahkan ke laman utama dalam masa 3 saat…",
+    "warningHeading": "Sila sahkan sebelum memadam akaun anda",
+    "warningPointsPrefix": "Mata anda dan semua data akan",
+    "warningPointsStrong": "dipadam secara kekal serta-merta",
+    "warningPointsSuffix": ".",
+    "warningRejoinPrefix": "Jika anda mendaftar semula dengan e-mel yang sama, data terdahulu anda",
+    "warningRejoinStrong": "tidak dapat dipulihkan",
+    "warningRejoinSuffix": ".",
+    "warningRetention": "Rekod pembayaran dan transaksi disimpan secara tanpa nama selama 5 tahun mengikut keperluan undang-undang.",
+    "passwordLabel": "Sahkan kata laluan semasa",
+    "passwordPlaceholder": "Masukkan kata laluan semasa anda",
+    "confirmLabel": "Taip untuk mengesahkan pemadaman",
+    "confirmHintPrefix": "Taip \"",
+    "confirmHintSuffix": "\" (bahasa Korea untuk \"berhenti keahlian\") dalam kotak di bawah.",
+    "agreeIrreversible": "Saya faham dan bersetuju bahawa memadam akaun saya akan memadam semua data saya secara kekal.",
+    "agreeDataRetention": "Saya bersetuju bahawa rekod pembayaran dan transaksi akan disimpan secara tanpa nama selama 5 tahun mengikut undang-undang e-dagang.",
+    "cancel": "Batal",
+    "submit": "Padam akaun",
+    "submitting": "Sedang memproses…"
   }
 }
