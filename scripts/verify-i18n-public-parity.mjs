@@ -55,6 +55,18 @@ function targetFilesFromArgs() {
  *    전용 가드는 `npm run verify:business-identity`(정본 lib/site-policy-config.js 와 대조).
  */
 const LEGAL_VERBATIM_KEY = /^business\.[A-Za-z]+Value$/;
+
+/**
+ * 🔴 한글 인용구가 값 "일부"에 남아 있어야 정상인 키. LEGAL_VERBATIM_KEY 와 달리 값 전체가
+ *    아니라 문장 안에 인용된 한 단어만 불변이라(예: `withdrawModal.confirmMismatch` 는
+ *    "정확히 입력해 주세요" 부분은 로케일별로 번역되고 "회원탈퇴" 부분만 고정) ko 값과의
+ *    완전 일치 비교(driftedLegalValues)가 아니라 한글 검사 자체만 면제한다.
+ *
+ *    `withdrawModal.confirmMismatch`: 서버(worker/routes/auth.js)가 confirmText 를
+ *    "회원탈퇴" 리터럴로 검증하므로, 클라이언트 안내 문구도 이 단어를 그대로 인용해야 한다
+ *    (app/components/WithdrawModal.jsx 의 WITHDRAWAL_CONFIRM_TEXT 상수와 짝을 이룬다).
+ */
+const HANGUL_QUOTE_ALLOWED_KEYS = new Set(["withdrawModal.confirmMismatch"]);
 const stripSeparator = (value) => String(value).replace(/^\s*[:：]\s*/, "");
 
 const baseFlat = flatten(readJson(baseFile));
@@ -73,6 +85,7 @@ for (const fileName of targetFiles) {
   const hangulValues = Object.entries(flat).filter(([key, value]) => {
     if (typeof value !== "string") return false;
     if (LEGAL_VERBATIM_KEY.test(key)) return false;
+    if (HANGUL_QUOTE_ALLOWED_KEYS.has(key)) return false;
     return /[가-힣]/.test(value);
   });
   // 법정 표기는 "한글이면 실패"가 아니라 "ko 와 다르면 실패"다.
