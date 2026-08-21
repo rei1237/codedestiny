@@ -183,36 +183,40 @@ jobs:
     needs: classify
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # 🔴 draft PR 은 build:cf·build:worker 를 건너뛴다(2026-08-21) — 티어 스킵과 같은 이유로
+    # **스텝**에서만 건너뛴다, 잡 자체를 막지 않는다(브랜치 룰셋 필수 체크는 계속 보고돼야 함).
+    # ready_for_review 로 전환되면 그 이벤트가 트리거 목록에 있어 전체 빌드가 자동으로 돈다.
+    # lint·typecheck(fast 잡)·critical(결제·보안 테스트)은 draft 여도 그대로 돈다 — 안전 우선.
     steps:
       - name: Skip notice
-        if: needs.classify.outputs.runs_build != 'true'
-        run: echo "::notice::tier=${{ needs.classify.outputs.tier }} — 빌드를 건너뜁니다(문구·CSS·이미지·문서 변경)."
+        if: needs.classify.outputs.runs_build != 'true' || github.event.pull_request.draft == true
+        run: echo "::notice::tier=${{ needs.classify.outputs.tier }} draft=${{ github.event.pull_request.draft }} — 빌드를 건너뜁니다(문구·CSS·이미지·문서 변경, 또는 draft PR)."
 
       - name: Checkout PR head
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         uses: actions/checkout@v4
 
       - name: Setup Node.js
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: npm
 
       - name: Install dependencies
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm ci
 
       # build:cf 의 postbuild 가 out/ 을 읽어 AdSense 콘텐츠 게이트를 돌린다. 빌드가 끝나야만
       # 도는 검사라 여기서 함께 잡는다 — 배포 직전에 처음 알게 되면 릴리스가 통째로 막힌다.
       - name: Build Cloudflare Pages output
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run build:cf
 
       # 색인 대상 라우트의 H1 이 정확히 1개인지 본다. 사이트맵에서 라우트를 전수 발견하므로
       # 새 라우트도 자동으로 걸린다. out/ 을 읽으니 반드시 build:cf 뒤에 둔다.
       - name: Verify SEO heading integrity
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:seo-heading-integrity
 
       # 얇은 광고 라우트에 사람이 쓴 편집자 노트가 붙어 있는지 본다. 대상을 out/ 에서 전수
@@ -221,23 +225,23 @@ jobs:
       #    실패시킨다. 이 줄을 지우면 그 가드가 다시 빨간불이 된다(지우려면 UNWIRED_BY_DESIGN
       #    에 사유와 함께 옮길 것).
       - name: Verify editor notes
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:editor-notes
 
       # /fortune/{period}/{sign} 96개가 기간마다 실제로 다른 글을 내보내는지 본다.
       # 소스에서 sign 을 전수 발견하므로 sign 을 늘리고 기간 문안을 빠뜨리면 여기서 걸린다.
       # out/ 을 읽지 않으므로 빌드 앞에 두어도 되지만, 같은 성격의 SEO 가드끼리 모아 둔다.
       - name: Verify fortune period axis
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:fortune-period-axis
 
       # 번들 1MB 제한과 문법 오류를 업로드 없이 잡는다(--dry-run 은 아무것도 올리지 않는다).
       - name: Build Worker bundle (dry run)
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run build:worker
 
       - name: Verify Worker size budget
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:worker-size
 
   critical:
