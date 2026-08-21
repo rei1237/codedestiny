@@ -117,6 +117,11 @@ on:
       - "worker/lib/structured-consultation.js"
       - "worker/lib/llm-cache-store.js"
       - "lib/llm-client.ts"
+      # 🔴 verify:vedic-ai-flow 가 이 파일들을 열어 client contract(문구·aria-label·API 경로)를
+      #    단언하는데 트리거에는 없었다(2026-08-21, PR #924 i18n 로케일화가 aria-label 을
+      #    literal 문자열에서 copy.pdfButtonAriaLabel 참조로 바꾸면서 이 가드를 깨뜨렸는데, PR CI 는
+      #    깨어나지 않고 main push 후에야 실패해 5개 후속 PR 의 Paid Flow Gates 를 연쇄로 물들였다).
+      - "app/vedic-ai/**"
       # ── 게이트 자신 ───────────────────────────────────────
       - "scripts/verify-*billing*.mjs"
       - "scripts/verify-*paid*.mjs"
