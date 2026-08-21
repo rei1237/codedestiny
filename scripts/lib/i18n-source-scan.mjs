@@ -35,8 +35,12 @@ export const PREFIXED_WRAPPERS = {
 /** 모듈별 KO 테이블 변수명 패턴. */
 export const TABLE_NAME_RE = /(?:_TEXT_TRANSLATIONS|_TRANSLATIONS|_COPY_BY_LOCALE|_BY_LOCALE|_LOCALE_COPY)$/;
 
-// 빌드 산출물(공용 목록) + 이 스캔만의 제외(reports·apps). 합집합이다.
-const SKIP_DIR_NAMES = new Set([...BUILD_ARTIFACT_DIRS, "reports", "apps"]);
+// 빌드 산출물(공용 목록) + 이 스캔만의 제외(reports·apps·.claude). 합집합이다.
+// 🔴 .claude 제외: 이 저장소에서 여러 세션이 `.claude/worktrees/` 아래 병렬 워크트리(전체
+// 체크아웃)를 동시에 쓴다. 이 이름이 빠져 있으면 로컬/에이전트 실행 시 소스 전체를 워크트리
+// 개수만큼 중복 스캔해 이 파일을 쓰는 11개 스크립트(walkSourceFiles 소비자) 전부가 실제로는
+// 없는 대량 회귀를 보고한다(2026-08-21 실측: verify-i18n-no-fallback 이 30배 부풀려짐).
+const SKIP_DIR_NAMES = new Set([...BUILD_ARTIFACT_DIRS, "reports", "apps", ".claude"]);
 
 export function* walkSourceFiles(rootDir, { extensions, includePublic = false } = {}) {
   const exts = new Set(extensions || [".js", ".mjs", ".ts", ".tsx", ".jsx"]);
