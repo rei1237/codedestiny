@@ -28,6 +28,7 @@ const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const RUNTIME_FILES = [
   "js/core/payment-service.js",
   "js/core/pass-verdict.js",
+  "js/core/auth-hint.js",
   "js/core/checkout-entry.js",
   "js/destiny-profile.js",
 ];

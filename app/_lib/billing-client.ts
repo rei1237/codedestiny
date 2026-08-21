@@ -312,6 +312,8 @@ type RuntimeApiWindow = Window & {
   __cdSuppressPaymentFetchOverlayCount?: number;
   __cdChooseServicePaymentModeCanonical?: PaymentChoiceFunction;
   __cdOpenChargeModal?: () => void;
+  // js/core/auth-hint.js 가 노출하는 로그인 힌트 판정 단일 정본.
+  __cdAuthHint?: { hasAuthHint?: () => boolean };
   __cdRestoreCanonicalPaymentMode?: () => unknown;
   __cdPaidFeatureGate?: {
     close?: (requestId?: string) => void;
@@ -448,7 +450,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-35c7aafea3e0";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-8a7f8c83af92";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1704,12 +1706,11 @@ const BILLING_AUTH_PREHEAT_BUDGET_MS = 4000;
  */
 export function hasClientAuthSessionHint() {
   if (typeof window === "undefined") return false;
-  const user = readSanitizedAuthUser();
-  const userRecord = asRecord(user);
-  const userId = toText(userRecord?.id || userRecord?.userId || userRecord?._id || userRecord?.uid || userRecord?.email);
-  if (userId) return true;
+  // js/core/auth-hint.js 단일 정본에 위임한다(index.html · destiny-profile.js 와 로직을 공유) —
+  // 사본을 새로 만들지 말 것.
   try {
-    return document.cookie.includes("fortune_auth_role=");
+    const runtimeWindow = window as RuntimeApiWindow;
+    return Boolean(runtimeWindow.__cdAuthHint?.hasAuthHint?.());
   } catch (e) {
     return false;
   }

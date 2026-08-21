@@ -1560,13 +1560,11 @@
     try {
       if (_dpGetProfileScope() !== 'guest') return true;
     } catch (e) {}
+    // js/core/auth-hint.js 단일 정본에 위임한다(index.html · user-session-cache.ts 와 로직을 공유) —
+    // 사본을 새로 만들지 말 것.
     try {
-      if (_dpReadStoredAuthToken()) return true;
+      return Boolean(window.__cdAuthHint && window.__cdAuthHint.hasAuthHint());
     } catch (e2) {}
-    try {
-      var cookieText = String(document.cookie || '');
-      return cookieText.indexOf('fortune_auth_role=') >= 0 || cookieText.indexOf('fortune_auth_token=') >= 0;
-    } catch (e3) {}
     return false;
   }
 

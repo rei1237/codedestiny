@@ -71,6 +71,8 @@
 /public/js/core/analytics.js
 /public/js/core/app-context.d.ts
 /public/js/core/app-context.js
+/public/js/core/auth-hint.d.ts
+/public/js/core/auth-hint.js
 /public/js/core/bootstrapDestinyFlower.js
 /public/js/core/checkout-entry.d.ts
 /public/js/core/checkout-entry.js

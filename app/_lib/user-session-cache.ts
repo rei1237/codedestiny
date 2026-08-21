@@ -80,6 +80,8 @@ type RuntimeWindow = Window & {
     applyAccessStateSnapshot?: (payload: unknown, options?: Record<string, unknown>) => boolean;
     getSnapshot?: () => { profileId?: string };
   };
+  // js/core/auth-hint.js 가 노출하는 로그인 힌트 판정 단일 정본.
+  __cdAuthHint?: { hasAuthHint?: () => boolean };
 };
 
 const CACHE_REFRESH_HEADER = "x-code-destiny-cache-refresh";
@@ -162,24 +164,16 @@ function ensureSessionCookie() {
   return token;
 }
 
-function hasAuthCookieHint() {
-  const role = readCookie("fortune_auth_role").trim().toLowerCase();
-  return Boolean(role && role !== "guest" && role !== "anonymous");
-}
-
 export function hasClientAuthHint() {
   if (typeof window === "undefined") return false;
+  // js/core/auth-hint.js 단일 정본에 위임한다(index.html · destiny-profile.js 와 로직을 공유) —
+  // 사본을 새로 만들지 말 것.
   try {
-    const token = String(
-      window.localStorage.getItem("fortune_auth_token")
-        || window.sessionStorage.getItem("fortune_auth_token")
-        || "",
-    ).trim();
-    if (token) return true;
-    if (readJsonStorage("fortune_auth_user")) return true;
+    const runtimeWindow = window as RuntimeWindow;
+    return Boolean(runtimeWindow.__cdAuthHint?.hasAuthHint?.());
   } catch {
+    return false;
   }
-  return hasAuthCookieHint();
 }
 
 function resolveUserKey() {
