@@ -7669,6 +7669,12 @@
       "guarantee": "Elk hoofdstuk dat te kort is wordt automatisch herschreven, tot twee keer toe. Lukt dat alsnog niet, dan mislukt de aanvraag in plaats van te worden geleverd — opnieuw proberen en terugbetaling blijven dus mogelijk."
     }
   },
+  "errorBoundary": {
+    "title": "Er is een probleem opgetreden bij het laden van deze pagina.",
+    "description": "Dit kan een tijdelijke fout zijn. Opnieuw proberen lost het meestal op.",
+    "retry": "Opnieuw proberen",
+    "goHome": "Naar de startpagina"
+  },
   "withdrawModal": {
     "title": "Account verwijderen",
     "closeAriaLabel": "Dialoogvenster sluiten",

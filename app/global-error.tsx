@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { useT } from "../lib/i18n/useT";
 
 export default function GlobalError({
   error,
@@ -9,6 +10,7 @@ export default function GlobalError({
   error: Error & { digest?: string };
   reset: () => void;
 }) {
+  const t = useT();
   useEffect(() => {
     console.error("[GlobalError]", error);
     // 배포 전환 순간 이전 HTML이 사라진 청크를 요청하면 ChunkLoadError로 떨어진다.
@@ -43,15 +45,15 @@ export default function GlobalError({
               CODE DESTINY
             </p>
             <h2 style={{ margin: "0.75rem 0", fontSize: "1.35rem", fontWeight: 900 }}>
-              화면을 불러오는 중 문제가 생겼어요.
+              {t("errorBoundary.title")}
             </h2>
             <p style={{ margin: "0 0 1.5rem", fontSize: "0.9rem", lineHeight: 1.7, color: "#c7c9ec" }}>
-              일시적인 오류일 수 있어요. 다시 시도하면 대부분 정상적으로 돌아옵니다.
+              {t("errorBoundary.description")}
             </p>
             <button
               type="button"
               onClick={reset}
-              aria-label="다시 시도"
+              aria-label={t("errorBoundary.retry")}
               style={{
                 minHeight: 44,
                 padding: "0.5rem 1.25rem",
@@ -64,7 +66,7 @@ export default function GlobalError({
                 marginRight: "0.5rem",
               }}
             >
-              다시 시도
+              {t("errorBoundary.retry")}
             </button>
             <a
               href="/"
@@ -80,7 +82,7 @@ export default function GlobalError({
                 textDecoration: "none",
               }}
             >
-              메인으로 이동
+              {t("errorBoundary.goHome")}
             </a>
           </div>
         </section>
