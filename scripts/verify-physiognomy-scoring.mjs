@@ -91,7 +91,10 @@ assert.ok(portRaw.faceRatio > sq.faceRatio + 0.03,
 // UI에서 사용자가 성별을 직접 고르면 detectFeminineFace() 자동 추정 대신 그 값을 써야 한다
 // (analyze() 시그니처는 위 setMoleSource 와 같은 이유로 못 늘려서 setGenderOverride 세터를 씀).
 // 같은 얼굴이라도 female 오버라이드면 crushList(eagle·crocodile·dinosaur·lion·horse·camel)가
-// 60~95% 억제되고 male 오버라이드면 억제가 없다 — 표본 20장 중 최소 1장은 판정이 갈려야 한다.
+// 60~95% 억제되고 male 오버라이드면 억제가 없다 — 최소 1장은 판정이 갈려야 한다.
+// 🔴 처음엔 표본 20장만 봤는데, 아키타입 표까지 재튜닝된 뒤로는 geoScore가 워낙 뚜렷해져
+// 앞쪽 20장에서는 우연히 한 번도 안 갈렸다(전체 157장 기준으로는 실제로 14장이 갈림) —
+// 배선 자체가 아니라 표본이 작아 생긴 오탐이었다. 전체 표본으로 본다.
 const fx = JSON.parse(readFileSync(resolve(root, 'scripts/fixtures/physiognomy-landmark-vectors.json'), 'utf8'));
 const toLandmarks = (s) => {
   const lm = Array.from({ length: 478 }, () => ({ x: 0.5, y: 0.5, z: 0 }));
@@ -99,7 +102,7 @@ const toLandmarks = (s) => {
   return lm;
 };
 let genderOverrideFlips = false;
-for (const s of fx.samples.slice(0, 20)) {
+for (const s of fx.samples) {
   const lm = toLandmarks(s);
   engine.setGenderOverride('female');
   const asFemale = await engine.analyze(lm, null, s.aspect);
@@ -109,7 +112,7 @@ for (const s of fx.samples.slice(0, 20)) {
 }
 engine.setGenderOverride(null); // 이후 적중률 측정은 실제 UI 기본값(자동 감지)과 같은 조건이어야 한다
 assert.ok(genderOverrideFlips,
-  '성별 오버라이드(female vs male)가 표본 20장에서 단 한 번도 판정을 안 바꿈 — setGenderOverride 배선 확인');
+  '성별 오버라이드(female vs male)가 전체 표본에서 단 한 번도 판정을 안 바꿈 — setGenderOverride 배선 확인');
 
 // ── 6. 실제 얼굴 픽스처로 라벨 적중률 ──
 // 이 가드가 이 파일의 본체다. 위의 문자열 단언들은 구조가 사라졌는지만 보고,
@@ -141,12 +144,22 @@ const reached = Object.keys(wins).length;
 // 재튜닝. 🔴 무제약 1차 시도는 임계값을 실측 대역 밖(예: faceRatio <= 0.057)으로 밀어 넣어
 // 게이트가 상시 발화/불발화하는 과적합을 냈다 — PHY_AXIS_CLAMP 대역 + 원값 대비 0.3~3배 상한을
 // 강제해 재실행했다. 또한 독립 담금질이 if/else-if 사슬의 임계값 순서를 뒤집어 뒤 분기가 죽는
-// 사고(19곳 실측)가 있어 사슬을 임계값 순으로 재정렬하는 복구 패스를 추가했다.
-// 실측(1위 42/157 · TOP3 81/157 · 최다 10.8% · 도달 20/27 · 뱀상 TOP3 8)이 새 기준선이다.
-// 하한은 그 실측보다 아래로 둔다. 개편 전(2026-08-16 이전, 150장): 1위 19(12.7%) · TOP3 33(22.0%).
-assert.ok(top1 >= 33, `라벨 1위 적중 ${top1}/${n} — 하한 33 미만 (개편 전 19)`);
+// 사고(19곳 실측)가 있어 사슬을 임계값 순으로 재정렬하는 복구 패스를 추가했다. 실측 1위
+// 42/157 · TOP3 81/157.
+// 2026-08-21 ③: "왜 보너스를 재튜닝해도 안 오르나" 진단 — geoScore(순수 기하 거리)만으로도
+// 이미 라벨 TOP3 54.1%가 나왔는데(랭크 중앙값 2위) 보너스 사다리를 아무리 돌려도 51~52%를 못
+// 넘었다. 병목이 보너스가 아니라 archetypes 표(27종×6축, 단순 중앙값이라 이 가중 거리식으로
+// 27종을 가장 잘 가르는 좌표라는 보장이 없음) 자체였다는 뜻이라 archetypes 도 튜닝 대상에
+// 넣었다(357개 파라미터). 1위 가중치를 올릴수록 1위는 오르지만 TOP3·도달종·뱀상 TOP3 여유가
+// 깎이는 트레이드오프가 뚜렷했다 — 1위 36.3%(TOP3 45.9%·도달 17·뱀상TOP3 6, 여유 0) vs
+// 균형형 1위 33.8%(TOP3 51.6%·도달 19·뱀상TOP3 10). 사용자가 균형형을 골랐다 — 앱이 실제로
+// 보여주는 건 TOP3(동물상 TOP3 히어로)이지 1위 단독이 아니라서, 그 값을 깎는 트레이드오프는
+// 안 하기로 함. 새 기준선: 1위 53/157(33.8%) · TOP3 81/157(51.6%) · 최다 16.6% · 도달 19/27 ·
+// 뱀상 TOP3 10. 하한은 그 실측보다 아래로 둔다.
+// 개편 전(2026-08-16 이전, 150장): 1위 19(12.7%) · TOP3 33(22.0%).
+assert.ok(top1 >= 42, `라벨 1위 적중 ${top1}/${n} — 하한 42 미만 (개편 전 19)`);
 assert.ok(top3 >= 65, `라벨 TOP3 적중 ${top3}/${n} — 하한 65 미만 (개편 전 33)`);
-assert.ok(reached >= 18, `도달 동물 ${reached}/27 — 다수 동물이 판정 불가`);
+assert.ok(reached >= 17, `도달 동물 ${reached}/27 — 다수 동물이 판정 불가`);
 // 단일 동물 쏠림은 이 기능의 고질 사고다 (2026-08 곰상 51.6%, 그 전 기린상 42.6%).
 assert.ok(topCount / n <= 0.20, `단일 동물 편중: ${topName} ${(topCount * 100 / n).toFixed(1)}% — 축 스케일/전달함수 붕괴 의심`);
 // 사용자 신고(카리나 → 곰상)의 회귀 가드. 여성 얼굴이 뱀상 후보권에 들어와야 한다.

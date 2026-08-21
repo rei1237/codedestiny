@@ -57,13 +57,23 @@ for (const m of clampBlock.matchAll(/(\w+):\s*\[(-?[\d.]+),\s*(-?[\d.]+)\]/g)) {
 }
 console.log('[physio-optimize] 축 대역(PHY_AXIS_CLAMP):', JSON.stringify(AXIS_CLAMP));
 
-const REGIONS = [[1555, 1560], [1853, 2062]];
+// archetypes 표(중심좌표)도 튜닝 대상에 포함한다. 재계측 median 값은 "그 동물상 사진들의
+// 중앙값"일 뿐 "이 가중 거리식으로 27종을 가장 잘 가르는 좌표"라는 보장이 없다 — 실제로
+// geoScore(기하 거리)만으로 본 라벨 랭킹이 이미 TOP3 54%였는데 보너스 사다리를 아무리
+// 재튜닝해도 51~52%를 못 넘겼다(오히려 소폭 하락). 병목이 보너스가 아니라 중심좌표 자체라는
+// 뜻이라 이번엔 같이 푼다.
+const ARCHETYPE_REGION = [1472, 1533];
+const REGIONS = [[1555, 1560], [1853, 2062], ARCHETYPE_REGION];
 const AXIS_NAMES = Object.keys(AXIS_CLAMP);
 const OP_RE = /(\*|<=|>=|\+=|-=)\s*(-?\d+\.?\d*)/g;
 // 🔴 원래 (0\.\d+) 로 "0."으로 시작하는 값만 잡았는데, rate 파라미터가 상한 1.0 까지 튜닝
 // 가능해서 값이 "1.0"이 되는 순간 재추출에서 통째로 사라졌다(실제로 겪은 버그) — 임의 소수를
 // 받도록 넓힌다.
 const MIN_RE = /Math\.min\((\d+\.?\d*),\s*(\d+\.?\d*)\s*\+/g;
+// archetypes 표 전용: 'dog': { face: 0.838, slant: -1.6, ... } 형태는 <=/>=/+= 연산자가 아니라
+// "key: value" 이므로 별도 패턴이 필요하다.
+const ARCH_RE = /\b(face|slant|dist|nose|mouth|eye):\s*(-?\d+\.?\d*)/g;
+const ARCH_KEY_TO_AXIS = { face: 'faceRatio', slant: 'eyeSlant', dist: 'eyeDistRatio', nose: 'noseWidthRatio', mouth: 'mouthRatio', eye: 'eyeRatio' };
 const EXCLUDE_LINE_RE = /femininityScore/;
 
 // param.kind: 'axis'(clamp=AXIS_CLAMP[axis]) | 'rate'(clamp=[0,1], 상대창도 적용) | 'magnitude'(상대창만)
@@ -98,6 +108,13 @@ function extractParams(lines) {
         push(li, idx1, m[1].length, 'rate', null);
         const idx2 = m.index + m[0].lastIndexOf(m[2]);
         push(li, idx2, m[2].length, 'rate', null);
+      }
+      if (li >= ARCHETYPE_REGION[0] && li <= ARCHETYPE_REGION[1]) {
+        ARCH_RE.lastIndex = 0;
+        while ((m = ARCH_RE.exec(line))) {
+          const numStart = m.index + m[0].length - m[2].length;
+          push(li, numStart, m[2].length, 'axis', ARCH_KEY_TO_AXIS[m[1]]);
+        }
       }
     }
   }
@@ -224,7 +241,7 @@ function objective(m) {
   if (m.concentration > 0.20) return -Infinity;
   if (m.reached < 15) return -Infinity;
   if (m.snakeTop3 < 5) return -Infinity;
-  return m.top1 * 2 + m.top3;
+  return m.top1 * 3 + m.top3;
 }
 
 const baseMetrics = await evaluate(origSrc);
