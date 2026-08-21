@@ -1,8 +1,25 @@
-# 글로벌 다국어 현지화 — 남은 작업 (갱신: 2026-08-22, 2차 세션)
+# 글로벌 다국어 현지화 — 남은 작업 (갱신: 2026-08-22, 3차 세션)
 
 ## 배경
 
 사용자가 "Code Destiny 전체를 실제 글로벌 서비스 수준으로 다국어 완성"을 요청했다(원 요청서 29개 섹션, 이후 28개 섹션짜리 상세 스펙으로 재요청). 규모가 멀티세션급이라는 게 1차 세션에서 이미 확인됐고, 2차 세션에서 Wave 0~5를 완료했다. 이 문서는 2차 세션 종료 시점 기준으로 완전히 다시 썼다 — 예전 버전(1차 세션 말미)의 "다음 순서 제안"은 이번 세션에서 대부분 처리했거나 아래에서 정정됐다.
+
+## 🔴 3차 세션(2026-08-22) 완료 목록 — "UI 크롬만" 스코프로 8개 PR
+
+2차 세션 종료 시점의 "3건 이하 그룹 62개 파일"에서 이어받아, 사용자가 이전 세션에 확정한 **"UI 크롬만(추천)"** 스코프(SEO 콘텐츠 페이지·서사형 콘텐츠 데이터 파일은 제외)로 계속 진행했다. 이번 세션은 새 브랜치+PR마다 `EnterWorktree` 격리 없이 하나의 워크트리 안에서 origin/main 기준 새 브랜치를 매번 새로 분기하는 방식으로 처리했다(`git fetch origin main -q && git checkout -b <branch> origin/main`).
+
+1. **PR #940** `chore/fusion-fortune-subcomponents-i18n` — `app/fusion-fortune/`의 `fusion-thread.tsx`(`FUSION_STAGES` → `FUSION_STAGE_KEYS`+`buildFusionStages(copy)`로 구조 분리)·`FusionResultThread.tsx`·`FusionVisualization.tsx`(레이더/월별 라인/교차검증 게이지/시스템 칩 전부 `copy` prop)·`FusionRecentList.tsx` — 새 공유 모듈 `app/fusion-fortune/_lib/copy.ts`(`FusionSharedCopy`, 12로케일, `useFusionSharedCopy()`)로 순환참조 회피. `formatDay()`의 로케일 미대응은 항목 7 계열로 이관(미수정).
+2. **PR #941** `chore/destiny-bias-promo-i18n` — `app/psychotest/_components/DestinyBiasPromoSection.tsx`를 4로케일 임시방편 체계에서 정식 `LoadingLocale` 패턴 12로케일로 전면 재작성.
+3. **PR #942** `chore/destiny-bias-progress-modal-i18n` — `DestinyBiasProgress.tsx`(스텝 라벨)·`DestinyBiasCoinModal.tsx`(다이얼로그) 12로케일. `toLocaleString("ko-KR")` 숫자 포맷은 미수정(항목 7 계열).
+4. **PR #943** `chore/ai-result-companions-i18n`(8개 파일) — `LoveSecretChecklist.tsx`, `life-book-ai`의 `BookOpenCover.tsx`·`LifeBookAiResultClient.tsx`(~50필드, 십성/오행 용어는 의미 기반 번역), `karma-destiny-ai`의 `KarmaDestinyAiResultClient.tsx`(~55필드)·`SectionTabs.tsx`·`EvidenceDisclosure.tsx`(`EVIDENCE_LABELS` ~45개 전문용어는 제외, 후속 과제로 명시)·`ObservatoryLoader.tsx`·`LensRadar.tsx`(`LENS_LABELS` 미번역 유지). **결과 페이지들은 PR #910/#914가 이미 처리한 줄 알았으나 실제로는 미착수 상태였음을 `gh pr view`로 직접 확인 후 진행** — 핸드오프 문서를 맹신하지 말고 실측할 것의 근거 사례.
+5. **PR #944** `chore/love-simulation-ui-i18n`(4개 파일) — `LoveSimulationClient.tsx`(로딩 컴포넌트 추출), `CustomSajuForm.tsx`(`.fallback-gaps.json` 추적 갭 9개 로케일 보강), `LoveCharacterStorySection.tsx`(로케일 무관하게 항상 `.ko`만 반환하던 안티패턴 전면 재작성), `LoveSimulationEngine.tsx`(격리된 UI 섹션만, 서사 생성 로직은 제외).
+6. **PR #945** `chore/naming-ai-i18n` — `NamingAiClient.tsx`(~90필드) 완전 재작성. `TONE_OPTIONS`(namingRecommendations.ts 파생)는 제외. `INITIAL_FORM.birthPlace` 로케일별 기본값을 `useRef` 캡처로 안전하게 처리(자체 발견·수정한 비교 버그).
+7. **PR #946** `chore/yeon-star-hug-i18n` — `YeonStarHugClient.tsx`(2380줄, 클라이언트 콘텐츠 생성 엔진). 생성 로직과 얽힌 데이터(감정/요일행성/달위상/각도/원소 라벨, 한국어 키워드 매칭 사전, SVG 카드 생성기, 조사 결합된 동적 상태 메시지)는 전부 제외 — 번역하면 "번역된 라벨 + 한국어 생성 문장"이 뒤섞여 지금보다 더 나쁜 결과가 됨. 독립적인 정적 UI 문구(히어로/입력 패널/FAQ/네비 배지 등 ~55필드)만 12로케일 배선.
+8. **PR #947** `chore/prompt-hub-i18n` — `PromptHubClient.tsx`(2815줄, 이 감사 전체에서 최대 파일). 🔴 **다른 파일과 달리 이미 로케일 인프라가 있었다**(`PROMPT_HUB_COPY_KO/_EN` + 11개 로케일 EN 폴백 + `missingTranslation` 플레이스홀더 안전장치) — 그래서 "한국어 누출" 결함은 없었음. 실제 문제 2건만 수정: (a) `tx()`를 안 거치는 순수 하드코딩 alt 텍스트 1건, (b) 16개 도구 각각의 `detail`/`motif`/`keywords`/일부 `help`/도구별 드롭다운 `options[]`/`generateLabel`/`resultLabel`/`emptyState`가 `text{}` 사전에 항목이 없어 11개 비한국어 로케일에서 "Translation unavailable" 플레이스홀더가 뜨던 것(스크립트로 434개 고유 문자열 전수 대조, 최종 0건 누락 확인). `role`/`principles[]`/`answerSections[]`는 `buildStructuredFortunePrompt()`(생성된 프롬프트 자체, 로케일 무관 항상 한국어)에만 쓰이고 UI에 안 보여 의도적으로 제외.
+
+**이번 세션에서 확립한 반복 패턴**: (1) 파일이 "폼"인지 "콘텐츠 생성 엔진"인지부터 판별 — 후자면 생성에 얽힌 데이터/템플릿은 전부 제외하고 진짜 독립적인 정적 UI만 골라낸다. (2) 라벨 옆에 한국어 데이터 값이 같은 줄/문장에 붙는 곳(조사 결합 포함)은 라벨만 번역하면 "번역된 라벨 + 한국어 값" 혼종이 되므로 제외. (3) 이미 부분적으로 로케일 인프라가 있는 파일은 처음부터 새로 만들지 말고 기존 사전의 빈 칸만 채운다(사전 조사 없이 전면 재작성하면 중복 인프라가 생긴다). (4) 핸드오프 문서·PR 히스토리의 "이미 처리됨" 주장은 `gh pr view`로 실제 diff를 확인한 뒤에만 신뢰한다.
+
+**아직 안 한 것**: PR #940~947 전부 push까지만 완료, PR 생성 완료, **머지는 사용자 몫**(정책상 자동 머지 안 함). 62개 "3건 이하" 그룹 중 이번 세션이 처리한 8개(위 목록)를 뺀 나머지는 여전히 미착수다. `docs/handoff/global-i18n-audit-remaining.md`(이 문서) 자체의 "남은 것" 우선순위 표는 2차 세션 기준 그대로라 다음 세션은 이번 세션 완료분(위 8개 PR 대상 파일)을 표에서 먼저 빼고 재개할 것.
 
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
 
