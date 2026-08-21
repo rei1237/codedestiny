@@ -165,10 +165,7 @@ export const viewport = {
 // "꿀꿀 운세 — Code Destiny" vs buildWebsiteJsonLd 기본값 "Code Destiny"(2026-08-16 실측).
 // 이제 override 를 없애 세 번째 값이 생길 자리를 아예 지웠다. 셸과의 일치는
 // __tests__/ui/locale-footer.static.test.js 가 강제한다.
-const BRAND_WEBSITE_JSON_LD = {
-  ...buildWebsiteJsonLd("ko"),
-  description: "생년월일로 무료 사주팔자·타로·궁합·신년운세를 제공하는 한국 운세 플랫폼",
-};
+const BRAND_WEBSITE_JSON_LD = buildWebsiteJsonLd("ko");
 
 // 🔴 WebPage 노드를 여기에 넣지 말 것. 이 layout 은 모든 Next 라우트의 <head> 이므로
 // 홈 기준 WebPage 를 박으면 전 페이지가 "나는 홈페이지"라고 선언하게 된다
@@ -185,10 +182,10 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
-        <Script src="/js/core/pass-verdict.js?v=build-a300cf84f0f5" strategy="beforeInteractive" />
+        <Script src="/js/core/pass-verdict.js?v=build-60d1815f4247" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}
         <Script src="/js/core/app-context.js?v=20260812-app-context-v1" strategy="beforeInteractive" />
-        <Script src="/js/core/checkout-entry.js?v=build-a300cf84f0f5" strategy="beforeInteractive" />
+        <Script src="/js/core/checkout-entry.js?v=build-60d1815f4247" strategy="beforeInteractive" />
         <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <Script src="/js/core/payment-service.js?v=20260804" strategy="beforeInteractive" />
         {/* GA4 측정 ID 는 공개 식별자다. 값이 없으면 analytics.js 가 통째로 no-op 이 되므로

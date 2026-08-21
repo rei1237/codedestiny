@@ -1,5 +1,6 @@
 import { createHttpError, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
+import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { connectDb, withMongoRetry } from "../lib/db.js";
 import { PaidExecutionRecord } from "../lib/models.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
@@ -1623,7 +1624,7 @@ export async function handleTarotRoutes(request, env = {}) {
       payload.reading = normalizeLoveReadingPayload(payload?.reading, payload?.cards || []);
       // LLM 상담문 생성 — 실패 시 위에서 만든 로컬 리딩이 그대로 폴백으로 나간다(degrade-not-throw).
       const enhanced = await enhanceLoveReadingWithLlm(payload.reading, {
-        locale: "ko",
+        locale: getAmbientAiLocale() || "ko",
         env,
         userQuestion: asText(body?.userQuestion),
       });
@@ -1666,7 +1667,7 @@ export async function handleTarotRoutes(request, env = {}) {
         return json({ ok: false, message: "상담 질문이 필요합니다." }, { status: 400 });
       }
 
-      const reading = await buildMindscanReadingPayload(pairs, { question, env });
+      const reading = await buildMindscanReadingPayload(pairs, { question, env, locale: getAmbientAiLocale() || "ko" });
       if (!reading?.ok) {
         return json(
           {
