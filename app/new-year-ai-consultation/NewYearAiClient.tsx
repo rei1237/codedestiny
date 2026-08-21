@@ -22,6 +22,150 @@ import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildNewYearPreviewPayload } from "@/lib/dev-preview/fixtures/new-year";
 import SajuPillarTable from "@/components/fortune/SajuPillarTable";
 import { splitGanji, tenGodOfStem } from "@/lib/five-element-colors";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+// 접근성 속성(aria-label/title)만 다국어화한다 — 이 파일의 본문 표시 텍스트 전체 번역은
+// 훨씬 큰 별도 작업이라 이번 범위 밖이다(docs/handoff/global-i18n-audit-remaining.md 참고).
+type NewYearAiCopy = {
+  qaCardAria: string; domainResultsAria: string; progressAria: string; letterAccordionAria: string;
+  monthDomainGridAria: string; monthCalendarAria: string; introSectionAria: string; consultCardAria: string;
+  heroBadgesAria: string; profileLoadAria: string; yearChipsAria: string; yearInputAria: string;
+  categoryGridAria: string; shareCardAria: string; recentListAria: string;
+};
+
+const NEW_YEAR_AI_EN: NewYearAiCopy = {
+  qaCardAria: "Answer to your own question", domainResultsAria: "Consultation results by category",
+  progressAria: "Consultation generation progress", letterAccordionAria: "New year consultation letters — tap a month to expand",
+  monthDomainGridAria: "Strengths and basis by domain", monthCalendarAria: "Monthly fortune calendar — tap a month to see fortune by domain",
+  introSectionAria: "New year fortune expert consultation", consultCardAria: "Consultation summary",
+  heroBadgesAria: "Consultation contents", profileLoadAria: "Load birth info from profile card",
+  yearChipsAria: "Select consultation year", yearInputAria: "Enter consultation year manually",
+  categoryGridAria: "Focus consultation area", shareCardAria: "Create shareable card image",
+  recentListAria: "View past new year fortune consultations",
+};
+
+const NEW_YEAR_AI_COPY: Partial<Record<LoadingLocale, NewYearAiCopy>> = {
+  ko: {
+    qaCardAria: "나만의 질문에 대한 답변", domainResultsAria: "분야별 상담 결과", progressAria: "상담문 생성 진행률",
+    letterAccordionAria: "새해 상담 편지지 — 월을 누르면 펼쳐집니다", monthDomainGridAria: "도메인별 강약과 근거",
+    monthCalendarAria: "월별 운세 캘린더 — 달을 누르면 도메인별 운세가 열립니다", introSectionAria: "신년운세 전문가 상담",
+    consultCardAria: "상담 준비 요약", heroBadgesAria: "상담 구성", profileLoadAria: "프로필 카드에서 출생 정보 불러오기",
+    yearChipsAria: "상담 연도 선택", yearInputAria: "상담 연도 직접 입력", categoryGridAria: "집중 상담 분야",
+    shareCardAria: "공유 카드 이미지 만들기", recentListAria: "지난 신년운세 다시 보기",
+  },
+  ja: {
+    qaCardAria: "あなたの質問への答え", domainResultsAria: "分野別相談結果", progressAria: "相談文生成進行率",
+    letterAccordionAria: "新年相談レターシート — 月をタップすると開きます", monthDomainGridAria: "分野別の強弱と根拠",
+    monthCalendarAria: "月別運勢カレンダー — 月をタップすると分野別運勢が開きます", introSectionAria: "新年運勢専門家相談",
+    consultCardAria: "相談準備の要約", heroBadgesAria: "相談の構成", profileLoadAria: "プロフィールカードから生年情報を読み込む",
+    yearChipsAria: "相談年を選択", yearInputAria: "相談年を直接入力", categoryGridAria: "集中相談分野",
+    shareCardAria: "共有カード画像を作成", recentListAria: "過去の新年運勢をもう一度見る",
+  },
+  "zh-CN": {
+    qaCardAria: "关于您问题的答案", domainResultsAria: "各领域咨询结果", progressAria: "咨询文生成进度",
+    letterAccordionAria: "新年咨询信笺 — 点击月份展开", monthDomainGridAria: "各领域强弱与依据",
+    monthCalendarAria: "月度运势日历 — 点击月份查看各领域运势", introSectionAria: "新年运势专家咨询",
+    consultCardAria: "咨询准备摘要", heroBadgesAria: "咨询构成", profileLoadAria: "从档案卡加载出生信息",
+    yearChipsAria: "选择咨询年份", yearInputAria: "直接输入咨询年份", categoryGridAria: "重点咨询领域",
+    shareCardAria: "制作分享卡片图片", recentListAria: "再次查看过往新年运势",
+  },
+  "zh-TW": {
+    qaCardAria: "關於您問題的答案", domainResultsAria: "各領域諮詢結果", progressAria: "諮詢文生成進度",
+    letterAccordionAria: "新年諮詢信箋 — 點擊月份展開", monthDomainGridAria: "各領域強弱與依據",
+    monthCalendarAria: "月度運勢日曆 — 點擊月份查看各領域運勢", introSectionAria: "新年運勢專家諮詢",
+    consultCardAria: "諮詢準備摘要", heroBadgesAria: "諮詢構成", profileLoadAria: "從檔案卡載入出生資訊",
+    yearChipsAria: "選擇諮詢年份", yearInputAria: "直接輸入諮詢年份", categoryGridAria: "重點諮詢領域",
+    shareCardAria: "製作分享卡片圖片", recentListAria: "再次查看過往新年運勢",
+  },
+  vi: {
+    qaCardAria: "Câu trả lời cho câu hỏi của bạn", domainResultsAria: "Kết quả tư vấn theo từng lĩnh vực",
+    progressAria: "Tiến độ tạo nội dung tư vấn", letterAccordionAria: "Thư tư vấn năm mới — nhấn vào tháng để mở",
+    monthDomainGridAria: "Điểm mạnh yếu và cơ sở theo từng lĩnh vực",
+    monthCalendarAria: "Lịch vận mệnh theo tháng — nhấn vào tháng để xem vận mệnh theo lĩnh vực",
+    introSectionAria: "Tư vấn chuyên gia vận mệnh năm mới", consultCardAria: "Tóm tắt chuẩn bị tư vấn",
+    heroBadgesAria: "Nội dung tư vấn", profileLoadAria: "Tải thông tin sinh từ thẻ hồ sơ",
+    yearChipsAria: "Chọn năm tư vấn", yearInputAria: "Nhập trực tiếp năm tư vấn", categoryGridAria: "Lĩnh vực tư vấn trọng tâm",
+    shareCardAria: "Tạo hình ảnh thẻ chia sẻ", recentListAria: "Xem lại các lần xem vận mệnh năm mới trước đây",
+  },
+  hi: {
+    qaCardAria: "आपके प्रश्न का उत्तर", domainResultsAria: "क्षेत्र के अनुसार परामर्श परिणाम",
+    progressAria: "परामर्श सामग्री निर्माण प्रगति", letterAccordionAria: "नव वर्ष परामर्श पत्र — महीने पर टैप करके खोलें",
+    monthDomainGridAria: "क्षेत्र अनुसार ताकत-कमजोरी और आधार",
+    monthCalendarAria: "मासिक भाग्य कैलेंडर — महीने पर टैप करके क्षेत्र अनुसार भाग्य देखें",
+    introSectionAria: "नव वर्ष भाग्य विशेषज्ञ परामर्श", consultCardAria: "परामर्श तैयारी सारांश",
+    heroBadgesAria: "परामर्श संरचना", profileLoadAria: "प्रोफ़ाइल कार्ड से जन्म जानकारी लोड करें",
+    yearChipsAria: "परामर्श वर्ष चुनें", yearInputAria: "परामर्श वर्ष सीधे दर्ज करें", categoryGridAria: "केंद्रित परामर्श क्षेत्र",
+    shareCardAria: "साझा कार्ड छवि बनाएँ", recentListAria: "पिछला नव वर्ष भाग्य फिर से देखें",
+  },
+  es: {
+    qaCardAria: "Respuesta a tu pregunta", domainResultsAria: "Resultados de la consulta por categoría",
+    progressAria: "Progreso de generación de la consulta", letterAccordionAria: "Cartas de consulta de año nuevo — toca un mes para expandir",
+    monthDomainGridAria: "Fortalezas, debilidades y base por categoría",
+    monthCalendarAria: "Calendario de fortuna mensual — toca un mes para ver la fortuna por categoría",
+    introSectionAria: "Consulta de experto en fortuna de año nuevo", consultCardAria: "Resumen de preparación de la consulta",
+    heroBadgesAria: "Contenido de la consulta", profileLoadAria: "Cargar datos de nacimiento desde la tarjeta de perfil",
+    yearChipsAria: "Seleccionar año de consulta", yearInputAria: "Introducir el año de consulta manualmente",
+    categoryGridAria: "Área de consulta enfocada", shareCardAria: "Crear imagen de tarjeta para compartir",
+    recentListAria: "Ver consultas de año nuevo anteriores de nuevo",
+  },
+  fr: {
+    qaCardAria: "Réponse à votre question", domainResultsAria: "Résultats de consultation par catégorie",
+    progressAria: "Progression de la génération de la consultation", letterAccordionAria: "Lettres de consultation du Nouvel An — appuyez sur un mois pour développer",
+    monthDomainGridAria: "Forces, faiblesses et base par catégorie",
+    monthCalendarAria: "Calendrier de fortune mensuel — appuyez sur un mois pour voir la fortune par catégorie",
+    introSectionAria: "Consultation d'expert en fortune du Nouvel An", consultCardAria: "Résumé de préparation de la consultation",
+    heroBadgesAria: "Contenu de la consultation", profileLoadAria: "Charger les informations de naissance depuis la carte de profil",
+    yearChipsAria: "Sélectionner l'année de consultation", yearInputAria: "Saisir l'année de consultation manuellement",
+    categoryGridAria: "Domaine de consultation ciblé", shareCardAria: "Créer une image de carte à partager",
+    recentListAria: "Revoir les consultations du Nouvel An précédentes",
+  },
+  de: {
+    qaCardAria: "Antwort auf deine Frage", domainResultsAria: "Beratungsergebnisse nach Kategorie",
+    progressAria: "Fortschritt der Beratungserstellung", letterAccordionAria: "Neujahrsberatungsbriefe — auf einen Monat tippen zum Aufklappen",
+    monthDomainGridAria: "Stärken, Schwächen und Grundlage nach Kategorie",
+    monthCalendarAria: "Monatlicher Glückskalender — auf einen Monat tippen, um das Glück nach Kategorie zu sehen",
+    introSectionAria: "Neujahrs-Glücksexpertenberatung", consultCardAria: "Zusammenfassung der Beratungsvorbereitung",
+    heroBadgesAria: "Beratungsinhalt", profileLoadAria: "Geburtsdaten aus der Profilkarte laden",
+    yearChipsAria: "Beratungsjahr auswählen", yearInputAria: "Beratungsjahr manuell eingeben", categoryGridAria: "Fokus-Beratungsbereich",
+    shareCardAria: "Freigabekarten-Bild erstellen", recentListAria: "Frühere Neujahrsberatungen erneut ansehen",
+  },
+  nl: {
+    qaCardAria: "Antwoord op jouw vraag", domainResultsAria: "Adviesresultaten per categorie",
+    progressAria: "Voortgang van adviesgeneratie", letterAccordionAria: "Nieuwjaarsadviesbrieven — tik op een maand om uit te klappen",
+    monthDomainGridAria: "Sterktes, zwaktes en basis per categorie",
+    monthCalendarAria: "Maandelijkse fortuinkalender — tik op een maand om het fortuin per categorie te zien",
+    introSectionAria: "Nieuwjaarsfortuin-expertadvies", consultCardAria: "Samenvatting adviesvoorbereiding",
+    heroBadgesAria: "Adviesinhoud", profileLoadAria: "Geboortegegevens laden vanaf profielkaart",
+    yearChipsAria: "Adviesjaar selecteren", yearInputAria: "Adviesjaar handmatig invoeren", categoryGridAria: "Focus adviesgebied",
+    shareCardAria: "Deelkaartafbeelding maken", recentListAria: "Eerdere nieuwjaarsfortuinen opnieuw bekijken",
+  },
+  ms: {
+    qaCardAria: "Jawapan kepada soalan anda", domainResultsAria: "Keputusan rundingan mengikut kategori",
+    progressAria: "Kemajuan penjanaan rundingan", letterAccordionAria: "Surat rundingan tahun baharu — ketik bulan untuk kembangkan",
+    monthDomainGridAria: "Kekuatan, kelemahan dan asas mengikut kategori",
+    monthCalendarAria: "Kalendar nasib bulanan — ketik bulan untuk melihat nasib mengikut kategori",
+    introSectionAria: "Rundingan pakar nasib tahun baharu", consultCardAria: "Ringkasan persediaan rundingan",
+    heroBadgesAria: "Kandungan rundingan", profileLoadAria: "Muatkan maklumat kelahiran daripada kad profil",
+    yearChipsAria: "Pilih tahun rundingan", yearInputAria: "Masukkan tahun rundingan secara terus", categoryGridAria: "Bidang rundingan tumpuan",
+    shareCardAria: "Cipta imej kad kongsi", recentListAria: "Lihat semula nasib tahun baharu lepas",
+  },
+};
+
+function getNewYearAiCopy(locale: LoadingLocale): NewYearAiCopy {
+  return NEW_YEAR_AI_COPY[locale] || NEW_YEAR_AI_EN;
+}
+
+/** 이 파일 전용 로케일 훅 — 여러 하위 컴포넌트가 각자 useState+useEffect를 반복하지 않도록 공용화. */
+function useNewYearAiCopy(): NewYearAiCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const sync = () => setLocale(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => { window.removeEventListener("languagechange", sync); document.removeEventListener("cd:language-change", sync); };
+  }, []);
+  return getNewYearAiCopy(locale);
+}
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -473,8 +617,9 @@ function AssistantMessageContent({ content, sections }: { content: string; secti
 }
 
 function NewYearQuestionAnswerCard({ name, question, answer }: { name: string; question: string; answer: string }) {
+  const copy = useNewYearAiCopy();
   return (
-    <section className="nyai-question-answer" data-pdf-section="question-answer" aria-label="나만의 질문에 대한 답변">
+    <section className="nyai-question-answer" data-pdf-section="question-answer" aria-label={copy.qaCardAria}>
       <span className="nyai-eyebrow">{name ? `${name}님의 질문` : "나만의 질문"}</span>
       <blockquote className="nyai-qa-question">“{question}”</blockquote>
       <AiResultProse value={answer} className="nyai-qa-answer" />
@@ -501,10 +646,11 @@ function RevealBlock({ index = 0, children }: { index?: number; children: ReactN
 }
 
 function DomainConsultationCards({ bodies }: { bodies: Map<string, string> }) {
+  const copy = useNewYearAiCopy();
   const cards = DOMAIN_CARDS.filter((card) => bodies.get(card.key));
   if (!cards.length) return null;
   return (
-    <div className="nyai-domain-report" aria-label="분야별 상담 결과">
+    <div className="nyai-domain-report" aria-label={copy.domainResultsAria}>
       {cards.map((card, index) => (
         <RevealBlock key={card.key} index={index}>
           <section className="nyai-report-card" data-pdf-section={`domain-${card.key}`}>
@@ -551,6 +697,7 @@ function readingStageLabel(percent: number) {
 }
 
 function ReadingProgressPanel({ percent }: { percent: number }) {
+  const copy = useNewYearAiCopy();
   const rounded = Math.round(percent);
   return (
     <div className="nyai-progress" data-pdf-skip="true">
@@ -565,7 +712,7 @@ function ReadingProgressPanel({ percent }: { percent: number }) {
         aria-valuemax={100}
         aria-valuenow={rounded}
         aria-valuetext={`${readingStageLabel(percent)} ${rounded}%`}
-        aria-label="상담문 생성 진행률"
+        aria-label={copy.progressAria}
       >
         <i style={{ width: `${rounded}%` }} />
       </div>
@@ -589,12 +736,13 @@ function ReadingProgressPanel({ percent }: { percent: number }) {
 }
 
 function MonthlyLetterAccordion({ rows, letters }: { rows: MonthlyFlowRow[]; letters: Map<number, MonthLetter> }) {
+  const copy = useNewYearAiCopy();
   const months = rows.length === 12
     ? rows.map((row) => row.month)
     : Array.from(letters.keys()).sort((a, b) => a - b);
   if (!months.length) return null;
   return (
-    <section className="nyai-letter-accordion" data-pdf-section="monthly-letters" aria-label="새해 상담 편지지 — 월을 누르면 펼쳐집니다">
+    <section className="nyai-letter-accordion" data-pdf-section="monthly-letters" aria-label={copy.letterAccordionAria}>
       <div className="nyai-month-head">
         <strong>새해 상담 편지지</strong>
         <span>월을 누르면 그 달의 편지가 펼쳐집니다</span>
@@ -778,10 +926,11 @@ const DOMAIN_ORDER: { key: keyof MonthlyDomains; label: string; glyph: string }[
 const DOMAIN_LEVEL_CLASS: Record<string, string> = { 강: "strong", 중: "mid", 약: "weak" };
 
 function MonthDomainCards({ domains }: { domains: MonthlyDomains }) {
+  const copy = useNewYearAiCopy();
   const cards = DOMAIN_ORDER.map((item) => ({ ...item, signal: domains[item.key] })).filter((item) => item.signal);
   if (!cards.length) return null;
   return (
-    <div className="nyai-domain-grid" role="list" aria-label="도메인별 강약과 근거">
+    <div className="nyai-domain-grid" role="list" aria-label={copy.monthDomainGridAria}>
       {cards.map(({ key, label, glyph, signal }) => {
         const level = signal?.level || "중";
         return (
@@ -807,12 +956,13 @@ function MonthDomainCards({ domains }: { domains: MonthlyDomains }) {
 }
 
 function MonthlyFlowCalendar({ rows, letters }: { rows: MonthlyFlowRow[]; letters: Map<number, MonthLetter> }) {
+  const copy = useNewYearAiCopy();
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null);
   if (rows.length !== 12) return null;
   const selected = selectedMonth ? rows.find((row) => row.month === selectedMonth) : null;
   const selectedLetter = selected ? letters.get(selected.month) : null;
   return (
-    <section className="nyai-month-calendar" data-pdf-section="monthly-calendar" aria-label="월별 운세 캘린더 — 달을 누르면 도메인별 운세가 열립니다">
+    <section className="nyai-month-calendar" data-pdf-section="monthly-calendar" aria-label={copy.monthCalendarAria}>
       <div className="nyai-month-head">
         <strong>12개월 운세 캘린더</strong>
         <span>달을 누르면 총운·재물·애정·직업·건강과 그 달의 조언이 열립니다</span>
@@ -1412,6 +1562,7 @@ const NYAI_READING_ROOM_CSS = `
 `;
 
 export default function NewYearAiConsultationPage() {
+  const copy = useNewYearAiCopy();
   const [form, setForm] = useState<ConsultationForm>(() => buildInitialForm());
   const [status, setStatus] = useState<FlowStatus>("idle");
   const [notice, setNotice] = useState("");
@@ -1798,10 +1949,10 @@ export default function NewYearAiConsultationPage() {
 
   return (
     <main className="nyai-page" style={themeVars} data-season-element={seasonTheme.name}>
-      <section className="nyai-panel nyai-intro" aria-label="신년운세 전문가 상담">
+      <section className="nyai-panel nyai-intro" aria-label={copy.introSectionAria}>
         <div className="nyai-intro-art" aria-hidden="true" />
         <div className="nyai-orbit" aria-hidden="true" />
-        <div className="nyai-consult-card" aria-label="상담 준비 요약">
+        <div className="nyai-consult-card" aria-label={copy.consultCardAria}>
           <span className="nyai-eyebrow">상담 대상자 요약</span>
           <div className="nyai-consult-year">
             <span>상담 연도</span>
@@ -1823,7 +1974,7 @@ export default function NewYearAiConsultationPage() {
           <span className="nyai-eyebrow">서비스 소개</span>
           <h1><Moon size={20} aria-hidden="true" /> 신년운세 전문가 상담</h1>
           <p>새해의 기운이 당신에게 건네는 첫 번째 조언을 명식과 세운의 흐름으로 차분히 살펴드립니다.</p>
-          <div className="nyai-hero-badges" aria-label="상담 구성">
+          <div className="nyai-hero-badges" aria-label={copy.heroBadgesAria}>
             <span>사주 원국</span>
             <span>세운 분석</span>
             <span>월별 흐름</span>
@@ -1848,7 +1999,7 @@ export default function NewYearAiConsultationPage() {
               type="button"
               className="nyai-profile-load"
               onClick={loadFormFromProfileCard}
-              aria-label="프로필 카드에서 출생 정보 불러오기"
+              aria-label={copy.profileLoadAria}
             >
               프로필 카드에서 불러오기
             </button>
@@ -1884,7 +2035,7 @@ export default function NewYearAiConsultationPage() {
             </label>
             <div className="nyai-year-field">
               <span>상담 연도</span>
-              <div className="nyai-year-chips" role="radiogroup" aria-label="상담 연도 선택">
+              <div className="nyai-year-chips" role="radiogroup" aria-label={copy.yearChipsAria}>
                 {[currentYear, currentYear + 1].map((year) => {
                   const chipGanzi = yearGanzi(year);
                   const isActive = Number(form.targetYear) === year && !showCustomYear;
@@ -1925,7 +2076,7 @@ export default function NewYearAiConsultationPage() {
                   min="1900"
                   max="2100"
                   onChange={updateField("targetYear")}
-                  aria-label="상담 연도 직접 입력"
+                  aria-label={copy.yearInputAria}
                   required
                 />
               )}
@@ -1936,7 +2087,7 @@ export default function NewYearAiConsultationPage() {
               <strong>더 깊게 보고 싶은 흐름</strong>
               <span>{selectedFocusOption.label}</span>
             </div>
-            <div className="nyai-category-grid" role="radiogroup" aria-label="집중 상담 분야">
+            <div className="nyai-category-grid" role="radiogroup" aria-label={copy.categoryGridAria}>
               {FOCUS_AREA_OPTIONS.map((option) => (
                 <button
                   type="button"
@@ -1989,7 +2140,7 @@ export default function NewYearAiConsultationPage() {
             </div>
             {assistantMessages.length > 0 && (
               <div className="nyai-result-actions">
-                <button className="nyai-pdf-button" type="button" onClick={() => void handleShareCard()} disabled={isSharing} aria-label="공유 카드 이미지 만들기">
+                <button className="nyai-pdf-button" type="button" onClick={() => void handleShareCard()} disabled={isSharing} aria-label={copy.shareCardAria}>
                   {isSharing ? <Loader2 size={16} className="nyai-spin" /> : <Share2 size={16} />}
                   <span>{isSharing ? "카드 생성 중" : "공유 카드"}</span>
                 </button>
@@ -2008,7 +2159,7 @@ export default function NewYearAiConsultationPage() {
                 <p>아직 새해의 첫 문장이 열리지 않았습니다.</p>
                 <span>생년월일과 궁금한 흐름을 남기면, 원국과 세운이 맞물리는 지점부터 차분히 짚어드립니다.</span>
                 {recentSessions.length > 0 && (
-                  <div className="nyai-recent-list" aria-label="지난 신년운세 다시 보기">
+                  <div className="nyai-recent-list" aria-label={copy.recentListAria}>
                     <strong>지난 상담 다시 보기</strong>
                     {recentSessions.map((session) => (
                       <button
