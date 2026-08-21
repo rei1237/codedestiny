@@ -29,8 +29,145 @@ import { buildSukuyoCompatibilityPreviewPayload } from "@/lib/dev-preview/fixtur
 import SukuyoWheel from "@/components/fortune/SukuyoWheel";
 import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 const QUOTE_SEEN_STORAGE_KEY = "cd:sukuyo-compat-result:quote-seen:v1";
+
+// 접근성 속성(aria-label/title)만 다국어화한다 — 이 파일의 본문 표시 텍스트 전체 번역은
+// 훨씬 큰 별도 작업이라 이번 범위 밖이다(docs/handoff/global-i18n-audit-remaining.md 참고).
+type SukuyoCompatCopy = {
+  radarChartAria: string; summaryAria: string; scoreDetailAria: string; compareAria: string;
+  headlineAria: string; axisAria: string; insightAria: string; welcomeQuoteAria: string;
+  modalAria: string; modalCloseAria: string; detailDisclosureAria: string; chapterNavAria: string;
+  heroMetaAria: string; insightCardsAria: string; profileLoadAria: string; valueListAria: string;
+  recentBoxAria: string;
+};
+
+const SUKUYO_COMPAT_EN: SukuyoCompatCopy = {
+  radarChartAria: "Compatibility analysis chart", summaryAria: "Compatibility summary",
+  scoreDetailAria: "Score breakdown by category", compareAria: "Comparing the two people",
+  headlineAria: "One-line relationship summary", axisAria: "Relationship scores",
+  insightAria: "Key insight", welcomeQuoteAria: "First-visit welcome message",
+  modalAria: "Moonlight compatibility reply", modalCloseAria: "Close result",
+  detailDisclosureAria: "Detailed reading", chapterNavAria: "Compatibility report table of contents — tap a chapter to jump",
+  heroMetaAria: "Consultation basis", insightCardsAria: "What the Sukuyo compatibility consultation covers",
+  profileLoadAria: "Load birth info from profile card", valueListAria: "What you get from this consultation",
+  recentBoxAria: "View past compatibility readings",
+};
+
+const SUKUYO_COMPAT_COPY: Partial<Record<LoadingLocale, SukuyoCompatCopy>> = {
+  ko: {
+    radarChartAria: "궁합 분석 차트", summaryAria: "궁합 요약", scoreDetailAria: "항목별 지표", compareAria: "두 사람 비교",
+    headlineAria: "관계 한 줄 요약", axisAria: "관계 점수", insightAria: "핵심 인사이트", welcomeQuoteAria: "첫 방문 환영 문구",
+    modalAria: "달빛 궁합 답장", modalCloseAria: "결과 닫기", detailDisclosureAria: "상세 해설",
+    chapterNavAria: "궁합 리포트 목차 — 장을 눌러 이동", heroMetaAria: "상담 기준", insightCardsAria: "숙요점 궁합 상담 구성",
+    profileLoadAria: "프로필 카드에서 출생 정보 불러오기", valueListAria: "이 상담에서 받는 것", recentBoxAria: "지난 궁합 다시 보기",
+  },
+  ja: {
+    radarChartAria: "相性分析チャート", summaryAria: "相性の概要", scoreDetailAria: "項目別指標", compareAria: "二人の比較",
+    headlineAria: "関係性の一言まとめ", axisAria: "関係スコア", insightAria: "核心インサイト", welcomeQuoteAria: "初回訪問ウェルカムメッセージ",
+    modalAria: "月あかり相性の返信", modalCloseAria: "結果を閉じる", detailDisclosureAria: "詳細解説",
+    chapterNavAria: "相性レポート目次 — 章をタップして移動", heroMetaAria: "相談の基準", insightCardsAria: "宿曜相性相談の構成",
+    profileLoadAria: "プロフィールカードから生年情報を読み込む", valueListAria: "この相談で得られるもの", recentBoxAria: "過去の相性をもう一度見る",
+  },
+  "zh-CN": {
+    radarChartAria: "缘分分析图表", summaryAria: "缘分摘要", scoreDetailAria: "各项指标", compareAria: "两人比较",
+    headlineAria: "关系一句话总结", axisAria: "关系分数", insightAria: "核心洞察", welcomeQuoteAria: "首次访问欢迎语",
+    modalAria: "月光缘分回信", modalCloseAria: "关闭结果", detailDisclosureAria: "详细解读",
+    chapterNavAria: "缘分报告目录 — 点击章节跳转", heroMetaAria: "咨询依据", insightCardsAria: "宿曜缘分咨询构成",
+    profileLoadAria: "从档案卡加载出生信息", valueListAria: "本次咨询可获得的内容", recentBoxAria: "再次查看过往缘分",
+  },
+  "zh-TW": {
+    radarChartAria: "緣分分析圖表", summaryAria: "緣分摘要", scoreDetailAria: "各項指標", compareAria: "兩人比較",
+    headlineAria: "關係一句話總結", axisAria: "關係分數", insightAria: "核心洞察", welcomeQuoteAria: "首次造訪歡迎語",
+    modalAria: "月光緣分回信", modalCloseAria: "關閉結果", detailDisclosureAria: "詳細解讀",
+    chapterNavAria: "緣分報告目錄 — 點擊章節跳轉", heroMetaAria: "諮詢依據", insightCardsAria: "宿曜緣分諮詢構成",
+    profileLoadAria: "從檔案卡載入出生資訊", valueListAria: "本次諮詢可獲得的內容", recentBoxAria: "再次查看過往緣分",
+  },
+  vi: {
+    radarChartAria: "Biểu đồ phân tích tương hợp", summaryAria: "Tóm tắt mức độ tương hợp", scoreDetailAria: "Chỉ số theo từng mục",
+    compareAria: "So sánh hai người", headlineAria: "Tóm tắt mối quan hệ trong một câu", axisAria: "Điểm số mối quan hệ",
+    insightAria: "Nhận định cốt lõi", welcomeQuoteAria: "Lời chào lần đầu ghé thăm", modalAria: "Phản hồi tương hợp ánh trăng",
+    modalCloseAria: "Đóng kết quả", detailDisclosureAria: "Giải thích chi tiết",
+    chapterNavAria: "Mục lục báo cáo tương hợp — nhấn vào chương để chuyển", heroMetaAria: "Cơ sở tư vấn",
+    insightCardsAria: "Nội dung tư vấn tương hợp Sukuyo", profileLoadAria: "Tải thông tin sinh từ thẻ hồ sơ",
+    valueListAria: "Những gì bạn nhận được từ buổi tư vấn này", recentBoxAria: "Xem lại các lần xem tương hợp trước đây",
+  },
+  hi: {
+    radarChartAria: "अनुकूलता विश्लेषण चार्ट", summaryAria: "अनुकूलता सारांश", scoreDetailAria: "श्रेणी अनुसार संकेतक",
+    compareAria: "दोनों व्यक्तियों की तुलना", headlineAria: "रिश्ते का एक-पंक्ति सारांश", axisAria: "रिश्ते के अंक",
+    insightAria: "मुख्य अंतर्दृष्टि", welcomeQuoteAria: "पहली बार आने पर स्वागत संदेश", modalAria: "चांदनी अनुकूलता का उत्तर",
+    modalCloseAria: "परिणाम बंद करें", detailDisclosureAria: "विस्तृत व्याख्या",
+    chapterNavAria: "अनुकूलता रिपोर्ट सूची — अध्याय पर टैप करके जाएँ", heroMetaAria: "परामर्श आधार",
+    insightCardsAria: "सुक्यो अनुकूलता परामर्श संरचना", profileLoadAria: "प्रोफ़ाइल कार्ड से जन्म जानकारी लोड करें",
+    valueListAria: "इस परामर्श से आपको क्या मिलता है", recentBoxAria: "पिछली अनुकूलता फिर से देखें",
+  },
+  es: {
+    radarChartAria: "Gráfico de análisis de compatibilidad", summaryAria: "Resumen de compatibilidad",
+    scoreDetailAria: "Indicadores por categoría", compareAria: "Comparación de ambas personas",
+    headlineAria: "Resumen de la relación en una frase", axisAria: "Puntuaciones de la relación", insightAria: "Idea clave",
+    welcomeQuoteAria: "Mensaje de bienvenida de primera visita", modalAria: "Respuesta de compatibilidad lunar",
+    modalCloseAria: "Cerrar resultado", detailDisclosureAria: "Explicación detallada",
+    chapterNavAria: "Índice del informe de compatibilidad — toca un capítulo para saltar", heroMetaAria: "Base de la consulta",
+    insightCardsAria: "Estructura de la consulta de compatibilidad Sukuyo", profileLoadAria: "Cargar datos de nacimiento desde la tarjeta de perfil",
+    valueListAria: "Lo que obtienes de esta consulta", recentBoxAria: "Ver compatibilidades anteriores de nuevo",
+  },
+  fr: {
+    radarChartAria: "Graphique d'analyse de compatibilité", summaryAria: "Résumé de compatibilité",
+    scoreDetailAria: "Indicateurs par catégorie", compareAria: "Comparaison des deux personnes",
+    headlineAria: "Résumé de la relation en une phrase", axisAria: "Scores de la relation", insightAria: "Idée clé",
+    welcomeQuoteAria: "Message de bienvenue pour la première visite", modalAria: "Réponse de compatibilité au clair de lune",
+    modalCloseAria: "Fermer le résultat", detailDisclosureAria: "Explication détaillée",
+    chapterNavAria: "Sommaire du rapport de compatibilité — appuyez sur un chapitre pour y accéder", heroMetaAria: "Base de la consultation",
+    insightCardsAria: "Structure de la consultation de compatibilité Sukuyo", profileLoadAria: "Charger les informations de naissance depuis la carte de profil",
+    valueListAria: "Ce que vous obtenez de cette consultation", recentBoxAria: "Revoir les compatibilités précédentes",
+  },
+  de: {
+    radarChartAria: "Kompatibilitätsanalyse-Diagramm", summaryAria: "Kompatibilitätsübersicht",
+    scoreDetailAria: "Kennzahlen nach Kategorie", compareAria: "Vergleich der beiden Personen",
+    headlineAria: "Ein-Satz-Zusammenfassung der Beziehung", axisAria: "Beziehungswerte", insightAria: "Zentrale Erkenntnis",
+    welcomeQuoteAria: "Willkommensnachricht beim ersten Besuch", modalAria: "Mondlicht-Kompatibilitätsantwort",
+    modalCloseAria: "Ergebnis schließen", detailDisclosureAria: "Ausführliche Erklärung",
+    chapterNavAria: "Inhaltsverzeichnis des Kompatibilitätsberichts — auf ein Kapitel tippen, um zu springen", heroMetaAria: "Grundlage der Beratung",
+    insightCardsAria: "Aufbau der Sukuyo-Kompatibilitätsberatung", profileLoadAria: "Geburtsdaten aus der Profilkarte laden",
+    valueListAria: "Was du aus dieser Beratung erhältst", recentBoxAria: "Frühere Kompatibilitäten erneut ansehen",
+  },
+  nl: {
+    radarChartAria: "Compatibiliteitsanalysegrafiek", summaryAria: "Compatibiliteitsoverzicht",
+    scoreDetailAria: "Indicatoren per categorie", compareAria: "Vergelijking van de twee personen",
+    headlineAria: "Eénregelige samenvatting van de relatie", axisAria: "Relatiescores", insightAria: "Kernidee",
+    welcomeQuoteAria: "Welkomstbericht bij eerste bezoek", modalAria: "Maanlicht-compatibiliteitsantwoord",
+    modalCloseAria: "Resultaat sluiten", detailDisclosureAria: "Gedetailleerde uitleg",
+    chapterNavAria: "Inhoudsopgave compatibiliteitsrapport — tik op een hoofdstuk om te springen", heroMetaAria: "Basis van het consult",
+    insightCardsAria: "Opbouw van het Sukuyo-compatibiliteitsconsult", profileLoadAria: "Geboortegegevens laden vanaf profielkaart",
+    valueListAria: "Wat je uit dit consult haalt", recentBoxAria: "Eerdere compatibiliteiten opnieuw bekijken",
+  },
+  ms: {
+    radarChartAria: "Carta analisis keserasian", summaryAria: "Ringkasan keserasian", scoreDetailAria: "Penunjuk mengikut kategori",
+    compareAria: "Perbandingan kedua-dua orang", headlineAria: "Ringkasan hubungan dalam satu ayat", axisAria: "Skor hubungan",
+    insightAria: "Wawasan utama", welcomeQuoteAria: "Mesej alu-aluan lawatan pertama", modalAria: "Balasan keserasian cahaya bulan",
+    modalCloseAria: "Tutup keputusan", detailDisclosureAria: "Penjelasan terperinci",
+    chapterNavAria: "Kandungan laporan keserasian — ketik bab untuk melompat", heroMetaAria: "Asas rundingan",
+    insightCardsAria: "Struktur rundingan keserasian Sukuyo", profileLoadAria: "Muatkan maklumat kelahiran daripada kad profil",
+    valueListAria: "Apa yang anda perolehi daripada rundingan ini", recentBoxAria: "Lihat semula keserasian lepas",
+  },
+};
+
+function getSukuyoCompatCopy(locale: LoadingLocale): SukuyoCompatCopy {
+  return SUKUYO_COMPAT_COPY[locale] || SUKUYO_COMPAT_EN;
+}
+
+/** 이 파일 전용 로케일 훅 — 여러 하위 컴포넌트가 각자 useState+useEffect를 반복하지 않도록 공용화. */
+function useSukuyoCompatCopy(): SukuyoCompatCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const sync = () => setLocale(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => { window.removeEventListener("languagechange", sync); document.removeEventListener("cd:language-change", sync); };
+  }, []);
+  return getSukuyoCompatCopy(locale);
+}
 
 type CalendarType = "solar" | "lunar";
 type ConsultationType = "personal" | "compatibility";
@@ -692,6 +829,7 @@ function StarCard({ person }: { person: CompatPersonMeta }) {
 }
 
 function ScoreRadarChart({ scores }: { scores: CompatResult["meta"]["scores"] }) {
+  const copy = useSukuyoCompatCopy();
   const radius = 100;
   const cx = 160;
   const cy = 160;
@@ -703,7 +841,7 @@ function ScoreRadarChart({ scores }: { scores: CompatResult["meta"]["scores"] })
   const dataPath = `${dataPoints.map((point, index) => `${index === 0 ? "M" : "L"}${point.x},${point.y}`).join(" ")} Z`;
 
   return (
-    <svg viewBox="0 0 320 320" className={styles.radarChart} aria-label="궁합 분석 차트">
+    <svg viewBox="0 0 320 320" className={styles.radarChart} aria-label={copy.radarChartAria}>
       {[0.25, 0.5, 0.75, 1].map((ratio) => {
         const points = SCORE_AXES.map((axis) => toXY(axis.angle, radius * ratio));
         return <polygon key={ratio} points={points.map((point) => `${point.x},${point.y}`).join(" ")} fill="none" stroke="rgba(255,255,255,0.08)" strokeWidth="1" />;
@@ -780,10 +918,11 @@ function chunkReadingSections(sections: Record<string, { title: string; body: st
 
 // 요약 헤더: 두 별을 잇는 별자리 라인 + 궁합 게이지 + "운명적 끌림 vs 현실적 조율" 듀얼 미터
 function CompatSummaryHeader({ meta }: { meta: CompatResult["meta"] }) {
+  const copy = useSukuyoCompatCopy();
   const pull = Math.round(((meta.scores.destiny + meta.scores.emotion) / 40) * 100);
   const tune = Math.round(((meta.scores.stability + meta.scores.harmony) / 40) * 100);
   return (
-    <section className={styles.summaryHeaderCard} aria-label="궁합 요약">
+    <section className={styles.summaryHeaderCard} aria-label={copy.summaryAria}>
       <SukuyoWheel
         myHanja={meta.person_a.sukuyo_hanja}
         partnerHanja={meta.person_b.sukuyo_hanja}
@@ -824,6 +963,7 @@ function ChapterReadingArticle({ sectionKey, section }: { sectionKey: string; se
 }
 
 function ScoreDetailSection({ scores }: { scores: CompatResult["meta"]["scores"] }) {
+  const copy = useSukuyoCompatCopy();
   const entries = (Object.entries(BAR_LABELS) as [ScoreKey, string][]).map(([key, label]) => ({
     key,
     label,
@@ -832,7 +972,7 @@ function ScoreDetailSection({ scores }: { scores: CompatResult["meta"]["scores"]
   const top = entries.reduce((best, item) => (item.score > best.score ? item : best));
   const bottom = entries.reduce((worst, item) => (item.score < worst.score ? item : worst));
   return (
-    <section className={styles.scoreDetailSection} aria-label="항목별 지표">
+    <section className={styles.scoreDetailSection} aria-label={copy.scoreDetailAria}>
       <h2>항목별 지표</h2>
       <div className={styles.chartGrid}>
         <ScoreRadarChart scores={scores} />
@@ -844,10 +984,11 @@ function ScoreDetailSection({ scores }: { scores: CompatResult["meta"]["scores"]
 }
 
 function CompareSection({ a, b }: { a: CompatPersonMeta; b: CompatPersonMeta }) {
+  const copy = useSukuyoCompatCopy();
   const compareKeys: (keyof CompatPersonMeta)[] = ["sukuyo", "group", "element", "yin_yang", "guardian", "keyword"];
   const sameCount = compareKeys.filter((key) => a[key] === b[key]).length;
   return (
-    <section className={styles.compareSection} aria-label="두 사람 비교">
+    <section className={styles.compareSection} aria-label={copy.compareAria}>
       <h2>두 사람 비교</h2>
       <TraitCompareTable a={a} b={b} />
       <p className={styles.sectionCaption}>{compareKeys.length}개 항목 중 {sameCount}개 일치</p>
@@ -885,8 +1026,9 @@ function SukuyoReveal({ children, index = 0, forceVisible = false, className }: 
 
 /** ① 관계 한 줄 요약 — 큰 타이포, 가운데. */
 function HeadlineSection({ headline, meta }: { headline: string; meta: CompatResult["meta"] }) {
+  const copy = useSukuyoCompatCopy();
   return (
-    <section className={styles.headlineSection} aria-label="관계 한 줄 요약">
+    <section className={styles.headlineSection} aria-label={copy.headlineAria}>
       <span className={styles.headlineEyebrow}>
         {meta.person_a.sukuyo} ✦ {meta.person_b.sukuyo} · {meta.relation.type_a_to_b}
       </span>
@@ -906,10 +1048,11 @@ function AxisStarSection({ axes, notes, forceVisible = false }: {
   notes: CompatResult["scoreNotes"];
   forceVisible?: boolean;
 }) {
+  const copy = useSukuyoCompatCopy();
   const rows = AXIS_ROWS.filter((row) => Number.isFinite(Number(axes[row.key]?.score)));
   if (!rows.length) return null;
   return (
-    <section className={styles.axisSection} aria-label="관계 점수">
+    <section className={styles.axisSection} aria-label={copy.axisAria}>
       <h2>관계 점수</h2>
       <ul className={styles.axisList}>
         {rows.map((row, index) => {
@@ -939,8 +1082,9 @@ function AxisStarSection({ axes, notes, forceVisible = false }: {
 
 /** ③ AI 핵심 인사이트 — 이 관계의 본질 한 문단. */
 function InsightSection({ insight }: { insight: string }) {
+  const copy = useSukuyoCompatCopy();
   return (
-    <section className={styles.insightSection} aria-label="핵심 인사이트">
+    <section className={styles.insightSection} aria-label={copy.insightAria}>
       <h2>이 관계의 본질</h2>
       <div className={styles.insightBody}><AiResultProse value={insight} /></div>
     </section>
@@ -948,8 +1092,9 @@ function InsightSection({ insight }: { insight: string }) {
 }
 
 function QuoteWelcomeCard({ quote }: { quote: string }) {
+  const copy = useSukuyoCompatCopy();
   return (
-    <section className={styles.welcomeQuoteCard} aria-label="첫 방문 환영 문구">
+    <section className={styles.welcomeQuoteCard} aria-label={copy.welcomeQuoteAria}>
       <span aria-hidden="true">☾</span>
       <p>{quote}</p>
     </section>
@@ -957,6 +1102,7 @@ function QuoteWelcomeCard({ quote }: { quote: string }) {
 }
 
 function CompatResultModal({ result, onClose, onDownloadError, basis = null }: { result: CompatResult; onClose: () => void; onDownloadError: (message: string) => void; basis?: AnalysisBasis | null }) {
+  const copy = useSukuyoCompatCopy();
   const [isDownloading, setIsDownloading] = useState(false);
   const { meta, sections } = result;
   const readingPages = useMemo(() => chunkReadingSections(sections), [sections]);
@@ -1017,7 +1163,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
   };
 
   return (
-    <div className={styles.resultModal} role="dialog" aria-modal="true" aria-label="달빛 궁합 답장">
+    <div className={styles.resultModal} role="dialog" aria-modal="true" aria-label={copy.modalAria}>
       <header className={styles.modalHeader}>
         <div>
           <h2>달빛 궁합 답장</h2>
@@ -1032,7 +1178,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
             {isDownloading ? <Loader2 size={16} className={styles.spin} /> : <Download size={16} />}
             PDF 저장
           </button>
-          <button type="button" onClick={onClose} aria-label="결과 닫기">
+          <button type="button" onClick={onClose} aria-label={copy.modalCloseAria}>
             <X size={16} />
             닫기
           </button>
@@ -1057,7 +1203,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
         )}
         <ScoreDetailSection scores={meta.scores} />
         <CompareSection a={meta.person_a} b={meta.person_b} />
-        <section className={styles.detailDisclosure} aria-label="상세 해설">
+        <section className={styles.detailDisclosure} aria-label={copy.detailDisclosureAria}>
           <button
             type="button"
             aria-expanded={detailOpen}
@@ -1084,7 +1230,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
             </nav>
           )}
           <div id="compat-detail-panel" hidden={!detailOpen}>
-            <nav className={styles.chapterNav} aria-label="궁합 리포트 목차 — 장을 눌러 이동">
+            <nav className={styles.chapterNav} aria-label={copy.chapterNavAria}>
               {chapterEntries.map(([key, section], index) => (
                 <button
                   key={key}
@@ -1205,6 +1351,7 @@ type RecentConsultation = {
 };
 
 export default function SukuyoCompatibilityAiClient() {
+  const copy = useSukuyoCompatCopy();
   const reduceMotion = useReducedMotion() === true;
   const [personA, setPersonA] = useState<PersonForm>(() => buildInitialPersonA());
   const [personB, setPersonB] = useState<PersonForm>({ ...EMPTY_PERSON });
@@ -1686,13 +1833,13 @@ export default function SukuyoCompatibilityAiClient() {
             <p className={styles.eyebrow}><Moon size={15} /> ☾ 27숙 달빛 궁합</p>
             <h2>두 사람의 달빛 자리를 엽니다</h2>
             <p>본명숙과 관계 거리를 바탕으로 끌림, 갈등, 오래 머무는 마음의 리듬을 차분히 풀어드립니다.</p>
-            <div className={styles.heroMeta} aria-label="상담 기준">
+            <div className={styles.heroMeta} aria-label={copy.heroMetaAria}>
               <span><Orbit size={14} /> 27숙 본명숙</span>
               <span><CalendarDays size={14} /> 관계 거리</span>
               <span><HeartHandshake size={14} /> 인연 리듬</span>
               <span><Sparkles size={14} /> 전문가 상담문</span>
             </div>
-            <div className={styles.insightCards} aria-label="숙요점 궁합 상담 구성">
+            <div className={styles.insightCards} aria-label={copy.insightCardsAria}>
               {CONSULTATION_CARDS.map(({ icon: Icon, title, text }, index) => (
                 <m.article
                   key={title}
@@ -1728,7 +1875,7 @@ export default function SukuyoCompatibilityAiClient() {
                       type="button"
                       onClick={loadPersonAFromProfileCard}
                       className="shrink-0 rounded-lg border border-[#ffe8b6]/30 bg-[#ffe8b6]/10 px-2 py-1 text-xs font-bold text-[#ffe8b6] transition hover:bg-[#ffe8b6]/20"
-                      aria-label="프로필 카드에서 출생 정보 불러오기"
+                      aria-label={copy.profileLoadAria}
                     >
                       프로필 카드에서 불러오기
                     </button>
@@ -1767,7 +1914,7 @@ export default function SukuyoCompatibilityAiClient() {
                   </div>
                 </div>
                 {/* 폼 진행률 옆에는 "곧 선명해진다"는 예고가 아니라, 실제로 무엇을 받는지를 둔다. */}
-                <ul className={styles.valueList} aria-label="이 상담에서 받는 것">
+                <ul className={styles.valueList} aria-label={copy.valueListAria}>
                   {CONSULTATION_VALUES.map((item) => (
                     <li key={item.title}>
                       <span aria-hidden="true">✔</span>
@@ -1797,7 +1944,7 @@ export default function SukuyoCompatibilityAiClient() {
               </div>
 
               {recentList.length > 0 && (
-                <div className={styles.recentBox} aria-label="지난 궁합 다시 보기">
+                <div className={styles.recentBox} aria-label={copy.recentBoxAria}>
                   <strong>지난 달빛 궁합 다시 보기</strong>
                   {recentList.slice(0, 5).map((item) => (
                     <button key={item.id} type="button" className={styles.recentItem} onClick={() => void loadRecentConsultation(item.id)} disabled={busy}>
