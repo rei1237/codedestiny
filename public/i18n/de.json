@@ -7668,5 +7668,38 @@
       "keepValue": "Als PDF speichern und dauerhaft behalten",
       "guarantee": "Jedes zu kurze Kapitel wird automatisch neu geschrieben, bis zu zweimal. Wird die Vorgabe dennoch nicht erreicht, gilt die Anfrage als fehlgeschlagen statt ausgeliefert — Wiederholung und Erstattung bleiben damit offen."
     }
+  },
+  "withdrawModal": {
+    "title": "Konto löschen",
+    "closeAriaLabel": "Dialog schließen",
+    "csrfFetchError": "Sicherheits-Token konnte nicht geladen werden. Bitte versuche es in Kürze erneut.",
+    "consentRequired": "Bitte kreuze alle erforderlichen Zustimmungen an.",
+    "confirmMismatch": "Bitte gib genau \"회원탈퇴\" ein.",
+    "passwordTooShort": "Bitte gib dein aktuelles Passwort ein (mindestens 8 Zeichen).",
+    "csrfMissing": "Sicherheits-Token fehlt. Bitte lade die Seite neu und versuche es erneut.",
+    "networkError": "Ein Netzwerkfehler ist aufgetreten. Bitte versuche es in Kürze erneut.",
+    "genericError": "Beim Löschen des Kontos ist ein Fehler aufgetreten.",
+    "successTitle": "Dein Konto wurde gelöscht",
+    "successThanks": "Vielen Dank, dass du Code Destiny genutzt hast.",
+    "successErased": "Alle deine persönlichen Daten wurden sofort gelöscht.",
+    "successRedirect": "Weiterleitung zur Startseite in 3 Sekunden…",
+    "warningHeading": "Bitte bestätige, bevor du dein Konto löschst",
+    "warningPointsPrefix": "Deine Punkte und all deine Daten werden",
+    "warningPointsStrong": "sofort und dauerhaft gelöscht",
+    "warningPointsSuffix": ".",
+    "warningRejoinPrefix": "Wenn du dich mit derselben E-Mail-Adresse erneut registrierst, können deine vorherigen Daten",
+    "warningRejoinStrong": "nicht wiederhergestellt werden",
+    "warningRejoinSuffix": ".",
+    "warningRetention": "Zahlungs- und Transaktionsaufzeichnungen werden gesetzlich vorgeschrieben 5 Jahre lang anonymisiert aufbewahrt.",
+    "passwordLabel": "Aktuelles Passwort bestätigen",
+    "passwordPlaceholder": "Gib dein aktuelles Passwort ein",
+    "confirmLabel": "Zur Bestätigung der Löschung eingeben",
+    "confirmHintPrefix": "Gib \"",
+    "confirmHintSuffix": "\" (koreanisch für „Mitgliedschaft kündigen“) in das Feld unten ein.",
+    "agreeIrreversible": "Ich verstehe und stimme zu, dass beim Löschen meines Kontos alle meine Daten unwiderruflich gelöscht werden.",
+    "agreeDataRetention": "Ich stimme zu, dass Zahlungs- und Transaktionsaufzeichnungen gemäß dem E-Commerce-Gesetz 5 Jahre lang anonymisiert aufbewahrt werden.",
+    "cancel": "Abbrechen",
+    "submit": "Konto löschen",
+    "submitting": "Wird verarbeitet…"
   }
 }
