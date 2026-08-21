@@ -165,10 +165,7 @@ export const viewport = {
 // "꿀꿀 운세 — Code Destiny" vs buildWebsiteJsonLd 기본값 "Code Destiny"(2026-08-16 실측).
 // 이제 override 를 없애 세 번째 값이 생길 자리를 아예 지웠다. 셸과의 일치는
 // __tests__/ui/locale-footer.static.test.js 가 강제한다.
-const BRAND_WEBSITE_JSON_LD = {
-  ...buildWebsiteJsonLd("ko"),
-  description: "생년월일로 무료 사주팔자·타로·궁합·신년운세를 제공하는 한국 운세 플랫폼",
-};
+const BRAND_WEBSITE_JSON_LD = buildWebsiteJsonLd("ko");
 
 // 🔴 WebPage 노드를 여기에 넣지 말 것. 이 layout 은 모든 Next 라우트의 <head> 이므로
 // 홈 기준 WebPage 를 박으면 전 페이지가 "나는 홈페이지"라고 선언하게 된다
