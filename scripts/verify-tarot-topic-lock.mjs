@@ -23,6 +23,7 @@ import { getTarotCardByAnyId, TAROT_CARDS } from "../lib/tarot/tarot-cards.mjs";
 import { buildLoveReadingPrompt } from "../lib/tarot/love-reading-llm.mjs";
 import { buildMindscanPrompt } from "../lib/tarot/mindscan-reading.mjs";
 import { buildCrystalSoulV3Reading } from "../lib/tarot/crystal-soul-reading.mjs";
+import { buildOutputLanguageDirective } from "../lib/i18n/ai-locale.js";
 
 const MYEONGRI_ENGINE_PATH = "js/saju-engine-tarot-sukuyo-quantum.js";
 const MYEONGRI_TOPICS = ["daily", "love", "reunion", "career", "money", "health", "exam", "people"];
@@ -281,6 +282,32 @@ function verifyPrompts() {
   });
   const mindscanMissing = TOPIC_LOCK_PROMPT_MARKERS.filter((marker) => !mindscanPrompt.includes(marker));
   check("마인드 스캔 프롬프트에 domain lock 포함", mindscanMissing.length === 0, mindscanMissing.join(" | "));
+
+  // locale 플러밍 회귀 방지 — 비-ko 로케일에서도 domain lock 이 살아남고 출력 언어 지시문이 붙는지 확인
+  const deDirective = buildOutputLanguageDirective("de");
+  const lovePromptDe = buildLoveReadingPrompt(
+    {
+      relationshipMatrix: { sequenceFlow: "flow" },
+      positionBreakdown: [
+        { positionOrder: 1, positionTitle: "내 마음", cardName: "펜타클 4", cardId: "P04", orientation: "upright", orientationLabel: "정방향", keywords: ["안정"] },
+      ],
+    },
+    "de",
+    { userQuestion: "이 관계가 이어질까요?" },
+  );
+  check("연애 리딩 프롬프트(de)에 독일어 출력 지시문 포함", lovePromptDe.includes(deDirective));
+  const lovePromptDeMissing = TOPIC_LOCK_PROMPT_MARKERS.filter((marker) => !lovePromptDe.includes(marker));
+  check("연애 리딩 프롬프트(de)도 domain lock 유지", lovePromptDeMissing.length === 0, lovePromptDeMissing.join(" | "));
+
+  const mindscanPromptDe = buildMindscanPrompt({
+    question: "헤어진 상대에게서 다시 연락이 올까요?",
+    questionKeywords: ["연락"],
+    pairs: [{ positionLabel: "1", positionQuestion: "q", positionPurpose: "p", positionMeaning: "m", mainCard: {}, subCard: {}, orientation: "upright" }],
+    locale: "de",
+  });
+  check("마인드 스캔 프롬프트(de)에 독일어 출력 지시문 포함", mindscanPromptDe.includes(deDirective));
+  const mindscanPromptDeMissing = TOPIC_LOCK_PROMPT_MARKERS.filter((marker) => !mindscanPromptDe.includes(marker));
+  check("마인드 스캔 프롬프트(de)도 domain lock 유지", mindscanPromptDeMissing.length === 0, mindscanPromptDeMissing.join(" | "));
 
   // 크리스탈 소울 — 고정 4도메인 목차가 사라져야 한다
   const crystal = buildCrystalSoulV3Reading({ gem: { id: "rose_quartz" } });
