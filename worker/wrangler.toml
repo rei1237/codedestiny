@@ -107,6 +107,11 @@ bucket_name = "codedestinyassets"
 # `wrangler secret put TURNSTILE_SECRET_KEY`
 [vars]
 NODE_ENV = "production"
+# 🔴 결제 전용 소켓 레인 — 스테이징 재실측(2026-08-20 wrangler tail: DB_BUSY 503 재현) 후 켰고,
+# 2026-08-21 재실측(체크아웃 3회, wrangler tail)에서도 /api/billing/checkout·/api/prepare/v2 가
+# 3회 모두 200 OK 였다. 자가복구(resetPaymentConnection)는 이미 배선돼 있다(worker/payments/db.js).
+# 상세 근거는 worker/wrangler.staging.toml 의 같은 키 주석. 되돌리기는 이 한 줄 제거다.
+PAYMENTS_DB_SOCKET_LANE = "1"
 ACCESS_STATE_ENABLED = "true"
 # 관리자 인증을 통과한 마케팅 월정석 예외 지급 UI/API를 운영에서 활성화한다.
 ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
