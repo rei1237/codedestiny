@@ -302,9 +302,10 @@ assertContains(destinyProfileSource, "CodeDestinyPaymentService", "standalone pa
 // openPaidFeatureGate + runBillingCoinGate 패턴 기능도 공통 게이트를 거쳐야 한다(직접 PortOne/points 직행 금지).
 const gateRunBillingFeatureSources = [
   { label: "destiny-meeting-place", source: readFileSync(resolve(root, "app/saju/destiny-meeting-place/components/DestinyMeetingPlacePage.tsx"), "utf8") },
-  { label: "destiny-bias", source: readFileSync(resolve(root, "app/saju/destiny-bias/DestinyBiasClient.tsx"), "utf8") },
   { label: "palm-reading", source: readFileSync(resolve(root, "app/palm-reading/PalmDestinyMain.tsx"), "utf8") },
 ];
+// destiny-bias(최애운명)는 2026-08-21부로 전면 무료 전환되어 공용 코인 게이트를 거치지 않는다.
+// DestinyBiasClient.tsx 는 이제 openPaidFeatureGate/runBillingCoinGate 를 호출하지 않는다(의도된 변경).
 for (const feature of gateRunBillingFeatureSources) {
   const commonGateMarker = feature.source.includes("runPaidAccessGate") ? "runPaidAccessGate" : "runBillingCoinGate";
   assertContains(feature.source, "openPaidFeatureGate", `${feature.label} opens paid gate overlay`);

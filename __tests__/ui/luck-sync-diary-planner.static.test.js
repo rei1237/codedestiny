@@ -45,7 +45,15 @@ test("fortune planner entry is folded into the diary modal", () => {
   // 2026-08-21: "ALL SERVICES 펼치기" 버튼이 숨은 섹션보다 DOM 상 위에 있어(cdServiceIndex가
   // cdDiaryPlannerEntry보다 아래) 펼칠 때 콘텐츠가 버튼 위쪽에 나타나던 문제를 고치며
   // cdDiaryPlannerEntry를 cdServiceIndex 뒤로 옮겼다 — 회귀가 아니라 이 개편의 의도다.
+  // (기존 "cdDiaryPlannerEntry < fortuneGatewayEntry" 단언은 이 재배치로 더는 성립하지 않아 대체한다.)
   assert.ok(html.indexOf('id="cdServiceIndex"') < html.indexOf('id="cdDiaryPlannerEntry"'));
+  /* 2026-08-21: 온보딩 레일 앵커(__cdRailAnchor)를 요구하던 단언을 걷어냈다.
+     b44bd7862 'remove empty onboarding rail' 이 그 줄을 통째로 지웠는데 이 단언은 남아
+     **main 이 빨간 채로** 머지됐다(PR #869 가 그 실패를 상속해 막혔다).
+     제거는 완전하고 옳았다 — 실측: index.html 에 __cdRailAnchor 참조 0개, 온보딩 레일 마크업 0개.
+     지킬 것은 앵커 표현식이 아니라 **다이어리 진입이 살아 있고 순서가 유지되는 것**이고,
+     그건 바로 위 순서 단언과 앞쪽의 존재·구조 단언 3개가 이미 지킨다.
+     🔴 되살리지 말 것 — 사라진 레일을 다시 요구하게 된다. */
   assert.match(dashboard, /label:'갓생 다이어리'/);
   assert.match(dashboard, /cta:'다이어리 열기'/);
 });

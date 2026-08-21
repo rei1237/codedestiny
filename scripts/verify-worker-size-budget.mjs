@@ -33,10 +33,22 @@ const rootDir = process.cwd();
 // withTransaction 호출을 "시간 상한 없는 위반"으로 신고하며 실제로 깨졌다).
 const bundleDir = resolve(rootDir, process.env.CF_WORKER_BUNDLE_DIR || "build-cache/worker-bundle");
 
-// Cloudflare Workers 무료 플랜: 3 MiB 압축(gzip). 유료 플랜이면 env 로 올린다.
+// Cloudflare Workers 스크립트 크기 상한(gzip 압축 후): **무료 3 MiB · 유료 10 MiB**.
+//
+// 🔴 2026-08-21 에 기본값을 유료 한도로 올렸다. 근거는 Workers Paid 전환이고, 그 전환이
+// 실제로 반영된 간접 증거는 Smart Placement 가 진짜 상태값을 돌려준다는 것이다
+// (placement_status=SUCCESS — 유료 전용 기능, worker/wrangler.toml 의 [placement] 주석 참고).
+// 계정 구독을 API 로 직접 읽는 것은 wrangler OAuth 토큰에 billing 스코프가 없어 401 이라 못 한다.
+//
+// 플랜이 무료로 되돌아가면 여기서 통과한 번들이 wrangler 업로드 단계에서 거부된다.
+// 이 가드는 **조기 경보이지 마지막 방어선이 아니므로** 그 실패는 조용하지 않다.
+//
+// 실측 2026-08-21: gzip 2.39 MiB = 무료 한도의 79.7%, 유료 한도의 23.9%.
+// 무료 한도로 되돌리려면 CF_WORKER_MAIN_BUDGET_BYTES 로 덮는다.
 const CF_FREE_LIMIT_BYTES = 3 * 1024 * 1024;
+const CF_PAID_LIMIT_BYTES = 10 * 1024 * 1024;
 const MAX_GZIP_BYTES = Number.parseInt(
-  process.env.CF_WORKER_MAIN_BUDGET_BYTES || String(CF_FREE_LIMIT_BYTES),
+  process.env.CF_WORKER_MAIN_BUDGET_BYTES || String(CF_PAID_LIMIT_BYTES),
   10,
 );
 // 한도에 닿기 전에 알린다. 96% 에서 처음 알게 되면 이미 손쓸 여지가 없다.
@@ -111,6 +123,15 @@ if (gzipBytes > MAX_GZIP_BYTES) {
   console.error(`  gzip ${toMiB(gzipBytes)} MiB > 예산 ${toMiB(MAX_GZIP_BYTES)} MiB`);
   printHeavyFiles(console.error);
   process.exit(2);
+}
+
+/* 🔴 예산을 유료 한도로 올린 뒤에는 "예산 안" 이 곧 "무료 플랜에서도 된다" 를 뜻하지 않는다.
+   그 구분이 출력에 없으면, 플랜을 내리는 순간 배포가 막히는 것을 아무도 미리 모른다. */
+if (gzipBytes > CF_FREE_LIMIT_BYTES) {
+  console.warn(
+    `[verify-worker-size-budget] 참고: 무료 플랜 한도(${toMiB(CF_FREE_LIMIT_BYTES)} MiB)는 이미 넘었다`
+    + ` — Workers Paid 를 해지하면 이 번들은 업로드 자체가 거부된다.`,
+  );
 }
 
 if (usedRatio >= WARN_RATIO) {

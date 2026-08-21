@@ -4,7 +4,6 @@ import { AnimatePresence, m, useReducedMotion } from "framer-motion";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState, type ChangeEvent, type CSSProperties } from "react";
-import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import { readSanitizedAuthUser } from "@/app/_lib/auth-storage";
 import { readCurrentDestinyProfile, resolveDestinyProfileBirthParts } from "@/app/_lib/profile-card-storage";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
@@ -17,6 +16,12 @@ import BiasDestinyFiveSections from "./components/BiasDestinyFiveSections";
 import BiasDestinyMainCard from "./components/BiasDestinyMainCard";
 import BiasDestinyMzZone from "./components/BiasDestinyMzZone";
 import BiasDestinyScoreGauge from "./components/BiasDestinyScoreGauge";
+import BiasFandomHeroCard from "./components/BiasFandomHeroCard";
+import BiasFandomJourneyCard from "./components/BiasFandomJourneyCard";
+import BiasFandomBehaviorSection from "./components/BiasFandomBehaviorSection";
+import BiasFandomPersistenceCard from "./components/BiasFandomPersistenceCard";
+import BiasFandomDetachmentCard from "./components/BiasFandomDetachmentCard";
+import BiasFandomFinaleCard from "./components/BiasFandomFinaleCard";
 import BiasDestinyShareCard from "./components/BiasDestinyShareCard";
 import BiasDestinySpotlightBackground from "./components/BiasDestinySpotlightBackground";
 import BiasDestinyStageLoading from "./components/BiasDestinyStageLoading";
@@ -42,18 +47,12 @@ import { normalizeBirthDateInput } from "./engine/birthEnergy";
 import { downloadSvg } from "./utils/downloadSvg";
 import { buildPngBlobFromDestinyBiasCard, downloadPngFromSvg } from "./utils/downloadPngFromSvg";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
-import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
 
 const DESTINY_BIAS_CLIENT_TEXT_TRANSLATIONS = {
   ko: {
     "destinyBiasClient.title.001": "안내",
     "destinyBiasClient.title.002": "로그인이 필요해요",
     "destinyBiasClient.message.001": "최애운명 분석은 계정 확인 후 진행됩니다. 로그인 후 다시 시도해 주세요.",
-    "destinyBiasClient.message.002": "이용권 확인 중",
-    "destinyBiasClient.title.003": "로그인 세션이 필요해요",
-    "destinyBiasClient.message.003": "세션이 만료되었습니다. 다시 로그인한 뒤 분석을 이어가 주세요.",
-    "destinyBiasClient.title.004": "유료 결제가 필요해요",
-    "destinyBiasClient.message.004": "최애운명 분석은 결제 후 이용할 수 있습니다. 결제 페이지에서 상품을 선택해 주세요.",
     "destinyBiasClient.setError.001": "분석 중 오류가 발생했습니다.",
     "destinyBiasClient.message.005": "PNG 저장에 실패했습니다.",
     "destinyBiasClient.setError.002": "결과 복사에 실패했습니다.",
@@ -91,13 +90,6 @@ function destinyBiasClientText(key: keyof typeof DESTINY_BIAS_CLIENT_TEXT_TRANSL
   return DESTINY_BIAS_CLIENT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
 
-const ANALYZE_FEATURE_KEY = "destiny-bias-analyze";
-const ANALYZE_CATEGORY_KEY = "destiny-bias";
-const ANALYZE_REASON = "최애운명 분석";
-// 가격은 서버 가격표에서 읽는다. 정본: worker/lib/paid-feature-registry.js → destiny-bias-analyze = 50코인 / 5,000원
-const ANALYZE_PRICING = resolveServerFeaturePricing({ featureKey: ANALYZE_FEATURE_KEY });
-const DEFAULT_ANALYZE_COST = ANALYZE_PRICING?.cost ?? 0;
-const DEFAULT_ANALYZE_AMOUNT_KRW = ANALYZE_PRICING?.amountKRW ?? 0;
 const MAX_BIAS_IMAGE_SIZE_MB = 12;
 
 const BIAS_MOODS = ["청량", "카리스마", "몽환", "러블리", "시크", "힐링"] as const;
@@ -664,7 +656,6 @@ export default function DestinyBiasClient() {
       openCoinNotice({
         title: destinyBiasClientText("destinyBiasClient.title.002"),
         message: destinyBiasClientText("destinyBiasClient.message.001"),
-        requiredCoins: DEFAULT_ANALYZE_COST,
         loginRequired: true,
       });
       return;
@@ -675,72 +666,6 @@ export default function DestinyBiasClient() {
     setUiStep(4);
 
     try {
-      const requestId = `destiny-bias:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`;
-      openPaidFeatureGate({
-        categoryKey: ANALYZE_CATEGORY_KEY,
-        featureKey: ANALYZE_FEATURE_KEY,
-        requestId,
-        cost: DEFAULT_ANALYZE_COST,
-        message: destinyBiasClientText("destinyBiasClient.message.002"),
-      });
-
-      // 🔴 가격을 게이트에 함께 넘긴다. 빼면 결제창이 0원으로 뜨고 월정석 카드가 비활성이 된다
-      //    (결제창은 coinPrice 를 그대로 렌더하고 월정석 비용은 coinPrice*10 이다).
-      let coinGateResult = await runBillingCoinGate({
-        categoryKey: ANALYZE_CATEGORY_KEY,
-        featureKey: ANALYZE_FEATURE_KEY,
-        reason: ANALYZE_REASON,
-        requestId,
-        cost: DEFAULT_ANALYZE_COST,
-        coinPrice: DEFAULT_ANALYZE_COST,
-        amountKRW: DEFAULT_ANALYZE_AMOUNT_KRW,
-      });
-
-      if (!coinGateResult.ok) {
-        const firstCode = String(coinGateResult.error?.code || "").toUpperCase();
-        const shouldRetryOnce =
-          coinGateResult.status >= 500
-          || firstCode === "SERVER_ERROR"
-          || firstCode === "AUTH_REFRESH_TEMPORARY_FAILURE";
-
-        if (shouldRetryOnce) {
-          await sleep(450);
-          coinGateResult = await runBillingCoinGate({
-            categoryKey: ANALYZE_CATEGORY_KEY,
-            featureKey: ANALYZE_FEATURE_KEY,
-            reason: ANALYZE_REASON,
-            requestId,
-            cost: DEFAULT_ANALYZE_COST,
-            coinPrice: DEFAULT_ANALYZE_COST,
-            amountKRW: DEFAULT_ANALYZE_AMOUNT_KRW,
-          });
-        }
-      }
-
-      if (!coinGateResult.ok) {
-        const code = String(coinGateResult.error?.code || "").toUpperCase();
-        if (code === "AUTH_REQUIRED") {
-          openCoinNotice({
-            title: destinyBiasClientText("destinyBiasClient.title.003"),
-            message: destinyBiasClientText("destinyBiasClient.message.003"),
-            requiredCoins: DEFAULT_ANALYZE_COST,
-            loginRequired: true,
-          });
-          throw new Error("로그인 후 다시 시도해 주세요.");
-        }
-
-        if (code === "INSUFFICIENT_COINS") {
-          openCoinNotice({
-            title: destinyBiasClientText("destinyBiasClient.title.004"),
-            message: destinyBiasClientText("destinyBiasClient.message.004"),
-            requiredCoins: DEFAULT_ANALYZE_COST,
-          });
-          throw new Error("결제 가능 금액이 부족합니다.");
-        }
-
-        throw new Error(coinGateResult.error?.message || "원화 결제 확인에 실패했습니다.");
-      }
-
       const localResult = analyzeDestinyBias({
         userName: meInput.name,
         userBirthDateInput: meInput.birthDateInput,
@@ -772,9 +697,7 @@ export default function DestinyBiasClient() {
       setResultVm(null);
       setUiStep(3);
       if (analysisError instanceof Error) {
-        if (analysisError.message !== "결제 가능 금액이 부족합니다." && analysisError.message !== "로그인 후 다시 시도해 주세요.") {
-          setError(friendlyErrorMessage(analysisError, destinyBiasClientText("destinyBiasClient.setError.001")));
-        }
+        setError(friendlyErrorMessage(analysisError, destinyBiasClientText("destinyBiasClient.setError.001")));
       } else {
         setError(destinyBiasClientText("destinyBiasClient.setError.001"));
       }
@@ -1452,9 +1375,25 @@ export default function DestinyBiasClient() {
                 </div>
               </article>
 
-              <BiasDestinyScoreGauge vm={resultVm} />
+              <BiasFandomHeroCard vm={resultVm} />
 
               <BiasDestinyMainCard vm={resultVm} biasImageUrl={biasImageDataUrl} />
+
+              <BiasFandomJourneyCard vm={resultVm} />
+
+              <BiasFandomBehaviorSection vm={resultVm} />
+
+              <BiasFandomPersistenceCard vm={resultVm} />
+
+              <BiasFandomDetachmentCard vm={resultVm} />
+
+              <BiasFandomFinaleCard vm={resultVm} />
+
+              <section className="space-y-3">
+                <p className="text-[11px] font-semibold tracking-[0.16em] text-white/50">보조 사주 분석 SUPPLEMENTARY READING</p>
+              </section>
+
+              <BiasDestinyScoreGauge vm={resultVm} />
 
               <BiasDestinyElementChart vm={resultVm} />
 

@@ -2,6 +2,7 @@ import { connectDb, mongoose, requestPoolRecovery, resolveMongoDbName, withMongo
 import { MonthlyCreditLedger, PointHistory, RefreshTokenSession, User } from "../lib/models.js";
 import { MONTHLY_CREDIT_TTL_MS } from "../lib/monthly-credit-lots.js";
 import { getEnv } from "../lib/env.js";
+import { readThroughCredentialCache } from "../lib/credential-scoped-cache.js";
 import {
   ACCESS_COOKIE_NAME,
   REFRESH_COOKIE_NAME,
@@ -4791,7 +4792,18 @@ export async function handleAuthRoutes(request, env, ctx) {
     if (method === "POST" && path === "/register") return await handleRegister(request, env);
     if (method === "POST" && path === "/login") return await handleLogin(request, env);
     if (method === "POST" && path === "/refresh") return await handleRefresh(request, env);
-    if (method === "GET" && path === "/me") return await handleMe(request, env);
+    // 🔴 handleMe 를 직접 부르지 않는다. 엣지 캐시를 지나며, 캐시할 수 없는 응답(401·degraded·
+    // Set-Cookie 동반)은 래퍼가 그대로 통과시킨다. 근거와 안전조건은
+    // worker/lib/credential-scoped-cache.js.
+    if (method === "GET" && path === "/me") {
+      return await readThroughCredentialCache({
+        request,
+        env,
+        prefix: "auth-me:v1",
+        handler: handleMe,
+        isCacheable: (body) => body.authenticated === true,
+      });
+    }
     if (method === "GET" && path === "/me/payment-phone") return await handlePaymentPhoneStatus(request, env);
     if ((method === "PATCH" || method === "POST") && path === "/me/payment-phone") return await handleSavePaymentPhoneNumber(request, env);
     if ((method === "PATCH" || method === "POST") && path === "/me/phone-number") return await handleChangePhoneNumber(request, env);

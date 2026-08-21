@@ -11,6 +11,7 @@ import {
   resolveSingleProfileAccess,
 } from "../lib/profile-limits.js";
 import { calculateMembershipCreditCost } from "../lib/billing-policy.js";
+import { purgeCredentialCache, readThroughCredentialCache } from "../lib/credential-scoped-cache.js";
 import {
   PROFILE_CARD_DELETE_COST_COINS,
   PROFILE_CARD_DELETE_COST_KRW,
@@ -1518,7 +1519,35 @@ async function handleDeleteProfile(request, auth, profileIdRaw, trace, env) {
   return buildProfileDeleteResponse(auth, profileId, env, { policy: authorization.policy });
 }
 
+const PROFILE_LIST_CACHE_PREFIX = "profile-list:v1";
+
+/** 쓰기 뒤에 자기 자격증명의 목록 캐시를 지운다. 카드 추가·삭제가 즉시 보여야 한다. */
+async function withProfileListPurge(request, work) {
+  const response = await work;
+  await purgeCredentialCache(request, [PROFILE_LIST_CACHE_PREFIX]);
+  return response;
+}
+
+/* 🔴 캐시는 인증 왕복보다 **앞**이어야 한다.
+   handleProfileRoutesUncached 는 첫 줄부터 requireUserFromRequest → connectDb 로 Mongo 를 타므로,
+   dispatch 안쪽에 캐시를 두면 아끼려던 왕복(핸드셰이크 ~2.5초)을 그대로 낸다.
+   목록 GET 하나만 감싼다 — 상세·현재 카드는 진입 경로가 아니고, 쓰기는 절대 캐시하지 않는다.
+   안전조건(키·Set-Cookie·stale 금지·강제 새로고침)은 worker/lib/credential-scoped-cache.js. */
 export async function handleProfileRoutes(request, env) {
+  if (request.method.toUpperCase() === "GET" && getRoutePath(request, "/api/profile") === "/") {
+    return await readThroughCredentialCache({
+      request,
+      env,
+      prefix: PROFILE_LIST_CACHE_PREFIX,
+      handler: handleProfileRoutesUncached,
+      // ok:false 는 degraded(일시적 DB 장애) 신호다 — 굳히면 클라이언트 회복이 늦어진다.
+      isCacheable: (body) => body.ok === true && Array.isArray(body.profiles),
+    });
+  }
+  return await handleProfileRoutesUncached(request, env);
+}
+
+async function handleProfileRoutesUncached(request, env) {
   // 503 진단용: 실패가 인증 왕복(auth)인지, DB 연결(connect)인지, 핸들러 READ인지
   // 구분하려고 단계마다 플래그를 갱신한다(handleRouteError가 이 필드를 로그에 남김).
   const trace = { route: "profile", method: request.method, authVerified: false, dbConnected: false, stage: "auth", userId: "" };
@@ -1541,19 +1570,19 @@ export async function handleProfileRoutes(request, env) {
     trace.stage = "dispatch";
 
     if (method === "GET" && path === "/") return await handleGetProfiles(auth, env);
-    if (method === "POST" && path === "/") return await handleCreateProfile(request, auth, env);
+    if (method === "POST" && path === "/") return await withProfileListPurge(request, handleCreateProfile(request, auth, env));
     if (method === "GET" && path === "/current") return await handleGetCurrentProfile(auth, env);
-    if (method === "PATCH" && path === "/current") return await handleUpdateCurrent(request, auth, env);
+    if (method === "PATCH" && path === "/current") return await withProfileListPurge(request, handleUpdateCurrent(request, auth, env));
 
     const profileMatch = path.match(/^\/([^/]+)$/);
     if (profileMatch && method === "GET") {
       return await handleGetProfileDetail(auth, profileMatch[1], env);
     }
     if (profileMatch && (method === "PATCH" || method === "PUT")) {
-      return await handleUpdateProfile(request, auth, profileMatch[1], env);
+      return await withProfileListPurge(request, handleUpdateProfile(request, auth, profileMatch[1], env));
     }
     if (profileMatch && method === "DELETE") {
-      return await handleDeleteProfile(request, auth, profileMatch[1], trace, env);
+      return await withProfileListPurge(request, handleDeleteProfile(request, auth, profileMatch[1], trace, env));
     }
 
     if (["GET", "POST", "PATCH", "PUT", "DELETE"].includes(method)) return notFound();
