@@ -97,6 +97,14 @@ function installSessionCache({ status = 200, body = '{"ok":true}' } = {}) {
     Error,
   });
 
+  // hasClientAuthHint() 는 js/core/auth-hint.js(window.__cdAuthHint)에 위임한다. 실브라우저에서는
+  // <script> 태그가 이 인라인 블록보다 먼저 그 전역을 심어 두지만, 이 하네스는 셸을 vm 으로 발췌
+  // 실행할 뿐이라 같은 컨텍스트에서 그 모듈도 함께 실행해 win.__cdAuthHint 로 이어 붙여야 한다
+  // (안 그러면 로그인 흔적이 있어도 힌트가 항상 false 로 떨어져 합류 경로 자체를 못 밟는다).
+  const authHintSource = fs.readFileSync(path.join(root, "js/core/auth-hint.js"), "utf8");
+  vm.runInContext(authHintSource, context, { filename: "js/core/auth-hint.js" });
+  win.__cdAuthHint = context.__cdAuthHint;
+
   vm.runInContext(grabSessionCacheScript(), context, { filename: "index.html#cd-user-access-session-cache" });
   assert.equal(win.__cdUserAccessSessionCacheInstalled, true, "세션 캐시 블록이 설치되지 않았다.");
 
