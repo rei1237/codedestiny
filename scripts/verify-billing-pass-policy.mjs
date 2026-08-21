@@ -32,8 +32,8 @@ const billingSource = readFileSync(resolve(root, "worker/routes/billing.js"), "u
 const paymentsSource = readFileSync(resolve(root, "worker/routes/payments.js"), "utf8");
 const fortuneSource = readFileSync(resolve(root, "worker/routes/fortune.js"), "utf8");
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
-// 결제 선택창 CSS 규칙 정본(2026-08-21 부터 js/core/checkout-entry.js 의 PAYMENT_CHOICE_CSS_RULES) —
-// 모달 치수 같은 CSS 값 단언은 이 파일을 봐야 한다.
+// 결제 선택창 CSS 규칙(PAYMENT_CHOICE_CSS_RULES)과 카드 마크업 조립(buildPaymentChoiceCardsHtml) 정본
+// (2026-08-21 부터 js/core/checkout-entry.js) — 모달 치수·카드 뼈대 단언은 이 파일을 봐야 한다.
 const checkoutEntrySource = readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8");
 const destinyProfileSource = readFileSync(resolve(root, "js/destiny-profile.js"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
@@ -622,10 +622,13 @@ assertContains(statusCardSource, "Family 이용권으로 모든 서비스가 무
 assertContains(statusCardSource, "한도 초과 서비스와 PDF는 상품별 원화 단건 결제로 이용할 수 있습니다.", "non-family paid service/PDF status policy");
 assertNotContains(paymentsSource, '"profileSubscription.membershipCreditBalance": 0,\n        "profileSubscription.membershipCreditGranted": 0,\n        "profileSubscription.membershipCreditUsed": 0,', "card pass confirm must preserve monthly credit ledger");
 
-// 단건 결제 CTA. 클래스는 추천/보조 위계에 따라 런타임에 갈리므로(optionVariantClass) 고정 문자열이
-// 아니라 '결제 옵션 버튼 + data-mode=direct' 조합을 고정한다 — 지키려는 성질은 카드의 존재이지 클래스가 아니다.
-assertContains(indexSource, `cd-direct-payment-option' + optionVariantClass('direct') + '" data-mode="direct"`, "single payment CTA");
-assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment CTA restored");
+// 단건 결제 CTA. 카드 뼈대(클래스·data-mode 조립)는 공유 함수(buildPaymentChoiceOptionHtml, 2026-08-21
+// 부터 js/core/checkout-entry.js)가 맡으므로, 지키려는 성질을 "셸이 direct 카드를 그 함수에 위임한다"로
+// 고정한다 — 클래스 문자열 자체가 아니라 카드의 존재다.
+assertContains(checkoutEntrySource, 'function buildPaymentChoiceOptionHtml(option, spec, ctx)', "shared card builder exists");
+assertContains(checkoutEntrySource, 'data-mode="\' + spec.dataMode', "shared card builder emits data-mode from spec");
+assertContains(indexSource, "dataMode: 'direct'", "single payment CTA wired through shared card builder");
+assertContains(indexSource, "extraDataAttrs: ' data-monthly-option'", "monthly payment CTA restored");
 assertContains(indexSource, "var allowMonthlyChoice = paymentModeAllowed(['monthly', 'monthly_credit', 'moonlight_stone', 'membership_credit'])", "monthly payment includes profile add/delete");
 assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "payment modal pass option is available by default unless explicitly disabled");
 // 🔴 이용권 확인 지점이 진입 선검사에서 결제창으로 옮겨졌다(2026-07 정책 전환).
@@ -798,7 +801,7 @@ assertContains(indexSource, "Code Destiny Family 30일", "main shell family paym
 assertContains(indexSource, "결제 금액 {amount}", "main shell payment amount summary copy");
 assertContains(indexSource, "directPaymentBasisLabel", "payment modal displays original value basis");
 assertContains(indexSource, "membershipCoverage: (passFirstAccess && passFirstAccess.membershipCoverage)", "pass-first coverage feeds payment modal");
-assertContains(indexSource, "passButtonHtml", "pass retry/store card remains in the payment modal");
+assertContains(indexSource, "dataMode: passMode,", "pass retry/store card remains in the payment modal");
 assertContains(indexSource, "monthlyBalance >= requiredMonthlyCredits", "simple frontend monthly balance check");
 assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.standard.maxProfiles", "subscription plan uses shared standard profile policy");
 assertContains(paymentsSource, "profileLimit: HONEY_PASS_POLICY.premium.maxProfiles", "subscription plan uses shared premium profile policy");
