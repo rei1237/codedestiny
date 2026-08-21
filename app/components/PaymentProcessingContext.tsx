@@ -1213,6 +1213,48 @@ export function PaymentProcessingProvider({
     };
   }, []);
 
+  // 유료 CTA 클릭 "전"에 결제 런타임(/js/destiny-profile.js, ~400KB — 결제 선택창을 여는 코드)을
+  // 미리 받아 둔다. app/hooks/useCoinGate.ts 는 자기 마운트 시점에 이미 이걸 하지만, 그 훅을 쓰지
+  // 않는 화면(AI 상담류 등 다수 — 위 구독 스냅샷 워밍과 같은 사각지대)은 클릭 시점까지 미뤄져 있었다.
+  // runBillingCoinGateInternal 이 eligibility 조회와 병렬로 로드를 시작하는 안전망은 이미 있지만,
+  // 그건 "클릭과 동시 시작"일 뿐 "클릭 전에 이미 끝나 있음"은 아니다. 여기(앱 전역 Provider) 한 곳에
+  // idle 콜백으로 걸어 두면 화면마다 배선할 필요가 없다 — loadPaidServiceRuntimeGate 는 이미 멱등
+  // (중복 로드 방지)이라 useCoinGate 와 겹쳐 불려도 안전하다.
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    let cancelled = false;
+    let idleHandle: number | null = null;
+    let timer: ReturnType<typeof setTimeout> | null = null;
+
+    const prewarmPaidRuntimeGate = async () => {
+      if (cancelled) return;
+      try {
+        const { loadPaidServiceRuntimeGate } = await import("../_lib/billing-client");
+        if (!cancelled) void loadPaidServiceRuntimeGate();
+      } catch {
+        // 프리페치 실패는 무시한다 — 클릭 시점의 병렬 로드가 여전히 안전망이다.
+      }
+    };
+
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (cb: () => void, opts?: { timeout?: number }) => number;
+      cancelIdleCallback?: (handle: number) => void;
+    };
+    if (typeof idleWindow.requestIdleCallback === "function") {
+      idleHandle = idleWindow.requestIdleCallback(prewarmPaidRuntimeGate, { timeout: 4000 });
+    } else {
+      timer = setTimeout(prewarmPaidRuntimeGate, 2000);
+    }
+
+    return () => {
+      cancelled = true;
+      if (idleHandle !== null && typeof idleWindow.cancelIdleCallback === "function") {
+        idleWindow.cancelIdleCallback(idleHandle);
+      }
+      if (timer !== null) clearTimeout(timer);
+    };
+  }, []);
+
   const setPaymentLoadingVariant = useCallback((variant: PaymentLoadingVariant) => {
     processingVariantRef.current = variant;
     setProcessingVariant(variant);
