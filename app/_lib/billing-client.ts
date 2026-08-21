@@ -312,6 +312,8 @@ type RuntimeApiWindow = Window & {
   __cdSuppressPaymentFetchOverlayCount?: number;
   __cdChooseServicePaymentModeCanonical?: PaymentChoiceFunction;
   __cdOpenChargeModal?: () => void;
+  // js/core/auth-hint.js 가 노출하는 로그인 힌트 판정 단일 정본.
+  __cdAuthHint?: { hasAuthHint?: () => boolean };
   __cdRestoreCanonicalPaymentMode?: () => unknown;
   __cdPaidFeatureGate?: {
     close?: (requestId?: string) => void;
@@ -1704,12 +1706,11 @@ const BILLING_AUTH_PREHEAT_BUDGET_MS = 4000;
  */
 export function hasClientAuthSessionHint() {
   if (typeof window === "undefined") return false;
-  const user = readSanitizedAuthUser();
-  const userRecord = asRecord(user);
-  const userId = toText(userRecord?.id || userRecord?.userId || userRecord?._id || userRecord?.uid || userRecord?.email);
-  if (userId) return true;
+  // js/core/auth-hint.js 단일 정본에 위임한다(index.html · destiny-profile.js 와 로직을 공유) —
+  // 사본을 새로 만들지 말 것.
   try {
-    return document.cookie.includes("fortune_auth_role=");
+    const runtimeWindow = window as RuntimeApiWindow;
+    return Boolean(runtimeWindow.__cdAuthHint?.hasAuthHint?.());
   } catch (e) {
     return false;
   }

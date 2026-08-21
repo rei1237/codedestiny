@@ -63,6 +63,7 @@ const SUITE = [
   { run: "npm run verify:auth-event-loop", why: "cd:auth-changed 재검증 증폭 루프 재발 방지 — source 필터 하나만 빠져도 이용권 확인마다 캐시가 전멸하고 홈이 다시 그려진다(증상이 '가끔 느리다'로만 보인다)." },
   { run: "npm run verify:auth-changed-coverage", why: "위 가드는 '손으로 쓴 목록의 리스너에 필터가 있는가'를 본다. 목록에 없는 파일에 리스너가 새로 생기면 못 본다 — 그래서 사고가 두 번 났다(G-3 셸 미러, G-7 프로필 카드 무한 로딩). 이쪽은 소스에서 리스너를 전수 발견해 전부 filtered/benign 으로 분류돼 있는지 본다." },
   { run: "npm run verify:auth-session-stability", why: "형제 가드인데 배선이 빠져 있어서, 하네스가 깨진 채로 방치됐다(auth-client 가 새 모듈을 import 하자 import 매핑 표에 없어 스크립트가 그냥 던졌다)." },
+  { run: "npm run verify:auth-hint-single-source", why: "로그인 힌트(hasClientAuthHint 류) 판정이 js/core/auth-hint.js 단일 정본에서 다시 사본으로 갈라지는 것을 막는다 — 힌트가 잘못 false 로 갈라지면 일부 소비처가 서버를 안 부르고 게스트 응답을 합성해, 로그인된 사용자가 로그아웃된 것처럼 보이는 장애가 난 적이 있다." },
   { run: "npm run verify:auth-p0p1", why: "🔴 handleMe 가 쿠키를 지우지 않는다는 단언은 jest 커버가 아예 없어서, 여기 없으면 '로그아웃 → 재로그인 → 즉시 튕김' 의 절반이 CI 검증 0 이 된다." },
   { run: "npm run verify:paid-feature-billing-policy", why: "유료 기능 과금 정책." },
   { run: "npm run verify:ai-prompt-billing-policy", why: "AI 프롬프트 과금 정책." },
