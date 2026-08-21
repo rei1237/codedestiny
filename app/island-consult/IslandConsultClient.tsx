@@ -3,6 +3,7 @@
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
 import { useEffect, useRef, useState, type FormEvent } from "react";
 import Image from "next/image";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure, runAccessCheckWithTransientRetry } from "@/app/_lib/consultationResultPolling";
@@ -42,6 +43,199 @@ const REPORT_ENDPOINT = "/api/ziwei-island-report";
 type ReportSection = { key: string; title: string; body: string };
 type ReportPalace = { title: string; focus: string; tier: number; tierLabel: string; sections: ReportSection[] };
 type IslandReport = { version: string; signature: string; biome?: { label?: string } | null; season?: string; palaces: Record<string, ReportPalace> };
+
+type IslandConsultCopy = {
+  reportOpenAria: string;
+  reportCoverAlt: string;
+  reportInfoAria: string;
+  backToMapAria: string;
+  guidesAria: string;
+  palaceGridAria: string;
+  palaceCardAria: (name: string, title: string) => string;
+  genderGroupAria: string;
+  calendarGroupAria: string;
+  loadingArtAlt: string;
+  resultHeroAlt: string;
+};
+
+const ISLAND_CONSULT_EN: IslandConsultCopy = {
+  reportOpenAria: "12-Palace Full In-Depth Report",
+  reportCoverAlt: "Destiny Island constellation report cover",
+  reportInfoAria: "About the 12-Palace Full In-Depth Report",
+  backToMapAria: "Back to the Destiny Island map",
+  guidesAria: "Consultation guides",
+  palaceGridAria: "Select a palace",
+  palaceCardAria: (name, title) => `Select ${name} — ${title} consultation`,
+  genderGroupAria: "Gender",
+  calendarGroupAria: "Calendar",
+  loadingArtAlt: "Reading the constellation map",
+  resultHeroAlt: "Destiny Island constellation map and observation tools",
+};
+
+const ISLAND_CONSULT_COPY: Partial<Record<LoadingLocale, IslandConsultCopy>> = {
+  ko: {
+    reportOpenAria: "12궁 전체 심층 리포트",
+    reportCoverAlt: "운명의 섬 별자리 리포트 표지",
+    reportInfoAria: "12궁 전체 심층 리포트 안내",
+    backToMapAria: "운명의 섬 지도로 돌아가기",
+    guidesAria: "상담 안내자",
+    palaceGridAria: "12궁 선택",
+    palaceCardAria: (name, title) => `${name} ${title} 상담 선택`,
+    genderGroupAria: "성별",
+    calendarGroupAria: "달력",
+    loadingArtAlt: "별자리 지도를 읽는 중",
+    resultHeroAlt: "운명의 섬 별자리 지도와 관측 도구",
+  },
+  en: ISLAND_CONSULT_EN,
+  ja: {
+    reportOpenAria: "12宮全体の精密レポート",
+    reportCoverAlt: "運命の島 星座レポート表紙",
+    reportInfoAria: "12宮全体の精密レポート案内",
+    backToMapAria: "運命の島マップに戻る",
+    guidesAria: "相談ガイド",
+    palaceGridAria: "12宮を選択",
+    palaceCardAria: (name, title) => `${name} ${title} 相談を選択`,
+    genderGroupAria: "性別",
+    calendarGroupAria: "暦",
+    loadingArtAlt: "星座マップを読み取り中",
+    resultHeroAlt: "運命の島 星座マップと観測道具",
+  },
+  "zh-CN": {
+    reportOpenAria: "十二宫全解深度报告",
+    reportCoverAlt: "命运之岛星座报告封面",
+    reportInfoAria: "十二宫全解深度报告说明",
+    backToMapAria: "返回命运之岛地图",
+    guidesAria: "咨询向导",
+    palaceGridAria: "选择宫位",
+    palaceCardAria: (name, title) => `选择${name}（${title}）咨询`,
+    genderGroupAria: "性别",
+    calendarGroupAria: "历法",
+    loadingArtAlt: "正在解读星座地图",
+    resultHeroAlt: "命运之岛星座地图与观测工具",
+  },
+  "zh-TW": {
+    reportOpenAria: "十二宮全解深度報告",
+    reportCoverAlt: "命運之島星座報告封面",
+    reportInfoAria: "十二宮全解深度報告說明",
+    backToMapAria: "返回命運之島地圖",
+    guidesAria: "諮詢嚮導",
+    palaceGridAria: "選擇宮位",
+    palaceCardAria: (name, title) => `選擇${name}（${title}）諮詢`,
+    genderGroupAria: "性別",
+    calendarGroupAria: "曆法",
+    loadingArtAlt: "正在解讀星座地圖",
+    resultHeroAlt: "命運之島星座地圖與觀測工具",
+  },
+  vi: {
+    reportOpenAria: "Báo cáo chuyên sâu đầy đủ 12 cung",
+    reportCoverAlt: "Bìa báo cáo chòm sao Đảo Định Mệnh",
+    reportInfoAria: "Giới thiệu báo cáo chuyên sâu đầy đủ 12 cung",
+    backToMapAria: "Quay lại bản đồ Đảo Định Mệnh",
+    guidesAria: "Người hướng dẫn tư vấn",
+    palaceGridAria: "Chọn cung",
+    palaceCardAria: (name, title) => `Chọn tư vấn ${name} – ${title}`,
+    genderGroupAria: "Giới tính",
+    calendarGroupAria: "Lịch",
+    loadingArtAlt: "Đang đọc bản đồ chòm sao",
+    resultHeroAlt: "Bản đồ chòm sao và dụng cụ quan sát của Đảo Định Mệnh",
+  },
+  hi: {
+    reportOpenAria: "12 भवनों की पूर्ण गहन रिपोर्ट",
+    reportCoverAlt: "डेस्टिनी आइलैंड नक्षत्र रिपोर्ट कवर",
+    reportInfoAria: "12 भवनों की पूर्ण गहन रिपोर्ट की जानकारी",
+    backToMapAria: "डेस्टिनी आइलैंड मानचित्र पर वापस जाएं",
+    guidesAria: "परामर्श मार्गदर्शक",
+    palaceGridAria: "भवन चुनें",
+    palaceCardAria: (name, title) => `${name} — ${title} परामर्श चुनें`,
+    genderGroupAria: "लिंग",
+    calendarGroupAria: "कैलेंडर",
+    loadingArtAlt: "नक्षत्र मानचित्र पढ़ा जा रहा है",
+    resultHeroAlt: "डेस्टिनी आइलैंड नक्षत्र मानचित्र और अवलोकन उपकरण",
+  },
+  es: {
+    reportOpenAria: "Informe profundo completo de las 12 casas",
+    reportCoverAlt: "Portada del informe de constelaciones de la Isla del Destino",
+    reportInfoAria: "Información sobre el informe profundo completo de las 12 casas",
+    backToMapAria: "Volver al mapa de la Isla del Destino",
+    guidesAria: "Guías de consulta",
+    palaceGridAria: "Seleccionar una casa",
+    palaceCardAria: (name, title) => `Elegir consulta de ${name} — ${title}`,
+    genderGroupAria: "Género",
+    calendarGroupAria: "Calendario",
+    loadingArtAlt: "Leyendo el mapa de constelaciones",
+    resultHeroAlt: "Mapa de constelaciones e instrumentos de observación de la Isla del Destino",
+  },
+  fr: {
+    reportOpenAria: "Rapport approfondi complet des 12 palais",
+    reportCoverAlt: "Couverture du rapport des constellations de l'Île du Destin",
+    reportInfoAria: "À propos du rapport approfondi complet des 12 palais",
+    backToMapAria: "Retour à la carte de l'Île du Destin",
+    guidesAria: "Guides de consultation",
+    palaceGridAria: "Sélectionner un palais",
+    palaceCardAria: (name, title) => `Choisir la consultation ${name} — ${title}`,
+    genderGroupAria: "Genre",
+    calendarGroupAria: "Calendrier",
+    loadingArtAlt: "Lecture de la carte des constellations",
+    resultHeroAlt: "Carte des constellations et instruments d'observation de l'Île du Destin",
+  },
+  de: {
+    reportOpenAria: "Vollständiger Tiefenbericht der 12 Paläste",
+    reportCoverAlt: "Titelbild des Sternbild-Berichts von Destiny Island",
+    reportInfoAria: "Informationen zum vollständigen Tiefenbericht der 12 Paläste",
+    backToMapAria: "Zurück zur Karte von Destiny Island",
+    guidesAria: "Beratungsbegleiter",
+    palaceGridAria: "Palast auswählen",
+    palaceCardAria: (name, title) => `${name} – ${title} Beratung auswählen`,
+    genderGroupAria: "Geschlecht",
+    calendarGroupAria: "Kalender",
+    loadingArtAlt: "Sternbildkarte wird gelesen",
+    resultHeroAlt: "Sternbildkarte und Beobachtungswerkzeuge von Destiny Island",
+  },
+  nl: {
+    reportOpenAria: "Volledig diepgaand rapport van de 12 paleizen",
+    reportCoverAlt: "Omslag van het sterrenbeeldrapport van Destiny Island",
+    reportInfoAria: "Over het volledige diepgaande rapport van de 12 paleizen",
+    backToMapAria: "Terug naar de kaart van Destiny Island",
+    guidesAria: "Consultgidsen",
+    palaceGridAria: "Kies een paleis",
+    palaceCardAria: (name, title) => `Kies ${name} – ${title} consult`,
+    genderGroupAria: "Geslacht",
+    calendarGroupAria: "Kalender",
+    loadingArtAlt: "Sterrenbeeldkaart wordt gelezen",
+    resultHeroAlt: "Sterrenbeeldkaart en observatie-instrumenten van Destiny Island",
+  },
+  ms: {
+    reportOpenAria: "Laporan mendalam penuh 12 istana",
+    reportCoverAlt: "Kulit laporan buruj Pulau Destini",
+    reportInfoAria: "Mengenai laporan mendalam penuh 12 istana",
+    backToMapAria: "Kembali ke peta Pulau Destini",
+    guidesAria: "Pemandu perundingan",
+    palaceGridAria: "Pilih istana",
+    palaceCardAria: (name, title) => `Pilih perundingan ${name} – ${title}`,
+    genderGroupAria: "Jantina",
+    calendarGroupAria: "Kalendar",
+    loadingArtAlt: "Membaca peta buruj",
+    resultHeroAlt: "Peta buruj dan alat pemerhatian Pulau Destini",
+  },
+};
+
+function getIslandConsultCopy(locale: LoadingLocale): IslandConsultCopy {
+  return ISLAND_CONSULT_COPY[locale] || ISLAND_CONSULT_EN;
+}
+
+function useIslandConsultCopy(): IslandConsultCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const sync = () => setLocale(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      document.removeEventListener("cd:language-change", sync);
+    };
+  }, []);
+  return getIslandConsultCopy(locale);
+}
 
 type Gender = "female" | "male" | "unknown" | "";
 type CalendarType = "solar" | "lunar";
@@ -182,6 +376,7 @@ async function postJson<T>(url: string, body: Record<string, unknown>, idempoten
 }
 
 export default function IslandConsultClient() {
+  const copy = useIslandConsultCopy();
   const [phase, setPhase] = useState<Phase>("hub");
   const [palace, setPalace] = useState<Palace | null>(null);
   const [form, setForm] = useState({ name: "", gender: "" as Gender, birthDate: "", birthTime: "", birthTimeUnknown: false, calendarType: "solar" as CalendarType, isLeapMonth: false, question: "" });
@@ -470,8 +665,8 @@ export default function IslandConsultClient() {
   function renderReportSection(current: Palace) {
     if (reportUnlocked && report) {
       return (
-        <section className="ic-report ic-report--open" ref={reportRef} aria-label="12궁 전체 심층 리포트">
-          <div className="ic-report__visual"><Image src={CONSULT_REPORT_COVER} alt="운명의 섬 별자리 리포트 표지" width={720} height={960} loading="lazy" /></div>
+        <section className="ic-report ic-report--open" ref={reportRef} aria-label={copy.reportOpenAria}>
+          <div className="ic-report__visual"><Image src={CONSULT_REPORT_COVER} alt={copy.reportCoverAlt} width={720} height={960} loading="lazy" /></div>
           <div className="ic-report__head">
             <span className="ic-report__tag">열람 중</span>
             <h2 className="ic-report__title">12궁 전체 심층 리포트</h2>
@@ -488,8 +683,8 @@ export default function IslandConsultClient() {
     }
 
     return (
-      <section className="ic-report" ref={reportRef} aria-label="12궁 전체 심층 리포트 안내">
-        <div className="ic-report__visual"><Image src={CONSULT_REPORT_COVER} alt="운명의 섬 별자리 리포트 표지" width={720} height={960} loading="lazy" /></div>
+      <section className="ic-report" ref={reportRef} aria-label={copy.reportInfoAria}>
+        <div className="ic-report__visual"><Image src={CONSULT_REPORT_COVER} alt={copy.reportCoverAlt} width={720} height={960} loading="lazy" /></div>
         <div className="ic-report__head">
           <span className="ic-report__tag">1회 해금</span>
           <h2 className="ic-report__title">12궁 전체 심층 리포트</h2>
@@ -518,7 +713,7 @@ export default function IslandConsultClient() {
   return (
     <div className="ic-root">
       <style>{CSS}</style>
-      <div className="ic-topbar"><a className="ic-topbar__back" href="/destiny-island" aria-label="운명의 섬 지도로 돌아가기">← 운명의 섬</a></div>
+      <div className="ic-topbar"><a className="ic-topbar__back" href="/destiny-island" aria-label={copy.backToMapAria}>← 운명의 섬</a></div>
       <header className="ic-head">
         <div className="ic-hero-art" aria-hidden="true">
           <Image src={CONSULT_HERO} alt="" fill priority sizes="(max-width: 720px) 100vw, 1040px" />
@@ -527,15 +722,15 @@ export default function IslandConsultClient() {
           <p className="ic-eyebrow">紫微斗數 · 운명의 섬</p>
           <h1 className="ic-title">12궁 심층 상담</h1>
           <p className="ic-sub">궁의 문을 열면, 연이와 네오가 그 자리의 별과 사화·대운을 지금 고민에 맞춰 깊이 읽어드려요.</p>
-          <div className="ic-guides" aria-label="상담 안내자"><span><span className="ic-guide__avatar"><Image src={YEON_AV} alt="" width={30} height={30} unoptimized /></span><b>연이</b> 마음의 결을 살펴요</span><span><span className="ic-guide__avatar ic-guide__avatar--neo"><Image src={NEO_AV} alt="" width={30} height={30} unoptimized /></span><b>네오</b> 다음 수를 짚어요</span></div>
+          <div className="ic-guides" aria-label={copy.guidesAria}><span><span className="ic-guide__avatar"><Image src={YEON_AV} alt="" width={30} height={30} unoptimized /></span><b>연이</b> 마음의 결을 살펴요</span><span><span className="ic-guide__avatar ic-guide__avatar--neo"><Image src={NEO_AV} alt="" width={30} height={30} unoptimized /></span><b>네오</b> 다음 수를 짚어요</span></div>
         </div>
       </header>
 
       {phase === "hub" && (
-        <ul className="ic-grid" aria-label="12궁 선택">
+        <ul className="ic-grid" aria-label={copy.palaceGridAria}>
           {PALACES.map((p) => (
             <li key={p.name}>
-              <button type="button" className="ic-card" onClick={() => pickPalace(p)} aria-label={`${p.name} ${p.title} 상담 선택`}>
+              <button type="button" className="ic-card" onClick={() => pickPalace(p)} aria-label={copy.palaceCardAria(p.name, p.title)}>
                 <PalaceBadge palace={p} />
                 <span className="ic-card__name">{p.name}</span>
                 <span className="ic-card__title">{p.title}</span>
@@ -577,11 +772,11 @@ export default function IslandConsultClient() {
               <label className="ic-field"><span>태어난 시간</span><input type="time" value={form.birthTime} disabled={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTime: e.target.value })} /></label>
               <label className="ic-check"><input type="checkbox" checked={form.birthTimeUnknown} onChange={(e) => patchForm({ birthTimeUnknown: e.target.checked })} /> 태어난 시간을 몰라요 (정오 기준)</label>
               <div className="ic-segrow">
-                <div className="ic-seg" role="group" aria-label="성별">
+                <div className="ic-seg" role="group" aria-label={copy.genderGroupAria}>
                   <button type="button" className={form.gender === "female" ? "on" : ""} onClick={() => patchForm({ gender: "female" })}>여성</button>
                   <button type="button" className={form.gender === "male" ? "on" : ""} onClick={() => patchForm({ gender: "male" })}>남성</button>
                 </div>
-                <div className="ic-seg" role="group" aria-label="달력">
+                <div className="ic-seg" role="group" aria-label={copy.calendarGroupAria}>
                   <button type="button" className={form.calendarType === "solar" ? "on" : ""} onClick={() => patchForm({ calendarType: "solar" })}>양력</button>
                   <button type="button" className={form.calendarType === "lunar" ? "on" : ""} onClick={() => patchForm({ calendarType: "lunar" })}>음력</button>
                 </div>
@@ -602,7 +797,7 @@ export default function IslandConsultClient() {
 
       {(phase === "checking" || phase === "payment" || phase === "reading") && (
         <div className="ic-loading">
-          <div className="ic-loading__art"><Image src={CONSULT_READING} alt="별자리 지도를 읽는 중" width={720} height={720} loading="lazy" /></div>
+          <div className="ic-loading__art"><Image src={CONSULT_READING} alt={copy.loadingArtAlt} width={720} height={720} loading="lazy" /></div>
           <div className="ic-orb" aria-hidden="true" />
           <p>{notice || "준비하고 있어요…"}</p>
         </div>
@@ -610,7 +805,7 @@ export default function IslandConsultClient() {
 
       {phase === "ready" && result && (
         <article className="ic-result">
-          <div className="ic-result__hero"><Image src={CONSULT_READING} alt="운명의 섬 별자리 지도와 관측 도구" width={720} height={720} loading="lazy" /></div>
+          <div className="ic-result__hero"><Image src={CONSULT_READING} alt={copy.resultHeroAlt} width={720} height={720} loading="lazy" /></div>
           <div className="ic-result__heading"><PalaceBadge palace={PALACES.find((p) => p.name === result.palaceKey) || PALACES[0]} size="result" /><div><p className="ic-result__eyebrow">당신의 궁이 보내온 편지</p><h2 className="ic-result__title">{result.palaceKey} · {result.palaceTitle}</h2></div></div>
           {result.result?.meta?.daeun ? <p className="ic-result__meta">{toText(result.result.meta.daeun)}</p> : null}
           {(result.sectionKeys || []).map((key) => {
