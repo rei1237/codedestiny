@@ -61,7 +61,25 @@ const CF_READ_TOKEN = process.env.CLOUDFLARE_API_TOKEN || process.env.CF_API_TOK
 // `/me` 는 2026-08-08 에 정적 셸로 이관되며 빌드에서 사라졌다(bd54e99eb). 오리진이 옛 HTML 을
 // 한동안 200 으로 계속 내려주는 바람에, 여기 남아 있는 동안 릴리스마다 그 옛 세대의 청크가
 // "죽은 자산" 으로 보고됐다. 목록에서 빼되, 같은 일이 또 생겨도 routeExistsInBuild 가 막는다.
-const ROUTES = ["/", "/points/", "/login/", "/music/", "/stories/"];
+//
+// 🔴 여기 없는 라우트는 이 파일의 전파 대기(재시도+퍼지)를 하나도 못 받는다. scripts/deploy-smoke.mjs
+// 가 브라우저로 방문하는 라우트는 재시도 없이 console.error 를 그대로 실패로 본다 — 그래서 여기
+// 목록에 없던 `/saju/basic/` 의 셸 청크(`/js/shell/s-*.js`)가 전환 구간에 일시 404 나자 스모크가
+// 즉시 릴리스를 실패시키고 자동 롤백을 불렀다(2026-08-21, PR #920 릴리스 5a92e99, 커밋 자체는
+// `scripts/verify-karma-destiny-ai-flow.mjs` 한 줄만 바꿔 무관했다). deploy-smoke 라우트는 전부
+// 여기서도 검사해 같은 전파 지연을 롤백 전에 흡수한다.
+const ROUTES = [
+  "/",
+  "/points/",
+  "/login/",
+  "/music/",
+  "/stories/",
+  "/saju/basic/",
+  "/fortune-tea-house/",
+  "/app/",
+  "/app/store/",
+  "/lock-screen-fortune/",
+];
 
 // artifact 모드는 불변 URL 이라 즉시 일관적이다 — 재시도는 순수 네트워크 흔들림 대비 1회뿐.
 // alias 모드는 전환을 기다리는 것이 일이므로 예산을 넉넉히 준다(8×20초 ≈ 160초).
