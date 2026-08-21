@@ -7669,6 +7669,12 @@
       "guarantee": "篇幅未达标准的章节最多自动重写两次。若仍无法达标，则判定为失败而不交付结果，重试与退款通道保持有效。"
     }
   },
+  "errorBoundary": {
+    "title": "加载画面时出现问题。",
+    "description": "这可能是暂时性错误。重试通常可以恢复正常。",
+    "retry": "重试",
+    "goHome": "返回首页"
+  },
   "withdrawModal": {
     "title": "会员注销",
     "closeAriaLabel": "关闭对话框",
