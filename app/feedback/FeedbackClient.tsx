@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { AnimatePresence, m } from "framer-motion";
 
 import { primeAuthFromCache, refreshAuth, useAuthStore } from "@/app/_lib/auth-store";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import CategoryGrid from "./_components/CategoryGrid";
 import FeedbackForm from "./_components/FeedbackForm";
 import FeedbackHero from "./_components/FeedbackHero";
@@ -16,7 +17,8 @@ import {
   type FeedbackAttachment,
   type SubmittedFeedback,
 } from "./_lib/api";
-import { getFeedbackCategory, type FeedbackCategoryId } from "./_lib/categories";
+import { buildFeedbackCategories, getFeedbackCategory, type FeedbackCategoryId } from "./_lib/categories";
+import { FEEDBACK_COPY_KO_CATEGORIES, useFeedbackCopy } from "./_lib/copy";
 import { collectEnvironment, findEnvValue, minimalEnvironment } from "./_lib/environment";
 import { clearDraft, formatSavedAt, loadDraft, saveDraft, type FeedbackDraft } from "./_lib/draft";
 import { CANVAS, GLASS_CARD, GHOST_BUTTON, INK, INK_MUTED } from "./_lib/styles";
@@ -28,6 +30,11 @@ const DRAFT_DEBOUNCE_MS = 800;
 
 export default function FeedbackClient() {
   const { isAuthenticated, authReady } = useAuthStore();
+  const copy = useFeedbackCopy();
+  const categories = useMemo(() => buildFeedbackCategories(copy.categories), [copy]);
+  // 관리자 화면은 details[].label 을 그대로 보여준다 — 제출 payload 의 라벨은 화면 표시와
+  // 별개로 항상 한국어를 쓴다(위 FEEDBACK_COPY_KO_CATEGORIES 주석 참고).
+  const koCategories = useMemo(() => buildFeedbackCategories(FEEDBACK_COPY_KO_CATEGORIES), []);
 
   const [category, setCategory] = useState<FeedbackCategoryId | null>(null);
   const [title, setTitle] = useState("");
@@ -49,7 +56,7 @@ export default function FeedbackClient() {
   const draftTimerRef = useRef<number | null>(null);
   const hydratedRef = useRef(false);
 
-  const selectedCategory = useMemo(() => getFeedbackCategory(category), [category]);
+  const selectedCategory = useMemo(() => getFeedbackCategory(category, categories), [category, categories]);
 
   // 🔴 이 페이지는 몰입형(CHROMELESS_ROUTES)이라 GlobalHeader → AuthWidget 이 렌더되지 않는다.
   //    평소 authReady 를 true 로 올리는 건 그 AuthWidget 의 refreshAuth 호출이므로,
@@ -120,7 +127,7 @@ export default function FeedbackClient() {
     if (draftTimerRef.current) window.clearTimeout(draftTimerRef.current);
     draftTimerRef.current = window.setTimeout(() => {
       saveDraft({ category: category || "", title, content, url, details, attachments, sendEnvironment });
-      setSavedAtLabel(formatSavedAt(Date.now()));
+      setSavedAtLabel(formatSavedAt(Date.now(), getCurrentLoadingLocale()));
     }, DRAFT_DEBOUNCE_MS);
 
     return () => {
@@ -169,17 +176,22 @@ export default function FeedbackClient() {
     setError("");
 
     try {
+      const koFields = getFeedbackCategory(selectedCategory.id, koCategories)?.fields || [];
       const result = await submitFeedback({
         category: selectedCategory.id,
         title: title.trim(),
         content: content.trim(),
         url: url.trim(),
         details: selectedCategory.fields
-          .map((field) => ({ key: field.key, label: field.label, value: (details[field.key] || "").trim() }))
+          .map((field) => ({
+            key: field.key,
+            label: koFields.find((koField) => koField.key === field.key)?.label || field.label,
+            value: (details[field.key] || "").trim(),
+          }))
           .filter((entry) => entry.value),
         environment,
         attachments: attachments.map((file) => file.key),
-      });
+      }, copy);
 
       clearDraft();
       setSubmitted(result);
@@ -190,7 +202,7 @@ export default function FeedbackClient() {
         const { handleSessionInvalidated } = await import("@/app/_lib/auth-store");
         handleSessionInvalidated();
       }
-      setError(submitError instanceof Error ? submitError.message : "제보 전송에 실패했습니다.");
+      setError(submitError instanceof Error ? submitError.message : copy.submitErrorFallback);
     } finally {
       setSubmitting(false);
     }
@@ -235,18 +247,18 @@ export default function FeedbackClient() {
               {pendingDraft && (
                 <div className="flex flex-col gap-3 rounded-2xl border border-[rgba(234,208,137,0.6)] bg-[#fffaf0] p-4 sm:flex-row sm:items-center sm:justify-between dark:border-[#5a4a2a] dark:bg-[#211a10]">
                   <p className={`text-[13px] ${INK}`}>
-                    작성 중이던 내용이 있어요 · <span className={INK_MUTED}>{formatSavedAt(pendingDraft.savedAt)}</span>
+                    {copy.draftBannerText} · <span className={INK_MUTED}>{formatSavedAt(pendingDraft.savedAt, getCurrentLoadingLocale())}</span>
                   </p>
                   <div className="flex shrink-0 gap-2">
-                    <button type="button" onClick={restoreDraft} className={GHOST_BUTTON}>이어서 쓰기</button>
-                    <button type="button" onClick={discardDraft} className={GHOST_BUTTON}>새로 쓰기</button>
+                    <button type="button" onClick={restoreDraft} className={GHOST_BUTTON}>{copy.draftContinue}</button>
+                    <button type="button" onClick={discardDraft} className={GHOST_BUTTON}>{copy.draftRestart}</button>
                   </div>
                 </div>
               )}
 
               <section aria-labelledby="cd-feedback-category-heading">
                 <h2 id="cd-feedback-category-heading" className={`mb-3 text-sm font-bold ${INK}`}>
-                  어떤 이야기인가요?
+                  {copy.categoryHeading}
                 </h2>
                 <CategoryGrid selected={category} onSelect={setCategory} />
               </section>

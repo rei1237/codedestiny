@@ -11,6 +11,7 @@ import {
   pickImageFiles,
   uploadFeedbackAttachment,
 } from "../_lib/attachmentUpload";
+import { useFeedbackCopy } from "../_lib/copy";
 import { ACCENT, GHOST_BUTTON, INK, INK_MUTED } from "../_lib/styles";
 
 interface AttachmentDropzoneProps {
@@ -36,6 +37,7 @@ export default function AttachmentDropzone({
   disabled = false,
   disabledNote = "",
 }: AttachmentDropzoneProps) {
+  const copy = useFeedbackCopy();
   const [isDragging, setIsDragging] = useState(false);
   const [uploadingCount, setUploadingCount] = useState(0);
   const [error, setError] = useState("");
@@ -68,13 +70,13 @@ export default function AttachmentDropzone({
     const uploaded: FeedbackAttachment[] = [];
     for (const file of picked) {
       try {
-        const attachment = await uploadFeedbackAttachment(file);
+        const attachment = await uploadFeedbackAttachment(file, copy);
         uploaded.push(attachment);
         if (attachment.key) {
           setPreviews((prev) => ({ ...prev, [attachment.key]: URL.createObjectURL(file) }));
         }
       } catch (uploadError) {
-        setError(uploadError instanceof Error ? uploadError.message : "이미지 업로드에 실패했습니다.");
+        setError(uploadError instanceof Error ? uploadError.message : copy.uploadErrorGeneric);
       } finally {
         setUploadingCount((count) => Math.max(0, count - 1));
       }
@@ -82,7 +84,7 @@ export default function AttachmentDropzone({
 
     onUploadingChange(false);
     if (uploaded.length) onChange([...attachments, ...uploaded].slice(0, MAX_ATTACHMENTS));
-  }, [attachments, onChange, onUploadingChange, disabled]);
+  }, [attachments, onChange, onUploadingChange, disabled, copy]);
 
   // 🔴 배열 인스턴스 단위로 1회만 올린다. handleFiles 는 attachments 가 바뀌면 새 함수가 되어
   //    effect 가 다시 도는데, 그 시점에 pastedFiles 가 아직 비워지기 전이면 같은 파일을 두 번 올린다.
@@ -109,11 +111,11 @@ export default function AttachmentDropzone({
     <div>
       <div className="flex flex-wrap items-baseline justify-between gap-2">
         <span className={`text-sm font-bold ${INK}`}>
-          스크린샷 첨부
-          {emphasize && <span className={`ml-1.5 text-[11px] font-bold ${ACCENT}`}>도움이 많이 됩니다</span>}
+          {copy.attachmentLabel}
+          {emphasize && <span className={`ml-1.5 text-[11px] font-bold ${ACCENT}`}>{copy.attachmentEmphasizeNote}</span>}
         </span>
         <span className={`text-[12px] ${INK_MUTED}`}>
-          {attachments.length}/{MAX_ATTACHMENTS} · 장당 {formatBytes(MAX_UPLOAD_SIZE)} 이하
+          {attachments.length}/{MAX_ATTACHMENTS} · {copy.attachmentCountSuffix} {formatBytes(MAX_UPLOAD_SIZE)}
         </span>
       </div>
 
@@ -142,14 +144,14 @@ export default function AttachmentDropzone({
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-center">
             <button type="button" onClick={() => fileInputRef.current?.click()} className={`${GHOST_BUTTON} w-full sm:w-auto`}>
               <ImagePlus aria-hidden="true" className="h-4 w-4" />
-              사진 선택
+              {copy.attachmentPickButton}
             </button>
             <button type="button" onClick={() => cameraInputRef.current?.click()} className={`${GHOST_BUTTON} w-full sm:hidden`}>
               <Camera aria-hidden="true" className="h-4 w-4" />
-              사진 촬영
+              {copy.attachmentCameraButton}
             </button>
             <span className={`hidden text-[12px] sm:inline ${INK_MUTED}`}>
-              또는 여기로 끌어다 놓기 · 본문에 붙여넣기(Ctrl+V)
+              {copy.attachmentDropHint}
             </span>
           </div>
 
@@ -181,7 +183,7 @@ export default function AttachmentDropzone({
       {uploadingCount > 0 && (
         <p className={`mt-2 flex items-center gap-1.5 text-[12px] ${INK_MUTED}`} role="status">
           <Loader2 aria-hidden="true" className="h-3.5 w-3.5 animate-spin" />
-          이미지 {uploadingCount}장 올리는 중…
+          {copy.attachmentUploadingTemplate.replace("{n}", String(uploadingCount))}
         </p>
       )}
 
@@ -195,11 +197,11 @@ export default function AttachmentDropzone({
             <li key={file.key} className="relative overflow-hidden rounded-xl border border-[rgba(216,63,120,0.16)] bg-white/60 dark:border-white/10 dark:bg-white/[0.04]">
               {/* 로컬 blob 우선, 없으면(초안 복원) 인증 경유 R2 URL. next/image 최적화 대상이 아니다. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src={previews[file.key] || file.url} alt="첨부한 스크린샷 미리보기" className="aspect-square w-full object-cover" />
+              <img src={previews[file.key] || file.url} alt={copy.attachmentPreviewAlt} className="aspect-square w-full object-cover" />
               <button
                 type="button"
                 onClick={() => remove(file.key)}
-                aria-label="첨부 삭제"
+                aria-label={copy.attachmentRemoveAria}
                 className="absolute right-1 top-1 flex h-8 w-8 items-center justify-center rounded-full bg-black/60 text-white transition-colors hover:bg-black/80 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
               >
                 <X aria-hidden="true" className="h-4 w-4" />
@@ -210,7 +212,7 @@ export default function AttachmentDropzone({
       )}
 
       <p className={`mt-2 text-[12px] ${INK_MUTED}`}>
-        첨부 전 개인정보(이름 · 연락처 · 타인의 대화)가 보이지 않는지 확인해 주세요.
+        {copy.attachmentPrivacyNote}
       </p>
     </div>
   );

@@ -2,7 +2,8 @@
 
 import { m } from "framer-motion";
 
-import { FEEDBACK_CATEGORIES, type FeedbackCategoryId } from "../_lib/categories";
+import { buildFeedbackCategories, type FeedbackCategoryId } from "../_lib/categories";
+import { useFeedbackCopy } from "../_lib/copy";
 import { INK, INK_MUTED } from "../_lib/styles";
 
 interface CategoryGridProps {
@@ -11,13 +12,16 @@ interface CategoryGridProps {
 }
 
 export default function CategoryGrid({ selected, onSelect }: CategoryGridProps) {
+  const copy = useFeedbackCopy();
+  const categories = buildFeedbackCategories(copy.categories);
+
   return (
     <div
       role="radiogroup"
-      aria-label="제보 유형"
+      aria-label={copy.categoryGridAria}
       className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3 lg:grid-cols-5"
     >
-      {FEEDBACK_CATEGORIES.map((category) => {
+      {categories.map((category) => {
         const isSelected = selected === category.id;
         return (
           <button

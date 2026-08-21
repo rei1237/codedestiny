@@ -5,6 +5,7 @@ import { AlertTriangle, Gift, LogIn, Send } from "lucide-react";
 
 import type { FeedbackAttachment } from "../_lib/api";
 import type { FeedbackCategory } from "../_lib/categories";
+import { useFeedbackCopy } from "../_lib/copy";
 import type { EnvEntry } from "../_lib/environment";
 import {
   CTA_BUTTON,
@@ -50,6 +51,7 @@ interface FeedbackFormProps {
 }
 
 export default function FeedbackForm(props: FeedbackFormProps) {
+  const copy = useFeedbackCopy();
   const {
     category, title, content, url, details, attachments, environment, sendEnvironment,
     urlAutoFilled, isAuthenticated, submitting, uploading, error, savedAtLabel,
@@ -107,7 +109,7 @@ export default function FeedbackForm(props: FeedbackFormProps) {
 
         <div>
           <label htmlFor="cd-feedback-title" className={FIELD_LABEL}>
-            제목 <span aria-hidden="true" className="text-[#b31955] dark:text-[#c4b5fd]">*</span>
+            {copy.titleFieldLabel} <span aria-hidden="true" className="text-[#b31955] dark:text-[#c4b5fd]">*</span>
           </label>
           <input
             id="cd-feedback-title"
@@ -116,7 +118,7 @@ export default function FeedbackForm(props: FeedbackFormProps) {
             maxLength={titleMaxLength}
             required
             onChange={(event) => onTitleChange(event.target.value)}
-            placeholder="한 줄로 요약해 주세요"
+            placeholder={copy.titlePlaceholder}
             className={`${FIELD_INPUT} mt-2`}
             aria-describedby="cd-feedback-title-count"
           />
@@ -127,7 +129,7 @@ export default function FeedbackForm(props: FeedbackFormProps) {
 
         <div>
           <label htmlFor="cd-feedback-content" className={FIELD_LABEL}>
-            내용 <span aria-hidden="true" className="text-[#b31955] dark:text-[#c4b5fd]">*</span>
+            {copy.contentFieldLabel} <span aria-hidden="true" className="text-[#b31955] dark:text-[#c4b5fd]">*</span>
           </label>
           <textarea
             id="cd-feedback-content"
@@ -144,25 +146,25 @@ export default function FeedbackForm(props: FeedbackFormProps) {
                 onPasteImages(files);
               }
             }}
-            placeholder="어떤 상황에서 무엇이 이상했는지 편하게 적어주세요. 스크린샷은 여기에 바로 붙여넣어도 됩니다."
+            placeholder={copy.contentPlaceholder}
             className={`${FIELD_INPUT} mt-2 resize-y`}
             aria-describedby="cd-feedback-content-count"
           />
           <p id="cd-feedback-content-count" className={`mt-1 text-right text-[12px] ${INK_MUTED}`}>
             {content.length}/{contentMaxLength}
             {content.trim().length > 0 && content.trim().length < contentMinLength
-              ? ` · ${contentMinLength}자 이상 입력해 주세요`
+              ? ` · ${contentMinLength}${copy.contentMinLengthSuffix}`
               : ""}
           </p>
         </div>
 
         <div>
           <label htmlFor="cd-feedback-url" className={FIELD_LABEL}>
-            제보 대상 페이지
+            {copy.urlFieldLabel}
             {category.requireUrl && <span aria-hidden="true" className="ml-1 text-[#b31955] dark:text-[#c4b5fd]">*</span>}
             {urlAutoFilled && url && (
               <span className={`ml-2 rounded-full bg-[#b31955]/10 px-2 py-0.5 text-[11px] font-bold ${INK_MUTED} dark:bg-[#c4b5fd]/15`}>
-                자동 입력됨
+                {copy.urlAutoFilledBadge}
               </span>
             )}
           </label>
@@ -241,7 +243,7 @@ export default function FeedbackForm(props: FeedbackFormProps) {
           pastedFiles={pastedFiles}
           onPastedConsumed={onPastedConsumed}
           disabled={!isAuthenticated}
-          disabledNote="로그인하면 스크린샷을 첨부할 수 있어요. 지금 쓰신 내용은 그대로 저장됩니다."
+          disabledNote={copy.attachmentDisabledNote}
         />
 
         <EnvironmentPanel entries={environment} enabled={sendEnvironment} onToggle={onSendEnvironmentChange} />
@@ -256,7 +258,7 @@ export default function FeedbackForm(props: FeedbackFormProps) {
       {/* 제출 행은 fixed 로 만들지 않는다 — MobileBottomNav·FeatureBackHomeNav 와 겹친다. */}
       <div className="flex flex-col-reverse items-center gap-3 pt-1 sm:flex-row sm:justify-between">
         <p className={`text-[12px] ${INK_MUTED}`}>
-          {savedAtLabel ? `임시 저장됨 ${savedAtLabel}` : "작성 중인 내용은 자동으로 저장됩니다"}
+          {savedAtLabel ? `${copy.savedAtPrefix} ${savedAtLabel}` : copy.autoSaveNote}
         </p>
         <div className="flex w-full items-center justify-end gap-3 sm:w-auto">
           <span className={`hidden text-[12px] sm:inline ${INK_MUTED}`}>
@@ -269,12 +271,12 @@ export default function FeedbackForm(props: FeedbackFormProps) {
               ? <Send aria-hidden="true" className="h-4 w-4" />
               : <LogIn aria-hidden="true" className="h-4 w-4" />}
             {submitting
-              ? "보내는 중…"
+              ? copy.submitSending
               : uploading
-                ? "이미지 올리는 중…"
+                ? copy.submitUploading
                 : isAuthenticated
-                  ? "의견 보내기"
-                  : "로그인하고 보내기"}
+                  ? copy.submitSend
+                  : copy.submitLoginAndSend}
           </button>
         </div>
       </div>

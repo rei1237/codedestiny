@@ -5,7 +5,9 @@
 //
 // 🔴 파일 바이트는 절대 저장하지 않는다. 업로드가 끝난 R2 키/URL 만 담는다.
 
+import type { LoadingLocale } from "@/constants/loadingMessages";
 import type { FeedbackAttachment } from "./api";
+import { getFeedbackDateLocaleTag } from "./copy";
 
 const DRAFT_KEY = "cd-feedback-draft:v1";
 const DRAFT_TTL_MS = 7 * 24 * 60 * 60 * 1000;
@@ -79,9 +81,9 @@ export function clearDraft(): void {
   }
 }
 
-export function formatSavedAt(savedAt: number): string {
+export function formatSavedAt(savedAt: number, locale: LoadingLocale = "ko"): string {
   try {
-    return new Date(savedAt).toLocaleString("ko-KR", {
+    return new Date(savedAt).toLocaleString(getFeedbackDateLocaleTag(locale), {
       month: "long",
       day: "numeric",
       hour: "2-digit",
