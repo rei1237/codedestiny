@@ -5319,7 +5319,7 @@ function formatMonthlyCreditGrantSummary(auth, safeUser, ledgers) {
     amount: granted,
     beforeBalance: 0,
     afterBalance: Math.max(granted, balance + used),
-    reason: "이용권 혜택 지급",
+    reason: "월정석 지급",
     sourceId,
     serviceKey: "membership_credit_grant",
     createdAt: safeUser?.joinedAt || sub.legacyCoinCreditSeededAt || null,
