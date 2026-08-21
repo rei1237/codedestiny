@@ -16,6 +16,21 @@
  * 로딩 방식(번들러 없이 3런타임 공유 — js/core/pass-verdict.js 와 같은 패턴):
  *   - 브라우저 classic script: `globalThis.__cdCheckoutEntry`
  *   - webpack/Node(require): `module.exports` (package.json type=commonjs)
+ *
+ * 🔴 "누가 실행하는가"는 이미 다른 곳에서 정리돼 있다 — 여기서 다시 만들지 말 것.
+ * 정적 셸(index.html) · 독립 정적(js/destiny-profile.js) · React(app/_lib/billing-client.ts) 셋 다
+ * window._cdChooseServicePaymentMode 에 자기 렌더러를 등록하려 시도하지만, 실제로 뜨는 것은 하나뿐이다 —
+ * 셸이 항상 우선하고(non-deferred 스크립트라 사실상 먼저 실행되며, 셸 등록에는 __cdReactFallback 이
+ * 없다), 셸이 없으면 독립 정적이, 그마저 없으면 React 가 자기 모달을 여는 최후 폴백(fn.__cdReactFallback
+ * = true 로 스스로를 표시)만 등록한다. 이 순서는 세 플래그로 지켜진다: fn.__cdSupportsPassChoice(정본
+ * 자격 마크) · window.__cdChooseServicePaymentModeCanonical(지금 정본으로 뽑힌 렌더러 참조) ·
+ * window.__cdRestoreCanonicalPaymentMode(독립 정적/React 가 먼저 떠도 셸이 나중에 로드되면 그 자리에서
+ * 인수하는 복구 훅 — verify-payment-choice-single-instance.mjs 의 "셸이 인수한다" 테스트가 이 훅을 검증).
+ * 실제 등록 코드는 index.html · js/destiny-profile.js · app/_lib/billing-client.ts
+ * installReactPaymentChoiceBridge 세 곳에 각자 있다. 이 파일이 공유하는 것은 "무엇을 그리는가"(카드
+ * 마크업·CSS, buildPaymentChoiceCardsHtml/PAYMENT_CHOICE_CSS_RULES)뿐이고, 세 렌더러가 동시에 뜨는 일은
+ * 저 레지스트리가 이미 막는다 — DOM 부착 자체를 여기로 합치려 하지 말 것(리뷰·롤백 단위가 다른 별개
+ * 트랙이다).
  */
 (function (factory) {
   var api = factory();
@@ -319,6 +334,64 @@
   }
 
   /**
+   * 결제 선택 카드 한 장의 HTML. 🔴 세 렌더러(정적 셸·React·독립 정적)가 각자 손으로 유지하던 카드
+   * 뼈대(배지·추천 리본·go 스트립·variant 클래스)를 여기 하나로 모은다. 조건 계산(무엇을 보여줄지,
+   * 비활성 여부, 문구)은 옮기지 않는다 — 렌더러마다 실제 정보량이 다르기 때문이다(React 만의
+   * aria-label, 셸/독립정적의 이용권 한도 문구 등). 호출부는 이미 계산·이스케이프된 조각만 넘긴다.
+   *
+   * spec 필드: allow(false면 빈 문자열) · dataMode · extraDataAttrs(예: ' data-monthly-option disabled
+   * aria-disabled="true"') · extraClass(예: ' is-store') · ariaLabel(있으면 escape 후 부착) · glyph
+   * (이모지) · badgeLabel(escape 대상) · titleHtml/descHtml(호출부가 이미 조립·이스케이프한 HTML) ·
+   * descAttr(예: ' data-monthly-hint') · afterHtml(카드 형제로 붙는 조각 — <button> 중첩 금지라 월정석
+   * 잔량 확인 버튼이 여기로 온다).
+   */
+  function buildPaymentChoiceOptionHtml(option, spec, ctx) {
+    if (!spec || spec.allow === false) return "";
+    var escape = ctx.escape || function (value) { return String(value === null || value === undefined ? "" : value); };
+    var isRecommended = option === ctx.recommendedOption;
+    var variantClass = isRecommended ? " cd-direct-payment-option--recommended" : " cd-direct-payment-option--secondary";
+    var recommendHtml = isRecommended
+      ? '<span class="cd-direct-payment-recommend">' + escape(ctx.recommendLabel) + "</span>"
+      : "";
+    var goHtml = isRecommended
+      ? '<span class="cd-direct-payment-go">' + escape(ctx.goLabel) + "</span>"
+      : "";
+    var ariaAttr = spec.ariaLabel ? ' aria-label="' + escape(spec.ariaLabel) + '"' : "";
+    return (
+      '<button type="button" class="cd-direct-payment-option' + (spec.extraClass || "") + variantClass
+      + '" data-mode="' + spec.dataMode + '"' + (spec.extraDataAttrs || "") + ariaAttr + ">"
+      + '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">'
+      + spec.glyph + "</span>" + escape(spec.badgeLabel) + "</span>" + recommendHtml + "</span>"
+      + "<strong>" + spec.titleHtml + "</strong>"
+      + '<span class="cd-direct-payment-desc"' + (spec.descAttr || "") + ">" + spec.descHtml + "</span>"
+      + goHtml
+      + "</button>"
+    );
+  }
+
+  /**
+   * 이용권/단건/월정석 카드를 checkoutRecommendation.order 순서대로 이어 붙인다. input.cards 는
+   * { pass, direct, monthly } 형태로 각 값은 buildPaymentChoiceOptionHtml 의 spec 이다.
+   */
+  function buildPaymentChoiceCardsHtml(input) {
+    var opts = input || {};
+    var order = Array.isArray(opts.order) ? opts.order : [];
+    var cards = opts.cards || {};
+    var ctx = {
+      escape: opts.escape,
+      recommendedOption: opts.recommendedOption,
+      recommendLabel: opts.recommendLabel,
+      goLabel: opts.goLabel,
+    };
+    return order.map(function (option) {
+      var spec = cards[option];
+      var cardHtml = buildPaymentChoiceOptionHtml(option, spec, ctx);
+      var afterHtml = cardHtml && spec && spec.afterHtml ? spec.afterHtml : "";
+      return cardHtml + afterHtml;
+    }).join("");
+  }
+
+  /**
    * 이용권 상점 진입 URL. cdco=1 이 붙은 진입만 /points 가 결제 확인 모달을 자동으로 연다
    * (app/points/PointsClient.tsx) — 그냥 상점 구경으로 들어온 사용자에게는 열지 않는다.
    */
@@ -605,6 +678,7 @@
     formatKrwAmount: formatKrwAmount,
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
+    buildPaymentChoiceCardsHtml: buildPaymentChoiceCardsHtml,
     resolveStorePlan: resolveStorePlan,
     buildPassStoreUrl: buildPassStoreUrl,
     shouldUseAppStoreEntry: shouldUseAppStoreEntry,
