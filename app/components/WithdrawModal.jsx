@@ -25,6 +25,32 @@ import { useBodyScrollLock } from "../_lib/body-scroll-lock";
 // 유틸
 // ─────────────────────────────────────────────────────────────────
 
+// 🔴 2026-06-26 커밋(53fd3acfa)이 이 파일의 한국어 리터럴을 withdrawModalText(...)
+// 호출로 기계 치환하면서 정작 이 함수/사전을 추가하지 않아 렌더 시 크래시였다.
+// 원본 문구를 그대로 복원한 임시 테이블 — 다국어화(useT() 전환)는 별도 후속 작업.
+const WITHDRAW_MODAL_TEXT = {
+  "withdrawModal.001": "보안 토큰을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  "withdrawModal.002": "모든 동의 항목을 체크해 주세요.",
+  "withdrawModal.003": "\"회원탈퇴\"를 정확히 입력해 주세요.",
+  "withdrawModal.004": "현재 비밀번호를 입력해 주세요. (8자 이상)",
+  "withdrawModal.005": "보안 토큰이 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.",
+  "withdrawModal.006": "네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+  "withdrawModal.007": "모달 닫기",
+  "withdrawModal.008": "보유 포인트 및 모든 데이터가",
+  "withdrawModal.009": "즉시 영구 삭제",
+  "withdrawModal.010": "됩니다.",
+  "withdrawModal.011": "탈퇴 후 동일 이메일로 재가입 시 이전 데이터는",
+  "withdrawModal.012": "복구 불가",
+  "withdrawModal.013": "합니다.",
+  "withdrawModal.014": "법적 의무에 따라 결제 거래 기록은 5년간 익명화 보관됩니다.",
+  "withdrawModal.015": "현재 비밀번호를 입력하세요",
+  "withdrawModal.016": "회원탈퇴",
+};
+
+function withdrawModalText(key) {
+  return WITHDRAW_MODAL_TEXT[key] ?? key;
+}
+
 /**
  * 클라이언트 사이드 저장소 초기화
  * — JWT가 쿠키에 있어 서버에서 삭제되지만, 혹시라도 로컬 캐시가
