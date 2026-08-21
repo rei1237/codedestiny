@@ -1553,12 +1553,12 @@ async analyze(landmarksData, expressionData, imageAspect) {
           // 🔴 여기의 페널티에 이득을 곱해도 순위는 안 바뀐다 — 뒤의 억제가 baseScore 에
           //    비례해 같이 커지기 때문이다(3·6·10·16배 전부 적중률 동일, 2026-08-16 실측).
           // 🔴 사진이 늘면 다시 재라: npm run physio:measure → npm run physio:replay
-          let penalty = (Math.pow(diffF, 2) * 1987) +
+          let penalty = (Math.pow(diffF, 2) * 1969) +
                         (Math.pow(diffS, 2) * 2) +
-                        (Math.pow(diffD, 2) * 1238) +
-                        (Math.pow(diffN, 2) * 1200) +
-                        (Math.pow(diffM, 2) * 660) +
-                        (Math.pow(diffE, 2) * 292);
+                        (Math.pow(diffD, 2) * 1292) +
+                        (Math.pow(diffN, 2) * 1433) +
+                        (Math.pow(diffM, 2) * 631) +
+                        (Math.pow(diffE, 2) * 270);
 
           // 확률 계산을 나중으로 미루고 정확한 유클리디안 거리를 먼저 기록 (중요)
           let geoScore = Math.max(0, 2000 - penalty);
@@ -1867,78 +1867,78 @@ async analyze(landmarksData, expressionData, imageAspect) {
 
           // 1) 갸름한 턱선 + 큰 눈 → 고양이상
           if (c.animal.id === 'cat') {
-            if (features.faceRatio <= 0.82) bonus += 700;
-            else if (features.faceRatio <= 0.85) bonus += 400;
-            else if (features.faceRatio <= 0.88) bonus += 200;
-            if (features.eyeRatio <= 2.5) bonus += 450;
-            else if (features.eyeRatio <= 2.8) bonus += 220;
-            if (features.eyeSlant <= -2.0) bonus += 400;
-            else if (features.eyeSlant <= -0.5) bonus += 180;
-            if (features.noseWidthRatio <= 0.88) bonus += 200;
-            bonus += 500; // 기본 여성 부스트
+            if (features.faceRatio <= 0.769) bonus += 547;
+            else if (features.faceRatio <= 0.873) bonus += 662;
+            else if (features.faceRatio <= 1.005) bonus += 196;
+            if (features.eyeRatio <= 2.671) bonus += 855;
+            else if (features.eyeRatio <= 3.342) bonus += 306;
+            if (features.eyeSlant <= -3.927) bonus += 255;
+            else if (features.eyeSlant <= -2) bonus += 128;
+            if (features.noseWidthRatio <= 0.684) bonus += 215;
+            bonus += 424; // 기본 여성 부스트
           }
           // 2) 둥근 얼굴 + 큰 눈 + 순한 인상 → 강아지상
           if (c.animal.id === 'dog') {
-            if (features.faceRatio >= 0.83) bonus += 1100;
-            else if (features.faceRatio >= 0.80) bonus += 650;
-            else if (features.faceRatio >= 0.77) bonus += 300;
-            if (features.eyeRatio <= 2.6) bonus += 800;
-            else if (features.eyeRatio <= 2.9) bonus += 400;
-            if (features.eyeSlant >= 0.0) bonus += 600;
-            else if (features.eyeSlant >= -1.0) bonus += 280;
-            if (features.mouthCurve > 0) bonus += 350;
-            bonus += 600; // 기본 여성 부스트
+            if (features.faceRatio >= 0.88) bonus += 992;
+            else if (features.faceRatio >= 0.81) bonus += 1116;
+            else if (features.faceRatio >= 0.718) bonus += 433;
+            if (features.eyeRatio <= 2.238) bonus += 639;
+            else if (features.eyeRatio <= 2.658) bonus += 466;
+            if (features.eyeSlant >= 0) bonus += 110;
+            else if (features.eyeSlant >= -10) bonus += 999;
+            if (features.mouthCurve > 0) bonus += 619;
+            bonus += 1036; // 기본 여성 부스트
           }
           // 3) 토끼상 (작은 코, 순한 눈매, 작은 입)
           if (c.animal.id === 'rabbit') {
-            if (features.noseWidthRatio <= 0.88) bonus += 350;
-            else if (features.noseWidthRatio <= 0.93) bonus += 150;
-            if (features.mouthRatio <= 1.30) bonus += 250;
-            if (features.eyeSlant >= -0.5) bonus += 150;
-            bonus += 250;
+            if (features.noseWidthRatio <= 0.808) bonus += 275;
+            else if (features.noseWidthRatio <= 0.96) bonus += 48;
+            if (features.mouthRatio <= 1.619) bonus += 227;
+            if (features.eyeSlant >= 0.092) bonus += 165;
+            bonus += 244;
           }
           // 4) 전체적으로 둥글면 → 곰상/햄스터상
           if (c.animal.id === 'bear' || c.animal.id === 'hamster') {
-            if (features.faceRatio >= 0.87) bonus += 290;
-            else if (features.faceRatio >= 0.84) bonus += 145;
-            if (features.faceRatio >= 0.84) bonus += 145; // floor를 넓은 얼굴에만: 갸름 얼굴이 곰으로 새는 것 방지
+            if (features.faceRatio >= 0.936) bonus += 44;
+            else if (features.faceRatio >= 0.885) bonus += 284;
+            if (features.faceRatio >= 0.799) bonus += 80; // floor를 넓은 얼굴에만: 갸름 얼굴이 곰으로 새는 것 방지
           }
           // 5) 눈이 매우 크면 → 사슴상
           if (c.animal.id === 'deer') {
-            if (features.eyeRatio <= 2.3) bonus += 450;
-            else if (features.eyeRatio <= 2.6) bonus += 250;
-            bonus += 200;
+            if (features.eyeRatio <= 2.509) bonus += 99;
+            else if (features.eyeRatio <= 2.521) bonus += 357;
+            bonus += 110;
           }
           // 6) 여우상 — 갸름한 얼굴 + 날카로운 눈매 + 좁은 미간
           if (c.animal.id === 'fox') {
-            if (features.faceRatio <= 0.78) bonus += 126;
-            else if (features.faceRatio <= 0.82) bonus += 79;
-            else if (features.faceRatio <= 0.85) bonus += 40;
-            if (features.eyeSlant <= -3.0) bonus += 101;
-            else if (features.eyeSlant <= -1.5) bonus += 54;
-            if (features.eyeDistRatio <= 0.95) bonus += 54;
-            else if (features.eyeDistRatio <= 1.00) bonus += 29;
-            if (features.mouthRatio >= 1.30 && features.mouthRatio <= 1.45) bonus += 43;
-            bonus += 72; // 기본 여성 부스트
+            if (features.faceRatio <= 0.706) bonus += 140;
+            else if (features.faceRatio <= 0.771) bonus += 65;
+            else if (features.faceRatio <= 0.777) bonus += 28;
+            if (features.eyeSlant <= -5.501) bonus += 54;
+            else if (features.eyeSlant <= -3) bonus += 140;
+            if (features.eyeDistRatio <= 1) bonus += 43;
+            else if (features.eyeDistRatio <= 1.071) bonus += 25;
+            if (features.mouthRatio >= 1.399 && features.mouthRatio <= 1.453) bonus += 77;
+            bonus += 101; // 기본 여성 부스트
           }
           // 7) 표범상 — 날렵하고 섹시한 눈매
           if (c.animal.id === 'leopard') {
-            if (features.eyeSlant <= -3.0) bonus += 350;
-            else if (features.eyeSlant <= -1.5) bonus += 180;
-            if (features.faceRatio >= 0.79 && features.faceRatio <= 0.85) bonus += 200;
-            bonus += 150;
+            if (features.eyeSlant <= -6.514) bonus += 176;
+            else if (features.eyeSlant <= -2) bonus += 371;
+            if (features.faceRatio >= 0.945 && features.faceRatio <= 0.718) bonus += 64;
+            bonus += 92;
           }
           // 8) 스라소니상
           if (c.animal.id === 'lynx') {
-            if (features.eyeSlant <= -3.5) bonus += 300;
-            if (features.faceRatio <= 0.82) bonus += 200;
-            bonus += 100;
+            if (features.eyeSlant <= -9.91) bonus += 173;
+            if (features.faceRatio <= 0.636) bonus += 289;
+            bonus += 171;
           }
           // 9) 기타 여성 호감 동물상
-          if (c.animal.id === 'otter') bonus += 250;
-          if (c.animal.id === 'sparrow') bonus += 200;
-          if (c.animal.id === 'koala') bonus += 200;
-          if (c.animal.id === 'alpaca') bonus += 150;
+          if (c.animal.id === 'otter') bonus += 197;
+          if (c.animal.id === 'sparrow') bonus += 347;
+          if (c.animal.id === 'koala') bonus += 98;
+          if (c.animal.id === 'alpaca') bonus += 319;
 
           if (bonus > 0) c.totalScore += bonus * femPower;
 
@@ -1950,7 +1950,7 @@ async analyze(landmarksData, expressionData, imageAspect) {
           const crushList = ['eagle', 'crocodile', 'dinosaur', 'lion', 'horse', 'camel'];
           if (crushList.includes(c.animal.id)) {
             // femPower가 높을수록 더 강하게 억제 (60%~95% 감소)
-            const crushRate = Math.min(0.95, 0.6 + (femPower - 1.0) * 0.15);
+            const crushRate = Math.min(0.966, 0.719 + (femPower - 1.0) * 0.164);
             c.totalScore *= (1.0 - crushRate);
           }
           // 약한 페널티 동물상 (30%~50% 감소)
@@ -1962,7 +1962,7 @@ async analyze(landmarksData, expressionData, imageAspect) {
           // 정책과 데이터가 어긋나지 않는다.
           const mildCrush = ['wolf'];
           if (mildCrush.includes(c.animal.id)) {
-            const mildRate = Math.min(0.50, 0.30 + (femPower - 1.0) * 0.08);
+            const mildRate = Math.min(0.593, 0.175 + (femPower - 1.0) * 0.068);
             c.totalScore *= (1.0 - mildRate);
           }
         });
@@ -1977,85 +1977,85 @@ async analyze(landmarksData, expressionData, imageAspect) {
 
           // 1) 강아지상 — 둥근 얼굴 + 순한 눈매
           if (c.animal.id === 'dog') {
-            if (features.faceRatio >= 0.83) bonus += 550;
-            else if (features.faceRatio >= 0.80) bonus += 300;
-            if (features.eyeSlant >= 0.5) bonus += 350;
-            else if (features.eyeSlant >= -0.5) bonus += 180;
-            if (features.mouthCurve > 0) bonus += 150;
-            bonus += 250;
+            if (features.faceRatio >= 0.955) bonus += 302;
+            else if (features.faceRatio >= 0.864) bonus += 551;
+            if (features.eyeSlant >= 3.371) bonus += 426;
+            else if (features.eyeSlant >= 1.198) bonus += 127;
+            if (features.mouthCurve > 0) bonus += 147;
+            bonus += 137;
           }
           // 1-b) 고양이상 — 갸름한 얼굴 + 올라간/중립 눈매 (남성형 블록에 cat 분기가 누락돼 갸름한 남성 얼굴이 곰으로 오판되던 문제 보완, dog와 대칭)
           if (c.animal.id === 'cat') {
-            if (features.faceRatio <= 0.82) bonus += 550;
-            else if (features.faceRatio <= 0.85) bonus += 300;
-            if (features.eyeSlant <= -2.0) bonus += 350;
-            else if (features.eyeSlant <= -0.5) bonus += 150;
-            if (features.eyeRatio <= 2.6) bonus += 200;
-            bonus += 250;
+            if (features.faceRatio <= 0.931) bonus += 444;
+            else if (features.faceRatio <= 1.006) bonus += 348;
+            if (features.eyeSlant <= 1) bonus += 834;
+            else if (features.eyeSlant <= 4.659) bonus += 84;
+            if (features.eyeRatio <= 3.203) bonus += 318;
+            bonus += 302;
           }
           // 2) 곰상 — 넓고 큰 얼굴, 두꺼운 코
           if (c.animal.id === 'bear') {
-            if (features.faceRatio >= 0.87) bonus += 290;
-            else if (features.faceRatio >= 0.84) bonus += 145;
-            if (features.noseWidthRatio >= 1.00) bonus += 220;
-            else if (features.noseWidthRatio >= 0.93) bonus += 110;
-            if (features.faceRatio >= 0.84) bonus += 145; // floor를 넓은 얼굴에만: 갸름 얼굴이 곰으로 새는 것 방지
+            if (features.faceRatio >= 0.896) bonus += 115;
+            else if (features.faceRatio >= 0.644) bonus += 72;
+            if (features.noseWidthRatio >= 1.11) bonus += 34;
+            else if (features.noseWidthRatio >= 1) bonus += 213;
+            if (features.faceRatio >= 0.778) bonus += 127; // floor를 넓은 얼굴에만: 갸름 얼굴이 곰으로 새는 것 방지
           }
           // 3) 악어상 — 넓은 하관 + 큰 입 + 넓은 미간
           if (c.animal.id === 'crocodile') {
-            if (features.faceRatio >= 0.85) bonus += 450;
-            else if (features.faceRatio >= 0.82) bonus += 220;
-            if (features.mouthRatio >= 1.50) bonus += 400;
-            else if (features.mouthRatio >= 1.40) bonus += 200;
-            if (features.eyeDistRatio >= 1.15) bonus += 250;
-            bonus += 200;
+            if (features.faceRatio >= 0.888) bonus += 154;
+            else if (features.faceRatio >= 0.777) bonus += 722;
+            if (features.mouthRatio >= 1.603) bonus += 521;
+            else if (features.mouthRatio >= 1.57) bonus += 216;
+            if (features.eyeDistRatio >= 1.008) bonus += 202;
+            bonus += 60;
           }
           // 4) 공룡상 — 강한 턱선 + 매우 큰 입
           if (c.animal.id === 'dinosaur') {
-            if (features.mouthRatio >= 1.50) bonus += 400;
-            else if (features.mouthRatio >= 1.40) bonus += 200;
-            if (features.noseWidthRatio >= 0.98) bonus += 300;
-            else if (features.noseWidthRatio >= 0.92) bonus += 150;
-            bonus += 200;
+            if (features.mouthRatio >= 1.527) bonus += 681;
+            else if (features.mouthRatio >= 1.411) bonus += 143;
+            if (features.noseWidthRatio >= 0.997) bonus += 176;
+            else if (features.noseWidthRatio >= 0.759) bonus += 733;
+            bonus += 77;
           }
           // 5) 호랑이/사자상
           if (c.animal.id === 'tiger') {
-            if (features.faceRatio >= 0.84 && features.eyeSlant <= -2.0) bonus += 400;
-            bonus += 200;
+            if (features.faceRatio >= 0.812 && features.eyeSlant <= -1) bonus += 332;
+            bonus += 235;
           }
           if (c.animal.id === 'lion') {
-            if (features.faceRatio >= 0.86 && features.noseWidthRatio >= 1.00) bonus += 350;
+            if (features.faceRatio >= 0.795 && features.noseWidthRatio >= 1) bonus += 436;
             bonus += 200;
           }
           // 6) 여우상 — 남성형 갸름한 얼굴 + 날카로운 눈매
           if (c.animal.id === 'fox') {
-            if (features.faceRatio <= 0.78) bonus += 126;
-            else if (features.faceRatio <= 0.82) bonus += 79;
-            else if (features.faceRatio <= 0.85) bonus += 40;
-            if (features.eyeSlant <= -3.0) bonus += 90;
-            else if (features.eyeSlant <= -1.5) bonus += 47;
-            if (features.eyeDistRatio <= 0.95) bonus += 54;
-            else if (features.eyeDistRatio <= 1.00) bonus += 29;
-            if (features.faceRatio <= 0.82 && features.eyeSlant <= -2.0) bonus += 79;
-            bonus += 36; // 기본 남성 부스트
+            if (features.faceRatio <= 0.817) bonus += 24;
+            else if (features.faceRatio <= 0.819) bonus += 31;
+            else if (features.faceRatio <= 0.829) bonus += 213;
+            if (features.eyeSlant <= -2) bonus += 27;
+            else if (features.eyeSlant <= 2.214) bonus += 47;
+            if (features.eyeDistRatio <= 0.803) bonus += 66;
+            else if (features.eyeDistRatio <= 1) bonus += 20;
+            if (features.faceRatio <= 0.85 && features.eyeSlant <= -1) bonus += 176;
+            bonus += 12; // 기본 남성 부스트
           }
           // 7) 늑대상 — 갸름하고 날카로운 눈매
           if (c.animal.id === 'wolf') {
-            if (features.faceRatio <= 0.82) bonus += 300;
-            if (features.eyeSlant <= -3.0) bonus += 350;
-            else if (features.eyeSlant <= -1.5) bonus += 180;
-            if (features.eyeDistRatio <= 1.00) bonus += 150;
+            if (features.faceRatio <= 0.687) bonus += 256;
+            if (features.eyeSlant <= -1.327) bonus += 155;
+            else if (features.eyeSlant <= 2) bonus += 338;
+            if (features.eyeDistRatio <= 1) bonus += 100;
           }
           // 8) 뱀상
           if (c.animal.id === 'snake') {
-            if (features.eyeSlant <= -2.0) bonus += 250;
-            if (features.mouthRatio >= 1.40) bonus += 200;
+            if (features.eyeSlant <= -6) bonus += 125;
+            if (features.mouthRatio >= 1.475) bonus += 478;
           }
           // 9) 독수리상
           if (c.animal.id === 'eagle') {
-            if (features.eyeDistRatio <= 0.92) bonus += 300;
-            if (features.eyeSlant <= -2.0) bonus += 200;
-            if (features.noseWidthRatio >= 0.94) bonus += 150;
+            if (features.eyeDistRatio <= 0.851) bonus += 186;
+            if (features.eyeSlant <= -4) bonus += 175;
+            if (features.noseWidthRatio >= 0.8) bonus += 81;
           }
 
           if (bonus > 0) c.totalScore += bonus * mascPower;
