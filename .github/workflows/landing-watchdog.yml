@@ -92,10 +92,19 @@ jobs:
       # 그래서 --update-branches 는 schedule(매시 27분)에서만 켠다. 충돌을 드러내는 시점이
       # push 즉시에서 최대 1시간 지연으로 늦어지는 대신, PR CI 가 리셋 없이 완주할 시간을
       # 확보한다.
+      # update-branch 의 push 는 여기 GH_TOKEN 의 주체가 triggering_actor 가 된다. 기본
+      # GITHUB_TOKEN(=github-actions[bot])으로 push 하면 그 봇 계정은 이 저장소에 "자기
+      # 이름으로 병합된 커밋"이 영원히 없어, "Approval for running fork pull request
+      # workflows from contributors" 설정이 가장 느슨한 단계여도 매번 신규 기여자로 잡혀
+      # pr-ci.yml 이 action_required 로 멈춘다(2026-08-21 확인, job 0개로 종료).
+      # WATCHDOG_PAT(레포 관리자 소유, rei1237/codedestiny 한정 fine-grained PAT)를 쓰면
+      # triggering_actor 가 사람이 되어 이 게이트를 만나지 않는다. 시크릿이 아직 없을 때는
+      # github.token 으로 폴백해 워크플로가 깨지지 않게 한다.
       - name: Check that merged work reached staging
         env:
           DAYS: ${{ inputs.days || '7' }}
           DRY_RUN: ${{ inputs.dry_run || 'false' }}
+          GH_TOKEN: ${{ secrets.WATCHDOG_PAT || github.token }}
         run: |
           set -euo pipefail
           ARGS=(--days="${DAYS}" --origin="${CD_STAGING_ORIGIN}")
