@@ -4731,5 +4731,38 @@
       "keepValue": "PDF로 저장해 영구 소장",
       "guarantee": "장이 기준 분량에 못 미치면 최대 2회까지 자동으로 다시 씁니다. 끝내 채우지 못하면 결과를 내보내지 않고 실패로 처리해, 재시도와 환불 경로가 그대로 살아 있습니다."
     }
+  },
+  "withdrawModal": {
+    "title": "회원 탈퇴",
+    "closeAriaLabel": "모달 닫기",
+    "csrfFetchError": "보안 토큰을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+    "consentRequired": "모든 동의 항목을 체크해 주세요.",
+    "confirmMismatch": "\"회원탈퇴\"를 정확히 입력해 주세요.",
+    "passwordTooShort": "현재 비밀번호를 입력해 주세요. (8자 이상)",
+    "csrfMissing": "보안 토큰이 없습니다. 페이지를 새로고침 후 다시 시도해 주세요.",
+    "networkError": "네트워크 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
+    "genericError": "탈퇴 처리 중 오류가 발생했습니다.",
+    "successTitle": "탈퇴가 완료되었습니다",
+    "successThanks": "그동안 코드 데스티니를 이용해 주셔서 감사합니다.",
+    "successErased": "모든 개인정보가 즉시 파기되었습니다.",
+    "successRedirect": "3초 후 홈으로 이동합니다…",
+    "warningHeading": "탈퇴 전 반드시 확인하세요",
+    "warningPointsPrefix": "보유 포인트 및 모든 데이터가",
+    "warningPointsStrong": "즉시 영구 삭제",
+    "warningPointsSuffix": "됩니다.",
+    "warningRejoinPrefix": "탈퇴 후 동일 이메일로 재가입 시 이전 데이터는",
+    "warningRejoinStrong": "복구 불가",
+    "warningRejoinSuffix": "합니다.",
+    "warningRetention": "법적 의무에 따라 결제 거래 기록은 5년간 익명화 보관됩니다.",
+    "passwordLabel": "현재 비밀번호 확인",
+    "passwordPlaceholder": "현재 비밀번호를 입력하세요",
+    "confirmLabel": "탈퇴 확인 입력",
+    "confirmHintPrefix": "아래 입력란에 ",
+    "confirmHintSuffix": "를 입력해 주세요.",
+    "agreeIrreversible": "탈퇴 시 모든 데이터가 복구 불가능하게 삭제됨을 이해하고 동의합니다.",
+    "agreeDataRetention": "결제 거래 기록이 전자상거래법에 따라 5년간 익명화 보관됨을 동의합니다.",
+    "cancel": "취소",
+    "submit": "탈퇴하기",
+    "submitting": "처리 중…"
   }
 }
