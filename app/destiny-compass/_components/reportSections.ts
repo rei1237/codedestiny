@@ -4,7 +4,11 @@
  *
  * 서버(worker/lib/destiny-compass-report-contract.js)는 10섹션을 만든다.
  * 화면은 9칸이고, 체계별 4섹션(사주·자미·숙요·타로+베다)은 ③ '운명의 원인' 하나로 묶인다.
+ *
+ * title/teaser 는 DestinyCompassCopy(copy.ts)에서 로케일별로 온다 — 여기는 순서·kicker(영문 고정)·
+ * 유무료 경계·서버 섹션 매핑만 소유한다.
  */
+import type { DestinyCompassCopy } from "../_lib/copy";
 
 /** 서버가 돌려주는 섹션 키. */
 export type ServerSectionKey =
@@ -45,61 +49,35 @@ export interface ReportSectionSpec {
   teaser: string;
 }
 
-export const REPORT_SECTIONS: readonly ReportSectionSpec[] = [
+interface ReportSectionMeta {
+  id: ReportSectionId;
+  order: number;
+  kicker: string;
+  tier: "free" | "paid";
+  serverKeys: ServerSectionKey[];
+}
+
+const SECTION_META: readonly ReportSectionMeta[] = [
+  { id: "coordinate", order: 1, kicker: "Where you are", tier: "free", serverKeys: ["opening"] },
+  { id: "flow", order: 2, kicker: "The current", tier: "free", serverKeys: [] },
   {
-    id: "coordinate", order: 1, title: "오늘의 운명 좌표", kicker: "Where you are",
-    tier: "free", serverKeys: ["opening"],
-    teaser: "지금 서 있는 자리를 한 문장으로.",
-  },
-  {
-    id: "flow", order: 2, title: "현재의 흐름", kicker: "The current",
-    tier: "free", serverKeys: [],
-    teaser: "여덟 방향의 기세가 지금 어떻게 기울어 있는지.",
-  },
-  {
-    id: "cause", order: 3, title: "운명의 원인", kicker: "Why",
-    tier: "paid",
+    id: "cause", order: 3, kicker: "Why", tier: "paid",
     serverKeys: ["saju_reading", "ziwei_reading", "sukuyo_reading", "tarot_vara_reading"],
-    teaser: "사주·자미두수·숙요·타로가 각각 무엇을 보고 이 결론에 닿았는지, 체계별로 따로 읽습니다.",
   },
-  {
-    id: "change", order: 4, title: "앞으로 다가오는 변화", kicker: "What changes",
-    tier: "paid", serverKeys: ["timeline_reading"],
-    teaser: "30일·90일·1년·3년, 구간마다 무엇이 달라지는지.",
-  },
-  {
-    id: "opportunity", order: 5, title: "반드시 잡아야 하는 기회", kicker: "Catch this",
-    tier: "paid", serverKeys: ["opportunity_reading"],
-    teaser: "무엇을·언제쯤·어느 근거에서. 알아볼 수 있는 형태로.",
-  },
-  {
-    id: "avoid", order: 6, title: "피해야 하는 선택", kicker: "Not now",
-    tier: "paid", serverKeys: ["blocked_and_care"],
-    teaser: "막힌 자리를 억지로 밀지 않으면서 회복시키는 법.",
-  },
-  {
-    id: "action", order: 7, title: "행동 가이드", kicker: "Do this",
-    tier: "paid", serverKeys: ["action_plan"],
-    teaser: "오늘·이번 주·이번 달로 나눈 손에 잡히는 행동.",
-  },
-  {
-    id: "advice", order: 8, title: "종합 조언", kicker: "All together",
-    tier: "free", serverKeys: ["cross_synthesis"],
-    teaser: "다섯 체계가 겹치는 지점과 엇갈리는 지점.",
-  },
-  {
-    id: "compass", order: 9, title: "운명의 나침반", kicker: "Your bearing",
-    tier: "free", serverKeys: [],
-    teaser: "지금 여기, 그리고 가야 할 방향.",
-  },
+  { id: "change", order: 4, kicker: "What changes", tier: "paid", serverKeys: ["timeline_reading"] },
+  { id: "opportunity", order: 5, kicker: "Catch this", tier: "paid", serverKeys: ["opportunity_reading"] },
+  { id: "avoid", order: 6, kicker: "Not now", tier: "paid", serverKeys: ["blocked_and_care"] },
+  { id: "action", order: 7, kicker: "Do this", tier: "paid", serverKeys: ["action_plan"] },
+  { id: "advice", order: 8, kicker: "All together", tier: "free", serverKeys: ["cross_synthesis"] },
+  { id: "compass", order: 9, kicker: "Your bearing", tier: "free", serverKeys: [] },
 ] as const;
 
-export const PAID_SECTION_IDS: readonly ReportSectionId[] = REPORT_SECTIONS.filter((s) => s.tier === "paid").map((s) => s.id);
+export const PAID_SECTION_IDS: readonly ReportSectionId[] = SECTION_META.filter((s) => s.tier === "paid").map((s) => s.id);
 
-export function getReportSection(id: ReportSectionId): ReportSectionSpec {
-  const found = REPORT_SECTIONS.find((s) => s.id === id);
-  if (!found) throw new Error(`unknown report section: ${id}`);
-  return found;
+export function getReportSection(id: ReportSectionId, copy: DestinyCompassCopy): ReportSectionSpec {
+  const meta = SECTION_META.find((s) => s.id === id);
+  if (!meta) throw new Error(`unknown report section: ${id}`);
+  return { ...meta, title: copy.sectionTitle[id], teaser: copy.sectionTeaser[id] };
 }
 
 /**
@@ -107,11 +85,8 @@ export function getReportSection(id: ReportSectionId): ReportSectionSpec {
  * 🔴 베다는 판차앙가 중 '바라(요일 지배성)'만 계산한다. 예전 문구 "다샤를 정렬하는 중"은
  *    엔진이 하지 않는 일이었다. 서양 점성술 줄은 어댑터가 없어 아예 없앴다.
  */
-export const PROCESS_LINES: readonly { key: string; label: string }[] = [
-  { key: "saju", label: "명식을 세우는 중" },
-  { key: "ziwei", label: "12궁을 펼치는 중" },
-  { key: "sukuyo", label: "본명숙을 잇는 중" },
-  { key: "tarot", label: "오늘의 카드를 뽑는 중" },
-  { key: "vedic", label: "바라(요일 지배성)를 세는 중" },
-  { key: "blend", label: "방향을 종합하는 중" },
-];
+const PROCESS_LINE_KEYS = ["saju", "ziwei", "sukuyo", "tarot", "vedic", "blend"] as const;
+
+export function processLines(copy: DestinyCompassCopy): readonly { key: string; label: string }[] {
+  return PROCESS_LINE_KEYS.map((key) => ({ key, label: copy.processLineLabel[key] }));
+}
