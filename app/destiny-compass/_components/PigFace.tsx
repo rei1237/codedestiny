@@ -5,6 +5,7 @@
  * talkingPigYeoniFrameCrops(정확한 크롭 좌표)를 재사용해 한 표정만 잘라 보여준다.
  */
 import { talkingPigYeoniFrameCrops } from "../data/assets";
+import { useDestinyCompassCopy } from "../_lib/copy";
 
 type PigExpr = "neutral" | "happy" | "talk" | "think" | "surprise";
 type CropKey = keyof typeof talkingPigYeoniFrameCrops;
@@ -24,13 +25,14 @@ interface PigFaceProps {
 }
 
 export function PigFace({ expression = "talk", height = 96, className }: PigFaceProps) {
+  const copy = useDestinyCompassCopy();
   const c = talkingPigYeoniFrameCrops[EXPR_TO_CROP[expression] || "welcome"];
   const scale = height / c.height;
   return (
     <div
       className={className}
       role="img"
-      aria-label="꽃돼지로 변신한 연이"
+      aria-label={copy.pigFaceAlt}
       style={{
         width: Math.round(c.width * scale),
         height,

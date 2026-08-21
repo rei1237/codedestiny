@@ -1,38 +1,36 @@
 "use client";
 
 import { useState, type CSSProperties } from "react";
-import type { DirectionField, DirectionKey } from "../_engine/types";
-import { DIRECTION_LABEL_KO } from "../_engine/constants";
+import type { DirectionField } from "../_engine/types";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
 interface CompassInsightCardsProps {
   field: DirectionField;
 }
 
-function short(key: DirectionKey): string {
-  return DIRECTION_LABEL_KO[key].split("·")[0];
-}
-
 export function CompassInsightCards({ field }: CompassInsightCardsProps) {
+  const copy = useDestinyCompassCopy();
   const [visibleCount, setVisibleCount] = useState(1);
+  const short = (key: keyof typeof copy.directionShortLabel) => copy.directionShortLabel[key];
   const cards = [
     {
       key: "current",
-      label: "현재 방향",
+      label: copy.insightCards.current.label,
       title: short(field.primary.key),
-      body: `지금 가장 자연스럽게 열리는 길은 ${short(field.primary.key)} 쪽이에요. 먼저 힘을 모을 지점을 좁혀보세요.`,
+      body: copy.insightCards.current.body(short(field.primary.key)),
     },
     {
       key: "caution",
-      label: "주의할 점",
+      label: copy.insightCards.caution.label,
       title: short(field.blockedArea.key),
-      body: `${short(field.blockedArea.key)} 쪽은 속도를 늦춰야 합니다. 밀어붙이기보다 조건을 정리할 때예요.`,
+      body: copy.insightCards.caution.body(short(field.blockedArea.key)),
     },
     {
       key: "opportunity",
-      label: "기회",
+      label: copy.insightCards.opportunity.label,
       title: short(field.strongArea.key),
-      body: `${short(field.strongArea.key)}의 기세가 살아 있어요. 작은 실행을 오늘 안에 하나만 남겨도 흐름이 붙습니다.`,
+      body: copy.insightCards.opportunity.body(short(field.strongArea.key)),
     },
   ] as const;
   const canReveal = visibleCount < cards.length;
@@ -41,7 +39,7 @@ export function CompassInsightCards({ field }: CompassInsightCardsProps) {
     <section className={styles.insightRoot} aria-labelledby="cd-compass-insight-title">
       <header className={styles.insightHead}>
         <span className={styles.reportKicker}>Compass Brief</span>
-        <h2 id="cd-compass-insight-title" className={styles.reportTitle}>나침반이 먼저 짚은 세 가지</h2>
+        <h2 id="cd-compass-insight-title" className={styles.reportTitle}>{copy.insightTitle}</h2>
       </header>
 
       <div className={styles.insightCards}>
@@ -56,7 +54,7 @@ export function CompassInsightCards({ field }: CompassInsightCardsProps) {
 
       {canReveal && (
         <button type="button" className={styles.insightReveal} onClick={() => setVisibleCount((count) => Math.min(count + 1, cards.length))}>
-          다음 카드 열기
+          {copy.insightRevealButton}
         </button>
       )}
     </section>
