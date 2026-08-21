@@ -1,4 +1,5 @@
 import LocaleFooterHub from "../components/LocaleFooterHub";
+import { LOCALE_CONFIG } from "../../lib/i18n/locales";
 
 /**
  * `app/ja/tokushoho`(특정상거래법 표기)는 **리터럴 세그먼트**라 `app/[locale]/layout.js` 를 받지 못한다.
@@ -8,6 +9,12 @@ import LocaleFooterHub from "../components/LocaleFooterHub";
 export default function JaLiteralLayout({ children }) {
   return (
     <>
+      {/* app/[locale]/layout.js와 동일한 <html lang> 조기 교정 스크립트 — 그쪽 주석 참고. */}
+      <script
+        dangerouslySetInnerHTML={{
+          __html: `document.documentElement.lang=${JSON.stringify(LOCALE_CONFIG.ja.htmlLang)};`,
+        }}
+      />
       {children}
       <LocaleFooterHub locale="ja" />
     </>
