@@ -80,8 +80,8 @@ EXPECTATIONS["zh-TW"] = EXPECTATIONS["zh-CN"];
  * 문장 안에 한글 2자가 남는다. 실측에서 실제로 그렇게 나왔다. 그걸 실패로 세면 파이프가
  * 아니라 테스트 입력을 재는 셈이다. 여기서는 파이프만 재기 위해 입력을 로케일에 맞춘다.
  *
- * (참고: 실제 화면의 destiny-compass 라벨은 아직 DIRECTION_LABEL_KO 한국어 단일이라
- *  ja/zh 사용자에게 그 라벨이 그대로 보인다 — 기능 자체의 현지화 과제이고 별개다.)
+ * (참고: destiny-compass 화면 라벨은 이제 copy.ts 의 로케일별 directionLabel 을 통해
+ *  ja/zh 등 각 언어로 표시된다 — 이 스크립트가 재는 AI 응답 로케일과는 별개 경로다.)
  *
  * 🔴 캐시 우회. destiny-compass 는 deterministic:true + TTL 7일이라, 같은 입력을 다시 보내면
  *    LLM 을 안 태우고 캐시를 돌려준다. 그러면 "지금 이 배포가 그 언어로 답하는가"를 못 본다.

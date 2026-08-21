@@ -8,7 +8,7 @@
  * 도착 즉시 렌더 — 웨이브 A(체계별 5섹션)가 먼저 도착해 ③이 채워지고, 그 뒤 B가 ④~⑦·⑧장문을 채운다.
  * 섹션 하나가 실패해도 리포트 전체를 막지 않는다.
  */
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { ReportActions } from "./ReportActions";
 import { CompassHero, ConfidenceMeta, coordinateLine } from "./CompassHero";
@@ -23,8 +23,8 @@ import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
 import { useFxTier } from "../_hooks/useFxTier";
 import { useCompassReport } from "../_hooks/useCompassReport";
 import styles from "./map.module.css";
-import type { CompassInput, DirectionField, DirectionKey, SystemKey } from "../_engine/types";
-import { DIRECTION_LABEL_KO } from "../_engine/constants";
+import type { CompassInput, DirectionField, SystemKey } from "../_engine/types";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import { AI_LOCALE_HEADER, toAiLocale } from "@/lib/i18n/ai-locale";
 import { detectLocale } from "@/lib/i18n/dictionary";
 import { pigExpression } from "../_stage/expressionMap";
@@ -50,17 +50,7 @@ interface CompassReportProps {
   onVoyage: () => void;
 }
 
-/**
- * 🔴 점성술은 여기 없다. 어댑터가 없어 계산에 참여하지 않는데 "곧 합류"로 노출하면
- *    있지도 않은 근거를 약속하는 셈이다. 베다는 실제 산출 범위(요일 지배성)까지 이름에 적는다.
- */
-const SYSTEM_LABEL: Record<SystemKey, string> = {
-  saju: "사주",
-  ziwei: "자미두수",
-  sukuyo: "숙요",
-  tarot: "타로",
-  vedic: "베다 · 요일 지배성",
-};
+/** 나침반이 실제로 참여하는 체계의 순서(어댑터가 없는 서양 점성술은 없다). */
 const SYSTEM_ORDER: SystemKey[] = ["saju", "ziwei", "sukuyo", "tarot", "vedic"];
 
 /** ③에서 체계별 LLM 섹션을 찾는 매핑. */
@@ -71,11 +61,8 @@ const SYSTEM_SECTION_KEY: Partial<Record<SystemKey, ServerSectionKey>> = {
   tarot: "tarot_vara_reading",
 };
 
-const TIMELINE_LABEL: Record<string, string> = { d30: "30일", d90: "90일", y1: "1년", y3: "3년" };
-const WEATHER_LABEL: Record<string, string> = { clear: "맑음", breeze: "순풍", fog: "안개", storm: "폭풍" };
 const TREND_ICON = { up: "↑", down: "↓", flat: "→" } as const;
 
-const short = (k: DirectionKey) => DIRECTION_LABEL_KO[k].split("·")[0];
 function trendOf(score: number): keyof typeof TREND_ICON {
   return score >= 66 ? "up" : score <= 40 ? "down" : "flat";
 }
@@ -83,17 +70,23 @@ function trendOf(score: number): keyof typeof TREND_ICON {
 export function CompassReport({
   input, field, situation, onNext, onRestart, onCrossroad, onFutureSim, onVoyage,
 }: CompassReportProps) {
+  const copy = useDestinyCompassCopy();
+  const SYSTEM_LABEL: Record<SystemKey, string> = copy.systemLabel;
+  const TIMELINE_LABEL: Record<string, string> = copy.timelineLabel;
+  const WEATHER_LABEL: Record<string, string> = copy.weatherLabel;
+  const short = useCallback((k: keyof typeof copy.directionShortLabel) => copy.directionShortLabel[k], [copy]);
   const fxTier = useFxTier();
   const question = situation || "";
   const report = useCompassReport(input, field, question);
   const causeTitleRef = useRef<HTMLHeadingElement>(null);
   const shellRef = useRef<HTMLDivElement>(null);
   const unlockedRef = useRef(false);
-  const coordinate = coordinateLine(field.primary.band, field.primary.key);
+  const coordinate = coordinateLine(field.primary.band, field.primary.key, copy);
 
   const dest = regionByKey(DIRECTION_TO_REGION[field.primary.key]);
+  const destLabel = dest ? copy.regionLabel[dest.key as keyof typeof copy.regionLabel] : undefined;
   const activeSystems = useMemo(() => new Set<SystemKey>(field.sources), [field.sources]);
-  const priceLabel = formatKrwFromCoins(100);
+  const priceLabel = formatKrwFromCoins(100, detectLocale());
 
   // 세션 캐시 복원(같은 탭에서 결과를 오가도 재결제하지 않는다)
   useEffect(() => {
@@ -117,7 +110,7 @@ export function CompassReport({
   }, [report.phase]);
 
   // ⑧ 무료 단문 — 규칙 템플릿을 먼저 띄우고, 문장화가 성공하면 교체(실패 시 템플릿 유지)
-  const baseText = useMemo(() => pigCommentary(field), [field]);
+  const baseText = useMemo(() => pigCommentary(field, copy), [field, copy]);
   const [freeAdvice, setFreeAdvice] = useState(baseText);
   useEffect(() => {
     setFreeAdvice(baseText);
@@ -138,7 +131,7 @@ export function CompassReport({
     fetch("/api/destiny-compass/narrate", {
       method: "POST",
       headers: { "Content-Type": "application/json", [AI_LOCALE_HEADER]: aiLocale },
-      body: JSON.stringify({ narration: buildNarrationInput(field, question), baseText }),
+      body: JSON.stringify({ narration: buildNarrationInput(field, question, copy), baseText }),
       signal: ctrl.signal,
     })
       .then((r) => r.json())
@@ -167,11 +160,11 @@ export function CompassReport({
       ctrl.abort();
       window.clearTimeout(timer);
     };
-  }, [field, question, baseText]);
+  }, [field, question, baseText, copy, short]);
 
   /** 유료 섹션의 현재 상태. 결제 전=locked, 생성 중=pending, 도착=arrived, 실패=failed. */
   const paidState = (id: ReportSectionId): SectionState => {
-    const spec = getReportSection(id);
+    const spec = getReportSection(id, copy);
     const arrived = spec.serverKeys.some((k) => report.sections[k]?.body);
     if (arrived) return "arrived";
     if (report.phase === "locked") return "locked";
@@ -188,7 +181,7 @@ export function CompassReport({
 
   const unlockProps = {
     onUnlock: report.unlock,
-    unlockLabel: `${priceLabel} · 심층 리포트 열기`,
+    unlockLabel: `${priceLabel}${copy.unlockLabelSuffix}`,
     unlockBusy: report.isPaying || report.phase === "paying" || report.phase === "waveA",
   };
 
@@ -199,10 +192,10 @@ export function CompassReport({
       <div className={styles.reportShell} ref={shellRef}>
         {/* ① 오늘의 운명 좌표 — 거대한 나침반이 먼저, 그 아래 좌표 한 문장이 이 화면의 h1 이다. */}
         <ReportSection
-          spec={getReportSection("coordinate")}
+          spec={getReportSection("coordinate", copy)}
           state="arrived"
           headingLevel={1}
-          eyebrow="당신은 지금"
+          eyebrow={copy.reportEyebrow}
           titleOverride={coordinate}
           media={
             <CompassHero
@@ -217,7 +210,7 @@ export function CompassReport({
           <ConfidenceMeta confidence={field.confidence} />
           {question && <p className={styles.resultQuestion}>&ldquo;{question}&rdquo;</p>}
           {sectionBody("opening") && <AiResultProse value={sectionBody("opening")?.body} />}
-          <div className={styles.sysHint} aria-label="종합에 참여한 운세 체계">
+          <div className={styles.sysHint} aria-label={copy.sysHintAriaLabel}>
             {SYSTEM_ORDER.map((sys) => (
               <span key={sys} className={`${styles.sysChip} ${activeSystems.has(sys) ? styles.sysChipOn : ""}`}>
                 {SYSTEM_LABEL[sys]}
@@ -229,7 +222,7 @@ export function CompassReport({
         <CompassInsightCards field={field} />
 
         {/* ② 현재의 흐름 */}
-        <ReportSection spec={getReportSection("flow")} state="arrived">
+        <ReportSection spec={getReportSection("flow", copy)} state="arrived">
           <div className={styles.flowCards}>
             {field.directions.slice(0, 6).map((d) => {
               const t = trendOf(d.score);
@@ -247,15 +240,12 @@ export function CompassReport({
               );
             })}
           </div>
-          <p className={styles.reportProse}>
-            지금 가장 크게 열린 쪽은 <b>{short(field.strongArea.key)}</b>, 잠시 쉬어갈 쪽은{" "}
-            <b>{short(field.blockedArea.key)}</b>예요.
-          </p>
+          <p className={styles.reportProse}>{copy.flowProse(short(field.strongArea.key), short(field.blockedArea.key))}</p>
         </ReportSection>
 
         {/* ③ 운명의 원인 — 체계별 독립 해석 */}
         <ReportSection
-          spec={getReportSection("cause")}
+          spec={getReportSection("cause", copy)}
           state={paidState("cause")}
           ref={causeTitleRef}
           ghostLines={8}
@@ -276,7 +266,7 @@ export function CompassReport({
                       <span
                         className={styles.evidenceStars}
                         role="img"
-                        aria-label={`${SYSTEM_LABEL[sys]} 근거 강도 5점 만점에 ${stars}점`}
+                        aria-label={copy.evidenceStarsAriaLabel(SYSTEM_LABEL[sys], stars)}
                       >
                         <span aria-hidden="true">{"★".repeat(stars)}{"☆".repeat(5 - stars)}</span>
                       </span>
@@ -285,7 +275,7 @@ export function CompassReport({
                   </div>
                   {contribs.length > 0 && (
                     <p className={styles.evidenceText}>
-                      기여 방향 {contribs.map((k) => short(k)).join(" · ")}
+                      {copy.contributionsPrefix}{contribs.map((k) => short(k)).join(" · ")}
                     </p>
                   )}
                   {section?.body ? (
@@ -296,9 +286,7 @@ export function CompassReport({
                   ) : (
                     // 베다는 LLM 섹션이 따로 없다(타로 섹션이 함께 다룬다) — 근거만 보여준다.
                     <p className={styles.evidenceText}>
-                      {sys === "vedic"
-                        ? "판차앙가 5요소 중 바라(요일 지배성)만 계산합니다. 타로와 함께 '오늘의 결'로 읽습니다."
-                        : "해석을 불러오는 중이에요."}
+                      {sys === "vedic" ? copy.vedicOnlyNote : copy.sectionLoadingNote}
                     </p>
                   )}
                 </div>
@@ -308,7 +296,7 @@ export function CompassReport({
         </ReportSection>
 
         {/* ④ 앞으로 다가오는 변화 */}
-        <ReportSection spec={getReportSection("change")} state={paidState("change")} {...unlockProps}>
+        <ReportSection spec={getReportSection("change", copy)} state={paidState("change")} {...unlockProps}>
           <div className={styles.timelineStack}>
             {(["d30", "d90", "y1", "y3"] as const).map((k) => {
               const phase = field.timeline[k];
@@ -317,7 +305,7 @@ export function CompassReport({
                 <div key={k} className={styles.timelineCard}>
                   <span className={styles.timelinePeriod}>{TIMELINE_LABEL[k]}</span>
                   <span className={styles.timelineWeather}>{WEATHER_LABEL[phase.weather] || phase.weather}</span>
-                  <span className={styles.timelineMomentum}>기세 {phase.momentum}</span>
+                  <span className={styles.timelineMomentum}>{copy.momentumPrefix}{phase.momentum}</span>
                 </div>
               );
             })}
@@ -327,29 +315,29 @@ export function CompassReport({
         </ReportSection>
 
         {/* ⑤ 반드시 잡아야 하는 기회 */}
-        <ReportSection spec={getReportSection("opportunity")} state={paidState("opportunity")} {...unlockProps}>
+        <ReportSection spec={getReportSection("opportunity", copy)} state={paidState("opportunity")} {...unlockProps}>
           <AiResultProse value={sectionBody("opportunity_reading")?.body} />
           <EvidenceList grounds={sectionBody("opportunity_reading")?.grounds || []} />
         </ReportSection>
 
         {/* ⑥ 피해야 하는 선택 */}
-        <ReportSection spec={getReportSection("avoid")} state={paidState("avoid")} {...unlockProps}>
+        <ReportSection spec={getReportSection("avoid", copy)} state={paidState("avoid")} {...unlockProps}>
           <AiResultProse value={sectionBody("blocked_and_care")?.body} />
           <EvidenceList grounds={sectionBody("blocked_and_care")?.grounds || []} />
         </ReportSection>
 
         {/* ⑦ 행동 가이드 */}
-        <ReportSection spec={getReportSection("action")} state={paidState("action")} {...unlockProps}>
+        <ReportSection spec={getReportSection("action", copy)} state={paidState("action")} {...unlockProps}>
           <AiResultProse value={sectionBody("action_plan")?.body} />
           <EvidenceList grounds={sectionBody("action_plan")?.grounds || []} />
         </ReportSection>
 
         {/* ⑧ 종합 조언 — 무료는 단문(꽃돼지), 결제하면 다섯 체계 교차 검증 장문 */}
-        <ReportSection spec={getReportSection("advice")} state="arrived">
+        <ReportSection spec={getReportSection("advice", copy)} state="arrived">
           <div className={styles.resultSpeak}>
             <PigFace expression={pigExpression(field.primary.band, "hopeful")} height={78} className={styles.speakPigDark} />
             <div className={styles.resultBubble}>
-              <div className={styles.resultWho}>꽃돼지</div>
+              <div className={styles.resultWho}>{copy.pigSpeakerName}</div>
               <p>{freeAdvice}</p>
             </div>
           </div>
@@ -361,58 +349,57 @@ export function CompassReport({
           )}
           {report.canRetryWaveB && (
             <div className={styles.reportFailed} role="status">
-              <p>종합 해석을 아직 불러오지 못했어요.</p>
+              <p>{copy.retrySynthesisNotice}</p>
               <button type="button" className={styles.resultCtaGhost} onClick={report.retryWaveB}>
-                이어서 받기
+                {copy.retrySynthesisButton}
               </button>
             </div>
           )}
         </ReportSection>
 
         {/* ⑨ 운명의 나침반 — 지금 / 가야 할 방향 */}
-        <ReportSection spec={getReportSection("compass")} state="arrived">
+        <ReportSection spec={getReportSection("compass", copy)} state="arrived">
           <p className={styles.reportProse}>
-            지금 여기는 <b>{short(field.blockedArea.key)}</b>의 안개 곁, 가야 할 곳은{" "}
-            <b>{dest?.label ?? short(field.primary.key)}</b>예요.
+            {copy.compassProse(short(field.blockedArea.key), destLabel ?? short(field.primary.key))}
           </p>
           <div className={styles.radarBlock}>
             <div className={styles.radarSweepWrap}>
               <DestinyRadar directions={field.directions} />
               <span className={styles.radarSweep} aria-hidden="true" />
             </div>
-            <div className={styles.luckyGrid} aria-label="오늘의 행운">
-              <span className={styles.luckyPill}>행운의 장소 <b>{field.lucky.luckyPlaceKey}</b></span>
-              <span className={styles.luckyPill}>행운의 시간 <b>{field.lucky.luckyTimeKey}</b></span>
-              <span className={styles.luckyPill}>행운의 색 <b>{field.lucky.luckyColorKey}</b></span>
-              <span className={styles.luckyPill}>행운의 사람 <b>{field.lucky.luckyPersonKey}</b></span>
+            <div className={styles.luckyGrid} aria-label={copy.luckyGridAriaLabel}>
+              <span className={styles.luckyPill}>{copy.luckyPlaceLabel} <b>{copy.luckyPlace[field.lucky.luckyPlaceKey as keyof typeof copy.luckyPlace]}</b></span>
+              <span className={styles.luckyPill}>{copy.luckyTimeLabel} <b>{copy.luckyTime[field.lucky.luckyTimeKey as keyof typeof copy.luckyTime]}</b></span>
+              <span className={styles.luckyPill}>{copy.luckyColorLabel} <b>{copy.luckyColor[field.lucky.luckyColorKey as keyof typeof copy.luckyColor]}</b></span>
+              <span className={styles.luckyPill}>{copy.luckyPersonLabel} <b>{copy.luckyPerson[field.lucky.luckyPersonKey as keyof typeof copy.luckyPerson]}</b></span>
             </div>
           </div>
         </ReportSection>
 
         {/* 심화 3종(별도 상품) — 기존 자리 그대로 */}
         <div className={styles.flowSection}>
-          <span className={styles.flowLabel}>더 깊이 보기 · 회당 결제</span>
+          <span className={styles.flowLabel}>{copy.deeperLabel}</span>
           <div className={styles.previewGrid}>
             <button type="button" className={styles.previewCard} onClick={onFutureSim}>
               <span className={styles.previewPrice}>{priceLabel}</span>
               <span className={styles.previewIcon} aria-hidden="true">🧭</span>
-              <span className={styles.previewName}>미래 시뮬레이션</span>
-              <span className={styles.previewDesc}>지도 위 30일·90일·1년, 시점을 눌러 이야기 보기</span>
-              <span className={styles.previewGo}>열어보기 →</span>
+              <span className={styles.previewName}>{copy.previewCards.futureSim.name}</span>
+              <span className={styles.previewDesc}>{copy.previewCards.futureSim.desc}</span>
+              <span className={styles.previewGo}>{copy.previewGoText}</span>
             </button>
             <button type="button" className={styles.previewCard} onClick={onCrossroad}>
               <span className={styles.previewPrice}>{priceLabel}</span>
               <span className={styles.previewIcon} aria-hidden="true">⚖️</span>
-              <span className={styles.previewName}>운명의 갈림길</span>
-              <span className={styles.previewDesc}>두 선택의 기운을 나란히 견주기</span>
-              <span className={styles.previewGo}>열어보기 →</span>
+              <span className={styles.previewName}>{copy.previewCards.crossroad.name}</span>
+              <span className={styles.previewDesc}>{copy.previewCards.crossroad.desc}</span>
+              <span className={styles.previewGo}>{copy.previewGoText}</span>
             </button>
             <button type="button" className={styles.previewCard} onClick={onVoyage}>
               <span className={styles.previewPrice}>{priceLabel}</span>
               <span className={styles.previewIcon} aria-hidden="true">⛵</span>
-              <span className={styles.previewName}>삶의 항로</span>
-              <span className={styles.previewDesc}>날씨로 읽는 앞으로의 항해 지도</span>
-              <span className={styles.previewGo}>열어보기 →</span>
+              <span className={styles.previewName}>{copy.previewCards.voyage.name}</span>
+              <span className={styles.previewDesc}>{copy.previewCards.voyage.desc}</span>
+              <span className={styles.previewGo}>{copy.previewGoText}</span>
             </button>
           </div>
         </div>
@@ -424,7 +411,7 @@ export function CompassReport({
         {/* 하단 sticky 액션바 — 주 CTA 는 엄지 호 안, 이탈 액션은 텍스트 버튼 */}
         <div className={styles.reportActions}>
           <button type="button" className={styles.resultCta} onClick={onNext}>
-            오늘의 한 걸음 →
+            {copy.bottomCtaButton}
           </button>
           <ReportActions
             targetRef={shellRef}
@@ -433,7 +420,7 @@ export function CompassReport({
             reportId={report.reportId}
           />
           <button type="button" className={styles.resultCtaGhost} onClick={onRestart}>
-            나침반으로 돌아가기
+            {copy.restartButton}
           </button>
         </div>
       </div>

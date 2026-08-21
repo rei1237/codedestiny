@@ -7,6 +7,7 @@ import { useCallback, useMemo, useRef, useState } from "react";
 import type { AnimalDestinyInput } from "@/app/saju/animal-destiny/lib/types";
 import type { CompassInput, DirectionField, EmotionKey } from "../_engine/types";
 import { computeDirectionField } from "../_engine/directionScore";
+import { useDestinyCompassCopy } from "../_lib/copy";
 
 export type CompassStep = "hub" | "birth" | "map" | "processing" | "reveal" | "result" | "crossroad" | "futureSim" | "voyage" | "today" | "arrival";
 /** 무대 위상 — 낮에 길을 정하고, 밤에 별을 읽는다. */
@@ -57,6 +58,7 @@ function writeCache(key: string, field: DirectionField): void {
 }
 
 export function useCompassSession(initialStep: CompassStep = "birth") {
+  const copy = useDestinyCompassCopy();
   const [step, setStep] = useState<CompassStep>(initialStep);
   const [birth, setBirth] = useState<AnimalDestinyInput | null>(null);
   const [situation, setSituation] = useState("");
@@ -102,13 +104,13 @@ export function useCompassSession(initialStep: CompassStep = "birth") {
       } catch {
         clearPhaseTimers();
         setStagePhase("day");
-        setError("운명의 안개가 짙어요. 잠시 후 다시 시도해 주세요.");
+        setError(copy.fogErrorMessage);
         setStep("map");
       } finally {
         setLoading(false);
       }
     },
-    [birth, clearPhaseTimers],
+    [birth, clearPhaseTimers, copy],
   );
 
   const reset = useCallback(() => {
