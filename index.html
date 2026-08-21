@@ -22806,7 +22806,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-a8bac7864c9d" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-a8bac7864c9d" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-a8bac7864c9d" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-a8bac7864c9d" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -23797,40 +23797,6 @@ return you.name.restore();</span>
     // 추천 카드 하나만 크게, 나머지 둘은 컴팩트 행으로 그린다. 🔴 숨기거나 접지 않는다 —
     // 세 옵션(이용권/단건/월정석)은 결제창에 항상 함께 보여야 한다(docs/payment-policy-flow.md).
     // 바뀌는 것은 '무엇을 먼저 보게 할지'이지 '무엇을 보여줄지'가 아니다.
-    function optionVariantClass(option) {
-      return option === recommendedOption ? ' cd-direct-payment-option--recommended' : ' cd-direct-payment-option--secondary';
-    }
-    function optionRecommendHtml(option) {
-      return option === recommendedOption
-        ? '<span class="cd-direct-payment-recommend">' + escapeHtml(_cdPaymentI18n('payment.directModal.recommendBadge', '꽃돼지 추천')) + '</span>'
-        : '';
-    }
-    // 추천 카드 하단의 골드 액션 스트립. 🔴 <button> 안에 <button> 을 넣을 수 없으므로(중첩 인터랙티브 =
-    // 잘못된 HTML + 스크린리더 파손) 비인터랙티브 span 이다. 카드 폭을 꽉 채워 '카드의 실행 띠'로 읽히게 하고,
-    // 클릭은 어차피 카드 전체가 받는다. 보조 카드에는 붙이지 않는다(위계).
-    function optionGoHtml(option) {
-      return option === recommendedOption
-        ? '<span class="cd-direct-payment-go">' + escapeHtml(_cdPaymentI18n('payment.directModal.goLabel', '이 방법으로 열기')) + '</span>'
-        : '';
-    }
-    var passButtonHtml = allowPassChoice ? '<button type="button" class="cd-direct-payment-option' + passDisabledClass + optionVariantClass('pass') + '" data-mode="' + passMode + '"' + passDisabledAttr + '>' +
-          '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>' + escapeHtml(passTierBadgeLabel) + '</span>' + optionRecommendHtml('pass') + '</span>' +
-          '<strong>' + escapeHtml(passButtonTitle) + '</strong>' +
-          '<span class="cd-direct-payment-desc">' + escapeHtml(passHint + ' ' + passLimitLabel) + '</span>' +
-          optionGoHtml('pass') +
-        '</button>' : '';
-    var directButtonHtml = allowDirectChoice ? '<button type="button" class="cd-direct-payment-option' + optionVariantClass('direct') + '" data-mode="direct">' +
-          '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>' + escapeHtml(directPaymentBadge) + '</span>' + optionRecommendHtml('direct') + '</span>' +
-          '<strong>' + escapeHtml(_cdPaymentI18n('payment.directModal.directTitleLabel', '이번 콘텐츠만')) + ' · <span class="cd-direct-payment-amount">' + escapeHtml(formatWon(directAmountKrw)) + '</span></strong>' +
-          '<span class="cd-direct-payment-desc">' + escapeHtml(directPaymentHint) + '</span>' +
-          optionGoHtml('direct') +
-        '</button>' : '';
-    var monthlyButtonHtml = allowMonthlyChoice ? '<button type="button" class="cd-direct-payment-option' + monthlyDisabledClass + optionVariantClass('monthly') + '" data-mode="monthly" data-monthly-option' + monthlyDisabledAttr + '>' +
-          '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>' + escapeHtml(_cdPaymentI18n('payment.directModal.monthlyBadge', '월정석')) + '</span>' + optionRecommendHtml('monthly') + '</span>' +
-          '<strong>' + escapeHtml(_cdPaymentI18n('payment.directModal.monthlyTitle', '월정석으로 열기')) + ' · <span class="cd-direct-payment-amount">' + escapeHtml(requiredMonthlyCredits.toLocaleString(_cdDisplayLocale())) + '</span> ' + escapeHtml(_cdPaymentI18n('payment.directModal.monthlyUnit', '이벤트 재화')) + '</strong>' +
-          '<span class="cd-direct-payment-desc" data-monthly-hint>' + escapeHtml(monthlyHint) + '</span>' +
-          optionGoHtml('monthly') +
-        '</button>' : '';
     // 🔴 온디맨드 잔량 확인(2026-08-13). 결제창은 **열릴 때 잔량을 조회하지 않는다** — 그 자동 왕복이
     // 간헐 503·"잔량 확인 중" 고착의 원인이라 2026-08-12 에 제거됐고 그 금지는 그대로다. 여기 버튼은
     // 사용자가 눌러야만 조회하고, 실패해도 월정석 카드의 활성 상태를 건드리지 않는다.
@@ -23840,11 +23806,52 @@ return you.name.restore();</span>
       ? '<button type="button" class="cd-direct-payment-balance-check" data-monthly-balance-check>' + escapeHtml(_cdPaymentI18n('payment.directModal.monthlyBalance.checkButton', '보유 월정석 확인')) + '</button>' +
         '<span class="cd-direct-payment-balance-value" data-monthly-balance-text role="status" aria-live="polite" hidden></span>'
       : '';
-    // 추천 카드가 맨 위. order 는 checkout-entry 가 정하고, 여기서는 그 순서대로 붙이기만 한다.
-    var choiceCardHtmlByOption = { pass: passButtonHtml, direct: directButtonHtml, monthly: monthlyButtonHtml + monthlyBalanceCheckHtml };
-    var orderedChoiceCardsHtml = (checkoutRecommendation.order || []).map(function(option) {
-      return choiceCardHtmlByOption[option] || '';
-    }).join('');
+    // 카드 뼈대(배지·추천 리본·go 스트립·variant 클래스) 조립은 세 렌더러 공유 함수 하나가 맡는다
+    // (js/core/checkout-entry.js buildPaymentChoiceCardsHtml). 조건 계산(무엇을 보여줄지·비활성 여부)은
+    // 그대로 여기서 하고, 이미 계산·이스케이프된 조각만 넘긴다. 추천 카드가 맨 위 — order 는
+    // checkout-entry 가 정하고, 여기서는 그 순서대로 붙이기만 한다.
+    var __cdPaymentCardsApi = _cdCheckoutEntry();
+    var orderedChoiceCardsHtml = (__cdPaymentCardsApi && typeof __cdPaymentCardsApi.buildPaymentChoiceCardsHtml === 'function')
+      ? __cdPaymentCardsApi.buildPaymentChoiceCardsHtml({
+          order: checkoutRecommendation.order || [],
+          recommendedOption: recommendedOption,
+          escape: escapeHtml,
+          recommendLabel: _cdPaymentI18n('payment.directModal.recommendBadge', '꽃돼지 추천'),
+          goLabel: _cdPaymentI18n('payment.directModal.goLabel', '이 방법으로 열기'),
+          cards: {
+            pass: {
+              allow: allowPassChoice,
+              dataMode: passMode,
+              extraDataAttrs: passDisabledAttr,
+              extraClass: passDisabledClass,
+              glyph: '🎫',
+              badgeLabel: passTierBadgeLabel,
+              titleHtml: escapeHtml(passButtonTitle),
+              descHtml: escapeHtml(passHint + ' ' + passLimitLabel),
+            },
+            direct: {
+              allow: allowDirectChoice,
+              dataMode: 'direct',
+              glyph: '💳',
+              badgeLabel: directPaymentBadge,
+              titleHtml: escapeHtml(_cdPaymentI18n('payment.directModal.directTitleLabel', '이번 콘텐츠만')) + ' · <span class="cd-direct-payment-amount">' + escapeHtml(formatWon(directAmountKrw)) + '</span>',
+              descHtml: escapeHtml(directPaymentHint),
+            },
+            monthly: {
+              allow: allowMonthlyChoice,
+              dataMode: 'monthly',
+              extraDataAttrs: ' data-monthly-option' + monthlyDisabledAttr,
+              extraClass: monthlyDisabledClass,
+              glyph: '🌙',
+              badgeLabel: _cdPaymentI18n('payment.directModal.monthlyBadge', '월정석'),
+              titleHtml: escapeHtml(_cdPaymentI18n('payment.directModal.monthlyTitle', '월정석으로 열기')) + ' · <span class="cd-direct-payment-amount">' + escapeHtml(requiredMonthlyCredits.toLocaleString(_cdDisplayLocale())) + '</span> ' + escapeHtml(_cdPaymentI18n('payment.directModal.monthlyUnit', '이벤트 재화')),
+              descHtml: escapeHtml(monthlyHint),
+              descAttr: ' data-monthly-hint',
+              afterHtml: monthlyBalanceCheckHtml,
+            },
+          },
+        })
+      : '';
     // 이용권 선검사 결과를 결제창에서 한 줄로 설명한다(왜 결제창이 떴는지 모르겠다는 피드백).
     // 기존 .cd-direct-payment-sub 스타일을 그대로 상속하므로 CSS 추가는 없다.
     var passOutcomeNote = String(opts.passOutcomeNote || '').trim();
