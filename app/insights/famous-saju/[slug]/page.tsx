@@ -1,6 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import ContentIntegrityNote from "../../../components/ContentIntegrityNote";
+import { FusionCrossSell } from "../../../components/FusionCrossSell";
 import { generatePageMetadata } from "../../../../lib/generate-page-metadata";
 import { getFamousSajuHeroImage, type FamousSajuHeroImage } from "../../../../lib/famous-saju/famous-saju-image";
 import { getCelebrityRelatedList, getCelebritySajuPage, getFamousSajuSeoMetadata, getPublishedCelebrityStaticSlugs, publishedCelebritySajuSeeds, type CelebritySajuMagazineResult } from "../../../../lib/famous-saju/celebrity-saju-service";
@@ -736,6 +737,7 @@ body:has(main[data-famous-saju-detail]) {
             {finalSection ? <MagazineSection section={finalSection} accent={accent.color} /> : null}
             <CelebritySajuFAQ faq={magazine.faq} />
             <CelebritySajuCTA cta={magazine.cta} />
+            <FusionCrossSell fromPath={`/insights/famous-saju/${slug}`} tone="neo" />
             <RelatedCelebritySajuList related={related} />
             <p className="mt-6 text-xs leading-6 text-slate-400/70">{magazine.profile.sourceNote}</p>
             {/* 이름과 생년월일을 규칙에 대입해 구성한 페이지다. 사람이 한 건씩 검토하지
