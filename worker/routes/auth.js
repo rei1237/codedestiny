@@ -17,6 +17,7 @@ import {
   refreshSessionMatchesRequest,
   requireAuth,
   requireUserFromRequest,
+  resolvePaidRouteAuth,
   normalizeUserResponse,
   signAuthToken,
   JWT_ISSUER,
@@ -3347,7 +3348,12 @@ async function handlePaymentPhoneStatus(request, env) {
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
   // 인증 확인과 같은 조회에서 결제용 전화번호까지 함께 읽는다. 이 라우트는 결제창을 여는 직전 경로라
   // 왕복 하나가 곧 체감 지연이자 일시적 503 표면적이다. (access-token 경로에서만 authUserDoc 부착)
-  const auth = await requireUserFromRequest(request, env, { userProjection: PAYMENT_PHONE_USER_PROJECTION });
+  // 🔴 requireUserFromRequest 가 아니라 resolvePaidRouteAuth — DB 일시 장애(스테이징 2026-08-21
+  // 실측: MongoDB operation timed out)를 401(로그인 필요)로 오판하지 않고 재시도 가능한 503으로
+  // 표면화한다. sukuyo.js 1년운 라우트가 같은 이유로 쓰는 정본과 동일 패턴(worker/lib/auth.js
+  // resolvePaidRouteAuth 머리주석).
+  const auth = await resolvePaidRouteAuth(request, env, { userProjection: PAYMENT_PHONE_USER_PROJECTION });
+  if (!auth) return json({ ok: false, code: "UNAUTHORIZED", message: "Authentication is required." }, { status: 401 });
   const userId = String(auth.userId || "");
 
   if (!mongoose.Types.ObjectId.isValid(userId)) {
@@ -3380,7 +3386,10 @@ async function handlePaymentPhoneStatus(request, env) {
 async function handleSavePaymentPhoneNumber(request, env) {
   const timeoutMs = getAuthOpTimeoutMs(env);
   const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
-  const auth = await requireAuth(request, env);
+  // 결제 전화번호 저장도 결제창 진입 경로다 — 위 handlePaymentPhoneStatus 와 같은 이유로
+  // requireAuth(=requireUserFromRequest) 대신 resolvePaidRouteAuth 를 쓴다.
+  const auth = await resolvePaidRouteAuth(request, env);
+  if (!auth) return json({ ok: false, code: "UNAUTHORIZED", message: "Authentication is required." }, { status: 401 });
   const body = await readJson(request);
   const phoneNumber = normalizeKoreanPhoneNumber(body?.phoneNumber || body?.phone);
 
