@@ -3,8 +3,9 @@
  * STEP 10 운명의 레이더 — 8방향 스코어를 스파이더(레이더) 차트로 시각화.
  * Layer 2 스코어 읽기 전용. Math(cos/sin)은 결정론(난수·시각 아님).
  */
-import { DIRECTION_KEYS, DIRECTION_LABEL_KO } from "../_engine/constants";
+import { DIRECTION_KEYS } from "../_engine/constants";
 import type { DirectionScore } from "../_engine/types";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
 const SIZE = 280;
@@ -17,17 +18,18 @@ function pt(r: number, a: number): [number, number] {
 }
 
 export function DestinyRadar({ directions }: { directions: DirectionScore[] }) {
+  const copy = useDestinyCompassCopy();
   const byKey = new Map(directions.map((d) => [d.key, d.score]));
   const items = DIRECTION_KEYS.map((k, i) => ({
     k,
     angle: (i / DIRECTION_KEYS.length) * Math.PI * 2 - Math.PI / 2,
     score: byKey.get(k) ?? 0,
-    label: DIRECTION_LABEL_KO[k].split("·")[0],
+    label: copy.directionShortLabel[k],
   }));
   const valuePoly = items.map((it) => pt(MAXR * (it.score / 100), it.angle).join(",")).join(" ");
 
   return (
-    <svg className={styles.radarSvg} viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label="8방향 운명 레이더">
+    <svg className={styles.radarSvg} viewBox={`0 0 ${SIZE} ${SIZE}`} role="img" aria-label={copy.radarAriaLabel}>
       <defs>
         <radialGradient id="cd-radar-fill" cx="50%" cy="50%" r="62%">
           <stop offset="0%" stopColor="rgba(232, 213, 163, 0.5)" />

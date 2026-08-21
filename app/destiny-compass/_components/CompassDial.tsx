@@ -6,7 +6,7 @@
  */
 import { useId, useState } from "react";
 import type { DirectionKey, DirectionScore } from "../_engine/types";
-import { DIRECTION_LABEL_KO } from "../_engine/constants";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import { COMPASS_ORDER, needleAngle } from "../_stage/expressionMap";
 import styles from "./compass.module.css";
 
@@ -33,6 +33,7 @@ function prefersReducedMotion(): boolean {
 }
 
 export function CompassDial({ mode, directions, primary, onStart, className, state, compact }: CompassDialProps) {
+  const copy = useDestinyCompassCopy();
   const uid = useId().replace(/:/g, "");
   const [firing, setFiring] = useState(false);
   const scoreOf = (key: DirectionKey) => directions?.find((d) => d.key === key)?.score ?? 0;
@@ -146,7 +147,7 @@ export function CompassDial({ mode, directions, primary, onStart, className, sta
                 textAnchor="middle"
                 className={isPrimary ? styles.dialLabelOn : styles.dialLabel}
               >
-                {DIRECTION_LABEL_KO[key].split("·")[0]}
+                {copy.directionShortLabel[key]}
               </text>
             </g>
           );
@@ -182,9 +183,9 @@ export function CompassDial({ mode, directions, primary, onStart, className, sta
 
   if (mode === "entry") {
     return (
-      <button type="button" className={rootClass} onClick={handleStart} aria-label="운명의 나침반을 돌려 시작하기">
+      <button type="button" className={rootClass} onClick={handleStart} aria-label={copy.dialStartAriaLabel}>
         {svg}
-        <span className={styles.dialHint} aria-hidden="true">돌려서 시작</span>
+        <span className={styles.dialHint} aria-hidden="true">{copy.dialHint}</span>
       </button>
     );
   }
@@ -193,7 +194,7 @@ export function CompassDial({ mode, directions, primary, onStart, className, sta
     <div
       className={rootClass}
       role="img"
-      aria-label={primary ? `대표 방향 ${DIRECTION_LABEL_KO[primary]}` : "운명의 나침반"}
+      aria-label={primary ? copy.dialAriaLabelPrimary(copy.directionLabel[primary]) : copy.dialAriaLabelDefault}
     >
       {svg}
     </div>

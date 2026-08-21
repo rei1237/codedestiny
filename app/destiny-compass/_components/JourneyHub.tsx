@@ -7,11 +7,11 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import type { AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { Starfield } from "./Starfield";
 import { ConstellationMark } from "./ConstellationMark";
-import { DIRECTION_LABEL_KO } from "../_engine/constants";
 import type { DirectionKey } from "../_engine/types";
 import { COMPASS_ORDER } from "../_stage/expressionMap";
 import { checkInToday, readCollectibles, readRpgSnapshot, type RpgSnapshot } from "../_lib/rpg-bridge";
 import { compassPaintings } from "../data/assets";
+import { useDestinyCompassCopy, type DestinyCompassCopy } from "../_lib/copy";
 import hub from "./JourneyHub.module.css";
 
 const STEP_DEG = 360 / COMPASS_ORDER.length;
@@ -29,10 +29,6 @@ function bearingForIndex(index: number): number {
   return index * STEP_DEG;
 }
 
-function shortLabel(key: DirectionKey): string {
-  return DIRECTION_LABEL_KO[key].split("·")[0];
-}
-
 function CompassNeedleIcon() {
   return (
     <svg className={hub.ctaIcon} viewBox="0 0 24 24" aria-hidden="true">
@@ -48,16 +44,18 @@ function InteractiveCompass({
   angle,
   settling,
   onSelect,
+  copy,
 }: {
   selected: DirectionKey;
   angle: number;
   settling: boolean;
   onSelect: (key: DirectionKey, angle: number) => void;
+  copy: DestinyCompassCopy;
 }) {
   const dialRef = useRef<HTMLDivElement>(null);
   const directions = useMemo(
-    () => COMPASS_ORDER.map((key, index) => ({ key, label: shortLabel(key), angle: bearingForIndex(index) })),
-    [],
+    () => COMPASS_ORDER.map((key, index) => ({ key, label: copy.directionShortLabel[key], angle: bearingForIndex(index) })),
+    [copy],
   );
 
   const selectFromPoint = (event: PointerEvent<HTMLDivElement>) => {
@@ -86,7 +84,7 @@ function InteractiveCompass({
         if (event.currentTarget.hasPointerCapture(event.pointerId)) selectFromPoint(event);
       }}
       role="group"
-      aria-label={`선택한 운명의 나침반 방향: ${DIRECTION_LABEL_KO[selected]}`}
+      aria-label={copy.dialAriaLabelPrimary(copy.directionLabel[selected])}
     >
       <div className={hub.dialHalo} aria-hidden="true" />
       <svg className={hub.rose} viewBox="0 0 240 240" aria-hidden="true">
@@ -142,7 +140,7 @@ function InteractiveCompass({
   );
 }
 
-function BirthProfilePanel({ onStart }: { onStart: (birth: AnimalDestinyInput) => void }) {
+function BirthProfilePanel({ onStart, copy }: { onStart: (birth: AnimalDestinyInput) => void; copy: DestinyCompassCopy }) {
   const { seed, reload } = useAiProfileSeed();
   const [birthDate, setBirthDate] = useState("");
   const [birthTime, setBirthTime] = useState("");
@@ -185,69 +183,70 @@ function BirthProfilePanel({ onStart }: { onStart: (birth: AnimalDestinyInput) =
   };
 
   const reloadFromProfile = async () => applySeed(await reload(), true);
-  const genderKo = gender === "male" ? "남성" : "여성";
-  const calendarKo = calendarType === "lunar" ? (lunarLeap ? "음력(윤달)" : "음력") : "양력";
+  const genderLabel = gender === "male" ? copy.genderMale : copy.genderFemale;
+  const calendarLabel = calendarType === "lunar" ? (lunarLeap ? copy.calendarLunarLeap : copy.calendarLunar) : copy.calendarSolar;
   const hasProfile = Boolean(birthDate) && !editing;
 
   return (
     <section className={hub.profile} aria-labelledby="compass-profile-title">
       <div className={hub.profileHeading}>
-        <p className={hub.profileKicker}>방향을 읽을 준비</p>
-        <h2 id="compass-profile-title">{hasProfile ? "이 정보로 나침반을 맞출게요" : "생년 정보를 알려주세요"}</h2>
-        <p>{hasProfile ? "프로필 카드에서 불러온 정보예요. 이번 계산에만 사용합니다." : "생년 정보는 오늘의 질문과 함께 방향을 읽는 데만 사용합니다."}</p>
+        <p className={hub.profileKicker}>{copy.journeyProfileKicker}</p>
+        <h2 id="compass-profile-title">{hasProfile ? copy.journeyProfileTitleHas : copy.journeyProfileTitleNone}</h2>
+        <p>{hasProfile ? copy.journeyProfileSubtitleHas : copy.journeyProfileSubtitleNone}</p>
       </div>
 
       {hasProfile ? (
         <>
           <dl className={hub.profileSummary}>
-            <div><dt>생년월일</dt><dd>{birthDate}</dd></div>
-            <div><dt>태어난 시각</dt><dd>{timeUnknown || !birthTime ? "모름" : birthTime}</dd></div>
-            <div><dt>성별</dt><dd>{genderKo}</dd></div>
-            <div><dt>달력</dt><dd>{calendarKo}</dd></div>
+            <div><dt>{copy.birthDateLabel}</dt><dd>{birthDate}</dd></div>
+            <div><dt>{copy.birthTimeLabel}</dt><dd>{timeUnknown || !birthTime ? copy.unknownLabel : birthTime}</dd></div>
+            <div><dt>{copy.genderLabel}</dt><dd>{genderLabel}</dd></div>
+            <div><dt>{copy.calendarLabel}</dt><dd>{calendarLabel}</dd></div>
           </dl>
-          <button type="button" className={hub.profileEdit} onClick={() => setEditing(true)}>정보 변경</button>
+          <button type="button" className={hub.profileEdit} onClick={() => setEditing(true)}>{copy.editInfoButton}</button>
         </>
       ) : (
         <form className={hub.profileForm} onSubmit={(event) => { event.preventDefault(); submit(); }}>
           {seed?.birthDate && (
-            <button type="button" className={hub.profileReload} onClick={reloadFromProfile}>프로필 카드에서 다시 불러오기</button>
+            <button type="button" className={hub.profileReload} onClick={reloadFromProfile}>{copy.reloadFromProfileButton}</button>
           )}
           <div className={hub.profileField}>
-            <label htmlFor="compass-birth-date">생년월일</label>
+            <label htmlFor="compass-birth-date">{copy.birthDateLabel}</label>
             <input id="compass-birth-date" {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} required />
           </div>
           <div className={hub.profileField}>
-            <label htmlFor="compass-birth-time">태어난 시각</label>
+            <label htmlFor="compass-birth-time">{copy.birthTimeLabel}</label>
             <input id="compass-birth-time" type="time" value={birthTime} disabled={timeUnknown} onChange={(event) => { setBirthTime(event.target.value); if (event.target.value) setTimeUnknown(false); }} />
-            <label className={hub.checkRow}><input type="checkbox" checked={timeUnknown} onChange={(event) => setTimeUnknown(event.target.checked)} /> 태어난 시각을 몰라요</label>
+            <label className={hub.checkRow}><input type="checkbox" checked={timeUnknown} onChange={(event) => setTimeUnknown(event.target.checked)} /> {copy.birthTimeUnknownCheckbox}</label>
           </div>
           <div className={hub.profileRow}>
             <div className={hub.profileField}>
-              <label htmlFor="compass-gender">성별</label>
+              <label htmlFor="compass-gender">{copy.genderLabel}</label>
               <select id="compass-gender" value={gender} onChange={(event) => setGender(event.target.value as AnimalDestinyInput["gender"])}>
-                <option value="female">여성</option><option value="male">남성</option>
+                <option value="female">{copy.genderFemale}</option><option value="male">{copy.genderMale}</option>
               </select>
             </div>
             <div className={hub.profileField}>
-              <label htmlFor="compass-calendar">달력</label>
+              <label htmlFor="compass-calendar">{copy.calendarLabel}</label>
               <select id="compass-calendar" value={calendarType} onChange={(event) => setCalendarType(event.target.value as "solar" | "lunar")}>
-                <option value="solar">양력</option><option value="lunar">음력</option>
+                <option value="solar">{copy.calendarSolar}</option><option value="lunar">{copy.calendarLunar}</option>
               </select>
             </div>
           </div>
-          {calendarType === "lunar" && <label className={hub.checkRow}><input type="checkbox" checked={lunarLeap} onChange={(event) => setLunarLeap(event.target.checked)} /> 윤달이에요</label>}
+          {calendarType === "lunar" && <label className={hub.checkRow}><input type="checkbox" checked={lunarLeap} onChange={(event) => setLunarLeap(event.target.checked)} /> {copy.lunarLeapCheckbox}</label>}
         </form>
       )}
 
       <button type="button" className={hub.cta} onClick={submit} disabled={!birthDate}>
         <CompassNeedleIcon />
-        <span>이 정보로 나침반 맞추기</span>
+        <span>{copy.journeyCtaButton}</span>
       </button>
     </section>
   );
 }
 
 export function JourneyHub({ onStart }: { onStart: (birth: AnimalDestinyInput) => void }) {
+  const copy = useDestinyCompassCopy();
   const [snap, setSnap] = useState<RpgSnapshot | null>(null);
   const [dexCount, setDexCount] = useState(0);
   const [selected, setSelected] = useState<DirectionKey>("venture");
@@ -284,10 +283,10 @@ export function JourneyHub({ onStart }: { onStart: (birth: AnimalDestinyInput) =
 
   const greeting = useMemo(() => {
     const streak = snap?.streakDays ?? 0;
-    if (streak >= 7) return `${streak}일째 이어진 운명의 기록이 있어요. 오늘은 방향이 조금 더 선명하게 잡힙니다.`;
-    if (streak >= 2) return `${streak}일 연속으로 나침반을 열었어요. 오늘의 바늘도 차분히 맞춰볼게요.`;
-    return "지금 당신의 마음은 어느 방향을 향하고 있을까요?";
-  }, [snap]);
+    if (streak >= 7) return copy.journeyGreetingStreak(streak);
+    if (streak >= 2) return copy.journeyGreetingReturning(streak);
+    return copy.journeyGreetingFirst;
+  }, [snap, copy]);
 
   return (
     <main
@@ -303,32 +302,30 @@ export function JourneyHub({ onStart }: { onStart: (birth: AnimalDestinyInput) =
       <section className={hub.hero} aria-labelledby="destiny-compass-title">
         <div className={hub.copy}>
           <span className={hub.kicker}>Destiny Compass</span>
-          <h1 id="destiny-compass-title" className={hub.title}>운명의 나침반</h1>
+          <h1 id="destiny-compass-title" className={hub.title}>{copy.journeyHeroTitle}</h1>
           <p className={hub.sub}>{greeting}</p>
-          <p className={hub.microcopy}>
-            나침반을 움직여 지금 마음이 먼저 향하는 쪽을 골라보세요. 실제 결과는 생년 정보와 오늘의 질문을 함께 읽어 다시 계산합니다.
-          </p>
+          <p className={hub.microcopy}>{copy.journeyMicrocopy}</p>
         </div>
 
-        <InteractiveCompass selected={selected} angle={angle} settling={false} onSelect={selectDirection} />
+        <InteractiveCompass selected={selected} angle={angle} settling={false} onSelect={selectDirection} copy={copy} />
 
         <div className={hub.reading} data-pulse={pulse || undefined} aria-live="polite">
           <span className={hub.readingMark} aria-hidden="true">
             <ConstellationMark variant={2} size={18} />
           </span>
-          <span className={hub.readingLabel}>지금 바늘</span>
-          <strong>{DIRECTION_LABEL_KO[selected]}</strong>
+          <span className={hub.readingLabel}>{copy.journeyReadingLabel}</span>
+          <strong>{copy.directionLabel[selected]}</strong>
         </div>
 
         {(snap || dexCount > 0) && (
-          <div className={hub.statusLine} aria-label="운명 여정 상태">
+          <div className={hub.statusLine} aria-label={copy.journeyStatusAriaLabel}>
             {snap && <span>Lv.{snap.currentLevel}</span>}
-            {snap?.streakDays ? <span>{snap.streakDays}일 연속</span> : null}
-            {dexCount > 0 && <span>도감 {dexCount}개</span>}
+            {snap?.streakDays ? <span>{copy.journeyStreakSuffix(snap.streakDays)}</span> : null}
+            {dexCount > 0 && <span>{copy.journeyDexSuffix(dexCount)}</span>}
           </div>
         )}
 
-        <BirthProfilePanel onStart={onStart} />
+        <BirthProfilePanel onStart={onStart} copy={copy} />
       </section>
     </main>
   );

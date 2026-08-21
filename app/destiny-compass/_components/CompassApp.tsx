@@ -18,9 +18,11 @@ import { ConcernInput } from "./ConcernInput";
 import { type PigExpr } from "../_stage/mapDialogue";
 import { ProcessingScene } from "./ProcessingScene";
 import { DIRECTION_TO_REGION, regionByKey } from "./mapRegions";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import map from "./map.module.css";
 
 export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
+  const copy = useDestinyCompassCopy();
   const s = useCompassSession(start);
   const [spotlight, setSpotlight] = useState<string | null>(null);
   const [waiting, setWaiting] = useState(false);
@@ -58,15 +60,14 @@ export function CompassApp({ start = "hub" }: { start?: CompassStep } = {}) {
 
   if (s.step === "reveal" && s.field) {
     const destRegion = DIRECTION_TO_REGION[s.field.primary.key];
-    const destLabel = regionByKey(destRegion)?.label ?? "";
+    const dest = regionByKey(destRegion);
+    const destLabel = dest ? copy.regionLabel[dest.key as keyof typeof copy.regionLabel] : "";
     return (
-      <DestinyMap title="나침반이 방향을 잡았어요" kicker="The Bearing Revealed" pathTo={destRegion} highlightRegion={destRegion} phase="night">
+      <DestinyMap title={copy.revealTitle} kicker="The Bearing Revealed" pathTo={destRegion} highlightRegion={destRegion} phase="night">
         <div className={map.revealPanel}>
-          <p className={map.revealText}>
-            안개가 걷히자, <b>{destLabel}</b> 쪽으로 바늘이 금빛으로 고정됐어요.
-          </p>
+          <p className={map.revealText}>{copy.revealText(destLabel)}</p>
           <button type="button" className={map.revealCta} onClick={() => s.setStep("result")}>
-            결과 확인하기 →
+            {copy.confirmResultButton}
           </button>
         </div>
       </DestinyMap>
