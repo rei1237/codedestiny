@@ -71,8 +71,9 @@ for (const rel of SHELL_MIRRORS) {
   must(refresh.includes("pass_check_failed"), `${label}: 이용권 확인 실패(pass_check_failed)를 미커버와 구분하지 않습니다`);
 
   const choice = stripComments(sliceFunction(source, "  async function _cdChooseServicePaymentMode(", `${label}/choice`));
-  // A: 이용권 카드를 렌더한다.
-  must(choice.includes('data-mode="\' + passMode + \'"'), `${label}: 결제창이 이용권 카드를 렌더하지 않습니다`);
+  // A: 이용권 카드를 렌더한다. 카드 뼈대 자체는 공유 함수(checkout-entry.js buildPaymentChoiceCardsHtml)가
+  // 조립하므로(2026-08-21), 여기서는 셸이 그 카드를 pass-store 모드로 위임하는지만 확인한다.
+  must(choice.includes("dataMode: passMode"), `${label}: 결제창이 이용권 카드를 렌더하지 않습니다`);
 
   // 🔴 이용권 카드 **클릭 분기 본문**만 잘라서 본다. 바깥 함수 전체를 대상으로 하면
   // refreshDirectEntitlementStatus() 정의부에 남은 문자열이 클릭 분기의 삭제를 가려 준다
@@ -115,7 +116,9 @@ for (const rel of SHELL_MIRRORS) {
   const label = `React ${REACT_CLIENT}`;
   const modal = stripComments(sliceFunction(source, "async function openReactPaymentChoiceModalInner(", `${label}/modal`));
 
-  must(modal.includes('data-mode="pass-store"'), `${label}: 결제창이 이용권 카드를 렌더하지 않습니다`);
+  // 카드 뼈대 자체는 공유 함수(checkout-entry.js buildPaymentChoiceCardsHtml)가 조립하므로(2026-08-21),
+  // 여기서는 React 가 그 카드를 pass-store 모드로 위임하는지만 확인한다.
+  must(modal.includes('dataMode: "pass-store"'), `${label}: 결제창이 이용권 카드를 렌더하지 않습니다`);
   // A: 읽기 전용 GET이 아니라 공용 런타임의 최종 MEMBERSHIP_PASS 적용을 호출한다.
   must(modal.includes("__cdApplyMembershipPassBeforePayment"), `${label}: 이용권 카드 클릭이 최종 이용권 적용을 호출하지 않습니다`);
   must(!/fetchPaymentEligibility\(/.test(modal), `${label}: 이용권 카드 클릭이 최종 판정 전에 읽기 전용 이용권 조회로 갈립니다`);
@@ -161,7 +164,9 @@ for (const rel of STANDALONE_FALLBACKS) {
   const label = `독립 폴백 ${rel}`;
   const modal = stripComments(sliceFunction(source, "  function _dpRenderStandalonePaymentChoice(", `${label}/modal`));
 
-  must(modal.includes('data-mode="pass-store"'), `${label}: 결제창이 이용권 카드를 렌더하지 않습니다`);
+  // 카드 뼈대 자체는 공유 함수(checkout-entry.js buildPaymentChoiceCardsHtml)가 조립하므로(2026-08-21),
+  // 여기서는 독립 정적 폴백이 그 카드를 pass-store 모드로 위임하는지만 확인한다.
+  must(modal.includes("dataMode: 'pass-store'"), `${label}: 결제창이 이용권 카드를 렌더하지 않습니다`);
   must(modal.includes("__cdApplyMembershipPassBeforePayment"), `${label}: 이용권 카드 클릭이 이용권을 적용해 보지 않습니다(상점 링크로만 축소됨)`);
   must(modal.includes("finish('pass')"), `${label}: 이용권 커버 확인 후 무료 통과('pass')로 닫는 경로가 없습니다`);
   // B(소비자): finish() 가 'pass' 를 실제로 resolve 해야 한다 — 화이트리스트에서 빠지면 조용히 'cancel' 이 된다.

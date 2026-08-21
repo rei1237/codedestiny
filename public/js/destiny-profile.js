@@ -11196,49 +11196,56 @@
         return ch === '&' ? '&amp;' : ch === '<' ? '&lt;' : ch === '>' ? '&gt;' : ch === '"' ? '&quot;' : '&#39;';
       });
     }
-    // 추천 카드 하나만 크게, 나머지 둘은 컴팩트 행. 🔴 숨기거나 접지 않는다 — 세 옵션은 항상 함께 보인다.
-    function optionVariantClass(option) {
-      return option === recommendedOption ? ' cd-direct-payment-option--recommended' : ' cd-direct-payment-option--secondary';
-    }
-    function optionRecommendHtml(option) {
-      return option === recommendedOption
-        ? '<span class="cd-direct-payment-recommend">' + esc(recommendBadgeText) + '</span>'
-        : '';
-    }
-    // 추천 카드 하단 골드 액션 스트립. 버튼 안에 버튼을 넣을 수 없으므로 비인터랙티브 span 이다.
-    function optionGoHtml(option) {
-      return option === recommendedOption
-        ? '<span class="cd-direct-payment-go">' + esc(goLabelText) + '</span>'
-        : '';
-    }
-    var passButtonHtml = '<button type="button" class="cd-direct-payment-option is-store' + optionVariantClass('pass') + '" data-mode="pass-store">' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🎫</span>' + esc(passBadge) + '</span>' + optionRecommendHtml('pass') + '</span>' +
-        '<strong>' + esc(passTitle) + '</strong>' +
-        '<span class="cd-direct-payment-desc">' + esc(passHint) + '</span>' +
-        optionGoHtml('pass') +
-      '</button>';
-    var directButtonHtml = '<button type="button" class="cd-direct-payment-option' + optionVariantClass('direct') + '" data-mode="direct">' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">💳</span>' + esc(directBadge) + '</span>' + optionRecommendHtml('direct') + '</span>' +
-        '<strong>' + esc(directTitleLabel) + ' · <span class="cd-direct-payment-amount">' + esc(_dpCheckoutFormatKrw(amountKrw)) + '</span></strong>' +
-        '<span class="cd-direct-payment-desc">' + esc(directHint) + '</span>' +
-        optionGoHtml('direct') +
-      '</button>';
-    var monthlyButtonHtml = '<button type="button" class="cd-direct-payment-option' + (monthlyInsufficient ? ' is-disabled' : '') + optionVariantClass('monthly') + '" data-mode="monthly" data-monthly-option' + (monthlyInsufficient ? ' disabled aria-disabled="true"' : '') + '>' +
-        '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">🌙</span>' + esc(monthlyBadgeText) + '</span>' + optionRecommendHtml('monthly') + '</span>' +
-        '<strong>' + esc(monthlyTitleText) + ' · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString(_dpCheckoutDisplayLocale())) + '</span> ' + esc(monthlyUnitText) + '</strong>' +
-        '<span class="cd-direct-payment-desc" data-monthly-hint>' + esc(monthlyHintText) + '</span>' +
-        optionGoHtml('monthly') +
-      '</button>';
     // 🔴 온디맨드 잔량 확인(2026-08-13, 셸 index.html bindMonthlyBalanceCheck 와 같은 계약).
     // 결제창은 열릴 때 잔량을 조회하지 않는다 — 사용자가 눌러야만 조회하고, 실패해도 월정석 카드의
     // disabled 는 건드리지 않는다. data-mode 를 주지 않는다(아래 델리게이션이 "고르면 닫는" 동작이라
     // 붙이면 창이 닫힌다). <button> 중첩도 금지라 카드 아래 형제로 놓는다(그리드가 1열).
     var monthlyBalanceCheckHtml = '<button type="button" class="cd-direct-payment-balance-check" data-monthly-balance-check>' + esc(_dpCheckoutText('payment.directModal.monthlyBalance.checkButton', '보유 월정석 확인')) + '</button>' +
       '<span class="cd-direct-payment-balance-value" data-monthly-balance-text role="status" aria-live="polite" hidden></span>';
-    var choiceCardHtmlByOption = { pass: passButtonHtml, direct: directButtonHtml, monthly: monthlyButtonHtml + monthlyBalanceCheckHtml };
-    var orderedChoiceCardsHtml = (checkoutRecommendation.order || []).map(function(option) {
-      return choiceCardHtmlByOption[option] || '';
-    }).join('');
+    // 카드 뼈대(배지·추천 리본·go 스트립·variant 클래스) 조립은 세 렌더러 공유 함수 하나가 맡는다
+    // (js/core/checkout-entry.js buildPaymentChoiceCardsHtml). 추천 카드 하나만 크게, 나머지 둘은
+    // 컴팩트 행. 🔴 숨기거나 접지 않는다 — 세 옵션은 항상 함께 보인다.
+    var __dpPaymentCardsApi = _dpCheckoutEntry();
+    var orderedChoiceCardsHtml = (__dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildPaymentChoiceCardsHtml === 'function')
+      ? __dpPaymentCardsApi.buildPaymentChoiceCardsHtml({
+          order: checkoutRecommendation.order || [],
+          recommendedOption: recommendedOption,
+          escape: esc,
+          recommendLabel: recommendBadgeText,
+          goLabel: goLabelText,
+          cards: {
+            pass: {
+              allow: true,
+              dataMode: 'pass-store',
+              extraClass: ' is-store',
+              glyph: '🎫',
+              badgeLabel: passBadge,
+              titleHtml: esc(passTitle),
+              descHtml: esc(passHint),
+            },
+            direct: {
+              allow: true,
+              dataMode: 'direct',
+              glyph: '💳',
+              badgeLabel: directBadge,
+              titleHtml: esc(directTitleLabel) + ' · <span class="cd-direct-payment-amount">' + esc(_dpCheckoutFormatKrw(amountKrw)) + '</span>',
+              descHtml: esc(directHint),
+            },
+            monthly: {
+              allow: true,
+              dataMode: 'monthly',
+              extraDataAttrs: ' data-monthly-option' + (monthlyInsufficient ? ' disabled aria-disabled="true"' : ''),
+              extraClass: monthlyInsufficient ? ' is-disabled' : '',
+              glyph: '🌙',
+              badgeLabel: monthlyBadgeText,
+              titleHtml: esc(monthlyTitleText) + ' · <span class="cd-direct-payment-amount">' + esc(monthlyStones.toLocaleString(_dpCheckoutDisplayLocale())) + '</span> ' + esc(monthlyUnitText),
+              descHtml: esc(monthlyHintText),
+              descAttr: ' data-monthly-hint',
+              afterHtml: monthlyBalanceCheckHtml,
+            },
+          },
+        })
+      : '';
     _dpEnsureStandalonePaymentChoiceStyle();
     return new Promise(function(resolve) {
       var settled = false;
