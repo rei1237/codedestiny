@@ -73,10 +73,6 @@ const MUST_DIFFER_KEYS = new Set([
 const STAGING_ONLY_KEYS = new Set([
   "vars.APP_ENV",
   "vars.CORS_ORIGIN",
-  // 결제 전용 소켓 레인 재실측(2026-08-20). 스테이징에서만 켜고 프로덕션은 관찰 후 판단한다.
-  // 프로덕션에도 켜기로 하면 이 줄을 지우고 두 toml 에 같은 값을 둔다 — 그때 이 가드가
-  // "스테이징 전용 키인데 프로덕션에도 있다" 로 실패해 결정을 명시적으로 만든다.
-  "vars.PAYMENTS_DB_SOCKET_LANE",
 ]);
 
 const PRODUCTION_ORIGIN = "https://code-destiny.com";

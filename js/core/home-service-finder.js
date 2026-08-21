@@ -76,7 +76,6 @@
     "#inputPage .moon-preview-card",
     "#inputPage .tarot-tile",
     "#inputPage .cd-pick-card",
-    "#inputPage .moon-start-card",
     "#inputPage .prem-card",
     "#inputPage .feature-card"
   ].join(", ");

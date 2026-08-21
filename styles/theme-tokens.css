@@ -192,6 +192,13 @@ html[data-cd-theme="neo"] {
   /* 스켈레톤 */
   --cd-skeleton-base: rgba(255, 240, 246, 0.72);
   --cd-skeleton-sheen: rgba(255, 255, 255, 0.92);
+
+  /* 버튼 크기 — 홈 셸 버튼마다 44/54/56px 로 제각각이던 것을 2단으로 정리(2026-08-21).
+     --cd-btn-h-lg 는 히어로 1차 CTA 하나만 예외로 쓰고, 나머지는 --cd-btn-h 로 통일한다. */
+  --cd-btn-h: 48px;
+  --cd-btn-pad: 12px 24px;
+  --cd-btn-h-lg: 56px;
+  --cd-btn-pad-lg: 16px 38px;
 }
 
 html.neo-mode,
