@@ -7668,5 +7668,11 @@
       "keepValue": "Xuất PDF và giữ vĩnh viễn",
       "guarantee": "Chương nào chưa đạt độ dài sẽ được viết lại tự động, tối đa hai lần. Nếu vẫn không đạt, yêu cầu bị đánh dấu thất bại thay vì giao kết quả — nên đường dẫn thử lại và hoàn tiền vẫn còn."
     }
+  },
+  "errorBoundary": {
+    "title": "Đã xảy ra sự cố khi tải màn hình.",
+    "description": "Đây có thể là lỗi tạm thời. Thử lại thường sẽ khắc phục được.",
+    "retry": "Thử lại",
+    "goHome": "Về trang chủ"
   }
 }

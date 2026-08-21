@@ -7668,5 +7668,11 @@
       "keepValue": "Enregistrez en PDF et gardez-le à vie",
       "guarantee": "Tout chapitre trop court est réécrit automatiquement, jusqu'à deux fois. S'il n'y parvient toujours pas, la demande échoue au lieu d'être livrée — la relance et le remboursement restent donc possibles."
     }
+  },
+  "errorBoundary": {
+    "title": "Un problème est survenu lors du chargement de la page.",
+    "description": "Il peut s'agir d'une erreur temporaire. Réessayer résout généralement le problème.",
+    "retry": "Réessayer",
+    "goHome": "Retour à l'accueil"
   }
 }

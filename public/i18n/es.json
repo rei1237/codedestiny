@@ -7668,5 +7668,11 @@
       "keepValue": "Guárdalo en PDF para siempre",
       "guarantee": "Todo capítulo que se quede corto se reescribe automáticamente, hasta dos veces. Si aun así no llega, la solicitud se marca como fallida en vez de entregarse, de modo que el reintento y el reembolso siguen disponibles."
     }
+  },
+  "errorBoundary": {
+    "title": "Se produjo un problema al cargar la pantalla.",
+    "description": "Puede ser un error temporal. Al volver a intentarlo, suele solucionarse.",
+    "retry": "Reintentar",
+    "goHome": "Ir al inicio"
   }
 }

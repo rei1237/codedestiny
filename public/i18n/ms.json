@@ -7668,5 +7668,11 @@
       "keepValue": "Simpan sebagai PDF dan miliki selamanya",
       "guarantee": "Mana-mana bab yang tidak cukup panjang akan ditulis semula secara automatik, sehingga dua kali. Jika masih tidak cukup, permintaan digagalkan dan bukannya dihantar — jadi laluan cuba semula dan bayaran balik kekal terbuka."
     }
+  },
+  "errorBoundary": {
+    "title": "Masalah berlaku semasa memuatkan skrin ini.",
+    "description": "Ini mungkin ralat sementara. Mencuba lagi biasanya menyelesaikannya.",
+    "retry": "Cuba lagi",
+    "goHome": "Kembali ke laman utama"
   }
 }

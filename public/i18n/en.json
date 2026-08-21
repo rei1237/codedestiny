@@ -7668,5 +7668,11 @@
       "keepValue": "Save as PDF and own it for good",
       "guarantee": "Any chapter that falls short is rewritten automatically, up to twice. If it still cannot reach the bar, we fail the request rather than ship it — so retry and refund stay available."
     }
+  },
+  "errorBoundary": {
+    "title": "Something went wrong while loading this page.",
+    "description": "This may be a temporary issue. Trying again usually fixes it.",
+    "retry": "Try again",
+    "goHome": "Go to home"
   }
 }
