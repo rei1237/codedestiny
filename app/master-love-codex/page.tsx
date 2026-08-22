@@ -9,7 +9,7 @@ import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/master-love-codex/";
-const PAGE_TITLE = "마스터 인연의 서 | 사주·자미두수 융합 20장 연애 전략서 — Code Destiny";
+const PAGE_TITLE = "사주 연애 리포트 | 자미두수 융합 20장 연애 전략서 — 마스터 인연의 서";
 const PAGE_DESCRIPTION =
   "사주 명식과 자미두수 명반을 함께 펼쳐 연애 성향·끌림의 원리·갈등의 뿌리·재회와 결혼운까지 20장으로 읽는 최상위 프리미엄 상담. 상대의 생년월일을 넣으면 두 사람의 명식·명반 네 장을 겹쳐 읽는 궁합판 20장으로 바뀝니다.";
 
@@ -152,7 +152,7 @@ export default function MasterLoveCodexPageRoute() {
       />
       <MasterLoveCodexRouteClient />
       <ServiceIntroSection label="마스터 인연의 서 안내">
-        <h1>마스터 인연의 서 — 사주와 자미두수로 읽는 스무 장의 연애 전략서</h1>
+        <h1>사주 연애 리포트 — 자미두수와 함께 읽는 스무 장의 연애 전략서</h1>
         <p>
           마스터 인연의 서는 Code Destiny가 제공하는 최상위 프리미엄 상담입니다. 사주 명식(일간과
           십성, 오행의 균형과 조후, 대운과 세운의 흐름)과 자미두수 명반(명궁·부부궁·복덕궁을 비롯한
