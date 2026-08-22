@@ -7,8 +7,6 @@ import { usePremiumReport } from "../_premium/use-premium-report";
 import { CrossSell, GenderPrompt, NatalBar, NeedBirth, SectionCards, UnlockGate, type ReportSection } from "../_premium/PremiumParts";
 import { useNakshatraCopy } from "../_lib/copy";
 
-const FEATURE_KEY = "nakshatra-dasha-map";
-
 interface Antardasha {
   lord: string;
   lordKo: string;
@@ -126,7 +124,7 @@ function PeriodRow({ period, copy }: { period: Period; copy: ReturnType<typeof u
 export default function DashaMapClient() {
   const copy = useNakshatraCopy();
   const product = {
-    featureKey: FEATURE_KEY,
+    featureKey: "nakshatra-dasha-map",
     coinPrice: 100,
     amountKRW: 10000,
     reason: copy.dashaReason,
