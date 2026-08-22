@@ -1,6 +1,7 @@
 "use client";
 
 import type { DestinyBiasResultViewModel } from "../lib/types";
+import { useDestinyBiasCopy } from "../_lib/copy";
 
 type Props = {
   vm: DestinyBiasResultViewModel;
@@ -15,6 +16,7 @@ const SECTION_ICON: Record<string, string> = {
 };
 
 export default function BiasDestinyFiveSections({ vm }: Props) {
+  const copy = useDestinyBiasCopy();
   const tabs = Array.isArray(vm.detailedTabs) ? vm.detailedTabs : [];
   // ①(chemi)은 상단 게이지에 노출되므로 카드에서는 제외, ②③④⑤ 표시
   const hasBranchInteraction =
@@ -29,7 +31,7 @@ export default function BiasDestinyFiveSections({ vm }: Props) {
 
   return (
     <section className="space-y-3">
-      <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">사주 케미 리딩 SAJU READING</p>
+      <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">{copy.fiveSectionsLabel} SAJU READING</p>
       <div className="space-y-3">
         {cards.map((tab) => {
           const section = tab.sections?.[0];
@@ -50,7 +52,7 @@ export default function BiasDestinyFiveSections({ vm }: Props) {
 
               {section.action ? (
                 <div className="relative z-10 mt-3 overflow-hidden rounded-2xl border border-[#FDE68A]/40 bg-[linear-gradient(135deg,rgba(253,230,138,0.13),rgba(251,191,36,0.09))] p-3">
-                  <p className="relative text-[11px] font-semibold tracking-[0.14em] text-[#FDE68A]/95">✨ 실전 팁</p>
+                  <p className="relative text-[11px] font-semibold tracking-[0.14em] text-[#FDE68A]/95">{copy.fiveSectionsTipLabel}</p>
                   <p className="relative mt-1 min-w-0 break-keep text-sm leading-7 text-white/90">{section.action}</p>
                 </div>
               ) : null}
