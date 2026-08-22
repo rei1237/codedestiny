@@ -73,7 +73,22 @@
 
 **이로써 palm-reading 클러스터(#960+#962) 전체 완료.**
 
-**다음(미착수, 우선순위 제안)**: `tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker`·`music`·`flower/*` 등. **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것 — destiny-bias·animal-destiny·sikojen-povailu·palm-reading 클러스터가 각각 PR 1~2건 분량이었다.
+## 🔴 2026-08-22 `tarot/*` 3개 클러스터 — "이미 다 되어 있었다"는 이번 세션 처음 만난 패턴
+
+`tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker` 세 클러스터를 순서대로 착수했는데, 지금까지와 반대되는 발견이 반복됐다: **한국어 매칭 건수만 보고 "번역 안 됨"으로 가정하면 안 된다.** 세 곳 다 실제로 열어 보니 이미 상당 부분(또는 전부) 12로케일 완전 구현이 돼 있었고, 남은 건 아주 좁은 실제 공백뿐이었다. 다음 세션이 "3건 이하"·미조사 클러스터를 마저 훑을 때도 이 순서(① 파일을 열어 기존 로케일 인프라 유무 확인 → ② 실제 렌더 지점까지 추적해 그 인프라가 진짜 그 지점을 커버하는지 확인 → ③ 커버 안 되는 지점만 고친다)를 지킬 것 — 겉보기 Korean-매칭 건수는 착수 우선순위 판단용일 뿐 작업량의 근거가 아니다.
+
+**PR #963**(완료) `chore/tarot-healing-i18n` — `app/tarot/healing/`(`page.tsx`·`start/page.tsx`·`TarotHealingLandingContent.tsx`·`TarotHealingClient.tsx`)은 **조사 결과 이미 12로케일 완전 번역**돼 있었다. 유일한 공백은 `TarotHealingRouteClient.tsx`의 동적 임포트 로딩 폴백 문구 하나("치유의 카드를 여는 중입니다.") — 형제 파일들이 쓰던 로케일 감지 패턴을 그대로 복제(이 클러스터 기존 관례가 파일마다 중복 구현이라 따름)해 12로케일 배선. `page.tsx`/`start/page.tsx`의 SEO 메타데이터는 로케일 라우팅 없는 URL이라 제외.
+
+**PR #964**(완료, 코드 변경은 위와 동일한 로딩 폴백 하나뿐) `chore/tarot-self-esteem-i18n` — `TarotSelfEsteemLandingContent.tsx`도 이미 12로케일 `SELF_ESTEEM_COPY` 완전 배선 상태. `TarotSelfEsteemRouteClient.tsx`의 동일 패턴 로딩 폴백만 배선. 🔴 **코드가 아니라 콘텐츠 문제라 사용자에게 보고만 하고 손대지 않은 발견**: `SELF_ESTEEM_COPY.ko`는 "자기 기준 회복 타로"(타인 시선·거절 불안·자기검열을 다루는 톤)인데 **나머지 11개 로케일 전부**가 예전 "Self-Esteem Level Up RPG Quest" 컨셉(디버프→몬스터→데미지→쉴드→레벨업)에 머물러 있다. 12개 로케일 키가 전부 채워져 있어 번역 누락이 아니라 **한국어판만 개편되고 나머지 11개가 못 따라간 콘텐츠 드리프트**로 보인다. 11개 로케일 퀘스트 스텝 문구를 새 컨셉으로 다시 쓰는 건 번역이 아니라 제품 결정이라 범위 밖에 남김 — 다음 세션(또는 사용자)이 어느 쪽 컨셉이 맞는지 정한 뒤 처리할 것.
+
+**PR #966**(완료) `chore/tarot-prompt-maker-i18n` — `TarotPromptMakerClient.tsx`(3,676줄)는 **이 세션에서 만난 가장 정교한 기존 i18n 아키텍처**를 갖고 있었다: `Record<LoadingLocale,...>` 카피 테이블 9개, `buildOraclePrompt()`가 로케일별로 아예 별도 함수(`buildLocalizedTarotPrompt()`)로 분기, 레노먼드 카드 키워드가 번역이 없으면 한국어 대신 로케일 중립 카드 코드로 폴백하는 안전장치까지. `PROMPT_MAKER_PAGE_TEXT_TRANSLATIONS`/`promptMakerPageText()`(always-ko 스캐폴드처럼 보였음)와 `LENORMAND_SPREAD`는 실제 렌더 지점(`ORACLE_MODE_META_COPY`/`localizedLenormandSpread`)에서 완전히 재정의돼 안전하다는 것을 하나하나 추적 확인한 뒤 손대지 않았다 — **겉보기 스캐폴드 패턴만 보고 자동으로 "버그"라고 단정하지 말 것**의 실사례.
+- 🔴 **실제로 발견·수정한 버그 1건**: `LENORMAND_INFO_ITEMS`(레노먼드 모드 설명 카드 6개)는 로케일 래핑이 전혀 없는 순수 하드코딩 배열로 모든 방문자에게 한국어로 노출되고 있었다. `LENORMAND_INFO_ITEMS_COPY`(ko/en/ja/zh-CN/zh-TW + 나머지 en 폴백) 추가해 수정.
+- `TarotPromptMakerRouteClient.tsx`도 동일 패턴 로딩 폴백 배선.
+- `data/tarotSpreadLibrary.ts`·`utils/buildOraclePrompt.ts`는 읽고 대조만 했고 수정 안 함 — 둘 다 이미 독자적인 완전한 로케일 아키텍처(`LOCALIZED_SPREAD_COPY`/`localizeSpread()`, `LOCALIZED_PROMPT_BUILDER_COPY`)를 갖춤.
+
+**이로써 `tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker` 3개 클러스터 완료**(self-esteem은 콘텐츠 드리프트 이슈만 보고 상태로 남음).
+
+**다음(미착수, 우선순위 제안)**: `music`·`flower/*` 등. **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것.
 
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
 
