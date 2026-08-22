@@ -19,7 +19,6 @@ const SITE_SEO_TEXT_TRANSLATIONS = {
     "siteSeo.017": "오늘의 운세 무료 보기 | 하루의 흐름과 선택 가이드",
     "siteSeo.018": "연애운 무료 보기 | 마음 흐름과 관계 방향",
     "siteSeo.019": "프리미엄 운세 리포트 안내 | 사주·연애·신년 PDF",
-    "siteSeo.020": "인생의 책 PDF 안내 | 사주 기반 장문 리포트",
     "siteSeo.021": "연애 리포트 PDF 안내 | 관계 흐름 심층 분석",
     "siteSeo.023": "운세 인사이트 가이드 | 사주·타로·궁합·점성술",
     "siteSeo.024": "운세 인사이트 아카이브 | 사주·타로·자미두수 가이드",
@@ -322,17 +321,6 @@ export const publicSeoPages: Record<string, PublicSeoPage> = {
     keywords: ["프리미엄 운세", "사주 PDF", "연애 리포트", "신년 운세"],
     changeFrequency: "weekly",
     priority: 0.86,
-    structuredData: ["WebPage", "BreadcrumbList"],
-  },
-  lifeBookPdf: {
-    path: "/pdf/life-book",
-    title: siteSeoText("siteSeo.020"),
-    description:
-      "인생의 책 PDF는 결제 권한 확인 후 사용자 입력과 사주 계산 데이터를 검증해 생성되는 프리미엄 리포트입니다.",
-    h1: "인생의 책 PDF 안내",
-    keywords: ["인생의 책 PDF", "사주 리포트", "프리미엄 PDF"],
-    changeFrequency: "monthly",
-    priority: 0.8,
     structuredData: ["WebPage", "BreadcrumbList"],
   },
   loveReportPdf: {
