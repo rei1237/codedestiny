@@ -9,6 +9,7 @@
  * 데이터는 worker/lib/fusion-fortune-visual.js 가 항상 채워 준다(LLM 이 빠뜨려도 결정론 폴백).
  */
 import { FUSION_ORB_BY_KEY, type FusionSystemKey } from "./fusionOrbs";
+import { useFusionSharedCopy, type FusionSharedCopy } from "./_lib/copy";
 import styles from "./fusion-visualization.module.css";
 
 export type FusionSystemScore = { key: FusionSystemKey; label: string; score: number; note?: string };
@@ -29,7 +30,7 @@ function radarPoint(radius: number, angle: number): [number, number] {
   return [RADAR_CENTER + Math.cos(angle) * radius, RADAR_CENTER + Math.sin(angle) * radius];
 }
 
-function FusionSignalRadar({ scores }: { scores: FusionSystemScore[] }) {
+function FusionSignalRadar({ scores, copy }: { scores: FusionSystemScore[]; copy: FusionSharedCopy }) {
   const items = scores.map((item, index) => ({
     ...item,
     angle: (index / scores.length) * Math.PI * 2 - Math.PI / 2,
@@ -43,7 +44,7 @@ function FusionSignalRadar({ scores }: { scores: FusionSystemScore[] }) {
       /* 라벨은 반지름 밖으로 나가므로 좌우에 여백을 더 준다 — 안 그러면 "자미두수"가 잘린다. */
       viewBox={`-46 0 ${RADAR_SIZE + 92} ${RADAR_SIZE}`}
       role="img"
-      aria-label={`체계별 신호 강도: ${items.map((item) => `${item.label} ${item.score}`).join(", ")}`}
+      aria-label={copy.radarAriaLabel(items.map((item) => `${item.label} ${item.score}`).join(", "))}
     >
       <defs>
         <radialGradient id="cd-fusion-radar-fill" cx="50%" cy="50%" r="62%">
@@ -88,7 +89,7 @@ const LINE_HEIGHT = 200;
 const LINE_TOP = 16;
 const LINE_BOTTOM = LINE_HEIGHT - 34;
 
-function FusionMonthlyLine({ months }: { months: FusionTimelineMonth[] }) {
+function FusionMonthlyLine({ months, copy }: { months: FusionTimelineMonth[]; copy: FusionSharedCopy }) {
   const step = LINE_WIDTH / Math.max(1, months.length - 1);
   const y = (intensity: number) => LINE_BOTTOM - (LINE_BOTTOM - LINE_TOP) * (Math.min(100, Math.max(0, intensity)) / 100);
   const points = months.map((month, index) => [index * step, y(month.intensity)] as const);
@@ -100,7 +101,7 @@ function FusionMonthlyLine({ months }: { months: FusionTimelineMonth[] }) {
       className={styles.line}
       viewBox={`-10 0 ${LINE_WIDTH + 20} ${LINE_HEIGHT}`}
       role="img"
-      aria-label={`앞으로 12개월 흐름: ${months.map((month) => `${month.label} ${month.intensity}`).join(", ")}`}
+      aria-label={copy.timelineAriaLabel(months.map((month) => `${month.label} ${month.intensity}`).join(", "))}
     >
       <defs>
         <linearGradient id="cd-fusion-line-fill" x1="0" y1="0" x2="0" y2="1">
@@ -127,14 +128,14 @@ function FusionMonthlyLine({ months }: { months: FusionTimelineMonth[] }) {
 
 const GAUGE_RADIUS = 78;
 
-function FusionCrossCheckGauge({ aligned, divergent }: { aligned: number; divergent: number }) {
+function FusionCrossCheckGauge({ aligned, divergent, copy }: { aligned: number; divergent: number; copy: FusionSharedCopy }) {
   const total = Math.max(1, aligned + divergent);
   const ratio = aligned / total;
   const circumference = Math.PI * GAUGE_RADIUS;
   const label = `${Math.round(ratio * 100)}%`;
 
   return (
-    <svg className={styles.gauge} viewBox="0 0 200 118" role="img" aria-label={`체계 간 합의 강도 ${label}. 겹치는 신호 ${aligned}가지, 엇갈리는 신호 ${divergent}가지.`}>
+    <svg className={styles.gauge} viewBox="0 0 200 118" role="img" aria-label={copy.crossCheckGaugeAriaLabel(label, aligned, divergent)}>
       <path d={`M 22 100 A ${GAUGE_RADIUS} ${GAUGE_RADIUS} 0 0 1 178 100`} fill="none" stroke="rgba(232, 213, 163, 0.18)" strokeWidth="13" strokeLinecap="round" />
       <path
         d={`M 22 100 A ${GAUGE_RADIUS} ${GAUGE_RADIUS} 0 0 1 178 100`}
@@ -145,18 +146,18 @@ function FusionCrossCheckGauge({ aligned, divergent }: { aligned: number; diverg
         strokeDasharray={`${(circumference * ratio).toFixed(1)} ${circumference.toFixed(1)}`}
       />
       <text x="100" y="86" textAnchor="middle" className={styles.gaugeValue}>{label}</text>
-      <text x="100" y="108" textAnchor="middle" className={styles.gaugeCaption}>체계 간 합의</text>
+      <text x="100" y="108" textAnchor="middle" className={styles.gaugeCaption}>{copy.crossCheckGaugeCaption}</text>
     </svg>
   );
 }
 
-function SystemChips({ systems }: { systems: string[] }) {
+function SystemChips({ systems, copy }: { systems: string[]; copy: FusionSharedCopy }) {
   return (
     <span className={styles.chips}>
       {systems.map((key) => {
         const orb = FUSION_ORB_BY_KEY[key as FusionSystemKey];
         if (!orb) return null;
-        return <b key={key} className={styles.chip} style={{ "--tint": orb.tint } as React.CSSProperties}>{orb.label}</b>;
+        return <b key={key} className={styles.chip} style={{ "--tint": orb.tint } as React.CSSProperties}>{copy.systemLabels[key as FusionSystemKey]}</b>;
       })}
     </span>
   );
@@ -164,13 +165,14 @@ function SystemChips({ systems }: { systems: string[] }) {
 
 export function FusionVisualization({ data }: { data: FusionVisualizationData }) {
   const { systemScores, monthlyTimeline, crossChecks } = data;
+  const copy = useFusionSharedCopy();
 
   return (
-    <section className={styles.wrap} aria-label="초융합 리딩 요약 지표">
+    <section className={styles.wrap} aria-label={copy.vizSectionAriaLabel}>
       <article className={styles.card}>
-        <h3>체계별 신호 강도</h3>
-        <p className={styles.caption}>여섯 체계가 이번 질문에 얼마나 뚜렷한 신호를 주는지입니다. 사람을 평가하는 점수가 아닙니다.</p>
-        <FusionSignalRadar scores={systemScores} />
+        <h3>{copy.radarHeading}</h3>
+        <p className={styles.caption}>{copy.radarCaption}</p>
+        <FusionSignalRadar scores={systemScores} copy={copy} />
         <ul className={styles.scoreList}>
           {systemScores.map((item) => (
             <li key={item.key} style={{ "--tint": FUSION_ORB_BY_KEY[item.key]?.tint || "#e8d5a3" } as React.CSSProperties}>
@@ -184,30 +186,30 @@ export function FusionVisualization({ data }: { data: FusionVisualizationData })
       </article>
 
       <article className={styles.card}>
-        <h3>교차 검증</h3>
-        <p className={styles.caption}>여러 체계가 함께 가리키는 신호는 우선순위로, 엇갈리는 신호는 상황별 선택지로 남깁니다.</p>
+        <h3>{copy.crossCheckHeading}</h3>
+        <p className={styles.caption}>{copy.crossCheckCaption}</p>
         <div className={styles.crossGrid}>
-          <FusionCrossCheckGauge aligned={crossChecks.aligned.length} divergent={crossChecks.divergent.length} />
+          <FusionCrossCheckGauge aligned={crossChecks.aligned.length} divergent={crossChecks.divergent.length} copy={copy} />
           <div className={styles.crossLists}>
             <div>
-              <h4>겹치는 신호</h4>
+              <h4>{copy.alignedHeading}</h4>
               <ul>
                 {crossChecks.aligned.map((item, index) => (
                   <li key={item.theme + index}>
                     <strong>{item.theme}</strong>
-                    <SystemChips systems={item.systems} />
+                    <SystemChips systems={item.systems} copy={copy} />
                     <p>{item.meaning}</p>
                   </li>
                 ))}
               </ul>
             </div>
             <div>
-              <h4>엇갈리는 신호</h4>
+              <h4>{copy.divergentHeading}</h4>
               <ul>
                 {crossChecks.divergent.map((item, index) => (
                   <li key={item.theme + index}>
                     <strong>{item.theme}</strong>
-                    <SystemChips systems={item.systems} />
+                    <SystemChips systems={item.systems} copy={copy} />
                     <p>{item.meaning}</p>
                   </li>
                 ))}
@@ -218,9 +220,9 @@ export function FusionVisualization({ data }: { data: FusionVisualizationData })
       </article>
 
       <article className={`${styles.card} ${styles.wide}`}>
-        <h3>앞으로 12개월의 시기 라인</h3>
-        <p className={styles.caption}>사건을 예고하는 선이 아니라, 각 달에 힘을 쓸 만한 정도와 그때 해볼 일입니다.</p>
-        <FusionMonthlyLine months={monthlyTimeline} />
+        <h3>{copy.timelineHeading}</h3>
+        <p className={styles.caption}>{copy.timelineCaption}</p>
+        <FusionMonthlyLine months={monthlyTimeline} copy={copy} />
         <ol className={styles.monthList}>
           {monthlyTimeline.map((month, index) => (
             <li key={month.label + index}>
