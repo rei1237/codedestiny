@@ -17,13 +17,16 @@ import { hasLedgerUnlock } from "@/app/_lib/optimistic-unlock-ledger";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
+import { useNakshatraCopy, type NakshatraCopy } from "../_lib/copy";
 
-export const ERROR_TEXT = {
-  login: "로그인이 필요해요. 로그인 후 다시 시도해 주세요.",
-  degraded: "연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요.",
-  failed: "리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
-  payment: "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.",
-} as const;
+function errorText(copy: NakshatraCopy) {
+  return {
+    login: copy.loginRequiredMessage,
+    degraded: copy.degradedMessage,
+    failed: copy.reportFailedMessage,
+    payment: copy.paymentFailedMessage,
+  } as const;
+}
 
 export interface PremiumProduct {
   featureKey: string;
@@ -94,6 +97,8 @@ export interface UsePremiumReportResult<T> {
 }
 
 export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportResult<T> {
+  const copy = useNakshatraCopy();
+  const ERROR_TEXT = errorText(copy);
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { unlocked, status: unlockStatus, refetch: refetchUnlocks, markOptimisticallyUnlocked } = useContentUnlock([product.featureKey]);
   const { seed: profileSeed } = useAiProfileSeed();
@@ -162,7 +167,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     } finally {
       setLoading(false);
     }
-  }, [birth, loading, product.endpoint]);
+  }, [birth, loading, product.endpoint, ERROR_TEXT]);
 
   // 해금 + 생년 정보가 갖춰지면 한 번만 자동으로 본문을 채운다.
   useEffect(() => {
@@ -193,7 +198,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     fetchedRef.current = false;
     await load();
     void refetchUnlocks({ force: true });
-  }, [ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, refetchUnlocks]);
+  }, [ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, refetchUnlocks, ERROR_TEXT]);
 
   const reload = useCallback(async () => {
     fetchedRef.current = false;
