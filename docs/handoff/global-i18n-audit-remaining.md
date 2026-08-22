@@ -96,6 +96,16 @@
 
 **다음(미착수)**: 409개 전체 백로그 중 아직 안 훑은 나머지(위 "3건 이하" 그룹 62개 파일 + `destiny-compass`류로 이번 세션에서 새로 발견된 것과 같이 속성 전용 grep이 놓쳤을 수 있는 미조사 클러스터). **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것 — 이번 세션만 해도 destiny-bias·animal-destiny·sikojen-povailu·palm-reading·tarot×3·music·flower 총 9개 클러스터에 PR 12건이 들었다.
 
+### 2026-08-22 세션 종료 시점 재산출 — 다음 착수 후보와 확인된 제외 대상
+
+세션 종료 직전 속성 전용 grep(`(alt|aria-label|title)=...[가-힣]`, `app/**/*.tsx`)을 `origin/main` 기준으로 다시 돌렸다(이번 세션 PR들은 아직 main에 안 머지됐으므로 그 파일들이 다시 잡히는 건 정상 — 실제 미착수 여부는 이 문서의 PR 목록과 대조해서 판단할 것).
+
+**확인 후 제외로 분류(Wave 9, 콘텐츠 작성 프로젝트)**: `app/compare/fortune-apps/page.tsx`(직접 읽어 확인) — 서버 컴포넌트, 로케일 라우팅 없음, `verify-adsense-readiness` 1,800자 기준을 타는 SEO 장문 아티클(운세 앱 비교 콘텐츠, 사이트맵 등록·구조화 데이터 포함). `app/compare/saju-vs-ziwei/page.tsx`·`app/compare/sukuyo-vs-vedic/page.tsx`도 같은 `/compare/*` 패밀리라 동일 판단으로 추정(직접 열어보진 않음, **미검증** — 다음 세션이 열어서 확인할 것). `music/guide/page.js`·`nakshatra/codex/[index]/page.tsx`와 동일 범주.
+
+**다음 세션 확인 후보(이번 세션에 미검증, page.tsx만 보고 Client 본체는 안 읽음)**: `app/oracle/rune/page.tsx`→`RuneRouteClient`, `app/saju-fpti/page.tsx`→`SajuFptiRouteClient`, `app/ziwei/chart/page.tsx`→`ZiweiChartClientLoader`, `app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient`, `app/fortune/[period]/page.tsx`+`SignFortuneView.tsx`+`YeoniPortrait.tsx`, `app/stories/[episode]/page.tsx`, `app/insights/famous-saju/[slug]/page.tsx` — 이번 세션의 반복 교훈(destiny-compass·tarot/* 3종)대로, `page.tsx` 자체의 attribute grep 매칭 건수(0~4건)로 그 기능 전체의 번역 상태를 판단하지 말 것. 각 라우트의 실제 라이브 클라이언트 컴포넌트를 열어 본문 텍스트까지 확인한 뒤 착수 여부를 정할 것. `app/stories/[episode]/page.tsx`·`app/insights/famous-saju/[slug]/page.tsx`는 이름상 SEO/스토리 콘텐츠 라우트일 가능성이 높아(Wave 9 후보) 먼저 서버/클라이언트 여부부터 확인할 것.
+
+**계속 제외(admin)**: `app/admin/**`(feedback·content·reviews·prompts·cms·monthly-credits·_components 등) — 1차 세션부터 "admin 10파일 제외"로 일관 유지된 정책. 내부 도구, 비색인, 다국어 대상 아님.
+
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
 
 `nakshatra/codex`류 파일을 확인하던 중 `app/destiny-compass/`(운명의 나침반, `/destiny-compass`)를 열어 보니 **23개 클라이언트 컴포넌트 + 엔진/무대/훅 3개 디렉터리, 총 3,372줄에 540줄 이상이 한국어**인 통짜 기능이 Wave 7 우선순위 표에 전혀 안 잡혀 있었다. 원인: 지금까지 재산출해 온 Grep 패턴(`(alt|aria-label|title)=["'\`][^"'\`]*[가-힣]`)이 **속성값만** 찾는데, 이 기능은 대부분의 한국어가 일반 텍스트 노드(`<p>`, `<span>`, 버튼 라벨)에 있어서 그 패턴에 아예 안 걸렸다. **"alt/aria/title 건수"로 우선순위를 매기는 방식 자체가, 속성이 적고 본문 텍스트가 많은 기능(게임형 인터랙티브 화면 등)을 체계적으로 놓친다** — 다음 세션이 "3건 이하" 그룹을 마저 훑을 때, 이 grep 결과에 없다고 그 파일에 번역할 게 없다고 가정하지 말고 파일을 직접 열어 볼 것. (특히 `_stage/`, `_engine/`, `_hooks/`처럼 컴포넌트가 아닌 하위 디렉터리를 가진 기능 — 이런 폴더 자체가 "그 파일 하나"보다 큰 클러스터라는 신호다.)
