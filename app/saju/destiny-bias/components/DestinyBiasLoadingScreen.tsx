@@ -3,6 +3,7 @@
 import { m, useReducedMotion } from "framer-motion";
 import styles from "../destiny-bias.module.css";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
+import { useDestinyBiasCopy } from "../_lib/copy";
 
 export default function DestinyBiasLoadingScreen({
   message,
@@ -11,6 +12,7 @@ export default function DestinyBiasLoadingScreen({
   message: string;
   progress: number;
 }) {
+  const copy = useDestinyBiasCopy();
   const reduceMotion = useReducedMotion();
   const percentage = Math.max(0, Math.min(100, Math.round(progress * 100)));
   const activeDots = Math.max(1, Math.min(5, Math.ceil((percentage / 100) * 5)));
@@ -46,7 +48,7 @@ export default function DestinyBiasLoadingScreen({
         COSMIC CONCERT LINKING
       </p>
       <p className="relative z-10 mt-1 text-center text-lg font-extrabold leading-snug text-white/95 md:text-xl">
-        무대가 열리고<br />두 사람의 리듬이 동기화 중이에요 ✨
+        {copy.loadingSyncLine1 ?? "The stage is opening"}<br />{copy.loadingSyncLine2 ?? "and the two rhythms are syncing ✨"}
       </p>
 
       {/* Aurora rings */}
