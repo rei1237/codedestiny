@@ -1,5 +1,6 @@
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, relative, resolve, sep } from "node:path";
 
 import {
@@ -27,7 +28,13 @@ const exportDetailPath = resolve(rootDir, ".next", "export-detail.json");
 const exportedNotFoundPath = resolve(rootDir, "out", "404.html");
 const diagnosticsPath = resolve(rootDir, ".next", "diagnostics", "build-diagnostics.json");
 const routesManifestPath = resolve(rootDir, ".next", "routes-manifest.json");
-const nextCli = resolve(rootDir, "node_modules", "next", "dist", "bin", "next");
+// 🔴 rootDir 아래 node_modules 를 절대 경로로 짓지 말 것. 이 레포는 .claude/worktrees/ 아래에서
+//    작업하는데 워크트리에는 node_modules 가 거의 없다(2026-08-23 실측: 워크트리 41개 중 8개만
+//    보유하고, 그날 새로 만든 3개는 전부 없었다). 그러면 이 한 줄만 빗나가 next 바이너리를 못 찾고
+//    빌드가 죽는데, lint·typecheck·jest 는 Node 의 상위 디렉터리 탐색으로 루트 설치본을 주워 써서
+//    전부 통과한다 — 증상이 빌드까지 숨는다. require.resolve 는 그 탐색을 그대로 쓴다
+//    (jest.config.cjs 가 같은 이유로 이미 같은 규칙을 지키고 있다).
+const nextCli = createRequire(import.meta.url).resolve("next/dist/bin/next");
 const manifestReadGuardRequire = "--require=./scripts/next-manifest-read-guard.cjs";
 const stableBuildWorkerMode = "0";
 const exportSuccessGraceMs = Number.parseInt(process.env.CD_NEXT_EXPORT_SUCCESS_GRACE_MS || "90000", 10);

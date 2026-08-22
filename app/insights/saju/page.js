@@ -7,7 +7,7 @@ const INSIGHTS_SAJU_PAGE_TEXT_TRANSLATIONS = {
   ko: {
     title: "사주 인사이트 허브 · 사주팔자와 만세력 해석 가이드 | Code Destiny",
     description: "사주 공부, 사주풀이, 만세력 보는 법, 오행·십성 해석을 깊이 있게 정리한 사주 인사이트 아카이브입니다.",
-    keywords: ["사주 공부", "사주풀이", "만세력 보는 법", "오행", "십성"],
+    keywords: ["사주 공부", "사주 용어", "사주 독학", "명식 읽는 순서"],
     breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "사주 인사이트"],
     archiveTitle: "사주 인사이트 허브",
     intro: "사주팔자, 만세력, 일간, 십성, 대운 해석을 단계별로 정리한 사주 전용 아카이브입니다.",
