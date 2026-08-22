@@ -20,16 +20,18 @@ function loadPremiumReportModule() {
     },
   }).outputText;
 
-  const module = { exports: {} };
+  // eslint 의 @next/next/no-assign-module-variable 은 `module` 이라는 이름 자체를 막는다.
+  // 여기서는 vm 샌드박스에 넘길 CommonJS 봉투일 뿐이라 이름만 바꿔 준다.
+  const moduleShim = { exports: {} };
   const sandbox = {
-    module,
-    exports: module.exports,
+    module: moduleShim,
+    exports: moduleShim.exports,
     process: { env: { NODE_ENV: "test" } },
     require: () => ({}),
     console,
   };
   vm.runInNewContext(transpiled, sandbox, { filename: "premium-report.runtime.js" });
-  return module.exports;
+  return moduleShim.exports;
 }
 
 function buildMockResult(code, typeName, axisScores, profile) {

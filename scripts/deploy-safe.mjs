@@ -24,6 +24,7 @@ import { stdin as input, stdout as output } from "node:process";
 import { fileURLToPath } from "node:url";
 import dotenv from "dotenv";
 import { classifyFile, riskOf, requiresDeepVerification } from "./lib/change-risk.mjs";
+import { lintTargets } from "./lib/lint-targets.mjs";
 import { assertWorkerBaseIsFresh } from "./lib/worker-deploy-base-guard.mjs";
 import { assertProductionDeployIsCi } from "./lib/production-deploy-guard.mjs";
 
@@ -700,21 +701,12 @@ function parseUrls(text) { return [...new Set((String(text).match(/https?:\/\/[^
 function lastUuid(text) { const matches = String(text).match(UUID_RE) || []; return matches[matches.length - 1] || ""; }
 function eslintArgs(sourceFiles) { return ["exec", "--", "eslint", "--quiet", ...sourceFiles]; }
 
-/**
- * 변경 목록에서 실제로 린트할 파일만 고른다.
- * 🔴 존재 여부를 반드시 확인한다. `git diff --name-only` 는 삭제된 파일도 이름을 내놓는데,
- * 없는 경로를 eslint 에 넘기면 "No files matching the pattern" 으로 exit 2 가 나고
- * 릴리스가 통째로 막힌다(파일을 지운 PR 마다 재현된다).
- */
-function lintTargets(files) {
-  return files
-    .filter((file) => /\.(c|m)?js$|\.(c|m)?tsx?$/.test(file))
-    .filter((file) => fs.existsSync(path.resolve(root, file)));
-}
-
 async function checks(value) {
   const env = envForChecks();
-  const sourceFiles = lintTargets(value.files);
+  // 🔴 대상 선정은 scripts/lib/lint-targets.mjs 가 정본이다. PR CI 의 `lint:changed` 도
+  // 같은 모듈을 쓴다 — 두 곳이 각자 규칙을 들고 있으면 PR 은 초록불인데 여기서 죽는
+  // 범위 드리프트가 생긴다(2026-08-22 실측).
+  const sourceFiles = lintTargets(value.files, { root });
   if (sourceFiles.length) run("changed-file lint", npmCommand(), eslintArgs(sourceFiles), { env });
   run("TypeScript typecheck", npmCommand(), ["run", "typecheck"], { env });
   // 🔴 로그인·결제는 무엇을 고쳤든 매 프리뷰마다 상시 회귀한다(risk level·deepRequired 와 무관, 사용자
