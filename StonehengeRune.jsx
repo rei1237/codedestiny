@@ -3,6 +3,8 @@
 import { useState, useCallback, useEffect } from "react";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
+import { getStonehengeRuneCopy } from "@/lib/stonehenge-rune-copy";
 
 const GOOGLE_FONTS = "";
 
@@ -522,7 +524,7 @@ function getRuneGuide(runeId) {
   return RUNE_GUIDE[runeId] || DEFAULT_RUNE_GUIDE;
 }
 
-function getDetailedReading(rune, positionLabel) {
+function getDetailedReading(rune, positionLabel, copy) {
   const guide = getRuneGuide(rune.id);
   const isReversed = rune.isReversed && !rune.isSymmetric;
   const actionItems = isReversed ? guide.actionReversed : guide.actionUpright;
@@ -537,10 +539,10 @@ function getDetailedReading(rune, positionLabel) {
     intro,
     summary: getMeaningText(rune),
     sections: [
-      { title: "핵심 흐름", text: isReversed ? guide.coreReversed : guide.coreUpright },
-      { title: "관계 · 감정", text: isReversed ? guide.relationshipReversed : guide.relationshipUpright },
-      { title: "일 · 재물", text: isReversed ? guide.workReversed : guide.workUpright },
-      { title: "주의 신호", text: isReversed ? guide.cautionReversed : guide.cautionUpright },
+      { title: copy.sectionTitleCore, text: isReversed ? guide.coreReversed : guide.coreUpright },
+      { title: copy.sectionTitleRelationship, text: isReversed ? guide.relationshipReversed : guide.relationshipUpright },
+      { title: copy.sectionTitleWork, text: isReversed ? guide.workReversed : guide.workUpright },
+      { title: copy.sectionTitleCaution, text: isReversed ? guide.cautionReversed : guide.cautionUpright },
     ],
     actionItems,
     mantra: guide.mantra,
@@ -698,6 +700,19 @@ export default function StonehengeRune() {
   const [visibleCards, setVisibleCards] = useState([]);
   const [aiPrompt, setAiPrompt] = useState("");
   const [copyState, setCopyState] = useState("");
+  const [locale, setLocale] = useState(() => getCurrentLoadingLocale());
+  const copy = getStonehengeRuneCopy(locale);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
 
   useEffect(() => {
     if (phase === "revealed" && drawnRunes.length > 0) {
@@ -743,7 +758,7 @@ export default function StonehengeRune() {
       categoryKey: "stonehenge-runes",
       subFeatureKey,
       featureKey: fallbackFeatureKey,
-      reason: "스톤헨지 룬점",
+      reason: copy.paymentGateReason,
       coinPrice: RUNE_COST_BY_SPREAD[spread],
       requestId: `rune:${subFeatureKey}:${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 9)}`,
       onPaid: async () => {
@@ -757,7 +772,7 @@ export default function StonehengeRune() {
         return;
       }
       if (result.code === "PAYMENT_CANCELLED" || result.code === "PAYMENT_IN_PROGRESS") return;
-      window.alert(result.message || "결제를 완료하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      window.alert(result.message || copy.paymentFailedAlert);
     }
   };
 
@@ -904,13 +919,13 @@ export default function StonehengeRune() {
       setTimeout(() => setCopyState(""), 1800);
     } catch {
       setCopyState("failed");
-      window.alert("복사할 수 없습니다. 문장을 직접 선택해 복사해 주세요.");
+      window.alert(copy.copyFailedAlert);
     }
   };
 
   const handleShareKakao = async () => {
-    const shareTitle = "스톤헨지 룬 오라클";
-    const shareText = "룬의 속삭임으로 오늘의 흐름을 확인해보세요.";
+    const shareTitle = copy.shareTitle;
+    const shareText = copy.shareText;
     const shareUrl = typeof window !== "undefined" ? window.location.href : "https://code-destiny.pages.dev/oracle/rune";
 
     try {
@@ -924,9 +939,9 @@ export default function StonehengeRune() {
     } catch (e) {
       try {
         await navigator.clipboard.writeText(shareUrl);
-        window.alert("공유 링크를 복사했습니다. 카카오톡 대화창에 붙여넣어 공유해 주세요.");
+        window.alert(copy.shareLinkCopiedAlert);
       } catch (e) {
-        window.alert("공유를 열 수 없었습니다. 잠시 후 다시 시도해 주세요.");
+        window.alert(copy.shareOpenFailedAlert);
       }
     }
   };
@@ -953,7 +968,7 @@ export default function StonehengeRune() {
   const selectedPositionLabel = selectedRune && SPREAD_LABELS[drawnRunes.length]
     ? SPREAD_LABELS[drawnRunes.length][selectedRune.index]
     : null;
-  const selectedReading = selectedRune ? getDetailedReading(selectedRune, selectedPositionLabel) : null;
+  const selectedReading = selectedRune ? getDetailedReading(selectedRune, selectedPositionLabel, copy) : null;
 
   return (
     <>
@@ -2032,7 +2047,7 @@ export default function StonehengeRune() {
           <header className="sr-header">
             <p className="sr-header-eyebrow">MYSTIC ORACLE COLLECTION</p>
             <h2 className="sr-header-title">Whispers of<br />Stonehenge</h2>
-            <p className="sr-header-sub">신탁의 흐름을 읽고, 오늘의 방향을 선명하게 받아보세요</p>
+            <p className="sr-header-sub">{copy.headerSub}</p>
             <div className="sr-divider">
               <div className="sr-divider-line" />
               <span className="sr-divider-rune">ᚠ</span>
@@ -2044,18 +2059,18 @@ export default function StonehengeRune() {
             <img
               className="sr-collection-img"
               src="/fuctionassets/rune.webp"
-              alt="스톤헨지 룬 오라클"
+              alt={copy.collectionAlt}
               loading="lazy"
             />
             <div>
-              <p className="sr-collection-label">신탁 & 점술 컬렉션</p>
-              <p className="sr-collection-title">스톤헨지 룬 오라클</p>
-              <p className="sr-collection-desc">고대 룬의 상징을 통해 현재 흐름, 성향, 연간 운세까지 단계별로 해석합니다.</p>
+              <p className="sr-collection-label">{copy.collectionLabel}</p>
+              <p className="sr-collection-title">{copy.collectionTitle}</p>
+              <p className="sr-collection-desc">{copy.collectionDesc}</p>
             </div>
           </section>
 
           {/* Spread selector */}
-          <p className="sr-section-label">배열 선택</p>
+          <p className="sr-section-label">{copy.sectionLabelSpread}</p>
           <div className="sr-spread-row">
             {SPREAD_OPTIONS.map((option) => (
               <button
@@ -2065,8 +2080,8 @@ export default function StonehengeRune() {
                 onClick={() => handleSpreadSelect(option.count)}
               >
                 <span className="sr-spread-btn-rune">{option.rune}</span>
-                <span className="sr-spread-btn-name">{option.name}</span>
-                <span className="sr-spread-btn-desc">{option.desc}</span>
+                <span className="sr-spread-btn-name">{copy[`spreadName${option.count}`] || option.name}</span>
+                <span className="sr-spread-btn-desc">{copy[`spreadDesc${option.count}`] || option.desc}</span>
                 <span className="sr-spread-btn-desc">{formatKrwFromCoins(option.costCoins)}</span>
               </button>
             ))}
@@ -2080,12 +2095,12 @@ export default function StonehengeRune() {
             disabled={!spread || isDrawing || isPaying}
           >
             {isPaying
-              ? "결제를 확인하는 중..."
+              ? copy.drawButtonPaying
               : isDrawing
-                ? "룬을 소환하는 중..."
+                ? copy.drawButtonDrawing
                 : spread
-                  ? "⬡  룬 주머니를 흔들어라  ⬡"
-                  : "배열을 먼저 선택하세요"}
+                  ? copy.drawButtonReady
+                  : copy.drawButtonPickSpread}
           </button>
 
           {/* Bag / idle state */}
@@ -2097,7 +2112,7 @@ export default function StonehengeRune() {
                 ))}
               </div>
               <p className="sr-hint-text">
-                {spread ? "이제 룬 주머니를 흔들 준비가 되었습니다" : "배열을 선택하고 운명을 물어보세요"}
+                {spread ? copy.idleHintWithSpread : copy.idleHintNoSpread}
               </p>
             </div>
           )}
@@ -2106,7 +2121,7 @@ export default function StonehengeRune() {
             <div className="sr-bag-wrap">
               <span className={`sr-bag ${phase === "shaking" ? "shaking" : ""}`}>🎒</span>
               <p className="sr-bag-text">
-                {phase === "shaking" ? "고대의 룬들이 깨어납니다..." : "운명이 룬을 선택합니다..."}
+                {phase === "shaking" ? copy.shakingText : copy.drawingText}
               </p>
             </div>
           )}
@@ -2130,7 +2145,7 @@ export default function StonehengeRune() {
                     </div>
                     <p className="sr-card-name">{rune.name}</p>
                     <p className={`sr-card-dir ${rune.isReversed ? "rev" : ""}`}>
-                      {rune.isReversed ? "↓ 역방향" : "↑ 정방향"}
+                      {rune.isReversed ? copy.directionDown : copy.directionUp}
                     </p>
                   </div>
                 ))}
@@ -2138,8 +2153,8 @@ export default function StonehengeRune() {
 
               {selectedRune && (
                 <div className="sr-detail-overlay" onClick={closeRuneDetail} role="presentation">
-                  <div className="sr-detail sr-detail-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label="룬 상세 해석">
-                    <button type="button" className="sr-detail-close" onClick={closeRuneDetail} aria-label="상세 해석 닫기">✕</button>
+                  <div className="sr-detail sr-detail-modal" onClick={(event) => event.stopPropagation()} role="dialog" aria-modal="true" aria-label={copy.detailDialogAriaLabel}>
+                    <button type="button" className="sr-detail-close" onClick={closeRuneDetail} aria-label={copy.detailCloseAriaLabel}>✕</button>
 
                     <div className="sr-detail-header">
                       <div className={`sr-detail-stone ${selectedRune.isReversed ? "rev" : ""}`}>
@@ -2150,7 +2165,7 @@ export default function StonehengeRune() {
                       <div className="sr-detail-info">
                         <h2 className="sr-detail-name">{selectedRune.name}</h2>
                         <p className={`sr-detail-dir ${selectedRune.isReversed ? "rev" : "up"}`}>
-                          {selectedRune.isReversed ? "↓ REVERSED · 역방향" : "↑ UPRIGHT · 정방향"}
+                          {selectedRune.isReversed ? copy.detailDirectionDown : copy.detailDirectionUp}
                         </p>
                         {selectedPositionLabel && (
                           <p className="sr-detail-symbol-text">{selectedPositionLabel}</p>
@@ -2160,7 +2175,7 @@ export default function StonehengeRune() {
 
                     <p className="sr-detail-meaning">{selectedReading?.summary}</p>
 
-                    <div className="sr-detail-axis">해석 축: {selectedReading?.axis}</div>
+                    <div className="sr-detail-axis">{copy.axisLabelPrefix}{selectedReading?.axis}</div>
 
                     {selectedReading?.intro && (
                       <p className="sr-detail-intro">{selectedReading.intro}</p>
@@ -2180,7 +2195,7 @@ export default function StonehengeRune() {
                     )}
 
                     <div className="sr-detail-actions">
-                      <h3>실천 조언</h3>
+                      <h3>{copy.actionAdviceHeading}</h3>
                       <ul>
                         {selectedReading?.actionItems.map((item) => (
                           <li key={item}>{item}</li>
@@ -2191,10 +2206,10 @@ export default function StonehengeRune() {
                     <p className="sr-detail-mantra">"{selectedReading?.mantra}"</p>
 
                     <div className="sr-detail-nav">
-                      <button type="button" className="sr-detail-nav-btn" onClick={showPrevRune} disabled={selectedRune.index <= 0}>← 이전 룬</button>
-                      <button type="button" className="sr-detail-nav-btn" onClick={showNextRune} disabled={selectedRune.index >= drawnRunes.length - 1}>다음 룬 →</button>
+                      <button type="button" className="sr-detail-nav-btn" onClick={showPrevRune} disabled={selectedRune.index <= 0}>{copy.navPrev}</button>
+                      <button type="button" className="sr-detail-nav-btn" onClick={showNextRune} disabled={selectedRune.index >= drawnRunes.length - 1}>{copy.navNext}</button>
                     </div>
-                    <p className="sr-detail-ux-note">카드를 연속으로 비교해 보고 싶다면 좌우 화살표 키를 사용하세요.</p>
+                    <p className="sr-detail-ux-note">{copy.detailUxNote}</p>
                   </div>
                 </div>
               )}
@@ -2204,7 +2219,7 @@ export default function StonehengeRune() {
                   <h3>{spreadInsight.title}</h3>
                   {Array.isArray(spreadInsight.narrative) && spreadInsight.narrative.length > 0 && (
                     <div className="sr-spread-narrative">
-                      <p className="sr-spread-narrative-label">룬 리더의 종합 해석</p>
+                      <p className="sr-spread-narrative-label">{copy.narrativeLabel}</p>
                       {spreadInsight.narrative.map((paragraph, idx) => (
                         <p key={idx}>{paragraph}</p>
                       ))}
@@ -2221,19 +2236,19 @@ export default function StonehengeRune() {
               <section className="sr-ai-prompt-wrap">
                 <div className="sr-ai-prompt-head">
                   <div>
-                    <p className="sr-ai-prompt-kicker">AI QUESTION RITUAL</p>
-                    <h3>AI에게 더 깊이 물어보기</h3>
+                    <p className="sr-ai-prompt-kicker">{copy.aiPromptKicker}</p>
+                    <h3>{copy.aiPromptHeading}</h3>
                   </div>
-                  <span className="sr-ai-prompt-price">무료</span>
+                  <span className="sr-ai-prompt-price">{copy.aiPromptFreeBadge}</span>
                 </div>
                 <p className="sr-ai-prompt-desc">
-                  지금 펼쳐진 룬의 흐름을 AI에게 그대로 건넬 수 있는 질문문으로 정리해 드립니다. 추가 비용 없이 이용하세요.
+                  {copy.aiPromptDesc}
                 </p>
 
                 {aiPrompt ? (
                   <div className="sr-ai-prompt-result">
                     <p className="sr-ai-prompt-note">
-                      이 문장을 복사해 AI에게 건네면, 지금 펼쳐진 룬의 흐름을 더 깊이 들여다볼 수 있습니다.
+                      {copy.aiPromptResultNote}
                     </p>
                     <textarea className="sr-ai-prompt-textarea" value={aiPrompt} readOnly />
                     <button
@@ -2241,7 +2256,7 @@ export default function StonehengeRune() {
                       className={`sr-ai-copy-btn ${copyState === "copied" ? "done" : ""}`}
                       onClick={handleCopyAiPrompt}
                     >
-                      {copyState === "copied" ? "복사 완료" : "복사하기"}
+                      {copyState === "copied" ? copy.aiPromptCopyDone : copy.aiPromptCopyAction}
                     </button>
                   </div>
                 ) : (
@@ -2250,29 +2265,29 @@ export default function StonehengeRune() {
                     className="sr-ai-prompt-button"
                     onClick={handleGenerateAiPrompt}
                   >
-                    AI 질문문 열기 (무료)
+                    {copy.aiPromptOpenButton}
                   </button>
                 )}
               </section>
 
               {!selectedRune && (
                 <p className="sr-hint-text" style={{ marginTop: 8 }}>
-                  룬 카드를 클릭하면 상세 해석이 즉시 팝업으로 열립니다
+                  {copy.cardHintText}
                 </p>
               )}
 
               {/* CTA */}
               <div className="sr-cta-wrap">
-                <p className="sr-cta-title">함께 나누고 바로 만나기</p>
-                <p className="sr-cta-desc">룬 결과를 카카오톡으로 공유하거나 메인 화면으로 이동해 다른 점술도 이어서 확인해보세요.</p>
+                <p className="sr-cta-title">{copy.ctaTitle}</p>
+                <p className="sr-cta-desc">{copy.ctaDesc}</p>
                 <div className="sr-cta-btns">
-                  <button type="button" className="sr-cta-btn primary" onClick={handleShareKakao}>카카오톡 공유하기</button>
-                  <button type="button" className="sr-cta-btn" onClick={handleGoMain}>메인 화면 바로가기</button>
+                  <button type="button" className="sr-cta-btn primary" onClick={handleShareKakao}>{copy.ctaShareKakao}</button>
+                  <button type="button" className="sr-cta-btn" onClick={handleGoMain}>{copy.ctaGoMain}</button>
                 </div>
               </div>
 
               <button type="button" className="sr-reset-btn" onClick={handleResetRunes}>
-                ↺ &nbsp;다시 뽑기
+                {copy.resetButton}
               </button>
             </>
           )}
