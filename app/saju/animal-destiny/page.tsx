@@ -3,8 +3,8 @@ import AnimalDestinyRouteClient from "./AnimalDestinyRouteClient";
 
 const ANIMAL_DESTINY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "운명의 동물 도감 | 십이운성 동물점 | Code Destiny",
-    description: "태어난 사주의 십이운성 흐름으로 나만의 운명 동물을 찾는 동물 운명록. 핵심 성향, 관계, 일과 재물 감각, 성장 미션까지 한눈에 확인하세요.",
+    title: "십이운성 동물점 무료 | 내 운명의 동물 보는 곳 — 동물 도감",
+    description: "생년월일로 세운 사주의 십이운성 흐름에서 나만의 운명 동물을 무료로 찾아 주는 곳입니다. 핵심 성향, 관계, 일과 재물 감각, 지금 단계의 성장 미션까지 한눈에 확인하세요.",
   },
   en: {
     title: "Destiny Animal Codex | Twelve Growth Animal Reading | Code Destiny",
