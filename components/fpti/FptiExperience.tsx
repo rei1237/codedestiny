@@ -93,10 +93,56 @@ const FPTI_EXPERIENCE_TEXT_TRANSLATIONS = {
     analyzeProfile: "現在のプロフィールで分析",
     confirmInput: "入力内容を確認して分析",
   },
+  "zh-CN": {
+    loadingSteps: [
+      "正在校准星座性向坐标...",
+      "正在解读你的气质节奏...",
+      "正在解析关系与选择模式...",
+      "正在构建命运性向报告...",
+      "正在完成你的专属性向代码...",
+    ],
+    profileUser: "档案用户",
+    currentProfile: "当前档案",
+    inputRequired: "请确认出生日期、阴阳历类型和出生时间。",
+    invalidBirthInput: "八字计算所需的输入值不正确，请确认日期/时间格式。",
+    analysisFailed: "分析过程中发生错误，请稍后重试。",
+    profileMissing: "在当前选择的档案中找不到出生日期数据，请先确认档案卡片。",
+    introTitle: "性向报告说明",
+    introBody: "结果围绕你的选择节奏、情绪流动、关系经营方式和成长策略构成，深度报告将按章节提供独立解读与实践建议。",
+    profileLinked: (name: string) => <>已关联当前档案：<span className="font-semibold">{name}</span></>,
+    pillars: { year: "年柱", month: "月柱", day: "日柱", hour: "时柱", unknown: "未知" },
+    previewTitle: "本服务计算的 FPTI 类型说明",
+    previewBody: "以下是实际服务中搭载的代表代码。输入值完成八字计算后，会自动匹配符合轴组合的代码与说明。",
+    analyzeProfile: "用当前档案直接分析",
+    confirmInput: "确认输入值后分析",
+  },
+  "zh-TW": {
+    loadingSteps: [
+      "正在校準星座性向座標...",
+      "正在解讀你的氣質節奏...",
+      "正在解析關係與選擇模式...",
+      "正在建構命運性向報告...",
+      "正在完成你的專屬性向代碼...",
+    ],
+    profileUser: "檔案使用者",
+    currentProfile: "目前檔案",
+    inputRequired: "請確認出生日期、陰陽曆類型和出生時間。",
+    invalidBirthInput: "八字計算所需的輸入值不正確，請確認日期/時間格式。",
+    analysisFailed: "分析過程中發生錯誤，請稍後再試。",
+    profileMissing: "在目前選擇的檔案中找不到出生日期資料，請先確認檔案卡片。",
+    introTitle: "性向報告說明",
+    introBody: "結果圍繞你的選擇節奏、情緒流動、關係經營方式與成長策略構成，深度報告將依章節提供獨立解讀與實踐建議。",
+    profileLinked: (name: string) => <>已連結目前檔案：<span className="font-semibold">{name}</span></>,
+    pillars: { year: "年柱", month: "月柱", day: "日柱", hour: "時柱", unknown: "未知" },
+    previewTitle: "本服務計算的 FPTI 類型說明",
+    previewBody: "以下是實際服務中搭載的代表代碼。輸入值完成八字計算後，會自動配對符合軸組合的代碼與說明。",
+    analyzeProfile: "用目前檔案直接分析",
+    confirmInput: "確認輸入值後分析",
+  },
 } as const;
 
 function getFptiExperienceCopy(locale: LoadingLocale) {
-  return FPTI_EXPERIENCE_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || FPTI_EXPERIENCE_TEXT_TRANSLATIONS.ko;
+  return FPTI_EXPERIENCE_TEXT_TRANSLATIONS[locale as keyof typeof FPTI_EXPERIENCE_TEXT_TRANSLATIONS] || FPTI_EXPERIENCE_TEXT_TRANSLATIONS.en;
 }
 
 function sleep(ms: number) {
