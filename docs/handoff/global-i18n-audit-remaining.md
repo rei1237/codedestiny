@@ -57,9 +57,11 @@
 - 라이브 파일 9개(`CosmicSigil`·`TwelveAnimalHero`·`TwelveAnimalLoading`·`TwelveAnimalTabs`·`TwelveAnimalAdviceCard`·`TwelveAnimalDexGrid`·`TwelveAnimalResultCard`·`TwelveAnimalShareCard`·`AnimalDestinyPage` 셸)를 새 `app/saju/animal-destiny/_lib/copy.ts`(`useAnimalDestinyCopy()`, destiny-bias와 동일 패턴)로 en/ja/zh-CN/zh-TW 번역. 이 중 일부(`TwelveAnimalResultCard`, `AnimalDestinyPage`)도 always-returns-.ko 스캐폴드 버그가 있었다(같은 클래스 재발견).
 - 반대로 `AnimalCompatibilityGrid.tsx`·`AnimalDestinyInputForm.tsx`·`TwelveAnimalInputCard.tsx`는 **이미 완벽하게 5로케일(ko/en/ja/zh-CN/zh-TW) 구현이 돼 있어 손대지 않았다** — 이 디렉터리에 최소 두 세대의 구현 스타일(구버전 always-ko, 최신 완전판)이 섞여 있다는 신호.
 - 🔴 **미수정 플래그**: `TwelveAnimalResultCard.tsx`의 `STAGE_TONE_ACTION`(12개 스테이지별 조언 문장)은 이번 PR에서 번역하지 않고 후속 과제로 남김.
-- **다음(스택 예정)**: `AnimalResultScreen.tsx`(~380줄, 라이브 최대 오케스트레이터, `stageGuide()`/`buildStageRhythm()` 등 생성-인접 로직 포함) 단독 PR — #957 위에 스택.
+**PR #958**(완료, #957 위에 스택 — **#957을 먼저 머지할 것**) `chore/animal-destiny-result-screen-i18n` — `AnimalResultScreen.tsx`(~380줄, 라이브 최대 오케스트레이터). `ANIMAL_RESULT_SCREEN_TEXT_TRANSLATIONS` always-returns-.ko 스캐폴드를 공용 `_lib/copy.ts`로 교체, section titles·pillar meta(연/월/일/시주 라벨+제목+의미+포커스)·stage rhythm meta·`dominantRhythmSummary()`/`stageGuide()` 템플릿 함수 추가. 🔴 **의도적으로 한국어 유지**: "왜 {animal_ko}인가요?" 제목과 그 설명 문장은 `representativeMeta.label`·원시 스테이지명·`animal.animal_ko` 3개 데이터값이 한국어 조사와 한 문장에 얽혀 있어(nakshatra dasha-map의 PeriodRow와 같은 유형) 그대로 뒀다. 🔴 **테스트 마커 보존**: 파일에 있던 "Legacy static-test markers" 주석을 그대로 남겨야 `__tests__/ui/animal-destiny-narrative.static.test.js`가 통과한다(문자열 리터럴을 직접 grep하는 테스트) — 확인 후 보존.
 
-**다음(미착수, 우선순위 제안)**: `app/saju/animal-destiny/components/`(~20개) → `app/oracle/sikojen-povailu/`(~12개) → 나머지(`palm-reading`·`tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker`·`music`·`flower/*` 등). **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것 — destiny-bias 클러스터 하나가 이미 PR 2건 분량이었다.
+**이로써 animal-destiny 라이브 경로 전체 완료**(#957+#958). 고아 파일 16개는 위 #957 항목에 기록된 대로 미착수·미삭제 상태로 사용자 판단 대기.
+
+**다음(미착수, 우선순위 제안)**: `app/oracle/sikojen-povailu/`(~12개) → 나머지(`palm-reading`·`tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker`·`music`·`flower/*` 등). **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것 — destiny-bias·animal-destiny 클러스터가 각각 PR 2건 분량이었다.
 
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
 
