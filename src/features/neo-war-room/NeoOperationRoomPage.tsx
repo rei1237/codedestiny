@@ -51,7 +51,7 @@ import {
   type NeoWarRoomValidationError,
   type NeoWarRoomValidationInput,
 } from "./data/input-flow";
-import { neoWarRoomMethodRegistry } from "./data/method-registry";
+import { getLocalizedNeoWarRoomMethodRegistry } from "./data/method-registry";
 import type { NeoWarRoomEmotionState } from "./data/sprite-states";
 import styles from "./neo-operation-room.module.css";
 
@@ -873,6 +873,51 @@ const methodCardCopy: Record<NeoWarRoomConsultMode, string> = {
   astrology: "별자리와 행성 각도에서 선택 습관과 관계 패턴을 읽는다.",
 };
 
+const METHOD_CARD_COPY_BY_LOCALE: Partial<Record<Exclude<LoadingLocale, "ko">, Record<NeoWarRoomConsultMode, string>>> = {
+  en: {
+    saju: "From the season and temperament of your birth, and the balance of the five elements, we anchor the choice that's shaking right now.",
+    ziwei: "Reads the recurring operational line of your fate through the Life Palace and star placements.",
+    vedic: "Analyzes the pressure of karma and planets, and the life habits you keep repeating.",
+    astrology: "Reads your habits of choice and relationship patterns from star signs and planetary angles.",
+  },
+  ja: {
+    saju: "生まれた季節と気質、五行のバランスから、今揺れている選択の中心をつかむ。",
+    ziwei: "命宮と星座配置から、繰り返される運命の作戦線を読む。",
+    vedic: "カルマと惑星の圧力、繰り返される生活習慣を分析する。",
+    astrology: "星座と惑星の角度から、選択の癖と関係のパターンを読む。",
+  },
+  "zh-CN": {
+    saju: "从出生的季节与气质、五行的平衡中，抓住此刻动摇的选择核心。",
+    ziwei: "透过命宫与星曜配置，解读反复出现的命运作战线。",
+    vedic: "分析业力与行星的压力，以及反复出现的生活习惯。",
+    astrology: "从星座与行星角度，解读选择习惯与关系模式。",
+  },
+  "zh-TW": {
+    saju: "從出生的季節與氣質、五行的平衡中，抓住此刻動搖的選擇核心。",
+    ziwei: "透過命宮與星曜配置，解讀反覆出現的命運作戰線。",
+    vedic: "分析業力與行星的壓力，以及反覆出現的生活習慣。",
+    astrology: "從星座與行星角度，解讀選擇習慣與關係模式。",
+  },
+};
+
+function getMethodCardCopy(mode: NeoWarRoomConsultMode, locale: LoadingLocale): string {
+  if (locale === "ko") return methodCardCopy[mode];
+  const table = METHOD_CARD_COPY_BY_LOCALE[locale as Exclude<LoadingLocale, "ko">] || METHOD_CARD_COPY_BY_LOCALE.en;
+  return table?.[mode] || methodCardCopy[mode];
+}
+
+const METHOD_SECTION_TEXT: Partial<Record<Exclude<LoadingLocale, "ko">, { title: string; imageAltSuffix: string }>> = {
+  en: { title: "Choose your analysis method", imageAltSuffix: "analysis method" },
+  ja: { title: "分析方式を選択", imageAltSuffix: "分析方式" },
+  "zh-CN": { title: "选择分析方式", imageAltSuffix: "分析方式" },
+  "zh-TW": { title: "選擇分析方式", imageAltSuffix: "分析方式" },
+};
+
+function getMethodSectionText(locale: LoadingLocale) {
+  if (locale === "ko") return { title: "분석 방식 선택", imageAltSuffix: "분석 방식" };
+  return METHOD_SECTION_TEXT[locale as Exclude<LoadingLocale, "ko">] || METHOD_SECTION_TEXT.en!;
+}
+
 const neoCommandSpriteMap = {
   method_select: {
     state: "curious",
@@ -1385,6 +1430,7 @@ export default function NeoOperationRoomPage() {
   const [isSpriteMobile, setIsSpriteMobile] = useState(false);
   const [dialogueLocale, setDialogueLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const heroHeaderText = getNeoHeroHeaderText(dialogueLocale);
+  const methodSectionText = getMethodSectionText(dialogueLocale);
   const idempotencyKeyRef = useRef("");
   // 저장된 요청키를 되돌려 지울 때 쓰는 지문. 상태(pendingAccess)는 비동기 핸들러 클로저에서
   // 낡은 값을 보므로 ref 로 둔다.
@@ -1392,9 +1438,10 @@ export default function NeoOperationRoomPage() {
   const bgmAudioRef = useRef<HTMLAudioElement | null>(null);
   const localPreviewEnabled = process.env.NODE_ENV !== "production";
 
+  const localizedMethodRegistry = useMemo(() => getLocalizedNeoWarRoomMethodRegistry(dialogueLocale), [dialogueLocale]);
   const selectedMethod = useMemo(
-    () => neoWarRoomMethodRegistry.find((item) => item.mode === method) ?? null,
-    [method],
+    () => localizedMethodRegistry.find((item) => item.mode === method) ?? null,
+    [localizedMethodRegistry, method],
   );
   const selectedIntensity = intensityOptions.find((item) => item.id === intensity) ?? null;
   const trimmedQuestion = question.trim();
@@ -2689,10 +2736,10 @@ export default function NeoOperationRoomPage() {
             <section className={styles.deckSection} aria-labelledby="neo-method-title">
               <div className={styles.sectionHead}>
                 <span>01</span>
-                <h2 id="neo-method-title">분석 방식 선택</h2>
+                <h2 id="neo-method-title">{methodSectionText.title}</h2>
               </div>
               <div className={styles.methodGrid}>
-                {neoWarRoomMethodRegistry.map((item) => (
+                {localizedMethodRegistry.map((item) => (
                   <button
                     key={item.mode}
                     type="button"
@@ -2710,7 +2757,7 @@ export default function NeoOperationRoomPage() {
                   >
                     <NeoWarRoomAssetImage
                       asset={item.coverAsset}
-                      alt={`${item.label} 분석 방식`}
+                      alt={`${item.label} ${methodSectionText.imageAltSuffix}`}
                       sizes="(max-width: 720px) 92vw, (max-width: 1200px) 44vw, 380px"
                       // 표시 폭은 데스크톱 380px / 모바일 92vw(≈390px). 실측 곡선상 760(레티나 2배)은
                       // 176KB 인데 640 은 122KB 라, 4장을 함께 받는 선택 화면에서는 640 이 균형점이다.
@@ -2726,7 +2773,7 @@ export default function NeoOperationRoomPage() {
                         <span className={styles.methodBadge}>{item.statusLabel}</span>
                       </span>
                       <strong>{item.cardEyebrow}</strong>
-                      <em>{methodCardCopy[item.mode]}</em>
+                      <em>{getMethodCardCopy(item.mode, dialogueLocale)}</em>
                       <small>{item.inputSummary}</small>
                     </span>
                   </button>
