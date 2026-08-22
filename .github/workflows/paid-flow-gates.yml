@@ -131,6 +131,18 @@ on:
       - "app/fusion-fortune/**"
       - "worker/lib/fusion-fortune*.js"
       - "worker/routes/fusion-fortune.js"
+      # ── 휴먼 디자인 — 유료 기능(human-design-chart, 10,000원) ──
+      # 🔴 결정론 계산 자체가 상품이라 엔진·천체 어댑터·fixture 가 전부 게이트 대상이다.
+      #    verify:human-design 이 이 파일들을 **열어서** 읽으므로(CLAUDE.md 원칙 10),
+      #    여기 없으면 엔진만 고친 PR 에서 가드가 깨어나지 않는다.
+      - "lib/human-design/**"
+      - "worker/lib/human-design-*.js"
+      - "worker/lib/iana-offset.js"
+      - "worker/routes/human-design.js"
+      - "app/human-design/**"
+      - "__tests__/fixtures/human-design/**"
+      - "scripts/verify-human-design*.mjs"
+      - "scripts/human-design-fixture-snapshot.mjs"
       # ── 게이트 자신 ───────────────────────────────────────
       - "scripts/verify-*billing*.mjs"
       - "scripts/verify-*paid*.mjs"
