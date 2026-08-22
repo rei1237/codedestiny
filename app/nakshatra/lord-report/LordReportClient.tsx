@@ -6,8 +6,6 @@ import { usePremiumReport } from "../_premium/use-premium-report";
 import { CrossSell, NatalBar, NeedBirth, SectionCards, UnlockGate, type ReportSection } from "../_premium/PremiumParts";
 import { useNakshatraCopy } from "../_lib/copy";
 
-const FEATURE_KEY = "nakshatra-lord-report";
-
 interface LordReport {
   meta: {
     nakshatraKo: string;
@@ -28,7 +26,7 @@ interface LordReport {
 export default function LordReportClient() {
   const copy = useNakshatraCopy();
   const product = {
-    featureKey: FEATURE_KEY,
+    featureKey: "nakshatra-lord-report",
     coinPrice: 100,
     amountKRW: 10000,
     reason: copy.lordReason,
