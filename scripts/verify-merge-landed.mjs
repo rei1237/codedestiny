@@ -108,9 +108,46 @@ export function classifyMergedPr(input) {
   return verdict("stranded", "critical", `머지됐지만 main 에 없습니다 (base 가 ${baseRefName || "?"} 였습니다).`);
 }
 
+/**
+ * main HEAD 를 배포하는 릴리스 런이 **지금 돌고 있는가**.
+ *
+ * 🔴 이 축이 없으면 시간 유예가 자기 목적을 배신한다. 유예는 "정상적으로 배포 중인 것을
+ * 드리프트로 부르지 않기" 위한 것인데, 기준이 **main HEAD 의 커밋 시각**이라 머지가 들어올
+ * 때마다 처음부터 다시 흐른다. 스케줄 주기(20분)와 유예(20분)가 같으므로, 머지가 20분보다
+ * 잦은 구간에서는 모든 주기가 유예 안에서 깨어나 **자가 수렴이 영영 돌지 않는다.**
+ * 실측 2026-08-22: 스테이징이 두 머지 뒤처진 상태에서 16:30 스케줄 런(32584921998)이
+ * "스테이징이 main HEAD 와 같습니다"로 판정하고 배포를 건너뛰었다.
+ *
+ * 그래서 "정말 배포 중인가"를 시각이 아니라 런 상태로 묻는다.
+ *   true  — 아직 끝나지 않은 런이 있다. 기다리는 것이 맞다.
+ *   false — 그 SHA 의 런은 전부 끝났다(실패·취소 포함). 기다릴 대상이 없으므로 유예도 없다.
+ *   null  — 런 목록을 못 읽었다. 판단 근거가 없으니 옛 시간 유예로 되돌아간다.
+ *
+ * 🔴 자기 자신을 세지 않는다. 이 판정을 부르는 스케줄 런의 headSha 는 곧 main HEAD 이고
+ * 상태는 in_progress 라, 빼지 않으면 **언제나** "배포 중"이 되어 고치려던 버그를 재현한다.
+ */
+export function releaseInFlight(input) {
+  const { mainSha, runs = null, currentRunId = "" } = input || {};
+  if (!Array.isArray(runs)) return null;
+  const self = String(currentRunId || "");
+  return runs.some((run) => (
+    shaMatches(mainSha, run?.headSha)
+    && String(run?.databaseId ?? "") !== self
+    && run?.status !== "completed"
+  ));
+}
+
 /** 라이브 Pages·Worker 가 main HEAD 와 같은 커밋인가. */
 export function driftVerdict(input) {
-  const { mainSha, mainCommittedAtMs = 0, pages, worker, now = 0, graceMs = DRIFT_GRACE_MS } = input || {};
+  const {
+    mainSha,
+    mainCommittedAtMs = 0,
+    pages,
+    worker,
+    now = 0,
+    graceMs = DRIFT_GRACE_MS,
+    inFlight = null,
+  } = input || {};
   const rows = [];
 
   const check = (label, layer) => {
@@ -132,6 +169,9 @@ export function driftVerdict(input) {
 
   if (pagesOk === null || workerOk === null) return { state: "unknown", severity: "info", rows };
   if (pagesOk && workerOk) return { state: "in-sync", severity: "ok", rows };
+  // 런 상태를 아는 쪽이 언제나 정확하다. 시간 유예는 그것을 못 읽었을 때의 폴백이다.
+  if (inFlight === true) return { state: "deploying", severity: "ok", rows };
+  if (inFlight === false) return { state: "drifted", severity: "critical", rows };
   if (now - mainCommittedAtMs < graceMs) return { state: "deploying", severity: "ok", rows };
   return { state: "drifted", severity: "critical", rows };
 }
@@ -463,12 +503,20 @@ function loadOpenPrs() {
   }));
 }
 
-function loadReleaseRuns() {
-  const rows = ghJson([
+/**
+ * 릴리스 런 목록. 🔴 조회 실패와 "런이 0건" 을 구분해서 돌려준다 —
+ * 드리프트 게이트가 그 둘을 같게 읽으면 "gh 를 못 불렀다" 가 "배포 중인 런이 없다" 가 되어
+ * 정상 배포 중에 중복 배포를 걸게 된다. 부르는 쪽이 null 을 "모른다"로 다룬다.
+ */
+function loadReleaseRunsOrNull() {
+  return ghJson([
     "run", "list", "--workflow", "cloudflare-pages-deploy.yml", "--limit", "40",
-    "--json", "headSha,status,conclusion,url,createdAt,event",
+    "--json", "databaseId,headSha,status,conclusion,url,createdAt,event",
   ]);
-  return rows || [];
+}
+
+function loadReleaseRuns() {
+  return loadReleaseRunsOrNull() || [];
 }
 
 function countBehind(baseRef, headRef) {
@@ -572,12 +620,20 @@ async function collectFindings({ check, baseRef, origin, days, limit, now }) {
 
   if (check === "all" || check === "drift") {
     const live = await readProductionShas({ origin });
+    // 🔴 "지금 그 SHA 를 배포하는 런이 도는가" 를 실제로 묻는다. 이걸 못 읽으면(null) 옛
+    // 시간 유예로 폴백하므로, gh 토큰이 없는 환경에서도 동작은 이전과 같다.
+    const inFlight = releaseInFlight({
+      mainSha: main.sha,
+      runs: loadReleaseRunsOrNull(),
+      currentRunId: process.env.GITHUB_RUN_ID || "",
+    });
     findings.drift = driftVerdict({
       mainSha: main.sha,
       mainCommittedAtMs: main.committedAtMs,
       pages: live.pages,
       worker: live.worker,
       now,
+      inFlight,
     });
   }
 
@@ -720,6 +776,33 @@ function selfTest() {
     [drift({ pages: { sha: null, error: "HTTP 503" } }).state, "unknown", "조회 실패는 드리프트가 아니라 판정 불가"],
     [drift({ pages: { sha: null, error: "HTTP 503" } }).severity, "info", "조회 실패로 경보를 울리지 않는다"],
     [drift({ worker: { skipped: true } }).state, "in-sync", "생략한 계층은 통과 취급"],
+  );
+
+  // 🔴 자가 수렴이 죽어 있던 구멍. 유예의 기준이 "main 의 커밋 시각" 이라 머지가 잦으면
+  // 모든 스케줄 주기가 유예 안에서 깨어나 영영 배포하지 않았다(2026-08-22 실측).
+  const inFlightCase = (inFlight) =>
+    drift({ pages: { sha: other }, mainCommittedAtMs: now - 60_000, inFlight }).state;
+  cases.push(
+    [inFlightCase(true), "deploying", "그 SHA 의 릴리스가 아직 돌면 기다린다"],
+    [inFlightCase(false), "drifted", "릴리스가 이미 끝났으면 머지 직후여도 드리프트다 — 기다릴 대상이 없다"],
+    [inFlightCase(null), "deploying", "런 상태를 모르면 옛 시간 유예로 폴백한다"],
+    [drift({ pages: { sha: other }, inFlight: true }).state, "deploying", "유예가 지났어도 도는 런이 있으면 기다린다"],
+    [drift({ pages: { sha: other }, inFlight: null }).state, "drifted", "유예가 지났고 근거가 없으면 드리프트"],
+  );
+
+  const flight = (list, currentRunId) => releaseInFlight({ mainSha: sha, runs: list, currentRunId });
+  cases.push(
+    [flight([{ databaseId: 1, headSha: sha, status: "in_progress" }], ""), true, "진행 중인 런은 배포 중이다"],
+    [flight([{ databaseId: 1, headSha: sha, status: "queued" }], ""), true, "대기 중인 런도 배포 중이다"],
+    [flight([{ databaseId: 1, headSha: sha, status: "completed", conclusion: "failure" }], ""), false, "실패로 끝난 런은 기다릴 대상이 아니다"],
+    [flight([{ databaseId: 1, headSha: sha, status: "completed", conclusion: "cancelled" }], ""), false, "취소로 끝난 런도 기다릴 대상이 아니다"],
+    [flight([{ databaseId: 1, headSha: other, status: "in_progress" }], ""), false, "다른 SHA 의 런은 우리 것이 아니다"],
+    // 🔴 이 케이스를 빼면 고치려던 버그가 그대로 돌아온다 — 판정을 부르는 스케줄 런 자신이
+    // 언제나 in_progress 라, 자기를 세면 결과는 영원히 "배포 중" 이다.
+    [flight([{ databaseId: 42, headSha: sha, status: "in_progress" }], "42"), false, "자기 자신은 세지 않는다"],
+    [flight([{ databaseId: 42, headSha: sha, status: "in_progress" }, { databaseId: 43, headSha: sha, status: "in_progress" }], "42"), true, "자기 말고 다른 런이 돌면 배포 중이다"],
+    [flight([], ""), false, "런이 0건이면 기다릴 대상이 없다"],
+    [flight(null, ""), null, "목록을 못 읽으면 '모른다'이지 '없다'가 아니다"],
   );
 
   const runs = (list) => releaseRunVerdict({ mainSha: sha, mainCommittedAtMs: old, runs: list, now });
