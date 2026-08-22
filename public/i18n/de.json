@@ -8845,6 +8845,306 @@
           "a": "Yes. Since Lagna and the houses shift with time, accuracy changes greatly."
         }
       }
+    },
+    "destiny_island_html": {
+      "fallbackTitle": "The chart from the moment you were born is reborn as a single island.",
+      "tagline": "An interactive Ziwei Doushu map where your Life Palace's main star sets the island's biome and the strength of each palace sets its building's tier.",
+      "premiumIntro": "Destiny Island is a free, exploratory map. If you need a deeper consultation, it leads into the Ziwei Doushu expert consultation from inside the island.",
+      "fallbackCta": "Enter the Island",
+      "feats": {
+        "0": "When the chart diagram feels unfamiliar and hard to read",
+        "1": "When you want to see the strength of your 12 palaces at a glance",
+        "2": "When you need a fortune space you can casually check every day"
+      },
+      "premiumAudience": {
+        "0": "Those who find the chart diagram unfamiliar and want to see it as a picture first",
+        "1": "Those who want to see at a glance which of their 12 palaces are strong or weak",
+        "2": "Those looking for a fortune space to casually check every day"
+      },
+      "premiumChapters": {
+        "0": "Your own island generated from your Life Palace's main star and Five-Elements bureau",
+        "1": "Visualizes the 12 palaces' building tiers (ruins to temple) and their resonance flow",
+        "2": "The season of your Grand Fortune period, and island weather that changes daily",
+        "3": "Guided dialogue from Yeon-i, Neo, and the 12-palace NPCs, plus daily quests"
+      },
+      "premiumOutcomes": {
+        "0": "Creating and exploring the island are both free.",
+        "1": "The island's terrain and buildings reflect your chart calculation results exactly.",
+        "2": "Fortune results are for reference only -- please confirm important decisions against your real-world judgment."
+      }
+    },
+    "openDestinyFlowerStudio": {
+      "fallbackTitle": "Quietly unfold which flower's grain your flow blooms into.",
+      "tagline": "A card-style interpretation that turns the symbols of Saju, astrology, Ziwei Doushu, and Sukuyo into the language of flowers, showing your current blooming theme.",
+      "premiumIntro": "Destiny Flower doesn't exaggerate the result -- it's an emotive interpretation that bundles your temperament and flow into a single symbol.",
+      "fallbackCta": "View Destiny Flower",
+      "feats": {
+        "0": "When you want to organize your temperament into a more sensory image",
+        "1": "When you want to see your Saju and star chart flow in a less rigid way",
+        "2": "When you need a single symbol that explains you right now"
+      },
+      "premiumAudience": {
+        "0": "Those who want to keep their Saju in a visible form",
+        "1": "Those who'd rather remember it as symbol and image than interpretation text",
+        "2": "Those who want to make one and keep coming back to it"
+      },
+      "premiumChapters": {
+        "0": "Flower theme and key keywords by fortune source",
+        "1": "Palette, flower meaning, relationship, and career guide panels",
+        "2": "A result summary and a shareable card flow",
+        "3": "After unlocking, moves into the existing Destiny Flower screen"
+      },
+      "premiumOutcomes": {
+        "0": "Unlock eligibility is checked against your account.",
+        "1": "The existing pass/single-payment policy applies as-is.",
+        "2": "Symbolic interpretations are for reference only."
+      }
+    },
+    "openAstrologyFlowerStudio": {
+      "fallbackTitle": "Quietly unfold which flower your sky's placement blooms into.",
+      "tagline": "A card-style interpretation that turns the placement of your Sun, Moon, and Rising sign into the language of flowers, showing a nebula-like blooming theme of the moment.",
+      "premiumIntro": "The astrology Destiny Flower doesn't predict the future -- it's an emotive interpretation that bundles the temperament drawn by your Sun, Moon, and Rising sign into a single symbol.",
+      "fallbackCta": "View Astrology Flower",
+      "feats": {
+        "0": "When you want to organize your star chart into a more sensory image",
+        "1": "When you're curious what impression your Sun/Moon/Rising combination gives",
+        "2": "When you want to see astrology comfortably instead of through rigid terms"
+      },
+      "premiumAudience": {
+        "0": "Those who want to keep their star chart as an image",
+        "1": "Those curious about their Sun/Moon/Rising combination",
+        "2": "Those who want a result to leave behind like a gift"
+      },
+      "premiumChapters": {
+        "0": "An astrology flower theme based on your Sun, Moon, and Rising sign",
+        "1": "Palette, flower meaning, relationship, and career guide panels",
+        "2": "A result summary and a shareable card flow",
+        "3": "After unlocking, moves into the existing astrology flower screen"
+      },
+      "premiumOutcomes": {
+        "0": "Unlock eligibility is checked against your account.",
+        "1": "The existing pass/single-payment policy applies as-is.",
+        "2": "Symbolic interpretations are for reference only."
+      }
+    },
+    "openJamidusuFlowerStudio": {
+      "fallbackTitle": "Quietly unfold which flower's grain your chart blooms into.",
+      "tagline": "A card-style interpretation that turns the flow of your Life Palace, main star, and Four Transformations into the language of flowers, showing your current blooming theme.",
+      "premiumIntro": "The Ziwei Doushu Destiny Flower doesn't judge fortune as good or bad -- it's an emotive interpretation that bundles the temperament drawn by your Life Palace and main star into a single symbol.",
+      "fallbackCta": "View Ziwei Doushu Flower",
+      "feats": {
+        "0": "When you want to organize your chart into a more sensory image",
+        "1": "When you're curious what impression your Life Palace and main star combination gives",
+        "2": "When you want to see Ziwei Doushu comfortably instead of through a rigid chart table"
+      },
+      "premiumAudience": {
+        "0": "Those who want to see their 12-palace chart as a picture",
+        "1": "Those who want to understand their Life Palace main star's character visually",
+        "2": "Those new to Ziwei Doushu who find it difficult"
+      },
+      "premiumChapters": {
+        "0": "A Ziwei Doushu flower theme based on your Life Palace, main star, and Four Transformations",
+        "1": "Palette, flower meaning, relationship, and career guide panels",
+        "2": "A result summary and a shareable card flow",
+        "3": "After unlocking, moves into the existing Ziwei Doushu flower screen"
+      },
+      "premiumOutcomes": {
+        "0": "Unlock eligibility is checked against your account.",
+        "1": "The existing pass/single-payment policy applies as-is.",
+        "2": "Symbolic interpretations are for reference only."
+      }
+    },
+    "openSukuyoFlowerStudio": {
+      "fallbackTitle": "Quietly unfold which flower's grain your destiny blooms into.",
+      "tagline": "A card-style interpretation that turns your 27-lodge destiny and lunar phase into the language of flowers, showing a moonlit blooming theme of the moment.",
+      "premiumIntro": "The Sukuyo Destiny Flower doesn't judge the result -- it's an emotive interpretation that bundles the temperament drawn by your 27-lodge and lunar phase into a single symbol.",
+      "fallbackCta": "View Sukuyo Flower",
+      "feats": {
+        "0": "When you want to organize your destiny into a more sensory image",
+        "1": "When you're curious what impression your 27-lodge and lunar phase give",
+        "2": "When you want to see Sukuyo comfortably instead of through a rigid table"
+      },
+      "premiumAudience": {
+        "0": "Those curious what impression their Honmyoshuku gives",
+        "1": "Those interested in the rhythm of the moon",
+        "2": "Those who want to know themselves before a relationship"
+      },
+      "premiumChapters": {
+        "0": "A Sukuyo flower theme based on your 27-lodge and lunar phase",
+        "1": "Palette, flower meaning, relationship, and career guide panels",
+        "2": "A result summary and a shareable card flow",
+        "3": "After unlocking, moves into the existing Sukuyo flower screen"
+      },
+      "premiumOutcomes": {
+        "0": "Unlock eligibility is checked against your account.",
+        "1": "The existing pass/single-payment policy applies as-is.",
+        "2": "Symbolic interpretations are for reference only."
+      }
+    },
+    "flower-fc": {
+      "fallbackTitle": "Reads your chart and blooms it into a flower unlike any other in the world.",
+      "tagline": "Choose the branch you want -- Saju, astrology, Ziwei Doushu, or Sukuyo -- and this visualization turns that calculation result directly into a flower's color and shape.",
+      "premiumIntro": "Destiny Flower doesn't stop at drawing a pretty picture -- it also explains what calculation lies behind each color and shape.",
+      "fallbackCta": "Bloom Your Destiny Flower",
+      "feats": {
+        "0": "When interpretation text alone doesn't quite land",
+        "1": "When you want to leave your destiny in a visible form",
+        "2": "When you want a result you make once and keep for a long time"
+      },
+      "premiumAudience": {
+        "0": "Those who remember better through images than text",
+        "1": "Those who want to pick whichever of the four branches they prefer",
+        "2": "Those who want to unlock once and keep coming back to it"
+      },
+      "premiumChapters": {
+        "0": "Flowers for all four branches -- Saju, astrology, Ziwei Doushu, Sukuyo",
+        "1": "Strong energy expressed as color, weak energy expressed as shape",
+        "2": "An explanation of what each part of the flower means",
+        "3": "View again anytime after unlocking"
+      },
+      "premiumOutcomes": {
+        "0": "The generated result visualizes a calculated value and is for reference only.",
+        "1": "You can view it again after unlocking.",
+        "2": "Generated from whichever of the four branches you choose."
+      }
+    },
+    "openCosmicSoulMeditation": {
+      "fallbackTitle": "A 30- or 60-minute meditation session you sit down for and follow all the way through.",
+      "tagline": "The R=VD protocol broken into stages, designed as a session you complete in one sitting by following guided lines and a timer.",
+      "premiumIntro": "This isn't a fortune interpretation -- it's a session you spend time completing. Instead of producing a result sheet, its stages and timing are built so you can follow it through to the end.",
+      "fallbackCta": "Choose a Meditation Session",
+      "ctaNote": "Picking a course runs the pass/monthly-stone/single-payment check on the spot.",
+      "premiumAudience": {
+        "0": "Those who've turned on a meditation app before and stopped within 5 minutes",
+        "1": "Those who need time to immerse rather than to sort out thoughts",
+        "2": "Those who want to set one goal and focus on it"
+      },
+      "premiumOutcomes": {
+        "0": "There's no free trial section -- the moment you pick a course, the pass/monthly-stone/single-payment check runs.",
+        "1": "It doesn't substitute for therapy or medical treatment.",
+        "2": "It doesn't guarantee an effect -- it's closer to a structure that helps you focus."
+      },
+      "answersQuestions": {
+        "0": "It's hard for me to clear 30 minutes straight -- would the shorter option work?",
+        "1": "Can I follow along even if I've never meditated before?",
+        "2": "What's left after I finish today?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Session progress",
+          "free": "Up to the intent/course selection screen",
+          "premium": "The full 5-stage 30-minute or 7-stage 60-minute course"
+        },
+        "1": {
+          "axis": "How it runs",
+          "free": "None",
+          "premium": "Guided lines, a timer, and visual effects flow in order stage by stage"
+        },
+        "2": {
+          "axis": "After the session",
+          "free": "None",
+          "premium": "Today's action line, a cosmic journal entry, and a streak count"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What's the difference between 30 and 60 minutes?",
+          "a": "30 minutes is a shorter, 5-stage structure; 60 minutes goes deeper across 7 stages. If it's your first time, 30 minutes is recommended."
+        },
+        "1": {
+          "q": "What happens if I stop partway through?",
+          "a": "The session runs in chronological order from the moment it starts, so leaving partway through means that round isn't recorded as completed. Please make sure you have the time before starting."
+        },
+        "2": {
+          "q": "Does it produce a fortune result?",
+          "a": "No. This is session-style content that doesn't calculate a chart or card interpretation. When it ends, you get today's action line and a journal field instead of a result sheet."
+        },
+        "3": {
+          "q": "How much does it cost?",
+          "a": "The 30-minute and 60-minute courses are priced differently. Once you pick a course, the payment screen shows the price and whether a pass or monthly-stone applies."
+        }
+      }
+    },
+    "palm-reading": {
+      "fallbackTitle": "Snap a photo of your palm lines, and we'll read your current flow along their grain.",
+      "tagline": "An image-based reading that analyzes the length and branching of your life, heart, and head lines to organize your temperament and recent flow.",
+      "premiumIntro": "Palm reading doesn't judge your fate just by looking at your hand -- it organizes the tendencies and recent flow that the grain of your lines tells.",
+      "fallbackCta": "Start Palm Reading",
+      "feats": {
+        "0": "When you want a reading that doesn't need your birth date",
+        "1": "When you've never really heard a palm reading before",
+        "2": "When you want to check your temperament from a different angle"
+      },
+      "premiumAudience": {
+        "0": "Those who don't know their birth time and find Saju difficult",
+        "1": "Those who want a simple reading from just a photo",
+        "2": "Those who've never had their palm properly read"
+      },
+      "premiumChapters": {
+        "0": "Length, depth, and branching analysis of your three main lines",
+        "1": "Your temperament and how you use energy",
+        "2": "The point that stands out most in your recent flow",
+        "3": "An expansion into detailed analysis and an AI consultation"
+      },
+      "premiumOutcomes": {
+        "0": "Analysis accuracy depends on image quality.",
+        "1": "The analysis result is for reference only.",
+        "2": "It doesn't substitute for a health judgment."
+      }
+    },
+    "tarot-celestial-harmony": {
+      "fallbackTitle": "With the placement of eleven planets, we'll point out exactly where your mind is tied up right now.",
+      "tagline": "An expanded, cosmic tarot that reads by planetary placement rather than a single card, splitting the axes of emotion, relationships, and work separately.",
+      "premiumIntro": "Celestial Harmony doesn't hand you a single answer -- it unfolds how the several axes of your mind are currently out of alignment.",
+      "fallbackCta": "View Celestial Harmony",
+      "feats": {
+        "0": "When a short one-card reading isn't enough of an answer",
+        "1": "When several worries are tangled and you don't know where to start",
+        "2": "When you want to sort emotion and reality apart"
+      },
+      "premiumAudience": {
+        "0": "Those with more than one worry, in several branches",
+        "1": "Those who've always felt shortchanged by short readings",
+        "2": "Those who want to see emotion and reality separated"
+      },
+      "premiumChapters": {
+        "0": "A reading split by area across an 11-planet placement",
+        "1": "The axis acting most strongly right now",
+        "2": "The points where your feelings clash with each other",
+        "3": "An action standard for the coming month"
+      },
+      "premiumOutcomes": {
+        "0": "Card interpretation is for reference only.",
+        "1": "Payment and access checks follow the existing policy.",
+        "2": "It doesn't fix or guarantee the future."
+      }
+    },
+    "tarot-prompt-maker": {
+      "fallbackTitle": "Draw the same card, but a shallow question still gets a shallow answer.",
+      "tagline": "A tool that turns your situation into tarot questions and a consultation flow in full sentences, helping you pull the reading much deeper.",
+      "premiumIntro": "The prompt library doesn't hand you an answer in your place -- it sharpens your question so a better answer comes out.",
+      "fallbackCta": "View Prompts",
+      "feats": {
+        "0": "When you don't even know where to start asking",
+        "1": "When your reading results always end vague",
+        "2": "When you want to keep pushing the consultation further"
+      },
+      "premiumAudience": {
+        "0": "Those who read tarot often but always feel the answer is shallow",
+        "1": "Those who want to organize their question before a consultation",
+        "2": "Those who want to try continuing a reading on their own"
+      },
+      "premiumChapters": {
+        "0": "A core question sentence tailored to your situation",
+        "1": "A follow-up question flow to keep the reading going",
+        "2": "How to ask again when a card is ambiguous",
+        "3": "The original prompt text, ready to copy and use as-is"
+      },
+      "premiumOutcomes": {
+        "0": "Prompts are a tool to help interpretation and don't guarantee a result.",
+        "1": "Card interpretation is for reference only.",
+        "2": "The existing payment policy applies."
+      }
     }
   },
   "featureMarketingCategory": {
@@ -8857,7 +9157,8 @@
     "oracle": "Oracle",
     "report": "Premium Report",
     "music": "Music",
-    "naming": "Naming"
+    "naming": "Naming",
+    "meditation": "Meditation"
   },
   "featureMarketingTrust": {
     "paid": {
