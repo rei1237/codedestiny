@@ -7,7 +7,7 @@
 //    이용권 선검사 → 미커버 시 단건/월정석 동등 노출은 그쪽이 서버 결정으로 수행하므로
 //    여기서 paymentMode 를 지정하거나 pass 를 재판정하지 않는다.
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { postPaidBody } from "../nakshatra-fetch";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
@@ -17,21 +17,14 @@ import local from "./muhurta.module.css";
 import { NatalBar, NeedBirth, SectionCards, type ReportSection } from "../_premium/PremiumParts";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
+import { useNakshatraCopy, type MuhurtaPurposeKey } from "../_lib/copy";
 
 const FEATURE_KEY = "nakshatra-muhurta";
 const COIN_PRICE = 50;
 const AMOUNT_KRW = 5000;
-const REASON = "나크샤트라 택일(무후르타)";
 const ENDPOINT = "/api/nakshatra-premium/muhurta";
 
-const PURPOSES = [
-  { key: "marriage", ko: "결혼·약속", focus: "혼례, 약혼, 상견례, 평생을 걸 약속" },
-  { key: "business", ko: "개업·창업", focus: "개업, 창업, 사업자 등록, 첫 영업일" },
-  { key: "contract", ko: "계약·거래", focus: "계약 체결, 매매, 투자 집행, 중요한 협상" },
-  { key: "moving", ko: "이사·이동", focus: "이사, 이주, 유학·파견 출발, 사무실 이전" },
-  { key: "newStart", ko: "시작·착수", focus: "새 일의 착수, 학업·수련 시작, 프로젝트 킥오프" },
-  { key: "healing", ko: "치유·회복", focus: "치료 시작, 수술, 요양, 습관 고치기" },
-] as const;
+const PURPOSE_KEYS: MuhurtaPurposeKey[] = ["marriage", "business", "contract", "moving", "newStart", "healing"];
 
 const GRADE_CLASS: Record<string, string> = {
   best: local.gradeBest,
@@ -83,7 +76,7 @@ function todayKst() {
   return new Date(Date.now() + 9 * 3600000).toISOString().slice(0, 10);
 }
 
-function PickCard({ day }: { day: MuhurtaDay }) {
+function PickCard({ day, copy }: { day: MuhurtaDay; copy: ReturnType<typeof useNakshatraCopy> }) {
   const tone = day.agreement === "both-good" ? local.bothGood : day.agreement === "both-bad" ? local.bothBad : "";
   return (
     <li className={`${local.pick} ${tone}`}>
@@ -93,10 +86,10 @@ function PickCard({ day }: { day: MuhurtaDay }) {
         <span className={local.pickGrade}>{day.gradeKo}</span>
         {day.agreement !== "split" && (
           <span className={`${local.agree} ${day.agreement === "both-bad" ? local.agreeBad : ""}`}>
-            {day.agreement === "both-good" ? "두 체계 일치" : "두 체계가 함께 꺼림"}
+            {day.agreement === "both-good" ? copy.muhurtaBothMatchLabel : copy.muhurtaBothAvoidLabel}
           </span>
         )}
-        <span className={local.pickScore}>{day.score}점</span>
+        <span className={local.pickScore}>{day.score}</span>
       </div>
       <div className={local.pickMeta}>
         <span className={local.metaEast}>☯ {day.sukuyoKo}({day.sukuyoHan}) · {day.easternLabel}</span>
@@ -108,6 +101,7 @@ function PickCard({ day }: { day: MuhurtaDay }) {
 }
 
 export default function MuhurtaClient() {
+  const copy = useNakshatraCopy();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { seed: profileSeed } = useAiProfileSeed();
 
@@ -152,7 +146,7 @@ export default function MuhurtaClient() {
     if (derived) setBirth(derived);
   }, [birth, profileSeed]);
 
-  const selected = useMemo(() => PURPOSES.find((item) => item.key === purpose) || PURPOSES[0], [purpose]);
+  const purposeFocus = copy.muhurtaPurposeFocus[purpose as MuhurtaPurposeKey];
 
   // 결제 뒤의 본문 요청만 담당한다. 결제는 다시 하지 않는다.
   const fetchReport = useCallback(async (paid: { birth: NakshatraBirthInput; purpose: string; startDate: string; requestId: string }) => {
@@ -163,18 +157,18 @@ export default function MuhurtaClient() {
         ...paid.birth, purpose: paid.purpose, startDate: paid.startDate, requestId: paid.requestId,
       });
       if (data.ok && data.report) { setReport(data.report as MuhurtaReport); setCanRetry(false); return; }
-      if (status === 401) { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); setCanRetry(true); return; }
+      if (status === 401) { setError(copy.loginRequiredMessage); setCanRetry(true); return; }
       if (transient) {
-        setError("연결이 잠시 불안정해요. 결제는 그대로 남아 있으니 아래 버튼으로 다시 받아보세요.");
+        setError(copy.connectionUnstableRetryMessage);
         setCanRetry(true);
         return;
       }
-      setError(String(data.message || "길일을 찾지 못했어요. 잠시 후 다시 시도해 주세요."));
+      setError(String(data.message || copy.muhurtaFailedMessage));
       setCanRetry(true);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [copy]);
 
   const retry = useCallback(async () => {
     if (!paidRef.current || loading) return;
@@ -193,12 +187,12 @@ export default function MuhurtaClient() {
       coinPrice: COIN_PRICE,
       cost: COIN_PRICE,
       amountKRW: AMOUNT_KRW,
-      reason: REASON,
+      reason: copy.muhurtaReason,
       requestId,
     });
     if (!gate.ok) {
-      if (gate.code === "AUTH_REQUIRED" || gate.code === "LOGIN_REQUIRED") { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
-      if (gate.code !== "PAYMENT_CANCELLED") setError(gate.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      if (gate.code === "AUTH_REQUIRED" || gate.code === "LOGIN_REQUIRED") { setError(copy.loginRequiredMessage); return; }
+      if (gate.code !== "PAYMENT_CANCELLED") setError(gate.message || copy.paymentFailedMessage);
       return;
     }
 
@@ -206,22 +200,19 @@ export default function MuhurtaClient() {
     //    일시 장애는 자동 재시도하고, 그래도 안 되면 '다시 시도' 버튼으로 같은 결제를 재사용한다.
     paidRef.current = { birth, purpose, startDate, requestId };
     await fetchReport({ birth, purpose, startDate, requestId });
-  }, [birth, ensurePaidAccess, fetchReport, isPaying, loading, purpose, startDate]);
+  }, [birth, copy, ensurePaidAccess, fetchReport, isPaying, loading, purpose, startDate]);
 
-  const meta = report ? `${report.meta.dayCount}일 · 일치 ${report.meta.bothGoodCount}일` : undefined;
+  const meta = report ? copy.muhurtaMetaSummary(report.meta.dayCount, report.meta.bothGoodCount) : undefined;
 
   return (
     <main className={`${styles.vars} ${styles.shell}`}>
       <div className={styles.inner}>
-        <Link href="/nakshatra" className={styles.back}>← 나크샤트라 결정판</Link>
+        <Link href="/nakshatra" className={styles.back}>{copy.backToHubLink}</Link>
 
         <header className={styles.head}>
-          <p className={styles.eyebrow}>Nakshatra Codex · Muhurta</p>
-          <h1 className={styles.title}>택일 — 무후르타</h1>
-          <p className={styles.lede}>
-            인도 무후르타와 동양 숙요 격각이 <strong>함께</strong> 좋게 보는 날을 찾습니다.
-            서로 다른 천문에서 나온 두 근거가 겹치는 날이 진짜 길일입니다.
-          </p>
+          <p className={styles.eyebrow}>{copy.muhurtaEyebrow}</p>
+          <h1 className={styles.title}>{copy.muhurtaTitle}</h1>
+          <p className={styles.lede} dangerouslySetInnerHTML={{ __html: copy.muhurtaLede }} />
         </header>
 
         <NatalBar natal={natal} meta={meta} />
@@ -230,23 +221,23 @@ export default function MuhurtaClient() {
 
         {birth && (
           <div className={local.form}>
-            <span className={local.label}>무엇을 위한 날인가요</span>
+            <span className={local.label}>{copy.muhurtaPurposeQuestionLabel}</span>
             <div className={local.purposeGrid}>
-              {PURPOSES.map((item) => (
+              {PURPOSE_KEYS.map((key) => (
                 <button
-                  key={item.key}
+                  key={key}
                   type="button"
-                  className={`${local.purposeBtn} ${purpose === item.key ? local.purposeOn : ""}`}
-                  onClick={() => setPurpose(item.key)}
-                  aria-pressed={purpose === item.key}
+                  className={`${local.purposeBtn} ${purpose === key ? local.purposeOn : ""}`}
+                  onClick={() => setPurpose(key)}
+                  aria-pressed={purpose === key}
                 >
-                  {item.ko}
+                  {copy.muhurtaPurposeLabel[key]}
                 </button>
               ))}
             </div>
-            <p className={local.purposeFocus}>{selected.focus}</p>
+            <p className={local.purposeFocus}>{purposeFocus}</p>
 
-            <label className={local.label} htmlFor="muhurta-start">언제부터 볼까요 (60일 치)</label>
+            <label className={local.label} htmlFor="muhurta-start">{copy.muhurtaStartDateLabel}</label>
             <div className={local.dateRow}>
               <input
                 id="muhurta-start"
@@ -257,7 +248,7 @@ export default function MuhurtaClient() {
                 onChange={(event) => setStartDate(event.target.value)}
               />
               <button type="button" className={styles.cta} onClick={() => void run()} disabled={isPaying || loading}>
-                {isPaying ? "결제 진행 중…" : loading ? "길일을 고르는 중…" : `길일 찾기 · ${AMOUNT_KRW.toLocaleString()}원`}
+                {isPaying ? copy.payingButton : loading ? copy.muhurtaSearchingButton : copy.muhurtaFindButton(copy.muhurtaPriceLabel)}
               </button>
             </div>
           </div>
@@ -267,38 +258,37 @@ export default function MuhurtaClient() {
 
         {canRetry && paidRef.current && !report && (
           <button type="button" className={styles.cta} onClick={() => void retry()} disabled={loading}>
-            {loading ? "다시 받는 중…" : "결제 없이 다시 받기"}
+            {loading ? copy.retryingButton : copy.retryWithoutPaymentButton}
           </button>
         )}
 
         {report && (
           <>
             <p className={styles.headline}>
-              {report.meta.purposeKo} — {report.meta.rangeStart} ~ {report.meta.rangeEnd} 중
-              두 체계가 함께 좋게 본 날이 {report.meta.bothGoodCount}일입니다.
+              {copy.muhurtaHeadline(report.meta.purposeKo, report.meta.rangeStart, report.meta.rangeEnd, report.meta.bothGoodCount)}
             </p>
 
-            <h2 className={local.allTitle}>가장 좋은 날</h2>
-            <p className={local.allNote}>점수 순입니다. &ldquo;두 체계 일치&rdquo; 표시가 붙은 날을 먼저 보세요.</p>
+            <h2 className={local.allTitle}>{copy.muhurtaBestTitle}</h2>
+            <p className={local.allNote}>{copy.muhurtaBestNote}</p>
             <ul className={local.pickList}>
-              {report.best.map((day) => <PickCard key={day.date} day={day} />)}
+              {report.best.map((day) => <PickCard key={day.date} day={day} copy={copy} />)}
             </ul>
 
             {report.avoid.length > 0 && (
               <>
-                <h2 className={local.allTitle}>옮길 수 있으면 피할 날</h2>
-                <p className={local.allNote}>금지가 아니라, 대안이 있으면 옮기는 편이 낫다는 뜻입니다.</p>
+                <h2 className={local.allTitle}>{copy.muhurtaAvoidTitle}</h2>
+                <p className={local.allNote}>{copy.muhurtaAvoidNote}</p>
                 <ul className={local.pickList}>
-                  {report.avoid.map((day) => <PickCard key={day.date} day={day} />)}
+                  {report.avoid.map((day) => <PickCard key={day.date} day={day} copy={copy} />)}
                 </ul>
               </>
             )}
 
             <SectionCards sections={report.sections} />
 
-            <h2 className={local.allTitle}>전체 {report.meta.dayCount}일</h2>
+            <h2 className={local.allTitle}>{copy.muhurtaAllTitle(report.meta.dayCount)}</h2>
             <p className={local.allNote}>
-              본명수 {report.meta.myMansionKo}({report.meta.myMansionHan}) · 본명 나크샤트라 {report.meta.myNakshatraKo} 기준입니다.
+              {copy.muhurtaAllNote(report.meta.myMansionKo, report.meta.myMansionHan, report.meta.myNakshatraKo)}
             </p>
             <ul className={local.rows}>
               {report.days.map((day) => (
@@ -311,10 +301,7 @@ export default function MuhurtaClient() {
               ))}
             </ul>
 
-            <p className={styles.disclaimer}>
-              택일은 준비가 끝난 일을 언제 꺼낼지 정하는 도구입니다. 시각까지 정하는 전통 무후르타는
-              라그나·호라를 함께 보며, 이 리포트는 날짜 단위입니다. 의료·법률·투자 판단의 근거로 쓰지 마세요.
-            </p>
+            <p className={styles.disclaimer}>{copy.muhurtaDisclaimer}</p>
           </>
         )}
       </div>

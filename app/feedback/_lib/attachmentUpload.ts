@@ -5,6 +5,7 @@
 
 import { authFetch } from "@/app/_lib/auth-client";
 import { FeedbackApiError, type FeedbackAttachment } from "./api";
+import type { FeedbackCopy } from "./copy";
 
 const ALLOWED_MIME_TYPES = new Set(["image/jpeg", "image/png", "image/webp"]);
 
@@ -19,24 +20,24 @@ export function formatBytes(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
 }
 
-function validateClientFile(file: File): void {
-  if (!file) throw new Error("이미지 파일을 선택해 주세요.");
+function validateClientFile(file: File, copy: FeedbackCopy): void {
+  if (!file) throw new Error(copy.uploadErrorNoFile);
   if (!ALLOWED_MIME_TYPES.has(String(file.type || "").toLowerCase())) {
-    throw new Error("jpg, png, webp 이미지만 첨부할 수 있습니다.");
+    throw new Error(copy.uploadErrorBadType);
   }
-  if (file.size <= 0) throw new Error("빈 파일은 첨부할 수 없습니다.");
+  if (file.size <= 0) throw new Error(copy.uploadErrorEmptyFile);
   if (file.size > MAX_UPLOAD_SIZE) {
-    throw new Error(`이미지는 ${formatBytes(MAX_UPLOAD_SIZE)} 이하만 첨부할 수 있습니다.`);
+    throw new Error(copy.uploadErrorTooLarge(formatBytes(MAX_UPLOAD_SIZE)));
   }
 }
 
-async function readImageDimensions(file: File): Promise<{ width: number; height: number }> {
+async function readImageDimensions(file: File, copy: FeedbackCopy): Promise<{ width: number; height: number }> {
   const objectUrl = URL.createObjectURL(file);
   try {
     return await new Promise<{ width: number; height: number }>((resolve, reject) => {
       const img = new Image();
       img.onload = () => resolve({ width: img.naturalWidth || 0, height: img.naturalHeight || 0 });
-      img.onerror = () => reject(new Error("이미지 크기를 읽지 못했습니다."));
+      img.onerror = () => reject(new Error(copy.uploadErrorDimensionRead));
       img.src = objectUrl;
     });
   } finally {
@@ -45,12 +46,12 @@ async function readImageDimensions(file: File): Promise<{ width: number; height:
 }
 
 /** jpg/png 를 2400px 이하 webp 로 줄여 업로드 시간과 저장 용량을 아낀다. 실패하면 원본을 그대로 쓴다. */
-async function maybeConvertToWebp(file: File): Promise<File> {
+async function maybeConvertToWebp(file: File, copy: FeedbackCopy): Promise<File> {
   const lowerType = String(file.type || "").toLowerCase();
   if (lowerType !== "image/jpeg" && lowerType !== "image/png") return file;
 
   try {
-    const { width, height } = await readImageDimensions(file);
+    const { width, height } = await readImageDimensions(file, copy);
     const scale = Math.min(1, MAX_IMAGE_SIDE / Math.max(width || 1, height || 1));
     const targetWidth = Math.max(1, Math.round(width * scale));
     const targetHeight = Math.max(1, Math.round(height * scale));
@@ -60,7 +61,7 @@ async function maybeConvertToWebp(file: File): Promise<File> {
       const img = await new Promise<HTMLImageElement>((resolve, reject) => {
         const next = new Image();
         next.onload = () => resolve(next);
-        next.onerror = () => reject(new Error("이미지 최적화 중 로드에 실패했습니다."));
+        next.onerror = () => reject(new Error(copy.uploadErrorOptimizeLoad));
         next.src = objectUrl;
       });
 
@@ -93,11 +94,11 @@ async function maybeConvertToWebp(file: File): Promise<File> {
   }
 }
 
-export async function uploadFeedbackAttachment(file: File): Promise<FeedbackAttachment> {
-  validateClientFile(file);
+export async function uploadFeedbackAttachment(file: File, copy: FeedbackCopy): Promise<FeedbackAttachment> {
+  validateClientFile(file, copy);
 
-  const optimized = await maybeConvertToWebp(file);
-  validateClientFile(optimized);
+  const optimized = await maybeConvertToWebp(file, copy);
+  validateClientFile(optimized, copy);
 
   const formData = new FormData();
   formData.append("file", optimized);
@@ -112,9 +113,9 @@ export async function uploadFeedbackAttachment(file: File): Promise<FeedbackAtta
     const status = response.status;
     const serverMessage = String((data as { message?: string })?.message || "");
     const message = serverMessage
-      || (status === 413 ? "이미지가 너무 큽니다." : "")
-      || (status === 503 ? "첨부 저장소를 사용할 수 없습니다. 첨부 없이 제보해 주세요." : "")
-      || "이미지 업로드에 실패했습니다.";
+      || (status === 413 ? copy.uploadErrorTooLargeShort : "")
+      || (status === 503 ? copy.uploadErrorStorageUnavailable : "")
+      || copy.uploadErrorGeneric;
     throw new FeedbackApiError(message, status, String((data as { code?: string })?.code || ""));
   }
 
