@@ -26,6 +26,17 @@
 
 **사용자가 같은 날 재확인한 스코프**: "en/ja/zh-CN/zh-TW만 확실하게, 나머지는 번역 없으면 영어로" — 이는 PR #956(위 참고)부터 이미 표준 관례였다(`getXCopy(locale) { return { ...EN, ...(MAP[locale] || {}) } }` 스프레드 병합 패턴). PR #974/#975/#976(master-love-codex·maya·tarot-healing-core)도 전부 이 패턴으로 확인됨 — 새로 만드는 `_lib/copy.ts` 모듈은 반드시 이 형태를 따를 것, `?? "..."` 개별 폴백 반복 금지.
 
+## 🔴🔴 2026-08-22 "PR #977 머지하면 릴리즈 실패가 끝나냐" — 아니다, 릴리즈 실패는 서로 무관한 원인 3+건이 섞여 있다 (세 번째 원인 PR #979로 수정)
+
+사용자가 이 질문을 던져 최신 push:main/릴리스 런을 다시 열어 확인한 결과, **PR #977은 그중 딱 하나만 고친다**는 게 실측으로 확인됐다. 최근 30개 릴리스 런 중 실패 4건을 전부 열어 원인을 각각 확인:
+
+1. **나크샤트라 featureKey/재시도버튼 가드 오탐** — PR #977이 고치는 것. `Paid Flow Gates` 건강신호에만 영향(배포 자체를 막지 않음).
+2. **fusion-fortune 리터럴-정규식 가드**(`/앞으로 12개월의 시기 라인/`) — run 32576843442(13:48 UTC)에서 "Node regression tests failed"로 실제 배포가 BLOCKED됐던 것을 확인. **이미 현재 main에서 해결돼 있다**(`node --test __tests__/ui/fusion-fortune.static.test.js` 19/19 통과 재확인, 아마 PR #973 `fix/fusion-fortune-i18n-gate`가 고쳤을 것으로 추정 — 정확한 커밋은 미추적). 조치 불필요.
+3. 🔴 **신규 발견 + 수정(PR #979)**: `/fortune/tomorrow/*` 페이지 프리렌더가 `fortune/data/daily-2026-08-24.json` ENOENT로 실제 배포를 BLOCKED시킨 사례(run 32579994858, 14:52 UTC, KST 자정 10분 전). 원인은 `scripts/fortune-build-data.mjs`(prebuild, 시계 1회 읽음)와 `lib/fortune/daily-data.ts`의 `resolvePeriodDate()`(Next.js 정적 익스포트 단계, **별도로 다시** 시계를 읽음)가 서로 다른 시점에 각자 KST 날짜를 계산해, 빌드가 자정을 넘겨 진행되면 prebuild가 만든 파일과 render가 찾는 파일이 어긋나는 것 — `fortune-build-data.mjs` 자체의 "시계는 한 번만 읽는다" 주석이 경고하던 클래스의 버그인데, 그 경고가 스크립트 내부만 커버하고 render 단계와의 경계는 못 봤다. **조치**: `fortune-build-data.mjs`가 실제로 만든 오늘/내일 날짜를 `fortune/data/run-manifest.json`에 기록하고, `resolvePeriodDate()`가 시계 재계산 대신 이 매니페스트를 그대로 따르도록(매니페스트 없으면 기존처럼 폴백) 변경. 레이스 재현 테스트로 확인 완료(매니페스트를 "어제 값"으로 수동 설정해도 `resolvePeriodDate()`가 매니페스트를 그대로 따라 불일치가 안 생김을 확인).
+4. **연속 머지 SHA 경합**(이 문서 위쪽 절 참고, 여전히 미해결·구조적 — 배포 concurrency 그룹 자체를 손봐야 하는 별도 과제).
+
+**결론**: PR #977·#979 둘 다 머지해도 4번(연속 머지 경합)은 여전히 남는다 — "한 번에 하나씩, 이전 릴리스가 끝난 뒤 다음 PR 머지" 권고는 그대로 유효하다.
+
 ## 🔴 3차 세션(2026-08-22) 완료 목록 — "UI 크롬만" 스코프로 8개 PR
 
 2차 세션 종료 시점의 "3건 이하 그룹 62개 파일"에서 이어받아, 사용자가 이전 세션에 확정한 **"UI 크롬만(추천)"** 스코프(SEO 콘텐츠 페이지·서사형 콘텐츠 데이터 파일은 제외)로 계속 진행했다. 이번 세션은 새 브랜치+PR마다 `EnterWorktree` 격리 없이 하나의 워크트리 안에서 origin/main 기준 새 브랜치를 매번 새로 분기하는 방식으로 처리했다(`git fetch origin main -q && git checkout -b <branch> origin/main`).
@@ -280,6 +291,7 @@ CI/머지 순서 점검 중 열린 PR 24개의 파일 목록을 실제로 대조
 36. **PR #976** `chore/tarot-healing-core-i18n` — `app/components/SunHealingTarot.tsx`(913줄, PR #963이 놓친 실제 라이브 컴포넌트) UI 크롬 배선. 상세는 위 "`tarot/healing`(실제 구현)" 절 참고.
 37. **PR #977** `fix/nakshatra-premium-gate-featurekey` — i18n 작업이 아니라 **`Paid Flow Gates` 오탐 수정**. PR #937이 `verify-nakshatra-premium.mjs`의 리터럴-grep 단언 2건을 깨뜨린 것을 복구. 상세는 위 "`Paid Flow Gates`가 '번역만 한 PR'에서도 실패하는 이유" 절 참고.
 38. **PR #978** `chore/destiny-meeting-place-i18n` — `app/saju/destiny-meeting-place/`(유료 1회 분석 기능, route-fallback 패턴) 실제 구현 `DestinyMeetingPlacePage.tsx`+`DestinyMeetingPlaceLoading.tsx`. 상세는 아래 "`destiny-meeting-place`" 절 참고.
+39. **PR #979** `fix/fortune-tomorrow-date-manifest-race` — i18n 아님, **릴리즈 실패 원인 3번째 발견·수정**. `fortune-build-data.mjs`(prebuild)와 `lib/fortune/daily-data.ts`(render)가 KST 날짜를 각자 다시 계산해 자정 경계에서 어긋나던 것을 매니페스트 공유로 수정. 상세는 위 "PR #977 머지하면 릴리즈 실패가 끝나냐" 절 참고.
 
 🔴 **비용 재평가(2026-08-21, PR #911/#912 이후)**: "AI 상담 입력 폼" 유형 파일(life-book-ai, love-secret-ai 등)은 한 파일에 60~90개 문구 × 12개 언어가 들어 있어, 파일 하나당 세션 토큰 예산의 상당 비율을 쓴다. `astrology-ai/AstrologyAiClient.tsx`(918줄, 실측 122건)를 포함해 남은 70개 파일 중 다수가 같은 "입력 폼" 계열로 보인다 — 전부 이 수준으로 처리하면 이번 세션 예산을 크게 넘어설 수 있다. 사용자가 이미 "현재 수준 그대로 계속"을 확정했으므로 계속 진행하되, 만약 세션이 여기서 중단되면 다음 세션은 **이 문서를 그대로 이어받아 재개**할 것(모든 파일이 이미 검증된 동일 패턴 — 파일 로컬 Copy 타입 + `getCurrentLoadingLocale()`/`languagechange` 훅 + 12로케일 번역 + 모듈 레벨 함수는 `copy` 파라미터로 스레딩).
 
