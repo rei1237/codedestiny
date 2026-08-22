@@ -9145,6 +9145,276 @@
         "1": "Card interpretation is for reference only.",
         "2": "The existing payment policy applies."
       }
+    },
+    "openTarotLoveModal": {
+      "fallbackTitle": "Spread the cards to see the temperature that's left in the relationship between what's said and what's done.",
+      "tagline": "Rather than judging the other person's feelings outright, this reads the current mood between the two of you and the line you should be careful with, separately.",
+      "premiumIntro": "Relationship Tarot doesn't judge things as simply good or bad -- it shows both the pull bringing you closer and the pull pushing you apart right now.",
+      "fallbackCta": "Check the Relationship Flow",
+      "feats": {
+        "0": "When what they say and what they do feel different",
+        "1": "When you're hesitant about whether to keep reaching out",
+        "2": "When you want to know how fast the relationship is getting closer"
+      },
+      "premiumAudience": {
+        "0": "Those confused because the other person's words and actions differ",
+        "1": "Those who hesitate every time over reaching out first",
+        "2": "Those who want to check the temperature before defining the relationship"
+      },
+      "premiumChapters": {
+        "0": "The current relationship's mood and emotional temperature",
+        "1": "The point where attraction and hesitation arise",
+        "2": "Words that are fine to say now, and the line to keep",
+        "3": "After payment, moves into the existing tarot reading screen"
+      },
+      "premiumOutcomes": {
+        "0": "Card interpretation is for reference only.",
+        "1": "Payment and access checks follow the existing policy.",
+        "2": "It doesn't fix or guarantee the other person's feelings."
+      }
+    },
+    "openTarotReunionModal": {
+      "fallbackTitle": "Quietly spread out the temperature of a relationship whose heart hasn't fully closed yet.",
+      "tagline": "Without guaranteeing a reunion, this reads the feelings left behind and the flow of possibly reconnecting through the symbolism of the cards.",
+      "premiumIntro": "Reunion Fortune doesn't fix the outcome -- it centers on where the relationship could move again and what response to avoid right now.",
+      "fallbackCta": "Check the Reunion Flow",
+      "feats": {
+        "0": "When you're still curious about the other person's feelings",
+        "1": "When you hesitate over whether to reach out",
+        "2": "When your heart wavers between letting go and holding on"
+      },
+      "premiumAudience": {
+        "0": "Those whose feelings haven't settled even after breaking up",
+        "1": "Those who waver every day over whether to reach out",
+        "2": "Those who want to check if there's still a reason to hold on"
+      },
+      "premiumChapters": {
+        "0": "The current relationship's mood",
+        "1": "The grain of feeling left between the two of you",
+        "2": "The flow that could bring you close again",
+        "3": "Behavior to be careful of right now"
+      },
+      "premiumOutcomes": {
+        "0": "It doesn't guarantee a reunion result.",
+        "1": "Card interpretation is for reference only.",
+        "2": "Payment policy follows the existing standard."
+      }
+    },
+    "openTarotYearFortuneModal": {
+      "fallbackTitle": "Calmly read the flow of the year, broken down month by month.",
+      "tagline": "An annual tarot reading that organizes upcoming choices and emotional shifts into a monthly card flow.",
+      "premiumIntro": "Annual Tarot doesn't prophesy everything -- it organizes the emotions and choice-points that are easy to miss, month by month.",
+      "fallbackCta": "View the Yearly Flow",
+      "feats": {
+        "0": "When you want to organize the year's big flow all at once",
+        "1": "When you want to track important periods without missing them",
+        "2": "When you want to know the mindset and cautions for each month"
+      },
+      "premiumAudience": {
+        "0": "Those who want to see the flow before making a year's plan",
+        "1": "Those deciding which month to place an important schedule in",
+        "2": "Those who want to reduce the emotional ups and downs that repeat monthly"
+      },
+      "premiumChapters": {
+        "0": "A month-by-month card flow",
+        "1": "Opportunities that stand out strongly, and points of caution",
+        "2": "Emotional patterns prone to repeating",
+        "3": "Realistic advice to prepare for next month"
+      },
+      "premiumOutcomes": {
+        "0": "It doesn't fix the future.",
+        "1": "Card interpretation is for reference only.",
+        "2": "The existing payment policy applies as-is."
+      }
+    },
+    "openLoveSimulation": {
+      "fallbackTitle": "Check which scenes make your love pattern shine, and which ones shake it.",
+      "tagline": "Based on your Saju Five Elements and Day Master flow, this shows relationship chemistry and conversation points in a simulation-like format.",
+      "premiumIntro": "LOVE CODE doesn't guarantee love -- it shows the relationship reactions and choice points that show up often in your Saju flow.",
+      "fallbackCta": "View LOVE CODE",
+      "feats": {
+        "0": "When you're curious why a love pattern keeps repeating",
+        "1": "When you want to see your chemistry with someone more concretely",
+        "2": "When you want to know what to watch for in conversation and dating"
+      },
+      "premiumAudience": {
+        "0": "Those whose relationships keep ending the same way",
+        "1": "Those who want to know what kind of person they're weak to",
+        "2": "Those who want to do things differently in their next relationship"
+      },
+      "premiumChapters": {
+        "0": "A love persona based on your Saju",
+        "1": "Five-Elements compatibility flow and relationship chemistry",
+        "2": "Conversation and dating scenes by situation",
+        "3": "After unlocking, moves into the existing LOVE CODE screen"
+      },
+      "premiumOutcomes": {
+        "0": "It doesn't guarantee a relationship outcome.",
+        "1": "Unlocking and payment follow the existing policy.",
+        "2": "Fortune results are for reference only."
+      }
+    },
+    "openDestinyBias": {
+      "fallbackTitle": "Unfold, one card at a time, the mood and emotional code that arises between your bias and you.",
+      "tagline": "This organizes fan feelings and relationship imagination into card-style sentences, a light reading of the current spark and sense of distance.",
+      "premiumIntro": "Bias Destiny doesn't claim to describe a real relationship -- it organizes the grain of feeling that rises within your fandom, like a card.",
+      "fallbackCta": "View Bias Destiny",
+      "feats": {
+        "0": "When there's a recurring feeling whenever you think of your bias",
+        "1": "When you want to organize the spark of your fandom into an emotive card",
+        "2": "When you want a light look at today's mood and a hint for action"
+      },
+      "premiumAudience": {
+        "0": "Those who want to playfully see the distance between them and their bias",
+        "1": "Those who want to keep their fan feelings in card form",
+        "2": "Those looking for a light reading to enjoy"
+      },
+      "premiumChapters": {
+        "0": "Mood signals between you and your bias",
+        "1": "Relationship energy and a hint about conversation timing",
+        "2": "Card-style sentences good for saving and sharing",
+        "3": "After payment, moves into the existing Bias Destiny screen"
+      },
+      "premiumOutcomes": {
+        "0": "It doesn't guarantee a real relationship or outcome.",
+        "1": "The existing payment policy applies.",
+        "2": "Please take this reading within the scope of reference and fun."
+      }
+    },
+    "openPsychoDreamModal": {
+      "fallbackTitle": "Calmly follow the emotional afterglow your dream left behind.",
+      "tagline": "A dream-interpretation reading that reads the subconscious's recurring signals based on the dream's scene and the emotion you woke up with.",
+      "premiumIntro": "Psychoanalytic dream interpretation doesn't judge the dream definitively -- it reads the symbol and emotional direction currently lingering in your mind.",
+      "fallbackCta": "View Dream Reading",
+      "feats": {
+        "0": "When a vivid dream keeps staying on your mind",
+        "1": "When you want to know how a scene in the dream connects to your current emotions",
+        "2": "When you want to organize a recurring symbol"
+      },
+      "premiumAudience": {
+        "0": "Those who keep having the same dream",
+        "1": "Those whose mood from a dream lingers a long time",
+        "2": "Those unsatisfied with dictionary-style dream interpretation"
+      },
+      "premiumChapters": {
+        "0": "Organizing the dream scene and emotional clues",
+        "1": "An interpretation centered on desire, anxiety, and recurring signals",
+        "2": "Symbols connected to your current psychological flow",
+        "3": "After payment, moves into the existing psychoanalytic dream-interpretation screen"
+      },
+      "premiumOutcomes": {
+        "0": "This is not a medical diagnosis or treatment.",
+        "1": "Dream interpretation is for reference only.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "openKemetModal": {
+      "fallbackTitle": "Reflect the question lingering in your mind right now through ancient Egyptian symbols.",
+      "tagline": "Without forcing an answer to your choice, this organizes signals easy to miss in your current flow, like an oracle card.",
+      "premiumIntro": "This oracle reading doesn't guarantee a correct answer -- it gently reflects the symbol and emotional direction rising around your question.",
+      "fallbackCta": "View Oracle",
+      "feats": {
+        "0": "When your mind won't settle easily before a decision",
+        "1": "When you want to see the symbol behind the question you're holding onto",
+        "2": "When you need a short but atmospheric oracle-style reading"
+      },
+      "premiumAudience": {
+        "0": "Those whose mind keeps flipping before a decision",
+        "1": "Those who want to sort their thoughts with a short, symbolic answer",
+        "2": "Those drawn to the symbolism of Egyptian mythology"
+      },
+      "premiumChapters": {
+        "0": "A symbolic message matched to your current question",
+        "1": "The flow to watch for, and a mindset to keep",
+        "2": "Short, realistic advice for your choice",
+        "3": "After payment, moves into the existing oracle screen"
+      },
+      "premiumOutcomes": {
+        "0": "The oracle result is for reference only.",
+        "1": "The existing payment policy applies.",
+        "2": "Please confirm important decisions alongside real-world judgment."
+      }
+    },
+    "rpt_healthReportCard": {
+      "fallbackTitle": "Find your Saju's inborn energy weak points and health biorhythm.",
+      "tagline": "A report that precisely analyzes which body parts tire easily and when energy runs low, due to a Five-Elements imbalance.",
+      "premiumIntro": "The Myeongni Health Report doesn't predict disease -- it calmly points out health issues in your Saju flow that need care ahead of time.",
+      "fallbackCta": "Check the Health Report",
+      "feats": {
+        "0": "When you're often fatigued from an inborn constitutional weakness",
+        "1": "When you're curious about body patterns even doctors don't point out",
+        "2": "When you want to realistically compensate for a Five-Elements imbalance"
+      },
+      "premiumAudience": {
+        "0": "Those who often fall ill and want to know the cause",
+        "1": "Those who want to know ahead of time when their stamina drops",
+        "2": "Those unsure where to start fixing their lifestyle habits"
+      },
+      "premiumChapters": {
+        "0": "Identifying your energy-vampire points",
+        "1": "Weak periods and recovery windows by body part",
+        "2": "A customized health-improvement method plus nutrition/exercise guide",
+        "3": "Weekly health missions and patterns to avoid"
+      },
+      "premiumOutcomes": {
+        "0": "This is not a medical diagnosis or treatment.",
+        "1": "The health analysis is for reference only and doesn't replace a hospital diagnosis.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "rpt_quantumCard": {
+      "fallbackTitle": "Unfold a strategic Myeongni map that organizes He-hua, Yongsin, and Cheongi all at once.",
+      "tagline": "Beyond a simple interpretation, this is a deep Myeongni analysis synthesizing Five-Elements He-hua, Yongsin correction, and Cheongi strategy.",
+      "premiumIntro": "Quantum Myeongni doesn't re-judge fortune as good or bad -- it clarifies which energy in your Saju structure genuinely acts strongest and the standard for interpreting it.",
+      "fallbackCta": "Open Quantum Myeongni",
+      "feats": {
+        "0": "When you understand the Saju basics but need a deeper strategy",
+        "1": "When you need a complex interpretation for cases with multiple identical Ten Gods",
+        "2": "When you want to see short-term flow and long-term structure together"
+      },
+      "premiumAudience": {
+        "0": "Those who want to sort out concepts like Yongsin and He-hua",
+        "1": "Those who want to check the grounds behind a Myeongni interpretation themselves",
+        "2": "Those who want to bundle fragmented readings into one"
+      },
+      "premiumChapters": {
+        "0": "A reorganization centered on Five-Elements He-hua and Yongsin",
+        "1": "A Cheongi map and key points",
+        "2": "Standards for long-term flow and short-term choices",
+        "3": "Permanently unlocked -- check back anytime"
+      },
+      "premiumOutcomes": {
+        "0": "The deep analysis is for reference only.",
+        "1": "Yongsin interpretation can vary by school.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "rpt_skillTreeCard": {
+      "fallbackTitle": "Visualize your Saju as an RPG character's stats and find your growth path.",
+      "tagline": "A report that displays your strong and weak stats like a game, clearly showing which area to grow first.",
+      "premiumIntro": "The RPG Skill Tree doesn't guarantee the future -- it shows where your stats are currently concentrated and which area has room to grow.",
+      "fallbackCta": "Open the Skill Tree",
+      "feats": {
+        "0": "When you want to clearly separate your strengths from your weaknesses",
+        "1": "When you want to understand your Saju intuitively, like stats",
+        "2": "When you don't know where to start investing in growth"
+      },
+      "premiumAudience": {
+        "0": "Those who want to see their strengths as stats",
+        "1": "Those who want to decide where to invest their time",
+        "2": "Those who want to map out a growth path like a game"
+      },
+      "premiumChapters": {
+        "0": "Visualizes 8 stat levels",
+        "1": "Checks your inborn strong stats and weak stats",
+        "2": "A growth route and level-up strategy for each stat",
+        "3": "Reward missions provided when you reach a level"
+      },
+      "premiumOutcomes": {
+        "0": "The game format is analysis for reference only.",
+        "1": "Stats can change through personal effort.",
+        "2": "The existing payment policy applies."
+      }
     }
   },
   "featureMarketingCategory": {
@@ -9158,7 +9428,8 @@
     "report": "Premium Report",
     "music": "Music",
     "naming": "Naming",
-    "meditation": "Meditation"
+    "meditation": "Meditation",
+    "dream": "Dream Symbols"
   },
   "featureMarketingTrust": {
     "paid": {
