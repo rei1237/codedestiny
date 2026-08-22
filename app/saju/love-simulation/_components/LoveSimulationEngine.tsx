@@ -113,6 +113,28 @@ type LoveSimulationCopy = {
     title: string;
     body: string;
   }>;
+  matchFormDescription: string;
+  nameFieldLabel: string;
+  birthDateFieldLabel: string;
+  calendarOptions: { solar: string; lunarRegular: string; lunarLeap: string };
+  calendarHint: string;
+  birthTimeFieldLabel: string;
+  birthCountryFieldLabel: string;
+  birthCountryNote: string;
+  matchNote: string;
+  partnerGenderFieldLabel: string;
+  genderFemaleOption: string;
+  genderMaleOption: string;
+  timeKnownNote: string;
+  timeUnknownNote: string;
+  unknownTimeButton: string;
+  matchingInProgress: string;
+  startMatchButton: string;
+  matchAnalysisFailedError: string;
+  loginRequiredError: string;
+  paymentRequiredError: string;
+  paymentVerifyFailedError: string;
+  checkingPassMessage: string;
 };
 
 const LOVE_SIMULATION_COPY_TRANSLATIONS: Record<"ko" | "en", LoveSimulationCopy> = {
@@ -159,6 +181,28 @@ const LOVE_SIMULATION_COPY_TRANSLATIONS: Record<"ko" | "en", LoveSimulationCopy>
         body: "감정의 온도보다 거리의 감각이 먼저 중요하게 드러난 관계입니다. 무리하게 가까워지기보다, 상대가 숨 쉴 수 있는 여백을 남겨두는 편이 좋습니다.",
       },
     },
+    matchFormDescription: "이름과 생년월일을 남기면 선택한 성별 안에서 가장 닮은 러브 코드 상대가 열립니다.",
+    nameFieldLabel: "이름",
+    birthDateFieldLabel: "생년월일",
+    calendarOptions: { solar: "양력", lunarRegular: "음력(평달)", lunarLeap: "음력(윤달)" },
+    calendarHint: "선택한 달력 기준으로 상대의 연애 결을 맞춰봅니다.",
+    birthTimeFieldLabel: "출생 시간",
+    birthCountryFieldLabel: "출생 국가 (장소)",
+    birthCountryNote: "*서머타임 및 경도 보정 자동 적용",
+    matchNote: "현재 매칭은 입력 시간과 장소 신호를 함께 반영합니다.",
+    partnerGenderFieldLabel: "상대 성별",
+    genderFemaleOption: "♀ 여성",
+    genderMaleOption: "♂ 남성",
+    timeKnownNote: "선택한 출생 시각까지 반영합니다.",
+    timeUnknownNote: "출생시간 미상으로 표시하고 낮 12시 기준 보조 계산을 사용합니다.",
+    unknownTimeButton: "출생시간을 몰라요 · 낮 12시 기준으로 보기",
+    matchingInProgress: "인연의 결을 찾는 중...",
+    startMatchButton: "상대 정보로 매칭 시작",
+    matchAnalysisFailedError: "상대의 사주 정보를 불러오지 못했어요. 입력값을 확인한 뒤 다시 시도해주세요.",
+    loginRequiredError: "로그인이 필요합니다.",
+    paymentRequiredError: "유료 결제가 필요합니다. 결제창에서 상품을 선택해 주세요.",
+    paymentVerifyFailedError: "결제 확인에 실패했습니다.",
+    checkingPassMessage: "이용권 확인 중",
   },
   en: {
     preparingStoryLocation: "Love Code",
@@ -203,6 +247,28 @@ const LOVE_SIMULATION_COPY_TRANSLATIONS: Record<"ko" | "en", LoveSimulationCopy>
         body: "This connection asks you to sense distance before emotional temperature. Leave enough space for the other person to breathe instead of rushing closer.",
       },
     },
+    matchFormDescription: "Enter their name and birth date to open the Love Code partner who matches closest within the gender you chose.",
+    nameFieldLabel: "Name",
+    birthDateFieldLabel: "Birth date",
+    calendarOptions: { solar: "Solar", lunarRegular: "Lunar (regular month)", lunarLeap: "Lunar (leap month)" },
+    calendarHint: "We match their love style based on the calendar you chose.",
+    birthTimeFieldLabel: "Birth time",
+    birthCountryFieldLabel: "Birth country (place)",
+    birthCountryNote: "*Daylight saving and longitude correction applied automatically",
+    matchNote: "This match reflects both the time and place you entered.",
+    partnerGenderFieldLabel: "Partner's gender",
+    genderFemaleOption: "♀ Female",
+    genderMaleOption: "♂ Male",
+    timeKnownNote: "We reflect the birth time you chose.",
+    timeUnknownNote: "Marked as unknown birth time; using a noon-based auxiliary calculation.",
+    unknownTimeButton: "I don't know the birth time · use noon instead",
+    matchingInProgress: "Finding the thread of fate...",
+    startMatchButton: "Start matching with partner info",
+    matchAnalysisFailedError: "We couldn't load their Saju information. Please check your input and try again.",
+    loginRequiredError: "Login required.",
+    paymentRequiredError: "Payment is required. Please choose a product in the payment window.",
+    paymentVerifyFailedError: "Payment verification failed.",
+    checkingPassMessage: "Checking your pass",
   },
 };
 
@@ -1476,7 +1542,7 @@ export const LoveSimulationEngine: React.FC = () => {
         requestId,
         cost: LOVE_SIMULATION_FEATURE_COST,
         paymentMode: "pass",
-        message: "이용권 확인 중",
+        message: copy.checkingPassMessage,
       });
       holdPaidFeatureGateOpen({ requestId, maxMs: 8000 });
 
@@ -1493,10 +1559,10 @@ export const LoveSimulationEngine: React.FC = () => {
         const code = String(gate.error?.code || "").toUpperCase();
         const message =
           code === "AUTH_REQUIRED"
-            ? "로그인이 필요합니다."
+            ? copy.loginRequiredError
             : code === "INSUFFICIENT_COINS"
-              ? "유료 결제가 필요합니다. 결제창에서 상품을 선택해 주세요."
-              : gate.error?.message || "결제 확인에 실패했습니다.";
+              ? copy.paymentRequiredError
+              : gate.error?.message || copy.paymentVerifyFailedError;
         updatePaidFeatureGate({ featureKey: LOVE_SIMULATION_FEATURE_KEY, requestId, status: "error", message });
         setMatchError(message);
         return;
@@ -1641,7 +1707,7 @@ export const LoveSimulationEngine: React.FC = () => {
     if (!year || !month || !day) {
       setMatchResults([]);
       setCoupleCompatibility(null);
-      setMatchError("상대의 사주 정보를 불러오지 못했어요. 입력값을 확인한 뒤 다시 시도해주세요.");
+      setMatchError(copy.matchAnalysisFailedError);
       return;
     }
 
@@ -1690,7 +1756,7 @@ export const LoveSimulationEngine: React.FC = () => {
     } catch {
       setMatchResults([]);
       setCoupleCompatibility(null);
-      setMatchError("상대의 사주 정보를 불러오지 못했어요. 입력값을 확인한 뒤 다시 시도해주세요.");
+      setMatchError(copy.matchAnalysisFailedError);
     } finally {
       setIsMatching(false);
     }
@@ -1810,13 +1876,13 @@ export const LoveSimulationEngine: React.FC = () => {
             >
               <div className="mb-5">
                 <span className="text-xs font-black uppercase tracking-[0.24em] text-rose-100/86">LOVE MATCH</span>
-                <h2 className="mt-3 text-3xl font-black text-white">상대 정보 입력 매칭</h2>
-                <p className="mt-3 text-sm font-semibold leading-6 text-white/62">이름과 생년월일을 남기면 선택한 성별 안에서 가장 닮은 러브 코드 상대가 열립니다.</p>
+                <h2 className="mt-3 text-3xl font-black text-white">{copy.matchFormAria}</h2>
+                <p className="mt-3 text-sm font-semibold leading-6 text-white/62">{copy.matchFormDescription}</p>
               </div>
 
               <div className="grid gap-4">
                 <div>
-                  <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerName">이름</label>
+                  <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerName">{copy.nameFieldLabel}</label>
                   <input
                     className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-5 text-sm font-bold text-zinc-950 outline-none transition placeholder:text-zinc-400 focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
                     type="text"
@@ -1832,7 +1898,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerBirthDate">생년월일</label>
+                  <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerBirthDate">{copy.birthDateFieldLabel}</label>
                   <input
                     className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-5 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
                     type="text"
@@ -1850,9 +1916,9 @@ export const LoveSimulationEngine: React.FC = () => {
                   />
                   <div className="mt-3 grid gap-2 text-sm font-bold text-white/82 sm:grid-cols-3">
                     {[
-                      ["solar", "양력"],
-                      ["lunar", "음력(평달)"],
-                      ["lunar_leap", "음력(윤달)"],
+                      ["solar", copy.calendarOptions.solar],
+                      ["lunar", copy.calendarOptions.lunarRegular],
+                      ["lunar_leap", copy.calendarOptions.lunarLeap],
                     ].map(([value, label]) => (
                       <label key={value} className="flex min-h-11 items-center gap-2 rounded-lg border border-rose-100/14 bg-black/20 px-3 transition hover:bg-white/10">
                         <input
@@ -1867,12 +1933,12 @@ export const LoveSimulationEngine: React.FC = () => {
                     ))}
                   </div>
                   <div className="mt-2 min-h-9 rounded-lg border border-rose-100/18 bg-rose-100/10 px-3 py-2 text-xs font-bold text-rose-50/82">
-                    선택한 달력 기준으로 상대의 연애 결을 맞춰봅니다.
+                    {copy.calendarHint}
                   </div>
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerTime">출생 시간</label>
+                  <label className="mb-2 block text-sm font-black text-white/90" htmlFor="lovePartnerTime">{copy.birthTimeFieldLabel}</label>
                   <input
                     className="min-h-14 w-full rounded-lg border border-white/15 bg-white/95 px-4 text-sm font-bold text-zinc-950 outline-none transition focus:border-rose-200 focus:ring-4 focus:ring-rose-100/25"
                     type="time"
@@ -1891,7 +1957,7 @@ export const LoveSimulationEngine: React.FC = () => {
 
                 <div className="rounded-lg border border-rose-100/28 bg-rose-50/95 p-4 text-zinc-950 shadow-[0_18px_40px_rgba(255,228,230,0.12)]">
                   <label className="mb-2 block text-sm font-black" htmlFor="lovePartnerCountry">
-                    출생 국가 (장소) <span className="text-xs font-bold text-zinc-500">*서머타임 및 경도 보정 자동 적용</span>
+                    {copy.birthCountryFieldLabel} <span className="text-xs font-bold text-zinc-500">{copy.birthCountryNote}</span>
                   </label>
                   <input
                     className="min-h-14 w-full rounded-lg border border-zinc-200 bg-white px-4 text-sm font-bold outline-none transition focus:border-rose-300 focus:ring-4 focus:ring-rose-200/45"
@@ -1914,15 +1980,15 @@ export const LoveSimulationEngine: React.FC = () => {
                   <p className="mt-2 text-xs font-bold leading-5 text-zinc-600">
                     {partnerCountryOptions.find((option) => option.value === partnerCountry)?.label ?? partnerCountry}
                   </p>
-                  <p className="mt-3 text-xs font-bold leading-5 text-zinc-600">현재 매칭은 입력 시간과 장소 신호를 함께 반영합니다.</p>
+                  <p className="mt-3 text-xs font-bold leading-5 text-zinc-600">{copy.matchNote}</p>
                 </div>
 
                 <div>
-                  <label className="mb-2 block text-sm font-black text-white/90">상대 성별</label>
+                  <label className="mb-2 block text-sm font-black text-white/90">{copy.partnerGenderFieldLabel}</label>
                   <div className="grid grid-cols-2 gap-3">
                     {[
-                      ["female", "♀ 여성"],
-                      ["male", "♂ 남성"],
+                      ["female", copy.genderFemaleOption],
+                      ["male", copy.genderMaleOption],
                     ].map(([value, label]) => (
                       <button
                         key={value}
@@ -1941,7 +2007,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 </div>
 
                 <div className="rounded-lg border border-rose-100/14 bg-black/24 px-4 py-3 text-sm font-bold text-rose-50/86">
-                  {partnerHasTime ? "선택한 출생 시각까지 반영합니다." : "출생시간 미상으로 표시하고 낮 12시 기준 보조 계산을 사용합니다."}
+                  {partnerHasTime ? copy.timeKnownNote : copy.timeUnknownNote}
                 </div>
                 <button
                   type="button"
@@ -1952,14 +2018,14 @@ export const LoveSimulationEngine: React.FC = () => {
                   }}
                   className="min-h-12 rounded-lg border border-white/15 bg-white/10 px-4 text-sm font-black text-white transition hover:bg-white/18"
                 >
-                  출생시간을 몰라요 · 낮 12시 기준으로 보기
+                  {copy.unknownTimeButton}
                 </button>
                 <button
                   type="submit"
                   disabled={!canMatchPartner}
                   className="inline-flex min-h-14 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-rose-100 via-pink-100 to-violet-100 px-5 text-sm font-black text-zinc-950 shadow-[0_20px_48px_rgba(244,114,182,0.24)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-45"
                 >
-                  {isMatching ? "인연의 결을 찾는 중..." : "상대 정보로 매칭 시작"}
+                  {isMatching ? copy.matchingInProgress : copy.startMatchButton}
                   <ChevronRight className="h-4 w-4" />
                 </button>
                 <AnimatePresence mode="wait">
