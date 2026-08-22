@@ -501,6 +501,7 @@ const handleNakshatraRoutes = createLazyRouteHandler("./routes/nakshatra.js", ()
 const handleNakshatraAiRoutes = createLazyRouteHandler("./routes/nakshatra-ai.js", () => import("./routes/nakshatra-ai.js"), "handleNakshatraAiRoutes", "api/nakshatra-ai");
 const handleNakshatraPremiumRoutes = createLazyRouteHandler("./routes/nakshatra-premium.js", () => import("./routes/nakshatra-premium.js"), "handleNakshatraPremiumRoutes");
 const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
+const handleHumanDesignRoutes = createLazyRouteHandler("./routes/human-design.js", () => import("./routes/human-design.js"), "handleHumanDesignRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleCmsRoutes = createLazyRouteHandler("./routes/cms.js", () => import("./routes/cms.js"), "handleCmsRoutes", "api/cms");
 const handleReviewRoutes = createLazyRouteHandler("./routes/reviews.js", () => import("./routes/reviews.js"), "handleReviewRoutes");
@@ -1678,6 +1679,11 @@ export default {
       // 나크샤트라 결정판 전문가 심화 상담(유료·인증) — 동기 생성(숙요/베다 2덱). 무료 라우트보다 먼저 검사한다.
       if (url.pathname === "/api/nakshatra-ai" || url.pathname.startsWith("/api/nakshatra-ai/")) {
         return runAiRouteWithSecurity(request, env, "nakshatra-ai", handleNakshatraAiRoutes, ctx);
+      }
+
+      // 휴먼 디자인 바디그래프(회당 결제) — 결정론 계산. LLM 을 타지 않으므로 AI 라우트 보안 래퍼가 아니다.
+      if (url.pathname === "/api/human-design" || url.pathname.startsWith("/api/human-design/")) {
+        return withCorsHeaders(request, env, await handleHumanDesignRoutes(request, env));
       }
 
       // 나크샤트라 심화 리포트 2종(유료·영구해금) — 결정론 조립. 무료 라우트보다 먼저 검사한다.

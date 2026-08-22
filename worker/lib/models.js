@@ -1463,6 +1463,51 @@ const nakshatraAiConsultationSchema = new mongoose.Schema({
 nakshatraAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 nakshatraAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+// 휴먼 디자인 바디그래프 — 회당 결제(human-design-chart)로 산출한 계산 결과.
+//
+// 🔴 이 문서는 **영수증 겸 아카이브**다. 차트는 같은 출생 데이터면 항상 같은 결과라,
+//    같은 (userId, inputHash, calculationVersion) 조합은 재결제 없이 다시 연다
+//    (sukuyo-past-life-reading 의 readSukuyoPastLifeArchive 와 같은 계약).
+//    그렇다고 영구 해금은 아니다 — 출생 데이터가 다르면 새 결제다. 이 키를
+//    PERSISTENT_UNLOCK_KEY_SET 이나 PREMIUM_UNLOCK_POLICY 에 넣지 말 것.
+//
+// 🔴 calculation 안에는 canonical identifier 만 들어간다(TYPE_GENERATOR 등). 사람이 읽는
+//    문구는 표시 계층 소관이라 저장하지 않는다 — 문구가 바뀌어도 문서를 다시 쓰지 않는다.
+const humanDesignCalculationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  profileId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
+  // 출생 입력의 해시. 같은 해시 + 같은 계산 버전이면 저장된 차트를 그대로 돌려준다.
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  birthInput: { type: mongoose.Schema.Types.Mixed, default: null },
+
+  // 🔴 계산 엔진 버전 3종. 엔진이 바뀌었을 때 어느 문서를 다시 계산해야 하는지 문서만 보고
+  //    판정할 수 있어야 한다. mappingVersion 은 만다라 배열·앵커·노드 모드의 버전이다.
+  calculationVersion: { type: String, required: true, trim: true, maxlength: 40, index: true },
+  ephemerisVersion: { type: String, default: "", trim: true, maxlength: 40 },
+  mappingVersion: { type: String, default: "", trim: true, maxlength: 40 },
+  nodeMode: { type: String, default: "", trim: true, maxlength: 10 },
+
+  calculation: { type: mongoose.Schema.Types.Mixed, default: null },
+  designMomentUtc: { type: String, default: "", trim: true, maxlength: 40 },
+  hdType: { type: String, default: "", trim: true, maxlength: 40 },
+  authority: { type: String, default: "", trim: true, maxlength: 40 },
+  profile: { type: String, default: "", trim: true, maxlength: 10 },
+  definition: { type: String, default: "", trim: true, maxlength: 40 },
+
+  accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true, index: true },
+  accessSource: { type: String, default: "", trim: true, maxlength: 40 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },
+  calculatedAt: { type: Date, default: null },
+}, { timestamps: true, collection: "humanDesignCalculations" });
+
+humanDesignCalculationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+// 재열람 조회 키. 계산 버전을 포함해야 엔진이 바뀐 뒤 옛 결과를 그대로 내주지 않는다.
+humanDesignCalculationSchema.index({ userId: 1, inputHash: 1, calculationVersion: 1 });
+humanDesignCalculationSchema.index({ userId: 1, createdAt: -1 });
+
 // Guardian Fortune usage is deliberately isolated from membership, monthly credit,
 // points, and pass entitlements. These schemas are declarations only; index creation
 // still follows the project's normal migration/operations process.
@@ -1691,6 +1736,8 @@ export const NeoOperationRoomConsultation = mongoose.models.NeoOperationRoomCons
   || mongoose.model("NeoOperationRoomConsultation", neoOperationRoomConsultationSchema);
 export const NakshatraAiConsultation = mongoose.models.NakshatraAiConsultation
   || mongoose.model("NakshatraAiConsultation", nakshatraAiConsultationSchema);
+export const HumanDesignCalculation = mongoose.models.HumanDesignCalculation
+  || mongoose.model("HumanDesignCalculation", humanDesignCalculationSchema);
 export const GuardianFortuneGuestUsage = mongoose.models.GuardianFortuneGuestUsage
   || mongoose.model("GuardianFortuneGuestUsage", guardianFortuneGuestUsageSchema);
 export const GuardianFortuneDailyUsage = mongoose.models.GuardianFortuneDailyUsage
