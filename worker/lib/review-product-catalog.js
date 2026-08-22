@@ -143,6 +143,15 @@ export const REVIEW_PRODUCTS = Object.freeze([
     ]),
   },
   {
+    productId: "human-design",
+    name: "휴먼 디자인",
+    summary: "출생 데이터로 계산하는 바디그래프와 개인 해석",
+    href: "/human-design",
+    featureKeys: Object.freeze([
+      "human-design-chart",
+    ]),
+  },
+  {
     productId: "nakshatra",
     name: "나크샤트라 리딩",
     summary: "27개 별자리로 읽는 기질·궁합·택일",
