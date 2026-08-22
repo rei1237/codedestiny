@@ -323,6 +323,15 @@ Wave 7 도중 `LoveSecretAiResultClient.tsx`를 열다가 "AI가 생성한 상�
 2. 남은 키 중 `git grep -n "useT(" app/`로 `useT()`를 실제로 쓰는 컴포넌트를 전수 찾고, 그 컴포넌트가 참조하는 키 중 `ko.json`에 없는 것만 진짜 버그로 취급한다.
 3. `cdTranslate`/`_cdPaymentI18n`(인라인 폴백 패턴) 경유 키는 "이미 작동 중"으로 분류하고, 폴백 제거(=완전한 사전 이전)는 **번역 완결성이 아니라 `no-fallback` 기술부채 상환** 작업으로 별도 트래킹한다(`verify-i18n-no-fallback.mjs`의 B수치, 현재 기준선 대비 +11 초과 상태 — 원인 미추적, 아래 "남은 것 4" 참고).
 
+## 🔴 2026-08-22 신규 발견 — `neo-operation-room`(`src/features/neo-war-room/`), 이번 세션 최대 규모 미착수 클러스터
+
+`app/neo-operation-room` 라이브 라우트(+ `/neo-operation-room/result`)의 실제 구현이 `app/` 밖 `src/features/neo-war-room/`에 있다(master-love-codex/maya 와 같은 "app/ 밖 별도 최상위 트리" 패턴). 로케일 인프라 전무(`getCurrentLoadingLocale`/`useT`/`_lib/copy` 전부 0건).
+
+- **규모**: `NeoOperationRoomPage.tsx` 3,127줄(한국어 매칭 410줄) + `NeoOperationRoomResultPage.tsx` 1,512줄(243줄) — 이번 세션에서 만난 어떤 파일보다 크다(`PalmDestinyMain.tsx` 3,839줄에 근접). 서브컴포넌트 3개(`NeoFactPunch.tsx`·`NeoWarRoomAssetImage.tsx`·`NeoSpriteActor.tsx`)와 데이터 파일 5개(`assets.ts`·`dialogues.ts`·`input-flow.ts`·`method-registry.ts`·`sprite-states.ts`) 별도.
+- 🔴 **착수 전 반드시 확인**: `data/dialogues.ts`가 `@/lib/cms/build-text`의 `cmsText()`를 쓴다 — 이 세션 다른 클러스터가 쓰던 `getCurrentLoadingLocale()`+로컬 `copy` 테이블 패턴과 **다른 아키텍처**(관리자 CMS 오버라이드 가능한 캐릭터 대사 시스템, 파일 주석: "네오의 모든 대사가 이 한 곳을 지난다"). 이 CMS 텍스트 계층이 로케일을 어떻게 다루는지(`lib/cms/build-text.ts`/`lib/cms/*`) 먼저 파악하지 않고 이 세션의 표준 `_lib/copy.ts` 패턴을 그대로 적용하면 관리자 CMS 오버라이드 경로와 충돌하거나 이중 관리 구조가 될 위험이 있다.
+- **미판정**: 대사 텍스트가 캐릭터 스크립트(YeonStarHugClient·fortune-tea-house 류 "콘텐츠"로 제외 대상)인지, 아니면 단순 UI 문구(번역 대상)인지 아직 본문을 안 읽어 판정 못함 — 다음 세션이 `dialogues.ts`/`method-registry.ts`/`input-flow.ts` 본문을 먼저 읽고 판정할 것.
+- **참고로 확인한 것(false positive, 손 안 댐)**: `app/tarot/crystal-soul/CrystalSoulTarotClient.jsx`(2,128줄)는 이미 완전히 5로케일 배선돼 있었다(`GEM_DISPLAY_COPY` 별도 테이블로 `src/components/crystal/CrystalGem.tsx`의 `GEM_META`를 오버라이드) — `CrystalGem.tsx` 자체의 한국어 48줄(`GEM_META.energy` 등)은 화면에 전혀 렌더링되지 않는 죽은 폴백 필드임을 확인.
+
 ## 남은 것 (우선순위 제안)
 
 ### 1. 계정 삭제 확인 문구("회원탈퇴")가 모든 로케일에서 한국어로 고정됨 — 서버·클라이언트 공동 작업 필요
