@@ -89,7 +89,34 @@ function kstYmd(offsetDays = 0): string {
   }).format(base);
 }
 
+/**
+ * 🔴 scripts/fortune-build-data.mjs 가 prebuild 시점에 만든 매니페스트. 이 모듈은 그 뒤
+ * next build 의 정적 생성 단계에서 별도로 실행되며, 그 사이 KST 자정을 지날 수 있다
+ * (2026-08-22 실측: 이 경계에 걸려 daily-YYYY-MM-DD.json 이 ENOENT 로 프리렌더가 죽었다 —
+ * prebuild 는 "오늘=D" 로 today/tomorrow 파일을 만들었는데, 이 함수가 render 시점에
+ * 시계를 다시 읽어 "오늘=D+1" 로 계산해 존재하지 않는 tomorrow=D+2 파일을 찾았다).
+ * 매니페스트가 있으면 prebuild 가 실제로 무엇을 만들었는지 그대로 따른다. 매니페스트가
+ * 없으면(로컬 개발 등 prebuild 를 안 거친 경우) 기존처럼 시계를 읽어 폴백한다.
+ */
+let manifestCache: { today: string; tomorrow: string } | null = null;
+let manifestRead = false;
+function readRunManifest(): { today: string; tomorrow: string } | null {
+  if (manifestRead) return manifestCache;
+  manifestRead = true;
+  try {
+    const file = path.join(process.cwd(), "fortune", "data", "run-manifest.json");
+    const parsed = JSON.parse(readFileSync(file, "utf8"));
+    manifestCache =
+      typeof parsed?.today === "string" && typeof parsed?.tomorrow === "string" ? parsed : null;
+  } catch {
+    manifestCache = null;
+  }
+  return manifestCache;
+}
+
 export function resolvePeriodDate(period: FortunePeriod): string {
+  const manifest = readRunManifest();
+  if (manifest) return period === "tomorrow" ? manifest.tomorrow : manifest.today;
   return kstYmd(period === "tomorrow" ? 1 : 0);
 }
 
