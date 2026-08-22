@@ -5,8 +5,10 @@ import { usePathname } from "next/navigation";
 import MobileBottomNav from "@/app/components/MobileBottomNav";
 import { useAndroidBackButton } from "@/app/app/_lib/useAndroidBackButton";
 import { normalizeAppPathname } from "@/app/app/_lib/app-route";
+import { useAppShellCopy } from "@/app/app/_lib/copy";
 
 export default function AppShell({ children }: { children: React.ReactNode }) {
+  const copy = useAppShellCopy();
   const pathname = normalizeAppPathname(usePathname() || "");
   const isRoot = pathname === "/app" || pathname === "/app/";
   const [exitHint, setExitHint] = useState(false);
@@ -58,7 +60,7 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
           role="status"
           aria-live="polite"
         >
-          한 번 더 누르면 종료됩니다
+          {copy.exitHintText}
         </div>
       ) : null}
     </div>
