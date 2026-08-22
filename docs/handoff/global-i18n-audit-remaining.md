@@ -29,6 +29,28 @@
 
 **PR #954**(완료) `chore/app-chrome-i18n` — `app/components/AppChrome.tsx`의 `FeatureBackHomeNav`(전역 셸이 모든 라우트에서 렌더하는 좌상단 뒤로가기/홈 버튼) 2건("이전 페이지로 이동" aria-label, "홈" 버튼 라벨) — 같은 디렉터리의 `GlobalHeader.tsx`가 이미 쓰던 `useLocale()`(`lib/i18n/useT`) 관례를 그대로 재사용해 12로케일 완전 번역. 착수 전 `gh pr list --state open`으로 겹치는 PR 없음을 먼저 확인함(중복 재발 방지 조치). `SeoLandingBirthForm.tsx`·`MobileBottomNav.tsx`는 완료(PR #951), nakshatra 클러스터는 완료(#937). 같은 조사에서 `FeatureMarketingDetailModal.tsx`(수백 개 한국어 마케팅 카피 + 한국어 키워드로 카테고리/가격 정책을 분류하는 정규식 로직)와 `SunHealingTarot.tsx`(913줄, `lib/tarot/tarot-cards.mjs`의 `nameKo`/`nameEn`과 반드시 일치해야 하는 카드명 사전 내장)도 확인했으나 **둘 다 "콘텐츠 생성/데이터 결합 엔진" 범주라 단순 UI 문구 치환이 아니다** — 착수 시 훨씬 신중한 스코핑이 필요하고, 이번 세션의 "UI 크롬만" 기준으로는 후순위로 밀어도 된다.
 
+## 🔴🔴 2026-08-22(4차 세션) 핵심 발견 — 속성 전용 grep 기준 완료 ≠ 실제 완료, 409개 파일 신규 발견
+
+`app/components/AppChrome.tsx`(PR #954)까지 마치고 나서, "3건 이하" 그룹 62개 파일을 재조사하려고 기존 grep(`(alt|aria-label|title)=...[가-힣]`, 60개 파일 검출)을 돌렸는데, 검출된 60개 중 admin·이미 완료(#937~#951)·의도적 제외(SEO 콘텐츠 페이지·SunHealingTarot·FeatureMarketingDetailModal)를 빼고 나니 **남는 게 전부 서버 컴포넌트 SEO 랜딩 페이지의 sr-only 접근성 라벨뿐**이었다(예: `compare/*`, `oracle/rune`, `saju/animal-destiny/page.tsx` 등 — 로케일 라우팅 자체가 없는 한국어 전용 정적 페이지라 "12로케일화"가 성립하지 않는 범주). 즉 **속성 전용 grep 기준 Wave 7은 사실상 끝났다**(#937~#947·#951·#954 머지 시).
+
+그런데 destiny-compass(PR #933) 사례가 "속성만 보면 놓친다"는 경고였다는 걸 상기하고 `git grep -lP '[가-힣]'` 로 `app/**/*.tsx` 전체를 다시 훑으니(코드 주석·admin·디버그 페이지 포함) **409개 파일**이 걸렸다. 그중 다수가 이번 세션은 물론 이전 세션들도 전혀 몰랐던 대형 미착수 기능 클러스터였다:
+
+- `app/saju/destiny-bias/`(최애운명, ~53개 파일·3,732줄) — K팝 팬덤 사주 궁합 게임. `DestinyBiasClient.tsx`(1,527줄) 포함.
+- `app/saju/animal-destiny/components/`(열두 띠 동물운세, ~20개 파일)
+- `app/oracle/sikojen-povailu/`(돼지 오라클, ~12개 파일)
+- `app/palm-reading/`, `app/tarot/healing`·`self-esteem`·`prompt-maker`, `app/music/`, `app/flower/*`(4개 페이지) 등 다수
+
+**원인은 동일**: 지금까지 우선순위를 매겨 온 grep이 `alt`/`aria-label`/`title` **속성값**만 잡는데, 이 클러스터들의 한국어는 거의 전부 `<p>`/`<h3>`/버튼 라벨 같은 **본문 텍스트 노드**에 있어 grep에 안 걸렸다. "1차 감사 상위 N건" 같은 속성 카운트 기반 우선순위 표는 본문 텍스트 위주 기능(게임형 인터랙티브 화면)을 체계적으로 놓친다는 게 destiny-compass 때보다 훨씬 큰 규모로 재확인됐다.
+
+**사용자 확인 및 지시(2026-08-22)**:
+1. 이 신규 발견분도 **"지금 전부 진행(추천)"** — 계속 작업한다.
+2. 🔴 **번역 언어 축소**: 지금까지는 12로케일(ko 정본 + en/ja/zh-CN/zh-TW/vi/hi/es/fr/de/nl/ms) 전부를 채웠지만, **분량이 너무 방대하므로 앞으로는 영어·일본어·중국어(zh-CN·zh-TW)만** 실번역하고 **나머지 7개 로케일(vi/hi/es/fr/de/nl/ms)은 기존 `Partial<Record<LoadingLocale, X>>` + en 폴백 패턴으로 영어를 그대로 보여준다**(신규 코드 작성 없이 이미 있는 폴백 메커니즘 재사용 — 타입 에러 없음, `getXCopy()`가 `X_COPY[locale] || X_COPY_EN` 형태라 해당 로케일 키를 안 채우면 자동으로 영어를 받는다). **이미 12로케일로 작성된 기존 파일(destiny-bias 등)은 되돌리지 않는다** — "이번 지시 이후 신규 작업"에만 적용.
+3. "로케일에 맞게 해서 SEO 문제 없도록" — 아래 SEO 답변 참고: **이 작업은 UI 크롬(클라이언트 컴포넌트 표시 문구) 번역이라 sitemap·hreflang·SSR 메타데이터를 건드리지 않으므로 sitemap 재제출은 필요 없다.** sitemap(`scripts/generate-sitemap.mjs`)은 라우트 목록 기반으로 빌드 시 자동 생성되고, 이번 작업은 신규 라우트 추가도 hreflang 태그 추가도 아니다. 재제출이 실제로 필요해지는 경우는 (a) Wave 9(hreflang 확장, 사용자 명시 요청 시에만 별도 착수)나 (b) 신규 페이지·언어별 URL 추가뿐 — 둘 다 이번 스코프 밖.
+
+**진행 중**: PR #955 `chore/destiny-bias-cards-i18n` — destiny-bias 결과 화면 보조 컴포넌트 ~20개(팬덤 프로필 카드·오행 차트·점수 게이지·히어로/액션바·포토카드·로딩화면) 12로케일(이 PR은 신규 지시 이전에 작성 시작해 12로케일 그대로 완료) — `app/saju/destiny-bias/_lib/copy.ts` 신규(`useDestinyBiasCopy()`, `app/nakshatra/_lib/copy.ts`와 동일 패턴). `vm.fandomProfile`/`vm.*`(엔진 생성 리딩 문장)은 제외. **`DestinyBiasClient.tsx`(1,527줄, 메인 오케스트레이터)는 범위 밖 — 별도 PR 필요.** `lib/destinyBiasCopy.ts`의 `destinyBiasLoadingMessages`/`destinyBiasIntroCopy`가 로케일 무관하게 항상 `.ko`만 반환하는 기존 버그도 발견(이 PR에서는 미수정, 범위만 기록).
+
+**다음(미착수, 우선순위 제안)**: `DestinyBiasClient.tsx` 단독 PR → `app/saju/animal-destiny/components/`(~20개) → `app/oracle/sikojen-povailu/`(~12개) → 나머지(`palm-reading`·`tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker`·`music`·`flower/*` 등). **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것 — destiny-bias 하나가 이미 결과 화면 보조 컴포넌트만으로 PR 1건 분량이었다.
+
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
 
 `nakshatra/codex`류 파일을 확인하던 중 `app/destiny-compass/`(운명의 나침반, `/destiny-compass`)를 열어 보니 **23개 클라이언트 컴포넌트 + 엔진/무대/훅 3개 디렉터리, 총 3,372줄에 540줄 이상이 한국어**인 통짜 기능이 Wave 7 우선순위 표에 전혀 안 잡혀 있었다. 원인: 지금까지 재산출해 온 Grep 패턴(`(alt|aria-label|title)=["'\`][^"'\`]*[가-힣]`)이 **속성값만** 찾는데, 이 기능은 대부분의 한국어가 일반 텍스트 노드(`<p>`, `<span>`, 버튼 라벨)에 있어서 그 패턴에 아예 안 걸렸다. **"alt/aria/title 건수"로 우선순위를 매기는 방식 자체가, 속성이 적고 본문 텍스트가 많은 기능(게임형 인터랙티브 화면 등)을 체계적으로 놓친다** — 다음 세션이 "3건 이하" 그룹을 마저 훑을 때, 이 grep 결과에 없다고 그 파일에 번역할 게 없다고 가정하지 말고 파일을 직접 열어 볼 것. (특히 `_stage/`, `_engine/`, `_hooks/`처럼 컴포넌트가 아닌 하위 디렉터리를 가진 기능 — 이런 폴더 자체가 "그 파일 하나"보다 큰 클러스터라는 신호다.)
