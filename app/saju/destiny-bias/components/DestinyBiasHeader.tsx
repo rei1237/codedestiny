@@ -1,48 +1,14 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { useDestinyBiasCopy } from "../_lib/copy";
 
 interface DestinyBiasHeaderProps {
   onBack: () => void;
   coinBadgeText?: string;
 }
 
-const DESTINY_BIAS_HEADER_COPY = {
-  ko: {
-    backAriaLabel: "뒤로 가기",
-  },
-  en: {
-    backAriaLabel: "Go back",
-  },
-  ja: {
-    backAriaLabel: "戻る",
-  },
-  zh: {
-    backAriaLabel: "返回",
-  },
-};
-
-function getDestinyBiasHeaderCopy(locale: LoadingLocale) {
-  if (locale === "en" || locale === "ja") return DESTINY_BIAS_HEADER_COPY[locale];
-  if (locale === "zh-CN" || locale === "zh-TW") return DESTINY_BIAS_HEADER_COPY.zh;
-  return DESTINY_BIAS_HEADER_COPY.ko;
-}
-
 export default function DestinyBiasHeader({ onBack, coinBadgeText }: DestinyBiasHeaderProps) {
-  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
-  const copy = getDestinyBiasHeaderCopy(locale);
-
-  useEffect(() => {
-    const syncLocale = () => setLocale(getCurrentLoadingLocale());
-    syncLocale();
-    window.addEventListener("cd:locale-ready", syncLocale);
-    window.addEventListener("cd:locale-change", syncLocale);
-    return () => {
-      window.removeEventListener("cd:locale-ready", syncLocale);
-      window.removeEventListener("cd:locale-change", syncLocale);
-    };
-  }, []);
+  const copy = useDestinyBiasCopy();
 
   return (
     <header className="sticky top-0 z-30 mx-auto flex w-full max-w-7xl items-center justify-between gap-2 border-b border-white/10 bg-[linear-gradient(180deg,rgba(7,4,22,0.92),rgba(7,4,22,0.58))] px-4 py-3 backdrop-blur-xl md:px-6">
@@ -59,7 +25,7 @@ export default function DestinyBiasHeader({ onBack, coinBadgeText }: DestinyBias
 
       <div className="flex min-w-0 flex-col items-center text-center">
         <span className="text-[9px] font-semibold tracking-[0.22em] text-[var(--bias-gold)]/75">CELESTIAL CONCERT ARCHIVE</span>
-        <span className="text-sm font-black leading-tight tracking-[-0.01em] text-white">최애운명 ENERGY</span>
+        <span className="text-sm font-black leading-tight tracking-[-0.01em] text-white">{copy.headerTitle} ENERGY</span>
       </div>
 
       <div className="flex items-center">
