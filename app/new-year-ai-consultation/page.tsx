@@ -9,9 +9,9 @@ import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/new-year-ai-consultation/";
-const PAGE_TITLE = "신년운세 전문가 상담 | 새해 흐름·월별 운세 풀이 — Code Destiny";
+const PAGE_TITLE = "신년운세 보는 곳 | 새해 월별 운세·재물운·연애운 풀이";
 const PAGE_DESCRIPTION =
-  "생년월일로 새해의 큰 흐름을 미리 읽는 신년운세 전문가 상담. 한 해의 재물·관계·커리어 결과 월별 체크포인트를 사주 명식 기반 상담 문장으로 정리해 드립니다.";
+  "생년월일로 새해의 큰 흐름을 미리 읽는 신년운세 상담입니다. 한 해의 세운이 내 명식과 만나는 자리를 보고 재물운·연애운·커리어의 결과 월별 체크포인트를 사주 명식 기반 상담 문장으로 정리해 드립니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
@@ -103,7 +103,7 @@ export default function NewYearAiConsultationPage() {
       />
             <NewYearAiRouteClient />
             <ServiceIntroSection label="신년운세 전문가 상담 안내">
-        <h1>신년운세 전문가 상담 — 새해 흐름과 월별 운세 풀이</h1>
+        <h1>신년운세 보는 곳 — 새해 흐름과 월별 운세 풀이</h1>
         <p>
           신년운세 전문가 상담은 생년월일로 세운 사주 명식 위에 새해의 간지가 만드는 세운의 흐름을
           겹쳐 읽습니다. 한 해의 재물운과 관계운, 일과 커리어의 결이 어느 달에 열리는지,
