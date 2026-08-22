@@ -8,6 +8,7 @@ import { Check, Copy, Home, PenLine } from "lucide-react";
 import { fortuneTeaHouseAssets } from "@/src/features/fortune-tea-house/data/assets";
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
 import type { SubmittedFeedback } from "../_lib/api";
+import { useFeedbackCopy } from "../_lib/copy";
 import { CTA_BUTTON, GHOST_BUTTON, GLASS_CARD, INK, INK_MUTED } from "../_lib/styles";
 
 // 좌표 링은 유틸리티 클래스로 표현할 수 없어 장식용 span 에만 인라인 좌표를 쓴다.
@@ -24,6 +25,7 @@ interface SuccessScreenProps {
 }
 
 export default function SuccessScreen({ submitted, onWriteAnother }: SuccessScreenProps) {
+  const copy = useFeedbackCopy();
   const reduceMotion = useReducedMotion();
   const [copied, setCopied] = useState(false);
 
@@ -61,7 +63,7 @@ export default function SuccessScreen({ submitted, onWriteAnother }: SuccessScre
       >
         <Image
           src={fortuneTeaHouseAssets.rewards.flowerPigHoneyHug}
-          alt="고맙다는 인사를 건네는 꽃돼지 연이"
+          alt={copy.successImageAlt}
           width={180}
           height={180}
           unoptimized
@@ -71,23 +73,22 @@ export default function SuccessScreen({ submitted, onWriteAnother }: SuccessScre
       </m.div>
 
       <h2 className={`mt-5 text-[clamp(1.4rem,4vw,1.9rem)] font-black tracking-tight ${INK}`}>
-        감사합니다!
+        {copy.successTitle}
       </h2>
       <p className={`mx-auto mt-3 max-w-[44ch] text-[15px] leading-[1.8] ${INK_MUTED}`} role="status" aria-live="polite">
-        보내주신 의견은 CODE DESTINY를 더 좋은 서비스로 만드는 데 큰 도움이 됩니다.
-        개발자가 꼼꼼히 확인한 뒤 업데이트에 반영하겠습니다.
+        {copy.successBody}
       </p>
 
       {submitted.ticketNo && (
         <div className="mx-auto mt-6 flex w-fit items-center gap-3 rounded-2xl border border-[rgba(216,63,120,0.2)] bg-white/70 px-4 py-3 dark:border-white/12 dark:bg-white/[0.05]">
           <div className="text-left">
-            <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${INK_MUTED}`}>접수 번호</p>
+            <p className={`text-[11px] font-bold uppercase tracking-[0.16em] ${INK_MUTED}`}>{copy.ticketNoLabel}</p>
             <p className={`font-mono text-[15px] font-black ${INK}`}>{submitted.ticketNo}</p>
           </div>
           <button
             type="button"
             onClick={copyTicket}
-            aria-label="접수 번호 복사"
+            aria-label={copy.ticketCopyAriaLabel}
             className="flex h-11 w-11 items-center justify-center rounded-full border border-[rgba(216,63,120,0.2)] text-[#b31955] transition-colors hover:bg-[#b31955]/[0.08] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b31955] dark:border-white/12 dark:text-[#c4b5fd] dark:hover:bg-white/[0.08] dark:focus-visible:ring-[#c4b5fd]"
           >
             {copied
@@ -98,18 +99,18 @@ export default function SuccessScreen({ submitted, onWriteAnother }: SuccessScre
       )}
 
       <p className={`mt-4 text-[13px] ${INK_MUTED}`}>
-        평균 확인 1~2일 · 답변은 가입하신 이메일로 보내드립니다
+        {copy.responseTimeNote}
       </p>
 
       <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
         <button type="button" onClick={onWriteAnother} className={`${CTA_BUTTON} w-full sm:w-auto`}>
           <PenLine aria-hidden="true" className="h-4 w-4" />
-          또 다른 의견 보내기
+          {copy.writeAnotherButton}
         </button>
         {/* 홈은 정적 셸이라 router.push 로 가면 플래시가 난다. */}
         <button type="button" onClick={() => hardNavigateToShellHome()} className={`${GHOST_BUTTON} w-full sm:w-auto`}>
           <Home aria-hidden="true" className="h-4 w-4" />
-          홈으로
+          {copy.goHomeButton}
         </button>
       </div>
     </div>
