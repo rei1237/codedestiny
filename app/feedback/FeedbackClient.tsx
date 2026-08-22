@@ -20,6 +20,7 @@ import { getFeedbackCategory, type FeedbackCategoryId } from "./_lib/categories"
 import { collectEnvironment, findEnvValue, minimalEnvironment } from "./_lib/environment";
 import { clearDraft, formatSavedAt, loadDraft, saveDraft, type FeedbackDraft } from "./_lib/draft";
 import { CANVAS, GLASS_CARD, GHOST_BUTTON, INK, INK_MUTED } from "./_lib/styles";
+import { useFeedbackCopy } from "./_lib/copy";
 
 const TITLE_MAX_LENGTH = 80;
 const CONTENT_MIN_LENGTH = 10;
@@ -27,6 +28,7 @@ const CONTENT_MAX_LENGTH = 2000;
 const DRAFT_DEBOUNCE_MS = 800;
 
 export default function FeedbackClient() {
+  const copy = useFeedbackCopy();
   const { isAuthenticated, authReady } = useAuthStore();
 
   const [category, setCategory] = useState<FeedbackCategoryId | null>(null);
@@ -49,7 +51,7 @@ export default function FeedbackClient() {
   const draftTimerRef = useRef<number | null>(null);
   const hydratedRef = useRef(false);
 
-  const selectedCategory = useMemo(() => getFeedbackCategory(category), [category]);
+  const selectedCategory = useMemo(() => getFeedbackCategory(category, copy), [category, copy]);
 
   // 🔴 이 페이지는 몰입형(CHROMELESS_ROUTES)이라 GlobalHeader → AuthWidget 이 렌더되지 않는다.
   //    평소 authReady 를 true 로 올리는 건 그 AuthWidget 의 refreshAuth 호출이므로,
@@ -87,8 +89,8 @@ export default function FeedbackClient() {
   }, []);
 
   const environment = useMemo(
-    () => (sendEnvironment ? collectEnvironment(url) : minimalEnvironment(url)),
-    [url, sendEnvironment],
+    () => (sendEnvironment ? collectEnvironment(url, copy) : minimalEnvironment(url, copy)),
+    [url, sendEnvironment, copy],
   );
 
   // 자동 수집값으로 채우는 읽기 전용 필드(모바일 브라우저·네트워크 종류)를 동기화한다.
@@ -97,7 +99,7 @@ export default function FeedbackClient() {
     const autoFields = selectedCategory.fields.filter((field) => field.autoFillFrom);
     if (!autoFields.length) return;
 
-    const full = collectEnvironment(url);
+    const full = collectEnvironment(url, copy);
     setDetails((prev) => {
       const next = { ...prev };
       let changed = false;
@@ -110,7 +112,7 @@ export default function FeedbackClient() {
       }
       return changed ? next : prev;
     });
-  }, [selectedCategory, url]);
+  }, [selectedCategory, url, copy]);
 
   // 800ms 디바운스 자동 저장.
   useEffect(() => {
@@ -179,7 +181,7 @@ export default function FeedbackClient() {
           .filter((entry) => entry.value),
         environment,
         attachments: attachments.map((file) => file.key),
-      });
+      }, copy);
 
       clearDraft();
       setSubmitted(result);
@@ -190,7 +192,7 @@ export default function FeedbackClient() {
         const { handleSessionInvalidated } = await import("@/app/_lib/auth-store");
         handleSessionInvalidated();
       }
-      setError(submitError instanceof Error ? submitError.message : "제보 전송에 실패했습니다.");
+      setError(submitError instanceof Error ? submitError.message : copy.submitErrorFallback);
     } finally {
       setSubmitting(false);
     }
@@ -235,18 +237,18 @@ export default function FeedbackClient() {
               {pendingDraft && (
                 <div className="flex flex-col gap-3 rounded-2xl border border-[rgba(234,208,137,0.6)] bg-[#fffaf0] p-4 sm:flex-row sm:items-center sm:justify-between dark:border-[#5a4a2a] dark:bg-[#211a10]">
                   <p className={`text-[13px] ${INK}`}>
-                    작성 중이던 내용이 있어요 · <span className={INK_MUTED}>{formatSavedAt(pendingDraft.savedAt)}</span>
+                    {copy.draftBannerPrefix}<span className={INK_MUTED}>{formatSavedAt(pendingDraft.savedAt)}</span>
                   </p>
                   <div className="flex shrink-0 gap-2">
-                    <button type="button" onClick={restoreDraft} className={GHOST_BUTTON}>이어서 쓰기</button>
-                    <button type="button" onClick={discardDraft} className={GHOST_BUTTON}>새로 쓰기</button>
+                    <button type="button" onClick={restoreDraft} className={GHOST_BUTTON}>{copy.draftResumeButton}</button>
+                    <button type="button" onClick={discardDraft} className={GHOST_BUTTON}>{copy.draftDiscardButton}</button>
                   </div>
                 </div>
               )}
 
               <section aria-labelledby="cd-feedback-category-heading">
                 <h2 id="cd-feedback-category-heading" className={`mb-3 text-sm font-bold ${INK}`}>
-                  어떤 이야기인가요?
+                  {copy.categoryQuestionLabel}
                 </h2>
                 <CategoryGrid selected={category} onSelect={setCategory} />
               </section>
