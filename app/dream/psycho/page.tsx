@@ -3,9 +3,9 @@ import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-
 
 const DREAM_PSYCHO_TEXT_TRANSLATIONS = {
   ko: {
-    "meta.title": "정신분석 해몽 - Freud Study | Code Destiny",
-    "meta.description": "프로이트 관점의 상징 분석으로 꿈에 담긴 무의식 신호와 관계 패턴을 읽는 심층 꿈해몽 가이드입니다.",
-    "service.h1": "정신분석 해몽",
+    "meta.title": "정신분석 해몽 무료 보는 곳 | 프로이트 관점 꿈 해석",
+    "meta.description": "꾼 꿈을 프로이트 정신분석 관점으로 읽어 주는 무료 해몽입니다. 전통 해몽이 상징을 읽는 방식과 달리 표면내용과 잠재내용을 나눠 보고, 꿈에 남은 감정과 관계 패턴을 함께 짚습니다.",
+    "service.h1": "정신분석 해몽 — 프로이트 관점의 꿈 해석",
     "service.seoText": "정신분석 해몽은 꿈을 무의식의 언어로 보고 상징과 감정 흐름을 함께 분석하는 서비스입니다.",
     "valueGuide.title": "정신분석 해몽을 안전하게 활용하는 6원칙",
     "value.1.title": "1. 프로이트 해석은 정답 찾기보다 질문 프레임입니다",
