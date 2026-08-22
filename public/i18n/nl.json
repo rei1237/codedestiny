@@ -4488,7 +4488,18 @@
     "compareFree": "Gratis",
     "comparePremium": "Premium",
     "faqLabel": "Veelgestelde vragen",
-    "ctaNoteDefault": "Na betaling ga je direct naar het resultatenscherm."
+    "ctaNoteDefault": "Na betaling ga je direct naar het resultatenscherm.",
+    "painPointsLabel": "Worth opening when these thoughts come up.",
+    "recommendedLabel": "Recommended if this sounds like you",
+    "ctaPaid": "Pay and see the full reading",
+    "ctaReport": "View the report",
+    "ctaNoteFree": "You can use it right away.",
+    "priceFree": "Free",
+    "priceLoading": "Checking the price",
+    "priceUnknown": "Price needs checking",
+    "accessFree": "Free feature",
+    "accessPaid": "Returns to the same screen after payment",
+    "navPending": "Opening..."
   },
   "mbti": {
     "compat": {
@@ -7781,7 +7792,28 @@
           "q": "Is the result saved?",
           "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
         }
-      ]
+      ],
+      "badge": "In-depth reading",
+      "headline": "Read the signal your Saju keeps sending you a little more deeply.",
+      "sampleReport": {
+        "sections": {
+          "0": {
+            "heading": "Your innate disposition",
+            "body": "Read from your day master, you are the type who measures first and moves later. It isn't that you decide slowly -- your hand only moves once the checking is done."
+          },
+          "1": {
+            "heading": "The current flow",
+            "body": "The luck passing through now favours tidying up over opening up. That is why anything newly started feels unusually slow."
+          },
+          "2": {
+            "heading": "A standard for choosing",
+            "body": "Hold two things at once and both fall behind. Decide which one to finish first and postpone the rest."
+          }
+        },
+        "caption": "A sample lifted straight from the opening of a real Saju reading. The sentences and conclusions change with your own chart."
+      },
+      "hubTagline": "A reading that sorts out your temperament, the current flow, and the choice patterns that keep repeating.",
+      "hubPremiumIntro": "A Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices."
     },
     "template_tarot": {
       "tagline": "A reading that reads the flow closest to your current feelings and hints for a choice, short and clear.",
@@ -7855,7 +7887,26 @@
           "q": "Does it fix the future?",
           "a": "No. Tarot reads the direction visible in the current flow -- it doesn't fix an outcome."
         }
-      ]
+      ],
+      "badge": "Card reading",
+      "headline": "Lay out the question still sitting in your mind through the symbols of the cards.",
+      "sampleReport": {
+        "sections": {
+          "0": {
+            "heading": "The mood right now",
+            "body": "The cards drawn point to two people watching each other rather than clashing head-on. Both are waiting for the other to move first."
+          },
+          "1": {
+            "heading": "How the feeling moves",
+            "body": "Their feelings haven't cooled -- their pace of expressing them is slow. Push, and that pace only slows further."
+          },
+          "2": {
+            "heading": "What to do now",
+            "body": "This week splits into words to offer and words to hold back. Keeping the order alone closes the distance."
+          }
+        },
+        "caption": "A sample lifted straight from the opening of a real tarot reading. The content changes with the cards you draw yourself."
+      }
     },
     "template_sukuyo": {
       "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
@@ -7929,7 +7980,26 @@
           "q": "Can I see the result again?",
           "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
         }
-      ]
+      ],
+      "badge": "Relationship reading",
+      "headline": "Read the pull and the distance between two people more finely than good or bad.",
+      "sampleReport": {
+        "sections": {
+          "0": {
+            "heading": "Where the two of you stand",
+            "body": "Your two birth mansions pull at each other, yet do not walk at the same speed. The mismatch begins here."
+          },
+          "1": {
+            "heading": "Where the friction starts",
+            "body": "The closer you get, the more they measure the distance while you want confirmation. This mismatched rhythm is the real cause of the arguments."
+          },
+          "2": {
+            "heading": "Advice for the relationship",
+            "body": "There are words to raise first and words you must never raise. Keeping the order alone changes the outcome."
+          }
+        },
+        "caption": "A sample lifted straight from the opening of a real Sukuyo relationship reading. The content changes with the two birth mansions involved."
+      }
     },
     "template_ziwei": {
       "tagline": "A reading that follows the palace flows and star placements to check your long-term direction.",
@@ -8003,7 +8073,26 @@
           "q": "Is a known birth time essential?",
           "a": "Yes. Since the Life Palace itself shifts with the time, Ziwei Doushu is especially sensitive to birth time."
         }
-      ]
+      ],
+      "badge": "In-depth reading",
+      "headline": "Read the structure of your life and its current direction calmly from inside the chart.",
+      "sampleReport": {
+        "sections": {
+          "0": {
+            "heading": "What the Life Palace says about you",
+            "body": "The stars placed in your Life Palace explain first the speed and manner in which you decide. That is also where the current weight of your worry begins."
+          },
+          "1": {
+            "heading": "The flow of money and work",
+            "body": "The flow of your Wealth Palace turns direction as the second half of this year passes. Separating what to open up from what to wrap up in this period keeps the losses down."
+          },
+          "2": {
+            "heading": "The pattern that repeats",
+            "body": "The same pattern repeats where the Career Palace meets the Life Palace. The moment you notice it, the range of your choices changes."
+          }
+        },
+        "caption": "A sample lifted straight from the opening of a real Ziwei Doushu reading. The content changes with your own chart."
+      }
     },
     "template_astrology": {
       "tagline": "An astrology reading that reads your psychological flow together with a sense of timing.",
@@ -8077,7 +8166,26 @@
           "q": "What if the result feels negative?",
           "a": "A chart leans more toward telling you what to prepare for in advance. Instead of scary phrasing, we organize it around what to get ready."
         }
-      ]
+      ],
+      "badge": "Star sign reading",
+      "headline": "See the direction your signs and planetary flows are casting on your mind right now.",
+      "sampleReport": {
+        "sections": {
+          "0": {
+            "heading": "Your innate temperament",
+            "body": "There is a gap between the first impression your rising sign creates and your actual temperament. That gap is exactly where people misread you."
+          },
+          "1": {
+            "heading": "How you recover emotionally",
+            "body": "The placement of your Moon sets how you recover emotionally. Whether it is faster to sit with it alone or to talk it out is decided here."
+          },
+          "2": {
+            "heading": "The period you are in",
+            "body": "The planetary flow passing through now leans towards tidying up rather than expanding. Something is still left to tie off before you start anything new."
+          }
+        },
+        "caption": "A sample lifted straight from the opening of a real astrology reading. The content changes with your own birth chart."
+      }
     },
     "template_vedic": {
       "tagline": "A reading that organizes the direction of your choice through Vedic symbolism and a sense of timing.",
@@ -8151,7 +8259,26 @@
           "q": "Is a known birth time essential?",
           "a": "Yes. Since the Ascendant and houses shift with time, accuracy changes greatly."
         }
-      ]
+      ],
+      "badge": "Timing reading",
+      "headline": "Look at the moment this question surfaced together with the flow inside you.",
+      "sampleReport": {
+        "sections": {
+          "0": {
+            "heading": "Your innate placement",
+            "body": "Measured from your lagna, yours is a placement that gains strength at the finish rather than the start. Don't read the early slowness as failure."
+          },
+          "1": {
+            "heading": "The dasha you are in",
+            "body": "The dasha passing through now is a stretch for building skill rather than relationships. Ties opened in haste during this period do not last."
+          },
+          "2": {
+            "heading": "The rhythm of your feelings",
+            "body": "The nakshatra your Moon sits in sets how fast your feelings recover. The rhythm from collapsing to standing again is right here."
+          }
+        },
+        "caption": "A sample lifted straight from the opening of a real Vedic astrology reading. The content changes with your own birth details."
+      }
     },
     "template_oracle": {
       "tagline": "An oracle-style reading that sorts out your heart before a choice.",
@@ -8225,7 +8352,26 @@
           "q": "How often can I check it?",
           "a": "It's best checked when the question has actually changed. Repeating the same question only clouds your judgment."
         }
-      ]
+      ],
+      "badge": "Symbol reading",
+      "headline": "Check the signal that is easy to miss right now, briefly, in the language of symbols.",
+      "sampleReport": {
+        "sections": {
+          "0": {
+            "heading": "The signal that surfaced",
+            "body": "The symbol drawn is not a sign to press ahead -- it points you back to look once more at the place you have already passed."
+          },
+          "1": {
+            "heading": "What you were missing",
+            "body": "What blocks the decision isn't a lack of information -- it is a mind refusing to admit what it already knows."
+          },
+          "2": {
+            "heading": "The posture to hold now",
+            "body": "Rush and you return to the same spot. Just this once, answering a beat late is not too late."
+          }
+        },
+        "caption": "A sample lifted straight from the opening of a real oracle reading. The content changes with the symbols you draw."
+      }
     },
     "template_report": {
       "tagline": "A premium reading that organizes your current worry and flow more concretely.",
@@ -8299,7 +8445,26 @@
           "q": "Is the result saved?",
           "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
         }
-      ]
+      ],
+      "badge": "In-depth consultation",
+      "headline": "Tie your scattered thoughts together into a single reading.",
+      "sampleReport": {
+        "sections": {
+          "0": {
+            "heading": "Your innate disposition",
+            "body": "You are not someone who postpones decisions -- you are someone who gathers information for too long. Set the standard first and the speed follows."
+          },
+          "1": {
+            "heading": "Where you are stuck",
+            "body": "The front you are losing ground on is not work but relationships. The strength leaking here eats away at everything else."
+          },
+          "2": {
+            "heading": "What to do next",
+            "body": "Fold one of them within the next three months and the rest survive. Which one to fold is already decided."
+          }
+        },
+        "caption": "A sample lifted straight from the opening of a real premium report. The content changes with the information and questions you enter."
+      }
     },
     "template_music": {
       "tagline": "An emotional content experience centered on the mood of the music and character universe.",
@@ -8437,6 +8602,16 @@
           "q": "How long does the result take?",
           "a": "It's generated on screen right after payment. It may take a moment since the volume is long."
         }
+      },
+      "badge": "Expert consultation",
+      "headline": "Read calmly where the arrangement of the stars is leading your question now.",
+      "resultPreview": {
+        "lines": {
+          "0": "The stars placed in your Life Palace explain first the speed and manner in which you decide. That is also where the current weight of your worry begins.",
+          "1": "The flow of your Wealth Palace turns direction as the second half of this year passes. Separating what you open up from what you wrap up in this period keeps the losses down.",
+          "2": "The same pattern repeats where the Career Palace meets the Life Palace. The moment you notice it, the range of your choices changes."
+        },
+        "caption": "An example of a real consultation result screen. After payment you can see the full reading of all twelve palaces calculated from your own chart, plus the follow-up questions."
       }
     },
     "neo_operation_room": {
@@ -8509,6 +8684,16 @@
           "q": "Do you need my exact birth date and time?",
           "a": "Yes. Both systems calculate from your birth information."
         }
+      },
+      "badge": "Strategy consultation",
+      "headline": "Sort your scattered worries into a single operations map.",
+      "resultPreview": {
+        "lines": {
+          "0": "The front you are losing ground on is not work but relationships. The strength leaking here eats away at everything else.",
+          "1": "You are not someone who postpones decisions -- you are someone who gathers information for too long. The standard has to come first.",
+          "2": "Fold one of them within the next three months and the rest survive. Which one to fold is already decided."
+        },
+        "caption": "An example of the opening of a real Operations Room consultation. After payment it continues into the full strategy binding your chart and star chart together, plus the order of action."
       }
     },
     "openNamingPromptModal": {
@@ -9144,7 +9329,18 @@
         "0": "Prompts are a tool to help interpretation and don't guarantee a result.",
         "1": "Card interpretation is for reference only.",
         "2": "The existing payment policy applies."
-      }
+      },
+      "badge": "Prompt builder",
+      "headline": "Sort out the sentences of a tarot consultation that fit your question first.",
+      "resultPreview": {
+        "lines": {
+          "0": "In your situation, \"what is holding this relationship still\" opens up far better than \"does this person like me\".",
+          "1": "Once the first question opens, the second and third questions to follow are ready.",
+          "2": "Sentences for asking again when a card comes out ambiguous are included separately."
+        },
+        "caption": "An example of the opening of a real prompt result. After payment you receive the question set matched to your situation and the full prompt text."
+      },
+      "hubTagline": "A feature that bundles the questions and consultation flow for carrying a card reading deeper into a single prompt."
     },
     "openTarotLoveModal": {
       "fallbackTitle": "Spread the cards to see the temperature that's left in the relationship between what's said and what's done.",
@@ -9252,6 +9448,16 @@
         "0": "It doesn't guarantee a relationship outcome.",
         "1": "Unlocking and payment follow the existing policy.",
         "2": "Fortune results are for reference only."
+      },
+      "badge": "Love simulation",
+      "headline": "See in which scenes your love pattern shines and in which it wavers.",
+      "resultPreview": {
+        "lines": {
+          "0": "You are not the type to open your heart fully from the start -- you are the type who cannot take it back once it is open.",
+          "1": "The type you are drawn to and the type that suits you are different. The repetition arises in that gap.",
+          "2": "The point where a relationship starts to shake usually arrives at the third hurdle."
+        },
+        "caption": "An example of the opening of a real LOVE CODE result. After payment you can see the full love pattern calculated from your own Saju."
       }
     },
     "openDestinyBias": {
@@ -9279,6 +9485,16 @@
         "0": "It doesn't guarantee a real relationship or outcome.",
         "1": "The existing payment policy applies.",
         "2": "Please take this reading within the scope of reference and fun."
+      },
+      "badge": "Photocard reading",
+      "headline": "Lay out, one card at a time, the mood and emotional code rising between you and your bias.",
+      "resultPreview": {
+        "lines": {
+          "0": "The two energies are arranged to reflect each other rather than collide head-on.",
+          "1": "What draws you in is not the brilliance but the way they endure.",
+          "2": "There is a separate period this year when this feeling grows deepest."
+        },
+        "caption": "An example of the opening of a real Destiny Bias result. After payment you can see the full card set and the mood reading."
       }
     },
     "openPsychoDreamModal": {
@@ -9522,7 +9738,18 @@
         "0": "Rune interpretation is for reference only.",
         "1": "The existing payment policy applies.",
         "2": "It doesn't fix or guarantee the future."
-      }
+      },
+      "badge": "Rune reading",
+      "headline": "Quietly lay out the rune symbols that surfaced before the choice in front of you.",
+      "resultPreview": {
+        "lines": {
+          "0": "The first stone points to a choice already made. That choice was not a mistake but a necessary step.",
+          "1": "The middle stone means a halt. Right now you need the strength to hold rather than the strength to advance.",
+          "2": "The last stone is where a door opens. It only opens, though, once you let go of what you are already holding."
+        },
+        "caption": "An example of the opening of a real rune oracle result. After payment you can see the full reading of all three runes and how they combine."
+      },
+      "hubTagline": "An oracle reading that uses the symbols of the runic alphabet to read your present question and the grain of your next move."
     },
     "openGeomancyOracle": {
       "fallbackTitle": "Read the real-world conditions like a calculation, through a figure formed by dots.",
@@ -9723,7 +9950,24 @@
           "q": "Can it be saved as a PDF?",
           "a": "Yes, you can save it as a PDF from the result screen."
         }
-      }
+      },
+      "badge": "Expert consultation",
+      "headline": "Take the time to sort out the larger current of your life, once, in depth.",
+      "resultPreview": {
+        "lines": {
+          "0": "Your day master is the quietly seeping energy of water. You look flexible on the surface, but once the direction is set you rarely turn back.",
+          "1": "The first great turning point is already behind you. We start by tracing how the choice you made then connects to where you stand now.",
+          "2": "The root of the recurring cycle sits where the energy of wealth collides with the energy of responsibility. Untie that point and the next chapter opens."
+        },
+        "caption": "An example of the opening of a real Book of Life. After payment it continues into every chapter and the period-by-period strategy calculated from your own chart."
+      },
+      "hubTagline": "A premium feature that unpacks your life's direction and repeating patterns in consultation form, built on the flow of your Saju.",
+      "hubFeats": {
+        "0": "When you want to sort out life's direction in broad strokes",
+        "1": "When you wonder why the same choice patterns keep repeating",
+        "2": "When you want to read the turning point you are in more deeply"
+      },
+      "hubFallbackCta": "Open the Book of Life"
     },
     "premium_unlock": {
       "fallbackTitle": "We trace the big flow of your life, work, wealth, and relationships all the way through, backed by your chart.",
@@ -9789,7 +10033,19 @@
           "q": "Can it be saved as a PDF?",
           "a": "Yes, you can save it as a PDF from the result screen."
         }
-      }
+      },
+      "badge": "Expert consultation",
+      "headline": "We trace the larger current of life, work, wealth, and relationships to the end, grounded in your chart.",
+      "resultPreview": {
+        "lines": {
+          "0": "A Geng-metal day master born in the month of Si needs cooling urgently. Instead of hardening in a hot seat, without something to cool it you tire easily.",
+          "1": "Wealth is strong, yet peers share it out. You must first block the routes money leaks through, before the speed at which it comes in.",
+          "2": "Your current luck cycle is a stretch where the officer star gains force. Responsibility grows, and you need to raise the resource star that can carry that weight alongside it."
+        },
+        "caption": "An example of the opening of a real Life Fortune report. After payment it continues into all ten chapters plus four deep chart readings."
+      },
+      "hubTagline": "If the Book of Life is the story, Life Fortune is the diagnosis. All ten chapters carry the reasoning of day master, useful god, ten gods, and luck cycles, unpacked across 30,000 characters.",
+      "hubFallbackCta": "Open Life Fortune"
     },
     "love_secret_ai": {
       "fallbackTitle": "Reads your love life through your Saju chart, split into six parts and twenty-eight sections.",
@@ -9980,6 +10236,16 @@
         "0": "It doesn't guarantee an actual meeting or outcome.",
         "1": "The existing payment policy applies.",
         "2": "Fortune results are for reference only."
+      },
+      "badge": "Place reading",
+      "headline": "Look at the grain of the places where your destined connection is most likely to linger.",
+      "resultPreview": {
+        "lines": {
+          "0": "Your connections open in narrow, repeated places rather than wide-open ones.",
+          "1": "As for direction, one side is clearly more favourable, measured from where you live now.",
+          "2": "Meetings land in the periods just off the peak, rather than when the crowds gather."
+        },
+        "caption": "An example of the opening of a real Meeting Place result. After payment you can see the place, direction, and timing readings calculated from your own Saju."
       }
     },
     "rpt_specialCharmCard": {

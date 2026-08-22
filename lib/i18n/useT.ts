@@ -20,6 +20,7 @@ import {
   detectLocale,
   loadDictionary,
   resolveKey,
+  valueAtPath,
 } from "./dictionary";
 
 export type Translate = (key: string, vars?: Record<string, unknown> | null) => string;
@@ -44,10 +45,8 @@ export function useLocale(): RuntimeLocale {
   return locale;
 }
 
-/**
- * @param namespace 기능 네임스페이스. 생략하면 코어 사전(`/i18n/<lang>.json`)을 본다.
- */
-export function useT(namespace?: string): Translate {
+/** 사전 자체를 돌려준다. `useT` 와 `useTPick` 이 같은 로딩·캐시를 공유한다. */
+function useDictionary(namespace?: string): { locale: RuntimeLocale; dictionary: Dictionary | null } {
   const locale = useLocale();
   const key = cacheKey(locale, namespace);
   const [dictionary, setDictionary] = useState<Dictionary | null>(() => ready.get(key) ?? null);
@@ -65,9 +64,43 @@ export function useT(namespace?: string): Translate {
     return () => { cancelled = true; };
   }, [key, locale, namespace]);
 
+  return { locale, dictionary };
+}
+
+/**
+ * @param namespace 기능 네임스페이스. 생략하면 코어 사전(`/i18n/<lang>.json`)을 본다.
+ */
+export function useT(namespace?: string): Translate {
+  const { locale, dictionary } = useDictionary(namespace);
+
   return useCallback(
     (translationKey: string, vars?: Record<string, unknown> | null) =>
       resolveKey(dictionary, translationKey, locale, vars),
     [dictionary, locale],
+  );
+}
+
+export type TranslatePick = (key: string, current: string | undefined) => string | undefined;
+
+/**
+ * 사전에 값이 없으면 **넘긴 원본을 그대로 놓아둔다**.
+ *
+ * `useT` 는 키가 없을 때 `MISSING_TEXT`("번역을 준비 중입니다")를 돌려준다. 그게 맞는
+ * 화면도 있지만, **한국어 원문이 소스에 있고 `ko.json` 은 그 네임스페이스를 아예 갖지
+ * 않는** 데이터(예: `featureMarketing.*` — 한국어는 소스가 정본이라 사전에 없다)에
+ * `useT` 를 쓰면 ko 로케일에서 화면이 통째로 "번역을 준비 중입니다"로 덮인다.
+ * 정적 셸(index.html)의 `_pvwTrKeep` 과 같은 계약을 React 쪽에 준다 — 원본 값이
+ * 비어 있으면 조회 자체를 건너뛰고, 사전에 값이 없으면 원본을 유지한다.
+ */
+export function useTPick(namespace?: string): TranslatePick {
+  const { dictionary } = useDictionary(namespace);
+
+  return useCallback(
+    (translationKey: string, current: string | undefined) => {
+      if (typeof current !== "string" || !current) return current;
+      const value = valueAtPath(dictionary, translationKey);
+      return typeof value === "string" && value ? value : current;
+    },
+    [dictionary],
   );
 }

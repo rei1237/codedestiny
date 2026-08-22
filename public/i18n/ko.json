@@ -1924,7 +1924,18 @@
     "compareFree": "무료",
     "comparePremium": "프리미엄",
     "faqLabel": "자주 묻는 질문",
-    "ctaNoteDefault": "결제 후 바로 결과 화면으로 이동합니다."
+    "ctaNoteDefault": "결제 후 바로 결과 화면으로 이동합니다.",
+    "painPointsLabel": "이런 생각이 들 때 열어보면 좋아요.",
+    "recommendedLabel": "이런 상황이라면 추천해요",
+    "ctaPaid": "결제하고 자세히 보기",
+    "ctaReport": "리포트 확인하기",
+    "ctaNoteFree": "바로 이용할 수 있어요.",
+    "priceFree": "무료",
+    "priceLoading": "가격 확인 중",
+    "priceUnknown": "가격 확인 필요",
+    "accessFree": "무료 기능",
+    "accessPaid": "결제 후 기존 화면으로 이동",
+    "navPending": "열고 있어요…"
   },
   "mbti": {
     "compat": {
