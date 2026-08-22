@@ -9415,6 +9415,315 @@
         "1": "Stats can change through personal effort.",
         "2": "The existing payment policy applies."
       }
+    },
+    "animal-destiny-unlock": {
+      "fallbackTitle": "Meet the animal archetype your Saju's Twelve Life-Stage energy expresses.",
+      "tagline": "This translates your basic Saju flow into an animal temperament, organizing personality, love, career, relationships, and today's mission all at once.",
+      "premiumIntro": "The Animal Test doesn't guarantee an actual transformation -- it's a fun read of which animal's instinct your Saju energy is closest to.",
+      "fallbackCta": "Summon Your Guardian Animal",
+      "feats": {
+        "0": "When you want to understand your Saju personality through a more intuitive animal",
+        "1": "When you want to learn the meaning of the Twelve Life Stages vividly through animal behavior",
+        "2": "When you want to be analyzed at once from three angles -- personality, love, and career"
+      },
+      "premiumAudience": {
+        "0": "Those curious about first-impression compatibility with someone",
+        "1": "Those who want to see temperament through facial impression",
+        "2": "Those looking for a light, fun compatibility check"
+      },
+      "premiumChapters": {
+        "0": "Confirming your guardian-animal archetype",
+        "1": "Personality, love, and career analysis based on animal temperament",
+        "2": "Organizing a compatible-animal type for relationships",
+        "3": "Today's action mission and a pattern to avoid"
+      },
+      "premiumOutcomes": {
+        "0": "The test is analysis for reference only.",
+        "1": "The animal is a symbol, not an absolute standard for classifying personality.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "openJuyukModal": {
+      "fallbackTitle": "Read the shape of your current situation through the hexagram split from a turtle's shell.",
+      "tagline": "An East Asian classical divination that draws the hexagram matching your current position among the 64 hexagrams, telling you when to push forward and when to stop.",
+      "premiumIntro": "Turtle divination doesn't announce fortune or misfortune -- it tells you what phase you're in now and the attitude to take in that phase.",
+      "fallbackCta": "View Turtle Divination",
+      "feats": {
+        "0": "When you don't know whether to push now or wait",
+        "1": "When you want to know what stage the situation is at",
+        "2": "When you need the weighty advice of an old method"
+      },
+      "premiumAudience": {
+        "0": "Those standing at a fork where they must decide to advance or retreat",
+        "1": "Those who want to gauge the timing of a matter",
+        "2": "Those who want a classical interpretation rather than a light divination"
+      },
+      "premiumChapters": {
+        "0": "The hexagram matching your current situation and its meaning",
+        "1": "The distinction between when to advance and when to stop",
+        "2": "The next phase pointed to by the changing line",
+        "3": "A concrete attitude to take in reality"
+      },
+      "premiumOutcomes": {
+        "0": "The divination reading is for reference only.",
+        "1": "The existing payment policy applies.",
+        "2": "Please confirm important decisions alongside real-world judgment."
+      }
+    },
+    "openIfaOracle": {
+      "fallbackTitle": "Receive the message you need right now through an Odu of West African IFÀ.",
+      "tagline": "One of 256 Odu opens, and the story and taboo held within it becomes the answer to your current situation.",
+      "premiumIntro": "The Ifá oracle doesn't list prophecies -- it points out what you should keep and what you should let go of right now.",
+      "fallbackCta": "View Ifá Oracle",
+      "feats": {
+        "0": "When familiar-style advice no longer lands",
+        "1": "When you're curious whether there's a taboo you're missing",
+        "2": "When you want to see your situation through the lens of an unfamiliar tradition"
+      },
+      "premiumAudience": {
+        "0": "Those bored with common fortune-telling methods",
+        "1": "Those who want to know what principle they themselves are breaking",
+        "2": "Those who want to experience an interpretation from a different culture"
+      },
+      "premiumChapters": {
+        "0": "The opened Odu and the story within it",
+        "1": "A message that responds to your current situation",
+        "2": "A taboo to keep and an attitude to avoid",
+        "3": "A concrete action to practice in daily life"
+      },
+      "premiumOutcomes": {
+        "0": "The oracle result is for reference only.",
+        "1": "The existing payment policy applies.",
+        "2": "This content reconstructs a traditional interpretation in a modern form."
+      }
+    },
+    "openRuneOracle": {
+      "fallbackTitle": "Three runes carved in stone point out where you've been, where you are, and where you're headed next.",
+      "tagline": "A reading that places Norse runes into three positions -- past, present, future -- reading the direction of the flow and the obstacle in it, all at once.",
+      "premiumIntro": "The rune reading doesn't announce fate -- it tells you the condition for moving from your current position to the next one.",
+      "fallbackCta": "View Rune Oracle",
+      "feats": {
+        "0": "When you don't know where your current situation started",
+        "1": "When you feel stuck in the same spot",
+        "2": "When you want a short but solid check on the next phase"
+      },
+      "premiumAudience": {
+        "0": "Those who want to see the flow split into past, present, and future",
+        "1": "Those who want short but weighty advice",
+        "2": "Those drawn to Norse symbolism"
+      },
+      "premiumChapters": {
+        "0": "The runes placed in the three positions and their meaning",
+        "1": "The obstacle currently blocking your flow",
+        "2": "The condition for moving into the next phase",
+        "3": "The concrete attitude the runes recommend"
+      },
+      "premiumOutcomes": {
+        "0": "Rune interpretation is for reference only.",
+        "1": "The existing payment policy applies.",
+        "2": "It doesn't fix or guarantee the future."
+      }
+    },
+    "openGeomancyOracle": {
+      "fallbackTitle": "Read the real-world conditions like a calculation, through a figure formed by dots.",
+      "tagline": "A divination method used in medieval Europe that arranges sixteen geomancy figures, weighing the situation and its conditions before emotion.",
+      "premiumIntro": "Geomancy doesn't soothe your feelings -- it first calculates whether your current conditions are favorable or unfavorable.",
+      "fallbackCta": "View Geomancy Reading",
+      "feats": {
+        "0": "When you need a realistic judgment more than emotional comfort",
+        "1": "When you want to sort out the conditions and variables",
+        "2": "When you want to coldly see the likelihood of a result"
+      },
+      "premiumAudience": {
+        "0": "Those who need calculation more than comfort",
+        "1": "Those with a problem tangled in conditions -- money, contracts, moving",
+        "2": "Those who prefer a divination method with figures and rules"
+      },
+      "premiumChapters": {
+        "0": "The figure placed for your question and its nature",
+        "1": "The distinction between favorable and unfavorable conditions",
+        "2": "The direction of the likelihood that things will succeed",
+        "3": "The variable that needs adjusting in reality"
+      },
+      "premiumOutcomes": {
+        "0": "The divination interpretation is for reference only.",
+        "1": "The existing payment policy applies.",
+        "2": "It doesn't substitute for an investment or contract decision."
+      }
+    },
+    "openRoyalTeaOracle": {
+      "fallbackTitle": "Read your current mood and what's coming soon through the shape left by tea leaves in the cup.",
+      "tagline": "In the British tea-reading style, this splits the shapes left at the rim, middle, and bottom of the cup to point out the mood of the near future.",
+      "premiumIntro": "Tea-leaf reading doesn't decide your life -- it lightly reflects the grain of today and the next few days.",
+      "fallbackCta": "View Tea-Leaf Reading",
+      "feats": {
+        "0": "When you want a light way to clear your mind, without heaviness",
+        "1": "When you're curious about the mood of the next few days",
+        "2": "When you want a reading as relaxing as a cup of tea"
+      },
+      "premiumAudience": {
+        "0": "Those who need a light refresh more than a heavy consultation",
+        "1": "Those who just want to know the mood of the near future",
+        "2": "Those who like a cute, delicate style of reading"
+      },
+      "premiumChapters": {
+        "0": "The tea-leaf shape split by position in the cup",
+        "1": "The mood of the coming few days",
+        "2": "The direction your heart is leaning",
+        "3": "A small habit worth keeping today"
+      },
+      "premiumOutcomes": {
+        "0": "The reading result is for reference only.",
+        "1": "The existing payment policy applies.",
+        "2": "This content is for a light mental refresh."
+      }
+    },
+    "openOlympusOracleModal": {
+      "fallbackTitle": "Find out which of the Twelve Olympian gods is on your side right now.",
+      "tagline": "The god who answers changes with the nature of your question, and that god's temperament becomes the attitude you should take now.",
+      "premiumIntro": "The Olympus oracle doesn't predict victory or defeat -- it tells you how you should fight right now.",
+      "fallbackCta": "View Olympus Oracle",
+      "feats": {
+        "0": "When you don't know what approach to push forward with",
+        "1": "When you're unsure where to use your strength",
+        "2": "When you want a reading that comes with a narrative"
+      },
+      "premiumAudience": {
+        "0": "Those who want to decide how to use their own strength",
+        "1": "Those who like a reading with mythological narrative",
+        "2": "Those who want to unlock once and keep opening it"
+      },
+      "premiumChapters": {
+        "0": "The god who answered your question and their temperament",
+        "1": "The attitude required of you right now",
+        "2": "The arrogance and impatience to avoid",
+        "3": "Concrete advice offered by the myth"
+      },
+      "premiumOutcomes": {
+        "0": "The oracle result is for reference only.",
+        "1": "You can view it again after unlocking.",
+        "2": "Please confirm important decisions alongside real-world judgment."
+      }
+    },
+    "openNevilleMeditationPage": {
+      "fallbackTitle": "When your mind is in a hurry but your grip on reality is shaky, try settling your breath for a moment.",
+      "tagline": "A meditation practice that follows Neville Goddard's imagination-training flow, calmly feeling the scene you want.",
+      "premiumIntro": "Neville Meditation doesn't guarantee a change in reality -- it's time to calmly practice holding onto the sensation you want to keep.",
+      "fallbackCta": "Open the Meditation Practice",
+      "feats": {
+        "0": "When you have a direction you want but your emotions won't follow",
+        "1": "When you want to set anxious thoughts down for a while",
+        "2": "When you want to gently sort out recurring self-doubt"
+      },
+      "premiumAudience": {
+        "0": "Those who find it hard to picture their desired scene concretely",
+        "1": "Those who've started meditating before but always let it fizzle out",
+        "2": "Those who want to be shown the practice steps"
+      },
+      "premiumChapters": {
+        "0": "A guided meditation flow",
+        "1": "A stage for stably holding onto the imagined scene",
+        "2": "Time to settle your mind after the meditation",
+        "3": "After payment, moves into the existing meditation screen"
+      },
+      "premiumOutcomes": {
+        "0": "The meditation experience can vary by individual.",
+        "1": "It doesn't substitute for health or psychological treatment.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "openYogaGuru": {
+      "fallbackTitle": "Take a moment to evenly settle the flow of your body and mind.",
+      "tagline": "A yoga guide feature that examines your energy and routine to match your current state.",
+      "premiumIntro": "The yoga guide doesn't guarantee an effect -- it suggests a routine you can reference to settle today's body and mind.",
+      "fallbackCta": "Open the Yoga Guide",
+      "feats": {
+        "0": "When you feel bodily tension and mental scatteredness together",
+        "1": "When you want to pick which routine to start with today",
+        "2": "When you need a practice that gently shifts your energy"
+      },
+      "premiumAudience": {
+        "0": "Those whose body is so stiff even a meditation posture is hard",
+        "1": "Those looking for a breathing method that fits their constitution",
+        "2": "Those who need a routine they can keep up daily, even briefly"
+      },
+      "premiumChapters": {
+        "0": "Checking your current energy type",
+        "1": "Asana and meditation routine guidance",
+        "2": "A summary drawing on chakra flow",
+        "3": "After payment, moves into the existing yoga screen"
+      },
+      "premiumOutcomes": {
+        "0": "This is not medical advice -- please avoid forcing any movement.",
+        "1": "The existing payment policy applies.",
+        "2": "Please check safely according to your body's condition."
+      }
+    },
+    "life_book_ai": {
+      "fallbackTitle": "Opens the still-unturned pages of your life, engraved in the eight characters of your Saju.",
+      "tagline": "The great flow and turning points set at the moment you were born -- a premium expert consultation that unfolds your unique life story like a book.",
+      "premiumIntro": "The Life Book isn't a one-page summary -- it splits the topics above into ten chapters, written in order so each chapter becomes the grounds for the next.",
+      "fallbackCta": "Open My Life's Book",
+      "ctaNote": "Once you enter your birth date and time, it checks pass, monthly-stone, and single-payment eligibility in that order.",
+      "feats": {
+        "0": "Calculates your original Saju chart from your birth date and time and writes ten chapters in order",
+        "1": "Distributes content without overlap so each chapter's grounds carry into the next",
+        "2": "Organizes period-by-period scenes separately based on your Grand Fortune and Yearly Fortune",
+        "3": "Save as PDF from the result screen to view again later"
+      },
+      "premiumAudience": {
+        "0": "Those who need to reset their direction at a turning point in their 30s or 40s",
+        "1": "Those who want to check at the root why the same failure keeps repeating",
+        "2": "Those who want to scan their whole life's flow at once, not a short fortune reading"
+      },
+      "premiumChapters": {
+        "0": "The archetype of your inborn Saju / your personality and how your inner self works",
+        "1": "Talent and career direction / love and relationships / wealth and your material foundation",
+        "2": "The chapter of relationships and family / the balance of health and Johu",
+        "3": "The big scenes of your life seen through Grand Fortune",
+        "4": "Yearly-Fortune advice for the near term",
+        "5": "The final sentence of your life's book"
+      },
+      "premiumOutcomes": {
+        "0": "Pass, monthly-stone, or single-payment status is checked after you enter your birth date and time.",
+        "1": "The consultation result is for reference only.",
+        "2": "The server-registered price applies."
+      },
+      "answersQuestions": {
+        "0": "How does the big thread of my life flow?",
+        "1": "What should I prepare for, and in which period?",
+        "2": "Where did this repeating pattern come from?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "free": "A summary of temperament",
+          "premium": "A book's worth of content split into 10 chapters"
+        },
+        "1": {
+          "axis": "Length",
+          "premium": "10 chapters totaling 15,000+ characters"
+        },
+        "2": {
+          "axis": "Keeping it",
+          "free": "On-screen only",
+          "premium": "Save as PDF to read again later"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Why call it a 'book'?",
+          "a": "Because it's structured to be read chapter by chapter in order, not as a single summary. You need to know the earlier chapter to understand the one after it."
+        },
+        "1": {
+          "q": "How long does generation take?",
+          "a": "It takes time because of the volume. Please wait without closing the screen."
+        },
+        "2": {
+          "q": "Can it be saved as a PDF?",
+          "a": "Yes, you can save it as a PDF from the result screen."
+        }
+      }
     }
   },
   "featureMarketingCategory": {
@@ -9429,7 +9738,9 @@
     "music": "Music",
     "naming": "Naming",
     "meditation": "Meditation",
-    "dream": "Dream Symbols"
+    "dream": "Dream Symbols",
+    "yoga": "Yoga",
+    "life": "Life Myeongni"
   },
   "featureMarketingTrust": {
     "paid": {
