@@ -27,7 +27,7 @@
 
 **아직 안 한 것**: PR #940~953(문서 PR #948 제외 12개 코드 PR) 전부 push·PR 생성까지만 완료, **머지는 사용자 몫**(정책상 자동 머지 안 함). **#953은 #952 위에 스택돼 있으므로 #952를 먼저 머지할 것.** 62개 "3건 이하" 그룹 중 이번 세션이 처리한 파일들을 뺀 나머지는 여전히 미착수다. `docs/handoff/global-i18n-audit-remaining.md`(이 문서) 자체의 "남은 것" 우선순위 표는 2차 세션 기준 그대로라 다음 세션은 이번 세션 완료분(PR #940~947, #949~953 대상 파일)을 표에서 먼저 빼고 재개할 것.
 
-**다음 후보로 조사만 끝낸 것(미착수)**: `app/components/`의 `AppChrome.tsx`(**루트 레이아웃이 모든 라우트에서 렌더하는 전역 셸** — 번역 대상 자체는 2건뿐이지만 블라스트 반경이 크므로 신중하게)만 남았다. `SeoLandingBirthForm.tsx`·`MobileBottomNav.tsx`는 완료(PR #951), nakshatra 클러스터는 완료(PR #952+#953). 같은 조사에서 `FeatureMarketingDetailModal.tsx`(수백 개 한국어 마케팅 카피 + 한국어 키워드로 카테고리/가격 정책을 분류하는 정규식 로직)와 `SunHealingTarot.tsx`(913줄, `lib/tarot/tarot-cards.mjs`의 `nameKo`/`nameEn`과 반드시 일치해야 하는 카드명 사전 내장)도 확인했으나 **둘 다 "콘텐츠 생성/데이터 결합 엔진" 범주라 단순 UI 문구 치환이 아니다** — 착수 시 훨씬 신중한 스코핑이 필요하고, 이번 세션의 "UI 크롬만" 기준으로는 후순위로 밀어도 된다.
+**PR #954**(완료) `chore/app-chrome-i18n` — `app/components/AppChrome.tsx`의 `FeatureBackHomeNav`(전역 셸이 모든 라우트에서 렌더하는 좌상단 뒤로가기/홈 버튼) 2건("이전 페이지로 이동" aria-label, "홈" 버튼 라벨) — 같은 디렉터리의 `GlobalHeader.tsx`가 이미 쓰던 `useLocale()`(`lib/i18n/useT`) 관례를 그대로 재사용해 12로케일 완전 번역. 착수 전 `gh pr list --state open`으로 겹치는 PR 없음을 먼저 확인함(중복 재발 방지 조치). `SeoLandingBirthForm.tsx`·`MobileBottomNav.tsx`는 완료(PR #951), nakshatra 클러스터는 완료(#937). 같은 조사에서 `FeatureMarketingDetailModal.tsx`(수백 개 한국어 마케팅 카피 + 한국어 키워드로 카테고리/가격 정책을 분류하는 정규식 로직)와 `SunHealingTarot.tsx`(913줄, `lib/tarot/tarot-cards.mjs`의 `nameKo`/`nameEn`과 반드시 일치해야 하는 카드명 사전 내장)도 확인했으나 **둘 다 "콘텐츠 생성/데이터 결합 엔진" 범주라 단순 UI 문구 치환이 아니다** — 착수 시 훨씬 신중한 스코핑이 필요하고, 이번 세션의 "UI 크롬만" 기준으로는 후순위로 밀어도 된다.
 
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
 
