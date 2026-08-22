@@ -17,13 +17,7 @@ import { hasLedgerUnlock } from "@/app/_lib/optimistic-unlock-ledger";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
-
-export const ERROR_TEXT = {
-  login: "로그인이 필요해요. 로그인 후 다시 시도해 주세요.",
-  degraded: "연결이 잠시 불안정해요. 잠시 후 다시 시도해 주세요.",
-  failed: "리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
-  payment: "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.",
-} as const;
+import { useNakshatraCopy } from "../_lib/copy";
 
 export interface PremiumProduct {
   featureKey: string;
@@ -94,6 +88,7 @@ export interface UsePremiumReportResult<T> {
 }
 
 export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportResult<T> {
+  const { premium: copy } = useNakshatraCopy();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { unlocked, status: unlockStatus, refetch: refetchUnlocks, markOptimisticallyUnlocked } = useContentUnlock([product.featureKey]);
   const { seed: profileSeed } = useAiProfileSeed();
@@ -154,15 +149,15 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
         return;
       }
       if (status === 402 || data.reason === "PAYMENT_REQUIRED") return;   // 잠금 유지
-      if (status === 401 || data.reason === "LOGIN_REQUIRED") { setError(ERROR_TEXT.login); return; }
-      if (transient) { setError(ERROR_TEXT.degraded); return; }
-      setError(toText(data.message) || ERROR_TEXT.failed);
+      if (status === 401 || data.reason === "LOGIN_REQUIRED") { setError(copy.errorLogin); return; }
+      if (transient) { setError(copy.errorDegraded); return; }
+      setError(toText(data.message) || copy.errorFailed);
     } catch {
-      setError(ERROR_TEXT.failed);
+      setError(copy.errorFailed);
     } finally {
       setLoading(false);
     }
-  }, [birth, loading, product.endpoint]);
+  }, [birth, loading, product.endpoint, copy]);
 
   // 해금 + 생년 정보가 갖춰지면 한 번만 자동으로 본문을 채운다.
   useEffect(() => {
@@ -183,8 +178,8 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
       requestId: `${product.featureKey}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
     });
     if (!result.ok) {
-      if (result.code === "AUTH_REQUIRED" || result.code === "LOGIN_REQUIRED") { setError(ERROR_TEXT.login); return; }
-      if (result.code !== "PAYMENT_CANCELLED") setError(result.message || ERROR_TEXT.payment);
+      if (result.code === "AUTH_REQUIRED" || result.code === "LOGIN_REQUIRED") { setError(copy.errorLogin); return; }
+      if (result.code !== "PAYMENT_CANCELLED") setError(result.message || copy.errorPayment);
       return;
     }
     // 서버 스냅샷 반영 전까지 낙관적으로 열어 둔다(원장에도 기록돼 새로고침·다른 탭에서 유지).
@@ -193,7 +188,7 @@ export function usePremiumReport<T>(product: PremiumProduct): UsePremiumReportRe
     fetchedRef.current = false;
     await load();
     void refetchUnlocks({ force: true });
-  }, [ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, refetchUnlocks]);
+  }, [ensurePaidAccess, isPaying, load, loading, markOptimisticallyUnlocked, product, refetchUnlocks, copy]);
 
   const reload = useCallback(async () => {
     fetchedRef.current = false;

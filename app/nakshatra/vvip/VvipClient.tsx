@@ -16,21 +16,14 @@ import local from "./vvip.module.css";
 import { GenderPrompt, NatalBar, NeedBirth, type ReportSection } from "../_premium/PremiumParts";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
+import { useNakshatraCopy } from "../_lib/copy";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 
 const FEATURE_KEY = "nakshatra-vvip-codex";
 const COIN_PRICE = 300;
 const AMOUNT_KRW = 30000;
 const REASON = "나크샤트라 결정판 VVIP 통합서";
 const ENDPOINT = "/api/nakshatra-premium/vvip-codex";
-
-const GATE_BULLETS = [
-  "제1장 명식 총람 — 숙요·나크샤트라·지배성·파다·기질 삼축을 한 면에",
-  "제2장 세 대가의 목소리 — 숙요 대가 · 베다 대가 · 두 전통을 잇는 통합 해석",
-  "제3장 27수 전체 지형 — 스물일곱 자리 전부와 나의 격각 관계(사람·날짜에 평생 쓰는 지도)",
-  "제4장 지배성 심화 리포트 전문 (단품 10,000원)",
-  "제5장 다샤 인생지도 전문 — 마하 전 구간 + 안타르다샤 90구간 (단품 10,000원)",
-  "PDF 소장본 저장",
-];
 
 interface TerrainRow {
   index: number;
@@ -66,6 +59,7 @@ function asRecord(value: unknown): Record<string, unknown> {
 }
 
 function ChapterView({ chapter }: { chapter: Chapter }) {
+  const { vvip: copy } = useNakshatraCopy();
   return (
     <section className={local.chapter} data-pdf-section aria-labelledby={`ch-${chapter.id}`}>
       <header className={local.chapterHead}>
@@ -85,7 +79,7 @@ function ChapterView({ chapter }: { chapter: Chapter }) {
             <li key={row.index} className={`${local.trow} ${row.isSelf ? local.tself : ""}`}>
               <span className={local.tname}>{row.nameKo}({row.nameHan})</span>
               <span className={local.trole}>{row.role}({row.roleHan})</span>
-              {row.isSelf && <span className={local.tmine}>내 자리</span>}
+              {row.isSelf && <span className={local.tmine}>{copy.myPositionBadge}</span>}
               <span className={local.tgist}>{row.gist}</span>
             </li>
           ))}
@@ -114,6 +108,8 @@ function ChapterView({ chapter }: { chapter: Chapter }) {
 }
 
 export default function VvipClient() {
+  const { vvip: copy } = useNakshatraCopy();
+  const locale = getCurrentLoadingLocale();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const { seed: profileSeed } = useAiProfileSeed();
 
@@ -174,18 +170,18 @@ export default function VvipClient() {
     try {
       const { data, status, transient } = await postPaidBody(ENDPOINT, { ...paid.birth, requestId: paid.requestId });
       if (data.ok && data.report) { setReport(data.report as VvipCodex); setCanRetry(false); return; }
-      if (status === 401) { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); setCanRetry(true); return; }
+      if (status === 401) { setError(copy.errorLoginRequired); setCanRetry(true); return; }
       if (transient) {
-        setError("연결이 잠시 불안정해요. 결제는 그대로 남아 있으니 아래 버튼으로 다시 받아보세요.");
+        setError(copy.errorConnectionUnstableRetry);
         setCanRetry(true);
         return;
       }
-      setError(String(data.message || "통합서를 만들지 못했어요. 잠시 후 다시 시도해 주세요."));
+      setError(String(data.message || copy.errorGenericFailed));
       setCanRetry(true);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [copy]);
 
   const retry = useCallback(async () => {
     if (!paidRef.current || loading) return;
@@ -206,15 +202,15 @@ export default function VvipClient() {
       requestId,
     });
     if (!gate.ok) {
-      if (gate.code === "AUTH_REQUIRED" || gate.code === "LOGIN_REQUIRED") { setError("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
-      if (gate.code !== "PAYMENT_CANCELLED") setError(gate.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+      if (gate.code === "AUTH_REQUIRED" || gate.code === "LOGIN_REQUIRED") { setError(copy.errorLoginRequired); return; }
+      if (gate.code !== "PAYMENT_CANCELLED") setError(gate.message || copy.errorPaymentFailed);
       return;
     }
 
     // 🔴 결제가 끝났다(₩30,000). 여기서부터는 실패해도 재결제를 요구하지 않는다.
     paidRef.current = { birth, requestId };
     await fetchCodex({ birth, requestId });
-  }, [birth, ensurePaidAccess, fetchCodex, isPaying, loading]);
+  }, [birth, ensurePaidAccess, fetchCodex, isPaying, loading, copy]);
 
   const savePdf = useCallback(async () => {
     if (!report || savingPdf) return;
@@ -232,25 +228,26 @@ export default function VvipClient() {
         },
       });
     } catch {
-      setError("PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      setError(copy.errorPdfSaveFailed);
     } finally {
       setSavingPdf(false);
     }
-  }, [report, savingPdf]);
+  }, [report, savingPdf, copy]);
 
-  const meta = report ? `${report.meta.chapterCount}장 · ${report.charCount.toLocaleString()}자` : undefined;
+  const meta = report
+    ? copy.metaTemplate.replace("{count}", String(report.meta.chapterCount)).replace("{chars}", report.charCount.toLocaleString())
+    : undefined;
 
   return (
     <main className={`${styles.vars} ${styles.shell}`}>
       <div className={styles.inner}>
-        <Link href="/nakshatra" className={styles.back}>← 나크샤트라 결정판</Link>
+        <Link href="/nakshatra" className={styles.back}>{copy.backLink}</Link>
 
         <header className={styles.head}>
           <p className={styles.eyebrow}>Nakshatra Codex · VVIP</p>
-          <h1 className={styles.title}>결정판 통합서</h1>
+          <h1 className={styles.title}>{copy.title}</h1>
           <p className={styles.lede}>
-            흩어져 있던 것을 한 권으로 묶습니다. 명식 총람부터 27수 전체 지형, 지배성 심화와
-            120년 다샤 지도까지 — PDF로 소장할 수 있는 한 권입니다.
+            {copy.lede}
           </p>
         </header>
 
@@ -265,22 +262,21 @@ export default function VvipClient() {
           <GenderPrompt
             onPick={setGender}
             busy={isPaying || loading}
-            note="대운은 절기까지의 거리와 성별로 순행·역행이 정해집니다. 근거 없이 한쪽을 고르면 열 개 구간이 통째로 어긋나므로 추측하지 않아요. 지금 골라 두시면 제5장에 동양 대운이 함께 실립니다 — 고르지 않아도 나머지 네 장과 인도 축(비쇼타리)은 그대로 나옵니다."
+            note={copy.genderPromptNote}
           />
         )}
 
         {birth && !report && (
           <div className={styles.gate}>
-            <p className={styles.gatePrice}>30,000원</p>
+            <p className={styles.gatePrice}>{locale === "ko" ? copy.gatePriceKo : copy.gatePriceOther}</p>
             <p className={styles.gateNote}>
-              단품 지배성 리포트(10,000원)와 다샤 인생지도(10,000원)를 통째로 담고,
-              27수 전체 지형과 세 대가의 해설을 더한 소장본입니다.
+              {copy.gateNote}
             </p>
             <ul className={styles.bullets}>
-              {GATE_BULLETS.map((text) => <li key={text}>{text}</li>)}
+              {copy.gateBullets.map((text) => <li key={text}>{text}</li>)}
             </ul>
             <button type="button" className={styles.cta} onClick={() => void run()} disabled={isPaying || loading}>
-              {isPaying ? "결제 진행 중…" : loading ? "한 권으로 엮는 중…" : "통합서 받기"}
+              {isPaying ? copy.buyButtonPaying : loading ? copy.buyButtonBuilding : copy.buyButtonIdle}
             </button>
           </div>
         )}
@@ -289,14 +285,14 @@ export default function VvipClient() {
 
         {canRetry && paidRef.current && !report && (
           <button type="button" className={styles.cta} onClick={() => void retry()} disabled={loading}>
-            {loading ? "다시 받는 중…" : "결제 없이 다시 받기"}
+            {loading ? copy.retryButtonLoading : copy.retryButtonIdle}
           </button>
         )}
 
         {report && (
           <>
-            <nav className={local.toc} aria-label="목차">
-              <p className={local.tocTitle}>목차</p>
+            <nav className={local.toc} aria-label={copy.tocAriaLabel}>
+              <p className={local.tocTitle}>{copy.tocTitle}</p>
               <ul className={local.tocList}>
                 {report.toc.map((item) => (
                   <li key={item.id} className={local.tocItem}>
@@ -311,13 +307,12 @@ export default function VvipClient() {
 
             <div className={local.actions}>
               <button type="button" className={local.pdfBtn} onClick={() => void savePdf()} disabled={savingPdf}>
-                {savingPdf ? "PDF 만드는 중…" : "PDF로 소장하기"}
+                {savingPdf ? copy.pdfButtonSaving : copy.pdfButtonIdle}
               </button>
             </div>
 
             <p className={styles.disclaimer}>
-              시데리얼(라히리) 기준 달의 위치와 27수 전통 속성으로 산출한 해석 자료입니다.
-              출생 시각이 부정확하면 파다와 다샤 경계가 밀릴 수 있습니다. 의료·법률·투자 판단의 근거로 쓰지 마세요.
+              {copy.disclaimer}
             </p>
           </>
         )}

@@ -12,6 +12,7 @@ import {
   cardToFormValues,
   cardChipLabel,
 } from "./nakshatra-birth";
+import { useNakshatraCopy } from "./_lib/copy";
 
 export const NAKSHATRA_RESULT_STORAGE_KEY = "nakshatra:result:v1";
 
@@ -23,6 +24,7 @@ function digits(value: string, max: number): string {
 
 export default function NakshatraFormClient() {
   const router = useRouter();
+  const { form: copy } = useNakshatraCopy();
   const [year, setYear] = useState("");
   const [month, setMonth] = useState("");
   const [day, setDay] = useState("");
@@ -56,7 +58,7 @@ export default function NakshatraFormClient() {
   async function selectCard(card: DestinyProfileCard) {
     const values = await cardToFormValues(card);
     if (!values) {
-      setError("이 프로필 카드에서 생년월일을 읽지 못했어요. 직접 입력해 주세요.");
+      setError(copy.cardMissingBirthDateError);
       return;
     }
     setError(null);
@@ -100,9 +102,9 @@ export default function NakshatraFormClient() {
       setLatitude(lat);
       setLongitude(lng);
       setTimezone((data && data.timezone) || timezone || "Asia/Seoul");
-      setGeoStatus(data && data.fallback === true ? "출생지를 찾지 못해 서울 기준으로 계산합니다." : `✓ ${(data && data.name) || place}`);
+      setGeoStatus(data && data.fallback === true ? copy.geoFallbackSeoulError : `✓ ${(data && data.name) || place}`);
     } catch {
-      setGeoStatus("위치 확인이 잠시 불안정해 서울 기준으로 계산합니다.");
+      setGeoStatus(copy.geoUnstableError);
     } finally {
       setGeocoding(false);
     }
@@ -116,7 +118,7 @@ export default function NakshatraFormClient() {
     const m = Number(month);
     const d = Number(day);
     if (!y || !m || !d || m < 1 || m > 12 || d < 1 || d > 31) {
-      setError("생년월일을 정확히 입력해 주세요.");
+      setError(copy.invalidBirthDateError);
       return;
     }
 
@@ -143,7 +145,7 @@ export default function NakshatraFormClient() {
       });
       const data = await res.json().catch(() => null);
       if (!res.ok || !data || !data.ok) {
-        setError(data && data.message ? data.message : "별의 위치를 계산하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        setError(data && data.message ? data.message : copy.resolveApiError);
         setLoading(false);
         return;
       }
@@ -154,22 +156,22 @@ export default function NakshatraFormClient() {
       }
       router.push("/nakshatra/result");
     } catch {
-      setError("네트워크 오류가 발생했어요. 연결을 확인하고 다시 시도해 주세요.");
+      setError(copy.networkError);
       setLoading(false);
     }
   }
 
   return (
-    <form onSubmit={handleSubmit} className={`${styles.vars} ${styles.formCard}`} aria-label="나크샤트라 결정판 입력">
+    <form onSubmit={handleSubmit} className={`${styles.vars} ${styles.formCard}`} aria-label={copy.formAria}>
       <div className={styles.formHead}>
         <Yantra className={styles.fhSym} />
-        <h2>생년월일로 내 별의 두 이름 보기</h2>
-        <p>저장된 프로필 카드를 고르거나, 직접 입력하세요.</p>
+        <h2>{copy.formTitle}</h2>
+        <p>{copy.formIntro}</p>
       </div>
 
       {cards.length > 0 && (
         <div className={styles.saved}>
-          <div className={styles.savedLab}>저장된 프로필 카드에서 불러오기</div>
+          <div className={styles.savedLab}>{copy.savedCardsLabel}</div>
           <div className={styles.cards}>
             {cards.map((card, index) => {
               const chip = cardChipLabel(card);
@@ -197,63 +199,63 @@ export default function NakshatraFormClient() {
       )}
 
       <fieldset className={styles.fieldset}>
-        <div className={styles.legend}>생년월일 <span className={styles.tag}>양력</span></div>
+        <div className={styles.legend}>{copy.birthDateLegend} <span className={styles.tag}>{copy.solarTag}</span></div>
         <div className={styles.grid3}>
           <div className={styles.fld}>
-            <label htmlFor="nk-year">연도</label>
+            <label htmlFor="nk-year">{copy.yearLabel}</label>
             <input id="nk-year" inputMode="numeric" placeholder={String(nowYear - 30)} value={year}
               onChange={(e) => { setYear(digits(e.target.value, 4)); setSelectedCardId(null); }} />
           </div>
           <div className={styles.fld}>
-            <label htmlFor="nk-month">월</label>
+            <label htmlFor="nk-month">{copy.monthLabel}</label>
             <input id="nk-month" inputMode="numeric" placeholder="1~12" value={month}
               onChange={(e) => { setMonth(digits(e.target.value, 2)); setSelectedCardId(null); }} />
           </div>
           <div className={styles.fld}>
-            <label htmlFor="nk-day">일</label>
+            <label htmlFor="nk-day">{copy.dayLabel}</label>
             <input id="nk-day" inputMode="numeric" placeholder="1~31" value={day}
               onChange={(e) => { setDay(digits(e.target.value, 2)); setSelectedCardId(null); }} />
           </div>
         </div>
-        {lunarNote && <div className={styles.note}>선택한 카드가 음력이라 양력으로 변환해 채웠어요.</div>}
+        {lunarNote && <div className={styles.note}>{copy.lunarConvertedNote}</div>}
       </fieldset>
 
       <fieldset className={styles.fieldset}>
-        <div className={styles.legend}>태어난 시각 <span className={styles.tag}>모르면 정오 기준 · 파다 생략</span></div>
+        <div className={styles.legend}>{copy.birthTimeLegend} <span className={styles.tag}>{copy.birthTimeHint}</span></div>
         <div className={styles.grid2}>
           <div className={styles.fld}>
-            <label htmlFor="nk-hour">시 (0~23)</label>
+            <label htmlFor="nk-hour">{copy.hourLabel}</label>
             <input id="nk-hour" inputMode="numeric" placeholder="14" disabled={timeUnknown} value={hour}
               onChange={(e) => setHour(digits(e.target.value, 2))} />
           </div>
           <div className={styles.fld}>
-            <label htmlFor="nk-minute">분 (0~59)</label>
+            <label htmlFor="nk-minute">{copy.minuteLabel}</label>
             <input id="nk-minute" inputMode="numeric" placeholder="30" disabled={timeUnknown} value={minute}
               onChange={(e) => setMinute(digits(e.target.value, 2))} />
           </div>
         </div>
         <label className={styles.check}>
           <input type="checkbox" checked={timeUnknown} onChange={(e) => setTimeUnknown(e.target.checked)} />
-          태어난 시간을 몰라요
+          {copy.timeUnknownLabel}
         </label>
       </fieldset>
 
       <fieldset className={styles.fieldset}>
-        <div className={styles.legend}>태어난 지역</div>
+        <div className={styles.legend}>{copy.birthPlaceLegend}</div>
         <div className={styles.fld}>
           <input id="nk-place" list="nk-place-presets" value={birthPlace}
             onChange={(e) => applyPlaceValue(e.target.value)} onBlur={() => void handlePlaceBlur()}
-            placeholder="예: 서울, 부산 해운대구, Tokyo, New York" />
+            placeholder={copy.birthPlacePlaceholder} />
           <datalist id="nk-place-presets">
             {PLACE_PRESETS.map((place) => <option key={place.label} value={place.label} />)}
           </datalist>
           <small className={styles.geoStatus}>
-            {geocoding ? "위치 확인 중…" : geoStatus || "출생지를 적으면 정확한 타임존·경도로 별의 자리를 맞춥니다."}
+            {geocoding ? copy.geocodingStatus : geoStatus || copy.birthPlaceHintDefault}
           </small>
         </div>
         <div className={styles.note}>
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="9" /><path d="M12 8v5M12 16h.01" /></svg>
-          출생지의 정확한 타임존·경도로 달의 위치를 정밀 계산합니다. (해외 출생도 정확)
+          {copy.birthPlaceHintNote}
         </div>
       </fieldset>
 
@@ -261,9 +263,9 @@ export default function NakshatraFormClient() {
 
       <button type="submit" disabled={loading} className={styles.submit}>
         <Spark className={styles.spark} />
-        {loading ? "별을 읽는 중…" : "내 별의 두 이름 확인하기"}
+        {loading ? copy.submitLoading : copy.submitIdle}
       </button>
-      <p className={styles.disclaimer}>전통 별자리 문화 콘텐츠이며, 의료·법률·투자 판단의 근거로 사용할 수 없습니다.</p>
+      <p className={styles.disclaimer}>{copy.disclaimer}</p>
     </form>
   );
 }

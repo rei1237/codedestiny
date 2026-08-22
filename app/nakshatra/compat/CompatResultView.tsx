@@ -1,5 +1,7 @@
 "use client";
 
+import { useNakshatraCopy } from "../_lib/copy";
+
 interface CompatItem { key: string; label: string; score: number; max: number; note?: string }
 interface PersonSummary { nakshatraKo: string | null; sukuyoKo: string | null; sukuyoHan: string | null }
 
@@ -33,29 +35,32 @@ function Bar({ label, score, max, note }: { label: string; score: number; max: n
 }
 
 export default function CompatResultView({ result, onReset }: { result: CompatResult; onReset: () => void }) {
+  const { compat: copy } = useNakshatraCopy();
   const { personA, personB, india, dongyang, unified } = result;
   return (
     <div className="mx-auto w-full max-w-3xl">
       <header className="rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 text-center">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-100/70">동서 통합 궁합</p>
+        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-100/70">{copy.resultEyebrow}</p>
         <h2 className="mt-3 break-keep text-2xl font-bold text-slate-50 md:text-3xl">
           <span className="text-blue-100">{personA.sukuyoKo}({personA.sukuyoHan}) · {personA.nakshatraKo}</span>
           <span className="mx-2 text-rose-200">♥</span>
           <span className="text-amber-100">{personB.sukuyoKo}({personB.sukuyoHan}) · {personB.nakshatraKo}</span>
         </h2>
         <p className="mt-3 text-lg font-bold text-rose-100">{unified.verdict} · {unified.blendedPct}점</p>
-        <p className="mt-1 text-xs text-slate-300">인도 아쉬타쿠타 {unified.indiaPct} · 동양 숙요 {unified.eastPct}</p>
+        <p className="mt-1 text-xs text-slate-300">
+          {copy.indiaScoreNote.replace("{indiaPct}", String(unified.indiaPct)).replace("{eastPct}", String(unified.eastPct))}
+        </p>
       </header>
 
       <section className="mt-4 rounded-2xl border border-rose-300/25 bg-rose-500/[0.06] p-5 md:p-6">
-        <h3 className="text-base font-bold text-rose-100">⟡ 통합 총평</h3>
+        <h3 className="text-base font-bold text-rose-100">{copy.convergenceHeading}</h3>
         <p className="mt-2 break-keep text-sm leading-7 text-slate-100">{unified.convergence}</p>
         <p className="mt-2 break-keep text-sm leading-7 text-slate-100">{unified.divergence}</p>
       </section>
 
       <section className="mt-4 rounded-2xl border border-amber-300/20 bg-amber-500/[0.05] p-5 md:p-6">
         <div className="flex items-baseline justify-between">
-          <h3 className="text-base font-bold text-amber-100">🕉 인도 아쉬타쿠타</h3>
+          <h3 className="text-base font-bold text-amber-100">{copy.indiaHeading}</h3>
           <span className="text-sm font-bold text-amber-100">{india.total}<span className="text-xs text-slate-300">/{india.max} · {india.pct}%</span></span>
         </div>
         <p className="mt-1 text-sm text-slate-200">{india.verdict}</p>
@@ -69,14 +74,14 @@ export default function CompatResultView({ result, onReset }: { result: CompatRe
 
       {dongyang && (
         <section className="mt-4 rounded-2xl border border-blue-400/20 bg-blue-500/[0.06] p-5 md:p-6">
-          <h3 className="text-base font-bold text-blue-100">☯ 동양 숙요 격각</h3>
+          <h3 className="text-base font-bold text-blue-100">{copy.easternHeading}</h3>
           <p className="mt-1 text-sm text-slate-200">
             관계 유형 <span className="font-semibold text-blue-100">{dongyang.relationType}({dongyang.relationTypeHan})</span> · {dongyang.distanceLabel}
           </p>
           <div className="mt-3 grid grid-cols-3 gap-2 text-center">
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3"><p className="text-xs text-slate-300">끌림</p><p className="mt-1 text-lg font-bold text-blue-100">{dongyang.chemistryScore}</p></div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3"><p className="text-xs text-slate-300">안정</p><p className="mt-1 text-lg font-bold text-blue-100">{dongyang.stabilityScore}</p></div>
-            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3"><p className="text-xs text-slate-300">갈등</p><p className="mt-1 text-lg font-bold text-rose-200">{dongyang.conflictScore}</p></div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3"><p className="text-xs text-slate-300">{copy.chemistryLabel}</p><p className="mt-1 text-lg font-bold text-blue-100">{dongyang.chemistryScore}</p></div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3"><p className="text-xs text-slate-300">{copy.stabilityLabel}</p><p className="mt-1 text-lg font-bold text-blue-100">{dongyang.stabilityScore}</p></div>
+            <div className="rounded-xl border border-white/10 bg-white/[0.04] p-3"><p className="text-xs text-slate-300">{copy.conflictLabel}</p><p className="mt-1 text-lg font-bold text-rose-200">{dongyang.conflictScore}</p></div>
           </div>
           {dongyang.roleActionGuide && (
             <div className="mt-3 space-y-1.5 text-sm leading-7 text-slate-100">
@@ -89,11 +94,10 @@ export default function CompatResultView({ result, onReset }: { result: CompatRe
       )}
 
       <button onClick={onReset} className="mt-5 inline-flex min-h-11 w-full items-center justify-center rounded-xl border border-white/15 bg-white/[0.04] px-5 text-sm font-semibold text-amber-100 transition hover:border-amber-200/50">
-        다른 상대와 다시 보기
+        {copy.resetButton}
       </button>
       <p className="mt-3 text-center text-xs leading-6 text-slate-300">
-        아쉬타쿠타는 달 라시 기반 정통 8쿠타(36점), 격각은 숙요 27수 관계법으로 계산했습니다.
-        전통 별자리 문화 콘텐츠이며 의료·법률·투자 판단의 근거로 쓸 수 없습니다.
+        {copy.resultFooterNote}
       </p>
     </div>
   );
