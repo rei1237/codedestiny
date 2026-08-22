@@ -1,0 +1,182 @@
+/* BodyGraph SVG 스타일.
+ *
+ * 🔴 토큰을 이 파일 안에서 무조건부로 선언한다. 배경만 어둡게 칠하고 잉크는 스킴에 따라
+ *    뒤집히는 토큰을 쓰면 라이트 모드에서 반쪽 오버라이드가 되어 대비가 무너진다
+ *    (verify:hero-contrast 가 잡는 형태). 여기는 자기 배경을 직접 칠하는 요소이므로
+ *    표면·잉크·강조색을 한 세트로 고정한다. */
+
+.wrap {
+  --hd-surface: #0b0a18;
+  --hd-surface-soft: rgba(255, 255, 255, 0.04);
+  --hd-ink: #f3f1ff;
+  --hd-ink-dim: #b9b3d8;
+  --hd-idle: rgba(190, 184, 224, 0.32);
+  --hd-personality: #c4b5fd;
+  --hd-design: #f0a860;
+  --hd-mixed: #7dd3fc;
+  --hd-defined-fill: rgba(196, 181, 253, 0.16);
+  --hd-defined-stroke: #c4b5fd;
+  --hd-undefined-stroke: rgba(190, 184, 224, 0.42);
+  --hd-focus: #ffe6a8;
+
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.svg {
+  width: 100%;
+  max-width: 420px;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.caption {
+  color: var(--hd-ink-dim);
+  font-size: 0.8125rem;
+  text-align: center;
+  line-height: 1.5;
+}
+
+/* ── 채널 ─────────────────────────────────────────────── */
+
+.channel {
+  cursor: default;
+}
+
+.channelComplete {
+  cursor: pointer;
+}
+
+.hit {
+  stroke: transparent;
+  stroke-width: 16;
+  fill: none;
+}
+
+/* 🔴 굵기(stroke-width)와 반지름(r)은 트랜지션하지 않는다 — SVG 페인트 속성이라 매 프레임
+   리페인트를 부르고, 호버 굵기는 즉시 바뀌는 편이 더 반응적으로 느껴진다. 색만 부드럽게 바꾼다. */
+.half {
+  stroke-width: 5;
+  stroke-linecap: round;
+  fill: none;
+  transition: stroke 160ms ease;
+}
+
+.half.inactive {
+  stroke: var(--hd-idle);
+  stroke-width: 3;
+}
+
+.half.personality { stroke: var(--hd-personality); }
+.half.design { stroke: var(--hd-design); }
+.half.mixed { stroke: var(--hd-mixed); }
+
+.channel.selected .half {
+  stroke: var(--hd-focus);
+  stroke-width: 7;
+}
+
+.channelComplete:hover .half,
+.channelComplete:focus-visible .half {
+  stroke-width: 7;
+}
+
+/* ── 센터 ─────────────────────────────────────────────── */
+
+.center {
+  cursor: pointer;
+  stroke-width: 2.5;
+  stroke-linejoin: round;
+  transition: fill 160ms ease, stroke 160ms ease;
+}
+
+.centerDefined {
+  fill: var(--hd-defined-fill);
+  stroke: var(--hd-defined-stroke);
+}
+
+.centerUndefined {
+  fill: var(--hd-surface-soft);
+  stroke: var(--hd-undefined-stroke);
+  stroke-dasharray: 5 5;
+}
+
+.center:hover,
+.center:focus-visible {
+  stroke: var(--hd-focus);
+}
+
+.center.selected {
+  stroke: var(--hd-focus);
+  stroke-width: 4;
+  stroke-dasharray: none;
+}
+
+/* ── 게이트 ───────────────────────────────────────────── */
+
+.gate {
+  cursor: default;
+}
+
+.gateActive {
+  cursor: pointer;
+}
+
+.gateHit {
+  fill: transparent;
+}
+
+.gateDot {
+  stroke-width: 1.5;
+  transition: fill 160ms ease, stroke 160ms ease;
+}
+
+.gateIdle .gateDot {
+  fill: var(--hd-surface);
+  stroke: var(--hd-idle);
+}
+
+.gateActive.personality .gateDot { fill: var(--hd-personality); stroke: var(--hd-personality); }
+.gateActive.design .gateDot { fill: var(--hd-design); stroke: var(--hd-design); }
+.gateActive.mixed .gateDot { fill: var(--hd-mixed); stroke: var(--hd-mixed); }
+
+.gateLabel {
+  font-size: 9px;
+  font-weight: 700;
+  text-anchor: middle;
+  pointer-events: none;
+  fill: var(--hd-ink-dim);
+}
+
+/* 활성 게이트의 점은 밝은 색이므로 숫자는 어두운 잉크여야 읽힌다.
+   (밝은 배경 + 밝은 글씨의 반쪽 오버라이드를 만들지 않기 위한 짝) */
+.gateActive .gateLabel {
+  fill: #17132c;
+}
+
+.gate.selected .gateDot {
+  stroke: var(--hd-focus);
+  stroke-width: 3;
+}
+
+.gateActive:hover .gateDot,
+.gateActive:focus-visible .gateDot {
+  stroke: var(--hd-focus);
+  stroke-width: 3;
+}
+
+.svg :focus-visible {
+  outline: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .half,
+  .center,
+  .gateDot {
+    transition: none;
+  }
+}

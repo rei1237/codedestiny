@@ -1,0 +1,64 @@
+name: Main drift watchdog
+
+# main 에 착지한 **조합**을 검사한다. PR CI 는 각 브랜치를 base 와 합친 상태로 검사하지만,
+# 두 PR 이 각각은 깨끗한데 합친 결과만 어긋나는 경우는 아무도 보지 않는다. 2026-08-22 에
+# 그 클래스를 브랜치 룰셋의 strict(머지 전 base 최신화 강제)로 막으려 했는데, 열린 PR 이
+# 스무 개를 넘으면 PR 마다 "Update branch" + 재CI(4~11분) 가 붙어 몇 시간이 든다.
+# 2026-08-23 에 strict 를 끄면서 그 자리를 이 워치독이 대신한다.
+#
+# 🔴 이것은 머지 게이트가 아니다 — 이미 머지된 main 을 보고 실패로 알린다. 막지는 못하지만,
+# 드리프트가 "한참 뒤 무관한 PR 이 빨간불이 되는" 형태로 발견되던 것을 몇 분 안의 실패
+# 알림으로 바꾼다(실제 사고: PR #928 이 남긴 낡은 미러를 #932 에서야 발견, #935 로 수습).
+#
+# 🔴 npm ci 를 돌리지 않는다. 두 검증기와 그 생성기는 node: 내장 모듈과 scripts/lib 만 쓴다
+#    (sync-legacy-static-to-public.mjs 의 벤더 복사는 node_modules 가 없으면 스스로 건너뛰고,
+#    가드는 애초에 벤더 사본으로 실패시키지 않는다). 설치를 빼서 잡이 1분 아래로 끝난다.
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# 연속 머지 때 앞선 실행을 취소해도 안전하다 — 뒤 커밋은 앞 커밋을 포함하므로, 드리프트가
+# 남아 있으면 새 실행에서 그대로 걸린다. (배포 워크플로와 달리 이 잡은 아무것도 내보내지
+# 않으므로, 취소가 "하지 않은 배포" 로 남는 문제가 없다.)
+concurrency:
+  group: main-drift-watchdog
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  drift:
+    name: Main drift
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      # 생성기를 실제로 돌려 커밋된 public/ 미러와 대조한다. 손으로 관리하는 목록이 아니라
+      # 정본 생성기의 출력이므로 미러가 늘어도 자동으로 덮인다.
+      - name: Verify public mirrors are fresh
+        run: npm run verify:public-mirror-fresh
+
+      # 로케일 홈이 정본 index.html 과 같은 마커를 들고 있는지. 릴리스 잡에도 있지만 거기는
+      # 사람이 프로덕션 승격을 눌렀을 때뿐이라, 컷오버 이후 그 사이가 며칠씩 비어 있다.
+      - name: Verify locale mirrors match main
+        run: npm run verify:locale-main-sync
+
+      - name: Explain the failure
+        if: failure()
+        run: |
+          {
+            echo "### main 드리프트 감지"
+            echo ""
+            echo "- 커밋: \`${GITHUB_SHA}\`"
+            echo "- 고치는 법: 브랜치를 하나 파서 \`npm run sync:public\` 을 돌리고 결과를 커밋해 PR 로 올릴 것."
+            echo "- 🔴 지금 main 이 이 상태이므로, 이후 모든 PR 의 \`Typecheck and lint\` 잡도 같은 이유로 빨간불이 된다."
+          } >> "$GITHUB_STEP_SUMMARY"
