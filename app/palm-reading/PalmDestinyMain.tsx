@@ -18,71 +18,7 @@ import palmUiState from "@/lib/palm/palm-ui-state";
 import { buildPalmInterpretationReport } from "@/lib/palm/interpretation-engine";
 import { holdPaidFeatureGateOpen, openPaidFeatureGate, releasePaidFeatureGate, runBillingCoinGate, updatePaidFeatureGate } from "@/app/_lib/billing-client";
 import { resolveServerFeaturePricing } from "@/lib/payment/server-feature-pricing";
-
-const PALM_DESTINY_TEXT_TRANSLATIONS = {
-  ko: {
-    "palmDestiny.label.001": "선천적 손",
-    "palmDestiny.description.001": "타고난 기질과 잠재력을 보여주는 손",
-    "palmDestiny.label.002": "후천적 손",
-    "palmDestiny.description.002": "현재의 성향과 살아온 흐름을 보여주는 손",
-    "palmDestiny.label.003": "선후천 혼합 손",
-    "palmDestiny.description.003": "선천성과 후천성이 함께 반영된 손",
-    "palmDestiny.label.004": "미확정",
-    "palmDestiny.description.004": "주로 쓰는 손 선택 후 판별됩니다.",
-    "palmDestiny.label.005": "오른손",
-    "palmDestiny.label.006": "왼손",
-    "palmDestiny.label.007": "양손",
-    "palmDestiny.label.008": "사진 흐름",
-    "palmDestiny.label.009": "길이",
-    "palmDestiny.label.010": "깊이",
-    "palmDestiny.label.011": "곡선",
-    "palmDestiny.label.012": "변화",
-    "palmDestiny.label.013": "상태",
-    "palmDestiny.label.014": "길이",
-    "palmDestiny.label.015": "방향",
-    "palmDestiny.label.016": "시작",
-    "palmDestiny.label.017": "변화",
-    "palmDestiny.label.018": "상태",
-    "palmDestiny.label.019": "길이",
-    "palmDestiny.label.020": "곡선",
-    "palmDestiny.label.021": "끝맺음",
-    "palmDestiny.label.022": "변화",
-    "palmDestiny.label.023": "상태",
-    "palmDestiny.label.024": "전환",
-    "palmDestiny.label.025": "상태",
-    "palmDestiny.label.026": "표현력",
-    "palmDestiny.label.027": "리딩",
-    "palmDestiny.label.028": "재물 흐름",
-    "palmDestiny.label.029": "리딩",
-    "palmDestiny.label.030": "관계 흐름",
-    "palmDestiny.label.031": "리딩",
-    "palmDestiny.label.032": "손 형태",
-    "palmDestiny.label.033": "중심 포인트",
-    "palmDestiny.label.034": "전체 결",
-    "palmDestiny.title.001": "🌟 전체 운세",
-    "palmDestiny.title.002": "💗 연애운",
-    "palmDestiny.title.003": "💰 재물운",
-    "palmDestiny.title.004": "🧭 직업운",
-    "palmDestiny.title.005": "✨ 성격/매력",
-    "palmDestiny.title.006": "🤝 관계운",
-    "palmDestiny.message.001": "알 수 없는 오류",
-    "palmDestiny.message.002": "이용권 확인 중",
-    "palmDestiny.message.003": "손바닥 전체가 화면에 들어오지 않았습니다.",
-    "palmDestiny.message.004": "요청이 취소되었습니다.",
-    "palmDestiny.message.005": "네트워크/API 오류로 분석 요청에 실패했습니다.",
-    "palmDestiny.error.001": "분석 결과 데이터가 준비되지 않았습니다.",
-    "palmDestiny.message.006": "이용권 확인 중",
-    "palmDestiny.error.002": "전문가 상담 생성 결과가 비어 있습니다. 잠시 후 다시 시도해 주세요.",
-    "palmDestiny.error.003": "전문가 상담 API 연결이 일시적으로 불안정합니다. 잠시 후 다시 시도해 주세요.",
-    "palmDestiny.aria-label.001": "손바닥 바로 촬영하기",
-    "palmDestiny.aria-label.002": "앨범에서 사진 선택하기",
-    "palmDestiny.alt.001": "선택된 손바닥 미리보기",
-  },
-} as const;
-
-function palmDestinyText(key: keyof typeof PALM_DESTINY_TEXT_TRANSLATIONS.ko) {
-  return PALM_DESTINY_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
-}
+import { usePalmDestinyCopy, type PalmDestinyCopy } from "./_lib/copy";
 
 type HandSide = "left" | "right";
 type DominantHand = PalmDominantHand;
@@ -277,24 +213,14 @@ const {
   revokeObjectUrls: (urls: Array<string | null | undefined>, revokeFn?: (url: string) => void) => number;
 };
 
-const HAND_ROLE_META: Record<HandRole, { label: string; description: string }> = {
-  innate: {
-    label: palmDestinyText("palmDestiny.label.001"),
-    description: palmDestinyText("palmDestiny.description.001"),
-  },
-  acquired: {
-    label: palmDestinyText("palmDestiny.label.002"),
-    description: palmDestinyText("palmDestiny.description.002"),
-  },
-  mixed: {
-    label: palmDestinyText("palmDestiny.label.003"),
-    description: palmDestinyText("palmDestiny.description.003"),
-  },
-  unknown: {
-    label: palmDestinyText("palmDestiny.label.004"),
-    description: palmDestinyText("palmDestiny.description.004"),
-  },
-};
+function buildHandRoleMeta(copy: PalmDestinyCopy): Record<HandRole, { label: string; description: string }> {
+  return {
+    innate: { label: copy.handRoleLabelInnate, description: copy.handRoleDescInnate },
+    acquired: { label: copy.handRoleLabelAcquired, description: copy.handRoleDescAcquired },
+    mixed: { label: copy.handRoleLabelMixed, description: copy.handRoleDescMixed },
+    unknown: { label: copy.handRoleLabelUnknown, description: copy.handRoleDescUnknown },
+  };
+}
 
 const DEFAULT_ANALYSIS_PURPOSE: AnalysisPurpose = "general";
 
@@ -312,34 +238,21 @@ const PALM_BILLING_PRICING = resolveServerFeaturePricing({
   subFeatureKey: PALM_BILLING_SUB_FEATURE_KEY,
 });
 
-const DOMINANT_HAND_OPTIONS: Array<{ value: DominantHand; label: string }> = [
-  { value: "right", label: palmDestinyText("palmDestiny.label.005") },
-  { value: "left", label: palmDestinyText("palmDestiny.label.006") },
-  { value: "both", label: palmDestinyText("palmDestiny.label.007") },
-];
+function buildDominantHandOptions(copy: PalmDestinyCopy): Array<{ value: DominantHand; label: string }> {
+  return [
+    { value: "right", label: copy.dominantHandLabelRight },
+    { value: "left", label: copy.dominantHandLabelLeft },
+    { value: "both", label: copy.dominantHandLabelBoth },
+  ];
+}
 
-const DOMINANT_HAND_HINT_LABEL: Record<DominantHand, string> = {
-  right: "오른손 중심 해석",
-  left: "왼손 중심 해석",
-  both: "양손 균형 해석",
-};
-
-const SHOOTING_GUIDES = [
-  "손바닥을 활짝 펴고 손목까지 함께 담아 주세요.",
-  "손가락을 자연스럽게 벌려 서로 겹치지 않게 해 주세요.",
-  "창가나 밝은 조명 아래에서, 정면 플래시는 끄고 촬영해 주세요.",
-  "손바닥이 화면 중앙을 꽉 채우도록 가까이 찍어 주세요.",
-  "손등이 아니라 손금이 있는 손바닥 면을 촬영해 주세요.",
-  "손을 카메라와 나란히 두어 기울어지지 않게 해 주세요.",
-  "초점이 맞아 잔주름까지 보이는지 확인하고 촬영해 주세요.",
-];
-
-const LOADING_PHASES = [
-  "손바닥 윤곽을 확인하고 있습니다.",
-  "생명선·감정선·지능선을 찾고 있습니다.",
-  "손의 형태와 전체 흐름을 분석하고 있습니다.",
-  "카테고리별 상담 결과를 정리하고 있습니다.",
-];
+function buildDominantHandHintLabel(copy: PalmDestinyCopy): Record<DominantHand, string> {
+  return {
+    right: copy.dominantHandHintRight,
+    left: copy.dominantHandHintLeft,
+    both: copy.dominantHandHintBoth,
+  };
+}
 
 const MAX_UPLOAD_FILE_BYTES = 25 * 1024 * 1024;
 const MAX_IMAGE_DIMENSION = 2048;
@@ -514,7 +427,7 @@ async function resizeImageIfNeeded(file: File): Promise<File> {
   }
 }
 
-async function analyzeImageQuality(file: File): Promise<PalmImageQualityFeedback | null> {
+async function analyzeImageQuality(file: File, copy: PalmDestinyCopy): Promise<PalmImageQualityFeedback | null> {
   const renderer = await createImageRenderer(file);
   try {
     const width = renderer.width;
@@ -572,20 +485,20 @@ async function analyzeImageQuality(file: File): Promise<PalmImageQualityFeedback
     const score = Object.values(checks).filter(Boolean).length;
     const confidence: QualityConfidence = score >= 5 ? "높음" : score >= 3 ? "보통" : "낮음";
     const warnings = [
-      !checks.resolution ? "해상도가 낮아 세부 손금 인식이 제한될 수 있습니다." : null,
-      !checks.brightness ? "사진 밝기가 너무 어둡거나 밝습니다." : null,
-      !checks.sharpness ? "사진이 흔들렸거나 초점이 흐릴 수 있습니다." : null,
-      !checks.palmLikely ? "손바닥 구도가 기울어 손금 영역 추정이 어렵습니다." : null,
-      !checks.fullPalmLikely ? "손목부터 손가락 끝까지 전체가 보이도록 촬영해 주세요." : null,
-      !checks.glareLow ? "빛 반사가 강해 일부 선이 가려질 수 있습니다." : null,
+      !checks.resolution ? copy.qualityWarningResolution : null,
+      !checks.brightness ? copy.qualityWarningBrightness : null,
+      !checks.sharpness ? copy.qualityWarningSharpness : null,
+      !checks.palmLikely ? copy.qualityWarningPalmLikely : null,
+      !checks.fullPalmLikely ? copy.qualityWarningFullPalmLikely : null,
+      !checks.glareLow ? copy.qualityWarningGlareLow : null,
     ].filter((item): item is string => Boolean(item));
 
     const summary =
       confidence === "높음"
-        ? "분석 확신도 높음"
+        ? copy.qualityConfidenceSummaryHigh
         : confidence === "보통"
-        ? "분석 확신도 보통"
-        : "분석 확신도 낮음: 사진의 빛이나 초점이 약해 일부 흐름은 참고용으로 읽습니다.";
+        ? copy.qualityConfidenceSummaryMedium
+        : copy.qualityConfidenceSummaryLow;
 
     return {
       confidence,
@@ -1075,25 +988,29 @@ async function computeFileSignature(file: File): Promise<string> {
   return base;
 }
 
-const CARD_KEY_TO_LABEL: Record<PalmCardKey, string> = {
-  lifeLine: "🌱 에너지",
-  headLine: "🧠 생각",
-  heartLine: "💗 연애",
-  fateLine: "🧭 진로",
-  sunLine: "✨ 매력",
-  moneyLine: "💰 재물",
-  marriageLine: "🤝 관계",
-  mounts: "🌟 종합",
-};
+function buildCardKeyToLabel(copy: PalmDestinyCopy): Record<PalmCardKey, string> {
+  return {
+    lifeLine: copy.cardLabelLifeLine,
+    headLine: copy.cardLabelHeadLine,
+    heartLine: copy.cardLabelHeartLine,
+    fateLine: copy.cardLabelFateLine,
+    sunLine: copy.cardLabelSunLine,
+    moneyLine: copy.cardLabelMoneyLine,
+    marriageLine: copy.cardLabelMarriageLine,
+    mounts: copy.cardLabelMounts,
+  };
+}
 
-const PURPOSE_LABEL_BY_KEY: Record<AnalysisPurpose, string> = {
-  general: "전체 운세",
-  love: "연애운",
-  wealth: "재물운",
-  career: "직업운",
-  personality: "성격 분석",
-  relationship: "관계 패턴",
-};
+function buildPurposeLabelByKey(copy: PalmDestinyCopy): Record<AnalysisPurpose, string> {
+  return {
+    general: copy.purposeLabelGeneral,
+    love: copy.purposeLabelLove,
+    wealth: copy.purposeLabelWealth,
+    career: copy.purposeLabelCareer,
+    personality: copy.purposeLabelPersonality,
+    relationship: copy.purposeLabelRelationship,
+  };
+}
 
 const LINE_TO_CARD_KEY: Record<OverlayLineKey, PalmCardKey> = {
   lifeLine: "lifeLine",
@@ -1135,24 +1052,25 @@ function extractConsultText(payload: unknown): string {
   return typeof direct === "string" ? direct.trim() : "";
 }
 
-function normalizeInterpretation(payload: unknown): PalmInterpretationPayload | null {
+function normalizeInterpretation(payload: unknown, copy: PalmDestinyCopy): PalmInterpretationPayload | null {
   if (!payload || typeof payload !== "object") return null;
   const rec = payload as Record<string, unknown>;
   if (!Array.isArray(rec.cards)) return null;
+  const cardKeyToLabel = buildCardKeyToLabel(copy);
 
   const cards: PalmInterpretationCard[] = rec.cards
     .map((item) => {
       if (!item || typeof item !== "object") return null;
       const row = item as Record<string, unknown>;
       const key = String(row.key || "") as PalmCardKey;
-      if (!(key in CARD_KEY_TO_LABEL)) return null;
+      if (!(key in cardKeyToLabel)) return null;
       const emphasisScore =
         typeof row.emphasisScore === "number" && Number.isFinite(row.emphasisScore)
           ? row.emphasisScore
           : undefined;
       return {
         key,
-        title: String(row.title || CARD_KEY_TO_LABEL[key]),
+        title: String(row.title || cardKeyToLabel[key]),
         oneLiner: String(row.oneLiner || ""),
         details: Array.isArray(row.details) ? row.details.map((x) => String(x)) : [],
         strengths: Array.isArray(row.strengths) ? row.strengths.map((x) => String(x)) : [],
@@ -1344,95 +1262,95 @@ function uniqText(list: Array<string | null | undefined>, max = 6): string[] {
   return out;
 }
 
-function formatLineLength(value: string | null | undefined): string {
-  if (value === "long") return "길게 이어지는 흐름";
-  if (value === "medium") return "균형 있게 이어지는 흐름";
-  if (value === "short") return "짧게 집중되는 흐름";
-  return "흐름이 약한 상태";
+function formatLineLength(value: string | null | undefined, copy: PalmDestinyCopy): string {
+  if (value === "long") return copy.lineLengthLong;
+  if (value === "medium") return copy.lineLengthMedium;
+  if (value === "short") return copy.lineLengthShort;
+  return copy.lineLengthDefault;
 }
 
-function formatLineDepth(value: string | null | undefined): string {
-  if (value === "deep") return "선명한 결";
-  if (value === "medium") return "균형 있는 결";
-  if (value === "faint") return "잔잔한 결";
-  return "옅게 보이는 결";
+function formatLineDepth(value: string | null | undefined, copy: PalmDestinyCopy): string {
+  if (value === "deep") return copy.lineDepthDeep;
+  if (value === "medium") return copy.lineDepthMedium;
+  if (value === "faint") return copy.lineDepthFaint;
+  return copy.lineDepthDefault;
 }
 
-function formatLineCurvature(value: string | null | undefined): string {
-  if (value === "wide" || value === "strong") return "부드럽게 감싸는 흐름";
-  if (value === "normal" || value === "soft") return "자연스럽게 이어지는 흐름";
-  if (value === "narrow" || value === "straight") return "곧고 절제된 흐름";
-  return "완만한 흐름";
+function formatLineCurvature(value: string | null | undefined, copy: PalmDestinyCopy): string {
+  if (value === "wide" || value === "strong") return copy.lineCurvatureWideStrong;
+  if (value === "normal" || value === "soft") return copy.lineCurvatureNormalSoft;
+  if (value === "narrow" || value === "straight") return copy.lineCurvatureNarrowStraight;
+  return copy.lineCurvatureDefault;
 }
 
-function formatHeadDirection(value: string | null | undefined): string {
-  if (value === "straight") return "현실 판단 중심";
-  if (value === "curved") return "감각과 상상력 중심";
-  if (value === "downward") return "직관과 몰입 중심";
-  return "균형형 사고";
+function formatHeadDirection(value: string | null | undefined, copy: PalmDestinyCopy): string {
+  if (value === "straight") return copy.headDirectionStraight;
+  if (value === "curved") return copy.headDirectionCurved;
+  if (value === "downward") return copy.headDirectionDownward;
+  return copy.headDirectionDefault;
 }
 
-function formatHeadLifeRelation(value: string | null | undefined): string {
-  if (value === "joined") return "신중하게 시작하는 편";
-  if (value === "separated") return "독립적으로 판단하는 편";
-  return "상황을 보며 조절하는 편";
+function formatHeadLifeRelation(value: string | null | undefined, copy: PalmDestinyCopy): string {
+  if (value === "joined") return copy.headLifeRelationJoined;
+  if (value === "separated") return copy.headLifeRelationSeparated;
+  return copy.headLifeRelationDefault;
 }
 
-function formatHeartEnding(value: string | null | undefined): string {
-  if (value === "underIndex") return "이상과 신뢰를 중시";
-  if (value === "underMiddle") return "현실적 안정감을 중시";
-  if (value === "between") return "마음과 현실의 균형";
-  return "관계 온도를 천천히 확인";
+function formatHeartEnding(value: string | null | undefined, copy: PalmDestinyCopy): string {
+  if (value === "underIndex") return copy.heartEndingUnderIndex;
+  if (value === "underMiddle") return copy.heartEndingUnderMiddle;
+  if (value === "between") return copy.heartEndingBetween;
+  return copy.heartEndingDefault;
 }
 
-function formatFateStrength(value: string | null | undefined): string {
-  if (value === "strong") return "목표축이 선명한 흐름";
-  if (value === "medium") return "방향을 다듬는 흐름";
-  if (value === "weak" || value === "none") return "정해진 길보다 탐색이 강한 흐름";
-  return "천천히 방향을 잡는 흐름";
+function formatFateStrength(value: string | null | undefined, copy: PalmDestinyCopy): string {
+  if (value === "strong") return copy.fateStrengthStrong;
+  if (value === "medium") return copy.fateStrengthMedium;
+  if (value === "weak" || value === "none") return copy.fateStrengthWeakNone;
+  return copy.fateStrengthDefault;
 }
 
-function formatFateStart(value: string | null | undefined): string {
-  if (value === "wrist") return "초기부터 꾸준히 쌓는 흐름";
-  if (value === "lifeLine") return "생활 기반에서 길을 여는 흐름";
-  if (value === "moonMount") return "사람과 환경에서 기회가 열리는 흐름";
-  if (value === ["middle", "Palm"].join("")) return "경험 뒤 방향이 또렷해지는 흐름";
-  return "상황에 맞춰 길을 찾는 흐름";
+function formatFateStart(value: string | null | undefined, copy: PalmDestinyCopy): string {
+  if (value === "wrist") return copy.fateStartWrist;
+  if (value === "lifeLine") return copy.fateStartLifeLine;
+  if (value === "moonMount") return copy.fateStartMoonMount;
+  if (value === ["middle", "Palm"].join("")) return copy.fateStartMiddlePalm;
+  return copy.fateStartDefault;
 }
 
-function formatLineChanges(branches?: number, breaks?: number): string {
+function formatLineChanges(branches: number | undefined, breaks: number | undefined, copy: PalmDestinyCopy): string {
   const branchCount = Math.max(0, Number(branches || 0));
   const breakCount = Math.max(0, Number(breaks || 0));
-  if (branchCount > 0 && breakCount > 0) return `가지 ${branchCount}개 · 전환 ${breakCount}개`;
-  if (branchCount > 0) return `가지 ${branchCount}개로 확장되는 결`;
-  if (breakCount > 0) return `전환 ${breakCount}개가 보이는 결`;
-  return "큰 흔들림 없이 이어지는 결";
+  if (branchCount > 0 && breakCount > 0) return copy.lineChangesBoth(branchCount, breakCount);
+  if (branchCount > 0) return copy.lineChangesBranchOnly(branchCount);
+  if (breakCount > 0) return copy.lineChangesBreakOnly(breakCount);
+  return copy.lineChangesNone;
 }
 
-function formatMinorStrength(value: string | null | undefined): string {
+function formatMinorStrength(value: string | null | undefined, copy: PalmDestinyCopy): string {
   const raw = String(value || "").toLowerCase();
-  if (raw.includes("high") || raw.includes("strong")) return "선명하게 살아 있는 흐름";
-  if (raw.includes("medium") || raw.includes("normal")) return "균형 있게 보이는 흐름";
-  if (raw.includes("low") || raw.includes("faint") || raw.includes("weak")) return "잔잔하게 보이는 흐름";
-  return "은은하게 드러나는 흐름";
+  if (raw.includes("high") || raw.includes("strong")) return copy.minorStrengthHigh;
+  if (raw.includes("medium") || raw.includes("normal")) return copy.minorStrengthMedium;
+  if (raw.includes("low") || raw.includes("faint") || raw.includes("weak")) return copy.minorStrengthLow;
+  return copy.minorStrengthDefault;
 }
 
-function summarizeMountFocus(reading: ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"]): string {
-  if (!reading) return "손바닥 전체 흐름";
+function summarizeMountFocus(reading: ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"], copy: PalmDestinyCopy): string {
+  if (!reading) return copy.mountFocusNoReading;
   const labelByKey: Record<string, string> = {
-    venus: "애정",
-    moon: "직관",
-    jupiter: "성장",
-    saturn: "책임",
-    sun: "표현",
-    mercury: "소통",
-    mars: "추진",
+    venus: copy.mountFocusVenus,
+    moon: copy.mountFocusMoon,
+    jupiter: copy.mountFocusJupiter,
+    saturn: copy.mountFocusSaturn,
+    sun: copy.mountFocusSun,
+    mercury: copy.mountFocusMercury,
+    mars: copy.mountFocusMars,
   };
   const focused = Object.entries(reading.mounts)
     .filter(([, mount]) => mount.fullness === "strong" || mount.fullness === "medium")
     .map(([key]) => labelByKey[key] || key)
     .slice(0, 3);
-  return focused.length > 0 ? focused.join(" · ") : "균형형";
+  return focused.length > 0 ? focused.join(" · ") : copy.mountFocusBalanced;
 }
 
 function countReadablePalmSignals(reading: ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"]): number {
@@ -1445,104 +1363,106 @@ function countReadablePalmSignals(reading: ReturnType<typeof createDefaultCanoni
 function buildCardSignalFacts(
   key: PalmCardKey,
   reading: ReturnType<typeof createDefaultCanonicalPalmReading>["leftHandReading"],
+  copy: PalmDestinyCopy,
 ): Array<{ label: string; value: string }> {
   if (!reading) {
-    return [{ label: palmDestinyText("palmDestiny.label.008"), value: "손바닥 전체 흐름을 중심으로 읽었어요." }];
+    return [{ label: copy.noReadingLabel, value: copy.noReadingValue }];
   }
 
   if (key === "lifeLine") {
     const line = reading.majorLines.lifeLine;
     return line.detected
       ? [
-          { label: palmDestinyText("palmDestiny.label.009"), value: formatLineLength(line.length) },
-          { label: palmDestinyText("palmDestiny.label.010"), value: formatLineDepth(line.depth) },
-          { label: palmDestinyText("palmDestiny.label.011"), value: formatLineCurvature(line.curvature) },
-          { label: palmDestinyText("palmDestiny.label.012"), value: formatLineChanges(line.branches, line.breaks) },
+          { label: copy.lifeLineLengthLabel, value: formatLineLength(line.length, copy) },
+          { label: copy.lifeLineDepthLabel, value: formatLineDepth(line.depth, copy) },
+          { label: copy.lifeLineCurvatureLabel, value: formatLineCurvature(line.curvature, copy) },
+          { label: copy.lifeLineChangesLabel, value: formatLineChanges(line.branches, line.breaks, copy) },
         ]
-      : [{ label: palmDestinyText("palmDestiny.label.013"), value: "이번 사진에서는 생명선이 옅어 에너지 흐름을 넓게 읽었어요." }];
+      : [{ label: copy.lifeLineFallbackLabel, value: copy.lifeLineFallbackValue }];
   }
 
   if (key === "headLine") {
     const line = reading.majorLines.headLine;
     return line.detected
       ? [
-          { label: palmDestinyText("palmDestiny.label.014"), value: formatLineLength(line.length) },
-          { label: palmDestinyText("palmDestiny.label.015"), value: formatHeadDirection(line.direction) },
-          { label: palmDestinyText("palmDestiny.label.016"), value: formatHeadLifeRelation(line.startRelationWithLifeLine) },
-          { label: palmDestinyText("palmDestiny.label.017"), value: formatLineChanges(line.branches, line.breaks) },
+          { label: copy.headLineLengthLabel, value: formatLineLength(line.length, copy) },
+          { label: copy.headLineDirectionLabel, value: formatHeadDirection(line.direction, copy) },
+          { label: copy.headLineRelationLabel, value: formatHeadLifeRelation(line.startRelationWithLifeLine, copy) },
+          { label: copy.headLineChangesLabel, value: formatLineChanges(line.branches, line.breaks, copy) },
         ]
-      : [{ label: palmDestinyText("palmDestiny.label.018"), value: "두뇌선이 옅어 손 형태와 주변 흐름까지 함께 읽었어요." }];
+      : [{ label: copy.headLineFallbackLabel, value: copy.headLineFallbackValue }];
   }
 
   if (key === "heartLine") {
     const line = reading.majorLines.heartLine;
     return line.detected
       ? [
-          { label: palmDestinyText("palmDestiny.label.019"), value: formatLineLength(line.length) },
-          { label: palmDestinyText("palmDestiny.label.020"), value: formatLineCurvature(line.curvature) },
-          { label: palmDestinyText("palmDestiny.label.021"), value: formatHeartEnding(line.endingArea) },
-          { label: palmDestinyText("palmDestiny.label.022"), value: formatLineChanges(line.branches, line.breaks) },
+          { label: copy.heartLineLengthLabel, value: formatLineLength(line.length, copy) },
+          { label: copy.heartLineCurvatureLabel, value: formatLineCurvature(line.curvature, copy) },
+          { label: copy.heartLineEndingLabel, value: formatHeartEnding(line.endingArea, copy) },
+          { label: copy.heartLineChangesLabel, value: formatLineChanges(line.branches, line.breaks, copy) },
         ]
-      : [{ label: palmDestinyText("palmDestiny.label.023"), value: "감정선이 옅어 관계 온도는 조심스럽게 읽었어요." }];
+      : [{ label: copy.heartLineFallbackLabel, value: copy.heartLineFallbackValue }];
   }
 
   if (key === "fateLine") {
     const line = reading.majorLines.fateLine;
     return line.detected
       ? [
-          { label: "힘", value: formatFateStrength(line.strength) },
-          { label: "시작", value: formatFateStart(line.startArea) },
-          { label: palmDestinyText("palmDestiny.label.024"), value: formatLineChanges(0, line.breaks) },
+          { label: copy.fateLineStrengthLabel, value: formatFateStrength(line.strength, copy) },
+          { label: copy.fateLineStartLabel, value: formatFateStart(line.startArea, copy) },
+          { label: copy.fateLineChangesLabel, value: formatLineChanges(0, line.breaks, copy) },
         ]
-      : [{ label: palmDestinyText("palmDestiny.label.025"), value: "운명선이 옅어 정해진 길보다 선택의 유연성을 중심으로 읽었어요." }];
+      : [{ label: copy.fateLineFallbackLabel, value: copy.fateLineFallbackValue }];
   }
 
   if (key === "sunLine") {
     const line = reading.minorLines.sunLine;
     return [
-      { label: palmDestinyText("palmDestiny.label.026"), value: formatMinorStrength(line.strength) },
-      { label: palmDestinyText("palmDestiny.label.027"), value: line.summary || "이름을 걸고 보여주는 일에서 흐름을 키우는 손입니다." },
+      { label: copy.sunLineStrengthLabel, value: formatMinorStrength(line.strength, copy) },
+      { label: copy.sunLineReadingLabel, value: line.summary || copy.sunLineReadingDefaultValue },
     ];
   }
 
   if (key === "moneyLine") {
     const line = reading.minorLines.moneyLine;
     return [
-      { label: palmDestinyText("palmDestiny.label.028"), value: formatMinorStrength(line.strength) },
-      { label: palmDestinyText("palmDestiny.label.029"), value: line.summary || "돈을 크게 단정하기보다 관리와 가치화 습관을 읽었습니다." },
+      { label: copy.moneyLineStrengthLabel, value: formatMinorStrength(line.strength, copy) },
+      { label: copy.moneyLineReadingLabel, value: line.summary || copy.moneyLineReadingDefaultValue },
     ];
   }
 
   if (key === "marriageLine") {
     const line = reading.minorLines.marriageLine;
     return [
-      { label: palmDestinyText("palmDestiny.label.030"), value: formatMinorStrength(line.strength) },
-      { label: palmDestinyText("palmDestiny.label.031"), value: line.summary || "관계의 횟수가 아니라 친밀감과 약속 방식을 읽었습니다." },
+      { label: copy.marriageLineStrengthLabel, value: formatMinorStrength(line.strength, copy) },
+      { label: copy.marriageLineReadingLabel, value: line.summary || copy.marriageLineReadingDefaultValue },
     ];
   }
 
   return [
-    { label: palmDestinyText("palmDestiny.label.032"), value: reading.handShape.labelKo || "복합형" },
-    { label: palmDestinyText("palmDestiny.label.033"), value: summarizeMountFocus(reading) },
-    { label: palmDestinyText("palmDestiny.label.034"), value: reading.overall.summary || "손바닥 전체 흐름을 종합해 읽었습니다." },
+    { label: copy.handShapeLabel, value: reading.handShape.labelKo || copy.handShapeDefaultValue },
+    { label: copy.centerPointLabel, value: summarizeMountFocus(reading, copy) },
+    { label: copy.overallLabel, value: reading.overall.summary || copy.overallDefaultValue },
   ];
 }
 
-function resultModeLabel(mode: AnalysisResultState["mode"]): string {
-  if (mode === "full") return "정밀 리딩";
-  if (mode === "partial") return "핵심 리딩";
-  return "기본 리딩";
+function resultModeLabel(mode: AnalysisResultState["mode"], copy: PalmDestinyCopy): string {
+  if (mode === "full") return copy.resultModeFull;
+  if (mode === "partial") return copy.resultModePartial;
+  return copy.resultModeFallback;
 }
 
 function buildInterpretationWithFallback(
   canonical: ReturnType<typeof createDefaultCanonicalPalmReading>,
   payload: unknown,
-  resultSectionsPayload?: unknown,
+  resultSectionsPayload: unknown,
+  copy: PalmDestinyCopy,
 ): PalmInterpretationPayload | null {
-  const normalized = normalizeInterpretation(payload);
+  const normalized = normalizeInterpretation(payload, copy);
   const engineSections = normalizeEngineResultSections(resultSectionsPayload);
   if (normalized?.cards?.length) return mergeInterpretationSections(normalized, engineSections);
-  const fallback = normalizeInterpretation(buildPalmInterpretationReport(canonical));
+  const fallback = normalizeInterpretation(buildPalmInterpretationReport(canonical), copy);
   return fallback ? mergeInterpretationSections(fallback, engineSections) : null;
 }
 
@@ -1561,7 +1481,7 @@ function pickSection(
 function buildCategoryConsultations(input: {
   report: Record<string, unknown> | null;
   interpretation: PalmInterpretationPayload | null;
-}): CategoryConsultation[] {
+}, copy: PalmDestinyCopy): CategoryConsultation[] {
   const report = input.report || {};
   const generalSection = pickSection(input.interpretation, "overall");
   const loveSection = pickSection(input.interpretation, "love");
@@ -1574,8 +1494,8 @@ function buildCategoryConsultations(input: {
   return [
     {
       key: "general",
-      title: palmDestinyText("palmDestiny.title.001"),
-      summary: String(report.summary || generalSection?.summary || "지금 흐름을 쉽게 정리한 손금 리딩이에요."),
+      title: copy.categoryTitleGeneral,
+      summary: String(report.summary || generalSection?.summary || copy.categoryGeneralDefaultSummary),
       details: uniqText([
         String(report.oneLiner || ""),
         generalSection?.detail,
@@ -1583,69 +1503,76 @@ function buildCategoryConsultations(input: {
       ], 3),
       actions: uniqText([
         adviceSection?.advice,
-        "오늘은 미뤄둔 일 하나를 끝내고 흐름을 열어 보세요.",
-        "해석이 길어지면 짧게라도 확인 대화를 시작해 보세요.",
+        copy.categoryGeneralDefaultAction1,
+        copy.categoryGeneralDefaultAction2,
       ], 3),
     },
     {
       key: "love",
-      title: palmDestinyText("palmDestiny.title.002"),
-      summary: String(report.love || loveSection?.summary || "연애운은 안정감과 솔직한 대화가 핵심으로 보여요."),
+      title: copy.categoryTitleLove,
+      summary: String(report.love || loveSection?.summary || copy.categoryLoveDefaultSummary),
       details: uniqText([loveSection?.detail, loveSection?.advice], 3),
       actions: uniqText([
         loveSection?.advice,
         adviceSection?.advice,
-        "관계는 상대의 반응보다 내 톤을 먼저 정돈해 보세요.",
+        copy.categoryLoveDefaultAction,
       ], 3),
     },
     {
       key: "wealth",
-      title: palmDestinyText("palmDestiny.title.003"),
-      summary: String(report.wealth || wealthSection?.summary || "재물운은 꾸준히 쌓을 때 힘이 붙는 흐름이에요."),
+      title: copy.categoryTitleWealth,
+      summary: String(report.wealth || wealthSection?.summary || copy.categoryWealthDefaultSummary),
       details: uniqText([wealthSection?.detail, wealthSection?.advice], 3),
       actions: uniqText([
         wealthSection?.advice,
         adviceSection?.advice,
-        "지출 기준선을 먼저 고치면 방향이 훨씬 빨리 선명해집니다.",
+        copy.categoryWealthDefaultAction,
       ], 3),
     },
     {
       key: "career",
-      title: palmDestinyText("palmDestiny.title.004"),
-      summary: String(report.career || careerSection?.summary || "직업운은 내 방식과 실력을 쌓을수록 강해져요."),
+      title: copy.categoryTitleCareer,
+      summary: String(report.career || careerSection?.summary || copy.categoryCareerDefaultSummary),
       details: uniqText([careerSection?.detail, careerSection?.advice], 3),
       actions: uniqText([
         careerSection?.advice,
         adviceSection?.advice,
-        "일정 단위를 짧게 쪼개서 실행 리듬을 만들면 성과가 붙습니다.",
+        copy.categoryCareerDefaultAction,
       ], 3),
     },
     {
       key: "personality",
-      title: palmDestinyText("palmDestiny.title.005"),
-      summary: String(report.personality || personalitySection?.summary || "성격과 매력을 가볍게 정리한 리딩이에요."),
+      title: copy.categoryTitlePersonality,
+      summary: String(report.personality || personalitySection?.summary || copy.categoryPersonalityDefaultSummary),
       details: uniqText([personalitySection?.detail, personalitySection?.advice], 3),
       actions: uniqText([
         personalitySection?.advice,
         adviceSection?.advice,
-        "표현은 과장보다 일관성으로 가면 반응이 좋아집니다.",
+        copy.categoryPersonalityDefaultAction,
       ], 3),
     },
     {
       key: "relationship",
-      title: palmDestinyText("palmDestiny.title.006"),
-      summary: String(report.relationship || relationshipSection?.summary || "관계운은 편안한 소통에서 더 좋아져요."),
+      title: copy.categoryTitleRelationship,
+      summary: String(report.relationship || relationshipSection?.summary || copy.categoryRelationshipDefaultSummary),
       details: uniqText([relationshipSection?.detail, relationshipSection?.advice], 3),
       actions: uniqText([
         relationshipSection?.advice,
         adviceSection?.advice,
-        "가장 중요한 것은 약속 하나를 지키는 패턴입니다.",
+        copy.categoryRelationshipDefaultAction,
       ], 3),
     },
   ];
 }
 
 export default function PalmDestinyMain() {
+  const copy = usePalmDestinyCopy();
+  const HAND_ROLE_META = buildHandRoleMeta(copy);
+  const DOMINANT_HAND_OPTIONS = buildDominantHandOptions(copy);
+  const DOMINANT_HAND_HINT_LABEL = buildDominantHandHintLabel(copy);
+  const CARD_KEY_TO_LABEL = buildCardKeyToLabel(copy);
+  const PURPOSE_LABEL_BY_KEY = buildPurposeLabelByKey(copy);
+
   const [isImmersiveView, setIsImmersiveView] = useState(true);
   const [leftHand, setLeftHand] = useState<HandImageState>({ file: null, previewUrl: null, registeredAt: null });
   const [rightHand, setRightHand] = useState<HandImageState>({ file: null, previewUrl: null, registeredAt: null });
@@ -1747,19 +1674,19 @@ export default function PalmDestinyMain() {
   const resultOneLiner =
     analysisResult?.interpretation?.oneLiner ||
     String(analysisResult?.report?.oneLiner || "") ||
-    "손바닥 전체 흐름을 읽어 지금 필요한 방향을 정리했어요.";
+    copy.resultOneLinerDefault;
   const resultPrimaryAction =
     analysisResult?.interpretation?.report?.tips?.[0] ||
     String(analysisResult?.report?.advice || "") ||
-    "오늘은 작은 행동 하나를 끝내며 흐름을 열어 보세요.";
+    copy.resultPrimaryActionDefault;
   const resultPurposeLabel = analysisResult
-    ? PURPOSE_LABEL_BY_KEY[analysisResult.canonical.profile.analysisPurpose] || "전체 운세"
-    : "전체 운세";
+    ? PURPOSE_LABEL_BY_KEY[analysisResult.canonical.profile.analysisPurpose] || copy.purposeLabelGeneral
+    : copy.purposeLabelGeneral;
   const categoryConsultations = analysisResult
     ? buildCategoryConsultations({
         report: analysisResult.report,
         interpretation: analysisResult.interpretation,
-      })
+      }, copy)
     : [];
   const bothHandsComparison = analysisResult?.canonical.bothHandsComparison;
   const detectedSpecialPatterns: PalmSpecialPattern[] = Array.isArray(analysisResult?.canonical.specialPatterns?.detected)
@@ -1769,7 +1696,7 @@ export default function PalmDestinyMain() {
   const pickedOverlayImage = overlaySide === "left" ? leftHand.previewUrl : rightHand.previewUrl;
   const overlayImageUrl = pickedOverlayImage || leftHand.previewUrl || rightHand.previewUrl || null;
   const overlayImageAlt =
-    overlaySide === "left" ? "왼손 손바닥 오버레이" : overlaySide === "right" ? "오른손 손바닥 오버레이" : "손바닥 오버레이";
+    overlaySide === "left" ? copy.overlayAltLeft : overlaySide === "right" ? copy.overlayAltRight : copy.overlayAltGeneric;
 
   const activeOverlayPaths: OverlayPathMap =
     (analysisResult?.overlayPathsBySide?.[overlaySide] as OverlayPathMap | null) || analysisResult?.overlayPaths || {};
@@ -1782,7 +1709,7 @@ export default function PalmDestinyMain() {
         activeOverlayPaths.fateLine),
   );
 
-  const loadingPhaseText = LOADING_PHASES[loadingPhaseIndex] ?? LOADING_PHASES[0];
+  const loadingPhaseText = copy.loadingPhases[loadingPhaseIndex] ?? copy.loadingPhases[0];
 
   useEffect(() => {
     previewUrlsRef.current = {
@@ -1809,11 +1736,11 @@ export default function PalmDestinyMain() {
     }
 
     const timer = window.setInterval(() => {
-      setLoadingPhaseIndex((prev) => (prev + 1) % LOADING_PHASES.length);
+      setLoadingPhaseIndex((prev) => (prev + 1) % copy.loadingPhases.length);
     }, 1300);
 
     return () => window.clearInterval(timer);
-  }, [isSubmitting]);
+  }, [isSubmitting, copy.loadingPhases.length]);
 
   const cancelInFlightRequest = () => {
     if (!abortControllerRef.current) return;
@@ -1897,17 +1824,17 @@ export default function PalmDestinyMain() {
 
   const handleImageSelected = async (file: File, side: HandSide, source: UploadSource) => {
     if (!file) {
-      setSubmitMessage("사진을 선택하지 않았습니다. 손바닥 이미지를 다시 선택해 주세요.");
+      setSubmitMessage(copy.noFileSelectedMessage);
       return;
     }
 
     if (!isLikelyImageFile(file)) {
-      setSubmitMessage("파일 형식을 지원하지 않습니다. JPG, PNG, WEBP, HEIC/HEIF 이미지를 선택해 주세요.");
+      setSubmitMessage(copy.unsupportedFileTypeMessage);
       return;
     }
 
     if (file.size > MAX_UPLOAD_FILE_BYTES) {
-      setSubmitMessage("파일 크기가 너무 큽니다. 25MB 이하 이미지를 선택해 주세요.");
+      setSubmitMessage(copy.fileTooLargeMessage);
       return;
     }
 
@@ -1922,8 +1849,8 @@ export default function PalmDestinyMain() {
         normalizedFile = file;
         prepWarning =
           isHeicLikeFile(file)
-            ? "이 기기에서는 HEIC/HEIF 미리보기 최적화가 제한됩니다. 원본 파일로 분석을 진행합니다."
-            : `브라우저 전처리를 건너뛰고 원본으로 분석합니다. (${error instanceof Error ? error.message : "UNKNOWN_PREP_ERROR"})`;
+            ? copy.heicPreviewLimitedMessage
+            : copy.prepFallbackMessage(error instanceof Error ? error.message : "UNKNOWN_PREP_ERROR");
       }
 
       const signature = await computeFileSignature(normalizedFile);
@@ -1938,11 +1865,11 @@ export default function PalmDestinyMain() {
 
       let quality: PalmImageQualityFeedback | null = null;
       try {
-        quality = await analyzeImageQuality(normalizedFile);
+        quality = await analyzeImageQuality(normalizedFile, copy);
       } catch (e) {
         quality = null;
         if (!prepWarning) {
-          prepWarning = "이 브라우저에서는 품질 사전점검이 제한되어 서버 분석 결과를 기준으로 안내합니다.";
+          prepWarning = copy.qualityCheckLimitedMessage;
         }
       }
 
@@ -1961,34 +1888,34 @@ export default function PalmDestinyMain() {
       // 검출기를 못 쓴 경우(CDN 차단 등)는 막지 않고 기존 경로로 진행한다.
       if (landmarkCheck.status === "no-hand") {
         setSubmitMessage(
-          `${side === "left" ? "왼손" : "오른손"} 사진에서 손을 찾지 못했습니다. 손바닥을 펴고 손목부터 손가락 끝까지 화면에 담아 다시 촬영해 주세요.`,
+          copy.handNoHandDetectedMessage(side === "left" ? copy.handNameLeft : copy.handNameRight),
         );
         return;
       }
 
       if (quality?.confidence === "낮음") {
         const warningSuffix = prepWarning ? ` ${prepWarning}` : "";
-        setSubmitMessage(`분석은 가능하지만 사진이 조금 어둡거나 흐릴 수 있습니다. 결과는 참고용으로 확인해 주세요.${warningSuffix}`);
+        setSubmitMessage(copy.lowQualityContinueMessage(warningSuffix));
         return;
       }
 
-      const sourceLabel = source === "camera" ? "카메라 촬영" : "앨범 선택";
+      const sourceLabel = source === "camera" ? copy.uploadSourceCamera : copy.uploadSourceGallery;
       if (isHeicLikeFile(file) && normalizedFile.type === "image/jpeg") {
-        setSubmitMessage(`${sourceLabel} HEIC 이미지를 분석용 JPEG로 변환했습니다. 미리보기 확인 후 분석을 시작해 주세요.`);
+        setSubmitMessage(copy.heicConvertedMessage(sourceLabel));
         return;
       }
 
       if (prepWarning) {
-        setSubmitMessage(`${sourceLabel} 이미지를 불러왔습니다. ${prepWarning} 미리보기 확인 후 분석을 시작해 주세요.`);
+        setSubmitMessage(copy.imageLoadedWithWarningMessage(sourceLabel, prepWarning));
         return;
       }
 
-      setSubmitMessage(`${sourceLabel} 이미지를 불러왔습니다. 미리보기 확인 후 분석을 시작해 주세요.`);
+      setSubmitMessage(copy.imageLoadedMessage(sourceLabel));
     } catch (error) {
       setSubmitMessage(
         isHeicLikeFile(file)
-          ? "HEIC/HEIF 이미지를 브라우저에서 해석하지 못했습니다. iPhone에서 JPG로 촬영하거나 변환 후 다시 선택해 주세요."
-          : `이미지 로딩 실패: ${error instanceof Error ? error.message : palmDestinyText("palmDestiny.message.001")}. 다른 사진으로 다시 시도해 주세요.`,
+          ? copy.heicUnreadableMessage
+          : copy.imageLoadFailedMessage(error instanceof Error ? error.message : copy.unknownErrorLabel),
       );
     }
   };
@@ -1998,7 +1925,7 @@ export default function PalmDestinyMain() {
     event.currentTarget.value = "";
 
     if (!picked) {
-      setSubmitMessage("사진을 선택하지 않았습니다. 다시 시도해 주세요.");
+      setSubmitMessage(copy.noFileSelectedRetryMessage);
       return;
     }
 
@@ -2051,7 +1978,7 @@ export default function PalmDestinyMain() {
     new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(typeof reader.result === "string" ? reader.result : "");
-      reader.onerror = () => reject(new Error("이미지 인코딩에 실패했습니다."));
+      reader.onerror = () => reject(new Error(copy.imageEncodingFailedError));
       reader.readAsDataURL(file);
     });
 
@@ -2080,7 +2007,7 @@ export default function PalmDestinyMain() {
     const requestSignature = [dominantHand || "none", activeAnalysisPurpose || "none", leftSig, rightSig].join("::");
 
     if (inFlightSignatureRef.current === requestSignature) {
-      setSubmitMessage("동일 이미지 분석이 이미 진행 중입니다. 잠시만 기다려 주세요.");
+      setSubmitMessage(copy.duplicateInFlightMessage);
       return;
     }
 
@@ -2088,7 +2015,7 @@ export default function PalmDestinyMain() {
       lastCompletedSignatureRef.current === requestSignature &&
       Date.now() - Number(lastCompletedAtRef.current || 0) < 1500
     ) {
-      setSubmitMessage("같은 이미지 요청이 방금 처리되었습니다. 잠시 후 다시 시도하거나 사진을 변경해 주세요.");
+      setSubmitMessage(copy.duplicateRecentMessage);
       return;
     }
 
@@ -2102,12 +2029,12 @@ export default function PalmDestinyMain() {
       const serverCost = Number(coinGateResult.data?.pricing?.cost || 0);
       const message =
         coinGateCode === "AUTH_REQUIRED"
-          ? "로그인이 필요합니다. 로그인 후 다시 손금 분석을 시도해 주세요."
+          ? copy.coinGateAuthRequiredMessage
           : coinGateCode === "INSUFFICIENT_COINS"
-          ? `결제 가능 금액이 부족합니다. ${serverCost}결제가 필요합니다.`
+          ? copy.coinGateInsufficientMessage(serverCost)
           : coinGateCode === "PRICE_NOT_FOUND"
-          ? "손금 분석 가격표를 찾을 수 없습니다. 잠시 후 다시 시도해 주세요."
-          : coinGateResult.error?.message || "원화 결제에 실패했습니다.";
+          ? copy.coinGatePriceNotFoundMessage
+          : coinGateResult.error?.message || copy.coinGateGenericFailureMessage;
 
       updatePaidFeatureGate({
         categoryKey: "palm-reading",
@@ -2135,20 +2062,20 @@ export default function PalmDestinyMain() {
     try {
       setIsSubmitting(true);
       setAnalysisResult(null);
-      setSubmitMessage("손바닥 이미지 품질을 확인하고 있습니다...");
+      setSubmitMessage(copy.checkingImageQualityMessage);
 
       openPaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
-        message: palmDestinyText("palmDestiny.message.002"),
+        message: copy.checkingPassMessage,
       });
       holdPaidFeatureGateOpen({ requestId: billingRequestId, maxMs: 45000 });
       updatePaidFeatureGate({
         categoryKey: "palm-reading",
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
-        message: "손바닥 사진을 분석하고 있어요",
+        message: copy.analyzingPalmPhotoMessage,
       });
 
       const [leftPalmImage, rightPalmImage, leftVision, rightVision] = await Promise.all([
@@ -2176,7 +2103,7 @@ export default function PalmDestinyMain() {
         analysisPurpose: activeAnalysisPurpose,
       });
 
-      setSubmitMessage("손바닥의 금빛 선을 읽고 있습니다...");
+      setSubmitMessage(copy.readingGoldenLinesMessage);
 
       let response = await fetch("/api/palm/analyze", {
         method: "POST",
@@ -2236,7 +2163,7 @@ export default function PalmDestinyMain() {
             ? data.message
             : typeof data?.error === "string"
             ? data.error
-            : "분석 중 오류가 발생했습니다.";
+            : copy.analysisErrorGenericMessage;
         updatePaidFeatureGate({
           categoryKey: "palm-reading",
           subFeatureKey: initialSubFeatureKey,
@@ -2300,7 +2227,7 @@ export default function PalmDestinyMain() {
         purposeAnalysis: purposeAnalysisFromPayload,
       });
 
-      const interpretation = buildInterpretationWithFallback(canonical, payloadRoot?.interpretation, payloadRoot?.resultSections);
+      const interpretation = buildInterpretationWithFallback(canonical, payloadRoot?.interpretation, payloadRoot?.resultSections, copy);
       const overlayPaths = extractOverlayPaths(payloadRoot?.overlayPaths ?? payloadRoot);
       const overlayPathsBySide = extractOverlayPathsBySide(payloadRoot);
       const modeFromPayload =
@@ -2329,13 +2256,13 @@ export default function PalmDestinyMain() {
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
           status: "error",
-          message: palmDestinyText("palmDestiny.message.003"),
+          message: copy.palmNotFullyVisibleMessage,
         });
-        setSubmitMessage("손바닥 전체가 화면에 들어오지 않았습니다. 손목부터 손가락 끝까지 보이게 다시 촬영해 주세요.");
+        setSubmitMessage(copy.palmNotFullyVisibleRetryMessage);
         return;
       }
 
-      setSubmitMessage("분석 결과를 확인했습니다. 결제를 확인하고 있습니다...");
+      setSubmitMessage(copy.resultConfirmedCheckingPaymentMessage);
       const coinGateResult = await runBillingCoinGate({
         categoryKey: PALM_BILLING_CATEGORY_KEY,
         subFeatureKey: initialSubFeatureKey,
@@ -2398,10 +2325,10 @@ export default function PalmDestinyMain() {
 
       const qualityMessage =
         modeFromPayload === "full"
-          ? "손바닥 인식이 완료되었습니다. 정밀 분석 결과가 생성되었습니다."
+          ? copy.resultModeFullQualityMessage
           : modeFromPayload === "partial"
-          ? "손바닥은 감지되었고 부분 분석 결과가 생성되었습니다. 더 선명한 사진을 올리면 정확도가 올라갑니다."
-          : "손바닥은 감지되었지만 선명도가 낮아 기본/보수 해석으로 결과를 생성했습니다.";
+          ? copy.resultModePartialQualityMessage
+          : copy.resultModeFallbackQualityMessage;
       setSubmitMessage(qualityMessage);
     } catch (error) {
       if (requestIdRef.current !== requestId) {
@@ -2414,9 +2341,9 @@ export default function PalmDestinyMain() {
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
           status: "error",
-          message: palmDestinyText("palmDestiny.message.004"),
+          message: copy.requestCancelledStatusMessage,
         });
-        setSubmitMessage("요청이 취소되었습니다. 다시 분석을 시도해 주세요.");
+        setSubmitMessage(copy.requestCancelledMessage);
         return;
       }
 
@@ -2426,9 +2353,9 @@ export default function PalmDestinyMain() {
           subFeatureKey: initialSubFeatureKey,
           requestId: billingRequestId,
           status: "error",
-          message: palmDestinyText("palmDestiny.message.005"),
+          message: copy.networkErrorStatusMessage,
         });
-        setSubmitMessage("네트워크/API 오류로 분석 요청에 실패했습니다. 연결 상태를 확인한 뒤 다시 시도해 주세요.");
+        setSubmitMessage(copy.networkErrorMessage);
         return;
       }
 
@@ -2437,9 +2364,9 @@ export default function PalmDestinyMain() {
         subFeatureKey: initialSubFeatureKey,
         requestId: billingRequestId,
         status: "error",
-        message: `분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`,
+        message: copy.analysisErrorWithReasonMessage(error instanceof Error ? error.message : "unknown"),
       });
-      setSubmitMessage(`분석 중 오류가 발생했습니다: ${error instanceof Error ? error.message : "unknown"}`);
+      setSubmitMessage(copy.analysisErrorWithReasonMessage(error instanceof Error ? error.message : "unknown"));
     } finally {
       releasePaidFeatureGate(billingRequestId);
       if (requestIdRef.current === requestId) {
@@ -2461,7 +2388,7 @@ export default function PalmDestinyMain() {
     resetSessionForReanalysis({
       clearImages: true,
       resetSelections: false,
-      keepMessage: "사진을 다시 선택해 손금 분석을 재시작할 수 있습니다.",
+      keepMessage: copy.photoReselectKeepMessage,
     });
   };
 
@@ -2469,7 +2396,7 @@ export default function PalmDestinyMain() {
     resetSessionForReanalysis({
       clearImages: false,
       resetSelections: true,
-      keepMessage: "다른 손 기준으로 다시 보기 위해 주로 쓰는 손을 다시 선택해 주세요.",
+      keepMessage: copy.retryOtherHandKeepMessage,
     });
   };
 
@@ -2482,14 +2409,14 @@ export default function PalmDestinyMain() {
     resetSessionForReanalysis({
       clearImages: false,
       resetSelections: false,
-      keepMessage: "이전 분석 결과를 초기화했습니다. 같은 입력으로 다시 분석할 수 있습니다.",
+      keepMessage: copy.resetResultKeepMessage,
     });
   };
 
   const renderInterpretationCard = (card: PalmInterpretationCard) => {
     const cardId = `palm-card-${card.key}`;
     const active = activeCardKey === card.key;
-    const cardSignalFacts = buildCardSignalFacts(card.key, activeHandReading);
+    const cardSignalFacts = buildCardSignalFacts(card.key, activeHandReading, copy);
 
     return (
       <article
@@ -2516,7 +2443,7 @@ export default function PalmDestinyMain() {
             onClick={() => setActiveCardKey(card.key)}
             className="cd-ghost-btn rounded-sm border border-[#c8a84b]/40 bg-[#0d0808] px-2 py-1 text-[11px] font-bold text-[#e8d090]"
           >
-            선택
+            {copy.selectButtonLabel}
           </button>
         </header>
 
@@ -2526,7 +2453,7 @@ export default function PalmDestinyMain() {
 
         <section className="mt-3 rounded-lg border border-[#c8a84b]/22 bg-[#100808]/70 px-3 py-3">
           <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-            <span aria-hidden className="text-[8px]">◆</span>읽힌 신호
+            <span aria-hidden className="text-[8px]">◆</span>{copy.readSignalHeading}
           </h5>
           <div className="mt-2 grid gap-2 sm:grid-cols-2">
             {cardSignalFacts.slice(0, 4).map((fact) => (
@@ -2540,7 +2467,7 @@ export default function PalmDestinyMain() {
 
         <section className="mt-3">
           <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-            <span aria-hidden className="text-[8px]">◆</span>해석
+            <span aria-hidden className="text-[8px]">◆</span>{copy.interpretationHeading}
           </h5>
           <ul className="mt-2 space-y-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
             {card.details.slice(0, 6).map((line, index) => (
@@ -2554,7 +2481,7 @@ export default function PalmDestinyMain() {
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           <section>
             <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-              <span aria-hidden className="text-[8px] text-green-400/70">◆</span>살릴 힘
+              <span aria-hidden className="text-[8px] text-green-400/70">◆</span>{copy.strengthHeading}
             </h5>
             <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
               {card.strengths.slice(0, 3).map((line, index) => (
@@ -2567,7 +2494,7 @@ export default function PalmDestinyMain() {
 
           <section>
             <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-              <span aria-hidden className="text-[8px] text-red-400/70">◆</span>조율할 점
+              <span aria-hidden className="text-[8px] text-red-400/70">◆</span>{copy.cautionHeading}
             </h5>
             <ul className="mt-2 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
               {card.cautions.slice(0, 3).map((line, index) => (
@@ -2582,13 +2509,13 @@ export default function PalmDestinyMain() {
         <section className="mt-3 space-y-2">
           <div className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">
             <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-              <span aria-hidden className="text-[8px]">◆</span>오늘의 조언
+              <span aria-hidden className="text-[8px]">◆</span>{copy.todayAdviceHeading}
             </h5>
             <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{card.todayAdvice}</p>
           </div>
           <div className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/65 px-3 py-2">
             <h5 className="flex items-center gap-2 text-xs font-black tracking-[0.08em] text-[#d4b45c] md:text-sm">
-              <span aria-hidden className="text-[8px]">◆</span>7일 실천법
+              <span aria-hidden className="text-[8px]">◆</span>{copy.sevenDayPracticeHeading}
             </h5>
             <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">{card.sevenDayPractice}</p>
           </div>
@@ -2605,7 +2532,7 @@ export default function PalmDestinyMain() {
     title: string,
   ) => {
     const hasPreview = Boolean(state.previewUrl);
-    const handName = side === "left" ? "왼손" : "오른손";
+    const handName = side === "left" ? copy.handNameLeft : copy.handNameRight;
     const galleryInputId = getGalleryInputId(side);
     const cameraInputId = getCameraInputId(side);
     const role = side === "left" ? handRoles.leftHandRole : handRoles.rightHandRole;
@@ -2615,12 +2542,17 @@ export default function PalmDestinyMain() {
     const quality = qualityFeedbackBySide[side];
     const detectionBadge = landmarkState
       ? landmarkState.status === "detected"
-        ? { text: "손 인식됨", className: "border-[#4f7a3a]/70 bg-[#12200f] text-[#c6e8ac]" }
-        : { text: "손 위치 추정", className: "border-[#8a6a2a]/70 bg-[#241a08] text-[#f0cf9a]" }
+        ? { text: copy.detectedBadge, className: "border-[#4f7a3a]/70 bg-[#12200f] text-[#c6e8ac]" }
+        : { text: copy.estimatedBadge, className: "border-[#8a6a2a]/70 bg-[#241a08] text-[#f0cf9a]" }
       : null;
+    const qualityConfidenceLabel: Record<QualityConfidence, string> = {
+      높음: copy.qualityConfidenceBadgeHigh,
+      보통: copy.qualityConfidenceBadgeMedium,
+      낮음: copy.qualityConfidenceBadgeLow,
+    };
     const qualityBadge = quality
       ? {
-          text: `사진 품질 ${quality.confidence}`,
+          text: copy.photoQualityBadge(qualityConfidenceLabel[quality.confidence]),
           className:
             quality.confidence === "높음"
               ? "border-[#4f7a3a]/70 bg-[#12200f] text-[#c6e8ac]"
@@ -2636,19 +2568,19 @@ export default function PalmDestinyMain() {
         <div className="flex items-center justify-between gap-3">
           <h2 className="text-base font-extrabold text-[#f5d987] md:text-lg cd-oriental-headline">{title}</h2>
           <span className="rounded-sm border border-[#9b1a1a]/75 bg-[#4a0808]/80 px-2 py-1 text-[11px] font-bold tracking-[0.1em] text-[#ffc8c8]">
-            손바닥 입력
+            {copy.palmInputBadge}
           </span>
         </div>
 
         <p className="mt-2 text-xs leading-6 text-[#d8c090]/80 md:text-sm">
-          손바닥이 선명하게 보이는 사진을 업로드하거나 촬영해 주세요.
+          {copy.palmInputDescription}
         </p>
 
         {hasPreview ? (
           <div className="mt-3 rounded-lg border border-[#c8a84b]/35 bg-[#0d0606]/80 px-3 py-2">
             <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
               <span className="inline-flex items-center gap-1 rounded-sm border border-[#4f7a3a]/70 bg-[#12200f] px-2 py-0.5 text-[11px] font-bold text-[#c6e8ac]">
-                <span aria-hidden>✓</span> 등록 완료
+                <span aria-hidden>✓</span> {copy.registeredBadge}
               </span>
               {registeredLabel ? (
                 <span className="text-[11px] text-[#d8c090]/80">{registeredLabel}</span>
@@ -2697,18 +2629,18 @@ export default function PalmDestinyMain() {
             {hasPreview ? (
               <img
                 src={state.previewUrl ?? ""}
-                alt={`${title} 미리보기`}
+                alt={copy.previewCaption(title)}
                 className="max-h-[300px] w-full rounded-lg object-contain"
                 onError={() => {
-                  setSubmitMessage(`${handName} 미리보기를 불러오지 못했습니다. JPG/PNG/WEBP 형식으로 다시 업로드해 주세요.`);
+                  setSubmitMessage(copy.previewLoadFailedMessage(handName));
                 }}
                 style={{ border: "1px solid rgba(200,168,75,0.4)", boxShadow: "0 0 20px rgba(0,0,0,0.5)" }}
               />
             ) : (
               <div className="text-center text-[#c8a84b]">
                 <p className="text-5xl opacity-60">🖐</p>
-                <p className="mt-3 text-sm font-bold text-[#e8d090] md:text-base">{title} 이미지 미리보기</p>
-                <p className="mt-1 text-xs text-[#c8a84b]/70 md:text-sm">업로드 후 이 영역에 표시됩니다.</p>
+                <p className="mt-3 text-sm font-bold text-[#e8d090] md:text-base">{copy.previewCaption(title)}</p>
+                <p className="mt-1 text-xs text-[#c8a84b]/70 md:text-sm">{copy.previewPlaceholder}</p>
               </div>
             )}
           </div>
@@ -2720,16 +2652,16 @@ export default function PalmDestinyMain() {
           <label
             htmlFor={cameraInputId}
             className="cd-capture-cta cd-capture-actions__camera"
-            aria-label={`${handName} ${hasPreview ? "다시 촬영" : "카메라 촬영"}`}
+            aria-label={copy.cameraAriaLabel(handName, hasPreview)}
           >
-            <span aria-hidden>📷</span> {hasPreview ? "다시 촬영" : "촬영하기"}
+            <span aria-hidden>📷</span> {hasPreview ? copy.captureAgainAction : copy.captureFirstAction}
           </label>
           <label
             htmlFor={galleryInputId}
             className="cd-capture-cta cd-capture-actions__gallery"
-            aria-label={`${handName} ${hasPreview ? "다른 사진 선택" : "앨범에서 사진 선택"}`}
+            aria-label={copy.galleryAriaLabel(handName, hasPreview)}
           >
-            <span aria-hidden>🖼️</span> {hasPreview ? "다른 사진 선택" : "앨범에서 선택"}
+            <span aria-hidden>🖼️</span> {hasPreview ? copy.chooseAnotherPhotoAction : copy.choosePhotoFirstAction}
           </label>
         </div>
 
@@ -2739,9 +2671,9 @@ export default function PalmDestinyMain() {
             onClick={() => clearHandImage(side)}
             className="cd-red-btn mt-2 min-h-[44px] w-full rounded-lg border border-[#9b1a1a]/65 px-3 py-2 text-sm font-bold text-[#ffd8d8] transition"
             style={{ background: "linear-gradient(136deg, rgba(100,15,15,0.95), rgba(70,25,10,0.95))" }}
-            aria-label={`${handName} 등록 사진 삭제`}
+            aria-label={copy.deletePhotoAriaLabel(handName)}
           >
-            {handName} 사진 삭제
+            {copy.deletePhotoAction(handName)}
           </button>
         ) : null}
 
@@ -2751,7 +2683,7 @@ export default function PalmDestinyMain() {
           type="file"
           accept="image/*,.heic,.heif"
           className="sr-only"
-          aria-label={`${handName} 앨범 파일 선택 입력`}
+          aria-label={copy.galleryInputAriaLabel(handName)}
           onChange={(event) => {
             void handleFileChange(side, "gallery", event);
           }}
@@ -2763,7 +2695,7 @@ export default function PalmDestinyMain() {
           accept="image/*"
           capture="environment"
           className="sr-only"
-          aria-label={`${handName} 카메라 촬영 입력`}
+          aria-label={copy.cameraInputAriaLabel(handName)}
           onChange={(event) => {
             void handleFileChange(side, "camera", event);
           }}
@@ -2838,7 +2770,7 @@ export default function PalmDestinyMain() {
         >
           <div className="w-full max-w-md rounded-2xl border border-[#c8a84b]/45 bg-[#0f0a12] p-6 text-center shadow-[0_14px_60px_rgba(0,0,0,0.55)]">
             <p className="text-2xl" aria-hidden>🖐</p>
-            <p className="mt-2 text-sm font-bold tracking-[0.12em] text-[#f5d987]">손금 분석 진행 중</p>
+            <p className="mt-2 text-sm font-bold tracking-[0.12em] text-[#f5d987]">{copy.analyzingButtonLabel}</p>
             <p className="mt-4 text-base leading-7 text-[#f6e6c5]">{loadingPhaseText}</p>
             <div className="mt-5 h-2 w-full overflow-hidden rounded-full bg-[#2b1b1b]" aria-hidden>
               <div className="h-full w-1/2 animate-pulse rounded-full bg-gradient-to-r from-[#d4af37] to-[#b22222]" />
@@ -2878,10 +2810,10 @@ export default function PalmDestinyMain() {
             <button
               type="button"
               onClick={() => setIsImmersiveView((value) => !value)}
-              aria-label={isImmersiveView ? "기본 화면으로 보기" : "전체화면으로 보기"}
+              aria-label={isImmersiveView ? copy.fullscreenExitLabel : copy.fullscreenEnterLabel}
               className="absolute left-4 top-4 rounded-lg border border-[#c8a84b]/35 bg-[#0d0808]/80 px-3 py-2 text-[11px] font-bold text-[#f5d987] transition hover:border-[#f5d987]/70 md:left-6 md:top-6"
             >
-              {isImmersiveView ? "기본 화면" : "전체화면"}
+              {isImmersiveView ? copy.fullscreenExitButton : copy.fullscreenEnterButton}
             </button>
 
             <div className="flex items-center gap-3">
@@ -2904,20 +2836,20 @@ export default function PalmDestinyMain() {
                 filter: "drop-shadow(0 0 12px rgba(212,176,92,0.4))",
               }}
             >
-              손금 지도
+              {copy.pageTitle}
             </h1>
             <p className="mt-3 text-center text-sm font-semibold tracking-[0.22em] text-[#d4b45c] md:text-base cd-oriental-kicker">
-              先天의 結 · 後天의 流
+              {copy.pageSubtitle}
             </p>
             <div aria-hidden className="mx-auto mt-4 h-px max-w-xs" style={{ background: "linear-gradient(90deg, transparent, #c8a84b 30%, #f5d987 50%, #c8a84b 70%, transparent)" }} />
             <p className="mt-4 text-center text-base font-semibold text-[#eedad0] md:text-lg">
-              손바닥에 새겨진 사랑 · 재물 · 직업 · 마음의 흐름을 읽다
+              {copy.pageTagline}
             </p>
             <p className="mx-auto mt-4 max-w-3xl text-center text-sm leading-7 text-[#f0e4cc]/85 md:text-base">
-              손금은 수명이나 질병을 단정하는 도구가 아니라, 성향·관계·재물·직업 흐름을 상징적으로 읽는 지도입니다.
+              {copy.pageDescription}
             </p>
             <p className="mx-auto mt-2 max-w-3xl text-center text-xs leading-6 text-[#e8d8b8]/75 md:text-sm">
-              타고난 손과 살아온 손을 함께 읽습니다. 손바닥에는 본래의 기질과 지금의 발자취가 함께 새겨집니다.
+              {copy.pageDescriptionSub}
             </p>
           </div>
 
@@ -2925,16 +2857,16 @@ export default function PalmDestinyMain() {
             <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(22,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
               <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
                 <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-              <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">손바닥 촬영/업로드</h2>
+              <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.captureSectionHeading}</h2>
               </div>
-              <p className="mt-3 text-sm leading-7 text-[#f0dfc0]/90">손바닥이 화면 중앙에 오도록 촬영해 주세요. 밝은 곳에서 손 전체가 보이면 분석 정확도가 높아집니다.</p>
+              <p className="mt-3 text-sm leading-7 text-[#f0dfc0]/90">{copy.captureSectionDescription}</p>
 
               {/* 한 손만으로도 분석된다는 사실을 명시한다.
                   종전에는 아래 '양손 비교 업로드(선택)' 제목으로만 암시돼, 양손을 다 올려야
                   하는 줄 알고 이탈하는 경로가 있었다. */}
               <p className="mt-3 flex flex-wrap items-baseline gap-x-2 gap-y-1 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/70 px-3 py-2 text-xs leading-6 text-[#f0dfc0]/90 md:text-sm">
-                <span className="font-black text-[#f5d987]">한 손만 등록해도 분석됩니다.</span>
-                <span className="text-[#e8d8b0]/85">양손을 모두 등록하면 선천·후천을 비교한 해석이 더해집니다.</span>
+                <span className="font-black text-[#f5d987]">{copy.oneHandNoteMain}</span>
+                <span className="text-[#e8d8b0]/85">{copy.oneHandNoteSub}</span>
               </p>
 
               <div className="mt-4 grid grid-cols-2 gap-2 sm:w-fit">
@@ -2948,7 +2880,7 @@ export default function PalmDestinyMain() {
                   }`}
                   aria-pressed={selectedCaptureSide === "left"}
                 >
-                  왼손 입력
+                  {copy.leftHandInputLabel}
                 </button>
                 <button
                   type="button"
@@ -2960,7 +2892,7 @@ export default function PalmDestinyMain() {
                   }`}
                   aria-pressed={selectedCaptureSide === "right"}
                 >
-                  오른손 입력
+                  {copy.rightHandInputLabel}
                 </button>
               </div>
 
@@ -2969,55 +2901,55 @@ export default function PalmDestinyMain() {
                 <label
                   htmlFor={getCameraInputId(selectedCaptureSide)}
                   className="cd-capture-cta cd-capture-actions__camera"
-                  aria-label={palmDestinyText("palmDestiny.aria-label.001")}
+                  aria-label={copy.captureNowAriaLabel}
                 >
-                  <span aria-hidden>📷</span> 손바닥 바로 촬영하기
+                  <span aria-hidden>📷</span> {copy.captureNowLabel}
                 </label>
                 <label
                   htmlFor={getGalleryInputId(selectedCaptureSide)}
                   className="cd-capture-cta cd-capture-actions__gallery"
-                  aria-label={palmDestinyText("palmDestiny.aria-label.002")}
+                  aria-label={copy.choosePhotoAriaLabel}
                 >
-                  <span aria-hidden>🖼️</span> 앨범에서 사진 선택하기
+                  <span aria-hidden>🖼️</span> {copy.choosePhotoLabel}
                 </label>
               </div>
 
               <p className="mt-3 text-xs leading-6 text-[#e8d8b0]/85">
-                현재 선택 대상: <strong className="font-bold text-[#f5d987]">{selectedCaptureSide === "left" ? "왼손" : "오른손"}</strong>
+                {copy.currentTargetLabel(selectedCaptureSide === "left" ? copy.handNameLeft : copy.handNameRight)}
               </p>
 
               <div className="mt-4 overflow-x-auto">
                 <div className="inline-flex min-w-full items-center gap-2 rounded-lg border border-[#c8a84b]/25 bg-[#0d0606]/70 px-3 py-2 text-[11px] text-[#e8d8b0]/85 md:text-xs">
-                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "pick" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>1. 업로드</span>
+                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "pick" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>{copy.flowStepUpload}</span>
                   <span>→</span>
-                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "preview" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>2. 미리보기/품질 안내</span>
+                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "preview" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>{copy.flowStepPreview}</span>
                   <span>→</span>
-                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "analyzing" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>3. 분석</span>
+                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "analyzing" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>{copy.flowStepAnalyzing}</span>
                   <span>→</span>
-                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "result" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>4. 결과</span>
+                  <span className={`rounded-full px-2 py-1 font-bold ${flowStep === "result" ? "bg-[#5a1a00] text-[#ffe3a3]" : "bg-[#2a1f12] text-[#cfb67f]"}`}>{copy.flowStepResult}</span>
                 </div>
               </div>
 
               {hasAnyPreview ? (
                 <div className="mt-4 rounded-xl border border-[#c8a84b]/35 bg-[#0d0606]/80 p-3 md:p-4">
                   <p className="text-xs font-bold text-[#f5d987] md:text-sm">
-                    {currentPreviewSide === "left" ? "왼손" : "오른손"} 미리보기
+                    {copy.previewOfHand(currentPreviewSide === "left" ? copy.handNameLeft : copy.handNameRight)}
                   </p>
                   <div className="mt-3 overflow-hidden rounded-lg border border-[#c8a84b]/30 bg-[#050304]">
                     {currentPreviewState.previewUrl ? (
                       <img
                         src={currentPreviewState.previewUrl}
-                        alt={palmDestinyText("palmDestiny.alt.001")}
+                        alt={copy.selectedPreviewAlt}
                         className="max-h-[340px] w-full object-contain"
                       />
                     ) : null}
                   </div>
 
                   <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
-                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">손 전체가 보이나요?</p>
-                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">손바닥 주름이 보이나요?</p>
-                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">빛 반사가 심하지 않나요?</p>
-                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">사진이 너무 흔들리지 않았나요?</p>
+                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">{copy.checklistFullPalm}</p>
+                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">{copy.checklistCreases}</p>
+                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">{copy.checklistGlare}</p>
+                    <p className="rounded-lg border border-[#c8a84b]/25 bg-[#0a0505]/70 px-3 py-2">{copy.checklistShake}</p>
                   </div>
 
                   {currentQualityFeedback ? (
@@ -3030,7 +2962,7 @@ export default function PalmDestinyMain() {
                           ))}
                         </ul>
                       ) : (
-                        <p className="mt-1 text-xs text-[#e8d8b0]/90 md:text-sm">품질 체크가 양호합니다. 이 사진으로 분석을 진행할 수 있습니다.</p>
+                        <p className="mt-1 text-xs text-[#e8d8b0]/90 md:text-sm">{copy.qualityOkMessage}</p>
                       )}
 
                       {/* 아래 CTA 가 비활성인 이유와 빠져나갈 길을 같은 자리에 둔다.
@@ -3041,7 +2973,7 @@ export default function PalmDestinyMain() {
                           onClick={() => setQualityOverride(true)}
                           className="cd-ghost-btn mt-3 min-h-[44px] w-full rounded-lg border border-[#c8a84b]/45 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#f0d9a2] md:text-sm"
                         >
-                          이 사진 그대로 분석하기
+                          {copy.analyzeThisPhotoAction}
                         </button>
                       ) : null}
                     </div>
@@ -3058,19 +2990,19 @@ export default function PalmDestinyMain() {
                           : "cursor-not-allowed border-[#7a6020]/40 bg-[#2a2010] text-[#ccb67d]"
                       }`}
                     >
-                      이 사진으로 분석하기
+                      {copy.analyzeThisPhotoAction}
                     </button>
                     <label
                       htmlFor={getGalleryInputId(currentPreviewSide)}
                       className="cd-ghost-btn inline-flex min-h-[48px] cursor-pointer items-center justify-center rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-sm font-bold text-[#e8d090]"
                     >
-                      다른 사진 선택
+                      {copy.chooseAnotherPhotoAction}
                     </label>
                     <label
                       htmlFor={getCameraInputId(currentPreviewSide)}
                       className="cd-ghost-btn inline-flex min-h-[48px] cursor-pointer items-center justify-center rounded-lg border border-[#c8a84b]/40 bg-[#0e0608] px-3 py-2 text-sm font-bold text-[#e8d090]"
                     >
-                      다시 촬영
+                      {copy.retakePhotoAction}
                     </label>
                   </div>
                 </div>
@@ -3078,22 +3010,22 @@ export default function PalmDestinyMain() {
             </section>
 
             <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/35 bg-[#0d0606]/70 p-4">
-              <h3 className="text-sm font-black text-[#f5d987]">양손 비교 업로드(선택)</h3>
+              <h3 className="text-sm font-black text-[#f5d987]">{copy.bothHandsUploadHeading}</h3>
               <div className="mt-4 grid gap-4 md:grid-cols-2 md:gap-5">
-                {renderHandUploader("left", leftHand, leftUploadInputRef, leftCameraInputRef, "왼손 이미지 업로드")}
-                {renderHandUploader("right", rightHand, rightUploadInputRef, rightCameraInputRef, "오른손 이미지 업로드")}
+                {renderHandUploader("left", leftHand, leftUploadInputRef, leftCameraInputRef, copy.leftHandUploadTitle)}
+                {renderHandUploader("right", rightHand, rightUploadInputRef, rightCameraInputRef, copy.rightHandUploadTitle)}
               </div>
             </section>
 
             <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(20,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
               <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
                 <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">선천 · 후천 설명</h2>
+                <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.innateAcquiredHeading}</h2>
               </div>
               <div className="mt-3 rounded-xl border border-[#9b1a1a]/60 bg-[#1e0808]/80 p-4 text-sm leading-7 text-[#ffe5c8]" style={{ boxShadow: "inset 0 0 20px rgba(100,10,10,0.3)" }}>
-                <p>손금에서는 자주 쓰는 손을 <span className="font-bold text-[#f5d987]">후천적 손</span>, 자주 쓰지 않는 손을 <span className="font-bold text-[#f5d987]">선천적 손</span>으로 읽습니다.</p>
-                <p className="mt-2">후천적 손은 현재의 성향과 삶의 흐름을, 선천적 손은 타고난 기질과 잠재력을 보여줍니다.</p>
-                <p className="mt-2 font-semibold text-[#fde8c8]">선천의 결, 후천의 흐름을 함께 읽어 현실적인 방향을 제안합니다.</p>
+                <p>{copy.innateAcquiredExplain1}</p>
+                <p className="mt-2">{copy.innateAcquiredExplain2}</p>
+                <p className="mt-2 font-semibold text-[#fde8c8]">{copy.innateAcquiredExplain3}</p>
               </div>
             </section>
 
@@ -3101,7 +3033,7 @@ export default function PalmDestinyMain() {
               <fieldset>
                 <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
                   <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                  <legend className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">주로 쓰는 손 선택</legend>
+                  <legend className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.dominantHandHeading}</legend>
                 </div>
                 <div className="mt-4 grid grid-cols-1 gap-2 sm:grid-cols-3">
                   {DOMINANT_HAND_OPTIONS.map((option) => {
@@ -3132,7 +3064,7 @@ export default function PalmDestinyMain() {
 
               <fieldset className="mt-6 rounded-lg border border-[#b8871f]/25 bg-[#0d0808]/80 p-4">
                 <p className="text-sm font-black text-[#f5d987] cd-oriental-kicker">
-                  분석 목적은 전체 운세로 고정되어 있으며, 연애/재물/직업/성격/관계 카테고리를 한 번에 표시합니다.
+                  {copy.purposeFixedNote}
                 </p>
               </fieldset>
             </section>
@@ -3140,10 +3072,10 @@ export default function PalmDestinyMain() {
             <section className="cd-oriental-card rounded-2xl border border-[#c8a84b]/50 bg-[linear-gradient(145deg,rgba(10,6,5,0.96),rgba(18,10,10,0.96))] p-4 md:p-6" style={{ boxShadow: "0 0 0 1px rgba(180,130,40,0.12), inset 0 0 30px rgba(120,15,15,0.12)" }}>
               <div className="flex items-center gap-3 border-b border-[#c8a84b]/20 pb-3">
                 <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">촬영 가이드</h2>
+                <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.shootingGuideHeading}</h2>
               </div>
               <ul className="mt-3 space-y-2 text-sm leading-7 text-[#f0dfc0]/90">
-                {SHOOTING_GUIDES.map((guide) => (
+                {copy.shootingGuides.map((guide) => (
                   <li key={guide} className="flex items-start gap-3 rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
                     <span className="mt-0.5 shrink-0 text-[10px] font-black text-[#d4b45c]">◆</span>
                     <span>{guide}</span>
@@ -3173,12 +3105,12 @@ export default function PalmDestinyMain() {
                 {isSubmitting ? (
                   <span className="flex items-center gap-3">
                     <span aria-hidden className="cd-spinner inline-block h-5 w-5 rounded-full border-2 border-[#f5d987]/30 border-t-[#f5d987]" />
-                    손금 분석 진행 중...
+                    {copy.analyzingButtonLabel}
                   </span>
                 ) : (
                   <span className="flex items-center gap-2">
                     <span aria-hidden style={{ fontFamily: "serif" }}>☰</span>
-                    손바닥 운명 지도 열기
+                    {copy.openPalmMapButtonLabel}
                   </span>
                 )}
               </button>
@@ -3189,7 +3121,7 @@ export default function PalmDestinyMain() {
                   className="mt-3 rounded-lg border border-[#9b1a1a]/60 bg-[#1e0808]/85 px-3 py-3"
                 >
                   <p className="text-xs font-black text-[#ffd8d8] md:text-sm">
-                    {lowQualitySides.map((side) => (side === "left" ? "왼손" : "오른손")).join("·")} 사진 품질이 낮게 측정됐습니다
+                    {copy.lowQualityDetectedMessage(lowQualitySides.map((side) => (side === "left" ? copy.handNameLeft : copy.handNameRight)).join("·"))}
                   </p>
                   <ul className="mt-2 space-y-1 text-[11px] leading-5 text-[#ffc8c8]/90 md:text-xs">
                     {Array.from(
@@ -3201,7 +3133,7 @@ export default function PalmDestinyMain() {
                       ))}
                   </ul>
                   <p className="mt-2 text-[11px] leading-5 text-[#e8d8b0]/85 md:text-xs">
-                    더 밝은 곳에서 손바닥 전체가 또렷하게 나오도록 다시 찍으면 해석이 훨씬 정확해집니다.
+                    {copy.lowQualityAdviceMessage}
                   </p>
                   {/* 막다른 길 금지 — 사전점검은 휴리스틱이라 오탐이 난다.
                       사유를 본 뒤에는 사용자가 직접 진행을 선택할 수 있어야 한다. */}
@@ -3210,19 +3142,19 @@ export default function PalmDestinyMain() {
                     onClick={() => setQualityOverride(true)}
                     className="cd-ghost-btn mt-3 min-h-[44px] w-full rounded-lg border border-[#c8a84b]/45 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#f0d9a2] md:text-sm"
                   >
-                    이 사진 그대로 분석하기
+                    {copy.analyzeThisPhotoAction}
                   </button>
                 </div>
               ) : (
                 <p className="mt-3 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">
-                  활성 조건: 왼손 또는 오른손 사진 1장 이상 + 주로 쓰는 손 선택
+                  {copy.activeConditionMessage}
                 </p>
               )}
 
               {(leftHand.file || rightHand.file) && dominantHand ? (
                 <div className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/70 px-3 py-2 text-xs text-[#e8d090]/90 md:text-sm">
-                  <p>왼손 역할: <span className="font-bold text-[#f5d987]">{HAND_ROLE_META[handRoles.leftHandRole].label}</span></p>
-                  <p className="mt-1">오른손 역할: <span className="font-bold text-[#f5d987]">{HAND_ROLE_META[handRoles.rightHandRole].label}</span></p>
+                  <p>{copy.leftHandRoleLabel(HAND_ROLE_META[handRoles.leftHandRole].label)}</p>
+                  <p className="mt-1">{copy.rightHandRoleLabel(HAND_ROLE_META[handRoles.rightHandRole].label)}</p>
                 </div>
               ) : null}
 
@@ -3234,7 +3166,7 @@ export default function PalmDestinyMain() {
 
               {isSubmitting ? (
                 <div className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/80 px-3 py-3 text-xs text-[#e8d090]/92 md:text-sm">
-                  <p className="font-bold text-[#f5d987]">손바닥의 금빛 선을 읽고 있습니다...</p>
+                  <p className="font-bold text-[#f5d987]">{copy.analyzingBanner}</p>
                   <p className="mt-1 text-[#e8d090]">{loadingPhaseText}</p>
                 </div>
               ) : null}
@@ -3245,14 +3177,14 @@ export default function PalmDestinyMain() {
                   onClick={handlePhotoReselect}
                   className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-sm font-bold text-[#e8d090]"
                 >
-                  사진 다시 선택
+                  {copy.reselectPhotoAction}
                 </button>
                 <button
                   type="button"
                   onClick={handleResetOnlyResult}
                   className="cd-ghost-btn min-h-[44px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-sm font-bold text-[#e8d090]"
                 >
-                  다시 분석
+                  {copy.reanalyzeAction}
                 </button>
               </div>
             </section>
@@ -3263,20 +3195,20 @@ export default function PalmDestinyMain() {
                   <div>
                     <div className="flex items-center gap-3">
                       <div aria-hidden className="h-5 w-1 rounded-full" style={{ background: "linear-gradient(180deg, #f5d987, #8b6914)" }} />
-                      <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">손금 결과 오버레이</h2>
+                      <h2 className="text-base font-black text-[#f5d987] md:text-lg cd-oriental-headline">{copy.resultOverlayHeading}</h2>
                     </div>
-                    <p className="mt-1 text-xs text-[#d4b45c]/85">선천의 결, 후천의 흐름을 한 화면에서 비교합니다.</p>
+                    <p className="mt-1 text-xs text-[#d4b45c]/85">{copy.resultOverlaySubheading}</p>
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
                     <span className="rounded-full border border-[#c8a84b]/35 bg-[#0d0808]/80 px-2 py-1 text-[11px] font-bold text-[#e8d090]">
-                      {hasCoordinatePaths ? "좌표 기반 + 일부 보정" : "상징적 안내 오버레이"}
+                      {hasCoordinatePaths ? copy.coordinateBasedBadge : copy.symbolicGuideBadge}
                     </span>
                     <button
                       type="button"
                       onClick={handleRetryWithOtherHand}
                       className="cd-ghost-btn min-h-[40px] rounded-lg border border-[#c8a84b]/40 bg-[#0d0808] px-3 py-2 text-xs font-bold text-[#e8d090]"
                     >
-                      다른 손으로 다시 보기
+                      {copy.viewOtherHandAction}
                     </button>
                     <button
                       type="button"
@@ -3284,7 +3216,7 @@ export default function PalmDestinyMain() {
                       className="cd-red-btn min-h-[40px] rounded-lg border border-[#9b1a1a]/70 px-3 py-2 text-xs font-bold text-[#ffd8d8]"
                       style={{ background: "linear-gradient(136deg, rgba(100,15,15,0.95), rgba(70,25,10,0.95))" }}
                     >
-                      메인으로 돌아가기
+                      {copy.backToMainAction}
                     </button>
                   </div>
                 </div>
@@ -3305,7 +3237,7 @@ export default function PalmDestinyMain() {
                           }`}
                           style={overlaySide === "left" ? { background: "linear-gradient(135deg, #5a1a00 0%, #3d1400 50%, #5a2800 100%)", boxShadow: "0 0 18px rgba(212,176,92,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
                         >
-                          왼손 보기
+                          {copy.viewLeftHandAction}
                         </button>
                         <button
                           type="button"
@@ -3317,7 +3249,7 @@ export default function PalmDestinyMain() {
                           }`}
                           style={overlaySide === "right" ? { background: "linear-gradient(135deg, #5a1a00 0%, #3d1400 50%, #5a2800 100%)", boxShadow: "0 0 18px rgba(212,176,92,0.35), inset 0 -2px 0 rgba(245,217,135,0.8)" } : {}}
                         >
-                          오른손 보기
+                          {copy.viewRightHandAction}
                         </button>
                       </div>
                     ) : null}
@@ -3336,10 +3268,10 @@ export default function PalmDestinyMain() {
                     <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/85 p-4">
                       <div className="flex flex-wrap items-center gap-2">
                         <span className="rounded-full border border-[#c8a84b]/45 bg-[#1a1006] px-3 py-1 text-xs font-bold text-[#f5d987]">
-                          {resultModeLabel(analysisResult.mode)}
+                          {resultModeLabel(analysisResult.mode, copy)}
                         </span>
                         <span className="rounded-full border border-[#c8a84b]/35 bg-[#120909] px-3 py-1 text-xs font-bold text-[#e8d090]">
-                          {overlaySide === "left" ? "왼손" : "오른손"} · {HAND_ROLE_META[activeHandRole].label}
+                          {overlaySide === "left" ? copy.handNameLeft : copy.handNameRight} · {HAND_ROLE_META[activeHandRole].label}
                         </span>
                         <span className="rounded-full border border-[#c8a84b]/35 bg-[#120909] px-3 py-1 text-xs font-bold text-[#e8d090]">
                           {resultPurposeLabel}
@@ -3348,7 +3280,7 @@ export default function PalmDestinyMain() {
 
                       <div className="mt-3 border-b border-[#c8a84b]/18 pb-3">
                         <h3 className="text-base font-black leading-7 text-[#f5d987] md:text-lg cd-oriental-headline">
-                          한눈에 보는 손금 리딩
+                          {copy.readingHeadline}
                         </h3>
                         <p className="mt-2 text-sm font-semibold leading-7 text-[#ffe1d6] md:text-base">
                           {resultOneLiner}
@@ -3357,21 +3289,21 @@ export default function PalmDestinyMain() {
 
                       <div className="mt-3 grid gap-2 md:grid-cols-4">
                         <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
-                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">읽힌 흐름</p>
-                          <p className="mt-1 text-sm font-bold text-[#f7e5bd]">{readableSignalCount}개</p>
+                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">{copy.readSignalStat}</p>
+                          <p className="mt-1 text-sm font-bold text-[#f7e5bd]">{copy.signalCountUnit(readableSignalCount)}</p>
                         </div>
                         <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
-                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">손 형태</p>
+                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">{copy.handShapeStat}</p>
                           <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">
-                            {activeHandReading?.handShape.labelKo || "복합형"}
+                            {activeHandReading?.handShape.labelKo || copy.handShapeDefaultValue}
                           </p>
                         </div>
                         <div className="rounded-lg border border-[#c8a84b]/20 bg-[#0d0606]/70 px-3 py-2">
-                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">중심 포인트</p>
-                          <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">{summarizeMountFocus(activeHandReading)}</p>
+                          <p className="text-[11px] font-black text-[#f5d987]/90 md:text-xs">{copy.centerPointStat}</p>
+                          <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">{summarizeMountFocus(activeHandReading, copy)}</p>
                         </div>
                         <div className="rounded-lg border border-[#4a7a30]/30 bg-[#091106]/70 px-3 py-2">
-                          <p className="text-[11px] font-black text-[#9fe273] md:text-xs">오늘 행동</p>
+                          <p className="text-[11px] font-black text-[#9fe273] md:text-xs">{copy.todayActionStat}</p>
                           <p className="mt-1 text-xs leading-5 text-[#e8d8b0]/90 md:text-sm">{resultPrimaryAction}</p>
                         </div>
                       </div>
@@ -3386,7 +3318,7 @@ export default function PalmDestinyMain() {
 
                       {detectedSpecialPatterns.length > 0 ? (
                         <section className="mt-3 rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/75 px-3 py-3">
-                          <p className="text-xs font-black text-[#f5d987] md:text-sm">특수 손금 감지</p>
+                          <p className="text-xs font-black text-[#f5d987] md:text-sm">{copy.specialPatternHeading}</p>
                           <div className="mt-2 flex flex-wrap gap-2">
                             {detectedSpecialPatterns.map((pattern) => (
                               <span
@@ -3407,9 +3339,9 @@ export default function PalmDestinyMain() {
 
                       {analysisResult.missingData.length > 0 ? (
                         <div className="mt-3 rounded-lg border border-[#c8a84b]/20 bg-[#120909]/70 px-3 py-2">
-                          <p className="text-xs font-bold text-[#f5d987] md:text-sm">사진 가이드</p>
+                          <p className="text-xs font-bold text-[#f5d987] md:text-sm">{copy.photoGuideHeading}</p>
                           <p className="mt-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
-                            손바닥 전체가 화면에 들어오고 그림자가 적으면 리딩이 훨씬 더 풍부해져요.
+                            {copy.photoGuideMessage}
                           </p>
                         </div>
                       ) : null}
@@ -3423,7 +3355,7 @@ export default function PalmDestinyMain() {
 
                     {analysisResult.interpretation?.focusSummary ? (
                       <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 px-4 py-3">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">해석 중심</h3>
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.focusSummaryHeading}</h3>
                         <p className="mt-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
                           {analysisResult.interpretation.focusSummary}
                         </p>
@@ -3432,8 +3364,8 @@ export default function PalmDestinyMain() {
 
                     {bothHandsComparison ? (
                       <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">선천 · 후천 비교 요약</h3>
-                        <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">타고난 손과 살아온 손을 함께 읽습니다.</p>
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.innateAcquiredComparisonHeading}</h3>
+                        <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">{copy.innateAcquiredComparisonSub}</p>
                         <div className="mt-3 space-y-2 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
                           <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.innateSummary}</p>
                           <p className="rounded-lg border border-[#c8a84b]/18 bg-[#0d0606]/70 px-3 py-2">{bothHandsComparison.acquiredSummary}</p>
@@ -3446,8 +3378,8 @@ export default function PalmDestinyMain() {
                     {categoryConsultations.length > 0 ? (
                       <section className="space-y-3">
                         <div className="border-b border-[#c8a84b]/20 pb-2">
-                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">카테고리 리포트 전체</h3>
-                          <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">사랑, 재물, 직업, 성격, 관계의 흐름을 한 번에 펼쳐 읽습니다.</p>
+                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.categoryReportHeading}</h3>
+                          <p className="mt-1 text-xs leading-6 text-[#d4b45c]/85 md:text-sm">{copy.categoryReportSub}</p>
                         </div>
 
                         <div className="grid gap-3 lg:grid-cols-2">
@@ -3458,7 +3390,7 @@ export default function PalmDestinyMain() {
 
                               <div className="mt-3 grid gap-3 xl:grid-cols-2">
                                 <div>
-                                  <p className="text-xs font-bold text-[#f5d987] md:text-sm">세부 흐름</p>
+                                  <p className="text-xs font-bold text-[#f5d987] md:text-sm">{copy.detailFlowHeading}</p>
                                   <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
                                     {item.details.map((line) => (
                                       <li key={line}>• {line}</li>
@@ -3466,7 +3398,7 @@ export default function PalmDestinyMain() {
                                   </ul>
                                 </div>
                                 <div>
-                                  <p className="text-xs font-bold text-[#8ade5f] md:text-sm">실천 제안</p>
+                                  <p className="text-xs font-bold text-[#8ade5f] md:text-sm">{copy.actionSuggestionHeading}</p>
                                   <ul className="mt-1 space-y-1 text-xs leading-6 text-[#e8d8b0]/90 md:text-sm">
                                     {item.actions.map((line) => (
                                       <li key={line}>• {line}</li>
@@ -3482,18 +3414,18 @@ export default function PalmDestinyMain() {
 
                     {analysisResult.report ? (
                       <section className="cd-oriental-card rounded-xl border border-[#c8a84b]/30 bg-[#0d0808]/80 p-4">
-                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">🌙 한눈에 보는 손금 리딩</h3>
+                        <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.quickReportHeading}</h3>
                         <div className="mt-3 grid gap-2 text-xs leading-6 text-[#e8d8b0]/90 md:grid-cols-2 md:text-sm">
                           {[
-                            ["🌙 한 줄 요약", String(analysisResult.report.oneLiner || "이번 손금 흐름을 쉽고 재밌게 정리해 드렸어요.")],
-                            ["🌟 전체 운세", String(analysisResult.report.summary || "지금은 내 리듬을 찾을수록 운이 안정되는 시기예요.")],
-                            ["💗 연애운", String(analysisResult.report.love || "연애운은 솔직한 대화에서 더 좋아지는 흐름이에요.")],
-                            ["💰 재물운", String(analysisResult.report.wealth || "재물운은 꾸준히 쌓을 때 더 잘 살아나요.")],
-                            ["🧭 직업운", String(analysisResult.report.career || "직업운은 내 방식과 실력을 쌓을수록 강해져요.")],
-                            ["✨ 성격/매력", String(analysisResult.report.personality || "묵직한 신뢰감이 당신의 매력 포인트예요.")],
-                            ["🌱 건강/에너지", String(analysisResult.report.healthEnergy || "무리보다 리듬 관리가 운을 살려줘요.")],
-                            ["🤝 관계운", String(analysisResult.report.relationship || "관계운은 편안한 소통에서 힘이 붙어요.")],
-                            ["🔮 오늘의 조언", String(analysisResult.report.advice || "오늘은 미뤄둔 작은 일 하나를 끝내 보세요.")],
+                            [copy.quickReportRowOneLiner, String(analysisResult.report.oneLiner || copy.quickReportRowOneLinerDefault)],
+                            [copy.quickReportRowOverall, String(analysisResult.report.summary || copy.quickReportRowOverallDefault)],
+                            [copy.quickReportRowLove, String(analysisResult.report.love || copy.quickReportRowLoveDefault)],
+                            [copy.quickReportRowWealth, String(analysisResult.report.wealth || copy.quickReportRowWealthDefault)],
+                            [copy.quickReportRowCareer, String(analysisResult.report.career || copy.quickReportRowCareerDefault)],
+                            [copy.quickReportRowPersonality, String(analysisResult.report.personality || copy.quickReportRowPersonalityDefault)],
+                            [copy.quickReportRowHealth, String(analysisResult.report.healthEnergy || copy.quickReportRowHealthDefault)],
+                            [copy.quickReportRowRelationship, String(analysisResult.report.relationship || copy.quickReportRowRelationshipDefault)],
+                            [copy.quickReportRowAdvice, String(analysisResult.report.advice || copy.quickReportRowAdviceDefault)],
                           ].map(([label, text]) => (
                             <div key={`std-report-${label}`} className="rounded-lg border border-[#c8a84b]/22 bg-[#0d0606]/70 px-3 py-2">
                               <p className="text-xs font-black text-[#f5d987] md:text-sm">{label}</p>
@@ -3507,10 +3439,10 @@ export default function PalmDestinyMain() {
                     <section className="space-y-3 rounded-xl border border-[#f5d987]/30 bg-[linear-gradient(145deg,rgba(22,8,8,0.95),rgba(30,12,12,0.94))] p-4">
                       <div className="flex flex-wrap items-start justify-between gap-2 border-b border-[#c8a84b]/30 pb-3">
                         <div>
-                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">손금 전문가 심층 해석</h3>
-                          <p className="mt-1 text-xs text-[#d4b45c]/85">판독 결과를 바탕으로 전문가가 항목별로 풀어 드립니다.</p>
+                          <h3 className="text-sm font-black text-[#f5d987] md:text-base cd-oriental-headline">{copy.expertConsultHeading}</h3>
+                          <p className="mt-1 text-xs text-[#d4b45c]/85">{copy.expertConsultSub}</p>
                         </div>
-                        <span className="rounded-full border border-[#f5d987]/45 bg-[#120909] px-2 py-1 text-[11px] font-bold text-[#f5d987]">포함</span>
+                        <span className="rounded-full border border-[#f5d987]/45 bg-[#120909] px-2 py-1 text-[11px] font-bold text-[#f5d987]">{copy.expertConsultIncludedBadge}</span>
                       </div>
 
                       {analysisResult.consultText ? (
@@ -3521,7 +3453,7 @@ export default function PalmDestinyMain() {
                         </div>
                       ) : (
                         <p className="rounded-lg border border-[#c8a84b]/30 bg-[#0d0606]/60 px-3 py-2 text-xs leading-6 text-[#d4b45c]/85">
-                          이번 판독에서는 심층 해석문을 생성하지 못했습니다. 아래 항목별 리포트는 정상적으로 제공됩니다.
+                          {copy.expertConsultMissingMessage}
                         </p>
                       )}
                     </section>

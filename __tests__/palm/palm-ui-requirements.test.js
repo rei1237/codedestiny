@@ -19,6 +19,7 @@ const {
 const { buildBothHandsComparison } = require("../../lib/palm/both-hands-comparison.js");
 
 const mainPath = path.join(process.cwd(), "app", "palm-reading", "PalmDestinyMain.tsx");
+const copyPath = path.join(process.cwd(), "app", "palm-reading", "_lib", "copy.ts");
 const interpretationPath = path.join(process.cwd(), "lib", "palm", "interpretation-engine.ts");
 
 function makeLine(overrides = {}) {
@@ -273,16 +274,18 @@ describe("Palm UI requirements", () => {
   });
 
   test("Test T: 손금 화면에 전체화면 토글 버튼이 존재해야 한다", () => {
-    const source = fs.readFileSync(mainPath, "utf8");
+    // 🔴 2026-08-22 다국어화(_lib/copy.ts 도입)로 이 문구가 클라이언트 소스가 아니라 카피 모듈로 이동했다.
+    const copySource = fs.readFileSync(copyPath, "utf8");
 
-    expect(source).toContain("전체화면");
-    expect(source).toContain("기본 화면");
+    expect(copySource).toContain("전체화면");
+    expect(copySource).toContain("기본 화면");
   });
 
   test("Test U: 손금 결과 화면에 특수 손금 감지 섹션이 존재해야 한다", () => {
     const source = fs.readFileSync(mainPath, "utf8");
+    const copySource = fs.readFileSync(copyPath, "utf8");
 
-    expect(source).toContain("특수 손금 감지");
+    expect(copySource).toContain("특수 손금 감지");
     expect(source).toContain("detectedSpecialPatterns");
   });
 });

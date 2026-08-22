@@ -22,6 +22,7 @@ const gemini = read('worker/lib/gemini.js');
 const paidRegistry = read('worker/lib/paid-feature-registry.js');
 const billingRegistry = read('worker/lib/billing-feature-registry.js');
 const client = read('app/palm-reading/PalmDestinyMain.tsx');
+const clientCopy = read('app/palm-reading/_lib/copy.ts');
 const uiState = read('lib/palm/palm-ui-state.js');
 const landmarks = read('app/palm-reading/palm-hand-landmarks.ts');
 
@@ -167,7 +168,8 @@ assert.match(
 
 // ── 10c. 한 손만으로도 된다는 사실을 화면에 명시한다 ──
 // 종전에는 '양손 비교 업로드(선택)' 제목으로만 암시돼 양손 필수로 오해할 여지가 있었다.
-assert.match(client, /한 손만 등록해도 분석됩니다/, '클라이언트: 한 손 분석 가능 문구 필요');
+// 🔴 2026-08-22 다국어화(_lib/copy.ts 도입)로 이 문구가 클라이언트 소스가 아니라 카피 모듈로 이동했다.
+assert.match(clientCopy, /한 손만 등록해도 분석됩니다/, '클라이언트 카피: 한 손 분석 가능 문구 필요');
 
 // ── 10d. 촬영/앨범 버튼 우선순위는 CSS 로 가른다 ──
 // JS 기기 판별은 SSR 과 첫 렌더가 어긋나 버튼이 튄다. 너비가 아니라 포인터 종류로 가른다.
