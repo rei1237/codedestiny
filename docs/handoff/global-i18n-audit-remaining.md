@@ -1,4 +1,4 @@
-# 글로벌 다국어 현지화 — 남은 작업 (갱신: 2026-08-22, 3차 세션)
+# 글로벌 다국어 현지화 — 남은 작업 (갱신: 2026-08-22, 4차 세션)
 
 ## 배경
 
@@ -102,7 +102,16 @@
 
 **확인 후 제외로 분류(Wave 9, 콘텐츠 작성 프로젝트)**: `app/compare/fortune-apps/page.tsx`(직접 읽어 확인) — 서버 컴포넌트, 로케일 라우팅 없음, `verify-adsense-readiness` 1,800자 기준을 타는 SEO 장문 아티클(운세 앱 비교 콘텐츠, 사이트맵 등록·구조화 데이터 포함). `app/compare/saju-vs-ziwei/page.tsx`·`app/compare/sukuyo-vs-vedic/page.tsx`도 같은 `/compare/*` 패밀리라 동일 판단으로 추정(직접 열어보진 않음, **미검증** — 다음 세션이 열어서 확인할 것). `music/guide/page.js`·`nakshatra/codex/[index]/page.tsx`와 동일 범주.
 
-**다음 세션 확인 후보(이번 세션에 미검증, page.tsx만 보고 Client 본체는 안 읽음)**: `app/oracle/rune/page.tsx`→`RuneRouteClient`, `app/saju-fpti/page.tsx`→`SajuFptiRouteClient`, `app/ziwei/chart/page.tsx`→`ZiweiChartClientLoader`, `app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient`, `app/fortune/[period]/page.tsx`+`SignFortuneView.tsx`+`YeoniPortrait.tsx`, `app/stories/[episode]/page.tsx`, `app/insights/famous-saju/[slug]/page.tsx` — 이번 세션의 반복 교훈(destiny-compass·tarot/* 3종)대로, `page.tsx` 자체의 attribute grep 매칭 건수(0~4건)로 그 기능 전체의 번역 상태를 판단하지 말 것. 각 라우트의 실제 라이브 클라이언트 컴포넌트를 열어 본문 텍스트까지 확인한 뒤 착수 여부를 정할 것. `app/stories/[episode]/page.tsx`·`app/insights/famous-saju/[slug]/page.tsx`는 이름상 SEO/스토리 콘텐츠 라우트일 가능성이 높아(Wave 9 후보) 먼저 서버/클라이언트 여부부터 확인할 것.
+**다음 세션 확인 후보(이번 세션에 미검증, page.tsx만 보고 Client 본체는 안 읽음)**: ~~`app/oracle/rune/page.tsx`→`RuneRouteClient`~~ **완료(PR #969, 아래 참고)**, `app/saju-fpti/page.tsx`→`SajuFptiRouteClient`, `app/ziwei/chart/page.tsx`→`ZiweiChartClientLoader`, `app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient`, `app/fortune/[period]/page.tsx`+`SignFortuneView.tsx`+`YeoniPortrait.tsx`, `app/stories/[episode]/page.tsx`, `app/insights/famous-saju/[slug]/page.tsx` — 이번 세션의 반복 교훈(destiny-compass·tarot/* 3종)대로, `page.tsx` 자체의 attribute grep 매칭 건수(0~4건)로 그 기능 전체의 번역 상태를 판단하지 말 것. 각 라우트의 실제 라이브 클라이언트 컴포넌트를 열어 본문 텍스트까지 확인한 뒤 착수 여부를 정할 것. `app/stories/[episode]/page.tsx`·`app/insights/famous-saju/[slug]/page.tsx`는 이름상 SEO/스토리 콘텐츠 라우트일 가능성이 높아(Wave 9 후보) 먼저 서버/클라이언트 여부부터 확인할 것.
+
+## 2026-08-22 `oracle/rune` — 실제 라이브 컴포넌트가 레포 루트에 있었다 (완료)
+
+**PR #969** `chore/oracle-rune-i18n` — `app/oracle/rune/page.tsx`→`RuneRouteClient.tsx`를 열어 보니 실제 렌더 컴포넌트는 `app/` 트리 밖, **레포 루트의 `StonehengeRune.jsx`**였다(`dynamic(() => import("../../../StonehengeRune"))`). 이번 세션의 다른 "속성 전용 grep이 놓친다" 사례들이 전부 **grep 패턴**(속성 vs 본문 텍스트) 문제였던 것과 달리, 이번은 **파일 위치** 자체가 `app/**/*.tsx` 스코프 밖이라 어떤 grep으로도 안 걸렸다 — 새 클러스터를 후보로 올릴 때 `page.tsx`의 import 경로가 `app/` 밖을 가리키는지도 확인할 것.
+
+- 신규 `lib/stonehenge-rune-copy.ts`(49필드, en/ja/zh-CN/zh-TW — 이번 지시 이후 신규 작업이라 나머지 7개 로케일은 EN 스프레드 폴백)로 헤더·컬렉션·스프레드 선택·뽑기 버튼·방향 배지·상세 모달·AI 프롬프트 섹션·CTA·공유 관련 alert 등 ~35개 UI 문구 배선.
+- **제외(콘텐츠 데이터, `lib/tarot/rich-card-meanings.mjs`와 동일 취급)**: `RUNES_DATA`(24룬 정/역방향 의미)·`RUNE_GUIDE`/`DEFAULT_RUNE_GUIDE`(24룬×~13필드 다문장 산문)·`getDetailedReading()`의 생성 문장(`intro`/`positionNote`)·`getSpreadInsight()`의 생성 결과물·`buildRuneAiQuestionPrompt()`의 AI 프롬프트 템플릿·`SPREAD_LABELS`(생성 함수 내부 전용).
+- 검증: `npx tsc --noEmit` clean · `npx eslint StonehengeRune.jsx lib/stonehenge-rune-copy.ts` 0 errors(경고 7개 전부 변경 범위 밖 기존 코드) · `NODE_OPTIONS=--experimental-vm-modules npx jest __tests__/worker/legacy-coin-disabled.static.test.js --runInBand --testEnvironment node` 20/20 pass(이 파일을 배포 클라이언트 표면으로 참조) · `node --test __tests__/ui/locale-prefix-map.static.test.js` 3/3 pass · `config/payment-freeze.json` 미등재.
+- 🔴 **작업 중 실수(이미 복구됨)**: 이 클러스터 작업 시작 전 후보 조사용으로 `git checkout main`을 했다가 새 브랜치를 만들지 않고 그대로 커밋해버려, `StonehengeRune.jsx` 변경이 로컬 `main`에 직접 올라간 적이 있다(원격에는 push 안 됨 — 당시 `git push`는 별개의 기존 `chore/music-i18n` 브랜치를 가리켜 "Everything up-to-date"로 끝났을 뿐 이 커밋을 올리지 않았음, 사고 확인됨). 새 브랜치(`chore/oracle-rune-i18n`)를 그 커밋 위에 만들어 `origin/main` 위로 rebase하고, 로컬 `main`은 `origin/main`으로 리셋해 복구했다. **다음 세션 유의**: 후보 클러스터 조사 목적으로 `git checkout main`을 하더라도, 실제 파일 수정을 시작하기 전에 반드시 새 feature 브랜치부터 체크아웃할 것.
 
 **계속 제외(admin)**: `app/admin/**`(feedback·content·reviews·prompts·cms·monthly-credits·_components 등) — 1차 세션부터 "admin 10파일 제외"로 일관 유지된 정책. 내부 도구, 비색인, 다국어 대상 아님.
 
