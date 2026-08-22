@@ -57,7 +57,7 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - 환경변수 하드코딩 금지 — 반드시 `process.env`/`env` 바인딩 경유
 - 스타일은 Tailwind 클래스만 (인라인 스타일 지양), 애니메이션은 `transition-*`/`animate-*` (`framer-motion` 은 기존 의존성)
 - 외부 API 호출·DB 접근에는 try-catch 필수
-- `worker/` 는 Node 내장 API(`fs`, `net`) 금지 — 순수 fetch/Web API. 번들 **1MB(gzip 3MiB)** 제한 유의
+- `worker/` 는 Node 내장 API(`fs`, `net`) 금지 — 순수 fetch/Web API. 번들 크기 예산은 **gzip 10 MiB**(유료 플랜 한도, 2026-08-23 실측 사용률 23.9%) — 판정 정본은 `npm run verify:worker-size`
 - 네이밍: 컴포넌트 `PascalCase`, 유틸 `camelCase`, 라우트 폴더 `kebab-case`
 - 컴포넌트: 서버 컴포넌트 기본, 클라이언트는 `'use client'` 명시, Props `interface`는 파일 상단 정의
 - 이미지는 `<Image>` 사용(`img` 금지), `alt` 필수, 인터랙티브 버튼 `aria-label` 필수, 모바일 퍼스트 + `dark:` 병행
