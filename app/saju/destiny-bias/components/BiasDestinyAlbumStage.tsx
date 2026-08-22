@@ -8,12 +8,14 @@ import {
   DESTINY_BIAS_FALLBACK_ALBUM_SRC,
   DESTINY_BIAS_STAGE_ALBUM,
 } from "../lib/destinyBiasAlbumAssets";
+import { useDestinyBiasCopy } from "../_lib/copy";
 
 interface BiasDestinyAlbumStageProps {
   children?: React.ReactNode;
 }
 
 export default function BiasDestinyAlbumStage({ children }: BiasDestinyAlbumStageProps) {
+  const copy = useDestinyBiasCopy();
   const [albumSrc, setAlbumSrc] = useState(DESTINY_BIAS_STAGE_ALBUM.src);
 
   return (
@@ -31,7 +33,7 @@ export default function BiasDestinyAlbumStage({ children }: BiasDestinyAlbumStag
           <div className={styles.albumFrame}>
             <Image
               src={albumSrc}
-              alt={`${DESTINY_BIAS_STAGE_ALBUM.title} 앨범 커버`}
+              alt={`${DESTINY_BIAS_STAGE_ALBUM.title} ${copy.albumCoverAltSuffix}`}
               width={DESTINY_BIAS_ALBUM_SIZE}
               height={DESTINY_BIAS_ALBUM_SIZE}
               priority
