@@ -5,6 +5,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useRef, useState, type CSSProperties, type MouseEvent, type ReactNode } from "react";
 import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { useServerPrice } from "@/app/hooks/useServerPrice";
+import { useT, useTPick, type Translate, type TranslatePick } from "@/lib/i18n/useT";
 
 type FeatureMarketingBadge = {
   text?: string;
@@ -61,22 +62,22 @@ type FeatureMarketingCopy = {
   ctaLabel: string;
 };
 
-const SAMPLE_CONTINUATION_DEFAULT = "이후에는 입력하신 정보로 개인 맞춤 분석이 이어집니다.";
-
-const SCALE_LABELS: [keyof NonNullable<FeatureMarketingCopy["reportScale"]>, (n: string) => string][] = [
-  ["chapters", (n) => `${n}개 챕터`],
-  ["sections", (n) => `${n}개 세부 항목`],
-  ["dataPoints", (n) => `${n}개 분석 지표`],
-  ["minWords", (n) => `${n}자 이상`],
-  ["readMinutes", (n) => `약 ${n}분 분량`],
+const SCALE_LABELS: [keyof NonNullable<FeatureMarketingCopy["reportScale"]>, string][] = [
+  ["chapters", "preview.scaleChapters"],
+  ["sections", "preview.scaleSections"],
+  ["dataPoints", "preview.scaleDataPoints"],
+  ["minWords", "preview.scaleMinWords"],
+  ["readMinutes", "preview.scaleReadMinutes"],
 ];
 
-function scaleChips(scale: FeatureMarketingCopy["reportScale"]): string[] {
+/* 숫자 자릿수 구분은 기존 동작(ko-KR)을 그대로 둔다 — 하드코딩된 로케일 포맷 정리는
+   별건(PR #983)이고, 이 칩의 값 범위에서는 서식이 갈리지 않는다. */
+function scaleChips(scale: FeatureMarketingCopy["reportScale"], t: Translate): string[] {
   if (!scale) return [];
-  return SCALE_LABELS.flatMap(([key, format]) => {
+  return SCALE_LABELS.flatMap(([key, translationKey]) => {
     const value = scale[key];
     if (typeof value !== "number" || !Number.isInteger(value) || value <= 0) return [];
-    return [format(value.toLocaleString("ko-KR"))];
+    return [t(translationKey, { count: value.toLocaleString("ko-KR") })];
   });
 }
 
@@ -374,9 +375,122 @@ function inferCategory(target: FeatureMarketingTarget) {
   return "saju";
 }
 
-function explicitCopy(target: FeatureMarketingTarget) {
+function explicitKey(target: FeatureMarketingTarget) {
   const hrefKey = EXPLICIT_ALIAS[target.href || ""] || target.href || "";
-  return EXPLICIT_COPY[target.featureKey || ""] || EXPLICIT_COPY[target.slug || ""] || EXPLICIT_COPY[hrefKey];
+  return [target.featureKey || "", target.slug || "", hrefKey].find((key) => EXPLICIT_COPY[key]) || "";
+}
+
+/* ── 로케일화 ────────────────────────────────────────────────────────────────
+   정본은 정적 셸(index.html)이고, 셸은 이미 65개 상품 + 9개 카테고리 템플릿을
+   `featureMarketing.*` 네임스페이스에 번역해 뒀다. 이 파일의 한국어 리터럴은 그 데이터의
+   사본이므로 **번역을 새로 만들지 않고 같은 키를 재사용한다**(실측 2026-08-23: 481개 leaf
+   문자열 중 344개가 셸과 바이트 단위로 같다).
+
+   🔴 `useT` 가 아니라 `useTPick` 을 쓴다 — `ko.json` 에는 `featureMarketing` 네임스페이스가
+   아예 없다(한국어는 이 소스가 정본). `useT` 는 키가 없으면 "번역을 준비 중입니다"를 돌려주므로
+   ko 로케일에서 모달이 통째로 덮인다. 셸의 `_pvwTrKeep` 과 같은 계약이 필요하다.
+
+   셸과 문구가 갈린 소수 필드(9건)만 `hub` 접두어 키를 먼저 보고, 없으면 셸 공용 키로 내려간다. */
+
+/** 이 모달의 explicit 키 → 정적 셸이 쓰는 사전 네임스페이스(`_pvwSafeKey` 적용 뒤 값). */
+const EXPLICIT_DICT_NS: Record<string, string> = {
+  "life-book-ai-consultation": "life_book_ai",
+  "life-fortune-ai-consultation": "premium_unlock",
+  "ziwei-ai-consultation": "gotoZiweiPremium",
+  "neo-operation-room-consultation": "neo_operation_room",
+  loveSimulation: "openLoveSimulation",
+  destiny_meeting_place: "saju_destiny_meeting_place",
+  "destiny-bias-analyze": "openDestinyBias",
+  "tarot-prompt-maker": "tarot-prompt-maker",
+  stonehengeRunes: "openRuneOracle",
+};
+
+/** 카테고리 한국어 표기 → `featureMarketingCategory.*` 키. CATEGORY_COPY 를 뒤집어 만든다. */
+const CATEGORY_KEY_BY_KO: Record<string, string> = Object.fromEntries(
+  Object.entries(CATEGORY_COPY).map(([key, copy]) => [copy.category, key]),
+);
+
+function pickText(pick: TranslatePick, ns: string, shared: string, hub: string, value?: string) {
+  return pick(`${ns}.${hub}`, pick(`${ns}.${shared}`, value));
+}
+
+function pickList(pick: TranslatePick, ns: string, shared: string, hub: string, list?: string[]) {
+  if (!Array.isArray(list)) return list;
+  return list.map((item, index) => pickText(pick, ns, `${shared}.${index}`, `${hub}.${index}`, item) as string);
+}
+
+function localizeMarketingCopy<T extends Partial<FeatureMarketingCopy>>(pick: TranslatePick, ns: string, source: T): T {
+  const out: Partial<FeatureMarketingCopy> = { ...source };
+  // 🔴 source 에 없던 필드를 undefined 로 만들어 두면 안 된다 — 카테고리 위에 explicit 를
+  //    펼칠 때 그 undefined 가 카테고리 값을 이겨 화면에서 섹션이 사라진다.
+  const set = <K extends keyof FeatureMarketingCopy>(key: K, value: FeatureMarketingCopy[K] | undefined) => {
+    if (value !== undefined) out[key] = value;
+  };
+
+  const categoryKey = source.category ? CATEGORY_KEY_BY_KO[source.category] : "";
+  if (categoryKey) set("category", pick(`featureMarketingCategory.${categoryKey}`, source.category));
+
+  set("badge", pick(`${ns}.badge`, source.badge));
+  set("headline", pick(`${ns}.headline`, source.headline));
+  set("subheadline", pickText(pick, ns, "tagline", "hubTagline", source.subheadline));
+  set("previewText", pickText(pick, ns, "premiumIntro", "hubPremiumIntro", source.previewText));
+  set("ctaLabel", pickText(pick, ns, "fallbackCta", "hubFallbackCta", source.ctaLabel));
+  set("ctaNote", pick(`${ns}.ctaNote`, source.ctaNote));
+  set("painPoints", pickList(pick, ns, "feats", "hubFeats", source.painPoints));
+  set("unlockBenefits", pickList(pick, ns, "premiumChapters", "hubPremiumChapters", source.unlockBenefits));
+  set("recommendedFor", pickList(pick, ns, "premiumAudience", "hubPremiumAudience", source.recommendedFor));
+  set("answersQuestions", pickList(pick, ns, "answersQuestions", "hubAnswersQuestions", source.answersQuestions));
+
+  // 신뢰 문구는 셸과 같은 공용 목록이라 상품 네임스페이스가 아니라 공용 키를 본다.
+  if (source.trustNotes) {
+    set("trustNotes", source.trustNotes === SAFE_TRUST_NOTES
+      ? source.trustNotes.map((item, i) => pick(`featureMarketingTrust.paid.${i}`, item) as string)
+      : pickList(pick, ns, "premiumOutcomes", "hubPremiumOutcomes", source.trustNotes));
+  }
+
+  if (source.analysisSteps) {
+    set("analysisSteps", source.analysisSteps.map((step, i) => ({
+      label: pick(`${ns}.analysisSteps.${i}.label`, step.label) as string,
+      detail: pick(`${ns}.analysisSteps.${i}.detail`, step.detail),
+    })));
+  }
+
+  if (source.valueCompare) {
+    set("valueCompare", { rows: source.valueCompare.rows.map((row, i) => ({
+      axis: pick(`${ns}.valueCompare.${i}.axis`, row.axis) as string,
+      free: pick(`${ns}.valueCompare.${i}.free`, row.free),
+      premium: pick(`${ns}.valueCompare.${i}.premium`, row.premium) as string,
+    })) });
+  }
+
+  if (source.faq) {
+    set("faq", source.faq.map((item, i) => ({
+      q: pick(`${ns}.faq.${i}.q`, item.q) as string,
+      a: pick(`${ns}.faq.${i}.a`, item.a) as string,
+    })));
+  }
+
+  if (source.sampleReport) {
+    const sample = source.sampleReport;
+    set("sampleReport", {
+      sections: sample.sections.map((section, i) => ({
+        heading: pick(`${ns}.sampleReport.sections.${i}.heading`, section.heading),
+        body: pick(`${ns}.sampleReport.sections.${i}.body`, section.body) as string,
+      })),
+      continuation: pick(`${ns}.sampleReport.continuation`, sample.continuation),
+      caption: pick(`${ns}.sampleReport.caption`, sample.caption),
+    });
+  }
+
+  if (source.resultPreview) {
+    const preview = source.resultPreview;
+    set("resultPreview", {
+      lines: preview.lines.map((line, i) => pick(`${ns}.resultPreview.lines.${i}`, line) as string),
+      caption: pick(`${ns}.resultPreview.caption`, preview.caption),
+    });
+  }
+
+  return out as T;
 }
 
 export function isPaidMarketingTarget(target: FeatureMarketingTarget) {
@@ -392,21 +506,34 @@ export function isPaidMarketingTarget(target: FeatureMarketingTarget) {
   return /(원|결제|코인|유료|해금|premium|paid|life-book-ai|love-secret-ai|ziwei-ai|tarot\/prompt-maker|saju\/love-simulation|saju\/destiny-bias|saju\/destiny-meeting-place|palm-reading)/i.test(raw);
 }
 
-export function resolveFeatureMarketingCopy(target: FeatureMarketingTarget): FeatureMarketingCopy {
-  const category = CATEGORY_COPY[inferCategory(target)] || CATEGORY_COPY.saju;
-  const explicit = explicitCopy(target) || {};
-  return {
-    ...category,
-    ...explicit,
-    ctaLabel: explicit.ctaLabel || (target.accessType === "premium_report" ? "리포트 확인하기" : "결제하고 자세히 보기"),
-    trustNotes: explicit.trustNotes || category.trustNotes,
-  };
+export function useFeatureMarketingCopy(target: FeatureMarketingTarget): FeatureMarketingCopy {
+  const pick = useTPick();
+  const t = useT();
+  return useMemo(() => {
+    const categoryId = inferCategory(target);
+    const category = CATEGORY_COPY[categoryId] || CATEGORY_COPY.saju;
+    const explicitId = explicitKey(target);
+    const explicit = EXPLICIT_COPY[explicitId] || {};
+    // 🔴 카테고리와 explicit 를 각자의 네임스페이스로 따로 로케일화한 뒤 합친다. 합친 뒤에
+    //    한 네임스페이스로 조회하면, explicit 사전에 없는 필드를 카테고리 값에 대고 찾다가
+    //    번역을 놓치거나 남의 상품 번역을 붙이게 된다.
+    const localizedCategory = localizeMarketingCopy(pick, `featureMarketing.template_${categoryId}`, category);
+    const localizedExplicit = explicitId
+      ? localizeMarketingCopy(pick, `featureMarketing.${EXPLICIT_DICT_NS[explicitId] || explicitId}`, explicit)
+      : explicit;
+    return {
+      ...localizedCategory,
+      ...localizedExplicit,
+      ctaLabel: localizedExplicit.ctaLabel || t(target.accessType === "premium_report" ? "preview.ctaReport" : "preview.ctaPaid"),
+      trustNotes: localizedExplicit.trustNotes || localizedCategory.trustNotes,
+    };
+  }, [pick, t, target]);
 }
 
-function priceText(target: FeatureMarketingTarget, price: { label: string; loading: boolean }) {
-  if (target.accessType === "free") return "무료";
-  if (price.loading) return "가격 확인 중";
-  return price.label || "가격 확인 필요";
+function priceText(target: FeatureMarketingTarget, price: { label: string; loading: boolean }, t: Translate) {
+  if (target.accessType === "free") return t("preview.priceFree");
+  if (price.loading) return t("preview.priceLoading");
+  return price.label || t("preview.priceUnknown");
 }
 
 const modalSheetScrollStyle: CSSProperties = {
@@ -448,7 +575,8 @@ export function FeatureMarketingDetailModal({
   const router = useRouter();
   const pathname = usePathname() || "/";
   const [navPending, setNavPending] = useState(false);
-  const copy = useMemo(() => resolveFeatureMarketingCopy(target), [target]);
+  const t = useT();
+  const copy = useFeatureMarketingCopy(target);
   const canonicalPrice = useServerPrice({ featureKey: target.featureKey });
   const isPaidTarget = isPaidMarketingTarget(target);
   const priceReady = !isPaidTarget || Boolean(canonicalPrice.label);
@@ -531,7 +659,7 @@ export function FeatureMarketingDetailModal({
             </div>
             <h2 id="featureMarketingTitle" className="m-0 text-xl font-black leading-tight text-[#fff3c4]">{target.title}</h2>
           </div>
-          <button ref={closeRef} type="button" onClick={onClose} className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/8 text-lg font-black text-white" aria-label="닫기">
+          <button ref={closeRef} type="button" onClick={onClose} className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-white/15 bg-white/8 text-lg font-black text-white" aria-label={t("common.close")}>
             ×
           </button>
         </div>
@@ -544,25 +672,25 @@ export function FeatureMarketingDetailModal({
         <div className="mt-4 grid gap-3">
           {/* ① 무엇을 얻는가 */}
           <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-            <h3 className="m-0 mb-2 text-xs font-black text-sky-100">이런 생각이 들 때 열어보면 좋아요.</h3>
+            <h3 className="m-0 mb-2 text-xs font-black text-sky-100">{t("preview.painPointsLabel")}</h3>
             <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
               {copy.painPoints.map((item) => <li key={item} className="list-none">• {item}</li>)}
             </ul>
           </section>
           <p className="m-0 rounded-lg border border-amber-200/18 bg-amber-200/[0.075] p-3 text-sm font-semibold leading-6 text-amber-50">{copy.previewText}</p>
           <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-            <h3 className="m-0 mb-2 text-xs font-black text-amber-100">리포트에 담기는 것</h3>
+            <h3 className="m-0 mb-2 text-xs font-black text-amber-100">{t("preview.deliverablesLabel")}</h3>
             <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
               {copy.unlockBenefits.map((item) => (
                 <li key={item} className="list-none pl-5 -indent-5"><span className="pr-2 font-black text-amber-200">✓</span>{item}</li>
               ))}
             </ul>
           </section>
-          {scaleChips(copy.reportScale).length > 0 && (
+          {scaleChips(copy.reportScale, t).length > 0 && (
             <section>
-              <h3 className="m-0 mb-2 text-xs font-black text-slate-300">분석 깊이</h3>
+              <h3 className="m-0 mb-2 text-xs font-black text-slate-300">{t("preview.scaleLabel")}</h3>
               <div className="flex flex-wrap gap-1.5">
-                {scaleChips(copy.reportScale).map((chip) => (
+                {scaleChips(copy.reportScale, t).map((chip) => (
                   <span key={chip} className="rounded-full border border-white/12 bg-white/[0.06] px-2.5 py-1.5 text-xs font-black text-slate-100">{chip}</span>
                 ))}
               </div>
@@ -570,7 +698,7 @@ export function FeatureMarketingDetailModal({
           )}
           {copy.answersQuestions && copy.answersQuestions.length > 0 && (
             <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-              <h3 className="m-0 mb-2 text-xs font-black text-sky-100">이런 질문에 도움이 됩니다</h3>
+              <h3 className="m-0 mb-2 text-xs font-black text-sky-100">{t("preview.questionsLabel")}</h3>
               <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
                 {copy.answersQuestions.map((item) => <li key={item} className="list-none">• {item}</li>)}
               </ul>
@@ -580,7 +708,7 @@ export function FeatureMarketingDetailModal({
           {/* ② 어떻게 분석하는가 — 사용자가 이해하는 단계까지만(내부 로직·모델은 쓰지 않는다) */}
           {copy.analysisSteps && copy.analysisSteps.length > 0 && (
             <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-              <h3 className="m-0 mb-2 text-xs font-black text-slate-300">어떤 방식으로 분석하나요</h3>
+              <h3 className="m-0 mb-2 text-xs font-black text-slate-300">{t("preview.stepsLabel")}</h3>
               <ol className="m-0 grid list-none gap-2.5 p-0">
                 {copy.analysisSteps.map((step, index) => (
                   <li key={step.label} className="grid grid-cols-[20px_1fr] gap-2.5">
@@ -599,8 +727,8 @@ export function FeatureMarketingDetailModal({
           {(copy.sampleReport?.sections.length || copy.resultPreview?.lines.length) && (
             <figure className="m-0">
               <h3 className="m-0 mb-2 flex items-center gap-2 text-xs font-black text-sky-100">
-                실제 리포트 예시
-                <span className="rounded border border-amber-200/60 px-2 py-0.5 text-[10px] tracking-[0.08em] text-amber-200">샘플</span>
+                {t("preview.sampleLabel")}
+                <span className="rounded border border-amber-200/60 px-2 py-0.5 text-[10px] tracking-[0.08em] text-amber-200">{t("preview.sampleChip")}</span>
               </h3>
               <div className="relative overflow-hidden rounded-lg border border-white/10 bg-[#171236] px-4 pb-6 pt-3.5">
                 {(copy.sampleReport?.sections
@@ -613,7 +741,7 @@ export function FeatureMarketingDetailModal({
                 ))}
                 <span aria-hidden className="absolute bottom-2 right-3 text-[10px] font-black tracking-[0.2em] text-[rgba(232,213,163,0.55)]">CODE DESTINY</span>
               </div>
-              <p className="mt-2.5 text-xs leading-5 text-slate-300">{copy.sampleReport?.continuation || SAMPLE_CONTINUATION_DEFAULT}</p>
+              <p className="mt-2.5 text-xs leading-5 text-slate-300">{copy.sampleReport?.continuation || t("preview.sampleContinuation")}</p>
               {(copy.sampleReport?.caption || copy.resultPreview?.caption) && (
                 <figcaption className="mt-1.5 text-xs leading-5 text-slate-400">{copy.sampleReport?.caption || copy.resultPreview?.caption}</figcaption>
               )}
@@ -623,7 +751,7 @@ export function FeatureMarketingDetailModal({
           {/* ④ 누구에게 맞는가 */}
           {copy.recommendedFor && copy.recommendedFor.length > 0 && (
             <section className="rounded-lg border border-white/10 bg-white/[0.045] p-3">
-              <h3 className="m-0 mb-2 text-xs font-black text-violet-100">이런 상황이라면 추천해요</h3>
+              <h3 className="m-0 mb-2 text-xs font-black text-violet-100">{t("preview.recommendedLabel")}</h3>
               <ul className="m-0 grid gap-1.5 p-0 text-sm leading-6 text-slate-200">
                 {copy.recommendedFor.map((item) => <li key={item} className="list-none">• {item}</li>)}
               </ul>
@@ -633,10 +761,10 @@ export function FeatureMarketingDetailModal({
           {/* ⑤ 가격 — 무료와 무엇이 다른지 먼저 납득시키고 신뢰 요소를 붙인다 */}
           {copy.valueCompare && copy.valueCompare.rows.length > 0 && (
             <section>
-              <h3 className="m-0 mb-2 text-xs font-black text-slate-300">왜 유료인가요</h3>
+              <h3 className="m-0 mb-2 text-xs font-black text-slate-300">{t("preview.compareLabel")}</h3>
               <div role="table" className="overflow-hidden rounded-lg border border-white/10">
                 <div role="row" className="grid grid-cols-[1.1fr_1fr_1.2fr] border-b border-white/10 bg-white/[0.06]">
-                  {["", "무료", "프리미엄"].map((head, i) => (
+                  {["", t("preview.compareFree"), t("preview.comparePremium")].map((head, i) => (
                     <span key={head || "axis"} role="columnheader" className={`px-2.5 py-2 text-xs font-black text-slate-100${i === 2 ? " bg-white/[0.05]" : ""}`}>{head}</span>
                   ))}
                 </div>
@@ -651,7 +779,7 @@ export function FeatureMarketingDetailModal({
             </section>
           )}
           <section className="rounded-lg border border-emerald-200/16 bg-emerald-200/[0.055] p-3">
-            <h3 className="m-0 mb-2 text-xs font-black text-emerald-100">안심하고 확인하세요</h3>
+            <h3 className="m-0 mb-2 text-xs font-black text-emerald-100">{t("preview.outcomesLabel")}</h3>
             <ul className="m-0 grid gap-1.5 p-0 text-xs leading-5 text-emerald-50/86">
               {copy.trustNotes.map((item) => <li key={item} className="list-none">• {item}</li>)}
             </ul>
@@ -660,7 +788,7 @@ export function FeatureMarketingDetailModal({
           {/* ⑥ FAQ — 기본 접힘. 펼쳐 두면 스크롤이 길어져 CTA 도달이 늦어진다. */}
           {copy.faq && copy.faq.length > 0 && (
             <section>
-              <h3 className="m-0 mb-1 text-xs font-black text-slate-300">자주 묻는 질문</h3>
+              <h3 className="m-0 mb-1 text-xs font-black text-slate-300">{t("preview.faqLabel")}</h3>
               <div className="rounded-lg border border-white/10">
                 {copy.faq.slice(0, 5).map((item) => (
                   <details key={item.q} className="border-b border-white/10 last:border-b-0">
@@ -675,8 +803,8 @@ export function FeatureMarketingDetailModal({
 
         <div className="sticky bottom-0 -mx-4 mt-4 border-t border-white/10 bg-[linear-gradient(to_top,#070b1d_76%,rgba(7,11,29,0))] px-4 pb-1 pt-4 sm:-mx-6 sm:px-6">
           <div className="mb-2 flex items-center justify-between gap-3 text-xs font-bold text-slate-300">
-            <span aria-live="polite">{priceText(target, canonicalPrice)}</span>
-            <span>{target.accessType === "free" ? "무료 기능" : "결제 후 기존 화면으로 이동"}</span>
+            <span aria-live="polite">{priceText(target, canonicalPrice, t)}</span>
+            <span>{t(target.accessType === "free" ? "preview.accessFree" : "preview.accessPaid")}</span>
           </div>
           <Link
             href={target.href}
@@ -689,12 +817,12 @@ export function FeatureMarketingDetailModal({
             {navPending ? (
               <>
                 <span className="h-4 w-4 animate-spin rounded-full border-2 border-transparent border-t-[#111827]" aria-hidden />
-                열고 있어요…
+                {t("preview.navPending")}
               </>
             ) : copy.ctaLabel}
           </Link>
           <p className="mb-1 mt-2 text-center text-xs leading-5 text-slate-400">
-            {copy.ctaNote || (target.accessType === "free" ? "바로 이용할 수 있어요." : "결제 후 바로 결과 화면으로 이동합니다.")}
+            {copy.ctaNote || t(target.accessType === "free" ? "preview.ctaNoteFree" : "preview.ctaNoteDefault")}
           </p>
         </div>
       </section>
