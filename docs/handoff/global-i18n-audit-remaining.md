@@ -102,7 +102,7 @@
 
 **확인 후 제외로 분류(Wave 9, 콘텐츠 작성 프로젝트)**: `app/compare/fortune-apps/page.tsx`(직접 읽어 확인) — 서버 컴포넌트, 로케일 라우팅 없음, `verify-adsense-readiness` 1,800자 기준을 타는 SEO 장문 아티클(운세 앱 비교 콘텐츠, 사이트맵 등록·구조화 데이터 포함). `app/compare/saju-vs-ziwei/page.tsx`·`app/compare/sukuyo-vs-vedic/page.tsx`도 같은 `/compare/*` 패밀리라 동일 판단으로 추정(직접 열어보진 않음, **미검증** — 다음 세션이 열어서 확인할 것). `music/guide/page.js`·`nakshatra/codex/[index]/page.tsx`와 동일 범주.
 
-**다음 세션 확인 후보(이번 세션에 미검증, page.tsx만 보고 Client 본체는 안 읽음)**: ~~`app/oracle/rune/page.tsx`→`RuneRouteClient`~~ **완료(PR #969, 아래 참고)**, ~~`app/saju-fpti/page.tsx`→`SajuFptiRouteClient`~~ **완료(PR #970, 아래 참고)**, ~~`app/ziwei/chart/page.tsx`→`ZiweiChartClientLoader`~~ **완료(PR #971, 아래 참고)**, ~~`app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient`~~ **완료(PR #972, 아래 참고)**, ~~`app/fortune/[period]/page.tsx`+`SignFortuneView.tsx`+`YeoniPortrait.tsx`~~ **Wave 9로 확인·제외(아래 참고, 코드 변경 없음)**, `app/stories/[episode]/page.tsx`, `app/insights/famous-saju/[slug]/page.tsx` — 이번 세션의 반복 교훈(destiny-compass·tarot/* 3종)대로, `page.tsx` 자체의 attribute grep 매칭 건수(0~4건)로 그 기능 전체의 번역 상태를 판단하지 말 것. 각 라우트의 실제 라이브 클라이언트 컴포넌트를 열어 본문 텍스트까지 확인한 뒤 착수 여부를 정할 것. `app/stories/[episode]/page.tsx`·`app/insights/famous-saju/[slug]/page.tsx`는 이름상 SEO/스토리 콘텐츠 라우트일 가능성이 높아(Wave 9 후보) 먼저 서버/클라이언트 여부부터 확인할 것.
+**다음 세션 확인 후보 — 전부 소진됨.** ~~`app/oracle/rune/page.tsx`→`RuneRouteClient`~~ **완료(PR #969)**, ~~`app/saju-fpti/page.tsx`→`SajuFptiRouteClient`~~ **완료(PR #970)**, ~~`app/ziwei/chart/page.tsx`→`ZiweiChartClientLoader`~~ **완료(PR #971)**, ~~`app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient`~~ **완료(PR #972)**, ~~`app/fortune/[period]/page.tsx`+`SignFortuneView.tsx`+`YeoniPortrait.tsx`~~ **Wave 9로 확인·제외(코드 변경 없음)**, ~~`app/stories/[episode]/page.tsx`~~ **Wave 9로 확인·제외**, ~~`app/insights/famous-saju/[slug]/page.tsx`~~ **Wave 9로 확인·제외**. 다음 세션은 이 목록에서 더 뽑을 게 없으니 "3건 이하" 그룹 62개 파일 재산출 또는 `git grep -lP '[가-힣]' -- 'app/**/*.tsx' 'app/**/*.ts'` 전수 재스윕으로 새 클러스터를 다시 발굴해야 한다(destiny-compass·StonehengeRune 사례처럼 속성 전용 grep이 놓친 게 더 있을 수 있음).
 
 ## 2026-08-22 `fortune/[period]` — Wave 9(SEO 콘텐츠)로 확인, 코드 변경 없음
 
@@ -111,6 +111,16 @@
 - `YeoniPortrait.tsx` 자체 주석이 명시: 이 저장소의 마스코트 컴포넌트 4종(`components/yeon/YeonSpriteFrame` 등)은 전부 `"use client"`인데, 여기서 그중 하나라도 import하면 클라이언트 경계가 생겨 `scripts/verify-adsense-readiness.mjs`(서버 렌더 텍스트만 세어 최소 글자수 미달 시 빌드 실패)가 깨진다 — **의도적으로 `<Image>` 래퍼만 두고 클라이언트 컴포넌트를 피한 설계.**
 - `SignFortuneView.tsx`도 "서버 컴포넌트, `\"use client\"` 추가 금지" 경고 주석이 있음(같은 AdSense 최소 글자수 이유, 이 라우트는 광고 수익화 라우트). `SignViewModel` 데이터를 연애/재물/건강/일 리딩·행운의 색/숫자·FAQ 등 한국어 서술 문장으로 결합하는 콘텐츠 생성 엔진이지 UI 크롬이 아니다.
 - 로케일 카피 테이블·`getCurrentLoadingLocale()`·`cd:locale-*` 리스너 전혀 없음 — 클라이언트 하이드레이션 자체가 없으므로 당연한 결과. 사전 감사 문서의 "Wave 9(hreflang 확장, SEO 콘텐츠, 사용자 명시 요청 시에만 착수)" 원칙 그대로 적용해 **이번 UI 크롬 패스에서는 손대지 않음** — PR 없음, 코드 변경 없음.
+
+## 2026-08-22 `stories/[episode]`·`insights/famous-saju/[slug]` — 둘 다 Wave 9(SEO 콘텐츠)로 확인, 코드 변경 없음
+
+핸드오프 목록의 마지막 두 후보도 조사 완료 — 둘 다 서버 컴포넌트, `"use client"` 전혀 없음.
+
+- **`app/stories/[episode]/page.tsx`**(142줄) — "연이의 운명 노벨" 연재 소설(프롤로그+31화, `dynamicParams = false`로 전편 정적 생성). 데이터는 `lib/stories/vn/index.ts`가 `scripts/build-story-text.mjs`로 미리 만든 `episodes.generated.json`을 읽기만 한다. 유일한 임포트 `app/components/StoryIntegrityNote.tsx`도 훅 없는 정적 서버 컴포넌트(창작물 안내 문구). 이전·다음 화 내비게이션 링크 외에는 상호작용이 전혀 없다.
+- **`app/insights/famous-saju/[slug]/page.tsx`**(762줄) — 유명인 사주 매거진 아티클. **명시적으로 noindex**(`withNoindexFollow`)이고 `scripts/verify-adsense-readiness.mjs`가 이 상세 페이지들을 AdSense 검사 대상에서 아예 제외하도록 명시(광고를 절대 태우지 않는 페이지로 취급). `ContentIntegrityNote.jsx`·`FusionCrossSell.tsx` 임포트 둘 다 훅 없는 정적 서버 컴포넌트("두 호스트 모두 서버 컴포넌트라 onClick 을 달 수 없어"라는 자체 주석 있음, 클릭 분석은 `js/core/analytics.js`의 전역 위임 리스너가 처리). 상호작용처럼 보이는 유일한 요소(`<details>` FAQ 접기)는 네이티브 HTML이라 JS 불필요. `FAMOUS_SAJU_INSIGHT_TEXT_TRANSLATIONS`(~19키, ko 전용, "십성 분석"/"신살"/"문답" 같은 아티클 섹션 라벨)가 있지만 로케일 반응형 클라이언트 UI가 아니라 방문자 무관 서버 렌더 SEO 콘텐츠라 이번 클라이언트 i18n 패스 범위 밖(향후 SEO 콘텐츠 자체를 다국어화할 계획이 서면 별도로 볼 것).
+- 둘 다 사전 감사의 "Wave 9(hreflang 확장, SEO 콘텐츠, 사용자 명시 요청 시에만 착수)" 원칙 적용 — **손대지 않음, PR 없음.**
+
+**이로써 핸드오프 문서의 "다음 세션 확인 후보" 목록 7개(오라클룬·사주FPTI·자미두수·마인드스캔·fortune/period·stories·famous-saju) 전부 처리 완료** — 4개는 실제 UI 크롬 버그가 있어 PR로 고쳤고(#969~#972), 3개는 조사 결과 Wave 9 SEO 콘텐츠로 확인되어 제외했다. 다음 세션은 이 목록에 더 없으므로 "3건 이하" 그룹 62개 파일 재산출이나 `git grep -lP '[가-힣]'` 전수 재스윕으로 새 클러스터를 발굴해야 한다.
 
 ## 2026-08-22 `tarot/mindscan` — 로케일 인프라 전무, AI 리딩 경로는 이미 안전(재확인만) (완료)
 
