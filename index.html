@@ -35736,14 +35736,17 @@ function updateBadge() {
     });
     if(!base&&action&&D[action])base=_clonePreviewData(D[action]);
     var copy=null;
+    var copyKey=null;
     keys.some(function(key){
       copy=_resolveMarketingCopy(key,0);
+      if(copy)copyKey=key;
       return !!copy;
     });
-    if(!copy&&action)copy=_resolveMarketingCopy(action,0);
+    if(!copy&&action){copy=_resolveMarketingCopy(action,0);if(copy)copyKey=action;}
     if(!base&&!copy&&!_hasPaidPreviewSignal(tile))return null;
+    var templateId=_inferMarketingTemplate(tile,href,base);
     var template=_templateForTile(
-      FEATURE_MARKETING_TEMPLATES[_inferMarketingTemplate(tile,href,base)]||FEATURE_MARKETING_TEMPLATES.saju,
+      FEATURE_MARKETING_TEMPLATES[templateId]||FEATURE_MARKETING_TEMPLATES.saju,
       !!copy,!!base);
     var merged=Object.assign({},template,base||{},copy||{});
     merged.cat=merged.category||merged.cat||template.category;
@@ -35800,6 +35803,85 @@ function updateBadge() {
        자기 카피에 표가 들어 있어도 무료면 렌더하지 않는다(그 표의 목적이 가격 정당화다). */
     if(merged.ct!=='paid')merged.valueCompare=null;
     if(!merged.premiumOutcomes)merged.premiumOutcomes=merged.ct==='paid'?_PAID_TRUST_NOTES:_FREE_TRUST_NOTES;
+    return _localizeMarketingCopy(merged,templateId,copyKey);
+  }
+
+  /* 🔴 이 모달의 "라벨"(섹션 제목·버튼 문구)은 이미 data-cd-trans/_pvwTr 로 로케일화돼 있었지만,
+     94개 상품의 실제 마케팅 카피(제목·설명·FAQ 등, FEATURE_MARKETING_COPY/FEATURE_MARKETING_TEMPLATES
+     원본)는 지금까지 한국어 리터럴이 그대로 나갔다. 여기서 그 콘텐츠 필드만 골라 _pvwTr 를 거치게
+     한다 — 사전에 키가 없으면(아직 번역 전인 상품) fallback 인자(한국어 원문)가 그대로 나오므로
+     점진적으로 배치를 늘려도 회귀가 없다. */
+  var _MARKETING_CATEGORY_KEY_BY_KO={
+    '사주':'saju','타로':'tarot','숙요점':'sukuyo','자미두수':'ziwei',
+    '점성술':'astrology','베다점':'vedic','오라클':'oracle',
+    '프리미엄 리포트':'report','음악':'music'
+  };
+
+  /* _pvwTr 은 fallback 이 문자열이 아니면 ko 로케일에서 번역 키 문자열 자체를 그대로 돌려준다
+     (window.cdTranslate 의 계약). 값이 없는 필드(무료/템플릿 전용 타일에 흔함)까지 그대로
+     _pvwTr 에 넘기면 화면에 "featureMarketing.xxx.yyy" 같은 키가 노출되는 회귀가 생기므로,
+     비어 있는 값은 조회 자체를 건너뛰고 원래 값(빈 문자열/undefined)을 그대로 둔다. */
+  function _pvwTrKeep(key,value){
+    if(typeof value!=='string'||!value)return value;
+    return _pvwTr(key,value);
+  }
+
+  function _pvwTrList(ns,field,list){
+    return (Array.isArray(list)?list:[]).map(function(item,i){
+      return _pvwTrKeep(ns+'.'+field+'.'+i,item);
+    });
+  }
+
+  function _localizeTrustNotes(ns,list){
+    if(list===_PAID_TRUST_NOTES)return _pvwTrList('featureMarketingTrust','paid',list);
+    if(list===_FREE_TRUST_NOTES)return _pvwTrList('featureMarketingTrust','free',list);
+    return _pvwTrList(ns,'premiumOutcomes',list);
+  }
+
+  function _localizeMarketingCopy(merged,templateId,copyKey){
+    var itemKey=copyKey?_pvwSafeKey(copyKey):('template_'+(templateId||'saju'));
+    var ns='featureMarketing.'+itemKey;
+
+    var catKey=_MARKETING_CATEGORY_KEY_BY_KO[merged.cat];
+    if(catKey)merged.cat=_pvwTrKeep('featureMarketingCategory.'+catKey,merged.cat);
+
+    merged.fallbackTitle=_pvwTrKeep(ns+'.fallbackTitle',merged.fallbackTitle);
+    merged.tagline=_pvwTrKeep(ns+'.tagline',merged.tagline);
+    merged.feats=_pvwTrList(ns,'feats',merged.feats);
+    merged.premiumIntro=_pvwTrKeep(ns+'.premiumIntro',merged.premiumIntro);
+    merged.premiumAudience=_pvwTrList(ns,'premiumAudience',merged.premiumAudience);
+    merged.premiumChapters=_pvwTrList(ns,'premiumChapters',merged.premiumChapters);
+    merged.premiumRequired=_pvwTrList(ns,'premiumRequired',merged.premiumRequired);
+    merged.premiumOutcomes=_localizeTrustNotes(ns,merged.premiumOutcomes);
+    merged.answersQuestions=_pvwTrList(ns,'answersQuestions',merged.answersQuestions);
+    merged.fallbackCta=_pvwTrKeep(ns+'.fallbackCta',merged.fallbackCta);
+    merged.ctaNote=_pvwTrKeep(ns+'.ctaNote',merged.ctaNote);
+
+    if(Array.isArray(merged.analysisSteps)){
+      merged.analysisSteps=merged.analysisSteps.map(function(step,i){
+        return {
+          label:_pvwTrKeep(ns+'.analysisSteps.'+i+'.label',step&&step.label),
+          detail:_pvwTrKeep(ns+'.analysisSteps.'+i+'.detail',step&&step.detail)
+        };
+      });
+    }
+    if(merged.valueCompare&&Array.isArray(merged.valueCompare.rows)){
+      merged.valueCompare={rows:merged.valueCompare.rows.map(function(row,i){
+        return {
+          axis:_pvwTrKeep(ns+'.valueCompare.'+i+'.axis',row&&row.axis),
+          free:_pvwTrKeep(ns+'.valueCompare.'+i+'.free',row&&row.free),
+          premium:_pvwTrKeep(ns+'.valueCompare.'+i+'.premium',row&&row.premium)
+        };
+      })};
+    }
+    if(Array.isArray(merged.faq)){
+      merged.faq=merged.faq.map(function(item,i){
+        return {
+          q:_pvwTrKeep(ns+'.faq.'+i+'.q',item&&item.q),
+          a:_pvwTrKeep(ns+'.faq.'+i+'.a',item&&item.a)
+        };
+      });
+    }
     return merged;
   }
 

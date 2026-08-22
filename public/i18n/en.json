@@ -7707,5 +7707,694 @@
     "cancel": "Cancel",
     "submit": "Delete account",
     "submitting": "Processing…"
+  },
+  "featureMarketing": {
+    "template_saju": {
+      "tagline": "An interpretation that lines up your innate temperament with where things stand right now.",
+      "feats": [
+        "When the same worry keeps repeating",
+        "When your strengths and weaknesses feel confused",
+        "When you want to know where the current pressure of fortune is coming from"
+      ],
+      "premiumIntro": "The in-depth Saju reading doesn't scare you with fortune or misfortune -- it quietly surfaces the current flow and a standard for your choices.",
+      "premiumAudience": [
+        "Those who want to see innate temperament together with the current flow",
+        "Those who want to know why the same worry keeps repeating",
+        "Those who need a standard for judgment before a choice"
+      ],
+      "premiumChapters": [
+        "The core flow of your temperament",
+        "The point strongly active in the current period",
+        "Choice patterns to be careful of",
+        "A realistic standard for action"
+      ],
+      "answersQuestions": [
+        "Is it okay to keep pushing what I'm doing now?",
+        "Why does the same problem keep repeating?",
+        "Is it okay to make a decision within this year?"
+      ],
+      "analysisSteps": [
+        {
+          "label": "Chart calculation",
+          "detail": "Calculates your Saju natal chart and major/annual luck cycles from your birth date and time."
+        },
+        {
+          "label": "Sorting temperament",
+          "detail": "Draws out your innate disposition from the strength/weakness of the five elements and the Ten Gods placement."
+        },
+        {
+          "label": "Matching the flow",
+          "detail": "Checks where the luck passing through now pushes and pulls at that temperament."
+        },
+        {
+          "label": "Writing the reading",
+          "detail": "Puts it into readable sentences on the result screen."
+        }
+      ],
+      "valueCompare": [
+        {
+          "axis": "Analysis scope",
+          "premium": "A reading weaving together the natal chart, major luck, and annual luck",
+          "free": "Basic chart and temperament summary"
+        },
+        {
+          "axis": "Reflecting your question",
+          "premium": "Rebuilt around the worry you entered",
+          "free": "None"
+        },
+        {
+          "axis": "Form of advice",
+          "premium": "What to do now and what to postpone",
+          "free": "General description of disposition"
+        }
+      ],
+      "faq": [
+        {
+          "q": "How is this different from the free result?",
+          "a": "The free version only goes up to the chart and a temperament summary. The paid version places the current luck cycle alongside it and rewrites the reading around your entered worry."
+        },
+        {
+          "q": "Can this still be read without a known birth time?",
+          "a": "It's calculated without the hour pillar. The day-pillar-centered reading still comes out, but knowing the time gives more accuracy."
+        },
+        {
+          "q": "Is the result saved?",
+          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+        }
+      ]
+    },
+    "template_tarot": {
+      "tagline": "A reading that reads the flow closest to your current feelings and hints for a choice, short and clear.",
+      "feats": [
+        "When your heart is urgent but the answer feels blurry",
+        "When you're curious about the other person's feelings or the flow nearby",
+        "When you want to sort your feelings out before a choice"
+      ],
+      "premiumIntro": "A tarot reading doesn't fix an outcome -- it lights up the symbols and flow rising around your question right now.",
+      "premiumAudience": [
+        "Those who want to sort their feelings out first because the answer is blurry",
+        "Those curious about the other person's feelings or the flow nearby",
+        "Those who need short, clear advice"
+      ],
+      "premiumChapters": [
+        "A reading of the current mood",
+        "The temperature and flow of feeling",
+        "Reactions to be careful of",
+        "A hint for the next move"
+      ],
+      "answersQuestions": [
+        "What is that person feeling right now?",
+        "Is it okay to reach out now?",
+        "Is it okay to push this choice through?"
+      ],
+      "analysisSteps": [
+        {
+          "label": "Sorting the question",
+          "detail": "Narrows down what you want to ask into one sentence."
+        },
+        {
+          "label": "Laying the cards",
+          "detail": "Draws cards with a spread suited to the question and assigns meaning to each position."
+        },
+        {
+          "label": "Reading the symbols",
+          "detail": "Connects the cards' symbols and positions' meanings to the current situation."
+        },
+        {
+          "label": "Writing the reading",
+          "detail": "Puts together what to do and what to hold back, down to the sentence."
+        }
+      ],
+      "valueCompare": [
+        {
+          "axis": "Number of cards",
+          "premium": "The full spread suited to the question",
+          "free": "One card draw"
+        },
+        {
+          "axis": "Depth of reading",
+          "premium": "Down to each position's meaning and the relations between cards",
+          "free": "A card's basic meaning"
+        },
+        {
+          "axis": "Advice",
+          "premium": "Split between what to say now and what to hold back",
+          "free": "A short line"
+        }
+      ],
+      "faq": [
+        {
+          "q": "Do I draw the cards myself?",
+          "a": "Yes. After payment you draw them yourself on screen, and the reading is built around what you drew."
+        },
+        {
+          "q": "Can I ask the same question again?",
+          "a": "You can, but it's not recommended. Repeating it while the situation is unchanged only shakes the result and makes judgment harder."
+        },
+        {
+          "q": "Does it fix the future?",
+          "a": "No. Tarot reads the direction visible in the current flow -- it doesn't fix an outcome."
+        }
+      ]
+    },
+    "template_sukuyo": {
+      "tagline": "A reading centered on relationship texture, conflict patterns, and the rhythm of a bond.",
+      "feats": [
+        "When you're strangely drawn together but clash often",
+        "When you want to know the pattern of a relationship",
+        "When you're curious whether it can last"
+      ],
+      "premiumIntro": "Sukuyo doesn't just call a match good or bad -- it first lights up the distance the relationship is moving through.",
+      "premiumAudience": [
+        "Those who clash more the closer they get",
+        "Those who want to name and understand the relationship pattern",
+        "Those who need to judge whether it's a lasting bond"
+      ],
+      "premiumChapters": [
+        "The basic relationship type between the two",
+        "The strengths that show up as you get closer",
+        "Where the friction comes from",
+        "Advice to soften the relationship"
+      ],
+      "answersQuestions": [
+        "Is it okay to keep seeing this person?",
+        "Why do we clash more the closer we get?",
+        "How should I time reaching out?"
+      ],
+      "analysisSteps": [
+        {
+          "label": "Calculating natal lodges",
+          "detail": "Calculates each person's natal lunar lodge among the 27 from their birth dates."
+        },
+        {
+          "label": "Determining relationship type",
+          "detail": "Fixes the relationship type formed by the two natal lodges."
+        },
+        {
+          "label": "Reading the distance",
+          "detail": "Unpacks where attraction and conflict arise and how the rhythm goes off."
+        },
+        {
+          "label": "Organizing advice",
+          "detail": "Puts what to say now and what to hold off in order."
+        }
+      ],
+      "valueCompare": [
+        {
+          "axis": "Subject",
+          "premium": "The full relationship type for both people",
+          "free": "Summary of your own natal lodge"
+        },
+        {
+          "axis": "Scope of reading",
+          "premium": "Down to attraction, conflict, and the rhythm of recovery",
+          "free": "Disposition description"
+        },
+        {
+          "axis": "Timing advice",
+          "premium": "When to step closer and when to step back",
+          "free": "None"
+        }
+      ],
+      "faq": [
+        {
+          "q": "Do I need to know the other person's birth date?",
+          "a": "A compatibility reading requires the other person's birth date. Without it, only your own natal-lodge reading is possible."
+        },
+        {
+          "q": "If the match is bad, should we break up?",
+          "a": "No. Sukuyo isn't about good or bad -- it's about the character of the distance. The harder the type, the clearer the line to protect."
+        },
+        {
+          "q": "Can I see the result again?",
+          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+        }
+      ]
+    },
+    "template_ziwei": {
+      "tagline": "A reading that follows the palace flows and star placements to check your long-term direction.",
+      "feats": [
+        "When you want to see the structure of your life in the big picture",
+        "When you're curious about the center of gravity among work, money, and relationships",
+        "When you want to see long-term flow together with the choice at hand"
+      ],
+      "premiumIntro": "The Ziwei Doushu reading follows the placement of the stars to see what's strongly moving in the structure of your life right now.",
+      "premiumAudience": [
+        "Those who want to see life structure in the big picture",
+        "Those curious about the center of gravity among work, money, and relationships",
+        "Those who want long-term direction alongside the current choice"
+      ],
+      "premiumChapters": [
+        "The flow of the Life Palace and key palaces",
+        "The point strongly rising in each palace",
+        "Long-term direction and patterns to watch",
+        "A standard for your next choice"
+      ],
+      "answersQuestions": [
+        "Is it okay to change jobs now?",
+        "Should I weigh money or work more?",
+        "Is it okay to make a big decision this year?"
+      ],
+      "analysisSteps": [
+        {
+          "label": "Chart drafting",
+          "detail": "Places the major stars and transformations into the 12 palaces from your birth date and time."
+        },
+        {
+          "label": "Judging palace strength",
+          "detail": "Determines, based on the Life Palace, which palaces carry force and which are empty."
+        },
+        {
+          "label": "Connecting the question",
+          "detail": "Checks which palace's pressure the current worry touches."
+        },
+        {
+          "label": "Writing the reading",
+          "detail": "Organizes a standard for judgment and the next action based on the palace structure."
+        }
+      ],
+      "valueCompare": [
+        {
+          "axis": "Analysis scope",
+          "premium": "All 12 palaces and the major-cycle flow",
+          "free": "Summary of Life Palace and Body Palace"
+        },
+        {
+          "axis": "Reflecting your question",
+          "premium": "Rebuilt by connecting the worry to the relevant palace",
+          "free": "None"
+        },
+        {
+          "axis": "Timing",
+          "premium": "The period to move, seen through major and annual cycles",
+          "free": "None"
+        }
+      ],
+      "faq": [
+        {
+          "q": "How is this different from Saju?",
+          "a": "Where Saju looks at the strength of energy, Ziwei Doushu places stars across 12 domains and reads it as structure. Even the same person looks different from this angle."
+        },
+        {
+          "q": "Don't results differ by school?",
+          "a": "They can. This service applies one calculation standard consistently."
+        },
+        {
+          "q": "Is a known birth time essential?",
+          "a": "Yes. Since the Life Palace itself shifts with the time, Ziwei Doushu is especially sensitive to birth time."
+        }
+      ]
+    },
+    "template_astrology": {
+      "tagline": "An astrology reading that reads your psychological flow together with a sense of timing.",
+      "feats": [
+        "When you're curious about the timing of feelings and choices",
+        "When you want to see your birth chart's flow more concretely",
+        "When you want to calmly sort out the current direction"
+      ],
+      "premiumIntro": "The astrology reading gently lights up your mind and the direction of your choice right now, through the symbols of the stars.",
+      "premiumAudience": [
+        "Those who feel their feelings and situation are out of sync",
+        "Those who need to decide when to move",
+        "Those whose star-sign readings always felt superficial"
+      ],
+      "premiumChapters": [
+        "The core of your star signs and planetary flow",
+        "The point acting strongly on your psychology",
+        "Choice patterns to watch out for",
+        "A hint to prepare for the next period"
+      ],
+      "answersQuestions": [
+        "Why do my feelings and situation not match?",
+        "When is a good time to move?",
+        "How do I appear to other people?"
+      ],
+      "analysisSteps": [
+        {
+          "label": "Natal chart calculation",
+          "detail": "Calculates planetary positions and houses from your birth date, time, and place."
+        },
+        {
+          "label": "Sorting the three axes",
+          "detail": "Splits the axes of outward appearance, inner mind, and first impression via Sun, Moon, and Ascendant."
+        },
+        {
+          "label": "Matching current flow",
+          "detail": "Checks which position the currently transiting planets are touching."
+        },
+        {
+          "label": "Writing the reading",
+          "detail": "Ties psychological state and real-world timing together into one."
+        }
+      ],
+      "valueCompare": [
+        {
+          "axis": "Analysis scope",
+          "premium": "Full planetary placement and current flow",
+          "free": "Summary of Sun, Moon, Ascendant"
+        },
+        {
+          "axis": "Timing",
+          "premium": "Good times to move and times to hold off",
+          "free": "None"
+        },
+        {
+          "axis": "Advice",
+          "premium": "What to decide right now",
+          "free": "Personality description"
+        }
+      ],
+      "faq": [
+        {
+          "q": "What happens if I don't know my birth time?",
+          "a": "The Ascendant and house calculations become inaccurate. A Sun/Moon-centered reading still comes out, but the precision of timing advice drops."
+        },
+        {
+          "q": "How is this different from sun-sign horoscopes?",
+          "a": "It doesn't look at just the Sun sign -- it looks at the whole sky at the moment you were born."
+        },
+        {
+          "q": "What if the result feels negative?",
+          "a": "A chart leans more toward telling you what to prepare for in advance. Instead of scary phrasing, we organize it around what to get ready."
+        }
+      ]
+    },
+    "template_vedic": {
+      "tagline": "A reading that organizes the direction of your choice through Vedic symbolism and a sense of timing.",
+      "feats": [
+        "When you're curious what your current choice means",
+        "When a question in your heart won't easily let go",
+        "When you want to see timing and direction together"
+      ],
+      "premiumIntro": "Vedic astrology follows the texture of the moment your question opened, and calmly points to the standard you need right now.",
+      "premiumAudience": [
+        "Those who want to confirm the meaning of their current choice",
+        "Those with one question left they can't set down",
+        "Those who want to see timing and direction together"
+      ],
+      "premiumChapters": [
+        "The core flow of the question",
+        "A symbolic reading of the moment and your inner state",
+        "The obstacle blocking your choice",
+        "A realistic standard for what's next"
+      ],
+      "answersQuestions": [
+        "Does my current decision fit the long-term flow?",
+        "Why does the timing of my effort keep going off?",
+        "What should I prepare for in this period?"
+      ],
+      "analysisSteps": [
+        {
+          "label": "Chart calculation",
+          "detail": "Derives the rashi chart and the Moon's nakshatra from your birth information."
+        },
+        {
+          "label": "Checking the dasha",
+          "detail": "Checks which planet's period you're currently passing through."
+        },
+        {
+          "label": "Matching the question",
+          "detail": "Checks what pressure that period puts on your current worry."
+        },
+        {
+          "label": "Writing the reading",
+          "detail": "Organizes what to do now and what to hand off to the next period."
+        }
+      ],
+      "valueCompare": [
+        {
+          "axis": "Analysis scope",
+          "premium": "Full chart and dasha flow",
+          "free": "Rashi and nakshatra summary"
+        },
+        {
+          "axis": "Timeline",
+          "premium": "Opportunities and trials by dasha period",
+          "free": "None"
+        },
+        {
+          "axis": "Reflecting your question",
+          "premium": "Rebuilt around the worry you entered",
+          "free": "None"
+        }
+      ],
+      "faq": [
+        {
+          "q": "How is this different from Western astrology?",
+          "a": "The reference point of the signs differs, and it uses the timing concept of dasha. It's strong at reading the flow of time rather than personality."
+        },
+        {
+          "q": "Are past lives or karma treated as fact?",
+          "a": "They're handled as symbolic concepts -- not a determination of fact, but a frame that explains repeating patterns."
+        },
+        {
+          "q": "Is a known birth time essential?",
+          "a": "Yes. Since the Ascendant and houses shift with time, accuracy changes greatly."
+        }
+      ]
+    },
+    "template_oracle": {
+      "tagline": "An oracle-style reading that sorts out your heart before a choice.",
+      "feats": [
+        "When you have to decide but lack conviction",
+        "When you feel there's a recurring signal",
+        "When you need a short but clear symbolic reading"
+      ],
+      "premiumIntro": "The oracle doesn't fix the future -- it lights up the symbol rising around your question right now.",
+      "premiumAudience": [
+        "Those who must decide but lack conviction",
+        "Those who feel there's a recurring signal",
+        "Those who need a short but clear symbolic reading"
+      ],
+      "premiumChapters": [
+        "The symbolic message for the current question",
+        "A point easy to miss",
+        "A flow to be careful of",
+        "A hint for the next action"
+      ],
+      "answersQuestions": [
+        "Is this choice the right direction right now?",
+        "What signal am I missing?",
+        "Should I push this through, or wait?"
+      ],
+      "analysisSteps": [
+        {
+          "label": "Sealing the question",
+          "detail": "Narrows what you want to ask into one fixed sentence."
+        },
+        {
+          "label": "Drawing the symbol",
+          "detail": "Draws the symbol that answers that question."
+        },
+        {
+          "label": "Connecting meaning",
+          "detail": "Reads the drawn symbol attached to the context of the current situation."
+        },
+        {
+          "label": "Organizing the oracle",
+          "detail": "Organizes it into an attitude to take and one to avoid right now."
+        }
+      ],
+      "valueCompare": [
+        {
+          "axis": "Number of symbols",
+          "premium": "A full symbol combination suited to the question",
+          "free": "One"
+        },
+        {
+          "axis": "Reading",
+          "premium": "A contextual reading attached to the current situation",
+          "free": "A symbol's basic meaning"
+        },
+        {
+          "axis": "Advice",
+          "premium": "Split between the attitude to take and to avoid",
+          "free": "A one-line message"
+        }
+      ],
+      "faq": [
+        {
+          "q": "Is an oracle a fortune-telling tool?",
+          "a": "It's not a tool for predicting the future -- it's a way of retracing, through symbols, a signal your mind has missed."
+        },
+        {
+          "q": "What if I don't like the result?",
+          "a": "A symbol isn't a verdict. The same symbol works differently depending on the situation, so please take just the direction of the advice as reference."
+        },
+        {
+          "q": "How often can I check it?",
+          "a": "It's best checked when the question has actually changed. Repeating the same question only clouds your judgment."
+        }
+      ]
+    },
+    "template_report": {
+      "tagline": "A premium reading that organizes your current worry and flow more concretely.",
+      "feats": [
+        "When you feel the same worry keeps repeating",
+        "When you need concrete flow rather than a plain summary",
+        "When you want to sort your thoughts before a choice"
+      ],
+      "premiumIntro": "The premium reading doesn't overstate the result -- it calmly organizes the texture of the question you need right now.",
+      "premiumAudience": [
+        "Those who want to organize scattered worries all at once",
+        "Those who need concrete flow rather than a summary",
+        "Those who want to tie up their thinking before a choice"
+      ],
+      "premiumChapters": [
+        "A summary of the core flow",
+        "Interpretation points by topic",
+        "Patterns to be careful of",
+        "A standard for the next action"
+      ],
+      "answersQuestions": [
+        "Among several worries, which should I tackle first?",
+        "Why does only one area keep getting stuck no matter how hard I try?",
+        "How do I split what to hold on to now and what to change?"
+      ],
+      "analysisSteps": [
+        {
+          "label": "Confirming input",
+          "detail": "Receives your birth information together with your current worry."
+        },
+        {
+          "label": "Analyzing the fortune system",
+          "detail": "Derives your disposition and flow using the calculation system this report uses."
+        },
+        {
+          "label": "Connecting the worry",
+          "detail": "Pulls out the points among the derived results that touch your current question."
+        },
+        {
+          "label": "Writing the report",
+          "detail": "Organizes it into one document so priorities and the next action are visible."
+        }
+      ],
+      "valueCompare": [
+        {
+          "axis": "Volume",
+          "premium": "An in-depth report split by topic",
+          "free": "Core summary"
+        },
+        {
+          "axis": "Personalization",
+          "premium": "Written on the basis of your entered information and worry",
+          "free": "General description"
+        },
+        {
+          "axis": "Advice",
+          "premium": "Down to the order of what to do first",
+          "free": "A general direction"
+        }
+      ],
+      "faq": [
+        {
+          "q": "How is this different from the free version?",
+          "a": "The free version is a core summary. The premium version includes in-depth topic-by-topic analysis and concrete advice based on your entered information."
+        },
+        {
+          "q": "Is it generated automatically by AI?",
+          "a": "It generates a customized report based on your entered information. Even with the same information, the content changes if the question changes."
+        },
+        {
+          "q": "Is the result saved?",
+          "a": "Whether it can be reopened varies by feature. Please check the notice on the payment screen."
+        }
+      ]
+    },
+    "template_music": {
+      "tagline": "An emotional content experience centered on the mood of the music and character universe.",
+      "feats": [
+        "When you want to organize feelings through mood rather than words",
+        "When you need short, immersive emotional content",
+        "When you want to open just the experience you need, track by track"
+      ],
+      "premiumIntro": "The music content doesn't promise a feeling -- it offers an experience that refreshes your current mood into a different texture.",
+      "premiumAudience": [
+        "Those who want to organize feelings through mood rather than words",
+        "Those looking for short, immersive emotional content",
+        "Those who want to pick and open only the tracks they need"
+      ],
+      "premiumChapters": [
+        "An emotional experience centered on the track and mood",
+        "A scene connected to the character universe",
+        "Basic information you can check before purchase",
+        "Moves to the existing music screen after payment"
+      ],
+      "answersQuestions": [
+        "What track fits this mood right now?",
+        "How do I work through a feeling that words can't sort out?",
+        "Is there short, immersive emotional content?"
+      ],
+      "analysisSteps": [
+        {
+          "label": "Choosing the mood",
+          "detail": "Pick the texture closest to your current feeling."
+        },
+        {
+          "label": "Connecting the track",
+          "detail": "Links a track and a character-universe scene suited to that texture."
+        },
+        {
+          "label": "Composing the scene",
+          "detail": "Composes it so one track flows like a single scene."
+        },
+        {
+          "label": "Getting ready to listen",
+          "detail": "After purchase, move straight into the existing music screen to keep listening."
+        }
+      ],
+      "valueCompare": [
+        {
+          "axis": "Listening scope",
+          "premium": "The full track",
+          "free": "Preview segment"
+        },
+        {
+          "axis": "Scene",
+          "premium": "A scene connected to the character universe",
+          "free": "None"
+        },
+        {
+          "axis": "Usage",
+          "premium": "Continuous listening centered on purchased tracks",
+          "free": "Streamed on the spot"
+        }
+      ],
+      "faq": [
+        {
+          "q": "Can I listen to a preview first?",
+          "a": "Yes. You can check the mood through a preview segment before purchase."
+        },
+        {
+          "q": "Where do I listen after purchasing?",
+          "a": "After payment completes, you move to the existing music screen and can keep listening right away."
+        },
+        {
+          "q": "Do I pay for each track separately?",
+          "a": "You pick and use only the tracks you need. Please check the payment screen for exact terms."
+        }
+      ]
+    }
+  },
+  "featureMarketingCategory": {
+    "saju": "Saju",
+    "tarot": "Tarot",
+    "sukuyo": "Sukuyo",
+    "ziwei": "Ziwei Doushu",
+    "astrology": "Astrology",
+    "vedic": "Vedic Astrology",
+    "oracle": "Oracle",
+    "report": "Premium Report",
+    "music": "Music"
+  },
+  "featureMarketingTrust": {
+    "paid": {
+      "0": "You can check what the feature covers before paying.",
+      "1": "Pass, monthly-stone, or single-payment eligibility follows the existing service policy.",
+      "2": "Fortune results are for reference only -- please confirm important decisions against your real-world judgment."
+    },
+    "free": {
+      "0": "Fortune results are for reference only -- please confirm important decisions against your real-world judgment."
+    }
   }
 }
