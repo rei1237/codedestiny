@@ -8,6 +8,7 @@ import { useEffect, useMemo, useRef, useState, type CSSProperties } from "react"
 import { authFetch } from "@/app/_lib/auth-client";
 import { toDisplayText } from "@/lib/llm-text";
 import { buildResizedAssetUrl } from "@/lib/r2-public-url";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import PagedResultViewer, { usePagedViewerMode, type ResultViewerPage } from "@/components/fortune/PagedResultViewer";
 import { neoInitialBreaks, neoRefinedBreaks, withCharacterBreaks } from "@/components/fortune/result-character-breaks";
@@ -15,7 +16,19 @@ import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import NeoFactPunch from "./components/NeoFactPunch";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
 import { type NeoWarRoomConsultMode, neoWarRoomAssets } from "./data/assets";
-import { getNeoWarRoomMethodDefinition, neoWarRoomMethodRegistry } from "./data/method-registry";
+import { getLocalizedNeoWarRoomMethodDefinition, getLocalizedNeoWarRoomMethodRegistry } from "./data/method-registry";
+import { getNeoRealityCheckLabel, getNeoFormCopy, getNeoTopicLabel } from "./data/form-copy";
+import {
+  buildNeoSincereLetterParagraphs,
+  getNeoResultAdjustWithTiming,
+  getNeoResultBadgeVaultAriaLabel,
+  getNeoResultBadgeVaultRemainingMsg,
+  getNeoResultCopy,
+  getNeoResultGeneratingBody,
+  getNeoResultLetterLockBody,
+  getNeoResultTocPageFallback,
+  getNeoResultVerdictWithStatus,
+} from "./data/result-copy";
 import styles from "./neo-operation-room-result.module.css";
 
 type NeoBriefing = {
@@ -267,8 +280,8 @@ function asErrorMessage(value: unknown) {
   return "";
 }
 
-function methodLabel(method?: string) {
-  return getNeoWarRoomMethodDefinition(method)?.label || "선택한 술수";
+function methodLabel(method: string | undefined, locale: LoadingLocale) {
+  return getLocalizedNeoWarRoomMethodDefinition(method, locale)?.label || getNeoResultCopy(locale).selectedMethodFallback;
 }
 
 function safeFilePart(value: string) {
@@ -313,8 +326,8 @@ function getBriefingMisalignedFlow(briefing?: NeoBriefing | null) {
   return briefing?.misalignedFlow || briefing?.currentProblem || {};
 }
 
-function getRefinedStuckPoint(refined?: NeoRefinedOrder | null): { title?: string; description?: string } {
-  if (refined?.verdict?.statement) return { title: "네오의 판정", description: refined.verdict.statement };
+function getRefinedStuckPoint(refined: NeoRefinedOrder | null | undefined, locale: LoadingLocale): { title?: string; description?: string } {
+  if (refined?.verdict?.statement) return { title: getNeoResultCopy(locale).neoVerdictLabel, description: refined.verdict.statement };
   return {};
 }
 
@@ -345,29 +358,29 @@ function getBadgeStampStyle(index: number) {
   } as CSSProperties;
 }
 
-function buildNeoSincereLetter(session: NeoResultSession, methodName: string) {
+function buildNeoSincereLetter(session: NeoResultSession, methodName: string, locale: LoadingLocale) {
   const briefing = session.initialBriefing;
   const refined = session.refinedOrder;
-  const title = refined?.operationTitle || briefing?.operationTitle || "이번 작전";
-  const opening = briefing?.neoOpening || "오늘 네가 들고 온 질문은 가볍지 않았다.";
+  const resultCopy = getNeoResultCopy(locale);
+  const title = refined?.operationTitle || briefing?.operationTitle || resultCopy.defaultOperationTitle;
+  const opening = briefing?.neoOpening || resultCopy.defaultOpening;
   const frontline = getBriefingFrontline(briefing);
-  const stuckPoint = getRefinedStuckPoint(refined);
+  const stuckPoint = getRefinedStuckPoint(refined, locale);
   const strategy = refined?.actionAlternatives?.[0]?.action || refined?.thirtyDayStrategy?.[0] || briefing?.originalStrategy?.description || "";
   const closing = refined?.tsundereClosing || briefing?.tsundereClosing || briefing?.nextStepPrompt || "";
-  return [
-    `너에게. ${title}을 정리하고 나서, 나는 잠깐 작전 테이블의 불을 낮췄다. ${methodName}의 지도 위에 남은 선은 생각보다 조용했지만, 그 조용함 안에는 네가 오래 참아 온 마음이 또렷하게 남아 있었다. ${opening}`,
-    frontline
-      ? `네 운명의 전선에서 가장 먼저 드러난 것은 이것이다. ${frontline} 이 말은 너를 몰아붙이려는 판정이 아니라, 네가 더는 스스로를 흐린 사람으로 오해하지 않도록 세워 둔 표식이다. 너는 무너진 것이 아니라, 너무 오래 같은 방식으로 버티느라 방향을 잠시 잃은 쪽에 가깝다.`
-      : "네 운명의 전선에서 가장 먼저 드러난 것은, 네가 생각보다 약하지 않다는 사실이다. 다만 마음이 지칠 때마다 스스로를 뒤로 미루는 버릇이 있었고, 그 버릇이 운의 흐름을 조금씩 흐리게 만들었다.",
-    stuckPoint.description
-      ? `특히 마음에 남겨야 할 지점은 ${stuckPoint.title || "흔들리던 자리"}다. ${stuckPoint.description} 그래서 나는 네게 거창한 각오보다 작은 기준을 먼저 주고 싶다. 사람의 반응을 기다리기 전에 네 기준을 먼저 읽고, 불안이 커질수록 오늘 할 수 있는 한 가지를 작게 닫아라.`
-      : "특히 마음에 남겨야 할 지점은 선택 직전의 침묵이다. 너는 답을 모르는 척했지만, 사실은 답을 고른 뒤 달라질 풍경을 먼저 두려워했다. 그래서 나는 네게 거창한 각오보다 작은 기준을 먼저 주고 싶다.",
-    strategy
-      ? `네가 본래 움직여야 하는 방식은 이미 안쪽에 있다. ${strategy} 이 흐름을 믿어라. 운은 멀리서 갑자기 떨어지는 상이 아니라, 네가 매일 선택하는 방향에 조용히 살을 붙인다. 오늘 하나를 정리하면 내일은 조금 덜 흔들리고, 내일 덜 흔들리면 다음 선택은 더 깨끗해진다.`
-      : "네가 본래 움직여야 하는 방식은 이미 안쪽에 있다. 기준을 세우고, 감정이 가라앉은 뒤 행동을 닫고, 남의 표정이 아니라 네 안의 질서를 먼저 확인하는 것이다. 운은 멀리서 갑자기 떨어지는 상이 아니라, 네가 매일 선택하는 방향에 조용히 살을 붙인다.",
-    `나는 네 편을 무조건 들어주려고 여기에 있는 것이 아니다. 하지만 네가 너 자신을 함부로 낮추는 순간에는, 꽤 단호하게 네 앞을 막을 것이다. 너는 계속 미뤄도 되는 사람이 아니라, 이제는 자기 삶의 작전권을 되찾아야 하는 사람이다. 겁이 있어도 괜찮다. 겁이 있다는 건 아직 소중히 지키고 싶은 것이 남아 있다는 뜻이니까.`,
-    `${closing || "그러니 오늘은 흐리지 마라. 네가 알고 있는 한 가지부터 실행해라."} 사자 휘장 다섯 개를 내어준 만큼, 이 편지는 네가 다시 같은 밤으로 돌아갈 때 조용히 펼쳐 보라고 남긴다. 네오.`,
-  ].join("\n\n");
+  return buildNeoSincereLetterParagraphs(
+    {
+      title,
+      methodName,
+      opening,
+      frontline,
+      stuckPointTitle: stuckPoint.title || "",
+      stuckPointDescription: stuckPoint.description || "",
+      strategy,
+      closing,
+    },
+    locale,
+  ).join("\n\n");
 }
 
 export default function NeoOperationRoomResultPage() {
@@ -380,6 +393,8 @@ export default function NeoOperationRoomResultPage() {
       ? rawPreviewMode as NeoResultPreviewMode
       : "";
   const isLocalPreview = Boolean(localPreviewMode);
+  const [dialogueLocale, setDialogueLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const resultCopy = getNeoResultCopy(dialogueLocale);
   const [session, setSession] = useState<NeoResultSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -405,9 +420,20 @@ export default function NeoOperationRoomResultPage() {
 
   const selectedMethod = session?.selectedMethod || session?.initialBriefing?.selectedMethod || session?.refinedOrder?.selectedMethod;
   const selectedMethodDefinition = useMemo(
-    () => getNeoWarRoomMethodDefinition(selectedMethod) ?? neoWarRoomMethodRegistry[0],
-    [selectedMethod],
+    () => getLocalizedNeoWarRoomMethodDefinition(selectedMethod, dialogueLocale) ?? getLocalizedNeoWarRoomMethodRegistry(dialogueLocale)[0],
+    [selectedMethod, dialogueLocale],
   );
+
+  useEffect(() => {
+    const sync = () => setDialogueLocale(getCurrentLoadingLocale());
+    sync();
+    window.addEventListener("cd:locale-ready", sync);
+    window.addEventListener("cd:locale-change", sync);
+    return () => {
+      window.removeEventListener("cd:locale-ready", sync);
+      window.removeEventListener("cd:locale-change", sync);
+    };
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -426,7 +452,7 @@ export default function NeoOperationRoomResultPage() {
       }
       if (!attemptId) {
         setLoading(false);
-        setError("작전 명령서 식별값이 없다.");
+        setError(getNeoResultCopy(getCurrentLoadingLocale()).missingAttemptIdError);
         return;
       }
       setLoading(true);
@@ -445,7 +471,8 @@ export default function NeoOperationRoomResultPage() {
             continue;
           }
           if (!response.ok || !data?.ok) {
-            const message = asErrorMessage(data) || (response.status === 401 ? "로그인이 필요하다." : "작전 명령서를 찾지 못했다.");
+            const currentResultCopy = getNeoResultCopy(getCurrentLoadingLocale());
+            const message = asErrorMessage(data) || (response.status === 401 ? currentResultCopy.loginRequiredError : currentResultCopy.notFoundError);
             setError(message);
             setSession(null);
             setLoading(false);
@@ -467,7 +494,7 @@ export default function NeoOperationRoomResultPage() {
       // 폴링 예산 소진 — 생성이 지연되고 있음을 알린다(이용권/권한은 보존).
       if (!cancelled) {
         setLoading(false);
-        setError("작전 브리핑 생성이 평소보다 오래 걸리고 있다. 이용권은 그대로 유지되니, 잠시 후 새로고침해라.");
+        setError(getNeoResultCopy(getCurrentLoadingLocale()).pollTimeoutError);
       }
     }
     loadResult();
@@ -479,7 +506,7 @@ export default function NeoOperationRoomResultPage() {
   async function handleRefine() {
     if (!session?.sessionId) return;
     if (!selectedChecks.length && freeform.trim().length < 4) {
-      setRefineError("체크 답변을 고르거나 현재 상황을 조금 더 적어라.");
+      setRefineError(resultCopy.refineMissingAnswerError);
       return;
     }
     if (isLocalPreview) {
@@ -529,13 +556,13 @@ export default function NeoOperationRoomResultPage() {
       // 그 외 확정 실패(404·422)만 즉시 끝낸다.
       const retriable = !response || response.status === 202 || response.status === 503;
       if (!retriable) {
-        throw new Error(asErrorMessage(data) || "수정 작전 명령서 작성에 실패했다.");
+        throw new Error(asErrorMessage(data) || resultCopy.refineGenericError);
       }
       const refined = await pollRefinedOrder(session.sessionId);
       setSession(refined);
       setShowRealityForm(false);
     } catch (caught) {
-      setRefineError(caught instanceof Error ? caught.message : "수정 작전 명령서 작성에 실패했다.");
+      setRefineError(caught instanceof Error ? caught.message : resultCopy.refineGenericError);
     } finally {
       setRefining(false);
     }
@@ -556,22 +583,22 @@ export default function NeoOperationRoomResultPage() {
       }
       if (data.ok && data.refinedOrder) return data as NeoResultSession;
       if (data.refinementStatus === "generation_failed") {
-        throw new Error(asErrorMessage(data.refinementError) || "수정 작전 명령서 작성에 실패했다. 답변은 남아 있으니 다시 시도해라.");
+        throw new Error(asErrorMessage(data.refinementError) || resultCopy.refineGenericErrorRetry);
       }
-      if (response.status === 401) throw new Error("로그인이 필요하다.");
+      if (response.status === 401) throw new Error(resultCopy.loginRequiredError);
     }
-    throw new Error("수정 작전 명령서를 아직 작성 중이다. 잠시 후 새로고침해라.");
+    throw new Error(resultCopy.refinePendingError);
   }
 
   async function handleUnlockNeoBenefits() {
     if (!session || benefitUnlocking || neoBenefitsUnlocked) return;
     if (isLocalPreview) {
-      setBenefitUnlockError("미리보기에서는 사자 휘장이 실제로 움직이지 않는다.");
+      setBenefitUnlockError(resultCopy.previewUnlockNotice);
       return;
     }
     const sessionId = getSessionId(session);
     if (!sessionId) {
-      setBenefitUnlockError("이 작전 명령서를 다시 확인한 뒤 휘장을 사용해라.");
+      setBenefitUnlockError(resultCopy.missingSessionKeyError);
       return;
     }
     setBenefitUnlocking(true);
@@ -590,11 +617,11 @@ export default function NeoOperationRoomResultPage() {
         setPdfError("");
       } else {
         setBenefitUnlockError(data?.reason === "missing_key"
-          ? "이 작전 명령서를 다시 확인한 뒤 휘장을 사용해라."
-          : "사자 휘장 5개가 모이면 PDF와 네오의 편지가 열린다.");
+          ? resultCopy.missingSessionKeyError
+          : resultCopy.unlockGenericHint);
       }
     } catch {
-      setBenefitUnlockError("휘장을 사용하는 중 문제가 생겼다. 잠시 후 다시 시도해라.");
+      setBenefitUnlockError(resultCopy.unlockErrorGeneric);
     } finally {
       setBenefitUnlocking(false);
     }
@@ -604,7 +631,7 @@ export default function NeoOperationRoomResultPage() {
     const element = documentRef.current;
     if (!element || pdfLoading) return;
     if (!neoBenefitsUnlocked) {
-      setPdfError("사자 휘장 5개를 사용하면 PDF 저장이 열린다.");
+      setPdfError(resultCopy.pdfLockedHint);
       return;
     }
     setPdfLoading(true);
@@ -674,7 +701,7 @@ export default function NeoOperationRoomResultPage() {
       anchor.remove();
       window.setTimeout(() => URL.revokeObjectURL(url), 1000);
     } catch {
-      setPdfError("PDF로 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setPdfError(resultCopy.pdfSaveError);
     } finally {
       setExportExpand(false);
       setPdfLoading(false);
@@ -687,8 +714,8 @@ export default function NeoOperationRoomResultPage() {
   const isFailed = Boolean(error) || session?.status === "generation_failed";
   const canUnlockNeoBenefits = !neoBenefitsUnlocked && !isLocalPreview && badgeAward.count >= NEO_LETTER_BADGE_COST;
   const neoLetterText = useMemo(
-    () => neoBenefitsUnlocked && session ? buildNeoSincereLetter(session, methodLabel(selectedMethod)) : "",
-    [neoBenefitsUnlocked, selectedMethod, session],
+    () => neoBenefitsUnlocked && session ? buildNeoSincereLetter(session, methodLabel(selectedMethod, dialogueLocale), dialogueLocale) : "",
+    [neoBenefitsUnlocked, selectedMethod, session, dialogueLocale],
   );
   // 배경은 CSS 변수로 나가 NeoWarRoomAssetImage 를 우회하므로 리사이즈를 여기서 직접 건다.
   const backgroundStyle = {
@@ -724,8 +751,8 @@ export default function NeoOperationRoomResultPage() {
       <section className={styles.hero} aria-labelledby="neo-result-title">
         <div className={styles.heroCopy}>
           <span>Operation Order</span>
-          <h1 id="neo-result-title">네오의 작전 명령서</h1>
-          <p>{isGenerating ? "운명의 작전 지도가 아직 움직이고 있다." : "1차 브리핑과 2차 수정 명령서를 분리해서 보관한다."}</p>
+          <h1 id="neo-result-title">{resultCopy.heroTitle}</h1>
+          <p>{isGenerating ? resultCopy.heroSubtitleGenerating : resultCopy.heroSubtitleReady}</p>
         </div>
         <div className={styles.heroVisual} aria-hidden="true">
           <NeoWarRoomAssetImage
@@ -763,10 +790,10 @@ export default function NeoOperationRoomResultPage() {
             className={styles.stateNeo}
             imageClassName={styles.stateNeoImage}
           />
-          <h2>작전 브리핑 생성 중</h2>
+          <h2>{resultCopy.generatingTitle}</h2>
           <p>{selectedMethod
-            ? `네오가 ${methodLabel(selectedMethod)}의 지도를 펼쳐 작전을 짜는 중이다. 계산과 LLM 작성이 끝나면 이 명령서에 결과가 찍힌다.`
-            : "계산과 LLM 작성이 끝나면 이 명령서에 결과가 찍힌다."}</p>
+            ? getNeoResultGeneratingBody(methodLabel(selectedMethod, dialogueLocale), dialogueLocale)
+            : resultCopy.generatingBodyDefault}</p>
           {selectedMethod ? (
             <NeoWarRoomAssetImage
               asset={selectedMethodDefinition.coverAsset}
@@ -783,9 +810,9 @@ export default function NeoOperationRoomResultPage() {
       {isFailed ? (
         <section className={styles.stateCard} aria-live="assertive">
           <NeoWarRoomAssetImage asset={neoResultStampAsset} alt="" sizes="86px" className={styles.stateSeal} imageClassName={styles.decorImage} />
-          <h2>작전 명령서 열람 실패</h2>
-          <p>{error || session?.generationError?.message || "생성에 실패했다. 입력과 권한을 확인한 뒤 다시 시도해라."}</p>
-          <Link href="/neo-operation-room" prefetch={false}>작전 다시 짜기</Link>
+          <h2>{resultCopy.failedTitle}</h2>
+          <p>{error || session?.generationError?.message || resultCopy.failedDefaultMessage}</p>
+          <Link href="/neo-operation-room" prefetch={false}>{resultCopy.retryLink}</Link>
         </section>
       ) : null}
 
@@ -794,24 +821,25 @@ export default function NeoOperationRoomResultPage() {
           <aside className={styles.sidePanel}>
             <NeoWarRoomAssetImage
               asset={selectedMethodDefinition.coverAsset}
-              alt={`${methodLabel(selectedMethod)} 표지`}
+              alt={`${methodLabel(selectedMethod, dialogueLocale)} ${resultCopy.methodCoverAltSuffix}`}
               sizes="280px"
               resizeWidth={560}
               className={styles.methodCover}
               imageClassName={styles.methodCoverImage}
             />
             <div>
-              <span>선택한 술수</span>
-              <strong>{methodLabel(selectedMethod)}</strong>
+              <span>{resultCopy.selectedMethodFallback}</span>
+              <strong>{methodLabel(selectedMethod, dialogueLocale)}</strong>
               <p>{selectedMethodDefinition.resultEvidenceLabel}</p>
-              <p>{session.topic || "작전 주제 미기록"}</p>
+              <p>{session.topic ? getNeoTopicLabel(session.topic, dialogueLocale) : resultCopy.topicFallback}</p>
             </div>
           </aside>
 
           <section id="neo-operation-result-document" ref={documentRef} className={styles.documentStack}>
             <ResultSummaryCover
               session={session}
-              methodName={methodLabel(selectedMethod)}
+              methodName={methodLabel(selectedMethod, dialogueLocale)}
+              locale={dialogueLocale}
               badgeIndex={badgeAward.currentBadgeIndex}
             />
             {briefing ? (
@@ -824,6 +852,7 @@ export default function NeoOperationRoomResultPage() {
                 viewAll={viewAll}
                 onViewAllChange={setViewAll}
                 expandForExport={exportExpand}
+                locale={dialogueLocale}
               />
             ) : null}
             {showRealityForm && briefing ? (
@@ -835,6 +864,7 @@ export default function NeoOperationRoomResultPage() {
                 refining={refining}
                 refineError={refineError}
                 onSubmit={handleRefine}
+                locale={dialogueLocale}
               />
             ) : null}
             {refined ? (
@@ -844,14 +874,15 @@ export default function NeoOperationRoomResultPage() {
                 viewAll={viewAll}
                 onViewAllChange={setViewAll}
                 expandForExport={exportExpand}
+                locale={dialogueLocale}
               />
             ) : null}
-            <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => setShowRealityForm(true)} hasRefined={Boolean(refined)} />
-            <BadgeVaultPanel badgeAward={badgeAward} benefitsUnlocked={neoBenefitsUnlocked} />
-            <section className={styles.actionBar} aria-label="작전 명령서 보관과 특전">
+            <CtaDeck attemptId={isLocalPreview ? "" : session.sessionId || attemptId} onOpenReality={() => setShowRealityForm(true)} hasRefined={Boolean(refined)} locale={dialogueLocale} />
+            <BadgeVaultPanel badgeAward={badgeAward} benefitsUnlocked={neoBenefitsUnlocked} locale={dialogueLocale} />
+            <section className={styles.actionBar} aria-label={resultCopy.actionBarAria}>
               <div className={styles.actionCopy}>
                 <span>{refined ? "Final Order Ready" : "Briefing Ready"}</span>
-                <strong>{refined ? "2차 수정 명령서까지 정리 완료" : "1차 작전 브리핑 정리 완료"}</strong>
+                <strong>{refined ? resultCopy.actionBarRefinedDone : resultCopy.actionBarInitialDone}</strong>
               </div>
               <div className={styles.actionButtons}>
                 <button
@@ -863,7 +894,7 @@ export default function NeoOperationRoomResultPage() {
                   onClick={handleUnlockNeoBenefits}
                 >
                   {benefitUnlocking ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <CheckCircle2 aria-hidden="true" /> : <Lock aria-hidden="true" />}
-                  <span>{benefitUnlocking ? "휘장 사용 중" : neoBenefitsUnlocked ? "특전 해금 완료" : "사자 휘장 5개 사용"}</span>
+                  <span>{benefitUnlocking ? resultCopy.benefitBusy : neoBenefitsUnlocked ? resultCopy.benefitDone : resultCopy.benefitCta}</span>
                 </button>
                 <button
                   type="button"
@@ -874,14 +905,14 @@ export default function NeoOperationRoomResultPage() {
                   onClick={handlePdfDownload}
                 >
                   {pdfLoading ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : neoBenefitsUnlocked ? <Download aria-hidden="true" /> : <Lock aria-hidden="true" />}
-                  <span>{pdfLoading ? "PDF 저장 중" : neoBenefitsUnlocked ? "PDF 저장" : "PDF 잠금"}</span>
+                  <span>{pdfLoading ? resultCopy.pdfBusy : neoBenefitsUnlocked ? resultCopy.pdfReady : resultCopy.pdfLocked}</span>
                 </button>
               </div>
               {benefitUnlockError ? <p className={styles.unlockError} role="alert">{benefitUnlockError}</p> : null}
               {pdfError ? <p className={styles.pdfError} role="alert">{pdfError}</p> : null}
             </section>
             {neoLetterText ? (
-              <NeoSincereLetter letter={neoLetterText} />
+              <NeoSincereLetter letter={neoLetterText} locale={dialogueLocale} />
             ) : (
               <NeoLetterLockCard
                 badgeAward={badgeAward}
@@ -890,6 +921,7 @@ export default function NeoOperationRoomResultPage() {
                 unlocking={benefitUnlocking}
                 unlockError={benefitUnlockError}
                 onUnlock={handleUnlockNeoBenefits}
+                locale={dialogueLocale}
               />
             )}
           </section>
@@ -920,23 +952,24 @@ function LionBadgeStamp({ badgeIndex, className = "" }: { badgeIndex: number; cl
   );
 }
 
-function BadgeVaultPanel({ badgeAward, benefitsUnlocked }: { badgeAward: NeoBadgeAwardState; benefitsUnlocked: boolean }) {
+function BadgeVaultPanel({ badgeAward, benefitsUnlocked, locale }: { badgeAward: NeoBadgeAwardState; benefitsUnlocked: boolean; locale: LoadingLocale }) {
+  const resultCopy = getNeoResultCopy(locale);
   const progress = Math.min(NEO_LETTER_BADGE_COST, badgeAward.count);
   const remaining = Math.max(0, NEO_LETTER_BADGE_COST - progress);
   const message = benefitsUnlocked
-    ? "PDF와 네오의 편지가 열린 작전이다."
+    ? resultCopy.badgeVaultUnlockedMsg
     : remaining === 0
-      ? "휘장 다섯 개가 모였다. 이제 특전을 열 수 있다."
-      : `${remaining}개가 더 모이면 PDF와 네오의 편지가 열린다.`;
+      ? resultCopy.badgeVaultReadyMsg
+      : getNeoResultBadgeVaultRemainingMsg(remaining, locale);
   return (
     <div className={styles.badgeVault}>
       <LionBadgeStamp badgeIndex={badgeAward.currentBadgeIndex} className={styles.badgeVaultStamp} />
       <div className={styles.badgeVaultCopy}>
-        <span>{badgeAward.awardedNow ? "새 휘장 수여" : "사자 휘장 보관함"}</span>
-        <strong>{badgeAward.count}개 보유</strong>
+        <span>{badgeAward.awardedNow ? resultCopy.badgeVaultAwarded : resultCopy.badgeVaultTitle}</span>
+        <strong>{badgeAward.count}{resultCopy.badgeVaultCountSuffix}</strong>
         <p>{message}</p>
       </div>
-      <div className={styles.badgeVaultSlots} aria-label={`사자 휘장 ${progress} / ${NEO_LETTER_BADGE_COST}`}>
+      <div className={styles.badgeVaultSlots} aria-label={getNeoResultBadgeVaultAriaLabel(progress, NEO_LETTER_BADGE_COST, locale)}>
         {Array.from({ length: NEO_LETTER_BADGE_COST }).map((_, index) => (
           <i key={index} data-filled={index < progress ? "true" : "false"} />
         ))}
@@ -952,6 +985,7 @@ function NeoLetterLockCard({
   unlocking,
   unlockError,
   onUnlock,
+  locale,
 }: {
   badgeAward: NeoBadgeAwardState;
   benefitsUnlocked: boolean;
@@ -959,19 +993,21 @@ function NeoLetterLockCard({
   unlocking: boolean;
   unlockError: string;
   onUnlock: () => void;
+  locale: LoadingLocale;
 }) {
+  const resultCopy = getNeoResultCopy(locale);
   const progress = Math.min(NEO_LETTER_BADGE_COST, badgeAward.count);
   return (
     <article className={styles.neoLetterLockCard}>
       <header className={styles.documentHeader}>
-        <span>네오가 남긴 편지</span>
-        <h2>{benefitsUnlocked ? "네오의 편지가 열렸다" : "사자 휘장 다섯 개가 문을 연다"}</h2>
+        <span>{resultCopy.letterSpan}</span>
+        <h2>{benefitsUnlocked ? resultCopy.letterUnlockedTitle : resultCopy.letterLockedTitle}</h2>
       </header>
-      <p>지금은 {progress}/{NEO_LETTER_BADGE_COST}개가 봉인에 닿았다. 다섯 개를 사용하면 PDF 명령서와 네오의 편지가 함께 열린다.</p>
+      <p>{getNeoResultLetterLockBody(progress, NEO_LETTER_BADGE_COST, locale)}</p>
       <div className={styles.neoLetterLockActions}>
         <button type="button" disabled={!canUnlock || unlocking || benefitsUnlocked} onClick={onUnlock}>
           {unlocking ? <Loader2 className={styles.spinIcon} aria-hidden="true" /> : benefitsUnlocked ? <CheckCircle2 aria-hidden="true" /> : <Lock aria-hidden="true" />}
-          <span>{unlocking ? "휘장 사용 중" : benefitsUnlocked ? "편지 해금 완료" : "사자 휘장 5개 사용"}</span>
+          <span>{unlocking ? resultCopy.benefitBusy : benefitsUnlocked ? resultCopy.letterUnlockDone : resultCopy.benefitCta}</span>
         </button>
       </div>
       {unlockError ? <p className={styles.unlockError} role="alert">{unlockError}</p> : null}
@@ -979,12 +1015,13 @@ function NeoLetterLockCard({
   );
 }
 
-function NeoSincereLetter({ letter }: { letter: string }) {
+function NeoSincereLetter({ letter, locale }: { letter: string; locale: LoadingLocale }) {
+  const resultCopy = getNeoResultCopy(locale);
   return (
     <article className={styles.neoLetterCard} data-neo-pdf-page>
       <header className={styles.documentHeader}>
-        <span>네오가 남긴 편지</span>
-        <h2>사자 휘장 다섯 개로 열린 진심</h2>
+        <span>{resultCopy.letterSpan}</span>
+        <h2>{resultCopy.letterOpenedTitle}</h2>
       </header>
       <div className={styles.neoLetterBody}>
         {letter.split("\n\n").map((paragraph) => <p key={paragraph}>{paragraph}</p>)}
@@ -997,11 +1034,14 @@ function ResultSummaryCover({
   session,
   methodName,
   badgeIndex,
+  locale,
 }: {
   session: NeoResultSession;
   methodName: string;
   badgeIndex: number;
+  locale: LoadingLocale;
 }) {
+  const resultCopy = getNeoResultCopy(locale);
   const briefing = session.initialBriefing || null;
   const refined = session.refinedOrder || null;
   const issuedAt = formatDateKey(session.updatedAt || session.createdAt);
@@ -1009,26 +1049,26 @@ function ResultSummaryCover({
     <article className={`${styles.documentCard} ${styles.summaryCover}`} data-neo-pdf-page>
       <header className={styles.documentHeader}>
         <span>Neo Operation Order</span>
-        <h2>{refined?.operationTitle || briefing?.operationTitle || "네오의 작전 명령서"}</h2>
+        <h2>{refined?.operationTitle || briefing?.operationTitle || resultCopy.heroTitle}</h2>
       </header>
       <div className={styles.summaryGrid}>
         <section>
-          <span>술수</span>
+          <span>{resultCopy.summaryMethodLabel}</span>
           <strong>{methodName}</strong>
         </section>
         <section>
-          <span>작전 주제</span>
-          <strong>{session.topic || "미기록"}</strong>
+          <span>{resultCopy.summaryTopicLabel}</span>
+          <strong>{session.topic ? getNeoTopicLabel(session.topic, locale) : resultCopy.summaryTopicFallback}</strong>
         </section>
         <section>
-          <span>발급일</span>
+          <span>{resultCopy.summaryIssuedLabel}</span>
           <strong>{issuedAt}</strong>
         </section>
       </div>
       {session.question ? <p className={styles.summaryQuestion}>{session.question}</p> : null}
       <div className={styles.summarySeal}>
         <LionBadgeStamp badgeIndex={badgeIndex} className={styles.stampImageFrame} />
-        <p>{refined ? "현실 점검까지 반영한 최종 작전이다." : "1차 브리핑 기준으로 저장된 작전이다."}</p>
+        <p>{refined ? resultCopy.summaryRefinedNote : resultCopy.summaryInitialNote}</p>
       </div>
     </article>
   );
@@ -1043,6 +1083,7 @@ function InitialBriefingDocument({
   viewAll,
   onViewAllChange,
   expandForExport,
+  locale,
 }: {
   briefing: NeoBriefing;
   evidenceFallbackLabel: string;
@@ -1052,7 +1093,10 @@ function InitialBriefingDocument({
   viewAll: boolean;
   onViewAllChange: (viewAll: boolean) => void;
   expandForExport: boolean;
+  locale: LoadingLocale;
 }) {
+  const resultCopy = getNeoResultCopy(locale);
+  const formCopy = getNeoFormCopy(locale);
   const [activePage, setActivePage] = useState(0);
   const frontlineSummary = getBriefingFrontline(briefing);
   const repeatedChoice = getBriefingRepeatedChoice(briefing);
@@ -1062,29 +1106,29 @@ function InitialBriefingDocument({
   const pageCandidates: Array<ResultViewerPage & { when: boolean }> = [
     {
       id: "briefing-frontline",
-      label: "전선 진단",
+      label: resultCopy.tabFrontline,
       when: Boolean(toDisplayText(frontlineSummary) || bluntTruth),
       content: (
         <>
-          <Section title="현재 운명의 전선" body={frontlineSummary} />
-          {bluntTruth ? <NeoBluntCallout text={bluntTruth} /> : null}
+          <Section title={formCopy["briefing.frontlineLabel"]} body={frontlineSummary} />
+          {bluntTruth ? <NeoBluntCallout text={bluntTruth} locale={locale} /> : null}
         </>
       ),
     },
     {
       id: "briefing-orders",
-      label: "긴급 작전",
+      label: resultCopy.tabUrgentOrders,
       when: Boolean(briefing.actionOrders?.length),
       content: (
         <>
-          <Section title="바로 해야 할 작전" list={briefing.actionOrders} />
-          {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>수정 작전 명령서 받기</button> : null}
+          <Section title={formCopy["briefing.actionOrdersLabel"]} list={briefing.actionOrders} />
+          {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>{formCopy["realityPanel.submitIdle"]}</button> : null}
         </>
       ),
     },
     {
       id: "briefing-judgement",
-      label: "네오의 판단",
+      label: resultCopy.tabJudgement,
       when: Boolean(toDisplayText(briefing.neoOpening) || toDisplayText(repeatedChoice.description)),
       // "네오의 첫 판단" 페이지는 홀수라 cadence 삽화 대상에서 빠진다. 인접한 "긴급 작전"이
       // s1-f01을 받으므로 중복감을 피해 다른 시퀀스를 직접 배정한다(로컬 webp 재사용).
@@ -1096,20 +1140,20 @@ function InitialBriefingDocument({
       },
       content: (
         <>
-          <Section title="네오의 첫 판단" body={briefing.neoOpening} />
-          <Section title={repeatedChoice.title || "반복되는 선택"} body={repeatedChoice.description} />
+          <Section title={resultCopy.firstJudgementTitle} body={briefing.neoOpening} />
+          <Section title={repeatedChoice.title || formCopy["briefing.repeatedChoiceFallback"]} body={repeatedChoice.description} />
         </>
       ),
     },
     {
       id: "briefing-innate",
-      label: "타고난 성향",
+      label: resultCopy.tabInnate,
       when: Boolean(toDisplayText(briefing.innateNature?.description) || toDisplayText(briefing.innateStrength?.description)),
       content: (
         <>
-          <Section title={briefing.innateNature?.title || "타고난 성향의 핵"} body={briefing.innateNature?.description} list={briefing.innateNature?.keyTraits} />
+          <Section title={briefing.innateNature?.title || formCopy["briefing.innateNatureFallback"]} body={briefing.innateNature?.description} list={briefing.innateNature?.keyTraits} />
           <Section
-            title={briefing.innateStrength?.title || "타고난 강점과 약점"}
+            title={briefing.innateStrength?.title || formCopy["briefing.innateStrengthFallback"]}
             body={briefing.innateStrength?.description}
             list={[
               ...(briefing.innateStrength?.strongPoints || []).map((point) => `💪 ${toDisplayText(point)}`),
@@ -1121,35 +1165,35 @@ function InitialBriefingDocument({
     },
     {
       id: "briefing-topic",
-      label: "주제 분석",
+      label: resultCopy.tabTopic,
       when: Boolean(toDisplayText(briefing.topicStyle?.description) || briefing.topicAreas?.length),
       content: (
         <>
-          <Section title={briefing.topicStyle?.title || "이 주제에서 너의 방식"} body={briefing.topicStyle?.description} list={briefing.topicStyle?.keyPoints} />
+          <Section title={briefing.topicStyle?.title || formCopy["briefing.topicStyleFallback"]} body={briefing.topicStyle?.description} list={briefing.topicStyle?.keyPoints} />
           {briefing.topicAreas?.length ? (
-            <Section title="주제 영역별 심층" list={briefing.topicAreas.map((item) => `${toDisplayText(item.area)} — ${toDisplayText(item.reading)}`)} />
+            <Section title={formCopy["briefing.topicAreasLabel"]} list={briefing.topicAreas.map((item) => `${toDisplayText(item.area)} — ${toDisplayText(item.reading)}`)} />
           ) : null}
         </>
       ),
     },
     {
       id: "briefing-timing",
-      label: "시기와 전략",
+      label: resultCopy.tabTiming,
       when: Boolean(toDisplayText(briefing.topicTiming?.description) || toDisplayText(briefing.originalStrategy?.description)),
       content: (
         <>
-          <Section title={briefing.topicTiming?.title || "이 주제의 시기 흐름"} body={briefing.topicTiming?.description} list={briefing.topicTiming?.windows} />
-          <Section title={briefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"} body={briefing.originalStrategy?.description} list={briefing.originalStrategy?.keyRules} />
+          <Section title={briefing.topicTiming?.title || formCopy["briefing.topicTimingFallback"]} body={briefing.topicTiming?.description} list={briefing.topicTiming?.windows} />
+          <Section title={briefing.originalStrategy?.title || formCopy["briefing.originalStrategyFallback"]} body={briefing.originalStrategy?.description} list={briefing.originalStrategy?.keyRules} />
         </>
       ),
     },
     {
       id: "briefing-evidence",
-      label: "어긋난 자리와 근거",
+      label: resultCopy.tabEvidence,
       when: Boolean(toDisplayText(misalignedFlow.description) || briefing.methodEvidence?.length),
       content: (
         <>
-          <Section title={misalignedFlow.title || "지금 흐름이 어긋난 자리"} body={misalignedFlow.description} />
+          <Section title={misalignedFlow.title || formCopy["briefing.misalignedFlowFallback"]} body={misalignedFlow.description} />
           {briefing.methodEvidence?.length ? (
             <div className={styles.gridList}>
               {briefing.methodEvidence.map((item) => <Section key={`${item.method}-${item.label}`} title={item.label || evidenceFallbackLabel} body={item.summary} />)}
@@ -1160,14 +1204,14 @@ function InitialBriefingDocument({
     },
     {
       id: "briefing-mission",
-      label: "금지와 7일 작전",
+      label: resultCopy.tabMission,
       when: Boolean(toDisplayText(briefing.forbiddenAction?.reason) || briefing.sevenDayMission?.length),
       content: (
         <>
-          <Section title={briefing.forbiddenAction?.title || "오늘 금지 행동"} body={briefing.forbiddenAction?.reason} />
+          <Section title={briefing.forbiddenAction?.title || formCopy["briefing.forbiddenActionFallback"]} body={briefing.forbiddenAction?.reason} />
           {briefing.sevenDayMission?.length ? (
             <div className={styles.missionGrid}>
-              <strong>7일 작전</strong>
+              <strong>{formCopy["briefing.sevenDayLabel"]}</strong>
               {briefing.sevenDayMission.map((item, index) => (
                 <section key={`${item.day}-${index}`}>
                   <span>DAY {item.day}</span>
@@ -1181,13 +1225,13 @@ function InitialBriefingDocument({
     },
     {
       id: "briefing-reality",
-      label: "현실 점검",
+      label: formCopy["realityPanel.eyebrow"],
       when: Boolean(briefing.realityCheckQuestions?.length),
       content: (
         <>
           {briefing.realityCheckQuestions?.length ? (
             <div className={styles.questionList}>
-              <strong>현실 점검 질문</strong>
+              <strong>{formCopy["briefing.realityQuestionsLabel"]}</strong>
               {briefing.realityCheckQuestions.map((item, index) => (
                 <section key={`${index}-${toDisplayText(item.question).slice(0, 24)}`}>
                   <p>{toDisplayText(item.question)}</p>
@@ -1196,13 +1240,13 @@ function InitialBriefingDocument({
               ))}
             </div>
           ) : null}
-          {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>답하고 수정 작전 명령서 받기</button> : null}
+          {!hasRefined ? <button type="button" className={styles.primaryCta} onClick={onOpenReality}>{resultCopy.answerThenRefineCta}</button> : null}
         </>
       ),
     },
     {
       id: "briefing-badge",
-      label: "사자 휘장",
+      label: resultCopy.tabBadge,
       when: Boolean(toDisplayText(briefing.badge?.description) || closing),
       content: (
         <>
@@ -1210,14 +1254,14 @@ function InitialBriefingDocument({
             <div className={styles.badgeBlock}>
               <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
               <div>
-                <strong>오늘의 사자 휘장 · {toDisplayText(briefing.badge.name) || "무명 휘장"}</strong>
+                <strong>{formCopy["refinedOrder.badgePrefix"]} · {toDisplayText(briefing.badge.name) || resultCopy.unnamedBadgeFallback}</strong>
                 <LlmParagraphs text={briefing.badge.description} />
               </div>
               <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
             </div>
           ) : null}
           {closing ? (
-            <NeoFactPunch text={closing} label="NEO · 마무리 한마디" />
+            <NeoFactPunch text={closing} label={formCopy["refinedOrder.closingLabel"]} />
           ) : null}
         </>
       ),
@@ -1229,16 +1273,16 @@ function InitialBriefingDocument({
   return (
     <article className={styles.documentCard} data-neo-pdf-page>
       <header className={styles.documentHeader}>
-        <span>1차 작전 브리핑</span>
-        <h2>{toDisplayText(briefing.operationTitle) || "무명 작전"}</h2>
+        <span>{formCopy["briefing.eyebrow"]}</span>
+        <h2>{toDisplayText(briefing.operationTitle) || formCopy["briefing.fallbackTitle"]}</h2>
       </header>
       {/* 전체 보기·PDF 펼침에서는 모든 장이 이미 보이므로 목차는 감춘다. */}
       {!viewAll && !expandForExport ? (
-        <ResultDeckToc pages={pages} activePage={activePage} onSelect={setActivePage} label="1차 작전 브리핑 목차" />
+        <ResultDeckToc pages={pages} activePage={activePage} onSelect={setActivePage} label={resultCopy.docBriefingTocAria} locale={locale} />
       ) : null}
       <PagedResultViewer
         pages={withCharacterBreaks(pages, neoInitialBreaks, styles.neoBustBreak)}
-        deckLabel="1차 작전 브리핑"
+        deckLabel={formCopy["briefing.eyebrow"]}
         className={styles.pagedViewer}
         pageClassName={styles.neoPage}
         viewAll={viewAll}
@@ -1259,6 +1303,7 @@ function RealityCheckForm({
   refining,
   refineError,
   onSubmit,
+  locale,
 }: {
   selectedChecks: string[];
   setSelectedChecks: (updater: string[] | ((current: string[]) => string[])) => void;
@@ -1267,12 +1312,15 @@ function RealityCheckForm({
   refining: boolean;
   refineError: string;
   onSubmit: () => void;
+  locale: LoadingLocale;
 }) {
+  const resultCopy = getNeoResultCopy(locale);
+  const formCopy = getNeoFormCopy(locale);
   return (
     <article className={styles.documentCard}>
       <header className={styles.documentHeader}>
-        <span>현실 점검</span>
-        <h2>네오에게 다시 반박하기</h2>
+        <span>{formCopy["realityPanel.eyebrow"]}</span>
+        <h2>{resultCopy.realityFormTitle}</h2>
       </header>
       <div className={styles.choiceGrid}>
         {realityCheckOptions.map((item) => {
@@ -1286,7 +1334,7 @@ function RealityCheckForm({
                 setSelectedChecks((current) => active ? current.filter((entry) => entry !== item) : [...current, item]);
               }}
             >
-              {item}
+              {getNeoRealityCheckLabel(item, locale)}
             </button>
           );
         })}
@@ -1294,12 +1342,12 @@ function RealityCheckForm({
       <textarea
         value={freeform}
         maxLength={1000}
-        placeholder={"네오에게 반박하거나, 현재 상황을 더 자세히 적어주세요.\n변명도 괜찮습니다. 네오가 알아서 걸러냅니다."}
+        placeholder={formCopy["realityPanel.freeformPlaceholder"]}
         onChange={(event) => setFreeform(event.target.value)}
       />
       {refineError ? <p className={styles.errorText}>{refineError}</p> : null}
       <button type="button" className={styles.primaryCta} disabled={refining} onClick={onSubmit}>
-        {refining ? "수정 작전 작성 중" : "수정 작전 명령서 받기"}
+        {refining ? formCopy["realityPanel.submitBusy"] : formCopy["realityPanel.submitIdle"]}
       </button>
     </article>
   );
@@ -1311,43 +1359,47 @@ function RefinedOrderDocument({
   viewAll,
   onViewAllChange,
   expandForExport,
+  locale,
 }: {
   refined: NeoRefinedOrder;
   badgeIndex: number;
   viewAll: boolean;
   onViewAllChange: (viewAll: boolean) => void;
   expandForExport: boolean;
+  locale: LoadingLocale;
 }) {
+  const resultCopy = getNeoResultCopy(locale);
+  const formCopy = getNeoFormCopy(locale);
   const [activePage, setActivePage] = useState(0);
   const closing = toDisplayText(refined.tsundereClosing);
   const pageCandidates: Array<ResultViewerPage & { when: boolean }> = [
     {
       id: "refined-review",
-      label: "전황 재판단",
+      label: resultCopy.tabReview,
       when: Boolean(toDisplayText(refined.neoReview)),
-      content: <Section title="전황 재판단" body={refined.neoReview} />,
+      content: <Section title={resultCopy.tabReview} body={refined.neoReview} />,
     },
     {
       id: "refined-verdict",
-      label: "판정",
+      label: resultCopy.tabVerdict,
       when: Boolean(toDisplayText(refined.verdict?.statement) || toDisplayText(refined.verdictBasis)),
       content: (
         <>
-          <Section title={refined.verdict?.status ? `판정 · ${toDisplayText(refined.verdict.status)}` : "판정"} body={refined.verdict?.statement} />
-          <Section title="판정 근거" body={refined.verdictBasis} />
+          <Section title={refined.verdict?.status ? getNeoResultVerdictWithStatus(toDisplayText(refined.verdict.status), locale) : resultCopy.tabVerdict} body={refined.verdict?.statement} />
+          <Section title={resultCopy.verdictBasisTitle} body={refined.verdictBasis} />
         </>
       ),
     },
     {
       id: "refined-alternatives",
-      label: "전선 조정",
+      label: resultCopy.tabAdjust,
       when: Boolean(refined.actionAlternatives?.length),
       content: (
         <div className={styles.gridList}>
           {(refined.actionAlternatives || []).map((item, index) => (
             <Section
               key={`${toDisplayText(item.timing)}-${index}`}
-              title={item.timing ? `전선 조정 · ${toDisplayText(item.timing)}` : "전선 조정"}
+              title={item.timing ? getNeoResultAdjustWithTiming(toDisplayText(item.timing), locale) : resultCopy.tabAdjust}
               body={item.action}
               list={item.rationale ? [toDisplayText(item.rationale)] : undefined}
             />
@@ -1357,16 +1409,16 @@ function RefinedOrderDocument({
     },
     {
       id: "refined-people",
-      label: "만나야 할 사람",
+      label: formCopy["refinedOrder.peopleLabel"],
       when: Boolean(refined.peopleToMeet?.length),
       content: (
         <div className={styles.gridList}>
           {(refined.peopleToMeet || []).map((item, index) => (
             <Section
               key={`${toDisplayText(item.role)}-${index}`}
-              title="만나야 할 사람"
+              title={formCopy["refinedOrder.peopleLabel"]}
               body={item.role}
-              list={[toDisplayText(item.complementaryEnergy), item.whereToFind ? `만날 곳 · ${toDisplayText(item.whereToFind)}` : ""].filter(Boolean)}
+              list={[toDisplayText(item.complementaryEnergy), item.whereToFind ? `${formCopy["refinedOrder.whereToFindPrefix"]} · ${toDisplayText(item.whereToFind)}` : ""].filter(Boolean)}
             />
           ))}
         </div>
@@ -1374,32 +1426,32 @@ function RefinedOrderDocument({
     },
     {
       id: "refined-thirty",
-      label: "30일 전략",
+      label: formCopy["refinedOrder.thirtyDayLabel"],
       when: Boolean(refined.thirtyDayStrategy?.length || toDisplayText(refined.thisWeekFirstStep)),
       content: (
         <>
-          <Section title="30일 전략" list={refined.thirtyDayStrategy} />
-          <Section title="이번 주 첫 걸음" body={refined.thisWeekFirstStep} />
+          <Section title={formCopy["refinedOrder.thirtyDayLabel"]} list={refined.thirtyDayStrategy} />
+          <Section title={formCopy["refinedOrder.thisWeekLabel"]} body={refined.thisWeekFirstStep} />
         </>
       ),
     },
     {
       id: "refined-closing",
-      label: "금지와 휘장",
+      label: resultCopy.tabClosing,
       when: true,
       content: (
         <>
-          <Section title={refined.forbiddenAction?.title || "오늘 금지 행동"} body={refined.forbiddenAction?.reason} />
+          <Section title={refined.forbiddenAction?.title || formCopy["briefing.forbiddenActionFallback"]} body={refined.forbiddenAction?.reason} />
           <div className={styles.badgeBlock}>
             <LionBadgeStamp badgeIndex={badgeIndex} className={styles.badgeImageFrame} />
             <div>
-              <strong>오늘의 사자 휘장 · {toDisplayText(refined.badge?.name) || "무명 휘장"}</strong>
+              <strong>{formCopy["refinedOrder.badgePrefix"]} · {toDisplayText(refined.badge?.name) || resultCopy.unnamedBadgeFallback}</strong>
               <LlmParagraphs text={refined.badge?.description} />
             </div>
             <LionBadgeStamp badgeIndex={(badgeIndex + 1) % NEO_RESULT_BADGE_COUNT} className={styles.stampImageFrame} />
           </div>
           {closing ? (
-            <NeoFactPunch text={closing} label="NEO · 마무리 한마디" />
+            <NeoFactPunch text={closing} label={formCopy["refinedOrder.closingLabel"]} />
           ) : null}
         </>
       ),
@@ -1411,15 +1463,15 @@ function RefinedOrderDocument({
   return (
     <article className={styles.documentCard} data-version="v2" data-neo-pdf-page>
       <header className={styles.documentHeader}>
-        <span>2차 수정 작전 명령서</span>
-        <h2>{toDisplayText(refined.operationTitle) || "수정 작전"}</h2>
+        <span>{formCopy["refinedOrder.eyebrow"]}</span>
+        <h2>{toDisplayText(refined.operationTitle) || formCopy["refinedOrder.fallbackTitle"]}</h2>
       </header>
       {!viewAll && !expandForExport ? (
-        <ResultDeckToc pages={pages} activePage={activePage} onSelect={setActivePage} label="2차 수정 작전 명령서 목차" />
+        <ResultDeckToc pages={pages} activePage={activePage} onSelect={setActivePage} label={resultCopy.docRefinedTocAria} locale={locale} />
       ) : null}
       <PagedResultViewer
         pages={withCharacterBreaks(pages, neoRefinedBreaks, styles.neoBustBreak)}
-        deckLabel="2차 수정 작전 명령서"
+        deckLabel={formCopy["refinedOrder.eyebrow"]}
         className={styles.pagedViewer}
         pageClassName={styles.neoPage}
         viewAll={viewAll}
@@ -1440,11 +1492,13 @@ function ResultDeckToc({
   activePage,
   onSelect,
   label,
+  locale,
 }: {
   pages: ResultViewerPage[];
   activePage: number;
   onSelect: (index: number) => void;
   label: string;
+  locale: LoadingLocale;
 }) {
   if (pages.length < 2) return null;
   return (
@@ -1457,7 +1511,7 @@ function ResultDeckToc({
           data-active={activePage === index ? "true" : "false"}
           aria-current={activePage === index ? "true" : undefined}
         >
-          {page.label || `${index + 1}장`}
+          {page.label || getNeoResultTocPageFallback(index + 1, locale)}
         </button>
       ))}
     </nav>
@@ -1482,7 +1536,7 @@ function Section({ title, body, list }: { title: string; body?: string; list?: s
 const NEO_CALLOUT_IMAGE = "/neo-operation-room/sprites/transparent/neo-transparent-s1-f01.webp";
 
 // 팩폭 한줄 요약을 네오 스티커(고정 이미지) 옆에 배치해 시선이 쉬는 지점을 만든다.
-function NeoBluntCallout({ text }: { text: string }) {
+function NeoBluntCallout({ text, locale }: { text: string; locale: LoadingLocale }) {
   return (
     <div className={styles.neoAside}>
       <figure className={styles.neoAsideSprite} data-playing="false">
@@ -1490,7 +1544,7 @@ function NeoBluntCallout({ text }: { text: string }) {
           src={NEO_CALLOUT_IMAGE}
           width={362}
           height={543}
-          alt="팩폭 한마디를 건네는 네오"
+          alt={getNeoResultCopy(locale).bluntCalloutAlt}
           loading="lazy"
         />
       </figure>
@@ -1499,14 +1553,16 @@ function NeoBluntCallout({ text }: { text: string }) {
   );
 }
 
-function CtaDeck({ attemptId, hasRefined, onOpenReality }: { attemptId: string; hasRefined: boolean; onOpenReality: () => void }) {
+function CtaDeck({ attemptId, hasRefined, onOpenReality, locale }: { attemptId: string; hasRefined: boolean; onOpenReality: () => void; locale: LoadingLocale }) {
+  const resultCopy = getNeoResultCopy(locale);
+  const formCopy = getNeoFormCopy(locale);
   return (
-    <nav className={styles.ctaDeck} aria-label="작전 명령서 다음 행동">
-      <button type="button" onClick={onOpenReality}>{hasRefined ? "네오에게 다시 반박하기" : "수정 작전 명령서 받기"}</button>
-      <Link href="/neo-operation-room" prefetch={false}>작전 다시 짜기</Link>
-      <Link href="/neo-operation-room" prefetch={false}>다른 술수로 다시 분석하기</Link>
-      <Link href="/fortune-tea-house">연이의 운명 찻집으로 가기</Link>
-      {attemptId ? <Link href={`/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`}>작전 명령서 다시 열기</Link> : null}
+    <nav className={styles.ctaDeck} aria-label={resultCopy.ctaDeckAria}>
+      <button type="button" onClick={onOpenReality}>{hasRefined ? resultCopy.realityFormTitle : formCopy["realityPanel.submitIdle"]}</button>
+      <Link href="/neo-operation-room" prefetch={false}>{resultCopy.retryLink}</Link>
+      <Link href="/neo-operation-room" prefetch={false}>{resultCopy.ctaOtherMethod}</Link>
+      <Link href="/fortune-tea-house">{resultCopy.ctaTeaHouse}</Link>
+      {attemptId ? <Link href={`/neo-operation-room/result?attemptId=${encodeURIComponent(attemptId)}`}>{resultCopy.ctaReopen}</Link> : null}
     </nav>
   );
 }
