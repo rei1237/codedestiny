@@ -4,6 +4,15 @@
 
 사용자가 "Code Destiny 전체를 실제 글로벌 서비스 수준으로 다국어 완성"을 요청했다(원 요청서 29개 섹션, 이후 28개 섹션짜리 상세 스펙으로 재요청). 규모가 멀티세션급이라는 게 1차 세션에서 이미 확인됐고, 2차 세션에서 Wave 0~5를 완료했다. 이 문서는 2차 세션 종료 시점 기준으로 완전히 다시 썼다 — 예전 버전(1차 세션 말미)의 "다음 순서 제안"은 이번 세션에서 대부분 처리했거나 아래에서 정정됐다.
 
+## 🔴 2026-08-22 머지 순서·CI/릴리스 상태 점검 (사용자 요청으로 수행)
+
+사용자가 "PR들이 CI 게이트를 통과 못하는 것도 있고 통과해도 릴리스가 실패하는 부분도 있다"며 점검을 요청해 24개 열린 PR 전체를 조사했다.
+
+- **파일 겹침 0건**: 24개 PR의 변경 파일을 전수 교차 비교한 결과 어떤 두 PR도 같은 파일을 건드리지 않는다. `Landing order` 가드(부모 PR을 자식보다 먼저 머지하면 실패시키는 체크)도 전부 통과 — 스택(부모-자식) 관계도 없다. **즉 머지 순서 자체는 결과에 영향을 주지 않는다.**
+- **CI는 전부 통과**: 24개 브랜치를 전부 `origin/main` 기준으로 업데이트(`PUT /pulls/{n}/update-branch`)해 재검사시킨 결과, 재확인 시점 기준 실패한 PR은 0개였다. 유일하게 실패 흔적이 남아 있던 PR #938은 재확인 시 통과로 바뀌었다 — 당시 낡은 실행 결과가 **PR 자체 문제가 아니라 그 시점의 `main`에 있던 다른 PR(#940 fusion-fortune)발 테스트 깨짐**을 반영한 것이었다(그 사이 main에서 수정됨).
+- 🔴 **"CI 통과 후 릴리스 실패"는 실제로 재현됐다** — 같은 날 커밋 `f657a777`에서 "Release Cloudflare Pages and Worker" 배포 워크플로가 2번 연속 실패했다. 로그 원인: **연속 머지 경합** — 릴리스 워크플로의 concurrency 그룹은 실행 1 + 대기 1만 유지하는데, 머지가 너무 빨리 이어지면 이전 배포가 끝나기 전에 더 최신 커밋이 스테이징에 먼저 배포돼, `verify-deployed-sha`가 "이 커밋을 배포했는지" 검증할 때 이미 더 최신 SHA가 배포돼 있어 실패로 판정한다(`landing-watchdog.yml`에 "조용한 실패 ②"로 이미 문서화된 패턴). **PR 코드 결함이 아니라 머지 속도 문제.**
+- **사용자에게 안내한 결론**: 순서는 무엇이든 상관없으나(충돌·의존성 없음), **한 번에 하나씩, 이전 PR의 "Release Cloudflare Pages and Worker" 워크플로가 초록불로 끝난 뒤 다음 PR을 머지**할 것을 권고했다 — 빠르게 연속 머지하면 같은 배포 SHA 불일치 실패가 재현될 수 있다.
+
 ## 🔴 3차 세션(2026-08-22) 완료 목록 — "UI 크롬만" 스코프로 8개 PR
 
 2차 세션 종료 시점의 "3건 이하 그룹 62개 파일"에서 이어받아, 사용자가 이전 세션에 확정한 **"UI 크롬만(추천)"** 스코프(SEO 콘텐츠 페이지·서사형 콘텐츠 데이터 파일은 제외)로 계속 진행했다. 이번 세션은 새 브랜치+PR마다 `EnterWorktree` 격리 없이 하나의 워크트리 안에서 origin/main 기준 새 브랜치를 매번 새로 분기하는 방식으로 처리했다(`git fetch origin main -q && git checkout -b <branch> origin/main`).
@@ -179,6 +188,18 @@
 - **알려진 잔여 이슈**: `CodexReportOutro.tsx`의 `codexAccessOutroLine(accessType, billing.title)`은 제외 대상 `data/premium.ts`의 함수라 로케일 불문 한국어 문장을 반환한다 — 뒤따르는 JSX 리터럴 문장은 이번에 로케일화했으므로, 비-한국어 사용자는 한 문단 안에서 "한국어 + 로케일화된 문장" 혼합을 보게 된다. `data/premium.ts` 콘텐츠 번역이 선행돼야 완전히 해소됨.
 - 검증: `npx tsc --noEmit`(클린) · `npx eslint`(22개 변경 파일, 에러/경고 0) · `node scripts/verify-master-love-codex-flow.mjs`(통과 — 문자열 이동으로 깨진 4개 단언: 리터럴 "결과 보기"/"이어서 읽기", `masterLoveCodexBilling(...)` 정규식, `ERROR_TEXT`→`errorText` 리네임을 같은 커밋에서 수정) · `node scripts/verify-master-love-codex-batch-budget.mjs`/`verify-master-love-codex-compat-determinism.mjs`(통과) · `NODE_OPTIONS=--experimental-vm-modules npx jest __tests__/worker/payments-v2.foundation.test.js __tests__/worker/payments-v2.entitlements.test.js __tests__/worker/per-use-proof-roundtrip.test.js`(80/80 pass, 워커 쪽 featureKey 문자열만 참조) · `config/payment-freeze.json` 미등재 · `git grep -n "master-love-codex" -- '__tests__/' 'scripts/verify-*'` 3면 확인으로 위 4개 단언 파손을 미리 발견·수정.
 
+## 🔴🔴 2026-08-22 핵심 발견 — "route fallback" 제목의 PR이 실제 구현을 건드리지 않은 사례가 더 있다 (+ 판정 오탐 주의)
+
+CI/머지 순서 점검 중 열린 PR 24개의 파일 목록을 실제로 대조해 보니, `oracle/rune`·`saju-fpti`·`ziwei/chart`·`tarot/mindscan`(이번 세션에서 이미 처리)과 같은 패턴으로 **PR #963 `chore/tarot-healing-i18n`도 제목이 "route fallback"인 그대로 `TarotHealingRouteClient.tsx`(로딩 폴백)만 건드리고 실제 라이브 컴포넌트 `app/components/SunHealingTarot.tsx`(913줄)는 로케일 인프라가 전무한 채 방치돼 있었다.** 별도 브랜치(PR #976)로 처리 완료 — 상세는 아래 절 참고.
+
+**반면 같은 방식으로 의심했던 PR #964 `chore/tarot-self-esteem-i18n`(제목도 "route fallback")은 실제로 열어 보니 `TarotSelfEsteemLandingContent.tsx`(379줄)가 **이미 12개 로케일 전체에 대해 진짜 번역이 채워진 `SELF_ESTEEM_COPY` 테이블로 완전히 배선돼 있었다** — 즉 이 파일은 Wave 7과 무관하게 이미 다른 경로로(또는 이 프로젝트 시작 전부터) 완성돼 있었다. **손대지 않고 그대로 확인만 하고 넘어감.**
+
+🔴 **이번에 얻은 교훈 — grep 한국어 줄수만으로 "미번역"을 단정하지 말 것.** `app/components/FeatureLandingPage.tsx`(551줄 Korean 매치, 18개 이상의 랜딩 라우트가 공유하는 셸)와 `app/components/MainLandingPage.tsx`(173줄)도 처음엔 새 클러스터 후보로 보였으나, 실제로 열어 보니 **자체 `FEATURE_LANDING_COPY`/`MAIN_LANDING_COPY`(둘 다 `Record<LoadingLocale, ...>`, 12로케일)와 자체 로케일 감지 함수(`getCurrentFeatureLocale()`/`getCurrentMainLandingLocale()`, `constants/loadingMessages.ts`의 `getCurrentLoadingLocale()`과는 다른 이름)로 이미 완전히 로케일화돼 있었다.** 한국어가 많이 잡히는 이유는 `SLUG_CFG` 같은 **정본이 한국어인 데이터 테이블**(비-ko는 별도 lazy-load 모듈 `FeatureLandingPage.slugTags.ts`로 오버라이드)과 코드 주석 때문. **`getCurrentLoadingLocale` 문자열 유무로 "로케일 인프라 있음/없음"을 판정하는 것도 오탐 소지가 있다** — 파일마다 자체 이름의 로케일 감지 함수를 따로 구현해 둔 경우가 있다(예: `FeatureLandingPage.tsx`). **판정은 반드시 파일을 열어 실제 JSX 리터럴이 `copy.*`로 배선돼 있는지, 그 `copy` 테이블이 로케일별로 진짜 다른 값을 담고 있는지(단순 `null` 폴백이 아니라)까지 확인한 뒤에만 내릴 것.**
+
+## 2026-08-22 `tarot/healing`(실제 구현) — `SunHealingTarot.tsx`, PR #963이 놓친 라이브 컴포넌트 (완료)
+
+**PR #976** `chore/tarot-healing-core-i18n` — 신규 `app/components/_lib/sun-healing-tarot-copy.ts`(en/ja/zh-CN/zh-TW 실번역)로 인트로/스프레드/결과 3단계 UI 크롬 전체 배선. `MAJOR_CARD_NAMES`/`SUIT_NAMES`/`RANK_NAMES`(`lib/tarot/tarot-cards.mjs`와 동일해야 하는 카드 고유명사)와 `buildSunHealingAiPromptText()`의 AI 프롬프트 본문은 제외. **재사용 기법**: `ResultCardSummary`/`ResultDetailCard`가 화면에 보여주는 자리/방향 라벨은 `item.positionLabel`/`item.orientationLabel`(AI 프롬프트에도 그대로 들어가는 한국어 고정값)을 직접 렌더하지 않고, 원시 인덱스/enum 값에서 `copy.positionLabels[idx]`/`copy.orientationLabel(orientation)`로 새로 로케일화된 값을 계산해 렌더(mindscan 클러스터의 `AI_PROMPT_POSITION_META` 분리 전례와 동일 발상) — 프롬프트 입력 경로는 전혀 안 건드림. 검증: `tsc`/`eslint` 클린, 3면 grep으로 참조 테스트 없음 확인, payment-freeze 미등재(결제 게이트 없는 무료 기능).
+
 ## 2026-08-22 `maya` — master-love-codex 발견 과정에서 확인된 소규모 자매 클러스터 (완료)
 
 **PR #975** `chore/maya-i18n` — `app/maya/page.tsx`→`MayaRouteClient.tsx`(dynamic import) → 실제 구현 `src/components/maya/`(3개 파일: `MayaCalendarView.tsx`/`MayaDateSummaryCard.tsx`/`MayaPromptGeneratorCard.tsx`). 로케일 인프라 완전 전무(3개 파일 전체에 `getCurrentLoadingLocale()` 없음). 신규 `_lib/copy.ts`로 히어로/날짜 선택기/월간 그리드/요약 카드/AI 프롬프트 생성기(결제 게이트·에러 6종 포함) 배선. `MAYA_PROMPT_TOPICS`(AI 프롬프트 페이로드 값)와 `src/data/maya-calendar-symbols.ts`의 Tzolk'in/Haab 고유명사·`maya-calendar.ts`의 `labelKo`(계산된 한국어 날짜 표기, 항목 7과 같은 범주)는 제외. 검증: `tsc`/`eslint` 클린, `node --test __tests__/fortune/maya-calendar.test.js` 5/5 pass(라이브러리 파일 미변경 확인용), 3면 grep으로 참조 테스트 없음 확인, payment-freeze 미등재.
@@ -235,6 +256,7 @@
 26. **PR #915** `fix/premium-sales-content-locale` — `PremiumSalesContent.tsx`(인생 총운 전문가 상담, `/premium-unlock`) 101건 — 히어로·폼/결제 게이트 문구/5종 검증 메시지/로딩 6단계/결과 문서(핵심요약·장·전문가 판독)/PDF 저장까지 전부. `TOPIC`("전체 인생 총운")은 화면에 노출되지 않는 페이로드 값이라 유지. 세 번째로 발견된 같은 `locale: "ko"` 하드코딩 버그 수정. `splitMarkdownChapters`의 `제N장` 헤딩 감지 정규식(한국어 전용 파싱 로직)은 그대로 두고 **폴백 장 제목**만 12로케일 번역(카르마 목적지 PR #914의 `KARMA_SECTION_SYMBOLS` 처리와 동일 판단). 이 파일을 직접 참조하는 기존 테스트가 없어 lint+typecheck로만 검증(미검증으로 명시).
 34. **PR #974** `chore/master-love-codex-i18n` — `src/features/master-love-codex/`(`app/` 밖 별도 최상위 트리, 30개 파일) 22개 파일 UI 크롬 배선 + `masterLoveCodexBilling()` 로케일 무관 한국어 제목 고정 버그 수정. 상세는 위 "`master-love-codex`" 절 참고.
 35. **PR #975** `chore/maya-i18n` — `src/components/maya/`(3개 파일) 히어로/날짜 선택기/월간 그리드/요약 카드/AI 프롬프트 생성기 UI 크롬 배선. 상세는 위 "`maya`" 절 참고.
+36. **PR #976** `chore/tarot-healing-core-i18n` — `app/components/SunHealingTarot.tsx`(913줄, PR #963이 놓친 실제 라이브 컴포넌트) UI 크롬 배선. 상세는 위 "`tarot/healing`(실제 구현)" 절 참고.
 
 🔴 **비용 재평가(2026-08-21, PR #911/#912 이후)**: "AI 상담 입력 폼" 유형 파일(life-book-ai, love-secret-ai 등)은 한 파일에 60~90개 문구 × 12개 언어가 들어 있어, 파일 하나당 세션 토큰 예산의 상당 비율을 쓴다. `astrology-ai/AstrologyAiClient.tsx`(918줄, 실측 122건)를 포함해 남은 70개 파일 중 다수가 같은 "입력 폼" 계열로 보인다 — 전부 이 수준으로 처리하면 이번 세션 예산을 크게 넘어설 수 있다. 사용자가 이미 "현재 수준 그대로 계속"을 확정했으므로 계속 진행하되, 만약 세션이 여기서 중단되면 다음 세션은 **이 문서를 그대로 이어받아 재개**할 것(모든 파일이 이미 검증된 동일 패턴 — 파일 로컬 Copy 타입 + `getCurrentLoadingLocale()`/`languagechange` 훅 + 12로케일 번역 + 모듈 레벨 함수는 `copy` 파라미터로 스레딩).
 
