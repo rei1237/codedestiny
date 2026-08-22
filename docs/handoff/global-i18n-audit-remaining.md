@@ -295,6 +295,7 @@ CI/머지 순서 점검 중 열린 PR 24개의 파일 목록을 실제로 대조
 40. **PR #981** `chore/neo-operation-room-dialogue-i18n` — `src/features/neo-war-room/`(4,600줄+, `app/` 밖 최상위 트리) 캐릭터 "네오"의 대사 시스템 전체(69키 대사 표+랜딩+VN 프롤로그+히어로 헤더) 완결. 폼/버튼/결과 화면은 후속 PR로 남김. 상세는 위 "`neo-operation-room`" 절 참고.
 41. **PR #982** `chore/neo-operation-room-method-registry-i18n`(🔴 **#981 위에 스택 — #981을 먼저 머지할 것**, 같은 파일을 건드림) — "01 분석 방식 선택" 섹션(4개 방식 카드) 완결. `method-registry.ts`의 화면 렌더 필드 5개(죽은 필드 6개는 제외, `git grep`으로 확인) + `methodCardCopy`+섹션 제목+이미지 alt까지 카드 하나 안에서 형제 필드가 섞이지 않게 함께 번역.
 42. **PR #983** `fix/ko-kr-date-number-format-hardcodes` — 핸드오프 항목 7("날짜/숫자 포맷 ko-KR 하드코딩") 12개 파일 처리 + `LoveRelationshipTarot.tsx`의 미지원 로케일 ko 폴백 버그 발견·수정. 상세는 위 항목 7 참고.
+43. **PR #986** `chore/neo-operation-room-input-flow-i18n`(🔴 **#982 위에 스택 — #981→#982→#986 순서로 머지할 것**, 같은 파일을 건드림) — 입력 마법사(02~05 섹션+발사확인+상태/에러/준비완료 패널)와 결과 화면 3종(브리핑/현실점검/수정명령서 패널의 정적 라벨) 완결 + `input-flow.ts` 검증 메시지 + 결제 게이트 오버레이가 이 기능에서만 한국어로 덮어써지던 실버그 수정. `neo-operation-room` 클러스터 전체(폼+결과 패널) 완료 — 남은 건 `NeoOperationRoomResultPage.tsx`(별도 파일, 미착수) 뿐. 상세는 위 "`neo-operation-room`" 절 참고.
 
 🔴 **비용 재평가(2026-08-21, PR #911/#912 이후)**: "AI 상담 입력 폼" 유형 파일(life-book-ai, love-secret-ai 등)은 한 파일에 60~90개 문구 × 12개 언어가 들어 있어, 파일 하나당 세션 토큰 예산의 상당 비율을 쓴다. `astrology-ai/AstrologyAiClient.tsx`(918줄, 실측 122건)를 포함해 남은 70개 파일 중 다수가 같은 "입력 폼" 계열로 보인다 — 전부 이 수준으로 처리하면 이번 세션 예산을 크게 넘어설 수 있다. 사용자가 이미 "현재 수준 그대로 계속"을 확정했으므로 계속 진행하되, 만약 세션이 여기서 중단되면 다음 세션은 **이 문서를 그대로 이어받아 재개**할 것(모든 파일이 이미 검증된 동일 패턴 — 파일 로컬 Copy 타입 + `getCurrentLoadingLocale()`/`languagechange` 훅 + 12로케일 번역 + 모듈 레벨 함수는 `copy` 파라미터로 스레딩).
 
@@ -338,7 +339,7 @@ Wave 7 도중 `LoveSecretAiResultClient.tsx`를 열다가 "AI가 생성한 상�
 2. 남은 키 중 `git grep -n "useT(" app/`로 `useT()`를 실제로 쓰는 컴포넌트를 전수 찾고, 그 컴포넌트가 참조하는 키 중 `ko.json`에 없는 것만 진짜 버그로 취급한다.
 3. `cdTranslate`/`_cdPaymentI18n`(인라인 폴백 패턴) 경유 키는 "이미 작동 중"으로 분류하고, 폴백 제거(=완전한 사전 이전)는 **번역 완결성이 아니라 `no-fallback` 기술부채 상환** 작업으로 별도 트래킹한다(`verify-i18n-no-fallback.mjs`의 B수치, 현재 기준선 대비 +11 초과 상태 — 원인 미추적, 아래 "남은 것 4" 참고).
 
-## 🔴 2026-08-22 `neo-operation-room`(`src/features/neo-war-room/`) — 대사 시스템 완료(PR #981), 폼/결과 UI 크롬은 남음
+## 🔴 2026-08-23 `neo-operation-room`(`src/features/neo-war-room/`) — 3개 PR로 완료(#981/#982/#986)
 
 `app/neo-operation-room` 라이브 라우트(+ `/neo-operation-room/result`)의 실제 구현이 `app/` 밖 `src/features/neo-war-room/`에 있다(master-love-codex/maya 와 같은 "app/ 밖 별도 최상위 트리" 패턴). 로케일 인프라 전무 상태에서 시작.
 
@@ -347,17 +348,18 @@ Wave 7 도중 `LoveSecretAiResultClient.tsx`를 열다가 "AI가 생성한 상�
 - **PR #981로 완료**: `dialogues.ts`의 `dialogue()` 스캐폴드 56키 + 컴포넌트 로컬 `methodIntroDialogues` 13키(총 69) 전부 en/ja/zh-CN/zh-TW 실번역 + EN 폴백. 여기에 더해, "네오 대사 위젯"이라는 하나의 완결된 화면 단위 전체(랜딩 히어로 대사 8줄·VN 프롤로그 컷신 20항목[중첩 notification/cta 포함]·히어로 타이틀/서브타이틀/엔트리 브리핑·캐릭터 초상 aria-label 7종·스킵/다음/프롤로그 버튼)까지 확장해서 마무리했다 — "대사만 번역하고 주변 라벨은 한국어"로 두면 오히려 뒤섞인 경험이 되므로, 위젯 하나를 완결 단위로 잡았다(경계 판단 상세는 PR #981 본문 참고).
 - 🔴 **자체 발견·수정한 버그**: 위 로케일-폴백 헬퍼 6개를 처음 짤 때 "표에 없는 로케일 → 한국어 원문"으로 새고 있었다(vi/hi/es/fr/de/nl/ms 방문자가 대사만 한국어를 받는 상황) — 이 세션에서 사용자가 재확인한 "번역 없으면 영어로" 원칙 위반이라 전부 "표에 없으면 en, en도 없으면만 ko" 순서로 고쳐서 커밋했다. 이런 새 로케일-폴백 헬퍼를 만들 때는 매번 **vi/hi 같은 미지원 로케일로 직접 호출해 en이 나오는지 확인**할 것 — ko로 새는 게 기본값이 되기 쉽다(원본 텍스트가 ko라서).
 - **PR #982로 완료(#981 위에 스택)**: "01 분석 방식 선택" 섹션(방식 레지스트리 5개 렌더 필드 + `methodCardCopy` + 섹션 제목 + alt) 완결. `data/method-registry.ts`에 `getLocalizedNeoWarRoomMethodRegistry(locale)` 신규.
-- 🔴 **남은 부분을 실제로 읽어본 결과 — 하나로 뭉쳐 있어 쪼갤 수 없다**: "02 상담 주제 선택"부터 시작하는 나머지 전부(주제 선택→03 출생정보→04 강도 선택→05 질문 입력→발사 확인→상태/에러 패널→준비완료 패널)가 서로 얽혀 있어서, 섹션 하나씩 쪼개서 진행할 수 없다는 게 이번에 확인됐다:
-  - `topic`(주제) 상태값이 **버튼 라벨 자체를 포함해 최소 6곳**(`topicOptions.map` 버튼, 발사확인 요약 2곳, "준비완료" 패널 문장 안, `NeoTopicBadge` 컴포넌트 props, 인풋메타 요약)에 원시 문자열로 그대로 노출된다 — 버튼만 번역하면 나머지 5곳이 한국어로 남아 지금(전체 한국어)보다 더 나쁜 뒤섞임이 된다.
-  - "상태 패널"(`statusPanel`, `{statusMessage}`)이 이 구간 안에서 렌더되는데, 그 문자열은 `beginPaidFeatureGateCheck`/`completePaidFeatureGateCheck`/`failPaidFeatureGateCheck`(결제 게이트 콜백, 파일 앞부분 ~2100~2200줄)의 `title`/`message`/`reason` 인자로 `setStatusMessage(...)` 호출부에 흩어져 있다 — 즉 **폼 렌더 JSX만이 아니라 액세스/결제 플로우 핸들러 함수 본문까지 함께 고쳐야** 이 패널이 실제로 로케일화된다.
-  - `errorCopy`(Record, 각 에러 코드별 문구 — 로그인 필요/결제 필요/서버 오류 등), `realityCheckOptions`(7개 프리셋 답변), `intensityOptions`(3개, label+body), `operationMapStages`(6줄, `dialogues.ts`의 `loading` 대사와 **별개의 중복 진행바 문구** — PR #981이 손댄 대사 위젯과 다른 화면 요소다) 모두 이 구간과 얽혀 있다.
-  - 출생정보 입력 폼(섹션 03)만 따로도 라벨 7개+플레이스홀더+select 옵션 8개+체크박스 등 약 20개 문자열.
-  - `FEATURE_TITLE`("네오의 팩폭 작전실")은 이전 판단(PR #981 작성 시 되돌림)대로 여전히 결제 reason과 발사확인 요약에 얽혀 있어 단독으로 못 고친다 — 위 상태 패널/결제 콜백을 함께 고칠 때 같이 처리할 것.
-  - **다음 세션 착수 권장**: 이 구간 전체(섹션 02~05 + 발사확인 + 상태/에러/준비완료 패널 + 결제 게이트 콜백의 title/message/reason 인자 + `errorCopy`/`realityCheckOptions`/`intensityOptions`/`operationMapStages`)를 **하나의 PR로 통째로** 진행할 것 — 부분적으로 쪼개면 반드시 `topic` 등 공유 값이 갈라진다. `NeoTopicBadge` 컴포넌트(별도 파일, 미확인)도 같은 패스에서 확인.
+- **PR #986으로 완료(#982 위에 스택)** — 나머지 전부를 하나의 PR로 통째 처리(아래 이유대로 실제로 쪼갤 수 없었다):
+  - 입력 마법사: "02 상담 주제 선택"~"05 질문 입력" 4개 섹션 + 출생정보 폼(라벨 7개·플레이스홀더·select 옵션 8개·체크박스) + 발사확인 블록(요약 3필드+CTA 4상태+힌트) + 검증/에러/상태/준비완료 패널 + "사자 휘장 특전" 마케팅 블록 + `commandFlowSteps`(진행 레일 6라벨)/`commandStepHint`(7분기 안내문, 새로 발견됨 — 이전 조사에서 놓쳤던 부분).
+  - 결과 화면: 브리핑 패널(약 215줄, AI 생성 콘텐츠의 정적 폴백 라벨만), 현실 점검 패널(제목/부제/프리셋 답변 7개/자유서술 라벨), 2차 수정 작전 명령서 패널(구체적 실행 대안/만나야 할 사람/30일 전략 등) — **AI가 실제로 생성하는 본문(`displayBriefing.*`)은 서버 산출물이라 손대지 않았고, 그 주변의 정적 라벨/폴백 타이틀만 로케일화**했다(다른 클러스터의 "엔진 출력은 유지, 라벨만 로케일화" 전례와 동일 방향 — AI 콘텐츠 옆 정적 라벨을 번역하는 건 "형제 필드 뒤섞임"이 아니라 이 프로젝트 전역에서 반복돼 온 안전한 패턴이라는 걸 재확인함).
+  - `input-flow.ts`의 `validateNeoWarRoomInput()`에 `locale` 파라미터(기본값 `"ko"`, 하위호환) 추가 + 9개 검증 메시지 실번역.
+  - `errorCopy`/`realityCheckOptions`/`intensityOptions`/`operationMapStages` 전부 `src/features/neo-war-room/data/form-copy.ts`(신규)의 `getX(locale)` 함수로 이전 — 기존 `dialogues.ts`/`method-registry.ts`와 같은 EN-폴백 패턴.
+  - `topic`(주제) 값은 여전히 내부 식별자(한국어 리터럴)로 유지 — 표시는 `getNeoTopicLabel(topic, locale)`로 분리(6곳 전부 일괄 적용). `realityCheckOptions`도 같은 이유로 값은 유지, 표시만 `getNeoRealityCheckLabel()`.
+  - 🔴 **실제 버그 발견·수정**: `beginPaidFeatureGateCheck`/`completePaidFeatureGateCheck`/`failPaidFeatureGateCheck`에 하드코딩 한국어 `title`/`message`를 넘기고 있었는데, `PaymentProcessingContext.tsx`의 오버레이 렌더가 `detail.title || copy.title`(호출자 값 우선)이라 **이미 12로케일로 완결돼 있던 오버레이의 폴백 문구를 매번 무시하고 한국어로 덮어쓰고 있었다** — 전 로케일 사용자가 이 기능 결제 게이트에서만 한국어 문구를 봤다는 뜻. `getNeoPaidGateCopy(locale)`로 교체해 수정.
+  - `FEATURE_TITLE`("네오의 팩폭 작전실")은 `reason:` 필드(게이트 콜백 4곳)와 발사확인 요약(렌더 1곳)에 쓰이는데, **`reason`은 오버레이 컴포넌트가 전혀 안 읽는 필드**(grep 0건 확인)라 분석/로깅용으로 판단 — 렌더되는 발사확인 요약 1곳만 `getNeoFeatureTitle(locale)`로 교체하고, 4곳의 `reason:`은 원래 한국어 상수 그대로 뒀다(이전 세션이 "얽혀서 못 고친다"고 판단했던 부분이 실은 렌더 여부 확인 부족이었음).
+  - `NeoTopicBadge` 컴포넌트: 이미지 셀 위치만 계산(`getNeoTopicBadge(topic).cell`)하고 텍스트는 렌더하지 않아 번역 불필요 확인. 배지 *이름*(`getNeoTopicBadge(topic).name`)은 두 곳(브리핑/수정명령서 패널)에서 문자열로 노출돼 `getNeoTopicBadgeName(topic, locale)`로 교체.
 - `data/method-registry.ts`의 `cardBody`/`requiredInputs`/`calculableData`/`llmSummaryFields`/`realityCheckStrategy`/`qualityNote`는 죽은 필드로 확인돼 번역 제외(PR #982 참고). `resultEvidenceLabel`은 레지스트리에는 번역돼 있으나 `NeoOperationRoomResultPage.tsx`(1,512줄, 전혀 착수 안 함)에서만 쓰여 아직 실제로 안 보인다.
-- `topicSelect`의 객체 키가 한국어 리터럴("연애 / 재회" 등)인 채로 유지됨(내부 lookup 키로만 쓰이고, 위 발견대로 화면에 노출되는 곳은 별도의 `getTopicLabel()` 류 표시-전용 조회로 분리할 것 — nakshatra dasha 등 이 세션의 "내부 상태값은 유지, 표시 라벨만 로케일화" 전례와 동일 방향).
-- `data/input-flow.ts`는 아직 안 읽음.
-- **검증**: `tsc`/`eslint` 클린, `node scripts/verify-paid-gate-ui-regression.mjs`(이 파일을 소스로 읽는 가드) PASS, `git grep` 3면 확인, `config/payment-freeze.json` 미등재.
+- **미착수로 남은 것**: `NeoOperationRoomResultPage.tsx`(1,512줄, 결과 상세 화면 — 이번 3개 PR은 전부 `NeoOperationRoomPage.tsx`/`data/*`만 다뤘다) 전체가 로케일 인프라 전무 상태로 남아 있다. 다음 착수 시 이 문서의 "규모" 절 수치(1,512줄 중 한국어 매칭 243줄)를 출발점으로 삼을 것.
+- **검증(PR #986)**: `tsc`/`eslint` 클린, `NODE_OPTIONS=--experimental-vm-modules jest __tests__/worker/neo-operation-room.{sections,payment-flow}.test.js`(16/16 통과, 백엔드 로직 무변경 확인), `node scripts/verify-neo-operation-room-{quality,output-safety}.mjs` OK, `node scripts/verify-paid-gate-ui-regression.mjs` PASS, `node scripts/verify-payment-freeze.mjs`(등재 안 됨, `--update` 불필요), 205건 한국어 매칭 전수 재확인(남은 건 전부 대사표 원본/dev 전용 미리보기 mock/내부 식별자 키/주석으로 확인 — 사용자 노출 누락 없음).
 - **참고로 확인한 것(false positive, 손 안 댐)**: `app/tarot/crystal-soul/CrystalSoulTarotClient.jsx`(2,128줄)는 이미 완전히 5로케일 배선돼 있었다(`GEM_DISPLAY_COPY` 별도 테이블로 `src/components/crystal/CrystalGem.tsx`의 `GEM_META`를 오버라이드) — `CrystalGem.tsx` 자체의 한국어 48줄(`GEM_META.energy` 등)은 화면에 전혀 렌더링되지 않는 죽은 폴백 필드임을 확인.
 
 ## 남은 것 (우선순위 제안)
