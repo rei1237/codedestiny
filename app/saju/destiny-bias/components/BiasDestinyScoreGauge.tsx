@@ -1,6 +1,7 @@
 "use client";
 
 import type { DestinyBiasResultViewModel } from "../lib/types";
+import { useDestinyBiasCopy } from "../_lib/copy";
 
 type Props = {
   vm: DestinyBiasResultViewModel;
@@ -14,15 +15,16 @@ function clampScore(value: number) {
 const ARC_PATH = "M20 100 A80 80 0 0 1 180 100";
 
 export default function BiasDestinyScoreGauge({ vm }: Props) {
+  const copy = useDestinyBiasCopy();
   const total = clampScore(vm.totalScore);
-  const biasName = String(vm.biasName || "최애").trim() || "최애";
+  const biasName = String(vm.biasName || copy.elementFavoriteFallback).trim() || copy.elementFavoriteFallback;
   const timeUnknown = vm.birthDataStatus?.favorite !== "complete";
 
   const subScores = [
-    { label: "감정선", value: clampScore(vm.emotionalScore) },
-    { label: "팬심", value: clampScore(vm.fandomScore) },
-    { label: "장기", value: clampScore(vm.longTermScore) },
-    { label: "안정", value: clampScore(vm.supportStyleScore) },
+    { label: copy.scoreGaugeEmotionalLabel, value: clampScore(vm.emotionalScore) },
+    { label: copy.scoreGaugeFandomLabel, value: clampScore(vm.fandomScore) },
+    { label: copy.scoreGaugeLongTermLabel, value: clampScore(vm.longTermScore) },
+    { label: copy.scoreGaugeStabilityLabel, value: clampScore(vm.supportStyleScore) },
   ];
 
   return (
@@ -31,7 +33,7 @@ export default function BiasDestinyScoreGauge({ vm }: Props) {
         <div className="inline-flex max-w-full items-center gap-1.5 rounded-full border border-white/18 bg-white/[0.06] px-3 py-1.5">
           <span aria-hidden className="text-xs">🕰️</span>
           <span className="min-w-0 break-keep text-[11px] leading-4 text-white/75">
-            {biasName}의 태어난 시간은 공개되지 않아, 년·월·일 기준으로 풀이했어요
+            {copy.scoreGaugeTimeUnknownText(biasName)}
           </span>
         </div>
       ) : null}
@@ -42,7 +44,7 @@ export default function BiasDestinyScoreGauge({ vm }: Props) {
           {/* 반원 게이지 */}
           <div className="mx-auto w-full max-w-[240px]">
             <div className="relative">
-              <svg viewBox="0 0 200 120" className="w-full" role="img" aria-label={`궁합 점수 ${total}점`}>
+              <svg viewBox="0 0 200 120" className="w-full" role="img" aria-label={copy.scoreGaugeAriaLabel(total)}>
                 <defs>
                   <linearGradient id="destinyGaugeStroke" x1="0" y1="0" x2="1" y2="0">
                     <stop offset="0%" stopColor="#C9A7FF" />
@@ -78,7 +80,7 @@ export default function BiasDestinyScoreGauge({ vm }: Props) {
 
           {/* ① 한줄 케미 요약 */}
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">한줄 케미</p>
+            <p className="text-[11px] font-semibold tracking-[0.16em] text-cyan-100/85">{copy.scoreGaugeChemiLabel}</p>
             <p className="mt-2 min-w-0 break-keep text-base font-semibold leading-8 text-white/93 md:text-lg">
               {String(vm.oneLineDestinyMessage || vm.chemistrySummary || "").trim()}
             </p>

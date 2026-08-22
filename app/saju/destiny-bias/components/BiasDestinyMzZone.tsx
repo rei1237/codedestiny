@@ -1,25 +1,27 @@
 "use client";
 
 import type { DestinyBiasResultViewModel } from "../lib/types";
+import { useDestinyBiasCopy } from "../_lib/copy";
 
 type Props = {
   vm: DestinyBiasResultViewModel;
 };
 
 export default function BiasDestinyMzZone({ vm }: Props) {
+  const copy = useDestinyBiasCopy();
   const mz = vm.mzLayer;
   if (!mz) return null;
 
   return (
     <section className="space-y-3">
-      <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">MZ 재미 존 JUST FOR FUN</p>
+      <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">{copy.mzZoneLabel} JUST FOR FUN</p>
 
       {/* 관계 MBTI + 등급 밈 */}
       <article className="relative overflow-hidden rounded-[24px] border border-white/14 bg-[linear-gradient(140deg,rgba(12,10,50,0.78),rgba(24,10,58,0.6))] p-4 shadow-[0_12px_36px_rgba(2,6,28,0.4),inset_0_1px_2px_rgba(255,255,255,0.06)] backdrop-blur-xl md:p-5">
         <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_16%_20%,rgba(255,95,210,0.16),transparent_42%),radial-gradient(circle_at_84%_80%,rgba(201,167,255,0.14),transparent_40%)]" aria-hidden />
         <div className="relative z-10 flex flex-wrap items-center gap-3">
           <div className="min-w-0">
-            <p className="text-[11px] font-semibold tracking-[0.14em] text-cyan-100/80">우리 관계 MBTI</p>
+            <p className="text-[11px] font-semibold tracking-[0.14em] text-cyan-100/80">{copy.mzRelationMbtiLabel}</p>
             <p className="mt-0.5 text-3xl font-black tracking-[0.08em] text-white md:text-4xl">{mz.relationMbti.type}</p>
           </div>
           <span className="ml-auto rounded-full border border-[#FFD98A]/45 bg-[#FFD98A]/12 px-3 py-1.5 text-sm font-black text-[#FFE9B8]">
