@@ -10452,6 +10452,612 @@
         "1": "It's affected by the accuracy of your birth information.",
         "2": "The existing service standard applies."
       }
+    },
+    "navigateToVedic": {
+      "fallbackTitle": "5,000 years of Indian astrology decodes the karma of a past life and the timing of now.",
+      "tagline": "A Vedic astrology reading that reads the pattern of karma and your life's timetable through the flow of Rashi, Nakshatra, and Dasha.",
+      "premiumIntro": "Vedic astrology isn't a vague fortune -- it decodes, through the flow of time, how the karma of a past life is acting right now.",
+      "fallbackCta": "Start Karma Decoding",
+      "feats": {
+        "0": "When you're curious about the root of why the same thing keeps repeating",
+        "1": "When you want to know the timing of opportunity and crisis ahead of time",
+        "2": "When you want a depth different from Western astrology"
+      },
+      "premiumAudience": {
+        "0": "Those who want to see a perspective different from Western astrology",
+        "1": "Those curious about the concept of timing (Dasha)",
+        "2": "Those who want to see the chart first before a paid consultation"
+      },
+      "premiumChapters": {
+        "0": "The pattern of karma read through Rashi and Nakshatra",
+        "1": "Opportunities and trials by Dasha period",
+        "2": "The root of a recurring karma",
+        "3": "The karmic meaning of this exact moment"
+      },
+      "premiumOutcomes": {
+        "0": "The interpretation is for reference only.",
+        "1": "Karma is a symbolic concept.",
+        "2": "The existing service standard applies."
+      }
+    },
+    "master_love_codex": {
+      "fallbackTitle": "Splits your love life into twenty chapters and organizes it into one volume.",
+      "tagline": "Based on your Day Master's temperament and your Life Palace main star, this stacks up your inborn love tendencies through your period-by-period outlook, in order, into the top-tier love interpretation.",
+      "premiumIntro": "The Master Love Codex doesn't line up nice words -- it explains, with grounds, the structure you keep repeating in love, across twenty chapters.",
+      "fallbackCta": "View the Love Interpretation",
+      "ctaNote": "All 20 chapters open in order after payment.",
+      "feats": {
+        "0": "When your relationships keep ending the same way",
+        "1": "When you don't know what kind of person you're weak to",
+        "2": "When a short interpretation has always left you wanting"
+      },
+      "premiumAudience": {
+        "0": "Those who want to properly sort out their love pattern once",
+        "1": "Those who want a full volume, not a summary",
+        "2": "Those who want to read while also checking the grounds"
+      },
+      "premiumChapters": {
+        "0": "The Gate of Destiny · your inborn love temperament · the spouse-image your Spouse Palace tells",
+        "1": "The mechanics of attraction · attachment and expression style · the mind's defense mechanisms",
+        "2": "Where a bond opens · from situationship to relationship · confession and timing",
+        "3": "The temperature curve of a relationship · the root of conflict · the language of reconciliation and recovery",
+        "4": "Jealousy and keeping distance · the rhythm of intimacy · the gate of parting and reunion",
+        "5": "Marriage fortune and the long haul · Saju x Ziwei Doushu cross-verification",
+        "6": "Your love-DNA profile · the next 3 years · a final letter"
+      },
+      "premiumOutcomes": {
+        "0": "You can check the structure and length before paying.",
+        "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
+        "2": "This is a reference interpretation that doesn't guarantee a relationship outcome."
+      },
+      "answersQuestions": {
+        "0": "Why does it end the same way every time?",
+        "1": "Why are the people I'm drawn to different from the people who fit me?",
+        "2": "What should I change in my next relationship?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "free": "A summary of temperament",
+          "premium": "A 20-chapter interpretation"
+        },
+        "1": {
+          "axis": "Length",
+          "premium": "20 chapters totaling 46,000+ characters"
+        },
+        "2": {
+          "axis": "Grounds",
+          "free": "None",
+          "premium": "Every chapter states its Day Master/palace grounds"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is this different from other love features?",
+          "a": "Instead of pointing at a single scene, it splits your entire love life into twenty chapters and writes it as one volume. It has the greatest length and density of grounds."
+        },
+        "1": {
+          "q": "How long does generation take?",
+          "a": "It takes time because of the volume. Please wait without closing the screen."
+        },
+        "2": {
+          "q": "Do you need the other person's information?",
+          "a": "This product is a self-analysis. Compatibility between two people is handled in the separate compatibility edition."
+        }
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart calculation",
+          "detail": "Calculates both your original Saju chart and Ziwei Doushu chart from your birth date and time."
+        },
+        "1": {
+          "label": "Extracting the love axes",
+          "detail": "Draws out three major love axes from your Day Master, Ten Gods, and Spouse/Fortune-Virtue palaces."
+        },
+        "2": {
+          "label": "Chapter development",
+          "detail": "Splits those axes into twenty chapters, distributed so they don't overlap."
+        },
+        "3": {
+          "label": "Writing the interpretation",
+          "detail": "Writes in order so the earlier chapter becomes the grounds for the one after it."
+        }
+      }
+    },
+    "master_love_codex_compat": {
+      "fallbackTitle": "Splits the two of you into twenty chapters and organizes it into one volume.",
+      "tagline": "After reading each person's chart separately, this overlays where the two of you meet, stacking up attraction, conflict, and the conditions for lasting, in order, into the top-tier compatibility interpretation.",
+      "premiumIntro": "The Compatibility edition doesn't end with a simple 'well-matched or not' -- it explains, across twenty chapters, where the two of you diverge and what would change things if you kept it.",
+      "fallbackCta": "View the Compatibility Interpretation",
+      "ctaNote": "The 20 chapters, calculated from both your charts, open.",
+      "feats": {
+        "0": "When you seem well-matched yet keep clashing",
+        "1": "When you don't know whether to keep this relationship going",
+        "2": "When a short compatibility score doesn't answer anything"
+      },
+      "premiumAudience": {
+        "0": "Those facing a big decision like marriage",
+        "1": "Those who want the reason, not just a compatibility score",
+        "2": "Those who want to keep the two of you in one volume"
+      },
+      "premiumChapters": {
+        "0": "The two of you standing face to face · who you are · who they are",
+        "1": "What drew you to each other · the Day-Master relationship · Ten-Gods interaction",
+        "2": "Where you complete each other · the combinations/clashes/harms of the Earthly Branches",
+        "3": "The mutual placement of both charts · Spouse-Palace cross-comparison · malefic stars and Four Transformations",
+        "4": "The temperature curve of the relationship · the root of conflict · the language of reconciliation",
+        "5": "Sustainability and marriage fortune · the meeting point of Saju and Ziwei Doushu",
+        "6": "A relationship-DNA profile · the next 3 years · a final letter"
+      },
+      "premiumOutcomes": {
+        "0": "You can check the structure and length before paying.",
+        "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
+        "2": "This is a reference interpretation that doesn't guarantee a relationship outcome."
+      },
+      "answersQuestions": {
+        "0": "Can this person and I go all the way to marriage?",
+        "1": "What's the real cause of our recurring conflict?",
+        "2": "What would need to change for this to last?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Target",
+          "free": "A compatibility score",
+          "premium": "Both people individually + the full meeting point"
+        },
+        "1": {
+          "axis": "Length",
+          "premium": "20 chapters totaling 46,000+ characters"
+        },
+        "2": {
+          "axis": "Advice",
+          "free": "Well-matched / not well-matched",
+          "premium": "Down to what would change things if you kept it"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Is the other person's birth date really necessary?",
+          "a": "Yes. The meeting point only emerges once each person's chart is calculated separately."
+        },
+        "1": {
+          "q": "If the result is bad, should we break up?",
+          "a": "No. The purpose is to know where you diverge. Knowing that spot keeps you from repeating the same conflict."
+        },
+        "2": {
+          "q": "How is this different from the self-analysis edition?",
+          "a": "The self-analysis edition covers your own love pattern; the compatibility edition covers what actually happens between the two of you."
+        }
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Calculating both charts",
+          "detail": "Calculates each person's original chart and Ziwei Doushu chart from their birth date and time."
+        },
+        "1": {
+          "label": "Organizing individual tendencies",
+          "detail": "Separately organizes how each of you starts and ends love."
+        },
+        "2": {
+          "label": "Cross-referencing the meeting point",
+          "detail": "Overlays the two results to find where attraction and conflict arise."
+        },
+        "3": {
+          "label": "Writing the interpretation",
+          "detail": "Writes across twenty chapters, from the start of the relationship to the long-term outlook."
+        }
+      }
+    },
+    "ziwei-deep-pdf": {
+      "fallbackTitle": "Points to each of the 12 palaces one by one, unfolding a single chart into fifteen chapters of writing.",
+      "tagline": "From an overview of your Life Palace to each palace's star strength and configuration, this is a deep report that explains your Ziwei Doushu chart chapter by chapter and leaves it as a PDF.",
+      "premiumIntro": "The deep report doesn't judge fortune or misfortune -- it calmly unpacks, chapter by chapter, what each position of your chart means.",
+      "fallbackCta": "View the Deep Report",
+      "ctaNote": "The 15 chapters and the PDF save both open after payment.",
+      "feats": {
+        "0": "When just looking at the chart diagram doesn't tell you what it means",
+        "1": "When you want to organize the meaning of each palace",
+        "2": "When you want to make one and look at it for a long time"
+      },
+      "premiumAudience": {
+        "0": "Those who want to read the chart explained in words",
+        "1": "Those who want to understand the 12 palaces one by one",
+        "2": "Those who want a saved reference to look at again"
+      },
+      "premiumChapters": {
+        "0": "Chart overview -- the map of the star that is you",
+        "1": "Life Palace, Siblings Palace, Spouse Palace, Children Palace",
+        "2": "Wealth Palace, Health Palace, Travel Palace, Servants Palace",
+        "3": "Career Palace, Property Palace, Fortune-Virtue Palace, Parents Palace",
+        "4": "Four Transformations & Triangular-Opposite deep dive -- the conversation between the stars",
+        "5": "Decade & Yearly master plan -- your life strategy on the timeline"
+      },
+      "premiumOutcomes": {
+        "0": "You can check the structure and length before paying.",
+        "1": "Interpretation can vary by school.",
+        "2": "The interpretation is for reference only."
+      },
+      "answersQuestions": {
+        "0": "What does each palace of my chart mean?",
+        "1": "Which palace holds the strength?",
+        "2": "Is an empty palace a bad thing?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Format",
+          "free": "Chart diagram",
+          "premium": "15 chapters of chapter-by-chapter commentary"
+        },
+        "1": {
+          "axis": "Length",
+          "free": "Diagram and labels",
+          "premium": "15 chapters totaling 34,000+ characters"
+        },
+        "2": {
+          "axis": "Keeping it",
+          "free": "On-screen only",
+          "premium": "Save as PDF to read again later"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is this different from the basic chart?",
+          "a": "The basic chart shows the star placement. The deep report writes out in words what that placement means, palace by palace."
+        },
+        "1": {
+          "q": "Are empty palaces explained too?",
+          "a": "Yes. An empty palace is also part of the arrangement, so it's a subject of commentary in its own right."
+        },
+        "2": {
+          "q": "Can I get it as a PDF?",
+          "a": "Yes, you can save it as a PDF from the result screen."
+        }
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Chart drafting",
+          "detail": "Sets up the 12 palaces with main stars and Four Transformations from your birth date and time."
+        },
+        "1": {
+          "label": "Strength assessment",
+          "detail": "Determines which of the six strength states -- Grave, King, Gain, Advantage, Level, Trapped -- each star falls into."
+        },
+        "2": {
+          "label": "Chapter allocation",
+          "detail": "Splits the overview and 12 palaces into fifteen chapters, distributed without overlap."
+        },
+        "3": {
+          "label": "Writing the report",
+          "detail": "Writes the commentary while stating the grounds for each chapter, bound into a PDF."
+        }
+      }
+    },
+    "nakshatra-ai-consultation": {
+      "fallbackTitle": "Places your Honmyoshuku and Nakshatra side by side to answer your question right now.",
+      "tagline": "A consultation that reads the Eastern 27-lodge system (Sukuyo) and the Indian Nakshatra together, organizing your inborn grain and the current period in one go.",
+      "premiumIntro": "The 27-Lodge consultation doesn't blur the two systems together. After the Sukuyo master and the Vedic master each read it separately, it places the two interpretations side by side across 10 pieces of fusion interpretation, exploring where they say the same thing, where they diverge, and why that difference arises.",
+      "fallbackCta": "Open the 27-Lodge Consultation",
+      "ctaNote": "Both systems' interpretation opens together after payment.",
+      "feats": {
+        "0": "When you're curious about your inborn grain",
+        "1": "When you don't know whether now is a time to move or to wait",
+        "2": "When one system's interpretation alone isn't enough"
+      },
+      "premiumAudience": {
+        "0": "Those who want to see Sukuyo and Vedic astrology together",
+        "1": "Those who want to sort out their inborn temperament first",
+        "2": "Those who need grounds for judging timing"
+      },
+      "premiumChapters": {
+        "0": "5 pieces of Sukuyo-master consultation, 6 pieces of Vedic-master consultation",
+        "1": "10 pieces of fusion interpretation cross-referencing the two readings",
+        "2": "A deep dive by category -- psychology, love, wealth, karma, and spirituality",
+        "3": "Action to take from today and the three most important insights"
+      },
+      "premiumOutcomes": {
+        "0": "You can check the structure and length before paying.",
+        "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
+        "2": "The interpretation is for reference only."
+      },
+      "answersQuestions": {
+        "0": "What shape does my inborn grain take?",
+        "1": "Is now a time to move, or to hold back?",
+        "2": "How should I set my distance with people?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "System",
+          "free": "A Honmyoshuku summary",
+          "premium": "27-Lodge and Nakshatra together"
+        },
+        "1": {
+          "axis": "Length",
+          "premium": "21 pieces totaling 14,000+ characters"
+        },
+        "2": {
+          "axis": "Timing",
+          "free": "None",
+          "premium": "The character of your current window, seen through Dasha"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Are Sukuyo and Nakshatra the same thing?",
+          "a": "Their roots connect, but the calculation standards and interpretive traditions differ. That's why they're read separately and then overlaid at the end."
+        },
+        "1": {
+          "q": "Do you need a birth time?",
+          "a": "Your Honmyoshuku comes from the date alone, but the Dasha calculation needs a time to be accurate."
+        },
+        "2": {
+          "q": "Can I check compatibility too?",
+          "a": "Compatibility is handled in the separate Nakshatra Compatibility feature."
+        }
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Calculating Honmyoshuku",
+          "detail": "Calculates your Honmyoshuku among the 27 lodges from your birth date."
+        },
+        "1": {
+          "label": "Cross-checking Nakshatra",
+          "detail": "Confirms the Nakshatra your Moon sits in and your current Dasha."
+        },
+        "2": {
+          "label": "Overlaying the two results",
+          "detail": "Sorts out where the two systems agree and where they diverge."
+        },
+        "3": {
+          "label": "Writing the consultation",
+          "detail": "Takes the point of agreement as the conclusion and organizes it into actionable advice."
+        }
+      }
+    },
+    "nakshatra-compat-ai": {
+      "fallbackTitle": "Reads the distance and rhythm created by two people's Nakshatras.",
+      "tagline": "A compatibility consultation that cross-references each person's Honmyoshuku and Nakshatra to organize attraction, conflict, and the conditions for lasting.",
+      "premiumIntro": "The compatibility consultation doesn't hand you a score -- it first shows where the two people's rhythms match and where they diverge.",
+      "fallbackCta": "Open 27-Lodge Compatibility",
+      "ctaNote": "The compatibility calculated from both your birth information opens.",
+      "feats": {
+        "0": "When you're curious what kind of bond you have with this person",
+        "1": "When you want to know why you drift apart the closer you get",
+        "2": "When you need to judge whether to continue or close this relationship"
+      },
+      "premiumAudience": {
+        "0": "Those who want to understand the nature of a relationship through grounds",
+        "1": "Those who want to see both an Eastern and an Indian perspective together",
+        "2": "Those who need judgment grounds before a decision"
+      },
+      "premiumChapters": {
+        "0": "Cross-referencing both people's Honmyoshuku and Nakshatra",
+        "1": "The spot where attraction and conflict arise",
+        "2": "The period the relationship shakes, and how to recover",
+        "3": "The distance and attitude to keep right now"
+      },
+      "premiumOutcomes": {
+        "0": "You can check the structure before paying.",
+        "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
+        "2": "This is a reference interpretation that doesn't guarantee a relationship outcome."
+      },
+      "answersQuestions": {
+        "0": "What is the nature of this bond?",
+        "1": "Why does it go off the rails the closer we get?",
+        "2": "Is it okay to keep this relationship going?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Target",
+          "free": "A summary of your own Honmyoshuku",
+          "premium": "The whole relationship between two people"
+        },
+        "1": {
+          "axis": "Perspective",
+          "free": "One system",
+          "premium": "27-Lodge and Nakshatra together"
+        },
+        "2": {
+          "axis": "Advice",
+          "free": "None",
+          "premium": "Down to the distance and attitude to keep right now"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Is the other person's birth date really necessary?",
+          "a": "Yes. Only once each person's position is calculated separately does the relationship emerge."
+        },
+        "1": {
+          "q": "If compatibility is bad, is this a bond we shouldn't have?",
+          "a": "No. The harder the combination, the clearer the line you need to keep. Telling you that line is the purpose."
+        },
+        "2": {
+          "q": "Is it okay without a birth time?",
+          "a": "A basic cross-reference is possible with just the date. With a time, the timing advice becomes more accurate."
+        }
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Calculating both Honmyoshuku",
+          "detail": "Calculates each person's Honmyoshuku from their birth dates."
+        },
+        "1": {
+          "label": "Cross-checking Nakshatra",
+          "detail": "Confirms each person's Moon position and the relationship between them."
+        },
+        "2": {
+          "label": "Interpreting the distance",
+          "detail": "Unpacks where attraction and conflict arise, and where the rhythm goes off."
+        },
+        "3": {
+          "label": "Organizing advice",
+          "detail": "Organizes the distance and attitude to keep right now, in order."
+        }
+      }
+    },
+    "nakshatra-vvip-codex": {
+      "fallbackTitle": "Opens the top-tier codex that binds all 27 lodges into one volume.",
+      "tagline": "Beyond a Honmyoshuku interpretation, this pinpoints your position within the entire 27-lodge terrain, organizing your bonds, timing, and direction all at once, in a top-tier structure.",
+      "premiumIntro": "The Codex isn't a collection of individual interpretations -- it's one volume explaining your position on the map called the 27 lodges.",
+      "fallbackCta": "View the Codex",
+      "ctaNote": "The entire codex opens after payment.",
+      "feats": {
+        "0": "When multiple fragmentary interpretations still don't add up",
+        "1": "When you want to understand the whole 27-lodge structure",
+        "2": "When you want material that finishes the job in one go"
+      },
+      "premiumAudience": {
+        "0": "Those who've bought partial interpretations multiple times before",
+        "1": "Those who want to understand the whole 27-lodge structure too",
+        "2": "Those who want material made once and kept for a long time"
+      },
+      "premiumChapters": {
+        "0": "The whole 27-lodge terrain and your position's relationship within it",
+        "1": "A deep Honmyoshuku interpretation and Gyeokgak development",
+        "2": "An integrated organization of bonds, timing, and direction",
+        "3": "A result kept in codex form"
+      },
+      "premiumOutcomes": {
+        "0": "You can check the structure before paying.",
+        "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
+        "2": "The interpretation is for reference only."
+      },
+      "answersQuestions": {
+        "0": "Where is my position across all 27 lodges?",
+        "1": "What's my relationship with the other positions?",
+        "2": "Where should I aim my direction going forward?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Scope",
+          "free": "A Honmyoshuku summary",
+          "premium": "The whole 27-lodge terrain and your position"
+        },
+        "1": {
+          "axis": "Structure",
+          "free": "A fragmentary interpretation",
+          "premium": "One codex bound together"
+        },
+        "2": {
+          "axis": "Use",
+          "free": "A one-time read",
+          "premium": "Material to reference again and again"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is this different from a regular 27-Lodge consultation?",
+          "a": "The consultation answers a question you have right now. The Codex explains your position within the whole 27-lodge terrain, made to be referenced for a long time."
+        },
+        "1": {
+          "q": "Why is it the most expensive?",
+          "a": "It's not a single interpretation but a structure covering all 27 lodges, so its calculation scope and length are the largest."
+        },
+        "2": {
+          "q": "Do you need a birth time?",
+          "a": "Your Honmyoshuku comes from the date alone, but timing-related items need a time to be accurate."
+        }
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Calculating Honmyoshuku",
+          "detail": "Calculates your Honmyoshuku among the 27 lodges from your birth date."
+        },
+        "1": {
+          "label": "Placing you on the full terrain",
+          "detail": "Confirms your position and its relationship to neighboring positions on the 27-lodge map."
+        },
+        "2": {
+          "label": "Developing Gyeokgak",
+          "detail": "Unfolds, in order, the type of relationship formed with each position."
+        },
+        "3": {
+          "label": "Compiling the codex",
+          "detail": "Binds bonds, timing, and direction into the flow of one volume."
+        }
+      }
+    },
+    "premium-veda-compatibility-addon": {
+      "fallbackTitle": "Adds a detailed cross-reference of two people to your Vedic compatibility.",
+      "tagline": "On top of the basic compatibility result, this adds an item-by-item Ashtakuta cross-reference and timing advice, an expansion analysis that also confirms why you got that result.",
+      "premiumIntro": "The expansion analysis doesn't just repeat your overall score -- it unpacks, one by one, which items that overall score came from.",
+      "fallbackCta": "Open Expansion Analysis",
+      "ctaNote": "The item-by-item cross-reference and compensation plan open after payment.",
+      "feats": {
+        "0": "When you're curious about the reason behind your compatibility result",
+        "1": "When you want to know item by item where you match and where you don't",
+        "2": "When the basic result alone isn't enough to judge by"
+      },
+      "premiumAudience": {
+        "0": "Those who've already checked the basic compatibility",
+        "1": "Those who want to see the grounds behind the result",
+        "2": "Those who want to understand it broken down item by item"
+      },
+      "premiumChapters": {
+        "0": "Ashtakuta item-by-item scores and grounds",
+        "1": "The distinction between well-matched items and mismatched items",
+        "2": "How to compensate for a mismatched item",
+        "3": "Advice by period of the relationship"
+      },
+      "premiumOutcomes": {
+        "0": "You need a basic compatibility result to use this.",
+        "1": "Pass, monthly-stone, and single-payment policy follows the existing standard.",
+        "2": "The interpretation is for reference only."
+      },
+      "answersQuestions": {
+        "0": "Why did my compatibility score come out that way?",
+        "1": "Which item is the problem?",
+        "2": "Can a mismatched part be compensated for?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Result",
+          "free": "A basic compatibility overall score",
+          "premium": "Item-by-item scores and grounds"
+        },
+        "1": {
+          "axis": "Explanation",
+          "free": "An overall review",
+          "premium": "Why, for each item"
+        },
+        "2": {
+          "axis": "Advice",
+          "free": "None",
+          "premium": "A way to compensate for a mismatched item"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do I need to check the basic compatibility first?",
+          "a": "Yes. This feature is an expansion analysis added on top of the basic result."
+        },
+        "1": {
+          "q": "If the score is low, is this a bond I shouldn't have?",
+          "a": "No. Once you know which item is low, you just need to be careful about that part. The item-by-item structure matters more than the overall score."
+        },
+        "2": {
+          "q": "Do you need the other person's information?",
+          "a": "It uses the information already entered for the basic compatibility, as-is."
+        }
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Checking the basic result",
+          "detail": "Pulls up the Vedic compatibility result already calculated."
+        },
+        "1": {
+          "label": "Breaking it down item by item",
+          "detail": "Separates out the score and grounds for each Ashtakuta item."
+        },
+        "2": {
+          "label": "Judging strengths and weaknesses",
+          "detail": "Sorts out which items match well and which don't."
+        },
+        "3": {
+          "label": "Organizing a compensation plan",
+          "detail": "Attaches a realistic way to compensate for each mismatched item."
+        }
+      }
     }
   },
   "featureMarketingCategory": {
@@ -10475,7 +11081,8 @@
     "sibyl": "Sibyl System",
     "guardian": "Saju Guardian",
     "ziweideep": "Ziwei Doushu Deep Dive",
-    "westernastro": "Western Astrology"
+    "westernastro": "Western Astrology",
+    "vedicastro": "Vedic Astrology"
   },
   "featureMarketingTrust": {
     "paid": {
