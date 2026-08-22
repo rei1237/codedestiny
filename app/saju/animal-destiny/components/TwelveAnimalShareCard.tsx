@@ -2,6 +2,7 @@
 
 import { forwardRef } from "react";
 import type { TwelveGrowthAnimalResult } from "../lib/types";
+import { useAnimalDestinyCopy } from "../_lib/copy";
 
 type Props = {
   result: TwelveGrowthAnimalResult;
@@ -29,6 +30,7 @@ function compactText(text: string, max = 72) {
 }
 
 const TwelveAnimalShareCard = forwardRef<HTMLDivElement, Props>(function TwelveAnimalShareCard({ result }, ref) {
+  const copy = useAnimalDestinyCopy();
   return (
     <div
       ref={ref}
@@ -38,11 +40,11 @@ const TwelveAnimalShareCard = forwardRef<HTMLDivElement, Props>(function TwelveA
       <div className="pointer-events-none absolute -left-10 bottom-2 h-32 w-32 rounded-full bg-[#ffe4b8]/60 blur-2xl" />
 
       <div className="relative z-10 space-y-4">
-        <p className="text-[11px] font-black tracking-[0.18em] text-[#3d6b92]">운명의 동물 도감 · 결과 요약 카드</p>
+        <p className="text-[11px] font-black tracking-[0.18em] text-[#3d6b92]">{copy.shareCardEyebrow}</p>
         <div className="rounded-2xl border border-[#c8def0] bg-white/88 p-4 text-center">
           <p className="text-5xl">{STAGE_ICON[result.stageName] || "🐾"}</p>
           <h4 className="mt-2 text-xl font-black text-[#274f73]">{result.animalName}</h4>
-          <p className="text-sm font-semibold text-[#4d7597]">십이운성 {result.stageName}</p>
+          <p className="text-sm font-semibold text-[#4d7597]">{copy.stagePrefix.replace(/:$/, "")} {result.stageName}</p>
           <p className="mt-3 text-sm font-semibold leading-relaxed text-[#355f82]">{result.animalTitle}</p>
         </div>
 
@@ -50,11 +52,11 @@ const TwelveAnimalShareCard = forwardRef<HTMLDivElement, Props>(function TwelveA
 
         <div className="grid gap-2">
           <div className="rounded-2xl border border-[#d9d3a2] bg-[#fff9e8]/90 p-3">
-            <p className="text-[11px] font-black text-[#806e2e]">오늘의 운 열기</p>
+            <p className="text-[11px] font-black text-[#806e2e]">{copy.todayLuckLabel}</p>
             <p className="mt-1 text-xs font-semibold leading-relaxed text-[#69562a]">{compactText(result.todayAction)}</p>
           </div>
           <div className="rounded-2xl border border-[#d9d3a2] bg-[#fff9e8]/90 p-3">
-            <p className="text-[11px] font-black text-[#806e2e]">성장 주문</p>
+            <p className="text-[11px] font-black text-[#806e2e]">{copy.growthMantraLabel}</p>
             <p className="mt-1 text-xs font-semibold leading-relaxed text-[#69562a]">{compactText(result.growthMission)}</p>
           </div>
         </div>
