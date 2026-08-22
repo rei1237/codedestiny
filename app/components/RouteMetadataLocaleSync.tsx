@@ -9,7 +9,7 @@ export type RouteMetadataEntry = {
 };
 
 /**
- * 🔴 이 라우트들은 미들웨어 없이 서버에서 로케일을 알 방법이 없어 <title>/<meta description>이
+ * 🔴 이 라우트들은 미들웨어 없이 서버에서 로케일을 알 방법이 없어 title/meta description 태그가
  * 항상 한국어로 렌더된다(SSR·크롤러 기준). 이미 준비돼 있던 로케일별 title/description을
  * 화면에 반영하려고 서버 렌더를 동적으로 바꾸는 대신, LocaleRuntimeBridge 가 이미 하는 것과
  * 같은 방식으로 하이드레이션 후 document 를 갱신한다 — 크롤러/소셜 공유 미리보기는 항상
