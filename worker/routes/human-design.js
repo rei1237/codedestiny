@@ -19,10 +19,20 @@
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
-import { HumanDesignCalculation } from "../lib/models.js";
+import { HumanDesignCalculation, HumanDesignInterpretation } from "../lib/models.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { calculateHumanDesignChart } from "../lib/human-design-ephemeris.js";
 import { CALCULATION_VERSION } from "../../lib/human-design/version.js";
+import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
+import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
+import {
+  HD_AI_FALLBACK_MIN_CHARS,
+  HD_AI_MIN_RESULT_CHARS,
+  HD_AI_SECTIONS,
+  HUMAN_DESIGN_AI_PROMPT_VERSION,
+  buildHumanDesignAIPrompt,
+  validateHumanDesignInterpretation,
+} from "../lib/human-design-ai-prompt.js";
 
 // 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
 // 🔴 scripts/verify-human-design.mjs 가 이 셋의 정합성을 강제한다.
@@ -42,6 +52,7 @@ const MESSAGES = Object.freeze({
   failed: "휴먼 디자인 차트를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.",
   degraded: "잠시 접속이 불안정합니다. 잠시 후 다시 시도해 주세요.",
   ephemeris: "천문 계산 엔진을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
+  aiFailed: "해석을 만들지 못했습니다. 차트는 그대로 있으니 잠시 후 '다시 시도'를 눌러 주세요.",
 });
 
 function degraded() {
@@ -252,12 +263,210 @@ async function handleChart(request, env) {
   );
 }
 
+// ── AI 해석 ──────────────────────────────────────────────────────────────────
+//
+// 🔴 **새 결제 키가 없다.** 접근 증빙은 "이 사용자의 계산 문서가 존재한다" 는 사실이고,
+//    그 문서는 결제를 거쳐야만 생긴다. 차트와 해석은 같은 1회 결제로 열린다.
+//    아카이브 write 가 실패해 문서가 없는 경우만 결제 증빙(requestId)으로 구제한다.
+//
+// 🔴 프롬프트에 출생 데이터를 싣지 않는다 — buildHumanDesignAIPrompt 가 계산 결과만 읽는다.
+
+/** LLM 출력 토큰 예산. 한국어 6,000자 ≈ 6,000~7,000 토큰이라 여유를 둔다. */
+const HD_AI_BASE_TOKENS = 9000;
+const HD_AI_CAP_TOKENS = 14000;
+
+function countBodyChars(sections, summary) {
+  const bodyText = sections.map((section) => String(section?.body || "")).join("") + String(summary || "");
+  return bodyText.replace(/\s+/g, "").length;
+}
+
+function normalizeInterpretationPayload(raw) {
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch {
+    // 앞뒤 설명문이 섞인 경우를 대비해 첫 { ~ 마지막 } 만 잘라 한 번 더 시도한다.
+    const start = String(raw).indexOf("{");
+    const end = String(raw).lastIndexOf("}");
+    if (start < 0 || end <= start) return null;
+    try {
+      parsed = JSON.parse(String(raw).slice(start, end + 1));
+    } catch {
+      return null;
+    }
+  }
+  if (!parsed || !Array.isArray(parsed.sections)) return null;
+
+  const byKey = new Map(parsed.sections
+    .filter((section) => section && typeof section === "object")
+    .map((section) => [String(section.key || "").trim(), section]));
+
+  // 🔴 섹션 순서·키는 서버가 정본이다. 모델이 순서를 바꾸거나 키를 지어내도 여기서 고정된다.
+  const sections = HD_AI_SECTIONS.map((spec) => {
+    const found = byKey.get(spec.key);
+    return {
+      key: spec.key,
+      title: String(found?.title || spec.title).trim().slice(0, 120),
+      body: String(found?.body || "").trim(),
+    };
+  });
+  return { sections, summary: String(parsed.summary || "").trim().slice(0, 4000) };
+}
+
+async function findArchivedInterpretation(userId, calculationId, locale) {
+  try {
+    await connectDb();
+    return await withMongoRetry(() => HumanDesignInterpretation.findOne({
+      userId,
+      calculationId,
+      promptVersion: HUMAN_DESIGN_AI_PROMPT_VERSION,
+      locale,
+    }).lean());
+  } catch (error) {
+    console.error("[human-design-ai] archive lookup failed", String(error?.message || error).slice(0, 200));
+    return null;
+  }
+}
+
+async function archiveInterpretation(doc) {
+  try {
+    await connectDb();
+    await withMongoRetry(() => HumanDesignInterpretation.updateOne(
+      { userId: doc.userId, calculationId: doc.calculationId, promptVersion: doc.promptVersion, locale: doc.locale },
+      { $set: doc },
+      { upsert: true },
+    ));
+    return true;
+  } catch (error) {
+    console.error("[human-design-ai] archive write failed", String(error?.message || error).slice(0, 200));
+    return false;
+  }
+}
+
+async function handleInterpretation(request, env) {
+  const auth = await requireAuth(request, env);
+  const body = await readJson(request);
+  const input = normalizeBirthBody(body);
+  if (!isValidBirth(input)) {
+    return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
+  }
+
+  const locale = clean(getAmbientAiLocale() || "ko", 10) || "ko";
+  const inputHash = await sha256Hex(inputHashSource(input));
+
+  // 접근 판정 — 결제로 생긴 계산 문서가 있어야 한다.
+  let archived = await findArchivedChart(auth.userId, inputHash);
+  let calculation = archived?.calculation || null;
+
+  if (!calculation) {
+    // 아카이브 write 가 실패했던 경우의 구제 지점. 결제 증빙이 있으면 차트를 다시 계산한다.
+    // 🔴 클라이언트가 보낸 차트를 믿지 않는다 — 믿으면 누구나 무료로 AI 해석을 받는다.
+    const proof = await observePerUsePayment(env, auth, body);
+    if (!proof || proof.proven !== true) {
+      return json(
+        { ok: false, reason: "PAYMENT_REQUIRED", featureKey: FEATURE_KEY, coinPrice: COIN_PRICE, amountKRW: AMOUNT_KRW },
+        { status: 402 },
+      );
+    }
+    try {
+      calculation = await calculateHumanDesignChart(env, input, {
+        requestUrl: request.url,
+        calculatedAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      console.error("[human-design-ai] recalculation failed", String(error?.message || error).slice(0, 200));
+      return json({ ok: false, retryable: true, reason: "EPHEMERIS_UNAVAILABLE", message: MESSAGES.ephemeris }, { status: 502 });
+    }
+    archived = { id: `${FEATURE_KEY}:${auth.userId}:${inputHash}` };
+  }
+
+  const calculationId = archived?.id || `${FEATURE_KEY}:${auth.userId}:${inputHash}`;
+
+  const existing = await findArchivedInterpretation(auth.userId, calculationId, locale);
+  if (existing?.status === "completed" && Array.isArray(existing.sections) && existing.sections.length) {
+    return json(
+      { ok: true, reused: true, interpretation: { sections: existing.sections, summary: existing.summary } },
+      { headers: { "Cache-Control": "no-store" } },
+    );
+  }
+
+  let built;
+  try {
+    built = buildHumanDesignAIPrompt({ calculation, userQuestion: body?.userQuestion });
+  } catch (error) {
+    // fail-closed — 계산 결과가 온전하지 않으면 모델에게 넘기지 않는다.
+    console.error("[human-design-ai] prompt build refused", String(error?.message || error).slice(0, 200));
+    return json({ ok: false, reason: "CALCULATION_INCOMPLETE", message: MESSAGES.failed }, { status: 500 });
+  }
+
+  const ai = await callGeminiJsonWithRetry(env, built.prompt, {
+    systemPrompt: built.systemPrompt,
+    baseTokens: HD_AI_BASE_TOKENS,
+    capTokens: HD_AI_CAP_TOKENS,
+    temperature: 0.85,
+    taskType: "fortune",
+    // 🔴 폴백을 켠 유료 라우트는 fallbackMinChars 가 필수다. 안 주면 8% 분량이
+    //    정상 결제 결과로 전달되고 재시도·환불 경로가 사라진다.
+    fallbackMinChars: HD_AI_FALLBACK_MIN_CHARS,
+    logContext: { route: "human-design-ai", promptVersion: HUMAN_DESIGN_AI_PROMPT_VERSION },
+  });
+
+  if (!ai?.ok || !ai.text) {
+    console.error("[human-design-ai] generation failed", String(ai?.error || "unknown"), String(ai?.message || "").slice(0, 200));
+    return json({ ok: false, retryable: true, reason: "AI_UNAVAILABLE", message: MESSAGES.aiFailed }, { status: 503 });
+  }
+
+  const payload = normalizeInterpretationPayload(ai.text);
+  if (!payload) {
+    return json({ ok: false, retryable: true, reason: "AI_MALFORMED", message: MESSAGES.aiFailed }, { status: 503 });
+  }
+
+  const totalCharCount = countBodyChars(payload.sections, payload.summary);
+  if (totalCharCount < HD_AI_MIN_RESULT_CHARS) {
+    console.warn("[human-design-ai] too short", { totalCharCount, min: HD_AI_MIN_RESULT_CHARS });
+    return json({ ok: false, retryable: true, reason: "AI_TOO_SHORT", message: MESSAGES.aiFailed }, { status: 503 });
+  }
+
+  // 🔴 사후 검산 — 모델이 자기가 계산한 값을 쓴 흔적이 있으면 저장하지 않는다.
+  const factCheck = validateHumanDesignInterpretation(
+    payload.sections.map((section) => section.body).join("\n") + "\n" + payload.summary,
+    built.factSnapshot,
+  );
+  if (!factCheck.ok) {
+    console.warn("[human-design-ai] fact check failed", factCheck.violations.slice(0, 3));
+    return json({ ok: false, retryable: true, reason: "AI_FACT_MISMATCH", message: MESSAGES.aiFailed }, { status: 503 });
+  }
+
+  await archiveInterpretation({
+    id: `${HUMAN_DESIGN_AI_PROMPT_VERSION}:${auth.userId}:${inputHash}:${locale}`,
+    userId: auth.userId,
+    calculationId,
+    inputHash,
+    calculationVersion: calculation.calculationVersion || CALCULATION_VERSION,
+    promptVersion: HUMAN_DESIGN_AI_PROMPT_VERSION,
+    locale,
+    userQuestion: clean(body?.userQuestion, 600),
+    sections: payload.sections,
+    summary: payload.summary,
+    totalCharCount,
+    factCheck,
+    status: "completed",
+    llmMeta: { model: ai.model, provider: ai.provider, truncated: ai.truncated === true },
+  });
+
+  return json(
+    { ok: true, reused: false, interpretation: { sections: payload.sections, summary: payload.summary } },
+    { headers: { "Cache-Control": "no-store" } },
+  );
+}
+
 export async function handleHumanDesignRoutes(request, env = {}) {
   const method = request.method.toUpperCase();
   const path = getRoutePath(request, "/api/human-design");
   try {
     if (method === "OPTIONS") return new Response(null, { status: 204 });
     if (method === "POST" && path === "/chart") return await handleChart(request, env);
+    if (method === "POST" && path === "/interpretation") return await handleInterpretation(request, env);
     if (["GET", "POST"].includes(method)) return notFound();
     return methodNotAllowed();
   } catch (error) {
