@@ -47,6 +47,28 @@ const FPTI_TEN_GODS_TEXT_TRANSLATIONS = {
       peer: "独立・自律（比劫）",
     },
   },
+  "zh-CN": {
+    title: "我的行为模式",
+    strongest: "最强性向",
+    labels: {
+      expression: "表达/创造（食伤）",
+      officer: "规范/责任（官星）",
+      wealth: "成果/实利（财星）",
+      resource: "学习/洞察（印星）",
+      peer: "独立/自主（比劫）",
+    },
+  },
+  "zh-TW": {
+    title: "我的行為模式",
+    strongest: "最強性向",
+    labels: {
+      expression: "表達/創造（食傷）",
+      officer: "規範/責任（官星）",
+      wealth: "成果/實利（財星）",
+      resource: "學習/洞察（印星）",
+      peer: "獨立/自主（比劫）",
+    },
+  },
 } as const;
 
 const ITEMS = [
@@ -62,7 +84,7 @@ function fptiTenGodsCopy(locale: LoadingLocale) {
 }
 
 export default function FptiTenGodsPanel({ scores }: Props) {
-  const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = fptiTenGodsCopy(locale);
   const items = useMemo(
     () => ITEMS.map((item) => ({ ...item, label: copy.labels[item.key] })),
@@ -75,9 +97,11 @@ export default function FptiTenGodsPanel({ scores }: Props) {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());
     syncLocale();
     window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
     window.addEventListener("storage", syncLocale);
     return () => {
       window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
       window.removeEventListener("storage", syncLocale);
     };
   }, []);

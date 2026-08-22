@@ -143,9 +143,10 @@ describe("fpti deep report quality", () => {
 
   test("결과 카드 파일에서 FPTI PDF 버튼/문구가 제거되어야 한다", () => {
     const source = read("components/fpti/FptiResultCard.tsx");
+    const copySource = read("components/fpti/_lib/copy.ts");
     expect(source.includes("PDF 다운로드")).toBe(false);
     expect(source.includes("buildFptiPremiumPdfText")).toBe(false);
-    expect(source.includes("심층 리포트 잠금 해제")).toBe(true);
+    expect(copySource.includes("심층 리포트 잠금 해제")).toBe(true);
     expect(source.includes("해석 근거 신호")).toBe(false);
     expect(source.includes("section.usedSignals")).toBe(false);
     expect(source.includes("const PLACEHOLDER_TITLE_PATTERN")).toBe(true);

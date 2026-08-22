@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { BookOpen, Search, Sparkles, X } from "lucide-react";
 import styles from "./FptiCosmic.module.css";
+import { useFptiSharedCopy } from "./_lib/copy";
 import {
   FPTI_AXIS_GUIDE,
   FPTI_DICTIONARY,
@@ -59,6 +60,7 @@ function DetailList({ title, items }: { title: string; items: string[] }) {
 }
 
 export default function FptiDictionarySection({ currentCode }: Props) {
+  const copy = useFptiSharedCopy();
   const [query, setQuery] = useState("");
   const [activeFilters, setActiveFilters] = useState<string[]>([]);
   const [selectedItem, setSelectedItem] = useState<FptiDictionaryItem | null>(null);
@@ -124,34 +126,28 @@ export default function FptiDictionarySection({ currentCode }: Props) {
                 FPTI CODEX
               </p>
               <h2 id="fpti-dictionary-title" className={`${styles.heroTitle} mt-4 text-3xl leading-tight text-slate-50 md:text-4xl`}>
-                FPTI 도감
+                {copy.dictionaryTitle}
               </h2>
               <p className="mt-2 text-lg font-semibold text-purple-100">
-                네 글자 성향 코드로 읽는 나의 운명 패턴
+                {copy.dictionarySubtitle}
               </p>
               <div className="mt-4 max-w-3xl space-y-2 text-sm leading-7 text-slate-200">
-                <p>
-                  FPTI는 사주의 흐름을 바탕으로 사람의 선택 방식, 감정 반응, 관계 운영, 현실 대응 방식을 네 글자의 성향 코드로 정리한 코드 데스티니식 운명 성향 지표입니다.
-                </p>
-                <p>
-                  예를 들어 AHFV는 밖으로 움직이는 에너지, 마음 중심 판단, 유연한 흐름, 미래 가능성을 가진 경향으로 읽습니다.
-                </p>
-                <p>
-                  이 도감은 결과 리포트의 해석을 더 쉽게 이해하기 위한 안내서입니다. 실제 결과에서는 생년월일시에서 계산된 사주 흐름과 함께 더 구체적으로 해석됩니다.
-                </p>
+                <p>{copy.dictionaryIntro1}</p>
+                <p>{copy.dictionaryIntro2}</p>
+                <p>{copy.dictionaryIntro3}</p>
               </div>
 
               {currentItem && (
                 <div className="mt-4 inline-flex flex-wrap items-center gap-2 rounded-2xl border border-amber-200/35 bg-amber-200/10 px-4 py-3 text-sm text-amber-50 shadow-[0_0_28px_rgba(246,211,101,0.16)]">
-                  <span className="font-semibold">내 FPTI: {currentCode}</span>
-                  {currentCode !== currentItem.code && <span className="text-amber-100/80">도감 표기 {currentItem.code}</span>}
+                  <span className="font-semibold">{copy.currentTypePrefix} {currentCode}</span>
+                  {currentCode !== currentItem.code && <span className="text-amber-100/80">{copy.dictionaryCodeNotePrefix} {currentItem.code}</span>}
                   <span className="text-slate-100">{currentItem.name}</span>
                 </div>
               )}
 
               {hasUnknownCurrentCode && (
                 <div className="mt-4 rounded-2xl border border-amber-200/30 bg-amber-300/10 p-4 text-sm leading-6 text-amber-50">
-                  <p className="font-semibold">아직 도감에 등록되지 않은 성향 코드입니다.</p>
+                  <p className="font-semibold">{copy.unknownCodeHeading}</p>
                   <p className="mt-1">{FPTI_UNKNOWN_CODE_MESSAGE}</p>
                 </div>
               )}
@@ -166,9 +162,9 @@ export default function FptiDictionarySection({ currentCode }: Props) {
                 ))}
               </div>
               <div className="mt-4 rounded-2xl border border-cyan-200/20 bg-cyan-200/10 p-4 text-sm leading-6 text-cyan-50">
-                <p className="font-semibold">FPTI가 낯설다면 먼저 도감을 열어보세요.</p>
+                <p className="font-semibold">{copy.hintHeading}</p>
                 <p className="mt-1 text-cyan-100/85">
-                  각 코드는 에너지 방향, 판단 중심, 움직임 방식, 현실 대응 방식을 조합해 만들어집니다.
+                  {copy.hintBody}
                 </p>
               </div>
               <div className="mt-4 flex flex-wrap gap-2">
@@ -176,19 +172,19 @@ export default function FptiDictionarySection({ currentCode }: Props) {
                   type="button"
                   onClick={openDictionary}
                   className={`${styles.ctaButton} inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold`}
-                  aria-label="FPTI 도감 카드 그리드로 이동"
+                  aria-label={copy.openDictionaryAria}
                 >
                   <BookOpen className="h-4 w-4" aria-hidden />
-                  FPTI 도감 열기
+                  {copy.openDictionaryButton}
                 </button>
                 <button
                   type="button"
                   onClick={findMyType}
                   className={`${styles.softButton} inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold`}
-                  aria-label="내 FPTI 유형 카드 찾아보기"
+                  aria-label={copy.findMyTypeAria}
                 >
                   <Search className="h-4 w-4" aria-hidden />
-                  내 유형 찾아보기
+                  {copy.findMyTypeButton}
                 </button>
               </div>
             </div>
@@ -198,7 +194,7 @@ export default function FptiDictionarySection({ currentCode }: Props) {
 
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4" aria-labelledby="fpti-axis-title">
         <h3 id="fpti-axis-title" className="sr-only">
-          FPTI 4글자 코드 읽는 법
+          {copy.axisGuideSrTitle}
         </h3>
         {FPTI_AXIS_GUIDE.map((axis) => (
           <article key={axis.code} className={`${styles.glassPanel} rounded-3xl p-4`}>
@@ -222,26 +218,26 @@ export default function FptiDictionarySection({ currentCode }: Props) {
       <div ref={gridRef} className={`${styles.glassPanel} rounded-3xl p-4 md:p-5`}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-[11px] font-semibold tracking-[0.2em] text-cyan-200">FPTI 전체 유형 도감</p>
-            <h3 className="mt-1 text-xl font-semibold text-slate-50">16개의 별빛 좌표</h3>
+            <p className="text-[11px] font-semibold tracking-[0.2em] text-cyan-200">{copy.allTypesEyebrow}</p>
+            <h3 className="mt-1 text-xl font-semibold text-slate-50">{copy.allTypesHeading}</h3>
           </div>
-          <p className="text-sm text-slate-300">{filteredItems.length}개 유형 관측 중</p>
+          <p className="text-sm text-slate-300">{copy.matchingCount(filteredItems.length)}</p>
         </div>
 
         <div className="sticky top-2 z-20 mt-4 rounded-3xl border border-white/10 bg-[#071126]/90 p-3 backdrop-blur-xl md:static md:bg-white/[0.03]">
           <label className="relative block">
-            <span className="sr-only">FPTI 코드, 유형 이름, 키워드 검색</span>
+            <span className="sr-only">{copy.searchSrLabel}</span>
             <Search className="pointer-events-none absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-cyan-100/80" aria-hidden />
             <input
               value={query}
               onChange={(event) => setQuery(event.target.value)}
-              placeholder="코드, 유형 이름, 키워드로 별자리 도감 검색"
+              placeholder={copy.searchPlaceholder}
               className={`${styles.inputShell} h-12 w-full rounded-2xl px-11 text-sm`}
               type="search"
             />
           </label>
 
-          <div className="mt-3 flex gap-2 overflow-x-auto pb-1" aria-label="FPTI 도감 필터">
+          <div className="mt-3 flex gap-2 overflow-x-auto pb-1" aria-label={copy.filtersAriaLabel}>
             {FPTI_FILTERS.map((filter) => {
               const active = activeFilters.includes(filter);
               return (
@@ -265,7 +261,7 @@ export default function FptiDictionarySection({ currentCode }: Props) {
 
         {filteredItems.length === 0 ? (
           <div className="mt-4 rounded-3xl border border-amber-200/25 bg-amber-300/10 p-6 text-center text-sm leading-6 text-amber-50">
-            아직 별자리 도감에서 해당 코드를 찾지 못했어요. 다른 키워드로 다시 관측해볼까요?
+            {copy.emptyResultsMessage}
           </div>
         ) : (
           <div className="mt-4 grid gap-3 md:grid-cols-2 xl:grid-cols-4">
@@ -284,11 +280,11 @@ export default function FptiDictionarySection({ currentCode }: Props) {
                   <div className="flex items-start justify-between gap-2">
                     <div>
                       <p className={`${styles.neonTextGold} text-3xl font-bold`}>{item.code}</p>
-                      {item.legacyCode && <p className="text-[11px] text-cyan-100/70">결과 코드 {item.legacyCode}</p>}
+                      {item.legacyCode && <p className="text-[11px] text-cyan-100/70">{copy.resultCodeLabel} {item.legacyCode}</p>}
                     </div>
                     {isCurrent && (
                       <span className="rounded-full border border-amber-200/50 bg-amber-200/20 px-2.5 py-1 text-[11px] font-semibold text-amber-50">
-                        현재 나의 유형
+                        {copy.currentTypeBadge}
                       </span>
                     )}
                   </div>
@@ -314,7 +310,7 @@ export default function FptiDictionarySection({ currentCode }: Props) {
                   </div>
 
                   <p className="mt-4 text-xs leading-5 text-amber-100/90">
-                    성장 방향: {item.growthAdvice}
+                    {copy.growthDirectionLabel} {item.growthAdvice}
                   </p>
 
                   <button
@@ -323,9 +319,9 @@ export default function FptiDictionarySection({ currentCode }: Props) {
                     className={`${styles.softButton} mt-auto inline-flex items-center justify-center rounded-full px-4 py-2 text-xs font-semibold focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-cyan-100/80`}
                     aria-haspopup="dialog"
                     aria-expanded={selectedItem?.code === item.code}
-                    aria-label={`${item.code} ${item.name} 자세히 보기`}
+                    aria-label={copy.detailButtonAria(item.code, item.name)}
                   >
-                    자세히 보기
+                    {copy.detailButtonLabel}
                   </button>
                 </article>
               );
@@ -335,16 +331,12 @@ export default function FptiDictionarySection({ currentCode }: Props) {
       </div>
 
       <section className={`${styles.glassPanel} rounded-3xl p-5`} aria-labelledby="fpti-faq-title">
-        <p className="text-[11px] font-semibold tracking-[0.2em] text-cyan-200">FPTI FAQ</p>
+        <p className="text-[11px] font-semibold tracking-[0.2em] text-cyan-200">{copy.faqEyebrow}</p>
         <h3 id="fpti-faq-title" className="mt-1 text-xl font-semibold text-slate-50">
-          FPTI란?
+          {copy.faqHeading}
         </h3>
         <div className="mt-4 grid gap-3 md:grid-cols-3">
-          {[
-            ["FPTI는 MBTI와 같은 건가요?", "아닙니다. FPTI는 코드 데스티니에서 사주 흐름을 바탕으로 성향을 쉽게 이해하도록 만든 운명 성향 코드입니다."],
-            ["FPTI 결과는 고정인가요?", "기본 성향은 출생 정보 기반으로 계산되지만, 실제 삶에서는 환경과 선택에 따라 표현 방식이 달라질 수 있습니다."],
-            ["도감 설명과 실제 리포트는 다른가요?", "도감은 유형을 쉽게 이해하기 위한 기본 설명이고, 실제 리포트는 사용자의 사주 흐름과 함께 더 구체적으로 해석됩니다."],
-          ].map(([question, answer]) => (
+          {copy.faqItems.map(([question, answer]) => (
             <article key={question} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
               <h4 className="text-sm font-semibold text-amber-100">{question}</h4>
               <p className="mt-2 text-sm leading-6 text-slate-300">{answer}</p>
@@ -392,7 +384,7 @@ export default function FptiDictionarySection({ currentCode }: Props) {
                   <p className="mt-2 max-w-2xl text-sm leading-6 text-slate-200">{selectedItem.subtitle}</p>
                   {selectedItem.legacyCode && (
                     <p className="mt-2 text-xs text-cyan-100/80">
-                      기존 결과 코드 {selectedItem.legacyCode}는 도감의 {selectedItem.code}와 같은 에너지 방향으로 연결됩니다.
+                      {copy.modalLegacyNote(selectedItem.legacyCode, selectedItem.code)}
                     </p>
                   )}
                 </div>
@@ -401,7 +393,7 @@ export default function FptiDictionarySection({ currentCode }: Props) {
                   type="button"
                   onClick={() => setSelectedItem(null)}
                   className="rounded-full border border-white/15 bg-white/10 p-2 text-slate-100 transition hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-100/80"
-                  aria-label="FPTI 상세 설명 닫기"
+                  aria-label={copy.modalCloseAria}
                 >
                   <X className="h-5 w-5" aria-hidden />
                 </button>
@@ -410,20 +402,20 @@ export default function FptiDictionarySection({ currentCode }: Props) {
 
             <div className="mt-4 grid gap-3 md:grid-cols-2">
               <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-4 md:col-span-2">
-                <h4 className="text-sm font-semibold text-amber-100">한 줄 핵심</h4>
+                <h4 className="text-sm font-semibold text-amber-100">{copy.modalCoreHeading}</h4>
                 <p className="mt-2 text-sm leading-7 text-slate-200">{selectedItem.summary}</p>
                 <p className="mt-3 text-sm leading-7 text-slate-300">{selectedItem.easyDescription}</p>
               </article>
 
-              <DetailList title="강점" items={selectedItem.strengths} />
-              <DetailList title="주의할 점" items={selectedItem.cautions} />
+              <DetailList title={copy.modalStrengthsTitle} items={selectedItem.strengths} />
+              <DetailList title={copy.modalCautionsTitle} items={selectedItem.cautions} />
 
               {[
-                ["관계 스타일", selectedItem.relationshipStyle],
-                ["일/사업 스타일", selectedItem.workStyle],
-                ["재물 감각", selectedItem.moneyStyle],
-                ["성장 조언", selectedItem.growthAdvice],
-                ["어울리는 루틴", selectedItem.recommendedRoutine],
+                [copy.modalFieldLabels.relationship, selectedItem.relationshipStyle],
+                [copy.modalFieldLabels.work, selectedItem.workStyle],
+                [copy.modalFieldLabels.money, selectedItem.moneyStyle],
+                [copy.modalFieldLabels.growth, selectedItem.growthAdvice],
+                [copy.modalFieldLabels.routine, selectedItem.recommendedRoutine],
               ].map(([title, body]) => (
                 <article key={title} className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
                   <h4 className="text-sm font-semibold text-amber-100">{title}</h4>
@@ -432,7 +424,7 @@ export default function FptiDictionarySection({ currentCode }: Props) {
               ))}
 
               <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                <h4 className="text-sm font-semibold text-amber-100">잘 맞는 코드</h4>
+                <h4 className="text-sm font-semibold text-amber-100">{copy.modalCompatibleTitle}</h4>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedItem.compatibleCodes.map((code) => (
                     <span key={code} className="rounded-full border border-cyan-200/25 bg-cyan-200/10 px-3 py-1 text-xs text-cyan-50">
@@ -443,7 +435,7 @@ export default function FptiDictionarySection({ currentCode }: Props) {
               </article>
 
               <article className="rounded-2xl border border-white/10 bg-white/[0.04] p-4">
-                <h4 className="text-sm font-semibold text-amber-100">오행 감각</h4>
+                <h4 className="text-sm font-semibold text-amber-100">{copy.modalElementToneTitle}</h4>
                 <div className="mt-3 flex flex-wrap gap-2">
                   {selectedItem.elementTone.map((element) => (
                     <span key={element} className="rounded-full border border-amber-200/25 bg-amber-200/10 px-3 py-1 text-xs text-amber-100">
