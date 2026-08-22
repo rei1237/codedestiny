@@ -7,21 +7,21 @@ import {
 } from "../../lib/structured-data";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 
-const PAGE_PATH = "/sukuyo-compatibility-ai";
-const PAGE_TITLE = "숙요점 궁합 전문가 상담 | Code Destiny";
+const PAGE_PATH = "/sukuyo-compatibility-ai/";
+const PAGE_TITLE = "숙요 궁합 상담 | 27수 관계 유형 1:1 해석 — Code Destiny";
 const PAGE_DESCRIPTION =
-  "두 사람의 27숙과 숙요점 관계 유형, 끌림과 갈등의 리듬을 바탕으로 이어가는 1:1 궁합 상담입니다.";
+  "두 사람의 27숙과 숙요점 관계 유형을 바탕으로 끌림과 갈등의 리듬을 이어서 푸는 1:1 궁합 상담입니다. 관계 유형이 실제 갈등 장면에서 어떻게 드러나는지까지 상담 문장으로 정리해 드립니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: PAGE_DESCRIPTION,
   alternates: {
-    canonical: "/sukuyo-compatibility-ai",
+    canonical: "/sukuyo-compatibility-ai/",
   },
   openGraph: {
     title: "숙요점 궁합 전문가 상담",
     description: "붉은 실처럼 이어진 두 사람의 끌림과 갈등, 장기 관계의 흐름을 상담형으로 읽습니다.",
-    url: "/sukuyo-compatibility-ai",
+    url: "/sukuyo-compatibility-ai/",
     images: ["/fuctionassets/sukyo_premium.webp"],
   },
 };
@@ -87,7 +87,7 @@ export default function SukuyoCompatibilityAiPage() {
       />
             <SukuyoCompatibilityAiRouteClient />
             <ServiceIntroSection label="숙요점 궁합 전문가 상담 안내">
-        <h1>숙요점 궁합 전문가 상담 — 27숙으로 읽는 두 사람의 관계</h1>
+        <h1>숙요 궁합 상담 — 27숙 관계 유형으로 읽는 두 사람</h1>
         <p>
           숙요점 궁합 전문가 상담은 태어난 날의 달이 머문 자리인 27숙을 기준으로 두 사람 사이의 끌림과
           갈등, 대화 방식의 궁합을 읽습니다. 연인, 부부, 오래된 친구처럼 이미 관계가 깊어진 사이일수록
