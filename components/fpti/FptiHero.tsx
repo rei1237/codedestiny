@@ -21,15 +21,59 @@ const ELEMENTS = [
 const FPTI_HERO_COPY = {
   ko: {
     homeAriaLabel: "홈으로 가기",
+    homeLabel: "홈으로",
+    badge: "COSMIC PERSONALITY OBSERVATORY",
+    title: "별자리 성향 연구소 FPTI",
+    subtitle: "은하 관측소에서 해석하는 당신의 운명 성향 코드",
+    description: "입력된 출생 정보를 바탕으로 성향 코드의 흐름을 정교하게 읽어, 단순 성격 테스트가 아닌 프리미엄 운명 성향 리포트 톤으로 결과를 제공합니다. 분석이 완료되면 결과 화면에서 챕터별 해석과 실전 조언을 바로 확인할 수 있습니다.",
+    startButton: "성향 코드 관측 시작",
+    autoFlowLabel: "AUTO FLOW",
+    autoFlowTitle: "별자리 성향 자동 관측",
+    autoFlowDesc: "입력값이 바뀌면 흐름을 다시 해석해 결과 단계까지 자동 연결됩니다.",
+    steps: ["1. 출생 정보 스캔", "2. 성향 코드 해석", "3. 챕터 리포트 구성", "4. 결과 화면 전환"],
+    pillars: [["년주", "자동"], ["월주", "자동"], ["일주", "자동"], ["시주", "자동"]] as [string, string][],
   },
   en: {
     homeAriaLabel: "Go home",
+    homeLabel: "Home",
+    badge: "COSMIC PERSONALITY OBSERVATORY",
+    title: "Constellation Temperament Lab FPTI",
+    subtitle: "Your destiny temperament code, interpreted from a galactic observatory",
+    description: "Based on your birth details, this precisely reads the flow of your temperament code and delivers results in the tone of a premium destiny temperament report, not a simple personality quiz. Once analysis is complete, you can check chapter-by-chapter interpretation and practical advice right on the result screen.",
+    startButton: "Start Observing My Temperament Code",
+    autoFlowLabel: "AUTO FLOW",
+    autoFlowTitle: "Automatic Constellation Temperament Observation",
+    autoFlowDesc: "When your input changes, the flow is reinterpreted and automatically carried through to the result step.",
+    steps: ["1. Scan birth details", "2. Interpret temperament code", "3. Build chapter report", "4. Move to result screen"],
+    pillars: [["Year", "Auto"], ["Month", "Auto"], ["Day", "Auto"], ["Hour", "Auto"]] as [string, string][],
   },
   ja: {
     homeAriaLabel: "ホームへ戻る",
+    homeLabel: "ホームへ",
+    badge: "COSMIC PERSONALITY OBSERVATORY",
+    title: "星座性向研究所FPTI",
+    subtitle: "銀河観測所が解釈するあなたの運命性向コード",
+    description: "入力された出生情報をもとに性向コードの流れを精密に読み取り、単なる性格診断ではなくプレミアム運命性向レポートのトーンで結果を提供します。分析が完了すると、結果画面で章ごとの解釈と実践的なアドバイスをすぐに確認できます。",
+    startButton: "性向コード観測を始める",
+    autoFlowLabel: "AUTO FLOW",
+    autoFlowTitle: "星座性向の自動観測",
+    autoFlowDesc: "入力値が変わると流れを再解釈し、結果ステップまで自動でつながります。",
+    steps: ["1. 出生情報をスキャン", "2. 性向コードを解釈", "3. 章別レポートを構成", "4. 結果画面へ移動"],
+    pillars: [["年柱", "自動"], ["月柱", "自動"], ["日柱", "自動"], ["時柱", "自動"]] as [string, string][],
   },
   zh: {
     homeAriaLabel: "返回首页",
+    homeLabel: "首页",
+    badge: "COSMIC PERSONALITY OBSERVATORY",
+    title: "星座性向研究所 FPTI",
+    subtitle: "银河观测站解读的你的命运性向代码",
+    description: "基于你输入的出生信息，精准解读性向代码的流转，以高级命运性向报告的口吻呈现结果，而非简单的性格测试。分析完成后，可在结果页面立即查看各章节解读与实践建议。",
+    startButton: "开始观测性向代码",
+    autoFlowLabel: "AUTO FLOW",
+    autoFlowTitle: "星座性向自动观测",
+    autoFlowDesc: "输入值改变时会重新解读流转，并自动衔接到结果步骤。",
+    steps: ["1. 扫描出生信息", "2. 解读性向代码", "3. 构建章节报告", "4. 切换到结果画面"],
+    pillars: [["年柱", "自动"], ["月柱", "自动"], ["日柱", "自动"], ["时柱", "自动"]] as [string, string][],
   },
 };
 
@@ -65,7 +109,7 @@ export default function FptiHero({ onStart }: Props) {
         className="absolute right-4 top-4 z-20 flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-3 py-1.5 text-xs font-medium text-slate-300 backdrop-blur transition-all duration-200 hover:bg-white/10 hover:text-white"
         aria-label={copy.homeAriaLabel}
       >
-        <span>🏠</span> 홈으로
+        <span>🏠</span> {copy.homeLabel}
       </Link>
 
       <m.div
@@ -76,17 +120,16 @@ export default function FptiHero({ onStart }: Props) {
       >
         <div>
           <p className={`${styles.autoBadge} inline-flex rounded-full px-3 py-1 text-[11px] tracking-[0.22em] text-[#efe5ff]`}>
-            COSMIC PERSONALITY OBSERVATORY
+            {copy.badge}
           </p>
           <h1
             className={`${styles.heroTitle} mt-4 text-4xl leading-[1.02] text-[#f8fbff] md:text-6xl`}
           >
-            별자리 성향 연구소 FPTI
+            {copy.title}
           </h1>
-          <p className="mt-4 text-base text-[#d8d5ff] md:text-lg">은하 관측소에서 해석하는 당신의 운명 성향 코드</p>
+          <p className="mt-4 text-base text-[#d8d5ff] md:text-lg">{copy.subtitle}</p>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#CBD5E1] md:text-[15px]">
-            입력된 출생 정보를 바탕으로 성향 코드의 흐름을 정교하게 읽어, 단순 성격 테스트가 아닌 프리미엄 운명 성향 리포트 톤으로 결과를 제공합니다.
-            분석이 완료되면 결과 화면에서 챕터별 해석과 실전 조언을 바로 확인할 수 있습니다.
+            {copy.description}
           </p>
           <div className="mt-6 flex flex-wrap gap-3">
             <button
@@ -94,7 +137,7 @@ export default function FptiHero({ onStart }: Props) {
               onClick={onStart}
               className={`${styles.ctaButton} rounded-full px-5 py-3 text-sm font-semibold`}
             >
-              성향 코드 관측 시작
+              {copy.startButton}
             </button>
           </div>
 
@@ -118,24 +161,18 @@ export default function FptiHero({ onStart }: Props) {
           transition={{ delay: 0.15, duration: 0.45, y: { duration: 6, repeat: Infinity, ease: "easeInOut" } }}
           className={`${styles.glassPanel} rounded-[28px] p-5`}
         >
-          <p className="text-[11px] tracking-[0.2em] text-[#bfdbfe]">AUTO FLOW</p>
-          <p className="mt-2 text-2xl font-semibold text-[#f5ebff]">별자리 성향 자동 관측</p>
-          <p className="mt-1 text-sm text-[#d4dcff]">입력값이 바뀌면 흐름을 다시 해석해 결과 단계까지 자동 연결됩니다.</p>
+          <p className="text-[11px] tracking-[0.2em] text-[#bfdbfe]">{copy.autoFlowLabel}</p>
+          <p className="mt-2 text-2xl font-semibold text-[#f5ebff]">{copy.autoFlowTitle}</p>
+          <p className="mt-1 text-sm text-[#d4dcff]">{copy.autoFlowDesc}</p>
 
           <div className="mt-4 grid grid-cols-2 gap-2 text-xs text-[#f8fafc]">
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">1. 출생 정보 스캔</div>
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">2. 성향 코드 해석</div>
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">3. 챕터 리포트 구성</div>
-            <div className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">4. 결과 화면 전환</div>
+            {copy.steps.map((step) => (
+              <div key={step} className="rounded-xl border border-white/15 bg-[#0B1026]/65 p-2">{step}</div>
+            ))}
           </div>
 
           <div className="mt-4 grid grid-cols-4 gap-2 text-center text-[11px] text-[#CBD5E1]">
-            {[
-              ["년주", "자동"],
-              ["월주", "자동"],
-              ["일주", "자동"],
-              ["시주", "자동"],
-            ].map(([label, value]) => (
+            {copy.pillars.map(([label, value]) => (
               <div key={label} className="rounded-lg border border-white/15 bg-black/25 p-2">
                 <p>{label}</p>
                 <p className="mt-1 text-sm font-semibold text-[#F6D365]">{value}</p>
