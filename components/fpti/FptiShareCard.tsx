@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from "react";
 import type { FptiAnalysisResult } from "@/lib/fpti/fpti-types";
+import { useFptiSharedCopy } from "./_lib/copy";
 
 type Props = {
   result: FptiAnalysisResult;
@@ -19,16 +20,17 @@ function typeBadgeText(result: FptiAnalysisResult) {
 }
 
 export default function FptiShareCard({ result }: Props) {
+  const copy = useFptiSharedCopy();
   const [copied, setCopied] = useState(false);
 
   const shareText = useMemo(
-    () => `내 사주 FPTI는 ${result.code} (${result.typeName})!\n${result.oneLiner}\n#사주FPTI #코드데스티니`,
-    [result],
+    () => copy.shareText(result.code, result.typeName, result.oneLiner),
+    [copy, result],
   );
 
   const palette = useMemo(() => symbolPalette(result.code), [result.code]);
 
-  const copy = async () => {
+  const copyToClipboard = async () => {
     try {
       await navigator.clipboard.writeText(shareText);
       setCopied(true);
@@ -41,8 +43,8 @@ export default function FptiShareCard({ result }: Props) {
   return (
     <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
       <div className="mb-3 flex items-center justify-between">
-        <h4 className="text-sm font-semibold text-slate-100">공유 카드</h4>
-        <span className="text-xs text-slate-300">유형 상징 SVG 단일 카드</span>
+        <h4 className="text-sm font-semibold text-slate-100">{copy.shareCardTitle}</h4>
+        <span className="text-xs text-slate-300">{copy.shareCardCaption}</span>
       </div>
 
       <div className="rounded-3xl border border-white/20 bg-[radial-gradient(circle_at_20%_10%,rgba(125,211,252,0.25),transparent_40%),radial-gradient(circle_at_90%_90%,rgba(245,158,11,0.2),transparent_45%),linear-gradient(145deg,#070d1f,#111c36)] p-4">
@@ -77,16 +79,16 @@ export default function FptiShareCard({ result }: Props) {
         </div>
 
         <p className="mt-3 text-sm text-slate-100">{result.oneLiner}</p>
-        <p className="mt-1 text-xs text-cyan-100">유형 설명: {result.summary}</p>
+        <p className="mt-1 text-xs text-cyan-100">{copy.shareTypeDescLabel} {result.summary}</p>
       </div>
 
       <div className="mt-4 flex flex-wrap gap-2 rounded-2xl border border-white/10 bg-[#050617]/70 p-2 backdrop-blur">
         <button
           type="button"
-          onClick={copy}
+          onClick={copyToClipboard}
           className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-4 py-2 text-xs font-semibold text-white"
         >
-          {copied ? "복사 완료" : "내 FPTI 카드 저장하기"}
+          {copied ? copy.shareCopyDone : copy.shareCopyIdle}
         </button>
         <a
           href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`}
@@ -94,7 +96,7 @@ export default function FptiShareCard({ result }: Props) {
           rel="noreferrer"
           className="rounded-full border border-[#E9C46A]/55 px-4 py-2 text-xs text-[#F6D365]"
         >
-          친구에게 공유하기
+          {copy.shareToFriendLabel}
         </a>
       </div>
     </section>
