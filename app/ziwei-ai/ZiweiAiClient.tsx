@@ -24,7 +24,7 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type ZiweiAiCopy = {
   timelineAria: string;
@@ -1084,7 +1084,7 @@ export default function ZiweiAiPage() {
     try {
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const userName = safePdfName(consultation?.birthInfo?.name || form.name || "자미두수");
-      const date = new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "");
+      const date = new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]).replace(/\./g, "").replace(/\s/g, "");
       await exportResultPdf({
         captureTargets: [".resultDocument [data-ziwei-pdf-section]"],
         fileName: `자미두수_AI_상담_${userName}_${date}.pdf`,

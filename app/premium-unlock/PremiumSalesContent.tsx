@@ -16,7 +16,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { readAiProfileSeed, type AiPrefillSeed } from "@/app/_lib/ai-prefill-seed";
 import { DeliverableSpec } from "@/app/components/DeliverableSpec";
 import { detectLocale } from "@/lib/i18n/dictionary";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type GenderType = "female" | "male" | "unknown" | "";
 type CalendarType = "solar" | "lunar";
@@ -1786,7 +1786,7 @@ export default function PremiumSalesContent() {
       }
 
       if (!hasPage) throw new Error(copy.pdfCaptureError);
-      const stamp = new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s+/g, "");
+      const stamp = new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]).replace(/\./g, "").replace(/\s+/g, "");
       pdf.save(`${buildSafeFileSegment(form.name || report.title, copy)}_${stamp}.pdf`);
     } catch {
       setError(copy.pdfSaveErrorMessage);

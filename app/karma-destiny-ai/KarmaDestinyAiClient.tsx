@@ -18,7 +18,7 @@ import { PriceBadge } from "@/app/components/PriceBadge";
 import { DeliverableSpec } from "@/app/components/DeliverableSpec";
 import { extractReadableTextFromJsonLike, looksLikeRawJson, toDisplayText } from "@/lib/llm-text";
 import { detectLocale } from "@/lib/i18n/dictionary";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type AccessType = "pass" | "paid" | "monthly_credit" | "membership_credit" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -2173,7 +2173,7 @@ function KarmaResultModal({
     setIsDownloading(true);
     try {
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
-      const fileName = `karma-destiny_${userName.replace(/[\\/:*?"<>|]/g, "_")}_${new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "")}.pdf`;
+      const fileName = `karma-destiny_${userName.replace(/[\\/:*?"<>|]/g, "_")}_${new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]).replace(/\./g, "").replace(/\s/g, "")}.pdf`;
       await exportResultPdf({
         captureTargets: ["#karma-result-content [data-kdai-pdf-page]"],
         fileName,
@@ -2254,7 +2254,7 @@ function KarmaResultModal({
           </article>
         ))}
 
-        <footer data-kdai-pdf-page>Code Destiny · {new Date().toLocaleDateString("ko-KR")}</footer>
+        <footer data-kdai-pdf-page>Code Destiny · {new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()])}</footer>
       </div>
     </div>
   );

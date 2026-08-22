@@ -26,7 +26,7 @@ import {
 } from "@/lib/lock-screen-daily-fortune";
 import { readAiProfileSeed } from "../_lib/ai-prefill-seed";
 import { isMobileAppRuntime } from "../_lib/auth-client";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 // ── 꽃돼지(연이) 마스코트 — R1: 앱 번들 로컬 '단일 컷' 이미지(오프라인 동작) ──
 // (기존 R2 CDN URL은 화면 켜지는 순간 네트워크가 없어 404. flower-pig-5-*는 스프라이트 시트라
@@ -1022,8 +1022,9 @@ export default function LockScreenFortuneClient() {
   }
 
   const now = new Date();
-  const dateLabel = now.toLocaleDateString("ko-KR", { month: "long", day: "numeric", weekday: "long" });
-  const timeLabel = now.toLocaleTimeString("ko-KR", { hour: "2-digit", minute: "2-digit", hour12: false });
+  const intlLocale = INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()];
+  const dateLabel = now.toLocaleDateString(intlLocale, { month: "long", day: "numeric", weekday: "long" });
+  const timeLabel = now.toLocaleTimeString(intlLocale, { hour: "2-digit", minute: "2-digit", hour12: false });
   const total = pagerCards.length;
   const idx = ((page % total) + total) % total;
   const current = pagerCards[idx];

@@ -35,7 +35,7 @@ import styles from "./LoveSecretAiResultClient.module.css";
 import LoveSecretChecklist, { type ActionSecret } from "./LoveSecretChecklist";
 import LoveSecretShareCard from "./LoveSecretShareCard";
 import { groupLoveSections, type LoveCardVariant, type LoveSectionGroup } from "./love-secret-sections";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type LoveSecretResultCopy = {
   genResultTimeoutError: string;
@@ -763,11 +763,12 @@ function safeFilePart(value: string) {
   return (value || "love-secret-reading").replace(/[\\/:*?"<>|]/g, "_").replace(/\s+/g, "-").slice(0, 80);
 }
 
-function formatDate(value?: string) {
-  if (!value) return new Date().toLocaleDateString("ko-KR");
+function formatDate(value?: string, locale: LoadingLocale = getCurrentLoadingLocale()) {
+  const intlLocale = INTL_LOCALE_BY_LOADING_LOCALE[locale];
+  if (!value) return new Date().toLocaleDateString(intlLocale);
   const date = new Date(value);
-  if (Number.isNaN(date.getTime())) return new Date().toLocaleDateString("ko-KR");
-  return date.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" });
+  if (Number.isNaN(date.getTime())) return new Date().toLocaleDateString(intlLocale);
+  return date.toLocaleDateString(intlLocale, { year: "numeric", month: "long", day: "numeric" });
 }
 
 function formatDistribution(value?: Distribution) {

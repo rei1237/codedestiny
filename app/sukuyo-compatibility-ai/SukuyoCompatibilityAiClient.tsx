@@ -29,7 +29,7 @@ import { buildSukuyoCompatibilityPreviewPayload } from "@/lib/dev-preview/fixtur
 import SukuyoWheel from "@/components/fortune/SukuyoWheel";
 import { pickWelcomeQuote } from "./_data/welcomeQuotes";
 import styles from "./SukuyoCompatibilityAiClient.module.css";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 const QUOTE_SEEN_STORAGE_KEY = "cd:sukuyo-compat-result:quote-seen:v1";
 
@@ -1149,7 +1149,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
     setIsDownloading(true);
     try {
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
-      const fileName = `달빛궁합_${meta.person_a.name}_${meta.person_b.name}_${new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/ /g, "")}.pdf`.replace(/[\\/:*?"<>|]/g, "_");
+      const fileName = `달빛궁합_${meta.person_a.name}_${meta.person_b.name}_${new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]).replace(/\./g, "").replace(/ /g, "")}.pdf`.replace(/[\\/:*?"<>|]/g, "_");
       await exportResultPdf({
         captureTargets: ["#compat-result-body [data-pdf-section]"],
         fileName,
@@ -1269,7 +1269,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
           <div className={styles.pdfMoonImage} aria-hidden="true">
             <span />
           </div>
-          <div className={styles.pdfCoverDate}>{new Date().toLocaleDateString("ko-KR")}</div>
+          <div className={styles.pdfCoverDate}>{new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()])}</div>
           <div className={styles.starPair}>
             <StarCard person={meta.person_a} />
             <div className={styles.relationBridge}>
@@ -1316,7 +1316,7 @@ function CompatResultModal({ result, onClose, onDownloadError, basis = null }: {
 
         <footer className={`${styles.modalFooter} ${styles.pdfPage} ${styles.pdfFooterPage}`} data-pdf-section>
           <strong>Code Destiny</strong>
-          <span>숙요점 궁합 · {new Date().toLocaleDateString("ko-KR")}</span>
+          <span>숙요점 궁합 · {new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()])}</span>
           <p>이 해석은 숙요점 상징 체계를 바탕으로 관계의 흐름을 비추는 참고용 상담입니다. 현실의 선택, 동의, 경계, 건강과 법률·재정 판단은 당사자의 충분한 대화와 전문 검토를 함께 따라야 합니다.</p>
         </footer>
       </div>

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { AlertCircle, ArrowLeft, Check, Copy, Download, ScrollText } from "lucide-react";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE } from "@/constants/loadingMessages";
 import { authFetch } from "@/app/_lib/auth-client";
 import { handleSessionInvalidated } from "@/app/_lib/auth-store";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
@@ -293,9 +294,10 @@ export default function NamingAiResultClient() {
   const saju = result?.sajuSnapshot || null;
   const familyName = toText(input?.familyName) || "미입력";
   const generatedAt = result?.generatedAt ? new Date(result.generatedAt) : null;
+  const generatedAtIntlLocale = INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()];
   const generatedAtLabel = generatedAt && !Number.isNaN(generatedAt.getTime())
-    ? generatedAt.toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" })
-    : new Date().toLocaleDateString("ko-KR");
+    ? generatedAt.toLocaleDateString(generatedAtIntlLocale, { year: "numeric", month: "long", day: "numeric" })
+    : new Date().toLocaleDateString(generatedAtIntlLocale);
 
   const preferenceItems = [input?.preferredStyle, ...(input?.preferredImage || [])]
     .filter((item): item is string => Boolean(item))

@@ -7,7 +7,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { getApiBaseUrl } from "../_lib/api-config";
 import { authFetch } from "../_lib/auth-client";
 import YeonSpriteFrame from "@/components/yeon/YeonSpriteFrame";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type SortKey = "latest" | "rating_desc" | "rating_asc";
 
@@ -887,6 +887,7 @@ function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCop
 
 export default function ReviewsClient() {
   const copy = useReviewsCopy();
+  const numberLocale = INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()];
   const apiBase = useMemo(() => getApiBaseUrl(), []);
 
   const [productFilter, setProductFilter] = useState("");
@@ -1085,7 +1086,7 @@ export default function ReviewsClient() {
             <div>
               <Stars rating={Math.round(summary.average)} label={copy.averageRatingAriaLabel(summary.average)} />
               <p className="mt-1 text-sm text-[#70445c] dark:text-[#c99cb2]">
-                {copy.totalReviewsLabel(summary.total.toLocaleString("ko-KR"))}
+                {copy.totalReviewsLabel(summary.total.toLocaleString(numberLocale))}
               </p>
             </div>
           </div>
@@ -1189,7 +1190,7 @@ export default function ReviewsClient() {
               onClick={() => setMobileExpanded(true)}
               className="mt-4 inline-flex min-h-[44px] w-full items-center justify-center rounded-xl border border-[#f0d4de] bg-white text-sm font-medium text-[#b31955] hover:border-[#e0aec2] dark:border-[#5a3348] dark:bg-[#2b0c1f] dark:text-[#f4bed1] sm:hidden"
             >
-              {copy.viewAllButton(summary.total.toLocaleString("ko-KR"))}
+              {copy.viewAllButton(summary.total.toLocaleString(numberLocale))}
             </button>
           ) : null}
 
