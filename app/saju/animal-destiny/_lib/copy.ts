@@ -102,6 +102,7 @@ export interface AnimalDestinyCopy {
     refine: { label: string; title: string; message: string };
     renew: { label: string; title: string; message: string };
   };
+  myStageRhythmLabel: string;
   stageGuideExpand: string;
   stageGuideRefine: string;
   stageGuideRenew: string;
@@ -285,6 +286,7 @@ const ANIMAL_DESTINY_COPY_EN: AnimalDestinyCopy = {
       message: "The next possibility opens through a process of emptying, preparing, and caring.",
     },
   },
+  myStageRhythmLabel: "My Twelve-Stage Rhythm",
   stageGuideExpand: "Expansive energy is strong, so luck sharpens the more you open opportunities and show yourself to people.",
   stageGuideRefine: "Tuning energy is strong, so substance grows the more you slow down and set standards.",
   stageGuideRenew: "Transitional energy is strong, so the path opens the more you empty old ways and try a new rhythm.",
@@ -417,6 +419,7 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
       refine: { label: "다듬는 운", title: "정리와 회복", message: "속도를 낮추고 기준을 세울수록 실속과 회복력이 커지는 축입니다." },
       renew: { label: "새로 여는 운", title: "전환과 양육", message: "비우고 준비하고 돌보는 과정을 통해 다음 가능성이 열리는 축입니다." },
     },
+    myStageRhythmLabel: "내 십이운성 리듬",
     stageGuideExpand: "확장성이 강하므로 기회를 열고 사람 앞에 드러날수록 운이 선명해집니다.",
     stageGuideRefine: "정비력이 강하므로 속도를 줄이고 기준을 세울수록 실속이 커집니다.",
     stageGuideRenew: "전환성이 강하므로 낡은 방식을 비우고 새 리듬을 실험할수록 길이 열립니다.",
@@ -547,6 +550,7 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
       refine: { label: "整える運", title: "整理と回復", message: "速度を落とし基準を立てるほど実質と回復力が育つ軸です。" },
       renew: { label: "新しく開く運", title: "転換と養い", message: "空にし、準備し、いたわる過程を通じて次の可能性が開く軸です。" },
     },
+    myStageRhythmLabel: "私の十二運星リズム",
     stageGuideExpand: "拡張性が強いので、機会を開き人前に姿を見せるほど運がはっきりします。",
     stageGuideRefine: "整備力が強いので、速度を落とし基準を立てるほど実質が育ちます。",
     stageGuideRenew: "転換性が強いので、古いやり方を手放し新しいリズムを試すほど道が開きます。",
@@ -677,6 +681,7 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
       refine: { label: "打磨之运", title: "整理与恢复", message: "越是放慢速度、树立标准,实质与恢复力就越强的一轴。" },
       renew: { label: "重新开启之运", title: "转换与养育", message: "通过清空、准备、照料的过程打开下一种可能的一轴。" },
     },
+    myStageRhythmLabel: "我的十二运星节奏",
     stageGuideExpand: "扩张性较强,越是打开机会、展现自我,运势就越清晰。",
     stageGuideRefine: "整顿力较强,越是放慢速度、树立标准,实质就越强。",
     stageGuideRenew: "转换性较强,越是放下旧方式尝试新节奏,道路就越畅通。",
@@ -807,6 +812,7 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
       refine: { label: "打磨之運", title: "整理與恢復", message: "越是放慢速度、樹立標準,實質與恢復力就越強的一軸。" },
       renew: { label: "重新開啟之運", title: "轉換與養育", message: "透過清空、準備、照料的過程打開下一種可能的一軸。" },
     },
+    myStageRhythmLabel: "我的十二運星節奏",
     stageGuideExpand: "擴張性較強,越是打開機會、展現自我,運勢就越清晰。",
     stageGuideRefine: "整頓力較強,越是放慢速度、樹立標準,實質就越強。",
     stageGuideRenew: "轉換性較強,越是放下舊方式嘗試新節奏,道路就越暢通。",
