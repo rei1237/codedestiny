@@ -1,8 +1,10 @@
 "use client";
 
 import { m, useReducedMotion } from "framer-motion";
+import { useDestinyBiasCopy } from "../_lib/copy";
 
 export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
+  const copy = useDestinyBiasCopy();
   const reduceMotion = useReducedMotion();
 
   return (
@@ -29,11 +31,7 @@ export default function MyDestinyBiasHero({ subtitle }: { subtitle?: string }) {
           MY DESTINY BIAS
         </h1>
 
-        <p className="mt-3 max-w-xl text-sm leading-7 text-white/82 md:text-base">
-          <span className="font-semibold text-[var(--bias-gold)]">내 생일 에너지</span>가{" "}
-          <span className="font-semibold text-[var(--bias-pink)]">최애의 무대 아우라</span>와{" "}
-          만나는 우주적인 순간을 포토카드로 담아드려요 ✨
-        </p>
+        <p className="mt-3 max-w-xl text-sm leading-7 text-white/82 md:text-base">{copy.myDestinyHeroDescription}</p>
 
         {subtitle ? (
           <p className="mt-3 text-sm font-semibold text-white/80">{subtitle}</p>
