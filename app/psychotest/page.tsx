@@ -9,9 +9,9 @@ import DestinyBiasPromoSection from "./_components/DestinyBiasPromoSection";
 
 const PSYCHOTEST_PAGE_METADATA_COPY = {
   ko: {
-    title: "심리테스트 모음 14종 | 성격·연애·직장 무료 테스트 허브",
+    title: "무료 심리테스트 14종 | 성격·연애·직장 테스트 모음",
     description:
-      "Replit 심리테스트 14종을 기능별로 정리한 SEO 허브입니다. 성격, 연애, 직장, 공감, HSP, 정신연령 테스트를 한 번에 비교하고 바로 시작할 수 있습니다.",
+      "가입 없이 바로 하는 무료 심리테스트 14종을 한곳에 모았습니다. 성격, 연애, 직장, 공감, HSP, 정신연령 테스트를 주제별로 비교하고 원하는 것만 골라 바로 시작할 수 있습니다.",
     featureList: ["심리테스트 14종 카탈로그", "성격/연애/직장 카테고리 필터형 탐색", "기능별 요약과 추천 키워드 안내"],
     itemListName: "심리테스트 모음",
   },

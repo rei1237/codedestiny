@@ -9,7 +9,7 @@ import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/love-secret-ai/";
-const PAGE_TITLE = "사랑의 비밀 전문가 상담 | 짝사랑·재회·연애 마음 리딩 — Code Destiny";
+const PAGE_TITLE = "짝사랑 운세 | 재회·연애 마음 리딩 — 사랑의 비밀";
 const PAGE_DESCRIPTION =
   "생년월일 기반 사주 흐름으로 짝사랑, 썸, 재회, 이별 후 마음까지 읽어주는 사랑의 비밀 전문가 상담. 상대의 마음 결과 관계의 방향을 상담 문장으로 확인하세요.";
 
@@ -93,7 +93,7 @@ export default function LoveSecretAiPage() {
       />
             <LoveSecretAiRouteClient />
             <ServiceIntroSection label="사랑의 비밀 전문가 상담 안내">
-        <h1>사랑의 비밀 전문가 상담 — 짝사랑·재회·연애 마음 리딩</h1>
+        <h1>짝사랑 운세 — 재회와 연애 마음 리딩</h1>
         <p>
           사랑의 비밀은 생년월일로 세운 사주 명식을 따라 연애에 얽힌 마음의 결을 읽는 전문가 상담입니다.
           짝사랑이 어디까지 닿아 있는지, 썸이 관계로 이어질 흐름인지, 이별 뒤의 마음을 어떻게
