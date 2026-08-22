@@ -4,23 +4,10 @@ import React, { useState } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 import { PigCounselBubble } from './PigCounselBubble';
-
-const SIKOJEN_CASTING_TEXT_TRANSLATIONS = {
-  ko: {
-    avatarAlt: "연이 주조 단계",
-    counselTitle: "연이의 주조 상담",
-  },
-  en: {
-    avatarAlt: "Yeon-i casting phase",
-    counselTitle: "Yeon-i’s Casting Counsel",
-  },
-  ja: {
-    avatarAlt: "ヨンの鋳造段階",
-    counselTitle: "ヨンの鋳造相談",
-  },
-} as const;
+import { useSikojenPovailuCopy } from '../_lib/copy';
 
 export function PhaseCasting() {
+  const copy = useSikojenPovailuCopy();
   const { setPhase, setIsCasting, generateShape, selectedCategory } = useSikojenpovailuContext();
   const [isCasting, setLocalIsCasting] = useState(false);
   const [moldMelting, setMoldMelting] = useState(false);
@@ -88,7 +75,7 @@ export function PhaseCasting() {
         <YeonSpriteAvatar
           frames={[10, 11, 12, 11]}
           size={140}
-          alt={SIKOJEN_CASTING_TEXT_TRANSLATIONS.ko.avatarAlt}
+          alt={copy.castingAvatarAlt}
           ringClassName="from-rose-300 to-pink-300"
           intervalMs={760}
         />
@@ -98,13 +85,13 @@ export function PhaseCasting() {
         
         {/* 제목 */}
         <h2 className="text-3xl md:text-4xl font-bold text-pink-600 mb-12 text-center drop-shadow-lg" style={{ fontFamily: "var(--font-playful)" }}>
-          🔥 주석이 녹아내려 ✨
+          {copy.castingTitle}
         </h2>
 
         <PigCounselBubble
           className="mb-7 w-full max-w-md"
-          title={SIKOJEN_CASTING_TEXT_TRANSLATIONS.ko.counselTitle}
-          message="틀을 한 번만 톡 눌러줘. 굳는 모양을 보면서 너한테 필요한 조언을 내가 바로 읽어줄게."
+          title={copy.castingCounselTitle}
+          message={copy.castingCounselMessage}
         />
 
         {/* 캐스팅 영역 */}
@@ -182,7 +169,7 @@ export function PhaseCasting() {
                   <div className="relative z-10 flex flex-col items-center justify-center group-hover:scale-110 transition-transform" style={{
                     animation: `gentle-bob 1.5s ease-in-out infinite`,
                   }}>
-                    <div className="text-2xl font-bold text-gray-600 mb-1" style={{ fontFamily: "var(--font-playful)" }}>주석</div>
+                    <div className="text-2xl font-bold text-gray-600 mb-1" style={{ fontFamily: "var(--font-playful)" }}>{copy.castingTinLabel}</div>
                     <div className="text-xs text-gray-500 tracking-widest">TIN</div>
                     {/* 메탈릭 광택 라인 */}
                     <div className="mt-2 w-12 h-0.5 bg-gradient-to-r from-transparent via-white to-transparent rounded-full opacity-60" />
@@ -218,7 +205,7 @@ export function PhaseCasting() {
 
         {/* 힌트 텍스트 */}
         <div className="mt-12 text-center text-rose-600 font-medium text-sm opacity-80">
-          🔮 당신의 인생 이야기를 담은 주석의 형태가 나타날 거예요 🔮
+          {copy.castingHint}
         </div>
       </div>
 

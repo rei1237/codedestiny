@@ -4,23 +4,10 @@ import React, { useState, useEffect } from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
 import { PigCounselBubble } from './PigCounselBubble';
-
-const SIKOJEN_SHADOW_READING_TEXT_TRANSLATIONS = {
-  ko: {
-    avatarAlt: "연이 그림자 읽기",
-    counselTitle: "연이의 그림자 상담",
-  },
-  en: {
-    avatarAlt: "Yeon-i shadow reading",
-    counselTitle: "Yeon-i’s Shadow Counsel",
-  },
-  ja: {
-    avatarAlt: "ヨンの影読み",
-    counselTitle: "ヨンの影相談",
-  },
-} as const;
+import { useSikojenPovailuCopy } from '../_lib/copy';
 
 export function ShadowReading() {
+  const copy = useSikojenPovailuCopy();
   const { setPhase, selectedShape } = useSikojenpovailuContext();
   const [shadowOpacity, setShadowOpacity] = useState(0);
   const [revealText, setRevealText] = useState(false);
@@ -46,7 +33,7 @@ export function ShadowReading() {
   };
 
   if (!selectedShape) {
-    return <div className="min-h-screen flex items-center justify-center">오류가 발생했습니다.</div>;
+    return <div className="min-h-screen flex items-center justify-center">{copy.shadowErrorFallback}</div>;
   }
 
   return (
@@ -83,7 +70,7 @@ export function ShadowReading() {
             <YeonSpriteAvatar
               frames={[12, 11, 10, 9]}
               size={120}
-              alt={SIKOJEN_SHADOW_READING_TEXT_TRANSLATIONS.ko.avatarAlt}
+              alt={copy.shadowAvatarAlt}
               ringClassName="from-rose-300 to-pink-300"
               intervalMs={820}
             />
@@ -98,13 +85,13 @@ export function ShadowReading() {
 
         {/* 제목 */}
         <h2 className="text-3xl md:text-4xl font-bold text-rose-600 text-center" style={{ fontFamily: "var(--font-playful)" }}>
-          🌑 영혼의 그림자 읽기 👁️
+          {copy.shadowTitle}
         </h2>
 
         <PigCounselBubble
           className="w-full max-w-md"
-          title={SIKOJEN_SHADOW_READING_TEXT_TRANSLATIONS.ko.counselTitle}
-          message="불안한 마음은 숨기지 말고 같이 보자. 그림자 해석은 네가 지켜야 할 감정의 경계를 알려줘."
+          title={copy.shadowCounselTitle}
+          message={copy.shadowCounselMessage}
         />
 
         {/* 벽면 - 그림자 디스플레이 */}
@@ -140,10 +127,10 @@ export function ShadowReading() {
         {/* 연이의 내레이션 */}
         <div className="text-center space-y-2">
             <p className="text-lg text-rose-600 font-bold">
-            그림자 속에 또 다른 운세가 숨어있어...
+            {copy.shadowNarration}
           </p>
             <p className="text-sm text-rose-500 italic">
-            &quot;{selectedShape.name_ko}&quot;의 참된 의미
+            &quot;{selectedShape.name_ko}&quot;{copy.shadowTrueMeaningSuffix}
           </p>
         </div>
 
@@ -152,7 +139,7 @@ export function ShadowReading() {
           <div className="w-full rounded-2xl border-2 border-rose-300 bg-gradient-to-br from-white via-rose-50 to-amber-50 p-6 animate-fade-in shadow-[0_14px_32px_rgba(190,24,93,0.14)]">
             
             <h3 className="text-xl md:text-2xl font-bold text-rose-700 text-center mb-4" style={{ fontFamily: "var(--font-playful)" }}>
-              🌑 진짜 의미
+              {copy.shadowTrueMeaningTitle}
             </h3>
 
             {/* 한글 해석 */}
@@ -172,7 +159,7 @@ export function ShadowReading() {
             {/* 신비로운 힌트 */}
             <div className="mt-4 text-center">
               <p className="text-xs text-rose-600 bg-rose-100 rounded-lg px-3 py-2 border border-rose-200">
-                ✧ 이것이 형태가 진정으로 속삭이는 것 ✧
+                {copy.shadowWhisperHint}
               </p>
             </div>
           </div>
@@ -188,13 +175,13 @@ export function ShadowReading() {
         >
           <span className="absolute inset-0 bg-white/20 transform -skew-x-12 group-hover:translate-x-full transition-transform duration-500"></span>
           <span className="relative flex items-center gap-2">
-            🔥 따뜻한 난로로 돌아가기
+            {copy.shadowReturnButton}
           </span>
         </button>
 
         {/* 신비로운 텍스트 힌트 */}
         <p className="text-center text-xs text-rose-500 italic">
-          숨겨진 진실을 발견했어... 이제 이 지혜를 나눠주겠어?
+          {copy.shadowClosingHint}
         </p>
       </div>
 
