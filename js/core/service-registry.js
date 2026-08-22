@@ -268,6 +268,20 @@ window.__cdServiceRegistry = [
     roles: ["quick"],
   },
   {
+    id: "human-design",
+    name: "휴먼 디자인",
+    desc: "출생 데이터로 계산하는 나의 에너지 설계도",
+    href: "/human-design/",
+    featureKey: "human-design-chart",
+    price: "10,000원",
+    purposes: ["life", "self", "career"],
+    methods: ["astrology", "ai"],
+    keys: "휴먼디자인 human design 바디그래프 bodygraph 게이트 채널 센터 타입 권위 프로파일",
+    badge: "NEW",
+    // roles 를 주지 않는다 — 이 카드는 VVIP 운명 서고 컬렉션에 있고 대표 상담 섹션에는 없다.
+    // verify:home-service-registry 가 roles 선언과 셸 배치를 1:1 로 대조한다.
+  },
+  {
     id: "nakshatra",
     name: "나크샤트라 결정판",
     desc: "베다 별자리로 보는 나의 본질",
