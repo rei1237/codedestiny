@@ -97,6 +97,9 @@ concurrency:
 permissions:
   contents: read
   pull-requests: write
+  # gate 잡이 "이 SHA 를 배포하는 릴리스 런이 지금 도는가" 를 읽는다. 이 권한이 없으면
+  # 조회가 실패하고, 판정은 옛 시간 유예로 폴백한다(동작은 하되 자가 수렴이 다시 느려진다).
+  actions: read
 
 jobs:
   # 릴리스가 정말 필요한지 먼저 싼 값에 판정한다.
@@ -136,6 +139,8 @@ jobs:
         env:
           CD_STAGING_ORIGIN: ${{ vars.CD_STAGING_ORIGIN || 'https://staging.code-destiny.com' }}
           DISPATCH_MODE: ${{ github.event_name == 'workflow_dispatch' && inputs.mode || '' }}
+          # 드리프트 판정이 릴리스 런 상태를 읽는 데 쓴다. 없으면 옛 시간 유예로 폴백한다.
+          GH_TOKEN: ${{ github.token }}
         run: |
           set -uo pipefail
           # 🔴 두 판정을 변수에 모으고 **끝에서 한 번만** 쓴다. 갈래마다 echo 하면 갈래를
@@ -170,6 +175,14 @@ jobs:
             exit 0
           fi
           # schedule — 스테이징이 main HEAD 와 어긋났는지만 본다.
+          #
+          # 🔴 이 판정이 오랫동안 죽어 있었다. 드리프트 유예가 **main HEAD 의 커밋 시각**
+          # 기준(20분)이고 이 cron 도 20분이라, 머지가 20분보다 잦은 구간에서는 모든 주기가
+          # 누군가의 유예 안에서 깨어나 "배포 중" 으로 읽고 그냥 끝났다. 즉 **자가 수렴이 가장
+          # 필요한 구간에서만 꺼졌다**(2026-08-22 16:30 런 32584921998: 스테이징이 두 머지
+          # 뒤처진 상태에서 "main HEAD 와 같습니다" 로 판정하고 스킵).
+          # 지금은 시각이 아니라 **그 SHA 의 릴리스 런이 실제로 도는가** 를 묻는다
+          # (verify-merge-landed.mjs 의 releaseInFlight). 그걸 못 읽으면 예전 유예로 폴백한다.
           # 🔴 여기서 프로덕션을 보면 안 된다. 새 체계에서 프로덕션은 **정상적으로** main 보다
           #    뒤처져 있으므로, 프로덕션 기준으로 판정하면 20분마다 영원히 프로덕션을 자동 배포한다.
           # 얕은 체크아웃이라 origin/main 이 없다. HEAD 가 곧 main tip 이다.
@@ -355,6 +368,7 @@ jobs:
       # 표현식 오타 하나가 push 를 프로덕션으로 흘려보내는 경로가 되고, 그 실패는 조용하다.
       # 프로덕션은 사람이 Run workflow 를 눌렀을 때만 나간다.
       - name: Deploy Pages and Worker at the exact SHA
+        id: deploy
         if: env.RELEASE_MODE == 'production' && github.event_name == 'workflow_dispatch'
         run: npm run deploy:safe -- --ci --yes ${REDEPLOY_FLAG} ${PAGES_ONLY_FLAG}
 
@@ -370,11 +384,20 @@ jobs:
       # 🔴 !cancelled() 인 이유: 승격이 실패하면 deploy-safe 가 Pages 와 Worker 를 자동
       # 롤백하는데, 이 스텝이 건너뛰어지면 **롤백 뒤 실제로 떠 있는 SHA 가 어디에도 기록되지
       # 않는다.** 그러면 다음 사람은 프로덕션이 어느 커밋인지 알 방법이 없다.
-      # continue-on-error 를 붙이지 않는 것도 의도다 — 붙이면 "배포는 됐는데 다른 코드가 떠
-      # 있다"를 통과시키게 된다. 실패 경로에서는 잡이 이미 빨간불이라 결과가 달라지지 않는다.
+      #
+      # 🔴 continue-on-error 는 **배포 스텝이 이미 실패한 때만** 켜진다. 둘을 가르지 않으면
+      # 둘 중 하나가 깨진다 — 항상 켜면 "배포는 됐는데 다른 코드가 떠 있다"를 통과시키고,
+      # 항상 끄면 배포가 이미 죽은 런에서도 이 스텝이 빨간불로 끝나 **잡의 마지막 에러가
+      # 늘 'SHA 불일치'가 된다.** 실제 원인(빌드 실패·테스트 실패·린트 실패)은 로그 위쪽으로
+      # 묻히고, 사람은 있지도 않은 배포 전파 문제를 쫓게 된다(2026-08-22 실측: 실패 5건 전부
+      # 이 모양이었다). 배포가 성공했을 때만 이 검증이 판정 권한을 갖는다.
       - name: Verify deployed SHA on Pages and Worker
         if: ${{ !cancelled() && env.RELEASE_MODE == 'production' }}
+        continue-on-error: ${{ steps.deploy.outcome == 'failure' }}
         run: |
+          if [ "${{ steps.deploy.outcome }}" = "failure" ]; then
+            echo "::notice::배포 스텝이 이미 실패했습니다. 아래 SHA 불일치는 그 결과이지 원인이 아니며, 여기서는 롤백 뒤 라이브 SHA 를 기록만 합니다. 진짜 원인은 'Deploy Pages and Worker at the exact SHA' 스텝 로그에 있습니다."
+          fi
           # 🔴 --pages-only 릴리스에서는 워커 검사를 **건너뛰지 않는다**. 워커를 승격하지 않았을
           # 뿐, 떠 있어야 하는 커밋은 여전히 이 SHA 이고 그것이 바로 이 플래그의 전제다.
           # 여기서 함께 재면 배포 전 단언과 배포 후 실측이 같은 명제를 양쪽에서 잠근다.
@@ -576,11 +599,19 @@ jobs:
         run: npm run verify:no-secret-leak
 
       - name: Deploy staging Pages and Worker at the exact SHA
+        id: deploy
         run: npm run deploy:staging -- --ci --yes
 
+      # 🔴 release 잡과 같은 이유로 배포 실패 시에는 **기록 전용**이다. 그렇게 하지 않으면
+      # 빌드·테스트가 죽은 런에서도 이 스텝이 마지막 빨간불이 돼 "SHA 가 안 맞는다"로 보이고,
+      # 실제 원인은 로그 위쪽으로 묻힌다.
       - name: Verify deployed SHA on staging
         if: ${{ !cancelled() }}
+        continue-on-error: ${{ steps.deploy.outcome == 'failure' }}
         run: |
+          if [ "${{ steps.deploy.outcome }}" = "failure" ]; then
+            echo "::notice::배포 스텝이 이미 실패했습니다. 아래 SHA 불일치는 그 결과이지 원인이 아닙니다. 진짜 원인은 'Deploy staging Pages and Worker at the exact SHA' 스텝 로그에 있습니다."
+          fi
           npm run verify:deployed-sha -- \
             --sha="${GITHUB_SHA}" \
             --origin="${CD_STAGING_ORIGIN}"
