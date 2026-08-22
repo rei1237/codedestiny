@@ -91,9 +91,14 @@ function diffRows(previous, next) {
   return problems;
 }
 
+/** cases(외부 검증값 있음) + structuralCases(구조만 검사) 를 한 줄로 세운다. */
+function collectCases(doc) {
+  return [...(doc.cases || []), ...(doc.structuralCases || [])];
+}
+
 async function main() {
-  const cases = JSON.parse(await readFile(CASES_PATH, "utf8")).cases;
-  if (!Array.isArray(cases) || !cases.length) {
+  const cases = collectCases(JSON.parse(await readFile(CASES_PATH, "utf8")));
+  if (!cases.length) {
     console.error("❌ cases.json 에 케이스가 없다.");
     process.exit(1);
   }

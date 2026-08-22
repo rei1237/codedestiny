@@ -2,273 +2,2800 @@
   "note": [
     "휴먼 디자인 계산 엔진의 정답 대조용 fixture.",
     "",
-    "🔴 `expected` 는 **외부의 신뢰할 수 있는 Human Design 계산기**에 같은 birth 를 넣어 받은 값이다.",
-    "   우리 엔진 출력을 그대로 베껴 넣으면 이 파일은 회귀 테스트일 뿐 정확도 검증이 아니게 된다.",
-    "   미기입(null)이 하나라도 있으면 `npm run verify:human-design` 이 실패한다(fail-closed).",
+    "`cases` 의 expected 는 **외부 Human Design 계산기가 출력한 차트**에서 옮긴 값이다.",
+    "출처는 사용자가 제공한 차트 이미지 20건(2026-08-23)이며, 각 차트는 Birth Data(현지시각+UTC),",
+    "Type/Authority/Definition/Profile/Incarnation Cross, 그리고 DESIGN·PERSONALITY 26 activation 을 담고 있다.",
+    "🔴 우리 엔진 출력을 여기에 베껴 넣지 말 것 — 그러면 회귀 테스트일 뿐 정확도 검증이 아니게 된다.",
     "",
     "🔴 위도/경도는 계산에 쓰이지 않는다. 휴먼 디자인 바디그래프는 하우스·상승궁을 쓰지 않아",
-    "   장소가 아니라 **타임존만** 결과에 영향을 준다. 좌표는 입력 기록·타임존 유도용으로만 남긴다.",
+    "   장소가 아니라 **타임존만** 결과에 영향을 준다. 좌표는 입력 기록용으로만 남긴다.",
     "",
-    "expected 필드 규격:",
-    "  designMomentUtc   : ISO8601 (초까지). 계산기가 현지시각으로 준다면 UTC 로 변환해 적는다.",
-    "  personalitySun    : { gate, line }   designSun: { gate, line }",
-    "  personalityEarth  : { gate, line }   designEarth: { gate, line }",
-    "  personalityNorthNode / designNorthNode : { gate, line }  ← True/Mean Node 판정용",
-    "  profile           : \"1/3\" 형식",
-    "  type              : Generator | Manifesting Generator | Projector | Manifestor | Reflector",
-    "  authority         : Emotional | Sacral | Splenic | Ego | Self-Projected | Mental | Lunar",
-    "  definition        : Single | Split | Triple Split | Quadruple Split | None",
-    "  definedCenters    : [\"Throat\", \"G\", \"Sacral\", ...] (영문 센터명)",
-    "  definedChannels   : [\"20-34\", \"7-31\", ...] (작은 게이트 번호 먼저)",
-    "  incarnationCross  : \"Right Angle Cross of ... (55/59 | 34/20)\" 처럼 원문 그대로"
+    "`structuralCases` 는 외부 차트가 없는 탐침이다. 값 대조 대신 구조 불변식(경계 쌍이 실제로",
+    "경계를 넘는가, 26 activation 이 성립하는가, Profile 이 12조합 안인가)만 검사한다.",
+    "여기에 expected 를 채우려면 그 출생 데이터의 외부 차트를 먼저 확보해야 한다."
+  ],
+  "source": {
+    "kind": "external-human-design-calculator-screenshots",
+    "collectedAt": "2026-08-23",
+    "chartCount": 20,
+    "fields": "Birth Data(local+UTC) · Type · Strategy · Signature · Not-Self · Authority · Definition · Profile · Incarnation Cross · 26 activations"
+  },
+  "planetOrder": [
+    "Sun",
+    "Earth",
+    "Moon",
+    "NorthNode",
+    "SouthNode",
+    "Mercury",
+    "Venus",
+    "Mars",
+    "Jupiter",
+    "Saturn",
+    "Uranus",
+    "Neptune",
+    "Pluto"
   ],
   "expectedFieldsRequired": [
-    "designMomentUtc",
-    "personalitySun",
-    "personalityEarth",
-    "personalityNorthNode",
-    "designSun",
-    "designEarth",
-    "designNorthNode",
+    "birthUtc",
+    "personality",
+    "design",
     "profile",
     "type",
     "authority",
     "definition",
-    "definedCenters",
-    "definedChannels",
     "incarnationCross"
   ],
   "cases": [
     {
-      "id": "kr-seoul-1991-02-20-0835",
-      "label": "한국 · 서울 · 표준시",
-      "purpose": "기준 케이스. ±1분/±5분 파생 케이스가 이 시각을 기준으로 삼는다.",
-      "birth": { "birthDate": "1991-02-20", "birthTime": "08:35", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "id": "kr-jeonju-1991-02-20-0830",
+      "label": "한국 · 전주 · 표준시(+9)",
+      "axis": "기준 케이스",
+      "birth": {
+        "birthDate": "1991-02-20",
+        "birthTime": "08:30",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 35.8242,
+        "longitude": 127.148
+      },
+      "expected": {
+        "birthUtc": "1991-02-19T23:30:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 55,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 59,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 27,
+            "line": 4
+          },
+          "NorthNode": {
+            "gate": 60,
+            "line": 2
+          },
+          "SouthNode": {
+            "gate": 56,
+            "line": 2
+          },
+          "Mercury": {
+            "gate": 49,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 36,
+            "line": 5
+          },
+          "Mars": {
+            "gate": 16,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 31,
+            "line": 5
+          },
+          "Saturn": {
+            "gate": 60,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 38,
+            "line": 4
+          },
+          "Neptune": {
+            "gate": 54,
+            "line": 1
+          },
+          "Pluto": {
+            "gate": 43,
+            "line": 2
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 34,
+            "line": 3
+          },
+          "Earth": {
+            "gate": 20,
+            "line": 3
+          },
+          "Moon": {
+            "gate": 55,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 60,
+            "line": 4
+          },
+          "SouthNode": {
+            "gate": 56,
+            "line": 4
+          },
+          "Mercury": {
+            "gate": 26,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 9,
+            "line": 4
+          },
+          "Mars": {
+            "gate": 16,
+            "line": 1
+          },
+          "Jupiter": {
+            "gate": 7,
+            "line": 1
+          },
+          "Saturn": {
+            "gate": 61,
+            "line": 2
+          },
+          "Uranus": {
+            "gate": 58,
+            "line": 5
+          },
+          "Neptune": {
+            "gate": 38,
+            "line": 4
+          },
+          "Pluto": {
+            "gate": 1,
+            "line": 6
+          }
+        },
+        "profile": "1/3",
+        "type": "Manifesting Generator",
+        "authority": "Sacral",
+        "definition": "Single",
+        "incarnationCross": "Right Angle Cross of The Sleeping Phoenix (55/59 | 34/20)"
+      }
     },
     {
-      "id": "kr-seoul-1988-05-08-0900",
-      "label": "한국 · 1988 서머타임(+10)",
-      "purpose": "한국이 1987~1988 두 해만 DST 를 시행했다. 고정 오프셋 표를 쓰는 구현은 여기서 1시간 틀린다.",
-      "birth": { "birthDate": "1988-05-08", "birthTime": "09:00", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "id": "kr-seoul-1991-09-02-1200",
+      "label": "한국 · 서울 · 정오",
+      "axis": "정오 · Split 정의",
+      "birth": {
+        "birthDate": "1991-09-02",
+        "birthTime": "12:00",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      },
+      "expected": {
+        "birthUtc": "1991-09-02T03:00:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 40,
+            "line": 4
+          },
+          "Earth": {
+            "gate": 37,
+            "line": 4
+          },
+          "Moon": {
+            "gate": 35,
+            "line": 3
+          },
+          "NorthNode": {
+            "gate": 54,
+            "line": 3
+          },
+          "SouthNode": {
+            "gate": 53,
+            "line": 3
+          },
+          "Mercury": {
+            "gate": 4,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 4,
+            "line": 5
+          },
+          "Mars": {
+            "gate": 46,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 29,
+            "line": 4
+          },
+          "Saturn": {
+            "gate": 60,
+            "line": 5
+          },
+          "Uranus": {
+            "gate": 38,
+            "line": 1
+          },
+          "Neptune": {
+            "gate": 38,
+            "line": 5
+          },
+          "Pluto": {
+            "gate": 1,
+            "line": 5
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 16,
+            "line": 6
+          },
+          "Earth": {
+            "gate": 9,
+            "line": 6
+          },
+          "Moon": {
+            "gate": 41,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 54,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 53,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 8,
+            "line": 1
+          },
+          "Venus": {
+            "gate": 62,
+            "line": 6
+          },
+          "Mars": {
+            "gate": 31,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 33,
+            "line": 2
+          },
+          "Saturn": {
+            "gate": 41,
+            "line": 5
+          },
+          "Uranus": {
+            "gate": 38,
+            "line": 4
+          },
+          "Neptune": {
+            "gate": 54,
+            "line": 2
+          },
+          "Pluto": {
+            "gate": 1,
+            "line": 6
+          }
+        },
+        "profile": "4/6",
+        "type": "Manifesting Generator",
+        "authority": "Solar Plexus",
+        "definition": "Split",
+        "incarnationCross": "Right Angle Cross of Planning (40/37 | 16/9)"
+      }
     },
     {
-      "id": "kr-daegu-1987-08-20-1430",
-      "label": "한국 · 1987 서머타임(+10) · 대구",
-      "purpose": "DST 두 번째 해. 좌표가 달라도 타임존이 같으면 결과가 같아야 한다는 점도 함께 본다.",
-      "birth": { "birthDate": "1987-08-20", "birthTime": "14:30", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 35.8714, "longitude": 128.6014 },
-      "expected": null
+      "id": "kr-busan-1996-02-06-2200",
+      "label": "한국 · 부산 · 야간(22:00)",
+      "axis": "야간 · Generator",
+      "birth": {
+        "birthDate": "1996-02-06",
+        "birthTime": "22:00",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 35.1796,
+        "longitude": 129.0756
+      },
+      "expected": {
+        "birthUtc": "1996-02-06T13:00:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 13,
+            "line": 5
+          },
+          "Earth": {
+            "gate": 7,
+            "line": 5
+          },
+          "Moon": {
+            "gate": 40,
+            "line": 3
+          },
+          "NorthNode": {
+            "gate": 57,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 51,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 61,
+            "line": 2
+          },
+          "Venus": {
+            "gate": 36,
+            "line": 5
+          },
+          "Mars": {
+            "gate": 49,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 58,
+            "line": 4
+          },
+          "Saturn": {
+            "gate": 36,
+            "line": 1
+          },
+          "Uranus": {
+            "gate": 60,
+            "line": 6
+          },
+          "Neptune": {
+            "gate": 61,
+            "line": 6
+          },
+          "Pluto": {
+            "gate": 34,
+            "line": 3
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 43,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 23,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 39,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 32,
+            "line": 6
+          },
+          "SouthNode": {
+            "gate": 42,
+            "line": 6
+          },
+          "Mercury": {
+            "gate": 44,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 9,
+            "line": 6
+          },
+          "Mars": {
+            "gate": 5,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 26,
+            "line": 2
+          },
+          "Saturn": {
+            "gate": 22,
+            "line": 2
+          },
+          "Uranus": {
+            "gate": 60,
+            "line": 1
+          },
+          "Neptune": {
+            "gate": 61,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 14,
+            "line": 6
+          }
+        },
+        "profile": "5/1",
+        "type": "Generator",
+        "authority": "Sacral",
+        "definition": "Split",
+        "incarnationCross": "Left Angle Cross of Masks (13/7 | 43/23)"
+      }
     },
     {
-      "id": "kr-lunar-leap-1987-06-15-0700",
-      "label": "한국 · 음력 윤6월 15일 (양력 1987-08-09) · 서머타임",
-      "purpose": "음력 윤달 변환 + DST 가 겹치는 케이스.",
-      "birth": { "birthDate": "1987-06-15", "birthTime": "07:00", "timezone": "Asia/Seoul", "calendar": "lunar-leap", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "id": "kr-seoul-1999-01-01-1211",
+      "label": "한국 · 서울 · 연초",
+      "axis": "연도 경계(Design 이 전년도)",
+      "birth": {
+        "birthDate": "1999-01-01",
+        "birthTime": "12:11",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      },
+      "expected": {
+        "birthUtc": "1999-01-01T03:11:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 38,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 39,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 12,
+            "line": 5
+          },
+          "NorthNode": {
+            "gate": 4,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 49,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 26,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 61,
+            "line": 6
+          },
+          "Mars": {
+            "gate": 57,
+            "line": 4
+          },
+          "Jupiter": {
+            "gate": 22,
+            "line": 6
+          },
+          "Saturn": {
+            "gate": 3,
+            "line": 1
+          },
+          "Uranus": {
+            "gate": 19,
+            "line": 4
+          },
+          "Neptune": {
+            "gate": 60,
+            "line": 6
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 4
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 48,
+            "line": 3
+          },
+          "Earth": {
+            "gate": 21,
+            "line": 3
+          },
+          "Moon": {
+            "gate": 21,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 59,
+            "line": 1
+          },
+          "SouthNode": {
+            "gate": 55,
+            "line": 1
+          },
+          "Mercury": {
+            "gate": 57,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 18,
+            "line": 3
+          },
+          "Mars": {
+            "gate": 29,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 22,
+            "line": 4
+          },
+          "Saturn": {
+            "gate": 3,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 19,
+            "line": 2
+          },
+          "Neptune": {
+            "gate": 60,
+            "line": 4
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 1
+          }
+        },
+        "profile": "1/3",
+        "type": "Manifesting Generator",
+        "authority": "Solar Plexus",
+        "definition": "Single",
+        "incarnationCross": "Right Angle Cross of Tension (38/39 | 48/21)"
+      }
     },
     {
-      "id": "kr-busan-1975-11-03-2359",
-      "label": "한국 · 부산 · 날짜 경계 직전(23:59)",
-      "purpose": "자정 직전. 하루 밀림 버그를 잡는다.",
-      "birth": { "birthDate": "1975-11-03", "birthTime": "23:59", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 35.1796, "longitude": 129.0756 },
-      "expected": null
+      "id": "kr-seoul-1996-11-06-1100",
+      "label": "한국 · 서울 · 오전",
+      "axis": "Manifestor · Splenic 권위",
+      "birth": {
+        "birthDate": "1996-11-06",
+        "birthTime": "11:00",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      },
+      "expected": {
+        "birthUtc": "1996-11-06T02:00:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 1,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 2,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 64,
+            "line": 3
+          },
+          "NorthNode": {
+            "gate": 18,
+            "line": 4
+          },
+          "SouthNode": {
+            "gate": 17,
+            "line": 4
+          },
+          "Mercury": {
+            "gate": 1,
+            "line": 4
+          },
+          "Venus": {
+            "gate": 18,
+            "line": 6
+          },
+          "Mars": {
+            "gate": 59,
+            "line": 4
+          },
+          "Jupiter": {
+            "gate": 38,
+            "line": 5
+          },
+          "Saturn": {
+            "gate": 25,
+            "line": 4
+          },
+          "Uranus": {
+            "gate": 60,
+            "line": 5
+          },
+          "Neptune": {
+            "gate": 61,
+            "line": 5
+          },
+          "Pluto": {
+            "gate": 34,
+            "line": 3
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 7,
+            "line": 3
+          },
+          "Earth": {
+            "gate": 13,
+            "line": 3
+          },
+          "Moon": {
+            "gate": 16,
+            "line": 4
+          },
+          "NorthNode": {
+            "gate": 48,
+            "line": 1
+          },
+          "SouthNode": {
+            "gate": 21,
+            "line": 1
+          },
+          "Mercury": {
+            "gate": 40,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 15,
+            "line": 3
+          },
+          "Mars": {
+            "gate": 52,
+            "line": 6
+          },
+          "Jupiter": {
+            "gate": 58,
+            "line": 6
+          },
+          "Saturn": {
+            "gate": 17,
+            "line": 4
+          },
+          "Uranus": {
+            "gate": 41,
+            "line": 1
+          },
+          "Neptune": {
+            "gate": 61,
+            "line": 6
+          },
+          "Pluto": {
+            "gate": 34,
+            "line": 1
+          }
+        },
+        "profile": "1/3",
+        "type": "Manifestor",
+        "authority": "Splenic",
+        "definition": "Single",
+        "incarnationCross": "Right Angle Cross of The Sphinx (1/2 | 7/13)"
+      }
     },
     {
-      "id": "kr-seoul-2001-07-15-0001",
-      "label": "한국 · 자정 직후(00:01)",
-      "purpose": "자정 직후. UTC 변환에서 전날로 넘어간다(KST -9h).",
-      "birth": { "birthDate": "2001-07-15", "birthTime": "00:01", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "id": "kr-seoul-2000-01-30-1144",
+      "label": "한국 · 서울 · 겨울",
+      "axis": "Profile 3/5",
+      "birth": {
+        "birthDate": "2000-01-30",
+        "birthTime": "11:44",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      },
+      "expected": {
+        "birthUtc": "2000-01-30T02:44:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 19,
+            "line": 3
+          },
+          "Earth": {
+            "gate": 33,
+            "line": 3
+          },
+          "Moon": {
+            "gate": 14,
+            "line": 6
+          },
+          "NorthNode": {
+            "gate": 31,
+            "line": 2
+          },
+          "SouthNode": {
+            "gate": 41,
+            "line": 2
+          },
+          "Mercury": {
+            "gate": 49,
+            "line": 1
+          },
+          "Venus": {
+            "gate": 58,
+            "line": 3
+          },
+          "Mars": {
+            "gate": 22,
+            "line": 4
+          },
+          "Jupiter": {
+            "gate": 3,
+            "line": 2
+          },
+          "Saturn": {
+            "gate": 24,
+            "line": 4
+          },
+          "Uranus": {
+            "gate": 13,
+            "line": 4
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 5,
+            "line": 2
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 44,
+            "line": 5
+          },
+          "Earth": {
+            "gate": 24,
+            "line": 5
+          },
+          "Moon": {
+            "gate": 46,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 33,
+            "line": 1
+          },
+          "SouthNode": {
+            "gate": 19,
+            "line": 1
+          },
+          "Mercury": {
+            "gate": 34,
+            "line": 2
+          },
+          "Venus": {
+            "gate": 6,
+            "line": 3
+          },
+          "Mars": {
+            "gate": 38,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 3,
+            "line": 3
+          },
+          "Saturn": {
+            "gate": 2,
+            "line": 1
+          },
+          "Uranus": {
+            "gate": 19,
+            "line": 6
+          },
+          "Neptune": {
+            "gate": 60,
+            "line": 6
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 4
+          }
+        },
+        "profile": "3/5",
+        "type": "Manifesting Generator",
+        "authority": "Solar Plexus",
+        "definition": "Single",
+        "incarnationCross": "Right Angle Cross of The Four Ways (19/33 | 44/24)"
+      }
     },
     {
-      "id": "kr-seoul-1966-01-01-1200",
-      "label": "한국 · 정오 · 연초",
-      "purpose": "정오 + 연도 경계 인접. Design 순간이 전년도로 넘어간다.",
-      "birth": { "birthDate": "1966-01-01", "birthTime": "12:00", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "id": "cr-sanjose-1997-09-08-1530",
+      "label": "코스타리카 · 산호세(-6)",
+      "axis": "중미 · DST 미시행 · Profile 6/2",
+      "birth": {
+        "birthDate": "1997-09-08",
+        "birthTime": "15:30",
+        "timezone": "America/Costa_Rica",
+        "calendar": "solar",
+        "latitude": 9.9281,
+        "longitude": -84.0907
+      },
+      "expected": {
+        "birthUtc": "1997-09-08T21:30:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 64,
+            "line": 6
+          },
+          "Earth": {
+            "gate": 63,
+            "line": 6
+          },
+          "Moon": {
+            "gate": 34,
+            "line": 3
+          },
+          "NorthNode": {
+            "gate": 47,
+            "line": 3
+          },
+          "SouthNode": {
+            "gate": 22,
+            "line": 3
+          },
+          "Mercury": {
+            "gate": 59,
+            "line": 3
+          },
+          "Venus": {
+            "gate": 32,
+            "line": 6
+          },
+          "Mars": {
+            "gate": 1,
+            "line": 4
+          },
+          "Jupiter": {
+            "gate": 13,
+            "line": 1
+          },
+          "Saturn": {
+            "gate": 51,
+            "line": 5
+          },
+          "Uranus": {
+            "gate": 41,
+            "line": 4
+          },
+          "Neptune": {
+            "gate": 60,
+            "line": 2
+          },
+          "Pluto": {
+            "gate": 34,
+            "line": 4
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 45,
+            "line": 2
+          },
+          "Earth": {
+            "gate": 26,
+            "line": 2
+          },
+          "Moon": {
+            "gate": 31,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 6,
+            "line": 3
+          },
+          "SouthNode": {
+            "gate": 36,
+            "line": 3
+          },
+          "Mercury": {
+            "gate": 20,
+            "line": 1
+          },
+          "Venus": {
+            "gate": 52,
+            "line": 3
+          },
+          "Mars": {
+            "gate": 6,
+            "line": 4
+          },
+          "Jupiter": {
+            "gate": 49,
+            "line": 4
+          },
+          "Saturn": {
+            "gate": 51,
+            "line": 4
+          },
+          "Uranus": {
+            "gate": 19,
+            "line": 1
+          },
+          "Neptune": {
+            "gate": 60,
+            "line": 4
+          },
+          "Pluto": {
+            "gate": 34,
+            "line": 4
+          }
+        },
+        "profile": "6/2",
+        "type": "Manifesting Generator",
+        "authority": "Solar Plexus",
+        "definition": "Split",
+        "incarnationCross": "Left Angle Cross of Dominion (64/63 | 45/26)"
+      }
     },
     {
-      "id": "us-newyork-1985-07-04-1420",
-      "label": "미국 · 뉴욕 · 여름(EDT, -4)",
-      "purpose": "미국 DST 적용 구간.",
-      "birth": { "birthDate": "1985-07-04", "birthTime": "14:20", "timezone": "America/New_York", "calendar": "solar", "latitude": 40.7128, "longitude": -74.006 },
-      "expected": null
+      "id": "gb-london-2005-09-11-1145",
+      "label": "영국 · 런던 · BST(+1)",
+      "axis": "🔴 유럽 서머타임 · Ego 권위",
+      "birth": {
+        "birthDate": "2005-09-11",
+        "birthTime": "11:45",
+        "timezone": "Europe/London",
+        "calendar": "solar",
+        "latitude": 51.5074,
+        "longitude": -0.1278
+      },
+      "expected": {
+        "birthUtc": "2005-09-11T10:45:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 47,
+            "line": 2
+          },
+          "Earth": {
+            "gate": 22,
+            "line": 2
+          },
+          "Moon": {
+            "gate": 26,
+            "line": 2
+          },
+          "NorthNode": {
+            "gate": 21,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 48,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 64,
+            "line": 2
+          },
+          "Venus": {
+            "gate": 50,
+            "line": 4
+          },
+          "Mars": {
+            "gate": 23,
+            "line": 2
+          },
+          "Jupiter": {
+            "gate": 57,
+            "line": 6
+          },
+          "Saturn": {
+            "gate": 31,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 37,
+            "line": 3
+          },
+          "Neptune": {
+            "gate": 13,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 26,
+            "line": 6
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 45,
+            "line": 5
+          },
+          "Earth": {
+            "gate": 26,
+            "line": 5
+          },
+          "Moon": {
+            "gate": 7,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 51,
+            "line": 6
+          },
+          "SouthNode": {
+            "gate": 57,
+            "line": 6
+          },
+          "Mercury": {
+            "gate": 15,
+            "line": 3
+          },
+          "Venus": {
+            "gate": 39,
+            "line": 1
+          },
+          "Mars": {
+            "gate": 25,
+            "line": 2
+          },
+          "Jupiter": {
+            "gate": 18,
+            "line": 6
+          },
+          "Saturn": {
+            "gate": 62,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 37,
+            "line": 6
+          },
+          "Neptune": {
+            "gate": 13,
+            "line": 5
+          },
+          "Pluto": {
+            "gate": 11,
+            "line": 1
+          }
+        },
+        "profile": "2/5",
+        "type": "Manifestor",
+        "authority": "Ego Manifested",
+        "definition": "Split",
+        "incarnationCross": "Right Angle Cross of Rulership (47/22 | 45/26)"
+      }
     },
     {
-      "id": "us-newyork-1985-01-04-1420",
-      "label": "미국 · 뉴욕 · 겨울(EST, -5)",
-      "purpose": "같은 도시·같은 시각의 비 DST 대조군.",
-      "birth": { "birthDate": "1985-01-04", "birthTime": "14:20", "timezone": "America/New_York", "calendar": "solar", "latitude": 40.7128, "longitude": -74.006 },
-      "expected": null
+      "id": "kr-jeonju-2000-01-01-1111",
+      "label": "한국 · 전주 · 연초",
+      "axis": "연도 경계 · Split",
+      "birth": {
+        "birthDate": "2000-01-01",
+        "birthTime": "11:11",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 35.8242,
+        "longitude": 127.148
+      },
+      "expected": {
+        "birthUtc": "2000-01-01T02:11:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 38,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 39,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 44,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 31,
+            "line": 3
+          },
+          "SouthNode": {
+            "gate": 41,
+            "line": 3
+          },
+          "Mercury": {
+            "gate": 10,
+            "line": 4
+          },
+          "Venus": {
+            "gate": 34,
+            "line": 2
+          },
+          "Mars": {
+            "gate": 30,
+            "line": 4
+          },
+          "Jupiter": {
+            "gate": 42,
+            "line": 5
+          },
+          "Saturn": {
+            "gate": 24,
+            "line": 3
+          },
+          "Uranus": {
+            "gate": 13,
+            "line": 2
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 2
+          },
+          "Pluto": {
+            "gate": 5,
+            "line": 1
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 48,
+            "line": 3
+          },
+          "Earth": {
+            "gate": 21,
+            "line": 3
+          },
+          "Moon": {
+            "gate": 29,
+            "line": 2
+          },
+          "NorthNode": {
+            "gate": 33,
+            "line": 4
+          },
+          "SouthNode": {
+            "gate": 19,
+            "line": 4
+          },
+          "Mercury": {
+            "gate": 50,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 29,
+            "line": 5
+          },
+          "Mars": {
+            "gate": 26,
+            "line": 6
+          },
+          "Jupiter": {
+            "gate": 27,
+            "line": 1
+          },
+          "Saturn": {
+            "gate": 2,
+            "line": 3
+          },
+          "Uranus": {
+            "gate": 19,
+            "line": 6
+          },
+          "Neptune": {
+            "gate": 60,
+            "line": 6
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 3
+          }
+        },
+        "profile": "1/3",
+        "type": "Manifesting Generator",
+        "authority": "Solar Plexus",
+        "definition": "Split",
+        "incarnationCross": "Right Angle Cross of Tension (38/39 | 48/21)"
+      }
     },
     {
-      "id": "us-losangeles-1979-04-29-0130",
-      "label": "미국 · LA · 서머타임 시작 직전(01:30, PST)",
-      "purpose": "1979-04-29 02:00 에 시계가 앞으로 뛴다. 그 직전의 모호하지 않은 시각.",
-      "birth": { "birthDate": "1979-04-29", "birthTime": "01:30", "timezone": "America/Los_Angeles", "calendar": "solar", "latitude": 34.0522, "longitude": -118.2437 },
-      "expected": null
+      "id": "kr-seoul-2000-10-08-1111",
+      "label": "한국 · 서울 · 가을",
+      "axis": "Manifestor · Profile 6/3",
+      "birth": {
+        "birthDate": "2000-10-08",
+        "birthTime": "11:11",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      },
+      "expected": {
+        "birthUtc": "2000-10-08T02:11:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 48,
+            "line": 6
+          },
+          "Earth": {
+            "gate": 21,
+            "line": 6
+          },
+          "Moon": {
+            "gate": 13,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 62,
+            "line": 1
+          },
+          "SouthNode": {
+            "gate": 61,
+            "line": 1
+          },
+          "Mercury": {
+            "gate": 44,
+            "line": 3
+          },
+          "Venus": {
+            "gate": 1,
+            "line": 4
+          },
+          "Mars": {
+            "gate": 64,
+            "line": 2
+          },
+          "Jupiter": {
+            "gate": 16,
+            "line": 6
+          },
+          "Saturn": {
+            "gate": 20,
+            "line": 1
+          },
+          "Uranus": {
+            "gate": 13,
+            "line": 5
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 2
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 6
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 53,
+            "line": 3
+          },
+          "Earth": {
+            "gate": 54,
+            "line": 3
+          },
+          "Moon": {
+            "gate": 32,
+            "line": 3
+          },
+          "NorthNode": {
+            "gate": 62,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 61,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 39,
+            "line": 4
+          },
+          "Venus": {
+            "gate": 62,
+            "line": 5
+          },
+          "Mars": {
+            "gate": 39,
+            "line": 6
+          },
+          "Jupiter": {
+            "gate": 20,
+            "line": 2
+          },
+          "Saturn": {
+            "gate": 8,
+            "line": 4
+          },
+          "Uranus": {
+            "gate": 49,
+            "line": 2
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 4
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 6
+          }
+        },
+        "profile": "6/3",
+        "type": "Manifestor",
+        "authority": "Splenic",
+        "definition": "Single",
+        "incarnationCross": "Left Angle Cross of Endeavor (48/21 | 53/54)"
+      }
     },
     {
-      "id": "us-losangeles-1999-10-31-0130",
-      "label": "미국 · LA · 서머타임 종료일 모호 시각(01:30)",
-      "purpose": "🔴 이 벽시계는 그날 두 번 존재한다(PDT 1회, PST 1회). 우리 엔진이 어느 쪽을 택하는지 외부 계산기와 대조해야 하는 유일한 케이스다.",
-      "birth": { "birthDate": "1999-10-31", "birthTime": "01:30", "timezone": "America/Los_Angeles", "calendar": "solar", "latitude": 34.0522, "longitude": -118.2437 },
-      "expected": null
+      "id": "fr-soullans-2000-09-09-1200",
+      "label": "프랑스 · 술랑 · CEST(+2)",
+      "axis": "🔴 유럽 서머타임",
+      "birth": {
+        "birthDate": "2000-09-09",
+        "birthTime": "12:00",
+        "timezone": "Europe/Paris",
+        "calendar": "solar",
+        "latitude": 46.7906,
+        "longitude": -1.9019
+      },
+      "expected": {
+        "birthUtc": "2000-09-09T10:00:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 47,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 22,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 60,
+            "line": 2
+          },
+          "NorthNode": {
+            "gate": 62,
+            "line": 3
+          },
+          "SouthNode": {
+            "gate": 61,
+            "line": 3
+          },
+          "Mercury": {
+            "gate": 46,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 48,
+            "line": 2
+          },
+          "Mars": {
+            "gate": 29,
+            "line": 1
+          },
+          "Jupiter": {
+            "gate": 16,
+            "line": 6
+          },
+          "Saturn": {
+            "gate": 20,
+            "line": 1
+          },
+          "Uranus": {
+            "gate": 13,
+            "line": 5
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 5
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 45,
+            "line": 3
+          },
+          "Earth": {
+            "gate": 26,
+            "line": 3
+          },
+          "Moon": {
+            "gate": 6,
+            "line": 2
+          },
+          "NorthNode": {
+            "gate": 62,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 61,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 39,
+            "line": 4
+          },
+          "Venus": {
+            "gate": 45,
+            "line": 2
+          },
+          "Mars": {
+            "gate": 12,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 8,
+            "line": 2
+          },
+          "Saturn": {
+            "gate": 23,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 49,
+            "line": 2
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 5
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 6
+          }
+        },
+        "profile": "1/3",
+        "type": "Manifesting Generator",
+        "authority": "Solar Plexus",
+        "definition": "Split",
+        "incarnationCross": "Right Angle Cross of Rulership (47/22 | 45/26)"
+      }
     },
     {
-      "id": "us-chicago-1960-06-15-0800",
-      "label": "미국 · 시카고 · 1960",
-      "purpose": "DST 규칙이 연방 표준화(1966) 이전인 시기.",
-      "birth": { "birthDate": "1960-06-15", "birthTime": "08:00", "timezone": "America/Chicago", "calendar": "solar", "latitude": 41.8781, "longitude": -87.6298 },
-      "expected": null
+      "id": "sn-dakar-2014-09-08-1111",
+      "label": "세네갈 · 다카르(UTC+0)",
+      "axis": "🔴 Reflector · 정의된 센터 0개 · Lunar 권위",
+      "birth": {
+        "birthDate": "2014-09-08",
+        "birthTime": "11:11",
+        "timezone": "Africa/Dakar",
+        "calendar": "solar",
+        "latitude": 14.7167,
+        "longitude": -17.4677
+      },
+      "expected": {
+        "birthUtc": "2014-09-08T11:11:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 64,
+            "line": 5
+          },
+          "Earth": {
+            "gate": 63,
+            "line": 5
+          },
+          "Moon": {
+            "gate": 37,
+            "line": 2
+          },
+          "NorthNode": {
+            "gate": 57,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 51,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 18,
+            "line": 6
+          },
+          "Venus": {
+            "gate": 59,
+            "line": 4
+          },
+          "Mars": {
+            "gate": 14,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 33,
+            "line": 5
+          },
+          "Saturn": {
+            "gate": 1,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 51,
+            "line": 1
+          },
+          "Neptune": {
+            "gate": 37,
+            "line": 1
+          },
+          "Pluto": {
+            "gate": 38,
+            "line": 2
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 45,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 26,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 57,
+            "line": 5
+          },
+          "NorthNode": {
+            "gate": 50,
+            "line": 1
+          },
+          "SouthNode": {
+            "gate": 3,
+            "line": 1
+          },
+          "Mercury": {
+            "gate": 15,
+            "line": 6
+          },
+          "Venus": {
+            "gate": 24,
+            "line": 6
+          },
+          "Mars": {
+            "gate": 48,
+            "line": 2
+          },
+          "Jupiter": {
+            "gate": 62,
+            "line": 2
+          },
+          "Saturn": {
+            "gate": 1,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 51,
+            "line": 1
+          },
+          "Neptune": {
+            "gate": 37,
+            "line": 2
+          },
+          "Pluto": {
+            "gate": 38,
+            "line": 4
+          }
+        },
+        "profile": "5/1",
+        "type": "Reflector",
+        "authority": "Lunar Cycle",
+        "definition": "None",
+        "incarnationCross": "Left Angle Cross of Dominion (64/63 | 45/26)"
+      }
     },
     {
-      "id": "us-honolulu-1993-03-14-1000",
-      "label": "미국 · 호놀룰루 · DST 없음(-10)",
-      "purpose": "미국이지만 DST 를 쓰지 않는 지역. 일괄 DST 적용 버그를 잡는다.",
-      "birth": { "birthDate": "1993-03-14", "birthTime": "10:00", "timezone": "Pacific/Honolulu", "calendar": "solar", "latitude": 21.3069, "longitude": -157.8583 },
-      "expected": null
+      "id": "af-kabul-2016-07-08-1200",
+      "label": "아프가니스탄 · 카불(+4:30)",
+      "axis": "🔴 30분 오프셋 · Triple Split",
+      "birth": {
+        "birthDate": "2016-07-08",
+        "birthTime": "12:00",
+        "timezone": "Asia/Kabul",
+        "calendar": "solar",
+        "latitude": 34.5553,
+        "longitude": 69.2075
+      },
+      "expected": {
+        "birthUtc": "2016-07-08T07:30:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 53,
+            "line": 2
+          },
+          "Earth": {
+            "gate": 54,
+            "line": 2
+          },
+          "Moon": {
+            "gate": 59,
+            "line": 5
+          },
+          "NorthNode": {
+            "gate": 64,
+            "line": 4
+          },
+          "SouthNode": {
+            "gate": 63,
+            "line": 4
+          },
+          "Mercury": {
+            "gate": 53,
+            "line": 4
+          },
+          "Venus": {
+            "gate": 62,
+            "line": 5
+          },
+          "Mars": {
+            "gate": 43,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 47,
+            "line": 2
+          },
+          "Saturn": {
+            "gate": 9,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 42,
+            "line": 4
+          },
+          "Neptune": {
+            "gate": 63,
+            "line": 1
+          },
+          "Pluto": {
+            "gate": 54,
+            "line": 2
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 51,
+            "line": 4
+          },
+          "Earth": {
+            "gate": 57,
+            "line": 4
+          },
+          "Moon": {
+            "gate": 42,
+            "line": 6
+          },
+          "NorthNode": {
+            "gate": 47,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 22,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 27,
+            "line": 2
+          },
+          "Venus": {
+            "gate": 25,
+            "line": 5
+          },
+          "Mars": {
+            "gate": 9,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 64,
+            "line": 4
+          },
+          "Saturn": {
+            "gate": 5,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 51,
+            "line": 6
+          },
+          "Neptune": {
+            "gate": 37,
+            "line": 6
+          },
+          "Pluto": {
+            "gate": 54,
+            "line": 3
+          }
+        },
+        "profile": "2/4",
+        "type": "Generator",
+        "authority": "Sacral",
+        "definition": "Triple Split",
+        "incarnationCross": "Right Angle Cross of Penetration (53/54 | 51/57)"
+      }
     },
     {
-      "id": "eu-berlin-1996-06-01-1200",
-      "label": "유럽 · 베를린 · 여름(CEST, +2)",
-      "purpose": "유럽 DST 적용 구간.",
-      "birth": { "birthDate": "1996-06-01", "birthTime": "12:00", "timezone": "Europe/Berlin", "calendar": "solar", "latitude": 52.52, "longitude": 13.405 },
-      "expected": null
+      "id": "sn-dakar-2000-09-09-1200",
+      "label": "세네갈 · 다카르 · 정오(UTC+0)",
+      "axis": "오프셋 0 대조군(프랑스 같은 시각과 짝)",
+      "birth": {
+        "birthDate": "2000-09-09",
+        "birthTime": "12:00",
+        "timezone": "Africa/Dakar",
+        "calendar": "solar",
+        "latitude": 14.7167,
+        "longitude": -17.4677
+      },
+      "expected": {
+        "birthUtc": "2000-09-09T12:00:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 47,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 22,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 60,
+            "line": 3
+          },
+          "NorthNode": {
+            "gate": 62,
+            "line": 3
+          },
+          "SouthNode": {
+            "gate": 61,
+            "line": 3
+          },
+          "Mercury": {
+            "gate": 46,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 48,
+            "line": 3
+          },
+          "Mars": {
+            "gate": 29,
+            "line": 1
+          },
+          "Jupiter": {
+            "gate": 16,
+            "line": 6
+          },
+          "Saturn": {
+            "gate": 20,
+            "line": 1
+          },
+          "Uranus": {
+            "gate": 13,
+            "line": 5
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 5
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 45,
+            "line": 3
+          },
+          "Earth": {
+            "gate": 26,
+            "line": 3
+          },
+          "Moon": {
+            "gate": 6,
+            "line": 4
+          },
+          "NorthNode": {
+            "gate": 62,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 61,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 39,
+            "line": 4
+          },
+          "Venus": {
+            "gate": 45,
+            "line": 2
+          },
+          "Mars": {
+            "gate": 12,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 8,
+            "line": 2
+          },
+          "Saturn": {
+            "gate": 23,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 49,
+            "line": 2
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 5
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 6
+          }
+        },
+        "profile": "1/3",
+        "type": "Manifesting Generator",
+        "authority": "Solar Plexus",
+        "definition": "Split",
+        "incarnationCross": "Right Angle Cross of Rulership (47/22 | 45/26)"
+      }
     },
     {
-      "id": "eu-berlin-1996-12-01-1200",
-      "label": "유럽 · 베를린 · 겨울(CET, +1)",
-      "purpose": "같은 도시의 비 DST 대조군.",
-      "birth": { "birthDate": "1996-12-01", "birthTime": "12:00", "timezone": "Europe/Berlin", "calendar": "solar", "latitude": 52.52, "longitude": 13.405 },
-      "expected": null
+      "id": "sn-dakar-1995-11-11-1211",
+      "label": "세네갈 · 다카르 · 1995(UTC+0)",
+      "axis": "Profile 6/2 · Generator",
+      "birth": {
+        "birthDate": "1995-11-11",
+        "birthTime": "12:11",
+        "timezone": "Africa/Dakar",
+        "calendar": "solar",
+        "latitude": 14.7167,
+        "longitude": -17.4677
+      },
+      "expected": {
+        "birthUtc": "1995-11-11T12:11:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 1,
+            "line": 6
+          },
+          "Earth": {
+            "gate": 2,
+            "line": 6
+          },
+          "Moon": {
+            "gate": 52,
+            "line": 2
+          },
+          "NorthNode": {
+            "gate": 32,
+            "line": 6
+          },
+          "SouthNode": {
+            "gate": 42,
+            "line": 6
+          },
+          "Mercury": {
+            "gate": 44,
+            "line": 5
+          },
+          "Venus": {
+            "gate": 9,
+            "line": 5
+          },
+          "Mars": {
+            "gate": 5,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 26,
+            "line": 2
+          },
+          "Saturn": {
+            "gate": 22,
+            "line": 2
+          },
+          "Uranus": {
+            "gate": 60,
+            "line": 1
+          },
+          "Neptune": {
+            "gate": 61,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 14,
+            "line": 6
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 4,
+            "line": 2
+          },
+          "Earth": {
+            "gate": 49,
+            "line": 2
+          },
+          "Moon": {
+            "gate": 25,
+            "line": 4
+          },
+          "NorthNode": {
+            "gate": 50,
+            "line": 3
+          },
+          "SouthNode": {
+            "gate": 3,
+            "line": 3
+          },
+          "Mercury": {
+            "gate": 40,
+            "line": 2
+          },
+          "Venus": {
+            "gate": 7,
+            "line": 6
+          },
+          "Mars": {
+            "gate": 48,
+            "line": 6
+          },
+          "Jupiter": {
+            "gate": 34,
+            "line": 6
+          },
+          "Saturn": {
+            "gate": 36,
+            "line": 2
+          },
+          "Uranus": {
+            "gate": 60,
+            "line": 2
+          },
+          "Neptune": {
+            "gate": 61,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 14,
+            "line": 4
+          }
+        },
+        "profile": "6/2",
+        "type": "Generator",
+        "authority": "Sacral",
+        "definition": "Split",
+        "incarnationCross": "Left Angle Cross of Defiance (1/2 | 4/49)"
+      }
     },
     {
-      "id": "eu-london-1972-08-11-0715",
-      "label": "유럽 · 런던 · BST(+1)",
-      "purpose": "영국 서머타임. UTC 기준지라도 여름엔 +1 이다.",
-      "birth": { "birthDate": "1972-08-11", "birthTime": "07:15", "timezone": "Europe/London", "calendar": "solar", "latitude": 51.5074, "longitude": -0.1278 },
-      "expected": null
+      "id": "sh-halftreehollow-1991-01-09-1111",
+      "label": "세인트헬레나 · 하프트리할로우(UTC+0)",
+      "axis": "🔴 Projector · Self-Projected 권위",
+      "birth": {
+        "birthDate": "1991-01-09",
+        "birthTime": "11:11",
+        "timezone": "Atlantic/St_Helena",
+        "calendar": "solar",
+        "latitude": -15.9333,
+        "longitude": -5.7167
+      },
+      "expected": {
+        "birthUtc": "1991-01-09T11:11:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 54,
+            "line": 4
+          },
+          "Earth": {
+            "gate": 53,
+            "line": 4
+          },
+          "Moon": {
+            "gate": 44,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 60,
+            "line": 2
+          },
+          "SouthNode": {
+            "gate": 56,
+            "line": 2
+          },
+          "Mercury": {
+            "gate": 11,
+            "line": 4
+          },
+          "Venus": {
+            "gate": 41,
+            "line": 4
+          },
+          "Mars": {
+            "gate": 8,
+            "line": 4
+          },
+          "Jupiter": {
+            "gate": 33,
+            "line": 4
+          },
+          "Saturn": {
+            "gate": 60,
+            "line": 1
+          },
+          "Uranus": {
+            "gate": 38,
+            "line": 1
+          },
+          "Neptune": {
+            "gate": 38,
+            "line": 6
+          },
+          "Pluto": {
+            "gate": 43,
+            "line": 2
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 57,
+            "line": 6
+          },
+          "Earth": {
+            "gate": 51,
+            "line": 6
+          },
+          "Moon": {
+            "gate": 29,
+            "line": 6
+          },
+          "NorthNode": {
+            "gate": 41,
+            "line": 3
+          },
+          "SouthNode": {
+            "gate": 31,
+            "line": 3
+          },
+          "Mercury": {
+            "gate": 48,
+            "line": 6
+          },
+          "Venus": {
+            "gate": 57,
+            "line": 1
+          },
+          "Mars": {
+            "gate": 35,
+            "line": 4
+          },
+          "Jupiter": {
+            "gate": 33,
+            "line": 3
+          },
+          "Saturn": {
+            "gate": 54,
+            "line": 5
+          },
+          "Uranus": {
+            "gate": 58,
+            "line": 3
+          },
+          "Neptune": {
+            "gate": 38,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 1,
+            "line": 4
+          }
+        },
+        "profile": "4/6",
+        "type": "Projector",
+        "authority": "Self Projected",
+        "definition": "Single",
+        "incarnationCross": "Right Angle Cross of Penetration (54/53 | 57/51)"
+      }
     },
     {
-      "id": "eu-paris-2004-03-28-0330",
-      "label": "유럽 · 파리 · 서머타임 시작 당일(03:30)",
-      "purpose": "2004-03-28 02:00 에 시계가 앞으로 뛴 직후의 존재하는 시각.",
-      "birth": { "birthDate": "2004-03-28", "birthTime": "03:30", "timezone": "Europe/Paris", "calendar": "solar", "latitude": 48.8566, "longitude": 2.3522 },
-      "expected": null
+      "id": "gu-dededo-1993-03-11-1811",
+      "label": "괌 · 데데도(+10)",
+      "axis": "태평양 · 날짜선 인접",
+      "birth": {
+        "birthDate": "1993-03-11",
+        "birthTime": "18:11",
+        "timezone": "Pacific/Guam",
+        "calendar": "solar",
+        "latitude": 13.5187,
+        "longitude": 144.8372
+      },
+      "expected": {
+        "birthUtc": "1993-03-11T08:11:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 22,
+            "line": 5
+          },
+          "Earth": {
+            "gate": 47,
+            "line": 5
+          },
+          "Moon": {
+            "gate": 28,
+            "line": 1
+          },
+          "NorthNode": {
+            "gate": 5,
+            "line": 6
+          },
+          "SouthNode": {
+            "gate": 35,
+            "line": 6
+          },
+          "Mercury": {
+            "gate": 63,
+            "line": 6
+          },
+          "Venus": {
+            "gate": 51,
+            "line": 6
+          },
+          "Mars": {
+            "gate": 39,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 48,
+            "line": 3
+          },
+          "Saturn": {
+            "gate": 49,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 61,
+            "line": 1
+          },
+          "Neptune": {
+            "gate": 54,
+            "line": 6
+          },
+          "Pluto": {
+            "gate": 14,
+            "line": 2
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 11,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 12,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 4,
+            "line": 4
+          },
+          "NorthNode": {
+            "gate": 26,
+            "line": 5
+          },
+          "SouthNode": {
+            "gate": 45,
+            "line": 5
+          },
+          "Mercury": {
+            "gate": 34,
+            "line": 3
+          },
+          "Venus": {
+            "gate": 41,
+            "line": 6
+          },
+          "Mars": {
+            "gate": 62,
+            "line": 6
+          },
+          "Jupiter": {
+            "gate": 48,
+            "line": 3
+          },
+          "Saturn": {
+            "gate": 13,
+            "line": 2
+          },
+          "Uranus": {
+            "gate": 54,
+            "line": 2
+          },
+          "Neptune": {
+            "gate": 54,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 43,
+            "line": 6
+          }
+        },
+        "profile": "5/1",
+        "type": "Manifestor",
+        "authority": "Solar Plexus",
+        "definition": "Split",
+        "incarnationCross": "Left Angle Cross of Informing (22/47 | 11/12)"
+      }
     },
     {
-      "id": "jp-tokyo-1990-09-09-0000",
-      "label": "일본 · 도쿄 · 자정 정각",
-      "purpose": "00:00 경계.",
-      "birth": { "birthDate": "1990-09-09", "birthTime": "00:00", "timezone": "Asia/Tokyo", "calendar": "solar", "latitude": 35.6762, "longitude": 139.6503 },
-      "expected": null
+      "id": "us-losangeles-1997-11-09-1501",
+      "label": "미국 · LA 코리아타운 · PST(-8)",
+      "axis": "🔴 미국 · 서머타임 종료 후",
+      "birth": {
+        "birthDate": "1997-11-09",
+        "birthTime": "15:01",
+        "timezone": "America/Los_Angeles",
+        "calendar": "solar",
+        "latitude": 34.0577,
+        "longitude": -118.3009
+      },
+      "expected": {
+        "birthUtc": "1997-11-09T23:01:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 1,
+            "line": 5
+          },
+          "Earth": {
+            "gate": 2,
+            "line": 5
+          },
+          "Moon": {
+            "gate": 63,
+            "line": 4
+          },
+          "NorthNode": {
+            "gate": 47,
+            "line": 2
+          },
+          "SouthNode": {
+            "gate": 22,
+            "line": 2
+          },
+          "Mercury": {
+            "gate": 34,
+            "line": 4
+          },
+          "Venus": {
+            "gate": 58,
+            "line": 1
+          },
+          "Mars": {
+            "gate": 10,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 13,
+            "line": 1
+          },
+          "Saturn": {
+            "gate": 21,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 41,
+            "line": 4
+          },
+          "Neptune": {
+            "gate": 60,
+            "line": 2
+          },
+          "Pluto": {
+            "gate": 34,
+            "line": 5
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 4,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 49,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 14,
+            "line": 4
+          },
+          "NorthNode": {
+            "gate": 47,
+            "line": 4
+          },
+          "SouthNode": {
+            "gate": 22,
+            "line": 4
+          },
+          "Mercury": {
+            "gate": 64,
+            "line": 4
+          },
+          "Venus": {
+            "gate": 6,
+            "line": 2
+          },
+          "Mars": {
+            "gate": 50,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 13,
+            "line": 4
+          },
+          "Saturn": {
+            "gate": 51,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 41,
+            "line": 5
+          },
+          "Neptune": {
+            "gate": 60,
+            "line": 2
+          },
+          "Pluto": {
+            "gate": 34,
+            "line": 3
+          }
+        },
+        "profile": "5/1",
+        "type": "Generator",
+        "authority": "Sacral",
+        "definition": "Split",
+        "incarnationCross": "Left Angle Cross of Defiance (1/2 | 4/49)"
+      }
     },
     {
-      "id": "kr-seoul-1995-12-31-0000",
-      "label": "한국 · 연말 자정 정각",
-      "purpose": "자정 + 연도 경계.",
-      "birth": { "birthDate": "1995-12-31", "birthTime": "00:00", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "id": "sh-halftreehollow-1987-04-09-1111",
+      "label": "세인트헬레나 · 1987(UTC+0)",
+      "axis": "Profile 5/1 · Single",
+      "birth": {
+        "birthDate": "1987-04-09",
+        "birthTime": "11:11",
+        "timezone": "Atlantic/St_Helena",
+        "calendar": "solar",
+        "latitude": -15.9333,
+        "longitude": -5.7167
+      },
+      "expected": {
+        "birthUtc": "1987-04-09T11:11:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 51,
+            "line": 5
+          },
+          "Earth": {
+            "gate": 57,
+            "line": 5
+          },
+          "Moon": {
+            "gate": 4,
+            "line": 6
+          },
+          "NorthNode": {
+            "gate": 21,
+            "line": 3
+          },
+          "SouthNode": {
+            "gate": 48,
+            "line": 3
+          },
+          "Mercury": {
+            "gate": 36,
+            "line": 3
+          },
+          "Venus": {
+            "gate": 63,
+            "line": 3
+          },
+          "Mars": {
+            "gate": 20,
+            "line": 3
+          },
+          "Jupiter": {
+            "gate": 17,
+            "line": 6
+          },
+          "Saturn": {
+            "gate": 26,
+            "line": 5
+          },
+          "Uranus": {
+            "gate": 11,
+            "line": 5
+          },
+          "Neptune": {
+            "gate": 58,
+            "line": 5
+          },
+          "Pluto": {
+            "gate": 44,
+            "line": 2
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 61,
+            "line": 1
+          },
+          "Earth": {
+            "gate": 62,
+            "line": 1
+          },
+          "Moon": {
+            "gate": 35,
+            "line": 5
+          },
+          "NorthNode": {
+            "gate": 51,
+            "line": 1
+          },
+          "SouthNode": {
+            "gate": 57,
+            "line": 1
+          },
+          "Mercury": {
+            "gate": 54,
+            "line": 6
+          },
+          "Venus": {
+            "gate": 34,
+            "line": 5
+          },
+          "Mars": {
+            "gate": 25,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 22,
+            "line": 3
+          },
+          "Saturn": {
+            "gate": 5,
+            "line": 6
+          },
+          "Uranus": {
+            "gate": 11,
+            "line": 2
+          },
+          "Neptune": {
+            "gate": 58,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 44,
+            "line": 3
+          }
+        },
+        "profile": "5/1",
+        "type": "Manifesting Generator",
+        "authority": "Solar Plexus",
+        "definition": "Single",
+        "incarnationCross": "Left Angle Cross of The Clarion (51/57 | 61/62)"
+      }
     },
     {
-      "id": "au-sydney-1982-02-14-1200",
-      "label": "호주 · 시드니 · 정오 · 남반구 서머타임",
-      "purpose": "남반구는 DST 구간이 북반구와 반대다.",
-      "birth": { "birthDate": "1982-02-14", "birthTime": "12:00", "timezone": "Australia/Sydney", "calendar": "solar", "latitude": -33.8688, "longitude": 151.2093 },
-      "expected": null
-    },
-    {
-      "id": "in-delhi-1977-06-21-1200",
-      "label": "인도 · 델리 · 정오 · 30분 오프셋(+5:30)",
-      "purpose": "시간 단위가 아닌 오프셋. 정수 시간만 다루는 구현이 여기서 깨진다.",
-      "birth": { "birthDate": "1977-06-21", "birthTime": "12:00", "timezone": "Asia/Kolkata", "calendar": "solar", "latitude": 28.6139, "longitude": 77.209 },
-      "expected": null
-    },
-    {
-      "id": "nz-auckland-2003-05-31-2359",
-      "label": "뉴질랜드 · 오클랜드 · 날짜 경계(23:59)",
-      "purpose": "UTC+12 대역의 날짜 경계.",
-      "birth": { "birthDate": "2003-05-31", "birthTime": "23:59", "timezone": "Pacific/Auckland", "calendar": "solar", "latitude": -36.8485, "longitude": 174.7633 },
-      "expected": null
-    },
-    {
-      "id": "br-saopaulo-1998-01-01-0001",
-      "label": "브라질 · 상파울루 · 연초 00:01 · 남반구 서머타임",
-      "purpose": "서반구 음수 오프셋 + 남반구 DST + 연도 경계.",
-      "birth": { "birthDate": "1998-01-01", "birthTime": "00:01", "timezone": "America/Sao_Paulo", "calendar": "solar", "latitude": -23.5505, "longitude": -46.6333 },
-      "expected": null
-    },
+      "id": "cu-havana-1999-06-09-1100",
+      "label": "쿠바 · 아바나 · CDT(-4)",
+      "axis": "🔴 카리브 서머타임 · Triple Split",
+      "birth": {
+        "birthDate": "1999-06-09",
+        "birthTime": "11:00",
+        "timezone": "America/Havana",
+        "calendar": "solar",
+        "latitude": 23.1136,
+        "longitude": -82.3666
+      },
+      "expected": {
+        "birthUtc": "1999-06-09T15:00:00Z",
+        "personality": {
+          "Sun": {
+            "gate": 45,
+            "line": 2
+          },
+          "Earth": {
+            "gate": 26,
+            "line": 2
+          },
+          "Moon": {
+            "gate": 51,
+            "line": 6
+          },
+          "NorthNode": {
+            "gate": 7,
+            "line": 2
+          },
+          "SouthNode": {
+            "gate": 13,
+            "line": 2
+          },
+          "Mercury": {
+            "gate": 52,
+            "line": 2
+          },
+          "Venus": {
+            "gate": 31,
+            "line": 2
+          },
+          "Mars": {
+            "gate": 32,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 3,
+            "line": 1
+          },
+          "Saturn": {
+            "gate": 24,
+            "line": 5
+          },
+          "Uranus": {
+            "gate": 13,
+            "line": 4
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 3
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 4
+          }
+        },
+        "design": {
+          "Sun": {
+            "gate": 22,
+            "line": 4
+          },
+          "Earth": {
+            "gate": 47,
+            "line": 4
+          },
+          "Moon": {
+            "gate": 10,
+            "line": 4
+          },
+          "NorthNode": {
+            "gate": 4,
+            "line": 4
+          },
+          "SouthNode": {
+            "gate": 49,
+            "line": 4
+          },
+          "Mercury": {
+            "gate": 17,
+            "line": 1
+          },
+          "Venus": {
+            "gate": 42,
+            "line": 1
+          },
+          "Mars": {
+            "gate": 44,
+            "line": 5
+          },
+          "Jupiter": {
+            "gate": 17,
+            "line": 3
+          },
+          "Saturn": {
+            "gate": 3,
+            "line": 5
+          },
+          "Uranus": {
+            "gate": 13,
+            "line": 2
+          },
+          "Neptune": {
+            "gate": 41,
+            "line": 2
+          },
+          "Pluto": {
+            "gate": 9,
+            "line": 6
+          }
+        },
+        "profile": "2/4",
+        "type": "Generator",
+        "authority": "Sacral",
+        "definition": "Triple Split",
+        "incarnationCross": "Right Angle Cross of Rulership (45/26 | 22/47)"
+      }
+    }
+  ],
+  "structuralCases": [
     {
       "id": "gate-edge-kr-1994-03-19-1112",
-      "label": "게이트 경계 직전 (Personality Sun 이 경계에서 0.0003° 아래)",
-      "purpose": "게이트 경계. 다음 분과 게이트가 달라야 한다.",
-      "birth": { "birthDate": "1994-03-19", "birthTime": "11:12", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "label": "게이트 경계 직전 (Personality Sun 이 경계에서 0.0003°)",
+      "purpose": "다음 분과 Personality Sun 게이트가 달라야 한다.",
+      "birth": {
+        "birthDate": "1994-03-19",
+        "birthTime": "11:12",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      }
     },
     {
       "id": "gate-edge-kr-1994-03-19-1113",
-      "label": "게이트 경계 직후 (앞 케이스의 +1분)",
-      "purpose": "게이트 경계. 앞 케이스와 게이트가 달라야 한다.",
-      "birth": { "birthDate": "1994-03-19", "birthTime": "11:13", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "label": "게이트 경계 직후 (앞 케이스 +1분)",
+      "purpose": "앞 케이스와 게이트가 달라야 한다. 이 지점은 휠의 wrap-around(게이트 36→25)도 함께 밟는다.",
+      "birth": {
+        "birthDate": "1994-03-19",
+        "birthTime": "11:13",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      }
     },
     {
       "id": "gate-edge-uk-1986-10-14-1039",
       "label": "게이트 경계 · 영국(BST)",
-      "purpose": "게이트 경계와 DST 오프셋이 겹치는 케이스.",
-      "birth": { "birthDate": "1986-10-14", "birthTime": "10:39", "timezone": "Europe/London", "calendar": "solar", "latitude": 51.5074, "longitude": -0.1278 },
-      "expected": null
+      "purpose": "게이트 경계와 서머타임 오프셋이 겹치는 지점.",
+      "birth": {
+        "birthDate": "1986-10-14",
+        "birthTime": "10:39",
+        "timezone": "Europe/London",
+        "calendar": "solar",
+        "latitude": 51.5074,
+        "longitude": -0.1278
+      }
     },
     {
       "id": "line-edge-kr-1993-03-11-1646",
       "label": "라인 경계 직전 (경계에서 0.00017°)",
-      "purpose": "라인 경계. 다음 분과 라인이 달라야 한다.",
-      "birth": { "birthDate": "1993-03-11", "birthTime": "16:46", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "purpose": "다음 분과 라인이 달라야 한다.",
+      "birth": {
+        "birthDate": "1993-03-11",
+        "birthTime": "16:46",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      }
     },
     {
       "id": "line-edge-kr-1993-03-11-1647",
-      "label": "라인 경계 직후 (앞 케이스의 +1분)",
-      "purpose": "라인 경계. Profile 이 바뀌는 지점이므로 특히 민감하다.",
-      "birth": { "birthDate": "1993-03-11", "birthTime": "16:47", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "label": "라인 경계 직후 (앞 케이스 +1분)",
+      "purpose": "같은 게이트 안에서 라인만 +1 이어야 한다. Profile 이 바뀌는 지점이다.",
+      "birth": {
+        "birthDate": "1993-03-11",
+        "birthTime": "16:47",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      }
     },
     {
       "id": "line-edge-us-1980-09-23-1911",
       "label": "라인 경계 · 미국(EDT)",
-      "purpose": "라인 경계와 DST 오프셋이 겹치는 케이스.",
-      "birth": { "birthDate": "1980-09-23", "birthTime": "19:11", "timezone": "America/New_York", "calendar": "solar", "latitude": 40.7128, "longitude": -74.006 },
-      "expected": null
+      "purpose": "라인 경계와 미국 서머타임이 겹치는 지점.",
+      "birth": {
+        "birthDate": "1980-09-23",
+        "birthTime": "19:11",
+        "timezone": "America/New_York",
+        "calendar": "solar",
+        "latitude": 40.7128,
+        "longitude": -74.006
+      }
     },
     {
-      "id": "delta-kr-1991-02-20-0834",
-      "label": "기준 -1분",
-      "purpose": "출생시간 ±1분 민감도. 기준(kr-seoul-1991-02-20-0835)과 비교한다.",
-      "birth": { "birthDate": "1991-02-20", "birthTime": "08:34", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "id": "delta-kr-1991-02-20-0829",
+      "label": "기준(전주 1991-02-20 08:30) -1분",
+      "purpose": "출생시간 ±1분 민감도. 검증된 기준 케이스와 같은 차트여야 한다.",
+      "birth": {
+        "birthDate": "1991-02-20",
+        "birthTime": "08:29",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 35.8242,
+        "longitude": 127.148
+      }
     },
     {
-      "id": "delta-kr-1991-02-20-0836",
+      "id": "delta-kr-1991-02-20-0831",
       "label": "기준 +1분",
       "purpose": "출생시간 ±1분 민감도.",
-      "birth": { "birthDate": "1991-02-20", "birthTime": "08:36", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "birth": {
+        "birthDate": "1991-02-20",
+        "birthTime": "08:31",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 35.8242,
+        "longitude": 127.148
+      }
     },
     {
-      "id": "delta-kr-1991-02-20-0830",
+      "id": "delta-kr-1991-02-20-0825",
       "label": "기준 -5분",
       "purpose": "출생시간 ±5분 민감도.",
-      "birth": { "birthDate": "1991-02-20", "birthTime": "08:30", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "birth": {
+        "birthDate": "1991-02-20",
+        "birthTime": "08:25",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 35.8242,
+        "longitude": 127.148
+      }
     },
     {
-      "id": "delta-kr-1991-02-20-0840",
+      "id": "delta-kr-1991-02-20-0835",
       "label": "기준 +5분",
       "purpose": "출생시간 ±5분 민감도.",
-      "birth": { "birthDate": "1991-02-20", "birthTime": "08:40", "timezone": "Asia/Seoul", "calendar": "solar", "latitude": 37.5665, "longitude": 126.978 },
-      "expected": null
+      "birth": {
+        "birthDate": "1991-02-20",
+        "birthTime": "08:35",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 35.8242,
+        "longitude": 127.148
+      }
+    },
+    {
+      "id": "kr-lunar-leap-1987-06-15-0700",
+      "label": "음력 윤6월 15일 (양력 1987-08-09) · 한국 서머타임",
+      "purpose": "음력 윤달 → 양력 변환과 1987년 한국 서머타임(+10)이 겹치는 경로. 외부 차트가 없어 구조만 본다.",
+      "birth": {
+        "birthDate": "1987-06-15",
+        "birthTime": "07:00",
+        "timezone": "Asia/Seoul",
+        "calendar": "lunar-leap",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      }
+    },
+    {
+      "id": "kr-seoul-1988-05-08-0900",
+      "label": "한국 1988 서머타임(+10)",
+      "purpose": "한국이 1987~1988 두 해만 시행한 DST. 고정 오프셋 표를 쓰는 구현이 여기서 1시간 틀린다.",
+      "birth": {
+        "birthDate": "1988-05-08",
+        "birthTime": "09:00",
+        "timezone": "Asia/Seoul",
+        "calendar": "solar",
+        "latitude": 37.5665,
+        "longitude": 126.978
+      }
+    },
+    {
+      "id": "us-losangeles-1999-10-31-0130",
+      "label": "미국 · LA · 서머타임 종료일 모호 시각(01:30)",
+      "purpose": "🔴 그날 두 번 존재하는 벽시계. 우리는 첫 번째 발생(PDT, -7)을 택한다 — 정책 선택이지 정답이 아니다.",
+      "birth": {
+        "birthDate": "1999-10-31",
+        "birthTime": "01:30",
+        "timezone": "America/Los_Angeles",
+        "calendar": "solar",
+        "latitude": 34.0522,
+        "longitude": -118.2437
+      }
     }
   ]
 }

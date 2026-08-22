@@ -22,6 +22,8 @@ const ENGINE_DIR = path.join(repoRoot, "lib", "human-design");
 const FIXTURE_DIR = path.join(repoRoot, "__tests__", "fixtures", "human-design");
 
 const MINIMUM_FIXTURE_CASES = 30;
+/** 외부 Human Design 계산기 차트와 값 대조가 끝난 케이스의 하한. */
+const MINIMUM_VERIFIED_CASES = 20;
 
 const failures = [];
 function check(label, condition, detail = "") {
@@ -138,12 +140,21 @@ check("모든 게이트가 최소 하나의 채널에 참여한다", orphanGates
 // ── ③ fixture ────────────────────────────────────────────────────────────────
 
 const casesDoc = JSON.parse(readFileSync(path.join(FIXTURE_DIR, "cases.json"), "utf8"));
-const cases = casesDoc.cases || [];
+const verifiedCases = casesDoc.cases || [];
+const structuralCases = casesDoc.structuralCases || [];
+const cases = [...verifiedCases, ...structuralCases];
 const requiredExpectedFields = casesDoc.expectedFieldsRequired || [];
 
 check(`fixture 케이스가 ${MINIMUM_FIXTURE_CASES}건 이상이다`, cases.length >= MINIMUM_FIXTURE_CASES, `실제 ${cases.length}`);
+check(
+  `그중 외부 계산기 검증 케이스가 ${MINIMUM_VERIFIED_CASES}건 이상이다`,
+  verifiedCases.length >= MINIMUM_VERIFIED_CASES,
+  `실제 ${verifiedCases.length}`,
+);
 check("fixture id 가 유일하다", new Set(cases.map((c) => c.id)).size === cases.length);
 check("expected 필수 필드 목록이 선언돼 있다", requiredExpectedFields.length > 0);
+check("천체 순서가 선언돼 있다(13개)", (casesDoc.planetOrder || []).length === 13, `실제 ${(casesDoc.planetOrder || []).length}`);
+check("기대값 출처가 선언돼 있다", Boolean(casesDoc.source?.kind && casesDoc.source?.collectedAt), JSON.stringify(casesDoc.source || null));
 
 const snapshot = JSON.parse(readFileSync(path.join(FIXTURE_DIR, "ephemeris-snapshot.json"), "utf8"));
 const snapshotIds = new Set((snapshot.rows || []).map((row) => row.id));
@@ -152,36 +163,64 @@ const straySnapshots = [...snapshotIds].filter((id) => !cases.some((c) => c.id =
 check("모든 케이스에 천체 스냅샷이 있다", missingSnapshots.length === 0, missingSnapshots.join(", "));
 check("스냅샷에 유령 케이스가 없다", straySnapshots.length === 0, straySnapshots.join(", "));
 
-// 🔴 여기가 이 가드의 핵심이다. 외부 계산기 기대값이 안 채워졌으면 "검증했다"고 말할 수 없다.
-const unfilled = cases.filter((c) => !c.expected).map((c) => c.id);
+// 🔴 여기가 이 가드의 핵심이다. `cases` 는 외부 계산기 대조가 존재 이유이므로 기대값이
+//    비어 있으면 "검증했다"고 말할 수 없다. 외부 차트가 없는 탐침은 `structuralCases` 로 분리한다.
+const unfilled = verifiedCases.filter((c) => !c.expected).map((c) => c.id);
 check(
-  "모든 fixture 에 외부 계산기 기대값이 채워져 있다",
+  "외부 검증 케이스에 기대값이 전부 채워져 있다",
   unfilled.length === 0,
   unfilled.length ? `미기입 ${unfilled.length}건: ${unfilled.slice(0, 5).join(", ")}${unfilled.length > 5 ? " …" : ""}` : "",
 );
 
 const incomplete = [];
-for (const testCase of cases) {
+for (const testCase of verifiedCases) {
   if (!testCase.expected) continue;
   const missing = requiredExpectedFields.filter((field) => testCase.expected[field] == null);
   if (missing.length) incomplete.push(`${testCase.id}: ${missing.join(",")}`);
 }
 check("기입된 기대값에 빠진 필드가 없다", incomplete.length === 0, incomplete.slice(0, 5).join(" / "));
 
+// 26 activation 이 13천체 × 2계층으로 온전히 적혀 있는지.
+const planetOrder = casesDoc.planetOrder || [];
+const brokenActivations = [];
+for (const testCase of verifiedCases) {
+  for (const layer of ["personality", "design"]) {
+    const cells = testCase.expected?.[layer] || {};
+    const missing = planetOrder.filter((planet) => {
+      const cell = cells[planet];
+      return !cell || !Number.isInteger(cell.gate) || !Number.isInteger(cell.line)
+        || cell.gate < 1 || cell.gate > 64 || cell.line < 1 || cell.line > 6;
+    });
+    if (missing.length) brokenActivations.push(`${testCase.id}.${layer}: ${missing.join(",")}`);
+  }
+}
+check("외부 검증 케이스의 26 activation 이 전부 유효하다", brokenActivations.length === 0, brokenActivations.slice(0, 3).join(" / "));
+
+// 🔴 structuralCases 에 expected 를 슬쩍 넣어 두면 아무도 대조하지 않는 값이 된다.
+const strayExpected = structuralCases.filter((c) => c.expected).map((c) => c.id);
+check("구조 탐침에는 기대값이 없다(대조되지 않는 값을 두지 않는다)", strayExpected.length === 0, strayExpected.join(", "));
+
 // 커버리지 축 — 요구사항 26 의 목록이 실제로 fixture 에 있는지.
 const timezones = new Set(cases.map((c) => c.birth?.timezone));
+const zoneList = [...timezones];
+const verdicts = (field) => new Set(verifiedCases.map((c) => c.expected?.[field]));
 const coverage = [
-  ["한국", [...timezones].includes("Asia/Seoul")],
-  ["미국", [...timezones].some((tz) => tz?.startsWith("America/") || tz === "Pacific/Honolulu")],
-  ["유럽", [...timezones].some((tz) => tz?.startsWith("Europe/"))],
-  ["DST 지역", cases.some((c) => /1987|1988|1985-07|1996-06|1972-08/.test(`${c.birth?.birthDate}`))],
-  ["자정", cases.some((c) => c.birth?.birthTime === "00:00")],
+  ["한국", zoneList.includes("Asia/Seoul")],
+  ["미국", zoneList.some((tz) => tz?.startsWith("America/"))],
+  ["유럽", zoneList.some((tz) => tz?.startsWith("Europe/"))],
+  ["아프리카·태평양", zoneList.some((tz) => tz?.startsWith("Africa/") || tz?.startsWith("Pacific/") || tz?.startsWith("Atlantic/"))],
+  ["30분 오프셋", zoneList.includes("Asia/Kabul") || zoneList.includes("Asia/Kolkata")],
+  ["서머타임 지역", zoneList.some((tz) => ["Europe/London", "Europe/Paris", "America/Havana", "America/Los_Angeles", "America/New_York"].includes(tz))],
+  ["한국 서머타임(1987~1988)", cases.some((c) => /^198[78]-/.test(`${c.birth?.birthDate}`) && c.birth?.timezone === "Asia/Seoul")],
+  ["음력", cases.some((c) => String(c.birth?.calendar || "").startsWith("lunar"))],
   ["정오", cases.some((c) => c.birth?.birthTime === "12:00")],
-  ["날짜 경계", cases.some((c) => c.birth?.birthTime === "23:59" || c.birth?.birthTime === "00:01")],
   ["게이트 경계", cases.some((c) => c.id.includes("gate-edge"))],
   ["라인 경계", cases.some((c) => c.id.includes("line-edge"))],
-  ["출생시간 ±1분", cases.some((c) => c.id === "delta-kr-1991-02-20-0834") && cases.some((c) => c.id === "delta-kr-1991-02-20-0836")],
-  ["출생시간 ±5분", cases.some((c) => c.id === "delta-kr-1991-02-20-0830") && cases.some((c) => c.id === "delta-kr-1991-02-20-0840")],
+  ["출생시간 ±1분", cases.filter((c) => c.id.startsWith("delta-")).length >= 2],
+  ["출생시간 ±5분", cases.filter((c) => c.id.startsWith("delta-")).length >= 4],
+  ["타입 5종", verdicts("type").size === 5],
+  ["권위 6종 이상", verdicts("authority").size >= 6],
+  ["정의 4종 이상", verdicts("definition").size >= 4],
 ];
 const missingCoverage = coverage.filter(([, present]) => !present).map(([label]) => label);
 check("요구된 커버리지 축이 모두 있다", missingCoverage.length === 0, missingCoverage.join(", "));

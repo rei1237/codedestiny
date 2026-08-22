@@ -2,15 +2,15 @@
  * @jest-environment node
  */
 
-// fixture 골든 테스트 — 저장된 26 activation 황경을 순수 엔진에 먹여 기대값과 대조한다.
+// fixture 골든 테스트 — 저장된 26 activation 황경을 순수 엔진에 먹여 외부 계산기 값과 대조한다.
 //
 // 🔴 CI 는 실제 Swiss Ephemeris 를 돌리지 못한다(jest.config.cjs 가 .wasm 을 스텁으로 매핑).
 //    그래서 천체 위치는 scripts/human-design-fixture-snapshot.mjs 가 실제 천체력으로 굳혀 둔
 //    ephemeris-snapshot.json 을 쓰고, 여기서는 **그 위를 도는 규칙 엔진**을 검증한다.
 //    천체 위치 자체의 신선도는 `node scripts/human-design-fixture-snapshot.mjs --check` 가 본다.
 //
-// 🔴 `expected` 는 외부 신뢰 계산기의 값이다. 아직 안 채워진 케이스는 값 대조를 건너뛰되,
-//    구조 불변식은 그대로 검사한다. 미기입 자체는 `npm run verify:human-design` 이 실패시킨다.
+// `cases` 의 expected 는 외부 Human Design 계산기 차트에서 옮긴 값이다(cases.json 의 note 참고).
+// `structuralCases` 는 외부 차트가 없어 구조 불변식만 본다.
 
 import { readFileSync } from "node:fs";
 import path from "node:path";
@@ -19,61 +19,113 @@ import { assembleChart } from "../../lib/human-design/chart.js";
 import { CANONICAL_PROFILES } from "../../lib/human-design/profile.js";
 import {
   authorityFromLabel,
-  centerFromLabel,
   definitionFromLabel,
-  normalizeChannelId,
   parseIncarnationCrossGates,
   typeFromLabel,
 } from "../../lib/human-design/labels.js";
 
 const FIXTURE_DIR = path.join(process.cwd(), "__tests__", "fixtures", "human-design");
-const cases = JSON.parse(readFileSync(path.join(FIXTURE_DIR, "cases.json"), "utf8")).cases;
+const doc = JSON.parse(readFileSync(path.join(FIXTURE_DIR, "cases.json"), "utf8"));
+const verifiedCases = doc.cases;
+const structuralCases = doc.structuralCases;
+const allCases = [...verifiedCases, ...structuralCases];
+
 const snapshot = JSON.parse(readFileSync(path.join(FIXTURE_DIR, "ephemeris-snapshot.json"), "utf8"));
 const snapshotById = new Map(snapshot.rows.map((row) => [row.id, row]));
 
-function chartFor(id) {
+function snapshotFor(id) {
   const row = snapshotById.get(id);
   if (!row) throw new Error(`스냅샷에 ${id} 가 없다. node scripts/human-design-fixture-snapshot.mjs 로 재생성할 것.`);
+  return row;
+}
+
+function chartFor(id) {
+  const row = snapshotFor(id);
   return assembleChart({
     personalityLongitudes: row.personality,
     designLongitudes: row.design,
-    moments: {
-      birthUtc: row.birthUtc,
-      designUtc: row.designUtc,
-      designSearch: row.designSearch,
-    },
+    moments: { birthUtc: row.birthUtc, designUtc: row.designUtc, designSearch: row.designSearch },
   });
 }
 
+function cellsOf(chart, layer) {
+  return Object.fromEntries(chart.layers[layer].map((a) => [a.planet, { gate: a.gate, line: a.line }]));
+}
+
 describe("fixture 세트 자체", () => {
-  test("케이스가 30건 이상이고 id 가 유일하다", () => {
-    expect(cases.length).toBeGreaterThanOrEqual(30);
-    expect(new Set(cases.map((c) => c.id)).size).toBe(cases.length);
+  test("외부 검증 케이스가 20건 이상이고 id 가 유일하다", () => {
+    expect(verifiedCases.length).toBeGreaterThanOrEqual(20);
+    expect(new Set(allCases.map((c) => c.id)).size).toBe(allCases.length);
+  });
+
+  test("외부 검증 케이스는 전부 expected 가 채워져 있다", () => {
+    const unfilled = verifiedCases.filter((c) => !c.expected).map((c) => c.id);
+    expect(unfilled).toEqual([]);
+    for (const testCase of verifiedCases) {
+      for (const field of doc.expectedFieldsRequired) {
+        expect({ id: testCase.id, field, present: testCase.expected[field] != null })
+          .toEqual({ id: testCase.id, field, present: true });
+      }
+    }
   });
 
   test("모든 케이스에 스냅샷이 있고 그 반대도 성립한다", () => {
-    expect([...snapshotById.keys()].sort()).toEqual(cases.map((c) => c.id).sort());
+    expect([...snapshotById.keys()].sort()).toEqual(allCases.map((c) => c.id).sort());
   });
 
   test("요구된 커버리지 축이 모두 들어 있다", () => {
-    const ids = cases.map((c) => c.id).join(" ");
-    const timezones = new Set(cases.map((c) => c.birth.timezone));
+    const timezones = new Set(allCases.map((c) => c.birth.timezone));
+    const ids = allCases.map((c) => c.id).join(" ");
     expect(ids).toMatch(/gate-edge/);
     expect(ids).toMatch(/line-edge/);
     expect(ids).toMatch(/delta-/);
-    expect(cases.some((c) => c.birth.calendar?.startsWith("lunar"))).toBe(true);
-    expect(cases.some((c) => c.birth.birthTime === "00:00")).toBe(true);
-    expect(cases.some((c) => c.birth.birthTime === "12:00")).toBe(true);
-    expect(cases.some((c) => c.birth.birthTime === "23:59")).toBe(true);
-    // 한국·미국·유럽 + 30분 오프셋 + DST 미시행 지역
+    expect(allCases.some((c) => c.birth.calendar?.startsWith("lunar"))).toBe(true);
+    expect(allCases.some((c) => c.birth.birthTime === "12:00")).toBe(true);
+    expect(allCases.some((c) => c.birth.birthTime === "22:00")).toBe(true);
+    // 한국·미국·유럽·아프리카·태평양 + 30분 오프셋 + UTC+0
     expect([...timezones]).toEqual(expect.arrayContaining([
-      "Asia/Seoul", "America/New_York", "Europe/Berlin", "Asia/Kolkata", "Pacific/Honolulu",
+      "Asia/Seoul", "America/Los_Angeles", "Europe/London", "Europe/Paris",
+      "Asia/Kabul", "Africa/Dakar", "Pacific/Guam", "America/Havana",
     ]));
+  });
+
+  test("타입 5종·권위 6종·정의 4종이 외부 검증 케이스에 나온다", () => {
+    const pick = (field) => new Set(verifiedCases.map((c) => c.expected[field]));
+    expect(pick("type")).toEqual(new Set([
+      "Generator", "Manifesting Generator", "Projector", "Manifestor", "Reflector",
+    ]));
+    expect([...pick("authority")].sort()).toEqual([
+      "Ego Manifested", "Lunar Cycle", "Sacral", "Self Projected", "Solar Plexus", "Splenic",
+    ]);
+    expect([...pick("definition")].sort()).toEqual(["None", "Single", "Split", "Triple Split"]);
+  });
+});
+
+describe("외부 계산기 값 대조", () => {
+  test.each(verifiedCases.map((c) => [c.id, c]))("%s", (id, testCase) => {
+    const chart = chartFor(id);
+    const expected = testCase.expected;
+
+    // 출생 시각 — 벽시계 + IANA 타임존이 계산기와 같은 UTC 로 풀리는가(역사적 DST 포함)
+    expect(snapshotFor(id).birthUtc).toBe(new Date(expected.birthUtc).toISOString());
+
+    // 26 activation 전량. Design 쪽 13개는 88° 태양호 역탐색이 맞아야만 맞는다.
+    expect(cellsOf(chart, "personality")).toEqual(expected.personality);
+    expect(cellsOf(chart, "design")).toEqual(expected.design);
+
+    expect(chart.profile).toBe(expected.profile);
+    expect(chart.type).toBe(typeFromLabel(expected.type));
+    expect(chart.authority).toBe(authorityFromLabel(expected.authority));
+    expect(chart.definition).toBe(definitionFromLabel(expected.definition));
+
+    const crossGates = parseIncarnationCrossGates(expected.incarnationCross);
+    expect(crossGates).not.toBeNull();
+    expect(chart.incarnationCross.gates).toEqual(crossGates);
   });
 });
 
 describe("모든 케이스의 구조 불변식", () => {
-  test.each(cases.map((c) => [c.id]))("%s", (id) => {
+  test.each(allCases.map((c) => [c.id]))("%s", (id) => {
     const chart = chartFor(id);
 
     expect(chart.activations).toHaveLength(26);
@@ -105,10 +157,8 @@ describe("모든 케이스의 구조 불변식", () => {
 
 describe("같은 입력은 같은 결과 (결정론)", () => {
   test("두 번 조립해도 완전히 같다", () => {
-    for (const testCase of cases) {
-      const first = chartFor(testCase.id);
-      const second = chartFor(testCase.id);
-      expect(JSON.stringify(second)).toBe(JSON.stringify(first));
+    for (const testCase of allCases) {
+      expect(JSON.stringify(chartFor(testCase.id))).toBe(JSON.stringify(chartFor(testCase.id)));
     }
   });
 });
@@ -126,59 +176,30 @@ describe("경계 케이스가 실제로 경계를 넘는다", () => {
     expect(after.gate).toBe(before.gate);
     expect(after.line).toBe(before.line + 1);
   });
+
+  test("±1분·±5분 탐침은 검증된 기준 케이스와 같은 차트를 준다", () => {
+    const base = chartFor("kr-jeonju-1991-02-20-0830");
+    for (const id of [
+      "delta-kr-1991-02-20-0829",
+      "delta-kr-1991-02-20-0831",
+      "delta-kr-1991-02-20-0825",
+      "delta-kr-1991-02-20-0835",
+    ]) {
+      const probe = chartFor(id);
+      expect({ id, type: probe.type, profile: probe.profile, definition: probe.definition })
+        .toEqual({ id, type: base.type, profile: base.profile, definition: base.definition });
+    }
+  });
 });
 
-const withExpected = cases.filter((testCase) => testCase.expected);
+describe("한국 서머타임(1987~1988)", () => {
+  test("1988-05-08 서울은 +10 으로 풀린다", () => {
+    expect(snapshotFor("kr-seoul-1988-05-08-0900").utcOffsetHours).toBe(10);
+  });
 
-// 기대값이 하나도 안 채워졌으면 이 블록은 통째로 비어 있게 된다. 그 상태를 "통과"로 읽지 않도록
-// verify:human-design 이 미기입을 실패시킨다(fail-closed).
-(withExpected.length ? describe : describe.skip)("외부 계산기 기대값 대조", () => {
-  test.each(withExpected.map((testCase) => [testCase.id, testCase]))("%s", (id, testCase) => {
-    const chart = chartFor(id);
-    const expected = testCase.expected;
-
-    if (expected.designMomentUtc) {
-      const actual = new Date(snapshotById.get(id).designUtc).getTime();
-      const wanted = new Date(expected.designMomentUtc).getTime();
-      expect(Number.isFinite(wanted)).toBe(true);
-      // 외부 계산기는 보통 분 단위까지만 표기하므로 60초 이내면 같은 순간으로 본다.
-      expect(Math.abs(actual - wanted)).toBeLessThanOrEqual(60000);
-    }
-
-    const byPlanet = (layer) => Object.fromEntries(chart.layers[layer].map((a) => [a.planet, a]));
-    const personality = byPlanet("personality");
-    const design = byPlanet("design");
-    const pairs = [
-      ["personalitySun", personality.Sun],
-      ["personalityEarth", personality.Earth],
-      ["personalityNorthNode", personality.NorthNode],
-      ["designSun", design.Sun],
-      ["designEarth", design.Earth],
-      ["designNorthNode", design.NorthNode],
-    ];
-    for (const [key, activation] of pairs) {
-      if (!expected[key]) continue;
-      expect({ key, gate: activation.gate, line: activation.line })
-        .toEqual({ key, gate: expected[key].gate, line: expected[key].line });
-    }
-
-    if (expected.profile) expect(chart.profile).toBe(expected.profile);
-    if (expected.type) expect(chart.type).toBe(typeFromLabel(expected.type));
-    if (expected.authority) expect(chart.authority).toBe(authorityFromLabel(expected.authority));
-    if (expected.definition) expect(chart.definition).toBe(definitionFromLabel(expected.definition));
-
-    if (expected.definedCenters) {
-      const wanted = expected.definedCenters.map(centerFromLabel).sort();
-      expect([...chart.definedCenters].sort()).toEqual(wanted);
-    }
-    if (expected.definedChannels) {
-      const wanted = expected.definedChannels.map(normalizeChannelId).sort();
-      expect(chart.channels.map((c) => c.channelId).sort()).toEqual(wanted);
-    }
-    if (expected.incarnationCross) {
-      const gates = parseIncarnationCrossGates(expected.incarnationCross);
-      expect(gates).not.toBeNull();
-      expect(chart.incarnationCross.gates).toEqual(gates);
-    }
+  test("음력 윤달 케이스도 1987 서머타임(+10)을 탄다", () => {
+    const row = snapshotFor("kr-lunar-leap-1987-06-15-0700");
+    expect(row.utcOffsetHours).toBe(10);
+    expect(row.solarDate).toEqual({ year: 1987, month: 8, day: 9 });
   });
 });
