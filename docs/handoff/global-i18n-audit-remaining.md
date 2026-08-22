@@ -61,7 +61,9 @@
 
 **이로써 animal-destiny 라이브 경로 전체 완료**(#957+#958). 고아 파일 16개는 위 #957 항목에 기록된 대로 미착수·미삭제 상태로 사용자 판단 대기.
 
-**다음(미착수, 우선순위 제안)**: `app/oracle/sikojen-povailu/`(~12개) → 나머지(`palm-reading`·`tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker`·`music`·`flower/*` 등). **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것 — destiny-bias·animal-destiny 클러스터가 각각 PR 2건 분량이었다.
+**PR #959**(완료) `chore/sikojen-povailu-i18n` — `app/oracle/sikojen-povailu/`(핀란드 주석점, 13개 파일·~2,300줄) 전체 착수. 이 클러스터도 "세대 혼재" 패턴 재확인: `PhaseRitualPrep.tsx`는 이미 5로케일 완전 구현, `PhaseSharing.tsx`/`PhaseReveal.tsx`는 ko/en/ja 3로케일까지는 이미 완성돼 있었고(zh-CN/zh-TW만 이번에 추가), 나머지(`PigCounselBubble`·`YeonSpriteAvatar`·`SikojenpovailuApp`·`PhaseCasting`·`ShadowReading`·`PhaseWelcoming`)는 always-returns-.ko 기본값 버그이거나 로케일 인프라 자체가 없었다. 새 `app/oracle/sikojen-povailu/_lib/copy.ts`(`useSikojenPovailuCopy()`)로 후자만 커버하고, 이미 잘 작동하던 `PhaseSharing`/`PhaseReveal`의 로컬 테이블은 공용 모듈로 옮기지 않고 그 자리에서 zh-CN/zh-TW만 추가(diff 최소화). 🔴 **버그 발견·수정**: `PhaseSharing.tsx`의 축복 메시지 로케일 조회가 en/ja 외 전부(zh-CN/zh-TW/es/fr 등) 한국어로 조용히 폴백하던 것을 영어 폴백으로 수정("절대 조용히 ko로 안 새게 한다" 원칙 적용). `app/oracle/sikojen-povailu/data/shapes`(형태 20종 데이터)와 `page.tsx`/`layout.tsx`/`play/page.tsx`의 SEO 메타데이터(이 URL은 로케일 라우팅이 없어 항상 같은 걸 서빙 — 이전 animal-destiny page.tsx와 동일 판단)는 제외.
+
+**다음(미착수, 우선순위 제안)**: `palm-reading`·`tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker`·`music`·`flower/*` 등. **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것 — destiny-bias·animal-destiny·sikojen-povailu 클러스터가 각각 PR 1~2건 분량이었다.
 
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
 
