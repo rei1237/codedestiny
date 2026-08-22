@@ -1,6 +1,7 @@
 "use client";
 
 import { m, useReducedMotion } from "framer-motion";
+import { useFptiSharedCopy } from "./_lib/copy";
 
 type Props = {
   step: string;
@@ -16,6 +17,7 @@ const ELEMENT_STYLES = [
 ];
 
 export default function FptiLoading({ step, stepIndex = 0 }: Props) {
+  const copy = useFptiSharedCopy();
   const reducedMotion = useReducedMotion();
 
   return (
@@ -43,7 +45,7 @@ export default function FptiLoading({ step, stepIndex = 0 }: Props) {
         />
       </div>
 
-      <h3 className="relative mt-5 text-xl font-semibold text-slate-100">별자리 성향을 해석 중입니다</h3>
+      <h3 className="relative mt-5 text-xl font-semibold text-slate-100">{copy.loadingHeadline}</h3>
       <p className="relative mt-2 text-sm text-slate-300">{step}</p>
 
       {/* 오행 컬러가 세련되게 스캔되는 이펙트 */}

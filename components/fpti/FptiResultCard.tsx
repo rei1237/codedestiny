@@ -18,6 +18,7 @@ import FptiRelationshipCard from "./FptiRelationshipCard";
 import FptiShareCard from "./FptiShareCard";
 import FptiStrategyCard from "./FptiStrategyCard";
 import styles from "./FptiCosmic.module.css";
+import { useFptiSharedCopy } from "./_lib/copy";
 
 type Props = {
   result: FptiAnalysisResult;
@@ -30,23 +31,6 @@ type StoredDeepReport = {
   access: FptiReportAccessState;
   report: FptiDeepReport;
 };
-
-const AXIS_CARD_LABELS: Record<string, string> = {
-  A: "외향 발산형",
-  M: "내면 축적형",
-  H: "감응 공감형",
-  L: "구조 판단형",
-  F: "자유 탐색형",
-  B: "질서 구축형",
-  R: "현실 감각형",
-  V: "비전 직관형",
-};
-
-const QUALITY_LABELS = {
-  full: "정밀 분석",
-  partial: "부분 정밀 분석",
-  fallback: "기본 패턴 분석",
-} as const;
 
 const STORAGE_KEY = "fpti_deep_report_state_v2";
 const FPTI_PREMIUM_UNLOCK_KEYS = ["premium-fpti-report", "premium_fpti_report", "generatefptideepreport", "openfptideepreport"];
@@ -546,9 +530,8 @@ function createInitialDeepReport(result: FptiAnalysisResult): FptiDeepReport {
   }
 }
 
-const ACCESS_CHECKING_MESSAGE = "빠르게 잠금 해제 권한을 확인 중입니다..";
-
 export default function FptiResultCard({ result }: Props) {
+  const copy = useFptiSharedCopy();
   const codeParts = (result?.code || "").split("").filter(Boolean);
   const [deepLoading, setDeepLoading] = useState(false);
   const [deepError, setDeepError] = useState("");
@@ -566,14 +549,14 @@ export default function FptiResultCard({ result }: Props) {
 
   const freeSummaryItems = useMemo(
     () => [
-      { label: "핵심 성향", value: result.strengths[0] || result.oneLiner },
-      { label: "연애 스타일", value: result.loveSummary },
-      { label: "일과 재능", value: result.careerMoneySummary },
-      { label: "돈의 리듬", value: result.careerTips[0] || "주간 지표를 먼저 정하고 실행" },
-      { label: "주의 약점", value: result.weaknesses[0] || "과열 구간에서 판단 편향 주의" },
-      { label: "성장 조언", value: result.growthTips[0] || "하루 1개 핵심 행동을 완수하세요." },
+      { label: copy.freeSummaryLabels.coreTrait, value: result.strengths[0] || result.oneLiner },
+      { label: copy.freeSummaryLabels.loveStyle, value: result.loveSummary },
+      { label: copy.freeSummaryLabels.workTalent, value: result.careerMoneySummary },
+      { label: copy.freeSummaryLabels.moneyRhythm, value: result.careerTips[0] || "주간 지표를 먼저 정하고 실행" },
+      { label: copy.freeSummaryLabels.caution, value: result.weaknesses[0] || "과열 구간에서 판단 편향 주의" },
+      { label: copy.freeSummaryLabels.growthAdvice, value: result.growthTips[0] || "하루 1개 핵심 행동을 완수하세요." },
     ],
-    [result],
+    [copy.freeSummaryLabels, result],
   );
 
   const signature = useMemo(() => buildSignature(result), [result]);
@@ -621,7 +604,7 @@ export default function FptiResultCard({ result }: Props) {
         setAccessState(nextAccess);
         setDeepReport(normalizeDeepReport(finalReport, true));
         setActiveChapter(0);
-        setDeepNotice("이미 잠금 해제된 리포트입니다. 전체 내용을 표시합니다.");
+        setDeepNotice(copy.deepNoticeAlreadyUnlocked);
         safeWriteStored({
           version: 1,
           scope,
@@ -641,7 +624,7 @@ export default function FptiResultCard({ result }: Props) {
     return () => {
       cancelled = true;
     };
-  }, [fptiSnapshotUnlocked, result, signature]);
+  }, [copy.deepNoticeAlreadyUnlocked, fptiSnapshotUnlocked, result, signature]);
 
   const handleUnlockDeepReport = async () => {
     if (deepLoading || accessChecking || unlockingRef.current) return;
@@ -657,7 +640,7 @@ export default function FptiResultCard({ result }: Props) {
       const requestIdStable = buildUnlockRequestId(scope, signature);
       const purchase = await purchaseFeature({
         featureKey: "premium-fpti-report",
-        reason: "FPTI 프리미엄 리포트 생성",
+        reason: copy.purchaseReason,
         requestId: requestIdStable,
         reportId: signature,
         sessionId: signature,
@@ -668,14 +651,14 @@ export default function FptiResultCard({ result }: Props) {
 
       if (!purchase.ok) {
         if (purchase.status === 401) {
-          setDeepError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
+          setDeepError(copy.errorLoginRequired);
           return;
         }
         if (purchase.status === 402) {
-          setDeepError("결제 가능 금액이 부족합니다. 심층 리포트 잠금 해제에는 20,000원이 필요합니다.");
+          setDeepError(copy.errorInsufficientBalance);
           return;
         }
-        setDeepError(purchase.message || "결제 처리에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+        setDeepError(purchase.message || copy.errorPaymentFailedDefault);
         return;
       }
 
@@ -697,9 +680,9 @@ export default function FptiResultCard({ result }: Props) {
       setDeepReport(normalizeDeepReport(unlockedReport, true));
       setActiveChapter(0);
       if (responseCode === "IDEMPOTENT_REPLAY" || chargedCoins === 0) {
-        setDeepNotice("이미 잠금 해제된 리포트입니다. 전체 내용을 표시합니다.");
+        setDeepNotice(copy.deepNoticeAlreadyUnlocked);
       } else {
-        setDeepNotice("잠금 해제가 완료되었습니다. 7개 챕터 전체를 열람할 수 있습니다.");
+        setDeepNotice(copy.deepNoticeJustUnlocked);
       }
 
       safeWriteStored({
@@ -710,7 +693,7 @@ export default function FptiResultCard({ result }: Props) {
         report: normalizeDeepReport(unlockedReport, true),
       });
     } catch (e) {
-      setDeepError("심층 리포트 잠금 해제 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+      setDeepError(copy.errorUnlockException);
     } finally {
       setDeepLoading(false);
       unlockingRef.current = false;
@@ -727,7 +710,7 @@ export default function FptiResultCard({ result }: Props) {
       <div className={`${styles.cosmicNeonCard} rounded-[28px] p-5 shadow-[0_18px_50px_rgba(2,8,25,0.58)] backdrop-blur-xl md:p-7`}>
         <div className="flex flex-wrap items-end justify-between gap-3">
           <div>
-            <p className="text-xs tracking-[0.2em] text-[#f6d365]">당신의 FPTI 코드</p>
+            <p className="text-xs tracking-[0.2em] text-[#f6d365]">{copy.yourCodeLabel}</p>
             <p className="text-xs tracking-[0.2em] text-[#bfdbfe]">SAJU FPTI RESULT</p>
             <h2 className={`${styles.neonTextGold} mt-1 text-4xl font-bold md:text-5xl`}>{result.code}</h2>
             <p className="mt-1 text-lg font-semibold text-slate-100">{result.typeName}</p>
@@ -741,9 +724,9 @@ export default function FptiResultCard({ result }: Props) {
             </div>
           </div>
           <div className="rounded-2xl border border-white/15 bg-black/35 px-4 py-3 text-white">
-            <p className="text-xs text-slate-300">정확도 가이드</p>
+            <p className="text-xs text-slate-300">{copy.accuracyGuideLabel}</p>
             <p className="text-2xl font-bold">{result.confidence}%</p>
-            <p className="mt-1 text-xs text-[#f6d365]">{QUALITY_LABELS[result.quality]}</p>
+            <p className="mt-1 text-xs text-[#f6d365]">{copy.qualityLabels[result.quality]}</p>
           </div>
         </div>
 
@@ -755,18 +738,18 @@ export default function FptiResultCard({ result }: Props) {
         <div className="mt-4 grid gap-2 md:grid-cols-4">
           {codeParts.map((part, idx) => (
             <div key={`${part}-${idx}`} className={`${styles.neonAxisChip} rounded-2xl border border-[#E9C46A]/35 bg-[#0b2039]/70 p-3`}>
-              <p className="text-[11px] text-slate-300">코드 {idx + 1}</p>
+              <p className="text-[11px] text-slate-300">{copy.codeSlotLabel(idx + 1)}</p>
               <p className={`${styles.neonTextGold} mt-1 text-2xl font-bold`}>{part}</p>
-              <p className="mt-1 text-xs text-slate-200">{AXIS_CARD_LABELS[part] || "복합 의미"}</p>
+              <p className="mt-1 text-xs text-slate-200">{copy.axisCardLabels[part] || copy.axisCardFallback}</p>
             </div>
           ))}
         </div>
 
         <div className="mt-4 grid gap-2 md:grid-cols-2 xl:grid-cols-4">
-          <AxisChip label="에너지축" value={result.axisMeanings.energy} />
-          <AxisChip label="판단축" value={result.axisMeanings.judgment} />
-          <AxisChip label="실행축" value={result.axisMeanings.execution} />
-          <AxisChip label="전망축" value={result.axisMeanings.vision} />
+          <AxisChip label={copy.axisEnergyLabel} value={result.axisMeanings.energy} />
+          <AxisChip label={copy.axisJudgmentLabel} value={result.axisMeanings.judgment} />
+          <AxisChip label={copy.axisExecutionLabel} value={result.axisMeanings.execution} />
+          <AxisChip label={copy.axisVisionLabel} value={result.axisMeanings.vision} />
         </div>
       </div>
 
@@ -783,7 +766,7 @@ export default function FptiResultCard({ result }: Props) {
           cautionMatch={result.cautionMatch}
         />
         <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">운명 성향 핵심 해석</h4>
+          <h4 className="text-sm font-semibold text-slate-100">{copy.coreInterpretationHeading}</h4>
           <div className="mt-3 rounded-2xl border border-cyan-200/20 bg-[#07142c]/70 p-3">
             <p className="text-xs tracking-[0.16em] text-cyan-200">COSMIC RADAR</p>
             <div className="mt-2"><CosmicRadar /></div>
@@ -800,10 +783,10 @@ export default function FptiResultCard({ result }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-2">
         <section className="rounded-3xl border border-white/15 bg-[linear-gradient(145deg,rgba(255,255,255,0.08),rgba(14,165,233,0.08))] p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">무료 리포트 요약</h4>
+          <h4 className="text-sm font-semibold text-slate-100">{copy.freeSummaryHeading}</h4>
           <div className="mt-3 grid gap-2 sm:grid-cols-2">
             <div className="rounded-2xl border border-[#f6d365]/30 bg-[#f6d365]/10 p-3 sm:col-span-2">
-              <p className="text-[11px] font-semibold text-amber-100">유형</p>
+              <p className="text-[11px] font-semibold text-amber-100">{copy.freeSummaryTypeLabel}</p>
               <p className="mt-1 text-base font-semibold text-slate-50">{result.typeName}</p>
               <p className="mt-2 text-sm leading-7 text-slate-200">{result.oneLiner}</p>
             </div>
@@ -817,7 +800,7 @@ export default function FptiResultCard({ result }: Props) {
         </section>
 
         <section className="rounded-3xl border border-white/15 bg-[linear-gradient(145deg,rgba(255,255,255,0.07),rgba(168,85,247,0.08))] p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">핵심 해석 요약</h4>
+          <h4 className="text-sm font-semibold text-slate-100">{copy.coreSummaryHeading}</h4>
           <ReadableReportText
             text={[result.elementSummary, result.behaviorSummary, result.relationshipSummary, result.strategySummary].join("\n")}
             fallback="성향의 핵심 흐름을 관계, 일, 돈, 행동 전략으로 나누어 읽어야 합니다."
@@ -827,7 +810,7 @@ export default function FptiResultCard({ result }: Props) {
 
       <div className="grid gap-4 lg:grid-cols-3">
         <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">핵심 성향 3가지</h4>
+          <h4 className="text-sm font-semibold text-slate-100">{copy.topStrengthsHeading}</h4>
           <ul className="mt-3 space-y-2 text-sm text-slate-200">
             {result.strengths.slice(0, 3).map((item) => (
               <li key={item} className="rounded-xl border border-emerald-200/20 bg-emerald-500/10 px-3 py-2 leading-7">{item}</li>
@@ -835,7 +818,7 @@ export default function FptiResultCard({ result }: Props) {
           </ul>
         </section>
         <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-          <h4 className="text-sm font-semibold text-slate-100">주의 포인트</h4>
+          <h4 className="text-sm font-semibold text-slate-100">{copy.cautionPointsHeading}</h4>
           <ul className="mt-3 space-y-2 text-sm text-slate-200">
             {result.weaknesses.map((item) => (
               <li key={item} className="rounded-xl border border-amber-200/20 bg-amber-500/10 px-3 py-2 leading-7">{item}</li>
@@ -856,8 +839,8 @@ export default function FptiResultCard({ result }: Props) {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <p className="text-xs tracking-[0.18em] text-[#F6D365]">PREMIUM DEEP REPORT</p>
-            <h4 className="text-lg font-semibold text-amber-100">FPTI 심층 리포트 잠금 해제 (20,000원)</h4>
-            <p className="text-sm text-amber-50">결제 전 미리보기, 결제 후 7개 챕터 전체 열람으로 동작합니다.</p>
+            <h4 className="text-lg font-semibold text-amber-100">{copy.premiumHeading}</h4>
+            <p className="text-sm text-amber-50">{copy.premiumDescription}</p>
           </div>
           {!accessState.isUnlocked && (
             <button
@@ -866,19 +849,19 @@ export default function FptiResultCard({ result }: Props) {
               disabled={deepLoading || accessChecking}
               className="rounded-full bg-[linear-gradient(120deg,#0ea5e9,#2563eb,#f59e0b)] px-5 py-2.5 text-sm font-semibold text-white shadow-[0_8px_24px_rgba(14,165,233,0.35)] disabled:cursor-not-allowed disabled:opacity-70"
             >
-              {deepLoading || accessChecking ? ACCESS_CHECKING_MESSAGE : "FPTI 심층 리포트 잠금 해제 (20,000원)"}
+              {deepLoading || accessChecking ? copy.accessCheckingMessage : copy.premiumHeading}
             </button>
           )}
           {accessState.isUnlocked && (
             <button type="button" disabled className="rounded-full border border-emerald-200/30 bg-emerald-500/20 px-5 py-2.5 text-sm font-semibold text-emerald-50 opacity-90">
-              이미 잠금 해제됨
+              {copy.alreadyUnlockedButton}
             </button>
           )}
         </div>
         <div className="mt-3 rounded-xl border border-white/15 bg-black/20 p-3 text-sm text-slate-100">
-          상태: <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? "전체 열람 가능" : accessChecking ? ACCESS_CHECKING_MESSAGE : "미리보기"}</span>
+          {copy.statusLabel} <span className={accessState.isUnlocked ? styles.neonTextCyan : styles.neonTextGold}>{accessState.isUnlocked ? copy.statusUnlockedValue : accessChecking ? copy.accessCheckingMessage : copy.statusPreviewValue}</span>
         </div>
-        {accessChecking && !accessState.isUnlocked && <p className="mt-3 rounded-xl border border-amber-300/35 bg-amber-500/15 p-3 text-sm text-amber-100">{ACCESS_CHECKING_MESSAGE}</p>}
+        {accessChecking && !accessState.isUnlocked && <p className="mt-3 rounded-xl border border-amber-300/35 bg-amber-500/15 p-3 text-sm text-amber-100">{copy.accessCheckingMessage}</p>}
         {deepNotice && <p className="mt-3 rounded-xl border border-emerald-300/35 bg-emerald-500/15 p-3 text-sm text-emerald-100">{deepNotice}</p>}
         {deepError && <p className="mt-3 rounded-xl border border-rose-300/35 bg-rose-500/15 p-3 text-sm text-rose-100">{deepError}</p>}
       </div>
@@ -892,7 +875,7 @@ export default function FptiResultCard({ result }: Props) {
 
         <div className="mt-3 flex flex-wrap items-center justify-between gap-2 rounded-xl border border-white/12 bg-black/20 px-3 py-2 text-xs text-slate-200">
           <span className="leading-6">읽는 순서: 총론 → 내면 → 관계 → 일/재능 → 돈 → 스트레스 → 성장</span>
-          <span className="font-semibold text-cyan-100">현재 {activeChapter + 1}/{Array.isArray(deepReport?.chapters) ? deepReport.chapters.length : 7}장</span>
+          <span className="font-semibold text-cyan-100">{copy.currentChapterProgress(activeChapter + 1, Array.isArray(deepReport?.chapters) ? deepReport.chapters.length : 7)}</span>
         </div>
 
         <div className="mt-3 flex flex-wrap gap-2">
@@ -914,7 +897,7 @@ export default function FptiResultCard({ result }: Props) {
                 onClick={() => setActiveChapter(idx)}
                 className={`shrink-0 rounded-full border px-3 py-1.5 text-xs transition ${chapterActive ? "border-cyan-200/55 bg-cyan-500/20 text-cyan-50" : chapterLocked ? "border-amber-300/35 bg-amber-500/10 text-amber-100" : "border-white/15 bg-white/5 text-slate-200 hover:bg-white/10"}`}
               >
-                {toRoman(Number(chapter?.order || idx + 1))} {chapterLocked ? "잠금" : stripRomanPrefix(chapter?.title).split(" ")[0]}
+                {toRoman(Number(chapter?.order || idx + 1))} {chapterLocked ? copy.chapterLockedBadge : stripRomanPrefix(chapter?.title).split(" ")[0]}
               </button>
             );
           })}
@@ -940,18 +923,18 @@ export default function FptiResultCard({ result }: Props) {
                     <p className="text-[11px] font-semibold text-cyan-200">{toRoman(Number(chapter?.order || idx + 1))}. {CHAPTER_LENS_LABELS[idx] || "심층 해석"}</p>
                     <h5 className="mt-1 text-sm font-semibold leading-6 text-sky-100">{stripRomanPrefix(chapter?.title)}</h5>
                   </div>
-                  <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-slate-200">{lockedChapter ? "잠금" : open ? "접기" : "열기"}</span>
+                  <span className="shrink-0 rounded-full border border-white/15 bg-white/10 px-2.5 py-1 text-xs text-slate-200">{lockedChapter ? copy.chapterLockedBadge : open ? copy.chapterCollapseLabel : copy.chapterOpenLabel}</span>
                 </button>
                 {open && (
                   <div className="border-t border-white/10 px-4 pb-4 pt-3">
                     {lockedChapter && (
                       <p className="mb-3 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-xs text-amber-100">
-                        🔒 이 챕터는 잠금 상태입니다. FPTI 심층 리포트 잠금 해제 후 전체 본문을 볼 수 있습니다.
+                        {copy.chapterLockedNotice}
                       </p>
                     )}
                     {!accessState.isUnlocked && idx === 0 && (
                       <p className="mb-3 rounded-xl border border-amber-300/30 bg-amber-400/10 p-3 text-xs text-amber-100">
-                        1챕터는 1~2문장 미리보기로 제공됩니다. 잠금 해제 시 7개 챕터 전체가 열립니다.
+                        {copy.firstChapterPreviewNotice}
                       </p>
                     )}
 
@@ -963,7 +946,7 @@ export default function FptiResultCard({ result }: Props) {
                         return (
                         <article key={`${chapter.roman}-${section?.title}`} className="rounded-2xl border border-cyan-300/20 bg-[linear-gradient(145deg,rgba(14,165,233,0.12),rgba(15,23,42,0.46))] p-4 transition hover:shadow-[0_0_20px_rgba(56,189,248,0.22)]">
                           <div className="flex flex-wrap items-start justify-between gap-3">
-                            <h6 className="min-w-0 flex-1 text-base font-semibold leading-7 text-cyan-100">{section?.title || "제목 없음"}</h6>
+                            <h6 className="min-w-0 flex-1 text-base font-semibold leading-7 text-cyan-100">{section?.title || copy.untitledSectionFallback}</h6>
                             <div className="flex shrink-0 flex-wrap justify-end gap-1.5">
                               <span className="rounded-full border border-cyan-200/25 bg-cyan-500/10 px-2 py-0.5 text-[10px] text-cyan-100">{lens.chapter}</span>
                               <span className="rounded-full border border-white/15 bg-white/10 px-2 py-0.5 text-[10px] text-slate-200">{lens.section}</span>
