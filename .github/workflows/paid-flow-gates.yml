@@ -126,7 +126,7 @@ on:
       # 🔴 2026-08-22 실측: PR #940(i18n)이 app/fusion-fortune/** 를 고쳤는데 트리거에 없어
       #    __tests__/ui/fusion-fortune.static.test.js 를 도는 npm test 가 PR 에서 스킵됐고,
       #    머지 후 push:main 건강신호에서만 실패가 드러났다 — 바로 위 vedic-ai(PR #924, 하루 전)와
-      #    동일한 모양의 사고다. 게다가 이 실패는 npm run deploy:staging 의 회귀 테스트 관문도
+      #    동일한 모양의 사고다. 게다가 이 실패는 deploy-safe.mjs 의 회귀 테스트 관문도
       #    같이 막아 스테이징 배포 자체가 BLOCKED 됐다(건강신호가 아니라 실제 배포 정지).
       - "app/fusion-fortune/**"
       - "worker/lib/fusion-fortune*.js"
