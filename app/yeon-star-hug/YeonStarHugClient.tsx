@@ -36,6 +36,7 @@ import {
   type YeonAstroSignal,
 } from "@/lib/yeon/astroSignal";
 import { getYeonSpriteFrame } from "@/lib/yeon/yeonSpriteMood";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
 const YEON_STAR_HUG_TEXT_TRANSLATIONS = {
   ko: {
@@ -91,6 +92,934 @@ const YEON_STAR_HUG_TEXT_TRANSLATIONS = {
 
 function yeonStarHugText(key: keyof typeof YEON_STAR_HUG_TEXT_TRANSLATIONS.ko) {
   return YEON_STAR_HUG_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
+}
+
+interface YeonStarHugCopy {
+  heroBadge: string;
+  heroTitle: string;
+  heroSubtitle: string;
+  heroDescription: string;
+  heroArtLoading: string;
+  heroImageAlt: string;
+  inputPanelEyebrow: string;
+  inputPanelTitle: string;
+  inputPanelIntro: string;
+  profileCardLabel: string;
+  profileConnected: string;
+  profileNotConnected: string;
+  profileNamePending: string;
+  birthDateLabel: string;
+  birthTimeLabel: string;
+  astroLoading: string;
+  resyncButton: string;
+  nameFieldLabel: string;
+  namePlaceholder: string;
+  birthDateFieldLabel: string;
+  birthTimeFieldLabel: string;
+  zodiacFieldLabel: string;
+  zodiacSelectAriaLabel: string;
+  concernFieldLabel: string;
+  concernPlaceholder: string;
+  concernAriaLabel: string;
+  concernSamplesLabel: string;
+  generateButtonLoading: string;
+  generateButtonIdle: string;
+  flowHint: string;
+  emptyStateTitle: string;
+  emptyStateHint: string;
+  readingEyebrow: string;
+  readingTitle: string;
+  cheerLetterEyebrow: string;
+  stampCaption: string;
+  spriteAriaLabel: string;
+  concernReasonEyebrow: string;
+  evidenceLabel: string;
+  sevenReadingsEyebrow: string;
+  shareCardEyebrow: string;
+  shareCardTitle: string;
+  cardPreviewAriaLabel: string;
+  shareButtonLoading: string;
+  shareButtonIdle: string;
+  focusLabel: string;
+  actionStepsLabel: string;
+  faqSaveTitle: string;
+  faqSaveBody: string;
+  faqSymbolTitle: string;
+  faqSymbolBody: string;
+  faqRefreshTitle: string;
+  faqRefreshBody: string;
+  faqShareTitle: string;
+  faqShareBody: string;
+  navPillInput: string;
+  navPillKeyword: string;
+  navPillAstro: string;
+  navPillShare: string;
+  navAriaLabel: string;
+  shareDialogTitle: string;
+}
+
+const YEON_STAR_HUG_COPY_KO: YeonStarHugCopy = {
+  heroBadge: "연이의 별빛 상담소",
+  heroTitle: "연이의 마음 별자리",
+  heroSubtitle: "오늘의 감정과 고민을 별빛 흐름으로 다정하게 정리해줄게요.",
+  heroDescription:
+    "태양 위치, 달 위상, 요일 행성 흐름을 기반으로 현실적인 한 줄 행동까지 제안해요. 감정 선택부터 상담 결과, SVG 행운 상징 카드 저장까지 한 번에 이어집니다.",
+  heroArtLoading: "연이 아트 로딩중",
+  heroImageAlt: "연이의 마음 별자리 아트",
+  inputPanelEyebrow: "입력 패널",
+  inputPanelTitle: "감정 선택 → 별자리 → 고민 입력",
+  inputPanelIntro: "오늘 마음을 편안하게 정리할 수 있도록 입력 동선을 간결하게 준비했어요.",
+  profileCardLabel: "연결된 프로필 카드",
+  profileConnected: "연결됨",
+  profileNotConnected: "미연결",
+  profileNamePending: "프로필 카드를 선택해 주세요",
+  birthDateLabel: "생년월일",
+  birthTimeLabel: "출생시간",
+  astroLoading: "연이가 정밀 별자리 차트를 읽고 있어요.",
+  resyncButton: "프로필 카드 기준으로 별자리 다시 맞추기",
+  nameFieldLabel: "이름 (프로필 카드 자동 입력)",
+  namePlaceholder: "예: 연이",
+  birthDateFieldLabel: "생년월일 (YYYYMMDD)",
+  birthTimeFieldLabel: "출생시간 (HHMM, 선택)",
+  zodiacFieldLabel: "내 별자리",
+  zodiacSelectAriaLabel: "별자리 선택",
+  concernFieldLabel: "지금 고민 (키워드 인식용)",
+  concernPlaceholder: "예: 요즘 만나는 사람과 계속 어긋나는 것 같아 답답해요. 또는 돈을 모으고 싶은데 지출 통제가 안 돼서 고민이에요.",
+  concernAriaLabel: "고민 입력",
+  concernSamplesLabel: "추천 고민 샘플 문장",
+  generateButtonLoading: "연이가 별빛 흐름 정리중...",
+  generateButtonIdle: "연이 상담 업데이트",
+  flowHint: "상담 흐름: 감정 선택 → 별자리 선택 → 고민 입력 → 결과 분석 → SVG 카드",
+  emptyStateTitle: "감정과 고민을 입력하면 연이가 별빛 상담을 준비해요.",
+  emptyStateHint: "업데이트 버튼을 누르면 분석 결과, SVG 카드, 실행 3단계가 순서대로 표시됩니다.",
+  readingEyebrow: "오늘의 마음 리딩",
+  readingTitle: "오늘의 점성술 상담",
+  cheerLetterEyebrow: "연이의 응원 편지",
+  stampCaption: "연이의 오늘 스탬프",
+  spriteAriaLabel: "연이 스프라이트 컷",
+  concernReasonEyebrow: "고민이 커진 이유 (점성술 분석)",
+  evidenceLabel: "근거",
+  sevenReadingsEyebrow: "오늘의 별빛 상담 7가지",
+  shareCardEyebrow: "공유 카드",
+  shareCardTitle: "고화질 SVG 행운 상징 카드",
+  cardPreviewAriaLabel: "SVG 행운 상징 카드 미리보기",
+  shareButtonLoading: "SVG 상징 카드 준비중...",
+  shareButtonIdle: "SVG 상징 카드 공유/저장",
+  focusLabel: "핵심 포커스",
+  actionStepsLabel: "오늘의 실행 3단계",
+  faqSaveTitle: "결과 저장하고 다시 보기",
+  faqSaveBody:
+    "카드 이미지를 저장하면 오늘 뽑힌 행운 상징과 한 문장이 그대로 남아요. 하루가 지난 뒤 다시 열어보면 지금과 다르게 읽히는 부분이 있는지 확인해 보세요.",
+  faqSymbolTitle: "행운 상징 6종 미리보기",
+  faqSymbolBody:
+    "네잎 클로버(작은 행운이 동시에 열리는 날), 달과 별(감정을 다독이는 치유), 연꽃(흔들림 속 회복력), 황금 열쇠(막힌 흐름을 푸는 해답), 나비(관계와 마음의 가벼운 변화), 혜성(정체를 돌파하는 용기) — 오늘 카드에 어떤 상징이 나올지는 감정과 고민에 따라 달라져요.",
+  faqRefreshTitle: "오늘 다시 확인하면 결과가 바뀌나요?",
+  faqRefreshBody:
+    "네, 감정 선택이나 고민 문장을 바꾸면 리딩이 새로 계산돼요. 같은 날 여러 번 확인해도 괜찮지만, 가장 처음 마음에 남은 문장을 기준으로 삼는 걸 추천해요.",
+  faqShareTitle: "공유 전 확인할 것",
+  faqShareBody:
+    "카드를 다른 사람과 공유하기 전에 이름·생년월일이 원치 않게 드러나진 않는지 한 번 더 확인하세요. 별자리 리딩은 참고용 상담이니, 무겁게 받아들이기보다 오늘의 기분을 가볍게 나누는 용도로 활용해 주세요.",
+  navPillInput: "감정 + 고민 입력",
+  navPillKeyword: "실시간 키워드 인식",
+  navPillAstro: "실제 점성술 신호",
+  navPillShare: "SVG 카드 공유",
+  navAriaLabel: "기능 요약 배지",
+  shareDialogTitle: "연이의 마음 별자리",
+};
+
+const YEON_STAR_HUG_COPY_EN: YeonStarHugCopy = {
+  heroBadge: "Yeon's Starlight Counsel",
+  heroTitle: "Yeon's Heart Constellation",
+  heroSubtitle: "Let's gently sort out today's feelings and worries through the flow of the stars.",
+  heroDescription:
+    "Based on the sun's position, the moon phase, and the day-ruling planet's flow, Yeon suggests a realistic one-line action. From choosing your emotion to the reading and saving your SVG lucky-symbol card, it all flows in one place.",
+  heroArtLoading: "Loading Yeon's art",
+  heroImageAlt: "Yeon's heart constellation artwork",
+  inputPanelEyebrow: "Input panel",
+  inputPanelTitle: "Emotion → Zodiac sign → Worry input",
+  inputPanelIntro: "We kept the input flow simple so you can sort out your feelings comfortably today.",
+  profileCardLabel: "Connected profile card",
+  profileConnected: "Connected",
+  profileNotConnected: "Not connected",
+  profileNamePending: "Please select a profile card",
+  birthDateLabel: "Birth date",
+  birthTimeLabel: "Birth time",
+  astroLoading: "Yeon is reading your precise natal chart.",
+  resyncButton: "Re-match zodiac sign from profile card",
+  nameFieldLabel: "Name (auto-filled from profile card)",
+  namePlaceholder: "e.g. Yeon",
+  birthDateFieldLabel: "Birth date (YYYYMMDD)",
+  birthTimeFieldLabel: "Birth time (HHMM, optional)",
+  zodiacFieldLabel: "My zodiac sign",
+  zodiacSelectAriaLabel: "Select zodiac sign",
+  concernFieldLabel: "Current worry (for keyword recognition)",
+  concernPlaceholder: "e.g. Things keep going wrong with someone I've been seeing lately, it's frustrating. Or I want to save money but can't control my spending.",
+  concernAriaLabel: "Worry input",
+  concernSamplesLabel: "Recommended sample sentences",
+  generateButtonLoading: "Yeon is sorting the starlight flow...",
+  generateButtonIdle: "Update Yeon's reading",
+  flowHint: "Flow: choose emotion → choose zodiac sign → enter worry → analyze result → SVG card",
+  emptyStateTitle: "Enter your emotion and worry, and Yeon will prepare a starlight reading.",
+  emptyStateHint: "Press the update button to see the analysis result, SVG card, and 3 action steps in order.",
+  readingEyebrow: "Today's heart reading",
+  readingTitle: "Today's astrology counsel",
+  cheerLetterEyebrow: "Yeon's cheer letter",
+  stampCaption: "Yeon's stamp of the day",
+  spriteAriaLabel: "Yeon sprite cut",
+  concernReasonEyebrow: "Why this worry grew (astrology analysis)",
+  evidenceLabel: "Evidence",
+  sevenReadingsEyebrow: "Today's 7 starlight readings",
+  shareCardEyebrow: "Share card",
+  shareCardTitle: "High-resolution SVG lucky-symbol card",
+  cardPreviewAriaLabel: "SVG lucky-symbol card preview",
+  shareButtonLoading: "Preparing SVG symbol card...",
+  shareButtonIdle: "Share/save SVG symbol card",
+  focusLabel: "Key focus",
+  actionStepsLabel: "Today's 3 action steps",
+  faqSaveTitle: "Save your result and look again later",
+  faqSaveBody:
+    "Saving the card image keeps today's lucky symbol and one-line message exactly as they were. After a day passes, open it again and see if anything reads differently now.",
+  faqSymbolTitle: "Preview: 6 lucky symbols",
+  faqSymbolBody:
+    "Four-leaf clover (a day when small pieces of luck open at once), moon and stars (healing that soothes emotions), lotus (resilience through turbulence), golden key (an answer that unlocks a blocked flow), butterfly (a light shift in relationships and heart), comet (courage to break through stagnation) — which symbol appears on today's card depends on your emotion and worry.",
+  faqRefreshTitle: "Does checking again today change the result?",
+  faqRefreshBody:
+    "Yes, changing your emotion choice or worry sentence recalculates the reading. It's fine to check multiple times the same day, but we recommend using the very first sentence that resonated with you as your reference.",
+  faqShareTitle: "Before you share",
+  faqShareBody:
+    "Before sharing the card with someone else, double-check that your name and birth date aren't revealed in a way you didn't intend. This zodiac reading is for reference only, so use it to share today's mood lightly rather than taking it too seriously.",
+  navPillInput: "Emotion + worry input",
+  navPillKeyword: "Real-time keyword recognition",
+  navPillAstro: "Real astrology signals",
+  navPillShare: "SVG card sharing",
+  navAriaLabel: "Feature summary badges",
+  shareDialogTitle: "Yeon's Heart Constellation",
+};
+
+const YEON_STAR_HUG_COPY_JA: YeonStarHugCopy = {
+  heroBadge: "ヨンの星あかり相談所",
+  heroTitle: "ヨンの心の星座",
+  heroSubtitle: "今日の感情と悩みを星の流れで優しく整理してあげるね。",
+  heroDescription:
+    "太陽の位置、月の満ち欠け、曜日惑星の流れをもとに、現実的なひと言アクションまで提案します。感情選択から相談結果、SVG幸運シンボルカードの保存まで一度につながります。",
+  heroArtLoading: "ヨンのアートを読み込み中",
+  heroImageAlt: "ヨンの心の星座アート",
+  inputPanelEyebrow: "入力パネル",
+  inputPanelTitle: "感情選択 → 星座 → 悩み入力",
+  inputPanelIntro: "今日の気持ちを気軽に整理できるよう、入力の流れをシンプルにしました。",
+  profileCardLabel: "連携中のプロフィールカード",
+  profileConnected: "連携済み",
+  profileNotConnected: "未連携",
+  profileNamePending: "プロフィールカードを選択してください",
+  birthDateLabel: "生年月日",
+  birthTimeLabel: "出生時間",
+  astroLoading: "ヨンが精密なネイタルチャートを読み取っています。",
+  resyncButton: "プロフィールカード基準で星座を合わせ直す",
+  nameFieldLabel: "名前(プロフィールカードから自動入力)",
+  namePlaceholder: "例: ヨン",
+  birthDateFieldLabel: "生年月日(YYYYMMDD)",
+  birthTimeFieldLabel: "出生時間(HHMM、任意)",
+  zodiacFieldLabel: "私の星座",
+  zodiacSelectAriaLabel: "星座を選択",
+  concernFieldLabel: "今の悩み(キーワード認識用)",
+  concernPlaceholder: "例: 最近付き合っている人とすれ違ってばかりでもどかしいです。または、お金を貯めたいのに支出を抑えられなくて悩んでいます。",
+  concernAriaLabel: "悩みの入力",
+  concernSamplesLabel: "おすすめのサンプル文",
+  generateButtonLoading: "ヨンが星の流れを整理中...",
+  generateButtonIdle: "ヨンの相談を更新",
+  flowHint: "流れ: 感情選択 → 星座選択 → 悩み入力 → 結果分析 → SVGカード",
+  emptyStateTitle: "感情と悩みを入力すると、ヨンが星あかり相談を準備します。",
+  emptyStateHint: "更新ボタンを押すと、分析結果・SVGカード・実行3ステップが順に表示されます。",
+  readingEyebrow: "今日の心のリーディング",
+  readingTitle: "今日の占星術相談",
+  cheerLetterEyebrow: "ヨンの応援レター",
+  stampCaption: "ヨンの今日のスタンプ",
+  spriteAriaLabel: "ヨンのスプライトカット",
+  concernReasonEyebrow: "悩みが大きくなった理由(占星術分析)",
+  evidenceLabel: "根拠",
+  sevenReadingsEyebrow: "今日の星あかり相談7つ",
+  shareCardEyebrow: "共有カード",
+  shareCardTitle: "高画質SVG幸運シンボルカード",
+  cardPreviewAriaLabel: "SVG幸運シンボルカードのプレビュー",
+  shareButtonLoading: "SVGシンボルカードを準備中...",
+  shareButtonIdle: "SVGシンボルカードを共有/保存",
+  focusLabel: "重要フォーカス",
+  actionStepsLabel: "今日の実行3ステップ",
+  faqSaveTitle: "結果を保存して後で見返す",
+  faqSaveBody:
+    "カード画像を保存すれば、今日出た幸運シンボルとひと言メッセージがそのまま残ります。1日経ってから開き直し、今と違って感じる部分がないか確認してみてください。",
+  faqSymbolTitle: "幸運シンボル6種プレビュー",
+  faqSymbolBody:
+    "四つ葉のクローバー(小さな幸運が同時に開く日)、月と星(感情をなだめる癒し)、蓮(揺らぎの中の回復力)、黄金の鍵(滞った流れを解く答え)、蝶(関係と心の軽やかな変化)、彗星(停滞を突破する勇気) — 今日のカードにどのシンボルが出るかは、感情と悩みによって変わります。",
+  faqRefreshTitle: "今日もう一度確認すると結果は変わりますか?",
+  faqRefreshBody:
+    "はい、感情選択や悩みの文章を変えるとリーディングが新しく計算されます。同じ日に何度確認しても構いませんが、最初に心に残った文章を基準にすることをおすすめします。",
+  faqShareTitle: "共有前に確認すること",
+  faqShareBody:
+    "カードを他の人と共有する前に、名前・生年月日が意図せず表れていないかもう一度確認してください。星座リーディングは参考用の相談なので、重く受け止めるよりも今日の気分を軽く分かち合う用途として活用してください。",
+  navPillInput: "感情+悩み入力",
+  navPillKeyword: "リアルタイムキーワード認識",
+  navPillAstro: "実際の占星術シグナル",
+  navPillShare: "SVGカード共有",
+  navAriaLabel: "機能サマリーバッジ",
+  shareDialogTitle: "ヨンの心の星座",
+};
+
+const YEON_STAR_HUG_COPY_ZH_CN: YeonStarHugCopy = {
+  heroBadge: "妍的星光咨询所",
+  heroTitle: "妍的心之星座",
+  heroSubtitle: "让我用星光的流动,温柔地为你梳理今天的情绪和烦恼。",
+  heroDescription:
+    "根据太阳位置、月相以及当日守护星的流动,还会给出可以落地执行的一句话行动建议。从选择情绪到查看解读结果,再到保存SVG幸运符号卡片,一气呵成。",
+  heroArtLoading: "妍的插画加载中",
+  heroImageAlt: "妍的心之星座插画",
+  inputPanelEyebrow: "输入面板",
+  inputPanelTitle: "选择情绪 → 星座 → 输入烦恼",
+  inputPanelIntro: "为了让你今天能轻松整理心情,我们把输入流程做得简单明了。",
+  profileCardLabel: "已连接的资料卡",
+  profileConnected: "已连接",
+  profileNotConnected: "未连接",
+  profileNamePending: "请选择资料卡",
+  birthDateLabel: "出生日期",
+  birthTimeLabel: "出生时间",
+  astroLoading: "妍正在读取精密星盘。",
+  resyncButton: "按资料卡重新匹配星座",
+  nameFieldLabel: "姓名(由资料卡自动填入)",
+  namePlaceholder: "例: 妍",
+  birthDateFieldLabel: "出生日期(YYYYMMDD)",
+  birthTimeFieldLabel: "出生时间(HHMM,可选)",
+  zodiacFieldLabel: "我的星座",
+  zodiacSelectAriaLabel: "选择星座",
+  concernFieldLabel: "此刻的烦恼(用于关键词识别)",
+  concernPlaceholder: "例: 最近和交往对象总是合不来,让我很郁闷。或者我想存钱,却总是控制不住支出,很烦恼。",
+  concernAriaLabel: "输入烦恼",
+  concernSamplesLabel: "推荐的示例句子",
+  generateButtonLoading: "妍正在梳理星光流动...",
+  generateButtonIdle: "更新妍的咨询",
+  flowHint: "流程: 选择情绪 → 选择星座 → 输入烦恼 → 分析结果 → SVG卡片",
+  emptyStateTitle: "输入情绪和烦恼后,妍会为你准备星光咨询。",
+  emptyStateHint: "点击更新按钮后,分析结果、SVG卡片、3个行动步骤会依次显示。",
+  readingEyebrow: "今日心灵解读",
+  readingTitle: "今日占星咨询",
+  cheerLetterEyebrow: "妍的鼓励信",
+  stampCaption: "妍的今日印章",
+  spriteAriaLabel: "妍的动态图切片",
+  concernReasonEyebrow: "烦恼加重的原因(占星分析)",
+  evidenceLabel: "依据",
+  sevenReadingsEyebrow: "今日7项星光咨询",
+  shareCardEyebrow: "分享卡片",
+  shareCardTitle: "高清SVG幸运符号卡片",
+  cardPreviewAriaLabel: "SVG幸运符号卡片预览",
+  shareButtonLoading: "SVG符号卡片准备中...",
+  shareButtonIdle: "分享/保存SVG符号卡片",
+  focusLabel: "核心焦点",
+  actionStepsLabel: "今日3个行动步骤",
+  faqSaveTitle: "保存结果,以后再看",
+  faqSaveBody:
+    "保存卡片图像后,今天抽到的幸运符号和一句话留言会原样保留。过一天再打开看看,是否有和现在不同的感受。",
+  faqSymbolTitle: "6种幸运符号预览",
+  faqSymbolBody:
+    "四叶草(小幸运同时降临的日子)、月亮与星星(抚慰情绪的治愈)、莲花(动摇中的恢复力)、金钥匙(解开受阻流动的答案)、蝴蝶(关系与内心的轻微变化)、彗星(突破停滞的勇气)——今天卡片上出现哪种符号,取决于你的情绪和烦恼。",
+  faqRefreshTitle: "今天再次确认,结果会改变吗?",
+  faqRefreshBody:
+    "是的,更改情绪选择或烦恼语句会重新计算解读。同一天多次确认也没关系,但建议以最初打动你的那句话为准。",
+  faqShareTitle: "分享前请确认",
+  faqShareBody:
+    "在与他人分享卡片之前,请再次确认姓名、出生日期是否被无意中透露。星座解读仅供参考,建议轻松分享今日心情,而不要过于当真。",
+  navPillInput: "情绪+烦恼输入",
+  navPillKeyword: "实时关键词识别",
+  navPillAstro: "真实占星信号",
+  navPillShare: "SVG卡片分享",
+  navAriaLabel: "功能摘要徽章",
+  shareDialogTitle: "妍的心之星座",
+};
+
+const YEON_STAR_HUG_COPY_ZH_TW: YeonStarHugCopy = {
+  heroBadge: "妍的星光諮詢所",
+  heroTitle: "妍的心之星座",
+  heroSubtitle: "讓我用星光的流動,溫柔地為你梳理今天的情緒和煩惱。",
+  heroDescription:
+    "根據太陽位置、月相以及當日守護星的流動,還會給出可以落地執行的一句話行動建議。從選擇情緒到查看解讀結果,再到保存SVG幸運符號卡片,一氣呵成。",
+  heroArtLoading: "妍的插畫載入中",
+  heroImageAlt: "妍的心之星座插畫",
+  inputPanelEyebrow: "輸入面板",
+  inputPanelTitle: "選擇情緒 → 星座 → 輸入煩惱",
+  inputPanelIntro: "為了讓你今天能輕鬆整理心情,我們把輸入流程做得簡單明瞭。",
+  profileCardLabel: "已連接的資料卡",
+  profileConnected: "已連接",
+  profileNotConnected: "未連接",
+  profileNamePending: "請選擇資料卡",
+  birthDateLabel: "出生日期",
+  birthTimeLabel: "出生時間",
+  astroLoading: "妍正在讀取精密星盤。",
+  resyncButton: "按資料卡重新配對星座",
+  nameFieldLabel: "姓名(由資料卡自動填入)",
+  namePlaceholder: "例: 妍",
+  birthDateFieldLabel: "出生日期(YYYYMMDD)",
+  birthTimeFieldLabel: "出生時間(HHMM,可選)",
+  zodiacFieldLabel: "我的星座",
+  zodiacSelectAriaLabel: "選擇星座",
+  concernFieldLabel: "此刻的煩惱(用於關鍵字識別)",
+  concernPlaceholder: "例: 最近和交往對象總是合不來,讓我很鬱悶。或是我想存錢,卻總是控制不住支出,很煩惱。",
+  concernAriaLabel: "輸入煩惱",
+  concernSamplesLabel: "推薦的範例句子",
+  generateButtonLoading: "妍正在梳理星光流動...",
+  generateButtonIdle: "更新妍的諮詢",
+  flowHint: "流程: 選擇情緒 → 選擇星座 → 輸入煩惱 → 分析結果 → SVG卡片",
+  emptyStateTitle: "輸入情緒和煩惱後,妍會為你準備星光諮詢。",
+  emptyStateHint: "點擊更新按鈕後,分析結果、SVG卡片、3個行動步驟會依序顯示。",
+  readingEyebrow: "今日心靈解讀",
+  readingTitle: "今日占星諮詢",
+  cheerLetterEyebrow: "妍的鼓勵信",
+  stampCaption: "妍的今日印章",
+  spriteAriaLabel: "妍的動態圖切片",
+  concernReasonEyebrow: "煩惱加重的原因(占星分析)",
+  evidenceLabel: "依據",
+  sevenReadingsEyebrow: "今日7項星光諮詢",
+  shareCardEyebrow: "分享卡片",
+  shareCardTitle: "高畫質SVG幸運符號卡片",
+  cardPreviewAriaLabel: "SVG幸運符號卡片預覽",
+  shareButtonLoading: "SVG符號卡片準備中...",
+  shareButtonIdle: "分享/保存SVG符號卡片",
+  focusLabel: "核心焦點",
+  actionStepsLabel: "今日3個行動步驟",
+  faqSaveTitle: "保存結果,之後再看",
+  faqSaveBody:
+    "保存卡片圖像後,今天抽到的幸運符號和一句話留言會原樣保留。過一天再打開看看,是否有和現在不同的感受。",
+  faqSymbolTitle: "6種幸運符號預覽",
+  faqSymbolBody:
+    "四葉草(小幸運同時降臨的日子)、月亮與星星(撫慰情緒的療癒)、蓮花(動搖中的恢復力)、金鑰匙(解開受阻流動的答案)、蝴蝶(關係與內心的輕微變化)、彗星(突破停滯的勇氣)——今天卡片上出現哪種符號,取決於你的情緒和煩惱。",
+  faqRefreshTitle: "今天再次確認,結果會改變嗎?",
+  faqRefreshBody:
+    "是的,更改情緒選擇或煩惱語句會重新計算解讀。同一天多次確認也沒關係,但建議以最初打動你的那句話為準。",
+  faqShareTitle: "分享前請確認",
+  faqShareBody:
+    "在與他人分享卡片之前,請再次確認姓名、出生日期是否被無意中透露。星座解讀僅供參考,建議輕鬆分享今日心情,而不要過於當真。",
+  navPillInput: "情緒+煩惱輸入",
+  navPillKeyword: "即時關鍵字識別",
+  navPillAstro: "真實占星信號",
+  navPillShare: "SVG卡片分享",
+  navAriaLabel: "功能摘要徽章",
+  shareDialogTitle: "妍的心之星座",
+};
+
+const YEON_STAR_HUG_COPY_VI: YeonStarHugCopy = {
+  heroBadge: "Phòng tư vấn ánh sao của Yeon",
+  heroTitle: "Chòm sao trái tim của Yeon",
+  heroSubtitle: "Hãy để mình nhẹ nhàng sắp xếp cảm xúc và nỗi lo hôm nay theo dòng chảy ánh sao nhé.",
+  heroDescription:
+    "Dựa trên vị trí mặt trời, pha mặt trăng và dòng chảy hành tinh cai quản ngày, mình sẽ gợi ý cả một hành động thực tế trong một câu. Từ việc chọn cảm xúc đến kết quả tư vấn và lưu thẻ biểu tượng may mắn SVG, tất cả đều liền mạch.",
+  heroArtLoading: "Đang tải hình ảnh của Yeon",
+  heroImageAlt: "Hình ảnh chòm sao trái tim của Yeon",
+  inputPanelEyebrow: "Bảng nhập liệu",
+  inputPanelTitle: "Chọn cảm xúc → Cung hoàng đạo → Nhập nỗi lo",
+  inputPanelIntro: "Mình đã đơn giản hóa quy trình nhập liệu để bạn có thể thoải mái sắp xếp tâm trạng hôm nay.",
+  profileCardLabel: "Thẻ hồ sơ đã kết nối",
+  profileConnected: "Đã kết nối",
+  profileNotConnected: "Chưa kết nối",
+  profileNamePending: "Vui lòng chọn thẻ hồ sơ",
+  birthDateLabel: "Ngày sinh",
+  birthTimeLabel: "Giờ sinh",
+  astroLoading: "Yeon đang đọc bản đồ sao chi tiết của bạn.",
+  resyncButton: "Khớp lại cung hoàng đạo theo thẻ hồ sơ",
+  nameFieldLabel: "Tên (tự động điền từ thẻ hồ sơ)",
+  namePlaceholder: "VD: Yeon",
+  birthDateFieldLabel: "Ngày sinh (YYYYMMDD)",
+  birthTimeFieldLabel: "Giờ sinh (HHMM, tùy chọn)",
+  zodiacFieldLabel: "Cung hoàng đạo của tôi",
+  zodiacSelectAriaLabel: "Chọn cung hoàng đạo",
+  concernFieldLabel: "Nỗi lo hiện tại (để nhận diện từ khóa)",
+  concernPlaceholder: "VD: Dạo này cứ hay bất đồng với người mình đang hẹn hò, thấy bực bội. Hoặc muốn tiết kiệm tiền nhưng không kiểm soát được chi tiêu, đang lo lắng.",
+  concernAriaLabel: "Nhập nỗi lo",
+  concernSamplesLabel: "Câu mẫu được đề xuất",
+  generateButtonLoading: "Yeon đang sắp xếp dòng chảy ánh sao...",
+  generateButtonIdle: "Cập nhật tư vấn của Yeon",
+  flowHint: "Quy trình: chọn cảm xúc → chọn cung hoàng đạo → nhập nỗi lo → phân tích kết quả → thẻ SVG",
+  emptyStateTitle: "Nhập cảm xúc và nỗi lo, Yeon sẽ chuẩn bị buổi tư vấn ánh sao.",
+  emptyStateHint: "Nhấn nút cập nhật để xem kết quả phân tích, thẻ SVG và 3 bước hành động theo thứ tự.",
+  readingEyebrow: "Đọc tâm trạng hôm nay",
+  readingTitle: "Tư vấn chiêm tinh hôm nay",
+  cheerLetterEyebrow: "Lá thư động viên của Yeon",
+  stampCaption: "Con dấu hôm nay của Yeon",
+  spriteAriaLabel: "Ảnh cắt sprite của Yeon",
+  concernReasonEyebrow: "Lý do nỗi lo tăng lên (phân tích chiêm tinh)",
+  evidenceLabel: "Căn cứ",
+  sevenReadingsEyebrow: "7 bài đọc ánh sao hôm nay",
+  shareCardEyebrow: "Thẻ chia sẻ",
+  shareCardTitle: "Thẻ biểu tượng may mắn SVG độ phân giải cao",
+  cardPreviewAriaLabel: "Xem trước thẻ biểu tượng may mắn SVG",
+  shareButtonLoading: "Đang chuẩn bị thẻ biểu tượng SVG...",
+  shareButtonIdle: "Chia sẻ/lưu thẻ biểu tượng SVG",
+  focusLabel: "Trọng tâm chính",
+  actionStepsLabel: "3 bước hành động hôm nay",
+  faqSaveTitle: "Lưu kết quả để xem lại sau",
+  faqSaveBody:
+    "Lưu ảnh thẻ sẽ giữ nguyên biểu tượng may mắn và câu nói hôm nay. Sau một ngày, hãy mở lại xem có phần nào đọc khác với hiện tại không.",
+  faqSymbolTitle: "Xem trước 6 biểu tượng may mắn",
+  faqSymbolBody:
+    "Cỏ bốn lá (ngày nhiều may mắn nhỏ cùng mở ra), mặt trăng và ngôi sao (sự chữa lành xoa dịu cảm xúc), hoa sen (khả năng phục hồi giữa biến động), chìa khóa vàng (lời giải khai thông dòng chảy bị tắc), bướm (sự thay đổi nhẹ nhàng trong mối quan hệ và tâm hồn), sao chổi (dũng khí vượt qua trì trệ) — biểu tượng nào xuất hiện trên thẻ hôm nay tùy thuộc vào cảm xúc và nỗi lo của bạn.",
+  faqRefreshTitle: "Kiểm tra lại hôm nay thì kết quả có thay đổi không?",
+  faqRefreshBody:
+    "Có, thay đổi lựa chọn cảm xúc hoặc câu nỗi lo sẽ tính lại bài đọc. Kiểm tra nhiều lần trong cùng một ngày cũng không sao, nhưng nên lấy câu đầu tiên chạm đến bạn làm chuẩn.",
+  faqShareTitle: "Trước khi chia sẻ",
+  faqShareBody:
+    "Trước khi chia sẻ thẻ với người khác, hãy kiểm tra lại xem tên và ngày sinh có bị lộ ngoài ý muốn không. Bài đọc cung hoàng đạo chỉ mang tính tham khảo, nên hãy dùng để chia sẻ tâm trạng hôm nay một cách nhẹ nhàng thay vì xem quá nghiêm trọng.",
+  navPillInput: "Nhập cảm xúc + nỗi lo",
+  navPillKeyword: "Nhận diện từ khóa theo thời gian thực",
+  navPillAstro: "Tín hiệu chiêm tinh thực tế",
+  navPillShare: "Chia sẻ thẻ SVG",
+  navAriaLabel: "Huy hiệu tóm tắt tính năng",
+  shareDialogTitle: "Chòm sao trái tim của Yeon",
+};
+
+const YEON_STAR_HUG_COPY_HI: YeonStarHugCopy = {
+  heroBadge: "यॉन का स्टारलाइट परामर्श केंद्र",
+  heroTitle: "यॉन का हृदय नक्षत्र",
+  heroSubtitle: "आज की भावनाओं और चिंताओं को तारों की धारा से प्यार से सुलझाते हैं।",
+  heroDescription:
+    "सूर्य की स्थिति, चंद्रमा की कला और दिन के स्वामी ग्रह की धारा के आधार पर, एक व्यावहारिक एक-पंक्ति कार्रवाई भी सुझाई जाती है। भावना चुनने से लेकर परामर्श परिणाम और SVG शुभ प्रतीक कार्ड सेव करने तक, सब कुछ एक साथ जुड़ा है।",
+  heroArtLoading: "यॉन की कलाकृति लोड हो रही है",
+  heroImageAlt: "यॉन का हृदय नक्षत्र कलाकृति",
+  inputPanelEyebrow: "इनपुट पैनल",
+  inputPanelTitle: "भावना चुनें → राशि → चिंता दर्ज करें",
+  inputPanelIntro: "आज आप अपने मन को आराम से सुलझा सकें, इसके लिए हमने इनपुट प्रवाह को सरल बनाया है।",
+  profileCardLabel: "जुड़ा हुआ प्रोफ़ाइल कार्ड",
+  profileConnected: "जुड़ा हुआ",
+  profileNotConnected: "जुड़ा नहीं",
+  profileNamePending: "कृपया प्रोफ़ाइल कार्ड चुनें",
+  birthDateLabel: "जन्म तिथि",
+  birthTimeLabel: "जन्म समय",
+  astroLoading: "यॉन आपका सटीक जन्म कुंडली पढ़ रही है।",
+  resyncButton: "प्रोफ़ाइल कार्ड के अनुसार राशि फिर से मिलाएँ",
+  nameFieldLabel: "नाम (प्रोफ़ाइल कार्ड से स्वतः भरा गया)",
+  namePlaceholder: "उदा: यॉन",
+  birthDateFieldLabel: "जन्म तिथि (YYYYMMDD)",
+  birthTimeFieldLabel: "जन्म समय (HHMM, वैकल्पिक)",
+  zodiacFieldLabel: "मेरी राशि",
+  zodiacSelectAriaLabel: "राशि चुनें",
+  concernFieldLabel: "अभी की चिंता (कीवर्ड पहचान के लिए)",
+  concernPlaceholder: "उदा: हाल ही में जिससे मिल रहा/रही हूँ उसके साथ चीज़ें बिगड़ती जा रही हैं, निराश हूँ। या पैसे बचाना चाहता/चाहती हूँ पर खर्च पर काबू नहीं पा रहा/रही, चिंतित हूँ।",
+  concernAriaLabel: "चिंता दर्ज करें",
+  concernSamplesLabel: "अनुशंसित नमूना वाक्य",
+  generateButtonLoading: "यॉन तारों की धारा सुलझा रही है...",
+  generateButtonIdle: "यॉन का परामर्श अपडेट करें",
+  flowHint: "प्रवाह: भावना चुनें → राशि चुनें → चिंता दर्ज करें → परिणाम विश्लेषण → SVG कार्ड",
+  emptyStateTitle: "भावना और चिंता दर्ज करें, यॉन एक स्टारलाइट परामर्श तैयार करेगी।",
+  emptyStateHint: "अपडेट बटन दबाने पर विश्लेषण परिणाम, SVG कार्ड और 3 कार्रवाई चरण क्रम से दिखेंगे।",
+  readingEyebrow: "आज की हृदय रीडिंग",
+  readingTitle: "आज का ज्योतिष परामर्श",
+  cheerLetterEyebrow: "यॉन का प्रोत्साहन पत्र",
+  stampCaption: "यॉन की आज की मुहर",
+  spriteAriaLabel: "यॉन का स्प्राइट कट",
+  concernReasonEyebrow: "चिंता क्यों बढ़ी (ज्योतिष विश्लेषण)",
+  evidenceLabel: "आधार",
+  sevenReadingsEyebrow: "आज की 7 स्टारलाइट रीडिंग",
+  shareCardEyebrow: "शेयर कार्ड",
+  shareCardTitle: "उच्च-रिज़ॉल्यूशन SVG शुभ प्रतीक कार्ड",
+  cardPreviewAriaLabel: "SVG शुभ प्रतीक कार्ड पूर्वावलोकन",
+  shareButtonLoading: "SVG प्रतीक कार्ड तैयार हो रहा है...",
+  shareButtonIdle: "SVG प्रतीक कार्ड शेयर/सेव करें",
+  focusLabel: "मुख्य फोकस",
+  actionStepsLabel: "आज के 3 कार्रवाई चरण",
+  faqSaveTitle: "परिणाम सेव करके बाद में देखें",
+  faqSaveBody:
+    "कार्ड इमेज सेव करने पर आज का शुभ प्रतीक और एक-पंक्ति संदेश वैसा ही बना रहता है। एक दिन बाद फिर से खोलकर देखें कि अभी से अलग कुछ महसूस होता है या नहीं।",
+  faqSymbolTitle: "6 शुभ प्रतीकों का पूर्वावलोकन",
+  faqSymbolBody:
+    "चार पत्तों वाला तिपतिया घास (छोटी खुशियाँ एक साथ खुलने का दिन), चाँद और तारे (भावनाओं को शांत करने वाला उपचार), कमल (उथल-पुथल में लचीलापन), सुनहरी चाबी (रुकी हुई धारा खोलने का जवाब), तितली (रिश्तों और मन में हल्का बदलाव), धूमकेतु (ठहराव तोड़ने का साहस) — आज के कार्ड पर कौन सा प्रतीक आएगा यह आपकी भावना और चिंता पर निर्भर करता है।",
+  faqRefreshTitle: "क्या आज दोबारा जाँचने से परिणाम बदल जाता है?",
+  faqRefreshBody:
+    "हाँ, भावना का चुनाव या चिंता का वाक्य बदलने पर रीडिंग फिर से गणना होती है। एक ही दिन कई बार जाँचना ठीक है, पर सबसे पहले जो वाक्य दिल को छू गया उसे आधार मानने की सलाह है।",
+  faqShareTitle: "शेयर करने से पहले जाँचें",
+  faqShareBody:
+    "कार्ड किसी और के साथ शेयर करने से पहले, एक बार और जाँच लें कि नाम और जन्म तिथि अनचाहे रूप से उजागर तो नहीं हो रहे। यह राशि रीडिंग केवल संदर्भ के लिए है, इसलिए इसे गंभीरता से लेने के बजाय आज के मूड को हल्के में साझा करने के लिए उपयोग करें।",
+  navPillInput: "भावना + चिंता इनपुट",
+  navPillKeyword: "रीयल-टाइम कीवर्ड पहचान",
+  navPillAstro: "वास्तविक ज्योतिष संकेत",
+  navPillShare: "SVG कार्ड शेयरिंग",
+  navAriaLabel: "फ़ीचर सारांश बैज",
+  shareDialogTitle: "यॉन का हृदय नक्षत्र",
+};
+
+const YEON_STAR_HUG_COPY_ES: YeonStarHugCopy = {
+  heroBadge: "Sala de consultas estelares de Yeon",
+  heroTitle: "La constelación del corazón de Yeon",
+  heroSubtitle: "Ordenemos con cariño las emociones y preocupaciones de hoy siguiendo el flujo de las estrellas.",
+  heroDescription:
+    "Basándose en la posición del sol, la fase lunar y el flujo del planeta regente del día, Yeon sugiere incluso una acción concreta en una frase. Desde elegir la emoción hasta el resultado de la consulta y guardar la tarjeta de símbolo de la suerte en SVG, todo fluye en un solo lugar.",
+  heroArtLoading: "Cargando el arte de Yeon",
+  heroImageAlt: "Ilustración de la constelación del corazón de Yeon",
+  inputPanelEyebrow: "Panel de entrada",
+  inputPanelTitle: "Elegir emoción → Signo zodiacal → Escribir preocupación",
+  inputPanelIntro: "Simplificamos el flujo de entrada para que puedas ordenar tu estado de ánimo hoy sin complicaciones.",
+  profileCardLabel: "Tarjeta de perfil conectada",
+  profileConnected: "Conectada",
+  profileNotConnected: "No conectada",
+  profileNamePending: "Selecciona una tarjeta de perfil",
+  birthDateLabel: "Fecha de nacimiento",
+  birthTimeLabel: "Hora de nacimiento",
+  astroLoading: "Yeon está leyendo tu carta natal precisa.",
+  resyncButton: "Volver a ajustar el signo según la tarjeta de perfil",
+  nameFieldLabel: "Nombre (autocompletado desde la tarjeta de perfil)",
+  namePlaceholder: "ej.: Yeon",
+  birthDateFieldLabel: "Fecha de nacimiento (AAAAMMDD)",
+  birthTimeFieldLabel: "Hora de nacimiento (HHMM, opcional)",
+  zodiacFieldLabel: "Mi signo zodiacal",
+  zodiacSelectAriaLabel: "Seleccionar signo zodiacal",
+  concernFieldLabel: "Preocupación actual (para reconocimiento de palabras clave)",
+  concernPlaceholder: "ej.: Últimamente las cosas no dejan de ir mal con alguien que estoy conociendo, es frustrante. O quiero ahorrar dinero pero no controlo mis gastos, me preocupa.",
+  concernAriaLabel: "Escribir preocupación",
+  concernSamplesLabel: "Frases de ejemplo recomendadas",
+  generateButtonLoading: "Yeon está ordenando el flujo estelar...",
+  generateButtonIdle: "Actualizar la consulta de Yeon",
+  flowHint: "Flujo: elegir emoción → elegir signo → escribir preocupación → analizar resultado → tarjeta SVG",
+  emptyStateTitle: "Escribe tu emoción y preocupación, y Yeon preparará una consulta estelar.",
+  emptyStateHint: "Al pulsar el botón de actualizar, verás en orden el resultado del análisis, la tarjeta SVG y 3 pasos de acción.",
+  readingEyebrow: "Lectura del corazón de hoy",
+  readingTitle: "Consulta astrológica de hoy",
+  cheerLetterEyebrow: "Carta de ánimo de Yeon",
+  stampCaption: "Sello del día de Yeon",
+  spriteAriaLabel: "Recorte de sprite de Yeon",
+  concernReasonEyebrow: "Por qué creció esta preocupación (análisis astrológico)",
+  evidenceLabel: "Evidencia",
+  sevenReadingsEyebrow: "7 lecturas estelares de hoy",
+  shareCardEyebrow: "Tarjeta para compartir",
+  shareCardTitle: "Tarjeta de símbolo de la suerte en SVG de alta resolución",
+  cardPreviewAriaLabel: "Vista previa de la tarjeta de símbolo de la suerte en SVG",
+  shareButtonLoading: "Preparando la tarjeta de símbolo SVG...",
+  shareButtonIdle: "Compartir/guardar tarjeta de símbolo SVG",
+  focusLabel: "Enfoque clave",
+  actionStepsLabel: "3 pasos de acción de hoy",
+  faqSaveTitle: "Guarda tu resultado y vuelve a verlo después",
+  faqSaveBody:
+    "Al guardar la imagen de la tarjeta, el símbolo de la suerte y el mensaje de hoy quedan tal cual. Después de un día, ábrela de nuevo y comprueba si algo se lee diferente ahora.",
+  faqSymbolTitle: "Vista previa de los 6 símbolos de la suerte",
+  faqSymbolBody:
+    "Trébol de cuatro hojas (un día en que se abren pequeñas suertes a la vez), luna y estrellas (sanación que calma las emociones), loto (resiliencia en medio de la turbulencia), llave dorada (una respuesta que desbloquea un flujo estancado), mariposa (un cambio ligero en las relaciones y el corazón), cometa (valentía para superar el estancamiento) — qué símbolo aparece en la tarjeta de hoy depende de tu emoción y preocupación.",
+  faqRefreshTitle: "¿Cambia el resultado si vuelvo a consultarlo hoy?",
+  faqRefreshBody:
+    "Sí, cambiar la emoción elegida o la frase de preocupación recalcula la lectura. Está bien consultarlo varias veces el mismo día, pero te recomendamos usar como referencia la primera frase que te llegó al corazón.",
+  faqShareTitle: "Antes de compartir",
+  faqShareBody:
+    "Antes de compartir la tarjeta con otra persona, verifica una vez más que tu nombre y fecha de nacimiento no se revelen de forma no deseada. Esta lectura zodiacal es solo de referencia, así que úsala para compartir el ánimo de hoy de forma ligera en lugar de tomarla demasiado en serio.",
+  navPillInput: "Entrada de emoción + preocupación",
+  navPillKeyword: "Reconocimiento de palabras clave en tiempo real",
+  navPillAstro: "Señales astrológicas reales",
+  navPillShare: "Compartir tarjeta SVG",
+  navAriaLabel: "Insignias de resumen de funciones",
+  shareDialogTitle: "La constelación del corazón de Yeon",
+};
+
+const YEON_STAR_HUG_COPY_FR: YeonStarHugCopy = {
+  heroBadge: "Salon de conseil stellaire de Yeon",
+  heroTitle: "La constellation du cœur de Yeon",
+  heroSubtitle: "Laisse-moi t'aider à démêler avec douceur les émotions et les soucis d'aujourd'hui grâce au flux des étoiles.",
+  heroDescription:
+    "En s'appuyant sur la position du soleil, la phase de la lune et le flux de la planète régente du jour, Yeon propose même une action concrète en une phrase. Du choix de l'émotion au résultat de la consultation, jusqu'à la sauvegarde de la carte symbole porte-bonheur en SVG, tout s'enchaîne d'un seul tenant.",
+  heroArtLoading: "Chargement de l'illustration de Yeon",
+  heroImageAlt: "Illustration de la constellation du cœur de Yeon",
+  inputPanelEyebrow: "Panneau de saisie",
+  inputPanelTitle: "Choisir l'émotion → Signe du zodiaque → Saisir le souci",
+  inputPanelIntro: "Nous avons simplifié le parcours de saisie pour que tu puisses démêler ton humeur du jour sans effort.",
+  profileCardLabel: "Carte de profil connectée",
+  profileConnected: "Connectée",
+  profileNotConnected: "Non connectée",
+  profileNamePending: "Veuillez sélectionner une carte de profil",
+  birthDateLabel: "Date de naissance",
+  birthTimeLabel: "Heure de naissance",
+  astroLoading: "Yeon lit ton thème natal précis.",
+  resyncButton: "Réajuster le signe selon la carte de profil",
+  nameFieldLabel: "Nom (rempli automatiquement depuis la carte de profil)",
+  namePlaceholder: "ex. : Yeon",
+  birthDateFieldLabel: "Date de naissance (AAAAMMJJ)",
+  birthTimeFieldLabel: "Heure de naissance (HHMM, facultatif)",
+  zodiacFieldLabel: "Mon signe du zodiaque",
+  zodiacSelectAriaLabel: "Sélectionner le signe du zodiaque",
+  concernFieldLabel: "Souci actuel (pour la reconnaissance de mots-clés)",
+  concernPlaceholder: "ex. : Ces derniers temps, ça n'arrête pas d'aller mal avec quelqu'un que je fréquente, c'est frustrant. Ou bien je veux économiser mais je n'arrive pas à contrôler mes dépenses, ça m'inquiète.",
+  concernAriaLabel: "Saisir le souci",
+  concernSamplesLabel: "Phrases d'exemple recommandées",
+  generateButtonLoading: "Yeon met de l'ordre dans le flux stellaire...",
+  generateButtonIdle: "Mettre à jour la consultation de Yeon",
+  flowHint: "Parcours : choisir l'émotion → choisir le signe → saisir le souci → analyser le résultat → carte SVG",
+  emptyStateTitle: "Saisis ton émotion et ton souci, et Yeon préparera une consultation stellaire.",
+  emptyStateHint: "En appuyant sur le bouton de mise à jour, le résultat de l'analyse, la carte SVG et les 3 étapes d'action s'afficheront dans l'ordre.",
+  readingEyebrow: "Lecture du cœur du jour",
+  readingTitle: "Consultation astrologique du jour",
+  cheerLetterEyebrow: "Lettre d'encouragement de Yeon",
+  stampCaption: "Le tampon du jour de Yeon",
+  spriteAriaLabel: "Découpe du sprite de Yeon",
+  concernReasonEyebrow: "Pourquoi ce souci a grandi (analyse astrologique)",
+  evidenceLabel: "Preuve",
+  sevenReadingsEyebrow: "Les 7 lectures stellaires du jour",
+  shareCardEyebrow: "Carte à partager",
+  shareCardTitle: "Carte symbole porte-bonheur SVG haute résolution",
+  cardPreviewAriaLabel: "Aperçu de la carte symbole porte-bonheur SVG",
+  shareButtonLoading: "Préparation de la carte symbole SVG...",
+  shareButtonIdle: "Partager/enregistrer la carte symbole SVG",
+  focusLabel: "Point de focus clé",
+  actionStepsLabel: "3 étapes d'action du jour",
+  faqSaveTitle: "Enregistrer le résultat pour le revoir plus tard",
+  faqSaveBody:
+    "En enregistrant l'image de la carte, le symbole porte-bonheur et le message d'aujourd'hui restent tels quels. Après une journée, rouvre-la et vois si certains passages te parlent différemment maintenant.",
+  faqSymbolTitle: "Aperçu des 6 symboles porte-bonheur",
+  faqSymbolBody:
+    "Trèfle à quatre feuilles (un jour où plusieurs petites chances s'ouvrent à la fois), lune et étoiles (une guérison qui apaise les émotions), lotus (résilience au milieu des turbulences), clé dorée (une réponse qui débloque un flux bloqué), papillon (un changement léger dans les relations et le cœur), comète (le courage de surmonter la stagnation) — le symbole qui apparaît sur la carte du jour dépend de ton émotion et de ton souci.",
+  faqRefreshTitle: "Est-ce que revérifier aujourd'hui change le résultat ?",
+  faqRefreshBody:
+    "Oui, changer l'émotion choisie ou la phrase du souci recalcule la lecture. C'est très bien de vérifier plusieurs fois dans la même journée, mais nous te recommandons de prendre comme référence la toute première phrase qui t'a touché·e.",
+  faqShareTitle: "Avant de partager",
+  faqShareBody:
+    "Avant de partager la carte avec quelqu'un d'autre, vérifie une fois de plus que ton nom et ta date de naissance ne sont pas révélés involontairement. Cette lecture zodiacale est purement indicative, alors utilise-la pour partager légèrement l'humeur du jour plutôt que de la prendre trop au sérieux.",
+  navPillInput: "Saisie émotion + souci",
+  navPillKeyword: "Reconnaissance de mots-clés en temps réel",
+  navPillAstro: "Signaux astrologiques réels",
+  navPillShare: "Partage de carte SVG",
+  navAriaLabel: "Badges récapitulatifs des fonctionnalités",
+  shareDialogTitle: "La constellation du cœur de Yeon",
+};
+
+const YEON_STAR_HUG_COPY_DE: YeonStarHugCopy = {
+  heroBadge: "Yeons Sternenlicht-Beratung",
+  heroTitle: "Yeons Herzsternbild",
+  heroSubtitle: "Lass uns die Gefühle und Sorgen von heute liebevoll im Fluss der Sterne ordnen.",
+  heroDescription:
+    "Basierend auf der Sonnenposition, der Mondphase und dem Fluss des Tagesplaneten schlägt Yeon sogar eine konkrete Ein-Satz-Handlung vor. Von der Auswahl der Emotion bis zum Beratungsergebnis und dem Speichern der SVG-Glückssymbol-Karte läuft alles in einem Zug.",
+  heroArtLoading: "Yeons Illustration wird geladen",
+  heroImageAlt: "Illustration von Yeons Herzsternbild",
+  inputPanelEyebrow: "Eingabebereich",
+  inputPanelTitle: "Emotion wählen → Sternzeichen → Sorge eingeben",
+  inputPanelIntro: "Wir haben den Eingabeablauf einfach gehalten, damit du deine heutige Stimmung entspannt ordnen kannst.",
+  profileCardLabel: "Verbundene Profilkarte",
+  profileConnected: "Verbunden",
+  profileNotConnected: "Nicht verbunden",
+  profileNamePending: "Bitte wähle eine Profilkarte",
+  birthDateLabel: "Geburtsdatum",
+  birthTimeLabel: "Geburtszeit",
+  astroLoading: "Yeon liest gerade dein genaues Geburtshoroskop.",
+  resyncButton: "Sternzeichen anhand der Profilkarte neu abgleichen",
+  nameFieldLabel: "Name (automatisch aus der Profilkarte übernommen)",
+  namePlaceholder: "z. B. Yeon",
+  birthDateFieldLabel: "Geburtsdatum (JJJJMMTT)",
+  birthTimeFieldLabel: "Geburtszeit (HHMM, optional)",
+  zodiacFieldLabel: "Mein Sternzeichen",
+  zodiacSelectAriaLabel: "Sternzeichen auswählen",
+  concernFieldLabel: "Aktuelle Sorge (für die Stichworterkennung)",
+  concernPlaceholder: "z. B. Mit jemandem, den ich gerade treffe, läuft es dauernd schief, das frustriert mich. Oder ich will Geld sparen, bekomme meine Ausgaben aber nicht in den Griff.",
+  concernAriaLabel: "Sorge eingeben",
+  concernSamplesLabel: "Empfohlene Beispielsätze",
+  generateButtonLoading: "Yeon ordnet gerade den Sternenfluss...",
+  generateButtonIdle: "Yeons Beratung aktualisieren",
+  flowHint: "Ablauf: Emotion wählen → Sternzeichen wählen → Sorge eingeben → Ergebnis analysieren → SVG-Karte",
+  emptyStateTitle: "Gib deine Emotion und Sorge ein, und Yeon bereitet eine Sternenlicht-Beratung vor.",
+  emptyStateHint: "Beim Drücken des Aktualisieren-Buttons erscheinen Analyseergebnis, SVG-Karte und 3 Handlungsschritte der Reihe nach.",
+  readingEyebrow: "Herzlesung von heute",
+  readingTitle: "Astrologische Beratung von heute",
+  cheerLetterEyebrow: "Yeons Aufmunterungsbrief",
+  stampCaption: "Yeons heutiger Stempel",
+  spriteAriaLabel: "Yeons Sprite-Ausschnitt",
+  concernReasonEyebrow: "Warum diese Sorge gewachsen ist (astrologische Analyse)",
+  evidenceLabel: "Beleg",
+  sevenReadingsEyebrow: "Die 7 Sternenlicht-Lesungen von heute",
+  shareCardEyebrow: "Karte teilen",
+  shareCardTitle: "Hochauflösende SVG-Glückssymbol-Karte",
+  cardPreviewAriaLabel: "Vorschau der SVG-Glückssymbol-Karte",
+  shareButtonLoading: "SVG-Symbolkarte wird vorbereitet...",
+  shareButtonIdle: "SVG-Symbolkarte teilen/speichern",
+  focusLabel: "Kernfokus",
+  actionStepsLabel: "3 Handlungsschritte für heute",
+  faqSaveTitle: "Ergebnis speichern und später erneut ansehen",
+  faqSaveBody:
+    "Wenn du das Kartenbild speicherst, bleiben das heutige Glückssymbol und die Ein-Satz-Botschaft genau so erhalten. Öffne die Karte nach einem Tag erneut und prüfe, ob sich etwas anders liest als jetzt.",
+  faqSymbolTitle: "Vorschau der 6 Glückssymbole",
+  faqSymbolBody:
+    "Vierblättriges Kleeblatt (ein Tag, an dem sich mehrere kleine Glücksmomente gleichzeitig öffnen), Mond und Sterne (Heilung, die Emotionen beruhigt), Lotus (Widerstandskraft inmitten von Turbulenzen), goldener Schlüssel (eine Antwort, die einen blockierten Fluss löst), Schmetterling (ein leichter Wandel in Beziehungen und im Herzen), Komet (Mut, Stagnation zu durchbrechen) — welches Symbol auf der heutigen Karte erscheint, hängt von deiner Emotion und Sorge ab.",
+  faqRefreshTitle: "Ändert sich das Ergebnis, wenn ich heute erneut nachsehe?",
+  faqRefreshBody:
+    "Ja, das Ändern der gewählten Emotion oder des Sorgen-Satzes berechnet die Lesung neu. Es ist völlig in Ordnung, am selben Tag mehrmals nachzusehen, aber wir empfehlen, den allerersten Satz, der dich berührt hat, als Referenz zu nehmen.",
+  faqShareTitle: "Vor dem Teilen prüfen",
+  faqShareBody:
+    "Bevor du die Karte mit jemand anderem teilst, prüfe noch einmal, ob dein Name und Geburtsdatum nicht ungewollt preisgegeben werden. Diese Sternzeichen-Lesung dient nur als Referenz, also nutze sie, um die heutige Stimmung locker zu teilen, statt sie zu ernst zu nehmen.",
+  navPillInput: "Emotions- + Sorgen-Eingabe",
+  navPillKeyword: "Echtzeit-Stichworterkennung",
+  navPillAstro: "Echte astrologische Signale",
+  navPillShare: "SVG-Karte teilen",
+  navAriaLabel: "Funktionsübersicht-Abzeichen",
+  shareDialogTitle: "Yeons Herzsternbild",
+};
+
+const YEON_STAR_HUG_COPY_NL: YeonStarHugCopy = {
+  heroBadge: "Yeons sterrenlicht-adviescentrum",
+  heroTitle: "Yeons hartsterrenbeeld",
+  heroSubtitle: "Laat me de gevoelens en zorgen van vandaag liefdevol ordenen aan de hand van de stroom van de sterren.",
+  heroDescription:
+    "Op basis van de zonpositie, de maanfase en de stroom van de dagheersende planeet stelt Yeon zelfs een concrete actie in één zin voor. Van het kiezen van je emotie tot het adviesresultaat en het opslaan van de SVG-geluksymboolkaart verloopt alles in één keer.",
+  heroArtLoading: "Yeons illustratie wordt geladen",
+  heroImageAlt: "Illustratie van Yeons hartsterrenbeeld",
+  inputPanelEyebrow: "Invoerpaneel",
+  inputPanelTitle: "Emotie kiezen → Sterrenbeeld → Zorg invoeren",
+  inputPanelIntro: "We hebben de invoerstroom eenvoudig gehouden, zodat je je gemoedstoestand vandaag gemakkelijk kunt ordenen.",
+  profileCardLabel: "Gekoppelde profielkaart",
+  profileConnected: "Gekoppeld",
+  profileNotConnected: "Niet gekoppeld",
+  profileNamePending: "Selecteer een profielkaart",
+  birthDateLabel: "Geboortedatum",
+  birthTimeLabel: "Geboortetijd",
+  astroLoading: "Yeon leest je precieze geboortehoroscoop.",
+  resyncButton: "Sterrenbeeld opnieuw afstemmen op basis van profielkaart",
+  nameFieldLabel: "Naam (automatisch ingevuld vanuit profielkaart)",
+  namePlaceholder: "bijv. Yeon",
+  birthDateFieldLabel: "Geboortedatum (JJJJMMDD)",
+  birthTimeFieldLabel: "Geboortetijd (UUMM, optioneel)",
+  zodiacFieldLabel: "Mijn sterrenbeeld",
+  zodiacSelectAriaLabel: "Sterrenbeeld selecteren",
+  concernFieldLabel: "Huidige zorg (voor trefwoordherkenning)",
+  concernPlaceholder: "bijv. De laatste tijd gaat het steeds mis met iemand die ik zie, dat is frustrerend. Of ik wil geld sparen maar krijg mijn uitgaven niet onder controle, dat maakt me zorgen.",
+  concernAriaLabel: "Zorg invoeren",
+  concernSamplesLabel: "Aanbevolen voorbeeldzinnen",
+  generateButtonLoading: "Yeon ordent de sterrenstroom...",
+  generateButtonIdle: "Yeons advies bijwerken",
+  flowHint: "Stroom: emotie kiezen → sterrenbeeld kiezen → zorg invoeren → resultaat analyseren → SVG-kaart",
+  emptyStateTitle: "Voer je emotie en zorg in, en Yeon bereidt een sterrenlicht-advies voor.",
+  emptyStateHint: "Als je op de bijwerkknop drukt, verschijnen het analyseresultaat, de SVG-kaart en 3 actiestappen na elkaar.",
+  readingEyebrow: "Hartlezing van vandaag",
+  readingTitle: "Astrologisch advies van vandaag",
+  cheerLetterEyebrow: "Yeons bemoedigingsbrief",
+  stampCaption: "Yeons stempel van vandaag",
+  spriteAriaLabel: "Yeons sprite-uitsnede",
+  concernReasonEyebrow: "Waarom deze zorg groter werd (astrologische analyse)",
+  evidenceLabel: "Bewijs",
+  sevenReadingsEyebrow: "De 7 sterrenlicht-lezingen van vandaag",
+  shareCardEyebrow: "Deelkaart",
+  shareCardTitle: "SVG-geluksymboolkaart in hoge resolutie",
+  cardPreviewAriaLabel: "Voorbeeld van de SVG-geluksymboolkaart",
+  shareButtonLoading: "SVG-symboolkaart wordt voorbereid...",
+  shareButtonIdle: "SVG-symboolkaart delen/opslaan",
+  focusLabel: "Kernfocus",
+  actionStepsLabel: "3 actiestappen van vandaag",
+  faqSaveTitle: "Resultaat opslaan en later terugkijken",
+  faqSaveBody:
+    "Door de kaartafbeelding op te slaan, blijven het geluksymbool en de zin van vandaag precies bewaard. Open de kaart na een dag opnieuw en kijk of iets nu anders aanvoelt.",
+  faqSymbolTitle: "Voorbeeld van 6 geluksymbolen",
+  faqSymbolBody:
+    "Klavertje vier (een dag waarop meerdere kleine gelukjes tegelijk opengaan), maan en sterren (genezing die emoties kalmeert), lotus (veerkracht te midden van onrust), gouden sleutel (een antwoord dat een geblokkeerde stroom opent), vlinder (een lichte verschuiving in relaties en gemoed), komeet (moed om stilstand te doorbreken) — welk symbool op de kaart van vandaag verschijnt, hangt af van je emotie en zorg.",
+  faqRefreshTitle: "Verandert het resultaat als ik vandaag opnieuw kijk?",
+  faqRefreshBody:
+    "Ja, het wijzigen van je gekozen emotie of zorgzin berekent de lezing opnieuw. Het is prima om dezelfde dag meerdere keren te kijken, maar we raden aan de allereerste zin die je raakte als referentie te gebruiken.",
+  faqShareTitle: "Controleer dit voor je deelt",
+  faqShareBody:
+    "Controleer voordat je de kaart met iemand anders deelt nog eens of je naam en geboortedatum niet ongewild worden onthuld. Deze sterrenbeeldlezing is puur informatief, dus gebruik hem om de stemming van vandaag luchtig te delen in plaats van het te zwaar op te vatten.",
+  navPillInput: "Emotie + zorg invoer",
+  navPillKeyword: "Realtime trefwoordherkenning",
+  navPillAstro: "Echte astrologische signalen",
+  navPillShare: "SVG-kaart delen",
+  navAriaLabel: "Functieoverzicht-badges",
+  shareDialogTitle: "Yeons hartsterrenbeeld",
+};
+
+const YEON_STAR_HUG_COPY_MS: YeonStarHugCopy = {
+  heroBadge: "Pusat Runding Cahaya Bintang Yeon",
+  heroTitle: "Buruj Hati Yeon",
+  heroSubtitle: "Biar saya bantu susun emosi dan kerisauan hari ini dengan lembut mengikut aliran bintang.",
+  heroDescription:
+    "Berdasarkan kedudukan matahari, fasa bulan, dan aliran planet penguasa hari, Yeon turut mencadangkan satu tindakan praktikal dalam satu ayat. Daripada memilih emosi hingga hasil rundingan dan menyimpan kad simbol tuah SVG, semuanya berlaku dalam satu aliran.",
+  heroArtLoading: "Sedang memuatkan seni Yeon",
+  heroImageAlt: "Seni buruj hati Yeon",
+  inputPanelEyebrow: "Panel input",
+  inputPanelTitle: "Pilih emosi → Zodiak → Masukkan kerisauan",
+  inputPanelIntro: "Kami mudahkan aliran input supaya anda boleh menyusun perasaan hari ini dengan selesa.",
+  profileCardLabel: "Kad profil yang disambungkan",
+  profileConnected: "Disambungkan",
+  profileNotConnected: "Tidak disambungkan",
+  profileNamePending: "Sila pilih kad profil",
+  birthDateLabel: "Tarikh lahir",
+  birthTimeLabel: "Masa lahir",
+  astroLoading: "Yeon sedang membaca carta kelahiran tepat anda.",
+  resyncButton: "Padankan semula zodiak mengikut kad profil",
+  nameFieldLabel: "Nama (diisi automatik daripada kad profil)",
+  namePlaceholder: "cth: Yeon",
+  birthDateFieldLabel: "Tarikh lahir (YYYYMMDD)",
+  birthTimeFieldLabel: "Masa lahir (HHMM, pilihan)",
+  zodiacFieldLabel: "Zodiak saya",
+  zodiacSelectAriaLabel: "Pilih zodiak",
+  concernFieldLabel: "Kerisauan sekarang (untuk pengecaman kata kunci)",
+  concernPlaceholder: "cth: Kebelakangan ini keadaan sentiasa tidak serasi dengan seseorang yang sedang saya kenali, rasa kecewa. Atau saya nak simpan wang tapi tak dapat kawal perbelanjaan, rasa risau.",
+  concernAriaLabel: "Masukkan kerisauan",
+  concernSamplesLabel: "Contoh ayat yang disyorkan",
+  generateButtonLoading: "Yeon sedang menyusun aliran cahaya bintang...",
+  generateButtonIdle: "Kemas kini rundingan Yeon",
+  flowHint: "Aliran: pilih emosi → pilih zodiak → masukkan kerisauan → analisis hasil → kad SVG",
+  emptyStateTitle: "Masukkan emosi dan kerisauan anda, Yeon akan sediakan rundingan cahaya bintang.",
+  emptyStateHint: "Tekan butang kemas kini untuk lihat hasil analisis, kad SVG, dan 3 langkah tindakan secara berurutan.",
+  readingEyebrow: "Bacaan hati hari ini",
+  readingTitle: "Rundingan astrologi hari ini",
+  cheerLetterEyebrow: "Surat semangat Yeon",
+  stampCaption: "Setem hari ini Yeon",
+  spriteAriaLabel: "Potongan sprite Yeon",
+  concernReasonEyebrow: "Sebab kerisauan ini membesar (analisis astrologi)",
+  evidenceLabel: "Bukti",
+  sevenReadingsEyebrow: "7 bacaan cahaya bintang hari ini",
+  shareCardEyebrow: "Kad kongsi",
+  shareCardTitle: "Kad simbol tuah SVG resolusi tinggi",
+  cardPreviewAriaLabel: "Pratonton kad simbol tuah SVG",
+  shareButtonLoading: "Sedang menyediakan kad simbol SVG...",
+  shareButtonIdle: "Kongsi/simpan kad simbol SVG",
+  focusLabel: "Fokus utama",
+  actionStepsLabel: "3 langkah tindakan hari ini",
+  faqSaveTitle: "Simpan hasil dan lihat semula kemudian",
+  faqSaveBody:
+    "Menyimpan imej kad akan mengekalkan simbol tuah dan mesej satu ayat hari ini seperti sedia ada. Selepas sehari, buka semula dan lihat sama ada ada bahagian yang terasa berbeza sekarang.",
+  faqSymbolTitle: "Pratonton 6 simbol tuah",
+  faqSymbolBody:
+    "Daun clover empat helai (hari kecil-kecilan tuah terbuka serentak), bulan dan bintang (penyembuhan yang menenangkan emosi), teratai (daya tahan di tengah pergolakan), kunci emas (jawapan yang membuka aliran tersekat), rama-rama (perubahan lembut dalam hubungan dan hati), komet (keberanian menembusi kebuntuan) — simbol mana yang muncul pada kad hari ini bergantung pada emosi dan kerisauan anda.",
+  faqRefreshTitle: "Adakah hasil berubah jika saya semak semula hari ini?",
+  faqRefreshBody:
+    "Ya, menukar pilihan emosi atau ayat kerisauan akan mengira semula bacaan. Tidak mengapa untuk semak beberapa kali pada hari yang sama, tetapi kami syorkan gunakan ayat pertama yang menyentuh hati anda sebagai rujukan.",
+  faqShareTitle: "Semak sebelum berkongsi",
+  faqShareBody:
+    "Sebelum berkongsi kad dengan orang lain, semak sekali lagi sama ada nama dan tarikh lahir anda tidak terdedah tanpa disedari. Bacaan zodiak ini untuk rujukan sahaja, jadi gunakannya untuk berkongsi mood hari ini secara santai berbanding menganggapnya terlalu serius.",
+  navPillInput: "Input emosi + kerisauan",
+  navPillKeyword: "Pengecaman kata kunci masa nyata",
+  navPillAstro: "Isyarat astrologi sebenar",
+  navPillShare: "Perkongsian kad SVG",
+  navAriaLabel: "Lencana ringkasan ciri",
+  shareDialogTitle: "Buruj Hati Yeon",
+};
+
+const YEON_STAR_HUG_COPY: Partial<Record<LoadingLocale, YeonStarHugCopy>> = {
+  ko: YEON_STAR_HUG_COPY_KO,
+  en: YEON_STAR_HUG_COPY_EN,
+  ja: YEON_STAR_HUG_COPY_JA,
+  "zh-CN": YEON_STAR_HUG_COPY_ZH_CN,
+  "zh-TW": YEON_STAR_HUG_COPY_ZH_TW,
+  vi: YEON_STAR_HUG_COPY_VI,
+  hi: YEON_STAR_HUG_COPY_HI,
+  es: YEON_STAR_HUG_COPY_ES,
+  fr: YEON_STAR_HUG_COPY_FR,
+  de: YEON_STAR_HUG_COPY_DE,
+  nl: YEON_STAR_HUG_COPY_NL,
+  ms: YEON_STAR_HUG_COPY_MS,
+};
+
+function getYeonStarHugCopy(locale: LoadingLocale): YeonStarHugCopy {
+  return YEON_STAR_HUG_COPY[locale] || YEON_STAR_HUG_COPY_KO;
+}
+
+function useYeonStarHugCopy(): YeonStarHugCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
+
+  return getYeonStarHugCopy(locale);
 }
 
 type EmotionKey = "happy" | "calm" | "tired" | "worried" | "flutter" | "blue";
@@ -1680,6 +2609,7 @@ function downloadBlob(blob: Blob, fileName: string) {
 
 export default function YeonStarHugPage() {
   const reduceMotion = useReducedMotion();
+  const copy = useYeonStarHugCopy();
   const today = useMemo(() => new Date(), []);
   const defaultSign = useMemo(() => getSignByMonthDay(today.getMonth() + 1, today.getDate()), [today]);
 
@@ -1886,7 +2816,7 @@ export default function YeonStarHugPage() {
       const shareText = `${reading.displayCard.zodiacLabel} · ${reading.displayCard.oneLineMessage}`;
       if (navigator.share && typeof navigator.canShare === "function" && navigator.canShare({ files: [svgFile] })) {
         await navigator.share({
-          title: yeonStarHugText("yeonStar.title.001"),
+          title: copy.shareDialogTitle,
           text: shareText,
           files: [svgFile],
         });
@@ -1897,7 +2827,7 @@ export default function YeonStarHugPage() {
           const pngFile = new File([pngBlob], svgFileName.replace(".svg", ".png"), { type: "image/png" });
           if (navigator.share && typeof navigator.canShare === "function" && navigator.canShare({ files: [pngFile] })) {
             await navigator.share({
-              title: yeonStarHugText("yeonStar.title.002"),
+              title: copy.shareDialogTitle,
               text: shareText,
               files: [pngFile],
             });
@@ -1955,18 +2885,17 @@ export default function YeonStarHugPage() {
               className="inline-flex items-center gap-2 rounded-full border border-pink-200 bg-white/85 px-4 py-2 text-sm font-semibold text-pink-500"
             >
               <Heart className="h-4 w-4 fill-pink-200 text-pink-400" />
-              연이의 별빛 상담소
+              {copy.heroBadge}
             </m.div>
 
             <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight text-[#b31955] md:text-5xl">
-              연이의 마음 별자리
+              {copy.heroTitle}
             </h1>
             <p className="font-['ui-rounded','Nunito',sans-serif] text-sm text-slate-600 md:text-base">
-              오늘의 감정과 고민을 별빛 흐름으로 다정하게 정리해줄게요.
+              {copy.heroSubtitle}
             </p>
             <p className="max-w-2xl text-sm leading-relaxed text-slate-500">
-              태양 위치, 달 위상, 요일 행성 흐름을 기반으로 현실적인 한 줄 행동까지 제안해요. 감정 선택부터 상담 결과,
-              SVG 행운 상징 카드 저장까지 한 번에 이어집니다.
+              {copy.heroDescription}
             </p>
           </div>
 
@@ -1974,7 +2903,7 @@ export default function YeonStarHugPage() {
             {!heroError ? (
               <Image
                 src={HERO_IMAGE}
-                alt={yeonStarHugText("yeonStar.alt.001")}
+                alt={copy.heroImageAlt}
                 width={900}
                 height={620}
                 className="h-full max-h-[360px] w-full max-w-full rounded-2xl object-contain"
@@ -1984,7 +2913,7 @@ export default function YeonStarHugPage() {
             ) : (
               <div className="flex h-full min-h-44 w-full flex-col items-center justify-center rounded-2xl bg-pink-50/80 text-pink-500">
                 <Sparkles className="mb-2 h-8 w-8" />
-                <p className="text-sm font-semibold">연이 아트 로딩중</p>
+                <p className="text-sm font-semibold">{copy.heroArtLoading}</p>
               </div>
             )}
           </div>
@@ -1997,23 +2926,23 @@ export default function YeonStarHugPage() {
             transition={{ duration: 0.45, delay: 0.1 }}
             className="rounded-3xl border border-[#f4d8e3] bg-white/88 p-5 shadow-[0_14px_34px_rgba(150,72,104,0.12)] backdrop-blur-sm lg:sticky lg:top-6"
           >
-            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">입력 패널</p>
-            <h2 className="text-xl font-black text-slate-700">감정 선택 → 별자리 → 고민 입력</h2>
-            <p className="mb-4 mt-1 text-sm text-slate-500">오늘 마음을 편안하게 정리할 수 있도록 입력 동선을 간결하게 준비했어요.</p>
+            <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">{copy.inputPanelEyebrow}</p>
+            <h2 className="text-xl font-black text-slate-700">{copy.inputPanelTitle}</h2>
+            <p className="mb-4 mt-1 text-sm text-slate-500">{copy.inputPanelIntro}</p>
 
             <div className="mb-4 rounded-2xl border border-[#ead089]/80 bg-[#fff8dc]/70 p-4" aria-live="polite">
               <div className="flex items-center justify-between gap-3">
-                <p className="text-xs font-bold text-[#70445c]">연결된 프로필 카드</p>
+                <p className="text-xs font-bold text-[#70445c]">{copy.profileCardLabel}</p>
                 <span className={`rounded-full px-2.5 py-1 text-[11px] font-bold ${profileSeed.source === "profile" ? "bg-[#f4bed1]/50 text-[#8f1647]" : "bg-white/80 text-[#70445c]"}`}>
-                  {profileSeed.source === "profile" ? "연결됨" : "미연결"}
+                  {profileSeed.source === "profile" ? copy.profileConnected : copy.profileNotConnected}
                 </span>
               </div>
-              <p className="mt-2 text-sm font-semibold text-[#3c1830]">{profileSeed.name || "프로필 카드를 선택해 주세요"}</p>
-              <p className="mt-1 text-xs leading-6 text-[#70445c]">생년월일 {formatBirthDateInput(profileSeed.birthDateInput)} · 출생시간 {formatBirthTimeInput(profileSeed.birthTimeInput)}</p>
+              <p className="mt-2 text-sm font-semibold text-[#3c1830]">{profileSeed.name || copy.profileNamePending}</p>
+              <p className="mt-1 text-xs leading-6 text-[#70445c]">{copy.birthDateLabel} {formatBirthDateInput(profileSeed.birthDateInput)} · {copy.birthTimeLabel} {formatBirthTimeInput(profileSeed.birthTimeInput)}</p>
               <p className="mt-1 text-xs leading-6 text-[#70445c]">{profileSyncNote}</p>
               <p className="mt-1 text-xs leading-6 text-[#70445c]">
                 {astroLoading
-                  ? "연이가 정밀 별자리 차트를 읽고 있어요."
+                  ? copy.astroLoading
                   : astroSignal
                     ? `정밀 신호: 태양 ${astroSignal.sunSign || "-"} · 달 ${astroSignal.moonSign || "-"} · 상승궁 ${astroSignal.ascendantSign || "-"}`
                     : astroError}
@@ -2023,25 +2952,25 @@ export default function YeonStarHugPage() {
                 onClick={syncSignFromProfile}
                 className="mt-3 inline-flex min-h-10 items-center justify-center rounded-full border border-[#ead089] bg-white px-3 py-1.5 text-xs font-bold text-[#70445c] transition hover:bg-[#fff3f8]"
               >
-                프로필 카드 기준으로 별자리 다시 맞추기
+                {copy.resyncButton}
               </button>
             </div>
 
             <div className="grid gap-3 rounded-2xl border border-pink-200 bg-white/92 p-4 shadow-[0_10px_26px_rgba(236,72,153,0.12)] sm:grid-cols-2">
               <label htmlFor="yeon-profile-name" className="grid gap-1">
-                <span className="text-xs font-bold text-pink-600">이름 (프로필 카드 자동 입력)</span>
+                <span className="text-xs font-bold text-pink-600">{copy.nameFieldLabel}</span>
                 <input
                   id="yeon-profile-name"
                   type="text"
                   value={profileNameInput}
                   onChange={(event) => setProfileNameInput(event.target.value.slice(0, 30))}
-                  placeholder={yeonStarHugText("yeonStar.placeholder.001")}
+                  placeholder={copy.namePlaceholder}
                   className="min-h-12 rounded-xl border border-pink-200 bg-white px-4 py-3 text-base font-semibold text-slate-800 outline-none placeholder:text-slate-400 focus:border-pink-400 focus-visible:ring-2 focus-visible:ring-pink-200"
                 />
               </label>
 
               <label htmlFor="yeon-birth-date" className="grid gap-1">
-                <span className="text-xs font-bold text-pink-600">생년월일 (YYYYMMDD)</span>
+                <span className="text-xs font-bold text-pink-600">{copy.birthDateFieldLabel}</span>
                 <input
                   id="yeon-birth-date"
                   type="text"
@@ -2055,7 +2984,7 @@ export default function YeonStarHugPage() {
               </label>
 
               <label htmlFor="yeon-birth-time" className="grid gap-1 sm:col-span-2">
-                <span className="text-xs font-bold text-pink-600">출생시간 (HHMM, 선택)</span>
+                <span className="text-xs font-bold text-pink-600">{copy.birthTimeFieldLabel}</span>
                 <input
                   id="yeon-birth-time"
                   type="text"
@@ -2093,31 +3022,31 @@ export default function YeonStarHugPage() {
               })}
             </div>
 
-            <label htmlFor="yeon-zodiac-select" className="mt-5 block text-xs font-semibold text-pink-500">내 별자리</label>
+            <label htmlFor="yeon-zodiac-select" className="mt-5 block text-xs font-semibold text-pink-500">{copy.zodiacFieldLabel}</label>
             <select
               id="yeon-zodiac-select"
               value={selectedSign}
               onChange={(event) => setSelectedSign(event.target.value as ZodiacSign)}
               className="mt-1 min-h-11 w-full appearance-none rounded-xl border border-white/35 bg-white/90 px-3 py-2 text-sm font-semibold text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
-              aria-label={yeonStarHugText("yeonStar.aria-label.002")}
+              aria-label={copy.zodiacSelectAriaLabel}
             >
               {ZODIAC_SIGNS.map((item) => (
                 <option key={item.sign} value={item.sign}>{`${item.sign} (${item.period})`}</option>
               ))}
             </select>
 
-            <label htmlFor="yeon-concern-input" className="mt-4 block text-xs font-semibold text-pink-500">지금 고민 (키워드 인식용)</label>
+            <label htmlFor="yeon-concern-input" className="mt-4 block text-xs font-semibold text-pink-500">{copy.concernFieldLabel}</label>
             <textarea
               id="yeon-concern-input"
               value={concernText}
               onChange={(event) => setConcernText(event.target.value)}
-              placeholder={yeonStarHugText("yeonStar.placeholder.002")}
+              placeholder={copy.concernPlaceholder}
               className="mt-1 min-h-32 w-full resize-y rounded-xl border border-white/35 bg-white/90 px-3 py-3 text-sm leading-relaxed text-slate-700 outline-none focus:border-pink-300 focus-visible:ring-2 focus-visible:ring-pink-100"
-              aria-label={yeonStarHugText("yeonStar.aria-label.003")}
+              aria-label={copy.concernAriaLabel}
             />
 
             <div className="mt-3 rounded-xl border border-rose-100 bg-rose-50/60 p-3">
-              <p className="text-xs font-semibold text-rose-500">추천 고민 샘플 문장</p>
+              <p className="text-xs font-semibold text-rose-500">{copy.concernSamplesLabel}</p>
               <div className="mt-2 flex flex-wrap gap-2">
                 {GENERAL_CONCERN_SAMPLES.map((sample) => (
                   <button
@@ -2140,9 +3069,9 @@ export default function YeonStarHugPage() {
               className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-fuchsia-400 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
             >
               {isGenerating ? <Download className="h-4 w-4 animate-pulse" /> : <Sparkles className="h-4 w-4" />}
-              {isGenerating ? "연이가 별빛 흐름 정리중..." : "연이 상담 업데이트"}
+              {isGenerating ? copy.generateButtonLoading : copy.generateButtonIdle}
             </button>
-            <p className="mt-2 text-xs text-slate-500">상담 흐름: 감정 선택 → 별자리 선택 → 고민 입력 → 결과 분석 → SVG 카드</p>
+            <p className="mt-2 text-xs text-slate-500">{copy.flowHint}</p>
           </m.article>
 
           <div className="flex min-w-0 flex-col gap-5">
@@ -2153,8 +3082,8 @@ export default function YeonStarHugPage() {
                 transition={{ duration: 0.35 }}
                 className="rounded-3xl border border-[#f4d8e3] bg-white/85 p-8 text-center shadow-[0_14px_34px_rgba(150,72,104,0.1)] backdrop-blur-sm"
               >
-                <p className="text-sm font-semibold text-pink-500">감정과 고민을 입력하면 연이가 별빛 상담을 준비해요.</p>
-                <p className="mt-2 text-xs text-slate-500">업데이트 버튼을 누르면 분석 결과, SVG 카드, 실행 3단계가 순서대로 표시됩니다.</p>
+                <p className="text-sm font-semibold text-pink-500">{copy.emptyStateTitle}</p>
+                <p className="mt-2 text-xs text-slate-500">{copy.emptyStateHint}</p>
               </m.article>
             ) : (
               <>
@@ -2164,8 +3093,8 @@ export default function YeonStarHugPage() {
                   transition={{ duration: 0.35 }}
                   className="rounded-3xl border border-[#f4d8e3] bg-white/90 p-5 shadow-[0_14px_34px_rgba(150,72,104,0.12)] backdrop-blur-sm sm:p-7"
                 >
-                  <p className="mb-2 text-xs font-bold tracking-[0.12em] text-[#b31955]">오늘의 마음 리딩</p>
-                  <h2 className="text-2xl font-black text-[#3c1830] sm:text-3xl">오늘의 점성술 상담</h2>
+                  <p className="mb-2 text-xs font-bold tracking-[0.12em] text-[#b31955]">{copy.readingEyebrow}</p>
+                  <h2 className="text-2xl font-black text-[#3c1830] sm:text-3xl">{copy.readingTitle}</h2>
 
                   <div className="mt-3 flex flex-wrap items-center gap-2 text-xs">
                     <span className="rounded-full border border-pink-100 bg-pink-50 px-3 py-1 text-[#5b2544]">별자리: {consultation.sign}</span>
@@ -2197,12 +3126,12 @@ export default function YeonStarHugPage() {
                     <div className="mt-3 rounded-xl border border-pink-100 bg-white px-4 py-3">
                       <div className="mb-3 overflow-hidden rounded-2xl border border-rose-200 bg-gradient-to-br from-rose-50 via-pink-50 to-white shadow-[0_10px_24px_rgba(244,114,182,0.14)]">
                         <div className="bg-gradient-to-r from-rose-200/70 via-pink-100/70 to-amber-100/70 px-3 py-2">
-                          <p className="text-[11px] font-bold tracking-[0.08em] text-rose-700">연이의 응원 편지</p>
+                          <p className="text-[11px] font-bold tracking-[0.08em] text-rose-700">{copy.cheerLetterEyebrow}</p>
                         </div>
                         <div className="grid gap-3 px-3 py-3 sm:grid-cols-[88px_minmax(0,1fr)] sm:items-start">
                           <div className="rounded-xl border border-pink-100 bg-white/80 p-1.5">
                             <div className="mx-auto h-[72px] w-[72px] overflow-hidden rounded-lg border border-white/70 bg-white/70 shadow-sm">
-                              <svg viewBox="0 0 1 1" className="h-full w-full" role="img" aria-label="연이 스프라이트 컷">
+                              <svg viewBox="0 0 1 1" className="h-full w-full" role="img" aria-label={copy.spriteAriaLabel}>
                                 <image
                                   href={SPRITE_SHEET}
                                   x={-(speechSpriteFrame % SPRITE_GRID_COLS)}
@@ -2213,7 +3142,7 @@ export default function YeonStarHugPage() {
                                 />
                               </svg>
                             </div>
-                            <p className="mt-1.5 text-center text-[10px] font-semibold text-pink-500">연이의 오늘 스탬프</p>
+                            <p className="mt-1.5 text-center text-[10px] font-semibold text-pink-500">{copy.stampCaption}</p>
                           </div>
 
                           <AnimatePresence mode="wait">
@@ -2233,11 +3162,11 @@ export default function YeonStarHugPage() {
                       </div>
 
                       <div className="mb-3 rounded-xl border border-amber-200 bg-amber-50/80 px-3 py-3 sm:px-3.5 sm:py-3.5">
-                        <p className="text-[11px] font-extrabold tracking-[0.08em] text-amber-700">고민이 커진 이유 (점성술 분석)</p>
+                        <p className="text-[11px] font-extrabold tracking-[0.08em] text-amber-700">{copy.concernReasonEyebrow}</p>
                         <div className="mt-2.5 grid gap-2">
                           {consultation.concernReasoning.map((line, idx) => (
                             <div key={`reason-${idx}`} className="rounded-xl border border-amber-200 bg-white/90 px-3 py-3">
-                              <p className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-amber-600">근거 {idx + 1}</p>
+                              <p className="text-[10.5px] font-bold uppercase tracking-[0.08em] text-amber-600">{copy.evidenceLabel} {idx + 1}</p>
                               <p className="mt-1 text-sm leading-7 text-amber-950">{line}</p>
                             </div>
                           ))}
@@ -2248,7 +3177,7 @@ export default function YeonStarHugPage() {
                       </div>
 
                         <div className="rounded-lg border border-purple-100 bg-purple-50/50 px-3 py-2">
-                          <p className="text-[11px] font-semibold text-purple-500">오늘의 별빛 상담 7가지</p>
+                          <p className="text-[11px] font-semibold text-purple-500">{copy.sevenReadingsEyebrow}</p>
                           <div className="mt-3 grid gap-3 sm:grid-cols-2">
                             {reading.categories.map((section) => (
                               <div key={section.id} className="min-w-0 rounded-xl border border-white/70 bg-white/80 p-3">
@@ -2277,13 +3206,13 @@ export default function YeonStarHugPage() {
                   transition={{ duration: 0.35, delay: 0.04 }}
                   className="rounded-3xl border border-white/45 bg-white/80 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.2)] backdrop-blur-sm"
                 >
-                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">공유 카드</p>
-                  <h2 className="text-lg font-black text-slate-700">고화질 SVG 행운 상징 카드</h2>
+                  <p className="mb-2 text-xs font-bold uppercase tracking-[0.16em] text-pink-400">{copy.shareCardEyebrow}</p>
+                  <h2 className="text-lg font-black text-slate-700">{copy.shareCardTitle}</h2>
 
                   <div className="mt-3 rounded-2xl border border-white/25 bg-white/90 p-3">
                     <div
                       className="mx-auto aspect-[4/5] w-full max-w-[420px] overflow-hidden rounded-xl border border-pink-100 bg-white [&_svg]:h-full [&_svg]:w-full"
-                        aria-label={yeonStarHugText("yeonStar.aria-label.004")}
+                        aria-label={copy.cardPreviewAriaLabel}
                       dangerouslySetInnerHTML={{ __html: cardSvg }}
                     />
                   </div>
@@ -2295,19 +3224,19 @@ export default function YeonStarHugPage() {
                     className="mt-4 inline-flex min-h-11 w-full items-center justify-center gap-2 rounded-full bg-gradient-to-r from-rose-400 to-fuchsia-400 px-4 py-3 text-sm font-bold text-white shadow-[0_12px_20px_rgba(251,113,133,0.33)] transition hover:brightness-105 disabled:cursor-not-allowed disabled:opacity-70"
                   >
                     {isExporting ? <Download className="h-4 w-4 animate-pulse" /> : <Share2 className="h-4 w-4" />}
-                    {isExporting ? "SVG 상징 카드 준비중..." : "SVG 상징 카드 공유/저장"}
+                    {isExporting ? copy.shareButtonLoading : copy.shareButtonIdle}
                   </button>
                   <p className="mt-2 min-h-5 text-xs text-slate-500">{shareFeedback}</p>
 
                   <div className="mt-3 grid gap-3 sm:grid-cols-2">
                     <div className="rounded-xl border border-pink-200/35 bg-white/90 p-3 text-slate-700">
-                      <p className="text-xs font-semibold text-pink-500">핵심 포커스</p>
+                      <p className="text-xs font-semibold text-pink-500">{copy.focusLabel}</p>
                       <p className="mt-1 text-xs font-semibold text-purple-600">{reading.summary.title}</p>
                       <p className="mt-1 whitespace-pre-wrap break-words text-xs leading-relaxed text-slate-600">{reading.summary.description}</p>
                     </div>
 
                     <div className="rounded-xl border border-rose-200/35 bg-white/90 p-3 text-slate-700">
-                      <p className="text-xs font-semibold text-rose-500">오늘의 실행 3단계</p>
+                      <p className="text-xs font-semibold text-rose-500">{copy.actionStepsLabel}</p>
                       <ol className="mt-2 list-inside list-decimal space-y-1 text-xs leading-relaxed text-slate-600">
                         {reading.categories.slice(0, 3).map((section) => (
                           <li key={section.id} className="break-words">{section.tinyAction}</li>
@@ -2324,32 +3253,27 @@ export default function YeonStarHugPage() {
 
         <section className="grid gap-3 rounded-3xl border border-white/45 bg-white/75 p-5 shadow-[0_14px_34px_rgba(236,72,153,0.14)] backdrop-blur-sm md:grid-cols-3">
           <article>
-            <h2 className="text-base font-black text-slate-700">결과 저장하고 다시 보기</h2>
+            <h2 className="text-base font-black text-slate-700">{copy.faqSaveTitle}</h2>
             <p className="mt-2 text-xs leading-6 text-slate-600">
-              카드 이미지를 저장하면 오늘 뽑힌 행운 상징과 한 문장이 그대로 남아요. 하루가 지난 뒤 다시 열어보면 지금과
-              다르게 읽히는 부분이 있는지 확인해 보세요.
+              {copy.faqSaveBody}
             </p>
           </article>
           <article>
-            <h2 className="text-base font-black text-slate-700">행운 상징 6종 미리보기</h2>
+            <h2 className="text-base font-black text-slate-700">{copy.faqSymbolTitle}</h2>
             <p className="mt-2 text-xs leading-6 text-slate-600">
-              네잎 클로버(작은 행운이 동시에 열리는 날), 달과 별(감정을 다독이는 치유), 연꽃(흔들림 속 회복력), 황금 열쇠(막힌
-              흐름을 푸는 해답), 나비(관계와 마음의 가벼운 변화), 혜성(정체를 돌파하는 용기) — 오늘 카드에 어떤 상징이 나올지는
-              감정과 고민에 따라 달라져요.
+              {copy.faqSymbolBody}
             </p>
           </article>
           <article>
-            <h2 className="text-base font-black text-slate-700">오늘 다시 확인하면 결과가 바뀌나요?</h2>
+            <h2 className="text-base font-black text-slate-700">{copy.faqRefreshTitle}</h2>
             <p className="mt-2 text-xs leading-6 text-slate-600">
-              네, 감정 선택이나 고민 문장을 바꾸면 리딩이 새로 계산돼요. 같은 날 여러 번 확인해도 괜찮지만, 가장 처음
-              마음에 남은 문장을 기준으로 삼는 걸 추천해요.
+              {copy.faqRefreshBody}
             </p>
           </article>
           <article className="md:col-span-3">
-            <h2 className="text-base font-black text-slate-700">공유 전 확인할 것</h2>
+            <h2 className="text-base font-black text-slate-700">{copy.faqShareTitle}</h2>
             <p className="mt-2 text-xs leading-6 text-slate-600">
-              카드를 다른 사람과 공유하기 전에 이름·생년월일이 원치 않게 드러나진 않는지 한 번 더 확인하세요. 별자리 리딩은
-              참고용 상담이니, 무겁게 받아들이기보다 오늘의 기분을 가볍게 나누는 용도로 활용해 주세요.
+              {copy.faqShareBody}
             </p>
           </article>
         </section>
@@ -2359,19 +3283,19 @@ export default function YeonStarHugPage() {
           animate={reduceMotion ? undefined : { opacity: 1, y: 0 }}
           transition={{ duration: 0.45, delay: 0.4 }}
           className="grid grid-cols-2 gap-2 pb-2 sm:grid-cols-4"
-          aria-label={yeonStarHugText("yeonStar.aria-label.005")}
+          aria-label={copy.navAriaLabel}
         >
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-pink-200 bg-white/80 px-4 py-2 text-xs font-semibold text-pink-500 shadow-sm">
-            <Heart className="h-4 w-4" /> 감정 + 고민 입력
+            <Heart className="h-4 w-4" /> {copy.navPillInput}
           </div>
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-purple-200 bg-white/80 px-4 py-2 text-xs font-semibold text-purple-500 shadow-sm">
-            <Sparkles className="h-4 w-4" /> 실시간 키워드 인식
+            <Sparkles className="h-4 w-4" /> {copy.navPillKeyword}
           </div>
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-amber-200 bg-white/80 px-4 py-2 text-xs font-semibold text-amber-600 shadow-sm">
-            <Cloud className="h-4 w-4" /> 실제 점성술 신호
+            <Cloud className="h-4 w-4" /> {copy.navPillAstro}
           </div>
           <div className="inline-flex items-center justify-center gap-2 rounded-full border border-rose-200 bg-white/80 px-4 py-2 text-xs font-semibold text-rose-500 shadow-sm">
-            <Coins className="h-4 w-4" /> SVG 카드 공유
+            <Coins className="h-4 w-4" /> {copy.navPillShare}
           </div>
         </m.nav>
       </div>
