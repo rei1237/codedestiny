@@ -1000,6 +1000,99 @@ export async function getSwissVedicPlanets(env, payload, options = {}) {
   };
 }
 
+// ── 임의 UT 순간의 트로피컬(회귀) 황경 ─────────────────────────────────────────
+//
+// 휴먼 디자인은 Design 순간을 "출생 태양에서 정확히 88° 이전"으로 되짚어 찾기 때문에 태양
+// 황경만 여러 번 필요하다.
+//
+// 🔴 그 반복에 getSwissWesternChart 를 쓰면 안 된다 — 호출마다 외부 천체력 엔드포인트를
+//    먼저 때리고(getExternalWesternChart) 하우스·어스펙트까지 계산하므로, 뉴턴 반복이
+//    네트워크 왕복 N회가 된다. 여기서는 getSwissMoonLongitudes 와 같은 규격으로
+//    WASM 인스턴스를 한 번만 얻어 로컬 swe_calc_ut 만 반복한다.
+//
+// 🔴 SEFLG_SIDEREAL 을 주지 않는다 = 트로피컬. Rave Mandala 는 회귀황도에 고정돼 있다.
+
+const TROPICAL_BODY_CONSTANTS = Object.freeze({
+  Sun: "SE_SUN",
+  Moon: "SE_MOON",
+  Mercury: "SE_MERCURY",
+  Venus: "SE_VENUS",
+  Mars: "SE_MARS",
+  Jupiter: "SE_JUPITER",
+  Saturn: "SE_SATURN",
+  Uranus: "SE_URANUS",
+  Neptune: "SE_NEPTUNE",
+  Pluto: "SE_PLUTO",
+});
+
+const UNIX_EPOCH_JULIAN_DAY = 2440587.5;
+
+/**
+ * UTC 밀리초 → 율리우스일(UT).
+ * @param {number} millis
+ * @returns {number}
+ */
+export function julianDayFromUtcMillis(millis) {
+  const value = Number(millis);
+  if (!Number.isFinite(value)) {
+    throw new TypeError(`julianDayFromUtcMillis: 유한한 숫자가 아니다 (${millis})`);
+  }
+  return (value / 86400000) + UNIX_EPOCH_JULIAN_DAY;
+}
+
+/**
+ * 율리우스일(UT) → UTC 밀리초.
+ * @param {number} julianDay
+ * @returns {number}
+ */
+export function utcMillisFromJulianDay(julianDay) {
+  const value = Number(julianDay);
+  if (!Number.isFinite(value)) {
+    throw new TypeError(`utcMillisFromJulianDay: 유한한 숫자가 아니다 (${julianDay})`);
+  }
+  return (value - UNIX_EPOCH_JULIAN_DAY) * 86400000;
+}
+
+/**
+ * 여러 율리우스일 시점의 트로피컬 황경을 한 번에 구한다.
+ *
+ * @param {object} env
+ * @param {number[]} julianDays UT 기준 율리우스일 배열
+ * @param {string[]} [bodies] TROPICAL_BODY_CONSTANTS 키 또는 "NorthNode". 생략 시 행성 10개
+ * @param {object} [options] getSwiss 옵션 + { nodeMode: "true"|"mean" }
+ * @returns {Promise<Array<Record<string, {longitude:number, speedLongitude:(number|null)}>>>}
+ */
+export async function getSwissTropicalLongitudes(env, julianDays, bodies, options = {}) {
+  if (!Array.isArray(julianDays) || !julianDays.length) return [];
+  const swe = await getSwiss(env, options);
+  const iflag = swe.SEFLG_SWIEPH | swe.SEFLG_SPEED;
+  const nodeConstant = options.nodeMode === "mean" ? "SE_MEAN_NODE" : "SE_TRUE_NODE";
+  const requested = Array.isArray(bodies) && bodies.length
+    ? bodies
+    : Object.keys(TROPICAL_BODY_CONSTANTS);
+
+  return julianDays.map((rawJd) => {
+    const jd = Number(rawJd);
+    if (!Number.isFinite(jd)) {
+      throw toStatusError(400, `Swiss tropical calculation received an invalid julian day (${rawJd}).`);
+    }
+    const out = {};
+    for (const body of requested) {
+      const constantName = body === "NorthNode" ? nodeConstant : TROPICAL_BODY_CONSTANTS[body];
+      if (!constantName) {
+        throw toStatusError(400, `Swiss tropical calculation received an unknown body (${body}).`);
+      }
+      const result = swe.swe_calc_ut(jd, swe[constantName], iflag);
+      const speedLongitude = parseNumber(result?.[3], NaN);
+      out[body] = {
+        longitude: readLongitudeFromResult(result, body),
+        speedLongitude: Number.isFinite(speedLongitude) ? speedLongitude : null,
+      };
+    }
+    return out;
+  });
+}
+
 export const __swissEphemerisTestUtils = {
   sanitizeUrlLikeEnvValue,
   resolveEpheBaseUrl,

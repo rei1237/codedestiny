@@ -66,8 +66,9 @@ Last curated: `2026-08-15`
 
 **안정성 — 지금 가장 얇은 곳**
 
-- **워커 번들: 무료 플랜 한도의 78.7%**(gzip 2.36 / 3 MiB, 여유 0.64 MiB — 2026-08-14 실측). 2026-08-14 이전에는 97.0%(여유 0.09 MiB)로 다음 워커 추가가 PR CI 를 막는 위치였고, `worker/wrangler.toml` 에 `minify = true` 를 켜서 해소했다. `worker/` 에 무언가 더하기 전에 `npm run build:worker && npm run verify:worker-size` 로 다시 잰다.
-  - **다음에 여유가 다시 마르면 볼 곳** (2026-08-14 gzip 한계 기여도 실측): `lib/tarot` 343 KB(예산 11.2%) · `mongoose` 196 KB · `mongodb` 178 KB · `lunar-javascript` 111 KB · `swisseph.wasm` 252 KB. 🔴 **raw 크기로 고르지 말 것** — `@mongodb-js/saslprep` 은 raw 553 KB 인데 gzip 기여는 6 KB 다(반복 유니코드 테이블). 예산이 gzip 이므로 순위가 완전히 뒤바뀐다.
+- **워커 번들: 예산의 23.9%**(gzip 2.39 MiB / **10 MiB**, 2026-08-23 실측). 🔴 **예산은 유료 플랜 한도 10 MiB 다** — 예전 서술의 "3 MiB · 78.7%"는 무료 플랜 기준이라 폐기했다(정본은 `scripts/verify-worker-size-budget.mjs` 의 `CF_PAID_LIMIT_BYTES`). `worker/` 에 무언가 더하기 전에 `npm run build:worker && npm run verify:worker-size` 로 다시 잰다(가드는 예산의 90% 부터 경고).
+  - `worker/wrangler.toml` 의 `minify = true` 는 켜 둔 채로 둔다 — 끄면 gzip 이 즉시 2.9 MiB 대로 돌아간다.
+  - **다음에 여유가 마르면 볼 곳** (2026-08-14 gzip 한계 기여도 실측): `lib/tarot` 343 KB · `mongoose` 196 KB · `mongodb` 178 KB · `lunar-javascript` 111 KB · `swisseph.wasm` 252 KB. 🔴 **raw 크기로 고르지 말 것** — `@mongodb-js/saslprep` 은 raw 553 KB 인데 gzip 기여는 6 KB 다(반복 유니코드 테이블). 예산이 gzip 이므로 순위가 완전히 뒤바뀐다.
 - 가드 무결성 7건(G-1~G-7)은 모두 조치됐다. 재발 방지는 `verify:guard-wiring`(배선 누락 fail-closed)과 `verify:auth-changed-coverage`(리스너 전수 발견)가 맡는다 — 이 둘을 약화시키는 변경은 하지 않는다.
 - 머지된 작업이 스테이징에 도달하지 못하는 조용한 실패는 `landing-watchdog.yml` 이 이슈 하나로 모은다(스택 PR 좌초 · 릴리스 런 취소 · 드리프트). 🔴 2026-08-20 컷오버 이후 감시 대상은 **스테이징**이다 — 프로덕션은 정상적으로 뒤처져 있으므로 프로덕션 기준으로 보면 영구 red 이슈가 된다.
 
