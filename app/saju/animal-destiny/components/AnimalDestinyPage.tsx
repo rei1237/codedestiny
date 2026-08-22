@@ -11,24 +11,10 @@ import TwelveAnimalHero from "./TwelveAnimalHero";
 import TwelveAnimalInputCard from "./TwelveAnimalInputCard";
 import TwelveAnimalLoading from "./TwelveAnimalLoading";
 import { useBackNavigation } from "@/app/hooks/useBackNavigation";
-
-const ANIMAL_DESTINY_PAGE_SHELL_TEXT_TRANSLATIONS = {
-  ko: {
-    backAria: "뒤로가기",
-    homeAria: "홈으로 이동",
-  },
-  en: {
-    backAria: "Go back",
-    homeAria: "Go home",
-  },
-  ja: {
-    backAria: "戻る",
-    homeAria: "ホームへ移動",
-  },
-} as const;
+import { useAnimalDestinyCopy } from "../_lib/copy";
 
 export default function AnimalDestinyPage() {
-  const shellCopy = ANIMAL_DESTINY_PAGE_SHELL_TEXT_TRANSLATIONS.ko;
+  const copy = useAnimalDestinyCopy();
   const pathname = usePathname() || "/";
   const shareCardRef = useRef<HTMLDivElement>(null);
   const formSectionRef = useRef<HTMLDivElement>(null);
@@ -118,7 +104,7 @@ export default function AnimalDestinyPage() {
         <button 
           onClick={handleHeaderBack}
           className="-ml-1 rounded-full border border-transparent p-2 text-[#6b3f1d] transition-all hover:border-[#8a5a2b]/35 hover:bg-[#f4e3c7]"
-          aria-label={shellCopy.backAria}
+          aria-label={copy.backAria}
         >
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M15 18l-6-6 6-6" />
@@ -126,12 +112,12 @@ export default function AnimalDestinyPage() {
         </button>
         <div className="flex flex-col items-center">
           <h2 className="text-[10px] font-black uppercase tracking-[0.28em] text-[#8a5a2b]">Saju Animal Oracle</h2>
-          <p className="mt-1 text-sm font-black tracking-tight text-[#6b3f1d]">사주 십이운성 동물점</p>
+          <p className="mt-1 text-sm font-black tracking-tight text-[#6b3f1d]">{copy.headerTitle}</p>
         </div>
         <a
           href="/"
           className="-mr-1 inline-flex items-center justify-center rounded-full border border-transparent p-2 text-[#6b3f1d] transition-all hover:border-[#8a5a2b]/35 hover:bg-[#f4e3c7]"
-          aria-label={shellCopy.homeAria}
+          aria-label={copy.homeAria}
         >
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 11.2 12 4l9 7.2" />
@@ -192,13 +178,13 @@ export default function AnimalDestinyPage() {
                 onClick={reset}
                 className="h-12 w-full rounded-2xl border border-[#d7b792] bg-white py-3 font-bold text-[#6b3f1d] transition-all hover:bg-[#fff7ea]"
               >
-                다른 생년월일로 테스트하기
+                {copy.retryButton}
               </button>
               <a
                 href="/saju/"
                 className="h-12 w-full rounded-2xl border border-[#d7b792] bg-[linear-gradient(180deg,#fff9ed,#fdeccc)] py-3 text-center font-bold text-[#8a5a2b] transition-all hover:brightness-[1.02]"
               >
-                사주 운세 메인으로
+                {copy.mainMenuButton}
               </a>
             </div>
           )}
