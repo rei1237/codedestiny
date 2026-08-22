@@ -169,7 +169,7 @@
 
 ## 2026-08-22 `master-love-codex` — `app/` 밖 `src/features/` 트리 전체(30개 파일), 로케일 인프라 전무 (완료)
 
-**PR #974** `chore/master-love-codex-i18n` — 원래 핸드오프 문서의 7개 후보 목록이 전부 소진된 뒤, `git grep -lP '[가-힣]'` 전수 재스윕으로 새로 발굴한 클러스터. `app/master-love-codex/page.tsx`→`MasterLoveCodexRouteClient.tsx`(dynamic import)의 실제 구현이 `app/` 밖 완전히 별도인 최상위 디렉터리 `src/features/master-love-codex/`(30개 파일, 4,174줄)에 있었다 — 지금까지 세션이 만난 "실제 컴포넌트가 라우트 디렉터리 밖" 패턴 중 가장 먼 사례(레포 루트도 아니고 `app/` 형제도 아닌 완전히 다른 최상위 트리). `src/components/maya/`(MayaCalendarView 등, 3파일)도 같은 디렉터리 발견 과정에서 함께 확인된 소규모 자매 클러스터 — 아직 미착수, 다음 세션 빠른 후보.
+**PR #974** `chore/master-love-codex-i18n` — 원래 핸드오프 문서의 7개 후보 목록이 전부 소진된 뒤, `git grep -lP '[가-힣]'` 전수 재스윕으로 새로 발굴한 클러스터. `app/master-love-codex/page.tsx`→`MasterLoveCodexRouteClient.tsx`(dynamic import)의 실제 구현이 `app/` 밖 완전히 별도인 최상위 디렉터리 `src/features/master-love-codex/`(30개 파일, 4,174줄)에 있었다 — 지금까지 세션이 만난 "실제 컴포넌트가 라우트 디렉터리 밖" 패턴 중 가장 먼 사례(레포 루트도 아니고 `app/` 형제도 아닌 완전히 다른 최상위 트리). `src/components/maya/`(MayaCalendarView 등, 3파일)도 같은 디렉터리 발견 과정에서 함께 확인된 소규모 자매 클러스터 — **완료(PR #975)**, 아래 참고.
 
 - 로케일 인프라 완전 전무: `getCurrentLoadingLocale()`/`cd:locale-ready`/`cd:locale-change` 리스너가 30개 파일 전체에 단 한 곳도 없었다.
 - 신규 `src/features/master-love-codex/_lib/copy.ts`로 22개 파일(메인 오케스트레이터 + 21개 컴포넌트)의 JSX 임베디드 UI 문자열(버튼·폼 라벨·에러 12종·결제 게이트 문구·aria-label·진행 상태·리더 화면 문구)을 배선. 각 컴포넌트는 개별 훅 인스턴스 대신 공유 모듈의 `useMasterLoveCodexCopy()`/`useMasterLoveCodexLocale()`을 각자 import(destiny-compass 클러스터가 세운 "공유 `_lib/copy.ts` + 컴포넌트별 훅 호출" 패턴과 동일 — 23개 개별 로컬 훅 복제를 피함).
@@ -178,6 +178,10 @@
 - 화자 이름 "연애 고수"는 `CodexDialogueBox.tsx`의 `speaker: "narration" | "연애 고수"` 타입 리터럴로 제외 대상 프롤로그 데이터와 얽혀 있어 미번역 유지 — 다만 순수 서술형 alt 텍스트(예: "책을 읽고 있는 연애 고수")는 캐릭터 이름은 유지한 채 나머지 설명부만 로케일화.
 - **알려진 잔여 이슈**: `CodexReportOutro.tsx`의 `codexAccessOutroLine(accessType, billing.title)`은 제외 대상 `data/premium.ts`의 함수라 로케일 불문 한국어 문장을 반환한다 — 뒤따르는 JSX 리터럴 문장은 이번에 로케일화했으므로, 비-한국어 사용자는 한 문단 안에서 "한국어 + 로케일화된 문장" 혼합을 보게 된다. `data/premium.ts` 콘텐츠 번역이 선행돼야 완전히 해소됨.
 - 검증: `npx tsc --noEmit`(클린) · `npx eslint`(22개 변경 파일, 에러/경고 0) · `node scripts/verify-master-love-codex-flow.mjs`(통과 — 문자열 이동으로 깨진 4개 단언: 리터럴 "결과 보기"/"이어서 읽기", `masterLoveCodexBilling(...)` 정규식, `ERROR_TEXT`→`errorText` 리네임을 같은 커밋에서 수정) · `node scripts/verify-master-love-codex-batch-budget.mjs`/`verify-master-love-codex-compat-determinism.mjs`(통과) · `NODE_OPTIONS=--experimental-vm-modules npx jest __tests__/worker/payments-v2.foundation.test.js __tests__/worker/payments-v2.entitlements.test.js __tests__/worker/per-use-proof-roundtrip.test.js`(80/80 pass, 워커 쪽 featureKey 문자열만 참조) · `config/payment-freeze.json` 미등재 · `git grep -n "master-love-codex" -- '__tests__/' 'scripts/verify-*'` 3면 확인으로 위 4개 단언 파손을 미리 발견·수정.
+
+## 2026-08-22 `maya` — master-love-codex 발견 과정에서 확인된 소규모 자매 클러스터 (완료)
+
+**PR #975** `chore/maya-i18n` — `app/maya/page.tsx`→`MayaRouteClient.tsx`(dynamic import) → 실제 구현 `src/components/maya/`(3개 파일: `MayaCalendarView.tsx`/`MayaDateSummaryCard.tsx`/`MayaPromptGeneratorCard.tsx`). 로케일 인프라 완전 전무(3개 파일 전체에 `getCurrentLoadingLocale()` 없음). 신규 `_lib/copy.ts`로 히어로/날짜 선택기/월간 그리드/요약 카드/AI 프롬프트 생성기(결제 게이트·에러 6종 포함) 배선. `MAYA_PROMPT_TOPICS`(AI 프롬프트 페이로드 값)와 `src/data/maya-calendar-symbols.ts`의 Tzolk'in/Haab 고유명사·`maya-calendar.ts`의 `labelKo`(계산된 한국어 날짜 표기, 항목 7과 같은 범주)는 제외. 검증: `tsc`/`eslint` 클린, `node --test __tests__/fortune/maya-calendar.test.js` 5/5 pass(라이브러리 파일 미변경 확인용), 3면 grep으로 참조 테스트 없음 확인, payment-freeze 미등재.
 
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
 
@@ -230,6 +234,7 @@
 29. **PR #919** `fix/reviews-client-locale` — `ReviewsClient.tsx`(`/reviews`, 실시간 사용자 리뷰 목록 + 작성 다이얼로그) 약 45건 — 헤더/평점 요약/필터/리뷰 카드/빈 상태·에러/작성 다이얼로그(자격 확인 상태·별점 선택·폼 필드·검증 및 제출 메시지) 전부. `SORT_OPTIONS`(정렬 라벨)를 `SORT_KEYS` + `copy.sortLabels`로 분리 — API 정렬 파라미터로 쓰이는 `SortKey` 값 자체는 변경 없음. `locale: "ko"` 하드코딩 페이로드 버그는 이 파일에 없음(이 컴포넌트는 AI 상담 입력 폼이 아니라 순수 CRUD 리뷰 페이지라 그런 필드 자체가 없음). `summary.total.toLocaleString("ko-KR")` 숫자 포맷은 항목 7로 이관, 손대지 않음. 이 파일을 검증하는 기존 테스트가 없어 lint+typecheck로만 검증(미검증으로 명시).
 26. **PR #915** `fix/premium-sales-content-locale` — `PremiumSalesContent.tsx`(인생 총운 전문가 상담, `/premium-unlock`) 101건 — 히어로·폼/결제 게이트 문구/5종 검증 메시지/로딩 6단계/결과 문서(핵심요약·장·전문가 판독)/PDF 저장까지 전부. `TOPIC`("전체 인생 총운")은 화면에 노출되지 않는 페이로드 값이라 유지. 세 번째로 발견된 같은 `locale: "ko"` 하드코딩 버그 수정. `splitMarkdownChapters`의 `제N장` 헤딩 감지 정규식(한국어 전용 파싱 로직)은 그대로 두고 **폴백 장 제목**만 12로케일 번역(카르마 목적지 PR #914의 `KARMA_SECTION_SYMBOLS` 처리와 동일 판단). 이 파일을 직접 참조하는 기존 테스트가 없어 lint+typecheck로만 검증(미검증으로 명시).
 34. **PR #974** `chore/master-love-codex-i18n` — `src/features/master-love-codex/`(`app/` 밖 별도 최상위 트리, 30개 파일) 22개 파일 UI 크롬 배선 + `masterLoveCodexBilling()` 로케일 무관 한국어 제목 고정 버그 수정. 상세는 위 "`master-love-codex`" 절 참고.
+35. **PR #975** `chore/maya-i18n` — `src/components/maya/`(3개 파일) 히어로/날짜 선택기/월간 그리드/요약 카드/AI 프롬프트 생성기 UI 크롬 배선. 상세는 위 "`maya`" 절 참고.
 
 🔴 **비용 재평가(2026-08-21, PR #911/#912 이후)**: "AI 상담 입력 폼" 유형 파일(life-book-ai, love-secret-ai 등)은 한 파일에 60~90개 문구 × 12개 언어가 들어 있어, 파일 하나당 세션 토큰 예산의 상당 비율을 쓴다. `astrology-ai/AstrologyAiClient.tsx`(918줄, 실측 122건)를 포함해 남은 70개 파일 중 다수가 같은 "입력 폼" 계열로 보인다 — 전부 이 수준으로 처리하면 이번 세션 예산을 크게 넘어설 수 있다. 사용자가 이미 "현재 수준 그대로 계속"을 확정했으므로 계속 진행하되, 만약 세션이 여기서 중단되면 다음 세션은 **이 문서를 그대로 이어받아 재개**할 것(모든 파일이 이미 검증된 동일 패턴 — 파일 로컬 Copy 타입 + `getCurrentLoadingLocale()`/`languagechange` 훅 + 12로케일 번역 + 모듈 레벨 함수는 `copy` 파라미터로 스레딩).
 
