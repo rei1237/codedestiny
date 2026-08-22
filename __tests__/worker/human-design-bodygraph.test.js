@@ -7,6 +7,13 @@
 // 🔴 여기서 확인하는 계약은 "활성 게이트만으로 센터가 defined 되지 않는다"(요구사항 9)와
 //    "Type/Authority 는 그래프에서 나오지 결과에서 역산되지 않는다"(요구사항 10·12)다.
 
+import {
+  CENTER_SHAPE_LIST,
+  CHANNEL_PATH_LIST,
+  GATE_POSITION_LIST,
+  VIEWBOX,
+  gatePosition,
+} from "../../lib/human-design/bodygraph-geometry.js";
 import { CENTER, CENTER_GATES, CENTER_ORDER, centerOfGate } from "../../lib/human-design/centers.js";
 import { CHANNELS, channelsOfGate } from "../../lib/human-design/channels.js";
 import { DEFINITION, buildBodygraph, hasConnection } from "../../lib/human-design/bodygraph.js";
@@ -285,5 +292,57 @@ describe("Authority (센터 정의 우선순위)", () => {
     // 36 채널 단독 차트만으로도 Lunar 를 뺀 모든 권위가 한 번씩은 나온다.
     expect(seen.has(AUTHORITY.LUNAR)).toBe(false);
     expect(seen.size).toBeGreaterThanOrEqual(5);
+  });
+});
+
+describe("BodyGraph 배치", () => {
+  test("64 게이트가 모두 좌표를 갖고 서로 겹치지 않는다", () => {
+    expect(GATE_POSITION_LIST).toHaveLength(64);
+    expect(GATE_POSITION_LIST.map((g) => g.gate)).toEqual(Array.from({ length: 64 }, (_, i) => i + 1));
+    const seen = new Set(GATE_POSITION_LIST.map((g) => `${g.x},${g.y}`));
+    expect(seen.size).toBe(64);
+  });
+
+  test("게이트 좌표의 센터가 게이트→센터 표와 일치한다", () => {
+    for (const position of GATE_POSITION_LIST) {
+      expect({ gate: position.gate, center: position.center })
+        .toEqual({ gate: position.gate, center: centerOfGate(position.gate) });
+    }
+  });
+
+  test("모든 좌표가 viewBox 안에 있다", () => {
+    for (const position of GATE_POSITION_LIST) {
+      expect(position.x).toBeGreaterThan(0);
+      expect(position.x).toBeLessThan(VIEWBOX.width);
+      expect(position.y).toBeGreaterThan(0);
+      expect(position.y).toBeLessThan(VIEWBOX.height);
+    }
+  });
+
+  test("센터 도형 9개가 CENTER_ORDER 순서로 있고 polygon 문자열이 성립한다", () => {
+    expect(CENTER_SHAPE_LIST.map((s) => s.center)).toEqual([...CENTER_ORDER]);
+    for (const shape of CENTER_SHAPE_LIST) {
+      expect(shape.points.length % 2).toBe(0);
+      expect(shape.points.length).toBeGreaterThanOrEqual(6);
+      expect(shape.polygon.split(" ")).toHaveLength(shape.points.length / 2);
+      expect(shape.gates).toEqual(CENTER_GATES[shape.center]);
+    }
+  });
+
+  test("36 채널 경로가 두 게이트 좌표를 잇고 중점이 정확하다", () => {
+    expect(CHANNEL_PATH_LIST).toHaveLength(36);
+    for (const path of CHANNEL_PATH_LIST) {
+      const a = gatePosition(path.gateA);
+      const b = gatePosition(path.gateB);
+      expect(path.a).toEqual({ x: a.x, y: a.y });
+      expect(path.b).toEqual({ x: b.x, y: b.y });
+      expect(path.mid.x).toBeCloseTo((a.x + b.x) / 2, 1);
+      expect(path.mid.y).toBeCloseTo((a.y + b.y) / 2, 1);
+    }
+  });
+
+  test("배치되지 않은 게이트 조회는 던진다", () => {
+    expect(() => gatePosition(0)).toThrow(RangeError);
+    expect(() => gatePosition(65)).toThrow(RangeError);
   });
 });

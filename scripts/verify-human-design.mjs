@@ -307,6 +307,98 @@ check(
   impureImports.join(", "),
 );
 
+// ── ⑥ 결제 배선 정합성 ───────────────────────────────────────────────────────
+//
+// 🔴 가격이 네 곳에 흩어져 있다: 레지스트리(서버 정본) · 워커 라우트 · React 클라이언트 ·
+//    정적 셸 카드. 하나만 어긋나면 "결제는 됐는데 서버가 다른 금액을 기대" 하는 상태가 된다.
+
+const registry = await import(new URL("../worker/lib/paid-feature-registry.js", import.meta.url).href);
+const HD_FEATURE_KEY = "human-design-chart";
+const HD_COIN_PRICE = 100;
+const HD_AMOUNT_KRW = 10000;
+
+const registryEntry = registry.FEATURE_KEY_PRICE_TABLE[HD_FEATURE_KEY];
+check("유료 레지스트리에 human-design-chart 가 있다", Boolean(registryEntry));
+if (registryEntry) {
+  check(
+    `레지스트리 가격이 ${HD_COIN_PRICE}코인 / ₩${HD_AMOUNT_KRW} 다`,
+    Number(registryEntry.cost) === HD_COIN_PRICE && Number(registryEntry.amountKRW) === HD_AMOUNT_KRW,
+    JSON.stringify(registryEntry),
+  );
+}
+check("회당 결제로 등록돼 있다", registry.isPerUsePaidFeatureKey(HD_FEATURE_KEY));
+check(
+  "🔴 영구 해금으로 등록돼 있지 않다 (1회 결제로 모든 출생 데이터가 열리는 것을 막는다)",
+  !registry.isUnlockPaidFeatureKey(HD_FEATURE_KEY) && !registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[HD_FEATURE_KEY],
+);
+
+function readRepoFile(relativePath) {
+  try {
+    return readFileSync(path.join(repoRoot, relativePath), "utf8");
+  } catch {
+    return "";
+  }
+}
+
+const routeSource = readRepoFile("worker/routes/human-design.js");
+check("워커 라우트 파일이 있다", routeSource.length > 0);
+if (routeSource) {
+  check("라우트의 코인가가 레지스트리와 같다", new RegExp(`COIN_PRICE\\s*=\\s*${HD_COIN_PRICE}\\b`).test(routeSource));
+  check("라우트의 원화가가 레지스트리와 같다", new RegExp(`AMOUNT_KRW\\s*=\\s*${HD_AMOUNT_KRW}\\b`).test(routeSource));
+  check(
+    "🔴 라우트가 canAccessPaidFeature 로 관문을 세우지 않는다 (회당결제 키는 항상 PAYMENT_REQUIRED 를 받는다)",
+    !/canAccessPaidFeature/.test(codeLines(routeSource)),
+  );
+  check("증빙 확인이 관측/차단 스위치를 갖는다", /PER_USE_ENFORCE\s*=\s*(true|false)/.test(routeSource));
+}
+
+const workerIndexSource = readRepoFile("worker/index.js");
+check(
+  "워커 라우터에 /api/human-design 이 배선돼 있다",
+  workerIndexSource.includes("handleHumanDesignRoutes") && workerIndexSource.includes("/api/human-design"),
+);
+
+const clientSource = readRepoFile("app/human-design/HumanDesignClient.tsx");
+// 금지 패턴은 코드 줄에서만 본다 — "…를 주지 않는다" 라고 적은 주석이 걸리면 안 된다.
+const clientCode = codeLines(clientSource);
+check("React 클라이언트 파일이 있다", clientSource.length > 0);
+if (clientSource) {
+  check("클라이언트의 코인가가 레지스트리와 같다", new RegExp(`COIN_PRICE\\s*=\\s*${HD_COIN_PRICE}\\b`).test(clientSource));
+  check("클라이언트의 원화가가 레지스트리와 같다", new RegExp(`AMOUNT_KRW\\s*=\\s*${HD_AMOUNT_KRW}\\b`).test(clientSource));
+  check(
+    "🔴 공용 결제 게이트(useCoinGate.ensurePaidAccess)만 쓴다",
+    /ensurePaidAccess\s*\(/.test(clientCode) && !/paymentMode\s*:/.test(clientCode),
+  );
+  check(
+    "🔴 회당 결제라 forceDeduct 를 주지 않는다",
+    !/forceDeduct/.test(clientCode),
+  );
+  check(
+    "🔴 결제 requestId 가 새로고침을 견딘다 (useRef 에만 두면 새로고침이 곧 이중 결제다)",
+    /sessionStorage/.test(clientCode),
+  );
+}
+
+// 정적 셸 7벌(루트 + 미러 6)에 카드가 같은 가격으로 있어야 한다.
+const SHELL_FILES = [
+  "index.html",
+  "public/index.html",
+  "public/static/index.html",
+  "public/en/index.html",
+  "public/ja/index.html",
+  "public/zh/index.html",
+  "public/zh-tw/index.html",
+];
+const shellMisses = [];
+for (const file of SHELL_FILES) {
+  const html = readRepoFile(file);
+  if (!html) { shellMisses.push(`${file}: 파일 없음`); continue; }
+  if (!html.includes('data-cd-marker="human-design-vvip-card-v20260823"')) { shellMisses.push(`${file}: 카드 없음`); continue; }
+  if (!html.includes(`data-feature-key="${HD_FEATURE_KEY}"`)) { shellMisses.push(`${file}: featureKey 없음`); continue; }
+  if (!html.includes(`data-coin-cost="${HD_COIN_PRICE}"`)) shellMisses.push(`${file}: 코인가 불일치`);
+}
+check("정적 셸 7벌에 VVIP 서고 카드가 같은 가격으로 있다", shellMisses.length === 0, shellMisses.join(" / "));
+
 const engineVersion = await import(new URL("../lib/human-design/version.js", import.meta.url).href);
 check("계산 버전 3종이 선언돼 있다",
   Boolean(engineVersion.CALCULATION_VERSION && engineVersion.EPHEMERIS_VERSION && engineVersion.MAPPING_VERSION));
