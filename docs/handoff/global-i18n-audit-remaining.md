@@ -231,6 +231,14 @@ CI/머지 순서 점검 중 열린 PR 24개의 파일 목록을 실제로 대조
    - 의도적으로 그대로 둔 것(문서화): `_engine/adapters/*.ts`·`_engine/evidence/*.ts`(원 용어 반환 계산 엔진, 앞선 PR들의 Vedic/Graha 용어 제외와 동일 판단), `app/destiny-compass/page.tsx`(AdSense 저가치 인벤토리 게이트용 FAQ 서버 콘텐츠 — `nakshatra/codex`와 같은 Wave 9 버킷), `CHIP_AXES[].seed`(직접 코드 확인 결과 순수 해시 채점 입력이라 화면 비노출, 안전), `NARRATION_RISKY` 한국어 정규식(이미 `koGuard`로 ko 전용 스코프).
    - 검증: `npx tsc --noEmit`(클린), `npx eslint`(이 PR 무관 기존 경고 1건만), `node scripts/verify-destiny-compass-determinism.mjs`(OK), `node scripts/verify-guard-wiring.mjs`(OK). `config/payment-freeze.json`에 destiny-compass 미등재 확인(결제 게이트 4개 있는 기능인데도 매니페스트 갱신 불필요). 이 기능을 참조하는 jest/UI 테스트 없음. **브라우저 수동 확인은 미검증** — 다음 세션(또는 스테이징 배포 후)이 12로케일 전체 플로우(입력→처리→결과→갈림길/미래시뮬/삶의항로→오늘의퀘스트→도착)를 한 번씩 훑어볼 것.
 
+## 2026-08-22 `destiny-meeting-place` — route-fallback 패턴 재확인 + "형제 필드 혼재" 판단 기준 정립 (완료)
+
+**PR #978** `chore/destiny-meeting-place-i18n` — `app/saju/destiny-meeting-place/page.tsx`→`DestinyMeetingPlaceRouteClient.tsx`(dynamic wrapper)→실제 구현 `components/DestinyMeetingPlacePage.tsx`(515줄, 유료 1회 분석 `destiny_meeting_place` featureKey). 로케일 인프라 전무(스캐폴드가 `ko` 블록 하나뿐이었고, 심지어 `destinyMeetingPage.006` 키는 `ko` 값 자체가 영어 문자열 "Reset form"이었다). 신규 `_lib/copy.ts`로 헤더·히어로(장소/시간/분위기 하이라이트 3곳을 span으로 감싼 문장은 언어마다 어순이 달라 `heroDescriptionParts: {text, highlight?}[]` 배열로 분리해 각 로케일이 자기 어순대로 작성)·배지·입력 폼·제출 버튼·에러 토스트·통화 표시(`copy.currency`, 로케일별 포맷)까지 전부 배선. `DestinyMeetingPlaceLoading.tsx`(28줄)도 로케일 인프라가 없어 자체 5로케일 테이블 신설.
+
+🔴 **새로 정립한 판단 기준 — "형제 필드 혼재" 체크**: `DestinyMeetingPlaceResult.tsx`는 착수 전 열어보니 이미 ko/en/ja/zh-CN/zh-TW 5개 로케일이 전부 완비돼 있었다(따옴표 있는 `"zh-CN":` 키를 놓친 첫 grep 패턴 탓에 "미완성"으로 오판할 뻔함 — `hub-cards-are-the-hub-unique-body` 류 오탐 방지 원칙의 연장). 반면 형제 파일 `destinyMeetingPlaceMappings.ts`·`destinyMeetingPlacePremiumDemo.ts`는 title/description 8~10개는 5로케일 표가 이미 있는데 **조회 함수가 로케일 무관하게 항상 `.ko`만 반환하거나(Mappings) 미지원 로케일에서 `.ko`로 새는(PremiumDemo)** 버그가 있어 처음엔 "데이터는 있으니 배선만 고치면 된다"고 판단해 고쳤다. 그런데 **같은 객체 안에서 title/description 바로 옆에 있는 `reason`/`actionTip`/`whyItFits`/`examplePlaces`/`caution` 필드는 전부 하드코딩 한국어 산문**이라는 걸 뒤늦게 발견 — title만 로케일화하면 카드 하나가 "영어 제목 + 한국어 본문"으로 쪼개져 지금(전체 한국어)보다 더 나쁜 결과가 된다는 걸 깨닫고 **되돌렸다**(YeonStarHugClient #946 전례와 동일 판단 축, 이번엔 사후 발견). `destinyMeetingPlaceEngine.ts`(849줄, 자체 스캐폴드 18키가 `ko` 전용)도 같은 이유로 제외.
+
+**교훈**: 필드 하나를 로케일화하기 전에 **같은 객체 리터럴 안의 형제 필드를 반드시 함께 확인**할 것 — "이 필드는 이미 로케일 테이블이 있다"가 "이 카드/섹션 전체를 로케일화해도 안전하다"를 의미하지 않는다. 검증: `tsc`/`eslint` 클린(경고 3건은 무관한 기존 것), `node scripts/verify-paid-gate-ui-regression.mjs`(이 파일을 소스로 읽어 게이트 순서를 단언하는 가드 — PASS), 3면 grep으로 위 가드 외 참조 없음 확인, `config/payment-freeze.json` 미등재.
+
 ## 완료된 것 (PR 목록, 전부 `main` 미머지)
 
 1. **PR #879** `fix/website-jsonld-description-scope` — 전 라우트 JSON-LD `WebSite.description` 한국어 고정 제거.
@@ -271,6 +279,7 @@ CI/머지 순서 점검 중 열린 PR 24개의 파일 목록을 실제로 대조
 35. **PR #975** `chore/maya-i18n` — `src/components/maya/`(3개 파일) 히어로/날짜 선택기/월간 그리드/요약 카드/AI 프롬프트 생성기 UI 크롬 배선. 상세는 위 "`maya`" 절 참고.
 36. **PR #976** `chore/tarot-healing-core-i18n` — `app/components/SunHealingTarot.tsx`(913줄, PR #963이 놓친 실제 라이브 컴포넌트) UI 크롬 배선. 상세는 위 "`tarot/healing`(실제 구현)" 절 참고.
 37. **PR #977** `fix/nakshatra-premium-gate-featurekey` — i18n 작업이 아니라 **`Paid Flow Gates` 오탐 수정**. PR #937이 `verify-nakshatra-premium.mjs`의 리터럴-grep 단언 2건을 깨뜨린 것을 복구. 상세는 위 "`Paid Flow Gates`가 '번역만 한 PR'에서도 실패하는 이유" 절 참고.
+38. **PR #978** `chore/destiny-meeting-place-i18n` — `app/saju/destiny-meeting-place/`(유료 1회 분석 기능, route-fallback 패턴) 실제 구현 `DestinyMeetingPlacePage.tsx`+`DestinyMeetingPlaceLoading.tsx`. 상세는 아래 "`destiny-meeting-place`" 절 참고.
 
 🔴 **비용 재평가(2026-08-21, PR #911/#912 이후)**: "AI 상담 입력 폼" 유형 파일(life-book-ai, love-secret-ai 등)은 한 파일에 60~90개 문구 × 12개 언어가 들어 있어, 파일 하나당 세션 토큰 예산의 상당 비율을 쓴다. `astrology-ai/AstrologyAiClient.tsx`(918줄, 실측 122건)를 포함해 남은 70개 파일 중 다수가 같은 "입력 폼" 계열로 보인다 — 전부 이 수준으로 처리하면 이번 세션 예산을 크게 넘어설 수 있다. 사용자가 이미 "현재 수준 그대로 계속"을 확정했으므로 계속 진행하되, 만약 세션이 여기서 중단되면 다음 세션은 **이 문서를 그대로 이어받아 재개**할 것(모든 파일이 이미 검증된 동일 패턴 — 파일 로컬 Copy 타입 + `getCurrentLoadingLocale()`/`languagechange` 훅 + 12로케일 번역 + 모듈 레벨 함수는 `copy` 파라미터로 스레딩).
 
