@@ -18,18 +18,18 @@
 - **`google-adsense-account` 검증 메타태그**(`ca-pub-9863227498729828`)는 소유권 확인용(광고 미서빙)이라 `app/layout.js`의 `metadata.other`와 **6개 정적 셸 `<head>` 전부**에 둔다. 광고 **서빙 코드**(`adsbygoogle.js`/`<ins class=adsbygoogle>`/`adsbygoogle.push`)만 `app/components/DeferredAdsense.tsx`로 중앙화 강제된다 — `verify-adsense-readiness.mjs`의 `embedsAdsenseCode()`가 검증 메타태그(HTML `<meta>` + layout JS 선언)를 걷어낸 뒤에만 광고코드를 검사하므로, 검증 메타태그는 어느 페이지·셸에 있어도 게이트를 통과한다(다른 파일에 실제 광고코드를 넣으면 게이트가 여전히 막는다).
 - **홈 `/`은 정적 셸 `index.html`의 승격본**이다(`scripts/promote-static-shell-to-root.mjs`가 `public/index.html`→루트 `dist/index.html`). 따라서 **홈 콘텐츠·메타는 `app/page.js`가 아니라 정적 셸에 둔다**(`app/page.js`는 승격에 덮여 홈에서 미사용). 홈 하단 운세 입문 콘텐츠 섹션(`.cd-home-guide`, theme-tokens `--cd-*` 사용)은 **한국어 3개 셸**(루트 `index.html`, `public/index.html`, `public/static/index.html`)에만 있고 전 뷰포트에 노출한다(숨김 금지). en/ja/zh 셸 현지화 콘텐츠는 후속 과제.
 
-## 정적 셸 사본 라우트 11개는 검색 최적화 대상이 아니다 (2026-08-23 확정)
+## 정적 셸 사본 라우트 — 2개만 남았다 (2026-08-23 확정)
 
-`scripts/static-canonical-route-map.mjs` 의 `source: "static-shell"` 항목들
-(`/saju/basic` `/saju/sibyl` `/tarot/mingri` `/tarot/love` `/tarot/reunion`
-`/tarot/self-esteem` `/tarot/year` `/astrology/cosmic` `/oracle/juyuk`
-`/oracle/hwatu` `/oracle/sukuyo`)은 **루트 `index.html` 을 그대로 복사하고 `<head>`
-만 갈아 끼운 SPA 딥링크**다. `cd-static-canonical-action` 으로 홈 셸의 모달을 연다.
+`scripts/static-canonical-route-map.mjs` 의 `source: "static-shell"` 항목은 **루트
+`index.html` 을 그대로 복사하고 `<head>` 만 갈아 끼운 SPA 딥링크**다. 홈 셸의 런타임
+(`js/core/index-inline-runtime.js` 의 `__cdStaticCanonicalPathActions`)이 경로를 보고
+모달을 연다. body 가 홈과 사실상 동일해 색인시키지 않는다.
 
-- **body 가 홈과 사실상 동일하므로 색인시키지 않는다** — 사용자 확정(2026-08-23).
-  `generate-sitemap.mjs` 의 `noindexPathPrefixes` 에 11개 전부 있고 사이트맵에도 없다.
-- 따라서 **이 라우트들의 title·description 을 검색 키워드용으로 고쳐도 효과가 없다.**
-  그 문구가 실제로 쓰이는 곳은 브라우저 탭과 **소셜 공유 카드**다(공유 유입은 실재한다).
+- 남은 것은 **`/oracle/juyuk` · `/oracle/hwatu` 둘뿐**이다. app 페이지가 없어
+  셸 사본이 곧 본문이라 고유 콘텐츠가 없다. `noindexPathPrefixes` · `public/_headers`
+  · `verify-adsense-readiness` 의 X-Robots 단언 목록 세 곳이 함께 색인을 막는다.
+- **이 둘의 title·description 을 검색 키워드용으로 고쳐도 효과가 없다.** 그 문구가
+  실제로 쓰이는 곳은 브라우저 탭과 **소셜 공유 카드**다(공유 유입은 실재한다).
 - `<head>` 교체 정본은 **`scripts/lib/static-shell-route-meta.mjs` 하나뿐**이다.
   예전에는 같은 함수가 `prepare-cloudflare-dist.mjs` 와 `promote-static-shell-to-root.mjs`
   에 복사돼 있었고 robots(`index` vs `noindex`)와 canonical 후행 슬래시가 서로 달랐다.
@@ -37,5 +37,30 @@
 - 이 결정을 지키는 가드: `__tests__/ui/static-shell-noindex.static.test.js`
   (`npm run test:node` 로 PR CI 에서 돈다). 대상은 `getStaticShellCanonicalRoutes()`
   에서 전수 발견하므로 셸 사본 라우트를 새로 추가하면 자동으로 검사에 걸린다.
-- 이 11개를 실제로 색인시키려면 라우트마다 고유 본문이 필요하다(AdSense 하한 1,800자).
-  그건 별도 결정이지, 제목만 고쳐서 되는 일이 아니다.
+
+### 🔴 2026-08-23: 셸 사본 9개를 걷고 app 랜딩을 살렸다
+
+`/saju/basic` · `/saju/sibyl` · `/tarot/mingri` · `/tarot/love` · `/tarot/reunion` ·
+`/tarot/self-esteem` · `/tarot/year` · `/astrology/cosmic` · `/oracle/sukuyo` 는
+**이미 만들어진 app 랜딩 페이지가 있는데도 셸 사본이 postbuild 에서 그 산출물을
+덮어쓰고 있었다.** 8개가 `FeatureLandingPage`(예: `/oracle/sukuyo` 559줄,
+`/astrology/cosmic` 551줄), `/tarot/reunion` 은 `SeoLandingTemplate` 이다. 즉 사람이
+쓴 고유 한국어 본문 수백 줄이 매 빌드 버려지고, 그 자리에 홈 사본이 noindex 로 나갔다.
+
+`source` 를 `"app"` 으로 돌려 랜딩이 그대로 서빙되게 했다(`/ziwei/chart`·
+`/life-book-ai` 가 이미 쓰던 기존 모드). 그리고 세 곳의 noindex 목록에서 뺐다 —
+`generate-sitemap.mjs` 의 `noindexPathPrefixes`, `public/_headers` 의 X-Robots-Tag,
+`verify-adsense-readiness.mjs` 의 `xRobotsNoindexHeaderPatterns`. 사이트맵 `coreRoutes`
+에는 원래 있었으므로 접두사만 빼면 자동으로 색인 대상이 된다.
+
+🔴 **바뀐 동작**: 예전에는 `/tarot/reunion` 을 열면 홈 셸이 뜨면서 모달이 바로 열렸다.
+이제는 랜딩 페이지가 먼저 뜨고, 도구는 랜딩의 CTA(`/index.html?action=…`)로 연결된다
+— `__cdGetRouteActionParam()` 이 `?action=` 을 경로 매핑보다 먼저 보므로 모달은 그대로
+열린다. `/sukuyo`·`/ziwei`·`/vedic` 이 쓰는 것과 같은 패턴이고, 클릭이 한 번 는다.
+이전 세션의 `_headers` 주석은 "셸 덮어쓰기를 제거하면 기능이 깨진다"고 적어 두었지만,
+실제로 깨지는 것은 **URL 직행 자동 오픈**뿐이고 도구 자체는 CTA 로 도달한다. 유입을
+위해 그 한 번의 클릭을 감수하기로 사용자가 결정했다(2026-08-23).
+
+이 9개를 다시 셸 사본으로 되돌리려면 위 네 곳(라우트맵 `source`, 사이트맵 접두사,
+`_headers`, adsense 단언 목록)을 **함께** 되돌려야 한다. 한 곳만 바꾸면 "사이트맵에는
+있는데 noindex" 같은 GSC 오류가 난다.
