@@ -9,7 +9,7 @@ import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/karma-destiny-ai/";
-const PAGE_TITLE = "운명의 업 전문가 상담 | 반복되는 인생 패턴 리딩 — Code Destiny";
+const PAGE_TITLE = "업보 운세 | 반복되는 인생 패턴 리딩 — 운명의 업";
 const PAGE_DESCRIPTION =
   "사주·자미두수·숙요 27수·서양 점성술·베다 다섯 관점을 하나의 운명 지도로 잇는 운명의 업 전문가 상담. 같은 자리에서 되풀이되는 선택의 결을 관점별로 다르게 짚어 하나의 결론으로 모아 드립니다.";
 
@@ -103,7 +103,7 @@ export default function KarmaDestinyAiPage() {
       />
             <KarmaDestinyAiRouteClient />
             <ServiceIntroSection label="운명의 업 전문가 상담 안내">
-        <h1>운명의 업 전문가 상담 — 반복되는 인생 패턴 리딩</h1>
+        <h1>업보 운세 — 반복되는 인생 패턴 리딩</h1>
         <p>
           운명의 업은 삶에서 되풀이되는 문양을 읽는 전문가 상담입니다. 다섯 개의 운세를 각각
           보여 드리는 것이 아니라, 하나의 운명을 다섯 개의 렌즈로 바라봅니다. 사주 명식에서 힘이
