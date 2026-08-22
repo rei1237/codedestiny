@@ -201,14 +201,17 @@ export async function cardToFormValues(card: DestinyProfileCard): Promise<Naksha
 }
 
 /** 카드 대표 라벨(picker 칩 표시용). */
-export function cardChipLabel(card: DestinyProfileCard): { name: string; detail: string } {
+export function cardChipLabel(
+  card: DestinyProfileCard,
+  copy: { formLunarSuffix: string; formNoNameLabel: string },
+): { name: string; detail: string } {
   const parts = resolveDestinyProfileBirthParts(card);
   const dateText = parts
     ? `${parts.year}.${String(parts.month).padStart(2, "0")}.${String(parts.day).padStart(2, "0")}`
     : "";
   const calType = card.calType ?? card.birth?.calType ?? card.calendarType;
-  const cal = isLunarCalType(calType) ? " 음력" : "";
+  const cal = isLunarCalType(calType) ? copy.formLunarSuffix : "";
   const region = card.location?.label || card.birthRegion || "";
   const detail = [dateText ? dateText + cal : "", region].filter(Boolean).join(" · ");
-  return { name: card.name || "이름 없음", detail };
+  return { name: card.name || copy.formNoNameLabel, detail };
 }

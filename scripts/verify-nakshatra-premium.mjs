@@ -102,6 +102,19 @@ function stripComments(source) {
   return source.replace(/\/\*[\s\S]*?\*\//g, "").replace(/^\s*\/\/.*$/gm, "");
 }
 
+// 🔴 로케일화로 리터럴 문구가 `copy.<key>` 참조로 옮겨간 뒤에도 이 문구 단언이 살아있게 한다.
+// src 가 쓰는 copy.<key> 중 하나라도 copySource(app/nakshatra/_lib/copy.ts)의 ko 값이 정확히
+// koLiteral 이면 통과 — 리터럴이 그대로 남아 있어도(아직 미배선 파일) 통과한다.
+function hasKoTextOrCopyRef(src, koLiteral, copySource) {
+  if (src.includes(koLiteral)) return true;
+  const escaped = koLiteral.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const idents = new Set([...src.matchAll(/copy\.([A-Za-z0-9_]+)/g)].map((m) => m[1]));
+  for (const ident of idents) {
+    if (new RegExp(`\\b${ident}:\\s*"${escaped}"`).test(copySource)) return true;
+  }
+  return false;
+}
+
 function scanText(source, where) {
   const problems = [];
   const visit = (section) => {
@@ -613,6 +626,8 @@ console.log("\n[11] 일시 503 내성 — 블립에 결제·생성이 죽지 않
   check(`${fetchPath}: 결제 뒤 요청이라 선검사보다 넉넉한 예산을 준다`, /PAID_BODY_BUDGET_MS = \d{5}/.test(fetchSrc));
 
   // 🔴 회당결제는 재시도 = 재결제다. 결제 성공 뒤 본문을 못 받으면 돈만 나간다.
+  let nakshatraCopySource = "";
+  try { nakshatraCopySource = readFileSync(path.join(repoRoot, "app/nakshatra/_lib/copy.ts"), "utf8"); } catch { /* 로케일화 이전 상태 — 리터럴만 본다 */ }
   for (const [relative, label] of [
     ["app/nakshatra/muhurta/MuhurtaClient.tsx", "택일(5,000원)"],
     ["app/nakshatra/vvip/VvipClient.tsx", "VVIP(30,000원)"],
@@ -621,7 +636,7 @@ console.log("\n[11] 일시 503 내성 — 블립에 결제·생성이 죽지 않
     const src = stripComments(readFileSync(path.join(repoRoot, relative), "utf8"));
     check(`${label}: 결제 뒤 본문 요청이 일시 장애를 자동 재시도한다`, /postPaidBody\(/.test(src));
     check(`${label}: 🔴 결제를 다시 요구하지 않는 재시도 경로가 있다`,
-      /paidRef/.test(src) && /canRetry/.test(src) && src.includes("결제 없이 다시 받기"));
+      /paidRef/.test(src) && /canRetry/.test(src) && hasKoTextOrCopyRef(src, "결제 없이 다시 받기", nakshatraCopySource));
     check(`${label}: 재시도 버튼이 결제(ensurePaidAccess)를 다시 부르지 않는다`,
       !/canRetry[\s\S]{0,400}ensurePaidAccess/.test(src));
   }
