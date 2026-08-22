@@ -30,6 +30,7 @@ const LOADERS = {
   "neo-operation-room": () => import("./neo-operation-room-prompt.js"),
   "animal-totem": () => import("../routes/animal-totem.js"),
   "guardian-fortune": () => import("./guardian-fortune-prompt.js"),
+  "human-design": () => import("./human-design-ai-prompt.js"),
   dream: () => import("../routes/dream.js"),
   "pet-saju": () => import("../routes/pet-saju-ai.js"),
 };

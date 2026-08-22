@@ -84,6 +84,22 @@ export type HdChartResponse = {
   message?: string;
 };
 
+/** AI 해석. 계산과 분리된 문서이므로 응답도 분리돼 있다. */
+export type HdInterpretationSection = { key: string; title: string; body: string };
+
+export type HdInterpretation = {
+  sections: HdInterpretationSection[];
+  summary: string;
+};
+
+export type HdInterpretationResponse = {
+  ok: boolean;
+  reused?: boolean;
+  interpretation?: HdInterpretation;
+  reason?: string;
+  message?: string;
+};
+
 /** 상세 시트가 여는 대상. */
 export type HdSelection =
   | { kind: "center"; center: string }
