@@ -1508,6 +1508,41 @@ humanDesignCalculationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: t
 humanDesignCalculationSchema.index({ userId: 1, inputHash: 1, calculationVersion: 1 });
 humanDesignCalculationSchema.index({ userId: 1, createdAt: -1 });
 
+// 휴먼 디자인 AI 해석 — 계산과 **분리된** 문서다(요구사항 25).
+//
+// 🔴 계산 결과를 여기 복제하지 않는다. calculationId 로만 잇는다 — 계산 문서와 해석 문서가
+//    각자 다른 이유로 무효가 되기 때문이다(계산은 엔진 버전이, 해석은 프롬프트 버전이).
+// 🔴 별도 결제 키가 없다. 접근 증빙은 같은 사용자의 계산 문서가 존재한다는 사실이다.
+const humanDesignInterpretationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  calculationId: { type: String, required: true, trim: true, maxlength: 120, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+
+  // 계산 엔진 버전과 프롬프트 버전을 함께 박는다. 둘 중 하나만 바뀌어도 재생성 대상이다.
+  calculationVersion: { type: String, default: "", trim: true, maxlength: 40 },
+  promptVersion: { type: String, required: true, trim: true, maxlength: 60, index: true },
+
+  locale: { type: String, default: "ko", trim: true, maxlength: 10 },
+  userQuestion: { type: String, default: "", trim: true, maxlength: 600 },
+  sections: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  summary: { type: String, default: "", trim: true, maxlength: 4000 },
+  totalCharCount: { type: Number, default: 0 },
+  // 사후 검산(validateHumanDesignInterpretation) 결과. 위반이 있으면 저장하지 않지만,
+  // 재시도 끝에 통과한 경우의 흔적을 남긴다.
+  factCheck: { type: mongoose.Schema.Types.Mixed, default: null },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "humanDesignInterpretations" });
+
+// 같은 계산 + 같은 프롬프트 버전 + 같은 언어면 하나뿐이다(재생성 대신 재열람).
+humanDesignInterpretationSchema.index(
+  { userId: 1, calculationId: 1, promptVersion: 1, locale: 1 },
+  { unique: true },
+);
+humanDesignInterpretationSchema.index({ userId: 1, createdAt: -1 });
+
 // Guardian Fortune usage is deliberately isolated from membership, monthly credit,
 // points, and pass entitlements. These schemas are declarations only; index creation
 // still follows the project's normal migration/operations process.
@@ -1738,6 +1773,8 @@ export const NakshatraAiConsultation = mongoose.models.NakshatraAiConsultation
   || mongoose.model("NakshatraAiConsultation", nakshatraAiConsultationSchema);
 export const HumanDesignCalculation = mongoose.models.HumanDesignCalculation
   || mongoose.model("HumanDesignCalculation", humanDesignCalculationSchema);
+export const HumanDesignInterpretation = mongoose.models.HumanDesignInterpretation
+  || mongoose.model("HumanDesignInterpretation", humanDesignInterpretationSchema);
 export const GuardianFortuneGuestUsage = mongoose.models.GuardianFortuneGuestUsage
   || mongoose.model("GuardianFortuneGuestUsage", guardianFortuneGuestUsageSchema);
 export const GuardianFortuneDailyUsage = mongoose.models.GuardianFortuneDailyUsage
