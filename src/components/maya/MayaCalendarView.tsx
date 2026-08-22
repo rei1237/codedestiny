@@ -13,8 +13,8 @@ import {
 } from "@/src/lib/maya-calendar";
 import MayaDateSummaryCard from "./MayaDateSummaryCard";
 import MayaPromptGeneratorCard from "./MayaPromptGeneratorCard";
+import { useMayaCopy } from "./_lib/copy";
 
-const WEEKDAYS = ["일", "월", "화", "수", "목", "금", "토"];
 const UI_FONT_CLASS = "[font-family:'Noto_Sans_KR','Apple_SD_Gothic_Neo','Malgun_Gothic',system-ui,sans-serif]";
 const DISPLAY_FONT_CLASS = "[font-family:'Noto_Serif_KR','Noto_Serif',Georgia,serif]";
 const CODE_FONT_CLASS = "[font-family:Georgia,'Times_New_Roman',serif]";
@@ -32,12 +32,12 @@ function SelectShell({ children }: { children: ReactNode }) {
   );
 }
 
-function MayaMountainTempleVisual() {
+function MayaMountainTempleVisual({ alt }: { alt: string }) {
   return (
     <svg
       viewBox="0 0 720 680"
       role="img"
-      aria-label="금빛 태양 달력 링과 고산 유적 실루엣"
+      aria-label={alt}
       className="h-full w-full"
       focusable="false"
     >
@@ -139,6 +139,7 @@ function MayaMountainTempleVisual() {
 }
 
 export default function MayaCalendarView() {
+  const copy = useMayaCopy();
   const today = useMemo(() => getTodayParts(), []);
   const [selected, setSelected] = useState<MayaDateParts>(today);
 
@@ -187,18 +188,18 @@ export default function MayaCalendarView() {
               Maya Sacred Calendar · GMT 584283
             </p>
             <h1 className={`relative mt-6 max-w-4xl text-5xl font-black leading-tight text-[#fff4cf] sm:text-6xl md:text-7xl ${DISPLAY_FONT_CLASS}`}>
-              마야점
+              {copy.heroTitle}
             </h1>
             <p className={`relative mt-4 text-xl font-black leading-8 text-[#f5d48f] md:text-2xl ${DISPLAY_FONT_CLASS}`}>
-              고대 달력의 시간 코드로 오늘의 흐름을 읽습니다
+              {copy.heroTagline}
             </p>
             <p className="relative mt-4 max-w-3xl text-base leading-8 text-[#eee5cb] md:text-lg">
-              선택한 날짜의 Long Count, Tzolk&apos;in, Haab 값을 한눈에 확인하고, 마야 sacred calendar의 상징을 바탕으로 상담 프롬프트를 준비하세요.
+              {copy.heroDescription}
             </p>
             <div className="relative mt-6 flex flex-wrap gap-3 text-xs font-bold text-[#ede3c3]">
-              <span className="rounded-lg border border-[#d8b56d]/34 bg-[#0b120e]/82 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),0_0_22px_rgba(216,181,109,0.10)]">Long Count 시간 좌표</span>
-              <span className="rounded-lg border border-[#6fbf9a]/34 bg-[#082018]/78 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]">Tzolk&apos;in 내면 리듬</span>
-              <span className="rounded-lg border border-[#b67a48]/34 bg-[#1a100a]/70 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]">Haab 태양의 계절</span>
+              <span className="rounded-lg border border-[#d8b56d]/34 bg-[#0b120e]/82 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04),0_0_22px_rgba(216,181,109,0.10)]">{copy.chipLongCount}</span>
+              <span className="rounded-lg border border-[#6fbf9a]/34 bg-[#082018]/78 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]">{copy.chipTzolkin}</span>
+              <span className="rounded-lg border border-[#b67a48]/34 bg-[#1a100a]/70 px-3 py-2 shadow-[inset_0_0_0_1px_rgba(255,255,255,0.04)]">{copy.chipHaab}</span>
             </div>
           </div>
           <div className="relative min-w-0 lg:-ml-10">
@@ -209,7 +210,7 @@ export default function MayaCalendarView() {
               <div className="pointer-events-none absolute inset-2 z-10 rounded-lg border border-[#d8b56d]/24" />
               <div className="pointer-events-none absolute left-1/2 top-5 z-10 h-20 w-20 -translate-x-1/2 rounded-full border border-[#f5d48f]/54 bg-[#d8b56d]/12 shadow-[0_0_46px_rgba(216,181,109,0.34)]" />
               <div className="relative h-[340px] overflow-hidden rounded-lg bg-[#020706] sm:h-[430px] lg:h-[520px]">
-                <MayaMountainTempleVisual />
+                <MayaMountainTempleVisual alt={copy.templeVisualAlt} />
                 <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_30%,transparent_0%,rgba(2,7,6,0.02)_42%,rgba(2,7,6,0.36)_100%)]" />
                 <div className="absolute inset-x-0 top-0 h-28 bg-[radial-gradient(ellipse_at_50%_0%,rgba(216,181,109,0.28),transparent_64%)]" />
                 <div className="absolute inset-x-0 bottom-0 h-28 bg-[linear-gradient(180deg,transparent_0%,rgba(2,7,6,0.94)_100%)]" />
@@ -223,55 +224,55 @@ export default function MayaCalendarView() {
         <div className="mx-auto max-w-7xl">
           <div className="mb-4 flex flex-wrap items-end justify-between gap-3">
             <div>
-              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#d8b56d]/78">Maya Date</p>
-              <h2 className={`mt-1 text-2xl font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>날짜 선택</h2>
+              <p className="text-xs font-black uppercase tracking-[0.18em] text-[#d8b56d]/78">{copy.dateSectionLabel}</p>
+              <h2 className={`mt-1 text-2xl font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.dateSectionTitle}</h2>
             </div>
             <p className="rounded-full border border-[#d8b56d]/28 bg-[#081812]/82 px-4 py-2 text-xs font-black text-[#f5d48f]">
-              선택된 시간 좌표 {formatIsoDate(selected)}
+              {copy.selectedCoordinatePrefix} {formatIsoDate(selected)}
             </p>
           </div>
           <div className="grid gap-3 md:grid-cols-[1fr_1fr_1fr_auto]">
             <label className="block text-sm font-bold text-[#eee5cb]">
-              연도
+              {copy.yearLabel}
               <SelectShell>
                 <select
                   value={selected.year}
-                  aria-label="마야 달력 연도 선택"
+                  aria-label={copy.yearSelectAria}
                   onChange={(event) => updateSelected({ year: Number(event.target.value) })}
                   className="mt-2 w-full appearance-none rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm font-black text-[#f8efd2] outline-none transition focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#d8b56d]/70"
                 >
                   {years.map((year) => (
-                    <option key={year} value={year}>{year}년</option>
+                    <option key={year} value={year}>{copy.yearSuffix(year)}</option>
                   ))}
                 </select>
               </SelectShell>
             </label>
             <label className="block text-sm font-bold text-[#eee5cb]">
-              월
+              {copy.monthLabel}
               <SelectShell>
                 <select
                   value={selected.month}
-                  aria-label="마야 달력 월 선택"
+                  aria-label={copy.monthSelectAria}
                   onChange={(event) => updateSelected({ month: Number(event.target.value) })}
                   className="mt-2 w-full appearance-none rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm font-black text-[#f8efd2] outline-none transition focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#d8b56d]/70"
                 >
                   {Array.from({ length: 12 }, (_, index) => index + 1).map((month) => (
-                    <option key={month} value={month}>{month}월</option>
+                    <option key={month} value={month}>{copy.monthSuffix(month)}</option>
                   ))}
                 </select>
               </SelectShell>
             </label>
             <label className="block text-sm font-bold text-[#eee5cb]">
-              일
+              {copy.dayLabel}
               <SelectShell>
                 <select
                   value={selected.day}
-                  aria-label="마야 달력 일 선택"
+                  aria-label={copy.daySelectAria}
                   onChange={(event) => updateSelected({ day: Number(event.target.value) })}
                   className="mt-2 w-full appearance-none rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm font-black text-[#f8efd2] outline-none transition focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#d8b56d]/70"
                 >
                   {days.map((day) => (
-                    <option key={day} value={day}>{day}일</option>
+                    <option key={day} value={day}>{copy.daySuffix(day)}</option>
                   ))}
                 </select>
               </SelectShell>
@@ -283,7 +284,7 @@ export default function MayaCalendarView() {
                 className="inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg border border-[#d8b56d]/36 bg-[linear-gradient(135deg,#6f3d24_0%,#c8923d_52%,#d8c697_100%)] px-5 py-3 text-sm font-black text-[#15120c] shadow-[0_16px_40px_rgba(200,146,61,0.20)] transition hover:brightness-110 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5d48f] motion-reduce:transition-none md:w-auto"
               >
                 <Sun className="h-4 w-4" />
-                오늘의 마야 코드
+                {copy.todayButton}
               </button>
             </div>
           </div>
@@ -300,17 +301,17 @@ export default function MayaCalendarView() {
             <div className="pointer-events-none absolute -left-20 -top-24 h-64 w-64 rounded-full border border-[#d8b56d]/12" />
             <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#d8b56d]/78">Maya Month Grid</p>
-                <h2 className={`mt-1 text-2xl font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{selected.year}년 {selected.month}월 마야 달력</h2>
-                <p className="mt-1 text-sm text-[#ddd2b5]">각 날짜의 Tzolk&apos;in과 Haab 흐름을 선명하게 확인합니다.</p>
+                <p className="text-xs font-black uppercase tracking-[0.18em] text-[#d8b56d]/78">{copy.monthGridLabel}</p>
+                <h2 className={`mt-1 text-2xl font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.monthGridTitle(selected.year, selected.month)}</h2>
+                <p className="mt-1 text-sm text-[#ddd2b5]">{copy.monthGridDesc}</p>
               </div>
               <p className="rounded-full border border-[#d8b56d]/28 bg-[#081812]/78 px-3 py-1 text-xs font-black text-[#f5d48f]">
-                선택된 시간 좌표 {formatIsoDate(selected)}
+                {copy.selectedCoordinatePrefix} {formatIsoDate(selected)}
               </p>
             </div>
 
             <div className="relative mt-5 grid grid-cols-7 gap-1 text-center text-xs font-black text-[#d8b56d]/88 sm:gap-2">
-              {WEEKDAYS.map((weekday) => (
+              {copy.weekdays.map((weekday) => (
                 <div key={weekday} className="py-2">{weekday}</div>
               ))}
             </div>
@@ -320,7 +321,7 @@ export default function MayaCalendarView() {
                 <button
                   key={cell.calendar.gregorian.iso}
                   type="button"
-                  aria-label={`${cell.calendar.gregorian.labelKo} 선택, Tzolk'in ${cell.calendar.tzolkin.label}, Haab ${cell.calendar.haab.label}`}
+                  aria-label={copy.cellAria(cell.calendar.gregorian.labelKo, cell.calendar.tzolkin.label, cell.calendar.haab.label)}
                   aria-pressed={cell.isSelected}
                   onClick={() => setSelected(cell.date)}
                   className={[
@@ -341,8 +342,8 @@ export default function MayaCalendarView() {
                     {cell.isToday ? (
                       <span className="relative inline-flex items-center gap-1 rounded-full border border-[#6fbf9a]/38 bg-[#0d3227]/56 px-1.5 py-0.5 text-[9px] font-black text-[#f0efd5] sm:text-[10px]">
                         <span className="h-1.5 w-1.5 rounded-full bg-[#f5d48f] shadow-[0_0_10px_rgba(216,181,109,0.65)]" />
-                        <span className="hidden sm:inline">오늘</span>
-                        <span className="sr-only sm:hidden">오늘</span>
+                        <span className="hidden sm:inline">{copy.todayBadge}</span>
+                        <span className="sr-only sm:hidden">{copy.todayBadge}</span>
                       </span>
                     ) : null}
                   </span>
@@ -365,10 +366,9 @@ export default function MayaCalendarView() {
           <MayaPromptGeneratorCard result={selectedResult} />
           <section className="relative overflow-hidden rounded-lg border border-[#d8b56d]/18 bg-[#04100d]/82 p-5 text-sm leading-7 text-[#e6dcc1] shadow-[0_18px_60px_rgba(0,0,0,0.26)] backdrop-blur">
             <div className="pointer-events-none absolute inset-0 opacity-28 [background-image:linear-gradient(135deg,rgba(216,181,109,0.07)_1px,transparent_1px)] [background-size:26px_26px]" />
-            <h2 className={`relative text-lg font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>참고</h2>
+            <h2 className={`relative text-lg font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.referenceHeading}</h2>
             <p className="relative mt-3">
-              선택한 날짜는 마야 달력 표기로 정리되며, 생성된 프롬프트와 외부 AI 답변은 엔터테인먼트 목적의 참고용입니다.
-              중요한 의사결정은 현실적인 검토와 전문가 상담을 함께 진행하세요.
+              {copy.referenceDisclaimer}
             </p>
           </section>
         </aside>
