@@ -102,7 +102,15 @@
 
 **확인 후 제외로 분류(Wave 9, 콘텐츠 작성 프로젝트)**: `app/compare/fortune-apps/page.tsx`(직접 읽어 확인) — 서버 컴포넌트, 로케일 라우팅 없음, `verify-adsense-readiness` 1,800자 기준을 타는 SEO 장문 아티클(운세 앱 비교 콘텐츠, 사이트맵 등록·구조화 데이터 포함). `app/compare/saju-vs-ziwei/page.tsx`·`app/compare/sukuyo-vs-vedic/page.tsx`도 같은 `/compare/*` 패밀리라 동일 판단으로 추정(직접 열어보진 않음, **미검증** — 다음 세션이 열어서 확인할 것). `music/guide/page.js`·`nakshatra/codex/[index]/page.tsx`와 동일 범주.
 
-**다음 세션 확인 후보(이번 세션에 미검증, page.tsx만 보고 Client 본체는 안 읽음)**: ~~`app/oracle/rune/page.tsx`→`RuneRouteClient`~~ **완료(PR #969, 아래 참고)**, ~~`app/saju-fpti/page.tsx`→`SajuFptiRouteClient`~~ **완료(PR #970, 아래 참고)**, ~~`app/ziwei/chart/page.tsx`→`ZiweiChartClientLoader`~~ **완료(PR #971, 아래 참고)**, ~~`app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient`~~ **완료(PR #972, 아래 참고)**, `app/fortune/[period]/page.tsx`+`SignFortuneView.tsx`+`YeoniPortrait.tsx`, `app/stories/[episode]/page.tsx`, `app/insights/famous-saju/[slug]/page.tsx` — 이번 세션의 반복 교훈(destiny-compass·tarot/* 3종)대로, `page.tsx` 자체의 attribute grep 매칭 건수(0~4건)로 그 기능 전체의 번역 상태를 판단하지 말 것. 각 라우트의 실제 라이브 클라이언트 컴포넌트를 열어 본문 텍스트까지 확인한 뒤 착수 여부를 정할 것. `app/stories/[episode]/page.tsx`·`app/insights/famous-saju/[slug]/page.tsx`는 이름상 SEO/스토리 콘텐츠 라우트일 가능성이 높아(Wave 9 후보) 먼저 서버/클라이언트 여부부터 확인할 것.
+**다음 세션 확인 후보(이번 세션에 미검증, page.tsx만 보고 Client 본체는 안 읽음)**: ~~`app/oracle/rune/page.tsx`→`RuneRouteClient`~~ **완료(PR #969, 아래 참고)**, ~~`app/saju-fpti/page.tsx`→`SajuFptiRouteClient`~~ **완료(PR #970, 아래 참고)**, ~~`app/ziwei/chart/page.tsx`→`ZiweiChartClientLoader`~~ **완료(PR #971, 아래 참고)**, ~~`app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient`~~ **완료(PR #972, 아래 참고)**, ~~`app/fortune/[period]/page.tsx`+`SignFortuneView.tsx`+`YeoniPortrait.tsx`~~ **Wave 9로 확인·제외(아래 참고, 코드 변경 없음)**, `app/stories/[episode]/page.tsx`, `app/insights/famous-saju/[slug]/page.tsx` — 이번 세션의 반복 교훈(destiny-compass·tarot/* 3종)대로, `page.tsx` 자체의 attribute grep 매칭 건수(0~4건)로 그 기능 전체의 번역 상태를 판단하지 말 것. 각 라우트의 실제 라이브 클라이언트 컴포넌트를 열어 본문 텍스트까지 확인한 뒤 착수 여부를 정할 것. `app/stories/[episode]/page.tsx`·`app/insights/famous-saju/[slug]/page.tsx`는 이름상 SEO/스토리 콘텐츠 라우트일 가능성이 높아(Wave 9 후보) 먼저 서버/클라이언트 여부부터 확인할 것.
+
+## 2026-08-22 `fortune/[period]` — Wave 9(SEO 콘텐츠)로 확인, 코드 변경 없음
+
+조사 결과 `app/fortune/[period]/page.tsx`(허브, 255줄)·`YeoniPortrait.tsx`(67줄)·`app/fortune/[period]/[sign]/page.tsx`(상세, 118줄)·`SignFortuneView.tsx`(447줄) 전부 **서버 컴포넌트**이고 `"use client"`가 없다. `generateStaticParams`(4개 period × 24개 sign = 96페이지 정적 생성)·`generateMetadata`·Article/WebPage/Breadcrumb/FAQ JSON-LD를 갖춘 순수 SEO 아티클 허브다.
+
+- `YeoniPortrait.tsx` 자체 주석이 명시: 이 저장소의 마스코트 컴포넌트 4종(`components/yeon/YeonSpriteFrame` 등)은 전부 `"use client"`인데, 여기서 그중 하나라도 import하면 클라이언트 경계가 생겨 `scripts/verify-adsense-readiness.mjs`(서버 렌더 텍스트만 세어 최소 글자수 미달 시 빌드 실패)가 깨진다 — **의도적으로 `<Image>` 래퍼만 두고 클라이언트 컴포넌트를 피한 설계.**
+- `SignFortuneView.tsx`도 "서버 컴포넌트, `\"use client\"` 추가 금지" 경고 주석이 있음(같은 AdSense 최소 글자수 이유, 이 라우트는 광고 수익화 라우트). `SignViewModel` 데이터를 연애/재물/건강/일 리딩·행운의 색/숫자·FAQ 등 한국어 서술 문장으로 결합하는 콘텐츠 생성 엔진이지 UI 크롬이 아니다.
+- 로케일 카피 테이블·`getCurrentLoadingLocale()`·`cd:locale-*` 리스너 전혀 없음 — 클라이언트 하이드레이션 자체가 없으므로 당연한 결과. 사전 감사 문서의 "Wave 9(hreflang 확장, SEO 콘텐츠, 사용자 명시 요청 시에만 착수)" 원칙 그대로 적용해 **이번 UI 크롬 패스에서는 손대지 않음** — PR 없음, 코드 변경 없음.
 
 ## 2026-08-22 `tarot/mindscan` — 로케일 인프라 전무, AI 리딩 경로는 이미 안전(재확인만) (완료)
 
