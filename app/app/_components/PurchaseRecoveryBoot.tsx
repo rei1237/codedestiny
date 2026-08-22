@@ -9,6 +9,7 @@ import {
   restoreNativePurchases,
   type AppNativePurchase,
 } from "@/app/app/_lib/native-billing";
+import { useAppShellCopy } from "@/app/app/_lib/copy";
 
 type RestoreResponse = {
   ok?: boolean;
@@ -29,6 +30,7 @@ type RestoreResponse = {
  * PENDING(편의점 결제 등)은 아직 결제가 끝난 게 아니라 지급 대상이 아니다 — 안내만 띄운다.
  */
 export default function PurchaseRecoveryBoot() {
+  const copy = useAppShellCopy();
   const [pendingCount, setPendingCount] = useState(0);
   const runningRef = useRef(false);
 
@@ -102,9 +104,9 @@ export default function PurchaseRecoveryBoot() {
       role="status"
       aria-live="polite"
     >
-      <p className="cd-app-heading">결제 승인을 기다리는 중입니다</p>
+      <p className="cd-app-heading">{copy.pendingApprovalTitle}</p>
       <p className="cd-app-body mt-2">
-        승인이 완료되면 콘텐츠가 자동으로 열립니다. 편의점·계좌이체 결제는 입금 확인까지 시간이 걸릴 수 있습니다.
+        {copy.pendingApprovalBody}
       </p>
     </div>
   );

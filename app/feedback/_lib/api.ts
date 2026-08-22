@@ -5,6 +5,7 @@
 
 import { authFetch } from "@/app/_lib/auth-client";
 import type { EnvEntry } from "./environment";
+import type { FeedbackCopy } from "./copy";
 
 export interface FeedbackAttachment {
   key: string;
@@ -50,15 +51,15 @@ export class FeedbackApiError extends Error {
   }
 }
 
-function messageForStatus(status: number, serverMessage: string): string {
+function messageForStatus(status: number, serverMessage: string, copy: FeedbackCopy): string {
   if (serverMessage) return serverMessage;
-  if (status === 401) return "로그인이 필요합니다.";
-  if (status === 429) return "제보가 너무 잦습니다. 잠시 후 다시 시도해 주세요.";
-  if (status === 503) return "일시적인 오류입니다. 잠시 후 다시 보내주세요.";
-  return "제보 전송에 실패했습니다. 잠시 후 다시 시도해 주세요.";
+  if (status === 401) return copy.apiErrorLoginRequired;
+  if (status === 429) return copy.apiErrorTooFrequent;
+  if (status === 503) return copy.apiErrorTransient;
+  return copy.apiErrorSubmitFailed;
 }
 
-export async function submitFeedback(payload: SubmitFeedbackPayload): Promise<SubmittedFeedback> {
+export async function submitFeedback(payload: SubmitFeedbackPayload, copy: FeedbackCopy): Promise<SubmittedFeedback> {
   const response = await authFetch("/api/feedback", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -69,7 +70,7 @@ export async function submitFeedback(payload: SubmitFeedbackPayload): Promise<Su
 
   if (!response.ok) {
     throw new FeedbackApiError(
-      messageForStatus(response.status, String((data as { message?: string })?.message || "")),
+      messageForStatus(response.status, String((data as { message?: string })?.message || ""), copy),
       response.status,
       String((data as { code?: string })?.code || ""),
     );
