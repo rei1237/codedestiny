@@ -3,8 +3,8 @@ import NumerologyTarotRouteClient from "./NumerologyTarotRouteClient";
 
 const NUMEROLOGY_TAROT_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    "metadata.title": "수비학 타로 | Code Destiny",
-    "metadata.description": "생명수, 오늘수, 질문수를 바탕으로 5장의 타로 흐름을 살피는 수비학 타로 리딩입니다. 관계, 일, 선택의 방향을 참고용으로 차분히 읽어 보세요.",
+    "metadata.title": "무료 수비학 타로 | 생명수·오늘수로 보는 5카드 리딩",
+    "metadata.description": "생년월일에서 생명수와 오늘수를 계산해 5장의 타로 흐름과 겹쳐 읽어 주는 무료 수비학 타로입니다. 관계, 일, 선택의 방향을 참고용으로 차분히 읽어 보세요.",
     "metadata.keyword.1": "수비학 타로",
     "metadata.keyword.2": "숫자 타로",
     "metadata.keyword.3": "타로 리딩",
