@@ -102,7 +102,18 @@
 
 **확인 후 제외로 분류(Wave 9, 콘텐츠 작성 프로젝트)**: `app/compare/fortune-apps/page.tsx`(직접 읽어 확인) — 서버 컴포넌트, 로케일 라우팅 없음, `verify-adsense-readiness` 1,800자 기준을 타는 SEO 장문 아티클(운세 앱 비교 콘텐츠, 사이트맵 등록·구조화 데이터 포함). `app/compare/saju-vs-ziwei/page.tsx`·`app/compare/sukuyo-vs-vedic/page.tsx`도 같은 `/compare/*` 패밀리라 동일 판단으로 추정(직접 열어보진 않음, **미검증** — 다음 세션이 열어서 확인할 것). `music/guide/page.js`·`nakshatra/codex/[index]/page.tsx`와 동일 범주.
 
-**다음 세션 확인 후보(이번 세션에 미검증, page.tsx만 보고 Client 본체는 안 읽음)**: ~~`app/oracle/rune/page.tsx`→`RuneRouteClient`~~ **완료(PR #969, 아래 참고)**, ~~`app/saju-fpti/page.tsx`→`SajuFptiRouteClient`~~ **완료(PR #970, 아래 참고)**, ~~`app/ziwei/chart/page.tsx`→`ZiweiChartClientLoader`~~ **완료(PR #971, 아래 참고)**, `app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient`, `app/fortune/[period]/page.tsx`+`SignFortuneView.tsx`+`YeoniPortrait.tsx`, `app/stories/[episode]/page.tsx`, `app/insights/famous-saju/[slug]/page.tsx` — 이번 세션의 반복 교훈(destiny-compass·tarot/* 3종)대로, `page.tsx` 자체의 attribute grep 매칭 건수(0~4건)로 그 기능 전체의 번역 상태를 판단하지 말 것. 각 라우트의 실제 라이브 클라이언트 컴포넌트를 열어 본문 텍스트까지 확인한 뒤 착수 여부를 정할 것. `app/stories/[episode]/page.tsx`·`app/insights/famous-saju/[slug]/page.tsx`는 이름상 SEO/스토리 콘텐츠 라우트일 가능성이 높아(Wave 9 후보) 먼저 서버/클라이언트 여부부터 확인할 것.
+**다음 세션 확인 후보(이번 세션에 미검증, page.tsx만 보고 Client 본체는 안 읽음)**: ~~`app/oracle/rune/page.tsx`→`RuneRouteClient`~~ **완료(PR #969, 아래 참고)**, ~~`app/saju-fpti/page.tsx`→`SajuFptiRouteClient`~~ **완료(PR #970, 아래 참고)**, ~~`app/ziwei/chart/page.tsx`→`ZiweiChartClientLoader`~~ **완료(PR #971, 아래 참고)**, ~~`app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient`~~ **완료(PR #972, 아래 참고)**, `app/fortune/[period]/page.tsx`+`SignFortuneView.tsx`+`YeoniPortrait.tsx`, `app/stories/[episode]/page.tsx`, `app/insights/famous-saju/[slug]/page.tsx` — 이번 세션의 반복 교훈(destiny-compass·tarot/* 3종)대로, `page.tsx` 자체의 attribute grep 매칭 건수(0~4건)로 그 기능 전체의 번역 상태를 판단하지 말 것. 각 라우트의 실제 라이브 클라이언트 컴포넌트를 열어 본문 텍스트까지 확인한 뒤 착수 여부를 정할 것. `app/stories/[episode]/page.tsx`·`app/insights/famous-saju/[slug]/page.tsx`는 이름상 SEO/스토리 콘텐츠 라우트일 가능성이 높아(Wave 9 후보) 먼저 서버/클라이언트 여부부터 확인할 것.
+
+## 2026-08-22 `tarot/mindscan` — 로케일 인프라 전무, AI 리딩 경로는 이미 안전(재확인만) (완료)
+
+**PR #972** `chore/tarot-mindscan-i18n` — `app/tarot/mindscan/page.tsx`→`MindScanTarotRouteClient.tsx`(dynamic wrapper)→실제 구현 `app/components/MindScanTarot.tsx`(1,691줄). 컴포넌트가 `app/` 안에 있지만 라우트 자신의 디렉터리 밖(`app/components/`)에 있다는 점에서 `ziwei/chart`(#971)와 같은 변형.
+
+- `MIND_SCAN_TAROT_TEXT_TRANSLATIONS`가 `ko` 블록 하나뿐이고, `getCurrentLoadingLocale()`/`cd:locale-*` 리스너가 파일 전체에 단 한 곳도 없던 사례 — `saju-fpti`(#970)·`ziwei/chart`(#971)와 같은 "로케일 분기 자체가 없음" 최악 패턴이 세 번째로 재확인됨.
+- 신규 `app/components/_lib/mind-scan-tarot-copy.ts`(en/ja/zh-CN/zh-TW+나머지 EN 폴백)로 인트로/카드 선택/스프레드/결과 4단계 UI 크롬 ~112개 문자열 배선(버튼·토스트·결제 게이트 문구·포지션 라벨).
+- **AI 리딩 생성 경로는 이미 로케일 안전함을 확인**(신규 작업 아님) — `worker/routes/tarot.js`가 `worker/lib/ai-locale-context.js`의 ambient locale을 읽어 Gemini 프롬프트에 출력 언어 지시문을 이미 주입 중(PR #881 적용 범위). 이번 PR은 순수 UI 크롬 작업.
+- **제외(AI 프롬프트 본문)**: `buildMindscanAiPromptText()`/`buildText()`의 공유 텍스트 템플릿 — 룬/prompt-hub 전례와 동일. 이 함수 안의 포지션 라벨은 UI용 `copy`가 아니라 별도로 새로 만든 고정 `AI_PROMPT_POSITION_META`를 참조하게 해 기존 100% 한국어 프롬프트 동작을 그대로 보존(로케일 분리가 필요했던 유일한 지점 — `TarotPos`의 `label`/`meaning` 필드 자체를 없애고 `positionLabel(id, copy)`/`positionMeaning(id, copy)` 헬퍼로 교체했기 때문).
+- **제외(AI 응답 enum 토큰)**: `LOVE_SIGNAL_CLASS`/`RISK_LEVEL_CLASS`의 한국어 키("긍정"/"낮음" 등) — AI가 반환하는 고정 토큰이라 변경하면 스타일 매핑이 깨진다.
+- 검증: `npx tsc --noEmit` clean · `npx eslint` 0 errors(경고 16개 전부 기존, `catch (e)` 미사용 변수·기존 훅 의존성 경고) · `node --test __tests__/ui/mindscan-immersive.static.test.js` 3/3 pass · `node scripts/verify-mindscan-reading.mjs`/`verify-tarot-topic-lock.mjs` 전부 통과(mock 기반, LLM 실호출 0회) · `verify-mobile-feature-coverage.mjs`/`verify-adsense-route-policy.mjs` OK · `config/payment-freeze.json` 미등재. 이번엔 literal-string 단언이 깨지는 verify 스크립트가 없었음(3면 grep으로 확인).
 
 ## 2026-08-22 `ziwei/chart` — 로케일 인프라 자체가 없던 가장 심한 사례, LLM 요청 locale 하드코딩 버그 발견 (완료)
 
