@@ -1,8 +1,54 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { ChevronDown } from "lucide-react";
 import { NorthStarIcon } from "./ObservatorySvg";
 import { LENS_LABELS, type EvidenceItem } from "../_lib/report-model";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+interface EvidenceDisclosureCopy {
+  summaryLabel: string;
+  note: string;
+  provisionalBadge: string;
+}
+
+const EVIDENCE_DISCLOSURE_EN: EvidenceDisclosureCopy = {
+  summaryLabel: "Why this conclusion?",
+  note: "The calculated values this chapter actually referenced.",
+  provisionalBadge: "Birth time unknown · possible",
+};
+
+const EVIDENCE_DISCLOSURE_COPY: Partial<Record<LoadingLocale, EvidenceDisclosureCopy>> = {
+  ko: { summaryLabel: "왜 이런 결론이 나왔나요?", note: "이 장이 실제로 참고한 계산값입니다.", provisionalBadge: "출생시간 미상 · 가능성" },
+  ja: { summaryLabel: "なぜこの結論になったのですか？", note: "この章が実際に参照した計算値です。", provisionalBadge: "出生時刻不明・可能性" },
+  "zh-CN": { summaryLabel: "为什么会得出这个结论？", note: "这是本章实际参考的计算值。", provisionalBadge: "出生时间不详·可能性" },
+  "zh-TW": { summaryLabel: "為什麼會得出這個結論？", note: "這是本章實際參考的計算值。", provisionalBadge: "出生時間不詳·可能性" },
+  vi: { summaryLabel: "Tại sao lại có kết luận này?", note: "Đây là giá trị tính toán mà chương này thực sự tham khảo.", provisionalBadge: "Không rõ giờ sinh · khả năng" },
+  hi: { summaryLabel: "यह निष्कर्ष क्यों आया?", note: "यह वे गणना मान हैं जिन्हें इस अध्याय ने वास्तव में संदर्भित किया।", provisionalBadge: "जन्म समय अज्ञात · संभावना" },
+  es: { summaryLabel: "¿Por qué esta conclusión?", note: "Estos son los valores calculados que este capítulo realmente consultó.", provisionalBadge: "Hora de nacimiento desconocida · posibilidad" },
+  fr: { summaryLabel: "Pourquoi cette conclusion ?", note: "Voici les valeurs calculées que ce chapitre a réellement consultées.", provisionalBadge: "Heure de naissance inconnue · possibilité" },
+  de: { summaryLabel: "Warum diese Schlussfolgerung?", note: "Dies sind die berechneten Werte, auf die sich dieses Kapitel tatsächlich bezogen hat.", provisionalBadge: "Geburtszeit unbekannt · möglich" },
+  nl: { summaryLabel: "Waarom deze conclusie?", note: "Dit zijn de berekende waarden waarnaar dit hoofdstuk daadwerkelijk verwees.", provisionalBadge: "Geboortetijd onbekend · mogelijk" },
+  ms: { summaryLabel: "Mengapa kesimpulan ini?", note: "Ini adalah nilai pengiraan yang sebenarnya dirujuk oleh bab ini.", provisionalBadge: "Masa lahir tidak diketahui · kemungkinan" },
+};
+
+function getEvidenceDisclosureCopy(locale: LoadingLocale): EvidenceDisclosureCopy {
+  return EVIDENCE_DISCLOSURE_COPY[locale] || EVIDENCE_DISCLOSURE_EN;
+}
+
+function useEvidenceDisclosureCopy(): EvidenceDisclosureCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const sync = () => setLocale(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      document.removeEventListener("cd:language-change", sync);
+    };
+  }, []);
+  return getEvidenceDisclosureCopy(locale);
+}
 
 const EVIDENCE_LABELS: Record<string, string> = {
   "saju.dayMaster": "일간",
@@ -72,6 +118,7 @@ export default function EvidenceDisclosure({
   open: boolean;
   onToggle: (open: boolean) => void;
 }) {
+  const copy = useEvidenceDisclosureCopy();
   if (!evidence?.length) return null;
 
   const grouped = new Map<string, EvidenceItem[]>();
@@ -85,12 +132,12 @@ export default function EvidenceDisclosure({
     <details className="kdo-evidence" open={open} onToggle={(event) => onToggle(event.currentTarget.open)}>
       <summary className="kdo-evidence__summary">
         <NorthStarIcon className="kdo-evidence__icon" />
-        <span>왜 이런 결론이 나왔나요?</span>
+        <span>{copy.summaryLabel}</span>
         <ChevronDown size={16} className="kdo-evidence__chevron" aria-hidden="true" />
       </summary>
       <div className="kdo-evidence__wrap">
         <div className="kdo-evidence__inner">
-          <p className="kdo-evidence__note">이 장이 실제로 참고한 계산값입니다.</p>
+          <p className="kdo-evidence__note">{copy.note}</p>
           {[...grouped.entries()].map(([lens, items]) => (
             <section key={lens} className="kdo-evidence__group">
               <h4>{items[0]?.lensLabel || LENS_LABELS[lens] || lens}</h4>
@@ -99,7 +146,7 @@ export default function EvidenceDisclosure({
                   <div key={item.path} className="kdo-evidence__row">
                     <dt>
                       {labelFor(item.path)}
-                      {item.provisional && <span className="kdo-evidence__badge">출생시간 미상 · 가능성</span>}
+                      {item.provisional && <span className="kdo-evidence__badge">{copy.provisionalBadge}</span>}
                     </dt>
                     <dd title={item.value}>{item.value}</dd>
                   </div>
