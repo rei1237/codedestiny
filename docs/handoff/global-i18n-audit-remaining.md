@@ -293,6 +293,7 @@ CI/머지 순서 점검 중 열린 PR 24개의 파일 목록을 실제로 대조
 38. **PR #978** `chore/destiny-meeting-place-i18n` — `app/saju/destiny-meeting-place/`(유료 1회 분석 기능, route-fallback 패턴) 실제 구현 `DestinyMeetingPlacePage.tsx`+`DestinyMeetingPlaceLoading.tsx`. 상세는 아래 "`destiny-meeting-place`" 절 참고.
 39. **PR #979** `fix/fortune-tomorrow-date-manifest-race` — i18n 아님, **릴리즈 실패 원인 3번째 발견·수정**. `fortune-build-data.mjs`(prebuild)와 `lib/fortune/daily-data.ts`(render)가 KST 날짜를 각자 다시 계산해 자정 경계에서 어긋나던 것을 매니페스트 공유로 수정. 상세는 위 "PR #977 머지하면 릴리즈 실패가 끝나냐" 절 참고.
 40. **PR #981** `chore/neo-operation-room-dialogue-i18n` — `src/features/neo-war-room/`(4,600줄+, `app/` 밖 최상위 트리) 캐릭터 "네오"의 대사 시스템 전체(69키 대사 표+랜딩+VN 프롤로그+히어로 헤더) 완결. 폼/버튼/결과 화면은 후속 PR로 남김. 상세는 위 "`neo-operation-room`" 절 참고.
+41. **PR #982** `chore/neo-operation-room-method-registry-i18n`(🔴 **#981 위에 스택 — #981을 먼저 머지할 것**, 같은 파일을 건드림) — "01 분석 방식 선택" 섹션(4개 방식 카드) 완결. `method-registry.ts`의 화면 렌더 필드 5개(죽은 필드 6개는 제외, `git grep`으로 확인) + `methodCardCopy`+섹션 제목+이미지 alt까지 카드 하나 안에서 형제 필드가 섞이지 않게 함께 번역.
 
 🔴 **비용 재평가(2026-08-21, PR #911/#912 이후)**: "AI 상담 입력 폼" 유형 파일(life-book-ai, love-secret-ai 등)은 한 파일에 60~90개 문구 × 12개 언어가 들어 있어, 파일 하나당 세션 토큰 예산의 상당 비율을 쓴다. `astrology-ai/AstrologyAiClient.tsx`(918줄, 실측 122건)를 포함해 남은 70개 파일 중 다수가 같은 "입력 폼" 계열로 보인다 — 전부 이 수준으로 처리하면 이번 세션 예산을 크게 넘어설 수 있다. 사용자가 이미 "현재 수준 그대로 계속"을 확정했으므로 계속 진행하되, 만약 세션이 여기서 중단되면 다음 세션은 **이 문서를 그대로 이어받아 재개**할 것(모든 파일이 이미 검증된 동일 패턴 — 파일 로컬 Copy 타입 + `getCurrentLoadingLocale()`/`languagechange` 훅 + 12로케일 번역 + 모듈 레벨 함수는 `copy` 파라미터로 스레딩).
 
