@@ -1,5 +1,18 @@
 # 마케팅 타일 팝업(FEATURE_MARKETING_COPY) 다국어화 + 라우트 메타데이터 로케일 동기화 (2026-08-23)
 
+## 🔴 현재 상태 (2026-08-23 갱신 — 아래 "머지 순서" 절은 역사 기록이다)
+
+**아래 "머지 순서" 절의 9개 PR(#995·#1000~#1005·#1008·#996)은 전부 머지됐다.** 스택은 자식부터(#1008 → #1000) 머지된 뒤 #995 가 `main` 으로 들어갔고, 브랜치는 삭제됐다. 그 절을 지금 지시로 읽지 말 것.
+
+이어서 진행된 것:
+
+| 항목 | 상태 |
+|---|---|
+| 남은 것 1 — React `FeatureMarketingDetailModal.tsx` | **PR #1009 로 완료** (셸 키 재사용 + 신규 148키, en/ja/zh 실번역 · 나머지 7개는 영어) |
+| 남은 것 2 — `app/premium-unlock/page.tsx` | **PR #1010 으로 완료** (en/ja/zh 신규 작성 + `RouteMetadataLocaleSync` 배선) |
+| 남은 것 3 — vi/hi/es/fr/de/nl/ms 실번역 | **미착수 — 이것만 남았다** (사용자가 "나중에 일괄"로 계획) |
+| 남은 것 4 — 미확인 18번째 라우트 | **없었다.** 계수 착오 — 배선 완료 목록이 10개가 아니라 11개(`app/maya/page.tsx` 포함)라 18개가 전부 설명된다 |
+
 ## 배경
 
 전체 세션 목표는 "Code Destiny 전체를 실제 글로벌 서비스 수준으로 다국어 완성"(`docs/handoff/global-i18n-audit-remaining.md`가 다루는 Wave 0~9와 같은 상위 프로젝트). 이 문서는 그 프로젝트의 두 갈래 — ① 정적 셸(`index.html`)의 타일 클릭 미리보기 팝업이 쓰는 `FEATURE_MARKETING_COPY`(65개 실제 상품 + 30개 별칭 + 9개 카테고리 템플릿) ② 18개 라우트 파일의 사장돼 있던 4개 언어 `<title>`/`<meta description>` — 만 다룬다. `global-i18n-audit-remaining.md`가 다루는 "Wave 7"(React 클라이언트 컴포넌트의 alt/aria/title) 작업과는 **완전히 별개 파일·별개 PR 체인**이니 혼동하지 말 것.
@@ -71,24 +84,28 @@ main
 
 ## 남은 것
 
-### 1. React `FeatureMarketingDetailModal.tsx` — 이번 세션에서 착수 안 함
+### 1. ✅ React `FeatureMarketingDetailModal.tsx` — PR #1009 로 완료
 
-`CATEGORY_COPY`/`EXPLICIT_COPY` 객체(약 250줄, 한국어 매치 208건)가 있는 별도 컴포넌트. 파일 자체 주석에 "정적 셸이 정본"이라는 취지의 언급이 있어(직접 재확인 필요), **십중팔구 이번에 로케일화한 `FEATURE_MARKETING_COPY`와 콘텐츠가 겹친다**. 다음 세션 착수 순서:
-1. 이 컴포넌트가 정말 셸의 데이터를 재구현(중복)한 것인지, 아니면 다른 콘텐츠인지 먼저 diff 대조로 확인.
-2. 겹친다면 이번 세션에서 만든 `featureMarketing.*` 사전 키를 **그대로 재사용**(새로 번역하지 말 것 — 두 벌 유지비만 늘어남). React 쪽에서 `useT()` 또는 동등 훅으로 같은 키를 조회하도록 배선.
-3. 안 겹치는 부분만 신규 번역.
+이 문서의 추측대로 **셸 데이터의 사본이 맞았다.** 실측(2026-08-23): 481개 leaf 문자열 중 **344개가 셸과 바이트 단위로 동일**해서, 문서의 제안대로 `featureMarketing.*` 키를 재사용하고 **신규 키는 148개**만 만들었다(`badge`·`headline` 17 / `sampleReport.*` 56 / `resultPreview.*` 45 / 문구가 갈린 `hub*` 9 / `preview.*` 팝업 라벨 11).
 
-### 2. `app/premium-unlock/page.tsx`의 `_METADATA_COPY` — 신규 번역 필요 (배선이 아니라 콘텐츠 작성)
+**다음 세션이 알아야 할 함정 두 가지:**
 
-다른 10개 라우트와 패턴이 다르다 — en/ja/zh 번역 자체가 없다. `RouteMetadataLocaleSync` 배선 전에 en/ja/zh-CN/zh-TW 카피를 먼저 작성해야 한다. (참고: `/premium-unlock`은 이번 세션에서 마케팅 팝업 카피는 이미 번역했다 — `featureMarketing.premium_unlock.*`. 이건 그 팝업 카피가 아니라 이 라우트 자체의 `<title>`/`<meta description>`이라는 점에 유의, 서로 다른 데이터 소스다.)
+- 🔴 **`useT` 를 쓰면 ko 로케일이 깨진다.** `ko.json` 에는 `featureMarketing` 네임스페이스가 **아예 없다**(한국어는 소스가 정본). `lib/i18n/dictionary.ts` 의 `resolveKey` 는 키가 없으면 한국어 원문이 아니라 `MISSING_TEXT`("번역을 준비 중입니다")를 돌려주므로, 모달이 통째로 그 문구로 덮인다. 그래서 셸의 `_pvwTrKeep` 과 같은 계약(값 없으면 원문 유지)을 주는 **`useTPick` 을 `lib/i18n/useT.ts` 에 새로 만들었다.** 같은 성질의 데이터(소스가 ko 정본인 네임스페이스)를 React 로 옮길 때는 이걸 쓸 것.
+- 🔴 **카테고리 카피와 상품(explicit) 카피는 각자의 네임스페이스로 따로 로케일화한 뒤 합쳐야 한다.** 합친 뒤 한 네임스페이스로 조회하면, explicit 사전에 없는 필드를 카테고리 값에 대고 찾다가 **남의 상품 번역이 붙는다.**
 
-### 3. 7개 EN-폴백 로케일의 실번역 (vi/hi/es/fr/de/nl/ms) — 사용자가 "나중에 일괄"로 이미 계획
+회귀 가드: `__tests__/ui/feature-marketing-modal-i18n.static.test.js`(`test:node` 에 이미 배선된 경로). 소스에서 카피 객체를 중괄호 균형으로 잘라 내 11개 로케일 전부에서 조회를 시뮬레이션하고, 키 누락·한국어 잔존을 실패시킨다. 음성 테스트로 fail-closed 확인 완료.
 
-`public/i18n/{vi,hi,es,fr,de,nl,ms}.json`의 `featureMarketing.*`/`featureMarketingCategory.*`/`featureMarketingTrust.*` 네임스페이스 전체(9개 템플릿 + 65개 실제 상품 + 13개 카테고리)가 지금 영어 텍스트를 그대로 복사한 상태다. 사용자가 명시적으로 "지금은 영어로 채우고 나중에 일괄 번역"을 지시했으므로 이번 세션에서는 손대지 않았다 — **사용자가 "이제 나머지 언어 번역해줘"라고 명시할 때 착수**. 전체 en.json의 해당 네임스페이스를 원본으로 삼아 6개 언어(vi/hi/es/fr/de/nl/ms)를 병렬로 번역하는 것이 가장 효율적일 것(각 언어가 독립이라 배치 병렬화 가능).
+### 2. ✅ `app/premium-unlock/page.tsx`의 `_METADATA_COPY` — PR #1010 으로 완료
 
-### 4. 남은 8번째 라우트(18개 중 미확인 1개)
+en/ja/zh 카피를 새로 쓰고 `RouteMetadataLocaleSync` 를 붙였다. 서버 렌더 메타데이터와 OG 는 #996 의 계약대로 한국어를 유지한다.
 
-이번 세션 조사에서 18개 중 17개(포함 10 + 제외 7 — redirect 5 + psychotest/[slug] + premium-unlock)만 명시적으로 계산됐다. 다음 세션이 시작할 때 `_METADATA_COPY`류 4언어 객체를 가진 라우트를 다시 grep해 정확히 18개를 재확인하고 빠진 1개를 찾을 것.
+### 3. 🔴 7개 EN-폴백 로케일의 실번역 (vi/hi/es/fr/de/nl/ms) — **이것만 남았다**
+
+`public/i18n/{vi,hi,es,fr,de,nl,ms}.json`의 `featureMarketing.*`/`featureMarketingCategory.*`/`featureMarketingTrust.*` 네임스페이스 전체(9개 템플릿 + 65개 실제 상품 + 13개 카테고리, **PR #1009 가 더한 148키 포함**)가 지금 영어 텍스트를 그대로 복사한 상태다. PR #1010 이 붙인 `/premium-unlock` 라우트 메타데이터도 같은 성질이다(`RouteMetadataLocaleSync` 의 `pickEntry` 가 이 7개 로케일에 `entries.en` 을 준다 — 이쪽은 사전이 아니라 라우트 파일에 로케일을 추가해야 한다). 사용자가 명시적으로 "지금은 영어로 채우고 나중에 일괄 번역"을 지시했으므로 이번 세션에서는 손대지 않았다 — **사용자가 "이제 나머지 언어 번역해줘"라고 명시할 때 착수**. 전체 en.json의 해당 네임스페이스를 원본으로 삼아 6개 언어(vi/hi/es/fr/de/nl/ms)를 병렬로 번역하는 것이 가장 효율적일 것(각 언어가 독립이라 배치 병렬화 가능).
+
+### 4. ✅ 남은 8번째 라우트 — 그런 라우트는 없었다 (계수 착오)
+
+2026-08-23 재실측: `git grep -ln "_METADATA_COPY" -- 'app/**/*.tsx'` 는 정확히 18개를 돌려주고, 18개가 전부 설명된다 — **배선 완료 목록이 10개가 아니라 11개다**(위 ② 절이 "10개 파일 완료"라고 적었지만 실제로 나열된 파일은 `app/maya/page.tsx` 를 포함해 11개다). 계산: 배선 11 + `redirect()` 5 + `psychotest/[slug]` 1 + `premium-unlock` 1 = 18. 다음 세션은 이 항목을 다시 조사하지 말 것.
 
 ## 검증 명령 모음 (재현용)
 
