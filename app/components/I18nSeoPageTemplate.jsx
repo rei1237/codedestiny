@@ -1,5 +1,10 @@
 import Link from "next/link";
 import { SEO_SITE_CONFIG } from "../../lib/seo/siteConfig";
+import { SEO_INDEXABLE_LOCALES } from "../../lib/i18n/locales";
+
+/* 배지에 쓸 색인 대상 로케일 목록. 리터럴로 적어 두면 로케일을 늘렸을 때 조용히 어긋난다
+   — 실제로 2026-08 에 zh-TW 를 열고도 이 배지는 "KO · EN · JA · ZH" 로 남아 있었다. */
+const INDEXABLE_LOCALE_BADGE = SEO_INDEXABLE_LOCALES.map((locale) => locale.toUpperCase()).join(" · ");
 
 const TEMPLATE_UI_COPY = {
   ko: {
@@ -31,6 +36,18 @@ const TEMPLATE_UI_COPY = {
     faq: "常见问题",
     localMode: "当前语言模式",
     trustedBy: "多语言支持",
+  },
+  // 🔴 zh-TW 가 없으면 아래 조회가 en 으로 떨어져 **번체 방문자가 영어 UI** 를 본다.
+  //    /zh-tw 는 lib/i18n/locales.ts 의 PUBLIC_LOCALES 에 든 색인 대상 로케일이다.
+  "zh-TW": {
+    heroTagline: "GLOBAL FORTUNE LANDING",
+    heroCaption: "先看今日趨勢，再進入更深層解讀",
+    keyPoints: "核心要點",
+    spotlight: "推薦服務",
+    relatedLinks: "相關連結",
+    faq: "常見問題",
+    localMode: "目前語言模式",
+    trustedBy: "多語言支援",
   },
   en: {
     heroTagline: "GLOBAL FORTUNE LANDING",
@@ -72,7 +89,9 @@ const LINK_VISUALS = [
 
 function stripLocalePrefix(path) {
   const normalized = String(path || "/").replace(/\/$/, "") || "/";
-  return normalized.replace(/^\/(en|ja|zh)(?=\/|$)/, "") || "/";
+  // 🔴 zh-tw 를 zh 보다 먼저 본다. `zh` 만 있으면 `(?=\/|$)` 때문에 `/zh-tw/...` 가 아예 안 벗겨져
+  //    히어로 이미지 판정이 라우트를 못 알아본다.
+  return normalized.replace(/^\/(zh-tw|en|ja|zh)(?=\/|$)/, "") || "/";
 }
 
 function resolveHeroAsset(pathname) {
@@ -170,7 +189,7 @@ export default function I18nSeoPageTemplate({
             <div className="mt-4 flex flex-wrap gap-2 text-[11px] md:text-xs">
               <span className="rounded-full border border-emerald-200/35 bg-emerald-900/25 px-3 py-1.5 font-semibold text-emerald-100">{content.mainKeyword}</span>
               <span className="rounded-full border border-cyan-200/35 bg-cyan-900/25 px-3 py-1.5 font-semibold text-cyan-100">{ui.localMode}: {localeLabel}</span>
-              <span className="rounded-full border border-indigo-200/35 bg-indigo-900/25 px-3 py-1.5 font-semibold text-indigo-100">{ui.trustedBy}: KO · EN · JA · ZH</span>
+              <span className="rounded-full border border-indigo-200/35 bg-indigo-900/25 px-3 py-1.5 font-semibold text-indigo-100">{ui.trustedBy}: {INDEXABLE_LOCALE_BADGE}</span>
             </div>
 
             <div className="mt-6 flex flex-wrap gap-2.5">

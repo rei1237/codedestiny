@@ -546,8 +546,9 @@ function cdNormalizeLang(langCode) {
   if (!raw) return 'ko';
   var low = raw.toLowerCase();
   if (low === 'jp') return 'ja';
-  if (low === 'zh' || low === 'zh-cn') return 'zh-CN';
-  if (low === 'en' || low === 'ja' || low === 'hi' || low === 'es' || low === 'fr' || low === 'de' || low === 'nl' || low === 'ms' || low === 'ko') {
+  if (low === 'zh' || low === 'zh-cn' || low === 'zh-hans') return 'zh-CN';
+  if (low === 'zh-tw' || low === 'zh-hant' || low === 'zh-hk' || low === 'zh-mo') return 'zh-TW';
+  if (low === 'en' || low === 'ja' || low === 'vi' || low === 'hi' || low === 'es' || low === 'fr' || low === 'de' || low === 'nl' || low === 'ms' || low === 'ko') {
     return low;
   }
   return 'ko';
@@ -579,11 +580,15 @@ function cdSaveCurrentLang(langCode) {
   return normalized;
 }
 
+// 🔴 cdNormalizeLang 이 돌려줄 수 있는 12개 로케일을 **전부** 채운다. 하나라도 비면 아래 조회가
+//    빗나가고, 그 순간 비한국어 방문자가 한국어 문구를 본다(zh-TW·vi 가 실제로 그랬다).
 var __cdCollectionToggleHintTextByLang = {
   ko: { open: '눌러서 열기', close: '닫기' },
   en: { open: 'Tap to open', close: 'Close' },
   ja: { open: 'タップして開く', close: '閉じる' },
   'zh-CN': { open: '点击展开', close: '收起' },
+  'zh-TW': { open: '點擊展開', close: '收合' },
+  vi: { open: 'Nhấn để mở', close: 'Đóng' },
   hi: { open: 'खोलने के लिए टैप करें', close: 'बंद करें' },
   es: { open: 'Toca para abrir', close: 'Cerrar' },
   fr: { open: 'Touchez pour ouvrir', close: 'Fermer' },
@@ -594,7 +599,8 @@ var __cdCollectionToggleHintTextByLang = {
 
 function cdGetCollectionToggleHintCopy(langCode) {
   var normalized = cdNormalizeLang(langCode || cdGetCurrentLang());
-  return __cdCollectionToggleHintTextByLang[normalized] || __cdCollectionToggleHintTextByLang.ko;
+  // 최후 폴백은 ko 가 아니라 en 이다 — 표에 없는 값이 들어와도 한국어가 새지 않게 한다.
+  return __cdCollectionToggleHintTextByLang[normalized] || __cdCollectionToggleHintTextByLang.en;
 }
 
 function cdApplyCollectionToggleHintTexts(langCode) {
@@ -625,12 +631,17 @@ window.cdApplyCollectionToggleHintTexts = cdApplyCollectionToggleHintTexts;
 // 로케일 라우트가 있는 언어만 남긴다 — 목록에 없는 언어는 cdBuildLocalizedAppPath 가
 // 프리픽스 없이 한국어 경로를 그대로 돌려주므로 404 대신 읽을 수 있는 페이지가 나온다.
 //
-// zh-TW 가 없는 것은 의도가 아니라 별개의 빈틈이다 — cdNormalizeLang 이 'zh-tw' 를 받지 못해
-// 'ko' 로 떨어뜨리므로 여기 키를 넣어도 도달하지 않는다. 그 함수를 함께 고쳐야 한다.
+// zh-TW 는 2026-08-23 에 채웠다 — cdNormalizeLang 이 'zh-tw' 를 못 받아 'ko' 로 떨어뜨리고
+// 있었기 때문에 여기 키만 넣어도 도달하지 않았고, 그래서 두 곳을 함께 고쳤다.
+// (lib/i18n/locales.ts 의 pathPrefix 가 '/zh-tw' 이고 sync:public 이 그 디렉터리를 만든다.)
+//
+// vi/hi/es/fr/de/nl/ms 는 여기 없는 것이 맞다 — 로케일 라우트 산출물이 없어서 프리픽스를 붙이면
+// 404 로 간다. cdBuildLocalizedAppPath 가 프리픽스 없이 한국어 경로를 그대로 돌려준다.
 var __cdLocalePrefixMap = {
   en: '/en',
   ja: '/ja',
-  'zh-CN': '/zh'
+  'zh-CN': '/zh',
+  'zh-TW': '/zh-tw'
 };
 
 function cdStripLocalePrefix(pathname) {

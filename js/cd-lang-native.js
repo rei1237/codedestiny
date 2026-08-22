@@ -113,12 +113,18 @@
   }
 
   function getPathPrefixLang() {
-    // /ja/, /zh/, /en/ 로케일 랜딩에서는 경로만으로 기본 언어를 결정한다.
+    // /ja/, /zh/, /zh-tw/, /en/ 로케일 랜딩에서는 경로만으로 기본 언어를 결정한다.
     // (일본 등 검색 유입 방문자가 쿠키 없이도 해당 언어로 첫 화면을 보게 하기 위함)
+    //
+    // 🔴 zh-tw 를 빠뜨리면 대만 방문자가 **번체 페이지가 한국어로 되돌아가는 것**을 본다.
+    //    빌드 타임에 번역된 dist/zh-tw/index.html 이 원문을 data-cd-origin-text 로 들고 있어서,
+    //    여기서 ''(=ko)로 떨어지는 순간 applyNativeTranslations('ko') 가 그 원문을 복원한다.
+    //    2026-08-23 실측: dist/zh-tw/index.html 에 data-cd-origin-text 1,303개.
     try {
       var seg = String(window.location.pathname || '').split('/')[1] || '';
       if (seg === 'ja') return 'ja';
       if (seg === 'zh') return 'zh-CN';
+      if (seg === 'zh-tw') return 'zh-TW';
       if (seg === 'en') return 'en';
     } catch (_) {}
     return '';
