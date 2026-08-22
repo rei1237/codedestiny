@@ -8374,6 +8374,477 @@
           "a": "You pick and use only the tracks you need. Please check the payment screen for exact terms."
         }
       ]
+    },
+    "gotoZiweiPremium": {
+      "fallbackTitle": "Read calmly where the star placements are leading your current question.",
+      "tagline": "An interpretation that ties your Life Palace and the 12 palaces to the center of your worry and a standard for your next choice.",
+      "premiumIntro": "The Ziwei Doushu expert consultation doesn't jump to a verdict -- it first lights up where your current question sits within the structure of your chart.",
+      "fallbackCta": "Open Ziwei Doushu Consultation",
+      "ctaNote": "The 12-palace reading opens right after payment.",
+      "feats": {
+        "0": "When you're curious which palace's pressure your current choice is touching",
+        "1": "When it's unclear whether to weigh work, money, or relationships",
+        "2": "When you need a structural explanation rather than plain good/bad fortune"
+      },
+      "premiumAudience": {
+        "0": "Those who need grounds for judgment before a big decision like a job change, move, or marriage",
+        "1": "Those who feel their effort keeps going but the results won't gather in one place",
+        "2": "Those who want to organize their life structure once instead of a one-off daily reading"
+      },
+      "premiumChapters": {
+        "0": "A reading connecting the Life, Wealth, Career, and Spouse palaces to your question",
+        "1": "The star point rising strongly in your current worry",
+        "2": "Repeating patterns to be careful of, and a realistic next action",
+        "3": "A flow that lets you keep asking follow-up questions after checking the result"
+      },
+      "premiumOutcomes": {
+        "0": "You can check what the feature covers before paying.",
+        "1": "Pass, monthly-stone, or single-payment eligibility follows the existing payment policy.",
+        "2": "Fortune results are for reference only -- please confirm important decisions against your real-world judgment."
+      },
+      "answersQuestions": {
+        "0": "Is this a good time to change jobs?",
+        "1": "Should I weigh work or money more?",
+        "2": "Should I keep carrying this relationship forward?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Analysis scope",
+          "free": "Basic Life/Body Palace chart",
+          "premium": "A 12-palace reading connected to your question"
+        },
+        "1": {
+          "axis": "Reflecting your question",
+          "free": "None",
+          "premium": "Down to which palace's pressure your worry touches"
+        },
+        "2": {
+          "axis": "Continuity",
+          "free": "None",
+          "premium": "Connects to follow-up questions after the result"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is this different from the basic chart?",
+          "a": "The basic chart only shows where the stars are placed. The consultation attaches that placement to your current worry and organizes it down to what to decide."
+        },
+        "1": {
+          "q": "Is a known birth time essential?",
+          "a": "Yes. Since the Life Palace itself shifts with the time, Ziwei Doushu is especially sensitive to birth time."
+        },
+        "2": {
+          "q": "How long does the result take?",
+          "a": "It's generated on screen right after payment. It may take a moment since the volume is long."
+        }
+      }
+    },
+    "neo_operation_room": {
+      "fallbackTitle": "Gather your scattered worries onto a single operations map.",
+      "tagline": "A strategic consultation that reads your Saju and star chart together to show where you're losing ground now and the standard to reset by.",
+      "premiumIntro": "The operations room doesn't just line up nice words -- it splits the items above into fourteen sections to first set where you're losing ground now and the standard for recovery.",
+      "fallbackCta": "Open the Operations Room",
+      "ctaNote": "The strategy report opens on the Operations Room screen right after payment.",
+      "feats": {
+        "0": "Fourteen sections written in order, from the first diagnosis to a 7-day battle plan",
+        "1": "First reads the core and strengths/weaknesses of your inborn temperament, then goes deep by topic",
+        "2": "Splits recurring choices and where you're currently losing ground into separate sections",
+        "3": "Presents a reconnaissance report with the reasoning behind it, plus today's no-go actions"
+      },
+      "premiumAudience": {
+        "0": "Those who need a cold diagnosis more than comfort",
+        "1": "Those with several tangled worries and no clear priority",
+        "2": "Those who want to see Saju and the star chart bundled together at once"
+      },
+      "premiumChapters": {
+        "0": "Operation start -- Neo's first diagnosis",
+        "1": "Troop reading -- the core of your inborn temperament and your strengths/weaknesses",
+        "2": "Topic-matched reading, deep-dive by area, timing flow",
+        "3": "Your original weapon system, recurring lost battles, the misaligned front line",
+        "4": "Reconnaissance report (the reasoning behind it) and Neo's blunt verdict",
+        "5": "Immediate operation, 7-day battle plan, situation check"
+      },
+      "premiumOutcomes": {
+        "0": "The actual result varies with the information you enter and the flow of your questions.",
+        "1": "Payment and access checks are handled under the existing service standard.",
+        "2": "Fortune results are for reference only."
+      },
+      "answersQuestions": {
+        "0": "Of my several worries, which should I handle first?",
+        "1": "What should I keep holding onto now, and what should I change?",
+        "2": "Why does effort keep stalling in one specific area only?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "System",
+          "free": "A single viewpoint",
+          "premium": "Saju and the star chart placed side by side"
+        },
+        "1": {
+          "axis": "Structure",
+          "free": "A summary",
+          "premium": "A strategy report split into 14 sections"
+        },
+        "2": {
+          "axis": "Length",
+          "free": "Summary level",
+          "premium": "20,000+ characters"
+        },
+        "3": {
+          "axis": "Advice",
+          "free": "General direction",
+          "premium": "The exact order of what to give up first"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Is this a comforting consultation?",
+          "a": "No. It coldly points out where you're losing ground now and tells you what to give up. If you need comfort, we recommend a different feature."
+        },
+        "1": {
+          "q": "Why look at Saju and the star chart together?",
+          "a": "Pressure invisible in one system often shows up in the other. Where the two overlap is the real bottleneck."
+        },
+        "2": {
+          "q": "Do you need my exact birth date and time?",
+          "a": "Yes. Both systems calculate from your birth information."
+        }
+      }
+    },
+    "openNamingPromptModal": {
+      "fallbackTitle": "Before rushing to settle on a name, let an expert sort out the Saju, sound, and hanja first.",
+      "tagline": "Based on your birth data and naming conditions, an expert verifies your Yongsin/Huisin and personally finishes a naming result combining sound-elements, resource-elements, and stroke-count numerology.",
+      "premiumIntro": "Expert naming doesn't finalize a name for you -- it presents Saju-matched candidates with reasoning so you can choose more calmly.",
+      "fallbackCta": "Start Naming",
+      "ctaNote": "Candidates plus hanja/stroke analysis open together right after payment.",
+      "feats": {
+        "0": "When you have name candidates but no clear standard for choosing among them",
+        "1": "When you want to see Saju compensation, sound-elements, and hanja meaning together",
+        "2": "When you want to check not just the result but the reasoning (prompt) behind it"
+      },
+      "premiumAudience": {
+        "0": "Those who want to confirm the reasoning before naming a child",
+        "1": "Those weighing a name change and needing to narrow down candidates",
+        "2": "Those who want to check both the sound and the hanja meaning of a name"
+      },
+      "premiumChapters": {
+        "0": "Automatically reflects your profile/Saju info and naming conditions",
+        "1": "A finished naming result from Yongsin/Huisin verification through the final recommendation",
+        "2": "Detailed analysis of hanja combinations, sound-elements, and Wonhyeongijeong stroke numerology",
+        "3": "Result saved as PDF + access to the original prompt used to generate it"
+      },
+      "premiumOutcomes": {
+        "0": "Entry and the free draft recommendation open for free.",
+        "1": "The existing payment check runs when you press the premium naming start button.",
+        "2": "Naming results are for reference only -- please confirm realistically before actual use."
+      },
+      "answersQuestions": {
+        "0": "Does this name suit my child's Saju?",
+        "1": "Which of these candidates should I choose?",
+        "2": "Is it okay for me to change my name?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Candidates",
+          "free": "Free draft recommendation",
+          "premium": "Finished candidates verified against Yongsin/Huisin"
+        },
+        "1": {
+          "axis": "Reasoning",
+          "free": "None",
+          "premium": "Sound-elements, resource-elements, and Wonhyeongijeong stroke analysis"
+        },
+        "2": {
+          "axis": "Output",
+          "free": "On-screen only",
+          "premium": "PDF save + access to the original prompt"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is this different from the free recommendation?",
+          "a": "The free version only shows candidates. The paid version also delivers the reasoning behind them -- Saju Yongsin verification plus hanja and stroke-count analysis."
+        },
+        "1": {
+          "q": "Does it finalize the name for me?",
+          "a": "No. It only presents candidates backed by reasoning -- the final choice is yours."
+        },
+        "2": {
+          "q": "Can it be used for a name change too?",
+          "a": "Yes. You can compare your current name against the candidates side by side."
+        }
+      }
+    },
+    "gotoSukuyoPremium": {
+      "fallbackTitle": "Before good or bad, read the sense of distance between the two of you first.",
+      "tagline": "Based on your Honmyoshuku and relationship type, this reading organizes attraction, conflict, and the rhythm of reconnecting.",
+      "premiumIntro": "The Sukuyo consultation doesn't guarantee a reunion or an ending -- it splits the items above into fifteen sections to write how the temperature and distance of the relationship actually move.",
+      "fallbackCta": "Open Sukuyo Compatibility Consultation",
+      "ctaNote": "The relationship report, calculated from both people's Honmyoshuku, opens.",
+      "feats": {
+        "0": "Calculates each person's Honmyoshuku separately and first presents the relationship type with the reasoning behind it",
+        "1": "Splits attraction, emotional direction, communication style, conflict, and taboos into separate sections",
+        "2": "Reads compatibility separately by area -- marriage, cohabitation, business, friendship, workplace",
+        "3": "Organizes how things change across four stages: right after meeting, at 1 year, 3 years, and 5 years"
+      },
+      "premiumAudience": {
+        "0": "Those strangely drawn to someone yet constantly clashing with them",
+        "1": "Those who need a conclusion on whether to continue or let go of this bond",
+        "2": "Those who keep missing the timing for contact and conversation"
+      },
+      "premiumChapters": {
+        "0": "Overview -- overall compatibility summary and the reasoning behind it",
+        "1": "The nature of the two stars, the structure of attraction, the direction of emotion",
+        "2": "Communication style, relationship-maintenance strategy, and ripples of conflict",
+        "3": "Patterns you must be careful of, and karma analysis",
+        "4": "Compatibility by area -- marriage, cohabitation, business, friendship, workplace",
+        "5": "How things change over time, and a final word"
+      },
+      "premiumOutcomes": {
+        "0": "Consultations that need the other person's information may change interpretation after you enter it.",
+        "1": "Pass, monthly-stone, and single-payment policy follow the existing standard.",
+        "2": "Please weigh relationship judgments alongside a realistic conversation."
+      },
+      "answersQuestions": {
+        "0": "Should I keep seeing this person?",
+        "1": "Why do we keep clashing the closer we get?",
+        "2": "Is it okay to reach out again?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Scope",
+          "free": "A summary of your own Honmyoshuku",
+          "premium": "Both people's Honmyoshuku and the full relationship type"
+        },
+        "1": {
+          "axis": "Length",
+          "premium": "18,000+ characters across 15 sections"
+        },
+        "2": {
+          "axis": "Timing advice",
+          "free": "None",
+          "premium": "When to move closer, when to step back"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Is the other person's birth date really necessary?",
+          "a": "Yes. The relationship type only emerges once each person's Honmyoshuku is calculated separately."
+        },
+        "1": {
+          "q": "If the compatibility is bad, should we break up?",
+          "a": "No. The harder the type, the clearer the boundaries you need to keep become. Telling you those boundaries is the point of this consultation."
+        },
+        "2": {
+          "q": "Does it check the chance of a reunion too?",
+          "a": "It doesn't guarantee a chance, but it does point out where the relationship could move again and what to avoid reacting with right now."
+        }
+      }
+    },
+    "astrology_ai_consultation": {
+      "fallbackTitle": "Find out which direction your birth chart is pushing your current worry toward.",
+      "tagline": "A consultation that reads your Sun, Moon, and Rising sign together with the current transiting planets, tying your psychological state and real-world timing into one.",
+      "premiumIntro": "The astrology expert consultation doesn't stop at personality theory -- it pins down exactly what this current period is asking of you.",
+      "fallbackCta": "Open Astrology Consultation",
+      "ctaNote": "The consultation text, calculated from your own birth chart, opens right after payment.",
+      "feats": {
+        "0": "When your mind and your circumstances feel like they're moving apart",
+        "1": "When you need to pin down the timing for a move",
+        "2": "When your star-sign reading always ends up shallow"
+      },
+      "premiumAudience": {
+        "0": "Those who need grounds for judgment about the current period, not just personality",
+        "1": "Those who want to understand the cause of emotional ups and downs as a structure",
+        "2": "Those who need to pick a moment, like a job change, a move, or a confession"
+      },
+      "premiumChapters": {
+        "0": "The axis of your temperament seen through Sun, Moon, and Rising sign",
+        "1": "The current transiting planets and where they meet your worry",
+        "2": "Psychological patterns that keep catching you",
+        "3": "Good times to move, and times to hold off"
+      },
+      "premiumOutcomes": {
+        "0": "Chart-based features are affected by the accuracy of the birth time you enter.",
+        "1": "Payment policy follows the existing pass, monthly-stone, and single-payment standard.",
+        "2": "Fortune results are for reference only."
+      },
+      "answersQuestions": {
+        "0": "Why do my mind and my circumstances feel out of sync?",
+        "1": "When is a good time to move?",
+        "2": "What do I need to decide during this period?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Scope",
+          "free": "Sun/Moon/Rising summary",
+          "premium": "The full chart and the current transits"
+        },
+        "1": {
+          "axis": "Length",
+          "free": "Summary level",
+          "premium": "15,000+ characters"
+        },
+        "2": {
+          "axis": "Timing",
+          "free": "None",
+          "premium": "Good times to move, times to hold off"
+        },
+        "3": {
+          "axis": "Reflecting your question",
+          "free": "None",
+          "premium": "Rebuilt around the worry you entered"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "What if I don't know my birth time?",
+          "a": "The Rising sign and house calculations become inaccurate. A Sun/Moon-centered reading is still possible, but the timing advice loses precision."
+        },
+        "1": {
+          "q": "How is this different from a sun-sign horoscope?",
+          "a": "Instead of just the Sun sign, it looks at the entire sky at the moment you were born."
+        },
+        "2": {
+          "q": "Do you need my birthplace too?",
+          "a": "Yes. Even at the same time, a different location changes the house placements."
+        }
+      }
+    },
+    "karma_destiny_ai_consultation": {
+      "fallbackTitle": "Trace why the same bonds and the same events keep repeating, back to their root.",
+      "tagline": "The top-tier consultation that connects the old currents etched into your chart with your present relationships and choices, sorting out the cause of the repetition and where to cut it off.",
+      "premiumIntro": "The karma-of-destiny consultation doesn't end with a past-life story -- it splits the topics above into fifteen chapters to sort out what to cut off and what to keep in your life now.",
+      "fallbackCta": "View the Karma of Destiny",
+      "ctaNote": "All 15 chapters plus a step-by-step action plan open right after payment.",
+      "feats": {
+        "0": "Writes fifteen chapters in order based on your chart, developing one chapter deeply at a time",
+        "1": "Splits the karma of relationships, love, money, career, and health into independent chapters",
+        "2": "Organizes hidden talents and turning points of destiny in their own chapter",
+        "3": "Closes with a synthesis from five perspectives and a final letter"
+      },
+      "premiumAudience": {
+        "0": "Those who've repeated the same pattern without knowing why",
+        "1": "Those who keep ending up in the same role in relationships",
+        "2": "Those who want to sort things out down to the root, once"
+      },
+      "premiumChapters": {
+        "0": "Destiny's core theme, the origin of destiny, the current flow of life",
+        "1": "The core task of karma, the karma of relationships, the karma of love",
+        "2": "The karma of money, the karma of career, health energy",
+        "3": "Hidden talents, destiny's turning point, a growth strategy going forward",
+        "4": "A synthesis from five perspectives",
+        "5": "The key sentence that changes destiny, a final letter"
+      },
+      "premiumOutcomes": {
+        "0": "Interpretations about past lives and karma are a symbolic viewpoint, not a factual judgment.",
+        "1": "The consultation result is for reference only and doesn't substitute for medical or legal judgment.",
+        "2": "Pass, monthly-stone, and single-payment policy follow the existing standard."
+      },
+      "answersQuestions": {
+        "0": "Why do I keep being drawn to similar people?",
+        "1": "When did this pattern start?",
+        "2": "What do I need to cut off to stop the repetition?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "free": "A summary of temperament",
+          "premium": "A deep reading split into 15 chapters"
+        },
+        "1": {
+          "axis": "Perspective",
+          "free": "Who you are now",
+          "premium": "From the pattern's starting point up to now"
+        },
+        "2": {
+          "axis": "Advice",
+          "free": "General",
+          "premium": "Separates the bonds to cut from the bonds to keep"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Is this a past-life story?",
+          "a": "Past lives are treated only as symbols. The core is what's repeating in your life now and what needs to be cut off."
+        },
+        "1": {
+          "q": "Does this replace therapy or counseling?",
+          "a": "No. It doesn't substitute for psychological treatment or legal judgment. Please treat it as reference material only."
+        },
+        "2": {
+          "q": "How is this different from other consultations?",
+          "a": "Because it traces the pattern back to its root across 15 chapters, its length and calculation scope are the largest of any consultation here."
+        }
+      }
+    },
+    "vedic_ai_consultation": {
+      "fallbackTitle": "Read your current question within the timeline of your Vedic chart.",
+      "tagline": "A consultation that organizes the meaning of your current choice based on your Lagna, Moon, Nakshatra, and Dasha flow.",
+      "premiumIntro": "The Vedic consultation doesn't rush to answer your question -- it first looks at what kind of decision-gate this moment stands in front of.",
+      "fallbackCta": "Open Vedic Consultation",
+      "ctaNote": "The chart and Dasha calculated from your own birth information open right after payment.",
+      "feats": {
+        "0": "When you're curious whether your current choice fits the long-term flow",
+        "1": "When your inner direction feels out of step with real-world timing",
+        "2": "When you want to calmly sort out and consult on one single question"
+      },
+      "premiumAudience": {
+        "0": "Those who want to confirm whether a decision they've made fits the long-term flow",
+        "1": "Those who feel their timing keeps slipping out of sync with their effort",
+        "2": "Those who've been holding onto one question for a long time and want to close it now"
+      },
+      "premiumChapters": {
+        "0": "A Vedic chart consultation based on your birth information",
+        "1": "A reading centered on Lagna, Moon, and Nakshatra",
+        "2": "The connection between your Dasha flow and your current question",
+        "3": "After the consultation, moves into the existing Vedic fortune result flow"
+      },
+      "premiumOutcomes": {
+        "0": "Chart-based features are affected by the accuracy of the information you enter.",
+        "1": "Payment policy follows the existing pass, monthly-stone, and single-payment standard.",
+        "2": "Fortune results are for reference only."
+      },
+      "answersQuestions": {
+        "0": "Does the decision I've made fit the long-term flow?",
+        "1": "Why does my timing keep slipping out of sync?",
+        "2": "Is this a period to expand, or a period to build up?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Scope",
+          "free": "Rashi/Nakshatra summary",
+          "premium": "The full chart and Dasha flow"
+        },
+        "1": {
+          "axis": "Length",
+          "free": "Summary level",
+          "premium": "15,000+ characters"
+        },
+        "2": {
+          "axis": "Timeline",
+          "free": "None",
+          "premium": "Opportunities and trials by Dasha period"
+        },
+        "3": {
+          "axis": "Reflecting your question",
+          "free": "None",
+          "premium": "Rebuilt around the worry you entered"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is this different from Western astrology?",
+          "a": "The reference points for the signs differ, and it uses the timing concept of Dasha. It's stronger at reading the flow of time than at personality."
+        },
+        "1": {
+          "q": "Are past lives or karma factual?",
+          "a": "They're treated as symbolic concepts -- a framework for explaining recurring patterns, not a factual judgment."
+        },
+        "2": {
+          "q": "Is a known birth time essential?",
+          "a": "Yes. Since Lagna and the houses shift with time, accuracy changes greatly."
+        }
+      }
     }
   },
   "featureMarketingCategory": {
@@ -8385,7 +8856,8 @@
     "vedic": "Vedic Astrology",
     "oracle": "Oracle",
     "report": "Premium Report",
-    "music": "Music"
+    "music": "Music",
+    "naming": "Naming"
   },
   "featureMarketingTrust": {
     "paid": {
