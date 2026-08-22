@@ -5,6 +5,81 @@ import { useEffect, useRef, useState } from "react";
 import { validateBirthDateWithAge } from "@/lib/birthDateInput";
 import { readCurrentDestinyProfile, publishDestinyProfileBridge, type DestinyProfileCard } from "@/app/_lib/profile-card-storage";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+interface SeoLandingBirthFormCopy {
+  birthDateLabel: string;
+  birthTimeLabel: string;
+  birthTimeUnknownLabel: string;
+  genderLabel: string;
+  genderNotSelected: string;
+  genderMale: string;
+  genderFemale: string;
+  calendarTypeLabel: string;
+  calendarSolar: string;
+  calendarLunar: string;
+  invalidBirthDate: string;
+  loadFromProfileCardAria: string;
+  loadFromProfileCardLabel: string;
+}
+
+const SEO_LANDING_BIRTH_FORM_COPY_KO: SeoLandingBirthFormCopy = {
+  birthDateLabel: "생년월일",
+  birthTimeLabel: "태어난 시각",
+  birthTimeUnknownLabel: "시각을 모릅니다",
+  genderLabel: "성별",
+  genderNotSelected: "선택 안 함",
+  genderMale: "남성",
+  genderFemale: "여성",
+  calendarTypeLabel: "양력 / 음력",
+  calendarSolar: "양력",
+  calendarLunar: "음력",
+  invalidBirthDate: "올바른 생년월일을 입력해주세요.",
+  loadFromProfileCardAria: "저장된 프로필 카드에서 생년 정보 불러오기",
+  loadFromProfileCardLabel: "프로필 카드에서 불러오기",
+};
+
+const SEO_LANDING_BIRTH_FORM_COPY_EN: SeoLandingBirthFormCopy = {
+  birthDateLabel: "Date of birth",
+  birthTimeLabel: "Birth time",
+  birthTimeUnknownLabel: "I don't know the time",
+  genderLabel: "Gender",
+  genderNotSelected: "Not selected",
+  genderMale: "Male",
+  genderFemale: "Female",
+  calendarTypeLabel: "Solar / Lunar",
+  calendarSolar: "Solar",
+  calendarLunar: "Lunar",
+  invalidBirthDate: "Please enter a valid date of birth.",
+  loadFromProfileCardAria: "Load birth details from your saved profile card",
+  loadFromProfileCardLabel: "Load from profile card",
+};
+
+const SEO_LANDING_BIRTH_FORM_COPY: Partial<Record<LoadingLocale, SeoLandingBirthFormCopy>> = {
+  ko: SEO_LANDING_BIRTH_FORM_COPY_KO,
+  en: SEO_LANDING_BIRTH_FORM_COPY_EN,
+};
+
+function getSeoLandingBirthFormCopy(locale: LoadingLocale): SeoLandingBirthFormCopy {
+  return SEO_LANDING_BIRTH_FORM_COPY[locale] || SEO_LANDING_BIRTH_FORM_COPY_EN;
+}
+
+function useSeoLandingBirthFormCopy(): SeoLandingBirthFormCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
+
+  return getSeoLandingBirthFormCopy(locale);
+}
 
 type FieldToggles = { time?: boolean; gender?: boolean; calendar?: boolean };
 
@@ -65,6 +140,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
   const showGender = Boolean(fields.gender);
   const showCalendar = Boolean(fields.calendar);
 
+  const copy = useSeoLandingBirthFormCopy();
   const { seed, seedVersion, reload } = useAiProfileSeed();
   const [form, setForm] = useState<FormState>(EMPTY_FORM);
   const [error, setError] = useState("");
@@ -96,7 +172,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
 
     const check = validateBirthDateWithAge(form.birthDate);
     if (!check.isValid) {
-      setError(check.error || "올바른 생년월일을 입력해주세요.");
+      setError(check.error || copy.invalidBirthDate);
       return;
     }
 
@@ -128,7 +204,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
       <div className="mt-4 grid gap-4 sm:grid-cols-2">
         <div>
           <label htmlFor="cd-landing-birthdate" className={LABEL_CLASS}>
-            생년월일
+            {copy.birthDateLabel}
           </label>
           <input
             id="cd-landing-birthdate"
@@ -142,7 +218,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
         {showTime && (
           <div>
             <label htmlFor="cd-landing-birthtime" className={LABEL_CLASS}>
-              태어난 시각
+              {copy.birthTimeLabel}
             </label>
             <input
               id="cd-landing-birthtime"
@@ -160,7 +236,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
                 onChange={(event) => update({ birthTimeUnknown: event.target.checked, birthTime: "" })}
                 className="h-4 w-4 rounded border-[rgba(232,213,163,0.4)] bg-[#13102a]"
               />
-              시각을 모릅니다
+              {copy.birthTimeUnknownLabel}
             </label>
           </div>
         )}
@@ -168,7 +244,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
         {showGender && (
           <div>
             <label htmlFor="cd-landing-gender" className={LABEL_CLASS}>
-              성별
+              {copy.genderLabel}
             </label>
             <select
               id="cd-landing-gender"
@@ -177,9 +253,9 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
               onChange={(event) => update({ gender: event.target.value })}
               className={`mt-1.5 ${INPUT_CLASS}`}
             >
-              <option value="">선택 안 함</option>
-              <option value="male">남성</option>
-              <option value="female">여성</option>
+              <option value="">{copy.genderNotSelected}</option>
+              <option value="male">{copy.genderMale}</option>
+              <option value="female">{copy.genderFemale}</option>
             </select>
           </div>
         )}
@@ -187,7 +263,7 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
         {showCalendar && (
           <div>
             <label htmlFor="cd-landing-caltype" className={LABEL_CLASS}>
-              양력 / 음력
+              {copy.calendarTypeLabel}
             </label>
             <select
               id="cd-landing-caltype"
@@ -196,8 +272,8 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
               onChange={(event) => update({ calendarType: event.target.value })}
               className={`mt-1.5 ${INPUT_CLASS}`}
             >
-              <option value="solar">양력</option>
-              <option value="lunar">음력</option>
+              <option value="solar">{copy.calendarSolar}</option>
+              <option value="lunar">{copy.calendarLunar}</option>
             </select>
           </div>
         )}
@@ -221,10 +297,10 @@ export default function SeoLandingBirthForm({ heading, submitLabel, submitHref, 
           <button
             type="button"
             onClick={loadFromProfileCard}
-            aria-label="저장된 프로필 카드에서 생년 정보 불러오기"
+            aria-label={copy.loadFromProfileCardAria}
             className="inline-flex min-h-12 items-center justify-center rounded-full border border-[rgba(232,213,163,0.45)] px-5 text-[0.88rem] font-semibold text-[#e8d5a3] transition-colors duration-200 ease-out hover:bg-[rgba(232,213,163,0.08)]"
           >
-            프로필 카드에서 불러오기
+            {copy.loadFromProfileCardLabel}
           </button>
         )}
       </div>
