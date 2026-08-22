@@ -10143,6 +10143,315 @@
         "1": "The test is for reference and entertainment.",
         "2": "Temperament can vary by situation."
       }
+    },
+    "rpt_hormone_vibe_section": {
+      "fallbackTitle": "Check for free whether your charm pulls strongly like a Teto type, or seeps in gently like an Egen type.",
+      "tagline": "A free analysis, based on your Saju, that splits the grain of your charm energy into Teto and Egen styles.",
+      "premiumIntro": "The Teto/Egen analysis doesn't rank one above the other -- it's a free organization of how your charm pulls people in.",
+      "fallbackCta": "Check for Free",
+      "feats": {
+        "0": "When you want to know your charm style in one word",
+        "1": "When you're curious what kind of grain your pull has",
+        "2": "When you want to know your energy type in love and relationships"
+      },
+      "premiumAudience": {
+        "0": "Those curious how their charm actually works",
+        "1": "Those curious about the Teto/Egen types",
+        "2": "Those looking for a short, fun diagnosis"
+      },
+      "premiumChapters": {
+        "0": "A Teto vs Egen charm-type diagnosis",
+        "1": "An explanation of the grain of your charm energy",
+        "2": "The pull style that shows up in relationships",
+        "3": "Use for free, no additional payment"
+      },
+      "premiumOutcomes": {
+        "0": "You can use it right now, for free.",
+        "1": "The analysis is for reference and entertainment.",
+        "2": "Your charm type can vary by situation."
+      }
+    },
+    "rpt_lottoCard": {
+      "fallbackTitle": "Get today's lucky numbers drawn from your Saju's Five Elements and number symbolism, for free.",
+      "tagline": "A free, fun feature that lightly suggests symbolic numbers and a lucky routine that match today's fortune wave.",
+      "premiumIntro": "The Saju Lotto is a fun feature that doesn't predict a win -- it freely draws a symbolic number that fits today's fortune.",
+      "fallbackCta": "Draw Numbers for Free",
+      "feats": {
+        "0": "When you're curious about today's lucky numbers",
+        "1": "When you need light, fun content",
+        "2": "When you want to see symbolic numbers that fit your Five Elements"
+      },
+      "premiumAudience": {
+        "0": "Those who want lucky numbers just for fun",
+        "1": "Those curious about Five-Elements and number symbolism",
+        "2": "Those looking for content to lightly check every day"
+      },
+      "premiumChapters": {
+        "0": "Symbolic numbers based on your Saju's Five Elements",
+        "1": "A lucky routine matching today's fortune",
+        "2": "A number card good for saving and sharing",
+        "3": "Use for free, no additional payment"
+      },
+      "premiumOutcomes": {
+        "0": "You can use it right now, for free.",
+        "1": "This is fun content that doesn't guarantee a win.",
+        "2": "Please judge an actual purchase carefully."
+      }
+    },
+    "rpt_sajuFourCutCard": {
+      "fallbackTitle": "Make a four-cut photo-strip reinterpreting your Saju data in a fun, snapshot-style sentiment, for free.",
+      "tagline": "A free, fun feature packing blunt-but-relatable roast lines into a four-cut strip, ready to save and share.",
+      "premiumIntro": "The Saju Four-Cut doesn't state your fortune definitively -- it's free content that lets you enjoy your Saju as a fun, snapshot-style card.",
+      "fallbackCta": "Make a Four-Cut for Free",
+      "feats": {
+        "0": "When you need fun Saju content to post on social media",
+        "1": "When you want to see your Saju in short, punchy sentences",
+        "2": "When you need a roast card to share with a friend"
+      },
+      "premiumAudience": {
+        "0": "Those who want to keep their Saju as an image",
+        "1": "Those who want something to share with friends",
+        "2": "Those looking for light, fun content"
+      },
+      "premiumChapters": {
+        "0": "Four-cut sentences based on your Saju",
+        "1": "Filter versions in various concepts",
+        "2": "Save the image / share on KakaoTalk",
+        "3": "Use for free, no additional payment"
+      },
+      "premiumOutcomes": {
+        "0": "You can use it right now, for free.",
+        "1": "The sentences are for reference and entertainment.",
+        "2": "The existing service standard applies."
+      }
+    },
+    "rpt_dopamineCard": {
+      "fallbackTitle": "Check for free whether you're someone who chases new stimulation, or someone who loves stability more.",
+      "tagline": "A free report that converts your stimulation-seeking tendency into a score and grade based on your Saju flow, showing an 8-axis stimulation radar, your absorption areas, and today's mission.",
+      "premiumIntro": "This doesn't diagnose addiction -- it's a fun read, through your Saju flow, of where you draw energy from and where you burn out quickly.",
+      "fallbackCta": "See Your Stimulation Score for Free",
+      "feats": {
+        "0": "When you start well but never seem to finish",
+        "1": "When you're curious why you get bored of things so quickly",
+        "2": "When you want to know where you get absorbed"
+      },
+      "premiumAudience": {
+        "0": "Those curious if they're easily drawn to new stimulation",
+        "1": "Those who want to know why their focus doesn't last",
+        "2": "Those who want to find the area they can absorb into"
+      },
+      "premiumChapters": {
+        "0": "A stimulation score of 0-100 and an SSS-D grade",
+        "1": "An 8-axis stimulation-radar graph",
+        "2": "Absorption areas, your happiness switch, focus environment",
+        "3": "Today's one-liner and today's mission",
+        "4": "Save and share the result card"
+      },
+      "premiumOutcomes": {
+        "0": "You can use it right now, for free.",
+        "1": "This is content for temperament reference and entertainment.",
+        "2": "The existing service standard applies."
+      }
+    },
+    "new_year_ai_consultation": {
+      "fallbackTitle": "Splits the Yearly Fortune of your chosen year into five sections, read together with your chart.",
+      "tagline": "At the point where your chart meets that year's Yearly Fortune, this writes overall fortune, wealth and career, love and relationships, monthly flow, and health/improvement methods, each separately.",
+      "premiumIntro": "New Year Fortune isn't vague well-wishing -- it splits into five sections exactly where that year's Yearly Fortune presses on your chart.",
+      "fallbackCta": "Get Your New Year Fortune",
+      "ctaNote": "After payment, fortune by area and monthly flow open together.",
+      "feats": {
+        "0": "You can pick the year to consult directly -- the default is next year",
+        "1": "First organizes overall fortune by cross-referencing that year's Yearly-Fortune stem-branch and Grand Fortune against your chart",
+        "2": "Interprets wealth/career and love/relationships as separate sections",
+        "3": "Presents the flow of all twelve months, January through December, split month by month"
+      },
+      "premiumAudience": {
+        "0": "Those unsure what to prepare for this year",
+        "1": "Those who need to pick a timing for a job change, investment, or marriage",
+        "2": "Those who don't want to repeat last year's mistakes"
+      },
+      "premiumChapters": {
+        "0": "This year's overall fortune",
+        "1": "Wealth and career",
+        "2": "Love and relationships",
+        "3": "Monthly flow, January-December",
+        "4": "Health and improvement methods"
+      },
+      "premiumOutcomes": {
+        "0": "Fortune results are for reference only.",
+        "1": "Please make important decisions alongside real-world judgment.",
+        "2": "The existing payment policy applies."
+      },
+      "answersQuestions": {
+        "0": "What should I prepare for first this year?",
+        "1": "Which months are good for a job change or investment?",
+        "2": "Which period this year should I be careful of?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "free": "A one-line New Year fortune",
+          "premium": "5 sections -- overall fortune, wealth, love, monthly flow, health"
+        },
+        "1": {
+          "axis": "Length",
+          "premium": "5 sections totaling 15,000+ characters"
+        },
+        "2": {
+          "axis": "Advice",
+          "free": "Well-wishing",
+          "premium": "What to push and what to hold off each month"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is this different from the free New Year fortune?",
+          "a": "The free version only speaks to the overall impression of the year. The paid version points out, by area and by month, exactly where your chart meets that year's Yearly Fortune."
+        },
+        "1": {
+          "q": "Does it include a monthly flow too?",
+          "a": "Yes. The flow and cautions for each month from January through December are included."
+        },
+        "2": {
+          "q": "Won't it overlap with last year's result?",
+          "a": "Yearly Fortune changes every year, so even with the same chart, a different point gets pressed each year."
+        }
+      }
+    },
+    "openSibylModal": {
+      "fallbackTitle": "Scan your Four Pillars precisely as a single system -- outputs your destiny coefficient as a number.",
+      "tagline": "From a Five-Elements color diagnosis to aptitude-sector assignment and a 10-year risk-coefficient graph -- a Saju system read through data.",
+      "premiumIntro": "The Sibyl System isn't emotional comfort -- it's a precise diagnosis that dissects your Four Pillars into numbers and graphs.",
+      "fallbackCta": "Start Destiny-Coefficient Scan",
+      "feats": {
+        "0": "When you want to confirm your aptitude and strengths with data",
+        "1": "When you want to see upcoming risk periods as a graph",
+        "2": "When you need a structural diagnosis instead of vague fortune-telling"
+      },
+      "premiumAudience": {
+        "0": "Those more comfortable with numbers and graphs than emotional language",
+        "1": "Those who want to narrow their aptitude and job cluster with data",
+        "2": "Those who want to see upcoming risk periods ahead of time"
+      },
+      "premiumChapters": {
+        "0": "Destiny Hue -- a Five-Elements distribution color diagnosis",
+        "1": "Aptitude-sector assignment and optimal job clusters",
+        "2": "Dominator -- a 10-year risk-coefficient graph",
+        "3": "A personalized fortune-improvement prescription"
+      },
+      "premiumOutcomes": {
+        "0": "The basic diagnosis is free.",
+        "1": "The Dominator deep report is ₩10,000.",
+        "2": "The analysis is for reference only."
+      }
+    },
+    "openSajuGuardianPage": {
+      "fallbackTitle": "Summons the guardian animal protecting your Saju and its power.",
+      "tagline": "An analysis that unpacks the energy embedded in your chart through the symbolism of twelve animals, showing the guardian spirit protecting you and its abilities.",
+      "premiumIntro": "The Saju Guardian isn't a vague amulet -- it unpacks, through symbolism, which animal's energy protects your chart.",
+      "fallbackCta": "Summon Your Guardian Spirit",
+      "feats": {
+        "0": "When you're curious about your Saju's dependable backing",
+        "1": "When you want to know your inborn protective energy and weak points",
+        "2": "When you want to keep a protective symbol close by"
+      },
+      "premiumAudience": {
+        "0": "Those who want to know what energy protects them",
+        "1": "Those who want to keep a talisman or symbol close by",
+        "2": "Those who want to unlock once and keep it for a long time"
+      },
+      "premiumChapters": {
+        "0": "Your guardian animal and its symbolism",
+        "1": "The area and power your guardian spirit protects",
+        "2": "A fortune-improvement point that compensates for a weak period",
+        "3": "Today's advice from your guardian spirit"
+      },
+      "premiumOutcomes": {
+        "0": "The symbolic interpretation is for reference only.",
+        "1": "The guardian spirit is a metaphor for personality and fortune.",
+        "2": "The existing service standard applies."
+      }
+    },
+    "openZiweiModal": {
+      "fallbackTitle": "Unfolds the star-map of your destiny drawn by your Life Palace and Body Palace.",
+      "tagline": "A chart analysis reading your basic temperament and life's operating axis through the Eastern astrology of Ziwei Doushu.",
+      "premiumIntro": "The Ziwei Doushu chart doesn't threaten you with fortune or misfortune -- it shows, like a map, which palace each of your destiny's stars sits in and how.",
+      "fallbackCta": "Unfold My Chart",
+      "feats": {
+        "0": "When you're curious about the central axis of your inborn temperament",
+        "1": "When you want to know where your strength lies among work, money, and relationships",
+        "2": "When you want to see yourself from an angle different from Saju"
+      },
+      "premiumAudience": {
+        "0": "Those new to Ziwei Doushu who want to see the basics first",
+        "1": "Those curious what their Life Palace main star is",
+        "2": "Those who want to learn the structure before a paid consultation"
+      },
+      "premiumChapters": {
+        "0": "Core temperament based on your Life Palace and Body Palace",
+        "1": "The basic flow of your Career, Wealth, and Spouse palaces",
+        "2": "A summary of strengths and warning signals",
+        "3": "A path to expand into a deeper reading"
+      },
+      "premiumOutcomes": {
+        "0": "The interpretation is for reference only.",
+        "1": "Interpretation can vary by school.",
+        "2": "The existing service standard applies."
+      }
+    },
+    "navigateToZiweiChart": {
+      "fallbackTitle": "Opens your life's master plan, read through all 12 palaces.",
+      "tagline": "A deep Ziwei Doushu reading that links all 12 palaces, from Life Palace through Siblings, Spouse, Wealth, and Career, to organize your life strategy and timing.",
+      "premiumIntro": "The Ziwei Doushu deep reading unfolds, like a strategy, the big map of life woven by the 12 palaces, instead of a fragmentary interpretation.",
+      "fallbackCta": "Open the 12-Palace Strategy",
+      "feats": {
+        "0": "When you need a deeper strategy beyond the basic chart",
+        "1": "When you want to know the opportune timing of your Decade and Yearly Fortune",
+        "2": "When you want to see the big picture of your life at a glance"
+      },
+      "premiumAudience": {
+        "0": "Those who've seen the basic chart and want to go deeper",
+        "1": "Those who want to organize all 12 palaces at once",
+        "2": "Those who need grounds for a long-term plan"
+      },
+      "premiumChapters": {
+        "0": "A deep character analysis based on the 12 palaces' main stars",
+        "1": "Connecting life strategy to the key palaces",
+        "2": "Decade and Yearly Fortune timing flow",
+        "3": "Automatic calculation linked to your profile"
+      },
+      "premiumOutcomes": {
+        "0": "The deep interpretation is for reference only.",
+        "1": "It can vary by school.",
+        "2": "The existing service standard applies."
+      }
+    },
+    "openAstroModal": {
+      "fallbackTitle": "Meet the real you, as told by your Sun, Moon, and Rising sign.",
+      "tagline": "A basic birth-chart reading that reads your outward self, inner mind, and life direction through the arrangement of the sky at your birth.",
+      "premiumIntro": "The birth chart isn't a daily horoscope -- it shows the original map of you drawn by the sky at the moment you were born.",
+      "fallbackCta": "View My Star Map",
+      "feats": {
+        "0": "When you want to know a deeper self than a star sign alone",
+        "1": "When you're curious why your outside and inside feel different",
+        "2": "When you want to find your life's big direction in the sky"
+      },
+      "premiumAudience": {
+        "0": "Those who've only known their star sign through the Sun",
+        "1": "Those seeing their own birth chart for the first time",
+        "2": "Those who want to learn the basics before a paid consultation"
+      },
+      "premiumChapters": {
+        "0": "An integrated reading across the three axes of Sun, Moon, and Rising sign",
+        "1": "The gap between your outward self and your inner mind",
+        "2": "The MC pointing to your life direction",
+        "3": "Synastry, expanding into compatibility"
+      },
+      "premiumOutcomes": {
+        "0": "The interpretation is for reference only.",
+        "1": "It's affected by the accuracy of your birth information.",
+        "2": "The existing service standard applies."
+      }
     }
   },
   "featureMarketingCategory": {
@@ -10161,7 +10470,12 @@
     "yoga": "Yoga",
     "life": "Life Myeongni",
     "love": "Love Myeongni",
-    "fusion": "Hyper-Fusion"
+    "fusion": "Hyper-Fusion",
+    "newyear": "New Year Fortune",
+    "sibyl": "Sibyl System",
+    "guardian": "Saju Guardian",
+    "ziweideep": "Ziwei Doushu Deep Dive",
+    "westernastro": "Western Astrology"
   },
   "featureMarketingTrust": {
     "paid": {
