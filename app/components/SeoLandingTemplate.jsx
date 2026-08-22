@@ -92,14 +92,24 @@ function mergeFaqs(pageFaqs) {
     .slice(0, 5);
 }
 
+/* 🔴 손으로 쓴 relatedServices 가 토픽 클러스터를 굶기지 않게 순서를 나눠 둔다.
+   예전에는 [fusion, ...relatedServices, ...cluster, ...fallback].slice(0, 6) 이었는데,
+   relatedServices 가 라우트마다 4~7개라 fusion 과 합치면 6칸을 거의 다 먹었다.
+   실측(2026-08-23): 랜딩 20곳에서 클러스터가 차지한 칸이 페이지당 0~2개뿐이고,
+   레지스트리 프로필 57개 중 36개가 랜딩에서 링크를 한 번도 못 받고 있었다.
+   그래서 curated 는 앞 3개까지만 우선권을 갖고, 그다음 칸은 클러스터가 채운다. */
+const RELATED_SERVICES_LIMIT = 8;
+const CURATED_HEAD_LIMIT = 3;
+
 function buildRelatedServices(page, topicClusterLinks) {
   const related = Array.isArray(page?.relatedServices) ? page.relatedServices : [];
   const fallback = ["/manse", "/tarot", "/today", "/high-value"];
   const fusionLink = topicClusterLinks.find((item) => item?.href === "/fusion-fortune");
   const source = [
     ...(fusionLink ? [fusionLink] : []),
-    ...related,
+    ...related.slice(0, CURATED_HEAD_LIMIT),
     ...topicClusterLinks.filter((item) => item?.href !== "/fusion-fortune"),
+    ...related.slice(CURATED_HEAD_LIMIT),
     ...fallback,
   ];
   const seen = new Set();
@@ -107,7 +117,7 @@ function buildRelatedServices(page, topicClusterLinks) {
   return source
     .map((item) => (typeof item === "string" ? { href: item } : item))
     .filter((item) => item?.href && item.href !== page.path && !seen.has(item.href) && seen.add(item.href))
-    .slice(0, 6)
+    .slice(0, RELATED_SERVICES_LIMIT)
     .map((item) => ({
       href: item.href,
       label: item.label || DEFAULT_RELATED_LABELS[item.href] || "관련 운세 서비스",
