@@ -378,7 +378,7 @@
     "lint": "next lint",
     "lint:changed": "node scripts/lint-changed-files.mjs",
     "typecheck": "tsc --noEmit",
-    "test:node": "node --test __tests__/ui/*.test.js __tests__/fortune/maya-calendar.test.js __tests__/fortune/kst-business-date.test.js",
+    "test:node": "node --test __tests__/ui/*.test.js __tests__/release/*.test.js __tests__/fortune/maya-calendar.test.js __tests__/fortune/kst-business-date.test.js",
     "test:jest": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testEnvironment node",
     "test": "npm run test:jest && npm run test:node",
     "story:generate": "node scripts/build-story-text.mjs",
