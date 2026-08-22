@@ -88,7 +88,13 @@
 
 **이로써 `tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker` 3개 클러스터 완료**(self-esteem은 콘텐츠 드리프트 이슈만 보고 상태로 남음).
 
-**다음(미착수, 우선순위 제안)**: `music`·`flower/*` 등. **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것.
+**PR #967**(완료) `chore/music-i18n` — `app/music/`. `MusicRouteClient.tsx`는 동일 패턴 로딩 폴백. `MusicPlaylistPanel.tsx`는 ko/en/ja + en 폴백이 이미 정상이라 zh-CN/zh-TW만 추가. 🔴 **`MusicPlayerExample.tsx`에서 진짜 버그 2건**: (1) `getMusicPlayerCopy()`가 로케일이 정확히 `"ko"|"en"|"ja"`가 아니면 **`.ko`로 폴백**하고 있어 zh-CN/zh-TW/vi/hi/es/fr/de/nl/ms 방문자 전원이 **유료 트랙 결제 플로우(가격·다운로드 구매·결제 실패/가격변경 메시지 포함)를 통째로 한국어로** 보고 있었다 — `.en` 폴백으로 수정 + zh-CN/zh-TW 네이티브 추가, 겸사겸사 `ja` 블록의 결제 관련 필드 여러 개가 번역 안 되고 영어 그대로 방치돼 있던 것도 발견해 일본어로 채움. (2) `MusicPlaylistFallback()`(플레이리스트 패널 자체의 로딩 스켈레톤, 라우트 레벨 폴백과 별개 컴포넌트)에 로케일 래핑이 전혀 없는 하드코딩 한국어 4개 — 새 `PLAYLIST_FALLBACK_COPY`로 수정. `app/music/guide/page.js`(SEO 가이드)·`_data/musicManifest.ts`(곡 제목/무드, 데이터)·`_data/musicLyrics.ts`(실제 가사)는 제외.
+
+**PR #968**(완료) `chore/flower-i18n` — `app/flower/{destiny,astrology,jamidusu,sukuyo}/page.tsx` 4개. 공용 `FeatureLandingPage` 컴포넌트가 이미 견고한 안전장치(non-ko 로케일에서 한국어 잔존 텍스트 자동 감지→일반 폴백 대체, `service.localized.en` 폴백)를 갖추고 있어 **한국어 누출 자체는 없었다.** 다만 4개 페이지 모두 `SERVICE.localized`에 `en` 블록만 있어 ja/zh-CN/zh-TW 방문자는 페이지 고유 메시지 대신 컴포넌트의 일반 폴백 문구를 보고 있었다 — 4개 페이지 전부에 ja/zh-CN/zh-TW 블록 추가(컴포넌트 코드는 안 건드림).
+
+**이로써 이번 세션 시작 시점의 우선순위 목록(`tarot/*` 3개·`music`·`flower/*`) 전부 완료.**
+
+**다음(미착수)**: 409개 전체 백로그 중 아직 안 훑은 나머지(위 "3건 이하" 그룹 62개 파일 + `destiny-compass`류로 이번 세션에서 새로 발견된 것과 같이 속성 전용 grep이 놓쳤을 수 있는 미조사 클러스터). **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것 — 이번 세션만 해도 destiny-bias·animal-destiny·sikojen-povailu·palm-reading·tarot×3·music·flower 총 9개 클러스터에 PR 12건이 들었다.
 
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
 
