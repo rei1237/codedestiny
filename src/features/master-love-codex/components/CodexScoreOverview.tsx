@@ -21,6 +21,7 @@ import { useCodexCountUp, useCodexEnterOnce } from "../hooks/useCodexCountUp";
 import { codexScoreStars, codexScoreTier } from "../data/premium";
 import type { CodexLoveDna } from "./CodexLoveDna";
 import type { CodexActMode } from "../data/acts";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexScoreOverviewProps {
@@ -46,7 +47,19 @@ export function codexOverallScore(loveDna: CodexLoveDna | null): number {
   return Math.round(total / metrics.length);
 }
 
+/** data/premium.ts 의 CODEX_SCORE_TIERS.label(영문 키, 고정)로 로케일 문구를 고른다. */
+function tierCopy(copy: ReturnType<typeof useMasterLoveCodexCopy>, label: string): string {
+  switch (label) {
+    case "Excellent Match": return copy.scoreTierExcellent;
+    case "Strong Match": return copy.scoreTierStrong;
+    case "Balanced Match": return copy.scoreTierBalanced;
+    case "Growing Match": return copy.scoreTierGrowing;
+    default: return copy.scoreTierChallenging;
+  }
+}
+
 export default function CodexScoreOverview({ loveDna, mode, forceVisible = false }: CodexScoreOverviewProps) {
+  const copy = useMasterLoveCodexCopy();
   const score = codexOverallScore(loveDna);
   const entering = useCodexEnterOnce(forceVisible);
   const displayed = useCodexCountUp(score, { skip: forceVisible, durationMs: 1100 });
@@ -57,6 +70,7 @@ export default function CodexScoreOverview({ loveDna, mode, forceVisible = false
   if (!hasMetrics) return null;
 
   const tier = codexScoreTier(score);
+  const tierLabel = tierCopy(copy, tier.label);
   const stars = codexScoreStars(score);
   // 인라인 최종값. entering 인 한 프레임에만 빈 링으로 렌더된다.
   const dashOffset = entering
@@ -64,14 +78,14 @@ export default function CodexScoreOverview({ loveDna, mode, forceVisible = false
     : GAUGE_CIRCUMFERENCE - (GAUGE_CIRCUMFERENCE * score) / 100;
 
   return (
-    <section data-codex-pdf-page className={styles.section} aria-label="종합 점수">
+    <section data-codex-pdf-page className={styles.section} aria-label={copy.scoreSectionAriaLabel}>
       <div className={`${styles.measure} text-center`}>
         <CodexReveal forceVisible={forceVisible}>
           <p
             className={`${styles.numeral} text-[0.75rem]`}
             style={{ letterSpacing: "0.28em", color: "var(--codex-gold-dim)" }}
           >
-            {mode === "compat" ? "RELATIONSHIP SCORE" : "LOVE SCORE"}
+            {mode === "compat" ? copy.relationshipScoreEyebrow : copy.loveScoreEyebrow}
           </p>
 
           <div className="relative mx-auto mt-10" style={{ width: GAUGE_SIZE, height: GAUGE_SIZE }}>
@@ -80,7 +94,7 @@ export default function CodexScoreOverview({ loveDna, mode, forceVisible = false
               height={GAUGE_SIZE}
               viewBox={`0 0 ${GAUGE_SIZE} ${GAUGE_SIZE}`}
               role="img"
-              aria-label={`종합 점수 ${score}점 (100점 만점) · ${tier.korean}`}
+              aria-label={copy.scoreAriaLabel(score, tierLabel)}
             >
               <circle
                 cx={GAUGE_SIZE / 2}
@@ -123,7 +137,7 @@ export default function CodexScoreOverview({ loveDna, mode, forceVisible = false
 
           <p className="mt-8" style={{ fontSize: "1.125rem", letterSpacing: "0.3em", color: "var(--codex-gold)" }}>
             <span aria-hidden="true">{"★".repeat(stars)}{"☆".repeat(5 - stars)}</span>
-            <span className="sr-only">{`5점 만점에 ${stars}점`}</span>
+            <span className="sr-only">{copy.scoreStarsAriaLabel(stars)}</span>
           </p>
           <p
             className={`${styles.numeral} mt-5`}
@@ -132,7 +146,7 @@ export default function CodexScoreOverview({ loveDna, mode, forceVisible = false
             {tier.label}
           </p>
           <p className="mt-2 leading-8" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-silver)" }}>
-            {tier.korean}
+            {tierLabel}
           </p>
 
           {/* 유형 이름은 이 화면에만 둔다 — 아래 연애 DNA 패널은 요약문과 지표를 맡는다 */}

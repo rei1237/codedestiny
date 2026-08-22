@@ -9,11 +9,13 @@
 
 import { ShieldCheck } from "lucide-react";
 import { CODEX_TRUST_POINTS } from "../data/premium";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 export default function CodexTrustStrip() {
+  const copy = useMasterLoveCodexCopy();
   return (
-    <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3" aria-label="서비스 신뢰 요소">
+    <ul className="flex flex-wrap justify-center gap-x-6 gap-y-3" aria-label={copy.trustStripAriaLabel}>
       {CODEX_TRUST_POINTS.map((point) => (
         <li key={point} className="flex items-center gap-2">
           <ShieldCheck className="h-4 w-4 shrink-0" style={{ color: "var(--codex-gold-dim)" }} aria-hidden="true" />
