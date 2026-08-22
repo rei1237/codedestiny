@@ -11,6 +11,7 @@ import Image from "next/image";
 import type { CSSProperties, ReactNode } from "react";
 import { FUSION_CORE_ORB, FUSION_ORB_BY_KEY, type FusionSystemKey } from "./fusionOrbs";
 import type { FusionVisualizationData } from "./FusionVisualization";
+import type { FusionSharedCopy } from "./_lib/copy";
 import styles from "./fusion-fortune.module.css";
 
 export type Section = { title: string; content: string; keyPoints: string[] };
@@ -39,12 +40,6 @@ export type Result = Record<"sajuSection" | "ziweiSection" | "vedicSection" | "s
 export type FusionStageKey = "saju" | "ziwei" | "sukuyo" | "vedic" | "astrology" | "tarot" | "fusion";
 export type FusionStageState = "pending" | "active" | "completed";
 
-/** 입장 라벨은 화면에서만 쓰는 표기다 — 판정 자체는 서버가 한다. */
-export const STANCE_LABEL: Record<VerdictStance, string> = {
-  agree: "같은 방향",
-  conditional: "조건부",
-  caution: "속도 조절",
-};
 /** 입장별 색은 기존 판정 패널과 같은 값을 유지한다 — 색이 바뀌면 같은 판정이 다르게 읽힌다. */
 export const STANCE_CLASS: Record<VerdictStance, string> = {
   agree: "bg-[rgba(134,220,184,0.18)] text-[var(--fx-mint)]",
@@ -56,19 +51,21 @@ export const SECTION_KEYS = ["sajuSection", "ziweiSection", "vedicSection", "suk
 /** 섹션 순서와 같은 체계 키 — 결과 헤더에 그 체계의 오브를 띄운다. */
 export const SECTION_SYSTEM_KEYS: (FusionSystemKey | "fusion")[] = ["saju", "ziwei", "vedic", "sukuyo", "astrology", "tarot", "fusion"];
 
+/** 단계 순서(키)만 담은 구조 상수 — 표시 문구는 로케일에 따라 buildFusionStages() 가 채운다. */
+export const FUSION_STAGE_KEYS: FusionStageKey[] = ["saju", "ziwei", "sukuyo", "vedic", "astrology", "tarot", "fusion"];
+
 /** `done` 은 완료된 단계가 대화에 남길 말이다 — 진행 중 문장을 그대로 두면 끝난 말풍선이 어색하다. */
-export const FUSION_STAGES: { key: FusionStageKey; label: string; message: string; done: string }[] = [
-  { key: "saju", label: "사주", message: "사주의 계절과 기질을 읽고 있어요.", done: "타고난 계절과 기질을 다 읽었어요." },
-  { key: "ziwei", label: "자미두수", message: "자미두수의 주제 흐름을 연결하고 있어요.", done: "명반의 주제 흐름을 연결했어요." },
-  { key: "sukuyo", label: "숙요", message: "숙요의 관계 리듬을 살피고 있어요.", done: "관계가 움직이는 리듬을 잡았어요." },
-  { key: "vedic", label: "베다", message: "베다점의 시기 흐름을 살피고 있어요.", done: "다샤가 그리는 시기 흐름을 정리했어요." },
-  { key: "astrology", label: "점성술", message: "점성술의 표현과 선택 패턴을 정리하고 있어요.", done: "표현과 선택의 패턴을 정리했어요." },
-  { key: "tarot", label: "타로", message: "질문에 맞는 타로 스프레드를 연결하고 있어요.", done: "질문에 맞는 여섯 장을 펼쳤어요." },
-  { key: "fusion", label: "Fusion", message: "모든 흐름을 하나의 읽기로 융합하고 있어요.", done: "여섯 흐름을 하나의 읽기로 묶었어요." },
-];
+export function buildFusionStages(copy: FusionSharedCopy): { key: FusionStageKey; label: string; message: string; done: string }[] {
+  return FUSION_STAGE_KEYS.map((key) => ({
+    key,
+    label: key === "fusion" ? "Fusion" : copy.systemLabels[key],
+    message: copy.stageMessages[key],
+    done: copy.stageDoneMessages[key],
+  }));
+}
 
 export function initialStageStates(): Record<FusionStageKey, FusionStageState> {
-  return FUSION_STAGES.reduce((states, stage) => ({ ...states, [stage.key]: "pending" }), {} as Record<FusionStageKey, FusionStageState>);
+  return FUSION_STAGE_KEYS.reduce((states, key) => ({ ...states, [key]: "pending" }), {} as Record<FusionStageKey, FusionStageState>);
 }
 
 /**
@@ -91,18 +88,19 @@ export function tintVars(systemKey?: FusionSystemKey | "fusion") {
  * 여섯 체계가 도는 융합 코어. 원본 오브 이미지를 쓰고 궤도는 CSS 로 돈다
  * (scripts/build-fusion-orb-assets.mjs 산출물).
  */
-export function FusionOrb({ stageStates }: { stageStates?: Record<FusionStageKey, FusionStageState> }) {
+export function FusionOrb({ stageStates, orbCoreAlt }: { stageStates?: Record<FusionStageKey, FusionStageState>; orbCoreAlt: string }) {
+  const satelliteKeys = FUSION_STAGE_KEYS.filter((key) => key !== "fusion");
   return (
     <div className={styles.orbStage}>
-      <Image className={styles.orbCore} src={FUSION_CORE_ORB} alt="여섯 운세 체계가 하나로 모인 초융합 코어" width={512} height={512} priority />
+      <Image className={styles.orbCore} src={FUSION_CORE_ORB} alt={orbCoreAlt} width={512} height={512} priority />
       <div className={styles.orbRing} aria-hidden>
-        {FUSION_STAGES.filter((stage) => stage.key !== "fusion").map((stage, index, all) => {
-          const orb = FUSION_ORB_BY_KEY[stage.key as FusionSystemKey];
+        {satelliteKeys.map((key, index, all) => {
+          const orb = FUSION_ORB_BY_KEY[key as FusionSystemKey];
           const angle = (index / all.length) * 360;
-          const state = stageStates?.[stage.key] || "pending";
+          const state = stageStates?.[key] || "pending";
           return (
             <span
-              key={stage.key}
+              key={key}
               className={styles.orbSatellite}
               data-state={state}
               style={{ "--angle": `${angle}deg`, "--tint": orb?.tint } as CSSProperties}

@@ -13,17 +13,18 @@ import { FUSION_ORB_BY_KEY, FUSION_ORBS, type FusionSystemKey } from "./fusionOr
 import { FusionRecentList, type FusionRecentItem } from "./FusionRecentList";
 import { FusionResultThread } from "./FusionResultThread";
 import {
-  FUSION_STAGES,
   FusionOrb,
   ThreadBubble,
   ThreadRow,
   ThreadSpeaker,
   TypingDots,
+  buildFusionStages,
   initialStageStates,
   type FusionStageKey,
   type FusionStageState,
   type Result,
 } from "./fusion-thread";
+import { useFusionSharedCopy } from "./_lib/copy";
 import styles from "./fusion-fortune.module.css";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 
@@ -1893,6 +1894,8 @@ function useFusionFortuneCopy(): FusionFortuneCopy {
 
 export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?: ReactNode; valuePreview?: ReactNode }) {
   const copy = useFusionFortuneCopy();
+  const sharedCopy = useFusionSharedCopy();
+  const fusionStages = useMemo(() => buildFusionStages(sharedCopy), [sharedCopy]);
   const apiBase = getApiBaseUrl();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [status, setStatus] = useState<Status>(EMPTY_STATUS);
@@ -2156,10 +2159,10 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           return;
         }
         const completed = streamPayload.stage as FusionStageKey;
-        if (!FUSION_STAGES.some((stage) => stage.key === completed)) return;
+        if (!fusionStages.some((stage) => stage.key === completed)) return;
         setStageStates(() => {
-          const completedIndex = FUSION_STAGES.findIndex((stage) => stage.key === completed);
-          return FUSION_STAGES.reduce((next, stage, index) => ({
+          const completedIndex = fusionStages.findIndex((stage) => stage.key === completed);
+          return fusionStages.reduce((next, stage, index) => ({
             ...next,
             [stage.key]: index <= completedIndex ? "completed" : index === completedIndex + 1 ? "active" : "pending",
           }), {} as Record<FusionStageKey, FusionStageState>);
@@ -2167,7 +2170,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         if (fortuneChatSessionId) {
           void authFetch(`${apiBase}/api/fortune-chat/sessions/${encodeURIComponent(fortuneChatSessionId)}`, {
             method: "POST", credentials: "include", headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "running", messages: [{ id: `fusion-stage-${completed}`, speaker: "assistant", kind: "progress", text: FUSION_STAGES.find((stage) => stage.key === completed)?.message || copy.stageDefaultProgressMessage }] }),
+            body: JSON.stringify({ append: true, mode: "fusion_deep_reading", paymentStatus: "completed", generationStatus: "running", messages: [{ id: `fusion-stage-${completed}`, speaker: "assistant", kind: "progress", text: fusionStages.find((stage) => stage.key === completed)?.message || copy.stageDefaultProgressMessage }] }),
           }, { retryOn401: true, apiBase });
         }
       });
@@ -2300,8 +2303,8 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
   const showSubmitPrice = !loading && !isPaying && status.nextAction !== "login" && !pendingPaidRequest;
   const toggleSection = (key: string) => setOpenSection((current) => current === key ? "" : key);
   const completedStageCount = useMemo(
-    () => FUSION_STAGES.filter((stage) => stage.key !== "fusion" && stageStates[stage.key] === "completed").length,
-    [stageStates],
+    () => fusionStages.filter((stage) => stage.key !== "fusion" && stageStates[stage.key] === "completed").length,
+    [fusionStages, stageStates],
   );
   const leaveExperience = useCallback(() => {
     const fallback = "/#fortuneGatewayEntry";
@@ -2338,7 +2341,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         </div>
         <p className={styles.chatLead}>{copy.chatLead}</p>
       </div>
-      <FusionOrb />
+      <FusionOrb orbCoreAlt={sharedCopy.orbCoreAlt} />
     </section>
 
     {/* 여섯 체계를 카드 세 장으로 요약하는 대신, 실제로 지나가는 순서를 그대로 보여 준다.
@@ -2422,7 +2425,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       <span aria-hidden className="pointer-events-none absolute inset-x-0 top-0 h-56 bg-[radial-gradient(120%_100%_at_50%_0%,rgba(160,92,214,0.24),transparent_72%)]" />
 
       <header className="relative flex items-center gap-5 border-b border-white/[0.07] px-4 py-6 sm:px-9">
-        <div className="hidden w-[7.5rem] shrink-0 sm:block"><FusionOrb stageStates={stageStates} /></div>
+        <div className="hidden w-[7.5rem] shrink-0 sm:block"><FusionOrb stageStates={stageStates} orbCoreAlt={sharedCopy.orbCoreAlt} /></div>
         <div className="min-w-0">
           <h2 className={`m-0 ${styles.readingTitle} text-[clamp(1.32rem,3.9vw,2.05rem)] leading-snug text-[var(--fx-ink-1)]`}>
             {result ? result.title : failure ? copy.threadHeadingFailure : copy.threadHeadingDefault}
@@ -2434,7 +2437,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
                 : copy.threadSubResultFresh
               : failure
                 ? copy.threadSubFailure
-                : FUSION_STAGES.find((stage) => stageStates[stage.key] === "active")?.message || copy.threadSubIdle}
+                : fusionStages.find((stage) => stageStates[stage.key] === "active")?.message || copy.threadSubIdle}
           </p>
           {!result && loading && <p className="m-0 mt-2 text-[0.82rem] text-[var(--fx-ink-4)]">{copy.stagesCompletedPrefix}<b className="font-display text-[var(--fx-gold)]">{completedStageCount}</b>{copy.stagesCompletedSuffix}</p>}
         </div>
@@ -2445,7 +2448,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
         <span aria-hidden className="pointer-events-none absolute bottom-12 left-[34px] top-12 w-px bg-[linear-gradient(180deg,transparent,rgba(201,181,243,0.3),transparent)] sm:left-[54px]" />
 
         {/* 생성 중에는 끝난 체계와 지금 쓰는 체계만 말한다. 아직 없는 내용을 자리로 약속하지 않는다. */}
-        {!result && FUSION_STAGES.map((stage, index) => {
+        {!result && fusionStages.map((stage, index) => {
           const state = stageStates[stage.key];
           if (state === "pending") return null;
           const systemKey = stage.key === "fusion" ? "fusion" : stage.key as FusionSystemKey;
@@ -2479,10 +2482,10 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           </ThreadRow>;
         })}
 
-        {!result && loading && FUSION_STAGES.some((stage) => stageStates[stage.key] === "pending") && <li className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3.5">
+        {!result && loading && fusionStages.some((stage) => stageStates[stage.key] === "pending") && <li className="grid grid-cols-[2.25rem_minmax(0,1fr)] items-center gap-x-3.5">
           <span aria-hidden className="grid size-9 place-items-center"><i className="size-1.5 rounded-full bg-white/30" /></span>
           <p className="m-0 text-[0.84rem] leading-relaxed text-white/55">
-            {FUSION_STAGES.filter((stage) => stageStates[stage.key] === "pending").map((stage) => stage.label).join(" · ")}{copy.waitingSuffix}
+            {fusionStages.filter((stage) => stageStates[stage.key] === "pending").map((stage) => stage.label).join(" · ")}{copy.waitingSuffix}
           </p>
         </li>}
 
@@ -2529,7 +2532,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
       <form method="dialog"><button className={styles.dialogClose} aria-label={copy.dialogCloseAria}>{copy.dialogCloseLabel}</button></form>
       <p className={styles.kicker}>{copy.dialogKicker}</p><h2 id="fusion-core-dialog-title">{copy.dialogHeading}</h2>
       <p>{copy.dialogDesc}</p>
-      <ol>{FUSION_STAGES.map((stage) => <li key={stage.key}><strong>{stage.label}</strong><span>{stage.message}</span></li>)}</ol>
+      <ol>{fusionStages.map((stage) => <li key={stage.key}><strong>{stage.label}</strong><span>{stage.message}</span></li>)}</ol>
       <p className={styles.dialogNote}>{copy.dialogNote}</p>
     </dialog>
     {seoContent}
