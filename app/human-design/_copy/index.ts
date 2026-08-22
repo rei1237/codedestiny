@@ -71,8 +71,25 @@ export const UI_TEXT = {
   participatesIn: { ko: "참여 채널", en: "Channels" },
   ichingName: { ko: "주역 괘", en: "I Ching hexagram" },
   interpretationPending: {
-    ko: "게이트·채널의 개인 해석은 AI 리딩에서 제공됩니다.",
-    en: "Personal gate and channel interpretation comes with the AI reading.",
+    ko: "게이트·채널의 개인 해석은 아래 AI 리딩에서 제공됩니다.",
+    en: "Personal gate and channel interpretation is in the AI reading below.",
+  },
+  interpretationHeading: { ko: "AI 개인 해석", en: "AI reading" },
+  interpretationCta: { ko: "내 차트로 해석 받기", en: "Read my chart" },
+  interpretationLoading: { ko: "해석을 쓰는 중…", en: "Writing your reading…" },
+  interpretationRetry: { ko: "해석 다시 시도", en: "Retry reading" },
+  interpretationIncluded: {
+    ko: "이미 결제한 차트에 포함됩니다. 추가 결제가 없습니다.",
+    en: "Included with the chart you already paid for. No extra charge.",
+  },
+  interpretationBasis: {
+    ko: "이 해석은 위에서 계산된 값만 근거로 씁니다 — AI 에게 출생 정보는 전달되지 않습니다.",
+    en: "This reading is written from the computed values above — your birth data is never sent to the AI.",
+  },
+  interpretationSummary: { ko: "요약", en: "Summary" },
+  interpretationFailed: {
+    ko: "해석을 만들지 못했습니다. 차트는 그대로 있으니 다시 시도해 주세요.",
+    en: "Could not write the reading. Your chart is safe — please retry.",
   },
 } satisfies Record<string, Bilingual>;
 
