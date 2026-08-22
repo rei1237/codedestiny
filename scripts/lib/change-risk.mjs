@@ -63,6 +63,17 @@ const deepVerificationRules = [
   [/^app\/hooks\/useCoinGate\.ts$/i, "단건 결제 훅"],
   [/^js\/core\/(pass-verdict|checkout-entry)\.js$/i, "이용권 판정·결제 진입 정본"],
 
+  // ── 유료 기능 UI (정적 계약 테스트가 지키는 곳, preview 스모크는 게스트 경로만 두드린다)
+  // 🔴 2026-08-22 실측: app/fusion-fortune/** 가 이 목록에도 paid-flow-gates.yml 트리거에도
+  //    없어 i18n PR(#940)이 npm test 를 건너뛴 채 머지됐고, __tests__/ui/fusion-fortune.static.test.js
+  //    가 깨진 채로 배포 파이프라인(deploy-safe.mjs)까지 막았다. 하루 전 app/vedic-ai/**(PR #924)도
+  //    같은 모양으로 한 번 났었는데 그때는 paid-flow-gates.yml 만 고치고 여기는 놓쳤다 — 그래서
+  //    vedic-ai 단독 PR 은 지금도 critical 티어가 아니다. 같은 구멍이라 함께 막는다.
+  [/^app\/fusion-fortune\//i, "융합운세 유료 기능 UI(30,000원, 정적 계약 테스트)"],
+  [/^worker\/lib\/fusion-fortune[^/]*\.js$/i, "융합운세 서버 로직"],
+  [/^worker\/routes\/fusion-fortune\.js$/i, "융합운세 라우트"],
+  [/^app\/vedic-ai\//i, "베다 AI 유료 기능 UI(정적 계약 테스트, PR #924 재발 방지)"],
+
   // ── DB 스키마 (되돌릴 수 없다)
   [/^scripts\/migrations\//i, "DB 마이그레이션"],
   [/^worker\/lib\/models\.js$/i, "DB 스키마"],
@@ -140,6 +151,10 @@ export function selfTest() {
     ["config/env.contract.json", true],
     ["scripts/deploy-safe.mjs", true],
     ["package-lock.json", true],
+    ["app/fusion-fortune/FusionResultThread.tsx", true],
+    ["worker/lib/fusion-fortune.js", true],
+    ["worker/routes/fusion-fortune.js", true],
+    ["app/vedic-ai/page.tsx", true],
     // 아래는 level=high 여도 전체 회귀까지는 필요 없다. 이 구분이 두 축의 요점이다.
     ["worker/routes/fortune-tea-house.js", false],
     ["worker/routes/ziwei-ai.js", false],
