@@ -309,6 +309,7 @@
     "verify:mobile-lazy-mount-openers": "node scripts/verify-mobile-lazy-mount-openers.mjs",
     "verify:guard-wiring": "node scripts/verify-guard-wiring.mjs",
     "verify:human-design": "node scripts/verify-human-design.mjs",
+    "verify:human-design-ai": "node scripts/verify-human-design-ai.mjs",
     "hd:snapshot": "node scripts/human-design-fixture-snapshot.mjs",
     "hd:snapshot:check": "node scripts/human-design-fixture-snapshot.mjs --check",
     "verify:mobile-detail-nonintrusive": "node scripts/verify-mobile-detail-nonintrusive.mjs",

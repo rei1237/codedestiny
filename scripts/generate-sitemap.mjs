@@ -185,7 +185,6 @@ const coreRoutes = [
   { path: "/physiognomy", changefreq: "weekly", priority: 0.93 },
   { path: "/premium", changefreq: "weekly", priority: 0.93 },
   { path: "/premium-reports", changefreq: "weekly", priority: 0.92 },
-  { path: "/pdf/life-book", changefreq: "monthly", priority: 0.88 },
   { path: "/pdf/love-report", changefreq: "monthly", priority: 0.88 },
   { path: "/sukuyo-compatibility-ai", changefreq: "monthly", priority: 0.87 },
   { path: "/saju/basic", changefreq: "weekly", priority: 0.95 },
