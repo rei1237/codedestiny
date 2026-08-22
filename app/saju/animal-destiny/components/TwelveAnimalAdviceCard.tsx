@@ -1,6 +1,7 @@
 "use client";
 
 import type { TwelveGrowthAnimalResult } from "../lib/types";
+import { useAnimalDestinyCopy } from "../_lib/copy";
 
 type Props = {
   result: TwelveGrowthAnimalResult;
@@ -13,23 +14,24 @@ function compactText(text: string, max = 92) {
 }
 
 export default function TwelveAnimalAdviceCard({ result }: Props) {
+  const copy = useAnimalDestinyCopy();
   const routineCards = [
-    { time: "아침", label: "운 열기", text: compactText(result.todayAction, 74) },
-    { time: "오후", label: "리듬 지키기", text: compactText(result.recoveryGuide, 74) },
-    { time: "밤", label: "복 저장", text: compactText(result.growthMission, 74) },
+    { time: copy.morningLabel, label: copy.openLuckLabel, text: compactText(result.todayAction, 74) },
+    { time: copy.afternoonLabel, label: copy.keepRhythmLabel, text: compactText(result.recoveryGuide, 74) },
+    { time: copy.nightLabel, label: copy.saveLuckLabel, text: compactText(result.growthMission, 74) },
   ];
 
   return (
     <section className="rounded-[1.9rem] border border-[#b9d6ec] bg-[linear-gradient(165deg,#fbfdff_0%,#f4fbff_58%,#fff9ee_100%)] p-5 shadow-[0_14px_34px_rgba(56,108,152,0.12)]">
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
-          <h3 className="text-lg font-black text-[#2a557a]">오늘의 조언과 성장 미션</h3>
+          <h3 className="text-lg font-black text-[#2a557a]">{copy.adviceTitle}</h3>
           <p className="mt-1 text-xs font-semibold leading-relaxed text-[#5b7d9a]">
-            {result.animalName}의 운을 하루 안에서 열고, 지키고, 저장하는 작은 루틴입니다.
+            {copy.adviceDesc(result.animalName)}
           </p>
         </div>
         <span className="rounded-full border border-[#d9d3a2] bg-[#fff8de] px-3 py-1 text-xs font-black text-[#8e7b34]">
-          {result.stageName} 루틴
+          {copy.routineBadge(result.stageName)}
         </span>
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-3">
@@ -43,23 +45,23 @@ export default function TwelveAnimalAdviceCard({ result }: Props) {
       </div>
       <div className="mt-4 grid gap-3 md:grid-cols-2">
         <article className="rounded-2xl border border-[#c6def0] bg-white/86 p-4">
-          <p className="text-xs font-black text-[#4d7697]">오늘의 실전 조언</p>
+          <p className="text-xs font-black text-[#4d7697]">{copy.practicalAdviceLabel}</p>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-[#345e81]">{result.todayAction}</p>
         </article>
         <article className="rounded-2xl border border-[#c6def0] bg-white/86 p-4">
-          <p className="text-xs font-black text-[#4d7697]">성장 미션</p>
+          <p className="text-xs font-black text-[#4d7697]">{copy.growthMissionLabel}</p>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-[#345e81]">{result.growthMission}</p>
         </article>
         <article className="rounded-2xl border border-[#c6def0] bg-white/86 p-4">
-          <p className="text-xs font-black text-[#4d7697]">회복 가이드</p>
+          <p className="text-xs font-black text-[#4d7697]">{copy.recoveryGuideLabel}</p>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-[#345e81]">{result.recoveryGuide}</p>
         </article>
         <article className="rounded-2xl border border-[#c6def0] bg-white/86 p-4">
-          <p className="text-xs font-black text-[#4d7697]">잘 맞는 동물 에너지</p>
+          <p className="text-xs font-black text-[#4d7697]">{copy.compatibleEnergyLabel}</p>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-[#345e81]">{result.compatibleEnergy}</p>
         </article>
         <article className="rounded-2xl border border-[#c6def0] bg-white/86 p-4">
-          <p className="text-xs font-black text-[#4d7697]">조심해야 할 에너지</p>
+          <p className="text-xs font-black text-[#4d7697]">{copy.cautionEnergyLabel}</p>
           <p className="mt-2 text-sm font-semibold leading-relaxed text-[#345e81]">{result.cautionEnergy}</p>
         </article>
       </div>
