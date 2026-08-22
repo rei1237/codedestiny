@@ -4,6 +4,7 @@ import { useCallback } from "react";
 import { ArrowLeft, Home } from "lucide-react";
 
 import { hardNavigateToShellHome } from "@/lib/navigation/shellHome";
+import { useFeedbackCopy } from "../_lib/copy";
 import { INK } from "../_lib/styles";
 
 /**
@@ -15,6 +16,7 @@ import { INK } from "../_lib/styles";
  * `/feedback` 을 FEATURE_NAV_SELF_MANAGED_ROUTES 에 넣고 여기서 밝은 배경용으로 그린다.
  */
 export default function FeedbackTopNav() {
+  const copy = useFeedbackCopy();
   const goBack = useCallback(() => {
     if (typeof window === "undefined") return;
     // 히스토리가 없으면(새 탭·딥링크) 홈으로. 홈은 정적 셸이라 문서 로드로 보낸다.
@@ -33,14 +35,14 @@ export default function FeedbackTopNav() {
   const buttonClass = "inline-flex min-h-11 items-center justify-center gap-1.5 rounded-full border border-[rgba(216,63,120,0.28)] bg-white/80 px-4 text-[13px] font-bold text-[#8e1240] shadow-[0_6px_18px_rgba(120,20,60,0.10)] backdrop-blur-md transition-colors hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#b31955] focus-visible:ring-offset-2 dark:border-white/16 dark:bg-white/[0.08] dark:text-[#e6dcff] dark:shadow-[0_6px_18px_rgba(4,2,12,0.4)] dark:hover:bg-white/[0.14] dark:focus-visible:ring-[#c4b5fd] dark:focus-visible:ring-offset-[#0a0818]";
 
   return (
-    <nav aria-label="제보실 내비게이션" className="flex items-center gap-2">
-      <button type="button" onClick={goBack} className={`${buttonClass} min-w-11 px-3`} aria-label="이전 페이지로 이동">
+    <nav aria-label={copy.topNavAriaLabel} className="flex items-center gap-2">
+      <button type="button" onClick={goBack} className={`${buttonClass} min-w-11 px-3`} aria-label={copy.backButtonAriaLabel}>
         <ArrowLeft aria-hidden="true" className="h-4 w-4" />
-        <span className={`hidden sm:inline ${INK}`}>뒤로</span>
+        <span className={`hidden sm:inline ${INK}`}>{copy.backButtonLabel}</span>
       </button>
       <button type="button" onClick={() => hardNavigateToShellHome()} className={buttonClass}>
         <Home aria-hidden="true" className="h-4 w-4" />
-        홈
+        {copy.homeButtonLabel}
       </button>
     </nav>
   );
