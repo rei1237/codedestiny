@@ -2249,7 +2249,7 @@ function getMoonlightExpiryLabel(expiresAt: string | null | undefined, formatLoc
 
 function getMoonlightProfileLabel(subscription: SubscriptionStatus) {
   const limit = subscription.profileLimit || getSubscriptionPolicyProfileLimit(subscription.tier);
-  return limit <= 0 ? "프로필 무제한" : `프로필 최대 ${limit.toLocaleString("ko-KR")}개`;
+  return limit <= 0 ? "프로필 무제한" : `프로필 최대 ${limit.toLocaleString(FORMAT_LOCALE_BY_LANG[getCurrentLoadingLocale()])}개`;
 }
 
 function getMoonlightBenefitLabel(tier: SubscriptionTier) {

@@ -10,6 +10,7 @@
  */
 import { useCallback, useRef, useState } from "react";
 import DeferredShareWidget from "@/app/components/DeferredShareWidget";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE } from "@/constants/loadingMessages";
 import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
@@ -45,7 +46,7 @@ export function ReportActions({ targetRef, coordinate, question, reportId }: Rep
         captureTargets: ["[data-pdf-section]"],
         fileName: copy.pdfFileName,
         backgroundColor: "#12102c",
-        cover: { title: copy.pdfCoverTitle, subtitle: coordinate, date: new Date().toLocaleDateString("ko-KR") },
+        cover: { title: copy.pdfCoverTitle, subtitle: coordinate, date: new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]) },
         watermarkText: copy.pdfWatermark,
       });
       say(copy.pdfSuccessNotice);

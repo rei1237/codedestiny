@@ -26,7 +26,7 @@ import {
 } from "./fusion-thread";
 import { useFusionSharedCopy } from "./_lib/copy";
 import styles from "./fusion-fortune.module.css";
-import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
 
 type Status = {
   isLoggedIn: boolean;
@@ -2260,7 +2260,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
           fileName,
           topic: openedSummary?.topic || form.topic,
           nickname: openedSummary?.nickname || form.nickname || undefined,
-          date: new Date().toLocaleDateString("ko-KR"),
+          date: new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]),
           qualityNotice,
           visualizationSelector: "[data-fusion-visual]",
         });
@@ -2275,7 +2275,7 @@ export function FusionFortuneClient({ seoContent, valuePreview }: { seoContent?:
             title: result.title || copy.pdfCoverFallbackTitle,
             subtitle: copy.pdfCoverSubtitle(openedSummary?.topic || form.topic),
             name: openedSummary?.nickname || form.nickname || undefined,
-            date: new Date().toLocaleDateString("ko-KR"),
+            date: new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]),
           },
           watermarkText: "CODE DESTINY",
         });
