@@ -1,0 +1,128 @@
+/* 상세 시트. BodyGraph 와 같은 표면 계열을 무조건부로 선언한다(반쪽 오버라이드 방지). */
+
+.sheet {
+  --hd-surface: #13102a;
+  --hd-border: rgba(196, 181, 253, 0.28);
+  --hd-ink: #f3f1ff;
+  --hd-ink-dim: #c2bce0;
+  --hd-accent: #c4b5fd;
+
+  background: var(--hd-surface);
+  border: 1px solid var(--hd-border);
+  border-radius: 16px;
+  padding: 1.125rem 1.25rem 1.25rem;
+  color: var(--hd-ink);
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.title {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--hd-ink);
+}
+
+.subtitle {
+  margin: 0.25rem 0 0;
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--hd-ink-dim);
+}
+
+.close {
+  flex: 0 0 auto;
+  min-width: 44px;
+  min-height: 44px;
+  border: 1px solid var(--hd-border);
+  border-radius: 10px;
+  background: transparent;
+  color: var(--hd-ink-dim);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.close:hover,
+.close:focus-visible {
+  color: var(--hd-ink);
+  border-color: var(--hd-accent);
+}
+
+.rows {
+  margin: 0;
+  display: grid;
+  gap: 0.5rem;
+}
+
+.row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.rowLabel {
+  margin: 0;
+  font-size: 0.8125rem;
+  color: var(--hd-ink-dim);
+}
+
+.rowValue {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: right;
+  color: var(--hd-ink);
+}
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4375rem;
+}
+
+.blockHeading {
+  margin: 0;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--hd-accent);
+}
+
+.list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.listItem {
+  font-size: 0.8125rem;
+  line-height: 1.5;
+  color: var(--hd-ink);
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  padding: 0.25rem 0.5rem;
+}
+
+.note {
+  margin: 0;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  font-size: 0.8125rem;
+  line-height: 1.55;
+  color: var(--hd-ink-dim);
+}
