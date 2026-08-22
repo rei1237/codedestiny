@@ -1,6 +1,7 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { getStaticShellCanonicalRoutes } from "./static-canonical-route-map.mjs";
+import { injectStaticShellRouteMeta } from "./lib/static-shell-route-meta.mjs";
 
 const rootDir = process.cwd();
 const publicDir = resolve(rootDir, "public");
@@ -156,45 +157,6 @@ function restoreStaticShellLocaleHtml() {
     mkdirSync(dirname(destinationPath), { recursive: true });
     copyFileSync(sourcePath, destinationPath);
   }
-}
-
-function escapeHtmlAttr(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-// next.config.mjs 의 trailingSlash:true 때문에 이 셸 사본들은 /tarot/love/ 로 서빙된다.
-// 슬래시 없는 canonical 은 자기 자신을 못 가리켜 self-canonical 이 성립하지 않는다.
-function toCanonicalUrl(pathname) {
-  const normalized = String(pathname || "/").startsWith("/") ? String(pathname || "/") : `/${pathname}`;
-  const withSlash = normalized === "/" ? "/" : `${normalized.replace(/\/+$/, "")}/`;
-  return `https://code-destiny.com${withSlash}`;
-}
-
-function injectStaticShellRouteMeta(html, route) {
-  const canonicalUrl = toCanonicalUrl(route.canonical);
-  const routeMeta = [
-    `<meta name="cd-static-canonical-route" content="${escapeHtmlAttr(route.canonical)}">`,
-    route.action ? `<meta name="cd-static-canonical-action" content="${escapeHtmlAttr(route.action)}">` : "",
-  ].filter(Boolean).join("\n");
-
-  let nextHtml = html
-    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlAttr(route.title)}</title>`)
-    .replace(/<meta\s+name=["']description["']\s+content=["'][\s\S]*?["']\s*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(route.description)}">`)
-    .replace(/<link\s+rel=["']canonical["']\s+href=["'][\s\S]*?["']\s*\/?>/i, `<link rel="canonical" href="${escapeHtmlAttr(canonicalUrl)}">`)
-    // 이 사본들은 홈 셸과 body 가 바이트 단위로 동일하다(제목·설명·canonical 만 교체).
-    // public/_headers 가 이미 X-Robots-Tag: noindex 를 걸어 실제로도 색인되지 않는데
-    // HTML 만 index 라고 말해 신호가 모순이었다. HTML 을 헤더에 맞춘다.
-    .replace(/<meta\s+name=["']robots["']\s+content=["'][\s\S]*?["']\s*\/?>/i, '<meta name="robots" content="noindex, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">');
-
-  if (nextHtml.includes("</head>")) {
-    nextHtml = nextHtml.replace("</head>", `${routeMeta}\n</head>`);
-  }
-
-  return nextHtml;
 }
 
 function writeStaticShellCanonicalRoutes() {

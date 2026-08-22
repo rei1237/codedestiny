@@ -439,6 +439,84 @@
   color: var(--hd-ink);
 }
 
+/* ── AI 해석 ──────────────────────────────────────────── */
+
+.reading {
+  background: var(--hd-panel);
+  border: 1px solid var(--hd-border);
+  border-radius: 18px;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.readingHeading {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 700;
+  color: var(--hd-ink);
+}
+
+.readingBasis {
+  margin: 0;
+  font-size: 0.8125rem;
+  line-height: 1.6;
+  color: var(--hd-ink-dim);
+}
+
+.readingLoading {
+  margin: 0;
+  font-size: 0.9375rem;
+  color: var(--hd-accent-warm);
+}
+
+.readingBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.readingSummary {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding: 0.875rem 1rem;
+  border-radius: 12px;
+  background: rgba(196, 181, 253, 0.1);
+  border: 1px solid var(--hd-border);
+}
+
+.readingSummary p {
+  margin: 0;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--hd-ink);
+}
+
+.readingSection {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.readingSectionTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--hd-accent);
+}
+
+.readingParagraph {
+  margin: 0;
+  font-size: 0.9375rem;
+  /* 본문은 읽기 폭을 넘기지 않는다 — 넓은 화면에서 한 줄이 길어지면 눈이 줄을 잃는다. */
+  max-width: 68ch;
+  line-height: 1.85;
+  color: var(--hd-ink);
+  white-space: pre-wrap;
+}
+
 .meta {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
   padding-top: 1rem;
