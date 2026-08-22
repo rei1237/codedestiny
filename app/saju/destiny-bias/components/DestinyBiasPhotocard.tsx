@@ -5,6 +5,7 @@ import { useCallback, useState, type CSSProperties, type MouseEvent, type Synthe
 import type { DestinyBiasResultViewModel } from "../lib/types";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import styles from "../destiny-bias.module.css";
+import { useDestinyBiasCopy, type DestinyBiasCopy } from "../_lib/copy";
 
 const DESTINY_BIAS_CARD_EXPORT_ID = "destiny-bias-card-export";
 
@@ -14,6 +15,7 @@ type PhotocardSurfaceProps = {
   imageAspectRatio: number | null;
   onImageLoad?: (event: SyntheticEvent<HTMLImageElement>) => void;
   exportMode?: boolean;
+  copy: DestinyBiasCopy;
 };
 
 function resolveImageWrapClass(hasImage: boolean, imageAspectRatio: number | null, exportMode = false) {
@@ -30,10 +32,11 @@ function PhotocardSurface({
   imageAspectRatio,
   onImageLoad,
   exportMode = false,
+  copy,
 }: PhotocardSurfaceProps) {
   const hasImage = Boolean(biasImageUrl);
   const relationHeadline = `${vm.userName} x ${vm.biasName}`;
-  const relationSignal = `${vm.chemistryType || "잔잔응원형"} · ${vm.totalScore}점`;
+  const relationSignal = `${vm.chemistryType || copy.defaultChemistryType} · ${vm.totalScore}${copy.scoreSuffix ?? " pts"}`;
   const oneLine = String(vm.cardCaption || vm.chemistryType || "").replace(/\s+/g, " ").trim();
   const cardKeywords = (Array.isArray(vm.stageChemistryKeywords) ? vm.stageChemistryKeywords : []).filter(Boolean).slice(0, 3);
   const imageWrapClass = resolveImageWrapClass(hasImage, imageAspectRatio, exportMode);
@@ -68,7 +71,7 @@ function PhotocardSurface({
               <div className="min-w-0">
                 <p className={styles.cardEyebrow}>ENERGY RELATION</p>
                 <h3 className={`${styles.cardClamp1} mt-1.5 text-2xl font-black leading-tight text-white`}>{vm.biasName}</h3>
-                <p className={`${styles.cardClamp1} mt-1 text-xs text-white/72`}>{vm.chemistryType || "잔잔응원형"}</p>
+                <p className={`${styles.cardClamp1} mt-1 text-xs text-white/72`}>{vm.chemistryType || copy.defaultChemistryType}</p>
               </div>
               <div className={styles.scoreGem}>
                 <span className={styles.scoreGemText}>{vm.totalScore}%</span>
@@ -85,7 +88,7 @@ function PhotocardSurface({
                 {biasImageUrl ? (
                   <img
                     src={biasImageUrl}
-                    alt={`${vm.biasName} 업로드 이미지`}
+                    alt={`${vm.biasName} ${copy.photocardUploadedImageAltSuffix}`}
                     className="h-full w-full object-cover"
                     onLoad={onImageLoad}
                   />
@@ -133,6 +136,7 @@ export default function DestinyBiasPhotocard({
   vm: DestinyBiasResultViewModel;
   biasImageUrl?: string;
 }) {
+  const copy = useDestinyBiasCopy();
   const reduceMotion = useReducedMotion();
   const [glare, setGlare] = useState({ x: 50, y: 16, tiltX: 0, tiltY: 0 });
   const [imageAspectRatio, setImageAspectRatio] = useState<number | null>(null);
@@ -198,10 +202,11 @@ export default function DestinyBiasPhotocard({
           biasImageUrl={biasImageUrl}
           imageAspectRatio={imageAspectRatio}
           onImageLoad={handleImageLoad}
+          copy={copy}
         />
 
         <p className="mt-3 text-center text-xs text-white/55">
-          ✦ 이 카드엔 두 사람의 에너지 공명이 담겨 있어요
+          {copy.photocardBottomNote}
         </p>
 
         <div
@@ -215,6 +220,7 @@ export default function DestinyBiasPhotocard({
           biasImageUrl={biasImageUrl}
           imageAspectRatio={imageAspectRatio}
           exportMode
+          copy={copy}
         />
       </div>
     </>

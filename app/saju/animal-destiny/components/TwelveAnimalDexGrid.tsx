@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { ANIMAL_DESTINY_LIST, STAGE_KEY_TO_HANJA, STAGE_LABEL_TO_KEY, STAGE_SEQUENCE } from "@/components/fortune/animal-twelve/animalTwelveData";
 import type { AnimalDestinyData } from "../lib/types";
 import { resolveTwelveGrowthAnimalResult } from "../lib/twelveGrowthAnimalResults";
+import { useAnimalDestinyCopy } from "../_lib/copy";
 
 type Props = {
   currentAnimal: AnimalDestinyData;
@@ -34,15 +35,8 @@ function stageDistance(leftStage: string, rightStage: string) {
   return Math.min(direct, STAGE_SEQUENCE.length - direct);
 }
 
-function relationTone(distance: number) {
-  if (distance === 0) return "현재 나의 핵심 운성";
-  if (distance <= 1) return "감정 박자가 가까운 에너지";
-  if (distance <= 3) return "역할을 나누면 보완되는 에너지";
-  if (distance <= 5) return "속도와 표현 조율이 필요한 에너지";
-  return "경계와 약속을 먼저 세워야 하는 에너지";
-}
-
 export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
+  const copy = useAnimalDestinyCopy();
   const [selectedStage, setSelectedStage] = useState(currentAnimal.saju_stage);
 
   const selectedEntry = useMemo(() => {
@@ -58,8 +52,8 @@ export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
   return (
     <section className="rounded-[1.9rem] border border-[#bad7ed] bg-white/90 p-4 shadow-[0_16px_36px_rgba(58,109,153,0.14)] sm:p-6">
       <div className="flex flex-wrap items-end justify-between gap-2">
-        <h3 className="text-lg font-black text-[#27557c]">운명 도감 12단계</h3>
-        <p className="text-xs font-bold text-[#557d9f]">현재 동물은 하이라이트로 표시됩니다</p>
+        <h3 className="text-lg font-black text-[#27557c]">{copy.dexTitle}</h3>
+        <p className="text-xs font-bold text-[#557d9f]">{copy.dexDesc}</p>
       </div>
 
       <div className="mt-4 grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-6">
@@ -95,7 +89,7 @@ export default function TwelveAnimalDexGrid({ currentAnimal }: Props) {
             {selectedResult.stageName}({STAGE_KEY_TO_HANJA[selectedStageKey]})
           </span>
           <span className="rounded-full border border-[#d9d7a3] bg-[#fff8df] px-3 py-1 text-xs font-black text-[#7a6c2f]">
-            {relationTone(selectedDistance)}
+            {copy.relationTone(selectedDistance)}
           </span>
           {selectedResult.elementTags?.slice(0, 3).map((tag) => (
             <span key={tag} className="rounded-full border border-[#d7e8f5] bg-[#f8fcff] px-3 py-1 text-xs font-bold text-[#567b9b]">
