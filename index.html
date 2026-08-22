@@ -14151,7 +14151,7 @@ html.neo-mode body .cd-pick-why__alt:focus-visible{outline-color:#c4b5fd}
         <div class="cd-sig__dots" id="cdSigDots" role="tablist" aria-label="대표 상담 카드 넘기기" data-cd-trans-attr="aria-label:shell.cdSignatureConsult.keqgznt.ariaLabel"></div>
         <div class="cd-pick-why" id="cdPickReason">
           <span class="cd-pick-why__mark" aria-hidden="true">✧</span>
-          <p class="cd-pick-why__text">오늘은 <b id="cdPickWhyTitle" data-cd-trans="shell.cdPickReason.cdPickWhyText.kntw327">나크샤트라 결정판</b>이 가장 잘 맞습니다. <span id="cdPickWhyReason" data-cd-trans="shell.cdPickReason.cdPickWhyText.k1s5m1vr">동양 27수와 인도 나크샤트라를 함께 보면 같은 사주도 훨씬 또렷하게 읽힙니다.</span></p>
+          <p class="cd-pick-why__text">오늘은 <b id="cdPickWhyTitle" data-cd-trans="shell.cdPickReason.cdPickWhyText.kntw327">나크샤트라 결정판</b><span id="cdPickWhyJosa">이</span> 가장 잘 맞습니다. <span id="cdPickWhyReason" data-cd-trans="shell.cdPickReason.cdPickWhyText.k1s5m1vr">동양 27수와 인도 나크샤트라를 함께 보면 같은 사주도 훨씬 또렷하게 읽힙니다.</span></p>
           <a class="cd-pick-why__alt" id="cdPickWhyAlt" href="/fortune-tea-house/">대신 운명의 찻집 <i aria-hidden="true">→</i></a>
         </div>
       </section>
@@ -14471,6 +14471,13 @@ html.neo-mode body .cd-why-us__card-desc{color:rgba(228,214,255,.86)}
               line:'네오가 감정을 걷어내고 선택의 전선만 짚어 줍니다.',
               why:'결정을 미루고 계셨다면, 오늘 필요한 건 위로가 아니라 판단 기준입니다.' }
           };
+          /* 받침 유무에 따라 주격 조사(이/가)를 고른다 — 추천 상품명이 바뀌어도 "서이" 같은 오류가 나지 않게. */
+          function hasBatchim(word) {
+            var last = String(word || '').trim().slice(-1);
+            var code = last.charCodeAt(0);
+            if (!last || code < 0xac00 || code > 0xd7a3) return false;
+            return (code - 0xac00) % 28 !== 0;
+          }
           var CD_INTENT_TO_PICK = { love:'master', wealth:'neo', career:'neo', health:'teahouse' };
           /* 요일 회전(0=일) — 신규 '결정판'에 가중치를 둔다. */
           var CD_PICK_ROTATION = ['nakshatra','teahouse','nakshatra','master','nakshatra','neo','teahouse'];
@@ -14503,9 +14510,11 @@ html.neo-mode body .cd-why-us__card-desc{color:rgba(228,214,255,.86)}
             if (line) line.textContent = r.pick.line;
             if (cta) { cta.href = r.pick.href; cta.setAttribute('aria-label', r.pick.title + ' 바로 시작'); }
             var whyTitle = document.getElementById('cdPickWhyTitle');
+            var whyJosa = document.getElementById('cdPickWhyJosa');
             var whyReason = document.getElementById('cdPickWhyReason');
             var whyAlt = document.getElementById('cdPickWhyAlt');
             if (whyTitle) whyTitle.textContent = r.pick.title;
+            if (whyJosa) whyJosa.textContent = hasBatchim(r.pick.title) ? '이' : '가';
             if (whyReason) whyReason.textContent = (r.source === 'intent' ? '최근 관심사를 반영했어요. ' : '오늘의 별자리 기운에 맞췄어요. ') + r.pick.why;
             if (whyAlt && r.alt) {
               whyAlt.href = r.alt.href;
