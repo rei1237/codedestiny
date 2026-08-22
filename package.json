@@ -376,6 +376,7 @@
     "preview:worker": "node scripts/preview-worker.mjs",
     "start": "next start",
     "lint": "next lint",
+    "lint:changed": "node scripts/lint-changed-files.mjs",
     "typecheck": "tsc --noEmit",
     "test:node": "node --test __tests__/ui/*.test.js __tests__/fortune/maya-calendar.test.js __tests__/fortune/kst-business-date.test.js",
     "test:jest": "cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testEnvironment node",
