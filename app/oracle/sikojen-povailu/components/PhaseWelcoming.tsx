@@ -3,23 +3,10 @@
 import React from 'react';
 import { useSikojenpovailuContext } from '../SikojenpovailuContext';
 import { YeonSpriteAvatar } from './YeonSpriteAvatar';
-
-const SIKOJEN_WELCOMING_TEXT_TRANSLATIONS = {
-  ko: {
-    backHomeAria: "메인으로 돌아가기",
-    spriteAlt: "연이 스프라이트",
-  },
-  en: {
-    backHomeAria: "Return to main",
-    spriteAlt: "Yeon-i sprite",
-  },
-  ja: {
-    backHomeAria: "メインへ戻る",
-    spriteAlt: "ヨンのスプライト",
-  },
-} as const;
+import { useSikojenPovailuCopy } from '../_lib/copy';
 
 export function PhaseWelcoming() {
+  const copy = useSikojenPovailuCopy();
   const { setPhase } = useSikojenpovailuContext();
 
   const requestImmersiveFullscreen = async () => {
@@ -50,10 +37,10 @@ export function PhaseWelcoming() {
       <a
         href="/"
         className="absolute top-4 right-4 z-50 flex items-center gap-1.5 px-3 py-2 rounded-full bg-white/80 backdrop-blur-sm border border-rose-200 text-rose-500 text-sm font-bold shadow-md hover:bg-rose-50 hover:text-rose-700 transition-all duration-200 hover:scale-105 active:scale-95"
-        aria-label={SIKOJEN_WELCOMING_TEXT_TRANSLATIONS.ko.backHomeAria}
+        aria-label={copy.welcomeCloseAria}
       >
         <span className="text-base">✕</span>
-        <span className="hidden sm:inline">닫기</span>
+        <span className="hidden sm:inline">{copy.welcomeCloseLabel}</span>
       </a>
       
       {/* 별/꽃 장식 입자 */}
@@ -85,7 +72,7 @@ export function PhaseWelcoming() {
             <YeonSpriteAvatar
               frames={[1, 2, 3, 4, 3, 2, 5, 6]}
               size={200}
-              alt={SIKOJEN_WELCOMING_TEXT_TRANSLATIONS.ko.spriteAlt}
+              alt={copy.welcomeSpriteAlt}
               ringClassName="from-rose-300 to-pink-300"
               intervalMs={780}
             />
@@ -106,30 +93,29 @@ export function PhaseWelcoming() {
           TERVETULOA!
         </h1>
 
-        {/* 한글 인사말 */}
+        {/* 인사말 */}
         <p className="text-xl sm:text-2xl md:text-3xl font-bold text-rose-600 mb-4 sm:mb-5" style={{ fontFamily: "var(--font-playful)" }}>
-          어서 오세요 🌸
+          {copy.welcomeGreeting}
         </p>
 
         {/* 부제목 */}
-        <p className="text-sm sm:text-base md:text-lg text-rose-700 mb-6 leading-relaxed font-medium">
-          연이와 함께하는 핀란드 주석점에 오신 것을 환영해요.<br />
-          녹인 주석이 물 위에서 굳는 찰나, 당신의 올해 키워드가 드러나요 ✨
+        <p className="whitespace-pre-line text-sm sm:text-base md:text-lg text-rose-700 mb-6 leading-relaxed font-medium">
+          {copy.welcomeSubtitle}
         </p>
 
         {/* 핀란드 주석점 소개 카드 */}
         <div className="w-full max-w-sm mx-auto mb-8 bg-white/80 backdrop-blur-sm rounded-2xl border-2 border-pink-200 shadow-lg p-4 text-left">
-          <p className="text-xs font-bold text-pink-500 mb-2 text-center tracking-wider">🇫🇮 SIKOJEN POVAILU — 핀란드 전통 주석점이란?</p>
+          <p className="text-xs font-bold text-pink-500 mb-2 text-center tracking-wider">{copy.welcomeIntroHeading}</p>
           <ul className="space-y-1.5 text-xs text-rose-700">
-            <li className="flex gap-2 items-start"><span>🔥</span><span>핀란드에서 수백 년 이어온 <strong>새해 주석 주조 점술</strong></span></li>
-            <li className="flex gap-2 items-start"><span>💧</span><span>녹인 주석을 차가운 물에 던져 <strong>굳은 형태로 운명을 읽어요</strong></span></li>
-            <li className="flex gap-2 items-start"><span>✨</span><span><strong>20가지 형태 + 그림자 해석</strong>으로 표면 의미와 숨은 메시지를 함께 읽어요</span></li>
-            <li className="flex gap-2 items-start"><span>🐷</span><span>연이 스프라이트 캐릭터가 페이즈마다 다른 모습으로 나타나 몰입감을 높여줘요</span></li>
-            <li className="flex gap-2 items-start"><span>🖥️</span><span>시작 버튼을 누르면 <strong>전체화면 몰입 모드</strong>로 의식을 진행할 수 있어요</span></li>
+            <li className="flex gap-2 items-start"><span>🔥</span><span>{copy.welcomeIntroBullet1}</span></li>
+            <li className="flex gap-2 items-start"><span>💧</span><span>{copy.welcomeIntroBullet2}</span></li>
+            <li className="flex gap-2 items-start"><span>✨</span><span>{copy.welcomeIntroBullet3}</span></li>
+            <li className="flex gap-2 items-start"><span>🐷</span><span>{copy.welcomeIntroBullet4}</span></li>
+            <li className="flex gap-2 items-start"><span>🖥️</span><span>{copy.welcomeIntroBullet5}</span></li>
           </ul>
         </div>
 
-        {/* "내 주석점 보기" 버튼 */}
+        {/* CTA 버튼 */}
         <button
           onClick={handleStart}
           className="relative group inline-block px-7 sm:px-10 py-3 sm:py-4 text-base sm:text-lg font-bold text-yellow-900 rounded-full shadow-lg border-3 border-yellow-400 transition-all duration-300 transform hover:scale-105 active:scale-95"
@@ -139,7 +125,7 @@ export function PhaseWelcoming() {
           }}
         >
           <span className="relative z-10 flex items-center gap-2">
-            내 주석점 보기
+            {copy.welcomeCtaButton}
             <span className="text-xl animate-bounce" style={{ animationDelay: '0.1s' }}>✨</span>
           </span>
         </button>

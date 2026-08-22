@@ -14,6 +14,7 @@
 
 import CodexReveal from "./CodexReveal";
 import { useCodexCountUp, useCodexEnterOnce } from "../hooks/useCodexCountUp";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 export interface CodexLoveDnaMetric {
@@ -36,6 +37,7 @@ interface CodexLoveDnaProps {
 
 /** 지표 한 줄. 훅을 쓰므로 map 안에서 인라인으로 그리지 않고 컴포넌트로 뺀다. */
 function CodexLoveDnaRow({ metric, index, forceVisible }: { metric: CodexLoveDnaMetric; index: number; forceVisible: boolean }) {
+  const copy = useMasterLoveCodexCopy();
   const score = Math.max(0, Math.min(100, Math.round(Number(metric.score) || 0)));
   const entering = useCodexEnterOnce(forceVisible);
   const displayed = useCodexCountUp(score, { skip: forceVisible, delayMs: Math.min(index * 60, 360) });
@@ -59,7 +61,7 @@ function CodexLoveDnaRow({ metric, index, forceVisible }: { metric: CodexLoveDna
       <div
         className={`${styles.metricTrack} mt-3`}
         role="img"
-        aria-label={`${metric.label} ${score}점 (100점 만점)`}
+        aria-label={copy.metricAriaLabel(metric.label, score)}
       >
         {/* 폭은 항상 최종값 — 등장 스윕은 transform 이라 정지 상태가 곧 최종 상태다 */}
         <span
@@ -77,11 +79,12 @@ function CodexLoveDnaRow({ metric, index, forceVisible }: { metric: CodexLoveDna
 }
 
 export default function CodexLoveDnaPanel({ loveDna, forceVisible = false }: CodexLoveDnaProps) {
+  const panelCopy = useMasterLoveCodexCopy();
   const metrics = Array.isArray(loveDna.metrics) ? loveDna.metrics : [];
   if (!metrics.length) return null;
 
   return (
-    <section data-codex-pdf-page className={styles.section} aria-label="연애 DNA">
+    <section data-codex-pdf-page className={styles.section} aria-label={panelCopy.loveDnaAriaLabel}>
       <div className={styles.measure}>
         <CodexReveal forceVisible={forceVisible}>
           <p

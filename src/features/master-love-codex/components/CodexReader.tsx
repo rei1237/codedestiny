@@ -36,6 +36,7 @@ import CodexReveal from "./CodexReveal";
 import { getNarratorAsset } from "../data/assets";
 import { groupByAct, type CodexActMode } from "../data/acts";
 import { masterLoveCodexBilling } from "../constants";
+import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 export type CodexChapter = CodexChapterData & { symbol?: string; chars?: number };
@@ -71,8 +72,10 @@ export default function CodexReader({
   mode = "solo",
   accessType = "",
 }: CodexReaderProps) {
+  const locale = useMasterLoveCodexLocale();
+  const copy = useMasterLoveCodexCopy();
   // 표지·PDF 파일명·막 제목이 모드에 따라 갈린다(리더 레이아웃은 두 모드가 공유한다).
-  const bookTitle = masterLoveCodexBilling(mode).title;
+  const bookTitle = masterLoveCodexBilling(mode, locale).title;
   const [decrypted, setDecrypted] = useState(false);
   const [decryptStep, setDecryptStep] = useState(0);
   const [activeAct, setActiveAct] = useState(1);
@@ -175,26 +178,26 @@ export default function CodexReader({
       const today = new Date().toISOString().slice(0, 10);
       await exportResultPdf({
         captureTargets: ["#master-love-codex-document [data-codex-pdf-page]"],
-        fileName: `마스터인연의서_${safeFilePart(name)}_${today.replace(/-/g, "")}.pdf`,
+        fileName: `${copy.pdfFileNamePrefix}_${safeFilePart(name)}_${today.replace(/-/g, "")}.pdf`,
         backgroundColor: "#0a0818",
         cover: {
-          title: `${safeFilePart(name)}님의 ${bookTitle}`,
+          title: copy.possessiveBookTitle(safeFilePart(name), bookTitle),
           subtitle: loveDna?.typeName ? `${loveDna.typeName} · 전 ${ordered.length}장` : `전 ${ordered.length}장`,
           name: birthLine,
           date: today,
         },
       });
     } catch {
-      setError("PDF로 옮기는 중 문제가 생겼습니다. 잠시 후 다시 시도해 주세요.");
+      setError(copy.pdfDownloadError);
     } finally {
       setIsExporting(false);
       setPdfLoading(false);
     }
-  }, [birthLine, bookTitle, loveDna?.typeName, name, ordered.length, pdfLoading]);
+  }, [birthLine, bookTitle, loveDna?.typeName, name, ordered.length, pdfLoading, copy]);
 
   if (!decrypted) {
     return (
-      <CodexShell ariaLabel="코덱스를 여는 중">
+      <CodexShell ariaLabel={copy.readerOpeningAriaLabel}>
         <div className="flex min-h-[100svh] flex-col items-center justify-center text-center">
           <div className={styles.measure}>
             <p
@@ -206,7 +209,7 @@ export default function CodexReader({
             </p>
             <hr className={`${styles.rule} ${styles.ruleShort} mt-8`} />
             <p className="mt-8 text-[0.875rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
-              봉인을 여는 중입니다
+              {copy.readerOpeningNote}
             </p>
           </div>
         </div>
@@ -215,14 +218,14 @@ export default function CodexReader({
   }
 
   return (
-    <CodexShell motes={false} ariaLabel={`${bookTitle} 본문`}>
+    <CodexShell motes={false} ariaLabel={copy.readerAriaLabel(bookTitle)}>
       <CodexSpine activeOrder={activeAct} availableOrders={availableActs} mode={mode} />
 
       {showResume ? (
-        <aside className={styles.resumePrompt} aria-label="독서 위치 복원">
-          <p>마지막으로 읽던 곳이 있어요.</p>
-          <button type="button" onClick={resumeReading}>이어서 읽기</button>
-          <button type="button" onClick={startOver}>처음부터</button>
+        <aside className={styles.resumePrompt} aria-label={copy.resumePromptAriaLabel}>
+          <p>{copy.resumePromptLine}</p>
+          <button type="button" onClick={resumeReading}>{copy.resumeButton}</button>
+          <button type="button" onClick={startOver}>{copy.startOverButton}</button>
         </aside>
       ) : null}
 
@@ -241,7 +244,7 @@ export default function CodexReader({
               <CodexReportStamp mode={mode} accessType={accessType} className="mb-10" />
               <Image
                 src={getNarratorAsset("calm")}
-                alt="코덱스를 덮는 연애 고수"
+                alt={copy.narratorClosingAlt}
                 width={300}
                 height={410}
                 unoptimized
@@ -251,14 +254,14 @@ export default function CodexReader({
               />
               <h2 className={`${styles.hero} mt-10`}>Master Love Codex</h2>
               <p className={`${styles.actTitle} mt-5`} style={{ color: "var(--codex-ink-text)" }}>
-                {name ? `${name}님의 ${bookTitle}` : bookTitle}
+                {copy.possessiveBookTitle(name, bookTitle)}
               </p>
               <hr className={`${styles.rule} ${styles.ruleShort} mt-9`} />
               <p className="mt-8 text-[0.8125rem] leading-7" style={{ color: "var(--codex-ink-text-muted)" }}>
                 {birthLine}
               </p>
               <p className={`${styles.numeral} mt-2 text-[0.8125rem]`} style={{ color: "var(--codex-ink-text-muted)" }}>
-                {ordered.length}장 · {totalCharCount.toLocaleString("ko-KR")}자
+                {copy.coverChapterCountSuffix(ordered.length, totalCharCount)}
               </p>
             </CodexReveal>
           </div>
@@ -296,7 +299,7 @@ export default function CodexReader({
         <CodexReveal forceVisible={isExporting}>
           <button type="button" onClick={() => void handlePdfDownload()} disabled={pdfLoading} className={styles.cta}>
             {pdfLoading ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <Download className="h-4 w-4" aria-hidden="true" />}
-            {pdfLoading ? "책으로 엮는 중" : "PDF로 소장하기"}
+            {pdfLoading ? copy.pdfBindingLabel : copy.pdfDownloadButton}
           </button>
           {error ? (
             <p role="alert" className="mt-5 text-[0.875rem]" style={{ color: "#ffb4b4" }}>{error}</p>

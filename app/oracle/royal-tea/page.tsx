@@ -1,5 +1,6 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
+import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 
 const SERVICE = {
   h1: "타세오그래피 찻잎 점",
@@ -143,5 +144,10 @@ export const metadata = withUniqueRouteMetadata("/oracle/royal-tea", {
 });
 
 export default function RoyalTeaLandingPage() {
-  return <FeatureLandingPage service={SERVICE} />;
+  return (
+    <>
+      <RouteMetadataLocaleSync entries={ROYAL_TEA_METADATA_COPY} />
+      <FeatureLandingPage service={SERVICE} />
+    </>
+  );
 }

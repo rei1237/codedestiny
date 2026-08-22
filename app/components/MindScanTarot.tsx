@@ -8,40 +8,33 @@ import { useCoinGate } from "../hooks/useCoinGate";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
 import { formatKrwFromMonthlyCredits } from "@/lib/payment/coin-pricing";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getMindScanTarotCopy, type MindScanTarotCopy } from "./_lib/mind-scan-tarot-copy";
 
 // ── TYPES ──────────────────────────────────────────────────────────────────────
-const MIND_SCAN_TAROT_TEXT_TRANSLATIONS = {
-  ko: {
-    "mindScanTarot.001": "겉말",
-    "mindScanTarot.002": "마음결",
-    "mindScanTarot.003": "멈춤",
-    "mindScanTarot.004": "바람",
-    "mindScanTarot.005": "현실",
-    "mindScanTarot.006": "말과 행동 사이 타로",
-    "mindScanTarot.007": "예: 요즘 말과 행동이 달라졌는데, 지금은 어떤 거리와 속도로 다가가야 할까요?",
-    "mindScanTarot.008": "말과 행동 사이 타로 리딩",
-    "mindScanTarot.009": "리딩 열기",
-    "mindScanTarot.010": "📷 이미지 저장",
-    "mindScanTarot.011": "🔗 공유",
-    "mindScanTarot.012": "📋 리딩 문장 복사",
-    "mindScanTarot.013": "💛 카카오톡 공유",
-    "mindScanTarot.014": "🏠 홈으로 가기",
-    "mindScanTarot.015": "말과 행동 사이 타로 AI 질문문",
-    "mindScanTarot.016": "이용권 혜택이 적용되어 추가 결제 없이 열렸습니다.",
-    "mindScanTarot.017": "오류가 발생했습니다. 다시 시도해주세요.",
-  },
-} as const;
-
-function mindScanTarotText(key: keyof typeof MIND_SCAN_TAROT_TEXT_TRANSLATIONS.ko): string {
-  return MIND_SCAN_TAROT_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
-}
 type Stage = "intro" | "picking" | "spread" | "result";
 type PickRound = "main" | "sub";
 
+type TarotPosId = "top" | "left" | "center" | "right" | "bottom";
 interface TarotPos {
-  id: string; label: string; meaning: string; icon: string;
+  id: TarotPosId; icon: string;
   col: number; row: number; isCenter?: boolean;
 }
+function positionLabel(id: TarotPosId, copy: MindScanTarotCopy): string {
+  return copy.positionLabels[id];
+}
+function positionMeaning(id: TarotPosId, copy: MindScanTarotCopy): string {
+  return copy.positionMeanings[id];
+}
+// AI 프롬프트 본문(buildMindscanAiPromptText)은 룬/prompt-hub 클러스터와 동일하게 로케일 무관 한국어
+// 지시문으로 고정한다 — 자리 라벨도 UI 표시용 copy 가 아니라 이 원문 그대로를 쓴다.
+const AI_PROMPT_POSITION_META: Record<TarotPosId, { label: string; meaning: string }> = {
+  top: { label: "겉말", meaning: "겉으로 보이는 태도" },
+  left: { label: "마음결", meaning: "남은 감정의 결" },
+  center: { label: "멈춤", meaning: "멈춰 선 이유" },
+  right: { label: "바람", meaning: "말하지 못한 바람" },
+  bottom: { label: "현실", meaning: "관계의 현실 판단" },
+};
 interface ReadingMessageExample { tone?: string; text: string; }
 interface ReadingSummaryCard {
   emotionalTemperature?: number;
@@ -117,11 +110,11 @@ interface ReadingResult {
 
 // ── CONSTANTS ──────────────────────────────────────────────────────────────────
 const POSITIONS: TarotPos[] = [
-  { id: "top",    label: mindScanTarotText("mindScanTarot.001"),   meaning: "겉으로 보이는 태도",       icon: "🎭", col: 2, row: 1 },
-  { id: "left",   label: mindScanTarotText("mindScanTarot.002"), meaning: "남은 감정의 결",           icon: "💓", col: 1, row: 2 },
-  { id: "center", label: mindScanTarotText("mindScanTarot.003"),   meaning: "멈춰 선 이유",             icon: "🧱", col: 2, row: 2, isCenter: true },
-  { id: "right",  label: mindScanTarotText("mindScanTarot.004"),   meaning: "말하지 못한 바람",         icon: "🫧", col: 3, row: 2 },
-  { id: "bottom", label: mindScanTarotText("mindScanTarot.005"),   meaning: "관계의 현실 판단",         icon: "⚖️", col: 2, row: 3 },
+  { id: "top",    icon: "🎭", col: 2, row: 1 },
+  { id: "left",   icon: "💓", col: 1, row: 2 },
+  { id: "center", icon: "🧱", col: 2, row: 2, isCenter: true },
+  { id: "right",  icon: "🫧", col: 3, row: 2 },
+  { id: "bottom", icon: "⚖️", col: 2, row: 3 },
 ];
 
 const DECK_SIZE = 78;
@@ -192,8 +185,9 @@ function buildMindscanAiPromptText({
     const mainCard = section?.mainCardName || cardName(drawn[pos.id] ?? index);
     const subCard = section?.subCardName || cardName(drawnSub[pos.id] ?? index + 5);
 
+    const posMeta = AI_PROMPT_POSITION_META[pos.id];
     return [
-      `${index + 1}. ${pos.label} · ${pos.meaning}`,
+      `${index + 1}. ${posMeta.label} · ${posMeta.meaning}`,
       `앞장: ${compactMindscanPromptText(mainCard)}`,
       `이면: ${compactMindscanPromptText(subCard)}`,
       `드러난 결: ${compactMindscanPromptText(section?.summary || section?.content)}`,
@@ -314,7 +308,7 @@ function CardBack({ selected = false, hovered = false, orderNum = 0, round = "ma
 }
 
 // ── CARD FACE ──────────────────────────────────────────────────────────────────
-function CardFace({ pos, cardId }: { pos: TarotPos; cardId: number }) {
+function CardFace({ pos, cardId, copy }: { pos: TarotPos; cardId: number; copy: MindScanTarotCopy }) {
   const name = cardName(cardId);
   const [c1, c2] = cardGradient(cardId);
   const sym = cardRomanSymbol(cardId);
@@ -351,7 +345,7 @@ function CardFace({ pos, cardId }: { pos: TarotPos; cardId: number }) {
         <span style={{ fontSize: isLarge ? 11 : 9, color: "rgba(255,255,255,0.9)", fontWeight: 800, letterSpacing: "0.15em" }}>{sym}</span>
         <span style={{ fontSize: isLarge ? 8 : 7, color: "rgba(255,255,255,0.78)", textAlign: "center", lineHeight: 1.28,
           wordBreak: "break-word", maxWidth: "92%", fontWeight: 600 }}>{name}</span>
-        <span style={{ fontSize: isLarge ? 9 : 7.5, color: "rgba(255,255,255,0.55)", fontWeight: 700, letterSpacing: "0.22em" }}>{pos.label.toUpperCase()}</span>
+        <span style={{ fontSize: isLarge ? 9 : 7.5, color: "rgba(255,255,255,0.55)", fontWeight: 700, letterSpacing: "0.22em" }}>{positionLabel(pos.id, copy).toUpperCase()}</span>
       </div>
       <div style={{ position: "absolute", inset: 0, borderRadius: 12,
         background: "linear-gradient(135deg, rgba(255,255,255,0.18) 0%, transparent 45%, rgba(0,0,0,0.25) 100%)" }} />
@@ -360,7 +354,7 @@ function CardFace({ pos, cardId }: { pos: TarotPos; cardId: number }) {
 }
 
 // ── INTRO STAGE ───────────────────────────────────────────────────────────────
-function IntroStage({ onStart }: { onStart: () => void }) {
+function IntroStage({ onStart, copy }: { onStart: () => void; copy: MindScanTarotCopy }) {
   return (
     <m.div className="fixed inset-0 flex flex-col items-center justify-center px-6 z-20 overflow-y-auto"
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0, scale: 0.97 }}
@@ -378,7 +372,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src="/fuctionassets/mindscantaro.webp"
-              alt={mindScanTarotText("mindScanTarot.006")}
+              alt={copy.introImageAlt}
               className="w-full h-full object-cover"
               width={520}
               height={520}
@@ -409,18 +403,17 @@ function IntroStage({ onStart }: { onStart: () => void }) {
         <m.div className="space-y-3 mb-8" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}>
           <div className="flex items-center justify-center gap-2.5 mb-2">
             <span className="px-2.5 py-1 rounded-full border border-cyan-300/30 bg-cyan-400/10 text-[10px] tracking-[0.22em] text-cyan-100/85 uppercase">Stellar Reading</span>
-            <span className="px-2.5 py-1 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 text-[10px] tracking-[0.22em] text-fuchsia-100/85 uppercase">Mind Scan</span>
+            <span className="px-2.5 py-1 rounded-full border border-fuchsia-300/30 bg-fuchsia-400/10 text-[10px] tracking-[0.22em] text-fuchsia-100/85 uppercase">{copy.introBadgeMindScan}</span>
           </div>
           <p className="text-[11px] tracking-[0.55em] text-purple-300/70 uppercase">Between Words Tarot</p>
           <h1 className="text-3xl sm:text-4xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(192,132,252,0.42)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
-            말과 행동 사이의 온도<br />
+            {copy.introTitleLine1}<br />
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-purple-300 via-fuchsia-300 to-pink-400">
-              관계 간격 리딩
+              {copy.introTitleLine2}
             </span>
           </h1>
-          <p className="text-sm text-indigo-100/70 leading-relaxed max-w-sm mx-auto">
-            직관을 따라 10장의 카드를 선택하세요.<br />
-            말과 침묵 사이에 놓인 감정의 거리와 다가갈 수 있는 속도를 읽습니다.
+          <p className="text-sm text-indigo-100/70 leading-relaxed max-w-sm mx-auto whitespace-pre-line">
+            {copy.introDesc}
           </p>
         </m.div>
 
@@ -430,7 +423,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
           {POSITIONS.map(p => (
             <div key={p.id} className="flex flex-col items-center gap-1">
               <span className="text-xl">{p.icon}</span>
-              <span className="text-[9px] text-purple-300/50">{p.label}</span>
+              <span className="text-[9px] text-purple-300/50">{positionLabel(p.id, copy)}</span>
             </div>
           ))}
         </m.div>
@@ -438,7 +431,7 @@ function IntroStage({ onStart }: { onStart: () => void }) {
         {/* Flow steps */}
         <m.div className="flex items-center gap-2 mb-8 text-[10px] text-indigo-200/55"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.5 }}>
-          {["메인 5장", "→", "보조 5장", "→", "자리 공개", "→", "심층 리딩"].map((t, i) => (
+          {copy.flowSteps.map((t, i) => (
             <span key={i} className={t === "→" ? "text-purple-800/40" : ""}>{t}</span>
           ))}
         </m.div>
@@ -452,12 +445,12 @@ function IntroStage({ onStart }: { onStart: () => void }) {
           <m.div className="absolute inset-0 rounded-full"
             animate={{ opacity: [0, 0.32, 0] }} transition={{ duration: 2.2, repeat: Infinity }}
             style={{ background: "radial-gradient(ellipse at center, rgba(232,121,249,0.55) 0%, transparent 70%)" }} />
-          <span className="relative z-10">🔮 마음의 문 열기</span>
+          <span className="relative z-10">{copy.introCtaButton}</span>
         </m.button>
 
         <m.p className="mt-5 text-[10px] text-purple-500/40 tracking-widest"
           initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.85 }}>
-          ✦ 그 사람의 말, 행동, 침묵을 조용히 떠올리며 시작하세요 ✦
+          {copy.introFooterHint}
         </m.p>
         </m.div>
       </div>
@@ -471,13 +464,14 @@ interface PickingStageProps {
   mainSelected: number[];
   subSelected: number[];
   onPick: (gridIdx: number) => void;
+  copy: MindScanTarotCopy;
 }
 
 const GRID_ROTATIONS = Array.from({ length: GRID_COUNT }, (_, i) =>
   (((i * 7 + 3) % 11) - 5) * 0.35
 );
 
-function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStageProps) {
+function PickingStage({ round, mainSelected, subSelected, onPick, copy }: PickingStageProps) {
   const [hovIdx, setHovIdx] = useState(-1);
   const currentSelected = round === "main" ? mainSelected : subSelected;
   const done = currentSelected.length >= 5;
@@ -508,18 +502,18 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
         <m.h2 key={round} className="text-xl sm:text-2xl font-bold text-white"
           initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }}>
           {round === "main"
-            ? <><span className="text-fuchsia-300">메인 카드</span> 5장 선택</>
-            : <><span className="text-violet-300">보조 카드</span> 5장 선택</>}
+            ? <><span className="text-fuchsia-300">{copy.pickingHighlightMain}</span>{copy.pickingTitleSuffix}</>
+            : <><span className="text-violet-300">{copy.pickingHighlightSub}</span>{copy.pickingTitleSuffix}</>}
         </m.h2>
         <AnimatePresence mode="wait">
           <m.p key={done ? "done" : `pos-${nextPos?.id}`}
             className="text-xs text-purple-300/45 mt-1 h-4"
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
             {done
-              ? (round === "main" ? "✨ 완료! 보조 카드로 이동합니다..." : "✨ 모든 카드 선택 완료!")
+              ? (round === "main" ? copy.pickingDoneMain : copy.pickingDoneAll)
               : nextPos
-                ? `선택 중: ${nextPos.icon} ${nextPos.label} — ${nextPos.meaning}`
-                : "카드를 선택하세요"}
+                ? copy.pickingSelectingTemplate(nextPos.icon, positionLabel(nextPos.id, copy), positionMeaning(nextPos.id, copy))
+                : copy.pickingSelectPrompt}
           </m.p>
         </AnimatePresence>
 
@@ -541,11 +535,11 @@ function PickingStage({ round, mainSelected, subSelected, onPick }: PickingStage
         {/* Round tabs */}
         <div className="flex items-center justify-center gap-2 mt-2.5">
           <div className={`text-[10px] px-3 py-0.5 rounded-full border transition-colors ${round === "main" ? "border-fuchsia-500/40 bg-fuchsia-500/10 text-fuchsia-300" : "border-purple-800/30 text-purple-600/50"}`}>
-            메인 카드
+            {copy.roundTabMain}
           </div>
           <span className="text-purple-800/35 text-xs">→</span>
           <div className={`text-[10px] px-3 py-0.5 rounded-full border transition-colors ${round === "sub" ? "border-violet-500/40 bg-violet-500/10 text-violet-300" : "border-purple-800/30 text-purple-600/50"}`}>
-            보조 카드
+            {copy.roundTabSub}
           </div>
         </div>
       </div>
@@ -600,9 +594,10 @@ interface SpreadStageProps {
   question: string;
   onQuestionChange: (value: string) => void;
   onGenerateReading: () => void;
+  copy: MindScanTarotCopy;
 }
 
-function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingError, question, onQuestionChange, onGenerateReading }: SpreadStageProps) {
+function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingError, question, onQuestionChange, onGenerateReading, copy }: SpreadStageProps) {
   const allRevealed = revealedCount >= POSITIONS.length;
   const questionReady = String(question || "").trim().length > 0;
 
@@ -621,15 +616,15 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
               initial={{ opacity: 0, y: 7 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -7 }}
               transition={{ duration: 0.28 }}>
               {allRevealed
-                ? <>마음의 결이 모두 <span className="text-fuchsia-300">펼쳐졌습니다</span> ✨</>
-                : <>{POSITIONS[revealedCount]?.icon} <span className="text-fuchsia-300">{POSITIONS[revealedCount]?.label}</span> 포지션이 열립니다</>
+                ? <>{copy.spreadAllRevealedPrefix} <span className="text-fuchsia-300">{copy.spreadAllRevealedHighlight}</span> ✨</>
+                : <>{POSITIONS[revealedCount]?.icon} <span className="text-fuchsia-300">{POSITIONS[revealedCount] ? positionLabel(POSITIONS[revealedCount].id, copy) : ""}</span>{copy.spreadRevealingSuffix}</>
               }
             </m.h2>
           </AnimatePresence>
           {!allRevealed && (
             <m.p className="text-xs text-purple-400/40 mt-1"
               animate={{ opacity: [0.38, 0.65, 0.38] }} transition={{ duration: 1.6, repeat: Infinity }}>
-              {POSITIONS[revealedCount]?.meaning}
+              {POSITIONS[revealedCount] ? positionMeaning(POSITIONS[revealedCount].id, copy) : ""}
             </m.p>
           )}
         </m.div>
@@ -646,7 +641,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
               <div key={pos.id} style={{ gridColumn: pos.col, gridRow: pos.row }}
                 className="flex flex-col items-center gap-1.5">
                 <m.span animate={{ opacity: revealed ? 0.7 : 0.28 }}
-                  className="text-[9px] text-purple-300 tracking-widest uppercase font-medium">{pos.label}</m.span>
+                  className="text-[9px] text-purple-300 tracking-widest uppercase font-medium">{positionLabel(pos.id, copy)}</m.span>
 
                 <div className="relative">
                   {/* Sub card shadow (behind main) */}
@@ -668,7 +663,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
                           initial={{ rotateY: -85, scale: 0.72, opacity: 0 }}
                           animate={{ rotateY: 0, scale: 1, opacity: 1 }}
                           transition={{ duration: 0.6, ease: [0.2, 0.65, 0, 1.15] }}>
-                          <CardFace pos={pos} cardId={drawn[pos.id] ?? i} />
+                          <CardFace pos={pos} cardId={drawn[pos.id] ?? i} copy={copy} />
                         </m.div>
                       ) : (
                         <m.div key="back">
@@ -694,7 +689,7 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
 
                 <m.span animate={{ opacity: revealed ? 0.48 : 0 }}
                   className="text-[8px] text-purple-300 text-center max-w-[76px] leading-tight">
-                  {pos.meaning}
+                  {positionMeaning(pos.id, copy)}
                 </m.span>
               </div>
             );
@@ -711,22 +706,22 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
               <div className="mx-auto mb-4 w-full max-w-xl rounded-[1.2rem] border border-fuchsia-300/20 bg-slate-950/45 px-4 py-4 text-left backdrop-blur-md">
                 <label className="block">
                   <span className="mb-2 block text-[11px] font-semibold tracking-[0.18em] text-fuchsia-100/80 uppercase">
-                    상담 질문
+                    {copy.consultationQuestionLabel}
                   </span>
                   <textarea
                     value={question}
                     onChange={(event) => onQuestionChange(event.target.value)}
-                    placeholder={mindScanTarotText("mindScanTarot.007")}
+                    placeholder={copy.questionPlaceholder}
                     rows={3}
                     className="w-full resize-none rounded-2xl border border-fuchsia-200/20 bg-slate-900/70 px-4 py-3 text-sm leading-relaxed text-white outline-none transition focus:border-fuchsia-300/45 focus:bg-slate-900"
                   />
                 </label>
                 <p className="mt-2 text-[11px] leading-relaxed text-purple-200/55">
-                  질문은 필수입니다. 질문의 맥락이 있어야 카드 상징과 감정 흐름을 구체적으로 결합할 수 있습니다.
+                  {copy.questionRequiredHint}
                 </p>
               </div>
               <p className="text-xs text-purple-300/45 mb-4 tracking-wide">
-                10장의 카드가 모두 준비되었습니다
+                {copy.allCardsReadyHint}
               </p>
               {readingError && (
                 <p className="text-xs text-rose-300/80 mb-3 max-w-xs mx-auto leading-relaxed">{readingError}</p>
@@ -751,9 +746,9 @@ function SpreadStage({ drawn, drawnSub, revealedCount, readingLoading, readingEr
                     ? <>
                       <m.span className="w-4 h-4 rounded-full border-2 border-white/30 border-t-white inline-block"
                         animate={{ rotate: 360 }} transition={{ duration: 0.9, repeat: Infinity, ease: "linear" }} />
-                      카드의 간격을 읽는 중...
+                      {copy.generateButtonLoading}
                     </>
-                    : "✨ 마음의 결 리딩 열기"}
+                    : copy.generateButtonIdle}
                 </span>
               </m.button>
             </m.div>
@@ -788,9 +783,10 @@ interface ResultStageProps {
   question: string;
   onRestart: () => void;
   reportRef: React.RefObject<HTMLDivElement>;
+  copy: MindScanTarotCopy;
 }
 
-function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef }: ResultStageProps) {
+function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef, copy }: ResultStageProps) {
   const [shareMsg, setShareMsg] = useState("");
   const [aiPromptMsg, setAiPromptMsg] = useState("");
   const [visibleCount, setVisibleCount] = useState(0);
@@ -902,20 +898,20 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
 
   const handleShare = useCallback(async () => {
     if (navigator.share) {
-      try { await navigator.share({ title: mindScanTarotText("mindScanTarot.008"), text: reading.intro }); showMsg("공유 완료!"); return; } catch (e) {}
+      try { await navigator.share({ title: copy.shareTitle, text: reading.intro }); showMsg(copy.shareCompleteToast); return; } catch (e) {}
     }
-    try { await navigator.clipboard.writeText(buildText()); showMsg("리딩 문장이 복사되었습니다."); } catch (e) { showMsg("공유 실패"); }
-  }, [reading, buildText]);
+    try { await navigator.clipboard.writeText(buildText()); showMsg(copy.readingCopiedToast); } catch (e) { showMsg(copy.shareFailedToast); }
+  }, [copy, reading, buildText]);
 
   const handleKakaoShare = useCallback(async () => {
     const currentUrl = typeof window !== "undefined"
       ? window.location.href
       : "https://code-destiny.com/tarot/mindscan";
-    const shareTitle = "말과 행동 사이 타로 리딩";
+    const shareTitle = copy.shareTitle;
     const shortIntro = String(reading?.intro || "")
       .replace(/\s+/g, " ")
       .slice(0, 90);
-    const shareDesc = shortIntro || "말과 행동 사이의 온도를 섬세하게 읽는 관계 간격 타로";
+    const shareDesc = shortIntro || copy.kakaoShareDescFallback;
 
     try {
       const kakao = (window as Window & {
@@ -949,11 +945,11 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             link: { mobileWebUrl: currentUrl, webUrl: currentUrl },
           },
           buttons: [{
-            title: mindScanTarotText("mindScanTarot.009"),
+            title: copy.kakaoButtonLabel,
             link: { mobileWebUrl: currentUrl, webUrl: currentUrl },
           }],
         });
-        showMsg("카카오톡 공유 창을 열었어요!");
+        showMsg(copy.kakaoOpenedToast);
         return;
       }
 
@@ -961,16 +957,16 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
         `https://sharer.kakao.com/talk/friends/picker/link?url=${encodeURIComponent(currentUrl)}` +
         `&text=${encodeURIComponent(`${shareTitle}\n${shareDesc}`)}`;
       window.open(fallbackUrl, "_blank", "noopener,noreferrer");
-      showMsg("카카오 공유 링크를 열었어요!");
+      showMsg(copy.kakaoLinkOpenedToast);
     } catch (e) {
       try {
         await navigator.clipboard.writeText(`${shareTitle}\n${shareDesc}\n${currentUrl}`);
-        showMsg("카카오 공유 대체로 링크를 복사했어요!");
+        showMsg(copy.kakaoFallbackCopiedToast);
       } catch (e) {
-        showMsg("카카오 공유를 열지 못했습니다.");
+        showMsg(copy.kakaoFailedToast);
       }
     }
-  }, [reading, showMsg]);
+  }, [copy, reading, showMsg]);
 
   const handleGoHome = useCallback(() => {
     if (typeof window === "undefined") return;
@@ -978,18 +974,18 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
   }, []);
 
   const handleCopy = useCallback(async () => {
-    try { await navigator.clipboard.writeText(buildText()); showMsg("클립보드에 복사됨!"); }
-    catch (e) { showMsg("복사 실패"); }
-  }, [buildText]);
+    try { await navigator.clipboard.writeText(buildText()); showMsg(copy.clipboardCopiedToast); }
+    catch (e) { showMsg(copy.copyFailedToast); }
+  }, [copy, buildText]);
 
   const handleCopyAiPrompt = useCallback(async () => {
     try {
       await navigator.clipboard.writeText(aiPromptText);
-      showAiPromptMsg("질문문이 복사되었습니다.");
+      showAiPromptMsg(copy.aiPromptCopiedToast);
     } catch (e) {
-      showAiPromptMsg("직접 선택해 복사해 주세요.");
+      showAiPromptMsg(copy.aiPromptCopyFailedToast);
     }
-  }, [aiPromptText]);
+  }, [copy, aiPromptText]);
 
   const handleSaveImage = useCallback(async () => {
     if (!reportRef.current) return;
@@ -997,9 +993,9 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
       const { default: html2canvas } = await import("html2canvas");
       const canvas = await html2canvas(reportRef.current, { backgroundColor: "#0a0820", scale: 2, useCORS: true });
       const a = document.createElement("a"); a.download = `mindscan-${Date.now()}.png`; a.href = canvas.toDataURL("image/png"); a.click();
-      showMsg("이미지 저장 완료!");
-    } catch (e) { showMsg("이미지 저장 실패"); }
-  }, [reportRef]);
+      showMsg(copy.imageSavedToast);
+    } catch (e) { showMsg(copy.imageSaveFailedToast); }
+  }, [copy, reportRef]);
 
   return (
     <m.div className="fixed inset-0 overflow-y-auto z-20 bg-[radial-gradient(circle_at_16%_8%,rgba(245,158,11,0.14),transparent_38%),radial-gradient(circle_at_80%_12%,rgba(217,70,239,0.1),transparent_40%),radial-gradient(circle_at_50%_85%,rgba(56,189,248,0.07),transparent_42%)]"
@@ -1021,10 +1017,10 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
           <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full border border-amber-300/35 bg-amber-200/10 text-lg text-amber-100 shadow-[0_0_18px_rgba(251,191,36,0.38)]">
             ✦
           </div>
-          <p className="text-[11px] tracking-[0.55em] text-amber-200/70 uppercase mb-2">Between Words Tarot · 관계 간격 리딩</p>
+          <p className="text-[11px] tracking-[0.55em] text-amber-200/70 uppercase mb-2">Between Words Tarot{copy.resultEyebrowSuffix}</p>
           <h2 className="text-2xl sm:text-3xl font-black text-white leading-tight drop-shadow-[0_0_20px_rgba(251,191,36,0.2)]" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
-            말과 행동 사이의 온도가{" "}
-            <span className="text-amber-200">열렸습니다</span>
+            {copy.resultHeroTitlePrefix}{" "}
+            <span className="text-amber-200">{copy.resultHeroTitleHighlight}</span>
           </h2>
           <div className="flex items-center justify-center gap-3 mt-2.5">
             <div className="h-px flex-1 bg-gradient-to-r from-transparent to-amber-400/45 max-w-[72px]" />
@@ -1052,7 +1048,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                   </div>
                   <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent" />
                 </div>
-                <span className="text-[8px] text-amber-100/60">{pos.label}</span>
+                <span className="text-[8px] text-amber-100/60">{positionLabel(pos.id, copy)}</span>
               </m.div>
             );
           })}
@@ -1072,7 +1068,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                 style={{ background: "rgba(251,191,36,0.16)", border: "1px solid rgba(251,191,36,0.32)" }}>
                 <span className="text-lg">🔮</span>
               </div>
-              <h3 className="text-sm font-bold text-amber-50 tracking-wide">마음의 문턱</h3>
+              <h3 className="text-sm font-bold text-amber-50 tracking-wide">{copy.introSectionTitle}</h3>
             </div>
             <p className="text-[15px] sm:text-base text-stone-100/90 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.intro}</p>
           </m.div>
@@ -1082,13 +1078,13 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             style={{ background: "linear-gradient(130deg,rgba(120,53,15,0.28),rgba(146,64,14,0.12),rgba(30,41,59,0.3))" }}
             initial={{ opacity: 0, y: 14 }}
             animate={{ opacity: visibleCount >= 4 ? 1 : 0, y: visibleCount >= 4 ? 0 : 14 }}>
-            <h3 className="text-base sm:text-lg font-black text-amber-50 mb-3" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>관계 간격의 전체 기류</h3>
+            <h3 className="text-base sm:text-lg font-black text-amber-50 mb-3" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>{copy.summaryCardTitle}</h3>
             <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2.5 text-stone-100/95 text-sm">
               <div className="flex items-center justify-between mb-1.5">
-                <span>감정 온도</span>
+                <span>{copy.emotionalTempLabel}</span>
                 <b>{summaryCard.emotionalTemperatureText || `${emotionalTemp} / 5`}</b>
               </div>
-              <div className="flex gap-1" role="img" aria-label={`감정 온도 5단계 중 ${emotionalTemp}단계`}>
+              <div className="flex gap-1" role="img" aria-label={copy.emotionalTempAriaTemplate(emotionalTemp)}>
                 {[1, 2, 3, 4, 5].map((n) => (
                   <div key={n} className="h-1.5 flex-1 rounded-full bg-white/10 overflow-hidden">
                     <m.div className="h-full rounded-full bg-gradient-to-r from-amber-400 to-rose-400"
@@ -1102,30 +1098,30 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             </div>
             <div className="mt-2.5 grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-sm">
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
-                다시 열릴 여지: <b>{summaryCard.reApproachChance || "중간"}</b>
+                {copy.reApproachLabel} <b>{summaryCard.reApproachChance || "중간"}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
-                다시 닿을 여지: <b>{summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}</b>
+                {copy.contactChanceLabel} <b>{summaryCard.contactChance || "낮지는 않지만, 방어심리가 변수"}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/95">
-                관계 흐름: <b>{summaryCard.relationFlow || "단절보다 거리두기에 가까움"}</b>
+                {copy.relationFlowLabel} <b>{summaryCard.relationFlow || "단절보다 거리두기에 가까움"}</b>
               </div>
             </div>
             <p className="mt-3 text-sm text-amber-50/95 leading-7">
-              겉으로 숨긴 중심: {summaryCard.corePsychology || "미련은 있지만 먼저 다가오기는 조심스러운 상태"}
+              {copy.hiddenCoreLabel} {summaryCard.corePsychology || "미련은 있지만 먼저 다가오기는 조심스러운 상태"}
             </p>
             <p className="text-sm text-amber-50/90 leading-7">
-              오늘 건넬 태도: {summaryCard.recommendedAction || "무거운 확인보다 가벼운 안부로 시작"}
+              {copy.recommendedActionLabel} {summaryCard.recommendedAction || "무거운 확인보다 가벼운 안부로 시작"}
             </p>
             <div className="mt-3 grid grid-cols-1 sm:grid-cols-2 gap-2 text-[12px]">
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/90">
-                관계의 현재 문턱: <b>{summaryCard.relationshipStage || "유보형 거리두기 단계"}</b>
+                {copy.relationshipStageLabel} <b>{summaryCard.relationshipStage || "유보형 거리두기 단계"}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/90">
-                침묵의 그림자: <b>{summaryCard.silenceDriver || "자존심과 상처 재발 우려"}</b>
+                {copy.silenceDriverLabel} <b>{summaryCard.silenceDriver || "자존심과 상처 재발 우려"}</b>
               </div>
               <div className="rounded-xl border border-amber-100/15 bg-black/25 px-3 py-2 text-stone-100/90 sm:col-span-2">
-                흐름을 누르는 힘: <b>{summaryCard.situationPressure || "접근 강도 조절이 필요한 구간"}</b>
+                {copy.situationPressureLabel} <b>{summaryCard.situationPressure || "접근 강도 조절이 필요한 구간"}</b>
               </div>
             </div>
           </m.article>
@@ -1137,8 +1133,8 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               initial={{ opacity: 0, y: 14 }}
               animate={{ opacity: visibleCount >= 5 ? 1 : 0, y: visibleCount >= 5 ? 0 : 14 }}>
               <div className="flex items-center justify-between gap-3 mb-3">
-                <h3 className="text-base sm:text-lg font-black text-amber-50">숨은 감정 보조 카드</h3>
-                <span className="text-[11px] text-amber-100/80 tracking-wide">한 장씩 열어 마음의 단서를 확인하세요</span>
+                <h3 className="text-base sm:text-lg font-black text-amber-50">{copy.insightDeckTitle}</h3>
+                <span className="text-[11px] text-amber-100/80 tracking-wide">{copy.insightDeckHint}</span>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 mb-4">
@@ -1165,13 +1161,13 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                         <>
                           <p className="text-[10px] text-amber-100/80 mb-1 tracking-[0.12em] uppercase">{card.category}</p>
                           <p className="text-sm text-stone-50 font-semibold leading-5">{card.title}</p>
-                          <p className="text-[11px] text-amber-100/85 mt-2">{card.icon || "🃏"} 열림</p>
+                          <p className="text-[11px] text-amber-100/85 mt-2">{card.icon || "🃏"} {copy.insightOpenedSuffix}</p>
                         </>
                       ) : (
                         <>
                           <p className="text-[10px] text-amber-100/65 tracking-[0.18em] uppercase mb-2">Mindscan Deck</p>
-                          <p className="text-xs text-stone-50/90 font-semibold">숨은 조각 {idx + 1}</p>
-                          <p className="text-[11px] text-amber-100/75 mt-2">열어보기</p>
+                          <p className="text-xs text-stone-50/90 font-semibold">{copy.insightHiddenPieceTemplate(idx + 1)}</p>
+                          <p className="text-[11px] text-amber-100/75 mt-2">{copy.insightOpenLabel}</p>
                         </>
                       )}
                     </m.button>
@@ -1191,11 +1187,11 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                       <h4 className="text-sm sm:text-base font-bold text-indigo-50 mt-1">{activeInsight.icon || "🃏"} {activeInsight.title}</h4>
                     </div>
                     <span className={`px-2 py-0.5 rounded-full text-[10px] font-semibold border ${RISK_LEVEL_CLASS[activeInsight.riskLevel || "중간"] || RISK_LEVEL_CLASS["중간"]}`}>
-                      그림자 {activeInsight.riskLevel || "중간"}
+                      {copy.riskLabelPrefix} {activeInsight.riskLevel || "중간"}
                     </span>
                   </div>
                   {activeInsight.headline && (
-                    <p className="text-sm text-indigo-100/95 leading-7">드러난 결: {activeInsight.headline}</p>
+                    <p className="text-sm text-indigo-100/95 leading-7">{copy.headlineLabel} {activeInsight.headline}</p>
                   )}
                   {activeInsight.summary && (
                     <p className="text-sm text-indigo-100/85 leading-7 mt-1.5">{activeInsight.summary}</p>
@@ -1229,10 +1225,10 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                   {s.subtitle && <p className="text-xs text-amber-100/70 mt-1">{s.subtitle}</p>}
                   {(s.mainCardName || s.subCardName) && (
                     <div className="flex flex-wrap items-center gap-x-1 mt-0.5">
-                      <span className="text-[10px] text-amber-100/60">앞장:</span>
+                      <span className="text-[10px] text-amber-100/60">{copy.sectionFrontCardLabel}</span>
                       <span className="text-[10px] text-stone-100 font-medium">{s.mainCardName || "—"}</span>
                       <span className="text-[10px] text-amber-200/35 mx-0.5">·</span>
-                      <span className="text-[10px] text-amber-100/60">이면:</span>
+                      <span className="text-[10px] text-amber-100/60">{copy.sectionBackCardLabel}</span>
                       <span className="text-[10px] text-stone-100 font-medium">{s.subCardName || "—"}</span>
                     </div>
                   )}
@@ -1243,7 +1239,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                       </span>
                     )}
                     <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold border border-violet-300/35 bg-violet-500/15 text-violet-100">
-                      감정 온도 {s.emotionalTemperature || 3}/5
+                      {copy.emotionalTempLabel} {s.emotionalTemperature || 3}/5
                     </span>
                     {(s.mainCardKeywords || []).slice(0, 2).map((kw) => (
                       <span key={`m-${s.slot}-${kw}`} className="px-2 py-0.5 rounded-full text-[10px] border border-fuchsia-300/30 text-fuchsia-100/90 bg-fuchsia-500/10">#{kw}</span>
@@ -1267,17 +1263,17 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                 </div>
               )}
               <div className="sm:pl-12 mt-3 grid grid-cols-1 gap-2">
-                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>카드의 얼굴:</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? "역방향" : "정방향"})` : ""}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionCardFaceLabel}</b> {s.cardNameKo || s.mainCardName || "카드"} {s.orientation ? `(${s.orientation === "reversed" ? copy.orientationReversed : copy.orientationUpright})` : ""}</p>
                 {s.cardMeaning && s.cardMeaning !== (s.summary || s.content) && (
-                  <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>카드가 비춘 장면:</b> {s.cardMeaning}</p>
+                  <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionCardMeaningLabel}</b> {s.cardMeaning}</p>
                 )}
-                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>이 자리의 속삭임:</b> {s.positionMeaning || s.subtitle || "이 자리의 질문에 맞춘 해석"}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionPositionWhisperLabel}</b> {s.positionMeaning || s.subtitle || "이 자리의 질문에 맞춘 해석"}</p>
                 {s.emotionalReading && s.emotionalReading !== (s.summary || s.content) && (
-                  <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>남은 감정의 결:</b> {s.emotionalReading}</p>
+                  <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionEmotionalReadingLabel}</b> {s.emotionalReading}</p>
                 )}
-                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>말하지 못한 메시지:</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
-                <p className="text-[13px] sm:text-sm text-amber-100/90 leading-7"><b>조심할 그림자:</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
-                <p className="text-[13px] sm:text-sm text-emerald-100/90 leading-7"><b>내가 건넬 태도:</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
+                <p className="text-[13px] sm:text-sm text-purple-100/85 leading-7"><b>{copy.sectionHiddenMessageLabel}</b> {s.hiddenMessage || "확답보다 안전한 대화 환경을 먼저 원하고 있습니다."}</p>
+                <p className="text-[13px] sm:text-sm text-amber-100/90 leading-7"><b>{copy.sectionCautionLabel}</b> {s.caution || "감정 확인을 몰아붙이면 방어가 강화될 수 있습니다."}</p>
+                <p className="text-[13px] sm:text-sm text-emerald-100/90 leading-7"><b>{copy.sectionAdviceLabel}</b> {s.advice || "짧고 부담 없는 메시지로 리듬을 회복하세요."}</p>
               </div>
             </m.article>
           ))}
@@ -1288,11 +1284,11 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
               style={{ background: "linear-gradient(135deg,rgba(6,182,212,0.12),rgba(109,40,217,0.06),transparent)" }}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: visibleCount >= 14 ? 1 : 0, y: visibleCount >= 14 ? 0 : 16 }}>
-              <h4 className="text-sm sm:text-base font-bold text-cyan-50 mb-3">지금 보내기 좋은 메시지 예시</h4>
+              <h4 className="text-sm sm:text-base font-bold text-cyan-50 mb-3">{copy.suggestedMessagesTitle}</h4>
               <div className="space-y-2.5">
                 {suggestedMessages.map((item, idx) => (
                   <div key={`msg-${idx}`} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2.5">
-                    <p className="text-[11px] text-cyan-200/75 mb-1">{item.tone || `메시지 ${idx + 1}`}</p>
+                    <p className="text-[11px] text-cyan-200/75 mb-1">{item.tone || copy.suggestedMessageFallbackTemplate(idx + 1)}</p>
                     <p className="text-sm text-cyan-50/90 leading-7">“{item.text}”</p>
                   </div>
                 ))}
@@ -1312,7 +1308,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                   style={{ background: "rgba(236,72,153,0.14)", border: "1px solid rgba(236,72,153,0.22)" }}>
                   <span className="text-lg">✨</span>
                 </div>
-                <h4 className="text-sm sm:text-base font-bold text-amber-50">현실적인 행동 가이드</h4>
+                <h4 className="text-sm sm:text-base font-bold text-amber-50">{copy.masterAdviceTitle}</h4>
               </div>
               <p className="text-[15px] sm:text-base text-stone-100/90 leading-8 tracking-[0.01em] whitespace-pre-line">{reading.masterAdvice}</p>
             </m.article>
@@ -1323,13 +1319,13 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 16 }}
             transition={{ duration: 0.38 }}>
-            <h4 className="text-sm sm:text-base font-bold text-amber-50 mb-3">전체 종합 상담</h4>
+            <h4 className="text-sm sm:text-base font-bold text-amber-50 mb-3">{copy.overallConsultTitle}</h4>
             <div className="space-y-2">
-              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>겉말 아래 남은 감정:</b> {innerHeartSummary.hiddenCore || "겉표현 아래에 망설임과 미련이 함께 남아 있습니다."}</p>
-              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>관계의 위험 신호:</b> {innerHeartSummary.relationshipRisk || "확답을 강요하면 관계 방어가 강화될 수 있습니다."}</p>
-              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>오늘 내가 취할 태도:</b> {innerHeartSummary.recommendedAttitude || "짧고 안전한 대화 리듬을 먼저 만드세요."}</p>
-              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>최종 흐름:</b> {innerHeartSummary.finalFlow || "관계는 조정 단계를 거쳐 방향을 결정할 가능성이 큽니다."}</p>
-              <p className="text-[13px] sm:text-sm text-cyan-50/95 leading-7"><b>오라클 메시지:</b> {innerHeartSummary.oracleMessage || "안전감을 주는 말 한 줄이 상대의 방어를 낮춥니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>{copy.overallHiddenCoreLabel}</b> {innerHeartSummary.hiddenCore || "겉표현 아래에 망설임과 미련이 함께 남아 있습니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>{copy.overallRiskLabel}</b> {innerHeartSummary.relationshipRisk || "확답을 강요하면 관계 방어가 강화될 수 있습니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>{copy.overallAttitudeLabel}</b> {innerHeartSummary.recommendedAttitude || "짧고 안전한 대화 리듬을 먼저 만드세요."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-100/90 leading-7"><b>{copy.overallFinalFlowLabel}</b> {innerHeartSummary.finalFlow || "관계는 조정 단계를 거쳐 방향을 결정할 가능성이 큽니다."}</p>
+              <p className="text-[13px] sm:text-sm text-cyan-50/95 leading-7"><b>{copy.overallOracleLabel}</b> {innerHeartSummary.oracleMessage || "안전감을 주는 말 한 줄이 상대의 방어를 낮춥니다."}</p>
             </div>
           </m.article>
 
@@ -1344,7 +1340,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
             <div className="flex items-center justify-center gap-2 mt-3">
               <div className="w-8 h-px bg-amber-600/35" />
               <p className="text-[9px] text-amber-100/45 tracking-widest">
-                {reading.source === "rule-engine" ? "✦ 카드 의미 기반 리딩" : "✦ 관계 간격 리딩"}
+                {reading.source === "rule-engine" ? copy.footerRuleEngine : copy.footerDefault}
               </p>
               <div className="w-8 h-px bg-amber-600/35" />
             </div>
@@ -1356,21 +1352,21 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
           initial={{ opacity: 0, y: 8 }}
           animate={{ opacity: visibleCount >= 15 ? 1 : 0, y: visibleCount >= 15 ? 0 : 8 }}>
           <div className={`${LUXE_CARD} p-4 sm:p-5`}>
-            <p className="text-[11px] text-amber-100/70 mb-3 tracking-[0.24em] uppercase text-center">리딩 저장과 공유</p>
+            <p className="text-[11px] text-amber-100/70 mb-3 tracking-[0.24em] uppercase text-center">{copy.saveShareLabel}</p>
             <div className="grid grid-cols-2 gap-2.5">
               <button
                 type="button"
                 onClick={handleSaveImage}
                 className="px-4 py-3 rounded-xl text-sm font-bold tracking-wide border border-amber-300/45 bg-amber-500/20 text-amber-50 shadow-[0_0_20px_rgba(251,191,36,0.15)] hover:bg-amber-400/30 transition-colors"
               >
-                {mindScanTarotText("mindScanTarot.010")}
+                {copy.saveImageButton}
               </button>
               <button
                 type="button"
                 onClick={handleShare}
                 className="px-4 py-3 rounded-xl text-sm font-bold tracking-wide border border-amber-300/45 bg-amber-500/20 text-amber-50 shadow-[0_0_20px_rgba(251,191,36,0.15)] hover:bg-amber-400/30 transition-colors"
               >
-                {mindScanTarotText("mindScanTarot.011")}
+                {copy.shareButton}
               </button>
             </div>
             <div className="mt-2.5 grid grid-cols-3 gap-2">
@@ -1379,21 +1375,21 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
                 onClick={handleCopy}
                 className="px-2 py-3 rounded-xl text-xs font-semibold tracking-wide border border-white/15 bg-white/5 text-stone-200/80 hover:bg-white/10 hover:text-stone-50 transition-colors"
               >
-                {mindScanTarotText("mindScanTarot.012")}
+                {copy.copyReadingButton}
               </button>
               <button
                 type="button"
                 onClick={handleKakaoShare}
                 className="px-2 py-3 rounded-xl text-xs font-semibold tracking-wide border border-white/15 bg-white/5 text-stone-200/80 hover:bg-white/10 hover:text-stone-50 transition-colors"
               >
-                {mindScanTarotText("mindScanTarot.013")}
+                {copy.kakaoShareButton}
               </button>
               <button
                 type="button"
                 onClick={handleGoHome}
                 className="px-2 py-3 rounded-xl text-xs font-semibold tracking-wide border border-white/15 bg-white/5 text-stone-200/80 hover:bg-white/10 hover:text-stone-50 transition-colors"
               >
-                {mindScanTarotText("mindScanTarot.014")}
+                {copy.goHomeButton}
               </button>
             </div>
           </div>
@@ -1414,23 +1410,23 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
           transition={{ duration: 0.38 }}>
           <p className="text-[10px] tracking-[0.4em] text-amber-100/60 uppercase mb-3 text-center">Next Oracle Prompt</p>
           <h4 className="text-base sm:text-lg font-black text-amber-50 mb-2 text-center" style={{ fontFamily: "'Cormorant Garamond','Noto Serif KR',serif" }}>
-            말과 행동 사이의 온도를 한 번 더 비추기
+            {copy.aiPromptHeading}
           </h4>
           <p className="text-[13px] sm:text-sm text-stone-100/80 leading-7 mb-3 text-center">
-            방금 열린 다섯 자리의 결을 그대로 건네면, 상대의 말과 행동 사이에 남은 신호를 더 깊게 이어 볼 수 있습니다.
+            {copy.aiPromptDesc}
           </p>
           <textarea
             className="min-h-[230px] max-h-[44dvh] w-full resize-y rounded-2xl border border-amber-200/20 bg-black/40 p-3 text-[12px] sm:text-[13px] leading-7 text-stone-100/90 outline-none focus:border-amber-200/50 focus:ring-2 focus:ring-amber-200/20"
             value={aiPromptText}
             readOnly
-            aria-label={mindScanTarotText("mindScanTarot.015")}
+            aria-label={copy.aiPromptAriaLabel}
           />
           <div className="mt-3 grid grid-cols-1 sm:grid-cols-[max-content_1fr] items-center gap-2.5">
             <button
               type="button"
               onClick={handleCopyAiPrompt}
               className="px-5 py-3 rounded-xl text-sm font-bold tracking-wide border border-amber-300/45 bg-amber-400/20 text-amber-50 hover:bg-amber-400/30 transition-colors">
-              질문문 복사
+              {copy.copyAiPromptButton}
             </button>
             <span className="min-h-5 text-center sm:text-left text-xs text-amber-100/80" aria-live="polite">
               {aiPromptMsg}
@@ -1440,7 +1436,7 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
 
         <button type="button" onClick={onRestart}
           className="mt-6 mb-12 px-8 py-3 rounded-full border border-amber-300/35 text-amber-100/80 text-sm font-medium tracking-wide hover:bg-amber-400/15 hover:text-amber-50 transition-all">
-          🔄 다시 카드 열기
+          {copy.restartButton}
         </button>
       </div>
     </m.div>
@@ -1450,6 +1446,20 @@ function ResultStage({ drawn, drawnSub, reading, question, onRestart, reportRef 
 // ── MAIN ──────────────────────────────────────────────────────────────────────
 export default function MindScanTarot() {
   const { ensurePaidAccess } = useCoinGate();
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = useMemo(() => getMindScanTarotCopy(locale), [locale]);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
+
   const [stage, setStage] = useState<Stage>("intro");
   const [question, setQuestion] = useState("");
   const [pickRound, setPickRound] = useState<PickRound>("main");
@@ -1530,14 +1540,14 @@ export default function MindScanTarot() {
     if (readingLoading || reading) return;
     const trimmedQuestion = question.trim();
     if (!trimmedQuestion) {
-      setReadingError("상담 질문을 입력해 주세요.");
+      setReadingError(copy.questionRequiredError);
       return;
     }
     const pairs = POSITIONS.map((pos, idx) => ({
       slot: idx + 1,
       positionId: pos.id,
-      positionLabel: pos.label,
-      positionMeaning: pos.meaning,
+      positionLabel: positionLabel(pos.id, copy),
+      positionMeaning: positionMeaning(pos.id, copy),
       mainCardId: drawnRef.current[pos.id] ?? idx,
       subCardId: drawnSubRef.current[pos.id] ?? (idx + 5),
     }));
@@ -1575,7 +1585,7 @@ export default function MindScanTarot() {
           setStage("result");
           return;
         }
-        throw new Error(String(data?.message || data?.error || `요청 실패 (${res.status})`));
+        throw new Error(String(data?.message || data?.error || copy.requestFailedTemplate(res.status)));
       };
 
       if (isFlowerAdminMode) {
@@ -1593,7 +1603,7 @@ export default function MindScanTarot() {
       const paymentResult = await ensurePaidAccess({
         featureKey: "tarot-mindscan",
         cost: lookupServerCoinPrice("tarot-mindscan"),
-        reason: "말과 행동 사이 타로 리딩",
+        reason: copy.paymentReasonFull,
         requestId: `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
         onPaid: ({ chargedCoins, accessSource, monthlyCreditsSpent, monthlyBalanceAfter, balanceAfter }) => {
@@ -1601,24 +1611,25 @@ export default function MindScanTarot() {
           // (useCoinGate 의 chargedCoins 계산) 이용권 여부를 가릴 수 없다.
           if (accessSource === "subscription") {
             showSubscriptionIncludedNotice({
-              message: mindScanTarotText("mindScanTarot.016"),
-              reason: "말과 행동 사이 타로",
+              message: copy.subscriptionIncludedMessage,
+              reason: copy.paymentReasonShort,
             });
             return;
           }
           if (accessSource === "moonlight_stone") {
-            showToast(`월정석 ${formatKrwFromMonthlyCredits(monthlyCreditsSpent)} 상당으로 말과 행동 사이 타로가 열렸습니다.${typeof monthlyBalanceAfter === "number" ? ` 남은 월정석: ${formatKrwFromMonthlyCredits(monthlyBalanceAfter)} 상당` : ""}`, "info");
+            const remainingSuffix = typeof monthlyBalanceAfter === "number" ? copy.moonlightRemainingSuffixTemplate(formatKrwFromMonthlyCredits(monthlyBalanceAfter)) : "";
+            showToast(copy.moonlightStoneToastTemplate(formatKrwFromMonthlyCredits(monthlyCreditsSpent), remainingSuffix), "info");
             return;
           }
           if (chargedCoins > 0) {
-            showToast(`말과 행동 사이 타로 ${Math.max(0, chargedCoins * 100).toLocaleString("ko-KR")}원 결제가 승인되었습니다. 잔여 원화 가치: ${Math.max(0, balanceAfter * 100).toLocaleString("ko-KR")}원`, "info");
+            showToast(copy.coinChargedToastTemplate(`${Math.max(0, chargedCoins * 100).toLocaleString("ko-KR")}원`, `${Math.max(0, balanceAfter * 100).toLocaleString("ko-KR")}원`), "info");
           }
         },
       });
 
       if (!paymentResult.ok) {
         if (paymentResult.code === "AUTH_REQUIRED") {
-          setReadingError("로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
+          setReadingError(copy.loginRequiredError);
           if (typeof window !== "undefined") {
             const next = encodeURIComponent(window.location.pathname + window.location.search);
             window.setTimeout(() => {
@@ -1628,14 +1639,14 @@ export default function MindScanTarot() {
           return;
         }
         if (paymentResult.code === "INSUFFICIENT_COINS") {
-          setReadingError(`결제 가능 금액이 부족합니다. ${Math.max(0, Number(paymentResult.requiredCoins || 0) * 100).toLocaleString("ko-KR")}원 결제가 필요합니다.`);
+          setReadingError(copy.insufficientCoinsErrorTemplate(`${Math.max(0, Number(paymentResult.requiredCoins || 0) * 100).toLocaleString("ko-KR")}원`));
           return;
         }
         if (paymentResult.code === "FEATURE_EXECUTION_FAILED" && paymentResult.refunded) {
-          showToast("리딩 생성이 완료되지 않아 이번 결제가 환불되었습니다.", "info");
+          showToast(copy.refundedToast, "info");
         }
         if (!paymentResult.ok) {
-          setReadingError(String(paymentResult.message || "결제 확인이 완료되지 않았습니다."));
+          setReadingError(String(paymentResult.message || copy.paymentNotConfirmedError));
           return;
         }
       }
@@ -1645,11 +1656,11 @@ export default function MindScanTarot() {
       await executeReading();
       paidAccessGrantedRef.current = false;
     } catch (e) {
-      setReadingError(friendlyErrorMessage(e, mindScanTarotText("mindScanTarot.017")));
+      setReadingError(friendlyErrorMessage(e, copy.genericErrorFallback));
     } finally {
       setReadingLoading(false);
     }
-  }, [ensurePaidAccess, question, readingLoading, reading]);
+  }, [copy, ensurePaidAccess, question, readingLoading, reading]);
 
   const restart = useCallback(() => {
     setStage("intro"); setPickRound("main");
@@ -1668,22 +1679,22 @@ export default function MindScanTarot() {
       <StarField />
       <AnimatePresence mode="wait">
         {stage === "intro" && (
-          <IntroStage key="intro" onStart={() => setStage("picking")} />
+          <IntroStage key="intro" onStart={() => setStage("picking")} copy={copy} />
         )}
         {stage === "picking" && (
           <PickingStage key={`picking-${pickRound}`}
-            round={pickRound} mainSelected={mainPicks} subSelected={subPicks} onPick={handlePick} />
+            round={pickRound} mainSelected={mainPicks} subSelected={subPicks} onPick={handlePick} copy={copy} />
         )}
         {stage === "spread" && (
           <SpreadStage key="spread"
             drawn={drawn} drawnSub={drawnSub} revealedCount={revealedCount}
             readingLoading={readingLoading} readingError={readingError}
             question={question} onQuestionChange={setQuestion}
-            onGenerateReading={handleGenerateReading} />
+            onGenerateReading={handleGenerateReading} copy={copy} />
         )}
         {stage === "result" && reading && (
           <ResultStage key="result"
-            drawn={drawn} drawnSub={drawnSub} reading={reading} question={question} onRestart={restart} reportRef={reportRef} />
+            drawn={drawn} drawnSub={drawnSub} reading={reading} question={question} onRestart={restart} reportRef={reportRef} copy={copy} />
         )}
       </AnimatePresence>
     </div>

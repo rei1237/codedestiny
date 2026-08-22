@@ -12,6 +12,7 @@
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { codexAccessLabel } from "../data/premium";
 import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
+import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexReportStampProps {
@@ -20,18 +21,18 @@ interface CodexReportStampProps {
   className?: string;
 }
 
-const REPORT_LABEL: Record<MasterLoveCodexMode, string> = {
-  solo: "PREMIUM AI RELATIONSHIP REPORT",
-  compat: "PREMIUM AI COMPATIBILITY REPORT",
-};
-
 export default function CodexReportStamp({ mode, accessType, className = "" }: CodexReportStampProps) {
-  const billing = masterLoveCodexBilling(mode);
-  const { showPrice, note } = codexAccessLabel(accessType);
+  const locale = useMasterLoveCodexLocale();
+  const copy = useMasterLoveCodexCopy();
+  const billing = masterLoveCodexBilling(mode, locale);
+  const { showPrice, note: accessNote } = codexAccessLabel(accessType);
+  const note = accessNote === "이용권 포함" ? copy.passIncludedNote
+    : accessNote === "월정석 사용" ? copy.monthlyCreditUsedNote
+    : accessNote;
 
   return (
     <p className={`${styles.badge} ${className}`}>
-      {REPORT_LABEL[mode]}
+      {mode === "compat" ? copy.reportStampCompat : copy.reportStampSolo}
       {showPrice ? (
         <>
           <span aria-hidden="true">·</span>

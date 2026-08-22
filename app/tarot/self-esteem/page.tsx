@@ -1,4 +1,5 @@
 import TarotSelfEsteemRouteClient from "./TarotSelfEsteemRouteClient";
+import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 
 const TAROT_SELF_ESTEEM_METADATA_COPY = {
   ko: {
@@ -34,5 +35,10 @@ export const metadata = {
 };
 
 export default function TarotSelfEsteemLandingPage() {
-  return <TarotSelfEsteemRouteClient />;
+  return (
+    <>
+      <RouteMetadataLocaleSync entries={TAROT_SELF_ESTEEM_METADATA_COPY} />
+      <TarotSelfEsteemRouteClient />
+    </>
+  );
 }

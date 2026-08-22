@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import SajuFptiRouteClient from "./SajuFptiRouteClient";
+import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 
 const SAJU_FPTI_METADATA_COPY = {
   ko: {
@@ -37,6 +38,7 @@ export const metadata: Metadata = {
 export default function SajuFptiPage() {
   return (
     <>
+      <RouteMetadataLocaleSync entries={SAJU_FPTI_METADATA_COPY} />
       <section className="sr-only" aria-label="사주 FPTI 테스트 설명">
         <h2>사주 FPTI 테스트</h2>
         <p>

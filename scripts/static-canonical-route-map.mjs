@@ -18,7 +18,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "무료 시빌라 사주 — 진로 적성과 운명 위험 계수",
     description: "사주팔자의 기질과 계절 흐름을 바탕으로 진로 적성, 선택의 압력, 조심해야 할 운명 위험 계수를 차분히 살핍니다.",
-    source: "static-shell",
+    source: "app",
     action: "openSibylModal",
   },
   {
@@ -26,7 +26,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "무료 사주 만세력 기본 해석 — 오행·십성 한눈에",
     description: "오행과 십성, 명식의 네 기둥을 바탕으로 타고난 기질, 관계의 결, 일과 재물의 기본 흐름을 차분히 살핍니다.",
-    source: "static-shell",
+    source: "app",
   },
   {
     canonical: "/saju/animal-destiny",
@@ -47,7 +47,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "무료 명리학 타로 — 십성으로 겹쳐 읽는 카드",
     description: "타로 카드와 십성의 기운을 겹쳐 지금 질문의 핵심 흐름, 마음의 기울기, 선택의 방향을 명리학 타로로 살핍니다.",
-    source: "static-shell",
+    source: "app",
     action: "openTarotModal",
   },
   {
@@ -55,7 +55,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "우리는 무슨 사이? — 무료 연애 타로 6카드",
     description: "그 사람의 말과 행동 사이에 남은 온도, 관계가 깊어지는 속도, 지금 지켜야 할 마음의 선을 연애 타로로 비춥니다.",
-    source: "static-shell",
+    source: "app",
     action: "openTarotLoveModal",
   },
   {
@@ -63,7 +63,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "무료 재회운 타로 — 다시 닿아도 괜찮은 거리",
     description: "그리움과 현실 사이에서 다시 닿아도 괜찮은 거리, 상대의 마음, 조심스럽게 건넬 첫 문장을 재회운 타로로 살핍니다.",
-    source: "static-shell",
+    source: "app",
     action: "openTarotReunionModal",
   },
   {
@@ -71,7 +71,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "무료 자기 기준 회복 타로 — 다시 내 편에 서는 5카드",
     description: "타인의 시선에 흐려진 마음의 선을 다섯 장의 카드로 비추고, 오늘 다시 세워야 할 자기 기준과 회복의 방향을 살핍니다.",
-    source: "static-shell",
+    source: "app",
     action: "openTarotSelfEsteemModal",
   },
   {
@@ -79,7 +79,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "무료 십이지신 천운 타로 — 한 해 월별 흐름",
     description: "열두 수호신과 타로 카드가 한 해의 재물, 관계, 일과 마음의 흐름을 월별 리듬으로 비추며 조심할 시기를 살핍니다.",
-    source: "static-shell",
+    source: "app",
     action: "openTarotYearFortuneModal",
   },
   {
@@ -101,7 +101,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "무료 코즈믹 차트 — 태양·달·상승궁 출생차트",
     description: "태양 별자리, 달 별자리, 상승궁과 MC의 흐름으로 출생차트에 담긴 기질, 관계, 일의 방향을 코즈믹 차트로 살핍니다.",
-    source: "static-shell",
+    source: "app",
     action: "openAstroModal",
   },
   {
@@ -139,7 +139,7 @@ export const STATIC_CANONICAL_ROUTES = [
     aliases: [],
     title: "무료 숙요점 궁합 — 27숙 인연 거리 보기",
     description: "27숙의 달빛 관계 흐름으로 본명숙, 인연 거리, 궁합의 리듬, 가까워지는 방식과 조심할 거리를 살핍니다.",
-    source: "static-shell",
+    source: "app",
     action: "openSukuyoModal",
   },
 ];

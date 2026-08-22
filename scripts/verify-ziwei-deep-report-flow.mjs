@@ -36,9 +36,12 @@ const PANEL_PATH = "app/components/ziwei/ZiweiDeepPdfPanel.tsx";
 const SECTION_PATH = "app/components/AdvancedZiweiSectionV2.tsx";
 const MODELS_PATH = "worker/lib/models.js";
 
+const PANEL_COPY_PATH = "app/components/ziwei/_lib/ziwei-deep-pdf-copy.ts";
+
 const route = read(ROUTE_PATH);
 const promptSource = read(PROMPT_PATH);
 const panel = read(PANEL_PATH);
+const panelCopy = read(PANEL_COPY_PATH);
 const section = read(SECTION_PATH);
 const models = read(MODELS_PATH);
 
@@ -252,7 +255,7 @@ const { __ziweiDeepReportTestUtils: utils } = await import("../worker/routes/ziw
 
   // 🔴 자매 구현(destiny-compass-ai)은 /result 를 만들어 놓고 프론트가 쓰지 않는다. 같은 실수 방지.
   assert(panel.includes("/api/ziwei-deep-report/result"), "프론트가 /result 를 실제로 호출해야 한다(만들어 놓고 안 쓰면 재열람이 없는 것과 같다)");
-  assert(panel.includes("지난 리포트 다시 보기"), "재열람 진입점이 UI 에 있어야 한다");
+  assert(panelCopy.includes("지난 리포트 다시 보기"), "재열람 진입점이 UI 에 있어야 한다");
   assert(panel.includes("openStoredReport"), "저장본 단건 열기 핸들러가 있어야 한다");
   assert(panel.includes("restored"), "저장본임을 사용자에게 구분해 보여줘야 한다");
 

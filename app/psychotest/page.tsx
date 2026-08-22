@@ -6,6 +6,7 @@ import {
   buildPsychotestExternalUrl,
 } from "../../lib/psychotest-catalog";
 import DestinyBiasPromoSection from "./_components/DestinyBiasPromoSection";
+import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 
 const PSYCHOTEST_PAGE_METADATA_COPY = {
   ko: {
@@ -73,6 +74,7 @@ export default function PsychotestHubPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
+      <RouteMetadataLocaleSync entries={PSYCHOTEST_PAGE_METADATA_COPY} />
 
       <header className="mb-8 rounded-3xl border border-violet-200/40 bg-[radial-gradient(circle_at_15%_20%,rgba(244,114,182,0.16),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(99,102,241,0.16),transparent_35%),linear-gradient(155deg,#ffffff,#faf5ff)] p-6 shadow-sm md:p-8">
         <p className="mb-3 text-xs font-semibold tracking-[0.12em] text-violet-500">PSYCHOLOGY TEST HUB</p>

@@ -10,6 +10,7 @@
 import AiResultProse from "@/components/fortune/AiResultProse";
 import CodexReveal from "./CodexReveal";
 import { CODEX_CHAPTER_ANCHOR_PREFIX } from "../data/acts";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 export interface CodexChapterData {
@@ -55,6 +56,7 @@ function stripChapterPrefix(title: string): string {
 }
 
 export default function CodexChapter({ chapter, forceVisible = false }: CodexChapterProps) {
+  const copy = useMasterLoveCodexCopy();
   const heading = stripChapterPrefix(chapter.title);
   const content = chapter.content;
   const hasEditorialContent = Boolean(content?.narration || content?.insight || content?.evidence?.length || content?.actions?.length);
@@ -91,8 +93,8 @@ export default function CodexChapter({ chapter, forceVisible = false }: CodexCha
           ) : null}
 
           {content?.evidence?.length ? (
-            <section className={styles.evidence} aria-label="무엇을 근거로 읽었는가">
-              <h3>무엇을 근거로 읽었는가</h3>
+            <section className={styles.evidence} aria-label={copy.chapterEvidenceAriaLabel}>
+              <h3>{copy.chapterEvidenceAriaLabel}</h3>
               <div className={styles.evidenceChips}>
                 {content.evidence.map((item) => (
                   <details key={`${item.system}-${item.label}`} className={styles.evidenceChip}>
@@ -108,13 +110,13 @@ export default function CodexChapter({ chapter, forceVisible = false }: CodexCha
           {content?.keySentence ? <p className={styles.keySentence}>{content.keySentence}</p> : null}
 
           {content?.visualization?.items?.length ? (
-            <section className={styles.visualization} aria-label={content.visualization.title || "정성적 흐름"}>
-              <h3>{content.visualization.title || "이 장의 흐름"}</h3>
+            <section className={styles.visualization} aria-label={content.visualization.title || copy.chapterVisualizationDefaultTitle}>
+              <h3>{content.visualization.title || copy.chapterVisualizationDefaultTitle}</h3>
               <ul>
                 {content.visualization.items.map((item) => (
                   <li key={item.label} data-level={item.level}>
                     <span>{item.label}</span>
-                    <strong>{item.level === "low" ? "약함" : item.level === "balanced" ? "균형" : item.level === "high" ? "강함" : item.level === "watch" ? "관찰" : "기회"}</strong>
+                    <strong>{item.level === "low" ? copy.levelLow : item.level === "balanced" ? copy.levelBalanced : item.level === "high" ? copy.levelHigh : item.level === "watch" ? copy.levelWatch : copy.levelOpportunity}</strong>
                     {item.note ? <small>{item.note}</small> : null}
                   </li>
                 ))}
@@ -124,21 +126,21 @@ export default function CodexChapter({ chapter, forceVisible = false }: CodexCha
 
           {content?.caution ? (
             <section className={styles.caution}>
-              <h3>관계에서 주의할 순간</h3>
+              <h3>{copy.chapterCautionTitle}</h3>
               <p>{content.caution}</p>
             </section>
           ) : null}
 
           {content?.actions?.length ? (
             <section className={styles.actions}>
-              <h3>지금 할 수 있는 행동</h3>
+              <h3>{copy.chapterActionsTitle}</h3>
               <ol>{content.actions.map((action) => <li key={action}>{action}</li>)}</ol>
             </section>
           ) : null}
 
           {hasEditorialContent ? (
             <details className={styles.detailProse} open={forceVisible}>
-              <summary>상세 상담 내용 읽기</summary>
+              <summary>{copy.chapterDetailSummary}</summary>
               <AiResultProse value={normalizeHeadings(chapter.body)} className={styles.prose} />
             </details>
           ) : <AiResultProse value={normalizeHeadings(chapter.body)} className={styles.prose} />}
@@ -153,7 +155,7 @@ export default function CodexChapter({ chapter, forceVisible = false }: CodexCha
               style={{ color: "var(--codex-ink-text-muted)" }}
               role="status"
             >
-              이 장은 다시 열면 채워집니다. 다른 장은 그대로 보관되어 있습니다.
+              {copy.chapterOkFalseNote}
             </p>
           </CodexReveal>
         ) : null}

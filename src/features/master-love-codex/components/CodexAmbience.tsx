@@ -13,6 +13,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Volume2, VolumeX } from "lucide-react";
 import { MASTER_LOVE_CODEX_BGM_KEY } from "../constants";
 import type { MasterLoveCodexBgmTrack } from "../data/assets";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexAmbienceProps {
@@ -21,6 +22,7 @@ interface CodexAmbienceProps {
 }
 
 export default function CodexAmbience({ track }: CodexAmbienceProps) {
+  const copy = useMasterLoveCodexCopy();
   const audioRef = useRef<HTMLAudioElement | null>(null);
   const [enabled, setEnabled] = useState(true);
   const [preferenceReady, setPreferenceReady] = useState(false);
@@ -95,7 +97,7 @@ export default function CodexAmbience({ track }: CodexAmbienceProps) {
         type="button"
         className={styles.bgmToggle}
         data-active={enabled && playing ? "true" : "false"}
-        aria-label={enabled ? "인연의 서 배경 음악 끄기" : "인연의 서 배경 음악 켜기"}
+        aria-label={enabled ? copy.bgmOnAriaLabel : copy.bgmOffAriaLabel}
         aria-pressed={enabled}
         onClick={toggleBgm}
       >

@@ -10,6 +10,7 @@
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import CodexReveal from "./CodexReveal";
 import { CODEX_ACT_ANCHOR_PREFIX, type CodexAct } from "../data/acts";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexActInterstitialProps {
@@ -18,12 +19,13 @@ interface CodexActInterstitialProps {
 }
 
 export default function CodexActInterstitial({ act, forceVisible = false }: CodexActInterstitialProps) {
+  const copy = useMasterLoveCodexCopy();
   return (
     <section
       id={`${CODEX_ACT_ANCHOR_PREFIX}${act.order}`}
       data-codex-act={act.order}
       className="flex min-h-[62svh] flex-col items-center justify-center text-center"
-      aria-label={`${act.numeral}막 ${act.title}`}
+      aria-label={copy.actAriaLabel(act.numeral, act.title)}
     >
       <div className={styles.measure}>
         <CodexReveal forceVisible={forceVisible}>

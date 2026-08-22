@@ -1,5 +1,6 @@
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import TarotHealingRouteClient from "./TarotHealingRouteClient";
+import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 
 const TAROT_HEALING_METADATA_COPY = {
   ko: {
@@ -44,5 +45,10 @@ export function generateMetadata() {
 }
 
 export default function SunHealingTarotPage() {
-  return <TarotHealingRouteClient />;
+  return (
+    <>
+      <RouteMetadataLocaleSync entries={TAROT_HEALING_METADATA_COPY} />
+      <TarotHealingRouteClient />
+    </>
+  );
 }

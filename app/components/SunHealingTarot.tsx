@@ -10,6 +10,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useSunHealingTarotCopy, type SunHealingTarotCopy } from "./_lib/sun-healing-tarot-copy";
 
 
 // ─── Design Token ───────────────────────────────────────────────────────────
@@ -98,18 +99,15 @@ const API_TIMEOUT_MS = 30000;
 const HEALING_POSITIONS = ["hidden_truth", "embrace_pain", "silver_lining", "step_forward"] as const;
 
 const SHARE_FALLBACK_URL = "https://code-destiny.com";
-const SHARE_TITLE = "태양 회복 타로";
-const SHARE_TEXT_PREFIX = "태양 회복 타로가 건넨 메시지입니다.\n\n";
 
 function clamp(n: number, min: number, max: number) {
   return Math.max(min, Math.min(max, n));
 }
 
-function safeCardTitle(card?: TarotCardDto, idx?: number) {
+function safeCardTitle(copy: SunHealingTarotCopy, card?: TarotCardDto, idx?: number) {
   const base = (card?.nameKr || card?.name || "").trim();
-  if (!base) return `카드 ${typeof idx === "number" ? idx + 1 : ""}`.trim();
-  const isRev = String(card?.orientation || "").toLowerCase() === "reversed";
-  return isRev ? `${base} (역방향)` : `${base} (정방향)`;
+  if (!base) return typeof idx === "number" ? copy.cardFallbackTitle(idx) : "";
+  return `${base} (${copy.orientationLabel(card?.orientation)})`;
 }
 
 const TAROT_IMAGE_MAP: Record<string, string> = {
@@ -248,7 +246,7 @@ function SunHero() {
   );
 }
 
-function CardBackFace() {
+function CardBackFace({ copy }: { copy: SunHealingTarotCopy }) {
   return (
     <div
       className="absolute inset-0 rounded-xl flex flex-col items-center justify-center overflow-hidden"
@@ -280,7 +278,7 @@ function CardBackFace() {
         <circle cx="50" cy="50" r="11" fill="#F59E0B" opacity="0.85" />
         <circle cx="50" cy="50" r="6" fill="#FEF3C7" opacity="1" />
       </svg>
-      <p className="mt-2 text-[8px] tracking-[0.25em] text-amber-600/70 font-medium uppercase">빛을 열기</p>
+      <p className="mt-2 text-[8px] tracking-[0.25em] text-amber-600/70 font-medium uppercase">{copy.cardBackLabel}</p>
     </div>
   );
 }
@@ -358,15 +356,15 @@ function orientationLabelOf(value?: string) {
   return value === "reversed" ? "역방향" : "정방향";
 }
 
-function ResultCardSummary({ item, idx, card }: { item: SunRecoveryCardReadingDto; idx: number; card?: TarotCardDto }) {
-  const orientation = item.orientationLabel || orientationLabelOf(String(item.orientation || card?.orientation || "upright"));
+function ResultCardSummary({ item, idx, card, copy }: { item: SunRecoveryCardReadingDto; idx: number; card?: TarotCardDto; copy: SunHealingTarotCopy }) {
+  const orientation = copy.orientationLabel(item.orientation || card?.orientation);
   const keywords = Array.isArray(item.keywords) ? item.keywords.slice(0, 3) : [];
   return (
     <article className="rounded-lg border border-amber-200/70 bg-white/82 p-3 shadow-[0_12px_30px_rgba(180,120,35,0.12)]">
       <div className="relative aspect-[3/4] overflow-hidden rounded-lg border border-amber-100 bg-amber-50">
-        {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : null}
+        {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(copy, card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : null}
       </div>
-      <p className="mt-3 text-[11px] font-semibold text-teal-700">{idx + 1}. {item.positionLabel}</p>
+      <p className="mt-3 text-[11px] font-semibold text-teal-700">{idx + 1}. {copy.positionLabels[idx]}</p>
       <h4 className="mt-1 text-sm font-bold leading-tight text-amber-950">{item.cardName}</h4>
       <p className="mt-1 text-xs font-semibold text-stone-500">{orientation}</p>
       {keywords.length ? (
@@ -381,14 +379,14 @@ function ResultCardSummary({ item, idx, card }: { item: SunRecoveryCardReadingDt
   );
 }
 
-function ResultDetailCard({ item, idx }: { item: SunRecoveryCardReadingDto; idx: number }) {
-  const orientation = item.orientationLabel || orientationLabelOf(String(item.orientation || "upright"));
+function ResultDetailCard({ item, idx, copy }: { item: SunRecoveryCardReadingDto; idx: number; copy: SunHealingTarotCopy }) {
+  const orientation = copy.orientationLabel(item.orientation);
   const keywords = Array.isArray(item.keywords) ? item.keywords.slice(0, 3) : [];
   return (
     <article className="rounded-lg border border-white/80 bg-white/86 p-5 shadow-[0_18px_52px_rgba(180,120,35,0.14)]">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-xs font-semibold text-teal-700">{idx + 1}. {item.positionLabel}</p>
+          <p className="text-xs font-semibold text-teal-700">{idx + 1}. {copy.positionLabels[idx]}</p>
           <h3 className="mt-1 font-serif text-xl font-semibold leading-tight text-amber-950">{item.cardName}</h3>
         </div>
         <span className="rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-bold text-amber-800">{orientation}</span>
@@ -402,19 +400,19 @@ function ResultDetailCard({ item, idx }: { item: SunRecoveryCardReadingDto; idx:
       ) : null}
       {item.meaning ? (
         <div className="mt-5">
-          <p className="text-xs font-bold tracking-normal text-amber-700">카드가 비춘 의미</p>
+          <p className="text-xs font-bold tracking-normal text-amber-700">{copy.meaningLabel}</p>
           <p className="mt-2 text-sm leading-7 text-stone-700">{item.meaning}</p>
         </div>
       ) : null}
       {item.shadow ? (
         <div className="mt-4 rounded-lg border border-rose-100 bg-rose-50/70 p-4">
-          <p className="text-xs font-bold text-rose-700">조심히 살필 부분</p>
+          <p className="text-xs font-bold text-rose-700">{copy.shadowLabel}</p>
           <p className="mt-2 text-sm leading-7 text-stone-700">{item.shadow}</p>
         </div>
       ) : null}
       {item.recoveryAdvice ? (
         <div className="mt-4 rounded-lg border border-teal-100 bg-teal-50/70 p-4">
-          <p className="text-xs font-bold text-teal-700">오늘의 회복 행동</p>
+          <p className="text-xs font-bold text-teal-700">{copy.recoveryActionLabel}</p>
           <p className="mt-2 text-sm leading-7 text-stone-700">{item.recoveryAdvice}</p>
         </div>
       ) : null}
@@ -495,6 +493,7 @@ function buildSunHealingAiPromptText(args: {
 }
 
 export default function SunHealingTarot() {
+  const copy = useSunHealingTarotCopy();
   const [stage, setStage] = useState<Stage>("intro");
   const [cards, setCards] = useState<TarotCardDto[]>([]);
   const [revealedCount, setRevealedCount] = useState(0);
@@ -593,40 +592,40 @@ export default function SunHealingTarot() {
     } catch (error) {
       console.error(error);
       if (error instanceof Error && error.message === "LOGIN_REQUIRED") {
-        alert("회복 리딩을 열려면 로그인이 필요합니다. 로그인 후 다시 시도해 주세요.");
+        alert(copy.loginRequiredAlert);
       } else if (error instanceof DOMException && error.name === "AbortError") {
-        alert("해석 준비가 지연되고 있습니다. 페이지를 새로고침한 뒤 다시 확인해 주세요.");
+        alert(copy.delayedAlert);
       } else {
-        alert("해석을 불러오는 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+        alert(copy.fetchErrorAlert);
       }
     } finally {
       setLoading(false);
     }
-  }, [cards, requestReading, revealedCount]);
+  }, [cards, copy, requestReading, revealedCount]);
 
 
   const share = useCallback(async () => {
     const url = typeof window !== "undefined" ? window.location.href : SHARE_FALLBACK_URL;
     const firstLine = String(reading?.oneLineMessage || reading?.sunLine || "").trim();
     const highlightText = consultingHighlights.length ? `\n핵심 회복 메시지\n${consultingHighlights.slice(0, 2).map((line) => `• ${line}`).join("\n")}\n` : "";
-    const text = `${SHARE_TEXT_PREFIX}${firstLine ? `${firstLine}\n` : ""}${highlightText}\n${url}`;
+    const text = `${copy.shareTextPrefix}${firstLine ? `${firstLine}\n` : ""}${highlightText}\n${url}`;
     try {
       const nav = navigator as Navigator & { share?: (data: object) => Promise<void> };
       if (nav.share) {
-        await nav.share({ title: SHARE_TITLE, text, url });
+        await nav.share({ title: copy.shareTitle, text, url });
         return;
       }
     } catch {}
     try {
       await navigator.clipboard.writeText(text);
-      alert("링크를 복사했습니다.");
+      alert(copy.linkCopiedAlert);
     } catch {
-      alert("공유를 지원하지 않는 환경입니다.");
+      alert(copy.shareUnsupportedAlert);
     }
-  }, [consultingHighlights, reading]);
+  }, [consultingHighlights, copy, reading]);
 
-  const POSITION_LABELS = ["마음이 지친 자리", "감정의 온도", "회복의 단서", "오늘의 회복 행동"] as const;
-  const POSITION_LABELS_SHORT = ["자리", "온도", "단서", "행동"] as const;
+  const POSITION_LABELS = copy.positionLabels;
+  const POSITION_LABELS_SHORT = copy.positionLabelsShort;
   const resultCards = useMemo(() => normalizeReadingCards(reading, cards), [reading, cards]);
   const resultRoutines = useMemo(() => {
     if (Array.isArray(reading?.recoveryRoutines) && reading.recoveryRoutines.length) return reading.recoveryRoutines.slice(0, 3);
@@ -640,7 +639,7 @@ export default function SunHealingTarot() {
     if (!aiPromptText) return;
     try {
       await navigator.clipboard.writeText(aiPromptText);
-      setAiPromptCopyStatus("복사되었습니다.");
+      setAiPromptCopyStatus(copy.promptCopiedStatus);
       return;
     } catch {}
     try {
@@ -653,11 +652,11 @@ export default function SunHealingTarot() {
       textarea.select();
       document.execCommand("copy");
       document.body.removeChild(textarea);
-      setAiPromptCopyStatus("복사되었습니다.");
+      setAiPromptCopyStatus(copy.promptCopiedStatus);
     } catch {
-      setAiPromptCopyStatus("직접 선택해 복사해 주세요.");
+      setAiPromptCopyStatus(copy.promptCopyManualStatus);
     }
-  }, [aiPromptText]);
+  }, [aiPromptText, copy]);
 
   useEffect(() => {
     setAiPromptCopyStatus("");
@@ -690,32 +689,32 @@ export default function SunHealingTarot() {
       <div className="relative z-10 mx-auto flex w-full max-w-[1440px] flex-col px-4 py-5 md:px-8 md:py-7">
         <header className="mb-5 flex items-center justify-between gap-3">
           <div>
-            <p className="text-[10px] font-semibold tracking-[0.18em] text-amber-700/80">태양 회복 리딩</p>
-            <h1 className="mt-1 font-serif text-[24px] font-semibold leading-tight text-amber-950 md:text-[32px]">태양 회복 타로</h1>
+            <p className="text-[10px] font-semibold tracking-[0.18em] text-amber-700/80">{copy.headerEyebrow}</p>
+            <h1 className="mt-1 font-serif text-[24px] font-semibold leading-tight text-amber-950 md:text-[32px]">{copy.headerTitle}</h1>
           </div>
           <button type="button" onClick={goHome} className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-amber-200/70 bg-white/70 px-4 text-xs font-semibold text-amber-950 shadow-[0_12px_34px_rgba(180,120,35,0.14)] backdrop-blur-xl transition-colors hover:bg-white">
-            <RotateCcw className="h-3.5 w-3.5" />홈
+            <RotateCcw className="h-3.5 w-3.5" />{copy.homeButton}
           </button>
         </header>
         <AnimatePresence mode="wait">
           {stage === "intro" ? (
             <m.section key="intro" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid items-center gap-8 py-6 lg:grid-cols-[minmax(0,1fr)_420px]">
               <div className="max-w-[760px]">
-                <p className="text-xs font-semibold tracking-[0.18em] text-teal-700/80">마음을 데우는 타로 방</p>
+                <p className="text-xs font-semibold tracking-[0.18em] text-teal-700/80">{copy.introEyebrow}</p>
                 <h2 className="mt-4 max-w-[720px] font-serif text-[34px] font-semibold leading-[1.14] text-amber-950 drop-shadow-[0_10px_30px_rgba(255,255,255,0.64)] sm:text-[42px] md:text-[52px]">
-                  마음이 돌아올 자리를 <br className="hidden md:block" />조용히 밝혀드립니다
+                  {copy.introHeadingLine1} <br className="hidden md:block" />{copy.introHeadingLine2}
                 </h2>
                 <p className="mt-6 max-w-[640px] text-[16px] leading-8 text-stone-700 md:text-[18px]">
-                  네 장의 카드는 마음이 지친 자리, 감정의 온도, 회복의 단서, 오늘 시작할 작은 행동을 차례로 비춥니다. 해석은 단정하지 않고, 마음이 스스로를 다시 믿을 수 있는 방향으로 안내합니다.
+                  {copy.introDescription}
                 </p>
                 <div className="mt-7 grid grid-cols-2 gap-2.5 sm:flex sm:flex-wrap">
-                  {["자리", "온도", "단서", "행동"].map((label) => (
+                  {POSITION_LABELS_SHORT.map((label) => (
                     <span key={label} className="rounded-full border border-amber-200/70 bg-white/65 px-4 py-2 text-center text-xs font-semibold text-amber-900 shadow-[0_8px_24px_rgba(180,120,35,0.1)] backdrop-blur-xl">{label}</span>
                   ))}
                 </div>
                 <button type="button" onClick={start} disabled={loading} className="group relative mt-8 inline-flex min-h-14 w-full items-center justify-center overflow-hidden rounded-full border border-amber-200/70 px-8 text-sm font-bold text-[#2d1b08] shadow-[0_24px_70px_rgba(217,144,42,0.24)] transition-all active:scale-[0.98] disabled:opacity-50 sm:w-auto" style={{ background: "linear-gradient(135deg, #FFFFFF 0%, #FFF2BF 42%, #F7C35E 100%)" }}>
                   <span className="absolute inset-0 translate-x-[-120%] bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.5),transparent)] transition-transform duration-700 group-hover:translate-x-[120%]" />
-                  <span className="relative flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{loading ? "준비 중…" : "태양 리딩 시작"}</span>
+                  <span className="relative flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{loading ? copy.preparingLabel : copy.startButton}</span>
                 </button>
               </div>
               <div className="relative mx-auto w-full max-w-[420px]">
@@ -741,8 +740,8 @@ export default function SunHealingTarot() {
               <div className="flex min-h-[calc(100dvh-132px)] flex-col justify-center rounded-[30px] border border-white/80 bg-white/70 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
                 <div className="mb-5 flex flex-wrap items-end justify-between gap-3">
                   <div>
-                    <p className="text-xs font-semibold tracking-[0.18em] text-teal-700/75">네 장의 태양 스프레드</p>
-                    <h2 className="mt-1 font-serif text-[26px] font-semibold text-amber-950 md:text-[34px]">카드를 하나씩 열어보세요</h2>
+                    <p className="text-xs font-semibold tracking-[0.18em] text-teal-700/75">{copy.spreadEyebrow}</p>
+                    <h2 className="mt-1 font-serif text-[26px] font-semibold text-amber-950 md:text-[34px]">{copy.spreadHeading}</h2>
                   </div>
                   <span className="rounded-full border border-amber-200/70 bg-amber-50/90 px-4 py-2 text-sm font-bold text-amber-800 shadow-sm">{revealedCount}&thinsp;/&thinsp;{SPREAD_CARD_COUNT}</span>
                 </div>
@@ -760,12 +759,12 @@ export default function SunHealingTarot() {
                         <AnimatePresence>{isGlowing && (<m.div initial={{ opacity: 0.7, scale: 0.95 }} animate={{ opacity: 0, scale: 1.28 }} exit={{}} transition={{ duration: 0.85, ease: "easeOut" }} className="pointer-events-none absolute inset-0 rounded-[24px] bg-amber-200 blur-2xl" style={{ zIndex: 30 }} />)}</AnimatePresence>
                         <m.button type="button" onClick={() => flip(idx)} disabled={!enabled} whileHover={enabled ? { y: -8, filter: "drop-shadow(0 22px 34px rgba(217,144,42,0.3))" } : undefined} transition={{ type: "spring", stiffness: 300, damping: 22 }} className="relative h-full w-full rounded-[24px]" style={{ transformStyle: "preserve-3d" }}>
                           <m.div className="absolute inset-0" style={{ transformStyle: "preserve-3d" }} animate={{ rotateY: isFlipped ? 180 : 0 }} transition={{ duration: 0.72, ease: [0.35, 0, 0.15, 1] }}>
-                            <div className="absolute inset-0 rounded-[24px] shadow-[0_20px_48px_rgba(180,120,35,0.18)]" style={{ backfaceVisibility: "hidden" }}><CardBackFace />{enabled && (<m.div className="absolute inset-0 rounded-[24px] ring-2 ring-amber-300/80" animate={{ opacity: [0.42, 1, 0.42] }} transition={{ duration: 2.2, repeat: Infinity }} />)}</div>
+                            <div className="absolute inset-0 rounded-[24px] shadow-[0_20px_48px_rgba(180,120,35,0.18)]" style={{ backfaceVisibility: "hidden" }}><CardBackFace copy={copy} />{enabled && (<m.div className="absolute inset-0 rounded-[24px] ring-2 ring-amber-300/80" animate={{ opacity: [0.42, 1, 0.42] }} transition={{ duration: 2.2, repeat: Infinity }} />)}</div>
                             <div className="absolute inset-0 overflow-hidden rounded-[24px] shadow-[0_20px_56px_rgba(180,120,35,0.24)]" style={{ backfaceVisibility: "hidden", transform: "rotateY(180deg)" }}>
-                              {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="(max-width: 768px) 45vw, 260px" className="object-cover" unoptimized priority />) : (<div className="absolute inset-0 bg-amber-50" />)}
+                              {card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(copy, card, idx)} fill sizes="(max-width: 768px) 45vw, 260px" className="object-cover" unoptimized priority />) : (<div className="absolute inset-0 bg-amber-50" />)}
                               <div className="absolute inset-x-0 bottom-0 px-3 pb-3 pt-16" style={{ background: "linear-gradient(0deg, rgba(255,251,235,0.97) 0%, rgba(255,251,235,0.72) 58%, transparent 100%)" }}>
                                 <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-amber-700">{POSITION_LABELS[idx]}</p>
-                                <p className="mt-1 text-[13px] font-semibold leading-tight text-stone-800">{safeCardTitle(card, idx)}</p>
+                                <p className="mt-1 text-[13px] font-semibold leading-tight text-stone-800">{safeCardTitle(copy, card, idx)}</p>
                               </div>
                             </div>
                           </m.div>
@@ -776,20 +775,20 @@ export default function SunHealingTarot() {
                 </div>
                 <button type="button" onClick={fetchReading} disabled={loading || revealedCount < SPREAD_CARD_COUNT} className="group relative mt-6 w-full overflow-hidden rounded-full border border-amber-200/70 py-4 text-sm font-bold text-[#2d1b08] shadow-[0_20px_60px_rgba(217,144,42,0.2)] transition-all active:scale-[0.98] disabled:opacity-35" style={{ background: "linear-gradient(135deg, #FFFFFF 0%, #FFF0B7 48%, #F4B84E 100%)" }}>
                   <span className="absolute inset-0 translate-x-[-120%] bg-[linear-gradient(110deg,transparent,rgba(255,255,255,0.48),transparent)] transition-transform duration-700 group-hover:translate-x-[120%]" />
-                  <span className="relative flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{loading ? "해석 중…" : "회복 리딩 열기"}</span>
+                  <span className="relative flex items-center justify-center gap-2">{loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Sparkles className="h-4 w-4" />}{loading ? copy.interpretingLabel : copy.openReadingButton}</span>
                 </button>
               </div>
               <aside className="rounded-[30px] border border-white/80 bg-white/64 p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:min-h-[calc(100dvh-132px)]">
-                <p className="text-xs font-semibold tracking-[0.18em] text-teal-700/75">지금 열리는 자리</p>
-                <h3 className="mt-3 font-serif text-2xl font-semibold text-amber-950">{revealedCount < SPREAD_CARD_COUNT ? POSITION_LABELS[revealedCount] : "상담 준비 완료"}</h3>
+                <p className="text-xs font-semibold tracking-[0.18em] text-teal-700/75">{copy.sidebarEyebrow}</p>
+                <h3 className="mt-3 font-serif text-2xl font-semibold text-amber-950">{revealedCount < SPREAD_CARD_COUNT ? POSITION_LABELS[revealedCount] : copy.sidebarReadyHeading}</h3>
                 <p className="mt-4 text-sm leading-7 text-stone-700">
-                  카드를 여는 순서는 마음의 흐름과 같습니다. 급하게 결론으로 뛰어가지 않고, 지금 드러난 감정을 한 장씩 받아들이면 리딩이 더 선명해집니다.
+                  {copy.sidebarDescription}
                 </p>
                 <div className="mt-6 space-y-2">
                   {POSITION_LABELS.map((label, idx) => (
                     <div key={label} className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-sm shadow-sm ${idx < revealedCount ? "border-amber-300/70 bg-amber-50/90 text-amber-900" : idx === revealedCount ? "border-teal-200/80 bg-teal-50/80 text-teal-900" : "border-stone-200/70 bg-white/60 text-stone-500"}`}>
                       <span>{idx + 1}. {label}</span>
-                      <span className="text-xs font-semibold">{idx < revealedCount ? "완료" : idx === revealedCount ? "진행" : "대기"}</span>
+                      <span className="text-xs font-semibold">{idx < revealedCount ? copy.statusDone : idx === revealedCount ? copy.statusInProgress : copy.statusWaiting}</span>
                     </div>
                   ))}
                 </div>
@@ -799,64 +798,64 @@ export default function SunHealingTarot() {
           {stage === "result" ? (
             <m.section key="result" initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -12 }} transition={{ duration: 0.42 }} className="grid flex-1 gap-5 pb-5 lg:grid-cols-[330px_minmax(0,1fr)]">
               <aside className="rounded-lg border border-white/80 bg-[linear-gradient(180deg,rgba(255,255,255,0.86),rgba(255,247,237,0.76),rgba(240,253,250,0.42))] p-5 shadow-[0_24px_70px_rgba(180,120,35,0.16)] backdrop-blur-2xl lg:sticky lg:top-6 lg:max-h-[calc(100dvh-48px)] lg:overflow-auto">
-                <p className="text-xs font-semibold tracking-normal text-teal-700/75">새벽빛 리딩</p>
-                <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-amber-950">오늘의 태양 리딩</h2>
-                <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.subtitle || "마음의 흔적을 지우지 않고, 그 자리에 다시 빛을 들이는 리딩"}</p>
+                <p className="text-xs font-semibold tracking-normal text-teal-700/75">{copy.resultEyebrow}</p>
+                <h2 className="mt-3 font-serif text-3xl font-semibold leading-tight text-amber-950">{copy.resultHeading}</h2>
+                <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.subtitle || copy.resultSubtitleFallback}</p>
                 <div className="mt-5 rounded-lg border border-amber-200/70 bg-white/80 p-4">
-                  <p className="text-xs font-bold text-amber-700">오늘의 태양 한 문장</p>
+                  <p className="text-xs font-bold text-amber-700">{copy.todayLineLabel}</p>
                   <p className="mt-2 font-serif text-xl font-semibold leading-8 text-amber-950">{resultSunLine}</p>
                 </div>
                 {cards.length > 0 && (
                   <div className="mt-5 grid grid-cols-4 gap-2 lg:grid-cols-2">
                     {cards.map((card, idx) => (
                       <div key={idx}>
-                        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border border-amber-200/70 shadow-[0_16px_34px_rgba(180,120,35,0.18)]">{card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : (<div className="absolute inset-0 bg-amber-50" />)}</div>
+                        <div className="relative aspect-[3/4] w-full overflow-hidden rounded-lg border border-amber-200/70 shadow-[0_16px_34px_rgba(180,120,35,0.18)]">{card?.cardId ? (<Image src={cardImageUrl(card)} alt={safeCardTitle(copy, card, idx)} fill sizes="120px" className="object-cover" unoptimized />) : (<div className="absolute inset-0 bg-amber-50" />)}</div>
                         <p className="mt-1 text-center text-[10px] font-semibold text-amber-800">{POSITION_LABELS_SHORT[idx]}</p>
                       </div>
                     ))}
                   </div>
                 )}
                 <div className="mt-6 grid gap-2">
-                  <button type="button" onClick={share} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/80 bg-amber-50/90 px-4 text-sm font-bold text-amber-900 shadow-sm transition-colors hover:bg-white"><Share2 className="h-4 w-4" />공유</button>
-                  <button type="button" onClick={start} className="min-h-11 rounded-full border border-stone-200 bg-white/70 px-4 text-sm font-bold text-stone-800 shadow-sm transition-colors hover:bg-white">다시 리딩하기</button>
-                  <button type="button" onClick={goHome} className="min-h-11 rounded-full bg-stone-900 px-4 text-sm font-bold text-white shadow-[0_16px_34px_rgba(68,64,60,0.18)] transition-colors hover:bg-amber-950">다른 운세 보기</button>
+                  <button type="button" onClick={share} className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/80 bg-amber-50/90 px-4 text-sm font-bold text-amber-900 shadow-sm transition-colors hover:bg-white"><Share2 className="h-4 w-4" />{copy.shareButton}</button>
+                  <button type="button" onClick={start} className="min-h-11 rounded-full border border-stone-200 bg-white/70 px-4 text-sm font-bold text-stone-800 shadow-sm transition-colors hover:bg-white">{copy.rereadButton}</button>
+                  <button type="button" onClick={goHome} className="min-h-11 rounded-full bg-stone-900 px-4 text-sm font-bold text-white shadow-[0_16px_34px_rgba(68,64,60,0.18)] transition-colors hover:bg-amber-950">{copy.otherFortuneButton}</button>
                 </div>
               </aside>
               <div className="min-w-0 space-y-5 rounded-lg border border-white/80 bg-white/76 p-4 shadow-[0_30px_90px_rgba(180,120,35,0.18)] backdrop-blur-2xl md:p-6">
                 <section className="rounded-lg border border-amber-200/70 bg-[linear-gradient(135deg,rgba(255,255,255,0.96),rgba(254,243,199,0.82),rgba(255,237,213,0.68),rgba(204,251,241,0.4))] p-5 shadow-inner">
-                  <p className="text-xs font-semibold tracking-normal text-amber-700/78">새벽빛 조언</p>
-                  <h3 className="mt-2 font-serif text-2xl font-semibold leading-tight text-amber-950">마음의 흔적 위에 빛을 돌려놓는 해석</h3>
-                  <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.opening || "지금의 마음을 문제로 만들지 않고, 카드가 비춘 상징을 회복 가능한 장면과 말로 정리합니다."}</p>
+                  <p className="text-xs font-semibold tracking-normal text-amber-700/78">{copy.adviceEyebrow}</p>
+                  <h3 className="mt-2 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.adviceHeading}</h3>
+                  <p className="mt-3 text-sm leading-7 text-stone-700">{reading?.opening || copy.adviceFallback}</p>
                 </section>
                 <section>
                   <div className="mb-3 flex items-end justify-between gap-3">
                     <div>
-                      <p className="text-xs font-semibold text-teal-700">4장 카드 요약</p>
-                      <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">오늘 마음에 비친 네 장면</h3>
+                      <p className="text-xs font-semibold text-teal-700">{copy.cardSummaryEyebrow}</p>
+                      <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.cardSummaryHeading}</h3>
                     </div>
                   </div>
                   <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
                     {resultCards.map((item, idx) => (
-                      <ResultCardSummary key={`${item.cardName}-${idx}`} item={item} idx={idx} card={cards[idx]} />
+                      <ResultCardSummary key={`${item.cardName}-${idx}`} item={item} idx={idx} card={cards[idx]} copy={copy} />
                     ))}
                   </div>
                 </section>
                 <section className="space-y-3">
                   <div>
-                    <p className="text-xs font-semibold text-teal-700">카드별 회복 메시지</p>
-                    <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">각 카드가 건네는 회복 문장</h3>
+                    <p className="text-xs font-semibold text-teal-700">{copy.cardDetailEyebrow}</p>
+                    <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.cardDetailHeading}</h3>
                   </div>
                   {resultCards.map((item, idx) => (
-                    <ResultDetailCard key={`${item.positionLabel}-${idx}`} item={item} idx={idx} />
+                    <ResultDetailCard key={`${item.positionLabel}-${idx}`} item={item} idx={idx} copy={copy} />
                   ))}
                 </section>
                 {resultStory ? (
-                  <ReadingCard title="종합 흐름" tone="neutral" icon={Sparkles} text={resultStory} />
+                  <ReadingCard title={copy.overallFlowTitle} tone="neutral" icon={Sparkles} text={resultStory} />
                 ) : null}
                 {resultRoutines.length ? (
                   <section>
-                    <p className="text-xs font-semibold text-teal-700">오늘의 회복 루틴</p>
-                    <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">10분 안에 시작하는 회복 행동</h3>
+                    <p className="text-xs font-semibold text-teal-700">{copy.routineEyebrow}</p>
+                    <h3 className="mt-1 font-serif text-2xl font-semibold text-amber-950">{copy.routineHeading}</h3>
                     <div className="mt-3 grid gap-3 md:grid-cols-3">
                       {resultRoutines.map((item, idx) => (
                         <RoutineCard key={`${item.title}-${idx}`} item={item} />
@@ -866,21 +865,21 @@ export default function SunHealingTarot() {
                 ) : null}
                 {reading?.affirmation ? (
                   <section className="rounded-lg border border-teal-200/70 bg-teal-50/76 p-5">
-                    <p className="text-xs font-semibold text-teal-700">오늘 나에게 건네는 문장</p>
+                    <p className="text-xs font-semibold text-teal-700">{copy.affirmationLabel}</p>
                     <p className="mt-2 font-serif text-xl font-semibold leading-8 text-stone-900">{reading.affirmation}</p>
                   </section>
                 ) : null}
                 {reading?.notice ? <p className="text-xs leading-6 text-stone-500">{reading.notice}</p> : null}
-                {engineMeta?.qualityEnhanced && (<p className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs font-semibold text-amber-800">네 장의 태양 메시지가 한결 차분한 결로 모였습니다.</p>)}
+                {engineMeta?.qualityEnhanced && (<p className="rounded-lg border border-amber-200/80 bg-amber-50/90 px-4 py-3 text-xs font-semibold text-amber-800">{copy.qualityEnhancedNote}</p>)}
                 {aiPromptText ? (
                   <section
                     className="tarot-healing-ai-prompt-panel rounded-lg border border-amber-200/80 bg-[linear-gradient(135deg,rgba(255,251,235,0.96),rgba(255,247,237,0.9),rgba(240,253,250,0.5))] p-5 shadow-[0_20px_58px_rgba(180,120,35,0.16)]"
                     data-marker="tarot-healing-ai-prompt-bottom-v20260621"
                   >
-                    <p className="tarot-healing-ai-prompt-kicker text-xs font-semibold tracking-normal text-teal-700">이어 볼 회복 질문</p>
-                    <h3 className="tarot-healing-ai-prompt-title mt-1 font-serif text-2xl font-semibold leading-tight text-amber-950">태양이 남긴 문장을 한 번 더 비추기</h3>
+                    <p className="tarot-healing-ai-prompt-kicker text-xs font-semibold tracking-normal text-teal-700">{copy.promptPanelKicker}</p>
+                    <h3 className="tarot-healing-ai-prompt-title mt-1 font-serif text-2xl font-semibold leading-tight text-amber-950">{copy.promptPanelTitle}</h3>
                     <p className="tarot-healing-ai-prompt-lead mt-3 text-sm leading-7 text-stone-700">
-                      아래 문장을 그대로 전하면, 오늘 펼쳐진 카드의 온기와 회복 루틴을 바탕으로 더 깊은 상담을 이어갈 수 있습니다.
+                      {copy.promptPanelLead}
                     </p>
                     <textarea
                       id="tarotHealingAiPromptOutput"
@@ -895,7 +894,7 @@ export default function SunHealingTarot() {
                         className="tarot-healing-ai-prompt-copy inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/80 bg-amber-50/92 px-5 text-sm font-bold text-amber-900 shadow-sm transition-colors hover:bg-white"
                       >
                         <Clipboard className="h-4 w-4" />
-                        상담 문장 복사
+                        {copy.promptCopyButton}
                       </button>
                       <span className="tarot-healing-ai-prompt-status text-xs font-semibold text-teal-700" aria-live="polite">
                         {aiPromptCopyStatus}

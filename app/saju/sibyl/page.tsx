@@ -1,4 +1,5 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
+import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 
 const SERVICE = {
   h1: "⚡ 시빌라 시스템 — 사주팔자 진로 적성 분석",
@@ -150,5 +151,10 @@ export const metadata = {
 };
 
 export default function SajuSibylLandingPage() {
-  return <FeatureLandingPage service={SERVICE} />;
+  return (
+    <>
+      <RouteMetadataLocaleSync entries={SAJU_SIBYL_METADATA_COPY} />
+      <FeatureLandingPage service={SERVICE} />
+    </>
+  );
 }

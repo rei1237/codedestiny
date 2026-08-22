@@ -2,6 +2,49 @@
 
 import dynamic from "next/dynamic";
 
+const MUSIC_ROUTE_LOCALES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
+type LoadingLocale = (typeof MUSIC_ROUTE_LOCALES)[number];
+
+function normalizeMusicRouteLocale(value?: string | null): LoadingLocale {
+  const raw = String(value || "").trim();
+  if (!raw) return "ko";
+  const normalized = raw.replace("_", "-").toLowerCase();
+  if (normalized === "zh" || normalized === "zh-cn" || normalized === "zh-hans" || normalized === "cn") return "zh-CN";
+  if (normalized === "zh-tw" || normalized === "zh-hant" || normalized === "tw") return "zh-TW";
+  const base = normalized.split("-")[0];
+  return MUSIC_ROUTE_LOCALES.includes(base as LoadingLocale) ? (base as LoadingLocale) : "ko";
+}
+
+function getCurrentMusicRouteLocale(): LoadingLocale {
+  if (typeof window === "undefined") return "ko";
+  const runtimeLanguage = (window as typeof window & { __cdCurrentLang?: string }).__cdCurrentLang;
+  if (runtimeLanguage) return normalizeMusicRouteLocale(runtimeLanguage);
+  try {
+    const stored =
+      window.localStorage.getItem("cd_locale") ||
+      window.localStorage.getItem("code-destiny-locale") ||
+      window.localStorage.getItem("cd_lang") ||
+      window.localStorage.getItem("locale");
+    if (stored) return normalizeMusicRouteLocale(stored);
+  } catch {}
+  return normalizeMusicRouteLocale(document.documentElement.lang || navigator.language);
+}
+
+const ROUTE_FALLBACK_COPY: Record<LoadingLocale, string> = {
+  ko: "달빛 음악실을 여는 중입니다.",
+  en: "Opening the moonlit music room…",
+  ja: "月明かりの音楽室を開いています…",
+  "zh-CN": "正在打开月光音乐室…",
+  "zh-TW": "正在開啟月光音樂室…",
+  vi: "Đang mở phòng nhạc ánh trăng…",
+  hi: "चांदनी संगीत कक्ष खोला जा रहा है…",
+  es: "Abriendo la sala de música a la luz de la luna…",
+  fr: "Ouverture de la salle de musique au clair de lune…",
+  de: "Der Mondlicht-Musikraum wird geöffnet…",
+  nl: "De maanlicht-muziekkamer wordt geopend…",
+  ms: "Membuka bilik muzik cahaya bulan…",
+};
+
 function MusicRouteFallback() {
   return (
     <main aria-busy="true" className="cdMusicFallback">
@@ -37,7 +80,7 @@ function MusicRouteFallback() {
         <div className="cdMusicFallback__eq" aria-hidden="true">
           <span /><span /><span /><span /><span />
         </div>
-        <p className="cdMusicFallback__text">달빛 음악실을 여는 중입니다.</p>
+        <p className="cdMusicFallback__text">{ROUTE_FALLBACK_COPY[getCurrentMusicRouteLocale()] || ROUTE_FALLBACK_COPY.ko}</p>
       </div>
     </main>
   );

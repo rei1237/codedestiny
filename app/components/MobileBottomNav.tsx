@@ -12,6 +12,16 @@ import {
   type MobileTab,
   type MobileTabKey,
 } from "@/app/_lib/mobile-tabs";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+const NAV_ARIA_LABEL: Partial<Record<LoadingLocale, string>> = {
+  ko: "주요 화면",
+  en: "Main screens",
+};
+
+function getNavAriaLabel(locale: LoadingLocale): string {
+  return NAV_ARIA_LABEL[locale] || NAV_ARIA_LABEL.en || "Main screens";
+}
 
 const ICON_CLASS = "cd-mnav__icon";
 
@@ -58,6 +68,18 @@ function MobileBottomNav() {
   // 활성 표시는 클라이언트 전용 정보라 마운트 이후에 확정해도 문제가 없다.
   const [activeKey, setActiveKey] = useState<MobileTabKey | null>(null);
   const [pendingKey, setPendingKey] = useState<MobileTabKey | null>(null);
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
 
   useEffect(() => {
     const sync = () => {
@@ -113,7 +135,7 @@ function MobileBottomNav() {
   }, [pendingKey]);
 
   return (
-    <nav className="cd-mnav" aria-label="주요 화면">
+    <nav className="cd-mnav" aria-label={getNavAriaLabel(locale)}>
       <ul className="cd-mnav__list">
         {MOBILE_TABS.map((tab) => {
           const isActive = activeKey === tab.key;

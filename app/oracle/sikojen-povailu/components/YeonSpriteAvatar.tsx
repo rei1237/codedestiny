@@ -3,6 +3,7 @@
 import React from 'react';
 import { useSpritePlaybackGate } from '@/src/hooks/useSpritePlaybackGate';
 import { frameToSpriteGrid, YEON_SPRITE_COLS, YEON_SPRITE_ROWS, YEON_SPRITE_URL } from '@/lib/yeon/sprite';
+import { useSikojenPovailuCopy } from '../_lib/copy';
 
 type YeonSpriteAvatarProps = {
   frames?: number[];
@@ -14,27 +15,17 @@ type YeonSpriteAvatarProps = {
   pulse?: boolean;
 };
 
-const YEON_SPRITE_AVATAR_TEXT_TRANSLATIONS = {
-  ko: {
-    defaultAlt: '꽃돼지 주석점 이미지',
-  },
-  en: {
-    defaultAlt: 'flower pig tin oracle image',
-  },
-  ja: {
-    defaultAlt: '花豚の錫占い画像',
-  },
-} as const;
-
 export function YeonSpriteAvatar({
   frames = [1, 2, 3, 4],
   size = 140,
-  alt = YEON_SPRITE_AVATAR_TEXT_TRANSLATIONS.ko.defaultAlt,
+  alt,
   ringClassName = 'from-rose-300 to-pink-300',
   className = '',
   intervalMs = 900,
   pulse = false,
 }: YeonSpriteAvatarProps) {
+  const copy = useSikojenPovailuCopy();
+  const resolvedAlt = alt ?? copy.spriteDefaultAlt;
   const spriteGate = useSpritePlaybackGate<HTMLDivElement>();
   const safeFrames = frames.length > 0 ? frames : [1];
   const [frameIndex, setFrameIndex] = React.useState(0);
@@ -57,7 +48,7 @@ export function YeonSpriteAvatar({
     <div ref={spriteGate.ref} className={`relative ${className}`} style={{ width: `${size}px`, height: `${size}px` }}>
       <div className={`absolute -inset-6 rounded-full bg-gradient-to-br ${ringClassName} shadow-lg`} />
       <div className="relative z-10 h-full w-full overflow-hidden rounded-full border-4 border-white shadow-lg drop-shadow-xl">
-        <svg viewBox="0 0 1 1" className={`h-full w-full ${pulse && spriteGate.canAnimate ? 'animate-pulse' : ''}`} role="img" aria-label={alt}>
+        <svg viewBox="0 0 1 1" className={`h-full w-full ${pulse && spriteGate.canAnimate ? 'animate-pulse' : ''}`} role="img" aria-label={resolvedAlt}>
           <image
             href={YEON_SPRITE_URL}
             x={-col}

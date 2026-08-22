@@ -44,6 +44,22 @@ const PALM_LINE_OVERLAY_TEXT_TRANSLATIONS = {
     symbolic: "象徴的なガイド線",
     symbolicNote: "現在の線は精密座標ではなく象徴的なガイド線です。精密認識結果がないときに流れを理解しやすくするための表示です。",
   },
+  "zh-CN": {
+    labels: { lifeLine: "生命线", headLine: "智慧线", heartLine: "感情线", fateLine: "命运线" },
+    noImage: "没有可用于叠加显示的手掌图片。",
+    title: "手掌流向叠加图",
+    aiDetected: "AI 识别的主要纹路",
+    symbolic: "象征性引导线",
+    symbolicNote: "当前线条并非精确坐标,而是象征性引导线,用于在没有精确识别结果时帮助理解纹路走向。",
+  },
+  "zh-TW": {
+    labels: { lifeLine: "生命線", headLine: "智慧線", heartLine: "感情線", fateLine: "命運線" },
+    noImage: "沒有可用於疊加顯示的手掌圖片。",
+    title: "手掌流向疊加圖",
+    aiDetected: "AI 辨識的主要紋路",
+    symbolic: "象徵性引導線",
+    symbolicNote: "目前線條並非精確座標,而是象徵性引導線,用於在沒有精確辨識結果時幫助理解紋路走向。",
+  },
 } as const;
 
 function palmLineOverlayCopy(locale: LoadingLocale) {
@@ -81,7 +97,7 @@ export default function PalmLineOverlay({
   onSelectLine: (line: OverlayLineKey) => void;
 }) {
   const [hoverLine, setHoverLine] = useState<OverlayLineKey | null>(null);
-  const [locale, setLocale] = useState<LoadingLocale>("ko");
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const copy = palmLineOverlayCopy(locale);
 
   const normalizedMap = useMemo(() => {
