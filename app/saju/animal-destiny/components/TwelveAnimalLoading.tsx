@@ -1,19 +1,21 @@
 "use client";
 
 import { AnimatePresence, m, useReducedMotion } from "framer-motion";
+import { useAnimalDestinyCopy } from "../_lib/copy";
 
 type Props = {
   mode: "calculating" | "revealing";
 };
 
 export default function TwelveAnimalLoading({ mode }: Props) {
+  const copy = useAnimalDestinyCopy();
   const reduced = useReducedMotion();
 
   return (
     <section className="rounded-[1.8rem] border border-[#b8d5ee] bg-[linear-gradient(160deg,#f8fcff_0%,#eef7ff_56%,#fff7ec_100%)] p-5 shadow-[0_16px_36px_rgba(64,114,158,0.17)]">
       <div className="space-y-1.5 text-[#2f5f85]">
-        <p className="text-sm font-black">운명의 동물을 찾는 중…</p>
-        <p className="text-xs font-semibold text-[#547c9f]">도감 페이지를 펼치며 십이운성 좌표를 정렬하고 있습니다.</p>
+        <p className="text-sm font-black">{copy.loadingTitle}</p>
+        <p className="text-xs font-semibold text-[#547c9f]">{copy.loadingDesc}</p>
       </div>
 
       <AnimatePresence mode="wait">

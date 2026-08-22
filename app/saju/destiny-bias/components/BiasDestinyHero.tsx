@@ -2,6 +2,7 @@
 
 import { m, useReducedMotion } from "framer-motion";
 import BiasDestinyAlbumStage from "./BiasDestinyAlbumStage";
+import { useDestinyBiasCopy } from "../_lib/copy";
 
 type Props = {
   onEnter: () => void;
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export default function BiasDestinyHero({ onEnter, stageLoading }: Props) {
+  const copy = useDestinyBiasCopy();
   const reduceMotion = useReducedMotion();
 
   return (
@@ -30,11 +32,10 @@ export default function BiasDestinyHero({ onEnter, stageLoading }: Props) {
             LIVE ARENA GATE OPEN
           </p>
           <h1 className="mt-4 text-3xl font-black leading-tight text-white drop-shadow-[0_0_24px_rgba(255,217,138,0.5)] md:text-5xl">
-            최애운명 라이브 스테이지
+            {copy.heroTitle}
           </h1>
-          <p className="mt-3 max-w-2xl text-sm leading-7 text-white/86 md:text-base">
-            사주 에너지의 박자와 최애의 무대 파장을 맞춰, 지금 가장 강하게 공명하는 팬심 시그널을 찾아냅니다.
-            입장과 동시에 스포트라이트 리딩이 시작됩니다.
+          <p className="mt-3 max-w-2xl whitespace-pre-line text-sm leading-7 text-white/86 md:text-base">
+            {copy.heroDescription}
           </p>
 
           <div className="mt-5 flex flex-wrap gap-2">
@@ -43,14 +44,14 @@ export default function BiasDestinyHero({ onEnter, stageLoading }: Props) {
               onClick={onEnter}
               className="min-h-11 rounded-full bg-[linear-gradient(92deg,var(--bias-gold),var(--bias-pink),var(--bias-purple),var(--bias-blue))] px-6 text-sm font-extrabold text-[#150826] shadow-[0_0_28px_rgba(255,95,210,0.42)] transition hover:-translate-y-0.5 hover:shadow-[0_0_38px_rgba(255,217,138,0.5)]"
             >
-              스테이지 입장하기
+              {copy.heroEnterButton}
             </button>
             <button
               type="button"
               onClick={onEnter}
               className="min-h-11 rounded-full border border-white/28 bg-white/8 px-6 text-sm font-semibold text-white/92 transition hover:border-[var(--bias-gold)]/65 hover:bg-[var(--bias-gold)]/10"
             >
-              리허설 없이 바로 분석
+              {copy.heroSkipButton}
             </button>
           </div>
 
@@ -70,7 +71,7 @@ export default function BiasDestinyHero({ onEnter, stageLoading }: Props) {
         <div className="order-1 lg:order-2">
           <BiasDestinyAlbumStage>
             <p className="text-[11px] tracking-[0.2em] text-[var(--bias-lavender)]/85">SPOTLIGHT READING</p>
-            <p className="mt-1 text-sm font-semibold text-[var(--bias-pink)]">무대 음향과 운명 시그널을 동기화 중입니다</p>
+            <p className="mt-1 text-sm font-semibold text-[var(--bias-pink)]">{copy.heroSyncText}</p>
             <div className="mt-3 h-2 overflow-hidden rounded-full bg-white/10 ring-1 ring-[var(--bias-lavender)]/35">
               <div
                 className="h-full rounded-full bg-[linear-gradient(90deg,var(--bias-gold),var(--bias-pink),var(--bias-blue))] shadow-[0_0_18px_rgba(255,95,210,0.8)]"
