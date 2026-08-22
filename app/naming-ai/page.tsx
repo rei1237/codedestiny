@@ -6,17 +6,30 @@ import {
   buildServiceJsonLd,
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
+import { getSeoProfileKeywords } from "../../lib/seo/entity-registry.mjs";
+import { mergeKeywords } from "../../lib/seo-metadata";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/naming-ai/";
-const PAGE_TITLE = "훈민정음 작명소 — 사주 맞춤 프리미엄 전문가 작명 프롬프트 | Code Destiny";
+const PAGE_TITLE = "작명 사이트 | 사주 용신으로 짓는 무료 이름 추천 — 훈민정음 작명소";
 const PAGE_DESCRIPTION =
-  "생년월일로 세운 사주 명식의 용신·희신을 바탕으로 소리오행·자원오행·수리를 함께 본 사주 맞춤 프리미엄 작명 프롬프트를 만들어 드립니다. 성씨와 원하는 이름 조건만 입력하면 무료 초안 추천도 함께 확인할 수 있습니다.";
+  "성씨와 생년월일만 넣으면 사주 용신에 맞는 이름 후보를 무료로 추천하는 작명 사이트입니다. 소리오행(초성 흐름)·자원오행(한자의 뜻)·수리 4격을 함께 본 결과를 확인하고, 아기 이름과 개명 후보를 항목별로 비교해 볼 수 있습니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
   description: PAGE_DESCRIPTION,
-  keywords: ["작명", "이름 작명", "사주 작명", "아기 이름", "개명", "한자 이름", "전문가 작명", "용신 작명"],
+  keywords: mergeKeywords(getSeoProfileKeywords("/naming-ai"), [
+    "작명",
+    "작명 사이트",
+    "무료 작명 사이트",
+    "이름 작명",
+    "아기 이름",
+    "아기 이름 짓기",
+    "개명",
+    "한자 이름",
+    "전문가 작명",
+    "용신 작명",
+  ]),
   alternates: {
     canonical: `${siteSeo.siteUrl}${PAGE_PATH}`,
   },
@@ -93,7 +106,7 @@ export default function NamingAiPage() {
       />
             <NamingAiRouteClient />
             <ServiceIntroSection label="훈민정음 작명소 안내">
-        <h1>훈민정음 작명소 — 사주 맞춤 프리미엄 전문가 작명 프롬프트</h1>
+        <h1>작명 사이트 — 사주 용신으로 보는 이름 추천 (훈민정음 작명소)</h1>
         <p>
           훈민정음 작명소는 생년월일로 세운 사주 명식을 바탕으로 이름을 짓는 프리미엄 작명 프롬프트
           생성 서비스입니다. 일간의 강약, 조후, 용신·희신·기신 판단을 먼저 확인한 뒤 이 오행 균형을
