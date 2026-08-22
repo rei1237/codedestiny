@@ -94,11 +94,121 @@ export interface DestinyBiasCopy {
   photocardUploadedImageAltSuffix: string;
   defaultChemistryType: string;
 
-  // 아래는 EN/JA/ZH-CN/ZH-TW만 채운다 — 나머지 로케일은 영어로 폴백(호출부에서 `??`).
+  // 아래는 EN/JA/ZH-CN/ZH-TW만 채운다 — 나머지 로케일은 getDestinyBiasCopy()가 EN과 병합해 자동 폴백한다.
   loadingSyncLine1?: string;
   loadingSyncLine2?: string;
   defaultShareKeywords?: string[];
   scoreSuffix?: string;
+
+  // ── DestinyBiasClient (입력 마법사 + 결과 오케스트레이터) ──
+  clientInsufficientNamePrompt?: string;
+  clientMyBirthErrorPrefix?: (reason: string) => string;
+  clientBiasNamePrompt?: string;
+  clientBiasBirthErrorPrefix?: (reason: string) => string;
+  clientImageTypeError?: string;
+  clientImageSizeError?: (mb: number) => string;
+  clientImageReadError?: string;
+  clientImageProcessError?: string;
+  clientImageReadyToast?: string;
+  clientImageClearedToast?: string;
+  clientPresetLoadedToast?: (sourceLabel: string) => string;
+  clientPresetBirthOnlyToast?: (sourceLabel: string) => string;
+  clientAnalysisCompleteToast?: string;
+  clientSvgSavedToast?: string;
+  clientPngSavedToast?: string;
+  clientCopySummaryToast?: string;
+  clientShareResultToast?: string;
+  clientShareTextCopiedToast?: string;
+  clientPlatformShareOpenedToast?: (platformLabel: string) => string;
+  clientPlatformInstagram?: string;
+  clientPlatformKakao?: string;
+  clientShareToXToast?: string;
+  clientInstagramSavedToast?: string;
+  clientKakaoCopiedToast?: string;
+  clientTryAnotherToast?: string;
+  clientGenderLabel?: string;
+  clientPrivacyNote?: string;
+  clientNameSubLabel?: string;
+  clientBirthDateSubLabel?: string;
+  clientBirthTimeSubLabel?: string;
+  clientGenderSubLabel?: string;
+  clientBiasNameSubLabel?: string;
+  clientArtistSubLabel?: string;
+  clientBiasMoodSubLabel?: string;
+  clientChemistrySubLabel?: string;
+  clientStarArchiveSubLabel?: string;
+  clientPhotoMergeSubLabel?: string;
+  clientStarArchiveTitle?: string;
+  clientStarArchiveDesc?: string;
+  clientDisplayCountSuffix?: (n: number) => string;
+  clientNarrowBySeriesLabel?: string;
+  clientBirthdayPrefix?: string;
+  clientTimePrefix?: string;
+  clientTimeUnknownNote?: string;
+  clientTimeHiddenNote?: string;
+  clientReapplyButton?: string;
+  clientLoadMoreButton?: (shown: number, total: number) => string;
+  clientNoSearchResults?: string;
+  clientBiasMoodLabel?: string;
+  clientRelationMoodLabel?: string;
+  clientUploadImageTitle?: string;
+  clientUploadImageDesc?: string;
+  clientSelectImageButton?: string;
+  clientResetUploadButton?: string;
+  clientUploadCompleteDefault?: string;
+  clientUploadHint?: string;
+  clientLightingRigLabel?: string;
+  clientThemeAriaLabel?: (themeName: string, selected: boolean) => string;
+  clientSelectedWord?: string;
+  clientSelectWord?: string;
+  clientMainReportTitle?: (biasName: string) => string;
+  clientSupplementaryLabel?: string;
+  clientSaveShareLabel?: string;
+  clientPrevButton?: string;
+  clientEnterStageButton?: string;
+  clientPayingButton?: string;
+  clientPayButton?: string;
+  clientGenderOptionLabels?: Record<string, string>;
+  clientBiasMoodOptionLabels?: Record<string, string>;
+  clientRelationMoodOptionLabels?: Record<string, string>;
+
+  clientGuideTitle?: string;
+  clientLoginRequiredTitle?: string;
+  clientLoginRequiredMessage?: string;
+  clientAnalysisErrorDefault?: string;
+  clientPngSaveFailed?: string;
+  clientCopyResultFailed?: string;
+  clientShareTitle?: string;
+  clientShareTextCopyFailed?: string;
+  clientInstagramSaveFailed?: string;
+  clientKakaoCopyFailed?: string;
+  clientStep1Title?: string;
+  clientStep1Desc?: string;
+  clientMyNameLabel?: string;
+  clientMyNamePlaceholder?: string;
+  clientMyBirthDateLabel?: string;
+  clientMyBirthDatePlaceholder?: string;
+  clientBirthTimeOptionalLabel?: string;
+  clientMyBirthTimePlaceholder?: string;
+  clientStep2Title?: string;
+  clientStep2Desc?: string;
+  clientBiasNameFieldLabel?: string;
+  clientBiasNamePlaceholder?: string;
+  clientBiasBirthDateLabel?: string;
+  clientBiasBirthDatePlaceholder?: string;
+  clientArtistLabel?: string;
+  clientArtistPlaceholder?: string;
+  clientBiasBirthTimePlaceholder?: string;
+  clientSearchPlaceholder?: string;
+  clientUploadPreviewAlt?: string;
+  clientStep3Title?: string;
+  clientStep3Desc?: string;
+  clientSummaryScoreLabel?: string;
+  clientSummaryEnergyLabel?: string;
+  clientSummaryPairingLabel?: string;
+  clientSummaryMessageLabel?: string;
+  clientSummaryFansignLabel?: string;
+  clientShareChemistryLine?: (biasName: string, score: number, grade: string, message: string) => string;
 }
 
 const DESTINY_BIAS_COPY_EN: DestinyBiasCopy = {
@@ -198,6 +308,118 @@ const DESTINY_BIAS_COPY_EN: DestinyBiasCopy = {
   loadingSyncLine2: "and the two rhythms are syncing ✨",
   defaultShareKeywords: ["starlight", "resonance", "chemistry"],
   scoreSuffix: " pts",
+
+  clientInsufficientNamePrompt: "Please enter your name or nickname.",
+  clientMyBirthErrorPrefix: (reason) => `Your birth date: ${reason}`,
+  clientBiasNamePrompt: "Please enter your bias's name.",
+  clientBiasBirthErrorPrefix: (reason) => `Your bias's birth date: ${reason}`,
+  clientImageTypeError: "Only PNG, JPG, WEBP, and GIF image files can be uploaded.",
+  clientImageSizeError: (mb) => `Please upload an image ${mb}MB or smaller.`,
+  clientImageReadError: "Couldn't read the image. Please choose another one.",
+  clientImageProcessError: "An error occurred while processing the image. Please try a different file.",
+  clientImageReadyToast: "Your bias's photo is ready to be blended into the card.",
+  clientImageClearedToast: "Cleared the uploaded image.",
+  clientPresetLoadedToast: (sourceLabel) => `Loaded ${sourceLabel}'s info.`,
+  clientPresetBirthOnlyToast: (sourceLabel) =>
+    `Filled in ${sourceLabel}'s birthday. Birth time is only auto-filled when it's public.`,
+  clientAnalysisCompleteToast: "Your Destiny Bias report and digital photocard are ready.",
+  clientSvgSavedToast: "Saved the SVG photocard.",
+  clientPngSavedToast: "Saved the PNG photocard.",
+  clientCopySummaryToast: "Copied the result summary.",
+  clientShareResultToast: "Shared the result.",
+  clientShareTextCopiedToast: "Copied the share text.",
+  clientPlatformShareOpenedToast: (platformLabel) => `Opened the ${platformLabel} share sheet.`,
+  clientPlatformInstagram: "Instagram",
+  clientPlatformKakao: "KakaoTalk",
+  clientShareToXToast: "Opened the X (Twitter) share window.",
+  clientInstagramSavedToast: "Saved the card image for Instagram. Upload it from the Instagram app.",
+  clientKakaoCopiedToast: "Copied the KakaoTalk share text. Paste it into KakaoTalk to share.",
+  clientTryAnotherToast: "Please enter another bias's info.",
+  clientGenderLabel: "Gender",
+  clientPrivacyNote: "The info you enter is only used to calculate your Destiny Bias reading.",
+  clientNameSubLabel: "NAME",
+  clientBirthDateSubLabel: "BIRTH DATE",
+  clientBirthTimeSubLabel: "BIRTH TIME",
+  clientGenderSubLabel: "GENDER",
+  clientBiasNameSubLabel: "BIAS NAME",
+  clientArtistSubLabel: "ARTIST / GROUP",
+  clientBiasMoodSubLabel: "BIAS MOOD",
+  clientChemistrySubLabel: "CHEMISTRY",
+  clientStarArchiveSubLabel: "STAR ARCHIVE / Quick-load a celebrity or character",
+  clientPhotoMergeSubLabel: "PHOTO MERGE",
+  clientStarArchiveTitle: "Fill your profile fast from the Saju analysis screen",
+  clientStarArchiveDesc:
+    "Search or tap through idols, actors, politicians, and anime characters to fill in a name and birth date at once.",
+  clientDisplayCountSuffix: (n) => `Showing ${n}`,
+  clientNarrowBySeriesLabel: "Narrow down by series",
+  clientBirthdayPrefix: "Birthday",
+  clientTimePrefix: "Time",
+  clientTimeUnknownNote: " · Birth time is private, so only the birthday was auto-filled.",
+  clientTimeHiddenNote: " · Time private",
+  clientReapplyButton: "Apply again",
+  clientLoadMoreButton: (shown, total) => `Load more (${shown}/${total})`,
+  clientNoSearchResults: "No results. Try searching part of a name or group name.",
+  clientBiasMoodLabel: "Bias mood",
+  clientRelationMoodLabel: "Relationship vibe",
+  clientUploadImageTitle: "Upload your bias's photo",
+  clientUploadImageDesc:
+    "The uploaded image is automatically blended into the result card's glass frame. 12MB or smaller, PNG/JPG/WEBP recommended.",
+  clientSelectImageButton: "Choose image",
+  clientResetUploadButton: "Reset upload",
+  clientUploadCompleteDefault: "Upload complete",
+  clientUploadHint: "It will be blended into a glass-textured photocard on the result screen.",
+  clientLightingRigLabel: "Choose your stage lighting",
+  clientThemeAriaLabel: (themeName, selected) => `${themeName} theme ${selected ? "selected" : "select"}`,
+  clientSelectedWord: "selected",
+  clientSelectWord: "select",
+  clientMainReportTitle: (biasName) => `Your Destiny Bias main report with ${biasName}`,
+  clientSupplementaryLabel: "Supplementary Saju reading",
+  clientSaveShareLabel: "Save & Share",
+  clientPrevButton: "Back",
+  clientEnterStageButton: "Enter Cosmic Stage",
+  clientPayingButton: "Processing payment...",
+  clientPayButton: "Pay",
+  clientGenderOptionLabels: { 여성: "Woman", 남성: "Man", 기타: "Other" },
+  clientBiasMoodOptionLabels: { 청량: "Refreshing", 카리스마: "Charismatic", 몽환: "Dreamy", 러블리: "Lovely", 시크: "Chic", 힐링: "Healing" },
+  clientRelationMoodOptionLabels: { 응원형: "Supportive", 성장형: "Growth", 설렘형: "Butterflies", 위로형: "Comforting", 운명형: "Destined" },
+
+  clientGuideTitle: "Notice",
+  clientLoginRequiredTitle: "Login required",
+  clientLoginRequiredMessage: "Your Destiny Bias analysis runs after we verify your account. Please log in and try again.",
+  clientAnalysisErrorDefault: "An error occurred during analysis.",
+  clientPngSaveFailed: "Failed to save the PNG.",
+  clientCopyResultFailed: "Failed to copy the result.",
+  clientShareTitle: "My Destiny Bias",
+  clientShareTextCopyFailed: "Failed to copy the share text.",
+  clientInstagramSaveFailed: "Failed to save the image for Instagram sharing.",
+  clientKakaoCopyFailed: "Failed to copy the KakaoTalk share text.",
+  clientStep1Title: "Let's check your fanlight energy",
+  clientStep1Desc: "Enter your name and birth date to align your Saju energy base before entering the stage.",
+  clientMyNameLabel: "My name/nickname",
+  clientMyNamePlaceholder: "e.g. Neo",
+  clientMyBirthDateLabel: "My birth date",
+  clientMyBirthDatePlaceholder: "e.g. 19910220",
+  clientBirthTimeOptionalLabel: "Birth time is optional",
+  clientMyBirthTimePlaceholder: "e.g. 1430 (optional)",
+  clientStep2Title: "Let's link stage chemistry with your bias's profile",
+  clientStep2Desc: "Enter your bias's info and mood to calculate resonance points with your Saju energy on stage.",
+  clientBiasNameFieldLabel: "Bias name",
+  clientBiasNamePlaceholder: "e.g. MY BIAS",
+  clientBiasBirthDateLabel: "Bias's birth date",
+  clientBiasBirthDatePlaceholder: "e.g. 20001225",
+  clientArtistLabel: "Linked artist/group",
+  clientArtistPlaceholder: "e.g. STARLIGHT UNIT",
+  clientBiasBirthTimePlaceholder: "e.g. 0915 (optional)",
+  clientSearchPlaceholder: "Search by name, group/work, or category",
+  clientUploadPreviewAlt: "Preview of the uploaded bias image",
+  clientStep3Title: "Choose your concert stage tone",
+  clientStep3Desc: "Pick the stage's lighting temperature and aura color. The calculated result stays the same — only the card style changes.",
+  clientSummaryScoreLabel: "Score",
+  clientSummaryEnergyLabel: "Energy",
+  clientSummaryPairingLabel: "Pairing",
+  clientSummaryMessageLabel: "Destiny message",
+  clientSummaryFansignLabel: "Fansign message",
+  clientShareChemistryLine: (biasName, score, grade, message) => `Compatibility with ${biasName}: ${score} · ${grade}\n${message}`,
 };
 
 const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
@@ -297,6 +519,116 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     loadingSyncLine2: "두 사람의 리듬이 동기화 중이에요 ✨",
     defaultShareKeywords: ["별빛", "공명", "케미"],
     scoreSuffix: "점",
+
+    clientInsufficientNamePrompt: "나의 이름/닉네임을 입력해 주세요.",
+    clientMyBirthErrorPrefix: (reason) => `나의 생년월일: ${reason}`,
+    clientBiasNamePrompt: "최애 이름을 입력해 주세요.",
+    clientBiasBirthErrorPrefix: (reason) => `최애의 생년월일: ${reason}`,
+    clientImageTypeError: "PNG, JPG, WEBP, GIF 이미지 파일만 업로드할 수 있어요.",
+    clientImageSizeError: (mb) => `이미지 용량은 ${mb}MB 이하로 업로드해 주세요.`,
+    clientImageReadError: "이미지를 읽지 못했어요. 다시 선택해 주세요.",
+    clientImageProcessError: "이미지 처리 중 오류가 발생했어요. 다른 파일로 다시 시도해 주세요.",
+    clientImageReadyToast: "최애 이미지를 카드에 합성할 준비를 끝냈어요.",
+    clientImageClearedToast: "업로드 이미지를 초기화했어요.",
+    clientPresetLoadedToast: (sourceLabel) => `${sourceLabel} 정보를 바로 불러왔어요.`,
+    clientPresetBirthOnlyToast: (sourceLabel) =>
+      `${sourceLabel} 생일을 바로 넣었어요. 시간은 공개된 경우만 자동 입력됩니다.`,
+    clientAnalysisCompleteToast: "최애운명 리포트와 디지털 포토카드가 완성됐어요.",
+    clientSvgSavedToast: "SVG 포토카드를 저장했어요.",
+    clientPngSavedToast: "PNG 포토카드를 저장했어요.",
+    clientCopySummaryToast: "결과 요약을 복사했어요.",
+    clientShareResultToast: "결과를 공유했어요.",
+    clientShareTextCopiedToast: "공유용 텍스트를 복사했어요.",
+    clientPlatformShareOpenedToast: (platformLabel) => `${platformLabel} 공유 창을 열었어요.`,
+    clientPlatformInstagram: "인스타그램",
+    clientPlatformKakao: "카카오",
+    clientShareToXToast: "X(트위터) 공유 창을 열었어요.",
+    clientInstagramSavedToast: "인스타 공유용 카드 이미지를 저장했어요. 인스타 앱에서 업로드해 주세요.",
+    clientKakaoCopiedToast: "카카오 공유용 문구를 복사했어요. 카카오톡에 붙여넣어 공유해 주세요.",
+    clientTryAnotherToast: "다른 최애 정보를 입력해 주세요.",
+    clientGenderLabel: "성별",
+    clientPrivacyNote: "입력 정보는 최애운명 분석 목적의 계산에만 사용됩니다.",
+    clientNameSubLabel: "NAME / 이름",
+    clientBirthDateSubLabel: "BIRTH DATE / 생년월일",
+    clientBirthTimeSubLabel: "BIRTH TIME / 태어난 시간",
+    clientGenderSubLabel: "GENDER / 성별",
+    clientBiasNameSubLabel: "BIAS NAME / 최애 이름",
+    clientArtistSubLabel: "ARTIST / 그룹 또는 아티스트",
+    clientBiasMoodSubLabel: "BIAS MOOD / 최애 분위기",
+    clientChemistrySubLabel: "CHEMISTRY / 관계 감성",
+    clientStarArchiveSubLabel: "STAR ARCHIVE / 유명인·캐릭터 바로 불러오기",
+    clientPhotoMergeSubLabel: "PHOTO MERGE / 포토카드 합성",
+    clientStarArchiveTitle: "사주 분석 화면 기반 프로필을 빠르게 채우기",
+    clientStarArchiveDesc: "아이돌, 배우, 정치인, 애니 캐릭터까지 검색하거나 탭으로 골라서 이름과 생년월일을 한 번에 입력할 수 있어요.",
+    clientDisplayCountSuffix: (n) => `${n}명 표시 중`,
+    clientNarrowBySeriesLabel: "작품별로 좁혀보기",
+    clientBirthdayPrefix: "생일",
+    clientTimePrefix: "시간",
+    clientTimeUnknownNote: " · 시간 정보는 비공개라 생일만 자동 입력했어요.",
+    clientTimeHiddenNote: " · 시간 비공개",
+    clientReapplyButton: "다시 넣기",
+    clientLoadMoreButton: (shown, total) => `더보기 (${shown}/${total})`,
+    clientNoSearchResults: "검색 결과가 없어요. 이름 일부나 그룹명으로 다시 찾아보세요.",
+    clientBiasMoodLabel: "최애 분위기",
+    clientRelationMoodLabel: "관계 감성",
+    clientUploadImageTitle: "최애 이미지 업로드하기",
+    clientUploadImageDesc: "업로드한 이미지를 결과 카드의 글래스 프레임에 자동 합성해요. 12MB 이하, PNG/JPG/WEBP 권장.",
+    clientSelectImageButton: "이미지 선택",
+    clientResetUploadButton: "업로드 초기화",
+    clientUploadCompleteDefault: "업로드 완료",
+    clientUploadHint: "결과 카드에서 유리 질감 포토카드로 합성됩니다.",
+    clientLightingRigLabel: "무대 조명을 고르세요",
+    clientThemeAriaLabel: (themeName, selected) => `${themeName} 테마 ${selected ? "선택됨" : "선택"}`,
+    clientSelectedWord: "선택됨",
+    clientSelectWord: "선택",
+    clientMainReportTitle: (biasName) => `${biasName}와의 최애운명 메인 리포트`,
+    clientSupplementaryLabel: "보조 사주 분석",
+    clientSaveShareLabel: "저장 · 공유",
+    clientPrevButton: "이전",
+    clientEnterStageButton: "Cosmic Stage 입장",
+    clientPayingButton: "결제 진행 중...",
+    clientPayButton: "결제하기",
+    clientGenderOptionLabels: { 여성: "여성", 남성: "남성", 기타: "기타" },
+    clientBiasMoodOptionLabels: { 청량: "청량", 카리스마: "카리스마", 몽환: "몽환", 러블리: "러블리", 시크: "시크", 힐링: "힐링" },
+    clientRelationMoodOptionLabels: { 응원형: "응원형", 성장형: "성장형", 설렘형: "설렘형", 위로형: "위로형", 운명형: "운명형" },
+
+    clientGuideTitle: "안내",
+    clientLoginRequiredTitle: "로그인이 필요해요",
+    clientLoginRequiredMessage: "최애운명 분석은 계정 확인 후 진행됩니다. 로그인 후 다시 시도해 주세요.",
+    clientAnalysisErrorDefault: "분석 중 오류가 발생했습니다.",
+    clientPngSaveFailed: "PNG 저장에 실패했습니다.",
+    clientCopyResultFailed: "결과 복사에 실패했습니다.",
+    clientShareTitle: "My Destiny Bias",
+    clientShareTextCopyFailed: "공유 텍스트 복사에 실패했습니다.",
+    clientInstagramSaveFailed: "인스타 공유용 이미지 저장에 실패했습니다.",
+    clientKakaoCopyFailed: "카카오 공유 문구 복사에 실패했습니다.",
+    clientStep1Title: "당신의 팬라이트 에너지를 확인할게요",
+    clientStep1Desc: "이름과 생년월일을 입력하면 무대 입장 전 당신의 사주 에너지 베이스를 먼저 정렬합니다.",
+    clientMyNameLabel: "나의 이름/닉네임",
+    clientMyNamePlaceholder: "예: 네오",
+    clientMyBirthDateLabel: "나의 생년월일",
+    clientMyBirthDatePlaceholder: "예: 19910220",
+    clientBirthTimeOptionalLabel: "태어난 시간은 선택 입력",
+    clientMyBirthTimePlaceholder: "예: 1430 (선택)",
+    clientStep2Title: "최애 프로필로 스테이지 케미를 연결할게요",
+    clientStep2Desc: "최애 정보와 무드를 입력하면 나의 사주 에너지와 겹치는 공명 포인트를 스테이지 기준으로 계산합니다.",
+    clientBiasNameFieldLabel: "최애 이름",
+    clientBiasNamePlaceholder: "예: MY BIAS",
+    clientBiasBirthDateLabel: "최애의 생년월일",
+    clientBiasBirthDatePlaceholder: "예: 20001225",
+    clientArtistLabel: "연결 아티스트/그룹",
+    clientArtistPlaceholder: "예: STARLIGHT UNIT",
+    clientBiasBirthTimePlaceholder: "예: 0915 (선택)",
+    clientSearchPlaceholder: "이름, 그룹/작품, 카테고리로 검색해 보세요",
+    clientUploadPreviewAlt: "업로드한 최애 이미지 미리보기",
+    clientStep3Title: "콘서트 무대 톤을 선택해 주세요",
+    clientStep3Desc: "무대의 조명 온도와 오라 색감을 선택합니다. 계산 결과는 동일하고, 표현되는 카드 스타일만 달라집니다.",
+    clientSummaryScoreLabel: "점수",
+    clientSummaryEnergyLabel: "에너지",
+    clientSummaryPairingLabel: "페어링",
+    clientSummaryMessageLabel: "운명 메시지",
+    clientSummaryFansignLabel: "팬싸인 감성 메시지",
+    clientShareChemistryLine: (biasName, score, grade, message) => `${biasName}와의 궁합 ${score}점 · ${grade}\n${message}`,
   },
   ja: {
     auraLabel: "ペンライトオーラ",
@@ -394,6 +726,116 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     loadingSyncLine2: "二人のリズムが同期しています ✨",
     defaultShareKeywords: ["星明かり", "共鳴", "ケミ"],
     scoreSuffix: "点",
+
+    clientInsufficientNamePrompt: "あなたの名前/ニックネームを入力してください。",
+    clientMyBirthErrorPrefix: (reason) => `あなたの生年月日: ${reason}`,
+    clientBiasNamePrompt: "推しの名前を入力してください。",
+    clientBiasBirthErrorPrefix: (reason) => `推しの生年月日: ${reason}`,
+    clientImageTypeError: "PNG、JPG、WEBP、GIF画像ファイルのみアップロードできます。",
+    clientImageSizeError: (mb) => `画像サイズは${mb}MB以下でアップロードしてください。`,
+    clientImageReadError: "画像を読み込めませんでした。別の画像を選び直してください。",
+    clientImageProcessError: "画像処理中にエラーが発生しました。別のファイルで再試行してください。",
+    clientImageReadyToast: "推しの画像をカードに合成する準備ができました。",
+    clientImageClearedToast: "アップロード画像をリセットしました。",
+    clientPresetLoadedToast: (sourceLabel) => `${sourceLabel}の情報を読み込みました。`,
+    clientPresetBirthOnlyToast: (sourceLabel) =>
+      `${sourceLabel}の誕生日を入力しました。時間は公開されている場合のみ自動入力されます。`,
+    clientAnalysisCompleteToast: "推し運命レポートとデジタルフォトカードが完成しました。",
+    clientSvgSavedToast: "SVGフォトカードを保存しました。",
+    clientPngSavedToast: "PNGフォトカードを保存しました。",
+    clientCopySummaryToast: "結果の要約をコピーしました。",
+    clientShareResultToast: "結果をシェアしました。",
+    clientShareTextCopiedToast: "シェア用テキストをコピーしました。",
+    clientPlatformShareOpenedToast: (platformLabel) => `${platformLabel}のシェアウィンドウを開きました。`,
+    clientPlatformInstagram: "Instagram",
+    clientPlatformKakao: "カカオトーク",
+    clientShareToXToast: "X(旧Twitter)のシェアウィンドウを開きました。",
+    clientInstagramSavedToast: "Instagramシェア用のカード画像を保存しました。Instagramアプリからアップロードしてください。",
+    clientKakaoCopiedToast: "カカオトークシェア用の文章をコピーしました。カカオトークに貼り付けてシェアしてください。",
+    clientTryAnotherToast: "別の推しの情報を入力してください。",
+    clientGenderLabel: "性別",
+    clientPrivacyNote: "入力情報は推し運命診断の計算にのみ使用されます。",
+    clientNameSubLabel: "NAME / 名前",
+    clientBirthDateSubLabel: "BIRTH DATE / 生年月日",
+    clientBirthTimeSubLabel: "BIRTH TIME / 生まれた時間",
+    clientGenderSubLabel: "GENDER / 性別",
+    clientBiasNameSubLabel: "BIAS NAME / 推しの名前",
+    clientArtistSubLabel: "ARTIST / グループまたはアーティスト",
+    clientBiasMoodSubLabel: "BIAS MOOD / 推しの雰囲気",
+    clientChemistrySubLabel: "CHEMISTRY / 関係性の雰囲気",
+    clientStarArchiveSubLabel: "STAR ARCHIVE / 有名人・キャラクターをすぐ読み込む",
+    clientPhotoMergeSubLabel: "PHOTO MERGE / フォトカード合成",
+    clientStarArchiveTitle: "四柱推命分析画面ベースのプロフィールをすばやく入力",
+    clientStarArchiveDesc: "アイドル、俳優、政治家、アニメキャラクターまで検索やタップで選んで、名前と生年月日を一度に入力できます。",
+    clientDisplayCountSuffix: (n) => `${n}件表示中`,
+    clientNarrowBySeriesLabel: "作品ごとに絞り込む",
+    clientBirthdayPrefix: "誕生日",
+    clientTimePrefix: "時間",
+    clientTimeUnknownNote: " · 時間は非公開のため誕生日のみ自動入力しました。",
+    clientTimeHiddenNote: " · 時間非公開",
+    clientReapplyButton: "もう一度入れる",
+    clientLoadMoreButton: (shown, total) => `もっと見る (${shown}/${total})`,
+    clientNoSearchResults: "検索結果がありません。名前の一部やグループ名で再検索してください。",
+    clientBiasMoodLabel: "推しの雰囲気",
+    clientRelationMoodLabel: "関係性の雰囲気",
+    clientUploadImageTitle: "推しの画像をアップロード",
+    clientUploadImageDesc: "アップロードした画像は結果カードのガラスフレームに自動合成されます。12MB以下、PNG/JPG/WEBP推奨。",
+    clientSelectImageButton: "画像を選択",
+    clientResetUploadButton: "アップロードをリセット",
+    clientUploadCompleteDefault: "アップロード完了",
+    clientUploadHint: "結果画面でガラス質感のフォトカードに合成されます。",
+    clientLightingRigLabel: "ステージ照明を選んでください",
+    clientThemeAriaLabel: (themeName, selected) => `${themeName}テーマ ${selected ? "選択済み" : "選択"}`,
+    clientSelectedWord: "選択済み",
+    clientSelectWord: "選択",
+    clientMainReportTitle: (biasName) => `${biasName}との推し運命メインレポート`,
+    clientSupplementaryLabel: "補助的な四柱推命診断",
+    clientSaveShareLabel: "保存・シェア",
+    clientPrevButton: "戻る",
+    clientEnterStageButton: "Cosmic Stageに入場",
+    clientPayingButton: "決済処理中...",
+    clientPayButton: "決済する",
+    clientGenderOptionLabels: { 여성: "女性", 남성: "男性", 기타: "その他" },
+    clientBiasMoodOptionLabels: { 청량: "清涼", 카리스마: "カリスマ", 몽환: "夢幻", 러블리: "ラブリー", 시크: "シック", 힐링: "ヒーリング" },
+    clientRelationMoodOptionLabels: { 응원형: "応援型", 성장형: "成長型", 설렘형: "ときめき型", 위로형: "癒やし型", 운명형: "運命型" },
+
+    clientGuideTitle: "お知らせ",
+    clientLoginRequiredTitle: "ログインが必要です",
+    clientLoginRequiredMessage: "推し運命診断はアカウント確認後に進みます。ログイン後、再度お試しください。",
+    clientAnalysisErrorDefault: "診断中にエラーが発生しました。",
+    clientPngSaveFailed: "PNGの保存に失敗しました。",
+    clientCopyResultFailed: "結果のコピーに失敗しました。",
+    clientShareTitle: "My Destiny Bias",
+    clientShareTextCopyFailed: "シェアテキストのコピーに失敗しました。",
+    clientInstagramSaveFailed: "Instagramシェア用画像の保存に失敗しました。",
+    clientKakaoCopyFailed: "カカオトークシェア文のコピーに失敗しました。",
+    clientStep1Title: "あなたのペンライトエネルギーを確認します",
+    clientStep1Desc: "名前と生年月日を入力すると、ステージ入場前にあなたの四柱推命エネルギーベースを整えます。",
+    clientMyNameLabel: "あなたの名前/ニックネーム",
+    clientMyNamePlaceholder: "例: ネオ",
+    clientMyBirthDateLabel: "あなたの生年月日",
+    clientMyBirthDatePlaceholder: "例: 19910220",
+    clientBirthTimeOptionalLabel: "生まれた時間は任意入力",
+    clientMyBirthTimePlaceholder: "例: 1430 (任意)",
+    clientStep2Title: "推しのプロフィールでステージケミを繋げます",
+    clientStep2Desc: "推しの情報とムードを入力すると、あなたの四柱推命エネルギーと重なる共鳴ポイントをステージ基準で計算します。",
+    clientBiasNameFieldLabel: "推しの名前",
+    clientBiasNamePlaceholder: "例: MY BIAS",
+    clientBiasBirthDateLabel: "推しの生年月日",
+    clientBiasBirthDatePlaceholder: "例: 20001225",
+    clientArtistLabel: "所属アーティスト/グループ",
+    clientArtistPlaceholder: "例: STARLIGHT UNIT",
+    clientBiasBirthTimePlaceholder: "例: 0915 (任意)",
+    clientSearchPlaceholder: "名前、グループ/作品、カテゴリーで検索してみてください",
+    clientUploadPreviewAlt: "アップロードした推し画像のプレビュー",
+    clientStep3Title: "コンサートステージのトーンを選んでください",
+    clientStep3Desc: "ステージの照明温度とオーラの色味を選びます。診断結果は同じで、表現されるカードのスタイルだけが変わります。",
+    clientSummaryScoreLabel: "スコア",
+    clientSummaryEnergyLabel: "エネルギー",
+    clientSummaryPairingLabel: "ペアリング",
+    clientSummaryMessageLabel: "運命メッセージ",
+    clientSummaryFansignLabel: "ファンサインメッセージ",
+    clientShareChemistryLine: (biasName, score, grade, message) => `${biasName}との相性 ${score}点 · ${grade}\n${message}`,
   },
   "zh-CN": {
     auraLabel: "应援灯光环",
@@ -491,6 +933,116 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     loadingSyncLine2: "两人的节奏正在同步 ✨",
     defaultShareKeywords: ["星光", "共鸣", "缘分"],
     scoreSuffix: "分",
+
+    clientInsufficientNamePrompt: "请输入你的姓名/昵称。",
+    clientMyBirthErrorPrefix: (reason) => `你的出生日期: ${reason}`,
+    clientBiasNamePrompt: "请输入本命的姓名。",
+    clientBiasBirthErrorPrefix: (reason) => `本命的出生日期: ${reason}`,
+    clientImageTypeError: "仅可上传PNG、JPG、WEBP、GIF格式的图片文件。",
+    clientImageSizeError: (mb) => `请上传${mb}MB以下的图片。`,
+    clientImageReadError: "无法读取图片,请重新选择。",
+    clientImageProcessError: "处理图片时发生错误,请用其他文件重试。",
+    clientImageReadyToast: "已准备好将本命照片合成到卡片中。",
+    clientImageClearedToast: "已重置上传的图片。",
+    clientPresetLoadedToast: (sourceLabel) => `已加载${sourceLabel}的信息。`,
+    clientPresetBirthOnlyToast: (sourceLabel) =>
+      `已填入${sourceLabel}的生日。出生时间仅在公开时才会自动填入。`,
+    clientAnalysisCompleteToast: "命定本命报告和数字写真卡已完成。",
+    clientSvgSavedToast: "已保存SVG写真卡。",
+    clientPngSavedToast: "已保存PNG写真卡。",
+    clientCopySummaryToast: "已复制结果摘要。",
+    clientShareResultToast: "已分享结果。",
+    clientShareTextCopiedToast: "已复制分享文本。",
+    clientPlatformShareOpenedToast: (platformLabel) => `已打开${platformLabel}分享窗口。`,
+    clientPlatformInstagram: "Instagram",
+    clientPlatformKakao: "KakaoTalk",
+    clientShareToXToast: "已打开X(推特)分享窗口。",
+    clientInstagramSavedToast: "已保存用于Instagram分享的卡片图片,请从Instagram应用上传。",
+    clientKakaoCopiedToast: "已复制KakaoTalk分享文案,请粘贴到KakaoTalk中分享。",
+    clientTryAnotherToast: "请输入另一个本命的信息。",
+    clientGenderLabel: "性别",
+    clientPrivacyNote: "输入的信息仅用于命定本命分析的计算。",
+    clientNameSubLabel: "NAME / 姓名",
+    clientBirthDateSubLabel: "BIRTH DATE / 出生日期",
+    clientBirthTimeSubLabel: "BIRTH TIME / 出生时间",
+    clientGenderSubLabel: "GENDER / 性别",
+    clientBiasNameSubLabel: "BIAS NAME / 本命姓名",
+    clientArtistSubLabel: "ARTIST / 所属团体或艺人",
+    clientBiasMoodSubLabel: "BIAS MOOD / 本命氛围",
+    clientChemistrySubLabel: "CHEMISTRY / 关系氛围",
+    clientStarArchiveSubLabel: "STAR ARCHIVE / 快速加载名人或角色",
+    clientPhotoMergeSubLabel: "PHOTO MERGE / 写真卡合成",
+    clientStarArchiveTitle: "基于四柱分析界面快速填写资料",
+    clientStarArchiveDesc: "搜索或点选偶像、演员、政治人物、动漫角色,一次性填入姓名和出生日期。",
+    clientDisplayCountSuffix: (n) => `显示${n}位`,
+    clientNarrowBySeriesLabel: "按作品筛选",
+    clientBirthdayPrefix: "生日",
+    clientTimePrefix: "时间",
+    clientTimeUnknownNote: " · 出生时间未公开,仅自动填入了生日。",
+    clientTimeHiddenNote: " · 时间未公开",
+    clientReapplyButton: "重新填入",
+    clientLoadMoreButton: (shown, total) => `加载更多 (${shown}/${total})`,
+    clientNoSearchResults: "没有搜索结果。请尝试用姓名或团体名称的一部分重新搜索。",
+    clientBiasMoodLabel: "本命氛围",
+    clientRelationMoodLabel: "关系氛围",
+    clientUploadImageTitle: "上传本命照片",
+    clientUploadImageDesc: "上传的图片将自动合成到结果卡片的玻璃相框中。建议12MB以下,PNG/JPG/WEBP格式。",
+    clientSelectImageButton: "选择图片",
+    clientResetUploadButton: "重置上传",
+    clientUploadCompleteDefault: "上传完成",
+    clientUploadHint: "将在结果画面中合成为玻璃质感写真卡。",
+    clientLightingRigLabel: "请选择舞台灯光",
+    clientThemeAriaLabel: (themeName, selected) => `${themeName}主题 ${selected ? "已选择" : "选择"}`,
+    clientSelectedWord: "已选择",
+    clientSelectWord: "选择",
+    clientMainReportTitle: (biasName) => `与${biasName}的命定本命主报告`,
+    clientSupplementaryLabel: "辅助四柱分析",
+    clientSaveShareLabel: "保存·分享",
+    clientPrevButton: "上一步",
+    clientEnterStageButton: "进入Cosmic Stage",
+    clientPayingButton: "支付处理中...",
+    clientPayButton: "支付",
+    clientGenderOptionLabels: { 여성: "女性", 남성: "男性", 기타: "其他" },
+    clientBiasMoodOptionLabels: { 청량: "清凉", 카리스마: "魅力", 몽환: "梦幻", 러블리: "可爱", 시크: "冷艳", 힐링: "治愈" },
+    clientRelationMoodOptionLabels: { 응원형: "应援型", 성장형: "成长型", 설렘형: "心动型", 위로형: "慰藉型", 운명형: "命定型" },
+
+    clientGuideTitle: "提示",
+    clientLoginRequiredTitle: "需要登录",
+    clientLoginRequiredMessage: "命定本命分析需要先验证账户,请登录后重试。",
+    clientAnalysisErrorDefault: "分析过程中发生了错误。",
+    clientPngSaveFailed: "PNG保存失败。",
+    clientCopyResultFailed: "结果复制失败。",
+    clientShareTitle: "My Destiny Bias",
+    clientShareTextCopyFailed: "分享文本复制失败。",
+    clientInstagramSaveFailed: "Instagram分享图片保存失败。",
+    clientKakaoCopyFailed: "KakaoTalk分享文案复制失败。",
+    clientStep1Title: "让我们确认你的应援灯能量",
+    clientStep1Desc: "输入姓名和出生日期,在进入舞台前先校准你的四柱能量基础。",
+    clientMyNameLabel: "我的姓名/昵称",
+    clientMyNamePlaceholder: "例: 네오",
+    clientMyBirthDateLabel: "我的出生日期",
+    clientMyBirthDatePlaceholder: "例: 19910220",
+    clientBirthTimeOptionalLabel: "出生时间为选填",
+    clientMyBirthTimePlaceholder: "例: 1430 (选填)",
+    clientStep2Title: "让我们用本命档案连接舞台缘分",
+    clientStep2Desc: "输入本命的信息和氛围,以舞台为基准计算与你四柱能量重叠的共鸣点。",
+    clientBiasNameFieldLabel: "本命姓名",
+    clientBiasNamePlaceholder: "例: MY BIAS",
+    clientBiasBirthDateLabel: "本命的出生日期",
+    clientBiasBirthDatePlaceholder: "例: 20001225",
+    clientArtistLabel: "所属艺人/团体",
+    clientArtistPlaceholder: "例: STARLIGHT UNIT",
+    clientBiasBirthTimePlaceholder: "例: 0915 (选填)",
+    clientSearchPlaceholder: "试试用姓名、团体/作品或分类搜索",
+    clientUploadPreviewAlt: "已上传的本命图片预览",
+    clientStep3Title: "请选择演唱会舞台色调",
+    clientStep3Desc: "选择舞台的灯光色温与气场色彩。计算结果不变,只有卡片风格会不同。",
+    clientSummaryScoreLabel: "分数",
+    clientSummaryEnergyLabel: "能量",
+    clientSummaryPairingLabel: "配对",
+    clientSummaryMessageLabel: "命定讯息",
+    clientSummaryFansignLabel: "签售感性讯息",
+    clientShareChemistryLine: (biasName, score, grade, message) => `与${biasName}的缘分 ${score}分 · ${grade}\n${message}`,
   },
   "zh-TW": {
     auraLabel: "應援燈光環",
@@ -588,6 +1140,116 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
     loadingSyncLine2: "兩人的節奏正在同步 ✨",
     defaultShareKeywords: ["星光", "共鳴", "緣分"],
     scoreSuffix: "分",
+
+    clientInsufficientNamePrompt: "請輸入你的姓名/暱稱。",
+    clientMyBirthErrorPrefix: (reason) => `你的出生日期: ${reason}`,
+    clientBiasNamePrompt: "請輸入本命的姓名。",
+    clientBiasBirthErrorPrefix: (reason) => `本命的出生日期: ${reason}`,
+    clientImageTypeError: "僅可上傳PNG、JPG、WEBP、GIF格式的圖片檔案。",
+    clientImageSizeError: (mb) => `請上傳${mb}MB以下的圖片。`,
+    clientImageReadError: "無法讀取圖片,請重新選擇。",
+    clientImageProcessError: "處理圖片時發生錯誤,請用其他檔案重試。",
+    clientImageReadyToast: "已準備好將本命照片合成到卡片中。",
+    clientImageClearedToast: "已重置上傳的圖片。",
+    clientPresetLoadedToast: (sourceLabel) => `已載入${sourceLabel}的資訊。`,
+    clientPresetBirthOnlyToast: (sourceLabel) =>
+      `已填入${sourceLabel}的生日。出生時間僅在公開時才會自動填入。`,
+    clientAnalysisCompleteToast: "命定本命報告和數位寫真卡已完成。",
+    clientSvgSavedToast: "已保存SVG寫真卡。",
+    clientPngSavedToast: "已保存PNG寫真卡。",
+    clientCopySummaryToast: "已複製結果摘要。",
+    clientShareResultToast: "已分享結果。",
+    clientShareTextCopiedToast: "已複製分享文字。",
+    clientPlatformShareOpenedToast: (platformLabel) => `已開啟${platformLabel}分享視窗。`,
+    clientPlatformInstagram: "Instagram",
+    clientPlatformKakao: "KakaoTalk",
+    clientShareToXToast: "已開啟X(推特)分享視窗。",
+    clientInstagramSavedToast: "已保存用於Instagram分享的卡片圖片,請從Instagram應用程式上傳。",
+    clientKakaoCopiedToast: "已複製KakaoTalk分享文案,請貼到KakaoTalk中分享。",
+    clientTryAnotherToast: "請輸入另一個本命的資訊。",
+    clientGenderLabel: "性別",
+    clientPrivacyNote: "輸入的資訊僅用於命定本命分析的計算。",
+    clientNameSubLabel: "NAME / 姓名",
+    clientBirthDateSubLabel: "BIRTH DATE / 出生日期",
+    clientBirthTimeSubLabel: "BIRTH TIME / 出生時間",
+    clientGenderSubLabel: "GENDER / 性別",
+    clientBiasNameSubLabel: "BIAS NAME / 本命姓名",
+    clientArtistSubLabel: "ARTIST / 所屬團體或藝人",
+    clientBiasMoodSubLabel: "BIAS MOOD / 本命氛圍",
+    clientChemistrySubLabel: "CHEMISTRY / 關係氛圍",
+    clientStarArchiveSubLabel: "STAR ARCHIVE / 快速載入名人或角色",
+    clientPhotoMergeSubLabel: "PHOTO MERGE / 寫真卡合成",
+    clientStarArchiveTitle: "基於四柱分析畫面快速填寫資料",
+    clientStarArchiveDesc: "搜尋或點選偶像、演員、政治人物、動漫角色,一次填入姓名和出生日期。",
+    clientDisplayCountSuffix: (n) => `顯示${n}位`,
+    clientNarrowBySeriesLabel: "依作品篩選",
+    clientBirthdayPrefix: "生日",
+    clientTimePrefix: "時間",
+    clientTimeUnknownNote: " · 出生時間未公開,僅自動填入了生日。",
+    clientTimeHiddenNote: " · 時間未公開",
+    clientReapplyButton: "重新填入",
+    clientLoadMoreButton: (shown, total) => `載入更多 (${shown}/${total})`,
+    clientNoSearchResults: "沒有搜尋結果。請嘗試用姓名或團體名稱的一部分重新搜尋。",
+    clientBiasMoodLabel: "本命氛圍",
+    clientRelationMoodLabel: "關係氛圍",
+    clientUploadImageTitle: "上傳本命照片",
+    clientUploadImageDesc: "上傳的圖片將自動合成到結果卡片的玻璃相框中。建議12MB以下,PNG/JPG/WEBP格式。",
+    clientSelectImageButton: "選擇圖片",
+    clientResetUploadButton: "重置上傳",
+    clientUploadCompleteDefault: "上傳完成",
+    clientUploadHint: "將在結果畫面中合成為玻璃質感寫真卡。",
+    clientLightingRigLabel: "請選擇舞台燈光",
+    clientThemeAriaLabel: (themeName, selected) => `${themeName}主題 ${selected ? "已選擇" : "選擇"}`,
+    clientSelectedWord: "已選擇",
+    clientSelectWord: "選擇",
+    clientMainReportTitle: (biasName) => `與${biasName}的命定本命主報告`,
+    clientSupplementaryLabel: "輔助四柱分析",
+    clientSaveShareLabel: "保存·分享",
+    clientPrevButton: "上一步",
+    clientEnterStageButton: "進入Cosmic Stage",
+    clientPayingButton: "支付處理中...",
+    clientPayButton: "支付",
+    clientGenderOptionLabels: { 여성: "女性", 남성: "男性", 기타: "其他" },
+    clientBiasMoodOptionLabels: { 청량: "清涼", 카리스마: "魅力", 몽환: "夢幻", 러블리: "可愛", 시크: "冷豔", 힐링: "治癒" },
+    clientRelationMoodOptionLabels: { 응원형: "應援型", 성장형: "成長型", 설렘형: "心動型", 위로형: "慰藉型", 운명형: "命定型" },
+
+    clientGuideTitle: "提示",
+    clientLoginRequiredTitle: "需要登入",
+    clientLoginRequiredMessage: "命定本命分析需要先驗證帳戶,請登入後重試。",
+    clientAnalysisErrorDefault: "分析過程中發生了錯誤。",
+    clientPngSaveFailed: "PNG保存失敗。",
+    clientCopyResultFailed: "結果複製失敗。",
+    clientShareTitle: "My Destiny Bias",
+    clientShareTextCopyFailed: "分享文字複製失敗。",
+    clientInstagramSaveFailed: "Instagram分享圖片保存失敗。",
+    clientKakaoCopyFailed: "KakaoTalk分享文案複製失敗。",
+    clientStep1Title: "讓我們確認你的應援燈能量",
+    clientStep1Desc: "輸入姓名和出生日期,在進入舞台前先校準你的四柱能量基礎。",
+    clientMyNameLabel: "我的姓名/暱稱",
+    clientMyNamePlaceholder: "例: 네오",
+    clientMyBirthDateLabel: "我的出生日期",
+    clientMyBirthDatePlaceholder: "例: 19910220",
+    clientBirthTimeOptionalLabel: "出生時間為選填",
+    clientMyBirthTimePlaceholder: "例: 1430 (選填)",
+    clientStep2Title: "讓我們用本命檔案連接舞台緣分",
+    clientStep2Desc: "輸入本命的資訊和氛圍,以舞台為基準計算與你四柱能量重疊的共鳴點。",
+    clientBiasNameFieldLabel: "本命姓名",
+    clientBiasNamePlaceholder: "例: MY BIAS",
+    clientBiasBirthDateLabel: "本命的出生日期",
+    clientBiasBirthDatePlaceholder: "例: 20001225",
+    clientArtistLabel: "所屬藝人/團體",
+    clientArtistPlaceholder: "例: STARLIGHT UNIT",
+    clientBiasBirthTimePlaceholder: "例: 0915 (選填)",
+    clientSearchPlaceholder: "試試用姓名、團體/作品或分類搜尋",
+    clientUploadPreviewAlt: "已上傳的本命圖片預覽",
+    clientStep3Title: "請選擇演唱會舞台色調",
+    clientStep3Desc: "選擇舞台的燈光色溫與氣場色彩。計算結果不變,只有卡片風格會不同。",
+    clientSummaryScoreLabel: "分數",
+    clientSummaryEnergyLabel: "能量",
+    clientSummaryPairingLabel: "配對",
+    clientSummaryMessageLabel: "命定訊息",
+    clientSummaryFansignLabel: "簽售感性訊息",
+    clientShareChemistryLine: (biasName, score, grade, message) => `與${biasName}的緣分 ${score}分 · ${grade}\n${message}`,
   },
   vi: {
     auraLabel: "Vầng hào quang lightstick",
@@ -1244,7 +1906,9 @@ const DESTINY_BIAS_COPY: Partial<Record<LoadingLocale, DestinyBiasCopy>> = {
 };
 
 export function getDestinyBiasCopy(locale: LoadingLocale): DestinyBiasCopy {
-  return DESTINY_BIAS_COPY[locale] || DESTINY_BIAS_COPY_EN;
+  // 스프레드 병합 — 로케일 전체가 없거나(vi/hi/es/fr/de/nl/ms), 있어도 옵셔널 필드 일부만
+  // 빠졌으면(en/ja/zh만 채운 신규 필드) 항상 EN 값으로 자동 채워진다.
+  return { ...DESTINY_BIAS_COPY_EN, ...(DESTINY_BIAS_COPY[locale] || {}) };
 }
 
 export function useDestinyBiasCopy(): DestinyBiasCopy {
