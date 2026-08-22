@@ -13,6 +13,19 @@
 - 🔴 **"CI 통과 후 릴리스 실패"는 실제로 재현됐다** — 같은 날 커밋 `f657a777`에서 "Release Cloudflare Pages and Worker" 배포 워크플로가 2번 연속 실패했다. 로그 원인: **연속 머지 경합** — 릴리스 워크플로의 concurrency 그룹은 실행 1 + 대기 1만 유지하는데, 머지가 너무 빨리 이어지면 이전 배포가 끝나기 전에 더 최신 커밋이 스테이징에 먼저 배포돼, `verify-deployed-sha`가 "이 커밋을 배포했는지" 검증할 때 이미 더 최신 SHA가 배포돼 있어 실패로 판정한다(`landing-watchdog.yml`에 "조용한 실패 ②"로 이미 문서화된 패턴). **PR 코드 결함이 아니라 머지 속도 문제.**
 - **사용자에게 안내한 결론**: 순서는 무엇이든 상관없으나(충돌·의존성 없음), **한 번에 하나씩, 이전 PR의 "Release Cloudflare Pages and Worker" 워크플로가 초록불로 끝난 뒤 다음 PR을 머지**할 것을 권고했다 — 빠르게 연속 머지하면 같은 배포 SHA 불일치 실패가 재현될 수 있다.
 
+## 🔴🔴 2026-08-22 `Paid Flow Gates`가 "번역만 한 PR"에서도 실패하는 이유 — 가드가 소스를 실행이 아니라 리터럴 grep으로 검사한다 (PR #977로 수정)
+
+사용자가 "번역 작업인데 왜 결제 게이트가 걸리냐"고 질문해 push:main 건강신호(2026-08-22 14:36 run)를 실제로 열어 확인했다. `scripts/verify-nakshatra-premium.mjs`는 코드를 실행하지 않고 **소스 텍스트를 정규식으로 grep**해 `featureKey: "…"`, `coinPrice: 100` 같은 리터럴이 그대로 박혀 있는지, 혹은 특정 한국어 문자열이 그대로 있는지를 본다. PR #937(`chore/nakshatra-i18n-12-locales`, 병렬 세션 작업)이 머지되며 이 전제가 깨졌다:
+
+1. `LordReportClient.tsx`/`DashaMapClient.tsx` — `reason` 필드를 `copy.lordReason`(로케일 대응)으로 바꾸며 상품 객체 전체를 컴포넌트 내부로 옮겼고, 그 김에 `featureKey: "nakshatra-lord-report"`도 같은 값의 `FEATURE_KEY` 상수 참조로 바뀌었다. 값은 동일한데 가드가 리터럴만 찾아 FAIL.
+2. 택일/VVIP/궁합 3개 화면의 재시도 버튼이 `copy.retryWithoutPaymentButton`(정상적인 12로케일 번역, ko 값은 원래 리터럴과 동일)으로 바뀌며 가드의 `src.includes("결제 없이 다시 받기")` 단언이 깨짐.
+
+**교훈**: 이 레포의 verify 스크립트 중 다수가 "코드가 이 정확한 문자열/구조를 갖고 있는가"를 실행이 아니라 텍스트 매칭으로 본다(`config/payment-freeze.json` 매니페스트와 같은 발상). i18n 작업으로 한국어 리터럴을 `copy.*` 참조로 옮길 때 **그 리터럴을 직접 grep하는 verify 스크립트가 있는지 3면 grep 전에 반드시 확인**해야 한다 — 안 그러면 번역 자체는 맞는데 push:main 건강신호가 빨간불이 된다. `paid-flow-gates.yml`의 `pull_request.paths`에 `app/nakshatra/**`가 없어서 PR CI에서는 안 걸렸고 머지 후 push:main에서만 드러났다(트리거 공백은 그대로 — 이번 세션 범위 밖).
+
+**조치(PR #977)**: (1) `featureKey`는 로케일과 무관한 내부 키라 상수 추출을 되돌려 리터럴 인라인 복원. (2) `retryWithoutPaymentButton`은 진짜 번역이라 되돌리면 안 되므로, 가드에 `hasKoTextOrCopyRef()`를 추가해 `copy.<key>` 참조를 발견하면 `app/nakshatra/_lib/copy.ts`의 ko 블록에서 그 키 값이 정확히 기대 문자열인지 확인하도록 확장(리터럴이 남아있는 경우도 하위호환으로 계속 통과). 검증: `node scripts/verify-nakshatra-premium.mjs` PASS, `node scripts/run-paid-gate-suite.mjs --only nakshatra` 3/3 통과, `tsc`/`eslint` 클린.
+
+**사용자가 같은 날 재확인한 스코프**: "en/ja/zh-CN/zh-TW만 확실하게, 나머지는 번역 없으면 영어로" — 이는 PR #956(위 참고)부터 이미 표준 관례였다(`getXCopy(locale) { return { ...EN, ...(MAP[locale] || {}) } }` 스프레드 병합 패턴). PR #974/#975/#976(master-love-codex·maya·tarot-healing-core)도 전부 이 패턴으로 확인됨 — 새로 만드는 `_lib/copy.ts` 모듈은 반드시 이 형태를 따를 것, `?? "..."` 개별 폴백 반복 금지.
+
 ## 🔴 3차 세션(2026-08-22) 완료 목록 — "UI 크롬만" 스코프로 8개 PR
 
 2차 세션 종료 시점의 "3건 이하 그룹 62개 파일"에서 이어받아, 사용자가 이전 세션에 확정한 **"UI 크롬만(추천)"** 스코프(SEO 콘텐츠 페이지·서사형 콘텐츠 데이터 파일은 제외)로 계속 진행했다. 이번 세션은 새 브랜치+PR마다 `EnterWorktree` 격리 없이 하나의 워크트리 안에서 origin/main 기준 새 브랜치를 매번 새로 분기하는 방식으로 처리했다(`git fetch origin main -q && git checkout -b <branch> origin/main`).
@@ -257,6 +270,7 @@ CI/머지 순서 점검 중 열린 PR 24개의 파일 목록을 실제로 대조
 34. **PR #974** `chore/master-love-codex-i18n` — `src/features/master-love-codex/`(`app/` 밖 별도 최상위 트리, 30개 파일) 22개 파일 UI 크롬 배선 + `masterLoveCodexBilling()` 로케일 무관 한국어 제목 고정 버그 수정. 상세는 위 "`master-love-codex`" 절 참고.
 35. **PR #975** `chore/maya-i18n` — `src/components/maya/`(3개 파일) 히어로/날짜 선택기/월간 그리드/요약 카드/AI 프롬프트 생성기 UI 크롬 배선. 상세는 위 "`maya`" 절 참고.
 36. **PR #976** `chore/tarot-healing-core-i18n` — `app/components/SunHealingTarot.tsx`(913줄, PR #963이 놓친 실제 라이브 컴포넌트) UI 크롬 배선. 상세는 위 "`tarot/healing`(실제 구현)" 절 참고.
+37. **PR #977** `fix/nakshatra-premium-gate-featurekey` — i18n 작업이 아니라 **`Paid Flow Gates` 오탐 수정**. PR #937이 `verify-nakshatra-premium.mjs`의 리터럴-grep 단언 2건을 깨뜨린 것을 복구. 상세는 위 "`Paid Flow Gates`가 '번역만 한 PR'에서도 실패하는 이유" 절 참고.
 
 🔴 **비용 재평가(2026-08-21, PR #911/#912 이후)**: "AI 상담 입력 폼" 유형 파일(life-book-ai, love-secret-ai 등)은 한 파일에 60~90개 문구 × 12개 언어가 들어 있어, 파일 하나당 세션 토큰 예산의 상당 비율을 쓴다. `astrology-ai/AstrologyAiClient.tsx`(918줄, 실측 122건)를 포함해 남은 70개 파일 중 다수가 같은 "입력 폼" 계열로 보인다 — 전부 이 수준으로 처리하면 이번 세션 예산을 크게 넘어설 수 있다. 사용자가 이미 "현재 수준 그대로 계속"을 확정했으므로 계속 진행하되, 만약 세션이 여기서 중단되면 다음 세션은 **이 문서를 그대로 이어받아 재개**할 것(모든 파일이 이미 검증된 동일 패턴 — 파일 로컬 Copy 타입 + `getCurrentLoadingLocale()`/`languagechange` 훅 + 12로케일 번역 + 모듈 레벨 함수는 `copy` 파라미터로 스레딩).
 
