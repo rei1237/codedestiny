@@ -1,5 +1,6 @@
 import MayaRouteClient from "./MayaRouteClient";
 import { buildFortuneJsonLd, generatePageMetadata } from "@/lib/generate-page-metadata";
+import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 
 const MAYA_PAGE_METADATA_COPY = {
   ko: {
@@ -49,6 +50,7 @@ export default function MayaPage() {
   return (
     <>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
+      <RouteMetadataLocaleSync entries={MAYA_PAGE_METADATA_COPY} />
       <main className="min-h-screen bg-[#071611] px-5 py-10 text-[#f8edd0]">
         <MayaRouteClient />
         <section className="mx-auto mt-10 max-w-3xl rounded-3xl border border-[#d8b56d]/30 bg-[#10251d]/80 p-6 shadow-sm">
