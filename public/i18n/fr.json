@@ -9724,6 +9724,425 @@
           "a": "Yes, you can save it as a PDF from the result screen."
         }
       }
+    },
+    "premium_unlock": {
+      "fallbackTitle": "We trace the big flow of your life, work, wealth, and relationships all the way through, backed by your chart.",
+      "tagline": "If the Life Book is a narrative, Life Overall Fortune is a diagnosis. All ten chapters carry the grounds of your Day Master, Yongsin, Ten Gods, and Grand Fortune, unfolded across 30,000 characters.",
+      "premiumIntro": "Instead of well-wishes, this attaches grounds. Every sentence across the ten chapters also states which chart element it was drawn from.",
+      "fallbackCta": "Unfold My Life Overall Fortune",
+      "ctaNote": "Once you enter your birth date and time, it checks pass, monthly-stone, and single-payment eligibility in that order.",
+      "feats": {
+        "0": "Calculates your original Saju chart from your birth date and time and writes ten chapters plus 4 deep-reading pieces on your chart",
+        "1": "Explicitly states, per chapter, which chart element (Day Master, Yongsin, Ten Gods, Grand Fortune) it draws from",
+        "2": "Splits your current Grand Fortune window and the near 5 years of Yearly Fortune into separate chapters",
+        "3": "Save as PDF from the result screen to view again later"
+      },
+      "premiumAudience": {
+        "0": "Those who want a grounded diagnosis, not well-wishes",
+        "1": "Those who need to decide the order to adjust work, wealth, relationships, and health",
+        "2": "Those who want to grasp the opportunities and cautions of the near 5 years ahead of time"
+      },
+      "premiumChapters": {
+        "0": "The core of your inborn chart / your personality and the grain of your mind",
+        "1": "Talent and career direction / wealth and your life foundation",
+        "2": "The flow of love and relationships / the chapter of relationships and family",
+        "3": "Health and life rhythm",
+        "4": "The big turning points seen through Grand Fortune / the flow of the near Yearly Fortune",
+        "5": "Choices opening ahead + 4 deep-reading pieces on your chart"
+      },
+      "premiumOutcomes": {
+        "0": "Pass, monthly-stone, or single-payment status is checked after you enter your birth date and time.",
+        "1": "The consultation result is for reference only.",
+        "2": "The server-registered price applies."
+      },
+      "answersQuestions": {
+        "0": "Is now a period I can push forward in?",
+        "1": "Where in my wealth flow should I shore up first?",
+        "2": "Which of the next 5 years is the turning point?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "free": "A summary of temperament",
+          "premium": "10 chapters + 4 deep-reading pieces on your chart"
+        },
+        "1": {
+          "axis": "Length",
+          "premium": "30,000+ characters total"
+        },
+        "2": {
+          "axis": "Grounds",
+          "free": "None",
+          "premium": "Every chapter states its Day Master/Yongsin/Ten Gods/Grand Fortune grounds"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "How is this different from the Life Book?",
+          "a": "The Life Book is a narrative-style report; Life Overall Fortune is diagnostic. Overall Fortune is 3 times the length and attaches chart grounds to every sentence."
+        },
+        "1": {
+          "q": "How long does generation take?",
+          "a": "About 3 minutes, since the volume is large. Please wait without closing the screen."
+        },
+        "2": {
+          "q": "Can it be saved as a PDF?",
+          "a": "Yes, you can save it as a PDF from the result screen."
+        }
+      }
+    },
+    "love_secret_ai": {
+      "fallbackTitle": "Reads your love life through your Saju chart, split into six parts and twenty-eight sections.",
+      "tagline": "From love-fortune and temperament to compatibility, conflict, timing, and practice -- each item is split and written separately. Enter the other person's birth year and the compatibility items get calculated together.",
+      "premiumIntro": "Love Secret isn't a single overall review -- it splits the six parts above into twenty-eight sections and writes each one separately.",
+      "fallbackCta": "View Love Secret",
+      "ctaNote": "The entire relationship analysis opens after payment.",
+      "feats": {
+        "0": "When you can't get a read on the other person's real feelings at all",
+        "1": "When you keep missing the timing of push-and-pull",
+        "2": "When you're not sure whether to hold onto or let go of this bond"
+      },
+      "premiumAudience": {
+        "0": "Those exhausted from having no way to confirm the other person's real feelings",
+        "1": "Those who now need to decide the timing of a confession or reunion",
+        "2": "Those who can't reach their own conclusion on whether to hold on or let go"
+      },
+      "premiumChapters": {
+        "0": "Core love fortune and answers to your question",
+        "1": "Your own love temperament -- strengths, weaknesses, psychology",
+        "2": "The other person, compatibility, ideal type",
+        "3": "Conflict, infidelity, reunion, self-protection",
+        "4": "Grand Fortune, this year, good dates, marriage fortune",
+        "5": "Situationship strategy, conversation, charm, practice"
+      },
+      "premiumOutcomes": {
+        "0": "It doesn't guarantee the other person's feelings or an outcome.",
+        "1": "The expert consultation result is for reference only.",
+        "2": "Pass, monthly-stone, and single-payment policy follows the existing standard."
+      },
+      "answersQuestions": {
+        "0": "What is that person feeling right now?",
+        "1": "What's the love pattern I keep repeating?",
+        "2": "Is it okay to keep this relationship going?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Structure",
+          "free": "A summary of temperament",
+          "premium": "A relationship analysis split into 6 parts, 28 sections"
+        },
+        "1": {
+          "axis": "Perspective",
+          "free": "You only",
+          "premium": "Includes the distance between you and the other person"
+        },
+        "2": {
+          "axis": "Advice",
+          "free": "General",
+          "premium": "What to say now, and what to hold back"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "Do you need the other person's information?",
+          "a": "With the other person's information, the relationship interpretation comes out far more concretely. Without it, your own love-pattern analysis is still possible."
+        },
+        "1": {
+          "q": "Does it fix the other person's feelings?",
+          "a": "No. It shows you the mood currently flowing and both the pull bringing you closer and the pull pushing you apart."
+        },
+        "2": {
+          "q": "What if the result hurts?",
+          "a": "It doesn't cover things up with pleasant words. Instead, it also writes what would need to change for things to be different."
+        }
+      }
+    },
+    "fusion_fortune": {
+      "fallbackTitle": "See where all six systems point to the same place, and where they diverge.",
+      "tagline": "Saju, Ziwei Doushu, Vedic astrology, Sukuyo, Western astrology, and Tarot are each read separately in their own tradition's language, then overlapping signals are bundled as priorities and diverging signals as situational options, joined into one consultation.",
+      "premiumIntro": "Fusion Fortune doesn't just line up six fortunes side by side. It first sorts out what they say together and where they diverge, then looks at your current choice on top of that.",
+      "fallbackCta": "Open Fusion Reading",
+      "ctaNote": "The six systems' content and metrics open together after payment.",
+      "feats": {
+        "0": "Interprets Saju, Ziwei Doushu, Vedic astrology, Sukuyo, Western astrology, and Tarot separately, each in its own tradition's language",
+        "1": "Cross-verifies the six systems, sorting overlapping signals from diverging ones",
+        "2": "Reads the six server-drawn tarot cards together in the tarot section",
+        "3": "Places a 12-month timing line and real-world action guidance at the end"
+      },
+      "premiumAudience": {
+        "0": "Those facing a hard-to-reverse decision like a job change, move, or marriage",
+        "1": "Those confused because interpretations seen in different places contradict each other",
+        "2": "Those who want to sort out a whole year's flow at once"
+      },
+      "premiumChapters": {
+        "0": "20,000+ characters reading all six systems at expert depth",
+        "1": "Cross-verification organizing the signal where two or more systems point together",
+        "2": "A per-system signal-strength radar and a 12-month timing line ahead",
+        "3": "Action guidance split by period -- what to prepare, test, and settle"
+      },
+      "premiumOutcomes": {
+        "0": "It won't invent a star, palace, card, or period absent from the server's calculated values.",
+        "1": "It doesn't fix another person's feelings or an outcome.",
+        "2": "If generation fails, retrying the same request doesn't incur additional payment.",
+        "3": "Pass, monthly-stone, and single-payment judgment follows the existing payment policy as-is."
+      },
+      "answersQuestions": {
+        "0": "Several fortunes are saying different things -- which should I follow?",
+        "1": "What should I prepare for the rest of this year?",
+        "2": "Is it okay to push forward with this decision now?"
+      },
+      "valueCompare": {
+        "0": {
+          "axis": "Number of systems",
+          "free": "One at a time",
+          "premium": "All six systems within one consultation"
+        },
+        "1": {
+          "axis": "Cross-verification",
+          "free": "None",
+          "premium": "Sorts overlapping signals from diverging ones"
+        },
+        "2": {
+          "axis": "Timing",
+          "free": "Today-centered",
+          "premium": "A 12-month timing line ahead"
+        },
+        "3": {
+          "axis": "Length",
+          "free": "Summary level",
+          "premium": "20,000+ characters"
+        }
+      },
+      "faq": {
+        "0": {
+          "q": "I've already seen other fortunes -- is this still worth it?",
+          "a": "Yes. Fusion Fortune's value isn't in any single system but in the relationship between them. Where they overlap and where they split apart doesn't show up in separate readings."
+        },
+        "1": {
+          "q": "What happens if I don't know my birth time?",
+          "a": "Without a birth time, time-dependent values like the Hour Pillar, Lagna, Rising sign, and houses aren't stated definitively -- the result first discloses what's confirmable and the limits of the interpretation."
+        },
+        "2": {
+          "q": "Can I use a pass to view this?",
+          "a": "The family pass is covered. Other tiers exceed the amount cap and proceed as a single payment or monthly-stone."
+        },
+        "3": {
+          "q": "How long does the result take?",
+          "a": "The six systems' calculations and the writing proceed in order, with progress shown step by step on screen. Please wait a moment since the volume is long."
+        }
+      },
+      "analysisSteps": {
+        "0": {
+          "label": "Saju -- temperament and the flow of the seasons"
+        },
+        "1": {
+          "label": "Ziwei Doushu -- life's stage and role"
+        },
+        "2": {
+          "label": "Vedic astrology -- the rhythm of the subconscious"
+        },
+        "3": {
+          "label": "Sukuyo -- the distance in a relationship"
+        },
+        "4": {
+          "label": "Western astrology -- expression and responsibility"
+        },
+        "5": {
+          "label": "Tarot -- the choice in front of you now"
+        },
+        "6": {
+          "label": "Fusion -- cross-verification and timing/action"
+        }
+      }
+    },
+    "saju_destiny_meeting_place": {
+      "fallbackTitle": "Look into the grain of the places where your bond tends to linger.",
+      "tagline": "A reading that organizes the symbolism of relationships, places, and timing based on your Saju flow.",
+      "premiumIntro": "Destiny Meeting Place doesn't guarantee an encounter -- it organizes symbolic places that reference-match your flow well.",
+      "fallbackCta": "View Destiny Meeting Place",
+      "feats": {
+        "0": "When you're curious about the mood of a new encounter",
+        "1": "When you want to know the grain of a place that puts you at ease",
+        "2": "When you want to see the flow of relationships in a more concrete image"
+      },
+      "premiumAudience": {
+        "0": "Those with no sense of where they might meet someone",
+        "1": "Those considering changing up their range of activity",
+        "2": "Those who want to see the timing and place of a meeting together"
+      },
+      "premiumChapters": {
+        "0": "A symbolic interpretation of relationships and places",
+        "1": "Timing and mood keywords",
+        "2": "A hint about the environment where relationships tend to open",
+        "3": "After payment, moves into the existing Destiny Meeting Place screen"
+      },
+      "premiumOutcomes": {
+        "0": "It doesn't guarantee an actual meeting or outcome.",
+        "1": "The existing payment policy applies.",
+        "2": "Fortune results are for reference only."
+      }
+    },
+    "rpt_specialCharmCard": {
+      "fallbackTitle": "Check your charm-star coordinates to see why you've been catching attention lately.",
+      "tagline": "A report that points out your unique charm points and the grain of your appeal through the distribution of stars like Peach Blossom, Red Glow, and Traveling Horse.",
+      "premiumIntro": "The Charm Stat doesn't rate your looks -- it's a fun organization of what kind of charm your Saju stars express.",
+      "fallbackCta": "Check Your Charm Stat",
+      "feats": {
+        "0": "When you're curious where your charm comes from",
+        "1": "When you want to know why you get noticed at particular moments",
+        "2": "When you want to make the most of your strengths in love and relationships"
+      },
+      "premiumAudience": {
+        "0": "Those curious why they've been catching attention lately",
+        "1": "Those who want to know what kind of charm they have",
+        "2": "Those who want to decide how to use their first impression"
+      },
+      "premiumChapters": {
+        "0": "A diagnosis of your Peach Blossom, Red Glow, and Traveling Horse distribution",
+        "1": "The charm point that acts strongly by situation",
+        "2": "A style and timing hint to grow your appeal",
+        "3": "A charm-stat card good for saving and sharing"
+      },
+      "premiumOutcomes": {
+        "0": "The analysis is for reference only.",
+        "1": "Star interpretation can vary by school.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "rpt_energyCoordCard": {
+      "fallbackTitle": "Find the travel destination and direction that will refill your energy right now, through your Saju.",
+      "tagline": "A report that recommends domestic and overseas travel destinations and directions to refill your lacking energy, based on your Five-Elements balance.",
+      "premiumIntro": "The Destination Reading doesn't state unconditional fortune or misfortune -- it organizes the place and direction where your Five Elements can breathe comfortably right now.",
+      "fallbackCta": "Check the Destination Reading",
+      "feats": {
+        "0": "When you're wondering where to go for a refresh",
+        "1": "When you want to know a travel direction that fits your energy",
+        "2": "When you need a hint to reference for the timing of moving or relocating"
+      },
+      "premiumAudience": {
+        "0": "Those unsure where to go to refill their energy",
+        "1": "Those weighing a moving or relocation direction",
+        "2": "Those who don't feel refreshed even after resting"
+      },
+      "premiumChapters": {
+        "0": "Recommended destinations based on your Five-Elements balance",
+        "1": "Domestic/overseas coordinates and a lucky direction",
+        "2": "A travel concept that lifts your energy",
+        "3": "A seasonal/timing reference point"
+      },
+      "premiumOutcomes": {
+        "0": "The reading is for reference only.",
+        "1": "Please judge an actual trip alongside real-world conditions.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "rpt_villainCard": {
+      "fallbackTitle": "Get ahead of the relationship 'villain' type that drains your life the most.",
+      "tagline": "A report organizing the draining relationship patterns most prone to repeating in your Saju flow, and the signals to watch for.",
+      "premiumIntro": "The Villain Report doesn't single out any specific person -- it points out the grain of relationships you often get caught up in, and where to be careful.",
+      "fallbackCta": "Check Your Villain Type",
+      "feats": {
+        "0": "When you keep getting pushed around by a certain type of person",
+        "1": "When you're curious about the cause of recurring relationship stress",
+        "2": "When you want to know ahead of time the signals to avoid"
+      },
+      "premiumAudience": {
+        "0": "Those constantly worn down by a certain type",
+        "1": "Those who feel relationships drain them a lot",
+        "2": "Those who want to set a standard for keeping distance"
+      },
+      "premiumChapters": {
+        "0": "A diagnosis of the villain type that drains you",
+        "1": "Organizing the relationship pattern most prone to repeating",
+        "2": "Warning signals and timing to keep your distance",
+        "3": "A realistic hint for protecting your relationships"
+      },
+      "premiumOutcomes": {
+        "0": "The analysis is for reference only.",
+        "1": "It doesn't define a specific individual.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "rpt_secretHouseEntryCard": {
+      "fallbackTitle": "Step into a choice-driven Saju love reality that starts from your Day Master.",
+      "tagline": "An immersive love story where the relationship's temperature changes with your choices, powered by automatic Day-Master linking and multiple endings.",
+      "premiumIntro": "Secret House doesn't predict your actual love life -- it's interactive content that turns the grain of your Day Master into a story to enjoy.",
+      "fallbackCta": "Enter Secret House",
+      "feats": {
+        "0": "When you need light, immersive love content",
+        "1": "When you're curious about your Saju-based love style",
+        "2": "When you want to experience an ending that changes with your choices"
+      },
+      "premiumAudience": {
+        "0": "Those who prefer participation over reading fortune",
+        "1": "Those who want to see their love style play out in a scenario",
+        "2": "Those looking for light, immersive content"
+      },
+      "premiumChapters": {
+        "0": "A story that progresses with automatic Day-Master linking",
+        "1": "Multiple endings that branch based on your choices",
+        "2": "Saving and sharing your ending card",
+        "3": "An immersive love-scenario experience"
+      },
+      "premiumOutcomes": {
+        "0": "This content is for entertainment.",
+        "1": "Fortune results are for reference only.",
+        "2": "The existing payment policy applies."
+      }
+    },
+    "rpt_aiPromptCard": {
+      "fallbackTitle": "Get an AI image prompt carrying your Saju's mood, for free.",
+      "tagline": "A free feature that generates image-creation prompts in various concepts -- object symbolism, avatar, ideal-type face -- based on your Saju.",
+      "premiumIntro": "The Saju Prompt is a free tool -- no separate payment -- that lets you carry your Saju's mood straight into an image prompt.",
+      "fallbackCta": "Get the Prompt for Free",
+      "feats": {
+        "0": "When you want to turn your Saju image into AI art",
+        "1": "When you need a concept prompt for a profile or avatar",
+        "2": "When you want to picture an ideal-type face as an image"
+      },
+      "premiumAudience": {
+        "0": "Those who want to see their Saju mood as an image",
+        "1": "Those who want to try AI image generation",
+        "2": "Those who want to make a new profile image"
+      },
+      "premiumChapters": {
+        "0": "Object-symbolism, avatar, and ideal-type-face prompts",
+        "1": "Image-generation text ready to copy and use immediately",
+        "2": "Various concept ideas for your Saju image",
+        "3": "Use for free, no additional payment"
+      },
+      "premiumOutcomes": {
+        "0": "You can use it right now, for free.",
+        "1": "The generated image is created by an external AI tool.",
+        "2": "The result is for reference and entertainment."
+      }
+    },
+    "rpt_tTestCard": {
+      "fallbackTitle": "Check your logic temperature -- where reason responds before emotion -- for free.",
+      "tagline": "The Frozen Logic -- a free Saju-based test that playfully diagnoses how close your thinking and judgment pattern is to Thinking (T).",
+      "premiumIntro": "The Extreme-T Test doesn't define your personality -- it's a free, playful reflection of how much your judgment leans toward reason.",
+      "fallbackCta": "Diagnose for Free",
+      "feats": {
+        "0": "When you're curious how rational a type you are",
+        "1": "When logic often gets ahead of emotion for you",
+        "2": "When you want a light check on your judgment style"
+      },
+      "premiumAudience": {
+        "0": "Those curious which comes first, emotion or reason",
+        "1": "Those who want to see their judgment style as a number",
+        "2": "Those looking for a light test to try"
+      },
+      "premiumChapters": {
+        "0": "A diagnosis of your logic temperature (T score)",
+        "1": "A breakdown of your thinking/judgment pattern",
+        "2": "The T tendency that shows up in relationships",
+        "3": "Use for free, no additional payment"
+      },
+      "premiumOutcomes": {
+        "0": "You can use it right now, for free.",
+        "1": "The test is for reference and entertainment.",
+        "2": "Temperament can vary by situation."
+      }
     }
   },
   "featureMarketingCategory": {
@@ -9740,7 +10159,9 @@
     "meditation": "Meditation",
     "dream": "Dream Symbols",
     "yoga": "Yoga",
-    "life": "Life Myeongni"
+    "life": "Life Myeongni",
+    "love": "Love Myeongni",
+    "fusion": "Hyper-Fusion"
   },
   "featureMarketingTrust": {
     "paid": {
