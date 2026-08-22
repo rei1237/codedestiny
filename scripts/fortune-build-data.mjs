@@ -14,6 +14,7 @@
 import path from 'node:path';
 import { spawnSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { kstYmdToday, kstYmdNextDay } from './lib/fortune-date.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -45,5 +46,14 @@ for (const target of targets) {
     process.exit(result.status === null ? 1 : result.status);
   }
 }
+
+// 🔴 render 단계(lib/fortune/daily-data.ts)는 이 스크립트가 끝난 뒤 별도 프로세스(next build 의
+// 정적 생성)에서 실행되며, 그 사이 KST 자정을 지날 수 있다(2026-08-22 실측: 릴리스가 이 경계에
+// 걸려 daily-YYYY-MM-DD.json ENOENT 로 프리렌더가 죽었다). render 단계가 시계를 다시 읽지 않고
+// 이 스크립트가 실제로 만든 날짜를 그대로 쓰도록 매니페스트로 넘긴다.
+const manifest = { today: runDateKst, tomorrow: kstYmdNextDay(runDateKst) };
+const manifestDir = path.join(root, 'fortune', 'data');
+mkdirSync(manifestDir, { recursive: true });
+writeFileSync(path.join(manifestDir, 'run-manifest.json'), JSON.stringify(manifest, null, 2));
 
 console.log('[fortune-build-data] 완료 — 오늘/내일 일일 패키지 준비됨.');
