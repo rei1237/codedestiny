@@ -55,12 +55,17 @@ typography:
     fontFamily: "'CodeDestinyDecorative', 'CodeDestinyPlayful', 'CodeDestinyNumerologyDisplay', 'CodeDestinyNumerologyPremium', 'Impact', 'Apple Color Emoji', sans-serif"
 rounded:
   sm: "8px"
+  control: "12px"
   md: "16px"
+  card: "20px"
+  section: "26px"
   pill: "999px"
 spacing:
-  sm: "8px"
+  xs: "6px"
+  sm: "10px"
   md: "16px"
   lg: "24px"
+  xl: "36px"
 components:
   button-primary:
     backgroundColor: "{colors.yeon-gold}"
@@ -177,13 +182,33 @@ Code Destiny는 한 명의 사용자가 언제든 펼쳐볼 수 있는 두 권�
 - **Violet Neon Focus** (`0 0 0 2px rgba(167,139,250,.55), 0 0 28px rgba(147,51,234,.45)`): 포커스 상태 글로우.
 - **Moon Glow** (`0 0 40px -5px rgba(216,179,108,.35), 0 0 80px -20px rgba(156,135,212,.25)`): 골드+바이올렛이 섞인 네오 시그니처 글로우, 신비로움을 상징하는 요소(달, 별자리 등)에 사용.
 
+### Shade Vocabulary (2026-08-23 신설) — Glow-Not-Shadow 의 rest 짝
+
+Glow 는 **상태 변화**의 언어다. 그런데 평상시 표면도 종이 한 장만큼은 떠 있어야 하고, 그 자리에 브랜드 색 글로우를 쓰면 화면 전체가 강조색으로 물든다(실측: 홈 `.cd-today-card` 하나가 accent 그림자를 3겹 지고 있었다). 그래서 **평상시는 shade, 상태 변화에서 glow** 로 나눈다. shade 는 회색이 아니라 `--cd-text`(연이 딥 플럼 `#3c1830`) 의 저알파다 — The Hue-Stays Rule.
+
+| 단계 | 토큰 | 쓰는 곳 |
+|---|---|---|
+| 1 | `--cd-shade-1` | 카드·패널의 평상시 |
+| 2 | `--cd-shade-2` | hover |
+| 3 | `--cd-shade-3` | Primary CTA · 선택 상태 (유일하게 브랜드 색을 띤다) |
+
+같은 자리에서 쓰는 경계 토큰은 `--cd-line`(표면 구분) 과 `--cd-line-strong`(인터랙티브 경계) 이다. 정의는 `styles/theme-tokens.css`, 연이·네오 양쪽에 한 세트로 있다.
+
 ## 5. Components
 
 ### Buttons
-- **Shape:** Pill (`border-radius: 999px`).
-- **Primary (연이):** 배경 `--cd-cta` 그라디언트(`#fff8dc → #ead089 → #f4bed1`), 텍스트 `#3c1830`.
-- **Primary (네오):** 배경 `--cd-cta` 그라디언트(바이올렛-골드 조합), 텍스트 `#090718`.
-- **Hover / Focus:** 색 자체보다 `Violet Neon Focus` 글로우(네오) 또는 은은한 스케일/투명도 변화(연이)로 상태 표현.
+
+두 계열이 공존한다. **골드 CTA** 는 브랜드 관문(히어로 등 "여기서 시작한다"는 자리)이고, **Solid Primary** 는 본문 안에서 다음 행동 하나를 가리키는 자리다. 한 섹션에 둘을 같이 두지 않는다.
+
+- **브랜드 CTA — Shape:** Pill (`border-radius: 999px`).
+  - **연이:** 배경 `--cd-cta` 그라디언트(`#fff8dc → #ead089 → #f4bed1`), 텍스트 `#3c1830`.
+  - **네오:** 배경 `--cd-cta` 그라디언트(바이올렛-골드 조합), 텍스트 `#090718`.
+- **Solid Primary (2026-08-23 신설) — Shape:** `--cd-r-control`(12px).
+  - 배경 `--cd-primary`, 텍스트 `--cd-primary-ink`, 그림자 `--cd-shade-3`. 그라디언트를 쓰지 않는다.
+  - 값은 테마 토큰이 들고 있다(연이 `#b31955`/흰 글자 6.6:1, 네오 `#c4b5fd`/잉크 글자 10.0:1) — 그래서 페르소나별 오버라이드가 필요 없고, 밝은 글자만 남는 반쪽 오버라이드가 구조적으로 불가능하다.
+  - **Secondary 짝:** `--cd-surface` 흰 표면 + `--cd-line-strong` 경계 + `--cd-text` 글자 + `--cd-shade-1`. 버튼 식별은 15:1 라벨 텍스트가 담당하고 경계는 보강이다(WCAG 1.4.11 — 텍스트 라벨이 있는 컴포넌트는 3:1 경계 대상이 아니다). 바탕 컨테이너는 `--cd-surface-quiet` 를 깔아 채움 차이로도 버튼이 읽히게 한다.
+  - 사용처: 홈 `.cd-concern__free` · `.cd-today__cta` · `.cd-today__gate-cta` · `.cd-pick__cta`.
+- **Hover / Focus:** 색 자체보다 `Violet Neon Focus` 글로우(네오) 또는 은은한 스케일/투명도 변화(연이)로 상태 표현. Solid Primary 는 `--cd-primary-hover` + `--cd-shade-2`.
 
 ### Toggle / Pill Chips
 - **Style:** `border: 1px solid currentColor`, `border-radius: 999px`, 내부 버튼도 pill. (`PagedResultViewer`의 페이지/전체보기 토글 참고)
@@ -203,9 +228,14 @@ Code Destiny는 한 명의 사용자가 언제든 펼쳐볼 수 있는 두 권�
 
 ## 6. Do's and Don'ts
 
+**The Accent Budget Rule** (2026-08-23 신설). One Accent Rule 이 "모드당 강조색 하나"를 정했다면, 이건 그 하나를 **얼마나** 쓸지를 정한다. 한 섹션에서 accent 를 쓸 수 있는 자리는 **선택 상태 · Primary CTA · 지표 하나**까지다. 테두리·그림자·캡션·보조 배경은 accent 가 아니라 뉴트럴 플럼(`--cd-line` / `--cd-shade-1·2`)을 쓴다.
+
+> 왜: 자리마다 "브랜드 색이니까 괜찮다"고 조금씩 얹은 결과가 홈이었다 — accent 가 카드 테두리·카드 그림자 3겹·캡션 글자·앵커 배지·하이라이트 칩·날짜·탭 트랙까지 번져, 정작 **진짜 강조(선택된 카드, 결제 CTA, 길흉 판정)가 배경 소음과 구분되지 않았다.** 강조색은 총량이 적을수록 강해진다.
+
 ### Do:
 - **Do** 연이/네오 전환 시 bg·surface·text·accent·gold를 한 세트로 같이 바꾼다(Two Covers Rule).
-- **Do** 상태 변화(hover/focus)에서만 글로우를 올린다 — 평상시는 플랫.
+- **Do** 섹션마다 accent 예산을 센다 — 선택 상태·Primary CTA·지표 1개(Accent Budget Rule).
+- **Do** 평상시 깊이는 shade(뉴트럴 플럼) 로, 상태 변화의 깊이만 glow(브랜드 색) 로 낸다.
 - **Do** 인터랙티브 소형 요소(토글/칩)는 pill(999px)로 통일한다.
 - **Do** 본문 텍스트는 명암비 4.5:1 이상을 유지한다(연이의 옅은 로즈/네오의 라벤더 뮤트 텍스트 모두 해당).
 
@@ -214,5 +244,7 @@ Code Destiny는 한 명의 사용자가 언제든 펼쳐볼 수 있는 두 권�
 - **Don't** 클리셰 타로 사이트의 상투적 보라 그라디언트 배경을 쓰지 않는다 — 신비로움은 글로우와 타이포로 표현한다.
 - **Don't** 배경만 다크로 바꾸고 텍스트 색은 그대로 두는 반쪽 오버라이드를 하지 않는다. (어두운 배경 자체는 금지가 아니다 — 밝은 글씨를 쓰면 당연히 따라온다. 금지는 '반쪽'이다.)
 - **Don't** 연이 모드에서 어두운 표면을 네이비·퍼플로 만들지 않는다 — 연이의 다크는 핑크·와인 계열(딥 플럼·버건디)이다.
-- **Don't** 회색 드롭섀도를 기본 그림자로 쓰지 않는다 — 브랜드 색 글로우를 우선한다.
+- **Don't** 회색 드롭섀도를 기본 그림자로 쓰지 않는다 — 평상시는 뉴트럴 플럼 shade, 강조는 브랜드 색 글로우다.
 - **Don't** 강조색을 모드당 2개 이상 쓰지 않는다(One Accent Rule).
+- **Don't** accent 를 테두리·그림자·캡션·보조 배경에 기본값으로 깔지 않는다(Accent Budget Rule).
+- **Don't** 연이 화면에 Ice Blue(`#7dd3fc`)를 쓰지 않는다 — 이건 네오 전용 보조 글로우다. (실사고: `body:not(.neo-mode) .logo-area` 가 홈 래퍼 전체에 `rgba(125,211,252,.32)` 를 깔아 연이 홈이 라벤더로 읽혔다. 2026-08-23 제거.)
