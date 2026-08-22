@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import type { FiveElementKey } from "@/lib/fpti/fpti-types";
+import { useFptiSharedCopy } from "./_lib/copy";
 
 const ELEMENTS: { key: FiveElementKey; label: string; gradient: [string, string] }[] = [
   { key: "wood", label: "목", gradient: ["#34d399", "#a3e635"] },
@@ -16,6 +17,7 @@ type Props = {
 };
 
 export default function FptiElementChart({ percentages }: Props) {
+  const copy = useFptiSharedCopy();
   const normalized = useMemo(() => {
     return ELEMENTS.reduce((acc, item) => {
       const raw = Number(percentages?.[item.key]);
@@ -45,8 +47,8 @@ export default function FptiElementChart({ percentages }: Props) {
 
   return (
     <section className="rounded-3xl border border-white/15 bg-white/5 p-4 backdrop-blur-xl">
-      <h4 className="text-sm font-semibold text-slate-100">오행 에너지 밸런스</h4>
-      <p className="mt-1 text-xs text-slate-300">강한 오행: {strong} · 부족한 오행: {weak}</p>
+      <h4 className="text-sm font-semibold text-slate-100">{copy.elementBalanceTitle}</h4>
+      <p className="mt-1 text-xs text-slate-300">{copy.elementStrongLabel}: {strong} · {copy.elementWeakLabel}: {weak}</p>
       <div className="mt-3 space-y-2">
         {ELEMENTS.map((item) => (
           <div key={item.key}>
