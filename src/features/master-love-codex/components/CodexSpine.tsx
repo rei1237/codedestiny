@@ -8,6 +8,7 @@
  */
 
 import { CODEX_ACT_ANCHOR_PREFIX, actsForMode, type CodexActMode } from "../data/acts";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexSpineProps {
@@ -20,6 +21,7 @@ interface CodexSpineProps {
 }
 
 export default function CodexSpine({ activeOrder, availableOrders, mode = "solo" }: CodexSpineProps) {
+  const copy = useMasterLoveCodexCopy();
   const available = new Set(availableOrders);
   const acts = actsForMode(mode);
 
@@ -33,7 +35,7 @@ export default function CodexSpine({ activeOrder, availableOrders, mode = "solo"
   return (
     <nav
       className="sticky top-0 z-20 border-b border-[color:var(--codex-rule)] bg-[rgba(10,8,24,.82)] backdrop-blur-md"
-      aria-label="막 이동"
+      aria-label={copy.actNavAriaLabel}
     >
       <ol className="mx-auto flex max-w-[680px] items-center justify-center gap-1 px-[var(--codex-gutter)] py-3">
         {acts.map((act) => {
@@ -46,7 +48,7 @@ export default function CodexSpine({ activeOrder, availableOrders, mode = "solo"
                 onClick={() => goToAct(act.order)}
                 disabled={!isReady}
                 aria-current={isActive ? "step" : undefined}
-                aria-label={`${act.numeral}막 ${act.title}${isReady ? "" : " (아직 쓰이지 않음)"}`}
+                aria-label={`${copy.actAriaLabel(act.numeral, act.title)}${isReady ? "" : copy.actNotReadySuffix}`}
                 className={`${styles.numeral} group flex w-full flex-col items-center gap-1.5 py-1 transition-colors disabled:cursor-not-allowed`}
                 style={{
                   color: isActive

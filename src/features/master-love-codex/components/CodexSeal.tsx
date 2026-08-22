@@ -10,6 +10,7 @@
 import Link from "next/link";
 import DestinyIcon from "@/app/components/icons/DestinyIcon";
 import CodexReveal from "./CodexReveal";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexSealProps {
@@ -17,8 +18,9 @@ interface CodexSealProps {
 }
 
 export default function CodexSeal({ forceVisible = false }: CodexSealProps) {
+  const copy = useMasterLoveCodexCopy();
   return (
-    <section className="flex min-h-[72svh] flex-col items-center justify-center text-center" aria-label="봉인">
+    <section className="flex min-h-[72svh] flex-col items-center justify-center text-center" aria-label={copy.sealAriaLabel}>
       <div className={styles.measure}>
         <CodexReveal forceVisible={forceVisible}>
           <span style={{ color: "var(--codex-gold)" }}>
@@ -43,7 +45,7 @@ export default function CodexSeal({ forceVisible = false }: CodexSealProps) {
           </p>
           <div className="mt-7">
             <Link href="/destiny-island.html" className={styles.cta}>
-              운명의 지도 열기
+              {copy.continueDestinyButton}
             </Link>
           </div>
         </CodexReveal>

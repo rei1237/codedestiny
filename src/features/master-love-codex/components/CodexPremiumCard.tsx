@@ -18,6 +18,7 @@ import {
   masterLoveCodexBilling,
   type MasterLoveCodexMode,
 } from "../constants";
+import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexPremiumCardProps {
@@ -27,22 +28,13 @@ interface CodexPremiumCardProps {
   onSelect: (mode: MasterLoveCodexMode) => void;
 }
 
-const HEADLINE: Record<MasterLoveCodexMode, { eyebrow: string; title: string; note: string }> = {
-  solo: {
-    eyebrow: "PERSONAL READING",
-    title: "개인 리딩",
-    note: "당신 한 사람의 연애를 읽습니다",
-  },
-  compat: {
-    eyebrow: "COMPATIBILITY READING",
-    title: "궁합 리딩",
-    note: "두 사람의 관계를 읽습니다",
-  },
-};
-
 export default function CodexPremiumCard({ mode, featured = false, onSelect }: CodexPremiumCardProps) {
-  const billing = masterLoveCodexBilling(mode);
-  const copy = HEADLINE[mode];
+  const locale = useMasterLoveCodexLocale();
+  const codexCopy = useMasterLoveCodexCopy();
+  const billing = masterLoveCodexBilling(mode, locale);
+  const headline = mode === "compat"
+    ? { eyebrow: codexCopy.compatEyebrow, title: codexCopy.compatTitle, note: codexCopy.compatNote }
+    : { eyebrow: codexCopy.personalEyebrow, title: codexCopy.personalTitle, note: codexCopy.personalNote };
   const benefits = CODEX_PLAN_BENEFITS[mode];
 
   return (
@@ -52,7 +44,7 @@ export default function CodexPremiumCard({ mode, featured = false, onSelect }: C
           className={`${styles.numeral} text-[0.6875rem]`}
           style={{ letterSpacing: "0.24em", color: "var(--codex-gold-dim)" }}
         >
-          {copy.eyebrow}
+          {headline.eyebrow}
         </p>
         {featured ? (
           <span
@@ -63,16 +55,16 @@ export default function CodexPremiumCard({ mode, featured = false, onSelect }: C
               background: "var(--codex-gold)",
             }}
           >
-            추천
+            {codexCopy.recommendedBadge}
           </span>
         ) : null}
       </div>
 
       <h3 className={`${styles.chapterTitle} mt-4`} style={{ fontSize: "clamp(1.375rem, 4.5vw, 1.75rem)" }}>
-        {copy.title}
+        {headline.title}
       </h3>
       <p className="mt-2 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-silver)" }}>
-        {copy.note}
+        {headline.note}
       </p>
 
       <div className="mt-7">
@@ -82,7 +74,7 @@ export default function CodexPremiumCard({ mode, featured = false, onSelect }: C
           className={styles.priceDisplay}
         />
         <p className="mt-3 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-silver)" }}>
-          1회 결제 · 결과 영구 보관 · 재열람 무료
+          {codexCopy.paymentDisclosure}
         </p>
       </div>
 
@@ -103,10 +95,10 @@ export default function CodexPremiumCard({ mode, featured = false, onSelect }: C
         <button type="button" onClick={() => onSelect(mode)} className={`${styles.cta} w-full`}>
           <PriceBadge featureKey={billing.featureKey} fallbackCoins={billing.cost} className="font-bold" />
           <span aria-hidden="true">·</span>
-          상담 시작
+          {codexCopy.startConsultButton}
         </button>
         <p className={`${styles.numeral} text-[0.75rem]`} style={{ letterSpacing: "0.14em", color: "var(--codex-gold-dim)" }}>
-          {MASTER_LOVE_CODEX_TOTAL_CHAPTERS}장 · 5막
+          {codexCopy.chaptersActsSuffix(MASTER_LOVE_CODEX_TOTAL_CHAPTERS)}
         </p>
       </div>
     </article>

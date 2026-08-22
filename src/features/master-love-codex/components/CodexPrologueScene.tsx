@@ -21,6 +21,7 @@ import {
   type CodexPrologueChoiceKey,
   type CodexPrologueStage,
 } from "../data/prologue";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexPrologueSceneProps {
@@ -40,6 +41,7 @@ const BACKDROP_OPACITY: Record<string, number> = {
 };
 
 export default function CodexPrologueScene({ stage, onStageChange, onChoice, onComplete, onSkip }: CodexPrologueSceneProps) {
+  const copy = useMasterLoveCodexCopy();
   const scene = useMemo(() => getCodexPrologueScene(stage), [stage]);
   const [lineIndex, setLineIndex] = useState(0);
   const [textComplete, setTextComplete] = useState(false);
@@ -75,7 +77,7 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
   const selectedReply = choiceKey ? codexPrologueChoices.find((item) => item.key === choiceKey)?.reply || "" : "";
 
   return (
-    <section className="relative flex min-h-[100svh] flex-col" aria-label="프롤로그">
+    <section className="relative flex min-h-[100svh] flex-col" aria-label={copy.prologueAriaLabel}>
       <div
         className="pointer-events-none absolute inset-0 bg-cover bg-center transition-opacity duration-1000"
         style={{
@@ -91,7 +93,7 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
             {sceneNumber} / {codexPrologueScenes.length}
           </p>
           <button type="button" onClick={onSkip} className={styles.quiet}>
-            건너뛰기
+            {copy.prologueSkipButton}
           </button>
         </header>
 
@@ -149,7 +151,7 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
             <CodexDialogueBox
               speaker={line?.speaker || "narration"}
               text={isChoiceStage && selectedReply ? selectedReply : line?.text || ""}
-              cta={isChoiceStage ? "책을 펼치기" : line?.cta}
+              cta={isChoiceStage ? copy.prologueOpenBookButton : line?.cta}
               onAdvance={goNext}
               isAdvanceDisabled={isChoiceStage && !choiceKey}
               onTextComplete={setTextComplete}
@@ -158,14 +160,14 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
 
           {isChoiceStage && !choiceKey ? (
             <p className="mt-6 text-center text-[0.8125rem]" style={{ color: "var(--codex-ink-text-muted)" }}>
-              한 가지를 고르면 연애 고수가 답합니다.
+              {copy.prologueChoiceHint}
             </p>
           ) : null}
 
           {textComplete && (!isChoiceStage || choiceKey) ? (
             <div className="mt-9 flex justify-center">
               <button type="button" onClick={goNext} className={styles.cta}>
-                {isChoiceStage ? "책을 펼치기" : line?.cta || "계속"}
+                {isChoiceStage ? copy.prologueOpenBookButton : line?.cta || copy.prologueContinueButton}
               </button>
             </div>
           ) : null}

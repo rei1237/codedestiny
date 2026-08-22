@@ -8,11 +8,13 @@
 
 import CodexReveal from "./CodexReveal";
 import { CODEX_WHY_PREMIUM } from "../data/premium";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 export default function CodexWhyPremium() {
+  const copy = useMasterLoveCodexCopy();
   return (
-    <section className={styles.section} aria-label="왜 프리미엄 상담인가">
+    <section className={styles.section} aria-label={copy.whyPremiumAriaLabel}>
       <div className={styles.measure}>
         <CodexReveal>
           <p
@@ -21,7 +23,7 @@ export default function CodexWhyPremium() {
           >
             WHY PREMIUM
           </p>
-          <h2 className={`${styles.actTitle} mt-4`}>왜 일반 운세가 아닌가</h2>
+          <h2 className={`${styles.actTitle} mt-4`}>{copy.whyPremiumTitle}</h2>
           <hr className={`${styles.rule} mt-9`} />
         </CodexReveal>
 

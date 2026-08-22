@@ -22,6 +22,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import CodexReveal from "./CodexReveal";
 import { CODEX_ACTS } from "../data/acts";
 import { CODEX_HONEST_LIMITS, CODEX_VALUE_AXES } from "../data/value";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 export interface CodexBirthInput {
@@ -94,6 +95,7 @@ export default function CodexBirthGate({
   headerSlot,
   floatingCta,
 }: CodexBirthGateProps) {
+  const copy = useMasterLoveCodexCopy();
   const { seed, seedVersion, reload } = useAiProfileSeed();
   const [reloading, setReloading] = useState(false);
   const valueRef = useRef(value);
@@ -150,7 +152,7 @@ export default function CodexBirthGate({
     <section
       className="flex min-h-[100svh] flex-col justify-start pt-16"
       style={{ paddingBottom: "calc(var(--cd-mnav-offset, 0px) + 104px)" }}
-      aria-label="생년 정보 입력"
+      aria-label={copy.birthGateAriaLabel}
     >
       <div className={styles.measure}>
         <CodexReveal>
@@ -159,16 +161,16 @@ export default function CodexBirthGate({
           <p className={`${styles.numeral} text-[0.6875rem]`} style={{ letterSpacing: "0.28em", color: "var(--codex-gold-dim)" }}>
             THE FIRST PAGE
           </p>
-          <h2 className={`${styles.chapterTitle} mt-4`}>당신의 명식과 명반을 세우겠습니다</h2>
+          <h2 className={`${styles.chapterTitle} mt-4`}>{copy.birthGateTitle}</h2>
           <p className="mt-5 max-w-[38ch] leading-8" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
-            태어난 순간의 좌표가 있어야 스무 장을 채울 수 있습니다. 프로필 카드가 있으면 자동으로 채워집니다.
+            {copy.birthGateDesc}
           </p>
           <hr className={`${styles.rule} mt-9`} />
         </CodexReveal>
 
         <CodexReveal index={1} className="mt-10">
           <p className={`${styles.numeral} text-[0.6875rem]`} style={{ letterSpacing: "0.24em", color: "var(--codex-gold-dim)" }}>
-            두 장을 겹쳐 읽습니다
+            {copy.crossReadEyebrow}
           </p>
           <dl className="mt-6 space-y-6">
             {CODEX_VALUE_AXES.map((axis) => (
@@ -189,7 +191,7 @@ export default function CodexBirthGate({
           </dl>
 
           <p className={`${styles.numeral} mt-11 text-[0.6875rem]`} style={{ letterSpacing: "0.24em", color: "var(--codex-gold-dim)" }}>
-            스무 장 · 다섯 막
+            {copy.chaptersActsEyebrow}
           </p>
           <ol className="mt-5 space-y-3">
             {CODEX_ACTS.map((act) => (
@@ -214,7 +216,7 @@ export default function CodexBirthGate({
           </ol>
 
           <p className={`${styles.numeral} mt-11 text-[0.6875rem]`} style={{ letterSpacing: "0.24em", color: "var(--codex-gold-dim)" }}>
-            미리 말씀드리는 것
+            {copy.honestNoteEyebrow}
           </p>
           <ul className="mt-5 space-y-3">
             {CODEX_HONEST_LIMITS.map((limit) => (
@@ -236,26 +238,26 @@ export default function CodexBirthGate({
               className={`${styles.quiet} inline-flex items-center gap-1.5`}
             >
               {reloading ? <Loader2 className="h-3 w-3 animate-spin" aria-hidden="true" /> : <RefreshCw className="h-3 w-3" aria-hidden="true" />}
-              프로필 카드에서 불러오기
+              {copy.reloadFromProfileButton}
             </button>
           </div>
 
           <div>
-            <label className={labelClass} style={labelStyle} htmlFor="codex-name">이름 (선택)</label>
+            <label className={labelClass} style={labelStyle} htmlFor="codex-name">{copy.nameLabel}</label>
             <input
               id="codex-name"
               className={styles.field}
               value={value.name}
               maxLength={20}
-              placeholder="표지에 새겨집니다"
+              placeholder={copy.namePlaceholder}
               onChange={(event) => patch({ name: event.target.value })}
             />
           </div>
 
           <fieldset>
-            <legend className={labelClass} style={labelStyle}>성별</legend>
+            <legend className={labelClass} style={labelStyle}>{copy.genderLegend}</legend>
             <div className="flex gap-2">
-              {([["female", "여성"], ["male", "남성"]] as const).map(([key, label]) => (
+              {([["female", copy.genderFemale], ["male", copy.genderMale]] as const).map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
@@ -270,14 +272,14 @@ export default function CodexBirthGate({
           </fieldset>
 
           <div>
-            <label className={labelClass} style={labelStyle} htmlFor="codex-birth-date">생년월일</label>
+            <label className={labelClass} style={labelStyle} htmlFor="codex-birth-date">{copy.birthDateLabel}</label>
             <input id="codex-birth-date" className={styles.field} {...birthDateTextInputProps(value.birthDate, (nextBirthDate) => patch({ birthDate: nextBirthDate }))} />
           </div>
 
           <fieldset>
-            <legend className={labelClass} style={labelStyle}>양력 / 음력</legend>
+            <legend className={labelClass} style={labelStyle}>{copy.calendarLegend}</legend>
             <div className="flex gap-2">
-              {([["solar", "양력"], ["lunar", "음력"]] as const).map(([key, label]) => (
+              {([["solar", copy.calendarSolar], ["lunar", copy.calendarLunar]] as const).map(([key, label]) => (
                 <button
                   key={key}
                   type="button"
@@ -297,13 +299,13 @@ export default function CodexBirthGate({
                   checked={value.isLeapMonth}
                   onChange={(event) => patch({ isLeapMonth: event.target.checked })}
                 />
-                윤달입니다
+                {copy.leapMonthLabel}
               </label>
             ) : null}
           </fieldset>
 
           <div>
-            <label className={labelClass} style={labelStyle} htmlFor="codex-birth-time">태어난 시각</label>
+            <label className={labelClass} style={labelStyle} htmlFor="codex-birth-time">{copy.birthTimeLabel}</label>
             <input
               id="codex-birth-time"
               type="time"
@@ -319,10 +321,10 @@ export default function CodexBirthGate({
                 checked={value.birthTimeUnknown}
                 onChange={(event) => patch({ birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : value.birthTime })}
               />
-              태어난 시각을 모릅니다
+              {copy.birthTimeUnknownLabel}
             </label>
             <p className="mt-2 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
-              시각을 모르면 시주를 뺀 채로 읽습니다. 큰 흐름은 그대로지만 세부는 조금 흐려집니다.
+              {copy.birthTimeUnknownNote}
             </p>
           </div>
         </CodexReveal>
@@ -335,14 +337,13 @@ export default function CodexBirthGate({
           <hr className={styles.rule} />
           <div className="mt-9">
             <p className={`${styles.numeral} text-[0.6875rem]`} style={{ letterSpacing: "0.24em", color: "var(--codex-gold-dim)" }}>
-              한 사람 더
+              {copy.partnerSectionEyebrow}
             </p>
             <h3 className="mt-4 text-[1.0625rem] leading-8" style={{ color: "var(--codex-ink-text)" }}>
-              상대와의 궁합으로 읽을 수도 있습니다
+              {copy.partnerSectionTitle}
             </h3>
             <p className="mt-3 max-w-[38ch] leading-8" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
-              상대의 생년월일을 넣으면 네 장(두 사람의 명식과 명반)을 겹쳐 관계를 읽는 스무 장으로 바뀝니다.
-              넣지 않으면 지금처럼 당신 한 사람의 연애를 읽습니다. 금액도 궁합 리딩으로 함께 바뀝니다.
+              {copy.partnerSectionDesc}
             </p>
 
             <button
@@ -352,32 +353,32 @@ export default function CodexBirthGate({
               aria-controls="codex-partner-fields"
               className={`${styles.choice} mt-6 w-full`}
             >
-              {partner ? "상대 정보 지우고 개인 리딩으로" : "상대와의 궁합으로 읽기"}
+              {partner ? copy.partnerToggleRemove : copy.partnerToggleAdd}
             </button>
 
             {partner ? (
               <div id="codex-partner-fields" className="mt-9 space-y-9 border-l pl-5" style={{ borderColor: "var(--codex-rule)" }}>
                 <div>
-                  <label className={labelClass} style={labelStyle} htmlFor="codex-partner-name">상대 이름 (선택)</label>
+                  <label className={labelClass} style={labelStyle} htmlFor="codex-partner-name">{copy.partnerNameLabel}</label>
                   <input
                     id="codex-partner-name"
                     className={styles.field}
                     value={partner.name}
                     maxLength={20}
-                    placeholder="본문에서 이렇게 부릅니다"
+                    placeholder={copy.partnerNamePlaceholder}
                     onChange={(event) => patchPartner({ name: event.target.value })}
                   />
                 </div>
 
                 <div>
-                  <label className={labelClass} style={labelStyle} htmlFor="codex-partner-birth-date">상대 생년월일</label>
+                  <label className={labelClass} style={labelStyle} htmlFor="codex-partner-birth-date">{copy.partnerBirthDateLabel}</label>
                   <input id="codex-partner-birth-date" className={styles.field} {...birthDateTextInputProps(partner.birthDate, (nextBirthDate) => patchPartner({ birthDate: nextBirthDate }))} />
                 </div>
 
                 <fieldset>
-                  <legend className={labelClass} style={labelStyle}>상대 성별 (선택)</legend>
+                  <legend className={labelClass} style={labelStyle}>{copy.partnerGenderLegend}</legend>
                   <div className="flex gap-2">
-                    {([["female", "여성"], ["male", "남성"]] as const).map(([key, label]) => (
+                    {([["female", copy.genderFemale], ["male", copy.genderMale]] as const).map(([key, label]) => (
                       <button
                         key={key}
                         type="button"
@@ -392,9 +393,9 @@ export default function CodexBirthGate({
                 </fieldset>
 
                 <fieldset>
-                  <legend className={labelClass} style={labelStyle}>상대 양력 / 음력</legend>
+                  <legend className={labelClass} style={labelStyle}>{copy.partnerCalendarLegend}</legend>
                   <div className="flex gap-2">
-                    {([["solar", "양력"], ["lunar", "음력"]] as const).map(([key, label]) => (
+                    {([["solar", copy.calendarSolar], ["lunar", copy.calendarLunar]] as const).map(([key, label]) => (
                       <button
                         key={key}
                         type="button"
@@ -414,13 +415,13 @@ export default function CodexBirthGate({
                         checked={partner.isLeapMonth}
                         onChange={(event) => patchPartner({ isLeapMonth: event.target.checked })}
                       />
-                      윤달입니다
+                      {copy.leapMonthLabel}
                     </label>
                   ) : null}
                 </fieldset>
 
                 <div>
-                  <label className={labelClass} style={labelStyle} htmlFor="codex-partner-birth-time">상대가 태어난 시각 (선택)</label>
+                  <label className={labelClass} style={labelStyle} htmlFor="codex-partner-birth-time">{copy.partnerBirthTimeLabel}</label>
                   <input
                     id="codex-partner-birth-time"
                     type="time"
@@ -436,10 +437,10 @@ export default function CodexBirthGate({
                       checked={partner.birthTimeUnknown}
                       onChange={(event) => patchPartner({ birthTimeUnknown: event.target.checked, birthTime: event.target.checked ? "" : partner.birthTime })}
                     />
-                    상대의 시각은 모릅니다
+                    {copy.partnerBirthTimeUnknownLabel}
                   </label>
                   <p className="mt-2 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
-                    상대 정보는 이 리딩을 만드는 데만 씁니다. 당신의 프로필 카드에 저장되지 않습니다.
+                    {copy.partnerNote}
                   </p>
                 </div>
               </div>
@@ -460,12 +461,12 @@ export default function CodexBirthGate({
               <>
                 {priceSlot}
                 <span aria-hidden="true">·</span>
-                결과 보기
+                {copy.submitButton}
               </>
             )}
           </button>
           <p className={`${styles.numeral} text-[0.75rem]`} style={{ letterSpacing: "0.14em", color: "var(--codex-gold-dim)" }}>
-            1회 결제 · 결과 영구 보관 · 재열람 무료
+            {copy.paymentDisclosure}
           </p>
         </CodexReveal>
       </div>

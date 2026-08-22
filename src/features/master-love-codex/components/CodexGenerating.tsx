@@ -14,16 +14,10 @@ import { getNarratorAsset } from "../data/assets";
 import { actsForMode } from "../data/acts";
 import { codexAccessLabel } from "../data/premium";
 import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
+import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
-const DECRYPT_LINES = [
-  { latin: "Decrypting", korean: "명식을 세우고 오행의 무게를 재는 중" },
-  { latin: "Reading Destiny", korean: "명반 열두 궁에 별을 앉히는 중" },
-  { latin: "Cross-checking", korean: "부부궁과 일간이 같은 말을 하는지 맞춰 보는 중" },
-  { latin: "Tracing Threads", korean: "끌림과 갈등이 시작되는 자리를 찾는 중" },
-  { latin: "Synchronizing", korean: "지나온 대운과 다가올 세운을 겹쳐 보는 중" },
-  { latin: "Sealing", korean: "마지막 편지를 옮겨 적는 중" },
-] as const;
+const DECRYPT_LATIN = ["Decrypting", "Reading Destiny", "Cross-checking", "Tracing Threads", "Synchronizing", "Sealing"] as const;
 
 interface CodexGeneratingProps {
   completed: number;
@@ -56,8 +50,10 @@ export default function CodexGenerating({
   onRetry,
   onOpenStored,
 }: CodexGeneratingProps) {
+  const locale = useMasterLoveCodexLocale();
+  const copy = useMasterLoveCodexCopy();
   const [lineIndex, setLineIndex] = useState(0);
-  const billing = masterLoveCodexBilling(mode);
+  const billing = masterLoveCodexBilling(mode, locale);
   const access = codexAccessLabel(accessType);
 
   // 시작 직후 0%로 멈춰 보이거나 끝나기 전에 100%로 보이지 않게 5~95로 가둔다.
@@ -71,17 +67,18 @@ export default function CodexGenerating({
   useEffect(() => {
     if (error) return undefined;
     const timer = window.setInterval(() => {
-      setLineIndex((current) => (current + 1) % DECRYPT_LINES.length);
+      setLineIndex((current) => (current + 1) % DECRYPT_LATIN.length);
     }, 4200);
     return () => window.clearInterval(timer);
   }, [error]);
 
-  const line = DECRYPT_LINES[lineIndex];
+  const lineLatin = DECRYPT_LATIN[lineIndex];
+  const lineStatus = copy.generatingStatusLines[lineIndex] || copy.generatingStatusLines[0];
 
   return (
     <section
       className="flex min-h-[100svh] flex-col items-center justify-center py-16 text-center"
-      aria-label={error ? "인연의 서 생성 중단" : "인연의 서 생성 중"}
+      aria-label={copy.generatingAriaLabel(Boolean(error))}
     >
       <div className={styles.measure}>
         {/* 지금 어떤 상품을 이용 중인지 대기 화면에서도 계속 보이게 한다.
@@ -104,7 +101,7 @@ export default function CodexGenerating({
 
         <Image
           src={getNarratorAsset("calm")}
-          alt="책을 읽고 있는 연애 고수"
+          alt={copy.narratorReadingAlt}
           width={360}
           height={500}
           unoptimized
@@ -117,7 +114,7 @@ export default function CodexGenerating({
           style={{ letterSpacing: "0.2em", color: "var(--codex-gold)" }}
           aria-live="polite"
         >
-          {error ? "Interrupted" : line.latin}
+          {error ? copy.generatingInterruptedLabel : lineLatin}
         </p>
         {error ? (
           <p role="alert" className="mt-4 text-[0.9375rem] leading-8" style={{ color: "#ffb4b4" }}>
@@ -125,7 +122,7 @@ export default function CodexGenerating({
           </p>
         ) : (
           <p className="mt-4 text-[0.9375rem] leading-8" style={{ color: "var(--codex-ink-text-muted)" }}>
-            {line.korean}
+            {lineStatus}
           </p>
         )}
 
@@ -138,7 +135,7 @@ export default function CodexGenerating({
           aria-valuenow={percent}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-label="인연의 서 완성 진행률"
+          aria-label={copy.generatingProgressAriaLabel}
         >
           <div
             className="h-px transition-[width] duration-700 ease-out"
@@ -150,11 +147,11 @@ export default function CodexGenerating({
         </p>
 
         <p className="mt-3" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
-          {name ? `${name}님의 인연의 서를 쓰는 중입니다` : "당신의 인연의 서를 쓰는 중입니다"}
+          {name ? copy.generatingNameLine(name) : copy.generatingNamelessLine}
         </p>
 
         {latestTitles.length ? (
-          <ul className="mx-auto mt-10 max-w-[36ch] space-y-2 text-left" aria-label="완성된 장">
+          <ul className="mx-auto mt-10 max-w-[36ch] space-y-2 text-left" aria-label={copy.generatingCompletedTitlesAriaLabel}>
             {latestTitles.slice(-3).map((title) => (
               <li
                 key={title}
@@ -170,19 +167,19 @@ export default function CodexGenerating({
         {error ? (
           <div className="mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
             {onRetry ? (
-              <button type="button" className={styles.cta} onClick={onRetry}>이어서 쓰기</button>
+              <button type="button" className={styles.cta} onClick={onRetry}>{copy.retryButton}</button>
             ) : null}
             {/* .quiet 는 텍스트 링크용이라 높이가 없다 — 공용 클래스를 고치지 않고 여기서만 탭 타깃을 채운다. */}
             {onOpenStored ? (
               <button type="button" className={`${styles.quiet} inline-flex min-h-[44px] items-center px-4 underline`} onClick={onOpenStored}>
-                지금까지 쓰인 서 열기
+                {copy.openStoredButton}
               </button>
             ) : null}
           </div>
         ) : null}
 
         <p className="mt-12 leading-7" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text-muted)" }}>
-          창을 닫아도 지금까지 쓰인 장은 보관됩니다. 다시 들어오면 이어서 완성할 수 있습니다.
+          {copy.generatingFooterNote}
         </p>
       </div>
     </section>
