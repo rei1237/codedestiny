@@ -90,23 +90,67 @@ const HUMAN_MODE_COVER_KEYS = {
   dest1novaVol2: "\ub370\uc2a4\ud2f0\ub178\ubc14 \uc778\uac04\ubc84\uc804 \uc568\ubc942.webp",
 };
 
+const PLAYLIST_FALLBACK_COPY: Record<"ko" | "en" | "ja" | "zh-CN" | "zh-TW", { kicker: string; title: string; subtitle: string; emptyTitle: string; emptyBody: string }> = {
+  ko: {
+    kicker: "달빛 선곡",
+    title: "플레이리스트를 여는 중",
+    subtitle: "잠시만 기다려 주세요.",
+    emptyTitle: "달빛 음악실이 곧 열립니다.",
+    emptyBody: "첫 곡은 바로 들을 수 있도록 준비하고 있어요.",
+  },
+  en: {
+    kicker: "Moonlit picks",
+    title: "Opening the playlist",
+    subtitle: "Please wait a moment.",
+    emptyTitle: "The moonlit music room is about to open.",
+    emptyBody: "The first track is being prepared for instant listening.",
+  },
+  ja: {
+    kicker: "月明かりの選曲",
+    title: "プレイリストを開いています",
+    subtitle: "少々お待ちください。",
+    emptyTitle: "月明かりの音楽室がまもなく開きます。",
+    emptyBody: "最初の曲をすぐに聴けるよう準備しています。",
+  },
+  "zh-CN": {
+    kicker: "月光选曲",
+    title: "正在打开播放列表",
+    subtitle: "请稍候。",
+    emptyTitle: "月光音乐室即将开启。",
+    emptyBody: "第一首曲目正在准备，随时可以聆听。",
+  },
+  "zh-TW": {
+    kicker: "月光選曲",
+    title: "正在開啟播放清單",
+    subtitle: "請稍候。",
+    emptyTitle: "月光音樂室即將開啟。",
+    emptyBody: "第一首曲目正在準備，隨時可以聆聽。",
+  },
+};
+
+function getPlaylistFallbackCopy() {
+  const locale = getCurrentLoadingLocale();
+  return PLAYLIST_FALLBACK_COPY[locale as keyof typeof PLAYLIST_FALLBACK_COPY] || PLAYLIST_FALLBACK_COPY.en;
+}
+
 function MusicPlaylistFallback() {
+  const copy = getPlaylistFallbackCopy();
   return (
     <aside className={styles.playlistPanel} aria-busy="true">
       <div className={styles.playlistHeaderButton}>
         <span className={styles.playlistHeaderText}>
           <span className={styles.playlistKicker}>
             <Moon size={13} aria-hidden />
-            달빛 선곡
+            {copy.kicker}
           </span>
-          <span className={styles.playlistTitle}>플레이리스트를 여는 중</span>
-          <span className={styles.playlistSubtitle}>잠시만 기다려 주세요.</span>
+          <span className={styles.playlistTitle}>{copy.title}</span>
+          <span className={styles.playlistSubtitle}>{copy.subtitle}</span>
         </span>
       </div>
       <div className={styles.playlistBody}>
         <div className={styles.playlistEmpty}>
-          <strong>달빛 음악실이 곧 열립니다.</strong>
-          <span>첫 곡은 바로 들을 수 있도록 준비하고 있어요.</span>
+          <strong>{copy.emptyTitle}</strong>
+          <span>{copy.emptyBody}</span>
         </div>
       </div>
     </aside>
@@ -392,21 +436,127 @@ const MUSIC_PLAYER_TEXT_TRANSLATIONS = {
     shareText: "Code Destinyの月明かりライブラリで聴いてみてください。",
     shareMain: "Code Destiny メイン",
     shareTitle: (title: string) => `Code Destiny Music - ${title}`,
-    previewBadge: "40 sec preview",
-    fullAccessBadge: "Full track open",
-    passAccessBadge: "Open with your pass",
-    buyFullTrack: `Full track ${MUSIC_TRACK_PRICE_LABEL} KRW`,
-    buyingFullTrack: "Checking payment",
-    buyForDownload: `Buy to download ${MUSIC_TRACK_PRICE_LABEL} KRW`,
-    downloadTrack: "Download",
-    previewLimitReached: "The 40 second preview has ended.",
-    purchaseFailed: "Payment was not completed.",
-    priceChanged: "The price has changed. Please refresh and try again.",
+    previewBadge: "40秒プレビュー",
+    fullAccessBadge: "全曲再生が開放されています",
+    passAccessBadge: "利用権で全曲開放中",
+    buyFullTrack: `全曲再生 ${MUSIC_TRACK_PRICE_LABEL}ウォン`,
+    buyingFullTrack: "決済を確認しています",
+    buyForDownload: `ダウンロード購入 ${MUSIC_TRACK_PRICE_LABEL}ウォン`,
+    downloadTrack: "ダウンロード",
+    previewLimitReached: "40秒プレビューが終了しました。",
+    purchaseFailed: "決済が完了しませんでした。",
+    priceChanged: "価格が変更されました。更新後にもう一度お試しください。",
+  },
+  "zh-CN": {
+    lyricsAria: "当前曲目歌词",
+    lyrics: "歌词",
+    lyricsLoading: "歌词加载中...",
+    lyricsEmpty: "歌词数据尚未准备好。",
+    statusLoading: "正在唤来月光",
+    statusWaiting: "等待月光开启",
+    statusPlaying: "此刻流淌的月光",
+    statusPaused: "月光暂时停留",
+    playerAria: "Code Destiny 音乐播放器",
+    pause: "暂停",
+    play: "播放",
+    nextTrack: "下一曲",
+    previousTrack: "上一曲",
+    listeningMode: "聆听模式",
+    playlistHint: "✦ 月光播放列表",
+    albumModeLabel: "专辑模式",
+    albumModeDefault: "默认",
+    albumModeHuman: "人声",
+    close: "关闭",
+    heroKicker: "MOON MUSIC",
+    heroTitle: `月光下开启的${TOTAL_TRACK_COUNT}首命运歌单`,
+    heroText: "汇聚 DEST1NOVA、NEO、YEONI、LUNA BLOOM 星光氛围的 Code Destiny 音乐书库。",
+    heroPrimary: "全部播放",
+    heroSecondary: "按氛围探索",
+    featuredKicker: "今晚率先开启的曲目",
+    featuredMood: "此刻最贴近这片月光的氛围正在流淌。",
+    save: "收藏",
+    saved: "已收藏",
+    shareCurrent: "分享当前曲目",
+    copied: "已复制",
+    share: "分享",
+    defaultMood: "月光时刻",
+    repeat: (mode: RepeatMode) => `循环 ${mode}`,
+    shuffleOn: "随机播放：开",
+    shuffleOff: "随机播放：关",
+    unmute: "取消静音",
+    mute: "静音",
+    volume: "音量",
+    shareText: "在 Code Destiny 月光音乐库中聆听。",
+    shareMain: "Code Destiny 首页",
+    shareTitle: (title: string) => `Code Destiny Music - ${title}`,
+    previewBadge: "40秒试听",
+    fullAccessBadge: "已开放完整播放",
+    passAccessBadge: "已用权益开放完整播放",
+    buyFullTrack: `完整播放 ${MUSIC_TRACK_PRICE_LABEL}韩元`,
+    buyingFullTrack: "正在确认支付",
+    buyForDownload: `购买下载 ${MUSIC_TRACK_PRICE_LABEL}韩元`,
+    downloadTrack: "下载",
+    previewLimitReached: "40秒试听已结束。",
+    purchaseFailed: "支付未完成。",
+    priceChanged: "价格已变更。请刷新后重试。",
+  },
+  "zh-TW": {
+    lyricsAria: "目前曲目歌詞",
+    lyrics: "歌詞",
+    lyricsLoading: "歌詞載入中...",
+    lyricsEmpty: "歌詞資料尚未準備好。",
+    statusLoading: "正在喚來月光",
+    statusWaiting: "等待月光開啟",
+    statusPlaying: "此刻流淌的月光",
+    statusPaused: "月光暫時停留",
+    playerAria: "Code Destiny 音樂播放器",
+    pause: "暫停",
+    play: "播放",
+    nextTrack: "下一首",
+    previousTrack: "上一首",
+    listeningMode: "聆聽模式",
+    playlistHint: "✦ 月光播放清單",
+    albumModeLabel: "專輯模式",
+    albumModeDefault: "預設",
+    albumModeHuman: "人聲",
+    close: "關閉",
+    heroKicker: "MOON MUSIC",
+    heroTitle: `月光下開啟的${TOTAL_TRACK_COUNT}首命運歌單`,
+    heroText: "匯聚 DEST1NOVA、NEO、YEONI、LUNA BLOOM 星光氛圍的 Code Destiny 音樂書庫。",
+    heroPrimary: "全部播放",
+    heroSecondary: "依氛圍探索",
+    featuredKicker: "今晚率先開啟的曲目",
+    featuredMood: "此刻最貼近這片月光的氛圍正在流淌。",
+    save: "收藏",
+    saved: "已收藏",
+    shareCurrent: "分享目前曲目",
+    copied: "已複製",
+    share: "分享",
+    defaultMood: "月光時刻",
+    repeat: (mode: RepeatMode) => `循環 ${mode}`,
+    shuffleOn: "隨機播放：開",
+    shuffleOff: "隨機播放：關",
+    unmute: "取消靜音",
+    mute: "靜音",
+    volume: "音量",
+    shareText: "在 Code Destiny 月光音樂庫中聆聽。",
+    shareMain: "Code Destiny 首頁",
+    shareTitle: (title: string) => `Code Destiny Music - ${title}`,
+    previewBadge: "40秒試聽",
+    fullAccessBadge: "已開放完整播放",
+    passAccessBadge: "已用權益開放完整播放",
+    buyFullTrack: `完整播放 ${MUSIC_TRACK_PRICE_LABEL}韓元`,
+    buyingFullTrack: "正在確認付款",
+    buyForDownload: `購買下載 ${MUSIC_TRACK_PRICE_LABEL}韓元`,
+    downloadTrack: "下載",
+    previewLimitReached: "40秒試聽已結束。",
+    purchaseFailed: "付款未完成。",
+    priceChanged: "價格已變更。請重新整理後再試一次。",
   },
 } as const;
 
 function getMusicPlayerCopy(locale: LoadingLocale) {
-  return MUSIC_PLAYER_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || MUSIC_PLAYER_TEXT_TRANSLATIONS.ko;
+  return MUSIC_PLAYER_TEXT_TRANSLATIONS[locale as keyof typeof MUSIC_PLAYER_TEXT_TRANSLATIONS] || MUSIC_PLAYER_TEXT_TRANSLATIONS.en;
 }
 
 let musicLyricsModulePromise: Promise<{ lyricsFromAudioFileName: (audioFileName: string) => string | undefined }>|null = null;
