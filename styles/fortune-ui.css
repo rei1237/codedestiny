@@ -153,6 +153,13 @@ body::before{
   pointer-events:none;
   z-index:0;
   background:
+    radial-gradient(circle at 15% 20%, rgba(244,190,209,.1), transparent 35%),
+    radial-gradient(circle at 85% 78%, rgba(255,214,232,.08), transparent 38%),
+    radial-gradient(circle at 50% 12%, rgba(234,208,137,.06), transparent 32%);
+}
+html.neo-mode body::before,
+body.neo-mode::before{
+  background:
     radial-gradient(circle at 15% 20%, rgba(255,139,167,.14), transparent 35%),
     radial-gradient(circle at 85% 78%, rgba(124,58,237,.14), transparent 38%),
     radial-gradient(circle at 50% 12%, rgba(255,215,0,.09), transparent 32%);
