@@ -3,6 +3,8 @@
 import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
+import { useNakshatraCopy } from "../_lib/copy";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 
 interface CrosswalkMatch {
   sukuyoIdx: number;
@@ -79,13 +81,6 @@ interface ResolveResult {
 
 type ViewMode = "both" | "east" | "india" | "unified";
 
-const VIEW_TABS: { key: ViewMode; label: string }[] = [
-  { key: "both", label: "동시" },
-  { key: "east", label: "☯ 동양" },
-  { key: "india", label: "🕉 인도" },
-  { key: "unified", label: "⟡ 통합" },
-];
-
 function Chip({ children }: { children: React.ReactNode }) {
   return (
     <span className="inline-flex items-center rounded-full border border-white/15 bg-white/[0.06] px-2.5 py-1 text-xs font-medium text-slate-100">
@@ -107,9 +102,17 @@ function Row({ label, value, hint }: { label: string; value: React.ReactNode; hi
 }
 
 export default function NakshatraResultClient() {
+  const { result: copy } = useNakshatraCopy();
   const [data, setData] = useState<ResolveResult | null>(null);
   const [loaded, setLoaded] = useState(false);
   const [view, setView] = useState<ViewMode>("both");
+
+  const viewTabs: { key: ViewMode; label: string }[] = [
+    { key: "both", label: copy.viewTabBoth },
+    { key: "east", label: copy.viewTabEast },
+    { key: "india", label: copy.viewTabIndia },
+    { key: "unified", label: copy.viewTabUnified },
+  ];
 
   useEffect(() => {
     try {
@@ -125,15 +128,15 @@ export default function NakshatraResultClient() {
     return (
       <main className="grid min-h-[100dvh] place-items-center bg-[#070812] px-5 text-center text-slate-100">
         <div className="max-w-sm">
-          <p className="text-lg font-bold text-slate-50">결과를 찾을 수 없어요</p>
+          <p className="text-lg font-bold text-slate-50">{copy.notFoundTitle}</p>
           <p className="mt-3 text-sm leading-7 text-slate-300">
-            생년월일을 다시 입력하면 내 별의 두 이름을 계산해 드릴게요.
+            {copy.notFoundBody}
           </p>
           <Link
             href="/nakshatra/calc"
             className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 transition hover:bg-amber-100"
           >
-            다시 입력하기
+            {copy.notFoundLink}
           </Link>
         </div>
       </main>
@@ -158,7 +161,7 @@ export default function NakshatraResultClient() {
       <div className="mx-auto w-full max-w-4xl">
         {/* 요약 헤더 */}
         <header className="rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 text-center shadow-[0_20px_60px_rgba(0,0,0,0.4)] md:p-8">
-          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">당신의 별자리</p>
+          <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">{copy.headerEyebrow}</p>
           <h1 className="mt-3 break-keep text-3xl font-bold leading-tight text-slate-50 md:text-4xl">
             <span className="text-blue-100">{dongyang.nameHan}宿</span>
             <span className="mx-2 text-slate-500">·</span>
@@ -171,15 +174,15 @@ export default function NakshatraResultClient() {
           )}
           <div className="mt-5 flex flex-wrap items-center justify-center gap-2">
             <Chip>지배성 {india.lordKo}</Chip>
-            <Chip>{summary.pada ? `파다 ${summary.pada}` : "파다 미상"}</Chip>
+            <Chip>{summary.pada ? copy.padaChipTemplate.replace("{pada}", String(summary.pada)) : copy.padaChipUnknown}</Chip>
             <Chip>가나 {india.ganaKo}</Chip>
           </div>
         </header>
 
         {/* 뷰 토글 */}
         <div className="mt-6 flex justify-center">
-          <div role="tablist" aria-label="관점 전환" className="inline-flex rounded-xl border border-white/10 bg-white/[0.03] p-1">
-            {VIEW_TABS.map((tab) => (
+          <div role="tablist" aria-label={copy.viewSwitchAria} className="inline-flex rounded-xl border border-white/10 bg-white/[0.03] p-1">
+            {viewTabs.map((tab) => (
               <button
                 key={tab.key}
                 role="tab"
@@ -200,14 +203,14 @@ export default function NakshatraResultClient() {
           {showEast && (
             <section className="rounded-2xl border border-blue-400/20 bg-blue-500/[0.06] p-5 md:p-6" aria-labelledby="east-h">
               <h2 id="east-h" className="flex items-center gap-2 text-lg font-bold text-blue-100">
-                <span aria-hidden="true">☯</span> 숙요점 관점 <span className="text-sm font-normal text-blue-200/80">(동양)</span>
+                <span aria-hidden="true">☯</span> {copy.eastHeading} <span className="text-sm font-normal text-blue-200/80">{copy.eastHeadingSuffix}</span>
               </h2>
               <p className="mt-1 text-sm text-slate-200">{dongyang.archetypeTitle}</p>
               <dl className="mt-4">
-                <Row label="본명수" value={`${dongyang.nameKo}(${dongyang.nameHan})`} />
-                <Row label="방위" value={dongyang.direction} />
-                <Row label="칠요(七曜)" value={dongyang.sevenLuminary} hint="일곱 빛(해·달·오행)의 배속" />
-                <Row label="사신(四神)" value={dongyang.fourSymbol} />
+                <Row label={copy.rowNatalName} value={`${dongyang.nameKo}(${dongyang.nameHan})`} />
+                <Row label={copy.rowDirection} value={dongyang.direction} />
+                <Row label={copy.rowSevenLuminary} value={dongyang.sevenLuminary} hint={copy.rowSevenLuminaryHint} />
+                <Row label={copy.rowFourSymbol} value={dongyang.fourSymbol} />
               </dl>
               {dongyang.keywords?.length > 0 && (
                 <div className="mt-4 flex flex-wrap gap-1.5">
@@ -218,19 +221,19 @@ export default function NakshatraResultClient() {
               )}
               {dongyang.strengths?.length > 0 && (
                 <p className="mt-4 break-keep text-sm leading-7 text-slate-100">
-                  <span className="font-semibold text-blue-100">강점 </span>
+                  <span className="font-semibold text-blue-100">{copy.strengthsLabel} </span>
                   {dongyang.strengths.join(" · ")}
                 </p>
               )}
               {dongyang.shadows?.length > 0 && (
                 <p className="mt-1 break-keep text-sm leading-7 text-slate-200">
-                  <span className="font-semibold text-blue-200">그림자 </span>
+                  <span className="font-semibold text-blue-200">{copy.shadowsLabel} </span>
                   {dongyang.shadows.join(" · ")}
                 </p>
               )}
               {dongyang.easternExpert && (
                 <div className="mt-4 rounded-xl border border-blue-400/20 bg-blue-500/[0.05] p-4">
-                  <p className="text-xs font-semibold text-blue-200/90">宿曜 전문가의 해설</p>
+                  <p className="text-xs font-semibold text-blue-200/90">{copy.easternExpertHeading}</p>
                   <p className="mt-1.5 break-keep text-sm leading-7 text-slate-100">{dongyang.easternExpert}</p>
                 </div>
               )}
@@ -240,23 +243,23 @@ export default function NakshatraResultClient() {
           {showIndia && (
             <section className="rounded-2xl border border-amber-300/20 bg-amber-500/[0.05] p-5 md:p-6" aria-labelledby="india-h">
               <h2 id="india-h" className="flex items-center gap-2 text-lg font-bold text-amber-100">
-                <span aria-hidden="true">🕉</span> 베다점 관점 <span className="text-sm font-normal text-amber-200/80">(인도)</span>
+                <span aria-hidden="true">🕉</span> {copy.indiaHeading} <span className="text-sm font-normal text-amber-200/80">{copy.indiaHeadingSuffix}</span>
               </h2>
               <p className="mt-1 break-keep text-sm text-slate-200">{india.deity} — {india.deityRole}</p>
               <dl className="mt-4">
-                <Row label="나크샤트라" value={`${india.nameKo} (${india.nameEn})`} />
-                <Row label="지배성" value={india.lordKo} hint="비쇼타리 다샤의 기준 행성" />
-                <Row label="가나" value={india.ganaKo} hint="데바·마누샤·라크샤사 기질 분류" />
-                <Row label="요니" value={india.yoni} hint="궁합에 쓰는 동물 본능 원형" />
-                <Row label="나디" value={india.nadiKo} hint="바타·피타·카파 체질 분류" />
-                <Row label="동기" value={india.motiveKo} hint="이번 생의 근원 동기(푸루샤르타)" />
+                <Row label={copy.rowNakshatra} value={`${india.nameKo} (${india.nameEn})`} />
+                <Row label={copy.rowLord} value={india.lordKo} hint={copy.rowLordHint} />
+                <Row label={copy.rowGana} value={india.ganaKo} hint={copy.rowGanaHint} />
+                <Row label={copy.rowYoni} value={india.yoni} hint={copy.rowYoniHint} />
+                <Row label={copy.rowNadi} value={india.nadiKo} hint={copy.rowNadiHint} />
+                <Row label={copy.rowMotive} value={india.motiveKo} hint={copy.rowMotiveHint} />
                 {india.pada && india.padaDetail ? (
-                  <Row label="파다" value={`${india.pada} · ${india.padaDetail.navamsaSignKo}`} hint="나크샤트라의 4분할(나바암샤 라시)" />
+                  <Row label={copy.rowPada} value={`${india.pada} · ${india.padaDetail.navamsaSignKo}`} hint={copy.rowPadaHint} />
                 ) : (
-                  <Row label="파다" value="시각 미상으로 생략" />
+                  <Row label={copy.rowPada} value={copy.rowPadaUnknown} />
                 )}
                 {india.dasha && (
-                  <Row label="현재 다샤" value={`${india.dasha.currentMahadashaKo} / ${india.dasha.currentAntardashaKo}`} hint="지금 흐르는 대운/안타르다샤" />
+                  <Row label={copy.rowCurrentDasha} value={`${india.dasha.currentMahadashaKo} / ${india.dasha.currentAntardashaKo}`} hint={copy.rowCurrentDashaHint} />
                 )}
               </dl>
               {india.deityKw?.length > 0 && (
@@ -268,7 +271,7 @@ export default function NakshatraResultClient() {
               )}
               {india.indianExpert && (
                 <div className="mt-4 rounded-xl border border-amber-300/20 bg-amber-500/[0.05] p-4">
-                  <p className="text-xs font-semibold text-amber-200/90">Jyotish 전문가의 해설</p>
+                  <p className="text-xs font-semibold text-amber-200/90">{copy.indianExpertHeading}</p>
                   <p className="mt-1.5 break-keep text-sm leading-7 text-slate-100">{india.indianExpert}</p>
                 </div>
               )}
@@ -279,22 +282,22 @@ export default function NakshatraResultClient() {
         {/* 통합 */}
         {showUnified && (
           <section className="mt-6 rounded-2xl border border-rose-300/25 bg-rose-500/[0.06] p-6 md:p-8" aria-labelledby="unified-h">
-            <h2 id="unified-h" className="text-lg font-bold text-rose-100">⟡ 통합 해석</h2>
+            <h2 id="unified-h" className="text-lg font-bold text-rose-100">{copy.unifiedHeading}</h2>
             {unified.boundaryNote && (
               <p className="mt-3 rounded-xl border border-amber-300/30 bg-amber-400/10 px-4 py-3 text-sm leading-7 text-amber-50">
-                <span className="font-semibold">⟢ 경계일 </span>
+                <span className="font-semibold">{copy.boundaryLabel} </span>
                 {unified.boundaryNote}
               </p>
             )}
             {unified.convergence && (
               <div className="mt-4">
-                <p className="text-sm font-semibold text-rose-200">⟡ 두 전통이 만나는 지점 (수렴)</p>
+                <p className="text-sm font-semibold text-rose-200">{copy.convergenceLabel}</p>
                 <p className="mt-1.5 break-keep text-sm leading-7 text-slate-100">{unified.convergence}</p>
               </div>
             )}
             {unified.divergence && (
               <div className="mt-4">
-                <p className="text-sm font-semibold text-rose-200">⟢ 갈라지는 지점</p>
+                <p className="text-sm font-semibold text-rose-200">{copy.divergenceLabel}</p>
                 <p className="mt-1.5 break-keep text-sm leading-7 text-slate-100">{unified.divergence}</p>
               </div>
             )}
@@ -315,20 +318,19 @@ export default function NakshatraResultClient() {
 
         {/* 계산 투명성 + 면책 */}
         <footer className="mt-6 rounded-2xl border border-white/10 bg-white/[0.02] p-5 text-xs leading-6 text-slate-300">
-          <p className="font-semibold text-slate-200">계산 근거</p>
+          <p className="font-semibold text-slate-200">{copy.calcBasisHeading}</p>
           <p className="mt-1">
-            아야남샤 {transparency.ayanamsa}
-            {transparency.siderealMoonLongitude != null && ` · 시데리얼 달 황경 ${transparency.siderealMoonLongitude}°`}
-            {data.input && ` · 출생 ${data.input.year}-${data.input.month}-${data.input.day}${data.input.timeUnknown ? " (시각 미상)" : ` ${String(data.input.hour).padStart(2, "0")}:${String(data.input.minute).padStart(2, "0")}`}`}
-            {transparency.pada != null && ` · 파다 ${transparency.pada}`}
+            {copy.ayanamsaLabel} {transparency.ayanamsa}
+            {transparency.siderealMoonLongitude != null && ` · ${copy.siderealMoonLabel} ${transparency.siderealMoonLongitude}°`}
+            {data.input && ` · ${copy.birthLabel} ${data.input.year}-${data.input.month}-${data.input.day}${data.input.timeUnknown ? ` ${copy.timeUnknownSuffix}` : ` ${String(data.input.hour).padStart(2, "0")}:${String(data.input.minute).padStart(2, "0")}`}`}
+            {transparency.pada != null && ` · ${copy.padaFooterLabel} ${transparency.pada}`}
           </p>
           <p className="mt-3 border-t border-white/10 pt-3 text-slate-300">
-            본 서비스는 전통 별자리 문화 콘텐츠이며, 의료·법률·투자 판단의 근거로 사용할 수 없습니다.
-            나크샤트라 속성은 전통 문헌 기반이며, 통합 해석은 Code Destiny의 창작입니다.
+            {copy.disclaimer}
           </p>
           <div className="mt-4">
             <Link href="/nakshatra/calc" className="font-semibold text-amber-100 transition hover:text-amber-50">
-              ← 다른 생일로 다시 보기
+              {copy.backLink}
             </Link>
           </div>
         </footer>
@@ -348,6 +350,7 @@ interface TodayMoon {
 }
 
 function TodayMoonCard({ sukuyoIndex }: { sukuyoIndex: number }) {
+  const { result: copy } = useNakshatraCopy();
   const [today, setToday] = useState<TodayMoon | null>(null);
   const url = useMemo(() => `/api/nakshatra/today?sukuyoIndex=${sukuyoIndex}`, [sukuyoIndex]);
 
@@ -368,7 +371,7 @@ function TodayMoonCard({ sukuyoIndex }: { sukuyoIndex: number }) {
 
   return (
     <section className="mt-6 rounded-2xl border border-white/10 bg-white/[0.03] p-5 md:p-6" aria-labelledby="today-h">
-      <h2 id="today-h" className="text-base font-bold text-slate-100">🌙 오늘의 달</h2>
+      <h2 id="today-h" className="text-base font-bold text-slate-100">{copy.todayMoonHeading}</h2>
       <p className="mt-2 break-keep text-sm leading-7 text-slate-200">
         오늘 달은 <span className="font-semibold text-amber-100">{today.todayNakshatra?.nameKo}</span>
         {today.todaySukuyo && (
@@ -392,22 +395,23 @@ function TodayMoonCard({ sukuyoIndex }: { sukuyoIndex: number }) {
   );
 }
 
-const PAID_PRODUCTS: { title: string; price: string; desc: string; href?: string }[] = [
-  { title: "동서 통합 궁합", price: "10,000원", desc: "인도 아쉬타쿠타 36점 × 동양 숙요 격각", href: "/nakshatra/compat" },
-  { title: "지배성 심화 리포트", price: "10,000원", desc: "지배성·파다·나바암샤 성격/재능/그림자 심층", href: "/nakshatra/lord-report" },
-  { title: "다샤 인생지도", price: "10,000원", desc: "비쇼타리 120년 타임라인 + 동양 대운 병렬", href: "/nakshatra/dasha-map" },
-  { title: "택일(무후르타)", price: "5,000원", desc: "목적별 길일 — 무후르타 × 숙요 길흉 교집합", href: "/nakshatra/muhurta" },
-  { title: "전문가 심화 상담", price: "30,000원", desc: "숙요·베다 두 대가가 각각 장문으로 (2관점 상담)", href: "/nakshatra/ai" },
-  { title: "VVIP 결정판 통합서", price: "30,000원", desc: "전체 통합 + 서사 + PDF 소장본", href: "/nakshatra/vvip" },
-];
-
 function PaidUpsell() {
+  const { result: copy } = useNakshatraCopy();
+  const locale = getCurrentLoadingLocale();
+  const products: { title: string; price: string; desc: string; href?: string }[] = [
+    { title: copy.paidProducts.compat.title, price: locale === "ko" ? copy.paidProducts.compat.priceKo : copy.paidProducts.compat.priceOther, desc: copy.paidProducts.compat.desc, href: "/nakshatra/compat" },
+    { title: copy.paidProducts.lordReport.title, price: locale === "ko" ? copy.paidProducts.lordReport.priceKo : copy.paidProducts.lordReport.priceOther, desc: copy.paidProducts.lordReport.desc, href: "/nakshatra/lord-report" },
+    { title: copy.paidProducts.dashaMap.title, price: locale === "ko" ? copy.paidProducts.dashaMap.priceKo : copy.paidProducts.dashaMap.priceOther, desc: copy.paidProducts.dashaMap.desc, href: "/nakshatra/dasha-map" },
+    { title: copy.paidProducts.muhurta.title, price: locale === "ko" ? copy.paidProducts.muhurta.priceKo : copy.paidProducts.muhurta.priceOther, desc: copy.paidProducts.muhurta.desc, href: "/nakshatra/muhurta" },
+    { title: copy.paidProducts.ai.title, price: locale === "ko" ? copy.paidProducts.ai.priceKo : copy.paidProducts.ai.priceOther, desc: copy.paidProducts.ai.desc, href: "/nakshatra/ai" },
+    { title: copy.paidProducts.vvip.title, price: locale === "ko" ? copy.paidProducts.vvip.priceKo : copy.paidProducts.vvip.priceOther, desc: copy.paidProducts.vvip.desc, href: "/nakshatra/vvip" },
+  ];
   return (
     <section className="mt-6 rounded-2xl border border-amber-200/20 bg-white/[0.02] p-5 md:p-6" aria-labelledby="paid-h">
-      <h2 id="paid-h" className="text-base font-bold text-amber-100">✦ 더 깊이 보기</h2>
-      <p className="mt-1 text-xs leading-6 text-slate-300">여기까지는 무료예요. 아래는 두 전통을 더 깊게 펼치는 심화 상품입니다.</p>
+      <h2 id="paid-h" className="text-base font-bold text-amber-100">{copy.upsellHeading}</h2>
+      <p className="mt-1 text-xs leading-6 text-slate-300">{copy.upsellIntro}</p>
       <div className="mt-4 grid gap-3 sm:grid-cols-2">
-        {PAID_PRODUCTS.map((p) => {
+        {products.map((p) => {
           const inner = (
             <>
               <div className="flex items-baseline justify-between gap-2">
@@ -416,7 +420,7 @@ function PaidUpsell() {
               </div>
               <p className="mt-1.5 break-keep text-xs leading-6 text-slate-300">{p.desc}</p>
               <span className={`mt-2 inline-block text-xs font-semibold ${p.href ? "text-amber-100" : "text-slate-400"}`}>
-                {p.href ? "지금 보기 →" : "준비 중"}
+                {p.href ? copy.viewNowLabel : copy.comingSoonLabel}
               </span>
             </>
           );

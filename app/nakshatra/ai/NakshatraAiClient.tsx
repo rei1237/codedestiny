@@ -9,6 +9,7 @@ import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { NAKSHATRA_RESULT_STORAGE_KEY } from "../NakshatraFormClient";
 import { birthFromProfileSeed, type NakshatraBirthInput } from "../nakshatra-birth";
 import AiConsultDecks, { type Decks, type NatalIdentity, type TopInsight } from "./AiConsultDecks";
+import { useNakshatraCopy, type NakshatraAiCopy } from "../_lib/copy";
 
 const FEATURE_KEY = "nakshatra-ai-consultation";
 const SERVICE_ID = "nakshatra-ai";
@@ -92,6 +93,7 @@ function extractPaymentContext(gate: { data: unknown; raw?: unknown }, requestId
 }
 
 export default function NakshatraAiClient() {
+  const { ai: copy } = useNakshatraCopy();
   const [birth, setBirth] = useState<BirthInput | null>(null);
   const [identity, setIdentity] = useState<NatalIdentity | null>(null);
   const [loaded, setLoaded] = useState(false);
@@ -204,10 +206,10 @@ export default function NakshatraAiClient() {
       }
       attempt += 1;
       if (res.status === 202 || res.status === 404) continue;
-      if (res.status === 409) { fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요."); return; }
+      if (res.status === 409) { fail(toText(data.message) || copy.generationFailedError); return; }
     }
-    fail("상담 생성이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도하면 이어서 받아볼 수 있어요.");
-  }, [finish, fail, applyProgress]);
+    fail(copy.generationSlowError);
+  }, [finish, fail, applyProgress, copy]);
 
   // 21섹션은 한 요청에 다 굽지 못한다(엣지 100초 컷). 서버가 한 번에 4섹션씩 굽고 진행률을 돌려주므로
   // 완료될 때까지 /generate 를 이어 부른다. 진행 위치의 정본은 서버다 — 여기서 인덱스를 보내지 않는다.
@@ -230,17 +232,17 @@ export default function NakshatraAiClient() {
       }
       attempt += 1;
       if (response.status === 202) { await sleep(GENERATE_GAP_MS); continue; }
-      if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
+      if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail(copy.loginRequiredError); return; }
       if (response.status === 409 || response.status === 404) { await pollResult(sessionId, accessToken); return; }
-      fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요.");
+      fail(toText(data.message) || copy.generationFailedError);
       return;
     }
-    fail("상담 생성이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도하면 이어서 받아볼 수 있어요.");
-  }, [finish, fail, pollResult, applyProgress]);
+    fail(copy.generationSlowError);
+  }, [finish, fail, pollResult, applyProgress, copy]);
 
   const startConsult = useCallback(async (payload: Record<string, unknown>, access: Record<string, unknown>) => {
     setPhase("generating");
-    setStatusMsg("숙요·베다 두 대가가 당신의 별을 읽는 중이에요.");
+    setStatusMsg(copy.readingInProgressStatus);
     const accessToken = toText(access.accessToken);
     const idempotencyKey = toText(payload.idempotencyKey);
     const started = await postJson(API.start, { ...payload, ...access }, idempotencyKey).catch(() => null);
@@ -252,17 +254,17 @@ export default function NakshatraAiClient() {
       await driveGeneration(toText(data.sessionId) || idempotencyKey, idempotencyKey, accessToken);
       return;
     }
-    if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
+    if (response.status === 401 || data.reason === "LOGIN_REQUIRED") { fail(copy.loginRequiredError); return; }
     // 🔴 /start 가 일시 장애(503 DB_DEGRADED 등)면 여기서 죽이지 않는다 — 이 분기가 없어서
     //    Mongo 블립 중에 시작하면 "상담문 생성에 실패했어요"로 즉시 끝나 생성 자체가 안 됐다.
     //    서버가 세션을 이미 만들었을 수도 있으므로 폴링으로 넘겨 자가 복구시킨다.
     if (isRetriableResultPollFailure(response.status, data)) {
-      setStatusMsg("연결이 잠시 불안정해요. 이어서 다시 시도하는 중입니다.");
+      setStatusMsg(copy.connectionUnstableRetryStatus);
       await pollResult(idempotencyKey, accessToken);
       return;
     }
-    fail(toText(data.message) || "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요.");
-  }, [finish, fail, pollResult, driveGeneration, applyProgress]);
+    fail(toText(data.message) || copy.generationFailedError);
+  }, [finish, fail, pollResult, driveGeneration, applyProgress, copy]);
 
   const beginConsultation = useCallback(async () => {
     if (!birth || busyRef.current) return;
@@ -273,7 +275,7 @@ export default function NakshatraAiClient() {
     setAskedQuestion(trimmedQuestion);
     const payload: Record<string, unknown> = { ...birth, question: trimmedQuestion, idempotencyKey };
     setPhase("checking");
-    setStatusMsg("이용권을 확인하는 중이에요.");
+    setStatusMsg(copy.checkingPassStatus);
     try {
       const ensure = await postJson(API.ensureAccess, payload, idempotencyKey);
       if (ensure.data.ok) {
@@ -282,11 +284,11 @@ export default function NakshatraAiClient() {
         await startConsult(payload, { accessToken: toText(ensure.data.accessToken) });
         return;
       }
-      if (ensure.response.status === 401 || ensure.data.reason === "LOGIN_REQUIRED") { fail("로그인이 필요해요. 로그인 후 다시 시도해 주세요."); return; }
-      if (ensure.data.reason !== "PAYMENT_REQUIRED") { fail(toText(ensure.data.message) || "잠시 후 다시 시도해 주세요."); return; }
+      if (ensure.response.status === 401 || ensure.data.reason === "LOGIN_REQUIRED") { fail(copy.loginRequiredError); return; }
+      if (ensure.data.reason !== "PAYMENT_REQUIRED") { fail(toText(ensure.data.message) || copy.tryAgainShortlyError); return; }
 
       setPhase("payment");
-      setStatusMsg("결제 수단을 확인하는 중이에요.");
+      setStatusMsg(copy.checkingPaymentMethodStatus);
       const paymentPayload = asRecord(ensure.data.paymentPayload);
       const runtimeGate = asRecord(paymentPayload.runtimeGate);
       const gate = await runBillingCoinGate({
@@ -310,14 +312,14 @@ export default function NakshatraAiClient() {
       if (!gate.ok || !gate.data) {
         const code = toText(gate.error?.code).toUpperCase();
         if (code === "PAYMENT_CANCELLED" || code === "USER_CANCELLED") { setPhase("intro"); busyRef.current = false; return; }
-        fail(gate.status === 401 || code === "AUTH_REQUIRED" ? "로그인이 필요해요. 로그인 후 다시 시도해 주세요." : "결제나 이용권 확인을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        fail(gate.status === 401 || code === "AUTH_REQUIRED" ? copy.loginRequiredError : copy.paymentOrPassFailedError);
         return;
       }
       await startConsult(payload, extractPaymentContext(gate, idempotencyKey));
     } catch {
-      fail("네트워크 문제로 상담을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.");
+      fail(copy.networkFailedToStartError);
     }
-  }, [birth, question, finish, fail, startConsult]);
+  }, [birth, question, finish, fail, startConsult, copy]);
 
   const bgClass =
     "relative isolate min-h-[100dvh] overflow-hidden bg-[radial-gradient(circle_at_18%_8%,rgba(179,25,85,0.14),transparent_34%),radial-gradient(circle_at_85%_10%,rgba(212,175,55,0.12),transparent_36%),linear-gradient(160deg,#0a0818_0%,#12102a_55%,#070510_100%)] px-4 py-8 text-slate-100 md:py-12";
@@ -331,12 +333,12 @@ export default function NakshatraAiClient() {
           <div className="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-[radial-gradient(circle_at_35%_30%,rgba(232,213,163,0.32),rgba(20,16,42,0.5)_70%)] shadow-moon-glow" aria-hidden="true">
             <span className="text-2xl text-amber-100">✶</span>
           </div>
-          <p className="text-lg font-bold text-slate-50">먼저 별을 계산해 주세요</p>
+          <p className="text-lg font-bold text-slate-50">{copy.needBirthTitle}</p>
           <p className="mt-3 text-sm leading-7 text-slate-300">
-            전문가 심화 상담은 당신의 숙요 본명수와 베다 나크샤트라를 근거로 진행돼요. 생년월일을 먼저 계산하면 두 대가가 이어서 상담해 드릴게요.
+            {copy.needBirthBody}
           </p>
           <Link href="/nakshatra/calc" className="mt-6 inline-flex min-h-11 items-center justify-center rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 outline-none transition hover:bg-amber-100 focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818]">
-            내 별 계산하기
+            {copy.calculateMyStarLink}
           </Link>
         </div>
       </main>
@@ -388,29 +390,30 @@ function IntroView({
   onStart: () => void;
   errorMsg: string;
 }) {
+  const { ai: copy } = useNakshatraCopy();
   return (
     <div className="mx-auto w-full max-w-lg rounded-2xl border border-amber-200/20 bg-white/[0.03] p-6 shadow-[0_20px_60px_rgba(0,0,0,0.4)] motion-safe:animate-fade-in-up md:p-8">
-      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">Nakshatra Codex · 전문가 심화 상담</p>
-      <h1 className="mt-3 text-balance break-keep text-2xl font-bold leading-tight text-slate-50 md:text-3xl">두 대가에게 두 번 물어보세요</h1>
+      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-amber-100/70">Nakshatra Codex · {copy.introEyebrowSuffix}</p>
+      <h1 className="mt-3 text-balance break-keep text-2xl font-bold leading-tight text-slate-50 md:text-3xl">{copy.introTitle}</h1>
       <p className="mt-3 break-keep text-sm leading-7 text-slate-200">
         {identity?.sukuyoHan ? <><span className="font-semibold text-blue-100">{identity.sukuyoHan}宿</span> · </> : null}
-        {identity?.nakshatraKo ? <span className="font-semibold text-amber-100">{identity.nakshatraKo}</span> : <span>당신의 명식</span>}
-        을 근거로, <span className="font-semibold text-blue-100">숙요 대가</span>와 <span className="font-semibold text-amber-100">베다 대가</span>가 각각 장문의 상담을 써 드려요.
+        {identity?.nakshatraKo ? <span className="font-semibold text-amber-100">{identity.nakshatraKo}</span> : <span>{copy.introBodyFallbackIdentity}</span>}
+        {copy.introBodySuffix}
       </p>
 
-      <label htmlFor="nakai-q" className="mt-6 block text-xs font-semibold tracking-wide text-amber-100/80">무엇이 궁금한가요? <span className="font-normal text-slate-400">(선택 — 비워두면 전반적인 흐름을 짚어 드려요)</span></label>
+      <label htmlFor="nakai-q" className="mt-6 block text-xs font-semibold tracking-wide text-amber-100/80">{copy.questionLabel} <span className="font-normal text-slate-400">{copy.questionOptionalHint}</span></label>
       <textarea
         id="nakai-q"
         value={question}
         onChange={(e) => onQuestion(e.target.value.slice(0, 1000))}
         rows={3}
-        placeholder="예) 올해 이직을 고민 중인데 제 기질에 맞는 방향이 궁금해요."
+        placeholder={copy.questionPlaceholder}
         className="mt-2 w-full resize-none rounded-xl border border-white/15 bg-white/[0.04] px-3.5 py-3 text-sm leading-7 text-slate-100 placeholder:text-slate-500 outline-none transition focus:border-amber-200/60 focus:bg-white/[0.06] focus-visible:ring-2 focus-visible:ring-amber-200/40"
       />
 
       <p className="mt-3 text-xs leading-6 text-slate-400">
-        기준 명식: {birth.year}-{String(birth.month).padStart(2, "0")}-{String(birth.day).padStart(2, "0")}
-        {birth.timeUnknown ? " (시각 미상 · 파다 생략)" : ` ${String(birth.hour).padStart(2, "0")}:${String(birth.minute).padStart(2, "0")}`}
+        {copy.baseChartLabel}: {birth.year}-{String(birth.month).padStart(2, "0")}-{String(birth.day).padStart(2, "0")}
+        {birth.timeUnknown ? ` ${copy.baseChartTimeUnknownSuffix}` : ` ${String(birth.hour).padStart(2, "0")}:${String(birth.minute).padStart(2, "0")}`}
       </p>
 
       {errorMsg ? (
@@ -422,16 +425,18 @@ function IntroView({
         onClick={onStart}
         className="mt-6 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-xl bg-amber-200 px-5 text-sm font-bold text-slate-950 shadow-[0_16px_44px_rgba(251,191,36,0.22)] outline-none transition-all duration-200 ease-out hover:bg-amber-100 hover:shadow-moon-glow focus-visible:ring-2 focus-visible:ring-amber-200/70 focus-visible:ring-offset-2 focus-visible:ring-offset-[#0a0818] active:scale-[0.99]"
       >
-        두 대가의 상담 받기 · {formatPaymentWon(PRICE_KRW)}
+        {copy.startButtonLabel} · {formatPaymentWon(PRICE_KRW)}
       </button>
-      <p className="mt-3 text-center text-xs leading-6 text-slate-400">이용권이 있으면 결제 없이 바로 진행돼요.</p>
+      <p className="mt-3 text-center text-xs leading-6 text-slate-400">{copy.passNote}</p>
     </div>
   );
 }
 
 // 진행 인디케이터의 4단계. 서버 generationProgress(completed/total/phase)에 실제로 물려 있다 —
 // 시간만 흐르는 가짜 진행바를 쓰지 않는다.
-const STEP_LABELS = ["나크샤트라 분석", "숙요 분석", "융합 해석", "실전 조언"] as const;
+function buildStepLabels(copy: NakshatraAiCopy) {
+  return [copy.stepAnalyzeNakshatra, copy.stepAnalyzeSukuyo, copy.stepFusionInterpretation, copy.stepPracticalAdvice];
+}
 
 function resolveStepIndex(progress: { completed: number; total: number; phase: string }) {
   if (progress.phase === "done") return 3;
@@ -448,9 +453,11 @@ function WaitingView({
   identity: NatalIdentity | null;
   progress: { completed: number; total: number; phase: string };
 }) {
+  const { ai: copy } = useNakshatraCopy();
   const generating = phase === "generating";
-  const headline = phase === "payment" ? "결제 수단을 확인하는 중이에요" : phase === "checking" ? "이용권을 확인하는 중이에요" : "두 대가가 당신의 별을 읽는 중이에요";
+  const headline = phase === "payment" ? copy.headlinePayment : phase === "checking" ? copy.headlineChecking : copy.headlineGenerating;
   const stepIndex = resolveStepIndex(progress);
+  const stepLabels = buildStepLabels(copy);
   const ratio = progress.total > 0 ? Math.min(1, progress.completed / progress.total) : 0;
   return (
     <div className="mx-auto w-full max-w-md text-center motion-safe:animate-fade-in-up">
@@ -473,7 +480,7 @@ function WaitingView({
         </div>
       </div>
       <p className="mt-8 text-balance break-keep text-base font-bold text-slate-50">{headline}</p>
-      <p className="mt-2 break-keep text-sm leading-7 text-slate-300" aria-live="polite">{statusMsg || "잠시만 기다려 주세요."}</p>
+      <p className="mt-2 break-keep text-sm leading-7 text-slate-300" aria-live="polite">{statusMsg || copy.waitingDefaultStatus}</p>
       {identity?.nakshatraKo ? (
         <p className="mt-4 text-xs text-slate-400">
           {identity.sukuyoHan ? `${identity.sukuyoHan}宿 · ` : ""}{identity.nakshatraKo}
@@ -481,8 +488,8 @@ function WaitingView({
       ) : null}
       {generating ? (
         <div className="mt-7">
-          <ol className="flex items-center justify-center gap-1.5" aria-label="상담 진행 단계">
-            {STEP_LABELS.map((label, index) => {
+          <ol className="flex items-center justify-center gap-1.5" aria-label={copy.progressStepsAria}>
+            {stepLabels.map((label, index) => {
               const state = index < stepIndex ? "done" : index === stepIndex ? "current" : "todo";
               return (
                 <li
@@ -509,8 +516,8 @@ function WaitingView({
           </div>
           <p className="mt-3 break-keep text-xs leading-6 text-slate-300" aria-live="polite">
             {progress.completed > 0
-              ? `${progress.total}편 중 ${progress.completed}편을 썼어요. 두 전통을 각각 읽은 뒤 겹쳐 읽는 순서라 조금 걸려요.`
-              : "숙요 5편 + 베다 6편 + 융합 10편, 총 21편의 상담을 정성껏 쓰는 중이라 조금 걸릴 수 있어요."}
+              ? copy.progressCountTemplate.replace("{total}", String(progress.total)).replace("{completed}", String(progress.completed))
+              : copy.progressIntro}
           </p>
         </div>
       ) : null}

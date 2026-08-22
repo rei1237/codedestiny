@@ -164,6 +164,133 @@ export interface NakshatraCompatCopy {
   resultFooterNote: string;
 }
 
+export interface NakshatraResultPaidProductCopy {
+  title: string;
+  priceKo: string;
+  priceOther: string;
+  desc: string;
+}
+
+export interface NakshatraResultCopy {
+  notFoundTitle: string;
+  notFoundBody: string;
+  notFoundLink: string;
+  viewTabBoth: string;
+  viewTabEast: string;
+  viewTabIndia: string;
+  viewTabUnified: string;
+  viewSwitchAria: string;
+  headerEyebrow: string;
+  padaChipTemplate: string;
+  padaChipUnknown: string;
+  eastHeading: string;
+  eastHeadingSuffix: string;
+  indiaHeading: string;
+  indiaHeadingSuffix: string;
+  rowNatalName: string;
+  rowDirection: string;
+  rowSevenLuminary: string;
+  rowSevenLuminaryHint: string;
+  rowFourSymbol: string;
+  strengthsLabel: string;
+  shadowsLabel: string;
+  easternExpertHeading: string;
+  rowNakshatra: string;
+  rowLord: string;
+  rowLordHint: string;
+  rowGana: string;
+  rowGanaHint: string;
+  rowYoni: string;
+  rowYoniHint: string;
+  rowNadi: string;
+  rowNadiHint: string;
+  rowMotive: string;
+  rowMotiveHint: string;
+  rowPada: string;
+  rowPadaHint: string;
+  rowPadaUnknown: string;
+  rowCurrentDasha: string;
+  rowCurrentDashaHint: string;
+  indianExpertHeading: string;
+  unifiedHeading: string;
+  boundaryLabel: string;
+  convergenceLabel: string;
+  divergenceLabel: string;
+  todayMoonHeading: string;
+  calcBasisHeading: string;
+  ayanamsaLabel: string;
+  siderealMoonLabel: string;
+  birthLabel: string;
+  timeUnknownSuffix: string;
+  padaFooterLabel: string;
+  disclaimer: string;
+  backLink: string;
+  upsellHeading: string;
+  upsellIntro: string;
+  viewNowLabel: string;
+  comingSoonLabel: string;
+  paidProducts: {
+    compat: NakshatraResultPaidProductCopy;
+    lordReport: NakshatraResultPaidProductCopy;
+    dashaMap: NakshatraResultPaidProductCopy;
+    muhurta: NakshatraResultPaidProductCopy;
+    ai: NakshatraResultPaidProductCopy;
+    vvip: NakshatraResultPaidProductCopy;
+  };
+}
+
+export interface NakshatraAiCopy {
+  generationFailedError: string;
+  generationSlowError: string;
+  loginRequiredError: string;
+  readingInProgressStatus: string;
+  connectionUnstableRetryStatus: string;
+  checkingPassStatus: string;
+  tryAgainShortlyError: string;
+  checkingPaymentMethodStatus: string;
+  paymentOrPassFailedError: string;
+  networkFailedToStartError: string;
+  needBirthTitle: string;
+  needBirthBody: string;
+  calculateMyStarLink: string;
+  introEyebrowSuffix: string;
+  introTitle: string;
+  introBodyFallbackIdentity: string;
+  introBodySuffix: string;
+  questionLabel: string;
+  questionOptionalHint: string;
+  questionPlaceholder: string;
+  baseChartLabel: string;
+  baseChartTimeUnknownSuffix: string;
+  startButtonLabel: string;
+  passNote: string;
+  stepAnalyzeNakshatra: string;
+  stepAnalyzeSukuyo: string;
+  stepFusionInterpretation: string;
+  stepPracticalAdvice: string;
+  headlinePayment: string;
+  headlineChecking: string;
+  headlineGenerating: string;
+  waitingDefaultStatus: string;
+  progressStepsAria: string;
+  progressCountTemplate: string;
+  progressIntro: string;
+}
+
+export interface NakshatraAiDecksCopy {
+  fallbackTitle: string;
+  scaleUnitSuffix: string;
+  scaleCharsTemplate: string;
+  splitSectionHeading: string;
+  vedicDeckName: string;
+  vedicDeckSub: string;
+  sukuyoDeckName: string;
+  sukuyoDeckSub: string;
+  fusionSectionHeading: string;
+  topInsightsHeading: string;
+  footerNote: string;
+}
+
 export interface NakshatraCopy {
   form: NakshatraFormCopy;
   premium: NakshatraPremiumPartsCopy;
@@ -171,6 +298,9 @@ export interface NakshatraCopy {
   dashaMap: NakshatraDashaMapCopy;
   vvip: NakshatraVvipCopy;
   compat: NakshatraCompatCopy;
+  result: NakshatraResultCopy;
+  ai: NakshatraAiCopy;
+  aiDecks: NakshatraAiDecksCopy;
 }
 
 const NAKSHATRA_COPY_KO: NakshatraCopy = {
@@ -346,6 +476,123 @@ const NAKSHATRA_COPY_KO: NakshatraCopy = {
     indiaScoreNote: "인도 아쉬타쿠타 {indiaPct} · 동양 숙요 {eastPct}",
     resetButton: "다른 상대와 다시 보기",
     resultFooterNote: "아쉬타쿠타는 달 라시 기반 정통 8쿠타(36점), 격각은 숙요 27수 관계법으로 계산했습니다. 전통 별자리 문화 콘텐츠이며 의료·법률·투자 판단의 근거로 쓸 수 없습니다.",
+  },
+  result: {
+    notFoundTitle: "결과를 찾을 수 없어요",
+    notFoundBody: "생년월일을 다시 입력하면 내 별의 두 이름을 계산해 드릴게요.",
+    notFoundLink: "다시 입력하기",
+    viewTabBoth: "동시",
+    viewTabEast: "☯ 동양",
+    viewTabIndia: "🕉 인도",
+    viewTabUnified: "⟡ 통합",
+    viewSwitchAria: "관점 전환",
+    headerEyebrow: "당신의 별자리",
+    padaChipTemplate: "파다 {pada}",
+    padaChipUnknown: "파다 미상",
+    eastHeading: "숙요점 관점",
+    eastHeadingSuffix: "(동양)",
+    indiaHeading: "베다점 관점",
+    indiaHeadingSuffix: "(인도)",
+    rowNatalName: "본명수",
+    rowDirection: "방위",
+    rowSevenLuminary: "칠요(七曜)",
+    rowSevenLuminaryHint: "일곱 빛(해·달·오행)의 배속",
+    rowFourSymbol: "사신(四神)",
+    strengthsLabel: "강점",
+    shadowsLabel: "그림자",
+    easternExpertHeading: "宿曜 전문가의 해설",
+    rowNakshatra: "나크샤트라",
+    rowLord: "지배성",
+    rowLordHint: "비쇼타리 다샤의 기준 행성",
+    rowGana: "가나",
+    rowGanaHint: "데바·마누샤·라크샤사 기질 분류",
+    rowYoni: "요니",
+    rowYoniHint: "궁합에 쓰는 동물 본능 원형",
+    rowNadi: "나디",
+    rowNadiHint: "바타·피타·카파 체질 분류",
+    rowMotive: "동기",
+    rowMotiveHint: "이번 생의 근원 동기(푸루샤르타)",
+    rowPada: "파다",
+    rowPadaHint: "나크샤트라의 4분할(나바암샤 라시)",
+    rowPadaUnknown: "시각 미상으로 생략",
+    rowCurrentDasha: "현재 다샤",
+    rowCurrentDashaHint: "지금 흐르는 대운/안타르다샤",
+    indianExpertHeading: "Jyotish 전문가의 해설",
+    unifiedHeading: "⟡ 통합 해석",
+    boundaryLabel: "⟢ 경계일",
+    convergenceLabel: "⟡ 두 전통이 만나는 지점 (수렴)",
+    divergenceLabel: "⟢ 갈라지는 지점",
+    todayMoonHeading: "🌙 오늘의 달",
+    calcBasisHeading: "계산 근거",
+    ayanamsaLabel: "아야남샤",
+    siderealMoonLabel: "시데리얼 달 황경",
+    birthLabel: "출생",
+    timeUnknownSuffix: "(시각 미상)",
+    padaFooterLabel: "파다",
+    disclaimer: "본 서비스는 전통 별자리 문화 콘텐츠이며, 의료·법률·투자 판단의 근거로 사용할 수 없습니다. 나크샤트라 속성은 전통 문헌 기반이며, 통합 해석은 Code Destiny의 창작입니다.",
+    backLink: "← 다른 생일로 다시 보기",
+    upsellHeading: "✦ 더 깊이 보기",
+    upsellIntro: "여기까지는 무료예요. 아래는 두 전통을 더 깊게 펼치는 심화 상품입니다.",
+    viewNowLabel: "지금 보기 →",
+    comingSoonLabel: "준비 중",
+    paidProducts: {
+      compat: { title: "동서 통합 궁합", priceKo: "10,000원", priceOther: "₩10,000", desc: "인도 아쉬타쿠타 36점 × 동양 숙요 격각" },
+      lordReport: { title: "지배성 심화 리포트", priceKo: "10,000원", priceOther: "₩10,000", desc: "지배성·파다·나바암샤 성격/재능/그림자 심층" },
+      dashaMap: { title: "다샤 인생지도", priceKo: "10,000원", priceOther: "₩10,000", desc: "비쇼타리 120년 타임라인 + 동양 대운 병렬" },
+      muhurta: { title: "택일(무후르타)", priceKo: "5,000원", priceOther: "₩5,000", desc: "목적별 길일 — 무후르타 × 숙요 길흉 교집합" },
+      ai: { title: "전문가 심화 상담", priceKo: "30,000원", priceOther: "₩30,000", desc: "숙요·베다 두 대가가 각각 장문으로 (2관점 상담)" },
+      vvip: { title: "VVIP 결정판 통합서", priceKo: "30,000원", priceOther: "₩30,000", desc: "전체 통합 + 서사 + PDF 소장본" },
+    },
+  },
+  ai: {
+    generationFailedError: "상담문 생성에 실패했어요. 이용권/결제 권한은 보존됩니다. 잠시 후 다시 시도해 주세요.",
+    generationSlowError: "상담 생성이 예상보다 오래 걸리고 있어요. 잠시 후 다시 시도하면 이어서 받아볼 수 있어요.",
+    loginRequiredError: "로그인이 필요해요. 로그인 후 다시 시도해 주세요.",
+    readingInProgressStatus: "숙요·베다 두 대가가 당신의 별을 읽는 중이에요.",
+    connectionUnstableRetryStatus: "연결이 잠시 불안정해요. 이어서 다시 시도하는 중입니다.",
+    checkingPassStatus: "이용권을 확인하는 중이에요.",
+    tryAgainShortlyError: "잠시 후 다시 시도해 주세요.",
+    checkingPaymentMethodStatus: "결제 수단을 확인하는 중이에요.",
+    paymentOrPassFailedError: "결제나 이용권 확인을 완료하지 못했어요. 잠시 후 다시 시도해 주세요.",
+    networkFailedToStartError: "네트워크 문제로 상담을 시작하지 못했어요. 연결을 확인하고 다시 시도해 주세요.",
+    needBirthTitle: "먼저 별을 계산해 주세요",
+    needBirthBody: "전문가 심화 상담은 당신의 숙요 본명수와 베다 나크샤트라를 근거로 진행돼요. 생년월일을 먼저 계산하면 두 대가가 이어서 상담해 드릴게요.",
+    calculateMyStarLink: "내 별 계산하기",
+    introEyebrowSuffix: "전문가 심화 상담",
+    introTitle: "두 대가에게 두 번 물어보세요",
+    introBodyFallbackIdentity: "당신의 명식",
+    introBodySuffix: "을 근거로, 숙요 대가와 베다 대가가 각각 장문의 상담을 써 드려요.",
+    questionLabel: "무엇이 궁금한가요?",
+    questionOptionalHint: "(선택 — 비워두면 전반적인 흐름을 짚어 드려요)",
+    questionPlaceholder: "예) 올해 이직을 고민 중인데 제 기질에 맞는 방향이 궁금해요.",
+    baseChartLabel: "기준 명식",
+    baseChartTimeUnknownSuffix: "(시각 미상 · 파다 생략)",
+    startButtonLabel: "두 대가의 상담 받기",
+    passNote: "이용권이 있으면 결제 없이 바로 진행돼요.",
+    stepAnalyzeNakshatra: "나크샤트라 분석",
+    stepAnalyzeSukuyo: "숙요 분석",
+    stepFusionInterpretation: "융합 해석",
+    stepPracticalAdvice: "실전 조언",
+    headlinePayment: "결제 수단을 확인하는 중이에요",
+    headlineChecking: "이용권을 확인하는 중이에요",
+    headlineGenerating: "두 대가가 당신의 별을 읽는 중이에요",
+    waitingDefaultStatus: "잠시만 기다려 주세요.",
+    progressStepsAria: "상담 진행 단계",
+    progressCountTemplate: "{total}편 중 {completed}편을 썼어요. 두 전통을 각각 읽은 뒤 겹쳐 읽는 순서라 조금 걸려요.",
+    progressIntro: "숙요 5편 + 베다 6편 + 융합 10편, 총 21편의 상담을 정성껏 쓰는 중이라 조금 걸릴 수 있어요.",
+  },
+  aiDecks: {
+    fallbackTitle: "두 대가의 심화 상담",
+    scaleUnitSuffix: "편",
+    scaleCharsTemplate: " · {chars}자",
+    splitSectionHeading: "두 대가가 각각 읽은 당신의 별",
+    vedicDeckName: "베다 대가의 상담",
+    vedicDeckSub: "Jyotish · 지배성과 다샤",
+    sukuyoDeckName: "숙요 대가의 상담",
+    sukuyoDeckSub: "宿曜 · 칠요와 격각",
+    fusionSectionHeading: "두 시선을 겹쳐 읽다 — 융합 해석",
+    topInsightsHeading: "이 해석에서 가장 중요한 세 가지",
+    footerNote: "본 서비스는 전통 별자리 문화 콘텐츠이며, 의료·법률·투자 판단의 근거로 사용할 수 없습니다. 상담문은 계산된 명식(숙요 본명수·베다 나크샤트라)을 근거로 작성되었고, 융합 해석은 Code Destiny의 창작입니다.",
   },
 };
 
@@ -523,6 +770,123 @@ const NAKSHATRA_COPY_EN: NakshatraCopy = {
     resetButton: "Check with someone else",
     resultFooterNote: "Ashtakuta is calculated from the traditional 8-kuta moon-rashi system (36 points); the sukuyo compatibility uses the 27-mansion relationship method. This is traditional astrology culture content and cannot be used as a basis for medical, legal, or investment decisions.",
   },
+  result: {
+    notFoundTitle: "We couldn't find a result",
+    notFoundBody: "Enter your birth date again and we'll calculate your star's two names.",
+    notFoundLink: "Enter again",
+    viewTabBoth: "Both",
+    viewTabEast: "☯ Eastern",
+    viewTabIndia: "🕉 Indian",
+    viewTabUnified: "⟡ Unified",
+    viewSwitchAria: "Switch perspective",
+    headerEyebrow: "Your star",
+    padaChipTemplate: "Pada {pada}",
+    padaChipUnknown: "Pada unknown",
+    eastHeading: "Sukuyo perspective",
+    eastHeadingSuffix: "(Eastern)",
+    indiaHeading: "Vedic perspective",
+    indiaHeadingSuffix: "(Indian)",
+    rowNatalName: "Natal star",
+    rowDirection: "Direction",
+    rowSevenLuminary: "Seven Luminaries",
+    rowSevenLuminaryHint: "The assignment of the seven lights (sun, moon, five elements)",
+    rowFourSymbol: "Four Symbols",
+    strengthsLabel: "Strengths",
+    shadowsLabel: "Shadows",
+    easternExpertHeading: "Sukuyo expert's commentary",
+    rowNakshatra: "Nakshatra",
+    rowLord: "Ruling planet",
+    rowLordHint: "The reference planet for the Vimshottari dasha",
+    rowGana: "Gana",
+    rowGanaHint: "Temperament classification: deva, manusha, or rakshasa",
+    rowYoni: "Yoni",
+    rowYoniHint: "The animal-instinct archetype used in compatibility",
+    rowNadi: "Nadi",
+    rowNadiHint: "Constitution classification: vata, pitta, or kapha",
+    rowMotive: "Motive",
+    rowMotiveHint: "The root motive of this life (purushartha)",
+    rowPada: "Pada",
+    rowPadaHint: "The nakshatra's quarter division (navamsa rashi)",
+    rowPadaUnknown: "Omitted — birth time unknown",
+    rowCurrentDasha: "Current dasha",
+    rowCurrentDashaHint: "The mahadasha/antardasha currently flowing",
+    indianExpertHeading: "Jyotish expert's commentary",
+    unifiedHeading: "⟡ Unified interpretation",
+    boundaryLabel: "⟢ Boundary day",
+    convergenceLabel: "⟡ Where the two traditions meet (convergence)",
+    divergenceLabel: "⟢ Where they diverge",
+    todayMoonHeading: "🌙 Today's moon",
+    calcBasisHeading: "Calculation basis",
+    ayanamsaLabel: "Ayanamsa",
+    siderealMoonLabel: "Sidereal moon longitude",
+    birthLabel: "Birth",
+    timeUnknownSuffix: "(time unknown)",
+    padaFooterLabel: "Pada",
+    disclaimer: "This service is traditional astrology culture content and cannot be used as a basis for medical, legal, or investment decisions. Nakshatra attributes are based on traditional texts, and the unified interpretation is Code Destiny's own composition.",
+    backLink: "← Check again with a different birthday",
+    upsellHeading: "✦ Go deeper",
+    upsellIntro: "Everything up to here is free. Below are deeper premium products for both traditions.",
+    viewNowLabel: "View now →",
+    comingSoonLabel: "Coming soon",
+    paidProducts: {
+      compat: { title: "East-West Unified Compatibility", priceKo: "10,000원", priceOther: "₩10,000", desc: "36-point Indian Ashtakuta × Eastern sukuyo compatibility" },
+      lordReport: { title: "Ruling Planet Deep-Dive Report", priceKo: "10,000원", priceOther: "₩10,000", desc: "In-depth personality/talent/shadow from ruling planet, pada, navamsa" },
+      dashaMap: { title: "Dasha Life Map", priceKo: "10,000원", priceOther: "₩10,000", desc: "120-year Vimshottari timeline + Eastern great-fortune cycle side by side" },
+      muhurta: { title: "Muhurta (Auspicious Timing)", priceKo: "5,000원", priceOther: "₩5,000", desc: "Auspicious dates by purpose — the intersection of muhurta and sukuyo fortune" },
+      ai: { title: "Expert Deep-Dive Consultation", priceKo: "30,000원", priceOther: "₩30,000", desc: "Two masters, sukuyo and Vedic, each writing in depth (two perspectives)" },
+      vvip: { title: "VVIP Deluxe Codex", priceKo: "30,000원", priceOther: "₩30,000", desc: "Full integration + narrative + keepsake PDF" },
+    },
+  },
+  ai: {
+    generationFailedError: "We couldn't generate your reading. Your pass/payment access is preserved. Please try again shortly.",
+    generationSlowError: "Generating your reading is taking longer than expected. Try again shortly to pick up where it left off.",
+    loginRequiredError: "Login is required. Please log in and try again.",
+    readingInProgressStatus: "The two masters, sukuyo and Vedic, are reading your star.",
+    connectionUnstableRetryStatus: "The connection is briefly unstable. Retrying automatically.",
+    checkingPassStatus: "Checking your pass.",
+    tryAgainShortlyError: "Please try again shortly.",
+    checkingPaymentMethodStatus: "Checking your payment method.",
+    paymentOrPassFailedError: "We couldn't confirm your payment or pass. Please try again shortly.",
+    networkFailedToStartError: "A network problem kept us from starting your consultation. Please check your connection and try again.",
+    needBirthTitle: "Please calculate your star first",
+    needBirthBody: "The expert deep-dive consultation is based on your sukuyo natal star and Vedic nakshatra. Calculate your birth date first and the two masters will consult you next.",
+    calculateMyStarLink: "Calculate my star",
+    introEyebrowSuffix: "Expert Deep-Dive Consultation",
+    introTitle: "Ask two masters, twice",
+    introBodyFallbackIdentity: "Your chart",
+    introBodySuffix: " as the basis, the sukuyo master and the Vedic master will each write you a long-form consultation.",
+    questionLabel: "What are you curious about?",
+    questionOptionalHint: "(Optional — leave it blank and we'll cover the overall flow)",
+    questionPlaceholder: "e.g. I'm considering a job change this year and want to know what direction suits my temperament.",
+    baseChartLabel: "Reference chart",
+    baseChartTimeUnknownSuffix: "(time unknown · pada omitted)",
+    startButtonLabel: "Get the two masters' consultation",
+    passNote: "If you have a pass, this proceeds right away without payment.",
+    stepAnalyzeNakshatra: "Nakshatra analysis",
+    stepAnalyzeSukuyo: "Sukuyo analysis",
+    stepFusionInterpretation: "Fusion interpretation",
+    stepPracticalAdvice: "Practical advice",
+    headlinePayment: "Checking your payment method",
+    headlineChecking: "Checking your pass",
+    headlineGenerating: "The two masters are reading your star",
+    waitingDefaultStatus: "Please wait a moment.",
+    progressStepsAria: "Consultation progress steps",
+    progressCountTemplate: "Written {completed} of {total} sections. Reading both traditions separately and then together takes a little while.",
+    progressIntro: "Carefully writing 21 sections in total — 5 sukuyo, 6 Vedic, and 10 fusion — so it may take a little while.",
+  },
+  aiDecks: {
+    fallbackTitle: "Deep-dive consultation from two masters",
+    scaleUnitSuffix: " sections",
+    scaleCharsTemplate: " · {chars} characters",
+    splitSectionHeading: "Your star, as read separately by two masters",
+    vedicDeckName: "The Vedic master's consultation",
+    vedicDeckSub: "Jyotish · Ruling planet and dasha",
+    sukuyoDeckName: "The sukuyo master's consultation",
+    sukuyoDeckSub: "Sukuyo · Seven luminaries and compatibility",
+    fusionSectionHeading: "Reading the two perspectives together — fusion interpretation",
+    topInsightsHeading: "The three most important points in this reading",
+    footerNote: "This service is traditional astrology culture content and cannot be used as a basis for medical, legal, or investment decisions. The consultation is written based on your calculated chart (sukuyo natal star, Vedic nakshatra), and the fusion interpretation is Code Destiny's own composition.",
+  },
 };
 
 const NAKSHATRA_COPY: Partial<Record<LoadingLocale, NakshatraCopy>> = {
@@ -549,4 +913,21 @@ export function useNakshatraCopy(): NakshatraCopy {
   }, []);
 
   return getNakshatraCopy(locale);
+}
+
+export function getNakshatraNumberLocaleTag(locale: LoadingLocale): string {
+  switch (locale) {
+    case "ko": return "ko-KR";
+    case "ja": return "ja-JP";
+    case "zh-CN": return "zh-CN";
+    case "zh-TW": return "zh-TW";
+    case "vi": return "vi-VN";
+    case "hi": return "hi-IN";
+    case "es": return "es-ES";
+    case "fr": return "fr-FR";
+    case "de": return "de-DE";
+    case "nl": return "nl-NL";
+    case "ms": return "ms-MY";
+    default: return "en-US";
+  }
 }

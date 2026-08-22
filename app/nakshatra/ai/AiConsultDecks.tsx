@@ -2,6 +2,8 @@
 
 import AiResultProse from "@/components/fortune/AiResultProse";
 import styles from "./consult-decks.module.css";
+import { useNakshatraCopy, getNakshatraNumberLocaleTag } from "../_lib/copy";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 
 export interface DeckSection {
   id: string;
@@ -85,6 +87,8 @@ function DeckColumn({
 }
 
 export default function AiConsultDecks({ decks, natal, question, topInsights = [], totalChars = 0 }: AiConsultDecksProps) {
+  const { aiDecks: copy } = useNakshatraCopy();
+  const locale = getCurrentLoadingLocale();
   const fusion = Array.isArray(decks.fusion) ? decks.fusion : [];
   const sectionCount = decks.sukuyo.length + decks.vedic.length + fusion.length;
   const hasNatal = Boolean(natal?.sukuyoHan || natal?.nakshatraKo);
@@ -102,11 +106,11 @@ export default function AiConsultDecks({ decks, natal, question, topInsights = [
                 {natal?.nakshatraKo ? <span className={styles.natalNak}>{natal.nakshatraKo}</span> : null}
               </>
             ) : (
-              "두 대가의 심화 상담"
+              copy.fallbackTitle
             )}
           </h1>
           <span className={styles.scale}>
-            {sectionCount}편{totalChars > 0 ? ` · ${totalChars.toLocaleString("ko-KR")}자` : ""}
+            {sectionCount}{copy.scaleUnitSuffix}{totalChars > 0 ? copy.scaleCharsTemplate.replace("{chars}", totalChars.toLocaleString(getNakshatraNumberLocaleTag(locale))) : ""}
           </span>
         </div>
         {question ? <p className={styles.question}>“{question}”</p> : null}
@@ -115,19 +119,19 @@ export default function AiConsultDecks({ decks, natal, question, topInsights = [
       {/* 같은 하늘을 두 언어로 — 데스크톱은 나란히, 모바일은 위아래로 읽는다. */}
       <div className={styles.sectionHead}>
         <span className={styles.sectionGlyph} aria-hidden="true">⟡</span>
-        <h2 className={styles.sectionTitle}>두 대가가 각각 읽은 당신의 별</h2>
+        <h2 className={styles.sectionTitle}>{copy.splitSectionHeading}</h2>
         <span className={styles.sectionRule} aria-hidden="true" />
       </div>
       <div className={styles.split}>
-        <DeckColumn sections={decks.vedic} name="베다 대가의 상담" sub="Jyotish · 지배성과 다샤" glyph="🕉" tone="vedic" />
-        <DeckColumn sections={decks.sukuyo} name="숙요 대가의 상담" sub="宿曜 · 칠요와 격각" glyph="☯" tone="sukuyo" />
+        <DeckColumn sections={decks.vedic} name={copy.vedicDeckName} sub={copy.vedicDeckSub} glyph="🕉" tone="vedic" />
+        <DeckColumn sections={decks.sukuyo} name={copy.sukuyoDeckName} sub={copy.sukuyoDeckSub} glyph="☯" tone="sukuyo" />
       </div>
 
       {fusion.length > 0 ? (
         <>
           <div className={styles.sectionHead}>
             <span className={styles.sectionGlyph} aria-hidden="true">✦</span>
-            <h2 className={styles.sectionTitle}>두 시선을 겹쳐 읽다 — 융합 해석</h2>
+            <h2 className={styles.sectionTitle}>{copy.fusionSectionHeading}</h2>
             <span className={styles.sectionRule} aria-hidden="true" />
           </div>
           <div className={styles.fusionList}>
@@ -142,7 +146,7 @@ export default function AiConsultDecks({ decks, natal, question, topInsights = [
         <>
           <div className={styles.sectionHead}>
             <span className={styles.sectionGlyph} aria-hidden="true">◆</span>
-            <h2 className={styles.sectionTitle}>이 해석에서 가장 중요한 세 가지</h2>
+            <h2 className={styles.sectionTitle}>{copy.topInsightsHeading}</h2>
             <span className={styles.sectionRule} aria-hidden="true" />
           </div>
           <ol className={styles.insights}>
@@ -158,8 +162,7 @@ export default function AiConsultDecks({ decks, natal, question, topInsights = [
       ) : null}
 
       <p className={styles.note}>
-        본 서비스는 전통 별자리 문화 콘텐츠이며, 의료·법률·투자 판단의 근거로 사용할 수 없습니다.
-        상담문은 계산된 명식(숙요 본명수·베다 나크샤트라)을 근거로 작성되었고, 융합 해석은 Code Destiny의 창작입니다.
+        {copy.footerNote}
       </p>
     </div>
   );
