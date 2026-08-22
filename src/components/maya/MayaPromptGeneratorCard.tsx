@@ -6,20 +6,20 @@ import { Copy, LockKeyhole, RefreshCw, WandSparkles } from "lucide-react";
 import { openPaidFeatureGate, runBillingCoinGate } from "@/app/_lib/billing-client";
 import type { MayaCalendarResult } from "@/src/lib/maya-calendar";
 import { generateMayaReadingPrompt, MAYA_PROMPT_TOPICS } from "@/src/lib/maya-prompt-generator";
+import { useMayaCopy } from "./_lib/copy";
 
 type Props = {
   result: MayaCalendarResult;
 };
 
 const FEATURE_KEY = "maya-prompt-generator";
-const FEATURE_REASON = "마야점 상담 프롬프트 생성";
 const FEATURE_COST = 30;
 const FEATURE_PRICE_KRW = 3000;
-const FEATURE_PRICE_LABEL = "1회 3,000원";
 const DISPLAY_FONT_CLASS = "[font-family:'Noto_Serif_KR','Noto_Serif',Georgia,serif]";
 const CODE_FONT_CLASS = "[font-family:Georgia,'Times_New_Roman',serif]";
 
 export default function MayaPromptGeneratorCard({ result }: Props) {
+  const copy = useMayaCopy();
   const promptResultRef = useRef<HTMLDivElement | null>(null);
   const [name, setName] = useState("");
   const [birthDate, setBirthDate] = useState("");
@@ -32,10 +32,10 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
   const [error, setError] = useState("");
 
   const buttonLabel = useMemo(() => {
-    if (loading) return "고대 시간 문양을 여는 중...";
-    if (prompt) return "다시 생성하기";
-    return "마야점 프롬프트 생성하기";
-  }, [loading, prompt]);
+    if (loading) return copy.buttonOpening;
+    if (prompt) return copy.buttonRegenerate;
+    return copy.buttonGenerate;
+  }, [loading, prompt, copy]);
 
   useEffect(() => {
     if (!prompt) return;
@@ -83,14 +83,14 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
         requestId,
         cost: FEATURE_COST,
         paymentMode: "pass",
-        title: "마야점 프롬프트 생성",
-        message: "이용권 확인 중",
+        title: copy.gateTitle,
+        message: copy.gateCheckingMessage,
       });
 
       try {
         const gate = await runBillingCoinGate({
           featureKey: FEATURE_KEY,
-          reason: FEATURE_REASON,
+          reason: copy.promptFeatureReason,
           requestId,
           cost: FEATURE_COST,
           coinPrice: FEATURE_COST,
@@ -102,18 +102,18 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
         if (!gate.ok) {
           const code = String(gate.error?.code || "").toUpperCase();
           if (code === "AUTH_REQUIRED") {
-            setError("로그인 후 이용권 또는 결제를 확인할 수 있습니다.");
+            setError(copy.errorLoginRequired);
           } else if (code === "INSUFFICIENT_COINS") {
-            setError("결제 가능 금액이 부족합니다. 결제 페이지에서 충전 후 다시 시도해 주세요.");
+            setError(copy.errorInsufficientCoins);
           } else {
-            setError(gate.error?.message || "결제 확인에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+            setError(gate.error?.message || copy.errorPaymentFailedFallback);
           }
           return;
         }
 
         setUnlocked(true);
       } catch {
-        setError("마야 시간 코드를 여는 중 흐름이 끊겼어요. 잠시 후 다시 시도해 주세요.");
+        setError(copy.errorInterrupted);
         return;
       } finally {
         setLoading(false);
@@ -121,7 +121,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
     }
 
     setPrompt(buildPrompt());
-    setMessage("마야점 프롬프트가 준비됐어요. 원하는 AI에게 붙여넣어 상담을 이어가세요.");
+    setMessage(copy.successGenerated);
   }
 
   async function copyPrompt() {
@@ -138,7 +138,7 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
       document.execCommand("copy");
       document.body.removeChild(textarea);
     }
-    setMessage("마야점 프롬프트가 석판에서 복사되었어요.");
+    setMessage(copy.successCopied);
   }
 
   return (
@@ -152,33 +152,33 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
             <WandSparkles className="h-4 w-4" />
             Maya Prompt
           </p>
-          <h2 className={`mt-3 text-2xl font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>마야점 프롬프트 생성</h2>
+          <h2 className={`mt-3 text-2xl font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.promptHeading}</h2>
           <p className="mt-2 max-w-2xl text-sm leading-7 text-[#e6dcc1]">
-            선택한 날짜의 Long Count, Tzolk&apos;in, Haab 값을 바탕으로 AI에게 물어볼 상담 프롬프트를 준비합니다.
+            {copy.promptDesc}
           </p>
         </div>
         <span className="relative inline-flex items-center gap-2 rounded-lg border border-[#d8b56d]/34 bg-[#020706]/72 px-4 py-2 text-xs font-black text-[#f5d48f] shadow-[0_0_24px_rgba(216,181,109,0.14)]">
           <LockKeyhole className="h-4 w-4" />
-          {FEATURE_PRICE_LABEL}
+          {copy.promptPriceLabel}
         </span>
       </div>
 
       <div className="relative mt-5 grid min-w-0 gap-4 md:grid-cols-2">
         <label className="block min-w-0 text-sm font-bold text-[#eee5cb]">
-          이름 또는 닉네임
+          {copy.nameLabel}
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
             className="mt-2 w-full rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm text-[#f8efd2] outline-none transition placeholder:text-[#e6dcc1]/38 focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70"
-            placeholder="미입력 가능"
+            placeholder={copy.namePlaceholder}
           />
         </label>
         <label className="block min-w-0 text-sm font-bold text-[#eee5cb]">
-          생년월일, 선택
+          {copy.birthDateLabel}
           <input {...birthDateTextInputProps(birthDate, (nextBirthDate) => setBirthDate(nextBirthDate))} className="mt-2 w-full rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm text-[#f8efd2] outline-none transition focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70" />
         </label>
         <label className="block min-w-0 text-sm font-bold text-[#eee5cb] md:col-span-2">
-          상담 주제
+          {copy.topicLabel}
           <select
             value={topic}
             onChange={(event) => setTopic(event.target.value)}
@@ -190,13 +190,13 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
           </select>
         </label>
         <label className="block min-w-0 text-sm font-bold text-[#eee5cb] md:col-span-2">
-          상담 질문
+          {copy.questionLabel}
           <textarea
             value={question}
             onChange={(event) => setQuestion(event.target.value)}
             rows={4}
             className="mt-2 w-full resize-none rounded-lg border border-[#d8b56d]/22 bg-[#020706] px-4 py-3 text-sm leading-6 text-[#f8efd2] outline-none transition placeholder:text-[#e6dcc1]/38 focus:border-[#d8b56d] focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70"
-            placeholder="선택 입력입니다. 서버로 전송되지 않고 브라우저에서 프롬프트에만 반영됩니다."
+            placeholder={copy.questionPlaceholder}
           />
         </label>
       </div>
@@ -230,11 +230,11 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
           type="button"
           onClick={copyPrompt}
           disabled={!prompt}
-          aria-label="시간 코드 복사하기"
+          aria-label={copy.copyButton}
           className="inline-flex min-h-12 items-center justify-center gap-2 rounded-lg border border-[#d8b56d]/22 bg-[#020706]/72 px-5 py-3 text-sm font-black text-[#f8efd2] transition hover:border-[#d8b56d]/48 hover:bg-[#082018]/72 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70 disabled:cursor-not-allowed disabled:opacity-45 motion-reduce:transition-none"
         >
           <Copy className="h-4 w-4" />
-          시간 코드 복사하기
+          {copy.copyButton}
         </button>
       </div>
 
@@ -246,19 +246,19 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
           <div className="pointer-events-none absolute inset-0 opacity-35 [background-image:linear-gradient(135deg,rgba(216,181,109,0.08)_1px,transparent_1px),radial-gradient(1px_1px_at_18%_28%,rgba(245,239,217,0.14),transparent)] [background-size:22px_22px,48px_48px]" />
           <div className="relative flex flex-wrap items-center justify-between gap-3 border-b border-[#d8b56d]/18 bg-[#04100d]/62 px-4 py-3">
             <div className="min-w-0">
-              <h3 className={`relative text-base font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>완성된 마야점 프롬프트</h3>
+              <h3 className={`relative text-base font-black text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.resultHeading}</h3>
               <p className="mt-1 text-xs leading-5 text-[#e6dcc1]">
-                선택한 날짜의 시간 좌표를 바탕으로 생성되었습니다.
+                {copy.resultDesc}
               </p>
             </div>
             <button
               type="button"
               onClick={copyPrompt}
-              aria-label="시간 코드 복사하기"
+              aria-label={copy.copyButton}
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#d8b56d]/24 bg-[#081812]/72 px-4 py-2 text-xs font-black text-[#f5d48f] transition hover:bg-[#0f2c22]/78 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70 motion-reduce:transition-none"
             >
               <Copy className="h-4 w-4" />
-              시간 코드 복사하기
+              {copy.copyButton}
             </button>
           </div>
           <pre className="relative whitespace-pre-wrap break-words p-4 text-sm leading-7 text-[#f5efd9] [overflow-wrap:anywhere]">
@@ -268,11 +268,11 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
             <button
               type="button"
               onClick={copyPrompt}
-              aria-label="시간 코드 복사하기"
+              aria-label={copy.copyButton}
               className="inline-flex min-h-10 items-center justify-center gap-2 rounded-lg border border-[#d8b56d]/28 bg-[#081812]/78 px-4 py-2 text-xs font-black text-[#f5d48f] transition hover:border-[#f5d48f]/58 hover:bg-[#0f2c22]/82 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#f5d48f]/70 motion-reduce:transition-none"
             >
               <Copy className="h-4 w-4" />
-              시간 코드 복사하기
+              {copy.copyButton}
             </button>
           </div>
         </div>
@@ -282,9 +282,9 @@ export default function MayaPromptGeneratorCard({ result }: Props) {
           <div className="relative mb-3 inline-flex h-12 w-12 items-center justify-center rounded-full border border-[#d8b56d]/24 bg-[#081812]/74 text-[#f5d48f]">
             <WandSparkles className="h-5 w-5" />
           </div>
-          <p className={`relative font-bold text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>날짜를 선택하면 마야 시간 코드가 열립니다.</p>
+          <p className={`relative font-bold text-[#f8efd2] ${DISPLAY_FONT_CLASS}`}>{copy.emptyStateTitle}</p>
           <p className="relative mt-1">
-            선택된 날짜의 Long Count, Tzolk&apos;in, Haab 흐름이 운명 좌표처럼 프롬프트에 담깁니다.
+            {copy.emptyStateDesc}
           </p>
         </div>
       )}
