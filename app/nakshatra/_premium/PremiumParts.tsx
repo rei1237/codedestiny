@@ -7,6 +7,7 @@
 import Link from "next/link";
 import styles from "./premium.module.css";
 import type { NatalLabel } from "./use-premium-report";
+import { useNakshatraCopy } from "../_lib/copy";
 
 export interface ReportSection {
   id: string;
@@ -34,15 +35,16 @@ export function NatalBar({ natal, meta }: { natal: NatalLabel | null; meta?: str
 }
 
 export function NeedBirth() {
+  const copy = useNakshatraCopy();
   return (
     <div className={styles.needBirth}>
       <p style={{ margin: 0 }}>
-        리포트를 열려면 먼저 별자리를 계산해야 해요.
+        {copy.needBirthLine1}
         <br />
-        생년월일과 태어난 시각을 넣으면 바로 이어집니다.
+        {copy.needBirthLine2}
       </p>
       <Link href="/nakshatra" className={styles.needBirthLink}>
-        별자리 계산하러 가기 →
+        {copy.needBirthLinkText}
       </Link>
     </div>
   );
@@ -61,10 +63,11 @@ export function UnlockGate({
   disabled: boolean;
   buttonLabel: string;
 }) {
+  const copy = useNakshatraCopy();
   return (
     <div className={styles.gate}>
       <p className={styles.gatePrice}>{priceLabel}</p>
-      <p className={styles.gateNote}>한 번 열면 계속 다시 볼 수 있어요. 이용권이 있으면 무료로 열립니다.</p>
+      <p className={styles.gateNote}>{copy.unlockGateNote}</p>
       <ul className={styles.bullets}>
         {bullets.map((text) => (
           <li key={text}>{text}</li>
@@ -91,19 +94,17 @@ export function GenderPrompt({
   /** 화면마다 시점이 다르다 — 결과를 이미 보는 중(다샤)과 결제 전(VVIP)의 문장이 같을 수 없다. */
   note?: string;
 }) {
+  const copy = useNakshatraCopy();
   return (
     <div className={styles.genderPrompt}>
-      <p className={styles.genderTitle}>동양 대운을 함께 보려면 성별이 필요해요</p>
-      <p className={styles.genderNote}>
-        {note
-          || "대운은 절기까지의 거리와 성별로 순행·역행이 정해집니다. 근거 없이 한쪽을 고르면 열 개 구간이 통째로 어긋나므로 추측하지 않았어요. 인도 축(비쇼타리)은 성별을 쓰지 않아 지금도 온전히 보입니다."}
-      </p>
+      <p className={styles.genderTitle}>{copy.genderPromptTitle}</p>
+      <p className={styles.genderNote}>{note || copy.genderPromptDefaultNote}</p>
       <div className={styles.genderRow}>
         <button type="button" className={styles.genderBtn} onClick={() => onPick("male")} disabled={busy}>
-          남성
+          {copy.genderMaleLabel}
         </button>
         <button type="button" className={styles.genderBtn} onClick={() => onPick("female")} disabled={busy}>
-          여성
+          {copy.genderFemaleLabel}
         </button>
       </div>
     </div>
