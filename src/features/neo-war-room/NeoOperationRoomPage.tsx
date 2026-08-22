@@ -52,6 +52,21 @@ import {
   type NeoWarRoomValidationInput,
 } from "./data/input-flow";
 import { getLocalizedNeoWarRoomMethodRegistry } from "./data/method-registry";
+import {
+  getNeoCommandStepQuestionHint,
+  getNeoErrorCopy,
+  getNeoFeatureTitle,
+  getNeoFormCopy,
+  getNeoIntensityText,
+  getNeoOperationMapStages,
+  getNeoOperationStageLabel,
+  getNeoPaidGateCopy,
+  getNeoQuestionHint,
+  getNeoReadyPanelSummary,
+  getNeoRealityCheckLabel,
+  getNeoTopicBadgeName,
+  getNeoTopicLabel,
+} from "./data/form-copy";
 import type { NeoWarRoomEmotionState } from "./data/sprite-states";
 import styles from "./neo-operation-room.module.css";
 
@@ -1226,19 +1241,6 @@ const realityCheckOptions = [
   "네오의 말에 반박하고 싶은 부분이 있다.",
 ] as const;
 
-const errorCopy: Record<string, string> = {
-  LOGIN_REQUIRED: "작전을 시작하려면 로그인이 필요하다. 로그인하고 다시 앉아라.",
-  PAYMENT_REQUIRED: "작전 브리핑 이용권이 필요하다. 결제창을 먼저 통과해라.",
-  PAYMENT_VERIFY_FAILED: "결제나 이용권 확인이 끝나지 않았다. 권한을 확인한 뒤 다시 시도해라.",
-  PAYMENT_CANCELLED: "결제가 취소됐다. 필요할 때 다시 작전을 시작해라.",
-  INVALID_INPUT: "작전 정보가 부족하다. 입력값을 다시 확인해라.",
-  CALCULATION_ERROR: "운명의 계산 지도를 펼치는 중 문제가 생겼다. 출생정보를 다시 확인해라.",
-  LLM_ERROR: "작전 브리핑 작성에 실패했다. 이용권이나 결제 권한은 보존되니 다시 시도해라.",
-  GENERATION_PENDING: "작전 브리핑을 아직 작성 중이다. 이용권은 그대로 유지되니, 잠시 후 결과 화면에서 확인해라.",
-  TEMPORARY_UNAVAILABLE: "지금 접속이 잠시 불안정하다. 이용권은 그대로 보존되니, 잠시 후 다시 시도해라.",
-  SERVER_ERROR: "작전실 연결에 문제가 생겼다. 잠시 후 다시 시도해라.",
-};
-
 function asRecord(value: unknown): Record<string, unknown> {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -1431,6 +1433,8 @@ export default function NeoOperationRoomPage() {
   const [dialogueLocale, setDialogueLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   const heroHeaderText = getNeoHeroHeaderText(dialogueLocale);
   const methodSectionText = getMethodSectionText(dialogueLocale);
+  const formCopy = getNeoFormCopy(dialogueLocale);
+  const paidGateCopy = getNeoPaidGateCopy(dialogueLocale);
   const idempotencyKeyRef = useRef("");
   // 저장된 요청키를 되돌려 지울 때 쓰는 지문. 상태(pendingAccess)는 비동기 핸들러 클로저에서
   // 낡은 값을 보므로 ref 로 둔다.
@@ -1443,7 +1447,12 @@ export default function NeoOperationRoomPage() {
     () => localizedMethodRegistry.find((item) => item.mode === method) ?? null,
     [localizedMethodRegistry, method],
   );
-  const selectedIntensity = intensityOptions.find((item) => item.id === intensity) ?? null;
+  const localizedIntensityOptions = useMemo(
+    () => intensityOptions.map((item) => ({ ...item, ...getNeoIntensityText(item.id, dialogueLocale) })),
+    [dialogueLocale],
+  );
+  const localizedOperationMapStages = useMemo(() => getNeoOperationMapStages(dialogueLocale), [dialogueLocale]);
+  const selectedIntensity = localizedIntensityOptions.find((item) => item.id === intensity) ?? null;
   const trimmedQuestion = question.trim();
   const questionReady = trimmedQuestion.length >= NEO_WAR_ROOM_MIN_QUESTION_LENGTH;
   const questionShortfall = Math.max(0, NEO_WAR_ROOM_MIN_QUESTION_LENGTH - trimmedQuestion.length);
@@ -1476,16 +1485,16 @@ export default function NeoOperationRoomPage() {
   const cappedOperationStageIndex = Math.min(operationStageIndex, operationMapStages.length - 1);
   const operationStageText =
     previewOperationMap
-      ? operationMapStages[cappedOperationStageIndex]
+      ? localizedOperationMapStages[cappedOperationStageIndex]
       : refining
-      ? "현실 답변을 반영해 수정 작전 명령서를 쓰는 중..."
+      ? formCopy["operationMap.refiningStage"]
       : flowPhase === "checking"
-      ? "사자 휘장 권한을 확인하는 중..."
+      ? formCopy["operationMap.checkingStage"]
       : flowPhase === "payment"
-        ? "이용권과 결제 신호를 대조하는 중..."
+        ? formCopy["operationMap.paymentStage"]
         : flowPhase === "completed"
-          ? "작전 브리핑 도장을 찍는 중..."
-          : operationMapStages[cappedOperationStageIndex];
+          ? formCopy["operationMap.completingStage"]
+          : localizedOperationMapStages[cappedOperationStageIndex];
   const operationProgress =
     previewOperationMap
       ? Math.min(92, 34 + operationStageIndex * 10)
@@ -1689,26 +1698,26 @@ export default function NeoOperationRoomPage() {
   const commandActorIsTalking = Boolean(commandActorTalkFrames?.length);
   const neoBadgeStampAsset = isSpriteMobile ? neoWarRoomAssets.badges.resultStampMobile : neoWarRoomAssets.badges.resultStamp;
   const commandFlowSteps = [
-    { id: "method", label: "분석 방식", targetId: "neo-method-title", done: Boolean(method), active: !method },
-    { id: "topic", label: "상담 전선", targetId: "neo-topic-title", done: Boolean(topic), active: Boolean(method) && !topic },
-    { id: "birth", label: "좌표 확인", targetId: "neo-profile-title", done: hasBirthCoordinates, active: Boolean(method && topic) && !hasBirthCoordinates },
-    { id: "intensity", label: "팩폭 강도", targetId: "neo-intensity-title", done: Boolean(intensity), active: Boolean(method && topic && hasBirthCoordinates) && !intensity },
-    { id: "question", label: "질문 입력", targetId: "neo-question-title", done: questionReady, active: Boolean(method && topic && hasBirthCoordinates && intensity) && !questionReady },
-    { id: "launch", label: "작전 개시", targetId: "neo-operation-launch", done: operationReady, active: Boolean(method && topic && hasBirthCoordinates && intensity && questionReady) },
+    { id: "method", label: formCopy["commandFlow.stepMethod"], targetId: "neo-method-title", done: Boolean(method), active: !method },
+    { id: "topic", label: formCopy["commandFlow.stepTopic"], targetId: "neo-topic-title", done: Boolean(topic), active: Boolean(method) && !topic },
+    { id: "birth", label: formCopy["commandFlow.stepBirth"], targetId: "neo-profile-title", done: hasBirthCoordinates, active: Boolean(method && topic) && !hasBirthCoordinates },
+    { id: "intensity", label: formCopy["commandFlow.stepIntensity"], targetId: "neo-intensity-title", done: Boolean(intensity), active: Boolean(method && topic && hasBirthCoordinates) && !intensity },
+    { id: "question", label: formCopy["commandFlow.stepQuestion"], targetId: "neo-question-title", done: questionReady, active: Boolean(method && topic && hasBirthCoordinates && intensity) && !questionReady },
+    { id: "launch", label: formCopy["commandFlow.stepLaunch"], targetId: "neo-operation-launch", done: operationReady, active: Boolean(method && topic && hasBirthCoordinates && intensity && questionReady) },
   ];
   const commandStepHint = !method
-    ? "먼저 어떤 지도로 전선을 볼지 고르면 다음 단계가 열린다."
+    ? formCopy["commandFlow.hintChooseMethod"]
     : !topic
-      ? "지금 가장 흔들리는 전선을 하나로 좁혀라."
+      ? formCopy["commandFlow.hintChooseTopic"]
       : !hasBirthCoordinates
-        ? "출생 좌표를 확인해야 같은 벽에 부딪히는 흐름을 가를 수 있다."
+        ? formCopy["commandFlow.hintBirth"]
         : !intensity
-          ? "팩폭 강도는 네가 오늘 받아낼 수 있는 직면의 깊이다."
+          ? formCopy["commandFlow.hintIntensity"]
           : !questionReady
-            ? `질문을 ${questionShortfall}자 더 적으면 작전 개시가 열린다.`
+            ? getNeoCommandStepQuestionHint(questionShortfall, dialogueLocale)
             : operationReady
-              ? "작전 브리핑이 도착했다. 현실 점검까지 이어갈 수 있다."
-              : "사자 휘장으로 작전을 시작할 준비가 끝났다.";
+              ? formCopy["commandFlow.hintReady"]
+              : formCopy["commandFlow.hintLaunchReady"];
   const bgmStatusLabel =
     bgmStatus === "playing"
       ? "ON"
@@ -2058,7 +2067,7 @@ export default function NeoOperationRoomPage() {
     setResultUrl(session.resultUrl || "");
     setFlowPhase("completed");
     setOperationReady(true);
-    setStatusMessage("1차 작전 브리핑이 도착했다. 이제 현실 점검으로 넘어갈 수 있다.");
+    setStatusMessage(paidGateCopy.briefingArrivedMessage);
     setErrorMessage("");
   }
 
@@ -2078,7 +2087,7 @@ export default function NeoOperationRoomPage() {
       reveal();
       return;
     }
-    setStatusMessage("작전 브리핑에 사자 도장을 찍는 중이다.");
+    setStatusMessage(paidGateCopy.sealingBriefingMessage);
     window.setTimeout(reveal, BRIEFING_SEAL_DELAY_MS);
   }
 
@@ -2134,7 +2143,7 @@ export default function NeoOperationRoomPage() {
         };
         if (data.ok && data.refinedOrder) {
           completeWithSession(data);
-          setStatusMessage("수정 작전 명령서가 도착했다.");
+          setStatusMessage(paidGateCopy.refinedArrivedMessage);
           return;
         }
         // 서버가 실패를 확정해 기록했으면 더 기다릴 이유가 없다. DB 일시 장애와 LLM 실패는 구분해 안내한다.
@@ -2153,7 +2162,7 @@ export default function NeoOperationRoomPage() {
 
   async function startBriefing(idempotencyKey: string, payload: NeoWarRoomAccessPayload, access: Record<string, unknown>) {
     setFlowPhase("generating");
-    setStatusMessage("운명의 작전 지도를 펼치는 중이다.");
+    setStatusMessage(paidGateCopy.startingMapMessage);
     // ensure-access가 발급한 네오 액세스 토큰(이용권/월정석 경로에만 존재)을 폴링에도 실어 서버 신원 폴백을 돕는다.
     const pollAccessToken = toText(access.accessToken);
     // /start는 브리핑 생성을 '동기'로 마친 뒤 완료 결과(200)를 바로 돌려준다(아래 initialBriefing 처리).
@@ -2164,7 +2173,7 @@ export default function NeoOperationRoomPage() {
       idempotencyKey,
     ).catch(() => null);
     if (!started) {
-      setStatusMessage("작전 지도가 이미 펼쳐지고 있다. 완성되는 대로 브리핑을 가져온다.");
+      setStatusMessage(paidGateCopy.alreadyGeneratingMessage);
       await pollPendingBriefing(idempotencyKey, pollAccessToken);
       return;
     }
@@ -2175,7 +2184,7 @@ export default function NeoOperationRoomPage() {
     }
     if (response.status === 202) {
       const pendingId = toText((data as { sessionId?: string }).sessionId) || idempotencyKey;
-      setStatusMessage("작전 지도가 이미 펼쳐지고 있다. 완성되는 대로 브리핑을 가져온다.");
+      setStatusMessage(paidGateCopy.alreadyGeneratingMessage);
       await pollPendingBriefing(pendingId, pollAccessToken);
       return;
     }
@@ -2185,17 +2194,17 @@ export default function NeoOperationRoomPage() {
   async function handleRefineSubmit() {
     if (!sessionId || !briefing) {
       setRefinePhase("failed");
-      setRefineError("먼저 1차 작전 브리핑을 받아라.");
+      setRefineError(paidGateCopy.refineMissingBriefingError);
       return;
     }
     if (!selectedRealityChecks.length && realityFreeform.trim().length < 4) {
       setRefinePhase("failed");
-      setRefineError("체크 답변을 고르거나, 네오에게 현재 상황을 조금 더 적어라.");
+      setRefineError(paidGateCopy.refineMissingAnswerError);
       return;
     }
     setRefinePhase("generating");
     setRefineError("");
-    setStatusMessage("현실 점검 답변을 반영해 수정 작전 명령서를 작성하는 중이다.");
+    setStatusMessage(paidGateCopy.refiningMessage);
     try {
       type RefineReply = (NeoSession | { ok?: false; message?: string }) & { reason?: string; retryable?: boolean };
       let response: Response | null = null;
@@ -2218,7 +2227,7 @@ export default function NeoOperationRoomPage() {
       }
       if (response && (data as NeoSession).ok && (data as NeoSession).refinedOrder) {
         completeWithSession(data as NeoSession);
-        setStatusMessage("수정 작전 명령서가 도착했다.");
+        setStatusMessage(paidGateCopy.refinedArrivedMessage);
         return;
       }
       if (response?.status === 401) throw new Error("LOGIN_REQUIRED");
@@ -2232,13 +2241,13 @@ export default function NeoOperationRoomPage() {
       const code = caught instanceof Error ? caught.message : "SERVER_ERROR";
       setRefinePhase("failed");
       setStatusMessage("");
-      setRefineError(errorCopy[code] || "수정 작전 명령서 작성에 실패했다. 답변은 남아 있으니 다시 시도해라.");
+      setRefineError(getNeoErrorCopy(code, dialogueLocale) || paidGateCopy.refineGenericError);
     }
   }
 
   async function handleSubmit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const errors = validateNeoWarRoomInput(validationInput);
+    const errors = validateNeoWarRoomInput(validationInput, dialogueLocale);
     setValidationErrors(errors);
     if (errors.length) {
       setFlowPhase("invalid");
@@ -2279,13 +2288,13 @@ export default function NeoOperationRoomPage() {
     setRefineError("");
     setResultUrl("");
     setErrorMessage("");
-    setStatusMessage("권한과 이용권을 확인하는 중이다.");
+    setStatusMessage(paidGateCopy.checkingAccessMessage);
     setFlowPhase("checking");
     setOperationReady(false);
     beginPaidFeatureGateCheck({
       featureKey: FEATURE_KEY,
       requestId: idempotencyKey,
-      title: "이용권 확인",
+      title: paidGateCopy.checkingTitle,
       reason: FEATURE_TITLE,
       paymentMode: "MEMBERSHIP_PASS",
     });
@@ -2294,16 +2303,16 @@ export default function NeoOperationRoomPage() {
       // 이용권 확인 앞단의 일시적 DB 장애(503 DB_DEGRADED 등)는 재시도로 흡수한다 — 하드 "이용권 확인 실패"로 굳지 않게.
       const { response, data } = await runAccessCheckWithTransientRetry(
         () => postJson<EnsureAccessResult>(API_ENDPOINTS.ensureAccess, payload, idempotencyKey),
-        { onRetry: () => setStatusMessage("연결이 잠시 불안정하다. 이용권을 다시 확인하는 중이다.") },
+        { onRetry: () => setStatusMessage(paidGateCopy.retryAfterUnstableMessage) },
       );
       if (data.ok) {
         completePaidFeatureGateCheck({
           featureKey: FEATURE_KEY,
           requestId: idempotencyKey,
-          title: "이용권 확인 완료",
+          title: paidGateCopy.completeTitle,
           reason: FEATURE_TITLE,
           paymentMode: "MEMBERSHIP_PASS",
-          message: "이용권 확인이 끝났다. 작전 지도를 펼치는 중이다.",
+          message: paidGateCopy.completeMessage,
         });
         if (data.consultation?.initialBriefing) {
           completeWithSession(data.consultation);
@@ -2319,7 +2328,7 @@ export default function NeoOperationRoomPage() {
       if (data.reason !== "PAYMENT_REQUIRED") throw new Error(data.reason || "SERVER_ERROR");
 
       setFlowPhase("payment");
-      setStatusMessage("작전실 이용권을 확인하는 중이다.");
+      setStatusMessage(paidGateCopy.confirmingPassMessage);
       const paymentPayload = asRecord(data.paymentPayload);
       const runtimeGate = asRecord(paymentPayload.runtimeGate);
       const gateCoinPrice = toPositiveInteger(runtimeGate.coinPrice ?? runtimeGate.cost ?? paymentPayload.coinPrice ?? paymentPayload.cost);
@@ -2366,19 +2375,19 @@ export default function NeoOperationRoomPage() {
         featureKey: FEATURE_KEY,
         requestId: idempotencyKey,
         title: isGenerationCode
-          ? "작전 브리핑 생성 실패"
+          ? paidGateCopy.failTitleGeneration
           : isTransientCode
-            ? "잠시 후 다시 시도"
-            : isPaymentVerifyCode ? "결제 확인 실패" : "이용권 확인 실패",
+            ? paidGateCopy.failTitleTransient
+            : isPaymentVerifyCode ? paidGateCopy.failTitlePaymentVerify : paidGateCopy.failTitleEntitlement,
         reason: FEATURE_TITLE,
         paymentMode: "MEMBERSHIP_PASS",
-        message: errorCopy[code] || errorCopy.SERVER_ERROR,
+        message: getNeoErrorCopy(code, dialogueLocale) || getNeoErrorCopy("SERVER_ERROR", dialogueLocale),
         cancelled: paymentCancelled,
       });
       setFlowPhase("failed");
       setOperationReady(false);
       setStatusMessage("");
-      setErrorMessage(errorCopy[code] || errorCopy.SERVER_ERROR);
+      setErrorMessage(getNeoErrorCopy(code, dialogueLocale) || getNeoErrorCopy("SERVER_ERROR", dialogueLocale));
     }
   }
 
@@ -2614,9 +2623,9 @@ export default function NeoOperationRoomPage() {
           style={{ "--operation-progress": `${operationProgress}%` } as CSSProperties}
         >
           <div className={styles.operationMapHeader}>
-            <span>운명의 작전 지도</span>
+            <span>{formCopy["operationMap.title"]}</span>
             <h2 id="neo-operation-map-title">{operationStageText}</h2>
-            <p>{statusMessage || "네오가 작전 브리핑을 정리하고 있다."}</p>
+            <p>{statusMessage || formCopy["operationMap.fallbackStatus"]}</p>
           </div>
 
           <div className={styles.operationMapBody}>
@@ -2644,18 +2653,22 @@ export default function NeoOperationRoomPage() {
             <div className={styles.operationMapStatus}>
               <div className={styles.operationLoadingDialogue} aria-live="polite">
                 <span>NEO</span>
-                <p>{flowPhase === "completed" ? "됐다. 작전 브리핑에 도장을 찍었다." : operationStageText}</p>
+                <p>{flowPhase === "completed" ? formCopy["operationMap.stageCompleteLine"] : operationStageText}</p>
               </div>
               <div className={styles.operationProgressBox}>
                 <div className={styles.operationProgressMeta}>
-                  <span>{flowPhase === "completed" ? "완료" : `단계 ${Math.min(operationStageIndex + 1, operationMapStages.length)} / ${operationMapStages.length}`}</span>
+                  <span>
+                    {flowPhase === "completed"
+                      ? formCopy["operationMap.completeLabel"]
+                      : getNeoOperationStageLabel(Math.min(operationStageIndex + 1, operationMapStages.length), operationMapStages.length, dialogueLocale)}
+                  </span>
                   <strong>{operationProgress}%</strong>
                 </div>
                 <div className={styles.operationProgressTrack}>
                   <span />
                 </div>
                 <ul className={styles.operationStageList}>
-                  {operationMapStages.map((stage, index) => (
+                  {localizedOperationMapStages.map((stage, index) => (
                     <li
                       key={stage}
                       data-active={flowPhase === "completed" || index <= operationStageIndex ? "true" : "false"}
@@ -2680,7 +2693,7 @@ export default function NeoOperationRoomPage() {
           className={`${styles.lionSealFrame} ${styles.commandDeckLionDecor}`.trim()}
           imageClassName={styles.lionSealImage}
         />
-        <section className={styles.commandConversation} aria-label="네오 작전 안내">
+        <section className={styles.commandConversation} aria-label={formCopy["commandConversation.ariaLabel"]}>
           <div className={styles.commandProgressRail}>
             {commandFlowSteps.map((step, index) => (
               <button
@@ -2697,11 +2710,11 @@ export default function NeoOperationRoomPage() {
           </div>
           <p className={styles.commandStepHint}>{commandStepHint}</p>
         </section>
-        <section className={styles.sealPerkPreview} aria-label="사자 휘장 특전 안내">
+        <section className={styles.sealPerkPreview} aria-label={formCopy["sealPerk.ariaLabel"]}>
           <div className={styles.sealPerkSeal}>
             <NeoWarRoomAssetImage
               asset={neoWarRoomAssets.hero.lionSeal}
-              alt="황금빛 사자 휘장"
+              alt={formCopy["sealPerk.imageAlt"]}
               sizes="88px"
               className={styles.sealPerkSealFrame}
               imageClassName={styles.sealPerkSealImage}
@@ -2709,23 +2722,23 @@ export default function NeoOperationRoomPage() {
           </div>
           <div className={styles.sealPerkCopy}>
             <span className={styles.sealPerkEyebrow}>Lion Seal Reward</span>
-            <strong className={styles.sealPerkTitle}>사자 휘장 5개를 모으면 잠긴 특전이 열린다</strong>
+            <strong className={styles.sealPerkTitle}>{formCopy["sealPerk.title"]}</strong>
             <p className={styles.sealPerkDesc}>
-              작전을 완수할수록 사자 휘장이 쌓인다. 다섯 개가 모이면 아래 특전이 결과 화면에서 해금된다.
+              {formCopy["sealPerk.desc"]}
             </p>
             <ul className={styles.sealPerkList}>
               <li>
-                <em className={styles.sealPerkLock} aria-hidden="true">잠금</em>
+                <em className={styles.sealPerkLock} aria-hidden="true">{formCopy["sealPerk.lockLabel"]}</em>
                 <span>
-                  <strong>네오의 비밀 편지</strong>
-                  결과에 담기지 않은 추가 해석과 당부가 열린다
+                  <strong>{formCopy["sealPerk.letterTitle"]}</strong>
+                  {formCopy["sealPerk.letterDesc"]}
                 </span>
               </li>
               <li>
-                <em className={styles.sealPerkLock} aria-hidden="true">잠금</em>
+                <em className={styles.sealPerkLock} aria-hidden="true">{formCopy["sealPerk.lockLabel"]}</em>
                 <span>
-                  <strong>작전 명령서 PDF 다운로드</strong>
-                  전체 브리핑을 PDF로 저장해 언제든 다시 열람한다
+                  <strong>{formCopy["sealPerk.pdfTitle"]}</strong>
+                  {formCopy["sealPerk.pdfDesc"]}
                 </span>
               </li>
             </ul>
@@ -2785,7 +2798,7 @@ export default function NeoOperationRoomPage() {
             <section className={styles.deckSection} aria-labelledby="neo-topic-title">
               <div className={styles.sectionHead}>
                 <span>02</span>
-                <h2 id="neo-topic-title">상담 주제 선택</h2>
+                <h2 id="neo-topic-title">{formCopy["topicSelect.title"]}</h2>
               </div>
               <div className={styles.topicGrid}>
                 {topicOptions.map((item) => (
@@ -2801,7 +2814,7 @@ export default function NeoOperationRoomPage() {
                       setLastCommandChoice({ kind: "topic", value: item });
                     }}
                   >
-                    {item}
+                    {getNeoTopicLabel(item, dialogueLocale)}
                   </button>
                 ))}
               </div>
@@ -2812,10 +2825,10 @@ export default function NeoOperationRoomPage() {
             <section className={styles.deckSection} aria-labelledby="neo-profile-title">
               <div className={styles.sectionHead}>
                 <span>03</span>
-                <h2 id="neo-profile-title">작전 대상 정보 확인</h2>
+                <h2 id="neo-profile-title">{formCopy["birthInfo.title"]}</h2>
               </div>
-              <p className={styles.sectionCopy}>시작할 지도를 펼치려면 기본 좌표가 필요하다. 대충 넣으면 대충 차려낸다.</p>
-              <div className={styles.profileModeGrid} role="group" aria-label="출생정보 입력 방식">
+              <p className={styles.sectionCopy}>{formCopy["birthInfo.sectionCopy"]}</p>
+              <div className={styles.profileModeGrid} role="group" aria-label={formCopy["birthInfo.modeGroupAria"]}>
                 <button
                   type="button"
                   className={styles.choiceButton}
@@ -2823,7 +2836,7 @@ export default function NeoOperationRoomPage() {
                   disabled={!birthState.hasSavedProfile}
                   onClick={selectSavedProfile}
                 >
-                  현재 프로필 사용
+                  {formCopy["birthInfo.useSaved"]}
                 </button>
                 <button
                   type="button"
@@ -2831,44 +2844,44 @@ export default function NeoOperationRoomPage() {
                   data-active={birthState.profileMode === "manual" ? "true" : "false"}
                   onClick={selectManualProfile}
                 >
-                  직접 입력
+                  {formCopy["birthInfo.manual"]}
                 </button>
               </div>
               <p className={styles.profileModeHint}>
                 {birthState.profileMode === "saved"
-                  ? "현재 프로필에서 불러온 좌표다. 다르면 직접 입력으로 바꿔라."
-                  : "출생지와 시간대는 기본 기준값이 들어와 있으니 네 좌표에 맞는지 확인해라."}
+                  ? formCopy["birthInfo.hintSaved"]
+                  : formCopy["birthInfo.hintManual"]}
               </p>
               <div className={styles.birthGrid}>
                 <label className={styles.fieldLabel}>
-                  이름
+                  {formCopy["birthInfo.name"]}
                   <input
                     type="text"
                     value={birthState.birth.name}
                     disabled={birthFieldsDisabled}
-                    placeholder="이름 또는 별명"
+                    placeholder={formCopy["birthInfo.namePlaceholder"]}
                     onChange={(event) => updateBirthInput("name", event.target.value)}
                   />
                 </label>
                 <label className={styles.fieldLabel}>
-                  성별
+                  {formCopy["birthInfo.gender"]}
                   <select
                     value={birthState.birth.gender}
                     disabled={birthFieldsDisabled}
                     onChange={(event) => updateBirthInput("gender", event.target.value as NeoWarRoomGender)}
                   >
-                    <option value="">선택</option>
-                    <option value="female">여성</option>
-                    <option value="male">남성</option>
-                    <option value="unknown">선택하지 않음</option>
+                    <option value="">{formCopy["birthInfo.genderSelect"]}</option>
+                    <option value="female">{formCopy["birthInfo.genderFemale"]}</option>
+                    <option value="male">{formCopy["birthInfo.genderMale"]}</option>
+                    <option value="unknown">{formCopy["birthInfo.genderUnknown"]}</option>
                   </select>
                 </label>
                 <label className={styles.fieldLabel}>
-                  생년월일
+                  {formCopy["birthInfo.birthDate"]}
                   <input {...birthDateTextInputProps(birthState.birth.birthDate, (nextBirthDate) => updateBirthInput("birthDate", nextBirthDate))} disabled={birthFieldsDisabled} />
                 </label>
                 <label className={styles.fieldLabel}>
-                  출생시간
+                  {formCopy["birthInfo.birthTime"]}
                   <input
                     type="time"
                     value={birthState.birth.birthTime}
@@ -2877,18 +2890,18 @@ export default function NeoOperationRoomPage() {
                   />
                 </label>
                 <label className={styles.fieldLabel}>
-                  달력
+                  {formCopy["birthInfo.calendar"]}
                   <select
                     value={birthState.birth.calendarType}
                     disabled={birthFieldsDisabled}
                     onChange={(event) => updateBirthInput("calendarType", event.target.value)}
                   >
-                    <option value="solar">양력</option>
-                    <option value="lunar">음력</option>
+                    <option value="solar">{formCopy["birthInfo.calendarSolar"]}</option>
+                    <option value="lunar">{formCopy["birthInfo.calendarLunar"]}</option>
                   </select>
                 </label>
                 <label className={styles.fieldLabel}>
-                  출생지
+                  {formCopy["birthInfo.city"]}
                   <input
                     type="text"
                     value={birthState.birth.city}
@@ -2899,7 +2912,7 @@ export default function NeoOperationRoomPage() {
                   />
                 </label>
                 <label className={styles.fieldLabel}>
-                  시간대
+                  {formCopy["birthInfo.timezone"]}
                   <input
                     type="text"
                     value={birthState.birth.timezone}
@@ -2916,7 +2929,7 @@ export default function NeoOperationRoomPage() {
                     disabled={birthFieldsDisabled}
                     onChange={(event) => updateBirthInput("birthTimeUnknown", event.target.checked)}
                   />
-                  출생시간 모름
+                  {formCopy["birthInfo.birthTimeUnknown"]}
                 </label>
               </div>
             </section>
@@ -2926,10 +2939,10 @@ export default function NeoOperationRoomPage() {
             <section className={styles.deckSection} aria-labelledby="neo-intensity-title">
               <div className={styles.sectionHead}>
                 <span>04</span>
-                <h2 id="neo-intensity-title">팩폭 강도 선택</h2>
+                <h2 id="neo-intensity-title">{formCopy["intensitySelect.title"]}</h2>
               </div>
               <div className={styles.intensityGrid}>
-                {intensityOptions.map((item) => (
+                {localizedIntensityOptions.map((item) => (
                   <button
                     key={item.id}
                     type="button"
@@ -2969,8 +2982,8 @@ export default function NeoOperationRoomPage() {
               {intensity === "roar" ? (
                 <aside className={styles.roarWarning} role="alert">
                   <span aria-hidden="true">!</span>
-                  <strong>사자 포효맛 주의</strong>
-                  <p>이 강도는 위로보다 직면을 앞세운다. 마음이 예민한 날이라면 기본맛으로 낮춰도 작전은 흐려지지 않는다.</p>
+                  <strong>{formCopy["intensitySelect.roarWarningTitle"]}</strong>
+                  <p>{formCopy["intensitySelect.roarWarningBody"]}</p>
                 </aside>
               ) : null}
             </section>
@@ -2980,17 +2993,17 @@ export default function NeoOperationRoomPage() {
             <section className={styles.deckSection} aria-labelledby="neo-question-title">
               <div className={styles.sectionHead}>
                 <span>05</span>
-                <h2 id="neo-question-title">질문 입력</h2>
+                <h2 id="neo-question-title">{formCopy["questionInput.title"]}</h2>
               </div>
               <label className={styles.questionLabel} htmlFor="neo-operation-question">
-                지금 네 선택을 흔드는 질문
+                {formCopy["questionInput.label"]}
               </label>
               <textarea
                 id="neo-operation-question"
                 className={styles.questionInput}
                 value={question}
                 maxLength={600}
-                placeholder={"지금 네가 가장 답을 알고 싶은 문제를 적어라.\n길게 써도 된다. 변명도 포함해라.\n내가 알아서 걸러낸다."}
+                placeholder={formCopy["questionInput.placeholder"]}
                 onChange={(event) => {
                   resetPendingFlow();
                   setLastCommandChoice(null);
@@ -3000,18 +3013,18 @@ export default function NeoOperationRoomPage() {
               <div className={styles.inputMeta}>
                 <span>{question.length}/600</span>
                 <span>
-                  {selectedMethod?.label || "분석 방식 미선택"} · {topic || "주제 미선택"} · {selectedIntensity?.label || "강도 미선택"}
+                  {selectedMethod?.label || formCopy["questionInput.methodUnselected"]} · {(topic && getNeoTopicLabel(topic, dialogueLocale)) || formCopy["questionInput.topicUnselected"]} · {selectedIntensity?.label || formCopy["questionInput.intensityUnselected"]}
                 </span>
               </div>
               {!questionReady ? (
-                <p className={styles.questionHint}>작전 개시는 질문을 {questionShortfall}자 더 적으면 열린다.</p>
+                <p className={styles.questionHint}>{getNeoQuestionHint(questionShortfall, dialogueLocale)}</p>
               ) : null}
             </section>
             ) : null}
 
             {validationErrors.length ? (
               <aside className={styles.errorPanel} aria-live="assertive">
-                <strong>작전 정보가 부족하다</strong>
+                <strong>{formCopy["validationPanel.title"]}</strong>
                 <ul>
                   {validationErrors.map((error) => (
                     <li key={`${error.field}-${error.message}`}>{error.message}</li>
@@ -3022,14 +3035,14 @@ export default function NeoOperationRoomPage() {
 
             {errorMessage ? (
               <aside className={styles.errorPanel} aria-live="assertive">
-                <strong>작전 개시 실패</strong>
+                <strong>{formCopy["errorPanel.title"]}</strong>
                 <p>{errorMessage}</p>
               </aside>
             ) : null}
 
             {statusMessage ? (
               <aside className={styles.statusPanel} aria-live="polite">
-                <strong>{flowPhase === "completed" ? "작전 브리핑 도착" : "작전 진행 중"}</strong>
+                <strong>{flowPhase === "completed" ? formCopy["statusPanel.completed"] : formCopy["statusPanel.inProgress"]}</strong>
                 <p>{statusMessage}</p>
               </aside>
             ) : null}
@@ -3045,38 +3058,42 @@ export default function NeoOperationRoomPage() {
                 imageClassName={styles.lionSealImage}
               />
               <div className={styles.launchSummary}>
-                <strong>사자 휘장 확인</strong>
-                <span>{selectedMethod?.label} · {topic} · {selectedIntensity?.label}</span>
-                <span>{displayConsultPriceLabel ? `${FEATURE_TITLE} · ${displayConsultPriceLabel}` : FEATURE_TITLE}</span>
+                <strong>{formCopy["launchConfirm.title"]}</strong>
+                <span>{selectedMethod?.label} · {topic && getNeoTopicLabel(topic, dialogueLocale)} · {selectedIntensity?.label}</span>
+                <span>{displayConsultPriceLabel ? `${getNeoFeatureTitle(dialogueLocale)} · ${displayConsultPriceLabel}` : getNeoFeatureTitle(dialogueLocale)}</span>
               </div>
               <button type="submit" className={styles.startButton} disabled={!canStart} aria-busy={busy}>
                 <span className={styles.ctaButtonCopy}>
                   <strong>
                     {flowPhase === "payment"
-                      ? "결제 확인 중"
+                      ? formCopy["launchConfirm.ctaPayment"]
                       : flowPhase === "generating"
-                        ? "전문가 상담 생성 중"
+                        ? formCopy["launchConfirm.ctaGenerating"]
                         : busy
-                          ? "작전 지도 분석 중"
-                          : "사자 휘장으로 작전 개시"}
+                          ? formCopy["launchConfirm.ctaAnalyzing"]
+                          : formCopy["launchConfirm.ctaStart"]}
                   </strong>
                   <em>{busy ? "Mapping Fate" : "Lion Seal Command"}</em>
                 </span>
               </button>
               <p className={styles.startHint}>
-                사자 휘장이 내려오면 네 질문은 작전 명령서로 정리된다.
+                {formCopy["launchConfirm.hint"]}
               </p>
             </div>
             ) : null}
 
             {operationReady ? (
               <aside className={styles.readyPanel} aria-live="polite">
-                <strong>작전 브리핑 완료</strong>
+                <strong>{formCopy["readyPanel.title"]}</strong>
                 <p>
-                  {topic} 전선은 {selectedMethod?.label}로 판을 읽고, {selectedIntensity?.label}으로 핵심을 찌른다.
-                  현실 점검 답변을 받으면 2차 수정 작전 명령서로 이어갈 수 있다.
+                  {getNeoReadyPanelSummary(
+                    topic ? getNeoTopicLabel(topic, dialogueLocale) : "",
+                    selectedMethod?.label || "",
+                    selectedIntensity?.label || "",
+                    dialogueLocale,
+                  )}
                 </p>
-                {pendingAccess ? <span className={styles.preflightMeta}>같은 입력은 같은 작전 요청으로 이어진다.</span> : null}
+                {pendingAccess ? <span className={styles.preflightMeta}>{formCopy["readyPanel.preflightMeta"]}</span> : null}
               </aside>
             ) : null}
 
@@ -3091,17 +3108,17 @@ export default function NeoOperationRoomPage() {
                   imageClassName={styles.lionSealImage}
                 />
                 <div className={styles.briefingHeader}>
-                  <span>1차 작전 브리핑</span>
-                  <h2 id="neo-briefing-title">{displayBriefing.operationTitle || "무명 작전"}</h2>
-                  {resultUrl ? <em>결과 보관 완료</em> : null}
+                  <span>{formCopy["briefing.eyebrow"]}</span>
+                  <h2 id="neo-briefing-title">{displayBriefing.operationTitle || formCopy["briefing.fallbackTitle"]}</h2>
+                  {resultUrl ? <em>{formCopy["briefing.savedNotice"]}</em> : null}
                   {!briefingFullyRevealed ? (
                     <button
                       type="button"
                       className={styles.briefingRevealSkip}
-                      aria-label="브리핑 전체 펼치기"
+                      aria-label={formCopy["briefing.revealAria"]}
                       onClick={() => setBriefingRevealStep(BRIEFING_REVEAL_STEP_COUNT)}
                     >
-                      전부 펼치기
+                      {formCopy["briefing.revealButton"]}
                     </button>
                   ) : null}
                 </div>
@@ -3109,16 +3126,16 @@ export default function NeoOperationRoomPage() {
                 {briefingRevealStep >= 1 ? (
                 <div className={`${styles.briefingGrid} ${styles.revealBlock}`}>
                   <article>
-                    <strong>현재 운명의 전선</strong>
+                    <strong>{formCopy["briefing.frontlineLabel"]}</strong>
                     <LlmParagraphs text={displayBriefingFrontline} />
                   </article>
                   <article>
-                    <strong>{displayBriefingRepeatedChoice.title || "반복되는 선택"}</strong>
+                    <strong>{displayBriefingRepeatedChoice.title || formCopy["briefing.repeatedChoiceFallback"]}</strong>
                     <LlmParagraphs text={displayBriefingRepeatedChoice.description} />
                   </article>
                   {displayBriefing.innateNature?.description ? (
                     <article>
-                      <strong>{displayBriefing.innateNature.title || "타고난 성향의 핵"}</strong>
+                      <strong>{displayBriefing.innateNature.title || formCopy["briefing.innateNatureFallback"]}</strong>
                       <LlmParagraphs text={displayBriefing.innateNature.description} />
                       {displayBriefing.innateNature.keyTraits?.length ? (
                         <ul>
@@ -3129,7 +3146,7 @@ export default function NeoOperationRoomPage() {
                   ) : null}
                   {displayBriefing.innateStrength?.description ? (
                     <article>
-                      <strong>{displayBriefing.innateStrength.title || "타고난 강점과 약점"}</strong>
+                      <strong>{displayBriefing.innateStrength.title || formCopy["briefing.innateStrengthFallback"]}</strong>
                       <LlmParagraphs text={displayBriefing.innateStrength.description} />
                       {displayBriefing.innateStrength.strongPoints?.length ? (
                         <ul>
@@ -3145,7 +3162,7 @@ export default function NeoOperationRoomPage() {
                   ) : null}
                   {displayBriefing.topicStyle?.description ? (
                     <article>
-                      <strong>{displayBriefing.topicStyle.title || "이 주제에서 너의 방식"}</strong>
+                      <strong>{displayBriefing.topicStyle.title || formCopy["briefing.topicStyleFallback"]}</strong>
                       <LlmParagraphs text={displayBriefing.topicStyle.description} />
                       {displayBriefing.topicStyle.keyPoints?.length ? (
                         <ul>
@@ -3156,7 +3173,7 @@ export default function NeoOperationRoomPage() {
                   ) : null}
                   {displayBriefing.topicAreas?.length ? (
                     <article>
-                      <strong>주제 영역별 심층</strong>
+                      <strong>{formCopy["briefing.topicAreasLabel"]}</strong>
                       <ul>
                         {displayBriefing.topicAreas.map((item) => (
                           <li key={item.area}><strong>{item.area}</strong> — {item.reading}</li>
@@ -3166,7 +3183,7 @@ export default function NeoOperationRoomPage() {
                   ) : null}
                   {displayBriefing.topicTiming?.description ? (
                     <article>
-                      <strong>{displayBriefing.topicTiming.title || "이 주제의 시기 흐름"}</strong>
+                      <strong>{displayBriefing.topicTiming.title || formCopy["briefing.topicTimingFallback"]}</strong>
                       <LlmParagraphs text={displayBriefing.topicTiming.description} />
                       {displayBriefing.topicTiming.windows?.length ? (
                         <ul>
@@ -3176,7 +3193,7 @@ export default function NeoOperationRoomPage() {
                     </article>
                   ) : null}
                   <article>
-                    <strong>{displayBriefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"}</strong>
+                    <strong>{displayBriefing.originalStrategy?.title || formCopy["briefing.originalStrategyFallback"]}</strong>
                     <LlmParagraphs text={displayBriefing.originalStrategy?.description} />
                     {displayBriefing.originalStrategy?.keyRules?.length ? (
                       <ul>
@@ -3185,7 +3202,7 @@ export default function NeoOperationRoomPage() {
                     ) : null}
                   </article>
                   <article>
-                    <strong>{displayBriefingMisalignedFlow.title || "지금 흐름이 어긋난 자리"}</strong>
+                    <strong>{displayBriefingMisalignedFlow.title || formCopy["briefing.misalignedFlowFallback"]}</strong>
                     <LlmParagraphs text={displayBriefingMisalignedFlow.description} />
                   </article>
                 </div>
@@ -3222,13 +3239,13 @@ export default function NeoOperationRoomPage() {
                 ) : null}
                 {briefingRevealStep >= 4 && (displayBriefing.forbiddenAction?.title || displayBriefing.forbiddenAction?.reason) ? (
                   <div className={`${styles.refinedListBlock} ${styles.revealBlock}`}>
-                    <strong>{displayBriefing.forbiddenAction?.title || "오늘 금지 행동"}</strong>
+                    <strong>{displayBriefing.forbiddenAction?.title || formCopy["briefing.forbiddenActionFallback"]}</strong>
                     <LlmParagraphs text={displayBriefing.forbiddenAction?.reason} />
                   </div>
                 ) : null}
                 {briefingRevealStep >= 4 && displayBriefing.actionOrders?.length ? (
                   <div className={`${styles.refinedListBlock} ${styles.revealBlock}`}>
-                    <strong>바로 해야 할 작전</strong>
+                    <strong>{formCopy["briefing.actionOrdersLabel"]}</strong>
                     <ul>{displayBriefing.actionOrders.map((item) => <li key={item}>{item}</li>)}</ul>
                   </div>
                 ) : null}
@@ -3244,7 +3261,7 @@ export default function NeoOperationRoomPage() {
                 ) : null}
                 {briefingRevealStep >= 5 && displayBriefing.sevenDayMission?.length ? (
                   <div className={`${styles.missionGrid} ${styles.revealBlock}`}>
-                    <strong>7일 작전</strong>
+                    <strong>{formCopy["briefing.sevenDayLabel"]}</strong>
                     {displayBriefing.sevenDayMission.map((item, idx, arr) => (
                       <Fragment key={`${item.day}-${item.mission}`}>
                         <article>
@@ -3267,7 +3284,7 @@ export default function NeoOperationRoomPage() {
                 ) : null}
                 {briefingRevealStep >= 6 && displayBriefing.realityCheckQuestions?.length ? (
                   <div className={`${styles.realityQuestions} ${styles.revealBlock}`}>
-                    <strong>현실 점검 질문</strong>
+                    <strong>{formCopy["briefing.realityQuestionsLabel"]}</strong>
                     {displayBriefing.realityCheckQuestions.map((item) => (
                       <article key={item.question}>
                         <p>{item.question}</p>
@@ -3289,7 +3306,7 @@ export default function NeoOperationRoomPage() {
                 {briefingRevealStep >= 7 && displayBriefing.badge?.description ? (
                   <div className={`${styles.badgeAward} ${styles.revealBlock}`}>
                     <NeoTopicBadge topic={topic} asset={neoBadgeStampAsset} className={styles.badgeAwardImage} />
-                    <p>{`${getNeoTopicBadge(topic).name} · ${displayBriefing.badge.description}`}</p>
+                    <p>{`${getNeoTopicBadgeName(topic, dialogueLocale)} · ${displayBriefing.badge.description}`}</p>
                   </div>
                 ) : null}
                 {briefingRevealStep >= 7 && (displayBriefing.tsundereClosing || displayBriefing.nextStepPrompt) ? (
@@ -3309,29 +3326,29 @@ export default function NeoOperationRoomPage() {
                   imageClassName={styles.lionSealImage}
                 />
                 <div className={styles.realityCheckHeader}>
-                  <span>현실 점검</span>
-                  <h2 id="neo-reality-check-title">너, 진짜 그렇게 살고 있냐?</h2>
-                  <p>네오의 1차 판단에 네 현실을 대입해라. 인정해도 되고, 반박해도 된다.</p>
+                  <span>{formCopy["realityPanel.eyebrow"]}</span>
+                  <h2 id="neo-reality-check-title">{formCopy["realityPanel.title"]}</h2>
+                  <p>{formCopy["realityPanel.subtitle"]}</p>
                 </div>
 
                 <div className={styles.realityBriefGrid}>
                   <article>
-                    <strong>1차 작전명</strong>
-                    <p>{displayBriefing.operationTitle || "무명 작전"}</p>
+                    <strong>{formCopy["realityPanel.operationNameLabel"]}</strong>
+                    <p>{displayBriefing.operationTitle || formCopy["briefing.fallbackTitle"]}</p>
                   </article>
                   <article>
-                    <strong>{displayBriefing.originalStrategy?.title || "본래 너는 이렇게 움직여야 한다"}</strong>
+                    <strong>{displayBriefing.originalStrategy?.title || formCopy["briefing.originalStrategyFallback"]}</strong>
                     <LlmParagraphs text={displayBriefing.originalStrategy?.description} />
                   </article>
                   <article>
-                    <strong>{displayBriefingMisalignedFlow.title || "지금 흐름이 어긋난 자리"}</strong>
+                    <strong>{displayBriefingMisalignedFlow.title || formCopy["briefing.misalignedFlowFallback"]}</strong>
                     <LlmParagraphs text={displayBriefingMisalignedFlow.description} />
                   </article>
                 </div>
 
                 {displayBriefing.realityCheckQuestions?.length ? (
                   <div className={styles.realityQuestionDeck}>
-                    <strong>네오의 현실 점검 질문</strong>
+                    <strong>{formCopy["realityPanel.questionsLabel"]}</strong>
                     {displayBriefing.realityCheckQuestions.map((item) => (
                       <article key={item.question}>
                         <p>{item.question}</p>
@@ -3360,19 +3377,19 @@ export default function NeoOperationRoomPage() {
                           );
                         }}
                       >
-                        {item}
+                        {getNeoRealityCheckLabel(item, dialogueLocale)}
                       </button>
                     );
                   })}
                 </div>
 
                 <label className={styles.realityFreeformLabel} htmlFor="neo-reality-freeform">
-                  네오에게 더 말할 현실
+                  {formCopy["realityPanel.freeformLabel"]}
                   <textarea
                     id="neo-reality-freeform"
                     value={realityFreeform}
                     maxLength={1000}
-                    placeholder={"네오에게 반박하거나, 현재 상황을 더 자세히 적어주세요.\n변명도 괜찮습니다. 네오가 알아서 걸러냅니다."}
+                    placeholder={formCopy["realityPanel.freeformPlaceholder"]}
                     onChange={(event) => {
                       setRefineError("");
                       setRealityFreeform(event.target.value);
@@ -3382,7 +3399,7 @@ export default function NeoOperationRoomPage() {
 
                 {refineError ? (
                   <aside className={styles.errorPanel} aria-live="assertive">
-                    <strong>수정 작전 명령서 실패</strong>
+                    <strong>{formCopy["realityPanel.errorTitle"]}</strong>
                     <p>{refineError}</p>
                   </aside>
                 ) : null}
@@ -3402,7 +3419,7 @@ export default function NeoOperationRoomPage() {
                     className={styles.refineBadge}
                     imageClassName={styles.lionSealImage}
                   />
-                  <span>{refining ? "수정 작전 작성 중" : "수정 작전 명령서 받기"}</span>
+                  <span>{refining ? formCopy["realityPanel.submitBusy"] : formCopy["realityPanel.submitIdle"]}</span>
                 </button>
               </section>
             ) : null}
@@ -3418,9 +3435,9 @@ export default function NeoOperationRoomPage() {
                   imageClassName={styles.lionSealImage}
                 />
                 <div className={styles.refinedOrderHeader}>
-                  <span>2차 수정 작전 명령서</span>
-                  <h2 id="neo-refined-order-title">{displayRefinedOrder.operationTitle || "수정 작전"}</h2>
-                  {displayRefinedOrder.badge?.name ? <em>오늘의 사자 휘장 · {displayRefinedOrder.badge.name}</em> : null}
+                  <span>{formCopy["refinedOrder.eyebrow"]}</span>
+                  <h2 id="neo-refined-order-title">{displayRefinedOrder.operationTitle || formCopy["refinedOrder.fallbackTitle"]}</h2>
+                  {displayRefinedOrder.badge?.name ? <em>{formCopy["refinedOrder.badgePrefix"]} · {displayRefinedOrder.badge.name}</em> : null}
                 </div>
                 {displayRefinedOrder.neoReview ? <p className={styles.neoOpening}>{displayRefinedOrder.neoReview}</p> : null}
                 {displayRefinedOrder.verdict?.statement ? (
@@ -3438,7 +3455,7 @@ export default function NeoOperationRoomPage() {
                 ) : null}
                 {displayRefinedOrder.actionAlternatives?.length ? (
                   <div className={styles.alternativeGrid}>
-                    <strong>구체적 실행 대안</strong>
+                    <strong>{formCopy["refinedOrder.alternativesLabel"]}</strong>
                     {displayRefinedOrder.actionAlternatives.map((item, index) => (
                       <article key={`${item.timing}-${item.action}-${index}`}>
                         {item.timing ? <span className={styles.alternativeTiming}>{item.timing}</span> : null}
@@ -3450,30 +3467,30 @@ export default function NeoOperationRoomPage() {
                 ) : null}
                 {displayRefinedOrder.peopleToMeet?.length ? (
                   <div className={styles.peopleGrid}>
-                    <strong>만나야 할 사람</strong>
+                    <strong>{formCopy["refinedOrder.peopleLabel"]}</strong>
                     {displayRefinedOrder.peopleToMeet.map((item, index) => (
                       <article key={`${item.role}-${index}`}>
                         <p className={styles.personRole}>{item.role}</p>
                         {item.complementaryEnergy ? <p className={styles.personEnergy}>{item.complementaryEnergy}</p> : null}
-                        {item.whereToFind ? <p className={styles.personWhere}>만날 곳 · {item.whereToFind}</p> : null}
+                        {item.whereToFind ? <p className={styles.personWhere}>{formCopy["refinedOrder.whereToFindPrefix"]} · {item.whereToFind}</p> : null}
                       </article>
                     ))}
                   </div>
                 ) : null}
                 {displayRefinedOrder.thirtyDayStrategy?.length ? (
                   <div className={styles.refinedListBlock}>
-                    <strong>30일 전략</strong>
+                    <strong>{formCopy["refinedOrder.thirtyDayLabel"]}</strong>
                     <ul>{displayRefinedOrder.thirtyDayStrategy.map((item) => <li key={item}>{item}</li>)}</ul>
                   </div>
                 ) : null}
                 <div className={styles.briefingGrid}>
                   <article>
-                    <strong>{displayRefinedOrder.forbiddenAction?.title || "오늘 금지 행동"}</strong>
+                    <strong>{displayRefinedOrder.forbiddenAction?.title || formCopy["briefing.forbiddenActionFallback"]}</strong>
                     <LlmParagraphs text={displayRefinedOrder.forbiddenAction?.reason} />
                   </article>
                   {displayRefinedOrder.thisWeekFirstStep ? (
                     <article>
-                      <strong>이번 주 첫 걸음</strong>
+                      <strong>{formCopy["refinedOrder.thisWeekLabel"]}</strong>
                       <p>{displayRefinedOrder.thisWeekFirstStep}</p>
                     </article>
                   ) : null}
@@ -3481,10 +3498,10 @@ export default function NeoOperationRoomPage() {
                 {displayRefinedOrder.badge?.description ? (
                   <div className={styles.badgeAward}>
                     <NeoTopicBadge topic={topic} asset={neoBadgeStampAsset} className={styles.badgeAwardImage} />
-                    <p>{`${getNeoTopicBadge(topic).name} · ${displayRefinedOrder.badge.description}`}</p>
+                    <p>{`${getNeoTopicBadgeName(topic, dialogueLocale)} · ${displayRefinedOrder.badge.description}`}</p>
                   </div>
                 ) : null}
-                {displayRefinedOrder.tsundereClosing ? <NeoFactPunch text={displayRefinedOrder.tsundereClosing} label="NEO · 마무리 한마디" /> : null}
+                {displayRefinedOrder.tsundereClosing ? <NeoFactPunch text={displayRefinedOrder.tsundereClosing} label={formCopy["refinedOrder.closingLabel"]} /> : null}
               </section>
             ) : null}
           </div>
