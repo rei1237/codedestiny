@@ -113,7 +113,8 @@
 # 🔴 2026-08-23: 나머지 9개(/saju/basic·/saju/sibyl·/tarot/mingri·/tarot/love·
 # /tarot/reunion·/tarot/self-esteem·/tarot/year·/astrology/cosmic·/oracle/sukuyo)는
 # 여기서 뺐다. 그 라우트들은 이제 셸 사본이 아니라 자기 app 랜딩을 서빙하므로 고유 본문이
-# 있고, 도구는 랜딩의 CTA(/index.html?action=…)로 연결된다. docs/context/seo-and-adsense.md 참고.
+# 있고(실측 2,815~4,017자), 도구는 랜딩의 CTA(/index.html?action=…)로 연결된다.
+# docs/context/seo-and-adsense.md 의 '색인 여부는 다섯 곳이 함께 정한다' 표 참고.
 /oracle/juyuk*
   X-Robots-Tag: noindex, follow
 # 🔴 `/oracle/hwatu*` 로 합치지 말 것 — 색인 대상인 `/oracle/hwatu-life` 를 삼킨다.

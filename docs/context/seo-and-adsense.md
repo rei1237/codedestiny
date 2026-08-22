@@ -61,6 +61,22 @@
 실제로 깨지는 것은 **URL 직행 자동 오픈**뿐이고 도구 자체는 CTA 로 도달한다. 유입을
 위해 그 한 번의 클릭을 감수하기로 사용자가 결정했다(2026-08-23).
 
-이 9개를 다시 셸 사본으로 되돌리려면 위 네 곳(라우트맵 `source`, 사이트맵 접두사,
-`_headers`, adsense 단언 목록)을 **함께** 되돌려야 한다. 한 곳만 바꾸면 "사이트맵에는
-있는데 noindex" 같은 GSC 오류가 난다.
+### 🔴 라우트의 색인 여부는 **다섯 곳**이 함께 정한다
+
+한 곳만 고치면 "사이트맵에는 있는데 noindex" 같은 GSC 오류가 나고, 빌드가 그때서야
+막힌다(실제로 이번 작업에서 네 곳만 고쳤다가 `verify-adsense-readiness` 가
+`sitemap route has noindex robots: /astrology/cosmic` 으로 잡았다).
+
+| # | 위치 | 무엇을 정하나 |
+|---|---|---|
+| 1 | `scripts/static-canonical-route-map.mjs` 의 `source` | 셸 사본으로 덮을지, app 페이지를 서빙할지 |
+| 2 | `scripts/generate-sitemap.mjs` 의 `noindexPathPrefixes` | 사이트맵 포함 여부 |
+| 3 | **`lib/seo/siteSeo.ts` 의 `noindexPathPrefixes`** | 페이지 메타의 robots (2번과 짝 — 양쪽 주석이 서로를 가리킨다) |
+| 4 | `public/_headers` 의 `X-Robots-Tag` | HTTP 헤더 (규칙 예산 100개 상한) |
+| 5 | `scripts/verify-adsense-readiness.mjs` 의 `xRobotsNoindexHeaderPatterns` | 4번이 실제로 걸려 있는지 강제하는 단언 |
+
+🔴 **3번은 색인 말고도 딸린 게 있다.** `isNoindexPath` → `lib/seo.v2.ts` 의
+`isPrivateRoute` → `lib/share.v2.ts` 로 흘러 **ShareWidget 표시 여부까지 좌우한다**
+(`app/components/ShareWidget.tsx`). 같은 파일 주석이 `/flower/*` 를 "공유 버튼을
+살리려고 일부러 이 목록에서 뺐다"고 적어 둔 이유가 그것이다. 위 9개도 이 목록에서
+빠지면서 공유 버튼이 새로 노출된다 — 의도한 부수 효과이지 사고가 아니다.
