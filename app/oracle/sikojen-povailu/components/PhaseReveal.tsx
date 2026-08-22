@@ -76,10 +76,59 @@ const SIKOJEN_REVEAL_TEXT_TRANSLATIONS = {
     shadowLead: "この形に隠された意味は...",
     confirm: "確認",
   },
+  "zh-CN": {
+    loading: "正在加载形态...",
+    formingTitle: "锡正在凝固成命运的形态",
+    formingSubtitle: "Yeoni 正在吹入最后的星光...",
+    resultGuideAlt: "Yeoni 结果向导",
+    headerTitle: "Yeoni 为你解读的锡形结果",
+    resultView: "结果视图",
+    counselTitle: "Yeoni 的结果咨询",
+    counselMessage: "把表面含义和阴影含义一起读,会更准确。核心的一句话,我来帮你直接找出来。",
+    shapeCode: "形态代码",
+    category: "分类",
+    meaning: "🔮 含义",
+    advice: "💡 建议",
+    luckyNumber: "🍀 幸运数字",
+    luckyColor: "🎨 幸运颜色",
+    yeonWord: "Yeoni 的一句话",
+    mascotAlt: "Yeoni 结果吉祥物",
+    shadowCta: "👁️ 解读灵魂的阴影",
+    nextCta: "✨ 继续",
+    shadowTitle: "🌙 灵魂的阴影",
+    shadowLead: "这个形态隐藏的含义是...",
+    confirm: "确认",
+  },
+  "zh-TW": {
+    loading: "正在載入形態...",
+    formingTitle: "錫正在凝固成命運的形態",
+    formingSubtitle: "Yeoni 正在吹入最後的星光...",
+    resultGuideAlt: "Yeoni 結果嚮導",
+    headerTitle: "Yeoni 為你解讀的錫形結果",
+    resultView: "結果檢視",
+    counselTitle: "Yeoni 的結果諮詢",
+    counselMessage: "把表面含義和陰影含義一起讀,會更準確。核心的一句話,我來幫你直接找出來。",
+    shapeCode: "形態代碼",
+    category: "分類",
+    meaning: "🔮 含義",
+    advice: "💡 建議",
+    luckyNumber: "🍀 幸運數字",
+    luckyColor: "🎨 幸運顏色",
+    yeonWord: "Yeoni 的一句話",
+    mascotAlt: "Yeoni 結果吉祥物",
+    shadowCta: "👁️ 解讀靈魂的陰影",
+    nextCta: "✨ 繼續",
+    shadowTitle: "🌙 靈魂的陰影",
+    shadowLead: "這個形態隱藏的含義是...",
+    confirm: "確認",
+  },
 } as const;
 
 function getSikojenRevealCopy(locale: LoadingLocale) {
-  return SIKOJEN_REVEAL_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || SIKOJEN_REVEAL_TEXT_TRANSLATIONS.ko;
+  if (locale === "en" || locale === "ja" || locale === "zh-CN" || locale === "zh-TW") {
+    return SIKOJEN_REVEAL_TEXT_TRANSLATIONS[locale];
+  }
+  return SIKOJEN_REVEAL_TEXT_TRANSLATIONS.ko;
 }
 
 export function PhaseReveal() {

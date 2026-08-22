@@ -10,19 +10,8 @@ import { PhaseCasting } from './components/PhaseCasting';
 import { PhaseReveal } from './components/PhaseReveal';
 import { PhaseSharing } from './components/PhaseSharing';
 import { ShadowReading } from './components/ShadowReading';
+import { useSikojenPovailuCopy } from './_lib/copy';
 import './components/phases.css';
-
-const SIKOJEN_APP_TEXT_TRANSLATIONS = {
-  ko: {
-    homeAria: "홈으로 돌아가기",
-  },
-  en: {
-    homeAria: "Return home",
-  },
-  ja: {
-    homeAria: "ホームへ戻る",
-  },
-} as const;
 
 /**
  * Phase 라우터 컴포넌트
@@ -61,6 +50,7 @@ function PhaseRouter() {
  * + Shadow - 숨겨진 그림자 의미 (선택)
  */
 export default function SikojenpovailuApp() {
+  const copy = useSikojenPovailuCopy();
   const router = useRouter();
   const appRef = React.useRef<HTMLDivElement | null>(null);
   const [mounted, setMounted] = React.useState(false);
@@ -106,7 +96,7 @@ export default function SikojenpovailuApp() {
         <button
           type="button"
           onClick={handleClose}
-          aria-label={SIKOJEN_APP_TEXT_TRANSLATIONS.ko.homeAria}
+          aria-label={copy.appHomeAria}
           style={{
             position: 'fixed',
             top: 'max(12px, env(safe-area-inset-top, 0px) + 8px)',
@@ -125,7 +115,7 @@ export default function SikojenpovailuApp() {
             boxShadow: '0 8px 24px rgba(0,0,0,0.35)',
           }}
         >
-          ✕ 홈으로
+          {copy.appCloseButton}
         </button>
         <PhaseRouter />
       </div>
