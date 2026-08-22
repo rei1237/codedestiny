@@ -3,9 +3,9 @@ import { buildFortuneJsonLd, generatePageMetadata } from "../../../lib/generate-
 
 const ANIMAL_MBTI_TEXT_TRANSLATIONS = {
   ko: {
-    "meta.title": "MBTI 동물 궁합 - 16유형 관계 케미",
-    "meta.description": "MBTI 성향 조합을 동물 토템 비유로 번역해 연애·우정·협업 궁합의 실제 소통 포인트를 안내합니다.",
-    "service.h1": "MBTI 동물 궁합",
+    "meta.title": "MBTI 궁합 무료 보는 곳 | 16유형 관계 케미 동물 궁합",
+    "meta.description": "두 사람의 MBTI 유형만 고르면 관계 케미를 무료로 볼 수 있는 곳입니다. 성향 조합을 동물 토템 비유로 옮겨 연애·우정·협업에서 실제로 부딪히는 소통 지점을 짚어 드립니다.",
+    "service.h1": "MBTI 궁합 — 16유형 동물 케미",
     "service.seoText": "MBTI 동물 궁합은 유형 조합을 쉽고 직관적인 동물 언어로 번역해 관계 대화를 돕는 서비스입니다.",
     "valueGuide.title": "MBTI 궁합을 관계 기술로 바꾸는 6단계",
     "value.1.title": "1. MBTI 궁합은 성격 판정이 아니라 소통 지도입니다",

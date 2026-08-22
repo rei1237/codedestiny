@@ -6,11 +6,11 @@ const base = SEO_LANDING_PAGES.sukuyo;
 
 const SUKUYO_COMPATIBILITY_PAGE_COPY = {
   ko: {
-    title: "숙요점 궁합 보기 · 영친·업태·안괴 관계 해석 | Code Destiny",
-    h1: "숙요점 궁합으로 보는 두 사람의 관계 패턴",
+    title: "27수 궁합 계산 | 무료 본명숙 궁합·영친·업태·안괴 보는 곳",
+    h1: "27수 궁합 계산 — 본명숙 거리로 보는 관계 패턴",
     description:
-      "숙요점 궁합, 숙요 궁합, 영친관계, 업태관계, 안괴관계 키워드를 중심으로 관계 패턴을 해석하는 전용 랜딩입니다.",
-    keywords: ["숙요점 궁합", "숙요 궁합", "영친관계", "업태관계", "안괴관계"],
+      "두 사람의 생년월일로 각자의 본명숙을 뽑아 27자리 안의 거리를 계산해 주는 곳입니다. 그 거리가 영친·업태·안괴 가운데 어느 관계로 떨어지는지 보고, 반복해서 부딪히는 장면과 회복 방식을 함께 정리합니다.",
+    keywords: ["27수 궁합", "숙요 궁합 계산", "본명숙 궁합", "숙요점 궁합", "숙요 궁합", "영친관계", "업태관계", "안괴관계"],
   },
   en: {
     title: "Sukuyo Compatibility Reading - Eishin, Gyotai, and Ankai Relationships | Code Destiny",
