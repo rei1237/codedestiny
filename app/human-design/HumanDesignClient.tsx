@@ -35,7 +35,7 @@ import {
   pick,
   type Locale,
 } from "./_copy";
-import type { HdChart, HdPipelineStage, HdSelection } from "./_lib/types";
+import type { HdChart, HdInterpretation, HdPipelineStage, HdSelection } from "./_lib/types";
 import styles from "./human-design.module.css";
 
 const FEATURE_KEY = "human-design-chart";
@@ -105,6 +105,11 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
   const [reused, setReused] = useState(false);
   const [selection, setSelection] = useState<HdSelection>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
+
+  // AI 해석 — 차트와 같은 1회 결제로 열린다(별도 결제 키 없음).
+  const [interpretation, setInterpretation] = useState<HdInterpretation | null>(null);
+  const [readingLoading, setReadingLoading] = useState(false);
+  const [readingError, setReadingError] = useState("");
 
   // 프로필 카드 자동 프리필 — 사용자가 이미 넣은 값은 덮지 않는다(빈 값만 채운다).
   useEffect(() => {
@@ -203,6 +208,28 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
     }
     await requestChart(stored);
   }, [requestChart, run]);
+
+  // 🔴 해석에는 새 결제가 없다. 접근 증빙은 서버에 저장된 계산 문서이고, 그 문서는 결제를
+  //    거쳐야만 생긴다. 아카이브 write 가 실패했던 경우를 위해 결제 키를 함께 보낸다.
+  const requestInterpretation = useCallback(async () => {
+    if (readingLoading || !chart) return;
+    setReadingLoading(true);
+    setReadingError("");
+    try {
+      const result = await postPaidBody("/api/human-design/interpretation", {
+        birth: { birthDate, birthTime, timezone: timezone.trim(), calendar },
+        requestId: readStoredRequestId(),
+      });
+      const data = result.data as { ok?: boolean; interpretation?: HdInterpretation; message?: string };
+      if (!result.response.ok || !data?.ok || !data.interpretation) {
+        setReadingError(data?.message || pick(UI_TEXT.interpretationFailed, locale));
+        return;
+      }
+      setInterpretation(data.interpretation);
+    } finally {
+      setReadingLoading(false);
+    }
+  }, [birthDate, birthTime, calendar, chart, locale, readingLoading, timezone]);
 
   const typeCopy = chart ? TYPE_COPY[chart.type as keyof typeof TYPE_COPY] : null;
   const authorityCopy = chart ? AUTHORITY_COPY[chart.authority as keyof typeof AUTHORITY_COPY] : null;
@@ -397,6 +424,52 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
                   </ul>
                 </div>
               ))}
+            </section>
+
+            <section className={styles.reading} aria-labelledby="hd-reading-heading">
+              <h2 id="hd-reading-heading" className={styles.readingHeading}>
+                {pick(UI_TEXT.interpretationHeading, locale)}
+              </h2>
+              <p className={styles.readingBasis}>{pick(UI_TEXT.interpretationBasis, locale)}</p>
+
+              {!interpretation && !readingLoading && (
+                <>
+                  <button type="button" className={styles.cta} onClick={() => void requestInterpretation()}>
+                    {pick(UI_TEXT.interpretationCta, locale)}
+                  </button>
+                  <p className={styles.price}>{pick(UI_TEXT.interpretationIncluded, locale)}</p>
+                </>
+              )}
+
+              {readingLoading && <p className={styles.readingLoading}>{pick(UI_TEXT.interpretationLoading, locale)}</p>}
+
+              {readingError && (
+                <div className={styles.error} role="alert">
+                  <p>{readingError}</p>
+                  <button type="button" className={styles.retry} onClick={() => void requestInterpretation()} disabled={readingLoading}>
+                    {pick(UI_TEXT.interpretationRetry, locale)}
+                  </button>
+                </div>
+              )}
+
+              {interpretation && (
+                <div className={styles.readingBody}>
+                  {interpretation.summary && (
+                    <div className={styles.readingSummary}>
+                      <span className={styles.summaryLabel}>{pick(UI_TEXT.interpretationSummary, locale)}</span>
+                      <p>{interpretation.summary}</p>
+                    </div>
+                  )}
+                  {interpretation.sections.map((section) => (
+                    <article className={styles.readingSection} key={section.key}>
+                      <h3 className={styles.readingSectionTitle}>{section.title}</h3>
+                      {section.body.split(/\n{2,}/).filter(Boolean).map((paragraph, index) => (
+                        <p className={styles.readingParagraph} key={`${section.key}-${index}`}>{paragraph}</p>
+                      ))}
+                    </article>
+                  ))}
+                </div>
+              )}
             </section>
 
             <section className={styles.meta}>
