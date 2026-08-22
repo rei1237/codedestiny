@@ -53,6 +53,12 @@
 
 **이로써 destiny-bias 클러스터(53개 파일) 전체 완료**(#955+#956).
 
+**PR #957**(완료) `chore/animal-destiny-i18n` — `app/saju/animal-destiny/` 착수. 🔴 **핵심 발견**: 이 디렉터리 27개 파일 중 실제 라이브 라우트(`page.tsx`→`AnimalDestinyRouteClient`→`AnimalDestinyPage`→`TwelveAnimal*`)가 임포트하는 건 절반뿐이고, 나머지 절반(`AnimalDestinyHero.tsx`·`AnimalDestinyInputForm.tsx`·`AnimalCompatibilityGrid.tsx`·`AnimalCareerPanel`/`LovePanel`/`LuckItems`/`PersonalityPanel`/`GameStats`/`CharacterHero`/`SummaryCard`/`ShareCard.tsx`·`AnimalDestinyIntro.tsx`·`AnimalRevealAnimation.tsx`+`CrackingEggAnimation`/`FlipCardReveal`/`TamagotchiDeviceFrame`, 총 16개)는 `git grep`으로 확인한 결과 **어디서도 임포트되지 않는 고아 병렬 구현**이다(자기 자신 참조뿐). 번역 노력을 안 들였고(도달 불가 코드라 낭비) 삭제도 안 했다(16개 파일 삭제는 별도의 큰 결정) — 사용자 판단 필요.
+- 라이브 파일 9개(`CosmicSigil`·`TwelveAnimalHero`·`TwelveAnimalLoading`·`TwelveAnimalTabs`·`TwelveAnimalAdviceCard`·`TwelveAnimalDexGrid`·`TwelveAnimalResultCard`·`TwelveAnimalShareCard`·`AnimalDestinyPage` 셸)를 새 `app/saju/animal-destiny/_lib/copy.ts`(`useAnimalDestinyCopy()`, destiny-bias와 동일 패턴)로 en/ja/zh-CN/zh-TW 번역. 이 중 일부(`TwelveAnimalResultCard`, `AnimalDestinyPage`)도 always-returns-.ko 스캐폴드 버그가 있었다(같은 클래스 재발견).
+- 반대로 `AnimalCompatibilityGrid.tsx`·`AnimalDestinyInputForm.tsx`·`TwelveAnimalInputCard.tsx`는 **이미 완벽하게 5로케일(ko/en/ja/zh-CN/zh-TW) 구현이 돼 있어 손대지 않았다** — 이 디렉터리에 최소 두 세대의 구현 스타일(구버전 always-ko, 최신 완전판)이 섞여 있다는 신호.
+- 🔴 **미수정 플래그**: `TwelveAnimalResultCard.tsx`의 `STAGE_TONE_ACTION`(12개 스테이지별 조언 문장)은 이번 PR에서 번역하지 않고 후속 과제로 남김.
+- **다음(스택 예정)**: `AnimalResultScreen.tsx`(~380줄, 라이브 최대 오케스트레이터, `stageGuide()`/`buildStageRhythm()` 등 생성-인접 로직 포함) 단독 PR — #957 위에 스택.
+
 **다음(미착수, 우선순위 제안)**: `app/saju/animal-destiny/components/`(~20개) → `app/oracle/sikojen-povailu/`(~12개) → 나머지(`palm-reading`·`tarot/healing`·`tarot/self-esteem`·`tarot/prompt-maker`·`music`·`flower/*` 등). **매 신규 클러스터 착수 전 `gh pr list --state open` 로 겹치는 PR 없는지 먼저 확인**(2026-08-22 초 중복 PR 4건 발생 후 확립된 절차 — 위 "중복 발생 원인·교훈" 참고). 409개 전체를 한 세션에서 끝낼 수 있다고 가정하지 말 것 — destiny-bias 클러스터 하나가 이미 PR 2건 분량이었다.
 
 ## 🔴🔴 2026-08-22 핵심 발견 — Wave 7의 속성 전용 grep이 26개 파일짜리 기능 전체를 놓쳤다
