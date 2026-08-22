@@ -37,52 +37,8 @@ import {
   ZIWEI_SECTIONS,
 } from "../_lib/ziwei-types";
 import { transformationTypeToLabel } from "../_lib/ziwei-advanced-normalization";
-
-const ADVANCED_ZIWEI_TEXT_TRANSLATIONS = {
-  ko: {
-    "advancedZiwei.title.001": "종합·인생 흐름",
-    "advancedZiwei.title.002": "직업·진로",
-    "advancedZiwei.title.003": "재물·사업",
-    "advancedZiwei.title.004": "연애·배우자",
-    "advancedZiwei.title.005": "인간관계",
-    "advancedZiwei.title.006": "가족·자녀",
-    "advancedZiwei.title.007": "건강·생활 리듬",
-    "advancedZiwei.title.008": "대운·세운·시기",
-    "advancedZiwei.title.009": "지금 가장 중요한 상담 결론",
-    "advancedZiwei.title.010": "명반이 보여주는 이유",
-    "advancedZiwei.title.011": "현실에서 나타나는 모습",
-    "advancedZiwei.title.012": "반복되는 패턴과 원인",
-    "advancedZiwei.title.013": "현재 시기의 흐름",
-    "advancedZiwei.title.014": "고객을 위한 실행 조언",
-    "advancedZiwei.title.015": "상담 마무리",
-    "advancedZiwei.title.016": "명궁 ↔ 관록궁",
-    "advancedZiwei.title.017": "명궁 ↔ 부부궁",
-    "advancedZiwei.title.018": "재백궁 ↔ 관록궁",
-    "advancedZiwei.title.019": "부부궁 ↔ 복덕궁",
-    "advancedZiwei.title.020": "전택궁 ↔ 재백궁",
-    "advancedZiwei.title.021": "노복궁 ↔ 관록궁",
-    "advancedZiwei.label.001": "화록",
-    "advancedZiwei.label.002": "화권",
-    "advancedZiwei.label.003": "화과",
-    "advancedZiwei.label.004": "화기",
-    "advancedZiwei.placeholder.001": "예: 홍길동",
-    "advancedZiwei.text.001": "여성",
-    "advancedZiwei.text.002": "남성",
-    "advancedZiwei.text.003": "양력",
-    "advancedZiwei.text.004": "음력",
-    "advancedZiwei.placeholder.002": "예: 대한민국 서울",
-    "advancedZiwei.label.005": "핵심 강점",
-    "advancedZiwei.label.006": "주의 신호",
-    "advancedZiwei.label.007": "7일 루틴",
-    "advancedZiwei.title.022": "지금 시도할 행동",
-    "advancedZiwei.title.023": "줄이거나 조절할 행동",
-    "advancedZiwei.title.024": "유지할 기준",
-  },
-} as const;
-
-function advancedZiweiText(key: keyof typeof ADVANCED_ZIWEI_TEXT_TRANSLATIONS.ko) {
-  return ADVANCED_ZIWEI_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
-}
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { getAdvancedZiweiCopy, type AdvancedZiweiCopy } from "./ziwei/_lib/advanced-ziwei-copy";
 
 type Step = "form" | "computing" | "result";
 
@@ -277,12 +233,15 @@ interface ZiweiCounselingTrackConfig {
   cautionRules: string[];
 }
 
-const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
+const ZIWEI_TRACK_KEYS: ZiweiConsultationTrackId[] = ["life", "career", "wealth", "love", "relationships", "family", "health", "timing"];
+
+function buildCounselingTracks(copy: AdvancedZiweiCopy): ZiweiCounselingTrackConfig[] {
+  return [
   {
     key: "life",
-    title: advancedZiweiText("advancedZiwei.title.001"),
+    title: copy.trackTitles.life,
     shortTitle: "종합",
-    purpose: "명궁과 신궁을 중심으로 삶의 방향, 선택 습관, 반복 패턴을 통합해서 봅니다.",
+    purpose: copy.trackPurpose.life,
     primaryPalaces: ["ming", "fortune", "career"],
     secondaryPalaces: ["wealth", "travel", "spouse"],
     keyQuestions: ["내 명반에서 가장 선명한 성향은 무엇인가?", "반복되는 선택 패턴은 어디에서 시작되는가?", "삶의 균형을 잡으려면 어떤 축을 먼저 조절해야 하는가?"],
@@ -293,9 +252,9 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "career",
-    title: advancedZiweiText("advancedZiwei.title.002"),
+    title: copy.trackTitles.career,
     shortTitle: "직업",
-    purpose: "관록궁을 중심으로 일하는 방식, 성과가 나는 역할, 소진되는 환경을 구분합니다.",
+    purpose: copy.trackPurpose.career,
     primaryPalaces: ["career", "ming", "wealth"],
     secondaryPalaces: ["travel", "fortune", "friends"],
     keyQuestions: ["어떤 방식으로 일할 때 성과가 나는가?", "조직과 독립 중 어떤 조건이 더 맞는가?", "소진을 줄이려면 어떤 업무 환경을 피해야 하는가?"],
@@ -306,9 +265,9 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "wealth",
-    title: advancedZiweiText("advancedZiwei.title.003"),
+    title: copy.trackTitles.wealth,
     shortTitle: "재물",
-    purpose: "재백궁을 중심으로 수입화 방식, 관리 습관, 위험 선호와 누수 패턴을 읽습니다.",
+    purpose: copy.trackPurpose.wealth,
     primaryPalaces: ["wealth", "career", "property"],
     secondaryPalaces: ["fortune", "ming", "friends"],
     keyQuestions: ["돈을 버는 방식은 어디에서 힘을 얻는가?", "재물의 누수는 어떤 선택 습관에서 생기는가?", "사업이나 투자 판단에서 조절할 기준은 무엇인가?"],
@@ -319,9 +278,9 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "love",
-    title: advancedZiweiText("advancedZiwei.title.004"),
+    title: copy.trackTitles.love,
     shortTitle: "연애",
-    purpose: "부부궁을 중심으로 끌리는 관계 유형, 애정 표현, 갈등과 회복 방식을 봅니다.",
+    purpose: copy.trackPurpose.love,
     primaryPalaces: ["spouse", "ming", "fortune"],
     secondaryPalaces: ["friends", "children", "travel"],
     keyQuestions: ["관계에서 어떤 상대와 흐름이 맞는가?", "갈등은 어떤 감정 반응에서 커지는가?", "건강한 관계를 위해 어떤 표현을 연습해야 하는가?"],
@@ -332,9 +291,9 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "relationships",
-    title: advancedZiweiText("advancedZiwei.title.005"),
+    title: copy.trackTitles.relationships,
     shortTitle: "관계",
-    purpose: "교우궁과 형제궁을 중심으로 신뢰 형성, 협업, 경쟁, 경계 설정을 읽습니다.",
+    purpose: copy.trackPurpose.relationships,
     primaryPalaces: ["friends", "siblings", "travel"],
     secondaryPalaces: ["ming", "spouse", "career"],
     keyQuestions: ["어떤 사람과 협업이 잘 맞는가?", "관계에서 소모가 생기는 지점은 어디인가?", "경계를 세워야 할 신호는 무엇인가?"],
@@ -345,9 +304,9 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "family",
-    title: advancedZiweiText("advancedZiwei.title.006"),
+    title: copy.trackTitles.family,
     shortTitle: "가족",
-    purpose: "부모궁, 형제궁, 자녀궁으로 가족 안의 역할과 정서적 거리, 책임 패턴을 읽습니다.",
+    purpose: copy.trackPurpose.family,
     primaryPalaces: ["parents", "siblings", "children"],
     secondaryPalaces: ["property", "spouse", "fortune"],
     keyQuestions: ["가족 안에서 반복되는 역할은 무엇인가?", "정서적 거리와 책임감은 어떻게 균형을 잡아야 하는가?", "자녀·후배·결과물과의 관계에서 무엇을 조절해야 하는가?"],
@@ -358,9 +317,9 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "health",
-    title: advancedZiweiText("advancedZiwei.title.007"),
+    title: copy.trackTitles.health,
     shortTitle: "리듬",
-    purpose: "질액궁과 복덕궁을 중심으로 스트레스 반응, 소진 신호, 회복 루틴을 봅니다.",
+    purpose: copy.trackPurpose.health,
     primaryPalaces: ["health", "fortune", "ming"],
     secondaryPalaces: ["travel", "career", "property"],
     keyQuestions: ["어떤 상황에서 에너지가 빨리 소모되는가?", "회복을 위해 먼저 고정할 루틴은 무엇인가?", "생활 리듬을 흔드는 반복 패턴은 어디에서 오는가?"],
@@ -371,9 +330,9 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
   },
   {
     key: "timing",
-    title: advancedZiweiText("advancedZiwei.title.008"),
+    title: copy.trackTitles.timing,
     shortTitle: "시기",
-    purpose: "원국과 제공된 운한 데이터를 대조해 지금 집중할 일과 보수적으로 접근할 일을 구분합니다.",
+    purpose: copy.trackPurpose.timing,
     primaryPalaces: ["ming", "career", "wealth"],
     secondaryPalaces: ["fortune", "travel", "health"],
     keyQuestions: ["지금 원국의 어떤 특징이 강화되는가?", "확장하기 좋은 분야와 조심할 분야는 무엇인가?", "현재 운 데이터가 제한될 때 무엇까지 말할 수 있는가?"],
@@ -382,14 +341,15 @@ const ZIWEI_COUNSELING_TRACKS: ZiweiCounselingTrackConfig[] = [
     actionGuideType: "기회, 부담, 선택 기준, 주의 행동을 분리합니다.",
     cautionRules: ["현재 연도나 특정 사건을 임의로 예측하지 않습니다.", "데이터가 없으면 확인 불가로 표시합니다."],
   },
-];
+  ];
+}
 
-const ZIWEI_STRENGTH_COPY: Record<string, string> = {
-  "◎": "별의 힘이 가장 찬란하게 살아나는 상태",
-  O: "별의 본성이 안정적으로 발휘되는 흐름",
-  "▲": "상황에 따라 힘이 달라지는 별의 상태",
-  "△": "무난하지만 방향에 따라 달라지는 흐름",
-  X: "별의 에너지가 눌리거나 왜곡되기 쉬운 상태",
+const ZIWEI_STRENGTH_SYMBOL_KEY: Record<string, keyof AdvancedZiweiCopy["strengthDescriptions"]> = {
+  "◎": "miao",
+  O: "deuk",
+  "▲": "li",
+  "△": "ping",
+  X: "ham",
 };
 
 // 12궁 전통 명반 배치 — 지지(한글)를 4×4 격자 위치로 매핑(기본 명반 saju-engine.js zw-cell-N과 동일 배열).
@@ -940,7 +900,7 @@ function buildPalaceReading(chart: ZiweiDeepChart, track: ZiweiCounselingTrackCo
   };
 }
 
-function buildTrackAnalysis(chart: ZiweiDeepChart, track: ZiweiCounselingTrackConfig, rows: ZiweiPalaceCounselingItem[]): ZiweiTrackAnalysis {
+function buildTrackAnalysis(chart: ZiweiDeepChart, track: ZiweiCounselingTrackConfig, rows: ZiweiPalaceCounselingItem[], copy: AdvancedZiweiCopy): ZiweiTrackAnalysis {
   const { primary, secondary, ranked } = rowsForTrack(track, rows);
   const strongest = ranked[0] || rows[0];
   const second = ranked[1] || strongest;
@@ -995,49 +955,49 @@ function buildTrackAnalysis(chart: ZiweiDeepChart, track: ZiweiCounselingTrackCo
   const consultationFlow: ZiweiTrackFlowStage[] = [
     {
       stage: "1",
-      title: advancedZiweiText("advancedZiwei.title.009"),
+      title: copy.chapterTitles.conclusion,
       content: `${track.title}의 결론은 ${strongest?.palace.name || "핵심 궁"}의 힘을 먼저 쓰고 ${weakest?.palace.name || "관리 궁"}의 반복 피로를 줄이는 것입니다. ${summary}`,
       evidence: strongest ? buildPalaceEvidenceLines(strongest) : [],
       actions: [`${strongest?.palace.name || "강한 궁"}과 관련된 선택을 이번 주 우선순위로 올리세요.`, `${weakest?.palace.name || "관리 궁"}의 과부하 신호를 하루 한 번 기록하세요.`],
     },
     {
       stage: "2",
-      title: advancedZiweiText("advancedZiwei.title.010"),
+      title: copy.chapterTitles.whyChart,
       content: `${track.interpretationPriorities.join(" / ")} 순서로 보면 트랙의 초점이 흐려지지 않습니다. 전문 용어는 근거로 남기고, 실제 판단은 행동 기준으로 바꿉니다.`,
       evidence: keyPalaces.flatMap((item) => buildPalaceEvidenceLines(item)).slice(0, 8),
       actions: track.keyQuestions.slice(0, 2),
     },
     {
       stage: "3",
-      title: advancedZiweiText("advancedZiwei.title.011"),
+      title: copy.chapterTitles.realLife,
       content: `${strongest?.reality || "핵심 궁의 현실 반응을 확인합니다."} ${second?.reality || ""}`,
       evidence: [strongest?.palace.name, second?.palace.name].filter(Boolean) as string[],
       actions: [track.actionGuideType, ...strongestTrackAdvice.slice(0, 1), weakest?.advice || "관리 궁의 루틴을 먼저 세우세요."],
     },
     {
       stage: "4",
-      title: advancedZiweiText("advancedZiwei.title.012"),
+      title: copy.chapterTitles.repeatedPattern,
       content: `${strongest?.palace.name || "강한 궁"}이 빠르게 앞서가고 ${weakest?.palace.name || "관리 궁"}이 뒤에서 피로를 만드는 구도가 반복될 수 있습니다. 이 차이는 좋고 나쁨보다 속도 차이로 읽어야 합니다.`,
       evidence: [strongest ? `${strongest.palace.name} ${palaceForceLabel(strongest.energy)}` : "", weakest ? `${weakest.palace.name} ${palaceForceLabel(weakest.energy)}` : ""].filter(Boolean),
       actions: ["강한 궁은 확장 기준으로, 약한 궁은 점검표로 분리하세요."],
     },
     {
       stage: "5",
-      title: advancedZiweiText("advancedZiwei.title.013"),
+      title: copy.chapterTitles.currentTiming,
       content: timing.currentTheme,
       evidence: timing.evidence,
       actions: [...timing.opportunities.slice(0, 1), ...timing.cautions.slice(0, 1)],
     },
     {
       stage: "6",
-      title: advancedZiweiText("advancedZiwei.title.014"),
+      title: copy.chapterTitles.actionAdvice,
       content: `${track.actionGuideType} 조언은 명반의 중심 궁과 관리 궁을 연결해 현실에서 바로 점검할 수 있게 정리했습니다.`,
       evidence: keyPalaces.slice(0, 3).map((item) => `${item.palace.name}: ${item.keywords.join(" · ") || "키워드 제한"}`),
       actions: [strongest?.advice, ...strongestTrackAdvice.slice(0, 2), ...weakestTrackAdvice.slice(0, 1)].filter(Boolean) as string[],
     },
     {
       stage: "7",
-      title: advancedZiweiText("advancedZiwei.title.015"),
+      title: copy.chapterTitles.closing,
       content: `${track.title}의 흐름은 사용자를 규정하기보다, 강한 축을 어떻게 쓰고 약한 축을 어떻게 돌볼지 알려줍니다. 지금은 ${strongest?.palace.name || "강점"}을 믿되 ${weakest?.palace.name || "조절점"}을 방치하지 않는 태도가 중요합니다.`,
       evidence: track.keyQuestions,
       actions: track.keyQuestions.slice(0, 3),
@@ -1068,8 +1028,9 @@ function buildTrackAnalysis(chart: ZiweiDeepChart, track: ZiweiCounselingTrackCo
   };
 }
 
-function zPatternStrengthDescription(symbol: string): string {
-  return ZIWEI_STRENGTH_COPY[symbol] || "별의 흐름을 다시 살펴야 하는 상태";
+function zPatternStrengthDescription(symbol: string, copy: AdvancedZiweiCopy): string {
+  const key = ZIWEI_STRENGTH_SYMBOL_KEY[symbol];
+  return key ? copy.strengthDescriptions[key] : "별의 흐름을 다시 살펴야 하는 상태";
 }
 
 function StagePanel({ className, children }: { className?: string; children: ReactNode }) {
@@ -1120,8 +1081,8 @@ function GalaxyBackdrop() {
   );
 }
 
-function StarToneBadge({ symbol }: { symbol: string }) {
-  const text = zPatternStrengthDescription(symbol);
+function StarToneBadge({ symbol, copy }: { symbol: string; copy: AdvancedZiweiCopy }) {
+  const text = zPatternStrengthDescription(symbol, copy);
   const toneClass =
     symbol === "◎"
       ? "border-emerald-300/40 bg-emerald-200/12 text-emerald-50 shadow-[0_0_28px_rgba(52,211,153,0.15)]"
@@ -1146,16 +1107,31 @@ export default function AdvancedZiweiSectionV2({
   onStartGeneration,
   generationLoading = false,
 }: AdvancedZiweiSectionProps) {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  const copy = useMemo(() => getAdvancedZiweiCopy(locale), [locale]);
+  const counselingTracks = useMemo(() => buildCounselingTracks(copy), [copy]);
+
+  useEffect(() => {
+    const syncLocale = () => setLocale(getCurrentLoadingLocale());
+    syncLocale();
+    window.addEventListener("cd:locale-ready", syncLocale);
+    window.addEventListener("cd:locale-change", syncLocale);
+    return () => {
+      window.removeEventListener("cd:locale-ready", syncLocale);
+      window.removeEventListener("cd:locale-change", syncLocale);
+    };
+  }, []);
+
   const [step, setStep] = useState<Step>("form");
   const [progress, setProgress] = useState(0);
-  const [loadingText, setLoadingText] = useState("운명의 문을 여는 중...");
+  const [loadingText, setLoadingText] = useState(() => getAdvancedZiweiCopy(getCurrentLoadingLocale()).loadingInitialText);
   const [chart, setChart] = useState<ZiweiDeepChart | null>(null);
   const [chapters, setChapters] = useState<Partial<Record<ZiweiSectionId, ZiweiDeepChapter>>>({});
   const [activeSection, setActiveSection] = useState<ZiweiSectionId>("overview");
   const [activeTrackId, setActiveTrackId] = useState<ZiweiConsultationTrackId>("life");
   const [isFullscreen, setIsFullscreen] = useState(false);
 
-  const [form, setForm] = useState<FormState>({
+  const [form, setForm] = useState<FormState>(() => ({
     name: "",
     birthYear: "",
     birthMonth: "1",
@@ -1166,9 +1142,9 @@ export default function AdvancedZiweiSectionV2({
     gender: "F",
     calendarType: "solar",
     isLeapMonth: false,
-    birthPlace: "대한민국 서울",
+    birthPlace: getAdvancedZiweiCopy(getCurrentLoadingLocale()).defaultBirthPlaceValue,
     timezone: "Asia/Seoul",
-  });
+  }));
 
   const autoComputeRef = useRef(false);
   const currentProfileFingerprintRef = useRef("");
@@ -1187,7 +1163,7 @@ export default function AdvancedZiweiSectionV2({
   }), [form]);
 
   const activeChapter = chapters[activeSection];
-  const activeTrack = useMemo(() => ZIWEI_COUNSELING_TRACKS.find((track) => track.key === activeTrackId) || ZIWEI_COUNSELING_TRACKS[0], [activeTrackId]);
+  const activeTrack = useMemo(() => counselingTracks.find((track) => track.key === activeTrackId) || counselingTracks[0], [activeTrackId, counselingTracks]);
 
   const activePalace = useMemo(() => {
     if (!chart) return null;
@@ -1292,7 +1268,7 @@ export default function AdvancedZiweiSectionV2({
 
   const strongTop3 = useMemo(() => [...palaceCounseling].sort((a, b) => b.energy - a.energy).slice(0, 3), [palaceCounseling]);
   const weakTop3 = useMemo(() => [...palaceCounseling].sort((a, b) => a.energy - b.energy).slice(0, 3), [palaceCounseling]);
-  const trackAnalysis = useMemo(() => (chart && palaceCounseling.length ? buildTrackAnalysis(chart, activeTrack, palaceCounseling) : null), [activeTrack, chart, palaceCounseling]);
+  const trackAnalysis = useMemo(() => (chart && palaceCounseling.length ? buildTrackAnalysis(chart, activeTrack, palaceCounseling, copy) : null), [activeTrack, chart, copy, palaceCounseling]);
   const trackPalaceReadingById = useMemo(() => {
     if (!trackAnalysis) return {} as Partial<Record<ZiweiPalaceId, ZiweiTrackPalaceReading>>;
     return Object.fromEntries(trackAnalysis.palaceReadings.map((reading) => [reading.palaceId, reading])) as Partial<Record<ZiweiPalaceId, ZiweiTrackPalaceReading>>;
@@ -1310,8 +1286,8 @@ export default function AdvancedZiweiSectionV2({
   const overallCounselingSummary = useMemo(() => {
     if (!palaceCounseling.length) {
       return [
-        "명반 데이터를 불러오는 중입니다.",
-        "잠시 후 전체 흐름 요약이 표시됩니다.",
+        copy.overallSummaryLoadingLine1,
+        copy.overallSummaryLoadingLine2,
       ];
     }
 
@@ -1330,17 +1306,17 @@ export default function AdvancedZiweiSectionV2({
       `관계에서는 감정의 강도보다 경계와 역할을 먼저 합의할수록 운의 소모를 줄일 수 있습니다.`,
       `지금 가장 먼저 정리할 항목은 관리 궁 1순위의 사화·대궁 신호를 현실 규칙 하나로 고정하는 일입니다.`,
     ];
-  }, [palaceCounseling, strongTop3, weakTop3]);
+  }, [copy, palaceCounseling, strongTop3, weakTop3]);
 
   const palaceLinks = useMemo(() => {
     const byId = Object.fromEntries(palaceCounseling.map((row) => [row.palace.id, row] as const));
     const pairs: Array<{ left: ZiweiPalaceId; right: ZiweiPalaceId; title: string; lens: string }> = [
-      { left: "ming", right: "career", title: advancedZiweiText("advancedZiwei.title.016"), lens: "타고난 성향이 커리어 성공 방식으로 연결되는 축" },
-      { left: "ming", right: "spouse", title: advancedZiweiText("advancedZiwei.title.017"), lens: "자기 기질이 관계 패턴으로 드러나는 축" },
-      { left: "wealth", right: "career", title: advancedZiweiText("advancedZiwei.title.018"), lens: "일의 성과가 수입 구조로 번역되는 축" },
-      { left: "spouse", right: "fortune", title: advancedZiweiText("advancedZiwei.title.019"), lens: "관계의 안정이 내면 평온으로 이어지는 축" },
-      { left: "property", right: "wealth", title: advancedZiweiText("advancedZiwei.title.020"), lens: "기반 자산이 현금흐름 안정으로 이어지는 축" },
-      { left: "friends", right: "career", title: advancedZiweiText("advancedZiwei.title.021"), lens: "협업 네트워크가 커리어를 확장시키는 축" },
+      { left: "ming", right: "career", title: copy.palaceLinkTitles[0], lens: "타고난 성향이 커리어 성공 방식으로 연결되는 축" },
+      { left: "ming", right: "spouse", title: copy.palaceLinkTitles[1], lens: "자기 기질이 관계 패턴으로 드러나는 축" },
+      { left: "wealth", right: "career", title: copy.palaceLinkTitles[2], lens: "일의 성과가 수입 구조로 번역되는 축" },
+      { left: "spouse", right: "fortune", title: copy.palaceLinkTitles[3], lens: "관계의 안정이 내면 평온으로 이어지는 축" },
+      { left: "property", right: "wealth", title: copy.palaceLinkTitles[4], lens: "기반 자산이 현금흐름 안정으로 이어지는 축" },
+      { left: "friends", right: "career", title: copy.palaceLinkTitles[5], lens: "협업 네트워크가 커리어를 확장시키는 축" },
     ];
 
     return pairs
@@ -1357,15 +1333,15 @@ export default function AdvancedZiweiSectionV2({
         };
       })
       .filter(Boolean) as Array<{ title: string; lens: string; state: string; summary: string }>;
-  }, [palaceCounseling]);
+  }, [copy, palaceCounseling]);
 
   const sihuaInsights = useMemo(() => {
     if (!chart) return [] as string[];
     const byType = [
-      { label: advancedZiweiText("advancedZiwei.label.001"), star: chart.sihua.hualu },
-      { label: advancedZiweiText("advancedZiwei.label.002"), star: chart.sihua.huaquan },
-      { label: advancedZiweiText("advancedZiwei.label.003"), star: chart.sihua.huake },
-      { label: advancedZiweiText("advancedZiwei.label.004"), star: chart.sihua.huaji },
+      { label: "화록", star: chart.sihua.hualu },
+      { label: "화권", star: chart.sihua.huaquan },
+      { label: "화과", star: chart.sihua.huake },
+      { label: "화기", star: chart.sihua.huaji },
     ].filter((row) => Boolean(row.star)) as Array<{ label: "화록" | "화권" | "화과" | "화기"; star: string }>;
 
     return byType.map((row) => {
@@ -1434,19 +1410,19 @@ export default function AdvancedZiweiSectionV2({
 
   const selectCounselingTrack = useCallback(
     (trackId: ZiweiConsultationTrackId) => {
-      const nextTrack = ZIWEI_COUNSELING_TRACKS.find((track) => track.key === trackId) || ZIWEI_COUNSELING_TRACKS[0];
+      const nextTrack = counselingTracks.find((track) => track.key === trackId) || counselingTracks[0];
       setActiveTrackId(nextTrack.key);
       const firstPalace = nextTrack.primaryPalaces[0];
       if (firstPalace) loadSection(firstPalace);
     },
-    [loadSection],
+    [counselingTracks, loadSection],
   );
 
   const handleCompute = useCallback(() => {
     void enterImmersiveMode();
 
     if (!form.unknownHour && String(form.birthHour).trim() === "") {
-      alert("정확한 출생 시를 선택하거나, 출생시간 미상을 체크해 정오 기준 참고 명반으로 진행해 주세요.");
+      alert(copy.alertMissingBirthHour);
       return;
     }
 
@@ -1466,20 +1442,14 @@ export default function AdvancedZiweiSectionV2({
     });
 
     if (normalized.errors.length || !normalized.input) {
-      alert(normalized.errors.map((e) => e.message).join("\n") || "입력값을 확인해 주세요.");
+      alert(normalized.errors.map((e) => e.message).join("\n") || copy.alertCheckInput);
       return;
     }
 
     setStep("computing");
     setProgress(0);
 
-    const progressTexts = [
-      "운명의 결을 정돈하는 중...",
-      "명궁과 신궁의 축을 맞추는 중...",
-      "12궁의 흐름을 천천히 엮는 중...",
-      "상담에 필요한 문장을 다듬는 중...",
-      "첫 장면을 열 준비를 마치는 중...",
-    ];
+    const progressTexts = copy.progressTexts;
 
     let p = 0;
     const timer = setInterval(() => {
@@ -1498,7 +1468,7 @@ export default function AdvancedZiweiSectionV2({
         const advancedValidation = validateAdvancedZiweiResult(nextChart);
         if (!advancedValidation.valid) {
           clearInterval(timer);
-          alert("명반을 여는 과정에서 잠시 흐름이 어긋났습니다. 다시 시도해 주세요.");
+          alert(copy.alertChartError);
           setStep("form");
           return;
         }
@@ -1544,11 +1514,11 @@ export default function AdvancedZiweiSectionV2({
       } catch (err) {
         clearInterval(timer);
         console.error("[AdvancedZiweiV2] compute error:", err);
-        alert("상담 장면을 여는 중 문제가 생겼습니다.");
+        alert(copy.alertComputeError);
         setStep("form");
       }
     }, 1600);
-  }, [activeTrackId, enterImmersiveMode, form]);
+  }, [activeTrackId, copy, enterImmersiveMode, form]);
 
   const restoreCachedResult = useCallback((expectedFingerprint: string): boolean => {
     if (!expectedFingerprint) return false;
@@ -1576,7 +1546,7 @@ export default function AdvancedZiweiSectionV2({
       setChart(migratedChart);
       setChapters({ ...parsed.chapters, overview, ming });
       setActiveSection(parsed.activeSection || "overview");
-      if (ZIWEI_COUNSELING_TRACKS.some((track) => track.key === parsed.activeTrackId)) {
+      if (ZIWEI_TRACK_KEYS.includes(parsed.activeTrackId)) {
         setActiveTrackId(parsed.activeTrackId);
       }
       setStep("result");
@@ -1674,9 +1644,9 @@ export default function AdvancedZiweiSectionV2({
         <GalaxyBackdrop />
         <div className="relative z-10">
           <p className="text-[11px] font-semibold tracking-[0.32em] text-cyan-100/80">ZIWEI PREMIUM COUNSELING</p>
-          <h3 className="font-display mt-3 text-2xl font-black leading-tight text-white md:text-3xl">심화 자미두수 12궁 상담</h3>
+          <h3 className="font-display mt-3 text-2xl font-black leading-tight text-white md:text-3xl">{copy.introTitle}</h3>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-slate-200/90">
-            기본 명반 보기와 별개로, 주성·사화·삼방사정·대한을 한 판단으로 묶어 관계와 돈과 일의 실제 선택 흐름까지 읽습니다.
+            {copy.introDesc}
           </p>
           <div className="mt-6 grid gap-3 sm:grid-cols-2">
             <button
@@ -1687,7 +1657,7 @@ export default function AdvancedZiweiSectionV2({
               disabled={generationLoading}
               className="rounded-2xl bg-gradient-to-r from-cyan-200 via-sky-300 to-amber-200 px-4 py-4 text-sm font-black text-slate-950"
             >
-              심화 명반 열기
+              {copy.introStartButton}
             </button>
             <button
               onClick={() => {
@@ -1695,7 +1665,7 @@ export default function AdvancedZiweiSectionV2({
               }}
               className="rounded-2xl border border-white/12 bg-white/8 px-4 py-4 text-sm font-semibold text-slate-100"
             >
-              기본 무료 명반 보기
+              {copy.introBasicButton}
             </button>
           </div>
         </div>
@@ -1712,9 +1682,9 @@ export default function AdvancedZiweiSectionV2({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">ZIWEI PREMIUM INPUT</p>
-                <h1 className="font-display mt-3 text-3xl font-black text-white md:text-4xl">심화 자미두수 상담 명반을 준비합니다</h1>
+                <h1 className="font-display mt-3 text-3xl font-black text-white md:text-4xl">{copy.formTitle}</h1>
                 <p className="font-premium mt-3 max-w-2xl text-sm leading-7 text-slate-200/85">
-                  기본 무료 자미두수는 12궁 명반 확인용입니다. 이 화면은 같은 명반을 사화·삼방사정·대한·실행 조언까지 확장해 읽는 심화 상담용입니다.
+                  {copy.formDesc}
                 </p>
               </div>
               <div className="flex flex-wrap gap-2">
@@ -1725,41 +1695,41 @@ export default function AdvancedZiweiSectionV2({
                   }}
                   className="rounded-full border border-amber-200/25 bg-amber-200/10 px-4 py-2 text-xs font-semibold text-amber-50"
                 >
-                  기본 명반으로 이동
+                  {copy.goBasicButton}
                 </button>
                 <button
                   type="button"
                   onClick={() => void toggleImmersiveMode()}
                   className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold text-slate-100"
                 >
-                  {isFullscreen ? "전체화면 나가기" : "전체화면 켜기"}
+                  {isFullscreen ? copy.fullscreenExitLabel : copy.fullscreenEnterLabel}
                 </button>
               </div>
             </div>
 
             <div className="mt-6 grid gap-4 md:grid-cols-2">
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">이름</span>
+                <span className="text-xs font-semibold text-cyan-100">{copy.fieldNameLabel}</span>
                 <input
                   value={form.name}
                   onChange={(e) => setForm((prev) => ({ ...prev, name: e.target.value }))}
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none ring-0 placeholder:text-slate-500"
-                  placeholder={advancedZiweiText("advancedZiwei.placeholder.001")}
+                  placeholder={copy.namePlaceholder}
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">성별</span>
+                <span className="text-xs font-semibold text-cyan-100">{copy.fieldGenderLabel}</span>
                 <select
                   value={form.gender}
                   onChange={(e) => setForm((prev) => ({ ...prev, gender: e.target.value as ZiweiGender }))}
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
                 >
-                  <option value="F">{advancedZiweiText("advancedZiwei.text.001")}</option>
-                  <option value="M">{advancedZiweiText("advancedZiwei.text.002")}</option>
+                  <option value="F">{copy.genderLabels.female}</option>
+                  <option value="M">{copy.genderLabels.male}</option>
                 </select>
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">출생 연도</span>
+                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthYearLabel}</span>
                 <input
                   type="number"
                   value={form.birthYear}
@@ -1768,7 +1738,7 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">출생 월</span>
+                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthMonthLabel}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1780,7 +1750,7 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">출생 일</span>
+                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthDayLabel}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1792,7 +1762,7 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">출생 시</span>
+                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthHourLabel}</span>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -1805,27 +1775,27 @@ export default function AdvancedZiweiSectionV2({
                 />
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">양력/음력</span>
+                <span className="text-xs font-semibold text-cyan-100">{copy.fieldCalendarLabel}</span>
                 <select
                   value={form.calendarType}
                   onChange={(e) => setForm((prev) => ({ ...prev, calendarType: e.target.value as "solar" | "lunar" }))}
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none"
                 >
-                  <option value="solar">{advancedZiweiText("advancedZiwei.text.003")}</option>
-                  <option value="lunar">{advancedZiweiText("advancedZiwei.text.004")}</option>
+                  <option value="solar">{copy.calendarLabels.solar}</option>
+                  <option value="lunar">{copy.calendarLabels.lunar}</option>
                 </select>
               </label>
               <label className="space-y-2">
-                <span className="text-xs font-semibold text-cyan-100">출생지</span>
+                <span className="text-xs font-semibold text-cyan-100">{copy.fieldBirthPlaceLabel}</span>
                 <input
                   value={form.birthPlace}
                   onChange={(e) => setForm((prev) => ({ ...prev, birthPlace: e.target.value }))}
                   className="w-full rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm text-white outline-none placeholder:text-slate-500"
-                  placeholder={advancedZiweiText("advancedZiwei.placeholder.002")}
+                  placeholder={copy.birthPlacePlaceholder}
                 />
               </label>
               <label className="space-y-2 md:col-span-2">
-                <span className="text-xs font-semibold text-cyan-100">시간대</span>
+                <span className="text-xs font-semibold text-cyan-100">{copy.fieldTimezoneLabel}</span>
                 <input
                   value={form.timezone}
                   onChange={(e) => setForm((prev) => ({ ...prev, timezone: e.target.value }))}
@@ -1843,7 +1813,7 @@ export default function AdvancedZiweiSectionV2({
                   onChange={(e) => setForm((prev) => ({ ...prev, unknownHour: e.target.checked }))}
                   className="h-4 w-4 accent-cyan-300"
                 />
-                출생시간 미상(정오 기준 참고 리딩)
+                {copy.unknownHourCheckboxLabel}
               </label>
               <label className="inline-flex items-center gap-2">
                 <input
@@ -1852,12 +1822,12 @@ export default function AdvancedZiweiSectionV2({
                   onChange={(e) => setForm((prev) => ({ ...prev, isLeapMonth: e.target.checked }))}
                   className="h-4 w-4 accent-cyan-300"
                 />
-                윤달
+                {copy.leapMonthCheckboxLabel}
               </label>
             </div>
 
             <p className="mt-3 text-xs leading-6 text-amber-100/85">
-              자미두수는 출생 시각에 따라 명궁·신궁과 일부 궁위가 달라집니다. 시각이 불확실하면 정오 기준 참고 명반으로 표시됩니다.
+              {copy.formDisclaimer}
             </p>
 
             <button
@@ -1865,7 +1835,7 @@ export default function AdvancedZiweiSectionV2({
               onClick={handleCompute}
               className="mt-6 w-full rounded-2xl bg-gradient-to-r from-cyan-200 via-sky-300 to-amber-200 px-5 py-4 text-sm font-black text-slate-950"
             >
-              심화 자미두수 상담 열기
+              {copy.computeButton}
             </button>
           </StagePanel>
         </div>
@@ -1879,9 +1849,9 @@ export default function AdvancedZiweiSectionV2({
         <GalaxyBackdrop />
         <div className="relative z-10 w-full max-w-xl">
           <StagePanel className="p-8 sm:p-10">
-            <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">운명의 문이 열리는 순간</p>
+            <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">{copy.computingEyebrow}</p>
             <h2 className="font-display mt-4 text-3xl font-black leading-tight text-white sm:text-4xl">{loadingText}</h2>
-            <p className="mt-3 text-sm font-semibold text-amber-100">상담 트랙: {activeTrack.title}</p>
+            <p className="mt-3 text-sm font-semibold text-amber-100">{copy.computingTrackLabelPrefix}{activeTrack.title}</p>
             <div className="mt-7 overflow-hidden rounded-full border border-white/12 bg-white/10">
               <div className="h-2 bg-gradient-to-r from-cyan-200 via-sky-300 to-amber-200" style={{ width: `${progress}%` }} />
             </div>
@@ -1918,7 +1888,7 @@ export default function AdvancedZiweiSectionV2({
             onClick={() => void toggleImmersiveMode()}
             className="rounded-full border border-white/12 bg-white/8 px-4 py-2 text-xs font-semibold text-slate-100 backdrop-blur-xl"
           >
-            {isFullscreen ? "전체화면 나가기" : "전체화면 켜기"}
+            {isFullscreen ? copy.fullscreenExitLabel : copy.fullscreenEnterLabel}
           </button>
         </div>
 
@@ -1926,9 +1896,9 @@ export default function AdvancedZiweiSectionV2({
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div className="space-y-5">
               <p className="text-[11px] font-semibold tracking-[0.32em] text-amber-100/80">ZIWEI PREMIUM REPORT</p>
-              <h1 className="font-display max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{chart.user.name || "당신"}님의 심화 자미두수 상담 리포트</h1>
+              <h1 className="font-display max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{copy.resultTitleTemplate(chart.user.name || copy.resultTitleDefaultName)}</h1>
               <p className="font-premium max-w-3xl text-sm leading-7 text-slate-200/90 md:text-base">
-                명궁·신궁의 축, 주성의 묘왕평함, 사화와 삼방사정, 대한·유년의 흐름을 함께 대조해 삶의 우선순위를 상담하듯 풀어드립니다.
+                {copy.resultDesc}
               </p>
 
               <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
@@ -1945,7 +1915,7 @@ export default function AdvancedZiweiSectionV2({
                   <p className="mt-1 text-lg font-black text-violet-100">{chart.juInfo}</p>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3">
-                  <p className="text-[11px] text-slate-300">올해 흐름</p>
+                  <p className="text-[11px] text-slate-300">{copy.statYearFlowLabel}</p>
                   <p className="mt-1 text-lg font-black text-amber-50">{chart.yearGan}{chart.yearZhi}</p>
                 </div>
               </div>
@@ -1961,24 +1931,24 @@ export default function AdvancedZiweiSectionV2({
 
             <div className="space-y-3">
               <div className="rounded-3xl border border-amber-200/15 bg-gradient-to-br from-amber-200/10 via-white/6 to-cyan-200/10 p-5">
-                <p className="text-xs font-semibold tracking-[0.28em] text-amber-100/80">마스터 조언</p>
+                <p className="text-xs font-semibold tracking-[0.28em] text-amber-100/80">{copy.masterAdviceLabel}</p>
                 <p className="mt-3 text-sm leading-7 text-slate-100/95">{chart.summary.direction}</p>
                 <p className="mt-3 text-xs leading-6 text-slate-300">{chart.summary.openingCondition}</p>
               </div>
 
               <div className="grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs font-semibold text-slate-300">별의 세기</p>
+                  <p className="text-xs font-semibold text-slate-300">{copy.starStrengthSectionLabel}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
-                    <StarToneBadge symbol="◎" />
-                    <StarToneBadge symbol="O" />
-                    <StarToneBadge symbol="▲" />
-                    <StarToneBadge symbol="△" />
-                    <StarToneBadge symbol="X" />
+                    <StarToneBadge symbol="◎" copy={copy} />
+                    <StarToneBadge symbol="O" copy={copy} />
+                    <StarToneBadge symbol="▲" copy={copy} />
+                    <StarToneBadge symbol="△" copy={copy} />
+                    <StarToneBadge symbol="X" copy={copy} />
                   </div>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs font-semibold text-slate-300">사화의 결</p>
+                  <p className="text-xs font-semibold text-slate-300">{copy.sihuaTextureLabel}</p>
                   <div className="mt-3 flex flex-wrap gap-2 text-[11px] font-semibold">
                     {chart.sihua.hualu ? <span className="rounded-full border border-lime-300/30 bg-lime-200/10 px-3 py-1 text-lime-100">화록 {chart.sihua.hualu}</span> : null}
                     {chart.sihua.huaquan ? <span className="rounded-full border border-orange-300/30 bg-orange-200/10 px-3 py-1 text-orange-100">화권 {chart.sihua.huaquan}</span> : null}
@@ -1995,7 +1965,7 @@ export default function AdvancedZiweiSectionV2({
           <StagePanel className="p-4 sm:p-5 lg:p-6">
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div className="max-w-3xl">
-                <p className="text-xs font-semibold text-cyan-100/80">선택한 상담 트랙 · {trackAnalysis.selectedTrack.title}</p>
+                <p className="text-xs font-semibold text-cyan-100/80">{copy.selectedTrackPrefix}{trackAnalysis.selectedTrack.title}</p>
                 <h2 className="font-display mt-2 text-2xl font-black leading-tight text-white md:text-3xl">
                   {trackAnalysis.executiveSummary.headline}
                 </h2>
@@ -2004,7 +1974,7 @@ export default function AdvancedZiweiSectionV2({
                 </p>
               </div>
               <div className="rounded-2xl border border-white/10 bg-black/24 px-4 py-3 text-xs leading-6 text-slate-200">
-                <p className="font-semibold text-amber-100">우선 해석 궁</p>
+                <p className="font-semibold text-amber-100">{copy.primaryPalaceLabel}</p>
                 <p className="mt-1">{trackAnalysis.selectedTrack.primaryPalaces.map((id) => trackPalaceReadingById[id]?.palaceName || id).join(" · ")}</p>
               </div>
             </div>
@@ -2015,7 +1985,7 @@ export default function AdvancedZiweiSectionV2({
                   <p className="text-sm font-black text-white">{pattern.title}</p>
                   <p className="mt-2 text-sm leading-7 text-slate-200">{pattern.interpretation}</p>
                   <details className="mt-3 rounded-xl border border-cyan-200/15 bg-cyan-200/8 px-3 py-2 text-xs leading-6 text-cyan-50">
-                    <summary className="cursor-pointer font-semibold">명반 근거 보기</summary>
+                    <summary className="cursor-pointer font-semibold">{copy.evidenceToggleLabel}</summary>
                     <ul className="mt-2 space-y-1">
                       {pattern.evidence.map((line) => (
                         <li key={line}>{line}</li>
@@ -2038,7 +2008,7 @@ export default function AdvancedZiweiSectionV2({
 
         {chart.warnings.length ? (
           <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.24em] text-amber-100/80">정밀도 참고</p>
+            <p className="text-xs font-semibold tracking-[0.24em] text-amber-100/80">{copy.precisionNoteLabel}</p>
             <div className="mt-3 space-y-2 text-sm leading-7 text-amber-50/90">
               {chart.warnings.map((warning, idx) => (
                 <p key={`${warning.code}-${idx}`}>• {warning.message}</p>
@@ -2049,9 +2019,9 @@ export default function AdvancedZiweiSectionV2({
 
         <StagePanel className="p-4 sm:p-5">
           <div className="space-y-3">
-            <p className="text-xs font-semibold text-cyan-100/80">상담 트랙</p>
+            <p className="text-xs font-semibold text-cyan-100/80">{copy.counselingTrackSectionLabel}</p>
             <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-              {ZIWEI_COUNSELING_TRACKS.map((track) => {
+              {counselingTracks.map((track) => {
                 const active = track.key === activeTrackId;
                 const icon = COUNSELING_TRACK_ICON_MAP[track.key];
                 return (
@@ -2064,7 +2034,7 @@ export default function AdvancedZiweiSectionV2({
                     <p className="text-sm font-semibold text-white">{icon} {track.title}</p>
                     <p className="mt-2 text-xs leading-6 text-slate-300">{track.purpose}</p>
                     <p className="mt-2 text-[11px] leading-5 text-cyan-100/80">
-                      핵심 궁: {track.primaryPalaces.map((id) => PALACE_DEFINITION_MAP[id].name).join(" · ")}
+                      {copy.corePalaceLabelPrefix}{track.primaryPalaces.map((id) => PALACE_DEFINITION_MAP[id].name).join(" · ")}
                     </p>
                   </button>
                 );
@@ -2077,10 +2047,10 @@ export default function AdvancedZiweiSectionV2({
           <StagePanel className="p-4 sm:p-5">
             <div className="flex items-center justify-between gap-3">
               <div>
-                <p className="text-xs font-semibold tracking-[0.24em] text-cyan-100/80">12궁 명반</p>
-                <h2 className="mt-2 text-lg font-black text-white">궁위 배치</h2>
+                <p className="text-xs font-semibold tracking-[0.24em] text-cyan-100/80">{copy.gridSectionEyebrow}</p>
+                <h2 className="mt-2 text-lg font-black text-white">{copy.gridSectionTitle}</h2>
               </div>
-              <p className="text-xs text-slate-300">선택한 궁: {sectionTitle(activeSection)}</p>
+              <p className="text-xs text-slate-300">{copy.selectedPalaceLabelPrefix}{sectionTitle(activeSection)}</p>
             </div>
             {/* 12궁 전통 4×4 명반 — 기본 명반(saju-engine.js zw-* 격자)과 동일한 지지 배치/팔레트 레퍼런스 */}
             <div className="mt-5 overflow-x-auto pb-1">
@@ -2157,13 +2127,13 @@ export default function AdvancedZiweiSectionV2({
                   className="relative flex flex-col items-center justify-center overflow-hidden rounded-2xl border border-amber-200/35 bg-[radial-gradient(circle_at_50%_28%,rgba(232,213,163,0.2),transparent_58%),radial-gradient(circle_at_30%_80%,rgba(167,139,250,0.2),transparent_56%),linear-gradient(160deg,rgba(40,28,84,0.85),rgba(15,13,42,0.92))] p-3 text-center shadow-[inset_0_0_28px_rgba(232,213,163,0.18)]"
                 >
                   <p className="text-[10px] font-black tracking-[0.16em] text-amber-100/90">紫微星圖</p>
-                  <p className="mt-1 text-sm font-black text-amber-100 sm:text-base">자미 성도 명반</p>
+                  <p className="mt-1 text-sm font-black text-amber-100 sm:text-base">{copy.centerPanelSubtitle}</p>
                   <div className="mt-2 flex flex-wrap justify-center gap-1">
                     <span className="rounded-full border border-amber-300/45 bg-amber-300/12 px-2 py-0.5 text-[9px] font-bold text-amber-100">명궁 {chart.mingGong}</span>
                     <span className="rounded-full border border-sky-300/45 bg-sky-300/12 px-2 py-0.5 text-[9px] font-bold text-sky-100">신궁 {chart.shenGong}</span>
                     <span className="rounded-full border border-violet-300/45 bg-violet-300/12 px-2 py-0.5 text-[9px] font-bold text-violet-100">오행국 {chart.juInfo}</span>
                   </div>
-                  <p className="mt-2 hidden text-[9px] leading-snug text-indigo-100/80 sm:block">별빛이 강한 궁일수록 명반에서 선명하게 작동하는 운명의 축입니다.</p>
+                  <p className="mt-2 hidden text-[9px] leading-snug text-indigo-100/80 sm:block">{copy.centerPanelDesc}</p>
                 </div>
               </div>
             </div>
@@ -2181,7 +2151,7 @@ export default function AdvancedZiweiSectionV2({
                 onClick={() => loadSection(activeSection)}
                 className="rounded-full border border-white/10 bg-white/6 px-4 py-2 text-xs font-semibold text-slate-100"
               >
-                현재 궁 다시 읽기
+                {copy.rereadButtonLabel}
               </button>
             </div>
 
@@ -2205,7 +2175,7 @@ export default function AdvancedZiweiSectionV2({
                     </div>
                   </div>
                   <div>
-                    <p className="text-[11px] font-semibold tracking-[0.28em] text-amber-100/80">{activePalace.name} 성요 판독</p>
+                    <p className="text-[11px] font-semibold tracking-[0.28em] text-amber-100/80">{activePalace.name} {copy.palaceReadingSuffixLabel}</p>
                     <h3 className="mt-2 text-xl font-black text-white">
                       {activePalace.id === "ming"
                         ? "성향, 자기방어, 선택 습관을 먼저 읽습니다"
@@ -2261,19 +2231,19 @@ export default function AdvancedZiweiSectionV2({
             {activePalace ? (
               <div className="mt-5 grid gap-3 sm:grid-cols-2">
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs font-semibold text-slate-300">주요 별</p>
+                  <p className="text-xs font-semibold text-slate-300">{copy.mainStarsCardLabel}</p>
                   <div className="mt-3 flex flex-wrap gap-2">
                     {activePalace.mainStars.length ? activePalace.mainStars.map((star) => (
-                      <StarToneBadge key={`main-${star.name}`} symbol={String(star.strengthSymbol || star.symbol || "").trim() || "△"} />
+                      <StarToneBadge key={`main-${star.name}`} symbol={String(star.strengthSymbol || star.symbol || "").trim() || "△"} copy={copy} />
                     )) : <p className="text-sm text-slate-400">무주성궁이라 대궁과 삼방의 목소리를 함께 들어야 합니다.</p>}
                   </div>
                 </div>
                 <div className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                  <p className="text-xs font-semibold text-slate-300">감정의 결</p>
+                  <p className="text-xs font-semibold text-slate-300">{copy.emotionalTextureLabel}</p>
                   <div className="mt-3 text-sm leading-7 text-slate-200">
                     <p>묘 {activeStrengthBands.miao} · 득 {activeStrengthBands.deuk} · 리 {activeStrengthBands.li} · 평 {activeStrengthBands.ping} · 함 {activeStrengthBands.ham}</p>
                     <p className="mt-2 text-slate-300">
-                      강한 별은 방향을 만들고, 약한 별은 피로를 알립니다. 둘 다 놓치지 않아야 현실 조언이 살아납니다.
+                      {copy.starPowerBalanceHint}
                     </p>
                   </div>
                 </div>
@@ -2282,9 +2252,9 @@ export default function AdvancedZiweiSectionV2({
 
             <div className="mt-5 grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
               {[
-                { label: advancedZiweiText("advancedZiwei.label.005"), value: activeChapter.strengths.slice(0, 2).join(" · ") || "흐름을 다시 고르게 세울 힘" },
-                { label: advancedZiweiText("advancedZiwei.label.006"), value: activeChapter.cautions.slice(0, 2).join(" · ") || "과속할 때 균형을 잃는 지점" },
-                { label: advancedZiweiText("advancedZiwei.label.007"), value: activeChapter.routine7Days.slice(0, 2).join(" · ") || "매일 10분씩 같은 질문을 적기" },
+                { label: copy.strengthKeywordLabel, value: activeChapter.strengths.slice(0, 2).join(" · ") || "흐름을 다시 고르게 세울 힘" },
+                { label: copy.cautionKeywordLabel, value: activeChapter.cautions.slice(0, 2).join(" · ") || "과속할 때 균형을 잃는 지점" },
+                { label: copy.routineKeywordLabel, value: activeChapter.routine7Days.slice(0, 2).join(" · ") || "매일 10분씩 같은 질문을 적기" },
               ].map((item) => (
                 <div key={item.label} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-xs font-semibold text-slate-300">{item.label}</p>
@@ -2296,17 +2266,17 @@ export default function AdvancedZiweiSectionV2({
         </div>
 
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">12궁 요약 표</p>
+          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.summaryTableHeading}</p>
           <div className="mt-4 overflow-x-auto rounded-2xl border border-white/10 bg-black/20">
             <table className="min-w-full text-left text-xs sm:text-sm">
               <thead className="bg-white/6 text-slate-200">
                 <tr>
-                  <th className="px-3 py-3 font-semibold">궁</th>
-                  <th className="px-3 py-3 font-semibold">정의</th>
-                  <th className="px-3 py-3 font-semibold">주성</th>
-                  <th className="px-3 py-3 font-semibold">보조성</th>
-                  <th className="px-3 py-3 font-semibold">궁세</th>
-                  <th className="px-3 py-3 font-semibold">상담 우선순위</th>
+                  <th className="px-3 py-3 font-semibold">{copy.tableColPalace}</th>
+                  <th className="px-3 py-3 font-semibold">{copy.tableColDefinition}</th>
+                  <th className="px-3 py-3 font-semibold">{copy.tableColMainStar}</th>
+                  <th className="px-3 py-3 font-semibold">{copy.tableColAuxStar}</th>
+                  <th className="px-3 py-3 font-semibold">{copy.tableColForce}</th>
+                  <th className="px-3 py-3 font-semibold">{copy.tableColPriority}</th>
                 </tr>
               </thead>
               <tbody>
@@ -2339,7 +2309,7 @@ export default function AdvancedZiweiSectionV2({
         </StagePanel>
 
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">1. 전체 명반 종합 요약</p>
+          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.overallSummaryHeading}</p>
           <div className="mt-4 grid gap-3">
             {overallCounselingSummary.map((line, index) => (
               <p key={`overall-${index}`} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">
@@ -2351,12 +2321,12 @@ export default function AdvancedZiweiSectionV2({
 
         <div className="grid gap-4 lg:grid-cols-2">
           <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">2. 강한 궁 TOP 3</p>
+            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.strongTop3Heading}</p>
             <div className="mt-4 space-y-3">
               {strongTop3.map((item, index) => (
                 <div key={`strong-${item.palace.id}`} className="rounded-2xl border border-emerald-300/25 bg-emerald-200/10 p-4">
                   <p className="text-sm font-black text-emerald-50">#{index + 1} {item.palace.name} · {palaceForceLabel(item.energy)}</p>
-                  <p className="mt-2 text-xs leading-6 text-emerald-100/90">핵심 키워드: {item.keywords.join(" · ") || "흐름 정렬"}</p>
+                  <p className="mt-2 text-xs leading-6 text-emerald-100/90">{copy.keywordLabelPrefix}{item.keywords.join(" · ") || "흐름 정렬"}</p>
                   <p className="mt-2 text-sm leading-7 text-slate-100/95">{item.strengths}</p>
                 </div>
               ))}
@@ -2364,12 +2334,12 @@ export default function AdvancedZiweiSectionV2({
           </StagePanel>
 
           <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">3. 관리가 필요한 궁 TOP 3</p>
+            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.weakTop3Heading}</p>
             <div className="mt-4 space-y-3">
               {weakTop3.map((item, index) => (
                 <div key={`weak-${item.palace.id}`} className="rounded-2xl border border-rose-300/25 bg-rose-200/10 p-4">
                   <p className="text-sm font-black text-rose-50">#{index + 1} {item.palace.name} · {palaceForceLabel(item.energy)}</p>
-                  <p className="mt-2 text-xs leading-6 text-rose-100/90">핵심 키워드: {item.keywords.join(" · ") || "리듬 보정"}</p>
+                  <p className="mt-2 text-xs leading-6 text-rose-100/90">{copy.keywordLabelPrefix}{item.keywords.join(" · ") || "리듬 보정"}</p>
                   <p className="mt-2 text-sm leading-7 text-slate-100/95">{item.cautions}</p>
                 </div>
               ))}
@@ -2378,7 +2348,7 @@ export default function AdvancedZiweiSectionV2({
         </div>
 
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">4. 각 궁별 상세 상담 해석</p>
+          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.detailHeading}</p>
           <div className="mt-4 grid gap-4 xl:grid-cols-2">
             {orderedPalaceCounseling.map((item) => {
               const reading = trackPalaceReadingById[item.palace.id];
@@ -2403,27 +2373,27 @@ export default function AdvancedZiweiSectionV2({
 
                     <div className="mt-4 grid gap-3">
                       <section className="rounded-2xl border border-cyan-200/15 bg-black/24 p-4">
-                        <p className="text-xs font-semibold text-cyan-100">명반 근거 요약</p>
+                        <p className="text-xs font-semibold text-cyan-100">{copy.detailCard.evidenceSummaryTitle}</p>
                         <div className="mt-3 grid gap-2 text-xs leading-6 text-slate-200 sm:grid-cols-2">
-                          <p><span className="font-semibold text-white">핵심 주성</span>: {reading.evidence.mainStars.join(" · ") || "직접 주성 없음"}</p>
-                          <p><span className="font-semibold text-white">보조 요소</span>: {reading.evidence.auxiliaryStars.join(" · ") || "직접 보조성·살성 정보 제한"}</p>
-                          <p><span className="font-semibold text-white">사화</span>: {reading.evidence.transformations.join(" / ") || "직접 사화 신호는 약함"}</p>
-                          <p><span className="font-semibold text-white">연결 궁</span>: {[reading.evidence.oppositePalace, ...reading.evidence.relatedPalaces].filter(Boolean).join(" · ") || "확인 제한"}</p>
+                          <p><span className="font-semibold text-white">{copy.detailCard.mainStarLabel}</span>: {reading.evidence.mainStars.join(" · ") || "직접 주성 없음"}</p>
+                          <p><span className="font-semibold text-white">{copy.detailCard.auxLabel}</span>: {reading.evidence.auxiliaryStars.join(" · ") || "직접 보조성·살성 정보 제한"}</p>
+                          <p><span className="font-semibold text-white">{copy.detailCard.sihuaLabel}</span>: {reading.evidence.transformations.join(" / ") || "직접 사화 신호는 약함"}</p>
+                          <p><span className="font-semibold text-white">{copy.detailCard.connectedPalaceLabel}</span>: {[reading.evidence.oppositePalace, ...reading.evidence.relatedPalaces].filter(Boolean).join(" · ") || "확인 제한"}</p>
                         </div>
                       </section>
 
                       <section className="rounded-2xl border border-cyan-200/16 bg-cyan-200/8 p-4">
-                        <p className="text-xs font-semibold text-cyan-100">고객용 해석</p>
+                        <p className="text-xs font-semibold text-cyan-100">{copy.detailCard.customerReadingTitle}</p>
                         <div className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
-                          <p><span className="font-semibold text-white">의미</span>: {reading.customerMeaning}</p>
-                          <p><span className="font-semibold text-white">핵심 구성</span>: {reading.corePattern}</p>
-                          <p><span className="font-semibold text-white">기본 성향</span>: {item.reality}</p>
+                          <p><span className="font-semibold text-white">{copy.detailCard.meaningLabel}</span>: {reading.customerMeaning}</p>
+                          <p><span className="font-semibold text-white">{copy.detailCard.corePatternLabel}</span>: {reading.corePattern}</p>
+                          <p><span className="font-semibold text-white">{copy.detailCard.baseTraitLabel}</span>: {item.reality}</p>
                         </div>
                       </section>
 
                       <div className="grid gap-3 md:grid-cols-2">
                         <section className="rounded-2xl border border-emerald-300/18 bg-emerald-200/8 p-4">
-                          <p className="text-xs font-semibold text-emerald-100">잘 발휘될 때</p>
+                          <p className="text-xs font-semibold text-emerald-100">{copy.detailCard.workingWellTitle}</p>
                           <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
                             {reading.strengths.map((line) => (
                               <li key={line}>• {line}</li>
@@ -2431,7 +2401,7 @@ export default function AdvancedZiweiSectionV2({
                           </ul>
                         </section>
                         <section className="rounded-2xl border border-rose-300/18 bg-rose-200/8 p-4">
-                          <p className="text-xs font-semibold text-rose-100">과도하게 작동할 때</p>
+                          <p className="text-xs font-semibold text-rose-100">{copy.detailCard.overworkingTitle}</p>
                           <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
                             {reading.challenges.map((line) => (
                               <li key={line}>• {line}</li>
@@ -2441,7 +2411,7 @@ export default function AdvancedZiweiSectionV2({
                       </div>
 
                       <section className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <p className="text-xs font-semibold text-cyan-100">현실에서 나타나는 장면</p>
+                        <p className="text-xs font-semibold text-cyan-100">{copy.detailCard.realLifeSceneTitle}</p>
                         <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
                           {reading.realLifeManifestations.map((line) => (
                             <li key={line}>• {line}</li>
@@ -2450,18 +2420,18 @@ export default function AdvancedZiweiSectionV2({
                       </section>
 
                       <section className="rounded-2xl border border-white/10 bg-black/20 p-4">
-                        <p className="text-xs font-semibold text-cyan-100">다른 궁과 연결했을 때</p>
+                        <p className="text-xs font-semibold text-cyan-100">{copy.detailCard.crossPalaceTitle}</p>
                         <p className="font-premium mt-3 text-sm leading-7 text-slate-200">{reading.crossPalaceInterpretation}</p>
                         <p className="font-premium mt-3 text-sm leading-7 text-slate-200">{reading.selectedTrackRelevance}</p>
                       </section>
 
                       <div className="grid gap-3 md:grid-cols-2">
                         <section className="rounded-2xl border border-amber-200/20 bg-amber-200/8 p-4">
-                          <p className="text-xs font-semibold text-amber-100">현재 운한에서 보는 부분</p>
+                          <p className="text-xs font-semibold text-amber-100">{copy.detailCard.currentTimingTitle}</p>
                           <p className="font-premium mt-3 text-sm leading-7 text-slate-100/92">{reading.timingInterpretation}</p>
                         </section>
                         <section className="rounded-2xl border border-sky-200/18 bg-sky-200/8 p-4">
-                          <p className="text-xs font-semibold text-sky-100">구체적인 활용법</p>
+                          <p className="text-xs font-semibold text-sky-100">{copy.detailCard.practicalUseTitle}</p>
                           <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
                             {reading.practicalAdvice.map((line) => (
                               <li key={line}>• {line}</li>
@@ -2479,7 +2449,7 @@ export default function AdvancedZiweiSectionV2({
                       ) : null}
 
                       <details className="rounded-2xl border border-cyan-200/15 bg-cyan-200/8 px-4 py-3 text-xs leading-6 text-cyan-50">
-                        <summary className="cursor-pointer font-semibold">명반 근거 보기</summary>
+                        <summary className="cursor-pointer font-semibold">{copy.evidenceToggleLabel}</summary>
                         <ul className="mt-3 space-y-1">
                           {reading.evidence.lines.map((line) => (
                             <li key={line}>• {line}</li>
@@ -2495,7 +2465,7 @@ export default function AdvancedZiweiSectionV2({
         </StagePanel>
 
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">5. 궁간 연결 해석</p>
+          <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.palaceLinkHeading}</p>
           <div className="mt-4 grid gap-3 lg:grid-cols-2">
             {palaceLinks.map((link) => (
               <div key={link.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
@@ -2509,7 +2479,7 @@ export default function AdvancedZiweiSectionV2({
 
         <div className="grid gap-4 lg:grid-cols-2">
           <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">6. 사화 해석</p>
+            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.sihuaHeading}</p>
             <div className="mt-4 grid gap-3">
               {sihuaInsights.map((line, index) => (
                 <p key={`sihua-${index}`} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">
@@ -2520,7 +2490,7 @@ export default function AdvancedZiweiSectionV2({
           </StagePanel>
 
           <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">7. 차성 보정 해석</p>
+            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.borrowedStarHeading}</p>
             <div className="mt-4 grid gap-3">
               {borrowedStarInsights.length ? borrowedStarInsights.map((line, index) => (
                 <p key={`borrow-${index}`} className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">
@@ -2528,7 +2498,7 @@ export default function AdvancedZiweiSectionV2({
                 </p>
               )) : (
                 <p className="rounded-2xl border border-white/10 bg-black/20 px-4 py-3 text-sm leading-7 text-slate-200">
-                  이번 명반에서는 차성 보정이 핵심 이슈로 크게 드러나지 않습니다. 다만 중요한 선택에서는 환경·관계·타이밍의 정렬을 먼저 확인하면 운의 낭비를 줄일 수 있습니다.
+                  {copy.borrowedStarFallback}
                 </p>
               )}
             </div>
@@ -2537,12 +2507,12 @@ export default function AdvancedZiweiSectionV2({
 
         {trackAnalysis ? (
           <StagePanel className="p-4 sm:p-5">
-            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">8. {activeTrack.title} 실천 가이드</p>
+            <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.actionGuideHeadingPrefix}{activeTrack.title}</p>
             <div className="mt-4 grid gap-3 lg:grid-cols-3">
               {[
-                { title: advancedZiweiText("advancedZiwei.title.022"), lines: trackAnalysis.actionPlan.start },
-                { title: advancedZiweiText("advancedZiwei.title.023"), lines: trackAnalysis.actionPlan.reduce },
-                { title: advancedZiweiText("advancedZiwei.title.024"), lines: trackAnalysis.actionPlan.maintain },
+                { title: copy.actionPlanTitles.start, lines: trackAnalysis.actionPlan.start },
+                { title: copy.actionPlanTitles.reduce, lines: trackAnalysis.actionPlan.reduce },
+                { title: copy.actionPlanTitles.maintain, lines: trackAnalysis.actionPlan.maintain },
               ].map((group) => (
                 <section key={group.title} className="rounded-2xl border border-white/10 bg-black/20 p-4">
                   <p className="text-sm font-black text-white">{group.title}</p>
@@ -2555,7 +2525,7 @@ export default function AdvancedZiweiSectionV2({
               ))}
             </div>
             <div className="mt-4 rounded-2xl border border-amber-200/20 bg-amber-200/8 p-4">
-              <p className="text-sm font-black text-amber-50">자기 점검 질문</p>
+              <p className="text-sm font-black text-amber-50">{copy.selfCheckLabel}</p>
               <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-100/92">
                 {trackAnalysis.actionPlan.reflectionQuestions.map((question) => (
                   <li key={question}>• {question}</li>
@@ -2566,7 +2536,7 @@ export default function AdvancedZiweiSectionV2({
         ) : null}
 
         <StagePanel className="p-4 sm:p-5">
-          <p className="text-xs font-semibold text-cyan-100/80">상담의 흐름 · {activeTrack.title}</p>
+          <p className="text-xs font-semibold text-cyan-100/80">{copy.flowSectionLabelPrefix}{activeTrack.title}</p>
           <div className="mt-4 grid gap-4">
             {(trackAnalysis?.consultationFlow || []).map((stage, index) => (
               <m.article
@@ -2577,7 +2547,7 @@ export default function AdvancedZiweiSectionV2({
                 viewport={{ once: true, amount: 0.4 }}
                 transition={{ duration: 0.45, delay: index * 0.03 }}
               >
-                <p className="text-xs font-semibold text-cyan-100">STEP {stage.stage}</p>
+                <p className="text-xs font-semibold text-cyan-100">{copy.stepLabel} {stage.stage}</p>
                 <h3 className="mt-1 text-base font-black text-white">{stage.title}</h3>
                 <p className="mt-2">{stage.content}</p>
                 {stage.actions.length ? (
@@ -2589,7 +2559,7 @@ export default function AdvancedZiweiSectionV2({
                 ) : null}
                 {stage.evidence.length ? (
                   <details className="mt-3 rounded-xl border border-cyan-200/15 bg-cyan-200/8 px-3 py-2 text-xs leading-6 text-cyan-50">
-                    <summary className="cursor-pointer font-semibold">명반 근거 보기</summary>
+                    <summary className="cursor-pointer font-semibold">{copy.evidenceToggleLabel}</summary>
                     <ul className="mt-2 space-y-1">
                       {stage.evidence.map((line) => (
                         <li key={line}>{line}</li>
@@ -2605,11 +2575,11 @@ export default function AdvancedZiweiSectionV2({
         {trackAnalysis ? (
           <div className="grid gap-4 lg:grid-cols-2">
             <StagePanel className="p-4 sm:p-5">
-              <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">현재 시기 분석</p>
+              <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.currentTimingHeading}</p>
               <p className="font-premium mt-4 text-sm leading-7 text-slate-200">{trackAnalysis.timing.currentTheme}</p>
               <div className="mt-4 grid gap-3 sm:grid-cols-2">
                 <section className="rounded-2xl border border-emerald-300/20 bg-emerald-200/8 p-4">
-                  <p className="text-sm font-black text-emerald-50">기회로 쓰기 좋은 흐름</p>
+                  <p className="text-sm font-black text-emerald-50">{copy.opportunityHeading}</p>
                   <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
                     {trackAnalysis.timing.opportunities.map((line) => (
                       <li key={line}>• {line}</li>
@@ -2617,7 +2587,7 @@ export default function AdvancedZiweiSectionV2({
                   </ul>
                 </section>
                 <section className="rounded-2xl border border-rose-300/20 bg-rose-200/8 p-4">
-                  <p className="text-sm font-black text-rose-50">주의할 행동</p>
+                  <p className="text-sm font-black text-rose-50">{copy.timingCautionHeading}</p>
                   <ul className="font-premium mt-3 space-y-2 text-sm leading-7 text-slate-200">
                     {trackAnalysis.timing.cautions.map((line) => (
                       <li key={line}>• {line}</li>
@@ -2626,7 +2596,7 @@ export default function AdvancedZiweiSectionV2({
                 </section>
               </div>
               <details className="mt-4 rounded-2xl border border-cyan-200/15 bg-cyan-200/8 px-4 py-3 text-xs leading-6 text-cyan-50">
-                <summary className="cursor-pointer font-semibold">시기 근거 보기</summary>
+                <summary className="cursor-pointer font-semibold">{copy.timingEvidenceToggleLabel}</summary>
                 <ul className="mt-3 space-y-1">
                   {trackAnalysis.timing.evidence.map((line) => (
                     <li key={line}>• {line}</li>
@@ -2636,9 +2606,9 @@ export default function AdvancedZiweiSectionV2({
             </StagePanel>
 
             <StagePanel className="p-4 sm:p-5">
-              <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">상담 마무리</p>
+              <p className="text-xs font-semibold tracking-[0.28em] text-cyan-100/80">{copy.closingHeading}</p>
               <p className="font-premium mt-4 text-sm leading-7 text-slate-200">
-                {activeTrack.title}의 흐름은 당신을 하나의 성격으로 고정하지 않습니다. 명반에서 강하게 열린 궁은 선택의 힘으로 쓰고, 조율이 필요한 궁은 생활 기준으로 돌볼 때 더 편안하게 움직입니다.
+                {copy.closingBodyTemplate(activeTrack.title)}
               </p>
               <div className="mt-4 grid gap-3">
                 {trackAnalysis.timing.recommendedActions.map((item) => (
