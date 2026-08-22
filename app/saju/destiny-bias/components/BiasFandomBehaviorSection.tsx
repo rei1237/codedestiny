@@ -1,24 +1,26 @@
 "use client";
 
 import type { DestinyBiasResultViewModel } from "../lib/types";
+import { useDestinyBiasCopy } from "../_lib/copy";
 
 type Props = {
   vm: DestinyBiasResultViewModel;
 };
 
 export default function BiasFandomBehaviorSection({ vm }: Props) {
+  const copy = useDestinyBiasCopy();
   const profile = vm.fandomProfile;
   if (!profile) return null;
 
   const cards = [
-    { icon: "🔍", label: "덕질 방식", type: profile.deepDivePattern, text: profile.deepDiveText },
-    { icon: "🤝", label: "관계성 유형", type: profile.relationshipLens, text: profile.relationshipText },
-    { icon: "🔥", label: "과몰입 포인트", type: profile.obsessionPoint, text: profile.obsessionText },
+    { icon: "🔍", label: copy.behaviorDeepDiveLabel, type: profile.deepDivePattern, text: profile.deepDiveText },
+    { icon: "🤝", label: copy.behaviorRelationshipLabel, type: profile.relationshipLens, text: profile.relationshipText },
+    { icon: "🔥", label: copy.behaviorObsessionLabel, type: profile.obsessionPoint, text: profile.obsessionText },
   ];
 
   return (
     <section className="space-y-3">
-      <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">어떻게 깊어지는가 HOW YOU DEEPEN</p>
+      <p className="text-[11px] font-semibold tracking-[0.16em] text-pink-100/85">{copy.behaviorSectionLabel} HOW YOU DEEPEN</p>
       <div className="space-y-3">
         {cards.map((card) => (
           <article
