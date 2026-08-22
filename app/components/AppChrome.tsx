@@ -5,6 +5,7 @@ import type { ReactNode } from "react";
 import { useCallback } from "react";
 import { ArrowLeft, Home } from "lucide-react";
 import { LazyMotion } from "framer-motion";
+import { useLocale } from "@/lib/i18n/useT";
 import GlobalHeader from "./GlobalHeader";
 import DisclaimerBanner from "./DisclaimerBanner";
 import MobileBottomNav from "./MobileBottomNav";
@@ -99,6 +100,24 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/reviews",
 ];
 
+const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;
+type ChromeLocale = (typeof LOCALE_CODES)[number];
+
+const FEATURE_NAV_COPY: Record<ChromeLocale, { back: string; home: string }> = {
+  ko: { back: "이전 페이지로 이동", home: "홈" },
+  en: { back: "Go back", home: "Home" },
+  ja: { back: "前のページに戻る", home: "ホーム" },
+  "zh-CN": { back: "返回上一页", home: "首页" },
+  "zh-TW": { back: "返回上一頁", home: "首頁" },
+  vi: { back: "Quay lại trang trước", home: "Trang chủ" },
+  hi: { back: "पिछले पेज पर जाएं", home: "होम" },
+  es: { back: "Volver a la página anterior", home: "Inicio" },
+  fr: { back: "Retour à la page précédente", home: "Accueil" },
+  de: { back: "Zur vorherigen Seite", home: "Startseite" },
+  nl: { back: "Terug naar vorige pagina", home: "Start" },
+  ms: { back: "Kembali ke halaman sebelumnya", home: "Laman utama" },
+};
+
 function isUnsafePaymentReferrer(referrer: string) {
   if (!referrer) return true;
   try {
@@ -112,6 +131,8 @@ function isUnsafePaymentReferrer(referrer: string) {
 
 function FeatureBackHomeNav() {
   const router = useRouter();
+  const locale = useLocale() as ChromeLocale;
+  const copy = FEATURE_NAV_COPY[locale] ?? FEATURE_NAV_COPY.ko;
 
   // 홈은 React 라우트가 아니라 정적 메인 셸이다. router.push 로 보내면 React 홈이 한 번
   // 렌더된 뒤 셸로 되돌려져 화면이 번쩍인다 → 문서 로드로 곧장 보낸다.
@@ -148,7 +169,7 @@ function FeatureBackHomeNav() {
         type="button"
         onClick={goBack}
         className="pointer-events-auto inline-flex min-h-11 min-w-11 items-center justify-center rounded-full border border-white/18 bg-slate-950/62 text-white shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:bg-slate-900/82 focus:outline-none focus:ring-2 focus:ring-amber-200/60"
-        aria-label="이전 페이지로 이동"
+        aria-label={copy.back}
       >
         <ArrowLeft className="h-5 w-5" aria-hidden="true" />
       </button>
@@ -158,7 +179,7 @@ function FeatureBackHomeNav() {
         className="pointer-events-auto inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-amber-200/30 bg-[linear-gradient(135deg,rgba(15,23,42,0.78),rgba(70,49,118,0.68),rgba(184,134,48,0.42))] px-4 text-sm font-black text-amber-50 no-underline shadow-[0_14px_36px_rgba(0,0,0,0.34)] backdrop-blur-xl transition hover:border-amber-100/54 hover:bg-slate-900/82 focus:outline-none focus:ring-2 focus:ring-amber-200/60"
       >
         <Home className="h-4 w-4" aria-hidden="true" />
-        <span>홈</span>
+        <span>{copy.home}</span>
       </button>
     </nav>
   );

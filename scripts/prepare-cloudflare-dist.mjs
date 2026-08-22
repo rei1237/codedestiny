@@ -1,6 +1,7 @@
 import { copyFileSync, cpSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { getStaticShellCanonicalRoutes } from "./static-canonical-route-map.mjs";
+import { injectStaticShellRouteMeta } from "./lib/static-shell-route-meta.mjs";
 
 const rootDir = process.cwd();
 const distDir = resolve(rootDir, "dist");
@@ -157,39 +158,6 @@ function restoreGeneratedRouteHtml(targetRoot) {
       restored.add(routeFile);
     }
   }
-}
-
-function escapeHtmlAttr(value) {
-  return String(value ?? "")
-    .replace(/&/g, "&amp;")
-    .replace(/"/g, "&quot;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
-function toCanonicalUrl(pathname) {
-  const normalized = String(pathname || "/").startsWith("/") ? String(pathname || "/") : `/${pathname}`;
-  return `https://code-destiny.com${normalized}`;
-}
-
-function injectStaticShellRouteMeta(html, route) {
-  const canonicalUrl = toCanonicalUrl(route.canonical);
-  const routeMeta = [
-    `<meta name="cd-static-canonical-route" content="${escapeHtmlAttr(route.canonical)}">`,
-    route.action ? `<meta name="cd-static-canonical-action" content="${escapeHtmlAttr(route.action)}">` : "",
-  ].filter(Boolean).join("\n");
-
-  let nextHtml = html
-    .replace(/<title>[\s\S]*?<\/title>/i, `<title>${escapeHtmlAttr(route.title)}</title>`)
-    .replace(/<meta\s+name=["']description["']\s+content=["'][\s\S]*?["']\s*\/?>/i, `<meta name="description" content="${escapeHtmlAttr(route.description)}">`)
-    .replace(/<link\s+rel=["']canonical["']\s+href=["'][\s\S]*?["']\s*\/?>/i, `<link rel="canonical" href="${escapeHtmlAttr(canonicalUrl)}">`)
-    .replace(/<meta\s+name=["']robots["']\s+content=["'][\s\S]*?["']\s*\/?>/i, '<meta name="robots" content="index, follow, max-image-preview:large, max-snippet:-1, max-video-preview:-1">');
-
-  if (nextHtml.includes("</head>")) {
-    nextHtml = nextHtml.replace("</head>", `${routeMeta}\n</head>`);
-  }
-
-  return nextHtml;
 }
 
 function writeStaticShellCanonicalRoutes(targetRoot) {
