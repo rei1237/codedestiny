@@ -1,3 +1,4 @@
+import type { LoadingLocale } from "@/constants/loadingMessages";
 import type { NeoWarRoomAsset, NeoWarRoomConsultMode } from "./assets";
 import { neoWarRoomAssets } from "./assets";
 
@@ -98,4 +99,52 @@ export const neoWarRoomActiveMethodModes = neoWarRoomMethodRegistry
 
 export function getNeoWarRoomMethodDefinition(method?: string) {
   return neoWarRoomMethodRegistry.find((item) => item.mode === method);
+}
+
+// 🔴 아래 5개 필드만 실제로 화면에 렌더된다(label/statusLabel/cardEyebrow/inputSummary/resultEvidenceLabel).
+// cardBody/requiredInputs/calculableData/llmSummaryFields/realityCheckStrategy/qualityNote 는
+// git grep 으로 확인한 결과 어디서도 읽히지 않는 죽은 필드라 번역 대상에서 제외했다.
+type NeoWarRoomMethodDisplayText = Pick<
+  NeoWarRoomMethodDefinition,
+  "label" | "statusLabel" | "cardEyebrow" | "inputSummary" | "resultEvidenceLabel"
+>;
+
+const NEO_METHOD_TEXT_EN: Record<NeoWarRoomConsultMode, NeoWarRoomMethodDisplayText> = {
+  saju: { label: "Saju", statusLabel: "Live", cardEyebrow: "The season you were born into, and your temperament", inputSummary: "Birth date, gender, birth time", resultEvidenceLabel: "Saju basis" },
+  ziwei: { label: "Ziwei Doushu", statusLabel: "Live", cardEyebrow: "The Life Palace and life's front lines", inputSummary: "Birth date, gender, birth time", resultEvidenceLabel: "Ziwei Doushu basis" },
+  vedic: { label: "Vedic Astrology", statusLabel: "Live", cardEyebrow: "Karma and planetary pressure", inputSummary: "Birth date, gender, birth time, time zone", resultEvidenceLabel: "Vedic astrology basis" },
+  astrology: { label: "Astrology", statusLabel: "Live", cardEyebrow: "Star signs and psychological tactics", inputSummary: "Birth date, gender, birth time, time zone", resultEvidenceLabel: "Astrology basis" },
+};
+
+const NEO_METHOD_TEXT_BY_LOCALE: Partial<Record<Exclude<LoadingLocale, "ko">, Record<NeoWarRoomConsultMode, NeoWarRoomMethodDisplayText>>> = {
+  en: NEO_METHOD_TEXT_EN,
+  ja: {
+    saju: { label: "四柱推命", statusLabel: "実戦接続", cardEyebrow: "生まれた季節と気質", inputSummary: "生年月日、性別、出生時間", resultEvidenceLabel: "四柱推命の根拠" },
+    ziwei: { label: "紫微斗数", statusLabel: "実戦接続", cardEyebrow: "命宮と人生の戦線", inputSummary: "生年月日、性別、出生時間", resultEvidenceLabel: "紫微斗数の根拠" },
+    vedic: { label: "ヴェーダ占星術", statusLabel: "実戦接続", cardEyebrow: "カルマと惑星の圧力", inputSummary: "生年月日、性別、出生時間、タイムゾーン", resultEvidenceLabel: "ヴェーダ占星術の根拠" },
+    astrology: { label: "西洋占星術", statusLabel: "実戦接続", cardEyebrow: "星座と心理戦術", inputSummary: "生年月日、性別、出生時間、タイムゾーン", resultEvidenceLabel: "西洋占星術の根拠" },
+  },
+  "zh-CN": {
+    saju: { label: "四柱", statusLabel: "实战衔接", cardEyebrow: "出生的季节与气质", inputSummary: "出生日期、性别、出生时间", resultEvidenceLabel: "四柱依据" },
+    ziwei: { label: "紫微斗数", statusLabel: "实战衔接", cardEyebrow: "命宫与人生战线", inputSummary: "出生日期、性别、出生时间", resultEvidenceLabel: "紫微斗数依据" },
+    vedic: { label: "吠陀占星", statusLabel: "实战衔接", cardEyebrow: "业力与行星的压力", inputSummary: "出生日期、性别、出生时间、时区", resultEvidenceLabel: "吠陀占星依据" },
+    astrology: { label: "西洋占星", statusLabel: "实战衔接", cardEyebrow: "星座与心理战术", inputSummary: "出生日期、性别、出生时间、时区", resultEvidenceLabel: "西洋占星依据" },
+  },
+  "zh-TW": {
+    saju: { label: "四柱", statusLabel: "實戰銜接", cardEyebrow: "出生的季節與氣質", inputSummary: "出生日期、性別、出生時間", resultEvidenceLabel: "四柱依據" },
+    ziwei: { label: "紫微斗數", statusLabel: "實戰銜接", cardEyebrow: "命宮與人生戰線", inputSummary: "出生日期、性別、出生時間", resultEvidenceLabel: "紫微斗數依據" },
+    vedic: { label: "吠陀占星", statusLabel: "實戰銜接", cardEyebrow: "業力與行星的壓力", inputSummary: "出生日期、性別、出生時間、時區", resultEvidenceLabel: "吠陀占星依據" },
+    astrology: { label: "西洋占星", statusLabel: "實戰銜接", cardEyebrow: "星座與心理戰術", inputSummary: "出生日期、性別、出生時間、時區", resultEvidenceLabel: "西洋占星依據" },
+  },
+};
+
+/** ko(+원본) 는 그대로, 나머지 로케일은 위 표를 병합한 사본을 돌려준다. 표에 없으면 en 으로 대신한다. */
+export function getLocalizedNeoWarRoomMethodRegistry(locale: LoadingLocale): NeoWarRoomMethodDefinition[] {
+  if (locale === "ko") return neoWarRoomMethodRegistry;
+  const table = NEO_METHOD_TEXT_BY_LOCALE[locale as Exclude<LoadingLocale, "ko">] || NEO_METHOD_TEXT_EN;
+  return neoWarRoomMethodRegistry.map((item) => ({ ...item, ...table[item.mode] }));
+}
+
+export function getLocalizedNeoWarRoomMethodDefinition(method: string | undefined, locale: LoadingLocale) {
+  return getLocalizedNeoWarRoomMethodRegistry(locale).find((item) => item.mode === method);
 }

@@ -1,5 +1,92 @@
 import { readAiProfileSeed } from "@/app/_lib/ai-prefill-seed";
+import type { LoadingLocale } from "@/constants/loadingMessages";
 import type { NeoWarRoomConsultMode } from "./assets";
+
+type NonKoLocale = Exclude<LoadingLocale, "ko">;
+
+type NeoValidationMessages = {
+  profile: string;
+  birthDate: string;
+  gender: string;
+  birthTime: string;
+  birthPlace: string;
+  method: string;
+  topic: string;
+  intensity: string;
+  question: (min: number) => string;
+};
+
+const NEO_VALIDATION_MESSAGES_KO: NeoValidationMessages = {
+  profile: "저장된 프로필에 출생정보가 부족하다. 직접 입력으로 작전을 세워라.",
+  birthDate: "생년월일이 빠졌다. 운명의 좌표부터 찍어라.",
+  gender: "성별을 선택해라. 계산의 기준이 흐려진다.",
+  birthTime: "출생시간을 입력하거나 모름으로 표시해라.",
+  birthPlace: "베다점과 점성술은 시간대가 필요하다.",
+  method: "분석 방식을 선택해라. 도구 없이 전장에 나갈 수는 없다.",
+  topic: "상담 주제를 골라라. 전선이 정해져야 작전이 선다.",
+  intensity: "팩폭 강도를 정해라. 어디까지 찌를지 알아야 한다.",
+  question: (min) => `질문은 최소 ${min}자 이상 적어라. 흐린 질문에는 흐린 답만 온다.`,
+};
+
+const NEO_VALIDATION_MESSAGES_EN: NeoValidationMessages = {
+  profile: "Your saved profile is missing birth info. Set up the operation with manual entry.",
+  birthDate: "Date of birth is missing. Pin down the coordinates of your fate first.",
+  gender: "Select a gender. Without it the basis of the calculation goes fuzzy.",
+  birthTime: "Enter a time of birth, or mark it as unknown.",
+  birthPlace: "Vedic and astrology both need a timezone.",
+  method: "Pick an analysis method. You can't head into the field without a tool.",
+  topic: "Choose a consultation topic. The operation can't stand until the front line is set.",
+  intensity: "Set the fact-punch intensity. You need to know how far this goes.",
+  question: (min) => `Write at least ${min} characters for your question. A vague question only gets a vague answer.`,
+};
+
+const NEO_VALIDATION_MESSAGES_JA: NeoValidationMessages = {
+  profile: "保存されたプロフィールに出生情報が足りない。直接入力で作戦を立てろ。",
+  birthDate: "生年月日が抜けている。運命の座標から打ち込め。",
+  gender: "性別を選択しろ。計算の基準がぶれる。",
+  birthTime: "出生時間を入力するか、不明として表示しろ。",
+  birthPlace: "ベーダ占星術と西洋占星術にはタイムゾーンが必要だ。",
+  method: "分析方式を選択しろ。道具なしで戦場には出られない。",
+  topic: "相談テーマを選べ。前線が決まらなければ作戦は立たない。",
+  intensity: "ファクトパンチの強度を決めろ。どこまで突くか知っておく必要がある。",
+  question: (min) => `質問は最低${min}文字以上書け。曖昧な質問には曖昧な答えしか返らない。`,
+};
+
+const NEO_VALIDATION_MESSAGES_ZH_CN: NeoValidationMessages = {
+  profile: "已保存资料缺少出生信息。请用手动输入来制定作战。",
+  birthDate: "出生日期缺失。先标出命运的坐标。",
+  gender: "请选择性别，否则计算基准会失准。",
+  birthTime: "请输入出生时间，或标记为不详。",
+  birthPlace: "吠陀占星与西洋占星都需要时区。",
+  method: "请选择分析方式。没有工具无法上战场。",
+  topic: "请选择咨询主题。前线定了，作战才能成立。",
+  intensity: "请设定犀利程度，得知道要戳到什么地步。",
+  question: (min) => `问题至少写${min}个字。模糊的问题只会得到模糊的答案。`,
+};
+
+const NEO_VALIDATION_MESSAGES_ZH_TW: NeoValidationMessages = {
+  profile: "已保存資料缺少出生資訊。請用手動輸入來制定作戰。",
+  birthDate: "出生日期缺失。先標出命運的座標。",
+  gender: "請選擇性別，否則計算基準會失準。",
+  birthTime: "請輸入出生時間，或標記為不詳。",
+  birthPlace: "吠陀占星與西洋占星都需要時區。",
+  method: "請選擇分析方式。沒有工具無法上戰場。",
+  topic: "請選擇諮詢主題。前線定了，作戰才能成立。",
+  intensity: "請設定犀利程度，得知道要戳到什麼地步。",
+  question: (min) => `問題至少寫${min}個字。模糊的問題只會得到模糊的答案。`,
+};
+
+const NEO_VALIDATION_MESSAGES_BY_LOCALE: Partial<Record<NonKoLocale, NeoValidationMessages>> = {
+  en: NEO_VALIDATION_MESSAGES_EN,
+  ja: NEO_VALIDATION_MESSAGES_JA,
+  "zh-CN": NEO_VALIDATION_MESSAGES_ZH_CN,
+  "zh-TW": NEO_VALIDATION_MESSAGES_ZH_TW,
+};
+
+function getNeoValidationMessages(locale: LoadingLocale): NeoValidationMessages {
+  if (locale === "ko") return NEO_VALIDATION_MESSAGES_KO;
+  return NEO_VALIDATION_MESSAGES_BY_LOCALE[locale as NonKoLocale] || NEO_VALIDATION_MESSAGES_EN;
+}
 
 export type NeoWarRoomIntensityId = "soft" | "standard" | "roar";
 export type NeoWarRoomProfileMode = "saved" | "manual";
@@ -128,39 +215,40 @@ export function buildInitialNeoWarRoomBirthState(): NeoWarRoomBirthState {
   };
 }
 
-export function validateNeoWarRoomInput(input: NeoWarRoomValidationInput): NeoWarRoomValidationError[] {
+export function validateNeoWarRoomInput(input: NeoWarRoomValidationInput, locale: LoadingLocale = "ko"): NeoWarRoomValidationError[] {
   const errors: NeoWarRoomValidationError[] = [];
   const birth = input.birth;
   const question = input.question.trim();
+  const messages = getNeoValidationMessages(locale);
 
   if (input.profileMode === "saved" && !birth.birthDate && !birth.gender) {
-    errors.push({ field: "profile", message: "저장된 프로필에 출생정보가 부족하다. 직접 입력으로 작전을 세워라." });
+    errors.push({ field: "profile", message: messages.profile });
   }
   if (!birth.birthDate) {
-    errors.push({ field: "birthDate", message: "생년월일이 빠졌다. 운명의 좌표부터 찍어라." });
+    errors.push({ field: "birthDate", message: messages.birthDate });
   }
   if (!birth.gender) {
-    errors.push({ field: "gender", message: "성별을 선택해라. 계산의 기준이 흐려진다." });
+    errors.push({ field: "gender", message: messages.gender });
   }
   if (!birth.birthTimeUnknown && !birth.birthTime) {
-    errors.push({ field: "birthTime", message: "출생시간을 입력하거나 모름으로 표시해라." });
+    errors.push({ field: "birthTime", message: messages.birthTime });
   }
   if ((input.method === "vedic" || input.method === "astrology") && !birth.timezone) {
-    errors.push({ field: "birthPlace", message: "베다점과 점성술은 시간대가 필요하다." });
+    errors.push({ field: "birthPlace", message: messages.birthPlace });
   }
   if (!input.method) {
-    errors.push({ field: "method", message: "분석 방식을 선택해라. 도구 없이 전장에 나갈 수는 없다." });
+    errors.push({ field: "method", message: messages.method });
   }
   if (!input.topic) {
-    errors.push({ field: "topic", message: "상담 주제를 골라라. 전선이 정해져야 작전이 선다." });
+    errors.push({ field: "topic", message: messages.topic });
   }
   if (!input.intensity) {
-    errors.push({ field: "intensity", message: "팩폭 강도를 정해라. 어디까지 찌를지 알아야 한다." });
+    errors.push({ field: "intensity", message: messages.intensity });
   }
   if (question.length < NEO_WAR_ROOM_MIN_QUESTION_LENGTH) {
     errors.push({
       field: "question",
-      message: `질문은 최소 ${NEO_WAR_ROOM_MIN_QUESTION_LENGTH}자 이상 적어라. 흐린 질문에는 흐린 답만 온다.`,
+      message: messages.question(NEO_WAR_ROOM_MIN_QUESTION_LENGTH),
     });
   }
 

@@ -110,8 +110,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # fetch-depth: 0 은 아래 `lint:changed` 가 base...head 를 계산하기 위해 필요하다.
+      # 얕은 체크아웃에서는 base 커밋이 없어 diff 가 통째로 비고, 그러면 이 게이트가
+      # 조용히 아무 파일도 검사하지 않는 상태가 된다.
       - name: Checkout PR head
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -127,6 +132,32 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      # 🔴 `npm run lint` 는 `next lint` 이고 `pages/ app/ components/ lib/ src/` 만 본다.
+      # 머지 후 배포(scripts/deploy-safe.mjs 의 "changed-file lint")는 **변경 파일 전부**에
+      # eslint 를 직접 건다 — `__tests__/ scripts/ worker/ js/` 까지. 두 범위가 다르면 PR 은
+      # 초록불로 머지되고 스테이징 배포가 린트로 죽는데, 사람에게 보이는 마지막 에러는 그
+      # 다음 스텝의 "SHA 불일치" 하나뿐이라 원인이 가려진다
+      # (2026-08-22 run 32584789263: __tests__/worker/fpti-deep-report.quality.test.js).
+      # 대상 선정 정본은 scripts/lib/lint-targets.mjs 이고 배포도 같은 모듈을 쓴다.
+      - name: Lint changed files exactly as the release does
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          npm run lint:changed -- --self-test
+          npm run lint:changed
+
+      # 🔴 `test:node` 는 `__tests__/ui/*.test.js` 정적 가드다. jest 는 이것을 돌리지 않고,
+      # PR CI 에서는 critical 티어(`npm test`)에서만 돌았다. 그런데 deploy-safe 는 risk=medium
+      # 부터 돌린다 — 즉 app/·components/·js/ 만 고친 standard 티어 PR 은 **머지된 뒤에야**
+      # 이 검사를 처음 받는다. 2026-08-22 PR #940 이 정확히 그 경로로 통과해 머지되고
+      # 스테이징 배포를 3연속 실패시켰다(fusion-fortune.static.test.js 3건).
+      #
+      # fast 잡에 두는 이유: 이 가드들의 입력은 index.html·js/·styles/ 라 티어가 fast 로
+      # 잡히는 변경에서도 깨어나야 한다. 실측 13.7초 / 296 tests (2026-08-23).
+      - name: Run the static UI guards the release runs
+        run: npm run test:node
 
       # 🔴 이 두 가드는 **fast 잡**에 있어야 한다. 입력이 CSS·정적 셸·package.json 이라
       # build/critical 잡에 두면 `styles/mobile-lite.css` 한 줄 수정에는 깨어나지 않는데,

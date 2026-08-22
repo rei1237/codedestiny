@@ -31,6 +31,10 @@ module.exports = {
     "[\\\\/]__tests__[\\\\/]guardian-fortune[\\\\/]contract\\.test\\.js$",
     // node:test 로 작성된 정적 검사들. `npm run test:node` 가 돌린다.
     "[\\\\/]__tests__[\\\\/]ui[\\\\/]",
+    // 릴리스 빌드 파이프라인 가드. 🔴 jest(= critical 티어) 에 두면 정작 그것이 지키는
+    // scripts/** 를 고치는 PR 이 tier=standard 라 스킵된다(실측: PR #988 의 Critical checks 가
+    // 3초 만에 스킵). test:node 는 PR CI 의 fast 잡이라 티어와 무관하게 항상 돈다.
+    "[\\\\/]__tests__[\\\\/]release[\\\\/]",
     "[\\\\/]__tests__[\\\\/]fortune[\\\\/]maya-calendar\\.test\\.js$",
     "[\\\\/]__tests__[\\\\/]fortune[\\\\/]kst-business-date\\.test\\.js$",
   ],
