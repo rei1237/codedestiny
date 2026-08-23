@@ -25,6 +25,12 @@ function checkRateLimit(request) {
   const current = requestBuckets.get(key);
   if (!current || current.resetAt <= now) {
     requestBuckets.set(key, { count: 1, resetAt: now + RATE_LIMIT_WINDOW_MS });
+    // 버킷이 무한히 자라지 않게 만료분을 함께 청소한다(워커 인스턴스 수명 동안만 사는 맵이다).
+    if (requestBuckets.size > 512) {
+      for (const [bucketKey, bucket] of requestBuckets) {
+        if (bucket.resetAt <= now) requestBuckets.delete(bucketKey);
+      }
+    }
     return true;
   }
   if (current.count >= RATE_LIMIT_MAX_REQUESTS) return false;
