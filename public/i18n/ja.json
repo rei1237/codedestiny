@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "利用者の口コミ",
       "lead": "実際に鑑定を受けた方が残した口コミです。",
-      "allCta": "すべての口コミを見る →"
+      "allCta": "すべての口コミを見る →",
+      "empty": "まだ登録されたレビューがありません。相談を利用して、最初のレビューを残してみてください。"
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -1335,6 +1336,13 @@
       "title": "無料でいますぐ始める",
       "freeStart": "無料で開始",
       "compat": "相性を見る"
+    },
+    "pickWhy": {
+      "prefix": "今日は",
+      "suffix": "が最も合います。"
+    },
+    "feedback": {
+      "rewardPrefix": "採用されたバグ報告1件につき"
     }
   },
   "terms": {

@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "Đánh giá của người dùng",
       "lead": "Những đánh giá do người thật sự đã xem để lại.",
-      "allCta": "Xem tất cả đánh giá →"
+      "allCta": "Xem tất cả đánh giá →",
+      "empty": "Chưa có đánh giá nào. Hãy thử một buổi luận giải và để lại đánh giá đầu tiên."
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -1335,6 +1336,13 @@
       "title": "Bắt đầu miễn phí ngay",
       "freeStart": "Bắt đầu miễn phí",
       "compat": "Xem hợp đôi"
+    },
+    "pickWhy": {
+      "prefix": "Hôm nay,",
+      "suffix": "hợp với bạn nhất."
+    },
+    "feedback": {
+      "rewardPrefix": "Mỗi báo lỗi được chấp nhận"
     }
   },
   "terms": {

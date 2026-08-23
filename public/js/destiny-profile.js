@@ -100,6 +100,7 @@
       profileDeleteAria: '프로필 카드 삭제',
       profileEmptyTitle: '아직 저장된 프로필 카드가 없어요.',
       profileEmptyHint: '생년월일과 태어난 시각을 입력해 첫 카드를 만들어 보세요.',
+      levelRewardGuest: '레벨 보상 · 로그인 후 지급',
     },
     en: {
       apiCooldown: 'The server response is unstable, so we are waiting briefly. Please try again soon.',
@@ -129,6 +130,7 @@
       profileDeleteAria: 'Delete this profile card',
       profileEmptyTitle: "You don't have any profile cards yet.",
       profileEmptyHint: 'Enter your birth date and time to create your first one.',
+      levelRewardGuest: 'Level rewards · granted after you sign in',
     },
     ja: {
       apiCooldown: 'サーバー応答が不安定なため、しばらく待機しています。少し後でもう一度お試しください。',
@@ -158,6 +160,7 @@
       profileDeleteAria: 'プロフィールカードを削除',
       profileEmptyTitle: '保存されたプロフィールカードはまだありません。',
       profileEmptyHint: '生年月日と出生時刻を入力して、最初のカードを作ってみましょう。',
+      levelRewardGuest: 'レベル報酬 · ログイン後に付与',
     },
     'zh-CN': {
       apiCooldown: '服务器响应不稳定，正在短暂等待。请稍后再试。',
@@ -187,6 +190,7 @@
       profileDeleteAria: '删除个人资料卡',
       profileEmptyTitle: '还没有已保存的个人资料卡。',
       profileEmptyHint: '输入出生日期与时辰，创建你的第一张卡片。',
+      levelRewardGuest: '等级奖励 · 登录后发放',
     },
     'zh-TW': {
       apiCooldown: '伺服器回應不穩定，正在短暫等待。請稍後再試。',
@@ -216,6 +220,7 @@
       profileDeleteAria: '刪除個人資料卡',
       profileEmptyTitle: '尚未有已儲存的個人資料卡。',
       profileEmptyHint: '輸入出生日期與時辰，建立你的第一張卡片。',
+      levelRewardGuest: '等級獎勵 · 登入後發放',
     },
   };
 
@@ -7346,7 +7351,7 @@
     var rewardLabel;
     var rewardAmount = '';
     if (!snap.loggedIn) {
-      rewardLabel = '레벨 보상 · 로그인 후 지급';
+      rewardLabel = _dpText('levelRewardGuest');
     } else if (snap.nextReward) {
       rewardLabel = '다음 보상 · Lv.' + snap.nextReward.level;
       rewardAmount = '월정석 ' + snap.nextReward.credits.toLocaleString('ko-KR');
