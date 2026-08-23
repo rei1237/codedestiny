@@ -890,17 +890,17 @@
     "passFooter": {
       "aria": "Pass footer guide",
       "eyebrow": "Moonlight Pass",
-      "title": "Let your fortune routine continue more comfortably with a moonlight pass",
-      "desc": "Once your pass opens, frequently used readings and free public routines stay together in one place, so the flow you want continues faster into the next scene.",
+      "title": "Four KRW 3,000 readings already cost more than the KRW 9,900 pass",
+      "desc": "Readings inside the range you pick open for 30 days without a per-use cap, and only pricier readings are paid one by one when you need them. The four ranges are KRW 3,000 · 5,000 · 10,000 · 30,000, so pick the price you look at most.",
       "pointsAria": "Core pass guide",
-      "point1": "Check free public routines right away",
-      "point2": "Quick access to frequent readings",
-      "point3": "Check your pass range together",
-      "mascotAria": "View Kkul-Kkul pass benefits",
-      "mascotAlt": "Kkul-Kkul pass guide image",
-      "mascotKicker": "Honey Guide",
-      "mascotText": "Kkul-Kkul! Start with today's free fortune routines, then continue straight into the pass flow that fits you.",
-      "cta": "Find the pass that fits me"
+      "point1": "Opens right away, no checkout",
+      "point2": "Save 3 or more profiles",
+      "point3": "A 30-day pass with no auto-renewal",
+      "mascotAria": "See Moonlight Pass benefits · Moonlight pass store",
+      "mascotAlt": "Moonlight Pass benefits image",
+      "mascotKicker": "Moonlight Pass Guide",
+      "mascotText": "How many times a month, and at what price — settle those two and the right range falls out.",
+      "cta": "Compare all four passes and pick"
     },
     "dreamPrompt": {
       "closeAria": "Close dream tarot",

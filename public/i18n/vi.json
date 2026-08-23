@@ -890,17 +890,17 @@
     "passFooter": {
       "aria": "Hướng dẫn chuyển chân trang",
       "eyebrow": "Thẻ ánh trăng",
-      "title": "Hãy để thói quen vận may của bạn tiếp tục thoải mái hơn với chuyến đi dưới ánh trăng",
-      "desc": "Khi thẻ của bạn mở ra, các bài đọc được sử dụng thường xuyên và các quy trình công cộng miễn phí sẽ ở cùng một nơi, do đó luồng bạn muốn sẽ tiếp tục nhanh hơn sang cảnh tiếp theo.",
+      "title": "Bốn lần luận giải 3.000 KRW đã đắt hơn thẻ 9.900 KRW",
+      "desc": "Các bài đọc trong mức giá bạn chọn mở suốt 30 ngày mà không giới hạn số lần; chỉ những bài đắt hơn mới trả từng lần khi cần. Có bốn mức: 3.000 · 5.000 · 10.000 · 30.000 KRW, cứ chọn mức bạn hay xem.",
       "pointsAria": "Hướng dẫn vượt qua lõi",
-      "point1": "Kiểm tra ngay các hoạt động công cộng miễn phí",
-      "point2": "Truy cập nhanh vào các bài đọc thường xuyên",
-      "point3": "Cùng nhau kiểm tra phạm vi vượt qua của bạn",
-      "mascotAria": "Xem lợi ích của thẻ Kkul-Kkul",
-      "mascotAlt": "Hình ảnh hướng dẫn vượt qua Kkul-Kkul",
-      "mascotKicker": "Hướng dẫn về mật ong",
-      "mascotText": "Kkul-Kkul! Bắt đầu với các thói quen may mắn miễn phí ngày hôm nay, sau đó tiếp tục đi thẳng vào luồng phù hợp với bạn.",
-      "cta": "Tìm pass phù hợp với tôi"
+      "point1": "Mở ngay, không cần thanh toán",
+      "point2": "Lưu từ 3 hồ sơ trở lên",
+      "point3": "Thẻ 30 ngày, không tự động gia hạn",
+      "mascotAria": "Xem quyền lợi Moonlight Pass · Cửa hàng Moonlight Pass",
+      "mascotAlt": "Ảnh quyền lợi Moonlight Pass",
+      "mascotKicker": "Moonlight Pass Guide",
+      "mascotText": "Mỗi tháng xem mấy lần, ở mức giá nào — quyết hai điều đó là ra đúng phạm vi.",
+      "cta": "So sánh 4 loại thẻ rồi chọn"
     },
     "dreamPrompt": {
       "closeAria": "Đóng Tarot Giấc mơ",
