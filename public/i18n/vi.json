@@ -11893,6 +11893,131 @@
       "cautionTitle": "What to look at first when the moonlight wavers",
       "roleEyebrow": "Today's prescription for the bond",
       "roleTitle": "The manner you can offer each other"
+    },
+    "honeyReward": {
+      "answers": {
+        "0": {
+          "keywords": {
+            "0": "boyfriend",
+            "1": "dating",
+            "2": "romance",
+            "3": "seeing someone"
+          },
+          "answer": "Oink~ I do! A white lion named Neo. He used to read fortunes, then told me he'd keep me in honey for life, quit his job out of nowhere, and now he's building something like mad 🦁 I'm cheering for him, but I have no idea when the honey starts~ oink 💛"
+        },
+        "1": {
+          "keywords": {
+            "0": "ex",
+            "1": "break up",
+            "2": "breakup",
+            "3": "ex-boyfriend"
+          },
+          "answer": "Not an ex — very much present tense! Neo says he's building code-destiny.com for me~ I don't really get what it is, but watching him work that hard is kind of cute 🐾 oink~"
+        },
+        "2": {
+          "keywords": {
+            "0": "favorite food",
+            "1": "favourite food",
+            "2": "what do you like",
+            "3": "food"
+          },
+          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is Honey Pig Fortune~"
+        },
+        "3": {
+          "keywords": {
+            "0": "dream",
+            "1": "want to be",
+            "2": "goal"
+          },
+          "answer": "To keep being the flower pig who tells your destiny! 🌸 Handing out sweet readings so people can face the day a little braver~ And growing code-destiny.com big together with Neo 💪 oink!"
+        },
+        "4": {
+          "keywords": {
+            "0": "hobby",
+            "1": "free time"
+          },
+          "answer": "Me~ I love flower-watching under the moon 🌙 and listening to Yeoni sing! I flip through fortune cards sometimes too. Oink — lately I've been studying the Sukuyo readings Neo built 📚"
+        },
+        "5": {
+          "keywords": {
+            "0": "how old",
+            "1": "age",
+            "2": "birthday"
+          },
+          "answer": "Flower pigs don't age~ 🌸 Like a flower, I'm always in spring! Oink. The day the blossoms open is my birthday. Every spring, so it comes around a lot 😆"
+        },
+        "6": {
+          "keywords": {
+            "0": "yeoni",
+            "1": "sister"
+          },
+          "answer": "Yeoni~? She's my soulmate! 💜 She's so warm and tender. I'm the plucky one, she's the gentle one~ Together we read fortunes for everyone at code-destiny.com. Oink — best partner ever~"
+        },
+        "7": {
+          "keywords": {
+            "0": "neo",
+            "1": "white lion",
+            "2": "who made this"
+          },
+          "answer": "Neo~ 🦁 He was a famous fortune reader, then told me he'd take care of me for life and suddenly became a developer. Oink. I was baffled at first… but now I'm rooting for him! Hoping code-destiny.com does well 💛"
+        },
+        "8": {
+          "keywords": {
+            "0": "fortune",
+            "1": "my reading",
+            "2": "horoscope"
+          },
+          "answer": "Oink~ for a proper reading, come to code-destiny.com! 🔮 Here I can only do cute chatter — the real Four Pillars and star charts, Yeoni and I will read together back home 💜"
+        },
+        "9": {
+          "keywords": {
+            "0": "scared",
+            "1": "worried",
+            "2": "having a hard time",
+            "3": "sad"
+          },
+          "answer": "Are you okay? 🌸 This flower pig will stay right here! Oink. On hard days, have something sweet~ then check today's reading at code-destiny.com. Something good is waiting, I'm sure 💛"
+        }
+      },
+      "defaultAnswer": "Oink~ I'm not sure about that one 😅 But whatever you're wondering, a reading at code-destiny.com can look into it! Yeoni will explain it well 💜",
+      "quickQuestions": {
+        "0": "Hey flower pig~ got a boyfriend? 💛",
+        "1": "What's your favorite food? 🍯",
+        "2": "What's Neo like?",
+        "3": "How do you get on with Yeoni?",
+        "4": "What's your dream? 🌸",
+        "5": "How's my fortune today?",
+        "6": "What's your hobby?",
+        "7": "How old are you? 🐷"
+      },
+      "greeting": "Honey mode is open. Ask the flower pig anything you're curious about. Oink~",
+      "qnaAria": "Flower pig honey mode chat",
+      "qnaBadge": "✦ 10 honey drops reached · ask the flower pig",
+      "meterAria": "10 of 10 honey drops collected",
+      "pigName": "Flower Pig",
+      "pigStatus": "Waiting in sweet honey mode",
+      "typingAria": "The flower pig is typing",
+      "quickAria": "Suggested questions",
+      "placeholder": "Ask the flower pig anything ✨",
+      "sendAria": "Send your question to the flower pig",
+      "albumOpen": "Open",
+      "counterAria": "{count} honey drops — see reading perks",
+      "honeyLabel": "Honey drops",
+      "albumAriaUnlocked": "View the moonlight tarot album",
+      "albumAriaLocked": "Unlock the moonlight tarot album, {progress}/10 honey drops",
+      "albumText": "Moonlight album",
+      "honeyModeClose": "Close honey mode",
+      "honeyModeOpen": "Open honey mode",
+      "albumTitleUnlocked": "The moonlight tarot album is open beside you.",
+      "albumTitleLocked": "Ten honey drops open Yeoni's secret card book.",
+      "albumDescUnlocked": "Unlocked · even at zero honey drops, all 78 cards stay open to you.",
+      "albumDescLocked": "{count} honey drops held / 10 needed. Each finished reading at The Destiny Tea House adds one.",
+      "albumMeterAria": "Moonlight tarot album progress {progress}/10",
+      "albumBtnUnlocked": "Browse the album",
+      "albumBtnLocked": "Peek at the moonlight album",
+      "burstUnlocked": "The flower pig's honey mode is open too.",
+      "burstLocked": "A small reward that quietly gathers each time a reading is completed at The Destiny Tea House.",
+      "countValue": "{count}"
     }
   }
 }

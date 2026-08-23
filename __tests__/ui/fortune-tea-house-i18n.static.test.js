@@ -2,6 +2,7 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const ts = require("typescript");
 
 /**
  * 운명의 찻집 컴포넌트의 한국어가 12개 로케일 전부에서 번역되는지 정적으로 확인한다.
@@ -17,42 +18,49 @@ const componentsDir = path.join(root, "src/features/fortune-tea-house/components
 const LOCALES = ["ko", "en", "ja", "zh-cn", "zh-tw", "vi", "hi", "es", "fr", "de", "nl", "ms"];
 const HANGUL = /[가-힣]/;
 
-/** 중괄호 균형으로 객체 리터럴 본문을 잘라 낸다 — 이름 grep 은 중첩에서 틀린 답을 준다. */
-function sliceObjectLiteral(source, startIndex) {
-  let depth = 0;
-  for (let i = startIndex; i < source.length; i += 1) {
-    const ch = source[i];
-    if (ch === "{") depth += 1;
-    else if (ch === "}") {
-      depth -= 1;
-      if (depth === 0) return source.slice(startIndex, i + 1);
-    }
-  }
-  throw new Error("객체 리터럴의 끝을 찾지 못했다");
-}
+/**
+ * KO 객체의 leaf 문자열을 점 경로로 펼친다. 값이 아니라 **경로**만 필요하다.
+ *
+ * 🔴 정규식으로 세지 않는다. 예전 구현은 `answers: [{ keywords: [...] }]` 같은 **객체 배열**에서
+ * 배열 인덱스를 빠뜨려 10개 항목을 전부 같은 경로로 접었고, 그 9개가 조용히 검사에서 빠졌다.
+ * 실제 파서를 쓰면 중첩이 몇 겹이든 경로가 정확하다.
+ */
+function collectKoPaths(sourceText, koName) {
+  const sourceFile = ts.createSourceFile("ko.tsx", sourceText, ts.ScriptTarget.Latest, true, ts.ScriptKind.TSX);
 
-/** KO 객체의 leaf 문자열을 점 경로로 펼친다. 값이 아니라 **경로**만 필요하다. */
-function collectPaths(literal) {
+  let literal = null;
+  const findDeclaration = (node) => {
+    if (
+      ts.isVariableDeclaration(node) &&
+      ts.isIdentifier(node.name) &&
+      node.name.text === koName &&
+      node.initializer &&
+      ts.isObjectLiteralExpression(node.initializer)
+    ) {
+      literal = node.initializer;
+    }
+    ts.forEachChild(node, findDeclaration);
+  };
+  findDeclaration(sourceFile);
+  if (!literal) return null;
+
   const paths = [];
-  const stack = [];
-  let arrayIndex = [];
-  const tokens = literal.matchAll(/([A-Za-z_$][\w$]*)\s*:\s*|"((?:[^"\\]|\\.)*)"|'((?:[^'\\]|\\.)*)'|\{|\}|\[|\]/g);
-  let pendingKey = null;
-  for (const token of tokens) {
-    const [raw, key] = token;
-    if (key !== undefined) { pendingKey = key; continue; }
-    if (raw === "{") { if (pendingKey !== null) { stack.push(pendingKey); pendingKey = null; } else stack.push(null); continue; }
-    if (raw === "}") { stack.pop(); continue; }
-    if (raw === "[") { if (pendingKey !== null) { stack.push(pendingKey); pendingKey = null; } else stack.push(null); arrayIndex.push(0); continue; }
-    if (raw === "]") { stack.pop(); arrayIndex.pop(); continue; }
-    // 문자열 리터럴
-    const inArray = arrayIndex.length > 0 && stack[stack.length - 1] !== null && pendingKey === null;
-    const segments = stack.filter((s) => s !== null);
-    if (pendingKey !== null) { segments.push(pendingKey); pendingKey = null; }
-    else if (inArray) { segments.push(String(arrayIndex[arrayIndex.length - 1])); arrayIndex[arrayIndex.length - 1] += 1; }
-    else continue;
-    paths.push(segments.join("."));
-  }
+  const walk = (node, prefix) => {
+    if (ts.isObjectLiteralExpression(node)) {
+      for (const property of node.properties) {
+        if (!ts.isPropertyAssignment(property)) continue;
+        const name = property.name.getText(sourceFile).replace(/^["']|["']$/g, "");
+        walk(property.initializer, prefix ? `${prefix}.${name}` : name);
+      }
+      return;
+    }
+    if (ts.isArrayLiteralExpression(node)) {
+      node.elements.forEach((element, index) => walk(element, `${prefix}.${index}`));
+      return;
+    }
+    if (ts.isStringLiteral(node) || ts.isNoSubstitutionTemplateLiteral(node)) paths.push(prefix);
+  };
+  walk(literal, "");
   return paths;
 }
 
@@ -74,11 +82,8 @@ test("운명의 찻집 컴포넌트의 한국어가 12개 로케일 사전에 �
     if (!call) continue;
     const [, scope, koName] = call;
 
-    const declaration = source.indexOf(`const ${koName} = {`);
-    assert.notEqual(declaration, -1, `${file}: ${koName} 선언을 찾지 못했다 — KO 는 모듈 최상위 상수여야 한다`);
-    const literal = sliceObjectLiteral(source, source.indexOf("{", declaration));
-
-    const paths = collectPaths(literal);
+    const paths = collectKoPaths(source, koName);
+    assert.notEqual(paths, null, `${file}: ${koName} 를 모듈 최상위 객체 리터럴로 찾지 못했다`);
     assert.ok(paths.length > 0, `${file}: KO 에서 문자열을 하나도 읽지 못했다 — 파서가 형식을 못 따라간 것이다`);
     wired.push({ file, scope, count: paths.length });
 
