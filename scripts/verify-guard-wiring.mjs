@@ -55,6 +55,10 @@ const UNWIRED_BY_DESIGN = [
   ["verify:fortune-chat-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:guardian-fortune-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:human-design-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
+  // 🔴 이 사유는 사실이어야 한다. verify:payment-reconcile 이 "자격증명 필요"로 선언돼 있었지만
+  //    실제로는 readFileSync 만 하는 정적 검사기였고, 그 거짓 때문에 그 안의 단언 전부가 CI 에서
+  //    아무것도 가르지 않았다(2026-08-24 발견·배선). 이 스크립트는 connectDb 를 실제로 부른다.
+  ["verify:integrity-unique-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:human-design-report-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:point-history-feature-lookup-index", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:admin-audit-log-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
