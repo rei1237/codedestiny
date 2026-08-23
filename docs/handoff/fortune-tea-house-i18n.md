@@ -7,12 +7,13 @@
 | 갈래 | 규모 | 진행 |
 |---|---|---|
 | `components/` UI 크롬 | 811개 문자열 / 33개 파일 | ✅ **완료 (33/33)** — 디버그 4종 포함 |
-| `data/` | 114,223자 | 미착수 — **여기가 다음 차례** |
-| `lib/` | 56,335자 | 미착수 |
+| `data/` 찻잔·십성·서사·CTA | 285 엔트리 | ✅ **완료** — PR #1036 · #1039 · #1042 · #1045 · (이 PR) |
+| `data/` 타로 2종 | 28,435자 | ⛔ **라운드 2** — 아래 함정 8 |
+| `lib/` | 17,594자 | ⛔ **라운드 2** — 아래 함정 8 |
 
-PR: #1020 · #1024 · #1025 머지됨 / **#1027**(표정 mood 재설계) · **#1028**(components 33/33) 리뷰 대기.
+PR: #1020 · #1024 · #1025 · #1027 · #1028 머지됨. 이어서 **#1032**(가드 확장) → **#1036**(찻잔 6잔 + `skipKeys`) → **#1039**(십성 10종) → **#1042**(입장 씬 6개 + `mood` 판별 유니언) → **#1045**(스토리 31스텝 + 흐름 카드) 순으로 머지됐다.
 
-🔴 **머지 순서: #1027 → #1028.** #1028 브랜치가 #1027 커밋 위에 쌓여 있다(base 는 둘 다 `main` 이라 Landing order 가드는 안 걸린다 — 그 가드는 base 가 그 브랜치인 열린 PR 이 있을 때만 발동한다).
+🔴 **"114,223자 · 56,335자"는 글자 수가 아니라 한글의 UTF-8 바이트였다.** 실제 번역 대상은 `data/` 38,484자(2,056 리터럴) · `lib/` 18,983자(1,083 리터럴) — 문서가 말하던 규모의 1/3이다. 계획을 세울 때 이 값을 쓸 것.
 
 **"파일 단위 한글 30,186자"라는 수치를 근거로 삼지 말 것.** 그건 주석까지 센 값이다. AST 로 JSX 텍스트·문자열/템플릿 리터럴만 뽑은 실제 번역 대상이 `components/` 기준 **811개 / 9,053자**다. 재현:
 
@@ -126,19 +127,70 @@ const copy = useTeaHouseCopy("landing", KO);
 
 같은 파일에 컴포넌트가 둘이면(예: `EntryActor`, `PersonSajuCard`) **각자 훅을 부르고 같은 scope 를 공유**한다 — copy 를 props 로 내리지 않는다.
 
+### 8. 🔴 조립된 문장은 치환으로 로케일화되지 않는다 — 라운드 2가 이것 때문에 생겼다
+
+`data/` 의 남은 부분은 문자열을 **저장**하지 않고 **조립**한다.
+
+```ts
+// data/tarotAlbumStories.ts — buildMinorNarrative
+storyTitle: `${rankInfo.storyTitle}과 ${suitInfo.storyNoun}`,        // '과/와' 조사
+yeoniMessage: `... 마음의 ${suitInfo.storyNoun}을 너무 세게 ...`,      // '을/를' 조사
+story: `... ${title}은 지금 당신에게 ...`,                            // '은/는' 조사
+```
+
+```ts
+// lib/buildConsultResult.ts:30-42 — 아예 조사 엔진이 있다
+function hasFinalConsonant(value: string) { /* 종성 유무 */ }
+function subjectParticle(value: string) { return hasFinalConsonant(value) ? "이" : "가"; }
+```
+
+조각(`suitMeta`·`rankMetaByNumber`)을 사전에 넣어도 **조립 템플릿과 조사가 한국어 문법에 묶여 있어** 다른 언어의 어순이 나오지 않는다. 게다가 `lib/` 은 전부 순수 함수라 `useTeaHouseCopy`(훅)를 쓸 수 없다.
+
+**해결하려면 데이터 모양을 바꿔야 한다** — 조립을 컴포넌트 쪽으로 올리거나, 로케일별 템플릿을 사전에 두거나, 사전을 인자로 주입하는 형태로. 그 설계를 하기 전에는 착수하지 말 것. 착수했다가 되돌린 흔적이 `TenGodSymbolCard.tsx` 의 주석에 남아 있다.
+
+참고로 `lib/buildConsultResult` 는 **클라이언트 폴백 경로**다. 실제 상담문은 워커 LLM(`worker/routes/fortune-tea-house.js`)이 만들고 그쪽 로케일 처리는 `scripts/verify-ai-locale-pipeline.mjs:303-321` 이 이미 지킨다 — 체감 우선순위가 낮은 이유다.
+
+### 9. 데이터 상수에는 문구가 아닌 문자열이 섞여 있다 — `skipKeys`
+
+컴포넌트가 직접 쓴 `KO` 는 화면 문구만 담지만 `data/` 상수는 아니다. `id: "lotus-moon"` 은 `getTeaHouseCupById` 의 조회 키이고 `particleTone: "pink"` 는 CSS 토큰인데, 가드는 **모든 문자열 leaf** 를 12개 로케일에 요구한다. 그대로 배선하면 사전이 조회 키와 스타일을 덮어쓴다.
+
+```ts
+const CUP_SKIP_KEYS = ["id", "particleTone", "accent"];   // 🔴 모듈 최상위 배열 리터럴이어야 한다
+const cups = useTeaHouseCopy("teaCups", teaHouseCups, { skipKeys: CUP_SKIP_KEYS });
+```
+
+가드도 같은 `skipKeys` 를 파싱한다(안 맞추면 절대 안 쓰이는 키를 채우라고 요구한다). 🔴 상수 선언을 못 읽으면 **조용히 전부 검사하지 않고 실패**시킨다 — 배열을 다른 파일에서 import 하면 그 자리에서 걸린다.
+
+지금까지 쓴 목록: 찻잔 `id`·`particleTone`·`accent` / 십성 `id`·`colorTone` / 입장 씬 `stage`·`actor`·`background`·`speaker`·`mood` / 스토리 스텝 `id`·`stage`·`visual`·`speaker`·`mood`·`pigFrame` / 흐름 카드 `id`·`assetKey`.
+
+### 10. 🔴 `.tsx` 편집이 CRLF 를 떨궈 diff 를 1000줄로 부풀린다
+
+`TeaHouseResultSheet.tsx` 는 저장소에 **CRLF** 로 들어 있다. 편집 도구가 LF 로 다시 쓰면 3줄 수정이 `1012/1008` diff 가 되어 리뷰가 불가능해진다(2026-08-24에 실제로 겪고 되돌렸다). 같은 세션의 다른 tsx 는 멀쩡했고 **차이는 부분 Read 후 편집했다는 것 하나**였다.
+
+- 진단: `git diff --ignore-cr-at-eol <ref> -- <file> --numstat` 이 실제 변경량. 그냥 `--numstat` 과 크게 다르면 개행이 뒤집힌 것
+- 복구: `git checkout <ref> -- <file>` 로 원본을 되찾고 **개행을 건드리지 않는 방식**으로 다시 패치(node 로 읽어 `String.replace` 만, 삽입 줄의 개행은 `String.fromCharCode(13)+String.fromCharCode(10)`)
+- 커밋 전 `git show --numstat` 으로 항상 확인할 것
+
 ## 남은 대상
 
-`components/` 는 끝났다. 다음은 콘텐츠다.
+`components/` 와 `data/` 의 **리터럴 콘텐츠**는 끝났다. 남은 것은 전부 **데이터 모양을 바꿔야** 손댈 수 있다.
 
-| 갈래 | 규모 | 메모 |
+| 갈래 | 규모 | 왜 남았나 |
 |---|---|---|
-| `data/` | 114,223자 | 대사·찻잔·타로 카드 문안. 선행 조건 없음(위 함정 2 해소) |
-| `lib/` | 56,335자 | 해석 생성기. 🔴 `sukuyoCompatibilityAdapter.ts:247` 이 **한국어 정규식으로 분기**한다 — `sukuyoRelationshipTypes`/`sukuyoFocusOptions` 의 값은 번역 대상이 아니다 |
+| `data/tarotAlbumStories.ts` | 16,919자 | major 22장은 순수 리터럴이지만 **minor 56장은 `buildMinorNarrative` 가 한국어 템플릿으로 조립**한다(함정 8). `tarotAlbumStoryCards` 자체가 `tarotDeckCards.map(...)` 이라 가드가 못 읽는다 |
+| `data/tarotCards.ts` | 11,516자 | 컴포넌트 직접 참조 **0**. 값이 `lib/tarotAdapter`·`lib/buildConsultResult` 를 거쳐서만 화면에 닿는다 |
+| `lib/` 전체 | 18,983자 | 전부 순수 함수라 훅을 못 쓴다. `buildConsultResult.ts:30-42` 에 **한국어 조사 엔진**(`hasFinalConsonant`/`subjectParticle`)이 박혀 있다 |
+| `data/tenGodVisuals.ts` 의 `alt` 10개 | — | `tenGodVisualMap` 의 항목이 전부 `tenGodSprite(...)` **호출**이라 가드가 리터럴을 못 읽는다 |
+| `data/assets.ts` 의 `label` 6개 | — | `talkingPigYeoniFrameCrops` 는 리터럴이라 배선 가능하지만, 두 컴포넌트가 서로 다른 경로(`pickPigExpressionFrame` / 모듈 최상위 배열)로 소비해 정리가 먼저다 |
 | `data-img-alt` 14개 | — | 정적 셸 마커 도구의 속성 목록 밖. 도구에 속성을 추가할지 손으로 처리할지 미정 |
 
-**`data/` 를 시작하기 전에**: 콘텐츠는 UI 크롬과 규모가 한 자릿수 다르다. `useTeaHouseCopy` 는 훅이라
-React 컴포넌트 안에서만 쓸 수 있는데 `data/` 는 모듈 상수다. **사전을 태우는 지점이 데이터가 아니라
-그 데이터를 렌더하는 컴포넌트여야 한다** — 이 설계 판단을 먼저 하고 배치를 시작할 것.
+**번역 대상이 아닌 것으로 확정된 것**
+
+- `teaHouseLandingCopy`(프롤로그 21문단 포함) — `git grep` 전수 결과 참조처가 `app/admin/cms/_lib/base-values.ts` **하나뿐**이고 그건 CMS 편집 폼이다. 화면에 안 나오므로 번역하면 아무도 안 읽는 사전 값 252개가 늘어난다
+- `tenGodLabelToIdMap` 의 한국어 키 — 조회 키다
+- `sukuyoRelationshipTypes`/`sukuyoFocusOptions` — `sukuyoCompatibilityAdapter.ts:247` 이 한국어 정규식으로 분기한다
+- `visualMotif`(찻잔 6개) — 화면에 나오지만 영어 무드 표기라 12개 로케일 모두 원문 유지
+- `yeoniSprites.ts` 의 `label` 18개 — 유일한 소비처 `YeoniDialogueActor.tsx:44-53` 이 `sheet`·`col`·`row` 만 읽는다. 스프라이트 시트 좌표를 고르는 용도이고 화면에 렌더되지 않는다
 ## 검증
 
 ```bash

@@ -114,7 +114,7 @@ export const teaHouseLandingCopy = {
   cta: cmsText("feature-copy", "fortune-tea-house:landing.cta", "text", teaHouseLandingCopyDefault.cta),
 };
 
-const teaHouseCtaCopyDefault = {
+export const teaHouseCtaCopyDefault = {
   title: "오늘의 운세를 한 잔 따라볼까요?",
   text: "연이는 찻잔의 온도와 마음의 향을 맞추며, 당신이 꺼내고 싶은 이야기를 조용히 기다립니다.",
   cta: "상담 준비하기",

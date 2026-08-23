@@ -13071,6 +13071,13 @@
         "title": "The first sip of destiny",
         "text": "The one sentence you need today rises up, warm."
       }
+    },
+    "ctaCopy": {
+      "title": "Shall we pour a cup of today's fortune?",
+      "text": "Yeoni matches the warmth of the cup to the scent of your heart, and waits quietly for the story you want to bring out.",
+      "cta": "Get ready for the reading",
+      "reset": "Return to the first night",
+      "notice": "The cup is still warming. Yeoni will pick the story back up shortly."
     }
   }
 }
