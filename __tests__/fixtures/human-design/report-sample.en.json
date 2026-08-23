@@ -1,0 +1,543 @@
+{
+  "note": [
+    "PR3(웹 리포트)·PR4(PDF) 가 Gemini 실호출 없이 렌더·조판을 검증하기 위한 목 문서.",
+    "내용은 레이아웃 검증용 채움말이며 실제 해석이 아니다. 구조와 분량만 실제와 같다."
+  ],
+  "fixtureFor": "human-design-premium-report",
+  "contractVersion": "human-design-report-v1",
+  "locale": "en",
+  "totalChars": 29419,
+  "chartFixtureId": "kr-jeonju-1991-02-20-0830",
+  "reportId": "human-design-report:fixture:en",
+  "status": "completed",
+  "degraded": false,
+  "progress": {
+    "completed": 18,
+    "total": 18
+  },
+  "sections": [
+    {
+      "key": "executiveSummary",
+      "order": 1,
+      "title": "Executive Summary",
+      "body": "What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character.",
+      "subsections": [],
+      "keyPoints": [
+        "What comes from a defined center runs the same way every tim",
+        "An open center takes in and amplifies what is around it, so "
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 827,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "energyBlueprint",
+      "order": 2,
+      "title": "Energy Blueprint",
+      "body": "An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.",
+      "subsections": [],
+      "keyPoints": [
+        "An open center takes in and amplifies what is around it, so ",
+        "Following the strategy is less about patience than about rec"
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 1127,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "type",
+      "order": 3,
+      "title": "Type — How Your Energy Works",
+      "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.",
+      "subsections": [],
+      "keyPoints": [
+        "Following the strategy is less about patience than about rec",
+        "Simply not rushing a decision spares this design a great dea"
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 1430,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "strategy",
+      "order": 4,
+      "title": "Strategy — How Life Opens",
+      "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.",
+      "subsections": [],
+      "keyPoints": [
+        "Simply not rushing a decision spares this design a great dea",
+        "If a situation keeps recurring, that may be wiring rather th"
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 1338,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "authority",
+      "order": 5,
+      "title": "Authority — Where Decisions Belong",
+      "body": "If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.",
+      "subsections": [],
+      "keyPoints": [
+        "If a situation keeps recurring, that may be wiring rather th",
+        "There is always a gap between how others read you and how yo"
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 1400,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "profile",
+      "order": 6,
+      "title": "Profile — Your Role With Others",
+      "body": "There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.",
+      "subsections": [],
+      "keyPoints": [
+        "There is always a gap between how others read you and how yo",
+        "What comes from a defined center runs the same way every tim"
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 1403,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "centersDefined",
+      "order": 7,
+      "title": "Defined Centers — What Is Always On",
+      "body": "What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.",
+      "subsections": [
+        {
+          "id": "center:THROAT",
+          "title": "center:THROAT",
+          "body": "An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character."
+        },
+        {
+          "id": "center:G",
+          "title": "center:G",
+          "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate."
+        },
+        {
+          "id": "center:SACRAL",
+          "title": "center:SACRAL",
+          "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        }
+      ],
+      "keyPoints": [
+        "What comes from a defined center runs the same way every tim",
+        "An open center takes in and amplifies what is around it, so "
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 2265,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "centersOpen",
+      "order": 8,
+      "title": "Open Centers — What You Take In",
+      "body": "An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.",
+      "subsections": [
+        {
+          "id": "center:HEAD",
+          "title": "center:HEAD",
+          "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear."
+        },
+        {
+          "id": "center:AJNA",
+          "title": "center:AJNA",
+          "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate."
+        },
+        {
+          "id": "center:HEART",
+          "title": "center:HEART",
+          "body": "If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        },
+        {
+          "id": "center:SOLAR_PLEXUS",
+          "title": "center:SOLAR_PLEXUS",
+          "body": "There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        },
+        {
+          "id": "center:SPLEEN",
+          "title": "center:SPLEEN",
+          "body": "What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own."
+        },
+        {
+          "id": "center:ROOT",
+          "title": "center:ROOT",
+          "body": "An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on."
+        }
+      ],
+      "keyPoints": [
+        "An open center takes in and amplifies what is around it, so ",
+        "Following the strategy is less about patience than about rec"
+      ],
+      "evidence": [
+        "center:HEAD"
+      ],
+      "chars": 2464,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "channels",
+      "order": 9,
+      "title": "Channels — Your Wiring",
+      "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.",
+      "subsections": [
+        {
+          "id": "channel:7-31",
+          "title": "channel:7-31",
+          "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on."
+        },
+        {
+          "id": "channel:20-34",
+          "title": "channel:20-34",
+          "body": "If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear."
+        }
+      ],
+      "keyPoints": [
+        "Following the strategy is less about patience than about rec",
+        "Simply not rushing a decision spares this design a great dea"
+      ],
+      "evidence": [
+        "channel:7-31"
+      ],
+      "chars": 2442,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "gatesCore",
+      "order": 10,
+      "title": "Core Gates",
+      "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.",
+      "subsections": [
+        {
+          "id": "gate:55",
+          "title": "gate:55",
+          "body": "If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate."
+        },
+        {
+          "id": "gate:59",
+          "title": "gate:59",
+          "body": "There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        },
+        {
+          "id": "gate:34",
+          "title": "gate:34",
+          "body": "What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own."
+        },
+        {
+          "id": "gate:20",
+          "title": "gate:20",
+          "body": "An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on."
+        },
+        {
+          "id": "gate:7",
+          "title": "gate:7",
+          "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear."
+        },
+        {
+          "id": "gate:31",
+          "title": "gate:31",
+          "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character."
+        }
+      ],
+      "keyPoints": [
+        "Simply not rushing a decision spares this design a great dea",
+        "If a situation keeps recurring, that may be wiring rather th"
+      ],
+      "evidence": [
+        "gate:55"
+      ],
+      "chars": 1969,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "planetaryActivations",
+      "order": 11,
+      "title": "Planetary Activations — Conscious and Unconscious",
+      "body": "If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.",
+      "subsections": [
+        {
+          "id": "planet:Sun:personality",
+          "title": "planet:Sun:personality",
+          "body": "There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        },
+        {
+          "id": "planet:Earth:personality",
+          "title": "planet:Earth:personality",
+          "body": "What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        },
+        {
+          "id": "planet:NorthNode:personality",
+          "title": "planet:NorthNode:personality",
+          "body": "An open center takes in and amplifies what is around it, so pressure felt there is usually not your own."
+        },
+        {
+          "id": "planet:SouthNode:personality",
+          "title": "planet:SouthNode:personality",
+          "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on."
+        },
+        {
+          "id": "planet:Moon:personality",
+          "title": "planet:Moon:personality",
+          "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character."
+        },
+        {
+          "id": "planet:Mercury:personality",
+          "title": "planet:Mercury:personality",
+          "body": "If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate."
+        },
+        {
+          "id": "planet:Venus:personality",
+          "title": "planet:Venus:personality",
+          "body": "There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        },
+        {
+          "id": "planet:Mars:personality",
+          "title": "planet:Mars:personality",
+          "body": "What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        }
+      ],
+      "keyPoints": [
+        "If a situation keeps recurring, that may be wiring rather th",
+        "There is always a gap between how others read you and how yo"
+      ],
+      "evidence": [
+        "planet:Sun:personality"
+      ],
+      "chars": 1993,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "incarnationCross",
+      "order": 12,
+      "title": "Incarnation Cross — The Larger Theme",
+      "body": "There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.",
+      "subsections": [],
+      "keyPoints": [
+        "There is always a gap between how others read you and how yo",
+        "What comes from a defined center runs the same way every tim"
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 1218,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "lifeRelational",
+      "order": 13,
+      "title": "Love, Communication, Social Life",
+      "body": "What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.",
+      "subsections": [
+        {
+          "id": "topic:love",
+          "title": "topic:love",
+          "body": "An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear."
+        },
+        {
+          "id": "topic:communication",
+          "title": "topic:communication",
+          "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate."
+        },
+        {
+          "id": "topic:social",
+          "title": "topic:social",
+          "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        }
+      ],
+      "keyPoints": [
+        "What comes from a defined center runs the same way every tim",
+        "An open center takes in and amplifies what is around it, so "
+      ],
+      "evidence": [
+        "topic:love"
+      ],
+      "chars": 1934,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "lifeWork",
+      "order": 14,
+      "title": "Career and Money",
+      "body": "An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.",
+      "subsections": [
+        {
+          "id": "topic:career",
+          "title": "topic:career",
+          "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        },
+        {
+          "id": "topic:money",
+          "title": "topic:money",
+          "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own."
+        }
+      ],
+      "keyPoints": [
+        "An open center takes in and amplifies what is around it, so ",
+        "Following the strategy is less about patience than about rec"
+      ],
+      "evidence": [
+        "topic:career"
+      ],
+      "chars": 1692,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "lifeSelf",
+      "order": 15,
+      "title": "Growth and Decision Making",
+      "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.",
+      "subsections": [
+        {
+          "id": "topic:growth",
+          "title": "topic:growth",
+          "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own."
+        },
+        {
+          "id": "topic:decision",
+          "title": "topic:decision",
+          "body": "If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own."
+        }
+      ],
+      "keyPoints": [
+        "Following the strategy is less about patience than about rec",
+        "Simply not rushing a decision spares this design a great dea"
+      ],
+      "evidence": [
+        "topic:growth"
+      ],
+      "chars": 1634,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "conditioningShadow",
+      "order": 16,
+      "title": "Conditioning and Shadow Patterns",
+      "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.\n\nAn open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear.\n\nIf a situation keeps recurring, that may be wiring rather than character.",
+      "subsections": [
+        {
+          "id": "center:HEAD",
+          "title": "center:HEAD",
+          "body": "If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate."
+        },
+        {
+          "id": "center:AJNA",
+          "title": "center:AJNA",
+          "body": "There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point."
+        },
+        {
+          "id": "center:HEART",
+          "title": "center:HEART",
+          "body": "What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own."
+        },
+        {
+          "id": "center:SOLAR_PLEXUS",
+          "title": "center:SOLAR_PLEXUS",
+          "body": "An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on."
+        },
+        {
+          "id": "center:SPLEEN",
+          "title": "center:SPLEEN",
+          "body": "Following the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear."
+        },
+        {
+          "id": "center:ROOT",
+          "title": "center:ROOT",
+          "body": "Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character."
+        }
+      ],
+      "keyPoints": [
+        "Simply not rushing a decision spares this design a great dea",
+        "If a situation keeps recurring, that may be wiring rather th"
+      ],
+      "evidence": [
+        "center:HEAD"
+      ],
+      "chars": 1904,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "practicalGuide",
+      "order": 17,
+      "title": "Practical Guide",
+      "body": "If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own.\n\nFollowing the strategy is less about patience than about recognising the moment your circuitry switches on. Simply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character.\n\nThere is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point.",
+      "subsections": [],
+      "keyPoints": [
+        "If a situation keeps recurring, that may be wiring rather th",
+        "There is always a gap between how others read you and how yo"
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 1549,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    },
+    {
+      "key": "finalSynthesis",
+      "order": 18,
+      "title": "Final Synthesis",
+      "body": "There is always a gap between how others read you and how you actually operate. What comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear. If a situation keeps recurring, that may be wiring rather than character. There is always a gap between how others read you and how you actually operate.\n\nWhat comes from a defined center runs the same way every time, so it makes a reliable reference point. An open center takes in and amplifies what is around it, so pressure felt there is usually not your own. Following the strategy is less about patience than about recognising the moment your circuitry switches on.\n\nSimply not rushing a decision spares this design a great deal of wear.",
+      "subsections": [],
+      "keyPoints": [
+        "There is always a gap between how others read you and how yo",
+        "What comes from a defined center runs the same way every tim"
+      ],
+      "evidence": [
+        "center:THROAT"
+      ],
+      "chars": 830,
+      "status": "ok",
+      "attempts": 1,
+      "issues": []
+    }
+  ]
+}

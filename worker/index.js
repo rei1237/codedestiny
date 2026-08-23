@@ -502,6 +502,7 @@ const handleNakshatraAiRoutes = createLazyRouteHandler("./routes/nakshatra-ai.js
 const handleNakshatraPremiumRoutes = createLazyRouteHandler("./routes/nakshatra-premium.js", () => import("./routes/nakshatra-premium.js"), "handleNakshatraPremiumRoutes");
 const handleSukuyoCompatibilityAiRoutes = createLazyRouteHandler("./routes/sukuyo-compatibility-ai.js", () => import("./routes/sukuyo-compatibility-ai.js"), "handleSukuyoCompatibilityAiRoutes");
 const handleHumanDesignRoutes = createLazyRouteHandler("./routes/human-design.js", () => import("./routes/human-design.js"), "handleHumanDesignRoutes");
+const handleHumanDesignReportRoutes = createLazyRouteHandler("./routes/human-design-report.js", () => import("./routes/human-design-report.js"), "handleHumanDesignReportRoutes");
 const handleInsightsRoutes = createLazyRouteHandler("./routes/insights.js", () => import("./routes/insights.js"), "handleInsightsRoutes");
 const handleCmsRoutes = createLazyRouteHandler("./routes/cms.js", () => import("./routes/cms.js"), "handleCmsRoutes", "api/cms");
 const handleReviewRoutes = createLazyRouteHandler("./routes/reviews.js", () => import("./routes/reviews.js"), "handleReviewRoutes");
@@ -1681,7 +1682,13 @@ export default {
         return runAiRouteWithSecurity(request, env, "nakshatra-ai", handleNakshatraAiRoutes, ctx);
       }
 
-      // 휴먼 디자인 바디그래프(회당 결제) — 결정론 계산. LLM 을 타지 않으므로 AI 라우트 보안 래퍼가 아니다.
+      // 휴먼 디자인 프리미엄 리포트(회당 결제) — LLM 을 탄다. 🔴 유료 라우트를 무료보다 먼저
+      // 검사한다(나크샤트라와 같은 관례). 경로가 슬래시로 갈려 실제 충돌은 없지만 순서를 지킨다.
+      if (url.pathname === "/api/human-design-report" || url.pathname.startsWith("/api/human-design-report/")) {
+        return runAiRouteWithSecurity(request, env, "human-design-report", handleHumanDesignReportRoutes, ctx);
+      }
+
+      // 휴먼 디자인 바디그래프 — **무료**(2026-09). 결정론 계산이라 LLM 을 타지 않는다.
       if (url.pathname === "/api/human-design" || url.pathname.startsWith("/api/human-design/")) {
         return withCorsHeaders(request, env, await handleHumanDesignRoutes(request, env));
       }
