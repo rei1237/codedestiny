@@ -6,11 +6,11 @@
 
 | 갈래 | 규모 | 진행 |
 |---|---|---|
-| `components/` UI 크롬 | 811개 문자열 / 33개 파일 | **279개 / 26개 파일 완료** |
+| `components/` UI 크롬 | 811개 문자열 / 33개 파일 | **기능 파일 전량 완료 (30/33)** — 남은 3개는 내부 디버그 페이지 |
 | `data/` | 114,223자 | 미착수 |
 | `lib/` | 56,335자 | 미착수 |
 
-PR: **#1020** (`feat/fortune-tea-house-chrome-i18n`, 머지됨) — 183키 / **#1023** (`feat/fortune-tea-house-result-panels`) — 결과 패널 2종 96키.
+PR: #1020 · #1024 머지됨 / **#1025** (질문 입력) · 결과 시트 커밋은 같은 브랜치.
 
 **"파일 단위 한글 30,186자"라는 수치를 근거로 삼지 말 것.** 그건 주석까지 센 값이다. AST 로 JSX 텍스트·문자열/템플릿 리터럴만 뽑은 실제 번역 대상이 `components/` 기준 **811개 / 9,053자**다. 재현:
 
@@ -81,17 +81,9 @@ if (mood === "thinking" || /향|마음|질문|선택|망설/.test(text)) …
 
 고칠 자리는 번역된 텍스트 위의 정규식이 아니라 **데이터에서 `mood` 를 필수로 만드는 것**이다. 데이터 배치를 시작하기 전에 이것부터 처리할 것.
 
-### 3. `ko-KR` 하드코딩 3곳이 남아 있다
+### 3. ✅  하드코딩 4곳 — 전부 해소됨
 
-로케일과 무관하게 날짜·정렬이 한국식으로 나온다. `TeaHouseHistoryPanel` 의 것은 이미 `useLocale()` 로 고쳤고, 남은 것:
-
-| 파일 | 줄 | 내용 |
-|---|---|---|
-| `DestinyCafeTarotAlbum.tsx` | 144 | `localeCompare(b.titleKo, "ko-KR")` — 정렬 기준 |
-| `DestinyCafeTarotAlbum.tsx` | 1800 | `new Intl.DateTimeFormat("ko-KR", …)` |
-| `TeaHouseResultSheet.tsx` | 120 | `new Date().toLocaleString("ko-KR")` |
-
-해당 파일 배치에서 함께 고칠 것. 정본은 `useLocale()`(`lib/i18n/useT.ts`).
+로케일과 무관하게 날짜·정렬이 한국식으로 나오던 자리다. 네 곳 모두 ()을 쓰도록 고쳤다: (상대 시간), (이름 정렬 · PDF 표지 생성일), (공유 텍스트의 타임스탬프). **새로 추가하지 말 것** — 날짜·정렬·숫자는 항상 활성 로케일을 받는다.
 
 ### 4. 보간은 조각내지 말 것
 
@@ -120,13 +112,9 @@ if (mood === "thinking" || /향|마음|질문|선택|망설/.test(text)) …
 
 | 파일 | 문자열 |
 |---|---|
-| `TeaHouseResultSheet.tsx` | 160 |
-| `QuestionInputScene.tsx` | 157 |
-| `DestinyCafeTarotAlbum.tsx` | 101 |
-| `HoneyDropRewardOverlay.tsx` | 79 |
-| 디버그 페이지 4종 | ~13 (내부용 — 후순위) |
+| 디버그 페이지 4종(···) | ~13 (내부용) |
 
-그다음이 `data/`(114,223자)·`lib/`(56,335자)이고, **함정 2를 먼저 처리해야 한다.**
+**기능 파일은 전부 끝났다.** 그다음이 `data/`(114,223자)·`lib/`(56,335자)이고, **함정 2를 먼저 처리해야 한다.**
 
 ## 검증
 
