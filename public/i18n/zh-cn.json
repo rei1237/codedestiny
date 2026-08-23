@@ -11625,6 +11625,95 @@
       "tarotImageAria": "{name} 塔罗牌图像",
       "cardImageAria": "{name} 牌面图像",
       "cardAlt": "{name} 塔罗牌"
+    },
+    "scentLoading": {
+      "chatLines": {
+        "saju": {
+          "0": "请稍等。四柱八字的纹路里有些香气一急就会错过，我再把杯子暖一会儿。",
+          "1": "茶叶正在沏出你出生那个季节的流向。请再等一等。",
+          "2": "我正用指尖量着五行的温度。话语很快就会挑好。"
+        },
+        "sukuyo": {
+          "0": "我在看两人的月光如何相触。话我会慢慢挑。",
+          "1": "我在丈量27宿星座之间的距离。缘分的温度正浮上来。",
+          "2": "我在等月光在两只杯子上重叠的那一刻。"
+        },
+        "tarot": {
+          "0": "嗅嗅…这个问题上还沾着说不出口的心事。",
+          "1": "茶叶正在沏出你的运。牌也在慢慢醒来。",
+          "2": "月光下已有一张牌先翻了个身。再一会儿就好。"
+        }
+      },
+      "title": {
+        "sajuCompatibility": "Yeoni 正在查看两人的四柱八字合婚",
+        "saju": "Yeoni 正在察看四柱八字的香气",
+        "sukuyo": "Yeoni 正在察看27宿缘分的流向",
+        "tarot": "Yeoni 正轻轻嗅着你心里的香气"
+      },
+      "progress": {
+        "label": "已接收请求",
+        "message": "正把你的问题放上茶杯。"
+      },
+      "sceneAria": "Yeoni 正在准备咨询文",
+      "loadingAlt": "月光茶杯浮起的加载画面",
+      "yeoniAria": "递出茶杯的 Yeoni",
+      "progressAria": "咨询文生成进度",
+      "delayNotice": "咨询文正编织得更深一些。若停留较久，请不要刷新，稍等片刻。",
+      "retryNotice": "若流程中断，可在输入页面用同样的问题再试一次。"
+    },
+    "sajuPillarBoard": {
+      "eyebrow": "月光映照的命盘",
+      "title": "月光四柱",
+      "empty": "未填写",
+      "heavenlyStem": "天干",
+      "earthlyBranch": "地支",
+      "element": "五行",
+      "tenGod": "十神",
+      "tenGodEmpty": "与主客一同查看"
+    },
+    "tarotReveal": {
+      "upright": "正位",
+      "reversed": "逆位",
+      "title": "茶杯上浮起了一张牌",
+      "deckAria": "选择运命之牌",
+      "cardAria": "{label} 牌 {state}",
+      "revealed": "已揭开",
+      "flip": "翻开",
+      "choiceHint": "牌一张一张翻开，全部揭开后结果就准备好了。",
+      "dialogue": {
+        "preparing": "牌不会命令答案。\n它只是静静照亮此刻你心所朝的方向。",
+        "shuffling": "牌正在月光下洗着。\n我把问题的香气一张一张放上去。",
+        "choosingSome": "已翻开 {count} 张。\n剩下的也请按心之所向，慢慢翻开。",
+        "choosingNone": "{total} 张牌都望着同一个问题。\n请从心先触到的那张开始，一张一张翻开。",
+        "complete": "以 {name} {orientation} 为中心，{total} 张的流向全部展开了。\n接下来我把各个位置的含义连起来读。"
+      },
+      "phase": {
+        "shuffling": "洗牌中",
+        "choosing": "已揭开 {count}/{total} 张",
+        "complete": "全部揭开完成"
+      }
+    },
+    "historyPanel": {
+      "closeAria": "关闭咨询记录",
+      "title": "过往咨询记录",
+      "subtitle": "你可以重新展开与 Yeoni 的对话。",
+      "loadError": "无法载入咨询记录。",
+      "retry": "再试一次",
+      "empty": "还没有完成的咨询。到茶馆开始第一次咨询吧。",
+      "noSummary": "没有问题摘要",
+      "opening": "正在打开…",
+      "mode": {
+        "tarot": "塔罗",
+        "saju": "四柱八字",
+        "sajuCompatibility": "四柱合婚",
+        "sukuyo": "宿曜合婚"
+      },
+      "relative": {
+        "justNow": "刚刚",
+        "minutes": "{n} 分钟前",
+        "hours": "{n} 小时前",
+        "days": "{n} 天前"
+      }
     }
   }
 }

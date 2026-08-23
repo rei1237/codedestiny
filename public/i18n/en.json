@@ -11625,6 +11625,95 @@
       "tarotImageAria": "Image of the {name} tarot card",
       "cardImageAria": "Image of the {name} card",
       "cardAlt": "The {name} tarot card"
+    },
+    "scentLoading": {
+      "chatLines": {
+        "saju": {
+          "0": "One moment. The grain of the Four Pillars hides a scent you miss if you hurry, so let me warm the cup a little longer.",
+          "1": "The leaves are steeping the season you were born into. Just a little longer.",
+          "2": "I'm measuring the temperature of the Five Elements with my fingertips. The words will settle soon."
+        },
+        "sukuyo": {
+          "0": "I'm watching how your two moonlights touch. I'll choose the words slowly.",
+          "1": "I'm measuring the distance between the 27 lunar mansions. The temperature of your bond is surfacing.",
+          "2": "I'm waiting for the moment the moonlight overlaps across both cups."
+        },
+        "tarot": {
+          "0": "Sniff, sniff… there's something unsaid clinging to this question.",
+          "1": "The leaves are steeping your fortune. The cards are slowly waking.",
+          "2": "One card already stirred under the moonlight. Just a little more."
+        }
+      },
+      "title": {
+        "sajuCompatibility": "Yeoni is reading the Four Pillars compatibility between you two",
+        "saju": "Yeoni is reading the scent of your Four Pillars",
+        "sukuyo": "Yeoni is reading the flow of your bond across the 27 mansions",
+        "tarot": "Yeoni is taking a light breath of your heart's scent"
+      },
+      "progress": {
+        "label": "Request received",
+        "message": "Setting your question on the cup."
+      },
+      "sceneAria": "Yeoni is preparing your reading",
+      "loadingAlt": "A loading scene with a moonlit cup rising",
+      "yeoniAria": "Yeoni handing over the cup",
+      "progressAria": "Reading generation progress",
+      "delayNotice": "The reading is being woven a little deeper. If it lingers, please wait rather than refreshing.",
+      "retryNotice": "If the flow breaks, you can try the same question again from the input screen."
+    },
+    "sajuPillarBoard": {
+      "eyebrow": "The birth chart under moonlight",
+      "title": "The Four Pillars in moonlight",
+      "empty": "Not entered",
+      "heavenlyStem": "Heavenly Stem",
+      "earthlyBranch": "Earthly Branch",
+      "element": "Five Elements",
+      "tenGod": "Ten Gods",
+      "tenGodEmpty": "Read together with the main guest"
+    },
+    "tarotReveal": {
+      "upright": "Upright",
+      "reversed": "Reversed",
+      "title": "A card has surfaced over the cup",
+      "deckAria": "Choose a destiny card",
+      "cardAria": "{label} card, {state}",
+      "revealed": "revealed",
+      "flip": "flip",
+      "choiceHint": "Cards flip one at a time, and once all are open your reading is ready.",
+      "dialogue": {
+        "preparing": "The cards do not order an answer.\nThey only light, quietly, the direction your heart is already facing.",
+        "shuffling": "The cards are shuffling under the moonlight.\nI'm laying your question's scent onto them, one by one.",
+        "choosingSome": "{count} are open.\nTake the rest slowly, in whatever order your heart reaches for.",
+        "choosingNone": "{total} cards are facing the same question.\nOpen them one at a time, starting with whichever your heart reaches first.",
+        "complete": "All {total} are open now, centred on {name} {orientation}.\nLet me tie the meaning of each position together."
+      },
+      "phase": {
+        "shuffling": "Shuffling",
+        "choosing": "{count}/{total} revealed",
+        "complete": "All cards revealed"
+      }
+    },
+    "historyPanel": {
+      "closeAria": "Close reading history",
+      "title": "Past readings",
+      "subtitle": "You can reopen the conversations you had with Yeoni.",
+      "loadError": "We couldn't load your reading history.",
+      "retry": "Try again",
+      "empty": "No readings finished yet. Start your first one at the tea house.",
+      "noSummary": "No question summary",
+      "opening": "Opening…",
+      "mode": {
+        "tarot": "Tarot",
+        "saju": "Four Pillars",
+        "sajuCompatibility": "Four Pillars compatibility",
+        "sukuyo": "Sukuyo compatibility"
+      },
+      "relative": {
+        "justNow": "just now",
+        "minutes": "{n} min ago",
+        "hours": "{n} hr ago",
+        "days": "{n} days ago"
+      }
     }
   }
 }

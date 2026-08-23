@@ -11625,6 +11625,95 @@
       "tarotImageAria": "{name} 塔羅牌圖像",
       "cardImageAria": "{name} 牌面圖像",
       "cardAlt": "{name} 塔羅牌"
+    },
+    "scentLoading": {
+      "chatLines": {
+        "saju": {
+          "0": "請稍等。四柱八字的紋路裡有些香氣一急就會錯過，我再把杯子暖一會兒。",
+          "1": "茶葉正在沏出你出生那個季節的流向。請再等一等。",
+          "2": "我正用指尖量著五行的溫度。話語很快就會挑好。"
+        },
+        "sukuyo": {
+          "0": "我在看兩人的月光如何相觸。話我會慢慢挑。",
+          "1": "我在丈量27宿星座之間的距離。緣分的溫度正浮上來。",
+          "2": "我在等月光在兩隻杯子上重疊的那一刻。"
+        },
+        "tarot": {
+          "0": "嗅嗅…這個問題上還沾著說不出口的心事。",
+          "1": "茶葉正在沏出你的運。牌也在慢慢醒來。",
+          "2": "月光下已有一張牌先翻了個身。再一會兒就好。"
+        }
+      },
+      "title": {
+        "sajuCompatibility": "Yeoni 正在查看兩人的四柱八字合婚",
+        "saju": "Yeoni 正在察看四柱八字的香氣",
+        "sukuyo": "Yeoni 正在察看27宿緣分的流向",
+        "tarot": "Yeoni 正輕輕嗅著你心裡的香氣"
+      },
+      "progress": {
+        "label": "已接收請求",
+        "message": "正把你的問題放上茶杯。"
+      },
+      "sceneAria": "Yeoni 正在準備諮詢文",
+      "loadingAlt": "月光茶杯浮起的載入畫面",
+      "yeoniAria": "遞出茶杯的 Yeoni",
+      "progressAria": "諮詢文生成進度",
+      "delayNotice": "諮詢文正編織得更深一些。若停留較久，請不要重新整理，稍等片刻。",
+      "retryNotice": "若流程中斷，可在輸入頁面用同樣的問題再試一次。"
+    },
+    "sajuPillarBoard": {
+      "eyebrow": "月光映照的命盤",
+      "title": "月光四柱",
+      "empty": "未填寫",
+      "heavenlyStem": "天干",
+      "earthlyBranch": "地支",
+      "element": "五行",
+      "tenGod": "十神",
+      "tenGodEmpty": "與主客一同查看"
+    },
+    "tarotReveal": {
+      "upright": "正位",
+      "reversed": "逆位",
+      "title": "茶杯上浮起了一張牌",
+      "deckAria": "選擇運命之牌",
+      "cardAria": "{label} 牌 {state}",
+      "revealed": "已揭開",
+      "flip": "翻開",
+      "choiceHint": "牌一張一張翻開，全部揭開後結果就準備好了。",
+      "dialogue": {
+        "preparing": "牌不會命令答案。\n它只是靜靜照亮此刻你心所朝的方向。",
+        "shuffling": "牌正在月光下洗著。\n我把問題的香氣一張一張放上去。",
+        "choosingSome": "已翻開 {count} 張。\n剩下的也請按心之所向，慢慢翻開。",
+        "choosingNone": "{total} 張牌都望著同一個問題。\n請從心先觸到的那張開始，一張一張翻開。",
+        "complete": "以 {name} {orientation} 為中心，{total} 張的流向全部展開了。\n接下來我把各個位置的含義連起來讀。"
+      },
+      "phase": {
+        "shuffling": "洗牌中",
+        "choosing": "已揭開 {count}/{total} 張",
+        "complete": "全部揭開完成"
+      }
+    },
+    "historyPanel": {
+      "closeAria": "關閉諮詢記錄",
+      "title": "過往諮詢記錄",
+      "subtitle": "你可以重新展開與 Yeoni 的對話。",
+      "loadError": "無法載入諮詢記錄。",
+      "retry": "再試一次",
+      "empty": "還沒有完成的諮詢。到茶館開始第一次諮詢吧。",
+      "noSummary": "沒有問題摘要",
+      "opening": "正在開啟…",
+      "mode": {
+        "tarot": "塔羅",
+        "saju": "四柱八字",
+        "sajuCompatibility": "四柱合婚",
+        "sukuyo": "宿曜合婚"
+      },
+      "relative": {
+        "justNow": "剛剛",
+        "minutes": "{n} 分鐘前",
+        "hours": "{n} 小時前",
+        "days": "{n} 天前"
+      }
     }
   }
 }

@@ -2,6 +2,7 @@
 
 import type { FortuneTeaSajuPillar } from "../data/consult";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type SajuPillarBoardProps = {
   pillars?: FortuneTeaSajuPillar[];
@@ -19,14 +20,28 @@ const fallbackPillars: FortuneTeaSajuPillar[] = [
   },
 ];
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    PILLARS 의 label(년주·월주·일주·시주)과 note 는 기둥 정의 데이터라 다음 배치에서 함께 다룬다. */
+const KO = {
+  eyebrow: "달빛이 비친 명식표",
+  title: "달빛 네 기둥",
+  empty: "미입력",
+  heavenlyStem: "천간",
+  earthlyBranch: "지지",
+  element: "오행",
+  tenGod: "십성",
+  tenGodEmpty: "대표 손님과 함께 봐요",
+};
+
 export default function SajuPillarBoard({ pillars }: SajuPillarBoardProps) {
+  const copy = useTeaHouseCopy("sajuPillarBoard", KO);
   const visiblePillars = pillars?.length ? pillars : fallbackPillars;
 
   return (
     <section className={styles.sajuPanelSection} aria-labelledby="sajuPillarBoardTitle">
       <div className={styles.sajuPanelSectionHeader}>
-        <span>달빛이 비친 명식표</span>
-        <h4 id="sajuPillarBoardTitle">달빛 네 기둥</h4>
+        <span>{copy.eyebrow}</span>
+        <h4 id="sajuPillarBoardTitle">{copy.title}</h4>
       </div>
       <div className={styles.sajuPillarBoard}>
         {visiblePillars.map((pillar) => (
@@ -38,24 +53,24 @@ export default function SajuPillarBoard({ pillars }: SajuPillarBoardProps) {
           >
             <div className={styles.sajuPillarTop}>
               <span>{pillar.label}</span>
-              <strong>{pillar.ganji || "미입력"}</strong>
+              <strong>{pillar.ganji || copy.empty}</strong>
             </div>
             <dl className={styles.sajuPillarRows}>
               <div>
-                <dt>천간</dt>
+                <dt>{copy.heavenlyStem}</dt>
                 <dd>{pillar.heavenlyStem || "—"}</dd>
               </div>
               <div>
-                <dt>지지</dt>
+                <dt>{copy.earthlyBranch}</dt>
                 <dd>{pillar.earthlyBranch || "—"}</dd>
               </div>
               <div>
-                <dt>오행</dt>
+                <dt>{copy.element}</dt>
                 <dd>{pillar.element || "—"}</dd>
               </div>
               <div>
-                <dt>십성</dt>
-                <dd>{pillar.tenGod || "대표 손님과 함께 봐요"}</dd>
+                <dt>{copy.tenGod}</dt>
+                <dd>{pillar.tenGod || copy.tenGodEmpty}</dd>
               </div>
             </dl>
             {!pillar.available && pillar.note ? <p>{pillar.note}</p> : null}

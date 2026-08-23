@@ -5055,6 +5055,95 @@
       "tarotImageAria": "{name} 타로 카드 이미지",
       "cardImageAria": "{name} 카드 이미지",
       "cardAlt": "{name} 타로 카드"
+    },
+    "scentLoading": {
+      "chatLines": {
+        "saju": {
+          "0": "잠깐만요. 사주의 결은 서두르면 놓치는 향이 있어서, 잔을 조금 더 데워 볼게요.",
+          "1": "찻잎이 태어난 계절의 흐름을 우려내고 있어요. 조금만 기다려 주세요.",
+          "2": "오행의 온도를 손끝으로 재보는 중이에요. 곧 말이 골라질 거예요."
+        },
+        "sukuyo": {
+          "0": "두 사람의 달빛이 서로 어떻게 닿는지 보고 있어요. 말은 천천히 골라드릴게요.",
+          "1": "27숙의 별자리 사이 거리를 재는 중이에요. 인연의 온도가 떠오르고 있어요.",
+          "2": "달빛이 두 잔 위에서 겹치는 순간을 기다리고 있어요."
+        },
+        "tarot": {
+          "0": "킁킁… 이 질문에는 아직 말하지 못한 마음이 묻어 있어요.",
+          "1": "찻잎이 당신의 운을 우려내고 있어요. 카드가 천천히 깨어나는 중이에요.",
+          "2": "달빛 아래에서 카드 한 장이 먼저 몸을 뒤척였어요. 조금만 더요."
+        }
+      },
+      "title": {
+        "sajuCompatibility": "연이가 두 사람의 사주 궁합을 살피고 있어요",
+        "saju": "연이가 사주의 향을 살피고 있어요",
+        "sukuyo": "연이가 27숙 인연의 흐름을 살피고 있어요",
+        "tarot": "연이가 마음의 향을 살짝 맡아보고 있어요"
+      },
+      "progress": {
+        "label": "요청 접수",
+        "message": "찻잔 위에 질문을 올리고 있어요."
+      },
+      "sceneAria": "연이가 상담문을 준비하는 중",
+      "loadingAlt": "달빛 찻잔이 떠오르는 로딩 장면",
+      "yeoniAria": "찻잔을 건네는 연이",
+      "progressAria": "상담문 생성 진행",
+      "delayNotice": "상담문을 조금 더 깊게 엮고 있어요. 오래 머물면 새로고침하지 말고 잠시만 기다려 주세요.",
+      "retryNotice": "흐름이 끊기면 입력 화면에서 같은 질문으로 다시 시도할 수 있어요."
+    },
+    "sajuPillarBoard": {
+      "eyebrow": "달빛이 비친 명식표",
+      "title": "달빛 네 기둥",
+      "empty": "미입력",
+      "heavenlyStem": "천간",
+      "earthlyBranch": "지지",
+      "element": "오행",
+      "tenGod": "십성",
+      "tenGodEmpty": "대표 손님과 함께 봐요"
+    },
+    "tarotReveal": {
+      "upright": "정방향",
+      "reversed": "역방향",
+      "title": "찻잔 위에 카드가 떠올랐어요",
+      "deckAria": "운명의 카드 선택",
+      "cardAria": "{label} 카드 {state}",
+      "revealed": "공개됨",
+      "flip": "뒤집기",
+      "choiceHint": "카드는 한 장씩 뒤집히고, 모두 열리면 결과가 준비돼요.",
+      "dialogue": {
+        "preparing": "카드는 정답을 명령하지 않아요.\n지금 마음이 바라보는 방향을 조용히 비출 뿐이에요.",
+        "shuffling": "달빛 아래에서 카드들이 섞이고 있어요.\n질문의 향을 한 장씩 내려놓는 중이에요.",
+        "choosingSome": "{count}장을 펼쳤어요.\n남은 카드도 마음이 닿는 순서대로 천천히 열어 주세요.",
+        "choosingNone": "{total}장의 카드가 같은 질문을 바라보고 있어요.\n마음이 먼저 닿는 카드부터 하나씩 열어 주세요.",
+        "complete": "{name} {orientation}을 중심으로 {total}장의 흐름이 모두 열렸어요.\n이제 연이가 각 자리의 뜻을 묶어 읽어볼게요."
+      },
+      "phase": {
+        "shuffling": "카드가 섞이는 중",
+        "choosing": "{count}/{total}장 공개",
+        "complete": "모든 카드 공개 완료"
+      }
+    },
+    "historyPanel": {
+      "closeAria": "상담 기록 닫기",
+      "title": "지난 상담 기록",
+      "subtitle": "연이와 나눈 이야기를 다시 펼쳐볼 수 있어요.",
+      "loadError": "상담 기록을 불러오지 못했어요.",
+      "retry": "다시 시도",
+      "empty": "아직 완료된 상담이 없어요. 찻집에서 첫 상담을 시작해 보세요.",
+      "noSummary": "질문 요약이 없어요",
+      "opening": "여는 중…",
+      "mode": {
+        "tarot": "타로",
+        "saju": "사주",
+        "sajuCompatibility": "사주 궁합",
+        "sukuyo": "숙요점 궁합"
+      },
+      "relative": {
+        "justNow": "방금 전",
+        "minutes": "{n}분 전",
+        "hours": "{n}시간 전",
+        "days": "{n}일 전"
+      }
     }
   }
 }
