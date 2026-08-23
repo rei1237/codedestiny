@@ -12819,6 +12819,142 @@
         "yeoniDescription": "Nurturer is like a teacher pouring warm tea — it tells you the protection and the recovery you need right now.",
         "visualHint": "a book, warm tea, a blanket, a lantern"
       }
+    },
+    "entryScenes": {
+      "0": {
+        "eyebrow": "Moonlight spreading past the door",
+        "title": "You step into the tea house",
+        "lines": {
+          "0": {
+            "text": "As the door gives way, the noise of the alley outside settles slowly, like tea leaves.\nThe moonlight lights even the smallest mote, and a breath long shut away seeps inward.",
+            "cta": "Step inside"
+          },
+          "1": {
+            "text": "On every table sit cups no one has touched yet.\nA different light floats in each, and that light seems to be waiting for the question you have not managed to name. Love and work, money and the mending of the heart — a different theme of the night rests quietly in every cup.",
+            "cta": "Look around carefully"
+          }
+        }
+      },
+      "1": {
+        "eyebrow": "A small, round presence",
+        "title": "The flower piglet looks up at you",
+        "lines": {
+          "0": {
+            "text": "So you finally came.\nThe door recognized your sigh before I did, and opened. This tea house only opens, quietly, for someone ready to set a long-held question down on a cup.",
+            "cta": "Say hello"
+          },
+          "1": {
+            "text": "Me? I am the doorkeeper here, and your first guide.\nEveryone calls me the flower piglet, but my real name is Yeoni.",
+            "cta": "Look at the piglet"
+          },
+          "2": {
+            "text": "Not just anyone gets in here.\nOnly people with a question that has lived in them a long while — one they can no longer carry alone — ever find this door.",
+            "cta": "Keep listening"
+          }
+        }
+      },
+      "2": {
+        "eyebrow": "The hour for reading the heart's scent",
+        "title": "A heart that arrived before the words",
+        "lines": {
+          "0": {
+            "text": "Your heart gives off more than one scent.\nA little sweet, a little bitter, and a little of the scent that has been holding out to the end.",
+            "cta": "Listen quietly"
+          },
+          "1": {
+            "text": "There is a name you never said, a sentence you never sent, and a hope you folded away while pretending you were fine.\nHere we read hearts like that one layer at a time, holding them against tea and cards, against the chart and the flow of ties.",
+            "cta": "Catch your breath"
+          },
+          "2": {
+            "text": "It is all right.\nYou do not have to say it well here.\nThe heart reaches the cup before the words do, and Yeoni starts reading from that faint tremor.",
+            "cta": "Watch in silence"
+          },
+          "3": {
+            "text": "Only, to read this scent all the way through, I have to return to my own true grain for a moment.\nThe instant moonlight touches the cup, the direction of your heart comes through far more clearly.",
+            "cta": "Leave it to the moonlight"
+          }
+        }
+      },
+      "3": {
+        "eyebrow": "The moment a lotus petal rises",
+        "title": "The moonlight changes a shape",
+        "lines": {
+          "0": {
+            "text": "As a soft moonlight pours over the cup, the piglet's small body is wrapped in gentle brightness.\nInside the light, that round shape slowly turns into the form of a person.",
+            "cta": "Watch the moonlight"
+          },
+          "1": {
+            "text": "When the light draws back, a beautiful woman with long, loose hair is standing there.\nShe looks so graceful and composed that it is hard to believe she was a piglet a moment ago.",
+            "cta": "Meet Yeoni"
+          }
+        }
+      },
+      "4": {
+        "eyebrow": "A name revealed across the cup",
+        "title": "Yeoni welcomes you",
+        "lines": {
+          "0": {
+            "text": "Welcome in. I am Yeoni.\nThe little piglet from before was me as well. If it startled you, let us say the cup laughed first.",
+            "cta": "Look at Yeoni"
+          },
+          "1": {
+            "text": "At the door I keep a small, round shape and watch for a guest's first breath…\nbut I have spent a very long time learning to read the scent of destiny as it blooms out of a person's heart.",
+            "cta": "Nod"
+          },
+          "2": {
+            "text": "The question you brought is not a simple worry — it is a heart already moving, already beginning to find its answer inside you.\nI will not startle that current. I will hold it up to the light gently, but clearly.",
+            "cta": "Entrust your heart"
+          },
+          "3": {
+            "text": "So from here on, you may speak as easily as you like.\nI did not come to judge your story. I came to sit beside you, so that you can trust your own heart again.",
+            "cta": "Look at the cups"
+          }
+        }
+      },
+      "5": {
+        "eyebrow": "The cup that will hold today's answer",
+        "title": "Shall we choose a cup of tea first?",
+        "lines": {
+          "0": {
+            "text": "From here you will choose for yourself the path you need most today — tarot, the birth chart, or the flow of ties.\nWhichever you open, I will follow the symbol you chose and read it deeply and calmly.",
+            "cta": "Hear about the readings"
+          },
+          "1": {
+            "text": "Shall we choose a cup of tea first?\nDepending on which cup you take, the grain of the moonlight that falls on your worry shifts a little.",
+            "cta": "Look over the cups"
+          },
+          "2": {
+            "text": "You do not have to force an answer.\nThe cup your fingertips linger on, the light your eyes keep returning to, the scent that settles you for no reason — that is what will open today's door.",
+            "cta": "Go choose a cup"
+          }
+        }
+      }
+    },
+    "entryIdleLines": {
+      "0": {
+        "text": "Even while you wait, the cup keeps brightening a little.\nIf that is the pace at which your heart arrives, then the pace itself is close to today's answer."
+      },
+      "1": {
+        "text": "The moonlight just swayed a little.\nWhen someone turns an unsaid word over in their heart, the tea house notices before anyone else."
+      },
+      "2": {
+        "text": "A worry that stays a long time usually means the heart has not given up yet.\nI rather like hearts like that. This tea house is exactly the place that reads such sincerity slowly, instead of pushing it away."
+      },
+      "3": {
+        "text": "It is fine if you cannot find the words.\nHere even silence steeps slowly, like tea leaves. Swallow it too fast and you miss the scent."
+      },
+      "4": {
+        "text": "Past that door there is warmth before there is any answer.\nBefore the tea goes cold, I hope your heart softens a little too."
+      },
+      "5": {
+        "text": "Sometimes one very small hesitation turns a whole direction around.\nThat is why I listen to a guest's first breath for a long while. Breath is not very good at lying."
+      },
+      "6": {
+        "text": "Did you see that cup glimmer just now?\nYou have not even chosen yet, and the light already moved to recognize you. Rather well-mannered light, is it not?"
+      },
+      "7": {
+        "text": "Tonight is a little kind.\nEven so, do not strain to be all right too quickly. A heart needs time to warm as well."
+      }
     }
   }
 }
