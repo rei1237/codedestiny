@@ -81,11 +81,8 @@
 | 자미두수 심화 | 코즈믹 & 별자리 컬렉션 | `navigateToZiweiChart`, `/ziwei/chart` | 해금 20,000원 | 고가 잠금 UI가 큼 | 권한 확인 | preview에서 안내 |
 | 베다 점성술 | 코즈믹 & 별자리 컬렉션 | `navigateToVedic`, `/vedic-ai`, `/vedic/jyotish` | 기본 무료, AI 상담 유료 | 기본/AI가 혼재 | route bundle | 기본 차트와 AI 상담 분리 |
 | 올림푸스 신탁 | 코즈믹 & 별자리 컬렉션 | `openOlympusOracleModal` | 해금 10,000원 | modal 진입이 카드 안에 묻힘 | lazy script | 별자리 chip 내부 |
-| 운명의 꽃 & 해몽 | 모바일 빠른 탐색, 꽃/해몽 컬렉션 | `flowerCollection`, `openDestinyFlowerStudio` | 무료/유료 혼합 | 꽃 4종과 해몽 2종이 한 번에 길어짐 | studio modal/engine, dream modal 혼합 | 꽃/해몽 탭에서 대표 카드와 더보기 |
-| 운명의 꽃 사주 | 운명의 꽃 & 해몽 컬렉션 | `openDestinyFlowerStudio`, `/flower/destiny` | 전체 해금 20,000원(4종 공통) · 1회 이용 5,000원 | 꽃 4종이 비슷해 혼동 | studio modal/engine | 꽃·해몽 chip 하위 |
-| 점성술 꽃 | 운명의 꽃 & 해몽 컬렉션 | `openAstrologyFlowerStudio`, `/flower/astrology` | 전체 해금 20,000원(4종 공통) · 1회 이용 5,000원 | 이름 차이가 작음 | studio modal/engine | source badge 강화 |
-| 자미두수 꽃 | 운명의 꽃 & 해몽 컬렉션 | `openJamidusuFlowerStudio`, `/flower/jamidusu` | 전체 해금 20,000원(4종 공통) · 1회 이용 5,000원 | 이름 차이가 작음 | studio modal/engine | source badge 강화 |
-| 숙요 꽃 | 운명의 꽃 & 해몽 컬렉션 | `openSukuyoFlowerStudio`, `/flower/sukuyo` | 전체 해금 20,000원(4종 공통) · 1회 이용 5,000원 | 이름 차이가 작음 | studio modal/engine | source badge 강화 |
+| 운명의 꽃 & 해몽 | 모바일 빠른 탐색, 꽃/해몽 컬렉션 | `flowerCollection`, `openDestinyFlowerStudio` | 무료/유료 혼합 | 꽃 1종과 해몽 2종 | studio modal/engine, dream modal 혼합 | 꽃/해몽 탭에서 대표 카드와 더보기 |
+| 운명의 꽃 아틀리에 | 운명의 꽃 & 해몽 컬렉션 | `openDestinyFlowerStudio`, `/flower` | 전체 해금 10,000원(사주·점성술·자미두수·숙요 4종 전부) | — (2026-08-23 카드 4장을 1장으로 통합) | studio modal/engine | 꽃·해몽 chip 하위 |
 | 드림 프롬프트 | 운명의 꽃 & 해몽 컬렉션 | `openDreamModal`, `/dream/tarot` | 무료 | 해몽 기능이 꽃 아래에 섞임 | hidden modal | 꽃·해몽 chip 내부 |
 | 정신분석 해몽 | 운명의 꽃 & 해몽 컬렉션 | `openPsychoDreamModal`, `/dream/psycho` | 1회 3,000원 | 결과 sheet가 길어질 수 있음 | lazy script | preview 후 열기 |
 | VVIP 운명 서고 | 모바일 빠른 탐색, VVIP 컬렉션 | `vvipCollection`, `/premium-unlock` | AI 상담/프리미엄 유료 | 고가 상담과 이용권 설명이 길어짐 | AI route/API, 결제 확인 flow | 대표 상담 2개 우선, 나머지 접힘 |
