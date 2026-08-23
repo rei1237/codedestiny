@@ -88,10 +88,10 @@
 | 점성술 트랜짓 | `astro_monthly_transit`(276) · `astro_yearly_transit`(277) |
 | 나크샤트라/베다 | `nakshatra-muhurta`(223, `amountKRW:5000`) · `vedic_prashna_prompt`(266) |
 | 반려동물 | `pet-saju-ai-consultation`(229, KRW5000) · `pet-compatibility-ai`(230, KRW5000) |
-| 찻집/꽃 | `fortune-tea-house-tarot-consultation`(201, KRW5000) · `flower-studio-per-use`(200) |
+| 찻집/꽃 | `fortune-tea-house-tarot-consultation`(201, KRW5000) |
 | 자미두수 | **`ziwei-island-deep-report`(288, KRW5000, unlock)** |
 | 상담 | `fortune-chat-consultation`(294, KRW5000) |
-| 최애운명 | `destiny-bias-analyze`(309) |
+| 최애운명 | (없음 — 전면 무료) |
 | 손금 | `palm-reading-ai-consult`(255, 레거시·호출 없음) |
 | 사주 카드 (전부 **unlock**) | `rpt_energyCoordCard`(318) · `rpt_villainCard`(319) · `rpt_secretHouseEntryCard`(320) · `fun.quantumLotto.ritualReport`(321) · `unlock.section_daewun`(327) · `unlock.section_summary`(328) · `unlock.section_compat`(329) · `unlock.travel_destiny`(334) · `unlock.health_report`(335) · `unlock.secret_house_episodes`(340) |
 | **프로필 카드 관리** | `profile-card-manage`(313) — **`passExcluded: true`**(`worker/payments/catalog.js:34`). 이용권으로 결제 불가, 단건/월정석만 |
@@ -102,7 +102,7 @@
 |---|---|---|---|
 | 60 | ₩6,000 | `cd_content_tier_03` ₩7,500 | `animal-totem-deep`(246) 애니멀 토템 심화 |
 | 70 | ₩7,000 | `cd_content_tier_04` ₩8,900 | `fortune-tea-house-tarot-five-consultation`(202, KRW7000) · `stonehenge-runes-deep`(242) |
-| 90 | ₩9,000 | `cd_content_tier_05` ₩10,900 | `destiny-bias-deep-profile`(312, **unlock**) · `unlock.destiny_bias_deep_profile`(354) |
+| 90 | ₩9,000 | `cd_content_tier_05` ₩10,900 | (없음) |
 
 ### A-4. 코인 100 = ₩10,000 · 앱 `cd_content_tier_06` ₩13,000
 
@@ -126,8 +126,8 @@
 
 | 코인 | 웹가 | 앱 SKU | 상품 |
 |---|---|---|---|
-| 120 | ₩12,000 | `cd_content_tier_07` ₩15,000 | `premium-sukuyo-compat-extra`(307) · `destiny-bias-theme-premium`(310/352, **unlock**) |
-| 150 | ₩15,000 | `cd_content_tier_08` ₩19,000 | `ziwei_love_deep`(300/344, **unlock**) · `destiny-bias-collection-save`(311/353, **unlock**) · `unlock.nakshatra_dasha_map`(356) |
+| 120 | ₩12,000 | `cd_content_tier_07` ₩15,000 | `premium-sukuyo-compat-extra`(307) |
+| 150 | ₩15,000 | `cd_content_tier_08` ₩19,000 | `ziwei_love_deep`(300/344, **unlock**) · `unlock.nakshatra_dasha_map`(356) |
 | 200 | ₩20,000 | `cd_content_tier_09` ₩25,000 | `cosmic-soul-meditation`(197) · `fortune-tea-house-saju-compatibility-consultation`(204, KRW20000) · `fortune-tea-house-sukuyo-compatibility-consultation`(205, KRW20000) · `saju_ai_question_prompt`(261) · `ziwei-island-palace-consult`(286, KRW20000) · `premium-fpti-report`(304, **unlock**) · `unlock.flower_fc`(330) · `unlock.premium_ziwei`(342) |
 
 ### A-6. 코인 300 = ₩30,000 · 앱 `cd_content_tier_10` ₩39,000
@@ -384,7 +384,7 @@ CSS 주석 2건(`fusion-fortune.module.css:802`, `codex.module.css:470`).
 
 ### 고유 가격 포인트: **16개** (레지스트리 코인 14종 + reason 전용 690 + 음악 10코인)
 
-집계 방법: `sed -n '177,322p'`(가격표) / `'326,357p'`(unlock 상품) 에서 `cost:` 리터럴을 세고, 두 표에 같은 featureKey로 중복 등장하는 10건(ziwei 4종 · `saju-guardian-unlock` · `tetogen_deep_report` · `ziwei_love_deep` · destiny-bias 3종)을 1건으로 합쳤다.
+집계 방법: `sed -n '177,322p'`(가격표) / `'326,357p'`(unlock 상품) 에서 `cost:` 리터럴을 세고, 두 표에 같은 featureKey로 중복 등장하는 7건(ziwei 4종 · `saju-guardian-unlock` · `tetogen_deep_report` · `ziwei_love_deep`)을 1건으로 합쳤다. destiny-bias 4종과 `flower-studio-per-use` 는 2026-08-24 에 레지스트리에서 제거됐다(청구처 0곳).
 
 | 코인 | 웹가 | 가격표 | unlock 표 | 고유 상품 수 | 앱 SKU |
 |---:|---:|---:|---:|---:|---|

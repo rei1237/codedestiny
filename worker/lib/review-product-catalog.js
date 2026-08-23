@@ -321,7 +321,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
     summary: "사주·별자리를 꽃으로 그려내는 스튜디오",
     href: "/flower",
     featureKeys: Object.freeze([
-      "flower-studio-per-use",
       "flower-fc",
     ]),
   },
@@ -331,10 +330,6 @@ export const REVIEW_PRODUCTS = Object.freeze([
     summary: "최애와 나의 운명을 겹쳐 보는 심화 분석",
     href: "/destiny-bias",
     featureKeys: Object.freeze([
-      "destiny-bias-analyze",
-      "destiny-bias-theme-premium",
-      "destiny-bias-collection-save",
-      "destiny-bias-deep-profile",
     ]),
   },
   {
