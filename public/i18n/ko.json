@@ -6540,6 +6540,136 @@
       "surprised": {
         "label": "작게 손을 흔드는 꽃돼지?"
       }
+    },
+    "tarotAlbumTemplates": {
+      "minor": {
+        "shortSummary": "{title}: {rankShort} {suitSymbol}",
+        "storyTitle": "{rankTitle}과 {suitNoun}",
+        "story": "{rankScene} {suitSymbol} 이 카드가 펼쳐질 때 연이는 사건을 단순한 길흉으로 자르지 않고, 마음이 어떤 속도로 현실에 닿으려 하는지 먼저 살핍니다. {title}은 지금 당신에게 이 흐름을 현실의 선택으로 옮길 때가 왔음을 조용히 들려줍니다.",
+        "uprightMeaning": "{rankLine} {suitLine}",
+        "reversedMeaning": "{rankLine} {suitLine}",
+        "loveMeaning": "{suitLine} {rankLine}",
+        "relationshipMeaning": "{suitLine} {rankLine}",
+        "careerMeaning": "{suitLine} {rankLine}",
+        "moneyMeaning": "{suitLine} {rankLine}",
+        "innerGrowthMeaning": "{suitLine} {rankLine}",
+        "yeoniMessage": "이 카드는 손님에게 말해요. {rankShort} 그러니 오늘은 마음의 {suitNoun}을 너무 세게 움켜쥐지 말고, 실제로 바꿀 수 있는 한 가지부터 바라보세요."
+      },
+      "fallback": {
+        "element": "상징",
+        "storyTitle": "{name}의 달빛 이야기",
+        "story": "{name}은 지금 마음이 마주한 상징을 조용히 펼칩니다. 연이는 이 카드를 통해 선택의 온도와 감정의 결을 함께 살핍니다.",
+        "loveMeaning": "{name}은 사랑에서 마음의 방향과 표현 방식을 차분히 보라고 가리킵니다.",
+        "relationshipMeaning": "{name}은 관계에서 서로의 속도와 경계를 살피라고 말합니다.",
+        "careerMeaning": "{name}은 일에서 지금 필요한 태도와 다음 행동을 비춥니다.",
+        "moneyMeaning": "{name}은 돈에서 감정과 현실 조건을 함께 점검하라고 말합니다.",
+        "innerGrowthMeaning": "{name}은 내면에서 반복되는 마음의 흐름을 알아차리게 합니다.",
+        "yeoniMessage": "연이는 이 카드 앞에서 손님의 마음을 서두르지 않고 기다릴게요.",
+        "journalQuestion": "이 카드가 지금 내게 비추는 작은 신호는 무엇인가요?"
+      },
+      "majorSuitLabel": "메이저 아르카나"
+    },
+    "tarotAlbumSuits": {
+      "wands": {
+        "label": "완드",
+        "element": "불",
+        "keywords": {
+          "0": "열정",
+          "1": "행동",
+          "2": "추진",
+          "3": "창조"
+        },
+        "reversedKeywords": {
+          "0": "조급함",
+          "1": "소진",
+          "2": "방향 혼선",
+          "3": "충동"
+        },
+        "storyNoun": "불꽃",
+        "symbolLine": "완드는 마음속 불씨가 몸의 움직임으로 번지는 순간을 비춥니다.",
+        "uprightLine": "정방향에서는 의욕을 실제 행동으로 옮길 힘이 살아납니다.",
+        "reversedLine": "역방향에서는 열정이 급하거나 흩어져 방향을 다시 잡아야 합니다.",
+        "loveLine": "사랑에서는 설렘과 표현 욕구가 강해집니다.",
+        "relationshipLine": "관계에서는 먼저 움직이는 태도와 활기 있는 소통이 중요합니다.",
+        "careerLine": "일에서는 추진력, 창업, 프로젝트 시작, 경쟁의 불이 켜집니다.",
+        "moneyLine": "돈에서는 수익 아이디어가 떠오르지만 충동 지출을 조심해야 합니다.",
+        "growthLine": "내면 성장에서는 하고 싶은 마음을 두려움보다 먼저 인정하는 연습이 필요합니다."
+      },
+      "cups": {
+        "label": "컵",
+        "element": "물",
+        "keywords": {
+          "0": "감정",
+          "1": "사랑",
+          "2": "공감",
+          "3": "치유"
+        },
+        "reversedKeywords": {
+          "0": "감정 과잉",
+          "1": "의존",
+          "2": "오해",
+          "3": "닫힌 마음"
+        },
+        "storyNoun": "물결",
+        "symbolLine": "컵은 마음의 물결과 애착, 다정한 교류의 온도를 비춥니다.",
+        "uprightLine": "정방향에서는 감정의 흐름이 살아나고 서로의 마음이 부드럽게 닿습니다.",
+        "reversedLine": "역방향에서는 감정이 고이거나 넘쳐 오해와 의존을 정리해야 합니다.",
+        "loveLine": "사랑에서는 마음을 주고받는 깊이가 중요해집니다.",
+        "relationshipLine": "관계에서는 공감과 돌봄이 흐름을 회복시킵니다.",
+        "careerLine": "일에서는 사람을 이해하는 감각, 케어, 예술성, 협업 감수성이 살아납니다.",
+        "moneyLine": "돈에서는 기분에 따른 소비와 감정적 선택을 차분히 살펴야 합니다.",
+        "growthLine": "내면 성장에서는 내 감정을 부끄러워하지 않고 안전하게 흘려보내는 법을 배웁니다."
+      },
+      "swords": {
+        "label": "소드",
+        "element": "공기",
+        "keywords": {
+          "0": "생각",
+          "1": "말",
+          "2": "판단",
+          "3": "진실"
+        },
+        "reversedKeywords": {
+          "0": "과잉 사고",
+          "1": "상처",
+          "2": "혼란",
+          "3": "날 선 말"
+        },
+        "storyNoun": "바람",
+        "symbolLine": "소드는 말과 생각이 상황을 가르는 예리한 공기를 비춥니다.",
+        "uprightLine": "정방향에서는 사실 확인과 솔직한 판단이 흐름을 정리합니다.",
+        "reversedLine": "역방향에서는 생각이 과열되거나 말이 상처로 남지 않도록 속도를 낮춰야 합니다.",
+        "loveLine": "사랑에서는 마음보다 말과 태도의 정확성이 먼저 보입니다.",
+        "relationshipLine": "관계에서는 오해를 줄이는 대화와 선명한 경계가 필요합니다.",
+        "careerLine": "일에서는 분석, 전략, 문서, 결정의 힘이 중요합니다.",
+        "moneyLine": "돈에서는 숫자와 조건을 냉정하게 읽어야 손실을 줄일 수 있습니다.",
+        "growthLine": "내면 성장에서는 생각이 나를 지키는 도구인지, 나를 베는 칼인지 구분하게 됩니다."
+      },
+      "pentacles": {
+        "label": "펜타클",
+        "element": "흙",
+        "keywords": {
+          "0": "현실",
+          "1": "안정",
+          "2": "시간",
+          "3": "성과"
+        },
+        "reversedKeywords": {
+          "0": "지연",
+          "1": "불안정",
+          "2": "부담",
+          "3": "집착"
+        },
+        "storyNoun": "씨앗",
+        "symbolLine": "펜타클은 손에 잡히는 조건과 천천히 쌓이는 현실의 무게를 비춥니다.",
+        "uprightLine": "정방향에서는 시간을 들여 안정과 결과를 만들어갈 수 있습니다.",
+        "reversedLine": "역방향에서는 현실 부담이나 지연을 점검하고 기초를 다시 다져야 합니다.",
+        "loveLine": "사랑에서는 신뢰와 생활의 안정감이 중요합니다.",
+        "relationshipLine": "관계에서는 말보다 꾸준히 지켜온 태도가 힘을 갖습니다.",
+        "careerLine": "일에서는 실무, 성과, 기술 축적, 장기 계획이 중심이 됩니다.",
+        "moneyLine": "돈에서는 관리, 저축, 투자 기준처럼 현실적인 구조가 운을 지킵니다.",
+        "growthLine": "내면 성장에서는 느리더라도 실제로 삶을 바꾸는 습관을 세우게 됩니다."
+      }
     }
   }
 }
