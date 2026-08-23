@@ -959,7 +959,9 @@ body.neo-mode span.neo-only { display: inline !important; }
 .df-studio-aura { position: absolute; inset: -12% -8% auto; height: 70%; pointer-events: none; background: radial-gradient(circle at 22% 50%, rgba(244, 114, 182, 0.4), transparent 58%), radial-gradient(circle at 74% 34%, rgba(34, 211, 238, 0.34), transparent 60%); }
 .df-studio-visual { position: relative; z-index: 1; border-radius: 18px; overflow: hidden; border: 1px solid rgba(255, 255, 255, 0.68); background: linear-gradient(150deg, rgba(255, 255, 255, 0.62), rgba(255, 255, 255, 0.26)); box-shadow: rgba(96, 65, 145, 0.14) 0px 10px 24px; mask-image: radial-gradient(140% 100% at 50% 0%, rgb(0, 0, 0) 74%, transparent 100%); }
 .df-studio-visual::after { content: ""; position: absolute; inset: auto -24px -38px auto; width: 112px; height: 112px; border-radius: 50%; background: radial-gradient(circle, rgba(255, 205, 223, 0.44), transparent 68%); pointer-events: none; }
-.df-studio-visual img { width: 100%; height: auto; display: block; mix-blend-mode: multiply; filter: saturate(1.08) contrast(1.03); transform-origin: center 70%; animation: 3.2s ease-in-out 0s infinite normal none running destinyFlowerPetalTremble; }
+.df-studio-visual img { width: 100%; height: auto; display: block; filter: saturate(1.06) contrast(1.02); transform-origin: center 70%; }
+.df-studio-visual img.is-blooming { animation: 0.52s cubic-bezier(0.22, 1, 0.36, 1) 0s 1 normal both running dfArtBloomIn; }
+@keyframes dfArtBloomIn { 0% { opacity: 0; transform: scale(0.94); } 100% { opacity: 1; transform: scale(1); } }
 .df-studio-insight { position: relative; z-index: 1; display: flex; flex-direction: column; justify-content: center; gap: 8px; padding: 4px 2px; }
 .df-studio-insight h3 { margin: 0px; font-size: clamp(1.15rem, 2.2vw, 1.6rem); color: rgb(75, 47, 121); text-shadow: rgba(195, 143, 255, 0.2) 0px 4px 12px; }
 .df-studio-latin { margin: 0px; color: rgb(103, 91, 134); font-style: italic; font-size: 0.84rem; }

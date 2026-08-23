@@ -122,36 +122,9 @@
   }
 }
 
-/* ─── 2. 운명의 꽃 카드 — absolute 요소가 터치를 가로채지 않도록 ─── */
-.feature-card--destiny-flower .df-bud-icon,
-.feature-card--destiny-flower .destiny-flower-glow,
-.feature-card--destiny-flower .destiny-flower-sticker,
-.feature-card--destiny-flower .df-garden-petal-field,
-.feature-card--destiny-flower .df-garden-petal-field span,
-.feature-card--destiny-flower .astrology-card-glow {
-  pointer-events: none;
-}
-
-/* 운명의 꽃 feature-card 모바일 overflow 방지 */
-@media (max-width: 768px) {
-  .feature-card--destiny-flower .feature-card__img-wrap {
-    min-height: 180px;
-  }
-  .feature-card--destiny-flower .feature-card__detail-content {
-    padding: 14px 16px 18px;
-  }
-  .feature-card--destiny-flower .destiny-flower-stage {
-    padding: 10px;
-  }
-  .feature-card--destiny-flower .df-source-tabs {
-    gap: 6px;
-  }
-  .feature-card--destiny-flower .df-source-tab {
-    min-height: 36px;
-    font-size: 0.8rem;
-    padding: 6px 10px;
-  }
-}
+/* ─── 2. (제거됨) 운명의 꽃 홈 카드 ───
+   .feature-card--destiny-flower 마크업이 사라져(커밋 2f865d118) 여기 있던 규칙은
+   전부 매치되지 않았다. 스튜디오 시트 규칙은 styles/fortune-ui.css 에 있다. */
 
 /* ─── 3. dp-fsel (운세 선택 모달) — 프로필 카드 모바일 (한 칸에 2개씩) ─── */
 @media (max-width: 480px) {
