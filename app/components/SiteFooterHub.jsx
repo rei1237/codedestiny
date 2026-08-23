@@ -1,7 +1,6 @@
 import styles from "./SiteFooterHub.module.css";
 import SocialFooter from "../_components/SocialFooter";
 import { BUSINESS_IDENTITY } from "../../lib/site-policy-config";
-import { REFUND_POLICY_ROWS } from "../../lib/legal/refund-policy-rows";
 
 const SITE_FOOTER_HUB_TEXT_TRANSLATIONS = {
   ko: {
@@ -184,13 +183,17 @@ export default function SiteFooterHub() {
             <p style={{ marginBottom: '1.5rem', lineHeight: 1.6 }}>
               유료 결제 상품은 30일 이용권과 상품별 원화 단건 결제이며, 월정석은 별도 구매·충전 상품이 아닙니다.
             </p>
-            <ul style={{ listStyle: 'disc', paddingLeft: '1.5rem', marginBottom: '1.5rem' }}>
-              {REFUND_POLICY_ROWS.map((rule) => (
-                <li key={rule} style={{ marginBottom: '0.75rem', lineHeight: 1.6 }}>
-                  {rule}
-                </li>
-              ))}
-            </ul>
+            {/* 🔴 환불정책 전문을 여기에 렌더하지 않는다.
+                푸터는 모든 페이지에 붙으므로, 전문을 담으면 색인 페이지가 같은 본문을 공유한다.
+                2026-08-24 out/ 실측: 사이트맵 371개 중 279개(75%)가 같은 1,013자를 본문으로 갖고 있었고,
+                이는 near-duplicate 신호이자 AdSense "가치 없는 콘텐츠" 판정의 재료가 된다.
+                전문의 정본은 /refund-policy 이며 8개 조항 전부를 담고 있다(같은 날 out/ 대조 확인).
+                🔴 되살리지 말 것 — 되살리면 279개 페이지의 고유 본문 비율이 다시 무너진다. */}
+            <p style={{ marginBottom: '1.5rem', lineHeight: 1.6 }}>
+              청약철회 기간, 환급 절차, 월정석 유효기간을 포함한 조항 전문은{' '}
+              <a href="/refund-policy/" className={styles.sfhLink}>환불 정책 전문</a>
+              에서 확인하실 수 있습니다.
+            </p>
             <p style={{ fontSize: '0.95rem', color: '#666', lineHeight: 1.6, marginBottom: '0.5rem' }}>
               본 안내는 이용약관 및 결제대행사 정책과 함께 적용되며, 강행규정과 충돌하는 경우 관계 법령을 우선합니다. 환불 접수는 문의하기 또는 고객지원 이메일을 통해 진행하시기 바랍니다.
             </p>
