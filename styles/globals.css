@@ -562,19 +562,23 @@
 		background: var(--gd-surface);
 		box-shadow: var(--gd-shade-1);
 	}
-	.cd-guide-cta__kicker {
+	/* 🔴 아래 셋은 .cd-guide 로 한 번 더 조여야 한다 — 위의 `.cd-guide p`·`.cd-guide h2` 가
+	   (0,1,1) 이라 클래스 하나짜리 (0,1,0) 규칙을 이긴다. 실측으로 잡았다: 조이기 전 킥커가
+	   0.76rem 이 아니라 `.cd-guide p` 의 0.97rem(15.52px)으로 렌더됐다. */
+	.cd-guide .cd-guide-cta__kicker {
 		margin: 0;
 		font-size: var(--cd-t-caption, 0.76rem);
 		font-weight: 700;
+		line-height: 1.4;
 		letter-spacing: 0.16em;
 		text-transform: uppercase;
 		color: var(--gd-text-muted);
 	}
-	.cd-guide-cta__title {
+	.cd-guide .cd-guide-cta__title {
 		margin: 0;
 		font-size: var(--cd-t-section, clamp(1.24rem, 2.6vw, 1.7rem));
 	}
-	.cd-guide-cta__lede {
+	.cd-guide .cd-guide-cta__lede {
 		/* .cd-guide p 의 좌측 정렬 66ch 를 이 안에서만 되돌린다. */
 		max-width: 46ch;
 		text-align: center;

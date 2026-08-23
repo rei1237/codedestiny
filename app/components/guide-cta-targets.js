@@ -10,6 +10,15 @@
  *     찾아 클릭한다(js/core/index-inline-runtime.js 의 __cdFindRouteActionElement).
  *     🔴 새 action 문자열을 발명하지 말 것 — 셸에 타일이 없으면 조용히 무반응이다.
  *     여기서 쓰는 3종은 index.html 에 타일이 실재함을 확인했다.
+ *   - 🔴 타일이 **있다고 도는 것은 아니다.** 러너는 보이는 엘리먼트만 클릭한다.
+ *     실측 2026-08-24(dist 정적 서버, 412x823): `checkPrivacyAndCalculate` 타일
+ *     (index.html 의 #run-btn "무료 사주 분석 시작")은 입력 화면이 아직 안 열린 상태에서
+ *     getBoundingClientRect 가 0x0 이라, 딥링크로 들어가면 본문이 한 글자도 안 바뀐다.
+ *     그 액션은 /saju 의 생년월일 폼이 프로필을 심은 **뒤에** 넘겨받도록 설계된 것이다
+ *     (lib/seo-landing-pages.js 의 saju.ctaHref). 그래서 사주 계산 계열 CTA 는 셸 액션이
+ *     아니라 /saju·/manse 랜딩으로 보낸다 — 거기 폼이 실제 진입로다.
+ *     반면 openTarotModal·openSukuyoModal·openAstroModal 은 딥링크만으로 모달이 열리는 것을
+ *     같은 실측에서 확인했으므로 그대로 쓴다.
  *   - next/link 로 걸어도 된다. ShellHomeHardNavGuard 가 "/" 앵커를 캡처 단계에서 가로채
  *     쿼리를 보존한 채 문서 로드로 보낸다 — 하드 내비를 여기서 또 감싸지 말 것.
  *   - 그 외는 평범한 Next 라우트다.
@@ -22,7 +31,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "바로 해보기",
     heading: "읽었다면, 내 명식으로 확인해 보세요",
     body: "생년월일과 태어난 시각만 넣으면 네 기둥과 오행 분포가 바로 나옵니다.",
-    primary: { href: "/?action=checkPrivacyAndCalculate", label: "무료로 사주 보기", note: "무료 · 가입 없이" },
+    primary: { href: "/saju", label: "무료로 사주 보기", note: "무료 · 가입 없이" },
     secondary: [
       { href: "/saju/basic", label: "기본 사주 해석" },
       { href: "/compatibility", label: "궁합 보기" },
@@ -116,7 +125,7 @@ export const GUIDE_CTA_TARGETS = {
     //    보내고, 어디서 리포트가 열리는지 여기서 분명히 말한다.
     //    🔴 금액을 쓰지 말 것 — 이 가이드도 코드베이스도 지금 가격을 주장하지 않는다.
     body: "생년월일을 넣어 무료 사주 결과를 열면, 그 화면에서 명리 헬스 리포트 카드가 함께 열립니다.",
-    primary: { href: "/?action=checkPrivacyAndCalculate", label: "무료로 사주 보기", note: "무료 · 가입 없이" },
+    primary: { href: "/saju", label: "무료로 사주 보기", note: "무료 · 가입 없이" },
     secondary: [
       { href: "/saju/five-elements", label: "오행 가이드" },
       { href: "/saju/guide", label: "사주 기본 가이드" },
@@ -148,7 +157,7 @@ export const GUIDE_CTA_TARGETS = {
     kicker: "직접 확인하기",
     heading: "두 체계를 같은 생년월일로 놓고 보세요",
     body: "네 기둥과 십이궁이 같은 사람을 어떻게 다르게 그리는지는 나란히 볼 때 드러납니다.",
-    primary: { href: "/?action=checkPrivacyAndCalculate", label: "무료로 사주 보기", note: "무료 · 가입 없이" },
+    primary: { href: "/saju", label: "무료로 사주 보기", note: "무료 · 가입 없이" },
     secondary: [{ href: "/ziwei/chart", label: "자미두수 명반 만들기" }],
   },
   "/compare/sukuyo-vs-vedic": {
