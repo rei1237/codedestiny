@@ -12,7 +12,7 @@
  * 빌드 산출물에서 H1 을 센다. 새 라우트가 생기면 자동으로 검사 대상이 된다.
  *
  * fail-closed (guard-integrity G-2 의 교훈: 대상이 없을 때 통과시키는 가드는 가드가 아니다):
- *   ① out/ 이 없으면 실패한다 — 빌드 전에 돌리면 "검사할 게 없어서 통과"가 된다.
+ *   ① out/ 이나 out/sitemap.xml 이 없으면 실패한다 — 빌드 전에 돌리면 "검사할 게 없어서 통과"가 된다.
  *   ② 사이트맵에 있는데 HTML 산출물이 없으면 실패한다.
  *   ③ H1 이 정확히 1개가 아니면 실패한다.
  *
@@ -26,7 +26,12 @@ import { resolve } from "node:path";
 
 const rootDir = process.cwd();
 const outDir = process.env.SEO_HEADING_OUT_DIR || "out";
-const sitemapPath = resolve(rootDir, "sitemap.xml");
+// 🔴 산출물 안의 사이트맵을 읽는다. 리포 루트의 추적본(sitemap.xml)은 빌드가 다시 쓰기 전까지
+//    낡아 있을 수 있고, 그러면 새 라우트가 검사 대상에서 **통째로 빠진다**. 2026-08-24 에
+//    /tarot/self-esteem 의 H1 2개를 로컬에서 못 잡고 PR #1079 를 CI 에서 터뜨린 원인이 이것이다
+//    (그때 루트본은 362개, 산출물은 371개였다). 같은 날 main 에서도 /ziwei/chart 가 루트본에만
+//    빠져 있었다 — 산출물을 읽었다면 처음부터 검사 대상이었다.
+const sitemapPath = resolve(rootDir, outDir, "sitemap.xml");
 
 /**
  * 의도적으로 H1 개수가 1이 아닌 라우트를 여기에 사유와 함께 선언한다.
@@ -43,14 +48,14 @@ function fail(message, details = []) {
   process.exit(1);
 }
 
-if (!existsSync(sitemapPath)) {
-  fail(`sitemap.xml 이 없다 → ${sitemapPath}`, ["`npm run sitemap:generate` 를 먼저 실행할 것."]);
-}
 if (!existsSync(resolve(rootDir, outDir))) {
   fail(`빌드 산출물이 없다 → ${outDir}/`, [
     "`npm run build:cf` 를 먼저 실행할 것.",
     "🔴 여기서 조용히 통과하면 이 가드는 아무것도 지키지 않는다(guard-integrity G-2).",
   ]);
+}
+if (!existsSync(sitemapPath)) {
+  fail(`사이트맵이 없다 → ${outDir}/sitemap.xml`, ["`npm run build:cf` 를 먼저 실행할 것."]);
 }
 
 const xml = readFileSync(sitemapPath, "utf8");
