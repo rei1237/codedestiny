@@ -57,10 +57,15 @@ const TARGETS = [
     label: "astrologyAiConsultations.id_1",
     model: AstrologyAiConsultation,
     spec: { id: 1 },
-    // 🔴 스키마가 필드레벨 `unique: true` 로만 선언한다(partial 없음). 그래서 여기도 partial 을
-    // 붙이지 않는다 — 붙이면 선언과 실물이 갈라진다. 대신 id 가 없는 옛 문서 2건 이상이 있으면
-    // null 끼리 충돌하므로, 아래 스캔은 $match 없이 전건을 본다.
-    options: { name: "id_1", unique: true },
+    // 🔴 2026-08-24 실측: 전체 9건 중 8건이 id 필드를 아예 갖고 있지 않다(null 0 · 빈 문자열 0).
+    // 필터 없는 유니크 인덱스는 그 8건이 서로 충돌해 E11000 으로 생성 자체가 막힌다. 그래서
+    // partial 로 그 8건을 제외한다 — worker/lib/models.js 의 선언도 같은 필터로 맞춰 두었다.
+    // 앞으로 들어오는 문서는 required:true 라 전부 이 필터 안에 들어오므로 제약이 성립한다.
+    options: {
+      name: "id_1",
+      unique: true,
+      partialFilterExpression: { id: { $exists: true, $type: "string", $gt: "" } },
+    },
     groupKey: "$id",
     sampleFields: { userId: "$userId", createdAt: "$createdAt" },
   },

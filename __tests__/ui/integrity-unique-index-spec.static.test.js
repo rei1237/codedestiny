@@ -26,6 +26,9 @@ function squash(value) {
   return value.replace(/\s+/g, "");
 }
 
+// 🔴 마커에 개행을 넣지 않는다. .gitattributes 가 .mjs 를 다루지 않아 체크아웃이 CRLF 인데,
+//    "},\n];" 같은 마커는 그 파일에서 영영 매치되지 않는다(실제로 한 번 걸렸다).
+
 function sliceBetween(source, startMarker, endMarker, label) {
   const start = source.indexOf(startMarker);
   assert.notEqual(start, -1, `${label}: 시작 마커를 못 찾았다 (${startMarker})`);
@@ -55,24 +58,38 @@ test("paid_execution_records 의 partialFilterExpression 이 스키마 선언과
   assert.ok(squash(used).includes("unique:true"), "마이그레이션에서 unique 가 사라졌다 — 제약이 아니라 그냥 인덱스가 된다");
 });
 
-test("astrologyAiConsultations.id 는 필드레벨 unique 이고 마이그레이션도 partial 을 붙이지 않는다", () => {
+test("astrologyAiConsultations.id 의 유니크는 schema.index() 한 곳에만 있다", () => {
   const idField = sliceBetween(
     models,
     "const astrologyAiConsultationSchema",
     "userId:",
-    "models.js astrologyAiConsultation",
+    "models.js astrologyAiConsultation 필드",
   );
-  assert.ok(squash(idField).includes("unique:true"), "astrologyAiConsultations.id 의 unique 선언이 사라졌다");
+  // 🔴 필드 레벨 unique/index 와 schema.index() 를 함께 두면 IndexOptionsConflict 로 plain 쪽이
+  //    이겨 유니크가 조용히 사라진다(2026-07-05 · 2026-08-21 에 같은 사고 2회).
+  const idLine = idField.split("\n").find((line) => line.trim().startsWith("id:")) || "";
+  assert.ok(idLine, "astrologyAiConsultations 의 id 필드 선언을 못 찾았다");
+  assert.ok(!squash(idLine).includes("unique:true"), "id 필드에 필드레벨 unique 가 되살아났다 — schema.index() 와 충돌한다");
+  assert.ok(!squash(idLine).includes("index:true"), "id 필드에 필드레벨 index 가 되살아났다 — schema.index() 와 충돌한다");
 
+  const declared = sliceBetween(
+    models,
+    "astrologyAiConsultationSchema.index(\n  { id: 1 },",
+    ");",
+    "models.js astrologyAiConsultation 인덱스",
+  );
   const target = sliceBetween(
     migration,
     'label: "astrologyAiConsultations.id_1"',
-    "},\n];",
+    "const GROUP_LIMIT",
     "migration astrologyAiConsultations",
   );
-  assert.ok(squash(target).includes('options:{name:"id_1",unique:true}'), "마이그레이션의 옵션이 스키마와 어긋난다");
-  // 🔴 스키마가 partial 을 안 쓰므로 여기도 붙이면 안 된다 — 붙이면 선언과 실물이 갈라진다.
-  assert.ok(!target.includes("partialFilterExpression"), "필드레벨 선언에 없는 partialFilterExpression 이 붙었다");
+
+  const filter = 'id:{$exists:true,$type:"string",$gt:""}';
+  assert.ok(squash(declared).includes("unique:true"), "스키마 선언에서 unique 가 사라졌다");
+  assert.ok(squash(declared).includes(filter), `스키마 선언의 partialFilterExpression 이 바뀌었다: ${filter}`);
+  assert.ok(squash(target).includes("unique:true"), "마이그레이션에서 unique 가 사라졌다");
+  assert.ok(squash(target).includes(filter), `마이그레이션의 partialFilterExpression 이 스키마와 어긋난다: ${filter}`);
 });
 
 test("두 항목 모두 중복 사전 스캔을 거친다", () => {

@@ -1355,7 +1355,12 @@ const astrologyAiMessageSchema = new mongoose.Schema({
 const astrologyAiConsultationSchema = new mongoose.Schema({
   // 다른 상담 스키마와 동일한 세션 식별자. 이 필드가 스키마에 없으면 strict 모드가 create의
   // id를 조용히 버려 완료 저장(findOneAndUpdate({id}))과 결과 조회(findOne({id}))가 전부 미스된다.
-  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  //
+  // 🔴 유니크 선언이 필드 레벨이 아니라 아래 schema.index() 에 있다. 이 컬렉션만 그렇다 —
+  //    필드가 추가되기 전에 만들어진 문서 8건이 id 를 아예 갖고 있지 않아(2026-08-24 실측:
+  //    전체 9건 중 없음 8 · null 0 · 빈 문자열 0), 필터 없는 유니크 인덱스는 E11000 으로
+  //    생성 자체가 막힌다. 위 주석이 말하는 "id 를 조용히 버리던" 시기의 잔재가 그 8건이다.
+  id: { type: String, required: true, trim: true, maxlength: 120 },
   userId: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true, index: true },
   idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
   inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
@@ -1386,6 +1391,21 @@ const astrologyAiConsultationSchema = new mongoose.Schema({
   llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
 }, { timestamps: true, collection: "astrologyAiConsultations" });
 
+// 🔴 필드 레벨 `unique: true`/`index: true` 와 이 선언을 **함께** 두면 안 된다. 같은 키의 plain
+//    인덱스와 옵션 인덱스는 IndexOptionsConflict 로 충돌하고 그때 살아남는 것은 plain 쪽이라,
+//    유니크가 조용히 사라진다(2026-07-05 idempotency_keys·abuse_scores·refresh_tokens,
+//    2026-08-21 guardian·fusion 에서 같은 사고. scripts/migrations/20260821-... 참고).
+//    그래서 위 필드에서 두 옵션을 걷어내고 여기 한 곳만 남겼다.
+astrologyAiConsultationSchema.index(
+  { id: 1 },
+  {
+    name: "id_1",
+    unique: true,
+    // 옛 문서 8건은 id 자체가 없다. partial 이 그 8건을 제외해 제약이 성립하게 하고, 앞으로
+    // 들어오는 문서는 required:true 가 있어 전부 이 필터 안에 들어온다.
+    partialFilterExpression: { id: { $exists: true, $type: "string", $gt: "" } },
+  },
+);
 astrologyAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 astrologyAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
