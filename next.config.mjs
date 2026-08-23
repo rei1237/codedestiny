@@ -158,7 +158,10 @@ function createNextConfig(phase) {
     // 겪었다(2026-07-22 운명 찻집·네오 전략실 백지 사고, 오리진은 200 인데 ?dpl= 붙은
     // URL 만 404 로 확인). 청크는 이미 콘텐츠 해시로 파일명이 갈리므로 무효화는 그것으로
     // 충분하고, 바뀌지 않은 청크는 따뜻한 200 캐시를 그대로 재사용해 전환 창을 아예 피한다.
-    compress: true,
+    // compress: true 를 2026-08-24 에 제거했다. 이 옵션은 `next start`(Node 서버)의 응답
+    // 압축만 켠다. 프로덕션 빌드는 output:"export" 라 서버가 없고, 정적 산출물의 압축은
+    // Cloudflare 엣지가 한다. 즉 켜 두는 동안 아무 일도 하지 않으면서 "압축을 우리가 켜 뒀다"고
+    // 읽혔다. 되살리려면 먼저 이 레포에 Node 서버가 생겼는지부터 확인할 것.
     env: {
       NEXT_PUBLIC_APP_VERSION: buildAppVersion,
       NEXT_PUBLIC_GIT_SHA: buildGitSha,
