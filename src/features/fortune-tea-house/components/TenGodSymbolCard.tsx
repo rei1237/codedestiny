@@ -2,10 +2,11 @@
 
 /* eslint-disable @next/next/no-img-element */
 
-import { getTenGodMeta, type TenGodId } from "../data/tenGods";
+import { tenGodMetaMap, type TenGodId } from "../data/tenGods";
 import { tenGodVisualMap } from "../data/tenGodVisuals";
 import SpriteCrop from "./SpriteCrop";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TenGodSymbolCardProps = {
   tenGodId: TenGodId;
@@ -15,8 +16,14 @@ type TenGodSymbolCardProps = {
   className?: string;
 };
 
+/** 십성 데이터에서 사전이 덮으면 안 되는 필드. id 는 판별자, colorTone 은 data-tone CSS 토큰이다. */
+const TEN_GOD_SKIP_KEYS = ["id", "colorTone"];
+
 export default function TenGodSymbolCard({ tenGodId, size = "md", showDescription = true, selected = false, className = "" }: TenGodSymbolCardProps) {
-  const meta = getTenGodMeta(tenGodId);
+  const metaMap = useTeaHouseCopy("tenGods", tenGodMetaMap, { skipKeys: TEN_GOD_SKIP_KEYS });
+  const meta = metaMap[tenGodId];
+  // 🔴 visual.alt 는 아직 한국어다. tenGodVisualMap 의 값이 전부 tenGodSprite(...) 호출이라
+  // 가드가 문자열 리터럴을 읽지 못한다 — 데이터 구조를 바꿔야 배선할 수 있어 라운드 2로 넘긴다.
   const visual = tenGodVisualMap[tenGodId];
 
   return (
