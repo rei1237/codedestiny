@@ -748,6 +748,25 @@ async function callGeminiPrimary(
   }
 }
 
+/**
+ * Workers AI 실호출 차단 스위치.
+ *
+ * 🔴 이 게이트가 없던 동안 `WORKERS_AI_ENABLED` 는 두 wrangler toml 에만 있고 읽는 코드가
+ *    0건이었다(2026-08-23 실측, 검색 범위 `worker/ lib/ app/ js/ components/ src/`).
+ *    그런데 스테이징의 Gemini 잠금 수단은 `GEMINIF_API_KEY` 미투입이라 **모든 요청이
+ *    Gemini 에서 실패해 반드시 이 폴백으로 내려온다** — 잠금이 과금 호출을 막는 게 아니라
+ *    보장하고 있었다. `[ai] binding = "AI"` 는 스테이징에도 있다.
+ *
+ * 미설정은 종전대로 허용한다. 끄는 것은 `[vars]` 에 명시한 환경뿐이고, 그래야 env 를 넘기지
+ * 않는 `scripts/verify-workers-ai-fallback.mjs` 가 폴백 경로를 계속 검증할 수 있다.
+ */
+function isWorkersAiEnabled(env?: CloudflareEnv): boolean {
+  const raw = String(
+    (env as Record<string, unknown> | undefined)?.["WORKERS_AI_ENABLED"] ?? "",
+  ).trim().toLowerCase();
+  return raw !== "0" && raw !== "false" && raw !== "off";
+}
+
 async function callCloudflareWorkersAI(
   request: LLMRequest,
   env?: CloudflareEnv,
@@ -755,6 +774,10 @@ async function callCloudflareWorkersAI(
 ): Promise<LLMResponse> {
   const normalized = normalizeRequest(request);
   if (!normalized.prompt) throw new Error("LLM prompt is empty.");
+
+  if (!isWorkersAiEnabled(env)) {
+    throw new Error("Cloudflare Workers AI is disabled by WORKERS_AI_ENABLED.");
+  }
 
   if (!env?.AI?.run) {
     throw new Error("Cloudflare Workers AI binding is not configured. Pass env.AI in Workers or Pages runtime.");

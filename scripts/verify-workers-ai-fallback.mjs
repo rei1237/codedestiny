@@ -218,10 +218,47 @@ const DEPRECATED = "5028: This model was deprecated on 2026-05-30.";
   assert(bare?.ok === true, "게이트 없는 호출의 기존 동작이 바뀌었다");
 }
 
+// (13) 🔴 WORKERS_AI_ENABLED = "false" 는 env.AI.run 에 닿기 전에 끊어야 한다.
+//      이 값을 읽는 코드가 0건이던 동안(2026-08-23 실측) 스테이징의 "AI 실호출 차단"은
+//      Gemini 만 막았고, 키가 없으니 모든 요청이 이 폴백으로 내려와 과금 호출이 됐다.
+//      🔴 스텁 호출 횟수 0 을 함께 단언한다 — 던지기만 하고 이미 호출한 뒤면 의미가 없다.
+{
+  for (const off of ["false", "0", "off", "FALSE", " off "]) {
+    const { env, calls } = stubEnv(() => ({ response: "여기 오면 안 된다" }), { WORKERS_AI_ENABLED: off });
+    let message = "";
+    try {
+      await callLLM({ prompt: "테스트" }, env);
+    } catch (error) {
+      message = String(error?.message || "");
+    }
+    assert(calls.length === 0, `WORKERS_AI_ENABLED="${off}" 인데 env.AI.run 이 ${calls.length}회 호출됐다`);
+    assert(
+      message.includes("WORKERS_AI_ENABLED"),
+      `차단 사유가 실패 메시지에 남아야 한다 (off="${off}", 실제: ${message})`,
+    );
+  }
+
+  // 명시적으로 켠 값과 미설정은 종전대로 돌아야 한다. 미설정이 막히면 이 스크립트 자신과
+  // 프로덕션(값을 넣긴 하지만 "true")이 함께 죽는다.
+  const { env: onEnv, calls: onCalls } = stubEnv(() => ({ response: "켜짐 본문" }), { WORKERS_AI_ENABLED: "true" });
+  const on = await callLLM({ prompt: "테스트" }, onEnv);
+  assert(on.text === "켜짐 본문", "WORKERS_AI_ENABLED=true 가 폴백을 막았다");
+  assert(onCalls.length === 1, `켜짐 상태에서 정확히 1회 호출돼야 한다 (실제: ${onCalls.length})`);
+
+  const { env: unsetEnv } = stubEnv(() => ({ response: "미설정 본문" }));
+  const unset = await callLLM({ prompt: "테스트" }, unsetEnv);
+  assert(unset.text === "미설정 본문", "미설정 환경에서 폴백이 막혔다 — 기본값은 허용이어야 한다");
+
+  // 빈 문자열도 미설정과 같게 본다(wrangler 에서 값을 지우는 대신 비우는 경우).
+  const { env: emptyEnv } = stubEnv(() => ({ response: "빈값 본문" }), { WORKERS_AI_ENABLED: "" });
+  const empty = await callLLM({ prompt: "테스트" }, emptyEnv);
+  assert(empty.text === "빈값 본문", "빈 문자열이 차단으로 해석됐다");
+}
+
 if (failures.length) {
   console.error("❌ Workers AI 폴백 가드 실패:");
   for (const failure of failures) console.error(`  - ${failure}`);
   process.exit(1);
 }
 
-console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드·시간 상한·분량 게이트)");
+console.log("✅ Workers AI 폴백 가드 통과 (체인 승계·응답 파싱 2종·JSON 모드·env 오버라이드·시간 상한·분량 게이트·실호출 차단 스위치)");
