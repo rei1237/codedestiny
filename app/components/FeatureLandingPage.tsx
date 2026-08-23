@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { stripLocalePrefix } from "../_lib/localePath";
-import { useServerPrice } from "@/app/hooks/useServerPrice";
+import { resolveFeatureAccessModel, useServerPrice } from "@/app/hooks/useServerPrice";
 import { useMobileFortuneRenderTrace } from "@/app/_lib/mobile-fortune-trace";
 
 const ShareWidget = lazy(() => import("./ShareWidget"));
@@ -291,10 +291,16 @@ const ACTION_MAP: Record<string, string> = {
 // Price text is derived from the Worker registry through useServerPrice.
 // Keep this table limited to route -> canonical featureKey mapping.
 const PAID_SLUG_META: Record<string, { featureKey: string }> = {
-  "/flower/destiny":   { featureKey: "flower-studio-per-use" },
-  "/flower/astrology": { featureKey: "flower-studio-per-use" },
-  "/flower/jamidusu":  { featureKey: "flower-studio-per-use" },
-  "/flower/sukuyo":    { featureKey: "flower-studio-per-use" },
+  // 🔴 셸 타일의 `data-tile-lock-key`/`data-feature-key` 와 반드시 같아야 한다 —
+  // 여기 적힌 키가 랜딩의 가격 표시를 만들고, 실제로 돈을 받는 것은 셸 타일의 잠금 키다.
+  // 2026-08-23 까지 이 4줄이 `flower-studio-per-use`(5,000원 회당)였는데 셸은 `flower-fc`
+  // (20,000원 영구 해금)를 물어서, 랜딩이 실제의 1/4 가격을 광고하고 있었다.
+  // `flower-studio-per-use` 는 이 4줄 말고 청구·검증하는 곳이 전혀 없다(전수 grep).
+  // 가드: __tests__/ui/action-entry-dispatch.static.test.js
+  "/flower/destiny":   { featureKey: "flower-fc" },
+  "/flower/astrology": { featureKey: "flower-fc" },
+  "/flower/jamidusu":  { featureKey: "flower-fc" },
+  "/flower/sukuyo":    { featureKey: "flower-fc" },
   "/dream/psycho":     { featureKey: "dream-psycho-analysis" },
   "/tarot/love": { featureKey: "tarot-love-relationship" },
   "/tarot/reunion": { featureKey: "tarot-reunion-reading" },
@@ -310,6 +316,8 @@ type FeatureLandingCopy = {
   corePoints: string;
   freeMainService: string;
   paidCta: (price: string) => string;
+  /** 영구 해금 상품(accessModel: unlock)용 CTA. 회당 결제와 문구가 달라야 한다. */
+  unlockCta: (price: string) => string;
   freeCta: string;
   insights: string;
   paidNotice: string;
@@ -326,6 +334,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "핵심 포인트",
     freeMainService: "FREE · 무료 메인 서비스",
     paidCta: (price) => `유료 기능 실행 · ${price}`,
+    unlockCta: (price) => `해금하고 이용하기 · ${price}`,
     freeCta: "기능 바로 실행",
     insights: "관련 인사이트 보기",
     paidNotice: "유료 기능입니다. 바로가기를 누르면 메인 화면에서 결제 확인이 먼저 표시됩니다.",
@@ -340,6 +349,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "Key Points",
     freeMainService: "FREE · Main free service",
     paidCta: (price) => `Start paid feature · ${price}`,
+    unlockCta: (price) => `Unlock forever · ${price}`,
     freeCta: "Start feature",
     insights: "View related insights",
     paidNotice: "This is a paid feature. Payment access is checked on the main screen before it opens.",
@@ -354,6 +364,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "注目ポイント",
     freeMainService: "FREE · 無料メインサービス",
     paidCta: (price) => `有料機能を実行 · ${price}`,
+    unlockCta: (price) => `永久アンロック · ${price}`,
     freeCta: "機能を開く",
     insights: "関連インサイトを見る",
     paidNotice: "有料機能です。開く前にメイン画面で決済確認が表示されます。",
@@ -368,6 +379,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "重点提示",
     freeMainService: "FREE · 免费主服务",
     paidCta: (price) => `启动付费功能 · ${price}`,
+    unlockCta: (price) => `永久解锁 · ${price}`,
     freeCta: "立即启动功能",
     insights: "查看相关洞察",
     paidNotice: "这是付费功能。打开前会先在主画面确认支付权限。",
@@ -382,6 +394,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "重點提示",
     freeMainService: "FREE · 免費主服務",
     paidCta: (price) => `啟動付費功能 · ${price}`,
+    unlockCta: (price) => `永久解鎖 · ${price}`,
     freeCta: "立即啟動功能",
     insights: "查看相關洞察",
     paidNotice: "這是付費功能。開啟前會先在主畫面確認付款權限。",
@@ -396,6 +409,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "Điểm chính",
     freeMainService: "FREE · Dịch vụ chính miễn phí",
     paidCta: (price) => `Mở tính năng trả phí · ${price}`,
+    unlockCta: (price) => `Mở khóa vĩnh viễn · ${price}`,
     freeCta: "Mở tính năng",
     insights: "Xem góc nhìn liên quan",
     paidNotice: "Đây là tính năng trả phí. Màn hình chính sẽ kiểm tra quyền thanh toán trước khi mở.",
@@ -410,6 +424,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "मुख्य बिंदु",
     freeMainService: "FREE · मुफ्त मुख्य सेवा",
     paidCta: (price) => `पेड फीचर शुरू करें · ${price}`,
+    unlockCta: (price) => `हमेशा के लिए अनलॉक करें · ${price}`,
     freeCta: "फीचर शुरू करें",
     insights: "संबंधित इनसाइट देखें",
     paidNotice: "यह पेड फीचर है. खुलने से पहले मुख्य स्क्रीन पर भुगतान पहुँच जाँची जाएगी.",
@@ -424,6 +439,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "Puntos clave",
     freeMainService: "FREE · Servicio principal gratis",
     paidCta: (price) => `Abrir función de pago · ${price}`,
+    unlockCta: (price) => `Desbloquear para siempre · ${price}`,
     freeCta: "Abrir función",
     insights: "Ver insights relacionados",
     paidNotice: "Esta función es de pago. La pantalla principal comprobará el acceso antes de abrirla.",
@@ -438,6 +454,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "Points clés",
     freeMainService: "FREE · Service principal gratuit",
     paidCta: (price) => `Ouvrir la fonction payante · ${price}`,
+    unlockCta: (price) => `Débloquer définitivement · ${price}`,
     freeCta: "Ouvrir la fonction",
     insights: "Voir les insights liés",
     paidNotice: "Cette fonction est payante. L'accès au paiement sera vérifié sur l'écran principal avant l'ouverture.",
@@ -452,6 +469,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "Kernpunkte",
     freeMainService: "FREE · Kostenloser Hauptservice",
     paidCta: (price) => `Bezahlfunktion öffnen · ${price}`,
+    unlockCta: (price) => `Dauerhaft freischalten · ${price}`,
     freeCta: "Funktion öffnen",
     insights: "Verwandte Insights ansehen",
     paidNotice: "Dies ist eine Bezahlfunktion. Vor dem Öffnen wird der Zahlungszugang auf dem Hauptbildschirm geprüft.",
@@ -466,6 +484,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "Kernpunten",
     freeMainService: "FREE · Gratis hoofdservice",
     paidCta: (price) => `Betaalde functie openen · ${price}`,
+    unlockCta: (price) => `Voor altijd ontgrendelen · ${price}`,
     freeCta: "Functie openen",
     insights: "Gerelateerde inzichten bekijken",
     paidNotice: "Dit is een betaalde functie. Het hoofdscherm controleert de betaaltoegang voordat deze opent.",
@@ -480,6 +499,7 @@ const FEATURE_LANDING_COPY: Record<LoadingLocale, FeatureLandingCopy> = {
     corePoints: "Perkara utama",
     freeMainService: "FREE · Servis utama percuma",
     paidCta: (price) => `Buka ciri berbayar · ${price}`,
+    unlockCta: (price) => `Buka kunci selamanya · ${price}`,
     freeCta: "Buka ciri",
     insights: "Lihat wawasan berkaitan",
     paidNotice: "Ini ialah ciri berbayar. Skrin utama akan menyemak akses bayaran sebelum ia dibuka.",
@@ -620,6 +640,8 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
   const paidPrice = useServerPrice({
     featureKey: paidMeta?.featureKey,
   });
+  // 회당 결제와 영구 해금은 같은 값을 내도 성격이 다르다. 레지스트리의 accessModel 을 그대로 따른다.
+  const isUnlockFeature = resolveFeatureAccessModel(paidMeta?.featureKey) === "unlock";
 
   const category = basePath.split("/")[1] ?? "tarot";
   const baseTheme = THEMES[category] ?? THEMES.tarot;
@@ -1033,7 +1055,9 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
               lineHeight:1,
             }}>{cfg.icon}</span>
             <span>{isPaidFeature
-              ? copy.paidCta(paidPrice.label || (paidPrice.loading ? "가격 확인 중" : "가격 확인 필요"))
+              ? (isUnlockFeature ? copy.unlockCta : copy.paidCta)(
+                  paidPrice.label || (paidPrice.loading ? "가격 확인 중" : "가격 확인 필요"),
+                )
               : copy.freeCta}</span>
           </a>
           <a href="/insights/" className="flp-btn-s" style={{

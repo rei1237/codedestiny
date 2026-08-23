@@ -592,7 +592,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   ja: {
     heroTitle: "ヴェーダ占星術専門家相談",
     heroLead: "ナクシャトラと惑星の流れ、ダシャーのリズムの上に、今の質問が静かに照らされます。",
-    heroPrice: "¥3,000",
+    heroPrice: "30,000ウォン",
     heroDashaBadge: "ダシャーの流れ",
     formPanelHeading: "星の地図を開くための情報",
     loadProfileButtonAriaLabel: "プロフィールカードから出生情報を読み込む",
@@ -738,7 +738,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   "zh-CN": {
     heroTitle: "吠陀占星专家咨询",
     heroLead: "在纳克夏特拉与行星运行、大运节奏之上，此刻的问题被静静照亮。",
-    heroPrice: "¥150",
+    heroPrice: "30,000韩元",
     heroDashaBadge: "大运流转",
     formPanelHeading: "开启星图所需的信息",
     loadProfileButtonAriaLabel: "从个人资料卡加载出生信息",
@@ -884,7 +884,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   "zh-TW": {
     heroTitle: "吠陀占星專家諮詢",
     heroLead: "在納克沙特拉與行星運行、大運節奏之上，此刻的問題被靜靜照亮。",
-    heroPrice: "NT$700",
+    heroPrice: "30,000韓元",
     heroDashaBadge: "大運流轉",
     formPanelHeading: "開啟星圖所需的資訊",
     loadProfileButtonAriaLabel: "從個人資料卡載入出生資訊",
@@ -1030,7 +1030,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   vi: {
     heroTitle: "Tư vấn chuyên gia Chiêm tinh Vệ Đà",
     heroLead: "Trên dòng chảy của nakshatra và các hành tinh, cùng nhịp điệu dasha, câu hỏi của bạn lúc này được soi sáng lặng lẽ.",
-    heroPrice: "600.000₫",
+    heroPrice: "30.000 KRW",
     heroDashaBadge: "Dòng chảy dasha",
     formPanelHeading: "Thông tin để mở bản đồ sao của bạn",
     loadProfileButtonAriaLabel: "Tải thông tin sinh từ thẻ hồ sơ",
@@ -1176,7 +1176,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   hi: {
     heroTitle: "वैदिक ज्योतिष विशेषज्ञ परामर्श",
     heroLead: "नक्षत्रों और ग्रहों के प्रवाह, दशा की लय के ऊपर, अभी का प्रश्न शांति से रोशन होता है।",
-    heroPrice: "₹2,000",
+    heroPrice: "₩30,000",
     heroDashaBadge: "दशा प्रवाह",
     formPanelHeading: "आपका सितारा मानचित्र खोलने के लिए जानकारी",
     loadProfileButtonAriaLabel: "प्रोफ़ाइल कार्ड से जन्म जानकारी लोड करें",
@@ -1322,7 +1322,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   es: {
     heroTitle: "Consulta con experto en astrología védica",
     heroLead: "Sobre el flujo de los nakshatras y los planetas, y el ritmo de la dasha, tu pregunta de hoy se ilumina en silencio.",
-    heroPrice: "$25 USD",
+    heroPrice: "₩30.000",
     heroDashaBadge: "Flujo de dasha",
     formPanelHeading: "Información para abrir tu mapa estelar",
     loadProfileButtonAriaLabel: "Cargar datos de nacimiento desde la tarjeta de perfil",
@@ -1468,7 +1468,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   fr: {
     heroTitle: "Consultation avec un expert en astrologie védique",
     heroLead: "Sur le flux des nakshatras et des planètes, et le rythme de la dasha, votre question d'aujourd'hui s'éclaire tranquillement.",
-    heroPrice: "25 €",
+    heroPrice: "30 000 ₩",
     heroDashaBadge: "Flux de dasha",
     formPanelHeading: "Informations pour ouvrir votre carte des étoiles",
     loadProfileButtonAriaLabel: "Charger les informations de naissance depuis la fiche de profil",
@@ -1614,7 +1614,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   de: {
     heroTitle: "Beratung mit einem Experten für vedische Astrologie",
     heroLead: "Über den Fluss der Nakshatras und Planeten, im Rhythmus der Dasha, wird Ihre heutige Frage still beleuchtet.",
-    heroPrice: "25 €",
+    heroPrice: "30.000 ₩",
     heroDashaBadge: "Dasha-Fluss",
     formPanelHeading: "Informationen, um Ihre Sternenkarte zu öffnen",
     loadProfileButtonAriaLabel: "Geburtsinformationen von der Profilkarte laden",
@@ -1760,7 +1760,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   nl: {
     heroTitle: "Consult met een Vedische astrologie-expert",
     heroLead: "Boven de stroom van nakshatra's en planeten, en het ritme van de dasha, wordt uw vraag van nu stil verlicht.",
-    heroPrice: "€ 25",
+    heroPrice: "₩30.000",
     heroDashaBadge: "Dasha-stroom",
     formPanelHeading: "Informatie om uw sterrenkaart te openen",
     loadProfileButtonAriaLabel: "Geboortegegevens laden vanaf profielkaart",
@@ -1906,7 +1906,7 @@ const VEDIC_AI_COPY: Partial<Record<LoadingLocale, VedicAiCopy>> = {
   ms: {
     heroTitle: "Perundingan Pakar Astrologi Veda",
     heroLead: "Di atas aliran nakshatra dan planet, serta irama dasha, soalan anda kini diterangi dengan tenang.",
-    heroPrice: "RM110",
+    heroPrice: "₩30,000",
     heroDashaBadge: "Aliran dasha",
     formPanelHeading: "Maklumat untuk membuka peta bintang anda",
     loadProfileButtonAriaLabel: "Muatkan maklumat kelahiran dari kad profil",

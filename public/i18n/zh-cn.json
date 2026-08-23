@@ -6450,7 +6450,10 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "星光运势之路",
-        "kbm4p3d": "我们按命理实务十年者订下的规则排出八字，再读日干强弱、用神与大运的流向。"
+        "kbm4p3d": "我们按命理实务十年者订下的规则排出八字，再读日干强弱、用神与大运的流向。",
+        "kdvbi0h": {
+          "ariaLabel": "服务重点说明"
+        }
       }
     },
     "premiumVvipCollection": {
@@ -6499,6 +6502,9 @@
         },
         "k10411ib": {
           "ariaLabel": "开始基于四柱八字的尊享专家取名"
+        },
+        "k1elk76z": {
+          "ariaLabel": "人类图 — 依出生资料计算的个人能量设计图"
         }
       }
     },
@@ -6620,7 +6626,9 @@
         "kdyem8n": "紫微斗数专家咨询",
         "k1jaids8": "占星专家咨询",
         "kdriwl7": "吠陀占星专家咨询",
-        "k1ncgm2q": "专家将命盘与五行、字音与汉字之义编织在一起亲自取名，并连同提示词原文一并奉上。"
+        "k1ncgm2q": "专家将命盘与五行、字音与汉字之义编织在一起亲自取名，并连同提示词原文一并奉上。",
+        "kyx3hb8": "人类图",
+        "k1o6s45i": "设计出你的能量地图。我们同时计算出生当下的天体与 88° 之前的另一个你，连你的类型、策略、权威与人生角色从何而来都一并呈现。"
       },
       "tarotTileImgWrap": {
         "AI30000": "AI 咨询 · 30,000韩元",
@@ -6659,7 +6667,9 @@
         "n300005": "专家咨询 · 30,000韩元",
         "k1tna4h3": "专家咨询",
         "n300006": "专家咨询 · 30,000韩元",
-        "n300007": "专家起名 · 30,000韩元"
+        "n300007": "专家起名 · 30,000韩元",
+        "krpmzd9": "NEW · 人类图",
+        "khdfree1": "免费公开"
       }
     },
     "tarotTileBody": {
@@ -6705,7 +6715,10 @@
         "km02jru": "寻路",
         "k1tna4h3": "专家咨询",
         "k1tna4h32": "专家咨询",
-        "k1tna4h33": "专家咨询"
+        "k1tna4h33": "专家咨询",
+        "k1cn6ns4": "人体图",
+        "kznzdv9": "AI 个人解读",
+        "k1pwdig4": "查看我的设计图"
       },
       "pvcPremPoints": {
         "AIPDF": "AI完成的起名结果 + PDF保存",
@@ -6744,7 +6757,10 @@
         "kfib4kf": "比较岔路口两个选择的气",
         "k1vetwxt": "以当前所行大运与流年读出的人生航路",
         "k67hhx7": "预先描摹选择之后的未来推演",
-        "k1n33cx9": "专家完成的取名结果 + PDF 保存"
+        "k1n33cx9": "专家完成的取名结果 + PDF 保存",
+        "SwissEphemeris1326": "以 Swiss Ephemeris 为准的 13 天体 × 两个层次 = 26 个启动",
+        "n64369": "点按探索 64 闸门 · 36 通道 · 9 能量中心",
+        "kdpknwc": "类型 · 策略 · 权威 · 人生角色 · 轮回交叉"
       }
     },
     "terms24Card": {
@@ -6801,7 +6817,8 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "什么是超融合？"
+        "kerryje": "什么是超融合？",
+        "k107dp07": "四柱八字到塔罗，六大体系交叉验证 →"
       }
     },
     "cdTodayPanelSaju": {
@@ -6880,6 +6897,12 @@
         "k1l2ndq73": "可用通行证",
         "n1415000": "14章 · 20,000字",
         "k1l2ndq74": "可用通行证"
+      },
+      "cdSigCardCta": {
+        "k1nezx6j": "打开秘策",
+        "k1tya78i": "开始咨询",
+        "knu3ltb": "解读星辰",
+        "knwvgzo": "获取策略"
       }
     },
     "cdPickReason": {
@@ -6928,6 +6951,10 @@
         "n115000": "注册后免费1次 · 之后每次5,000韩元",
         "n130000": "每次30,000韩元",
         "k1lo4ibg": "2万字以上 · 最终交叉判定"
+      },
+      "fortuneGatewayDoorGo": {
+        "kkmvgqi": "开始咨询",
+        "k1yerhq3": "查看超融合解读"
       }
     },
     "fortuneGatewayEntry": {
@@ -6955,6 +6982,10 @@
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
         "k1ubfgod": "月精石 300 颗"
+      },
+      "cdFeedbackBody": {
+        "k2a2ghh": "程序缺陷、别扭的界面、\"要是有这个功能就好了\"的瞬间 — 什么都欢迎。",
+        "k84kqr7": "我们会逐一阅读您的意见，并在下次更新中体现。"
       }
     },
     "cdFeedbackGate": {
@@ -7002,6 +7033,139 @@
         "kw3mf7": {
           "ariaLabel": "韩语"
         }
+      }
+    },
+    "cdConcernCards": {
+      "cdConcernCard": {
+        "k1ozfahx": "恋爱运 · 合婚 · 复合 · 缘分",
+        "k1fatpbc": "合婚 · 相性 · 关系诊断",
+        "k1mgycgx": "财运 · 收入 · 支出流向",
+        "k607hyq": "跳槽 · 创业 · 事业扩张",
+        "k1n3lsfu": "新年运势 · 逐月流向 · 大运",
+        "k5gqwm7": "四柱八字 · 紫微斗数 · 占星"
+      }
+    },
+    "cdWhyUs": {
+      "cdWhyUsHead": {
+        "CodeDestiny": "为什么选择 Code Destiny"
+      }
+    },
+    "cdWhyUsGrid": {
+      "cdWhyUsCard": {
+        "kfr2fu8": "多重视角",
+        "k1lclup9": "把四柱八字、紫微斗数、吠陀占星、宿曜等东方体系，与西方占星和塔罗并置阅读。",
+        "kq6mt4": "个性化",
+        "k1wbxeap": "依你的出生年月日、出生时间与出生地，计算专属于你的结果。",
+        "k1239k1": "AI 解读",
+        "kvkxft": "把繁复的命理数据，拆解成读得懂的语言。",
+        "kv06ho": "超融合",
+        "kdcl9cf": "交叉验证不同体系是否指向同一个方向。"
+      }
+    },
+    "cdFinder": {
+      "moonSectionHead": {
+        "kf1ogji": "找到你需要的服务"
+      }
+    },
+    "fortuneGatewayDiscover": {
+      "fortuneGatewayChips": {
+        "k180xm6d": "❤️ 恋爱",
+        "kkz7xh9": "💰 财运",
+        "kkzg05h": "💼 事业",
+        "kfcewzb": "🏠 家庭",
+        "kl5e4s6": "🧭 人生",
+        "kl9lspj": "🌙 今日",
+        "kkymdrk": "💕 合婚",
+        "k17f5hqf": "🔮 认识自己",
+        "klc5o0t": "🎯 其他"
+      },
+      "fortuneGatewayAll": {
+        "kqk7ooc": "查看全部"
+      },
+      "fortuneGatewaySearch": {
+        "k15ln3db": {
+          "placeholder": "例如：恋爱、金钱、跳槽、今日、免费恋爱运",
+          "ariaLabel": "搜索运势服务"
+        }
+      },
+      "kwgfgtu": {
+        "ariaLabel": "选择关注的主题"
+      }
+    },
+    "fortuneGatewayFilters": {
+      "fortuneGatewayFilterRow": {
+        "kx2ok": "体系",
+        "ku7c9": "价格"
+      },
+      "k1szzetk": {
+        "ariaLabel": "按体系筛选"
+      },
+      "k10794b2": {
+        "ariaLabel": "按价格筛选"
+      }
+    },
+    "fortuneGatewayFilterRow": {
+      "fortuneGatewayFilterChips": {
+        "kxvio": "四柱八字",
+        "k10ios": "塔罗",
+        "kpyjtww": "紫微斗数",
+        "ku8un3": "占星",
+        "ktecid": "宿曜",
+        "ksi53g": "吠陀占星",
+        "k11zo0b": "AI 咨询",
+        "kwuu0": "免费",
+        "kvu9ix": "3,000 韩元档",
+        "kvvjhz": "5,000 韩元档",
+        "kt1sff": "10,000 韩元档",
+        "krnc4c4": "高级"
+      }
+    },
+    "birthCountryComboWrap": {
+      "kefdlj6": {
+        "ariaLabel": "出生地搜索结果"
+      }
+    },
+    "cdTodayCardTop": {
+      "cdTodayCardAnchor": {
+        "kl74ww4": "今日日柱",
+        "k1j6dp92": "今日星宿",
+        "khs81qk": "今日月宿"
+      }
+    },
+    "cdTodayPickCta": {
+      "k1cco6tp": "立即开始"
+    },
+    "cdSigCardGlyphs": {
+      "cdSigCardGlyph": {
+        "kxvio": "四柱八字",
+        "kpyjtww": "紫微斗数",
+        "kz0jc": "缘分",
+        "kxvio2": "四柱八字",
+        "k10ios": "塔罗",
+        "kuolk": "合婚",
+        "kabniwe": "宿曜27宿",
+        "k79pfmc": "纳克沙特拉",
+        "kx2dg": "吠陀",
+        "kxvio3": "四柱八字",
+        "kz12p": "策略"
+      }
+    },
+    "cdPickWhyAlt": {
+      "k1d6ftfz": "改去运命茶馆"
+    },
+    "fortuneGatewayTitle": {
+      "kxunqxo": "从今日的一句话",
+      "kzg9wm": "到六大体系的深度解读"
+    },
+    "cdDiaryPlannerTitle": {
+      "k1muhj4v": "运气与日子的日记，",
+      "kbld8zk": "以及我的运势规划表"
+    },
+    "syBasicCalendarLegendItems": {
+      "syBasicCalendarLegendItem": {
+        "kyol0": "今天",
+        "k11poz": "凶日",
+        "k1149f": "平日"
       }
     }
   },
