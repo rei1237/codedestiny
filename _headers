@@ -81,11 +81,6 @@
   X-Robots-Tag: noindex, nofollow
 /tarot/healing*
   X-Robots-Tag: noindex, nofollow
-# 아래 셸 사본 라우트들은 홈이 가장 많이 링크하는 대상이다. nofollow 였을 때는
-# 링크 자산이 여기서 끊겨 색인 대상 허브로 흐르지 않았다. 색인 제외(noindex)는 유지하되
-# follow 로 바꿔 링크만 통과시킨다.
-/ziwei/chart*
-  X-Robots-Tag: noindex, follow
 /404
   X-Robots-Tag: noindex, nofollow
 /500
