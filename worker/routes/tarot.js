@@ -48,6 +48,9 @@ const NUMEROLOGY_TAROT_READING_FEATURE_KEY = "tarot-numerology-reading";
 const NUMEROLOGY_TAROT_READING_MIN_COST = 30;
 const ORACLE_CONSULTATION_FEATURE_KEY = "tarot-prompt-maker";
 const ORACLE_CONSULTATION_MIN_COST = 50;
+const IJIK_READING_FEATURE_KEY = "tarot-ijik";
+const IJIK_READING_MIN_COST = 50;
+const IJIK_READING_CARD_COUNT = 7;
 const YEAR_TAROT_FEATURE_KEY = "tarot-year-fortune";
 const YEAR_TAROT_PROFILE_PREFIX = "year:";
 const YEAR_TAROT_RESULT_PREFIX = "tarot-year-result:";
@@ -416,6 +419,111 @@ async function verifyOracleConsultationAccess(request, env, body = {}) {
     message: proof.reason === "NO_REQUEST_ID"
       ? "결제 요청 정보가 없어 확인하지 못했습니다. 상담 시작 버튼으로 다시 진행해 주세요."
       : "결제 완료 내역을 확인할 수 없습니다. 상담 시작 버튼으로 결제를 완료한 뒤 다시 시도해 주세요.",
+  };
+}
+
+/**
+ * 회당결제 증빙 확인의 매개변수화된 판정기.
+ *
+ * 위의 `verifyNumerologyReadingAccess` · `verifyOracleConsultationAccess` 와 **같은 순서**다
+ * (canAccessPaidFeature 지름길 → 로그인/인프라 오류 분기 → verifyPerUsePayment 증빙).
+ * 🔴 세 번째 사본을 만들지 않으려고 뽑았다 — 결제 증빙 로직을 라우트마다 손으로 베끼면
+ *    한쪽만 고쳐졌을 때 **돈 낸 사용자가 402 를 맞는다**(월정석 증빙이 15곳으로 흩어져
+ *    두 번 그렇게 깨졌다: `worker/lib/moonstone-spend-proof.js` 상단 참고).
+ *    위 두 함수는 이 PR 범위 밖이라 그대로 뒀다. 다음에 손댈 때 여기로 합칠 것.
+ *
+ * @param {{featureKey:string, minCost:number, codePrefix:string, reason:string,
+ *          authMessage:string, retryHint:string}} spec
+ */
+async function verifyTarotPerUseAccess(request, env, body, spec) {
+  const authRequired = `${spec.codePrefix}_AUTH_REQUIRED`;
+  const verifyUnavailable = `${spec.codePrefix}_VERIFY_UNAVAILABLE`;
+  const notVerified = `${spec.codePrefix}_PAYMENT_NOT_VERIFIED`;
+
+  let auth = null;
+  let authError = null;
+  try {
+    auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
+  } catch (error) {
+    authError = error;
+  }
+
+  if (auth?.userId) {
+    // 관문이 아니라 지름길이다. 회당결제 키에 canAccessPaidFeature 는 원래 늘 PAYMENT_REQUIRED 를
+    // 돌려주고, 실제 증빙은 아래 verifyPerUsePayment 가 본다 — 그래서 여기서 무엇이 터지든
+    // 결제한 사용자를 막지 않고 증빙 조회로 넘어간다.
+    let accessDecision = null;
+    try {
+      accessDecision = await canAccessPaidFeature(auth.userId, spec.featureKey, {
+        env,
+        userDoc: auth.authUserDoc,
+        reason: spec.reason,
+      });
+    } catch (error) {
+      // 개인정보는 남기지 않는다(featureKey·오류명만).
+      console.error("[tarot] entitlement precheck failed", JSON.stringify({
+        featureKey: spec.featureKey,
+        name: error?.name || "Error",
+        message: String(error?.message || "").slice(0, 200),
+      }));
+    }
+    if (accessDecision?.allowed) {
+      return { ok: true, auth, evidence: { source: accessDecision.accessSource || accessDecision.reason || "paid_feature_access" } };
+    }
+  }
+
+  if (!auth?.userId) {
+    const authStatus = Number(authError?.status) || 0;
+    if (authStatus === 401 || authStatus === 403) {
+      return { ok: false, status: authStatus, code: authRequired, message: spec.authMessage };
+    }
+    if (!authError) {
+      return { ok: false, status: 401, code: authRequired, message: spec.authMessage };
+    }
+    // 🔴 인증이 DB 장애로 실패한 경우를 미결제로 세탁하지 않는다 — 503 이다.
+    if (authStatus > 0 || isAuthDbInfraError(authError)) {
+      return {
+        ok: false,
+        status: 503,
+        code: verifyUnavailable,
+        message: "일시적인 서버 문제로 결제 확인이 지연되고 있습니다. 잠시 후 추가 결제 없이 다시 시도해 주세요.",
+      };
+    }
+    return { ok: false, status: 401, code: authRequired, message: spec.authMessage };
+  }
+
+  // 단건결제(Payment) → 코인/월정석(PointHistory) → 월정석 원장 → 이용권 → admin 순.
+  // 🔴 이용권 통과는 차감 기록을 남기지 않는 정상 경로라, 기록 조회만으로 판정하면 이용권 보유자가 전원 막힌다.
+  const proof = await verifyPerUsePayment(env, {
+    userId: auth.userId,
+    featureKey: spec.featureKey,
+    coinPrice: spec.minCost,
+    requestId: asText(body?.requestId || body?.idempotencyKey),
+  });
+  logPerUsePaymentProof(spec.featureKey, proof);
+
+  if (proof.proven === true) {
+    return { ok: true, auth, evidence: { source: proof.source || "per_use_payment" } };
+  }
+
+  // 🔴 DB 일시 장애를 "미결제"로 바꾸지 않는다 — 결제한 사용자를 잠그는 가장 흔한 경로다.
+  if (proof.proven === null) {
+    return {
+      ok: false,
+      status: 503,
+      code: verifyUnavailable,
+      message: "일시적인 서버 문제로 결제 확인이 지연되고 있습니다. 잠시 후 추가 결제 없이 다시 시도해 주세요.",
+    };
+  }
+
+  return {
+    ok: false,
+    status: 402,
+    code: notVerified,
+    reason: proof.reason || "NO_RECORD",
+    message: proof.reason === "NO_REQUEST_ID"
+      ? `결제 요청 정보가 없어 확인하지 못했습니다. ${spec.retryHint}`
+      : `결제 완료 내역을 확인할 수 없습니다. ${spec.retryHint}`,
   };
 }
 
@@ -1582,6 +1690,48 @@ export async function handleTarotRoutes(request, env = {}) {
       const payload = await buildNumerologyReadingPayload(body, env);
       return json({
         ...payload,
+        accessVerified: true,
+        accessSource: access.evidence?.source || "auth",
+      });
+    }
+
+    // 커리어 전환 타로(이직 타로)의 유료 리딩. 카드 뽑기는 브라우저가 하고, **해석은 여기서만** 만든다.
+    // 🔴 생성기를 tarot-ijik.html 로 되돌리지 말 것 — 그러면 콘솔 한 줄로 결과가 공짜가 된다
+    //    (__tests__/ui/tarot-ijik-server-gate.static.test.js 가 막는다).
+    if (path === "/ijik-reading") {
+      const access = await verifyTarotPerUseAccess(request, env, body, {
+        featureKey: IJIK_READING_FEATURE_KEY,
+        minCost: IJIK_READING_MIN_COST,
+        codePrefix: "IJIK_TAROT",
+        reason: "커리어 전환 타로 리딩",
+        authMessage: "로그인 후 리딩을 확인할 수 있습니다.",
+        retryHint: "해석 보기 버튼으로 결제를 완료한 뒤 다시 시도해 주세요.",
+      });
+      if (!access.ok) {
+        return json(
+          {
+            ok: false,
+            code: access.code || "IJIK_TAROT_PAYMENT_NOT_VERIFIED",
+            reason: access.reason || "",
+            message: access.message,
+          },
+          { status: access.status || 402 },
+        );
+      }
+
+      const cards = Array.isArray(body?.cards) ? body.cards : [];
+      if (cards.length !== IJIK_READING_CARD_COUNT) {
+        return json(
+          { ok: false, code: "IJIK_TAROT_BAD_SPREAD", message: "카드 7장을 모두 연 뒤 다시 시도해 주세요." },
+          { status: 400 },
+        );
+      }
+
+      const { buildIjikReading } = await import("../lib/tarot-ijik-reading.js");
+      const result = buildIjikReading(cards);
+      return json({
+        ok: true,
+        ...result,
         accessVerified: true,
         accessSource: access.evidence?.source || "auth",
       });
