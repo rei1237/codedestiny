@@ -42,7 +42,7 @@ const INTERPRETATION_ENGINES = new Set([
   "js/saju-engine.js",
   "js/saju-engine-tarot-sukuyo-quantum.js",
   "js/core/saju/extremeTResult.js",
-  "js/services/destiny-flower-engine.js",
+  "worker/lib/destiny-flower-engine.js",
   "js/entertain-engine.js",
   "js/oracle-kcg.js",
   "js/tarot-data.js",

@@ -20,7 +20,7 @@ const root = path.resolve(__dirname, "../..");
 const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 
 const ART_REL = "js/services/destiny-flower-art.js";
-const ENGINE_REL = "js/services/destiny-flower-engine.js";
+const ENGINE_REL = "worker/lib/destiny-flower-engine.js";
 const RUNTIME_REL = "js/core/index-inline-runtime.js";
 const BOOTSTRAP_REL = "js/core/bootstrapDestinyFlower.js";
 

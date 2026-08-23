@@ -10,7 +10,7 @@ import {
   resolveMansionIndex,
   mansionByIndex,
   ziweiStarElement
-} from './destiny-flower-traits.js?v=20260824-df-traits';
+} from './destiny-flower-traits.js';
 
 const ELEMENT_KEYS = ['wood', 'fire', 'earth', 'metal', 'water'];
 
@@ -1357,47 +1357,37 @@ function chooseJamidusuStrongStar(zw) {
 export function matchJamidusuFlower(userData = {}, options = {}) {
   const profile = userData && userData.schema === 'universal-destiny-profile' ? userData : parseDestinyProfile(userData);
 
-  // --- 자미두수 "오늘의 강한 별" 최신화: saju-engine에서 직접 산출 (calcZiweiPalaces는 양력 기준) ---
+  // --- 자미두수 "오늘의 강한 별" 최신화 ---
+  // 🔴 차트는 **호출자가 넘긴다**(`userData.ziweiChart`). 2026-08-24 이전에는 이 자리에서
+  //    `window.calcZiweiPalaces` 를 직접 불렀는데, 엔진이 워커로 옮겨 오면서 그 전역이 없어
+  //    보정이 통째로 죽는다. 명궁 별만 쓰는 결과로 조용히 퇴화하므로 입력으로 바꿨다.
+  //    셸의 `_jfResolveSelection` 이 같은 `zw` 객체를 실어 보낸다.
   try {
-    const birth = (profile.identity && profile.identity.birth) || profile.birth || profile.domains?.birth || userData.birth || {};
-    let year = Number(birth.year), month = Number(birth.month), day = Number(birth.day), hour = Number(birth.hour), minute = Number(birth.minute);
-    const calType = birth.calType || 'solar';
-    if ((calType === 'lunar' || calType === 'lunar_leap') && year && month && day &&
-        typeof window !== 'undefined' && window.KasiEngine && typeof window.KasiEngine.lunarToSolar === 'function') {
-      try {
-        const conv = window.KasiEngine.lunarToSolar(year, month, day, calType === 'lunar_leap');
-        if (conv && conv.year && conv.month && conv.day) {
-          year = Number(conv.year);
-          month = Number(conv.month);
-          day = Number(conv.day);
-        }
-      } catch (e) { /* fallback: use as-is */ }
-    }
-    if (typeof window !== 'undefined' && typeof window.calcZiweiPalaces === 'function' && year && month && day) {
-      const zw = window.calcZiweiPalaces(year, month, day, hour, minute);
-      if (zw && zw.stars && zw.palacesByIndex) {
-        const picked = chooseJamidusuStrongStar(zw);
-        let mainStar = picked && picked.star ? picked.star : '';
-        let palace = picked && picked.palace ? picked.palace : '';
-        let brightness = picked && picked.brightness ? picked.brightness : '';
+    const zw = userData && userData.ziweiChart && typeof userData.ziweiChart === 'object'
+      ? userData.ziweiChart
+      : null;
+    if (zw && zw.stars && zw.palacesByIndex) {
+      const picked = chooseJamidusuStrongStar(zw);
+      let mainStar = picked && picked.star ? picked.star : '';
+      let palace = picked && picked.palace ? picked.palace : '';
+      let brightness = picked && picked.brightness ? picked.brightness : '';
 
-        if (!mainStar) {
-          const mingIdx = zw.palacesByIndex.indexOf('명궁');
-          if (mingIdx >= 0 && zw.stars && zw.stars[mingIdx]) {
-            const mainList = zw.stars[mingIdx].main || [];
-            mainStar = mainList[0] || '';
-            palace = '명궁';
-          }
-          if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
-            brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
-          }
+      if (!mainStar) {
+        const mingIdx = zw.palacesByIndex.indexOf('명궁');
+        if (mingIdx >= 0 && zw.stars && zw.stars[mingIdx]) {
+          const mainList = zw.stars[mingIdx].main || [];
+          mainStar = mainList[0] || '';
+          palace = '명궁';
         }
-        if (profile.domains && profile.domains.ziwei) {
-          profile.domains.ziwei.main_star = mainStar;
-          profile.domains.ziwei.stars = mainStar ? [mainStar] : [];
-          profile.domains.ziwei.palace = palace || profile.domains.ziwei.palace || '명궁';
-          if (brightness) profile.domains.ziwei.brightness = brightness;
+        if (mingIdx >= 0 && zw.palaceStarData && zw.palaceStarData[mingIdx] && zw.palaceStarData[mingIdx].stars && zw.palaceStarData[mingIdx].stars[0]) {
+          brightness = String(zw.palaceStarData[mingIdx].stars[0].strength || '');
         }
+      }
+      if (profile.domains && profile.domains.ziwei) {
+        profile.domains.ziwei.main_star = mainStar;
+        profile.domains.ziwei.stars = mainStar ? [mainStar] : [];
+        profile.domains.ziwei.palace = palace || profile.domains.ziwei.palace || '명궁';
+        if (brightness) profile.domains.ziwei.brightness = brightness;
       }
     }
   } catch (e) { /* 무시: 브라우저/SSR 환경 차이 등 */ }
@@ -3987,7 +3977,7 @@ function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
 /* ══ 89종 통합 카탈로그 + 점술별 점수 ═══════════════════════════════════════
    카탈로그가 넷으로 갈라져 있고 매칭 필드가 사주 67종에만 있어, 나머지 세 체계는
    각각 8·6·8종 안에서 해시로 골랐다. 22종에 같은 필드를 채워 넷 다 89종 전체를
-   같은 점수 함수로 비교한다. 상세는 js/services/destiny-flower-traits.js 참고. */
+   같은 점수 함수로 비교한다. 상세는 worker/lib/destiny-flower-traits.js 참고. */
 
 /** 사주 외 라이브러리 22종에 매칭 특성을 입힌 사본. 원본 상수는 그대로 둔다(하위 호환). */
 function supplementFlower(flower) {
@@ -4277,22 +4267,12 @@ export function createDestinyFlowerEngine(initialData = {}) {
   };
 }
 
-export function registerDestinyFlowerEngineGlobals(target = window, engine = createDestinyFlowerEngine()) {
-  if (!target) return engine;
-  target.DestinyFlowerEngine = engine;
-  target.parseDestinyProfile = engine.parseDestinyProfile.bind(engine);
-  target.calculateDestinyFlower = calculateDestinyFlower;
-  target.getAstrologyFlower = engine.getAstrologyFlower.bind(engine);
-  target.matchAstrologyFlower = engine.matchAstrologyFlower.bind(engine);
-  target.getJamidusuFlower = engine.getJamidusuFlower.bind(engine);
-  target.matchJamidusuFlower = engine.matchJamidusuFlower.bind(engine);
-  target.calculateSukyoFlower = engine.calculateSukyoFlower.bind(engine);
-  target.matchSukuyoFlower = engine.matchSukuyoFlower.bind(engine);
-  target.matchDestinyFlower = engine.matchDestinyFlower.bind(engine);
-  target.updateFlowerTheme = engine.updateFlowerTheme.bind(engine);
-  target.flowerSymbology = flowerSymbology;
-  return engine;
-}
+/**
+ * 🔴 `registerDestinyFlowerEngineGlobals` 를 되살리지 말 것 (2026-08-24 제거).
+ * 매칭 함수 12개를 브라우저 전역에 심던 함수라, 이 엔진을 워커로 옮긴 이유와 정면으로
+ * 어긋난다(콘솔에서 `matchDestinyFlower(payload)` 한 줄이면 1만원짜리 결과가 나왔다).
+ * 결과를 내보내는 유일한 입구는 `worker/routes/destiny-flower.js` 의 `POST /api/destiny-flower/match` 다.
+ */
 
 /** 27수 배열을 가드가 계산기 표와 대조할 수 있게 재수출한다. */
 export { SUKUYO_MANSIONS_27 };
