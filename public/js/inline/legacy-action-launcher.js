@@ -36,18 +36,23 @@
       var action = params.get("action");
       if (!action) return;
 
-      var flowerRouteMap = {
-        openDestinyFlowerStudio: "/flower/destiny",
-        openAstrologyFlowerStudio: "/flower/astrology",
-        openJamidusuFlowerStudio: "/flower/jamidusu",
-        openSukuyoFlowerStudio: "/flower/sukuyo"
-      };
-      if (flowerRouteMap[action]) {
-        window.location.href = flowerRouteMap[action];
-        return;
-      }
+      // 🔴 여기에 action -> 라우트 하드 이동 표(과거의 flowerRouteMap)를 다시 만들지 말 것.
+      // 랜딩(/flower/*)의 실행 CTA 와 홈 허브가 내보내는 URL 이 /index.html?action=... 이므로,
+      // 그 action 을 다시 랜딩으로 되던지면 랜딩 <-> 셸 무한 왕복이 된다(사용자에게는 "기능으로
+      // 가는 듯하다가 되돌아옴"으로 보인다). 이력: ce23c945b 도입 -> 76fcc0ca5 제거(랜딩 CTA 를
+      // 액션 셸로 수렴시키면서) -> ee4cb8fd2 가 되살려 루프 재발. 스튜디오 UI 는 셸에만 있으므로
+      // 목적지는 셸이 맞다. 가드: __tests__/ui/action-entry-dispatch.static.test.js
 
-      var isOpenAction = /^open[A-Za-z0-9_]+$|^navigateToVedic$/.test(action);
+      // 셸 런타임(index-inline-runtime.js 의 __cdRunRouteActionOnce)이 이미 이 action 을 잡았으면
+      // 손대지 않는다. 그쪽은 타일을 거쳐 __cdRequireTileLockGate 를 태우는 반면 여기는 전역 함수를
+      // 직접 부른다 — 둘 다 돌면 결제 게이트가 두 번 뜬다. 런타임은 DOMContentLoaded+0, 이 파일은
+      // load+0 에 돌므로 여기서 플래그는 이미 확정돼 있다. 런타임이 죽었을 때만 폴백으로 남는다.
+      if (window.__cdRouteActionHandled) return;
+
+      // ^start 는 76fcc0ca5 가 넣고 ee4cb8fd2 가 떨궜다. 그 사이 startCrystalSoulTarot·
+      // startMindScanTarot 은 셸에 타일이 없어 런타임도 못 잡고 여기도 안 잡아 완전히 죽어 있었다.
+      // 셋 다(+startIjikTarot) 본문이 "인증 확인 후 페이지 이동"뿐이라 결제 게이트는 목적지가 쥔다.
+      var isOpenAction = /^open[A-Za-z0-9_]+$|^start[A-Za-z0-9_]+$|^navigateToVedic$/.test(action);
       var isPremiumGotoAction = /^goto(?:Ziwei|Astrology|Sukuyo|Vedic|Naming)Premium$/.test(action);
       if (!isOpenAction && !isPremiumGotoAction) return;
 
