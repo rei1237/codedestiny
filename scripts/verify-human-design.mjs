@@ -307,29 +307,23 @@ check(
   impureImports.join(", "),
 );
 
-// ── ⑥ 결제 배선 정합성 ───────────────────────────────────────────────────────
+// ── ⑥ 무료 계약 ─────────────────────────────────────────────────────────────
 //
-// 🔴 가격이 네 곳에 흩어져 있다: 레지스트리(서버 정본) · 워커 라우트 · React 클라이언트 ·
-//    정적 셸 카드. 하나만 어긋나면 "결제는 됐는데 서버가 다른 금액을 기대" 하는 상태가 된다.
+// 🔴 2026-09 차트 무료화. 과금 지점은 프리미엄 리포트(human-design-report)로 옮겼고 이 파일은
+//    "차트에는 결제가 걸려 있지 않다" 를 지킨다. 무료화 전에는 여기서 가격 4자(레지스트리·
+//    워커 라우트·React 클라·정적 셸)를 대조했다 — 그 대조는 리포트 SKU 가 생길 때 되살아난다.
+//
+// 🔴 fail-closed: 검사 대상 파일을 못 읽으면 통과가 아니라 실패다.
 
 const registry = await import(new URL("../worker/lib/paid-feature-registry.js", import.meta.url).href);
-const HD_FEATURE_KEY = "human-design-chart";
-const HD_COIN_PRICE = 100;
-const HD_AMOUNT_KRW = 10000;
+const HD_LEGACY_FEATURE_KEY = "human-design-chart";
 
-const registryEntry = registry.FEATURE_KEY_PRICE_TABLE[HD_FEATURE_KEY];
-check("유료 레지스트리에 human-design-chart 가 있다", Boolean(registryEntry));
-if (registryEntry) {
-  check(
-    `레지스트리 가격이 ${HD_COIN_PRICE}코인 / ₩${HD_AMOUNT_KRW} 다`,
-    Number(registryEntry.cost) === HD_COIN_PRICE && Number(registryEntry.amountKRW) === HD_AMOUNT_KRW,
-    JSON.stringify(registryEntry),
-  );
-}
-check("회당 결제로 등록돼 있다", registry.isPerUsePaidFeatureKey(HD_FEATURE_KEY));
+// 🔴 옛 결제 키는 **레지스트리에 남아 있어야 한다**. 과거 주문·환불·리뷰 자격 조회가 이 항목을
+//    읽는다(같은 계약의 선례: palm-reading-ai-consult). 판매 중단은 호출부를 끊는 것이지
+//    레지스트리에서 지우는 것이 아니다.
 check(
-  "🔴 영구 해금으로 등록돼 있지 않다 (1회 결제로 모든 출생 데이터가 열리는 것을 막는다)",
-  !registry.isUnlockPaidFeatureKey(HD_FEATURE_KEY) && !registry.UNLOCK_PRODUCT_BY_FEATURE_KEY[HD_FEATURE_KEY],
+  "🔴 옛 결제 키가 레지스트리에 남아 있다 (과거 결제 이력 조회 보존)",
+  Boolean(registry.FEATURE_KEY_PRICE_TABLE[HD_LEGACY_FEATURE_KEY]),
 );
 
 function readRepoFile(relativePath) {
@@ -342,44 +336,40 @@ function readRepoFile(relativePath) {
 
 const routeSource = readRepoFile("worker/routes/human-design.js");
 check("워커 라우트 파일이 있다", routeSource.length > 0);
-if (routeSource) {
-  check("라우트의 코인가가 레지스트리와 같다", new RegExp(`COIN_PRICE\\s*=\\s*${HD_COIN_PRICE}\\b`).test(routeSource));
-  check("라우트의 원화가가 레지스트리와 같다", new RegExp(`AMOUNT_KRW\\s*=\\s*${HD_AMOUNT_KRW}\\b`).test(routeSource));
+if (!routeSource) {
+  check("🔴 라우트를 읽지 못해 무료 계약을 확인할 수 없다", false);
+} else {
+  const routeCode = codeLines(routeSource);
+  check("🔴 차트 라우트에 결제 증빙 확인이 없다", !/verifyPerUsePayment/.test(routeCode));
+  check("🔴 차트 라우트에 관측/차단 스위치가 남아 있지 않다", !/PER_USE_ENFORCE/.test(routeCode));
+  check("🔴 차트 라우트가 402 를 내지 않는다", !/PAYMENT_REQUIRED/.test(routeCode));
+  check("🔴 차트 라우트에 가격 상수가 없다", !/COIN_PRICE|AMOUNT_KRW/.test(routeCode));
+  check("차트 라우트는 로그인을 계속 요구한다", /requireAuth\s*\(/.test(routeCode));
+  // 무과금이 된 Swiss Ephemeris 계산을 남용으로부터 지킨다.
+  check("무과금 계산에 레이트리밋이 걸려 있다", /allowCalculation\s*\(/.test(routeCode) && /RATE_LIMITED/.test(routeCode));
   check(
-    "🔴 라우트가 canAccessPaidFeature 로 관문을 세우지 않는다 (회당결제 키는 항상 PAYMENT_REQUIRED 를 받는다)",
-    !/canAccessPaidFeature/.test(codeLines(routeSource)),
+    "🔴 아카이브 조회·기록이 withMongoRetry(env, fn) 순서를 지킨다",
+    !/withMongoRetry\(\s*\(/.test(routeCode) && !/withMongoRetry\(\s*async/.test(routeCode),
   );
-  check("증빙 확인이 관측/차단 스위치를 갖는다", /PER_USE_ENFORCE\s*=\s*(true|false)/.test(routeSource));
+  // 은퇴한 해석 창구 — 읽기는 남고 생성은 사라졌다.
+  check("옛 해석 라우트가 은퇴 응답을 준다", /INTERPRETATION_RETIRED/.test(routeCode));
+  check("🔴 옛 해석 라우트에 LLM 호출이 남아 있지 않다", !/callGemini/.test(routeCode));
+  check("🔴 옛 해석 라우트에 저장 경로가 남아 있지 않다", !/archiveInterpretation/.test(routeCode));
+  check("이미 결제한 해석의 읽기 경로는 남아 있다", /findArchivedInterpretation\s*\(/.test(routeCode));
 }
-
-const workerIndexSource = readRepoFile("worker/index.js");
-check(
-  "워커 라우터에 /api/human-design 이 배선돼 있다",
-  workerIndexSource.includes("handleHumanDesignRoutes") && workerIndexSource.includes("/api/human-design"),
-);
 
 const clientSource = readRepoFile("app/human-design/HumanDesignClient.tsx");
-// 금지 패턴은 코드 줄에서만 본다 — "…를 주지 않는다" 라고 적은 주석이 걸리면 안 된다.
-const clientCode = codeLines(clientSource);
 check("React 클라이언트 파일이 있다", clientSource.length > 0);
-if (clientSource) {
-  check("클라이언트의 코인가가 레지스트리와 같다", new RegExp(`COIN_PRICE\\s*=\\s*${HD_COIN_PRICE}\\b`).test(clientSource));
-  check("클라이언트의 원화가가 레지스트리와 같다", new RegExp(`AMOUNT_KRW\\s*=\\s*${HD_AMOUNT_KRW}\\b`).test(clientSource));
-  check(
-    "🔴 공용 결제 게이트(useCoinGate.ensurePaidAccess)만 쓴다",
-    /ensurePaidAccess\s*\(/.test(clientCode) && !/paymentMode\s*:/.test(clientCode),
-  );
-  check(
-    "🔴 회당 결제라 forceDeduct 를 주지 않는다",
-    !/forceDeduct/.test(clientCode),
-  );
-  check(
-    "🔴 결제 requestId 가 새로고침을 견딘다 (useRef 에만 두면 새로고침이 곧 이중 결제다)",
-    /sessionStorage/.test(clientCode),
-  );
+if (!clientSource) {
+  check("🔴 클라이언트를 읽지 못해 무료 계약을 확인할 수 없다", false);
+} else {
+  const clientCode = codeLines(clientSource);
+  check("🔴 클라이언트가 결제 게이트를 부르지 않는다", !/ensurePaidAccess\s*\(/.test(clientCode));
+  check("🔴 클라이언트에 useCoinGate 가 남아 있지 않다", !/useCoinGate/.test(clientCode));
+  check("🔴 클라이언트에 가격 상수가 없다", !/COIN_PRICE|AMOUNT_KRW/.test(clientCode));
 }
 
-// 정적 셸 7벌(루트 + 미러 6)에 카드가 같은 가격으로 있어야 한다.
+// 정적 셸 7벌(루트 + 미러 6)에 무료 카드가 같은 모양으로 있어야 한다.
 const SHELL_FILES = [
   "index.html",
   "public/index.html",
@@ -393,11 +383,15 @@ const shellMisses = [];
 for (const file of SHELL_FILES) {
   const html = readRepoFile(file);
   if (!html) { shellMisses.push(`${file}: 파일 없음`); continue; }
-  if (!html.includes('data-cd-marker="human-design-vvip-card-v20260823"')) { shellMisses.push(`${file}: 카드 없음`); continue; }
-  if (!html.includes(`data-feature-key="${HD_FEATURE_KEY}"`)) { shellMisses.push(`${file}: featureKey 없음`); continue; }
-  if (!html.includes(`data-coin-cost="${HD_COIN_PRICE}"`)) shellMisses.push(`${file}: 코인가 불일치`);
+  if (!html.includes('data-cd-marker="human-design-free-chart-v20260823"')) { shellMisses.push(`${file}: 무료 카드 마커 없음`); continue; }
+  // 🔴 가격이 붙어 있으면 안 된다 — 붙어 있으면 무료 화면 앞에 결제 배지가 서게 된다.
+  const card = html.slice(html.indexOf('data-cd-marker="human-design-free-chart-v20260823"'));
+  const cardEnd = card.indexOf("</a>");
+  const cardHtml = cardEnd > 0 ? card.slice(0, cardEnd) : card;
+  if (/data-coin-cost=/.test(cardHtml)) shellMisses.push(`${file}: data-coin-cost 가 남아 있다`);
+  if (/tarot-tile__coin-badge"[^>]*>[^<]*\d[^<]*원/.test(cardHtml)) shellMisses.push(`${file}: 가격 배지가 남아 있다`);
 }
-check("정적 셸 7벌에 VVIP 서고 카드가 같은 가격으로 있다", shellMisses.length === 0, shellMisses.join(" / "));
+check("정적 셸 7벌의 휴먼 디자인 카드가 무료다", shellMisses.length === 0, shellMisses.join(" / "));
 
 const engineVersion = await import(new URL("../lib/human-design/version.js", import.meta.url).href);
 check("계산 버전 3종이 선언돼 있다",

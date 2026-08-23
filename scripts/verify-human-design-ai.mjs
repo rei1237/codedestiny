@@ -208,33 +208,47 @@ function codeLines(text) {
 }
 const routeCode = codeLines(routeSource);
 
+// 🔴 2026-09: 해석 생성은 은퇴했다. 차트가 무료가 되면 이 라우트의 유일한 관문이었던
+//    "계산 문서가 존재한다" 를 누구나 만들 수 있어 관문이 아니게 되기 때문이다.
+//    남은 계약은 "이미 결제해 저장된 해석의 읽기" 하나이며, 새 분석은 프리미엄 리포트가 맡는다.
 check("라우트에 /interpretation 이 배선돼 있다", /path === "\/interpretation"/.test(routeCode));
-check("라우트가 폴백 문턱을 실제로 넘긴다", /fallbackMinChars:\s*HD_AI_FALLBACK_MIN_CHARS/.test(routeCode));
-check("라우트가 사후 검산을 실제로 호출한다", /validateHumanDesignInterpretation\s*\(/.test(routeCode));
-check("라우트가 최소 분량 미달을 실패로 돌린다", /AI_TOO_SHORT/.test(routeCode));
-check("라우트가 검산 실패를 저장하지 않고 실패로 돌린다", /AI_FACT_MISMATCH/.test(routeCode));
-// 🔴 결제 키는 하나여야 한다. 로그 태그("[human-design-ai]")나 import 경로가 아니라
-//    **featureKey 로 실제로 쓰이는 값**을 본다.
+check("은퇴 응답(410)을 준다", /INTERPRETATION_RETIRED/.test(routeCode));
+check("대체 경로를 함께 알려 준다", /human-design-report/.test(routeCode));
+check("🔴 라우트에서 LLM 을 부르지 않는다", !/callGemini/.test(routeCode));
+check("🔴 라우트가 해석을 새로 저장하지 않는다", !/archiveInterpretation/.test(routeCode));
+check("이미 결제한 해석의 읽기 경로는 남아 있다", /findArchivedInterpretation\s*\(/.test(routeCode));
+// 🔴 이름 grep 이 아니라 **함수 본문**을 잘라 본다. 차트 조회는 실패를 null 로 접어도 되지만
+//    (다시 계산하면 그만) 해석 조회는 그러면 안 된다 — 접는 순간 DB 장애가 410("해석 없음")으로
+//    세탁돼 이미 결제한 사용자가 자기 결과를 영영 못 본다.
+const interpLookupStart = routeSource.indexOf("async function findArchivedInterpretation");
+const interpLookupEnd = routeSource.indexOf("async function handleInterpretation", interpLookupStart + 1);
+const interpLookupBody = interpLookupStart < 0 || interpLookupEnd < 0
+  ? ""
+  : routeSource.slice(interpLookupStart, interpLookupEnd);
+check(
+  "🔴 해석 읽기 실패를 null 로 접지 않는다 (DB 장애가 '해석 없음'으로 세탁되면 결제자가 못 본다)",
+  interpLookupBody.length > 0 && !/catch/.test(interpLookupBody),
+  interpLookupBody ? "catch 로 접고 있다" : "함수를 찾지 못했다",
+);
+
 const featureKeyUsages = [...routeCode.matchAll(/featureKey\s*:\s*([A-Za-z_$][\w$]*|"[^"]*")/g)]
   .map((match) => match[1]);
-const literalFeatureKeys = featureKeyUsages.filter((value) => value.startsWith('"'));
 check(
-  "🔴 해석에 새 결제 키를 만들지 않는다 (차트와 같은 human-design-chart 하나)",
-  featureKeyUsages.length > 0 && literalFeatureKeys.every((value) => value === '"human-design-chart"'),
+  "🔴 무료 라우트에 featureKey 사용처가 없다",
+  featureKeyUsages.length === 0,
   `featureKey 사용처: ${featureKeyUsages.join(", ") || "없음"}`,
 );
 const featureKeyConstants = [...routeCode.matchAll(/const\s+[\w$]*FEATURE_KEY[\w$]*\s*=\s*"([^"]+)"/g)]
   .map((match) => match[1]);
 check(
-  "결제 키 상수가 human-design-chart 하나뿐이다",
-  featureKeyConstants.length === 1 && featureKeyConstants[0] === "human-design-chart",
+  "🔴 무료 라우트에 결제 키 상수가 없다",
+  featureKeyConstants.length === 0,
   featureKeyConstants.join(", "),
 );
 check(
-  "🔴 클라이언트가 보낸 차트를 믿지 않는다 (그러면 누구나 무료로 AI 해석을 받는다)",
+  "🔴 클라이언트가 보낸 차트를 믿지 않는다",
   !/body\??\.\s*chart/.test(routeCode),
 );
-check("섹션 순서·키를 서버가 고정한다", /HD_AI_SECTIONS\.map/.test(routeCode));
 
 // 프롬프트 모듈 자체가 출생 데이터를 읽지 않는지 소스로 확인한다.
 const promptSource = codeLines(readFileSync(path.join(repoRoot, "worker", "lib", "human-design-ai-prompt.js"), "utf8"));

@@ -16,8 +16,8 @@ export const UI_TEXT = {
   title: { ko: "휴먼 디자인", en: "Human Design" },
   tagline: { ko: "나를 설계한 에너지 지도", en: "The energy map that designed you" },
   subtitle: {
-    ko: "정확한 천문 계산 · 인터랙티브 바디그래프 · AI 개인 분석",
-    en: "Precise ephemeris · Interactive BodyGraph · AI reading",
+    ko: "정확한 천문 계산 · 인터랙티브 바디그래프 · 무료",
+    en: "Precise ephemeris · Interactive BodyGraph · free",
   },
   formHeading: { ko: "출생 정보", en: "Birth data" },
   birthDate: { ko: "생년월일", en: "Birth date" },
@@ -38,8 +38,8 @@ export const UI_TEXT = {
     en: "One minute can change a line and the profile. Enter it as precisely as you know it.",
   },
   reusedNotice: {
-    ko: "같은 출생 정보로 이미 만든 차트라 추가 결제 없이 열었습니다.",
-    en: "Reopened from your saved chart — no additional payment for the same birth data.",
+    ko: "같은 출생 정보로 이미 만든 차트를 그대로 열었습니다.",
+    en: "Reopened from your saved chart for the same birth data.",
   },
   personality: { ko: "퍼스낼리티(의식)", en: "Personality (conscious)" },
   design: { ko: "디자인(무의식)", en: "Design (unconscious)" },
@@ -71,8 +71,8 @@ export const UI_TEXT = {
   participatesIn: { ko: "참여 채널", en: "Channels" },
   ichingName: { ko: "주역 괘", en: "I Ching hexagram" },
   interpretationPending: {
-    ko: "게이트·채널의 개인 해석은 아래 AI 리딩에서 제공됩니다.",
-    en: "Personal gate and channel interpretation is in the AI reading below.",
+    ko: "여기 보이는 값은 모두 계산으로 확인된 사실입니다. 개인 해석은 담고 있지 않습니다.",
+    en: "Everything here is a computed fact. It does not include personal interpretation.",
   },
   interpretationHeading: { ko: "AI 개인 해석", en: "AI reading" },
   interpretationCta: { ko: "내 차트로 해석 받기", en: "Read my chart" },
@@ -131,6 +131,16 @@ export const UI_TEXT = {
     en: "Active gates come from your 26 planetary activations. Tap one to see which planet lit it.",
   },
   noneYet: { ko: "없음", en: "None" },
+  freeNote: {
+    ko: "차트는 무료입니다. 로그인만 하면 몇 번이든 다시 볼 수 있습니다.",
+    en: "The chart is free. Sign in and reopen it as often as you like.",
+  },
+  // 🔴 옛 해석은 생성이 은퇴했고 이미 결제한 사람에게만 보인다. 새 구매를 권하는 문구를
+  //    여기 넣지 말 것 — 이 자리는 "예전에 산 것을 되살렸다"는 안내다.
+  legacyReadingNote: {
+    ko: "이전에 구매하신 AI 해석입니다. 지금은 새로 생성하지 않고 저장된 내용을 그대로 보여 드립니다.",
+    en: "An AI reading you purchased earlier. It is shown as saved — nothing is generated now.",
+  },
 } satisfies Record<string, Bilingual>;
 
 export const TYPE_COPY = {

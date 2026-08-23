@@ -1075,7 +1075,7 @@
       "neoLogoAlt": "네오 모드 로고"
     },
     "hero2": {
-      "title": "무료 사주로 읽는, 지금 이 순간의 나",
+      "title": "무료 사주부터 자미두수·점성술까지, 지금 이 순간의 나",
       "lead": "사주·타로·점성술·자미두수 등 다양한 체계로 현재의 흐름과 선택지를 이해하기 쉽게 살펴보세요.",
       "primaryCta": "✦ 무료로 오늘의 운세 보기",
       "journeyCta": "✦ 운명 여정 시작하기"
@@ -3580,7 +3580,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "별빛 운세의 길",
-        "kbm4p3d": "명리 실무 10년차가 세운 규칙대로 여덟 글자를 세우고, 일간의 강약과 용신·대운의 흐름까지 읽습니다.",
+        "kbm4p3d": "사주·타로·자미두수·숙요점·베다점·서양 점성술에 관상까지, 각 체계의 기준대로 읽습니다.",
         "kdvbi0h": {
           "ariaLabel": "서비스 핵심 안내"
         }
@@ -3741,7 +3741,8 @@
         "k1tna4h3": "전문가 상담",
         "n300006": "전문가 상담 · 30,000원",
         "n300007": "전문가 작명 · 30,000원",
-        "krpmzd9": "NEW · 휴먼 디자인"
+        "krpmzd9": "NEW · 휴먼 디자인",
+        "khdfree1": "무료 공개"
       }
     },
     "tarotTileBody": {
@@ -5212,6 +5213,343 @@
       "strengthTitle": "두 명식이 함께일 때 살아나는 힘",
       "cautionEyebrow": "조율할 결",
       "cautionTitle": "두 명식이 부딪힐 때 먼저 보아야 할 것"
+    },
+    "sajuResult": {
+      "calendar": {
+        "lunar": "음력",
+        "solar": "양력",
+        "unknown": "달력 정보 없음"
+      },
+      "timeUnknown": "출생시간 미상",
+      "eyebrow": "연이가 펼친 달빛 명식",
+      "title": "사주가 비춘 오늘의 기본 흐름",
+      "emptyLead": "출생정보가 충분하지 않아 오늘은 사주의 세부 흐름을 펼치지 않았어요. 연이는 보이는 정보와 지금 적어주신 고민의 결만 차분히 읽어드릴게요.",
+      "lead": "연이가 찻집의 조용한 빛 아래에서 손님의 사주 한 잔을 펼쳐 보았어요.",
+      "yeoniAlt": "사주 결과 시트를 펼치는 인간 상담사 연이",
+      "lockedEyebrow": "잠시 접힌 달빛 명식",
+      "lockedTitle": "출생정보 없음",
+      "tarotContinue": "타로 중심으로 계속 보기",
+      "editBirth": "출생정보 다시 입력",
+      "summaryAria": "손님의 사주 한 잔",
+      "guestFallback": "손님",
+      "summaryHeading": "{name}의 사주 한 잔",
+      "birthDateLabel": "태어난 날",
+      "birthDateEmpty": "미입력",
+      "birthTimeLabel": "태어난 시간",
+      "calendarFieldLabel": "달의 기준",
+      "dayMasterLabel": "일간",
+      "folded": "조용히 접힘",
+      "elementsLabel": "대표 기운",
+      "elementsEmpty": "천천히 확인",
+      "tenGodFieldLabel": "오늘 들어온 십성",
+      "birthPlaceLabel": "출생지",
+      "birthPlaceEmpty": "선택 안 함",
+      "timezoneLabel": "시간대",
+      "gaugeEyebrow": "{cup}의 사주 흐름",
+      "gaugeTitle": "찻잔별 상태 게이지",
+      "tenGodEyebrow": "사주가 초대한 오늘의 손님",
+      "tenGodTitle": "오늘 찻집에 들어온 십성",
+      "tenGodEmpty": "오늘은 십성 손님의 모습이 또렷하게 떠오르지 않았어요. 연이는 보이지 않는 흐름을 억지로 꾸미지 않고, 지금 드러난 결만 조용히 읽어드릴게요.",
+      "readingEyebrow": "인간 상담사 연이의 해석",
+      "readingTitle": "연이가 읽은 사주의 기본 흐름",
+      "deepEyebrow": "상담 결과가 완성되었습니다",
+      "deepTitle": "오늘의 사주 상담지",
+      "adviceLabel": "한 문장 조언",
+      "cautionEyebrow": "주의할 기운",
+      "cautionTitle": "조금 천천히 살펴야 할 결",
+      "actionEyebrow": "오늘의 행동 처방",
+      "actionTitle": "사주가 권하는 한 걸음",
+      "tarotReadyEyebrow": "타로와 만날 준비",
+      "tarotReadyTitle": "찻잔 위에 다음 상징이 떠오를 차례예요",
+      "tarotOpen": "타로 카드 펼치기"
+    },
+    "sukuyoResult": {
+      "calendar": {
+        "lunar": "음력",
+        "solar": "양력",
+        "unknown": "달력 정보 없음"
+      },
+      "gender": {
+        "female": "여성",
+        "male": "남성",
+        "unknown": "성별 미입력"
+      },
+      "score": {
+        "destiny": "인연감",
+        "harmony": "조화",
+        "emotion": "정서",
+        "growth": "성장",
+        "stability": "지속성"
+      },
+      "card": {
+        "sukuyoEmpty": "본명숙 확인 전",
+        "birthDateLabel": "태어난 날",
+        "birthDateEmpty": "미입력",
+        "calendarLabel": "달의 기준",
+        "genderLabel": "성별",
+        "energyLabel": "숙의 기운",
+        "energyEmpty": "조용히 접힘"
+      },
+      "eyebrow": "달빛 궁합의 방",
+      "emptyTitle": "27숙 인연의 흐름이 아직 접혀 있어요",
+      "emptySummary": "두 사람의 생년월일과 달력 기준이 모두 놓이면 연이가 27숙의 거리를 조용히 펼쳐볼게요.",
+      "headerAlt": "27숙 인연의 흐름",
+      "mineLabel": "나의 본명숙",
+      "partnerLabel": "상대의 본명숙",
+      "relationEyebrow": "관계 유형",
+      "relationEmpty": "인연",
+      "relationDescEmpty": "관계 유형을 조용히 살핍니다.",
+      "distanceEyebrow": "숙요 거리",
+      "distanceEmpty": "동숙",
+      "directionEmpty": "두 사람의 달빛이 같은 자리에서 마주 봅니다.",
+      "tempEyebrow": "궁합 온도",
+      "tempChecking": "확인 중",
+      "focusEmpty": "관계의 흐름",
+      "focusSentence": "{focus}을 중심으로 읽었습니다.",
+      "directionalEyebrow": "방향별 관계",
+      "forwardEmpty": "순행",
+      "backwardEmpty": "역행",
+      "towardEmpty": "다가가는 방향을 살핍니다.",
+      "returnEmpty": "되돌아오는 방향을 살핍니다.",
+      "elementEyebrow": "오행 조화",
+      "elementMine": "나",
+      "elementPartner": "상대",
+      "elementRelation": "보완",
+      "scoreEyebrow": "기본 숙요점 점수",
+      "scoreSuffix": "점",
+      "strengthEyebrow": "끌림의 결",
+      "strengthTitle": "두 사람 사이에서 살아나는 힘",
+      "cautionEyebrow": "조심할 결",
+      "cautionTitle": "달빛이 흔들릴 때 먼저 보아야 할 것",
+      "roleEyebrow": "오늘의 관계 처방",
+      "roleTitle": "서로에게 건넬 수 있는 태도"
+    },
+    "honeyReward": {
+      "answers": {
+        "0": {
+          "keywords": {
+            "0": "남자친구",
+            "1": "남친",
+            "2": "연애",
+            "3": "사귀"
+          },
+          "answer": "꿀꿀~ 있었어요! 네오라는 백사자 오빠인데... 운세 상담사였다가 저한테 '평생 꿀 빨게 해줄게'라고 하더니 갑자기 회사 때려치우고 뭔가 열심히 만들고 있어요 🦁 응원은 하는데 언제 꿀 빨 수 있는 건지 모르겠어요~ 꿀꿀 💛"
+        },
+        "1": {
+          "keywords": {
+            "0": "전남친",
+            "1": "헤어",
+            "2": "이별",
+            "3": "전 남자친구"
+          },
+          "answer": "전남친은 아니고 현재진행형이에요! 네오 오빠가 저를 위해 code-destiny.com 만들고 있다고 하더라고요~ 뭔지는 잘 모르겠지만 열심히 하는 거 보면 귀엽긴 해요 🐾 꿀꿀~"
+        },
+        "2": {
+          "keywords": {
+            "0": "좋아하는 음식",
+            "1": "좋아하는 거",
+            "2": "뭐 좋아해",
+            "3": "음식"
+          },
+          "answer": "당연히 꿀이죠! 🍯 진짜 꿀에 막 빠져 있어요. 꿀 케이크, 꿀 라떼, 꿀 떡볶이... 뭐든 꿀 들어가면 최고예요. 꿀꿀 그래서 제 이름도 꿀꿀 운세예요~"
+        },
+        "3": {
+          "keywords": {
+            "0": "꿈",
+            "1": "장래희망",
+            "2": "되고 싶"
+          },
+          "answer": "운명을 알려주는 꽃돼지로 계속 살고 싶어요! 🌸 사람들이 오늘 하루 조금 더 씩씩하게 살 수 있도록 달콤한 운세를 전해주는 거요~ 네오 오빠랑 같이 code-destiny.com 크게 키우는 것도 꿈이에요 💪 꿀꿀!"
+        },
+        "4": {
+          "keywords": {
+            "0": "취미",
+            "1": "좋아하는 것"
+          },
+          "answer": "저는요~ 달빛 아래에서 꽃 구경하기랑 🌙 연이 언니 노래 듣기를 엄청 좋아해요! 가끔 운세 카드도 뒤적이고요. 꿀꿀 최근엔 네오 오빠가 만든 숙요점 공부도 하고 있어요 📚"
+        },
+        "5": {
+          "keywords": {
+            "0": "나이",
+            "1": "몇 살",
+            "2": "생일"
+          },
+          "answer": "꽃돼지는 나이를 안 먹어요~ 🌸 꽃처럼 항상 봄이에요! 꿀꿀. 그냥 꽃이 피는 날이 제 생일이에요. 매년 봄마다 생일이니까 엄청 자주 오는 셈이죠 😆"
+        },
+        "6": {
+          "keywords": {
+            "0": "연이",
+            "1": "언니"
+          },
+          "answer": "연이 언니요~? 저의 소울 메이트예요! 💜 언니는 엄청 따뜻하고 감성적이에요. 저는 씩씩하고 언니는 부드럽고~ 둘이서 code-destiny.com 사람들 운세 봐주고 있어요. 꿀꿀 최고의 짝꿍~"
+        },
+        "7": {
+          "keywords": {
+            "0": "네오",
+            "1": "백사자",
+            "2": "오빠"
+          },
+          "answer": "네오 오빠는요~ 🦁 원래 엄청 유명한 운세 상담사였는데 저한테 '너 하나만 평생 책임지겠다'고 하더니 갑자기 개발자가 된 거예요 꿀꿀. 처음엔 황당했는데... 지금은 응원해요! code-destiny.com 잘 되길 바라요 💛"
+        },
+        "8": {
+          "keywords": {
+            "0": "운세",
+            "1": "오늘 운세",
+            "2": "내 운세"
+          },
+          "answer": "꿀꿀~ 운세는 code-destiny.com에서 제대로 봐드려요! 🔮 저는 여기서 귀여운 얘기만 해드릴 수 있고, 진짜 사주 팔자랑 별자리는 저희 홈에서 연이 언니랑 같이 봐줄게요 💜"
+        },
+        "9": {
+          "keywords": {
+            "0": "무서워",
+            "1": "걱정",
+            "2": "힘들어",
+            "3": "슬퍼"
+          },
+          "answer": "괜찮아요? 🌸 꽃돼지가 옆에 있을게요! 꿀꿀. 힘든 날일수록 달콤한 거 하나 먹고~ code-destiny.com에서 오늘의 운세 한 번 봐요. 분명 좋은 일이 기다리고 있을 거예요 💛"
+        }
+      },
+      "defaultAnswer": "꿀꿀~ 그건 저도 잘 모르겠어요 😅 하지만 궁금한 건 code-destiny.com에서 운세로 알아볼 수 있어요! 연이 언니가 잘 알려줄 거예요 💜",
+      "quickQuestions": {
+        "0": "꽃돼지야~ 남자친구 있어? 💛",
+        "1": "제일 좋아하는 음식이 뭐야? 🍯",
+        "2": "네오 오빠 어떤 사람이야?",
+        "3": "연이 언니랑 사이 어때?",
+        "4": "꿈이 뭐야? 🌸",
+        "5": "오늘 내 운세 어때?",
+        "6": "취미가 뭐야?",
+        "7": "나이가 몇 살이야? 🐷"
+      },
+      "greeting": "꿀 모드가 열렸어요. 꽃돼지에게 궁금한 걸 물어봐요. 꿀꿀~",
+      "qnaAria": "꽃돼지 꿀 모드 대화",
+      "qnaBadge": "✦ 꿀방울 10개 달성 · 꽃돼지에게 물어봐",
+      "meterAria": "꿀방울 10개 중 10개 달성",
+      "pigName": "꽃돼지",
+      "pigStatus": "달콤한 꿀 모드 상담 대기 중",
+      "typingAria": "꽃돼지가 답변을 쓰는 중",
+      "quickAria": "추천 질문",
+      "placeholder": "꽃돼지야~ 뭐든 물어봐요 ✨",
+      "sendAria": "꽃돼지에게 질문 보내기",
+      "albumOpen": "열림",
+      "counterAria": "꿀방울 {count}개, 상담 혜택 보기",
+      "honeyLabel": "꿀방울",
+      "albumAriaUnlocked": "달빛 타로 앨범 보기",
+      "albumAriaLocked": "달빛 타로 앨범 열기, 꿀방울 {progress}/10",
+      "albumText": "달빛 앨범",
+      "honeyModeClose": "꿀 모드 닫기",
+      "honeyModeOpen": "꿀 모드 활성화",
+      "albumTitleUnlocked": "달빛 타로 앨범이 손님 곁에 열려 있어요.",
+      "albumTitleLocked": "꿀방울 10개면 연이의 비밀 카드첩을 열 수 있어요.",
+      "albumDescUnlocked": "해금 완료 · 꿀방울이 0개여도 언제든 78장의 카드를 감상할 수 있어요.",
+      "albumDescLocked": "보유 꿀방울 {count}개 / 해금 필요 10개. 운명의 찻집에서 상담을 마치면 꿀방울이 하나씩 모여요.",
+      "albumMeterAria": "달빛 타로 앨범 진행도 {progress}/10",
+      "albumBtnUnlocked": "앨범 감상하기",
+      "albumBtnLocked": "달빛 앨범 살펴보기",
+      "burstUnlocked": "꽃돼지의 꿀 모드도 함께 열려 있어요.",
+      "burstLocked": "운명의 찻집에서 상담이 완성될 때마다 조용히 쌓이는 작은 보상이에요.",
+      "countValue": "{count}개"
+    },
+    "tarotAlbum": {
+      "k0iceshy": "달빛 아래 펼친 이야기가 내일의 선택을 대신 정하지는 않지만, 당신이 이미 알고 있던 작은 감각을 다시 믿게 해주기를 바랍니다.",
+      "k1gzgjee": "연이의 비밀 카드첩",
+      "k1h4mohy": "달빛 앨범을 여는 중",
+      "k1iqbrdw": "탭하여 펼치기",
+      "k1yzt0ya": "달빛 타로 카드 앨범",
+      "k2jfbomz": "역방향",
+      "k2lsrnrw": "기본 순서",
+      "k2tt3wwq": "PDF에 담을 카드를 먼저 선택해 주세요.",
+      "k35zodw1": "타로 카드 검색",
+      "k3anflqu": "이전",
+      "k6jsudop": "스토리 잠금이 해제된 뒤 PDF를 만들 수 있어요.",
+      "k79dstes": "펜타클",
+      "k7vazcgq": "운명찻집_타로카드_선택카드.pdf",
+      "k873uvgj": "PDF 생성에 실패했어요. 잠시 후 다시 시도해 주세요.",
+      "k8tcg3oe": "컵",
+      "k9bz0eod": "카드가 깨어났어요. 이제 달빛 아래서 천천히 넘겨보세요.",
+      "kactydpb": "확인 중",
+      "kajyhu4o": "내면 성장",
+      "kampzo9z": "연이가 깊은 서랍에 아껴두었던 카드 이야기예요. 타로 카드 의미와 해석을 한 장씩 읽고, 마음에 남는 카드는 PDF로 엮어 보관해 보세요.",
+      "kb6dudtb": "달빛 서가",
+      "kbfum84c": "타로 카드 분류",
+      "kbs8kn5u": "일",
+      "kbx1lbox": "연이가 들려주는 카드 이야기",
+      "kby0xnd1": "메이저 먼저",
+      "kcbceqsz": "선택",
+      "kceymbv8": "카드 정렬",
+      "kcojnagb": "카드 이름, 키워드, 해석 검색",
+      "kdhtquzm": "목차",
+      "kdwhxrty": "마이너 먼저",
+      "kewammtp": "개",
+      "kfe3rgpe": "카드",
+      "kfnkjoro": "연이가 카드 이야기를 한 장씩 엮어, 오늘의 마음 곁에 오래 머무는 타로 도감으로 묶었습니다.",
+      "kftcqqfx": "오늘 당신에게 필요한 카드는 이미 마음속에 남아 있어요.",
+      "kfvqms0a": "다음 카드 보기",
+      "khjystua": "현재 꿀방울",
+      "khux287z": "다음",
+      "kibbunuu": "달빛 아래에서 아직 맞는 카드를 찾지 못했어요. 이름이나 키워드를 조금 다르게 불러보세요.",
+      "kihtwum1": "운명찻집_달빛타로카드앨범_전체.pdf",
+      "kiixx8vi": "모두 펼치기",
+      "kjcpkfd5": "나에게 던지는 질문",
+      "kjvmkajp": "장 PDF",
+      "kk03sxsx": "전체",
+      "kkoogge5": "돈",
+      "kkr3uulf": "CODE DESTINY · 운명 찻집",
+      "kl0nq8gl": "카드 이름·키워드 검색",
+      "klirlgb2": "꿀방울 10개로 앨범 열기",
+      "km05ijjs": "연이의 메시지",
+      "kmlqylfg": "카드 상세 닫기",
+      "kmzmv9si": "전체 PDF 다운로드",
+      "kmzwjems": "달빛 타로 앨범 닫기",
+      "knbpabsn": "와… 꿀방울이 10개나 모였네요? 그럼 제가 아껴둔 달빛 타로 앨범을 살짝 열어드릴게요.",
+      "knnv85fh": "메이저 아르카나",
+      "ko4yt45j": "사랑",
+      "ko8qlqfx": "정방향",
+      "kodlrapd": "이제 이 카드첩은 손님 곁에 열려 있어요. 마음이 흔들릴 때마다 달빛 아래서 천천히 넘겨보세요.",
+      "koq4dt2a": "달빛 아래에서 당신의 타로 앨범을 준비하는 중이에요.",
+      "kp7ramna": "역방향 의미",
+      "kph0fvpr": "소드",
+      "kpqljmoc": "이름순",
+      "kpuzku7s": "생성일",
+      "kq8n5rri": "앨범 해금 완료",
+      "kqcshbql": "잠시 후 다시 확인해주세요.",
+      "kqejmfjk": "카드 이미지를 한 장씩 불러오고 있어요.",
+      "kqjhespg": "78장의 이야기가 기다리고 있어요",
+      "kqjimwmt": "운명 찻집",
+      "kqnfouen": "모두 덮기",
+      "kqvrsm7l": "정방향 의미",
+      "kr7i3yto": "완드",
+      "krvhfnlu": "아직 달빛 속에 잠든 카드",
+      "kskfjn2j": "장",
+      "ksnvhf6c": "다음 카드",
+      "ksoa9rli": "1장 PDF",
+      "ksp1zhrt": "운명의 찻집에서 상담을 보면 꿀방울을 모을 수 있어요.",
+      "ktz26j2g": "해금 카드",
+      "kuqqlnlp": "연이가 카드 이야기를 한 장씩 엮고 있어요.",
+      "kv2kg2cx": "이전 카드 보기",
+      "kvgpq4qo": "선택 카드 PDF",
+      "kw9ktd7m": "PDF 다운로드가 완료됐어요.",
+      "kwqkjwzw": "관계",
+      "kwuaodmd": "카드를 열어보세요. 한 장 한 장에 담긴 연이의 이야기가 손님을 기다리고 있어요. 꿀방울 10개를 모으면 78장의 타로 도감이 달빛 아래 펼쳐집니다.",
+      "kwxkbj5k": "78장의 카드가 달빛 찻집의 도감처럼 조용히 펼쳐집니다.",
+      "kx5gbrnz": "PDF 생성 중이에요. 잠시만 기다려 주세요.",
+      "kxhy61lm": "해금 필요",
+      "kxj8ah4r": "보유 꿀방울",
+      "kxjbdi0j": "이전 카드",
+      "kyikujnc": "스토리 잠금이 걸려 있어요. 달빛이 조금만 더 차오르면 카드첩이 열릴 거예요.",
+      "kyny7lmn": "꿀방울이 조금 더 필요해요",
+      "pdfFileNameSingle": "운명찻집_타로카드_{name}.pdf",
+      "selectedPdfLabel": "선택 {count}장 PDF",
+      "cardShelfToggleAria": "{title} 달빛 서가에 담기 {action}",
+      "cardShelfRemove": "해제",
+      "cardShelfAdd": "담음",
+      "cardCoverAria": "{title} 카드 다시 덮기",
+      "cardRevealAria": "{title} 카드 펼쳐 앞면 보기",
+      "cardDetailAria": "{title} {titleEn} 카드 자세히 보기",
+      "cardImageAlt": "{title} {titleEn} 타로 카드",
+      "honeyCountText": "{count}개",
+      "cardZoomAlt": "{title} {titleEn} 타로 카드 크게 보기",
+      "cardPositionAria": "카드 {index}번째, 전체 {total}장",
+      "cardSinglePdfAria": "{title} 한 장 PDF 다운로드"
     }
   }
 }

@@ -1229,7 +1229,7 @@
       "neoLogoAlt": "ネオモードのロゴ"
     },
     "hero2": {
-      "title": "無料の四柱推命で読む、今この瞬間のわたし",
+      "title": "無料の四柱推命から紫微斗数・占星術まで、今この瞬間のわたし",
       "lead": "東西の叡智と専門家の洞察で、あなただけの物語を読み解きます。",
       "primaryCta": "✦ 今日の運勢を無料で見る",
       "journeyCta": "✦ 運命の旅を始める"
@@ -6450,7 +6450,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "星の光の占いの道",
-        "kbm4p3d": "命理実務10年の者が定めた規則どおりに八字を立て、日干の強弱と用神・大運の流れまで読み解きます。",
+        "kbm4p3d": "四柱推命・タロット・紫微斗数・宿曜・ヴェーダ占星術・西洋占星術に観相まで、それぞれの体系の基準どおりに読み解きます。",
         "kdvbi0h": {
           "ariaLabel": "サービスの要点"
         }
@@ -6668,7 +6668,8 @@
         "k1tna4h3": "専門家相談",
         "n300006": "専門家相談・30,000ウォン",
         "n300007": "専門家による命名・30,000ウォン",
-        "krpmzd9": "NEW · ヒューマンデザイン"
+        "krpmzd9": "NEW · ヒューマンデザイン",
+        "khdfree1": "無料公開"
       }
     },
     "tarotTileBody": {
@@ -11782,6 +11783,343 @@
       "strengthTitle": "二つの命式がそろったときに生きる力",
       "cautionEyebrow": "調律する筋目",
       "cautionTitle": "二つの命式がぶつかるとき、先に見るべきこと"
+    },
+    "sajuResult": {
+      "calendar": {
+        "lunar": "旧暦",
+        "solar": "新暦",
+        "unknown": "暦の情報なし"
+      },
+      "timeUnknown": "出生時刻は不明",
+      "eyebrow": "ヨニが広げた月あかりの命式",
+      "title": "四柱推命が照らした今日の基本の流れ",
+      "emptyLead": "出生の情報が足りないため、今日は四柱推命の細かな流れを広げていません。ヨニは見えている情報と、いま書いてくださった悩みの筋目だけを落ち着いて読みます。",
+      "lead": "茶館の静かな灯りの下で、ヨニがお客さまの四柱推命を一杯ぶん広げてみました。",
+      "yeoniAlt": "四柱推命の結果シートを広げる人間の姿のヨニ",
+      "lockedEyebrow": "しばし折りたたまれた月あかりの命式",
+      "lockedTitle": "出生情報なし",
+      "tarotContinue": "タロット中心で続ける",
+      "editBirth": "出生情報を入力し直す",
+      "summaryAria": "お客さまの四柱推命一杯",
+      "guestFallback": "お客さま",
+      "summaryHeading": "{name} の四柱推命一杯",
+      "birthDateLabel": "生まれた日",
+      "birthDateEmpty": "未入力",
+      "birthTimeLabel": "生まれた時刻",
+      "calendarFieldLabel": "暦の基準",
+      "dayMasterLabel": "日干",
+      "folded": "静かに折りたたみ",
+      "elementsLabel": "主な気",
+      "elementsEmpty": "ゆっくり確認中",
+      "tenGodFieldLabel": "今日入った十神",
+      "birthPlaceLabel": "出生地",
+      "birthPlaceEmpty": "未選択",
+      "timezoneLabel": "タイムゾーン",
+      "gaugeEyebrow": "{cup} の四柱推命の流れ",
+      "gaugeTitle": "茶碗ごとの状態ゲージ",
+      "tenGodEyebrow": "四柱推命が招いた今日のお客さま",
+      "tenGodTitle": "今日、茶館に入ってきた十神",
+      "tenGodEmpty": "今日は十神のお客さまの姿がはっきり浮かびませんでした。ヨニは見えない流れを無理に飾らず、いま現れている筋目だけを静かに読みます。",
+      "readingEyebrow": "人間の姿のヨニによる解釈",
+      "readingTitle": "ヨニが読んだ四柱推命の基本の流れ",
+      "deepEyebrow": "鑑定結果ができあがりました",
+      "deepTitle": "今日の四柱推命 鑑定書",
+      "adviceLabel": "ひとことの助言",
+      "cautionEyebrow": "気をつけたい気",
+      "cautionTitle": "少しゆっくり見たほうがよい筋目",
+      "actionEyebrow": "今日の行動の処方",
+      "actionTitle": "四柱推命がすすめる一歩",
+      "tarotReadyEyebrow": "タロットと出会う準備",
+      "tarotReadyTitle": "茶碗の上に次の象徴が浮かぶ番です",
+      "tarotOpen": "タロットカードを広げる"
+    },
+    "sukuyoResult": {
+      "calendar": {
+        "lunar": "旧暦",
+        "solar": "新暦",
+        "unknown": "暦の情報なし"
+      },
+      "gender": {
+        "female": "女性",
+        "male": "男性",
+        "unknown": "性別は未入力"
+      },
+      "score": {
+        "destiny": "縁の感覚",
+        "harmony": "調和",
+        "emotion": "情緒",
+        "growth": "成長",
+        "stability": "持続性"
+      },
+      "card": {
+        "sukuyoEmpty": "本命宿の確認前",
+        "birthDateLabel": "生まれた日",
+        "birthDateEmpty": "未入力",
+        "calendarLabel": "暦の基準",
+        "genderLabel": "性別",
+        "energyLabel": "宿の気",
+        "energyEmpty": "静かに折りたたみ"
+      },
+      "eyebrow": "月あかりの相性の間",
+      "emptyTitle": "27宿の縁の流れは、まだ折りたたまれています",
+      "emptySummary": "おふたりの生年月日と暦の基準がそろえば、ヨニが27宿の距離を静かに広げます。",
+      "headerAlt": "27宿の縁の流れ",
+      "mineLabel": "わたしの本命宿",
+      "partnerLabel": "お相手の本命宿",
+      "relationEyebrow": "関係のタイプ",
+      "relationEmpty": "縁",
+      "relationDescEmpty": "関係のタイプを静かに見ます。",
+      "distanceEyebrow": "宿曜の距離",
+      "distanceEmpty": "同宿",
+      "directionEmpty": "おふたりの月あかりが、同じ場所で向き合います。",
+      "tempEyebrow": "相性の温度",
+      "tempChecking": "確認中",
+      "focusEmpty": "関係の流れ",
+      "focusSentence": "{focus} を中心に読みました。",
+      "directionalEyebrow": "方向ごとの関係",
+      "forwardEmpty": "順行",
+      "backwardEmpty": "逆行",
+      "towardEmpty": "近づいていく方向を見ます。",
+      "returnEmpty": "戻ってくる方向を見ます。",
+      "elementEyebrow": "五行の調和",
+      "elementMine": "わたし",
+      "elementPartner": "お相手",
+      "elementRelation": "補完",
+      "scoreEyebrow": "基本の宿曜スコア",
+      "scoreSuffix": "点",
+      "strengthEyebrow": "惹かれ合いの筋目",
+      "strengthTitle": "おふたりのあいだで生きる力",
+      "cautionEyebrow": "気をつけたい筋目",
+      "cautionTitle": "月あかりが揺れるとき、先に見るべきこと",
+      "roleEyebrow": "今日の関係の処方",
+      "roleTitle": "おたがいに差し出せる態度"
+    },
+    "honeyReward": {
+      "answers": {
+        "0": {
+          "keywords": {
+            "0": "彼氏",
+            "1": "カレシ",
+            "2": "恋愛",
+            "3": "付き合"
+          },
+          "answer": "ぶぅぶぅ〜 いますよ！ ネオっていう白ライオンのお兄さん… 占い師だったのに、わたしに「一生ハチミツを吸わせてあげる」って言って、いきなり会社を辞めて何かを一生懸命つくってるんです 🦁 応援はしてるけど、いつハチミツが吸えるのかは分かりません〜 ぶぅぶぅ 💛"
+        },
+        "1": {
+          "keywords": {
+            "0": "元カレ",
+            "1": "別れ",
+            "2": "失恋",
+            "3": "前の彼氏"
+          },
+          "answer": "元カレじゃなくて現在進行形です！ ネオお兄さんが、わたしのために code-destiny.com をつくってるって言ってました〜 よく分からないけど、一生懸命なところはかわいいです 🐾 ぶぅぶぅ〜"
+        },
+        "2": {
+          "keywords": {
+            "0": "好きな食べ物",
+            "1": "好きなもの",
+            "2": "何が好き",
+            "3": "食べ物"
+          },
+          "answer": "もちろんハチミツです！ 🍯 本気でハチミツにハマってます。ハチミツケーキ、ハチミツラテ、ハチミツトッポギ… 何でもハチミツが入れば最高。ぶぅぶぅ だからわたしの名前もハニーピッグ占いなんです〜"
+        },
+        "3": {
+          "keywords": {
+            "0": "夢",
+            "1": "将来",
+            "2": "なりたい"
+          },
+          "answer": "運命を教える花豚として、ずっと生きたいです！ 🌸 みんなが今日一日をもう少し元気に過ごせるように、甘い占いを届けること〜 ネオお兄さんと一緒に code-destiny.com を大きくするのも夢です 💪 ぶぅぶぅ！"
+        },
+        "4": {
+          "keywords": {
+            "0": "趣味",
+            "1": "好きなこと"
+          },
+          "answer": "わたしはですね〜 月あかりの下でお花を眺めるのと 🌙 ヨニお姉さんの歌を聴くのが大好きです！ たまに占いカードもめくります。ぶぅぶぅ 最近はネオお兄さんがつくった宿曜の勉強もしてます 📚"
+        },
+        "5": {
+          "keywords": {
+            "0": "年齢",
+            "1": "何歳",
+            "2": "誕生日"
+          },
+          "answer": "花豚は歳をとらないんです〜 🌸 花みたいに、いつも春！ ぶぅぶぅ。花が咲く日がわたしの誕生日です。毎年春だから、すごく頻繁に来る感じですね 😆"
+        },
+        "6": {
+          "keywords": {
+            "0": "ヨニ",
+            "1": "お姉さん"
+          },
+          "answer": "ヨニお姉さんですか〜？ わたしのソウルメイトです！ 💜 お姉さんはとってもあたたかくて情感豊か。わたしは元気で、お姉さんはやわらかくて〜 ふたりで code-destiny.com のみなさんの運勢を見ています。ぶぅぶぅ 最高の相棒〜"
+        },
+        "7": {
+          "keywords": {
+            "0": "ネオ",
+            "1": "白ライオン",
+            "2": "お兄さん"
+          },
+          "answer": "ネオお兄さんはですね〜 🦁 もとはすごく有名な占い師だったのに、わたしに「きみひとりを一生背負う」と言って、いきなり開発者になっちゃったんです ぶぅぶぅ。最初はあきれたけど… 今は応援してます！ code-destiny.com がうまくいきますように 💛"
+        },
+        "8": {
+          "keywords": {
+            "0": "運勢",
+            "1": "今日の運勢",
+            "2": "占い"
+          },
+          "answer": "ぶぅぶぅ〜 占いは code-destiny.com できちんと見ますよ！ 🔮 ここではかわいいお話しかできなくて、本物の四柱推命や星のことは、ホームでヨニお姉さんと一緒に見ますね 💜"
+        },
+        "9": {
+          "keywords": {
+            "0": "こわい",
+            "1": "心配",
+            "2": "つらい",
+            "3": "かなしい"
+          },
+          "answer": "だいじょうぶですか？ 🌸 花豚がそばにいますよ！ ぶぅぶぅ。つらい日ほど甘いものをひとつ食べて〜 code-destiny.com で今日の運勢を見てみましょう。きっといいことが待っています 💛"
+        }
+      },
+      "defaultAnswer": "ぶぅぶぅ〜 それはわたしにもよく分かりません 😅 でも気になることは code-destiny.com の占いで確かめられますよ！ ヨニお姉さんがちゃんと教えてくれます 💜",
+      "quickQuestions": {
+        "0": "花豚さん〜 彼氏いるの？ 💛",
+        "1": "いちばん好きな食べ物は？ 🍯",
+        "2": "ネオお兄さんってどんな人？",
+        "3": "ヨニお姉さんとは仲いいの？",
+        "4": "夢はなに？ 🌸",
+        "5": "今日のわたしの運勢は？",
+        "6": "趣味はなに？",
+        "7": "何歳なの？ 🐷"
+      },
+      "greeting": "ハニーモードが開きました。花豚に気になることを聞いてみてください。ぶぅぶぅ〜",
+      "qnaAria": "花豚のハニーモード会話",
+      "qnaBadge": "✦ ハニードロップ10個達成 · 花豚に聞いてみて",
+      "meterAria": "ハニードロップ10個中10個達成",
+      "pigName": "花豚",
+      "pigStatus": "甘いハニーモードで待機中",
+      "typingAria": "花豚が返事を書いています",
+      "quickAria": "おすすめの質問",
+      "placeholder": "花豚さん〜 なんでも聞いてね ✨",
+      "sendAria": "花豚に質問を送る",
+      "albumOpen": "解放",
+      "counterAria": "ハニードロップ{count}個、鑑定の特典を見る",
+      "honeyLabel": "ハニードロップ",
+      "albumAriaUnlocked": "月あかりタロットアルバムを見る",
+      "albumAriaLocked": "月あかりタロットアルバムを開く、ハニードロップ{progress}/10",
+      "albumText": "月あかりアルバム",
+      "honeyModeClose": "ハニーモードを閉じる",
+      "honeyModeOpen": "ハニーモードを開く",
+      "albumTitleUnlocked": "月あかりタロットアルバムが、お客さまのそばで開いています。",
+      "albumTitleLocked": "ハニードロップ10個で、ヨニの秘密のカード帳が開きます。",
+      "albumDescUnlocked": "解放済み · ハニードロップが0個でも、いつでも78枚のカードを楽しめます。",
+      "albumDescLocked": "保有ハニードロップ{count}個 / 解放に必要10個。運命の茶館で鑑定を終えるたびに、ひとつずつ貯まります。",
+      "albumMeterAria": "月あかりタロットアルバムの進捗 {progress}/10",
+      "albumBtnUnlocked": "アルバムを見る",
+      "albumBtnLocked": "月あかりアルバムをのぞく",
+      "burstUnlocked": "花豚のハニーモードも一緒に開いています。",
+      "burstLocked": "運命の茶館で鑑定が仕上がるたびに、静かに貯まっていく小さなごほうびです。",
+      "countValue": "{count}個"
+    },
+    "tarotAlbum": {
+      "k0iceshy": "月あかりの下で広げた物語が、明日の選択を代わりに決めることはありません。ただ、あなたがすでに知っていた小さな感覚を、もう一度信じられますように。",
+      "k1gzgjee": "ヨニの秘密のカード帳",
+      "k1h4mohy": "月あかりアルバムを開いています",
+      "k1iqbrdw": "タップして開く",
+      "k1yzt0ya": "月あかりタロットカードアルバム",
+      "k2jfbomz": "逆位置",
+      "k2lsrnrw": "標準の並び",
+      "k2tt3wwq": "PDFに入れるカードを先に選んでください。",
+      "k35zodw1": "タロットカードを検索",
+      "k3anflqu": "前へ",
+      "k6jsudop": "ストーリーの解放後にPDFをつくれます。",
+      "k79dstes": "ペンタクル",
+      "k7vazcgq": "運命の茶館_タロットカード_選択.pdf",
+      "k873uvgj": "PDFの生成に失敗しました。少し経ってからもう一度お試しください。",
+      "k8tcg3oe": "カップ",
+      "k9bz0eod": "カードが目を覚ましました。月あかりの下でゆっくりめくってみてください。",
+      "kactydpb": "確認中",
+      "kajyhu4o": "内面の成長",
+      "kampzo9z": "ヨニが奥の引き出しにしまっておいたカードの物語です。タロットカードの意味と解釈を一枚ずつ読み、心に残ったカードはPDFにまとめて保存してみてください。",
+      "kb6dudtb": "月あかりの書架",
+      "kbfum84c": "タロットカードの分類",
+      "kbs8kn5u": "仕事",
+      "kbx1lbox": "ヨニが語るカードの物語",
+      "kby0xnd1": "メジャー先",
+      "kcbceqsz": "選択",
+      "kceymbv8": "カードの並び替え",
+      "kcojnagb": "カード名・キーワード・解釈を検索",
+      "kdhtquzm": "目次",
+      "kdwhxrty": "マイナー先",
+      "kewammtp": "個",
+      "kfe3rgpe": "カード",
+      "kfnkjoro": "ヨニがカードの物語を一枚ずつ編み、今日の心のそばに長く留まるタロット図鑑にまとめました。",
+      "kftcqqfx": "今日あなたに必要なカードは、すでに心の中に残っています。",
+      "kfvqms0a": "次のカードを見る",
+      "khjystua": "現在のハニードロップ",
+      "khux287z": "次へ",
+      "kibbunuu": "月あかりの下では、まだ合うカードが見つかりませんでした。名前やキーワードを少し変えて呼んでみてください。",
+      "kihtwum1": "運命の茶館_月あかりタロットアルバム_全体.pdf",
+      "kiixx8vi": "すべて開く",
+      "kjcpkfd5": "自分に投げかける問い",
+      "kjvmkajp": "枚 PDF",
+      "kk03sxsx": "すべて",
+      "kkoogge5": "お金",
+      "kkr3uulf": "CODE DESTINY · 運命の茶館",
+      "kl0nq8gl": "名前・キーワードで検索",
+      "klirlgb2": "ハニードロップ10個でアルバムを開く",
+      "km05ijjs": "ヨニからのメッセージ",
+      "kmlqylfg": "カード詳細を閉じる",
+      "kmzmv9si": "全体PDFをダウンロード",
+      "kmzwjems": "月あかりタロットアルバムを閉じる",
+      "knbpabsn": "わあ… ハニードロップが10個も貯まったんですね？ では、大事にとっておいた月あかりタロットアルバムをそっと開いてさしあげます。",
+      "knnv85fh": "大アルカナ",
+      "ko4yt45j": "愛",
+      "ko8qlqfx": "正位置",
+      "kodlrapd": "このカード帳は、これからお客さまのそばで開いています。心が揺れるたび、月あかりの下でゆっくりめくってみてください。",
+      "koq4dt2a": "月あかりの下で、あなたのタロットアルバムを準備しています。",
+      "kp7ramna": "逆位置の意味",
+      "kph0fvpr": "ソード",
+      "kpqljmoc": "名前順",
+      "kpuzku7s": "作成日",
+      "kq8n5rri": "アルバム解放",
+      "kqcshbql": "少し経ってからもう一度ご確認ください。",
+      "kqejmfjk": "カードの画像を一枚ずつ読み込んでいます。",
+      "kqjhespg": "78の物語が待っています",
+      "kqjimwmt": "運命の茶館",
+      "kqnfouen": "すべて閉じる",
+      "kqvrsm7l": "正位置の意味",
+      "kr7i3yto": "ワンド",
+      "krvhfnlu": "まだ月あかりの中で眠るカード",
+      "kskfjn2j": "枚",
+      "ksnvhf6c": "次のカード",
+      "ksoa9rli": "1枚 PDF",
+      "ksp1zhrt": "運命の茶館で鑑定を受けると、ハニードロップが貯まります。",
+      "ktz26j2g": "解放したカード",
+      "kuqqlnlp": "ヨニがカードの物語を一枚ずつ編んでいます。",
+      "kv2kg2cx": "前のカードを見る",
+      "kvgpq4qo": "選択カードのPDF",
+      "kw9ktd7m": "PDFのダウンロードが完了しました。",
+      "kwqkjwzw": "関係",
+      "kwuaodmd": "カードを開いてみてください。一枚一枚にヨニの物語が、お客さまを待っています。ハニードロップを10個集めると、78枚のタロット図鑑が月あかりの下に広がります。",
+      "kwxkbj5k": "78枚のカードが、月あかりの茶館の図鑑のように静かに広がります。",
+      "kx5gbrnz": "PDFを生成しています。少しお待ちください。",
+      "kxhy61lm": "解放に必要",
+      "kxj8ah4r": "保有ハニードロップ",
+      "kxjbdi0j": "前のカード",
+      "kyikujnc": "ストーリーがロックされています。月あかりがもう少し満ちれば、カード帳が開きます。",
+      "kyny7lmn": "ハニードロップがもう少し必要です",
+      "pdfFileNameSingle": "運命の茶館_タロットカード_{name}.pdf",
+      "selectedPdfLabel": "選択{count}枚 PDF",
+      "cardShelfToggleAria": "{title} を月あかりの書架に{action}",
+      "cardShelfRemove": "戻す",
+      "cardShelfAdd": "置く",
+      "cardCoverAria": "{title} のカードをもう一度伏せる",
+      "cardRevealAria": "{title} のカードをめくって表を見る",
+      "cardDetailAria": "{title} {titleEn} のカードを詳しく見る",
+      "cardImageAlt": "{title} {titleEn} タロットカード",
+      "honeyCountText": "{count}個",
+      "cardZoomAlt": "{title} {titleEn} タロットカードの拡大表示",
+      "cardPositionAria": "カード {index}枚目、全 {total}枚",
+      "cardSinglePdfAria": "{title} を1枚のPDFでダウンロード"
     }
   }
 }

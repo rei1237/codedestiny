@@ -43,12 +43,23 @@ test("화면이 자체 이탈 수단을 갖는다", () => {
   assert.ok(client.includes("UI_TEXT.exit"));
 });
 
-test("결제 전 첫 화면이 고스트 바디그래프를 그린다", () => {
+test("출생 정보 입력 전 첫 화면이 고스트 바디그래프를 그린다", () => {
   const client = read("app/human-design/HumanDesignClient.tsx");
 
-  // 🔴 chart={null} 이어야 한다. 남의 샘플 차트를 채우면 결제 전 화면이 "남의 결과"가 된다.
+  // 🔴 chart={null} 이어야 한다. 남의 샘플 차트를 채우면 "남의 결과"를 내 결과처럼 보이게 한다.
+  //    (2026-09 무료화 전에는 이 화면이 '결제 전' 화면이었다. 이제는 '입력 전' 화면이다.)
   assert.ok(client.includes("<BodyGraph chart={null}"));
   assert.ok(client.includes("styles.heroGraph"));
+});
+
+test("차트 화면에 결제가 걸려 있지 않다", () => {
+  const client = read("app/human-design/HumanDesignClient.tsx");
+
+  // 🔴 과금 지점은 프리미엄 리포트로 옮겼다. 차트 화면에 결제 게이트를 되살리지 말 것.
+  //    호출 형태(괄호 포함)로 본다 — 파일 상단 주석이 두 이름을 "되살리지 말 것" 으로
+  //    언급하므로 이름만 찾으면 그 주석이 오탐으로 걸린다.
+  assert.ok(!client.includes("ensurePaidAccess("), "차트 화면에 결제 게이트 호출이 살아 있다");
+  assert.ok(!client.includes("useCoinGate("), "차트 화면이 결제 훅을 쓴다");
 });
 
 test("요구된 10단계 섹션 앵커가 모두 있다", () => {

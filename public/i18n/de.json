@@ -1229,7 +1229,7 @@
       "neoLogoAlt": "Neo-Modus-Logo"
     },
     "hero2": {
-      "title": "Kostenlose Vier-Säulen-Lesung – wer du in diesem Moment bist",
+      "title": "Von den kostenlosen Vier Säulen bis Zi Wei Dou Shu und Astrologie – wer du in diesem Moment bist",
       "lead": "Östliche und westliche Weisheit trifft Experten-Einsicht, um deine Geschichte zu deuten.",
       "primaryCta": "✦ Tagesorakel gratis ansehen",
       "journeyCta": "✦ Deine Schicksalsreise beginnen"
@@ -6450,7 +6450,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Der Weg der Sternen-Deutung",
-        "kbm4p3d": "Wir stellen die acht Zeichen nach Regeln auf, die ein Praktiker mit zehn Jahren Myeongni-Erfahrung festgelegt hat, und lesen die Stärke des Tagesherrn, den nützlichen Gott und den Lauf der Glückssäulen.",
+        "kbm4p3d": "Vier Säulen, Tarot, Zi Wei Dou Shu, Sukuyo, vedische und westliche Astrologie, bis hin zum Gesichtslesen – jedes nach den Maßstäben seiner eigenen Tradition gelesen.",
         "kdvbi0h": {
           "ariaLabel": "Key service highlights"
         }
@@ -6668,7 +6668,8 @@
         "k1tna4h3": "Expertenberatung",
         "n300006": "Expertenberatung · 30.000 ₩",
         "n300007": "Experten-Namensgebung · 30.000 ₩",
-        "krpmzd9": "NEW · Human Design"
+        "krpmzd9": "NEW · Human Design",
+        "khdfree1": "Kostenlos verfügbar"
       }
     },
     "tarotTileBody": {
@@ -11782,6 +11783,343 @@
       "strengthTitle": "The strength that comes alive when the two charts meet",
       "cautionEyebrow": "Where to tune",
       "cautionTitle": "What to look at first when the two charts collide"
+    },
+    "sajuResult": {
+      "calendar": {
+        "lunar": "Lunar calendar",
+        "solar": "Solar calendar",
+        "unknown": "Calendar not given"
+      },
+      "timeUnknown": "Birth time unknown",
+      "eyebrow": "The moonlit chart Yeoni laid out",
+      "title": "Today's underlying flow, lit by the Four Pillars",
+      "emptyLead": "There isn't enough birth information, so the detailed Four Pillars flow stays folded today. Yeoni will calmly read only what is visible and the grain of the worry you just wrote.",
+      "lead": "Under the tea house's quiet light, Yeoni poured out a cup of your Four Pillars.",
+      "yeoniAlt": "Yeoni in human form, unfolding the Four Pillars result sheet",
+      "lockedEyebrow": "The moonlit chart, folded for now",
+      "lockedTitle": "No birth information",
+      "tarotContinue": "Continue with tarot instead",
+      "editBirth": "Enter birth details again",
+      "summaryAria": "A cup of your Four Pillars",
+      "guestFallback": "our guest",
+      "summaryHeading": "A cup of {name}'s Four Pillars",
+      "birthDateLabel": "Date of birth",
+      "birthDateEmpty": "Not entered",
+      "birthTimeLabel": "Time of birth",
+      "calendarFieldLabel": "Calendar used",
+      "dayMasterLabel": "Day Master",
+      "folded": "Quietly folded",
+      "elementsLabel": "Leading element",
+      "elementsEmpty": "Checking slowly",
+      "tenGodFieldLabel": "Today's Ten God",
+      "birthPlaceLabel": "Place of birth",
+      "birthPlaceEmpty": "Not selected",
+      "timezoneLabel": "Time zone",
+      "gaugeEyebrow": "The Four Pillars flow of {cup}",
+      "gaugeTitle": "Gauges by cup",
+      "tenGodEyebrow": "Today's guest, invited by the Four Pillars",
+      "tenGodTitle": "The Ten God that walked into the tea house today",
+      "tenGodEmpty": "No Ten God guest came into focus today. Yeoni will not dress up a flow she cannot see — only the grain that is showing gets read.",
+      "readingEyebrow": "Yeoni's reading, in human form",
+      "readingTitle": "The underlying Four Pillars flow as Yeoni read it",
+      "deepEyebrow": "Your reading is complete",
+      "deepTitle": "Today's Four Pillars reading sheet",
+      "adviceLabel": "One-line advice",
+      "cautionEyebrow": "Energy to watch",
+      "cautionTitle": "The grain worth looking at a little more slowly",
+      "actionEyebrow": "Today's prescription",
+      "actionTitle": "The one step the Four Pillars suggest",
+      "tarotReadyEyebrow": "Ready to meet the tarot",
+      "tarotReadyTitle": "It's the next symbol's turn to surface over the cup",
+      "tarotOpen": "Spread the tarot cards"
+    },
+    "sukuyoResult": {
+      "calendar": {
+        "lunar": "Lunar calendar",
+        "solar": "Solar calendar",
+        "unknown": "Calendar not given"
+      },
+      "gender": {
+        "female": "Female",
+        "male": "Male",
+        "unknown": "Gender not given"
+      },
+      "score": {
+        "destiny": "Sense of bond",
+        "harmony": "Harmony",
+        "emotion": "Emotion",
+        "growth": "Growth",
+        "stability": "Staying power"
+      },
+      "card": {
+        "sukuyoEmpty": "Natal mansion not read yet",
+        "birthDateLabel": "Date of birth",
+        "birthDateEmpty": "Not entered",
+        "calendarLabel": "Calendar used",
+        "genderLabel": "Gender",
+        "energyLabel": "Energy of the mansion",
+        "energyEmpty": "Quietly folded"
+      },
+      "eyebrow": "The room of moonlit compatibility",
+      "emptyTitle": "The flow of your bond across the 27 mansions is still folded",
+      "emptySummary": "Once both birth dates and their calendars are set down, Yeoni will quietly unfold the distance across the 27 mansions.",
+      "headerAlt": "The flow of a bond across the 27 mansions",
+      "mineLabel": "My natal mansion",
+      "partnerLabel": "Their natal mansion",
+      "relationEyebrow": "Type of bond",
+      "relationEmpty": "A bond",
+      "relationDescEmpty": "We look quietly at what kind of bond this is.",
+      "distanceEyebrow": "Sukuyo distance",
+      "distanceEmpty": "Same mansion",
+      "directionEmpty": "Both moonlights face each other from the same place.",
+      "tempEyebrow": "Compatibility warmth",
+      "tempChecking": "Checking",
+      "focusEmpty": "the flow of the relationship",
+      "focusSentence": "Read with {focus} at the centre.",
+      "directionalEyebrow": "The bond in each direction",
+      "forwardEmpty": "Forward",
+      "backwardEmpty": "Retrograde",
+      "towardEmpty": "We look at the direction that moves toward.",
+      "returnEmpty": "We look at the direction that comes back.",
+      "elementEyebrow": "Five Elements harmony",
+      "elementMine": "Me",
+      "elementPartner": "Them",
+      "elementRelation": "Complementary",
+      "scoreEyebrow": "Base Sukuyo score",
+      "scoreSuffix": " pts",
+      "strengthEyebrow": "The grain of attraction",
+      "strengthTitle": "The strength that comes alive between you",
+      "cautionEyebrow": "The grain to handle gently",
+      "cautionTitle": "What to look at first when the moonlight wavers",
+      "roleEyebrow": "Today's prescription for the bond",
+      "roleTitle": "The manner you can offer each other"
+    },
+    "honeyReward": {
+      "answers": {
+        "0": {
+          "keywords": {
+            "0": "boyfriend",
+            "1": "dating",
+            "2": "romance",
+            "3": "seeing someone"
+          },
+          "answer": "Oink~ I do! A white lion named Neo. He used to read fortunes, then told me he'd keep me in honey for life, quit his job out of nowhere, and now he's building something like mad 🦁 I'm cheering for him, but I have no idea when the honey starts~ oink 💛"
+        },
+        "1": {
+          "keywords": {
+            "0": "ex",
+            "1": "break up",
+            "2": "breakup",
+            "3": "ex-boyfriend"
+          },
+          "answer": "Not an ex — very much present tense! Neo says he's building code-destiny.com for me~ I don't really get what it is, but watching him work that hard is kind of cute 🐾 oink~"
+        },
+        "2": {
+          "keywords": {
+            "0": "favorite food",
+            "1": "favourite food",
+            "2": "what do you like",
+            "3": "food"
+          },
+          "answer": "Honey, obviously! 🍯 I am deep in my honey era. Honey cake, honey latte, honey tteokbokki… if it has honey, it wins. Oink — that's why my name is Honey Pig Fortune~"
+        },
+        "3": {
+          "keywords": {
+            "0": "dream",
+            "1": "want to be",
+            "2": "goal"
+          },
+          "answer": "To keep being the flower pig who tells your destiny! 🌸 Handing out sweet readings so people can face the day a little braver~ And growing code-destiny.com big together with Neo 💪 oink!"
+        },
+        "4": {
+          "keywords": {
+            "0": "hobby",
+            "1": "free time"
+          },
+          "answer": "Me~ I love flower-watching under the moon 🌙 and listening to Yeoni sing! I flip through fortune cards sometimes too. Oink — lately I've been studying the Sukuyo readings Neo built 📚"
+        },
+        "5": {
+          "keywords": {
+            "0": "how old",
+            "1": "age",
+            "2": "birthday"
+          },
+          "answer": "Flower pigs don't age~ 🌸 Like a flower, I'm always in spring! Oink. The day the blossoms open is my birthday. Every spring, so it comes around a lot 😆"
+        },
+        "6": {
+          "keywords": {
+            "0": "yeoni",
+            "1": "sister"
+          },
+          "answer": "Yeoni~? She's my soulmate! 💜 She's so warm and tender. I'm the plucky one, she's the gentle one~ Together we read fortunes for everyone at code-destiny.com. Oink — best partner ever~"
+        },
+        "7": {
+          "keywords": {
+            "0": "neo",
+            "1": "white lion",
+            "2": "who made this"
+          },
+          "answer": "Neo~ 🦁 He was a famous fortune reader, then told me he'd take care of me for life and suddenly became a developer. Oink. I was baffled at first… but now I'm rooting for him! Hoping code-destiny.com does well 💛"
+        },
+        "8": {
+          "keywords": {
+            "0": "fortune",
+            "1": "my reading",
+            "2": "horoscope"
+          },
+          "answer": "Oink~ for a proper reading, come to code-destiny.com! 🔮 Here I can only do cute chatter — the real Four Pillars and star charts, Yeoni and I will read together back home 💜"
+        },
+        "9": {
+          "keywords": {
+            "0": "scared",
+            "1": "worried",
+            "2": "having a hard time",
+            "3": "sad"
+          },
+          "answer": "Are you okay? 🌸 This flower pig will stay right here! Oink. On hard days, have something sweet~ then check today's reading at code-destiny.com. Something good is waiting, I'm sure 💛"
+        }
+      },
+      "defaultAnswer": "Oink~ I'm not sure about that one 😅 But whatever you're wondering, a reading at code-destiny.com can look into it! Yeoni will explain it well 💜",
+      "quickQuestions": {
+        "0": "Hey flower pig~ got a boyfriend? 💛",
+        "1": "What's your favorite food? 🍯",
+        "2": "What's Neo like?",
+        "3": "How do you get on with Yeoni?",
+        "4": "What's your dream? 🌸",
+        "5": "How's my fortune today?",
+        "6": "What's your hobby?",
+        "7": "How old are you? 🐷"
+      },
+      "greeting": "Honey mode is open. Ask the flower pig anything you're curious about. Oink~",
+      "qnaAria": "Flower pig honey mode chat",
+      "qnaBadge": "✦ 10 honey drops reached · ask the flower pig",
+      "meterAria": "10 of 10 honey drops collected",
+      "pigName": "Flower Pig",
+      "pigStatus": "Waiting in sweet honey mode",
+      "typingAria": "The flower pig is typing",
+      "quickAria": "Suggested questions",
+      "placeholder": "Ask the flower pig anything ✨",
+      "sendAria": "Send your question to the flower pig",
+      "albumOpen": "Open",
+      "counterAria": "{count} honey drops — see reading perks",
+      "honeyLabel": "Honey drops",
+      "albumAriaUnlocked": "View the moonlight tarot album",
+      "albumAriaLocked": "Unlock the moonlight tarot album, {progress}/10 honey drops",
+      "albumText": "Moonlight album",
+      "honeyModeClose": "Close honey mode",
+      "honeyModeOpen": "Open honey mode",
+      "albumTitleUnlocked": "The moonlight tarot album is open beside you.",
+      "albumTitleLocked": "Ten honey drops open Yeoni's secret card book.",
+      "albumDescUnlocked": "Unlocked · even at zero honey drops, all 78 cards stay open to you.",
+      "albumDescLocked": "{count} honey drops held / 10 needed. Each finished reading at The Destiny Tea House adds one.",
+      "albumMeterAria": "Moonlight tarot album progress {progress}/10",
+      "albumBtnUnlocked": "Browse the album",
+      "albumBtnLocked": "Peek at the moonlight album",
+      "burstUnlocked": "The flower pig's honey mode is open too.",
+      "burstLocked": "A small reward that quietly gathers each time a reading is completed at The Destiny Tea House.",
+      "countValue": "{count}"
+    },
+    "tarotAlbum": {
+      "k0iceshy": "The story spread under the moonlight will not decide tomorrow's choice for you — I only hope it helps you trust again the small sense you already had.",
+      "k1gzgjee": "Yeoni's secret card book",
+      "k1h4mohy": "Opening the moonlight album",
+      "k1iqbrdw": "Tap to open",
+      "k1yzt0ya": "Moonlight tarot card album",
+      "k2jfbomz": "Reversed",
+      "k2lsrnrw": "Default order",
+      "k2tt3wwq": "Pick the cards for the PDF first.",
+      "k35zodw1": "Search tarot cards",
+      "k3anflqu": "Previous",
+      "k6jsudop": "The PDF becomes available once the story unlocks.",
+      "k79dstes": "Pentacles",
+      "k7vazcgq": "DestinyTeaHouse_TarotCards_Selected.pdf",
+      "k873uvgj": "The PDF failed to build. Please try again in a moment.",
+      "k8tcg3oe": "Cups",
+      "k9bz0eod": "The cards have woken. Turn them slowly under the moonlight now.",
+      "kactydpb": "Checking",
+      "kajyhu4o": "Inner growth",
+      "kampzo9z": "These are the card stories Yeoni kept in her deepest drawer. Read the meaning and interpretation of each card, and bind the ones that stay with you into a PDF.",
+      "kb6dudtb": "Moonlight shelf",
+      "kbfum84c": "Tarot card categories",
+      "kbs8kn5u": "Work",
+      "kbx1lbox": "The card story Yeoni tells",
+      "kby0xnd1": "Major first",
+      "kcbceqsz": "Selected",
+      "kceymbv8": "Sort cards",
+      "kcojnagb": "Search card names, keywords, interpretations",
+      "kdhtquzm": "Contents",
+      "kdwhxrty": "Minor first",
+      "kewammtp": " drops",
+      "kfe3rgpe": "Cards",
+      "kfnkjoro": "Yeoni wove the card stories one page at a time, binding them into a tarot compendium that stays beside your heart today.",
+      "kftcqqfx": "The card you need today is already there in your heart.",
+      "kfvqms0a": "See the next card",
+      "khjystua": "Honey drops now",
+      "khux287z": "Next",
+      "kibbunuu": "No matching card surfaced under the moonlight yet. Try calling it by a slightly different name or keyword.",
+      "kihtwum1": "DestinyTeaHouse_MoonlightTarotAlbum_All.pdf",
+      "kiixx8vi": "Open all",
+      "kjcpkfd5": "A question to ask yourself",
+      "kjvmkajp": "-card PDF",
+      "kk03sxsx": "All",
+      "kkoogge5": "Money",
+      "kkr3uulf": "CODE DESTINY · The Destiny Tea House",
+      "kl0nq8gl": "Search names and keywords",
+      "klirlgb2": "Open the album with 10 honey drops",
+      "km05ijjs": "A message from Yeoni",
+      "kmlqylfg": "Close card detail",
+      "kmzmv9si": "Download the full PDF",
+      "kmzwjems": "Close the moonlight tarot album",
+      "knbpabsn": "Oh… ten honey drops already? Then let me crack open the moonlight tarot album I've been saving.",
+      "knnv85fh": "Major Arcana",
+      "ko4yt45j": "Love",
+      "ko8qlqfx": "Upright",
+      "kodlrapd": "This card book is open beside you now. Whenever your heart wavers, turn its pages slowly under the moonlight.",
+      "koq4dt2a": "Preparing your tarot album under the moonlight.",
+      "kp7ramna": "Reversed meaning",
+      "kph0fvpr": "Swords",
+      "kpqljmoc": "By name",
+      "kpuzku7s": "Created",
+      "kq8n5rri": "Album unlocked",
+      "kqcshbql": "Please check again in a moment.",
+      "kqejmfjk": "Loading the card images one by one.",
+      "kqjhespg": "78 stories are waiting",
+      "kqjimwmt": "The Destiny Tea House",
+      "kqnfouen": "Close all",
+      "kqvrsm7l": "Upright meaning",
+      "kr7i3yto": "Wands",
+      "krvhfnlu": "Cards still asleep in the moonlight",
+      "kskfjn2j": " cards",
+      "ksnvhf6c": "Next card",
+      "ksoa9rli": "1-card PDF",
+      "ksp1zhrt": "Finish a reading at The Destiny Tea House to collect honey drops.",
+      "ktz26j2g": "Unlocked cards",
+      "kuqqlnlp": "Yeoni is weaving the card stories one page at a time.",
+      "kv2kg2cx": "See the previous card",
+      "kvgpq4qo": "Selected cards PDF",
+      "kw9ktd7m": "The PDF download is complete.",
+      "kwqkjwzw": "Relationships",
+      "kwuaodmd": "Open the cards. Yeoni's story waits in each one. Collect ten honey drops and a 78-card tarot compendium unfolds under the moonlight.",
+      "kwxkbj5k": "All 78 cards unfold quietly, like a compendium in a moonlit tea house.",
+      "kx5gbrnz": "Building the PDF. One moment please.",
+      "kxhy61lm": "Needed to unlock",
+      "kxj8ah4r": "Honey drops held",
+      "kxjbdi0j": "Previous card",
+      "kyikujnc": "The story is still locked. Once the moonlight rises a little more, the card book will open.",
+      "kyny7lmn": "A few more honey drops needed",
+      "pdfFileNameSingle": "DestinyTeaHouse_TarotCard_{name}.pdf",
+      "selectedPdfLabel": "{count}-card PDF",
+      "cardShelfToggleAria": "{action} {title} on the moonlight shelf",
+      "cardShelfRemove": "remove",
+      "cardShelfAdd": "place",
+      "cardCoverAria": "Turn {title} face down again",
+      "cardRevealAria": "Turn {title} face up",
+      "cardDetailAria": "View {title} {titleEn} in detail",
+      "cardImageAlt": "The {title} {titleEn} tarot card",
+      "honeyCountText": "{count}",
+      "cardZoomAlt": "A large view of the {title} {titleEn} tarot card",
+      "cardPositionAria": "Card {index} of {total}",
+      "cardSinglePdfAria": "Download {title} as a one-card PDF"
     }
   }
 }
