@@ -34,7 +34,7 @@ async function markPayment(paymentId, set) {
 }
 
 /**
- * @returns {Promise<{ok:boolean, scanned:number, settled:number, syncedCancelled:number, syncedFailed:number, expired:number, untouched:number, skipped:number, failed:number, abortedReason?:string}>}
+ * @returns {Promise<{ok:boolean, scanned:number, settled:number, syncedCancelled:number, syncedFailed:number, expired:number, untouched:number, skipped:number, failed:number, claimErrors:number, abortedReason?:string, remaining?:number, deferredExpire?:number, credentialSuspect?:boolean}>}
  */
 export async function reconcilePendingPayments(env, options = {}) {
   const limit = clampInt(options.limit ?? env?.PAYMENT_RECONCILE_LIMIT, 50, 1, 300);
@@ -45,6 +45,23 @@ export async function reconcilePendingPayments(env, options = {}) {
     options.expireUnknownAfterHours ?? env?.PAYMENT_RECONCILE_EXPIRE_UNKNOWN_HOURS,
     24, 1, 720,
   ) * 60 * 60 * 1000;
+  // 🔴 한 틱의 벽시계 상한. 후보 1건당 PortOne 조회 1회(기본 8000ms, worker/lib/portone.js:24)를
+  // 직렬로 돌기 때문에 limit 만으로는 한 틱의 길이가 안 묶인다 — limit=50 이면 산술상 400초다.
+  // 그동안 Mongo in-flight 슬롯을 계속 잡고 있고, 같은 10분 틱의 runPaymentsV2Reconcile 과
+  // 슬롯을 나눠 쓴다. 남은 후보는 다음 틱이 다시 만난다(worker/payments/reconcile.js:13-14 의
+  // "한 번씩만 시도한다" 설계 그대로다).
+  //
+  // 🔴 clamp 상한 120000 은 근거가 있는 값이다 — RECLAIM_AFTER_MS(5분, :24)보다 확실히 작아야
+  // 한 실행이 자기 클레임을 다음 틱에 재탈취당하지 않는다. 기본값 25000 은 그와 달리 운영 선택
+  // (10분 주기의 5% 안에서 끝낸다)이며 플랫폼 상한 실측에서 나온 값이 아니다.
+  // 🔴 Cloudflare scheduled 핸들러의 실제 벽시계·CPU 상한은 이 레포에 근거가 없어 인용하지 않는다.
+  //
+  // 🔴 값을 [vars] 에 넣지 않는다. 코드 기본값과 toml 두 곳으로 갈라지면 한쪽만 고쳐 조용히
+  // 무효가 되는 함정이 하나 더 생긴다(2026-08-12 `283afff11` 사고와 같은 모양).
+  const timeBudgetMs = clampInt(
+    options.timeBudgetMs ?? env?.PAYMENT_RECONCILE_TIME_BUDGET_MS,
+    25000, 5000, 120000,
+  );
 
   const summary = {
     ok: true, scanned: 0, settled: 0, syncedCancelled: 0, syncedFailed: 0,
@@ -80,7 +97,27 @@ export async function reconcilePendingPayments(env, options = {}) {
   // 같은 사유가 수십 줄 찍히지 않도록 사유별 1회만 로그한다.
   const loggedLookupErrors = new Set();
 
+  // 🔴 예산 기준점은 `now`(후보 나이 계산용)가 아니라 루프 시작 시각이다. 위 Payment.find 는
+  // withMongoRetry 안에 있어 시도 상한 8000ms × 재시도 1회 + admission 대기가 붙을 수 있고,
+  // 그 지연을 예산에서 빼면 콜드 아이솔레이트에서 "한 건도 처리하지 않고 정상 종료"하는 틱이
+  // 나온다. 예산은 후보를 처리하는 데 쓰는 시간에만 걸어야 한다.
+  const loopStartedAt = Date.now();
+  let processed = 0;
   for (const candidate of candidates) {
+    // 🔴 예산 확인은 클레임 **앞**이다. 클레임은 metadata.reconcile.attempts 를 올리므로,
+    // 잡아 놓고 처리하지 못하면 손대지도 않은 주문이 maxAttempts 에 먼저 닿아 재조정 대상에서
+    // 조용히 빠진다.
+    if (Date.now() - loopStartedAt >= timeBudgetMs) {
+      summary.abortedReason = "time_budget";
+      summary.remaining = candidates.length - processed;
+      // 🔴 건너뛴 건수를 반드시 남긴다. 조용한 절단은 요약에서 "다 처리했다"로 읽힌다.
+      console.warn(
+        `[CRON] payment reconcile: 시간 예산 ${timeBudgetMs}ms 소진 — ${summary.remaining}건을 다음 틱으로 넘긴다.`,
+      );
+      break;
+    }
+    processed += 1;
+
     // 동시 실행/연속 실행이 같은 주문을 중복 처리하지 않도록 클레임한다(runWebhookReconcileTask 와 같은 관용구).
     // 🔴 클레임 '실패'(Mongo 오류)와 '경합'(다른 실행이 이미 잡음)을 구분한다. 예전에는 둘 다 조용히
     // skipped 로 셌는데, Atlas idle 연결 회수로 콜드 isolate 의 첫 쓰기가 자주 타임아웃 나는 이 환경에서는
@@ -208,6 +245,10 @@ export async function reconcilePendingPayments(env, options = {}) {
     summary.untouched += 1;
   }
 
+  // 절단 여부와 무관하게 실제로 대조한 건수를 남긴다. scanned 는 후보 수라 절단이 나면
+  // "다 봤다"로 읽힌다(관리자 주문 화면이 scanned 만 렌더한다).
+  summary.processed = processed;
+
   // 미뤄 둔 만료 처리. 자격증명이 살아 있다는 게 이번 실행에서 확인됐을 때만 실행한다.
   // 확인이 안 됐으면 아무것도 덮어쓰지 않고 다음 틱으로 넘긴다 — 시크릿이 죽은 상태에서
   // 만료 처리를 하면 멀쩡한 주문을 전부 실패로 만든다.
@@ -226,7 +267,12 @@ export async function reconcilePendingPayments(env, options = {}) {
     } else {
       summary.deferredExpire = pendingExpire.length;
       summary.credentialSuspect = true;
-      console.error(`[CRON] payment reconcile: PortOne 조회가 한 건도 성공하지 않았다 — 자격증명 점검 필요. 만료 처리 ${pendingExpire.length}건을 보류한다.`);
+      // 🔴 절단된 실행이면 "조회 성공 0" 은 자격증명이 아니라 표본 부족일 수 있다. 그 구분을
+      // 로그에 남기지 않으면 운영자를 PortOne 시크릿 회전으로 잘못 보낸다.
+      const abortNote = summary.abortedReason
+        ? ` (이번 실행은 ${summary.abortedReason} 로 ${processed}건만 대조했다 — 자격증명보다 표본 부족을 먼저 의심할 것)`
+        : "";
+      console.error(`[CRON] payment reconcile: PortOne 조회가 한 건도 성공하지 않았다 — 자격증명 점검 필요. 만료 처리 ${pendingExpire.length}건을 보류한다.${abortNote}`);
     }
   }
 
