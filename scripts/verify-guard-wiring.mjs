@@ -55,6 +55,7 @@ const UNWIRED_BY_DESIGN = [
   ["verify:fortune-chat-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:guardian-fortune-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:human-design-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
+  ["verify:human-design-report-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:point-history-feature-lookup-index", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:admin-audit-log-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
   ["verify:mongo-launch-indexes", "실 DB 인덱스 점검 — MONGO_URI 필요"],
