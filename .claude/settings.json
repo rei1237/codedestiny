@@ -100,6 +100,18 @@
     "bgIsolation": "worktree"
   },
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-context-budget.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking session context budget"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|PowerShell",
@@ -109,6 +121,17 @@
             "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-costly-commands.mjs\"",
             "timeout": 5,
             "statusMessage": "Checking for billed/production commands"
+          }
+        ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-image-read.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking image context cost"
           }
         ]
       }

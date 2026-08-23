@@ -66,6 +66,7 @@
 | `regression-scout` | 주력(inherit) | 공유 모듈·훅·분기를 고치기 전에 영향 경로 전수 추적 (원칙 7) |
 | `deletion-auditor` | 주력(inherit) | 심볼·파일 삭제/리네임 전 3면 grep (원칙 9) |
 | `paid-gate-auditor` | 주력(inherit) | 결제·이용권·게이팅 변경의 정책 정합성 확인 |
+| `visual-checker` | 주력(inherit) | 스크린샷·렌더 이미지 판정. 🔴 이미지를 메인 세션에서 직접 Read 하지 말 것 (아래 레포 함정) |
 
 🔴 아래 3개를 Haiku 로 내리지 않는다 — 전부 **판정**이 결과물이라 원칙 8·9와 충돌한다(2026-08-14 에 "리뷰 Haiku 고정" 룰이 폐기된 이유). 싸게 돌릴 수 있는 건 `code-locator` 한 곳뿐이다.
 
@@ -78,6 +79,7 @@
 - **홈 `/` 은 정적 셸 `index.html` 의 승격본이다** — 홈 콘텐츠·메타는 `app/page.js` 가 아니라 정적 셸에 둔다. `public/**/index.html` 은 `sync:public` 이 만드는 미러이므로 직접 패치하지 않는다.
 - **`veda/` 와 `models/` 는 존재하지 않는다.** 실체는 `lib/vedicSwissChart.js`·`lib/vedicCalculator.js`·`worker/lib/vedic-*.js`·`worker/lib/nakshatra-*.js`. `tsconfig.json` `exclude` 등에 남은 `veda` 는 잔재이니 근거로 삼지 말 것.
 - **죽은 코드는 격리하지 말고 지운다** — 격리 디렉터리는 빌드에서만 빠지고 grep·AI 읽기에는 그대로 노출돼 다음 세션이 복제한다. 안전망은 git 히스토리다(복구: [docs/cleanup-2026-08/06-deleted.md](docs/cleanup-2026-08/06-deleted.md)).
+- 🔴 **스크린샷 1장이 세션 전체를 태운다** — 이미지 토큰은 파일 크기가 아니라 **치수**로 정해지고(`가로×세로/750`), 한 번 컨텍스트에 들어오면 **그 세션의 모든 후속 요청에서 다시 지불된다.** 실측 2026-08-24: 전체페이지 샷 `1440x15019` = 약 **28,800 토큰**이고, 세션들의 Read 총량 45.5MB 중 **스크린샷이 71%**(132회)였다 — 텍스트 파일 2,538회를 합친 것의 2.5배다. 판정만 필요하면 `visual-checker` 로 보내고, 직접 봐야 하면 `node scripts/shrink-shot.mjs <파일> [--crop L,T,W,H]` 로 줄여서 본다(전체페이지 기준 90% 절감). 훅 `guard-image-read.mjs` 가 비싼 Read 를 잡는다.
 
 ## 결제 게이팅 — 절대 순서
 
