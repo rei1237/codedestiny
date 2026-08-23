@@ -70,6 +70,8 @@ const CHROMELESS_ROUTES = [
   "/today",
   // 리뷰 목록·작성 화면. 자체 sticky 상단바(홈 링크 포함)를 쓴다.
   "/reviews",
+  // 휴먼 디자인 바디그래프 — 자체 상단 컨트롤로 화면 전체를 몰입형으로 쓴다.
+  "/human-design",
 ];
 
 const FEATURE_NAV_EXTRA_ROUTES = [
@@ -98,6 +100,8 @@ const FEATURE_NAV_SELF_MANAGED_ROUTES = [
   "/feedback",
   "/today",
   "/reviews",
+  // 자체 상단 컨트롤을 갖는다 — 공용 플로팅 나브가 겹치면 차트 위를 덮는다.
+  "/human-design",
 ];
 
 const LOCALE_CODES = ["ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms"] as const;

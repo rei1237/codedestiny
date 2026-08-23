@@ -319,8 +319,8 @@
       "tarotSelfEsteemDesc": "5カードの心中心リーディング",
       "tarotReunionTitle": "🌊 再会運灯台タロット",
       "tarotReunionDesc": "残る温もりと安全な距離",
-      "tarotPromptMakerTitle": "💘 タロットプロンプトライブラリ",
-      "tarotPromptMakerDesc": "スプレッド選択・カード展開・リーディング文完成",
+      "tarotPromptMakerTitle": "💘 タロットオラクル相談",
+      "tarotPromptMakerDesc": "スプレッド選択・カードドロー・AIが実際の相談を作成",
       "tarotYearTitle": "🐉 十二支天運タロット",
       "tarotYearDesc": "十二か月の守護運",
       "tarotNumerologyTitle": "🔢 数秘タロット",
@@ -454,9 +454,9 @@
       "tarotReunionAria": "リユニオン ライトハウス タロットを開始",
       "tarotReunionAlt": "再会灯台タロット - 残る温かさと安全な距離",
       "tarotReunionImgAlt": "再会灯台タロット",
-      "tarotPromptMakerAria": "タロット プロンプト ライブラリの開始",
-      "tarotPromptMakerAlt": "タロット プロンプト ライブラリ - スプレッドを選択し、カードを開いて、リーディング テキストを完成させます",
-      "tarotPromptMakerImgAlt": "タロット プロンプト ライブラリ",
+      "tarotPromptMakerAria": "タロットオラクル相談を開始",
+      "tarotPromptMakerAlt": "タロットオラクル相談 - スプレッドを選択し、カードを引いて、AIが実際の相談結果を作成します",
+      "tarotPromptMakerImgAlt": "タロットオラクル相談",
       "tarotYearAria": "干支年タロットを開始",
       "tarotYearAlt": "干支年タロット - 12 か月の守護者の運勢",
       "tarotYearImgAlt": "干支年タロット",
@@ -5323,7 +5323,7 @@
     "se_20594_prop_label": "精密補正",
     "se_20856_prop_label": "大運3年目",
     "se_20857_prop_label": "大限7年目",
-    "se_21084_call_confirm": "大限タイムラインをアンロック\\n\\n20,000円の決済で、人生全体の運命マップを開放しますか？\\n\\n購入後は永続的に閲覧可能です。",
+    "se_21084_call_confirm": "大限タイムラインをアンロック\\n\\n20,000ウォンの決済で、人生全体の運命マップを開放しますか？\\n\\n購入後は永続的に閲覧可能です。",
     "se_21090_attr_title": "紫微斗数10年運ロック",
     "se_21291_prop_label": "四化の直接作用が弱い",
     "se_21890_prop_label": "借星",
@@ -6398,8 +6398,8 @@
         "kwnx8m7": "新年運勢の専門家相談"
       },
       "lifebookTileLabelRow": {
-        "AI30000": "AI相談・30,000円",
-        "n30000": "相談時30,000円"
+        "AI30000": "AI相談・30,000ウォン",
+        "n30000": "相談時30,000ウォン"
       }
     },
     "logoArea": {
@@ -6417,7 +6417,7 @@
     "lovebibleTileCoinGroup": {
       "lovebibleTileCoinBadge": {
         "k11zo0b": "AI相談",
-        "n30000": "30,000円",
+        "n30000": "30,000ウォン",
         "k1tna4h3": "専門家相談"
       }
     },
@@ -6450,7 +6450,10 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "星の光の占いの道",
-        "kbm4p3d": "命理実務10年の者が定めた規則どおりに八字を立て、日干の強弱と用神・大運の流れまで読み解きます。"
+        "kbm4p3d": "命理実務10年の者が定めた規則どおりに八字を立て、日干の強弱と用神・大運の流れまで読み解きます。",
+        "kdvbi0h": {
+          "ariaLabel": "サービスの要点"
+        }
       }
     },
     "premiumVvipCollection": {
@@ -6499,6 +6502,9 @@
         },
         "k10411ib": {
           "ariaLabel": "四柱推命に基づくプレミアム専門家命名を始める"
+        },
+        "k1elk76z": {
+          "ariaLabel": "ヒューマンデザイン — 出生データから計算する自分のエネルギー設計図"
         }
       }
     },
@@ -6620,17 +6626,19 @@
         "kdyem8n": "紫微斗数の専門家相談",
         "k1jaids8": "西洋占星術の専門家相談",
         "kdriwl7": "ヴェーダ占星術の専門家相談",
-        "k1ncgm2q": "命式と五行、音と漢字の意味を編んで専門家が直接名前をつけ、そのプロンプト原文までお渡しします。"
+        "k1ncgm2q": "命式と五行、音と漢字の意味を編んで専門家が直接名前をつけ、そのプロンプト原文までお渡しします。",
+        "kyx3hb8": "ヒューマンデザイン",
+        "k1o6s45i": "あなたを設計したエネルギーの地図。出生時の天体と、88°前のもう一人のあなたを併せて計算し、タイプ・戦略・権威・プロファイルがどこから来たのかまで示します。"
       },
       "tarotTileImgWrap": {
-        "AI30000": "AI相談 · 30,000円",
-        "AI300002": "AI相談 · 30,000円",
-        "AI300003": "AI相談 · 30,000円",
-        "AI300004": "AI相談 · 30,000円",
-        "AI300005": "AI相談 · 30,000円",
-        "AI300006": "AI相談 · 30,000円",
-        "AI300007": "AI命名 · 30,000円",
-        "AIConsultation50000": "AI Consultation · 50,000円",
+        "AI30000": "AI相談 · 30,000ウォン",
+        "AI300002": "AI相談 · 30,000ウォン",
+        "AI300003": "AI相談 · 30,000ウォン",
+        "AI300004": "AI相談 · 30,000ウォン",
+        "AI300005": "AI相談 · 30,000ウォン",
+        "AI300006": "AI相談 · 30,000ウォン",
+        "AI300007": "AI命名 · 30,000ウォン",
+        "AIConsultation50000": "AI Consultation · 50,000ウォン",
         "k1039k": "おすすめ",
         "k11zo0b": "AI相談",
         "k125av1j": "命式無料 · AI相談",
@@ -6648,7 +6656,7 @@
         },
         "koe32kc": "無料体験",
         "ktgbfsy": "NEW · 決定版",
-        "n50001000020000": "タロット 5,000円 · 四柱推命 10,000円 · 相性 20,000円",
+        "n50001000020000": "タロット 5,000ウォン · 四柱推命 10,000ウォン · 相性 20,000ウォン",
         "k1dw3t0h": "命盤は無料・専門家相談は有料",
         "kg12w8e": "新着・人生のコンパス",
         "n110000": "基本無料・詳細版1回10,000ウォン",
@@ -6659,7 +6667,8 @@
         "n300005": "専門家相談・30,000ウォン",
         "k1tna4h3": "専門家相談",
         "n300006": "専門家相談・30,000ウォン",
-        "n300007": "専門家による命名・30,000ウォン"
+        "n300007": "専門家による命名・30,000ウォン",
+        "krpmzd9": "NEW · ヒューマンデザイン"
       }
     },
     "tarotTileBody": {
@@ -6705,7 +6714,10 @@
         "km02jru": "道さがし",
         "k1tna4h3": "専門家相談",
         "k1tna4h32": "専門家相談",
-        "k1tna4h33": "専門家相談"
+        "k1tna4h33": "専門家相談",
+        "k1cn6ns4": "ボディグラフ",
+        "kznzdv9": "AI パーソナル解釈",
+        "k1pwdig4": "自分の設計図を見る"
       },
       "pvcPremPoints": {
         "AIPDF": "AIが完成させた命名結果 + PDF保存",
@@ -6744,7 +6756,10 @@
         "kfib4kf": "分かれ道に立つ二つの選択の気を比較",
         "k1vetwxt": "いま通過している大運・歳運から読む人生の航路",
         "k67hhx7": "選択の先を先取りして描く未来シミュレーション",
-        "k1n33cx9": "専門家が仕上げた命名結果＋PDF 保存"
+        "k1n33cx9": "専門家が仕上げた命名結果＋PDF 保存",
+        "SwissEphemeris1326": "Swiss Ephemeris 基準の13天体 × 2層 = 26のアクティベーション",
+        "n64369": "64ゲート · 36チャネル · 9センターをタップして探索",
+        "kdpknwc": "タイプ · 戦略 · 権威 · プロファイル · インカーネーションクロス"
       }
     },
     "terms24Card": {
@@ -6801,7 +6816,8 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "超融合とは？"
+        "kerryje": "超融合とは？",
+        "k107dp07": "四柱推命からタロットまで六体系をクロス検証 →"
       }
     },
     "cdTodayPanelSaju": {
@@ -6880,6 +6896,12 @@
         "k1l2ndq73": "パス利用可",
         "n1415000": "全14章・20,000字",
         "k1l2ndq74": "パス利用可"
+      },
+      "cdSigCardCta": {
+        "k1nezx6j": "秘策を開く",
+        "k1tya78i": "鑑定を始める",
+        "knu3ltb": "星を読む",
+        "knwvgzo": "戦略を受け取る"
       }
     },
     "cdPickReason": {
@@ -6928,6 +6950,10 @@
         "n115000": "会員登録後1回無料・以降1回5,000ウォン",
         "n130000": "1回30,000ウォン",
         "k1lo4ibg": "2万字以上・最終クロス判定"
+      },
+      "fortuneGatewayDoorGo": {
+        "kkmvgqi": "鑑定を始める",
+        "k1yerhq3": "超融合リーディングを見る"
       }
     },
     "fortuneGatewayEntry": {
@@ -6955,6 +6981,10 @@
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
         "k1ubfgod": "月精石 300個"
+      },
+      "cdFeedbackBody": {
+        "k2a2ghh": "バグ、ぎこちない画面、「こんな機能があれば」と思った瞬間 — 何でも歓迎します。",
+        "k84kqr7": "いただいたご意見はひとつずつ読み、次のアップデートに反映します。"
       }
     },
     "cdFeedbackGate": {
@@ -7002,6 +7032,139 @@
         "kw3mf7": {
           "ariaLabel": "韓国語"
         }
+      }
+    },
+    "cdConcernCards": {
+      "cdConcernCard": {
+        "k1ozfahx": "恋愛運 · 相性 · 復縁 · 縁",
+        "k1fatpbc": "相性 · 相互作用 · 関係診断",
+        "k1mgycgx": "金運 · 収入 · 支出の流れ",
+        "k607hyq": "転職 · 起業 · 事業拡大",
+        "k1n3lsfu": "新年運勢 · 月ごとの流れ · 大運",
+        "k5gqwm7": "四柱推命 · 紫微斗数 · 占星術"
+      }
+    },
+    "cdWhyUs": {
+      "cdWhyUsHead": {
+        "CodeDestiny": "なぜ Code Destiny なのか"
+      }
+    },
+    "cdWhyUsGrid": {
+      "cdWhyUsCard": {
+        "kfr2fu8": "複数の視点",
+        "k1lclup9": "四柱推命・紫微斗数・インド占星術・宿曜といった東洋の体系を、西洋占星術やタロットと並べて読みます。",
+        "kq6mt4": "パーソナライズ",
+        "k1wbxeap": "生年月日・出生時刻・出生地をもとに、あなただけの結果を計算します。",
+        "k1239k1": "AI 解釈",
+        "kvkxft": "複雑な占いデータを、そのまま読める言葉にほどきます。",
+        "kv06ho": "超融合",
+        "kdcl9cf": "異なる体系が同じ方向を指しているかを突き合わせます。"
+      }
+    },
+    "cdFinder": {
+      "moonSectionHead": {
+        "kf1ogji": "必要なサービスを探す"
+      }
+    },
+    "fortuneGatewayDiscover": {
+      "fortuneGatewayChips": {
+        "k180xm6d": "❤️ 恋愛",
+        "kkz7xh9": "💰 金運",
+        "kkzg05h": "💼 仕事",
+        "kfcewzb": "🏠 家族・家庭",
+        "kl5e4s6": "🧭 人生",
+        "kl9lspj": "🌙 今日",
+        "kkymdrk": "💕 相性",
+        "k17f5hqf": "🔮 自分自身",
+        "klc5o0t": "🎯 その他"
+      },
+      "fortuneGatewayAll": {
+        "kqk7ooc": "すべて見る"
+      },
+      "fortuneGatewaySearch": {
+        "k15ln3db": {
+          "placeholder": "例: 恋愛、お金、転職、今日、無料の恋愛運",
+          "ariaLabel": "占いサービスを検索"
+        }
+      },
+      "kwgfgtu": {
+        "ariaLabel": "気になるテーマを選ぶ"
+      }
+    },
+    "fortuneGatewayFilters": {
+      "fortuneGatewayFilterRow": {
+        "kx2ok": "方式",
+        "ku7c9": "価格"
+      },
+      "k1szzetk": {
+        "ariaLabel": "どの方式で見ますか"
+      },
+      "k10794b2": {
+        "ariaLabel": "価格帯で絞り込む"
+      }
+    },
+    "fortuneGatewayFilterRow": {
+      "fortuneGatewayFilterChips": {
+        "kxvio": "四柱推命",
+        "k10ios": "タロット",
+        "kpyjtww": "紫微斗数",
+        "ku8un3": "占星術",
+        "ktecid": "宿曜",
+        "ksi53g": "インド占星術",
+        "k11zo0b": "AI 相談",
+        "kwuu0": "無料",
+        "kvu9ix": "3,000ウォン台",
+        "kvvjhz": "5,000ウォン台",
+        "kt1sff": "10,000ウォン台",
+        "krnc4c4": "プレミアム"
+      }
+    },
+    "birthCountryComboWrap": {
+      "kefdlj6": {
+        "ariaLabel": "出生地の検索結果"
+      }
+    },
+    "cdTodayCardTop": {
+      "cdTodayCardAnchor": {
+        "kl74ww4": "今日の日柱",
+        "k1j6dp92": "今日の宿",
+        "khs81qk": "今日の月宿"
+      }
+    },
+    "cdTodayPickCta": {
+      "k1cco6tp": "今すぐ始める"
+    },
+    "cdSigCardGlyphs": {
+      "cdSigCardGlyph": {
+        "kxvio": "四柱推命",
+        "kpyjtww": "紫微斗数",
+        "kz0jc": "縁",
+        "kxvio2": "四柱推命",
+        "k10ios": "タロット",
+        "kuolk": "相性",
+        "kabniwe": "宿曜27宿",
+        "k79pfmc": "ナクシャトラ",
+        "kx2dg": "ヴェーダ",
+        "kxvio3": "四柱推命",
+        "kz12p": "戦略"
+      }
+    },
+    "cdPickWhyAlt": {
+      "k1d6ftfz": "かわりに運命の茶館へ"
+    },
+    "fortuneGatewayTitle": {
+      "kxunqxo": "今日のひとことから",
+      "kzg9wm": "六つの体系による深いリーディングまで"
+    },
+    "cdDiaryPlannerTitle": {
+      "k1muhj4v": "運気と日取りのダイアリー、",
+      "kbld8zk": "そして自分だけの運勢プランナー"
+    },
+    "syBasicCalendarLegendItems": {
+      "syBasicCalendarLegendItem": {
+        "kyol0": "今日",
+        "k11poz": "凶日",
+        "k1149f": "平日"
       }
     }
   },

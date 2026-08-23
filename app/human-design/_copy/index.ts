@@ -91,6 +91,46 @@ export const UI_TEXT = {
     ko: "해석을 만들지 못했습니다. 차트는 그대로 있으니 다시 시도해 주세요.",
     en: "Could not write the reading. Your chart is safe — please retry.",
   },
+
+  // ── 몰입형 셸 · 단계별 정보 구조 ──────────────────────────────────────────
+  // 🔴 프로파일의 라인 이름(1 조사자 … 6 롤모델)은 여기 넣지 않는다. 이 파일 맨 위 규칙대로
+  //    출처가 필요한 서술 자료는 지어내지 않고 AI 리딩이 맡는다. 여기서는 숫자만 크게 보인다.
+  exit: { ko: "홈으로", en: "Home" },
+  restart: { ko: "다른 출생 정보로", en: "New birth data" },
+  ghostCaption: {
+    ko: "아직 비어 있는 설계도입니다. 출생 정보를 넣으면 당신의 26개 활성이 여기에 켜집니다.",
+    en: "An empty blueprint. Enter your birth data and your 26 activations light it up.",
+  },
+  sectionNav: { ko: "차트 안에서 이동", en: "Jump inside the chart" },
+  sectionMyDesign: { ko: "마이 디자인", en: "My Design" },
+  sectionType: { ko: "타입", en: "Type" },
+  sectionStrategy: { ko: "전략", en: "Strategy" },
+  sectionAuthority: { ko: "내적 권위", en: "Authority" },
+  sectionProfile: { ko: "프로파일", en: "Profile" },
+  sectionCenters: { ko: "센터", en: "Centers" },
+  sectionChannels: { ko: "채널", en: "Channels" },
+  sectionGates: { ko: "게이트", en: "Gates" },
+  sectionPlanets: { ko: "행성 활성", en: "Planetary Activations" },
+  sectionReading: { ko: "더 깊은 해석", en: "Deeper Reading" },
+  signature: { ko: "시그니처", en: "Signature" },
+  notSelf: { ko: "낫셀프 테마", en: "Not-self theme" },
+  definition: { ko: "정의 형태", en: "Definition" },
+  incarnationCross: { ko: "인카네이션 크로스", en: "Incarnation Cross" },
+  profileLines: { ko: "의식 라인 / 무의식 라인", en: "Conscious line / Unconscious line" },
+  showInChart: { ko: "차트에서 보기", en: "Show in chart" },
+  centersDefinedHint: {
+    ko: "정의된 센터는 늘 같은 방식으로 작동하고, 정의되지 않은 센터는 주변을 받아들여 증폭합니다.",
+    en: "Defined centers work the same way always; undefined centers take in and amplify what is around you.",
+  },
+  channelsHint: {
+    ko: "채널은 양쪽 게이트가 모두 활성일 때만 완성됩니다. 완성된 채널이 두 센터를 정의합니다.",
+    en: "A channel completes only when both gates are active — and a completed channel is what defines two centers.",
+  },
+  gatesHint: {
+    ko: "활성 게이트는 26개 행성 활성이 만든 것입니다. 눌러 어느 행성이 켰는지 확인하세요.",
+    en: "Active gates come from your 26 planetary activations. Tap one to see which planet lit it.",
+  },
+  noneYet: { ko: "없음", en: "None" },
 } satisfies Record<string, Bilingual>;
 
 export const TYPE_COPY = {

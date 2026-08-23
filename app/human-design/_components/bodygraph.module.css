@@ -3,42 +3,166 @@
  * 🔴 토큰을 이 파일 안에서 무조건부로 선언한다. 배경만 어둡게 칠하고 잉크는 스킴에 따라
  *    뒤집히는 토큰을 쓰면 라이트 모드에서 반쪽 오버라이드가 되어 대비가 무너진다
  *    (verify:hero-contrast 가 잡는 형태). 여기는 자기 배경을 직접 칠하는 요소이므로
- *    표면·잉크·강조색을 한 세트로 고정한다. */
+ *    표면·잉크·강조색을 한 세트로 고정한다.
+ *
+ * 🔴 색은 두 축만 쓴다 — ①정의/미정의(표면·발광 세기) ②퍼스낼리티/디자인/혼합(선 색).
+ *    센터 9개에 각각 고유색을 주면 계층축과 충돌해 게이트 점 하나가 두 의미를 지게 된다.
+ *
+ * 🔴 등장 애니메이션은 **1회성**이다. 지속 루프를 만들지 않고, prefers-reduced-motion 에서는
+ *    전부 최종 상태로 즉시 앉힌다(요구사항 10).
+ */
 
 .wrap {
   --hd-surface: #0b0a18;
   --hd-surface-soft: rgba(255, 255, 255, 0.04);
   --hd-ink: #f3f1ff;
   --hd-ink-dim: #b9b3d8;
-  --hd-idle: rgba(190, 184, 224, 0.32);
+  --hd-idle: rgba(190, 184, 224, 0.22);
   --hd-personality: #c4b5fd;
   --hd-design: #f0a860;
   --hd-mixed: #7dd3fc;
-  --hd-defined-fill: rgba(196, 181, 253, 0.16);
+  --hd-defined-core: rgba(167, 139, 250, 0.32);
+  --hd-defined-edge: rgba(124, 92, 240, 0.13);
   --hd-defined-stroke: #c4b5fd;
-  --hd-undefined-stroke: rgba(190, 184, 224, 0.42);
+  --hd-undefined-core: rgba(255, 255, 255, 0.055);
+  --hd-undefined-edge: rgba(255, 255, 255, 0.02);
+  --hd-undefined-stroke: rgba(190, 184, 224, 0.4);
   --hd-focus: #ffe6a8;
+  --hd-panel: rgba(18, 15, 40, 0.82);
+  --hd-border: rgba(196, 181, 253, 0.26);
 
   margin: 0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
+}
+
+/* 🔴 차트 크기는 **높이**로 잰다. 폭만 주면 viewBox 540x1000(세로 1.85배) 때문에
+   화면보다 키가 커져, 좁은 화면에서는 아래 글자 위로 넘쳐 겹치고(실측: 390px 에서
+   제목이 차트에 덮였다) 넓은 화면에서는 뿌리 센터가 접히는 선 아래로 내려간다.
+   부모가 --hd-stage-height 로 "쓸 수 있는 높이"를 주면 폭은 비율(540/1000=0.54)로 따라온다. */
+.stage {
+  position: relative;
+  width: 100%;
+  max-width: min(560px, calc(var(--hd-stage-height, 200vh) * 0.54));
+  margin-inline: auto;
+  /* 확대 상태에서 도형이 밖으로 새지 않게 잘라 낸다 — 가로 스크롤의 원인을 여기서 끊는다. */
+  overflow: hidden;
+  border-radius: 20px;
+  background:
+    radial-gradient(120% 62% at 50% 4%, rgba(124, 92, 240, 0.16) 0%, transparent 58%),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.045), rgba(255, 255, 255, 0.012));
+  border: 1px solid rgba(196, 181, 253, 0.16);
 }
 
 .svg {
   width: 100%;
-  max-width: 420px;
   height: auto;
   display: block;
-  overflow: visible;
+  touch-action: pan-y;
+}
+
+.svg[data-zoomed="true"] {
+  cursor: grab;
+  touch-action: none;
+}
+
+.svg[data-zoomed="true"]:active {
+  cursor: grabbing;
+}
+
+.grain {
+  pointer-events: none;
+}
+
+.grainDot {
+  fill: rgba(196, 181, 253, 0.11);
 }
 
 .caption {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem 0.75rem;
   color: var(--hd-ink-dim);
   font-size: 0.8125rem;
   text-align: center;
   line-height: 1.5;
+}
+
+.numbersToggle {
+  min-height: 34px;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--hd-border);
+  background: transparent;
+  color: var(--hd-ink-dim);
+  font-size: 0.75rem;
+  cursor: pointer;
+}
+
+.numbersToggle[aria-pressed="true"] {
+  border-color: rgba(196, 181, 253, 0.5);
+  background: rgba(196, 181, 253, 0.14);
+  color: var(--hd-ink);
+}
+
+/* ── 확대 · 번호 컨트롤 ───────────────────────────────── */
+
+/* 🔴 무대 위에 띄우지 않는다. 컨트롤은 화면 픽셀 크기가 고정인데 차트는 폭에 따라 줄어드므로,
+   좁은 화면일수록 차트를 덮는 비율이 커진다(390px 실측: 뿌리 센터와 그 게이트 3개를 가렸다). */
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.controls {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  padding: 0.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--hd-border);
+  background: var(--hd-panel);
+}
+
+.controlButton,
+.controlReset {
+  min-width: 36px;
+  min-height: 36px;
+  border: none;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--hd-ink);
+  font-size: 1rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.controlReset {
+  min-width: 52px;
+  font-size: 0.75rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--hd-ink-dim);
+}
+
+.controlButton:disabled,
+.controlReset:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+
+.controlButton:not(:disabled):hover,
+.controlReset:not(:disabled):hover {
+  background: rgba(196, 181, 253, 0.18);
 }
 
 /* ── 채널 ─────────────────────────────────────────────── */
@@ -53,36 +177,49 @@
 
 .hit {
   stroke: transparent;
-  stroke-width: 16;
+  stroke-width: 18;
   fill: none;
 }
 
 /* 🔴 굵기(stroke-width)와 반지름(r)은 트랜지션하지 않는다 — SVG 페인트 속성이라 매 프레임
    리페인트를 부르고, 호버 굵기는 즉시 바뀌는 편이 더 반응적으로 느껴진다. 색만 부드럽게 바꾼다. */
+/* 🔴 굵기 3단계가 곧 "선 위계"다: 비활성 2 → 활성이지만 미완성 4.5 → 완성 6.
+   활성 반쪽과 완성 채널을 같은 굵기로 두면 "게이트가 켜졌다 ≠ 채널이 완성됐다" 라는
+   이 화면의 핵심 계약이 눈으로 구분되지 않는다(실측 스크린샷에서 확인). */
 .half {
-  stroke-width: 5;
+  stroke-width: 4.5;
   stroke-linecap: round;
   fill: none;
-  transition: stroke 160ms ease;
+  transition: stroke 160ms ease, opacity 160ms ease;
 }
 
+/* 비활성 반쪽은 "있지만 내 것이 아닌 배선"이다 — 활성선과 굵기·밝기를 벌려 두지 않으면
+   차트 전체가 거미줄로 읽힌다(실측 스크린샷에서 확인). */
 .half.inactive {
   stroke: var(--hd-idle);
-  stroke-width: 3;
+  stroke-width: 2;
 }
 
-.half.personality { stroke: var(--hd-personality); }
-.half.design { stroke: var(--hd-design); }
-.half.mixed { stroke: var(--hd-mixed); }
+/* 🔴 drop-shadow 의 currentColor 는 stroke 가 아니라 `color` 를 읽는다. 계층색을 줄 때
+   stroke 와 color 를 같이 세팅해야 발광이 선 색을 따라간다. */
+.half.personality { stroke: var(--hd-personality); color: var(--hd-personality); }
+.half.design { stroke: var(--hd-design); color: var(--hd-design); }
+.half.mixed { stroke: var(--hd-mixed); color: var(--hd-mixed); }
+
+/* 완성된 채널만 발광한다 — 미완성 반쪽까지 빛나면 완성 여부가 안 읽힌다. */
+.channelComplete .half {
+  stroke-width: 6;
+  filter: drop-shadow(0 0 5px currentColor);
+}
 
 .channel.selected .half {
   stroke: var(--hd-focus);
-  stroke-width: 7;
+  stroke-width: 8;
 }
 
 .channelComplete:hover .half,
 .channelComplete:focus-visible .half {
-  stroke-width: 7;
+  stroke-width: 8;
 }
 
 /* ── 센터 ─────────────────────────────────────────────── */
@@ -91,18 +228,21 @@
   cursor: pointer;
   stroke-width: 2.5;
   stroke-linejoin: round;
-  transition: fill 160ms ease, stroke 160ms ease;
+  transition: stroke 160ms ease, opacity 160ms ease;
 }
 
+/* 🔴 발광은 SVG <filter> 대신 CSS drop-shadow 한 겹으로 준다. 필터를 건 도형에
+   transform 애니메이션을 같이 걸면 매 프레임 필터를 다시 굽기 때문에, 센터의 등장은
+   아래에서 투명도만 바꾼다(모양은 처음부터 최종값). */
 .centerDefined {
-  fill: var(--hd-defined-fill);
   stroke: var(--hd-defined-stroke);
+  color: var(--hd-defined-stroke);
+  filter: drop-shadow(0 0 7px rgba(167, 139, 250, 0.42));
 }
 
 .centerUndefined {
-  fill: var(--hd-surface-soft);
   stroke: var(--hd-undefined-stroke);
-  stroke-dasharray: 5 5;
+  stroke-dasharray: 6 6;
 }
 
 .center:hover,
@@ -132,7 +272,7 @@
 
 .gateDot {
   stroke-width: 1.5;
-  transition: fill 160ms ease, stroke 160ms ease;
+  transition: fill 160ms ease, stroke 160ms ease, opacity 160ms ease;
 }
 
 .gateIdle .gateDot {
@@ -144,18 +284,32 @@
 .gateActive.design .gateDot { fill: var(--hd-design); stroke: var(--hd-design); }
 .gateActive.mixed .gateDot { fill: var(--hd-mixed); stroke: var(--hd-mixed); }
 
+.gateActive .gateDot {
+  filter: drop-shadow(0 0 6px currentColor);
+}
+
+/* 🔴 활성 게이트만 11px, 비활성은 토글을 켰을 때만 8.5px 로 나온다. 64개를 다 같은 크기로
+   적으면 어느 것도 안 읽힌다. */
 .gateLabel {
-  font-size: 9px;
+  font-size: 12px;
   font-weight: 700;
   text-anchor: middle;
   pointer-events: none;
   fill: var(--hd-ink-dim);
+  font-variant-numeric: tabular-nums;
 }
 
 /* 활성 게이트의 점은 밝은 색이므로 숫자는 어두운 잉크여야 읽힌다.
    (밝은 배경 + 밝은 글씨의 반쪽 오버라이드를 만들지 않기 위한 짝) */
 .gateActive .gateLabel {
   fill: #17132c;
+}
+
+.gateIdle .gateLabel {
+  font-size: 8.5px;
+  font-weight: 600;
+  /* 점이 작아 안에 못 들어가므로 점 위쪽으로 띄운다. */
+  transform: translateY(-11px);
 }
 
 .gate.selected .gateDot {
@@ -173,10 +327,90 @@
   outline: none;
 }
 
+/* ── 선택 시 주변 흐리기 ──────────────────────────────── */
+
+/* 선택된 요소와 이어지지 않은 것은 흐려서 "지금 보는 것"만 남긴다.
+   display 를 건드리지 않으므로 스크린리더와 탭 순서는 그대로다.
+
+   🔴 아래 등장 애니메이션의 fill-mode 는 반드시 `backwards` 다. `both` 로 두면 keyframe 의
+      `to { opacity: 1 }` 이 애니메이션 origin 우선순위로 이 규칙을 **영구히** 덮어써서,
+      채널만 흐려지고 센터·게이트는 그대로 밝게 남는다(실측 스크린샷에서 확인한 실제 버그). */
+.dimmed {
+  /* 0.16 은 주변 맥락이 아예 사라져 "어디를 보고 있는지" 를 잃는다(실측). */
+  opacity: 0.22;
+}
+
+/* ── 등장 ─────────────────────────────────────────────── */
+
+/* 배경 → 센터 → 채널 → 게이트 순으로 한 번만 켜진다.
+   --hd-order 로 그룹 안에서 조금씩 어긋나게 하되, 총 길이가 늘어지지 않도록 상한을 둔다. */
+.grain {
+  animation: hdFade 900ms ease-out backwards;
+}
+
+.center {
+  animation: hdFade 620ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(240ms + (var(--hd-order, 0) * 55ms));
+}
+
+.half {
+  stroke-dasharray: 1;
+  stroke-dashoffset: 1;
+  animation: hdDraw 700ms ease-out forwards;
+  animation-delay: calc(760ms + (var(--hd-order, 0) * 14ms));
+}
+
+.gate {
+  transform-box: fill-box;
+  transform-origin: center;
+  animation: hdPop 420ms cubic-bezier(0.22, 1, 0.36, 1) backwards;
+  animation-delay: calc(1320ms + (var(--hd-order, 0) * 7ms));
+}
+
+@keyframes hdFade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes hdDraw {
+  to { stroke-dashoffset: 0; }
+}
+
+@keyframes hdPop {
+  from { opacity: 0; transform: scale(0.6); }
+  to { opacity: 1; transform: scale(1); }
+}
+
+/* 고스트(결제 전 히어로)는 데이터가 없으므로 더 느리고 은은하게 켠다. */
+.wrap[data-ghost="true"] .svg {
+  opacity: 0.82;
+}
+
+.wrap[data-ghost="true"] .center,
+.wrap[data-ghost="true"] .gate,
+.wrap[data-ghost="true"] .half {
+  pointer-events: none;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .half,
   .center,
-  .gateDot {
+  .gateDot,
+  .gate {
     transition: none;
+  }
+
+  /* 🔴 애니메이션을 끄는 것으로 끝내면 stroke-dashoffset: 1 이 남아 채널이 아예 안 보인다.
+     최종 상태를 직접 앉혀야 한다. */
+  .grain,
+  .center,
+  .gate {
+    animation: none;
+  }
+
+  .half {
+    animation: none;
+    stroke-dasharray: none;
+    stroke-dashoffset: 0;
   }
 }
