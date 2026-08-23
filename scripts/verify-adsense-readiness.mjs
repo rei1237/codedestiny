@@ -824,7 +824,7 @@ function verifyPublicFeatureMetadataSource() {
       markers: [
         'canonical: "/tarot/prompt-maker"',
         "openGraph",
-        "\uD0C0\uB85C \uD504\uB86C\uD504\uD2B8 \uBA54\uC774\uCEE4",
+        "\uD0C0\uB85C \uC624\uB77C\uD074 \uC0C1\uB2F4",
         "\uC758\uB8CC\u00B7\uBC95\uB960\u00B7\uD22C\uC790",
       ],
     },
