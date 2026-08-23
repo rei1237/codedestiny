@@ -73,6 +73,12 @@ const SEO_LINK_GROUPS = [
       { href: "/saju/sibyl/", text: "시빌라 시스템" },
       { href: "/life-book-ai/", text: "인생의 책" },
       { href: "/love-secret-ai/", text: "연애 비책 AI 상담" },
+      // 🔴 아래 링크들은 사이트맵에 있는데 홈에서 링크를 따라가 도달할 수 없었다
+      //    (2026-08-24 out/ 내부 링크 그래프 실측: 한국어 라우트 11개가 도달 불가).
+      //    고아 라우트는 크롤 우선순위가 서지 않는다 — 위 기간 허브 4개를 건 것과 같은 이유다.
+      { href: "/fortune/", text: "별자리·띠 운세 허브" },
+      { href: "/destiny-compass/", text: "운명의 나침반" },
+      { href: "/saju/destiny-meeting-place/", text: "사주로 보는 인연의 장소" },
     ],
   },
   {
@@ -117,6 +123,10 @@ const SEO_LINK_GROUPS = [
       { href: "/flower/astrology/", text: "점성술 운명의 꽃" },
       { href: "/flower/jamidusu/", text: "자미두수 운명의 꽃" },
       { href: "/flower/sukuyo/", text: "숙요 운명의 꽃" },
+      { href: "/fortune-tea-house/", text: "운명 찻집 상담" },
+      { href: "/karma-destiny-ai/", text: "운명의 업 전문가 상담" },
+      { href: "/new-year-ai-consultation/", text: "신년운세 전문가 상담" },
+      { href: "/yeon-star-hug/", text: "연이 별빛 포옹" },
     ],
   },
   {
@@ -130,6 +140,9 @@ const SEO_LINK_GROUPS = [
       { href: "/insights/fusion/", text: "초융합 운세 인사이트 허브" },
       { href: "/reviews/", text: "실시간 사용자 후기" },
       { href: "/faq/", text: "자주 묻는 질문" },
+      { href: "/insights/sukuyo-basics/", text: "숙요점 기초 가이드" },
+      { href: "/insights/ziwei-basics/", text: "자미두수 기초 가이드" },
+      { href: "/fortune/prompt-hub/", text: "운세 프롬프트 허브" },
     ],
   },
 ];
