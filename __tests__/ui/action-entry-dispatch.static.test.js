@@ -27,8 +27,11 @@ const RUNTIME_REL = "js/core/index-inline-runtime.js";
 const HUB_REL = "app/components/HomeServiceSections.tsx";
 const LANDING_REL = "app/components/FeatureLandingPage.tsx";
 
+const SHELL_REL = "index.html";
+
 const launcher = read(LAUNCHER_REL);
 const runtime = read(RUNTIME_REL);
+const shell = read(SHELL_REL);
 const hub = read(HUB_REL);
 const landing = read(LANDING_REL);
 
@@ -124,5 +127,55 @@ test("런처는 셸 런타임이 이미 잡은 action 을 다시 실행하지 �
     runtime,
     /window\.__cdRouteActionHandled = action;/,
     `${RUNTIME_REL}: __cdRouteActionHandled 를 세우지 않으면 런처의 단일비행 가드가 죽는다`,
+  );
+});
+
+test("런타임은 타일을 찾은 뒤에만 action 을 선점한다", () => {
+  const fn = runtime.slice(runtime.indexOf("function __cdRunRouteActionOnce"));
+  const body = fn.slice(0, fn.indexOf("\n}\n") + 2);
+  const claimAt = body.indexOf("window.__cdRouteActionHandled = action;");
+  const lookupAt = body.indexOf("__cdFindRouteActionElement(action)");
+  assert.ok(claimAt > 0 && lookupAt > 0, `${RUNTIME_REL}: __cdRunRouteActionOnce 본문을 읽지 못했다`);
+  assert.ok(
+    claimAt > lookupAt,
+    `${RUNTIME_REL}: 타일을 찾기 전에 __cdRouteActionHandled 를 세우고 있다. ` +
+      `셸에 data-action 타일이 없는 허용목록 액션(navigateToVedic·openSajuAnimalPage 등)은 ` +
+      `런타임이 선점만 하고 실행은 못 하는데, 그 플래그가 런처 폴백까지 막아 액션이 통째로 죽는다.`,
+  );
+});
+
+/** 셸 타일의 `data-action` -> 그 타일이 물고 있는 유료 키. 없으면 null. */
+function shellTileFeatureKey(action) {
+  const at = shell.indexOf(`data-action="${action}"`);
+  if (at < 0) return null;
+  const window_ = shell.slice(at, at + 700);
+  const lockKey = /data-tile-lock-key="([^"]+)"/.exec(window_);
+  const featureKey = /data-feature-key="([^"]+)"/.exec(window_);
+  return (lockKey && lockKey[1]) || (featureKey && featureKey[1]) || null;
+}
+
+test("랜딩이 표시하는 가격 키가 셸 타일이 실제로 물리는 키와 같다", () => {
+  const paidBody = objectBody(landing, "const PAID_SLUG_META", LANDING_REL);
+  const paidPairs = [...paidBody.matchAll(/"([^"]+)":\s*\{\s*featureKey:\s*"([^"]+)"/g)]
+    .map((m) => [m[1], m[2]]);
+  assert.ok(paidPairs.length > 5, `PAID_SLUG_META 추출 ${paidPairs.length}건 — 파서가 빗나갔다`);
+
+  const routeToAction = new Map(landingPairs);
+  const mismatches = [];
+  let compared = 0;
+  for (const [route, landingKey] of paidPairs) {
+    const action = routeToAction.get(route);
+    if (!action) continue;
+    const tileKey = shellTileFeatureKey(action);
+    if (!tileKey) continue;
+    compared += 1;
+    if (tileKey !== landingKey) mismatches.push(`${route}: 랜딩=${landingKey} vs 셸 타일=${tileKey}`);
+  }
+  assert.ok(compared > 5, `대조된 유료 랜딩 ${compared}건 — 셸 타일 파서가 빗나갔다`);
+  assert.deepEqual(
+    mismatches,
+    [],
+    `랜딩이 광고하는 가격과 셸이 실제로 받는 가격이 다르다. ` +
+      `랜딩 PAID_SLUG_META 의 featureKey 는 셸 타일의 data-tile-lock-key 와 같아야 한다: ${mismatches.join(", ")}`,
   );
 });

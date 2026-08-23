@@ -49,7 +49,10 @@
       // load+0 에 돌므로 여기서 플래그는 이미 확정돼 있다. 런타임이 죽었을 때만 폴백으로 남는다.
       if (window.__cdRouteActionHandled) return;
 
-      var isOpenAction = /^open[A-Za-z0-9_]+$|^navigateToVedic$/.test(action);
+      // ^start 는 76fcc0ca5 가 넣고 ee4cb8fd2 가 떨궜다. 그 사이 startCrystalSoulTarot·
+      // startMindScanTarot 은 셸에 타일이 없어 런타임도 못 잡고 여기도 안 잡아 완전히 죽어 있었다.
+      // 셋 다(+startIjikTarot) 본문이 "인증 확인 후 페이지 이동"뿐이라 결제 게이트는 목적지가 쥔다.
+      var isOpenAction = /^open[A-Za-z0-9_]+$|^start[A-Za-z0-9_]+$|^navigateToVedic$/.test(action);
       var isPremiumGotoAction = /^goto(?:Ziwei|Astrology|Sukuyo|Vedic|Naming)Premium$/.test(action);
       if (!isOpenAction && !isPremiumGotoAction) return;
 

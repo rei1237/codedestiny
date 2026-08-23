@@ -1,7 +1,11 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { FEATURE_KEY_PRICE_TABLE, normalizePaidFeatureKey } from "@/worker/lib/paid-feature-registry.js";
+import {
+  FEATURE_KEY_PRICE_TABLE,
+  PIG_COIN_UNLOCK_PRODUCTS,
+  normalizePaidFeatureKey,
+} from "@/worker/lib/paid-feature-registry.js";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
 
@@ -49,15 +53,46 @@ type RegistryPricing = {
   cashPrice?: number;
   cost?: number;
   coinPrice?: number;
+  accessModel?: string;
 };
+
+/**
+ * 영구 해금 상품은 `FEATURE_KEY_PRICE_TABLE` 이 아니라 `PIG_COIN_UNLOCK_PRODUCTS` 에 있고,
+ * 키가 featureKey 가 아니라 `unlock.<snake_case>` 다. 그래서 featureKey 로만 조회하면 해금
+ * 상품은 전부 값이 없어 라벨이 빈칸이 된다(2026-08-23 실측: `flower-fc` 가 그랬고, 랜딩 4개가
+ * 그 자리를 회당 결제 키로 메워 5,000원을 표시하고 있었다 — 실제 게이트는 20,000원 해금).
+ * featureKey 로 되짚어 찾는다.
+ */
+const UNLOCK_PRICING_BY_FEATURE_KEY: Record<string, RegistryPricing> = Object.fromEntries(
+  Object.values(PIG_COIN_UNLOCK_PRODUCTS as Record<string, RegistryPricing & { featureKey?: string }>)
+    .filter((entry) => Boolean(entry?.featureKey))
+    .map((entry) => [String(entry.featureKey), entry]),
+);
+
+function lookupRegistryPricing(requestedKey: string): RegistryPricing | null {
+  const normalizedKey = normalizePaidFeatureKey(requestedKey);
+  const table = FEATURE_KEY_PRICE_TABLE as Record<string, RegistryPricing>;
+  return table[normalizedKey]
+    || table[requestedKey]
+    || UNLOCK_PRICING_BY_FEATURE_KEY[normalizedKey]
+    || UNLOCK_PRICING_BY_FEATURE_KEY[requestedKey]
+    || null;
+}
+
+/** 이 featureKey 가 회당 결제인지 영구 해금인지. 레지스트리의 `accessModel` 이 정본이다. */
+export function resolveFeatureAccessModel(featureKey?: string): "per_use" | "unlock" | "" {
+  const requestedKey = String(featureKey || "").trim();
+  if (!requestedKey) return "";
+  const pricing = lookupRegistryPricing(requestedKey);
+  const model = String(pricing?.accessModel || "").trim();
+  return model === "unlock" || model === "per_use" ? model : "";
+}
 
 function resolveRegistryPriceLabel(input: ServerPriceInput): string | null {
   const requestedKey = String(input.featureKey || "").trim();
   if (!requestedKey) return null;
 
-  const normalizedKey = normalizePaidFeatureKey(requestedKey);
-  const table = FEATURE_KEY_PRICE_TABLE as Record<string, RegistryPricing>;
-  const pricing = table[normalizedKey] || table[requestedKey];
+  const pricing = lookupRegistryPricing(requestedKey);
   if (!pricing) return null;
 
   const displayPrice = String(pricing.displayPrice || "").trim();
