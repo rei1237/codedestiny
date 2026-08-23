@@ -50,7 +50,6 @@ export default function HumanYeoniReveal({ steps, onComplete }: HumanYeoniReveal
           className={styles.yeoniPortrait}
           mood={currentStep.mood || "welcome"}
           isSpeaking={isYeoniLine}
-          cueText={isYeoniLine ? currentStep.text : ""}
           priority
         />
       </div>

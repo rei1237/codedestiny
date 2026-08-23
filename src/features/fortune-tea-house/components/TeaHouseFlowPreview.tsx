@@ -65,7 +65,6 @@ export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowP
           className={styles.flowYeoniActor}
           mood={currentStep.mood || "gentle"}
           isSpeaking={isYeoniLine}
-          cueText={isYeoniLine ? currentStep.text : ""}
           compact
         />
         <TeaHouseDialogueBox
