@@ -224,8 +224,12 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "nakshatra-ai-consultation": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 전문가 심화 상담" },
   "nakshatra-muhurta": { cost: 50, amountKRW: 5000, reason: "나크샤트라 택일(무후르타)" },
   "nakshatra-vvip-codex": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 VVIP 통합서" },
-  // 휴먼 디자인 바디그래프 — 차트 산출과 AI 해석이 이 키 하나로 함께 열린다(별도 해석 키 없음).
+  // 🔴 2026-09 무료화로 **판매 중단**. 키와 가격은 과거 주문·환불·리뷰 자격 조회가 참조하므로
+  //    그대로 남긴다(같은 계약의 선례: palm-reading-ai-consult). 새 결제는 아래 리포트 키가 받는다.
   "human-design-chart": { cost: 100, amountKRW: 10000, reason: "휴먼 디자인 바디그래프" },
+  // 휴먼 디자인 프리미엄 리포트 — 무료 차트 위에서 여는 25,000자 개인 분석 + PDF.
+  // 🔴 100코인을 넘기지 말 것. PASS_LIMITS.vvip = 100 이라 넘는 순간 VVIP 이용권 커버를 잃는다.
+  "human-design-report": { cost: 100, amountKRW: 10000, reason: "휴먼 디자인 프리미엄 리포트" },
   "destiny-compass-crossroads": { cost: 100, amountKRW: 10000, reason: "운명의 갈림길 기운 비교" },
   "destiny-compass-life-voyage": { cost: 100, amountKRW: 10000, reason: "삶의 항로 안내" },
   "destiny-compass-future-sim": { cost: 100, amountKRW: 10000, reason: "미래 시뮬레이션 안내" },
@@ -442,7 +446,12 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   // 🔴 회당 결제다. `unlock.` 접두를 붙이거나 PERSISTENT_UNLOCK_KEY_SET 에 넣지 말 것 —
   //    그러면 1회 결제로 모든 출생 데이터가 열린다. 같은 출생 데이터의 재열람은
   //    humanDesignCalculations 아카이브가 영수증 역할을 해서 처리한다.
+  //    (차트 자체는 2026-09 부터 무료다. 이 키는 과거 이력 조회용으로 남아 있다.)
   "human-design-chart",
+  // 🔴 리포트도 회당 결제다. LLM 생성물이고 **출생 데이터마다 별개 상품**이라
+  //    unlock 으로 넣으면 1회 결제로 모든 프로필의 리포트가 열린다
+  //    (sukuyo-past-life-reading 이 같은 이유로 회당 결제다).
+  "human-design-report",
   "openJuyukModal",
   "openKemetModal",
   "openGeomancyOracle",
