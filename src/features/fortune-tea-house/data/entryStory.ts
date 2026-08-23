@@ -12,12 +12,28 @@ export type TeaHouseEntrySpeaker = "narration" | "꽃돼지?" | "연이";
 
 export type TeaHouseEntryActor = "none" | "pig" | "transform" | "yeoni" | "tea";
 
-export type TeaHouseEntryLine = {
-  speaker: TeaHouseEntrySpeaker;
-  text: string;
-  cta?: string;
-  mood?: YeoniMood;
-};
+/**
+ * 🔴 마스코트가 말하는 줄은 `mood` 가 필수다. `story.ts` 의 `TeaHouseStoryStep` 과 같은 계약이고
+ * 이유도 같다 — 표정을 대사의 한국어 키워드로 되추측하던 코드를 없앴으므로, mood 가 비면 그 줄은
+ * 조용히 기본 표정으로 주저앉는다(에러도 테스트 실패도 없다). 대사를 로케일화하면 되추측할
+ * 단서조차 사라지므로 타입으로 막는다.
+ *
+ * 나레이션은 마스코트를 그리지 않으므로 mood 를 갖지 않는다(`never` 로 막아, 붙여도 의미가
+ * 없다는 것이 타입에 드러나게 한다).
+ */
+export type TeaHouseEntryLine =
+  | {
+      speaker: "narration";
+      text: string;
+      cta?: string;
+      mood?: never;
+    }
+  | {
+      speaker: Exclude<TeaHouseEntrySpeaker, "narration">;
+      text: string;
+      cta?: string;
+      mood: YeoniMood;
+    };
 
 export type TeaHouseEntrySceneData = {
   stage: TeaHouseEntryStage;

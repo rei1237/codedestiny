@@ -51,38 +51,51 @@ test("표정 판정기에 한국어 정규식이 없다", () => {
 });
 
 test("마스코트가 말하는 대사 줄에는 mood 가 있다", () => {
-  const rel = "src/features/fortune-tea-house/data/story.ts";
-  const sourceFile = parse(rel);
-
+  // 대사가 사는 곳은 두 파일이다. story.ts 의 줄은 id 를 갖고 entryStory.ts(입장 씬·대기 대사)의
+  // 줄은 갖지 않으므로, 식별은 두 파일에 공통인 speaker + text 로 한다.
+  const SOURCES = [
+    "src/features/fortune-tea-house/data/story.ts",
+    "src/features/fortune-tea-house/data/entryStory.ts",
+  ];
   const NARRATION = "narration";
-  let checked = 0;
-  const missing = [];
 
-  const walk = (node) => {
-    if (ts.isObjectLiteralExpression(node)) {
-      const fields = new Map();
-      for (const prop of node.properties) {
-        if (!ts.isPropertyAssignment(prop)) continue;
-        fields.set(prop.name.getText(sourceFile).replace(/^["']|["']$/g, ""), prop.initializer);
-      }
-      // 대사 줄인지: id + text + speaker 를 함께 가진 객체.
-      if (fields.has("id") && fields.has("text") && fields.has("speaker")) {
-        const speakerNode = fields.get("speaker");
-        const speaker = ts.isStringLiteral(speakerNode) ? speakerNode.text : "";
-        if (speaker && speaker !== NARRATION) {
-          checked += 1;
-          const id = ts.isStringLiteral(fields.get("id")) ? fields.get("id").text : "?";
-          if (!fields.has("mood")) missing.push(id);
+  for (const rel of SOURCES) {
+    const sourceFile = parse(rel);
+    let checked = 0;
+    const missing = [];
+
+    const walk = (node) => {
+      if (ts.isObjectLiteralExpression(node)) {
+        const fields = new Map();
+        for (const prop of node.properties) {
+          if (!ts.isPropertyAssignment(prop)) continue;
+          fields.set(prop.name.getText(sourceFile).replace(/^["']|["']$/g, ""), prop.initializer);
+        }
+        // 대사 줄인지: text + speaker 를 함께 가진 객체.
+        if (fields.has("text") && fields.has("speaker")) {
+          const speakerNode = fields.get("speaker");
+          const speaker = ts.isStringLiteral(speakerNode) ? speakerNode.text : "";
+          if (speaker && speaker !== NARRATION) {
+            checked += 1;
+            const idNode = fields.get("id");
+            const textNode = fields.get("text");
+            const label = idNode && ts.isStringLiteral(idNode)
+              ? idNode.text
+              : ts.isStringLiteral(textNode)
+                ? `"${textNode.text.slice(0, 16)}…"`
+                : "?";
+            if (!fields.has("mood")) missing.push(label);
+          }
         }
       }
-    }
-    ts.forEachChild(node, walk);
-  };
-  walk(sourceFile);
+      ts.forEachChild(node, walk);
+    };
+    walk(sourceFile);
 
-  // 🔴 fail-closed: 파서가 형식을 못 따라가 0줄을 검사했다면 그건 통과가 아니라 실패다.
-  assert.ok(checked > 0, `${rel}: 마스코트 대사 줄을 하나도 찾지 못했다 — 가드가 무력화된 상태다`);
-  assert.deepEqual(missing, [], `${rel}: mood 가 없는 대사 줄 ${missing.length}개 — ${missing.join(", ")}`);
+    // 🔴 fail-closed: 파서가 형식을 못 따라가 0줄을 검사했다면 그건 통과가 아니라 실패다.
+    assert.ok(checked > 0, `${rel}: 마스코트 대사 줄을 하나도 찾지 못했다 — 가드가 무력화된 상태다`);
+    assert.deepEqual(missing, [], `${rel}: mood 가 없는 대사 줄 ${missing.length}개 — ${missing.join(", ")}`);
+  }
 });
 
 test("mood 표가 YeoniMood 8종을 빠짐없이 덮는다", () => {
