@@ -100,6 +100,18 @@
     "bgIsolation": "worktree"
   },
   "hooks": {
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/session-context-budget.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking session context budget"
+          }
+        ]
+      }
+    ],
     "PreToolUse": [
       {
         "matcher": "Bash|PowerShell",
