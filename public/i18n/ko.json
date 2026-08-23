@@ -3580,7 +3580,10 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "별빛 운세의 길",
-        "kbm4p3d": "사주·타로·자미두수·숙요점·베다점·서양 점성술에 관상까지, 각 체계의 기준대로 읽습니다."
+        "kbm4p3d": "사주·타로·자미두수·숙요점·베다점·서양 점성술에 관상까지, 각 체계의 기준대로 읽습니다.",
+        "kdvbi0h": {
+          "ariaLabel": "서비스 핵심 안내"
+        }
       }
     },
     "premiumVvipCollection": {
@@ -3611,6 +3614,9 @@
         },
         "k10411ib": {
           "ariaLabel": "사주 맞춤 프리미엄 전문가 작명 시작하기"
+        },
+        "k1elk76z": {
+          "ariaLabel": "휴먼 디자인 — 출생 데이터로 계산하는 나의 에너지 설계도"
         }
       }
     },
@@ -3711,7 +3717,9 @@
         "kdyem8n": "자미두수 전문가 상담",
         "k1jaids8": "점성술 전문가 상담",
         "kdriwl7": "베다점 전문가 상담",
-        "k1ncgm2q": "사주와 오행, 소리와 한자의 뜻을 엮어 전문가가 직접 이름을 짓고, 그 프롬프트 원문까지 함께 드립니다."
+        "k1ncgm2q": "사주와 오행, 소리와 한자의 뜻을 엮어 전문가가 직접 이름을 짓고, 그 프롬프트 원문까지 함께 드립니다.",
+        "kyx3hb8": "휴먼 디자인",
+        "k1o6s45i": "나를 설계한 에너지 지도. 출생 순간의 천체와 88° 이전의 또 다른 나를 함께 계산해, 타입·전략·권위·프로파일이 어디서 나왔는지까지 보여 드립니다."
       },
       "tarotTileImgWrap": {
         "k18zdwwf": "무료 공개",
@@ -3732,7 +3740,8 @@
         "n300005": "전문가 상담 · 30,000원",
         "k1tna4h3": "전문가 상담",
         "n300006": "전문가 상담 · 30,000원",
-        "n300007": "전문가 작명 · 30,000원"
+        "n300007": "전문가 작명 · 30,000원",
+        "krpmzd9": "NEW · 휴먼 디자인"
       }
     },
     "tarotTileBody": {
@@ -3768,7 +3777,10 @@
         "km02jru": "길 찾기",
         "k1tna4h3": "전문가 상담",
         "k1tna4h32": "전문가 상담",
-        "k1tna4h33": "전문가 상담"
+        "k1tna4h33": "전문가 상담",
+        "k1cn6ns4": "바디그래프",
+        "kznzdv9": "AI 개인 해석",
+        "k1pwdig4": "내 설계도 보기"
       },
       "pvcPremPoints": {
         "k11eirzr": "궁의 강약이 건물 등급으로 — 폐허부터 신전까지",
@@ -3800,7 +3812,10 @@
         "kfib4kf": "갈림길에 선 두 선택의 기운 비교",
         "k1vetwxt": "지금 지나는 대운·세운으로 읽는 삶의 항로",
         "k67hhx7": "선택 이후를 미리 그려보는 미래 시뮬레이션",
-        "k1n33cx9": "전문가가 완성한 작명 결과 + PDF 저장"
+        "k1n33cx9": "전문가가 완성한 작명 결과 + PDF 저장",
+        "SwissEphemeris1326": "Swiss Ephemeris 기반 13천체 × 두 계층 = 26개 활성",
+        "n64369": "64 게이트 · 36 채널 · 9 센터를 눌러 탐색",
+        "kdpknwc": "타입 · 전략 · 권위 · 프로파일 · 인카네이션 크로스"
       }
     },
     "terms24Card": {
@@ -3850,7 +3865,8 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "초융합이 무엇인가요?"
+        "kerryje": "초융합이 무엇인가요?",
+        "k107dp07": "사주·타로 여섯 체계 교차검증 →"
       }
     },
     "cdTodayPanelSaju": {
@@ -3929,6 +3945,12 @@
         "k1l2ndq73": "이용권 사용 가능",
         "n1415000": "14장 · 20,000자",
         "k1l2ndq74": "이용권 사용 가능"
+      },
+      "cdSigCardCta": {
+        "k1nezx6j": "비책 열기",
+        "k1tya78i": "상담 시작",
+        "knu3ltb": "별 읽기",
+        "knwvgzo": "전략 받기"
       }
     },
     "cdPickReason": {
@@ -3977,6 +3999,10 @@
         "n115000": "이후 1회 5,000원",
         "n130000": "1회 30,000원",
         "k1lo4ibg": "2만 자 이상 · 최종 교차 판정"
+      },
+      "fortuneGatewayDoorGo": {
+        "kkmvgqi": "상담 시작하기",
+        "k1yerhq3": "초융합 리딩 보기"
       }
     },
     "fortuneGatewayEntry": {
@@ -4004,6 +4030,10 @@
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
         "k1ubfgod": "월정석 300개"
+      },
+      "cdFeedbackBody": {
+        "k2a2ghh": "버그, 어색한 화면, \"이런 기능이 있었으면\" 하는 순간 — 무엇이든 좋습니다.",
+        "k84kqr7": "보내주신 의견은 하나씩 읽고 다음 업데이트에 반영합니다."
       }
     },
     "cdFeedbackGate": {
@@ -4073,6 +4103,139 @@
         "kw3mf7": {
           "ariaLabel": "한국어"
         }
+      }
+    },
+    "cdConcernCards": {
+      "cdConcernCard": {
+        "k1ozfahx": "연애운 · 궁합 · 재회 · 인연",
+        "k1fatpbc": "궁합 · 상성 · 관계 진단",
+        "k1mgycgx": "재물운 · 수입 · 지출 흐름",
+        "k607hyq": "이직 · 창업 · 사업 확장",
+        "k1n3lsfu": "신년운세 · 월별 흐름 · 대운",
+        "k5gqwm7": "사주 · 자미두수 · 점성술"
+      }
+    },
+    "cdWhyUs": {
+      "cdWhyUsHead": {
+        "CodeDestiny": "왜 Code Destiny인가"
+      }
+    },
+    "cdWhyUsGrid": {
+      "cdWhyUsCard": {
+        "kfr2fu8": "여러 관점",
+        "k1lclup9": "사주·자미두수·베다점·숙요점 같은 동양의 체계와 서양 점성술·타로를 함께 봅니다.",
+        "kq6mt4": "개인화",
+        "k1wbxeap": "생년월일·태어난 시간·출생지를 기반으로 나만의 결과를 계산합니다.",
+        "k1239k1": "AI 해석",
+        "kvkxft": "복잡한 운세 데이터를 이해하기 쉬운 언어로 풀어드립니다.",
+        "kv06ho": "초융합",
+        "kdcl9cf": "서로 다른 체계가 같은 방향을 가리키는지 교차검증합니다."
+      }
+    },
+    "cdFinder": {
+      "moonSectionHead": {
+        "kf1ogji": "필요한 서비스를 찾아보세요"
+      }
+    },
+    "fortuneGatewayDiscover": {
+      "fortuneGatewayChips": {
+        "k180xm6d": "❤️ 연애",
+        "kkz7xh9": "💰 재물",
+        "kkzg05h": "💼 직업",
+        "kfcewzb": "🏠 가족/가정",
+        "kl5e4s6": "🧭 인생",
+        "kl9lspj": "🌙 오늘",
+        "kkymdrk": "💕 궁합",
+        "k17f5hqf": "🔮 나 자신",
+        "klc5o0t": "🎯 기타"
+      },
+      "fortuneGatewayAll": {
+        "kqk7ooc": "전체 보기"
+      },
+      "fortuneGatewaySearch": {
+        "k15ln3db": {
+          "placeholder": "예: 연애, 돈, 이직, 오늘, 무료 연애운",
+          "ariaLabel": "운세 서비스 검색"
+        }
+      },
+      "kwgfgtu": {
+        "ariaLabel": "궁금한 주제 선택"
+      }
+    },
+    "fortuneGatewayFilters": {
+      "fortuneGatewayFilterRow": {
+        "kx2ok": "방식",
+        "ku7c9": "가격"
+      },
+      "k1szzetk": {
+        "ariaLabel": "어떤 방식으로 볼까요"
+      },
+      "k10794b2": {
+        "ariaLabel": "가격대로 좁히기"
+      }
+    },
+    "fortuneGatewayFilterRow": {
+      "fortuneGatewayFilterChips": {
+        "kxvio": "사주",
+        "k10ios": "타로",
+        "kpyjtww": "자미두수",
+        "ku8un3": "점성술",
+        "ktecid": "숙요점",
+        "ksi53g": "베다점",
+        "k11zo0b": "AI 상담",
+        "kwuu0": "무료",
+        "kvu9ix": "3천원대",
+        "kvvjhz": "5천원대",
+        "kt1sff": "1만원대",
+        "krnc4c4": "프리미엄"
+      }
+    },
+    "birthCountryComboWrap": {
+      "kefdlj6": {
+        "ariaLabel": "출생지 검색 결과"
+      }
+    },
+    "cdTodayCardTop": {
+      "cdTodayCardAnchor": {
+        "kl74ww4": "오늘의 일진",
+        "k1j6dp92": "오늘의 수(宿)",
+        "khs81qk": "오늘의 달자리"
+      }
+    },
+    "cdTodayPickCta": {
+      "k1cco6tp": "바로 시작"
+    },
+    "cdSigCardGlyphs": {
+      "cdSigCardGlyph": {
+        "kxvio": "사주",
+        "kpyjtww": "자미두수",
+        "kz0jc": "인연",
+        "kxvio2": "사주",
+        "k10ios": "타로",
+        "kuolk": "궁합",
+        "kabniwe": "숙요 27수",
+        "k79pfmc": "나크샤트라",
+        "kx2dg": "베다",
+        "kxvio3": "사주",
+        "kz12p": "전략"
+      }
+    },
+    "cdPickWhyAlt": {
+      "k1d6ftfz": "대신 운명의 찻집"
+    },
+    "fortuneGatewayTitle": {
+      "kxunqxo": "오늘의 한마디부터",
+      "kzg9wm": "여섯 체계의 깊은 리딩까지"
+    },
+    "cdDiaryPlannerTitle": {
+      "k1muhj4v": "운기·기일 다이어리와",
+      "kbld8zk": "나의 운세 플래너"
+    },
+    "syBasicCalendarLegendItems": {
+      "syBasicCalendarLegendItem": {
+        "kyol0": "오늘",
+        "k11poz": "흉일",
+        "k1149f": "평일"
       }
     }
   },

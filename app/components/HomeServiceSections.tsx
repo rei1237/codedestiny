@@ -50,7 +50,9 @@ const MAIN_ACTION_ROUTE_MAP: Record<string, string> = {
   "/premium": "/index.html",
   "/ifa-oracle.html": "/ifa-oracle.html",
   "/oracle/royal-tea": "/index.html?action=openRoyalTeaOracle",
-  "/oracle/sikojen-povailu": "/index.html?action=openSikojenPovailu",
+  // 셸에는 openSikojenPovailu 타일도 전역 함수도 없다 — 액션으로 보내면 홈에 도착해 아무 것도
+  // 열리지 않는다. 이 기능은 App Router 라우트가 정본이라 랜딩의 실행 CTA 도 직행한다(runHref 특례).
+  "/oracle/sikojen-povailu": "/oracle/sikojen-povailu",
   "/flower/destiny": "/index.html?action=openDestinyFlowerStudio",
   "/dream/tarot": "/index.html?action=openDreamModal",
   "/saju/sibyl": "/saju/sibyl",
