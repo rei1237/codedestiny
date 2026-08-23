@@ -55,6 +55,22 @@ export const REPORT_TEXT = {
     en: "Some chapters did not finish. What is readable has been delivered, and the rest can be retried.",
   },
 
+  pdfDownload: { ko: "PDF 로 내려받기", en: "Download as PDF" },
+  pdfBuilding: { ko: "PDF 만드는 중…", en: "Building the PDF…" },
+  pdfCharts: { ko: "도표", en: "Charts" },
+  pdfNote: {
+    ko: "글자를 그대로 조판한 문서입니다. 검색과 복사가 됩니다.",
+    en: "Typeset as real text — searchable and selectable.",
+  },
+  pdfFontFailed: {
+    ko: "글꼴을 불러오지 못해 PDF 를 만들지 못했습니다. 잠시 후 다시 시도해 주세요. 리포트는 이 화면에 그대로 있습니다.",
+    en: "The font could not be loaded, so the PDF was not created. Please try again shortly — your report stays right here.",
+  },
+  pdfFailed: {
+    ko: "PDF 를 만들지 못했습니다. 리포트는 이 화면에 그대로 있습니다.",
+    en: "The PDF could not be created. Your report stays right here.",
+  },
+
   loginRequired: { ko: "로그인이 필요합니다.", en: "Please sign in." },
   paymentFailed: { ko: "결제를 완료하지 못했습니다.", en: "The payment did not go through." },
   notFound: { ko: "리포트를 찾을 수 없습니다.", en: "That report could not be found." },
