@@ -6450,7 +6450,10 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Path of Starlight Reading",
-        "kbm4p3d": "We build the eight characters by rules set by a practitioner with ten years in Myeongni, then read the strength of the day master, the useful god and the flow of the luck pillars."
+        "kbm4p3d": "We build the eight characters by rules set by a practitioner with ten years in Myeongni, then read the strength of the day master, the useful god and the flow of the luck pillars.",
+        "kdvbi0h": {
+          "ariaLabel": "Key service highlights"
+        }
       }
     },
     "premiumVvipCollection": {
@@ -6499,6 +6502,9 @@
         },
         "k10411ib": {
           "ariaLabel": "Start premium expert naming based on your Four Pillars"
+        },
+        "k1elk76z": {
+          "ariaLabel": "Human Design — your energy blueprint, calculated from birth data"
         }
       }
     },
@@ -6620,7 +6626,9 @@
         "kdyem8n": "Expert Reading: Zi Wei Dou Shu",
         "k1jaids8": "Expert Reading: Western Astrology",
         "kdriwl7": "Expert Reading: Vedic Astrology",
-        "k1ncgm2q": "An expert names your child by weaving the birth chart, the Five Elements, sound and the meaning of each character — and hands you the original prompt as well."
+        "k1ncgm2q": "An expert names your child by weaving the birth chart, the Five Elements, sound and the meaning of each character — and hands you the original prompt as well.",
+        "kyx3hb8": "Human Design",
+        "k1o6s45i": "The energy map you were designed from. We calculate the sky at your birth alongside the other you from 88° earlier, and show where your type, strategy, authority and profile actually come from."
       },
       "tarotTileImgWrap": {
         "AI30000": "AI Consultation · ₩30,000",
@@ -6659,7 +6667,8 @@
         "n300005": "Expert reading · ₩30,000",
         "k1tna4h3": "Expert reading",
         "n300006": "Expert reading · ₩30,000",
-        "n300007": "Expert naming · ₩30,000"
+        "n300007": "Expert naming · ₩30,000",
+        "krpmzd9": "NEW · Human Design"
       }
     },
     "tarotTileBody": {
@@ -6705,7 +6714,10 @@
         "km02jru": "Wayfinding",
         "k1tna4h3": "Expert reading",
         "k1tna4h32": "Expert reading",
-        "k1tna4h33": "Expert reading"
+        "k1tna4h33": "Expert reading",
+        "k1cn6ns4": "Bodygraph",
+        "kznzdv9": "AI personal reading",
+        "k1pwdig4": "See my design"
       },
       "pvcPremPoints": {
         "AIPDF": "AI-generated name analysis + PDF save",
@@ -6744,7 +6756,10 @@
         "kfib4kf": "Compare the energy of the two options at the fork",
         "k1vetwxt": "Your course in life, read through the luck cycle and year you are passing through",
         "k67hhx7": "A future simulation that sketches what follows each choice",
-        "k1n33cx9": "The expert's finished naming result + PDF download"
+        "k1n33cx9": "The expert's finished naming result + PDF download",
+        "SwissEphemeris1326": "13 bodies × two layers = 26 activations, on Swiss Ephemeris",
+        "n64369": "Tap through 64 gates · 36 channels · 9 centres",
+        "kdpknwc": "Type · Strategy · Authority · Profile · Incarnation Cross"
       }
     },
     "terms24Card": {
@@ -6801,7 +6816,8 @@
     },
     "moonHeroCopy": {
       "moonHeroActions": {
-        "kerryje": "What is Fusion Fortune?"
+        "kerryje": "What is Fusion Fortune?",
+        "k107dp07": "Six systems cross-checked — Four Pillars to tarot →"
       }
     },
     "cdTodayPanelSaju": {
@@ -7002,6 +7018,96 @@
         "kw3mf7": {
           "ariaLabel": "Korean"
         }
+      }
+    },
+    "cdConcernCards": {
+      "cdConcernCard": {
+        "k1ozfahx": "Love · Compatibility · Reunion · Fated ties",
+        "k1fatpbc": "Compatibility · Chemistry · Relationship read",
+        "k1mgycgx": "Wealth · Income · Spending flow",
+        "k607hyq": "Career moves · Founding · Scaling up",
+        "k1n3lsfu": "New year outlook · Month by month · Luck cycles",
+        "k5gqwm7": "Four Pillars · Zi Wei Dou Shu · Astrology"
+      }
+    },
+    "cdWhyUs": {
+      "cdWhyUsHead": {
+        "CodeDestiny": "Why Code Destiny"
+      }
+    },
+    "cdWhyUsGrid": {
+      "cdWhyUsCard": {
+        "kfr2fu8": "Many viewpoints",
+        "k1lclup9": "Eastern systems — Four Pillars, Zi Wei Dou Shu, Vedic astrology, Sukuyo — read alongside Western astrology and tarot.",
+        "kq6mt4": "Personalised",
+        "k1wbxeap": "Your result is calculated from your own birth date, birth time and birthplace.",
+        "k1239k1": "AI reading",
+        "kvkxft": "Dense chart data, unpacked into language you can actually read.",
+        "kv06ho": "Hyper-fusion",
+        "kdcl9cf": "We cross-check whether separate systems point the same way."
+      }
+    },
+    "cdFinder": {
+      "moonSectionHead": {
+        "kf1ogji": "Find the reading you need"
+      }
+    },
+    "fortuneGatewayDiscover": {
+      "fortuneGatewayChips": {
+        "k180xm6d": "❤️ Love",
+        "kkz7xh9": "💰 Wealth",
+        "kkzg05h": "💼 Career",
+        "kfcewzb": "🏠 Family / Home",
+        "kl5e4s6": "🧭 Life path",
+        "kl9lspj": "🌙 Today",
+        "kkymdrk": "💕 Compatibility",
+        "k17f5hqf": "🔮 Myself",
+        "klc5o0t": "🎯 Other"
+      },
+      "fortuneGatewayAll": {
+        "kqk7ooc": "See all"
+      },
+      "fortuneGatewaySearch": {
+        "k15ln3db": {
+          "placeholder": "e.g. love, money, career change, today, free love reading",
+          "ariaLabel": "Search readings"
+        }
+      },
+      "kwgfgtu": {
+        "ariaLabel": "Pick a topic"
+      }
+    },
+    "fortuneGatewayFilters": {
+      "fortuneGatewayFilterRow": {
+        "kx2ok": "System",
+        "ku7c9": "Price"
+      },
+      "k1szzetk": {
+        "ariaLabel": "Filter by system"
+      },
+      "k10794b2": {
+        "ariaLabel": "Filter by price"
+      }
+    },
+    "fortuneGatewayFilterRow": {
+      "fortuneGatewayFilterChips": {
+        "kxvio": "Four Pillars",
+        "k10ios": "Tarot",
+        "kpyjtww": "Zi Wei Dou Shu",
+        "ku8un3": "Astrology",
+        "ktecid": "Sukuyo",
+        "ksi53g": "Vedic",
+        "k11zo0b": "AI consultation",
+        "kwuu0": "Free",
+        "kvu9ix": "Around KRW 3,000",
+        "kvvjhz": "Around KRW 5,000",
+        "kt1sff": "Around KRW 10,000",
+        "krnc4c4": "Premium"
+      }
+    },
+    "birthCountryComboWrap": {
+      "kefdlj6": {
+        "ariaLabel": "Birthplace search results"
       }
     }
   },
