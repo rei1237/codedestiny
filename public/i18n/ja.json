@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "利用者の口コミ",
       "lead": "実際に鑑定を受けた方が残した口コミです。",
-      "allCta": "すべての口コミを見る →"
+      "allCta": "すべての口コミを見る →",
+      "empty": "まだ登録されたレビューがありません。相談を利用して、最初のレビューを残してみてください。"
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -521,7 +522,7 @@
       "olympusOracleAlt": "Olympus Oracle - 12 の神と黄道十二宮の運命の読み方",
       "olympusOracleImgAlt": "オリンパス オラクル",
       "destinyFlowerAria": "デスティニーフラワーを開始",
-      "destinyFlowerAlt": "Destiny Flower - あなたのサジュから咲く花",
+      "destinyFlowerAlt": "運命の花 — 四柱推命・占星術・紫微斗数・宿曜の統合",
       "destinyFlowerImgAlt": "運命の花",
       "astrologyFlowerAria": "占星術フラワーを開始",
       "astrologyFlowerAlt": "占星術の花 - サン・ライジング・ムーン",
@@ -1335,6 +1336,13 @@
       "title": "無料でいますぐ始める",
       "freeStart": "無料で開始",
       "compat": "相性を見る"
+    },
+    "pickWhy": {
+      "prefix": "今日は",
+      "suffix": "が最も合います。"
+    },
+    "feedback": {
+      "rewardPrefix": "採用されたバグ報告1件につき"
     }
   },
   "terms": {

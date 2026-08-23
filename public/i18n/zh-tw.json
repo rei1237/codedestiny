@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "使用者評價",
       "lead": "這些是真實使用者在諮詢後留下的評價。",
-      "allCta": "查看全部評價 →"
+      "allCta": "查看全部評價 →",
+      "empty": "還沒有評價。體驗一次諮詢，來留下第一則吧。"
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -521,7 +522,7 @@
       "olympusOracleAlt": "奧林匹斯神諭 - 12 神與十二生肖命運解讀",
       "olympusOracleImgAlt": "奧林巴斯甲骨文",
       "destinyFlowerAria": "啟動命運之花",
-      "destinyFlowerAlt": "命運之花 - 從你的 Saju 中綻放的花朵",
+      "destinyFlowerAlt": "命運之花 — 四柱·占星·紫微斗數·宿曜合一",
       "destinyFlowerImgAlt": "命運之花",
       "astrologyFlowerAria": "開始占星花",
       "astrologyFlowerAlt": "占星花 - 太陽·上升·月亮",
@@ -1335,6 +1336,13 @@
       "title": "免費立即開始",
       "freeStart": "免費開始",
       "compat": "查看合盤"
+    },
+    "pickWhy": {
+      "prefix": "今天",
+      "suffix": "最適合您。"
+    },
+    "feedback": {
+      "rewardPrefix": "每一則被採納的錯誤回報"
     }
   },
   "terms": {

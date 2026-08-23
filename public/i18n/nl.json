@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "Gebruikersreviews",
       "lead": "Reviews van mensen die echt een consult hebben gedaan.",
-      "allCta": "Bekijk alle reviews →"
+      "allCta": "Bekijk alle reviews →",
+      "empty": "Nog geen reviews. Probeer een consult en schrijf de eerste."
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -521,7 +522,7 @@
       "olympusOracleAlt": "Olympus Orakel - 12 goden en lot van de dierenriem lezen",
       "olympusOracleImgAlt": "Olympus Orakel",
       "destinyFlowerAria": "Start de bestemmingsbloem",
-      "destinyFlowerAlt": "Destiny Flower - De bloem die bloeit uit je Saju",
+      "destinyFlowerAlt": "Lotsbloem - Saju, astrologie, Zi Wei en Sukuyo samengebracht",
       "destinyFlowerImgAlt": "Lotbloem",
       "astrologyFlowerAria": "Start Astrologiebloem",
       "astrologyFlowerAlt": "Astrologie Bloem - Zon · Opkomend · Maan",
@@ -1335,6 +1336,13 @@
       "title": "Gratis direct beginnen",
       "freeStart": "Gratis starten",
       "compat": "Compatibiliteit"
+    },
+    "pickWhy": {
+      "prefix": "Vandaag past",
+      "suffix": "het beste bij je."
+    },
+    "feedback": {
+      "rewardPrefix": "Per geaccepteerde bugmelding"
     }
   },
   "terms": {

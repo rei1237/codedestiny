@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "User reviews",
       "lead": "Reviews left by people who actually had a reading.",
-      "allCta": "See all reviews →"
+      "allCta": "See all reviews →",
+      "empty": "No reviews yet. Try a reading and leave the first one."
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -521,7 +522,7 @@
       "olympusOracleAlt": "Olympus Oracle - 12 gods and zodiac destiny reading",
       "olympusOracleImgAlt": "Olympus Oracle",
       "destinyFlowerAria": "Start Destiny Flower",
-      "destinyFlowerAlt": "Destiny Flower - The flower blooming from your Saju",
+      "destinyFlowerAlt": "Destiny Flower - Saju, astrology, Zi Wei, and Sukuyo combined",
       "destinyFlowerImgAlt": "Destiny Flower",
       "astrologyFlowerAria": "Start Astrology Flower",
       "astrologyFlowerAlt": "Astrology Flower - Sun · Rising · Moon",
@@ -1335,6 +1336,13 @@
       "title": "Start free, right now",
       "freeStart": "Free to start",
       "compat": "Compatibility"
+    },
+    "pickWhy": {
+      "prefix": "Today,",
+      "suffix": "fits you best."
+    },
+    "feedback": {
+      "rewardPrefix": "Per accepted bug report"
     }
   },
   "terms": {

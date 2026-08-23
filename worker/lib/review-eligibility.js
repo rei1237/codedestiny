@@ -28,6 +28,14 @@ const SINGLE_PAYMENT_STATUSES = Object.freeze(["paid", "success", "fulfilled"]);
 const PASS_ACCESS_METHODS = new Set(["PASS", "FAMILY", "MONTHLY"]);
 const LOOKBACK_LIMIT = 300;
 
+// 구매 인증 배지는 "실제로 돈이 오간 기록이 있다"는 사실 진술이다(review-models.js의 주석).
+// 이용권·월정석은 유료 구독이므로 구매에 포함한다.
+//
+// 🔴 화이트리스트여야 한다. `!sources.includes("free")` 같은 블랙리스트로 쓰면 새 소스가
+// 생겼을 때 "구매로 간주"되는 쪽으로 실패한다 — 없는 결제를 있다고 말하는 방향이다.
+// 화이트리스트면 등록을 잊었을 때 배지가 안 붙는 쪽으로 실패한다.
+const PURCHASE_SOURCES = new Set(["execution", "payment", "coin", "pass", "entitlement"]);
+
 // 리뷰쓰기 모달을 열 때(GET eligibility)와 실제 제출할 때(POST create)가 같은 세션에서
 // 수 초~수십 초 안에 같은 userId로 이 함수를 두 번 호출한다. TTL을 짧게 잡아 그 구간만
 // 캐시로 흡수한다 — access-state.js와 같은 isolate 재사용 캐시 패턴(무효화 훅은 두지 않고
@@ -242,6 +250,23 @@ export async function listReviewableProducts({ userId, env = {} }) {
     alreadyReviewed: statusByProduct.has(item.productId),
     existingReviewStatus: statusByProduct.get(item.productId) || "",
   }));
+}
+
+/**
+ * 이용 기록 하나가 "구매"인지 판정한다.
+ *
+ * 소스 이름(execution/payment/coin/pass/entitlement)이 이 모듈에서만 정의되므로 판정도
+ * 여기 둔다 — 라우트가 소스 이름을 손으로 다시 적으면 목록이 두 벌이 되어 어긋난다.
+ *
+ * @param {{sources?: string[]}} usage listUsedReviewProducts가 돌려준 항목
+ * @returns {{isVerifiedPurchase: boolean, usageSource: "purchase"|""}}
+ */
+export function resolveUsageVerification(usage) {
+  const sources = Array.isArray(usage?.sources) ? usage.sources : [];
+  if (sources.some((source) => PURCHASE_SOURCES.has(source))) {
+    return { isVerifiedPurchase: true, usageSource: "purchase" };
+  }
+  return { isVerifiedPurchase: false, usageSource: "" };
 }
 
 /**

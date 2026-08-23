@@ -21,6 +21,8 @@ interface ReviewCard {
   title: string;
   body: string;
   isVerifiedPurchase: boolean;
+  // 옛 엣지 캐시 응답(v1 키)에는 없다. 없으면 배지를 붙이지 않는 쪽으로 떨어진다.
+  usageSource?: string;
   displayedAt: string;
 }
 
@@ -64,6 +66,7 @@ type ReviewsCopy = {
   avatarAlt: (name: string) => string;
   productPrefix: string;
   verifiedBadge: string;
+  experienceBadge: string;
   backHomeAriaLabel: string;
   homeLabel: string;
   yeonAriaLabel: string;
@@ -120,6 +123,7 @@ const REVIEWS_COPY_EN: ReviewsCopy = {
   avatarAlt: (name) => `${name}'s profile photo`,
   productPrefix: "Service: ",
   verifiedBadge: "Verified purchase",
+  experienceBadge: "Verified free trial",
   backHomeAriaLabel: "Back to home",
   homeLabel: "Home",
   yeonAriaLabel: "Yeon the piglet",
@@ -177,6 +181,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `${name} 프로필 이미지`,
     productPrefix: "상품: ",
     verifiedBadge: "구매 인증",
+    experienceBadge: "체험 인증",
     backHomeAriaLabel: "홈으로 돌아가기",
     homeLabel: "홈",
     yeonAriaLabel: "꽃돼지 연이",
@@ -233,6 +238,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `${name}のプロフィール画像`,
     productPrefix: "サービス: ",
     verifiedBadge: "購入確認済み",
+    experienceBadge: "無料体験確認済み",
     backHomeAriaLabel: "ホームに戻る",
     homeLabel: "ホーム",
     yeonAriaLabel: "花豚のヨニ",
@@ -288,6 +294,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `${name}的头像`,
     productPrefix: "服务: ",
     verifiedBadge: "已验证购买",
+    experienceBadge: "已验证免费体验",
     backHomeAriaLabel: "返回首页",
     homeLabel: "首页",
     yeonAriaLabel: "花猪妍伊",
@@ -343,6 +350,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `${name}的頭像`,
     productPrefix: "服務: ",
     verifiedBadge: "已驗證購買",
+    experienceBadge: "已驗證免費體驗",
     backHomeAriaLabel: "返回首頁",
     homeLabel: "首頁",
     yeonAriaLabel: "花豬妍伊",
@@ -398,6 +406,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `Ảnh đại diện của ${name}`,
     productPrefix: "Dịch vụ: ",
     verifiedBadge: "Đã xác minh mua hàng",
+    experienceBadge: "Đã xác minh dùng thử",
     backHomeAriaLabel: "Quay về trang chủ",
     homeLabel: "Trang chủ",
     yeonAriaLabel: "Heo con Yeon",
@@ -453,6 +462,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `${name} की प्रोफ़ाइल फोटो`,
     productPrefix: "सेवा: ",
     verifiedBadge: "सत्यापित खरीद",
+    experienceBadge: "सत्यापित नि:शुल्क उपयोग",
     backHomeAriaLabel: "होम पर वापस जाएं",
     homeLabel: "होम",
     yeonAriaLabel: "योन पिगलेट",
@@ -508,6 +518,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `Foto de perfil de ${name}`,
     productPrefix: "Servicio: ",
     verifiedBadge: "Compra verificada",
+    experienceBadge: "Prueba gratuita verificada",
     backHomeAriaLabel: "Volver al inicio",
     homeLabel: "Inicio",
     yeonAriaLabel: "Yeon el cerdito",
@@ -563,6 +574,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `Photo de profil de ${name}`,
     productPrefix: "Service : ",
     verifiedBadge: "Achat vérifié",
+    experienceBadge: "Essai gratuit vérifié",
     backHomeAriaLabel: "Retour à l'accueil",
     homeLabel: "Accueil",
     yeonAriaLabel: "Yeon le petit cochon",
@@ -618,6 +630,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `Profilbild von ${name}`,
     productPrefix: "Leistung: ",
     verifiedBadge: "Verifizierter Kauf",
+    experienceBadge: "Verifizierte Testnutzung",
     backHomeAriaLabel: "Zurück zur Startseite",
     homeLabel: "Startseite",
     yeonAriaLabel: "Ferkel Yeon",
@@ -673,6 +686,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `Profielfoto van ${name}`,
     productPrefix: "Dienst: ",
     verifiedBadge: "Geverifieerde aankoop",
+    experienceBadge: "Geverifieerd gratis gebruik",
     backHomeAriaLabel: "Terug naar home",
     homeLabel: "Home",
     yeonAriaLabel: "Biggetje Yeon",
@@ -728,6 +742,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     avatarAlt: (name) => `Gambar profil ${name}`,
     productPrefix: "Perkhidmatan: ",
     verifiedBadge: "Pembelian disahkan",
+    experienceBadge: "Percubaan percuma disahkan",
     backHomeAriaLabel: "Kembali ke laman utama",
     homeLabel: "Laman utama",
     yeonAriaLabel: "Anak babi Yeon",
@@ -878,6 +893,11 @@ function ReviewCardView({ review, copy }: { review: ReviewCard; copy: ReviewsCop
           <span className="inline-flex items-center gap-1 rounded-full bg-[#fdf0f5] px-2 py-0.5 text-xs font-medium text-[#b31955] dark:bg-[#4a1230] dark:text-[#f4bed1]">
             <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
             {copy.verifiedBadge}
+          </span>
+        ) : review.usageSource === "free" ? (
+          <span className="inline-flex items-center gap-1 rounded-full bg-[#f4f1f6] px-2 py-0.5 text-xs font-medium text-[#6b5470] dark:bg-[#33283c] dark:text-[#cbb8d4]">
+            <BadgeCheck className="h-3.5 w-3.5" aria-hidden="true" />
+            {copy.experienceBadge}
           </span>
         ) : null}
       </footer>

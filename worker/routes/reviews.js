@@ -30,6 +30,7 @@ import {
 import {
   findUsedReviewProduct,
   listReviewableProducts,
+  resolveUsageVerification,
 } from "../lib/review-eligibility.js";
 import { screenReviewText } from "../lib/review-moderation.js";
 
@@ -93,6 +94,7 @@ function toPublicReview(doc) {
     body: toText(doc?.body),
     locale: toText(doc?.locale) || "ko",
     isVerifiedPurchase: Boolean(doc?.isVerifiedPurchase),
+    usageSource: toText(doc?.usageSource),
     displayedAt: doc?.displayedAt ? new Date(doc.displayedAt).toISOString() : "",
   };
 }
@@ -150,7 +152,9 @@ async function handleList(request, env) {
 
   let loaded = false;
   const { value, stale } = await readCmsThroughCache({
-    key: `reviews:list:v1:${productId}:${sortKey}:${verifiedOnly ? "verified" : "all"}:${page}:${limit}`,
+    // v2: toPublicReview 에 usageSource 가 생겼다. 키를 올리지 않으면 배포 직후 최대
+    // stale 창(15분) 동안 그 필드가 빠진 옛 응답이 나간다.
+    key: `reviews:list:v2:${productId}:${sortKey}:${verifiedOnly ? "verified" : "all"}:${page}:${limit}`,
     ttlSeconds: PUBLIC_CACHE_TTL_SECONDS,
     staleTtlSeconds: PUBLIC_CACHE_STALE_TTL_SECONDS,
     load: async () => {
@@ -307,7 +311,10 @@ async function handleCreate(request, env) {
   }
 
   const authorName = toText(userDoc?.name) || toText(auth.name) || "코드데스티니 이용자";
-  const screening = screenReviewText({ title, body: reviewBody, isVerifiedPurchase: true });
+  // 🔴 true 를 박지 않는다 — 어떤 기록으로 자격을 얻었는지에 따라 배지가 갈려야 한다.
+  // 판정 정본은 review-eligibility 에 있다(소스 이름이 거기서만 정의되기 때문).
+  const { isVerifiedPurchase, usageSource } = resolveUsageVerification(usage);
+  const screening = screenReviewText({ title, body: reviewBody, isVerifiedPurchase });
 
   try {
     const doc = await Review.create({
@@ -323,7 +330,8 @@ async function handleCreate(request, env) {
       body: reviewBody,
       locale,
       status: "pending",
-      isVerifiedPurchase: true,
+      isVerifiedPurchase,
+      usageSource,
       createdByAdmin: false,
       autoFlagReasons: screening.flags,
       displayedAt: new Date(),
