@@ -11582,6 +11582,49 @@
       "title": "在花瓣之間，樣貌變了",
       "metLabel": "見見 Yeoni",
       "nextLabel": "下一步"
+    },
+    "dialogueBox": {
+      "speakerLabel": {
+        "narration": "旁白",
+        "yeoni": "Yeoni",
+        "pig": "花豬？"
+      },
+      "speakerIcon": {
+        "yeoni": "Y",
+        "pig": "蜜",
+        "moon": "月"
+      },
+      "waiting": "月光正在升起…",
+      "next": "下一步 ▾"
+    },
+    "storyIntro": {
+      "nextLabel": "下一步",
+      "backdropAlt": "月光下敞開著門的運命茶館",
+      "title": "運命茶館",
+      "skipAria": "跳過運命茶館的開場",
+      "skipLabel": "跳過"
+    },
+    "flowPreview": {
+      "eyebrow": "讓茶杯替心做選擇的地方",
+      "title": "諮詢就是這樣開始的",
+      "readyLabel": "準備開始諮詢",
+      "nextLabel": "下一步",
+      "cardAlt": "{title} 場景"
+    },
+    "humanYeoniReveal": {
+      "eyebrow": "在月光中顯露的名字",
+      "title": "Yeoni 迎接你",
+      "seeReadingLabel": "查看茶杯諮詢",
+      "nextLabel": "下一步"
+    },
+    "tarotAssetCard": {
+      "upright": "正位",
+      "reversed": "逆位",
+      "backAria": "尚未揭開的運命之牌",
+      "backTitle": "運命之牌",
+      "tarotImageAria": "{name} 塔羅牌圖像",
+      "cardImageAria": "{name} 牌面圖像",
+      "cardAlt": "{name} 塔羅牌"
     }
   }
 }

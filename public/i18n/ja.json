@@ -11582,6 +11582,49 @@
       "title": "花びらのあいだで姿が変わります",
       "metLabel": "ヨニに会う",
       "nextLabel": "次へ"
+    },
+    "dialogueBox": {
+      "speakerLabel": {
+        "narration": "ナレーション",
+        "yeoni": "ヨニ",
+        "pig": "花豚？"
+      },
+      "speakerIcon": {
+        "yeoni": "ヨ",
+        "pig": "ハ",
+        "moon": "月"
+      },
+      "waiting": "月あかりが立ちのぼっています…",
+      "next": "次へ ▾"
+    },
+    "storyIntro": {
+      "nextLabel": "次へ",
+      "backdropAlt": "月あかりの下で扉が開いた運命の茶館",
+      "title": "運命の茶館",
+      "skipAria": "運命の茶館の導入シーンをスキップ",
+      "skipLabel": "スキップ"
+    },
+    "flowPreview": {
+      "eyebrow": "茶碗が心を選ぶ場所",
+      "title": "鑑定はこうして始まります",
+      "readyLabel": "鑑定の準備をする",
+      "nextLabel": "次へ",
+      "cardAlt": "{title} の場面"
+    },
+    "humanYeoniReveal": {
+      "eyebrow": "月あかりの中で明かされた名前",
+      "title": "ヨニがあなたを迎えます",
+      "seeReadingLabel": "茶碗の鑑定を見る",
+      "nextLabel": "次へ"
+    },
+    "tarotAssetCard": {
+      "upright": "正位置",
+      "reversed": "逆位置",
+      "backAria": "まだ公開されていない運命のカード",
+      "backTitle": "運命のカード",
+      "tarotImageAria": "{name} タロットカードの画像",
+      "cardImageAria": "{name} カードの画像",
+      "cardAlt": "{name} タロットカード"
     }
   }
 }

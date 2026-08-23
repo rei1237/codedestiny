@@ -6,6 +6,7 @@ import type { FortuneTeaHouseConsultResponse } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { resolveTarotCardImage } from "../lib/tarotCardImageMap";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TarotAssetCardProps = {
   cardId: string;
@@ -22,6 +23,18 @@ type TarotAssetCardProps = {
   className?: string;
 };
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    {name} 은 카드의 한국어명 + 영문명으로 치환된다 — 번역에서도 그대로 남겨 둘 것. */
+const KO = {
+  upright: "정방향",
+  reversed: "역방향",
+  backAria: "아직 공개되지 않은 운명의 카드",
+  backTitle: "운명의 카드",
+  tarotImageAria: "{name} 타로 카드 이미지",
+  cardImageAria: "{name} 카드 이미지",
+  cardAlt: "{name} 타로 카드",
+};
+
 export default function TarotAssetCard({
   cardId,
   number,
@@ -36,12 +49,13 @@ export default function TarotAssetCard({
   visualOnly = false,
   className = "",
 }: TarotAssetCardProps) {
+  const copy = useTeaHouseCopy("tarotAssetCard", KO);
   const cardImage = useMemo(
     () => resolveTarotCardImage({ cardId, nameKo, nameEn, number }),
     [cardId, nameEn, nameKo, number],
   );
   const [imageFailed, setImageFailed] = useState(false);
-  const direction = orientation === "upright" ? "정방향" : "역방향";
+  const direction = orientation === "upright" ? copy.upright : copy.reversed;
   const cardNumber = typeof number === "number" ? number : Number(cardId.match(/(?:major|minor)_[a-z]*_?(\d+)/)?.[1] || 0);
   const shouldPreload = size === "lg" || visualOnly;
   const imageSizes = visualOnly
@@ -62,12 +76,12 @@ export default function TarotAssetCard({
         className={`${styles.tarotAssetCard} ${styles.tarotAssetCardBack} ${className}`}
         data-size={size}
         style={{ "--tarot-yeoni-card": `url("${fortuneTeaHouseAssets.yeoni.transparent.tarotCard}")` } as CSSProperties}
-        aria-label="아직 공개되지 않은 운명의 카드"
+        aria-label={copy.backAria}
       >
         <span className={styles.tarotAssetBackMark} aria-hidden>
           月
         </span>
-        <strong>운명의 카드</strong>
+        <strong>{copy.backTitle}</strong>
       </article>
     );
   }
@@ -80,7 +94,7 @@ export default function TarotAssetCard({
       data-compact={compact ? "true" : "false"}
       data-visual-only={visualOnly ? "true" : "false"}
       style={{ "--tarot-yeoni-card": `url("${fortuneTeaHouseAssets.yeoni.transparent.tarotCard}")` } as CSSProperties}
-      aria-label={visualOnly ? `${nameKo} ${nameEn} 타로 카드 이미지` : undefined}
+      aria-label={visualOnly ? copy.tarotImageAria.replace("{name}", `${nameKo} ${nameEn}`) : undefined}
     >
       {!visualOnly ? (
         <div className={styles.tarotAssetHeader}>
@@ -89,12 +103,12 @@ export default function TarotAssetCard({
         </div>
       ) : null}
 
-      <div className={styles.tarotAssetVisual} aria-label={`${nameKo} ${nameEn} 카드 이미지`}>
+      <div className={styles.tarotAssetVisual} aria-label={copy.cardImageAria.replace("{name}", `${nameKo} ${nameEn}`)}>
         {cardImage && !imageFailed ? (
           <Image
             className={styles.tarotAssetCrop}
             src={cardImage.url}
-            alt={`${nameKo} ${nameEn} 타로 카드`}
+            alt={copy.cardAlt.replace("{name}", `${nameKo} ${nameEn}`)}
             width={1024}
             height={1536}
             sizes={imageSizes}

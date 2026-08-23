@@ -5012,6 +5012,49 @@
       "title": "꽃잎 사이로 모습이 바뀝니다",
       "metLabel": "연이를 만난다",
       "nextLabel": "다음"
+    },
+    "dialogueBox": {
+      "speakerLabel": {
+        "narration": "나레이션",
+        "yeoni": "연이",
+        "pig": "꽃돼지?"
+      },
+      "speakerIcon": {
+        "yeoni": "연",
+        "pig": "꿀",
+        "moon": "달"
+      },
+      "waiting": "달빛이 피어오르는 중...",
+      "next": "다음 ▾"
+    },
+    "storyIntro": {
+      "nextLabel": "다음",
+      "backdropAlt": "달빛 아래 문이 열린 운명의 찻집",
+      "title": "운명의 찻집",
+      "skipAria": "운명의 찻집 도입 장면 건너뛰기",
+      "skipLabel": "건너뛰기"
+    },
+    "flowPreview": {
+      "eyebrow": "찻잔이 마음을 고르는 자리",
+      "title": "상담은 이렇게 열립니다",
+      "readyLabel": "상담 시작 준비하기",
+      "nextLabel": "다음",
+      "cardAlt": "{title} 장면"
+    },
+    "humanYeoniReveal": {
+      "eyebrow": "달빛 속에 드러난 이름",
+      "title": "연이가 당신을 맞이합니다",
+      "seeReadingLabel": "찻잔 상담 보기",
+      "nextLabel": "다음"
+    },
+    "tarotAssetCard": {
+      "upright": "정방향",
+      "reversed": "역방향",
+      "backAria": "아직 공개되지 않은 운명의 카드",
+      "backTitle": "운명의 카드",
+      "tarotImageAria": "{name} 타로 카드 이미지",
+      "cardImageAria": "{name} 카드 이미지",
+      "cardAlt": "{name} 타로 카드"
     }
   }
 }

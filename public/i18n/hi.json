@@ -11582,6 +11582,49 @@
       "title": "The shape changes between the petals",
       "metLabel": "Meet Yeoni",
       "nextLabel": "Next"
+    },
+    "dialogueBox": {
+      "speakerLabel": {
+        "narration": "Narration",
+        "yeoni": "Yeoni",
+        "pig": "Flower Pig?"
+      },
+      "speakerIcon": {
+        "yeoni": "Y",
+        "pig": "H",
+        "moon": "M"
+      },
+      "waiting": "Moonlight is rising…",
+      "next": "Next ▾"
+    },
+    "storyIntro": {
+      "nextLabel": "Next",
+      "backdropAlt": "The Destiny Tea House with its door open under the moonlight",
+      "title": "The Destiny Tea House",
+      "skipAria": "Skip the opening scene of The Destiny Tea House",
+      "skipLabel": "Skip"
+    },
+    "flowPreview": {
+      "eyebrow": "Where the cup does the choosing",
+      "title": "This is how a reading opens",
+      "readyLabel": "Get ready to begin",
+      "nextLabel": "Next",
+      "cardAlt": "The {title} scene"
+    },
+    "humanYeoniReveal": {
+      "eyebrow": "A name revealed in the moonlight",
+      "title": "Yeoni welcomes you",
+      "seeReadingLabel": "See the cup reading",
+      "nextLabel": "Next"
+    },
+    "tarotAssetCard": {
+      "upright": "Upright",
+      "reversed": "Reversed",
+      "backAria": "A destiny card not yet revealed",
+      "backTitle": "Destiny Card",
+      "tarotImageAria": "Image of the {name} tarot card",
+      "cardImageAria": "Image of the {name} card",
+      "cardAlt": "The {name} tarot card"
     }
   }
 }
