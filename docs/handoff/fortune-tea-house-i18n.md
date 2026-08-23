@@ -6,11 +6,13 @@
 
 | 갈래 | 규모 | 진행 |
 |---|---|---|
-| `components/` UI 크롬 | 811개 문자열 / 33개 파일 | **기능 파일 전량 완료 (30/33)** — 남은 3개는 내부 디버그 페이지 |
-| `data/` | 114,223자 | 미착수 |
+| `components/` UI 크롬 | 811개 문자열 / 33개 파일 | ✅ **완료 (33/33)** — 디버그 4종 포함 |
+| `data/` | 114,223자 | 미착수 — **여기가 다음 차례** |
 | `lib/` | 56,335자 | 미착수 |
 
-PR: #1020 · #1024 머지됨 / **#1025** (질문 입력) · 결과 시트 커밋은 같은 브랜치.
+PR: #1020 · #1024 · #1025 머지됨 / **#1027**(표정 mood 재설계) · **#1028**(components 33/33) 리뷰 대기.
+
+🔴 **머지 순서: #1027 → #1028.** #1028 브랜치가 #1027 커밋 위에 쌓여 있다(base 는 둘 다 `main` 이라 Landing order 가드는 안 걸린다 — 그 가드는 base 가 그 브랜치인 열린 PR 이 있을 때만 발동한다).
 
 **"파일 단위 한글 30,186자"라는 수치를 근거로 삼지 말 것.** 그건 주석까지 센 값이다. AST 로 JSX 텍스트·문자열/템플릿 리터럴만 뽑은 실제 번역 대상이 `components/` 기준 **811개 / 9,053자**다. 재현:
 
@@ -67,20 +69,27 @@ const copy = useTeaHouseCopy("landing", KO);
 반대로 `TeaCupRitualScene` 의 `speaker="연이"` 는 라벨로 안 쓰이고 판별자뿐이라 **번역 대상이 아니다.**
 `calendarLabel(value === "lunar")` 처럼 비교 대상이 영어면 안전하다.
 
-### 2. TalkingPigYeoni 의 표정이 한국어 정규식에 걸려 있다 — 데이터 배치의 지뢰
+### 2. ✅ 마스코트 표정이 한국어 정규식에 걸려 있었다 — PR #1027 에서 해소
 
-`pickPigExpressionFrame` 은 스텝에 `mood` 가 없으면 **대사의 한국어 키워드로 표정을 고른다**:
+표정을 대사의 한국어 키워드로 골랐다. `TalkingPigYeoni` 는 `mood` 가 없을 때 폴백으로 5줄,
+`YeoniDialogueActor` 는 `mood` 를 필수 인자로 받고도 사실상 무시하고 7줄. **대사를 로케일화하는 순간
+어떤 키워드도 안 걸려 전부 기본 표정으로 주저앉는 구조**였다 — 에러도 없고 테스트도 안 깨진다.
 
-```ts
-if (mood === "playful" || /꿀|달고/.test(text)) …
-if (mood === "comfort" || /괜찮|안심|덜 아프|기다/.test(text)) …
-if (mood === "thinking" || /향|마음|질문|선택|망설/.test(text)) …
-```
+고친 방식:
 
-**`data/story.ts`·`data/entryStory.ts` 의 대사를 로케일화하는 순간, mood 없는 스텝은 전부 조용히 `welcome` 표정으로 주저앉는다.** 에러도 안 나고 테스트도 안 깨진다.
+- 정규식 12줄을 지우고 `data/yeoniSprites.ts` 의 **`yeoniMoodFrameMap`**(이미 있었고 아무도 안 쓰던 표)과
+  새 **`pigMoodFrameMap`** 조회로 바꿨다. 꽃돼지 크롭은 6종, `YeoniMood` 는 8종이라 표가 필요하다.
+- `doorway` 를 가리키는 mood 값이 없어 스텝에 선택적 `pigFrame?: PigExpressionId` 를 뒀다.
+  우선순위: `pigFrame` → `pigMoodFrameMap[mood]` → (말하지 않는 중이면) `welcome`.
+- `TeaHouseStoryStep` 을 **판별 유니언**으로 바꿔, `speaker` 가 나레이션이 아니면 `mood` 를 타입이 강제한다.
+- 가드 `__tests__/ui/fortune-tea-house-mood.static.test.js` — 정규식에 한글 없음 · 대사 줄에 mood 있음 ·
+  두 표가 8종을 덮음. 셋 다 fail-closed.
 
-고칠 자리는 번역된 텍스트 위의 정규식이 아니라 **데이터에서 `mood` 를 필수로 만드는 것**이다. 데이터 배치를 시작하기 전에 이것부터 처리할 것.
+🔴 **`data/entryStory.ts` 는 가드 대상이 아니다.** 그 파일 라인의 `mood` 는 **읽는 곳이 없다** —
+`TeaHouseEntryScene` 은 `speaker` 와 `text` 만 쓴다(전수 확인 2026-08-23: `git grep '.mood' -- src/features/fortune-tea-house`
+→ 소비처 3곳 전부 `story.ts` 의 `currentStep`). 죽은 데이터를 가드로 지키지 않는다.
 
+**그래서 `data/` 배치의 선행 조건은 없어졌다.** 대사를 번역해도 표정은 안 흔들린다.
 ### 3. ✅ `ko-KR` 하드코딩 4곳 — 전부 해소됨
 
 로케일과 무관하게 날짜·정렬이 한국식으로 나오던 자리다. 네 곳 모두 `useLocale()`(`lib/i18n/useT.ts`)을 쓰도록 고쳤다:
@@ -119,17 +128,23 @@ if (mood === "thinking" || /향|마음|질문|선택|망설/.test(text)) …
 
 ## 남은 대상
 
-| 파일 | 문자열 |
-|---|---|
-| `TarotDebugPage` · `TeaCupDebugPage` · `TenGodDebugPage` · `FortuneTeaHouseDebugPanel` | ~13 (내부용, 후순위) |
+`components/` 는 끝났다. 다음은 콘텐츠다.
 
-**기능 파일은 전부 끝났다.** 그다음이 `data/`(114,223자)·`lib/`(56,335자)이고, **함정 2를 먼저 처리해야 한다.**
+| 갈래 | 규모 | 메모 |
+|---|---|---|
+| `data/` | 114,223자 | 대사·찻잔·타로 카드 문안. 선행 조건 없음(위 함정 2 해소) |
+| `lib/` | 56,335자 | 해석 생성기. 🔴 `sukuyoCompatibilityAdapter.ts:247` 이 **한국어 정규식으로 분기**한다 — `sukuyoRelationshipTypes`/`sukuyoFocusOptions` 의 값은 번역 대상이 아니다 |
+| `data-img-alt` 14개 | — | 정적 셸 마커 도구의 속성 목록 밖. 도구에 속성을 추가할지 손으로 처리할지 미정 |
 
+**`data/` 를 시작하기 전에**: 콘텐츠는 UI 크롬과 규모가 한 자릿수 다르다. `useTeaHouseCopy` 는 훅이라
+React 컴포넌트 안에서만 쓸 수 있는데 `data/` 는 모듈 상수다. **사전을 태우는 지점이 데이터가 아니라
+그 데이터를 렌더하는 컴포넌트여야 한다** — 이 설계 판단을 먼저 하고 배치를 시작할 것.
 ## 검증
 
 ```bash
 npm run typecheck
 node --test __tests__/ui/fortune-tea-house-i18n.static.test.js
+node --test __tests__/ui/fortune-tea-house-mood.static.test.js
 npm run test:node          # 위 가드가 이 글롭에 포함된다
 npm run i18n:check         # 12개 로케일 키 수 일치
 ```
@@ -139,4 +154,4 @@ npm run i18n:check         # 12개 로케일 키 수 일치
 ## 이 문서가 다루지 않는 것
 
 - vi/hi/es/fr/de/nl/ms 7개 로케일의 실번역 — 사용자가 "나중에 일괄"로 명시한 별도 작업이다. 자동 번역기(`i18n-translate-pending.mjs`)는 Gemini 유료 실호출이라 **허락 없이 돌리지 않는다.**
-- `data/teaCups.ts`·`data/story.ts` 등의 콘텐츠 — 위 함정 2 해결이 선행돼야 한다.
+- `data/teaCups.ts`·`data/story.ts` 등의 콘텐츠 — 함정 2 는 해소됐지만 **훅을 어디서 부를지**를 먼저 정해야 한다(위 「남은 대상」).
