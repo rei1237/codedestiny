@@ -131,6 +131,8 @@
     "verify:daehan-purchase-index": "node scripts/migrations/20260816-add-daehan-purchase-index.mjs --check",
     "migrate:integrity-unique-indexes": "node scripts/migrations/20260824-add-integrity-unique-indexes.mjs",
     "verify:integrity-unique-indexes": "node scripts/migrations/20260824-add-integrity-unique-indexes.mjs --check",
+    "migrate:drop-unused-secondary-indexes": "node scripts/migrations/20260824-drop-unused-secondary-indexes.mjs",
+    "verify:drop-unused-secondary-indexes": "node scripts/migrations/20260824-drop-unused-secondary-indexes.mjs --check",
     "migrate:drop-redundant-prefix-indexes": "node scripts/migrations/20260820-drop-redundant-prefix-indexes.mjs",
     "verify:drop-redundant-prefix-indexes": "node scripts/migrations/20260820-drop-redundant-prefix-indexes.mjs --check",
     "migrate:guardian-fusion-ttl-indexes": "node scripts/migrations/20260821-fix-guardian-fusion-ttl-and-snapshot-indexes.mjs",

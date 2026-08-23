@@ -50,7 +50,7 @@ type AlbumNarrative = Pick<
   | "journalQuestion"
 >;
 
-const majorAlbumNarratives: Record<string, AlbumNarrative> = {
+export const majorAlbumNarratives: Record<string, AlbumNarrative> = {
   major_00_fool: {
     element: "공기",
     keywords: ["새 출발", "순수함", "모험", "가능성"],
@@ -443,7 +443,7 @@ type SuitMeta = {
   growthLine: string;
 };
 
-const suitMeta: Record<TarotAlbumSuit, SuitMeta> = {
+export const suitMeta: Record<TarotAlbumSuit, SuitMeta> = {
   wands: {
     label: "완드",
     element: "불",
@@ -523,7 +523,7 @@ type RankMeta = {
   question: string;
 };
 
-const rankMetaByNumber: Record<number, RankMeta> = {
+export const rankMetaByNumber: Record<number, RankMeta> = {
   1: {
     number: "Ace",
     keywords: ["새 씨앗", "시작", "순수한 가능성"],
@@ -750,6 +750,62 @@ const rankMetaByNumber: Record<number, RankMeta> = {
   },
 };
 
+/**
+ * 마이너 56장과 폴백 카드의 문장을 조립하는 틀.
+ *
+ * 🔴 이 문자열들이 코드 안 템플릿 리터럴로 박혀 있는 한 로케일화가 불가능하다. 조각(suitMeta·
+ * rankMetaByNumber)을 번역해도 조립하는 어순과 조사가 한국어에 묶여 있기 때문이다. 밖으로 빼서
+ * 사전이 통째로 갈아끼울 수 있게 한다 — 다른 언어는 자리표시자 순서를 자기 어순대로 바꾸면 된다.
+ */
+export const tarotAlbumTemplates = {
+  minor: {
+    shortSummary: "{title}: {rankShort} {suitSymbol}",
+    storyTitle: "{rankTitle}과 {suitNoun}",
+    story: "{rankScene} {suitSymbol} 이 카드가 펼쳐질 때 연이는 사건을 단순한 길흉으로 자르지 않고, 마음이 어떤 속도로 현실에 닿으려 하는지 먼저 살핍니다. {title}은 지금 당신에게 이 흐름을 현실의 선택으로 옮길 때가 왔음을 조용히 들려줍니다.",
+    uprightMeaning: "{rankLine} {suitLine}",
+    reversedMeaning: "{rankLine} {suitLine}",
+    loveMeaning: "{suitLine} {rankLine}",
+    relationshipMeaning: "{suitLine} {rankLine}",
+    careerMeaning: "{suitLine} {rankLine}",
+    moneyMeaning: "{suitLine} {rankLine}",
+    innerGrowthMeaning: "{suitLine} {rankLine}",
+    yeoniMessage: "이 카드는 손님에게 말해요. {rankShort} 그러니 오늘은 마음의 {suitNoun}을 너무 세게 움켜쥐지 말고, 실제로 바꿀 수 있는 한 가지부터 바라보세요.",
+  },
+  /** 메이저인데 서사가 아직 없는 카드용. 지금 덱에서는 쓰이지 않지만 카드가 늘면 여기가 받는다. */
+  fallback: {
+    element: "상징",
+    storyTitle: "{name}의 달빛 이야기",
+    story: "{name}은 지금 마음이 마주한 상징을 조용히 펼칩니다. 연이는 이 카드를 통해 선택의 온도와 감정의 결을 함께 살핍니다.",
+    loveMeaning: "{name}은 사랑에서 마음의 방향과 표현 방식을 차분히 보라고 가리킵니다.",
+    relationshipMeaning: "{name}은 관계에서 서로의 속도와 경계를 살피라고 말합니다.",
+    careerMeaning: "{name}은 일에서 지금 필요한 태도와 다음 행동을 비춥니다.",
+    moneyMeaning: "{name}은 돈에서 감정과 현실 조건을 함께 점검하라고 말합니다.",
+    innerGrowthMeaning: "{name}은 내면에서 반복되는 마음의 흐름을 알아차리게 합니다.",
+    yeoniMessage: "연이는 이 카드 앞에서 손님의 마음을 서두르지 않고 기다릴게요.",
+    journalQuestion: "이 카드가 지금 내게 비추는 작은 신호는 무엇인가요?",
+  },
+  majorSuitLabel: "메이저 아르카나",
+};
+
+export type TarotAlbumParts = {
+  majorNarratives: Record<string, AlbumNarrative>;
+  suitMeta: Record<TarotAlbumSuit, SuitMeta>;
+  rankMeta: Record<number, RankMeta>;
+  templates: typeof tarotAlbumTemplates;
+};
+
+/** 코드가 가진 한국어 원본. 컴포넌트는 이걸 사전으로 덮은 사본을 넘긴다. */
+export const tarotAlbumParts: TarotAlbumParts = {
+  majorNarratives: majorAlbumNarratives,
+  suitMeta,
+  rankMeta: rankMetaByNumber,
+  templates: tarotAlbumTemplates,
+};
+
+function fill(template: string, vars: Record<string, string>) {
+  return template.replace(/\{(\w+)\}/g, (_match, key: string) => vars[key] ?? "");
+}
+
 function getSuit(card: TeaHouseTarotCard): TarotAlbumSuit | undefined {
   if (card.id.includes("_wands_")) return "wands";
   if (card.id.includes("_cups_")) return "cups";
@@ -769,49 +825,52 @@ function buildImage(card: TeaHouseTarotCard, suit?: TarotAlbumSuit) {
   });
 }
 
-function buildMinorNarrative(card: TeaHouseTarotCard, suit: TarotAlbumSuit): AlbumNarrative {
-  const suitInfo = suitMeta[suit];
-  const rankInfo = rankMetaByNumber[card.number] || rankMetaByNumber[1];
+function buildMinorNarrative(card: TeaHouseTarotCard, suit: TarotAlbumSuit, parts: TarotAlbumParts): AlbumNarrative {
+  const suitInfo = parts.suitMeta[suit];
+  const rankInfo = parts.rankMeta[card.number] || parts.rankMeta[1]!;
+  const t = parts.templates.minor;
   const title = card.nameKo;
   return {
     element: suitInfo.element,
     keywords: Array.from(new Set([...rankInfo.keywords, ...suitInfo.keywords])).slice(0, 5),
     reversedKeywords: Array.from(new Set([...rankInfo.reversedKeywords, ...suitInfo.reversedKeywords])).slice(0, 5),
-    shortSummary: `${title}: ${rankInfo.shortLine} ${suitInfo.symbolLine}`,
-    storyTitle: `${rankInfo.storyTitle}과 ${suitInfo.storyNoun}`,
-    story: `${rankInfo.scene} ${suitInfo.symbolLine} 이 카드가 펼쳐질 때 연이는 사건을 단순한 길흉으로 자르지 않고, 마음이 어떤 속도로 현실에 닿으려 하는지 먼저 살핍니다. ${title}은 지금 당신에게 이 흐름을 현실의 선택으로 옮길 때가 왔음을 조용히 들려줍니다.`,
-    uprightMeaning: `${rankInfo.uprightLine} ${suitInfo.uprightLine}`,
-    reversedMeaning: `${rankInfo.reversedLine} ${suitInfo.reversedLine}`,
-    loveMeaning: `${suitInfo.loveLine} ${rankInfo.loveLine}`,
-    relationshipMeaning: `${suitInfo.relationshipLine} ${rankInfo.relationshipLine}`,
-    careerMeaning: `${suitInfo.careerLine} ${rankInfo.careerLine}`,
-    moneyMeaning: `${suitInfo.moneyLine} ${rankInfo.moneyLine}`,
-    innerGrowthMeaning: `${suitInfo.growthLine} ${rankInfo.growthLine}`,
-    yeoniMessage: `이 카드는 손님에게 말해요. ${rankInfo.shortLine} 그러니 오늘은 마음의 ${suitInfo.storyNoun}을 너무 세게 움켜쥐지 말고, 실제로 바꿀 수 있는 한 가지부터 바라보세요.`,
+    shortSummary: fill(t.shortSummary, { title, rankShort: rankInfo.shortLine, suitSymbol: suitInfo.symbolLine }),
+    storyTitle: fill(t.storyTitle, { rankTitle: rankInfo.storyTitle, suitNoun: suitInfo.storyNoun }),
+    story: fill(t.story, { rankScene: rankInfo.scene, suitSymbol: suitInfo.symbolLine, title }),
+    uprightMeaning: fill(t.uprightMeaning, { rankLine: rankInfo.uprightLine, suitLine: suitInfo.uprightLine }),
+    reversedMeaning: fill(t.reversedMeaning, { rankLine: rankInfo.reversedLine, suitLine: suitInfo.reversedLine }),
+    loveMeaning: fill(t.loveMeaning, { suitLine: suitInfo.loveLine, rankLine: rankInfo.loveLine }),
+    relationshipMeaning: fill(t.relationshipMeaning, { suitLine: suitInfo.relationshipLine, rankLine: rankInfo.relationshipLine }),
+    careerMeaning: fill(t.careerMeaning, { suitLine: suitInfo.careerLine, rankLine: rankInfo.careerLine }),
+    moneyMeaning: fill(t.moneyMeaning, { suitLine: suitInfo.moneyLine, rankLine: rankInfo.moneyLine }),
+    innerGrowthMeaning: fill(t.innerGrowthMeaning, { suitLine: suitInfo.growthLine, rankLine: rankInfo.growthLine }),
+    yeoniMessage: fill(t.yeoniMessage, { rankShort: rankInfo.shortLine, suitNoun: suitInfo.storyNoun }),
     journalQuestion: rankInfo.question,
   };
 }
 
-function buildAlbumCard(card: TeaHouseTarotCard, order: number): TarotAlbumStoryCard {
+function buildAlbumCard(card: TeaHouseTarotCard, order: number, parts: TarotAlbumParts): TarotAlbumStoryCard {
   const suit = getSuit(card);
   const image = buildImage(card, suit);
-  const narrative = suit ? buildMinorNarrative(card, suit) : majorAlbumNarratives[card.id];
+  const narrative = suit ? buildMinorNarrative(card, suit, parts) : parts.majorNarratives[card.id];
+  const f = parts.templates.fallback;
+  const name = card.nameKo;
   const fallbackNarrative: AlbumNarrative = {
-    element: suit ? suitMeta[suit].element : "상징",
+    element: suit ? parts.suitMeta[suit].element : f.element,
     keywords: card.upright.keywords,
     reversedKeywords: card.reversed.keywords,
     shortSummary: card.upright.meaning,
-    storyTitle: `${card.nameKo}의 달빛 이야기`,
-    story: `${card.nameKo}은 지금 마음이 마주한 상징을 조용히 펼칩니다. 연이는 이 카드를 통해 선택의 온도와 감정의 결을 함께 살핍니다.`,
+    storyTitle: fill(f.storyTitle, { name }),
+    story: fill(f.story, { name }),
     uprightMeaning: card.upright.meaning,
     reversedMeaning: card.reversed.meaning,
-    loveMeaning: `${card.nameKo}은 사랑에서 마음의 방향과 표현 방식을 차분히 보라고 가리킵니다.`,
-    relationshipMeaning: `${card.nameKo}은 관계에서 서로의 속도와 경계를 살피라고 말합니다.`,
-    careerMeaning: `${card.nameKo}은 일에서 지금 필요한 태도와 다음 행동을 비춥니다.`,
-    moneyMeaning: `${card.nameKo}은 돈에서 감정과 현실 조건을 함께 점검하라고 말합니다.`,
-    innerGrowthMeaning: `${card.nameKo}은 내면에서 반복되는 마음의 흐름을 알아차리게 합니다.`,
-    yeoniMessage: "연이는 이 카드 앞에서 손님의 마음을 서두르지 않고 기다릴게요.",
-    journalQuestion: "이 카드가 지금 내게 비추는 작은 신호는 무엇인가요?",
+    loveMeaning: fill(f.loveMeaning, { name }),
+    relationshipMeaning: fill(f.relationshipMeaning, { name }),
+    careerMeaning: fill(f.careerMeaning, { name }),
+    moneyMeaning: fill(f.moneyMeaning, { name }),
+    innerGrowthMeaning: fill(f.innerGrowthMeaning, { name }),
+    yeoniMessage: f.yeoniMessage,
+    journalQuestion: f.journalQuestion,
   };
   const resolvedNarrative = narrative || fallbackNarrative;
   return {
@@ -821,12 +880,17 @@ function buildAlbumCard(card: TeaHouseTarotCard, order: number): TarotAlbumStory
     titleKo: card.nameKo,
     arcana: suit ? "minor" : "major",
     suit,
-    suitLabel: suit ? suitMeta[suit].label : "메이저 아르카나",
-    number: suit ? rankMetaByNumber[card.number]?.number || String(card.number) : String(card.number),
+    suitLabel: suit ? parts.suitMeta[suit].label : parts.templates.majorSuitLabel,
+    number: suit ? parts.rankMeta[card.number]?.number || String(card.number) : String(card.number),
     imageSrc: image?.url || "",
     imageObjectKey: image?.objectKey,
     ...resolvedNarrative,
   };
 }
 
-export const tarotAlbumStoryCards: TarotAlbumStoryCard[] = tarotDeckCards.map(buildAlbumCard);
+/** 사전으로 덮은 조각을 넘기면 그 로케일의 앨범이 나온다. 인자를 생략하면 코드의 한국어 원본. */
+export function buildTarotAlbumCards(parts: TarotAlbumParts = tarotAlbumParts): TarotAlbumStoryCard[] {
+  return tarotDeckCards.map((card, order) => buildAlbumCard(card, order, parts));
+}
+
+export const tarotAlbumStoryCards: TarotAlbumStoryCard[] = buildTarotAlbumCards();
