@@ -182,7 +182,6 @@ const cups = useTeaHouseCopy("teaCups", teaHouseCups, { skipKeys: CUP_SKIP_KEYS 
 | `lib/` 전체 | 18,983자 | 전부 순수 함수라 훅을 못 쓴다. `buildConsultResult.ts:30-42` 에 **한국어 조사 엔진**(`hasFinalConsonant`/`subjectParticle`)이 박혀 있다 |
 | `data/tenGodVisuals.ts` 의 `alt` 10개 | — | `tenGodVisualMap` 의 항목이 전부 `tenGodSprite(...)` **호출**이라 가드가 리터럴을 못 읽는다 |
 | `data/assets.ts` 의 `label` 6개 | — | `talkingPigYeoniFrameCrops` 는 리터럴이라 배선 가능하지만, 두 컴포넌트가 서로 다른 경로(`pickPigExpressionFrame` / 모듈 최상위 배열)로 소비해 정리가 먼저다 |
-| `data/yeoniSprites.ts` 의 `label` 18개 | — | 화면 렌더 여부 **미확인**. 확인 후 대상 판정할 것 |
 | `data-img-alt` 14개 | — | 정적 셸 마커 도구의 속성 목록 밖. 도구에 속성을 추가할지 손으로 처리할지 미정 |
 
 **번역 대상이 아닌 것으로 확정된 것**
@@ -191,6 +190,7 @@ const cups = useTeaHouseCopy("teaCups", teaHouseCups, { skipKeys: CUP_SKIP_KEYS 
 - `tenGodLabelToIdMap` 의 한국어 키 — 조회 키다
 - `sukuyoRelationshipTypes`/`sukuyoFocusOptions` — `sukuyoCompatibilityAdapter.ts:247` 이 한국어 정규식으로 분기한다
 - `visualMotif`(찻잔 6개) — 화면에 나오지만 영어 무드 표기라 12개 로케일 모두 원문 유지
+- `yeoniSprites.ts` 의 `label` 18개 — 유일한 소비처 `YeoniDialogueActor.tsx:44-53` 이 `sheet`·`col`·`row` 만 읽는다. 스프라이트 시트 좌표를 고르는 용도이고 화면에 렌더되지 않는다
 ## 검증
 
 ```bash
