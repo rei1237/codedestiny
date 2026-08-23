@@ -81,9 +81,18 @@ if (mood === "thinking" || /향|마음|질문|선택|망설/.test(text)) …
 
 고칠 자리는 번역된 텍스트 위의 정규식이 아니라 **데이터에서 `mood` 를 필수로 만드는 것**이다. 데이터 배치를 시작하기 전에 이것부터 처리할 것.
 
-### 3. ✅  하드코딩 4곳 — 전부 해소됨
+### 3. ✅ `ko-KR` 하드코딩 4곳 — 전부 해소됨
 
-로케일과 무관하게 날짜·정렬이 한국식으로 나오던 자리다. 네 곳 모두 ()을 쓰도록 고쳤다: (상대 시간), (이름 정렬 · PDF 표지 생성일), (공유 텍스트의 타임스탬프). **새로 추가하지 말 것** — 날짜·정렬·숫자는 항상 활성 로케일을 받는다.
+로케일과 무관하게 날짜·정렬이 한국식으로 나오던 자리다. 네 곳 모두 `useLocale()`(`lib/i18n/useT.ts`)을 쓰도록 고쳤다:
+
+| 파일 | 무엇이었나 |
+|---|---|
+| `TeaHouseHistoryPanel.tsx` | 일주일 넘은 상담의 날짜가 `toLocaleDateString("ko-KR")` |
+| `DestinyCafeTarotAlbum.tsx` | 이름순 정렬이 `localeCompare(…, "ko-KR")` — 어떤 로케일에서도 한글 자모 순 |
+| `DestinyCafeTarotAlbum.tsx` | PDF 표지 생성일이 `Intl.DateTimeFormat("ko-KR")` |
+| `TeaHouseResultSheet.tsx` | 공유 텍스트의 타임스탬프가 `toLocaleString("ko-KR")` |
+
+🔴 **새로 추가하지 말 것** — 날짜·정렬·숫자 서식은 항상 활성 로케일을 받는다. 정렬 함수에 로케일을 넘겼다면 `useMemo` 의존성에도 넣어야 언어 전환이 반영된다.
 
 ### 4. 보간은 조각내지 말 것
 
@@ -112,7 +121,7 @@ if (mood === "thinking" || /향|마음|질문|선택|망설/.test(text)) …
 
 | 파일 | 문자열 |
 |---|---|
-| 디버그 페이지 4종(···) | ~13 (내부용) |
+| `TarotDebugPage` · `TeaCupDebugPage` · `TenGodDebugPage` · `FortuneTeaHouseDebugPanel` | ~13 (내부용, 후순위) |
 
 **기능 파일은 전부 끝났다.** 그다음이 `data/`(114,223자)·`lib/`(56,335자)이고, **함정 2를 먼저 처리해야 한다.**
 
