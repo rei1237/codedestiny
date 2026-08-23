@@ -36,6 +36,7 @@ import type { FortuneTeaHouseHoneyDropsState } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import {
   buildTarotAlbumCards,
+  rankMetaByNumber,
   suitMeta,
   tarotAlbumParts,
   tarotAlbumTemplates,
@@ -302,13 +303,14 @@ export default function DestinyCafeTarotAlbum({
   const closeButtonRef = useRef<HTMLButtonElement | null>(null);
   const pdfRenderRef = useRef<HTMLDivElement | null>(null);
   // 조각을 하나씩 사전으로 덮어 앨범을 다시 조립한다.
-  // 🔴 아직 배선하지 않은 조각(majorNarratives·rankMeta)은 한국어 원문 그대로 나간다.
+  // 🔴 아직 배선하지 않은 조각(majorNarratives)은 한국어 원문 그대로 나간다.
   //    번역 배치가 끝날 때마다 여기에 훅을 한 줄씩 늘린다.
   const templates = useTeaHouseCopy("tarotAlbumTemplates", tarotAlbumTemplates);
   const suits = useTeaHouseCopy("tarotAlbumSuits", suitMeta);
+  const ranks = useTeaHouseCopy("tarotAlbumRanks", rankMetaByNumber);
   const albumCards = useMemo(
-    () => buildTarotAlbumCards({ ...tarotAlbumParts, templates, suitMeta: suits }),
-    [suits, templates],
+    () => buildTarotAlbumCards({ ...tarotAlbumParts, templates, suitMeta: suits, rankMeta: ranks }),
+    [ranks, suits, templates],
   );
   const selectedCards = useMemo(
     () => albumCards.filter((card) => selectedCardIds[card.id]),
