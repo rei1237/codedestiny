@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "../../components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const MUSIC_GUIDE_PAGE_TEXT_TRANSLATIONS = {
@@ -193,6 +195,8 @@ export default function MusicGuidePage() {
           </article>
         ))}
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/music/guide"]} />
 
       <nav className="cd-chip-wrap" aria-label="음악 가이드 관련 링크">
         <Link href="/music" className="cd-chip">음악 플레이어</Link>

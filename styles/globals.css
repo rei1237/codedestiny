@@ -308,18 +308,44 @@
  * /high-value·홈이 함께 쓰므로 한 줄도 고치지 않는다. 가이드는 <main>에 .cd-guide 를
  * 덧붙여 여기서만 덮어쓴다 — 회귀 반경을 가이드 12종으로 못 박기 위한 스코프다.
  *
- * .policy-doc 과 같은 이유로 --cd-* 팔레트 토큰을 쓰지 않는다: :root 는 연이(밝은 값)인데
- * App Router 셸은 neo-mode 를 켜지 않아, 토큰을 쓰면 어두운 배경에 어두운 글자가 얹힌다.
- * 네오 값(미드나잇 #0a0818 / 트와일라잇 바이올렛 #c4b5fd / 샴페인 골드 #e8d5a3)을 직접 쓰고,
- * 페르소나와 무관한 토큰(--font-serif, --cd-dur-*, --cd-ease-snap)만 참조한다.
+ * 팔레트: :root 의 --cd-* 페르소나 토큰은 연이(밝은 값)인데 App Router 는 data-cd-theme="neo"
+ * 를 켜지 않는다(실측 2026-08-24: 가이드 문서에서 --cd-primary=#b31955, --cd-text=#3c1830).
+ * 그래서 --cd-* 를 그대로 소비하면 어두운 배경에 어두운 글자가 얹힌다. 대신 아래 .cd-guide 에
+ * 네오 세트를 --gd-* 사설 네임스페이스로 무조건부 선언한다 — app/love-secret-ai 의 --ls-* 와
+ * 같은 방식이다. 전역 --cd-* 를 여기서 덮어쓰지 않는 이유는, 나중에 공용 위젯이 가이드 안에
+ * 들어왔을 때 그것까지 조용히 다크로 뒤집히는 원격 작용을 막기 위해서다.
+ * 페르소나와 무관한 토큰(--cd-r-*, --cd-sp-*, --cd-t-*, --cd-btn-*, --cd-dur-*)은 :root 값이
+ * 그대로 맞으므로 재선언하지 않고 참조한다 — 홈과 같은 스케일 어휘를 쓰기 위한 것이다.
  * 강조색은 바이올렛 하나, 골드는 헤어라인·리스트 마커 보조로만 쓴다(One Accent Rule).
  */
 @layer components {
 	.cd-guide {
+		/* 네오 세트 — surface·ink·accent 를 한 규칙에서 원자적으로 교체한다(Two Covers). */
+		--gd-surface: rgba(19, 16, 42, 0.96);
+		--gd-line: rgba(196, 181, 253, 0.16);
+		--gd-line-strong: rgba(196, 181, 253, 0.3);
+		--gd-text: #f4eeff;
+		--gd-text-muted: rgba(200, 170, 255, 0.7);
+		--gd-body: rgba(222, 215, 245, 0.84);
+		--gd-accent: #c4b5fd;
+		--gd-accent-ink: #13102a;
+		--gd-gold: #e8d5a3;
+		--gd-shade-1: 0 1px 2px rgba(0, 0, 0, 0.3), 0 4px 14px -8px rgba(0, 0, 0, 0.45);
+		--gd-shade-2: 0 2px 6px rgba(0, 0, 0, 0.34), 0 10px 22px -10px rgba(0, 0, 0, 0.5);
+		--gd-shade-3: 0 6px 18px -8px rgba(167, 139, 250, 0.4);
+
 		position: relative;
 		isolation: isolate;
-		padding: 40px 0 72px;
-		color: rgba(222, 215, 245, 0.84);
+		padding: var(--cd-sp-xl, 36px) 0 72px;
+		color: var(--gd-body);
+	}
+	/* 홈 셸(index.html 의 cd-mobile-font-performance 블록)과 같은 조건에서 브랜드 디스플레이
+	   서체를 본문 스택으로 되돌린다 — 모바일에서 홈이 Mulmaru 를 받지 않으므로 가이드도 받지
+	   않아야 서체가 일치하고, 폰트 요청도 늘지 않는다. */
+	@media (max-width: 768px), (hover: none) and (pointer: coarse) {
+		.cd-guide {
+			--font-display: var(--font-body);
+		}
 	}
 	/* 헤더 뒤 달빛 베일 — 정보를 담지 않는 깊이 표현(Veil Rule) */
 	.cd-guide::before {
@@ -334,10 +360,10 @@
 
 	.cd-guide .cd-main-header {
 		position: relative;
-		margin-bottom: 34px;
-		padding-bottom: 26px;
+		margin-bottom: var(--cd-sp-xl, 36px);
+		padding-bottom: var(--cd-sp-lg, 24px);
 	}
-	/* 헤더와 본문을 가르는 골드 헤어라인 */
+	/* 헤더와 본문을 가르는 골드 헤어라인 — 페이지에서 골드를 쓰는 유일한 자리(Accent Budget) */
 	.cd-guide .cd-main-header::after {
 		content: "";
 		position: absolute;
@@ -346,23 +372,23 @@
 		background: linear-gradient(90deg, rgba(232, 213, 163, 0.62), rgba(196, 181, 253, 0.26) 42%, transparent 88%);
 	}
 	.cd-guide .cd-main-title {
-		font-family: var(--font-serif);
-		/* fonts-serif.css 는 한글 명조를 700 하나만 미러링한다 — 400 을 요청해도 700 으로
-		   떨어지므로 처음부터 700 을 쓴다. 본문에 세리프를 쓰지 않는 이유이기도 하다. */
+		/* 홈 제목과 같은 축(--font-display). 데스크탑은 Mulmaru, 모바일은 위 미디어쿼리가
+		   본문 스택으로 되돌린다 — 홈 셸이 하는 것과 같다. */
+		font-family: var(--font-display);
 		font-weight: 700;
-		font-size: clamp(1.72rem, 4.2vw, 2.55rem);
+		font-size: var(--cd-t-display, clamp(1.5rem, 3vw, 2.05rem));
 		line-height: 1.3;
 		letter-spacing: -0.005em;
-		color: #f7f2ff;
+		color: var(--gd-text);
 		text-wrap: balance;
 		word-break: keep-all;
 	}
 	.cd-guide .cd-main-intro {
-		margin-top: 16px;
+		margin-top: var(--cd-sp-md, 16px);
 		max-width: 68ch;
 		font-size: 1.02rem;
 		line-height: 1.9;
-		color: rgba(226, 217, 247, 0.86);
+		color: var(--gd-body);
 		word-break: keep-all;
 		text-wrap: pretty;
 	}
@@ -370,31 +396,23 @@
 	/* 정의 카드·FAQ 는 패널로, 단독 섹션은 문서 절로 — 같은 .cd-card 가 열 번
 	   반복되는 마크업을 건드리지 않고 선택자로 역할을 가른다. */
 	.cd-guide .cd-card-grid {
-		margin-top: 30px;
-		gap: 16px;
+		margin-top: var(--cd-sp-lg, 24px);
+		gap: var(--cd-sp-md, 16px);
 	}
 	.cd-guide .cd-card-grid > .cd-card {
 		position: relative;
 		overflow: hidden;
-		border-radius: 16px;
-		border: 1px solid rgba(196, 181, 253, 0.16);
-		background:
-			radial-gradient(120% 140% at 0% 0%, rgba(167, 139, 250, 0.1), transparent 46%),
-			linear-gradient(158deg, rgba(30, 24, 58, 0.92), rgba(18, 14, 38, 0.9));
-		/* Glow-Not-Shadow: 회색 드롭섀도 대신 네오 앰비언트 + 내부 하이라이트 */
-		box-shadow:
-			0 14px 26px rgba(0, 0, 0, 0.34),
-			inset 0 1px 0 rgba(228, 214, 255, 0.1);
-		padding: 22px 22px 24px;
+		/* 홈 카드와 같은 규격 — radius 20px, rest 는 단색 표면 + shade-1
+		   (Shade Vocabulary: rest=shade-1 / hover=shade-2 / CTA·선택=shade-3) */
+		border-radius: var(--cd-r-card, 20px);
+		border: 1px solid var(--gd-line);
+		background: var(--gd-surface);
+		box-shadow: var(--gd-shade-1);
+		padding: var(--cd-sp-md, 16px);
+		transition: box-shadow var(--cd-dur-base, 220ms) var(--cd-ease-snap, cubic-bezier(0.22, 1, 0.36, 1));
 	}
-	.cd-guide .cd-card-grid > .cd-card::before {
-		content: "";
-		position: absolute;
-		left: 18px;
-		right: 18px;
-		top: 0;
-		height: 1px;
-		background: linear-gradient(90deg, transparent, rgba(232, 213, 163, 0.55), transparent);
+	.cd-guide .cd-card-grid > .cd-card:hover {
+		box-shadow: var(--gd-shade-2);
 	}
 	/* 그리드 gap 이 이미 간격을 만든다 — 위 블록의 .cd-card + .cd-card 를 무력화 */
 	.cd-guide .cd-card-grid > .cd-card + .cd-card {
@@ -403,35 +421,46 @@
 	.cd-guide > .cd-card {
 		margin-top: 8px;
 		border: 0;
-		border-top: 1px solid rgba(196, 181, 253, 0.14);
+		border-top: 1px solid var(--gd-line);
 		border-radius: 0;
-		background: linear-gradient(180deg, rgba(167, 139, 250, 0.05), transparent 58%);
+		background: none;
 		box-shadow: none;
-		padding: 30px 0 6px;
+		padding: var(--cd-sp-lg, 24px) 0 6px;
 	}
 
 	/* Tailwind preflight 가 지운 위계를 가이드 안에서만 되살린다 */
 	.cd-guide h2 {
 		margin: 0 0 12px;
-		font-family: var(--font-serif);
+		font-family: var(--font-display);
 		font-weight: 700;
-		font-size: 1.14rem;
+		font-size: var(--cd-t-card, 1.1rem);
 		line-height: 1.5;
 		letter-spacing: 0.005em;
-		color: #f4eeff;
+		color: var(--gd-text);
 		text-wrap: balance;
 		word-break: keep-all;
 	}
 	.cd-guide > .cd-card > h2 {
 		margin-bottom: 14px;
-		font-size: 1.3rem;
+		font-size: var(--cd-t-section, clamp(1.24rem, 2.6vw, 1.7rem));
+	}
+	/* /compare 3종은 FAQ 질문에 h3 를 쓰는데 지금까지 규칙이 없어 preflight 상태로 렌더됐다. */
+	.cd-guide h3 {
+		margin: 0 0 10px;
+		font-family: var(--font-display);
+		font-weight: 700;
+		font-size: var(--cd-t-card, 1.1rem);
+		line-height: 1.55;
+		color: var(--gd-text);
+		text-wrap: balance;
+		word-break: keep-all;
 	}
 	.cd-guide p {
 		margin: 0;
 		max-width: 66ch;
 		font-size: 0.97rem;
 		line-height: 1.9;
-		color: rgba(222, 215, 245, 0.84);
+		color: var(--gd-body);
 		word-break: keep-all;
 		text-wrap: pretty;
 	}
@@ -450,7 +479,7 @@
 		margin: 0 0 12px;
 		font-size: 0.97rem;
 		line-height: 1.9;
-		color: rgba(222, 215, 245, 0.84);
+		color: var(--gd-body);
 		word-break: keep-all;
 		text-wrap: pretty;
 	}
@@ -461,15 +490,36 @@
 		color: rgba(232, 213, 163, 0.75);
 	}
 
+	/* /compare 3종의 비교표. 마크업의 Tailwind 유틸(w-full·border-collapse)이 이 레이어를
+	   이기므로 겹치는 선언은 무해하고, 여기서는 색·간격 위계만 세운다. */
+	.cd-guide table {
+		width: 100%;
+		border-collapse: collapse;
+		font-size: var(--cd-t-body, 0.9rem);
+	}
+	.cd-guide th,
+	.cd-guide td {
+		padding: 10px 12px;
+		text-align: left;
+		vertical-align: top;
+		border-bottom: 1px solid var(--gd-line);
+		word-break: keep-all;
+	}
+	.cd-guide thead th {
+		color: var(--gd-text-muted);
+		font-weight: 700;
+	}
+
 	.cd-guide .cd-chip-wrap {
 		gap: 10px;
-		margin-top: 40px;
-		padding-top: 26px;
-		border-top: 1px solid rgba(196, 181, 253, 0.14);
+		margin-top: var(--cd-sp-xl, 36px);
+		padding-top: var(--cd-sp-lg, 24px);
+		border-top: 1px solid var(--gd-line);
 	}
 	.cd-guide .cd-chip {
 		padding: 9px 16px;
-		border-color: rgba(196, 181, 253, 0.52);
+		border-radius: var(--cd-r-pill, 999px);
+		border-color: var(--gd-line-strong);
 		background: rgba(196, 181, 253, 0.07);
 		color: #ded7f5;
 		font-size: 0.9rem;
@@ -490,6 +540,112 @@
 	.cd-guide .cd-chip:focus-visible {
 		outline: 2px solid #a78bfa;
 		outline-offset: 2px;
+	}
+
+	/*
+	 * 기능 진입 CTA — 가이드를 읽은 사람을 실제 기능으로 보내는 유일한 1차 동선.
+	 * 홈의 섹션 헤더(킥커 + 가운데 정렬)와 Solid Primary 버튼 규격을 그대로 쓴다.
+	 * 본문은 좌측 정렬을 유지하고 여기서만 가운데 축을 쓴다 — 66ch 한국어 장문을 가운데
+	 * 정렬하면 rag 가 깨지기 때문이다.
+	 * accent 는 primary 버튼 하나로 끝낸다(Accent Budget). 보조 링크는 테두리만 쓴다.
+	 */
+	.cd-guide-cta {
+		display: grid;
+		justify-items: center;
+		gap: var(--cd-sp-sm, 10px);
+		max-width: min(100%, 720px);
+		margin: var(--cd-sp-xl, 36px) auto 0;
+		padding: clamp(22px, 3.4vw, 32px) clamp(18px, 3vw, 28px);
+		text-align: center;
+		border-radius: var(--cd-r-section, 26px);
+		border: 1px solid var(--gd-line);
+		background: var(--gd-surface);
+		box-shadow: var(--gd-shade-1);
+	}
+	/* 🔴 아래 셋은 .cd-guide 로 한 번 더 조여야 한다 — 위의 `.cd-guide p`·`.cd-guide h2` 가
+	   (0,1,1) 이라 클래스 하나짜리 (0,1,0) 규칙을 이긴다. 실측으로 잡았다: 조이기 전 킥커가
+	   0.76rem 이 아니라 `.cd-guide p` 의 0.97rem(15.52px)으로 렌더됐다. */
+	.cd-guide .cd-guide-cta__kicker {
+		margin: 0;
+		font-size: var(--cd-t-caption, 0.76rem);
+		font-weight: 700;
+		line-height: 1.4;
+		letter-spacing: 0.16em;
+		text-transform: uppercase;
+		color: var(--gd-text-muted);
+	}
+	.cd-guide .cd-guide-cta__title {
+		margin: 0;
+		font-size: var(--cd-t-section, clamp(1.24rem, 2.6vw, 1.7rem));
+	}
+	.cd-guide .cd-guide-cta__lede {
+		/* .cd-guide p 의 좌측 정렬 66ch 를 이 안에서만 되돌린다. */
+		max-width: 46ch;
+		text-align: center;
+	}
+	.cd-guide-cta__actions {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		align-items: center;
+		gap: var(--cd-sp-sm, 10px);
+		margin-top: var(--cd-sp-xs, 6px);
+	}
+	.cd-guide-cta__primary {
+		display: inline-flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 2px;
+		min-height: var(--cd-btn-h, 48px);
+		padding: var(--cd-btn-pad, 12px 24px);
+		border-radius: var(--cd-r-control, 12px);
+		border: 1px solid transparent;
+		background: var(--gd-accent);
+		color: var(--gd-accent-ink);
+		font-weight: 800;
+		line-height: 1.28;
+		text-decoration: none;
+		box-shadow: var(--gd-shade-3);
+		transition:
+			background-color var(--cd-dur-base, 220ms) var(--cd-ease-snap, cubic-bezier(0.22, 1, 0.36, 1)),
+			box-shadow var(--cd-dur-base, 220ms) var(--cd-ease-snap, cubic-bezier(0.22, 1, 0.36, 1));
+	}
+	.cd-guide-cta__primary:hover {
+		background: #b3a2fc;
+	}
+	.cd-guide-cta__primary em {
+		font-style: normal;
+		font-weight: 600;
+		font-size: var(--cd-t-caption, 0.76rem);
+		opacity: 0.78;
+	}
+	.cd-guide-cta__secondary {
+		display: inline-flex;
+		align-items: center;
+		min-height: var(--cd-btn-h, 48px);
+		padding: 12px 18px;
+		border-radius: var(--cd-r-control, 12px);
+		border: 1px solid var(--gd-line-strong);
+		background: none;
+		color: #ded7f5;
+		font-size: 0.9rem;
+		font-weight: 700;
+		text-decoration: none;
+		transition:
+			color var(--cd-dur-base, 220ms) var(--cd-ease-snap, cubic-bezier(0.22, 1, 0.36, 1)),
+			border-color var(--cd-dur-base, 220ms) var(--cd-ease-snap, cubic-bezier(0.22, 1, 0.36, 1)),
+			background-color var(--cd-dur-base, 220ms) var(--cd-ease-snap, cubic-bezier(0.22, 1, 0.36, 1));
+	}
+	.cd-guide-cta__secondary:hover {
+		border-color: rgba(196, 181, 253, 0.78);
+		background: rgba(196, 181, 253, 0.12);
+		color: #fbf8ff;
+	}
+	.cd-guide-cta__primary:focus-visible,
+	.cd-guide-cta__secondary:focus-visible {
+		outline: 2px solid #a78bfa;
+		outline-offset: 3px;
 	}
 
 	/*
@@ -597,6 +753,10 @@
 			grid-template-columns: repeat(2, minmax(0, 1fr));
 			gap: 18px;
 		}
+		/* 장문 한국어 카드는 데스크탑에서 홈보다 조금 넉넉해야 답답하지 않다. */
+		.cd-guide .cd-card-grid > .cd-card {
+			padding: var(--cd-sp-lg, 24px) 20px;
+		}
 	}
 	@media (min-width: 1024px) {
 		.cd-guide-index {
@@ -608,21 +768,29 @@
 			padding: 28px 0 52px;
 		}
 		.cd-guide .cd-main-header {
-			margin-bottom: 26px;
+			margin-bottom: var(--cd-sp-lg, 24px);
 			padding-bottom: 20px;
 		}
 		.cd-guide .cd-card-grid {
-			margin-top: 24px;
-		}
-		.cd-guide .cd-card-grid > .cd-card {
-			padding: 18px 18px 20px;
+			margin-top: var(--cd-sp-lg, 24px);
 		}
 		.cd-guide > .cd-card {
-			padding: 24px 0 4px;
+			padding: var(--cd-sp-lg, 24px) 0 4px;
 		}
 		.cd-guide .cd-chip-wrap {
 			margin-top: 32px;
 			padding-top: 22px;
+		}
+		.cd-guide-cta {
+			margin-top: 32px;
+		}
+		.cd-guide-cta__actions {
+			flex-direction: column;
+			align-self: stretch;
+		}
+		.cd-guide-cta__primary,
+		.cd-guide-cta__secondary {
+			width: 100%;
 		}
 		.cd-guide-index {
 			border-radius: 18px;
@@ -631,6 +799,9 @@
 	}
 	@media (prefers-reduced-motion: reduce) {
 		.cd-guide .cd-chip,
+		.cd-guide .cd-card-grid > .cd-card,
+		.cd-guide-cta__primary,
+		.cd-guide-cta__secondary,
 		.cd-guide-index__link,
 		.cd-guide-index__link::after {
 			transition: none;

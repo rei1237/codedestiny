@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "../../components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const SUKUYO_GUIDE_TEXT_TRANSLATIONS = {
@@ -142,6 +144,8 @@ export default function SukuyoGuidePage() {
           </article>
         ))}
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/sukuyo/guide"]} />
 
       <nav className="cd-chip-wrap" aria-label="숙요점 가이드 관련 링크">
         <Link href="/sukuyo" className="cd-chip">숙요점 서비스</Link>

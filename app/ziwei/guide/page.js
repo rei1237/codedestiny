@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "../../components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const ZIWEI_GUIDE_TEXT_TRANSLATIONS = {
@@ -142,6 +144,8 @@ export default function ZiweiGuidePage() {
           </article>
         ))}
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/ziwei/guide"]} />
 
       <nav className="cd-chip-wrap" aria-label="자미두수 가이드 관련 링크">
         <Link href="/ziwei" className="cd-chip">자미두수 서비스</Link>

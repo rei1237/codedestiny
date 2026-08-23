@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "../../components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const FIVE_ELEMENTS_GUIDE_TEXT_TRANSLATIONS = {
@@ -191,6 +193,8 @@ export default function SajuFiveElementsPage() {
           </article>
         ))}
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/saju/five-elements"]} />
 
       <nav className="cd-chip-wrap" aria-label="오행 가이드 관련 링크">
         <Link href="/saju/guide" className="cd-chip">사주 기본 가이드</Link>

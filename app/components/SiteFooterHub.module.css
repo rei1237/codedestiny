@@ -1,8 +1,25 @@
 .sfhRoot {
+  /* 네오 세트 — 이 푸터는 App Router 전용이고 그 body 는 #0a0818 고정이다.
+     예전 팔레트(#020617 계열 슬레이트 네이비)는 연이도 네오도 아닌 레거시였다 —
+     styles/globals.css 가 body 에서 걷어낸 바로 그 색이 여기만 남아 있었다.
+     🔴 소셜 버튼의 브랜드색(유튜브·네이버·인스타·스레드·X)은 외부 정체성이므로 건드리지 않는다. */
+  --sfh-bg: linear-gradient(180deg, #0a0818 0%, #13102a 46%, #0d0a20 100%);
+  --sfh-surface: rgba(24, 20, 52, 0.74);
+  --sfh-surface-deep: rgba(16, 13, 36, 0.92);
+  --sfh-line: rgba(196, 181, 253, 0.26);
+  --sfh-line-soft: rgba(196, 181, 253, 0.16);
+  --sfh-text: #f4eeff;
+  --sfh-body: rgba(222, 215, 245, 0.88);
+  --sfh-muted: rgba(200, 170, 255, 0.7);
+  --sfh-accent: #c4b5fd;
+  --sfh-gold: #e8d5a3;
+  --sfh-ink: #13102a;
+  --sfh-shade: 0 10px 24px rgba(0, 0, 0, 0.42);
+
   position: relative;
   margin-top: 42px;
-  border-top: 1px solid rgba(117, 156, 255, 0.26);
-  background: linear-gradient(180deg, #010714 0%, #07142f 42%, #081a32 100%);
+  border-top: 1px solid var(--sfh-line);
+  background: var(--sfh-bg);
   overflow: hidden;
 }
 
@@ -19,13 +36,13 @@
 .sfhNebulaLeft {
   left: -110px;
   top: -130px;
-  background: radial-gradient(circle, rgba(105, 170, 255, 0.58), rgba(105, 170, 255, 0));
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.5), rgba(167, 139, 250, 0));
 }
 
 .sfhNebulaRight {
   right: -150px;
   bottom: -150px;
-  background: radial-gradient(circle, rgba(255, 205, 134, 0.5), rgba(255, 205, 134, 0));
+  background: radial-gradient(circle, rgba(232, 213, 163, 0.42), rgba(232, 213, 163, 0));
 }
 
 .sfhStars {
@@ -40,8 +57,8 @@
   opacity: 0.45;
   background-image:
     radial-gradient(2px 2px at 20px 30px, rgba(255, 255, 255, 0.75), transparent),
-    radial-gradient(1.7px 1.7px at 130px 80px, rgba(255, 236, 196, 0.85), transparent),
-    radial-gradient(1.8px 1.8px at 190px 160px, rgba(199, 224, 255, 0.8), transparent);
+    radial-gradient(1.7px 1.7px at 130px 80px, rgba(240, 226, 186, 0.85), transparent),
+    radial-gradient(1.8px 1.8px at 190px 160px, rgba(214, 204, 255, 0.8), transparent);
   background-size: 230px 220px;
 }
 
@@ -49,8 +66,8 @@
   opacity: 0.22;
   background-image:
     radial-gradient(1.2px 1.2px at 70px 40px, rgba(255, 255, 255, 0.7), transparent),
-    radial-gradient(1px 1px at 190px 120px, rgba(196, 214, 255, 0.7), transparent),
-    radial-gradient(1.1px 1.1px at 260px 170px, rgba(255, 220, 176, 0.78), transparent);
+    radial-gradient(1px 1px at 190px 120px, rgba(206, 196, 250, 0.7), transparent),
+    radial-gradient(1.1px 1.1px at 260px 170px, rgba(238, 224, 184, 0.78), transparent);
   background-size: 320px 300px;
   animation-duration: 24s;
 }
@@ -61,7 +78,7 @@
   width: min(1180px, calc(100% - 30px));
   margin: 0 auto;
   padding: 24px 0 18px;
-  color: #cfddff;
+  color: var(--sfh-body);
   font-size: 12px;
 }
 
@@ -71,21 +88,21 @@
   font-weight: 700;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: #99b8ff;
+  color: var(--sfh-muted);
 }
 
 .sfhTitle {
   margin: 7px 0 0;
   font-size: clamp(1rem, 1.8vw, 1.18rem);
   line-height: 1.3;
-  color: #fdf7eb;
+  color: var(--sfh-text);
   font-weight: 700;
   font-family: "Noto Serif KR", "Iowan Old Style", "Times New Roman", serif;
 }
 
 .sfhSubtitle {
   margin: 7px 0 0;
-  color: #adc1ec;
+  color: var(--sfh-body);
   font-size: 12px;
   line-height: 1.65;
   max-width: 880px;
@@ -99,14 +116,14 @@
 }
 
 .sfhCard {
-  border: 1px solid rgba(151, 179, 255, 0.3);
+  border: 1px solid var(--sfh-line);
   border-radius: 14px;
   background:
-    linear-gradient(150deg, rgba(8, 22, 52, 0.74), rgba(8, 26, 56, 0.55) 68%),
-    linear-gradient(120deg, rgba(255, 216, 150, 0.08), rgba(133, 169, 255, 0.07));
+    linear-gradient(150deg, var(--sfh-surface), rgba(18, 15, 40, 0.58) 68%),
+    linear-gradient(120deg, rgba(232, 213, 163, 0.07), rgba(167, 139, 250, 0.08));
   backdrop-filter: blur(6px);
   padding: 12px 12px 10px;
-  box-shadow: 0 10px 24px rgba(2, 8, 24, 0.32);
+  box-shadow: var(--sfh-shade);
   opacity: 0;
   transform: translateY(10px);
   animation: sfhRise 0.72s ease forwards;
@@ -125,14 +142,14 @@
 }
 
 .sfhCard:hover {
-  border-color: rgba(255, 228, 174, 0.46);
+  border-color: rgba(232, 213, 163, 0.46);
   transform: translateY(-3px);
   transition: transform 0.24s ease, border-color 0.24s ease;
 }
 
 .sfhGroupTitle {
   margin: 0 0 8px;
-  color: #f5efe3;
+  color: var(--sfh-text);
   font-size: 12.5px;
   font-weight: 700;
 }
@@ -144,7 +161,7 @@
 }
 
 .sfhLink {
-  color: #d7e4ff;
+  color: var(--sfh-body);
   text-decoration: none;
   font-size: 12px;
   line-height: 1.52;
@@ -153,7 +170,7 @@
 
 .sfhLink:hover,
 .sfhLink:focus-visible {
-  color: #ffe5af;
+  color: var(--sfh-gold);
 }
 
 .sfhPolicyNav {
@@ -162,28 +179,28 @@
   gap: 8px 12px;
   margin-top: 13px;
   padding-top: 12px;
-  border-top: 1px solid rgba(125, 151, 207, 0.28);
+  border-top: 1px solid var(--sfh-line-soft);
 }
 
 .sfhBusinessCard {
   margin-top: 14px;
-  border: 1px solid rgba(147, 168, 218, 0.34);
+  border: 1px solid var(--sfh-line);
   border-radius: 14px;
   background:
-    linear-gradient(140deg, rgba(7, 19, 43, 0.92), rgba(7, 15, 32, 0.9) 55%, rgba(13, 29, 58, 0.84)),
-    linear-gradient(120deg, rgba(255, 220, 160, 0.08), rgba(127, 165, 245, 0.08));
-  box-shadow: inset 0 1px 0 rgba(160, 184, 236, 0.12), 0 10px 24px rgba(2, 8, 24, 0.32);
+    linear-gradient(140deg, var(--sfh-surface-deep), rgba(13, 10, 30, 0.9) 55%, rgba(28, 23, 60, 0.84)),
+    linear-gradient(120deg, rgba(232, 213, 163, 0.07), rgba(167, 139, 250, 0.08));
+  box-shadow: inset 0 1px 0 rgba(228, 214, 255, 0.1), var(--sfh-shade);
   padding: 14px 14px 12px;
 }
 
 .sfhBusinessTitle {
   margin: 0;
   padding-bottom: 8px;
-  border-bottom: 1px solid rgba(127, 156, 219, 0.28);
+  border-bottom: 1px solid var(--sfh-line-soft);
   font-size: 12.5px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #d4c3ff;
+  color: var(--sfh-accent);
 }
 
 .sfhBusinessList {
@@ -198,37 +215,37 @@
   margin: 0;
   font-size: 12px;
   line-height: 1.72;
-  color: #9eb1d9;
+  color: var(--sfh-muted);
   word-break: keep-all;
 }
 
 .sfhBusinessItem strong {
-  color: #d8e3ff;
+  color: var(--sfh-text);
 }
 
 .sfhBusinessDivider {
   margin-top: 10px;
   padding-top: 10px;
-  border-top: 1px solid rgba(87, 113, 166, 0.5);
+  border-top: 1px solid var(--sfh-line);
 }
 
 .sfhBusinessEmphasis {
   margin: 0 0 6px;
   font-size: 12px;
   line-height: 1.72;
-  color: #d0dcf6;
+  color: var(--sfh-body);
   word-break: keep-all;
 }
 
 .sfhBusinessEmphasis strong {
-  color: #e8f0ff;
+  color: var(--sfh-text);
 }
 
 .sfhBusinessMuted {
   margin: 0;
   font-size: 12px;
   line-height: 1.72;
-  color: #9eb1d9;
+  color: var(--sfh-muted);
   word-break: keep-all;
 }
 
@@ -237,7 +254,7 @@
   font-size: 12px;
   font-weight: 700;
   letter-spacing: 0.02em;
-  color: #ffc4d1;
+  color: var(--sfh-gold);
 }
 
 .sfhRefundList {
@@ -251,7 +268,7 @@
   margin: 10px 0 0;
   font-size: 11px;
   line-height: 1.72;
-  color: #ffc4d1;
+  color: var(--sfh-gold);
   word-break: keep-all;
 }
 
@@ -260,18 +277,18 @@
   font-size: 11px;
   line-height: 1.72;
   font-weight: 700;
-  color: #ffc4d1;
+  color: var(--sfh-gold);
   word-break: keep-all;
 }
 
 .sfhSocialCard {
   margin-top: 14px;
-  border: 1px solid rgba(255, 228, 174, 0.34);
+  border: 1px solid rgba(232, 213, 163, 0.34);
   border-radius: 14px;
   background:
-    linear-gradient(145deg, rgba(9, 19, 44, 0.92), rgba(12, 23, 52, 0.82) 58%, rgba(35, 26, 58, 0.72)),
-    linear-gradient(120deg, rgba(255, 220, 160, 0.1), rgba(255, 190, 220, 0.07), rgba(135, 183, 255, 0.08));
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 16px 30px rgba(2, 8, 24, 0.34);
+    linear-gradient(145deg, var(--sfh-surface-deep), rgba(22, 18, 48, 0.82) 58%, rgba(35, 26, 62, 0.72)),
+    linear-gradient(120deg, rgba(232, 213, 163, 0.09), rgba(196, 181, 253, 0.08));
+  box-shadow: inset 0 1px 0 rgba(228, 214, 255, 0.12), 0 16px 30px rgba(0, 0, 0, 0.44);
   padding: 15px 14px;
 }
 
@@ -284,7 +301,7 @@
 }
 
 .sfhSocialKicker {
-  color: #ffdca3;
+  color: var(--sfh-gold);
   font-size: 10px;
   font-weight: 800;
   letter-spacing: 0.16em;
@@ -292,7 +309,7 @@
 }
 
 .sfhSocialTitle {
-  color: #fff8e8;
+  color: var(--sfh-text);
   font-family: "Noto Serif KR", "Iowan Old Style", "Times New Roman", serif;
   font-size: clamp(1rem, 1.7vw, 1.18rem);
   line-height: 1.35;
@@ -306,9 +323,9 @@
 }
 
 .sfhSocialLink {
-  --sfh-social-accent: #dbeafe;
-  --sfh-social-border: rgba(219, 234, 254, 0.34);
-  --sfh-social-glow: rgba(219, 234, 254, 0.2);
+  --sfh-social-accent: #c4b5fd;
+  --sfh-social-border: rgba(196, 181, 253, 0.34);
+  --sfh-social-glow: rgba(167, 139, 250, 0.22);
   min-height: 46px;
   display: inline-flex;
   align-items: center;
@@ -316,8 +333,8 @@
   gap: 8px;
   border: 1px solid var(--sfh-social-border);
   border-radius: 12px;
-  background: rgba(5, 12, 28, 0.58);
-  color: #f8fbff;
+  background: rgba(10, 8, 24, 0.58);
+  color: var(--sfh-text);
   font-size: 12.5px;
   font-weight: 800;
   line-height: 1;
@@ -343,7 +360,7 @@
   justify-content: center;
   border-radius: 999px;
   background: var(--sfh-social-accent);
-  color: #08111f;
+  color: var(--sfh-ink);
   font-size: 12px;
   font-weight: 900;
   box-shadow: 0 0 18px var(--sfh-social-glow);
@@ -360,7 +377,7 @@
   --sfh-social-accent: #ff3b3b;
   --sfh-social-border: rgba(255, 59, 59, 0.42);
   --sfh-social-glow: rgba(255, 59, 59, 0.24);
-  background: linear-gradient(135deg, rgba(255, 59, 59, 0.14), rgba(5, 12, 28, 0.62));
+  background: linear-gradient(135deg, rgba(255, 59, 59, 0.14), rgba(10, 8, 24, 0.62));
 }
 
 .sfhSocialLinkThreads {
@@ -376,7 +393,7 @@
   --sfh-social-glow: rgba(236, 72, 153, 0.22);
   background:
     linear-gradient(135deg, rgba(255, 214, 102, 0.12), rgba(236, 72, 153, 0.14), rgba(124, 58, 237, 0.12)),
-    rgba(5, 12, 28, 0.5);
+    rgba(10, 8, 24, 0.5);
 }
 
 .sfhSocialLinkInstagram .sfhSocialIcon {
@@ -388,7 +405,7 @@
   --sfh-social-accent: #03c75a;
   --sfh-social-border: rgba(3, 199, 90, 0.42);
   --sfh-social-glow: rgba(3, 199, 90, 0.24);
-  background: linear-gradient(135deg, rgba(3, 199, 90, 0.14), rgba(5, 12, 28, 0.62));
+  background: linear-gradient(135deg, rgba(3, 199, 90, 0.14), rgba(10, 8, 24, 0.62));
 }
 
 .sfhSocialLinkX {
@@ -399,7 +416,7 @@
 }
 
 .sfhPolicyLink {
-  color: #b6c8fb;
+  color: var(--sfh-body);
   text-decoration: none;
   font-size: 12px;
   line-height: 1.55;
@@ -408,14 +425,14 @@
 
 .sfhPolicyLink:hover,
 .sfhPolicyLink:focus-visible {
-  color: #ffe5af;
+  color: var(--sfh-gold);
 }
 
 .sfhCopyright {
   margin: 14px 0 0;
   width: 100%;
   text-align: center;
-  color: #7e93c6;
+  color: var(--sfh-muted);
   font-size: 12px;
 }
 
