@@ -51,6 +51,10 @@ const ORACLE_CONSULTATION_MIN_COST = 50;
 const IJIK_READING_FEATURE_KEY = "tarot-ijik";
 const IJIK_READING_MIN_COST = 50;
 const IJIK_READING_CARD_COUNT = 7;
+const CRYSTAL_SOUL_FEATURE_KEY = "tarot-crystal-soul-reading";
+const CRYSTAL_SOUL_MIN_COST = 50;
+const MINDSCAN_FEATURE_KEY = "tarot-mindscan";
+const MINDSCAN_MIN_COST = 50;
 const YEAR_TAROT_FEATURE_KEY = "tarot-year-fortune";
 const YEAR_TAROT_PROFILE_PREFIX = "year:";
 const YEAR_TAROT_RESULT_PREFIX = "tarot-year-result:";
@@ -1787,7 +1791,13 @@ export async function handleTarotRoutes(request, env = {}) {
     // due to auth token drift between runtime environments.
     // /draw is a free stateless random card draw (no DB/cost) — requiring auth here
     // blocked logged-out users from ever reaching the card stage on static tarot pages.
-    if (path !== "/mindscan" && path !== "/draw" && !isYearReadingRequest) {
+    // 🔴 `/crystal-soul` 과 `/ijik-reading` 은 여기서 빼 둔다 — 자기 게이트
+    //    (verifyTarotPerUseAccess)가 인증과 결제 증빙을 함께 보므로, 여기서 한 번 더 부르면
+    //    같은 요청에 requireAuth Mongo 왕복이 두 번 돈다(중첩 사전검사). 인증의 주인은 그 게이트다.
+    //    `/mindscan` 도 원래 여기서 빠져 있었는데 예전에는 **아무도** 인증을 안 봤다 —
+    //    2026-08-24 감사에서 발견해 자기 게이트를 달았다.
+    if (path !== "/mindscan" && path !== "/crystal-soul" && path !== "/ijik-reading"
+      && path !== "/draw" && !isYearReadingRequest) {
       try {
         await requireAuth(request, env);
       } catch (authErr) {
@@ -1909,7 +1919,30 @@ export async function handleTarotRoutes(request, env = {}) {
       return json(payload);
     }
 
+    // 🔴 2026-08-24 이전에는 이 엔드포인트에 인증도 결제 확인도 없었다. 클라이언트가
+    //    `ensurePaidAccess` 로 결제를 마친 뒤 부르긴 했지만 서버는 그것을 확인하지 않았고,
+    //    requestId 도 넘겨받지 못했다 — 즉 결제 없이 직접 POST 하면 유료 리딩이 그대로 나왔다.
     if (path === "/crystal-soul") {
+      const access = await verifyTarotPerUseAccess(request, env, body, {
+        featureKey: CRYSTAL_SOUL_FEATURE_KEY,
+        minCost: CRYSTAL_SOUL_MIN_COST,
+        codePrefix: "CRYSTAL_SOUL",
+        reason: "크리스탈 소울 타로 리딩",
+        authMessage: "로그인 후 리딩을 확인할 수 있습니다.",
+        retryHint: "리딩 보기 버튼으로 결제를 완료한 뒤 다시 시도해 주세요.",
+      });
+      if (!access.ok) {
+        return json(
+          {
+            ok: false,
+            code: access.code || "CRYSTAL_SOUL_PAYMENT_NOT_VERIFIED",
+            reason: access.reason || "",
+            message: access.message,
+          },
+          { status: access.status || 402 },
+        );
+      }
+
       if (body?.crystalSoulVersion === "gem-v3" || body?.promptVersion === "crystal-soul-v3") {
         return json(buildCrystalSoulV3Reading(body));
       }
@@ -1929,7 +1962,29 @@ export async function handleTarotRoutes(request, env = {}) {
       });
     }
 
+    // 🔴 여기는 **Gemini 를 직접 부른다**. 2026-08-24 이전에는 인증도 결제 확인도 없어서,
+    //    유료 리딩이 공짜로 나가는 것에 더해 누구나 LLM 비용을 태울 수 있는 구멍이었다.
     if (path === "/mindscan") {
+      const access = await verifyTarotPerUseAccess(request, env, body, {
+        featureKey: MINDSCAN_FEATURE_KEY,
+        minCost: MINDSCAN_MIN_COST,
+        codePrefix: "MINDSCAN",
+        reason: "마인드스캔 타로 리딩",
+        authMessage: "로그인 후 리딩을 확인할 수 있습니다.",
+        retryHint: "리딩 보기 버튼으로 결제를 완료한 뒤 다시 시도해 주세요.",
+      });
+      if (!access.ok) {
+        return json(
+          {
+            ok: false,
+            code: access.code || "MINDSCAN_PAYMENT_NOT_VERIFIED",
+            reason: access.reason || "",
+            message: access.message,
+          },
+          { status: access.status || 402 },
+        );
+      }
+
       const pairs = Array.isArray(body?.pairs) ? body.pairs : [];
       const question = String(body?.question || "").trim();
       if (!pairs.length) {

@@ -1478,6 +1478,10 @@ export default function MindScanTarot() {
   const drawnSubRef = useRef<Record<string, number>>({});
   // 결제 확인이 끝난 뒤 리딩 생성이 실패했을 때, 재시도에서 중복 과금을 막는 세션 플래그.
   const paidAccessGrantedRef = useRef(false);
+  // 🔴 결제와 리딩 요청이 **같은 requestId** 를 써야 서버가 증빙을 찾는다(2026-08-24 에
+  //    /api/tarot/mindscan 에 결제 게이트를 달았다). 재시도 경로도 처음 결제한 id 를 그대로
+  //    써야 하므로 ref 에 둔다 — 새로 만들면 결제한 사용자가 402 를 맞는다.
+  const paidRequestIdRef = useRef("");
 
   useEffect(() => {
     if (typeof document === "undefined") return;
@@ -1572,12 +1576,17 @@ export default function MindScanTarot() {
 
       const isFlowerAdminMode = isAdminLikeUser();
 
+      // 재시도가 아니면 이번 제출의 결제 id 를 새로 만든다. 재시도면 처음 결제한 id 를 그대로 쓴다.
+      if (!paidAccessGrantedRef.current) {
+        paidRequestIdRef.current = `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+      }
+
       const executeReading = async () => {
         const res = await fetch("/api/tarot/mindscan", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ pairs, question: trimmedQuestion }),
+          body: JSON.stringify({ pairs, question: trimmedQuestion, requestId: paidRequestIdRef.current }),
         });
         const data = await res.json().catch(() => ({}));
         if (res.ok && data && Array.isArray(data.sections)) {
@@ -1604,7 +1613,7 @@ export default function MindScanTarot() {
         featureKey: "tarot-mindscan",
         cost: lookupServerCoinPrice("tarot-mindscan"),
         reason: copy.paymentReasonFull,
-        requestId: `tarot-mindscan:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
+        requestId: paidRequestIdRef.current,
         // 이용권/결제 확인 단계에서는 과금 안내만 처리한다 — LLM 생성은 게이트가 닫힌 뒤 진행.
         onPaid: ({ chargedCoins, accessSource, monthlyCreditsSpent, monthlyBalanceAfter, balanceAfter }) => {
           // 🔴 판정은 accessSource 로만 한다. chargedCoins 는 이용권·월정석·재열람 모두 0 이라

@@ -1,8 +1,12 @@
 // 운명의 지도 — AI 문장화 라우트. 규칙(결정론)이 산출한 숫자·판정·근거를 "문장화"만 한다.
-// 무인증·무DB 순수 엔드포인트(ziwei-island.js 선례). runAiRouteWithSecurity 미사용, 인메모리 레이트리밋만.
+// 무인증 엔드포인트(ziwei-island.js 선례). runAiRouteWithSecurity 는 쓰지 않는다.
+// 🔴 "무DB·인메모리 레이트리밋" 은 2026-08-24 부터 사실이 아니다 — 한도를 Mongo abuse_scores 로
+//    옮겼다(아이솔레이트별 Map 은 전역 방어가 아니었다). LLM 캐시(createLlmCacheStore)도 원래 Mongo 를 쓴다.
 // 이중차단: AI는 prose(pigCommentary)만 반환 — 숫자·점수·판정은 클라이언트가 field에서 직접 렌더한다.
 
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
+import { incrementRateLimit } from "../lib/rate-limit.js";
+import { createHash } from "node:crypto";
 import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
@@ -10,6 +14,7 @@ import { cmsPromptText } from "../lib/cms-prompts.js";
 
 const RATE_LIMIT_WINDOW_MS = 60 * 1000;
 const RATE_LIMIT_MAX_REQUESTS = 30;
+const RATE_LIMIT_ENDPOINT = "destiny-compass:narrate";
 const requestBuckets = new Map();
 
 function readClientKey(request) {
@@ -18,7 +23,8 @@ function readClientKey(request) {
   ).slice(0, 160);
 }
 
-function checkRateLimit(request) {
+/** 아이솔레이트 안에서만 사는 폴백 카운터. DB 가 죽었을 때만 쓴다. */
+function checkLocalRateLimit(request) {
   const key = readClientKey(request);
   const now = Date.now();
   const current = requestBuckets.get(key);
@@ -35,6 +41,35 @@ function checkRateLimit(request) {
   if (current.count >= RATE_LIMIT_MAX_REQUESTS) return false;
   current.count += 1;
   return true;
+}
+
+/**
+ * 🔴 이 라우트는 **레포에서 유일한 무인증 LLM 경로**다(`scripts/verify-ai-locale-live.mjs` 가
+ * 그 성질에 기대어 라이브 로케일 점검을 돌린다). 무료 해설이라 로그인을 요구하면 비로그인
+ * 방문자가 AI 문장을 잃으므로, 인증 대신 **한도를 실제로 작동하게** 만들었다.
+ *
+ * 예전 한도는 모듈 스코프 `Map` 이었다. Workers 는 아이솔레이트를 여러 개 띄우므로 그 카운터는
+ * 아이솔레이트마다 따로 세고, 전역 방어가 아니었다 — 분산 호출로 얼마든지 Gemini 비용을
+ * 태울 수 있었다. 이제 Mongo `abuse_scores`(로그인 브루트포스 차단과 같은 저장소)로 센다.
+ * IP 는 SHA-256 으로만 남긴다.
+ *
+ * DB 가 죽으면 **fail-open** 이 아니라 인메모리 폴백으로 내려간다 — 한도가 없는 것보다는 낫고,
+ * 이 라우트를 막아 봐야 사용자는 결정론 템플릿을 그대로 보므로 화면이 비지 않는다.
+ */
+async function checkRateLimit(request, env) {
+  const ip = readClientKey(request);
+  try {
+    const { count } = await incrementRateLimit({
+      subjectHash: createHash("sha256").update(ip).digest("hex"),
+      endpoint: RATE_LIMIT_ENDPOINT,
+      windowMs: RATE_LIMIT_WINDOW_MS,
+      env,
+    });
+    return count <= RATE_LIMIT_MAX_REQUESTS;
+  } catch (error) {
+    console.warn("[compass narrate] rate-limit increment failed", String(error?.message || error).slice(0, 200));
+    return checkLocalRateLimit(request);
+  }
 }
 
 function invalidInput(message) {
@@ -249,7 +284,7 @@ export async function handleDestinyCompassRoutes(request, env) {
 
     if (path === "/narrate") {
       if (method !== "POST") return methodNotAllowed();
-      if (!checkRateLimit(request)) {
+      if (!(await checkRateLimit(request, env))) {
         return json({ ok: false, error: "RATE_LIMITED", message: "잠시 후 다시 시도해 주세요." }, { status: 429, headers: { "Retry-After": "60" } });
       }
       return await handleNarrate(request, env);
