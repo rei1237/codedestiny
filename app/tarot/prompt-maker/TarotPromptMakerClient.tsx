@@ -53,7 +53,6 @@ type OracleCardPick = {
 
 type PromptMakerFeedbackCopy = {
   free: string;
-  oneTimePrice: string;
   lenormandFree: string;
   passAvailable: string;
   instantUse: string;
@@ -172,7 +171,6 @@ type CardFlowCopy = {
 const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy> = {
   ko: {
     free: "무료",
-    oneTimePrice: "영구 해금 10,000원",
     lenormandFree: "레노먼드 무료",
     passAvailable: "이용권 적용 가능",
     instantUse: "즉시 이용",
@@ -215,7 +213,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   en: {
     free: "Free",
-    oneTimePrice: "Unlock forever KRW 10,000",
     lenormandFree: "Lenormand free",
     passAvailable: "Pass available",
     instantUse: "Ready now",
@@ -258,7 +255,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   ja: {
     free: "無料",
-    oneTimePrice: "永久解放 10,000ウォン",
     lenormandFree: "ルノルマン無料",
     passAvailable: "利用券を適用できます",
     instantUse: "すぐ利用可能",
@@ -301,7 +297,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   "zh-CN": {
     free: "免费",
-    oneTimePrice: "永久解锁 10,000韩元",
     lenormandFree: "雷诺曼免费",
     passAvailable: "可使用通行权益",
     instantUse: "可立即使用",
@@ -344,7 +339,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   "zh-TW": {
     free: "免費",
-    oneTimePrice: "永久解鎖 10,000韓元",
     lenormandFree: "雷諾曼免費",
     passAvailable: "可使用通行權益",
     instantUse: "可立即使用",
@@ -387,7 +381,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   vi: {
     free: "Miễn phí",
-    oneTimePrice: "Mở khóa vĩnh viễn 10.000 KRW",
     lenormandFree: "Lenormand miễn phí",
     passAvailable: "Có thể dùng quyền lợi",
     instantUse: "Dùng ngay",
@@ -430,7 +423,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   hi: {
     free: "मुफ्त",
-    oneTimePrice: "हमेशा के लिए अनलॉक KRW 10,000",
     lenormandFree: "Lenormand मुफ्त",
     passAvailable: "Pass लागू हो सकता है",
     instantUse: "अभी उपयोग करें",
@@ -473,7 +465,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   es: {
     free: "Gratis",
-    oneTimePrice: "Desbloqueo permanente 10.000 KRW",
     lenormandFree: "Lenormand gratis",
     passAvailable: "Pase disponible",
     instantUse: "Uso inmediato",
@@ -516,7 +507,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   fr: {
     free: "Gratuit",
-    oneTimePrice: "Déblocage définitif 10 000 KRW",
     lenormandFree: "Lenormand gratuit",
     passAvailable: "Pass disponible",
     instantUse: "Utilisable maintenant",
@@ -559,7 +549,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   de: {
     free: "Kostenlos",
-    oneTimePrice: "Dauerhaft freischalten 10.000 KRW",
     lenormandFree: "Lenormand kostenlos",
     passAvailable: "Pass verfügbar",
     instantUse: "Sofort nutzbar",
@@ -602,7 +591,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   nl: {
     free: "Gratis",
-    oneTimePrice: "Voorgoed ontgrendelen KRW 10.000",
     lenormandFree: "Lenormand gratis",
     passAvailable: "Pass beschikbaar",
     instantUse: "Direct te gebruiken",
@@ -645,7 +633,6 @@ const PROMPT_MAKER_FEEDBACK_COPY: Record<LoadingLocale, PromptMakerFeedbackCopy>
   },
   ms: {
     free: "Percuma",
-    oneTimePrice: "Buka kekal KRW 10,000",
     lenormandFree: "Lenormand percuma",
     passAvailable: "Pas tersedia",
     instantUse: "Boleh guna segera",
@@ -2611,7 +2598,7 @@ export default function TarotPromptMakerPage() {
 
   const billingCoinLabel = billingSnapshot
     ? (isLenormandMode ? feedbackCopy.free : billingPassIncluded ? uiCopy.subscriptionPassLabel(billingSubscriptionLabel) : billingSnapshot.requiredCoins > 0 ? formatCoinValue(billingSnapshot.requiredCoins, uiCopy) : feedbackCopy.free)
-    : (isLenormandMode ? feedbackCopy.free : feedbackCopy.oneTimePrice);
+    : (isLenormandMode ? feedbackCopy.free : feedbackCopy.checking);
 
   const billingStateLabel = billingSnapshot
     ? (isLenormandMode ? feedbackCopy.lenormandFree : billingPassIncluded ? feedbackCopy.passAvailable : billingSnapshot.canAccess ? feedbackCopy.instantUse : feedbackCopy.paymentRequired)
