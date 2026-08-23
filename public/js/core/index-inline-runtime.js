@@ -1870,23 +1870,23 @@ function __cdEnsureSukuyoAIConsultationReady() {
 }
 
 var __cdLazyActionLoaders = {
-  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-e6adcc85b797'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-e6adcc85b797'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-e6adcc85b797'); },
+  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-64e5e609c2c2'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-64e5e609c2c2'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-64e5e609c2c2'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h9ee7eacf3957'); },
-  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-e6adcc85b797').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-e6adcc85b797'); }); },
+  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-64e5e609c2c2').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-64e5e609c2c2'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-e6adcc85b797').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-e6adcc85b797'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-64e5e609c2c2').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-64e5e609c2c2'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-e6adcc85b797'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-e6adcc85b797'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-64e5e609c2c2'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-64e5e609c2c2'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-e6adcc85b797'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-e6adcc85b797'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-64e5e609c2c2'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-64e5e609c2c2'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-e6adcc85b797').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-64e5e609c2c2').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -1939,9 +1939,9 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-e6adcc85b797'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-e6adcc85b797'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-e6adcc85b797'); }
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-64e5e609c2c2'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-64e5e609c2c2'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-64e5e609c2c2'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
@@ -2246,17 +2246,17 @@ function __cdEnsureSajuCoreLoaded() {
    *    두 경로를 같은 URL 로 맞춰야 __cdLoadScriptOnce 의 파일명 기반 중복제거가 실제로 물린다. */
   var chain = [
     'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.7/lunar.min.js',
-    '/js/core/kasi-calendar-service.js?v=build-e6adcc85b797',
-    '/js/compat-llm-prompts.js?v=build-e6adcc85b797',
-    '/js/saju-engine.js?v=build-e6adcc85b797',
-      '/js/core/saju/extremeTResult.js?v=build-e6adcc85b797',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-e6adcc85b797',
-    '/js/core/saju/modalProfileState.js?v=build-e6adcc85b797',
-    '/js/core/saju/reportDashboard.js?v=build-e6adcc85b797',
-    '/js/saju-engine-continuation.js?v=build-e6adcc85b797',
-    '/js/entertain-engine.js?v=build-e6adcc85b797',
+    '/js/core/kasi-calendar-service.js?v=build-64e5e609c2c2',
+    '/js/compat-llm-prompts.js?v=build-64e5e609c2c2',
+    '/js/saju-engine.js?v=build-64e5e609c2c2',
+      '/js/core/saju/extremeTResult.js?v=build-64e5e609c2c2',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-64e5e609c2c2',
+    '/js/core/saju/modalProfileState.js?v=build-64e5e609c2c2',
+    '/js/core/saju/reportDashboard.js?v=build-64e5e609c2c2',
+    '/js/saju-engine-continuation.js?v=build-64e5e609c2c2',
+    '/js/entertain-engine.js?v=build-64e5e609c2c2',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
-    '/js/core/saju/dopamineResult.js?v=build-e6adcc85b797'
+    '/js/core/saju/dopamineResult.js?v=build-64e5e609c2c2'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */
@@ -2279,7 +2279,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-e6adcc85b797')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-64e5e609c2c2')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -2299,7 +2299,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-e6adcc85b797';
+    var src = '/js/swisseph-loader.js?v=build-64e5e609c2c2';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2564,7 +2564,7 @@ __cdInstallSajuActionStub('setGender');
 __cdInstallSajuActionStub('openAnimalDestinyRoute');
 __cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
 window.openFortunePlanner = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-e6adcc85b797').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-64e5e609c2c2').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') return window.LuckSyncDiary.open();
     throw new Error('fortune planner is unavailable');
   }).catch(function(err) {
@@ -3392,8 +3392,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-e6adcc85b797')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-e6adcc85b797'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-64e5e609c2c2')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-64e5e609c2c2'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -5421,18 +5421,6 @@ function _dfLoadSourceProgressState() {
   _dfRefreshSourceUnlockCache(true);
 }
 
-function _dfGetRequiredSourceForUnlock(source) {
-  var normalized = _dfNormalizeSource(source);
-  var idx = _DF_SOURCE_ORDER.indexOf(normalized);
-  if (idx <= 0) return null;
-  var progress = _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate();
-  for (var i = idx - 1; i >= 0; i -= 1) {
-    var prevSource = _DF_SOURCE_ORDER[i];
-    if (!progress[prevSource]) return prevSource;
-  }
-  return _DF_SOURCE_ORDER[idx - 1] || null;
-}
-
 function _dfGetNextRecommendedSource() {
   var cache = _dfRefreshSourceUnlockCache();
   var progress = _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate();
@@ -5450,48 +5438,49 @@ function _dfBuildSourceFlowGuide() {
   return '다음 단계: ' + _dfGetSourceLabel(nextSource) + ' 꽃으로 이동해 개화를 이어가세요.';
 }
 
-function _dfIsSourcePaidUnlocked(source) {
-  var normalized = _dfNormalizeSource(source);
-  if (normalized === 'saju') return true;
-  var tile = _dfResolveLockTileBySource(normalized);
-  if (!tile) return false;
-  var lockKey = tile.getAttribute('data-tile-lock-key') || '';
-  var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
-  if (!lockKey || lockCost <= 0) return true;
-  if (_dfIsLockKeyUnlocked(lockKey)) return true;
-  if (tile.classList && tile.classList.contains('tarot-tile--tileUnlocked')) return true;
-  return false;
+/** 꽃 아틀리에 전체 해금 상품의 잠금 키. 네 체계가 이 하나를 공유한다. */
+var _DF_ATELIER_LOCK_KEY = 'flower-fc';
+
+/**
+ * 아틀리에가 해금됐는가.
+ *
+ * 🔴 예전에는 소스마다 자기 홈 타일을 찾아 `data-tile-lock-key`/`cost` 를 읽었는데, 홈 타일이
+ * 4개에서 1개로 합쳐지면서 그 조회가 세 소스에서 null 을 돌려줬다(= 영구 잠김). 이제는 타일이
+ * 있으면 타일을 정본으로 쓰고, 없으면(홈이 아닌 화면에서 스튜디오를 연 경우) 해금 키만 본다.
+ */
+function _dfIsFlowerAtelierUnlocked() {
+  var tile = document.querySelector('[data-tile-lock-key="' + _DF_ATELIER_LOCK_KEY + '"]');
+  if (tile) {
+    var lockCost = Number(tile.getAttribute('data-tile-lock-cost') || 0);
+    if (!(lockCost > 0)) return true;
+    if (tile.classList && tile.classList.contains('tarot-tile--tileUnlocked')) return true;
+  }
+  return _dfIsLockKeyUnlocked(_DF_ATELIER_LOCK_KEY);
 }
 
+function _dfIsSourcePaidUnlocked(source) {
+  if (_dfNormalizeSource(source) === 'saju') return true;
+  return _dfIsFlowerAtelierUnlocked();
+}
+
+/**
+ * 네 체계의 잠금 상태. **해금 키 하나(flower-fc)가 넷 전부를 연다.**
+ *
+ * 2026-08-23 이전에는 `saju → astrology → jamidusu → sukuyo` 순차 잠금이었다. 그때는 홈에
+ * 꽃 타일이 4개였고 각자 자기 타일에서 lockKey/cost 를 읽었기 때문이다. 지금은 타일도 상품도
+ * 하나(1만원 전체 해금)라 "앞 체계를 끝내야 다음이 열린다"는 규칙이 성립하지 않는다 —
+ * 결제한 사람이 산 것은 네 갈래 전부다.
+ *
+ * `_dfStudioState.sourceProgress` 는 지우지 않는다. 개화 기록/다음 단계 안내가 그대로 쓴다.
+ */
 function _dfComputeSourceUnlockCache() {
-  var cache = {
+  var unlocked = _dfIsFlowerAtelierUnlocked();
+  return {
     saju: true,
-    astrology: false,
-    jamidusu: false,
-    sukuyo: false
+    astrology: unlocked,
+    jamidusu: unlocked,
+    sukuyo: unlocked
   };
-  var mode = _dfResolveSourceUnlockMode(_dfStudioState.unlockMode);
-  var progress = _dfStudioState.sourceProgress || _dfCreateSourceProgressTemplate();
-
-  if (mode === 'cumulative') {
-    var completedCount = 0;
-    for (var i = 0; i < _DF_SOURCE_ORDER.length; i += 1) {
-      if (progress[_DF_SOURCE_ORDER[i]]) completedCount += 1;
-    }
-    for (var j = 1; j < _DF_SOURCE_ORDER.length && j <= completedCount; j += 1) {
-      cache[_DF_SOURCE_ORDER[j]] = true;
-    }
-  } else {
-    for (var k = 1; k < _DF_SOURCE_ORDER.length; k += 1) {
-      cache[_DF_SOURCE_ORDER[k]] = !!progress[_DF_SOURCE_ORDER[k - 1]];
-    }
-  }
-
-  for (var p = 0; p < _DF_SOURCE_ORDER.length; p += 1) {
-    var src = _DF_SOURCE_ORDER[p];
-    if (_dfIsSourcePaidUnlocked(src)) cache[src] = true;
-  }
-  return cache;
 }
 
 function _dfRefreshSourceUnlockCache(forceRecalc) {
@@ -5523,8 +5512,8 @@ function _dfSyncSourceTabsLockState(options) {
     tab.setAttribute('data-df-unlocked', unlocked ? 'true' : 'false');
 
     if (!unlocked) {
-      var required = _dfGetRequiredSourceForUnlock(src);
-      var lockLabel = required ? (_dfGetSourceLabel(required) + ' 완료 시 해금') : '해금 조건 필요';
+      // 순차 잠금을 없앴으므로 "무엇을 먼저 해야 하는가"가 아니라 "해금하면 전부 열린다"가 맞다.
+      var lockLabel = '아틀리에 해금 시 열림';
       tab.setAttribute('aria-disabled', 'true');
       tab.setAttribute('data-df-lock-label', lockLabel);
       tab.title = lockLabel;
@@ -7097,18 +7086,12 @@ function openSukuyoFlower() {
   return openDestinyFlower(false);
 }
 
-function _dfResolveLockTileBySource(source) {
-  var normalized = _dfNormalizeSource(source);
-  var sourceLockMap = {
-    saju: 'openDestinyFlowerStudio',
-    astrology: 'openAstrologyFlowerStudio',
-    jamidusu: 'openJamidusuFlowerStudio',
-    sukuyo: 'openSukuyoFlowerStudio'
-  };
-  var actionName = sourceLockMap[normalized] || '';
-  if (!actionName) return null;
-  var tile = document.querySelector('[data-action="' + actionName + '"][data-tile-lock-key]');
-  return tile;
+/**
+ * 아틀리에 잠금 타일. 홈에 꽃 타일이 하나뿐이므로 소스와 무관하게 같은 타일이다.
+ * (예전에는 소스별 타일 4개를 각각 찾았다 — 통합 뒤로는 세 소스가 null 을 받아 잠겼다.)
+ */
+function _dfResolveLockTileBySource() {
+  return document.querySelector('[data-tile-lock-key="' + _DF_ATELIER_LOCK_KEY + '"]');
 }
 
 function _dfIsLockKeyUnlocked(lockKey) {
@@ -7169,19 +7152,19 @@ function _dfRequirePaidSourceUnlock(source) {
     return false;
   }
 
-  window.alert(_dfGetSourceLabel(normalized) + ' 꽃은 해금 후 이용할 수 있습니다.');
+  window.alert('운명의 꽃 아틀리에는 해금 후 이용할 수 있습니다.');
   return false;
 }
 
+/**
+ * 체계 하나를 열어도 되는가.
+ *
+ * 해금 상품이 하나(1만원 전체 해금)뿐이라 판정도 하나다. 예전에는 여기서 "이전 단계를 먼저
+ * 완료하면 열립니다" 안내를 띄웠는데, 순차 잠금을 없앤 지금은 결제 게이트를 통과했으면
+ * 네 갈래가 전부 열린다.
+ */
 function _dfRequireSourceCoinPayment(source) {
-  var normalized = _dfNormalizeSource(source);
-  if (!_dfRequirePaidSourceUnlock(normalized)) return false;
-  if (_dfIsSourceUnlocked(normalized)) return true;
-  var required = _dfGetRequiredSourceForUnlock(normalized);
-  var requiredLabel = required ? _dfGetSourceLabel(required) : '이전 단계';
-  _dfSetStudioStatus(requiredLabel + '을 먼저 완료하면 ' + _dfGetSourceLabel(normalized) + ' 꽃이 열립니다.');
-  _dfSyncSourceTabsLockState();
-  return false;
+  return _dfRequirePaidSourceUnlock(_dfNormalizeSource(source));
 }
 
 function openAstrologyFlowerStudio() {
@@ -7941,9 +7924,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-e6adcc85b797',
-      '/js/saju-engine.js?v=build-e6adcc85b797',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-e6adcc85b797'
+    '/js/compat-llm-prompts.js?v=build-64e5e609c2c2',
+      '/js/saju-engine.js?v=build-64e5e609c2c2',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-64e5e609c2c2'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -7963,7 +7946,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-e6adcc85b797'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-64e5e609c2c2'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -8736,8 +8719,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-e6adcc85b797')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-e6adcc85b797'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-64e5e609c2c2')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-64e5e609c2c2'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
