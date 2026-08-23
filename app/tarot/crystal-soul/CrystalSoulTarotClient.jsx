@@ -982,7 +982,9 @@ export default function CrystalSoulTarotClient() {
     setStage("rub");
   }, []);
 
-  const requestReading = useCallback(async () => {
+  // 🔴 결제 requestId 를 서버로 넘긴다. 2026-08-24 에 /api/tarot/crystal-soul 에 결제 게이트를
+  //    달았고, 이 값이 증빙 조회의 열쇠다 — 빠지면 결제한 사용자가 402 를 맞는다.
+  const requestReading = useCallback(async (paidRequestId) => {
     setLoading(true);
     setError("");
     try {
@@ -994,6 +996,7 @@ export default function CrystalSoulTarotClient() {
           crystalSoulVersion: "gem-v3",
           gem: { id: selectedGem, name: GEM_META[selectedGem].name },
           positions: POSITION_LABELS,
+          requestId: String(paidRequestId || ""),
         }),
       });
       const data = await response.json().catch(() => ({}));
@@ -1015,8 +1018,13 @@ export default function CrystalSoulTarotClient() {
     setPaying(true);
     setError("");
 
+    // 🔴 결제와 리딩 요청이 **같은 requestId** 를 써야 서버가 증빙을 찾는다.
+    //    각자 만들면 결제한 사용자가 402 를 맞는다.
+    const paidRequestId = `tarot-crystal-soul-reading:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
+
     if (isAdminSessionClient()) {
-      await requestReading();
+      // 관리자도 서버에서 role 로 통과한다(verifyPerUsePayment 의 admin 분기).
+      await requestReading(paidRequestId);
       setPaying(false);
       return;
     }
@@ -1026,8 +1034,8 @@ export default function CrystalSoulTarotClient() {
         featureKey: "tarot-crystal-soul-reading",
         cost: lookupServerCoinPrice("tarot-crystal-soul-reading"),
         reason: copy.paymentReason,
-        requestId: `tarot-crystal-soul-reading:req:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-        onPaid: requestReading,
+        requestId: paidRequestId,
+        onPaid: () => requestReading(paidRequestId),
       });
 
       if (!result.ok) {
