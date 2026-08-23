@@ -13578,6 +13578,602 @@
         "growthLine": "Within, you learn to use your power responsibly instead of abusing it.",
         "question": "What power of mine do I need to handle more responsibly?"
       }
+    },
+    "tarotAlbumMajor": {
+      "major_00_fool": {
+        "element": "Air",
+        "keywords": {
+          "0": "A fresh start",
+          "1": "Innocence",
+          "2": "Adventure",
+          "3": "Possibility"
+        },
+        "reversedKeywords": {
+          "0": "Rashness",
+          "1": "Not ready",
+          "2": "Unsteadiness",
+          "3": "Escape"
+        },
+        "shortSummary": "A card of the heart drawing its first breath before a road that has no name yet.",
+        "storyTitle": "The first step at the threshold",
+        "story": "The Fool stands at the cliff's edge, yet those eyes look to the sky before the fall. This card does not speak only of recklessness. It lights the moment when the aliveness you missed while calculating too long waves at you again. So long as you do not forget that the small bundle in your hand is all you carry, the first step is both an adventure and a blessing.",
+        "uprightMeaning": "Upright, the Fool points to a time when beginning is fine. Even with the conditions imperfect, taking a small step toward whatever makes your heart come alive opens the flow.",
+        "reversedMeaning": "Reversed, the Fool lights a rush without preparation, or a choice that puts responsibility off. However great the excitement, set a safe boundary and check the facts first.",
+        "loveMeaning": "In love, a new pull, a first confession, a light flutter come to the surface. Possibility still outweighs promise here, so watch the other person's pace as well.",
+        "relationshipMeaning": "In relationships, there is a chance to see each other anew. Set the old roles down and talk as though you had just met — the air in the room changes.",
+        "careerMeaning": "In work, a new project, an attempt at moving jobs, the start of learning all suit this. Rather than hiding your inexperience, a willingness to learn is what opens the way.",
+        "moneyMeaning": "In money, be careful of spending on impulse and of optimistic arithmetic. Experiment inside a small budget and what remains is experience rather than loss.",
+        "innerGrowthMeaning": "For inner growth, you need time to recover curiosity ahead of fear. Even before you find the perfect answer, the body may already know the next road.",
+        "yeoniMessage": "Before this card, let me push the cup a little closer to you. It is all right to be afraid — a first step is meant to tremble a little.",
+        "journalQuestion": "What small thing would I like to begin even without perfect certainty?"
+      },
+      "major_01_magician": {
+        "element": "Mercury",
+        "keywords": {
+          "0": "Will",
+          "1": "Execution",
+          "2": "Expression",
+          "3": "Talent"
+        },
+        "reversedKeywords": {
+          "0": "Scattered will",
+          "1": "Overstatement",
+          "2": "A wasted opening",
+          "3": "Distrust"
+        },
+        "shortSummary": "A card of the focus that turns the materials in your hand into the language of the real.",
+        "storyTitle": "Four tools laid on the table",
+        "story": "On the Magician's table lie the wand, the cup, the sword and the pentacle, all of them. It is the scene of being ready to carry a thought that came down from the sky into action here on the ground. This card does not mean waiting for a miracle; it shows itself as a gentle invitation to use precisely what you already hold.",
+        "uprightMeaning": "Upright, the Magician points to being able to move the situation with words, skill and focus. Now is the time to bind scattered possibility into a single action.",
+        "reversedMeaning": "Reversed lights a current of overstating your talent or spending it without direction. When word and deed differ, trust thins — so make your promises smaller.",
+        "loveMeaning": "In love, the art of showing charm and of confessing comes alive. But if the staging runs ahead of the sincerity, the other person will sense it keenly.",
+        "relationshipMeaning": "In relationships, you have the power to design the conversation and undo a misreading. Do not put off the words that need saying; deliver them in clear sentences.",
+        "careerMeaning": "In work, this is strong at planning, presenting, negotiating and the opening stage. Put the tools you have in order and the results show sooner than you expect.",
+        "moneyMeaning": "In money, this is the current that turns talent into a structure that earns. A sustainable proposal and a clear price standard matter more than short-term overstatement.",
+        "innerGrowthMeaning": "For inner growth, you need practice in acknowledging the power you hold. Humility is not making yourself small; it is the attitude of using your tools precisely.",
+        "yeoniMessage": "You already hold quite a few of the materials you need. Today, I hope you will pick just one of them and set it down on the real world.",
+        "journalQuestion": "Which of my abilities have I not yet carried into actual action?"
+      },
+      "major_02_high_priestess": {
+        "element": "Moon",
+        "keywords": {
+          "0": "Intuition",
+          "1": "Silence",
+          "2": "Secrets",
+          "3": "The inner life"
+        },
+        "reversedKeywords": {
+          "0": "Confusion",
+          "1": "Suppressed feeling",
+          "2": "Distrust",
+          "3": "A secret exposed"
+        },
+        "shortSummary": "A card that lights the unspoken layers of the heart and a quiet intuition.",
+        "storyTitle": "Water heard behind a closed veil",
+        "story": "The High Priestess does not throw the door open. Instead, like water heard from behind a veil, she keeps a truth that has not yet become words. This card points you to watch the feeling that repeats inside the silence, rather than to press for answers.",
+        "uprightMeaning": "Upright, the High Priestess marks a time when intuition and observation open the answer. The mood, the spacing, the signal that keeps repeating matter more than the words on the surface.",
+        "reversedMeaning": "Reversed lights a state of mistaking guesswork for intuition. A secret may be shaken, so do not pass along what has not been verified.",
+        "loveMeaning": "In love, the inner heart, the waiting, a careful fondness come to the surface. Leave a margin rather than pressing the other person, and the sincerity rises on its own.",
+        "relationshipMeaning": "In relationships, unspoken feeling has piled up. Rather than concluding straight away, look at why the silence came about.",
+        "careerMeaning": "In work, this is strong at research, analysis and preparation kept out of sight. Mistakes drop when you read the material and the context that are not on display.",
+        "moneyMeaning": "In money, look at the hidden terms rather than the visible return. Check the small sentences in the contract and the promises left pending.",
+        "innerGrowthMeaning": "For inner growth, you need the balance of trusting your senses while still verifying them. Silence can be time spent listening deeply rather than avoidance.",
+        "yeoniMessage": "I will not press you for an answer just now. Listen quietly instead to the feeling that has already repeated itself in you more than once.",
+        "journalQuestion": "What signal is hard to put into words yet keeps staying with me?"
+      },
+      "major_03_empress": {
+        "element": "Venus",
+        "keywords": {
+          "0": "Abundance",
+          "1": "Affection",
+          "2": "Nurture",
+          "3": "Growth"
+        },
+        "reversedKeywords": {
+          "0": "Dependence",
+          "1": "Overprotection",
+          "2": "Stagnation",
+          "3": "Flooded feeling"
+        },
+        "shortSummary": "A card of abundance that returns a warm life force to both the heart and the world.",
+        "storyTitle": "The soft place where flowers grow",
+        "story": "The Empress's garden does not hurry, yet it grows without pause. She waters it, lets the sunlight in, and makes a place where living things can bloom of their own accord. This card says that love and creativity open out of a rhythm of good tending, not out of a force that hauls them up.",
+        "uprightMeaning": "Upright, the Empress marks a time when relationships, creative work and daily life all grow fuller. An attitude of tending and accepting is what raises the situation gently.",
+        "reversedMeaning": "Reversed lights the scene where tending drifts into dependence or interference. Love is not a reason to blur the boundary between yourself and another.",
+        "loveMeaning": "In love, showing affection, touch, and the room for the bond to grow are all strong. Show that warm attention as actual action and the heart opens.",
+        "relationshipMeaning": "In relationships, the power to feed each other and let each other rest is what matters. But if only one person keeps doing the tending, the balance needs setting again.",
+        "careerMeaning": "In work, creative making, branding, care and an eye for beauty all come alive. Results grow larger when you build the conditions for growth rather than hurry the outcome.",
+        "moneyMeaning": "In money, there is a current of abundance, but emotional spending can rise alongside it. Set the line between pleasure and waste, gently.",
+        "innerGrowthMeaning": "For inner growth, the way you tend your own body and heart becomes the vessel your luck sits in. Habits that are kind to yourself lead into stability in the world.",
+        "yeoniMessage": "This card recommends a slightly kinder way of living. A heart is like a plant — it blooms first where it has been tended often.",
+        "journalQuestion": "Which area of my life needs tending more warmly?"
+      },
+      "major_04_emperor": {
+        "element": "Aries",
+        "keywords": {
+          "0": "Order",
+          "1": "Responsibility",
+          "2": "Stability",
+          "3": "A measure"
+        },
+        "reversedKeywords": {
+          "0": "Rigidity",
+          "1": "Control",
+          "2": "Stubbornness",
+          "3": "A clash with authority"
+        },
+        "shortSummary": "A card that raises a practical pillar over a wavering heart.",
+        "storyTitle": "A throne of stone and a clear boundary",
+        "story": "The Emperor sits on a throne of stone rather than in a flower bed. There is less warmth in it, but it holds the structure and the measure that keep things from collapsing. This card points you to protect with responsibility, promise and boundary what feeling alone cannot keep.",
+        "uprightMeaning": "Upright, the Emperor says stability comes when you set a measure and move responsibly. It is time to turn a loose plan into a concrete structure.",
+        "reversedMeaning": "Reversed lights the urge to control, the stubbornness, the excess rigidity. Look at whether a strong stance has stopped being protection and become pressure.",
+        "loveMeaning": "In love, defining the relationship, the promise, the responsibility all come to matter. A serious heart shows in steady conduct rather than in words.",
+        "relationshipMeaning": "In relationships, roles and boundaries need to be made clear. Reduce the vague expectations and trust actually becomes more comfortable.",
+        "careerMeaning": "In work, this is strong at management, leadership and organizing. Set a measure and decide the priorities, and the scattered work falls into order.",
+        "moneyMeaning": "In money, look at the budget, the long-range plan, the steady assets. Regular management guards your luck better than acting on impulse.",
+        "innerGrowthMeaning": "For inner growth, you need the power to make rules that guard you. Freedom sometimes widens on top of a good boundary.",
+        "yeoniMessage": "Today I would like to set a firm saucer under your cup. Even a wavering heart spills less when there is something holding it up.",
+        "journalQuestion": "What measure do I need to set now, for the sake of what I want to protect?"
+      },
+      "major_05_hierophant": {
+        "element": "Taurus",
+        "keywords": {
+          "0": "Tradition",
+          "1": "Counsel",
+          "2": "Teaching",
+          "3": "Trust"
+        },
+        "reversedKeywords": {
+          "0": "Empty formality",
+          "1": "Stifling",
+          "2": "Blind following",
+          "3": "Breaking with custom"
+        },
+        "shortSummary": "A card of going to find long-tested wisdom and counsel you can rely on.",
+        "storyTitle": "A low voice at an old door",
+        "story": "The Hierophant teaches the meaning of the road long travelled rather than the new and splendid one. In the order, the promises and the rites that someone lived through first and left behind, there is a power that holds a heart steady. Only, tradition is warmest when it exists for living people.",
+        "uprightMeaning": "Upright, the Hierophant marks a time when the road is set in order through counsel, study, institutions and promises. Refer to a measure you can trust rather than judging alone.",
+        "reversedMeaning": "Reversed lights a rule with nothing left but its form, or being shut inside someone else's measure. Do not hold on to an answer that does not fit you out of politeness.",
+        "loveMeaning": "In love, a serious meeting, an introduction, making the relationship official come to the surface. You need a conversation that checks whether your values and ways of living match.",
+        "relationshipMeaning": "In relationships, trust and courtesy sit at the centre. Only, find the promise that fits the two of you rather than the shape other people decided on.",
+        "careerMeaning": "In work, a mentor, a qualification, training and the organization's rules all matter. Learn the basics solidly and the next stage steadies.",
+        "moneyMeaning": "In money, tested methods and expert counsel serve you. Avoid products you do not understand and spending that runs on habit.",
+        "innerGrowthMeaning": "For inner growth, you need time to question again the principles you believe in. Find the point where old wisdom meets the truth of your own heart.",
+        "yeoniMessage": "The words you need may not be very new ones. Wisdom that has held out a long while will sound kinder today.",
+        "journalQuestion": "What principle can I trust and follow right now?"
+      },
+      "major_06_lovers": {
+        "element": "Gemini",
+        "keywords": {
+          "0": "Love",
+          "1": "Choice",
+          "2": "Harmony",
+          "3": "Values"
+        },
+        "reversedKeywords": {
+          "0": "Mismatch",
+          "1": "Hesitation",
+          "2": "Temptation",
+          "3": "Clashing values"
+        },
+        "shortSummary": "A card of relationship, where the pull of the heart meets the choice you actually make.",
+        "storyTitle": "The light toward each other, and the shade of choosing",
+        "story": "The Lovers does not end at saying love has arrived. In the moment two people face each other, their values and their choices come into view as well. This card blesses the pull, and at the same time asks quietly what kind of life that love will have you choose.",
+        "uprightMeaning": "Upright, the Lovers points to the chance that heart and choice will come into harmony. The flow clears when you stop hiding your sincerity and check the values that matter together.",
+        "reversedMeaning": "Reversed lights a state where the pull is there but the measures do not line up. Look at whether this is a choice you can carry for a long while, not just a feeling of the moment.",
+        "loveMeaning": "In love, a strong fondness, a confession, a choice about the relationship come to the surface. Look not only at whether they are a good person, but at whether a love that is like you is possible here.",
+        "relationshipMeaning": "In relationships, agreement and honesty matter. The balance returns when you take up the subject you have been avoiding — kindly, but clearly.",
+        "careerMeaning": "In work, the choice of partnership, contract and joint effort matters. Who you do it with changes the colour of the result a great deal.",
+        "moneyMeaning": "In money, check shared finances, contract terms and what you value in spending. Even an offer that looks good should be measured against your own standard.",
+        "innerGrowthMeaning": "For inner growth, you need the courage to admit what you truly want. Let the values of your own heart lead the choice, rather than other people's expectations.",
+        "yeoniMessage": "Love is a sweet feeling, yes — but it is also a door that asks what kind of person you want to become.",
+        "journalQuestion": "How closely does the relationship or road I am about to choose touch my own values?"
+      },
+      "major_07_chariot": {
+        "element": "Cancer",
+        "keywords": {
+          "0": "Advance",
+          "1": "Will",
+          "2": "Breakthrough",
+          "3": "Victory"
+        },
+        "reversedKeywords": {
+          "0": "Direction lost",
+          "1": "Forcing it through",
+          "2": "Collision",
+          "3": "Impatience"
+        },
+        "shortSummary": "A card of binding wavering forces into a single direction and moving forward.",
+        "storyTitle": "The road drawn by two sphinxes",
+        "story": "The two forces before the Chariot look in different directions. Yet the driver holds the road by will rather than by the reins. This card shows that even with feeling and reality, fear and desire all present at once, you can move once the direction is set.",
+        "uprightMeaning": "Upright, the Chariot points to being able to break through obstacles once you make the goal clear and drive. What is needed now is focus rather than hesitation.",
+        "reversedMeaning": "Reversed is a state where the speed is high but the direction is blurred. Push too hard and people and circumstances may collide.",
+        "loveMeaning": "In love, there is room for an active approach and for the bond to move forward. But ignore the other person's pace and it becomes pressure rather than victory.",
+        "relationshipMeaning": "In relationships, you need the attitude of not avoiding the problem but crossing it together. Advancing only means something when the destination is shared.",
+        "careerMeaning": "In work, this is strong at competition, hitting a target, an examination, seeing a project through. Name who is responsible and manage the pace, and results follow.",
+        "moneyMeaning": "In money, management with a direction — saving toward a target, clearing a debt — serves you. Expanding on impulse can invite an accident.",
+        "innerGrowthMeaning": "For inner growth, you need practice in gathering a scattered heart into one direction. It is not about doing away with feeling; it is about taking the wheel.",
+        "yeoniMessage": "A wavering heart today does not mean stop. So long as the one direction you take hold of is clear, the chariot can move.",
+        "journalQuestion": "What is the single goal I should gather my strength and advance toward right now?"
+      },
+      "major_08_strength": {
+        "element": "Leo",
+        "keywords": {
+          "0": "Courage",
+          "1": "Patience",
+          "2": "Gentle strength",
+          "3": "Recovery"
+        },
+        "reversedKeywords": {
+          "0": "Confidence sinking",
+          "1": "Emotional drain",
+          "2": "Fear",
+          "3": "Avoidance"
+        },
+        "shortSummary": "A card of the real courage that gentles rather than presses down hard.",
+        "storyTitle": "A hand laid at the lion's mouth",
+        "story": "Strength is not the scene of defeating the lion but of breathing in time with it. It holds the wisdom of handling the rough impulses and fears inside you by stroking them slowly, rather than driving them into a corner as enemies. Here it becomes plain that gentleness is not weakness.",
+        "uprightMeaning": "Upright, Strength says patience and a kind courage are what steady the situation. The way opens when you face it steadily rather than subduing it in haste.",
+        "reversedMeaning": "Reversed lights confidence sinking, or exhaustion from holding feeling down. Give yourself room to recover before you push yourself harder.",
+        "loveMeaning": "In love, waiting, restoring trust and approaching gently are what matter. A steady manner opens the other person's heart better than a strong assertion.",
+        "relationshipMeaning": "In relationships, you need the maturity to handle each other's rough edges of feeling. A conversation that soothes travels further than one that tries to win.",
+        "careerMeaning": "In work, this is strong at the long game, managing people, staying calm inside a crisis. Steadiness is what ends up being recognized as ability.",
+        "moneyMeaning": "In money, you need management you can keep up for a long time, not a hunger to settle it all at a stroke. Small restraint leads into large stability.",
+        "innerGrowthMeaning": "For inner growth, you need time to make peace with the frightened part inside you. Even a feeling you have held down becomes strength once you speak to it.",
+        "yeoniMessage": "You do not have to scold the lion inside you. Today, I hope you will just sit beside it quietly and match its breathing.",
+        "journalQuestion": "Which feeling should I gentle with kindness rather than hold down?"
+      },
+      "major_09_hermit": {
+        "element": "Virgo",
+        "keywords": {
+          "0": "Reflection",
+          "1": "Solitude",
+          "2": "Wisdom",
+          "3": "Inner search"
+        },
+        "reversedKeywords": {
+          "0": "Isolation",
+          "1": "Over-analysis",
+          "2": "Loneliness",
+          "3": "A closed heart"
+        },
+        "shortSummary": "A card of turning down the noise outside and walking by the lamp within.",
+        "storyTitle": "A small lamp on a snowy road",
+        "story": "The Hermit chooses one quiet lamp over the applause of a crowd. It does not light the whole road ahead, but it lights enough for the next footfall. This card says that time spent alone can be a room for recovering the truth, not only loneliness.",
+        "uprightMeaning": "Upright, the Hermit is a time to step back a while and look deeply. The wisdom your own experience has gathered matters more than an answer from outside.",
+        "reversedMeaning": "Reversed lights reflection turning into isolation, or analysis stretching on without end. You need to connect with someone you can trust.",
+        "loveMeaning": "In love, slow the pace and check your heart. Time to sort things out alone can make the relationship clearer.",
+        "relationshipMeaning": "In relationships, some distance may be needed. But say politely that you need time to think, rather than punishing with silence.",
+        "careerMeaning": "In work, research, review and deepening your expertise all serve you. The knowledge you build now becomes a guide later.",
+        "moneyMeaning": "In money, you need records and review rather than investing on impulse. If judging alone is hard, gather enough material first.",
+        "innerGrowthMeaning": "For inner growth, the power to look at yourself without outside approval grows. Quiet time restores your sense of direction.",
+        "yeoniMessage": "Rather than turning the lamp up bright, let me set it close to your feet. Today it is enough to see just the next step.",
+        "journalQuestion": "If I turned down the noise outside right now, what answer would I hear from within?"
+      },
+      "major_10_wheel_of_fortune": {
+        "element": "Jupiter",
+        "keywords": {
+          "0": "Turning",
+          "1": "Opportunity",
+          "2": "Flow",
+          "3": "Change"
+        },
+        "reversedKeywords": {
+          "0": "Delay",
+          "1": "Repetition",
+          "2": "Resistance",
+          "3": "Timing gone astray"
+        },
+        "shortSummary": "A card where a flow that seemed to have stopped moves again and opens a new phase.",
+        "storyTitle": "The turning wheel and the moment that opens",
+        "story": "The Wheel of Fortune does not stay in the same place for anyone. Rising or falling, the wheel keeps turning toward the next scene. This card tells you that even inside change you cannot control, there is a timing and an attitude you can take hold of.",
+        "uprightMeaning": "Upright, the Wheel points to a turn in the flow and an opportunity you did not expect. Ride the change flexibly when it comes and the road widens.",
+        "reversedMeaning": "Reversed lights the same pattern repeating, or the timing slipping out of line. Read the cause of the repetition rather than forcing it along.",
+        "loveMeaning": "In love, a chance meeting, a turn in the phase of the bond, an unexpected message come to the surface. But what matters is your attitude after the change, not leaning on luck.",
+        "relationshipMeaning": "In relationships, something arises that changes the flow. If the old way no longer fits, take on a new rhythm.",
+        "careerMeaning": "In work, an opportunity, a move between teams, a shift in the market all have their effect. For someone prepared, chance becomes a door.",
+        "moneyMeaning": "In money, the swings are large. Even when an opportunity shows, set aside an emergency fund and a risk standard, or the wheel carries you off.",
+        "innerGrowthMeaning": "For inner growth, you need the strength to accept that life does not stay in the same season forever.",
+        "yeoniMessage": "When the wheel of fortune turns, your task is not to hold on to everything. It is enough to tell apart what to let go of and what to ride.",
+        "journalQuestion": "What attitude would it take, right now, to change one pattern that keeps repeating in my life?"
+      },
+      "major_11_justice": {
+        "element": "Libra",
+        "keywords": {
+          "0": "Balance",
+          "1": "Fairness",
+          "2": "Judgement",
+          "3": "Responsibility"
+        },
+        "reversedKeywords": {
+          "0": "Imbalance",
+          "1": "Bias",
+          "2": "Avoidance",
+          "3": "Responsibility deferred"
+        },
+        "shortSummary": "A card of setting feeling and fact on the same scale and looking at them honestly.",
+        "storyTitle": "The stillness between sword and scale",
+        "story": "The scale of Justice does not ignore the heart, but it does not reach a conclusion on the heart alone either. The sword keeps you from deferring a decision that must be made; the scale asks whether that decision is fair. In the end this card tells you to look at the responsibility for what you chose, as well.",
+        "uprightMeaning": "Upright, Justice points to checking the facts, judging fairly, concluding responsibly. It is time to reduce the vagueness and set a measure.",
+        "reversedMeaning": "Reversed lights a judgement tilted to one side, or responsibility dodged. If there is a grievance, separate the feeling from the evidence and set it in order.",
+        "loveMeaning": "In love, fairness in the bond and responsibility on both sides matter. Consistency in behaviour shows sincerity better than feeling does.",
+        "relationshipMeaning": "In relationships, name precisely the lopsided roles and the hurt that keeps repeating. What is fair matters more than who is right.",
+        "careerMeaning": "In work, contracts, appraisals, legal documents and compliance all matter. Leave a record and move according to the standard.",
+        "moneyMeaning": "In money, look carefully at settlements, contracts, debts and tax matters. A vague promise becomes a burden later.",
+        "innerGrowthMeaning": "For inner growth, you need the maturity to accept the results of your own choices. Honesty is sometimes the largest healing there is.",
+        "yeoniMessage": "I would like to take your side, but this card shows the scale first. Set the feeling and the fact on it together, and the road appears.",
+        "journalQuestion": "What fact do I need to look at fairly right now?"
+      },
+      "major_12_hanged_man": {
+        "element": "Neptune",
+        "keywords": {
+          "0": "Pause",
+          "1": "A shift of view",
+          "2": "Waiting",
+          "3": "Letting go"
+        },
+        "reversedKeywords": {
+          "0": "Sacrifice in vain",
+          "1": "Stubbornness",
+          "2": "Stagnation",
+          "3": "Stifling"
+        },
+        "shortSummary": "A card where, inside time that will not move, the view opens upside down.",
+        "storyTitle": "The other sky of one hanging upside down",
+        "story": "The Hanged Man is bound, yet the face is surprisingly calm. In the moment the world looks upside down, a road unknown before comes into sight. This card shows that a delay may be an invitation to change your view, not a punishment.",
+        "uprightMeaning": "Upright, the Hanged Man says to stop a while and take another view. The problem looks new when you let go, rather than force it loose.",
+        "reversedMeaning": "Reversed lights waiting that has become a draining sacrifice rather than meaningful reflection. Ask again why you are standing still.",
+        "loveMeaning": "In love, the more you hurry the more it tangles. Time spent looking from the other person's side loosens the tension in the bond.",
+        "relationshipMeaning": "In relationships, look at the balance between yielding and sacrifice. If only one person is left hanging, that is not love but depletion.",
+        "careerMeaning": "In work, you need to hold off, review again, change direction. Even if results are slow just now, change the view and a solution appears.",
+        "moneyMeaning": "In money, this can mean tied-up funds, delayed returns, a contract on hold. Reviewing the terms comes before forcing a recovery.",
+        "innerGrowthMeaning": "For inner growth, the wisdom of letting go grows larger. When the hand that grips everything opens, the heart sees a new meaning.",
+        "yeoniMessage": "The time that stopped has not abandoned you. Look at it upside down for a moment, and you may see the road your heart missed.",
+        "journalQuestion": "What problem do I need to look at from another angle right now?"
+      },
+      "major_13_death": {
+        "element": "Scorpio",
+        "keywords": {
+          "0": "Ending",
+          "1": "Transition",
+          "2": "Clearing away",
+          "3": "Rebirth"
+        },
+        "reversedKeywords": {
+          "0": "Lingering attachment",
+          "1": "Resisting change",
+          "2": "A parting put off",
+          "3": "Holding on"
+        },
+        "shortSummary": "A card that, under the name of an ending, sheds the old shell and prepares a new form.",
+        "storyTitle": "The fading field and the dawn that rises again",
+        "story": "The Death card speaks of a deep change rather than a terrifying finale. A way of living that can no longer protect you quietly lowers its curtain, and a new order, still unfamiliar, takes its place. Even when the ending hurts, this card shows that life keeps flowing by changing its form.",
+        "uprightMeaning": "Upright, Death points to clearing away a current you have held on to for long and moving to a new stage. The more you admit the ending, the faster the rebirth.",
+        "reversedMeaning": "Reversed is a state where the heart cannot release what has already ended, so change is delayed. Tell apart whether the attachment protects you or binds you.",
+        "loveMeaning": "In love, a large turn in the bond, sorting yourself out after a parting, the end of an old pattern come to the surface. Only by ending it does the strength to love again return.",
+        "relationshipMeaning": "In relationships, the old way may no longer work. Without an honest change, the same wound repeats.",
+        "careerMeaning": "In work, a change of role, the close of a project, a move into a new structure are all strong. Clear away what needs clearing and the next offer comes in.",
+        "moneyMeaning": "In money, you need to settle losses, rebuild how you spend, end a long-standing burden. The feeling that it is a waste can create a larger loss.",
+        "innerGrowthMeaning": "For inner growth, a time opens for taking off the name that has long defined you. In the place of loss, a truer self can grow.",
+        "yeoniMessage": "This card does not speak only of endings. It speaks of the moment when a heart held on to for long is finally about to breathe in another form.",
+        "journalQuestion": "What must I let go of before I can cross into the next season?"
+      },
+      "major_14_temperance": {
+        "element": "Sagittarius",
+        "keywords": {
+          "0": "Attunement",
+          "1": "Balance",
+          "2": "Healing",
+          "3": "Temperance"
+        },
+        "reversedKeywords": {
+          "0": "Imbalance",
+          "1": "Excess",
+          "2": "Impatience",
+          "3": "Coming undone"
+        },
+        "shortSummary": "A card of blending different streams slowly until they reach the temperature of healing.",
+        "storyTitle": "The light flowing between two cups",
+        "story": "The angel of Temperance moves the water from one cup to the other without hurry. Finding the temperature that is neither too hot nor too cold — that is the wisdom of this card. A heart and a reality that have split apart can also make a new balance if they are blended slowly.",
+        "uprightMeaning": "Upright, Temperance is a current of attunement and recovery. Keep from the extremes and match the pace, and the situation settles gently.",
+        "reversedMeaning": "Reversed lights excess, imbalance, the urge to fix things too fast. A life and a feeling tilted to one side need blending again.",
+        "loveMeaning": "In love, the time spent matching two different natures matters. Look for a rhythm that will last, rather than a hot feeling.",
+        "relationshipMeaning": "In relationships, mediation, reconciliation and adjusting the rhythm of daily life are needed. A small kindness melts a large conflict.",
+        "careerMeaning": "In work, coordinating with others, managing the schedule and balancing several roles all matter. A sustainable pace produces more than a forced one.",
+        "moneyMeaning": "In money, restore the balance between spending and saving. Daily adjustment leads to stability better than one large change.",
+        "innerGrowthMeaning": "For inner growth, a time opens to reconcile the two extremes of yourself. Even opposing feelings become wisdom when blended well.",
+        "yeoniMessage": "Let me cool your tea a little today. What you need now is a moderate temperature, not a scalding conclusion.",
+        "journalQuestion": "Which area of my life needs its temperature adjusted again right now?"
+      },
+      "major_15_devil": {
+        "element": "Capricorn",
+        "keywords": {
+          "0": "Obsession",
+          "1": "Desire",
+          "2": "Bondage",
+          "3": "The shadow"
+        },
+        "reversedKeywords": {
+          "0": "Release",
+          "1": "Seeing the pattern",
+          "2": "Breaking free of temptation",
+          "3": "Recovery"
+        },
+        "shortSummary": "A card of looking honestly at the loop of desire and fear that binds you.",
+        "storyTitle": "The fact that the chain is loose",
+        "story": "The chains on the Devil card are looser than they look. Yet the one bound believes they cannot free themselves, because the fear has grown familiar over long years. This card does not simply call the desire pulling at you bad; it tells you to look at where it came from.",
+        "uprightMeaning": "Upright, the Devil lights obsession, addictive patterns, worldly desire. Look at the shadow you would not admit, and the power to choose comes back to you.",
+        "reversedMeaning": "Reversed is a current where you become aware of the bondage and get ready to leave it. Break the repetition, even a little, and the sense of freedom revives.",
+        "loveMeaning": "In love, a strong pull, jealousy, dependence, a secret bond may surface. Do not confuse desire with affection.",
+        "relationshipMeaning": "In relationships, look at the pattern that binds you to each other. A bond held together by guilt or control needs room to breathe.",
+        "careerMeaning": "In work, power, ambition and the pressure to perform run strong. Check whether the goal is growing you or draining you.",
+        "moneyMeaning": "In money, be careful of debt, overspending, and purchases that feed desire. Look at the numbers honestly and the first clue to release appears.",
+        "innerGrowthMeaning": "For inner growth, you need the courage not to deny your own shadow. The moment you see the binding, the chain has already loosened a little.",
+        "yeoniMessage": "Let us look slowly together at whether what binds you is truly fate, or a fear that has simply grown familiar.",
+        "journalQuestion": "What repeating pattern makes me feel that I am not free?"
+      },
+      "major_16_tower": {
+        "element": "Mars",
+        "keywords": {
+          "0": "Collapse",
+          "1": "Awakening",
+          "2": "Dismantling",
+          "3": "Truth"
+        },
+        "reversedKeywords": {
+          "0": "Avoiding change",
+          "1": "Unease",
+          "2": "A late clearing",
+          "3": "Inner collapse"
+        },
+        "shortSummary": "A card where an old structure falls and lays bare a truer foundation.",
+        "storyTitle": "Beneath the tower the lightning struck",
+        "story": "The Tower is most frightening in the moment it falls, yet it had been cracked for a long time. The lightning is less a cruel destroyer than a light that reveals a structure that can no longer hold. This card lets you see, in the rubble, the foundation you truly have to rebuild.",
+        "uprightMeaning": "Upright, the Tower points to sudden change and truth laid bare. Even with the shock, an honest rebuilding serves you better than clinging to a false foundation.",
+        "reversedMeaning": "Reversed is a state where you try to avoid change while everything inside is already shaking. Ignore the small cracks and a larger reckoning may come.",
+        "loveMeaning": "In love, a hidden problem, a sudden confession, the collapse of the bond's structure come to the surface. The chance of recovery appears only when you stop avoiding the truth.",
+        "relationshipMeaning": "In relationships, a conflict long covered over may come out. What matters is not rebuilding the broken way of talking exactly as it was.",
+        "careerMeaning": "In work, there may be a change in the organisation, a cancelled plan, feedback that lands hard. Admit the reality quickly and build a new structure.",
+        "moneyMeaning": "In money, be careful of unexpected costs or exposure to risk. Check your emergency plan, your insurance, the shape of your debt.",
+        "innerGrowthMeaning": "For inner growth, an old certainty you have believed in may be shaken. After the fall, there remains room to build a firmer truth.",
+        "yeoniMessage": "The tower falling does not mean you fall. What came down may only be a way of living that could no longer protect you.",
+        "journalQuestion": "What structure in my life is no longer safe?"
+      },
+      "major_17_star": {
+        "element": "Aquarius",
+        "keywords": {
+          "0": "Hope",
+          "1": "Healing",
+          "2": "Inspiration",
+          "3": "Trust"
+        },
+        "reversedKeywords": {
+          "0": "Discouragement",
+          "1": "Recovery delayed",
+          "2": "Distrust",
+          "3": "Losing the light"
+        },
+        "shortSummary": "A card of hope that pours clear water again, even after the wound.",
+        "storyTitle": "Two streams poured under the night sky",
+        "story": "The Star does not command loudly the way the sun does. It stays quietly through the dark night and tells you the direction. This card does not mean the wounds are all gone; it shows that the belief you can grow clear again still remains in your heart.",
+        "uprightMeaning": "Upright, the Star is a current of healing, inspiration, trust restored. Even without hurrying, the heart turns bit by bit toward the clear side.",
+        "reversedMeaning": "Reversed lights a state where hope is hard to believe. The light may not have gone; tired eyes may simply be unable to see it for a while.",
+        "loveMeaning": "In love, recovery after a wound, a pure liking, the wish to believe in the future again come to the surface. A gentle sincerity is what lasts.",
+        "relationshipMeaning": "In relationships, being a safe space for each other matters. Steady reassurance revives trust better than a grand promise.",
+        "careerMeaning": "In work, creative inspiration, a long-range vision and a good name all come alive. The sincere work you do now shines later.",
+        "moneyMeaning": "In money, recovery is possible, but it is closer to long-term stability than to immediate return. Be hopeful, but do not forget the plan.",
+        "innerGrowthMeaning": "For inner growth, the power to believe again grows. You can water the future without denying the wound.",
+        "yeoniMessage": "However long the night, the star does not disappear. Today it is enough simply not to lose one very small hope.",
+        "journalQuestion": "What small light of the future would I like to believe in again?"
+      },
+      "major_18_moon": {
+        "element": "Pisces",
+        "keywords": {
+          "0": "Unease",
+          "1": "The unconscious",
+          "2": "Illusion",
+          "3": "Dreams"
+        },
+        "reversedKeywords": {
+          "0": "Confusion clearing",
+          "1": "Nearing the truth",
+          "2": "Fear easing",
+          "3": "The illusion lifting"
+        },
+        "shortSummary": "A card that lights both the shadow of the heart and its instinct, on an uncertain night road.",
+        "storyTitle": "The dog and the wolf baying under moonlight",
+        "story": "The Moon does not show everything clearly. That is why we sometimes mistake a shadow for a monster. This card does not mean your unease is false; it says carefully that the information is still incomplete, so do not trust a conclusion reached at night as though it were a daylight truth.",
+        "uprightMeaning": "Upright, the Moon points to unease, dreams, the unconscious, a situation still vague. What you need now is time to look at where the feeling comes from, not a firm verdict.",
+        "reversedMeaning": "Reversed is a current where the confusion clears a little and the outline of the truth begins to show. Put the fear into words and it loses its force.",
+        "loveMeaning": "In love, unease, imagination and guesses about what the other person really feels can all grow. Do not wound your heart with a reading you never confirmed.",
+        "relationshipMeaning": "In relationships, misunderstanding and hidden feeling run beneath the surface. Until you ask directly, hold back from declaring a shadow to be fact.",
+        "careerMeaning": "In work, it means missing information, vague instructions, an uncertain direction. Gather more material, and look again in the morning at what worried you at night.",
+        "moneyMeaning": "In money, be careful of a vague offer, or spending that comes out of anxiety. Put off any large decision until the numbers grow clear.",
+        "innerGrowthMeaning": "For inner growth, a time opens for listening to the voice of the unconscious. Even inside the fear lies a clue to a feeling long buried.",
+        "yeoniMessage": "It is all right to be afraid of the night road. Moonlight may look very small, but it keeps you from losing the way entirely.",
+        "journalQuestion": "Among the things I believe to be fact, which is a fear I have not yet confirmed?"
+      },
+      "major_19_sun": {
+        "element": "Sun",
+        "keywords": {
+          "0": "Joy",
+          "1": "Clarity",
+          "2": "Vitality",
+          "3": "Success"
+        },
+        "reversedKeywords": {
+          "0": "Joy delayed",
+          "1": "Confidence shaken",
+          "2": "Too much optimism",
+          "3": "A patch of shade"
+        },
+        "shortSummary": "A card where what was hidden brightens and the warmth of living comes back.",
+        "storyTitle": "The bright horse beyond the sunflower wall",
+        "story": "The Sun sweeps the tangled symbols aside and lights life force just as it is. Like a child laughing on horseback, this card speaks of the moment when living feels simple and bright again. Joy is sometimes the most honest signpost there is.",
+        "uprightMeaning": "Upright, the Sun points to clarity, vitality, success, joy shared in the open. What was hidden brightens and confidence returns.",
+        "reversedMeaning": "Reversed is a state where joy runs late, or too much optimism makes you miss a small patch of shade. Trust the light, but check the details.",
+        "loveMeaning": "In love, there is honest affection, a bright meeting, the chance of making the bond public. Not hiding puts the heart at ease.",
+        "relationshipMeaning": "In relationships, misunderstandings loosen and warm exchange revives. Time you can laugh through together becomes the key to recovery.",
+        "careerMeaning": "In work, results, recognition, a presentation, visible success come to the surface. It is a good time to show yourself with confidence.",
+        "moneyMeaning": "In money, there may be a gain or good news. Just keep the balance so that cheerful spending does not grow too large.",
+        "innerGrowthMeaning": "For inner growth, the power to show yourself without hiding grows. Receive joy without guilt.",
+        "yeoniMessage": "Today this card says you may laugh brightly. There is a place in your heart, too, where sunlight can rest.",
+        "journalQuestion": "What side of myself do I want to stop hiding and show brightly?"
+      },
+      "major_20_judgement": {
+        "element": "Pluto",
+        "keywords": {
+          "0": "The call",
+          "1": "Awakening",
+          "2": "Recovery",
+          "3": "Reckoning"
+        },
+        "reversedKeywords": {
+          "0": "Avoiding yourself",
+          "1": "An answer deferred",
+          "2": "Regret",
+          "3": "Fear of being judged"
+        },
+        "shortSummary": "A card where a heart long asleep hears the call and rises again.",
+        "storyTitle": "The trumpet and the opened coffins",
+        "story": "The trumpet of Judgement is less a sound handing down punishment than a call to wake. Past choices and regrets included, the time has come to call your life again from a wider view. Rather than saying the past is over, this card lights the moment when the past is revived with a new meaning.",
+        "uprightMeaning": "Upright, Judgement points to awakening, reappraisal, an important decision. Answer the call you have long deferred and the direction of your life grows clear.",
+        "reversedMeaning": "Reversed is a state of being unable to forgive yourself, or putting the decision off. What is needed is a truthful answer, not perfect preparation.",
+        "loveMeaning": "In love, a reunion, a reckoning of the bond, a checking of true feeling come to the surface. You must choose whether to repeat the past or revive it anew.",
+        "relationshipMeaning": "In relationships, an old story can be brought out again and settled. A responsible confession changes the current better than blame does.",
+        "careerMeaning": "In work, appraisal, interviews, a change of career and a sense of calling all run strong. Make clear the work you truly want to answer.",
+        "moneyMeaning": "In money, settle the accounts of your past financial habits. Handle the overdue settlements and old promises and your heart grows lighter.",
+        "innerGrowthMeaning": "For inner growth, a time opens for turning regret into learning. Do not turn away from the voice calling you back.",
+        "yeoniMessage": "This card wakes you rather than scolds you. It says that now, carrying all that time behind you, you can answer again.",
+        "journalQuestion": "What is the work inside me that keeps calling my name?"
+      },
+      "major_21_world": {
+        "element": "Saturn",
+        "keywords": {
+          "0": "Completion",
+          "1": "Integration",
+          "2": "Achievement",
+          "3": "The next chapter"
+        },
+        "reversedKeywords": {
+          "0": "Unfinished",
+          "1": "A delayed finish",
+          "2": "Repetition",
+          "3": "Needing to tidy up"
+        },
+        "shortSummary": "A card of completion: one journey integrated, and a step into a wider chapter.",
+        "storyTitle": "The last scene, dancing inside the laurel wreath",
+        "story": "The figure on the World card does not stop at the end — it dances. Completion is not a closed door but a rhythm that carries every experience you have passed through into the next circle. This card shows you that it is time to acknowledge what you have learned enough of, and move to a new stage.",
+        "uprightMeaning": "Upright, the World points to completion, achievement, integration, expansion. The effort so far takes a single shape and opens the next door.",
+        "reversedMeaning": "Reversed says it is nearly done, but a small loop still waits to be closed. Put off the ending and the same scene repeats.",
+        "loveMeaning": "In love, a mature conclusion to the bond, long-term stability, a move into a new stage come to the surface. It is time to acknowledge the world you built together.",
+        "relationshipMeaning": "In relationships, you need time to integrate the meaning of a long journey. Share both thanks and a tidying-up, and the next chapter comes easier.",
+        "careerMeaning": "In work, there is a current of a project completed, a promotion, a graduation, going abroad or expanding. Get ready to gather your results and show them.",
+        "moneyMeaning": "In money, the fruit of a long plan or the completion of a financial structure comes into view. The closing settlement and setting the next goal both matter.",
+        "innerGrowthMeaning": "For inner growth, the power to receive your many pieces as one grows. Even the moments where you fell short were part of the journey.",
+        "yeoniMessage": "You have come through a great many scenes to reach here. Rather than fearing the ending now, hold the completed rhythm once in your arms.",
+        "journalQuestion": "What should I now call complete, so that I can move on to the next chapter?"
+      }
     }
   }
 }
