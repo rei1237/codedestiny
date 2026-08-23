@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { generatePageMetadata } from "@/lib/generate-page-metadata";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
 
@@ -267,6 +269,8 @@ export default function FortuneAppsComparePage() {
           두고 보는 태도가 필요합니다.
         </p>
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/compare/fortune-apps"]} />
 
       <nav className="cd-chip-wrap" aria-label="관련 문서 링크">
         <Link href="/saju/" className="cd-chip">무료 사주 풀이</Link>

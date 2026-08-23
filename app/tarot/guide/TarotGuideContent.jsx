@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import { getCurrentLoadingLocale, normalizeLoadingLocale } from "@/constants/loadingMessages";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 
 const GUIDE_COPY = {
   ko: {
@@ -576,6 +578,19 @@ export default function TarotGuideContent() {
 
   const copy = GUIDE_COPY[locale] || GUIDE_COPY.ko;
 
+  // 이 페이지는 로케일 12벌이 살아 있는 유일한 가이드다. 한국어 CTA 문구를 번역해 둘 수
+  // 없는 나머지 로케일에는, 이미 번역돼 있는 navLinks 를 그대로 승격해 버튼 줄만 그린다
+  // — 그래야 새 문구를 12벌 손으로 쓰지 않고도 어느 언어에서도 한국어가 새지 않는다.
+  // 지원하지 않는 로케일은 copy 가 ko 로 떨어지므로 locale 이 아니라 copy 로 판정한다.
+  const isKoreanCopy = copy === GUIDE_COPY.ko;
+  const ctaTarget = isKoreanCopy
+    ? GUIDE_CTA_TARGETS["/tarot/guide"]
+    : {
+        from: "tarot-guide",
+        primary: { href: copy.navLinks[0][0], label: copy.navLinks[0][1] },
+        secondary: copy.navLinks.slice(1, 4).map(([href, label]) => ({ href, label })),
+      };
+
   return (
     <main className="cd-main-shell cd-guide">
       <header className="cd-main-header">
@@ -628,6 +643,8 @@ export default function TarotGuideContent() {
           </article>
         ))}
       </section>
+
+      <GuideCta target={ctaTarget} variant={isKoreanCopy ? "full" : "compact"} />
 
       <nav className="cd-chip-wrap" aria-label={copy.navLabel}>
         {copy.navLinks.map(([href, label]) => (

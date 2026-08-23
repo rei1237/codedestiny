@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { generatePageMetadata } from "@/lib/generate-page-metadata";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
 
@@ -179,6 +181,8 @@ export default function SajuVsZiweiPage() {
           두 체계 모두 전통 문헌의 해석 규칙을 계산해 얻은 구조이며, 문화적 해석 콘텐츠입니다. 의료 진단, 법률 판단, 투자 결정, 결혼과 이혼의 근거로 삼기에는 적합하지 않습니다. 해석이 잘 맞는다고 느껴질수록 현실의 정보와 함께 두고 보는 태도가 필요합니다.
         </p>
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/compare/saju-vs-ziwei"]} />
 
       <nav className="cd-chip-wrap" aria-label="비교 문서 관련 링크">
         <Link href="/saju/" className="cd-chip">사주 보러 가기</Link>

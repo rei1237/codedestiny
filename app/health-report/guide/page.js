@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "../../components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const HEALTH_REPORT_GUIDE_TEXT_TRANSLATIONS = {
@@ -191,6 +193,8 @@ export default function HealthReportGuidePage() {
           </article>
         ))}
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/health-report/guide"]} />
 
       <nav className="cd-chip-wrap" aria-label="명리 헬스 리포트 가이드 관련 링크">
         <Link href="/saju/five-elements" className="cd-chip">오행 가이드</Link>
