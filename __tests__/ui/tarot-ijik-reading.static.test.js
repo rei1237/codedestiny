@@ -1,13 +1,31 @@
+/**
+ * 커리어 전환 타로의 판정 계약.
+ *
+ * 2026-08-24: 판정·리딩 생성기가 `js/tarot-job-change-assessment.js` + `tarot-ijik.html` 에서
+ * `worker/lib/tarot-ijik-reading.js` 로 옮겨 갔다(유료 산출물을 브라우저가 만들고 있었다).
+ * 판정 결과의 계약은 그대로여야 하므로 같은 단언을 새 위치에 대고 그대로 유지한다.
+ */
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
 const test = require('node:test');
 
-const { assessJobChange } = require('../../js/tarot-job-change-assessment.js');
-const pagePath = path.join(__dirname, '..', '..', 'tarot-ijik.html');
-const helperPath = path.join(__dirname, '..', '..', 'js', 'tarot-job-change-assessment.js');
+const root = path.join(__dirname, '..', '..');
+const pagePath = path.join(root, 'tarot-ijik.html');
+const enginePath = path.join(root, 'worker', 'lib', 'tarot-ijik-reading.js');
 const page = fs.readFileSync(pagePath, 'utf8');
-const helper = fs.readFileSync(helperPath, 'utf8');
+const engineSource = fs.readFileSync(enginePath, 'utf8');
+
+/** 워커 모듈은 ESM 이라 CJS 테스트에서는 동적 import 로 받는다. */
+let assessJobChange;
+let buildIjikReading;
+test('워커 판정 모듈을 불러온다', async () => {
+  const mod = await import(require('node:url').pathToFileURL(enginePath).href);
+  assessJobChange = mod.assessJobChange;
+  buildIjikReading = mod.buildIjikReading;
+  assert.equal(typeof assessJobChange, 'function');
+  assert.equal(typeof buildIjikReading, 'function');
+});
 
 function cards(ids, reversedIndexes = []) {
   const reversed = new Set(reversedIndexes);
@@ -65,24 +83,31 @@ test('helper 결과 계약은 화면 판정에 필요한 항목만 제공한다'
   assert.ok(result.actions.every((item) => typeof item === 'string' && item.length > 0));
 });
 
-test('정적 페이지는 요약 판정과 결과 결제 게이트를 함께 유지한다', () => {
-  assert.match(page, /tarot-job-change-assessment\.js\?v=job-change-v1/);
+test('buildIjikReading 은 판정·리딩·AI 프롬프트를 한 번에 돌려준다', () => {
+  const result = buildIjikReading(cards(['M00', 'M01', 'M03', 'M19', 'M10', 'M16', 'M07']));
+
+  assert.deepEqual(Object.keys(result).sort(), ['aiPrompt', 'assessment', 'reading']);
+  assert.ok(result.reading.length > 500, `리딩이 ${result.reading.length}자밖에 안 된다`);
+  assert.ok(result.aiPrompt.length > 500, `프롬프트가 ${result.aiPrompt.length}자밖에 안 된다`);
+  assert.match(result.reading, /✦ 이번 리딩의 결론/);
+});
+
+test('판정 문구는 워커 모듈이 갖는다', () => {
+  for (const label of ['이직 쪽으로 열림', '현직 유지가 안정적', '준비 후 판단', '지금~4주', '1~3개월', '3~6개월', '준비기']) {
+    assert.ok(engineSource.includes(label), `워커 모듈에 "${label}" 이 없다`);
+  }
+});
+
+test('정적 페이지는 판정 표시 자리와 결제 게이트를 유지한다', () => {
   assert.match(page, /id="jobChangeAssessment"/);
   assert.match(page, /id="jobChangeDirection"/);
   assert.match(page, /id="jobChangeTiming"/);
   assert.match(page, /id="jobChangeCurrentCompany"/);
   assert.match(page, /id="jobChangeCheckpoints"/);
-  assert.match(helper, /이직 쪽으로 열림/);
-  assert.match(helper, /현직 유지가 안정적/);
-  assert.match(helper, /준비 후 판단/);
-  assert.match(helper, /지금~4주/);
-  assert.match(helper, /1~3개월/);
-  assert.match(helper, /3~6개월/);
-  assert.match(helper, /준비기/);
-  assert.match(page, /function buildIjikAiPromptText\(cards, readingText, assessment\)/);
 
+  // 🔴 결제가 먼저, 서버 리딩 요청이 나중이어야 한다.
   const gateIndex = page.indexOf("await ijikCoinGate(IJIK_COIN_COST, '커리어 전환 타로 리딩')");
-  const assessmentIndex = page.indexOf('const assessment = getJobChangeAssessment(drawnCards);');
-  assert.ok(gateIndex >= 0);
-  assert.ok(assessmentIndex > gateIndex);
+  const fetchIndex = page.indexOf('await fetchIjikReading(drawnCards, _ijikLastRequestId)');
+  assert.ok(gateIndex >= 0, '결제 게이트 호출을 못 찾았다');
+  assert.ok(fetchIndex > gateIndex, '리딩 요청이 결제보다 먼저다');
 });

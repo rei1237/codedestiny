@@ -9,7 +9,6 @@
 <script src="/js/core/checkout-entry.js?v=build-ce0e961efebc"></script>
 <script src="/js/core/payment-service.js?v=build-payment-service-v1"></script>
 <script src="/js/destiny-profile.js?v=build-cfcab5c0ba2d"></script>
-<script src="/js/tarot-job-change-assessment.js?v=job-change-v1"></script>
 <script>
 window.tailwind = window.tailwind || {};
 window.tailwind.config = {
@@ -1497,6 +1496,8 @@ const TAROT_API_TIMEOUT_MS = 12000;
 const IJIK_COIN_COST = 50;
 
 let _ijikLastCoinTx = '';
+// 서버 리딩 라우트가 결제 증빙을 찾을 때 쓰는 열쇠. coin-gate 에 넘긴 값과 같아야 한다.
+let _ijikLastRequestId = '';
 
 const TAROT_LOCAL_BASE = '/tarot-cards/';
 const TAROT_CARD_IMAGE_BY_ID = {
@@ -1707,82 +1708,8 @@ function pickLocalJobChangeCards() {
   return out;
 }
 
-const CARD_SIGNAL_BY_ID = {
-  M00: { up: '바보는 아직 이름 붙지 않은 길을 향한 첫 숨을 비춥니다.', re: '바보의 역방향은 설렘보다 충동이 앞서지 않는지 묻습니다.' },
-  M01: { up: '마법사는 이미 손안에 있는 도구를 현실의 성과로 바꾸는 힘을 보여줍니다.', re: '마법사의 역방향은 능력은 있으나 초점이 흩어진 상태를 비춥니다.' },
-  M02: { up: '여사제는 조용한 직감과 보이지 않는 정보를 먼저 읽으라고 말합니다.', re: '여사제의 역방향은 감을 믿기 전에 사실을 다시 확인하라는 신호입니다.' },
-  M03: { up: '여황제는 성장, 돌봄, 창작성이 살아나는 환경을 가리킵니다.', re: '여황제의 역방향은 너무 많이 주고도 정작 자신은 마르는 흐름을 경계합니다.' },
-  M04: { up: '황제는 질서와 책임, 명확한 권한이 있는 자리를 비춥니다.', re: '황제의 역방향은 통제와 안정에 묶여 새 선택이 좁아진 상태를 보여줍니다.' },
-  M05: { up: '교황은 배울 체계와 믿을 만한 기준을 통해 길이 열림을 알립니다.', re: '교황의 역방향은 남의 정답을 그대로 따를수록 자기 길이 흐려진다고 말합니다.' },
-  M06: { up: '연인은 가치와 선택이 만나는 지점에서 일의 방향이 선명해짐을 보여줍니다.', re: '연인의 역방향은 마음과 조건이 서로 다른 말을 하고 있음을 비춥니다.' },
-  M07: { up: '전차는 방향을 정하면 빠르게 움직일 수 있는 추진력을 줍니다.', re: '전차의 역방향은 속도보다 조향이 먼저라는 메시지를 전합니다.' },
-  M08: { up: '힘은 조용한 끈기와 자기 신뢰가 다음 문을 연다고 말합니다.', re: '힘의 역방향은 버티는 힘이 소진으로 변하기 전에 회복이 필요함을 알립니다.' },
-  M09: { up: '은둔자는 잠시 물러서서 자신의 기준을 정교하게 다듬는 시간을 비춥니다.', re: '은둔자의 역방향은 혼자만의 고민이 길어져 현실 확인이 늦어지는 흐름을 경계합니다.' },
-  M10: { up: '운명의 수레바퀴는 흐름이 바뀌는 시점과 예상 밖의 기회를 가리킵니다.', re: '운명의 수레바퀴 역방향은 변화가 오더라도 준비 없는 선택은 반복을 만든다고 말합니다.' },
-  M11: { up: '정의는 조건, 계약, 보상, 책임을 공정하게 따져야 함을 보여줍니다.', re: '정의의 역방향은 감정적 판단이나 불균형한 조건을 다시 살피라는 신호입니다.' },
-  M14: { up: '절제는 급한 이동보다 균형 잡힌 전환이 길을 오래 지킨다고 말합니다.', re: '절제의 역방향은 일과 회복, 기대와 현실의 비율이 어긋났음을 비춥니다.' },
-  M16: { up: '탑은 더는 유지하기 어려운 구조가 드러나며 새 기준이 필요함을 알립니다.', re: '탑의 역방향은 피하고 있던 변화가 작게라도 문을 두드리고 있음을 보여줍니다.' },
-  M17: { up: '별은 멀리 보이는 가능성이 다시 마음의 방향을 밝혀주는 카드입니다.', re: '별의 역방향은 희망이 흐려졌을 때 작은 회복부터 다시 시작하라고 말합니다.' },
-  M19: { up: '태양은 재능이 드러나고 인정받는 밝은 무대를 비춥니다.', re: '태양의 역방향은 보여지는 성취보다 실제 만족을 먼저 확인하라는 메시지입니다.' },
-};
 
-const JOB_CHANGE_READING_BY_POSITION = [
-  {
-    up: '현직에는 이미 익숙한 자원과 쌓아 온 신뢰가 있습니다. 다만 그 안정이 성장의 기반인지, 변화가 멈춘 대가인지 구분해야 다음 선택이 선명해집니다.',
-    re: '현재 회사에서 얻는 것보다 소모되는 것이 커졌을 수 있습니다. 감정이 가장 높은 날 바로 결론 내리기보다, 역할·보상·업무량 중 실제로 바뀔 수 있는 항목부터 확인하세요.',
-    actionUp: '현재 회사에서 지키고 싶은 것과 바꾸고 싶은 것을 각각 세 가지씩 적어보세요.',
-    actionRe: '일에서 기운이 켜지는 순간과 꺼지는 순간을 각각 세 줄로 적어보세요.',
-  },
-  {
-    up: '이직의 문은 막연한 탈출감보다 조건의 정합성에서 열립니다. 의사결정 방식, 역할의 경계, 성장 기회와 보상을 하루의 장면으로 구체화해 보세요.',
-    re: '새 자리를 너무 아름답게 상상하면 같은 피로가 형태만 바꾸어 돌아올 수 있습니다. 회의량, 보고 방식, 성과 기준처럼 실제 하루를 바꾸는 조건을 먼저 물어야 합니다.',
-    actionUp: '관심 직무 공고 세 개를 모아 공통 조건과 빠진 정보를 표시하세요.',
-    actionRe: '관심 기업 한 곳의 직무 설명과 실제 후기를 나란히 읽어보세요.',
-  },
-  {
-    up: '지금 바꾸고 싶은 것은 회사 이름보다 일하는 방식, 보상, 성장 속도 중 하나일 수 있습니다. 무엇이 달라지면 같은 일을 해도 마음이 회복되는지 살펴보세요.',
-    re: '소명감이 흐려진 상태에서 회사를 바꾸려 할 수 있습니다. 회사의 문제인지, 역할의 문제인지, 오래 돌보지 못한 마음의 문제인지 먼저 나누어야 합니다.',
-    actionUp: '회사·역할·보상·성장 중 가장 먼저 바꾸고 싶은 한 가지를 문장으로 적으세요.',
-    actionRe: '작은 교육, 사이드 프로젝트, 커뮤니티 참여 중 하나로 관심사를 다시 깨워보세요.',
-  },
-  {
-    up: '옮긴 뒤 1~3개월은 새 역할과 조직의 리듬을 익히는 시간이 됩니다. 처음부터 증명하려 애쓰기보다 관찰하고 질문하며 신뢰를 쌓을 때 변화가 실제 성장으로 이어집니다.',
-    re: '이직 후의 장면을 지나치게 밝게만 상상하면 같은 불만이 돌아올 수 있습니다. 새 자리에서 해결될 문제와 구조적으로 남을 문제를 미리 분리하세요.',
-    actionUp: '이직 후 첫 90일 동안 익혀야 할 사람, 규칙, 업무 언어를 적어보세요.',
-    actionRe: '현재 자리에서 바꿀 수 있는 것과 바꿀 수 없는 것을 두 칸으로 나누세요.',
-  },
-  {
-    up: '시기는 큰 결심보다 준비의 밀도에서 드러납니다. 이력서는 완벽해진 뒤 쓰는 문서가 아니라, 쓰면서 내가 원하는 역할을 확인하는 지도입니다.',
-    re: '움직여야 함을 알면서도 문 앞에서 멈춰 있습니다. 두려움, 정보 부족, 에너지 고갈 중 무엇이 시기를 늦추는지 이름 붙이면 다음 행동이 작아집니다.',
-    actionUp: '프로필 한 줄을 고치거나 포트폴리오 한 항목을 정리하세요.',
-    actionRe: '이력서 파일을 열어 날짜 하나만 고쳐도 충분합니다.',
-  },
-  {
-    up: '퇴사 전에 내려놓아야 할 것은 준비 자체가 아니라, 확인 없이도 괜찮을 것이라는 기대입니다. 계약·보상·역할·팀의 실체가 말과 문서에서 일치하는지 살펴야 합니다.',
-    re: '안정감과 익숙한 관계가 새 길의 판단을 흐릴 수 있지만, 모든 것을 버리라는 뜻은 아닙니다. 퇴사 전 생활비 여유와 입사 후 첫 90일의 기대치를 먼저 확인하세요.',
-    actionUp: '새 자리의 계약·보상·역할·팀에 물어볼 질문을 네 묶음으로 정리하세요.',
-    actionRe: '퇴사 전 확인하지 못한 조건을 적고 답을 받을 때까지 결정을 보류하세요.',
-  },
-  {
-    up: '이번 흐름은 이직을 서두르라는 명령보다, 움직일 수 있는 문이 열리고 있음을 보여줍니다. 다만 최종 선택은 카드보다 실제 조건을 확인했을 때 힘을 얻습니다.',
-    re: '확신이 흔들리는 시간은 실패가 아니라 더 정확한 선택을 위한 정지 신호입니다. 지금은 현직을 기반으로 회복·정보 확인·준비를 마친 뒤 판단하는 편이 좋습니다.',
-    actionUp: '30일 안에 직무 탐색, 이력서 정비, 조건 확인 일정을 캘린더에 올리세요.',
-    actionRe: '이번 주에는 결론을 미루고 회복, 관찰, 정보 확인만 진행하세요.',
-  },
-];
 
-function getJobChangeAssessment(cards) {
-  if (typeof JobChangeAssessment !== 'undefined' && JobChangeAssessment && typeof JobChangeAssessment.assessJobChange === 'function') {
-    return JobChangeAssessment.assessJobChange(cards);
-  }
-  return {
-    direction: { label: '준비 후 판단', summary: '확인 조건을 채운 뒤 움직이는 편이 좋습니다.' },
-    timing: { label: '준비기', summary: '준비의 완성도가 다음 움직임을 여는 흐름입니다.' },
-    currentCompany: '현재 회사를 유지한 채 이력서·시장 정보·생활 여유를 정리하세요.',
-    checkpoints: ['계약·보상 조건을 서면으로 확인하기', '역할·팀·업무량을 입사 전 질문하기', '퇴사 시점과 생활 여유를 점검하기'],
-    actions: ['1주차: 이직 이유와 원하는 역할을 정리하기', '2~3주차: 관심 공고와 확인 질문을 모으기', '4주차: 다음 지원 시점을 정하기'],
-  };
-}
 
 function renderJobChangeAssessment(assessment) {
   const panel = document.getElementById('jobChangeAssessment');
@@ -1820,94 +1747,16 @@ function clearJobChangeAssessment() {
   if (checkpoints) checkpoints.innerHTML = '';
 }
 
-function createLocalJobChangeReading(cards, assessment) {
-  const resolvedAssessment = assessment || getJobChangeAssessment(cards);
-  const sections = [];
-  const actionItems = [];
-  const reversedCount = cards.filter((card) => card && card.orientation === 'reversed').length;
-  const flowText = reversedCount >= 4
-    ? '역방향의 기운이 강합니다. 지금은 빠른 결론보다 기준을 맑히고 손실을 줄이는 선택이 먼저입니다.'
-    : '정방향의 기운이 우세합니다. 지금의 고민은 다음 자리로 옮겨 갈 준비를 현실로 다듬으라는 신호입니다.';
 
-  sections.push(`✦ 핵심 흐름\n${flowText}`);
-  sections.unshift([
-    '✦ 이번 리딩의 결론',
-    `이직 흐름: ${resolvedAssessment.direction.label}`,
-    `움직일 시기: ${resolvedAssessment.timing.label}`,
-    `현직 유지: ${resolvedAssessment.currentCompany}`,
-    `방향의 의미: ${resolvedAssessment.direction.summary}`,
-    `시기의 의미: ${resolvedAssessment.timing.summary}`,
-    '결정 전 확인할 조건:',
-    ...(resolvedAssessment.checkpoints || []).map((item, index) => `${index + 1}. ${item}`),
-  ].join('\n'));
 
-  for (let i = 0; i < POSITIONS.length; i++) {
-    const pos = POSITIONS[i];
-    const card = cards[i] || {};
-    const cardName = card.nameKr || card.name || `카드 ${i + 1}`;
-    const isReversed = card.orientation === 'reversed';
-    const directionLabel = isReversed ? '역방향' : '정방향';
-    const cardSignal = CARD_SIGNAL_BY_ID[card.cardId] || { up: '이 카드는 지금의 선택을 다시 바라보게 합니다.', re: '이 카드는 선택 앞의 망설임을 차분히 살피라고 말합니다.' };
-    const entry = JOB_CHANGE_READING_BY_POSITION[i] || JOB_CHANGE_READING_BY_POSITION[0];
-    const signal = isReversed ? cardSignal.re : cardSignal.up;
-    const body = isReversed ? entry.re : entry.up;
-    const action = isReversed ? entry.actionRe : entry.actionUp;
-    actionItems.push(`${i + 1}. ${action}`);
-    sections.push(`✦ 카드 ${i + 1} · ${pos.label}\n『${cardName} · ${directionLabel}』\n${signal}\n${body}\n작은 실천: ${action}`);
-  }
 
-  sections.push(`━━━━━━━━━━━━━━━━\n✦ 앞으로 30일의 선택 기준\n${(resolvedAssessment.actions || actionItems.slice(0, 3)).map((item, index) => `${index + 1}. ${item}`).join('\n')}\n\n이번 리딩은 퇴사와 합격을 단번에 맞히는 예언이 아니라, 안전하게 움직이기 위한 작은 나침반입니다. 오늘 나온 조언 중 하나만 일정에 올리면 막연한 고민이 현실의 길로 바뀌기 시작합니다.`);
-  return sections.join('\n\n');
-}
-
-function compactIjikPromptText(value, fallback) {
-  const raw = Array.isArray(value) ? value.map((item) => String(item || '').trim()).filter(Boolean).join(' / ') : String(value || '').trim();
-  return raw.replace(/\s+/g, ' ').trim() || fallback || '아직 말로 다 드러나지 않은 흐름입니다.';
-}
-
-function buildIjikAiPromptText(cards, readingText, assessment) {
-  const resolvedAssessment = assessment || getJobChangeAssessment(cards);
-  const cardLines = (cards || []).map((card, index) => {
-    const position = POSITIONS[index] || {};
-    const cardName = card.nameKr || card.name || `카드 ${index + 1}`;
-    const directionLabel = card.orientation === 'reversed' ? '역방향' : '정방향';
-    const cardSignal = CARD_SIGNAL_BY_ID[card.cardId] || {};
-    const signal = card.orientation === 'reversed' ? cardSignal.re : cardSignal.up;
-
-    return [
-      `${index + 1}. ${compactIjikPromptText(position.label, '일의 문턱')} · ${cardName} ${directionLabel}`,
-      `이 카드가 여는 질문: ${compactIjikPromptText(position.q, '지금 내 일이 어디로 흐르는지 봅니다.')}`,
-      `카드의 신호: ${compactIjikPromptText(signal, '이 카드는 지금의 선택을 다시 바라보게 합니다.')}`,
-    ].join('\n');
-  }).join('\n\n');
-
-  return [
-    '이직 운명의 카드에서 열린 아래 일곱 장을 바탕으로, 지금 내 일의 문턱이 어느 방향으로 기울어 있는지 더 깊게 봐주세요.',
-    '커리어 타로 리더처럼 말해주세요. 단정적인 퇴사·합격 예언보다 남길 기준, 옮길 방향, 확인해야 할 조건, 앞으로 30일의 현실 행동을 중심으로 읽어주세요.',
-    '',
-    '일곱 장의 배열',
-    cardLines || '아직 카드가 조용히 닫혀 있습니다.',
-    '',
-    '방금 열린 흐름',
-    compactIjikPromptText(readingText, '일곱 장의 흐름이 아직 말로 정리되지 않았습니다.'),
-    '',
-    '이번 판정 요약',
-    `이직 흐름: ${compactIjikPromptText(resolvedAssessment.direction && resolvedAssessment.direction.label, '준비 후 판단')}`,
-    `움직일 시기: ${compactIjikPromptText(resolvedAssessment.timing && resolvedAssessment.timing.label, '준비기')}`,
-    `현직 유지 조건: ${compactIjikPromptText(resolvedAssessment.currentCompany, '현재 회사를 유지하며 조건을 확인합니다.')}`,
-    `결정 전 확인할 조건: ${compactIjikPromptText(resolvedAssessment.checkpoints, '계약·보상·역할·팀·생활 여유를 확인합니다.')}`,
-    `앞으로 30일 행동: ${compactIjikPromptText(resolvedAssessment.actions, '이직 이유를 정리하고 정보를 확인합니다.')}`,
-    '',
-    '마지막에는 위의 시기, 이직 방향, 현직 유지 조건을 바탕으로 지금 남겨야 할 일의 기준 3가지, 옮겨도 좋은 신호 3가지, 아직 확인해야 할 조건 3가지를 조용히 정리해주세요.',
-  ].join('\n');
-}
-
-function renderIjikAiPrompt(readingText, assessment) {
+// AI 프롬프트 문장도 서버가 만들어 내려준다(리딩과 같은 유료 산출물이라 같은 게이트 뒤에 있다).
+function renderIjikAiPrompt(promptText) {
   const panel = document.getElementById('ijikAiPromptPanel');
   const textarea = document.getElementById('ijikAiPromptText');
   const status = document.getElementById('ijikAiPromptStatus');
   if (!panel || !textarea) return;
-  ijikAiPromptText = buildIjikAiPromptText(drawnCards, readingText, assessment);
+  ijikAiPromptText = String(promptText || '');
   textarea.value = ijikAiPromptText;
   panel.hidden = !ijikAiPromptText;
   if (status) status.textContent = '';
@@ -2006,6 +1855,7 @@ async function ijikCoinGate(cost, reason) {
 
   var title = String(reason || '커리어 전환 타로 리딩').trim() || '커리어 전환 타로 리딩';
   var requestId = 'tarot-ijik:req:' + Date.now() + '-' + Math.random().toString(36).slice(2, 9);
+  _ijikLastRequestId = requestId;
 
   // 환불 플로우가 참조하는 마지막 거래 id와 로컬 잔액 스냅샷만 최신화한다(결제 UI는 공유 게이트 담당).
   function syncIjikBilling(payload, txId) {
@@ -2266,6 +2116,24 @@ async function resetSpread() {
   await initDeckFromApi();
 }
 
+// ─── 유료 리딩은 서버가 만든다 ───
+// 🔴 해석·판정·AI 프롬프트 생성기는 2026-08-24 에 worker/lib/tarot-ijik-reading.js 로 옮겼다.
+//    예전에는 이 파일 안에 있어서, 결제는 coin-gate 가 서버에서 차감하는데 결과는 브라우저가
+//    만들었다 — 콘솔 한 줄이면 5,000원짜리 리딩이 공짜로 나왔다. 정적 호스팅이라 js/** 아래로
+//    옮기는 것으로는 부족해(URL 로 그냥 열린다) 워커로 보냈다.
+//    카드를 뽑는 일은 여기 남는다 — 사용자가 결제 전에 7장을 보고 결정하므로 파는 물건이 아니다.
+async function fetchIjikReading(cards, requestId) {
+  const payload = {
+    requestId: String(requestId || ''),
+    cards: (cards || []).map((card) => ({
+      cardId: card && card.cardId,
+      nameKr: card && (card.nameKr || card.name),
+      orientation: card && card.orientation,
+    })),
+  };
+  return await callTarotApi('ijik-reading', payload);
+}
+
 // ─── AI READING ───
 async function getReading() {
   const btn = document.getElementById('readBtn');
@@ -2282,12 +2150,10 @@ async function getReading() {
   const section = document.getElementById('readingSection');
   const textEl = document.getElementById('readingText');
   const summary = document.getElementById('cardsSummary');
-  const assessment = getJobChangeAssessment(drawnCards);
   section.classList.add('visible');
   section.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  renderJobChangeAssessment(assessment);
 
-  // Card chips
+  // Card chips — 카드는 이미 화면에 있으므로 서버 응답을 기다리지 않는다.
   summary.innerHTML = drawnCards.map((c, i) =>
     `<div class="card-chip">
       <span class="card-chip-num">${i + 1}</span>
@@ -2298,18 +2164,21 @@ async function getReading() {
   textEl.innerHTML = '<div class="loading-dots"><div class="loading-dot"></div><div class="loading-dot"></div><div class="loading-dot"></div></div>';
 
   try {
-    const rawText = createLocalJobChangeReading(drawnCards, assessment);
-    renderIjikAiPrompt(rawText, assessment);
+    const data = await fetchIjikReading(drawnCards, _ijikLastRequestId);
+    renderJobChangeAssessment(data.assessment);
+    renderIjikAiPrompt(data.aiPrompt);
     textEl.textContent = '';
-    await typeWriteText(textEl, rawText);
+    await typeWriteText(textEl, String(data.reading || ''));
     btn.innerHTML = '<div>✦ 해석 완료</div>';
   } catch (e) {
-    console.error('[tarot-ijik] local reading failed', e);
-    const localText = createLocalJobChangeReading(drawnCards, assessment);
-    renderIjikAiPrompt(localText, assessment);
-    textEl.textContent = '';
-    await typeWriteText(textEl, localText);
-    btn.innerHTML = '<div>✦ 해석 완료</div>';
+    // 🔴 로컬 폴백을 되살리지 말 것 — 그게 곧 무료 우회다. 결제는 이미 끝났으므로
+    //    추가 결제 없이 다시 시도할 수 있다는 것을 분명히 알린다.
+    console.error('[tarot-ijik] server reading failed', e);
+    clearJobChangeAssessment();
+    clearIjikAiPrompt();
+    textEl.textContent = '해석을 불러오지 못했습니다. 결제는 이미 완료되었으니 추가 결제 없이 [해석 보기]를 다시 눌러 주세요.';
+    btn.innerHTML = '<div>✦ 해석 다시 보기</div>';
+    btn.disabled = false;
   }
 }
 
