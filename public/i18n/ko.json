@@ -5173,6 +5173,45 @@
     "talkingPig": {
       "pigAria": "문 앞에서 말을 건네는 꽃돼지?",
       "pigName": "꽃돼지?"
+    },
+    "sajuCompat": {
+      "calendar": {
+        "lunar": "음력",
+        "solar": "양력",
+        "unknown": "달력 정보 없음"
+      },
+      "gender": {
+        "female": "여성",
+        "male": "남성",
+        "unknown": "성별 미입력"
+      },
+      "card": {
+        "dayMasterEmpty": "명식 확인 전",
+        "birthDateLabel": "태어난 날",
+        "birthDateEmpty": "미입력",
+        "calendarLabel": "달의 기준",
+        "genderLabel": "성별",
+        "pillarsLabel": "사주 네 기둥",
+        "pillarsEmpty": "확인 전",
+        "elementsSuffix": "기운"
+      },
+      "eyebrow": "사주 궁합의 방",
+      "emptyTitle": "두 사람의 명식이 아직 나란히 놓이지 않았어요",
+      "emptySummary": "두 사람의 생년월일이 모두 놓이면 연이가 두 명식을 나란히 펼쳐볼게요.",
+      "headerAlt": "두 사람의 사주",
+      "mineLabel": "나의 사주",
+      "partnerLabel": "상대의 사주",
+      "dayMasterEyebrow": "일간의 결",
+      "dayMasterEmpty": "두 명식의 결",
+      "harmonyEmpty": "두 사람의 오행 기운을 나란히 놓고 조율의 결을 살핍니다.",
+      "relationEyebrow": "관계 유형",
+      "relationEmpty": "인연",
+      "focusEmpty": "관계의 흐름",
+      "focusSentence": "{focus}을 중심으로 읽었습니다.",
+      "strengthEyebrow": "맞물리는 결",
+      "strengthTitle": "두 명식이 함께일 때 살아나는 힘",
+      "cautionEyebrow": "조율할 결",
+      "cautionTitle": "두 명식이 부딪힐 때 먼저 보아야 할 것"
     }
   }
 }

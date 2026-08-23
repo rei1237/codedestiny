@@ -11743,6 +11743,45 @@
     "talkingPig": {
       "pigAria": "Flower Pig? speaking at the door",
       "pigName": "Flower Pig?"
+    },
+    "sajuCompat": {
+      "calendar": {
+        "lunar": "Lunar calendar",
+        "solar": "Solar calendar",
+        "unknown": "Calendar not given"
+      },
+      "gender": {
+        "female": "Female",
+        "male": "Male",
+        "unknown": "Gender not given"
+      },
+      "card": {
+        "dayMasterEmpty": "Chart not read yet",
+        "birthDateLabel": "Date of birth",
+        "birthDateEmpty": "Not entered",
+        "calendarLabel": "Calendar used",
+        "genderLabel": "Gender",
+        "pillarsLabel": "The Four Pillars",
+        "pillarsEmpty": "Not read yet",
+        "elementsSuffix": "energy"
+      },
+      "eyebrow": "The room for Four Pillars compatibility",
+      "emptyTitle": "The two charts are not laid side by side yet",
+      "emptySummary": "Once both birth dates are set down, Yeoni will spread the two charts side by side.",
+      "headerAlt": "The Four Pillars of two people",
+      "mineLabel": "My Four Pillars",
+      "partnerLabel": "Their Four Pillars",
+      "dayMasterEyebrow": "The grain of the Day Masters",
+      "dayMasterEmpty": "The grain of both charts",
+      "harmonyEmpty": "We set both Five Elements profiles side by side and look at how they tune to each other.",
+      "relationEyebrow": "Type of bond",
+      "relationEmpty": "A bond",
+      "focusEmpty": "the flow of the relationship",
+      "focusSentence": "Read with {focus} at the centre.",
+      "strengthEyebrow": "Where the grains mesh",
+      "strengthTitle": "The strength that comes alive when the two charts meet",
+      "cautionEyebrow": "Where to tune",
+      "cautionTitle": "What to look at first when the two charts collide"
     }
   }
 }

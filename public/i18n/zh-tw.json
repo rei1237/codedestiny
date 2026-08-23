@@ -11743,6 +11743,45 @@
     "talkingPig": {
       "pigAria": "在門前搭話的花豬？",
       "pigName": "花豬？"
+    },
+    "sajuCompat": {
+      "calendar": {
+        "lunar": "農曆",
+        "solar": "國曆",
+        "unknown": "沒有曆法資訊"
+      },
+      "gender": {
+        "female": "女性",
+        "male": "男性",
+        "unknown": "未填寫性別"
+      },
+      "card": {
+        "dayMasterEmpty": "命盤尚未確認",
+        "birthDateLabel": "出生日期",
+        "birthDateEmpty": "未填寫",
+        "calendarLabel": "所用曆法",
+        "genderLabel": "性別",
+        "pillarsLabel": "四柱",
+        "pillarsEmpty": "尚未確認",
+        "elementsSuffix": "之氣"
+      },
+      "eyebrow": "四柱合婚之室",
+      "emptyTitle": "兩人的命盤還沒有並排放好",
+      "emptySummary": "兩人的出生日期都放上後，Yeoni 會把兩張命盤並排展開。",
+      "headerAlt": "兩人的四柱八字",
+      "mineLabel": "我的四柱八字",
+      "partnerLabel": "對方的四柱八字",
+      "dayMasterEyebrow": "日主的紋路",
+      "dayMasterEmpty": "兩張命盤的紋路",
+      "harmonyEmpty": "把兩人的五行之氣並排放好，察看彼此調和的紋路。",
+      "relationEyebrow": "關係類型",
+      "relationEmpty": "緣分",
+      "focusEmpty": "關係的流向",
+      "focusSentence": "以 {focus} 為中心解讀。",
+      "strengthEyebrow": "相扣的紋路",
+      "strengthTitle": "兩張命盤相遇時活起來的力量",
+      "cautionEyebrow": "需要調和的紋路",
+      "cautionTitle": "兩張命盤相沖時該先看的地方"
     }
   }
 }

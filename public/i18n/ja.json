@@ -11743,6 +11743,45 @@
     "talkingPig": {
       "pigAria": "扉の前で話しかける花豚？",
       "pigName": "花豚？"
+    },
+    "sajuCompat": {
+      "calendar": {
+        "lunar": "旧暦",
+        "solar": "新暦",
+        "unknown": "暦の情報なし"
+      },
+      "gender": {
+        "female": "女性",
+        "male": "男性",
+        "unknown": "性別は未入力"
+      },
+      "card": {
+        "dayMasterEmpty": "命式の確認前",
+        "birthDateLabel": "生まれた日",
+        "birthDateEmpty": "未入力",
+        "calendarLabel": "暦の基準",
+        "genderLabel": "性別",
+        "pillarsLabel": "四柱",
+        "pillarsEmpty": "確認前",
+        "elementsSuffix": "の気"
+      },
+      "eyebrow": "四柱推命の相性の間",
+      "emptyTitle": "おふたりの命式は、まだ並べられていません",
+      "emptySummary": "おふたりの生年月日がそろえば、ヨニが二つの命式を並べて広げます。",
+      "headerAlt": "おふたりの四柱推命",
+      "mineLabel": "わたしの四柱推命",
+      "partnerLabel": "お相手の四柱推命",
+      "dayMasterEyebrow": "日干の筋目",
+      "dayMasterEmpty": "二つの命式の筋目",
+      "harmonyEmpty": "おふたりの五行の気を並べて置き、調律の筋目を見ます。",
+      "relationEyebrow": "関係のタイプ",
+      "relationEmpty": "縁",
+      "focusEmpty": "関係の流れ",
+      "focusSentence": "{focus} を中心に読みました。",
+      "strengthEyebrow": "噛み合う筋目",
+      "strengthTitle": "二つの命式がそろったときに生きる力",
+      "cautionEyebrow": "調律する筋目",
+      "cautionTitle": "二つの命式がぶつかるとき、先に見るべきこと"
     }
   }
 }
