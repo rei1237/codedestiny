@@ -472,6 +472,9 @@ const LOCALE_SHELL_SEO = {
       "生年月日を入力するだけで四柱推命、タロット、紫微斗数、宿曜占星術、相性占いまで無料。AIがあなたの毎日の運勢と恋愛の流れを丁寧に読み解きます。",
     keywords:
       "四柱推命 無料, 占い 無料, タロット占い 無料, 今日の運勢, 相性占い, 紫微斗数, 宿曜占星術, 誕生日占い, 恋愛占い, 韓国 占い, 無料鑑定",
+    appTitle: "CODE DESTINY ハニーピッグ占い",
+    imageAlt:
+      "ハニーピッグ占い HONEY FORTUNE — 花豚ヨニのカメオとサービス紹介を収めた CODE DESTINY の名刺カード",
     dictionaryFile: "ja.json",
   },
   "/zh": {
@@ -483,6 +486,9 @@ const LOCALE_SHELL_SEO = {
       "输入出生日期即可免费查看八字命理、塔罗牌、紫微斗数、宿曜占星与合婚配对。AI 为你细致解读每日运势与感情走向。",
     keywords:
       "免费算命, 八字算命, 生辰八字, 塔罗牌占卜, 今日运势, 合婚配对, 紫微斗数, 宿曜占星, 星座运势, 姻缘测算",
+    appTitle: "CODE DESTINY 蜜豚运势",
+    imageAlt:
+      "蜜豚运势 HONEY FORTUNE — 印有花猪 Yeoni 客串形象与服务介绍的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-cn.json",
   },
   // zh-TW 는 zh(간체)와 분리된 별도 로케일이다(lib/i18n/locales.ts). 문구를 zh 에서
@@ -496,6 +502,9 @@ const LOCALE_SHELL_SEO = {
       "輸入出生日期即可免費查看八字命理、塔羅牌、紫微斗數、宿曜占星與合婚配對。AI 為你細緻解讀每日運勢與感情走向。",
     keywords:
       "免費算命, 八字算命, 生辰八字, 塔羅牌占卜, 今日運勢, 合婚配對, 紫微斗數, 宿曜占星, 星座運勢, 姻緣測算",
+    appTitle: "CODE DESTINY 蜜豚運勢",
+    imageAlt:
+      "蜜豚運勢 HONEY FORTUNE — 印有花豬 Yeoni 客串形象與服務介紹的 CODE DESTINY 名片卡",
     dictionaryFile: "zh-tw.json",
   },
   "/en": {
@@ -507,6 +516,9 @@ const LOCALE_SHELL_SEO = {
       "Enter your birth date for free Korean Saju (Four Pillars) readings, tarot, Zi Wei Dou Shu, Sukuyo compatibility and daily horoscopes — warm, in-depth AI interpretations.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
+    appTitle: "CODE DESTINY Honey Pig Fortune",
+    imageAlt:
+      "Honey Pig Fortune HONEY FORTUNE — a CODE DESTINY calling card with a cameo of Yeoni the flower pig and an overview of the service",
     dictionaryFile: "en.json",
   },
 };
@@ -632,7 +644,16 @@ function applyLocaleSeoMeta(indexHtml, localePath) {
     .replace(/<meta name="twitter:title" content="[^"]*">/i, `<meta name="twitter:title" content="${seo.title}">`)
     .replace(/<meta name="twitter:description" content="[^"]*">/i, `<meta name="twitter:description" content="${seo.description}">`)
     .replace(/<meta name="language" content="[^"]*">/i, `<meta name="language" content="${seo.language}">`)
-    .replace(/<meta http-equiv="content-language" content="[^"]*">/i, `<meta http-equiv="content-language" content="${seo.lang}">`);
+    .replace(/<meta http-equiv="content-language" content="[^"]*">/i, `<meta http-equiv="content-language" content="${seo.lang}">`)
+    // 아래 3종은 오래도록 체인에 없어서 로케일 셸이 한국어 값을 그대로 물려받았다.
+    // 홈 화면 추가 이름과 소셜 카드 대체 텍스트라 화면에는 안 보이지만 크롤러와
+    // 스크린리더에는 그대로 노출된다.
+    .replace(
+      /<meta name="apple-mobile-web-app-title" content="[^"]*">/i,
+      `<meta name="apple-mobile-web-app-title" content="${seo.appTitle}">`,
+    )
+    .replace(/<meta property="og:image:alt" content="[^"]*">/i, `<meta property="og:image:alt" content="${seo.imageAlt}">`)
+    .replace(/<meta name="twitter:image:alt" content="[^"]*">/i, `<meta name="twitter:image:alt" content="${seo.imageAlt}">`);
 }
 
 function stripBomInPublicHtmlTree(targetDir) {
