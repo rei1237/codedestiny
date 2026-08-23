@@ -37,7 +37,6 @@ const expectedCosts = {
   openKemetModal: 30,
   "animal-totem-basic": 30,
   "animal-totem-deep": 50,
-  "flower-studio-per-use": 50,
   "sukuyo-symbolic-comparison": 50,
   "compat-astro-synastry": 50,
   "compat-astro-direct-synastry": 50,
