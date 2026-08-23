@@ -8,11 +8,12 @@
 |---|---|---|
 | `components/` UI 크롬 | 811개 문자열 / 33개 파일 | ✅ **완료 (33/33)** — 디버그 4종 포함 |
 | `data/` 찻잔·십성·서사·CTA | 345 엔트리 | ✅ **완료** — PR #1036 · #1039 · #1042 · #1045 · #1048 |
-| 스프라이트 대체 텍스트 16개 | 십성 alt 10 · 꽃돼지 label 6 | ✅ **완료** — (이 PR) |
-| `data/` 타로 2종 | 28,435자 | ⛔ **라운드 2** — 아래 함정 8 |
+| 스프라이트 대체 텍스트 16개 | 십성 alt 10 · 꽃돼지 label 6 | ✅ **완료** — 머지됨 |
+| `data/tarotAlbumStories.ts` | 16,919자 | ✅ **완료** — PR #1053(조립을 순수 함수로 리팩터) · #1068(메이저 22장 462키). 조각 4개(templates·suitMeta·rankMeta·majorNarratives)가 전부 사전을 탄다 |
+| `data/tarotCards.ts` | 11,516자 | ⛔ **라운드 2** — 아래 함정 8. 컴포넌트 직접 참조는 0이지만, 초안이 서버로 가 LLM 응답과 병합되므로 **degrade 시 사용자에게 닿는다**(아래 정정) |
 | `lib/` | 17,594자 | ⛔ **라운드 2** — 아래 함정 8 |
 
-PR: #1020 · #1024 · #1025 · #1027 · #1028 머지됨. 이어서 **#1032**(가드 확장) → **#1036**(찻잔 6잔 + `skipKeys`) → **#1039**(십성 10종) → **#1042**(입장 씬 6개 + `mood` 판별 유니언) → **#1045**(스토리 31스텝 + 흐름 카드) 순으로 머지됐다.
+PR: #1020 · #1024 · #1025 · #1027 · #1028 머지됨. 이어서 **#1032**(가드 확장) → **#1036**(찻잔 6잔 + `skipKeys`) → **#1039**(십성 10종) → **#1042**(입장 씬 6개 + `mood` 판별 유니언) → **#1045**(스토리 31스텝 + 흐름 카드) 순으로 머지됐고, 타로 앨범은 **#1053**(조립 리팩터 — 한국어 출력 78장 × 23필드 스냅샷 대조로 무변경 확인) → **#1068**(메이저 22장 462키) 로 끝났다.
 
 🔴 **"114,223자 · 56,335자"는 글자 수가 아니라 한글의 UTF-8 바이트였다.** 실제 번역 대상은 `data/` 38,484자(2,056 리터럴) · `lib/` 18,983자(1,083 리터럴) — 문서가 말하던 규모의 1/3이다. 계획을 세울 때 이 값을 쓸 것.
 
@@ -149,7 +150,20 @@ function subjectParticle(value: string) { return hasFinalConsonant(value) ? "이
 
 **해결하려면 데이터 모양을 바꿔야 한다** — 조립을 컴포넌트 쪽으로 올리거나, 로케일별 템플릿을 사전에 두거나, 사전을 인자로 주입하는 형태로. 그 설계를 하기 전에는 착수하지 말 것. 착수했다가 되돌린 흔적이 `TenGodSymbolCard.tsx` 의 주석에 남아 있다.
 
-참고로 `lib/buildConsultResult` 는 **클라이언트 폴백 경로**다. 실제 상담문은 워커 LLM(`worker/routes/fortune-tea-house.js`)이 만들고 그쪽 로케일 처리는 `scripts/verify-ai-locale-pipeline.mjs:303-321` 이 이미 지킨다 — 체감 우선순위가 낮은 이유다.
+🔴 **2026-08-24 정정 — `lib/buildConsultResult` 는 로컬 전용이 아니다.** 예전 서술("클라이언트 폴백 경로라 체감 우선순위가 낮다")은 절반만 맞다. 실측한 경로는 둘이다.
+
+| 경로 | 조건 | 사용자에게 닿나 |
+|---|---|---|
+| 화면에 초안을 직접 표시 | `canUseLocalConsultPreview()` = **localhost/127.0.0.1/::1 에서만** (`FortuneTeaHousePage.tsx:801-804`) | ❌ 프로덕션에는 안 닿는다 |
+| 초안을 `draftResult` 로 서버에 보내 **LLM 응답과 병합** | 항상 (`FortuneTeaHousePage.tsx:929,957` → `worker/routes/fortune-tea-house.js:4949`) | ✅ **닿는다** |
+
+두 번째가 핵심이다. `normalizeDraftResult`(`worker/routes/fortune-tea-house.js:2561`)와 `mergeLlmResult` 는 `{ ...fallback, ...draft }` 형태라 **LLM 이 못 채운 필드는 클라 초안의 한국어가 그대로 남는다.** 그 파일 2582-2583 줄 주석이 의도를 명시한다 — "LLM이 통째로 실패해 이 초안이 그대로 degrade 전달될 때도". 즉 **비한국어 사용자가 유료 상담에서 LLM 실패를 만나면 한국어 리딩을 받는다.**
+
+같은 degrade 경로에 워커 자체의 한국어 하드코딩도 있다 — `worker/routes/fortune-tea-house.js:2577` 의 기본 `oneLineAdvice`, `buildFallbackSajuDeepSections`, `buildFallbackCardDetail`.
+
+✅ **고칠 수단은 이미 있다**: 워커는 `getAmbientAiLocale()`(`worker/lib/ai-locale-context.js:27`)로 사용자 로케일을 알고 있고 같은 파일 412줄에서 이미 그것으로 분기한다. 로케일별 degrade 문구를 어디에 둘지(워커 상수 표 vs 클라가 로케일화된 초안을 보냄)가 남은 설계 결정이다.
+
+🔴 **착수 전 사용자 확인이 필요하다** — 유료 흐름의 실패 경로 동작을 바꾸는 일이다.
 
 ### 9. 데이터 상수에는 문구가 아닌 문자열이 섞여 있다 — `skipKeys`
 
@@ -178,10 +192,13 @@ const cups = useTeaHouseCopy("teaCups", teaHouseCups, { skipKeys: CUP_SKIP_KEYS 
 
 | 갈래 | 규모 | 왜 남았나 |
 |---|---|---|
-| `data/tarotAlbumStories.ts` | 16,919자 | major 22장은 순수 리터럴이지만 **minor 56장은 `buildMinorNarrative` 가 한국어 템플릿으로 조립**한다(함정 8). `tarotAlbumStoryCards` 자체가 `tarotDeckCards.map(...)` 이라 가드가 못 읽는다 |
 | `data/tarotCards.ts` | 11,516자 | 컴포넌트 직접 참조 **0**. 값이 `lib/tarotAdapter`·`lib/buildConsultResult` 를 거쳐서만 화면에 닿는다 |
 | `lib/` 전체 | 18,983자 | 전부 순수 함수라 훅을 못 쓴다. `buildConsultResult.ts:30-42` 에 **한국어 조사 엔진**(`hasFinalConsonant`/`subjectParticle`)이 박혀 있다 |
 | `data-img-alt` 14개 | — | 정적 셸 마커 도구의 속성 목록 밖. 도구에 속성을 추가할지 손으로 처리할지 미정 |
+
+🔴 **함정 8은 `tarotAlbumStories.ts` 한정으로 해소됐다(PR #1053).** 조립을 `buildTarotAlbumCards(parts)` 라는 순수 함수로 빼고 한국어 템플릿을 `tarotAlbumTemplates` 리터럴로 꺼내, 컴포넌트가 조각마다 `useTeaHouseCopy` 를 걸어 **다시 조립**하게 했다. 조사는 로케일별 템플릿 문장이 각자 품는다.
+
+같은 처방이 `tarotCards.ts`·`lib/` 에도 통할지는 **미검증**이다 — 그쪽은 소비처가 컴포넌트가 아니라 순수 함수(`buildConsultResult`)라 훅을 걸 지점이 없고, 훅 대신 사전을 인자로 주입하려면 호출부 전부를 바꿔야 한다. 착수 전 설계부터 할 것.
 
 **번역 대상이 아닌 것으로 확정된 것**
 

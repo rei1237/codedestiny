@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "Avis des utilisateurs",
       "lead": "Des avis laissés par des personnes qui ont réellement fait une consultation.",
-      "allCta": "Voir tous les avis →"
+      "allCta": "Voir tous les avis →",
+      "empty": "Pas encore d'avis. Essayez une consultation et laissez le premier."
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -1335,6 +1336,13 @@
       "title": "Commencer gratuitement",
       "freeStart": "Début gratuit",
       "compat": "Compatibilité"
+    },
+    "pickWhy": {
+      "prefix": "Aujourd'hui,",
+      "suffix": "vous convient le mieux."
+    },
+    "feedback": {
+      "rewardPrefix": "Par rapport de bogue accepté"
     }
   },
   "terms": {
