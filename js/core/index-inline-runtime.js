@@ -6022,38 +6022,103 @@ function _dfRunIntroBloom() {
   }, 1800);
 }
 
-function _dfRenderSajuBadges(selection) {
-  var wrap = document.getElementById('dfStudioSajuBadges');
-  if (!wrap) return;
-
+/**
+ * 소스별 근거 배지 3줄. 사주=신강신약/용신/조후 · 점성술=태양/상승/달 ·
+ * 자미두수=별/밝기/궁 · 숙요=숙/달위상/수호동물.
+ * 🔴 이 4분기를 복제하지 말 것 — 헤더 배지와 4-up 카드가 같은 것을 보여야 한다.
+ */
+function _dfBuildBadgeRows(selection) {
   var badges = _dfGetSajuBadges(selection);
-  var rows = badges.mode === 'sukuyo'
-    ? [
+  if (badges.mode === 'sukuyo') {
+    return [
       { cls: 'is-strength', label: '숙', value: badges.mansion },
       { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.001"), value: badges.phase },
       { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.002"), value: badges.guardian }
-    ]
-    : (badges.mode === 'jamidusu'
-      ? [
-        { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.003"), value: badges.star },
-        { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.004"), value: badges.brightness },
-        { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.005"), value: badges.palace }
-      ]
-      : (badges.mode === 'astrology'
-        ? [
-          { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.006"), value: badges.sun },
-          { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.007"), value: badges.rising },
-          { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.008"), value: badges.moon }
-        ]
-        : [
-          { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.009"), value: badges.strength },
-          { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.010"), value: badges.yongshin },
-          { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.011"), value: badges.johu }
-        ]));
+    ];
+  }
+  if (badges.mode === 'jamidusu') {
+    return [
+      { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.003"), value: badges.star },
+      { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.004"), value: badges.brightness },
+      { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.005"), value: badges.palace }
+    ];
+  }
+  if (badges.mode === 'astrology') {
+    return [
+      { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.006"), value: badges.sun },
+      { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.007"), value: badges.rising },
+      { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.008"), value: badges.moon }
+    ];
+  }
+  return [
+    { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.009"), value: badges.strength },
+    { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.010"), value: badges.yongshin },
+    { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.011"), value: badges.johu }
+  ];
+}
 
-  wrap.innerHTML = rows.map(function(row) {
-    return '<span class="df-saju-badge ' + row.cls + '"><b>' + _dfEscapeHtml(row.label) + '</b><em>' + _dfEscapeHtml(row.value || '판정 대기') + '</em></span>';
+function _dfBadgeMarkup(rows, cls) {
+  return rows.map(function(row) {
+    return '<span class="' + cls + ' ' + row.cls + '"><b>' + _dfEscapeHtml(row.label) + '</b><em>'
+      + _dfEscapeHtml(row.value || '판정 대기') + '</em></span>';
   }).join('');
+}
+
+/**
+ * 4-up 카드 — 네 체계의 꽃을 한 화면에 그린다.
+ *
+ * 예전에는 탭으로 하나씩만 볼 수 있었다. 1만원 전체 해금은 네 갈래를 다 사는 것이므로
+ * 넷을 나란히 보여 주고, 카드를 누르면 아래 상세(.df-studio-main + 패널)가 그 체계로 바뀐다.
+ * 🔴 계산은 소스별 캐시(_dfGetUnifiedSelection)를 그대로 쓴다 — 여기서 다시 매칭하지 않는다.
+ */
+function _dfRenderQuadCards(activeSource) {
+  var cards = document.querySelectorAll('.df-quad-card[data-df-quad]');
+  if (!cards || !cards.length) return;
+  var active = _dfNormalizeSource(activeSource || _dfStudioState.activeSource || 'saju');
+
+  cards.forEach(function(card) {
+    var source = _dfNormalizeSource(card.getAttribute('data-df-quad'));
+    var isActive = source === active;
+    card.classList.toggle('is-active', isActive);
+    card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+    var selection = null;
+    try { selection = _dfGetUnifiedSelection(source, false); } catch (e) { selection = null; }
+
+    var nameEl = card.querySelector('[data-df-quad-name]');
+    var latinEl = card.querySelector('[data-df-quad-latin]');
+    var badgeEl = card.querySelector('[data-df-quad-badges]');
+    var lineEl = card.querySelector('[data-df-quad-line]');
+    var imgEl = card.querySelector('[data-df-quad-image]');
+
+    if (!selection || !selection.flower) {
+      card.classList.add('is-pending');
+      if (nameEl) nameEl.textContent = _dfGetSourceLabel(source) + ' 판정 대기';
+      if (latinEl) latinEl.textContent = '';
+      if (badgeEl) badgeEl.innerHTML = '';
+      if (lineEl) lineEl.textContent = _dfGetDataMissingUiState(source).message || '';
+      if (imgEl) imgEl.removeAttribute('src');
+      return;
+    }
+
+    card.classList.remove('is-pending');
+    if (nameEl) nameEl.textContent = selection.flower.name || '';
+    if (latinEl) latinEl.textContent = selection.flower.scientific_name || '';
+    if (badgeEl) badgeEl.innerHTML = _dfBadgeMarkup(_dfBuildBadgeRows(selection), 'df-quad-badge');
+    if (lineEl) {
+      var symbolism = String((selection.flower && selection.flower.symbolism) || '').trim();
+      lineEl.textContent = symbolism || _dfGetSajuVerdict(selection);
+    }
+    if (imgEl) {
+      _dfApplyGeneratedFlowerImage(imgEl, selection, source);
+      imgEl.alt = selection.flower.name || '';
+    }
+  });
+}
+function _dfRenderSajuBadges(selection) {
+  var wrap = document.getElementById('dfStudioSajuBadges');
+  if (!wrap) return;
+  wrap.innerHTML = _dfBadgeMarkup(_dfBuildBadgeRows(selection), 'df-saju-badge');
 }
 
 function _dfFormatSavedAt(ts) {
@@ -6401,6 +6466,7 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
   if (!selection) {
     var emptyState = _dfGetDataMissingUiState(normalized);
     _dfShowStudioEmptyState(normalized, emptyState.message, emptyState.showLoadButton);
+    _dfRenderQuadCards(normalized);
     _dfSetStudioStatus(emptyState.message, {
       showLoadButton: emptyState.showLoadButton,
       source: normalized
@@ -6409,6 +6475,7 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
   }
 
   _dfApplyStudioSelection(selection);
+  _dfRenderQuadCards(normalized);
   _dfHideStudioEmptyState();
   var main = document.querySelector('.df-studio-main');
   if (main) main.style.display = '';

@@ -8,7 +8,7 @@ import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSprit
 import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import { getTeaHouseCupById } from "../data/teaCups";
-import { getTenGodMeta } from "../data/tenGods";
+import { tenGodMetaMap } from "../data/tenGods";
 import { sanitizeTeaHouseConsultResult } from "../lib/sanitizeConsultResult";
 import AssetImage from "./AssetImage";
 import TarotAssetCard from "./TarotAssetCard";
@@ -205,6 +205,9 @@ function buildFortuneTeaHouseResultText(result: FortuneTeaHouseConsultResponse, 
   return lines.join("\n").replace(/\n{3,}/g, "\n\n").trimEnd();
 }
 
+/** 십성 데이터에서 사전이 덮으면 안 되는 필드. id 는 판별자, colorTone 은 CSS 토큰이다. */
+const TEN_GOD_SKIP_KEYS = ["id", "colorTone"];
+
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
     키는 문구의 결정론적 해시라 같은 문구가 자동으로 한 키로 합쳐진다(정적 셸의 마커 도구와 같은 방식). */
 const KO = {
@@ -374,6 +377,7 @@ export default function TeaHouseResultSheet({
   onResultUpdate,
 }: TeaHouseResultSheetProps) {
   const copy = useTeaHouseCopy("resultSheet", KO);
+  const tenGodMeta = useTeaHouseCopy("tenGods", tenGodMetaMap, { skipKeys: TEN_GOD_SKIP_KEYS });
   const locale = useLocale();
   // 저장/캐시된 오염 결과(객체 값·빈 문자열·문자열 퍼센트)도 크래시 없이 렌더되도록 1회 정규화.
   const result = useMemo(() => sanitizeTeaHouseConsultResult(rawResult), [rawResult]);
@@ -448,7 +452,7 @@ export default function TeaHouseResultSheet({
   };
   const tenGodSnapshot = saju.tenGodSnapshot;
   const primaryTenGodId = saju.primaryTenGod?.id || (tenGodSnapshot?.available ? tenGodSnapshot.primaryTenGod : undefined);
-  const primaryTenGodMeta = primaryTenGodId ? getTenGodMeta(primaryTenGodId) : null;
+  const primaryTenGodMeta = primaryTenGodId ? tenGodMeta[primaryTenGodId] : null;
   const honeyLetter = result.honeyLetter;
   const honeyBalance = honeyDrops?.currentHoneyDrops ?? honeyDrops?.balance ?? 0;
   const canRequestHoneyLetter = Boolean(result.resultId && honeyDrops?.authenticated && honeyBalance >= 10 && !honeyLetter && !honeyLetterLoading);

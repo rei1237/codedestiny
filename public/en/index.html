@@ -11691,6 +11691,43 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
       </div>
       <p id="dfStudioNarrative" class="df-studio-narrative" data-cd-trans data-key="home.destinyFlowerStudio.narrative">사주 오행 판독을 바탕으로, 당신의 운명을 대표하는 꽃의 서사를 확정하고 있습니다.</p>
     </header>
+    <!-- 네 체계를 한 화면에. 카드를 누르면 아래 상세(.df-studio-main + 패널)가 그 체계로 바뀐다.
+         2026-08-24 이전에는 탭으로 하나씩만 볼 수 있었고, 순차 해금까지 걸려 있어
+         1만원 전체 해금을 산 사람도 네 갈래를 나란히 볼 수 없었다. -->
+    <section class="df-studio-quad" aria-label="네 점술의 운명의 꽃" data-cd-trans-attr="aria-label:home.destinyFlowerStudio.quadAria">
+      <button class="df-quad-card is-active" type="button" data-df-quad="saju" data-action="setDestinyFlowerSourceTab" data-action-args="saju" aria-pressed="true">
+        <span class="df-quad-source"><span class="df-quad-emoji">🌸</span><span data-cd-trans data-key="home.nav.saju">사주</span></span>
+        <span class="df-quad-visual"><img class="df-quad-image" data-df-quad-image="saju" alt="" decoding="async" width="320" height="240"></span>
+        <span class="df-quad-name" data-df-quad-name="saju" data-cd-trans data-key="home.destinyFlowerStudio.waiting">판정 대기</span>
+        <span class="df-quad-latin" data-df-quad-latin="saju"></span>
+        <span class="df-quad-badges" data-df-quad-badges="saju"></span>
+        <span class="df-quad-line" data-df-quad-line="saju"></span>
+      </button>
+      <button class="df-quad-card" type="button" data-df-quad="astrology" data-action="setDestinyFlowerSourceTab" data-action-args="astrology" aria-pressed="false">
+        <span class="df-quad-source"><span class="df-quad-emoji">✨</span><span data-cd-trans data-key="home.nav.astrology">점성술</span></span>
+        <span class="df-quad-visual"><img class="df-quad-image" data-df-quad-image="astrology" alt="" decoding="async" width="320" height="240"></span>
+        <span class="df-quad-name" data-df-quad-name="astrology" data-cd-trans data-key="home.destinyFlowerStudio.waiting">판정 대기</span>
+        <span class="df-quad-latin" data-df-quad-latin="astrology"></span>
+        <span class="df-quad-badges" data-df-quad-badges="astrology"></span>
+        <span class="df-quad-line" data-df-quad-line="astrology"></span>
+      </button>
+      <button class="df-quad-card" type="button" data-df-quad="jamidusu" data-action="setDestinyFlowerSourceTab" data-action-args="jamidusu" aria-pressed="false">
+        <span class="df-quad-source"><span class="df-quad-emoji">🌺</span><span data-cd-trans data-key="home.nav.ziwei">자미두수</span></span>
+        <span class="df-quad-visual"><img class="df-quad-image" data-df-quad-image="jamidusu" alt="" decoding="async" width="320" height="240"></span>
+        <span class="df-quad-name" data-df-quad-name="jamidusu" data-cd-trans data-key="home.destinyFlowerStudio.waiting">판정 대기</span>
+        <span class="df-quad-latin" data-df-quad-latin="jamidusu"></span>
+        <span class="df-quad-badges" data-df-quad-badges="jamidusu"></span>
+        <span class="df-quad-line" data-df-quad-line="jamidusu"></span>
+      </button>
+      <button class="df-quad-card" type="button" data-df-quad="sukuyo" data-action="setDestinyFlowerSourceTab" data-action-args="sukuyo" aria-pressed="false">
+        <span class="df-quad-source"><span class="df-quad-emoji">🌙</span><span data-cd-trans data-key="home.nav.sukuyo">숙요점</span></span>
+        <span class="df-quad-visual"><img class="df-quad-image" data-df-quad-image="sukuyo" alt="" decoding="async" width="320" height="240"></span>
+        <span class="df-quad-name" data-df-quad-name="sukuyo" data-cd-trans data-key="home.destinyFlowerStudio.waiting">판정 대기</span>
+        <span class="df-quad-latin" data-df-quad-latin="sukuyo"></span>
+        <span class="df-quad-badges" data-df-quad-badges="sukuyo"></span>
+        <span class="df-quad-line" data-df-quad-line="sukuyo"></span>
+      </button>
+    </section>
     <div class="df-studio-main">
       <div id="dfStudioAura" class="df-studio-aura" aria-hidden="true"></div>
       <div class="df-studio-visual">
@@ -22798,7 +22835,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-4dba442794ee" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-4dba442794ee" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-4dba442794ee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-4dba442794ee" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
