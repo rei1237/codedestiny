@@ -11,6 +11,9 @@
  *    분기 판정은 실제 라우트가 돌린다.
  */
 import { jest } from "@jest/globals";
+// 🔴 실제 requireAuth 는 HttpError 를 던진다. 평범한 Error 는 handleRouteError 가 상태를 못 읽어
+//    500 이 되고, 그러면 테스트가 제품이 아니라 픽스처를 재게 된다.
+import { createHttpError } from "../../worker/lib/http.js";
 
 const USER_ID = "507f1f77bcf86cd799439011";
 const REQUEST_ID = "tarot-ijik:req:1755300000000-a1b2c3d";
@@ -33,9 +36,7 @@ beforeAll(async () => {
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       requireAuth: async () => {
         if (!authResult) {
-          const error = new Error("UNAUTHORIZED");
-          error.status = 401;
-          throw error;
+          throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
         }
         return authResult;
       },
