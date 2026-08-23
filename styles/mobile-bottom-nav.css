@@ -1,8 +1,21 @@
 /**
- * 모바일 하단 네비게이션 공용 스킨.
- * 정적 셸(#cdMobileBottomNav)과 React(app/components/MobileBottomNav.tsx)가
- * 같은 .cd-mnav__* 클래스를 쓰므로 두 화면의 생김새가 갈라지지 않는다.
- * 탭 정의 정본은 app/_lib/mobile-tabs.ts.
+ * 모바일 하단 네비게이션 스킨 — **App Router 전용**이다.
+ *
+ * 🔴 정적 셸은 이 파일을 쓰지 않는다. 셸에는 자기 탭바(#cdMobileBottomNav /
+ *    .cd-mobile-bottom-nav)가 index.html 인라인 CSS 로 따로 있고 클래스를 하나도 공유하지
+ *    않는다(실측 2026-08-24: index.html 의 `cd-mnav__` 히트 0). 그래서 여기를 고쳐도 셸
+ *    홈은 변하지 않는다 — 예전 주석이 "셸과 공용"이라고 적어 두어 반대로 읽히던 자리다.
+ * 탭 정의 정본은 app/_lib/mobile-tabs.ts (렌더러는 app/components/MobileBottomNav.tsx).
+ *
+ * 팔레트가 따르는 축은 OS 선호도가 아니라 **그 화면이 칠한 표면**이다.
+ *   - 기본: 네오 미드나잇. App Router 의 body 는 styles/globals.css 에서 #0a0818 로 고정이고
+ *     이 탭바가 뜨는 라우트는 거의 전부 그 위에 그려진다.
+ *   - 예외: 자기 표면을 연이로 칠하는 화면(/fortune/{period} 계열). 그쪽은 아래
+ *     `body:has(.cd-yeoni-surface)` 스코프가 연이 스킨으로 되돌린다.
+ *   - /app/** 는 styles/app-shell.css 가 `.cd-app-shell .cd-mnav` 로 앱 팔레트를 덮는다.
+ *
+ * 🔴 표면·테두리·잉크·활성 상태는 반드시 한 세트로 바꾼다. 배경만 덮으면 반대 팔레트의
+ *    잉크가 남아 대비가 무너진다 — CLAUDE.md 가 "반쪽 오버라이드"로 금지한 패턴이다.
  */
 
 /**
@@ -39,9 +52,10 @@ body.cd-mnav-mounted .cd-feature-nav {
   display: block;
   padding: 6px max(12px, env(safe-area-inset-right, 0px)) calc(8px + env(safe-area-inset-bottom, 0px))
     max(12px, env(safe-area-inset-left, 0px));
-  background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 241, 224, 0.96));
-  border-top: 1px solid rgba(244, 190, 209, 0.42);
-  box-shadow: 0 -12px 28px rgba(179, 25, 85, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+  background: linear-gradient(180deg, rgba(24, 20, 52, 0.96), rgba(13, 10, 30, 0.98));
+  border-top: 1px solid rgba(196, 181, 253, 0.22);
+  /* Glow-Not-Shadow: rest 는 앰비언트 없이 shade + 얇은 내부 하이라이트만 */
+  box-shadow: 0 -12px 28px rgba(0, 0, 0, 0.42), inset 0 1px 0 rgba(228, 214, 255, 0.08);
   backdrop-filter: blur(14px);
   -webkit-backdrop-filter: blur(14px);
   transform: translateY(0);
@@ -76,7 +90,7 @@ body.cd-mnav-mounted .cd-feature-nav {
   border: 1px solid transparent;
   border-radius: 12px;
   background: transparent;
-  color: #7a3457;
+  color: rgba(222, 215, 245, 0.88);
   font: inherit;
   font-size: 0.6875rem; /* 11px */
   font-weight: 800;
@@ -104,17 +118,19 @@ body.cd-mnav-mounted .cd-feature-nav {
   white-space: nowrap;
 }
 
+/* 활성 탭 — accent 는 트와일라잇 바이올렛 하나로 끝낸다(One Accent Rule).
+   상태가 바뀌는 자리이므로 여기서만 글로우를 쓴다. */
 .cd-mnav__link[aria-current="page"],
 .cd-mnav__link.is-active {
   transform: translateY(-2px);
-  border-color: rgba(244, 190, 209, 0.66);
-  background: linear-gradient(150deg, rgba(255, 248, 220, 0.96), rgba(244, 190, 209, 0.72));
-  color: #7a1038;
-  box-shadow: 0 8px 20px rgba(179, 25, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+  border-color: rgba(196, 181, 253, 0.52);
+  background: rgba(196, 181, 253, 0.16);
+  color: #f7f3ff;
+  box-shadow: 0 6px 18px -8px rgba(167, 139, 250, 0.5), inset 0 1px 0 rgba(228, 214, 255, 0.14);
 }
 
 .cd-mnav__link:focus-visible {
-  outline: 2px solid #b31955;
+  outline: 2px solid #a78bfa;
   outline-offset: 2px;
 }
 
@@ -134,27 +150,62 @@ body.cd-mnav-mounted {
   padding-bottom: calc(64px + env(safe-area-inset-bottom, 0px));
 }
 
-/* 연이 다크(핑크 다크) — DESIGN.md "연이 Dark" 팔레트. 표면·텍스트·강조를 한 세트로 바꾼다. */
+/*
+ * 연이 표면을 직접 칠하는 화면의 탭바 — 현재는 /fortune/{period} 계열 둘뿐이다
+ * (app/fortune/[period]/page.tsx · app/fortune/[period]/[sign]/SignFortuneView.tsx).
+ * 그 화면들은 <main> 에 .cd-yeoni-surface 를 달고, body:has() 로 여기까지 신호를 올린다
+ * (styles/globals.css 의 `body:has(main.moon-shop)` 과 같은 방식).
+ *
+ * 🔴 이 스코프가 OS 선호도(prefers-color-scheme)를 그대로 쓰는 이유: 그 화면들의 배경이
+ *    Tailwind `dark:` 로 갈리는데 이 저장소는 darkMode 설정이 없어 media 전략이다. 즉 표면
+ *    자체가 OS 를 따르므로 탭바도 같은 축을 써야 짝이 맞는다.
+ *    반대로 기본 스킨은 OS 를 보면 안 된다 — body 가 #0a0818 고정이라 OS 가 라이트든 다크든
+ *    미드나잇이기 때문이다. 예전에는 기본 스킨이 OS 를 따라서, 네오 페이지 아래에 크림 바
+ *    (라이트) 나 플럼 바(다크) 가 붙었다.
+ */
+body:has(.cd-yeoni-surface) .cd-mnav {
+  background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 241, 224, 0.96));
+  border-top-color: rgba(244, 190, 209, 0.42);
+  box-shadow: 0 -12px 28px rgba(179, 25, 85, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.86);
+}
+
+body:has(.cd-yeoni-surface) .cd-mnav__link {
+  color: #7a3457;
+}
+
+body:has(.cd-yeoni-surface) .cd-mnav__link[aria-current="page"],
+body:has(.cd-yeoni-surface) .cd-mnav__link.is-active {
+  border-color: rgba(244, 190, 209, 0.66);
+  background: linear-gradient(150deg, rgba(255, 248, 220, 0.96), rgba(244, 190, 209, 0.72));
+  color: #7a1038;
+  box-shadow: 0 8px 20px rgba(179, 25, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88);
+}
+
+body:has(.cd-yeoni-surface) .cd-mnav__link:focus-visible {
+  outline-color: #b31955;
+}
+
+/* 연이 다크(딥 플럼) — DESIGN.md "연이 Dark" 팔레트. 표면·텍스트·강조를 한 세트로 바꾼다. */
 @media (prefers-color-scheme: dark) {
-  .cd-mnav {
+  body:has(.cd-yeoni-surface) .cd-mnav {
     background: linear-gradient(180deg, #3a0e28, #24081a);
     border-top-color: rgba(244, 190, 209, 0.38);
     box-shadow: 0 -12px 28px rgba(174, 45, 104, 0.32), inset 0 1px 0 rgba(255, 214, 232, 0.14);
   }
 
-  .cd-mnav__link {
+  body:has(.cd-yeoni-surface) .cd-mnav__link {
     color: rgba(255, 214, 232, 0.86);
   }
 
-  .cd-mnav__link[aria-current="page"],
-  .cd-mnav__link.is-active {
+  body:has(.cd-yeoni-surface) .cd-mnav__link[aria-current="page"],
+  body:has(.cd-yeoni-surface) .cd-mnav__link.is-active {
     border-color: rgba(255, 196, 222, 0.5);
     background: linear-gradient(150deg, rgba(179, 25, 85, 0.62), rgba(174, 45, 104, 0.36));
     color: #fff1f7;
     box-shadow: 0 8px 20px rgba(174, 45, 104, 0.42), inset 0 1px 0 rgba(255, 214, 232, 0.2);
   }
 
-  .cd-mnav__link:focus-visible {
+  body:has(.cd-yeoni-surface) .cd-mnav__link:focus-visible {
     outline-color: #f4bed1;
   }
 }
