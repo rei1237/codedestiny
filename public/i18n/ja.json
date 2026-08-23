@@ -6896,6 +6896,12 @@
         "k1l2ndq73": "パス利用可",
         "n1415000": "全14章・20,000字",
         "k1l2ndq74": "パス利用可"
+      },
+      "cdSigCardCta": {
+        "k1nezx6j": "秘策を開く",
+        "k1tya78i": "鑑定を始める",
+        "knu3ltb": "星を読む",
+        "knwvgzo": "戦略を受け取る"
       }
     },
     "cdPickReason": {
@@ -6944,6 +6950,10 @@
         "n115000": "会員登録後1回無料・以降1回5,000ウォン",
         "n130000": "1回30,000ウォン",
         "k1lo4ibg": "2万字以上・最終クロス判定"
+      },
+      "fortuneGatewayDoorGo": {
+        "kkmvgqi": "鑑定を始める",
+        "k1yerhq3": "超融合リーディングを見る"
       }
     },
     "fortuneGatewayEntry": {
@@ -6971,6 +6981,10 @@
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
         "k1ubfgod": "月精石 300個"
+      },
+      "cdFeedbackBody": {
+        "k2a2ghh": "バグ、ぎこちない画面、「こんな機能があれば」と思った瞬間 — 何でも歓迎します。",
+        "k84kqr7": "いただいたご意見はひとつずつ読み、次のアップデートに反映します。"
       }
     },
     "cdFeedbackGate": {
@@ -7108,6 +7122,49 @@
     "birthCountryComboWrap": {
       "kefdlj6": {
         "ariaLabel": "出生地の検索結果"
+      }
+    },
+    "cdTodayCardTop": {
+      "cdTodayCardAnchor": {
+        "kl74ww4": "今日の日柱",
+        "k1j6dp92": "今日の宿",
+        "khs81qk": "今日の月宿"
+      }
+    },
+    "cdTodayPickCta": {
+      "k1cco6tp": "今すぐ始める"
+    },
+    "cdSigCardGlyphs": {
+      "cdSigCardGlyph": {
+        "kxvio": "四柱推命",
+        "kpyjtww": "紫微斗数",
+        "kz0jc": "縁",
+        "kxvio2": "四柱推命",
+        "k10ios": "タロット",
+        "kuolk": "相性",
+        "kabniwe": "宿曜27宿",
+        "k79pfmc": "ナクシャトラ",
+        "kx2dg": "ヴェーダ",
+        "kxvio3": "四柱推命",
+        "kz12p": "戦略"
+      }
+    },
+    "cdPickWhyAlt": {
+      "k1d6ftfz": "かわりに運命の茶館へ"
+    },
+    "fortuneGatewayTitle": {
+      "kxunqxo": "今日のひとことから",
+      "kzg9wm": "六つの体系による深いリーディングまで"
+    },
+    "cdDiaryPlannerTitle": {
+      "k1muhj4v": "運気と日取りのダイアリー、",
+      "kbld8zk": "そして自分だけの運勢プランナー"
+    },
+    "syBasicCalendarLegendItems": {
+      "syBasicCalendarLegendItem": {
+        "kyol0": "今日",
+        "k11poz": "凶日",
+        "k1149f": "平日"
       }
     }
   },

@@ -6896,6 +6896,12 @@
         "k1l2ndq73": "可用通行證",
         "n1415000": "14章 · 20,000字",
         "k1l2ndq74": "可用通行證"
+      },
+      "cdSigCardCta": {
+        "k1nezx6j": "打開祕策",
+        "k1tya78i": "開始諮詢",
+        "knu3ltb": "解讀星辰",
+        "knwvgzo": "取得策略"
       }
     },
     "cdPickReason": {
@@ -6944,6 +6950,10 @@
         "n115000": "註冊後免費1次 · 之後每次5,000韓元",
         "n130000": "每次30,000韓元",
         "k1lo4ibg": "2萬字以上 · 最終交叉判定"
+      },
+      "fortuneGatewayDoorGo": {
+        "kkmvgqi": "開始諮詢",
+        "k1yerhq3": "查看超融合解讀"
       }
     },
     "fortuneGatewayEntry": {
@@ -6971,6 +6981,10 @@
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
         "k1ubfgod": "月精石 300 顆"
+      },
+      "cdFeedbackBody": {
+        "k2a2ghh": "程式錯誤、彆扭的畫面、\"要是有這個功能就好了\"的瞬間 — 什麼都歡迎。",
+        "k84kqr7": "我們會逐一閱讀您的意見，並在下次更新中呈現。"
       }
     },
     "cdFeedbackGate": {
@@ -7108,6 +7122,49 @@
     "birthCountryComboWrap": {
       "kefdlj6": {
         "ariaLabel": "出生地搜尋結果"
+      }
+    },
+    "cdTodayCardTop": {
+      "cdTodayCardAnchor": {
+        "kl74ww4": "今日日柱",
+        "k1j6dp92": "今日星宿",
+        "khs81qk": "今日月宿"
+      }
+    },
+    "cdTodayPickCta": {
+      "k1cco6tp": "立即開始"
+    },
+    "cdSigCardGlyphs": {
+      "cdSigCardGlyph": {
+        "kxvio": "四柱八字",
+        "kpyjtww": "紫微斗數",
+        "kz0jc": "緣分",
+        "kxvio2": "四柱八字",
+        "k10ios": "塔羅",
+        "kuolk": "合婚",
+        "kabniwe": "宿曜27宿",
+        "k79pfmc": "納克沙特拉",
+        "kx2dg": "吠陀",
+        "kxvio3": "四柱八字",
+        "kz12p": "策略"
+      }
+    },
+    "cdPickWhyAlt": {
+      "k1d6ftfz": "改去運命茶館"
+    },
+    "fortuneGatewayTitle": {
+      "kxunqxo": "從今日的一句話",
+      "kzg9wm": "到六大體系的深度解讀"
+    },
+    "cdDiaryPlannerTitle": {
+      "k1muhj4v": "運氣與日子的日記，",
+      "kbld8zk": "以及我的運勢規劃表"
+    },
+    "syBasicCalendarLegendItems": {
+      "syBasicCalendarLegendItem": {
+        "kyol0": "今天",
+        "k11poz": "凶日",
+        "k1149f": "平日"
       }
     }
   },

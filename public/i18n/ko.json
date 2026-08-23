@@ -3945,6 +3945,12 @@
         "k1l2ndq73": "이용권 사용 가능",
         "n1415000": "14장 · 20,000자",
         "k1l2ndq74": "이용권 사용 가능"
+      },
+      "cdSigCardCta": {
+        "k1nezx6j": "비책 열기",
+        "k1tya78i": "상담 시작",
+        "knu3ltb": "별 읽기",
+        "knwvgzo": "전략 받기"
       }
     },
     "cdPickReason": {
@@ -3993,6 +3999,10 @@
         "n115000": "이후 1회 5,000원",
         "n130000": "1회 30,000원",
         "k1lo4ibg": "2만 자 이상 · 최종 교차 판정"
+      },
+      "fortuneGatewayDoorGo": {
+        "kkmvgqi": "상담 시작하기",
+        "k1yerhq3": "초융합 리딩 보기"
       }
     },
     "fortuneGatewayEntry": {
@@ -4020,6 +4030,10 @@
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
         "k1ubfgod": "월정석 300개"
+      },
+      "cdFeedbackBody": {
+        "k2a2ghh": "버그, 어색한 화면, \"이런 기능이 있었으면\" 하는 순간 — 무엇이든 좋습니다.",
+        "k84kqr7": "보내주신 의견은 하나씩 읽고 다음 업데이트에 반영합니다."
       }
     },
     "cdFeedbackGate": {
@@ -4179,6 +4193,49 @@
     "birthCountryComboWrap": {
       "kefdlj6": {
         "ariaLabel": "출생지 검색 결과"
+      }
+    },
+    "cdTodayCardTop": {
+      "cdTodayCardAnchor": {
+        "kl74ww4": "오늘의 일진",
+        "k1j6dp92": "오늘의 수(宿)",
+        "khs81qk": "오늘의 달자리"
+      }
+    },
+    "cdTodayPickCta": {
+      "k1cco6tp": "바로 시작"
+    },
+    "cdSigCardGlyphs": {
+      "cdSigCardGlyph": {
+        "kxvio": "사주",
+        "kpyjtww": "자미두수",
+        "kz0jc": "인연",
+        "kxvio2": "사주",
+        "k10ios": "타로",
+        "kuolk": "궁합",
+        "kabniwe": "숙요 27수",
+        "k79pfmc": "나크샤트라",
+        "kx2dg": "베다",
+        "kxvio3": "사주",
+        "kz12p": "전략"
+      }
+    },
+    "cdPickWhyAlt": {
+      "k1d6ftfz": "대신 운명의 찻집"
+    },
+    "fortuneGatewayTitle": {
+      "kxunqxo": "오늘의 한마디부터",
+      "kzg9wm": "여섯 체계의 깊은 리딩까지"
+    },
+    "cdDiaryPlannerTitle": {
+      "k1muhj4v": "운기·기일 다이어리와",
+      "kbld8zk": "나의 운세 플래너"
+    },
+    "syBasicCalendarLegendItems": {
+      "syBasicCalendarLegendItem": {
+        "kyol0": "오늘",
+        "k11poz": "흉일",
+        "k1149f": "평일"
       }
     }
   },

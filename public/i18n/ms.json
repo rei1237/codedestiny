@@ -6896,6 +6896,12 @@
         "k1l2ndq73": "Pas diterima",
         "n1415000": "14 bab · 20,000 aksara",
         "k1l2ndq74": "Pas diterima"
+      },
+      "cdSigCardCta": {
+        "k1nezx6j": "Open the playbook",
+        "k1tya78i": "Start a reading",
+        "knu3ltb": "Read the stars",
+        "knwvgzo": "Get the strategy"
       }
     },
     "cdPickReason": {
@@ -6944,6 +6950,10 @@
         "n115000": "1 percuma selepas mendaftar · selepas itu ₩5,000 setiap satu",
         "n130000": "₩30,000 setiap bacaan",
         "k1lo4ibg": "Lebih 20,000 aksara · semakan silang akhir"
+      },
+      "fortuneGatewayDoorGo": {
+        "kkmvgqi": "Start a reading",
+        "k1yerhq3": "See the Fusion Fortune reading"
       }
     },
     "fortuneGatewayEntry": {
@@ -6971,6 +6981,10 @@
     "cdFeedbackCopy": {
       "cdFeedbackReward": {
         "k1ubfgod": "300 Batu Cahaya Bulan"
+      },
+      "cdFeedbackBody": {
+        "k2a2ghh": "A bug, an awkward screen, a moment of \"I wish this existed\" — anything is welcome.",
+        "k84kqr7": "We read every message and fold it into the next update."
       }
     },
     "cdFeedbackGate": {
@@ -7108,6 +7122,49 @@
     "birthCountryComboWrap": {
       "kefdlj6": {
         "ariaLabel": "Birthplace search results"
+      }
+    },
+    "cdTodayCardTop": {
+      "cdTodayCardAnchor": {
+        "kl74ww4": "Today's Day Pillar",
+        "k1j6dp92": "Today's Mansion",
+        "khs81qk": "Today's Lunar Sign"
+      }
+    },
+    "cdTodayPickCta": {
+      "k1cco6tp": "Start now"
+    },
+    "cdSigCardGlyphs": {
+      "cdSigCardGlyph": {
+        "kxvio": "Four Pillars",
+        "kpyjtww": "Zi Wei Dou Shu",
+        "kz0jc": "Bonds",
+        "kxvio2": "Four Pillars",
+        "k10ios": "Tarot",
+        "kuolk": "Compatibility",
+        "kabniwe": "Sukuyo 27",
+        "k79pfmc": "Nakshatra",
+        "kx2dg": "Vedic",
+        "kxvio3": "Four Pillars",
+        "kz12p": "Strategy"
+      }
+    },
+    "cdPickWhyAlt": {
+      "k1d6ftfz": "The Destiny Tea House instead"
+    },
+    "fortuneGatewayTitle": {
+      "kxunqxo": "From today's single line",
+      "kzg9wm": "to deep readings across six systems"
+    },
+    "cdDiaryPlannerTitle": {
+      "k1muhj4v": "A diary of daily energy and dates,",
+      "kbld8zk": "and your own fortune planner"
+    },
+    "syBasicCalendarLegendItems": {
+      "syBasicCalendarLegendItem": {
+        "kyol0": "Today",
+        "k11poz": "Inauspicious",
+        "k1149f": "Neutral"
       }
     }
   },
