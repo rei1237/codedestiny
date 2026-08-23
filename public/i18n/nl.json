@@ -11701,7 +11701,9 @@
         "shuffling": "Shuffling",
         "choosing": "{count}/{total} revealed",
         "complete": "All cards revealed"
-      }
+      },
+      "representativeLabel": "Representative",
+      "representativeMeaning": "The card that surfaced first for the question you asked."
     },
     "historyPanel": {
       "closeAria": "Close reading history",
@@ -14181,6 +14183,508 @@
         "innerGrowthMeaning": "For inner growth, the power to receive your many pieces as one grows. Even the moments where you fell short were part of the journey.",
         "yeoniMessage": "You have come through a great many scenes to reach here. Rather than fearing the ending now, hold the completed rhythm once in your arms.",
         "journalQuestion": "What should I now call complete, so that I can move on to the next chapter?"
+      }
+    },
+    "consultTarotCards": {
+      "0": {
+        "nameKo": "The Fool",
+        "upright": {
+          "keywords": {
+            "0": "A new start",
+            "1": "Innocence",
+            "2": "Adventure",
+            "3": "Possibility"
+          },
+          "meaning": "Not every answer is settled yet, and the heart is catching a light breath before a new road."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Haste",
+            "1": "Not ready yet",
+            "2": "A reality check",
+            "3": "Unsteadiness"
+          },
+          "meaning": "The energy to begin is there, but the heart may run ahead — small checks and practical preparation come first."
+        }
+      },
+      "1": {
+        "nameKo": "The Magician",
+        "upright": {
+          "keywords": {
+            "0": "Will",
+            "1": "Getting it done",
+            "2": "Talent",
+            "3": "Expression"
+          },
+          "meaning": "The resources already in your hands and the power of your words wake up — a time when thought can be moved into reality."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Scattered will",
+            "1": "Overstatement",
+            "2": "A wasted chance",
+            "3": "Distrust"
+          },
+          "meaning": "The ability is there, but the direction scatters easily — aligning your words with your actions comes first."
+        }
+      },
+      "2": {
+        "nameKo": "The High Priestess",
+        "upright": {
+          "keywords": {
+            "0": "Intuition",
+            "1": "A secret",
+            "2": "Silence",
+            "3": "The inner world"
+          },
+          "meaning": "Quiet intuition and a layer of feeling not yet brought to light matter more than anything said out loud."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Confusion",
+            "1": "Held-down feelings",
+            "2": "A secret coming out",
+            "3": "Distrust"
+          },
+          "meaning": "The feeling is strong, but unverified guesses may be mixed in — separate the voice of the heart from the facts."
+        }
+      },
+      "3": {
+        "nameKo": "The Empress",
+        "upright": {
+          "keywords": {
+            "0": "Abundance",
+            "1": "Affection",
+            "2": "Caring",
+            "3": "Growth"
+          },
+          "meaning": "Warm care and the power to grow a bond come alive, and the heart slowly recovers steadiness and abundance."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Expecting too much",
+            "1": "Dependence",
+            "2": "Feeling overflow",
+            "3": "Standstill"
+          },
+          "meaning": "The more you want to care for someone, the easier it is to forget yourself — the balance of affection needs setting right again."
+        }
+      },
+      "4": {
+        "nameKo": "The Emperor",
+        "upright": {
+          "keywords": {
+            "0": "Order",
+            "1": "Responsibility",
+            "2": "Steadiness",
+            "3": "A standard"
+          },
+          "meaning": "The more feelings shake, the more a clear standard and a responsible choice settle the situation."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Rigidity",
+            "1": "Control",
+            "2": "Pressure",
+            "3": "Stubbornness"
+          },
+          "meaning": "Gripping too hard can narrow the air to breathe — set the standard, but leave some room."
+        }
+      },
+      "5": {
+        "nameKo": "The Hierophant",
+        "upright": {
+          "keywords": {
+            "0": "Counsel",
+            "1": "Tradition",
+            "2": "Trust",
+            "3": "Teaching"
+          },
+          "meaning": "Rather than judging alone, trustworthy counsel and a long-standing standard put the road in order."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Old rules",
+            "1": "Minding others' eyes",
+            "2": "Feeling stifled",
+            "3": "Your own way"
+          },
+          "meaning": "A standard that no longer fits may be holding you — it is time to ask what is truly yours."
+        }
+      },
+      "6": {
+        "nameKo": "The Lovers",
+        "upright": {
+          "keywords": {
+            "0": "Attraction",
+            "1": "A choice",
+            "2": "Harmony",
+            "3": "A bond"
+          },
+          "meaning": "Where the pull of your heart meets the choice you actually make, the grain of an important bond shows itself."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Crossed paths",
+            "1": "Wavering",
+            "2": "Imbalance",
+            "3": "Clashing values"
+          },
+          "meaning": "There is a difference that fondness alone will not solve — you both need to look at each other's standards more honestly."
+        }
+      },
+      "7": {
+        "nameKo": "The Chariot",
+        "upright": {
+          "keywords": {
+            "0": "Moving forward",
+            "1": "Will",
+            "2": "A decisive round",
+            "3": "Breaking through"
+          },
+          "meaning": "Rather than leaving the hesitation to sit, choosing a direction and moving opens the situation quickly."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Forcing it",
+            "1": "Losing direction",
+            "2": "A collision",
+            "3": "Impatience"
+          },
+          "meaning": "However much you want speed, a blurred direction brings collisions — straighten the wheel first."
+        }
+      },
+      "8": {
+        "nameKo": "Strength",
+        "upright": {
+          "keywords": {
+            "0": "Patience",
+            "1": "Courage",
+            "2": "Gentle strength",
+            "3": "Recovery"
+          },
+          "meaning": "Rather than pushing hard, the strength to hold gently settles both the heart and the situation."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Confidence dipping",
+            "1": "Unease",
+            "2": "Worn-out feelings",
+            "3": "Avoidance"
+          },
+          "meaning": "What shows first is a heart worn out from holding on — rather than driving yourself, you need time to recover your strength."
+        }
+      },
+      "9": {
+        "nameKo": "The Hermit",
+        "upright": {
+          "keywords": {
+            "0": "Reflection",
+            "1": "Keeping distance",
+            "2": "Wisdom",
+            "3": "Inner search"
+          },
+          "meaning": "When you step back a moment and look quietly, an answer that has waited a long time inside shows its face."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Isolation",
+            "1": "Loneliness",
+            "2": "Over-analysis",
+            "3": "A closed heart"
+          },
+          "meaning": "The deeper the time spent thinking alone, the more it can drift into isolation — open a trustworthy connection a little."
+        }
+      },
+      "10": {
+        "nameKo": "Wheel of Fortune",
+        "upright": {
+          "keywords": {
+            "0": "A turning point",
+            "1": "Opportunity",
+            "2": "Flow",
+            "3": "Change"
+          },
+          "meaning": "A flow that had stopped begins to move, and an unforeseen occasion tilts the direction of fate a little."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "A delayed flow",
+            "1": "Repetition",
+            "2": "Timing off",
+            "3": "Acceptance"
+          },
+          "meaning": "Change is approaching, but the timing is not ripe yet — read the pattern that keeps repeating first."
+        }
+      },
+      "11": {
+        "nameKo": "Justice",
+        "upright": {
+          "keywords": {
+            "0": "Balance",
+            "1": "Fairness",
+            "2": "Judgement",
+            "3": "Responsibility"
+          },
+          "meaning": "When feeling and fact go on the same scale, the standard you need for this choice grows clear."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Imbalance",
+            "1": "A grievance",
+            "2": "Bias",
+            "3": "Dodged responsibility"
+          },
+          "meaning": "The heart may be tilted to one side and blurring the judgement — set the facts out again, calmly."
+        }
+      },
+      "12": {
+        "nameKo": "The Hanged Man",
+        "upright": {
+          "keywords": {
+            "0": "A pause",
+            "1": "A shift of view",
+            "2": "Waiting",
+            "3": "Letting go"
+          },
+          "meaning": "This delay is not a punishment but a sign to change your view — the more you let go, the more the road appears."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Sacrifice in vain",
+            "1": "Stubbornness",
+            "2": "Standstill",
+            "3": "Feeling stifled"
+          },
+          "meaning": "If the waiting has drifted from meaningful reflection into wear, ask again why you are still holding on."
+        }
+      },
+      "13": {
+        "nameKo": "Death",
+        "upright": {
+          "keywords": {
+            "0": "An ending",
+            "1": "Change",
+            "2": "Rebirth",
+            "3": "Clearing away"
+          },
+          "meaning": "The ending flow may look frightening, but it is the turn where a new order opens after the old shell comes off."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Lingering attachment",
+            "1": "Resisting change",
+            "2": "A delayed clearing",
+            "3": "Holding on"
+          },
+          "meaning": "The heart is holding on to what should already have changed — the longer the clearing is put off, the longer the ache lasts."
+        }
+      },
+      "14": {
+        "nameKo": "Temperance",
+        "upright": {
+          "keywords": {
+            "0": "Attunement",
+            "1": "Balance",
+            "2": "Healing",
+            "3": "A slow flow"
+          },
+          "meaning": "Unhurried attunement becomes the greatest strength, and heart and reality slowly find the same temperature."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Imbalance",
+            "1": "Impatience",
+            "2": "Excess",
+            "3": "An off rhythm"
+          },
+          "meaning": "The temperature of your heart has run too high or too low — slow the pace and set the rhythm again."
+        }
+      },
+      "15": {
+        "nameKo": "The Devil",
+        "upright": {
+          "keywords": {
+            "0": "Obsession",
+            "1": "Temptation",
+            "2": "Bondage",
+            "3": "Desire"
+          },
+          "meaning": "Behind a strong pull hide a binding and a habit that repeats — look at what is really holding you."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Release",
+            "1": "Seeing the pattern",
+            "2": "Sorting out a bond",
+            "3": "The will to recover"
+          },
+          "meaning": "As you notice the pattern that bound you, the strength to step out of it, little by little, comes."
+        }
+      },
+      "16": {
+        "nameKo": "The Tower",
+        "upright": {
+          "keywords": {
+            "0": "A sudden turn",
+            "1": "Shock",
+            "2": "Collapse",
+            "3": "Truth"
+          },
+          "meaning": "The shaking is large, but a hidden truth comes out and tells you that you can no longer stand on the old structure."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Dodging the crisis",
+            "1": "An inner crack",
+            "2": "Late change",
+            "3": "Unease"
+          },
+          "meaning": "Even if you try to avoid the big change, the inner cracks are already visible — start with small repairs."
+        }
+      },
+      "17": {
+        "nameKo": "The Star",
+        "upright": {
+          "keywords": {
+            "0": "Hope",
+            "1": "Healing",
+            "2": "Inspiration",
+            "3": "A long breath"
+          },
+          "meaning": "A hope shining from far off matters more than an answer within reach, and the heart recovers slowly."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Disappointment",
+            "1": "Hope thinning",
+            "2": "Distrust",
+            "3": "Recovery delayed"
+          },
+          "meaning": "Expectation bent and the heart darkened, but the small ember of recovery can be lit again."
+        }
+      },
+      "18": {
+        "nameKo": "The Moon",
+        "upright": {
+          "keywords": {
+            "0": "Uncertainty",
+            "1": "The unconscious",
+            "2": "Illusion",
+            "3": "Waves of feeling"
+          },
+          "meaning": "The fog of an unclear heart has thickened — rather than hurrying to a conclusion, read the waves of feeling."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "The fog lifting",
+            "1": "Naming the unease",
+            "2": "Nearing the truth",
+            "3": "Sorting feelings"
+          },
+          "meaning": "The cause of the blurred feeling comes out little by little — a time when you can tell illusion from instinct."
+        }
+      },
+      "19": {
+        "nameKo": "The Sun",
+        "upright": {
+          "keywords": {
+            "0": "Joy",
+            "1": "Clarity",
+            "2": "Success",
+            "3": "Recovery"
+          },
+          "meaning": "A heart that was hidden comes brightly into the open, and a warm certainty shines on the bond and the situation."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Joy delayed",
+            "1": "Confidence shaken",
+            "2": "Adjusting hopes",
+            "3": "A small recovery"
+          },
+          "meaning": "The bright flow is there but not fully out yet — adjust your expectations and stack up small wins."
+        }
+      },
+      "20": {
+        "nameKo": "Judgement",
+        "upright": {
+          "keywords": {
+            "0": "Realisation",
+            "1": "A calling",
+            "2": "Reappraisal",
+            "3": "Resolve"
+          },
+          "meaning": "A calling from deep in the heart is heard again, and you come to look at what has passed by a new standard."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "Self-blame",
+            "1": "Resolve deferred",
+            "2": "Dodging the call",
+            "3": "Left unresolved"
+          },
+          "meaning": "You may be putting off a decision you already know — what is needed is a practical step, not self-blame."
+        }
+      },
+      "21": {
+        "nameKo": "The World",
+        "upright": {
+          "keywords": {
+            "0": "Completion",
+            "1": "Integration",
+            "2": "Achievement",
+            "3": "The next chapter"
+          },
+          "meaning": "One flow reaches completion, and everything you have been through gathers into the strength that opens the next door."
+        },
+        "reversed": {
+          "keywords": {
+            "0": "A delayed finish",
+            "1": "Unfinished",
+            "2": "An ending that repeats",
+            "3": "Needing to tidy up"
+          },
+          "meaning": "You are nearly at the end, but a small piece is unfinished — the last tidying is what opens the next chapter."
+        }
+      }
+    },
+    "tarotSpreadPositions": {
+      "three": {
+        "0": {
+          "positionLabel": "Now",
+          "positionMeaning": "The central scene of the question right now"
+        },
+        "1": {
+          "positionLabel": "Flow",
+          "positionMeaning": "The near flow and the direction of feeling"
+        },
+        "2": {
+          "positionLabel": "Advice",
+          "positionMeaning": "A practical standard to hold on to today"
+        }
+      },
+      "five": {
+        "0": {
+          "positionLabel": "Now",
+          "positionMeaning": "The central scene of the question right now"
+        },
+        "1": {
+          "positionLabel": "The other / the situation",
+          "positionMeaning": "The temperature the other person or the situation reveals"
+        },
+        "2": {
+          "positionLabel": "The block",
+          "positionMeaning": "The repeating pattern that blocks the flow"
+        },
+        "3": {
+          "positionLabel": "Possibility",
+          "positionMeaning": "A road that is carefully standing open"
+        },
+        "4": {
+          "positionLabel": "Advice",
+          "positionMeaning": "A practical standard to hold on to today"
+        }
       }
     }
   }

@@ -7,9 +7,12 @@ import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import { useLazySpriteSource, useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaHouseHoneyDropsState, FortuneTeaHouseHoneyLetter } from "../data/consult";
 import { fortuneTeaHouseAssets } from "../data/assets";
-import { getTeaHouseCupById } from "../data/teaCups";
+import { getTeaHouseCupById, teaHouseCups } from "../data/teaCups";
+import { majorArcanaCards } from "../data/tarotCards";
 import { tenGodMetaMap } from "../data/tenGods";
 import { sanitizeTeaHouseConsultResult } from "../lib/sanitizeConsultResult";
+import { localizeConsultResult } from "../lib/localizeConsultResult";
+import { tarotSpreadPositions } from "../lib/tarotAdapter";
 import AssetImage from "./AssetImage";
 import TarotAssetCard from "./TarotAssetCard";
 import TeaCupVisual from "./TeaCupVisual";
@@ -207,6 +210,11 @@ function buildFortuneTeaHouseResultText(result: FortuneTeaHouseConsultResponse, 
 
 /** 십성 데이터에서 사전이 덮으면 안 되는 필드. id 는 판별자, colorTone 은 CSS 토큰이다. */
 const TEN_GOD_SKIP_KEYS = ["id", "colorTone"];
+/* 찻잔 상수의 id·CSS 토큰은 문구가 아니다. 배선 목록은 docs/handoff/fortune-tea-house-i18n.md 함정 9 참고. */
+const CUP_SKIP_KEYS = ["id", "particleTone", "accent"];
+/* 카드 정체성(id·영문명)과 주제 매칭용 힌트는 화면 문구가 아니다 — nameKo·keywords·meaning 만 사전을 탄다. */
+const CONSULT_CARD_SKIP_KEYS = ["id", "nameEn", "topicHints"];
+const SPREAD_POSITION_SKIP_KEYS = ["positionId"];
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
     키는 문구의 결정론적 해시라 같은 문구가 자동으로 한 키로 합쳐진다(정적 셸의 마커 도구와 같은 방식). */
@@ -379,8 +387,21 @@ export default function TeaHouseResultSheet({
   const copy = useTeaHouseCopy("resultSheet", KO);
   const tenGodMeta = useTeaHouseCopy("tenGods", tenGodMetaMap, { skipKeys: TEN_GOD_SKIP_KEYS });
   const locale = useLocale();
-  // 저장/캐시된 오염 결과(객체 값·빈 문자열·문자열 퍼센트)도 크래시 없이 렌더되도록 1회 정규화.
-  const result = useMemo(() => sanitizeTeaHouseConsultResult(rawResult), [rawResult]);
+  const cups = useTeaHouseCopy("teaCups", teaHouseCups, { skipKeys: CUP_SKIP_KEYS });
+  const consultCards = useTeaHouseCopy("consultTarotCards", majorArcanaCards, { skipKeys: CONSULT_CARD_SKIP_KEYS });
+  const spreadPositions = useTeaHouseCopy("tarotSpreadPositions", tarotSpreadPositions, { skipKeys: SPREAD_POSITION_SKIP_KEYS });
+  // 저장/캐시된 오염 결과(객체 값·빈 문자열·문자열 퍼센트)도 크래시 없이 렌더되도록 1회 정규화하고,
+  // 이어서 결정론 조각(찻잔·카드 정체성·스프레드 위치)을 사전 값으로 갈아끼운다.
+  // 🔴 payload 는 그대로 둔다 — 저장·공유·워커 프롬프트의 정본은 계속 한국어 id 데이터다.
+  const result = useMemo(
+    () => localizeConsultResult(sanitizeTeaHouseConsultResult(rawResult), {
+      cups,
+      cards: consultCards,
+      positions: spreadPositions,
+      representativePosition: { positionLabel: copy.klfpmjsj, positionMeaning: copy.k3zbz4mk },
+    }),
+    [rawResult, cups, consultCards, spreadPositions, copy.klfpmjsj, copy.k3zbz4mk],
+  );
   const [honeyLetterLoading, setHoneyLetterLoading] = useState(false);
   const [honeyLetterMessage, setHoneyLetterMessage] = useState("");
   const [saveStatus, setSaveStatus] = useState("");

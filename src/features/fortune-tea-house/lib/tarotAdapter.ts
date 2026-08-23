@@ -3,7 +3,12 @@ import type { DrawnTarotCard, TarotSpread, TarotSpreadCategory } from "@/app/tar
 import type { FortuneTeaHouseConsultRequest, FortuneTeaTarotSnapshot, FortuneTeaTarotSpread, FortuneTeaTarotSpreadCard } from "../data/consult";
 import { drawTarotCard, drawTarotOrientation, tarotDeckCards, type TeaHouseTarotCard, type TarotOrientation } from "../data/tarotCards";
 
-const tarotSpreadPositions: Record<FortuneTeaTarotSpread, Array<{ positionId: string; positionLabel: string; positionMeaning: string }>> = {
+/** 스프레드 위치 한 칸. 라벨·설명은 화면에 그대로 렌더되므로 사전 조회 대상이다. */
+export type TarotSpreadPosition = { positionId: string; positionLabel: string; positionMeaning: string };
+
+/** 🔴 export 인 이유: 결과 화면이 렌더 직전에 이 표를 사전으로 덮어 위치 라벨을 로케일화한다
+    (src/features/fortune-tea-house/lib/localizeConsultResult.ts). payload 자체는 한국어 정본을 유지한다. */
+export const tarotSpreadPositions: Record<FortuneTeaTarotSpread, TarotSpreadPosition[]> = {
   three: [
     { positionId: "present", positionLabel: "현재", positionMeaning: "지금 질문의 중심 장면" },
     { positionId: "flow", positionLabel: "흐름", positionMeaning: "가까운 흐름과 감정의 방향" },

@@ -3,7 +3,10 @@
 import { useEffect, useMemo, useState } from "react";
 import type { FortuneTeaHouseConsultResponse, FortuneTeaTarotSpreadCard } from "../data/consult";
 import { getFortuneTeaHouseRevealButtonLabel } from "../data/consultPricing";
-import { getTeaHouseCupById } from "../data/teaCups";
+import { getTeaHouseCupById, teaHouseCups } from "../data/teaCups";
+import { majorArcanaCards } from "../data/tarotCards";
+import { localizeConsultResult } from "../lib/localizeConsultResult";
+import { tarotSpreadPositions } from "../lib/tarotAdapter";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import TarotCardBack from "./TarotCardBack";
 import TarotAssetCard from "./TarotAssetCard";
@@ -55,9 +58,17 @@ function buildRevealCards(result: FortuneTeaHouseConsultResponse): FortuneTeaTar
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
     {count}·{total}·{name}·{orientation}·{label}·{state} 는 런타임 치환 자리다 — 모든 로케일에서 그대로 둘 것.
-    buildRevealCards 의 positionLabel("대표")·positionMeaning 은 카드 메타데이터라 데이터 배치에서 함께 다룬다. */
+    스프레드가 한 장뿐일 때 세우는 대표 카드의 위치 문구도 여기 있다(representativeLabel·representativeMeaning). */
+/* 찻잔 상수의 id·CSS 토큰은 문구가 아니다. */
+const CUP_SKIP_KEYS = ["id", "particleTone", "accent"];
+/* 카드 정체성(id·영문명)과 주제 매칭 힌트는 화면 문구가 아니다. */
+const CONSULT_CARD_SKIP_KEYS = ["id", "nameEn", "topicHints"];
+const SPREAD_POSITION_SKIP_KEYS = ["positionId"];
+
 const KO = {
   upright: "정방향",
+  representativeLabel: "대표",
+  representativeMeaning: "지금 질문에 가장 먼저 떠오른 카드입니다.",
   reversed: "역방향",
   title: "찻잔 위에 카드가 떠올랐어요",
   deckAria: "운명의 카드 선택",
@@ -79,9 +90,23 @@ const KO = {
   },
 };
 
-export default function TarotRevealScene({ result, onComplete }: TarotRevealSceneProps) {
+export default function TarotRevealScene({ result: rawResult, onComplete }: TarotRevealSceneProps) {
   const copy = useTeaHouseCopy("tarotReveal", KO);
+  const cups = useTeaHouseCopy("teaCups", teaHouseCups, { skipKeys: CUP_SKIP_KEYS });
+  const consultCards = useTeaHouseCopy("consultTarotCards", majorArcanaCards, { skipKeys: CONSULT_CARD_SKIP_KEYS });
+  const spreadPositions = useTeaHouseCopy("tarotSpreadPositions", tarotSpreadPositions, { skipKeys: SPREAD_POSITION_SKIP_KEYS });
   const prefersReducedMotion = usePrefersReducedMotion();
+  // 카드 정체성·찻잔은 워커가 LLM 출력으로 덮지 않고 한국어 초안 그대로 고정한다.
+  // 그래서 그리기 직전에 id 로 사전을 다시 조회한다 — payload 자체는 건드리지 않는다.
+  const result = useMemo(
+    () => localizeConsultResult(rawResult, {
+      cups,
+      cards: consultCards,
+      positions: spreadPositions,
+      representativePosition: { positionLabel: copy.representativeLabel, positionMeaning: copy.representativeMeaning },
+    }),
+    [rawResult, cups, consultCards, spreadPositions, copy.representativeLabel, copy.representativeMeaning],
+  );
   const spreadCards = useMemo(() => buildRevealCards(result), [result]);
   const spreadSignature = spreadCards.map((card) => `${card.positionId}:${card.cardId}:${card.orientation}`).join("|");
   const [phase, setPhase] = useState<TarotRevealPhase>(() => getInitialRevealPhase(prefersReducedMotion));
