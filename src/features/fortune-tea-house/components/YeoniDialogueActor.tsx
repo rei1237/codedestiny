@@ -14,6 +14,7 @@ import {
   type YeoniSpriteFrameId,
 } from "../data/yeoniSprites";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type YeoniDialogueActorProps = {
   mood: YeoniMood;
@@ -23,6 +24,12 @@ type YeoniDialogueActorProps = {
   priority?: boolean;
 };
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    키는 문구의 결정론적 해시라 같은 문구가 자동으로 한 키로 합쳐진다(정적 셸의 마커 도구와 같은 방식). */
+const KO = {
+  kfqwcn17: "달빛 찻집 상담사",
+};
+
 export default function YeoniDialogueActor({
   mood,
   isSpeaking,
@@ -30,6 +37,7 @@ export default function YeoniDialogueActor({
   compact = false,
   priority = false,
 }: YeoniDialogueActorProps) {
+  const copy = useTeaHouseCopy("yeoniDialogueActor", KO);
   const spriteGate = useSpritePlaybackGate<HTMLDivElement>();
   const [failedSheets, setFailedSheets] = useState<Record<string, boolean>>({});
   const visual = useMemo(() => pickYeoniExpression(mood, isSpeaking), [isSpeaking, mood]);
@@ -65,7 +73,7 @@ export default function YeoniDialogueActor({
         <img
           className={styles.yeoniBustImage}
           src={fortuneTeaHouseAssets.yeoni.transparent.bust}
-          alt="달빛 찻집 상담사"
+          alt={copy.kfqwcn17}
           decoding="async"
           loading={priority ? "eager" : "lazy"}
         />
@@ -81,7 +89,7 @@ export default function YeoniDialogueActor({
           />
         ) : null}
         {hasFailed ? (
-          <span className={styles.yeoniSpriteFallback} role="img" aria-label="달빛 찻집 상담사">
+          <span className={styles.yeoniSpriteFallback} role="img" aria-label={copy.kfqwcn17}>
             <span aria-hidden>月</span>
           </span>
         ) : null}

@@ -12422,6 +12422,44 @@
       "kzpuejo8": "7-day recovery routine",
       "kzqvnuoc": "Meaning in your present situation",
       "kzr8vqho": "We read only the flow visible within the birth details you entered."
+    },
+    "fortuneTeaHouseDebugPanel": {
+      "k1lcnd8v": "Yes",
+      "k1ynotxc": "No",
+      "kn1nriyo": "The Destiny Tea House developer state panel"
+    },
+    "spriteCrop": {
+      "kb8qgueb": "The image could not be loaded."
+    },
+    "tarotCardBack": {
+      "kccv0ato": "A Yeoni tarot card not yet revealed"
+    },
+    "tarotDebugPage": {
+      "kfxgeebk": "The Destiny Tea House tarot atlas check",
+      "kjnpzpcs": "Crop result per card",
+      "kn8fbxup": "Source mapping sheet",
+      "atlasMeta": "{file} · 1122 x 1402 · 22 cards"
+    },
+    "teaCupDebugPage": {
+      "kdd0afjz": "The image could not be loaded.",
+      "kjabnmtv": "The Destiny Tea House cup crop check",
+      "kkdt8eds": "Crop result per cup",
+      "kppjaxid": "Source image of cup candidates"
+    },
+    "teaHouseCTA": {
+      "ktg9i3ix": "Yeoni getting the cup reading ready",
+      "kxau4l8n": "The night Yeoni warms the water"
+    },
+    "tenGodDebugPage": {
+      "k4cd8sdg": "The Destiny Tea House Ten Gods check",
+      "kz5lymhe": "Symbol card per Ten God",
+      "atlasMeta": "{file} atlas crop · 5 cols x 2 rows of symbol images"
+    },
+    "yeoniDialogueActor": {
+      "kfqwcn17": "The moonlit tea house reader"
+    },
+    "teaCupVisual": {
+      "cupAlt": "The {name} cup"
     }
   }
 }

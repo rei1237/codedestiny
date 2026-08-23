@@ -12422,6 +12422,44 @@
       "kzpuejo8": "7天复原日常",
       "kzqvnuoc": "在此刻情境中的含义",
       "kzr8vqho": "只读出你填写的出生资讯中看得见的流向。"
+    },
+    "fortuneTeaHouseDebugPanel": {
+      "k1lcnd8v": "有",
+      "k1ynotxc": "无",
+      "kn1nriyo": "运命茶馆开发用状态面板"
+    },
+    "spriteCrop": {
+      "kb8qgueb": "无法载入图像。"
+    },
+    "tarotCardBack": {
+      "kccv0ato": "尚未揭开的 Yeoni 塔罗牌"
+    },
+    "tarotDebugPage": {
+      "kfxgeebk": "运命茶馆塔罗图集校验",
+      "kjnpzpcs": "各张牌的 crop 结果",
+      "kn8fbxup": "原始映射表",
+      "atlasMeta": "{file} · 1122 x 1402 · 22 cards"
+    },
+    "teaCupDebugPage": {
+      "kdd0afjz": "无法载入图像。",
+      "kjabnmtv": "运命茶馆茶杯 crop 校验",
+      "kkdt8eds": "各茶杯的 crop 结果",
+      "kppjaxid": "茶杯候选的原始图像"
+    },
+    "teaHouseCTA": {
+      "ktg9i3ix": "正在准备茶杯咨询的 Yeoni",
+      "kxau4l8n": "Yeoni 温着茶水的夜晚"
+    },
+    "tenGodDebugPage": {
+      "k4cd8sdg": "运命茶馆十神校验",
+      "kz5lymhe": "各十神的象徵卡",
+      "atlasMeta": "{file} atlas crop · 5列 x 2行 象徵图像"
+    },
+    "yeoniDialogueActor": {
+      "kfqwcn17": "月光茶馆的咨询师"
+    },
+    "teaCupVisual": {
+      "cupAlt": "{name} 茶杯"
     }
   }
 }
