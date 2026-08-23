@@ -12370,48 +12370,82 @@ html body:not(.neo-mode) #authQuickLinks[data-marker] div.cd-user-card .cd-user-
            🔴 가격을 여기 쓰지 않는다. 정본은 worker/lib/paid-feature-registry.js 이고, 라우트로 보내면
               각 상품 페이지의 기존 결제 게이트가 그대로 처리한다(커스텀 체크아웃은 금지 패턴).
            패널 6개는 전부 DOM 에 두고 hidden 으로만 감춘다 — 정적 텍스트가 색인·AdSense 분량에 집계된다. -->
-      <style id="cd-concern-pick-v20260817">
+      <style id="cd-concern-pick-v20260824">
 html body .cd-concern{max-width:var(--cd-w-grid,1280px);margin:var(--cd-sp-xl,36px) auto var(--cd-sp-sm,10px);padding:0 clamp(12px,3vw,24px)}
 html body .cd-concern__head{margin:0 0 var(--cd-sp-lg,24px);text-align:center}
-html body .cd-concern__cards{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--cd-sp-sm,10px);margin:0 0 var(--cd-sp-lg,24px)}
+/* 리드 문단이 1280px 축에서 '명식에/서' 처럼 어절 중간에서 잘렸다.
+   섹션 공용 머리말 규칙(#inputPage :is(...) 6개 섹션 공유)은 건드리지 않고 여기서만 어절을 지킨다. */
+html body .cd-concern__head p{word-break:keep-all}
+/* 카드 줄만 본문 축보다 좁힌다 — 1280px 를 3열로 나누면 카드 한 장이 415px 라
+   문구가 좌상단에 몰리고 오른쪽이 비어 보였다. 머리말(46em)과 패널(640px) 사이 폭이 된다. */
+html body .cd-concern__cards{display:grid;grid-template-columns:repeat(2,1fr);gap:var(--cd-sp-sm,10px);max-width:1080px;margin:0 auto var(--cd-sp-md,16px)}
 /* rest 는 플랫에 가깝게 — 테두리는 accent 가 아니라 뉴트럴 플럼(--cd-line), 그림자는 1단.
-   accent 는 선택 상태에만 쓴다(DESIGN.md The Accent Budget Rule). */
-html body .cd-concern__card{display:flex;flex-direction:column;gap:var(--cd-sp-xs,6px);padding:var(--cd-sp-md,16px);margin:0;font:inherit;text-align:left;color:var(--cd-text,#3c1830);cursor:pointer;border-radius:var(--cd-r-card,20px);background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-line,rgba(60,24,48,.1));box-shadow:var(--cd-shade-1,0 1px 2px rgba(60,24,48,.05));transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),border-color var(--cd-dur-base,220ms) ease,background var(--cd-dur-base,220ms) ease,box-shadow var(--cd-dur-base,220ms) ease}
-/* 아이콘 정규화 — emoji 는 글리프마다 광학 크기와 베이스라인이 달라 6장이 제각각 커 보였다.
-   같은 정사각 박스에 가운데 정렬해 크기·정렬을 통일한다. 마크업·문구는 그대로다.
-   아래 여백을 gap 의 2배로 둬 아이콘 → 제목 → 설명 리듬을 6장 모두 같게 만든다. */
-html body .cd-concern__card-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:28px;height:28px;margin:0 0 var(--cd-sp-xs,6px);font-size:23px;line-height:1}
-html body .cd-concern__card-label{font-size:15px;font-weight:800;line-height:1.32;letter-spacing:-.012em}
-html body .cd-concern__card-desc{font-size:12.5px;line-height:1.6;color:var(--cd-text-muted,#70445c);opacity:1}
-/* 선택 상태 — 단색 딥 베리 + 흰 타이포 + brand depth 1겹. 그라디언트를 쓰지 않는다.
-   --cd-primary 가 테마별로 정의돼 있어 네오 전용 배경 오버라이드가 따로 필요 없다(Two Covers 자동 충족). */
-html body .cd-concern__card[aria-expanded="true"]{color:var(--cd-primary-ink,#fff);background:var(--cd-primary,#b31955);border-color:transparent;box-shadow:var(--cd-shade-3,0 6px 18px -8px rgba(179,25,85,.32))}
+   accent 는 선택 상태에만 쓴다(DESIGN.md The Accent Budget Rule).
+   min-height 는 6장 키를 고정한다 — 설명이 두 줄로 접히는 카드만 커지던 것을 막는다. */
+html body .cd-concern__card{display:flex;flex-direction:column;gap:var(--cd-sp-xs,6px);min-height:112px;padding:clamp(14px,1.6vw,18px);margin:0;font:inherit;text-align:left;color:var(--cd-text,#3c1830);cursor:pointer;border-radius:var(--cd-r-card,20px);background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-line,rgba(60,24,48,.1));box-shadow:var(--cd-shade-1,0 1px 2px rgba(60,24,48,.05));transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),border-color var(--cd-dur-base,220ms) ease,background var(--cd-dur-base,220ms) ease,box-shadow var(--cd-dur-base,220ms) ease}
+/* 아이콘 — 컬러 이모지를 단색 라인 글리프로 교체했다(v20260824).
+   이모지는 글리프마다 광학 크기·베이스라인이 달라 6장이 제각각 커 보였고,
+   딥 플럼 팔레트에서 채도가 가장 높은 요소라 팔레트와 따로 놀았다.
+   🔴 색은 accent 가 아니라 뮤트 텍스트다 — accent 는 선택 상태에만(Accent Budget Rule).
+      currentColor 를 타므로 선택 카드에서 자동 반전된다(테마별 오버라이드가 필요 없다). */
+html body .cd-concern__card-icon{display:inline-flex;align-items:center;justify-content:center;flex:0 0 auto;width:26px;height:26px;margin:0 0 var(--cd-sp-sm,10px);color:var(--cd-text-muted,#70445c);line-height:0;transition:color var(--cd-dur-base,220ms) ease}
+html body .cd-concern__card-icon svg{display:block;width:22px;height:22px}
+html body .cd-concern__card-label{font-size:15.5px;font-weight:800;line-height:1.32;letter-spacing:-.012em}
+html body .cd-concern__card-desc{font-size:12.5px;line-height:1.6;letter-spacing:.005em;color:var(--cd-text-muted,#70445c);opacity:1}
+/* 선택 상태 — 통짜 #b31955 는 면적×채도가 과해 싸구려 탭으로 읽혔다(v20260824 개정).
+   연이는 한 단 어두운 딥 베리로 낮추고(흰 라벨 대비 6.59:1 → 10.4:1) inset hairline 으로 재질을 준다.
+   그라디언트도, 좌측 사이드스트라이프도 쓰지 않는다(DESIGN.md Don't 목록).
+   네오는 --cd-primary 가 밝은 라벤더 + 어두운 잉크 글씨라 이미 '밝은 칩'이므로 낮추지 않는다. */
+html body .cd-concern__card[aria-expanded="true"]{color:var(--cd-primary-ink,#fff);background:var(--cd-primary,#b31955);border-color:transparent;transform:translate3d(0,-2px,0);box-shadow:inset 0 0 0 1px rgba(255,255,255,.14),var(--cd-shade-3,0 6px 18px -8px rgba(179,25,85,.32))}
+html:not(.neo-mode) body .cd-concern__card[aria-expanded="true"]{background:#7e1039}
+html body .cd-concern__card[aria-expanded="true"] .cd-concern__card-icon{color:inherit}
 html body .cd-concern__card[aria-expanded="true"] .cd-concern__card-desc{color:rgba(255,255,255,.88)}
+html.neo-mode body .cd-concern__card[aria-expanded="true"]{box-shadow:inset 0 0 0 1px rgba(19,16,42,.12),var(--cd-shade-3,0 6px 18px -8px rgba(167,139,250,.4))}
 html.neo-mode body .cd-concern__card[aria-expanded="true"] .cd-concern__card-desc{color:rgba(19,16,42,.78)}
 html body .cd-concern__card:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
 @media(min-width:600px){html body .cd-concern__cards{grid-template-columns:repeat(3,1fr);gap:var(--cd-sp-md,16px)}}
 /* 패널은 본문 폭(1280px)을 다 쓰면 문장 한 줄과 버튼 두 개가 빈 카드에 흩어져 보인다.
    읽기 좋은 폭으로 좁히고 안쪽을 전부 가운데 축으로 모은다 — 머리말·카드와 같은 축이 된다.
-   accent 6% 그라디언트 오버레이는 제거했다(핑크 총량을 줄이는 지점 중 하나). */
-html body .cd-concern__panel{display:grid;justify-items:center;gap:var(--cd-sp-md,16px);max-width:min(100%,720px);margin:0 auto;padding:clamp(22px,3.4vw,32px) clamp(18px,3vw,28px);text-align:center;border-radius:var(--cd-r-section,26px);background:var(--cd-surface-quiet,#fdfaf8);border:1px solid var(--cd-line,rgba(60,24,48,.1));box-shadow:var(--cd-shade-1,0 1px 2px rgba(60,24,48,.05))}
+   ::before 캐럿이 카드 묶음과 패널을 잇는 유일한 시각 신호다(위치는 아래 규칙 참고). */
+html body .cd-concern__panel{position:relative;display:grid;justify-items:center;gap:var(--cd-sp-md,16px);max-width:min(100%,640px);margin:var(--cd-sp-sm,10px) auto 0;padding:clamp(24px,3.2vw,30px) clamp(20px,3vw,28px);text-align:center;border-radius:var(--cd-r-section,26px);background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-line,rgba(60,24,48,.1));box-shadow:var(--cd-shade-2,0 2px 6px rgba(60,24,48,.07));animation:cdConcernPanelIn var(--cd-dur-emph,380ms) var(--cd-ease-out,ease) backwards}
+/* 캐럿 x 는 위임 핸들러가 선택 카드 중심으로 넘긴다(--cd-concern-caret).
+   50% 고정으로 뒀더니 첫 카드(좌측)를 골랐는데 가운데 카드를 가리켜 **틀린 신호**를 줬다.
+   폴백 50% 는 JS 가 죽었을 때만 쓰인다. */
+html body .cd-concern__panel::before{content:"";position:absolute;top:-6px;left:var(--cd-concern-caret,50%);width:11px;height:11px;transform:translateX(-50%) rotate(45deg);background:var(--cd-surface,rgba(255,255,255,.96));border-top:1px solid var(--cd-line,rgba(60,24,48,.1));border-left:1px solid var(--cd-line,rgba(60,24,48,.1));border-top-left-radius:3px}
 html body .cd-concern__panel[hidden]{display:none}
-html body .cd-concern__why{margin:0;max-width:34em;font-size:1.02rem;line-height:1.7;color:var(--cd-text,#3c1830)}
+/* 🔴 fill-mode 는 backwards 다 — both 로 두면 keyframe 의 to 값이 이후 상태 규칙을 이겨 죽인다. */
+@keyframes cdConcernPanelIn{from{opacity:0;transform:translate3d(0,6px,0)}to{opacity:1;transform:none}}
+html body .cd-concern__why{margin:0;max-width:34em;font-size:1.06rem;line-height:1.72;letter-spacing:-.004em;color:var(--cd-text,#3c1830);word-break:keep-all;text-wrap:balance}
 html body .cd-concern__actions{display:flex;flex-wrap:wrap;justify-content:center;align-items:stretch;gap:var(--cd-sp-sm,10px)}
-html body .cd-concern__free,html body .cd-concern__paid{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:var(--cd-btn-h,48px);padding:var(--cd-btn-pad,12px 24px);border-radius:var(--cd-r-control,12px);font-weight:800;line-height:1.28;text-decoration:none;transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),box-shadow var(--cd-dur-base,220ms) ease,background var(--cd-dur-base,220ms) ease,border-color var(--cd-dur-base,220ms) ease}
+html body .cd-concern__free,html body .cd-concern__paid{display:inline-flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:52px;padding:12px 26px;border-radius:14px;font-weight:800;line-height:1.28;text-decoration:none;transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),box-shadow var(--cd-dur-base,220ms) ease,background var(--cd-dur-base,220ms) ease,border-color var(--cd-dur-base,220ms) ease}
 /* Primary = 무료 진입. 단색 딥 베리. */
 html body .cd-concern__free{color:var(--cd-primary-ink,#fff);background:var(--cd-primary,#b31955);border:1px solid transparent;box-shadow:var(--cd-shade-3,0 6px 18px -8px rgba(179,25,85,.32))}
-/* Secondary = 추천 상담. 패널 바닥(--cd-surface-quiet)보다 밝은 흰 표면이라 채움만으로도 버튼으로 읽히고,
+/* Secondary = 추천 상담. 패널을 흰 표면으로 올렸으므로(v20260824) 버튼은 한 단 낮은 quiet 로 내려
+   figure/ground 를 유지한다 — 둘 다 흰색이면 버튼이 배경에 녹는다.
    경계는 보강이다 — 식별은 15:1 라벨 텍스트가 담당한다(WCAG 1.4.11). */
-html body .cd-concern__paid{color:var(--cd-text,#3c1830);background:var(--cd-surface,rgba(255,255,255,.96));border:1px solid var(--cd-line-strong,rgba(60,24,48,.22));box-shadow:var(--cd-shade-1,0 1px 2px rgba(60,24,48,.05))}
+html body .cd-concern__paid{color:var(--cd-text,#3c1830);background:var(--cd-surface-quiet,#faf5f2);border:1px solid var(--cd-line-strong,rgba(60,24,48,.22));box-shadow:none}
 html body .cd-concern__free:focus-visible,html body .cd-concern__paid:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px}
 /* 상품명과 행동 문구가 한 줄로 이어 붙어 읽히던 것을 두 줄로 나눈다(문구는 그대로). */
-html body .cd-concern__paid em{font-style:normal;font-weight:600;font-size:.8rem;letter-spacing:.01em;color:var(--cd-text-muted,#70445c)}
-html body .cd-concern__fusion{margin:var(--cd-sp-lg,24px) 0 0;text-align:center;font-size:.92rem}
-html body .cd-concern__fusion a{color:var(--cd-accent,#b31955);font-weight:700;text-decoration:none;border-bottom:1px solid color-mix(in srgb,var(--cd-accent,#b31955) 32%,transparent)}
+html body .cd-concern__paid em{font-style:normal;font-weight:600;font-size:.78rem;letter-spacing:.014em;color:var(--cd-text-muted,#70445c)}
+/* 초융합 줄 — 밑줄 친 핑크 텍스트는 본문 링크가 아니라 광고 링크처럼 읽혔다.
+   좌우 hairline 이 감싸는 중앙 정렬 라벨로 바꾸고 밑줄은 hover 에만 둔다.
+   accent 는 이 한 자리만 쓴다(Accent Budget 의 '지표 1개'). */
+html body .cd-concern__fusion{display:flex;align-items:center;justify-content:center;gap:14px;margin:var(--cd-sp-lg,24px) 0 0;text-align:center;font-size:.92rem}
+html body .cd-concern__fusion::before,html body .cd-concern__fusion::after{content:"";flex:0 1 84px;height:1px;background:var(--cd-line-strong,rgba(60,24,48,.22))}
+/* 🔴 a 는 inline 이어야 한다 — inline-flex 로 두면 안쪽 span 2개와 구분점이 각각 flex item 이 돼
+   좁은 화면에서 '교차검증하 / 고 싶다면' 처럼 어절 중간에서 세 조각으로 쪼개진다(실측). */
+html body .cd-concern__fusion a{display:inline;color:var(--cd-accent,#b31955);font-weight:700;text-decoration:none;border-bottom:0;word-break:keep-all}
+/* 화살표는 a 가 아니라 **마지막 span** 에 붙이고 그 span 을 nowrap 으로 묶는다.
+   a::after 로 두면 inline-block 경계가 줄바꿈 기회가 돼 좁은 화면에서 화살표만 다음 줄로 떨어졌다(실측). */
+html body .cd-concern__fusion a span:last-child{white-space:nowrap}
+html body .cd-concern__fusion a span:last-child::after{content:"→";display:inline-block;margin-left:6px;font-weight:400;transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease)}
+html body .cd-concern__fusion a:focus-visible{outline:2px solid var(--cd-focus-ring,#b31955);outline-offset:3px;border-radius:4px}
 html.neo-mode body .cd-concern__fusion a{color:var(--cd-gold,#e8d5a3)}
 html body .cd-result-fusion{margin:0 0 16px;padding:15px 14px;border:1px solid color-mix(in srgb,var(--cd-accent,#b31955) 24%,transparent);border-radius:16px;background:color-mix(in srgb,var(--cd-accent,#b31955) 5%,transparent)}
 html.neo-mode body .cd-result-fusion{border-color:color-mix(in srgb,var(--cd-gold,#e8d5a3) 28%,transparent);background:color-mix(in srgb,var(--cd-gold,#e8d5a3) 7%,transparent)}
+/* 결과 화면 재사용본은 이미 accent 박스 안이라 hairline 을 끈다(같은 클래스, 다른 문맥). */
 html body .cd-result-fusion .cd-concern__fusion{margin:0;font-size:1rem}
+html body .cd-result-fusion .cd-concern__fusion::before,html body .cd-result-fusion .cd-concern__fusion::after{display:none}
 /* 연이 테마 모바일은 전역 규칙(styles/cosmic-main.css @860px)이 섹션 머리말을 왼쪽으로 붙인다.
    패널만 가운데로 두면 축이 다시 어긋나므로 그 구간에서는 패널도 머리말을 따라간다.
    네오 테마는 모바일에서도 머리말이 가운데라 손대지 않는다. */
@@ -12422,14 +12456,23 @@ html body .cd-result-fusion .cd-concern__fusion{margin:0;font-size:1rem}
 }
 @media (max-width:520px){
   html body .cd-concern__actions{display:grid;grid-template-columns:1fr;width:100%;gap:8px}
+  html body .cd-concern__fusion::before,html body .cd-concern__fusion::after{display:none}
 }
 @media (hover:hover) and (pointer:fine){
   html body .cd-concern__card:hover{transform:translate3d(0,-3px,0);border-color:var(--cd-line-strong,rgba(60,24,48,.22));box-shadow:var(--cd-shade-2,0 2px 6px rgba(60,24,48,.07))}
-  html body .cd-concern__card[aria-expanded="true"]:hover{border-color:transparent}
+  html body .cd-concern__card:hover .cd-concern__card-icon{color:var(--cd-text,#3c1830)}
+  html body .cd-concern__card[aria-expanded="true"]:hover{border-color:transparent;transform:translate3d(0,-3px,0)}
+  html body .cd-concern__card[aria-expanded="true"]:hover .cd-concern__card-icon{color:inherit}
   html body .cd-concern__free:hover{transform:translateY(-2px);background:var(--cd-primary-hover,#9b1449);box-shadow:var(--cd-shade-2,0 2px 6px rgba(60,24,48,.07))}
   html body .cd-concern__paid:hover{transform:translateY(-2px);border-color:color-mix(in srgb,var(--cd-text,#3c1830) 34%,transparent);box-shadow:var(--cd-shade-2,0 2px 6px rgba(60,24,48,.07))}
+  html body .cd-concern__fusion a:hover{text-decoration:underline;text-underline-offset:4px}
+  html body .cd-concern__fusion a:hover span:last-child::after{transform:translateX(3px)}
 }
-@media (prefers-reduced-motion:reduce){ html body :is(.cd-concern__card,.cd-concern__free,.cd-concern__paid){transition:none} }
+@media (prefers-reduced-motion:reduce){
+  html body :is(.cd-concern__card,.cd-concern__card-icon,.cd-concern__free,.cd-concern__paid){transition:none}
+  html body .cd-concern__fusion a span:last-child::after{transition:none}
+  html body .cd-concern__panel{animation:none}
+}
       </style>
       <style id="cd-home-secondary-v20260817">
 /* 홈 초기 노출 대상에서 고민 선택(cdConcernPick)·
@@ -12678,7 +12721,7 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
       <p class="dp-kakao-referral-note" id="dpKakaoReferralNote" aria-live="polite" data-cd-trans="home.input.referralNote">달빛 초대 링크로 친구를 초대할 수 있습니다.</p>
     </section>
     </div>
-      <section class="cd-concern" id="cdConcernPick" aria-labelledby="cdConcernPickTitle" data-marker="cd-concern-pick-v20260817">
+      <section class="cd-concern" id="cdConcernPick" aria-labelledby="cdConcernPickTitle" data-marker="cd-concern-pick-v20260824">
         <div class="moon-section-head cd-concern__head">
           <span class="moon-section-kicker">START HERE</span>
           <h2 id="cdConcernPickTitle" data-cd-trans data-key="home.concernPick.title">지금 가장 궁금한 건 무엇인가요?</h2>
@@ -12686,32 +12729,32 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
         </div>
         <div class="cd-concern__cards">
           <button type="button" class="cd-concern__card" data-cd-concern="love" aria-expanded="true" aria-controls="cdConcernPanelLove">
-            <span class="cd-concern__card-icon" aria-hidden="true">❤️</span>
+            <span class="cd-concern__card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 20.3 4.6 13a4.7 4.7 0 0 1 0-6.7 4.7 4.7 0 0 1 6.7 0l.7.7.7-.7a4.7 4.7 0 0 1 6.7 0 4.7 4.7 0 0 1 0 6.7Z"/></svg></span>
             <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.love">연애·인연</span>
             <span class="cd-concern__card-desc" data-cd-trans="shell.cdConcernCards.cdConcernCard.k1ozfahx">연애운 · 궁합 · 재회 · 인연</span>
           </button>
           <button type="button" class="cd-concern__card" data-cd-concern="person" aria-expanded="false" aria-controls="cdConcernPanelPerson">
-            <span class="cd-concern__card-icon" aria-hidden="true">👤</span>
+            <span class="cd-concern__card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><circle cx="12" cy="8.2" r="3.4"/><path d="M5.5 19.8a6.5 6.5 0 0 1 13 0"/></svg></span>
             <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.person">특정 사람</span>
             <span class="cd-concern__card-desc" data-cd-trans="shell.cdConcernCards.cdConcernCard.k1fatpbc">궁합 · 상성 · 관계 진단</span>
           </button>
           <button type="button" class="cd-concern__card" data-cd-concern="money" aria-expanded="false" aria-controls="cdConcernPanelMoney">
-            <span class="cd-concern__card-icon" aria-hidden="true">💰</span>
+            <span class="cd-concern__card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><ellipse cx="12" cy="6.6" rx="7" ry="2.9"/><path d="M5 6.6v5c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9v-5"/><path d="M5 11.6v5.4c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9v-5.4"/></svg></span>
             <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.money">돈·재물</span>
             <span class="cd-concern__card-desc" data-cd-trans="shell.cdConcernCards.cdConcernCard.k1mgycgx">재물운 · 수입 · 지출 흐름</span>
           </button>
           <button type="button" class="cd-concern__card" data-cd-concern="career" aria-expanded="false" aria-controls="cdConcernPanelCareer">
-            <span class="cd-concern__card-icon" aria-hidden="true">💼</span>
+            <span class="cd-concern__card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><rect x="3" y="7.6" width="18" height="12.4" rx="2.4"/><path d="M8.6 7.6V5.8A1.8 1.8 0 0 1 10.4 4h3.2a1.8 1.8 0 0 1 1.8 1.8v1.8"/><path d="M3 13.2h18"/></svg></span>
             <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.career">직업·사업</span>
             <span class="cd-concern__card-desc" data-cd-trans="shell.cdConcernCards.cdConcernCard.k607hyq">이직 · 창업 · 사업 확장</span>
           </button>
           <button type="button" class="cd-concern__card" data-cd-concern="year" aria-expanded="false" aria-controls="cdConcernPanelYear">
-            <span class="cd-concern__card-icon" aria-hidden="true">📅</span>
+            <span class="cd-concern__card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><rect x="3.4" y="5.6" width="17.2" height="15" rx="2.4"/><path d="M8.2 3.4v4.4M15.8 3.4v4.4M3.4 11h17.2"/></svg></span>
             <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.year">올해의 흐름</span>
             <span class="cd-concern__card-desc" data-cd-trans="shell.cdConcernCards.cdConcernCard.k1n3lsfu">신년운세 · 월별 흐름 · 대운</span>
           </button>
           <button type="button" class="cd-concern__card" data-cd-concern="all" aria-expanded="false" aria-controls="cdConcernPanelAll">
-            <span class="cd-concern__card-icon" aria-hidden="true">🔮</span>
+            <span class="cd-concern__card-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" focusable="false" aria-hidden="true"><path d="M12 2.6 20.1 7.3v9.4L12 21.4 3.9 16.7V7.3Z"/><circle cx="12" cy="12" r="2.6"/></svg></span>
             <span class="cd-concern__card-label" data-cd-trans data-key="home.concernPick.all">내 전체 운</span>
             <span class="cd-concern__card-desc" data-cd-trans="shell.cdConcernCards.cdConcernCard.k5gqwm7">사주 · 자미두수 · 점성술</span>
           </button>
@@ -12760,14 +12803,45 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
         </div>
         <p class="cd-concern__fusion"><a href="/fusion-fortune/"><span data-cd-trans data-key="home.concernPick.fusionLine">여섯 체계를 모두 교차검증하고 싶다면</span> · <span data-cd-trans="shell.fortuneGatewayDoors.fortuneGatewayDoor.k12pdy0g">초융합 심층 리딩</span></a></p>
       </section>
-      <script data-marker="cd-concern-pick-v20260817">
+      <script data-marker="cd-concern-pick-v20260824">
         /* 위임 핸들러 1개. 카드를 누르면 그 고민의 패널만 남긴다.
-           패널은 마크업에 전부 들어 있고 hidden 만 오간다 — 새 진입점·새 결제 경로를 만들지 않는다. */
+           패널은 마크업에 전부 들어 있고 hidden 만 오간다 — 새 진입점·새 결제 경로를 만들지 않는다.
+           v20260824: 패널 상단 캐럿(::before)의 x 를 선택 카드 중심에 맞춘다. 값은 --cd-concern-caret
+           하나뿐이고 레이아웃 읽기는 rAF 안에서 한 번만 한다(클릭·리사이즈·최초 가시화 시). */
         (function () {
           var root = document.getElementById('cdConcernPick');
           if (!root) return;
           var cards = root.querySelectorAll('[data-cd-concern]');
           var panels = root.querySelectorAll('[data-cd-concern-panel]');
+
+          function activeCard() {
+            for (var i = 0; i < cards.length; i += 1) {
+              if (cards[i].getAttribute('aria-expanded') === 'true') return cards[i];
+            }
+            return null;
+          }
+          function syncCaret() {
+            var card = activeCard();
+            var panel = root.querySelector('[data-cd-concern-panel]:not([hidden])');
+            if (!card || !panel) return;
+            var pr = panel.getBoundingClientRect();
+            var cr = card.getBoundingClientRect();
+            /* 섹션이 아직 안 그려졌으면(폭 0) 손대지 않는다 — CSS 폴백 50% 가 남는다. */
+            if (!pr.width || !cr.width) return;
+            var x = cr.left + cr.width / 2 - pr.left;
+            /* 패널(640px)이 카드 줄(1080px)보다 좁아 좌우 열 카드는 패널 밖을 가리킨다.
+               그 경우 가장자리로 붙여 방향만 남긴다. 40 은 패널 모서리 반경(26px)보다 커야
+               캐럿이 둥근 코너 위에 얹히지 않는다. */
+            var edge = 40;
+            if (x < edge) x = edge;
+            if (x > pr.width - edge) x = pr.width - edge;
+            panel.style.setProperty('--cd-concern-caret', Math.round(x) + 'px');
+          }
+          function scheduleSync() {
+            if (typeof requestAnimationFrame === 'function') requestAnimationFrame(syncCaret);
+            else syncCaret();
+          }
+
           root.addEventListener('click', function (event) {
             var card = event.target && event.target.closest ? event.target.closest('[data-cd-concern]') : null;
             if (!card || !root.contains(card)) return;
@@ -12779,7 +12853,17 @@ html body .dp-destiny-panel__toggle[aria-expanded="true"] .dp-destiny-panel__che
               if (panels[j].getAttribute('data-cd-concern-panel') === picked) panels[j].removeAttribute('hidden');
               else panels[j].setAttribute('hidden', '');
             }
+            scheduleSync();
           });
+
+          window.addEventListener('resize', scheduleSync);
+          /* 홈은 섹션이 접힌 채로 시작할 수 있어 최초 계산이 폭 0 에 걸린다.
+             ResizeObserver 가 실제로 폭을 얻는 순간 한 번 더 잡아 준다(폴링·타이머 없음). */
+          if (typeof ResizeObserver === 'function') {
+            new ResizeObserver(syncCaret).observe(root);
+          } else {
+            scheduleSync();
+          }
         })();
       </script>
       <!-- 오늘의 운세 허브 — 히어로 직후 최상단. 결제·로그인 게이트는 없지만 프로필 카드는 필수다:
@@ -13816,6 +13900,8 @@ html:not(.neo-mode) body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-in
 html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-head p{color:rgba(228,214,255,.86)!important;-webkit-text-fill-color:rgba(228,214,255,.86)!important}
 html body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-kicker{display:inline-block!important;padding:0!important;border:0!important;border-radius:0!important;background:none!important;font-size:.7rem!important;font-weight:700!important;letter-spacing:.16em!important;text-transform:uppercase!important;color:var(--cd-text-muted,#70445c)!important}
 html.neo-mode body #inputPage :is(.cd-ai-feats,.cd-fortune-pick,.cd-svc-index,.cd-concern,.cd-quick,.cd-finder) .moon-section-kicker{color:var(--cd-text-muted,rgba(200,170,255,.7))!important}
+/* cd-concern 만 자간을 넓히고 크기를 한 단 줄인다 — 위 :is() 규칙은 6개 섹션 공용이라 손대지 않는다. */
+html body #inputPage .cd-concern .moon-section-kicker{font-size:.66rem!important;letter-spacing:.22em!important}
 /* cd-expert-consult-luxe-v20260731 — 위 헤더 규칙은 .cd-fortune-pick·.cd-svc-index 와 공유한다.
    전문가 상담 섹션만 다크 패널로 갈아입었으므로 #cdAiFeatures 로 스코프해 여기서만 덮는다
    (id 2개로 위 :is() 규칙보다 특이도가 확실히 높다 — 나머지 두 섹션은 그대로 둔다). */
@@ -22845,7 +22931,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-676459b9c9b4" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-676459b9c9b4" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-676459b9c9b4" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-676459b9c9b4" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>

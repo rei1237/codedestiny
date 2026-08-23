@@ -13110,6 +13110,474 @@
       "surprised": {
         "label": "The flower piglet giving a small wave"
       }
+    },
+    "tarotAlbumTemplates": {
+      "minor": {
+        "shortSummary": "{title}: {rankShort} {suitSymbol}",
+        "storyTitle": "{rankTitle} and the {suitNoun}",
+        "story": "{rankScene} {suitSymbol} When this card is laid out, Yeoni does not cut the matter into plain good or bad fortune; she looks first at the pace your heart is trying to reach the world at. {title} tells you quietly that the time has come to turn this current into a real choice.",
+        "uprightMeaning": "{rankLine} {suitLine}",
+        "reversedMeaning": "{rankLine} {suitLine}",
+        "loveMeaning": "{suitLine} {rankLine}",
+        "relationshipMeaning": "{suitLine} {rankLine}",
+        "careerMeaning": "{suitLine} {rankLine}",
+        "moneyMeaning": "{suitLine} {rankLine}",
+        "innerGrowthMeaning": "{suitLine} {rankLine}",
+        "yeoniMessage": "This card speaks to you. {rankShort} So today, do not grip the {suitNoun} in your heart too tightly — begin with the one thing you can actually change."
+      },
+      "fallback": {
+        "element": "Symbol",
+        "storyTitle": "The moonlight tale of {name}",
+        "story": "{name} quietly unfolds the symbol your heart is facing right now. Through this card Yeoni looks at both the temperature of the choice and the grain of the feeling.",
+        "loveMeaning": "In love, {name} points you to look calmly at the direction of your heart and the way you express it.",
+        "relationshipMeaning": "In relationships, {name} tells you to watch each other's pace and boundaries.",
+        "careerMeaning": "In work, {name} lights up the attitude you need now and the next move to make.",
+        "moneyMeaning": "In money, {name} tells you to check your feelings and the practical conditions together.",
+        "innerGrowthMeaning": "Within, {name} brings you to notice the current of feeling that keeps repeating.",
+        "yeoniMessage": "Before this card, Yeoni will wait for your heart without hurrying it.",
+        "journalQuestion": "What small signal is this card showing me right now?"
+      },
+      "majorSuitLabel": "Major Arcana"
+    },
+    "tarotAlbumSuits": {
+      "wands": {
+        "label": "Wands",
+        "element": "Fire",
+        "keywords": {
+          "0": "Passion",
+          "1": "Action",
+          "2": "Drive",
+          "3": "Creation"
+        },
+        "reversedKeywords": {
+          "0": "Impatience",
+          "1": "Burnout",
+          "2": "Lost direction",
+          "3": "Impulse"
+        },
+        "storyNoun": "flame",
+        "symbolLine": "Wands light the moment an ember in the heart spreads into the movement of the body.",
+        "uprightLine": "Upright, the strength to turn will into actual action comes alive.",
+        "reversedLine": "Reversed, the passion runs hasty or scatters, and the direction has to be set again.",
+        "loveLine": "In love, the flutter and the urge to express it both grow stronger.",
+        "relationshipLine": "In relationships, moving first and communicating with energy matter most.",
+        "careerLine": "In work, the fire of drive, of starting a venture or a project, of competition, is lit.",
+        "moneyLine": "In money, ideas for income surface, but impulsive spending needs watching.",
+        "growthLine": "For inner growth, you need practice in acknowledging what you want before you acknowledge the fear."
+      },
+      "cups": {
+        "label": "Cups",
+        "element": "Water",
+        "keywords": {
+          "0": "Feeling",
+          "1": "Love",
+          "2": "Empathy",
+          "3": "Healing"
+        },
+        "reversedKeywords": {
+          "0": "Flooded feeling",
+          "1": "Dependence",
+          "2": "Misunderstanding",
+          "3": "A closed heart"
+        },
+        "storyNoun": "ripple",
+        "symbolLine": "Cups reflect the ripples of the heart, attachment, and the warmth of kind exchange.",
+        "uprightLine": "Upright, the flow of feeling comes alive and two hearts touch gently.",
+        "reversedLine": "Reversed, feeling pools or overflows, and misunderstanding and dependence need clearing.",
+        "loveLine": "In love, the depth of giving and receiving the heart is what matters.",
+        "relationshipLine": "In relationships, empathy and care are what restore the flow.",
+        "careerLine": "In work, a sense for people, care, artistry, and a feel for collaboration all come alive.",
+        "moneyLine": "In money, mood-led spending and emotional choices need a calm look.",
+        "growthLine": "For inner growth, you learn to let your feelings pass through safely without being ashamed of them."
+      },
+      "swords": {
+        "label": "Swords",
+        "element": "Air",
+        "keywords": {
+          "0": "Thought",
+          "1": "Words",
+          "2": "Judgement",
+          "3": "Truth"
+        },
+        "reversedKeywords": {
+          "0": "Overthinking",
+          "1": "Wounds",
+          "2": "Confusion",
+          "3": "Sharp words"
+        },
+        "storyNoun": "wind",
+        "symbolLine": "Swords light the keen air in which words and thoughts divide a situation.",
+        "uprightLine": "Upright, checking the facts and judging honestly is what puts the flow in order.",
+        "reversedLine": "Reversed, slow down so the thinking does not overheat and the words do not stay as wounds.",
+        "loveLine": "In love, the precision of your words and manner shows before the heart does.",
+        "relationshipLine": "In relationships, you need conversation that reduces misreading, and boundaries that are clear.",
+        "careerLine": "In work, the power of analysis, strategy, documentation and decision is what counts.",
+        "moneyLine": "In money, reading the numbers and the terms coolly is what keeps the losses down.",
+        "growthLine": "For inner growth, you come to tell whether your thinking is a tool that guards you or a blade that cuts you."
+      },
+      "pentacles": {
+        "label": "Pentacles",
+        "element": "Earth",
+        "keywords": {
+          "0": "The practical",
+          "1": "Stability",
+          "2": "Time",
+          "3": "Results"
+        },
+        "reversedKeywords": {
+          "0": "Delay",
+          "1": "Instability",
+          "2": "Burden",
+          "3": "Clinging"
+        },
+        "storyNoun": "seed",
+        "symbolLine": "Pentacles reflect the conditions you can hold in your hand and the weight of a reality that piles up slowly.",
+        "uprightLine": "Upright, you can put in the time and build stability and results.",
+        "reversedLine": "Reversed, look at the practical burden or the delay, and lay the groundwork again.",
+        "loveLine": "In love, trust and a settled daily life are what matter.",
+        "relationshipLine": "In relationships, the attitude you have kept up steadily carries more weight than words.",
+        "careerLine": "In work, hands-on practice, results, accumulated skill and long-range plans take the centre.",
+        "moneyLine": "In money, practical structure — managing, saving, having criteria for investing — is what guards your luck.",
+        "growthLine": "For inner growth, you come to build habits that actually change your life, however slowly."
+      }
+    },
+    "tarotAlbumRanks": {
+      "1": {
+        "number": "Ace",
+        "keywords": {
+          "0": "A new seed",
+          "1": "Beginning",
+          "2": "Pure possibility"
+        },
+        "reversedKeywords": {
+          "0": "A delayed start",
+          "1": "Not ready yet",
+          "2": "A faint signal"
+        },
+        "scene": "Like a seed that has just settled onto an open palm, there is a beginning here — still small, but unmistakable.",
+        "storyTitle": "The first seed",
+        "shortLine": "A new possibility shows itself for the first time.",
+        "uprightLine": "Upright points you to accept the beginning and plant the small signal into the real world.",
+        "reversedLine": "Reversed says the possibility is there but the soil is not level yet — check your preparation and your timing.",
+        "loveLine": "A new feeling is only just forming, so it is better to keep that fresh sincerity than to hurry it.",
+        "relationshipLine": "In relationships, the first offer, the first conversation, the heart opening for the first time — these are what matter.",
+        "careerLine": "In work, it is time to test the first spark of an idea on a small scale.",
+        "moneyLine": "In money, the seed of a new income or a small plan is visible, but it is early to settle anything large.",
+        "growthLine": "Within, the strength grows to hold a first-risen wish instead of laughing it off.",
+        "question": "What first seed could I plant, in a small way, today?"
+      },
+      "2": {
+        "number": "2",
+        "keywords": {
+          "0": "Balance",
+          "1": "Facing each other",
+          "2": "Choice"
+        },
+        "reversedKeywords": {
+          "0": "Imbalance",
+          "1": "Hesitation",
+          "2": "Missing each other"
+        },
+        "scene": "Two forces look at each other, quietly asking which way things will lean.",
+        "storyTitle": "The balance of two paths",
+        "shortLine": "The balance between the two, and the first tuning of it, is the heart of this.",
+        "uprightLine": "Upright says to compare the differing possibilities and find the balance quietly.",
+        "reversedLine": "Reversed lights the scene where the choice is put off, or leans one way, and the flow turns unsteady.",
+        "loveLine": "In love, the first agreement that matches your paces and your hearts is what matters.",
+        "relationshipLine": "In relationships, look at the balance of giving and receiving, and the ratio of silence to speech.",
+        "careerLine": "In work, you need negotiation, comparison, and a decision about priorities.",
+        "moneyLine": "In money, the balance between income and spending, between safety and risk, needs setting again.",
+        "growthLine": "Within, the practice opens of hearing both sides of your heart without swinging to an extreme.",
+        "question": "What two feelings do I need to tune to each other right now?"
+      },
+      "3": {
+        "number": "3",
+        "keywords": {
+          "0": "Expansion",
+          "1": "Coming into view",
+          "2": "Cooperation"
+        },
+        "reversedKeywords": {
+          "0": "Overstatement",
+          "1": "Misunderstanding",
+          "2": "Scattering"
+        },
+        "scene": "What was held alone comes into view and gets ready to meet other people.",
+        "storyTitle": "The third light",
+        "shortLine": "A hidden current unfolds outward and widens.",
+        "uprightLine": "Upright says it is fine to express, to connect, and to widen into the next stage.",
+        "reversedLine": "Reversed points out that what has come into view needs tidying, so it does not drift into misreading or scattering.",
+        "loveLine": "In love, the feeling starts to show on the outside, and the mood around you has its say too.",
+        "relationshipLine": "In relationships, share and celebrate together — or be careful of a third party's gaze.",
+        "careerLine": "In work, this suits collaboration, presenting, and checking how the market responds.",
+        "moneyLine": "In money, the room for income widens, but the spending can grow along with it.",
+        "growthLine": "Within, the courage grows to show a little more of your story to the world.",
+        "question": "What feeling or finished thing of mine should I be showing more healthily?"
+      },
+      "4": {
+        "number": "4",
+        "keywords": {
+          "0": "Stability",
+          "1": "Pause",
+          "2": "Foundation"
+        },
+        "reversedKeywords": {
+          "0": "Stagnation",
+          "1": "Closing off",
+          "2": "Stubbornness"
+        },
+        "scene": "The flow pauses a moment, and it shows whether the foundation you have built feels restful or stifling.",
+        "storyTitle": "Rest at four corners",
+        "shortLine": "Between stability and stagnation, you set your measure again.",
+        "uprightLine": "Upright says you need time to rest a while and firm up your measure.",
+        "reversedLine": "Reversed lights the drift where rest becomes closing off, or stability hardens into stubbornness.",
+        "loveLine": "In love, you want a settled feeling, but the expressing of feeling can thin out.",
+        "relationshipLine": "In relationships, look at each person's space and the habits that keep repeating.",
+        "careerLine": "In work, regrouping, building systems, and recovering your routine all serve you.",
+        "moneyLine": "In money, your power to hold on is strong, but guarding too hard can block an opening.",
+        "growthLine": "Within, you learn the feeling that resting will not make you fall apart.",
+        "question": "What have I been calling stability when it has actually become stagnation?"
+      },
+      "5": {
+        "number": "5",
+        "keywords": {
+          "0": "Conflict",
+          "1": "Lack",
+          "2": "Wounds"
+        },
+        "reversedKeywords": {
+          "0": "Recovery",
+          "1": "Setting things right",
+          "2": "Recurring conflict"
+        },
+        "scene": "A scene of lack or collision comes into view, showing what the heart feels it has lost.",
+        "storyTitle": "The fifth fracture",
+        "shortLine": "Through lack and collision, you come to see what is truly needed.",
+        "uprightLine": "Upright says to face the conflict and the lack you have wanted to avoid.",
+        "reversedLine": "Reversed shows that recovery is possible after the wound, but warns you not to repeat the same pattern.",
+        "loveLine": "In love, hurt feelings, rivalry, and a bruised pride can all rise up.",
+        "relationshipLine": "In relationships, look at what got hurt rather than at who won.",
+        "careerLine": "In work, the measure you need to learn shows itself inside the competition, the loss, the clash of opinion.",
+        "moneyLine": "In money, look at the sense of lack, or at spending you did not expect.",
+        "growthLine": "Within, you come to read lack not as failure but as a signal for the care you need.",
+        "question": "What real need is hiding behind the thing I feel I have lost?"
+      },
+      "6": {
+        "number": "6",
+        "keywords": {
+          "0": "Recovery",
+          "1": "Give and take",
+          "2": "Harmony"
+        },
+        "reversedKeywords": {
+          "0": "Unfairness",
+          "1": "Dependence",
+          "2": "A lopsided exchange"
+        },
+        "scene": "Warmth returns after the wound, and the balance between the heart that gives and the heart that receives is put to the test.",
+        "storyTitle": "The sixth warmth",
+        "shortLine": "Through giving and receiving, the temperature of the bond and of the heart is restored.",
+        "uprightLine": "Upright says the flow recovers gently as help is given or received.",
+        "reversedLine": "Reversed lights the scene where the exchange tilts one way and turns into burden or dependence.",
+        "loveLine": "In love, tender memories and consideration are what warm the bond.",
+        "relationshipLine": "In relationships, help, an apology, a gift, a small act of care — these carry great weight.",
+        "careerLine": "In work, mentoring, cooperation and supportive ties are what help the results along.",
+        "moneyLine": "In money, gifts, support and settling up come to the surface, and a fair measure is needed.",
+        "growthLine": "Within, you learn that receiving help is a grown-up kind of courage too.",
+        "question": "What am I willing to give right now, and what should I let myself receive?"
+      },
+      "7": {
+        "number": "7",
+        "keywords": {
+          "0": "Choice",
+          "1": "Checking",
+          "2": "Guarding"
+        },
+        "reversedKeywords": {
+          "0": "Confusion",
+          "1": "Avoidance",
+          "2": "A blurred measure"
+        },
+        "scene": "Many possibilities are laid out ahead, and the heart is quietly tested on what to keep and what to choose.",
+        "storyTitle": "Seven doors",
+        "shortLine": "The more options there are, the more your measure matters.",
+        "uprightLine": "Upright says to look widely at the possibilities, but to check them against your own measure.",
+        "reversedLine": "Reversed lights the state where illusion or unease blurs the measure you choose by.",
+        "loveLine": "In love, you have to tell the real feeling apart from the many feelings and possibilities around it.",
+        "relationshipLine": "In relationships, you need an honest measure so that guardedness and hesitation do not keep repeating.",
+        "careerLine": "In work, comparing options, checking the strategy and setting priorities are what matter.",
+        "moneyLine": "In money, the more choices there are to invest or spend, the more verifying you need.",
+        "growthLine": "Within, you come to set the measure your own soul will keep, not somebody else's.",
+        "question": "Among all these options, what measure does my heart actually want to keep?"
+      },
+      "8": {
+        "number": "8",
+        "keywords": {
+          "0": "Movement",
+          "1": "Repetition",
+          "2": "Turning"
+        },
+        "reversedKeywords": {
+          "0": "Stagnation",
+          "1": "Hesitation",
+          "2": "Spinning in place"
+        },
+        "scene": "The energy that has been circling the same spot begins to move, or a signal comes to break the loop.",
+        "storyTitle": "The eighth movement",
+        "shortLine": "You notice the loop and actually set the flow moving.",
+        "uprightLine": "Upright speaks of speed and travel, of practice through repetition, or of the strength to leave a familiar spot.",
+        "reversedLine": "Reversed lights the state of wanting to move while the heart stays behind, so you spin in place.",
+        "loveLine": "In love, the messages, the meetings, the flow of the bond can quicken — or you may leave a familiar pattern.",
+        "relationshipLine": "In relationships, stop repeating the same words and change the actual behaviour.",
+        "careerLine": "In work, quick execution, repeated practice, movement and switching are what matter.",
+        "moneyLine": "In money, break the spending pattern or check the income flow quickly.",
+        "growthLine": "Within, the strength grows to carry into your body what you had only known in your head.",
+        "question": "What change do I already know about but still have not put into action?"
+      },
+      "9": {
+        "number": "9",
+        "keywords": {
+          "0": "Accumulation",
+          "1": "Just before completion",
+          "2": "The inner life"
+        },
+        "reversedKeywords": {
+          "0": "Isolation",
+          "1": "Overload",
+          "2": "Unease"
+        },
+        "scene": "The heart and the experience built up over a long time have come close to complete, but a last check is needed.",
+        "storyTitle": "The ninth breath",
+        "shortLine": "You confirm, alone and quietly, what everything you have built means.",
+        "uprightLine": "Upright says to acknowledge what has accumulated so far and prepare the final tidying.",
+        "reversedLine": "Reversed lights the scene where holding out alone runs long, and unease or exhaustion grows.",
+        "loveLine": "In love, hopes or worries carried alone can swell, so an honest check is needed.",
+        "relationshipLine": "In relationships, respect each other's inner life, but do not let it harden into isolation.",
+        "careerLine": "In work, mastery, the check before finishing, and personal results all come to the surface.",
+        "moneyLine": "In money, savings and reward are in view, but unease can drift into guarding too hard.",
+        "growthLine": "Within, you learn to acknowledge the self that held on this far, and to let the last of the tension go.",
+        "question": "What part of this may I allow myself to call done well enough?"
+      },
+      "10": {
+        "number": "10",
+        "keywords": {
+          "0": "Completion",
+          "1": "Fruition",
+          "2": "Burden"
+        },
+        "reversedKeywords": {
+          "0": "A delayed ending",
+          "1": "Overload",
+          "2": "In need of release"
+        },
+        "scene": "A cycle reaches its end, and both the achievement and the weight of it come into your hands at once.",
+        "storyTitle": "The tenth threshold",
+        "shortLine": "Take in the harvest, but look at how its weight is to be shared.",
+        "uprightLine": "Upright speaks of a current bearing fruit and completing, and points you to accept the result in practical terms.",
+        "reversedLine": "Reversed says to stop carrying alone the burden just before completion, or the ending you keep putting off.",
+        "loveLine": "In love, a cycle of the bond may ripen, or the responsibility in it may grow.",
+        "relationshipLine": "In relationships, sort out the feelings and roles that have piled up over time and hand them to the next stage.",
+        "careerLine": "In work, finishing the project, the results, and an overweight responsibility all show up together.",
+        "moneyLine": "In money, the result shows, but a large burden or long-term spending needs checking alongside it.",
+        "growthLine": "Within, you come to learn how to end things and how to share responsibility.",
+        "question": "What weight do I need to set down or share in order to finish this?"
+      },
+      "11": {
+        "number": "Page",
+        "keywords": {
+          "0": "A message",
+          "1": "Learning",
+          "2": "Curiosity"
+        },
+        "reversedKeywords": {
+          "0": "Inexperience",
+          "1": "Unsteadiness",
+          "2": "Clumsy expression"
+        },
+        "scene": "As a young messenger arrives with fresh news, a signal comes in — still clumsy, but something you can learn from.",
+        "storyTitle": "The small messenger",
+        "shortLine": "A clumsy start and a willingness to learn are what open the way.",
+        "uprightLine": "Upright says to begin carefully, following the new message, the learning, the curiosity.",
+        "reversedLine": "Reversed lights how unpractised words or a lack of preparation can invite misreading.",
+        "loveLine": "In love, a clumsy show of fondness or a cautious message comes to the surface.",
+        "relationshipLine": "In relationships, a willingness to learn matters more than perfect words.",
+        "careerLine": "In work, a beginner's mind, study, a first draft of a proposal, small tasks — these carry the meaning.",
+        "moneyLine": "In money, small earnings or study come first; build experience rather than making a large decision.",
+        "growthLine": "Within, the permission grows that it is all right to be clumsy.",
+        "question": "What do I need to learn again with a beginner's mind?"
+      },
+      "12": {
+        "number": "Knight",
+        "keywords": {
+          "0": "Travel",
+          "1": "Drive",
+          "2": "Pursuit"
+        },
+        "reversedKeywords": {
+          "0": "Overspeed",
+          "1": "Collision",
+          "2": "Lost direction"
+        },
+        "scene": "The knight rides forward, about to actually leave the place the heart had been resting in.",
+        "storyTitle": "The riding knight",
+        "shortLine": "The energy begins to move in a direction that has been set.",
+        "uprightLine": "Upright points to the drive that moves a situation, and to stepping forward actively.",
+        "reversedLine": "Reversed says the speed and the purpose have come apart, so a collision or spinning in place may follow.",
+        "loveLine": "In love, active messages and meetings, and a step forward in feeling, come into view.",
+        "relationshipLine": "In relationships, move — but keep an eye on the other person's pace as you do.",
+        "careerLine": "In work, execution, movement, going out to meet people, and taking on a challenge are what matter.",
+        "moneyLine": "In money, what you need is a plan with direction, not a hunger for quick returns.",
+        "growthLine": "Within, the courage grows to move your body toward what you want.",
+        "question": "Which direction should I be moving in right now?"
+      },
+      "13": {
+        "number": "Queen",
+        "keywords": {
+          "0": "Maturity",
+          "1": "Acceptance",
+          "2": "Care"
+        },
+        "reversedKeywords": {
+          "0": "Dependence",
+          "1": "Emotional drain",
+          "2": "Guardedness"
+        },
+        "scene": "The queen keeps her own domain, and within it handles feeling and power with maturity.",
+        "storyTitle": "The queen's chamber",
+        "shortLine": "The power to hold and a matured sense of things are what steady the flow.",
+        "uprightLine": "Upright points to the matured power that holds a situation gently and handles it.",
+        "reversedLine": "Reversed lights the scene where accepting goes too far and drains you, or the guard grows thick.",
+        "loveLine": "In love, deep understanding and tender protection are what matter.",
+        "relationshipLine": "In relationships, you need the balance of keeping your own inner domain while still holding another.",
+        "careerLine": "In work, management, care, creative leadership and steady coordination are strong.",
+        "moneyLine": "In money, a sense for daily life and the ability to manage lead into stability.",
+        "growthLine": "Within, you learn both the power to hold yourself and the power to guard yourself.",
+        "question": "What is mine to hold, and where is the boundary that is mine to keep?"
+      },
+      "14": {
+        "number": "King",
+        "keywords": {
+          "0": "Command",
+          "1": "Responsibility",
+          "2": "Mastery"
+        },
+        "reversedKeywords": {
+          "0": "Stubbornness",
+          "1": "Control",
+          "2": "Rigidity"
+        },
+        "scene": "From the seat of responsibility for his own kingdom, the king chooses how his power will be used.",
+        "storyTitle": "The king's measure",
+        "shortLine": "Practised power and a responsible measure are what put the situation in order.",
+        "uprightLine": "Upright says you can lead the flow on the strength of experience and responsibility.",
+        "reversedLine": "Reversed points you to take care that command does not turn into stubbornness or pressure.",
+        "loveLine": "In love, a responsible manner and consistency are what build trust.",
+        "relationshipLine": "In relationships, speak from a matured measure rather than being swung about by feeling.",
+        "careerLine": "In work, leadership, the power to decide, expertise and the ability to manage all shine.",
+        "moneyLine": "In money, a long-range strategy and management with principles are what matter.",
+        "growthLine": "Within, you learn to use your power responsibly instead of abusing it.",
+        "question": "What power of mine do I need to handle more responsibly?"
+      }
     }
   }
 }
