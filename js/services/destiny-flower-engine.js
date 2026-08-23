@@ -878,7 +878,7 @@ const JAMIDUSU_STAR_RULES = Object.freeze([
     personality: '압박 속에서도 전선을 밀어붙이는 결단형'
   },
   {
-    keys: ['파군', 'the breaker', 'pogun', '렴정', 'lian zhen', 'lianzhen'],
+    keys: ['파군', 'the breaker', 'pogun', '염정', 'lian zhen', 'lianzhen'],
     flowerId: 'thorny_rose',
     copyKey: 'thornyRosePioneer',
     titleKo: '개척자의 붉은 장미',
