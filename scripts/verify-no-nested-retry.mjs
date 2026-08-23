@@ -25,6 +25,13 @@ import { fileURLToPath } from "node:url";
 import { isBuildArtifactDir } from "./lib/source-scan-ignore.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
+const SEP = String.fromCharCode(92);
+const LF = String.fromCharCode(10);
+/** withMongoRetry 첫 인자가 콜백이면 true. 올바른 형태는 언제나 env(식별자) + 쉼표다. */
+function callbackCameFirst(head) {
+  const t = String(head).trimStart();
+  return t.startsWith("(") || t.startsWith("async") || t.startsWith("function");
+}
 const workerRoot = resolve(root, "worker");
 
 function collectJsFiles(dir, out = []) {
@@ -251,5 +258,29 @@ for (const name of ["resolveActiveUserAuth", "verifyRefreshSessionToAuth"]) {
   );
 }
 console.log("[3] 인증 DB 읽기의 단일 재시도 지점 유지 OK");
+
+/* [4] withMongoRetry 는 (env, operation) 순서다.
+   콜백을 첫 인자로 넘기면 operation 이 undefined 가 되어 TypeError 를 던지는데, 호출부는 거의
+   항상 그 예외를 catch 해 null/false 로 접는다. 그러면 재시도가 아니라 **그 DB 연산 자체가
+   영구 실패**하고 로그에는 "DB 장애처럼 보이는" 메시지만 남는다.
+   실사고: worker/routes/human-design.js 4곳이 이 형태였고 아카이브가 한 번도 동작하지 않았다
+   (같은 출생 데이터에 매번 천문 재계산 + 해석 재열람마다 LLM 재호출). 2026-09 수정. */
+const badRetryOrder = [];
+for (const [file, source] of sources) {
+  const rel = relative(root, file).split(SEP).join("/");
+  let at = source.indexOf("withMongoRetry(");
+  while (at >= 0) {
+    if (callbackCameFirst(source.slice(at + "withMongoRetry(".length, at + 40))) {
+      badRetryOrder.push(rel + ":" + (source.slice(0, at).split(LF).length));
+    }
+    at = source.indexOf("withMongoRetry(", at + 1);
+  }
+}
+assert.deepEqual(
+  badRetryOrder,
+  [],
+  "withMongoRetry(env, operation) 인자 순서 위반 — 콜백이 첫 인자로 갔습니다: " + badRetryOrder.join(", "),
+);
+console.log("[4] withMongoRetry 인자 순서 OK (" + sources.size + "개 파일)");
 
 console.log("\n중첩 재시도 검사 통과.\n");

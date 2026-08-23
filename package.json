@@ -311,6 +311,8 @@
     "verify:guard-wiring": "node scripts/verify-guard-wiring.mjs",
     "verify:human-design": "node scripts/verify-human-design.mjs",
     "verify:human-design-ai": "node scripts/verify-human-design-ai.mjs",
+    "migrate:human-design-indexes": "node scripts/migrations/20260823-add-human-design-indexes.mjs",
+    "verify:human-design-indexes": "node scripts/migrations/20260823-add-human-design-indexes.mjs --check",
     "hd:snapshot": "node scripts/human-design-fixture-snapshot.mjs",
     "hd:snapshot:check": "node scripts/human-design-fixture-snapshot.mjs --check",
     "verify:mobile-detail-nonintrusive": "node scripts/verify-mobile-detail-nonintrusive.mjs",

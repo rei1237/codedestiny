@@ -272,8 +272,10 @@ window.__cdServiceRegistry = [
     name: "휴먼 디자인",
     desc: "출생 데이터로 계산하는 나의 에너지 설계도",
     href: "/human-design/",
+    // 🔴 2026-09 무료화. featureKey 는 과거 결제 이력 조회를 위해 남긴 마커일 뿐이고
+    //    가격이 걸려 있지 않으므로 verify:home-service-registry 가 무료 타일로 통과시킨다.
     featureKey: "human-design-chart",
-    price: "10,000원",
+    price: "무료 시작",
     purposes: ["life", "self", "career"],
     methods: ["astrology", "ai"],
     keys: "휴먼디자인 human design 바디그래프 bodygraph 게이트 채널 센터 타입 권위 프로파일",

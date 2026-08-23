@@ -1496,7 +1496,9 @@ const humanDesignCalculationSchema = new mongoose.Schema({
   profile: { type: String, default: "", trim: true, maxlength: 10 },
   definition: { type: String, default: "", trim: true, maxlength: 40 },
 
-  accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true, index: true },
+  // 🔴 "free" 는 2026-09 차트 무료화로 추가됐다. 그 전 문서의 "paid" 를 바꾸지 않는다 —
+  //    과거 결제 이력 조회가 그 값을 그대로 읽는다.
+  accessType: { type: String, enum: ["free", "pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true, index: true },
   accessSource: { type: String, default: "", trim: true, maxlength: 40 },
   paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
   billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },
