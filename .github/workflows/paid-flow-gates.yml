@@ -32,6 +32,11 @@ on:
       # 위 파일이 import 하는 음원 해금 가격 정책. 같은 이유로 함께 건다.
       - "lib/music-access-policy.js"
       - "worker/lib/payment-refund.js"
+      # 🔴 크론에서만 도는 **정산 실행자**다(2026-08-24 추가). reconcilePendingPayments 가
+      #    settleSinglePaymentForReconcile 을 불러 실제 지급을 일으키는데, 게스트 스모크는 크론
+      #    경로에 절대 도달하지 못한다. 그런데 트리거에 없어서 이 파일만 고치는 PR 은 결제 게이트가
+      #    깨어나지 않았다 — billing-feature-registry 가 뒤늦게 추가된 자리와 같은 형태의 구멍이다.
+      - "worker/lib/payment-reconcile-task.js"
       - "worker/lib/content-unlocks.js"
       - "worker/lib/profile-limits.js"
       - "worker/lib/portone.js"
