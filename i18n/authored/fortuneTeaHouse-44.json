@@ -1,0 +1,31 @@
+{
+  "_comment": "타로 공개 씬에서 스프레드가 한 장뿐일 때 세우는 대표 카드의 위치 문구 2키. 예전 KO 주석이 '데이터 배치에서 함께 다룬다'고 미뤄 둔 자리다.",
+  "fortuneTeaHouse.tarotReveal.representativeLabel": {
+    "ko": "대표",
+    "en": "Representative",
+    "ja": "代表",
+    "zh-CN": "代表",
+    "zh-TW": "代表",
+    "vi": "Representative",
+    "hi": "Representative",
+    "es": "Representative",
+    "fr": "Representative",
+    "de": "Representative",
+    "nl": "Representative",
+    "ms": "Representative"
+  },
+  "fortuneTeaHouse.tarotReveal.representativeMeaning": {
+    "ko": "지금 질문에 가장 먼저 떠오른 카드입니다.",
+    "en": "The card that surfaced first for the question you asked.",
+    "ja": "いまの質問にいちばん先に浮かんだカードです。",
+    "zh-CN": "这是为您此刻的问题最先浮上来的一张牌。",
+    "zh-TW": "這是為您此刻的問題最先浮上來的一張牌。",
+    "vi": "The card that surfaced first for the question you asked.",
+    "hi": "The card that surfaced first for the question you asked.",
+    "es": "The card that surfaced first for the question you asked.",
+    "fr": "The card that surfaced first for the question you asked.",
+    "de": "The card that surfaced first for the question you asked.",
+    "nl": "The card that surfaced first for the question you asked.",
+    "ms": "The card that surfaced first for the question you asked."
+  }
+}
