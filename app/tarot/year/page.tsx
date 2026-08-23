@@ -1,5 +1,9 @@
 import FeatureLandingPage from "../../components/FeatureLandingPage";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
+// 🔴 12개월 흐름은 손으로 옮겨 적지 않는다. 이 배열이 실제 리딩이 쓰는 값이고,
+// 여기서 파생시켜야 리딩과 랜딩 문구가 어긋나지 않는다(서버 컴포넌트라 모듈 자체는
+// 클라이언트 번들에 들어가지 않고, 아래에서 뽑은 문자열만 직렬화된다).
+import { YEAR_PHASES } from "../../../lib/tarot/tarot-year-data.mjs";
 
 const TAROT_YEAR_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -44,6 +48,10 @@ export default function TarotYearLandingPage() {
           { title: "한 해 전체를 하나의 흐름으로", body: "오늘의 기분만 보는 운세가 아니라 올해의 핵심 카드, 반복되는 주제, 강한 시기와 속도를 조절할 시기를 연결해 읽습니다." },
           { title: "12개월과 8개 분야의 구체적인 리딩", body: "매월 카드와 십이지신 상징을 함께 해석하고 금전·일·연애·건강·가족·성장·귀인·주의점을 분야별로 정리합니다." },
           { title: "저장하고 다시 꺼내 보는 결과", body: "결과는 계정에 저장되어 새로고침이나 재방문 뒤에도 다시 확인할 수 있습니다. 운세를 결론이 아니라 선택을 점검하는 방향서로 활용해 보세요." },
+          ...YEAR_PHASES.map((phase: { month: number; phase: string; keyword: string; flow: string }) => ({
+            title: `${phase.month}월 · ${phase.phase}`,
+            body: `${phase.keyword} — ${phase.flow}`,
+          })),
         ],
         localized: {
           en: {
