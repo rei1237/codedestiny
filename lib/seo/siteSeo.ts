@@ -396,7 +396,6 @@ export const noindexPathPrefixes = [
   "/saju-picture",
   "/sukuyo/calendar",
   "/tarot/healing",
-  "/ziwei/chart",
   "/oracle/juyuk",
   "/oracle/hwatu",
   "/neo-operation-room",

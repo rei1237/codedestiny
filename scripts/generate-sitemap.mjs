@@ -62,7 +62,6 @@ const noindexPathPrefixes = [
   "/saju-picture",
   "/sukuyo/calendar",
   "/tarot/healing",
-  "/ziwei/chart",
   // 셸 사본만 존재하는 라우트(app 페이지가 없어 홈 셸 복사본이 곧 본문이다).
   // 나머지 9개는 2026-08-23 에 app 랜딩을 살려 색인 대상으로 돌렸다 —
   // docs/context/seo-and-adsense.md 참고.

@@ -216,8 +216,6 @@ const xRobotsNoindexHeaderPatterns = [
   "/sukuyo/calendar/*",
   "/tarot/healing",
   "/tarot/healing/*",
-  "/ziwei/chart",
-  "/ziwei/chart/*",
   "/404",
   "/500",
   "/blog",
