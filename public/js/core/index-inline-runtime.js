@@ -1870,23 +1870,23 @@ function __cdEnsureSukuyoAIConsultationReady() {
 }
 
 var __cdLazyActionLoaders = {
-  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-ce2cb79c4c80'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-ce2cb79c4c80'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-ce2cb79c4c80'); },
+  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-3c4ff4641386'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-3c4ff4641386'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-3c4ff4641386'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h9ee7eacf3957'); },
-  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-ce2cb79c4c80').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-ce2cb79c4c80'); }); },
+  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-3c4ff4641386').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-3c4ff4641386'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-ce2cb79c4c80').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-ce2cb79c4c80'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-3c4ff4641386').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-3c4ff4641386'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-ce2cb79c4c80'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-ce2cb79c4c80'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-3c4ff4641386'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-3c4ff4641386'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-ce2cb79c4c80'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-ce2cb79c4c80'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-3c4ff4641386'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-3c4ff4641386'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-ce2cb79c4c80').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-3c4ff4641386').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -1939,9 +1939,9 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-ce2cb79c4c80'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-ce2cb79c4c80'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-ce2cb79c4c80'); }
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-3c4ff4641386'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-3c4ff4641386'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-3c4ff4641386'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
@@ -2246,17 +2246,17 @@ function __cdEnsureSajuCoreLoaded() {
    *    두 경로를 같은 URL 로 맞춰야 __cdLoadScriptOnce 의 파일명 기반 중복제거가 실제로 물린다. */
   var chain = [
     'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.7/lunar.min.js',
-    '/js/core/kasi-calendar-service.js?v=build-ce2cb79c4c80',
-    '/js/compat-llm-prompts.js?v=build-ce2cb79c4c80',
-    '/js/saju-engine.js?v=build-ce2cb79c4c80',
-      '/js/core/saju/extremeTResult.js?v=build-ce2cb79c4c80',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-ce2cb79c4c80',
-    '/js/core/saju/modalProfileState.js?v=build-ce2cb79c4c80',
-    '/js/core/saju/reportDashboard.js?v=build-ce2cb79c4c80',
-    '/js/saju-engine-continuation.js?v=build-ce2cb79c4c80',
-    '/js/entertain-engine.js?v=build-ce2cb79c4c80',
+    '/js/core/kasi-calendar-service.js?v=build-3c4ff4641386',
+    '/js/compat-llm-prompts.js?v=build-3c4ff4641386',
+    '/js/saju-engine.js?v=build-3c4ff4641386',
+      '/js/core/saju/extremeTResult.js?v=build-3c4ff4641386',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-3c4ff4641386',
+    '/js/core/saju/modalProfileState.js?v=build-3c4ff4641386',
+    '/js/core/saju/reportDashboard.js?v=build-3c4ff4641386',
+    '/js/saju-engine-continuation.js?v=build-3c4ff4641386',
+    '/js/entertain-engine.js?v=build-3c4ff4641386',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
-    '/js/core/saju/dopamineResult.js?v=build-ce2cb79c4c80'
+    '/js/core/saju/dopamineResult.js?v=build-3c4ff4641386'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */
@@ -2279,7 +2279,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-ce2cb79c4c80')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-3c4ff4641386')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -2299,7 +2299,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-ce2cb79c4c80';
+    var src = '/js/swisseph-loader.js?v=build-3c4ff4641386';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2564,7 +2564,7 @@ __cdInstallSajuActionStub('setGender');
 __cdInstallSajuActionStub('openAnimalDestinyRoute');
 __cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
 window.openFortunePlanner = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-ce2cb79c4c80').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-3c4ff4641386').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') return window.LuckSyncDiary.open();
     throw new Error('fortune planner is unavailable');
   }).catch(function(err) {
@@ -3392,8 +3392,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-ce2cb79c4c80')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-ce2cb79c4c80'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-3c4ff4641386')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-3c4ff4641386'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -6022,38 +6022,103 @@ function _dfRunIntroBloom() {
   }, 1800);
 }
 
-function _dfRenderSajuBadges(selection) {
-  var wrap = document.getElementById('dfStudioSajuBadges');
-  if (!wrap) return;
-
+/**
+ * 소스별 근거 배지 3줄. 사주=신강신약/용신/조후 · 점성술=태양/상승/달 ·
+ * 자미두수=별/밝기/궁 · 숙요=숙/달위상/수호동물.
+ * 🔴 이 4분기를 복제하지 말 것 — 헤더 배지와 4-up 카드가 같은 것을 보여야 한다.
+ */
+function _dfBuildBadgeRows(selection) {
   var badges = _dfGetSajuBadges(selection);
-  var rows = badges.mode === 'sukuyo'
-    ? [
+  if (badges.mode === 'sukuyo') {
+    return [
       { cls: 'is-strength', label: '숙', value: badges.mansion },
       { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.001"), value: badges.phase },
       { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.002"), value: badges.guardian }
-    ]
-    : (badges.mode === 'jamidusu'
-      ? [
-        { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.003"), value: badges.star },
-        { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.004"), value: badges.brightness },
-        { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.005"), value: badges.palace }
-      ]
-      : (badges.mode === 'astrology'
-        ? [
-          { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.006"), value: badges.sun },
-          { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.007"), value: badges.rising },
-          { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.008"), value: badges.moon }
-        ]
-        : [
-          { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.009"), value: badges.strength },
-          { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.010"), value: badges.yongshin },
-          { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.011"), value: badges.johu }
-        ]));
+    ];
+  }
+  if (badges.mode === 'jamidusu') {
+    return [
+      { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.003"), value: badges.star },
+      { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.004"), value: badges.brightness },
+      { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.005"), value: badges.palace }
+    ];
+  }
+  if (badges.mode === 'astrology') {
+    return [
+      { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.006"), value: badges.sun },
+      { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.007"), value: badges.rising },
+      { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.008"), value: badges.moon }
+    ];
+  }
+  return [
+    { cls: 'is-strength', label: _indexRuntimeText("indexRuntime.label.009"), value: badges.strength },
+    { cls: 'is-yongshin', label: _indexRuntimeText("indexRuntime.label.010"), value: badges.yongshin },
+    { cls: 'is-johu', label: _indexRuntimeText("indexRuntime.label.011"), value: badges.johu }
+  ];
+}
 
-  wrap.innerHTML = rows.map(function(row) {
-    return '<span class="df-saju-badge ' + row.cls + '"><b>' + _dfEscapeHtml(row.label) + '</b><em>' + _dfEscapeHtml(row.value || '판정 대기') + '</em></span>';
+function _dfBadgeMarkup(rows, cls) {
+  return rows.map(function(row) {
+    return '<span class="' + cls + ' ' + row.cls + '"><b>' + _dfEscapeHtml(row.label) + '</b><em>'
+      + _dfEscapeHtml(row.value || '판정 대기') + '</em></span>';
   }).join('');
+}
+
+/**
+ * 4-up 카드 — 네 체계의 꽃을 한 화면에 그린다.
+ *
+ * 예전에는 탭으로 하나씩만 볼 수 있었다. 1만원 전체 해금은 네 갈래를 다 사는 것이므로
+ * 넷을 나란히 보여 주고, 카드를 누르면 아래 상세(.df-studio-main + 패널)가 그 체계로 바뀐다.
+ * 🔴 계산은 소스별 캐시(_dfGetUnifiedSelection)를 그대로 쓴다 — 여기서 다시 매칭하지 않는다.
+ */
+function _dfRenderQuadCards(activeSource) {
+  var cards = document.querySelectorAll('.df-quad-card[data-df-quad]');
+  if (!cards || !cards.length) return;
+  var active = _dfNormalizeSource(activeSource || _dfStudioState.activeSource || 'saju');
+
+  cards.forEach(function(card) {
+    var source = _dfNormalizeSource(card.getAttribute('data-df-quad'));
+    var isActive = source === active;
+    card.classList.toggle('is-active', isActive);
+    card.setAttribute('aria-pressed', isActive ? 'true' : 'false');
+
+    var selection = null;
+    try { selection = _dfGetUnifiedSelection(source, false); } catch (e) { selection = null; }
+
+    var nameEl = card.querySelector('[data-df-quad-name]');
+    var latinEl = card.querySelector('[data-df-quad-latin]');
+    var badgeEl = card.querySelector('[data-df-quad-badges]');
+    var lineEl = card.querySelector('[data-df-quad-line]');
+    var imgEl = card.querySelector('[data-df-quad-image]');
+
+    if (!selection || !selection.flower) {
+      card.classList.add('is-pending');
+      if (nameEl) nameEl.textContent = _dfGetSourceLabel(source) + ' 판정 대기';
+      if (latinEl) latinEl.textContent = '';
+      if (badgeEl) badgeEl.innerHTML = '';
+      if (lineEl) lineEl.textContent = _dfGetDataMissingUiState(source).message || '';
+      if (imgEl) imgEl.removeAttribute('src');
+      return;
+    }
+
+    card.classList.remove('is-pending');
+    if (nameEl) nameEl.textContent = selection.flower.name || '';
+    if (latinEl) latinEl.textContent = selection.flower.scientific_name || '';
+    if (badgeEl) badgeEl.innerHTML = _dfBadgeMarkup(_dfBuildBadgeRows(selection), 'df-quad-badge');
+    if (lineEl) {
+      var symbolism = String((selection.flower && selection.flower.symbolism) || '').trim();
+      lineEl.textContent = symbolism || _dfGetSajuVerdict(selection);
+    }
+    if (imgEl) {
+      _dfApplyGeneratedFlowerImage(imgEl, selection, source);
+      imgEl.alt = selection.flower.name || '';
+    }
+  });
+}
+function _dfRenderSajuBadges(selection) {
+  var wrap = document.getElementById('dfStudioSajuBadges');
+  if (!wrap) return;
+  wrap.innerHTML = _dfBadgeMarkup(_dfBuildBadgeRows(selection), 'df-saju-badge');
 }
 
 function _dfFormatSavedAt(ts) {
@@ -6401,6 +6466,7 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
   if (!selection) {
     var emptyState = _dfGetDataMissingUiState(normalized);
     _dfShowStudioEmptyState(normalized, emptyState.message, emptyState.showLoadButton);
+    _dfRenderQuadCards(normalized);
     _dfSetStudioStatus(emptyState.message, {
       showLoadButton: emptyState.showLoadButton,
       source: normalized
@@ -6409,6 +6475,7 @@ function _dfRefreshStudioForSource(source, forceRefresh) {
   }
 
   _dfApplyStudioSelection(selection);
+  _dfRenderQuadCards(normalized);
   _dfHideStudioEmptyState();
   var main = document.querySelector('.df-studio-main');
   if (main) main.style.display = '';
@@ -7974,9 +8041,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-ce2cb79c4c80',
-      '/js/saju-engine.js?v=build-ce2cb79c4c80',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-ce2cb79c4c80'
+    '/js/compat-llm-prompts.js?v=build-3c4ff4641386',
+      '/js/saju-engine.js?v=build-3c4ff4641386',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-3c4ff4641386'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -7996,7 +8063,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-ce2cb79c4c80'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-3c4ff4641386'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -8769,8 +8836,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-ce2cb79c4c80')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-ce2cb79c4c80'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-3c4ff4641386')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-3c4ff4641386'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {
