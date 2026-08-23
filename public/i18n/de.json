@@ -11560,6 +11560,28 @@
           "body1": "The Destiny Tea House will not frighten you. We read for possibility and movement, and rather than making the choice for you, we hand you sentences you can think with."
         }
       }
+    },
+    "shell": {
+      "back": "Back",
+      "homeAria": "Go to the Code Destiny home screen",
+      "home": "Home"
+    },
+    "fiveElementBalance": {
+      "eyebrow": "The grain the cup's scent rises along",
+      "title": "Balance of the Five Elements",
+      "empty": "There is not enough birth information yet, so the detailed Five Elements balance stays folded."
+    },
+    "teaCupRitual": {
+      "yeoniAlt": "Yeoni holding out the cup you chose",
+      "backLabel": "See other cups",
+      "confirmLabel": "Talk over this cup"
+    },
+    "yeoniTransform": {
+      "cutsceneAlt": "A cutscene of Flower Pig? turning into the human Yeoni in the moonlight",
+      "eyebrow": "The moment the pink blooms",
+      "title": "The shape changes between the petals",
+      "metLabel": "Meet Yeoni",
+      "nextLabel": "Next"
     }
   }
 }

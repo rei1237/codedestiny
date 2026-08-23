@@ -4990,6 +4990,28 @@
           "body1": "운명의 찻집은 사용자의 마음을 겁주지 않습니다. 가능성과 흐름을 중심으로 읽고, 선택을 대신하기보다 생각을 정리할 수 있는 문장을 건넵니다."
         }
       }
+    },
+    "shell": {
+      "back": "돌아가기",
+      "homeAria": "Code Destiny 홈화면으로 바로가기",
+      "home": "홈으로"
+    },
+    "fiveElementBalance": {
+      "eyebrow": "찻잔 향이 차오르는 결",
+      "title": "오행 향의 균형",
+      "empty": "출생정보가 충분하지 않아 오행의 세부 균형은 펼치지 않았어요."
+    },
+    "teaCupRitual": {
+      "yeoniAlt": "선택한 찻잔을 내미는 연이",
+      "backLabel": "다른 찻잔 보기",
+      "confirmLabel": "이 찻잔으로 이야기하기"
+    },
+    "yeoniTransform": {
+      "cutsceneAlt": "꽃돼지?가 달빛 속에서 인간 연이로 변신하는 컷신",
+      "eyebrow": "분홍빛이 피어나는 순간",
+      "title": "꽃잎 사이로 모습이 바뀝니다",
+      "metLabel": "연이를 만난다",
+      "nextLabel": "다음"
     }
   }
 }

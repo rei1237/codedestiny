@@ -8,6 +8,7 @@ import TeaCupVisual from "./TeaCupVisual";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaCupRitualSceneProps = {
   selectedCup: TeaHouseCup;
@@ -15,7 +16,16 @@ type TeaCupRitualSceneProps = {
   onBack: () => void;
 };
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    speaker="연이" 는 여기에 없다 — 그건 문구가 아니라 대사 상자가 이니셜을 고르는 판별자다. */
+const KO = {
+  yeoniAlt: "선택한 찻잔을 내미는 연이",
+  backLabel: "다른 찻잔 보기",
+  confirmLabel: "이 찻잔으로 이야기하기",
+};
+
 export default function TeaCupRitualScene({ selectedCup, onConfirm, onBack }: TeaCupRitualSceneProps) {
+  const copy = useTeaHouseCopy("teaCupRitual", KO);
   const sceneStyle = {
     "--tea-cup-ritual-asset": `url("${fortuneTeaHouseAssets.ui.selection}")`,
   } as CSSProperties;
@@ -37,16 +47,16 @@ export default function TeaCupRitualScene({ selectedCup, onConfirm, onBack }: Te
           imageClassName={styles.cupPoseYeoniImage}
           src={fortuneTeaHouseAssets.yeoni.transparent.cupPose}
           fallbackSrc={fortuneTeaHouseAssets.yeoni.cupPose}
-          alt="선택한 찻잔을 내미는 연이"
+          alt={copy.yeoniAlt}
           priority
           loading="eager"
         />
         <TeaHouseDialogueBox speaker="연이" text={selectedCup.yeoniSelectLine} />
         <div className={styles.storyActions}>
           <TeaHouseButton variant="ghost" onClick={onBack}>
-            다른 찻잔 보기
+            {copy.backLabel}
           </TeaHouseButton>
-          <TeaHouseButton onClick={onConfirm}>이 찻잔으로 이야기하기</TeaHouseButton>
+          <TeaHouseButton onClick={onConfirm}>{copy.confirmLabel}</TeaHouseButton>
         </div>
       </div>
     </section>

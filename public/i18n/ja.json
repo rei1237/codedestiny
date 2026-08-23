@@ -11560,6 +11560,28 @@
           "body1": "運命の茶館は、あなたの心を怖がらせません。可能性と流れを中心に読み、選択を代わりに下すのではなく、考えを整理できる言葉をお渡しします。"
         }
       }
+    },
+    "shell": {
+      "back": "戻る",
+      "homeAria": "Code Destiny のホーム画面へ移動",
+      "home": "ホームへ"
+    },
+    "fiveElementBalance": {
+      "eyebrow": "茶の香りが満ちていく筋目",
+      "title": "五行の香りのバランス",
+      "empty": "出生の情報が十分でないため、五行の細かなバランスは開いていません。"
+    },
+    "teaCupRitual": {
+      "yeoniAlt": "選んだ茶碗を差し出すヨニ",
+      "backLabel": "ほかの茶碗を見る",
+      "confirmLabel": "この茶碗で話す"
+    },
+    "yeoniTransform": {
+      "cutsceneAlt": "花豚？が月あかりの中で人間のヨニに変わるカットシーン",
+      "eyebrow": "桃色がひらく瞬間",
+      "title": "花びらのあいだで姿が変わります",
+      "metLabel": "ヨニに会う",
+      "nextLabel": "次へ"
     }
   }
 }

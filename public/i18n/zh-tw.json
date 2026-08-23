@@ -11560,6 +11560,28 @@
           "body1": "運命茶館不會嚇唬你的心。我們以可能性與流向為主來解讀，不替你做決定，而是遞上能幫你理清思緒的句子。"
         }
       }
+    },
+    "shell": {
+      "back": "返回",
+      "homeAria": "前往 Code Destiny 首頁",
+      "home": "回首頁"
+    },
+    "fiveElementBalance": {
+      "eyebrow": "茶香滿溢的紋路",
+      "title": "五行香氣的平衡",
+      "empty": "出生資訊還不夠，因此沒有展開五行的細部平衡。"
+    },
+    "teaCupRitual": {
+      "yeoniAlt": "遞出你所選茶杯的 Yeoni",
+      "backLabel": "看看其他茶杯",
+      "confirmLabel": "就用這杯茶聊聊"
+    },
+    "yeoniTransform": {
+      "cutsceneAlt": "花豬？在月光中化為人形 Yeoni 的過場動畫",
+      "eyebrow": "粉光綻開的瞬間",
+      "title": "在花瓣之間，樣貌變了",
+      "metLabel": "見見 Yeoni",
+      "nextLabel": "下一步"
     }
   }
 }
