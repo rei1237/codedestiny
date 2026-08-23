@@ -6,7 +6,10 @@
 //    계층, 소속 센터, 채널 완성 여부. 게이트/채널의 개인 해석은 지어내지 않고 같은 결제로
 //    열리는 AI 리딩에 맡긴다(_copy/index.ts 상단 주석 참고).
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
+// 🔴 스크롤 잠금을 새로 만들지 않는다 — 공용 훅이 이미 잠금 카운트와 스크롤바 보정을 갖고 있고,
+//    여기서 또 만들면 결제 오버레이와 겹칠 때 서로의 복원값을 덮어쓴다(코딩 원칙 6).
+import { useBodyScrollLock } from "@/app/_lib/body-scroll-lock";
 import { CHANNELS, channelsOfGate } from "@/lib/human-design/channels";
 import { CENTER_GATES, centerOfGate } from "@/lib/human-design/centers";
 import { CENTER_COPY, GATE_ICHING, PLANET_COPY, UI_TEXT, pick, type Locale } from "../_copy";
@@ -34,8 +37,24 @@ function layerName(layer: string, locale: Locale): string {
   return layer === "personality" ? pick(UI_TEXT.personality, locale) : pick(UI_TEXT.design, locale);
 }
 
+/** 바텀시트로 뜨는 좁은 화면인가. 데스크탑에서는 옆에 붙는 패널이라 스크롤을 잠그지 않는다. */
+function useNarrowViewport(): boolean {
+  // 🔴 초기값은 서버와 같은 false 여야 한다. 여기서 window 를 바로 읽으면 하이드레이션이 어긋난다.
+  const [narrow, setNarrow] = useState(false);
+  useEffect(() => {
+    const query = window.matchMedia("(max-width: 899px)");
+    const sync = () => setNarrow(query.matches);
+    sync();
+    query.addEventListener("change", sync);
+    return () => query.removeEventListener("change", sync);
+  }, []);
+  return narrow;
+}
+
 export default function DetailSheet({ chart, locale, selection, onClose }: Props) {
   const closeRef = useRef<HTMLButtonElement | null>(null);
+  const narrow = useNarrowViewport();
+  useBodyScrollLock(narrow && Boolean(selection));
 
   useEffect(() => {
     if (!selection) return undefined;
@@ -153,8 +172,19 @@ export default function DetailSheet({ chart, locale, selection, onClose }: Props
   }
 
   return (
-    <aside className={styles.sheet} role="dialog" aria-modal="false" aria-label={title}>
-      <header className={styles.head}>
+    <div className={styles.layer}>
+      {/* 좁은 화면에서만 보이는 배경막. 눌러서 닫을 수 있다. */}
+      <button
+        type="button"
+        className={styles.scrim}
+        aria-label={pick(UI_TEXT.close, locale)}
+        onClick={onClose}
+      />
+      {/* 🔴 aria-modal 은 false 를 유지한다 — 이 저장소에는 포커스 트랩이 없고,
+          true 라고 적으면 보조기술에 없는 계약을 약속하게 된다. */}
+      <aside className={styles.sheet} role="dialog" aria-modal="false" aria-label={title}>
+        <span className={styles.grip} aria-hidden="true" />
+        <header className={styles.head}>
         <div>
           <h3 className={styles.title}>{title}</h3>
           {subtitle ? <p className={styles.subtitle}>{subtitle}</p> : null}
@@ -184,7 +214,8 @@ export default function DetailSheet({ chart, locale, selection, onClose }: Props
         </section>
       ))}
 
-      <p className={styles.note}>{pick(UI_TEXT.interpretationPending, locale)}</p>
-    </aside>
+        <p className={styles.note}>{pick(UI_TEXT.interpretationPending, locale)}</p>
+      </aside>
+    </div>
   );
 }

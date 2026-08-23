@@ -336,9 +336,100 @@ describe("BodyGraph 배치", () => {
       const b = gatePosition(path.gateB);
       expect(path.a).toEqual({ x: a.x, y: a.y });
       expect(path.b).toEqual({ x: b.x, y: b.y });
-      expect(path.mid.x).toBeCloseTo((a.x + b.x) / 2, 1);
-      expect(path.mid.y).toBeCloseTo((a.y + b.y) / 2, 1);
+      if (path.curved) {
+        // 곡선 반쪽은 de Casteljau 로 t=0.5 에서 쪼갠 것이라 중점도 곡선 위의 t=0.5 점이다.
+        expect(path.mid.x).toBeCloseTo((a.x + (2 * path.control.x) + b.x) / 4, 1);
+        expect(path.mid.y).toBeCloseTo((a.y + (2 * path.control.y) + b.y) / 4, 1);
+        expect(path.controlA).toEqual({ x: (a.x + path.control.x) / 2, y: (a.y + path.control.y) / 2 });
+        expect(path.controlB).toEqual({ x: (b.x + path.control.x) / 2, y: (b.y + path.control.y) / 2 });
+      } else {
+        expect(path.control).toBeNull();
+        expect(path.controlA).toBeNull();
+        expect(path.controlB).toBeNull();
+        expect(path.mid.x).toBeCloseTo((a.x + b.x) / 2, 1);
+        expect(path.mid.y).toBeCloseTo((a.y + b.y) / 2, 1);
+      }
     }
+  });
+
+  // 🔴 아래 세 검사가 "차트가 읽히는가" 를 기계로 지킨다. 좌표를 손으로 옮긴 뒤 눈으로만
+  //    보면 선이 도형에 먹히거나 점이 겹친 것을 놓친다(재설계 전 배치의 실제 결함이었다).
+  test("채널이 자기가 잇는 두 센터 말고 다른 센터 도형을 관통하지 않는다", () => {
+    const polygons = CENTER_SHAPE_LIST.map((shape) => {
+      const points = [];
+      for (let i = 0; i < shape.points.length; i += 2) {
+        points.push({ x: shape.points[i], y: shape.points[i + 1] });
+      }
+      return { center: shape.center, points };
+    });
+    const inside = (point, poly) => {
+      let hit = false;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i, i += 1) {
+        const p = poly[i];
+        const q = poly[j];
+        if (((p.y > point.y) !== (q.y > point.y))
+          && (point.x < (((q.x - p.x) * (point.y - p.y)) / (q.y - p.y)) + p.x)) hit = !hit;
+      }
+      return hit;
+    };
+    const at = (path, t) => (path.curved
+      ? {
+        x: (((1 - t) ** 2) * path.a.x) + (2 * (1 - t) * t * path.control.x) + ((t ** 2) * path.b.x),
+        y: (((1 - t) ** 2) * path.a.y) + (2 * (1 - t) * t * path.control.y) + ((t ** 2) * path.b.y),
+      }
+      : { x: path.a.x + ((path.b.x - path.a.x) * t), y: path.a.y + ((path.b.y - path.a.y) * t) });
+
+    const pierced = [];
+    for (const path of CHANNEL_PATH_LIST) {
+      for (const polygon of polygons) {
+        if (polygon.center === path.centerA || polygon.center === path.centerB) continue;
+        for (let step = 0; step <= 200; step += 1) {
+          if (inside(at(path, step / 200), polygon.points)) {
+            pierced.push(`${path.channelId}→${polygon.center}`);
+            break;
+          }
+        }
+      }
+    }
+    expect(pierced).toEqual([]);
+  });
+
+  test("게이트 점끼리 최소 20 이상 떨어져 있다", () => {
+    const tooClose = [];
+    for (let i = 0; i < GATE_POSITION_LIST.length; i += 1) {
+      for (let j = i + 1; j < GATE_POSITION_LIST.length; j += 1) {
+        const a = GATE_POSITION_LIST[i];
+        const b = GATE_POSITION_LIST[j];
+        if (Math.hypot(a.x - b.x, a.y - b.y) < 20) tooClose.push(`${a.gate}-${b.gate}`);
+      }
+    }
+    expect(tooClose).toEqual([]);
+  });
+
+  test("게이트 점이 자기 센터 도형의 경계에 붙어 있다", () => {
+    const byCenter = new Map(CENTER_SHAPE_LIST.map((shape) => {
+      const points = [];
+      for (let i = 0; i < shape.points.length; i += 2) {
+        points.push({ x: shape.points[i], y: shape.points[i + 1] });
+      }
+      return [shape.center, points];
+    }));
+    const drifted = [];
+    for (const position of GATE_POSITION_LIST) {
+      const poly = byCenter.get(position.center);
+      let best = Infinity;
+      for (let i = 0, j = poly.length - 1; i < poly.length; j = i, i += 1) {
+        const p = poly[i];
+        const q = poly[j];
+        const dx = q.x - p.x;
+        const dy = q.y - p.y;
+        const len2 = (dx * dx) + (dy * dy);
+        const t = len2 === 0 ? 0 : Math.max(0, Math.min(1, ((((position.x - p.x) * dx) + ((position.y - p.y) * dy)) / len2)));
+        best = Math.min(best, Math.hypot(position.x - (p.x + (t * dx)), position.y - (p.y + (t * dy))));
+      }
+      if (best > 6) drifted.push(`${position.gate}(${position.center}) ${best.toFixed(1)}`);
+    }
+    expect(drifted).toEqual([]);
   });
 
   test("배치되지 않은 게이트 조회는 던진다", () => {
