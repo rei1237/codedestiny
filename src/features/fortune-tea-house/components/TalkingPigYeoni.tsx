@@ -20,15 +20,6 @@ type NetworkNavigator = Navigator & {
   deviceMemory?: number;
 };
 
-const pigExpressionFrames = {
-  welcome: talkingPigYeoniFrameCrops.welcome,
-  honey: talkingPigYeoniFrameCrops.honey,
-  thinking: talkingPigYeoniFrameCrops.thinking,
-  comfort: talkingPigYeoniFrameCrops.comfort,
-  surprised: talkingPigYeoniFrameCrops.surprised,
-  doorway: talkingPigYeoniFrameCrops.doorway,
-} as const;
-
 type TalkingPigYeoniProps = {
   isSpeaking?: boolean;
   mood?: YeoniMood;
@@ -49,7 +40,9 @@ export default function TalkingPigYeoni({ isSpeaking = true, mood, frame }: Talk
   const spriteGate = useSpritePlaybackGate<HTMLDivElement>();
   const [failed, setFailed] = useState(false);
   const [shouldWarmFrames, setShouldWarmFrames] = useState(false);
-  const activeFrame = useMemo(() => pickPigExpressionFrame(mood, isSpeaking, frame), [frame, isSpeaking, mood]);
+  const frameId = useMemo(() => pickPigExpressionId(mood, isSpeaking, frame), [frame, isSpeaking, mood]);
+  const crops = useTeaHouseCopy("pigFrames", talkingPigYeoniFrameCrops);
+  const activeFrame = crops[frameId];
   const warmFrames = useMemo(() => talkingPigYeoniFrames.filter((frame) => frame !== activeFrame.src), [activeFrame.src]);
 
   useEffect(() => {
@@ -80,7 +73,7 @@ export default function TalkingPigYeoni({ isSpeaking = true, mood, frame }: Talk
   }, [spriteGate.canAnimate, spriteGate.isMobile]);
 
   return (
-    <div ref={spriteGate.ref} className={styles.talkingPig} data-expression={activeFrame.label} data-speaking={isSpeaking ? "true" : "false"}>
+    <div ref={spriteGate.ref} className={styles.talkingPig} data-expression={frameId} data-speaking={isSpeaking ? "true" : "false"}>
       <span className={styles.pigGlow} aria-hidden />
       <span
         className={`${styles.pigImage} ${styles.pigSpriteFrame}`}
@@ -134,9 +127,9 @@ export default function TalkingPigYeoni({ isSpeaking = true, mood, frame }: Talk
  * 우선순위: frame 오버라이드 → mood → (말하지 않는 중이면) welcome.
  * mood 는 판별 유니언 타입이 대사 줄에 강제하고, 정적 가드가 재발을 막는다.
  */
-function pickPigExpressionFrame(mood: YeoniMood | undefined, isSpeaking: boolean, frame?: PigExpressionId) {
-  if (!isSpeaking) return pigExpressionFrames.welcome;
-  if (frame) return pigExpressionFrames[frame];
-  if (mood) return pigExpressionFrames[pigMoodFrameMap[mood]];
-  return pigExpressionFrames.welcome;
+function pickPigExpressionId(mood: YeoniMood | undefined, isSpeaking: boolean, frame?: PigExpressionId): PigExpressionId {
+  if (!isSpeaking) return "welcome";
+  if (frame) return frame;
+  if (mood) return pigMoodFrameMap[mood];
+  return "welcome";
 }

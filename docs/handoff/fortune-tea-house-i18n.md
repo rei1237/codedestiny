@@ -7,7 +7,8 @@
 | 갈래 | 규모 | 진행 |
 |---|---|---|
 | `components/` UI 크롬 | 811개 문자열 / 33개 파일 | ✅ **완료 (33/33)** — 디버그 4종 포함 |
-| `data/` 찻잔·십성·서사·CTA | 285 엔트리 | ✅ **완료** — PR #1036 · #1039 · #1042 · #1045 · (이 PR) |
+| `data/` 찻잔·십성·서사·CTA | 345 엔트리 | ✅ **완료** — PR #1036 · #1039 · #1042 · #1045 · #1048 |
+| 스프라이트 대체 텍스트 16개 | 십성 alt 10 · 꽃돼지 label 6 | ✅ **완료** — (이 PR) |
 | `data/` 타로 2종 | 28,435자 | ⛔ **라운드 2** — 아래 함정 8 |
 | `lib/` | 17,594자 | ⛔ **라운드 2** — 아래 함정 8 |
 
@@ -180,8 +181,6 @@ const cups = useTeaHouseCopy("teaCups", teaHouseCups, { skipKeys: CUP_SKIP_KEYS 
 | `data/tarotAlbumStories.ts` | 16,919자 | major 22장은 순수 리터럴이지만 **minor 56장은 `buildMinorNarrative` 가 한국어 템플릿으로 조립**한다(함정 8). `tarotAlbumStoryCards` 자체가 `tarotDeckCards.map(...)` 이라 가드가 못 읽는다 |
 | `data/tarotCards.ts` | 11,516자 | 컴포넌트 직접 참조 **0**. 값이 `lib/tarotAdapter`·`lib/buildConsultResult` 를 거쳐서만 화면에 닿는다 |
 | `lib/` 전체 | 18,983자 | 전부 순수 함수라 훅을 못 쓴다. `buildConsultResult.ts:30-42` 에 **한국어 조사 엔진**(`hasFinalConsonant`/`subjectParticle`)이 박혀 있다 |
-| `data/tenGodVisuals.ts` 의 `alt` 10개 | — | `tenGodVisualMap` 의 항목이 전부 `tenGodSprite(...)` **호출**이라 가드가 리터럴을 못 읽는다 |
-| `data/assets.ts` 의 `label` 6개 | — | `talkingPigYeoniFrameCrops` 는 리터럴이라 배선 가능하지만, 두 컴포넌트가 서로 다른 경로(`pickPigExpressionFrame` / 모듈 최상위 배열)로 소비해 정리가 먼저다 |
 | `data-img-alt` 14개 | — | 정적 셸 마커 도구의 속성 목록 밖. 도구에 속성을 추가할지 손으로 처리할지 미정 |
 
 **번역 대상이 아닌 것으로 확정된 것**

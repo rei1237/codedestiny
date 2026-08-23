@@ -13078,6 +13078,38 @@
       "cta": "准备问卜",
       "reset": "回到最初的那一夜",
       "notice": "茶盏还在暖着呢。Yeoni 很快就会接着说下去。"
+    },
+    "tenGodAlts": {
+      "bigeon": "比肩十神图标",
+      "geopjae": "劫财十神图标",
+      "siksin": "食神十神图标",
+      "sanggwan": "伤官十神图标",
+      "pyeonjae": "偏财十神图标",
+      "jeongjae": "正财十神图标",
+      "pyeongwan": "偏官十神图标",
+      "jeonggwan": "正官十神图标",
+      "pyeonin": "偏印十神图标",
+      "jeongin": "正印十神图标"
+    },
+    "pigFrames": {
+      "welcome": {
+        "label": "热情迎接的花猪仔"
+      },
+      "comfort": {
+        "label": "温柔安抚的花猪仔"
+      },
+      "honey": {
+        "label": "闻到蜜香而有反应的花猪仔"
+      },
+      "doorway": {
+        "label": "推开茶馆门的花猪仔"
+      },
+      "thinking": {
+        "label": "读着心之香的花猪仔"
+      },
+      "surprised": {
+        "label": "轻轻挥着手的花猪仔"
+      }
     }
   }
 }

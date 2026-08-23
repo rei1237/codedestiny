@@ -13078,6 +13078,38 @@
       "cta": "相談の準備をする",
       "reset": "最初の夜へ戻る",
       "notice": "茶碗はまだあたたまっているところです。もうすぐ Yeoni が続きをお話ししますね。"
+    },
+    "tenGodAlts": {
+      "bigeon": "比肩の十神アイコン",
+      "geopjae": "劫財の十神アイコン",
+      "siksin": "食神の十神アイコン",
+      "sanggwan": "傷官の十神アイコン",
+      "pyeonjae": "偏財の十神アイコン",
+      "jeongjae": "正財の十神アイコン",
+      "pyeongwan": "偏官の十神アイコン",
+      "jeonggwan": "正官の十神アイコン",
+      "pyeonin": "偏印の十神アイコン",
+      "jeongin": "正印の十神アイコン"
+    },
+    "pigFrames": {
+      "welcome": {
+        "label": "うれしそうに迎える花ぶた"
+      },
+      "comfort": {
+        "label": "やさしく安心させる花ぶた"
+      },
+      "honey": {
+        "label": "蜜の香りに反応する花ぶた"
+      },
+      "doorway": {
+        "label": "茶房の扉を開ける花ぶた"
+      },
+      "thinking": {
+        "label": "心の香りを読む花ぶた"
+      },
+      "surprised": {
+        "label": "小さく手を振る花ぶた"
+      }
     }
   }
 }
