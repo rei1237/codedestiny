@@ -406,6 +406,43 @@
   font-variant-numeric: tabular-nums;
 }
 
+/* ── PDF 내려받기 ───────────────────────────────────────── */
+
+.download {
+  max-width: var(--hd-measure);
+  margin: 0 auto 2.5rem;
+  text-align: center;
+}
+
+.downloadButton {
+  min-height: 48px;
+  padding: 0 1.5rem;
+  border: 1px solid var(--hd-border-strong);
+  border-radius: 999px;
+  background: var(--hd-panel-raised);
+  color: var(--hd-ink);
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  cursor: pointer;
+}
+
+.downloadButton:hover:not(:disabled),
+.downloadButton:focus-visible:not(:disabled) {
+  border-color: var(--hd-accent);
+}
+
+.downloadButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+.downloadNote {
+  margin: 0.6rem 0 0;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--hd-ink-dim);
+}
+
 .readerBody {
   display: grid;
   gap: 2rem;

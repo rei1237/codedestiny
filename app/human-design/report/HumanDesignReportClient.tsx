@@ -23,6 +23,7 @@ import { reportContents } from "@/lib/human-design/report-sections";
 
 import type { HdChart } from "../_lib/types";
 import ReportCover from "./_components/ReportCover";
+import ReportDownload from "./_components/ReportDownload";
 import GenerationProgress from "./_components/GenerationProgress";
 import ReportChapter from "./_components/ReportChapter";
 import ReportLockedPanel from "./_components/ReportLockedPanel";
@@ -174,6 +175,10 @@ export default function HumanDesignReportClient({ locale = "ko" }: { locale?: Re
           <ReportCover cover={plan.cover} stats={plan.stats} locale={locale} bodyLocale={bodyLocale} />
 
           {doc?.degraded && <p className={styles.degraded} role="status">{say("degradedNotice", locale)}</p>}
+
+          {/* 🔴 생성이 끝난 뒤에만 내보낸다. 진행 중에 만들면 아직 안 쓰인 장이 빠진 PDF 가
+              사용자 손에 남고, 그게 완성본인 줄 알게 된다. */}
+          {phase === "reading" && <ReportDownload plan={plan} chart={chart} locale={locale} />}
 
           <div className={styles.readerBody}>
             <ReportRail
