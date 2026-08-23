@@ -22,7 +22,13 @@ test("fortune planner entry is folded into the diary modal", () => {
   assert.doesNotMatch(runtime, /mountFortunePlannerHomeCard/);
   assert.doesNotMatch(runtime, /cdFortunePlannerCard/);
   assert.match(html, /id="cdDiaryPlannerEntry"[\s\S]*data-action="openLuckSyncDiary"/);
-  assert.match(html, /id="cdDiaryPlannerTitle">운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
+  // 제목 안의 마크업은 고정하지 않는다 — 이 가드가 지키려는 것은 "다이어리 모달 진입점이
+  // 이 문구를 단다"이지 문구가 요소의 첫 바이트라는 사실이 아니다. i18n 마킹이 각 줄을
+  // <span data-cd-trans> 로 감싸면서 인접이 깨졌는데, 그건 회귀가 아니라 로케일화의 정상
+  // 산물이다. 대신 검사 범위를 제목 요소 안으로 좁혀 가드가 느슨해지지 않게 한다.
+  const diaryTitle = html.match(/id="cdDiaryPlannerTitle">([\s\S]*?)<\/h2>/);
+  assert.ok(diaryTitle, "#cdDiaryPlannerTitle 을 찾지 못했다");
+  assert.match(diaryTitle[1], /운기·기일 다이어리와[\s\S]*나의 운세 플래너/);
   // 2026-08-21(cd-home-secondary-panel-v20260821): 다이어리 진입은 지운 것이 아니라
   // #cdHomeSecondaryPanel 안으로 옮겨 감춘다. data-cd-home-secondary 속성 대신 래퍼
   // 기준으로 접는 이유는 이 패널이 grid-template-rows 트랜지션으로 부드럽게 펼쳐져야 해서다
