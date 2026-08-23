@@ -1,27 +1,128 @@
-/* 상세 시트. BodyGraph 와 같은 표면 계열을 무조건부로 선언한다(반쪽 오버라이드 방지). */
+/* 상세 시트. BodyGraph 와 같은 표면 계열을 무조건부로 선언한다(반쪽 오버라이드 방지).
+ *
+ * 🔴 이 시트는 페이지 어디서 눌러도 같은 자리에 뜬다 — 차트 옆에만 두면 아래 센터·채널
+ *    목록에서 누른 순간 시트가 화면 밖에 있게 된다. 그래서 fixed 로 띄우고,
+ *    넓은 화면은 오른쪽 도킹 패널 · 좁은 화면은 바텀시트로 방향만 바꾼다.
+ */
 
-.sheet {
+.layer {
   --hd-surface: #13102a;
   --hd-border: rgba(196, 181, 253, 0.28);
   --hd-ink: #f3f1ff;
   --hd-ink-dim: #c2bce0;
   --hd-accent: #c4b5fd;
 
+  position: fixed;
+  inset: 0;
+  z-index: 40;
+  /* 레이어 자체는 클릭을 통과시킨다 — 배경막과 시트만 받는다. */
+  pointer-events: none;
+}
+
+.scrim {
+  position: absolute;
+  inset: 0;
+  border: none;
+  padding: 0;
+  background: rgba(6, 5, 18, 0.62);
+  backdrop-filter: blur(2px);
+  cursor: pointer;
+  pointer-events: auto;
+  animation: hdScrimIn 200ms ease-out both;
+}
+
+.sheet {
+  position: absolute;
+  pointer-events: auto;
   background: var(--hd-surface);
   border: 1px solid var(--hd-border);
-  border-radius: 16px;
-  padding: 1.125rem 1.25rem 1.25rem;
   color: var(--hd-ink);
   display: flex;
   flex-direction: column;
   gap: 0.875rem;
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
+/* 좁은 화면 — 아래에서 올라오는 시트. */
+.sheet {
+  left: 0;
+  right: 0;
+  bottom: 0;
+  max-height: 76vh;
+  max-height: 76dvh;
+  border-radius: 20px 20px 0 0;
+  padding: 0.5rem 1.25rem calc(1.25rem + env(safe-area-inset-bottom));
+  animation: hdSheetUp 260ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.grip {
+  align-self: center;
+  width: 40px;
+  height: 4px;
+  border-radius: 999px;
+  background: rgba(196, 181, 253, 0.4);
+  flex: 0 0 auto;
+}
+
+@media (min-width: 900px) {
+  /* 넓은 화면 — 오른쪽에 도킹. 배경막은 내용을 가리므로 쓰지 않는다. */
+  .scrim {
+    display: none;
+  }
+
+  .sheet {
+    left: auto;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    width: min(380px, 34vw);
+    max-height: none;
+    border-radius: 18px 0 0 18px;
+    border-right: none;
+    padding: 1.25rem;
+    box-shadow: -18px 0 48px rgba(4, 3, 14, 0.5);
+    animation: hdSheetIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  .grip {
+    display: none;
+  }
+}
+
+@keyframes hdScrimIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes hdSheetUp {
+  from { transform: translateY(12%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes hdSheetIn {
+  from { transform: translateX(12%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .scrim,
+  .sheet {
+    animation: none;
+  }
+}
+
+/* 시트가 길어지면 내부가 스크롤되므로 제목·닫기는 위에 붙여 둔다. */
 .head {
+  position: sticky;
+  top: 0;
+  z-index: 1;
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
   gap: 0.75rem;
+  padding: 0.5rem 0;
+  background: var(--hd-surface);
 }
 
 .title {
