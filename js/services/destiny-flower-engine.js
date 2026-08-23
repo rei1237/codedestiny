@@ -1,3 +1,17 @@
+import {
+  FLOWER_TRAIT_SUPPLEMENT,
+  ZODIAC_TO_WUXING,
+  ZODIAC_TO_SEASON,
+  ZODIAC_MODALITY,
+  ZIWEI_SIHUA_BIAS,
+  MOON_PHASE_BIAS,
+  SUKUYO_MANSIONS_27,
+  normalizeZodiacName,
+  resolveMansionIndex,
+  mansionByIndex,
+  ziweiStarElement
+} from './destiny-flower-traits.js?v=20260824-df-traits';
+
 const ELEMENT_KEYS = ['wood', 'fire', 'earth', 'metal', 'water'];
 
 const ELEMENT_ALIASES = {
@@ -118,8 +132,8 @@ const DESTINY_FLOWER_KO_TEXT = Object.freeze({
   'ziwei.palaceFallbackNote': '궁 특성 보정: {palace} · {trait}',
   'ziwei.hybridHint': '사주 {dayMaster} 기운과 자미두수 {stars} 주성을 결합한 하이브리드 렌더링 가능',
   'ziwei.verdict': '오늘 하늘에서 가장 밝게 떠오른 별로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다. {palace}이 지닌 "{palaceTrait}" 위에서 {stars}의 기질 "{keyword}"이 별 밝기 {brightness}와 겹쳐, 그 어느 때보다 또렷하게 살아납니다.',
-  'ziwei.narrativeWithSecondary': '{palace}은(는) "{palaceEnergy}"을 관장하는 자리입니다. 오늘 이곳에서 {stars}가 함께 떠올라 {title}을 중심에 세웠고, 주성의 "{personality}"에 보조 주성의 "{secondaryKeyword}" 결이 은은히 배어듭니다. 별 밝기 {brightness}의 광휘가 이를 흔들림 없이 받쳐 주기에, {flowerName}이 지금 당신의 운세 구조를 가장 선명한 꽃으로 옮겨 줍니다.',
-  'ziwei.narrativeSingle': '{palace}은(는) "{palaceEnergy}"을 다루는 자리이고, 오늘 가장 강한 별 {star}은(는) "{keyword}"의 기질과 "{personality}"의 성격을 꽃심처럼 곧게 세웁니다. 별 밝기 {brightness}가 그 빛을 한결같이 지탱해 주니, 이번 흐름에서는 {flowerName}이 당신의 중심 에너지와 가장 깊이 공명합니다.',
+  'ziwei.narrativeWithSecondary': '{palaceJosa} "{palaceEnergy}"을 관장하는 자리입니다. 오늘 이곳에서 {stars}가 함께 떠올라 {title}을 중심에 세웠고, 주성의 "{personality}"에 보조 주성의 "{secondaryKeyword}" 결이 은은히 배어듭니다. 별 밝기 {brightness}의 광휘가 이를 흔들림 없이 받쳐 주기에, {flowerName}이 지금 당신의 운세 구조를 가장 선명한 꽃으로 옮겨 줍니다.',
+  'ziwei.narrativeSingle': '{palaceJosa} "{palaceEnergy}"을 다루는 자리이고, 오늘 가장 강한 별 {starJosa} "{keyword}"의 기질과 "{personality}"의 성격을 꽃심처럼 곧게 세웁니다. 별 밝기 {brightness}가 그 빛을 한결같이 지탱해 주니, 이번 흐름에서는 {flowerName}이 당신의 중심 에너지와 가장 깊이 공명합니다.',
   'sukuyo.moon.full': '보름달',
   'sukuyo.moon.new': '그믐달',
   'sukuyo.moon.crescent': '초승달',
@@ -133,7 +147,7 @@ const DESTINY_FLOWER_KO_TEXT = Object.freeze({
   'sukuyo.careerTheme': '{guardian} 패턴의 실행 리듬을 업무 루틴에 반영하면 성과가 안정됩니다.',
   'sukuyo.growthCycle': '별자리 연결 → 달빛 응집 → 영성 점화 → 개화',
   'sukuyo.verdict': '달빛의 결로 읽은 당신의 꽃은 {flowerName}({scientificName})입니다. {mansion}·{moon}·{guardian}이 어우러지는 자리가 지금 당신의 인연과 감정, 행동의 리듬과 가장 섬세하게 맞물립니다.',
-  'sukuyo.narrative': '{mansion}({group})이 맺어 주는 인연의 결, 달 위상 {moon}이 밀어 올리는 감정의 조수, 수호동물 {guardian}이 새겨 준 보호의 문양이 한밤의 정원에서 하나로 겹칩니다. 이 세 갈래 달빛을 포개어 읽으면 "{symbolism}"의 성향이 짙게 배어나고, 지금 당신에게 가장 정확한 한 송이는 {flowerName}입니다.',
+  'sukuyo.narrative': '{mansion}({group})이 맺어 주는 인연의 결, 달 위상 {moon}이 밀어 올리는 감정의 조수, 수호동물 {guardianJosa} 새겨 준 보호의 문양이 한밤의 정원에서 하나로 겹칩니다. 이 세 갈래 달빛을 포개어 읽으면 "{symbolism}"의 성향이 짙게 배어나고, 지금 당신에게 가장 정확한 한 송이는 {flowerName}입니다.',
   'saju.stickerLabel': '사주로 보는 꽃',
   'saju.dayMasterWaiting': '일간 판독 대기',
   'saju.signalPending': '핵심 시그널 계산 대기',
@@ -229,6 +243,19 @@ const DESTINY_FLOWER_KO_TEXT = Object.freeze({
   'saju.scenarios.gui.summerEmpathy.title': '계수의 하계 감응 시나리오',
   'saju.scenarios.gui.subtleSignal.title': '계수의 미세 감지 시나리오'
 });
+
+/**
+ * 한국어 조사 선택. 서사 템플릿이 '{star}은(는)' 처럼 두 형태를 그대로 노출하고 있었다.
+ * 마지막 글자의 받침 유무로 고른다(한글이 아니면 받침 없음으로 본다).
+ */
+function withJosa(word, withBatchim, withoutBatchim) {
+  const text = String(word || '').trim();
+  if (!text) return text;
+  const last = text.charCodeAt(text.length - 1);
+  const isHangul = last >= 0xac00 && last <= 0xd7a3;
+  const hasBatchim = isHangul && (last - 0xac00) % 28 !== 0;
+  return text + (hasBatchim ? withBatchim : withoutBatchim);
+}
 
 function interpolateDestinyFlowerText(value, vars) {
   if (!vars || typeof vars !== 'object') return value;
@@ -517,6 +544,18 @@ const ASTRO_ELEMENT_BY_SIGN = Object.freeze({
   Pisces: 'Water'
 });
 
+/** 서사에 영문 별자리명이 그대로 노출되던 것을 한글로 옮긴다('Leo에 자리한 태양이' → '사자자리…'). */
+const ASTRO_SIGN_LABEL_KO = Object.freeze({
+  Aries: '양자리', Taurus: '황소자리', Gemini: '쌍둥이자리', Cancer: '게자리',
+  Leo: '사자자리', Virgo: '처녀자리', Libra: '천칭자리', Scorpio: '전갈자리',
+  Sagittarius: '사수자리', Capricorn: '염소자리', Aquarius: '물병자리', Pisces: '물고기자리'
+});
+
+function astroSignKo(sign) {
+  const key = String(sign || '').trim();
+  return ASTRO_SIGN_LABEL_KO[key] || key;
+}
+
 const ASTRO_ELEMENT_LABEL_KO = Object.freeze({
   Fire: '불',
   Earth: '흙',
@@ -650,19 +689,64 @@ function resolveAstroChart(chartData = {}) {
   return { sunSign, moonSign, risingSign };
 }
 
-function pickAstroFlowerIdsByElement(element, sunSign) {
-  const pair = ASTRO_ELEMENT_FLOWERS[element] || ASTRO_ELEMENT_FLOWERS.Air;
-  const hash = hashString((sunSign || '') + '|' + element);
-  const primary = pair[hash % pair.length];
-  const secondary = pair.find((id) => id !== primary) || pair[0];
-  return [primary, secondary];
+/**
+ * 태양궁·상승궁·달궁을 오행 분포로 옮겨 89종 전체에서 꽃을 고른다.
+ *
+ * 🔴 예전에는 `ASTRO_ELEMENT_FLOWERS[원소]` 2종 중 별자리 문자열 해시의 홀짝으로 골랐다.
+ * 그 결과 불의 3궁(양·사자·궁수)이 **전부 같은 꽃**이었고 `tiger_lily` 는 어떤 태양궁에서도
+ * 뽑히지 않았다(실사용 7종). 이제 세 위치를 다 쓰고 계절·양식까지 반영한다.
+ *
+ * 가중치: 태양 3 · 상승 2 · 달 2. 태양이 대표지만 나머지 둘이 실제로 결과를 가른다.
+ */
+function pickAstroFlowerIdsByElement(element, sunSign, chart) {
+  const c = chart || {};
+  const signals = { elements: [], season: '', environment: '', waterLevel: 'balanced' };
+  const push = (rawSign, weight) => {
+    const sign = normalizeZodiacName(rawSign);
+    if (!sign) return;
+    const wuxing = ZODIAC_TO_WUXING[sign] || [];
+    wuxing.forEach((el) => signals.elements.push({ element: el, weight: weight / wuxing.length }));
+  };
+  push(c.sunSign, 3);
+  push(c.risingSign, 2);
+  push(c.moonSign, 2);
+
+  /* 🔴 오행은 다섯인데 별자리는 열둘이라, 원소만 쓰면 같은 원소의 세 궁이 같은 꽃으로 뭉친다
+     (실측: 사자와 궁수가 동일). 삼분법을 보조 오행으로 얹어 열두 궁이 열두 프로필을 갖게 한다 —
+     활동궁은 시작(木), 고정궁은 축적(土), 변통궁은 전환(金)의 결이다. */
+  const MODALITY_ELEMENT = { cardinal: 'Wood', fixed: 'Earth', mutable: 'Metal' };
+  const sunModality = ZODIAC_MODALITY[normalizeZodiacName(c.sunSign)];
+  if (MODALITY_ELEMENT[sunModality]) {
+    signals.elements.push({ element: MODALITY_ELEMENT[sunModality], weight: 1.6 });
+  }
+  if (!signals.elements.length) (WESTERN_ELEMENT_TO_WUXING_LOCAL[element] || ['Wood']).forEach((el) => signals.elements.push({ element: el, weight: 1 }));
+
+  const sunNormalized = normalizeZodiacName(c.sunSign);
+  signals.season = ZODIAC_TO_SEASON[sunNormalized] || '';
+  // 활동궁은 트인 자리, 고정궁은 뿌리내린 자리, 변통궁은 물가·숲처럼 결이 바뀌는 자리.
+  const modality = ZODIAC_MODALITY[sunNormalized] || '';
+  signals.environment = modality === 'cardinal' ? 'Field' : (modality === 'fixed' ? 'Rock' : 'Forest');
+  // 물의 궁이 달을 쥐고 있으면 수분이 높다.
+  const moonWuxing = ZODIAC_TO_WUXING[normalizeZodiacName(c.moonSign)] || [];
+  signals.waterLevel = moonWuxing.includes('Water') ? 'high' : (moonWuxing.includes('Fire') ? 'low' : 'balanced');
+
+  const lens = buildSourceLens('astrology', signals);
+  const ranked = rankUnifiedCandidates(lens, { limit: 2, seed: 'astrology|' + (sunNormalized || '') });
+  const primary = ranked[0] && ranked[0].flower.id;
+  const secondary = (ranked[1] && ranked[1].flower.id) || primary;
+  return [primary || 'astro_lavender', secondary || 'astro_lavender'];
 }
 
+/** buildSourceLens 이전에 쓰이는 지역 폴백(모듈 상단 상수와 같은 값). */
+const WESTERN_ELEMENT_TO_WUXING_LOCAL = Object.freeze({
+  Fire: ['Fire'], Earth: ['Earth'], Water: ['Water'], Air: ['Wood', 'Metal']
+});
+
 function buildAstroNarrative(chart, flower, sunElement) {
-  const sunKo = chart.sunSign || destinyFlowerText('astro.unknownSun');
+  const sunKo = astroSignKo(chart.sunSign) || destinyFlowerText('astro.unknownSun');
   const sunElementKo = destinyFlowerText('astro.elements.' + (sunElement || 'Cosmic'), null, ASTRO_ELEMENT_LABEL_KO[sunElement] || '별');
-  const risingKo = chart.risingSign || destinyFlowerText('common.unknown');
-  const moonKo = chart.moonSign || destinyFlowerText('common.unknown');
+  const risingKo = astroSignKo(chart.risingSign) || destinyFlowerText('common.unknown');
+  const moonKo = astroSignKo(chart.moonSign) || destinyFlowerText('common.unknown');
   const risingElementKo = destinyFlowerText(
     'astro.elements.' + (resolveAstroElement(chart.risingSign) || sunElement || 'Cosmic'),
     null,
@@ -693,9 +777,10 @@ export function getAstrologyFlower(chartData = {}) {
   const sunElement = resolveAstroElement(chart.sunSign) || 'Air';
   // NOTE: 꽃 매핑은 태양궁(대표 별자리) 기준으로 유지하되,
   // UI 표시용으로 상승궁/달궁 값은 함께 반환합니다.
-  const ids = pickAstroFlowerIdsByElement(sunElement, chart.sunSign);
-  const primaryFlower = ASTRO_FLOWER_LIBRARY[ids[0]] || ASTRO_FLOWER_LIBRARY.astro_lavender;
-  const secondaryFlower = ASTRO_FLOWER_LIBRARY[ids[1]] || primaryFlower;
+  const ids = pickAstroFlowerIdsByElement(sunElement, chart.sunSign, chart);
+  // 89종 통합 카탈로그에서 찾는다 — 이제 사주 쪽 67종도 점성술 결과로 나올 수 있다.
+  const primaryFlower = findUnifiedFlowerById(ids[0]) || ASTRO_FLOWER_LIBRARY.astro_lavender;
+  const secondaryFlower = findUnifiedFlowerById(ids[1]) || primaryFlower;
   const displayPrimaryFlower = localizeDestinyFlowerCopy(primaryFlower);
   const displaySecondaryFlower = localizeDestinyFlowerCopy(secondaryFlower);
   const moonElement = resolveAstroElement(chart.moonSign) || sunElement;
@@ -922,6 +1007,9 @@ const JAMIDUSU_STAR_RULES = Object.freeze([
 const JAMIDUSU_PALACE_FLOWER_HINTS = Object.freeze({
   명궁: { flowerId: 'peony_ziwei', trait: '자아의 중심성과 존재감' },
   형제궁: { flowerId: 'delicate_willow', trait: '협력과 조율 감각' },
+  // 🔴 계산기(js/saju-engine.js PALACE_NAMES)가 내는 이름은 '부부궁' 이다.
+  //    '부처궁' 으로만 두면 이 힌트가 한 번도 안 걸린다. 구 표기도 함께 남긴다.
+  부부궁: { flowerId: 'orchid_tanlang', trait: '관계의 미감과 친밀한 소통' },
   부처궁: { flowerId: 'orchid_tanlang', trait: '관계의 미감과 친밀한 소통' },
   자녀궁: { flowerId: 'sunflower_ziwei', trait: '창조성과 표현 욕구' },
   재백궁: { flowerId: 'peony_ziwei', trait: '자원 운용과 풍요의 확장력' },
@@ -963,7 +1051,9 @@ function normalizeJamidusuBrightness(value) {
   if (!raw) return 'ping';
   if (raw.includes('묘') || raw.includes('miao')) return 'miao';
   if (raw.includes('왕') || raw.includes('wang')) return 'wang';
-  if (raw.includes('이') || raw === 'li' || raw.includes('bright')) return 'li';
+  // 🔴 계산기(js/saju-engine.js zwNumericToStrength)가 내는 표기는 '리' 다. '이' 로 찾던 탓에
+  //    이 등급이 한 번도 안 잡히고 전부 'ping' 으로 떨어졌다(2026-08-23 실측).
+  if (raw.includes('리') || raw.includes('이') || raw === 'li' || raw.includes('bright')) return 'li';
   if (raw.includes('득') || raw.includes('de')) return 'de';
   if (raw.includes('평') || raw.includes('ping')) return 'ping';
   if (raw.includes('한') || raw.includes('han')) return 'han';
@@ -1032,17 +1122,76 @@ function blendJamidusuPalette(primaryHex, secondaryHex, ratio = 0.5) {
   return '#' + toHex(r) + toHex(g) + toHex(bMix);
 }
 
+/** 별 오행(밝기 가중) + 사화 + 궁 성격 → 89종 랭킹. */
+function pickJamidusuFlowerIds(input) {
+  const BRIGHTNESS_WEIGHT = { miao: 3.4, wang: 3.0, li: 2.4, de: 2.0, ping: 1.5, han: 1.0, xian: 0.6 };
+  const weight = BRIGHTNESS_WEIGHT[input.brightnessCode] || BRIGHTNESS_WEIGHT.ping;
+  const signals = { elements: [], season: '', environment: 'Garden', waterLevel: 'balanced' };
+
+  const first = ziweiStarElement(input.stars && input.stars[0]);
+  if (first) signals.elements.push({ element: first, weight: weight * 2 });
+  const second = ziweiStarElement(input.stars && input.stars[1]);
+  if (second) signals.elements.push({ element: second, weight: weight });
+  if (!signals.elements.length) signals.elements.push({ element: 'Earth', weight: 1 });
+
+  /* 밝기는 그 별이 얼마나 왕성한가다. 오행 비중으로만 주면 정규화에서 사라지므로
+     기운의 양(수분)과 계절로 옮긴다 — 묘/왕은 한여름의 만개, 함/한은 겨울의 갈무리. */
+  const CODE = input.brightnessCode;
+  if (CODE === 'miao' || CODE === 'wang') { signals.waterLevel = 'high'; signals.season = 'Summer'; }
+  else if (CODE === 'li' || CODE === 'de') { signals.waterLevel = 'balanced'; signals.season = 'Spring'; }
+  else if (CODE === 'han' || CODE === 'xian') { signals.waterLevel = 'low'; signals.season = 'Winter'; }
+  else { signals.season = 'Autumn'; }
+
+  /* 12궁은 삶의 어느 자리에서 피는가다. 궁마다 다른 터를 준다. */
+  const PALACE_GROUND = {
+    명궁: 'Garden', 형제궁: 'Forest', 부부궁: 'Pond', 자녀궁: 'Field',
+    재백궁: 'Rock', 질액궁: 'Wetland', 천이궁: 'Field', 노복궁: 'Forest',
+    관록궁: 'Rock', 전택궁: 'Garden', 복덕궁: 'NightSky', 부모궁: 'Forest'
+  };
+  const ground = PALACE_GROUND[String(input.palace || '').trim()];
+  if (ground) signals.environment = ground;
+
+  const bias = ZIWEI_SIHUA_BIAS[String(input.sihua || '').trim()];
+  if (bias) {
+    if (bias.boostWaterLevel) signals.waterLevel = bias.boostWaterLevel;
+    if (bias.boostSeason) signals.season = bias.boostSeason;
+  }
+
+  const lens = buildSourceLens('jamidusu', signals);
+  const ranked = rankUnifiedCandidates(lens, {
+    limit: 2,
+    seed: 'jamidusu|' + String((input.stars && input.stars[0]) || '') + '|' + String(input.palace || ''),
+    // 자미두수에서 "어느 궁에 있는가"는 별의 오행만큼 무겁다. 기본 환경 가중치(+10)로는
+    // 같은 오행일 때 순위가 안 뒤집혀 열두 궁이 한 꽃으로 뭉친다(실측).
+    bonus: (flower) => (ground && Array.isArray(flower.environments) && flower.environments.includes(ground) ? 22 : 0)
+  });
+  return [ranked[0] && ranked[0].flower.id, ranked[1] && ranked[1].flower.id];
+}
+
 export function getJamidusuFlower(starData = {}) {
   const stars = parseJamidusuPrimaryStars(starData);
   const palace = starData.palace || starData.mainPalace || starData.ming_gong || '명궁';
   const palaceHint = JAMIDUSU_PALACE_FLOWER_HINTS[String(palace).trim()] || null;
   const primaryRule = findJamidusuRule(stars[0], palace);
   const secondaryRule = stars[1] ? findJamidusuRule(stars[1], palace) : null;
-  const primaryFlower = getJamidusuFlowerById(primaryRule.flowerId);
-  const secondaryFlower = secondaryRule ? getJamidusuFlowerById(secondaryRule.flowerId) : null;
   const brightnessCode = normalizeJamidusuBrightness(
     starData.brightness || starData.starBrightness || starData.main_star_brightness || starData.star_brightness
   );
+
+  /* 별의 오행 + 사화 + 밝기로 89종에서 고른다.
+     🔴 예전에는 별 이름 `includes` 규칙 7개가 6종 중 하나를 직접 지정했고, 밝기는 시각효과에만
+     쓰였다. 이제 밝기가 그 별의 무게가 되고 사화가 방향(록=풍요·기=수축)을 튼다.
+     규칙표(JAMIDUSU_STAR_RULES)는 문안·색상용으로 그대로 남는다. */
+  const jamidusuIds = pickJamidusuFlowerIds({
+    stars,
+    palace,
+    brightnessCode,
+    sihua: starData.sihua || starData.sihuaType || ''
+  });
+  const primaryFlower = findUnifiedFlowerById(jamidusuIds[0]) || getJamidusuFlowerById(primaryRule.flowerId);
+  const secondaryFlower = secondaryRule
+    ? (findUnifiedFlowerById(jamidusuIds[1]) || getJamidusuFlowerById(secondaryRule.flowerId))
+    : null;
   const intensity = localizeJamidusuBrightness(brightnessCode);
 
   const blendedPrimary = secondaryFlower
@@ -1073,6 +1222,7 @@ export function getJamidusuFlower(starData = {}) {
   const narrative = secondaryRule
     ? destinyFlowerText('ziwei.narrativeWithSecondary', {
       palace,
+      palaceJosa: withJosa(palace, '은', '는'),
       palaceEnergy,
       stars: stars.join('·'),
       title: primaryRuleTitle,
@@ -1083,8 +1233,10 @@ export function getJamidusuFlower(starData = {}) {
     })
     : destinyFlowerText('ziwei.narrativeSingle', {
       palace,
+      palaceJosa: withJosa(palace, '은', '는'),
       palaceEnergy,
       star: stars[0],
+      starJosa: withJosa(stars[0], '은', '는'),
       keyword: primaryRuleKeyword,
       personality: primaryRulePersonality,
       brightness: intensity.label,
@@ -1390,36 +1542,60 @@ const SUKUYO_GROUP_THEME = Object.freeze({
 });
 
 const SUKUYO_MANSION_TABLE = Object.freeze([
+  /* 🔴 목록과 순서는 js/saju-engine-tarot-sukuyo-quantum.js 의 mansions27 과 정확히 같아야 한다.
+     28수에서 牛(우)를 뺀 정통 27수이며 軫(진)으로 끝난다. 2026-08-23 이전 표에는 牛가 들어가고
+     軫이 빠져 있어 인덱스 8부터 끝까지 19개 수가 한 칸씩 밀렸고, 軫은 아예 매칭에 실패해
+     생년월일 산술 해시 폴백으로 떨어졌다. 가드: __tests__/ui/destiny-flower-matching.static.test.js */
   { index: 1, name: '각숙', group: '지혜숙', guardian: '학', aliases: ['각', '角'] },
-  { index: 2, name: '항숙', group: '안중숙', guardian: '사슴', aliases: ['항', '亢'] },
-  { index: 3, name: '저숙', group: '강성숙', guardian: '오소리', aliases: ['저', '氐'] },
-  { index: 4, name: '방숙', group: '강성숙', guardian: '표범', aliases: ['방', '房'] },
-  { index: 5, name: '심숙', group: '강성숙', guardian: '매', aliases: ['심', '心'] },
-  { index: 6, name: '미숙', group: '안중숙', guardian: '사향고양이', aliases: ['미', '尾'] },
-  { index: 7, name: '기숙', group: '경쾌숙', guardian: '다람쥐', aliases: ['기', '箕'] },
-  { index: 8, name: '두숙', group: '지혜숙', guardian: '거북', aliases: ['두', '斗'] },
-  { index: 9, name: '우숙', group: '안중숙', guardian: '수달', aliases: ['우', '牛'] },
-  { index: 10, name: '녀숙', group: '지혜숙', guardian: '올빼미', aliases: ['녀', '女'] },
-  { index: 11, name: '허숙', group: '경쾌숙', guardian: '제비', aliases: ['허', '虛'] },
-  { index: 12, name: '위숙', group: '강성숙', guardian: '늑대', aliases: ['위', '危'] },
-  { index: 13, name: '실숙', group: '지혜숙', guardian: '학', aliases: ['실', '室'] },
-  { index: 14, name: '벽숙', group: '안중숙', guardian: '토끼', aliases: ['벽', '壁'] },
-  { index: 15, name: '규숙', group: '경쾌숙', guardian: '여우', aliases: ['규', '奎'] },
-  { index: 16, name: '루숙', group: '강성숙', guardian: '호랑이', aliases: ['루', '婁'] },
-  { index: 17, name: '위성숙', group: '지혜숙', guardian: '청조', aliases: ['위성', '胃'] },
-  { index: 18, name: '묘숙', group: '경쾌숙', guardian: '닭', aliases: ['묘', '昴'] },
-  { index: 19, name: '필숙', group: '강성숙', guardian: '살쾡이', aliases: ['필', '畢'] },
-  { index: 20, name: '자숙', group: '지혜숙', guardian: '학', aliases: ['자', '觜'] },
-  { index: 21, name: '삼숙', group: '안중숙', guardian: '고양이', aliases: ['삼', '參'] },
-  { index: 22, name: '정숙', group: '강성숙', guardian: '수리', aliases: ['정', '井'] },
-  { index: 23, name: '귀숙', group: '안중숙', guardian: '사슴', aliases: ['귀', '鬼'] },
-  { index: 24, name: '류숙', group: '경쾌숙', guardian: '나비', aliases: ['류', '柳'] },
-  { index: 25, name: '성숙', group: '지혜숙', guardian: '문어', aliases: ['성', '星'] },
-  { index: 26, name: '장숙', group: '강성숙', guardian: '독수리', aliases: ['장', '張'] },
-  { index: 27, name: '익숙', group: '안중숙', guardian: '백조', aliases: ['익', '翼'] }
+  { index: 2, name: '항숙', group: '안중숙', guardian: '용', aliases: ['항', '亢'] },
+  { index: 3, name: '저숙', group: '강성숙', guardian: '담비', aliases: ['저', '氐'] },
+  { index: 4, name: '방숙', group: '강성숙', guardian: '토끼', aliases: ['방', '房'] },
+  { index: 5, name: '심숙', group: '강성숙', guardian: '여우', aliases: ['심', '心'] },
+  { index: 6, name: '미숙', group: '안중숙', guardian: '호랑이', aliases: ['미', '尾'] },
+  { index: 7, name: '기숙', group: '경쾌숙', guardian: '표범', aliases: ['기', '箕'] },
+  { index: 8, name: '두숙', group: '지혜숙', guardian: '해태', aliases: ['두', '斗'] },
+  { index: 9, name: '여숙', group: '안중숙', guardian: '박쥐', aliases: ['여', '女'] },
+  { index: 10, name: '허숙', group: '지혜숙', guardian: '쥐', aliases: ['허', '虛'] },
+  { index: 11, name: '위숙', group: '경쾌숙', guardian: '제비', aliases: ['위', '危'] },
+  { index: 12, name: '실숙', group: '강성숙', guardian: '돼지', aliases: ['실', '室'] },
+  { index: 13, name: '벽숙', group: '지혜숙', guardian: '고슴도치', aliases: ['벽', '壁'] },
+  { index: 14, name: '규숙', group: '안중숙', guardian: '이리', aliases: ['규', '奎'] },
+  { index: 15, name: '루숙', group: '경쾌숙', guardian: '개', aliases: ['루', '婁'] },
+  { index: 16, name: '위숙', group: '강성숙', guardian: '꿩', aliases: ['위', '胃'] },
+  { index: 17, name: '묘숙', group: '지혜숙', guardian: '닭', aliases: ['묘', '昴'] },
+  { index: 18, name: '필숙', group: '경쾌숙', guardian: '까마귀', aliases: ['필', '畢'] },
+  { index: 19, name: '자숙', group: '강성숙', guardian: '원숭이', aliases: ['자', '觜'] },
+  { index: 20, name: '삼숙', group: '지혜숙', guardian: '유인원', aliases: ['삼', '參'] },
+  { index: 21, name: '정숙', group: '안중숙', guardian: '들개', aliases: ['정', '井'] },
+  { index: 22, name: '귀숙', group: '강성숙', guardian: '양', aliases: ['귀', '鬼'] },
+  { index: 23, name: '류숙', group: '안중숙', guardian: '노루', aliases: ['류', '柳'] },
+  { index: 24, name: '성숙', group: '경쾌숙', guardian: '말', aliases: ['성', '星'] },
+  { index: 25, name: '장숙', group: '지혜숙', guardian: '사슴', aliases: ['장', '張'] },
+  { index: 26, name: '익숙', group: '강성숙', guardian: '뱀', aliases: ['익', '翼'] },
+  { index: 27, name: '진숙', group: '안중숙', guardian: '지렁이', aliases: ['진', '軫'] },
 ]);
 
 const SUKUYO_GUARDIAN_PARTICLE = Object.freeze({
+  /* 27수 표를 정통 배열(軫 포함·牛 제외)로 바로잡으며 새로 들어온 수호동물들. */
+  용: 'scale_glint',
+  담비: 'fur_drift',
+  해태: 'guard_ember',
+  박쥐: 'echo_ripple',
+  쥐: 'seed_scatter',
+  돼지: 'root_mote',
+  고슴도치: 'quill_shimmer',
+  이리: 'howl_wave',
+  개: 'hearth_spark',
+  꿩: 'plume_flare',
+  까마귀: 'obsidian_feather',
+  원숭이: 'vine_swing',
+  유인원: 'canopy_dust',
+  들개: 'trail_dust',
+  양: 'wool_mist',
+  노루: 'leaf_step',
+  말: 'gallop_spark',
+  뱀: 'coil_shimmer',
+  지렁이: 'loam_pulse',
   학: 'feather_arc',
   사슴: 'dew_spark',
   오소리: 'earth_mote',
@@ -1567,15 +1743,56 @@ function formatSukuyoGroupLabel(groupLike) {
   return base ? (base + ' 그룹') : raw;
 }
 
+/** 27수 오행(+수호동물 결) × 달 위상 → 89종 랭킹. */
+function pickSukuyoFlowerId(mansionIndex, moonLabel) {
+  const mansion = mansionByIndex(mansionIndex);
+  const signals = { elements: [], season: '', environment: 'NightSky', waterLevel: 'balanced' };
+  signals.elements.push({ element: (mansion && mansion.element) || 'Water', weight: 3 });
+  // 수호동물의 기질을 보조 오행으로 얹는다. 27수의 오행은 5가지뿐이라 이것이 없으면
+  // 스물일곱 수가 아홉 종으로 뭉친다(실측). 수호동물은 숙요 서사가 이미 쓰는 지표다.
+  if (mansion && mansion.guardianElement) {
+    signals.elements.push({ element: mansion.guardianElement, weight: 1.8 });
+  }
+
+  // 사방칠수가 본명숙의 자리와 계절을 정한다(동방청룡=봄·숲 … 남방주작=여름·들).
+  if (mansion) {
+    signals.season = mansion.season || '';
+    signals.environment = mansion.environment || 'NightSky';
+  }
+
+  // 달 위상은 오늘의 상태 — 수분과 결의 방향만 움직이고 계절은 건드리지 않는다.
+  const bias = MOON_PHASE_BIAS[String(moonLabel || '').trim()];
+  if (bias) {
+    signals.waterLevel = bias.waterLevel;
+    // 차오르는 달은 불(드러남), 기우는 달은 금(거둠) 쪽으로 결을 튼다.
+    signals.elements.push({ element: bias.waterLevel === 'high' ? 'Fire' : 'Metal', weight: 1.2 });
+  }
+
+  const lens = buildSourceLens('sukuyo', signals);
+  const ranked = rankUnifiedCandidates(lens, {
+    limit: 1,
+    seed: 'sukuyo|' + mansionIndex + '|' + String(moonLabel || '')
+  });
+  return ranked[0] && ranked[0].flower.id;
+}
+
 export function calculateSukyoFlower(mansionIndex, moonPhase) {
   const idx = clampSukuyoMansionIndex(mansionIndex);
   const mansion = SUKUYO_MANSION_TABLE[idx - 1] || SUKUYO_MANSION_TABLE[0];
   const groupTheme = SUKUYO_GROUP_THEME[mansion.group] || SUKUYO_GROUP_THEME['안중숙'];
   const phase = normalizeSukyoMoonPhase(moonPhase || '');
   const moonStyle = resolveSukyoMoonStyle(phase);
-  const flowerIds = groupTheme.flowerIds || ['white_baby_breath', 'moon_lily'];
-  const primaryId = flowerIds[idx % flowerIds.length];
-  const flower = SUKUYO_FLOWER_LIBRARY[primaryId] || SUKUYO_FLOWER_LIBRARY.white_baby_breath;
+  /* 27수의 오행 + 달 위상으로 89종에서 고른다.
+     🔴 예전에는 4그룹 × 2종에서 `idx % 2` 로 골라 27수가 사실상 8종으로 뭉개졌고,
+     **달 위상은 꽃 선택에 전혀 쓰이지 않았다**(배경 그라디언트 전용). 랜딩이 "달 위상 보정"을
+     광고하는 것과 어긋나 있었다. 이제 위상이 수분·계절을 실제로 움직인다. */
+  /* 🔴 꽃 선택에는 **원본 위상 라벨**을 넘긴다. normalizeSukyoMoonPhase 는 다섯 라벨
+     (그믐·초승·반·상현·보름)을 시각 스타일용 네 단계로 접기 때문에, moonStyle.label 을 쓰면
+     상현달과 초승달이 같은 꽃이 된다. 시각 스타일은 접힌 값을 그대로 쓴다. */
+  const primaryId = pickSukuyoFlowerId(idx, moonPhase || moonStyle.label);
+  const flower = findUnifiedFlowerById(primaryId)
+    || SUKUYO_FLOWER_LIBRARY[(groupTheme.flowerIds || ['white_baby_breath'])[0]]
+    || SUKUYO_FLOWER_LIBRARY.white_baby_breath;
   const displayFlower = localizeDestinyFlowerCopy(flower);
   const constellation = buildSukuyoConstellation(idx);
   const guardianParticle = SUKUYO_GUARDIAN_PARTICLE[mansion.guardian] || 'lunar_dust';
@@ -1584,6 +1801,7 @@ export function calculateSukyoFlower(mansionIndex, moonPhase) {
     group: mansion.group,
     moon: moonStyle.label,
     guardian: mansion.guardian,
+    guardianJosa: withJosa(mansion.guardian, '이', '가'),
     symbolism: displayFlower.symbolism,
     flowerName: displayFlower.name
   });
@@ -3765,6 +3983,87 @@ function buildRationale(profile, flower, matchedSignals, dayMasterScenario) {
   return lines.join(' ');
 }
 
+
+/* ══ 89종 통합 카탈로그 + 점술별 점수 ═══════════════════════════════════════
+   카탈로그가 넷으로 갈라져 있고 매칭 필드가 사주 67종에만 있어, 나머지 세 체계는
+   각각 8·6·8종 안에서 해시로 골랐다. 22종에 같은 필드를 채워 넷 다 89종 전체를
+   같은 점수 함수로 비교한다. 상세는 js/services/destiny-flower-traits.js 참고. */
+
+/** 사주 외 라이브러리 22종에 매칭 특성을 입힌 사본. 원본 상수는 그대로 둔다(하위 호환). */
+function supplementFlower(flower) {
+  const extra = FLOWER_TRAIT_SUPPLEMENT[flower && flower.id] || null;
+  if (!extra) return flower;
+  return Object.freeze({ ...flower, ...extra });
+}
+
+/** 89종. 사주 67 + 점성 8 + 자미 6 + 숙요 8, id 중복 없음. */
+export const unifiedFlowerCatalog = Object.freeze([
+  ...flowerCatalog,
+  ...Object.values(ASTRO_FLOWER_LIBRARY).map(supplementFlower),
+  ...Object.values(JAMIDUSU_FLOWER_LIBRARY).map(supplementFlower),
+  ...Object.values(SUKUYO_FLOWER_LIBRARY).map(supplementFlower)
+]);
+
+export function findUnifiedFlowerById(flowerId) {
+  const target = String(flowerId || '').trim().toLowerCase();
+  if (!target) return null;
+  return unifiedFlowerCatalog.find((f) => String(f.id || '').toLowerCase() === target) || null;
+}
+
+/**
+ * 점술 지표를 "이 체계가 보는 프로필"로 옮긴다.
+ * scoreFlower 는 core(오행 %·계절·환경·수분)와 domains 를 읽으므로, 각 체계의 지표를
+ * 그 모양으로 환산해 넘기면 사주와 같은 저울로 89종을 잴 수 있다.
+ */
+function buildSourceLens(source, signals) {
+  const percent = { wood: 0, fire: 0, earth: 0, metal: 0, water: 0 };
+  const KEY = { Wood: 'wood', Fire: 'fire', Earth: 'earth', Metal: 'metal', Water: 'water' };
+  const add = (element, weight) => {
+    const key = KEY[element];
+    if (key) percent[key] += weight;
+  };
+  (signals.elements || []).forEach((entry) => add(entry.element, entry.weight));
+
+  const total = Object.values(percent).reduce((a, b) => a + b, 0) || 1;
+  Object.keys(percent).forEach((k) => { percent[k] = Math.round((percent[k] / total) * 1000) / 10; });
+
+  const ordered = Object.entries(percent).sort((a, b) => b[1] - a[1]);
+  const NAME = { wood: 'Wood', fire: 'Fire', earth: 'Earth', metal: 'Metal', water: 'Water' };
+
+  return {
+    source,
+    core: {
+      element_strength_percent: percent,
+      dominant_element: NAME[ordered[0][0]],
+      support_element: NAME[ordered[1][0]],
+      season: signals.season || '',
+      environment: signals.environment || '',
+      water_level: signals.waterLevel || 'balanced',
+      particle_hint: signals.particleHint || ''
+    },
+    domains: { saju: {}, astrology: {}, ziwei: {}, sukuyo: {} },
+    identity: { birth: {} }
+  };
+}
+
+/** 통합 카탈로그 전수 랭킹. 소스 렌즈로 만든 프로필을 그대로 scoreFlower 에 먹인다. */
+function rankUnifiedCandidates(lens, options = {}) {
+  const limit = clamp(safeNumber(options.limit, 5), 1, 20);
+  const seedText = String(options.seed || lens.source || '');
+  return unifiedFlowerCatalog
+    .map((flower) => {
+      const scoring = scoreFlower(lens, flower, null);
+      // 소스가 자기 축을 더 세게 밀어야 할 때 쓰는 훅. scoreFlower 의 기본 가중치(환경 +10 등)로는
+      // 오행 점수 차를 못 뒤집어 같은 오행이면 축이 달라도 같은 꽃이 이긴다.
+      const bonus = typeof options.bonus === 'function' ? safeNumber(options.bonus(flower), 0) : 0;
+      // 같은 점수일 때 소스별로 다른 꽃이 걸리도록 결정론적 미세 노이즈를 준다.
+      const noise = (hashString(seedText + '|' + flower.id) % 100) / 1000;
+      return { flower, score: Number((scoring.score + bonus + noise).toFixed(3)), matchedSignals: scoring.matchedSignals };
+    })
+    .sort((a, b) => b.score - a.score)
+    .slice(0, limit);
+}
+
 export function rankFlowerCandidates(profile, options = {}) {
   const limit = clamp(safeNumber(options.limit, 5), 1, 20);
   const dayMasterScenario =
@@ -3994,3 +4293,6 @@ export function registerDestinyFlowerEngineGlobals(target = window, engine = cre
   target.flowerSymbology = flowerSymbology;
   return engine;
 }
+
+/** 27수 배열을 가드가 계산기 표와 대조할 수 있게 재수출한다. */
+export { SUKUYO_MANSIONS_27 };

@@ -135,6 +135,7 @@
 /public/js/services/animal-totem-content-engine.js
 /public/js/services/destiny-flower-art.js
 /public/js/services/destiny-flower-engine.js
+/public/js/services/destiny-flower-traits.js
 /public/js/services/fortuneService.js
 /public/js/services/sajuAnalyzer.js
 /public/js/services/sajuService.js
