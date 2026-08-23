@@ -543,7 +543,8 @@
       "clearAll": "🗑️ 전체 삭제",
       "emptyHistory": "🌸 아직 저장된 개화 기록이 없습니다.",
       "home": "🏠 홈화면으로 바로가기",
-      "keywords": "saju verdict • rebirth • purity • flow"
+      "keywords": "saju verdict • rebirth • purity • flow",
+      "quadAria": "네 점술의 운명의 꽃"
     },
     "tarotSelfEsteem": {
       "levelUp": "내 기준이 따뜻하게 되살아납니다",
@@ -6095,6 +6096,158 @@
         "tarotRevealTitle": "결단의 밤 위로 카드가 떠올랐어요",
         "tarotBeforeLine": "카드는 차갑게 끊어내라고 말하지 않아요. 다만 어떤 기준이 손님을 지키는지 조용히 드러낼 거예요.",
         "visualMotif": "black moon, brown rice tea, quiet shadow"
+      }
+    },
+    "tenGods": {
+      "bigeon": {
+        "nameKo": "비견",
+        "hanja": "比肩",
+        "roleInTeaHouse": "나와 닮은 손님",
+        "coreMeaning": {
+          "0": "자기주도",
+          "1": "독립심",
+          "2": "동료",
+          "3": "자존감"
+        },
+        "lightSide": "스스로 버티는 힘과 주체성을 키웁니다.",
+        "shadowSide": "고집이 강해지거나 혼자 모든 것을 감당하려 할 수 있습니다.",
+        "yeoniDescription": "비견은 당신과 닮은 손님처럼, 지금 내 마음이 어디에 서 있는지 비춰주는 기운이에요.",
+        "visualHint": "거울, 닮은 손님, 두 개의 찻잔"
+      },
+      "geopjae": {
+        "nameKo": "겁재",
+        "hanja": "劫財",
+        "roleInTeaHouse": "옆자리 경쟁자",
+        "coreMeaning": {
+          "0": "경쟁",
+          "1": "비교",
+          "2": "승부",
+          "3": "빼앗김"
+        },
+        "lightSide": "위기에서 밀고 나가는 힘과 승부욕을 줍니다.",
+        "shadowSide": "비교심, 조급함, 관계의 긴장을 키울 수 있습니다.",
+        "yeoniDescription": "겁재는 옆자리 경쟁자처럼, 지금 당신이 무엇과 비교하며 흔들리는지 보여줘요.",
+        "visualHint": "번개, 경쟁자, 엇갈린 찻잔"
+      },
+      "siksin": {
+        "nameKo": "식신",
+        "hanja": "食神",
+        "roleInTeaHouse": "디저트 요리사",
+        "coreMeaning": {
+          "0": "표현",
+          "1": "즐거움",
+          "2": "회복",
+          "3": "생산성"
+        },
+        "lightSide": "마음을 편하게 풀고 자연스럽게 표현하게 합니다.",
+        "shadowSide": "안일함이나 미루는 태도로 흐를 수 있습니다.",
+        "yeoniDescription": "식신은 찻집의 디저트 요리사처럼, 굳은 마음을 부드럽게 풀어주는 기운이에요.",
+        "visualHint": "디저트, 꿀, 따뜻한 접시"
+      },
+      "sanggwan": {
+        "nameKo": "상관",
+        "hanja": "傷官",
+        "roleInTeaHouse": "창가의 예술가",
+        "coreMeaning": {
+          "0": "표현력",
+          "1": "매력",
+          "2": "반항",
+          "3": "말"
+        },
+        "lightSide": "자신만의 매력과 표현력을 살립니다.",
+        "shadowSide": "말이 앞서거나 규칙과 부딪힐 수 있습니다.",
+        "yeoniDescription": "상관은 창가에서 노래하는 예술가처럼, 숨겨둔 말을 밖으로 꺼내게 하는 기운이에요.",
+        "visualHint": "노래, 말풍선, 창가, 꽃잎"
+      },
+      "pyeonjae": {
+        "nameKo": "편재",
+        "hanja": "偏財",
+        "roleInTeaHouse": "떠돌이 상인",
+        "coreMeaning": {
+          "0": "기회",
+          "1": "확장",
+          "2": "유동 재물",
+          "3": "외부 인연"
+        },
+        "lightSide": "새로운 기회와 넓은 관계를 불러옵니다.",
+        "shadowSide": "산만함, 과소비, 무리한 확장으로 흐를 수 있습니다.",
+        "yeoniDescription": "편재는 떠돌이 상인처럼, 예상 밖의 기회와 흔들리는 돈의 흐름을 가져오는 손님이에요.",
+        "visualHint": "금화, 상인, 여행 가방"
+      },
+      "jeongjae": {
+        "nameKo": "정재",
+        "hanja": "正財",
+        "roleInTeaHouse": "장부 쓰는 총무",
+        "coreMeaning": {
+          "0": "현실감",
+          "1": "관리",
+          "2": "안정 재물",
+          "3": "성실"
+        },
+        "lightSide": "생활을 정리하고 현실적인 기반을 세웁니다.",
+        "shadowSide": "너무 계산적이거나 안정만 고집할 수 있습니다.",
+        "yeoniDescription": "정재는 찻집의 장부를 쓰는 총무처럼, 지금 현실적으로 지켜야 할 것을 알려줘요.",
+        "visualHint": "장부, 열쇠, 저금통, 찻집 계산대"
+      },
+      "pyeongwan": {
+        "nameKo": "편관",
+        "hanja": "偏官",
+        "roleInTeaHouse": "검은 우산의 기사",
+        "coreMeaning": {
+          "0": "압박",
+          "1": "위기",
+          "2": "돌파",
+          "3": "긴장"
+        },
+        "lightSide": "어려운 상황을 돌파하는 결단력과 힘을 줍니다.",
+        "shadowSide": "불안, 압박감, 무리한 대응으로 이어질 수 있습니다.",
+        "yeoniDescription": "편관은 검은 우산을 든 기사처럼, 피하고 싶은 압박을 마주하게 하는 기운이에요.",
+        "visualHint": "검은 우산, 기사, 검, 어두운 달"
+      },
+      "jeonggwan": {
+        "nameKo": "정관",
+        "hanja": "正官",
+        "roleInTeaHouse": "찻집 규칙 관리자",
+        "coreMeaning": {
+          "0": "책임",
+          "1": "약속",
+          "2": "질서",
+          "3": "사회성"
+        },
+        "lightSide": "약속과 책임을 통해 신뢰를 쌓게 합니다.",
+        "shadowSide": "눈치, 부담, 지나친 규칙 의식으로 답답해질 수 있습니다.",
+        "yeoniDescription": "정관은 찻집의 규칙 관리자처럼, 지금 지켜야 할 선과 책임을 조용히 알려줘요.",
+        "visualHint": "문패, 규칙서, 정돈된 찻잔"
+      },
+      "pyeonin": {
+        "nameKo": "편인",
+        "hanja": "偏印",
+        "roleInTeaHouse": "이상한 책을 읽는 점술가",
+        "coreMeaning": {
+          "0": "직감",
+          "1": "생각",
+          "2": "의심",
+          "3": "해석"
+        },
+        "lightSide": "남들이 보지 못한 의미를 읽는 직감을 줍니다.",
+        "shadowSide": "생각이 많아지고 추측이 깊어질 수 있습니다.",
+        "yeoniDescription": "편인은 이상한 책을 읽는 점술가처럼, 보이지 않는 의미를 자꾸 해석하게 만드는 기운이에요.",
+        "visualHint": "신비한 책, 달, 물음표, 촛불"
+      },
+      "jeongin": {
+        "nameKo": "정인",
+        "hanja": "正印",
+        "roleInTeaHouse": "따뜻한 차를 내주는 선생",
+        "coreMeaning": {
+          "0": "보호",
+          "1": "공부",
+          "2": "회복",
+          "3": "수용"
+        },
+        "lightSide": "마음을 안정시키고 배움과 회복을 돕습니다.",
+        "shadowSide": "의존, 미룸, 과한 보호 욕구로 흐를 수 있습니다.",
+        "yeoniDescription": "정인은 따뜻한 차를 내주는 선생처럼, 지금 당신에게 필요한 보호와 회복을 알려줘요.",
+        "visualHint": "책, 따뜻한 차, 담요, 등불"
       }
     }
   }

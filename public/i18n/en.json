@@ -653,7 +653,8 @@
       "emptyHistory": "No blooming records have been saved yet.",
       "close": "Close",
       "home": "Go to home screen",
-      "keywords": "saju verdict • rebirth • purity • flow"
+      "keywords": "saju verdict • rebirth • purity • flow",
+      "quadAria": "Destiny flowers from all four systems"
     },
     "tarotSelfEsteem": {
       "levelUp": "Your standard becomes one step clearer",
@@ -12665,6 +12666,158 @@
         "tarotRevealTitle": "A card has risen over the night of the decision",
         "tarotBeforeLine": "The card will not tell you to cut it off coldly. It will only reveal, quietly, which measure is the one that keeps you safe.",
         "visualMotif": "black moon, brown rice tea, quiet shadow"
+      }
+    },
+    "tenGods": {
+      "bigeon": {
+        "nameKo": "Peer",
+        "hanja": "比肩",
+        "roleInTeaHouse": "A guest who resembles you",
+        "coreMeaning": {
+          "0": "Self-direction",
+          "1": "Independence",
+          "2": "Companions",
+          "3": "Self-worth"
+        },
+        "lightSide": "It grows your power to stand on your own, and your sense of agency.",
+        "shadowSide": "You may grow stubborn, or try to carry everything alone.",
+        "yeoniDescription": "Peer is like a guest who resembles you — an energy that shows where your own heart is standing right now.",
+        "visualHint": "a mirror, a guest who looks like you, two cups"
+      },
+      "geopjae": {
+        "nameKo": "Rival",
+        "hanja": "劫財",
+        "roleInTeaHouse": "The rival at the next seat",
+        "coreMeaning": {
+          "0": "Competition",
+          "1": "Comparison",
+          "2": "Contest",
+          "3": "Loss to another"
+        },
+        "lightSide": "It gives you the drive to push through a crisis, and the will to compete.",
+        "shadowSide": "It can feed comparison, impatience, and tension in your relationships.",
+        "yeoniDescription": "Rival is like a competitor at the next seat — it shows what you are measuring yourself against and wavering over.",
+        "visualHint": "lightning, a rival, cups set askew"
+      },
+      "siksin": {
+        "nameKo": "Gourmet",
+        "hanja": "食神",
+        "roleInTeaHouse": "The dessert chef",
+        "coreMeaning": {
+          "0": "Expression",
+          "1": "Enjoyment",
+          "2": "Recovery",
+          "3": "Productivity"
+        },
+        "lightSide": "It loosens the heart and lets you express yourself naturally.",
+        "shadowSide": "It can drift into complacency or putting things off.",
+        "yeoniDescription": "Gourmet is like the tea house's dessert chef — an energy that softens a heart gone stiff.",
+        "visualHint": "dessert, honey, a warm plate"
+      },
+      "sanggwan": {
+        "nameKo": "Free Spirit",
+        "hanja": "傷官",
+        "roleInTeaHouse": "The artist by the window",
+        "coreMeaning": {
+          "0": "Expressiveness",
+          "1": "Charm",
+          "2": "Defiance",
+          "3": "Words"
+        },
+        "lightSide": "It brings your own charm and power of expression to life.",
+        "shadowSide": "Your words may run ahead of you, or collide with the rules.",
+        "yeoniDescription": "Free Spirit is like an artist singing by the window — an energy that draws out the words you had kept hidden.",
+        "visualHint": "a song, a speech bubble, a window, petals"
+      },
+      "pyeonjae": {
+        "nameKo": "Windfall Wealth",
+        "hanja": "偏財",
+        "roleInTeaHouse": "The wandering merchant",
+        "coreMeaning": {
+          "0": "Opportunity",
+          "1": "Expansion",
+          "2": "Money in motion",
+          "3": "Ties from outside"
+        },
+        "lightSide": "It calls in fresh opportunities and a wider circle.",
+        "shadowSide": "It can drift into scattered focus, overspending, and stretching too far.",
+        "yeoniDescription": "Windfall Wealth is like a wandering merchant — a guest who brings unexpected chances and a money flow that sways.",
+        "visualHint": "gold coins, a merchant, a travelling case"
+      },
+      "jeongjae": {
+        "nameKo": "Steady Wealth",
+        "hanja": "正財",
+        "roleInTeaHouse": "The keeper of the ledger",
+        "coreMeaning": {
+          "0": "Grounding",
+          "1": "Stewardship",
+          "2": "Settled wealth",
+          "3": "Diligence"
+        },
+        "lightSide": "It puts daily life in order and builds a footing you can stand on.",
+        "shadowSide": "You may turn too calculating, or hold out for safety alone.",
+        "yeoniDescription": "Steady Wealth is like the one who keeps the tea house ledger — it tells you what must be kept in practical terms right now.",
+        "visualHint": "a ledger, a key, a coin jar, the tea house counter"
+      },
+      "pyeongwan": {
+        "nameKo": "Challenger",
+        "hanja": "偏官",
+        "roleInTeaHouse": "The knight with the black umbrella",
+        "coreMeaning": {
+          "0": "Pressure",
+          "1": "Crisis",
+          "2": "Breakthrough",
+          "3": "Tension"
+        },
+        "lightSide": "It gives you the resolve and force to break through a hard situation.",
+        "shadowSide": "It can lead into unease, a sense of being pressed, and responses that overreach.",
+        "yeoniDescription": "Challenger is like a knight holding a black umbrella — an energy that makes you face the pressure you would rather avoid.",
+        "visualHint": "a black umbrella, a knight, a sword, a darkened moon"
+      },
+      "jeonggwan": {
+        "nameKo": "Officer",
+        "hanja": "正官",
+        "roleInTeaHouse": "The keeper of the tea house rules",
+        "coreMeaning": {
+          "0": "Responsibility",
+          "1": "Promises",
+          "2": "Order",
+          "3": "Standing with others"
+        },
+        "lightSide": "It builds trust through promises kept and responsibility carried.",
+        "shadowSide": "It can turn stifling through watching others, carrying too much, and minding the rules too closely.",
+        "yeoniDescription": "Officer is like the keeper of the tea house rules — it quietly tells you the line to hold and the responsibility to carry.",
+        "visualHint": "a name plate, a book of rules, cups set in order"
+      },
+      "pyeonin": {
+        "nameKo": "Seeker",
+        "hanja": "偏印",
+        "roleInTeaHouse": "The diviner reading a strange book",
+        "coreMeaning": {
+          "0": "Intuition",
+          "1": "Thought",
+          "2": "Doubt",
+          "3": "Interpretation"
+        },
+        "lightSide": "It gives you the intuition to read meanings others have missed.",
+        "shadowSide": "Thinking can multiply, and guesswork can run deep.",
+        "yeoniDescription": "Seeker is like a diviner reading a strange book — an energy that keeps you interpreting the meanings you cannot see.",
+        "visualHint": "a mysterious book, the moon, a question mark, a candle"
+      },
+      "jeongin": {
+        "nameKo": "Nurturer",
+        "hanja": "正印",
+        "roleInTeaHouse": "The teacher who pours warm tea",
+        "coreMeaning": {
+          "0": "Protection",
+          "1": "Learning",
+          "2": "Recovery",
+          "3": "Acceptance"
+        },
+        "lightSide": "It steadies the heart and supports learning and recovery.",
+        "shadowSide": "It can drift into dependence, delay, and an overprotective urge.",
+        "yeoniDescription": "Nurturer is like a teacher pouring warm tea — it tells you the protection and the recovery you need right now.",
+        "visualHint": "a book, warm tea, a blanket, a lantern"
       }
     }
   }

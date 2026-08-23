@@ -653,7 +653,8 @@
       "emptyHistory": "还没有保存的开花记录。",
       "close": "关闭",
       "home": "前往首页",
-      "keywords": "四柱判定 • 重生 • 纯净 • 流动"
+      "keywords": "四柱判定 • 重生 • 纯净 • 流动",
+      "quadAria": "四种占术的命运之花"
     },
     "tarotSelfEsteem": {
       "levelUp": "你的标准又清晰了一格",
@@ -12665,6 +12666,158 @@
         "tarotRevealTitle": "一张牌浮现在决断之夜的上方",
         "tarotBeforeLine": "牌不会叫您冷冷地斩断。它只会静静显出，哪一条准绳护得住您。",
         "visualMotif": "black moon, brown rice tea, quiet shadow"
+      }
+    },
+    "tenGods": {
+      "bigeon": {
+        "nameKo": "比肩",
+        "hanja": "bǐ jiān",
+        "roleInTeaHouse": "与您相像的客人",
+        "coreMeaning": {
+          "0": "自主",
+          "1": "独立",
+          "2": "同伴",
+          "3": "自我价值"
+        },
+        "lightSide": "它培养您独自撑住的力量与自主性。",
+        "shadowSide": "您可能变得固执，或想一个人扛下所有。",
+        "yeoniDescription": "比肩就像一位与您相像的客人，是照见此刻您的心站在哪里的气。",
+        "visualHint": "镜子、相像的客人、两只茶盏"
+      },
+      "geopjae": {
+        "nameKo": "劫财",
+        "hanja": "jié cái",
+        "roleInTeaHouse": "邻座的竞争者",
+        "coreMeaning": {
+          "0": "竞争",
+          "1": "比较",
+          "2": "胜负",
+          "3": "被夺走"
+        },
+        "lightSide": "它给您在危机中推进的力量与好胜之心。",
+        "shadowSide": "它可能助长比较心、急躁，以及关系里的紧张。",
+        "yeoniDescription": "劫财就像邻座的竞争者，让您看见此刻自己正拿什么在比较、在摇摆。",
+        "visualHint": "闪电、竞争者、错开的茶盏"
+      },
+      "siksin": {
+        "nameKo": "食神",
+        "hanja": "shí shén",
+        "roleInTeaHouse": "甜点师傅",
+        "coreMeaning": {
+          "0": "表达",
+          "1": "喜悦",
+          "2": "复原",
+          "3": "生产力"
+        },
+        "lightSide": "它让心松开，也让您自然地表达。",
+        "shadowSide": "它可能滑向安逸或拖延的态度。",
+        "yeoniDescription": "食神就像茶馆的甜点师傅，是把僵住的心温柔化开的气。",
+        "visualHint": "甜点、蜂蜜、温热的碟子"
+      },
+      "sanggwan": {
+        "nameKo": "伤官",
+        "hanja": "shāng guān",
+        "roleInTeaHouse": "窗边的艺术家",
+        "coreMeaning": {
+          "0": "表现力",
+          "1": "魅力",
+          "2": "反叛",
+          "3": "言语"
+        },
+        "lightSide": "它让您独有的魅力与表现力活起来。",
+        "shadowSide": "话可能跑在前头，或与规矩相撞。",
+        "yeoniDescription": "伤官就像在窗边唱歌的艺术家，是把藏起来的话带到外面的气。",
+        "visualHint": "歌声、对话框、窗边、花瓣"
+      },
+      "pyeonjae": {
+        "nameKo": "偏财",
+        "hanja": "piān cái",
+        "roleInTeaHouse": "行脚的商人",
+        "coreMeaning": {
+          "0": "机会",
+          "1": "扩展",
+          "2": "流动的财",
+          "3": "外来的缘分"
+        },
+        "lightSide": "它招来新的机会与更宽的人脉。",
+        "shadowSide": "它可能滑向散漫、超支，以及勉强的扩张。",
+        "yeoniDescription": "偏财就像行脚的商人，是带来意外机会与起伏财流的客人。",
+        "visualHint": "金币、商人、行囊"
+      },
+      "jeongjae": {
+        "nameKo": "正财",
+        "hanja": "zhèng cái",
+        "roleInTeaHouse": "记账的掌柜",
+        "coreMeaning": {
+          "0": "现实感",
+          "1": "管理",
+          "2": "安稳的财",
+          "3": "踏实"
+        },
+        "lightSide": "它整理生活，也筑起可以立足的现实根基。",
+        "shadowSide": "您可能变得太会算计，或只固守安稳。",
+        "yeoniDescription": "正财就像替茶馆记帐的掌柜，会告诉您此刻在现实里该守住什么。",
+        "visualHint": "帐簿、钥匙、存钱罐、茶馆的柜台"
+      },
+      "pyeongwan": {
+        "nameKo": "偏官",
+        "hanja": "piān guān",
+        "roleInTeaHouse": "黑伞的骑士",
+        "coreMeaning": {
+          "0": "压力",
+          "1": "危机",
+          "2": "突破",
+          "3": "紧张"
+        },
+        "lightSide": "它给您突破难局的决断力与力量。",
+        "shadowSide": "它可能引向不安、压迫感，以及勉强的应对。",
+        "yeoniDescription": "偏官就像撑着黑伞的骑士，是让您正面那份想躲开的压力的气。",
+        "visualHint": "黑伞、骑士、剑、晦暗的月"
+      },
+      "jeonggwan": {
+        "nameKo": "正官",
+        "hanja": "zhèng guān",
+        "roleInTeaHouse": "茶馆规矩的管理者",
+        "coreMeaning": {
+          "0": "责任",
+          "1": "承诺",
+          "2": "秩序",
+          "3": "社会性"
+        },
+        "lightSide": "它让您透过承诺与责任累积信任。",
+        "shadowSide": "它可能因看人脸色、负担过重、太在意规矩而变得憋闷。",
+        "yeoniDescription": "正官就像茶馆规矩的管理者，会静静告诉您此刻该守的界线与责任。",
+        "visualHint": "门牌、规矩册、摆整齐的茶盏"
+      },
+      "pyeonin": {
+        "nameKo": "偏印",
+        "hanja": "piān yìn",
+        "roleInTeaHouse": "读着奇书的占卜师",
+        "coreMeaning": {
+          "0": "直觉",
+          "1": "思考",
+          "2": "疑虑",
+          "3": "解读"
+        },
+        "lightSide": "它给您读出旁人未见之意的直觉。",
+        "shadowSide": "念头可能变多，臆测也可能越陷越深。",
+        "yeoniDescription": "偏印就像读着奇书的占卜师，是让您不断去解读看不见之意的气。",
+        "visualHint": "神秘的书、月、问号、烛火"
+      },
+      "jeongin": {
+        "nameKo": "正印",
+        "hanja": "zhèng yìn",
+        "roleInTeaHouse": "斟上热茶的老师",
+        "coreMeaning": {
+          "0": "守护",
+          "1": "学习",
+          "2": "复原",
+          "3": "接纳"
+        },
+        "lightSide": "它安定心神，也扶持学习与复原。",
+        "shadowSide": "它可能滑向依赖、拖延，以及过度保护的欲望。",
+        "yeoniDescription": "正印就像斟上热茶的老师，会告诉您此刻需要的守护与复原。",
+        "visualHint": "书、热茶、毯子、灯火"
       }
     }
   }
