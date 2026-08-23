@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "../../components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const VEDIC_GUIDE_TEXT_TRANSLATIONS = {
@@ -142,6 +144,8 @@ export default function VedicGuidePage() {
           </article>
         ))}
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/vedic/guide"]} />
 
       <nav className="cd-chip-wrap" aria-label="베다 점성술 가이드 관련 링크">
         <Link href="/vedic" className="cd-chip">베다 점성술 서비스</Link>

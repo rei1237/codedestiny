@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "@/app/components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "@/app/components/guide-cta-targets";
 import { generatePageMetadata } from "@/lib/generate-page-metadata";
 import { buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@/lib/structured-data";
 
@@ -173,6 +175,8 @@ export default function SukuyoVsVedicPage() {
           두 체계 모두 전통 문헌의 해석 규칙을 계산해 얻은 구조이며, 문화적 해석 콘텐츠입니다. 의료 진단, 법률 판단, 투자 결정, 결혼과 이혼의 근거로 삼기에는 적합하지 않습니다. 관계에 대한 해석은 특히 상대를 규정하는 말로 쓰기 쉬우니, 상대를 판단하는 근거보다 내 태도를 돌아보는 자료로 두는 편이 안전합니다.
         </p>
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/compare/sukuyo-vs-vedic"]} />
 
       <nav className="cd-chip-wrap" aria-label="비교 문서 관련 링크">
         <Link href="/sukuyo/" className="cd-chip">숙요점 보러 가기</Link>

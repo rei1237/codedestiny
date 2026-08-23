@@ -1,4 +1,6 @@
 import Link from "next/link";
+import GuideCta from "../../components/GuideCta";
+import { GUIDE_CTA_TARGETS } from "../../components/guide-cta-targets";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 
 const CALENDAR_GUIDE_TEXT_TRANSLATIONS = {
@@ -191,6 +193,8 @@ export default function CalendarGuidePage() {
           </article>
         ))}
       </section>
+
+      <GuideCta target={GUIDE_CTA_TARGETS["/calendar/guide"]} />
 
       <nav className="cd-chip-wrap" aria-label="운세 달력 가이드 관련 링크">
         <Link href="/today" className="cd-chip">오늘의 운세</Link>
