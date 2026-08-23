@@ -5852,6 +5852,44 @@
       "kzpuejo8": "7일 회복 루틴",
       "kzqvnuoc": "현재 상황에서의 의미",
       "kzr8vqho": "입력된 출생정보 안에서 보이는 흐름만 읽습니다."
+    },
+    "fortuneTeaHouseDebugPanel": {
+      "k1lcnd8v": "있음",
+      "k1ynotxc": "없음",
+      "kn1nriyo": "운명의 찻집 개발용 상태 패널"
+    },
+    "spriteCrop": {
+      "kb8qgueb": "이미지를 불러오지 못했어요."
+    },
+    "tarotCardBack": {
+      "kccv0ato": "아직 공개되지 않은 연이 타로 카드"
+    },
+    "tarotDebugPage": {
+      "kfxgeebk": "운명의 찻집 타로 아틀라스 검증",
+      "kjnpzpcs": "카드별 crop 결과",
+      "kn8fbxup": "원본 매핑 시트",
+      "atlasMeta": "{file} · 1122 x 1402 · 22 cards"
+    },
+    "teaCupDebugPage": {
+      "kdd0afjz": "이미지를 불러오지 못했습니다.",
+      "kjabnmtv": "운명의 찻집 찻잔 crop 검증",
+      "kkdt8eds": "찻잔별 crop 결과",
+      "kppjaxid": "찻잔 후보 원본 이미지"
+    },
+    "teaHouseCTA": {
+      "ktg9i3ix": "찻잔 상담을 준비하는 연이",
+      "kxau4l8n": "연이가 찻물을 데우는 밤"
+    },
+    "tenGodDebugPage": {
+      "k4cd8sdg": "운명의 찻집 십성 검증",
+      "kz5lymhe": "십성별 상징 카드",
+      "atlasMeta": "{file} atlas crop · 5열 x 2행 상징 이미지"
+    },
+    "yeoniDialogueActor": {
+      "kfqwcn17": "달빛 찻집 상담사"
+    },
+    "teaCupVisual": {
+      "cupAlt": "{name} 찻잔"
     }
   }
 }

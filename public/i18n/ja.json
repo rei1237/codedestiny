@@ -12422,6 +12422,44 @@
       "kzpuejo8": "7日 回復ルーティン",
       "kzqvnuoc": "今の状況における意味",
       "kzr8vqho": "入力された出生情報の中で見える流れだけを読みます。"
+    },
+    "fortuneTeaHouseDebugPanel": {
+      "k1lcnd8v": "あり",
+      "k1ynotxc": "なし",
+      "kn1nriyo": "運命の茶館 開発用ステートパネル"
+    },
+    "spriteCrop": {
+      "kb8qgueb": "画像を読み込めませんでした。"
+    },
+    "tarotCardBack": {
+      "kccv0ato": "まだ公開されていないヨニのタロットカード"
+    },
+    "tarotDebugPage": {
+      "kfxgeebk": "運命の茶館 タロットアトラスの検証",
+      "kjnpzpcs": "カードごとの crop 結果",
+      "kn8fbxup": "元のマッピングシート",
+      "atlasMeta": "{file} · 1122 x 1402 · 22 cards"
+    },
+    "teaCupDebugPage": {
+      "kdd0afjz": "画像を読み込めませんでした。",
+      "kjabnmtv": "運命の茶館 茶碗 crop の検証",
+      "kkdt8eds": "茶碗ごとの crop 結果",
+      "kppjaxid": "茶碗候補の元画像"
+    },
+    "teaHouseCTA": {
+      "ktg9i3ix": "茶碗の鑑定を準備するヨニ",
+      "kxau4l8n": "ヨニがお湯をあたためる夜"
+    },
+    "tenGodDebugPage": {
+      "k4cd8sdg": "運命の茶館 十神の検証",
+      "kz5lymhe": "十神ごとの象徴カード",
+      "atlasMeta": "{file} atlas crop · 5列 x 2行 の象徴画像"
+    },
+    "yeoniDialogueActor": {
+      "kfqwcn17": "月あかりの茶館の相談役"
+    },
+    "teaCupVisual": {
+      "cupAlt": "{name} の茶碗"
     }
   }
 }

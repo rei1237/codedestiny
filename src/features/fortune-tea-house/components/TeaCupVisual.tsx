@@ -4,6 +4,7 @@ import type { TeaHouseCup } from "../data/teaCups";
 import { getTeaCupSprite, type TeaCupSpriteState } from "../data/teaCupSpriteMap";
 import SpriteCrop from "./SpriteCrop";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaCupVisualProps = {
   cup: Pick<TeaHouseCup, "id" | "name" | "topic" | "accent" | "particleTone">;
@@ -13,7 +14,13 @@ type TeaCupVisualProps = {
   decorative?: boolean;
 };
 
+/** 화면에 보이는 한국어 원문. {name} 은 찻잔 이름으로 치환된다 — 모든 로케일에서 그대로 둘 것. */
+const KO = {
+  cupAlt: "{name} 찻잔",
+};
+
 export default function TeaCupVisual({ cup, state = "normal", size = "menu", className = "", decorative = false }: TeaCupVisualProps) {
+  const copy = useTeaHouseCopy("teaCupVisual", KO);
   const crop = getTeaCupSprite(cup.id, state);
 
   return (
@@ -38,7 +45,7 @@ export default function TeaCupVisual({ cup, state = "normal", size = "menu", cla
         y={crop.y}
         width={crop.width}
         height={crop.height}
-        alt={decorative ? "" : `${cup.name} 찻잔`}
+        alt={decorative ? "" : copy.cupAlt.replace("{name}", cup.name)}
         fallback={
           <span className={styles.teaCupVisualFallback}>
             <strong>{cup.name}</strong>
