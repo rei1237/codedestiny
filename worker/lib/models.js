@@ -1545,6 +1545,64 @@ humanDesignInterpretationSchema.index(
 );
 humanDesignInterpretationSchema.index({ userId: 1, createdAt: -1 });
 
+// 휴먼 디자인 프리미엄 리포트(human-design-report, 100코인 = ₩10,000) — 회당 결제 산출물.
+//
+// 🔴 위의 humanDesignInterpretations 를 늘려 쓰지 않는다. 그쪽은 "차트와 같은 결제로 열리던
+//    10섹션 해석" 이라는 다른 계약이고 summary 가 4,000자로 묶여 있으며 웨이브 클레임을 걸
+//    자리(lock)가 없다. 기존 결제자 문서를 새 형식과 한 컬렉션에 섞으면 읽기 경로가 두 형식을
+//    분기해야 한다.
+//
+// 🔴 회당 결제다. unlock 으로 바꾸지 말 것 — 그러면 1회 결제로 모든 출생 데이터의 리포트가
+//    열린다. 같은 차트의 재열람은 reportKey 문서가 영수증 역할을 한다.
+const humanDesignReportSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 200, index: true },
+  userId: { type: String, required: true, trim: true, maxlength: 64, index: true },
+  profileId: { type: String, default: "", trim: true, maxlength: 120 },
+
+  // 재생성 금지 키: `${inputHash}:${locale}:${HD_REPORT_VERSION}`.
+  // 🔴 같은 차트·같은 로케일·같은 계약이면 Gemini 를 다시 부르지 않는다(요구 30).
+  reportKey: { type: String, required: true, trim: true, maxlength: 220 },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
+  calculationId: { type: String, default: "", trim: true, maxlength: 160 },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80 },
+  calculationVersion: { type: String, default: "", trim: true, maxlength: 40 },
+  contractVersion: { type: String, required: true, trim: true, maxlength: 60 },
+  locale: { type: String, enum: ["ko", "en"], required: true },
+
+  // 🔴 확정표와 허용 id 를 문서에 담는다. 웨이브마다 계산 문서를 다시 읽으면 LAX↔서울
+  //    왕복(1.3초)이 웨이브 수만큼 붙는다. 락 클레임 한 번이 문서 전체를 돌려주므로
+  //    이 필드가 있으면 웨이브당 DB 읽기가 1회로 끝난다.
+  basis: { type: mongoose.Schema.Types.Mixed, default: null },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  // [{ key, order, title, body, subsections, keyPoints, evidence, chars, status, attempts, issues }]
+  // 🔴 상한을 명시한다. life-book 이 상한 없이 두었다가 "update validator 가 안 돌아 조용히
+  //    통과했을 뿐 계약상 잘릴 수 있는 값" 이 된 전례가 있다(위 messages.content 주석).
+  sections: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  totalChars: { type: Number, default: 0, max: 200000 },
+  qualityIssues: { type: [String], default: [] },
+  degraded: { type: Boolean, default: false },
+
+  // 웨이브 클레임. { token, at } — at 이 stale 이면 다른 요청이 이어받는다.
+  lock: { type: mongoose.Schema.Types.Mixed, default: null },
+  waveCount: { type: Number, default: 0 },
+  providerCallCount: { type: Number, default: 0 },
+
+  accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true },
+  accessSource: { type: String, default: "", trim: true, maxlength: 40 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160 },
+  billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },
+  executionKey: { type: String, default: "", trim: true, maxlength: 180 },
+
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+  completedAt: { type: Date, default: null },
+}, { timestamps: true, collection: "humanDesignReports" });
+
+// 🔴 동일 차트 재생성 금지의 1차 방어선. 두 번째 /start 는 같은 문서로 수렴한다.
+humanDesignReportSchema.index({ userId: 1, reportKey: 1 }, { unique: true });
+humanDesignReportSchema.index({ userId: 1, idempotencyKey: 1 });
+humanDesignReportSchema.index({ userId: 1, createdAt: -1 });
+
 // Guardian Fortune usage is deliberately isolated from membership, monthly credit,
 // points, and pass entitlements. These schemas are declarations only; index creation
 // still follows the project's normal migration/operations process.
@@ -1777,6 +1835,8 @@ export const HumanDesignCalculation = mongoose.models.HumanDesignCalculation
   || mongoose.model("HumanDesignCalculation", humanDesignCalculationSchema);
 export const HumanDesignInterpretation = mongoose.models.HumanDesignInterpretation
   || mongoose.model("HumanDesignInterpretation", humanDesignInterpretationSchema);
+export const HumanDesignReport = mongoose.models.HumanDesignReport
+  || mongoose.model("HumanDesignReport", humanDesignReportSchema);
 export const GuardianFortuneGuestUsage = mongoose.models.GuardianFortuneGuestUsage
   || mongoose.model("GuardianFortuneGuestUsage", guardianFortuneGuestUsageSchema);
 export const GuardianFortuneDailyUsage = mongoose.models.GuardianFortuneDailyUsage

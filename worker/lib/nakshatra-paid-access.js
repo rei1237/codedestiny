@@ -93,7 +93,7 @@ async function findMonthlyLedger(env, userId, featureKey, requestId) {
  *
  * @param {object} env
  * @param {{ userId:string, featureKey:string, coinPrice:number, requestId:string }} input
- * @returns {Promise<{proven:(boolean|null), source:string, reason:string}>}
+ * @returns {Promise<{proven:(boolean|null), source:string, reason:string, transactionId?:string}>}
  *   proven === true  : 증빙됨
  *   proven === false : 증빙 못 찾음
  *   proven === null  : 🔴 판단 보류(DB 일시 장애). 절대 402 로 바꾸지 말 것 — 503 이다.
@@ -108,8 +108,13 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
     await connectDb(env);
 
     // 1) 단건결제
-    if (await withMongoRetry(env, () => findPaidPayment(uid, key, rid))) {
-      return { proven: true, source: "payment", reason: "" };
+    // 🔴 transactionId 는 **가산 필드**다. 생성이 실패했을 때 환불(failServiceExecution)의
+    //    sourceTransactionId 를 채우려면 어떤 기록으로 증빙됐는지 알아야 하는데, 예전에는
+    //    이미 조회한 문서를 버리고 boolean 만 돌려줬다. 기존 호출자는 proven/source/reason
+    //    셋만 읽으므로 이 추가는 무해하다.
+    const payment = await withMongoRetry(env, () => findPaidPayment(uid, key, rid));
+    if (payment) {
+      return { proven: true, source: "payment", reason: "", transactionId: clean(payment?._id, 120) };
     }
 
     // 2) 코인 / 3) 월정석 — 같은 컬렉션에서 accessType 으로 갈린다.
@@ -120,6 +125,7 @@ export async function verifyPerUsePayment(env, { userId, featureKey, coinPrice =
         proven: true,
         source: accessType === "membership_credit" ? "monthly" : "coin",
         reason: "",
+        transactionId: clean(deduction?._id, 120),
       };
     }
     if (await withMongoRetry(env, () => findMonthlyLedger(env, uid, key, rid))) {
