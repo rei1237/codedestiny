@@ -202,20 +202,12 @@ const xRobotsNoindexHeaderPatterns = [
   "/premium/*",
   "/premium-reports",
   "/premium-reports/*",
-  "/saju/destiny-bias",
-  "/saju/destiny-bias/*",
-  "/saju/love-simulation",
-  "/saju/love-simulation/*",
   "/saju-fpti",
   "/saju-fpti/*",
-  "/saju-guardian",
-  "/saju-guardian/*",
   "/saju-picture",
   "/saju-picture/*",
   "/sukuyo/calendar",
   "/sukuyo/calendar/*",
-  "/tarot/healing",
-  "/tarot/healing/*",
   "/404",
   "/500",
   "/blog",
@@ -232,10 +224,9 @@ const xRobotsNoindexHeaderPatterns = [
   "/oracle/juyuk/*",
   "/oracle/hwatu",
   "/oracle/hwatu/*",
-  // 크롤러 가시 텍스트가 124~1,033자뿐인 인터랙티브 도구·게임 화면.
-  // canonical/robots meta 없이 홈 타일에서 직접 링크되던 것들이다.
-  "/neo-operation-room",
-  "/neo-operation-room/*",
+  // 크롤러 가시 텍스트가 124~1,033자뿐인 인터랙티브 게임 화면.
+  // (같은 사유로 묶여 있던 /neo-operation-room 은 2026-08-24 에 본문을 서버 렌더로 바꿔
+  //  색인 대상으로 되돌렸다 — 여기 남은 것은 여전히 얇은 화면뿐이다.)
   "/tadagochi",
   "/tadagochi/*",
   "/blood-type-app.html",
@@ -317,7 +308,8 @@ const sitemapForbiddenPrefixes = [
   "/results",
   "/signup",
   "/success",
-  "/tarot/healing",
+  // `/tarot/healing` 은 2026-08-24 에 여기서 뺐다 — 사적·액션 라우트가 아니라 "본문이 얇다"는
+  // 이유로 섞여 있던 항목이었고, 그 본문을 서버에서 렌더하도록 고쳐 색인 대상으로 되돌렸다.
   "/oracle/sikojen-povailu",
 ];
 
