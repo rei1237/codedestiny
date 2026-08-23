@@ -8,6 +8,7 @@ import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import { fortuneTeaHouseAssets } from "../data/assets";
 import {
   getYeoniSpriteFrame,
+  yeoniMoodFrameMap,
   yeoniSpriteSheets,
   type YeoniMood,
   type YeoniSpriteFrameId,
@@ -20,7 +21,6 @@ type YeoniDialogueActorProps = {
   className?: string;
   compact?: boolean;
   priority?: boolean;
-  cueText?: string;
 };
 
 export default function YeoniDialogueActor({
@@ -29,11 +29,10 @@ export default function YeoniDialogueActor({
   className = "",
   compact = false,
   priority = false,
-  cueText = "",
 }: YeoniDialogueActorProps) {
   const spriteGate = useSpritePlaybackGate<HTMLDivElement>();
   const [failedSheets, setFailedSheets] = useState<Record<string, boolean>>({});
-  const visual = useMemo(() => pickYeoniExpression(cueText, mood, isSpeaking), [cueText, isSpeaking, mood]);
+  const visual = useMemo(() => pickYeoniExpression(mood, isSpeaking), [isSpeaking, mood]);
   const activeFrame = visual.kind === "sprite" ? getYeoniSpriteFrame(visual.frameId) : null;
   const activeSheet = activeFrame ? yeoniSpriteSheets[activeFrame.sheet] : null;
   const hasFailed = activeFrame ? failedSheets[activeFrame.sheet] : false;
@@ -94,21 +93,18 @@ export default function YeoniDialogueActor({
 
 type YeoniActorVisual = { kind: "bust" } | { kind: "sprite"; frameId: YeoniSpriteFrameId };
 
-function pickYeoniExpression(cueText: string, mood: YeoniMood, isSpeaking: boolean): YeoniActorVisual {
-  const text = cueText.replace(/\s+/g, " ");
-  if (!isSpeaking || text.length < 1) return { kind: "bust" };
-  if (/마무리|다음 한 걸음|한 걸음|오늘은 여기|닫기|정리해/.test(text)) return { kind: "sprite", frameId: "closing-idle" };
-  if (/금전|돈|현실|사업|진로|위기|이별|정리|역방향|정방향|단정|두려움/.test(text)) {
-    return { kind: "sprite", frameId: "serious-idle" };
-  }
-  if (/괜찮|안심|위로|회복|자존감|덜 아프|기다려|기다릴|천천히|다독/.test(text)) {
-    return { kind: "sprite", frameId: "comfort-idle" };
-  }
-  if (/꿀|설렘|복숭아|새로운|처음|살짝|웃|못 들은/.test(text)) return { kind: "sprite", frameId: "playful-idle" };
-  if (/놀라|문득|아,|작게/.test(text)) return { kind: "sprite", frameId: "surprised-talk" };
-  if (/질문|고민|마음|향|결|읽|선택|카드|방향|찻잔|말 속|흐름|비추/.test(text)) {
-    return { kind: "sprite", frameId: mood === "serious" ? "serious-idle" : "thinking-talk" };
-  }
-  if (/어서|맞이|환영|문이|들어|찻집|달빛/.test(text)) return { kind: "sprite", frameId: "welcome-idle" };
-  return { kind: "bust" };
+/**
+ * 표정은 데이터가 정한 mood 로만 결정한다.
+ *
+ * 🔴 예전에는 대사에 한국어 키워드가 있는지로 골랐다(위로·안심 계열이면 comfort 처럼).
+ * 두 가지가 잘못이었다. 첫째, 표정은 연출 의도인데 그것을 문장에서 되추측했다.
+ * 둘째, mood 를 필수 인자로 받고도 한 분기에서만 참조하고 사실상 버렸다 —
+ * 대사가 로케일화되면 어떤 키워드도 안 걸려 전부 bust 로 주저앉는다.
+ *
+ * yeoniMoodFrameMap 은 이 목적으로 이미 만들어져 있었는데 아무도 쓰지 않았다.
+ */
+function pickYeoniExpression(mood: YeoniMood, isSpeaking: boolean): YeoniActorVisual {
+  if (!isSpeaking) return { kind: "bust" };
+  // 프레임 순환이 없는 화면이라, 말하는 자세의 대표 프레임 하나를 결정론적으로 고른다.
+  return { kind: "sprite", frameId: yeoniMoodFrameMap[mood].speaking[0] };
 }

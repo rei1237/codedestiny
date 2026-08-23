@@ -4,7 +4,7 @@ import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import { talkingPigYeoniFrameCrops, talkingPigYeoniFrames } from "../data/assets";
-import type { YeoniMood } from "../data/yeoniSprites";
+import { pigMoodFrameMap, type PigExpressionId, type YeoniMood } from "../data/yeoniSprites";
 import styles from "../styles/fortune-tea-house.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
@@ -30,9 +30,10 @@ const pigExpressionFrames = {
 } as const;
 
 type TalkingPigYeoniProps = {
-  cueText?: string;
   isSpeaking?: boolean;
   mood?: YeoniMood;
+  /** mood 로는 모자라는 한 줄만 작가가 프레임을 직접 지정한다(예: 문을 여는 장면). */
+  frame?: PigExpressionId;
 };
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
@@ -43,12 +44,12 @@ const KO = {
   pigName: "꽃돼지?",
 };
 
-export default function TalkingPigYeoni({ cueText = "", isSpeaking = true, mood }: TalkingPigYeoniProps) {
+export default function TalkingPigYeoni({ isSpeaking = true, mood, frame }: TalkingPigYeoniProps) {
   const copy = useTeaHouseCopy("talkingPig", KO);
   const spriteGate = useSpritePlaybackGate<HTMLDivElement>();
   const [failed, setFailed] = useState(false);
   const [shouldWarmFrames, setShouldWarmFrames] = useState(false);
-  const activeFrame = useMemo(() => pickPigExpressionFrame(cueText, mood, isSpeaking), [cueText, isSpeaking, mood]);
+  const activeFrame = useMemo(() => pickPigExpressionFrame(mood, isSpeaking, frame), [frame, isSpeaking, mood]);
   const warmFrames = useMemo(() => talkingPigYeoniFrames.filter((frame) => frame !== activeFrame.src), [activeFrame.src]);
 
   useEffect(() => {
@@ -123,13 +124,19 @@ export default function TalkingPigYeoni({ cueText = "", isSpeaking = true, mood 
   );
 }
 
-function pickPigExpressionFrame(cueText: string, mood?: YeoniMood, isSpeaking = true) {
-  const text = cueText.replace(/\s+/g, " ");
+/**
+ * 표정은 데이터가 정한 mood 로만 결정한다.
+ *
+ * 🔴 예전에는 mood 가 없으면 대사의 한국어 키워드로 폴백했다(꿀 이야기면 honey 처럼).
+ * 표정은 연출 의도인데 그것을 문장에서 되추측한 것이고, 대사가 로케일화되면 어떤
+ * 키워드도 안 걸려 전부 welcome 으로 주저앉는다.
+ *
+ * 우선순위: frame 오버라이드 → mood → (말하지 않는 중이면) welcome.
+ * mood 는 판별 유니언 타입이 대사 줄에 강제하고, 정적 가드가 재발을 막는다.
+ */
+function pickPigExpressionFrame(mood: YeoniMood | undefined, isSpeaking: boolean, frame?: PigExpressionId) {
   if (!isSpeaking) return pigExpressionFrames.welcome;
-  if (mood === "playful" || /꿀|달고/.test(text)) return pigExpressionFrames.honey;
-  if (mood === "comfort" || /괜찮|안심|덜 아프|기다/.test(text)) return pigExpressionFrames.comfort;
-  if (mood === "thinking" || /향|마음|질문|선택|망설/.test(text)) return pigExpressionFrames.thinking;
-  if (mood === "surprised" || /놀랐|처음/.test(text)) return pigExpressionFrames.surprised;
-  if (/문|종소리|딸랑|열/.test(text)) return pigExpressionFrames.doorway;
+  if (frame) return pigExpressionFrames[frame];
+  if (mood) return pigExpressionFrames[pigMoodFrameMap[mood]];
   return pigExpressionFrames.welcome;
 }

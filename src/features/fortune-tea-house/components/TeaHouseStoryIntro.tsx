@@ -52,7 +52,7 @@ export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabe
     <section className={styles.storyScene} aria-labelledby={`${currentStep.stage}Title`}>
       <div className={styles.storyVisual} data-visual={currentStep.visual}>
         {currentStep.visual === "pig" ? (
-          <TalkingPigYeoni cueText={currentStep.text} isSpeaking={currentStep.speaker === "꽃돼지?"} mood={currentStep.mood} />
+          <TalkingPigYeoni isSpeaking={currentStep.speaker === "꽃돼지?"} mood={currentStep.mood} frame={currentStep.pigFrame} />
         ) : (
           <div className={styles.teaHouseDoor}>
             <picture className={styles.doorImage}>

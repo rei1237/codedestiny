@@ -3808,7 +3808,30 @@ function _dfHashText(input) {
   return (hash >>> 0);
 }
 
-function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label) {
+/**
+ * 결과 화면의 꽃 그림.
+ *
+ * 정본은 `js/services/destiny-flower-art.js`(계열 12종 × 종별 시드)이고, 아래 본문은
+ * 그 모듈이 아직 안 올라왔거나 예외를 던졌을 때만 쓰는 폴백이다 — 유료 결과 화면이
+ * 빈 이미지가 되면 안 되므로 지우지 않는다. 폴백은 소스 4종에 따라 타원 꽃잎 개수만
+ * 바꾸는 제네릭 그림이라 종을 반영하지 못한다.
+ */
+function _dfBuildFlowerSvgMarkup(source, primaryHex, secondaryHex, seed, label, flowerId, particleType) {
+  if (window.CDFlowerArt && typeof window.CDFlowerArt.buildFlowerSvg === 'function') {
+    try {
+      return window.CDFlowerArt.buildFlowerSvg({
+        flowerId: flowerId,
+        source: source,
+        primaryHex: primaryHex,
+        secondaryHex: secondaryHex,
+        seed: seed,
+        particleType: particleType,
+        label: label
+      });
+    } catch (err) {
+      console.warn('[DestinyFlower] 아트 모듈 실패, 기본 그림으로 대체:', err);
+    }
+  }
   var primary = _dfNormalizeHex6(primaryHex, '#f472b6');
   var secondary = _dfNormalizeHex6(secondaryHex, '#22d3ee');
   var accent = _dfMixHex(primary, secondary, 0.5);
@@ -3903,7 +3926,10 @@ function _dfBuildFlowerDataUri(selection, sourceOverride) {
     (selection && selection.matched && selection.matched.narrative) || ''
   ].join('|');
   var seed = _dfHashText(key);
-  var svg = _dfBuildFlowerSvgMarkup(source, primary, secondary, seed, flower.name || 'destiny flower');
+  var svg = _dfBuildFlowerSvgMarkup(
+    source, primary, secondary, seed, flower.name || 'destiny flower',
+    flower.id || '', flower.particle_type || ''
+  );
   return 'data:image/svg+xml;charset=UTF-8,' + encodeURIComponent(svg);
 }
 
@@ -3921,6 +3947,12 @@ function _dfApplyGeneratedFlowerImage(imageEl, selection, sourceOverride) {
       imageEl.classList.remove('io-lazy-img');
     }
     imageEl.setAttribute('data-df-generated', '1');
+    // 꽃이 바뀔 때마다 한 번 피어나는 연출. 클래스를 뗐다 붙여야 애니메이션이 다시 돈다.
+    if (imageEl.classList) {
+      imageEl.classList.remove('is-blooming');
+      void imageEl.offsetWidth;
+      imageEl.classList.add('is-blooming');
+    }
   } catch (e) {
     console.warn('[DestinyFlower] 동적 SVG 생성 실패:', e);
   }
@@ -6127,14 +6159,23 @@ function _dfHasReadySourceData(source, payload) {
     var saju = data.saju || {};
     var sajuDomain = (data.domains && data.domains.saju) || {};
     var analysis = data.analysis || {};
+    // 🔴 스냅샷 생산자가 실제로 쓰는 키는 `dayStem` 이다(js/saju-engine.js 의
+    // __destinyFlowerSajuSnapshot). dayMaster/day_master/ilgan 만 보던 탓에 이 판정이
+    // 항상 false 였고, 그래서 사주 꽃이 자동으로 뜨지 않았다 — 순차 해금이라 점성술·
+    // 자미두수·숙요까지 전부 잠겨 "연동하기"를 누르는 것 말고는 여는 길이 없었다.
+    // 같은 파일의 pickSajuSnapshot/mergePayload 는 처음부터 올바른 키를 읽고 있었다.
+    // 기존 키는 다른 생산자가 생길 여지를 두고 그대로 남긴다.
     var dayMaster = String(
       saju.dayMaster
       || saju.day_master
       || saju.ilgan
+      || saju.dayStem
       || sajuDomain.day_master
       || sajuDomain.dayMaster
       || analysis.day_master
       || analysis.dayMaster
+      || analysis.dayStem
+      || data.dayStem
       || ''
     ).trim();
 
@@ -6145,7 +6186,16 @@ function _dfHasReadySourceData(source, payload) {
       || String(saju.hourPillar || sajuDomain.hour_pillar || '').trim()
     );
 
-    var weights = analysis.elementalWeights || analysis.elements || saju.elementalWeights || saju.elements || {};
+    // 🔴 `elementalWeights` 는 이 레포에서 **읽기 1곳·쓰기 0곳**이었다(오타로 굳은 키).
+    // 생산자와 pickSajuSnapshot 이 쓰는 이름은 `elementWeights` 다.
+    var weights = analysis.elementWeights
+      || analysis.elementalWeights
+      || analysis.elements
+      || saju.elementWeights
+      || saju.elementalWeights
+      || saju.elements
+      || data.elementWeights
+      || {};
     var values = ['wood', 'fire', 'earth', 'metal', 'water'].map(function(key) {
       return Number(weights && weights[key]);
     }).filter(function(v) {

@@ -154,6 +154,34 @@ export const yeoniMoodFrameMap: Record<
   },
 };
 
+/**
+ * 꽃돼지(변신 전 연이)의 표정 크롭. 연이 스프라이트와 다른 자산이라 별도 표가 필요하다.
+ *
+ * 🔴 이 표가 있는 이유: 예전에는 대사에 한국어 키워드가 있는지로 표정을 골랐다
+ * (`/꿀|달고/` → honey 처럼). 표정은 연출 의도인데 그것을 문장에서 되추측한 것이고,
+ * 대사가 로케일화되는 순간 어떤 키워드도 안 걸려 전부 기본 표정으로 주저앉는다.
+ * 표정은 데이터가 정한 mood 로만 결정한다.
+ *
+ * 크롭이 6종, mood 가 8종이라 일부는 합쳐진다. 근거는 크롭의 label 이다:
+ * gentle→comfort("다정하게 안심시키는"), serious→thinking("마음의 향을 읽는"),
+ * closing→surprised("작게 손을 흔드는" = 작별 인사).
+ *
+ * 🔴 `doorway`("찻집 문을 여는")를 가리키는 mood 는 없다. mood 를 늘리는 대신
+ * 스텝의 `pigFrame` 오버라이드로 그 한 줄만 작가가 직접 지정한다.
+ */
+export type PigExpressionId = "welcome" | "honey" | "thinking" | "comfort" | "surprised" | "doorway";
+
+export const pigMoodFrameMap: Record<YeoniMood, PigExpressionId> = {
+  welcome: "welcome",
+  gentle: "comfort",
+  serious: "thinking",
+  thinking: "thinking",
+  comfort: "comfort",
+  playful: "honey",
+  surprised: "surprised",
+  closing: "surprised",
+};
+
 export function getYeoniSpriteFrame(frameId: YeoniSpriteFrameId) {
   return frameById[frameId];
 }

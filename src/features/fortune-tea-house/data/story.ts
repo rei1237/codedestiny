@@ -1,6 +1,6 @@
 import { cmsLines, cmsText } from "@/lib/cms/build-text";
 
-import type { YeoniMood } from "./yeoniSprites";
+import type { PigExpressionId, YeoniMood } from "./yeoniSprites";
 
 export type TeaHouseStage =
   | "landing"
@@ -23,15 +23,37 @@ export type TeaHouseStage =
 export type TeaHouseSpeaker = "narration" | "꽃돼지?" | "연이";
 export type TeaHouseVisual = "pig" | "transform" | "yeoni" | "tea-house";
 
-export type TeaHouseStoryStep = {
+type TeaHouseStoryStepBase = {
   id: string;
   stage: TeaHouseStage;
-  speaker?: TeaHouseSpeaker;
   text: string;
   visual: TeaHouseVisual;
-  mood?: YeoniMood;
   cta?: string;
 };
+
+/**
+ * 🔴 마스코트가 말하는 줄은 `mood` 가 필수다.
+ *
+ * 예전에는 선택 항목이었고, 비어 있으면 컴포넌트가 **대사의 한국어 키워드로 표정을
+ * 되추측**했다(꿀 이야기면 honey, 위로하는 말이면 comfort 처럼). 두 가지가 잘못이었다 —
+ * 표정은 연출 의도인데 문장에서 역산했고, 대사가 로케일화되는 순간 어떤 키워드도 안 걸려
+ * 모든 줄이 기본 표정으로 주저앉는다. 에러도 안 나고 테스트도 안 깨진다.
+ *
+ * 나레이션은 마스코트를 그리지 않으므로 mood 를 갖지 않는다(`never` 로 막아,
+ * 붙여도 의미가 없다는 것이 타입에 드러나게 한다).
+ */
+export type TeaHouseStoryStep =
+  | (TeaHouseStoryStepBase & {
+      speaker?: "narration";
+      mood?: never;
+      pigFrame?: never;
+    })
+  | (TeaHouseStoryStepBase & {
+      speaker: Exclude<TeaHouseSpeaker, "narration">;
+      mood: YeoniMood;
+      /** mood 로는 모자라는 한 줄만 프레임을 직접 지정한다(예: 찻집 문을 여는 장면). */
+      pigFrame?: PigExpressionId;
+    });
 
 export const teaHouseStageOrder: TeaHouseStage[] = [
   "landing",
@@ -182,6 +204,7 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "pig-2",
     stage: "pigIntro",
     speaker: "꽃돼지?",
+    mood: "welcome",
     visual: "pig",
     text: "드디어 왔네.\n오늘은 그냥 지나칠 수 없는 마음이구나.\n여기는 오래 품은 질문을 찻잔 위에 내려놓고, 그 향과 빛으로 다음 길을 읽는 운명의 찻집이야.",
   },
@@ -189,6 +212,7 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "pig-3",
     stage: "pigIntro",
     speaker: "꽃돼지?",
+    mood: "comfort",
     visual: "pig",
     text: "놀랐어? 괜찮아.\n여기 처음 오는 사람들은 다들 그런 표정을 지어.",
   },
@@ -196,6 +220,8 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "pig-4",
     stage: "pigIntro",
     speaker: "꽃돼지?",
+    mood: "gentle",
+    pigFrame: "doorway",
     visual: "pig",
     text: "운명의 찻집은 아무 때나 열리지 않아.\n마음속에 오래 머문 질문이 있고, 그 질문을 더는 혼자 들고 있기 어려울 때만 문이 열리거든.",
   },
@@ -203,6 +229,7 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "pig-5",
     stage: "pigIntro",
     speaker: "꽃돼지?",
+    mood: "thinking",
     visual: "pig",
     text: "네 마음에서는 여러 향이 나.\n조금 달고, 조금 쓰고, 조금은 참고 있는 향.\n연이는 그 결을 찻잔과 카드, 사주와 인연의 흐름에 비추어 조심스럽게 읽어.",
   },
@@ -210,6 +237,7 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "pig-6",
     stage: "pigIntro",
     speaker: "꽃돼지?",
+    mood: "thinking",
     visual: "pig",
     text: "아마 누군가를 생각하고 있거나,\n중요한 선택 앞에서 오래 망설이고 있겠지.",
   },
@@ -217,6 +245,7 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "pig-7",
     stage: "pigIntro",
     speaker: "꽃돼지?",
+    mood: "comfort",
     visual: "pig",
     text: "괜찮아. 여기서는 잘 말하지 못해도 돼.\n마음은 말보다 먼저 향으로 도착하니까.",
   },
@@ -238,6 +267,7 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "door-3",
     stage: "pigIntro",
     speaker: "꽃돼지?",
+    mood: "gentle",
     visual: "pig",
     text: "여긴 네가 잊고 있던 마음을 잠깐 꺼내놓는 곳이야.",
   },
@@ -245,6 +275,7 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "door-4",
     stage: "pigIntro",
     speaker: "꽃돼지?",
+    mood: "playful",
     visual: "pig",
     text: "그건 곧 알게 될 거야.",
     cta: "변신 보기",
@@ -260,6 +291,7 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "transform-2",
     stage: "transform",
     speaker: "꽃돼지?",
+    mood: "playful",
     visual: "transform",
     text: "손님을 제대로 맞이할 때는,\n나도 조금 다른 모습이 필요하거든.",
   },
@@ -267,6 +299,7 @@ export const teaHouseStorySteps: TeaHouseStoryStep[] = [
     id: "transform-3",
     stage: "transform",
     speaker: "꽃돼지?",
+    mood: "gentle",
     visual: "transform",
     text: "놀라지 마.\n처음부터 너를 기다리고 있었으니까.",
     cta: "연이를 만난다",

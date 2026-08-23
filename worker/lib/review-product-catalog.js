@@ -145,9 +145,12 @@ export const REVIEW_PRODUCTS = Object.freeze([
   {
     productId: "human-design",
     name: "휴먼 디자인",
-    summary: "출생 데이터로 계산하는 바디그래프와 개인 해석",
+    summary: "무료 바디그래프와 프리미엄 전문 리포트",
     href: "/human-design",
+    // 🔴 차트는 2026-09 부터 무료다. 리뷰 자격은 실제로 돈을 낸 리포트에 걸어야 한다.
+    //    옛 키를 남기는 이유는 무료화 전에 차트를 결제한 사용자의 자격을 지키기 위해서다.
     featureKeys: Object.freeze([
+      "human-design-report",
       "human-design-chart",
     ]),
   },
