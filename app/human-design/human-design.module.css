@@ -1,19 +1,24 @@
 /* 휴먼 디자인 — 몰입형 화면.
  *
- * 🔴 전역 헤더·푸터를 붙이지 않는다(신규 기능 몰입형 기본). 자체 상단 뒤로가기와
- *    풀블리드 배경으로 화면을 채운다.
+ * 🔴 전역 헤더·푸터를 붙이지 않는다. 실제 스위치는 이 파일이 아니라
+ *    app/components/AppChrome.tsx 의 CHROMELESS_ROUTES 에 있는 "/human-design" 이다.
+ *    (이 주석만 있고 등록이 빠져 있던 것이 재설계 전의 실제 상태였다 — 헤더·푸터·모바일
+ *    탭바가 그대로 붙어 있었다. 주석을 근거로 삼지 말고 그 배열을 확인할 것.)
  * 🔴 표면·잉크·강조색을 이 파일에서 한 세트로 무조건부 선언한다. 배경만 어둡게 칠하고
  *    잉크는 스킴에 따라 뒤집히는 토큰을 쓰면 라이트 모드에서 대비가 무너진다.
  *    본문 대비는 어느 모드에서든 4.5:1 이상을 지킨다.
  * 🔴 연이/네오 분기(.neo-mode)를 새로 도입하지 않는다 — 이 화면은 자기 팔레트를 갖는다.
+ * 🔴 서체는 새로 들이지 않는다. --font-display / --font-body 는 styles/globals.css 가
+ *    선언하며 App Router 레이아웃이 그 파일을 임포트하므로 이 라우트에서도 살아 있다.
  */
 
 .shell {
   --hd-bg: #07061a;
   --hd-bg-glow: #140f33;
   --hd-panel: #13102a;
+  --hd-panel-raised: #191534;
   --hd-panel-soft: rgba(255, 255, 255, 0.05);
-  --hd-border: rgba(196, 181, 253, 0.24);
+  --hd-border: rgba(196, 181, 253, 0.22);
   --hd-border-strong: rgba(196, 181, 253, 0.46);
   --hd-ink: #f5f3ff;
   --hd-ink-dim: #c3bde2;
@@ -23,40 +28,126 @@
   --hd-mixed: #7dd3fc;
   --hd-danger: #ffb4b4;
 
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   min-height: 100dvh;
-  padding: max(1.25rem, env(safe-area-inset-top)) 1rem calc(2.5rem + env(safe-area-inset-bottom));
-  background:
-    radial-gradient(115% 78% at 50% -12%, var(--hd-bg-glow) 0%, transparent 62%),
-    var(--hd-bg);
+  padding: 0 1rem calc(3rem + env(safe-area-inset-bottom));
+  background: var(--hd-bg);
   color: var(--hd-ink);
+  font-family: var(--font-body);
+  /* 확대한 차트나 도킹 패널이 가로 스크롤을 만들지 않게 한다. */
+  overflow-x: clip;
+}
+
+/* 깊이감 레이어. 고정 배경이라 스크롤 중에 다시 그리지 않는다. */
+.aurora {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  background:
+    radial-gradient(72% 44% at 50% -6%, rgba(124, 92, 240, 0.28) 0%, transparent 64%),
+    radial-gradient(46% 32% at 8% 24%, rgba(125, 211, 252, 0.1) 0%, transparent 70%),
+    radial-gradient(52% 38% at 96% 62%, rgba(232, 213, 163, 0.09) 0%, transparent 72%),
+    var(--hd-bg);
+}
+
+/* ── 상단바 — 이탈 수단은 여기 하나 ────────────────────── */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 1240px;
+  margin: 0 auto;
+  padding: max(0.5rem, env(safe-area-inset-top)) 0 0.5rem;
+  background: linear-gradient(180deg, rgba(7, 6, 26, 0.94) 62%, rgba(7, 6, 26, 0));
+}
+
+.exit,
+.restart {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0 0.875rem;
+  border-radius: 999px;
+  border: 1px solid var(--hd-border);
+  background: rgba(19, 16, 42, 0.72);
+  color: var(--hd-ink-dim);
+  font-size: 0.875rem;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.exit:hover,
+.exit:focus-visible,
+.restart:hover,
+.restart:focus-visible {
+  color: var(--hd-ink);
+  border-color: var(--hd-border-strong);
 }
 
 .inner {
-  max-width: 1120px;
+  max-width: 1240px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.back {
-  align-self: flex-start;
-  min-height: 44px;
-  display: inline-flex;
+/* ── 첫 화면(결제 전) — 고스트 바디그래프 히어로 ─────────── */
+
+.hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1.75rem;
   align-items: center;
-  padding: 0 0.5rem;
+  padding-top: 0.5rem;
+}
+
+@media (min-width: 900px) {
+  .hero {
+    grid-template-columns: minmax(0, 0.95fr) minmax(0, 1.05fr);
+    gap: 2.5rem;
+    min-height: calc(100dvh - 7rem);
+  }
+}
+
+/* 🔴 차트가 쓸 수 있는 높이를 여기서 정하고, 폭은 BodyGraph 가 비율로 따라간다.
+   max-height 로 부모를 자르면 SVG 는 그대로 넘쳐 아래 글자를 덮는다(실측 결함). */
+.heroGraph {
+  --hd-stage-height: 46dvh;
+
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .heroGraph {
+    --hd-stage-height: calc(100dvh - 11rem);
+  }
+}
+
+.heroGhostNote {
+  margin: 0;
+  max-width: 34ch;
+  text-align: center;
+  font-size: 0.8125rem;
+  line-height: 1.6;
   color: var(--hd-ink-dim);
-  font-size: 0.875rem;
-  text-decoration: none;
+  word-break: keep-all;
 }
 
-.back:hover,
-.back:focus-visible {
-  color: var(--hd-ink);
-}
-
-.head {
+.heroPanel {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
@@ -72,37 +163,37 @@
 
 .title {
   margin: 0;
-  font-size: clamp(1.75rem, 5vw, 2.5rem);
-  font-weight: 700;
-  line-height: 1.25;
+  font-family: var(--font-display);
+  font-size: clamp(1.875rem, 4.6vw, 2.75rem);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
   color: var(--hd-ink);
+  word-break: keep-all;
 }
 
 .lede {
-  margin: 0;
+  margin: 0 0 0.75rem;
+  max-width: 46ch;
   font-size: 0.9375rem;
-  line-height: 1.65;
+  line-height: 1.7;
   color: var(--hd-ink-dim);
+  /* 한국어는 어절 단위로 끊는다 — 없으면 "분석" 같은 낱말이 줄바꿈에서 쪼개진다. */
+  word-break: keep-all;
 }
 
 /* ── 입력 폼 ──────────────────────────────────────────── */
 
-.formCard {
-  background: var(--hd-panel);
-  border: 1px solid var(--hd-border);
-  border-radius: 18px;
-  padding: 1.25rem;
+.formFields {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-width: 520px;
-}
-
-.formHeading {
-  margin: 0 0 0.25rem;
-  font-size: 1.0625rem;
-  font-weight: 700;
-  color: var(--hd-ink);
+  max-width: 480px;
+  padding: 1.125rem;
+  border-radius: 18px;
+  border: 1px solid var(--hd-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.015));
+  backdrop-filter: blur(8px);
 }
 
 .label {
@@ -119,7 +210,7 @@
   padding: 0 0.875rem;
   border-radius: 10px;
   border: 1px solid var(--hd-border);
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(7, 6, 26, 0.55);
   color: var(--hd-ink);
   width: 100%;
 }
@@ -195,6 +286,7 @@
 /* ── 계산 중 ──────────────────────────────────────────── */
 
 .pipeline {
+  margin-top: 12vh;
   background: var(--hd-panel);
   border: 1px solid var(--hd-border);
   border-radius: 18px;
@@ -203,6 +295,7 @@
 
 .pipelineHeading {
   margin: 0 0 0.75rem;
+  font-family: var(--font-display);
   font-size: 1rem;
   font-weight: 700;
   color: var(--hd-ink);
@@ -277,121 +370,407 @@
   color: var(--hd-accent-warm);
 }
 
-/* ── 결과 ─────────────────────────────────────────────── */
+/* ── 결과 — 차트 열(고정) + 단계 열(스크롤) ─────────────── */
 
-.summary {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 0.75rem;
-}
-
-.summaryCard {
-  background: var(--hd-panel);
-  border: 1px solid var(--hd-border);
-  border-radius: 14px;
-  padding: 0.875rem 1rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.25rem;
-}
-
-.summaryWide {
-  grid-column: 1 / -1;
-}
-
-.summaryLabel {
-  font-size: 0.6875rem;
-  font-weight: 700;
-  letter-spacing: 0.12em;
-  color: var(--hd-accent);
-}
-
-.summaryValue {
-  font-size: 1.0625rem;
-  font-weight: 700;
-  line-height: 1.35;
-  color: var(--hd-ink);
-}
-
-.summaryNote {
-  font-size: 0.8125rem;
-  color: var(--hd-ink-dim);
-}
-
-.graphRow {
+.result {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 1.25rem;
+  gap: 1.5rem;
   align-items: start;
 }
 
 @media (min-width: 900px) {
-  .graphRow {
-    grid-template-columns: minmax(0, 1.1fr) minmax(280px, 0.9fr);
+  .result {
+    grid-template-columns: minmax(0, 0.92fr) minmax(0, 1.08fr);
+    gap: 2.5rem;
+  }
+
+  /* 🔴 차트를 붙여 둔다 — 아래 단계를 읽는 내내 차트가 남아야 "목록에서 누른 것이
+     차트의 어디인지" 가 보인다. 상단바 높이만큼 내려서 겹치지 않게 한다. */
+  .resultGraph {
+    position: sticky;
+    top: 4.25rem;
   }
 }
 
-.side {
+/* 🔴 결과 화면의 모바일에서는 높이 상한을 두지 않는다. 상한을 두면 폭이 따라 줄어
+   게이트 번호가 5.7px 로 떨어진다(390px 실측). 폭을 다 쓰고 페이지를 스크롤하는 편이
+   기본 시야에서 훨씬 잘 읽힌다 — 그 이상은 확대가 맡는다. */
+.resultGraph {
+  min-width: 0;
+}
+
+@media (min-width: 900px) {
+  .resultGraph {
+    --hd-stage-height: calc(100dvh - 8rem);
+  }
+}
+
+.resultFlow {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 1.25rem;
+  min-width: 0;
+}
+
+/* ── ① 마이 디자인 ───────────────────────────────────── */
+
+.core {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.coreType {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 5.4vw, 3rem);
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.015em;
+  color: var(--hd-ink);
+  word-break: keep-all;
+}
+
+.coreGrid {
+  margin: 0.25rem 0 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 0.625rem;
+}
+
+.coreCell {
+  padding: 0.75rem 0.875rem;
+  border-radius: 14px;
+  border: 1px solid var(--hd-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.05), rgba(255, 255, 255, 0.014));
+}
+
+.coreLabel {
+  display: block;
+  margin: 0 0 0.25rem;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--hd-accent);
+}
+
+.coreValue {
+  margin: 0;
+  font-size: 1.0625rem;
+  font-weight: 700;
+  line-height: 1.35;
+  color: var(--hd-ink);
+  word-break: keep-all;
+}
+
+/* 숫자(프로파일·채널 번호)는 표시용 서체 + 고정폭 숫자로 또렷하게. */
+.coreNumeral {
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  letter-spacing: 0.02em;
+}
+
+.tally {
+  margin: 0.25rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+}
+
+.tally li {
+  display: flex;
+  align-items: baseline;
+  gap: 0.3125rem;
+}
+
+.tally strong {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 800;
+  font-variant-numeric: tabular-nums;
+  color: var(--hd-accent-warm);
+  line-height: 1;
+}
+
+.tally span {
+  font-size: 0.8125rem;
+  color: var(--hd-ink-dim);
 }
 
 .legend {
-  background: var(--hd-panel);
-  border: 1px solid var(--hd-border);
-  border-radius: 16px;
-  padding: 1rem 1.125rem;
   display: flex;
-  flex-direction: column;
-  gap: 0.5rem;
+  flex-wrap: wrap;
+  gap: 0.5rem 1rem;
 }
 
-.legendRow {
-  margin: 0;
-  display: flex;
+.legendItem {
+  display: inline-flex;
   align-items: center;
-  gap: 0.5rem;
-  font-size: 0.875rem;
-  color: var(--hd-ink);
+  gap: 0.4375rem;
+  font-size: 0.8125rem;
+  color: var(--hd-ink-dim);
 }
 
 .swatch {
-  width: 22px;
-  height: 5px;
+  width: 20px;
+  height: 4px;
   border-radius: 999px;
   display: inline-block;
+  flex: 0 0 auto;
 }
 
 .swatchPersonality { background: var(--hd-accent); }
 .swatchDesign { background: var(--hd-design); }
 .swatchMixed { background: var(--hd-mixed); }
 
-.legendCount {
-  margin: 0.25rem 0 0;
+/* ── 단계 이동 칩 ─────────────────────────────────────── */
+
+.jump {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  padding: 0.75rem 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.jumpChip {
+  min-height: 36px;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 0.75rem;
+  border-radius: 999px;
+  border: 1px solid var(--hd-border);
+  color: var(--hd-ink-dim);
   font-size: 0.8125rem;
-  line-height: 1.6;
+  text-decoration: none;
+}
+
+.jumpChip:hover,
+.jumpChip:focus-visible {
+  color: var(--hd-ink);
+  border-color: var(--hd-border-strong);
+  background: rgba(196, 181, 253, 0.12);
+}
+
+/* ── ②~⑩ 단계 블록 ──────────────────────────────────── */
+
+.block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+  /* sticky 상단바에 제목이 가리지 않도록 앵커 이동 지점을 내린다. */
+  scroll-margin-top: 4.5rem;
+  padding: 1.125rem 1.25rem;
+  border-radius: 18px;
+  border: 1px solid var(--hd-border);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.042), rgba(255, 255, 255, 0.012));
+}
+
+.blockHeading {
+  margin: 0;
+  font-size: 0.6875rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--hd-accent);
+}
+
+.blockLead {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.375rem;
+  font-weight: 700;
+  line-height: 1.3;
+  color: var(--hd-ink);
+  word-break: keep-all;
+}
+
+.blockBody {
+  margin: 0;
+  max-width: 62ch;
+  font-size: 0.9375rem;
+  line-height: 1.8;
+  color: var(--hd-ink-dim);
+  word-break: keep-all;
+}
+
+.blockEmpty {
+  margin: 0;
+  font-size: 0.9375rem;
   color: var(--hd-ink-dim);
 }
 
+.pairs {
+  margin: 0.25rem 0 0;
+  display: grid;
+  gap: 0.625rem;
+}
+
+.pairs > div {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.5rem 1rem;
+  padding-top: 0.625rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.pairs dt {
+  font-size: 0.8125rem;
+  color: var(--hd-ink-dim);
+}
+
+.pairs dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: right;
+  color: var(--hd-ink);
+}
+
+.pairNote {
+  display: block;
+  margin-top: 0.1875rem;
+  font-size: 0.75rem;
+  font-weight: 400;
+  font-variant-numeric: tabular-nums;
+  color: var(--hd-ink-dim);
+}
+
+/* ── 목록 행 — 누르면 차트에서 같은 것이 선택된다 ────────── */
+
+.rowList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.row {
+  width: 100%;
+  min-height: 46px;
+  display: grid;
+  grid-template-columns: 10px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 0.625rem;
+  padding: 0.375rem 0.5rem;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--hd-ink);
+  font-size: 0.875rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.row:hover,
+.row:focus-visible {
+  background: var(--hd-panel-soft);
+}
+
+.row[data-active="true"] {
+  background: rgba(196, 181, 253, 0.16);
+  box-shadow: inset 2px 0 0 var(--hd-accent);
+}
+
+.rowDot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  border: 1.5px solid var(--hd-undefined, rgba(190, 184, 224, 0.5));
+  background: transparent;
+}
+
+.rowDotOn {
+  border-color: var(--hd-accent);
+  background: var(--hd-accent);
+  box-shadow: 0 0 8px rgba(196, 181, 253, 0.55);
+}
+
+.rowName {
+  font-weight: 600;
+  color: var(--hd-ink);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rowState {
+  font-size: 0.8125rem;
+  color: var(--hd-ink-dim);
+}
+
+.rowCount {
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--hd-accent-warm);
+}
+
+/* ── 게이트 칩 ────────────────────────────────────────── */
+
+.gateGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+}
+
+.gateChip {
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  border: 1px solid var(--hd-border);
+  background: rgba(255, 255, 255, 0.04);
+  color: var(--hd-ink);
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+
+.gateChip:hover,
+.gateChip:focus-visible {
+  border-color: var(--hd-border-strong);
+  background: rgba(196, 181, 253, 0.16);
+}
+
+.gateChip[data-active="true"] {
+  border-color: var(--hd-accent-warm);
+  background: rgba(232, 213, 163, 0.2);
+  color: var(--hd-accent-warm);
+}
+
+/* ── 행성 활성 표 ─────────────────────────────────────── */
+
 .tables {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 1rem;
 }
 
 .table {
-  background: var(--hd-panel);
-  border: 1px solid var(--hd-border);
-  border-radius: 16px;
-  padding: 1rem 1.125rem;
+  min-width: 0;
 }
 
 .tableHeading {
-  margin: 0 0 0.625rem;
-  font-size: 0.875rem;
+  margin: 0 0 0.5rem;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.8125rem;
   font-weight: 700;
-  color: var(--hd-accent);
+  color: var(--hd-ink-dim);
 }
 
 .activationList {
@@ -406,12 +785,13 @@
   width: 100%;
   min-height: 44px;
   display: grid;
-  grid-template-columns: 1.75rem 1fr auto;
+  grid-template-columns: 1.75rem minmax(0, 1fr) auto;
   align-items: center;
   gap: 0.5rem;
-  padding: 0 0.25rem;
+  padding: 0 0.375rem;
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
   background: transparent;
   color: var(--hd-ink);
   font-size: 0.875rem;
@@ -424,6 +804,11 @@
   background: var(--hd-panel-soft);
 }
 
+.activationRow[data-active="true"] {
+  background: rgba(196, 181, 253, 0.16);
+  box-shadow: inset 2px 0 0 var(--hd-accent);
+}
+
 .activationGlyph {
   color: var(--hd-accent);
   font-size: 1rem;
@@ -431,39 +816,19 @@
 
 .activationName {
   color: var(--hd-ink-dim);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .activationCell {
+  font-family: var(--font-display);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
   color: var(--hd-ink);
 }
 
 /* ── AI 해석 ──────────────────────────────────────────── */
-
-.reading {
-  background: var(--hd-panel);
-  border: 1px solid var(--hd-border);
-  border-radius: 18px;
-  padding: 1.25rem;
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.readingHeading {
-  margin: 0;
-  font-size: 1.125rem;
-  font-weight: 700;
-  color: var(--hd-ink);
-}
-
-.readingBasis {
-  margin: 0;
-  font-size: 0.8125rem;
-  line-height: 1.6;
-  color: var(--hd-ink-dim);
-}
 
 .readingLoading {
   margin: 0;
@@ -502,20 +867,24 @@
 
 .readingSectionTitle {
   margin: 0;
-  font-size: 1rem;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
   font-weight: 700;
-  color: var(--hd-accent);
+  color: var(--hd-ink);
 }
 
 .readingParagraph {
   margin: 0;
-  font-size: 0.9375rem;
   /* 본문은 읽기 폭을 넘기지 않는다 — 넓은 화면에서 한 줄이 길어지면 눈이 줄을 잃는다. */
   max-width: 68ch;
+  font-size: 0.9375rem;
   line-height: 1.85;
   color: var(--hd-ink);
   white-space: pre-wrap;
+  word-break: keep-all;
 }
+
+/* ── 계산 근거 ────────────────────────────────────────── */
 
 .meta {
   border-top: 1px solid rgba(255, 255, 255, 0.08);
@@ -539,4 +908,23 @@
 .metaVersion {
   font-variant-numeric: tabular-nums;
   opacity: 0.75;
+}
+
+/* ── 등장 ─────────────────────────────────────────────── */
+
+/* 핵심 정보는 차트가 다 켜진 뒤에 들어온다(요구사항 10의 마지막 단계). */
+.core {
+  animation: hdCoreIn 620ms cubic-bezier(0.22, 1, 0.36, 1) both;
+  animation-delay: 1500ms;
+}
+
+@keyframes hdCoreIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .core {
+    animation: none;
+  }
 }
