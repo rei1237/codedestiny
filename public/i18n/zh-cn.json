@@ -11832,6 +11832,67 @@
       "tarotReadyEyebrow": "准备与塔罗相见",
       "tarotReadyTitle": "轮到下一个象徵浮上茶杯了",
       "tarotOpen": "展开塔罗牌"
+    },
+    "sukuyoResult": {
+      "calendar": {
+        "lunar": "农历",
+        "solar": "公历",
+        "unknown": "没有历法资讯"
+      },
+      "gender": {
+        "female": "女性",
+        "male": "男性",
+        "unknown": "未填写性别"
+      },
+      "score": {
+        "destiny": "缘分感",
+        "harmony": "和谐",
+        "emotion": "情感",
+        "growth": "成长",
+        "stability": "持续性"
+      },
+      "card": {
+        "sukuyoEmpty": "本命宿尚未确认",
+        "birthDateLabel": "出生日期",
+        "birthDateEmpty": "未填写",
+        "calendarLabel": "所用历法",
+        "genderLabel": "性别",
+        "energyLabel": "宿之气",
+        "energyEmpty": "静静合起"
+      },
+      "eyebrow": "月光合婚之室",
+      "emptyTitle": "27宿缘分的流向还合着",
+      "emptySummary": "两人的出生日期与历法基准都放上后，Yeoni 会静静展开27宿之间的距离。",
+      "headerAlt": "27宿缘分的流向",
+      "mineLabel": "我的本命宿",
+      "partnerLabel": "对方的本命宿",
+      "relationEyebrow": "关系类型",
+      "relationEmpty": "缘分",
+      "relationDescEmpty": "静静察看这是什么样的关系。",
+      "distanceEyebrow": "宿曜距离",
+      "distanceEmpty": "同宿",
+      "directionEmpty": "两人的月光在同一处彼此相望。",
+      "tempEyebrow": "合婚温度",
+      "tempChecking": "确认中",
+      "focusEmpty": "关系的流向",
+      "focusSentence": "以 {focus} 为中心解读。",
+      "directionalEyebrow": "各方向的关系",
+      "forwardEmpty": "顺行",
+      "backwardEmpty": "逆行",
+      "towardEmpty": "察看走向对方的那个方向。",
+      "returnEmpty": "察看返回的那个方向。",
+      "elementEyebrow": "五行调和",
+      "elementMine": "我",
+      "elementPartner": "对方",
+      "elementRelation": "互补",
+      "scoreEyebrow": "基础宿曜分数",
+      "scoreSuffix": " 分",
+      "strengthEyebrow": "吸引的纹路",
+      "strengthTitle": "在两人之间活起来的力量",
+      "cautionEyebrow": "需小心的纹路",
+      "cautionTitle": "月光晃动时该先看的地方",
+      "roleEyebrow": "今日的关系处方",
+      "roleTitle": "彼此可以递出的态度"
     }
   }
 }

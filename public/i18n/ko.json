@@ -5262,6 +5262,67 @@
       "tarotReadyEyebrow": "타로와 만날 준비",
       "tarotReadyTitle": "찻잔 위에 다음 상징이 떠오를 차례예요",
       "tarotOpen": "타로 카드 펼치기"
+    },
+    "sukuyoResult": {
+      "calendar": {
+        "lunar": "음력",
+        "solar": "양력",
+        "unknown": "달력 정보 없음"
+      },
+      "gender": {
+        "female": "여성",
+        "male": "남성",
+        "unknown": "성별 미입력"
+      },
+      "score": {
+        "destiny": "인연감",
+        "harmony": "조화",
+        "emotion": "정서",
+        "growth": "성장",
+        "stability": "지속성"
+      },
+      "card": {
+        "sukuyoEmpty": "본명숙 확인 전",
+        "birthDateLabel": "태어난 날",
+        "birthDateEmpty": "미입력",
+        "calendarLabel": "달의 기준",
+        "genderLabel": "성별",
+        "energyLabel": "숙의 기운",
+        "energyEmpty": "조용히 접힘"
+      },
+      "eyebrow": "달빛 궁합의 방",
+      "emptyTitle": "27숙 인연의 흐름이 아직 접혀 있어요",
+      "emptySummary": "두 사람의 생년월일과 달력 기준이 모두 놓이면 연이가 27숙의 거리를 조용히 펼쳐볼게요.",
+      "headerAlt": "27숙 인연의 흐름",
+      "mineLabel": "나의 본명숙",
+      "partnerLabel": "상대의 본명숙",
+      "relationEyebrow": "관계 유형",
+      "relationEmpty": "인연",
+      "relationDescEmpty": "관계 유형을 조용히 살핍니다.",
+      "distanceEyebrow": "숙요 거리",
+      "distanceEmpty": "동숙",
+      "directionEmpty": "두 사람의 달빛이 같은 자리에서 마주 봅니다.",
+      "tempEyebrow": "궁합 온도",
+      "tempChecking": "확인 중",
+      "focusEmpty": "관계의 흐름",
+      "focusSentence": "{focus}을 중심으로 읽었습니다.",
+      "directionalEyebrow": "방향별 관계",
+      "forwardEmpty": "순행",
+      "backwardEmpty": "역행",
+      "towardEmpty": "다가가는 방향을 살핍니다.",
+      "returnEmpty": "되돌아오는 방향을 살핍니다.",
+      "elementEyebrow": "오행 조화",
+      "elementMine": "나",
+      "elementPartner": "상대",
+      "elementRelation": "보완",
+      "scoreEyebrow": "기본 숙요점 점수",
+      "scoreSuffix": "점",
+      "strengthEyebrow": "끌림의 결",
+      "strengthTitle": "두 사람 사이에서 살아나는 힘",
+      "cautionEyebrow": "조심할 결",
+      "cautionTitle": "달빛이 흔들릴 때 먼저 보아야 할 것",
+      "roleEyebrow": "오늘의 관계 처방",
+      "roleTitle": "서로에게 건넬 수 있는 태도"
     }
   }
 }

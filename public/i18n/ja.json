@@ -11832,6 +11832,67 @@
       "tarotReadyEyebrow": "タロットと出会う準備",
       "tarotReadyTitle": "茶碗の上に次の象徴が浮かぶ番です",
       "tarotOpen": "タロットカードを広げる"
+    },
+    "sukuyoResult": {
+      "calendar": {
+        "lunar": "旧暦",
+        "solar": "新暦",
+        "unknown": "暦の情報なし"
+      },
+      "gender": {
+        "female": "女性",
+        "male": "男性",
+        "unknown": "性別は未入力"
+      },
+      "score": {
+        "destiny": "縁の感覚",
+        "harmony": "調和",
+        "emotion": "情緒",
+        "growth": "成長",
+        "stability": "持続性"
+      },
+      "card": {
+        "sukuyoEmpty": "本命宿の確認前",
+        "birthDateLabel": "生まれた日",
+        "birthDateEmpty": "未入力",
+        "calendarLabel": "暦の基準",
+        "genderLabel": "性別",
+        "energyLabel": "宿の気",
+        "energyEmpty": "静かに折りたたみ"
+      },
+      "eyebrow": "月あかりの相性の間",
+      "emptyTitle": "27宿の縁の流れは、まだ折りたたまれています",
+      "emptySummary": "おふたりの生年月日と暦の基準がそろえば、ヨニが27宿の距離を静かに広げます。",
+      "headerAlt": "27宿の縁の流れ",
+      "mineLabel": "わたしの本命宿",
+      "partnerLabel": "お相手の本命宿",
+      "relationEyebrow": "関係のタイプ",
+      "relationEmpty": "縁",
+      "relationDescEmpty": "関係のタイプを静かに見ます。",
+      "distanceEyebrow": "宿曜の距離",
+      "distanceEmpty": "同宿",
+      "directionEmpty": "おふたりの月あかりが、同じ場所で向き合います。",
+      "tempEyebrow": "相性の温度",
+      "tempChecking": "確認中",
+      "focusEmpty": "関係の流れ",
+      "focusSentence": "{focus} を中心に読みました。",
+      "directionalEyebrow": "方向ごとの関係",
+      "forwardEmpty": "順行",
+      "backwardEmpty": "逆行",
+      "towardEmpty": "近づいていく方向を見ます。",
+      "returnEmpty": "戻ってくる方向を見ます。",
+      "elementEyebrow": "五行の調和",
+      "elementMine": "わたし",
+      "elementPartner": "お相手",
+      "elementRelation": "補完",
+      "scoreEyebrow": "基本の宿曜スコア",
+      "scoreSuffix": "点",
+      "strengthEyebrow": "惹かれ合いの筋目",
+      "strengthTitle": "おふたりのあいだで生きる力",
+      "cautionEyebrow": "気をつけたい筋目",
+      "cautionTitle": "月あかりが揺れるとき、先に見るべきこと",
+      "roleEyebrow": "今日の関係の処方",
+      "roleTitle": "おたがいに差し出せる態度"
     }
   }
 }

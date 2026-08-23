@@ -11832,6 +11832,67 @@
       "tarotReadyEyebrow": "Ready to meet the tarot",
       "tarotReadyTitle": "It's the next symbol's turn to surface over the cup",
       "tarotOpen": "Spread the tarot cards"
+    },
+    "sukuyoResult": {
+      "calendar": {
+        "lunar": "Lunar calendar",
+        "solar": "Solar calendar",
+        "unknown": "Calendar not given"
+      },
+      "gender": {
+        "female": "Female",
+        "male": "Male",
+        "unknown": "Gender not given"
+      },
+      "score": {
+        "destiny": "Sense of bond",
+        "harmony": "Harmony",
+        "emotion": "Emotion",
+        "growth": "Growth",
+        "stability": "Staying power"
+      },
+      "card": {
+        "sukuyoEmpty": "Natal mansion not read yet",
+        "birthDateLabel": "Date of birth",
+        "birthDateEmpty": "Not entered",
+        "calendarLabel": "Calendar used",
+        "genderLabel": "Gender",
+        "energyLabel": "Energy of the mansion",
+        "energyEmpty": "Quietly folded"
+      },
+      "eyebrow": "The room of moonlit compatibility",
+      "emptyTitle": "The flow of your bond across the 27 mansions is still folded",
+      "emptySummary": "Once both birth dates and their calendars are set down, Yeoni will quietly unfold the distance across the 27 mansions.",
+      "headerAlt": "The flow of a bond across the 27 mansions",
+      "mineLabel": "My natal mansion",
+      "partnerLabel": "Their natal mansion",
+      "relationEyebrow": "Type of bond",
+      "relationEmpty": "A bond",
+      "relationDescEmpty": "We look quietly at what kind of bond this is.",
+      "distanceEyebrow": "Sukuyo distance",
+      "distanceEmpty": "Same mansion",
+      "directionEmpty": "Both moonlights face each other from the same place.",
+      "tempEyebrow": "Compatibility warmth",
+      "tempChecking": "Checking",
+      "focusEmpty": "the flow of the relationship",
+      "focusSentence": "Read with {focus} at the centre.",
+      "directionalEyebrow": "The bond in each direction",
+      "forwardEmpty": "Forward",
+      "backwardEmpty": "Retrograde",
+      "towardEmpty": "We look at the direction that moves toward.",
+      "returnEmpty": "We look at the direction that comes back.",
+      "elementEyebrow": "Five Elements harmony",
+      "elementMine": "Me",
+      "elementPartner": "Them",
+      "elementRelation": "Complementary",
+      "scoreEyebrow": "Base Sukuyo score",
+      "scoreSuffix": " pts",
+      "strengthEyebrow": "The grain of attraction",
+      "strengthTitle": "The strength that comes alive between you",
+      "cautionEyebrow": "The grain to handle gently",
+      "cautionTitle": "What to look at first when the moonlight wavers",
+      "roleEyebrow": "Today's prescription for the bond",
+      "roleTitle": "The manner you can offer each other"
     }
   }
 }
