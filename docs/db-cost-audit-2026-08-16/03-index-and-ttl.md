@@ -29,6 +29,12 @@
 🔴 단, `{id} unique` · `{paymentId} unique` 계열은 **성능이 아니라 정합성**이다. 문서가 적다고
 안전한 것이 아니라 "아직 중복이 안 났을 뿐"이다. 해당 기능 작업 시 함께 처리할 것.
 
+> ✅ **2026-08-24 처리 완료.** `paid_execution_records.paymentId_unique_nonempty` 와
+> `astrologyAiConsultations.id_1` 을 만들었다(둘 다 `[unique,partial]`).
+> 🔴 astrology 쪽은 **첫 설계가 실 데이터에 대고 돌릴 수 없는 것이었다** — 전체 9건 중 8건이
+> `id` 필드를 아예 갖고 있지 않아 필터 없는 유니크 인덱스는 그 8건이 서로 충돌해 생성 자체가
+> 막혔다. 중복 사전 스캔이 승인·실행 전에 잡았다. 상세: [db-index-usage-2026-08-24.md](../db-index-usage-2026-08-24.md).
+
 ## 2026-08-12 기록의 정정
 
 [db-audit-2026-08/05-execution-log.md:71-82](../db-audit-2026-08/05-execution-log.md) 이
@@ -47,6 +53,15 @@
 🔴 그럼에도 **삭제하지 않는다.** 19,684건 × 인덱스 1개의 RAM·쓰기 비용은 M10 에서 무시할 수준이고,
 삭제가 잘못됐을 때 되돌리는 비용(19,684건 재빌드)이 절감액보다 크다. 요청서 §7 의 삭제 기준 6개 중
 "실제 운영 환경에서 사용되지 않는다는 근거"를 `$indexStats` 로 확인하지 않았으므로 **보고만 한다.**
+
+> 🔴 **2026-08-24 해소 — 위 문단은 더 이상 현재 상태가 아니다.** 그 `$indexStats` 실측을 했고
+> (관측 창 12일: `userId_1` ops=0, `user_kind_feature_lookup` ops=33), `pointhistories.userId_1` 은
+> **드롭했다.** 같은 실행에서 `security_events` 보조 인덱스 9개도 드롭했다 — 그 모델은 읽기 호출이
+> 코드에 아예 없다. 근거·수치·남긴 56개의 목록은 [db-index-usage-2026-08-24.md](../db-index-usage-2026-08-24.md).
+>
+> 🔴 그 문서가 이 문단보다 중요하게 기록한 것: **`ops=0` 은 삭제 근거가 아니다.** 트래픽이 없어서
+> 0인 인덱스와, 유니크 제약이라 조회 통계에 안 잡혀 0인 인덱스가 섞여 있다. 후자를 지우면 제약이
+> 사라진다.
 
 ## TTL 현황
 
@@ -80,7 +95,7 @@ node scripts/migrations/20260812-add-checkout-funnel-ttl-index.mjs --check  # OK
 
 | 컬렉션 | 선언 | 판정 |
 |---|---|---|
-| `guardianFortuneSharedSnapshots` | `expiresAt` | 문서 0건. 쓰기 시작하면 누적되므로 그 기능 작업 시 함께 |
+| `guardianFortuneSharedSnapshots` | `expiresAt` | ✅ **2026-08-24 실측 해소** — `20260821` 마이그레이션이 이미 적용돼 있다(`--check` problems=0). TTL 3종 + `shareId`/`sourceRequestId` unique 전부 실재 |
 | `deleted_account_logs` | 5년 | 🔴 **법적 보존 기간 장치**다. 비용 항목이 아니라 컴플라이언스 항목 |
 | `payments._anonymizedAt` | 5년 | 🔴 동일 |
 

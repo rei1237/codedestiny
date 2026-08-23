@@ -29,6 +29,22 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 ## Current Conflict Resolutions
 
+### `docs/DEPLOYMENT_AND_INFRA.md` 첫 절이 폐기된 배포 계약을 지시한다 (2026-08-24, **표시 완료**)
+
+- **충돌 내용**: 그 문서의 첫 절 "Current release policy (2026-08-08)" 이 **"PR-first delivery was
+  retired"** 로 시작해 로컬 `deploy:safe` 배포를 지시한다. `CLAUDE.md` 절대 규칙 3(브랜치 → PR →
+  CI → 사용자가 머지 → 스테이징 자동, 프로덕션은 수동 `workflow_dispatch`)과 정반대다.
+- **왜 위험했나**: 이 문서는 고아가 아니다. `AGENTS.md` §Important Docs 와
+  `docs/CURRENT_DEV_BASELINE.md:21` 이 **활성 참조**로 올려 두고 있다. `Rules/agent-regression-guard.md`
+  는 아무도 안 읽어서 충돌이 안 드러났지만(2026-08-15 항목), 이쪽은 읽으라고 지시된 문서다.
+- 🔴 **같은 문서 안에 두 계약이 공존**한다 — 아래 "배포" 절(2026-08-11 개정)은 이미 GitHub Actions
+  전용이라고 적고 있다. 즉 어느 절을 읽느냐로 결론이 갈린다.
+- **조치**: 문서를 다시 쓰지 않고 첫 절 위에 날짜 박은 🔴 정정 배너를 달아 폐기 표시했다. 아래
+  내용은 역사 기록으로 남긴다 — 왜 그 계약이 있었고 왜 되돌렸는지가 유용하다.
+- **정본**: 활성 배포 계약은 `AGENTS.md` §Delivery 하나다. 요약조차 다른 문서에 두지 않는다.
+- 실제로 폐기된 절을 따라 하면 `scripts/lib/production-deploy-guard.mjs` 가 막아 exit 1 이 난다 —
+  즉 사고로 이어지지는 않지만, 읽는 사람의 시간을 태우고 계약을 오해하게 만든다.
+
 ### AI 출력 로케일 — 5개에서 12개로 (2026-08-20)
 
 - **Active rule**: AI 출력 로케일 = 런타임 UI 로케일 전부. 정본은 `lib/i18n/ai-locale.js` 의
