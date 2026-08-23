@@ -1,0 +1,60 @@
+{
+  "_comment": "홈에서 비-ko 로케일에 한국어가 그대로 남던 자리 4곳에 마커를 붙이면서 만든 키. verify:i18n-rendered-korean 이 en·ja·zh-CN 세 로케일에서 똑같이 잡아내던 항목들이다. 🔴 pickWhy.prefix/suffix 는 한 문장을 앞뒤로 쪼갠 것이라 로케일마다 어순이 다르다 — 한국어는 가운데 조사 스팬(이/가)이 붙고, 다른 로케일은 조사 스팬이 비므로 필요한 조사·전치사를 suffix 쪽에 넣는다(예: ja \"今日は {제목} が最も合います。\" · de \"Heute passt {제목} am besten zu dir.\"). ko 값은 셸 마크업과 글자까지 일치해야 한다(__tests__/ui/shell-dictionary-parity.static.test.js).",
+
+  "home.pickWhy.prefix": {
+    "ko": "오늘은",
+    "en": "Today,",
+    "ja": "今日は",
+    "zh-CN": "今天",
+    "zh-TW": "今天",
+    "vi": "Hôm nay,",
+    "hi": "आज",
+    "es": "Hoy,",
+    "fr": "Aujourd'hui,",
+    "de": "Heute passt",
+    "nl": "Vandaag past",
+    "ms": "Hari ini,"
+  },
+  "home.pickWhy.suffix": {
+    "ko": "가장 잘 맞습니다.",
+    "en": "fits you best.",
+    "ja": "が最も合います。",
+    "zh-CN": "最适合您。",
+    "zh-TW": "最適合您。",
+    "vi": "hợp với bạn nhất.",
+    "hi": "आपके लिए सबसे उपयुक्त है।",
+    "es": "es lo que mejor te encaja.",
+    "fr": "vous convient le mieux.",
+    "de": "am besten zu dir.",
+    "nl": "het beste bij je.",
+    "ms": "paling sesuai untuk anda."
+  },
+  "home.reviews.empty": {
+    "ko": "아직 등록된 후기가 없어요. 상담을 이용하고 첫 후기를 남겨보세요.",
+    "en": "No reviews yet. Try a reading and leave the first one.",
+    "ja": "まだ登録されたレビューがありません。相談を利用して、最初のレビューを残してみてください。",
+    "zh-CN": "还没有评价。体验一次咨询，来留下第一则吧。",
+    "zh-TW": "還沒有評價。體驗一次諮詢，來留下第一則吧。",
+    "vi": "Chưa có đánh giá nào. Hãy thử một buổi luận giải và để lại đánh giá đầu tiên.",
+    "hi": "अभी कोई समीक्षा नहीं है। एक रीडिंग लें और पहली समीक्षा लिखें।",
+    "es": "Aún no hay reseñas. Prueba una consulta y deja la primera.",
+    "fr": "Pas encore d'avis. Essayez une consultation et laissez le premier.",
+    "de": "Noch keine Bewertungen. Probiere eine Beratung und schreibe die erste.",
+    "nl": "Nog geen reviews. Probeer een consult en schrijf de eerste.",
+    "ms": "Belum ada ulasan. Cuba satu sesi bacaan dan tinggalkan yang pertama."
+  },
+  "home.feedback.rewardPrefix": {
+    "ko": "채택된 버그 제보 1건당",
+    "en": "Per accepted bug report",
+    "ja": "採用されたバグ報告1件につき",
+    "zh-CN": "每一则被采纳的错误回报",
+    "zh-TW": "每一則被採納的錯誤回報",
+    "vi": "Mỗi báo lỗi được chấp nhận",
+    "hi": "स्वीकृत प्रत्येक बग रिपोर्ट पर",
+    "es": "Por cada informe de error aceptado",
+    "fr": "Par rapport de bogue accepté",
+    "de": "Pro angenommenem Fehlerbericht",
+    "nl": "Per geaccepteerde bugmelding",
+    "ms": "Bagi setiap laporan pepijat yang diterima"
+  }
+}

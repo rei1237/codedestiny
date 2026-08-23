@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "User reviews",
       "lead": "Reviews left by people who actually had a reading.",
-      "allCta": "See all reviews →"
+      "allCta": "See all reviews →",
+      "empty": "No reviews yet. Try a reading and leave the first one."
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -1335,6 +1336,13 @@
       "title": "Start free, right now",
       "freeStart": "Free to start",
       "compat": "Compatibility"
+    },
+    "pickWhy": {
+      "prefix": "Today,",
+      "suffix": "fits you best."
+    },
+    "feedback": {
+      "rewardPrefix": "Per accepted bug report"
     }
   },
   "terms": {
