@@ -64,7 +64,11 @@ test('guardian fortune production activation enables the approved real LLM path'
   assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_SHARE\s*=\s*"true"/);
   assert.match(wrangler, /ENABLE_GUARDIAN_FORTUNE_REAL_LLM\s*=\s*"true"/);
   assert.match(wrangler, /ALLOW_REAL_GUARDIAN_FORTUNE_LLM\s*=\s*"true"/);
-  // ENABLE_GUARDIAN_FORTUNE_CREDITS 는 더 이상 읽는 코드가 없다. wrangler.toml 은 수정 금지
-  // 파일이라 선언만 남아 있으므로, 여기서 "켜져 있어야 한다"고 단언하지 않는다.
+  // ENABLE_GUARDIAN_FORTUNE_CREDITS 는 읽는 코드가 없다. 예전에는 wrangler.toml 에 선언만
+  // 남아 "켜져 있으니 기능도 켜져 있다"고 읽혔는데, 2026-08-24 에 두 toml 에서 걷어냈다.
+  // 🔴 되살리려면 읽는 코드부터 만들 것 — 값만 되돌리면 다시 거짓 신호가 된다.
   assert.doesNotMatch(read('config/env.contract.json'), /"ENABLE_GUARDIAN_FORTUNE_CREDITS"/);
+  // 이름 자체가 아니라 **선언(대입)** 이 없어야 한다 — 왜 지웠는지 적어 둔 주석은 남아야 한다.
+  assert.doesNotMatch(wrangler, /^\s*ENABLE_GUARDIAN_FORTUNE_CREDITS\s*=/m);
+  assert.doesNotMatch(read('worker/wrangler.staging.toml'), /^\s*ENABLE_GUARDIAN_FORTUNE_CREDITS\s*=/m);
 });

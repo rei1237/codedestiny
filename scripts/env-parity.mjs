@@ -135,6 +135,11 @@ function envFileKeys(relPath) {
   return keys;
 }
 
+function readIfExists(relPath) {
+  const full = resolve(repoRoot, relPath);
+  return existsSync(full) ? readFileSync(full, "utf8") : "";
+}
+
 function wranglerVars(relPath) {
   const full = resolve(repoRoot, relPath);
   if (!existsSync(full)) return new Set();
@@ -299,6 +304,34 @@ for (const entry of contract.keys) {
   }
   if (workerVars.has(entry.name)) {
     fail("plaintext-var", `${entry.name} is secret but declared in worker/wrangler.toml [vars], which ships as plaintext.`);
+  }
+}
+
+// [5b] 🔴 비시크릿 키의 required_in: ["production"] 이 거짓말인지.
+//
+// [8] 의 원격 대조는 `if (!entry.secret) continue` 라 **비시크릿 키를 아예 보지 않는다.**
+// 그래서 "프로덕션에 반드시 있어야 한다"고 선언해 놓고 [vars] 에도 시크릿 목록에도 없는 키가
+// 아무 경고 없이 존재할 수 있었다(2026-08-24 발견: PORTONE_API_TIMEOUT_MS). 계약이 지키지
+// 않는 약속을 하면 다음 사람이 그 약속을 근거로 판단한다.
+//
+// 비시크릿 워커 키는 원격 조회 없이 정적으로 판정할 수 있다 — [vars] 에 있거나, 시크릿 동기화
+// 스크립트가 밀어 넣는 목록에 있거나 둘 중 하나여야 한다. 값을 코드 기본값에만 두는 것이 옳다면
+// required_in 을 비우는 것이 맞고, 그게 이 검사가 강제하는 선택이다.
+{
+  const syncSource = readIfExists("scripts/sync-cloudflare-worker-secrets.mjs");
+  for (const entry of contract.keys) {
+    if (entry.secret) continue;
+    if (!entry.targets?.includes("worker")) continue;
+    if (!entry.required_in?.includes("production")) continue;
+    const aliases = contract.aliases[entry.name] || [];
+    const names = [entry.name, ...aliases];
+    const inVars = names.some((name) => workerVars.has(name));
+    const inSync = names.some((name) => syncSource.includes(`"${name}"`));
+    if (inVars || inSync) continue;
+    fail(
+      "production-required-undeclared",
+      `${entry.name} is required in production but appears in neither worker/wrangler.toml [vars] nor the worker secret sync list. Declare it, or clear required_in if the code default is the intended production value.`,
+    );
   }
 }
 

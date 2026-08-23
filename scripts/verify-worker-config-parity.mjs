@@ -426,8 +426,10 @@ function runSelfTest() {
     },
     {
       name: "허용목록 밖 값 차이를 잡는다",
-      production: BASE_PRODUCTION.replace('NODE_ENV = "production"', 'NODE_ENV = "production"\nPDF_DEBUG_MODE = "true"'),
-      staging: BASE_STAGING.replace('NODE_ENV = "production"', 'NODE_ENV = "production"\nPDF_DEBUG_MODE = "false"'),
+      // 합성 픽스처이므로 키 이름은 아무거나 되지만, 실재하는 키 이름을 쓰면 grep 하는 사람이
+      // "이 키가 아직 쓰인다"고 오해한다(예전에는 이미 죽은 PDF_DEBUG_MODE 를 썼다).
+      production: BASE_PRODUCTION.replace('NODE_ENV = "production"', 'NODE_ENV = "production"\nUNLISTED_KNOB = "true"'),
+      staging: BASE_STAGING.replace('NODE_ENV = "production"', 'NODE_ENV = "production"\nUNLISTED_KNOB = "false"'),
       expectFailure: /허용목록에 없다/,
     },
     {
