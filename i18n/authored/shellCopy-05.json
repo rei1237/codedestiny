@@ -1,0 +1,73 @@
+{
+  "_comment": "VVIP 아카이브 블록의 비-ko 문구 교정 5키. shellCopy-04 와 같은 표면 — ko 는 셸 마크업과 맞는데 나머지 11개 로케일이 옛 문구에서 기계번역된 채 남아 뜻이 어긋나 있었다. total12Meta 는 '전문가 상담'인데 en 이 '12 chapters', soulPoint1 은 ko 가 3개 체계(사주·베다점·서양 점성술)를 말하는데 en 이 5개(saju, astrology, sukuyo, ziwei, Vedic)를 나열해 **유료 상품 구성이 로케일마다 달라 보였다**. ko 값은 현재 ko.json 에서 그대로 읽어 담아 마크업과의 일치를 깨지 않는다.",
+  "home.premiumArchive.total12Meta": {
+    "ko": "전문가 상담",
+    "en": "Expert consultation",
+    "ja": "専門家相談",
+    "zh-CN": "专家咨询",
+    "zh-TW": "專家諮詢",
+    "vi": "Tư vấn chuyên gia",
+    "hi": "विशेषज्ञ परामर्श",
+    "es": "Consulta con experto",
+    "fr": "Consultation d'expert",
+    "de": "Expertenberatung",
+    "nl": "Expertconsult",
+    "ms": "Perundingan pakar"
+  },
+  "home.premiumArchive.soulPoint1": {
+    "ko": "사주·베다점·서양 점성술 통합 상담",
+    "en": "Saju, Vedic and Western astrology in one consultation",
+    "ja": "四柱推命・ヴェーダ占星術・西洋占星術の統合相談",
+    "zh-CN": "四柱·吠陀占星·西洋占星的整合咨询",
+    "zh-TW": "四柱·吠陀占星·西洋占星的整合諮詢",
+    "vi": "Tư vấn tích hợp Tứ trụ, chiêm tinh Vệ Đà và phương Tây",
+    "hi": "साजु, वैदिक और पाश्चात्य ज्योतिष का एकीकृत परामर्श",
+    "es": "Consulta integrada de Saju, astrología védica y occidental",
+    "fr": "Consultation intégrée : Saju, astrologie védique et occidentale",
+    "de": "Integrierte Beratung aus Saju, vedischer und westlicher Astrologie",
+    "nl": "Geïntegreerd consult van Saju, Vedische en westerse astrologie",
+    "ms": "Perundingan bersepadu Saju, astrologi Veda dan Barat"
+  },
+  "home.premiumArchive.soulPoint2": {
+    "ko": "반복되는 관계·돈·가족·선택 패턴 해석",
+    "en": "Reading the recurring patterns in relationships, money, family and choices",
+    "ja": "繰り返される関係・お金・家族・選択のパターンを読み解く",
+    "zh-CN": "解读关系·金钱·家庭·抉择里一再重演的模式",
+    "zh-TW": "解讀關係·金錢·家庭·抉擇裡一再重演的模式",
+    "vi": "Đọc các mô thức lặp lại trong quan hệ, tiền bạc, gia đình và lựa chọn",
+    "hi": "रिश्ते, धन, परिवार और निर्णयों में दोहराए जाने वाले पैटर्न का पाठ",
+    "es": "Lectura de los patrones que se repiten en relaciones, dinero, familia y decisiones",
+    "fr": "Lecture des schémas récurrents : relations, argent, famille, choix",
+    "de": "Die wiederkehrenden Muster in Beziehungen, Geld, Familie und Entscheidungen lesen",
+    "nl": "De terugkerende patronen in relaties, geld, familie en keuzes lezen",
+    "ms": "Membaca corak berulang dalam hubungan, wang, keluarga dan pilihan"
+  },
+  "home.premiumArchive.soulPoint3": {
+    "ko": "화면에서 바로 받는 해방 방향과 행동 전략",
+    "en": "A direction for release and an action plan, delivered on screen",
+    "ja": "画面でそのまま受け取る解放の方向と行動戦略",
+    "zh-CN": "在页面上直接拿到的解脱方向与行动策略",
+    "zh-TW": "在頁面上直接拿到的解脫方向與行動策略",
+    "vi": "Hướng giải thoát và chiến lược hành động, nhận ngay trên màn hình",
+    "hi": "मुक्ति की दिशा और कार्य-योजना, सीधे स्क्रीन पर",
+    "es": "Una dirección de liberación y una estrategia de acción, en pantalla",
+    "fr": "Une direction de libération et une stratégie d'action, à l'écran",
+    "de": "Eine Richtung der Befreiung und eine Handlungsstrategie, direkt am Bildschirm",
+    "nl": "Een richting voor bevrijding en een actieplan, direct op het scherm",
+    "ms": "Arah pembebasan dan strategi tindakan, terus di skrin"
+  },
+  "home.premiumArchive.soulCtaMeta": {
+    "ko": "운명의 업 상담 받기",
+    "en": "Get the karma of destiny reading",
+    "ja": "運命の業(カルマ)相談を受ける",
+    "zh-CN": "领取命运之业的咨询",
+    "zh-TW": "領取命運之業的諮詢",
+    "vi": "Nhận buổi luận giải nghiệp của định mệnh",
+    "hi": "भाग्य के कर्म का परामर्श लें",
+    "es": "Recibir la consulta del karma del destino",
+    "fr": "Recevoir la consultation du karma du destin",
+    "de": "Die Beratung zum Karma des Schicksals erhalten",
+    "nl": "Het consult over het karma van het lot ontvangen",
+    "ms": "Dapatkan perundingan karma takdir"
+  }
+}
