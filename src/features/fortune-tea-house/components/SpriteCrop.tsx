@@ -5,6 +5,7 @@
 import { type CSSProperties, type ReactNode, useEffect, useMemo, useState } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 export type SpriteCropMobileCrop = {
   src: string;
@@ -34,6 +35,12 @@ type SpriteCropProps = {
   fallbackLabel?: string;
 };
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    키는 문구의 결정론적 해시라 같은 문구가 자동으로 한 키로 합쳐진다(정적 셸의 마커 도구와 같은 방식). */
+const KO = {
+  kb8qgueb: "이미지를 불러오지 못했어요.",
+};
+
 export default function SpriteCrop({
   src,
   sheetWidth,
@@ -49,8 +56,9 @@ export default function SpriteCrop({
   alt,
   className = "",
   fallback,
-  fallbackLabel = "이미지를 불러오지 못했어요.",
+  fallbackLabel,
 }: SpriteCropProps) {
+  const copy = useTeaHouseCopy("spriteCrop", KO);
   const spriteGate = useSpritePlaybackGate<HTMLSpanElement>();
   const [failed, setFailed] = useState(false);
   const [loaded, setLoaded] = useState(false);
@@ -133,7 +141,7 @@ export default function SpriteCrop({
   return (
     <span ref={spriteGate.ref} className={`${styles.spriteCrop} ${className}`} style={style} data-failed={shouldShowFallback ? "true" : "false"} data-loaded={loaded ? "true" : "false"}>
       {shouldRenderImage ? <img src={imageSrc} alt={alt} loading="lazy" decoding="async" onLoad={() => setLoaded(true)} onError={handleImageError} /> : null}
-      {shouldShowFallback ? <span className={styles.spriteCropFallback}>{fallback || alt || fallbackLabel}</span> : null}
+      {shouldShowFallback ? <span className={styles.spriteCropFallback}>{fallback || alt || fallbackLabel || copy.kb8qgueb}</span> : null}
     </span>
   );
 }

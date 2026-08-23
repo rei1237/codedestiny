@@ -22,28 +22,24 @@ import {
   effectiveMinChars,
   ensureHumanDesignCalculationPresence,
 } from "./human-design-report-contract.js";
+import {
+  HD_REPORT_CHAPTER_ORDER,
+  HD_REPORT_SECTION_TITLES,
+} from "../../lib/human-design/report-sections.js";
 
-/** 섹션 제목 — 표시 계층이므로 계약 모듈이 아니라 여기 둔다. */
-export const HD_REPORT_SECTION_TITLES = Object.freeze({
-  executiveSummary: { ko: "한눈에 보는 나", en: "Executive Summary" },
-  energyBlueprint: { ko: "에너지 설계도", en: "Energy Blueprint" },
-  type: { ko: "타입 — 에너지가 작동하는 방식", en: "Type — How Your Energy Works" },
-  strategy: { ko: "전략 — 삶을 여는 문", en: "Strategy — How Life Opens" },
-  authority: { ko: "내적 권위 — 결정하는 자리", en: "Authority — Where Decisions Belong" },
-  profile: { ko: "프로파일 — 세상과 만나는 역할", en: "Profile — Your Role With Others" },
-  centersDefined: { ko: "정의된 센터 — 늘 같은 방식으로 나오는 힘", en: "Defined Centers — What Is Always On" },
-  centersOpen: { ko: "열린 센터 — 받아들이고 증폭하는 자리", en: "Open Centers — What You Take In" },
-  channels: { ko: "채널 — 나를 이루는 회로", en: "Channels — Your Wiring" },
-  gatesCore: { ko: "핵심 게이트", en: "Core Gates" },
-  planetaryActivations: { ko: "행성 활성 — 의식과 무의식", en: "Planetary Activations — Conscious and Unconscious" },
-  incarnationCross: { ko: "인카네이션 크로스 — 삶의 큰 주제", en: "Incarnation Cross — The Larger Theme" },
-  lifeRelational: { ko: "관계 · 소통 · 사회", en: "Love, Communication, Social Life" },
-  lifeWork: { ko: "일 · 돈", en: "Career and Money" },
-  lifeSelf: { ko: "성장 · 의사결정", en: "Growth and Decision Making" },
-  conditioningShadow: { ko: "조건화와 그림자 패턴", en: "Conditioning and Shadow Patterns" },
-  practicalGuide: { ko: "실천 가이드", en: "Practical Guide" },
-  finalSynthesis: { ko: "종합 — 하나의 이야기로", en: "Final Synthesis" },
-});
+// 🔴 계약의 섹션 표와 공유 장 목록이 어긋나면 여기서 멈춘다. 한쪽만 고치면 결제 전 목차와
+//    실제로 생성되는 장이 달라지는데, 그건 사용자가 산 것과 받은 것이 다르다는 뜻이다.
+{
+  const contractKeys = HD_REPORT_SECTIONS.map((section) => section.key).join(",");
+  if (contractKeys !== HD_REPORT_CHAPTER_ORDER.join(",")) {
+    throw new Error("human-design-report-prompt: 계약 섹션 순서가 report-sections.js 와 다르다.");
+  }
+}
+
+// 🔴 섹션 제목은 lib/human-design/report-sections.js 가 정본이다. 결제 전 잠금 화면이 18장
+//    목차를 보여 줘야 하는데 클라이언트는 worker/lib 을 읽을 수 없어서다. 여기서는 재export 만
+//    하고, 정합성은 위의 자체 검사가 로드 시점에 지킨다.
+export { HD_REPORT_SECTION_TITLES };
 
 /** 고정 subsection(생활 영역)의 표시 이름. */
 const TOPIC_TITLES = Object.freeze({
