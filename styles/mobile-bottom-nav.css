@@ -11,7 +11,7 @@
  *   - 기본: 네오 미드나잇. App Router 의 body 는 styles/globals.css 에서 #0a0818 로 고정이고
  *     이 탭바가 뜨는 라우트는 거의 전부 그 위에 그려진다.
  *   - 예외: 자기 표면을 연이로 칠하는 화면(/fortune/{period} 계열). 그쪽은 아래
- *     `body:has(.cd-yeoni-surface)` 스코프가 연이 스킨으로 되돌린다.
+ *     `body:has(main.cd-yeoni-surface)` 스코프가 연이 스킨으로 되돌린다.
  *   - /app/** 는 styles/app-shell.css 가 `.cd-app-shell .cd-mnav` 로 앱 팔레트를 덮는다.
  *
  * 🔴 표면·테두리·잉크·활성 상태는 반드시 한 세트로 바꾼다. 배경만 덮으면 반대 팔레트의
@@ -163,49 +163,49 @@ body.cd-mnav-mounted {
  *    미드나잇이기 때문이다. 예전에는 기본 스킨이 OS 를 따라서, 네오 페이지 아래에 크림 바
  *    (라이트) 나 플럼 바(다크) 가 붙었다.
  */
-body:has(.cd-yeoni-surface) .cd-mnav {
+body:has(main.cd-yeoni-surface) .cd-mnav {
   background: linear-gradient(180deg, rgba(255, 249, 236, 0.98), rgba(255, 241, 224, 0.96));
   border-top-color: rgba(244, 190, 209, 0.42);
   box-shadow: 0 -12px 28px rgba(179, 25, 85, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.86);
 }
 
-body:has(.cd-yeoni-surface) .cd-mnav__link {
+body:has(main.cd-yeoni-surface) .cd-mnav__link {
   color: #7a3457;
 }
 
-body:has(.cd-yeoni-surface) .cd-mnav__link[aria-current="page"],
-body:has(.cd-yeoni-surface) .cd-mnav__link.is-active {
+body:has(main.cd-yeoni-surface) .cd-mnav__link[aria-current="page"],
+body:has(main.cd-yeoni-surface) .cd-mnav__link.is-active {
   border-color: rgba(244, 190, 209, 0.66);
   background: linear-gradient(150deg, rgba(255, 248, 220, 0.96), rgba(244, 190, 209, 0.72));
   color: #7a1038;
   box-shadow: 0 8px 20px rgba(179, 25, 85, 0.22), inset 0 1px 0 rgba(255, 255, 255, 0.88);
 }
 
-body:has(.cd-yeoni-surface) .cd-mnav__link:focus-visible {
+body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
   outline-color: #b31955;
 }
 
 /* 연이 다크(딥 플럼) — DESIGN.md "연이 Dark" 팔레트. 표면·텍스트·강조를 한 세트로 바꾼다. */
 @media (prefers-color-scheme: dark) {
-  body:has(.cd-yeoni-surface) .cd-mnav {
+  body:has(main.cd-yeoni-surface) .cd-mnav {
     background: linear-gradient(180deg, #3a0e28, #24081a);
     border-top-color: rgba(244, 190, 209, 0.38);
     box-shadow: 0 -12px 28px rgba(174, 45, 104, 0.32), inset 0 1px 0 rgba(255, 214, 232, 0.14);
   }
 
-  body:has(.cd-yeoni-surface) .cd-mnav__link {
+  body:has(main.cd-yeoni-surface) .cd-mnav__link {
     color: rgba(255, 214, 232, 0.86);
   }
 
-  body:has(.cd-yeoni-surface) .cd-mnav__link[aria-current="page"],
-  body:has(.cd-yeoni-surface) .cd-mnav__link.is-active {
+  body:has(main.cd-yeoni-surface) .cd-mnav__link[aria-current="page"],
+  body:has(main.cd-yeoni-surface) .cd-mnav__link.is-active {
     border-color: rgba(255, 196, 222, 0.5);
     background: linear-gradient(150deg, rgba(179, 25, 85, 0.62), rgba(174, 45, 104, 0.36));
     color: #fff1f7;
     box-shadow: 0 8px 20px rgba(174, 45, 104, 0.42), inset 0 1px 0 rgba(255, 214, 232, 0.2);
   }
 
-  body:has(.cd-yeoni-surface) .cd-mnav__link:focus-visible {
+  body:has(main.cd-yeoni-surface) .cd-mnav__link:focus-visible {
     outline-color: #f4bed1;
   }
 }
