@@ -46,6 +46,13 @@ const reviewSchema = new mongoose.Schema({
   // 구매 인증 배지는 "실제 구매 기록이 있다"는 사실 진술이다. 클라이언트 입력을 받지 않고
   // 서버가 review-eligibility로 재검증해 결정한다.
   isVerifiedPurchase: { type: Boolean, default: false, index: true },
+  // isVerifiedPurchase 는 "돈이 오갔다", usageSource 는 "그 기록의 성격"이다.
+  // 🔴 둘을 한 불리언에 뭉개지 말 것 — isVerifiedPurchase:false 는 지금 운영진 시딩
+  // (createdByAdmin:true, 이용 기록 없음)을 뜻하는데, 여기에 다른 뜻을 얹으면 화면에서
+  // 구분이 사라진다. 배지 분기는 반드시 usageSource 로 하고 !isVerifiedPurchase 로 하지 말 것.
+  // "free"(무료 이용 기록으로 얻은 자격)는 아직 쓰이지 않는다 — 그 소스를 만드는 작업이
+  // 뒤따르므로 enum 만 미리 열어 둔다. 값을 쓰는 코드가 없어 이 PR 의 동작은 변하지 않는다.
+  usageSource: { type: String, enum: ["", "purchase", "free"], default: "" },
   createdByAdmin: { type: Boolean, default: false, index: true },
 
   // 검수 + 향후 AI 검수 확장 슬롯

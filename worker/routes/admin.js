@@ -4542,6 +4542,7 @@ function toAdminReviewItem(doc) {
     locale: reviewText(doc?.locale) || "ko",
     status: reviewText(doc?.status),
     isVerifiedPurchase: Boolean(doc?.isVerifiedPurchase),
+    usageSource: reviewText(doc?.usageSource),
     createdByAdmin: Boolean(doc?.createdByAdmin),
     autoFlagReasons: Array.isArray(doc?.autoFlagReasons) ? doc.autoFlagReasons : [],
     aiReviewScore: doc?.aiReviewScore ?? null,
