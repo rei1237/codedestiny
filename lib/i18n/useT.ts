@@ -13,12 +13,14 @@
  *   <p>{t("intro.pillars")}</p>
  *   <p>{t("greeting", { name })}</p>
  */
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import {
   type Dictionary,
   type RuntimeLocale,
   detectLocale,
   loadDictionary,
+  normalizeLocale,
   resolveKey,
   valueAtPath,
 } from "./dictionary";
@@ -32,15 +34,39 @@ function cacheKey(locale: RuntimeLocale, namespace?: string) {
   return namespace ? `${locale}/${namespace}` : locale;
 }
 
+/**
+ * 경로 프리픽스만으로 정하는 로케일. **서버와 클라이언트가 같은 값을 내는 유일한 소스다** —
+ * 쿼리·localStorage·쿠키는 서버에 없다. 로케일 세그먼트가 아니면 normalizeLocale 이 "ko" 를 준다.
+ */
+function localeFromPathname(pathname: string | null): RuntimeLocale {
+  const segment = String(pathname || "").split("/").filter(Boolean)[0];
+  return segment ? normalizeLocale(segment) : "ko";
+}
+
+/**
+ * 🔴 첫 렌더는 **경로만** 본다. 저장된 선택까지 보는 `detectLocale()` 은 하이드레이션 뒤에만 쓴다.
+ *
+ * 예전에는 `useState(() => detectLocale())` 이었다. `detectLocale()` 은 서버에서 `window` 가
+ * 없어 무조건 "ko" 를 돌려주므로, `/en/insights/` 같은 로케일 라우트에서 두 가지가 한꺼번에 깨졌다:
+ *   1. **SSR HTML 에 한국어가 그대로 나갔다** — 크롤러가 보는 것이 한국어다.
+ *      2026-08-23 실측: `/en/insights/`·`/ja/today/`·`/zh/sukuyo/`·`/zh-tw/ziwei/` 의 서버 렌더
+ *      본문에 한글 75자(헤더 내비 "홈"·"운세 인사이트", 정책 링크 "개인정보"·"이용약관" 등).
+ *   2. 클라이언트 첫 렌더는 경로에서 "en" 을 읽어 영어를 그리므로 텍스트가 어긋나
+ *      **React #418** 이 나고 서브트리가 통째로 다시 그려졌다.
+ *
+ * 경로에서 얻는 값은 정적 export 산출물과 브라우저가 동일하므로 두 문제가 함께 사라진다.
+ * 쿼리(`?lang=`)·저장된 선택의 우선순위는 effect 안의 `detectLocale()` 이 그대로 유지한다.
+ */
 export function useLocale(): RuntimeLocale {
-  const [locale, setLocale] = useState<RuntimeLocale>(() => detectLocale());
+  const pathLocale = localeFromPathname(usePathname());
+  const [locale, setLocale] = useState<RuntimeLocale>(pathLocale);
 
   useEffect(() => {
     setLocale(detectLocale());
     const onLocaleChange = () => setLocale(detectLocale());
     window.addEventListener("cd:locale-ready", onLocaleChange);
     return () => window.removeEventListener("cd:locale-ready", onLocaleChange);
-  }, []);
+  }, [pathLocale]);
 
   return locale;
 }
