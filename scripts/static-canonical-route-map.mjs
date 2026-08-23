@@ -112,11 +112,15 @@ export const STATIC_CANONICAL_ROUTES = [
     source: "app",
   },
   {
-    canonical: "/ifa-oracle.html",
-    aliases: ["/oracle/ifa"],
+    // 2026-08-24: 정본을 도구(/ifa-oracle)에서 랜딩(/oracle/ifa)으로 옮겼다.
+    // 그전에는 정본이 도구였고 랜딩은 별칭이라, 색인 대상이 되는 URL 이 크롤러 가시
+    // 텍스트 328자짜리 도구 화면 하나뿐이었다. 도구는 계속 noindex 로 둔다
+    // (_headers 의 `/ifa-oracle*` · generate-sitemap 의 excludedExactSitemapPaths).
+    canonical: "/oracle/ifa",
+    aliases: [],
     title: "IFA 오라클 | 코드 데스티니",
     description: "요루바 256 오두 신탁의 상징을 따라 지금 질문에 머무는 기운, 조심할 흐름, 선택의 방향을 차분히 살핍니다.",
-    source: "static-html",
+    source: "app",
   },
   {
     canonical: "/oracle/juyuk",

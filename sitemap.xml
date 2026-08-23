@@ -1891,6 +1891,12 @@
     <priority>0.88</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/oracle/ifa/</loc>
+    <lastmod>2026-08-23</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/oracle/rune/</loc>
     <lastmod>2026-08-23</lastmod>
     <changefreq>weekly</changefreq>
