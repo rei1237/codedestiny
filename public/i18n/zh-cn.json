@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "用户评价",
       "lead": "这些是真实用户在咨询后留下的评价。",
-      "allCta": "查看全部评价 →"
+      "allCta": "查看全部评价 →",
+      "empty": "还没有评价。体验一次咨询，来留下第一则吧。"
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -1335,6 +1336,13 @@
       "title": "免费立即开始",
       "freeStart": "免费开始",
       "compat": "查看合盘"
+    },
+    "pickWhy": {
+      "prefix": "今天",
+      "suffix": "最适合您。"
+    },
+    "feedback": {
+      "rewardPrefix": "每一则被采纳的错误回报"
     }
   },
   "terms": {

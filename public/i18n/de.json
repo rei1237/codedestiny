@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "Nutzerbewertungen",
       "lead": "Bewertungen von Menschen, die tatsächlich eine Deutung erhalten haben.",
-      "allCta": "Alle Bewertungen ansehen →"
+      "allCta": "Alle Bewertungen ansehen →",
+      "empty": "Noch keine Bewertungen. Probiere eine Beratung und schreibe die erste."
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -1335,6 +1336,13 @@
       "title": "Jetzt kostenlos starten",
       "freeStart": "Kostenloser Start",
       "compat": "Partnerschaft"
+    },
+    "pickWhy": {
+      "prefix": "Heute passt",
+      "suffix": "am besten zu dir."
+    },
+    "feedback": {
+      "rewardPrefix": "Pro angenommenem Fehlerbericht"
     }
   },
   "terms": {

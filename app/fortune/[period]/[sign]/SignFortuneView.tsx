@@ -91,7 +91,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
 
   return (
     <main
-      className={`min-h-screen bg-[linear-gradient(180deg,#fffaf7_0%,#fff3f8_44%,#fffaf7_100%)] pb-24 ${TEXT} dark:bg-[linear-gradient(165deg,#3a0e28_0%,#2e0a20_55%,#24081a_100%)]`}
+      className={`cd-yeoni-surface min-h-screen bg-[linear-gradient(180deg,#fffaf7_0%,#fff3f8_44%,#fffaf7_100%)] pb-24 ${TEXT} dark:bg-[linear-gradient(165deg,#3a0e28_0%,#2e0a20_55%,#24081a_100%)]`}
     >
       <div className="mx-auto max-w-3xl px-4 pt-8 sm:px-6 sm:pt-12">
         <nav aria-label="위치" className={`flex flex-wrap items-center gap-1.5 text-xs ${MUTED}`}>

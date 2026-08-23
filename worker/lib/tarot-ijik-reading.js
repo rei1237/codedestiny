@@ -267,7 +267,7 @@ function assessJobChange(cards) {
 
 /* ── 리딩 본문과 AI 프롬프트 ─────────────────────────────────────────── */
 function createLocalJobChangeReading(cards, assessment) {
-  const resolvedAssessment = assessment || getJobChangeAssessment(cards);
+  const resolvedAssessment = assessment || assessJobChange(cards);
   const sections = [];
   const actionItems = [];
   const reversedCount = cards.filter((card) => card && card.orientation === 'reversed').length;
@@ -312,7 +312,7 @@ function compactIjikPromptText(value, fallback) {
 }
 
 function buildIjikAiPromptText(cards, readingText, assessment) {
-  const resolvedAssessment = assessment || getJobChangeAssessment(cards);
+  const resolvedAssessment = assessment || assessJobChange(cards);
   const cardLines = (cards || []).map((card, index) => {
     const position = POSITIONS[index] || {};
     const cardName = card.nameKr || card.name || `카드 ${index + 1}`;

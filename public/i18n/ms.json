@@ -41,7 +41,8 @@
       "kicker": "REAL REVIEWS",
       "title": "Ulasan pengguna",
       "lead": "Ulasan daripada mereka yang benar-benar membuat bacaan.",
-      "allCta": "Lihat semua ulasan →"
+      "allCta": "Lihat semua ulasan →",
+      "empty": "Belum ada ulasan. Cuba satu sesi bacaan dan tinggalkan yang pertama."
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
@@ -1335,6 +1336,13 @@
       "title": "Mula percuma sekarang",
       "freeStart": "Mula percuma",
       "compat": "Keserasian"
+    },
+    "pickWhy": {
+      "prefix": "Hari ini,",
+      "suffix": "paling sesuai untuk anda."
+    },
+    "feedback": {
+      "rewardPrefix": "Bagi setiap laporan pepijat yang diterima"
     }
   },
   "terms": {
