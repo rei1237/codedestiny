@@ -13110,6 +13110,136 @@
       "surprised": {
         "label": "轻轻挥着手的花猪仔"
       }
+    },
+    "tarotAlbumTemplates": {
+      "minor": {
+        "shortSummary": "{title}：{rankShort} {suitSymbol}",
+        "storyTitle": "{rankTitle}与{suitNoun}",
+        "story": "{rankScene} {suitSymbol} 这张牌摊开时，Yeoni 不会把事情裁成简单的吉凶，而是先看您的心正以怎样的速度想触到现实。{title} 静静地告诉您，是时候把这道流向落成现实里的选择了。",
+        "uprightMeaning": "{rankLine} {suitLine}",
+        "reversedMeaning": "{rankLine} {suitLine}",
+        "loveMeaning": "{suitLine} {rankLine}",
+        "relationshipMeaning": "{suitLine} {rankLine}",
+        "careerMeaning": "{suitLine} {rankLine}",
+        "moneyMeaning": "{suitLine} {rankLine}",
+        "innerGrowthMeaning": "{suitLine} {rankLine}",
+        "yeoniMessage": "这张牌在对您说话。{rankShort} 所以今天别把心里的{suitNoun}攥得太紧，先从真正能改变的那一件事看起。"
+      },
+      "fallback": {
+        "element": "象征",
+        "storyTitle": "{name}的月光故事",
+        "story": "{name} 静静展开此刻您的心所面对的象征。Yeoni 会藉这张牌，一并看您抉择的温度与情绪的纹理。",
+        "loveMeaning": "在爱里，{name} 指引您沉静地看清心的方向与表达的方式。",
+        "relationshipMeaning": "在关系里，{name} 提醒您留意彼此的速度与界线。",
+        "careerMeaning": "在工作上，{name} 照出此刻需要的态度与下一步的行动。",
+        "moneyMeaning": "在金钱上，{name} 要您把情绪与现实条件一并检视。",
+        "innerGrowthMeaning": "在内里，{name} 让您察觉那道反复出现的心绪流向。",
+        "yeoniMessage": "在这张牌前，Yeoni 会不催促地等着您的心。",
+        "journalQuestion": "这张牌此刻照给我的那个小小讯号是什么？"
+      },
+      "majorSuitLabel": "大阿尔克那"
+    },
+    "tarotAlbumSuits": {
+      "wands": {
+        "label": "权杖",
+        "element": "火",
+        "keywords": {
+          "0": "热情",
+          "1": "行动",
+          "2": "推进",
+          "3": "创造"
+        },
+        "reversedKeywords": {
+          "0": "急躁",
+          "1": "耗竭",
+          "2": "方向混乱",
+          "3": "冲动"
+        },
+        "storyNoun": "火焰",
+        "symbolLine": "权杖照的是心中的火苗蔓延成身体动作的那一刻。",
+        "uprightLine": "正位时，把干劲化为实际行动的力量会活起来。",
+        "reversedLine": "逆位时，热情或急或散，方向得重新校准。",
+        "loveLine": "在爱里，心动与想表达的欲望都会变强。",
+        "relationshipLine": "在关系里，先动起来的态度与有生气的沟通最要紧。",
+        "careerLine": "在工作上，推进力、创业、项目启动与竞争之火会被点亮。",
+        "moneyLine": "在金钱上，赚钱的点子会冒出来，但要当心冲动消费。",
+        "growthLine": "在内在成长上，需要练习先承认想做的心，而不是先承认害怕。"
+      },
+      "cups": {
+        "label": "圣杯",
+        "element": "水",
+        "keywords": {
+          "0": "情感",
+          "1": "爱",
+          "2": "共情",
+          "3": "疗愈"
+        },
+        "reversedKeywords": {
+          "0": "情绪泛滥",
+          "1": "依赖",
+          "2": "误解",
+          "3": "关上的心"
+        },
+        "storyNoun": "波纹",
+        "symbolLine": "圣杯映的是心的波纹、依恋，以及温柔往来的温度。",
+        "uprightLine": "正位时，情感的流动活了过来，彼此的心柔柔地相触。",
+        "reversedLine": "逆位时，情绪或积或溢，得把误解与依赖理一理。",
+        "loveLine": "在爱里，交付与接住这份心的深度最要紧。",
+        "relationshipLine": "在关系里，共情与照顾能让流动重新回来。",
+        "careerLine": "在工作上，理解人的感觉、照护、艺术性与协作的敏感都会活起来。",
+        "moneyLine": "在金钱上，得沉静地看看随心情的花费与情绪化的选择。",
+        "growthLine": "在内在成长上，您会学着不为自己的情绪羞愧，安全地让它流过去。"
+      },
+      "swords": {
+        "label": "宝剑",
+        "element": "风",
+        "keywords": {
+          "0": "思考",
+          "1": "言语",
+          "2": "判断",
+          "3": "真相"
+        },
+        "reversedKeywords": {
+          "0": "过度思虑",
+          "1": "伤",
+          "2": "混乱",
+          "3": "带刺的话"
+        },
+        "storyNoun": "风",
+        "symbolLine": "宝剑照的是言语与思绪切开局面的那股锐利空气。",
+        "uprightLine": "正位时，核对事实与诚实的判断会把流向理清。",
+        "reversedLine": "逆位时，得把速度放慢，别让思绪过热、别让话语留成伤。",
+        "loveLine": "在爱里，比起心意，话语与态度的准确会先被看见。",
+        "relationshipLine": "在关系里，需要能减少误会的对话，与清楚的界线。",
+        "careerLine": "在工作上，分析、策略、文书与决断的力量最要紧。",
+        "moneyLine": "在金钱上，冷静读懂数字与条件，才能少些损失。",
+        "growthLine": "在内在成长上，您会分得出思绪是护着自己的工具，还是砍向自己的刀。"
+      },
+      "pentacles": {
+        "label": "星币",
+        "element": "土",
+        "keywords": {
+          "0": "现实",
+          "1": "安稳",
+          "2": "时间",
+          "3": "成果"
+        },
+        "reversedKeywords": {
+          "0": "拖延",
+          "1": "不稳",
+          "2": "负担",
+          "3": "执着"
+        },
+        "storyNoun": "种子",
+        "symbolLine": "星币映的是抓得住的条件，以及慢慢累积起来的现实重量。",
+        "uprightLine": "正位时，您可以花上时间，把安稳与成果一点点做出来。",
+        "reversedLine": "逆位时，得检视现实的负担或拖延，把根基重新夯实。",
+        "loveLine": "在爱里，信任与生活的安稳感最要紧。",
+        "relationshipLine": "在关系里，比起话语，一直守着的态度更有分量。",
+        "careerLine": "在工作上，实务、成果、技术的累积与长期计划会成为重心。",
+        "moneyLine": "在金钱上，管理、储蓄、投资准则这类实在的结构，才守得住运。",
+        "growthLine": "在内在成长上，您会立起那些虽慢却真能改变生活的习惯。"
+      }
     }
   }
 }
