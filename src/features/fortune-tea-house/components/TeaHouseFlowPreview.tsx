@@ -9,6 +9,7 @@ import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import YeoniDialogueActor from "./YeoniDialogueActor";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaHouseFlowPreviewProps = {
   steps: TeaHouseStoryStep[];
@@ -23,7 +24,18 @@ const flowAssetSrc = {
   buttons: fortuneTeaHouseAssets.ui.buttons,
 } as const;
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
+const KO = {
+  eyebrow: "찻잔이 마음을 고르는 자리",
+  title: "상담은 이렇게 열립니다",
+  readyLabel: "상담 시작 준비하기",
+  nextLabel: "다음",
+  // {title} 은 카드 제목으로 치환된다 — 번역에서도 그대로 남겨 둘 것.
+  cardAlt: "{title} 장면",
+};
+
 export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowPreviewProps) {
+  const copy = useTeaHouseCopy("flowPreview", KO);
   const [stepIndex, setStepIndex] = useState(0);
   const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
   const firstStepId = steps[0]?.id || "";
@@ -47,8 +59,8 @@ export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowP
   return (
     <section className={styles.flowScene} aria-labelledby="teaHouseFlowTitle">
       <div className={styles.flowCopy}>
-        <p className={styles.sceneEyebrow}>찻잔이 마음을 고르는 자리</p>
-        <h2 id="teaHouseFlowTitle">상담은 이렇게 열립니다</h2>
+        <p className={styles.sceneEyebrow}>{copy.eyebrow}</p>
+        <h2 id="teaHouseFlowTitle">{copy.title}</h2>
         <YeoniDialogueActor
           className={styles.flowYeoniActor}
           mood={currentStep.mood || "gentle"}
@@ -71,7 +83,7 @@ export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowP
               else setStepIndex((current) => current + 1);
             }}
           >
-            {currentStep.cta || (isLast ? "상담 시작 준비하기" : "다음")}
+            {currentStep.cta || (isLast ? copy.readyLabel : copy.nextLabel)}
           </TeaHouseButton>
         </div>
       </div>
@@ -86,7 +98,7 @@ export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowP
               <AssetImage
                 className={styles.flowCardAsset}
                 src={flowAssetSrc[card.assetKey]}
-                alt={`${card.title} 장면`}
+                alt={copy.cardAlt.replace("{title}", card.title)}
               />
               <h3>{card.title}</h3>
               <p>{card.text}</p>

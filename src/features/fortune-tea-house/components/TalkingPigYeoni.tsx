@@ -6,6 +6,7 @@ import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import { talkingPigYeoniFrameCrops, talkingPigYeoniFrames } from "../data/assets";
 import type { YeoniMood } from "../data/yeoniSprites";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type IdleWindow = Window & {
   requestIdleCallback?: (callback: () => void, options?: { timeout?: number }) => number;
@@ -34,7 +35,16 @@ type TalkingPigYeoniProps = {
   mood?: YeoniMood;
 };
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    🔴 아래 pickPigExpressionFrame 의 한국어 정규식은 여기서 건드리지 않는다 — 그건 화면 문구가
+    아니라 **대사 데이터**에 걸리는 판정이고, 데이터가 로케일화되면 그때 mood 를 명시로 바꿔야 한다. */
+const KO = {
+  pigAria: "문 앞에서 말을 건네는 꽃돼지?",
+  pigName: "꽃돼지?",
+};
+
 export default function TalkingPigYeoni({ cueText = "", isSpeaking = true, mood }: TalkingPigYeoniProps) {
+  const copy = useTeaHouseCopy("talkingPig", KO);
   const spriteGate = useSpritePlaybackGate<HTMLDivElement>();
   const [failed, setFailed] = useState(false);
   const [shouldWarmFrames, setShouldWarmFrames] = useState(false);
@@ -97,12 +107,12 @@ export default function TalkingPigYeoni({ cueText = "", isSpeaking = true, mood 
             onError={() => setFailed(true)}
           />
         ) : (
-          <span className={styles.pigSpriteFallback} role="img" aria-label="문 앞에서 말을 건네는 꽃돼지?">
-            꽃돼지?
+          <span className={styles.pigSpriteFallback} role="img" aria-label={copy.pigAria}>
+            {copy.pigName}
           </span>
         )}
       </span>
-      <span className={styles.pigNamePlate}>꽃돼지?</span>
+      <span className={styles.pigNamePlate}>{copy.pigName}</span>
       <span className={styles.pigScentTrail} aria-hidden />
       <div className={styles.preloadFrames} aria-hidden>
         {shouldWarmFrames ? warmFrames.map((frame) => (

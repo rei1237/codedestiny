@@ -7,6 +7,7 @@ import { fortuneTeaHouseAssets } from "../data/assets";
 import { isTeaHouseEntryStage } from "../data/entryStory";
 import type { TeaHouseStage } from "../data/story";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type FortuneTeaHouseImmersiveShellProps = {
   stage: TeaHouseStage;
@@ -15,7 +16,15 @@ type FortuneTeaHouseImmersiveShellProps = {
   children: ReactNode;
 };
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
+const KO = {
+  back: "돌아가기",
+  homeAria: "Code Destiny 홈화면으로 바로가기",
+  home: "홈으로",
+};
+
 export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBackToLanding, children }: FortuneTeaHouseImmersiveShellProps) {
+  const copy = useTeaHouseCopy("shell", KO);
   const backgroundAssets = getStageBackgroundAssets(stage);
   const backgroundStyle = {
     "--tea-bg-desktop": `url("${backgroundAssets.desktop}")`,
@@ -33,11 +42,11 @@ export default function FortuneTeaHouseImmersiveShell({ stage, notice = "", onBa
       <div className={styles.backdropVeil} aria-hidden />
       {shouldShowBackButton ? (
         <button className={styles.backButton} type="button" onClick={onBackToLanding}>
-          돌아가기
+          {copy.back}
         </button>
       ) : null}
-      <Link className={styles.homeButton} href="/" aria-label="Code Destiny 홈화면으로 바로가기">
-        홈으로
+      <Link className={styles.homeButton} href="/" aria-label={copy.homeAria}>
+        {copy.home}
       </Link>
       <div className={styles.pageInner}>{children}</div>
       <div className={styles.shellMist} aria-hidden />

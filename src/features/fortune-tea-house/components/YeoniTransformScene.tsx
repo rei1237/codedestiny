@@ -8,12 +8,23 @@ import AssetImage from "./AssetImage";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type YeoniTransformSceneProps = {
   onComplete: () => void;
 };
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
+const KO = {
+  cutsceneAlt: "꽃돼지?가 달빛 속에서 인간 연이로 변신하는 컷신",
+  eyebrow: "분홍빛이 피어나는 순간",
+  title: "꽃잎 사이로 모습이 바뀝니다",
+  metLabel: "연이를 만난다",
+  nextLabel: "다음",
+};
+
 export default function YeoniTransformScene({ onComplete }: YeoniTransformSceneProps) {
+  const copy = useTeaHouseCopy("yeoniTransform", KO);
   const prefersReducedMotion = usePrefersReducedMotion();
   const [ready, setReady] = useState(prefersReducedMotion);
   const [stepIndex, setStepIndex] = useState(0);
@@ -49,13 +60,13 @@ export default function YeoniTransformScene({ onComplete }: YeoniTransformSceneP
         <AssetImage
           className={styles.transformImage}
           src={fortuneTeaHouseAssets.pig.transform}
-          alt="꽃돼지?가 달빛 속에서 인간 연이로 변신하는 컷신"
+          alt={copy.cutsceneAlt}
           priority
         />
       </div>
       <div className={styles.transformCopy}>
-        <p className={styles.sceneEyebrow}>분홍빛이 피어나는 순간</p>
-        <h2 id="yeoniTransformTitle">꽃잎 사이로 모습이 바뀝니다</h2>
+        <p className={styles.sceneEyebrow}>{copy.eyebrow}</p>
+        <h2 id="yeoniTransformTitle">{copy.title}</h2>
         <TeaHouseDialogueBox
           speaker={step.speaker}
           text={step.text}
@@ -67,7 +78,7 @@ export default function YeoniTransformScene({ onComplete }: YeoniTransformSceneP
           disabled={!ready || !isCurrentLineTextComplete}
           onClick={goNext}
         >
-          {step.cta || (isLast ? "연이를 만난다" : "다음")}
+          {step.cta || (isLast ? copy.metLabel : copy.nextLabel)}
         </TeaHouseButton>
       </div>
     </section>

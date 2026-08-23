@@ -15,6 +15,7 @@ import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaHouseEntrySceneProps = {
   stage: TeaHouseEntryStage;
@@ -60,7 +61,25 @@ function debugTransform(message: string, ...payload: unknown[]) {
   }
 }
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    씬 대사(scene.lines)는 data/entryStory.ts 의 값이라 데이터 배치에서 함께 다룬다. */
+const KO = {
+  blooming: "달빛 피어나는 중",
+  nextLabel: "다음",
+  toCupsLabel: "찻잔 고르러 가기",
+  prevAria: "이전 장면으로 돌아가기",
+  prevLabel: "이전",
+  skipAria: "찻잔 안내 장면으로 건너뛰기",
+  skipLabel: "건너뛰기",
+  pigAlt: "달빛 찻집 안에서 말을 건네는 꽃돼지?",
+  pigBeforeAlt: "변신 전 꽃돼지 연이",
+  yeoniRevealAlt: "달빛 속에서 모습을 드러낸 연이",
+  yeoniDescentAria: "달빛 아래 강림하듯 모습을 드러내는 연이",
+  yeoniTeaAria: "달빛 아래 찻잔 선택을 안내하는 연이",
+};
+
 export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }: TeaHouseEntrySceneProps) {
+  const copy = useTeaHouseCopy("entryScene", KO);
   const prefersReducedMotion = usePrefersReducedMotion();
   const scene = getTeaHouseEntryScene(stage);
   const [lineIndex, setLineIndex] = useState(0);
@@ -85,7 +104,7 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   const isAutoAdvanceLineStage = scene.stage === "transformPreview" || scene.stage === "yeoniReveal";
   const showSkip = scene.stage !== "teaIntro" && scene.stage !== "transformPreview" && scene.stage !== "yeoniReveal";
   const canGoPrevious = Boolean(previousStage) || lineIndex > 0;
-  const nextButtonLabel = isTransformAdvanceLocked ? "달빛 피어나는 중" : baseLine.cta || (nextStage ? "다음" : "찻잔 고르러 가기");
+  const nextButtonLabel = isTransformAdvanceLocked ? copy.blooming : baseLine.cta || (nextStage ? copy.nextLabel : copy.toCupsLabel);
   const sceneStyle = useMemo(
     () =>
       ({
@@ -275,8 +294,8 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
           </span>
           <div className={styles.entryStoryButtons}>
             {canGoPrevious ? (
-              <TeaHouseButton variant="ghost" onClick={goPrevious} aria-label="이전 장면으로 돌아가기">
-                이전
+              <TeaHouseButton variant="ghost" onClick={goPrevious} aria-label={copy.prevAria}>
+                {copy.prevLabel}
               </TeaHouseButton>
             ) : null}
             {showSkip ? (
@@ -286,9 +305,9 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
                   setIdleLineIndex(null);
                   onStageChange("teaIntro");
                 }}
-                aria-label="찻잔 안내 장면으로 건너뛰기"
+                aria-label={copy.skipAria}
               >
-                건너뛰기
+                {copy.skipLabel}
               </TeaHouseButton>
             ) : null}
             <TeaHouseButton
@@ -323,6 +342,7 @@ function EntryActor({
   usePigFallback,
   onPigError,
 }: EntryActorProps) {
+  const copy = useTeaHouseCopy("entryScene", KO);
   const pigFrame = pigFrames[pigFrameIndex] || pigFrames[0];
 
   if (actor === "none") {
@@ -355,7 +375,7 @@ function EntryActor({
           <Image
             className={styles.pigSpriteSheet}
             src={usePigFallback ? pigFrame.fallbackSrc : pigFrame.src}
-            alt="달빛 찻집 안에서 말을 건네는 꽃돼지?"
+            alt={copy.pigAlt}
             fill
             sizes="(max-width: 640px) 76vw, 42vw"
             priority
@@ -390,7 +410,7 @@ function EntryActor({
               <img
                 className="absolute inset-0 h-full w-full object-contain object-bottom"
                 src={fortuneTeaHouseAssets.fallback.flowerPig}
-                alt="변신 전 꽃돼지 연이"
+                alt={copy.pigBeforeAlt}
                 loading="eager"
                 decoding="async"
               />
@@ -405,7 +425,7 @@ function EntryActor({
             <img
               className="absolute inset-0 h-full w-full object-contain object-bottom"
               src={fortuneTeaHouseAssets.fallback.yeoniBust}
-              alt="달빛 속에서 모습을 드러낸 연이"
+              alt={copy.yeoniRevealAlt}
               loading="eager"
               decoding="async"
             />
@@ -424,7 +444,7 @@ function EntryActor({
   if (actor === "yeoni") {
     return (
       <div className={styles.entryActor} data-actor="yeoni">
-        <span className={styles.entryYeoniDescent} role="img" aria-label="달빛 아래 강림하듯 모습을 드러내는 연이">
+        <span className={styles.entryYeoniDescent} role="img" aria-label={copy.yeoniDescentAria}>
           <span className={styles.entryYeoniMoonRing} aria-hidden />
           <span className={`${styles.entryYeoniPortraitLayer} ${styles.entryYeoniPortraitLayerFull}`} aria-hidden>
             <Image
@@ -453,7 +473,7 @@ function EntryActor({
 
   return (
     <div className={styles.entryActor} data-actor="tea">
-      <span className={styles.entryTeaYeoniPortrait} role="img" aria-label="달빛 아래 찻잔 선택을 안내하는 연이">
+      <span className={styles.entryTeaYeoniPortrait} role="img" aria-label={copy.yeoniTeaAria}>
         <Image
           src={fortuneTeaHouseAssets.yeoni.transparent.bust}
           alt=""
