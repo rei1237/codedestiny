@@ -268,8 +268,12 @@ function interpolateDestinyFlowerText(value, vars) {
 function destinyFlowerText(path, vars, fallback) {
   const key = DESTINY_FLOWER_I18N_NAMESPACE + '.' + path;
   const localFallback = typeof fallback === 'string' ? fallback : (DESTINY_FLOWER_KO_TEXT[path] || '');
-  if (typeof window !== 'undefined' && window && typeof window.cdTranslate === 'function') {
-    return window.cdTranslate(key, vars || {}, localFallback);
+  // 🔴 `window` 를 맨이름으로 쓰지 않는다 — 워커 런타임에는 없는 전역이라
+  //    verify:worker-no-undef 가 (정당하게) 실패한다. globalThis 로 짚으면 동작은 같고
+  //    "여긴 브라우저가 아닐 수 있다"는 의도도 그대로 읽힌다.
+  const browserGlobal = globalThis.window;
+  if (browserGlobal && typeof browserGlobal.cdTranslate === 'function') {
+    return browserGlobal.cdTranslate(key, vars || {}, localFallback);
   }
   return localFallback ? interpolateDestinyFlowerText(localFallback, vars || {}) : key;
 }
