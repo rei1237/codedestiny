@@ -20,8 +20,9 @@
 # 2026-08-23 까지 이 값을 읽는 코드가 0건이라 실제로 그 상태였고, lib/llm-client.ts 의
 # isWorkersAiEnabled 로 배선하면서 닫았다.
 #
-# LLM_DRY_RUN 은 빌드/CI 전용이라 런타임에 아무 일도 하지 않는다(worker/ 안에 소비처 0건,
-# 2026-08-20 git grep 실측). 차단 수단으로 세지 말 것.
+# LLM_DRY_RUN 은 빌드/CI 전용이라 런타임에 아무 일도 하지 않았다(worker/ 안에 소비처 0건).
+# 차단 수단으로 세지 말 것 — 2026-08-24 에 [vars] 에서 제거했고, 빌드/CI 는 종전대로
+# scripts/check-changed.mjs·deploy-safe.mjs 가 process.env 로 넘긴다.
 #
 # 생성 품질을 봐야 할 때만 키를 넣고 위 값들(WORKERS_AI_ENABLED·GUARDIAN_FORTUNE_LLM_PROVIDER
 # ·ENABLE_FUSION_FORTUNE_MOCK_FLOW)을 프로덕션과 같게 되돌린 뒤 재배포하고, 확인이 끝나면 되돌린다.
@@ -141,7 +142,6 @@ ADMIN_MONTHLY_CREDIT_GRANT_ENABLED = "true"
 # route silently falls back to the mock generator).
 ENABLE_GUARDIAN_FORTUNE_API = "true"
 ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
-ENABLE_GUARDIAN_FORTUNE_CREDITS = "true"
 ENABLE_GUARDIAN_FORTUNE_REAL_LLM = "true"
 ALLOW_REAL_GUARDIAN_FORTUNE_LLM = "true"
 GUARDIAN_FORTUNE_LLM_PROVIDER = "mock"
@@ -150,7 +150,6 @@ GUARDIAN_FORTUNE_LLM_PROVIDER = "mock"
 ENABLE_FUSION_FORTUNE_UI = "true"
 ENABLE_FUSION_FORTUNE_API = "true"
 ENABLE_FUSION_FORTUNE_MOCK_FLOW = "true"
-ENABLE_FUSION_FORTUNE_TICKET_SALES = "true"
 ENABLE_FUSION_FORTUNE_REAL_LLM = "true"
 ALLOW_FUSION_FORTUNE_REAL_LLM = "true"
 AUTH_FRONTEND_BASE_URL = "https://staging.code-destiny.com"
@@ -170,7 +169,6 @@ SOCIAL_PHONE_SCOPE_PROVIDERS = ""
 # Gemini 쪽에 한 벌만 올려 두고 참조한다(입력 비용 약 -55%). 문제가 생기면 "0" 으로 바꿔
 # 배포만 다시 하면 전체 프롬프트를 보내던 기존 동작으로 즉시 돌아간다.
 GEMINI_CONTEXT_CACHE = "1"
-AUTH_SIGNUP_BONUS_POINTS = "50"
 AUTH_OPERATION_TIMEOUT_MS = "12000"
 # 🔴 아래 세 값과 MONGO_WAIT_QUEUE_TIMEOUT_MS 는 worker/lib/db.js 의 코드 기본값과 **한 세트**다
 #    (2026-08-13 정렬). 앞선 커밋이 코드 기본값만 낮추고 여기를 안 고쳐서, env 가 코드를 이기는 바람에
@@ -259,22 +257,12 @@ MONGO_POOL_RESET_COOLDOWN_MS = "2000"
 MONGO_POOL_FORCE_RESET_AFTER = "3"
 # 커넥션 수립 재시도 사이의 기본 대기(백오프는 이 값 × (시도+1)).
 MONGO_WORKER_RETRY_DELAY_MS = "220"
+# 🔴 2026-08-24: 죽은 키 14개를 프로덕션 toml 과 함께 걷어냈다. 목록과 사유는
+# worker/wrangler.toml 의 같은 자리 주석에 있다(양쪽에 복제하지 않는다 — 복제가 다음 드리프트다).
 GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
-ZIWEI_PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
-PREMIUM_SAJU_NEW_YEAR_GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_TIMEOUT_MS = "45000"
-ZIWEI_PREMIUM_LLM_TIMEOUT_MS = "75000"
-ZIWEI_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"
-SUKYO_PREMIUM_LLM_PROVIDERS = "gemini,workers-ai"
-PSYCHO_ANALYSIS_PROVIDER_TIMEOUT_MS = "45000"
-# Keep production dry-run disabled unless a production override explicitly requires it
-LLM_DRY_RUN = "false"
-PDF_LLM_PROVIDER = "workers-ai"
 WORKERS_AI_ENABLED = "false"
-PDF_LLM_MAX_CALLS_PER_JOB = "1"
-PDF_REAL_LLM_CHAPTER_IDS = "intro"
-PDF_DEBUG_MODE = "true"
 # Worker-native route groups:
 # - /api/auth/*
 # - /api/payments/*
