@@ -19,8 +19,8 @@ const path = require("node:path");
 const root = path.resolve(__dirname, "../..");
 const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 
-const ENGINE_REL = "js/services/destiny-flower-engine.js";
-const TRAITS_REL = "js/services/destiny-flower-traits.js";
+const ENGINE_REL = "worker/lib/destiny-flower-engine.js";
+const TRAITS_REL = "worker/lib/destiny-flower-traits.js";
 const CALC_REL = "js/saju-engine-tarot-sukuyo-quantum.js";
 
 const engineSource = read(ENGINE_REL);

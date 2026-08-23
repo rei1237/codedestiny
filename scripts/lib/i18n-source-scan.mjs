@@ -14,7 +14,7 @@ import { BUILD_ARTIFACT_DIRS } from "./source-scan-ignore.mjs";
 /** 모듈 KO 테이블/상대 키가 어느 사전 네임스페이스로 들어가는지 (자동 유도 실패분만). */
 export const MANUAL_NAMESPACE = {
   "js/tarot-self-esteem-experience.js": "home.tarotSelfEsteem",
-  "js/services/destiny-flower-engine.js": "fortune.destinyFlower",
+  "worker/lib/destiny-flower-engine.js": "fortune.destinyFlower",
 };
 
 /** 키를 접두어 없이 그대로 넘기는 래퍼들. */

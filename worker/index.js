@@ -523,6 +523,7 @@ const handleZiweiIslandReportRoutes = createLazyRouteHandler("./routes/ziwei-isl
 const handleDreamRoutes = createLazyRouteHandler("./routes/dream.js", () => import("./routes/dream.js"), "handleDreamRoutes");
 const handleDebugRoutes = createLazyRouteHandler("./routes/debug.js", () => import("./routes/debug.js"), "handleDebugRoutes");
 const handleYogaGuruRoutes = createLazyRouteHandler("./routes/yoga-guru.js", () => import("./routes/yoga-guru.js"), "handleYogaGuruRoutes");
+const handleDestinyFlowerRoutes = createLazyRouteHandler("./routes/destiny-flower.js", () => import("./routes/destiny-flower.js"), "handleDestinyFlowerRoutes");
 const handleSibylRoutes = createLazyRouteHandler("./routes/sibyl.js", () => import("./routes/sibyl.js"), "handleSibylRoutes");
 const handleOracleRoutes = createLazyRouteHandler("./routes/oracle.js", () => import("./routes/oracle.js"), "handleOracleRoutes");
 const handleAnimalTotemRoutes = createLazyRouteHandler("./routes/animal-totem.js", () => import("./routes/animal-totem.js"), "handleAnimalTotemRoutes", "api/animal-totem");
@@ -1645,6 +1646,10 @@ export default {
 
       if (url.pathname === "/api/yoga-guru" || url.pathname.startsWith("/api/yoga-guru/")) {
         return withCorsHeaders(request, env, await handleYogaGuruRoutes(request, env));
+      }
+
+      if (url.pathname === "/api/destiny-flower" || url.pathname.startsWith("/api/destiny-flower/")) {
+        return withCorsHeaders(request, env, await handleDestinyFlowerRoutes(request, env));
       }
 
       if (url.pathname === "/api/sibyl" || url.pathname.startsWith("/api/sibyl/")) {

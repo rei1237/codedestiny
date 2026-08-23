@@ -1870,23 +1870,23 @@ function __cdEnsureSukuyoAIConsultationReady() {
 }
 
 var __cdLazyActionLoaders = {
-  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-7bea744e5f6d'); },
-  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-7bea744e5f6d'); },
-  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-7bea744e5f6d'); },
+  openKemetModal: function() { return __cdLoadScriptOnce('/js/oracle-kcg.js?v=build-235558b68f15'); },
+  openDreamModal: function() { return __cdLoadScriptOnce('/js/dream-ledger.js?v=build-235558b68f15'); },
+  openPsychoDreamModal: function() { return __cdLoadScriptOnce('/js/psycho-dream-analyzer-freuds-study.js?v=build-235558b68f15'); },
   openOlympusOracleModal: function() { return __cdLoadScriptOnce('/js/olympus-oracle.js'); },
   openHwatuModal: function() { return __cdLoadScriptOnce('/HwatuFortune.js?v=h9ee7eacf3957'); },
-  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-7bea744e5f6d').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-7bea744e5f6d'); }); },
+  openJuyukModal: function() { return __cdLoadScriptOnce('/js/iching-engine.js?v=build-235558b68f15').then(function() { return __cdLoadScriptOnce('/js/iching-modal.js?v=build-235558b68f15'); }); },
   openRuneOracle: function() { window.location.assign('/oracle/rune/'); return Promise.resolve(true); },
-  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-7bea744e5f6d').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-7bea744e5f6d'); }); },
+  openAnimalTotemModal: function() { return __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-235558b68f15').then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-235558b68f15'); }); },
   openDestinyEggPage: function() { return Promise.resolve(window.location.assign('/tadagochi.html')); },
-  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-7bea744e5f6d'); },
-  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-7bea744e5f6d'); },
+  openTarotLoveModal: function() { return __cdLoadScriptOnce('/js/tarot-love-experience.js?v=build-235558b68f15'); },
+  openTarotReunionModal: function() { return __cdLoadScriptOnce('/js/tarot-reunion-experience.js?v=build-235558b68f15'); },
   openTarotHealingModal: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
   openTarotHealingPage: function() { return Promise.resolve(window.location.assign('/tarot/healing')); },
-  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-7bea744e5f6d'); },
-  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-7bea744e5f6d'); },
+  openTarotSelfEsteemModal: function() { return __cdLoadScriptOnce('/js/tarot-self-esteem-experience.js?v=build-235558b68f15'); },
+  openTarotYearFortuneModal: function() { return __cdLoadScriptOnce('/js/tarot-year-fortune-experience.js?v=build-235558b68f15'); },
   openSibylModal: function() {
-    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-7bea744e5f6d').then(function() {
+    return __cdLoadScriptOnce('/js/sibyl-system.js?v=build-235558b68f15').then(function() {
       if (typeof window.openSibylModal === 'function') window.openSibylModal();
     });
   },
@@ -1939,9 +1939,9 @@ var __cdLazyActionLoaders = {
   // 탭/45초 타임아웃/백그라운드 전환 중 하나가 있어야 로드)로만 실려서, 결과 화면
   // 도달 후 첫 공유 탭이 아직 로드 전이면 조용히 아무 반응 없이 죽었다(setGender와
   // 같은 계열의 버그 — 위 주석 참고).
-  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-7bea744e5f6d'); },
-  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-7bea744e5f6d'); },
-  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-7bea744e5f6d'); }
+  shareKakao: function() { return __cdLoadScriptOnce('/js/share.js?v=build-235558b68f15'); },
+  shareInstagram: function() { return __cdLoadScriptOnce('/js/share.js?v=build-235558b68f15'); },
+  shareSajuResultImage: function() { return __cdLoadScriptOnce('/js/share.js?v=build-235558b68f15'); }
 };
 window.__cdLazyActionLoaders = __cdLazyActionLoaders;
 var __cdLazyActionState = {};
@@ -2246,17 +2246,17 @@ function __cdEnsureSajuCoreLoaded() {
    *    두 경로를 같은 URL 로 맞춰야 __cdLoadScriptOnce 의 파일명 기반 중복제거가 실제로 물린다. */
   var chain = [
     'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.7/lunar.min.js',
-    '/js/core/kasi-calendar-service.js?v=build-7bea744e5f6d',
-    '/js/compat-llm-prompts.js?v=build-7bea744e5f6d',
-    '/js/saju-engine.js?v=build-7bea744e5f6d',
-      '/js/core/saju/extremeTResult.js?v=build-7bea744e5f6d',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-7bea744e5f6d',
-    '/js/core/saju/modalProfileState.js?v=build-7bea744e5f6d',
-    '/js/core/saju/reportDashboard.js?v=build-7bea744e5f6d',
-    '/js/saju-engine-continuation.js?v=build-7bea744e5f6d',
-    '/js/entertain-engine.js?v=build-7bea744e5f6d',
+    '/js/core/kasi-calendar-service.js?v=build-235558b68f15',
+    '/js/compat-llm-prompts.js?v=build-235558b68f15',
+    '/js/saju-engine.js?v=build-235558b68f15',
+      '/js/core/saju/extremeTResult.js?v=build-235558b68f15',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-235558b68f15',
+    '/js/core/saju/modalProfileState.js?v=build-235558b68f15',
+    '/js/core/saju/reportDashboard.js?v=build-235558b68f15',
+    '/js/saju-engine-continuation.js?v=build-235558b68f15',
+    '/js/entertain-engine.js?v=build-235558b68f15',
     /* 체인은 순차 reduce라 앞에 끼우면 이 파일의 실패가 뒤쪽 전체를 죽인다 — 신규 카드 스크립트는 맨 뒤에 둔다. */
-    '/js/core/saju/dopamineResult.js?v=build-7bea744e5f6d'
+    '/js/core/saju/dopamineResult.js?v=build-235558b68f15'
   ];
 
   /* 다운로드만 병렬로 앞당긴다 — 아래 reduce 의 순차 실행은 그대로다(__cdPreloadScripts 주석 참고). */
@@ -2279,7 +2279,7 @@ function __cdEnsureDestinyProfileLoaded() {
   if (window.DestinyProfileManager) return Promise.resolve(true);
   if (__cdDestinyProfileLoadPromise) return __cdDestinyProfileLoadPromise;
 
-  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-7bea744e5f6d')
+  __cdDestinyProfileLoadPromise = __cdLoadScriptOnce('/js/destiny-profile.js?v=build-235558b68f15')
     .then(function() { return true; })
     .catch(function(err) {
       __cdDestinyProfileLoadPromise = null;
@@ -2299,7 +2299,7 @@ function __cdEnsureSwissEphLoaded() {
   if (__cdSwissEphLoadPromise) return __cdSwissEphLoadPromise;
 
   __cdSwissEphLoadPromise = new Promise(function(resolve, reject) {
-    var src = '/js/swisseph-loader.js?v=build-7bea744e5f6d';
+    var src = '/js/swisseph-loader.js?v=build-235558b68f15';
     var norm = __cdNormalizeScriptSrc(src);
     if (!norm) {
       reject(new Error('missing swisseph src'));
@@ -2564,7 +2564,7 @@ __cdInstallSajuActionStub('setGender');
 __cdInstallSajuActionStub('openAnimalDestinyRoute');
 __cdInstallSajuActionStub('openDestinyMeetingPlaceRoute');
 window.openFortunePlanner = function() {
-  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-7bea744e5f6d').then(function() {
+  return __cdLoadScriptOnce('/js/luck-sync-diary.js?v=build-235558b68f15').then(function() {
     if (window.LuckSyncDiary && typeof window.LuckSyncDiary.open === 'function') return window.LuckSyncDiary.open();
     throw new Error('fortune planner is unavailable');
   }).catch(function(err) {
@@ -3392,8 +3392,8 @@ function __cdBindAnimalTotemTileDirect() {
         return;
       }
       raf(function() {
-        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-7bea744e5f6d')
-          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-7bea744e5f6d'); })
+        loadScriptOnce('js/services/animal-totem-content-engine.js?v=build-235558b68f15')
+          .then(function() { return loadScriptOnce('js/animal-totem-experience.js?v=build-235558b68f15'); })
           .then(function() {
             try {
               if (typeof window.openAnimalTotemModal === 'function') window.openAnimalTotemModal();
@@ -4461,6 +4461,123 @@ function _dfGetProfilePayload(options) {
   return _dfApplyLiveDomainBridge(payload || {}, birthCtx, opts);
 }
 
+/**
+ * 서버 매칭 결과 캐시.
+ *
+ * 🔴 매칭은 브라우저에서 하지 않는다 (2026-08-24). 엔진이 `worker/lib/destiny-flower-engine.js`
+ * 로 옮겨 갔고, 결과를 주는 곳은 `POST /api/destiny-flower/match` 하나다. 그 라우트가
+ * `flower-fc` 해금을 서버에서 확인한다 — 예전에는 결제만 서버에서 차감되고 결과는 브라우저가
+ * 만들어서, 콘솔 한 줄로 1만원짜리 결과를 공짜로 뽑을 수 있었다.
+ *
+ * 렌더 경로는 전부 동기라, 여기서는 캐시만 읽고 없으면 null 을 돌려준다. 요청이 도착하면
+ * `_dfRefreshStudioForSource` 를 다시 불러 화면을 채운다(4-up 의 "판정 대기" 칸이 그 사이를 메운다).
+ */
+var _dfServerMatch = {
+  fingerprint: '',
+  sources: null,
+  theme: null,
+  inflight: null,
+  status: 'idle'
+};
+
+/** 같은 프로필로 두 번 묻지 않기 위한 지문. 생년월일과 네 도메인의 핵심 값만 본다. */
+function _dfServerMatchFingerprint(payload) {
+  if (!payload || typeof payload !== 'object') return '';
+  var birth = payload.birth || {};
+  var ziwei = (payload.domains && payload.domains.ziwei) || payload.ziwei || {};
+  var astro = (payload.domains && payload.domains.astrology) || payload.astrology || {};
+  var sukuyo = (payload.domains && payload.domains.sukuyo) || payload.sukuyo || {};
+  return [
+    birth.year, birth.month, birth.day, birth.hour, birth.minute, birth.calType,
+    ziwei.main_star || ziwei.mainStar, ziwei.palace, ziwei.brightness,
+    astro.sun_sign || astro.sunSign, astro.moon_sign || astro.moonSign, astro.rising_sign || astro.risingSign,
+    sukuyo.mansion, sukuyo.phase
+  ].join('|');
+}
+
+/**
+ * 서버에 매칭을 요청한다. 같은 지문이면 재요청하지 않고, 진행 중이면 그 약속을 돌려준다
+ * (단일비행 — 4-up 이 네 소스를 동시에 물어도 왕복은 1회다).
+ */
+function _dfRequestServerMatch(payload, onSettled) {
+  var fingerprint = _dfServerMatchFingerprint(payload);
+  if (!fingerprint) return null;
+  if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.sources) return null;
+  if (_dfServerMatch.fingerprint === fingerprint && _dfServerMatch.inflight) return _dfServerMatch.inflight;
+
+  var token = __cdGetAuthTokenForLockSync();
+  var url = __cdResolveApiBaseForLockSync() + '/api/destiny-flower/match';
+  var headers = { 'Content-Type': 'application/json' };
+  if (token) headers.Authorization = 'Bearer ' + token;
+
+  _dfServerMatch.fingerprint = fingerprint;
+  _dfServerMatch.sources = null;
+  _dfServerMatch.theme = null;
+  _dfServerMatch.status = 'loading';
+
+  var promise = fetch(url, {
+    method: 'POST',
+    headers: headers,
+    credentials: 'include',
+    body: JSON.stringify({ profile: payload })
+  }).then(function(res) {
+    return res.json().then(function(data) { return { status: res.status, data: data }; });
+  }).then(function(result) {
+    if (_dfServerMatch.fingerprint !== fingerprint) return;
+    if (result.status === 200 && result.data && result.data.ok) {
+      _dfServerMatch.sources = result.data.sources || {};
+      _dfServerMatch.theme = result.data.theme || null;
+      _dfServerMatch.status = 'ready';
+    } else if (result.status === 402) {
+      _dfServerMatch.status = 'locked';
+    } else if (result.status === 401) {
+      _dfServerMatch.status = 'unauthorized';
+    } else {
+      _dfServerMatch.status = 'error';
+    }
+  }).catch(function(error) {
+    if (_dfServerMatch.fingerprint !== fingerprint) return;
+    console.warn('[DestinyFlower] 서버 매칭 실패:', error);
+    _dfServerMatch.status = 'error';
+  }).then(function() {
+    if (_dfServerMatch.fingerprint === fingerprint) _dfServerMatch.inflight = null;
+    if (typeof onSettled === 'function') {
+      try { onSettled(_dfServerMatch.status); } catch (_) {}
+    }
+  });
+
+  _dfServerMatch.inflight = promise;
+  return promise;
+}
+
+/** 캐시에 들어온 그 체계의 매칭 결과. 아직 안 왔으면 null. */
+function _dfGetServerMatched(source) {
+  if (!_dfServerMatch.sources) return null;
+  return _dfServerMatch.sources[_dfNormalizeSource(source)] || null;
+}
+
+/**
+ * 서버 응답이 도착했을 때 화면을 다시 그린다.
+ * 🔴 소스별 캐시(`_dfStudioState.flowerData.sources`)에 이미 null 이 박혀 있으므로 강제 갱신으로 부른다.
+ */
+function _dfOnServerMatchSettled(status) {
+  if (status !== 'ready') {
+    if (status === 'locked' || status === 'unauthorized') {
+      _dfSetStudioStatus(status === 'locked'
+        ? '운명의 꽃 아틀리에 해금이 필요합니다.'
+        : '로그인 후 운명의 꽃을 볼 수 있습니다.');
+    }
+    return;
+  }
+  try {
+    // 네 소스 전부에 null 이 박혀 있다 — 비워야 4-up 이 다시 계산한다.
+    if (_dfStudioState.flowerData) _dfStudioState.flowerData.sources = {};
+    _dfRefreshStudioForSource(_dfStudioState.activeSource || 'saju', true);
+  } catch (error) {
+    console.warn('[DestinyFlower] 서버 결과 반영 실패:', error);
+  }
+}
+
 function _dfResolveSelection() {
   var payload = _dfGetProfilePayload({ sourceHint: 'saju' });
   var birthCtx = _dfResolveBirthContext(payload || {});
@@ -4485,33 +4602,11 @@ function _dfResolveSelection() {
     return null;
   }
 
-  var matched = null;
-  var theme = null;
-  var hasEngineMatcher = !!(
-    (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function')
-    || typeof window.matchDestinyFlower === 'function'
-  );
-
-  if (!hasEngineMatcher) {
-    console.error('[DestinyFlower][Saju] resolve failed: matcher unavailable');
-    return null;
-  }
-
-  try {
-    if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function') {
-      matched = window.DestinyFlowerEngine.matchDestinyFlower(payload, { limit: 5 });
-      if (typeof window.DestinyFlowerEngine.updateFlowerTheme === 'function') {
-        theme = window.DestinyFlowerEngine.updateFlowerTheme(payload, {});
-      }
-    } else if (typeof window.matchDestinyFlower === 'function') {
-      matched = window.matchDestinyFlower(payload, { limit: 5 });
-    }
-  } catch (e2) {
-    console.warn('[DestinyFlower] 매칭 실패:', e2);
-  }
-
+  // 🔴 매칭은 서버가 한다. 캐시에 없으면 요청만 걸고 null 을 돌려준다 — 도착하면 다시 그린다.
+  var matched = _dfGetServerMatched('saju');
+  var theme = _dfServerMatch.theme;
   if (!matched) {
-    console.error('[DestinyFlower][Saju] resolve failed: matcher returned empty result');
+    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
     return null;
   }
 
@@ -4528,10 +4623,9 @@ function _dfResolveSelection() {
     return null;
   }
 
+  // `window.flowerSymbology` 폴백은 사라졌다 — 카탈로그가 워커로 갔다. 서버가 꽃을 못 고르면
+  // 그건 서버가 판정할 데이터가 없다는 뜻이라, 억지 연꽃 대신 빈 상태를 보여 준다.
   var flower = matched.flower || matched.flowerSymbology;
-  if (!flower && allowUserForcedFallback && window.flowerSymbology) {
-    flower = window.flowerSymbology.LOTUS || null;
-  }
   if (!flower) return null;
 
   var primary = _dfSafeColor((flower.primary_color || (theme && theme.palette && theme.palette.primary)), '#f472b6');
@@ -4560,20 +4654,12 @@ function _dfResolveSelection() {
 function _afResolveSelection() {
   var payload = _dfGetProfilePayload({ sourceHint: 'astrology' });
   if (!_dfHasReadySourceData('astrology', payload)) return null;
-  var matched = null;
-
-  try {
-    if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchAstrologyFlower === 'function') {
-      matched = window.DestinyFlowerEngine.matchAstrologyFlower(payload, { source: 'astrology' });
-    } else if (typeof window.matchAstrologyFlower === 'function') {
-      matched = window.matchAstrologyFlower(payload, { source: 'astrology' });
-    } else if (typeof window.getAstrologyFlower === 'function') {
-      matched = window.getAstrologyFlower((payload && payload.astrology) || {});
-    }
-  } catch (e) {
-    console.warn('[AstrologyFlower] 매칭 실패:', e);
+  // 🔴 매칭은 서버가 한다 (POST /api/destiny-flower/match). 캐시 미스면 요청만 걸고 빠진다.
+  var matched = _dfGetServerMatched('astrology');
+  if (!matched) {
+    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
+    return null;
   }
-  if (!matched) return null;
 
   var chart = matched && matched.chart ? matched.chart : {};
   var hasChartSignals = !!(
@@ -4793,24 +4879,25 @@ function _jfResolveSelection() {
             palaces: palaceRows,
             all_main_stars: allMainStars
           };
+          // 🔴 원본 차트를 그대로 실어 보낸다 — 서버 엔진이 chooseJamidusuStrongStar 로
+          //    "오늘의 강한 별"을 다시 뽑는다. 이걸 빼면 명궁 별만 쓰는 결과로 조용히 퇴화한다.
+          payload.ziweiChart = zw;
         }
       } catch (eFix) {
         // ignore
       }
     }
-
-    if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchJamidusuFlower === 'function') {
-      matched = window.DestinyFlowerEngine.matchJamidusuFlower(payload, { source: 'jamidusu' });
-    } else if (typeof window.matchJamidusuFlower === 'function') {
-      matched = window.matchJamidusuFlower(payload, { source: 'jamidusu' });
-    } else if (typeof window.getJamidusuFlower === 'function') {
-      matched = window.getJamidusuFlower((payload && payload.ziwei) || {});
-    }
   } catch (e) {
-    console.warn('[JamidusuFlower] 매칭 실패:', e);
+    console.warn('[JamidusuFlower] 자미두수 차트 준비 실패:', e);
   }
+
+  // 🔴 매칭은 서버가 한다 (POST /api/destiny-flower/match).
+  matched = _dfGetServerMatched('jamidusu');
   if (!_dfHasReadySourceData('jamidusu', payload)) return null;
-  if (!matched) return null;
+  if (!matched) {
+    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
+    return null;
+  }
 
   var flower = matched && matched.flower;
   if (!flower) {
@@ -4958,23 +5045,13 @@ function _sfResolveSelection() {
   var birthCtx = _dfResolveBirthContext(payload || {});
   if (!_dfHasBirthCore(birthCtx)) return null;
 
-  var matched = null;
-
-  try {
-    if (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchSukuyoFlower === 'function') {
-      matched = window.DestinyFlowerEngine.matchSukuyoFlower(payload, { source: 'sukuyo' });
-    } else if (typeof window.matchSukuyoFlower === 'function') {
-      matched = window.matchSukuyoFlower(payload, { source: 'sukuyo' });
-    } else if (typeof window.calculateSukyoFlower === 'function') {
-      var b = (payload && payload.birth) || (payload && payload.identity && payload.identity.birth) || {};
-      var idx = (((Number(b.year || 2000) * 372 + Number(b.month || 1) * 31 + Number(b.day || 1) + 13) % 27) + 27) % 27 + 1;
-      matched = window.calculateSukyoFlower(idx, payload && payload.sukuyo && payload.sukuyo.phase);
-    }
-  } catch (e) {
-    console.warn('[SukuyoFlower] 매칭 실패:', e);
-  }
+  // 🔴 매칭은 서버가 한다 (POST /api/destiny-flower/match).
+  var matched = _dfGetServerMatched('sukuyo');
   if (!_dfHasReadySourceData('sukuyo', payload)) return null;
-  if (!matched) return null;
+  if (!matched) {
+    _dfRequestServerMatch(payload, _dfOnServerMatchSettled);
+    return null;
+  }
 
   var flower = matched && matched.flower;
   if (!flower) {
@@ -6215,12 +6292,8 @@ function _dfHasReadySourceData(source, payload) {
   var normalized = _dfNormalizeSource(source);
   var data = payload && typeof payload === 'object' ? payload : {};
   if (normalized === 'saju') {
-    var hasEngineMatcher = !!(
-      (window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function')
-      || typeof window.matchDestinyFlower === 'function'
-    );
-    if (!hasEngineMatcher) return false;
-
+    // 매처 유무 검사는 사라졌다 — 매칭은 서버가 하므로 브라우저에 매처가 있을 수 없다.
+    // 여기서는 "서버에 물어볼 만한 데이터가 있는가"만 본다.
     var saju = data.saju || {};
     var sajuDomain = (data.domains && data.domains.saju) || {};
     var analysis = data.analysis || {};
@@ -6491,7 +6564,8 @@ function _dfReloadSourceData(source, options) {
   }
 
   var loader = Promise.resolve(true);
-  if (!(window.DestinyFlowerEngine && typeof window.DestinyFlowerEngine.matchDestinyFlower === 'function')) {
+  // 꽃 아트(window.CDFlowerArt)만 브라우저에 올린다. 매칭 엔진은 워커에 있다.
+  if (!window.CDFlowerArt) {
     loader = loader.then(function() {
       return import('/js/core/bootstrapDestinyFlower.js').then(function(mod) {
         if (mod && typeof mod.bootstrapDestinyFlower === 'function') {
@@ -6499,7 +6573,7 @@ function _dfReloadSourceData(source, options) {
         }
         return true;
       }).catch(function(err) {
-        console.warn('[DestinyFlower] 엔진 부트스트랩 실패:', err);
+        console.warn('[DestinyFlower] 꽃 아트 부트스트랩 실패:', err);
         return false;
       });
     });
@@ -8041,9 +8115,9 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
-    '/js/compat-llm-prompts.js?v=build-7bea744e5f6d',
-      '/js/saju-engine.js?v=build-7bea744e5f6d',
-      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-7bea744e5f6d'
+    '/js/compat-llm-prompts.js?v=build-235558b68f15',
+      '/js/saju-engine.js?v=build-235558b68f15',
+      '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-235558b68f15'
   ];
 
   return __cdEnsureLunarLibReady().then(function() {
@@ -8063,7 +8137,7 @@ function __cdEnsureBirthModalDepsLoaded() {
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function'
   ) {
-    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-7bea744e5f6d'));
+    tasks.push(__cdLoadScriptOnce('/js/core/saju/modalProfileState.js?v=build-235558b68f15'));
   }
   tasks.push(__cdEnsureSukuyoZiweiCoreLoaded());
   if (!tasks.length) return Promise.resolve(true);
@@ -8836,8 +8910,8 @@ function openAnimalTotemModal() {
     typeof window.drawAnimalTotemSpread === 'function';
 
   if (!hasFullTotemFlow && typeof __cdLoadScriptOnce === 'function') {
-    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-7bea744e5f6d')
-      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-7bea744e5f6d'); })
+    __cdLoadScriptOnce('/js/services/animal-totem-content-engine.js?v=build-235558b68f15')
+      .then(function() { return __cdLoadScriptOnce('/js/animal-totem-experience.js?v=build-235558b68f15'); })
       .then(function() {
         var upgradedOpen = window.openAnimalTotemModal;
         if (typeof upgradedOpen === 'function' && upgradedOpen !== currentOpenFn) {

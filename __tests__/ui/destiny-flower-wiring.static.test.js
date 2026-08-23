@@ -20,7 +20,7 @@ const root = path.resolve(__dirname, "../..");
 const read = (rel) => fs.readFileSync(path.join(root, rel), "utf8");
 
 const RUNTIME_REL = "js/core/index-inline-runtime.js";
-const ENGINE_REL = "js/services/destiny-flower-engine.js";
+const ENGINE_REL = "worker/lib/destiny-flower-engine.js";
 const SAJU_REL = "js/saju-engine.js";
 const SHELL_REL = "index.html";
 const CSS_REL = "styles/fortune-ui.css";
