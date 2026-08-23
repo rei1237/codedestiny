@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { fortuneTeaHouseAssets } from "../data/assets";
-import { getTeaHouseSteps } from "../data/story";
+import { teaHouseStorySteps } from "../data/story";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import AssetImage from "./AssetImage";
 import TeaHouseButton from "./TeaHouseButton";
@@ -15,6 +15,10 @@ type YeoniTransformSceneProps = {
 };
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
+/** 스토리 스텝에서 사전이 덮으면 안 되는 필드. id·stage 는 진행 판별자, visual 은 배경 선택값,
+    speaker 는 대사 상자가 이니셜을 고르는 판별자, mood·pigFrame 은 마스코트 표정을 고르는 키다. */
+const STORY_STEP_SKIP_KEYS = ["id", "stage", "visual", "speaker", "mood", "pigFrame"];
+
 const KO = {
   cutsceneAlt: "꽃돼지?가 달빛 속에서 인간 연이로 변신하는 컷신",
   eyebrow: "분홍빛이 피어나는 순간",
@@ -29,7 +33,10 @@ export default function YeoniTransformScene({ onComplete }: YeoniTransformSceneP
   const [ready, setReady] = useState(prefersReducedMotion);
   const [stepIndex, setStepIndex] = useState(0);
   const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
-  const steps = getTeaHouseSteps("transform");
+  // getTeaHouseSteps 는 순수 함수라 훅이 덮을 수 없다. 번역본을 받아 같은 조건으로 거른다.
+  const steps = useTeaHouseCopy("storySteps", teaHouseStorySteps, { skipKeys: STORY_STEP_SKIP_KEYS }).filter(
+    (step) => step.stage === "transform",
+  );
   const step = steps[stepIndex] || steps[0]!;
   const isLast = stepIndex >= steps.length - 1;
 

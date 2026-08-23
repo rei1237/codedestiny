@@ -25,6 +25,9 @@ const flowAssetSrc = {
 } as const;
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
+/** 흐름 카드에서 사전이 덮으면 안 되는 필드. id 는 판별자, assetKey 는 삽화를 고르는 키다. */
+const FLOW_CARD_SKIP_KEYS = ["id", "assetKey"];
+
 const KO = {
   eyebrow: "찻잔이 마음을 고르는 자리",
   title: "상담은 이렇게 열립니다",
@@ -36,6 +39,7 @@ const KO = {
 
 export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowPreviewProps) {
   const copy = useTeaHouseCopy("flowPreview", KO);
+  const cards = useTeaHouseCopy("flowCards", teaHouseFlowCards, { skipKeys: FLOW_CARD_SKIP_KEYS });
   const [stepIndex, setStepIndex] = useState(0);
   const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
   const firstStepId = steps[0]?.id || "";
@@ -87,7 +91,7 @@ export default function TeaHouseFlowPreview({ steps, onComplete }: TeaHouseFlowP
         </div>
       </div>
       <div className={styles.flowGrid}>
-        {teaHouseFlowCards.map((card, index) => {
+        {cards.map((card, index) => {
           const Icon = flowIcons[index] || Coffee;
           return (
             <article className={styles.flowCard} key={card.id}>
