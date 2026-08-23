@@ -7,6 +7,22 @@ const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신",
 const GANJI_LIST = Array.from({ length: 60 }, (_, i) => STEMS[i % 10] + BRANCHES[i % 12]);
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
 
+// 🔴 일일 발송은 구독자 1인당 메일 1통을 직렬로 보낸다. 종전에는 .limit() 도 시간 상한도 없어
+// 구독자 수에 선형 비례했고, 같은 일일 크론의 나머지 4개 태스크와 한 실행을 공유한다
+// (worker/index.js 의 scheduled → Promise.allSettled). 나머지 넷은 전부 배치 상한이 있다.
+//
+// 🔴 상한만 거는 것은 틀린 답이다 — 잘린 구독자는 그날 메일을 영영 못 받는다(크론이 하루 1회다).
+// 그래서 정렬을 lastSentAt 오름차순으로 둔다. 오늘 아직 못 받은 사람(=lastSentAt 이 가장 오래됐거나
+// 없는 사람)이 앞에 오고, 잘리는 쪽은 이미 오늘 받아서 어차피 skipped 될 사람이다.
+const DAILY_FORTUNE_BATCH_LIMIT = 500;
+const DAILY_FORTUNE_TIME_BUDGET_MS = 60000;
+
+function clampInt(value, fallback, min, max) {
+  const n = Math.floor(Number(value));
+  if (!Number.isFinite(n)) return fallback;
+  return Math.min(max, Math.max(min, n));
+}
+
 function getKstDateParts(value = Date.now()) {
   const base = value instanceof Date ? value : new Date(value);
   const kst = new Date(base.getTime() + KST_OFFSET_MS);
@@ -434,10 +450,17 @@ export async function runDailyFortuneTask(env) {
   await connectDb(env);
   const todayKey = getKstDateKey();
 
+  const batchLimit = clampInt(env?.DAILY_FORTUNE_BATCH_LIMIT, DAILY_FORTUNE_BATCH_LIMIT, 1, 5000);
+  const timeBudgetMs = clampInt(env?.DAILY_FORTUNE_TIME_BUDGET_MS, DAILY_FORTUNE_TIME_BUDGET_MS, 5000, 600000);
+
   const subscribers = await DailyFortuneSubscription.find({
     isActive: true,
     subDaily: true,
-  }).lean();
+  })
+    // 오늘 아직 못 받은 사람 우선. lastSentAt 이 없는 구독자가 오름차순 맨 앞에 온다.
+    .sort({ lastSentAt: 1 })
+    .limit(batchLimit)
+    .lean();
 
   if (subscribers.length === 0) {
     console.log("[CRON] No active subscribers found.");
@@ -449,7 +472,16 @@ export async function runDailyFortuneTask(env) {
   let skippedCount = 0;
   let failedCount = 0;
 
+  const startedAt = Date.now();
+  let processed = 0;
+  let abortedReason = "";
+
   for (const sub of subscribers) {
+    if (Date.now() - startedAt >= timeBudgetMs) {
+      abortedReason = "time_budget";
+      break;
+    }
+    processed += 1;
     try {
       console.log(`[CRON] Processing ${maskEmail(sub.email)}...`);
       const result = await sendSingleFortune(env, sub, { skipIfSentToday: true, todayKey });
@@ -480,5 +512,21 @@ export async function runDailyFortuneTask(env) {
     }
   }
 
-  console.log(`[CRON] Daily Fortune Task completed. sent=${sentCount} skipped=${skippedCount} failed=${failedCount}`);
+  // 🔴 잘린 건수를 반드시 남긴다. 조용한 절단은 요약에서 "다 보냈다"로 읽힌다.
+  const unprocessed = subscribers.length - processed;
+  const batchFull = subscribers.length >= batchLimit;
+  if (abortedReason) {
+    console.warn(
+      `[CRON] Daily Fortune: 시간 예산 ${timeBudgetMs}ms 소진 — ${unprocessed}명을 이번 실행에서 처리하지 못했다.`,
+    );
+  }
+  if (batchFull) {
+    console.warn(
+      `[CRON] Daily Fortune: 배치 상한 ${batchLimit}명에 닿았다 — 구독자가 더 있으면 이번 실행에 포함되지 않았다.`,
+    );
+  }
+  console.log(
+    `[CRON] Daily Fortune Task completed. sent=${sentCount} skipped=${skippedCount} failed=${failedCount}`
+    + ` processed=${processed}/${subscribers.length}${abortedReason ? ` aborted=${abortedReason}` : ""}`,
+  );
 }
