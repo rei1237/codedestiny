@@ -67,19 +67,11 @@
 # `/premium*` 이 `/premium-reports` 계열까지 덮으므로 별도 규칙은 두지 않는다(규칙 100개 예산).
 /premium*
   X-Robots-Tag: noindex, nofollow
-/saju/destiny-bias*
-  X-Robots-Tag: noindex, nofollow
-/saju/love-simulation*
-  X-Robots-Tag: noindex, nofollow
 /saju-fpti*
-  X-Robots-Tag: noindex, nofollow
-/saju-guardian*
   X-Robots-Tag: noindex, nofollow
 /saju-picture*
   X-Robots-Tag: noindex, nofollow
 /sukuyo/calendar*
-  X-Robots-Tag: noindex, nofollow
-/tarot/healing*
   X-Robots-Tag: noindex, nofollow
 /404
   X-Robots-Tag: noindex, nofollow
@@ -117,11 +109,6 @@
   X-Robots-Tag: noindex, follow
 /oracle/hwatu/*
   X-Robots-Tag: noindex, follow
-# 크롤러 가시 텍스트가 124~1,033자뿐인 인터랙티브 도구·게임 화면.
-# canonical/robots meta 가 아예 없는 상태로 홈 타일에서 직접 링크된다.
-# 기능·링크는 그대로 두고 색인만 막는다(AdSense inventory value: 저가치 화면).
-/neo-operation-room*
-  X-Robots-Tag: noindex, nofollow
 # 🔴 이 셸들은 `/x.html` 이 아니라 **`/x` 로 서빙된다.** Cloudflare Pages 가 확장자를 떼고,
 # `/x.html` 은 `/x` 로 308 을 준다. 리다이렉트 응답의 헤더는 목적지로 이어지지 않으므로
 # `.html` 에만 규칙을 걸면 크롤러가 보는 200 응답에는 noindex 가 없다.

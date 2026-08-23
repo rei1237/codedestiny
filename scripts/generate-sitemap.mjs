@@ -55,19 +55,23 @@ const noindexPathPrefixes = [
   "/pdf",
   "/premium",
   "/premium-reports",
-  "/saju/destiny-bias",
-  "/saju/love-simulation",
   "/saju-fpti",
-  "/saju-guardian",
   "/saju-picture",
   "/sukuyo/calendar",
-  "/tarot/healing",
+  // 2026-08-24: 이 목록에서 5개를 뺐다 — /saju/destiny-bias · /saju/love-simulation ·
+  // /saju-guardian · /tarot/healing · /neo-operation-room. 얇아서 뺐던 것이 맞지만 얇았던
+  // 이유는 본문이 없어서가 아니라 **본문이 클라이언트 JS 안에만 있어서**였다. page.tsx 에
+  // 서버 렌더 안내 섹션을 넣어 문장급 본문을 1,300자 이상으로 올린 뒤 색인으로 되돌렸다.
+  // 되돌리려면 lib/seo/siteSeo.ts · 리포 루트의 _headers ·
+  // scripts/verify-adsense-readiness.mjs 의 xRobotsNoindexHeaderPatterns 를 함께 볼 것.
+  // 🔴 _headers 정본은 리포 루트다 — public/_headers 는 sync:public 이 만드는 사본이라
+  //    거기만 고치면 다음 빌드가 되돌린다.
+  //
   // 셸 사본만 존재하는 라우트(app 페이지가 없어 홈 셸 복사본이 곧 본문이다).
   // 나머지 9개는 2026-08-23 에 app 랜딩을 살려 색인 대상으로 돌렸다 —
   // docs/context/seo-and-adsense.md 참고.
   "/oracle/juyuk",
   "/oracle/hwatu",
-  "/neo-operation-room",
   "/tadagochi",
   "/blog",
   "/famous",
@@ -183,6 +187,13 @@ const coreRoutes = [
   { path: "/tarot/mingri", changefreq: "weekly", priority: 0.93 },
   { path: "/tarot/love", changefreq: "weekly", priority: 0.9 },
   { path: "/tarot/healing", changefreq: "weekly", priority: 0.9 },
+  // 🔴 coreRoutes 는 손으로 유지하는 목록이라, noindexPathPrefixes 에서 빼는 것만으로는
+  //    사이트맵에 들어오지 않는다. 2026-08-24 에 색인으로 되돌린 5개 중 /tarot/healing 과
+  //    /saju/love-simulation 은 이미(각각 여기와 정적 canonical 목록에) 등재돼 있었고,
+  //    아래 셋은 등재 자체가 없어 함께 추가했다.
+  { path: "/neo-operation-room", changefreq: "weekly", priority: 0.88 },
+  { path: "/saju-guardian", changefreq: "weekly", priority: 0.88 },
+  { path: "/saju/destiny-bias", changefreq: "weekly", priority: 0.86 },
   { path: "/oracle/hwatu-life", changefreq: "weekly", priority: 0.88 },
   { path: "/animal/mbti", changefreq: "weekly", priority: 0.87 },
   { path: "/oracle/sikojen-povailu", changefreq: "weekly", priority: 0.87 },
