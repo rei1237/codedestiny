@@ -62,8 +62,11 @@ const MUST_DIFFER_KEYS = new Set([
   "vars.MONGODB_DB_NAME",
   "vars.MONGO_APP_NAME",
   "vars.MONGO_PAYMENT_APP_NAME",
-  // AI 실호출 차단 3종. 실제 잠금은 GEMINIF_API_KEY 미투입이지만, 이 셋이 프로덕션과 같아지면
-  // 스테이징 테스트가 조용히 과금 경로를 탄다.
+  // AI 실호출 차단 3종. 이 셋이 프로덕션과 같아지면 스테이징 테스트가 조용히 과금 경로를 탄다.
+  // 🔴 "실제 잠금은 GEMINIF_API_KEY 미투입" 이라고 적혀 있었으나 사실이 아니었다 — Gemini 키를
+  //    빼면 lib/llm-client.ts 의 폴백이 모든 요청을 env.AI.run 으로 내려보낸다. WORKERS_AI_ENABLED
+  //    는 2026-08-23 까지 읽는 코드가 0건이라 그 폴백을 막지 못했고, isWorkersAiEnabled 로
+  //    배선하면서 비로소 이 단언이 참이 됐다. 배선을 걷어내면 이 항목도 다시 거짓이 된다.
   "vars.WORKERS_AI_ENABLED",
   "vars.GUARDIAN_FORTUNE_LLM_PROVIDER",
   "vars.ENABLE_FUSION_FORTUNE_MOCK_FLOW",
