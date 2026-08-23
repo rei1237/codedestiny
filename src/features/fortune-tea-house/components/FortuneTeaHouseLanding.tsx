@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, type CSSProperties } from "react";
 import Image from "next/image";
 import { Clock3, DoorOpen, Sparkles } from "lucide-react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
@@ -16,11 +16,8 @@ type FortuneTeaHouseLandingProps = {
   onShowHistory: () => void;
 };
 
-const talkingPigFrames = [
-  talkingPigYeoniFrameCrops.welcome,
-  talkingPigYeoniFrameCrops.thinking,
-  talkingPigYeoniFrameCrops.surprised,
-] as const;
+/** 랜딩에서 돌려 보여 주는 마스코트 프레임. 크롭 표에서 이 순서로 꺼낸다. */
+const TALKING_PIG_FRAME_IDS = ["welcome", "thinking", "surprised"] as const;
 
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다(없으면 이 문구가 그대로 남는다). */
 const KO = {
@@ -98,7 +95,10 @@ export default function FortuneTeaHouseLanding({ hasSeenPrologue, onEnter, onRep
   const [activePigFrame, setActivePigFrame] = useState(0);
   const [usePigFallback, setUsePigFallback] = useState(false);
   const [usePigSingleFallback, setUsePigSingleFallback] = useState(false);
-  const activePig = talkingPigFrames[activePigFrame] || talkingPigFrames[0];
+  // 스프라이트 좌표는 그대로 쓰고, alt 로 나가는 문구만 사전을 태운다.
+  const crops = useTeaHouseCopy("pigFrames", talkingPigYeoniFrameCrops);
+  const talkingPigFrames = useMemo(() => TALKING_PIG_FRAME_IDS.map((id) => crops[id]), [crops]);
+  const activePig = talkingPigFrames[activePigFrame] || talkingPigFrames[0]!;
   const activePigSrc = usePigSingleFallback
     ? fortuneTeaHouseAssets.cutout.flowerPig
     : usePigFallback

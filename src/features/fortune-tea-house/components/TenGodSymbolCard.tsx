@@ -3,7 +3,7 @@
 /* eslint-disable @next/next/no-img-element */
 
 import { tenGodMetaMap, type TenGodId } from "../data/tenGods";
-import { tenGodVisualMap } from "../data/tenGodVisuals";
+import { tenGodVisualAlts, tenGodVisualMap } from "../data/tenGodVisuals";
 import SpriteCrop from "./SpriteCrop";
 import styles from "../styles/fortune-tea-house.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
@@ -22,14 +22,15 @@ const TEN_GOD_SKIP_KEYS = ["id", "colorTone"];
 export default function TenGodSymbolCard({ tenGodId, size = "md", showDescription = true, selected = false, className = "" }: TenGodSymbolCardProps) {
   const metaMap = useTeaHouseCopy("tenGods", tenGodMetaMap, { skipKeys: TEN_GOD_SKIP_KEYS });
   const meta = metaMap[tenGodId];
-  // 🔴 visual.alt 는 아직 한국어다. tenGodVisualMap 의 값이 전부 tenGodSprite(...) 호출이라
-  // 가드가 문자열 리터럴을 읽지 못한다 — 데이터 구조를 바꿔야 배선할 수 있어 라운드 2로 넘긴다.
+  // 스프라이트 좌표는 그대로 쓰고, 화면에 나가는 대체 텍스트만 사전을 태운다.
+  const alts = useTeaHouseCopy("tenGodAlts", tenGodVisualAlts);
+  const visualAlt = alts[tenGodId];
   const visual = tenGodVisualMap[tenGodId];
 
   return (
     <article className={`${styles.tenGodCard} ${className}`} data-size={size} data-tone={meta.colorTone} data-selected={selected ? "true" : "false"}>
-      <div className={styles.tenGodIconWrap} aria-label={visual.alt}>
-        {visual.type === "image" && visual.src ? <img className={styles.tenGodImage} src={visual.src} alt={visual.alt} loading="lazy" decoding="async" /> : null}
+      <div className={styles.tenGodIconWrap} aria-label={visualAlt}>
+        {visual.type === "image" && visual.src ? <img className={styles.tenGodImage} src={visual.src} alt={visualAlt} loading="lazy" decoding="async" /> : null}
         {visual.type === "sprite-crop" && visual.src && visual.sheetWidth && visual.sheetHeight && visual.width && visual.height ? (
           <SpriteCrop
             src={visual.src}
@@ -43,7 +44,7 @@ export default function TenGodSymbolCard({ tenGodId, size = "md", showDescriptio
             y={visual.y || 0}
             width={visual.width}
             height={visual.height}
-            alt={visual.alt}
+            alt={visualAlt}
             className={styles.tenGodSprite}
           />
         ) : null}

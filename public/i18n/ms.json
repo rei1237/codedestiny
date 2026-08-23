@@ -13078,6 +13078,38 @@
       "cta": "Get ready for the reading",
       "reset": "Return to the first night",
       "notice": "The cup is still warming. Yeoni will pick the story back up shortly."
+    },
+    "tenGodAlts": {
+      "bigeon": "Peer ten-god icon",
+      "geopjae": "Rival ten-god icon",
+      "siksin": "Gourmet ten-god icon",
+      "sanggwan": "Free Spirit ten-god icon",
+      "pyeonjae": "Windfall Wealth ten-god icon",
+      "jeongjae": "Steady Wealth ten-god icon",
+      "pyeongwan": "Challenger ten-god icon",
+      "jeonggwan": "Officer ten-god icon",
+      "pyeonin": "Seeker ten-god icon",
+      "jeongin": "Nurturer ten-god icon"
+    },
+    "pigFrames": {
+      "welcome": {
+        "label": "The flower piglet greeting you warmly"
+      },
+      "comfort": {
+        "label": "The flower piglet offering gentle reassurance"
+      },
+      "honey": {
+        "label": "The flower piglet responding to the scent of honey"
+      },
+      "doorway": {
+        "label": "The flower piglet opening the tea house door"
+      },
+      "thinking": {
+        "label": "The flower piglet reading the scent of your heart"
+      },
+      "surprised": {
+        "label": "The flower piglet giving a small wave"
+      }
     }
   }
 }

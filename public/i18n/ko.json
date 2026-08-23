@@ -6508,6 +6508,38 @@
       "cta": "상담 준비하기",
       "reset": "처음 밤으로 돌아가기",
       "notice": "찻잔은 아직 따뜻해지는 중이에요. 곧 연이가 이야기를 이어갈게요."
+    },
+    "tenGodAlts": {
+      "bigeon": "비견 십성 아이콘",
+      "geopjae": "겁재 십성 아이콘",
+      "siksin": "식신 십성 아이콘",
+      "sanggwan": "상관 십성 아이콘",
+      "pyeonjae": "편재 십성 아이콘",
+      "jeongjae": "정재 십성 아이콘",
+      "pyeongwan": "편관 십성 아이콘",
+      "jeonggwan": "정관 십성 아이콘",
+      "pyeonin": "편인 십성 아이콘",
+      "jeongin": "정인 십성 아이콘"
+    },
+    "pigFrames": {
+      "welcome": {
+        "label": "반갑게 맞이하는 꽃돼지?"
+      },
+      "comfort": {
+        "label": "다정하게 안심시키는 꽃돼지?"
+      },
+      "honey": {
+        "label": "꿀 향에 반응하는 꽃돼지?"
+      },
+      "doorway": {
+        "label": "찻집 문을 여는 꽃돼지?"
+      },
+      "thinking": {
+        "label": "마음의 향을 읽는 꽃돼지?"
+      },
+      "surprised": {
+        "label": "작게 손을 흔드는 꽃돼지?"
+      }
     }
   }
 }
