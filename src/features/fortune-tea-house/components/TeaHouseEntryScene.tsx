@@ -7,7 +7,7 @@ import {
   flowerPigIdleLines,
   getNextTeaHouseEntryStage,
   getPreviousTeaHouseEntryStage,
-  getTeaHouseEntryScene,
+  teaHouseEntryScenes,
   type TeaHouseEntryActor,
   type TeaHouseEntryStage,
 } from "../data/entryStory";
@@ -78,10 +78,16 @@ const KO = {
   yeoniTeaAria: "달빛 아래 찻잔 선택을 안내하는 연이",
 };
 
+/** 입장 씬 데이터에서 사전이 덮으면 안 되는 필드. 전부 판별자이거나 배경·배우 선택 값이다.
+    🔴 speaker 는 대사 상자가 이니셜을 고르는 판별자이고, mood 는 마스코트 표정을 고르는 키다. */
+const ENTRY_SKIP_KEYS = ["stage", "actor", "background", "speaker", "mood"];
+
 export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }: TeaHouseEntrySceneProps) {
   const copy = useTeaHouseCopy("entryScene", KO);
+  const scenes = useTeaHouseCopy("entryScenes", teaHouseEntryScenes, { skipKeys: ENTRY_SKIP_KEYS });
+  const idleLines = useTeaHouseCopy("entryIdleLines", flowerPigIdleLines, { skipKeys: ENTRY_SKIP_KEYS });
   const prefersReducedMotion = usePrefersReducedMotion();
-  const scene = getTeaHouseEntryScene(stage);
+  const scene = scenes.find((entry) => entry.stage === stage) || scenes[0]!;
   const [lineIndex, setLineIndex] = useState(0);
   const [idleLineIndex, setIdleLineIndex] = useState<number | null>(null);
   const [pigFrameIndex, setPigFrameIndex] = useState(0);
@@ -93,7 +99,7 @@ export default function TeaHouseEntryScene({ stage, onStageChange, onComplete }:
   const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
   const baseLine = scene.lines[lineIndex] || scene.lines[0]!;
   const canShowPigIdleLine = scene.actor === "pig" && flowerPigIdleLines.length > 0;
-  const idleLine = canShowPigIdleLine && idleLineIndex !== null ? flowerPigIdleLines[idleLineIndex % flowerPigIdleLines.length] || null : null;
+  const idleLine = canShowPigIdleLine && idleLineIndex !== null ? idleLines[idleLineIndex % idleLines.length] || null : null;
   const currentLine = idleLine || baseLine;
   const isShowingIdleLine = idleLine !== null;
   const isLastLine = lineIndex >= scene.lines.length - 1;
