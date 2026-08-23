@@ -1,14 +1,14 @@
 "use client";
 
-// 휴먼 디자인 — 몰입형 유료 화면(회당 결제 ₩10,000).
+// 휴먼 디자인 — 몰입형 **무료** 차트 화면 (2026-09 무료화).
 //
-// 🔴 결제는 공용 게이트(useCoinGate.ensurePaidAccess, pass-first)에만 맡긴다. 이용권 선검사 →
-//    미커버 시 [이용권으로 구매]·단건결제·월정석 3옵션 노출은 그쪽이 서버 결정으로 수행하므로
-//    여기서 paymentMode 를 지정하거나 pass 를 재판정하지 않는다. forceDeduct 도 주지 않는다
-//    (회당 결제라 영구 해금이 아니다).
+// 🔴 이 화면은 결제를 걸지 않는다. 과금 지점은 프리미엄 리포트로 옮겼고 그 화면은 따로 있다.
+//    여기에 useCoinGate·ensurePaidAccess 를 되살리지 말 것 — 무료 계약은
+//    scripts/verify-human-design.mjs 가 강제한다.
 //
-// 🔴 requestId 는 sessionStorage 에 남긴다. useRef 에만 두면 결제 후 새로고침이 곧 이중 결제다 —
-//    서버는 이 값으로 차감·결제 기록을 되찾아 결제가 실제로 일어났는지 확인한다.
+// 🔴 서버로 requestId·idempotencyKey 를 보내지 않는다. 아카이브 upsert 필터가
+//    (userId, idempotencyKey) 라서 클릭마다 새 키를 보내면 같은 출생 데이터에 문서가 계속
+//    쌓인다. 서버는 키가 없으면 출생 데이터에서 유도한 결정적 키를 쓰므로 재열람이 성립한다.
 //
 // 🔴 전역 헤더·푸터를 쓰지 않는다. 이 화면은 하나의 독립된 리딩 경험이고, 이탈 수단은
 //    상단바의 [홈으로] 하나다. 크롬 제거의 실제 스위치는 여기가 아니라
@@ -21,11 +21,11 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 
-import { useCoinGate } from "@/app/hooks/useCoinGate";
 import { useAiProfileSeed } from "@/app/hooks/useAiProfileSeed";
 import { birthDateTextInputProps } from "@/lib/birthDateInputProps";
-// 🔴 결제 뒤 본문 요청의 재시도·백오프 배관. 회당 결제에서 일시 503 을 실패로 굳히면
-//    돈만 나가고 결과가 없다. 이미 있는 공용 배관을 새로 만들지 않고 그대로 쓴다.
+// 🔴 일시 503(Mongo 블립)을 실패로 굳히지 않는 공용 재시도·백오프 배관. 이름은 "paid" 지만
+//    실제로는 인증 POST + 백오프라 무료 요청에도 그대로 맞다. 두 번째 재시도 계층을 새로
+//    만들지 않는다(코딩 원칙 6).
 import { postPaidBody } from "@/app/nakshatra/nakshatra-fetch";
 import { CENTER_GATES } from "@/lib/human-design/centers";
 
@@ -47,11 +47,6 @@ import {
 } from "./_copy";
 import type { HdChart, HdInterpretation, HdPipelineStage, HdSelection } from "./_lib/types";
 import styles from "./human-design.module.css";
-
-const FEATURE_KEY = "human-design-chart";
-const COIN_PRICE = 100;
-const AMOUNT_KRW = 10000;
-const REQUEST_ID_STORAGE_KEY = "cd_human_design_request_id_v1";
 
 /** 실제 계산 순서. 로딩 화면이 보여 주는 것은 이 순서이고, 진행률 숫자는 만들지 않는다. */
 const PIPELINE_STEPS: Array<{ key: string; ko: string; en: string }> = [
@@ -91,25 +86,6 @@ const SECTION_ORDER = [
 
 type CalendarValue = "solar" | "lunar" | "lunar-leap";
 
-function readStoredRequestId(): string {
-  if (typeof window === "undefined") return "";
-  try {
-    return window.sessionStorage.getItem(REQUEST_ID_STORAGE_KEY) || "";
-  } catch {
-    return "";
-  }
-}
-
-function writeStoredRequestId(value: string) {
-  if (typeof window === "undefined") return;
-  try {
-    if (value) window.sessionStorage.setItem(REQUEST_ID_STORAGE_KEY, value);
-    else window.sessionStorage.removeItem(REQUEST_ID_STORAGE_KEY);
-  } catch {
-    /* 저장소가 막힌 브라우저에서도 흐름은 계속된다 */
-  }
-}
-
 function normalizeTimeInput(value: string): string {
   const digits = value.replace(/[^\d]/g, "").slice(0, 4);
   if (digits.length <= 2) return digits;
@@ -117,7 +93,6 @@ function normalizeTimeInput(value: string): string {
 }
 
 export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }) {
-  const { ensurePaidAccess, isPaying } = useCoinGate();
   const { seed } = useAiProfileSeed();
 
   const [birthDate, setBirthDate] = useState("");
@@ -135,8 +110,6 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
 
   // AI 해석 — 차트와 같은 1회 결제로 열린다(별도 결제 키 없음).
   const [interpretation, setInterpretation] = useState<HdInterpretation | null>(null);
-  const [readingLoading, setReadingLoading] = useState(false);
-  const [readingError, setReadingError] = useState("");
 
   // 프로필 카드 자동 프리필 — 사용자가 이미 넣은 값은 덮지 않는다(빈 값만 채운다).
   useEffect(() => {
@@ -161,14 +134,14 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
     [birthDate, birthTime, timezone],
   );
 
-  const requestChart = useCallback(async (requestId: string) => {
+  const requestChart = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
+      // 🔴 requestId·idempotencyKey 를 보내지 않는다. 서버가 출생 데이터에서 결정적 키를
+      //    만들어 upsert 하므로 같은 차트를 여러 번 눌러도 아카이브 문서가 하나로 수렴한다.
       const result = await postPaidBody("/api/human-design/chart", {
         birth: { birthDate, birthTime, timezone: timezone.trim(), calendar },
-        requestId,
-        idempotencyKey: requestId,
       });
       const data = result.data as { ok?: boolean; chart?: HdChart; pipeline?: HdPipelineStage[]; reused?: boolean; message?: string };
       if (!result.response.ok || !data?.ok || !data.chart) {
@@ -180,85 +153,44 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
       setChart(data.chart);
       setPipeline(Array.isArray(data.pipeline) ? data.pipeline : []);
       setReused(Boolean(data.reused));
-      // 결과를 받았으면 결제 재사용 키를 비운다 — 다음 요청은 새 결제다.
-      writeStoredRequestId("");
     } finally {
       setLoading(false);
     }
   }, [birthDate, birthTime, calendar, locale, timezone]);
 
   const run = useCallback(async () => {
-    if (loading || isPaying || !canSubmit) return;
+    if (loading || !canSubmit) return;
     setError("");
     setSelection(null);
-
-    // 새로고침을 견디는 결제 키. 이미 결제한 뒤 결과만 못 받은 상태면 그 키를 재사용한다.
-    const stored = readStoredRequestId();
-    if (stored) {
-      await requestChart(stored);
-      return;
-    }
-
-    const requestId = `${FEATURE_KEY}:${Date.now()}-${Math.random().toString(36).slice(2, 9)}`;
-    writeStoredRequestId(requestId);
-
-    const gate = await ensurePaidAccess({
-      featureKey: FEATURE_KEY,
-      coinPrice: COIN_PRICE,
-      cost: COIN_PRICE,
-      amountKRW: AMOUNT_KRW,
-      reason: locale === "ko" ? "휴먼 디자인 바디그래프" : "Human Design BodyGraph",
-      requestId,
-    });
-    if (!gate.ok) {
-      writeStoredRequestId("");
-      if (gate.code === "AUTH_REQUIRED" || gate.code === "LOGIN_REQUIRED") {
-        setError(locale === "ko" ? "로그인이 필요합니다." : "Please sign in.");
-        return;
-      }
-      if (gate.code !== "PAYMENT_CANCELLED") {
-        setError(gate.message || (locale === "ko" ? "결제를 완료하지 못했습니다." : "Payment did not complete."));
-      }
-      return;
-    }
-
-    // 🔴 결제가 끝났다. 여기서부터 실패해도 재결제를 요구하지 않는다 — 저장된 requestId 로
-    //    '다시 시도'가 같은 결제를 재사용한다.
-    await requestChart(requestId);
-  }, [canSubmit, ensurePaidAccess, isPaying, loading, locale, requestChart]);
+    await requestChart();
+  }, [canSubmit, loading, requestChart]);
 
   const retry = useCallback(async () => {
-    const stored = readStoredRequestId();
-    if (!stored) {
-      await run();
-      return;
-    }
-    await requestChart(stored);
-  }, [requestChart, run]);
+    await requestChart();
+  }, [requestChart]);
 
-  // 🔴 해석에는 새 결제가 없다. 접근 증빙은 서버에 저장된 계산 문서이고, 그 문서는 결제를
-  //    거쳐야만 생긴다. 아카이브 write 가 실패했던 경우를 위해 결제 키를 함께 보낸다.
-  const requestInterpretation = useCallback(async () => {
-    if (readingLoading || !chart) return;
-    setReadingLoading(true);
-    setReadingError("");
-    try {
-      const result = await postPaidBody("/api/human-design/interpretation", {
-        birth: { birthDate, birthTime, timezone: timezone.trim(), calendar },
-        requestId: readStoredRequestId(),
-      });
-      const data = result.data as { ok?: boolean; interpretation?: HdInterpretation; message?: string };
-      if (!result.response.ok || !data?.ok || !data.interpretation) {
-        setReadingError(data?.message || pick(UI_TEXT.interpretationFailed, locale));
-        return;
+  // 🔴 옛 AI 해석의 **읽기 전용** 복원. 생성은 은퇴했고(서버가 410) 새 분석은 프리미엄
+  //    리포트가 맡는다. 여기서 하는 일은 "예전에 결제해 저장된 해석이 있으면 되살리는 것"
+  //    뿐이라 버튼이 없고 차트가 열릴 때 조용히 한 번만 시도한다. 410 은 오류가 아니다.
+  useEffect(() => {
+    if (!chart) return undefined;
+    let cancelled = false;
+    void (async () => {
+      try {
+        const result = await postPaidBody("/api/human-design/interpretation", {
+          birth: { birthDate, birthTime, timezone: timezone.trim(), calendar },
+        });
+        if (cancelled) return;
+        const data = result.data as { ok?: boolean; interpretation?: HdInterpretation };
+        if (result.response.ok && data?.ok && data.interpretation) setInterpretation(data.interpretation);
+      } catch {
+        /* 옛 해석 복원 실패는 화면을 막지 않는다 — 차트는 이미 열려 있다. */
       }
-      setInterpretation(data.interpretation);
-    } finally {
-      setReadingLoading(false);
-    }
-  }, [birthDate, birthTime, calendar, chart, locale, readingLoading, timezone]);
+    })();
+    return () => { cancelled = true; };
+  }, [birthDate, birthTime, calendar, chart, timezone]);
 
-  /** 다른 출생 정보로 다시 — 결제 키는 이미 비워져 있으므로 화면 상태만 되돌린다. */
+  /** 다른 출생 정보로 다시 — 무료라 되돌릴 결제 상태가 없다. 화면 상태만 초기화한다. */
   const restart = useCallback(() => {
     setChart(null);
     setInterpretation(null);
@@ -266,7 +198,6 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
     setPipeline([]);
     setReused(false);
     setError("");
-    setReadingError("");
   }, []);
 
   const typeCopy = chart ? TYPE_COPY[chart.type as keyof typeof TYPE_COPY] : null;
@@ -340,12 +271,12 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
         type="button"
         className={styles.cta}
         onClick={() => void run()}
-        disabled={!canSubmit || loading || isPaying}
+        disabled={!canSubmit || loading}
       >
-        {loading || isPaying ? pick(UI_TEXT.submitting, locale) : pick(UI_TEXT.submit, locale)}
+        {loading ? pick(UI_TEXT.submitting, locale) : pick(UI_TEXT.submit, locale)}
       </button>
       <p className={styles.price}>
-        {locale === "ko" ? "1회 10,000원 · 이용권 보유 시 무료 처리" : "₩10,000 per reading · covered by an active pass"}
+        {pick(UI_TEXT.freeNote, locale)}
       </p>
     </div>
   );
@@ -470,7 +401,7 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
               </section>
 
             <nav className={styles.jump} aria-label={pick(UI_TEXT.sectionNav, locale)}>
-              {SECTION_ORDER.map((section) => (
+              {SECTION_ORDER.filter((section) => section.id !== "hd-reading" || interpretation).map((section) => (
                 <a key={section.id} className={styles.jumpChip} href={`#${section.id}`}>
                   {pick(UI_TEXT[section.label], locale)}
                 </a>
@@ -646,34 +577,15 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
               </div>
             </section>
 
-            {/* ⑩ 더 깊은 해석 */}
+            {/* ⑩ 더 깊은 해석 — 예전에 구매한 해석이 있을 때만 보인다(생성은 은퇴). */}
+            {interpretation && (
             <section className={styles.block} id="hd-reading" aria-labelledby="hd-reading-heading">
               <h2 id="hd-reading-heading" className={styles.blockHeading}>
                 {pick(UI_TEXT.sectionReading, locale)}
               </h2>
-              <p className={styles.blockBody}>{pick(UI_TEXT.interpretationBasis, locale)}</p>
+              <p className={styles.blockBody}>{pick(UI_TEXT.legacyReadingNote, locale)}</p>
 
-              {!interpretation && !readingLoading && (
-                <>
-                  <button type="button" className={styles.cta} onClick={() => void requestInterpretation()}>
-                    {pick(UI_TEXT.interpretationCta, locale)}
-                  </button>
-                  <p className={styles.price}>{pick(UI_TEXT.interpretationIncluded, locale)}</p>
-                </>
-              )}
-
-              {readingLoading && <p className={styles.readingLoading}>{pick(UI_TEXT.interpretationLoading, locale)}</p>}
-
-              {readingError && (
-                <div className={styles.error} role="alert">
-                  <p>{readingError}</p>
-                  <button type="button" className={styles.retry} onClick={() => void requestInterpretation()} disabled={readingLoading}>
-                    {pick(UI_TEXT.interpretationRetry, locale)}
-                  </button>
-                </div>
-              )}
-
-              {interpretation && (
+              {(
                 <div className={styles.readingBody}>
                   {interpretation.summary && (
                     <div className={styles.readingSummary}>
@@ -692,6 +604,7 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
                 </div>
               )}
             </section>
+            )}
 
             <section className={styles.meta}>
               <p>{pick(UI_TEXT.birthMoment, locale)}: {chart.moments?.birthUtc || "—"}</p>
