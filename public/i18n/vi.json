@@ -11714,6 +11714,35 @@
         "hours": "{n} hr ago",
         "days": "{n} days ago"
       }
+    },
+    "teaCupSelection": {
+      "eyebrow": "Six cups that answer the scent of a heart",
+      "title": "The cup calling you today",
+      "description": "Once Yeoni catches the scent of your heart, the cup that matches your question's grain is the first to glow. The moment you pick one, the reading opens in that scent.",
+      "yeoniAlt": "Yeoni handing over a cup",
+      "dialogue": "The scent coming off your heart is waking all six cups.\nPick the one that answers loudest today — love, reunion, flutter, choice, the flow of money, recovery, or resolve.",
+      "menuAria": "The Destiny Tea House reading menu",
+      "menuNote": "A cup is not a menu item — it is a small door your question will pass through today.",
+      "reacting": "Responding",
+      "smell": "Take a scent"
+    },
+    "entryScene": {
+      "blooming": "Moonlight is blooming",
+      "nextLabel": "Next",
+      "toCupsLabel": "Go choose a cup",
+      "prevAria": "Go back to the previous scene",
+      "prevLabel": "Back",
+      "skipAria": "Skip ahead to the cup guide",
+      "skipLabel": "Skip",
+      "pigAlt": "Flower Pig? speaking inside the moonlit tea house",
+      "pigBeforeAlt": "Yeoni as the flower pig, before the change",
+      "yeoniRevealAlt": "Yeoni revealed in the moonlight",
+      "yeoniDescentAria": "Yeoni appearing as if descending under the moonlight",
+      "yeoniTeaAria": "Yeoni guiding the cup choice under the moonlight"
+    },
+    "talkingPig": {
+      "pigAria": "Flower Pig? speaking at the door",
+      "pigName": "Flower Pig?"
     }
   }
 }

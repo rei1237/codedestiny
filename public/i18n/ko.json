@@ -5144,6 +5144,35 @@
         "hours": "{n}시간 전",
         "days": "{n}일 전"
       }
+    },
+    "teaCupSelection": {
+      "eyebrow": "마음의 향에 반응하는 여섯 잔",
+      "title": "오늘 당신을 부르는 찻잔",
+      "description": "연이가 손님의 마음 향을 맡으면, 질문의 결에 맞는 찻잔부터 먼저 빛납니다. 컵 하나를 고르는 순간 상담의 장면도 그 향으로 열려요.",
+      "yeoniAlt": "찻잔을 건네는 연이",
+      "dialogue": "손님 마음에서 나는 향이 여섯 잔을 깨우고 있어요.\n연애와 재회, 설렘, 선택, 돈의 흐름, 회복, 결단 중 오늘 가장 강하게 반응하는 잔을 골라주세요.",
+      "menuAria": "운명의 찻집 상담 메뉴판",
+      "menuNote": "찻잔은 메뉴가 아니라, 오늘의 질문이 지나갈 작은 운명의 문입니다.",
+      "reacting": "반응 중",
+      "smell": "향 맡기"
+    },
+    "entryScene": {
+      "blooming": "달빛 피어나는 중",
+      "nextLabel": "다음",
+      "toCupsLabel": "찻잔 고르러 가기",
+      "prevAria": "이전 장면으로 돌아가기",
+      "prevLabel": "이전",
+      "skipAria": "찻잔 안내 장면으로 건너뛰기",
+      "skipLabel": "건너뛰기",
+      "pigAlt": "달빛 찻집 안에서 말을 건네는 꽃돼지?",
+      "pigBeforeAlt": "변신 전 꽃돼지 연이",
+      "yeoniRevealAlt": "달빛 속에서 모습을 드러낸 연이",
+      "yeoniDescentAria": "달빛 아래 강림하듯 모습을 드러내는 연이",
+      "yeoniTeaAria": "달빛 아래 찻잔 선택을 안내하는 연이"
+    },
+    "talkingPig": {
+      "pigAria": "문 앞에서 말을 건네는 꽃돼지?",
+      "pigName": "꽃돼지?"
     }
   }
 }

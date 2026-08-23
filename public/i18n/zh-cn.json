@@ -11714,6 +11714,35 @@
         "hours": "{n} 小时前",
         "days": "{n} 天前"
       }
+    },
+    "teaCupSelection": {
+      "eyebrow": "回应心之香气的六只茶杯",
+      "title": "今天呼唤你的那只茶杯",
+      "description": "当 Yeoni 嗅到你心里的香气，最贴合问题纹路的那只茶杯会先亮起来。你选下一只的瞬间，咨询的场景也会以那股香气展开。",
+      "yeoniAlt": "递出茶杯的 Yeoni",
+      "dialogue": "从你心里升起的香气正唤醒六只茶杯。\n请在恋爱与重逢、心动、抉择、财运流向、复原、决断之中，选出今天反应最强烈的那一只。",
+      "menuAria": "运命茶馆咨询菜单",
+      "menuNote": "茶杯不是菜单，而是今天的问题将要穿过的一扇小小的运命之门。",
+      "reacting": "正在回应",
+      "smell": "闻一闻"
+    },
+    "entryScene": {
+      "blooming": "月光正绽开",
+      "nextLabel": "下一步",
+      "toCupsLabel": "去挑一只茶杯",
+      "prevAria": "回到上一个场景",
+      "prevLabel": "上一步",
+      "skipAria": "跳到茶杯介绍场景",
+      "skipLabel": "跳过",
+      "pigAlt": "在月光茶馆里搭话的花猪？",
+      "pigBeforeAlt": "变身前的花猪 Yeoni",
+      "yeoniRevealAlt": "在月光中现身的 Yeoni",
+      "yeoniDescentAria": "如降临般在月光下现身的 Yeoni",
+      "yeoniTeaAria": "在月光下引导选杯的 Yeoni"
+    },
+    "talkingPig": {
+      "pigAria": "在门前搭话的花猪？",
+      "pigName": "花猪？"
     }
   }
 }
