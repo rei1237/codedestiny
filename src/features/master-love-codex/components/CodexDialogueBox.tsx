@@ -11,6 +11,7 @@
  */
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useMasterLoveCodexCopy } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 const TYPE_INTERVAL_MS = 24;
@@ -33,6 +34,7 @@ export default function CodexDialogueBox({
   isAdvanceDisabled = false,
   onTextComplete,
 }: CodexDialogueBoxProps) {
+  const copy = useMasterLoveCodexCopy();
   const characters = useMemo(() => Array.from(String(text || "")), [text]);
   const [visibleCount, setVisibleCount] = useState(0);
   const [reducedMotion, setReducedMotion] = useState(false);
@@ -89,7 +91,7 @@ export default function CodexDialogueBox({
     <div
       role="button"
       tabIndex={0}
-      aria-label={isComplete ? "다음으로 넘어가기" : "대사를 모두 표시하기"}
+      aria-label={isComplete ? copy.dialogueAdvanceAriaLabel : copy.dialogueRevealAriaLabel}
       onClick={handleClick}
       onKeyDown={(event) => {
         if (event.key !== "Enter" && event.key !== " ") return;
@@ -120,7 +122,7 @@ export default function CodexDialogueBox({
         ) : null}
       </p>
       <p className={`${styles.quiet} mt-7 text-right`}>
-        {isComplete ? (isAdvanceDisabled ? "" : `${cta || "계속"} ›`) : "탭하면 바로 표시"}
+        {isComplete ? (isAdvanceDisabled ? "" : `${cta || copy.dialogueDefaultCta} ›`) : copy.dialogueTapHint}
       </p>
     </div>
   );

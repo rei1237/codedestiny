@@ -5,6 +5,9 @@ import { resolve } from "node:path";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const indexSource = readFileSync(resolve(root, "index.html"), "utf8");
+// 결제 선택창 CSS 규칙 정본(2026-08-21 부터 js/core/checkout-entry.js 의 PAYMENT_CHOICE_CSS_RULES) —
+// pass-store/direct 카드의 CSS 선언 순서 검사는 이 파일을 봐야 한다.
+const checkoutEntrySource = readFileSync(resolve(root, "js/core/checkout-entry.js"), "utf8");
 const staticIndexSource = readFileSync(resolve(root, "public/static/index.html"), "utf8");
 const billingClientSource = readFileSync(resolve(root, "app/_lib/billing-client.ts"), "utf8");
 const paymentProcessingContextSource = readFileSync(resolve(root, "app/components/PaymentProcessingContext.tsx"), "utf8");
@@ -125,8 +128,8 @@ assertContains(indexSource, "fallbackCoverage.source = 'cache_unverified';", "pa
 const perUseGateSource = section(indexSource, "function _cdRunPerUseCoinGate(", "window.__cdRunPerUseCoinGateFromTile", "per-use gate");
 assertBefore(perUseGateSource, "_cdBeginPaidFeatureInFlight(action, paidGateFeatureKey", "await _cdChooseServicePaymentMode({", "paid gate opens before eligibility wait");
 
-assertBefore(indexSource, 'data-mode="pass-store"', 'data-mode="direct"', "pass store option appears before direct card");
-assertContains(indexSource, 'data-mode="monthly" data-monthly-option', "monthly payment option restored");
+assertBefore(checkoutEntrySource, 'data-mode="pass-store"', 'data-mode="direct"', "pass store option appears before direct card");
+assertContains(indexSource, "extraDataAttrs: ' data-monthly-option'", "monthly payment option restored");
 assertContains(indexSource, "var passMode = 'pass-store';", "pass store mode");
 assertContains(indexSource, "var passDisabledClass = ' is-store';", "pass store visual state");
 assertContains(indexSource, "direct-payment-pass-store-v20260607", "pass store modal marker");
@@ -200,7 +203,7 @@ assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "Rea
 // 키가 3종(build-a300cf84f0f5 · build-4b96ba87f36f · 셸 키)으로 갈라져 있었고, destiny-profile.js
 // 를 고쳐도 그 참조들은 엣지 캐시(/*.js max-age 7일)의 옛 파일을 계속 받았다.
 // 지금은 셋을 셸 키로 통일했다. destiny-profile.js 를 고치면 이 값도 함께 올려야 한다.
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-d130b12fa99e"', "React paid runtime cache key carries the moonstone 409 same-requestId retry");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-8a7f8c83af92"', "React paid runtime cache key carries the moonstone 409 same-requestId retry");
 assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");
@@ -370,7 +373,7 @@ assertNotContains(directCheckoutSource, "grantPassFreeAccessBeforeCardIfAvailabl
 assertNotContains(directConfirmSource, "getMembershipPassForBillingRequest", "card confirm performs zero pass lookups");
 assertNotContains(directConfirmSource, "grantPassFreeAccessBeforeCardIfAvailable", "card confirm cannot convert to pass access");
 
-assertContains(indexSource, "passButtonHtml", "canonical payment modal pass store option");
+assertContains(indexSource, "dataMode: passMode,", "canonical payment modal pass store option");
 assertContains(indexSource, "var allowPassChoice = opts.disablePassChoice !== true", "pass option is available by default unless explicitly disabled");
 // 🔴 결제창 안에서 이용권을 확인할 수 있어야 한다(2026-07 정책 전환).
 // 진입 선검사의 서버 왕복을 없앤 대신 '이용권으로 구매' 카드가 그 자리에서 서버에 묻는다. 예전에는
@@ -399,9 +402,9 @@ assertContains(destinyProfileSource, "__cdRestoreCanonicalPaymentMode", "destiny
 assertContains(destinyProfileSource, "__cdSupportsPassChoice", "destiny fallback requires pass-capable selector");
 // 독립(정적) 폴백도 정본과 같은 3옵션 결제창이어야 한다. 옛 2옵션(이용권 상점 없는) 모달 부활 방지의
 // 본체는 아래 canonical 위임 단언들이고, 여기서는 세 결제수단이 모두 렌더되는지를 직접 확인한다.
-assertContains(destinyProfileSource, 'data-mode="pass-store"', "standalone chooser keeps pass store option");
-assertContains(destinyProfileSource, 'data-mode="direct"', "standalone chooser keeps direct option");
-assertContains(destinyProfileSource, 'data-mode="monthly" data-monthly-option', "standalone chooser keeps monthly option");
+assertContains(destinyProfileSource, "dataMode: 'pass-store'", "standalone chooser keeps pass store option");
+assertContains(destinyProfileSource, "dataMode: 'direct'", "standalone chooser keeps direct option");
+assertContains(destinyProfileSource, "extraDataAttrs: ' data-monthly-option'", "standalone chooser keeps monthly option");
 assertNotContains(destinyProfileSource, "openServicePaymentChoiceModal", "legacy destiny payment selector renderer removed");
 assertContains(destinyProfileSource, "__cdChooseServicePaymentModeCanonical", "destiny fallback delegates to canonical pass selector");
 assertContains(destinyProfileSource, "service.executePayment({", "destiny fallback uses shared command single-flight");

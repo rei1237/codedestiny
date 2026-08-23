@@ -747,6 +747,11 @@ type PointsPageCopy = {
   activePassFooter: string;
   activePassAutoRenewWarning: string;
   coffeeBadge: string;
+  currentPassAria: string;
+  passRemainingTitle: string;
+  monthlyBonusPendingTitle: string;
+  monthlyBonusEmptyTitle: string;
+  passOrderHistoryPendingTitle: string;
 };
 
 const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
@@ -844,6 +849,11 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       "카드사 점검: 잠시 후 다시 시도하거나 다른 결제수단을 선택해 주세요.",
     ],
     accountInfoAria: "계정 정보",
+    currentPassAria: "현재 달빛 이용권",
+    passRemainingTitle: "달빛 이용권 남은 기간",
+    monthlyBonusPendingTitle: "월정석 정보 대기",
+    monthlyBonusEmptyTitle: "월정석 사용 내역 없음",
+    passOrderHistoryPendingTitle: "이용권 주문 내역 대기",
     dangerDeleteLines: [
       "탈퇴 시 이용권·운세 프로필 등 모든 데이터가 즉시 영구 삭제됩니다.",
       "탈퇴 후 동일 이메일로 재가입해도 이전 데이터는 복구되지 않습니다.",
@@ -955,6 +965,11 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       "Card issuer maintenance: try again later or choose another payment method.",
     ],
     accountInfoAria: "Account information",
+    currentPassAria: "Current moonlight pass",
+    passRemainingTitle: "Moonlight pass time remaining",
+    monthlyBonusPendingTitle: "Moonstone info unavailable",
+    monthlyBonusEmptyTitle: "No moonstone usage history",
+    passOrderHistoryPendingTitle: "Pass order history unavailable",
     dangerDeleteLines: [
       "Deleting your account permanently removes passes, fortune profiles, and all other data immediately.",
       "Data cannot be restored even if you sign up again with the same email.",
@@ -2234,7 +2249,7 @@ function getMoonlightExpiryLabel(expiresAt: string | null | undefined, formatLoc
 
 function getMoonlightProfileLabel(subscription: SubscriptionStatus) {
   const limit = subscription.profileLimit || getSubscriptionPolicyProfileLimit(subscription.tier);
-  return limit <= 0 ? "프로필 무제한" : `프로필 최대 ${limit.toLocaleString("ko-KR")}개`;
+  return limit <= 0 ? "프로필 무제한" : `프로필 최대 ${limit.toLocaleString(FORMAT_LOCALE_BY_LANG[getCurrentLoadingLocale()])}개`;
 }
 
 function getMoonlightBenefitLabel(tier: SubscriptionTier) {
@@ -2342,11 +2357,13 @@ function MoonlightActivePassCard({
   formatLocale,
   isProcessing,
   onCancelSubscription,
+  copy,
 }: {
   subscription: SubscriptionStatus;
   formatLocale: string;
   isProcessing: boolean;
   onCancelSubscription: (resume: boolean) => void;
+  copy: PointsPageCopy;
 }) {
   const isActivePass = subscription.isActive && subscription.tier !== "free";
   const tier = isActivePass ? subscription.tier : "free";
@@ -2363,7 +2380,7 @@ function MoonlightActivePassCard({
   ];
 
   return (
-    <section className="moon-card moon-active-card rounded-[24px] p-5 sm:p-6" aria-label="현재 달빛 이용권">
+    <section className="moon-card moon-active-card rounded-[24px] p-5 sm:p-6" aria-label={copy.currentPassAria}>
       <div className="relative z-10">
         <div className="flex items-start justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3">
@@ -2392,7 +2409,7 @@ function MoonlightActivePassCard({
           </div>
           <div className="relative z-10 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-center gap-4">
-              <MoonIcon phase="progress" progress={progress} className="h-20 w-20 flex-shrink-0" title="달빛 이용권 남은 기간" />
+              <MoonIcon phase="progress" progress={progress} className="h-20 w-20 flex-shrink-0" title={copy.passRemainingTitle} />
               <div>
                 <p className="text-xs font-bold text-[color:var(--moon-mist)]">만료일</p>
                 <p className="mt-1 text-base font-black text-white">{isActivePass ? expiryLabel : "이용권 구매 후 표시됩니다"}</p>
@@ -2480,7 +2497,7 @@ function MoonlightMonthlyCreditCard({
     return (
       <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.monthlyBonusAria}>
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
-          <MoonIcon phase="crescent" className="h-14 w-14" title="월정석 정보 대기" />
+          <MoonIcon phase="crescent" className="h-14 w-14" title={copy.monthlyBonusPendingTitle} />
           <p className="mt-3 text-base font-black text-white">월정석의 달빛이 잠시 흐려졌어요</p>
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
             잔량과 사용 내역은 곧 다시 확인할 수 있어요.
@@ -2531,7 +2548,7 @@ function MoonlightMonthlyCreditCard({
         </div>
         {ledgers.length === 0 ? (
           <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
-            <MoonIcon phase="crescent" className="h-14 w-14" title="월정석 사용 내역 없음" />
+            <MoonIcon phase="crescent" className="h-14 w-14" title={copy.monthlyBonusEmptyTitle} />
             <p className="mt-3 text-base font-black text-white">아직 달빛이 흐르지 않았어요</p>
             <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
               달빛 이용권을 구매하면 보너스 월정석을 받을 수 있어요.
@@ -2705,7 +2722,7 @@ function MoonlightOrderHistory({
     return (
       <section className="moon-card rounded-[24px] p-5 sm:p-6">
         <div className="moon-empty flex flex-col items-center rounded-[18px] px-4 py-8 text-center">
-          <MoonIcon phase="outline" className="h-14 w-14" title="이용권 주문 내역 대기" />
+          <MoonIcon phase="outline" className="h-14 w-14" title={copy.passOrderHistoryPendingTitle} />
           <p className="mt-3 text-base font-black text-white">주문 내역의 달빛이 잠시 가려졌어요</p>
           <p className="mt-2 max-w-md text-sm font-semibold leading-6 text-[color:var(--moon-mist)]">
             결제 기능은 그대로 유지되며, 내역은 잠시 뒤 다시 확인할 수 있어요.
@@ -4538,6 +4555,7 @@ export default function PointsPage() {
           formatLocale={formatLocale}
           isProcessing={isProcessing}
           onCancelSubscription={handleSubscriptionCancel}
+          copy={copy}
         />
         <MoonlightMonthlyCreditCard
           balance={monthlyStoneBalance}
@@ -4764,7 +4782,7 @@ export default function PointsPage() {
 
         {/* ⑦ 계정 정보 카드 */}
         <section
-          aria-label="계정 정보"
+          aria-label={copy.accountInfoAria}
           className="rounded-[24px] border border-slate-200 bg-white/90 shadow-[0_4px_20px_rgba(0,0,0,0.06)] overflow-hidden"
         >
           {/* 헤더 */}

@@ -13,6 +13,7 @@ import CodexReveal from "./CodexReveal";
 import CodexReportStamp from "./CodexReportStamp";
 import { codexAccessOutroLine } from "../data/premium";
 import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
+import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexReportOutroProps {
@@ -30,10 +31,12 @@ export default function CodexReportOutro({
   totalCharCount,
   forceVisible = false,
 }: CodexReportOutroProps) {
-  const billing = masterLoveCodexBilling(mode);
+  const locale = useMasterLoveCodexLocale();
+  const copy = useMasterLoveCodexCopy();
+  const billing = masterLoveCodexBilling(mode, locale);
 
   return (
-    <section data-codex-pdf-page className={styles.section} aria-label="리포트 마무리">
+    <section data-codex-pdf-page className={styles.section} aria-label={copy.reportOutroAriaLabel}>
       <div className={`${styles.measure} text-center`}>
         <CodexReveal forceVisible={forceVisible}>
           <div className={`${styles.premiumCard} ${styles.premiumCardFeatured} items-center text-center`}>
@@ -47,7 +50,7 @@ export default function CodexReportOutro({
             </p>
             <p className="mt-3" style={{ fontSize: "1.125rem", letterSpacing: "0.3em", color: "var(--codex-gold)" }}>
               <span aria-hidden="true">★★★★★</span>
-              <span className="sr-only">프리미엄 리포트</span>
+              <span className="sr-only">{copy.generatedSuccessfullyAriaLabel}</span>
             </p>
 
             <hr className={`${styles.rule} ${styles.ruleShort} mt-8`} />
@@ -59,12 +62,11 @@ export default function CodexReportOutro({
               MASTER LOVE CODEX
             </p>
             <p className={`${styles.numeral} mt-2`} style={{ fontSize: "var(--codex-caption)", color: "var(--codex-silver)" }}>
-              {chapterCount}장 · {totalCharCount.toLocaleString("ko-KR")}자
+              {copy.reportOutroChapterLine(chapterCount, totalCharCount)}
             </p>
 
             <p className="mx-auto mt-8 max-w-[36ch] leading-8" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-silver)" }}>
-              {codexAccessOutroLine(accessType, billing.title)} 이 리포트는 계정에 보관되어 다시 결제하지 않고
-              언제든 열람할 수 있습니다.
+              {codexAccessOutroLine(accessType, billing.title)} {copy.reportOutroClosingLine}
             </p>
           </div>
         </CodexReveal>

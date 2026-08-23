@@ -1892,14 +1892,60 @@ const LENORMAND_SPREAD: TarotSpread = {
   ritual: "질문, 현재 상황, 뽑는 시점을 한 문장으로 정리하세요.",
 };
 
-const LENORMAND_INFO_ITEMS = [
-  ["01", "무엇을 확인하나요", "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다. 단정형 예언보다 현재 흐름, 반복 패턴, 다음 행동 후보를 차분히 나누어 읽습니다."],
-  ["02", "전통과 이야기", "레노먼드는 19세기 프랑스의 점술가 마드무아젤 르노르망과 연결되어 널리 알려진 36장 카드 전통입니다."],
-  ["03", "특징", "카드를 한 장씩 고립해 보기보다 인접 카드와 조합을 문장처럼 이어 읽고, 타로식 역방향을 쓰지 않는 점이 특징입니다."],
-  ["04", "입력 전 체크", "질문, 현재 상황, 뽑는 시점을 한 문장으로 정리하세요. 질문 범위와 확인할 포인트를 좁히면 결과를 더 안정적으로 읽을 수 있습니다."],
-  ["05", "해석 기준", "좋고 나쁨의 판정보다 어떤 신호가 반복되는지, 어떤 행동을 줄이거나 늘릴지 확인하는 데 초점을 둡니다."],
-  ["06", "주의할 점", "의료, 법률, 재무처럼 손실이 큰 결정은 이 결과만으로 확정하지 말고 판단을 정리하는 참고 자료로 사용하세요."],
-] as const;
+const LENORMAND_INFO_ITEMS_COPY: Record<LoadingLocale, ReadonlyArray<readonly [string, string, string]>> = {
+  ko: [
+    ["01", "무엇을 확인하나요", "주제를 입력하고 6장 레노먼드 카드로 흐름과 행동 단서를 봅니다. 단정형 예언보다 현재 흐름, 반복 패턴, 다음 행동 후보를 차분히 나누어 읽습니다."],
+    ["02", "전통과 이야기", "레노먼드는 19세기 프랑스의 점술가 마드무아젤 르노르망과 연결되어 널리 알려진 36장 카드 전통입니다."],
+    ["03", "특징", "카드를 한 장씩 고립해 보기보다 인접 카드와 조합을 문장처럼 이어 읽고, 타로식 역방향을 쓰지 않는 점이 특징입니다."],
+    ["04", "입력 전 체크", "질문, 현재 상황, 뽑는 시점을 한 문장으로 정리하세요. 질문 범위와 확인할 포인트를 좁히면 결과를 더 안정적으로 읽을 수 있습니다."],
+    ["05", "해석 기준", "좋고 나쁨의 판정보다 어떤 신호가 반복되는지, 어떤 행동을 줄이거나 늘릴지 확인하는 데 초점을 둡니다."],
+    ["06", "주의할 점", "의료, 법률, 재무처럼 손실이 큰 결정은 이 결과만으로 확정하지 말고 판단을 정리하는 참고 자료로 사용하세요."],
+  ],
+  en: [
+    ["01", "What it checks", "Write your topic and read flow and action clues through 6 Lenormand cards. Rather than a fixed prophecy, it calmly breaks down the current flow, recurring patterns, and candidate next actions."],
+    ["02", "Tradition and story", "Lenormand is a widely known 36-card tradition linked to 19th-century French fortune-teller Mademoiselle Lenormand."],
+    ["03", "What makes it distinct", "Rather than reading each card in isolation, you read adjacent cards together like a sentence, and it doesn't use tarot-style reversals."],
+    ["04", "Before you begin", "Sum up your question, current situation, and the moment you're drawing in one sentence. Narrowing the scope and what you want to check makes the result steadier to read."],
+    ["05", "How to interpret", "The focus is less on judging good or bad, and more on noticing which signals repeat and which actions to reduce or increase."],
+    ["06", "A note of caution", "For high-stakes decisions like medical, legal, or financial matters, don't settle them from this result alone — use it only as a reference for organizing your own judgment."],
+  ],
+  ja: [
+    ["01", "何がわかるか", "テーマを入力し、6枚のルノルマンカードで流れと行動の手がかりを読みます。断定的な予言ではなく、今の流れ、くり返すパターン、次に取れる行動の候補を落ち着いて整理します。"],
+    ["02", "伝統と由来", "ルノルマンは19世紀フランスの占い師マドモアゼル・ルノルマンにゆかりのある、広く知られた36枚カードの伝統です。"],
+    ["03", "特徴", "1枚ずつ孤立させて見るのではなく、隣り合うカードを組み合わせて文章のように読み、タロット式の逆位置は使わないのが特徴です。"],
+    ["04", "占う前の確認", "質問、今の状況、占うタイミングを一文でまとめてください。範囲と確認したい点を絞ると、結果をより安定して読み取れます。"],
+    ["05", "解釈の基準", "良し悪しの判定よりも、どの兆候がくり返されているか、どの行動を減らすか増やすかに焦点を置きます。"],
+    ["06", "注意点", "医療、法律、財務など影響の大きい決定は、この結果だけで確定せず、判断を整理するための参考資料として使ってください。"],
+  ],
+  "zh-CN": [
+    ["01", "可以确认什么", "输入主题，通过6张雷诺曼牌查看走势与行动线索。相比断定式预言，更侧重冷静梳理当下走势、反复出现的模式与可选的下一步行动。"],
+    ["02", "传统与由来", "雷诺曼是与19世纪法国占卜师勒诺曼小姐相关、广为人知的36张牌传统。"],
+    ["03", "特点", "不是孤立看单张牌，而是把相邻的牌组合起来像句子一样解读，并且不使用塔罗式的逆位。"],
+    ["04", "占卜前须知", "请用一句话整理你的问题、当前处境与占卜的时间点。缩小范围与想确认的重点，能让结果读起来更稳定。"],
+    ["05", "解读标准", "重点不在于判断好坏，而在于确认哪些信号在反复出现，以及该减少或增加哪些行动。"],
+    ["06", "注意事项", "涉及医疗、法律、财务等影响较大的决定，请勿仅凭此结果做定论，仅将其作为整理判断的参考资料。"],
+  ],
+  "zh-TW": [
+    ["01", "可以確認什麼", "輸入主題，透過6張雷諾曼牌查看走勢與行動線索。相比斷定式預言，更著重冷靜梳理當下走勢、反覆出現的模式與可選的下一步行動。"],
+    ["02", "傳統與由來", "雷諾曼是與19世紀法國占卜師勒諾曼小姐相關、廣為人知的36張牌傳統。"],
+    ["03", "特點", "不是孤立看單張牌，而是把相鄰的牌組合起來像句子一樣解讀，並且不使用塔羅式的逆位。"],
+    ["04", "占卜前須知", "請用一句話整理你的問題、目前處境與占卜的時間點。縮小範圍與想確認的重點，能讓結果讀起來更穩定。"],
+    ["05", "解讀標準", "重點不在於判斷好壞，而在於確認哪些信號在反覆出現，以及該減少或增加哪些行動。"],
+    ["06", "注意事項", "涉及醫療、法律、財務等影響較大的決定，請勿僅憑此結果做定論，僅將其作為整理判斷的參考資料。"],
+  ],
+  vi: [],
+  hi: [],
+  es: [],
+  fr: [],
+  de: [],
+  nl: [],
+  ms: [],
+};
+
+function resolveLenormandInfoItems(locale: LoadingLocale): ReadonlyArray<readonly [string, string, string]> {
+  const items = LENORMAND_INFO_ITEMS_COPY[locale];
+  return items && items.length > 0 ? items : LENORMAND_INFO_ITEMS_COPY.en;
+}
 
 const ORACLE_MODE_META: Record<OracleDeckMode, { title: string; eyebrow: string; description: string; drawLabel: string; deckLabel: string; deckCaption: string; promptLabel: string; outputLabel: string }> = {
   tarot: {
@@ -3182,7 +3228,7 @@ export default function TarotPromptMakerPage() {
                           <div className="mt-1 text-sm leading-relaxed text-[#fde68a]/90">{uiCopy.lenormandFreeDescription}</div>
                         </div>
                         <div className="grid gap-2 sm:grid-cols-2">
-                          {LENORMAND_INFO_ITEMS.map(([number, title, body]) => (
+                          {resolveLenormandInfoItems(locale).map(([number, title, body]) => (
                             <div key={`lenormand-info-${number}`} className="rounded-xl border border-white/10 bg-black/20 px-3 py-2">
                               <div className="text-[10px] font-bold text-[#fbbf24]">{number}</div>
                               <div className="mt-0.5 text-xs font-semibold text-[#f3e8ff]">{title}</div>

@@ -20,16 +20,18 @@ function loadPremiumReportModule() {
     },
   }).outputText;
 
-  const module = { exports: {} };
+  // eslint 의 @next/next/no-assign-module-variable 은 `module` 이라는 이름 자체를 막는다.
+  // 여기서는 vm 샌드박스에 넘길 CommonJS 봉투일 뿐이라 이름만 바꿔 준다.
+  const moduleShim = { exports: {} };
   const sandbox = {
-    module,
-    exports: module.exports,
+    module: moduleShim,
+    exports: moduleShim.exports,
     process: { env: { NODE_ENV: "test" } },
     require: () => ({}),
     console,
   };
   vm.runInNewContext(transpiled, sandbox, { filename: "premium-report.runtime.js" });
-  return module.exports;
+  return moduleShim.exports;
 }
 
 function buildMockResult(code, typeName, axisScores, profile) {
@@ -143,9 +145,10 @@ describe("fpti deep report quality", () => {
 
   test("결과 카드 파일에서 FPTI PDF 버튼/문구가 제거되어야 한다", () => {
     const source = read("components/fpti/FptiResultCard.tsx");
+    const copySource = read("components/fpti/_lib/copy.ts");
     expect(source.includes("PDF 다운로드")).toBe(false);
     expect(source.includes("buildFptiPremiumPdfText")).toBe(false);
-    expect(source.includes("심층 리포트 잠금 해제")).toBe(true);
+    expect(copySource.includes("심층 리포트 잠금 해제")).toBe(true);
     expect(source.includes("해석 근거 신호")).toBe(false);
     expect(source.includes("section.usedSignals")).toBe(false);
     expect(source.includes("const PLACEHOLDER_TITLE_PATTERN")).toBe(true);

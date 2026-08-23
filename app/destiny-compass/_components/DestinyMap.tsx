@@ -12,6 +12,7 @@ import { NodeIcon, type NodeKind } from "./NodeIcon";
 import { compassAssets, compassPaintings } from "../data/assets";
 import { REGIONS, HERE, regionByKey } from "./mapRegions";
 import { useFxTier } from "../_hooks/useFxTier";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
 // 지역 고유 강조 톤(불투명 hex — NodeIcon 채색용). region.glow(rgba)와 짝.
@@ -61,7 +62,7 @@ interface DestinyMapProps {
 }
 
 export function DestinyMap({
-  title = "운명의 나침반",
+  title,
   kicker = "Destiny Compass",
   showFog = false,
   pathTo,
@@ -76,6 +77,8 @@ export function DestinyMap({
   onRegion,
   children,
 }: DestinyMapProps) {
+  const copy = useDestinyCompassCopy();
+  const resolvedTitle = title ?? copy.mapDefaultTitle;
   const dest = pathTo ? regionByKey(pathTo) : undefined;
   let destinyPath: string | null = null;
   if (dest) {
@@ -115,7 +118,7 @@ export function DestinyMap({
       {!hideHeader && (
         <header className={styles.mapHeader}>
           <span className={styles.mapKicker}>{kicker}</span>
-          <h1 className={styles.mapTitle}>{title}</h1>
+          <h1 className={styles.mapTitle}>{resolvedTitle}</h1>
         </header>
       )}
 
@@ -125,7 +128,7 @@ export function DestinyMap({
           <div
             className={styles.islandArt}
             role="img"
-            aria-label="자미두수 운명의 섬 지도"
+            aria-label={copy.mapIslandArtAriaLabel}
             style={
               {
                 "--island-art-desktop": `url("${compassPaintings.premiumIslandDesktop}")`,
@@ -243,12 +246,12 @@ export function DestinyMap({
               className={`${styles.region} ${state}`}
               style={{ left: `${r.x}%`, top: `${r.y}%`, ["--region-glow" as string]: r.glow }}
               onClick={() => onRegion?.(r.key)}
-              aria-label={r.label}
+              aria-label={copy.regionLabel[r.key as keyof typeof copy.regionLabel]}
             >
               <span className={styles.regionBadge}>
                 <NodeIcon kind={r.key as NodeKind} tone={NODE_TONE[r.key]} size={44} />
               </span>
-              <span className={styles.regionLabel}>{r.label}</span>
+              <span className={styles.regionLabel}>{copy.regionLabel[r.key as keyof typeof copy.regionLabel]}</span>
             </button>
           );
         })}
@@ -261,7 +264,7 @@ export function DestinyMap({
           <span className={styles.regionBadge}>
             <NodeIcon kind="here" tone="#f6c3d6" size={40} />
           </span>
-          <span className={styles.regionLabel}>현재 위치</span>
+          <span className={styles.regionLabel}>{copy.mapHereLabel}</span>
         </div>
         {!hideHero && (
           <div className={styles.hero} style={{ left: `${HERE.x}%`, top: `${HERE.y}%` }}>
@@ -277,7 +280,7 @@ export function DestinyMap({
       <div className={`${styles.guideStage} ${guideTilt ? styles.guideTilt : ""}`} aria-hidden="true">
         <SpriteImage
           src={compassAssets.neo.main}
-          alt="망원경을 든 사자 가이드 네오"
+          alt={copy.mapGuideAlt}
           width={320}
           height={420}
           className={styles.guide}

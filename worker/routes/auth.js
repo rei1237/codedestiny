@@ -1820,7 +1820,7 @@ async function findOrCreateSocialUser(provider, profile, env, options = {}) {
     amount: SIGNUP_MONTHLY_CREDIT_GRANT,
     beforeBalance: 0,
     afterBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
-    reason: "회원가입 이용권 혜택 지급",
+    reason: "회원가입 월정석 지급",
     sourceId: `signup:${String(createdUser._id || "")}`,
     serviceKey: "signup_bonus",
     metadata: {
@@ -2779,7 +2779,7 @@ async function handleRegister(request, env) {
       amount: SIGNUP_MONTHLY_CREDIT_GRANT,
       beforeBalance: 0,
       afterBalance: SIGNUP_MONTHLY_CREDIT_GRANT,
-      reason: "회원가입 이용권 혜택 지급",
+      reason: "회원가입 월정석 지급",
       sourceId: `signup:${String(user._id || "")}`,
       serviceKey: "signup_bonus",
       metadata: {

@@ -18,6 +18,7 @@ import { collectDeepEvidence } from "../_engine/evidence/collectDeepEvidence";
 import { makeGateRequestId, redirectToLoginOnAuthRequired } from "../_components/paidGate";
 import type { EvidenceGround } from "../_components/EvidenceCard";
 import type { ServerSectionKey } from "../_components/reportSections";
+import { useDestinyCompassCopy } from "../_lib/copy";
 
 const FEATURE_KEY = "destiny-compass-deep-report";
 /** 워커 정본(paid-feature-registry.js)과 같은 값이어야 한다 — 불일치는 fail-closed 로 차단된다. */
@@ -125,6 +126,7 @@ function mergeSections(
 }
 
 export function useCompassReport(input: CompassInput | null, field: DirectionField | null, question: string) {
+  const copy = useDestinyCompassCopy();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [state, setState] = useState<ReportState>(INITIAL);
   const inFlight = useRef(false);
@@ -175,19 +177,19 @@ export function useCompassReport(input: CompassInput | null, field: DirectionFie
         featureKey: FEATURE_KEY,
         coinPrice: COIN_PRICE,
         amountKRW: AMOUNT_KRW,
-        reason: "운명의 나침반 심층 리포트",
+        reason: copy.deepReportGateReason,
         requestId: makeGateRequestId(FEATURE_KEY),
       });
 
       if (!gate.ok) {
         if (redirectToLoginOnAuthRequired(gate.code)) {
-          setState((prev) => ({ ...prev, phase: "locked", error: "로그인 후 이용할 수 있어요. 잠시 후 이동합니다." }));
+          setState((prev) => ({ ...prev, phase: "locked", error: copy.loginRedirectMessage }));
           return;
         }
         setState((prev) => ({
           ...prev,
           phase: "locked",
-          error: gate.code === "PAYMENT_CANCELLED" ? null : gate.message || "결제를 완료하지 못했어요.",
+          error: gate.code === "PAYMENT_CANCELLED" ? null : gate.message || copy.paymentIncompleteMessage,
         }));
         return;
       }
@@ -225,8 +227,8 @@ export function useCompassReport(input: CompassInput | null, field: DirectionFie
           error: typeof data?.message === "string" && data.message
             ? data.message
             : refunded
-              ? "리포트를 완성하지 못했어요. 결제는 자동 환급됩니다."
-              : "리포트를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.",
+              ? copy.reportFailedRefundedMessage
+              : copy.reportFailedMessage,
         }));
         return;
       }
@@ -246,11 +248,11 @@ export function useCompassReport(input: CompassInput | null, field: DirectionFie
       // 웨이브 A 는 이미 화면에 있다. B 는 그 위에서 이어 채운다.
       await runWaveB(waveA);
     } catch {
-      setState((prev) => ({ ...prev, phase: "failed", error: "연결이 끊겼어요. 잠시 후 다시 시도해 주세요." }));
+      setState((prev) => ({ ...prev, phase: "failed", error: copy.connectionLostMessage }));
     } finally {
       inFlight.current = false;
     }
-  }, [input, field, question, isPaying, ensurePaidAccess, runWaveB]);
+  }, [input, field, question, isPaying, ensurePaidAccess, runWaveB, copy]);
 
   const retryWaveB = useCallback(() => {
     if (inFlight.current) return;

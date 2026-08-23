@@ -9,25 +9,15 @@ import { Starfield } from "./Starfield";
 import { PigFace } from "./PigFace";
 import { computeCrossroad } from "../_engine/crossroad";
 import { redirectToLoginOnAuthRequired, makeGateRequestId } from "./paidGate";
+import { useDestinyCompassCopy } from "../_lib/copy";
+import { formatKrwFromCoins } from "@/lib/payment/coin-pricing";
+import { detectLocale } from "@/lib/i18n/dictionary";
 import styles from "./map.module.css";
 import type { DirectionField, SystemKey } from "../_engine/types";
 
-const SYS_LABEL: Record<SystemKey, string> = {
-  saju: "사주",
-  ziwei: "자미두수",
-  tarot: "타로",
-  vedic: "베다",
-  sukuyo: "숙요",
-};
-
-const HINTS: [string, string][] = [
-  ["이직한다", "지금 회사에 남는다"],
-  ["고백한다", "지켜본다"],
-  ["창업한다", "취업한다"],
-  ["지금 시작한다", "조금 더 준비한다"],
-];
-
 export function Crossroads({ field, onBack }: { field: DirectionField; onBack: () => void }) {
+  const copy = useDestinyCompassCopy();
+  const priceLabel = formatKrwFromCoins(100, detectLocale());
   const { ensurePaidAccess, isPaying } = useCoinGate();
   const [a, setA] = useState("");
   const [b, setB] = useState("");
@@ -48,28 +38,28 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
       featureKey: "destiny-compass-crossroads",
       coinPrice: 100,
       amountKRW: 10000,
-      reason: "운명의 갈림길 기운 비교",
+      reason: copy.crossroadsGateReason,
       requestId: makeGateRequestId("destiny-compass-crossroads"),
     });
     if (!r.ok) {
       if (redirectToLoginOnAuthRequired(r.code)) {
-        setError("로그인이 필요해요. 로그인 화면으로 이동할게요.");
+        setError(copy.loginRequiredError);
         return;
       }
       if (r.code !== "PAYMENT_CANCELLED") {
-        setError(r.message || "결제를 완료하지 못했어요. 잠시 후 다시 시도해 주세요.");
+        setError(r.message || copy.paymentFailedError);
       }
       return;
     }
     setCompared(true);
-  }, [a, b, isPaying, ensurePaidAccess]);
+  }, [a, b, isPaying, ensurePaidAccess, copy]);
 
   return (
     <div className={`${styles.resultStage} ${styles.nightStage}`}>
       <Starfield />
       <header className={styles.mapHeader}>
         <span className={styles.mapKicker}>The Crossroad</span>
-        <h1 className={styles.mapTitle}>운명의 갈림길</h1>
+        <h1 className={styles.mapTitle}>{copy.crossroadsTitle}</h1>
       </header>
 
       <div className={styles.resultBody}>
@@ -78,39 +68,39 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
             <div className={styles.resultSpeak}>
               <PigFace expression="think" height={72} className={styles.speakPigDark} />
               <div className={styles.resultBubble}>
-                <div className={styles.resultWho}>꽃돼지</div>
-                <p>지금 마음이 두 갈래인가요? 고민하는 두 길을 적어주면, 각 길의 기운을 나란히 견줘볼게요.</p>
+                <div className={styles.resultWho}>{copy.pigSpeakerName}</div>
+                <p>{copy.crossroadsPigIntro}</p>
               </div>
             </div>
 
             <div className={styles.xForm}>
               <label className={styles.xField}>
-                <span>길 A</span>
+                <span>{copy.fieldALabel}</span>
                 <input
                   className={styles.xInput}
                   value={a}
                   onChange={(e) => setA(e.target.value)}
-                  placeholder="예: 이직한다"
-                  aria-label="갈림길 A 입력"
+                  placeholder={copy.fieldAPlaceholder}
+                  aria-label={copy.fieldAAriaLabel}
                   maxLength={40}
                 />
               </label>
               <span className={styles.xVs} aria-hidden="true">VS</span>
               <label className={styles.xField}>
-                <span>길 B</span>
+                <span>{copy.fieldBLabel}</span>
                 <input
                   className={styles.xInput}
                   value={b}
                   onChange={(e) => setB(e.target.value)}
-                  placeholder="예: 지금 회사에 남는다"
-                  aria-label="갈림길 B 입력"
+                  placeholder={copy.fieldBPlaceholder}
+                  aria-label={copy.fieldBAriaLabel}
                   maxLength={40}
                 />
               </label>
             </div>
 
             <div className={styles.xHints}>
-              {HINTS.map(([ha, hb]) => (
+              {copy.crossroadsHints.map(([ha, hb]) => (
                 <button
                   key={ha}
                   type="button"
@@ -132,10 +122,10 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
                 disabled={!a.trim() || !b.trim() || isPaying}
                 onClick={compare}
               >
-                {isPaying ? "결제 확인 중…" : "두 길 견주기 · 10,000원 →"}
+                {isPaying ? copy.compareButtonBusy : `${copy.compareButton} · ${priceLabel} →`}
               </button>
               <button type="button" className={styles.resultCtaGhost} onClick={onBack}>
-                ← 돌아가기
+                {copy.backButton}
               </button>
             </div>
             {error && (
@@ -151,15 +141,15 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
                 const isRec = opt.id === result.recommended;
                 return (
                   <div key={opt.id} className={`${styles.xCard} ${isRec ? styles.xCardRec : ""}`}>
-                    {isRec && <span className={styles.xBadge}>기운이 더 열린 쪽</span>}
+                    {isRec && <span className={styles.xBadge}>{copy.recommendedBadge}</span>}
                     <div className={styles.xOptLabel}>{opt.labelKey}</div>
                     <div className={styles.xTotal}>
                       {opt.total}
-                      <span>기운</span>
+                      <span>{copy.totalEnergyLabel}</span>
                     </div>
                     {systems.map((sys) => (
                       <div key={sys} className={styles.xSysRow}>
-                        <span className={styles.xSysLabel}>{SYS_LABEL[sys]}</span>
+                        <span className={styles.xSysLabel}>{copy.systemLabel[sys]}</span>
                         <span className={styles.xSysTrack}>
                           <i style={{ transform: `scaleX(${(opt.systemScores[sys] ?? 0) / 100})` }} />
                         </span>
@@ -174,20 +164,17 @@ export function Crossroads({ field, onBack }: { field: DirectionField; onBack: (
             <div className={styles.resultSpeak}>
               <PigFace expression="talk" height={72} className={styles.speakPigDark} />
               <div className={styles.resultBubble}>
-                <div className={styles.resultWho}>꽃돼지</div>
-                <p>
-                  두 길의 기운을 견줘봤어요. 지금은 <b>{result.options.find((o) => o.id === result.recommended)?.labelKey}</b> 쪽이 조금 더 열려 있어요.
-                  하지만 최종 선택은 당신 몫이에요 — 마음이 어디로 기우는지도 함께 들어봐요.
-                </p>
+                <div className={styles.resultWho}>{copy.pigSpeakerName}</div>
+                <p>{copy.crossroadsResultPigLine(result.options.find((o) => o.id === result.recommended)?.labelKey ?? "")}</p>
               </div>
             </div>
 
             <div className={styles.resultCtas}>
               <button type="button" className={styles.resultCtaGhost} onClick={() => setCompared(false)}>
-                다시 견주기
+                {copy.compareAgainButton}
               </button>
               <button type="button" className={styles.resultCtaText} onClick={onBack}>
-                나침반으로 돌아가기
+                {copy.backToCompassButton}
               </button>
             </div>
           </>

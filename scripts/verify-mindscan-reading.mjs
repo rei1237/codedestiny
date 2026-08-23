@@ -162,6 +162,34 @@ async function runMockSuite() {
   });
   check("source가 rule-engine", brokenReading?.source === "rule-engine", `source=${brokenReading?.source}`);
   check("llmFailReason=invalid_json", brokenReading?.validation?.llmFailReason === "invalid_json", `reason=${brokenReading?.validation?.llmFailReason}`);
+
+  console.log("\n[케이스 4] locale=en → 프롬프트에 영어 출력 지시문 포함(실호출 없음, mock)");
+  const enFixtureFetch = mockFetch(() => jsonResponse({
+    candidates: [{ content: { parts: [{ text: JSON.stringify(buildLlmReadingFixture()) }] } }],
+  }));
+  await buildMindscanReadingPayload(SAMPLE_PAIRS, {
+    question: SAMPLE_QUESTION,
+    env,
+    fetchImpl: enFixtureFetch,
+    locale: "en",
+  });
+  const enRequestBody = JSON.parse(enFixtureFetch.calls[0]?.init?.body || "{}");
+  const enPromptText = enRequestBody?.contents?.[0]?.parts?.[0]?.text || "";
+  check("영어 지시문 포함", enPromptText.includes("Write the ENTIRE response in English only."));
+  check("한국어 하드코딩 지시를 무효화한다는 override 포함", enPromptText.includes("overrides every other language instruction above"));
+
+  console.log("\n[케이스 5] locale 미지정 → 기존 한국어 전용 동작과 100% 동일(회귀 없음)");
+  const koFetch = mockFetch(() => jsonResponse({
+    candidates: [{ content: { parts: [{ text: JSON.stringify(buildLlmReadingFixture()) }] } }],
+  }));
+  await buildMindscanReadingPayload(SAMPLE_PAIRS, {
+    question: SAMPLE_QUESTION,
+    env,
+    fetchImpl: koFetch,
+  });
+  const koRequestBody = JSON.parse(koFetch.calls[0]?.init?.body || "{}");
+  const koPromptText = koRequestBody?.contents?.[0]?.parts?.[0]?.text || "";
+  check("locale 미지정 시 출력 언어 지시문 없음(기존 프롬프트 불변)", !koPromptText.includes("[OUTPUT LANGUAGE"));
 }
 
 async function runLive() {

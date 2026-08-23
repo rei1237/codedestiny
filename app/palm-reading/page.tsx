@@ -1,5 +1,6 @@
 import PalmReadingRouteClient from "./PalmReadingRouteClient";
 import { generatePageMetadata } from "../../lib/generate-page-metadata";
+import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 
 const PALM_READING_METADATA_COPY = {
   ko: {
@@ -44,5 +45,10 @@ export function generateMetadata() {
 }
 
 export default function PalmReadingPage() {
-  return <PalmReadingRouteClient />;
+  return (
+    <>
+      <RouteMetadataLocaleSync entries={PALM_READING_METADATA_COPY} />
+      <PalmReadingRouteClient />
+    </>
+  );
 }

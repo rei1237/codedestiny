@@ -19,6 +19,28 @@ export const LOADING_MESSAGES = {
 export type LoadingStage = keyof typeof LOADING_MESSAGES;
 export type PaymentType = "subscription" | "single" | "pass";
 export type LoadingLocale = "ko" | "en" | "ja" | "zh-CN" | "zh-TW" | "vi" | "hi" | "es" | "fr" | "de" | "nl" | "ms";
+
+/**
+ * `Intl.NumberFormat`/`toLocaleDateString` 등에 넘길 BCP-47 로케일.
+ * `app/components/PaymentProcessingContext.tsx`(`PAID_GATE_NUMBER_LOCALE`)·`app/points/PointsClient.tsx`·
+ * `app/points/history/PointHistoryClient.tsx`(둘 다 `FORMAT_LOCALE_BY_LANG`)가 이미 각자 이 표를
+ * 복제해 두고 있었다 — 새로 `Intl` 포맷을 로케일화하는 곳은 그 셋을 또 복제하지 말고 이 표를 쓴다.
+ */
+export const INTL_LOCALE_BY_LOADING_LOCALE: Record<LoadingLocale, string> = {
+  ko: "ko-KR",
+  en: "en-US",
+  ja: "ja-JP",
+  "zh-CN": "zh-CN",
+  "zh-TW": "zh-TW",
+  vi: "vi-VN",
+  hi: "hi-IN",
+  es: "es-ES",
+  fr: "fr-FR",
+  de: "de-DE",
+  nl: "nl-NL",
+  ms: "ms-MY",
+};
+
 type LoadingMessage = { title: string; sub: string };
 type LoadingMessageMap = Record<LoadingStage, Record<PaymentType, LoadingMessage>>;
 

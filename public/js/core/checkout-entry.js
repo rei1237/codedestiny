@@ -16,6 +16,21 @@
  * 로딩 방식(번들러 없이 3런타임 공유 — js/core/pass-verdict.js 와 같은 패턴):
  *   - 브라우저 classic script: `globalThis.__cdCheckoutEntry`
  *   - webpack/Node(require): `module.exports` (package.json type=commonjs)
+ *
+ * 🔴 "누가 실행하는가"는 이미 다른 곳에서 정리돼 있다 — 여기서 다시 만들지 말 것.
+ * 정적 셸(index.html) · 독립 정적(js/destiny-profile.js) · React(app/_lib/billing-client.ts) 셋 다
+ * window._cdChooseServicePaymentMode 에 자기 렌더러를 등록하려 시도하지만, 실제로 뜨는 것은 하나뿐이다 —
+ * 셸이 항상 우선하고(non-deferred 스크립트라 사실상 먼저 실행되며, 셸 등록에는 __cdReactFallback 이
+ * 없다), 셸이 없으면 독립 정적이, 그마저 없으면 React 가 자기 모달을 여는 최후 폴백(fn.__cdReactFallback
+ * = true 로 스스로를 표시)만 등록한다. 이 순서는 세 플래그로 지켜진다: fn.__cdSupportsPassChoice(정본
+ * 자격 마크) · window.__cdChooseServicePaymentModeCanonical(지금 정본으로 뽑힌 렌더러 참조) ·
+ * window.__cdRestoreCanonicalPaymentMode(독립 정적/React 가 먼저 떠도 셸이 나중에 로드되면 그 자리에서
+ * 인수하는 복구 훅 — verify-payment-choice-single-instance.mjs 의 "셸이 인수한다" 테스트가 이 훅을 검증).
+ * 실제 등록 코드는 index.html · js/destiny-profile.js · app/_lib/billing-client.ts
+ * installReactPaymentChoiceBridge 세 곳에 각자 있다. 이 파일이 공유하는 것은 "무엇을 그리는가"(카드
+ * 마크업·CSS, buildPaymentChoiceCardsHtml/PAYMENT_CHOICE_CSS_RULES)뿐이고, 세 렌더러가 동시에 뜨는 일은
+ * 저 레지스트리가 이미 막는다 — DOM 부착 자체를 여기로 합치려 하지 말 것(리뷰·롤백 단위가 다른 별개
+ * 트랙이다).
  */
 (function (factory) {
   var api = factory();
@@ -25,6 +40,80 @@
   "use strict";
 
   var PASS_STORE_PLAN_ORDER = ["standard", "premium", "vvip", "family"];
+
+  // 결제 선택창(이용권/단건/월정석 카드) 공용 CSS 규칙 — 정본. 셸(index.html)·React(billing-client.ts)·
+  // 독립 정적(destiny-profile.js) 세 렌더러가 각자 배열을 복붙해 유지하던 것을 여기 하나로 모았다.
+  // 세 곳 모두 이 배열을 참조만 하고 각자 <style id="cdDirectPaymentStyles"> 부착은 그대로 소유한다.
+  var PAYMENT_CHOICE_CSS_RULES = [
+      '.cd-direct-payment-modal{position:fixed;inset:0;z-index:2147483004;display:none;align-items:center;justify-content:center;padding:max(16px,env(safe-area-inset-top,0px)) 16px max(16px,env(safe-area-inset-bottom,0px));background:rgba(10,7,20,.86);backdrop-filter:blur(14px);overflow:auto}',
+      '.cd-direct-payment-modal.is-open{display:flex}',
+      '.cd-direct-payment-dialog{width:min(520px,100%);max-height:calc(100dvh - 32px - env(safe-area-inset-top,0px) - env(safe-area-inset-bottom,0px));border:1px solid rgba(232,200,138,.28);border-radius:20px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 30%),linear-gradient(160deg,#241D40,#1A1530 52%,#100C1E);color:#EDE8F5;box-shadow:0 26px 78px rgba(0,0,0,.55),inset 0 1px 0 rgba(253,242,217,.1);padding:0 20px 20px;position:relative;z-index:1;overflow:auto;overflow-x:hidden;scrollbar-width:thin;isolation:isolate}',
+      '.cd-direct-payment-hairline{display:block;position:relative;height:2px;margin:0 -20px 18px;background:linear-gradient(90deg,transparent,rgba(232,200,138,.85) 50%,transparent)}',
+      '.cd-direct-payment-hairline::after{content:"";position:absolute;top:50%;left:0;width:6px;height:6px;margin-top:-3px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#f4bed1 0%,rgba(244,190,209,.55) 55%,rgba(244,190,209,0) 80%);box-shadow:0 0 8px 2px rgba(244,190,209,.4);opacity:.6;animation:cdMoonlitPetalDrift 7s ease-in-out infinite}',
+      '.cd-direct-payment-guide{display:flex;align-items:center;gap:14px;margin:0 0 16px}',
+      '.cd-direct-payment-guide__pig{flex:0 0 auto;width:88px;height:auto;border-radius:22px;filter:drop-shadow(0 0 16px rgba(244,190,209,.38))}',
+      '.cd-direct-payment-guide__copy{min-width:0}',
+      '.cd-direct-payment-title{margin:0 0 5px;font-family:\'CodeDestinySerifLatin\',\'CodeDestinySerifKR\',\'Nanum Myeongjo\',\'Gowun Batang\',var(--font-body);font-size:20px;font-weight:700;letter-spacing:-.01em;line-height:1.32;color:#F6EFE0;word-break:keep-all}',
+      '.cd-direct-payment-sub{margin:0;font-size:13px;line-height:1.5;color:rgba(237,232,245,.82);word-break:keep-all}',
+      '.cd-direct-payment-sub--reason{margin:10px 0 0;padding:9px 11px;border-radius:10px;border:1px solid rgba(232,200,138,.22);background:#1E1836;color:#F0DFB8;font-size:12.5px}',
+      '.cd-direct-payment-note{position:relative;margin:0 0 14px;padding:12px 14px;border-radius:12px;border:1px solid rgba(232,200,138,.16);background:#201A3A;color:#9B92B8;font-size:12.5px;line-height:1.5}',
+      '.cd-direct-payment-note strong{display:block;margin-bottom:4px;color:#F5F1FB;font-size:15px;font-weight:700;line-height:1.32;word-break:keep-all}',
+      '.cd-direct-payment-note span{display:block}',
+      '.cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:9px}',
+      '.cd-direct-payment-option{width:100%;margin:0;padding:14px;border:1px solid rgba(232,200,138,.16);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 55%),#251F45;box-shadow:inset 0 1px 0 rgba(237,232,245,.06);color:inherit;text-align:left;cursor:pointer;position:relative;overflow:hidden;transition:border-color 170ms ease,filter 170ms ease,transform 170ms ease,box-shadow 170ms ease}',
+      '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(237,232,245,.10) 46%,rgba(232,200,138,.20) 50%,rgba(237,232,245,.10) 54%,transparent 70%);transform:translateX(-120%);transition:transform 520ms ease;pointer-events:none}',
+      '.cd-direct-payment-option:hover::before{transform:translateX(120%)}',
+      '.cd-direct-payment-option:hover{border-color:rgba(232,200,138,.44);filter:brightness(1.04)}',
+      '.cd-direct-payment-option:focus{outline:0}',
+      '.cd-direct-payment-option:focus-visible{outline:2px solid #E8C88A;outline-offset:3px}',
+      '.cd-direct-payment-option:active{transform:scale(.986)}',
+      '.cd-direct-payment-option[data-mode="pass-store"]{border-color:rgba(232,200,138,.3)}',
+      '.cd-direct-payment-option[data-mode="direct"]{border-color:rgba(232,200,138,.18)}',
+      '.cd-direct-payment-option[data-mode="monthly"]{border-color:rgba(232,200,138,.18)}',
+      '.cd-direct-payment-option strong{display:block;margin:0 0 4px;font-size:15px;font-weight:700;line-height:1.32;color:#F5F1FB;word-break:keep-all}',
+      '.cd-direct-payment-option span{display:block;font-size:12.5px;line-height:1.45;color:#9B92B8}',
+      '.cd-direct-payment-option br{display:none}',
+      '.cd-direct-payment-option .cd-direct-payment-desc{display:block;font-size:12.5px;line-height:1.45;color:#9B92B8;word-break:keep-all}',
+      '.cd-direct-payment-option .cd-direct-payment-cardhead{display:flex;align-items:center;gap:8px;margin:0 0 9px}',
+      '.cd-direct-payment-cardhead .cd-direct-payment-badge{flex:0 0 auto;display:inline-flex;align-items:center;min-height:22px;padding:0 11px 0 15px;border-radius:6px;border:1px solid rgba(232,200,138,.32);background:#1E1836;font-size:11px;font-weight:700;letter-spacing:.01em;color:#E8C88A;clip-path:polygon(0% 50%,9% 0%,100% 0%,100% 100%,9% 100%);-webkit-clip-path:polygon(0% 50%,9% 0%,100% 0%,100% 100%,9% 100%)}',
+      '.cd-direct-payment-badge .cd-direct-payment-glyph{display:inline;margin-right:5px;font-size:11.5px;line-height:1}',
+      '.cd-direct-payment-cardhead .cd-direct-payment-recommend{margin-left:auto;flex:0 0 auto;display:inline-flex;align-items:center;padding:3px 10px;border-radius:999px;border:1px solid rgba(244,190,209,.55);background:linear-gradient(135deg,#FDF2D9,#E8C88A);color:#170F2A;font-size:10.5px;font-weight:800;letter-spacing:.01em;box-shadow:0 0 10px rgba(244,190,209,.35)}',
+      '.cd-direct-payment-option strong .cd-direct-payment-amount{display:inline;color:#E8C88A;font-size:17px;font-weight:800;letter-spacing:.01em}',
+      '.cd-direct-payment-option--recommended{padding:16px;border-color:rgba(232,200,138,.55);background:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0) 45%),linear-gradient(150deg,#2E2650,#251F45);box-shadow:0 0 34px rgba(232,200,138,.2),inset 0 1px 0 rgba(253,242,217,.12)}',
+      '.cd-direct-payment-option--recommended:hover{border-color:rgba(232,200,138,.78)}',
+      '.cd-direct-payment-option--recommended strong{font-size:17px}',
+      '.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:19px}',
+      '.cd-direct-payment-option--recommended .cd-direct-payment-desc{color:rgba(237,232,245,.82)}',
+      '.cd-direct-payment-go{display:flex;align-items:center;justify-content:center;margin-top:12px;padding:10px 14px;border-radius:999px;background:linear-gradient(135deg,#FDF2D9,#E8C88A);color:#170F2A;font-size:13.5px;font-weight:800;letter-spacing:.01em}',
+      '.cd-direct-payment-option--secondary{padding:11px 13px}',
+      '.cd-direct-payment-option--secondary .cd-direct-payment-cardhead{margin-bottom:6px}',
+      '.cd-direct-payment-option--secondary strong{font-size:13.5px;margin-bottom:2px}',
+      '.cd-direct-payment-option--secondary strong .cd-direct-payment-amount{font-size:14.5px}',
+      '.cd-direct-payment-option--secondary .cd-direct-payment-desc{font-size:11.5px;color:rgba(155,146,184,.85);display:-webkit-box;-webkit-line-clamp:1;-webkit-box-orient:vertical;overflow:hidden}',
+      '.cd-direct-payment-option[disabled]{cursor:not-allowed}',
+      '.cd-direct-payment-option.is-disabled{cursor:not-allowed;filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1)}',
+      '.cd-direct-payment-option.is-disabled:hover{filter:saturate(.4) brightness(.86);border-color:rgba(232,200,138,.1);transform:none}',
+      '.cd-direct-payment-option.is-loading{pointer-events:none;filter:saturate(.7)}',
+      '.cd-direct-payment-balance-check{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;margin:0;padding:9px 12px;border:1px solid rgba(232,200,138,.3);border-radius:999px;background:rgba(232,200,138,.06);color:#E8C88A;font-size:12.5px;font-weight:700;line-height:1.35;cursor:pointer;transition:border-color 170ms ease,background 170ms ease}',
+      '.cd-direct-payment-balance-check:hover{border-color:rgba(232,200,138,.55);background:rgba(232,200,138,.12)}',
+      '.cd-direct-payment-balance-check[disabled]{opacity:.6;cursor:default}',
+      '.cd-direct-payment-balance-value{display:block;margin:6px 2px 0;color:rgba(237,232,245,.86);font-size:12.5px;line-height:1.45;text-align:center;word-break:keep-all}',
+      '.cd-direct-payment-balance-value.is-error{color:#FCA5A5}',
+      '.cd-direct-payment-status{min-height:16px;margin:10px 0 0;color:#E8C88A;font-size:12px;line-height:1.45}',
+      '.cd-direct-payment-legal{margin:12px 0 0;padding:0;color:rgba(155,146,184,.72);font-size:11px;line-height:1.5;word-break:keep-all}',
+      '.cd-direct-payment-actions{display:flex;justify-content:flex-end;margin-top:12px}',
+      '.cd-direct-payment-cancel{border:1px solid rgba(232,200,138,.2);border-radius:999px;background:transparent;color:rgba(237,232,245,.82);padding:9px 18px;cursor:pointer;font-size:13px;font-weight:700;transition:border-color 170ms ease,color 170ms ease}',
+      '.cd-direct-payment-cancel:hover{border-color:rgba(232,200,138,.4);color:#EDE8F5}',
+      '.cd-direct-payment-cancel:focus-visible{outline:2px solid #E8C88A;outline-offset:2px}',
+      '.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after{content:"";position:absolute;width:5px;height:5px;border-radius:50%;pointer-events:none;background:radial-gradient(circle,#E8C88A 0%,rgba(232,200,138,.5) 55%,rgba(232,200,138,0) 78%);box-shadow:0 0 10px 2px rgba(232,200,138,.45);opacity:.5}',
+      '.cd-direct-payment-modal.is-open::before{left:20%;top:24%;animation:cdMoonlitFireflyA 9s ease-in-out infinite}',
+      '.cd-direct-payment-modal.is-open::after{right:18%;bottom:22%;animation:cdMoonlitFireflyB 12s ease-in-out infinite 1.6s}',
+      '@keyframes cdMoonlitFireflyA{0%,100%{transform:translate3d(0,0,0);opacity:.32}25%{opacity:.68}50%{transform:translate3d(16px,-20px,0);opacity:.48}75%{opacity:.6}}',
+      '@keyframes cdMoonlitFireflyB{0%,100%{transform:translate3d(0,0,0);opacity:.28}30%{opacity:.58}55%{transform:translate3d(-18px,16px,0);opacity:.42}80%{opacity:.55}}',
+      '@keyframes cdMoonlitPetalDrift{0%{left:2%;opacity:0}10%{opacity:.6}50%{left:94%;opacity:.75}90%{opacity:.5}100%{left:2%;opacity:0}}',
+      '@media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-legal{font-size:10.5px}}',
+      '@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}}'
+  ];
   var RETURN_KEY = "cd_checkout_return_v1";
   // 이용권을 사고 돌아오기까지의 현실적 상한. 이 시간을 넘긴 복귀 지점은 사용자가 이미 다른 일을
   // 하고 있다는 뜻이라 조용히 버린다(엉뚱한 화면으로 튕기는 게 안 돌아가는 것보다 나쁘다).
@@ -242,6 +331,64 @@
       order: recommended ? [recommended].concat(rest) : rest,
       monthlyCovers: monthlyCovers,
     };
+  }
+
+  /**
+   * 결제 선택 카드 한 장의 HTML. 🔴 세 렌더러(정적 셸·React·독립 정적)가 각자 손으로 유지하던 카드
+   * 뼈대(배지·추천 리본·go 스트립·variant 클래스)를 여기 하나로 모은다. 조건 계산(무엇을 보여줄지,
+   * 비활성 여부, 문구)은 옮기지 않는다 — 렌더러마다 실제 정보량이 다르기 때문이다(React 만의
+   * aria-label, 셸/독립정적의 이용권 한도 문구 등). 호출부는 이미 계산·이스케이프된 조각만 넘긴다.
+   *
+   * spec 필드: allow(false면 빈 문자열) · dataMode · extraDataAttrs(예: ' data-monthly-option disabled
+   * aria-disabled="true"') · extraClass(예: ' is-store') · ariaLabel(있으면 escape 후 부착) · glyph
+   * (이모지) · badgeLabel(escape 대상) · titleHtml/descHtml(호출부가 이미 조립·이스케이프한 HTML) ·
+   * descAttr(예: ' data-monthly-hint') · afterHtml(카드 형제로 붙는 조각 — <button> 중첩 금지라 월정석
+   * 잔량 확인 버튼이 여기로 온다).
+   */
+  function buildPaymentChoiceOptionHtml(option, spec, ctx) {
+    if (!spec || spec.allow === false) return "";
+    var escape = ctx.escape || function (value) { return String(value === null || value === undefined ? "" : value); };
+    var isRecommended = option === ctx.recommendedOption;
+    var variantClass = isRecommended ? " cd-direct-payment-option--recommended" : " cd-direct-payment-option--secondary";
+    var recommendHtml = isRecommended
+      ? '<span class="cd-direct-payment-recommend">' + escape(ctx.recommendLabel) + "</span>"
+      : "";
+    var goHtml = isRecommended
+      ? '<span class="cd-direct-payment-go">' + escape(ctx.goLabel) + "</span>"
+      : "";
+    var ariaAttr = spec.ariaLabel ? ' aria-label="' + escape(spec.ariaLabel) + '"' : "";
+    return (
+      '<button type="button" class="cd-direct-payment-option' + (spec.extraClass || "") + variantClass
+      + '" data-mode="' + spec.dataMode + '"' + (spec.extraDataAttrs || "") + ariaAttr + ">"
+      + '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge"><span class="cd-direct-payment-glyph" aria-hidden="true">'
+      + spec.glyph + "</span>" + escape(spec.badgeLabel) + "</span>" + recommendHtml + "</span>"
+      + "<strong>" + spec.titleHtml + "</strong>"
+      + '<span class="cd-direct-payment-desc"' + (spec.descAttr || "") + ">" + spec.descHtml + "</span>"
+      + goHtml
+      + "</button>"
+    );
+  }
+
+  /**
+   * 이용권/단건/월정석 카드를 checkoutRecommendation.order 순서대로 이어 붙인다. input.cards 는
+   * { pass, direct, monthly } 형태로 각 값은 buildPaymentChoiceOptionHtml 의 spec 이다.
+   */
+  function buildPaymentChoiceCardsHtml(input) {
+    var opts = input || {};
+    var order = Array.isArray(opts.order) ? opts.order : [];
+    var cards = opts.cards || {};
+    var ctx = {
+      escape: opts.escape,
+      recommendedOption: opts.recommendedOption,
+      recommendLabel: opts.recommendLabel,
+      goLabel: opts.goLabel,
+    };
+    return order.map(function (option) {
+      var spec = cards[option];
+      var cardHtml = buildPaymentChoiceOptionHtml(option, spec, ctx);
+      var afterHtml = cardHtml && spec && spec.afterHtml ? spec.afterHtml : "";
+      return cardHtml + afterHtml;
+    }).join("");
   }
 
   /**
@@ -516,6 +663,7 @@
     RETURN_TTL_MS: RETURN_TTL_MS,
     FUNNEL_PATH: FUNNEL_PATH,
     PASS_STORE_PLAN_ORDER: PASS_STORE_PLAN_ORDER,
+    PAYMENT_CHOICE_CSS_RULES: PAYMENT_CHOICE_CSS_RULES,
     CHOICE_MODAL_SELECTOR: CHOICE_MODAL_SELECTOR,
     CHOICE_LOCK_TTL_MS: CHOICE_LOCK_TTL_MS,
     acquirePaymentChoiceLock: acquirePaymentChoiceLock,
@@ -530,6 +678,7 @@
     formatKrwAmount: formatKrwAmount,
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
+    buildPaymentChoiceCardsHtml: buildPaymentChoiceCardsHtml,
     resolveStorePlan: resolveStorePlan,
     buildPassStoreUrl: buildPassStoreUrl,
     shouldUseAppStoreEntry: shouldUseAppStoreEntry,

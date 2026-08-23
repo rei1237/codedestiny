@@ -1,5 +1,6 @@
 import SikojenpovailuRouteClient from "./SikojenpovailuRouteClient";
 import { withUniqueRouteMetadata } from "../../../lib/generate-page-metadata";
+import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 
 const SIKOJEN_POVAILU_METADATA_COPY = {
   ko: {
@@ -34,6 +35,7 @@ export const metadata = withUniqueRouteMetadata("/oracle/sikojen-povailu", {
 export default function SikojenpovailuPage() {
   return (
     <main>
+      <RouteMetadataLocaleSync entries={SIKOJEN_POVAILU_METADATA_COPY} />
       <h1 className="sr-only">{sikojenPovailuMetadataCopy.title}</h1>
       <SikojenpovailuRouteClient />
     </main>

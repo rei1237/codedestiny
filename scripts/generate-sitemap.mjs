@@ -61,19 +61,11 @@ const noindexPathPrefixes = [
   "/saju-guardian",
   "/saju-picture",
   "/sukuyo/calendar",
-  "/tarot/year",
   "/tarot/healing",
   "/ziwei/chart",
-  // 정적 셸 사본 라우트(writeStaticShellCanonicalRoutes 산출물) — 본문이 루트
-  // index.html 과 99.9% 동일하다. 기능은 유지하고 색인만 막으므로 사이트맵에서도 뺀다.
-  "/saju/basic",
-  "/saju/sibyl",
-  "/tarot/mingri",
-  "/tarot/love",
-  "/tarot/reunion",
-  "/tarot/self-esteem",
-  "/astrology/cosmic",
-  "/oracle/sukuyo",
+  // 셸 사본만 존재하는 라우트(app 페이지가 없어 홈 셸 복사본이 곧 본문이다).
+  // 나머지 9개는 2026-08-23 에 app 랜딩을 살려 색인 대상으로 돌렸다 —
+  // docs/context/seo-and-adsense.md 참고.
   "/oracle/juyuk",
   "/oracle/hwatu",
   "/neo-operation-room",
@@ -185,7 +177,6 @@ const coreRoutes = [
   { path: "/physiognomy", changefreq: "weekly", priority: 0.93 },
   { path: "/premium", changefreq: "weekly", priority: 0.93 },
   { path: "/premium-reports", changefreq: "weekly", priority: 0.92 },
-  { path: "/pdf/life-book", changefreq: "monthly", priority: 0.88 },
   { path: "/pdf/love-report", changefreq: "monthly", priority: 0.88 },
   { path: "/sukuyo-compatibility-ai", changefreq: "monthly", priority: 0.87 },
   { path: "/saju/basic", changefreq: "weekly", priority: 0.95 },

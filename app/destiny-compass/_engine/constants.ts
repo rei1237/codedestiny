@@ -1,7 +1,7 @@
 /**
  * 운명의 나침반 하우스 — 상수/매핑 데이터(순수 데이터, 로직 없음 · STEP 5-1).
  * 근거: docs/destiny-compass/step3-architecture.md §3.
- * 문자열은 여기 중앙집중(ko 정본). ja/zh/en·i18n 사전 등록은 UI 배선 서브스텝에서.
+ * 방향 라벨의 12로케일 i18n 사전은 _lib/copy.ts 의 directionLabel/directionShortLabel 로 등록되었다.
  */
 import type {
   DirectionKey,
@@ -16,18 +16,6 @@ export const DIRECTION_KEYS: readonly DirectionKey[] = [
   "career", "venture", "study", "relationship",
   "love", "wealth", "health", "rest",
 ] as const;
-
-// ko 라벨 정본(i18n 추출 대상)
-export const DIRECTION_LABEL_KO: Record<DirectionKey, string> = {
-  career: "직장·커리어",
-  venture: "창업·도전",
-  study: "공부·성장",
-  relationship: "인간관계",
-  love: "연애",
-  wealth: "재물",
-  health: "건강",
-  rest: "정비·휴식",
-};
 
 // 감정 체크인 목록 + ko 라벨
 export const EMOTION_KEYS: readonly EmotionKey[] = [

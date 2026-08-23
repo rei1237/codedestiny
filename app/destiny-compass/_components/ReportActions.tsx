@@ -10,6 +10,8 @@
  */
 import { useCallback, useRef, useState } from "react";
 import DeferredShareWidget from "@/app/components/DeferredShareWidget";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE } from "@/constants/loadingMessages";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
 interface ReportActionsProps {
@@ -22,6 +24,7 @@ interface ReportActionsProps {
 }
 
 export function ReportActions({ targetRef, coordinate, question, reportId }: ReportActionsProps) {
+  const copy = useDestinyCompassCopy();
   const [busy, setBusy] = useState(false);
   const [notice, setNotice] = useState<string | null>(null);
   const noticeTimer = useRef<number | null>(null);
@@ -41,29 +44,29 @@ export function ReportActions({ targetRef, coordinate, question, reportId }: Rep
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       await exportResultPdf({
         captureTargets: ["[data-pdf-section]"],
-        fileName: "운명의나침반_리포트.pdf",
+        fileName: copy.pdfFileName,
         backgroundColor: "#12102c",
-        cover: { title: "운명의 나침반", subtitle: coordinate, date: new Date().toLocaleDateString("ko-KR") },
-        watermarkText: "Code Destiny · 운명의 나침반",
+        cover: { title: copy.pdfCoverTitle, subtitle: coordinate, date: new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]) },
+        watermarkText: copy.pdfWatermark,
       });
-      say("PDF로 저장했어요.");
+      say(copy.pdfSuccessNotice);
     } catch {
-      say("PDF 저장에 실패했어요. 잠시 후 다시 시도해 주세요.");
+      say(copy.pdfFailNotice);
     } finally {
       root.removeAttribute("data-export");
       setBusy(false);
     }
-  }, [targetRef, busy, coordinate, say]);
+  }, [targetRef, busy, coordinate, say, copy]);
 
   return (
     <>
       <button type="button" className={styles.resultCtaGhost} onClick={savePdf} disabled={busy}>
-        {busy ? "저장하는 중…" : "PDF로 저장"}
+        {busy ? copy.pdfButtonBusy : copy.pdfButtonIdle}
       </button>
       <div className={styles.reportShare}>
         <DeferredShareWidget
-          title={`운명의 나침반 — ${coordinate}`}
-          description={question ? `"${question}" 에 대한 다섯 체계의 읽기` : "사주·자미두수·숙요·타로·베다가 함께 읽은 오늘의 방향"}
+          title={copy.shareTitle(coordinate)}
+          description={question ? copy.shareDescriptionWithQuestion(question) : copy.shareDescriptionDefault}
           path="/destiny-compass"
           contentType="result"
           contentId={reportId || undefined}

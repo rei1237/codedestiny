@@ -23,6 +23,18 @@
  * 🔴 <script> 안의 문자열에 들어 있는 <style> 은 건드리지 않는다. 먼저 <script> 구간을 잘라내고
  *    그 밖의 <style> 만 고른다. 템플릿 리터럴 보간(`${`)이 보이면 그 블록도 통째로 건너뛴다.
  *
+ * 🔴 **React 가 하이드레이션하는 HTML 의 인라인 <style> 은 건드리지 않는다.** 그 <style> 은
+ *    컴포넌트가 렌더한 엘리먼트이고 그 텍스트는 JS 번들 안의 템플릿 리터럴에 원본 그대로 들어
+ *    있다. 여기서 HTML 쪽만 줄이면 하이드레이션 때 텍스트가 어긋나 React 가
+ *    **"Minified React error #418 (text)"** 를 던지고 그 서브트리를 통째로 다시 그린다.
+ *    2026-08-23 실측 — 프로덕션 /flower/destiny 의 <style> 이 SSR 2,300B vs 클라이언트 3,053B
+ *    (`@keyframes flp-orb{0%,to{` vs `@keyframes flp-orb { 0%,100%{`) 로 갈려 있었고,
+ *    app/components/FeatureLandingPage.tsx 를 쓰는 라우트 18개 전부가 이 오류를 내고 있었다.
+ *    배포 스모크(scripts/deploy-smoke.mjs)가 pageerror 를 실패로 보므로 그중 한 라우트라도
+ *    스모크 목록에 들어오면 릴리스가 통째로 막힌다(실제로 PR #1007 이후 그렇게 됐다).
+ *    잃는 이득은 거의 없다 — 실측 2026-08-23: 정적 셸(/ · /en)은 하이드레이션 대상이 아니라
+ *    인라인 <style> 87블록이 그대로 압축되고, 하이드레이션 대상 HTML 의 <style> 은 1블록 이하다.
+ *
  * 🔴 run-postbuild.mjs 의 steps 에서 verify-adsense-readiness **뒤**에 둘 것. 그 검증기는 dist 셸의
  *    본문 텍스트를 읽는 유일한 소비자라, 앞에 두면 가공된 산출물을 검사하게 된다.
  *
@@ -58,6 +70,15 @@ function minifyCss(source) {
   return transformSync(source, { loader: "css", minify: true, legalComments: "none", target: CSS_TARGET }).code;
 }
 
+/**
+ * React 가 하이드레이션하는 산출물인가. Next 의 App Router 는 프리렌더 HTML 에 플라이트
+ * 페이로드를 `self.__next_f.push(...)` 로 심는다 — 정적 셸에는 이 표식이 없다.
+ * 이 표식이 있으면 그 파일의 인라인 <style> 은 컴포넌트가 렌더한 것이므로 손대지 않는다.
+ */
+function isReactHydratedHtml(html) {
+  return html.includes("__next_f");
+}
+
 /** <script>…</script> 구간 목록. 이 안의 <style> 은 마크업이 아니라 문자열이다. */
 function scriptRanges(html) {
   const ranges = [];
@@ -90,6 +111,7 @@ let inlineAfter = 0;
 let inlineBlocks = 0;
 let inlineMinified = 0;
 let htmlTouched = 0;
+let hydratedSkipped = 0;
 const failures = [];
 
 for (const file of cssFiles) {
@@ -119,6 +141,10 @@ for (const file of cssFiles) {
 
 for (const file of htmlFiles) {
   const html = readFileSync(file, "utf8");
+  if (isReactHydratedHtml(html)) {
+    hydratedSkipped += 1;
+    continue;
+  }
   const skipRanges = scriptRanges(html);
   const styleRe = /(<style\b[^>]*>)([\s\S]*?)(<\/style\s*>)/gi;
 
@@ -180,6 +206,9 @@ console.log(
 console.log(
   `[minify-dist-css] 인라인 <style> ${inlineMinified}/${inlineBlocks}블록 (HTML ${htmlTouched}/${htmlFiles.length}개) — ` +
     `${kb(inlineBefore)}KB -> ${kb(inlineAfter)}KB (${kb(inlineBefore - inlineAfter)}KB, ${pct(inlineBefore, inlineAfter)}% 감소)`,
+);
+console.log(
+  `[minify-dist-css] React 하이드레이션 HTML ${hydratedSkipped}개는 인라인 <style> 을 건드리지 않았다(#418 방지).`,
 );
 
 if (failures.length > 0) {

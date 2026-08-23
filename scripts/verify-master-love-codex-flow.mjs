@@ -145,9 +145,14 @@ const birthGateFile = "src/features/master-love-codex/components/CodexBirthGate.
 const birthGateSource = read(birthGateFile);
 assertIncludes(birthGateFile, birthGateSource, "useAiProfileSeed");
 
+// UI 크롬 문구는 다국어화(i18n) 이후 _lib/copy.ts 로 이동했다 — ko 블록이 정본 문자열을 담는다.
+const copyFile = "src/features/master-love-codex/_lib/copy.ts";
+const copySource = read(copyFile);
+
 // ── 4-2. 결제 직전 화면: 무엇을 받는지 + 정직한 한계가 버튼 위에 함께 있을 것 ──
 // 결제가 붙은 CTA 는 프롤로그 스토리텔링 뒤의 "결과 보기" 하나다.
-assertIncludes(birthGateFile, birthGateSource, "결과 보기");
+assertIncludes(copyFile, copySource, "결과 보기");
+assertIncludes(birthGateFile, birthGateSource, "copy.submitButton");
 assert(
   !birthGateSource.includes("비책 펼치기"),
   `${birthGateFile}: 결제 CTA 문구는 "결과 보기" 하나여야 합니다(구 문구 "비책 펼치기" 잔존)`,
@@ -185,7 +190,7 @@ assert(
   `${pageFile}: PriceBadge 의 featureKey 가 모드에 따라 바뀌어야 상대 정보 입력 시 금액이 갱신됩니다`,
 );
 assert(
-  /masterLoveCodexBilling\(partner \? "compat" : "solo"\)/.test(pageSource),
+  /masterLoveCodexBilling\(partner \? "compat" : "solo",\s*locale\)/.test(pageSource),
   `${pageFile}: 게이트 결제 식별자는 제출 시점의 상대 유무로 확정해야 합니다(렌더 시점 값에 의존하면 어긋납니다)`,
 );
 assertIncludes(pageFile, pageSource, "partnerInfo");
@@ -410,7 +415,7 @@ assert(
 );
 // 미완성인 채로 결과 페이지로 밀어 넣으면 사용자는 20장을 받은 줄 안다.
 assert(
-  /throw new Error\(ERROR_TEXT\.GENERATION_BUDGET_EXCEEDED\)/.test(pageSource),
+  /throw new Error\(errorText\.GENERATION_BUDGET_EXCEEDED\)/.test(pageSource),
   `${pageFile}: 배치 루프가 미완성으로 끝나면 실패로 표면화해야 합니다(GENERATION_BUDGET_EXCEEDED)`,
 );
 assert(
@@ -629,7 +634,8 @@ for (const shell of [
   }
   const readerSource = read("src/features/master-love-codex/components/CodexReader.tsx");
   assertIncludes("src/features/master-love-codex/components/CodexReader.tsx", readerSource, "masterLoveCodexReading:");
-  assertIncludes("src/features/master-love-codex/components/CodexReader.tsx", readerSource, "이어서 읽기");
+  assertIncludes("src/features/master-love-codex/components/CodexReader.tsx", readerSource, "copy.resumeButton");
+  assertIncludes(copyFile, copySource, "이어서 읽기");
 }
 
 if (failures.length) {

@@ -98,8 +98,10 @@
 🔴 **파일을 수정하는 작업은 시작 전에 `EnterWorktree` 로 격리된 git worktree 를 만들고 그 안에서 한다.** 사용자가 매번 지시하지 않아도 **이 문서가 그 지시다.**
 
 - 기본 작업 디렉터리는 **여러 세션이 동시에 쓴다.** 남의 미커밋 변경이 내 커밋에 휩쓸리고, 작업 중에 남이 브랜치를 갈아타면 내 HEAD 가 통째로 바뀐다(둘 다 실사고 — 2026-08-20 한 세션에서 두 번).
-- 워크트리는 `.claude/worktrees/<이름>` 에 **`origin/main` 에서** 분기해 생기고 `node_modules` 는 심링크로 딸려온다([.claude/settings.json](.claude/settings.json) 의 `worktree`). 낡은 로컬 브랜치로 진단하는 사고도 이걸로 같이 막힌다.
-- 워크트리에서 툴체인은 그대로 돈다 — 실측 2026-08-20: `npm test`(jest 158 스위트 1627개 · node 273개) · `typecheck` · `lint` · `verify:*` 전부 통과. 🔴 새 설정 파일에 `<rootDir>/node_modules` 같은 경로를 박으면 그 순간 워크트리에서만 깨진다(그렇게 21개 스위트가 죽어 있었다) — `require.resolve` 를 쓸 것.
+- 워크트리는 `.claude/worktrees/<이름>` 에 **`origin/main` 에서** 분기해 생긴다([.claude/settings.json](.claude/settings.json) 의 `worktree`). 낡은 로컬 브랜치로 진단하는 사고도 이걸로 같이 막힌다. 🔴 **`node_modules` 가 딸려온다고 믿지 말 것** — 설정에 `symlinkDirectories: ["node_modules"]` 가 있는데도 실제로는 대개 안 생긴다(2026-08-23 실측: 워크트리 41개 중 **8개만** 보유, 그날 `EnterWorktree` 로 만든 3개는 **전부 없음**). 원인은 미확인이다.
+- 워크트리에서 툴체인은 그대로 돈다 — 실측 2026-08-20: `npm test`(jest 158 스위트 1627개 · node 273개) · `typecheck` · `lint` · `verify:*` 전부 통과. **그런데 그건 `node_modules` 가 있어서가 아니라** Node·도구들이 상위 디렉터리를 타고 올라가 저장소 루트의 설치본을 주워 쓰기 때문이다.
+- 🔴 그래서 **`<rootDir>/node_modules` 같은 절대 경로를 코드에 박으면 그 한 줄만 빗나간다** — `require.resolve` 를 쓸 것. 상위 탐색이 안 통하는 유일한 자리라, 박은 그 도구만 죽고 나머지는 전부 초록불이라 늦게 발견된다. 두 번 났다: `jest.config` 의 `<rootDir>/node_modules`(21개 스위트 사망) · `next-build-with-pages-manifest.mjs` 의 next CLI 경로(2026-08-23 — lint·typecheck·jest 가 **전부 통과한 채로** 빌드에서만 `Cannot find module` 로 죽었다).
+- 워크트리에서 **빌드를 돌려야 하면** 링크를 먼저 확인한다: `ls -ld node_modules`. 없으면 저장소 루트에서 돌리거나, 정션을 하나 건다 — `cmd /c mklink /J "<워크트리>\node_modules" "<저장소 루트>\node_modules"`. 🔴 지울 때는 **링크부터 끊는다**(`cmd /c rmdir "<워크트리>\node_modules"`) — 안 그러면 공유 설치본을 지울 위험이 있다.
 - 예외: 읽기만 하는 조사·질문, 그리고 사용자가 "여기서 하라"고 한 경우.
 - 끝나면 `ExitWorktree` — push·PR 까지 마쳤으면 `remove`, 이어서 할 일이 남았으면 `keep`.
 

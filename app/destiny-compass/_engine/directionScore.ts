@@ -81,15 +81,15 @@ function applyEmotionLens(dirs: DirectionScore[], input: CompassInput): Directio
   });
 }
 
-// Lucky 가이드(결정론 템플릿, ko 정본 — i18n 추출 대상)
+// Lucky 가이드(결정론 템플릿) — 표시 문구는 copy.ts 의 로케일 테이블에서 이 키로 조회한다.
 const LUCKY = {
-  avoid: ["과로·충동구매", "즉흥적인 큰 결정", "묵은 감정 되새김", "밤샘"],
-  recommend: ["짧은 산책", "미뤄둔 연락 한 통", "정리·비우기", "새로운 배움 한 조각"],
-  person: ["이름에 ㄱ·ㅅ이 있는 사람", "오래된 친구", "먼저 손 내미는 사람", "차분한 조력자"],
-  place: ["물가 근처", "북쪽 방향", "조용한 카페", "높은 곳"],
-  color: ["로즈", "라벤더", "샴페인 골드", "딥 플럼", "크림"],
-  food: ["생선·미역", "견과류", "따뜻한 국물", "제철 과일"],
-  time: ["오전 9~11시", "해질 무렵", "정오 전후", "늦은 오후"],
+  avoid: ["overwork", "impulsive_decision", "dwelling_on_feelings", "staying_up_late"],
+  recommend: ["short_walk", "overdue_contact", "declutter", "new_learning"],
+  person: ["initial_person", "old_friend", "first_reacher", "calm_helper"],
+  place: ["near_water", "north_direction", "quiet_cafe", "high_place"],
+  color: ["rose", "lavender", "champagne_gold", "deep_plum", "cream"],
+  food: ["fish_seaweed", "nuts", "warm_soup", "seasonal_fruit"],
+  time: ["morning", "dusk", "noon", "late_afternoon"],
 } as const;
 function buildLuckyGuide(seed: string): LuckyGuide {
   const h = hashInt(seed);

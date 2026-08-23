@@ -59,7 +59,7 @@ assertIncludes(pageSource, "@/lib/pdf/export-result-pdf", "PDF export util impor
 assertIncludes(pageSource, "captureTargets:", "PDF renders every split page via capture selector");
 assertIncludes(pageSource, "exportResultPdf({", "PDF download call");
 assertIncludes(pageSource, "상담에 사용된 차트 데이터", "PDF chart data page");
-assertIncludes(pageSource, "buildChartDataBlocks(integratedResult)", "PDF chart data source");
+assertIncludes(pageSource, "buildChartDataBlocks(integratedResult, copy)", "PDF chart data source");
 assertIncludes(pageSource, "사주 원국 데이터", "saju chart data included");
 assertIncludes(pageSource, "서양 점성술 차트 데이터", "western chart data included");
 assertIncludes(pageSource, "베다 점성술 차트 데이터", "vedic chart data included");

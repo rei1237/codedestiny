@@ -7,7 +7,8 @@
 import { useEffect, useRef, useState } from "react";
 import { CHIP_AXES } from "./mapRegions";
 import { ConstellationMark, type ConstellationVariant } from "./ConstellationMark";
-import { PIG_LINES, NEO_VALID_LINE, type MapInputPhase, type PigExpr } from "../_stage/mapDialogue";
+import { pigLines, neoValidLine, type MapInputPhase, type PigExpr } from "../_stage/mapDialogue";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
 // 칩 축(지도 노드) → 노드 고유 톤. 성좌 마크·칩 발광이 대응 노드 색과 연동된다.
@@ -34,6 +35,7 @@ const IDLE_MS = 8000;
 const RUNE_VARIANTS: ConstellationVariant[] = [0, 2, 4, 1, 3, 5];
 
 export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr }: ConcernInputProps) {
+  const copy = useDestinyCompassCopy();
   const [value, setValue] = useState("");
   const [focused, setFocused] = useState(false);
   const [waiting, setWaiting] = useState(false);
@@ -41,7 +43,7 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
 
   const trimmed = value.trim();
   const phase: MapInputPhase = trimmed.length >= 2 ? "valid" : value.length > 0 ? "typing" : waiting ? "waiting" : "intro";
-  const line = PIG_LINES[phase];
+  const line = pigLines(copy)[phase];
   const fill = Math.min(value.length / 24, 1);
 
   // 무입력 8초 → waiting. 입력이 있으면 즉시 해제.
@@ -73,7 +75,7 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
   return (
     <div className={styles.concern}>
       <div className={styles.concernIntro} aria-live="polite">
-        <span>오늘의 질문</span>
+        <span>{copy.todaysQuestionLabel}</span>
         <p>{line.text}</p>
       </div>
 
@@ -101,30 +103,30 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
           onChange={(e) => setValue(e.target.value)}
           onFocus={() => setFocused(true)}
           onBlur={() => setFocused(false)}
-          placeholder="예: 창업을 해야 할까요?"
-          aria-label="지금의 고민을 입력하세요"
+          placeholder={copy.concernPlaceholder}
+          aria-label={copy.concernInputAriaLabel}
           maxLength={80}
           autoComplete="off"
         />
-        <button type="submit" className={styles.oracleGo} disabled={!trimmed} aria-label="방향 찾기">
+        <button type="submit" className={styles.oracleGo} disabled={!trimmed} aria-label={copy.findDirectionAriaLabel}>
           <svg className={styles.needle} viewBox="0 0 24 24" aria-hidden="true">
             <circle cx="12" cy="12" r="9.2" fill="none" stroke="currentColor" strokeWidth="1.4" opacity="0.55" />
             <path d="M12 3.4L14.4 12 12 20.6 9.6 12z" fill="currentColor" />
             <circle cx="12" cy="12" r="1.6" fill="#12061f" />
           </svg>
-          <span className={styles.oracleGoText}>방향 찾기</span>
+          <span className={styles.oracleGoText}>{copy.findDirectionText}</span>
         </button>
       </form>
 
       {/* 네오 — 입력 충분할 때만 짧은 한 마디 */}
       <p className={styles.neoAside} data-on={phase === "valid" || undefined}>
-        <b>네오</b> {NEO_VALID_LINE}
+        <b>{copy.neoName}</b> {neoValidLine(copy)}
       </p>
 
       {/* 빠른 질문 — 나침반 6축(칩→대응 노드 발광) */}
       <div className={styles.chipDeck}>
-        <span className={styles.chipDeckLabel}>빠른 질문</span>
-        <div className={styles.chips} role="group" aria-label="빠른 질문 6축">
+        <span className={styles.chipDeckLabel}>{copy.quickQuestionLabel}</span>
+        <div className={styles.chips} role="group" aria-label={copy.quickQuestionAriaLabel}>
           {CHIP_AXES.map((c, i) => (
             <button
               key={c.key}
@@ -140,7 +142,7 @@ export function ConcernInput({ onSubmit, onSpotlight, onWaitingChange, onPigExpr
               <span className={styles.chipGem} aria-hidden="true">
                 <ConstellationMark variant={(i % 6) as ConstellationVariant} tone={REGION_TONE[c.region] || "var(--cd-map-gold)"} size={15} />
               </span>
-              {c.label}
+              {copy.chipLabel[c.key] ?? c.key}
             </button>
           ))}
         </div>

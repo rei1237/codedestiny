@@ -1,5 +1,6 @@
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import ZiweiChartClientLoader from "./ZiweiChartClientLoader";
+import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 
 const ZIWEI_CHART_METADATA_COPY = {
   ko: {
@@ -64,6 +65,7 @@ const ZIWEI_FAQ_JSON_LD = JSON.stringify({
 export default function ZiweiChartPage() {
   return (
     <main className="relative min-h-[100dvh] bg-[#030712] text-slate-100">
+      <RouteMetadataLocaleSync entries={ZIWEI_CHART_METADATA_COPY} />
       <h1 className="sr-only">
         심화 자미두수 상담으로 보는 내 인생의 12궁
       </h1>

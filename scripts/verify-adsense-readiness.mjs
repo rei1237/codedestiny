@@ -214,8 +214,6 @@ const xRobotsNoindexHeaderPatterns = [
   "/saju-picture/*",
   "/sukuyo/calendar",
   "/sukuyo/calendar/*",
-  "/tarot/year",
-  "/tarot/year/*",
   "/tarot/healing",
   "/tarot/healing/*",
   "/ziwei/chart",
@@ -230,25 +228,8 @@ const xRobotsNoindexHeaderPatterns = [
   // 사이트맵에 self-canonical 로 들어가는 색인 대상이다(_headers 의 같은 자리 주석 참고).
   "/fortune/sikojen-povailu",
   "/fortune/sikojen-povailu/*",
-  // 정적 셸 사본 라우트: 본문이 루트 index.html 과 99.9% 동일(페이지당 고유 8~12자).
-  // out 에는 Next 가 만든 별개 페이지가, dist 에는 셸 사본이 있어 HTML meta 만으로는
-  // 양쪽을 동시에 만족시킬 수 없다. 경로 기반인 X-Robots-Tag 가 유일한 레버.
-  "/saju/basic",
-  "/saju/basic/*",
-  "/saju/sibyl",
-  "/saju/sibyl/*",
-  "/tarot/mingri",
-  "/tarot/mingri/*",
-  "/tarot/love",
-  "/tarot/love/*",
-  "/tarot/reunion",
-  "/tarot/reunion/*",
-  "/tarot/self-esteem",
-  "/tarot/self-esteem/*",
-  "/astrology/cosmic",
-  "/astrology/cosmic/*",
-  "/oracle/sukuyo",
-  "/oracle/sukuyo/*",
+  // 셸 사본만 존재하는 라우트(app 페이지 없음). 나머지 9개는 2026-08-23 에 app 랜딩을
+  // 살려 색인 대상으로 돌렸다 — docs/context/seo-and-adsense.md 참고.
   "/oracle/juyuk",
   "/oracle/juyuk/*",
   "/oracle/hwatu",

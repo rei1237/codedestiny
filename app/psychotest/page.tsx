@@ -6,12 +6,13 @@ import {
   buildPsychotestExternalUrl,
 } from "../../lib/psychotest-catalog";
 import DestinyBiasPromoSection from "./_components/DestinyBiasPromoSection";
+import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 
 const PSYCHOTEST_PAGE_METADATA_COPY = {
   ko: {
-    title: "심리테스트 모음 14종 | 성격·연애·직장 무료 테스트 허브",
+    title: "무료 심리테스트 14종 | 성격·연애·직장 테스트 모음",
     description:
-      "Replit 심리테스트 14종을 기능별로 정리한 SEO 허브입니다. 성격, 연애, 직장, 공감, HSP, 정신연령 테스트를 한 번에 비교하고 바로 시작할 수 있습니다.",
+      "가입 없이 바로 하는 무료 심리테스트 14종을 한곳에 모았습니다. 성격, 연애, 직장, 공감, HSP, 정신연령 테스트를 주제별로 비교하고 원하는 것만 골라 바로 시작할 수 있습니다.",
     featureList: ["심리테스트 14종 카탈로그", "성격/연애/직장 카테고리 필터형 탐색", "기능별 요약과 추천 키워드 안내"],
     itemListName: "심리테스트 모음",
   },
@@ -73,6 +74,7 @@ export default function PsychotestHubPage() {
   return (
     <main className="mx-auto max-w-6xl px-4 py-10 md:px-6 md:py-14">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON_LD }} />
+      <RouteMetadataLocaleSync entries={PSYCHOTEST_PAGE_METADATA_COPY} />
 
       <header className="mb-8 rounded-3xl border border-violet-200/40 bg-[radial-gradient(circle_at_15%_20%,rgba(244,114,182,0.16),transparent_35%),radial-gradient(circle_at_85%_20%,rgba(99,102,241,0.16),transparent_35%),linear-gradient(155deg,#ffffff,#faf5ff)] p-6 shadow-sm md:p-8">
         <p className="mb-3 text-xs font-semibold tracking-[0.12em] text-violet-500">PSYCHOLOGY TEST HUB</p>

@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import DestinyMeetingPlaceRouteClient from "./DestinyMeetingPlaceRouteClient";
+import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
 
 const DESTINY_MEETING_PLACE_METADATA_COPY = {
   ko: {
@@ -45,6 +46,7 @@ export const metadata: Metadata = {
 export default function Page() {
   return (
     <>
+      <RouteMetadataLocaleSync entries={DESTINY_MEETING_PLACE_METADATA_COPY} />
       <section className="sr-only" aria-label="사주로 보는 인연의 장소 안내">
         <h1>사주로 보는 인연의 장소</h1>
         <p>

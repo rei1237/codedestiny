@@ -22,6 +22,7 @@ import {
   type FortunePeriodId,
 } from "@/lib/fortune/periods";
 import { getSiblingProfiles, type SignProfile } from "@/lib/fortune/sign-profiles";
+import { FusionCrossSell } from "@/app/components/FusionCrossSell";
 import YeoniPortrait from "./YeoniPortrait";
 
 export const dynamicParams = false;
@@ -236,6 +237,8 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
               ))}
             </div>
           </section>
+
+          <FusionCrossSell fromPath={`/fortune/${period}`} tone="yeoni" />
 
           <p className={`mt-12 break-keep text-xs leading-6 ${MUTED}`}>
             운세는 참고 자료이며 의료·법률·투자 판단을 대신하지 않습니다. 계산 근거인 일진·월건·절기·달의 위치는

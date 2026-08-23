@@ -13,6 +13,7 @@ let isAnalyzing = false;
 let analysisComplete = false;
 let landmarksData = null;
 let currentMode = 'camera';
+let selectedPhyGender = null; // 'female' | 'male' | null(자동 감지) — 선택 화면 토글, 새 분석마다 유지(궁합 2인 촬영에도 그대로 적용)
 let _phyFrameCount = 0; // 프레임 스로틀용
 let _phyUploadToken = 0;
 let _phyAnalysisAbortController = null;
@@ -149,6 +150,18 @@ styleLink.textContent = `
     background: linear-gradient(135deg, #14b8a6 0%, #7c3aed 100%);
     color: #fff;
     box-shadow: 0 8px 18px rgba(124,58,237,0.28);
+  }
+  .phy-gender-label {
+    font-size: 0.78rem;
+    color: #94a3b8;
+    margin-bottom: 8px;
+  }
+  .phy-gender-toggle {
+    margin-bottom: 16px;
+  }
+  .phy-gender-toggle .switch-btn {
+    padding: 8px 16px;
+    font-size: 0.85rem;
   }
   .video-container {
     position: relative;
@@ -685,6 +698,13 @@ const appHtml = `
       <div class="input-switch-container">
         <button class="switch-btn active" id="btnModeCamera" onclick="switchMode('camera')"> 라이브 카메라</button>
         <button class="switch-btn" id="btnModeFile" onclick="switchMode('file')"> 사진 업로드</button>
+      </div>
+
+      <div class="phy-gender-label">성별을 고르면 동물상 판정 정확도가 올라갑니다</div>
+      <div class="input-switch-container phy-gender-toggle">
+        <button class="switch-btn" id="btnGenderFemale" onclick="selectPhyGender('female')">여성</button>
+        <button class="switch-btn" id="btnGenderMale" onclick="selectPhyGender('male')">남성</button>
+        <button class="switch-btn active" id="btnGenderAuto" onclick="selectPhyGender(null)">자동 감지</button>
       </div>
 
       <div class="video-container" id="videoContainer">
@@ -2003,6 +2023,13 @@ window.resetPhysiognomyApp = function(preserveCompat) {
   }
 }
 
+window.selectPhyGender = function(gender) {
+  selectedPhyGender = (gender === 'female' || gender === 'male') ? gender : null;
+  document.getElementById('btnGenderFemale').classList.toggle('active', selectedPhyGender === 'female');
+  document.getElementById('btnGenderMale').classList.toggle('active', selectedPhyGender === 'male');
+  document.getElementById('btnGenderAuto').classList.toggle('active', selectedPhyGender === null);
+}
+
 window.switchMode = async function(mode) {
   currentMode = mode;
   document.getElementById('btnModeCamera').classList.remove('active');
@@ -2211,6 +2238,9 @@ window.startCapture = async function() {
     // 늘릴 수 없으므로 여기서 따로 넘긴다. 못 넘기면 엔진이 '판독 불가'로 답한다(점을 지어내지 않는다).
     if (typeof window.faceAnalysisEngine.setMoleSource === 'function') {
       window.faceAnalysisEngine.setMoleSource(_phyAspectSrc);
+    }
+    if (typeof window.faceAnalysisEngine.setGenderOverride === 'function') {
+      window.faceAnalysisEngine.setGenderOverride(selectedPhyGender);
     }
     const result = await withTimeout(
       window.faceAnalysisEngine.analyze(analysisLandmarks, expressionData, imageAspect),

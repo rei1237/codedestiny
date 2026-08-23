@@ -3,7 +3,6 @@ import type { DirectionKey } from "../_engine/types";
 
 export interface RegionDef {
   key: string;
-  label: string;
   icon: string;
   x: number; // % (mapField 기준)
   y: number;
@@ -11,11 +10,11 @@ export interface RegionDef {
 }
 
 export const REGIONS: RegionDef[] = [
-  { key: "castle", label: "운명의 성", icon: "🏰", x: 50, y: 20, glow: "rgba(232,213,163,.75)" },
-  { key: "forest", label: "성장의 숲", icon: "🌲", x: 18, y: 43, glow: "rgba(122,222,140,.6)" },
-  { key: "city", label: "재물의 도시", icon: "🏙️", x: 82, y: 43, glow: "rgba(96,200,255,.6)" },
-  { key: "lake", label: "관계의 호수", icon: "💧", x: 27, y: 74, glow: "rgba(120,160,255,.62)" },
-  { key: "fog", label: "안개의 계곡", icon: "🌫️", x: 73, y: 74, glow: "rgba(190,180,225,.55)" },
+  { key: "castle", icon: "🏰", x: 50, y: 20, glow: "rgba(232,213,163,.75)" },
+  { key: "forest", icon: "🌲", x: 18, y: 43, glow: "rgba(122,222,140,.6)" },
+  { key: "city", icon: "🏙️", x: 82, y: 43, glow: "rgba(96,200,255,.6)" },
+  { key: "lake", icon: "💧", x: 27, y: 74, glow: "rgba(120,160,255,.62)" },
+  { key: "fog", icon: "🌫️", x: 73, y: 74, glow: "rgba(190,180,225,.55)" },
 ];
 
 export const HERE = { x: 50, y: 56 };
@@ -39,18 +38,17 @@ export function regionByKey(key: string): RegionDef | undefined {
 /** 빠른 질문 칩 — 나침반 6축과 정렬. 각 칩은 대응 지역 노드를 밝힌다(칩→노드 발광). */
 export interface ChipAxis {
   key: string;
-  label: string;
   /** 대응 지도 노드(spotlight 대상) */
   region: string;
-  /** 칩 클릭 시 고민 입력값으로 제출되는 문구 */
+  /** 칩 클릭 시 고민 입력값으로 제출되는 문구 — 해시 채점용, 화면에 노출되지 않는다 */
   seed: string;
 }
 
 export const CHIP_AXES: ChipAxis[] = [
-  { key: "career", label: "이직·커리어", region: "castle", seed: "이직" },
-  { key: "wealth", label: "재물", region: "city", seed: "재물" },
-  { key: "relationship", label: "관계", region: "lake", seed: "인간관계" },
-  { key: "study", label: "배움", region: "forest", seed: "배움" },
-  { key: "health", label: "건강", region: "fog", seed: "건강" },
-  { key: "rest", label: "쉼", region: "fog", seed: "쉼" },
+  { key: "career", region: "castle", seed: "이직" },
+  { key: "wealth", region: "city", seed: "재물" },
+  { key: "relationship", region: "lake", seed: "인간관계" },
+  { key: "study", region: "forest", seed: "배움" },
+  { key: "health", region: "fog", seed: "건강" },
+  { key: "rest", region: "fog", seed: "쉼" },
 ];

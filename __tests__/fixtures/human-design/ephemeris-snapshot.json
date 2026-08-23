@@ -1,0 +1,1627 @@
+{
+  "note": [
+    "생성물이다. 손으로 고치지 말 것 — node scripts/human-design-fixture-snapshot.mjs 로 재생성한다.",
+    "실제 Swiss Ephemeris(sweph-wasm, tropical)로 계산한 26 activation 의 황경이다.",
+    "CI 의 jest 는 .wasm 을 스텁으로 매핑해 실제 천체력을 못 돌리므로, 테스트는 이 값을 입력으로 순수 엔진만 돌린다."
+  ],
+  "generatedBy": "scripts/human-design-fixture-snapshot.mjs",
+  "rows": [
+    {
+      "id": "kr-jeonju-1991-02-20-0830",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1991,
+        "month": 2,
+        "day": 20
+      },
+      "birthUtc": "1991-02-19T23:30:00.000Z",
+      "designUtc": "1990-11-25T08:44:36.913Z",
+      "designSearch": {
+        "targetLongitude": 242.82065324838516,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -5.223910193308257e-10
+      },
+      "personality": {
+        "Sun": 330.82065324838516,
+        "Earth": 150.82065324838516,
+        "NorthNode": 297.5407650076204,
+        "SouthNode": 117.5407650076204,
+        "Moon": 35.22012817141689,
+        "Mercury": 322.7595373910799,
+        "Venus": 357.04102351300435,
+        "Mars": 69.79477749163476,
+        "Jupiter": 125.82305300581197,
+        "Saturn": 301.4834034430007,
+        "Uranus": 282.4634819356411,
+        "Neptune": 285.8738237749592,
+        "Pluto": 230.3759593594964
+      },
+      "design": {
+        "Sun": 242.82065324786277,
+        "Earth": 62.820653247862765,
+        "NorthNode": 299.7145094591235,
+        "SouthNode": 119.71450945912352,
+        "Moon": 330.6433746494657,
+        "Mercury": 261.13165210225384,
+        "Venus": 248.72703516994534,
+        "Mars": 66.28352437772213,
+        "Jupiter": 133.55776499740745,
+        "Saturn": 291.79465501001414,
+        "Uranus": 277.6334607624076,
+        "Neptune": 282.82751498928565,
+        "Pluto": 228.30798121978705
+      }
+    },
+    {
+      "id": "kr-seoul-1991-09-02-1200",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1991,
+        "month": 9,
+        "day": 2
+      },
+      "birthUtc": "1991-09-02T03:00:00.000Z",
+      "designUtc": "1991-06-02T04:29:58.811Z",
+      "designSearch": {
+        "targetLongitude": 71.1640895191083,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -5.823608262289781e-10
+      },
+      "personality": {
+        "Sun": 159.1640895191083,
+        "Earth": 339.1640895191083,
+        "NorthNode": 287.6199950844873,
+        "SouthNode": 107.6199950844873,
+        "Moon": 73.89788277363778,
+        "Mercury": 143.212886878954,
+        "Venus": 143.5011480431674,
+        "Mars": 180.54593775378328,
+        "Jupiter": 147.82597156084591,
+        "Saturn": 301.05731170899,
+        "Uranus": 279.95915429823094,
+        "Neptune": 284.143557469901,
+        "Pluto": 227.91137528599188
+      },
+      "design": {
+        "Sun": 71.16408951852594,
+        "Earth": 251.16408951852594,
+        "NorthNode": 289.38164834053055,
+        "SouthNode": 109.38164834053055,
+        "Moon": 302.3730917846592,
+        "Mercury": 54.50518484006437,
+        "Venus": 116.0613678616312,
+        "Mars": 123.9158834852733,
+        "Jupiter": 129.18478875750628,
+        "Saturn": 306.6354802724386,
+        "Uranus": 283.0376429837313,
+        "Neptune": 286.272322896387,
+        "Pluto": 228.3664362450404
+      }
+    },
+    {
+      "id": "kr-busan-1996-02-06-2200",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1996,
+        "month": 2,
+        "day": 6
+      },
+      "birthUtc": "1996-02-06T13:00:00.000Z",
+      "designUtc": "1995-11-11T21:41:20.847Z",
+      "designSearch": {
+        "targetLongitude": 229.02151069571482,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 1.241460267920047e-9
+      },
+      "personality": {
+        "Sun": 317.0215106957148,
+        "Earth": 137.02151069571482,
+        "NorthNode": 198.90197602088392,
+        "SouthNode": 18.90197602088392,
+        "Moon": 157.98376922831267,
+        "Mercury": 291.87473557929707,
+        "Venus": 356.95800932948976,
+        "Mars": 322.9202700660942,
+        "Jupiter": 277.3918201597096,
+        "Saturn": 352.684873970112,
+        "Uranus": 301.4765718083346,
+        "Neptune": 296.04669671407896,
+        "Pluto": 242.88062882526924
+      },
+      "design": {
+        "Sun": 229.02151069695628,
+        "Earth": 49.021510696956284,
+        "NorthNode": 206.29138801413615,
+        "SouthNode": 26.291388014136146,
+        "Moon": 99.75979156768403,
+        "Mercury": 222.30712996254397,
+        "Venus": 250.5406467014376,
+        "Mars": 256.02102568164196,
+        "Jupiter": 258.26582298195353,
+        "Saturn": 348.08245050629364,
+        "Uranus": 297.0820536519411,
+        "Neptune": 293.1670526956698,
+        "Pluto": 240.04323314873056
+      }
+    },
+    {
+      "id": "kr-seoul-1999-01-01-1211",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1999,
+        "month": 1,
+        "day": 1
+      },
+      "birthUtc": "1999-01-01T03:11:00.000Z",
+      "designUtc": "1998-10-05T16:46:11.740Z",
+      "designSearch": {
+        "targetLongitude": 192.2408634046576,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -2.7398527890909463e-11
+      },
+      "personality": {
+        "Sun": 280.2408634046576,
+        "Earth": 100.2408634046576,
+        "NorthNode": 142.84548223463912,
+        "SouthNode": 322.8454822346391,
+        "Moon": 86.91321269045704,
+        "Mercury": 261.45526250176033,
+        "Venus": 295.549073529212,
+        "Mars": 198.44803715486512,
+        "Jupiter": 351.9598634608258,
+        "Saturn": 26.773522276673475,
+        "Uranus": 310.9640462613552,
+        "Neptune": 301.0636755794965,
+        "Pluto": 249.11899067477975
+      },
+      "design": {
+        "Sun": 192.2408634046302,
+        "Earth": 12.240863404630204,
+        "NorthNode": 150.8529162593701,
+        "SouthNode": 330.8529162593701,
+        "Moon": 10.213239961579404,
+        "Mercury": 199.62146752157025,
+        "Venus": 185.901759946948,
+        "Mars": 148.8844259116811,
+        "Jupiter": 350.57322086495833,
+        "Saturn": 31.562004631467573,
+        "Uranus": 308.8819688408703,
+        "Neptune": 299.3938498398634,
+        "Pluto": 245.9850747061629
+      }
+    },
+    {
+      "id": "kr-seoul-1996-11-06-1100",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1996,
+        "month": 11,
+        "day": 6
+      },
+      "birthUtc": "1996-11-06T02:00:00.000Z",
+      "designUtc": "1996-08-08T05:14:57.232Z",
+      "designSearch": {
+        "targetLongitude": 135.9360483686795,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 2.532942744437605e-10
+      },
+      "personality": {
+        "Sun": 223.9360483686795,
+        "Earth": 43.93604836867951,
+        "NorthNode": 187.54140853516117,
+        "SouthNode": 7.5414085351611675,
+        "Moon": 163.98963597297575,
+        "Mercury": 226.4392859776292,
+        "Venus": 189.18471004669527,
+        "Mars": 153.72263282389406,
+        "Jupiter": 283.6373360021007,
+        "Saturn": 1.2635637951990475,
+        "Uranus": 300.95259174755665,
+        "Neptune": 295.2341934567089,
+        "Pluto": 242.2554283811735
+      },
+      "design": {
+        "Sun": 135.9360483689328,
+        "Earth": 315.9360483689328,
+        "NorthNode": 189.65407641388356,
+        "SouthNode": 9.654076413883558,
+        "Moon": 68.96469303025594,
+        "Mercury": 159.94434808863866,
+        "Venus": 90.81123891244073,
+        "Mars": 98.97813467304297,
+        "Jupiter": 278.8947394067143,
+        "Saturn": 7.054913103441322,
+        "Uranus": 302.05605318188395,
+        "Neptune": 295.8247848587703,
+        "Pluto": 240.33536674826632
+      }
+    },
+    {
+      "id": "kr-seoul-2000-01-30-1144",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 2000,
+        "month": 1,
+        "day": 30
+      },
+      "birthUtc": "2000-01-30T02:44:00.000Z",
+      "designUtc": "1999-11-04T09:18:03.494Z",
+      "designSearch": {
+        "targetLongitude": 221.50327327156583,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 1.4900933820172213e-9
+      },
+      "personality": {
+        "Sun": 309.50327327156583,
+        "Earth": 129.50327327156583,
+        "NorthNode": 123.68797182317559,
+        "SouthNode": 303.6879718231756,
+        "Moon": 239.2265605119585,
+        "Mercury": 319.25439764922294,
+        "Venus": 276.490669525082,
+        "Mars": 350.092704969313,
+        "Jupiter": 27.704070789825835,
+        "Saturn": 40.58782018126993,
+        "Uranus": 316.38103638622135,
+        "Neptune": 304.2610861468446,
+        "Pluto": 252.32447068311444
+      },
+      "design": {
+        "Sun": 221.50327327305592,
+        "Earth": 41.503273273055925,
+        "NorthNode": 128.35590651968403,
+        "SouthNode": 308.355906519684,
+        "Moon": 178.60494932570703,
+        "Mercury": 241.68833957923948,
+        "Venus": 175.0779949479006,
+        "Mars": 283.4430015860062,
+        "Jupiter": 28.382263005345123,
+        "Saturn": 43.87704854249654,
+        "Uranus": 312.9251637436191,
+        "Neptune": 301.71475272428256,
+        "Pluto": 249.26151658235267
+      }
+    },
+    {
+      "id": "cr-sanjose-1997-09-08-1530",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": -6,
+      "solarDate": {
+        "year": 1997,
+        "month": 9,
+        "day": 8
+      },
+      "birthUtc": "1997-09-08T21:30:00.000Z",
+      "designUtc": "1997-06-09T01:10:24.555Z",
+      "designSearch": {
+        "targetLongitude": 78.2551917308316,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 3.865352482534945e-12
+      },
+      "personality": {
+        "Sun": 166.2551917308316,
+        "Earth": 346.2551917308316,
+        "NorthNode": 169.74282910329953,
+        "SouthNode": 349.7428291032995,
+        "Moon": 242.4115684018659,
+        "Mercury": 152.80370808893713,
+        "Venus": 206.27214279570046,
+        "Mars": 226.3438246952196,
+        "Jupiter": 313.46520083974633,
+        "Saturn": 19.166638199568354,
+        "Uranus": 305.23815764441304,
+        "Neptune": 297.4222858375956,
+        "Pluto": 243.02307217563578
+      },
+      "design": {
+        "Sun": 78.25519173083546,
+        "Earth": 258.25519173083546,
+        "NorthNode": 174.61944772945492,
+        "SouthNode": 354.6194477294549,
+        "Moon": 122.6663485039482,
+        "Mercury": 60.127834872031315,
+        "Venus": 95.95520558588566,
+        "Mars": 175.79385904988203,
+        "Jupiter": 321.93923750605586,
+        "Saturn": 18.024652496440297,
+        "Uranus": 308.38707413343036,
+        "Neptune": 299.58730157633295,
+        "Pluto": 243.83459683970466
+      }
+    },
+    {
+      "id": "gb-london-2005-09-11-1145",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 1,
+      "solarDate": {
+        "year": 2005,
+        "month": 9,
+        "day": 11
+      },
+      "birthUtc": "2005-09-11T10:45:00.000Z",
+      "designUtc": "2005-06-11T15:28:31.337Z",
+      "designSearch": {
+        "targetLongitude": 80.79832683896848,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -9.833911462919787e-11
+      },
+      "personality": {
+        "Sun": 168.79832683896848,
+        "Earth": 348.7983268389685,
+        "NorthNode": 13.860796377130725,
+        "SouthNode": 193.86079637713073,
+        "Moon": 258.3415840810087,
+        "Mercury": 162.72640390208232,
+        "Venus": 209.734878241577,
+        "Mars": 50.47517028478984,
+        "Jupiter": 200.5353267785108,
+        "Saturn": 126.99675650220269,
+        "Uranus": 338.3737270337383,
+        "Neptune": 315.34787627700416,
+        "Pluto": 261.84633212333347
+      },
+      "design": {
+        "Sun": 80.79832683887014,
+        "Earth": 260.79832683887014,
+        "NorthNode": 20.686371818005625,
+        "SouthNode": 200.68637181800563,
+        "Moon": 133.25695474483115,
+        "Mercury": 90.72961075373956,
+        "Venus": 99.7848645679635,
+        "Mars": 359.6801148593736,
+        "Jupiter": 188.9912066290708,
+        "Saturn": 115.70475414941023,
+        "Uranus": 340.76014387163104,
+        "Neptune": 317.46889606097,
+        "Pluto": 263.24445593305086
+      }
+    },
+    {
+      "id": "kr-jeonju-2000-01-01-1111",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 2000,
+        "month": 1,
+        "day": 1
+      },
+      "birthUtc": "2000-01-01T02:11:00.000Z",
+      "designUtc": "1999-10-05T15:39:49.558Z",
+      "designSearch": {
+        "targetLongitude": 191.95195032500737,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 5.64341462450102e-10
+      },
+      "personality": {
+        "Sun": 279.9519503250074,
+        "Earth": 99.95195032500737,
+        "NorthNode": 123.97526940443424,
+        "SouthNode": 303.97526940443424,
+        "Moon": 218.3936024138826,
+        "Mercury": 271.25316555544305,
+        "Venus": 241.07135237169496,
+        "Mars": 327.64603304700074,
+        "Jupiter": 25.236697581389194,
+        "Saturn": 40.40397440165003,
+        "Uranus": 314.78863313366753,
+        "Neptune": 303.17848226080014,
+        "Pluto": 251.44037993868892
+      },
+      "design": {
+        "Sun": 191.95195032557172,
+        "Earth": 11.951950325571715,
+        "NorthNode": 131.29701093303458,
+        "SouthNode": 311.2970109330346,
+        "Moon": 146.12626287438468,
+        "Mercury": 210.6368945775613,
+        "Venus": 148.5273850115733,
+        "Mars": 261.8770319269329,
+        "Jupiter": 32.28709802532558,
+        "Saturn": 46.04299269045737,
+        "Uranus": 312.9906445948393,
+        "Neptune": 301.6073974590072,
+        "Pluto": 248.35031916284265
+      }
+    },
+    {
+      "id": "kr-seoul-2000-10-08-1111",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 2000,
+        "month": 10,
+        "day": 8
+      },
+      "birthUtc": "2000-10-08T02:11:00.000Z",
+      "designUtc": "2000-07-09T00:12:40.496Z",
+      "designSearch": {
+        "targetLongitude": 107.10474099416092,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 8.992628863779828e-11
+      },
+      "personality": {
+        "Sun": 195.10474099416092,
+        "Earth": 15.10474099416092,
+        "NorthNode": 110.85455422310645,
+        "SouthNode": 290.85455422310645,
+        "Moon": 313.6740049183984,
+        "Mercury": 220.38654722317904,
+        "Venus": 226.41325296915727,
+        "Mars": 163.2391382632137,
+        "Jupiter": 71.11169504344434,
+        "Saturn": 60.39871772022008,
+        "Uranus": 317.03696740886505,
+        "Neptune": 303.80584249818776,
+        "Pluto": 250.77808186166362
+      },
+      "design": {
+        "Sun": 107.10474099425085,
+        "Earth": 287.10474099425085,
+        "NorthNode": 114.66220516756192,
+        "SouthNode": 294.6622051675619,
+        "Moon": 202.76792059294962,
+        "Mercury": 103.17714203435492,
+        "Venus": 114.68173997374873,
+        "Mars": 104.95147118262298,
+        "Jupiter": 61.77234427349481,
+        "Saturn": 57.4617283502771,
+        "Uranus": 320.07361875401125,
+        "Neptune": 305.68099718984513,
+        "Pluto": 250.61718711097
+      }
+    },
+    {
+      "id": "fr-soullans-2000-09-09-1200",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 2,
+      "solarDate": {
+        "year": 2000,
+        "month": 9,
+        "day": 9
+      },
+      "birthUtc": "2000-09-09T10:00:00.000Z",
+      "designUtc": "2000-06-09T13:53:49.941Z",
+      "designSearch": {
+        "targetLongitude": 79.02347753785114,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 4.5776005208608694e-10
+      },
+      "personality": {
+        "Sun": 167.02347753785114,
+        "Earth": 347.02347753785114,
+        "NorthNode": 113.43083862410515,
+        "SouthNode": 293.43083862410515,
+        "Moon": 297.65994002687967,
+        "Mercury": 182.42719518994704,
+        "Venus": 191.36641511993832,
+        "Mars": 145.19784945902938,
+        "Jupiter": 70.56831241048633,
+        "Saturn": 60.97008250982174,
+        "Uranus": 317.7483743463682,
+        "Neptune": 304.1332827572859,
+        "Pluto": 250.25720995737015
+      },
+      "design": {
+        "Sun": 79.0234775383089,
+        "Earth": 259.0234775383089,
+        "NorthNode": 115.23418038063659,
+        "SouthNode": 295.2341803806366,
+        "Moon": 174.4267852203077,
+        "Mercury": 103.03924922652755,
+        "Venus": 78.51662238718575,
+        "Mars": 85.32472855992552,
+        "Jupiter": 55.46571597345405,
+        "Saturn": 54.19572479688168,
+        "Uranus": 320.7309297908429,
+        "Neptune": 306.306001120533,
+        "Pluto": 251.32929992413574
+      }
+    },
+    {
+      "id": "sn-dakar-2014-09-08-1111",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 0,
+      "solarDate": {
+        "year": 2014,
+        "month": 9,
+        "day": 8
+      },
+      "birthUtc": "2014-09-08T11:11:00.000Z",
+      "designUtc": "2014-06-08T14:38:01.389Z",
+      "designSearch": {
+        "targetLongitude": 77.73418960952199,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 1.2653345038415864e-10
+      },
+      "personality": {
+        "Sun": 165.734189609522,
+        "Earth": 345.734189609522,
+        "NorthNode": 199.59944890768008,
+        "SouthNode": 19.599448907680085,
+        "Moon": 337.2100495505126,
+        "Mercury": 189.02572668005507,
+        "Venus": 153.40444229836214,
+        "Mars": 236.3998992212047,
+        "Jupiter": 131.686217071356,
+        "Saturn": 228.5651134028277,
+        "Uranus": 15.633706967348928,
+        "Neptune": 335.91602789493845,
+        "Pluto": 281.04862294582404
+      },
+      "design": {
+        "Sun": 77.73418960964852,
+        "Earth": 257.7341896096485,
+        "NorthNode": 207.24821609088406,
+        "SouthNode": 27.248216090884057,
+        "Moon": 199.16797009768652,
+        "Mercury": 93.12126414930492,
+        "Venus": 42.35778982190311,
+        "Mars": 191.29925637800534,
+        "Jupiter": 111.88403316806921,
+        "Saturn": 227.99895730748221,
+        "Uranus": 15.761848376317346,
+        "Neptune": 337.5952826904613,
+        "Pluto": 282.9091525752476
+      }
+    },
+    {
+      "id": "af-kabul-2016-07-08-1200",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 4.5,
+      "solarDate": {
+        "year": 2016,
+        "month": 7,
+        "day": 8
+      },
+      "birthUtc": "2016-07-08T07:30:00.000Z",
+      "designUtc": "2016-04-07T23:26:24.889Z",
+      "designSearch": {
+        "targetLongitude": 18.567396280285607,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -3.420268512854818e-10
+      },
+      "personality": {
+        "Sun": 106.5673962802856,
+        "Earth": 286.5673962802856,
+        "NorthNode": 164.23102089063013,
+        "SouthNode": 344.23102089063013,
+        "Moon": 154.69326885539988,
+        "Mercury": 107.98033000248029,
+        "Venus": 115.18262607647989,
+        "Mars": 233.52916368732792,
+        "Jupiter": 168.1130755700284,
+        "Saturn": 250.77852903845235,
+        "Uranus": 24.319848893115932,
+        "Neptune": 341.88343877887314,
+        "Pluto": 286.19832784518087
+      },
+      "design": {
+        "Sun": 18.56739627994358,
+        "Earth": 198.56739627994358,
+        "NorthNode": 171.63738590071466,
+        "SouthNode": 351.63738590071466,
+        "Moon": 25.723980619962163,
+        "Mercury": 33.71133415964022,
+        "Venus": 2.8098119172618112,
+        "Mars": 248.3675663649118,
+        "Jupiter": 164.73956825949665,
+        "Saturn": 256.25373308705434,
+        "Uranus": 20.34170736932697,
+        "Neptune": 340.8942948103961,
+        "Pluto": 287.45776458895386
+      }
+    },
+    {
+      "id": "sn-dakar-2000-09-09-1200",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 0,
+      "solarDate": {
+        "year": 2000,
+        "month": 9,
+        "day": 9
+      },
+      "birthUtc": "2000-09-09T12:00:00.000Z",
+      "designUtc": "2000-06-09T15:55:45.458Z",
+      "designSearch": {
+        "targetLongitude": 79.10443290101728,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 5.768470145994797e-10
+      },
+      "personality": {
+        "Sun": 167.10443290101728,
+        "Earth": 347.1044329010173,
+        "NorthNode": 113.4299680375139,
+        "SouthNode": 293.4299680375139,
+        "Moon": 298.646713893138,
+        "Mercury": 182.5622035424692,
+        "Venus": 191.4685411137425,
+        "Mars": 145.250625733616,
+        "Jupiter": 70.57371213678385,
+        "Saturn": 60.97053763779218,
+        "Uranus": 317.745622925842,
+        "Neptune": 304.131785901129,
+        "Pluto": 250.25810894920937
+      },
+      "design": {
+        "Sun": 79.10443290159412,
+        "Earth": 259.1044329015941,
+        "NorthNode": 115.23323893884105,
+        "SouthNode": 295.23323893884105,
+        "Moon": 175.55513103115914,
+        "Mercury": 103.12057558442041,
+        "Venus": 78.62063637747411,
+        "Mars": 85.3819481999131,
+        "Jupiter": 55.4849240097343,
+        "Saturn": 54.20597185290973,
+        "Uranus": 320.729896381913,
+        "Neptune": 306.30464130012547,
+        "Pluto": 251.32702993101339
+      }
+    },
+    {
+      "id": "sn-dakar-1995-11-11-1211",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 0,
+      "solarDate": {
+        "year": 1995,
+        "month": 11,
+        "day": 11
+      },
+      "birthUtc": "1995-11-11T12:11:00.000Z",
+      "designUtc": "1995-08-13T20:37:13.643Z",
+      "designSearch": {
+        "targetLongitude": 140.62332881556074,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 3.624336386565119e-10
+      },
+      "personality": {
+        "Sun": 228.62332881556074,
+        "Earth": 48.62332881556074,
+        "NorthNode": 206.3153435881204,
+        "SouthNode": 26.315343588120413,
+        "Moon": 95.06471240364112,
+        "Mercury": 221.6634215693914,
+        "Venus": 250.04809682546033,
+        "Mars": 255.72839116983448,
+        "Jupiter": 258.1821214645738,
+        "Saturn": 348.08948490091086,
+        "Uranus": 297.07023199477135,
+        "Neptune": 293.15900688355987,
+        "Pluto": 240.02770812466952
+      },
+      "design": {
+        "Sun": 140.62332881592317,
+        "Earth": 320.6233288159232,
+        "NorthNode": 208.834164091537,
+        "SouthNode": 28.83416409153699,
+        "Moon": 1.083886824871513,
+        "Mercury": 156.77746509602434,
+        "Venus": 138.65666797277675,
+        "Mars": 194.274362988044,
+        "Jupiter": 245.72071864378142,
+        "Saturn": 353.57724067687286,
+        "Uranus": 297.6018436852187,
+        "Neptune": 293.4492300104987,
+        "Pluto": 237.82399825872858
+      }
+    },
+    {
+      "id": "sh-halftreehollow-1991-01-09-1111",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 0,
+      "solarDate": {
+        "year": 1991,
+        "month": 1,
+        "day": 9
+      },
+      "birthUtc": "1991-01-09T11:11:00.000Z",
+      "designUtc": "1990-10-14T07:07:57.182Z",
+      "designSearch": {
+        "targetLongitude": 200.6822388142191,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 9.807763490243815e-10
+      },
+      "personality": {
+        "Sun": 288.6822388142191,
+        "Earth": 108.68223881421909,
+        "NorthNode": 298.10100041774785,
+        "SouthNode": 118.10100041774785,
+        "Moon": 217.6764278464184,
+        "Mercury": 265.8258059030477,
+        "Venus": 305.3320756979209,
+        "Mars": 58.14584224947066,
+        "Jupiter": 131.08012685270216,
+        "Saturn": 296.6552698414321,
+        "Uranus": 280.23584186401376,
+        "Neptune": 284.4374647331207,
+        "Pluto": 229.81862221901144
+      },
+      "design": {
+        "Sun": 200.68223881519987,
+        "Earth": 20.682238815199867,
+        "NorthNode": 304.31172569623857,
+        "SouthNode": 124.31172569623857,
+        "Moon": 149.88577994988168,
+        "Mercury": 195.02165315998548,
+        "Venus": 195.96989363536682,
+        "Mars": 74.25749459091293,
+        "Jupiter": 130.2566990328886,
+        "Saturn": 289.07057584896984,
+        "Uranus": 275.970463311025,
+        "Neptune": 281.9139662063503,
+        "Pluto": 226.64235937477474
+      }
+    },
+    {
+      "id": "gu-dededo-1993-03-11-1811",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 10,
+      "solarDate": {
+        "year": 1993,
+        "month": 3,
+        "day": 11
+      },
+      "birthUtc": "1993-03-11T08:11:00.000Z",
+      "designUtc": "1992-12-14T12:11:55.954Z",
+      "designSearch": {
+        "targetLongitude": 262.76715766524524,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 5.226183930062689e-10
+      },
+      "personality": {
+        "Sun": 350.76715766524524,
+        "Earth": 170.76715766524524,
+        "NorthNode": 256.22774753881663,
+        "SouthNode": 76.22774753881663,
+        "Moon": 212.14781153234173,
+        "Mercury": 346.43776226685486,
+        "Venus": 20.02296412120876,
+        "Mars": 101.86082876514104,
+        "Jupiter": 192.16179564738968,
+        "Saturn": 324.42638189598495,
+        "Uranus": 291.31461636648874,
+        "Neptune": 290.6601042446009,
+        "Pluto": 235.47574251133574
+      },
+      "design": {
+        "Sun": 262.76715766576785,
+        "Earth": 82.76715766576785,
+        "NorthNode": 261.4999079370874,
+        "SouthNode": 81.49990793708741,
+        "Moon": 142.38931313300412,
+        "Mercury": 242.63841779700897,
+        "Venus": 306.7330128109493,
+        "Mars": 115.94394762581146,
+        "Jupiter": 191.6196328945839,
+        "Saturn": 314.6451392634101,
+        "Uranus": 286.6596496318888,
+        "Neptune": 287.7159801763198,
+        "Pluto": 234.01737630018079
+      }
+    },
+    {
+      "id": "us-losangeles-1997-11-09-1501",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": -8,
+      "solarDate": {
+        "year": 1997,
+        "month": 11,
+        "day": 9
+      },
+      "birthUtc": "1997-11-09T23:01:00.000Z",
+      "designUtc": "1997-08-12T06:19:16.192Z",
+      "designSearch": {
+        "targetLongitude": 139.58460652073552,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 3.7971403799019754e-11
+      },
+      "personality": {
+        "Sun": 227.58460652073552,
+        "Earth": 47.58460652073552,
+        "NorthNode": 167.96201467980984,
+        "SouthNode": 347.96201467980984,
+        "Moon": 344.49852561307114,
+        "Mercury": 243.2790472130646,
+        "Venus": 274.559206753667,
+        "Mars": 270.54722819267704,
+        "Jupiter": 313.821079311841,
+        "Saturn": 14.682439463148228,
+        "Uranus": 305.03452751491784,
+        "Neptune": 297.4621761874589,
+        "Pluto": 244.78011994523138
+      },
+      "design": {
+        "Sun": 139.5846065207735,
+        "Earth": 319.5846065207735,
+        "NorthNode": 170.1312883116459,
+        "SouthNode": 350.1312883116459,
+        "Moon": 238.16859540167843,
+        "Mercury": 164.9040356518268,
+        "Venus": 173.63972996317875,
+        "Mars": 208.71589138980858,
+        "Jupiter": 316.6482890792694,
+        "Saturn": 20.264538662082373,
+        "Uranus": 306.1652908343017,
+        "Neptune": 297.9907164606167,
+        "Pluto": 242.8282139126576
+      }
+    },
+    {
+      "id": "sh-halftreehollow-1987-04-09-1111",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 0,
+      "solarDate": {
+        "year": 1987,
+        "month": 4,
+        "day": 9
+      },
+      "birthUtc": "1987-04-09T11:11:00.000Z",
+      "designUtc": "1987-01-11T20:18:30.209Z",
+      "designSearch": {
+        "targetLongitude": 291.07569753879545,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 2.233946361229755e-10
+      },
+      "personality": {
+        "Sun": 19.075697538795453,
+        "Earth": 199.07569753879545,
+        "NorthNode": 11.514037002787802,
+        "SouthNode": 191.5140370027878,
+        "Moon": 143.6988748986696,
+        "Mercury": 354.8859963527477,
+        "Venus": 344.11344920881686,
+        "Mars": 62.526874972484904,
+        "Jupiter": 9.07169095053996,
+        "Saturn": 261.0922152019152,
+        "Uranus": 266.6984752250728,
+        "Neptune": 278.00272544409836,
+        "Pluto": 219.13407590600696
+      },
+      "design": {
+        "Sun": 291.07569753901885,
+        "Earth": 111.07569753901885,
+        "NorthNode": 15.96764161239554,
+        "SouthNode": 195.96764161239554,
+        "Moon": 75.67691478259997,
+        "Mercury": 290.5370265339907,
+        "Venus": 244.2824923635984,
+        "Mars": 2.3296096372752686,
+        "Jupiter": 349.34153565953466,
+        "Saturn": 256.55611781637595,
+        "Uranus": 264.223596681256,
+        "Neptune": 276.09294464689424,
+        "Pluto": 219.68911445910237
+      }
+    },
+    {
+      "id": "cu-havana-1999-06-09-1100",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": -4,
+      "solarDate": {
+        "year": 1999,
+        "month": 6,
+        "day": 9
+      },
+      "birthUtc": "1999-06-09T15:00:00.000Z",
+      "designUtc": "1999-03-11T09:10:29.670Z",
+      "designSearch": {
+        "targetLongitude": 350.3428346299694,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -2.283968569827266e-10
+      },
+      "personality": {
+        "Sun": 78.34283462996939,
+        "Earth": 258.3428346299694,
+        "NorthNode": 134.63208270414543,
+        "SouthNode": 314.63208270414543,
+        "Moon": 19.872136047176184,
+        "Mercury": 94.94265977561781,
+        "Venus": 123.67142933294758,
+        "Mars": 204.63367037274384,
+        "Jupiter": 26.6961161448221,
+        "Saturn": 42.035956576758,
+        "Uranus": 316.6537509004538,
+        "Neptune": 304.0759501440491,
+        "Pluto": 248.87096681726803
+      },
+      "design": {
+        "Sun": 350.342834629741,
+        "Earth": 170.342834629741,
+        "NorthNode": 141.78996194642423,
+        "SouthNode": 321.7899619464242,
+        "Moon": 271.66535969567735,
+        "Mercury": 3.980596130760432,
+        "Venus": 21.461979578287867,
+        "Mars": 221.89387099381474,
+        "Jupiter": 6.047633058837164,
+        "Saturn": 31.055226022899944,
+        "Uranus": 314.8330222564516,
+        "Neptune": 303.5225071520688,
+        "Pluto": 250.49509689889555
+      }
+    },
+    {
+      "id": "gate-edge-kr-1994-03-19-1112",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1994,
+        "month": 3,
+        "day": 19
+      },
+      "birthUtc": "1994-03-19T02:12:00.000Z",
+      "designUtc": "1993-12-22T02:18:52.740Z",
+      "designSearch": {
+        "targetLongitude": 270.24969326217615,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -3.639115675468929e-10
+      },
+      "personality": {
+        "Sun": 358.24969326217615,
+        "Earth": 178.24969326217615,
+        "NorthNode": 235.3834129684234,
+        "SouthNode": 55.383412968423386,
+        "Moon": 72.31336371495331,
+        "Mercury": 330.58195769228337,
+        "Venus": 13.037090631693445,
+        "Mars": 339.1466933485333,
+        "Jupiter": 224.12227463379338,
+        "Saturn": 335.8787848998419,
+        "Uranus": 295.58816666953464,
+        "Neptune": 292.96966938754747,
+        "Pluto": 237.98331906672865
+      },
+      "design": {
+        "Sun": 270.24969326181224,
+        "Earth": 90.24969326181224,
+        "NorthNode": 242.73596270142684,
+        "SouthNode": 62.73596270142684,
+        "Moon": 12.850117620164326,
+        "Mercury": 263.06132713801276,
+        "Venus": 264.0312796989409,
+        "Mars": 271.56234794672196,
+        "Jupiter": 218.15098219195716,
+        "Saturn": 326.1058421780509,
+        "Uranus": 291.0098838897543,
+        "Neptune": 290.09530102254143,
+        "Pluto": 236.7449493898705
+      }
+    },
+    {
+      "id": "gate-edge-kr-1994-03-19-1113",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1994,
+        "month": 3,
+        "day": 19
+      },
+      "birthUtc": "1994-03-19T02:13:00.000Z",
+      "designUtc": "1993-12-22T02:19:51.330Z",
+      "designSearch": {
+        "targetLongitude": 270.25038382896423,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -2.2430413082474843e-10
+      },
+      "personality": {
+        "Sun": 358.25038382896423,
+        "Earth": 178.25038382896423,
+        "NorthNode": 235.38342440805366,
+        "SouthNode": 55.383424408053656,
+        "Moon": 72.32173138556897,
+        "Mercury": 330.5826528242219,
+        "Venus": 13.037952107169758,
+        "Mars": 339.1472389306417,
+        "Jupiter": 224.12223513514505,
+        "Saturn": 335.87886521651046,
+        "Uranus": 295.58819053765956,
+        "Neptune": 292.9696832703487,
+        "Pluto": 237.98331212697155
+      },
+      "design": {
+        "Sun": 270.2503838287399,
+        "Earth": 90.25038382873993,
+        "NorthNode": 242.73597630241875,
+        "SouthNode": 62.73597630241875,
+        "Moon": 12.858140313621163,
+        "Mercury": 263.0623826433025,
+        "Venus": 264.0321330578024,
+        "Mars": 271.5628595596054,
+        "Jupiter": 218.1510978206128,
+        "Saturn": 326.1058996919438,
+        "Uranus": 291.00992210931213,
+        "Neptune": 290.09532549931885,
+        "Pluto": 236.74497302451277
+      }
+    },
+    {
+      "id": "gate-edge-uk-1986-10-14-1039",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 1,
+      "solarDate": {
+        "year": 1986,
+        "month": 10,
+        "day": 14
+      },
+      "birthUtc": "1986-10-14T09:39:00.000Z",
+      "designUtc": "1986-07-15T13:01:09.813Z",
+      "designSearch": {
+        "targetLongitude": 112.74978000484316,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -1.709850039333105e-10
+      },
+      "personality": {
+        "Sun": 200.74978000484316,
+        "Earth": 20.74978000484316,
+        "NorthNode": 20.895203941235877,
+        "SouthNode": 200.89520394123588,
+        "Moon": 339.8706237882252,
+        "Mercury": 224.01883234815887,
+        "Venus": 230.364545597732,
+        "Mars": 302.9933087509229,
+        "Jupiter": 344.01258384941934,
+        "Saturn": 246.54983316805158,
+        "Uranus": 259.3009635781125,
+        "Neptune": 273.2782306385957,
+        "Pluto": 216.6267975432063
+      },
+      "design": {
+        "Sun": 112.74978000467217,
+        "Earth": 292.7497800046722,
+        "NorthNode": 25.681783557470794,
+        "SouthNode": 205.6817835574708,
+        "Moon": 211.76484313215337,
+        "Mercury": 125.16950599159497,
+        "Venus": 154.37456385598193,
+        "Mars": 286.13539109133785,
+        "Jupiter": 352.8441237558559,
+        "Saturn": 243.46914083160436,
+        "Uranus": 259.09485023914965,
+        "Neptune": 273.92522546107887,
+        "Pluto": 214.53653903627537
+      }
+    },
+    {
+      "id": "line-edge-kr-1993-03-11-1646",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1993,
+        "month": 3,
+        "day": 11
+      },
+      "birthUtc": "1993-03-11T07:46:00.000Z",
+      "designUtc": "1992-12-14T11:47:23.908Z",
+      "designSearch": {
+        "targetLongitude": 262.7498295132307,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 5.522906576516107e-10
+      },
+      "personality": {
+        "Sun": 350.7498295132307,
+        "Earth": 170.74982951323068,
+        "NorthNode": 256.2295893875712,
+        "SouthNode": 76.2295893875712,
+        "Moon": 211.89441166662652,
+        "Mercury": 346.45473931344236,
+        "Venus": 20.022920325501673,
+        "Mars": 101.85656369190792,
+        "Jupiter": 192.16374317540067,
+        "Saturn": 324.42443220732343,
+        "Uranus": 291.31397689501455,
+        "Neptune": 290.6597136418103,
+        "Pluto": 235.47586947452714
+      },
+      "design": {
+        "Sun": 262.74982951378297,
+        "Earth": 82.74982951378297,
+        "NorthNode": 261.4999423777309,
+        "SouthNode": 81.49994237773092,
+        "Moon": 142.14466169618277,
+        "Mercury": 242.61699015327213,
+        "Venus": 306.7132140668897,
+        "Mars": 115.94762825388875,
+        "Jupiter": 191.6174597689983,
+        "Saturn": 314.6436263934281,
+        "Uranus": 286.6587021987957,
+        "Neptune": 287.71538325035226,
+        "Pluto": 234.01675684990607
+      }
+    },
+    {
+      "id": "line-edge-kr-1993-03-11-1647",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1993,
+        "month": 3,
+        "day": 11
+      },
+      "birthUtc": "1993-03-11T07:47:00.000Z",
+      "designUtc": "1992-12-14T11:48:22.790Z",
+      "designSearch": {
+        "targetLongitude": 262.7505226423564,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 6.111804395914078e-10
+      },
+      "personality": {
+        "Sun": 350.7505226423564,
+        "Earth": 170.75052264235637,
+        "NorthNode": 256.22951544247826,
+        "SouthNode": 76.22951544247826,
+        "Moon": 211.90455037594984,
+        "Mercury": 346.4540600610695,
+        "Venus": 20.022922312398862,
+        "Mars": 101.85673424958804,
+        "Jupiter": 192.16366528392643,
+        "Saturn": 324.4245101979725,
+        "Uranus": 291.31400247771967,
+        "Neptune": 290.65972926849895,
+        "Pluto": 235.47586439911584
+      },
+      "design": {
+        "Sun": 262.75052264296755,
+        "Earth": 82.75052264296755,
+        "NorthNode": 261.49994100652475,
+        "SouthNode": 81.49994100652475,
+        "Moon": 142.15444802374418,
+        "Mercury": 242.61784706561343,
+        "Venus": 306.7140060333677,
+        "Mars": 115.94748110341288,
+        "Jupiter": 191.61754670694245,
+        "Saturn": 314.64368690260096,
+        "Uranus": 286.6587400947142,
+        "Neptune": 287.71540712638216,
+        "Pluto": 234.0167816296089
+      }
+    },
+    {
+      "id": "line-edge-us-1980-09-23-1911",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": -4,
+      "solarDate": {
+        "year": 1980,
+        "month": 9,
+        "day": 23
+      },
+      "birthUtc": "1980-09-23T23:11:00.000Z",
+      "designUtc": "1980-06-24T10:49:57.960Z",
+      "designSearch": {
+        "targetLongitude": 93.06197807854664,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 3.4782488000928424e-10
+      },
+      "personality": {
+        "Sun": 181.06197807854664,
+        "Earth": 1.0619780785466446,
+        "NorthNode": 139.59900302439257,
+        "SouthNode": 319.5990030243926,
+        "Moon": 353.40661287109106,
+        "Mercury": 201.60911248827847,
+        "Venus": 137.55314204480078,
+        "Mars": 227.19892776108088,
+        "Jupiter": 173.03830984176466,
+        "Saturn": 180.3121904759455,
+        "Uranus": 232.78127455177037,
+        "Neptune": 260.0472036340384,
+        "Pluto": 200.87253333803926
+      },
+      "design": {
+        "Sun": 93.06197807889447,
+        "Earth": 273.06197807889447,
+        "NorthNode": 141.3856100824894,
+        "SouthNode": 321.3856100824894,
+        "Moon": 226.4150458973295,
+        "Mercury": 114.50004183865832,
+        "Venus": 79.09281260857273,
+        "Mars": 171.25574859153426,
+        "Jupiter": 155.03462972622845,
+        "Saturn": 171.10481972546268,
+        "Uranus": 232.02746315364607,
+        "Neptune": 260.9713569388375,
+        "Pluto": 198.97351298154763
+      }
+    },
+    {
+      "id": "delta-kr-1991-02-20-0829",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1991,
+        "month": 2,
+        "day": 20
+      },
+      "birthUtc": "1991-02-19T23:29:00.000Z",
+      "designUtc": "1990-11-25T08:43:37.091Z",
+      "designSearch": {
+        "targetLongitude": 242.81995298055608,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -5.153424353920855e-10
+      },
+      "personality": {
+        "Sun": 330.8199529805561,
+        "Earth": 150.81995298055608,
+        "NorthNode": 297.5408006728444,
+        "SouthNode": 117.5408006728444,
+        "Moon": 35.21054375611686,
+        "Mercury": 322.7583420364492,
+        "Venus": 357.04016569230043,
+        "Mars": 69.79449055156954,
+        "Jupiter": 125.8231297225463,
+        "Saturn": 301.48332784133504,
+        "Uranus": 282.46345103107274,
+        "Neptune": 285.8738036383347,
+        "Pluto": 230.375958518419
+      },
+      "design": {
+        "Sun": 242.81995298004074,
+        "Earth": 62.81995298004074,
+        "NorthNode": 299.7145068164109,
+        "SouthNode": 119.7145068164109,
+        "Moon": 330.634565608251,
+        "Mercury": 261.1306807394542,
+        "Venus": 248.7261656337953,
+        "Mars": 66.28378670829892,
+        "Jupiter": 133.55775404195145,
+        "Saturn": 291.7945920530183,
+        "Uranus": 277.63342493722075,
+        "Neptune": 282.82749375171375,
+        "Pluto": 228.30795392706762
+      }
+    },
+    {
+      "id": "delta-kr-1991-02-20-0831",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1991,
+        "month": 2,
+        "day": 20
+      },
+      "birthUtc": "1991-02-19T23:31:00.000Z",
+      "designUtc": "1990-11-25T08:45:36.736Z",
+      "designSearch": {
+        "targetLongitude": 242.82135351597458,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -1.5143086784519255e-10
+      },
+      "personality": {
+        "Sun": 330.8213535159746,
+        "Earth": 150.82135351597458,
+        "NorthNode": 297.54072935439706,
+        "SouthNode": 117.54072935439706,
+        "Moon": 35.22971259385383,
+        "Mercury": 322.7607327526829,
+        "Venus": 357.0418813333695,
+        "Mars": 69.79506443410878,
+        "Jupiter": 125.82297629001943,
+        "Saturn": 301.4834790443591,
+        "Uranus": 282.46351283993135,
+        "Neptune": 285.8738439114104,
+        "Pluto": 230.3759602002923
+      },
+      "design": {
+        "Sun": 242.82135351582315,
+        "Earth": 62.82135351582315,
+        "NorthNode": 299.71451209238217,
+        "SouthNode": 119.71451209238217,
+        "Moon": 330.65218387346977,
+        "Mercury": 261.132623457878,
+        "Venus": 248.72790470576865,
+        "Mars": 66.28326204650955,
+        "Jupiter": 133.55777595125744,
+        "Saturn": 291.794717967506,
+        "Uranus": 277.63349658779975,
+        "Neptune": 282.8275362270151,
+        "Pluto": 228.3080085124327
+      }
+    },
+    {
+      "id": "delta-kr-1991-02-20-0825",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1991,
+        "month": 2,
+        "day": 20
+      },
+      "birthUtc": "1991-02-19T23:25:00.000Z",
+      "designUtc": "1990-11-25T08:39:37.801Z",
+      "designSearch": {
+        "targetLongitude": 242.81715190684326,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -4.727098712464795e-10
+      },
+      "personality": {
+        "Sun": 330.81715190684326,
+        "Earth": 150.81715190684326,
+        "NorthNode": 297.5409434539481,
+        "SouthNode": 117.5409434539481,
+        "Moon": 35.172206883946274,
+        "Mercury": 322.75356069327324,
+        "Venus": 357.0367344060953,
+        "Mars": 69.79334281251965,
+        "Jupiter": 125.82343659944115,
+        "Saturn": 301.48302543174213,
+        "Uranus": 282.46332741001754,
+        "Neptune": 285.873723090099,
+        "Pluto": 230.3759551512942
+      },
+      "design": {
+        "Sun": 242.81715190637055,
+        "Earth": 62.817151906370555,
+        "NorthNode": 299.71449615110134,
+        "SouthNode": 119.71449615110134,
+        "Moon": 330.5993312291914,
+        "Mercury": 261.1267952112896,
+        "Venus": 248.72268748500062,
+        "Mars": 66.28483603497995,
+        "Jupiter": 133.55771020452545,
+        "Saturn": 291.7943402294825,
+        "Uranus": 277.6332816383226,
+        "Neptune": 282.8274088028912,
+        "Pluto": 228.3078447553503
+      }
+    },
+    {
+      "id": "delta-kr-1991-02-20-0835",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 9,
+      "solarDate": {
+        "year": 1991,
+        "month": 2,
+        "day": 20
+      },
+      "birthUtc": "1991-02-19T23:35:00.000Z",
+      "designUtc": "1990-11-25T08:49:36.025Z",
+      "designSearch": {
+        "targetLongitude": 242.82415458440573,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -5.35919753019698e-10
+      },
+      "personality": {
+        "Sun": 330.82415458440573,
+        "Earth": 150.82415458440573,
+        "NorthNode": 297.54058686185124,
+        "SouthNode": 117.54058686185124,
+        "Moon": 35.268051365833514,
+        "Mercury": 322.76551427571553,
+        "Venus": 357.04531261230795,
+        "Mars": 69.79621222462157,
+        "Jupiter": 125.82266943675648,
+        "Saturn": 301.4837814469531,
+        "Uranus": 282.46363645433144,
+        "Neptune": 285.87392445549597,
+        "Pluto": 230.375963560665
+      },
+      "design": {
+        "Sun": 242.8241545838698,
+        "Earth": 62.82415458386981,
+        "NorthNode": 299.71452253076234,
+        "SouthNode": 119.71452253076234,
+        "Moon": 330.68742252731363,
+        "Mercury": 261.13650880142404,
+        "Venus": 248.7313828431129,
+        "Mars": 66.28221272585654,
+        "Jupiter": 133.55781975099342,
+        "Saturn": 291.79496980180716,
+        "Uranus": 277.63363989116567,
+        "Neptune": 282.82762117935,
+        "Pluto": 228.30811768210776
+      }
+    },
+    {
+      "id": "kr-lunar-leap-1987-06-15-0700",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 10,
+      "solarDate": {
+        "year": 1987,
+        "month": 8,
+        "day": 9
+      },
+      "birthUtc": "1987-08-08T21:00:00.000Z",
+      "designUtc": "1987-05-08T22:00:24.551Z",
+      "designSearch": {
+        "targetLongitude": 47.77893757610423,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 5.695710569852963e-11
+      },
+      "personality": {
+        "Sun": 135.77893757610423,
+        "Earth": 315.7789375761042,
+        "NorthNode": 3.33782100758026,
+        "SouthNode": 183.33782100758026,
+        "Moon": 307.8742604469435,
+        "Mercury": 123.7706850248133,
+        "Venus": 131.81825038139363,
+        "Mars": 141.12823831526129,
+        "Jupiter": 29.53122647968229,
+        "Saturn": 254.6223858956189,
+        "Uranus": 262.9512678604508,
+        "Neptune": 275.62751632873915,
+        "Pluto": 217.28260143738862
+      },
+      "design": {
+        "Sun": 47.778937576161184,
+        "Earth": 227.77893757616118,
+        "NorthNode": 11.023268635866998,
+        "SouthNode": 191.023268635867,
+        "Moon": 169.60562246144468,
+        "Mercury": 49.56258778400644,
+        "Venus": 19.61772728862718,
+        "Mars": 82.02460056246463,
+        "Jupiter": 15.931443430892557,
+        "Saturn": 259.9999801752467,
+        "Uranus": 266.15122673279996,
+        "Neptune": 277.78312797973035,
+        "Pluto": 218.31883424746752
+      }
+    },
+    {
+      "id": "kr-seoul-1988-05-08-0900",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": 10,
+      "solarDate": {
+        "year": 1988,
+        "month": 5,
+        "day": 8
+      },
+      "birthUtc": "1988-05-07T23:00:00.000Z",
+      "designUtc": "1988-02-09T03:12:02.215Z",
+      "designSearch": {
+        "targetLongitude": 319.57966379583155,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": -3.007585291925352e-10
+      },
+      "personality": {
+        "Sun": 47.57966379583155,
+        "Earth": 227.57966379583155,
+        "NorthNode": 351.4130829749838,
+        "SouthNode": 171.4130829749838,
+        "Moon": 303.1524370978784,
+        "Mercury": 65.54807714696119,
+        "Venus": 86.70787865044326,
+        "Mars": 320.6863214437328,
+        "Jupiter": 43.869924478961366,
+        "Saturn": 271.9778651617286,
+        "Uranus": 270.5982207991756,
+        "Neptune": 280.00915187400335,
+        "Pluto": 221.0091605359903
+      },
+      "design": {
+        "Sun": 319.5796637955308,
+        "Earth": 139.5796637955308,
+        "NorthNode": 353.4868294801415,
+        "SouthNode": 173.48682948014152,
+        "Moon": 208.18725356988102,
+        "Mercury": 323.9816040699992,
+        "Venus": 359.51199711032984,
+        "Mars": 261.05485544333646,
+        "Jupiter": 24.662088401313554,
+        "Saturn": 269.5776059868115,
+        "Uranus": 269.75133540563115,
+        "Neptune": 279.1685247532396,
+        "Pluto": 222.57593508479954
+      }
+    },
+    {
+      "id": "us-losangeles-1999-10-31-0130",
+      "ephemerisVersion": "swiss-wasm-tropical-1",
+      "nodeMode": "true",
+      "utcOffsetHours": -7,
+      "solarDate": {
+        "year": 1999,
+        "month": 10,
+        "day": 31
+      },
+      "birthUtc": "1999-10-31T08:30:00.000Z",
+      "designUtc": "1999-08-02T04:31:40.698Z",
+      "designSearch": {
+        "targetLongitude": 129.46599377624398,
+        "iterationCount": 3,
+        "converged": true,
+        "finalDiffDeg": 8.321876521222293e-11
+      },
+      "personality": {
+        "Sun": 217.46599377624398,
+        "Earth": 37.46599377624398,
+        "NorthNode": 128.54443691209678,
+        "SouthNode": 308.5444369120968,
+        "Moon": 125.58283235266106,
+        "Mercury": 240.29943691665608,
+        "Venus": 170.97563029084176,
+        "Mars": 280.446728153034,
+        "Jupiter": 28.908830341154896,
+        "Saturn": 44.201410409123355,
+        "Uranus": 312.89048983384123,
+        "Neptune": 301.671268666938,
+        "Pluto": 249.12093419746793
+      },
+      "design": {
+        "Sun": 129.4659937763272,
+        "Earth": 309.4659937763272,
+        "NorthNode": 132.95045683725044,
+        "SouthNode": 312.95045683725044,
+        "Moon": 6.6400202794401935,
+        "Mercury": 119.37714103687847,
+        "Venus": 154.9400168198748,
+        "Mars": 221.9561208702478,
+        "Jupiter": 34.13423631852413,
+        "Saturn": 46.50363011906762,
+        "Uranus": 315.03858849008407,
+        "Neptune": 302.7921289587998,
+        "Pluto": 247.81492425854753
+      }
+    }
+  ]
+}

@@ -21,6 +21,187 @@ import {
   drawFromAttunedDeck,
 } from "../../../lib/tarot/numerology-tarot.mjs";
 import { normalizeDuplicatedSubjectParticles } from "../../../lib/tarot/myeongri-tarot-text-utils.mjs";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+type NumerologyTarotCopy = {
+  stepRailAria: string;
+  followUpListAria: string;
+  includedFreeListAria: string;
+  numberRailAria: string;
+  deckGridAria: string;
+  cardPickedAria: (order: number) => string;
+  cardSlotAria: (slot: number) => string;
+  spreadRowAria: string;
+  tarotCardAltFallback: string;
+  includedDeepListAria: string;
+};
+
+const NUMEROLOGY_TAROT_EN: NumerologyTarotCopy = {
+  stepRailAria: "Consultation progress steps",
+  followUpListAria: "Example questions by topic",
+  includedFreeListAria: "Included for free",
+  numberRailAria: "This consultation's key numbers",
+  deckGridAria: "22 face-down cards",
+  cardPickedAria: (order) => `Card drawn #${order}`,
+  cardSlotAria: (slot) => `Draw the card in slot ${slot}`,
+  spreadRowAria: "Drawn card spread",
+  tarotCardAltFallback: "Tarot card",
+  includedDeepListAria: "Included in the deep consultation",
+};
+
+const NUMEROLOGY_TAROT_COPY: Partial<Record<LoadingLocale, NumerologyTarotCopy>> = {
+  ko: {
+    stepRailAria: "상담 진행 단계",
+    followUpListAria: "주제별 질문 예시",
+    includedFreeListAria: "무료로 제공되는 항목",
+    numberRailAria: "이번 상담의 기준 수",
+    deckGridAria: "뒷면 카드 22장",
+    cardPickedAria: (order) => `${order}번째로 뽑은 카드`,
+    cardSlotAria: (slot) => `${slot}번 자리 카드 뽑기`,
+    spreadRowAria: "뽑은 카드 스프레드",
+    tarotCardAltFallback: "타로 카드",
+    includedDeepListAria: "심층 상담에 포함되는 항목",
+  },
+  en: NUMEROLOGY_TAROT_EN,
+  ja: {
+    stepRailAria: "相談の進行ステップ",
+    followUpListAria: "テーマ別の質問例",
+    includedFreeListAria: "無料で提供される項目",
+    numberRailAria: "今回の相談の基準数",
+    deckGridAria: "裏向きのカード22枚",
+    cardPickedAria: (order) => `${order}番目に引いたカード`,
+    cardSlotAria: (slot) => `${slot}番の位置のカードを引く`,
+    spreadRowAria: "引いたカードのスプレッド",
+    tarotCardAltFallback: "タロットカード",
+    includedDeepListAria: "精密相談に含まれる項目",
+  },
+  "zh-CN": {
+    stepRailAria: "咨询进行步骤",
+    followUpListAria: "各主题问题示例",
+    includedFreeListAria: "免费提供的项目",
+    numberRailAria: "本次咨询的基准数字",
+    deckGridAria: "22张背面朝上的卡牌",
+    cardPickedAria: (order) => `第${order}张抽到的卡`,
+    cardSlotAria: (slot) => `抽取第${slot}号位置的卡`,
+    spreadRowAria: "已抽取卡牌的展开",
+    tarotCardAltFallback: "塔罗牌",
+    includedDeepListAria: "深度咨询包含的项目",
+  },
+  "zh-TW": {
+    stepRailAria: "諮詢進行步驟",
+    followUpListAria: "各主題問題範例",
+    includedFreeListAria: "免費提供的項目",
+    numberRailAria: "本次諮詢的基準數字",
+    deckGridAria: "22張背面朝上的卡牌",
+    cardPickedAria: (order) => `第${order}張抽到的卡`,
+    cardSlotAria: (slot) => `抽取第${slot}號位置的卡`,
+    spreadRowAria: "已抽取卡牌的展開",
+    tarotCardAltFallback: "塔羅牌",
+    includedDeepListAria: "深度諮詢包含的項目",
+  },
+  vi: {
+    stepRailAria: "Các bước tiến trình tư vấn",
+    followUpListAria: "Câu hỏi mẫu theo chủ đề",
+    includedFreeListAria: "Mục được cung cấp miễn phí",
+    numberRailAria: "Các con số nền tảng của buổi tư vấn này",
+    deckGridAria: "22 lá bài úp mặt",
+    cardPickedAria: (order) => `Lá bài đã rút thứ ${order}`,
+    cardSlotAria: (slot) => `Rút lá bài ở vị trí ${slot}`,
+    spreadRowAria: "Trải bài đã rút",
+    tarotCardAltFallback: "Lá bài Tarot",
+    includedDeepListAria: "Mục có trong tư vấn chuyên sâu",
+  },
+  hi: {
+    stepRailAria: "परामर्श की प्रगति के चरण",
+    followUpListAria: "विषय अनुसार उदाहरण प्रश्न",
+    includedFreeListAria: "निःशुल्क प्रदान किए गए आइटम",
+    numberRailAria: "इस परामर्श की मुख्य संख्याएं",
+    deckGridAria: "22 उलटे कार्ड",
+    cardPickedAria: (order) => `${order}वां निकाला गया कार्ड`,
+    cardSlotAria: (slot) => `स्थान ${slot} का कार्ड निकालें`,
+    spreadRowAria: "निकाले गए कार्डों का प्रसार",
+    tarotCardAltFallback: "टैरो कार्ड",
+    includedDeepListAria: "गहन परामर्श में शामिल आइटम",
+  },
+  es: {
+    stepRailAria: "Pasos del progreso de la consulta",
+    followUpListAria: "Preguntas de ejemplo por tema",
+    includedFreeListAria: "Incluido de forma gratuita",
+    numberRailAria: "Números clave de esta consulta",
+    deckGridAria: "22 cartas boca abajo",
+    cardPickedAria: (order) => `Carta n.º ${order} extraída`,
+    cardSlotAria: (slot) => `Sacar la carta en la posición ${slot}`,
+    spreadRowAria: "Tirada de cartas extraídas",
+    tarotCardAltFallback: "Carta de tarot",
+    includedDeepListAria: "Incluido en la consulta profunda",
+  },
+  fr: {
+    stepRailAria: "Étapes du déroulement de la consultation",
+    followUpListAria: "Exemples de questions par thème",
+    includedFreeListAria: "Inclus gratuitement",
+    numberRailAria: "Nombres clés de cette consultation",
+    deckGridAria: "22 cartes face cachée",
+    cardPickedAria: (order) => `Carte tirée n° ${order}`,
+    cardSlotAria: (slot) => `Tirer la carte à la position ${slot}`,
+    spreadRowAria: "Tirage des cartes piochées",
+    tarotCardAltFallback: "Carte de tarot",
+    includedDeepListAria: "Inclus dans la consultation approfondie",
+  },
+  de: {
+    stepRailAria: "Ablaufschritte der Beratung",
+    followUpListAria: "Beispielfragen nach Thema",
+    includedFreeListAria: "Kostenlos enthalten",
+    numberRailAria: "Schlüsselzahlen dieser Beratung",
+    deckGridAria: "22 verdeckte Karten",
+    cardPickedAria: (order) => `${order}. gezogene Karte`,
+    cardSlotAria: (slot) => `Karte an Position ${slot} ziehen`,
+    spreadRowAria: "Ausgelegte gezogene Karten",
+    tarotCardAltFallback: "Tarotkarte",
+    includedDeepListAria: "In der Tiefenberatung enthalten",
+  },
+  nl: {
+    stepRailAria: "Voortgangsstappen van het consult",
+    followUpListAria: "Voorbeeldvragen per onderwerp",
+    includedFreeListAria: "Gratis inbegrepen",
+    numberRailAria: "Kerngetallen van dit consult",
+    deckGridAria: "22 omgekeerde kaarten",
+    cardPickedAria: (order) => `Kaart nr. ${order} getrokken`,
+    cardSlotAria: (slot) => `Trek de kaart op positie ${slot}`,
+    spreadRowAria: "Uitleg van getrokken kaarten",
+    tarotCardAltFallback: "Tarotkaart",
+    includedDeepListAria: "Inbegrepen in het diepgaande consult",
+  },
+  ms: {
+    stepRailAria: "Langkah kemajuan perundingan",
+    followUpListAria: "Contoh soalan mengikut topik",
+    includedFreeListAria: "Disertakan secara percuma",
+    numberRailAria: "Nombor utama perundingan ini",
+    deckGridAria: "22 kad menghadap ke bawah",
+    cardPickedAria: (order) => `Kad ke-${order} yang diambil`,
+    cardSlotAria: (slot) => `Ambil kad di kedudukan ${slot}`,
+    spreadRowAria: "Susunan kad yang diambil",
+    tarotCardAltFallback: "Kad Tarot",
+    includedDeepListAria: "Disertakan dalam perundingan mendalam",
+  },
+};
+
+function getNumerologyTarotCopy(locale: LoadingLocale): NumerologyTarotCopy {
+  return NUMEROLOGY_TAROT_COPY[locale] || NUMEROLOGY_TAROT_EN;
+}
+
+function useNumerologyTarotCopy(): NumerologyTarotCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const sync = () => setLocale(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      document.removeEventListener("cd:language-change", sync);
+    };
+  }, []);
+  return getNumerologyTarotCopy(locale);
+}
 
 type TopicKey = keyof typeof TOPIC_LABELS;
 
@@ -732,6 +913,7 @@ function buildReadingEntitlement(readingId: string, paymentContext: ReadingPayme
 }
 
 export default function NumerologyTarotClient() {
+  const copy = useNumerologyTarotCopy();
   const router = useRouter();
   const { ensurePaidAccess, isPaying } = useCoinGate();
   // 생년 정보 자동 프리필 — 공용 훅을 재사용한다(프로필 조회 로직을 새로 만들지 않는다).
@@ -1289,7 +1471,7 @@ export default function NumerologyTarotClient() {
             <h1 className={styles.title}>수비학 타로 상담</h1>
             <p className={styles.subtitle}>생년월일의 숫자로 덱을 조율하고, 직접 뽑은 다섯 장을 그 숫자와 함께 읽습니다. 기초 리딩과 카드 뽑기는 무료입니다.</p>
 
-            <ol className={styles.stepRail} aria-label="상담 진행 단계">
+            <ol className={styles.stepRail} aria-label={copy.stepRailAria}>
               {STEP_LABELS.map((label, idx) => (
                 <li key={label} className={`${styles.stepItem} ${activeStep >= idx ? styles.stepActive : ""}`}>
                   <span className={styles.stepIndex}>{idx + 1}</span>
@@ -1317,7 +1499,7 @@ export default function NumerologyTarotClient() {
                   ))}
                 </div>
 
-                <div className={styles.followUpList} aria-label="주제별 질문 예시">
+                <div className={styles.followUpList} aria-label={copy.followUpListAria}>
                   {selectedTopicHints.map((hint) => (
                     <button
                       key={hint}
@@ -1377,7 +1559,7 @@ export default function NumerologyTarotClient() {
                   </label>
                 </div>
 
-                <div className={styles.includedList} aria-label="무료로 제공되는 항목">
+                <div className={styles.includedList} aria-label={copy.includedFreeListAria}>
                   <span className={styles.includedBadge}>무료</span>
                   {FREE_BENEFITS.map((item) => (
                     <span key={item}>{item}</span>
@@ -1430,7 +1612,7 @@ export default function NumerologyTarotClient() {
                 </div>
                 <p className={styles.freeProfileMoonNote}>{freeProfile.moonNote}</p>
 
-                <div className={styles.numberRail} aria-label="이번 상담의 기준 수">
+                <div className={styles.numberRail} aria-label={copy.numberRailAria}>
                   <article className={styles.numberChip}>
                     <span>생명수</span>
                     <strong>{numerology.lifePathNumber}</strong>
@@ -1467,7 +1649,7 @@ export default function NumerologyTarotClient() {
                   </div>
                 </div>
 
-                <div className={styles.deckGrid} role="group" aria-label="뒷면 카드 22장">
+                <div className={styles.deckGrid} role="group" aria-label={copy.deckGridAria}>
                   {Array.from({ length: DECK_SLOT_COUNT }, (_, slot) => {
                     const pickedOrder = pickedSlots.indexOf(slot);
                     const isPicked = pickedOrder >= 0;
@@ -1479,7 +1661,7 @@ export default function NumerologyTarotClient() {
                         onClick={() => pickCard(slot)}
                         disabled={isPicked || allCardsPicked}
                         aria-pressed={isPicked}
-                        aria-label={isPicked ? `${pickedOrder + 1}번째로 뽑은 카드` : `${slot + 1}번 자리 카드 뽑기`}
+                        aria-label={isPicked ? copy.cardPickedAria(pickedOrder + 1) : copy.cardSlotAria(slot + 1)}
                       >
                         {isPicked ? <span className={styles.deckSlotOrder}>{pickedOrder + 1}</span> : <span aria-hidden="true">✦</span>}
                       </button>
@@ -1488,14 +1670,14 @@ export default function NumerologyTarotClient() {
                 </div>
 
                 {cards.length ? (
-                  <div className={styles.spreadRow} aria-label="뽑은 카드 스프레드">
+                  <div className={styles.spreadRow} aria-label={copy.spreadRowAria}>
                     {cards.map((entry, idx) => (
                       <article key={`${entry.card.id}-${idx}`} className={styles.spreadCard}>
                         <p className={styles.spreadPosition}>{entry.positionLabel}</p>
                         <div className={styles.spreadImageWrap}>
                           <Image
                             src={getCardImageUrl(entry.card.id)}
-                            alt={entry.card.nameKr || entry.card.name || "타로 카드"}
+                            alt={entry.card.nameKr || entry.card.name || copy.tarotCardAltFallback}
                             width={158}
                             height={248}
                             className={styles.spreadImage}
@@ -1540,7 +1722,7 @@ export default function NumerologyTarotClient() {
                   </button>
                 </div>
 
-                <div className={styles.includedList} aria-label="심층 상담에 포함되는 항목">
+                <div className={styles.includedList} aria-label={copy.includedDeepListAria}>
                   <span className={styles.includedBadgePaid}>{NUMEROLOGY_READING_PRICE_LABEL}</span>
                   {PAID_BENEFITS.map((item) => (
                     <span key={item}>{item}</span>

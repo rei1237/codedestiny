@@ -39,12 +39,42 @@ export type CheckoutFunnelPayload = {
   dwellMs?: number;
 };
 
+/**
+ * buildPaymentChoiceCardsHtml 이 받는 카드 한 장의 스펙. 호출부(각 렌더러)가 조건 계산·이스케이프를
+ * 마친 조각만 넘긴다 — 함수는 뼈대(배지·추천 리본·go 스트립·variant 클래스)만 조립한다.
+ */
+export type PaymentChoiceCardSpec = {
+  /** false 면 이 카드는 렌더되지 않는다(빈 문자열). */
+  allow?: boolean;
+  dataMode: string;
+  /** 예: ' data-monthly-option disabled aria-disabled="true"'. */
+  extraDataAttrs?: string;
+  /** 예: ' is-store', ' is-disabled'. */
+  extraClass?: string;
+  /** 있으면 escape 후 aria-label 로 부착(React 전용 접근성 강화). */
+  ariaLabel?: string;
+  /** 카드 상단 배지 이모지. */
+  glyph: string;
+  /** escape 대상 배지 텍스트. */
+  badgeLabel: string;
+  /** 호출부가 이미 조립·이스케이프한 <strong> 내용. */
+  titleHtml: string;
+  /** 호출부가 이미 조립·이스케이프한 설명 내용. */
+  descHtml: string;
+  /** 예: ' data-monthly-hint'. */
+  descAttr?: string;
+  /** 카드 형제로 붙는 조각(월정석 잔량 확인 버튼 등) — <button> 중첩 금지라 카드 안이 아니다. */
+  afterHtml?: string;
+};
+
 declare const checkoutEntry: {
   VERSION: number;
   RETURN_KEY: string;
   RETURN_TTL_MS: number;
   FUNNEL_PATH: string;
   PASS_STORE_PLAN_ORDER: CheckoutStorePlan[];
+  /** 결제 선택창 카드의 공용 CSS 규칙 정본. 세 렌더러가 이 배열을 참조해 <style> 을 채운다. */
+  PAYMENT_CHOICE_CSS_RULES: string[];
   /** 세 렌더러가 붙이는 결제창 노드를 모두 잡는 선택자. */
   CHOICE_MODAL_SELECTOR: string;
   CHOICE_LOCK_TTL_MS: number;
@@ -93,6 +123,19 @@ declare const checkoutEntry: {
     /** 확인된 잔량이 필요량을 덮는가. '미확정'은 false 다. */
     monthlyCovers: boolean;
   };
+  /**
+   * 이용권/단건/월정석 카드를 order 순서대로 이어 붙인다. 세 렌더러가 각자 손으로 유지하던
+   * 카드 뼈대(배지·추천 리본·go 스트립·variant 클래스)를 공유한다 — 조건 계산은 호출부 소유.
+   */
+  buildPaymentChoiceCardsHtml(input: {
+    order: CheckoutOptionKey[];
+    recommendedOption: CheckoutOptionKey | "";
+    /** HTML 이스케이프 함수. 미지정 시 문자열 캐스팅만 한다(이스케이프 없음 — 반드시 넘길 것). */
+    escape: (value: unknown) => string;
+    recommendLabel: string;
+    goLabel: string;
+    cards: Partial<Record<CheckoutOptionKey, PaymentChoiceCardSpec>>;
+  }): string;
   /** 이 금액을 덮는 가장 낮은 이용권 등급(보유 등급 이하는 제외). 판정 불가 시 빈 문자열. */
   resolveStorePlan(costCoins: number, currentTier?: unknown): CheckoutStorePlan | "";
   buildPassStoreUrl(options: {

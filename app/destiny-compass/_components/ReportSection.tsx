@@ -10,6 +10,7 @@
  */
 import { forwardRef, type ReactNode } from "react";
 import type { ReportSectionSpec } from "./reportSections";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
 export type SectionState = "pending" | "arrived" | "failed" | "locked";
@@ -43,6 +44,7 @@ export const ReportSection = forwardRef<HTMLHeadingElement, ReportSectionProps>(
   { spec, state, children, onUnlock, unlockLabel, unlockBusy, onRetry, ghostLines = 5, headingLevel = 2, titleOverride, eyebrow, media },
   titleRef,
 ) {
+  const copy = useDestinyCompassCopy();
   const headingId = `cd-report-${spec.id}`;
   const Heading = headingLevel === 1 ? "h1" : "h2";
   const headingText = titleOverride || spec.title;
@@ -86,7 +88,7 @@ export const ReportSection = forwardRef<HTMLHeadingElement, ReportSectionProps>(
           <p className={styles.reportTeaser}>{spec.teaser}</p>
           {onUnlock && (
             <button type="button" className={styles.resultCta} onClick={onUnlock} disabled={unlockBusy}>
-              {unlockBusy ? "확인하는 중…" : unlockLabel || "열어보기"}
+              {unlockBusy ? copy.sectionUnlockBusy : unlockLabel || copy.sectionDefaultUnlockLabel}
             </button>
           )}
         </div>
@@ -95,10 +97,10 @@ export const ReportSection = forwardRef<HTMLHeadingElement, ReportSectionProps>(
       {state === "failed" && (
         // 한 섹션이 실패해도 리포트 전체를 죽이지 않는다 — 나머지는 그대로 읽힌다.
         <div className={styles.reportFailed} role="status">
-          <p>이 부분을 불러오지 못했어요. 다시 시도하면 이어서 채워집니다.</p>
+          <p>{copy.sectionFailedText}</p>
           {onRetry && (
             <button type="button" className={styles.resultCtaGhost} onClick={onRetry}>
-              다시 시도
+              {copy.sectionRetryButton}
             </button>
           )}
         </div>

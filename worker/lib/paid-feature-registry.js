@@ -224,6 +224,8 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "nakshatra-ai-consultation": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 전문가 심화 상담" },
   "nakshatra-muhurta": { cost: 50, amountKRW: 5000, reason: "나크샤트라 택일(무후르타)" },
   "nakshatra-vvip-codex": { cost: 300, amountKRW: 30000, reason: "나크샤트라 결정판 VVIP 통합서" },
+  // 휴먼 디자인 바디그래프 — 차트 산출과 AI 해석이 이 키 하나로 함께 열린다(별도 해석 키 없음).
+  "human-design-chart": { cost: 100, amountKRW: 10000, reason: "휴먼 디자인 바디그래프" },
   "destiny-compass-crossroads": { cost: 100, amountKRW: 10000, reason: "운명의 갈림길 기운 비교" },
   "destiny-compass-life-voyage": { cost: 100, amountKRW: 10000, reason: "삶의 항로 안내" },
   "destiny-compass-future-sim": { cost: 100, amountKRW: 10000, reason: "미래 시뮬레이션 안내" },
@@ -437,6 +439,10 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "nakshatra-ai-consultation",
   "nakshatra-muhurta",
   "nakshatra-vvip-codex",
+  // 🔴 회당 결제다. `unlock.` 접두를 붙이거나 PERSISTENT_UNLOCK_KEY_SET 에 넣지 말 것 —
+  //    그러면 1회 결제로 모든 출생 데이터가 열린다. 같은 출생 데이터의 재열람은
+  //    humanDesignCalculations 아카이브가 영수증 역할을 해서 처리한다.
+  "human-design-chart",
   "openJuyukModal",
   "openKemetModal",
   "openGeomancyOracle",

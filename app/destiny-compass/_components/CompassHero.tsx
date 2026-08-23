@@ -6,41 +6,18 @@
  */
 import { CompassDial } from "./CompassDial";
 import type { DirectionKey, DirectionScore, ScoreBand } from "../_engine/types";
-import { DIRECTION_LABEL_KO } from "../_engine/constants";
+import type { DestinyCompassCopy } from "../_lib/copy";
+import { useDestinyCompassCopy } from "../_lib/copy";
 import styles from "./map.module.css";
 
 /**
  * 밴드 × 대표 방향 → "당신은 지금 ○○" 한 문장. 결정론 문구표(난수 금지).
- * LLM 이 죽어도 이 문장은 항상 나온다.
+ * LLM 이 죽어도 이 문장은 항상 나온다. 한국어의 조사(을/를, 으로/로) 자동 선택 같은
+ * 언어별 문장 구성은 copy.ts 의 coordinateSentence 가 로케일마다 직접 담당한다.
  */
-const COORDINATE_BY_BAND: Record<ScoreBand, string> = {
-  strong: "결단의 시기",
-  steady: "성장의 갈림길",
-  caution: "휴식의 계절",
-};
-
-/** 받침 유무 판정. 한글이 아니면 받침 없음으로 본다. */
-function hasFinalConsonant(word: string): { has: boolean; isRieul: boolean } {
-  const ch = word.trim().slice(-1);
-  const code = ch.charCodeAt(0);
-  if (Number.isNaN(code) || code < 0xac00 || code > 0xd7a3) return { has: false, isRieul: false };
-  const jong = (code - 0xac00) % 28;
-  return { has: jong !== 0, isRieul: jong === 8 };
-}
-
-/** 조사 자동 선택 — "연애으로"/"재물를" 같은 문장이 화면에 나가지 않게. */
-function josa(word: string, kind: "euro" | "eul" | "i"): string {
-  const { has, isRieul } = hasFinalConsonant(word);
-  if (kind === "euro") return has && !isRieul ? "으로" : "로";
-  if (kind === "eul") return has ? "을" : "를";
-  return has ? "이" : "가";
-}
-
-export function coordinateLine(band: ScoreBand, primary: DirectionKey): string {
-  const area = DIRECTION_LABEL_KO[primary]?.split("·")[0] || "";
-  if (band === "strong") return `${area}의 문 앞, ${COORDINATE_BY_BAND.strong}`;
-  if (band === "caution") return `${area}${josa(area, "eul")} 잠시 내려놓는, ${COORDINATE_BY_BAND.caution}`;
-  return `${area}${josa(area, "euro")} 기우는, ${COORDINATE_BY_BAND.steady}`;
+export function coordinateLine(band: ScoreBand, primary: DirectionKey, copy: DestinyCompassCopy): string {
+  const area = copy.directionShortLabel[primary] || "";
+  return copy.coordinateSentence(band, area);
 }
 
 interface CompassHeroProps {
@@ -68,14 +45,15 @@ export function CompassHero({ directions, primary, state, compact }: CompassHero
 
 /** 신뢰도 별점 — ① 좌표 아래에 붙는다. */
 export function ConfidenceMeta({ confidence }: { confidence: number }) {
+  const copy = useDestinyCompassCopy();
   const stars = Math.max(3, Math.min(5, Math.round(confidence * 5)));
   const pct = Math.round(confidence * 100);
   return (
     <p className={styles.heroMeta}>
-      <span className={styles.heroStars} role="img" aria-label={`방향 일치도 5점 만점에 ${stars}점 · 신뢰도 ${pct}%`}>
+      <span className={styles.heroStars} role="img" aria-label={copy.confidenceAriaLabel(stars, pct)}>
         <span aria-hidden="true">{"★".repeat(stars)}{"☆".repeat(5 - stars)}</span>
       </span>
-      <span>신뢰도 {pct}%</span>
+      <span>{copy.confidenceLabel(pct)}</span>
     </p>
   );
 }

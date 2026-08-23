@@ -385,7 +385,8 @@ export default function LoveRelationshipTarot() {
   const paidAccessGrantedRef = useRef(false);
 
   const canRead = cards.length === CARD_COUNT && revealedCount === CARD_COUNT && !loading;
-  const copy = LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS[locale] || LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS.ko;
+  // 🔴 표에 없는 로케일(vi/hi/es/fr/de/nl/ms)은 ko 로 새지 않고 en 으로 대신한다.
+  const copy = LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS[locale] || LOVE_RELATIONSHIP_TAROT_TEXT_TRANSLATIONS.en;
 
   useEffect(() => {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());

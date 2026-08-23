@@ -24,6 +24,135 @@ import {
   runBillingCoinGate,
   primePaymentEligibility,
 } from "@/app/_lib/billing-client";
+import { getCurrentLoadingLocale, INTL_LOCALE_BY_LOADING_LOCALE, type LoadingLocale } from "@/constants/loadingMessages";
+
+type ZiweiAiCopy = {
+  timelineAria: string;
+  cycleAria: (range: string, palaceName: string, isCurrent: boolean) => string;
+  profileLoadAria: string;
+  recentListAria: string;
+  lifePalaceTagAria: string;
+  bodyPalaceTagAria: string;
+};
+
+const ZIWEI_AI_EN: ZiweiAiCopy = {
+  timelineAria: "Major Luck Cycle Timeline — tap a segment to see that palace's stars",
+  cycleAria: (range, palaceName, isCurrent) => `Age ${range}, ${palaceName} major luck cycle${isCurrent ? ", currently active" : ""}`,
+  profileLoadAria: "Load birth info from your profile card",
+  recentListAria: "Review past Zi Wei Dou Shu consultations",
+  lifePalaceTagAria: "Life Palace",
+  bodyPalaceTagAria: "Body Palace",
+};
+
+const ZIWEI_AI_COPY: Partial<Record<LoadingLocale, ZiweiAiCopy>> = {
+  ko: {
+    timelineAria: "대한 타임라인 — 구간을 누르면 해당 궁의 별이 보입니다",
+    cycleAria: (range, palaceName, isCurrent) => `${range}세 ${palaceName} 대한${isCurrent ? ", 현재 진행 중" : ""}`,
+    profileLoadAria: "프로필 카드에서 출생 정보 불러오기",
+    recentListAria: "지난 자미두수 상담 다시 보기",
+    lifePalaceTagAria: "명궁",
+    bodyPalaceTagAria: "신궁",
+  },
+  en: ZIWEI_AI_EN,
+  ja: {
+    timelineAria: "大限タイムライン — 区間をタップするとその宮の星が表示されます",
+    cycleAria: (range, palaceName, isCurrent) => `${range}歳 ${palaceName} 大限${isCurrent ? "、現在進行中" : ""}`,
+    profileLoadAria: "プロフィールカードから出生情報を読み込む",
+    recentListAria: "過去の紫微斗数相談を見直す",
+    lifePalaceTagAria: "命宮",
+    bodyPalaceTagAria: "身宮",
+  },
+  "zh-CN": {
+    timelineAria: "大限时间轴 — 点击区间可查看该宫位的星曜",
+    cycleAria: (range, palaceName, isCurrent) => `${range}岁 ${palaceName} 大限${isCurrent ? "，当前进行中" : ""}`,
+    profileLoadAria: "从个人资料卡加载出生信息",
+    recentListAria: "查看以往的紫微斗数咨询",
+    lifePalaceTagAria: "命宫",
+    bodyPalaceTagAria: "身宫",
+  },
+  "zh-TW": {
+    timelineAria: "大限時間軸 — 點擊區間可查看該宮位的星曜",
+    cycleAria: (range, palaceName, isCurrent) => `${range}歲 ${palaceName} 大限${isCurrent ? "，目前進行中" : ""}`,
+    profileLoadAria: "從個人資料卡載入出生資訊",
+    recentListAria: "查看以往的紫微斗數諮詢",
+    lifePalaceTagAria: "命宮",
+    bodyPalaceTagAria: "身宮",
+  },
+  vi: {
+    timelineAria: "Dòng thời gian đại hạn — chạm vào một đoạn để xem các sao của cung đó",
+    cycleAria: (range, palaceName, isCurrent) => `${range} tuổi, đại hạn cung ${palaceName}${isCurrent ? ", đang diễn ra" : ""}`,
+    profileLoadAria: "Tải thông tin sinh từ thẻ hồ sơ",
+    recentListAria: "Xem lại các buổi tư vấn Tử Vi Đẩu Số trước đây",
+    lifePalaceTagAria: "Mệnh Cung",
+    bodyPalaceTagAria: "Thân Cung",
+  },
+  hi: {
+    timelineAria: "महादशा टाइमलाइन — किसी खंड को टैप करें ताकि उस भवन के सितारे दिखें",
+    cycleAria: (range, palaceName, isCurrent) => `${range} वर्ष, ${palaceName} महादशा चक्र${isCurrent ? ", वर्तमान में सक्रिय" : ""}`,
+    profileLoadAria: "प्रोफ़ाइल कार्ड से जन्म जानकारी लोड करें",
+    recentListAria: "पिछले ज़ी वेई दो शू परामर्श देखें",
+    lifePalaceTagAria: "जीवन भवन (मिंग गोंग)",
+    bodyPalaceTagAria: "शरीर भवन (शेन गोंग)",
+  },
+  es: {
+    timelineAria: "Línea de tiempo de ciclos de gran fortuna — toca un segmento para ver las estrellas de esa casa",
+    cycleAria: (range, palaceName, isCurrent) => `${range} años, ciclo de gran fortuna de ${palaceName}${isCurrent ? ", en curso" : ""}`,
+    profileLoadAria: "Cargar información de nacimiento desde tu tarjeta de perfil",
+    recentListAria: "Revisar consultas anteriores de Zi Wei Dou Shu",
+    lifePalaceTagAria: "Palacio de la Vida",
+    bodyPalaceTagAria: "Palacio del Cuerpo",
+  },
+  fr: {
+    timelineAria: "Chronologie des cycles de grande fortune — appuyez sur un segment pour voir les étoiles de ce palais",
+    cycleAria: (range, palaceName, isCurrent) => `${range} ans, cycle de grande fortune de ${palaceName}${isCurrent ? ", en cours" : ""}`,
+    profileLoadAria: "Charger les informations de naissance depuis votre carte de profil",
+    recentListAria: "Consulter les consultations précédentes de Zi Wei Dou Shu",
+    lifePalaceTagAria: "Palais de la Vie",
+    bodyPalaceTagAria: "Palais du Corps",
+  },
+  de: {
+    timelineAria: "Zeitleiste der großen Glückszyklen — tippen Sie auf einen Abschnitt, um die Sterne dieses Palastes zu sehen",
+    cycleAria: (range, palaceName, isCurrent) => `${range} Jahre, großer Glückszyklus von ${palaceName}${isCurrent ? ", derzeit aktiv" : ""}`,
+    profileLoadAria: "Geburtsinformationen aus Ihrer Profilkarte laden",
+    recentListAria: "Frühere Zi-Wei-Dou-Shu-Beratungen ansehen",
+    lifePalaceTagAria: "Lebenspalast",
+    bodyPalaceTagAria: "Körperpalast",
+  },
+  nl: {
+    timelineAria: "Tijdlijn van grote geluksscycli — tik op een segment om de sterren van dat paleis te zien",
+    cycleAria: (range, palaceName, isCurrent) => `${range} jaar, grote geluksscyclus van ${palaceName}${isCurrent ? ", momenteel actief" : ""}`,
+    profileLoadAria: "Geboortegegevens laden vanuit je profielkaart",
+    recentListAria: "Eerdere Zi Wei Dou Shu-consulten bekijken",
+    lifePalaceTagAria: "Levenspaleis",
+    bodyPalaceTagAria: "Lichaamspaleis",
+  },
+  ms: {
+    timelineAria: "Garis masa kitaran nasib besar — ketik segmen untuk melihat bintang istana itu",
+    cycleAria: (range, palaceName, isCurrent) => `${range} tahun, kitaran nasib besar ${palaceName}${isCurrent ? ", sedang berlangsung" : ""}`,
+    profileLoadAria: "Muatkan maklumat kelahiran daripada kad profil",
+    recentListAria: "Semak perundingan Zi Wei Dou Shu yang lalu",
+    lifePalaceTagAria: "Istana Kehidupan",
+    bodyPalaceTagAria: "Istana Badan",
+  },
+};
+
+function getZiweiAiCopy(locale: LoadingLocale): ZiweiAiCopy {
+  return ZIWEI_AI_COPY[locale] || ZIWEI_AI_EN;
+}
+
+function useZiweiAiCopy(): ZiweiAiCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const sync = () => setLocale(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      document.removeEventListener("cd:language-change", sync);
+    };
+  }, []);
+  return getZiweiAiCopy(locale);
+}
 
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
@@ -210,6 +339,7 @@ const ZWV_CSS = `
 
 // 대한(10년 주기) 타임라인 — 서버 계산 majorLuck을 나이순으로 그리고 현재 나이를 표시
 function MajorLuckTimeline({ chart, birthDate }: { chart?: ZiweiChart; birthDate?: string }) {
+  const copy = useZiweiAiCopy();
   const [selectedIndex, setSelectedIndex] = useState<number | null>(null);
   const cycles = useMemo(() => (
     (chart?.majorLuck || [])
@@ -229,7 +359,7 @@ function MajorLuckTimeline({ chart, birthDate }: { chart?: ZiweiChart; birthDate
   const selectedPalace = selected ? palaceByName.get(selected.palaceName || "") : null;
 
   return (
-    <section className="zwvTimeline" data-ziwei-pdf-section aria-label="대한 타임라인 — 구간을 누르면 해당 궁의 별이 보입니다">
+    <section className="zwvTimeline" data-ziwei-pdf-section aria-label={copy.timelineAria}>
       <div className="zwvTimelineHead">
         <span>대한(大限) 타임라인</span>
         <small>{chart?.bureau?.name ? `${chart.bureau.name} · 첫 대한 ${cycles[0]?.startAge}세` : "10년 주기 흐름"} · ▼ 지금</small>
@@ -247,7 +377,7 @@ function MajorLuckTimeline({ chart, birthDate }: { chart?: ZiweiChart; birthDate
               key={`${cycle.palaceName}-${cycle.startAge}`}
               className={`zwvSegment${isSelected ? " isSelected" : ""}${isCurrent ? " isCurrent" : ""}${hasJi ? " hasJi" : ""}`}
               onClick={() => setSelectedIndex(selectedIndex === index ? null : index)}
-              aria-label={`${cycle.range}세 ${cycle.palaceName} 대한${isCurrent ? ", 현재 진행 중" : ""}`}
+              aria-label={copy.cycleAria(cycle.range || "", cycle.palaceName || "", isCurrent)}
             >
               {isCurrent ? <i aria-hidden="true">▼</i> : null}
               <strong>{cycle.range}</strong>
@@ -650,6 +780,7 @@ function formatTransformation(value: string | undefined) {
 }
 
 export default function ZiweiAiPage() {
+  const copy = useZiweiAiCopy();
   const [form, setForm] = useState<FormState>(buildInitialZiweiForm);
   const [phase, setPhase] = useState<Phase>("idle");
   const [error, setError] = useState("");
@@ -953,7 +1084,7 @@ export default function ZiweiAiPage() {
     try {
       const { exportResultPdf } = await import("@/lib/pdf/export-result-pdf");
       const userName = safePdfName(consultation?.birthInfo?.name || form.name || "자미두수");
-      const date = new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "");
+      const date = new Date().toLocaleDateString(INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()]).replace(/\./g, "").replace(/\s/g, "");
       await exportResultPdf({
         captureTargets: [".resultDocument [data-ziwei-pdf-section]"],
         fileName: `자미두수_AI_상담_${userName}_${date}.pdf`,
@@ -1001,7 +1132,7 @@ export default function ZiweiAiPage() {
               type="button"
               onClick={loadFormFromProfileCard}
               className="shrink-0 rounded-lg border border-[#fbbf24]/35 bg-[#fbbf24]/10 px-3 py-2 text-xs font-bold text-[#fbbf24] transition hover:bg-[#fbbf24]/20"
-              aria-label="프로필 카드에서 출생 정보 불러오기"
+              aria-label={copy.profileLoadAria}
             >
               프로필 카드에서 불러오기
             </button>
@@ -1113,7 +1244,7 @@ export default function ZiweiAiPage() {
               <strong>별궁을 펼칠 준비가 되어 있습니다</strong>
               <span>상담이 시작되면 이 자리에 당신의 12궁 명반과 주성이 놓입니다.</span>
               {recentList.length > 0 && (
-                <div className="zwvRecentList" aria-label="지난 자미두수 상담 다시 보기">
+                <div className="zwvRecentList" aria-label={copy.recentListAria}>
                   <strong>지난 별궁 기록 다시 보기</strong>
                   {recentList.slice(0, 5).map((item) => (
                     <button key={item.id} type="button" onClick={() => void loadRecentConsultation(item.id)} disabled={busy}>
@@ -1215,8 +1346,8 @@ export default function ZiweiAiPage() {
                           key={`${palace.name}-${palace.earthlyBranch}`}
                           className={`palaceCard${isLife ? " isLife" : ""}${isBody ? " isBody" : ""}`}
                         >
-                          {isLife && <em className="palaceTag" aria-label="명궁">命</em>}
-                          {isBody && !isLife && <em className="palaceTag isBodyTag" aria-label="신궁">身</em>}
+                          {isLife && <em className="palaceTag" aria-label={copy.lifePalaceTagAria}>命</em>}
+                          {isBody && !isLife && <em className="palaceTag isBodyTag" aria-label={copy.bodyPalaceTagAria}>身</em>}
                           <div className="palaceHead">
                             <strong>{palace.name}</strong>
                             <span>{palace.earthlyBranch || ""}</span>

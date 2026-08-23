@@ -110,8 +110,13 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     steps:
+      # fetch-depth: 0 은 아래 `lint:changed` 가 base...head 를 계산하기 위해 필요하다.
+      # 얕은 체크아웃에서는 base 커밋이 없어 diff 가 통째로 비고, 그러면 이 게이트가
+      # 조용히 아무 파일도 검사하지 않는 상태가 된다.
       - name: Checkout PR head
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -127,6 +132,32 @@ jobs:
 
       - name: Lint
         run: npm run lint
+
+      # 🔴 `npm run lint` 는 `next lint` 이고 `pages/ app/ components/ lib/ src/` 만 본다.
+      # 머지 후 배포(scripts/deploy-safe.mjs 의 "changed-file lint")는 **변경 파일 전부**에
+      # eslint 를 직접 건다 — `__tests__/ scripts/ worker/ js/` 까지. 두 범위가 다르면 PR 은
+      # 초록불로 머지되고 스테이징 배포가 린트로 죽는데, 사람에게 보이는 마지막 에러는 그
+      # 다음 스텝의 "SHA 불일치" 하나뿐이라 원인이 가려진다
+      # (2026-08-22 run 32584789263: __tests__/worker/fpti-deep-report.quality.test.js).
+      # 대상 선정 정본은 scripts/lib/lint-targets.mjs 이고 배포도 같은 모듈을 쓴다.
+      - name: Lint changed files exactly as the release does
+        env:
+          PR_BASE_SHA: ${{ github.event.pull_request.base.sha }}
+          PR_HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+        run: |
+          npm run lint:changed -- --self-test
+          npm run lint:changed
+
+      # 🔴 `test:node` 는 `__tests__/ui/*.test.js` 정적 가드다. jest 는 이것을 돌리지 않고,
+      # PR CI 에서는 critical 티어(`npm test`)에서만 돌았다. 그런데 deploy-safe 는 risk=medium
+      # 부터 돌린다 — 즉 app/·components/·js/ 만 고친 standard 티어 PR 은 **머지된 뒤에야**
+      # 이 검사를 처음 받는다. 2026-08-22 PR #940 이 정확히 그 경로로 통과해 머지되고
+      # 스테이징 배포를 3연속 실패시켰다(fusion-fortune.static.test.js 3건).
+      #
+      # fast 잡에 두는 이유: 이 가드들의 입력은 index.html·js/·styles/ 라 티어가 fast 로
+      # 잡히는 변경에서도 깨어나야 한다. 실측 13.7초 / 296 tests (2026-08-23).
+      - name: Run the static UI guards the release runs
+        run: npm run test:node
 
       # 🔴 이 두 가드는 **fast 잡**에 있어야 한다. 입력이 CSS·정적 셸·package.json 이라
       # build/critical 잡에 두면 `styles/mobile-lite.css` 한 줄 수정에는 깨어나지 않는데,
@@ -171,6 +202,20 @@ jobs:
       - name: Verify hero first-paint lock matches its authoritative block
         run: npm run verify:hero-firstpaint-lock
 
+      # 🔴 이것도 **fast 잡**이어야 한다 — 2026-08-23 에 critical 잡에서 옮겨 왔다.
+      # public/ 미러가 소스보다 낡으면 테스트는 전부 통과하고 사용자만 옛 화면을 본다.
+      # 2026-08-20~21 이틀에 세 번 났고 세 번 다 CI 가 아무 말을 안 했다.
+      # 그런데 미러의 소스는 index.html·styles/**·js/** 라 티어가 low/fast 로 잡히는 쪽이 많다
+      # (scripts/lib/change-risk.mjs: styles/ 는 low). critical 잡에 두면 정작 지켜야 할
+      # "CSS 한 줄만 고친 PR" 에서 잡이 통째로 스킵돼 낡은 미러가 그대로 머지된다 — PR #928
+      # (styles/mobile-lite.css)이 정확히 그렇게 통과했고, 뒤따르던 critical 티어 PR 들이
+      # 대신 연쇄로 빨간불이 됐다(#932 에서 발견, #935 로 수습).
+      # 생성기를 한 번 돌려 커밋된 내용과 대조할 뿐이라 네트워크 없이 2초 미만이다.
+      - name: Verify public mirrors are fresh
+        run: |
+          npm run verify:public-mirror-fresh
+          npm run verify:public-mirror-fresh -- --self-test
+
       # 배선을 검사하는 가드가 배선되지 않으면 농담이 된다. allowlist 만 고쳐 침묵시키는
       # 경로도 여기서 함께 막힌다 — scripts/ 만 바꾸면 critical 티어가 돌지 않는다.
       - name: Verify guard wiring
@@ -178,41 +223,57 @@ jobs:
           npm run verify:guard-wiring -- --self-test
           npm run verify:guard-wiring
 
+      # 🔴 이것도 **fast 잡**이어야 한다. `public/i18n/**` 단독 변경은 티어가 low/fast 라 build
+      # 잡이 통째로 스킵되는데, 그게 정확히 지키려는 경로다(새 UI 카피를 en.json 에만 넣고 다른
+      # 11개 로케일을 빠뜨리는 실수). 이 세 스크립트는 이미 npm run i18n:check 체인 안에 있지만
+      # 그 체인은 build-cf-main.mjs 에서 optional:true 로 돈다(2026-07-28 배포 정지 사고 이후
+      # 의도적 조치, 되돌리지 않음) — 즉 실패해도 지금까지는 아무 것도 막지 않았다. 여기 fast
+      # 잡에 직접 두면 티어 무관 항상 실행되고 필수 체크라 실패 시 병합이 막힌다.
+      - name: Verify i18n locale coverage
+        run: |
+          node scripts/i18n-check.mjs
+          node scripts/verify-i18n-public-parity.mjs --all
+          npm run verify:i18n-runtime
+
   build:
     name: Build Pages and Worker
     needs: classify
     runs-on: ubuntu-latest
     timeout-minutes: 45
+    # 🔴 draft PR 은 build:cf·build:worker 를 건너뛴다(2026-08-21) — 티어 스킵과 같은 이유로
+    # **스텝**에서만 건너뛴다, 잡 자체를 막지 않는다(브랜치 룰셋 필수 체크는 계속 보고돼야 함).
+    # ready_for_review 로 전환되면 그 이벤트가 트리거 목록에 있어 전체 빌드가 자동으로 돈다.
+    # lint·typecheck(fast 잡)·critical(결제·보안 테스트)은 draft 여도 그대로 돈다 — 안전 우선.
     steps:
       - name: Skip notice
-        if: needs.classify.outputs.runs_build != 'true'
-        run: echo "::notice::tier=${{ needs.classify.outputs.tier }} — 빌드를 건너뜁니다(문구·CSS·이미지·문서 변경)."
+        if: needs.classify.outputs.runs_build != 'true' || github.event.pull_request.draft == true
+        run: echo "::notice::tier=${{ needs.classify.outputs.tier }} draft=${{ github.event.pull_request.draft }} — 빌드를 건너뜁니다(문구·CSS·이미지·문서 변경, 또는 draft PR)."
 
       - name: Checkout PR head
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         uses: actions/checkout@v4
 
       - name: Setup Node.js
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         uses: actions/setup-node@v4
         with:
           node-version: "24"
           cache: npm
 
       - name: Install dependencies
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm ci
 
       # build:cf 의 postbuild 가 out/ 을 읽어 AdSense 콘텐츠 게이트를 돌린다. 빌드가 끝나야만
       # 도는 검사라 여기서 함께 잡는다 — 배포 직전에 처음 알게 되면 릴리스가 통째로 막힌다.
       - name: Build Cloudflare Pages output
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run build:cf
 
       # 색인 대상 라우트의 H1 이 정확히 1개인지 본다. 사이트맵에서 라우트를 전수 발견하므로
       # 새 라우트도 자동으로 걸린다. out/ 을 읽으니 반드시 build:cf 뒤에 둔다.
       - name: Verify SEO heading integrity
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:seo-heading-integrity
 
       # 얇은 광고 라우트에 사람이 쓴 편집자 노트가 붙어 있는지 본다. 대상을 out/ 에서 전수
@@ -221,23 +282,23 @@ jobs:
       #    실패시킨다. 이 줄을 지우면 그 가드가 다시 빨간불이 된다(지우려면 UNWIRED_BY_DESIGN
       #    에 사유와 함께 옮길 것).
       - name: Verify editor notes
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:editor-notes
 
       # /fortune/{period}/{sign} 96개가 기간마다 실제로 다른 글을 내보내는지 본다.
       # 소스에서 sign 을 전수 발견하므로 sign 을 늘리고 기간 문안을 빠뜨리면 여기서 걸린다.
       # out/ 을 읽지 않으므로 빌드 앞에 두어도 되지만, 같은 성격의 SEO 가드끼리 모아 둔다.
       - name: Verify fortune period axis
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:fortune-period-axis
 
       # 번들 1MB 제한과 문법 오류를 업로드 없이 잡는다(--dry-run 은 아무것도 올리지 않는다).
       - name: Build Worker bundle (dry run)
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run build:worker
 
       - name: Verify Worker size budget
-        if: needs.classify.outputs.runs_build == 'true'
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:worker-size
 
   critical:
@@ -304,10 +365,6 @@ jobs:
           # 자격증명 단위 캐시(/api/auth/me · /api/profile)는 틀리면 남의 세션이 보인다.
           npm run verify:credential-cache
           npm run verify:credential-cache -- --self-test
-          # 🔴 public/ 미러가 소스보다 낡으면 테스트는 전부 통과하고 사용자만 옛 화면을 본다.
-          # 2026-08-20~21 이틀에 세 번 났고 세 번 다 CI 가 아무 말을 안 했다.
-          npm run verify:public-mirror-fresh
-          npm run verify:public-mirror-fresh -- --self-test
 
       - name: Verify ads.txt is present
         if: needs.classify.outputs.runs_critical == 'true'

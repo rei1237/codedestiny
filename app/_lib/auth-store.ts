@@ -761,9 +761,9 @@ function isAuthRedirectExemptPath(pathname: string): boolean {
     || path.startsWith("/admin/login");
 }
 
-// middleware.ts 의 PROTECTED_AUTH_ROUTE_PREFIXES 와 짝을 이룬다(미들웨어는 edge 번들이라
-// import 하면 next/server 가 클라이언트 번들로 딸려 온다 — 값만 복제하고 함께 관리한다).
-// 능동 액션 없이 감지된 세션 만료에서 리다이렉트할 화면 = 로그인이 전제인 화면뿐.
+// 이 저장소에 서버 미들웨어는 없다(정적 export 빌드라 middleware.ts 를 못 쓴다) — 이 목록이
+// 라우트 보호의 유일한 정본이며, 능동 액션 없이 감지된 세션 만료에서 리다이렉트할 화면 =
+// 로그인이 전제인 화면만 담는다.
 const PROTECTED_APP_ROUTE_PREFIXES = ["/dashboard", "/mypage", "/points"];
 
 function isProtectedAppPath(pathname: string): boolean {

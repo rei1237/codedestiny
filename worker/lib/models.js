@@ -1463,6 +1463,86 @@ const nakshatraAiConsultationSchema = new mongoose.Schema({
 nakshatraAiConsultationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
 nakshatraAiConsultationSchema.index({ userId: 1, createdAt: -1 });
 
+// 휴먼 디자인 바디그래프 — 회당 결제(human-design-chart)로 산출한 계산 결과.
+//
+// 🔴 이 문서는 **영수증 겸 아카이브**다. 차트는 같은 출생 데이터면 항상 같은 결과라,
+//    같은 (userId, inputHash, calculationVersion) 조합은 재결제 없이 다시 연다
+//    (sukuyo-past-life-reading 의 readSukuyoPastLifeArchive 와 같은 계약).
+//    그렇다고 영구 해금은 아니다 — 출생 데이터가 다르면 새 결제다. 이 키를
+//    PERSISTENT_UNLOCK_KEY_SET 이나 PREMIUM_UNLOCK_POLICY 에 넣지 말 것.
+//
+// 🔴 calculation 안에는 canonical identifier 만 들어간다(TYPE_GENERATOR 등). 사람이 읽는
+//    문구는 표시 계층 소관이라 저장하지 않는다 — 문구가 바뀌어도 문서를 다시 쓰지 않는다.
+const humanDesignCalculationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  profileId: { type: String, default: "", trim: true, maxlength: 120, index: true },
+  idempotencyKey: { type: String, required: true, trim: true, maxlength: 180 },
+  // 출생 입력의 해시. 같은 해시 + 같은 계산 버전이면 저장된 차트를 그대로 돌려준다.
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+  birthInput: { type: mongoose.Schema.Types.Mixed, default: null },
+
+  // 🔴 계산 엔진 버전 3종. 엔진이 바뀌었을 때 어느 문서를 다시 계산해야 하는지 문서만 보고
+  //    판정할 수 있어야 한다. mappingVersion 은 만다라 배열·앵커·노드 모드의 버전이다.
+  calculationVersion: { type: String, required: true, trim: true, maxlength: 40, index: true },
+  ephemerisVersion: { type: String, default: "", trim: true, maxlength: 40 },
+  mappingVersion: { type: String, default: "", trim: true, maxlength: 40 },
+  nodeMode: { type: String, default: "", trim: true, maxlength: 10 },
+
+  calculation: { type: mongoose.Schema.Types.Mixed, default: null },
+  designMomentUtc: { type: String, default: "", trim: true, maxlength: 40 },
+  hdType: { type: String, default: "", trim: true, maxlength: 40 },
+  authority: { type: String, default: "", trim: true, maxlength: 40 },
+  profile: { type: String, default: "", trim: true, maxlength: 10 },
+  definition: { type: String, default: "", trim: true, maxlength: 40 },
+
+  accessType: { type: String, enum: ["pass", "paid", "monthly_credit", "membership_credit", "subscription", "admin"], required: true, index: true },
+  accessSource: { type: String, default: "", trim: true, maxlength: 40 },
+  paymentId: { type: String, default: "", trim: true, maxlength: 160, index: true },
+  billingRequestId: { type: String, default: "", trim: true, maxlength: 180, index: true },
+  calculatedAt: { type: Date, default: null },
+}, { timestamps: true, collection: "humanDesignCalculations" });
+
+humanDesignCalculationSchema.index({ userId: 1, idempotencyKey: 1 }, { unique: true });
+// 재열람 조회 키. 계산 버전을 포함해야 엔진이 바뀐 뒤 옛 결과를 그대로 내주지 않는다.
+humanDesignCalculationSchema.index({ userId: 1, inputHash: 1, calculationVersion: 1 });
+humanDesignCalculationSchema.index({ userId: 1, createdAt: -1 });
+
+// 휴먼 디자인 AI 해석 — 계산과 **분리된** 문서다(요구사항 25).
+//
+// 🔴 계산 결과를 여기 복제하지 않는다. calculationId 로만 잇는다 — 계산 문서와 해석 문서가
+//    각자 다른 이유로 무효가 되기 때문이다(계산은 엔진 버전이, 해석은 프롬프트 버전이).
+// 🔴 별도 결제 키가 없다. 접근 증빙은 같은 사용자의 계산 문서가 존재한다는 사실이다.
+const humanDesignInterpretationSchema = new mongoose.Schema({
+  id: { type: String, required: true, unique: true, trim: true, maxlength: 120, index: true },
+  userId: { type: String, required: true, trim: true, index: true },
+  calculationId: { type: String, required: true, trim: true, maxlength: 120, index: true },
+  inputHash: { type: String, required: true, trim: true, maxlength: 80, index: true },
+
+  // 계산 엔진 버전과 프롬프트 버전을 함께 박는다. 둘 중 하나만 바뀌어도 재생성 대상이다.
+  calculationVersion: { type: String, default: "", trim: true, maxlength: 40 },
+  promptVersion: { type: String, required: true, trim: true, maxlength: 60, index: true },
+
+  locale: { type: String, default: "ko", trim: true, maxlength: 10 },
+  userQuestion: { type: String, default: "", trim: true, maxlength: 600 },
+  sections: { type: [mongoose.Schema.Types.Mixed], default: [] },
+  summary: { type: String, default: "", trim: true, maxlength: 4000 },
+  totalCharCount: { type: Number, default: 0 },
+  // 사후 검산(validateHumanDesignInterpretation) 결과. 위반이 있으면 저장하지 않지만,
+  // 재시도 끝에 통과한 경우의 흔적을 남긴다.
+  factCheck: { type: mongoose.Schema.Types.Mixed, default: null },
+  status: { type: String, enum: ["generating", "completed", "generation_failed"], default: "generating", index: true },
+  generationError: { type: mongoose.Schema.Types.Mixed, default: null },
+  llmMeta: { type: mongoose.Schema.Types.Mixed, default: null },
+}, { timestamps: true, collection: "humanDesignInterpretations" });
+
+// 같은 계산 + 같은 프롬프트 버전 + 같은 언어면 하나뿐이다(재생성 대신 재열람).
+humanDesignInterpretationSchema.index(
+  { userId: 1, calculationId: 1, promptVersion: 1, locale: 1 },
+  { unique: true },
+);
+humanDesignInterpretationSchema.index({ userId: 1, createdAt: -1 });
+
 // Guardian Fortune usage is deliberately isolated from membership, monthly credit,
 // points, and pass entitlements. These schemas are declarations only; index creation
 // still follows the project's normal migration/operations process.
@@ -1691,6 +1771,10 @@ export const NeoOperationRoomConsultation = mongoose.models.NeoOperationRoomCons
   || mongoose.model("NeoOperationRoomConsultation", neoOperationRoomConsultationSchema);
 export const NakshatraAiConsultation = mongoose.models.NakshatraAiConsultation
   || mongoose.model("NakshatraAiConsultation", nakshatraAiConsultationSchema);
+export const HumanDesignCalculation = mongoose.models.HumanDesignCalculation
+  || mongoose.model("HumanDesignCalculation", humanDesignCalculationSchema);
+export const HumanDesignInterpretation = mongoose.models.HumanDesignInterpretation
+  || mongoose.model("HumanDesignInterpretation", humanDesignInterpretationSchema);
 export const GuardianFortuneGuestUsage = mongoose.models.GuardianFortuneGuestUsage
   || mongoose.model("GuardianFortuneGuestUsage", guardianFortuneGuestUsageSchema);
 export const GuardianFortuneDailyUsage = mongoose.models.GuardianFortuneDailyUsage

@@ -1,6 +1,14 @@
 import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, renameSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { createRequire } from "node:module";
 import { dirname, join, relative, resolve, sep } from "node:path";
+
+import {
+  MANIFEST_UNREADABLE,
+  isFrameworkDefaultNotFound,
+  readManifestObject,
+  selfTestNextBuildIntegrity,
+} from "./lib/next-build-integrity.mjs";
 
 const rootDir = process.cwd();
 const manifestPath = resolve(rootDir, ".next", "server", "pages-manifest.json");
@@ -17,9 +25,16 @@ const server500Path = resolve(rootDir, ".next", "server", "pages", "500.html");
 const export404Path = resolve(rootDir, ".next", "export", "404.html");
 const export500Path = resolve(rootDir, ".next", "export", "500.html");
 const exportDetailPath = resolve(rootDir, ".next", "export-detail.json");
+const exportedNotFoundPath = resolve(rootDir, "out", "404.html");
 const diagnosticsPath = resolve(rootDir, ".next", "diagnostics", "build-diagnostics.json");
 const routesManifestPath = resolve(rootDir, ".next", "routes-manifest.json");
-const nextCli = resolve(rootDir, "node_modules", "next", "dist", "bin", "next");
+// 🔴 rootDir 아래 node_modules 를 절대 경로로 짓지 말 것. 이 레포는 .claude/worktrees/ 아래에서
+//    작업하는데 워크트리에는 node_modules 가 거의 없다(2026-08-23 실측: 워크트리 41개 중 8개만
+//    보유하고, 그날 새로 만든 3개는 전부 없었다). 그러면 이 한 줄만 빗나가 next 바이너리를 못 찾고
+//    빌드가 죽는데, lint·typecheck·jest 는 Node 의 상위 디렉터리 탐색으로 루트 설치본을 주워 써서
+//    전부 통과한다 — 증상이 빌드까지 숨는다. require.resolve 는 그 탐색을 그대로 쓴다
+//    (jest.config.cjs 가 같은 이유로 이미 같은 규칙을 지키고 있다).
+const nextCli = createRequire(import.meta.url).resolve("next/dist/bin/next");
 const manifestReadGuardRequire = "--require=./scripts/next-manifest-read-guard.cjs";
 const stableBuildWorkerMode = "0";
 const exportSuccessGraceMs = Number.parseInt(process.env.CD_NEXT_EXPORT_SUCCESS_GRACE_MS || "90000", 10);
@@ -45,14 +60,26 @@ function withManifestReadGuard(nodeOptions = "") {
   return [nodeOptions, manifestReadGuardRequire].filter(Boolean).join(" ");
 }
 
+const manifestIo = {
+  exists: (filePath) => existsSync(filePath),
+  read: (filePath) => readFileSync(filePath, "utf8"),
+};
+
+/**
+ * 🔴 "못 읽었다" 를 "비어 있다" 로 접지 않는다. 접었을 때 무슨 일이 났는지는
+ * scripts/lib/next-build-integrity.mjs 의 머리말 참고 — Next 가 방금 쓴 pages-manifest 를
+ * 부분 매니페스트로 덮어써서 그 빌드가 끝까지 `/404` 를 모르게 됐다.
+ *
+ * 매니페스트를 **쓰는** 쪽은 반드시 readManifest 를 쓰고 MANIFEST_UNREADABLE 이면 손을 뗀다.
+ * 단순 조회(읽기만 하는 곳)는 종전대로 readJsonObject 로 충분하다.
+ */
+function readManifest(filePath) {
+  return readManifestObject(filePath, manifestIo);
+}
+
 function readJsonObject(filePath) {
-  if (!existsSync(filePath)) return {};
-  try {
-    const parsed = JSON.parse(readFileSync(filePath, "utf8"));
-    return parsed && typeof parsed === "object" && !Array.isArray(parsed) ? parsed : {};
-  } catch {
-    return {};
-  }
+  const value = readManifest(filePath);
+  return value === MANIFEST_UNREADABLE ? {} : value;
 }
 
 function writeJsonAtomic(filePath, value) {
@@ -160,6 +187,10 @@ function ensurePageJsFallback(filePath) {
   // 빌드 초반 크래시 방어(routes-manifest 이전)는 그대로 유지된다.
   if (hasCoreRoutesManifest()) return;
 
+  // 🔴 이 쓰기는 조용하면 안 된다. 스텝이 export 까지 살아남으면 커스텀 404 가 프레임워크
+  // 기본 404 로 바뀌는데, 로그에 흔적이 없으면 다음 사람은 "가끔 나는 배포 실패" 로만 본다.
+  // 실제로 2026-08-22 실패에서 원인 후보를 좁히는 데 이 한 줄이 없어 로그가 도움이 안 됐다.
+  console.warn(`[next-build-with-pages-manifest] ${relative(rootDir, filePath)} 가 없어 _error 스텁을 채웁니다 (빌드 초반 크래시 방어).`);
   mkdirSync(dirname(filePath), { recursive: true });
   writeFileSync(filePath, ERROR_PAGE_STUB_SOURCE, "utf8");
 }
@@ -174,7 +205,8 @@ function ensureServerPagesFallbacks() {
 }
 
 function ensureErrorPagesBuildManifestEntries() {
-  const buildManifest = readJsonObject(buildManifestPath);
+  const buildManifest = readManifest(buildManifestPath);
+  if (buildManifest === MANIFEST_UNREADABLE) return;
   const pages = buildManifest.pages;
   if (!pages || typeof pages !== "object" || Array.isArray(pages)) return;
   const errorFiles = pages["/_error"];
@@ -201,7 +233,11 @@ function ensurePagesManifest({ exportFallback = false } = {}) {
     "/_error": "../../node_modules/next/dist/pages/_error.js",
     "/_document": "../../node_modules/next/dist/pages/_document.js",
   };
-  const current = readJsonObject(manifestPath);
+  const current = readManifest(manifestPath);
+  // 🔴 지금 Next 가 쓰는 중일 수 있다. 그때 우리가 "비어 있다" 로 읽고 덮으면 `/404` 가
+  // 빠진 부분 매니페스트가 남고, Next 는 그것을 빌드당 한 번만 읽으므로 그 빌드는 끝까지
+  // 404 를 `_error` 로 렌더한다(2026-08-22 실측). 이번 틱은 손대지 않는다 — 25ms 뒤에 다시 온다.
+  if (current === MANIFEST_UNREADABLE) return;
   const entries = collectPagesManifestEntries();
   const merged = { ...requiredEntries, ...current, ...entries };
   if (Object.keys(merged).length === 0) {
@@ -223,8 +259,11 @@ function ensurePagesManifest({ exportFallback = false } = {}) {
 }
 
 function ensureAppPathsManifest() {
+  const raw = readManifest(appManifestPath);
+  // pages-manifest 와 같은 이유로, 쓰는 중인 파일을 근거로 덮어쓰지 않는다.
+  if (raw === MANIFEST_UNREADABLE) return;
   const current = Object.fromEntries(
-    Object.entries(readJsonObject(appManifestPath)).filter(([, outputPath]) => (
+    Object.entries(raw).filter(([, outputPath]) => (
       typeof outputPath === "string" && existsSync(resolve(rootDir, ".next", "server", outputPath))
     )),
   );
@@ -260,7 +299,8 @@ function seedEmptyPagesManifest() {
     "/_error": "../../node_modules/next/dist/pages/_error.js",
     "/_document": "../../node_modules/next/dist/pages/_document.js",
   };
-  const current = readJsonObject(manifestPath);
+  const current = readManifest(manifestPath);
+  if (current === MANIFEST_UNREADABLE) return;
   const merged = { ...requiredEntries, ...current };
   if (JSON.stringify(current) === JSON.stringify(merged)) return;
   writeJsonAtomic(manifestPath, merged);
@@ -331,6 +371,27 @@ function assertCoreRoutesManifest() {
     ].join(" "),
   );
   return false;
+}
+
+/**
+ * export 된 404 가 커스텀 페이지인가.
+ *
+ * 🔴 위의 매니페스트 수정이 이 사고의 **원인**을 없앤다. 이 검사는 그와 별개로, 아직 모르는
+ * 창이 남아 있어도 **잘못된 404 가 배포까지 가지 못하게** 막는 자리다. 종전에는 이 상태가
+ * 빌드에서 초록불로 통과해 postbuild 의 verify-adsense-readiness 에서야 잡혔고, 그때는
+ * 릴리스가 통째로 실패했다 — 여기서 잡으면 같은 판정이 **자동 재시도 한 번**으로 끝난다.
+ *
+ * 파일이 없으면 참을 돌려준다. export 단계에 못 갔다는 뜻이고, 그 실패는 종료 코드와
+ * routes-manifest 축이 이미 잡는다. 여기서 없는 파일까지 실패로 부르면 preview 처럼
+ * export 를 만들지 않는 경로를 오탐한다.
+ */
+function exportedNotFoundIsCustom() {
+  if (!existsSync(exportedNotFoundPath)) return true;
+  try {
+    return !isFrameworkDefaultNotFound(readFileSync(exportedNotFoundPath, "utf8"));
+  } catch {
+    return true;
+  }
 }
 
 function hasCoreRoutesManifest() {
@@ -436,7 +497,11 @@ function finishBuild(code) {
   }
 
   const routesManifestOk = hasCoreRoutesManifest();
-  if ((code !== 0 || manifestRepairFailed || !routesManifestOk) && attempt < maxBuildAttempts) {
+  const notFoundOk = exportedNotFoundIsCustom();
+  if (!notFoundOk) {
+    console.error(`[next-build-with-pages-manifest] ${relative(rootDir, exportedNotFoundPath)} 가 프레임워크 기본 404 입니다 — 커스텀 404(pages/404.tsx)가 export 되지 않았습니다.`);
+  }
+  if ((code !== 0 || manifestRepairFailed || !routesManifestOk || !notFoundOk) && attempt < maxBuildAttempts) {
     console.warn(`[next-build-with-pages-manifest] build attempt ${attempt}/${maxBuildAttempts} failed; retrying from a clean Next output.`);
     clearBuildOutputsForRetry();
     startNextBuildAttempt();
@@ -453,7 +518,20 @@ function finishBuild(code) {
     process.exit(1);
   }
 
+  // 🔴 code === 0 이어도 여기서 막는다. Next 는 export 를 성공으로 끝냈지만 산출물이 틀렸고,
+  // 통과시키면 그 틀린 404 가 그대로 배포 대상이 된다.
+  if (!notFoundOk) {
+    process.exit(1);
+  }
+
   process.exit(code ?? 1);
 }
 
-startNextBuildAttempt();
+// --self-test 는 next build 를 띄우지 않고 판정 로직만 검증한다. 빌드가 5분 걸리는 탓에
+// 이 로직에는 회귀를 잡을 방법이 없었고, 그래서 지금까지 아무도 못 잡았다.
+if (process.argv.includes("--self-test")) {
+  const count = selfTestNextBuildIntegrity();
+  console.log(`[next-build-with-pages-manifest] self-test passed (${count} cases)`);
+} else {
+  startNextBuildAttempt();
+}

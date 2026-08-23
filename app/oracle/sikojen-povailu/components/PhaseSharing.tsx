@@ -107,10 +107,53 @@ const SIKOJEN_SHARING_TEXT_TRANSLATIONS = {
     home: "🏠 メイン画面へ",
     blessingTitle: "✨ ヨニの祝福 ✨",
   },
+  "zh-CN": {
+    shareTitle: "Yeoni 的芬兰锡占",
+    shareResult: (name: string, fi: string) => `✨ 我的芬兰锡占结果:"${name}"(${fi})`,
+    shareMeaning: (meaning: string) => `💭 "${meaning}"`,
+    shareAdvice: (advice: string) => `🌸 Yeoni 的建议:${advice}`,
+    spriteAlt: "Yeoni 庆祝精灵",
+    title: "好运盛开了！🌺",
+    counselTitle: "Yeoni 的结语咨询",
+    counselMessage: "保存今天收到的讯息,下次选择会容易得多。也用分享按钮把福气分给知心朋友吧！",
+    category: { wealth: "💰 财富之形", love: "💕 爱情之形", luck: "🍀 好运之形" },
+    meaning: "✨ 含义",
+    advice: "💡 Yeoni 的建议",
+    shared: "✅ 已分享！",
+    copied: "📋 已复制！",
+    share: "📤 分享给朋友",
+    save: "💾 保存卡片",
+    restart: "🔄 再来一次",
+    home: "🏠 返回主页",
+    blessingTitle: "✨ Yeoni 的祝福 ✨",
+  },
+  "zh-TW": {
+    shareTitle: "Yeoni 的芬蘭錫占",
+    shareResult: (name: string, fi: string) => `✨ 我的芬蘭錫占結果:"${name}"(${fi})`,
+    shareMeaning: (meaning: string) => `💭 "${meaning}"`,
+    shareAdvice: (advice: string) => `🌸 Yeoni 的建議:${advice}`,
+    spriteAlt: "Yeoni 慶祝精靈",
+    title: "好運盛開了！🌺",
+    counselTitle: "Yeoni 的結語諮詢",
+    counselMessage: "保存今天收到的訊息,下次選擇會容易得多。也用分享按鈕把福氣分給知心朋友吧！",
+    category: { wealth: "💰 財富之形", love: "💕 愛情之形", luck: "🍀 好運之形" },
+    meaning: "✨ 含義",
+    advice: "💡 Yeoni 的建議",
+    shared: "✅ 已分享！",
+    copied: "📋 已複製！",
+    share: "📤 分享給朋友",
+    save: "💾 保存卡片",
+    restart: "🔄 再來一次",
+    home: "🏠 返回主頁",
+    blessingTitle: "✨ Yeoni 的祝福 ✨",
+  },
 } as const;
 
 function getSikojenSharingCopy(locale: LoadingLocale) {
-  return SIKOJEN_SHARING_TEXT_TRANSLATIONS[locale as "ko" | "en" | "ja"] || SIKOJEN_SHARING_TEXT_TRANSLATIONS.ko;
+  if (locale === "en" || locale === "ja" || locale === "zh-CN" || locale === "zh-TW") {
+    return SIKOJEN_SHARING_TEXT_TRANSLATIONS[locale];
+  }
+  return SIKOJEN_SHARING_TEXT_TRANSLATIONS.ko;
 }
 
 export function PhaseSharing() {
@@ -342,7 +385,7 @@ export function PhaseSharing() {
             {copy.blessingTitle}
           </p>
           <p className="text-sm text-purple-800 leading-relaxed">
-            &quot;{blessingMessage?.[locale === 'en' ? 'en' : locale === 'ja' ? 'ja' : 'ko']}<br/>
+            &quot;{blessingMessage?.[locale === 'ko' ? 'ko' : locale === 'ja' ? 'ja' : 'en']}<br/>
             <span className="font-bold italic text-purple-700">{blessingMessage?.fi}</span>&quot;
           </p>
         </div>

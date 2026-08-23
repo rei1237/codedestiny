@@ -51,7 +51,7 @@ test("the final cross verdict is rendered as the last part of the result", () =>
   assert.match(prompt, /FUSION_FINAL_VERDICT_SCHEMA/);
   assert.match(prompt, /systemVerdicts/);
   assert.match(resultThread, /result\.finalVerdict/);
-  assert.match(read(THREAD), /STANCE_LABEL/);
+  assert.match(resultThread, /copy\.stanceLabels\[item\.stance\]/);
   // 결론은 마지막에 온다 — 맺음말보다 앞이어야 한다.
   assert.ok(resultThread.indexOf("fusion-final-verdict-heading") > 0);
   assert.ok(resultThread.indexOf("fusion-final-verdict-heading") < resultThread.indexOf("fusion-closing-message"));
@@ -87,7 +87,7 @@ test("fusion fortune consumes server-sent completion stages", () => {
   const thread = read(THREAD);
   assert.match(client, /fusion-fortune\/generate\/stream/);
   assert.match(client, /consumeFusionStream/);
-  assert.match(client, /FUSION_STAGES/);
+  assert.match(client, /buildFusionStages/);
   assert.match(client, /Fusion Core 진행 방식 보기/);
   assert.match(client, /<dialog/);
   // 접히는 섹션은 결과 본문이 소유한다.
@@ -106,7 +106,10 @@ test("the generating view and the result live in one conversation thread", () =>
   const client = read(CLIENT);
   // 생성 화면과 결과 화면이 갈라지면 3만원짜리 상담이 "로딩 → 리포트"로 끊긴다.
   assert.match(client, /\{\(loading \|\| result \|\| failure\) && <section/);
-  assert.match(client, /aria-label="초융합 상담 대화"/);
+  // 아리아 라벨 문구는 12로케일 카피 객체에서 온다(useFusionFortuneCopy) — 한국어 리터럴은
+  // ko 로케일 항목으로 남아 있고, JSX 는 그 항목을 가리키는 copy.threadAriaLabel 을 쓴다.
+  assert.match(client, /aria-label=\{copy\.threadAriaLabel\}/);
+  assert.match(client, /threadAriaLabel: "초융합 상담 대화"/);
   // 아직 끝나지 않은 체계에 말풍선을 미리 만들지 않는다(없는 내용을 자리로 약속하지 않기).
   assert.match(client, /if \(state === "pending"\) return null;/);
   // 실패는 폼이 아니라 대화 안에 남고, 결제 증빙이 있으면 그 자리에서 재시도한다.
@@ -121,7 +124,7 @@ test("fusion visualization is inline SVG so the PDF capture keeps it", () => {
   assert.doesNotMatch(visual, /from "recharts"|<canvas/);
   // 레이더 · 12개월 라인 · 교차 검증 게이지 세 가지를 모두 그린다.
   assert.match(visual, /체계별 신호 강도/);
-  assert.match(visual, /앞으로 12개월의 시기 라인/);
+  assert.match(visual, /copy\.timelineHeading/);
   assert.match(visual, /교차 검증/);
   // 차트는 오브와 같은 색을 말해야 한다.
   assert.match(visual, /FUSION_ORB_BY_KEY/);
@@ -129,7 +132,7 @@ test("fusion visualization is inline SVG so the PDF capture keeps it", () => {
   assert.match(visual, /role="img"/);
   assert.match(visual, /aria-label=/);
   // 점수를 사람의 우열로 읽히게 두지 않는다.
-  assert.match(visual, /사람을 평가하는 점수가 아닙니다/);
+  assert.match(visual, /copy\.radarCaption/);
   assert.match(resultThread, /<FusionVisualization data=/);
 });
 

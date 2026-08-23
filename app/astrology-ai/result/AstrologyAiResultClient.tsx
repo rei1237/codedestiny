@@ -15,6 +15,239 @@ import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildAstrologyPreviewPayload } from "@/lib/dev-preview/fixtures/astrology";
 import AstrologyChartWheel from "@/components/fortune/AstrologyChartWheel";
 import type { RawPlanetLike, RawWesternChart } from "@/types/astrology";
+import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+
+type AstrologyResultCopy = {
+  birthDateLabel: string;
+  birthTimeLabel: string;
+  birthPlaceLabel: string;
+  consultTopicLabel: string;
+  sunLabel: string;
+  moonLabel: string;
+  ascendantLabel: string;
+  chartRulerLabel: string;
+  analysisBasisTitle: string;
+  chartBasicsTitle: string;
+  chartPlanetsTitle: string;
+  chartHousesTitle: string;
+  chartAspectsTitle: string;
+  chartTransitTitle: string;
+};
+
+const ASTROLOGY_RESULT_EN: AstrologyResultCopy = {
+  birthDateLabel: "Date of Birth",
+  birthTimeLabel: "Birth Time",
+  birthPlaceLabel: "Birthplace",
+  consultTopicLabel: "Consultation Topic",
+  sunLabel: "Sun",
+  moonLabel: "Moon",
+  ascendantLabel: "Ascendant",
+  chartRulerLabel: "Chart Ruler",
+  analysisBasisTitle: "Values Calculated for This Consultation",
+  chartBasicsTitle: "Chart Basics",
+  chartPlanetsTitle: "Planetary Positions",
+  chartHousesTitle: "Houses",
+  chartAspectsTitle: "Major Aspects",
+  chartTransitTitle: "Current Transits",
+};
+
+const ASTROLOGY_RESULT_COPY: Partial<Record<LoadingLocale, AstrologyResultCopy>> = {
+  ko: {
+    birthDateLabel: "생년월일",
+    birthTimeLabel: "출생시간",
+    birthPlaceLabel: "출생지",
+    consultTopicLabel: "상담 주제",
+    sunLabel: "태양",
+    moonLabel: "달",
+    ascendantLabel: "상승궁",
+    chartRulerLabel: "차트 룰러",
+    analysisBasisTitle: "이 상담이 계산한 값",
+    chartBasicsTitle: "차트 기준",
+    chartPlanetsTitle: "행성 위치",
+    chartHousesTitle: "하우스",
+    chartAspectsTitle: "주요 각도",
+    chartTransitTitle: "현재 트랜짓",
+  },
+  en: ASTROLOGY_RESULT_EN,
+  ja: {
+    birthDateLabel: "生年月日",
+    birthTimeLabel: "出生時刻",
+    birthPlaceLabel: "出生地",
+    consultTopicLabel: "相談テーマ",
+    sunLabel: "太陽",
+    moonLabel: "月",
+    ascendantLabel: "アセンダント",
+    chartRulerLabel: "チャートルーラー",
+    analysisBasisTitle: "この相談で計算した値",
+    chartBasicsTitle: "チャート基準",
+    chartPlanetsTitle: "惑星の位置",
+    chartHousesTitle: "ハウス",
+    chartAspectsTitle: "主要アスペクト",
+    chartTransitTitle: "現在のトランジット",
+  },
+  "zh-CN": {
+    birthDateLabel: "出生日期",
+    birthTimeLabel: "出生时间",
+    birthPlaceLabel: "出生地",
+    consultTopicLabel: "咨询主题",
+    sunLabel: "太阳",
+    moonLabel: "月亮",
+    ascendantLabel: "上升星座",
+    chartRulerLabel: "命主星",
+    analysisBasisTitle: "本次咨询计算的数值",
+    chartBasicsTitle: "星盘基础",
+    chartPlanetsTitle: "行星位置",
+    chartHousesTitle: "宫位",
+    chartAspectsTitle: "主要相位",
+    chartTransitTitle: "当前流年相位",
+  },
+  "zh-TW": {
+    birthDateLabel: "出生日期",
+    birthTimeLabel: "出生時間",
+    birthPlaceLabel: "出生地",
+    consultTopicLabel: "諮詢主題",
+    sunLabel: "太陽",
+    moonLabel: "月亮",
+    ascendantLabel: "上升星座",
+    chartRulerLabel: "命主星",
+    analysisBasisTitle: "本次諮詢計算的數值",
+    chartBasicsTitle: "星盤基礎",
+    chartPlanetsTitle: "行星位置",
+    chartHousesTitle: "宮位",
+    chartAspectsTitle: "主要相位",
+    chartTransitTitle: "當前流年相位",
+  },
+  vi: {
+    birthDateLabel: "Ngày sinh",
+    birthTimeLabel: "Giờ sinh",
+    birthPlaceLabel: "Nơi sinh",
+    consultTopicLabel: "Chủ đề tư vấn",
+    sunLabel: "Mặt Trời",
+    moonLabel: "Mặt Trăng",
+    ascendantLabel: "Cung Mọc",
+    chartRulerLabel: "Hành tinh chủ quản",
+    analysisBasisTitle: "Giá trị được tính cho buổi tư vấn này",
+    chartBasicsTitle: "Thông tin cơ bản của bản đồ sao",
+    chartPlanetsTitle: "Vị trí hành tinh",
+    chartHousesTitle: "Cung (Nhà)",
+    chartAspectsTitle: "Các góc chiếu chính",
+    chartTransitTitle: "Vận chuyển hiện tại (Transit)",
+  },
+  hi: {
+    birthDateLabel: "जन्म तिथि",
+    birthTimeLabel: "जन्म समय",
+    birthPlaceLabel: "जन्म स्थान",
+    consultTopicLabel: "परामर्श विषय",
+    sunLabel: "सूर्य",
+    moonLabel: "चंद्रमा",
+    ascendantLabel: "लग्न (Ascendant)",
+    chartRulerLabel: "चार्ट रूलर",
+    analysisBasisTitle: "इस परामर्श के लिए गणना किए गए मान",
+    chartBasicsTitle: "चार्ट की मूल बातें",
+    chartPlanetsTitle: "ग्रहों की स्थिति",
+    chartHousesTitle: "भाव (हाउस)",
+    chartAspectsTitle: "मुख्य दृष्टिकोण (एस्पेक्ट्स)",
+    chartTransitTitle: "वर्तमान ट्रांज़िट",
+  },
+  es: {
+    birthDateLabel: "Fecha de nacimiento",
+    birthTimeLabel: "Hora de nacimiento",
+    birthPlaceLabel: "Lugar de nacimiento",
+    consultTopicLabel: "Tema de la consulta",
+    sunLabel: "Sol",
+    moonLabel: "Luna",
+    ascendantLabel: "Ascendente",
+    chartRulerLabel: "Regente de la carta",
+    analysisBasisTitle: "Valores calculados para esta consulta",
+    chartBasicsTitle: "Datos básicos de la carta",
+    chartPlanetsTitle: "Posiciones planetarias",
+    chartHousesTitle: "Casas",
+    chartAspectsTitle: "Aspectos principales",
+    chartTransitTitle: "Tránsitos actuales",
+  },
+  fr: {
+    birthDateLabel: "Date de naissance",
+    birthTimeLabel: "Heure de naissance",
+    birthPlaceLabel: "Lieu de naissance",
+    consultTopicLabel: "Sujet de la consultation",
+    sunLabel: "Soleil",
+    moonLabel: "Lune",
+    ascendantLabel: "Ascendant",
+    chartRulerLabel: "Maître du thème",
+    analysisBasisTitle: "Valeurs calculées pour cette consultation",
+    chartBasicsTitle: "Bases du thème",
+    chartPlanetsTitle: "Positions planétaires",
+    chartHousesTitle: "Maisons",
+    chartAspectsTitle: "Aspects majeurs",
+    chartTransitTitle: "Transits actuels",
+  },
+  de: {
+    birthDateLabel: "Geburtsdatum",
+    birthTimeLabel: "Geburtszeit",
+    birthPlaceLabel: "Geburtsort",
+    consultTopicLabel: "Beratungsthema",
+    sunLabel: "Sonne",
+    moonLabel: "Mond",
+    ascendantLabel: "Aszendent",
+    chartRulerLabel: "Chart-Herrscher",
+    analysisBasisTitle: "Für diese Beratung berechnete Werte",
+    chartBasicsTitle: "Chart-Grundlagen",
+    chartPlanetsTitle: "Planetenpositionen",
+    chartHousesTitle: "Häuser",
+    chartAspectsTitle: "Wichtige Aspekte",
+    chartTransitTitle: "Aktuelle Transite",
+  },
+  nl: {
+    birthDateLabel: "Geboortedatum",
+    birthTimeLabel: "Geboortetijd",
+    birthPlaceLabel: "Geboorteplaats",
+    consultTopicLabel: "Consultonderwerp",
+    sunLabel: "Zon",
+    moonLabel: "Maan",
+    ascendantLabel: "Ascendant",
+    chartRulerLabel: "Chart-heerser",
+    analysisBasisTitle: "Waarden berekend voor dit consult",
+    chartBasicsTitle: "Basisgegevens van de horoscoop",
+    chartPlanetsTitle: "Planeetposities",
+    chartHousesTitle: "Huizen",
+    chartAspectsTitle: "Belangrijke aspecten",
+    chartTransitTitle: "Huidige transits",
+  },
+  ms: {
+    birthDateLabel: "Tarikh Lahir",
+    birthTimeLabel: "Masa Lahir",
+    birthPlaceLabel: "Tempat Lahir",
+    consultTopicLabel: "Topik Perundingan",
+    sunLabel: "Matahari",
+    moonLabel: "Bulan",
+    ascendantLabel: "Ascendant",
+    chartRulerLabel: "Pemerintah Carta",
+    analysisBasisTitle: "Nilai yang dikira untuk perundingan ini",
+    chartBasicsTitle: "Asas Carta",
+    chartPlanetsTitle: "Kedudukan Planet",
+    chartHousesTitle: "Rumah (House)",
+    chartAspectsTitle: "Aspek Utama",
+    chartTransitTitle: "Transit Semasa",
+  },
+};
+
+function getAstrologyResultCopy(locale: LoadingLocale): AstrologyResultCopy {
+  return ASTROLOGY_RESULT_COPY[locale] || ASTROLOGY_RESULT_EN;
+}
+
+function useAstrologyResultCopy(): AstrologyResultCopy {
+  const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  useEffect(() => {
+    const sync = () => setLocale(getCurrentLoadingLocale());
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      document.removeEventListener("cd:language-change", sync);
+    };
+  }, []);
+  return getAstrologyResultCopy(locale);
+}
 
 type ChartPoint = { sign?: string; signKo?: string; degree?: number; house?: number | null };
 type AstrologyChart = {
@@ -227,6 +460,7 @@ function safeFilePart(value: string) {
 }
 
 export default function AstrologyAiResultClient() {
+  const copy = useAstrologyResultCopy();
   const [resultId, setResultId] = useState("");
   const [queryReady, setQueryReady] = useState(false);
   const [consultation, setConsultation] = useState<Consultation | null>(null);
@@ -300,10 +534,10 @@ export default function AstrologyAiResultClient() {
   const userName = toText(birth.name) || "당신";
   const birthTime = birth.birthTimeUnknown ? "출생시간 미상" : toText(birth.birthTime) || "출생시간 미입력";
   const coreCards = [
-    { title: "태양", value: pointLabel(highlights.sun || chart?.sun) },
-    { title: "달", value: pointLabel(highlights.moon || chart?.moon) },
-    { title: "상승궁", value: highlights.ascendant || chart?.ascendant ? pointLabel(highlights.ascendant || chart?.ascendant) : "출생시간 미상으로 제한" },
-    { title: "차트 룰러", value: toText(highlights.chartRuler || chart?.chartRuler) || "제한적 해석" },
+    { title: copy.sunLabel, value: pointLabel(highlights.sun || chart?.sun) },
+    { title: copy.moonLabel, value: pointLabel(highlights.moon || chart?.moon) },
+    { title: copy.ascendantLabel, value: highlights.ascendant || chart?.ascendant ? pointLabel(highlights.ascendant || chart?.ascendant) : "출생시간 미상으로 제한" },
+    { title: copy.chartRulerLabel, value: toText(highlights.chartRuler || chart?.chartRuler) || "제한적 해석" },
   ];
   const keywords = (highlights.keywords || chart?.consultationKeywords || []).filter(Boolean).slice(0, 6);
   const evidencePlanets = (chart?.planets || []).slice(0, 7);
@@ -424,10 +658,10 @@ export default function AstrologyAiResultClient() {
               </header>
 
               <section className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                <InfoCard title="생년월일" value={toText(birth.birthDate) || "미입력"} />
-                <InfoCard title="출생시간" value={birthTime} />
-                <InfoCard title="출생지" value={[place.city, place.country].filter(Boolean).join(", ") || "미입력"} />
-                <InfoCard title="상담 주제" value={toText(consultation.topic) || "전체 차트 해석"} />
+                <InfoCard title={copy.birthDateLabel} value={toText(birth.birthDate) || "미입력"} />
+                <InfoCard title={copy.birthTimeLabel} value={birthTime} />
+                <InfoCard title={copy.birthPlaceLabel} value={[place.city, place.country].filter(Boolean).join(", ") || "미입력"} />
+                <InfoCard title={copy.consultTopicLabel} value={toText(consultation.topic) || "전체 차트 해석"} />
               </section>
 
               {birth.birthTimeUnknown && (
@@ -517,7 +751,7 @@ export default function AstrologyAiResultClient() {
                   아래 원자료 뷰가 그대로 폴백으로 남는다. */}
               {consultation.analysisBasis ? (
                 <section className={`${RESULT_PANEL_CLASS} p-5 [--cd-basis-popover-bg:#0d132c]`}>
-                  <AnalysisBasisPanel basis={consultation.analysisBasis} multiColumn={false} title="이 상담이 계산한 값" />
+                  <AnalysisBasisPanel basis={consultation.analysisBasis} multiColumn={false} title={copy.analysisBasisTitle} />
                 </section>
               ) : (
                 <details className={`${RESULT_PANEL_CLASS} p-5`} open>
@@ -530,11 +764,11 @@ export default function AstrologyAiResultClient() {
                     </span>
                   </summary>
                   <div className="mt-4">
-                    <ChartDataGroup title="차트 기준" items={chartBasics} />
-                    <ChartDataGroup title="행성 위치" items={chartPlanets.map(planetDataLabel)} />
-                    <ChartDataGroup title="하우스" items={chartHouses.length ? chartHouses.map(houseDataLabel) : ["출생시간 미상으로 하우스 해석은 제한됩니다."]} />
-                    <ChartDataGroup title="주요 각도" items={chartAspects.length ? chartAspects.map(aspectDataLabel) : ["저장된 주요 각도 데이터가 제한적입니다."]} />
-                    <ChartDataGroup title="현재 트랜짓" items={chartTransitAspects.length ? chartTransitAspects.map(transitDataLabel) : ["저장된 트랜짓 각도 데이터가 제한적입니다."]} />
+                    <ChartDataGroup title={copy.chartBasicsTitle} items={chartBasics} />
+                    <ChartDataGroup title={copy.chartPlanetsTitle} items={chartPlanets.map(planetDataLabel)} />
+                    <ChartDataGroup title={copy.chartHousesTitle} items={chartHouses.length ? chartHouses.map(houseDataLabel) : ["출생시간 미상으로 하우스 해석은 제한됩니다."]} />
+                    <ChartDataGroup title={copy.chartAspectsTitle} items={chartAspects.length ? chartAspects.map(aspectDataLabel) : ["저장된 주요 각도 데이터가 제한적입니다."]} />
+                    <ChartDataGroup title={copy.chartTransitTitle} items={chartTransitAspects.length ? chartTransitAspects.map(transitDataLabel) : ["저장된 트랜짓 각도 데이터가 제한적입니다."]} />
                   </div>
                 </details>
               )}
