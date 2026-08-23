@@ -11522,5 +11522,44 @@
     "free": {
       "0": "Fortune results are for reference only -- please confirm important decisions against your real-world judgment."
     }
+  },
+  "fortuneTeaHouse": {
+    "landing": {
+      "speeches": {
+        "0": "Welcome in. Let me warm today's heart for you first.",
+        "1": "Take your time with the question. Tea leaves know how to wait for a heart's pace.",
+        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?"
+      },
+      "title": "The Destiny Tea House",
+      "leadTop": "At the end of a moonlit alley, a door opens.",
+      "leadBottom": "Yeoni greets your question gently, before anything else.",
+      "intro": "Set down the feelings you found hard to say in front of the cup, and the symbols in the leaves and the cards will quietly light the direction worth holding onto now.",
+      "enterAriaSeen": "Start a reading at The Destiny Tea House right away",
+      "enterAriaFirst": "Start the prologue of The Destiny Tea House",
+      "enterLabelSeen": "Start the reading",
+      "enterLabelFirst": "Step into the tea house",
+      "replayAria": "Watch the prologue of The Destiny Tea House again",
+      "replayLabel": "Watch the prologue again",
+      "historyAria": "View your reading history at The Destiny Tea House",
+      "historyLabel": "View reading history",
+      "visualAria": "Yeoni the flower pig welcoming guests at the door",
+      "guideAria": "How The Destiny Tea House works",
+      "guide": {
+        "reading": {
+          "title": "Pause in front of the cup and the question underneath comes into focus",
+          "body1": "At The Destiny Tea House, Yeoni first reads the temperature of your question, then follows the symbols in the leaves and the cards to gently sort through how you feel and what your options are.",
+          "body2": "Before rushing to a verdict, we look at why your heart keeps returning to that question. Instead of hard pronouncements that feed anxiety, we calmly separate what you can hold onto from what is worth setting down."
+        },
+        "flow": {
+          "title": "A small question still gets a deep reading of what runs under it",
+          "body1": "From your name, your birth date, birth details where they matter, and the question itself, we light up love, relationships, choices and timing — each in its own language.",
+          "body2": "Tarot shows the scene of a feeling, the Four Pillars show the pattern that has run for years, and Sukuyo shows the distance and rhythm between people — all tied back to something you can act on today."
+        },
+        "promise": {
+          "title": "We never enlarge a wound — only the words you need, offered gently",
+          "body1": "The Destiny Tea House will not frighten you. We read for possibility and movement, and rather than making the choice for you, we hand you sentences you can think with."
+        }
+      }
+    }
   }
 }
