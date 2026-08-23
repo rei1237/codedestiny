@@ -142,7 +142,8 @@ on:
       - "lib/human-design/**"
       - "worker/lib/human-design-*.js"
       - "worker/lib/iana-offset.js"
-      - "worker/routes/human-design.js"
+      # 🔴 정확 일치라 human-design-report.js 가 안 걸린다 — 글롭으로 둘 다 덮는다.
+      - "worker/routes/human-design*.js"
       - "app/human-design/**"
       - "__tests__/fixtures/human-design/**"
       - "scripts/verify-human-design*.mjs"
