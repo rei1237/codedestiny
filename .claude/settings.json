@@ -123,6 +123,17 @@
             "statusMessage": "Checking for billed/production commands"
           }
         ]
+      },
+      {
+        "matcher": "Read",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PROJECT_DIR}/.claude/hooks/guard-image-read.mjs\"",
+            "timeout": 5,
+            "statusMessage": "Checking image context cost"
+          }
+        ]
       }
     ],
     "PostToolUse": [
