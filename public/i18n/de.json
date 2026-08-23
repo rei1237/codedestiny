@@ -890,17 +890,17 @@
     "passFooter": {
       "aria": "Übergeben Sie die Fußzeilenanleitung",
       "eyebrow": "Mondscheinpass",
-      "title": "Lassen Sie Ihre Glücksroutine mit einem Mondschein-Pass angenehmer weitergehen",
-      "desc": "Sobald Ihr Pass geöffnet ist, bleiben häufig verwendete Lesungen und kostenlose öffentliche Routinen an einem Ort, sodass der gewünschte Fluss schneller in die nächste Szene übergeht.",
+      "title": "Vier Readings zu 3.000 KRW kosten bereits mehr als der Pass für 9.900 KRW",
+      "desc": "Readings innerhalb des gewählten Bereichs öffnen sich 30 Tage lang ohne Nutzungsgrenze; nur teurere Readings zahlst du bei Bedarf einzeln. Es gibt vier Stufen: 3.000 · 5.000 · 10.000 · 30.000 KRW — wähle die, die du am häufigsten ansiehst.",
       "pointsAria": "Core-Pass-Anleitung",
-      "point1": "Überprüfen Sie sofort die kostenlosen öffentlichen Routinen",
-      "point2": "Schneller Zugriff auf häufige Lektüren",
-      "point3": "Überprüfen Sie gemeinsam Ihren Passbereich",
-      "mascotAria": "Sehen Sie sich die Vorteile des Kkul-Kkul-Passes an",
-      "mascotAlt": "Kkul-Kkul-Passführerbild",
-      "mascotKicker": "Honigführer",
-      "mascotText": "Kkul-Kkul! Beginnen Sie mit den heutigen kostenlosen Glücksroutinen und fahren Sie dann direkt mit dem Pass-Flow fort, der zu Ihnen passt.",
-      "cta": "Finden Sie den Pass, der zu mir passt"
+      "point1": "Öffnet sofort, ohne Bezahlvorgang",
+      "point2": "3 oder mehr Profile speichern",
+      "point3": "Ein 30-Tage-Pass ohne automatische Verlängerung",
+      "mascotAria": "Vorteile des Moonlight Pass ansehen · Moonlight-Pass-Shop",
+      "mascotAlt": "Bild der Moonlight-Pass-Vorteile",
+      "mascotKicker": "Moonlight Pass Guide",
+      "mascotText": "Wie oft im Monat und zu welchem Preis — klär diese zwei Dinge, und der passende Bereich ergibt sich.",
+      "cta": "Alle vier Pässe vergleichen und wählen"
     },
     "dreamPrompt": {
       "closeAria": "Traum-Tarot schließen",

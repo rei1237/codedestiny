@@ -890,17 +890,17 @@
     "passFooter": {
       "aria": "Lulus panduan pengaki",
       "eyebrow": "Pas Cahaya Bulan",
-      "title": "Biarkan rutin rezeki anda diteruskan dengan lebih selesa dengan cahaya bulan berlalu",
-      "desc": "Sebaik sahaja pas anda dibuka, bacaan yang kerap digunakan dan rutin awam percuma kekal bersama di satu tempat, jadi aliran yang anda inginkan diteruskan dengan lebih pantas ke babak seterusnya.",
+      "title": "Empat bacaan 3,000 KRW sudah lebih mahal daripada pas 9,900 KRW",
+      "desc": "Bacaan dalam julat harga yang anda pilih dibuka selama 30 hari tanpa had bilangan; hanya bacaan yang lebih mahal dibayar satu per satu apabila diperlukan. Ada empat julat: 3,000 · 5,000 · 10,000 · 30,000 KRW — pilih harga yang paling kerap anda lihat.",
       "pointsAria": "Panduan lulus teras",
-      "point1": "Semak rutin awam percuma dengan segera",
-      "point2": "Akses pantas kepada bacaan kerap",
-      "point3": "Semak julat pas anda bersama-sama",
-      "mascotAria": "Lihat faedah pas Kkul-Kkul",
-      "mascotAlt": "Imej panduan pas Kkul-Kkul",
-      "mascotKicker": "Panduan Madu",
-      "mascotText": "Kkul-Kkul! Mulakan dengan rutin nasib percuma hari ini, kemudian teruskan terus ke aliran pas yang sesuai dengan anda.",
-      "cta": "Cari pas yang sesuai dengan saya"
+      "point1": "Terbuka terus, tanpa pembayaran",
+      "point2": "Simpan 3 profil atau lebih",
+      "point3": "Pas 30 hari tanpa pembaharuan automatik",
+      "mascotAria": "Lihat manfaat Moonlight Pass · Kedai Moonlight Pass",
+      "mascotAlt": "Imej manfaat Moonlight Pass",
+      "mascotKicker": "Moonlight Pass Guide",
+      "mascotText": "Berapa kali sebulan, pada harga berapa — tetapkan dua perkara itu, julat yang sesuai akan muncul.",
+      "cta": "Banding empat pas dan pilih"
     },
     "dreamPrompt": {
       "closeAria": "Tutup Tarot Mimpi",

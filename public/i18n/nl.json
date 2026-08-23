@@ -890,17 +890,17 @@
     "passFooter": {
       "aria": "Voettekstgids doorgeven",
       "eyebrow": "Maanlichtpas",
-      "title": "Laat uw fortuinroutine comfortabeler doorgaan met een maanlichtpas",
-      "desc": "Zodra uw pas wordt geopend, blijven veelgebruikte lezingen en gratis openbare routines bij elkaar op één plek, zodat de gewenste stroom sneller doorgaat naar de volgende scène.",
+      "title": "Vier readings van 3.000 KRW kosten al meer dan de pass van 9.900 KRW",
+      "desc": "Readings binnen het gekozen bereik openen 30 dagen lang zonder gebruikslimiet; alleen duurdere readings betaal je los wanneer je ze nodig hebt. Er zijn vier stappen: 3.000 · 5.000 · 10.000 · 30.000 KRW — kies de prijs die je het vaakst bekijkt.",
       "pointsAria": "Kernpasgids",
-      "point1": "Bekijk meteen gratis openbare routines",
-      "point2": "Snelle toegang tot frequente metingen",
-      "point3": "Controleer samen uw pasbereik",
-      "mascotAria": "Bekijk de voordelen van de Kkul-Kkul-pas",
-      "mascotAlt": "Afbeelding van de Kkul-Kkul-pasgids",
-      "mascotKicker": "Honinggids",
-      "mascotText": "Kkul-Kkul! Begin met de gratis fortuinroutines van vandaag en ga dan meteen door naar de passtroom die bij u past.",
-      "cta": "Vind de pas die bij mij past"
+      "point1": "Gaat direct open, zonder afrekenen",
+      "point2": "Bewaar 3 of meer profielen",
+      "point3": "Een pass van 30 dagen zonder automatische verlenging",
+      "mascotAria": "Voordelen van de Moonlight Pass bekijken · Moonlight Pass-winkel",
+      "mascotAlt": "Afbeelding met voordelen van de Moonlight Pass",
+      "mascotKicker": "Moonlight Pass Guide",
+      "mascotText": "Hoe vaak per maand en tegen welke prijs — bepaal die twee en het juiste bereik rolt eruit.",
+      "cta": "Vergelijk de vier passes en kies"
     },
     "dreamPrompt": {
       "closeAria": "Sluit de Droomtarot",
