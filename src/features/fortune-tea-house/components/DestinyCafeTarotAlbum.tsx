@@ -43,7 +43,9 @@ import { authFetch } from "@/app/_lib/auth-client";
 import { normalizeHoneyDropsState } from "../lib/honeyDrops";
 import { getTarotCardImageCoverage } from "../lib/tarotCardImageMap";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
-
+
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
+import { useLocale } from "@/lib/i18n/useT";
 const TAROT_ALBUM_UNLOCK_COST = 10;
 const PDF_PAGE_WIDTH_PX = 794;
 const PDF_PAGE_HEIGHT_PX = 1123;
@@ -73,29 +75,30 @@ type DestinyCafeTarotAlbumProps = {
   onHoneyDropsChange: (nextHoneyDrops: FortuneTeaHouseHoneyDropsState) => void;
 };
 
-const tarotAlbumTabs: Array<{ id: TarotAlbumFilter; label: string }> = [
-  { id: "all", label: "전체" },
-  { id: "major", label: "메이저 아르카나" },
-  { id: "wands", label: "완드" },
-  { id: "cups", label: "컵" },
-  { id: "swords", label: "소드" },
-  { id: "pentacles", label: "펜타클" },
+// 🔴 표는 모듈 최상위라 훅을 못 부른다. 값이 아니라 KO 의 **키**를 담고, 렌더에서 copy[labelKey] 로 편다.
+const tarotAlbumTabs: Array<{ id: TarotAlbumFilter; labelKey: keyof typeof KO }> = [
+  { id: "all", labelKey: "kk03sxsx" },
+  { id: "major", labelKey: "knnv85fh" },
+  { id: "wands", labelKey: "kr7i3yto" },
+  { id: "cups", labelKey: "k8tcg3oe" },
+  { id: "swords", labelKey: "kph0fvpr" },
+  { id: "pentacles", labelKey: "k79dstes" },
 ];
 
-const tarotAlbumSortOptions: Array<{ id: TarotAlbumSortMode; label: string }> = [
-  { id: "default", label: "기본 순서" },
-  { id: "major-first", label: "메이저 먼저" },
-  { id: "minor-first", label: "마이너 먼저" },
-  { id: "name", label: "이름순" },
+const tarotAlbumSortOptions: Array<{ id: TarotAlbumSortMode; labelKey: keyof typeof KO }> = [
+  { id: "default", labelKey: "k2lsrnrw" },
+  { id: "major-first", labelKey: "kby0xnd1" },
+  { id: "minor-first", labelKey: "kdwhxrty" },
+  { id: "name", labelKey: "kpqljmoc" },
 ];
 
-const pdfMessageByPhase: Record<Exclude<TarotPdfPhase, "idle">, string> = {
-  preparing: "달빛 아래에서 당신의 타로 앨범을 준비하는 중이에요.",
-  images: "카드 이미지를 한 장씩 불러오고 있어요.",
-  stories: "연이가 카드 이야기를 한 장씩 엮고 있어요.",
-  rendering: "PDF 생성 중이에요. 잠시만 기다려 주세요.",
-  done: "PDF 다운로드가 완료됐어요.",
-  error: "PDF 생성에 실패했어요. 잠시 후 다시 시도해 주세요.",
+const pdfMessageByPhase: Record<Exclude<TarotPdfPhase, "idle">, keyof typeof KO> = {
+  preparing: "koq4dt2a",
+  images: "kqejmfjk",
+  stories: "kuqqlnlp",
+  rendering: "kx5gbrnz",
+  done: "kw9ktd7m",
+  error: "k873uvgj",
 };
 
 function cx(...classes: Array<string | false | null | undefined>) {
@@ -132,16 +135,18 @@ function sanitizePdfFileName(value: string) {
   return value.replace(/[\\/:*?"<>|]+/g, "_").replace(/\s+/g, "_");
 }
 
-function getPdfFileName(mode: TarotPdfMode, cards: TarotAlbumStoryCard[]) {
-  if (mode === "single" && cards[0]) return `운명찻집_타로카드_${sanitizePdfFileName(cards[0].titleEn)}.pdf`;
-  if (mode === "selected") return "운명찻집_타로카드_선택카드.pdf";
-  return "운명찻집_달빛타로카드앨범_전체.pdf";
+function getPdfFileName(mode: TarotPdfMode, cards: TarotAlbumStoryCard[], copy: typeof KO) {
+  if (mode === "single" && cards[0]) return copy.pdfFileNameSingle.replace("{name}", sanitizePdfFileName(cards[0].titleEn));
+  if (mode === "selected") return copy.k7vazcgq;
+  return copy.kihtwum1;
 }
 
-function sortTarotCards(cards: TarotAlbumStoryCard[], sortMode: TarotAlbumSortMode) {
+function sortTarotCards(cards: TarotAlbumStoryCard[], sortMode: TarotAlbumSortMode, locale: string) {
   const sorted = [...cards];
   if (sortMode === "name") {
-    return sorted.sort((a, b) => a.titleKo.localeCompare(b.titleKo, "ko-KR") || a.titleEn.localeCompare(b.titleEn));
+    // 🔴 정렬 기준을 "ko-KR" 로 고정하면 어떤 로케일에서도 한국어 자모 순으로 늘어선다.
+    // 활성 로케일로 비교하고, 그 로케일에 한국어 제목이 없을 수 있으므로 영문 제목이 tie-breaker 다.
+    return sorted.sort((a, b) => a.titleKo.localeCompare(b.titleKo, locale) || a.titleEn.localeCompare(b.titleEn, locale));
   }
   if (sortMode === "minor-first") {
     return sorted.sort((a, b) => (a.arcana === b.arcana ? a.order - b.order : a.arcana === "minor" ? -1 : 1));
@@ -163,12 +168,121 @@ function cardSearchText(card: TarotAlbumStoryCard) {
   ].filter(Boolean).join(" "));
 }
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    키는 문구의 결정론적 해시라 같은 문구가 자동으로 한 키로 합쳐진다(정적 셸의 마커 도구와 같은 방식). */
+const KO = {
+  k0iceshy: "달빛 아래 펼친 이야기가 내일의 선택을 대신 정하지는 않지만, 당신이 이미 알고 있던 작은 감각을 다시 믿게 해주기를 바랍니다.",
+  k1gzgjee: "연이의 비밀 카드첩",
+  k1h4mohy: "달빛 앨범을 여는 중",
+  k1iqbrdw: "탭하여 펼치기",
+  k1yzt0ya: "달빛 타로 카드 앨범",
+  k2jfbomz: "역방향",
+  k2lsrnrw: "기본 순서",
+  k2tt3wwq: "PDF에 담을 카드를 먼저 선택해 주세요.",
+  k35zodw1: "타로 카드 검색",
+  k3anflqu: "이전",
+  k6jsudop: "스토리 잠금이 해제된 뒤 PDF를 만들 수 있어요.",
+  k79dstes: "펜타클",
+  k7vazcgq: "운명찻집_타로카드_선택카드.pdf",
+  k873uvgj: "PDF 생성에 실패했어요. 잠시 후 다시 시도해 주세요.",
+  k8tcg3oe: "컵",
+  k9bz0eod: "카드가 깨어났어요. 이제 달빛 아래서 천천히 넘겨보세요.",
+  kactydpb: "확인 중",
+  kajyhu4o: "내면 성장",
+  kampzo9z: "연이가 깊은 서랍에 아껴두었던 카드 이야기예요. 타로 카드 의미와 해석을 한 장씩 읽고, 마음에 남는 카드는 PDF로 엮어 보관해 보세요.",
+  kb6dudtb: "달빛 서가",
+  kbfum84c: "타로 카드 분류",
+  kbs8kn5u: "일",
+  kbx1lbox: "연이가 들려주는 카드 이야기",
+  kby0xnd1: "메이저 먼저",
+  kcbceqsz: "선택",
+  kceymbv8: "카드 정렬",
+  kcojnagb: "카드 이름, 키워드, 해석 검색",
+  kdhtquzm: "목차",
+  kdwhxrty: "마이너 먼저",
+  kewammtp: "개",
+  kfe3rgpe: "카드",
+  kfnkjoro: "연이가 카드 이야기를 한 장씩 엮어, 오늘의 마음 곁에 오래 머무는 타로 도감으로 묶었습니다.",
+  kftcqqfx: "오늘 당신에게 필요한 카드는 이미 마음속에 남아 있어요.",
+  kfvqms0a: "다음 카드 보기",
+  khjystua: "현재 꿀방울",
+  khux287z: "다음",
+  kibbunuu: "달빛 아래에서 아직 맞는 카드를 찾지 못했어요. 이름이나 키워드를 조금 다르게 불러보세요.",
+  kihtwum1: "운명찻집_달빛타로카드앨범_전체.pdf",
+  kiixx8vi: "모두 펼치기",
+  kjcpkfd5: "나에게 던지는 질문",
+  kjvmkajp: "장 PDF",
+  kk03sxsx: "전체",
+  kkoogge5: "돈",
+  kkr3uulf: "CODE DESTINY · 운명 찻집",
+  kl0nq8gl: "카드 이름·키워드 검색",
+  klirlgb2: "꿀방울 10개로 앨범 열기",
+  km05ijjs: "연이의 메시지",
+  kmlqylfg: "카드 상세 닫기",
+  kmzmv9si: "전체 PDF 다운로드",
+  kmzwjems: "달빛 타로 앨범 닫기",
+  knbpabsn: "와… 꿀방울이 10개나 모였네요? 그럼 제가 아껴둔 달빛 타로 앨범을 살짝 열어드릴게요.",
+  knnv85fh: "메이저 아르카나",
+  ko4yt45j: "사랑",
+  ko8qlqfx: "정방향",
+  kodlrapd: "이제 이 카드첩은 손님 곁에 열려 있어요. 마음이 흔들릴 때마다 달빛 아래서 천천히 넘겨보세요.",
+  koq4dt2a: "달빛 아래에서 당신의 타로 앨범을 준비하는 중이에요.",
+  kp7ramna: "역방향 의미",
+  kph0fvpr: "소드",
+  kpqljmoc: "이름순",
+  kpuzku7s: "생성일",
+  kq8n5rri: "앨범 해금 완료",
+  kqcshbql: "잠시 후 다시 확인해주세요.",
+  kqejmfjk: "카드 이미지를 한 장씩 불러오고 있어요.",
+  kqjhespg: "78장의 이야기가 기다리고 있어요",
+  kqjimwmt: "운명 찻집",
+  kqnfouen: "모두 덮기",
+  kqvrsm7l: "정방향 의미",
+  kr7i3yto: "완드",
+  krvhfnlu: "아직 달빛 속에 잠든 카드",
+  kskfjn2j: "장",
+  ksnvhf6c: "다음 카드",
+  ksoa9rli: "1장 PDF",
+  ksp1zhrt: "운명의 찻집에서 상담을 보면 꿀방울을 모을 수 있어요.",
+  ktz26j2g: "해금 카드",
+  kuqqlnlp: "연이가 카드 이야기를 한 장씩 엮고 있어요.",
+  kv2kg2cx: "이전 카드 보기",
+  kvgpq4qo: "선택 카드 PDF",
+  kw9ktd7m: "PDF 다운로드가 완료됐어요.",
+  kwqkjwzw: "관계",
+  kwuaodmd: "카드를 열어보세요. 한 장 한 장에 담긴 연이의 이야기가 손님을 기다리고 있어요. 꿀방울 10개를 모으면 78장의 타로 도감이 달빛 아래 펼쳐집니다.",
+  kwxkbj5k: "78장의 카드가 달빛 찻집의 도감처럼 조용히 펼쳐집니다.",
+  kx5gbrnz: "PDF 생성 중이에요. 잠시만 기다려 주세요.",
+  kxhy61lm: "해금 필요",
+  kxj8ah4r: "보유 꿀방울",
+  kxjbdi0j: "이전 카드",
+  kyikujnc: "스토리 잠금이 걸려 있어요. 달빛이 조금만 더 차오르면 카드첩이 열릴 거예요.",
+  kyny7lmn: "꿀방울이 조금 더 필요해요",
+  // 아래는 런타임 치환 자리를 갖는 문장이다. 조각내면 어순이 한국어 기준으로 굳으므로
+  // 문장 전체를 한 키로 두고 {슬롯}만 채운다.
+  pdfFileNameSingle: "운명찻집_타로카드_{name}.pdf",
+  selectedPdfLabel: "선택 {count}장 PDF",
+  cardShelfToggleAria: "{title} 달빛 서가에 담기 {action}",
+  cardShelfRemove: "해제",
+  cardShelfAdd: "담음",
+  cardCoverAria: "{title} 카드 다시 덮기",
+  cardRevealAria: "{title} 카드 펼쳐 앞면 보기",
+  cardDetailAria: "{title} {titleEn} 카드 자세히 보기",
+  cardImageAlt: "{title} {titleEn} 타로 카드",
+  honeyCountText: "{count}개",
+  cardZoomAlt: "{title} {titleEn} 타로 카드 크게 보기",
+  cardPositionAria: "카드 {index}번째, 전체 {total}장",
+  cardSinglePdfAria: "{title} 한 장 PDF 다운로드",
+};
+
 export default function DestinyCafeTarotAlbum({
   isOpen,
   honeyDrops,
   onClose,
   onHoneyDropsChange,
 }: DestinyCafeTarotAlbumProps) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
+  const locale = useLocale();
   const [activeFilter, setActiveFilter] = useState<TarotAlbumFilter>("all");
   const [sortMode, setSortMode] = useState<TarotAlbumSortMode>("default");
   const [searchText, setSearchText] = useState("");
@@ -208,12 +322,12 @@ export default function DestinyCafeTarotAlbum({
   );
   const isPdfBusy = Boolean(pdfStatus && ["preparing", "images", "stories", "rendering"].includes(pdfStatus.phase));
   const lockDialogue = isHoneyDisabled
-    ? "잠시 후 다시 확인해주세요."
+    ? copy.kqcshbql
     : isAlbumUnlocked
-      ? "이제 이 카드첩은 손님 곁에 열려 있어요. 마음이 흔들릴 때마다 달빛 아래서 천천히 넘겨보세요."
+      ? copy.kodlrapd
       : canUnlock
-        ? "와… 꿀방울이 10개나 모였네요? 그럼 제가 아껴둔 달빛 타로 앨범을 살짝 열어드릴게요."
-        : "스토리 잠금이 걸려 있어요. 달빛이 조금만 더 차오르면 카드첩이 열릴 거예요.";
+        ? copy.knbpabsn
+        : copy.kyikujnc;
   const filteredCards = useMemo(() => {
     const query = normalizeSearch(searchText);
     const nextCards = albumCards.filter((card) => {
@@ -223,8 +337,8 @@ export default function DestinyCafeTarotAlbum({
       if (!query) return true;
       return cardSearchText(card).includes(query);
     });
-    return sortTarotCards(nextCards, sortMode);
-  }, [activeFilter, albumCards, searchText, sortMode]);
+    return sortTarotCards(nextCards, sortMode, locale);
+  }, [activeFilter, albumCards, locale, searchText, sortMode]);
 
   useEffect(() => {
     if (!isOpen) return;
@@ -336,29 +450,29 @@ export default function DestinyCafeTarotAlbum({
 
   const handleDownloadPdf = useCallback(async (mode: TarotPdfMode, focusCard?: TarotAlbumStoryCard) => {
     if (!isAlbumUnlocked) {
-      setPdfStatus({ phase: "error", message: "스토리 잠금이 해제된 뒤 PDF를 만들 수 있어요." });
+      setPdfStatus({ phase: "error", message: copy.k6jsudop });
       return;
     }
     const cards = mode === "all" ? albumCards : mode === "selected" ? selectedCards : focusCard ? [focusCard] : [];
     if (!cards.length) {
-      setPdfStatus({ phase: "error", message: "PDF에 담을 카드를 먼저 선택해 주세요." });
+      setPdfStatus({ phase: "error", message: copy.k2tt3wwq });
       return;
     }
 
     setPdfCards(cards);
-    setPdfStatus({ phase: "preparing", message: pdfMessageByPhase.preparing });
+    setPdfStatus({ phase: "preparing", message: copy[pdfMessageByPhase.preparing] });
     try {
       await waitForNextPaint();
       const renderRoot = pdfRenderRef.current;
       if (!renderRoot) throw new Error("PDF_RENDER_ROOT_MISSING");
 
-      setPdfStatus({ phase: "images", message: pdfMessageByPhase.images });
+      setPdfStatus({ phase: "images", message: copy[pdfMessageByPhase.images] });
       await waitForPdfImages(renderRoot);
 
-      setPdfStatus({ phase: "stories", message: pdfMessageByPhase.stories });
+      setPdfStatus({ phase: "stories", message: copy[pdfMessageByPhase.stories] });
       await waitForNextPaint();
 
-      setPdfStatus({ phase: "rendering", message: pdfMessageByPhase.rendering });
+      setPdfStatus({ phase: "rendering", message: copy[pdfMessageByPhase.rendering] });
       const [{ default: html2canvas }, jsPdfModule] = await Promise.all([
         import("html2canvas"),
         import("jspdf"),
@@ -382,15 +496,16 @@ export default function DestinyCafeTarotAlbum({
         pdf.addImage(imageData, "JPEG", 0, 0, pageWidth, pageHeight, undefined, "FAST");
       }
 
-      pdf.save(getPdfFileName(mode, cards));
-      setPdfStatus({ phase: "done", message: pdfMessageByPhase.done });
+      pdf.save(getPdfFileName(mode, cards, copy));
+      setPdfStatus({ phase: "done", message: copy[pdfMessageByPhase.done] });
     } catch (error) {
       console.warn("[FortuneTeaHouse] Tarot album PDF failed", error);
-      setPdfStatus({ phase: "error", message: pdfMessageByPhase.error });
+      setPdfStatus({ phase: "error", message: copy[pdfMessageByPhase.error] });
     } finally {
       window.setTimeout(() => setPdfCards([]), 800);
     }
-  }, [albumCards, isAlbumUnlocked, selectedCards]);
+    // copy 를 의존성에 둔다 — 빠뜨리면 로케일을 바꿔도 이 콜백이 옛 문구(PDF 파일명·진행 메시지)를 계속 쓴다.
+  }, [albumCards, copy, isAlbumUnlocked, selectedCards]);
 
   if (!isOpen) return null;
 
@@ -422,7 +537,7 @@ export default function DestinyCafeTarotAlbum({
         type="button"
         className="fixed right-4 top-4 z-[75] grid h-11 w-11 place-items-center rounded-full border border-champagne-gold/25 bg-white/[0.07] text-champagne-gold shadow-[0_16px_40px_rgba(0,0,0,.35)] backdrop-blur-xl transition hover:-translate-y-0.5 hover:border-champagne-gold/50 hover:bg-white/[0.11] focus:outline-none focus:ring-2 focus:ring-champagne-gold/50 sm:right-6 sm:top-6"
         onClick={onClose}
-        aria-label="달빛 타로 앨범 닫기"
+        aria-label={copy.kmzwjems}
       >
         <X size={18} aria-hidden />
       </button>
@@ -450,10 +565,11 @@ export default function DestinyCafeTarotAlbum({
               </div>
               <div className="mt-2.5 flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2.5">
                 <p className="text-xs font-bold text-moonveil-silver" aria-live="polite">
-                  카드 <span className="font-mono font-black tabular-nums text-champagne-gold">{filteredCards.length}</span>장
+                  
+                  {copy.kfe3rgpe} <span className="font-mono font-black tabular-nums text-champagne-gold">{filteredCards.length}</span>{copy.kskfjn2j}
                   {selectedCount ? (
                     <>
-                      {" · "}달빛 서가 <span className="font-mono font-black tabular-nums text-champagne-gold">{selectedCount}</span>장
+                      {" · "}{copy.kb6dudtb} <span className="font-mono font-black tabular-nums text-champagne-gold">{selectedCount}</span>{copy.kskfjn2j}
                     </>
                   ) : null}
                 </p>
@@ -465,7 +581,7 @@ export default function DestinyCafeTarotAlbum({
                     disabled={!filteredCards.length}
                   >
                     {allVisibleFlipped ? <RotateCcw size={13} aria-hidden /> : <Sparkles size={13} aria-hidden />}
-                    {allVisibleFlipped ? "모두 덮기" : "모두 펼치기"}
+                    {allVisibleFlipped ? copy.kqnfouen : copy.kiixx8vi}
                   </button>
                   {selectedCount ? (
                     <button
@@ -475,7 +591,8 @@ export default function DestinyCafeTarotAlbum({
                       disabled={isPdfBusy}
                     >
                       {isPdfBusy ? <Loader2 size={13} className="animate-spin" aria-hidden /> : <Download size={13} aria-hidden />}
-                      선택 {selectedCount}장 PDF
+                      
+                      {copy.kcbceqsz} {selectedCount}{copy.kjvmkajp}
                     </button>
                   ) : null}
                 </div>
@@ -497,7 +614,8 @@ export default function DestinyCafeTarotAlbum({
             />
             {!filteredCards.length ? (
               <p className="rounded-2xl border border-moonveil-silver/15 bg-white/[0.045] px-4 py-5 text-center text-sm leading-relaxed text-moonveil-silver/80">
-                달빛 아래에서 아직 맞는 카드를 찾지 못했어요. 이름이나 키워드를 조금 다르게 불러보세요.
+                
+                {copy.kibbunuu}
               </p>
             ) : null}
           </div>
@@ -516,11 +634,11 @@ export default function DestinyCafeTarotAlbum({
             onUnlock={async () => {
               if (isAlbumUnlocked) return;
               if (isHoneyLoading || isHoneyDisabled) {
-                setUnlockMessage("잠시 후 다시 확인해주세요.");
+                setUnlockMessage(copy.kqcshbql);
                 return;
               }
               if (currentHoneyDrops < TAROT_ALBUM_UNLOCK_COST) {
-                setUnlockMessage("운명의 찻집에서 상담을 보면 꿀방울을 모을 수 있어요.");
+                setUnlockMessage(copy.ksp1zhrt);
                 return;
               }
               setIsUnlocking(true);
@@ -536,12 +654,12 @@ export default function DestinyCafeTarotAlbum({
                 const nextHoneyDrops = normalizeHoneyDropsState(payload?.honeyDrops);
                 if (nextHoneyDrops) onHoneyDropsChange(nextHoneyDrops);
                 if (!response.ok || !payload?.success) {
-                  setUnlockMessage(payload?.message || "잠시 후 다시 확인해주세요.");
+                  setUnlockMessage(payload?.message || copy.kqcshbql);
                   return;
                 }
-                setUnlockMessage("카드가 깨어났어요. 이제 달빛 아래서 천천히 넘겨보세요.");
+                setUnlockMessage(copy.k9bz0eod);
               } catch {
-                setUnlockMessage("잠시 후 다시 확인해주세요.");
+                setUnlockMessage(copy.kqcshbql);
               } finally {
                 setIsUnlocking(false);
               }
@@ -599,6 +717,7 @@ function TarotAlbumHero({
   onDownloadAll: () => void;
   onDownloadSelected: () => void;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   return (
     <header className="relative overflow-hidden rounded-[1.25rem] border border-champagne-gold/24 bg-midnight-ink/52 px-5 py-6 shadow-[0_0_70px_rgba(216,179,108,0.16)] backdrop-blur-xl sm:px-6 sm:py-8 md:px-10 md:py-12">
       <span className="pointer-events-none absolute left-10 top-6 h-28 w-28 rounded-full bg-champagne-gold/10 blur-2xl" aria-hidden />
@@ -618,29 +737,35 @@ function TarotAlbumHero({
             MOONLIT TAROT ARCHIVE
           </span>
           <h2 id="tarotAlbumTitle" className="break-keep font-premium text-3xl font-black leading-tight text-champagne-gold drop-shadow-[0_2px_24px_rgba(216,179,108,.28)] sm:text-5xl lg:text-6xl">
-            달빛 타로 카드 앨범
+            
+            {copy.k1yzt0ya}
           </h2>
           <p className="mt-3 text-base font-semibold leading-relaxed text-pearl-mist sm:mt-4 sm:text-xl">
-            78장의 카드가 달빛 찻집의 도감처럼 조용히 펼쳐집니다.
+            
+            {copy.kwxkbj5k}
           </p>
           <p className="mt-3 max-w-2xl text-sm leading-7 text-moonveil-silver sm:text-base">
-            연이가 깊은 서랍에 아껴두었던 카드 이야기예요. 타로 카드 의미와 해석을 한 장씩 읽고, 마음에 남는 카드는 PDF로 엮어 보관해 보세요.
+            
+            {copy.kampzo9z}
           </p>
           <div className="mt-6 flex flex-wrap items-center gap-2">
             <TarotAlbumUnlockBadge />
             <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver">
-              보유 꿀방울 <span className="ml-1 font-mono tabular-nums">{currentHoneyDrops}</span>개
+              
+              {copy.kxj8ah4r} <span className="ml-1 font-mono tabular-nums">{currentHoneyDrops}</span>{copy.kewammtp}
             </span>
             <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver">
-              해금 카드 <span className="ml-1 font-mono tabular-nums">{totalCards}</span>장
+              
+              {copy.ktz26j2g} <span className="ml-1 font-mono tabular-nums">{totalCards}</span>{copy.kskfjn2j}
             </span>
             <span className="inline-flex min-h-10 items-center rounded-full border border-moonveil-silver/15 bg-white/[0.055] px-4 text-sm font-bold text-moonveil-silver">
-              달빛 서가 <span className="ml-1 font-mono tabular-nums">{selectedCount}/{totalCards}</span>장
+              
+              {copy.kb6dudtb} <span className="ml-1 font-mono tabular-nums">{selectedCount}/{totalCards}</span>{copy.kskfjn2j}
             </span>
           </div>
           <div className="mt-6 flex flex-col gap-2 sm:flex-row sm:flex-wrap">
-            <PdfActionButton onClick={onDownloadAll} disabled={pdfBusy} label="전체 PDF 다운로드" />
-            <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} label={selectedCount ? `선택 ${selectedCount}장 PDF` : "선택 카드 PDF"} />
+            <PdfActionButton onClick={onDownloadAll} disabled={pdfBusy} label={copy.kmzmv9si} />
+            <PdfActionButton onClick={onDownloadSelected} disabled={pdfBusy || selectedCount === 0} label={selectedCount ? copy.selectedPdfLabel.replace("{count}", String(selectedCount)) : copy.kvgpq4qo} />
           </div>
         </div>
         <div className="relative mx-auto mt-1 w-full max-w-[220px] sm:max-w-[264px] lg:mt-0" aria-hidden>
@@ -769,10 +894,12 @@ function PdfActionButton({
 }
 
 function TarotAlbumUnlockBadge() {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   return (
     <span className="inline-flex min-h-10 items-center gap-2 rounded-full border border-champagne-gold/30 bg-champagne-gold/10 px-4 text-sm font-extrabold text-champagne-gold shadow-[0_0_24px_rgba(216,179,108,0.12)]">
       <CheckCircle2 size={16} aria-hidden />
-      앨범 해금 완료
+      
+      {copy.kq8n5rri}
     </span>
   );
 }
@@ -805,8 +932,9 @@ function TarotAlbumFilters({
   activeFilter: TarotAlbumFilter;
   onFilterChange: (filter: TarotAlbumFilter) => void;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   return (
-    <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]" role="tablist" aria-label="타로 카드 분류">
+    <div className="flex gap-2 overflow-x-auto pb-1 [scrollbar-width:thin]" role="tablist" aria-label={copy.kbfum84c}>
       {tarotAlbumTabs.map((tab) => {
         const active = activeFilter === tab.id;
         return (
@@ -823,7 +951,7 @@ function TarotAlbumFilters({
             )}
             onClick={() => onFilterChange(tab.id)}
           >
-            {tab.label}
+            {copy[tab.labelKey]}
           </button>
         );
       })}
@@ -838,10 +966,11 @@ function TarotAlbumSort({
   sortMode: TarotAlbumSortMode;
   onSortModeChange: (mode: TarotAlbumSortMode) => void;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   return (
     <label className="grid min-h-12 grid-cols-[20px_minmax(0,1fr)] items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.07] px-4 text-moonveil-silver/75 shadow-[inset_0_1px_0_rgba(255,255,255,.08)] backdrop-blur-md focus-within:border-champagne-gold/35 focus-within:ring-2 focus-within:ring-champagne-gold/30">
       <SlidersHorizontal size={17} aria-hidden />
-      <span className="sr-only">카드 정렬</span>
+      <span className="sr-only">{copy.kceymbv8}</span>
       <select
         value={sortMode}
         className="w-full min-w-0 bg-transparent text-sm font-black text-champagne-gold outline-none"
@@ -849,7 +978,7 @@ function TarotAlbumSort({
       >
         {tarotAlbumSortOptions.map((option) => (
           <option key={option.id} value={option.id} className="bg-midnight-ink text-champagne-gold">
-            {option.label}
+            {copy[option.labelKey]}
           </option>
         ))}
       </select>
@@ -864,15 +993,16 @@ function TarotAlbumSearch({
   searchText: string;
   onSearchTextChange: (value: string) => void;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   return (
     <label className="grid min-h-12 grid-cols-[20px_minmax(0,1fr)] items-center gap-2 rounded-2xl border border-white/10 bg-white/[0.07] px-4 text-moonveil-silver/75 shadow-[inset_0_1px_0_rgba(255,255,255,.08)] backdrop-blur-md focus-within:border-champagne-gold/35 focus-within:ring-2 focus-within:ring-champagne-gold/30">
       <Search size={17} aria-hidden />
-      <span className="sr-only">타로 카드 검색</span>
+      <span className="sr-only">{copy.k35zodw1}</span>
       <input
         type="search"
         value={searchText}
-        aria-label="카드 이름, 키워드, 해석 검색"
-        placeholder="카드 이름·키워드 검색"
+        aria-label={copy.kcojnagb}
+        placeholder={copy.kl0nq8gl}
         className="w-full min-w-0 bg-transparent text-sm font-semibold text-champagne-gold outline-none placeholder:text-moonveil-silver/70"
         onChange={(event) => onSearchTextChange(event.target.value)}
       />
@@ -960,6 +1090,7 @@ function TarotAlbumCardItem({
   onCoverCard: (card: TarotAlbumStoryCard) => void;
   staggerDelay?: number;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   const [burst, setBurst] = useState(false);
   const burstTimer = useRef<number | null>(null);
 
@@ -989,7 +1120,7 @@ function TarotAlbumCardItem({
             : "border-white/15 bg-black/30 text-moonveil-silver hover:border-champagne-gold/35 hover:text-champagne-gold",
         )}
         aria-pressed={selectedForPdf}
-        aria-label={`${card.titleKo} 달빛 서가에 담기 ${selectedForPdf ? "해제" : "담음"}`}
+        aria-label={copy.cardShelfToggleAria.replace("{title}", card.titleKo).replace("{action}", selectedForPdf ? copy.cardShelfRemove : copy.cardShelfAdd)}
         onClick={() => onTogglePdfCard(card)}
       >
         {selectedForPdf ? <MoonPhaseSeal full /> : <MoonPhaseSeal />}
@@ -998,7 +1129,7 @@ function TarotAlbumCardItem({
         <button
           type="button"
           className="absolute left-3 top-3 z-30 grid h-9 w-9 place-items-center rounded-full border border-white/15 bg-black/30 text-moonveil-silver backdrop-blur-xl transition hover:border-champagne-gold/35 hover:text-champagne-gold focus:outline-none focus:ring-2 focus:ring-champagne-gold/50"
-          aria-label={`${card.titleKo} 카드 다시 덮기`}
+          aria-label={copy.cardCoverAria.replace("{title}", card.titleKo)}
           onClick={() => onCoverCard(card)}
         >
           <RotateCcw size={15} aria-hidden />
@@ -1013,7 +1144,7 @@ function TarotAlbumCardItem({
             style={{ pointerEvents: flipped ? "none" : "auto" }}
             aria-hidden={flipped}
             tabIndex={flipped ? -1 : 0}
-            aria-label={`${card.titleKo} 카드 펼쳐 앞면 보기`}
+            aria-label={copy.cardRevealAria.replace("{title}", card.titleKo)}
             onClick={handleReveal}
           >
             <Image
@@ -1028,7 +1159,8 @@ function TarotAlbumCardItem({
             <span className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_50%_38%,rgba(216,179,108,.16),transparent_46%)]" />
             <span className="pointer-events-none absolute inset-x-2 bottom-2 flex items-center justify-center gap-1 rounded-full border border-champagne-gold/25 bg-black/45 px-2 py-1 text-[0.62rem] font-black text-champagne-gold opacity-0 backdrop-blur-md transition-opacity duration-300 group-hover:opacity-100 group-focus-within:opacity-100">
               <Sparkles size={11} aria-hidden />
-              탭하여 펼치기
+              
+              {copy.k1iqbrdw}
             </span>
           </button>
 
@@ -1038,7 +1170,7 @@ function TarotAlbumCardItem({
             style={{ pointerEvents: flipped ? "auto" : "none" }}
             aria-hidden={!flipped}
             tabIndex={flipped ? 0 : -1}
-            aria-label={`${card.titleKo} ${card.titleEn} 카드 자세히 보기`}
+            aria-label={copy.cardDetailAria.replace("{title}", card.titleKo).replace("{titleEn}", card.titleEn)}
             onClick={() => onSelectCard(card)}
           >
             {!revealed ? (
@@ -1046,7 +1178,7 @@ function TarotAlbumCardItem({
             ) : card.imageSrc && !imageFailed ? (
               <Image
                 src={card.imageSrc}
-                alt={`${card.titleKo} ${card.titleEn} 타로 카드`}
+                alt={copy.cardImageAlt.replace("{title}", card.titleKo).replace("{titleEn}", card.titleEn)}
                 className="object-cover transition duration-500 group-hover:scale-[1.03]"
                 fill
                 sizes="(max-width: 640px) 48vw, (max-width: 1280px) 25vw, 180px"
@@ -1147,7 +1279,8 @@ function TarotAlbumLockPanel({
   previewCards: TarotAlbumStoryCard[];
   onUnlock: () => void;
 }) {
-  const honeyCountText = isHoneyLoading ? "확인 중" : `${currentHoneyDrops}개`;
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
+  const honeyCountText = isHoneyLoading ? copy.kactydpb : copy.honeyCountText.replace("{count}", String(currentHoneyDrops));
 
   return (
     <div className="grid flex-1 place-items-center py-6">
@@ -1184,21 +1317,23 @@ function TarotAlbumLockPanel({
             MOONLIT TAROT ARCHIVE
           </p>
           <h2 id="tarotAlbumTitle" className="break-keep font-premium text-4xl font-black leading-tight text-champagne-gold drop-shadow-[0_2px_24px_rgba(216,179,108,.28)] sm:text-5xl">
-            연이의 비밀 카드첩
+            
+            {copy.k1gzgjee}
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-sm leading-7 text-pearl-mist sm:text-base">
-            카드를 열어보세요. 한 장 한 장에 담긴 연이의 이야기가 손님을 기다리고 있어요. 꿀방울 10개를 모으면 78장의 타로 도감이 달빛 아래 펼쳐집니다.
+            
+            {copy.kwuaodmd}
           </p>
           <div className="mx-auto mt-6 grid max-w-lg grid-cols-2 gap-3">
             <div className="relative overflow-hidden rounded-2xl border border-twilight-violet/24 bg-pearl-mist/[0.055] px-4 py-3 shadow-[inset_0_1px_0_rgba(237,239,245,.1)]">
               <span className="relative mx-auto mb-1 block h-5 w-5 bg-contain bg-center bg-no-repeat" style={{ backgroundImage: `url("${honeyDropUrl}")` }} aria-hidden />
-              <span className="relative block text-xs font-extrabold text-moonveil-silver">현재 꿀방울</span>
+              <span className="relative block text-xs font-extrabold text-moonveil-silver">{copy.khjystua}</span>
               <strong className="relative mt-1 block font-mono text-2xl font-black tabular-nums text-champagne-gold">{honeyCountText}</strong>
             </div>
             <div className="relative overflow-hidden rounded-2xl border border-twilight-violet/24 bg-pearl-mist/[0.055] px-4 py-3 shadow-[inset_0_1px_0_rgba(237,239,245,.1)]">
               <Flower2 className="relative mx-auto mb-1 text-twilight-violet" size={20} strokeWidth={1.7} aria-hidden />
-              <span className="relative block text-xs font-extrabold text-moonveil-silver">해금 필요</span>
-              <strong className="relative mt-1 block font-mono text-2xl font-black tabular-nums text-champagne-gold">{TAROT_ALBUM_UNLOCK_COST}개</strong>
+              <span className="relative block text-xs font-extrabold text-moonveil-silver">{copy.kxhy61lm}</span>
+              <strong className="relative mt-1 block font-mono text-2xl font-black tabular-nums text-champagne-gold">{TAROT_ALBUM_UNLOCK_COST}{copy.kewammtp}</strong>
             </div>
           </div>
           <HoneyDropProgress current={currentHoneyDrops} total={TAROT_ALBUM_UNLOCK_COST} />
@@ -1214,7 +1349,7 @@ function TarotAlbumLockPanel({
             onClick={onUnlock}
           >
             {isUnlocking ? <Loader2 size={18} className="animate-spin" aria-hidden /> : <BookOpen size={18} aria-hidden />}
-            {isUnlocking ? "달빛 앨범을 여는 중" : canUnlock ? "꿀방울 10개로 앨범 열기" : "꿀방울이 조금 더 필요해요"}
+            {isUnlocking ? copy.k1h4mohy : canUnlock ? copy.klirlgb2 : copy.kyny7lmn}
           </button>
           <div className="mx-auto mt-5 grid max-w-2xl grid-cols-[34px_minmax(0,1fr)] gap-3 rounded-2xl border border-twilight-violet/20 bg-midnight-ink/72 px-4 py-3 text-left text-sm leading-relaxed text-pearl-mist shadow-[0_18px_44px_rgba(5,2,14,.18)]">
             <span className="relative mt-0.5 grid h-8 w-8 place-items-center rounded-full border border-champagne-gold/24 bg-champagne-gold/10 text-champagne-gold">
@@ -1240,7 +1375,8 @@ function TarotAlbumLockPanel({
               </div>
               <span className="pointer-events-none absolute inset-0 grid place-items-center">
                 <span className="rounded-full border border-champagne-gold/30 bg-midnight-ink/80 px-4 py-1.5 text-[0.72rem] font-black text-champagne-gold backdrop-blur-md">
-                  78장의 이야기가 기다리고 있어요
+                  
+                  {copy.kqjhespg}
                 </span>
               </span>
             </div>
@@ -1384,6 +1520,7 @@ function HoneyDropProgress({
   current: number;
   total: number;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   const bounded = Math.max(0, Math.min(current, total));
   const progress = total > 0 ? Math.round((bounded / total) * 100) : 0;
 
@@ -1418,7 +1555,8 @@ function HoneyDropProgress({
         </div>
       </div>
       <p className="mt-2 text-center text-xs font-black text-champagne-gold/84 font-mono">
-        현재 꿀방울 {bounded} / {total}
+        
+        {copy.khjystua} {bounded} / {total}
       </p>
     </div>
   );
@@ -1435,6 +1573,7 @@ function MoonlitCardPlaceholder({
   large?: boolean;
   gardenSeal?: boolean;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   const backgroundStyle = {
     backgroundImage: gardenSeal
       ? `radial-gradient(circle at 50% 14%, rgba(237,239,245,.15), transparent 30%), radial-gradient(circle at 16% 84%, rgba(156,135,212,.12), transparent 34%), radial-gradient(circle at 84% 86%, rgba(216,179,108,.08), transparent 30%), linear-gradient(145deg, rgba(27,21,48,.98), rgba(42,31,77,.92)), url("${cardBackUrl}")`
@@ -1464,7 +1603,8 @@ function MoonlitCardPlaceholder({
       <Moon className={cx("relative drop-shadow-[0_0_18px_rgba(216,179,108,.24)]", gardenSeal ? "text-pearl-mist" : "text-champagne-gold", large ? "mb-4" : "mb-2")} size={large ? 42 : 26} strokeWidth={1.55} aria-hidden />
       <strong className={cx("relative font-premium font-black leading-tight", large ? "text-lg" : "text-sm")}>{title}</strong>
       <em className={cx("relative mt-2 max-w-[10rem] text-[0.68rem] font-bold not-italic leading-relaxed text-moonveil-silver/72", large ? "text-xs" : "")}>
-        아직 달빛 속에 잠든 카드
+        
+        {copy.krvhfnlu}
       </em>
     </span>
   );
@@ -1499,6 +1639,7 @@ function TarotCardModal({
   onTogglePdfCard: () => void;
   onDownloadSingle: () => void;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   const modalRef = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
@@ -1551,7 +1692,7 @@ function TarotCardModal({
           type="button"
           className="absolute right-4 top-4 z-10 grid h-11 w-11 place-items-center rounded-full border border-white/12 bg-white/[0.07] text-champagne-gold backdrop-blur-xl transition hover:border-champagne-gold/42 hover:bg-white/[0.11] focus:outline-none focus:ring-2 focus:ring-champagne-gold/50"
           onClick={onClose}
-          aria-label="카드 상세 닫기"
+          aria-label={copy.kmlqylfg}
         >
           <X size={18} aria-hidden />
         </button>
@@ -1560,7 +1701,7 @@ function TarotCardModal({
             {card.imageSrc && !imageFailed ? (
               <Image
                 src={card.imageSrc}
-                alt={`${card.titleKo} ${card.titleEn} 타로 카드 크게 보기`}
+                alt={copy.cardZoomAlt.replace("{title}", card.titleKo).replace("{titleEn}", card.titleEn)}
                 className="object-cover"
                 fill
                 sizes="(max-width: 640px) 82vw, 340px"
@@ -1577,18 +1718,20 @@ function TarotCardModal({
               type="button"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.055] px-3 text-xs font-black text-moonveil-silver transition hover:border-champagne-gold/35 focus:outline-none focus:ring-2 focus:ring-champagne-gold/45"
               onClick={onPrevious}
-              aria-label="이전 카드 보기"
+              aria-label={copy.kv2kg2cx}
             >
               <ChevronLeft size={16} aria-hidden />
-              이전
+              
+              {copy.k3anflqu}
             </button>
             <button
               type="button"
               className="inline-flex min-h-11 items-center justify-center gap-2 rounded-full border border-white/12 bg-white/[0.055] px-3 text-xs font-black text-moonveil-silver transition hover:border-champagne-gold/35 focus:outline-none focus:ring-2 focus:ring-champagne-gold/45"
               onClick={onNext}
-              aria-label="다음 카드 보기"
+              aria-label={copy.kfvqms0a}
             >
-              다음
+              
+              {copy.khux287z}
               <ChevronRight size={16} aria-hidden />
             </button>
           </div>
@@ -1613,23 +1756,23 @@ function TarotCardModal({
           <blockquote className="rounded-2xl border border-champagne-gold/22 bg-champagne-gold/10 px-4 py-4 text-sm font-semibold leading-7 text-champagne-gold">
             {card.shortSummary}
           </blockquote>
-          <DetailSection title="연이가 들려주는 카드 이야기" body={`${card.storyTitle}\n${card.story}`} featured />
+          <DetailSection title={copy.kbx1lbox} body={`${card.storyTitle}\n${card.story}`} featured />
           <div className="grid gap-3 md:grid-cols-2">
-            <DetailSection title="정방향 의미" body={card.uprightMeaning} />
-            <DetailSection title="역방향 의미" body={card.reversedMeaning} />
+            <DetailSection title={copy.kqvrsm7l} body={card.uprightMeaning} />
+            <DetailSection title={copy.kp7ramna} body={card.reversedMeaning} />
           </div>
           <div className="grid gap-3 md:grid-cols-2">
-            <DetailSection title="사랑" body={card.loveMeaning} />
-            <DetailSection title="관계" body={card.relationshipMeaning} />
-            <DetailSection title="일" body={card.careerMeaning} />
-            <DetailSection title="돈" body={card.moneyMeaning} />
+            <DetailSection title={copy.ko4yt45j} body={card.loveMeaning} />
+            <DetailSection title={copy.kwqkjwzw} body={card.relationshipMeaning} />
+            <DetailSection title={copy.kbs8kn5u} body={card.careerMeaning} />
+            <DetailSection title={copy.kkoogge5} body={card.moneyMeaning} />
           </div>
-          <DetailSection title="내면 성장" body={card.innerGrowthMeaning} />
+          <DetailSection title={copy.kajyhu4o} body={card.innerGrowthMeaning} />
           <blockquote className="rounded-2xl border border-champagne-gold/20 bg-champagne-gold/10 px-4 py-4 text-sm leading-7 text-champagne-gold">
             "{card.yeoniMessage}"
           </blockquote>
           <section className="rounded-2xl border border-moonveil-silver/16 bg-moonveil-silver/[0.07] px-4 py-4">
-            <h4 className="text-sm font-black text-moonveil-silver">나에게 던지는 질문</h4>
+            <h4 className="text-sm font-black text-moonveil-silver">{copy.kjcpkfd5}</h4>
             <p className="mt-2 text-sm leading-7 text-pearl-mist/88">{card.journalQuestion}</p>
           </section>
         </div>
@@ -1639,7 +1782,7 @@ function TarotCardModal({
               type="button"
               className="grid h-11 w-11 flex-none place-items-center rounded-full border border-white/12 bg-white/[0.055] text-moonveil-silver focus:outline-none focus:ring-2 focus:ring-champagne-gold/45"
               onClick={onPrevious}
-              aria-label="이전 카드"
+              aria-label={copy.kxjbdi0j}
             >
               <ChevronLeft size={18} aria-hidden />
             </button>
@@ -1647,12 +1790,12 @@ function TarotCardModal({
               type="button"
               className="grid h-11 w-11 flex-none place-items-center rounded-full border border-white/12 bg-white/[0.055] text-moonveil-silver focus:outline-none focus:ring-2 focus:ring-champagne-gold/45"
               onClick={onNext}
-              aria-label="다음 카드"
+              aria-label={copy.ksnvhf6c}
             >
               <ChevronRight size={18} aria-hidden />
             </button>
             {cardIndex >= 0 ? (
-              <span className="hidden flex-none px-1 font-mono text-xs font-black tabular-nums text-moonveil-silver min-[400px]:block" aria-label={`카드 ${cardIndex + 1}번째, 전체 ${cardTotal}장`}>
+              <span className="hidden flex-none px-1 font-mono text-xs font-black tabular-nums text-moonveil-silver min-[400px]:block" aria-label={copy.cardPositionAria.replace("{index}", String(cardIndex + 1)).replace("{total}", String(cardTotal))}>
                 {cardIndex + 1}/{cardTotal}
               </span>
             ) : null}
@@ -1666,17 +1809,19 @@ function TarotCardModal({
               aria-pressed={selectedForPdf}
             >
               {selectedForPdf ? <MoonPhaseSeal full /> : <MoonPhaseSeal />}
-              달빛 서가
+              
+              {copy.kb6dudtb}
             </button>
             <button
               type="button"
               className="inline-flex min-h-11 flex-1 items-center justify-center gap-2 rounded-full border border-champagne-gold/35 bg-champagne-gold/12 px-3 text-xs font-black text-champagne-gold focus:outline-none focus:ring-2 focus:ring-champagne-gold/45 disabled:opacity-55"
               onClick={onDownloadSingle}
               disabled={pdfBusy}
-              aria-label={`${card.titleKo} 한 장 PDF 다운로드`}
+              aria-label={copy.cardSinglePdfAria.replace("{title}", card.titleKo)}
             >
               {pdfBusy ? <Loader2 size={16} className="animate-spin" aria-hidden /> : <FileText size={16} aria-hidden />}
-              1장 PDF
+              
+              {copy.ksoa9rli}
             </button>
           </div>
         </div>
@@ -1719,13 +1864,14 @@ function TarotAlbumPdfRender({
   cardBackUrl: string;
   renderRef: RefObject<HTMLDivElement>;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   const groupedCards = useMemo(() => {
     const groups: Array<{ title: string; cards: TarotAlbumStoryCard[] }> = [
-      { title: "메이저 아르카나", cards: cards.filter((card) => card.arcana === "major") },
-      { title: "완드", cards: cards.filter((card) => card.suit === "wands") },
-      { title: "컵", cards: cards.filter((card) => card.suit === "cups") },
-      { title: "소드", cards: cards.filter((card) => card.suit === "swords") },
-      { title: "펜타클", cards: cards.filter((card) => card.suit === "pentacles") },
+      { title: copy.knnv85fh, cards: cards.filter((card) => card.arcana === "major") },
+      { title: copy.kr7i3yto, cards: cards.filter((card) => card.suit === "wands") },
+      { title: copy.k8tcg3oe, cards: cards.filter((card) => card.suit === "cups") },
+      { title: copy.kph0fvpr, cards: cards.filter((card) => card.suit === "swords") },
+      { title: copy.k79dstes, cards: cards.filter((card) => card.suit === "pentacles") },
     ];
     return groups.filter((group) => group.cards.length);
   }, [cards]);
@@ -1797,24 +1943,31 @@ function PdfPageShell({
 }
 
 function PdfCoverPage({ count, cardBackUrl }: { count: number; cardBackUrl: string }) {
-  const createdAt = new Intl.DateTimeFormat("ko-KR", { dateStyle: "long" }).format(new Date());
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
+  const locale = useLocale();
+  // 🔴 PDF 표지의 생성일도 활성 로케일을 따른다 — 예전에는 항상 한국식으로 찍혔다.
+  const createdAt = new Intl.DateTimeFormat(locale, { dateStyle: "long" }).format(new Date());
   return (
     <PdfPageShell>
       <div style={{ display: "grid", minHeight: 990, alignContent: "center", gridTemplateColumns: "minmax(0,1fr) 214px", alignItems: "center", gap: 40 }}>
         <div style={{ display: "grid", gap: 22 }}>
-          <p style={{ margin: 0, color: "#D8B36C", fontSize: 15, fontWeight: 900, letterSpacing: 2 }}>CODE DESTINY · 운명 찻집</p>
+          <p style={{ margin: 0, color: "#D8B36C", fontSize: 15, fontWeight: 900, letterSpacing: 2 }}>{copy.kkr3uulf}</p>
           <h1 style={{ margin: 0, maxWidth: 460, color: "#EDEFF5", fontSize: 56, lineHeight: 1.1, fontWeight: 950, letterSpacing: "-0.01em" }}>
-            달빛 타로 카드 앨범
+            
+            {copy.k1yzt0ya}
           </h1>
           <p style={{ margin: 0, maxWidth: 440, color: "rgba(200,170,255,.92)", fontSize: 20, lineHeight: 1.75, fontWeight: 700 }}>
-            연이가 카드 이야기를 한 장씩 엮어, 오늘의 마음 곁에 오래 머무는 타로 도감으로 묶었습니다.
+            
+            {copy.kfnkjoro}
           </p>
           <div style={{ display: "flex", gap: 12, marginTop: 18 }}>
             <span style={{ border: "1px solid rgba(216,179,108,.32)", borderRadius: 999, padding: "10px 16px", color: "#D8B36C", fontSize: 13, fontWeight: 900 }}>
-              카드 {count}장
+              
+              {copy.kfe3rgpe} {count}{copy.kskfjn2j}
             </span>
             <span style={{ border: "1px solid rgba(156,135,212,.26)", borderRadius: 999, padding: "10px 16px", color: "#C8AAFF", fontSize: 13, fontWeight: 900 }}>
-              생성일 {createdAt}
+              
+              {copy.kpuzku7s} {createdAt}
             </span>
           </div>
         </div>
@@ -1832,9 +1985,10 @@ function PdfCoverPage({ count, cardBackUrl }: { count: number; cardBackUrl: stri
 }
 
 function PdfTocPage({ groups }: { groups: Array<{ title: string; cards: TarotAlbumStoryCard[] }> }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   return (
     <PdfPageShell pageNumber={2}>
-      <h2 style={{ margin: "0 0 22px", color: "#EDEFF5", fontSize: 34, fontWeight: 950 }}>목차</h2>
+      <h2 style={{ margin: "0 0 22px", color: "#EDEFF5", fontSize: 34, fontWeight: 950 }}>{copy.kdhtquzm}</h2>
       <div style={{ display: "grid", gap: 18 }}>
         {groups.map((group) => (
           <section key={group.title} style={{ border: "1px solid rgba(216,179,108,.16)", borderRadius: 20, padding: 18, background: "rgba(255,255,255,.045)" }}>
@@ -1860,15 +2014,16 @@ function PdfCardPage({
   imageFailed: boolean;
   cardBackUrl: string;
 }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   const imageSrc = card.imageSrc && !imageFailed ? card.imageSrc : cardBackUrl;
   const sections = [
-    ["정방향", card.uprightMeaning],
-    ["역방향", card.reversedMeaning],
-    ["사랑", card.loveMeaning],
-    ["관계", card.relationshipMeaning],
-    ["일", card.careerMeaning],
-    ["돈", card.moneyMeaning],
-    ["내면 성장", card.innerGrowthMeaning],
+    [copy.ko8qlqfx, card.uprightMeaning],
+    [copy.k2jfbomz, card.reversedMeaning],
+    [copy.ko4yt45j, card.loveMeaning],
+    [copy.kwqkjwzw, card.relationshipMeaning],
+    [copy.kbs8kn5u, card.careerMeaning],
+    [copy.kkoogge5, card.moneyMeaning],
+    [copy.kajyhu4o, card.innerGrowthMeaning],
   ] as const;
 
   return (
@@ -1904,7 +2059,7 @@ function PdfCardPage({
             {card.shortSummary}
           </p>
           <section style={{ border: "1px solid rgba(216,179,108,.14)", borderRadius: 16, padding: 12, background: "rgba(255,255,255,.045)", marginBottom: 12 }}>
-            <h3 style={{ margin: "0 0 6px", color: "#D8B36C", fontSize: 13, fontWeight: 950 }}>연이가 들려주는 카드 이야기</h3>
+            <h3 style={{ margin: "0 0 6px", color: "#D8B36C", fontSize: 13, fontWeight: 950 }}>{copy.kbx1lbox}</h3>
             <p style={{ margin: 0, color: "rgba(237,239,245,.88)", fontSize: 11.2, lineHeight: 1.62, fontWeight: 650 }}>{card.story}</p>
           </section>
         </div>
@@ -1919,11 +2074,11 @@ function PdfCardPage({
       </div>
       <div style={{ marginTop: 12, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
         <section style={{ border: "1px solid rgba(216,179,108,.18)", borderRadius: 14, padding: 10, background: "rgba(216,179,108,.08)" }}>
-          <h3 style={{ margin: "0 0 5px", color: "#D8B36C", fontSize: 11.4, fontWeight: 950 }}>연이의 메시지</h3>
+          <h3 style={{ margin: "0 0 5px", color: "#D8B36C", fontSize: 11.4, fontWeight: 950 }}>{copy.km05ijjs}</h3>
           <p style={{ margin: 0, color: "rgba(237,239,245,.9)", fontSize: 9.8, lineHeight: 1.58, fontWeight: 700 }}>{card.yeoniMessage}</p>
         </section>
         <section style={{ border: "1px solid rgba(156,135,212,.18)", borderRadius: 14, padding: 10, background: "rgba(156,135,212,.07)" }}>
-          <h3 style={{ margin: "0 0 5px", color: "#9C87D4", fontSize: 11.4, fontWeight: 950 }}>나에게 던지는 질문</h3>
+          <h3 style={{ margin: "0 0 5px", color: "#9C87D4", fontSize: 11.4, fontWeight: 950 }}>{copy.kjcpkfd5}</h3>
           <p style={{ margin: 0, color: "rgba(237,239,245,.9)", fontSize: 9.8, lineHeight: 1.58, fontWeight: 700 }}>{card.journalQuestion}</p>
         </section>
       </div>
@@ -1932,15 +2087,18 @@ function PdfCardPage({
 }
 
 function PdfLastPage({ pageNumber }: { pageNumber: number }) {
+  const copy = useTeaHouseCopy("tarotAlbum", KO);
   return (
     <PdfPageShell pageNumber={pageNumber}>
       <div style={{ display: "grid", minHeight: 990, alignContent: "center", gap: 20, textAlign: "center" }}>
-        <p style={{ margin: 0, color: "#D8B36C", fontSize: 15, fontWeight: 950, letterSpacing: 2 }}>운명 찻집</p>
+        <p style={{ margin: 0, color: "#D8B36C", fontSize: 15, fontWeight: 950, letterSpacing: 2 }}>{copy.kqjimwmt}</p>
         <h2 style={{ margin: "0 auto", maxWidth: 560, color: "#EDEFF5", fontSize: 38, lineHeight: 1.35, fontWeight: 950 }}>
-          오늘 당신에게 필요한 카드는 이미 마음속에 남아 있어요.
+          
+          {copy.kftcqqfx}
         </h2>
         <p style={{ margin: "0 auto", maxWidth: 520, color: "rgba(156,135,212,.86)", fontSize: 17, lineHeight: 1.8, fontWeight: 700 }}>
-          달빛 아래 펼친 이야기가 내일의 선택을 대신 정하지는 않지만, 당신이 이미 알고 있던 작은 감각을 다시 믿게 해주기를 바랍니다.
+          
+          {copy.k0iceshy}
         </p>
       </div>
     </PdfPageShell>

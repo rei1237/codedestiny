@@ -6,11 +6,11 @@
 
 | 갈래 | 규모 | 진행 |
 |---|---|---|
-| `components/` UI 크롬 | 811개 문자열 / 33개 파일 | **183개 / 24개 파일 완료** |
+| `components/` UI 크롬 | 811개 문자열 / 33개 파일 | **279개 / 26개 파일 완료** |
 | `data/` | 114,223자 | 미착수 |
 | `lib/` | 56,335자 | 미착수 |
 
-PR: **#1020** (`feat/fortune-tea-house-chrome-i18n`) — 커밋 7개.
+PR: **#1020** (`feat/fortune-tea-house-chrome-i18n`, 머지됨) — 183키 / **#1023** (`feat/fortune-tea-house-result-panels`) — 결과 패널 2종 96키.
 
 **"파일 단위 한글 30,186자"라는 수치를 근거로 삼지 말 것.** 그건 주석까지 센 값이다. AST 로 JSX 텍스트·문자열/템플릿 리터럴만 뽑은 실제 번역 대상이 `components/` 기준 **811개 / 9,053자**다. 재현:
 
@@ -124,8 +124,6 @@ if (mood === "thinking" || /향|마음|질문|선택|망설/.test(text)) …
 | `QuestionInputScene.tsx` | 157 |
 | `DestinyCafeTarotAlbum.tsx` | 101 |
 | `HoneyDropRewardOverlay.tsx` | 79 |
-| `TeaHouseSukuyoResultPanel.tsx` | 51 |
-| `TeaHouseSajuResultPanel.tsx` | 45 |
 | 디버그 페이지 4종 | ~13 (내부용 — 후순위) |
 
 그다음이 `data/`(114,223자)·`lib/`(56,335자)이고, **함정 2를 먼저 처리해야 한다.**
