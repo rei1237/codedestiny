@@ -6,13 +6,23 @@ import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import YeoniDialogueActor from "./YeoniDialogueActor";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type HumanYeoniRevealProps = {
   steps: TeaHouseStoryStep[];
   onComplete: () => void;
 };
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
+const KO = {
+  eyebrow: "달빛 속에 드러난 이름",
+  title: "연이가 당신을 맞이합니다",
+  seeReadingLabel: "찻잔 상담 보기",
+  nextLabel: "다음",
+};
+
 export default function HumanYeoniReveal({ steps, onComplete }: HumanYeoniRevealProps) {
+  const copy = useTeaHouseCopy("humanYeoniReveal", KO);
   const [stepIndex, setStepIndex] = useState(0);
   const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
   const firstStepId = steps[0]?.id || "";
@@ -45,8 +55,8 @@ export default function HumanYeoniReveal({ steps, onComplete }: HumanYeoniReveal
         />
       </div>
       <div className={styles.yeoniDialoguePanel}>
-        <p className={styles.sceneEyebrow}>달빛 속에 드러난 이름</p>
-        <h2 id="humanYeoniTitle">연이가 당신을 맞이합니다</h2>
+        <p className={styles.sceneEyebrow}>{copy.eyebrow}</p>
+        <h2 id="humanYeoniTitle">{copy.title}</h2>
         <TeaHouseDialogueBox
           speaker={currentStep.speaker}
           text={currentStep.text}
@@ -62,7 +72,7 @@ export default function HumanYeoniReveal({ steps, onComplete }: HumanYeoniReveal
               else setStepIndex((current) => current + 1);
             }}
           >
-            {currentStep.cta || (isLast ? "찻잔 상담 보기" : "다음")}
+            {currentStep.cta || (isLast ? copy.seeReadingLabel : copy.nextLabel)}
           </TeaHouseButton>
         </div>
       </div>

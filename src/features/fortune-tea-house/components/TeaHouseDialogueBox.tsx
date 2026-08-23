@@ -4,6 +4,7 @@ import type { TeaHouseSpeaker } from "../data/story";
 import type { TeaHouseEntrySpeaker } from "../data/entryStory";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaHouseDialogueBoxProps = {
   speaker?: TeaHouseSpeaker | TeaHouseEntrySpeaker;
@@ -19,16 +20,28 @@ const TYPEWRITER_INTERVAL_NARRATION_MS = 48;
 const dialoguePremiumUi =
   "relative !rounded-[22px] !border !border-[#f6dfb7]/30 !shadow-[0_24px_70px_rgba(6,3,18,0.38),0_0_34px_rgba(206,196,255,0.12),inset_0_1px_0_rgba(255,255,255,0.18)] ring-1 ring-white/10 backdrop-blur-2xl [&_p]:!font-[var(--tea-font-body)] [&_p]:!leading-[1.82] [&_p]:!tracking-[0] [&_strong]:!font-[var(--tea-font-premium)] [&_strong]:!tracking-[0]";
 
-function getSpeakerLabel(speaker: TeaHouseSpeaker | TeaHouseEntrySpeaker) {
-  if (speaker === "narration") return "나레이션";
+// speaker 값 자체는 스토리 데이터의 판별자다 — 비교는 그대로 두고 화면에 나가는 라벨만 사전을 태운다.
+function getSpeakerLabel(speaker: TeaHouseSpeaker | TeaHouseEntrySpeaker, copy: typeof KO) {
+  if (speaker === "narration") return copy.speakerLabel.narration;
+  if (speaker === "연이") return copy.speakerLabel.yeoni;
+  if (speaker === "꽃돼지?") return copy.speakerLabel.pig;
   return speaker;
 }
 
-function getSpeakerIcon(speaker: TeaHouseSpeaker | TeaHouseEntrySpeaker) {
-  if (speaker === "연이") return "연";
-  if (speaker === "꽃돼지?") return "꿀";
-  return "달";
+function getSpeakerIcon(speaker: TeaHouseSpeaker | TeaHouseEntrySpeaker, copy: typeof KO) {
+  if (speaker === "연이") return copy.speakerIcon.yeoni;
+  if (speaker === "꽃돼지?") return copy.speakerIcon.pig;
+  return copy.speakerIcon.moon;
 }
+
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
+const KO = {
+  speakerLabel: { narration: "나레이션", yeoni: "연이", pig: "꽃돼지?" },
+  // 아바타 자리에 한 글자로 들어간다 — 번역도 짧게 유지할 것.
+  speakerIcon: { yeoni: "연", pig: "꿀", moon: "달" },
+  waiting: "달빛이 피어오르는 중...",
+  next: "다음 ▾",
+};
 
 export default function TeaHouseDialogueBox({
   speaker = "narration",
@@ -38,13 +51,14 @@ export default function TeaHouseDialogueBox({
   isAdvanceDisabled = false,
   onTextComplete,
 }: TeaHouseDialogueBoxProps) {
+  const copy = useTeaHouseCopy("dialogueBox", KO);
   const prefersReducedMotion = usePrefersReducedMotion();
   const characters = useMemo(() => Array.from(text), [text]);
   const [visibleCharacters, setVisibleCharacters] = useState(() => (prefersReducedMotion ? characters.length : 0));
-  const speakerLabel = getSpeakerLabel(speaker);
+  const speakerLabel = getSpeakerLabel(speaker, copy);
   const isSystem = speaker === "narration";
   const typewriterIntervalMs = isSystem ? TYPEWRITER_INTERVAL_NARRATION_MS : TYPEWRITER_INTERVAL_MS;
-  const speakerIcon = getSpeakerIcon(speaker);
+  const speakerIcon = getSpeakerIcon(speaker, copy);
   const isTextComplete = visibleCharacters >= characters.length;
   const visibleText = characters.slice(0, visibleCharacters).join("");
 
@@ -104,7 +118,7 @@ export default function TeaHouseDialogueBox({
       </div>
       <p className={styles.dialogueText}>{visibleText}</p>
       <span className={styles.dialogueNextIndicator} aria-hidden>
-        {isAdvanceDisabled ? "달빛이 피어오르는 중..." : "다음 ▾"}
+        {isAdvanceDisabled ? copy.waiting : copy.next}
       </span>
     </div>
   );

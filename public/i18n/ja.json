@@ -6668,7 +6668,8 @@
         "k1tna4h3": "専門家相談",
         "n300006": "専門家相談・30,000ウォン",
         "n300007": "専門家による命名・30,000ウォン",
-        "krpmzd9": "NEW · ヒューマンデザイン"
+        "krpmzd9": "NEW · ヒューマンデザイン",
+        "khdfree1": "無料公開"
       }
     },
     "tarotTileBody": {
@@ -11521,6 +11522,267 @@
     },
     "free": {
       "0": "運勢の結果は参考用です。重要な選択は現実的な判断と合わせて確認してください。"
+    }
+  },
+  "fortuneTeaHouse": {
+    "landing": {
+      "speeches": {
+        "0": "いらっしゃいませ。今日のお心は、わたしが先にあたためておきますね。",
+        "1": "質問はゆっくり出していただいて大丈夫です。茶葉は心の速さを待つことを知っています。",
+        "2": "月あかりが少し近づきました。今の流れを一緒に見てみましょうか。"
+      },
+      "title": "運命の茶館",
+      "leadTop": "月あかりの路地の先で、扉が開きます。",
+      "leadBottom": "ヨニがあなたの質問を、まずやさしく迎えます。",
+      "intro": "言葉にしづらかった気持ちを茶碗の前に置くと、茶葉とカードの象徴が、いま掴むべき方向を静かに照らします。",
+      "enterAriaSeen": "運命の茶館の鑑定をすぐに始める",
+      "enterAriaFirst": "運命の茶館のプロローグを始める",
+      "enterLabelSeen": "すぐに鑑定を始める",
+      "enterLabelFirst": "茶館に入る",
+      "replayAria": "運命の茶館のプロローグをもう一度見る",
+      "replayLabel": "プロローグをもう一度",
+      "historyAria": "運命の茶館の鑑定履歴を見る",
+      "historyLabel": "鑑定履歴を見る",
+      "visualAria": "扉の前でお客さまを迎える花豚のヨニ",
+      "guideAria": "運命の茶館のご利用案内",
+      "guide": {
+        "reading": {
+          "title": "茶碗の前でひと呼吸おくと、心の問いが輪郭を持ちます",
+          "body1": "運命の茶館は、ヨニがまず質問の温度を確かめ、茶葉とカードの象徴をたどって今の感情と選択肢をやさしく整理する相談の場です。",
+          "body2": "急いだ結論よりも、心がなぜその問いに留まるのかを先に見ます。不安を大きくする断定ではなく、今つかんでいいものと手放していいものを落ち着いて分けます。"
+        },
+        "flow": {
+          "title": "小さな問いでも、心の筋目は十分に深く読みます",
+          "body1": "お名前、生年月日、必要なら出生の情報とご質問をもとに、恋愛・関係・選択・流れをそれぞれ別の言葉で照らします。",
+          "body2": "タロットは感情の場面を、四柱推命は長く続いてきたパターンを、宿曜は関係の距離と呼吸を見て、今日できる行動へとつなげます。"
+        },
+        "promise": {
+          "title": "傷を大きくせず、必要な言葉だけをやさしくお渡しします",
+          "body1": "運命の茶館は、あなたの心を怖がらせません。可能性と流れを中心に読み、選択を代わりに下すのではなく、考えを整理できる言葉をお渡しします。"
+        }
+      }
+    },
+    "shell": {
+      "back": "戻る",
+      "homeAria": "Code Destiny のホーム画面へ移動",
+      "home": "ホームへ"
+    },
+    "fiveElementBalance": {
+      "eyebrow": "茶の香りが満ちていく筋目",
+      "title": "五行の香りのバランス",
+      "empty": "出生の情報が十分でないため、五行の細かなバランスは開いていません。"
+    },
+    "teaCupRitual": {
+      "yeoniAlt": "選んだ茶碗を差し出すヨニ",
+      "backLabel": "ほかの茶碗を見る",
+      "confirmLabel": "この茶碗で話す"
+    },
+    "yeoniTransform": {
+      "cutsceneAlt": "花豚？が月あかりの中で人間のヨニに変わるカットシーン",
+      "eyebrow": "桃色がひらく瞬間",
+      "title": "花びらのあいだで姿が変わります",
+      "metLabel": "ヨニに会う",
+      "nextLabel": "次へ"
+    },
+    "dialogueBox": {
+      "speakerLabel": {
+        "narration": "ナレーション",
+        "yeoni": "ヨニ",
+        "pig": "花豚？"
+      },
+      "speakerIcon": {
+        "yeoni": "ヨ",
+        "pig": "ハ",
+        "moon": "月"
+      },
+      "waiting": "月あかりが立ちのぼっています…",
+      "next": "次へ ▾"
+    },
+    "storyIntro": {
+      "nextLabel": "次へ",
+      "backdropAlt": "月あかりの下で扉が開いた運命の茶館",
+      "title": "運命の茶館",
+      "skipAria": "運命の茶館の導入シーンをスキップ",
+      "skipLabel": "スキップ"
+    },
+    "flowPreview": {
+      "eyebrow": "茶碗が心を選ぶ場所",
+      "title": "鑑定はこうして始まります",
+      "readyLabel": "鑑定の準備をする",
+      "nextLabel": "次へ",
+      "cardAlt": "{title} の場面"
+    },
+    "humanYeoniReveal": {
+      "eyebrow": "月あかりの中で明かされた名前",
+      "title": "ヨニがあなたを迎えます",
+      "seeReadingLabel": "茶碗の鑑定を見る",
+      "nextLabel": "次へ"
+    },
+    "tarotAssetCard": {
+      "upright": "正位置",
+      "reversed": "逆位置",
+      "backAria": "まだ公開されていない運命のカード",
+      "backTitle": "運命のカード",
+      "tarotImageAria": "{name} タロットカードの画像",
+      "cardImageAria": "{name} カードの画像",
+      "cardAlt": "{name} タロットカード"
+    },
+    "scentLoading": {
+      "chatLines": {
+        "saju": {
+          "0": "少しお待ちを。四柱推命の筋目は急ぐと逃す香りがあるので、もう少し茶碗をあたためますね。",
+          "1": "茶葉が、生まれた季節の流れを抽出しています。もう少しお待ちください。",
+          "2": "五行の温度を指先で測っています。まもなく言葉が選ばれます。"
+        },
+        "sukuyo": {
+          "0": "おふたりの月あかりがどう触れ合うのかを見ています。言葉はゆっくり選びますね。",
+          "1": "27宿の星の間の距離を測っています。縁の温度が浮かび上がってきました。",
+          "2": "月あかりがふたつの茶碗の上で重なる瞬間を待っています。"
+        },
+        "tarot": {
+          "0": "くんくん… この質問には、まだ言えていない気持ちが染みついています。",
+          "1": "茶葉があなたの運を抽出しています。カードがゆっくり目を覚ましています。",
+          "2": "月あかりの下で、一枚のカードが先に寝返りを打ちました。もう少しです。"
+        }
+      },
+      "title": {
+        "sajuCompatibility": "ヨニがおふたりの四柱推命の相性を見ています",
+        "saju": "ヨニが四柱推命の香りを見ています",
+        "sukuyo": "ヨニが27宿の縁の流れを見ています",
+        "tarot": "ヨニが心の香りをそっと嗅いでいます"
+      },
+      "progress": {
+        "label": "リクエスト受付",
+        "message": "茶碗の上にご質問をのせています。"
+      },
+      "sceneAria": "ヨニが鑑定文を準備中",
+      "loadingAlt": "月あかりの茶碗が浮かぶローディング場面",
+      "yeoniAria": "茶碗を差し出すヨニ",
+      "progressAria": "鑑定文の生成の進捗",
+      "delayNotice": "鑑定文をもう少し深く編んでいます。長くかかっても更新せず、少しお待ちください。",
+      "retryNotice": "流れが途切れたら、入力画面から同じ質問でもう一度お試しいただけます。"
+    },
+    "sajuPillarBoard": {
+      "eyebrow": "月あかりに照らされた命式",
+      "title": "月あかりの四柱",
+      "empty": "未入力",
+      "heavenlyStem": "天干",
+      "earthlyBranch": "地支",
+      "element": "五行",
+      "tenGod": "十神",
+      "tenGodEmpty": "代表のお客さまと一緒に見ます"
+    },
+    "tarotReveal": {
+      "upright": "正位置",
+      "reversed": "逆位置",
+      "title": "茶碗の上にカードが浮かびました",
+      "deckAria": "運命のカードを選ぶ",
+      "cardAria": "{label} カード {state}",
+      "revealed": "公開済み",
+      "flip": "めくる",
+      "choiceHint": "カードは一枚ずつめくれ、すべて開くと結果が整います。",
+      "dialogue": {
+        "preparing": "カードは正解を命じません。\n今、心が向いている方向を静かに照らすだけです。",
+        "shuffling": "月あかりの下でカードが混ざっています。\n質問の香りを一枚ずつ置いているところです。",
+        "choosingSome": "{count}枚を開きました。\n残りのカードも、心が触れる順にゆっくり開いてください。",
+        "choosingNone": "{total}枚のカードが同じ質問を見ています。\n心が先に触れたカードから一枚ずつ開いてください。",
+        "complete": "{name} {orientation} を中心に、{total}枚の流れがすべて開きました。\nここからは各位置の意味を結んで読みますね。"
+      },
+      "phase": {
+        "shuffling": "カードを混ぜています",
+        "choosing": "{count}/{total}枚 公開",
+        "complete": "すべてのカードを公開"
+      }
+    },
+    "historyPanel": {
+      "closeAria": "鑑定履歴を閉じる",
+      "title": "これまでの鑑定履歴",
+      "subtitle": "ヨニと交わした話をもう一度ひらけます。",
+      "loadError": "鑑定履歴を読み込めませんでした。",
+      "retry": "もう一度試す",
+      "empty": "まだ完了した鑑定はありません。茶館で最初の鑑定を始めてみてください。",
+      "noSummary": "質問の要約はありません",
+      "opening": "開いています…",
+      "mode": {
+        "tarot": "タロット",
+        "saju": "四柱推命",
+        "sajuCompatibility": "四柱推命の相性",
+        "sukuyo": "宿曜の相性"
+      },
+      "relative": {
+        "justNow": "たった今",
+        "minutes": "{n}分前",
+        "hours": "{n}時間前",
+        "days": "{n}日前"
+      }
+    },
+    "teaCupSelection": {
+      "eyebrow": "心の香りに応える六つの茶碗",
+      "title": "今日あなたを呼ぶ茶碗",
+      "description": "ヨニがお客さまの心の香りを嗅ぐと、質問の筋目に合う茶碗から先に光ります。ひとつ選んだ瞬間、鑑定の場面もその香りで開きます。",
+      "yeoniAlt": "茶碗を差し出すヨニ",
+      "dialogue": "お客さまの心から立つ香りが、六つの茶碗を起こしています。\n恋愛と再会、ときめき、選択、お金の流れ、回復、決断のうち、今日いちばん強く応える茶碗をお選びください。",
+      "menuAria": "運命の茶館の鑑定メニュー",
+      "menuNote": "茶碗はメニューではなく、今日の質問が通り抜ける小さな運命の扉です。",
+      "reacting": "反応中",
+      "smell": "香りを嗅ぐ"
+    },
+    "entryScene": {
+      "blooming": "月あかりがひらいています",
+      "nextLabel": "次へ",
+      "toCupsLabel": "茶碗を選びに行く",
+      "prevAria": "前の場面に戻る",
+      "prevLabel": "前へ",
+      "skipAria": "茶碗の案内場面までスキップ",
+      "skipLabel": "スキップ",
+      "pigAlt": "月あかりの茶館の中で話しかける花豚？",
+      "pigBeforeAlt": "変身前の花豚ヨニ",
+      "yeoniRevealAlt": "月あかりの中で姿を現したヨニ",
+      "yeoniDescentAria": "月あかりの下に降り立つように姿を現すヨニ",
+      "yeoniTeaAria": "月あかりの下で茶碗選びを案内するヨニ"
+    },
+    "talkingPig": {
+      "pigAria": "扉の前で話しかける花豚？",
+      "pigName": "花豚？"
+    },
+    "sajuCompat": {
+      "calendar": {
+        "lunar": "旧暦",
+        "solar": "新暦",
+        "unknown": "暦の情報なし"
+      },
+      "gender": {
+        "female": "女性",
+        "male": "男性",
+        "unknown": "性別は未入力"
+      },
+      "card": {
+        "dayMasterEmpty": "命式の確認前",
+        "birthDateLabel": "生まれた日",
+        "birthDateEmpty": "未入力",
+        "calendarLabel": "暦の基準",
+        "genderLabel": "性別",
+        "pillarsLabel": "四柱",
+        "pillarsEmpty": "確認前",
+        "elementsSuffix": "の気"
+      },
+      "eyebrow": "四柱推命の相性の間",
+      "emptyTitle": "おふたりの命式は、まだ並べられていません",
+      "emptySummary": "おふたりの生年月日がそろえば、ヨニが二つの命式を並べて広げます。",
+      "headerAlt": "おふたりの四柱推命",
+      "mineLabel": "わたしの四柱推命",
+      "partnerLabel": "お相手の四柱推命",
+      "dayMasterEyebrow": "日干の筋目",
+      "dayMasterEmpty": "二つの命式の筋目",
+      "harmonyEmpty": "おふたりの五行の気を並べて置き、調律の筋目を見ます。",
+      "relationEyebrow": "関係のタイプ",
+      "relationEmpty": "縁",
+      "focusEmpty": "関係の流れ",
+      "focusSentence": "{focus} を中心に読みました。",
+      "strengthEyebrow": "噛み合う筋目",
+      "strengthTitle": "二つの命式がそろったときに生きる力",
+      "cautionEyebrow": "調律する筋目",
+      "cautionTitle": "二つの命式がぶつかるとき、先に見るべきこと"
     }
   }
 }

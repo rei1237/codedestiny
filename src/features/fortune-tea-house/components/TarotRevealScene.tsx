@@ -10,6 +10,7 @@ import TarotAssetCard from "./TarotAssetCard";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TarotRevealSceneProps = {
   result: FortuneTeaHouseConsultResponse;
@@ -52,7 +53,34 @@ function buildRevealCards(result: FortuneTeaHouseConsultResponse): FortuneTeaTar
   ];
 }
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    {count}·{total}·{name}·{orientation}·{label}·{state} 는 런타임 치환 자리다 — 모든 로케일에서 그대로 둘 것.
+    buildRevealCards 의 positionLabel("대표")·positionMeaning 은 카드 메타데이터라 데이터 배치에서 함께 다룬다. */
+const KO = {
+  upright: "정방향",
+  reversed: "역방향",
+  title: "찻잔 위에 카드가 떠올랐어요",
+  deckAria: "운명의 카드 선택",
+  cardAria: "{label} 카드 {state}",
+  revealed: "공개됨",
+  flip: "뒤집기",
+  choiceHint: "카드는 한 장씩 뒤집히고, 모두 열리면 결과가 준비돼요.",
+  dialogue: {
+    preparing: "카드는 정답을 명령하지 않아요.\n지금 마음이 바라보는 방향을 조용히 비출 뿐이에요.",
+    shuffling: "달빛 아래에서 카드들이 섞이고 있어요.\n질문의 향을 한 장씩 내려놓는 중이에요.",
+    choosingSome: "{count}장을 펼쳤어요.\n남은 카드도 마음이 닿는 순서대로 천천히 열어 주세요.",
+    choosingNone: "{total}장의 카드가 같은 질문을 바라보고 있어요.\n마음이 먼저 닿는 카드부터 하나씩 열어 주세요.",
+    complete: "{name} {orientation}을 중심으로 {total}장의 흐름이 모두 열렸어요.\n이제 연이가 각 자리의 뜻을 묶어 읽어볼게요.",
+  },
+  phase: {
+    shuffling: "카드가 섞이는 중",
+    choosing: "{count}/{total}장 공개",
+    complete: "모든 카드 공개 완료",
+  },
+};
+
 export default function TarotRevealScene({ result, onComplete }: TarotRevealSceneProps) {
+  const copy = useTeaHouseCopy("tarotReveal", KO);
   const prefersReducedMotion = usePrefersReducedMotion();
   const spreadCards = useMemo(() => buildRevealCards(result), [result]);
   const spreadSignature = spreadCards.map((card) => `${card.positionId}:${card.cardId}:${card.orientation}`).join("|");
@@ -62,7 +90,7 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
   const resultButtonLabel = getFortuneTeaHouseRevealButtonLabel();
   const revealedCount = revealedPositions.length;
   const allCardsRevealed = spreadCards.length > 0 && revealedCount >= spreadCards.length;
-  const orientationLabel = result.tarot.orientation === "upright" ? "정방향" : "역방향";
+  const orientationLabel = result.tarot.orientation === "upright" ? copy.upright : copy.reversed;
 
   useEffect(() => {
     setPhase(getInitialRevealPhase(prefersReducedMotion));
@@ -88,18 +116,21 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
   }
 
   const dialogueTextByPhase: Record<TarotRevealPhase, string> = {
-    preparing: selectedCup?.tarotBeforeLine || "카드는 정답을 명령하지 않아요.\n지금 마음이 바라보는 방향을 조용히 비출 뿐이에요.",
-    shuffling: "달빛 아래에서 카드들이 섞이고 있어요.\n질문의 향을 한 장씩 내려놓는 중이에요.",
+    preparing: selectedCup?.tarotBeforeLine || copy.dialogue.preparing,
+    shuffling: copy.dialogue.shuffling,
     choosing: revealedCount > 0
-      ? `${revealedCount}장을 펼쳤어요.\n남은 카드도 마음이 닿는 순서대로 천천히 열어 주세요.`
-      : `${spreadCards.length}장의 카드가 같은 질문을 바라보고 있어요.\n마음이 먼저 닿는 카드부터 하나씩 열어 주세요.`,
-    complete: `${result.tarot.nameKo} ${orientationLabel}을 중심으로 ${spreadCards.length}장의 흐름이 모두 열렸어요.\n이제 연이가 각 자리의 뜻을 묶어 읽어볼게요.`,
+      ? copy.dialogue.choosingSome.replace("{count}", String(revealedCount))
+      : copy.dialogue.choosingNone.replace("{total}", String(spreadCards.length)),
+    complete: copy.dialogue.complete
+      .replace("{name}", result.tarot.nameKo)
+      .replace("{orientation}", orientationLabel)
+      .replace("{total}", String(spreadCards.length)),
   };
   const phaseLabelByPhase: Record<TarotRevealPhase, string> = {
     preparing: "",
-    shuffling: "카드가 섞이는 중",
-    choosing: `${revealedCount}/${spreadCards.length}장 공개`,
-    complete: "모든 카드 공개 완료",
+    shuffling: copy.phase.shuffling,
+    choosing: copy.phase.choosing.replace("{count}", String(revealedCount)).replace("{total}", String(spreadCards.length)),
+    complete: copy.phase.complete,
   };
   const dialogueText = dialogueTextByPhase[phase];
   const phaseLabel = phase === "preparing" ? "" : phaseLabelByPhase[phase];
@@ -108,14 +139,14 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
     <section className={`${styles.tarotRevealScene} ${tarotRevealSceneUi}`} data-accent={selectedCup?.accent || "pink"} aria-labelledby="tarotRevealTitle">
       <div className={`${styles.tarotRevealPanel} ${tarotRevealPanelUi}`}>
         <p className={styles.sceneEyebrow}>{selectedCup?.visualMotif || "moonlit tarot"}</p>
-        <h2 id="tarotRevealTitle">{selectedCup?.tarotRevealTitle || "찻잔 위에 카드가 떠올랐어요"}</h2>
+        <h2 id="tarotRevealTitle">{selectedCup?.tarotRevealTitle || copy.title}</h2>
         <TeaHouseDialogueBox
           speaker="연이"
           text={dialogueText}
           className={tarotDialogueUi}
         />
         <div className={styles.tarotStage} data-phase={phase}>
-          <div className={`${styles.tarotDeck} ${tarotDeckUi}`} data-count={spreadCards.length} role="group" aria-label="운명의 카드 선택">
+          <div className={`${styles.tarotDeck} ${tarotDeckUi}`} data-count={spreadCards.length} role="group" aria-label={copy.deckAria}>
             {spreadCards.map((card, index) => {
               const revealId = card.positionId || `position-${index}`;
               const isRevealed = revealedPositions.includes(revealId);
@@ -132,7 +163,7 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
                   data-selected={isRevealed ? "true" : "false"}
                   data-muted="false"
                   data-revealed={isRevealed ? "true" : "false"}
-                  aria-label={`${card.positionLabel} 카드 ${isRevealed ? "공개됨" : "뒤집기"}`}
+                  aria-label={copy.cardAria.replace("{label}", card.positionLabel).replace("{state}", isRevealed ? copy.revealed : copy.flip)}
                   aria-pressed={isRevealed}
                   disabled={phase !== "choosing" || isRevealed}
                   onClick={() => revealCard(revealId)}
@@ -160,7 +191,7 @@ export default function TarotRevealScene({ result, onComplete }: TarotRevealScen
         </div>
         <div className={`${styles.storyActions} ${styles.tarotActionBar} ${tarotActionBarUi}`}>
           {phaseLabel ? <span className={styles.storyProgress}>{phaseLabel}</span> : null}
-          {phase === "choosing" ? <span className={styles.tarotChoiceHint}>카드는 한 장씩 뒤집히고, 모두 열리면 결과가 준비돼요.</span> : null}
+          {phase === "choosing" ? <span className={styles.tarotChoiceHint}>{copy.choiceHint}</span> : null}
           <TeaHouseButton onClick={onComplete} disabled={!allCardsRevealed}>
             {resultButtonLabel}
           </TeaHouseButton>

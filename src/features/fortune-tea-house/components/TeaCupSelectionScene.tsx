@@ -6,45 +6,58 @@ import AssetImage from "./AssetImage";
 import TeaCupVisual from "./TeaCupVisual";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaCupSelectionSceneProps = {
   selectedCupId?: string;
   onSelect: (cup: TeaHouseCup) => void;
 };
 
-const teaCupSelectionDialogue =
-  "손님 마음에서 나는 향이 여섯 잔을 깨우고 있어요.\n연애와 재회, 설렘, 선택, 돈의 흐름, 회복, 결단 중 오늘 가장 강하게 반응하는 잔을 골라주세요.";
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
+    speaker="연이" 는 대사 상자가 이니셜을 고르는 판별자라 여기 없다.
+    찻잔의 name·topic·eyebrow·description 은 data/teaCups.ts 의 값이라 데이터 배치에서 함께 다룬다. */
+const KO = {
+  eyebrow: "마음의 향에 반응하는 여섯 잔",
+  title: "오늘 당신을 부르는 찻잔",
+  description: "연이가 손님의 마음 향을 맡으면, 질문의 결에 맞는 찻잔부터 먼저 빛납니다. 컵 하나를 고르는 순간 상담의 장면도 그 향으로 열려요.",
+  yeoniAlt: "찻잔을 건네는 연이",
+  dialogue: "손님 마음에서 나는 향이 여섯 잔을 깨우고 있어요.\n연애와 재회, 설렘, 선택, 돈의 흐름, 회복, 결단 중 오늘 가장 강하게 반응하는 잔을 골라주세요.",
+  menuAria: "운명의 찻집 상담 메뉴판",
+  menuNote: "찻잔은 메뉴가 아니라, 오늘의 질문이 지나갈 작은 운명의 문입니다.",
+  reacting: "반응 중",
+  smell: "향 맡기",
+};
 
 export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCupSelectionSceneProps) {
+  const copy = useTeaHouseCopy("teaCupSelection", KO);
   const selectedCup = teaHouseCups.find((cup) => cup.id === selectedCupId);
 
   return (
     <section className={styles.teaSelectScene} aria-labelledby="teaCupSelectTitle">
       <div className={styles.teaSelectGuide}>
-        <p className={styles.sceneEyebrow}>마음의 향에 반응하는 여섯 잔</p>
-        <h2 id="teaCupSelectTitle">오늘 당신을 부르는 찻잔</h2>
+        <p className={styles.sceneEyebrow}>{copy.eyebrow}</p>
+        <h2 id="teaCupSelectTitle">{copy.title}</h2>
         <p className={styles.sceneDescription}>
-          연이가 손님의 마음 향을 맡으면, 질문의 결에 맞는 찻잔부터 먼저 빛납니다.
-          컵 하나를 고르는 순간 상담의 장면도 그 향으로 열려요.
+          {copy.description}
         </p>
         <AssetImage
           className={styles.cupPoseYeoni}
           imageClassName={styles.cupPoseYeoniImage}
           src={fortuneTeaHouseAssets.yeoni.transparent.cupPose}
           fallbackSrc={fortuneTeaHouseAssets.yeoni.cupPose}
-          alt="찻잔을 건네는 연이"
+          alt={copy.yeoniAlt}
           priority
           loading="eager"
         />
-        <TeaHouseDialogueBox speaker="연이" text={teaCupSelectionDialogue} />
+        <TeaHouseDialogueBox speaker="연이" text={copy.dialogue} />
         {selectedCup ? <p className={styles.teaCupSelectedComment}>{selectedCup.selectionComment}</p> : null}
       </div>
 
-      <div className={styles.teaMenuBoard} aria-label="운명의 찻집 상담 메뉴판">
+      <div className={styles.teaMenuBoard} aria-label={copy.menuAria}>
         <div className={styles.teaMenuHeader}>
           <p>Moonlit Tea Selection</p>
-          <h3>오늘 당신을 부르는 찻잔</h3>
-          <span>찻잔은 메뉴가 아니라, 오늘의 질문이 지나갈 작은 운명의 문입니다.</span>
+          <h3>{copy.title}</h3>
+          <span>{copy.menuNote}</span>
         </div>
         <div className={styles.teaMenuCards}>
           {teaHouseCups.map((cup, index) => {
@@ -68,7 +81,7 @@ export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCup
                   <span>{cup.topic}</span>
                   <small>{cup.eyebrow}</small>
                 </span>
-                <span className={styles.teaCupMenuAction}>{isSelected ? "반응 중" : "향 맡기"}</span>
+                <span className={styles.teaCupMenuAction}>{isSelected ? copy.reacting : copy.smell}</span>
               </button>
             );
           })}

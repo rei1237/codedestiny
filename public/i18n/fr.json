@@ -6668,7 +6668,8 @@
         "k1tna4h3": "Consultation experte",
         "n300006": "Consultation experte · 30 000 ₩",
         "n300007": "Choix de prénom expert · 30 000 ₩",
-        "krpmzd9": "NEW · Human Design"
+        "krpmzd9": "NEW · Human Design",
+        "khdfree1": "Accès gratuit"
       }
     },
     "tarotTileBody": {
@@ -11521,6 +11522,267 @@
     },
     "free": {
       "0": "Fortune results are for reference only -- please confirm important decisions against your real-world judgment."
+    }
+  },
+  "fortuneTeaHouse": {
+    "landing": {
+      "speeches": {
+        "0": "Welcome in. Let me warm today's heart for you first.",
+        "1": "Take your time with the question. Tea leaves know how to wait for a heart's pace.",
+        "2": "The moonlight has drawn a little closer. Shall we look at where things are flowing now?"
+      },
+      "title": "The Destiny Tea House",
+      "leadTop": "At the end of a moonlit alley, a door opens.",
+      "leadBottom": "Yeoni greets your question gently, before anything else.",
+      "intro": "Set down the feelings you found hard to say in front of the cup, and the symbols in the leaves and the cards will quietly light the direction worth holding onto now.",
+      "enterAriaSeen": "Start a reading at The Destiny Tea House right away",
+      "enterAriaFirst": "Start the prologue of The Destiny Tea House",
+      "enterLabelSeen": "Start the reading",
+      "enterLabelFirst": "Step into the tea house",
+      "replayAria": "Watch the prologue of The Destiny Tea House again",
+      "replayLabel": "Watch the prologue again",
+      "historyAria": "View your reading history at The Destiny Tea House",
+      "historyLabel": "View reading history",
+      "visualAria": "Yeoni the flower pig welcoming guests at the door",
+      "guideAria": "How The Destiny Tea House works",
+      "guide": {
+        "reading": {
+          "title": "Pause in front of the cup and the question underneath comes into focus",
+          "body1": "At The Destiny Tea House, Yeoni first reads the temperature of your question, then follows the symbols in the leaves and the cards to gently sort through how you feel and what your options are.",
+          "body2": "Before rushing to a verdict, we look at why your heart keeps returning to that question. Instead of hard pronouncements that feed anxiety, we calmly separate what you can hold onto from what is worth setting down."
+        },
+        "flow": {
+          "title": "A small question still gets a deep reading of what runs under it",
+          "body1": "From your name, your birth date, birth details where they matter, and the question itself, we light up love, relationships, choices and timing — each in its own language.",
+          "body2": "Tarot shows the scene of a feeling, the Four Pillars show the pattern that has run for years, and Sukuyo shows the distance and rhythm between people — all tied back to something you can act on today."
+        },
+        "promise": {
+          "title": "We never enlarge a wound — only the words you need, offered gently",
+          "body1": "The Destiny Tea House will not frighten you. We read for possibility and movement, and rather than making the choice for you, we hand you sentences you can think with."
+        }
+      }
+    },
+    "shell": {
+      "back": "Back",
+      "homeAria": "Go to the Code Destiny home screen",
+      "home": "Home"
+    },
+    "fiveElementBalance": {
+      "eyebrow": "The grain the cup's scent rises along",
+      "title": "Balance of the Five Elements",
+      "empty": "There is not enough birth information yet, so the detailed Five Elements balance stays folded."
+    },
+    "teaCupRitual": {
+      "yeoniAlt": "Yeoni holding out the cup you chose",
+      "backLabel": "See other cups",
+      "confirmLabel": "Talk over this cup"
+    },
+    "yeoniTransform": {
+      "cutsceneAlt": "A cutscene of Flower Pig? turning into the human Yeoni in the moonlight",
+      "eyebrow": "The moment the pink blooms",
+      "title": "The shape changes between the petals",
+      "metLabel": "Meet Yeoni",
+      "nextLabel": "Next"
+    },
+    "dialogueBox": {
+      "speakerLabel": {
+        "narration": "Narration",
+        "yeoni": "Yeoni",
+        "pig": "Flower Pig?"
+      },
+      "speakerIcon": {
+        "yeoni": "Y",
+        "pig": "H",
+        "moon": "M"
+      },
+      "waiting": "Moonlight is rising…",
+      "next": "Next ▾"
+    },
+    "storyIntro": {
+      "nextLabel": "Next",
+      "backdropAlt": "The Destiny Tea House with its door open under the moonlight",
+      "title": "The Destiny Tea House",
+      "skipAria": "Skip the opening scene of The Destiny Tea House",
+      "skipLabel": "Skip"
+    },
+    "flowPreview": {
+      "eyebrow": "Where the cup does the choosing",
+      "title": "This is how a reading opens",
+      "readyLabel": "Get ready to begin",
+      "nextLabel": "Next",
+      "cardAlt": "The {title} scene"
+    },
+    "humanYeoniReveal": {
+      "eyebrow": "A name revealed in the moonlight",
+      "title": "Yeoni welcomes you",
+      "seeReadingLabel": "See the cup reading",
+      "nextLabel": "Next"
+    },
+    "tarotAssetCard": {
+      "upright": "Upright",
+      "reversed": "Reversed",
+      "backAria": "A destiny card not yet revealed",
+      "backTitle": "Destiny Card",
+      "tarotImageAria": "Image of the {name} tarot card",
+      "cardImageAria": "Image of the {name} card",
+      "cardAlt": "The {name} tarot card"
+    },
+    "scentLoading": {
+      "chatLines": {
+        "saju": {
+          "0": "One moment. The grain of the Four Pillars hides a scent you miss if you hurry, so let me warm the cup a little longer.",
+          "1": "The leaves are steeping the season you were born into. Just a little longer.",
+          "2": "I'm measuring the temperature of the Five Elements with my fingertips. The words will settle soon."
+        },
+        "sukuyo": {
+          "0": "I'm watching how your two moonlights touch. I'll choose the words slowly.",
+          "1": "I'm measuring the distance between the 27 lunar mansions. The temperature of your bond is surfacing.",
+          "2": "I'm waiting for the moment the moonlight overlaps across both cups."
+        },
+        "tarot": {
+          "0": "Sniff, sniff… there's something unsaid clinging to this question.",
+          "1": "The leaves are steeping your fortune. The cards are slowly waking.",
+          "2": "One card already stirred under the moonlight. Just a little more."
+        }
+      },
+      "title": {
+        "sajuCompatibility": "Yeoni is reading the Four Pillars compatibility between you two",
+        "saju": "Yeoni is reading the scent of your Four Pillars",
+        "sukuyo": "Yeoni is reading the flow of your bond across the 27 mansions",
+        "tarot": "Yeoni is taking a light breath of your heart's scent"
+      },
+      "progress": {
+        "label": "Request received",
+        "message": "Setting your question on the cup."
+      },
+      "sceneAria": "Yeoni is preparing your reading",
+      "loadingAlt": "A loading scene with a moonlit cup rising",
+      "yeoniAria": "Yeoni handing over the cup",
+      "progressAria": "Reading generation progress",
+      "delayNotice": "The reading is being woven a little deeper. If it lingers, please wait rather than refreshing.",
+      "retryNotice": "If the flow breaks, you can try the same question again from the input screen."
+    },
+    "sajuPillarBoard": {
+      "eyebrow": "The birth chart under moonlight",
+      "title": "The Four Pillars in moonlight",
+      "empty": "Not entered",
+      "heavenlyStem": "Heavenly Stem",
+      "earthlyBranch": "Earthly Branch",
+      "element": "Five Elements",
+      "tenGod": "Ten Gods",
+      "tenGodEmpty": "Read together with the main guest"
+    },
+    "tarotReveal": {
+      "upright": "Upright",
+      "reversed": "Reversed",
+      "title": "A card has surfaced over the cup",
+      "deckAria": "Choose a destiny card",
+      "cardAria": "{label} card, {state}",
+      "revealed": "revealed",
+      "flip": "flip",
+      "choiceHint": "Cards flip one at a time, and once all are open your reading is ready.",
+      "dialogue": {
+        "preparing": "The cards do not order an answer.\nThey only light, quietly, the direction your heart is already facing.",
+        "shuffling": "The cards are shuffling under the moonlight.\nI'm laying your question's scent onto them, one by one.",
+        "choosingSome": "{count} are open.\nTake the rest slowly, in whatever order your heart reaches for.",
+        "choosingNone": "{total} cards are facing the same question.\nOpen them one at a time, starting with whichever your heart reaches first.",
+        "complete": "All {total} are open now, centred on {name} {orientation}.\nLet me tie the meaning of each position together."
+      },
+      "phase": {
+        "shuffling": "Shuffling",
+        "choosing": "{count}/{total} revealed",
+        "complete": "All cards revealed"
+      }
+    },
+    "historyPanel": {
+      "closeAria": "Close reading history",
+      "title": "Past readings",
+      "subtitle": "You can reopen the conversations you had with Yeoni.",
+      "loadError": "We couldn't load your reading history.",
+      "retry": "Try again",
+      "empty": "No readings finished yet. Start your first one at the tea house.",
+      "noSummary": "No question summary",
+      "opening": "Opening…",
+      "mode": {
+        "tarot": "Tarot",
+        "saju": "Four Pillars",
+        "sajuCompatibility": "Four Pillars compatibility",
+        "sukuyo": "Sukuyo compatibility"
+      },
+      "relative": {
+        "justNow": "just now",
+        "minutes": "{n} min ago",
+        "hours": "{n} hr ago",
+        "days": "{n} days ago"
+      }
+    },
+    "teaCupSelection": {
+      "eyebrow": "Six cups that answer the scent of a heart",
+      "title": "The cup calling you today",
+      "description": "Once Yeoni catches the scent of your heart, the cup that matches your question's grain is the first to glow. The moment you pick one, the reading opens in that scent.",
+      "yeoniAlt": "Yeoni handing over a cup",
+      "dialogue": "The scent coming off your heart is waking all six cups.\nPick the one that answers loudest today — love, reunion, flutter, choice, the flow of money, recovery, or resolve.",
+      "menuAria": "The Destiny Tea House reading menu",
+      "menuNote": "A cup is not a menu item — it is a small door your question will pass through today.",
+      "reacting": "Responding",
+      "smell": "Take a scent"
+    },
+    "entryScene": {
+      "blooming": "Moonlight is blooming",
+      "nextLabel": "Next",
+      "toCupsLabel": "Go choose a cup",
+      "prevAria": "Go back to the previous scene",
+      "prevLabel": "Back",
+      "skipAria": "Skip ahead to the cup guide",
+      "skipLabel": "Skip",
+      "pigAlt": "Flower Pig? speaking inside the moonlit tea house",
+      "pigBeforeAlt": "Yeoni as the flower pig, before the change",
+      "yeoniRevealAlt": "Yeoni revealed in the moonlight",
+      "yeoniDescentAria": "Yeoni appearing as if descending under the moonlight",
+      "yeoniTeaAria": "Yeoni guiding the cup choice under the moonlight"
+    },
+    "talkingPig": {
+      "pigAria": "Flower Pig? speaking at the door",
+      "pigName": "Flower Pig?"
+    },
+    "sajuCompat": {
+      "calendar": {
+        "lunar": "Lunar calendar",
+        "solar": "Solar calendar",
+        "unknown": "Calendar not given"
+      },
+      "gender": {
+        "female": "Female",
+        "male": "Male",
+        "unknown": "Gender not given"
+      },
+      "card": {
+        "dayMasterEmpty": "Chart not read yet",
+        "birthDateLabel": "Date of birth",
+        "birthDateEmpty": "Not entered",
+        "calendarLabel": "Calendar used",
+        "genderLabel": "Gender",
+        "pillarsLabel": "The Four Pillars",
+        "pillarsEmpty": "Not read yet",
+        "elementsSuffix": "energy"
+      },
+      "eyebrow": "The room for Four Pillars compatibility",
+      "emptyTitle": "The two charts are not laid side by side yet",
+      "emptySummary": "Once both birth dates are set down, Yeoni will spread the two charts side by side.",
+      "headerAlt": "The Four Pillars of two people",
+      "mineLabel": "My Four Pillars",
+      "partnerLabel": "Their Four Pillars",
+      "dayMasterEyebrow": "The grain of the Day Masters",
+      "dayMasterEmpty": "The grain of both charts",
+      "harmonyEmpty": "We set both Five Elements profiles side by side and look at how they tune to each other.",
+      "relationEyebrow": "Type of bond",
+      "relationEmpty": "A bond",
+      "focusEmpty": "the flow of the relationship",
+      "focusSentence": "Read with {focus} at the centre.",
+      "strengthEyebrow": "Where the grains mesh",
+      "strengthTitle": "The strength that comes alive when the two charts meet",
+      "cautionEyebrow": "Where to tune",
+      "cautionTitle": "What to look at first when the two charts collide"
     }
   }
 }

@@ -3741,7 +3741,8 @@
         "k1tna4h3": "전문가 상담",
         "n300006": "전문가 상담 · 30,000원",
         "n300007": "전문가 작명 · 30,000원",
-        "krpmzd9": "NEW · 휴먼 디자인"
+        "krpmzd9": "NEW · 휴먼 디자인",
+        "khdfree1": "무료 공개"
       }
     },
     "tarotTileBody": {
@@ -4952,5 +4953,266 @@
     "cancel": "취소",
     "submit": "탈퇴하기",
     "submitting": "처리 중…"
+  },
+  "fortuneTeaHouse": {
+    "landing": {
+      "speeches": {
+        "0": "어서 오세요. 오늘의 마음은 제가 먼저 따뜻하게 데워둘게요.",
+        "1": "질문은 천천히 꺼내도 괜찮아요. 찻잎은 마음의 속도를 기다릴 줄 알아요.",
+        "2": "달빛이 조금 더 가까워졌어요. 지금의 흐름을 함께 살펴볼까요?"
+      },
+      "title": "운명의 찻집",
+      "leadTop": "달빛 골목 끝에서 문이 열립니다.",
+      "leadBottom": "연이가 당신의 질문을 먼저 부드럽게 맞이합니다.",
+      "intro": "말로 꺼내기 어려웠던 마음을 찻잔 앞에 내려놓으면, 찻잎과 카드의 상징이 지금 붙잡아야 할 방향을 조용히 비춥니다.",
+      "enterAriaSeen": "운명의 찻집 상담 바로 시작하기",
+      "enterAriaFirst": "운명의 찻집 프롤로그 시작하기",
+      "enterLabelSeen": "바로 상담 시작하기",
+      "enterLabelFirst": "찻집에 들어가기",
+      "replayAria": "운명의 찻집 프롤로그 다시 보기",
+      "replayLabel": "프롤로그 다시 보기",
+      "historyAria": "운명의 찻집 상담 기록 보기",
+      "historyLabel": "상담 기록 보기",
+      "visualAria": "문 앞에서 손님을 맞이하는 꽃돼지 연이",
+      "guideAria": "운명의 찻집 이용 안내",
+      "guide": {
+        "reading": {
+          "title": "찻잔 앞에 잠시 멈추면 마음의 질문이 선명해집니다",
+          "body1": "운명의 찻집은 연이가 질문의 온도를 먼저 살피고, 찻잎과 카드의 상징을 따라 지금의 감정과 선택지를 부드럽게 정리하는 상담 공간입니다.",
+          "body2": "빠른 결론보다 마음이 왜 그 질문에 머무는지를 먼저 봅니다. 불안을 키우는 단정 대신, 지금 붙잡아도 되는 것과 내려놓아야 하는 것을 차분히 나눕니다."
+        },
+        "flow": {
+          "title": "질문은 작아도 마음의 결은 충분히 깊게 읽습니다",
+          "body1": "이름, 생년월일, 필요하면 출생 정보와 질문을 바탕으로 연애, 관계, 선택, 흐름을 각각 다른 언어로 비춥니다.",
+          "body2": "타로는 감정의 장면을, 사주는 오래 이어진 패턴을, 숙요는 관계의 거리와 호흡을 살펴보며 사용자가 오늘 할 수 있는 행동으로 연결합니다."
+        },
+        "promise": {
+          "title": "상처를 크게 만들지 않고, 필요한 말만 부드럽게 건넵니다",
+          "body1": "운명의 찻집은 사용자의 마음을 겁주지 않습니다. 가능성과 흐름을 중심으로 읽고, 선택을 대신하기보다 생각을 정리할 수 있는 문장을 건넵니다."
+        }
+      }
+    },
+    "shell": {
+      "back": "돌아가기",
+      "homeAria": "Code Destiny 홈화면으로 바로가기",
+      "home": "홈으로"
+    },
+    "fiveElementBalance": {
+      "eyebrow": "찻잔 향이 차오르는 결",
+      "title": "오행 향의 균형",
+      "empty": "출생정보가 충분하지 않아 오행의 세부 균형은 펼치지 않았어요."
+    },
+    "teaCupRitual": {
+      "yeoniAlt": "선택한 찻잔을 내미는 연이",
+      "backLabel": "다른 찻잔 보기",
+      "confirmLabel": "이 찻잔으로 이야기하기"
+    },
+    "yeoniTransform": {
+      "cutsceneAlt": "꽃돼지?가 달빛 속에서 인간 연이로 변신하는 컷신",
+      "eyebrow": "분홍빛이 피어나는 순간",
+      "title": "꽃잎 사이로 모습이 바뀝니다",
+      "metLabel": "연이를 만난다",
+      "nextLabel": "다음"
+    },
+    "dialogueBox": {
+      "speakerLabel": {
+        "narration": "나레이션",
+        "yeoni": "연이",
+        "pig": "꽃돼지?"
+      },
+      "speakerIcon": {
+        "yeoni": "연",
+        "pig": "꿀",
+        "moon": "달"
+      },
+      "waiting": "달빛이 피어오르는 중...",
+      "next": "다음 ▾"
+    },
+    "storyIntro": {
+      "nextLabel": "다음",
+      "backdropAlt": "달빛 아래 문이 열린 운명의 찻집",
+      "title": "운명의 찻집",
+      "skipAria": "운명의 찻집 도입 장면 건너뛰기",
+      "skipLabel": "건너뛰기"
+    },
+    "flowPreview": {
+      "eyebrow": "찻잔이 마음을 고르는 자리",
+      "title": "상담은 이렇게 열립니다",
+      "readyLabel": "상담 시작 준비하기",
+      "nextLabel": "다음",
+      "cardAlt": "{title} 장면"
+    },
+    "humanYeoniReveal": {
+      "eyebrow": "달빛 속에 드러난 이름",
+      "title": "연이가 당신을 맞이합니다",
+      "seeReadingLabel": "찻잔 상담 보기",
+      "nextLabel": "다음"
+    },
+    "tarotAssetCard": {
+      "upright": "정방향",
+      "reversed": "역방향",
+      "backAria": "아직 공개되지 않은 운명의 카드",
+      "backTitle": "운명의 카드",
+      "tarotImageAria": "{name} 타로 카드 이미지",
+      "cardImageAria": "{name} 카드 이미지",
+      "cardAlt": "{name} 타로 카드"
+    },
+    "scentLoading": {
+      "chatLines": {
+        "saju": {
+          "0": "잠깐만요. 사주의 결은 서두르면 놓치는 향이 있어서, 잔을 조금 더 데워 볼게요.",
+          "1": "찻잎이 태어난 계절의 흐름을 우려내고 있어요. 조금만 기다려 주세요.",
+          "2": "오행의 온도를 손끝으로 재보는 중이에요. 곧 말이 골라질 거예요."
+        },
+        "sukuyo": {
+          "0": "두 사람의 달빛이 서로 어떻게 닿는지 보고 있어요. 말은 천천히 골라드릴게요.",
+          "1": "27숙의 별자리 사이 거리를 재는 중이에요. 인연의 온도가 떠오르고 있어요.",
+          "2": "달빛이 두 잔 위에서 겹치는 순간을 기다리고 있어요."
+        },
+        "tarot": {
+          "0": "킁킁… 이 질문에는 아직 말하지 못한 마음이 묻어 있어요.",
+          "1": "찻잎이 당신의 운을 우려내고 있어요. 카드가 천천히 깨어나는 중이에요.",
+          "2": "달빛 아래에서 카드 한 장이 먼저 몸을 뒤척였어요. 조금만 더요."
+        }
+      },
+      "title": {
+        "sajuCompatibility": "연이가 두 사람의 사주 궁합을 살피고 있어요",
+        "saju": "연이가 사주의 향을 살피고 있어요",
+        "sukuyo": "연이가 27숙 인연의 흐름을 살피고 있어요",
+        "tarot": "연이가 마음의 향을 살짝 맡아보고 있어요"
+      },
+      "progress": {
+        "label": "요청 접수",
+        "message": "찻잔 위에 질문을 올리고 있어요."
+      },
+      "sceneAria": "연이가 상담문을 준비하는 중",
+      "loadingAlt": "달빛 찻잔이 떠오르는 로딩 장면",
+      "yeoniAria": "찻잔을 건네는 연이",
+      "progressAria": "상담문 생성 진행",
+      "delayNotice": "상담문을 조금 더 깊게 엮고 있어요. 오래 머물면 새로고침하지 말고 잠시만 기다려 주세요.",
+      "retryNotice": "흐름이 끊기면 입력 화면에서 같은 질문으로 다시 시도할 수 있어요."
+    },
+    "sajuPillarBoard": {
+      "eyebrow": "달빛이 비친 명식표",
+      "title": "달빛 네 기둥",
+      "empty": "미입력",
+      "heavenlyStem": "천간",
+      "earthlyBranch": "지지",
+      "element": "오행",
+      "tenGod": "십성",
+      "tenGodEmpty": "대표 손님과 함께 봐요"
+    },
+    "tarotReveal": {
+      "upright": "정방향",
+      "reversed": "역방향",
+      "title": "찻잔 위에 카드가 떠올랐어요",
+      "deckAria": "운명의 카드 선택",
+      "cardAria": "{label} 카드 {state}",
+      "revealed": "공개됨",
+      "flip": "뒤집기",
+      "choiceHint": "카드는 한 장씩 뒤집히고, 모두 열리면 결과가 준비돼요.",
+      "dialogue": {
+        "preparing": "카드는 정답을 명령하지 않아요.\n지금 마음이 바라보는 방향을 조용히 비출 뿐이에요.",
+        "shuffling": "달빛 아래에서 카드들이 섞이고 있어요.\n질문의 향을 한 장씩 내려놓는 중이에요.",
+        "choosingSome": "{count}장을 펼쳤어요.\n남은 카드도 마음이 닿는 순서대로 천천히 열어 주세요.",
+        "choosingNone": "{total}장의 카드가 같은 질문을 바라보고 있어요.\n마음이 먼저 닿는 카드부터 하나씩 열어 주세요.",
+        "complete": "{name} {orientation}을 중심으로 {total}장의 흐름이 모두 열렸어요.\n이제 연이가 각 자리의 뜻을 묶어 읽어볼게요."
+      },
+      "phase": {
+        "shuffling": "카드가 섞이는 중",
+        "choosing": "{count}/{total}장 공개",
+        "complete": "모든 카드 공개 완료"
+      }
+    },
+    "historyPanel": {
+      "closeAria": "상담 기록 닫기",
+      "title": "지난 상담 기록",
+      "subtitle": "연이와 나눈 이야기를 다시 펼쳐볼 수 있어요.",
+      "loadError": "상담 기록을 불러오지 못했어요.",
+      "retry": "다시 시도",
+      "empty": "아직 완료된 상담이 없어요. 찻집에서 첫 상담을 시작해 보세요.",
+      "noSummary": "질문 요약이 없어요",
+      "opening": "여는 중…",
+      "mode": {
+        "tarot": "타로",
+        "saju": "사주",
+        "sajuCompatibility": "사주 궁합",
+        "sukuyo": "숙요점 궁합"
+      },
+      "relative": {
+        "justNow": "방금 전",
+        "minutes": "{n}분 전",
+        "hours": "{n}시간 전",
+        "days": "{n}일 전"
+      }
+    },
+    "teaCupSelection": {
+      "eyebrow": "마음의 향에 반응하는 여섯 잔",
+      "title": "오늘 당신을 부르는 찻잔",
+      "description": "연이가 손님의 마음 향을 맡으면, 질문의 결에 맞는 찻잔부터 먼저 빛납니다. 컵 하나를 고르는 순간 상담의 장면도 그 향으로 열려요.",
+      "yeoniAlt": "찻잔을 건네는 연이",
+      "dialogue": "손님 마음에서 나는 향이 여섯 잔을 깨우고 있어요.\n연애와 재회, 설렘, 선택, 돈의 흐름, 회복, 결단 중 오늘 가장 강하게 반응하는 잔을 골라주세요.",
+      "menuAria": "운명의 찻집 상담 메뉴판",
+      "menuNote": "찻잔은 메뉴가 아니라, 오늘의 질문이 지나갈 작은 운명의 문입니다.",
+      "reacting": "반응 중",
+      "smell": "향 맡기"
+    },
+    "entryScene": {
+      "blooming": "달빛 피어나는 중",
+      "nextLabel": "다음",
+      "toCupsLabel": "찻잔 고르러 가기",
+      "prevAria": "이전 장면으로 돌아가기",
+      "prevLabel": "이전",
+      "skipAria": "찻잔 안내 장면으로 건너뛰기",
+      "skipLabel": "건너뛰기",
+      "pigAlt": "달빛 찻집 안에서 말을 건네는 꽃돼지?",
+      "pigBeforeAlt": "변신 전 꽃돼지 연이",
+      "yeoniRevealAlt": "달빛 속에서 모습을 드러낸 연이",
+      "yeoniDescentAria": "달빛 아래 강림하듯 모습을 드러내는 연이",
+      "yeoniTeaAria": "달빛 아래 찻잔 선택을 안내하는 연이"
+    },
+    "talkingPig": {
+      "pigAria": "문 앞에서 말을 건네는 꽃돼지?",
+      "pigName": "꽃돼지?"
+    },
+    "sajuCompat": {
+      "calendar": {
+        "lunar": "음력",
+        "solar": "양력",
+        "unknown": "달력 정보 없음"
+      },
+      "gender": {
+        "female": "여성",
+        "male": "남성",
+        "unknown": "성별 미입력"
+      },
+      "card": {
+        "dayMasterEmpty": "명식 확인 전",
+        "birthDateLabel": "태어난 날",
+        "birthDateEmpty": "미입력",
+        "calendarLabel": "달의 기준",
+        "genderLabel": "성별",
+        "pillarsLabel": "사주 네 기둥",
+        "pillarsEmpty": "확인 전",
+        "elementsSuffix": "기운"
+      },
+      "eyebrow": "사주 궁합의 방",
+      "emptyTitle": "두 사람의 명식이 아직 나란히 놓이지 않았어요",
+      "emptySummary": "두 사람의 생년월일이 모두 놓이면 연이가 두 명식을 나란히 펼쳐볼게요.",
+      "headerAlt": "두 사람의 사주",
+      "mineLabel": "나의 사주",
+      "partnerLabel": "상대의 사주",
+      "dayMasterEyebrow": "일간의 결",
+      "dayMasterEmpty": "두 명식의 결",
+      "harmonyEmpty": "두 사람의 오행 기운을 나란히 놓고 조율의 결을 살핍니다.",
+      "relationEyebrow": "관계 유형",
+      "relationEmpty": "인연",
+      "focusEmpty": "관계의 흐름",
+      "focusSentence": "{focus}을 중심으로 읽었습니다.",
+      "strengthEyebrow": "맞물리는 결",
+      "strengthTitle": "두 명식이 함께일 때 살아나는 힘",
+      "cautionEyebrow": "조율할 결",
+      "cautionTitle": "두 명식이 부딪힐 때 먼저 보아야 할 것"
+    }
   }
 }

@@ -1,50 +1,63 @@
-// 휴먼 디자인 바디그래프 — 회당 결제(human-design-chart, 100코인 = ₩10,000) 배달 라우트.
+// 휴먼 디자인 바디그래프 — **무료** 배달 라우트 (2026-09 무료화).
 //
-//   POST /api/human-design/chart   : 출생 데이터 → 26 activation → BodyGraph → 핵심 판정
+//   POST /api/human-design/chart          : 출생 데이터 → 26 activation → BodyGraph → 핵심 판정
+//   POST /api/human-design/interpretation : 🔴 은퇴. 저장된 옛 해석의 **읽기 전용** 창구
 //
-// 계약 (정본 템플릿: worker/routes/nakshatra-premium.js 의 택일/VVIP 통합서)
+// 계약
 // ─────────────────────────────────────────────────────────────────────────────
-// 🔒 이용권 선검사 → 미커버 시 결제창(단건/월정석 동등)은 공용 결제 게이트가 이미 수행한다.
-//    여기서 pass 판정을 다시 하지 않는다 — 이중 게이팅(원칙 6)이 되어 엔타이틀먼트 기록 없이
-//    본문이 새거나 두 판정이 어긋난다.
-// 🔴 canAccessPaidFeature 로 관문을 세우지 않는다. 그 함수는 엔티틀먼트 전용이라 회당결제
-//    키에는 언제나 PAYMENT_REQUIRED 를 돌려주고, 이미 차감된 사용자가 402 를 맞아 돈만 나간다.
+// 🔴 차트는 무료다. 과금 지점은 프리미엄 리포트(featureKey `human-design-report`)로 옮겼고,
+//    그 라우트는 worker/routes/human-design-report.js 가 따로 갖는다. 여기에 결제 검사를
+//    되살리지 말 것 — 무료 계약은 scripts/verify-human-design.mjs 가 강제한다.
+// 🔴 무료지만 **로그인은 필요하다**. 아카이브 키가 userId 이고, 결과를 다시 열거나 리포트로
+//    이어가려면 계정이 있어야 한다.
+// 🔴 무료가 되면 Swiss Ephemeris WASM 계산이 무과금 CPU 가 된다. 그래서 **실제 계산 직전에만**
+//    사용자당 레이트리밋을 건다(정본: worker/routes/destiny-compass.js 의 아이솔레이트 버킷).
+//    아카이브 히트는 계산이 아니므로 세지 않는다 — 재열람을 벌주지 않기 위해서다.
+//
+// 🔴 /interpretation 은 왜 은퇴했나
+// ─────────────────────────────────────────────────────────────────────────────
+// 이 라우트의 유일한 관문은 "이 사용자의 계산 문서가 존재한다" 였다. 차트가 무료가 되면 그
+// 문서를 누구나 만들 수 있으므로 그 관문은 관문이 아니게 된다. 생성 경로를 남긴 채 차트만
+// 무료로 풀면 AI 해석이 통째로 무료로 열린다. 그래서 무료화와 같은 배포에서 생성을 끊었다.
+// 이미 결제해 저장된 해석은 계속 읽힌다(아래 handleInterpretation).
 //
 // 재열람
 // ─────────────────────────────────────────────────────────────────────────────
-// 차트는 같은 출생 데이터면 항상 같은 결과다. 그래서 (userId, inputHash, calculationVersion)
-// 조합의 저장 문서가 있으면 **재결제 없이** 그대로 돌려준다(sukuyo-past-life-reading 의
-// 아카이브와 같은 계약). 🔴 영구 해금이 아니다 — 출생 데이터가 다르면 새 결제다.
+// 차트는 같은 출생 데이터면 항상 같은 결과다. (userId, inputHash, calculationVersion) 조합의
+// 저장 문서가 있으면 재계산 없이 그대로 돌려준다.
 
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { HumanDesignCalculation, HumanDesignInterpretation } from "../lib/models.js";
-import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
 import { calculateHumanDesignChart } from "../lib/human-design-ephemeris.js";
 import { CALCULATION_VERSION } from "../../lib/human-design/version.js";
-import { callGeminiJsonWithRetry } from "../lib/structured-consultation.js";
 import { getAmbientAiLocale } from "../lib/ai-locale-context.js";
-import {
-  HD_AI_FALLBACK_MIN_CHARS,
-  HD_AI_MIN_RESULT_CHARS,
-  HD_AI_SECTIONS,
-  HUMAN_DESIGN_AI_PROMPT_VERSION,
-  buildHumanDesignAIPrompt,
-  validateHumanDesignInterpretation,
-} from "../lib/human-design-ai-prompt.js";
+import { HUMAN_DESIGN_AI_PROMPT_VERSION } from "../lib/human-design-ai-prompt.js";
 
-// 레지스트리(worker/lib/paid-feature-registry.js) 등록값과 일치해야 한다.
-// 🔴 scripts/verify-human-design.mjs 가 이 셋의 정합성을 강제한다.
-const FEATURE_KEY = "human-design-chart";
-const COIN_PRICE = 100;
-const AMOUNT_KRW = 10000;
+// 🔴 결제 키가 아니라 **아카이브 문서 id 접두사**다. 무료화 전 결제 키와 같은 문자열을 쓰는
+//    이유는 이미 저장된 문서의 id 를 그대로 이어받기 위해서이고, 바꾸면 옛 아카이브가 고아가 된다.
+//    결제에는 쓰이지 않는다 — 리포트의 결제 키는 human-design-report 이고 다른 파일에 있다.
+const ARCHIVE_ID_PREFIX = "human-design-chart";
 
-// 🔴 1단계는 관측 전용이다 — 증빙 결과를 로그로만 남기고 아무것도 막지 않는다.
-//    차단(402)은 실사용 로그에서 정상 결제 경로가 전부 proven:true 로 찍히는 것을 확인한 뒤 켠다.
-//    이 순서를 지키는 이유: 검증이 과하면 이미 결제한 사용자가 402 를 맞아 돈만 나간다.
-//    (nakshatra-premium.js 의 PER_USE_ENFORCE 와 같은 계약)
-const PER_USE_ENFORCE = false;
+// 🔴 무과금 WASM 계산 보호. 실제 계산 직전에만 세므로 아카이브 재열람은 영향받지 않는다.
+const CALC_RATE_LIMIT_WINDOW_MS = 10 * 60 * 1000;
+const CALC_RATE_LIMIT_MAX = 20;
+const calcBuckets = new Map();
+
+/** 사용자당 계산 횟수 버킷. 아이솔레이트 로컬이라 완벽한 상한이 아니라 남용 완충이다. */
+function allowCalculation(userId) {
+  const key = String(userId || "anonymous").slice(0, 80);
+  const now = Date.now();
+  const current = calcBuckets.get(key);
+  if (!current || current.resetAt <= now) {
+    calcBuckets.set(key, { count: 1, resetAt: now + CALC_RATE_LIMIT_WINDOW_MS });
+    return true;
+  }
+  if (current.count >= CALC_RATE_LIMIT_MAX) return false;
+  current.count += 1;
+  return true;
+}
 
 const MESSAGES = Object.freeze({
   login: "로그인이 필요합니다.",
@@ -52,7 +65,8 @@ const MESSAGES = Object.freeze({
   failed: "휴먼 디자인 차트를 만들지 못했습니다. 잠시 후 다시 시도해 주세요.",
   degraded: "잠시 접속이 불안정합니다. 잠시 후 다시 시도해 주세요.",
   ephemeris: "천문 계산 엔진을 불러오지 못했습니다. 잠시 후 다시 시도해 주세요.",
-  aiFailed: "해석을 만들지 못했습니다. 차트는 그대로 있으니 잠시 후 '다시 시도'를 눌러 주세요.",
+  rateLimited: "짧은 시간에 너무 많은 차트를 만들었습니다. 잠시 후 다시 시도해 주세요.",
+  retired: "이 해석은 프리미엄 리포트로 옮겨졌습니다. 리포트에서 더 자세한 분석을 받아 보세요.",
 });
 
 function degraded() {
@@ -114,30 +128,18 @@ function inputHashSource(input) {
   return [input.birthDate, input.birthTime, input.timezone, input.calendar, CALCULATION_VERSION].join("|");
 }
 
-async function observePerUsePayment(env, auth, body) {
+/**
+ * 저장된 차트를 찾는다. DB 가 흔들려도 본문을 막지 않으므로 실패는 null 로 접는다.
+ *
+ * 🔴 withMongoRetry 는 (env, operation) 순서다. 콜백을 첫 인자로 넘기면 operation 이 undefined 가
+ *    되어 TypeError 가 나고, 아래 catch 가 그걸 삼켜 "DB 장애처럼 보이는 영구 실패"가 된다.
+ *    2026-09 이전까지 이 파일 4곳이 전부 그 상태였고 아카이브가 한 번도 동작하지 않았다.
+ *    재발 방지는 scripts/verify-no-nested-retry.mjs 가 레포 전역으로 막는다.
+ */
+async function findArchivedChart(env, userId, inputHash) {
   try {
-    const proof = await verifyPerUsePayment(env, {
-      userId: auth?.userId,
-      featureKey: FEATURE_KEY,
-      coinPrice: COIN_PRICE,
-      requestId: clean(body?.requestId || body?.idempotencyKey, 180),
-    });
-    logPerUsePaymentProof(FEATURE_KEY, proof);
-    return proof;
-  } catch (error) {
-    // 🔴 증빙 확인이 터져도 결제한 사용자의 본문을 막지 않는다 — 관측 단계에서 500 을 새로
-    //    만드는 것은 고치려던 문제보다 나쁘다. 차단을 켤 때도 이 경로는 "판단 보류"로 남는다.
-    logPerUsePaymentProof(FEATURE_KEY, { proven: null, source: "", reason: "VERIFY_THREW" });
-    console.error("[human-design-paid-access] verify failed", String(error?.message || error).slice(0, 200));
-    return { proven: null, source: "", reason: "VERIFY_THREW" };
-  }
-}
-
-/** 저장된 차트를 찾는다. DB 가 흔들려도 본문을 막지 않으므로 실패는 null 로 접는다. */
-async function findArchivedChart(userId, inputHash) {
-  try {
-    await connectDb();
-    return await withMongoRetry(() => HumanDesignCalculation.findOne({
+    await connectDb(env);
+    return await withMongoRetry(env, () => HumanDesignCalculation.findOne({
       userId,
       inputHash,
       calculationVersion: CALCULATION_VERSION,
@@ -148,11 +150,11 @@ async function findArchivedChart(userId, inputHash) {
   }
 }
 
-/** 아카이브 기록. 실패해도 사용자에게는 차트를 준다(결제는 이미 끝났다). */
-async function archiveChart(doc) {
+/** 아카이브 기록. 실패해도 사용자에게는 차트를 준다 — 저장은 부가 기능이다. */
+async function archiveChart(env, doc) {
   try {
-    await connectDb();
-    await withMongoRetry(() => HumanDesignCalculation.updateOne(
+    await connectDb(env);
+    await withMongoRetry(env, () => HumanDesignCalculation.updateOne(
       { userId: doc.userId, idempotencyKey: doc.idempotencyKey },
       { $setOnInsert: doc },
       { upsert: true },
@@ -194,27 +196,24 @@ async function handleChart(request, env) {
   const inputHash = await sha256Hex(inputHashSource(input));
   timer.mark("BIRTH_DATA");
 
-  // 같은 출생 데이터를 다시 열면 재결제 없이 저장본을 준다.
-  const archived = await findArchivedChart(auth.userId, inputHash);
+  // 같은 출생 데이터를 다시 열면 재계산 없이 저장본을 준다.
+  const archived = await findArchivedChart(env, auth.userId, inputHash);
   if (archived?.calculation) {
     timer.mark("ARCHIVE_HIT");
     return json(
-      { ok: true, featureKey: FEATURE_KEY, reused: true, chart: archived.calculation, pipeline: timer.stages },
+      { ok: true, free: true, reused: true, chart: archived.calculation, pipeline: timer.stages },
       { headers: { "Cache-Control": "no-store" } },
     );
   }
 
-  const proof = await observePerUsePayment(env, auth, body);
-  if (PER_USE_ENFORCE && proof) {
-    if (proof.proven === null) return degraded();
-    if (proof.proven === false) {
-      return json(
-        { ok: false, reason: "PAYMENT_REQUIRED", featureKey: FEATURE_KEY, coinPrice: COIN_PRICE, amountKRW: AMOUNT_KRW },
-        { status: 402 },
-      );
-    }
+  // 🔴 여기서부터가 무과금 WASM 계산이다. 아카이브 히트는 위에서 이미 빠져나갔으므로
+  //    이 상한은 "새 차트를 몇 개나 만들 수 있는가" 만 센다.
+  if (!allowCalculation(auth.userId)) {
+    return json(
+      { ok: false, retryable: true, reason: "RATE_LIMITED", message: MESSAGES.rateLimited },
+      { status: 429, headers: { "Cache-Control": "no-store", "Retry-After": "600" } },
+    );
   }
-  timer.mark("PAYMENT_PROOF");
 
   let chart;
   try {
@@ -232,9 +231,9 @@ async function handleChart(request, env) {
   }
   timer.mark("CHART");
 
-  const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 180) || `${FEATURE_KEY}:${inputHash}`;
-  await archiveChart({
-    id: `${FEATURE_KEY}:${auth.userId}:${inputHash}`,
+  const idempotencyKey = clean(body?.idempotencyKey || body?.requestId, 180) || `${ARCHIVE_ID_PREFIX}:${inputHash}`;
+  await archiveChart(env, {
+    id: `${ARCHIVE_ID_PREFIX}:${auth.userId}:${inputHash}`,
     userId: auth.userId,
     profileId: clean(body?.profileId, 120),
     idempotencyKey,
@@ -250,97 +249,45 @@ async function handleChart(request, env) {
     authority: chart.authority,
     profile: chart.profile,
     definition: chart.definition,
-    accessType: "paid",
-    accessSource: clean(proof?.source, 40),
-    billingRequestId: clean(body?.requestId, 180),
+    accessType: "free",
+    accessSource: "free",
+    billingRequestId: "",
     calculatedAt: new Date(),
   });
   timer.mark("ARCHIVE");
 
   return json(
-    { ok: true, featureKey: FEATURE_KEY, reused: false, chart, pipeline: timer.stages },
+    { ok: true, free: true, reused: false, chart, pipeline: timer.stages },
     { headers: { "Cache-Control": "no-store" } },
   );
 }
 
-// ── AI 해석 ──────────────────────────────────────────────────────────────────
+// ── 옛 AI 해석 — 은퇴, 읽기 전용 ──────────────────────────
 //
-// 🔴 **새 결제 키가 없다.** 접근 증빙은 "이 사용자의 계산 문서가 존재한다" 는 사실이고,
-//    그 문서는 결제를 거쳐야만 생긴다. 차트와 해석은 같은 1회 결제로 열린다.
-//    아카이브 write 가 실패해 문서가 없는 경우만 결제 증빙(requestId)으로 구제한다.
+// 🔴 생성 경로는 2026-09 차트 무료화와 **같은 배포에서** 제거했다. 그전까지 이 라우트의
+//    유일한 관문은 "이 사용자의 계산 문서가 존재한다" 였는데, 차트가 무료가 되면 그 문서를
+//    누구나 만들 수 있어 관문이 사라진다. 생성을 남긴 채 차트만 풀면 AI 해석이 통째로
+//    무료로 열린다. 둘을 쪼개면 그 사이 배포 창이 그대로 구멍이라 한 PR 에서 함께 처리한다.
 //
-// 🔴 프롬프트에 출생 데이터를 싣지 않는다 — buildHumanDesignAIPrompt 가 계산 결과만 읽는다.
+// 남긴 것은 **이미 결제해 저장된 해석의 읽기**뿐이다. 새 분석은 프리미엄 리포트가 맡는다.
 
-/** LLM 출력 토큰 예산. 한국어 6,000자 ≈ 6,000~7,000 토큰이라 여유를 둔다. */
-const HD_AI_BASE_TOKENS = 9000;
-const HD_AI_CAP_TOKENS = 14000;
+const REPORT_REPLACEMENT_PATH = "/api/human-design-report/start";
 
-function countBodyChars(sections, summary) {
-  const bodyText = sections.map((section) => String(section?.body || "")).join("") + String(summary || "");
-  return bodyText.replace(/\s+/g, "").length;
-}
-
-function normalizeInterpretationPayload(raw) {
-  let parsed;
-  try {
-    parsed = JSON.parse(raw);
-  } catch {
-    // 앞뒤 설명문이 섞인 경우를 대비해 첫 { ~ 마지막 } 만 잘라 한 번 더 시도한다.
-    const start = String(raw).indexOf("{");
-    const end = String(raw).lastIndexOf("}");
-    if (start < 0 || end <= start) return null;
-    try {
-      parsed = JSON.parse(String(raw).slice(start, end + 1));
-    } catch {
-      return null;
-    }
-  }
-  if (!parsed || !Array.isArray(parsed.sections)) return null;
-
-  const byKey = new Map(parsed.sections
-    .filter((section) => section && typeof section === "object")
-    .map((section) => [String(section.key || "").trim(), section]));
-
-  // 🔴 섹션 순서·키는 서버가 정본이다. 모델이 순서를 바꾸거나 키를 지어내도 여기서 고정된다.
-  const sections = HD_AI_SECTIONS.map((spec) => {
-    const found = byKey.get(spec.key);
-    return {
-      key: spec.key,
-      title: String(found?.title || spec.title).trim().slice(0, 120),
-      body: String(found?.body || "").trim(),
-    };
-  });
-  return { sections, summary: String(parsed.summary || "").trim().slice(0, 4000) };
-}
-
-async function findArchivedInterpretation(userId, calculationId, locale) {
-  try {
-    await connectDb();
-    return await withMongoRetry(() => HumanDesignInterpretation.findOne({
-      userId,
-      calculationId,
-      promptVersion: HUMAN_DESIGN_AI_PROMPT_VERSION,
-      locale,
-    }).lean());
-  } catch (error) {
-    console.error("[human-design-ai] archive lookup failed", String(error?.message || error).slice(0, 200));
-    return null;
-  }
-}
-
-async function archiveInterpretation(doc) {
-  try {
-    await connectDb();
-    await withMongoRetry(() => HumanDesignInterpretation.updateOne(
-      { userId: doc.userId, calculationId: doc.calculationId, promptVersion: doc.promptVersion, locale: doc.locale },
-      { $set: doc },
-      { upsert: true },
-    ));
-    return true;
-  } catch (error) {
-    console.error("[human-design-ai] archive write failed", String(error?.message || error).slice(0, 200));
-    return false;
-  }
+/**
+ * 저장된 옛 해석을 찾는다.
+ *
+ * 🔴 실패를 null 로 접지 않는다 — 접으면 DB 장애가 "해석이 없음"(410)으로 세탁돼
+ *    이미 결제한 사용자가 자기 결과를 영영 못 본다. 일시 장애는 라우터가 503 으로 바꾸고,
+ *    그러면 클라이언트가 재시도한다.
+ */
+async function findArchivedInterpretation(env, userId, calculationId, locale) {
+  await connectDb(env);
+  return withMongoRetry(env, () => HumanDesignInterpretation.findOne({
+    userId,
+    calculationId,
+    promptVersion: HUMAN_DESIGN_AI_PROMPT_VERSION,
+    locale,
+  }).lean());
 }
 
 async function handleInterpretation(request, env) {
@@ -353,110 +300,26 @@ async function handleInterpretation(request, env) {
 
   const locale = clean(getAmbientAiLocale() || "ko", 10) || "ko";
   const inputHash = await sha256Hex(inputHashSource(input));
+  const calculationId = `${ARCHIVE_ID_PREFIX}:${auth.userId}:${inputHash}`;
 
-  // 접근 판정 — 결제로 생긴 계산 문서가 있어야 한다.
-  let archived = await findArchivedChart(auth.userId, inputHash);
-  let calculation = archived?.calculation || null;
-
-  if (!calculation) {
-    // 아카이브 write 가 실패했던 경우의 구제 지점. 결제 증빙이 있으면 차트를 다시 계산한다.
-    // 🔴 클라이언트가 보낸 차트를 믿지 않는다 — 믿으면 누구나 무료로 AI 해석을 받는다.
-    const proof = await observePerUsePayment(env, auth, body);
-    if (!proof || proof.proven !== true) {
-      return json(
-        { ok: false, reason: "PAYMENT_REQUIRED", featureKey: FEATURE_KEY, coinPrice: COIN_PRICE, amountKRW: AMOUNT_KRW },
-        { status: 402 },
-      );
-    }
-    try {
-      calculation = await calculateHumanDesignChart(env, input, {
-        requestUrl: request.url,
-        calculatedAt: new Date().toISOString(),
-      });
-    } catch (error) {
-      console.error("[human-design-ai] recalculation failed", String(error?.message || error).slice(0, 200));
-      return json({ ok: false, retryable: true, reason: "EPHEMERIS_UNAVAILABLE", message: MESSAGES.ephemeris }, { status: 502 });
-    }
-    archived = { id: `${FEATURE_KEY}:${auth.userId}:${inputHash}` };
-  }
-
-  const calculationId = archived?.id || `${FEATURE_KEY}:${auth.userId}:${inputHash}`;
-
-  const existing = await findArchivedInterpretation(auth.userId, calculationId, locale);
+  const existing = await findArchivedInterpretation(env, auth.userId, calculationId, locale);
   if (existing?.status === "completed" && Array.isArray(existing.sections) && existing.sections.length) {
+    // 🔴 결제 게이트를 두지 않는다 — 본인이 이미 결제해 받은 결과를 다시 여는 것이다.
     return json(
-      { ok: true, reused: true, interpretation: { sections: existing.sections, summary: existing.summary } },
+      {
+        ok: true,
+        legacy: true,
+        readOnly: true,
+        reused: true,
+        interpretation: { sections: existing.sections, summary: existing.summary },
+      },
       { headers: { "Cache-Control": "no-store" } },
     );
   }
 
-  let built;
-  try {
-    built = buildHumanDesignAIPrompt({ calculation, userQuestion: body?.userQuestion });
-  } catch (error) {
-    // fail-closed — 계산 결과가 온전하지 않으면 모델에게 넘기지 않는다.
-    console.error("[human-design-ai] prompt build refused", String(error?.message || error).slice(0, 200));
-    return json({ ok: false, reason: "CALCULATION_INCOMPLETE", message: MESSAGES.failed }, { status: 500 });
-  }
-
-  const ai = await callGeminiJsonWithRetry(env, built.prompt, {
-    systemPrompt: built.systemPrompt,
-    baseTokens: HD_AI_BASE_TOKENS,
-    capTokens: HD_AI_CAP_TOKENS,
-    temperature: 0.85,
-    taskType: "fortune",
-    // 🔴 폴백을 켠 유료 라우트는 fallbackMinChars 가 필수다. 안 주면 8% 분량이
-    //    정상 결제 결과로 전달되고 재시도·환불 경로가 사라진다.
-    fallbackMinChars: HD_AI_FALLBACK_MIN_CHARS,
-    logContext: { route: "human-design-ai", promptVersion: HUMAN_DESIGN_AI_PROMPT_VERSION },
-  });
-
-  if (!ai?.ok || !ai.text) {
-    console.error("[human-design-ai] generation failed", String(ai?.error || "unknown"), String(ai?.message || "").slice(0, 200));
-    return json({ ok: false, retryable: true, reason: "AI_UNAVAILABLE", message: MESSAGES.aiFailed }, { status: 503 });
-  }
-
-  const payload = normalizeInterpretationPayload(ai.text);
-  if (!payload) {
-    return json({ ok: false, retryable: true, reason: "AI_MALFORMED", message: MESSAGES.aiFailed }, { status: 503 });
-  }
-
-  const totalCharCount = countBodyChars(payload.sections, payload.summary);
-  if (totalCharCount < HD_AI_MIN_RESULT_CHARS) {
-    console.warn("[human-design-ai] too short", { totalCharCount, min: HD_AI_MIN_RESULT_CHARS });
-    return json({ ok: false, retryable: true, reason: "AI_TOO_SHORT", message: MESSAGES.aiFailed }, { status: 503 });
-  }
-
-  // 🔴 사후 검산 — 모델이 자기가 계산한 값을 쓴 흔적이 있으면 저장하지 않는다.
-  const factCheck = validateHumanDesignInterpretation(
-    payload.sections.map((section) => section.body).join("\n") + "\n" + payload.summary,
-    built.factSnapshot,
-  );
-  if (!factCheck.ok) {
-    console.warn("[human-design-ai] fact check failed", factCheck.violations.slice(0, 3));
-    return json({ ok: false, retryable: true, reason: "AI_FACT_MISMATCH", message: MESSAGES.aiFailed }, { status: 503 });
-  }
-
-  await archiveInterpretation({
-    id: `${HUMAN_DESIGN_AI_PROMPT_VERSION}:${auth.userId}:${inputHash}:${locale}`,
-    userId: auth.userId,
-    calculationId,
-    inputHash,
-    calculationVersion: calculation.calculationVersion || CALCULATION_VERSION,
-    promptVersion: HUMAN_DESIGN_AI_PROMPT_VERSION,
-    locale,
-    userQuestion: clean(body?.userQuestion, 600),
-    sections: payload.sections,
-    summary: payload.summary,
-    totalCharCount,
-    factCheck,
-    status: "completed",
-    llmMeta: { model: ai.model, provider: ai.provider, truncated: ai.truncated === true },
-  });
-
   return json(
-    { ok: true, reused: false, interpretation: { sections: payload.sections, summary: payload.summary } },
-    { headers: { "Cache-Control": "no-store" } },
+    { ok: false, reason: "INTERPRETATION_RETIRED", replacement: REPORT_REPLACEMENT_PATH, message: MESSAGES.retired },
+    { status: 410, headers: { "Cache-Control": "no-store" } },
   );
 }
 
@@ -486,11 +349,10 @@ export async function handleHumanDesignRoutes(request, env = {}) {
 }
 
 export const __humanDesignRouteTestUtils = {
-  FEATURE_KEY,
-  COIN_PRICE,
-  AMOUNT_KRW,
-  PER_USE_ENFORCE,
+  ARCHIVE_ID_PREFIX,
+  CALC_RATE_LIMIT_MAX,
   normalizeBirthBody,
   isValidBirth,
   inputHashSource,
+  allowCalculation,
 };

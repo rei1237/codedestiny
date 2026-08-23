@@ -6668,7 +6668,8 @@
         "k1tna4h3": "专家咨询",
         "n300006": "专家咨询 · 30,000韩元",
         "n300007": "专家起名 · 30,000韩元",
-        "krpmzd9": "NEW · 人类图"
+        "krpmzd9": "NEW · 人类图",
+        "khdfree1": "免费公开"
       }
     },
     "tarotTileBody": {
@@ -11521,6 +11522,267 @@
     },
     "free": {
       "0": "运势结果仅供参考，重要选择请结合现实判断再确认。"
+    }
+  },
+  "fortuneTeaHouse": {
+    "landing": {
+      "speeches": {
+        "0": "欢迎光临。今天的心情，就让我先替你暖一暖。",
+        "1": "问题慢慢说出口也没关系。茶叶懂得等待心的速度。",
+        "2": "月光又靠近了一些。要不要一起看看此刻的流向？"
+      },
+      "title": "运命茶馆",
+      "leadTop": "月光小巷的尽头，门开了。",
+      "leadBottom": "Yeoni 会先温柔地迎接你的问题。",
+      "intro": "把难以说出口的心事放在茶杯前，茶叶与牌面的象征便会静静照亮此刻该抓住的方向。",
+      "enterAriaSeen": "立即开始运命茶馆的咨询",
+      "enterAriaFirst": "开始运命茶馆的序章",
+      "enterLabelSeen": "立即开始咨询",
+      "enterLabelFirst": "走进茶馆",
+      "replayAria": "重看运命茶馆的序章",
+      "replayLabel": "重看序章",
+      "historyAria": "查看运命茶馆的咨询记录",
+      "historyLabel": "查看咨询记录",
+      "visualAria": "在门前迎接客人的花猪 Yeoni",
+      "guideAria": "运命茶馆使用指南",
+      "guide": {
+        "reading": {
+          "title": "在茶杯前稍作停留，心里的问题就会变得清晰",
+          "body1": "在运命茶馆，Yeoni 会先察看问题的温度，再顺着茶叶与牌面的象征，温柔地梳理此刻的情绪与选择。",
+          "body2": "比起匆忙下结论，我们先看清心为何停留在那个问题上。不用加深不安的断言，而是从容地分开此刻可以抓住的与该放下的。"
+        },
+        "flow": {
+          "title": "问题再小，也会把心里的纹路读得够深",
+          "body1": "以姓名、出生日期、必要时的出生资讯与问题本身为凭，用各自的语言照见恋爱、关系、选择与流向。",
+          "body2": "塔罗看见情绪的场景，四柱八字看见延续多年的模式，宿曜看见关系的距离与呼吸，最后都连回今天能做的一件事。"
+        },
+        "promise": {
+          "title": "不把伤口放大，只温柔地递上必要的话",
+          "body1": "运命茶馆不会吓唬你的心。我们以可能性与流向为主来解读，不替你做决定，而是递上能帮你理清思绪的句子。"
+        }
+      }
+    },
+    "shell": {
+      "back": "返回",
+      "homeAria": "前往 Code Destiny 首页",
+      "home": "回首页"
+    },
+    "fiveElementBalance": {
+      "eyebrow": "茶香满溢的纹路",
+      "title": "五行香气的平衡",
+      "empty": "出生资讯还不够，因此没有展开五行的细部平衡。"
+    },
+    "teaCupRitual": {
+      "yeoniAlt": "递出你所选茶杯的 Yeoni",
+      "backLabel": "看看其他茶杯",
+      "confirmLabel": "就用这杯茶聊聊"
+    },
+    "yeoniTransform": {
+      "cutsceneAlt": "花猪？在月光中化为人形 Yeoni 的过场动画",
+      "eyebrow": "粉光绽开的瞬间",
+      "title": "在花瓣之间，样貌变了",
+      "metLabel": "见见 Yeoni",
+      "nextLabel": "下一步"
+    },
+    "dialogueBox": {
+      "speakerLabel": {
+        "narration": "旁白",
+        "yeoni": "Yeoni",
+        "pig": "花猪？"
+      },
+      "speakerIcon": {
+        "yeoni": "Y",
+        "pig": "蜜",
+        "moon": "月"
+      },
+      "waiting": "月光正在升起…",
+      "next": "下一步 ▾"
+    },
+    "storyIntro": {
+      "nextLabel": "下一步",
+      "backdropAlt": "月光下敞开着门的运命茶馆",
+      "title": "运命茶馆",
+      "skipAria": "跳过运命茶馆的开场",
+      "skipLabel": "跳过"
+    },
+    "flowPreview": {
+      "eyebrow": "让茶杯替心做选择的地方",
+      "title": "咨询就是这样开始的",
+      "readyLabel": "准备开始咨询",
+      "nextLabel": "下一步",
+      "cardAlt": "{title} 场景"
+    },
+    "humanYeoniReveal": {
+      "eyebrow": "在月光中显露的名字",
+      "title": "Yeoni 迎接你",
+      "seeReadingLabel": "查看茶杯咨询",
+      "nextLabel": "下一步"
+    },
+    "tarotAssetCard": {
+      "upright": "正位",
+      "reversed": "逆位",
+      "backAria": "尚未揭开的运命之牌",
+      "backTitle": "运命之牌",
+      "tarotImageAria": "{name} 塔罗牌图像",
+      "cardImageAria": "{name} 牌面图像",
+      "cardAlt": "{name} 塔罗牌"
+    },
+    "scentLoading": {
+      "chatLines": {
+        "saju": {
+          "0": "请稍等。四柱八字的纹路里有些香气一急就会错过，我再把杯子暖一会儿。",
+          "1": "茶叶正在沏出你出生那个季节的流向。请再等一等。",
+          "2": "我正用指尖量着五行的温度。话语很快就会挑好。"
+        },
+        "sukuyo": {
+          "0": "我在看两人的月光如何相触。话我会慢慢挑。",
+          "1": "我在丈量27宿星座之间的距离。缘分的温度正浮上来。",
+          "2": "我在等月光在两只杯子上重叠的那一刻。"
+        },
+        "tarot": {
+          "0": "嗅嗅…这个问题上还沾着说不出口的心事。",
+          "1": "茶叶正在沏出你的运。牌也在慢慢醒来。",
+          "2": "月光下已有一张牌先翻了个身。再一会儿就好。"
+        }
+      },
+      "title": {
+        "sajuCompatibility": "Yeoni 正在查看两人的四柱八字合婚",
+        "saju": "Yeoni 正在察看四柱八字的香气",
+        "sukuyo": "Yeoni 正在察看27宿缘分的流向",
+        "tarot": "Yeoni 正轻轻嗅着你心里的香气"
+      },
+      "progress": {
+        "label": "已接收请求",
+        "message": "正把你的问题放上茶杯。"
+      },
+      "sceneAria": "Yeoni 正在准备咨询文",
+      "loadingAlt": "月光茶杯浮起的加载画面",
+      "yeoniAria": "递出茶杯的 Yeoni",
+      "progressAria": "咨询文生成进度",
+      "delayNotice": "咨询文正编织得更深一些。若停留较久，请不要刷新，稍等片刻。",
+      "retryNotice": "若流程中断，可在输入页面用同样的问题再试一次。"
+    },
+    "sajuPillarBoard": {
+      "eyebrow": "月光映照的命盘",
+      "title": "月光四柱",
+      "empty": "未填写",
+      "heavenlyStem": "天干",
+      "earthlyBranch": "地支",
+      "element": "五行",
+      "tenGod": "十神",
+      "tenGodEmpty": "与主客一同查看"
+    },
+    "tarotReveal": {
+      "upright": "正位",
+      "reversed": "逆位",
+      "title": "茶杯上浮起了一张牌",
+      "deckAria": "选择运命之牌",
+      "cardAria": "{label} 牌 {state}",
+      "revealed": "已揭开",
+      "flip": "翻开",
+      "choiceHint": "牌一张一张翻开，全部揭开后结果就准备好了。",
+      "dialogue": {
+        "preparing": "牌不会命令答案。\n它只是静静照亮此刻你心所朝的方向。",
+        "shuffling": "牌正在月光下洗着。\n我把问题的香气一张一张放上去。",
+        "choosingSome": "已翻开 {count} 张。\n剩下的也请按心之所向，慢慢翻开。",
+        "choosingNone": "{total} 张牌都望着同一个问题。\n请从心先触到的那张开始，一张一张翻开。",
+        "complete": "以 {name} {orientation} 为中心，{total} 张的流向全部展开了。\n接下来我把各个位置的含义连起来读。"
+      },
+      "phase": {
+        "shuffling": "洗牌中",
+        "choosing": "已揭开 {count}/{total} 张",
+        "complete": "全部揭开完成"
+      }
+    },
+    "historyPanel": {
+      "closeAria": "关闭咨询记录",
+      "title": "过往咨询记录",
+      "subtitle": "你可以重新展开与 Yeoni 的对话。",
+      "loadError": "无法载入咨询记录。",
+      "retry": "再试一次",
+      "empty": "还没有完成的咨询。到茶馆开始第一次咨询吧。",
+      "noSummary": "没有问题摘要",
+      "opening": "正在打开…",
+      "mode": {
+        "tarot": "塔罗",
+        "saju": "四柱八字",
+        "sajuCompatibility": "四柱合婚",
+        "sukuyo": "宿曜合婚"
+      },
+      "relative": {
+        "justNow": "刚刚",
+        "minutes": "{n} 分钟前",
+        "hours": "{n} 小时前",
+        "days": "{n} 天前"
+      }
+    },
+    "teaCupSelection": {
+      "eyebrow": "回应心之香气的六只茶杯",
+      "title": "今天呼唤你的那只茶杯",
+      "description": "当 Yeoni 嗅到你心里的香气，最贴合问题纹路的那只茶杯会先亮起来。你选下一只的瞬间，咨询的场景也会以那股香气展开。",
+      "yeoniAlt": "递出茶杯的 Yeoni",
+      "dialogue": "从你心里升起的香气正唤醒六只茶杯。\n请在恋爱与重逢、心动、抉择、财运流向、复原、决断之中，选出今天反应最强烈的那一只。",
+      "menuAria": "运命茶馆咨询菜单",
+      "menuNote": "茶杯不是菜单，而是今天的问题将要穿过的一扇小小的运命之门。",
+      "reacting": "正在回应",
+      "smell": "闻一闻"
+    },
+    "entryScene": {
+      "blooming": "月光正绽开",
+      "nextLabel": "下一步",
+      "toCupsLabel": "去挑一只茶杯",
+      "prevAria": "回到上一个场景",
+      "prevLabel": "上一步",
+      "skipAria": "跳到茶杯介绍场景",
+      "skipLabel": "跳过",
+      "pigAlt": "在月光茶馆里搭话的花猪？",
+      "pigBeforeAlt": "变身前的花猪 Yeoni",
+      "yeoniRevealAlt": "在月光中现身的 Yeoni",
+      "yeoniDescentAria": "如降临般在月光下现身的 Yeoni",
+      "yeoniTeaAria": "在月光下引导选杯的 Yeoni"
+    },
+    "talkingPig": {
+      "pigAria": "在门前搭话的花猪？",
+      "pigName": "花猪？"
+    },
+    "sajuCompat": {
+      "calendar": {
+        "lunar": "农历",
+        "solar": "公历",
+        "unknown": "没有历法资讯"
+      },
+      "gender": {
+        "female": "女性",
+        "male": "男性",
+        "unknown": "未填写性别"
+      },
+      "card": {
+        "dayMasterEmpty": "命盘尚未确认",
+        "birthDateLabel": "出生日期",
+        "birthDateEmpty": "未填写",
+        "calendarLabel": "所用历法",
+        "genderLabel": "性别",
+        "pillarsLabel": "四柱",
+        "pillarsEmpty": "尚未确认",
+        "elementsSuffix": "之气"
+      },
+      "eyebrow": "四柱合婚之室",
+      "emptyTitle": "两人的命盘还没有并排放好",
+      "emptySummary": "两人的出生日期都放上后，Yeoni 会把两张命盘并排展开。",
+      "headerAlt": "两人的四柱八字",
+      "mineLabel": "我的四柱八字",
+      "partnerLabel": "对方的四柱八字",
+      "dayMasterEyebrow": "日主的纹路",
+      "dayMasterEmpty": "两张命盘的纹路",
+      "harmonyEmpty": "把两人的五行之气并排放好，察看彼此调和的纹路。",
+      "relationEyebrow": "关系类型",
+      "relationEmpty": "缘分",
+      "focusEmpty": "关系的流向",
+      "focusSentence": "以 {focus} 为中心解读。",
+      "strengthEyebrow": "相扣的纹路",
+      "strengthTitle": "两张命盘相遇时活起来的力量",
+      "cautionEyebrow": "需要调和的纹路",
+      "cautionTitle": "两张命盘相冲时该先看的地方"
     }
   }
 }

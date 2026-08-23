@@ -7,6 +7,7 @@ import TalkingPigYeoni from "./TalkingPigYeoni";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
 import styles from "../styles/fortune-tea-house.module.css";
+import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
 type TeaHouseStoryIntroProps = {
   steps: TeaHouseStoryStep[];
@@ -16,7 +17,17 @@ type TeaHouseStoryIntroProps = {
   onComplete: () => void;
 };
 
+/** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다. */
+const KO = {
+  nextLabel: "다음",
+  backdropAlt: "달빛 아래 문이 열린 운명의 찻집",
+  title: "운명의 찻집",
+  skipAria: "운명의 찻집 도입 장면 건너뛰기",
+  skipLabel: "건너뛰기",
+};
+
 export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabel, onComplete }: TeaHouseStoryIntroProps) {
+  const copy = useTeaHouseCopy("storyIntro", KO);
   const [stepIndex, setStepIndex] = useState(0);
   const [isCurrentLineTextComplete, setIsCurrentLineTextComplete] = useState(false);
   const firstStepId = steps[0]?.id || "";
@@ -32,7 +43,7 @@ export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabe
 
   const currentStep = steps[stepIndex] || steps[0];
   const isLast = stepIndex >= steps.length - 1;
-  const buttonLabel = currentStep?.cta || (isLast ? completeLabel : "다음");
+  const buttonLabel = currentStep?.cta || (isLast ? completeLabel : copy.nextLabel);
   const progressLabel = useMemo(() => `${Math.min(stepIndex + 1, steps.length)} / ${steps.length}`, [stepIndex, steps.length]);
 
   if (!currentStep) return null;
@@ -46,9 +57,9 @@ export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabe
           <div className={styles.teaHouseDoor}>
             <picture className={styles.doorImage}>
               <source media="(max-width: 640px)" srcSet={fortuneTeaHouseAssets.backgrounds.landingMobile} />
-              <img src={fortuneTeaHouseAssets.backgrounds.landingDesktop} alt="달빛 아래 문이 열린 운명의 찻집" decoding="async" loading="eager" />
+              <img src={fortuneTeaHouseAssets.backgrounds.landingDesktop} alt={copy.backdropAlt} decoding="async" loading="eager" />
             </picture>
-            <span>운명의 찻집</span>
+            <span>{copy.title}</span>
           </div>
         )}
       </div>
@@ -65,8 +76,8 @@ export default function TeaHouseStoryIntro({ steps, eyebrow, title, completeLabe
           <span className={styles.storyProgress}>{progressLabel}</span>
           <div className={styles.storyButtonGroup}>
             {!isLast ? (
-              <TeaHouseButton variant="ghost" onClick={onComplete} aria-label="운명의 찻집 도입 장면 건너뛰기">
-                건너뛰기
+              <TeaHouseButton variant="ghost" onClick={onComplete} aria-label={copy.skipAria}>
+                {copy.skipLabel}
               </TeaHouseButton>
             ) : null}
             <TeaHouseButton
