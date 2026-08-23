@@ -10367,14 +10367,24 @@ body.sukuyo-flower-focus .feature-card--sukuyo-flower {
   background: radial-gradient(circle, rgba(255, 205, 223, 0.44), transparent 68%);
   pointer-events: none;
 }
+/* 🔴 mix-blend-mode: multiply 를 되살리지 말 것 — 사진(flower.webp)에 맞춘 처리였는데,
+   지금 이 자리에는 destiny-flower-art.js 가 만든 SVG 가 들어간다. 그 SVG 는 자기 배경
+   <rect> 를 갖고 있어 곱연산하면 통째로 어두워지고 꽃이 배경에 묻힌다.
+   상시 떨림(destinyFlowerPetalTremble …infinite)도 뺐다 — 그린 꽃에는 과하고,
+   대신 꽃이 바뀔 때 한 번 피어나는 연출을 준다(.is-blooming, 런타임이 토글). */
 .df-studio-visual img {
   width: 100%;
   height: auto;
   display: block;
-  mix-blend-mode: multiply;
-  filter: saturate(1.08) contrast(1.03);
+  filter: saturate(1.06) contrast(1.02);
   transform-origin: center 70%;
-  animation: destinyFlowerPetalTremble 3.2s ease-in-out infinite;
+}
+.df-studio-visual img.is-blooming {
+  animation: dfArtBloomIn 0.52s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+@keyframes dfArtBloomIn {
+  from { opacity: 0; transform: scale(0.94); }
+  to { opacity: 1; transform: scale(1); }
 }
 .df-studio-insight {
   position: relative;
