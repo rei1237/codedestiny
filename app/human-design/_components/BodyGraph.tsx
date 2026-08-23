@@ -37,6 +37,17 @@ type Props = {
   locale: Locale;
   selection: HdSelection;
   onSelect: (selection: HdSelection) => void;
+  /**
+   * false 면 읽기 전용 도표가 된다 — 확대·이동·탭 선택·도구 줄이 전부 빠지고 뷰박스가
+   * 전체 고정이다. 리포트 본문에 끼우는 도표와 PDF 캡처용 도표가 이 모드를 쓴다.
+   * 🔴 화면의 차트와 **다른 인스턴스**라 사용자가 확대해 둔 상태가 캡처에 따라오지 않는다.
+   */
+  interactive?: boolean;
+  /**
+   * 등장 애니메이션 없이 최종 상태로 즉시 앉힌다. 캡처는 애니메이션 도중을 찍을 수 있어서
+   * 이 모드가 없으면 반쯤 그려진 채널이 PDF 에 실린다.
+   */
+  staticRender?: boolean;
 };
 
 const MIN_ZOOM = 1;
@@ -73,8 +84,10 @@ function halfPath(path: ChannelPath, half: "a" | "b"): string {
   return `M${from.x} ${from.y}Q${control.x} ${control.y} ${path.mid.x} ${path.mid.y}`;
 }
 
-export default function BodyGraph({ chart, locale, selection, onSelect }: Props) {
+export default function BodyGraph({ chart, locale, selection, onSelect, interactive = true, staticRender = false }: Props) {
   const ghost = chart === null;
+  /** 탭·확대·도구 줄이 붙는 조건. 고스트는 원래 상호작용이 없었으므로 함께 묶는다. */
+  const live = interactive && !ghost;
   const gateLayers = useMemo(() => buildGateLayers(chart), [chart]);
   const definedCenters = useMemo(
     () => new Set(chart ? chart.definedCenters : []),
@@ -174,12 +187,15 @@ export default function BodyGraph({ chart, locale, selection, onSelect }: Props)
   }, []);
 
   const viewBox = useMemo(() => {
+    // 🔴 읽기 전용 도표는 확대 상태를 아예 갖지 않는다. 화면 차트와 뷰박스를 공유하면
+    //    사용자가 확대해 둔 채로 PDF 를 만들었을 때 잘린 그림이 실린다.
+    if (!interactive) return `0 0 ${VIEWBOX.width} ${VIEWBOX.height}`;
     const width = VIEWBOX.width / zoom;
     const height = VIEWBOX.height / zoom;
     const x = ((VIEWBOX.width - width) / 2) + pan.x;
     const y = ((VIEWBOX.height - height) / 2) + pan.y;
     return `${x.toFixed(2)} ${y.toFixed(2)} ${width.toFixed(2)} ${height.toFixed(2)}`;
-  }, [pan.x, pan.y, zoom]);
+  }, [interactive, pan.x, pan.y, zoom]);
 
   /** 화면 픽셀 이동량을 뷰박스 단위로 바꾼다. */
   const toViewUnits = useCallback((pixels: number) => {
@@ -238,21 +254,21 @@ export default function BodyGraph({ chart, locale, selection, onSelect }: Props)
 
   /** 드래그 끝에 붙은 클릭은 선택으로 치지 않는다. */
   const select = useCallback((next: HdSelection) => {
-    if (ghost) return;
+    if (!live) return;
     if (dragRef.current?.moved) return;
     onSelect(next);
-  }, [ghost, onSelect]);
+  }, [live, onSelect]);
 
   // 확대 상태에서 브라우저 기본 스크롤/제스처가 먹지 않게 한다.
   useEffect(() => {
     const node = svgRef.current;
-    if (!node) return undefined;
+    if (!node || !interactive) return undefined;
     const block = (event: TouchEvent) => {
       if (zoom > 1 || event.touches.length > 1) event.preventDefault();
     };
     node.addEventListener("touchmove", block, { passive: false });
     return () => node.removeEventListener("touchmove", block);
-  }, [zoom]);
+  }, [interactive, zoom]);
 
   const activateKey = (next: HdSelection) => (event: React.KeyboardEvent) => {
     if (event.key !== "Enter" && event.key !== " ") return;
@@ -263,7 +279,11 @@ export default function BodyGraph({ chart, locale, selection, onSelect }: Props)
   const dimClass = (dim: boolean) => (dim ? styles.dimmed : "");
 
   return (
-    <figure className={styles.wrap} data-ghost={ghost ? "true" : undefined}>
+    <figure
+      className={styles.wrap}
+      data-ghost={ghost ? "true" : undefined}
+      data-static={staticRender ? "true" : undefined}
+    >
       <div className={styles.stage}>
         <svg
           ref={svgRef}
@@ -271,11 +291,11 @@ export default function BodyGraph({ chart, locale, selection, onSelect }: Props)
           viewBox={viewBox}
           role="img"
           aria-label={locale === "ko" ? "내 바디그래프" : "My BodyGraph"}
-          data-zoomed={zoom > 1 ? "true" : undefined}
-          onPointerDown={onPointerDown}
-          onPointerMove={onPointerMove}
-          onPointerUp={endPointer}
-          onPointerCancel={endPointer}
+          data-zoomed={interactive && zoom > 1 ? "true" : undefined}
+          onPointerDown={interactive ? onPointerDown : undefined}
+          onPointerMove={interactive ? onPointerMove : undefined}
+          onPointerUp={interactive ? endPointer : undefined}
+          onPointerCancel={interactive ? endPointer : undefined}
         >
           <defs>
             {/* 정의된 센터의 안쪽 발광 — 정적 그라디언트라 매 프레임 비용이 없다. */}
@@ -390,7 +410,7 @@ export default function BodyGraph({ chart, locale, selection, onSelect }: Props)
 
       </div>
 
-      {!ghost && (
+      {live && (
         <div className={styles.toolbar}>
           <div className={styles.controls}>
             <button
@@ -433,7 +453,7 @@ export default function BodyGraph({ chart, locale, selection, onSelect }: Props)
         </div>
       )}
 
-      {!ghost && (
+      {live && (
         <figcaption className={styles.caption}>{pick(UI_TEXT.tapHint, locale)}</figcaption>
       )}
     </figure>

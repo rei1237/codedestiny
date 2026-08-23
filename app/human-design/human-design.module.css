@@ -884,6 +884,47 @@
   word-break: keep-all;
 }
 
+/* ── 프리미엄 리포트 진입 ─────────────────────────────── */
+
+.reportCta {
+  max-width: 34rem;
+  margin: 3rem auto 1rem;
+  padding: 1.6rem 1.4rem 1.75rem;
+  border: 1px solid var(--hd-border-strong);
+  border-radius: 18px;
+  background: linear-gradient(180deg, var(--hd-panel-raised), var(--hd-panel));
+  text-align: center;
+}
+
+.reportCtaTitle {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.1875rem;
+  color: var(--hd-ink);
+}
+
+.reportCtaBody {
+  margin: 0.65rem 0 1.35rem;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--hd-ink-dim);
+}
+
+.reportCtaButton {
+  display: inline-block;
+  padding: 0.8rem 1.6rem;
+  border-radius: 999px;
+  /* 🔴 그라디언트 대비는 **가장 어두운 지점**에서 잰다 — 평균으로 재면 통과처럼 보인다.
+     값은 이 기능이 이미 실측해 둔 .cta(human-design.module.css)와 같은 쌍을 쓴다.
+     같은 화면 흐름에서 버튼 색을 두 번 정하지 않는다. (#7c5cf0 은 4.34:1 로 미달이었다.) */
+  background: linear-gradient(135deg, #8b72f3, #a78bfa);
+  color: #120c26;
+  font-family: var(--font-display);
+  font-size: 0.9375rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
 /* ── 계산 근거 ────────────────────────────────────────── */
 
 .meta {

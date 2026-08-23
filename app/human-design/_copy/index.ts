@@ -8,6 +8,18 @@
 //    계산으로 확인된 사실(번호·라인·활성 행성·계층·소속 센터·완성 여부)이고, 해석은
 //    같은 결제로 열리는 AI 리딩이 맡는다.
 
+import {
+  AUTHORITY_NAME,
+  CENTER_NAME,
+  CROSS_ANGLE_NAME,
+  DEFINITION_NAME,
+  NOT_SELF_NAME,
+  PLANET_NAME,
+  SIGNATURE_NAME,
+  STRATEGY_NAME,
+  TYPE_NAME,
+} from "@/lib/human-design/display-names";
+
 export type Locale = "ko" | "en";
 
 type Bilingual = { ko: string; en: string };
@@ -141,39 +153,45 @@ export const UI_TEXT = {
     ko: "이전에 구매하신 AI 해석입니다. 지금은 새로 생성하지 않고 저장된 내용을 그대로 보여 드립니다.",
     en: "An AI reading you purchased earlier. It is shown as saved — nothing is generated now.",
   },
+  reportCtaTitle: { ko: "프리미엄 리포트", en: "Premium Report" },
+  reportCtaBody: {
+    ko: "지금 보고 계신 계산 결과만 근거로 쓰는 18장 분량의 개인 분석 리포트입니다. 웹에서 읽고 PDF 로 내려받을 수 있습니다.",
+    en: "An 18-chapter personal analysis written only from the calculation you are looking at. Read it on the web and download it as a PDF.",
+  },
+  reportCtaButton: { ko: "리포트 살펴보기", en: "See the report" },
 } satisfies Record<string, Bilingual>;
 
 export const TYPE_COPY = {
   TYPE_GENERATOR: {
-    name: { ko: "제너레이터", en: "Generator" },
+    name: TYPE_NAME.TYPE_GENERATOR,
     summary: {
       ko: "천골이 정의된 삶의 에너지형. 스스로 시작하기보다 다가온 것에 반응할 때 힘이 제대로 쓰입니다.",
       en: "A defined Sacral makes you life force energy. Your power lands when you respond to what shows up.",
     },
   },
   TYPE_MANIFESTING_GENERATOR: {
-    name: { ko: "매니페스팅 제너레이터", en: "Manifesting Generator" },
+    name: TYPE_NAME.TYPE_MANIFESTING_GENERATOR,
     summary: {
       ko: "천골이 정의되고 모터가 목까지 이어진 형. 반응한 뒤 곧바로 실행으로 넘어가며, 건너뛰고 되돌아오는 방식이 자연스럽습니다.",
       en: "A defined Sacral with a motor connected to the Throat. You respond and then move fast, skipping steps and circling back.",
     },
   },
   TYPE_PROJECTOR: {
-    name: { ko: "프로젝터", en: "Projector" },
+    name: TYPE_NAME.TYPE_PROJECTOR,
     summary: {
       ko: "천골이 정의되지 않은 안내자형. 초대와 인정을 받았을 때 통찰이 제대로 전달됩니다.",
       en: "An undefined Sacral guide. Your insight lands when it is recognized and invited.",
     },
   },
   TYPE_MANIFESTOR: {
-    name: { ko: "매니페스터", en: "Manifestor" },
+    name: TYPE_NAME.TYPE_MANIFESTOR,
     summary: {
       ko: "모터가 목까지 이어진 개시형. 스스로 시작할 수 있고, 움직이기 전에 알리는 것이 저항을 줄입니다.",
       en: "A motor connected to the Throat. You can initiate, and informing before you move reduces resistance.",
     },
   },
   TYPE_REFLECTOR: {
-    name: { ko: "리플렉터", en: "Reflector" },
+    name: TYPE_NAME.TYPE_REFLECTOR,
     summary: {
       ko: "정의된 센터가 하나도 없는 형. 주변을 그대로 비추므로 환경 선택이 곧 삶의 질이며, 큰 결정에는 한 달의 시간이 필요합니다.",
       en: "No defined centers. You mirror your surroundings, so environment is everything — and big decisions need a lunar cycle.",
@@ -181,58 +199,53 @@ export const TYPE_COPY = {
   },
 } as const;
 
-export const STRATEGY_COPY = {
-  STRATEGY_RESPOND: { ko: "반응하기", en: "Respond" },
-  STRATEGY_WAIT_FOR_INVITATION: { ko: "초대를 기다리기", en: "Wait for the invitation" },
-  STRATEGY_INFORM: { ko: "알리기", en: "Inform" },
-  STRATEGY_WAIT_A_LUNAR_CYCLE: { ko: "한 달의 주기를 기다리기", en: "Wait a lunar cycle" },
-} as const;
+export const STRATEGY_COPY = STRATEGY_NAME;
 
 export const AUTHORITY_COPY = {
   AUTHORITY_EMOTIONAL: {
-    name: { ko: "감정 권위", en: "Emotional" },
+    name: AUTHORITY_NAME.AUTHORITY_EMOTIONAL,
     summary: {
       ko: "감정에는 파동이 있어 즉답에 진실이 없습니다. 시간을 두고 파동을 지나 보낸 뒤 결정합니다.",
       en: "Emotions move in a wave, so there is no truth in the moment. Decide after the wave has passed.",
     },
   },
   AUTHORITY_SACRAL: {
-    name: { ko: "천골 권위", en: "Sacral" },
+    name: AUTHORITY_NAME.AUTHORITY_SACRAL,
     summary: {
       ko: "머리가 아니라 몸이 먼저 답합니다. 그 자리에서 올라오는 끌림과 밀어냄이 판단의 기준입니다.",
       en: "The body answers before the mind. The in-the-moment yes or no is your compass.",
     },
   },
   AUTHORITY_SPLENIC: {
-    name: { ko: "비장 권위", en: "Splenic" },
+    name: AUTHORITY_NAME.AUTHORITY_SPLENIC,
     summary: {
       ko: "한 번만 조용히 오는 직감입니다. 반복되지 않으므로 지나가면 다시 오지 않습니다.",
       en: "A quiet instant knowing that speaks once. It does not repeat itself.",
     },
   },
   AUTHORITY_EGO: {
-    name: { ko: "에고(하트) 권위", en: "Ego" },
+    name: AUTHORITY_NAME.AUTHORITY_EGO,
     summary: {
       ko: "내가 정말 원하는가, 그리고 그것을 감당할 의지가 있는가가 기준입니다.",
       en: "What do I actually want, and do I have the will to back it?",
     },
   },
   AUTHORITY_SELF_PROJECTED: {
-    name: { ko: "자기투사 권위", en: "Self-Projected" },
+    name: AUTHORITY_NAME.AUTHORITY_SELF_PROJECTED,
     summary: {
       ko: "소리 내어 말할 때 방향이 드러납니다. 신뢰하는 사람에게 말하되 조언이 아니라 내 목소리를 듣습니다.",
       en: "Direction shows up when you speak. Talk it out with someone you trust — and listen to your own voice, not their advice.",
     },
   },
   AUTHORITY_MENTAL: {
-    name: { ko: "환경 권위", en: "Mental / Environmental" },
+    name: AUTHORITY_NAME.AUTHORITY_MENTAL,
     summary: {
       ko: "내면의 확답이 아니라 어디에서 누구와 있느냐가 판단을 바꿉니다. 여러 환경에서 말해 보며 정합니다.",
       en: "There is no inner authority to consult — where you are and who you are with changes the answer. Talk it through in different environments.",
     },
   },
   AUTHORITY_LUNAR: {
-    name: { ko: "달 주기 권위", en: "Lunar" },
+    name: AUTHORITY_NAME.AUTHORITY_LUNAR,
     summary: {
       ko: "약 29일의 달 주기를 한 바퀴 지나며 같은 사안을 여러 환경에서 겪은 뒤 결정합니다.",
       en: "Let a full lunar cycle (about 29 days) pass, meeting the same question in different environments.",
@@ -240,87 +253,67 @@ export const AUTHORITY_COPY = {
   },
 } as const;
 
-export const SIGNATURE_COPY = {
-  SIGNATURE_SATISFACTION: { ko: "만족", en: "Satisfaction" },
-  SIGNATURE_SUCCESS: { ko: "성공", en: "Success" },
-  SIGNATURE_PEACE: { ko: "평화", en: "Peace" },
-  SIGNATURE_SURPRISE: { ko: "놀라움", en: "Surprise" },
-} as const;
+export const SIGNATURE_COPY = SIGNATURE_NAME;
 
-export const NOT_SELF_COPY = {
-  NOT_SELF_FRUSTRATION: { ko: "좌절", en: "Frustration" },
-  NOT_SELF_BITTERNESS: { ko: "쓴맛", en: "Bitterness" },
-  NOT_SELF_ANGER: { ko: "분노", en: "Anger" },
-  NOT_SELF_DISAPPOINTMENT: { ko: "실망", en: "Disappointment" },
-} as const;
+export const NOT_SELF_COPY = NOT_SELF_NAME;
 
-export const DEFINITION_COPY = {
-  DEFINITION_NONE: { ko: "정의 없음", en: "No Definition" },
-  DEFINITION_SINGLE: { ko: "단일 정의", en: "Single Definition" },
-  DEFINITION_SPLIT: { ko: "분할 정의", en: "Split Definition" },
-  DEFINITION_TRIPLE_SPLIT: { ko: "삼중 분할 정의", en: "Triple Split Definition" },
-  DEFINITION_QUADRUPLE_SPLIT: { ko: "사중 분할 정의", en: "Quadruple Split Definition" },
-} as const;
+export const DEFINITION_COPY = DEFINITION_NAME;
 
-export const CROSS_ANGLE_COPY = {
-  CROSS_ANGLE_RIGHT: { ko: "라이트 앵글 크로스", en: "Right Angle Cross" },
-  CROSS_ANGLE_LEFT: { ko: "레프트 앵글 크로스", en: "Left Angle Cross" },
-  CROSS_ANGLE_JUXTAPOSITION: { ko: "저스크타포지션 크로스", en: "Juxtaposition Cross" },
-} as const;
+export const CROSS_ANGLE_COPY = CROSS_ANGLE_NAME;
 
 export const CENTER_COPY = {
   HEAD: {
-    name: { ko: "헤드", en: "Head" },
+    name: CENTER_NAME.HEAD,
     role: { ko: "영감과 의문의 압력", en: "Pressure of inspiration and questions" },
   },
   AJNA: {
-    name: { ko: "아즈나", en: "Ajna" },
+    name: CENTER_NAME.AJNA,
     role: { ko: "개념화와 사고의 방식", en: "Conceptualisation and mental processing" },
   },
   THROAT: {
-    name: { ko: "목", en: "Throat" },
+    name: CENTER_NAME.THROAT,
     role: { ko: "표현과 실행이 나가는 문", en: "Where expression and action come out" },
   },
   G: {
-    name: { ko: "G(자아)", en: "G / Self" },
+    name: CENTER_NAME.G,
     role: { ko: "정체성과 방향, 사랑", en: "Identity, direction, and love" },
   },
   HEART: {
-    name: { ko: "하트(에고)", en: "Heart / Ego" },
+    name: CENTER_NAME.HEART,
     role: { ko: "의지와 자기 가치", en: "Willpower and self-worth" },
   },
   SOLAR_PLEXUS: {
-    name: { ko: "태양신경총", en: "Solar Plexus" },
+    name: CENTER_NAME.SOLAR_PLEXUS,
     role: { ko: "감정의 파동과 정서적 인식", en: "Emotional wave and awareness" },
   },
   SACRAL: {
-    name: { ko: "천골", en: "Sacral" },
+    name: CENTER_NAME.SACRAL,
     role: { ko: "삶의 에너지와 반응", en: "Life force and response" },
   },
   SPLEEN: {
-    name: { ko: "비장", en: "Spleen" },
+    name: CENTER_NAME.SPLEEN,
     role: { ko: "즉각적 직감과 생존 감각", en: "Instant intuition and survival instinct" },
   },
   ROOT: {
-    name: { ko: "루트", en: "Root" },
+    name: CENTER_NAME.ROOT,
     role: { ko: "추진과 스트레스의 압력", en: "Adrenal drive and stress pressure" },
   },
 } as const;
 
 export const PLANET_COPY = {
-  Sun: { ko: "태양", en: "Sun", glyph: "☉" },
-  Earth: { ko: "지구", en: "Earth", glyph: "⊕" },
-  Moon: { ko: "달", en: "Moon", glyph: "☾" },
-  NorthNode: { ko: "북교점", en: "North Node", glyph: "☊" },
-  SouthNode: { ko: "남교점", en: "South Node", glyph: "☋" },
-  Mercury: { ko: "수성", en: "Mercury", glyph: "☿" },
-  Venus: { ko: "금성", en: "Venus", glyph: "♀" },
-  Mars: { ko: "화성", en: "Mars", glyph: "♂" },
-  Jupiter: { ko: "목성", en: "Jupiter", glyph: "♃" },
-  Saturn: { ko: "토성", en: "Saturn", glyph: "♄" },
-  Uranus: { ko: "천왕성", en: "Uranus", glyph: "♅" },
-  Neptune: { ko: "해왕성", en: "Neptune", glyph: "♆" },
-  Pluto: { ko: "명왕성", en: "Pluto", glyph: "♇" },
+  Sun: { ...PLANET_NAME.Sun, glyph: "☉" },
+  Earth: { ...PLANET_NAME.Earth, glyph: "⊕" },
+  Moon: { ...PLANET_NAME.Moon, glyph: "☾" },
+  NorthNode: { ...PLANET_NAME.NorthNode, glyph: "☊" },
+  SouthNode: { ...PLANET_NAME.SouthNode, glyph: "☋" },
+  Mercury: { ...PLANET_NAME.Mercury, glyph: "☿" },
+  Venus: { ...PLANET_NAME.Venus, glyph: "♀" },
+  Mars: { ...PLANET_NAME.Mars, glyph: "♂" },
+  Jupiter: { ...PLANET_NAME.Jupiter, glyph: "♃" },
+  Saturn: { ...PLANET_NAME.Saturn, glyph: "♄" },
+  Uranus: { ...PLANET_NAME.Uranus, glyph: "♅" },
+  Neptune: { ...PLANET_NAME.Neptune, glyph: "♆" },
+  Pluto: { ...PLANET_NAME.Pluto, glyph: "♇" },
 } as const;
 
 /**
