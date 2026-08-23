@@ -414,3 +414,39 @@
     stroke-dashoffset: 0;
   }
 }
+
+/* 정적 렌더 — 리포트 본문에 끼우는 도표와 PDF 캡처용 도표.
+ *
+ * 🔴 `animation: none` 만 주면 **채널이 통째로 사라진다.** .half 가 stroke-dasharray:1 과
+ *    stroke-dashoffset:1 을 깔아 두고 hdDraw 로 그 offset 을 0 까지 지우는 구조라, 애니메이션만
+ *    끄면 "아직 안 그려진" 초기 상태에서 멈춘다. 최종 상태를 직접 앉혀야 한다.
+ *    (직전 PR 의 animation-fill-mode: both 사고와 같은 종류다 — 애니메이션이 상태를 쥐고 있다.)
+ *
+ * 🔴 위 prefers-reduced-motion 블록과 규칙이 같아 보여도 합칠 수 없다. 저쪽은 미디어 쿼리
+ *    안이라 사용자 설정이 꺼져 있으면 적용되지 않는데, 캡처는 그 설정과 무관하게 항상
+ *    최종 상태여야 한다. */
+.wrap[data-static="true"] .grain,
+.wrap[data-static="true"] .center,
+.wrap[data-static="true"] .gate {
+  animation: none;
+}
+
+.wrap[data-static="true"] .half {
+  animation: none;
+  stroke-dasharray: none;
+  stroke-dashoffset: 0;
+}
+
+.wrap[data-static="true"] .half,
+.wrap[data-static="true"] .center,
+.wrap[data-static="true"] .gateDot,
+.wrap[data-static="true"] .gate {
+  transition: none;
+}
+
+/* 🔴 무대 폭 상한을 푼다. 기본 .stage 는 뷰포트 높이에서 폭을 유도하는데(560px 상한),
+   캡처 호스트는 화면 밖에 있어 그 높이가 의미를 갖지 않는다. 상한을 풀어야 호스트가 정한
+   폭(720px)을 그대로 써서 캡처 해상도가 계산대로 나온다. */
+.wrap[data-static="true"] .stage {
+  max-width: 100%;
+}

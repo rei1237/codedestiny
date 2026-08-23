@@ -9,6 +9,7 @@
  *   ② 프롬프트 — 출생 데이터가 안 실리는가, 확정값이 전부 실리는가, 접두사가 캐싱에 맞는가
  *   ③ 검증   — 가짜 출력을 먹였을 때 모순을 실제로 잡아내는가, 정상 출력을 오탐하지 않는가
  *   ④ 라우트  — 결제·락·환불 배선이 소스에 실제로 있는가
+ *   ⑤ 플랜   — 웹과 PDF 가 공유하는 플랜이 실제 픽스처에서 온전한 문서를 만드는가
  *
  * 🔴 여기서 못 보는 것: 실제 분량이 25,000자가 나오는지, 18유닛이 서로 반복하지 않는지,
  *    웨이브 실측 시간. 그건 유료 실호출이 필요하고 사용자 허락 1회 한정이다(CLAUDE.md 절대규칙 1).
@@ -368,6 +369,110 @@ if (!routeSource) {
   check("🔴 AI 라우트 보안 래퍼를 거친다 (레이트리밋·남용 방지)",
     /runAiRouteWithSecurity\(request, env, "human-design-report", handleHumanDesignReportRoutes/.test(indexSource));
 }
+
+// ── ⑤ 플랜 — 웹과 PDF 의 단일 정본 ───────────────────────────────────────────
+//
+// 🔴 여기서는 플랜 모듈을 **실제로 실행한다.** 정규식으로 "있는 것 같다" 를 확인하는 대신
+//    ko/en 픽스처로 문서를 만들어 빈 장·누락 블록·분량을 직접 잰다. 이 모듈이 순수 .js 인
+//    이유가 그것이고, PR ④ 의 PDF 조판 시뮬레이션도 같은 출력을 먹는다.
+
+console.log("\n── ⑤ 플랜 ──");
+
+const planModule = await import(new URL("../lib/human-design/report-plan.js", import.meta.url).href);
+const sectionsModule = await import(new URL("../lib/human-design/report-sections.js", import.meta.url).href);
+
+check("장 목록이 계약의 18섹션과 순서까지 같다",
+  sectionsModule.HD_REPORT_CHAPTER_ORDER.join(",") === contract.HD_REPORT_SECTION_KEYS.join(","),
+  `${sectionsModule.HD_REPORT_CHAPTER_ORDER.length} vs ${contract.HD_REPORT_SECTION_KEYS.length}`);
+
+check("블록 종류가 11종 이상 선언돼 있다",
+  planModule.REPORT_BLOCK_KINDS.length >= 11, `${planModule.REPORT_BLOCK_KINDS.length}종`);
+
+if (chart) {
+  for (const locale of contract.HD_REPORT_LOCALES) {
+    const fixture = JSON.parse(readRepoFile(`__tests__/fixtures/human-design/report-sample.${locale}.json`) || "{}");
+    if (!fixture.sections?.length) {
+      check(`[${locale}] 리포트 픽스처가 있다`, false, "sections 가 비었다");
+      continue;
+    }
+    const plan = planModule.buildHumanDesignReportPlan(fixture, chart);
+
+    check(`[${locale}] 18장을 전부 만든다`, plan.chapters.length === 18, `${plan.chapters.length}장`);
+    check(`[${locale}] 빈 장이 없다`,
+      plan.chapters.every((chapter) => chapter.blocks.length > 0),
+      plan.chapters.filter((chapter) => !chapter.blocks.length).map((chapter) => chapter.key).join(",") || "-");
+    check(`[${locale}] 모든 장이 제목을 갖는다`,
+      plan.chapters.every((chapter) => chapter.title && chapter.title !== chapter.key));
+
+    // 🔴 선언된 블록 종류가 전부 실제로 쓰이는지 본다. 안 쓰이는 종류가 있으면 렌더러에
+    //    죽은 분기가 생기고, PDF 조판기는 그 분기를 영영 검증하지 못한 채 나간다.
+    const used = new Set();
+    for (const chapter of plan.chapters) for (const block of chapter.blocks) used.add(block.kind);
+    const unused = planModule.REPORT_BLOCK_KINDS.filter((kind) => !used.has(kind));
+    check(`[${locale}] 선언된 블록 종류가 전부 쓰인다`, unused.length === 0, unused.join(",") || "-");
+
+    // 알 수 없는 종류가 나오면 렌더러가 본문으로 떨어뜨려 표가 문단이 된다.
+    const unknown = [...used].filter((kind) => !planModule.REPORT_BLOCK_KINDS.includes(kind));
+    check(`[${locale}] 선언에 없는 블록 종류를 만들지 않는다`, unknown.length === 0, unknown.join(",") || "-");
+
+    check(`[${locale}] 도표 슬롯이 상한을 넘지 않는다`,
+      plan.chartSlots.length <= planModule.REPORT_CHART_SLOT_LIMIT, `${plan.chartSlots.length}장`);
+    check(`[${locale}] 도표 슬롯 id 가 중복되지 않는다`,
+      new Set(plan.chartSlots.map((slot) => slot.slotId)).size === plan.chartSlots.length);
+    check(`[${locale}] 도표 슬롯이 서로 다른 것을 보여 준다`,
+      new Set(plan.chartSlots.map((slot) => JSON.stringify(slot.selection))).size === plan.chartSlots.length,
+      "같은 선택을 여러 번 캡처하면 비용만 늘고 읽는 사람에게 주는 것이 없다");
+
+    // 🔴 광고 분량(25,000자)의 90% 를 플랜이 실제로 담고 있어야 한다. 서버가 25,000자를
+    //    만들어도 플랜이 그중 일부만 배치하면 사용자가 받는 것은 그 일부다.
+    const chars = planModule.countReportChars(plan);
+    check(`[${locale}] 플랜이 담은 분량이 광고 분량의 90% 이상이다`,
+      chars >= contract.HD_REPORT_TARGET_CHARS * 0.9,
+      `${chars.toLocaleString()}자 / ${contract.HD_REPORT_TARGET_CHARS.toLocaleString()}자`);
+
+    check(`[${locale}] 본문 언어가 저장된 locale 을 따른다`, plan.locale === locale, plan.locale);
+
+    // 표지 확정값은 결제 전 잠금 화면도 같은 함수로 만든다 — 값이 갈리면 안 된다.
+    const coverFacts = planModule.buildReportCoverFacts(chart, locale);
+    check(`[${locale}] 표지 확정값과 잠금 화면 확정값이 같은 함수에서 나온다`,
+      JSON.stringify(coverFacts) === JSON.stringify(plan.cover.facts));
+    check(`[${locale}] 표지에 확정값이 5개 실린다`, plan.cover.facts.length === 5, `${plan.cover.facts.length}개`);
+  }
+
+  // 🔴 출생 데이터가 플랜에 새지 않는지. 프롬프트에 안 실리는 것만으로는 부족하다 —
+  //    플랜은 화면과 PDF 로 그대로 나가고 PDF 는 공유되기 쉬운 물건이다.
+  const koFixture = JSON.parse(readRepoFile("__tests__/fixtures/human-design/report-sample.ko.json") || "{}");
+  if (koFixture.sections?.length) {
+    const plan = planModule.buildHumanDesignReportPlan(koFixture, chart);
+    const coverText = JSON.stringify(plan.cover);
+    const leaks = ["birthDate", "birthTime", "timezone", "birthUtc", "designUtc", "latitude", "longitude"]
+      .filter((field) => coverText.includes(field));
+    check("🔴 표지에 출생 데이터가 새지 않는다", leaks.length === 0, leaks.join(",") || "-");
+    check("🔴 표지에 생년 숫자가 실리지 않는다", !/\b(18|19|20)\d{2}\b/.test(coverText));
+  }
+}
+
+// 리더가 플랜만 소비하는지 — 자기 문장을 쓰면 그 문장은 PDF 에 없다(요구 3).
+{
+  const readerFiles = [
+    "app/human-design/report/_components/ReportBlocks.tsx",
+    "app/human-design/report/_components/ReportChapter.tsx",
+  ];
+  for (const file of readerFiles) {
+    const source = readRepoFile(file);
+    check(`${file} 를 찾았다`, source.length > 0);
+    // 40자 이상 이어지는 한글 리터럴은 라벨이 아니라 본문이다.
+    check(`${file} 에 리포트 본문 문장이 없다`,
+      !/["'`][^"'`]*[가-힣][^"'`]{39,}["'`]/.test(codeLines(source)));
+  }
+
+  const clientSource = readRepoFile("app/human-design/report/HumanDesignReportClient.tsx");
+  check("리더가 공용 플랜 함수만 쓴다",
+    clientSource.includes("buildHumanDesignReportPlan")
+    && !/function build[A-Z]\w*Plan/.test(clientSource),
+    "화면이 자기 플랜을 따로 만들면 PDF 와 갈린다");
+}
+
 
 // ── 결과 ─────────────────────────────────────────────────────────────────────
 
