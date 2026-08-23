@@ -12460,6 +12460,212 @@
     },
     "teaCupVisual": {
       "cupAlt": "The {name} cup"
+    },
+    "teaCups": {
+      "0": {
+        "name": "Moonlit Lotus Tea",
+        "topic": "Love · Reunion",
+        "description": "Centred on feelings, their heart, and how the bond is moving",
+        "sajuLens": "Relationship patterns, how you express feeling, the recurring rhythm of a tie",
+        "tarotLens": "Their heart, the distance right now, the chance of blooming again",
+        "reading": "Moonlit Lotus Tea reflects the feelings that have lingered and the tie that may bloom again, letting the unfinished grain of your heart float quietly on the cup.",
+        "selectionComment": "This cup lets us look deeply into the bond your heart has not let go of, within the reading you chose.",
+        "eyebrow": "The edge of a heart still left open",
+        "ritualTitle": "Moonlit Lotus Tea is quietly coming into bloom",
+        "summonLine": "A name that has lingered a long while surfaces at the rim of the cup.",
+        "yeoniSelectLine": "This cup reflects a heart that has not yet been able to call it over. Reunion or closure — let us look at the grain of your feeling first.",
+        "questionGuideLine": "Write down the scene you most want to understand in that relationship. Whether to wait or to move first — we will look at the direction of your heart together.",
+        "questionPlaceholder": "e.g. Is it all right to keep waiting for them?",
+        "loadingLine": "The lotus petals are slowly lifting up past words and the feelings still left behind.",
+        "loadingBars": {
+          "0": {
+            "label": "Floating past words and lingering feelings up onto the moonlight."
+          },
+          "1": {
+            "label": "Reflecting the distance in their heart between the lotus petals."
+          },
+          "2": {
+            "label": "Sorting the chance of reunion from the one step that will not hurt you now."
+          },
+          "3": {
+            "label": "Yeoni is choosing the gentlest words to say next."
+          }
+        },
+        "resultPrelude": "Moonlit Lotus Tea shows the next step that hurts least, there between longing and possibility.",
+        "tarotRevealTitle": "A card has risen over the heart that hopes for reunion",
+        "tarotBeforeLine": "The card does not hand down an answer yet. First let us hold it to the moonlight and see whether this heart is a place to bloom again, or one to fold away quietly.",
+        "visualMotif": "lotus, moon, pink mist"
+      },
+      "1": {
+        "name": "Honey Peach Tea",
+        "topic": "Almost · Connection",
+        "description": "Centred on flutter, possibility, and how much they like you",
+        "sajuLens": "How you are drawn in, how fondness shows, the recurring sign that a tie is opening",
+        "tarotLens": "Their response, the pace at which you are drawing closer, what the heart could become",
+        "reading": "Honey Peach Tea reads the flutter and the possibility, and its sweet scent tells you which way a heart still without a name is turning.",
+        "selectionComment": "This cup gently shows where a heart that has no name yet is heading.",
+        "eyebrow": "A flutter that has no name yet",
+        "ritualTitle": "Honey Peach Tea is warming to a sweetness",
+        "summonLine": "Peach-coloured warmth rises from the cup, and a small flutter glimmers.",
+        "yeoniSelectLine": "This cup reads a heart before anything has begun. Let us look gently at their fondness, the distance, and when to step closer.",
+        "questionGuideLine": "Write down the scene you wonder about most — their response, their messages, or the mood between you.",
+        "questionPlaceholder": "e.g. Does this person actually like me?",
+        "loadingLine": "The peach-coloured scent is gathering unspoken fondness and small signals.",
+        "loadingBars": {
+          "0": {
+            "label": "The peach-coloured scent is gathering the small responses."
+          },
+          "1": {
+            "label": "Separating their fondness from the distance they are still careful about."
+          },
+          "2": {
+            "label": "Looking at the pace you may close in at, and the moment to hold still."
+          },
+          "3": {
+            "label": "Yeoni is shaping the flutter into words that will not rush it."
+          }
+        },
+        "resultPrelude": "Honey Peach Tea shows the distance and the pace at which possibility can grow.",
+        "tarotRevealTitle": "A card has risen over the scent of the flutter",
+        "tarotBeforeLine": "This card reflects the temperature of a heart before anything begins. Let us see together whether it is a sign of fondness, or a moment that needs to ripen a little longer.",
+        "visualMotif": "peach, honey, soft heart"
+      },
+      "2": {
+        "name": "Stardust Black Tea",
+        "topic": "Career · Business",
+        "description": "Centred on direction, opportunity, and choice",
+        "sajuLens": "The direction of your work, where your energy runs strong, the choices you keep repeating",
+        "tarotLens": "Whether this is the time to move or to wait, and the symbol standing over the choice",
+        "reading": "Stardust Black Tea shows the direction of your path and your choices, and brings out clearly the one star you can look to on a road that feels blank.",
+        "selectionComment": "This cup helps you choose clearly which reading you need most, standing before work and a decision.",
+        "eyebrow": "A small star risen over a road that feels blank",
+        "ritualTitle": "Stardust Black Tea is lighting the direction of the road",
+        "summonLine": "Small stars rise over the dark tea inside the cup.",
+        "yeoniSelectLine": "This cup answers well to guests who ask which way to choose. Whether to move now or wait, and which road to look at — let us read it together.",
+        "questionGuideLine": "Write down the choice that feels most impossible right now — your job, your business, a move, your creative work, or your path.",
+        "questionPlaceholder": "e.g. Is it all right to change jobs or shift my business direction now?",
+        "loadingLine": "Stardust is settling over your options, looking for the brightest road right now.",
+        "loadingBars": {
+          "0": {
+            "label": "Stardust is laying a different light over each option."
+          },
+          "1": {
+            "label": "Separating the road to move on from the road that needs more preparing."
+          },
+          "2": {
+            "label": "Matching the temperament of your work against the timing in the cards."
+          },
+          "3": {
+            "label": "Yeoni is gathering the brightest direction into a single sentence."
+          }
+        },
+        "resultPrelude": "Stardust Black Tea shows calmly where the choice you make now will lead.",
+        "tarotRevealTitle": "A card has risen over the road of the choice",
+        "tarotBeforeLine": "The card first shows which road matches your own pace. Let us look at direction together, not at haste.",
+        "visualMotif": "stars, black tea, compass"
+      },
+      "3": {
+        "name": "Golden Cinnamon Tea",
+        "topic": "Money",
+        "description": "Centred on money, income, spending, and how business is running",
+        "sajuLens": "How you handle wealth, your sense of the practical, the pattern you keep returning to around money",
+        "tarotLens": "The opportunity at hand, the signal in your spending, the solid thing you can still take hold of",
+        "reading": "Golden Cinnamon Tea reflects the flow of money and the opportunities that are real, sifting out from its warm gold the possibility you can take hold of today.",
+        "selectionComment": "This cup settles the flow of money into one practical step rather than a vague hope.",
+        "eyebrow": "A golden scent that brings back the warmth of the real",
+        "ritualTitle": "Golden Cinnamon Tea is warming the flow of money",
+        "summonLine": "A golden swirl inside the cup draws the paths of what comes in and what goes out.",
+        "yeoniSelectLine": "This cup shows the real flow of money rather than a vague hope. Let us look together at the opportunity, the spending, and the timing you can still catch.",
+        "questionGuideLine": "Write down the money question you most want answered — income, spending, business, investment, a payment, or a contract.",
+        "questionPlaceholder": "e.g. Is there a chance my income will pick up soon?",
+        "loadingLine": "The cinnamon scent is drawing your scattered money flows back into a single line.",
+        "loadingBars": {
+          "0": {
+            "label": "The cinnamon scent is gathering the flows of income and spending."
+          },
+          "1": {
+            "label": "Separating the real opportunities from the spending signals to be careful of."
+          },
+          "2": {
+            "label": "Checking where the flow of money is blocked and where it opens."
+          },
+          "3": {
+            "label": "Yeoni is picking out the small opportunity you can take hold of."
+          }
+        },
+        "resultPrelude": "Golden Cinnamon Tea shows the practical opportunity you can take hold of now.",
+        "tarotRevealTitle": "A card has risen over the flow of money",
+        "tarotBeforeLine": "This card lights the actual flow before any vague luck. Let us look together at what is coming in and what is leaking away.",
+        "visualMotif": "gold, cinnamon, coin light"
+      },
+      "4": {
+        "name": "White Lotus Healing Tea",
+        "topic": "Recovery",
+        "description": "Centred on comfort, anxiety, and how you hold yourself",
+        "sajuLens": "Where a worn temperament recovers, and the place your heart keeps growing thin",
+        "tarotLens": "The comfort you need now, the symbol behind the anxiety, the way toward recovery",
+        "reading": "White Lotus Healing Tea soothes a worn heart, helping you turn the cold words you aim at yourself into a softer breath.",
+        "selectionComment": "Rather than pushing your heart hard today, this cup finds you a place to breathe again first.",
+        "eyebrow": "A quiet breath returning to yourself",
+        "ritualTitle": "White Lotus Healing Tea is settling the heart",
+        "summonLine": "The scent of white lotus settles slowly, all the way down into the deep of the heart.",
+        "yeoniSelectLine": "This cup answers on nights when you need recovery before any answer. Let us look gently at the anxiety, the self-worth, the tiredness.",
+        "questionGuideLine": "Write down the feeling that has been giving way most lately, or the moment you were coldest to yourself.",
+        "questionPlaceholder": "e.g. My heart is so worn out lately — how can I recover?",
+        "loadingLine": "The white lotus scent is loosening the grain of your worn heart, one strand at a time.",
+        "loadingBars": {
+          "0": {
+            "label": "The white lotus scent is loosening the grain of your worn heart."
+          },
+          "1": {
+            "label": "Looking for the feeling that needs to recover first."
+          },
+          "2": {
+            "label": "Choosing words that will wound you less."
+          },
+          "3": {
+            "label": "Yeoni is setting out a small place where you can breathe today."
+          }
+        },
+        "resultPrelude": "White Lotus Healing Tea lights the next step in the direction of hating yourself a little less.",
+        "tarotRevealTitle": "A card has risen over the breath of recovery",
+        "tarotBeforeLine": "The card shows the heart that needs tending before any answer you must overcome today. Let us open it slowly.",
+        "visualMotif": "white lotus, warm mist, healing"
+      },
+      "5": {
+        "name": "Black Moon Brown Rice Tea",
+        "topic": "Parting · Crisis",
+        "description": "Centred on closure, resolve, and clear-eyed judgement",
+        "sajuLens": "How you decide, the pressure in the relationship, the line you must hold",
+        "tarotLens": "What must end, what can still wait, and the symbol of choosing inside a crisis",
+        "reading": "Black Moon Brown Rice Tea tells apart what must end from what must be kept, and with the scent of a still night it sets the measure of your heart upright again.",
+        "selectionComment": "This cup calmly separates what to hold on to from what to set down, right there on the same cup.",
+        "eyebrow": "Between what must end and what must be kept",
+        "ritualTitle": "Black Moon Brown Rice Tea is swaying in stillness",
+        "summonLine": "A black moon rises over the dark brew, and the line your heart measures by comes into view.",
+        "yeoniSelectLine": "This cup answers at moments that need a measure more than a feeling. Let us calmly sort what to hold from what to set down.",
+        "questionGuideLine": "Write down the choice that frightens you most right now — parting, stepping back, cutting ties, a crisis, or a decision.",
+        "questionPlaceholder": "e.g. Should I end this relationship, or watch it a little longer?",
+        "loadingLine": "The black moonlight is quietly separating the noise of feeling from the signals of the real.",
+        "loadingBars": {
+          "0": {
+            "label": "The black moonlight is separating the noise of feeling from the signals of the real."
+          },
+          "1": {
+            "label": "Sorting what must end from what may still be kept."
+          },
+          "2": {
+            "label": "Checking whether the measure you decide by points away from deepening the wound."
+          },
+          "3": {
+            "label": "Yeoni is choosing the sentence that will wound your heart the least."
+          }
+        },
+        "resultPrelude": "Black Moon Brown Rice Tea shows the measure of a decision that will not deepen the wound.",
+        "tarotRevealTitle": "A card has risen over the night of the decision",
+        "tarotBeforeLine": "The card will not tell you to cut it off coldly. It will only reveal, quietly, which measure is the one that keeps you safe.",
+        "visualMotif": "black moon, brown rice tea, quiet shadow"
+      }
     }
   }
 }
