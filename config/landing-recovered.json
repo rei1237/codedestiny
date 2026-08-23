@@ -15,6 +15,11 @@
       "reason": "복구 PR #600 이 커밋 5개를 main 위에 재이식해 머지됐다. 변경 파일 집합 일치, 차이는 생성물의 ?v=build-… 캐시 키 스탬프뿐.",
       "verifiedAt": "2026-08-14",
       "acknowledged": true
+    },
+    "1061": {
+      "reason": "스택 PR 이었고 순서는 옳았다 — 자식(#1061)이 19:23 에 부모 브랜치 feat/tarot-ijik-server-gate 로, 부모(#1057)가 19:52 에 main 으로 머지됐다. 부모가 스쿼시로 들어가 자식의 머지·head 커밋이 둘 다 고아가 됐을 뿐이다. 변경 파일 7개(worker/routes/tarot.js, worker/routes/destiny-compass.js, app/components/MindScanTarot.tsx, app/tarot/crystal-soul/CrystalSoulTarotClient.jsx, __tests__/worker/tarot-unauth-endpoints.route.test.js, __tests__/worker/tarot-ijik-reading.route.test.js, docs/handoff/paid-content-delivery-audit.md)를 origin/main 과 git diff 로 대조해 전부 동일함을 확인했다. 결제 우회 수정은 유실되지 않았다.",
+      "verifiedAt": "2026-08-24",
+      "acknowledged": true
     }
   }
 }
