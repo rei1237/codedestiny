@@ -96,6 +96,7 @@ const SUITE = [
   { run: "npm run verify:profile-card-action-policy", why: "프로필 카드 액션 정책." },
   { run: "npm run verify:app-store-billing-policy", why: "앱이 결제창을 건너뛰고 Play 로 직행하면 월정석이 도달 불가해진다." },
   { run: "npm run verify:payment-concurrency-guards", why: "결제 동시성 가드." },
+  { run: "npm run verify:payment-reconcile", why: "🔴 크론이 곧 **지급 실행자**다 — reconcilePendingPayments 가 settleSinglePaymentForReconcile 을 불러 실제 정산을 일으키는데, 게스트 스모크는 크론 경로에 절대 도달하지 못한다. 크론 문자열이 어긋나면 재조정이 영영 안 돌고, 반대로 일일 태스크가 10분마다 돌아 중복 지급이 난다. 재조정 태스크에 환불 호출이 섞이면 사람 승인 없이 돈이 나간다. 2026-08-24 까지 이 항목은 '실 PG·DB 대사라 자격증명이 필요하다'는 사유로 미배선이었는데 그 사유가 사실이 아니었다 — readFileSync 만 하는 순수 정적 검사기다(fetch·MONGO_URI·connectDb·process.env 히트 0)." },
   { run: "npm run verify:monthly-credit-lots", why: "월정석 원장." },
   { run: "npm run verify:worker-security-guards", why: "워커 보안 가드." },
   { run: "npm run verify:deploy-base-guard", why: "배포 스테일 베이스 가드가 무력화되면 증상이 '배포가 그냥 잘 됨'이라 아무도 모르고, 다음 사고는 남의 워커 커밋이 프로덕션에서 사라지는 형태로 온다." },
