@@ -1223,7 +1223,7 @@ export const SERVICE_MAP = {
       "vedic astrology",
     ],
   },
-  "flower/destiny": {
+  "flower": {
     component: FeatureLandingPage,
     title: "운명의 꽃 - 통합 아틀리에",
     h1: "운명의 꽃 아틀리에",
@@ -1247,78 +1247,6 @@ export const SERVICE_MAP = {
       "자미두수 꽃",
       "숙요 꽃",
       "destiny flower",
-    ],
-  },
-  "flower/astrology": {
-    component: FeatureLandingPage,
-    title: "점성술 운명의 꽃",
-    h1: "점성술 운명의 꽃",
-    description: "태양 별자리가 그려내는 본래 기질 위로, 상승궁의 첫인상과 달 별자리의 감정 결이 함께 포개지며 나만의 점성술 꽃이 성운처럼 피어납니다.",
-    seoText: "점성술 운명의 꽃은 태양 별자리를 중심에 두고, 상승궁과 달 별자리의 분위기를 성운처럼 겹쳐 보여줍니다.",
-    ogImage: "https://code-destiny.com/fuctionassets/flower2.webp",
-    landingPoints: ["태양 별자리 중심 꽃 매핑", "상승궁·달 별자리 보조 시그널", "성운 테마 시각화/공유"],
-    localized: {
-      en: {
-        title: "Astrology Flower of Destiny",
-        h1: "Astrology Flower of Destiny",
-        description: "The core energy of your sun sign is joined by ascendant and moon-sign signals, letting your astrology flower bloom like a nebula.",
-        seoText: "Astrology Flower of Destiny layers ascendant and moon-sign moods over the flower of your sun sign.",
-        landingPoints: ["Sun-sign flower mapping", "Ascendant and moon support signals", "Nebula-theme visualization and sharing"],
-      },
-    },
-    keywords: [
-      "점성술 운명의 꽃",
-      "네온 성운",
-      "natal flower",
-      "astrology flower",
-    ],
-  },
-  "flower/jamidusu": {
-    component: FeatureLandingPage,
-    title: "자미두수 운명의 꽃",
-    h1: "자미두수 운명의 꽃",
-    description: "명궁에 자리한 주성과 그 밝기, 삼방사정으로 이어지는 궁위의 기운이 겹치며 자미두수의 꽃과 테마가 한 장의 명반처럼 피어납니다.",
-    seoText: "자미두수 운명의 꽃에서는 명궁의 주성과 사화의 흐름이 꽃 팔레트와 해석으로 번집니다.",
-    ogImage: "https://code-destiny.com/fuctionassets/flower3.webp",
-    landingPoints: ["명궁/주성 기반 꽃 산출", "밝기 강도 반영 테마", "자미두수 해석 패널"],
-    localized: {
-      en: {
-        title: "Zi Wei Flower of Destiny",
-        h1: "Zi Wei Flower of Destiny",
-        description: "The life palace, main star, and brightness energy overlap, blooming into a Zi Wei flower and theme like a destiny garden.",
-        seoText: "Zi Wei Flower of Destiny spreads life-palace clues and main-star light into a flower palette and interpretation.",
-        landingPoints: ["Flower from life palace and main star", "Theme reflecting brightness intensity", "Zi Wei interpretation panel"],
-      },
-    },
-    keywords: [
-      "자미두수 꽃",
-      "紫微 꽃",
-      "명궁 꽃",
-      "ziwei flower",
-    ],
-  },
-  "flower/sukuyo": {
-    component: FeatureLandingPage,
-    title: "숙요 운명의 꽃",
-    h1: "숙요 운명의 꽃",
-    description: "내가 태어난 날 달이 머문 숙명의 자리, 27수와 오늘의 월상이 겹치며 달빛을 머금은 나만의 꽃이 피어납니다.",
-    seoText: "숙요 운명의 꽃은 태어난 날의 27수와 오늘의 달 위치를 겹쳐, 달빛 꽃과 키워드로 보여줍니다.",
-    ogImage: "https://code-destiny.com/fuctionassets/flower4.webp",
-    landingPoints: ["27수 기반 꽃 매칭", "달 위상 보정 시각화", "숙요 해석/가이드 패널"],
-    localized: {
-      en: {
-        title: "Sukuyo Flower of Destiny",
-        h1: "Sukuyo Flower of Destiny",
-        description: "The twenty-seven Sukuyo mansions and lunar phase currents open your moonlit flower and a small ritual of your own.",
-        seoText: "Sukuyo Flower of Destiny connects the starlight of the twenty-seven mansions and the shadow of the lunar phase to flowers, keywords, and rituals.",
-        landingPoints: ["Flower match by twenty-seven mansions", "Lunar-phase adjusted visualization", "Sukuyo guide and interpretation panel"],
-      },
-    },
-    keywords: [
-      "숙요 꽃",
-      "27숙",
-      "달 꽃",
-      "sukuyo flower",
     ],
   },
   "dream/tarot": {

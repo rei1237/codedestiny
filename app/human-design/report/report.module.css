@@ -1,0 +1,749 @@
+/* 휴먼 디자인 프리미엄 리포트 — 읽기 화면.
+ *
+ * 🔴 표면·잉크·강조색을 이 파일에서 한 세트로 **무조건부** 선언한다. 공용 모바일 래퍼나
+ *    스킴 토큰에 기대면 라이트 모드에서 잉크만 뒤집혀 대비가 무너진다. 팔레트는 차트 화면
+ *    (human-design.module.css)과 같은 값을 쓴다 — 결제 전후로 다른 서비스처럼 보이지 않게.
+ * 🔴 서체를 새로 들이지 않는다. --font-display / --font-body 는 styles/globals.css 가 선언한다.
+ * 🔴 25,000자 문서라 장 단위로 content-visibility 를 건다. opacity: 0 으로 숨기지 않는다 —
+ *    CodexReader 가 그 방식으로 "스크롤 안 한 장이 백지로 찍히는" 사고를 냈다.
+ */
+
+.page {
+  --hd-bg: #07061a;
+  --hd-panel: #13102a;
+  --hd-panel-raised: #191534;
+  --hd-panel-soft: rgba(255, 255, 255, 0.05);
+  --hd-border: rgba(196, 181, 253, 0.22);
+  --hd-border-strong: rgba(196, 181, 253, 0.46);
+  --hd-ink: #f5f3ff;
+  --hd-ink-dim: #c3bde2;
+  --hd-accent: #c4b5fd;
+  --hd-accent-warm: #e8d5a3;
+  --hd-danger: #ffb4b4;
+  --hd-measure: 34rem;
+
+  position: relative;
+  isolation: isolate;
+  min-height: 100vh;
+  min-height: 100dvh;
+  padding: 0 1rem calc(4rem + env(safe-area-inset-bottom));
+  background:
+    radial-gradient(70% 40% at 50% -8%, rgba(124, 92, 240, 0.24) 0%, transparent 66%),
+    var(--hd-bg);
+  color: var(--hd-ink);
+  font-family: var(--font-body);
+  overflow-x: clip;
+}
+
+/* ── 상단바 ─────────────────────────────────────────────── */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  max-width: 72rem;
+  margin: 0 auto;
+  padding: 0.75rem 0;
+  background: linear-gradient(180deg, var(--hd-bg) 62%, rgba(7, 6, 26, 0));
+}
+
+.topTitle {
+  font-size: 0.8125rem;
+  letter-spacing: 0.14em;
+  color: var(--hd-ink-dim);
+}
+
+.exit {
+  padding: 0.4rem 0.85rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 999px;
+  font-size: 0.8125rem;
+  color: var(--hd-ink);
+  text-decoration: none;
+  background: var(--hd-panel-soft);
+}
+
+.exit:hover,
+.exit:focus-visible {
+  border-color: var(--hd-border-strong);
+}
+
+/* ── 안내 · 오류 ────────────────────────────────────────── */
+
+.notice {
+  max-width: var(--hd-measure);
+  margin: 4rem auto;
+  text-align: center;
+  color: var(--hd-ink-dim);
+  line-height: 1.7;
+}
+
+.error {
+  margin: 0 0 1rem;
+  color: var(--hd-danger);
+  line-height: 1.7;
+}
+
+.degraded {
+  max-width: var(--hd-measure);
+  margin: 0 auto 2rem;
+  padding: 0.85rem 1rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 12px;
+  background: var(--hd-panel);
+  color: var(--hd-ink-dim);
+  font-size: 0.875rem;
+  line-height: 1.7;
+}
+
+/* ── 잠금 화면 ──────────────────────────────────────────── */
+
+.locked {
+  max-width: 40rem;
+  margin: 2.5rem auto 0;
+  padding: 2rem 1.5rem 2.25rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 20px;
+  background: var(--hd-panel);
+}
+
+.lockedHead {
+  text-align: center;
+}
+
+.lockedKicker {
+  display: inline-block;
+  padding: 0.2rem 0.7rem;
+  border: 1px solid var(--hd-border-strong);
+  border-radius: 999px;
+  font-size: 0.6875rem;
+  letter-spacing: 0.18em;
+  color: var(--hd-accent-warm);
+}
+
+.lockedTitle {
+  margin: 0.9rem 0 0.6rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.5rem, 5vw, 2rem);
+  line-height: 1.3;
+  color: var(--hd-ink);
+}
+
+.lockedBody {
+  margin: 0;
+  color: var(--hd-ink-dim);
+  font-size: 0.9375rem;
+  line-height: 1.75;
+}
+
+.lockedFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(8rem, 1fr));
+  gap: 0.5rem;
+  margin: 1.75rem 0 0;
+}
+
+.lockedFact {
+  padding: 0.7rem 0.75rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 12px;
+  background: var(--hd-panel-soft);
+  text-align: center;
+}
+
+.lockedFact dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: var(--hd-ink-dim);
+}
+
+.lockedFact dd {
+  margin: 0.3rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--hd-ink);
+}
+
+.lockedContents {
+  margin-top: 1.75rem;
+}
+
+.lockedContentsTitle,
+.dataTitle,
+.insightTitle,
+.evidenceTitle,
+.railTitle {
+  margin: 0 0 0.65rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  color: var(--hd-accent);
+}
+
+.lockedList {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.lockedList li {
+  display: flex;
+  gap: 0.7rem;
+  align-items: baseline;
+  padding: 0.5rem 0.65rem;
+  border-radius: 10px;
+  background: var(--hd-panel-soft);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--hd-ink);
+}
+
+.lockedOrder,
+.railOrder,
+.progressOrder,
+.chapterOrder {
+  font-variant-numeric: tabular-nums;
+  font-size: 0.75rem;
+  color: var(--hd-accent);
+}
+
+.buyButton {
+  display: block;
+  width: 100%;
+  margin-top: 1.75rem;
+  padding: 0.95rem 1rem;
+  border: 0;
+  border-radius: 14px;
+  /* 🔴 그라디언트 대비는 **가장 어두운 지점**에서 잰다 — 평균으로 재면 통과처럼 보인다.
+     값은 이 기능이 이미 실측해 둔 .cta(human-design.module.css)와 같은 쌍을 쓴다.
+     같은 화면 흐름에서 버튼 색을 두 번 정하지 않는다. (#7c5cf0 은 4.34:1 로 미달이었다.) */
+  background: linear-gradient(135deg, #8b72f3, #a78bfa);
+  color: #120c26;
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.buyButton:disabled {
+  opacity: 0.6;
+  cursor: progress;
+}
+
+/* ── 생성 화면 ──────────────────────────────────────────── */
+
+.progress {
+  max-width: 40rem;
+  margin: 2.5rem auto 3rem;
+  padding: 1.75rem 1.5rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 20px;
+  background: var(--hd-panel);
+}
+
+.progressHead {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.75rem 1.25rem;
+}
+
+.progressTitle {
+  margin: 0;
+  flex: 1 1 100%;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  color: var(--hd-ink);
+}
+
+.progressCount {
+  margin: 0;
+  font-variant-numeric: tabular-nums;
+  color: var(--hd-ink);
+}
+
+.progressCount strong {
+  font-size: 1.5rem;
+  color: var(--hd-accent);
+}
+
+.progressUnit {
+  margin-left: 0.4rem;
+  font-size: 0.8125rem;
+  color: var(--hd-ink-dim);
+}
+
+.progressElapsed {
+  margin: 0;
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--hd-ink-dim);
+}
+
+.progressNote {
+  margin: 0.9rem 0 1.25rem;
+  font-size: 0.875rem;
+  line-height: 1.7;
+  color: var(--hd-ink-dim);
+}
+
+.progressList {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.progressItem {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 0.7rem;
+  align-items: baseline;
+  padding: 0.5rem 0.65rem;
+  border-radius: 10px;
+  background: var(--hd-panel-soft);
+  font-size: 0.875rem;
+  color: var(--hd-ink-dim);
+}
+
+.progressItem[data-done="true"] {
+  color: var(--hd-ink);
+  background: rgba(167, 139, 250, 0.14);
+}
+
+.progressState {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--hd-ink-dim);
+}
+
+.progressItem[data-done="true"] .progressState {
+  color: var(--hd-accent);
+}
+
+/* ── 리더 ───────────────────────────────────────────────── */
+
+.reader {
+  max-width: 72rem;
+  margin: 0 auto;
+}
+
+.cover {
+  max-width: var(--hd-measure);
+  margin: 2rem auto 3rem;
+  padding: 2.25rem 1.5rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 20px;
+  background: linear-gradient(180deg, var(--hd-panel-raised), var(--hd-panel));
+  text-align: center;
+}
+
+.coverSubtitle {
+  margin: 0;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  color: var(--hd-accent-warm);
+}
+
+.coverTitle {
+  margin: 0.8rem 0 1.5rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.65rem, 6vw, 2.25rem);
+  line-height: 1.25;
+  color: var(--hd-ink);
+}
+
+.coverFacts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(7.5rem, 1fr));
+  gap: 0.5rem;
+  margin: 0;
+}
+
+.coverFact {
+  padding: 0.7rem 0.6rem;
+  border-radius: 12px;
+  background: var(--hd-panel-soft);
+}
+
+.coverFact dt {
+  font-size: 0.6875rem;
+  letter-spacing: 0.1em;
+  color: var(--hd-ink-dim);
+}
+
+.coverFact dd {
+  margin: 0.3rem 0 0;
+  font-size: 0.9375rem;
+  color: var(--hd-ink);
+}
+
+.coverMeta {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.4rem 1.25rem;
+  margin: 1.5rem 0 0;
+  font-size: 0.75rem;
+  color: var(--hd-ink-dim);
+}
+
+.coverMetaRow {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.coverMetaRow dd {
+  margin: 0;
+  color: var(--hd-ink);
+  font-variant-numeric: tabular-nums;
+}
+
+.readerBody {
+  display: grid;
+  gap: 2rem;
+}
+
+/* ── 세로 목차 ──────────────────────────────────────────── */
+
+.rail {
+  display: none;
+}
+
+/* 좁은 화면용 접이식 목차. 넓은 화면에서는 세로 레일이 그 일을 하므로 사라진다. */
+.railMobile {
+  margin: 0 auto 2rem;
+  max-width: var(--hd-measure);
+  padding: 0.75rem 0.9rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 14px;
+  background: var(--hd-panel);
+}
+
+.railSummary {
+  cursor: pointer;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  color: var(--hd-accent);
+}
+
+.railMobile[open] .railSummary {
+  margin-bottom: 0.6rem;
+}
+
+.railList {
+  display: grid;
+  gap: 0.15rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.railLink {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.55rem;
+  align-items: baseline;
+  padding: 0.4rem 0.5rem;
+  border-radius: 8px;
+  font-size: 0.8125rem;
+  line-height: 1.45;
+  color: var(--hd-ink-dim);
+  text-decoration: none;
+}
+
+.railLink:hover,
+.railLink:focus-visible {
+  background: var(--hd-panel-soft);
+  color: var(--hd-ink);
+}
+
+.railLink[aria-current="step"] {
+  background: rgba(167, 139, 250, 0.16);
+  color: var(--hd-ink);
+}
+
+/* ── 장 ─────────────────────────────────────────────────── */
+
+.article {
+  max-width: var(--hd-measure);
+  margin: 0 auto;
+  min-width: 0;
+}
+
+.chapter {
+  margin: 0 0 4rem;
+  /* 25,000자를 한 번에 레이아웃하지 않는다. 높이를 미리 예약해 스크롤바가 튀지 않게 한다. */
+  content-visibility: auto;
+  contain-intrinsic-size: 0 1400px;
+}
+
+.chapterHead {
+  margin: 0 0 1.5rem;
+  padding-bottom: 0.9rem;
+  border-bottom: 1px solid var(--hd-border);
+}
+
+.chapterTitle {
+  margin: 0.35rem 0 0;
+  font-family: var(--font-display);
+  font-size: clamp(1.35rem, 4.6vw, 1.75rem);
+  line-height: 1.3;
+  color: var(--hd-ink);
+}
+
+.subheading {
+  margin: 2.25rem 0 0.9rem;
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  line-height: 1.45;
+  color: var(--hd-accent);
+}
+
+.lead {
+  margin: 0 0 1.35rem;
+  font-size: 1.0625rem;
+  line-height: 1.9;
+  color: var(--hd-ink);
+}
+
+.paragraph {
+  margin: 0 0 1.15rem;
+  font-size: 0.9688rem;
+  line-height: 1.95;
+  color: #e4e0f7;
+}
+
+/* 풀인용. 카드로 감싸지 않고 **조판으로** 띄운다 — 큰 활자·넓은 여백·행잉 인용부호.
+   테두리를 두르면 앞뒤 인사이트 카드와 같은 무게가 되어 강조가 되지 않는다. */
+.quote {
+  position: relative;
+  margin: 2rem 0 2.25rem;
+  padding-left: 1.6rem;
+  font-family: var(--font-display);
+  font-size: clamp(1.0625rem, 3.4vw, 1.25rem);
+  line-height: 1.75;
+  color: var(--hd-ink);
+  text-wrap: balance;
+}
+
+.quote::before {
+  content: "\201C";
+  position: absolute;
+  top: -0.35em;
+  left: -0.1rem;
+  font-family: var(--font-display);
+  font-size: 2.75rem;
+  line-height: 1;
+  color: var(--hd-accent);
+  opacity: 0.55;
+}
+
+.insight,
+.summary,
+.steps,
+.dataTable,
+.evidence {
+  margin: 0 0 1.6rem;
+  padding: 1.05rem 1.15rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 14px;
+  background: var(--hd-panel);
+}
+
+.insightList {
+  display: grid;
+  gap: 0.55rem;
+  margin: 0;
+  padding-left: 1.1rem;
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--hd-ink);
+}
+
+.stepsList {
+  display: grid;
+  gap: 0.7rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.stepsList li {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.7rem;
+  align-items: baseline;
+}
+
+.stepIndex {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 1.6rem;
+  height: 1.6rem;
+  border-radius: 999px;
+  background: rgba(167, 139, 250, 0.2);
+  color: var(--hd-accent);
+  font-size: 0.8125rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stepText {
+  font-size: 0.9375rem;
+  line-height: 1.75;
+  color: var(--hd-ink);
+}
+
+.dataRows {
+  display: grid;
+  gap: 0.35rem;
+  margin: 0;
+}
+
+.dataRow {
+  display: grid;
+  grid-template-columns: minmax(6rem, 40%) 1fr;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  border-bottom: 1px solid rgba(196, 181, 253, 0.1);
+  font-size: 0.875rem;
+}
+
+.dataRow:last-child {
+  border-bottom: 0;
+}
+
+.dataRow dt {
+  color: var(--hd-ink-dim);
+}
+
+.dataRow dd {
+  margin: 0;
+  color: var(--hd-ink);
+}
+
+.meterList {
+  display: grid;
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.meterRow {
+  display: grid;
+  grid-template-columns: minmax(5rem, 30%) 1fr auto;
+  gap: 0.7rem;
+  align-items: center;
+  font-size: 0.8125rem;
+}
+
+.meterLabel {
+  color: var(--hd-ink-dim);
+}
+
+.meterTrack {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  overflow: hidden;
+}
+
+.meterFill {
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, #7c5cf0, #c4b5fd);
+}
+
+.meterValue {
+  color: var(--hd-ink);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
+.evidenceList {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.evidenceList li {
+  padding: 0.3rem 0.65rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 999px;
+  background: var(--hd-panel-soft);
+  font-size: 0.75rem;
+  color: var(--hd-ink-dim);
+}
+
+/* ── 본문 도표 ──────────────────────────────────────────── */
+
+.chartFigure {
+  margin: 1.75rem 0;
+}
+
+/* 🔴 자리를 미리 잡는다. 도표는 뷰포트 근처에서야 마운트되므로, 높이를 예약하지 않으면
+   붙는 순간 아래 본문이 밀린다(CLS). 실제 비율은 ChartFigure 가 지오메트리의 VIEWBOX 에서
+   계산해 인라인으로 넘긴다 — 여기 있는 값은 그것이 없을 때의 안전망일 뿐이다. */
+.chartHost {
+  aspect-ratio: 540 / 1000;
+  width: 100%;
+  max-width: 26rem;
+  margin: 0 auto;
+}
+
+.chartCaption {
+  margin-top: 0.6rem;
+  font-size: 0.75rem;
+  letter-spacing: 0.06em;
+  text-align: center;
+  color: var(--hd-ink-dim);
+}
+
+/* ── 넓은 화면 — 목차를 옆에 세운다 ────────────────────── */
+
+@media (min-width: 64rem) {
+  .readerBody {
+    grid-template-columns: 15rem minmax(0, 1fr);
+    align-items: start;
+    gap: 3rem;
+  }
+
+  .railMobile {
+    display: none;
+  }
+
+  .rail {
+    display: block;
+    position: sticky;
+    top: 4.5rem;
+    max-height: calc(100dvh - 6rem);
+    overflow-y: auto;
+    padding: 1rem 0.85rem;
+    border: 1px solid var(--hd-border);
+    border-radius: 16px;
+    background: var(--hd-panel);
+  }
+
+  .article {
+    margin: 0;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page * {
+    scroll-behavior: auto;
+  }
+}

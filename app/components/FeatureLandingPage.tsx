@@ -82,10 +82,7 @@ interface SlugCfg {
   extraBlock?: React.ReactNode;
 }
 const SLUG_CFG: Record<string, SlugCfg> = {
-  "/flower/destiny":    { icon:"🌺", badge:"ATELIER",      tag:"통합 꽃 아틀리에",      particles:["🌸","✦","💮","🌼","🌺"] },
-  "/flower/astrology":  { icon:"🌟", badge:"ASTROLOGY",    tag:"점성술 꽃 리포트",       particles:["⭐","✦","🌸","💫","🌟"] },
-  "/flower/jamidusu":   { icon:"🪷", badge:"ZIWEI FLOWER", tag:"자미두수 꽃 리포트",     particles:["🌸","✦","💐","🪷","⭐"] },
-  "/flower/sukuyo":     { icon:"🌙", badge:"LUNAR FLOWER", tag:"달 위상 꽃 리포트",      particles:["🌙","🌸","✦","🌠","💮"] },
+  "/flower":            { icon:"🌺", badge:"ATELIER",      tag:"사주·점성술·자미두수·숙요 꽃", particles:["🌸","✦","💮","🌼","🌺"] },
   "/tarot/self-esteem": { icon:"⚔️", badge:"FREE QUEST",   tag:"5카드 성장 퀘스트",      particles:["✦","⚔️","✨","⭐","✦"] },
   "/tarot/reunion":     { icon:"🕯️", badge:"REUNION",      tag:"5카드 등대 스프레드",    particles:["🕯️","✦","💌","🌊","✦"] },
   "/tarot/year":        { icon:"🐉", badge:"12 ZODIAC",    tag:"12개월 운세 타로",       particles:["🐉","⭐","✨","🌙","✦"] },
@@ -270,8 +267,7 @@ const ACTION_MAP: Record<string, string> = {
   "/oracle/hwatu":"openHwatuModal", "/oracle/kemet":"openKemetModal",
   "/oracle/juyuk":"openJuyukModal", "/oracle/sukuyo":"openSukuyoModal",
   "/vedic/jyotish":"navigateToVedic",
-  "/flower/destiny":"openDestinyFlowerStudio", "/flower/astrology":"openAstrologyFlowerStudio",
-  "/flower/jamidusu":"openJamidusuFlowerStudio", "/flower/sukuyo":"openSukuyoFlowerStudio",
+  "/flower":"openDestinyFlowerStudio",
   "/dream/tarot":"openDreamModal", "/dream/psycho":"openPsychoDreamModal",
   "/tarot/healing":"openTarotHealingModal",
   "/tarot/mingri":"openTarotModal",
@@ -297,10 +293,7 @@ const PAID_SLUG_META: Record<string, { featureKey: string }> = {
   // (20,000원 영구 해금)를 물어서, 랜딩이 실제의 1/4 가격을 광고하고 있었다.
   // `flower-studio-per-use` 는 이 4줄 말고 청구·검증하는 곳이 전혀 없다(전수 grep).
   // 가드: __tests__/ui/action-entry-dispatch.static.test.js
-  "/flower/destiny":   { featureKey: "flower-fc" },
-  "/flower/astrology": { featureKey: "flower-fc" },
-  "/flower/jamidusu":  { featureKey: "flower-fc" },
-  "/flower/sukuyo":    { featureKey: "flower-fc" },
+  "/flower":           { featureKey: "flower-fc" },
   "/dream/psycho":     { featureKey: "dream-psycho-analysis" },
   "/tarot/love": { featureKey: "tarot-love-relationship" },
   "/tarot/reunion": { featureKey: "tarot-reunion-reading" },

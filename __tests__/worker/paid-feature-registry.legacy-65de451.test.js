@@ -8,11 +8,19 @@ beforeAll(async () => {
   registry = await import("../../worker/lib/paid-feature-registry.js");
 });
 
+/**
+ * 65de451 시점의 해금 상품 표. 이 목록은 "영구 불변 기록"이 아니라 **드리프트 검출기**다 —
+ * 가격이 조용히 바뀌는 것을 막되, 의도한 개정이면 기준선도 함께 옮긴다.
+ *
+ * 개정 이력:
+ *  · 2026-08-23 unlock.flower_fc 200 → 100 (운명의 꽃 카드 4장을 1장으로 합치며 전체 해금 1만원).
+ *    worker/lib/paid-feature-registry.js 의 같은 이름 상수와 항상 짝으로 고친다.
+ */
 const LEGACY_UNLOCK_PRODUCTS_65DE451 = Object.freeze({
   "unlock.section_daewun": { featureKey: "section_daewun", cost: 50, reason: "Section daewun unlock", forceDeduct: true },
   "unlock.section_summary": { featureKey: "section_summary", cost: 50, reason: "Section summary unlock", forceDeduct: true },
   "unlock.section_compat": { featureKey: "section_compat", cost: 50, reason: "Section compat unlock", forceDeduct: true },
-  "unlock.flower_fc": { featureKey: "flower-fc", cost: 200, reason: "Destiny flower atelier full unlock", forceDeduct: true },
+  "unlock.flower_fc": { featureKey: "flower-fc", cost: 100, reason: "Destiny flower atelier full unlock", forceDeduct: true },
   "unlock.olympus_fc": { featureKey: "olympus-fc", cost: 100, reason: "Olympus profile unlock", forceDeduct: true },
   "unlock.all_paid_saju": { featureKey: "allPaidSaju", cost: 700, reason: "All paid saju unlock", forceDeduct: true },
   "unlock.rpg_character": { featureKey: "rpgCharacter", cost: 30, reason: "RPG character unlock", forceDeduct: true },

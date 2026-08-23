@@ -153,6 +153,17 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
       setChart(data.chart);
       setPipeline(Array.isArray(data.pipeline) ? data.pipeline : []);
       setReused(Boolean(data.reused));
+      // 프리미엄 리포트 화면이 같은 차트를 다시 불러오는 데 쓴다. 🔴 결제 정보가 아니라
+      //    입력값이므로 세션 저장소로 충분하다 — 결제 뒤에 지켜야 하는 reportId 는 리포트
+      //    화면이 localStorage 에 따로 적는다.
+      try {
+        window.sessionStorage.setItem(
+          "cd_hd_birth_v1",
+          JSON.stringify({ birthDate, birthTime, timezone: timezone.trim(), calendar }),
+        );
+      } catch {
+        /* 프라이빗 모드에서 막혀도 차트 자체는 이미 나왔다. */
+      }
     } finally {
       setLoading(false);
     }
@@ -605,6 +616,17 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
               )}
             </section>
             )}
+
+            {/* 프리미엄 리포트 진입 — 차트는 계속 무료이고, 과금 지점은 이 링크 너머 하나뿐이다.
+                🔴 여기서 결제를 열지 않는다. 결제창은 리포트 화면의 잠금 패널 하나가 소유한다
+                   (게이트가 두 곳이 되면 어느 쪽이 진실인지 알 수 없어진다). */}
+            <section className={styles.reportCta} id="hd-report">
+              <p className={styles.reportCtaTitle}>{pick(UI_TEXT.reportCtaTitle, locale)}</p>
+              <p className={styles.reportCtaBody}>{pick(UI_TEXT.reportCtaBody, locale)}</p>
+              <Link className={styles.reportCtaButton} href="/human-design/report">
+                {pick(UI_TEXT.reportCtaButton, locale)}
+              </Link>
+            </section>
 
             <section className={styles.meta}>
               <p>{pick(UI_TEXT.birthMoment, locale)}: {chart.moments?.birthUtc || "—"}</p>

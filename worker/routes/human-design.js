@@ -152,7 +152,11 @@ async function handleChart(request, env) {
   if (archived?.calculation) {
     timer.mark("ARCHIVE_HIT");
     return json(
-      { ok: true, free: true, reused: true, chart: archived.calculation, pipeline: timer.stages },
+      // 🔴 inputHash 를 함께 내보낸다. 프리미엄 리포트 화면이 **결제창을 띄우기 전에**
+      //    "이 차트로 이미 산 리포트가 있는가" 를 /human-design-report/result?inputHash= 로
+      //    물어봐야 하기 때문이다(요구 30·32 — 재열람에 AI 를 다시 부르지 않는다).
+      //    본인 인증 요청에만 나가고 조회도 userId 로 묶여 있어 남의 해시를 알아도 쓸 데가 없다.
+      { ok: true, free: true, reused: true, inputHash, chart: archived.calculation, pipeline: timer.stages },
       { headers: { "Cache-Control": "no-store" } },
     );
   }
@@ -208,7 +212,7 @@ async function handleChart(request, env) {
   timer.mark("ARCHIVE");
 
   return json(
-    { ok: true, free: true, reused: false, chart, pipeline: timer.stages },
+    { ok: true, free: true, reused: false, inputHash, chart, pipeline: timer.stages },
     { headers: { "Cache-Control": "no-store" } },
   );
 }
