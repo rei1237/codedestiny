@@ -45,8 +45,37 @@ const PEXELS_SECTION_QUERIES = {
 };
 
 const PEXELS_IMAGE_ROUTE_SECTIONS = new Set(Object.keys(PEXELS_SECTION_IMAGES));
-const PEXELS_IMAGE_ROUTE_CACHE_TTL_MS = 1000 * 60 * 60 * 24 * 7;
-const PEXELS_KEYWORDS_RE = /(cosmic|cosmos|star|stars|nebula|galaxy|moon|mystic|mystical|astrology|zodiac)/i;
+
+// 🔴 클라이언트(js/inline/saju-core-bootstrap.js 의 `_famousPexelsQuery`)가 보낼 수 있는
+//    문구 전량. 여기에 복제돼 있으므로 드리프트를 테스트가 막는다
+//    (__tests__/ui/pexels-query-allowlist.static.test.js).
+const PEXELS_FAMOUS_QUERIES = [
+  "stadium spotlight night stars athlete",
+  "cinema stage spotlight night portrait",
+  "concert stage spotlight stars singer",
+  "city skyline night lights success",
+  "public speech podium spotlight night",
+  "ancient manuscript candle stars",
+  "mystical cosmic portrait silhouette stars",
+];
+
+/**
+ * 🔴 캐시 키가 사용자 쿼리에서 파생되므로 허용목록으로 키 공간을 닫는다.
+ *
+ * 닫기 전에는 `/api/pexels-image?query=<아무거나>` 로 (a) 캐시 맵을 상한 없이 키우고
+ * (b) 미스마다 Pexels 유료 쿼터를 한 번씩 태울 수 있었다. 이 라우트는 인증도 레이트리밋도
+ * 없다(worker/index.js 의 라우팅 참고). 목록에 없는 쿼리는 **거부하지 않고 섹션 기본값으로
+ * 접는다** — 기존 실패 경로를 늘리지 않으면서 상류 호출 종류를 상수 개수로 묶는 것이 목적이다.
+ */
+const PEXELS_ALLOWED_QUERIES = new Set([
+  ...Object.values(PEXELS_SECTION_QUERIES).map((meta) => meta.query),
+  ...PEXELS_FAMOUS_QUERIES,
+]);
+
+// 🔴 종전 7일은 아이솔레이트 수명보다 훨씬 길어 사실상 아무 일도 하지 않았고, 상한이 없어
+//    만료 엔트리가 영원히 남았다. 이 캐시의 목적은 같은 아이솔레이트 안의 반복 요청 흡수다.
+const PEXELS_IMAGE_ROUTE_CACHE_TTL_MS = 1000 * 60 * 60;
+const PEXELS_IMAGE_ROUTE_CACHE_MAX_ENTRIES = 64;
 const GEOCODE_FALLBACK_SEOUL = {
   lat: 37.5665,
   lng: 126.978,
@@ -82,10 +111,23 @@ function getPexelsFailureStatus(status) {
 
 function normalizePexelsQuery(rawQuery, section) {
   const query = String(rawQuery || "").trim();
-  if (!query) return PEXELS_SECTION_QUERIES[section].query;
-  if (/[\uac00-\ud7a3]/.test(query)) return PEXELS_SECTION_QUERIES[section].query;
-  if (!PEXELS_KEYWORDS_RE.test(query)) return `${query} cosmic stars mystical`;
+  if (!PEXELS_ALLOWED_QUERIES.has(query)) return PEXELS_SECTION_QUERIES[section].query;
   return query;
+}
+
+/** \uce90\uc2dc\uac00 \ubb34\ud55c\ud788 \uc790\ub77c\uc9c0 \uc54a\uac8c \ub9cc\ub8cc\ubd84\uc744 \uac77\uace0 \uc624\ub798\ub41c \uac83\ubd80\ud130 \ubc84\ub9b0\ub2e4(cms-cache.js \uc758 memo \uc640 \uac19\uc740 \ubc29\uc2dd). */
+function rememberPexelsImage(cacheKey, image) {
+  if (PEXELS_IMAGE_ROUTE_CACHE.has(cacheKey)) PEXELS_IMAGE_ROUTE_CACHE.delete(cacheKey);
+  const now = Date.now();
+  PEXELS_IMAGE_ROUTE_CACHE.set(cacheKey, { expiresAt: now + PEXELS_IMAGE_ROUTE_CACHE_TTL_MS, image });
+  for (const [key, entry] of PEXELS_IMAGE_ROUTE_CACHE) {
+    if (entry.expiresAt <= now) PEXELS_IMAGE_ROUTE_CACHE.delete(key);
+  }
+  while (PEXELS_IMAGE_ROUTE_CACHE.size > PEXELS_IMAGE_ROUTE_CACHE_MAX_ENTRIES) {
+    const oldestKey = PEXELS_IMAGE_ROUTE_CACHE.keys().next().value;
+    if (oldestKey === undefined) break;
+    PEXELS_IMAGE_ROUTE_CACHE.delete(oldestKey);
+  }
 }
 
 async function handlePexelsImageRequest(request, env) {
@@ -140,10 +182,7 @@ async function handlePexelsImageRequest(request, env) {
       source: "pexels",
       status: "ok",
     };
-    PEXELS_IMAGE_ROUTE_CACHE.set(cacheKey, {
-      expiresAt: Date.now() + PEXELS_IMAGE_ROUTE_CACHE_TTL_MS,
-      image,
-    });
+    rememberPexelsImage(cacheKey, image);
     return jsonResponse(request, env, image);
   } catch {
     return jsonResponse(request, env, { ...fallback, status: "network-error" });

@@ -10,6 +10,7 @@
  *   ③ 검증   — 가짜 출력을 먹였을 때 모순을 실제로 잡아내는가, 정상 출력을 오탐하지 않는가
  *   ④ 라우트  — 결제·락·환불 배선이 소스에 실제로 있는가
  *   ⑤ 플랜   — 웹과 PDF 가 공유하는 플랜이 실제 픽스처에서 온전한 문서를 만드는가
+ *   ⑥ PDF    — 조판이 글자를 잃지 않고 넘치지 않는가, 초융합 공개 시그니처가 그대로인가
  *
  * 🔴 여기서 못 보는 것: 실제 분량이 25,000자가 나오는지, 18유닛이 서로 반복하지 않는지,
  *    웨이브 실측 시간. 그건 유료 실호출이 필요하고 사용자 허락 1회 한정이다(CLAUDE.md 절대규칙 1).
@@ -471,6 +472,188 @@ if (chart) {
     clientSource.includes("buildHumanDesignReportPlan")
     && !/function build[A-Z]\w*Plan/.test(clientSource),
     "화면이 자기 플랜을 따로 만들면 PDF 와 갈린다");
+}
+
+
+// ── ⑥ PDF 조판 — 요구 26을 기계로 ────────────────────────────────────────────
+//
+// 🔴 조판 품질은 눈으로 봐야 아는 것처럼 보이지만 **대부분 산술**이다. 여기서는 브라우저도
+//    jsPDF 도 없이 lib/pdf/typeset-metrics.js 로 문서 전체를 실제로 조판해 보고, 글자 잘림 ·
+//    페이지 넘침 · 빈 페이지 · 제목 홀로 남기 · 쪽번호를 직접 잰다.
+//
+// 🔴 여기서 **못 보는 것**: 실물 글리프(Paperlogy 가 라틴을 덮는가) · 실제 파일 크기 ·
+//    도표 판독성. 그건 사람이 ko/en 각 1부를 열어 봐야 안다.
+
+console.log("\n── ⑥ PDF 조판 ──");
+
+const metrics = await import(new URL("../lib/pdf/typeset-metrics.js", import.meta.url).href);
+const pdfChapters = await import(new URL("../lib/pdf/human-design-report-chapters.js", import.meta.url).href);
+
+check("조판 상수가 A4 이고 본문 폭·하단선이 유도값이다",
+  metrics.PAGE_WIDTH_MM === 210 && metrics.PAGE_HEIGHT_MM === 297
+  && metrics.CONTENT_WIDTH_MM === 166 && metrics.CONTENT_BOTTOM_MM === 271,
+  `${metrics.CONTENT_WIDTH_MM} / ${metrics.CONTENT_BOTTOM_MM}`);
+
+// 🔴 추출 전 초융합 writer 의 값 그대로여야 한다. 이 숫자가 바뀌면 살아 있는 상품의 페이지
+//    나눔이 조용히 달라진다(추출 시 실측 대조: 2026-08-24).
+const FUSION_PINNED = { lead: [11.5, 1.8], body: [10.5, 1.78], heading: [11.5, 1.4], caption: [8.5, 1.5], bullets: [10, 1.7] };
+for (const [kind, [sizePt, factor]] of Object.entries(FUSION_PINNED)) {
+  const style = metrics.BLOCK_STYLE[kind];
+  check(`🔴 초융합 조판 규격 유지 — ${kind}`,
+    style?.sizePt === sizePt && style?.factor === factor,
+    `${style?.sizePt}pt x${style?.factor}`);
+}
+check("🔴 heading 의 keepMm 이 추출 전 need(16) 그대로다", metrics.BLOCK_STYLE.heading.keepMm === 16,
+  String(metrics.BLOCK_STYLE.heading.keepMm));
+
+if (chart) {
+  for (const locale of contract.HD_REPORT_LOCALES) {
+    const fixture = JSON.parse(readRepoFile(`__tests__/fixtures/human-design/report-sample.${locale}.json`) || "{}");
+    if (!fixture.sections?.length) continue;
+
+    const plan = planModule.buildHumanDesignReportPlan(fixture, chart);
+    // 캡처본이 있는 경우와 하나도 없는 경우 둘 다 조판해 본다 — 캡처는 실패할 수 있고,
+    // 실패했을 때 빈 자리나 캡션만 남으면 안 된다.
+    const images = new Map(plan.chartSlots.map((slot) => [slot.slotId, { dataUrl: "data:image/jpeg;base64,AA", ratio: 1000 / 540 }]));
+    for (const [label, imageMap] of [["도표 있음", images], ["도표 없음", new Map()]]) {
+      const chapters = pdfChapters.buildHumanDesignPdfChapters(plan, imageMap);
+      const { pages, contents } = metrics.paginate(chapters);
+      const tag = `[${locale}/${label}]`;
+
+      check(`${tag} 장이 하나도 빠지지 않았다`, chapters.length === 18, `${chapters.length}장`);
+
+      // 텍스트 잘림 — 조판 전후 글자 수가 같아야 한다.
+      const before = metrics.countPlanChars(chapters);
+      const after = metrics.countPaginatedChars(pages);
+      check(`${tag} 조판이 글자를 잃지 않는다`, before === after, `${before} → ${after}`);
+
+      // 페이지 넘침.
+      const overflow = pages.filter((page) => page.usedMm > metrics.CONTENT_HEIGHT_MM + 0.01);
+      check(`${tag} 본문이 하단선을 넘지 않는다`, overflow.length === 0, `${overflow.length}쪽`);
+
+      // 빈 페이지 · 제목만 있는 페이지.
+      check(`${tag} 빈 페이지가 없다`, pages.every((page) => page.blocks.length > 0));
+      const titleOnly = pages.filter((page) => page.blocks.length === 1 && page.blocks[0].kind === "chapterHead");
+      check(`${tag} 제목만 있는 페이지가 없다`, titleOnly.length === 0, `${titleOnly.length}쪽`);
+
+      // 🔴 제목 orphan — 페이지의 **마지막** 블록이 heading 이면 소제목만 남고 본문은 다음 장이다.
+      const orphan = pages.filter((page) => page.blocks[page.blocks.length - 1]?.kind === "heading");
+      check(`${tag} 소제목이 페이지 바닥에 홀로 남지 않는다`, orphan.length === 0, `${orphan.length}쪽`);
+
+      // 장은 언제나 새 페이지에서 시작한다.
+      check(`${tag} 모든 장이 페이지 첫 블록으로 시작한다`,
+        pages.filter((page) => page.blocks.some((block) => block.kind === "chapterHead"))
+          .every((page) => page.blocks[0].kind === "chapterHead"));
+
+      // 쪽번호 — 차례가 본문 첫 페이지(3)부터, 단조 증가, 장 수와 같다.
+      check(`${tag} 차례 항목이 장 수와 같다`, contents.length === chapters.length);
+      check(`${tag} 쪽번호가 3부터 시작한다`, contents[0]?.page === 3, String(contents[0]?.page));
+      check(`${tag} 쪽번호가 단조 증가한다`,
+        contents.every((entry, index) => index === 0 || entry.page > contents[index - 1].page));
+      const lastPage = pages[pages.length - 1]?.index || 0;
+      check(`${tag} 차례의 마지막 쪽번호가 실제 페이지 안이다`,
+        contents[contents.length - 1].page <= lastPage, `${contents[contents.length - 1].page} / ${lastPage}`);
+
+      // 분량 — 조판된 문서가 광고 분량의 90% 이상을 담는다.
+      check(`${tag} 조판 분량이 광고 분량의 90% 이상이다`,
+        after >= contract.HD_REPORT_TARGET_CHARS * 0.9,
+        `${after.toLocaleString()}자`);
+
+      // 도표.
+      const imageBlocks = pages.flatMap((page) => page.blocks).filter((block) => block.kind === "image");
+      if (imageMap.size) {
+        check(`${tag} 도표가 슬롯 수만큼 실린다`, imageBlocks.length === plan.chartSlots.length,
+          `${imageBlocks.length} / ${plan.chartSlots.length}`);
+        check(`${tag} 도표 한 장이 한 페이지를 넘지 않는다`,
+          imageBlocks.every((block) => block.heightMm <= metrics.CONTENT_HEIGHT_MM),
+          `${Math.max(...imageBlocks.map((block) => block.heightMm)).toFixed(1)}mm`);
+      } else {
+        // 🔴 캡처가 전부 실패해도 문서는 만들어져야 하고, 캡션만 남은 자리가 있으면 안 된다.
+        check(`${tag} 캡처 실패 시 도표 블록이 통째로 빠진다`, imageBlocks.length === 0);
+        check(`${tag} 캡처 실패해도 18장이 유지된다`, chapters.length === 18);
+        // 그림 없이 "정의된 센터 강조" 같은 캡션만 남으면 독자는 없는 그림을 찾게 된다.
+        const captions = new Set(plan.chartSlots.map((slot) => slot.caption));
+        const orphanCaption = pages
+          .flatMap((page) => page.blocks)
+          .filter((block) => captions.has(String(block.text || block.caption || "")));
+        check(`${tag} 그림 없는 캡션이 남지 않는다`, orphanCaption.length === 0, `${orphanCaption.length}개`);
+      }
+    }
+  }
+
+  // 🔴 다국어 깨짐 — 이모지·이형문자는 임베드 폰트가 못 덮어 PDF 에서 두부(□)가 된다.
+  //    모델이 이모지를 뱉는 경우를 여기서 잡는다.
+  const forbidden = /[\u{1F300}-\u{1FAFF}\u{2600}-\u{27BF}\u{FE0F}]/u;
+  for (const locale of contract.HD_REPORT_LOCALES) {
+    const fixture = JSON.parse(readRepoFile(`__tests__/fixtures/human-design/report-sample.${locale}.json`) || "{}");
+    if (!fixture.sections?.length) continue;
+    const plan = planModule.buildHumanDesignReportPlan(fixture, chart);
+    const chapters = pdfChapters.buildHumanDesignPdfChapters(plan, new Map());
+    const all = chapters.map((chapter) => chapter.title + chapters.map(() => "").join("")
+      + chapter.blocks.map((block) => metrics.blockText(block)).join("\n")).join("\n");
+    check(`[${locale}] 조판 대상에 임베드 폰트가 못 덮는 문자가 없다`, !forbidden.test(all));
+  }
+}
+
+// ── 초융합 회귀 — 공개 시그니처가 하나도 바뀌지 않았는가 ─────────────────────
+{
+  const fusion = readRepoFile("lib/pdf/export-fusion-report-pdf.ts");
+  check("초융합 PDF 모듈을 찾았다", fusion.length > 0);
+  for (const name of [
+    "FusionReportSection", "FusionReportResult", "ExportFusionReportPdfOptions",
+    "FusionPdfFontError", "FusionReportBlock", "FusionReportChapter", "exportFusionReportPdf",
+  ]) {
+    check(`초융합 공개 export 유지 — ${name}`, new RegExp(`export (type |async function |\\{ ?)${name}\\b|export \\{[^}]*\\b${name}\\b`).test(fusion));
+  }
+  // 🔴 서브클래스로 만들면 FusionFortuneClient 의 `cause instanceof FusionPdfFontError` 가
+  //    조용히 안 잡혀 폰트 실패 시 캡처 폴백이 사라진다. **같은 클래스**여야 한다.
+  // 🔴 부정 검사는 **주석을 걷어낸 뒤** 한다. 이 파일은 "class … extends 로 만들지 말 것" 이라고
+  //    주석에 적어 두었고, 주석을 그대로 보면 그 경고문 자체가 가드를 깨뜨린다.
+  check("🔴 FusionPdfFontError 가 엔진의 PdfFontError 그 클래스다",
+    /const FusionPdfFontError = PdfFontError;/.test(fusion)
+    && !/class FusionPdfFontError\s+extends/.test(codeLines(fusion)));
+  check("폰트 실패는 구분되는 에러로 던진다", fusion.includes("throw new FusionPdfFontError()"));
+  check("🔴 바탕칠은 페이지를 만든 직후에만 한다", /pdf\.addPage\(\);\s*\r?\n\s*paintPaper\(pdf\);/.test(fusion));
+  check("초융합은 조판 상수를 스스로 갖지 않는다(엔진에서 온다)",
+    !/const (PAGE_WIDTH_MM|MARGIN_X_MM|CONTENT_BOTTOM_MM|PT_TO_MM) =/.test(fusion));
+
+  const shared = readRepoFile("lib/pdf/export-result-pdf.ts");
+  check("🔴 공용 캡처 유틸을 건드리지 않았다(15개 기능 공유)",
+    shared.includes("export async function registerPdfFontsSafely")
+    && shared.includes("captureTargets") && shared.includes("html2canvas"));
+}
+
+// ── 웹과 PDF 가 같은 플랜을 먹는가 ───────────────────────────────────────────
+{
+  const exporter = readRepoFile("lib/pdf/export-human-design-report-pdf.ts");
+  const chaptersSrc = readRepoFile("lib/pdf/human-design-report-chapters.js");
+  check("PDF 내보내기 모듈을 찾았다", exporter.length > 0);
+  check("🔴 PDF 가 문서를 다시 구성하지 않는다(플랜 어댑터만 쓴다)",
+    exporter.includes("buildHumanDesignPdfChapters")
+    && !/buildHumanDesignReportPlan\s*\(/.test(exporter));
+  check("🔴 어댑터는 도표만 바꾸고 순서·문장을 만들지 않는다",
+    !/[ㄱ-힝][^"'`]{20,}/.test(codeLines(chaptersSrc).replace(/\/\/[^\n]*/g, "")));
+  check("🔴 폰트 실패에 캡처 폴백을 만들지 않는다(본문이 접혀 있어 빈 페이지가 된다)",
+    !/html2canvas/.test(exporter) && exporter.includes("PdfFontError"));
+  check("🔴 표지·파일명에 출생 데이터를 싣지 않는다",
+    !/birthDate|birthTime|timezone|birthUtc/.test(exporter));
+
+  const download = readRepoFile("app/human-design/report/_components/ReportDownload.tsx");
+  check("🔴 PDF 재생성이 AI 를 다시 부르지 않는다",
+    download.length > 0 && !/human-design-report\/(start|generate)/.test(download));
+
+  const capture = readRepoFile("app/human-design/report/_lib/capture-chart-slots.tsx");
+  check("🔴 도표는 화면 밖 별도 인스턴스를 순차로 찍는다",
+    /interactive: false/.test(capture) && /staticRender: true/.test(capture)
+    && /for \(let index = 0/.test(capture));
+  check("🔴 캡처 전에 레이아웃 확정을 기다린다",
+    /requestAnimationFrame\(\(\) => requestAnimationFrame/.test(capture));
+  const widthMatch = capture.match(/HOST_WIDTH_PX = (\d+)/);
+  const scaleMatch = capture.match(/CAPTURE_SCALE = (\d+)/);
+  const px = Number(widthMatch?.[1] || 0) * Number(scaleMatch?.[1] || 0);
+  check("🔴 도표 캡처 해상도가 게이트 번호를 읽을 만큼 크다", px >= 1960, `${px}px`);
+  check("🔴 저사양에서도 장수를 줄이지 않는다(배율만 낮춘다)",
+    /LOW_MEMORY_SCALE/.test(capture) && !/slots\.slice/.test(capture));
 }
 
 

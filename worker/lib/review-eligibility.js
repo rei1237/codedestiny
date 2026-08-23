@@ -34,6 +34,7 @@ const LOOKBACK_LIMIT = 300;
 // 시간 경과로 자연 해소시킨다. handleCreate가 최종적으로 서버에서 다시 검증하므로 정합성엔
 // 영향 없다).
 const REVIEW_ELIGIBILITY_CACHE_TTL_MS = 25000;
+const REVIEW_ELIGIBILITY_CACHE_MAX_ENTRIES = 512;
 const cache = globalThis.__codeDestinyReviewEligibilityCache || (globalThis.__codeDestinyReviewEligibilityCache = {
   entries: new Map(),
 });
@@ -98,6 +99,16 @@ export async function listUsedReviewProducts({ userId, env = {} }) {
 
   const value = await fetchUsedReviewProducts(normalizedUserId, env);
   cache.entries.set(normalizedUserId, { value, expiresAt: now + REVIEW_ELIGIBILITY_CACHE_TTL_MS });
+  // 만료 확인이 읽기 경로에만 있어 다시 오지 않는 userId 의 엔트리가 계속 남았다.
+  // 쓰기마다 만료분을 걷고, 그래도 넘치면 오래된 것부터 버린다.
+  for (const [cachedUserId, entry] of cache.entries) {
+    if (entry.expiresAt <= now) cache.entries.delete(cachedUserId);
+  }
+  while (cache.entries.size > REVIEW_ELIGIBILITY_CACHE_MAX_ENTRIES) {
+    const oldestUserId = cache.entries.keys().next().value;
+    if (oldestUserId === undefined) break;
+    cache.entries.delete(oldestUserId);
+  }
   return value.slice();
 }
 

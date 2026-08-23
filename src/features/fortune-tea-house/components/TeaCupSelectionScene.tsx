@@ -13,9 +13,12 @@ type TeaCupSelectionSceneProps = {
   onSelect: (cup: TeaHouseCup) => void;
 };
 
+/** 찻잔 데이터에서 사전이 덮으면 안 되는 필드. id 는 조회 키, 나머지 둘은 CSS 토큰이다. */
+const CUP_SKIP_KEYS = ["id", "particleTone", "accent"];
+
 /** 화면에 보이는 한국어 원문. 사전에 같은 경로의 값이 있으면 그것이 이긴다.
     speaker="연이" 는 대사 상자가 이니셜을 고르는 판별자라 여기 없다.
-    찻잔의 name·topic·eyebrow·description 은 data/teaCups.ts 의 값이라 데이터 배치에서 함께 다룬다. */
+    찻잔의 name·topic·eyebrow·description 은 data/teaCups.ts 의 값이라 아래에서 따로 덮는다. */
 const KO = {
   eyebrow: "마음의 향에 반응하는 여섯 잔",
   title: "오늘 당신을 부르는 찻잔",
@@ -30,7 +33,8 @@ const KO = {
 
 export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCupSelectionSceneProps) {
   const copy = useTeaHouseCopy("teaCupSelection", KO);
-  const selectedCup = teaHouseCups.find((cup) => cup.id === selectedCupId);
+  const cups = useTeaHouseCopy("teaCups", teaHouseCups, { skipKeys: CUP_SKIP_KEYS });
+  const selectedCup = cups.find((cup) => cup.id === selectedCupId);
 
   return (
     <section className={styles.teaSelectScene} aria-labelledby="teaCupSelectTitle">
@@ -60,7 +64,9 @@ export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCup
           <span>{copy.menuNote}</span>
         </div>
         <div className={styles.teaMenuCards}>
-          {teaHouseCups.map((cup, index) => {
+          {/* 렌더는 번역본(cups)으로, onSelect 는 원본(teaHouseCups)으로 간다. 선택된 컵의
+              name·topic 은 상담 요청에 실려 서버 프롬프트가 되므로 화면용 번역본을 보내지 않는다. */}
+          {cups.map((cup, index) => {
             const isSelected = selectedCupId === cup.id;
             return (
               <button
@@ -72,7 +78,7 @@ export default function TeaCupSelectionScene({ selectedCupId, onSelect }: TeaCup
                 aria-pressed={isSelected}
                 aria-label={`${cup.name}, ${cup.topic}, ${cup.description}`}
                 key={cup.id}
-                onClick={() => onSelect(cup)}
+                onClick={() => onSelect(teaHouseCups[index])}
               >
                 <TeaCupVisual cup={cup} state={isSelected ? "selected" : "normal"} size="menu" className={styles.teaCupMenuVisual} decorative />
                 <span className={styles.teaCupMenuNumber}>{index + 1}</span>

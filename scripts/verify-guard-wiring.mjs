@@ -69,7 +69,6 @@ const UNWIRED_BY_DESIGN = [
   ["verify:ghost-user-fields", "마이그레이션 --check — 수동 실행이 본래 용도"],
   ["verify:truncate-consume-ids", "마이그레이션 --check — 수동 실행이 본래 용도"],
   ["verify:phone-encryption-key", "실 DB 암호화 키 회전 점검 — MONGO_URI 필요"],
-  ["verify:payment-reconcile", "실 PG·DB 대사 — 프로덕션 자격증명 필요, 사용자 승인 후 수동"],
 
   // ── 실네트워크·실브라우저. CI 러너에서 못 돌거나, 돌면 외부 과금·쿼터를 태운다.
   ["verify:mobile-cdp-smoke", "실브라우저 CDP — 로컬 개발 서버 필요"],

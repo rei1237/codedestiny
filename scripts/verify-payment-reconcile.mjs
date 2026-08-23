@@ -11,6 +11,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
+import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const read = (p) => readFileSync(join(root, p), "utf8");
@@ -90,6 +91,42 @@ assert.ok(reconcileTask.includes("credentialSuspect"), "조회가 전부 실패�
 assert.ok(/limit\s*=\s*clampInt/.test(reconcileTask), "배치 상한(limit)이 있어야 한다");
 assert.ok(/maxAttempts\s*=\s*clampInt/.test(reconcileTask), "시도 상한(maxAttempts)이 있어야 한다");
 assert.ok(reconcileTask.includes("metadata.reconcile.lastAt"), "동시 실행 클레임(CAS)이 있어야 한다");
+// 🔴 벽시계 상한. 후보 1건당 PortOne 조회(기본 8000ms)를 직렬로 돌므로 limit 만으로는
+// 한 틱의 길이가 안 묶인다(limit=50 이면 최악 400초 — scheduled 예산 초과).
+assert.ok(/timeBudgetMs\s*=\s*clampInt/.test(reconcileTask), "한 틱의 시간 예산(timeBudgetMs)이 있어야 한다");
+assert.ok(
+  reconcileTask.includes('summary.abortedReason = "time_budget"'),
+  "예산 소진을 요약에 남겨야 한다 — 조용한 절단은 '다 처리했다'로 읽힌다",
+);
+{
+  // 🔴 예산 확인은 클레임보다 앞이어야 한다. 클레임은 attempts 를 올리므로, 잡아 놓고 처리하지
+  // 못하면 손대지도 않은 주문이 maxAttempts 에 먼저 닿아 재조정 대상에서 조용히 빠진다.
+  //
+  // 🔴 파일 끝까지 자른 구간에서 문자열을 indexOf 로 비교하면 안 된다 — 클레임 위에 주석 한 줄만
+  // 남겨도 순서 단언이 통과한다. 루프 본문을 중괄호 균형으로 자르고 주석을 걷어낸 뒤 코드만 본다.
+  const loopBody = stripComments(
+    sliceFunction(reconcileTask, "for (const candidate of candidates) {", "재조정 후보 루프"),
+  );
+  const budgetAt = loopBody.indexOf("summary.abortedReason");
+  const claimAt = loopBody.indexOf("Payment.findOneAndUpdate");
+  assert.ok(budgetAt !== -1, "루프 본문 안에서 예산 소진 처리를 찾지 못했다");
+  assert.ok(claimAt !== -1, "루프 본문 안에서 클레임(findOneAndUpdate)을 찾지 못했다");
+  assert.ok(
+    budgetAt < claimAt,
+    "시간 예산 확인이 클레임(findOneAndUpdate)보다 먼저 와야 한다 — 아니면 처리 못 한 주문의 attempts 만 올라간다",
+  );
+}
+// 🔴 예산 기준점이 후보 쿼리 뒤에서 시작해야 한다. `now`(후보 나이 계산용)로 재면 Payment.find 의
+// 지연(withMongoRetry 시도 상한 8000ms × 재시도)이 예산에서 차감돼, 콜드 아이솔레이트에서 한 건도
+// 처리하지 않고 정상 종료하는 틱이 나온다.
+assert.ok(
+  /loopStartedAt\s*=\s*Date\.now\(\)/.test(reconcileTask),
+  "루프 예산의 기준점(loopStartedAt)이 후보 쿼리 뒤에 따로 있어야 한다",
+);
+assert.ok(
+  reconcileTask.includes("Date.now() - loopStartedAt >= timeBudgetMs"),
+  "예산 판정이 loopStartedAt 기준이어야 한다 — now 로 재면 쿼리 지연이 예산을 먹는다",
+);
 // 🔴 최신 주문 우선. 오름차순으로 되돌리면 방금 결제된 건이 오래된 이탈 주문들 뒤로 밀려,
 // 한 틱이 상한까지 못 돌 때 영영 정산되지 않는다(운영에서 실제로 발생).
 assert.ok(

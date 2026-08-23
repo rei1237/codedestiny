@@ -22,6 +22,10 @@ const BREAKER_FAILURE_THRESHOLD = 3;
 const BREAKER_COOLDOWN_MS = 1000 * 60 * 10;
 const MAX_RETRIES = 1;
 
+// 결과 캐시 상한. 키가 날짜 파생이라 요청하는 날짜 범위만큼 늘어난다(단일비행 맵 2개는
+// finally 에서 스스로 지우므로 여기 대상이 아니다).
+const RESULT_CACHE_MAX_ENTRIES = 512;
+
 const LEGACY_METHOD_CACHE = new Map();
 const LEGACY_METHOD_INFLIGHT = new Map();
 const CALENDAR_RESULT_CACHE = new Map();
@@ -232,10 +236,20 @@ function readCache(map, key) {
 }
 
 function writeCache(map, key, value, ttlMs) {
+  const now = Date.now();
   map.set(key, {
-    expiresAt: Date.now() + Math.max(1000, Number(ttlMs) || 1000),
+    expiresAt: now + Math.max(1000, Number(ttlMs) || 1000),
     value,
   });
+  // 만료 삭제가 readCache 에만 있어, 한 번 조회되고 다시 안 오는 날짜 키가 계속 쌓였다.
+  for (const [cachedKey, hit] of map) {
+    if (hit.expiresAt <= now) map.delete(cachedKey);
+  }
+  while (map.size > RESULT_CACHE_MAX_ENTRIES) {
+    const oldestKey = map.keys().next().value;
+    if (oldestKey === undefined) break;
+    map.delete(oldestKey);
+  }
 }
 
 function isCircuitOpen() {

@@ -16,6 +16,8 @@ import {
 } from "../../lib/tarot/celestial-melody-reading.mjs";
 
 const SESSION_CACHE = new Map();
+const SESSION_CACHE_TTL_MS = 1000 * 60 * 60 * 12;
+const SESSION_CACHE_MAX_ENTRIES = 256;
 const CELESTIAL_FEATURE_KEY = "tarot-celestial-harmony";
 const CELESTIAL_REPORT_TYPE = "celestialHarmony";
 const CELESTIAL_COST = 100;
@@ -28,7 +30,18 @@ function text(value) {
 function cacheSet(key, value) {
   const token = text(key);
   if (!token || !value) return;
-  SESSION_CACHE.set(token, { value, savedAt: Date.now() });
+  const now = Date.now();
+  SESSION_CACHE.set(token, { value, savedAt: now });
+  // 만료 삭제가 읽기 경로에만 있어, 다시 조회되지 않는 세션 토큰은 영영 남았다.
+  // 쓰기마다 만료분을 걷고 그래도 넘치면 오래된 것부터 버린다.
+  for (const [cachedToken, hit] of SESSION_CACHE) {
+    if (now - Number(hit.savedAt || 0) > SESSION_CACHE_TTL_MS) SESSION_CACHE.delete(cachedToken);
+  }
+  while (SESSION_CACHE.size > SESSION_CACHE_MAX_ENTRIES) {
+    const oldestToken = SESSION_CACHE.keys().next().value;
+    if (oldestToken === undefined) break;
+    SESSION_CACHE.delete(oldestToken);
+  }
 }
 
 function cacheGet(key) {
@@ -36,7 +49,7 @@ function cacheGet(key) {
   if (!token) return null;
   const hit = SESSION_CACHE.get(token);
   if (!hit) return null;
-  if (Date.now() - Number(hit.savedAt || 0) > 1000 * 60 * 60 * 12) {
+  if (Date.now() - Number(hit.savedAt || 0) > SESSION_CACHE_TTL_MS) {
     SESSION_CACHE.delete(token);
     return null;
   }
