@@ -13110,6 +13110,136 @@
       "surprised": {
         "label": "The flower piglet giving a small wave"
       }
+    },
+    "tarotAlbumTemplates": {
+      "minor": {
+        "shortSummary": "{title}: {rankShort} {suitSymbol}",
+        "storyTitle": "{rankTitle} and the {suitNoun}",
+        "story": "{rankScene} {suitSymbol} When this card is laid out, Yeoni does not cut the matter into plain good or bad fortune; she looks first at the pace your heart is trying to reach the world at. {title} tells you quietly that the time has come to turn this current into a real choice.",
+        "uprightMeaning": "{rankLine} {suitLine}",
+        "reversedMeaning": "{rankLine} {suitLine}",
+        "loveMeaning": "{suitLine} {rankLine}",
+        "relationshipMeaning": "{suitLine} {rankLine}",
+        "careerMeaning": "{suitLine} {rankLine}",
+        "moneyMeaning": "{suitLine} {rankLine}",
+        "innerGrowthMeaning": "{suitLine} {rankLine}",
+        "yeoniMessage": "This card speaks to you. {rankShort} So today, do not grip the {suitNoun} in your heart too tightly — begin with the one thing you can actually change."
+      },
+      "fallback": {
+        "element": "Symbol",
+        "storyTitle": "The moonlight tale of {name}",
+        "story": "{name} quietly unfolds the symbol your heart is facing right now. Through this card Yeoni looks at both the temperature of the choice and the grain of the feeling.",
+        "loveMeaning": "In love, {name} points you to look calmly at the direction of your heart and the way you express it.",
+        "relationshipMeaning": "In relationships, {name} tells you to watch each other's pace and boundaries.",
+        "careerMeaning": "In work, {name} lights up the attitude you need now and the next move to make.",
+        "moneyMeaning": "In money, {name} tells you to check your feelings and the practical conditions together.",
+        "innerGrowthMeaning": "Within, {name} brings you to notice the current of feeling that keeps repeating.",
+        "yeoniMessage": "Before this card, Yeoni will wait for your heart without hurrying it.",
+        "journalQuestion": "What small signal is this card showing me right now?"
+      },
+      "majorSuitLabel": "Major Arcana"
+    },
+    "tarotAlbumSuits": {
+      "wands": {
+        "label": "Wands",
+        "element": "Fire",
+        "keywords": {
+          "0": "Passion",
+          "1": "Action",
+          "2": "Drive",
+          "3": "Creation"
+        },
+        "reversedKeywords": {
+          "0": "Impatience",
+          "1": "Burnout",
+          "2": "Lost direction",
+          "3": "Impulse"
+        },
+        "storyNoun": "flame",
+        "symbolLine": "Wands light the moment an ember in the heart spreads into the movement of the body.",
+        "uprightLine": "Upright, the strength to turn will into actual action comes alive.",
+        "reversedLine": "Reversed, the passion runs hasty or scatters, and the direction has to be set again.",
+        "loveLine": "In love, the flutter and the urge to express it both grow stronger.",
+        "relationshipLine": "In relationships, moving first and communicating with energy matter most.",
+        "careerLine": "In work, the fire of drive, of starting a venture or a project, of competition, is lit.",
+        "moneyLine": "In money, ideas for income surface, but impulsive spending needs watching.",
+        "growthLine": "For inner growth, you need practice in acknowledging what you want before you acknowledge the fear."
+      },
+      "cups": {
+        "label": "Cups",
+        "element": "Water",
+        "keywords": {
+          "0": "Feeling",
+          "1": "Love",
+          "2": "Empathy",
+          "3": "Healing"
+        },
+        "reversedKeywords": {
+          "0": "Flooded feeling",
+          "1": "Dependence",
+          "2": "Misunderstanding",
+          "3": "A closed heart"
+        },
+        "storyNoun": "ripple",
+        "symbolLine": "Cups reflect the ripples of the heart, attachment, and the warmth of kind exchange.",
+        "uprightLine": "Upright, the flow of feeling comes alive and two hearts touch gently.",
+        "reversedLine": "Reversed, feeling pools or overflows, and misunderstanding and dependence need clearing.",
+        "loveLine": "In love, the depth of giving and receiving the heart is what matters.",
+        "relationshipLine": "In relationships, empathy and care are what restore the flow.",
+        "careerLine": "In work, a sense for people, care, artistry, and a feel for collaboration all come alive.",
+        "moneyLine": "In money, mood-led spending and emotional choices need a calm look.",
+        "growthLine": "For inner growth, you learn to let your feelings pass through safely without being ashamed of them."
+      },
+      "swords": {
+        "label": "Swords",
+        "element": "Air",
+        "keywords": {
+          "0": "Thought",
+          "1": "Words",
+          "2": "Judgement",
+          "3": "Truth"
+        },
+        "reversedKeywords": {
+          "0": "Overthinking",
+          "1": "Wounds",
+          "2": "Confusion",
+          "3": "Sharp words"
+        },
+        "storyNoun": "wind",
+        "symbolLine": "Swords light the keen air in which words and thoughts divide a situation.",
+        "uprightLine": "Upright, checking the facts and judging honestly is what puts the flow in order.",
+        "reversedLine": "Reversed, slow down so the thinking does not overheat and the words do not stay as wounds.",
+        "loveLine": "In love, the precision of your words and manner shows before the heart does.",
+        "relationshipLine": "In relationships, you need conversation that reduces misreading, and boundaries that are clear.",
+        "careerLine": "In work, the power of analysis, strategy, documentation and decision is what counts.",
+        "moneyLine": "In money, reading the numbers and the terms coolly is what keeps the losses down.",
+        "growthLine": "For inner growth, you come to tell whether your thinking is a tool that guards you or a blade that cuts you."
+      },
+      "pentacles": {
+        "label": "Pentacles",
+        "element": "Earth",
+        "keywords": {
+          "0": "The practical",
+          "1": "Stability",
+          "2": "Time",
+          "3": "Results"
+        },
+        "reversedKeywords": {
+          "0": "Delay",
+          "1": "Instability",
+          "2": "Burden",
+          "3": "Clinging"
+        },
+        "storyNoun": "seed",
+        "symbolLine": "Pentacles reflect the conditions you can hold in your hand and the weight of a reality that piles up slowly.",
+        "uprightLine": "Upright, you can put in the time and build stability and results.",
+        "reversedLine": "Reversed, look at the practical burden or the delay, and lay the groundwork again.",
+        "loveLine": "In love, trust and a settled daily life are what matter.",
+        "relationshipLine": "In relationships, the attitude you have kept up steadily carries more weight than words.",
+        "careerLine": "In work, hands-on practice, results, accumulated skill and long-range plans take the centre.",
+        "moneyLine": "In money, practical structure — managing, saving, having criteria for investing — is what guards your luck.",
+        "growthLine": "For inner growth, you come to build habits that actually change your life, however slowly."
+      }
     }
   }
 }

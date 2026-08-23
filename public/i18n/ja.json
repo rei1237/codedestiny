@@ -13110,6 +13110,136 @@
       "surprised": {
         "label": "小さく手を振る花ぶた"
       }
+    },
+    "tarotAlbumTemplates": {
+      "minor": {
+        "shortSummary": "{title}: {rankShort} {suitSymbol}",
+        "storyTitle": "{rankTitle}と{suitNoun}",
+        "story": "{rankScene} {suitSymbol} このカードが開かれるとき、Yeoni は出来事を単純な吉凶に切り分けず、心がどんな速さで現実に触れようとしているのかを先に見ます。{title} は、この流れを現実の選択へ移すときが来たことを、あなたに静かに告げています。",
+        "uprightMeaning": "{rankLine} {suitLine}",
+        "reversedMeaning": "{rankLine} {suitLine}",
+        "loveMeaning": "{suitLine} {rankLine}",
+        "relationshipMeaning": "{suitLine} {rankLine}",
+        "careerMeaning": "{suitLine} {rankLine}",
+        "moneyMeaning": "{suitLine} {rankLine}",
+        "innerGrowthMeaning": "{suitLine} {rankLine}",
+        "yeoniMessage": "このカードはお客様に語りかけます。{rankShort} ですから今日は、心の{suitNoun}を強く握りしめすぎず、実際に変えられることひとつから見つめてみてください。"
+      },
+      "fallback": {
+        "element": "象徴",
+        "storyTitle": "{name}の月あかりの物語",
+        "story": "{name} は、いま心が向き合っている象徴を静かに広げます。Yeoni はこのカードを通して、選択の温度と感情の織り目をあわせて見ていきます。",
+        "loveMeaning": "恋愛において {name} は、心の向きと表し方を落ち着いて見るように指し示します。",
+        "relationshipMeaning": "関係において {name} は、互いの速さと境界を見るように告げます。",
+        "careerMeaning": "仕事において {name} は、いま必要な姿勢と次の行動を照らします。",
+        "moneyMeaning": "お金において {name} は、感情と現実の条件をあわせて点検するように告げます。",
+        "innerGrowthMeaning": "内面において {name} は、繰り返される心の流れに気づかせてくれます。",
+        "yeoniMessage": "このカードの前で、Yeoni はお客様の心を急かさずに待ちますね。",
+        "journalQuestion": "このカードがいま私に照らしている小さなしるしは何でしょうか。"
+      },
+      "majorSuitLabel": "大アルカナ"
+    },
+    "tarotAlbumSuits": {
+      "wands": {
+        "label": "ワンド",
+        "element": "火",
+        "keywords": {
+          "0": "情熱",
+          "1": "行動",
+          "2": "推進",
+          "3": "創造"
+        },
+        "reversedKeywords": {
+          "0": "焦り",
+          "1": "消耗",
+          "2": "方向の混乱",
+          "3": "衝動"
+        },
+        "storyNoun": "炎",
+        "symbolLine": "ワンドは、心のなかの火種が体の動きへ広がる瞬間を照らします。",
+        "uprightLine": "正位置では、意欲を実際の行動へ移す力がよみがえります。",
+        "reversedLine": "逆位置では、情熱が急いだり散らばったりして、方向を取り直す必要があります。",
+        "loveLine": "恋愛では、ときめきと表現したい気持ちが強まります。",
+        "relationshipLine": "関係では、先に動く姿勢と活気のあるやりとりが大切になります。",
+        "careerLine": "仕事では、推進力、起業、プロジェクトの始動、競争の火がともります。",
+        "moneyLine": "お金では、収益のアイデアが浮かびますが、衝動的な出費には注意が必要です。",
+        "growthLine": "内面の成長では、やりたい気持ちを恐れより先に認める練習が必要です。"
+      },
+      "cups": {
+        "label": "カップ",
+        "element": "水",
+        "keywords": {
+          "0": "感情",
+          "1": "愛",
+          "2": "共感",
+          "3": "癒し"
+        },
+        "reversedKeywords": {
+          "0": "感情の過剰",
+          "1": "依存",
+          "2": "誤解",
+          "3": "閉じた心"
+        },
+        "storyNoun": "波",
+        "symbolLine": "カップは心の波と愛着、やさしい交わりの温度を映します。",
+        "uprightLine": "正位置では、感情の流れがよみがえり、互いの心がやわらかく触れ合います。",
+        "reversedLine": "逆位置では、感情が滞ったりあふれたりして、誤解と依存を整理する必要があります。",
+        "loveLine": "恋愛では、心を交わす深さが大切になります。",
+        "relationshipLine": "関係では、共感といたわりが流れを取り戻させます。",
+        "careerLine": "仕事では、人を理解する感覚、ケア、芸術性、協働の感受性がよみがえります。",
+        "moneyLine": "お金では、気分に流された消費と感情的な選択を落ち着いて見る必要があります。",
+        "growthLine": "内面の成長では、自分の感情を恥じずに安全に流していく方法を学びます。"
+      },
+      "swords": {
+        "label": "ソード",
+        "element": "風",
+        "keywords": {
+          "0": "思考",
+          "1": "言葉",
+          "2": "判断",
+          "3": "真実"
+        },
+        "reversedKeywords": {
+          "0": "考えすぎ",
+          "1": "傷",
+          "2": "混乱",
+          "3": "とがった言葉"
+        },
+        "storyNoun": "風",
+        "symbolLine": "ソードは、言葉と思考が状況を切り分ける鋭い空気を照らします。",
+        "uprightLine": "正位置では、事実の確認と率直な判断が流れを整えます。",
+        "reversedLine": "逆位置では、考えが過熱したり言葉が傷として残ったりしないよう、速度を落とす必要があります。",
+        "loveLine": "恋愛では、心よりも言葉と態度の正確さが先に見えます。",
+        "relationshipLine": "関係では、誤解を減らす対話と、はっきりした境界が必要です。",
+        "careerLine": "仕事では、分析、戦略、文書、決断の力が重要になります。",
+        "moneyLine": "お金では、数字と条件を冷静に読むことで損失を減らせます。",
+        "growthLine": "内面の成長では、考えが自分を守る道具なのか、自分を斬る刃なのかを見分けられるようになります。"
+      },
+      "pentacles": {
+        "label": "ペンタクル",
+        "element": "地",
+        "keywords": {
+          "0": "現実",
+          "1": "安定",
+          "2": "時間",
+          "3": "成果"
+        },
+        "reversedKeywords": {
+          "0": "遅れ",
+          "1": "不安定",
+          "2": "重荷",
+          "3": "執着"
+        },
+        "storyNoun": "種",
+        "symbolLine": "ペンタクルは、手につかめる条件と、ゆっくり積み上がる現実の重さを映します。",
+        "uprightLine": "正位置では、時間をかけて安定と結果をつくっていけます。",
+        "reversedLine": "逆位置では、現実の重荷や遅れを点検し、土台を固め直す必要があります。",
+        "loveLine": "恋愛では、信頼と暮らしの安定感が大切です。",
+        "relationshipLine": "関係では、言葉よりも地道に守ってきた姿勢が力を持ちます。",
+        "careerLine": "仕事では、実務、成果、技術の蓄積、長期の計画が中心になります。",
+        "moneyLine": "お金では、管理、貯蓄、投資の基準といった現実的な仕組みが運を守ります。",
+        "growthLine": "内面の成長では、遅くとも実際に生活を変える習慣を立てていくことになります。"
+      }
     }
   }
 }
