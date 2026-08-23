@@ -568,7 +568,7 @@ const KARMA_DESTINY_COPY: Partial<Record<LoadingLocale, KarmaDestinyCopy>> = {
     heroDescription: "繰り返される人生の流れの中で、今断ち切るべきパターンと新たに開くべき道を読み解きます。",
     premiumMapAriaLabel: "運命の業相談の構成",
     premiumMapHeading: "30,000字以上で開く運命の業レポート",
-    premiumMapDesc: "5万円の相談に見合うよう、命理・占星・ヴェーダの象徴と現実的な行動戦略を16章の長文で編みます。",
+    premiumMapDesc: "5万ウォンの相談に見合うよう、命理・占星・ヴェーダの象徴と現実的な行動戦略を16章の長文で編みます。",
     formHeading: "運命の糸を読むための情報",
     profileLoadAria: "プロフィールカードから出生情報を読み込む",
     profileLoadCta: "プロフィールカードから読み込む",
