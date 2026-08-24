@@ -1,6 +1,5 @@
 {
   "_comment": "사이트 공통 크롬 잔여분. 2026-08-24 렌더 스윕(dist 377 라우트 × en/ja/zh-CN)에서 20개 이상 라우트에 한국어로 남아 있던 문자열 중, 변수로 잘리지 않은 온전한 구만 담는다. 조각(`{별자리}의 행운 포인트` 처럼 앞이 잘린 텍스트 노드)은 어순이 다른 언어에서 문장이 깨지므로 여기 넣지 않고 소스에서 보간 키로 승격한다. f* 접두사는 손으로 저작한 계열이라 scripts/i18n-extract-runtime-ui.mjs 의 s<N> 재생성과 충돌하지 않는다.",
-
   "shellRuntime.f72": {
     "ko": "꿀꿀 운세 — 코드 데스티니 브랜드 안내",
     "en": "Honey Pig Fortune — about the Code Destiny brand",
@@ -351,20 +350,6 @@
     "nl": "het volledige restitutiebeleid",
     "ms": "polisi bayaran balik penuh"
   },
-  "shellRuntime.f97": {
-    "ko": "홈",
-    "en": "Home",
-    "ja": "ホーム",
-    "zh-CN": "首页",
-    "zh-TW": "首頁",
-    "vi": "Trang chủ",
-    "hi": "होम",
-    "es": "Inicio",
-    "fr": "Accueil",
-    "de": "Start",
-    "nl": "Home",
-    "ms": "Laman utama"
-  },
   "shellRuntime.f98": {
     "ko": "꿀꿀 운세 홈",
     "en": "Honey Pig Fortune home",
@@ -379,7 +364,6 @@
     "nl": "Honingvarkensfortuin home",
     "ms": "Laman utama Nasib Babi Madu"
   },
-
   "shellRuntime.f99": {
     "ko": "쥐띠",
     "en": "Year of the Rat",
@@ -562,7 +546,6 @@
     "nl": "Boogschutter",
     "ms": "Sagitarius"
   },
-
   "shellRuntime.f112": {
     "ko": "애정운",
     "en": "Love outlook",

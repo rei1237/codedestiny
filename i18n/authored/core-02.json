@@ -1,0 +1,18 @@
+{
+  "_comment": "인라인 링크 두 개를 잇는 연결어 `와`. 🔴 역인덱스는 공백 정규화 후 2자 미만을 버리므로 한 글자 연결어는 사전에 넣어도 절대 매칭되지 않는다. 마커(data-cd-trans) 경로에는 길이 제한이 없고, 마커 키는 **코어 사전에서만** 해석되므로(app/components/LocaleRuntimeBridge.tsx 의 loadDictionary(normalized)) 여기 코어에 둔다. 쓰는 곳: app/components/ContentIntegrityNote.jsx",
+
+  "common.andBetweenLinks": {
+    "ko": "와",
+    "en": "and",
+    "ja": "と",
+    "zh-CN": "与",
+    "zh-TW": "與",
+    "vi": "và",
+    "hi": "और",
+    "es": "y",
+    "fr": "et",
+    "de": "und",
+    "nl": "en",
+    "ms": "dan"
+  }
+}

@@ -1638,7 +1638,8 @@
     "requiredStar": "* vereist",
     "monthShort": "Maand",
     "dayShort": "Dag",
-    "download": "Downloaden"
+    "download": "Downloaden",
+    "andBetweenLinks": "en"
   },
   "privacy": {
     "consentTitle": "Toestemming voor het verzamelen en gebruiken van persoonlijke informatie",

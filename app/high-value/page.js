@@ -39,7 +39,7 @@ export default function HighValueHubPage() {
     <main className="cd-main-shell">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <nav aria-label="breadcrumb" className="cd-muted" style={{ marginBottom: "10px", fontSize: "0.88rem" }}>
-        <Link href="/" className="cd-chip">홈</Link>
+        <Link href="/" className="cd-chip" data-cd-trans="home.nav.home">홈</Link>
       </nav>
 
       <header className="cd-main-header">
