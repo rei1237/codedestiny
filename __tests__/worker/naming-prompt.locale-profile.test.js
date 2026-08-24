@@ -91,7 +91,7 @@ describe("작명 프롬프트 로케일 분기", () => {
     const REQUIRED = [
       "id", "language", "persona", "society", "nameLayers", "layerTiebreak",
       "genderScope", "genderAvoid", "legalCharRule", "modernBalanceRule", "uncertaintyRule",
-      "principleAxes", "finalExample", "avoidAxes", "criteriaHeading", "criteriaBody",
+      "principleAxes", "finalExample", "avoidAxes", "criteriaHeading", "criteriaBody", "promptContract",
       "candidateAxes", "candidateHeading", "candidateItems", "registrationChapter",
     ];
     for (const locale of NAMING_LOCALES) {
@@ -99,22 +99,29 @@ describe("작명 프롬프트 로케일 분기", () => {
       for (const field of REQUIRED) {
         expect([locale, field, typeof profile[field]]).not.toEqual([locale, field, "undefined"]);
       }
-      expect(typeof profile.outputLanguageBlock).toBe("string");
+      expect(typeof profile.promptContract).toBe("string");
     }
   });
 
-  test("비-ko 로케일은 정본 출력 언어 지시문을 쓰고, ko 는 그 블록이 없다", () => {
-    // 🔴 지시문을 여기서 새로 만들지 않는다 — 정본(lib/i18n/ai-locale.js)이 대상 언어 + 영어를
-    //    병기하는 이유를 실측으로 기록해 두었다(한국어로 쓴 지시는 폴백 모델이 무시한다).
-    //    이 테스트는 그 정본을 실제로 태우고 있는지 본다.
-    expect(buildGeneratedPrompt(INPUT, SAJU, "ko")).not.toContain("OUTPUT LANGUAGE");
+  test("🔴 출력 언어 지시문을 프롬프트가 다시 넣지 않는다 — 이미 파이프가 두 번 넣는다", () => {
+    // worker/index.js runWithAiLocale → gemini.js getAmbientAiLocale → llm-client applyOutputLocale 이
+    // systemPrompt 와 프롬프트 꼬리 양쪽에 지시문을 붙인다. 여기서 또 붙이면 같은 지시가 세 번 간다.
+    for (const locale of NAMING_LOCALES) {
+      const prompt = buildGeneratedPrompt(INPUT, SAJU, locale);
+      expect([locale, prompt.includes("[OUTPUT LANGUAGE — HIGHEST PRIORITY]")]).toEqual([locale, false]);
+      const directive = buildOutputLanguageDirective(locale);
+      if (directive) expect([locale, prompt.includes(directive)]).toEqual([locale, false]);
+    }
+  });
+
+  test("비-ko 로케일에는 작명첩 구조 계약이 붙고, ko 는 붙지 않는다", () => {
+    // 언어가 바뀌어도 고정이어야 하는 둘: 장 번호와 카드 라벨. 둘 다 화면이 기계로 읽는다.
+    expect(buildGeneratedPrompt(INPUT, SAJU, "ko")).not.toContain("NAMING BOOKLET CONTRACT");
     for (const locale of NAMING_LOCALES.filter((item) => item !== "ko")) {
       const prompt = buildGeneratedPrompt(INPUT, SAJU, locale);
-      expect([locale, prompt.includes(buildOutputLanguageDirective(locale))]).toEqual([locale, true]);
-      expect(prompt).toContain("[OUTPUT LANGUAGE — HIGHEST PRIORITY]");
-      // 작명첩 고유 계약 — 장 번호와 카드 라벨은 언어가 바뀌어도 고정이다.
+      expect(prompt).toContain("[NAMING BOOKLET CONTRACT");
       expect(prompt).toContain('Keep the chapter numbering "## 1."');
-      expect(prompt).toContain("Keep the name-card block labels in Korean");
+      expect(prompt).toContain("Keep the name-card block labels");
     }
   });
 

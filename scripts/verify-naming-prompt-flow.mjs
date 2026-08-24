@@ -135,10 +135,14 @@ for (const marker of ["locale: clean(raw.locale", "locale: raw.locale", "locale,
     profileSrc,
     "export const NAMING_LOCALES = Object.freeze([...AI_OUTPUT_LOCALES]);",
   );
-  assertIncludes("worker/lib/naming-locale-profile.js", profileSrc, "buildOutputLanguageDirective(locale)");
-  // 출력 언어 지시문을 여기서 새로 만들면 안 된다 — 정본이 "지시문을 한국어로 쓰지 말 것"을
-  // 실측 근거와 함께 기록해 두었다(폴백 모델이 한국어 지시를 무시하고 한국어로 답한다).
+  // 🔴 출력 언어 지시문은 여기서 만들지도, 다시 붙이지도 않는다. 요청 스코프 파이프
+  //    (worker/index.js runWithAiLocale → gemini.js → llm-client applyOutputLocale)가 이미
+  //    systemPrompt 와 프롬프트 꼬리 양쪽에 넣는다. 여기서 또 넣으면 같은 지시가 세 번 간다.
+  //    정본은 "지시문을 한국어로 쓰지 말 것"까지 실측 근거와 함께 적어 두었다.
+  //    (호출 형태로만 본다 — 왜 부르면 안 되는지 설명하는 주석에는 이 이름이 나와야 한다.)
+  assertNotIncludes("worker/lib/naming-locale-profile.js", profileSrc, "buildOutputLanguageDirective(");
   assertNotIncludes("worker/lib/naming-locale-profile.js", profileSrc, "**출력 언어:");
+  assertIncludes("worker/lib/naming-locale-profile.js", profileSrc, "NAMING BOOKLET CONTRACT");
   const canonical = read("lib/i18n/ai-locale.js").match(/export const AI_OUTPUT_LOCALES = \[([\s\S]*?)\]/);
   assert(canonical, "lib/i18n/ai-locale.js: AI_OUTPUT_LOCALES 목록을 찾지 못했다");
   const locales = [...canonical[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]);

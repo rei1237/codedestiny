@@ -2,11 +2,16 @@
 //
 // 배경: 이 서비스의 UI 는 12개 로케일인데 작명 엔진은 한국 전용이었다 — 프롬프트가 한국어로
 // 하드코딩되고 "한국 사회에서 자연스럽게", "대법원 인명용 한자", "현대 한국에서" 같은 한국 전용
-// 제약이 박혀 있었다. 영어 사용자가 결제해도 한국어 리포트로 한국 이름을 받았다.
+// 제약이 박혀 있었다. 영어 사용자가 결제해도 한국 이름과 한국 법 기준을 받았다.
 //
-// 🔴 프롬프트 지시문 자체는 한국어로 유지한다. 출력 언어만 지시한다.
+// 🔴 정정: **출력 언어는 원래부터 이미 처리되고 있었다.** worker/index.js 가 모든 라우트를
+//    runWithAiLocale 로 감싸고, gemini.js → llm-client 의 applyOutputLocale 이 지시문을
+//    systemPrompt 와 프롬프트 꼬리 양쪽에 넣는다. 한국어로 리포트가 나가던 것이 아니라,
+//    **한국 이름과 한국 법·전통이 나가던 것**이 문제였다. 이 파일이 고치는 것은 그 문화 축이다.
+//
+// 🔴 프롬프트 지시문 자체는 한국어로 유지한다.
 //    이유: ①한국어 원문 1,800줄을 4개 언어로 복제하면 팀이 검토할 수 없고 ②ko 프롬프트가
-//    바이트 단위로 보존되어 회귀가 원천 차단되며 ③모델은 교차 언어 지시를 문제없이 따른다.
+//    바이트 단위로 보존되어 회귀가 원천 차단되며 ③출력 언어는 위 파이프가 이미 강제한다.
 //
 // 🔴 로케일은 결제 정체성(inputHash)에 넣지 않는다. 넣으면 (a) 배포 전 결제·배포 후 생성
 //    사용자가 해시 불일치로 생성이 막히고 (b) 언어만 바꿔 재요청할 때 30,000원이 다시 청구된다.
@@ -27,7 +32,6 @@ import {
   AI_LOCALE_LABEL,
   AI_OUTPUT_FALLBACK,
   AI_OUTPUT_LOCALES,
-  buildOutputLanguageDirective,
   toAiLocale,
 } from "../../lib/i18n/ai-locale.js";
 
@@ -53,21 +57,23 @@ const LATIN_SOCIETIES = Object.freeze({
 });
 
 /**
- * 출력 언어 지시.
+ * 작명첩 고유의 출력 계약.
  *
- * 🔴 지시문을 한국어로 쓰지 않는다. 정본(lib/i18n/ai-locale.js)이 기록한 실측 근거:
- *    폴백 모델은 한국어 지시 준수율이 낮아, 한국어로 "영어로 써라"라고 하면 그대로 한국어를 뱉는다.
- *    그래서 대상 언어 + 영어를 병기한 buildOutputLanguageDirective 를 그대로 쓴다 —
- *    여기서 새로 만들지 않는다(한 번 새로 만들었다가 이 함정에 그대로 빠졌다).
+ * 🔴 **출력 언어 지시는 여기서 하지 않는다.** 이 레포는 요청 스코프 앰비언트 파이프로 이미
+ *    전 라우트에 지시문을 넣는다: worker/index.js 의 runWithAiLocale → gemini.js 의
+ *    getAmbientAiLocale → llm-client 의 applyOutputLocale 이 systemPrompt 와 프롬프트 꼬리
+ *    **양쪽에** buildOutputLanguageDirective 를 붙인다. 여기서 또 붙이면 세 번 들어간다.
+ *    (이 사실을 모르고 한국어 지시 블록을 새로 만들었다가 걷어낸 자리다 — 정본은
+ *     "지시문을 한국어로 쓰지 말 것"까지 실측 근거와 함께 적어 두었다.)
  *
- * 작명첩에만 필요한 것(장 번호 고정)은 정본 지시문 뒤에 덧붙인다.
+ * 남는 것은 언어가 바뀌어도 **고정이어야 하는 작명첩 구조 계약** 둘뿐이다.
  */
-function outputLanguageBlock(locale) {
-  const directive = buildOutputLanguageDirective(locale);
-  if (!directive) return "";
-  return `\n${directive}
+function promptContractBlock(locale) {
+  if (toAiLocale(locale) === AI_OUTPUT_FALLBACK) return "";
+  return `
+[NAMING BOOKLET CONTRACT — keep these fixed in every language]
 Keep the chapter numbering "## 1." … "## 8." exactly as given; translate only the chapter titles after the number.
-Keep the name-card block labels in Korean exactly as given — the screen parses them.
+Keep the name-card block labels (후보/한자/뜻/보완오행/소리/수리/총평/최종/이유) in Korean exactly as given — the screen parses them.
 `;
 }
 
@@ -149,7 +155,7 @@ export function soundGuidanceForFamilyName(familyName) {
 const KO = {
   id: "ko",
   language: "한국어",
-  outputLanguageBlock: "",
+  promptContract: "",
   persona: "당신은 대한민국 최고의 작명 전문가입니다. 30년 이상 실무 경험을 쌓은 사주명리학자이자 성명학자로서, 수만 건의 작명과 개명을 해왔습니다.",
   society: "한국 사회",
   usesHanja: true,
@@ -196,7 +202,7 @@ ${suriPromptBlock()}
 const JA = {
   id: "ja",
   language: AI_LOCALE_LABEL.ja,
-  outputLanguageBlock: outputLanguageBlock("ja"),
+  promptContract: promptContractBlock("ja"),
   persona: "당신은 일본 최고의 命名(なづけ) 전문가입니다. 30년 이상 실무 경험을 쌓은 四柱推命家이자 姓名判断家로서, 수만 건의 命名과 改名을 해왔습니다.",
   society: "일본 사회",
   usesHanja: true,
@@ -262,7 +268,7 @@ function zhProfile({ id, language, society, charStandard, phonetic, registration
   return {
     id,
     language: AI_LOCALE_LABEL[id],
-    outputLanguageBlock: outputLanguageBlock(id),
+    promptContract: promptContractBlock(id),
     persona: `당신은 중화권 최고의 起名 전문가입니다. 30년 이상 실무 경험을 쌓은 八字命理 전문가이자 姓名學 전문가로서, 수만 건의 起名과 改名을 해왔습니다.`,
     society,
     usesHanja: true,
@@ -355,7 +361,7 @@ function latinProfile(locale) {
   return {
     id: locale,
     language: AI_LOCALE_LABEL[locale],
-    outputLanguageBlock: outputLanguageBlock(locale),
+    promptContract: promptContractBlock(locale),
     persona: `당신은 사주명리(四柱命理)를 ${society}의 작명 관습에 접목해 온 작명 전문가입니다. 사주로 사람의 기운을 읽는 훈련과, 그 결론을 ${society}에서 실제로 통용되는 이름으로 옮기는 훈련을 함께 받았습니다.`,
     society,
     usesHanja: false,
