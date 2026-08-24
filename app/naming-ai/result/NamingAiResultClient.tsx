@@ -85,11 +85,12 @@ const COPY = currentNamingResultCopy();
 // 작명첩 8장 계약(worker/routes/naming-prompt.js buildGeneratedPrompt)과 동일한 제목.
 const FALLBACK_SECTION_TITLES = COPY.chapterTitles;
 
-// 8장 제목에만 맞고 본문 문장에는 잘 걸리지 않도록 제목 문구를 그대로 사용한다.
-// 🔴 한국어 패턴만 남긴다 — 프롬프트가 장 제목을 출력 언어로 옮기라고 지시하므로 비-ko 응답에는
-//    이 낱말이 없다. 그때는 parseAssistantSections 의 numberedHeadings 폴백(## N.)이 장을 잡는다.
-//    그 폴백이 없으면 문단 개수로 균등 분할돼 내용이 엉뚱한 장 제목 아래로 들어간다.
-const SECTION_TITLE_KEYWORDS = /작명가의 총평|사주 풀이|작명 원칙|이름 후보 상세|나란히 놓고|최종 추천|피해야 할 이름|올리기 전에/;
+// 8장 제목에만 맞고 본문 문장에는 잘 걸리지 않도록 제목 문구의 고유한 조각을 쓴다.
+// 🔴 예전에는 한국어 패턴만 있었다. 프롬프트가 장 제목을 출력 언어로 옮기라고 지시하므로 비-ko
+//    응답에는 그 낱말이 없어, 로케일이 바뀌면 매번 numberedHeadings 폴백(## N.)에 기대야 했다.
+//    그 폴백은 모델이 장 번호를 지켰을 때만 듣는다 — 번호를 흘리면 문단 균등 분할로 떨어져
+//    내용이 엉뚱한 장 제목 아래로 들어간다. 그래서 로케일별 제목 패턴을 1차 그물로 둔다.
+const SECTION_TITLE_KEYWORDS = COPY.chapterTitleKeywords;
 
 const GENDER_LABELS: Record<string, string> = { M: COPY.genderM, F: COPY.genderF, OTHER: COPY.genderOther };
 

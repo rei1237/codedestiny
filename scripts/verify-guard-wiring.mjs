@@ -21,9 +21,16 @@
  *   ③ 존재하지 않는 스크립트를 가리키는 선언 → 실패 (이름이 바뀌면 선언이 죽은 채 남는다)
  *
  * 알려진 한계:
- *   "배선됨"은 **호출된다**는 뜻이지 **실패가 머지를 막는다**는 뜻은 아니다. build-cf-main.mjs 의
+ *   ① "배선됨"은 **호출된다**는 뜻이지 **실패가 머지를 막는다**는 뜻은 아니다. build-cf-main.mjs 의
  *   `i18n:check` 스텝은 `optional: true` 라 실패해도 빌드를 세우지 않는다 — 그 아래 i18n 검증기
  *   4개는 "배선됐지만 비차단"이다. 이 가드는 그 구분을 하지 않는다.
+ *
+ *   ② 🔴 워크플로의 **트리거 `paths:` 에 적힌 스크립트 경로도 간선으로 읽힌다**(2026-08-25 발견).
+ *   readWorkflowRoots 가 YAML 전체에 edgesFrom 을 돌리기 때문이다. 그래서 `scripts/verify-x.mjs`
+ *   를 `paths:` 에만 올려 두고 정작 스위트 목록에서 빼면, 이 가드는 여전히 "배선됨"으로 센다 —
+ *   워크플로는 깨어나지만 그 검증기는 아무도 부르지 않는데도. paths 는 **깨어날 조건**이고 스위트
+ *   목록이 **실행**이라, 둘을 함께 넣어야 한다(기존 human-design·oracle-consultation 도 그렇다).
+ *   검증기를 스위트에서 뺄 때는 `paths:` 항목도 같이 뺄 것.
  *
  * 실행: npm run verify:guard-wiring [--report] [--self-test]
  */
@@ -93,11 +100,13 @@ const UNWIRED_BY_DESIGN = [
   ["verify:play-console-products", "Google Play API 실요청 — 자격증명 필요"],
   ["verify:app-store-pricing", "스토어 가격표 대조 — 릴리스 전 수동"],
 
-  // ── 유료 LLM 실호출 계열. CLAUDE.md 코딩 원칙 8: 사용자 허락 없이 절대 실행 금지.
-  ["verify:vedic-basic-quality", "LLM 실호출 — 원칙 8, 사용자 허락 후 수동"],
-  ["verify:fusion-fortune-quality", "LLM 실호출 — 원칙 8, 사용자 허락 후 수동"],
-  ["verify:fortune-chat-reading", "LLM 실호출 — 원칙 8, 사용자 허락 후 수동"],
-  ["verify:naming-prompt", "LLM 실호출 — 원칙 8, 사용자 허락 후 수동"],
+  // ── 🔴 "유료 LLM 실호출 계열" 버킷은 2026-08-25 에 통째로 없어졌다. 사유가 넷 다 거짓이었다.
+  //    verify:vedic-basic-quality(jsdom 로컬 렌더) · verify:fusion-fortune-quality(기본이 mock,
+  //    실호출은 --live 뒤) · verify:fortune-chat-reading(providerCall 주입, 출력에 "mock only —
+  //    실제 모델 호출 없음"을 찍는다) · verify:naming-prompt(순수 정적 — 스크립트 헤더가 그렇게
+  //    적고 있다). 넷 다 실호출 히트 0이고 합쳐 2.1초에 통과한다.
+  //    바로 위 verify:payment-reconcile 과 **같은 형태의 거짓말**이었고, 같은 방식으로 고쳤다:
+  //    scripts/run-paid-gate-suite.mjs 에 배선했다. 이 자리에 다시 넣지 말 것.
 
   // ── 리포트·감사 도구. 사람이 읽으라고 만든 것이지 통과/실패를 가르지 않는다.
   ["verify:doc-freshness", "문서 신선도 리포트 — 판정이 아니라 참고 지표"],
