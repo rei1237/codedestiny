@@ -1,0 +1,205 @@
+{
+  "_comment": "8개 라우트 이상에 걸리는 잔여 문구 중 **온전한 구**만. 이 구간은 고유 1,372자로 라우트 가중 26,879자(레버리지 19.6배)라 남은 것 중 효율이 가장 높다. 🔴 여기 없는 것: (a) 나크샤트라 도감의 변수 조각 — 소스에서 노드를 합쳐야 한다 (b) 날짜가 박힌 문구(`2026년 8월 24일 (월)`) — 매일 달라져 사전으로는 못 덮는다 (c) 한 글자(요일·오행) — 역인덱스가 2자 미만을 버린다.",
+
+  "shellRuntime.f1300": {
+    "ko": "사주 가디언 수호 인장", "en": "Saju Guardian Seal", "ja": "四柱ガーディアン 守護の印", "zh-CN": "四柱守护印记", "zh-TW": "四柱守護印記",
+    "vi": "Ấn Hộ Mệnh Tứ Trụ", "hi": "साजू गार्डियन मुहर", "es": "Sello Guardián de los Cuatro Pilares", "fr": "Sceau Gardien des Quatre Piliers", "de": "Wächtersiegel der Vier Säulen", "nl": "Beschermzegel van de Vier Pijlers", "ms": "Cap Penjaga Empat Tiang"
+  },
+  "shellRuntime.f1301": {
+    "ko": "이번 주에는 없습니다", "en": "None this week", "ja": "今週はありません", "zh-CN": "本周没有", "zh-TW": "本週沒有",
+    "vi": "Tuần này không có", "hi": "इस सप्ताह कोई नहीं", "es": "Ninguno esta semana", "fr": "Aucun cette semaine", "de": "Diese Woche keine", "nl": "Deze week geen", "ms": "Tiada minggu ini"
+  },
+  "shellRuntime.f1302": {
+    "ko": "사이코패스 성향 테스트", "en": "Psychopathy tendency test", "ja": "サイコパス傾向テスト", "zh-CN": "反社会人格倾向测试", "zh-TW": "反社會人格傾向測驗",
+    "vi": "Trắc nghiệm khuynh hướng thái nhân cách", "hi": "साइकोपैथी प्रवृत्ति परीक्षण", "es": "Test de tendencia psicopática", "fr": "Test de tendance psychopathique", "de": "Test auf psychopathische Züge", "nl": "Test op psychopathische trekken", "ms": "Ujian kecenderungan psikopat"
+  },
+  "shellRuntime.f1303": {
+    "ko": "이런 순간에 특히 도움이 됩니다", "en": "Especially helpful at these moments", "ja": "こんなときにとくに役立ちます", "zh-CN": "在这些时刻特别有帮助", "zh-TW": "在這些時刻特別有幫助",
+    "vi": "Đặc biệt hữu ích vào những lúc này", "hi": "इन क्षणों में विशेष रूप से सहायक", "es": "Especialmente útil en estos momentos", "fr": "Particulièrement utile dans ces moments", "de": "Besonders hilfreich in diesen Momenten", "nl": "Vooral nuttig op deze momenten", "ms": "Amat membantu pada saat-saat ini"
+  },
+  "shellRuntime.f1304": {
+    "ko": "← 심리테스트 허브로 이동", "en": "← Back to the psychology test hub", "ja": "← 心理テストハブへ戻る", "zh-CN": "← 返回心理测试中心", "zh-TW": "← 返回心理測驗中心",
+    "vi": "← Về trung tâm trắc nghiệm tâm lý", "hi": "← साइकोलॉजी टेस्ट हब पर जाएँ", "es": "← Volver al centro de tests psicológicos", "fr": "← Retour au hub des tests psychologiques", "de": "← Zurück zum Psychotest-Hub", "nl": "← Terug naar de psychotest-hub", "ms": "← Kembali ke hab ujian psikologi"
+  },
+  "shellRuntime.f1305": {
+    "ko": "운세 가이드 읽기", "en": "Read the reading guide", "ja": "占いガイドを読む", "zh-CN": "阅读运势指南", "zh-TW": "閱讀運勢指南",
+    "vi": "Đọc hướng dẫn vận trình", "hi": "भविष्यफल गाइड पढ़ें", "es": "Leer la guía de lectura", "fr": "Lire le guide de lecture", "de": "Den Deutungsleitfaden lesen", "nl": "Lees de reading-gids", "ms": "Baca panduan bacaan"
+  },
+  "shellRuntime.f1306": {
+    "ko": "결과에서 확인할 수 있는 항목", "en": "What the result shows you", "ja": "結果で確認できる項目", "zh-CN": "结果中可以看到的项目", "zh-TW": "結果中可以看到的項目",
+    "vi": "Những mục bạn xem được trong kết quả", "hi": "परिणाम में क्या-क्या दिखेगा", "es": "Lo que muestra el resultado", "fr": "Ce que le résultat vous montre", "de": "Was das Ergebnis zeigt", "nl": "Wat het resultaat laat zien", "ms": "Perkara yang ditunjukkan hasil"
+  },
+  "shellRuntime.f1307": {
+    "ko": "나르시시스트 테스트", "en": "Narcissist test", "ja": "ナルシシストテスト", "zh-CN": "自恋倾向测试", "zh-TW": "自戀傾向測驗",
+    "vi": "Trắc nghiệm ái kỷ", "hi": "नार्सिसिस्ट टेस्ट", "es": "Test de narcisismo", "fr": "Test du narcissisme", "de": "Narzissmus-Test", "nl": "Narcisme-test", "ms": "Ujian narsisistik"
+  },
+  "shellRuntime.f1308": {
+    "ko": "테스트 시작하기", "en": "Start the test", "ja": "テストを始める", "zh-CN": "开始测试", "zh-TW": "開始測驗",
+    "vi": "Bắt đầu trắc nghiệm", "hi": "टेस्ट शुरू करें", "es": "Empezar el test", "fr": "Commencer le test", "de": "Test starten", "nl": "Start de test", "ms": "Mula ujian"
+  },
+  "shellRuntime.f1309": {
+    "ko": "연관 심리테스트", "en": "Related psychology tests", "ja": "関連する心理テスト", "zh-CN": "相关心理测试", "zh-TW": "相關心理測驗",
+    "vi": "Trắc nghiệm tâm lý liên quan", "hi": "संबंधित साइकोलॉजी टेस्ट", "es": "Tests psicológicos relacionados", "fr": "Tests psychologiques liés", "de": "Verwandte Psychotests", "nl": "Gerelateerde psychotests", "ms": "Ujian psikologi berkaitan"
+  },
+  "shellRuntime.f1310": {
+    "ko": "어떤 때 참고하면 좋은가", "en": "When it is worth consulting", "ja": "どんなときに参考にするとよいか", "zh-CN": "什么时候适合参考", "zh-TW": "什麼時候適合參考",
+    "vi": "Khi nào nên tham khảo", "hi": "कब देखना उपयोगी है", "es": "Cuándo conviene consultarlo", "fr": "Quand il vaut la peine de le consulter", "de": "Wann es sich lohnt nachzusehen", "nl": "Wanneer het de moeite waard is", "ms": "Bila ia berbaloi dirujuk"
+  },
+  "shellRuntime.f1311": {
+    "ko": "상담은 이렇게 진행됩니다", "en": "How the consultation runs", "ja": "相談はこのように進みます", "zh-CN": "咨询是这样进行的", "zh-TW": "諮詢是這樣進行的",
+    "vi": "Buổi tư vấn diễn ra như thế nào", "hi": "परामर्श इस तरह चलता है", "es": "Cómo transcurre la consulta", "fr": "Comment se déroule la consultation", "de": "So läuft die Beratung ab", "nl": "Zo verloopt het consult", "ms": "Begini rundingan berjalan"
+  },
+  "shellRuntime.f1312": {
+    "ko": "초융합 운세", "en": "Hyper-fusion reading", "ja": "超融合占い", "zh-CN": "超融合运势", "zh-TW": "超融合運勢",
+    "vi": "Vận trình siêu hợp nhất", "hi": "हाइपर-फ्यूजन भविष्यफल", "es": "Lectura de hiperfusión", "fr": "Lecture hyperfusion", "de": "Hyperfusion-Deutung", "nl": "Hyperfusie-reading", "ms": "Bacaan hiperfusi"
+  },
+  "shellRuntime.f1313": {
+    "ko": "분노의 치와와 테스트", "en": "Angry Chihuahua test", "ja": "怒りのチワワテスト", "zh-CN": "愤怒吉娃娃测试", "zh-TW": "憤怒吉娃娃測驗",
+    "vi": "Trắc nghiệm Chihuahua giận dữ", "hi": "गुस्सैल चिहुआहुआ टेस्ट", "es": "Test del chihuahua enfadado", "fr": "Test du chihuahua en colère", "de": "Wütender-Chihuahua-Test", "nl": "Boze chihuahua-test", "ms": "Ujian Chihuahua Marah"
+  },
+  "shellRuntime.f1314": {
+    "ko": "무료와 유료 범위", "en": "What is free and what is paid", "ja": "無料と有料の範囲", "zh-CN": "免费与付费的范围", "zh-TW": "免費與付費的範圍",
+    "vi": "Phạm vi miễn phí và trả phí", "hi": "मुफ़्त और सशुल्क का दायरा", "es": "Qué es gratis y qué es de pago", "fr": "Ce qui est gratuit et ce qui est payant", "de": "Was kostenlos und was kostenpflichtig ist", "nl": "Wat gratis is en wat betaald", "ms": "Skop percuma dan berbayar"
+  },
+  "shellRuntime.f1315": {
+    "ko": "관련 운세 서비스", "en": "Related reading services", "ja": "関連する占いサービス", "zh-CN": "相关运势服务", "zh-TW": "相關運勢服務",
+    "vi": "Dịch vụ vận trình liên quan", "hi": "संबंधित भविष्यफल सेवाएँ", "es": "Servicios de lectura relacionados", "fr": "Services de lecture liés", "de": "Verwandte Deutungsangebote", "nl": "Gerelateerde reading-diensten", "ms": "Perkhidmatan bacaan berkaitan"
+  },
+  "shellRuntime.f1316": {
+    "ko": "면책 고지", "en": "Disclaimer", "ja": "免責事項", "zh-CN": "免责声明", "zh-TW": "免責聲明",
+    "vi": "Miễn trừ trách nhiệm", "hi": "अस्वीकरण", "es": "Aviso legal", "fr": "Avertissement", "de": "Haftungsausschluss", "nl": "Disclaimer", "ms": "Penafian"
+  },
+  "shellRuntime.f1317": {
+    "ko": "무료 · 가입 없이", "en": "Free · no sign-up", "ja": "無料・登録不要", "zh-CN": "免费 · 无需注册", "zh-TW": "免費 · 無需註冊",
+    "vi": "Miễn phí · không cần đăng ký", "hi": "मुफ़्त · बिना साइन-अप", "es": "Gratis · sin registro", "fr": "Gratuit · sans inscription", "de": "Kostenlos · ohne Anmeldung", "nl": "Gratis · zonder registratie", "ms": "Percuma · tanpa pendaftaran"
+  },
+  "shellRuntime.f1318": {
+    "ko": "다음에 읽을 글", "en": "What to read next", "ja": "次に読む記事", "zh-CN": "接下来读什么", "zh-TW": "接下來讀什麼",
+    "vi": "Bài đọc tiếp theo", "hi": "आगे क्या पढ़ें", "es": "Qué leer a continuación", "fr": "À lire ensuite", "de": "Was als Nächstes zu lesen ist", "nl": "Wat je hierna leest", "ms": "Bacaan seterusnya"
+  },
+  "shellRuntime.f1319": {
+    "ko": "편집자 노트", "en": "Editor's note", "ja": "編集者ノート", "zh-CN": "编辑手记", "zh-TW": "編輯手記",
+    "vi": "Ghi chú của biên tập", "hi": "संपादकीय टिप्पणी", "es": "Nota del editor", "fr": "Note de la rédaction", "de": "Anmerkung der Redaktion", "nl": "Redactionele noot", "ms": "Nota editor"
+  },
+  "shellRuntime.f1320": {
+    "ko": "콘텐츠 제작 원칙", "en": "Content production principles", "ja": "コンテンツ制作の原則", "zh-CN": "内容制作原则", "zh-TW": "內容製作原則",
+    "vi": "Nguyên tắc biên soạn nội dung", "hi": "कंटेंट निर्माण के सिद्धांत", "es": "Principios de producción de contenido", "fr": "Principes de production du contenu", "de": "Grundsätze der Inhaltserstellung", "nl": "Principes voor contentproductie", "ms": "Prinsip penghasilan kandungan"
+  },
+  "shellRuntime.f1321": {
+    "ko": "필요한 입력값", "en": "What you need to enter", "ja": "必要な入力項目", "zh-CN": "需要填入的资料", "zh-TW": "需要填入的資料",
+    "vi": "Thông tin cần nhập", "hi": "क्या दर्ज करना है", "es": "Qué debes introducir", "fr": "Ce qu'il faut saisir", "de": "Erforderliche Eingaben", "nl": "Wat je moet invoeren", "ms": "Maklumat yang perlu dimasukkan"
+  },
+  "shellRuntime.f1322": {
+    "ko": "해석 시 주의할 점", "en": "Points to watch when reading it", "ja": "解釈するときの注意点", "zh-CN": "解读时的注意事项", "zh-TW": "解讀時的注意事項",
+    "vi": "Lưu ý khi luận giải", "hi": "व्याख्या करते समय ध्यान देने योग्य बातें", "es": "Aspectos a tener en cuenta al interpretarlo", "fr": "Points de vigilance à l'interprétation", "de": "Worauf bei der Deutung zu achten ist", "nl": "Aandachtspunten bij het lezen", "ms": "Perkara yang perlu diberi perhatian semasa mentafsir"
+  },
+  "shellRuntime.f1323": {
+    "ko": "관련 서비스", "en": "Related services", "ja": "関連サービス", "zh-CN": "相关服务", "zh-TW": "相關服務",
+    "vi": "Dịch vụ liên quan", "hi": "संबंधित सेवाएँ", "es": "Servicios relacionados", "fr": "Services liés", "de": "Verwandte Angebote", "nl": "Gerelateerde diensten", "ms": "Perkhidmatan berkaitan"
+  },
+  "shellRuntime.f1324": {
+    "ko": "짧은 예시 리딩", "en": "A short sample reading", "ja": "短いサンプルリーディング", "zh-CN": "简短的示例解读", "zh-TW": "簡短的示例解讀",
+    "vi": "Một bài luận mẫu ngắn", "hi": "एक छोटी नमूना रीडिंग", "es": "Una breve lectura de ejemplo", "fr": "Un court exemple de lecture", "de": "Eine kurze Beispieldeutung", "nl": "Een korte voorbeeldreading", "ms": "Contoh bacaan ringkas"
+  },
+  "shellRuntime.f1325": {
+    "ko": "노트 갱신", "en": "Note updated", "ja": "ノート更新", "zh-CN": "手记更新", "zh-TW": "手記更新",
+    "vi": "Cập nhật ghi chú", "hi": "नोट अद्यतन", "es": "Nota actualizada", "fr": "Note mise à jour", "de": "Notiz aktualisiert", "nl": "Notitie bijgewerkt", "ms": "Nota dikemas kini"
+  },
+  "shellRuntime.f1326": {
+    "ko": "바로 해보기", "en": "Try it now", "ja": "すぐ試す", "zh-CN": "马上试试", "zh-TW": "馬上試試",
+    "vi": "Thử ngay", "hi": "अभी आज़माएँ", "es": "Pruébalo ya", "fr": "Essayer maintenant", "de": "Jetzt ausprobieren", "nl": "Probeer het nu", "ms": "Cuba sekarang"
+  },
+  "shellRuntime.f1327": {
+    "ko": "읽는 순서", "en": "Reading order", "ja": "読む順序", "zh-CN": "阅读顺序", "zh-TW": "閱讀順序",
+    "vi": "Thứ tự đọc", "hi": "पढ़ने का क्रम", "es": "Orden de lectura", "fr": "Ordre de lecture", "de": "Lesereihenfolge", "nl": "Leesvolgorde", "ms": "Susunan bacaan"
+  },
+  "shellRuntime.f1328": {
+    "ko": "해석 흐름", "en": "How the reading flows", "ja": "解釈の流れ", "zh-CN": "解读的流程", "zh-TW": "解讀的流程",
+    "vi": "Mạch luận giải", "hi": "व्याख्या का प्रवाह", "es": "El hilo de la interpretación", "fr": "Le fil de l'interprétation", "de": "Ablauf der Deutung", "nl": "Verloop van de uitleg", "ms": "Aliran tafsiran"
+  },
+  "shellRuntime.f1329": {
+    "ko": "베다 점성술", "en": "Vedic astrology", "ja": "ヴェーダ占星術", "zh-CN": "吠陀占星术", "zh-TW": "吠陀占星術",
+    "vi": "Chiêm tinh Vệ Đà", "hi": "वैदिक ज्योतिष", "es": "Astrología védica", "fr": "Astrologie védique", "de": "Vedische Astrologie", "nl": "Vedische astrologie", "ms": "Astrologi Veda"
+  },
+
+  "shellRuntime.f1330": {
+    "ko": "아르타(재물·성취)", "en": "Artha (wealth · achievement)", "ja": "アルタ（財・成就）", "zh-CN": "阿尔塔（财富 · 成就）", "zh-TW": "阿爾塔（財富 · 成就）",
+    "vi": "Artha (tài lộc · thành tựu)", "hi": "अर्थ (धन · उपलब्धि)", "es": "Artha (riqueza · logro)", "fr": "Artha (richesse · accomplissement)", "de": "Artha (Wohlstand · Erfolg)", "nl": "Artha (welvaart · prestatie)", "ms": "Artha (kekayaan · pencapaian)"
+  },
+  "shellRuntime.f1331": {
+    "ko": "목샤(해방·영성)", "en": "Moksha (liberation · spirituality)", "ja": "モークシャ（解脱・霊性）", "zh-CN": "解脱（解放 · 灵性）", "zh-TW": "解脫（解放 · 靈性）",
+    "vi": "Moksha (giải thoát · tâm linh)", "hi": "मोक्ष (मुक्ति · आध्यात्म)", "es": "Moksha (liberación · espiritualidad)", "fr": "Moksha (libération · spiritualité)", "de": "Moksha (Befreiung · Spiritualität)", "nl": "Moksha (bevrijding · spiritualiteit)", "ms": "Moksha (pembebasan · kerohanian)"
+  },
+  "shellRuntime.f1332": {
+    "ko": "피타(불·마디아)", "en": "Pitta (fire · madhya)", "ja": "ピッタ（火・マディヤ）", "zh-CN": "皮塔（火 · 中）", "zh-TW": "皮塔（火 · 中）",
+    "vi": "Pitta (hỏa · madhya)", "hi": "पित्त (अग्नि · मध्य)", "es": "Pitta (fuego · madhya)", "fr": "Pitta (feu · madhya)", "de": "Pitta (Feuer · Madhya)", "nl": "Pitta (vuur · madhya)", "ms": "Pitta (api · madhya)"
+  },
+  "shellRuntime.f1333": {
+    "ko": "카파(물·안티아)", "en": "Kapha (water · antya)", "ja": "カパ（水・アンティヤ）", "zh-CN": "卡法（水 · 末）", "zh-TW": "卡法（水 · 末）",
+    "vi": "Kapha (thủy · antya)", "hi": "कफ (जल · अन्त्य)", "es": "Kapha (agua · antya)", "fr": "Kapha (eau · antya)", "de": "Kapha (Wasser · Antya)", "nl": "Kapha (water · antya)", "ms": "Kapha (air · antya)"
+  },
+  "shellRuntime.f1334": {
+    "ko": "바타(바람·아디)", "en": "Vata (wind · adi)", "ja": "ヴァータ（風・アーディ）", "zh-CN": "瓦塔（风 · 初）", "zh-TW": "瓦塔（風 · 初）",
+    "vi": "Vata (phong · adi)", "hi": "वात (वायु · आदि)", "es": "Vata (viento · adi)", "fr": "Vata (vent · adi)", "de": "Vata (Wind · Adi)", "nl": "Vata (wind · adi)", "ms": "Vata (angin · adi)"
+  },
+  "shellRuntime.f1335": {
+    "ko": "락샤사(격렬)", "en": "Rakshasa (fierce)", "ja": "ラークシャサ（激）", "zh-CN": "罗刹（刚烈）", "zh-TW": "羅剎（剛烈）",
+    "vi": "Rakshasa (mãnh liệt)", "hi": "राक्षस (उग्र)", "es": "Rakshasa (feroz)", "fr": "Rakshasa (farouche)", "de": "Rakshasa (ungestüm)", "nl": "Rakshasa (fel)", "ms": "Rakshasa (garang)"
+  },
+  "shellRuntime.f1336": {
+    "ko": "마누샤(인간)", "en": "Manushya (human)", "ja": "マヌシャ（人）", "zh-CN": "摩奴沙（人）", "zh-TW": "摩奴沙（人）",
+    "vi": "Manushya (nhân)", "hi": "मनुष्य (मानव)", "es": "Manushya (humano)", "fr": "Manushya (humain)", "de": "Manushya (menschlich)", "nl": "Manushya (menselijk)", "ms": "Manushya (manusia)"
+  },
+  "shellRuntime.f1337": {
+    "ko": "데바(신성)", "en": "Deva (divine)", "ja": "デーヴァ（神性）", "zh-CN": "提婆（神性）", "zh-TW": "提婆（神性）",
+    "vi": "Deva (thần tính)", "hi": "देव (दिव्य)", "es": "Deva (divino)", "fr": "Deva (divin)", "de": "Deva (göttlich)", "nl": "Deva (goddelijk)", "ms": "Deva (ketuhanan)"
+  },
+  "shellRuntime.f1338": {
+    "ko": "파다 나바암샤", "en": "Pada navamsha", "ja": "パダ・ナヴァームシャ", "zh-CN": "帕达 那瓦姆沙", "zh-TW": "帕達 那瓦姆沙",
+    "vi": "Pada navamsha", "hi": "पाद नवांश", "es": "Pada navamsha", "fr": "Pada navamsha", "de": "Pada-Navamsha", "nl": "Pada navamsha", "ms": "Pada navamsha"
+  },
+  "shellRuntime.f1339": {
+    "ko": "파다 지배성", "en": "Pada ruler", "ja": "パダの支配星", "zh-CN": "帕达主星", "zh-TW": "帕達主星",
+    "vi": "Sao chủ pada", "hi": "पाद स्वामी", "es": "Regente del pada", "fr": "Maître du pada", "de": "Pada-Herrscher", "nl": "Pada-heerser", "ms": "Penguasa pada"
+  },
+  "shellRuntime.f1340": {
+    "ko": "근원 동기", "en": "Root motivation", "ja": "根源の動機", "zh-CN": "根本动机", "zh-TW": "根本動機",
+    "vi": "Động lực gốc", "hi": "मूल प्रेरणा", "es": "Motivación de raíz", "fr": "Motivation profonde", "de": "Grundmotivation", "nl": "Grondmotivatie", "ms": "Motivasi asas"
+  },
+  "shellRuntime.f1341": {
+    "ko": "갈라지는 지점", "en": "Where they diverge", "ja": "分かれる地点", "zh-CN": "分歧之处", "zh-TW": "分歧之處",
+    "vi": "Nơi hai bên rẽ khác", "hi": "जहाँ दोनों अलग होते हैं", "es": "Dónde divergen", "fr": "Là où elles divergent", "de": "Wo sie auseinandergehen", "nl": "Waar ze uiteenlopen", "ms": "Di mana keduanya bercapah"
+  },
+  "shellRuntime.f1342": {
+    "ko": "만나는 지점", "en": "Where they meet", "ja": "出会う地点", "zh-CN": "交会之处", "zh-TW": "交會之處",
+    "vi": "Nơi hai bên gặp nhau", "hi": "जहाँ दोनों मिलते हैं", "es": "Dónde se encuentran", "fr": "Là où elles se rejoignent", "de": "Wo sie sich treffen", "nl": "Waar ze samenkomen", "ms": "Di mana keduanya bertemu"
+  },
+  "shellRuntime.f1343": {
+    "ko": "⟡ 통합 해석", "en": "⟡ Unified reading", "ja": "⟡ 統合解釈", "zh-CN": "⟡ 整合解读", "zh-TW": "⟡ 整合解讀",
+    "vi": "⟡ Luận giải hợp nhất", "hi": "⟡ एकीकृत व्याख्या", "es": "⟡ Lectura unificada", "fr": "⟡ Lecture unifiée", "de": "⟡ Vereinte Deutung", "nl": "⟡ Verenigde uitleg", "ms": "⟡ Tafsiran bersepadu"
+  },
+  "shellRuntime.f1344": {
+    "ko": "☯ 동양 — 숙요점 27수", "en": "☯ East — Sukuyo's 27 mansions", "ja": "☯ 東洋 — 宿曜 27宿", "zh-CN": "☯ 东方 — 宿曜 27 宿", "zh-TW": "☯ 東方 — 宿曜 27 宿",
+    "vi": "☯ Phương Đông — 27 tú Túc Diệu", "hi": "☯ पूर्व — नक्षत्र ज्योतिष के 27 नक्षत्र", "es": "☯ Oriente — las 27 mansiones del Sukuyo", "fr": "☯ Orient — les 27 demeures du Sukuyo", "de": "☯ Osten — die 27 Häuser des Sukuyo", "nl": "☯ Oost — de 27 huizen van Sukuyo", "ms": "☯ Timur — 27 rumah Sukuyo"
+  },
+  "shellRuntime.f1345": {
+    "ko": "🕉 인도 — 나크샤트라", "en": "🕉 India — the nakshatras", "ja": "🕉 インド — ナクシャトラ", "zh-CN": "🕉 印度 — 纳沙特拉", "zh-TW": "🕉 印度 — 納沙特拉",
+    "vi": "🕉 Ấn Độ — các nakshatra", "hi": "🕉 भारत — नक्षत्र", "es": "🕉 India — los nakshatras", "fr": "🕉 Inde — les nakshatras", "de": "🕉 Indien — die Nakshatras", "nl": "🕉 India — de nakshatra's", "ms": "🕉 India — nakshatra"
+  },
+  "shellRuntime.f1346": {
+    "ko": "宿曜 전문가", "en": "Sukuyo master", "ja": "宿曜の専門家", "zh-CN": "宿曜专家", "zh-TW": "宿曜專家",
+    "vi": "Chuyên gia Túc Diệu", "hi": "नक्षत्र ज्योतिष विशेषज्ञ", "es": "Maestro de Sukuyo", "fr": "Maître du Sukuyo", "de": "Sukuyo-Meister", "nl": "Sukuyo-meester", "ms": "Pakar Sukuyo"
+  },
+  "shellRuntime.f1347": {
+    "ko": "Jyotish 전문가", "en": "Jyotish master", "ja": "Jyotish の専門家", "zh-CN": "Jyotish 专家", "zh-TW": "Jyotish 專家",
+    "vi": "Chuyên gia Jyotish", "hi": "ज्योतिष विशेषज्ञ", "es": "Maestro de Jyotish", "fr": "Maître du Jyotish", "de": "Jyotish-Meister", "nl": "Jyotish-meester", "ms": "Pakar Jyotish"
+  },
+  "shellRuntime.f1348": {
+    "ko": "✦ 살아가는 법 — 강점과 균형", "en": "✦ How to live it — strengths and balance", "ja": "✦ 生き方 — 強みとバランス", "zh-CN": "✦ 如何活出它 — 优势与平衡", "zh-TW": "✦ 如何活出它 — 優勢與平衡",
+    "vi": "✦ Cách sống với nó — điểm mạnh và cân bằng", "hi": "✦ इसे जीने का तरीका — ताकत और संतुलन", "es": "✦ Cómo vivirlo: fortalezas y equilibrio", "fr": "✦ Comment le vivre — forces et équilibre", "de": "✦ Wie man es lebt — Stärken und Balance", "nl": "✦ Hoe je het leeft — sterke punten en balans", "ms": "✦ Cara menghidupinya — kekuatan dan keseimbangan"
+  },
+  "shellRuntime.f1349": {
+    "ko": "이 테스트에서 보는 핵심 포인트", "en": "The key points this test looks at", "ja": "このテストで見る核心ポイント", "zh-CN": "这个测试着重看的要点", "zh-TW": "這個測驗著重看的要點",
+    "vi": "Những điểm mấu chốt bài trắc nghiệm này xem xét", "hi": "यह टेस्ट किन मुख्य बिंदुओं को देखता है", "es": "Los puntos clave que observa este test", "fr": "Les points clés observés par ce test", "de": "Die Kernpunkte, die dieser Test betrachtet", "nl": "De kernpunten die deze test bekijkt", "ms": "Perkara utama yang dilihat ujian ini"
+  }
+}
