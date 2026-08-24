@@ -74,7 +74,11 @@ const SEVERITY_RANK = { ok: 0, info: 1, critical: 2 };
  *      아니라서(내용이 다른 PR 로 회수돼도 커밋은 영영 고아다) 이게 없으면 상시 빨간불이 된다.
  *   5) 판정에 필요한 값을 못 구했으면 "모른다"로 두고 조용히 넘어간다.
  *   6) 머지 커밋은 고아인데 head 는 main 에 있으면 내용은 살아 있다는 뜻이다.
- *   7) 둘 다 없으면 진짜 좌초다.
+ *   7) 커밋이 둘 다 고아여도 그 PR 이 바꾼 파일의 내용이 main 과 같으면 착지한 것이다.
+ *      부모를 스쿼시로 머지하면 자식의 머지 커밋과 head 커밋이 **동시에** 고아가 되므로
+ *      (#1061·#1084 실측) 조상 관계만으로는 영영 구제되지 않고, 사람이 매번 대장에 손으로
+ *      등재할 때까지 워치독이 빨간불로 남는다 — 그게 진짜 경보를 덮는 경로다.
+ *   8) 둘 다 없고 내용도 다르면 진짜 좌초다.
  */
 export function classifyMergedPr(input) {
   const {
@@ -87,6 +91,7 @@ export function classifyMergedPr(input) {
     headCommitInMain = null,
     parentPrOpen = false,
     acknowledged = false,
+    contentInMain = null,
     now = 0,
     graceMs = MERGE_GRACE_MS,
   } = input || {};
@@ -104,6 +109,9 @@ export function classifyMergedPr(input) {
   }
   if (headCommitInMain === true) {
     return verdict("recovered", "info", "머지 커밋은 고아지만 내용(head 커밋)은 main 에 있습니다.");
+  }
+  if (contentInMain === true) {
+    return verdict("content-landed", "info", "커밋은 둘 다 고아지만 변경 파일 내용이 main 과 동일합니다.");
   }
   return verdict("stranded", "critical", `머지됐지만 main 에 없습니다 (base 가 ${baseRefName || "?"} 였습니다).`);
 }
@@ -309,6 +317,7 @@ const STATUS_LABEL = {
   acknowledged: "확인됨(대장 등재)",
   unknown: "판정 불가",
   recovered: "내용만 착지(커밋 고아)",
+  "content-landed": "내용 착지(커밋 고아, 파일 대조)",
   stranded: "좌초 — main 에 없음",
 };
 
@@ -392,8 +401,9 @@ export function renderIssueBody(findings) {
 // 바깥 세계 — git, gh, 네트워크
 // ---------------------------------------------------------------------------
 
+// maxBuffer: 기본 1MB 로는 base…head 전체 변경 목록(contentLandedInMain)이 잘릴 수 있다.
 function git(args) {
-  return spawnSync("git", args, { encoding: "utf8" });
+  return spawnSync("git", args, { encoding: "utf8", maxBuffer: 64 * 1024 * 1024 });
 }
 
 function gh(args, input) {
@@ -445,6 +455,50 @@ function isAncestor(sha, base) {
   if (status === "identical" || status === "behind") return true;
   if (status === "ahead" || status === "diverged") return false;
   return null;
+}
+
+/**
+ * 커밋 조상으로는 좌초인 PR 의 **내용**이 base 에 있는가.
+ *
+ * 스택 PR 의 부모를 스쿼시로 머지하면 자식의 머지 커밋도 head 커밋도 동시에 고아가 된다.
+ * 조상 관계는 의미론이 아니므로 이 축이 없으면 그 PR 은 영영 좌초로 남고, 사람이 대장에
+ * 등재할 때까지 워치독이 빨간불이다. 실측으로 두 번 났다(#1061 2026-08-24, #1084 같은 날).
+ *
+ * 🔴 fail-closed 다. 아래는 전부 null(= 좌초 유지)로 떨어진다 — head SHA 가 형식에 안 맞음,
+ * 파일 목록 조회 실패, 파일 목록 0건, 커밋을 끝내 못 받아옴, git diff 가 0 이 아닌 종료코드.
+ * 내용 대조는 **경보를 끄는 근거**이지 못 본 것을 눈감는 근거가 아니다.
+ *
+ * 🔴 대조 대상은 그 PR 이 바꾼 파일뿐이다. 뒤이은 PR 이 같은 파일을 더 고쳤으면 차이가 남아
+ * 좌초로 유지된다 — 그건 오검출이 아니라 사람이 실제로 봐야 하는 상태다.
+ *
+ * 🔴 pathspec 으로 걸러 달라고 git 에 부탁하지 않는다. `git diff` 는 --pathspec-from-file 을
+ * 지원하지 않고(실측: exit 129), 경로를 인자로 늘어놓으면 파일 많은 PR 에서 명령줄 길이에
+ * 걸리며, app/[locale]/… 같은 경로가 23개라 대괄호가 글롭으로 해석돼 조용히 빗나간다.
+ * 대신 전체 변경 목록을 한 번 받아 **JS 에서 교집합**을 낸다 — git 호출 1회, 인용 문제 0.
+ */
+function contentLandedInMain({ number, headRefOid }, baseRef) {
+  if (!/^[0-9a-f]{7,40}$/i.test(String(headRefOid || ""))) return null;
+
+  const listed = gh(["api", "--paginate", `repos/{owner}/{repo}/pulls/${number}/files`, "--jq", ".[].filename"]);
+  if (listed.status !== 0) return null;
+  const files = String(listed.stdout || "")
+    .split("\n")
+    .map((line) => line.trim())
+    .filter(Boolean);
+  if (!files.length) return null;
+
+  // 브랜치가 지워졌어도 GitHub 은 refs/pull/<n>/head 를 영구 보관한다.
+  if (git(["cat-file", "-e", `${headRefOid}^{commit}`]).status !== 0) {
+    git(["fetch", "--no-tags", "--quiet", "origin", `refs/pull/${number}/head`]);
+    if (git(["cat-file", "-e", `${headRefOid}^{commit}`]).status !== 0) return null;
+  }
+
+  // -z: 경로를 NUL 로 끊어 C-따옴표 인용을 피한다. --no-renames: 리네임을 한 줄로 접으면
+  // 원래 경로가 목록에서 사라져 "차이 없음" 으로 오독된다.
+  const diff = git(["diff", "--name-only", "-z", "--no-renames", baseRef, headRefOid]);
+  if (diff.status !== 0) return null;
+  const changed = new Set(String(diff.stdout || "").split("\0").filter(Boolean));
+  return !files.some((file) => changed.has(file));
 }
 
 function loadMainState(baseRef) {
@@ -652,8 +706,8 @@ async function collectFindings({ check, baseRef, origin, days, limit, now }) {
     const openHeads = new Set(open.map((pr) => pr.headRefName));
     const acknowledged = loadAcknowledged(ACK_FILE);
 
-    findings.merged = (merged || []).map((pr) =>
-      classifyMergedPr({
+    findings.merged = (merged || []).map((pr) => {
+      const input = {
         number: pr.number,
         title: pr.title,
         url: pr.url,
@@ -664,8 +718,14 @@ async function collectFindings({ check, baseRef, origin, days, limit, now }) {
         parentPrOpen: openHeads.has(pr.baseRefName),
         acknowledged: acknowledged.has(pr.number),
         now,
-      }),
-    );
+      };
+      const verdict = classifyMergedPr(input);
+      // 🔴 내용 대조는 좌초로 떨어진 PR 에만 돌린다. 평시 비용이 0 이어야 이 워치독을
+      // 20분마다 돌릴 수 있고, 좌초는 드물어서(7일 창에서 0~2건) 그 몇 번의 API·git
+      // 왕복이 곧 판정 정확도가 된다. 전부에 돌리면 PR 수만큼 왕복한다.
+      if (verdict.status !== "stranded") return verdict;
+      return classifyMergedPr({ ...input, contentInMain: contentLandedInMain(pr, baseRef) });
+    });
   }
 
   if (check === "all" || check === "conflicts") {
@@ -758,10 +818,19 @@ function selfTest() {
     [classify({ mergeCommitInMain: true, headCommitInMain: null, acknowledged: true }), "landed", "착지가 대장보다 우선"],
     [classify({ baseRefName: "main", mergeCommitInMain: false, headCommitInMain: false, parentPrOpen: true }), "stranded", "base 가 main 이면 부모 대기가 성립하지 않는다"],
 
+    // 내용 대조 — 부모 스쿼시로 커밋이 둘 다 고아가 된 스택 PR 의 구제축.
+    [classify({ mergeCommitInMain: false, headCommitInMain: false, contentInMain: true }), "content-landed", "커밋이 둘 다 고아여도 파일 내용이 같으면 착지다"],
+    [classify({ mergeCommitInMain: false, headCommitInMain: false, contentInMain: false }), "stranded", "내용이 다르면 좌초 그대로"],
+    [classify({ mergeCommitInMain: false, headCommitInMain: false, contentInMain: null }), "stranded", "대조 실패는 좌초를 낮추지 않는다(fail-closed)"],
+    [classify({ mergeCommitInMain: true, headCommitInMain: false, contentInMain: false }), "landed", "착지가 내용 대조보다 앞선다"],
+    [classify({ mergeCommitInMain: false, headCommitInMain: true, contentInMain: false }), "recovered", "head 착지가 내용 대조보다 앞선다"],
+    [classify({ mergeCommitInMain: null, headCommitInMain: null, contentInMain: true }), "unknown", "판정 불가에는 내용 대조를 적용하지 않는다"],
+
     // 심각도
     [classifyMergedPr({ number: 2, mergedAtMs: old, now, mergeCommitInMain: false, headCommitInMain: false }).severity, "critical", "좌초는 critical"],
     [classifyMergedPr({ number: 2, mergedAtMs: old, now, mergeCommitInMain: false, headCommitInMain: true }).severity, "info", "회수됨은 info"],
     [classifyMergedPr({ number: 2, mergedAtMs: old, now, mergeCommitInMain: null, headCommitInMain: null }).severity, "info", "판정 불가는 절대 critical 이 아니다"],
+    [classifyMergedPr({ number: 2, mergedAtMs: old, now, mergeCommitInMain: false, headCommitInMain: false, contentInMain: true }).severity, "info", "내용 착지는 info"],
   ];
 
   const sha = "abcdef1234567890abcdef1234567890abcdef12";
