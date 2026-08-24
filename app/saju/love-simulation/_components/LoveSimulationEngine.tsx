@@ -6,7 +6,8 @@ import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, Use
 import { INITIAL_STATS, LOVE_CHARACTERS, getLocalizedLoveScenes, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
 import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics } from "../_utils/loveCodeScoring";
-import { buildSajuCoupleCompatibility, matchLoveCharactersFromSaju, type LoveCharacterMatchResult, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
+import { buildSajuCoupleCompatibility, matchLoveCharactersFromSaju, LOVE_MATCHING_COPY_KO, type LoveCharacterMatchResult, type LoveMatchingCopy, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
+import { useLoveSimCopy } from "../_utils/loveSimCopy";
 import { computeCompatibilityProfile } from "../_engine/compatibilityEngine";
 import { normalizeSajuForPerson } from "../_engine/normalizeSaju";
 import { getCharacterNormalizedSaju } from "../_data/characterCharts";
@@ -939,12 +940,14 @@ function RecommendedMatchCard({
   result,
   secondaryLabels,
   compatibility,
+  matchingCopy,
   onStart,
 }: {
   character: LoveCharacter;
   result: LoveCharacterMatchResult;
   secondaryLabels: string[];
   compatibility: SajuCoupleCompatibility | null;
+  matchingCopy: LoveMatchingCopy;
   onStart: () => void;
 }) {
   return (
@@ -960,7 +963,7 @@ function RecommendedMatchCard({
           <div className="mb-3 flex flex-wrap items-center gap-2">
             <span className={`rounded-full border px-3 py-1 text-xs font-black ${character.palette.chip}`}>{character.dayMaster} 일간</span>
             <span className="rounded-full border border-rose-100/20 bg-rose-50/12 px-3 py-1 text-xs font-black text-rose-50/82">
-              신뢰도 {result.confidenceLabel}
+              신뢰도 {matchingCopy.confidence[result.confidenceKey]}
             </span>
           </div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-100/72">Main Match</p>
@@ -1502,6 +1505,9 @@ export const LoveSimulationEngine: React.FC = () => {
   }, []);
 
   const copy = useMemo(() => getLoveSimulationCopy(locale), [locale]);
+  // 🔴 `copy` 와 별개다. 위는 버튼·라벨 같은 UI 크롬(ko·en 표), 아래는 사주 해석이 조립하는
+  //    콘텐츠 문장(12개 로케일 사전). 경계는 `_utils/loveSimCopy.ts` 헤더에 적혀 있다.
+  const matchingCopy = useLoveSimCopy("matching", LOVE_MATCHING_COPY_KO);
   // 값은 그대로 IANA 타임존 문자열 유지 — matchPartner/자동저장/onSubmit 이 이미 이 값을 그대로 쓴다.
   const partnerCountryOptions = useMemo(
     () => [
@@ -1747,8 +1753,8 @@ export const LoveSimulationEngine: React.FC = () => {
             })
           : Promise.resolve(null),
       ]);
-      const results = matchLoveCharactersFromSaju(partnerSaju, LOVE_CHARACTERS, targetInput.gender);
-      const compatibility = selfSaju ? buildSajuCoupleCompatibility(selfSaju, partnerSaju) : null;
+      const results = matchLoveCharactersFromSaju(partnerSaju, LOVE_CHARACTERS, matchingCopy, targetInput.gender);
+      const compatibility = selfSaju ? buildSajuCoupleCompatibility(selfSaju, partnerSaju, matchingCopy) : null;
 
       if (results.length === 0) throw new Error("empty love character match result");
       setMatchResults(results);
@@ -2047,6 +2053,7 @@ export const LoveSimulationEngine: React.FC = () => {
                       result={primaryMatch}
                       secondaryLabels={secondaryMatchLabels}
                       compatibility={coupleCompatibility}
+                      matchingCopy={matchingCopy}
                       onStart={() => void startWithCharacter(primaryMatch.characterId, "sajuMatch")}
                     />
                   ) : null}
