@@ -90,7 +90,7 @@ export default function HighValueCategoryPage({ params }) {
     <main className="cd-main-shell">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <nav aria-label="breadcrumb" className="cd-chip-wrap">
-        <Link href="/" className="cd-chip">홈</Link>
+        <Link href="/" className="cd-chip" data-cd-trans="home.nav.home">홈</Link>
         <Link href="/high-value" className="cd-chip">운세 인사이트 가이드</Link>
       </nav>
 

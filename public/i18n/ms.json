@@ -1638,7 +1638,8 @@
     "requiredStar": "* diperlukan",
     "monthShort": "Bulan",
     "dayShort": "Hari",
-    "download": "Muat turun"
+    "download": "Muat turun",
+    "andBetweenLinks": "dan"
   },
   "privacy": {
     "consentTitle": "Persetujuan untuk mengumpul dan menggunakan maklumat peribadi",

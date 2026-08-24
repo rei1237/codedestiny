@@ -1638,7 +1638,8 @@
     "requiredStar": "*obligatoire",
     "monthShort": "Mois",
     "dayShort": "Jour",
-    "download": "Télécharger"
+    "download": "Télécharger",
+    "andBetweenLinks": "et"
   },
   "privacy": {
     "consentTitle": "Consentement à la collecte et à l'utilisation de renseignements personnels",

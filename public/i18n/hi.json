@@ -1638,7 +1638,8 @@
     "requiredStar": "* आवश्यक",
     "monthShort": "महीना",
     "dayShort": "दिन",
-    "download": "डाउनलोड करें"
+    "download": "डाउनलोड करें",
+    "andBetweenLinks": "और"
   },
   "privacy": {
     "consentTitle": "व्यक्तिगत जानकारी एकत्र करने और उपयोग करने की सहमति",

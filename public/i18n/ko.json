@@ -1268,7 +1268,8 @@
     "solar": "양력",
     "lunarRegular": "음력(평달)",
     "lunarLeap": "음력(윤달)",
-    "retry": "재시도"
+    "retry": "재시도",
+    "andBetweenLinks": "와"
   },
   "privacy": {
     "consentTitle": "개인정보 수집 및 이용 동의",

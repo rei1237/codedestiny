@@ -1638,7 +1638,8 @@
     "requiredStar": "* 必填",
     "monthShort": "月",
     "dayShort": "日",
-    "download": "下載"
+    "download": "下載",
+    "andBetweenLinks": "與"
   },
   "privacy": {
     "consentTitle": "同意蒐集與使用個人資訊",

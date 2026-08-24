@@ -67,7 +67,7 @@ export default function ContentIntegrityNote({
         </p>
       ) : null}
       <p className="mt-3 text-xs">
-        제작 기준은 <Link href="/editorial-policy" className={palette.link}>콘텐츠 제작 및 AI 활용 고지</Link>와{" "}
+        제작 기준은 <Link href="/editorial-policy" className={palette.link}>콘텐츠 제작 및 AI 활용 고지</Link><span data-cd-trans="common.andBetweenLinks">와</span>{" "}
         <Link href="/methodology" className={palette.link}>운세 콘텐츠 방법론</Link>에서 확인할 수 있습니다. 부정확한 내용을 발견하면{" "}
         <Link href="/contact" className={palette.link}>문의</Link>로 알려 주시면 검토 후 수정합니다.
       </p>

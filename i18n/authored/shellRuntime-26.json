@@ -1,0 +1,104 @@
+{
+  "_comment": "인라인 링크로 갈린 문장의 앞뒤 조각과, 편집 고지 두 편. 🔴 변수로 갈린 조각과 달리 **링크로 갈린 조각은 그대로 번역해도 된다** — 가운데 들어가는 것이 임의값이 아니라 이미 번역된 링크 라벨이기 때문이다. 다만 앞뒤 분배는 언어마다 달라지므로, `앞조각 + 링크라벨 + 뒤조각` 이 각 언어에서 문장으로 읽히는지 확인하고 썼다. 링크 라벨은 f96(환불 정책 전문)·f162(콘텐츠 제작 및 AI 활용 고지)·f160(문의)·highValueContent.014(운세 콘텐츠 방법론) 로 이미 사전에 있다.",
+
+  "shellRuntime.f724": {
+    "ko": "청약철회 기간, 환급 절차, 월정석 유효기간을 포함한 조항 전문은",
+    "en": "You can find the full text of the clauses — covering the withdrawal period, the refund procedure and Moonlight Stone validity — in",
+    "ja": "クーリングオフ期間、返金手続き、月精石の有効期間を含む条項の全文は",
+    "zh-CN": "包含冷静期、退款流程与月精石有效期的条款全文，请见",
+    "zh-TW": "包含冷靜期、退款流程與月精石有效期的條款全文，請見",
+    "vi": "Toàn văn các điều khoản, bao gồm thời hạn rút lại, quy trình hoàn tiền và hạn dùng của Nguyệt Tinh Thạch, có trong",
+    "hi": "निकासी अवधि, रिफ़ंड प्रक्रिया और मूनलाइट स्टोन की वैधता सहित शर्तों का पूरा पाठ",
+    "es": "El texto completo de las cláusulas — incluidos el plazo de desistimiento, el procedimiento de reembolso y la vigencia de la Piedra de Luz Lunar — está en",
+    "fr": "Le texte intégral des clauses — délai de rétractation, procédure de remboursement et validité de la Pierre de Clair de Lune — figure dans",
+    "de": "Den vollständigen Wortlaut der Klauseln — Widerrufsfrist, Erstattungsverfahren und Gültigkeit des Mondlichtsteins — enthält",
+    "nl": "De volledige tekst van de clausules — herroepingstermijn, restitutieprocedure en geldigheid van de Maanlichtsteen — vind je in",
+    "ms": "Teks penuh klausa — termasuk tempoh pembatalan, prosedur bayaran balik dan tempoh sah Batu Cahaya Bulan — ada dalam"
+  },
+  "shellRuntime.f725": {
+    "ko": "에서 확인하실 수 있습니다.",
+    "en": ".",
+    "ja": "でご確認いただけます。",
+    "zh-CN": "。",
+    "zh-TW": "。",
+    "vi": ".",
+    "hi": "में देखा जा सकता है।",
+    "es": ".",
+    "fr": ".",
+    "de": ".",
+    "nl": ".",
+    "ms": "."
+  },
+
+  "shellRuntime.f726": {
+    "ko": "제작 기준은",
+    "en": "Our production standards are set out in",
+    "ja": "制作の基準は",
+    "zh-CN": "我们的制作准则见于",
+    "zh-TW": "我們的製作準則見於",
+    "vi": "Tiêu chuẩn biên soạn của chúng tôi được nêu trong",
+    "hi": "हमारे निर्माण मानक इनमें दिए गए हैं:",
+    "es": "Nuestros criterios de producción están en",
+    "fr": "Nos critères de production figurent dans",
+    "de": "Unsere Produktionsstandards stehen in",
+    "nl": "Onze productiecriteria staan in",
+    "ms": "Piawaian penghasilan kami dinyatakan dalam"
+  },
+  "shellRuntime.f727": {
+    "ko": "에서 확인할 수 있습니다. 부정확한 내용을 발견하면",
+    "en": ". If you find anything inaccurate, tell us through",
+    "ja": "でご確認いただけます。不正確な内容を見つけられた場合は",
+    "zh-CN": "。若发现内容有误，请通过",
+    "zh-TW": "。若發現內容有誤，請透過",
+    "vi": ". Nếu bạn thấy nội dung nào chưa chính xác, hãy cho chúng tôi biết qua",
+    "hi": "। यदि आपको कोई गलत जानकारी मिले, तो हमें बताएँ:",
+    "es": ". Si encuentras algo inexacto, avísanos a través de",
+    "fr": ". Si vous trouvez une inexactitude, signalez-la via",
+    "de": ". Wenn Sie etwas Ungenaues finden, teilen Sie es uns mit über",
+    "nl": ". Vind je iets onjuists, laat het ons weten via",
+    "ms": ". Jika anda menemui maklumat yang tidak tepat, beritahu kami melalui"
+  },
+  "shellRuntime.f728": {
+    "ko": "로 알려 주시면 검토 후 수정합니다.",
+    "en": "and we will review and correct it.",
+    "ja": "までお知らせいただければ、確認のうえ修正します。",
+    "zh-CN": "告知我们，我们会核实后更正。",
+    "zh-TW": "告知我們，我們會核實後更正。",
+    "vi": "và chúng tôi sẽ kiểm tra rồi sửa lại.",
+    "hi": "और हम जाँच कर उसे सुधार देंगे।",
+    "es": "y lo revisaremos y corregiremos.",
+    "fr": "et nous le vérifierons et le corrigerons.",
+    "de": "und wir prüfen und korrigieren es.",
+    "nl": "en wij controleren en corrigeren het.",
+    "ms": "dan kami akan menyemak serta membetulkannya."
+  },
+
+  "shellRuntime.f729": {
+    "ko": "이 페이지는 편집팀이 정한 해석 규칙과 문장 틀에 공개된 정보를 대입해 자동으로 구성했습니다. 문장 틀과 금지 표현 기준은 사람이 정하지만, 완성된 페이지를 한 건씩 사람이 검토하지는 않습니다. 그래서 이 페이지는 검색 색인 대상에서 제외해 두었습니다. 운세 해석은 미래를 단정하는 예언이 아니라 자기 성찰과 선택 정돈을 돕는 참고 자료입니다.",
+    "en": "This page was assembled automatically by feeding publicly available information into interpretation rules and sentence frames set by our editorial team. People decide the frames and the list of forbidden expressions, but no person reviews each finished page one by one. For that reason this page is excluded from search indexing. A fortune interpretation is not a prophecy that fixes the future; it is reference material that helps with self-reflection and with ordering your choices.",
+    "ja": "このページは、編集チームが定めた解釈ルールと文章の枠に公開情報を当てはめ、自動的に構成したものです。文章の枠と禁止表現の基準は人が定めますが、完成したページを一件ずつ人が確認してはいません。そのためこのページは検索インデックスの対象から外しています。運勢の解釈は未来を断定する予言ではなく、自己省察と選択の整理を助ける参考資料です。",
+    "zh-CN": "本页面是把公开信息代入编辑团队所定的解读规则与句式框架后自动生成的。句式框架与禁用表述的标准由人来定，但完成后的页面并不会由人逐一审阅。因此本页面已排除在搜索索引之外。运势解读不是断定未来的预言，而是帮助自我省察、理清选择的参考资料。",
+    "zh-TW": "本頁面是把公開資訊代入編輯團隊所定的解讀規則與句式框架後自動生成的。句式框架與禁用表述的標準由人來定，但完成後的頁面並不會由人逐一審閱。因此本頁面已排除在搜尋索引之外。運勢解讀不是斷定未來的預言，而是幫助自我省察、理清選擇的參考資料。",
+    "vi": "Trang này được dựng tự động bằng cách đưa thông tin công khai vào các quy tắc luận giải và khung câu do đội biên tập đặt ra. Con người quyết định khung câu và danh sách những cách nói bị cấm, nhưng không có người duyệt từng trang đã hoàn thành. Vì vậy trang này được loại khỏi việc lập chỉ mục tìm kiếm. Luận giải vận trình không phải lời tiên tri khẳng định tương lai, mà là tài liệu tham khảo giúp bạn tự soi lại mình và sắp xếp lựa chọn.",
+    "hi": "यह पृष्ठ संपादकीय टीम द्वारा तय की गई व्याख्या-नियमावली और वाक्य-ढाँचों में सार्वजनिक जानकारी डालकर स्वतः तैयार किया गया है। ढाँचे और वर्जित अभिव्यक्तियों के मानक लोग तय करते हैं, पर तैयार हो चुके हर पृष्ठ की समीक्षा कोई व्यक्ति एक-एक करके नहीं करता। इसी कारण इस पृष्ठ को खोज सूचीकरण से बाहर रखा गया है। भविष्यफल की व्याख्या भविष्य को तय करने वाली भविष्यवाणी नहीं, बल्कि आत्मचिंतन और निर्णयों को व्यवस्थित करने में सहायक संदर्भ सामग्री है।",
+    "es": "Esta página se compuso automáticamente introduciendo información pública en las reglas de interpretación y las plantillas de frase que fija nuestro equipo editorial. Las personas deciden las plantillas y la lista de expresiones prohibidas, pero nadie revisa una por una las páginas terminadas. Por eso esta página queda excluida de la indexación en buscadores. La lectura de fortuna no es una profecía que fije el futuro, sino material de referencia que ayuda a la reflexión y a ordenar las decisiones.",
+    "fr": "Cette page a été composée automatiquement en appliquant des informations publiques aux règles d'interprétation et aux gabarits de phrase fixés par notre équipe éditoriale. Ce sont des personnes qui décident des gabarits et de la liste des formulations interdites, mais personne ne relit une à une les pages achevées. C'est pourquoi cette page est exclue de l'indexation par les moteurs de recherche. Une lecture de fortune n'est pas une prophétie qui fixe l'avenir : c'est un document de référence qui aide à la réflexion et à mettre de l'ordre dans ses choix.",
+    "de": "Diese Seite wurde automatisch zusammengesetzt, indem öffentlich zugängliche Informationen in Deutungsregeln und Satzvorlagen eingesetzt wurden, die unser Redaktionsteam festlegt. Menschen bestimmen die Vorlagen und die Liste unzulässiger Formulierungen, aber niemand prüft jede fertige Seite einzeln. Deshalb ist diese Seite von der Suchindexierung ausgenommen. Eine Deutung ist keine Prophezeiung, die die Zukunft festlegt, sondern Referenzmaterial, das beim Nachdenken über sich selbst und beim Ordnen von Entscheidungen hilft.",
+    "nl": "Deze pagina is automatisch samengesteld door openbare informatie in te vullen in interpretatieregels en zinsjablonen die onze redactie vaststelt. Mensen bepalen de sjablonen en de lijst met verboden formuleringen, maar niemand beoordeelt elke afgeronde pagina stuk voor stuk. Daarom is deze pagina uitgesloten van zoekindexering. Een reading is geen profetie die de toekomst vastlegt, maar naslagmateriaal dat helpt bij zelfreflectie en bij het ordenen van keuzes.",
+    "ms": "Halaman ini disusun secara automatik dengan memasukkan maklumat awam ke dalam peraturan tafsiran dan rangka ayat yang ditetapkan oleh pasukan editorial kami. Manusia menentukan rangka ayat dan senarai ungkapan yang dilarang, tetapi tiada sesiapa menyemak setiap halaman siap satu per satu. Oleh itu halaman ini dikecualikan daripada pengindeksan carian. Tafsiran nasib bukan ramalan yang memastikan masa depan, tetapi bahan rujukan yang membantu renungan diri dan menyusun pilihan."
+  },
+  "shellRuntime.f730": {
+    "ko": "이 글은 사주·자미두수·점성술·타로 같은 전통 상징 체계의 해석 규칙과 공개된 정보를 바탕으로 편집팀이 직접 작성했으며, 게시 전 표현과 사실 관계, 과장·불안 조장 여부를 검토했습니다. 계산 결과를 읽기 쉬운 해설로 옮기는 과정에는 인공지능의 도움을 받되, 방향과 문장은 사람이 다듬습니다. 운세 해석은 미래를 단정하는 예언이 아니라 자기 성찰과 선택 정돈을 돕는 참고 자료입니다.",
+    "en": "This piece was written by our editorial team on the basis of publicly available information and the interpretive rules of traditional symbolic systems such as Four Pillars (BaZi), Zi Wei Dou Shu, astrology and tarot; before publication it was checked for wording, factual accuracy, and whether it exaggerates or stokes anxiety. AI helps turn calculated results into readable commentary, but the direction and the sentences are shaped by people. A fortune interpretation is not a prophecy that fixes the future; it is reference material that helps with self-reflection and with ordering your choices.",
+    "ja": "この記事は、四柱推命・紫微斗数・占星術・タロットといった伝統的な象徴体系の解釈ルールと公開情報をもとに編集チームが自ら執筆し、公開前に表現と事実関係、誇張や不安の煽りがないかを確認しました。計算結果を読みやすい解説に移す過程では人工知能の助けを借りますが、方向と文章は人が整えます。運勢の解釈は未来を断定する予言ではなく、自己省察と選択の整理を助ける参考資料です。",
+    "zh-CN": "本文由编辑团队依据四柱八字、紫微斗数、占星术、塔罗等传统象征体系的解读规则与公开信息亲自撰写，并在发布前检查了表述、事实关系，以及是否有夸张或煽动不安之处。把计算结果转成易读解说的过程会借助人工智能，但方向与句子由人来打磨。运势解读不是断定未来的预言，而是帮助自我省察、理清选择的参考资料。",
+    "zh-TW": "本文由編輯團隊依據四柱八字、紫微斗數、占星術、塔羅等傳統象徵體系的解讀規則與公開資訊親自撰寫，並在發布前檢查了表述、事實關係，以及是否有誇張或煽動不安之處。把計算結果轉成易讀解說的過程會借助人工智慧，但方向與句子由人來打磨。運勢解讀不是斷定未來的預言，而是幫助自我省察、理清選擇的參考資料。",
+    "vi": "Bài này do đội biên tập tự viết, dựa trên thông tin công khai và các quy tắc luận giải của những hệ thống biểu tượng truyền thống như Tứ Trụ (Bát Tự), Tử Vi Đẩu Số, chiêm tinh và tarot; trước khi đăng, bài đã được rà soát về cách diễn đạt, tính chính xác của dữ kiện, và việc có phóng đại hay gieo lo lắng hay không. Trí tuệ nhân tạo hỗ trợ chuyển kết quả tính toán thành lời bình dễ đọc, nhưng hướng đi và câu chữ do con người mài giũa. Luận giải vận trình không phải lời tiên tri khẳng định tương lai, mà là tài liệu tham khảo giúp bạn tự soi lại mình và sắp xếp lựa chọn.",
+    "hi": "यह लेख संपादकीय टीम ने स्वयं लिखा है — फोर पिलर्स (बाज़ी), ज़ी वेई दोउ शू, ज्योतिष और टैरो जैसी पारंपरिक प्रतीक-पद्धतियों की व्याख्या-नियमावली तथा सार्वजनिक जानकारी के आधार पर — और प्रकाशन से पहले भाषा, तथ्यात्मक सटीकता तथा अतिशयोक्ति या भय फैलाने की प्रवृत्ति की जाँच की गई। गणना के परिणामों को सहज व्याख्या में बदलने में कृत्रिम बुद्धिमत्ता की सहायता ली जाती है, पर दिशा और वाक्य लोग ही गढ़ते हैं। भविष्यफल की व्याख्या भविष्य को तय करने वाली भविष्यवाणी नहीं, बल्कि आत्मचिंतन और निर्णयों को व्यवस्थित करने में सहायक संदर्भ सामग्री है।",
+    "es": "Este texto lo redactó nuestro equipo editorial a partir de información pública y de las reglas interpretativas de sistemas simbólicos tradicionales como los Cuatro Pilares (BaZi), el Zi Wei Dou Shu, la astrología y el tarot; antes de publicarlo se revisaron la redacción, la exactitud de los datos y si exagera o alimenta la ansiedad. La inteligencia artificial ayuda a convertir los resultados calculados en comentarios legibles, pero la dirección y las frases las pulen personas. La lectura de fortuna no es una profecía que fije el futuro, sino material de referencia que ayuda a la reflexión y a ordenar las decisiones.",
+    "fr": "Ce texte a été rédigé par notre équipe éditoriale à partir d'informations publiques et des règles d'interprétation de systèmes symboliques traditionnels comme les Quatre Piliers (BaZi), le Zi Wei Dou Shu, l'astrologie et le tarot ; avant publication, la formulation, l'exactitude des faits et l'absence d'exagération ou d'alarmisme ont été vérifiées. L'intelligence artificielle aide à transformer les résultats calculés en commentaires lisibles, mais l'orientation et les phrases sont travaillées par des personnes. Une lecture de fortune n'est pas une prophétie qui fixe l'avenir : c'est un document de référence qui aide à la réflexion et à mettre de l'ordre dans ses choix.",
+    "de": "Dieser Text wurde von unserem Redaktionsteam selbst verfasst — auf Grundlage öffentlich zugänglicher Informationen und der Deutungsregeln traditioneller Symbolsysteme wie Vier Säulen (BaZi), Zi Wei Dou Shu, Astrologie und Tarot — und vor der Veröffentlichung auf Formulierung, sachliche Richtigkeit sowie Übertreibung oder Angstmache geprüft. Künstliche Intelligenz hilft dabei, Rechenergebnisse in lesbare Erläuterungen zu überführen, doch Richtung und Sätze werden von Menschen geschliffen. Eine Deutung ist keine Prophezeiung, die die Zukunft festlegt, sondern Referenzmaterial, das beim Nachdenken über sich selbst und beim Ordnen von Entscheidungen hilft.",
+    "nl": "Dit stuk is door onze redactie zelf geschreven, op basis van openbare informatie en de interpretatieregels van traditionele symboolsystemen zoals Vier Pijlers (BaZi), Zi Wei Dou Shu, astrologie en tarot; voor publicatie zijn de formulering, de feitelijke juistheid en eventuele overdrijving of angstaanjagerij gecontroleerd. Kunstmatige intelligentie helpt rekenresultaten om te zetten in leesbare toelichting, maar richting en zinnen worden door mensen bijgeschaafd. Een reading is geen profetie die de toekomst vastlegt, maar naslagmateriaal dat helpt bij zelfreflectie en bij het ordenen van keuzes.",
+    "ms": "Tulisan ini disiapkan sendiri oleh pasukan editorial kami berdasarkan maklumat awam dan peraturan tafsiran sistem simbol tradisional seperti Empat Tiang (BaZi), Zi Wei Dou Shu, astrologi dan tarot; sebelum diterbitkan, penggunaan bahasa, ketepatan fakta serta sama ada ia membesar-besarkan atau menimbulkan kebimbangan telah disemak. Kecerdasan buatan membantu menukar hasil pengiraan kepada ulasan yang mudah dibaca, tetapi arah dan ayatnya digilap oleh manusia. Tafsiran nasib bukan ramalan yang memastikan masa depan, tetapi bahan rujukan yang membantu renungan diri dan menyusun pilihan."
+  }
+}
