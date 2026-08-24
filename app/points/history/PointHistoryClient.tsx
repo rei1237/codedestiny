@@ -247,8 +247,8 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "이용권 혜택 흐름과 결제 내역은 최근 20건까지 표시됩니다. 더 오래된 내역이 필요하면 고객센터로 문의해 주세요.",
       "민원담당자: 박병하 (050-6664-7398) · admin@code-destiny.com",
     ],
-    passCycleAria: "이번 사이클 이용권 사용 한도",
-    passCycleTitle: "이번 사이클 이용권 사용",
+    passCycleAria: "이번 이용권 기간의 월 이용 한도",
+    passCycleTitle: "월 이용 한도",
     passCycleTierLabel: {
       standard: "스탠다드 꿀",
       premium: "프리미엄 꿀",
@@ -338,8 +338,8 @@ const POINT_HISTORY_COPY: Record<LoadingLocale, PointHistoryCopy> = {
       "Pass benefit activity and payment history show up to the latest 20 records. Contact support if you need older records.",
       "Support contact: Byeongha Park (050-6664-7398) · admin@code-destiny.com",
     ],
-    passCycleAria: "This cycle's pass usage limit",
-    passCycleTitle: "This cycle's pass usage",
+    passCycleAria: "Monthly usage limit for this pass period",
+    passCycleTitle: "Monthly usage limit",
     passCycleTierLabel: {
       standard: "Standard Honey",
       premium: "Premium Honey",
@@ -489,7 +489,7 @@ function normalizePointPayload(payload: MeResponse, copy: PointHistoryCopy) {
   const monthlyCreditLedgers = Array.isArray(dataNode.monthlyCreditLedgers)
     ? dataNode.monthlyCreditLedgers
     : (Array.isArray(payload?.monthlyCreditLedgers) ? payload.monthlyCreditLedgers : []);
-  // 이용권 월 누적 한도. normalizeMonthlyStoneBalance 와 같은 정규화 규칙(0 이상 정수 또는 null)을
+  // 이용권 월 이용 한도. normalizeMonthlyStoneBalance 와 같은 정규화 규칙(0 이상 정수 또는 null)을
   // 재사용한다 — 서버가 안 내려주면(이용권 없음 등) null 로 남아 카드 자체를 숨긴다.
   const passCycleTier = typeof dataNode.passCycleTier === "string" ? dataNode.passCycleTier : null;
   const passCycleCapWon = normalizeMonthlyStoneBalance(dataNode.passCycleCapWon);
@@ -567,7 +567,7 @@ function CoinIcon({ size = "md", className = "" }: { size?: "sm" | "md" | "lg"; 
 }
 
 /* ══════════════════════════════════════════════════════════════════
-   서브 컴포넌트: PassCycleCard — 이용권 월 누적 한도 잔여
+   서브 컴포넌트: PassCycleCard — 이용권 월 이용 한도 잔여
 ══════════════════════════════════════════════════════════════════ */
 
 // 등급별 강조색은 이용권 상점(app/points/PointsClient.tsx planThemeMap)의
@@ -883,7 +883,7 @@ export default function PointHistoryPage() {
     [histories],
   );
 
-  /* 이용권 월 누적 한도 잔여/진행률. 셋 다 값이 있을 때만(이용권 보유 + 서버가 캡을 내려줄 때만) 카드를 그린다. */
+  /* 이용권 월 이용 한도 잔여/진행률. 셋 다 값이 있을 때만(이용권 보유 + 서버가 캡을 내려줄 때만) 카드를 그린다. */
   const passCycleRemainingWon = useMemo(() => (
     passCycleCapWon === null || passCycleSpentWon === null ? null : Math.max(0, passCycleCapWon - passCycleSpentWon)
   ), [passCycleCapWon, passCycleSpentWon]);
@@ -967,7 +967,7 @@ export default function PointHistoryPage() {
           )}
         </section>
 
-        {/* 이용권 월 누적 한도 — 이용권 보유 + 서버가 캡을 내려줄 때만 표시 */}
+        {/* 이용권 월 이용 한도 — 이용권 보유 + 서버가 캡을 내려줄 때만 표시 */}
         {passCycleTier && passCycleCapWon !== null && passCycleSpentWon !== null && passCycleRemainingWon !== null && (
           <PassCycleCard
             tier={passCycleTier}

@@ -2252,11 +2252,14 @@ function getMoonlightProfileLabel(subscription: SubscriptionStatus) {
   return limit <= 0 ? "프로필 무제한" : `프로필 최대 ${limit.toLocaleString(FORMAT_LOCALE_BY_LANG[getCurrentLoadingLocale()])}개`;
 }
 
+// 🔴 2026-08-24 문구 정책: 모든 등급에 월 이용 한도가 있으므로 한도가 없다는 뜻의 표현을 쓰지
+//    않는다. 금액은 worker/lib/profile-limits.js 의 PASS_LIMITS 와 뜻이 같아야 한다
+//    (5,000 / 10,000 / 20,000원, family 상한 없음). 가드: verify:pass-tier-policy
 function getMoonlightBenefitLabel(tier: SubscriptionTier) {
-  if (tier === "family") return "3만원 미만 무제한 · 초융합 포함 10회";
-  if (tier === "vvip") return "1만원 이하 유료 무료";
-  if (tier === "premium") return "5천원 이하 유료 무료";
-  if (tier === "standard") return "3천원 이하 유료 무료";
+  if (tier === "family") return "이용권 대상 전체";
+  if (tier === "vvip") return "2만원급 콘텐츠까지";
+  if (tier === "premium") return "1만원급 콘텐츠까지";
+  if (tier === "standard") return "5천원급 콘텐츠까지";
   return "30일 혜택 선택 가능";
 }
 
