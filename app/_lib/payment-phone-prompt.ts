@@ -66,6 +66,8 @@ export const PAYMENT_PHONE_SOCIAL_CTA_KAKAO = "카카오에서 번호 가져오�
 export const PAYMENT_PHONE_SOCIAL_CTA_NAVER = "네이버에서 번호 가져오기";
 export const PAYMENT_PHONE_SOCIAL_BLOCKED = "팝업이 차단됐어요. 아래에 직접 입력해 주세요.";
 export const PAYMENT_PHONE_SOCIAL_FAILED = "번호를 가져오지 못했어요. 아래에 직접 입력해 주세요.";
+/** 공급자에게서 번호를 가져오는 경로일 때 제목 아래 설명. 직접 입력 안내를 대신한다. */
+export const PAYMENT_PHONE_SOCIAL_DESC = "소셜 계정에 등록된 번호를 가져옵니다. 동의 창에서 번호 제공에 동의하면 결제가 이어집니다.";
 
 /** 팝업을 열어 둔 채 사용자가 손을 놓았을 때 버튼을 되살리기까지의 시간. */
 const SOCIAL_CONSENT_TIMEOUT_MS = 120000;
@@ -143,6 +145,15 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
       resolve(value);
     };
 
+    // 🔴 공급자가 번호를 줄 수 있으면 **직접 입력을 보여주지 않는다**(2026-08-25). 카카오·네이버는
+    // 전화번호가 선택 동의라 거부한 채로 가입이 끝날 수 있고, 그 사용자는 결제할 때 자기 소셜에서
+    // 동의해야 한다. 구글은 애초에 번호를 주지 않으므로 이 묶음이 그대로 보인다.
+    // 🔴 이 함수를 지우고 항상 보이게 되돌리면, 소셜 동의 경로가 "둘 중 아무거나" 로 돌아간다.
+    const manualEntryNodes = () => [fieldLabel, input, notice, consentLabel, submitButton];
+    const setManualEntryVisible = (visible: boolean) => {
+      for (const node of manualEntryNodes()) node.style.display = visible ? "" : "none";
+    };
+
     const setBusy = (isBusy: boolean) => {
       input.disabled = isBusy;
       consentInput.disabled = isBusy;
@@ -187,7 +198,8 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
 
     title.id = "cd-payment-phone-title";
     title.textContent = "단건결제를 위해 휴대폰 번호가 필요해요";
-    desc.textContent = "KG이니시스 결제 진행에 필요한 정보입니다. 최초 1회만 입력하면 다음 결제부터는 바로 결제창이 열립니다.";
+    const manualDesc = "KG이니시스 결제 진행에 필요한 정보입니다. 최초 1회만 입력하면 다음 결제부터는 바로 결제창이 열립니다.";
+    desc.textContent = manualDesc;
     input.id = "cd-payment-phone-input";
     input.type = "tel";
     input.inputMode = "tel";
@@ -273,8 +285,14 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
       const url = social.startUrl(socialProvider);
       popup = window.open(url, "cdPhoneConsent", "width=480,height=720,noopener=no");
       if (!popup) {
+        // 🔴 여기가 유일한 안전 밸브다. 팝업이 막힌 사용자는 소셜 동의 창을 열 방법이 없으므로,
+        // 그때만 직접 입력을 되살린다 — 동의 우회가 아니라 브라우저 조건에 대한 대비이고,
+        // 어차피 같은 번호를 같은 고지·동의와 함께 받는다. 이걸 지우면 그 사용자는 결제를 못 한다.
         socialButton.style.display = "none";
+        setManualEntryVisible(true);
+        desc.textContent = manualDesc;
         error.textContent = PAYMENT_PHONE_SOCIAL_BLOCKED;
+        input.focus();
         return;
       }
       socialButton.disabled = true;
@@ -389,6 +407,10 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
           socialProvider = provider;
           socialButton.textContent = paymentPhoneSocialCtaLabel(provider);
           socialButton.style.display = "block";
+          // 주 경로이므로 입력칸 자리로 올린다(원래는 입력칸 아래의 보조 버튼이었다).
+          card.insertBefore(socialButton, fieldLabel);
+          setManualEntryVisible(false);
+          desc.textContent = PAYMENT_PHONE_SOCIAL_DESC;
         })
         .catch(() => {});
     }

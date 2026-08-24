@@ -1210,6 +1210,27 @@ function runClientStaticTests() {
   assertContains(clientPaymentSource, "window.PortOne.requestPayment(requestData)", "PortOne payment window call");
   assertContains(indexSource, "function _cdNormalizeKoreanPhoneNumber", "Inicis checkout phone normalizer");
   assertContains(indexSource, "_cdPromptDirectCheckoutPhoneNumber", "Inicis checkout phone prompt");
+
+  // 🔴 결제 시 번호 수집 **경로 고정**(2026-08-25). 전화번호는 카카오·네이버 모두 선택 동의라
+  // 거부한 채로 가입이 끝날 수 있고, 그 사용자는 결제할 때 자기 소셜에서 동의해야 한다.
+  // 구글은 번호를 주지 않으므로 자체 폼이 그대로 보인다.
+  //
+  // 되살아나기 쉬운 형태는 둘이다 — ①직접 입력을 항상 보이게 되돌리기(그러면 "둘 중 아무거나"
+  // 로 돌아간다) ②팝업 차단 분기를 지우기(그러면 팝업이 막힌 사용자는 카드 결제를 **영영** 못 한다).
+  // 그래서 렌더러 3벌 모두에서 그 둘을 함께 못박는다.
+  for (const [label, source] of [
+    ["shell", indexSource],
+    ["dp", destinyProfileSource],
+    ["react", readFileSync(resolve(root, "app/_lib/payment-phone-prompt.ts"), "utf8")],
+  ]) {
+    assertContains(source, "setManualEntryVisible(false)",
+      `${label}: 공급자가 번호를 줄 수 있으면 직접 입력을 감춰야 한다`);
+    assertContains(source, "setManualEntryVisible(true)",
+      `${label}: 팝업이 막혔을 때 직접 입력을 되살리는 안전 밸브가 있어야 한다`);
+    // 안전 밸브는 팝업 차단 분기 안에 있어야 한다 — 밖으로 나가면 항상 보이게 되돌린 것과 같다.
+    assertBefore(source, "setManualEntryVisible(true)", "socialButton.disabled = true;",
+      `${label}: 안전 밸브는 팝업 열기 실패 분기 안에 있어야 한다`);
+  }
   assertContains(indexSource, "phoneNumber: customerPhone", "PortOne V2 customer phoneNumber");
   assertContains(indexSource, "hasBuyerPhoneNumber: Boolean(customerPhone)", "direct checkout safe phone presence log");
   // 시그니처가 아니라 존재를 본다 — 인자 추가로 깨지면 안 되는 단언이다(위 ②-b 주석과 같은 이유).
