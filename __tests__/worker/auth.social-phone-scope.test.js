@@ -43,9 +43,10 @@ const BASE_ENV = {
 const request = new Request("https://code-destiny.com/api/auth/oauth/kakao/start");
 
 let buildProviderConfig;
+let resolveSocialAutoSignup;
 
 beforeAll(async () => {
-  ({ buildProviderConfig } = (await import("../../worker/routes/auth.js")).__authTestUtils);
+  ({ buildProviderConfig, resolveSocialAutoSignup } = (await import("../../worker/routes/auth.js")).__authTestUtils);
 });
 
 const scopeFor = (provider, env) => buildProviderConfig(provider, request, { ...BASE_ENV, ...env }).scope;
@@ -115,5 +116,46 @@ describe("출생연도 scope 스위치", () => {
     const both = { SOCIAL_PHONE_SCOPE_PROVIDERS: "naver", SOCIAL_BIRTHYEAR_SCOPE_PROVIDERS: "naver" };
     // 순서까지 고정한다 — 문자열 조립 순서가 바뀌면 공급자 쪽 동의 화면 항목 순서가 흔들린다.
     expect(scopeFor("naver", both)).toBe("name email birthyear mobile");
+  });
+});
+
+/**
+ * 🔴 소셜 가입이 **화면 없이** 끝나는 조건(2026-08-25).
+ *
+ * 카카오·네이버는 인증 후 우리 화면을 띄우지 않고 콜백에서 바로 계정을 만든다. 그 판정이 여기다.
+ * 이 스위트가 지키는 것 중 가장 중요한 것은 **미성년을 자동으로 가입시키지 않는 것**이다 —
+ * canAutoCreate 가 잘못 true 가 되면 네이버가 알려 준 나이를 우리가 스스로 버리는 셈이 된다.
+ */
+describe("소셜 자동 가입 판정", () => {
+  test("카카오는 로그인 폼이 연령을 확인하므로 바로 만든다", () => {
+    const verdict = resolveSocialAutoSignup("kakao", { birthYear: "" });
+    expect(verdict.canAutoCreate).toBe(true);
+    expect(verdict.underage).toBe(false);
+  });
+
+  test("네이버는 출생연도를 받았고 만 14세 이상일 때만 만든다", () => {
+    expect(resolveSocialAutoSignup("naver", { birthYear: "1990" }).canAutoCreate).toBe(true);
+    // 값을 못 받았으면(제공 항목 미설정 등) 화면으로 보낸다 — 추측해서 만들지 않는다.
+    expect(resolveSocialAutoSignup("naver", { birthYear: "" }).canAutoCreate).toBe(false);
+  });
+
+  // 🔴 이 스위트에서 가장 중요한 단언이다.
+  test("공급자가 알려 준 나이가 만 14세 미만이면 만들지 않고 미성년으로 표시한다", () => {
+    const verdict = resolveSocialAutoSignup("naver", { birthYear: "2020" });
+    expect(verdict.underage).toBe(true);
+    expect(verdict.canAutoCreate).toBe(false);
+  });
+
+  // 카카오라도 공급자 값이 미성년이면 면제가 이기지 못한다.
+  test("카카오여도 출생연도가 미성년이면 면제가 이기지 못한다", () => {
+    const verdict = resolveSocialAutoSignup("kakao", { birthYear: "2020" });
+    expect(verdict.underage).toBe(true);
+    expect(verdict.canAutoCreate).toBe(false);
+  });
+
+  test("구글은 연령을 알 수 없으므로 화면으로 보낸다", () => {
+    const verdict = resolveSocialAutoSignup("google", { birthYear: "" });
+    expect(verdict.canAutoCreate).toBe(false);
+    expect(verdict.underage).toBe(false);
   });
 });

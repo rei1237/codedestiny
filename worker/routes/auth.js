@@ -29,7 +29,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, needsPasswordRehash, verifyPassword } from "../lib/password.js";
 import { checkPasswordBreached } from "../lib/password-breach.js";
 import { decryptPhoneNumber, encryptPhoneNumber } from "../lib/pii-crypto.js";
-import { MIN_NEW_PASSWORD_LENGTH, MIN_SELF_CONSENT_AGE, validateBirthYear, validateLoginPayload, validateNewPassword, validateRegisterPayload } from "../lib/validation.js";
+import { MIN_NEW_PASSWORD_LENGTH, MIN_SELF_CONSENT_AGE, deriveNameFromEmail, validateBirthYear, validateLoginPayload, validateNewPassword, validateRegisterPayload } from "../lib/validation.js";
 import {
   buildSocialSignupRedirectUrl,
   signSocialSignupTicket,
@@ -1527,6 +1527,42 @@ function resolveProviderAgeVerdict(socialProfile) {
   const check = validateBirthYear(raw);
   if (check.age < 0) return { settled: false, underage: false };
   return { settled: check.isValid, underage: !check.isValid };
+}
+
+/**
+ * 공급자 화면만 거치고 가입이 끝나는 경로의 동의 기록.
+ *
+ * 화면이 없어졌을 뿐 제22조 입증 기록은 그대로 남는다 — 값의 모양은 가입 마무리 화면 경로가
+ * 쓰는 것과 **같아야** 한다(한쪽만 바뀌면 같은 사용자가 어느 경로로 들어왔느냐에 따라 기록이 갈린다).
+ *
+ * 🔴 phone 동의는 **번호가 실제로 왔을 때만** 적는다. 안 온 계정에 적으면 받지도 않은 항목에
+ * 동의받았다고 기록하는 셈이고, 그 계정은 첫 결제 화면에서 따로 동의를 받는다.
+ */
+function buildProviderSignupConsents(hasProviderPhoneNumber) {
+  const now = new Date();
+  return {
+    termsVersion: AUTH_TERMS_VERSION,
+    termsAcceptedAt: now,
+    privacyVersion: AUTH_PRIVACY_VERSION,
+    privacyAcceptedAt: now,
+    age14AttestedAt: now,
+    ...(hasProviderPhoneNumber ? { phoneVersion: AUTH_PRIVACY_VERSION, phoneAcceptedAt: now } : {}),
+  };
+}
+
+/**
+ * 공급자가 준 것만으로 계정을 끝까지 만들 수 있는가.
+ *
+ * 이름은 mapSocialProfile 이 항상 채우고(없으면 "<provider> user"), 번호는 없어도 첫 결제 화면이
+ * 받는다. 그래서 남는 조건은 **연령**뿐이다 — 카카오는 로그인 폼이 확인하고, 네이버는 birthyear 를
+ * 넘긴다. 구글은 둘 다 아니므로 생년 한 칸짜리 화면으로 간다.
+ */
+function resolveSocialAutoSignup(provider, socialProfile) {
+  const ageVerdict = resolveProviderAgeVerdict(socialProfile);
+  return {
+    underage: ageVerdict.underage,
+    canAutoCreate: !ageVerdict.underage && (providerVerifiesAge(provider) || ageVerdict.settled),
+  };
 }
 
 function providerVerifiesAge(provider) {
@@ -4606,9 +4642,20 @@ async function handleOAuthCallback(request, env, provider) {
         String(statePayload.redirectUri || ""),
       );
       const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
-      // 신규 신원은 여기서 계정을 만들지 않는다 — 생년월일을 받아야 만 14세 미만 여부를 안다.
-      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env, { createIfMissing: false });
+      // 🔴 2026-08-25: 공급자가 연령까지 확정해 주면 **여기서 계정을 만들고 화면을 띄우지 않는다.**
+      // 예전 주석("신규 신원은 여기서 계정을 만들지 않는다 — 생년월일을 받아야…")은 그때의 사실이고,
+      // 지금은 네이버가 birthyear 를, 카카오가 로그인 폼의 확인을 대신 해 준다.
+      const autoSignup = resolveSocialAutoSignup(provider, socialProfile);
+      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env, {
+        createIfMissing: autoSignup.canAutoCreate,
+        signupProfile: autoSignup.canAutoCreate
+          ? { legalConsents: buildProviderSignupConsents(Boolean(normalizeKoreanPhoneNumber(socialProfile?.phoneNumber))) }
+          : null,
+      });
       if (!socialUser.user) {
+        // 🔴 미성년이면 티켓조차 주지 않는다. 티켓을 주면 가입 마무리 화면에서 생년을 다시 적어
+        // 우회할 수 있고, 그러면 공급자가 알려 준 나이를 우리가 스스로 버리는 셈이다.
+        if (autoSignup.underage) return buildOAuthFailureRedirect(safeFrontendBase, provider, "underage");
         const ticket = await buildSocialSignupTicket(provider, socialProfile, statePayload, env, {
           nextPath,
           flow,
@@ -4666,10 +4713,18 @@ async function handleOAuthCallback(request, env, provider) {
       );
       logKakaoCallbackMarker(request, provider, "exchangeSuccess");
       const socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
-      // 카카오는 이 콜백에서 세션까지 바로 발급하는 유일한 경로다. 신규 신원은 계정을
-      // 만들지 않고 가입 마무리 화면으로 보내야 하므로 세션 발급 앞에서 갈라진다.
-      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env, { createIfMissing: false });
+      // 카카오는 이 콜백에서 세션까지 바로 발급하는 유일한 경로다. 🔴 2026-08-25 부터 신규 신원도
+      // 여기서 계정을 만든다 — 카카오 로그인 폼이 만 14세 확인과 개인정보 제공 동의를 이미 받으므로
+      // 우리 화면을 한 번 더 띄울 이유가 없다. 아래 세션 발급 경로에 그대로 합류한다.
+      const autoSignup = resolveSocialAutoSignup(provider, socialProfile);
+      const socialUser = await resolveSocialUserWithRetry(provider, socialProfile, env, {
+        createIfMissing: autoSignup.canAutoCreate,
+        signupProfile: autoSignup.canAutoCreate
+          ? { legalConsents: buildProviderSignupConsents(Boolean(normalizeKoreanPhoneNumber(socialProfile?.phoneNumber))) }
+          : null,
+      });
       if (!socialUser.user) {
+        if (autoSignup.underage) return buildOAuthFailureRedirect(safeFrontendBase, provider, "underage");
         const ticket = await buildSocialSignupTicket(provider, socialProfile, statePayload, env, {
           nextPath,
           flow,
@@ -4953,11 +5008,13 @@ async function handleOAuthCompleteSignup(request, env) {
     }
   }
 
-  // 소셜 제공자 정보는 이름의 기본값으로만 사용하고, 신규 계정의 결제 고객정보는 사용자가 확인한다.
-  const signupName = String(body?.name || ticket?.name || "").trim().slice(0, 40);
-  if (signupName.length < 2) {
-    return signupErrorResponse(request, env, 400, "invalid_name", "Name must be at least 2 characters.");
-  }
+  // 🔴 가입 화면은 이름을 받지 않는다(2026-08-25) — 티켓의 공급자 이름이 정본이고, 그마저
+  // 너무 짧으면 이메일 아이디에서 만든다. 여기서 400 을 내면 이름 칸이 없는 화면에서
+  // 사용자가 고칠 방법이 없는 오류가 된다.
+  const providerName = String(ticket?.name || "").trim().slice(0, 40);
+  const signupName = providerName.length >= 2
+    ? providerName
+    : (deriveNameFromEmail(ticket?.email) || `${provider} user`);
 
   // 🔴 휴대폰 번호는 필수다(2026-08-19 정책). 값의 출처는 둘이고 우선순위가 있다.
   //   ① 티켓의 번호 — 공급자(카카오·네이버)가 자기 동의 절차로 넘긴 값을 **우리 서버가** 공급자
@@ -5175,6 +5232,7 @@ export const __authTestUtils = {
   handleOAuthStart,
   handleOAuthCallback,
   handleOAuthCompleteSignup,
+  resolveSocialAutoSignup,
   findOrCreateSocialUser,
   buildProviderConfig,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),

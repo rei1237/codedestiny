@@ -374,7 +374,6 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   // 공급자 로그인 폼이 만 14세 확인을 이미 받은 경우(카카오)에만 true — 그때는 생년을 묻지 않는다.
   const [socialAgeVerified, setSocialAgeVerified] = useState(false);
   const [birthYear, setBirthYear] = useState("");
-  const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -396,9 +395,6 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     const params = new URLSearchParams(window.location.search);
     setTicket(params.get("social_signup") || params.get("socialSignupTicket") || "");
     setSocialAgeVerified(params.get("social_age") === "1");
-    // 공급자가 준 이름을 그대로 채운다. 편집은 열어 둔다 — 카카오 닉네임이 실명이 아닐 수 있다.
-    const providedName = (params.get("social_name") || "").trim().slice(0, 40);
-    if (providedName) setName(providedName);
     if (params.get("error") || params.get("social_error")) setError(copy.unavailable);
   }, [copy.unavailable]);
 
@@ -457,7 +453,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     // 🔴 로그인은 8자 그대로다. 기존 회원이 8~9자로 가입했을 수 있어 여기서 올리면 로그인이 막힌다.
     // 가입만 서버(worker/lib/validation.js MIN_NEW_PASSWORD_LENGTH)와 같은 10자를 요구한다.
     const minPasswordLength = mode === "signup" ? MIN_NEW_PASSWORD_LENGTH : 8;
-    if (password.length < minPasswordLength || (mode === "signup" && name.trim().length < 2)) {
+    if (password.length < minPasswordLength) {
       setError(mode === "login" ? copy.credentialsError : copy.invalidSignup); return;
     }
     if (needsBirthYear && !isBirthYearOk(birthYear)) { setError(copy.invalidAge); return; }
@@ -476,7 +472,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       const current = new URLSearchParams(window.location.search);
       const response = await authFetch(`${apiBase}/api/auth/register`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password, phoneNumber: normalizedPhone, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath(), referralCode: current.get("ref") || undefined, referralShareToken: current.get("rs") || undefined, referralSource: current.get("via") || undefined }),
+        body: JSON.stringify({ email: email.trim(), password, phoneNumber: normalizedPhone, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath(), referralCode: current.get("ref") || undefined, referralShareToken: current.get("rs") || undefined, referralSource: current.get("via") || undefined }),
       });
       const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
       // 🔴 5xx 를 throw 로 넘기지 않는다 — 아래 catch 의 /failed|invalid|.../ 정규식이 진단 꼬리표
@@ -496,7 +492,6 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const finishSocialSignup = async (event: FormEvent) => {
     event.preventDefault();
     if (busy) return;
-    if (name.trim().length < 2) { setError(copy.invalidSignup); return; }
     // 카카오는 이 검사를 타지 않는다(ageVerifiedByProvider). 서버도 티켓의 provider 로 같은 분기를 한다.
     if (needsBirthYear && !isBirthYearOk(birthYear)) { setError(copy.invalidAge); return; }
     // 🔴 소셜 가입은 번호를 묻지 않는다(2026-08-25). 카카오·네이버는 공급자가 넘겨 주고,
@@ -506,7 +501,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     try {
       const response = await authFetch(`${apiBase}/api/auth/oauth/complete-signup`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
-        body: JSON.stringify({ socialSignupTicket: ticket, name: name.trim(), privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath() }),
+        body: JSON.stringify({ socialSignupTicket: ticket, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath() }),
       });
       const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; appRedirectUrl?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
       if (!response.ok && response.status >= 500) { setError(withServerDiagnostics(copy.unavailable, payload)); return; }
@@ -527,9 +522,11 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       <section className="w-full rounded-[24px] border border-[#c9b7f0]/20 bg-[#12152b] p-5 shadow-[0_24px_70px_rgba(0,0,0,.38)] sm:p-7" aria-labelledby="auth-title">
         <header className="text-center"><img src="/icons/app-logo-96.png" width="52" height="52" alt="" className="mx-auto h-[52px] w-[52px] rounded-2xl" /><h1 id="auth-title" className="mt-4 text-balance text-[1.55rem] font-black tracking-[-0.025em]">{ticket ? copy.finishTitle : isSignup ? copy.signupTitle : copy.loginTitle}</h1><p className="mx-auto mt-2 max-w-[38ch] text-pretty text-sm leading-6 text-[#d8d0ea]">{ticket ? copy.finishDescription : isSignup ? copy.signupDescription : copy.loginDescription}</p></header>
         <div className="my-4 min-h-6" aria-live="polite">{error ? <p id="auth-error" role="alert" className="rounded-xl border border-[#ff8ca5]/40 bg-[#421d2a] px-3 py-2.5 text-sm text-[#ffd7df]">{error}</p> : null}</div>
-        {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["google", "naver", "kakao"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
+        {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["google", "naver", "kakao"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p><section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
         <form onSubmit={ticket ? finishSocialSignup : submitEmail} className="space-y-4" noValidate aria-describedby={error ? "auth-error" : undefined}>
-          {isSignup && <Field id="auth-name" label={copy.name}><input id="auth-name" type="text" autoComplete="name" maxLength={40} value={name} onChange={(event) => setName(event.target.value)} className={inputClass} /></Field>}
+          {/* 🔴 이름은 받지 않는다(2026-08-25). 소셜은 공급자가 항상 넘겨 주고(mapSocialProfile 이
+              없으면 "<provider> user" 로 채운다), 이메일은 서버가 이메일 아이디에서 파생한다.
+              결제창의 customer.fullName 도 그 값을 쓰므로 PG 쪽에 부족한 것이 없다. */}
           {/* 🔴 휴대폰 번호는 필수 입력이다(2026-08-19 정책). 유일한 예외는 카카오·네이버가
               동의항목으로 번호를 이미 넘긴 경우(social_phone=1)이고, 그때만 칸을 감춘다.
               고지 문구는 아래 개인정보 동의 체크(privacySummary)와 개인정보처리방침 2항에 맞춘다. */}
@@ -545,7 +542,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
               연령을 공급자가 다 넘긴 경로에서는 이 화면에 채울 것이 하나도 남지 않아야 한다는 요구다.
               고지(privacySummary)는 그대로 화면에 남고 동의 시각·버전 기록도 서버가 그대로 남긴다
               (worker/routes/auth.js legalConsents) — 없앤 것은 클릭이지 고지도 기록도 아니다. */}
-          {isSignup && <section aria-label={copy.agreeOnSubmit} className="space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section>}
+          {Boolean(ticket) && <section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section>}
           <button type="submit" disabled={busy || Boolean(socialBusy)} aria-busy={busy} className="min-h-12 w-full rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff] disabled:opacity-55">{busy ? copy.processing : ticket ? copy.finish : isSignup ? copy.signup : copy.login}</button>
         </form>
         {!ticket && <p className="mt-5 text-center text-sm text-[#cfc4e1]">{isSignup ? copy.hasAccount : copy.noAccount} <Link href={isSignup ? `/login?next=${encodeURIComponent(nextPath())}` : `/signup?next=${encodeURIComponent(nextPath())}`} onClick={() => { setMode(isSignup ? "login" : "signup"); setError(""); }} className="ml-1 min-h-11 font-black text-[#d7c1ff] underline underline-offset-4">{isSignup ? copy.switchToLogin : copy.switchToSignup}</Link></p>}
