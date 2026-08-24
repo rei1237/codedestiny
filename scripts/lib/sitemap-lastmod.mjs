@@ -33,7 +33,6 @@ import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "
 import { dirname, join, resolve } from "node:path";
 import { normalizeCacheBust } from "./cachebust-pattern.mjs";
 import { sliceFunction } from "./js-source-slice.mjs";
-import { kstYmdToday } from "./fortune-date.mjs";
 
 const LEDGER_REL_PATH = "config/sitemap-lastmod.json";
 
@@ -86,15 +85,26 @@ const STANDALONE_SHELL_ROUTES = new Map([
 
 /**
  * 런타임에 파일을 읽어 import 그래프에 안 잡히는 데이터 의존.
- * 값은 그 의존의 현재 상태를 나타내는 서명 조각을 돌려준다.
+ * `id` 는 그 의존을 가리키는 **안정적인** 서명 조각이고, `volatile` 은 그 데이터가 날마다
+ * 바뀐다는 표시다.
  *
  * lib/fortune/daily-data.ts 는 fortune/data/daily-<KST 오늘>.json 을 읽는다. 그리고
  * lib/fortune/build-view.ts 는 weekly(:109)·monthly(:179) 에서도 loadDailyPackage("today") 를
- * 부르므로 **네 기간 전부 매일 실제로 바뀐다.** 이건 churn 이 아니라 정직한 신호이므로
- * 날짜를 서명에 넣어 매일 올라가게 둔다(파일 자체는 .gitignore 라 해싱하지 않는다).
+ * 부르므로 **네 기간 전부 매일 실제로 바뀐다.** 그건 churn 이 아니라 정직한 신호라 lastmod 는
+ * 매일 올라가야 한다(파일 자체는 .gitignore 라 해싱하지 않는다).
+ *
+ * 🔴 다만 그 사실을 **서명에 날짜로 섞지 않는다**(2026-08-25 정정). 예전 값은
+ * `fortune-daily-package:${kstYmdToday()}` 였는데, 그러면 원장에 저장되는 서명이 KST 자정마다
+ * 통째로 바뀐다. 2026-08-24 에 PR CI 로 들어온 verify:sitemap-drift 는 원장을 **바이트로**
+ * 비교하므로, 원장을 마지막으로 재생성한 다음 자정부터 **모든 PR** 이 사이트맵과 무관한 이유로
+ * 빨간불이 됐다(실측: /fortune/today/* 계열 50개 서명이 매일 어긋났다). assertNoDrift 의
+ * "재생성은 결정적이다" 주석은 lastmod 만 보고 쓴 것이라 서명에 대해서는 거짓이었다.
+ *
+ * 이제 ① 원장의 서명은 소스가 실제로 바뀔 때만 움직이고(= 진짜 변경은 여전히 잡힌다)
+ * ② 매일 바뀌는 것은 lastmod 뿐이며 그건 드리프트 비교에서 정규화된다(generate-sitemap.mjs).
  */
 const RUNTIME_DATA_MODULES = new Map([
-  ["lib/fortune/daily-data.ts", () => `fortune-daily-package:${kstYmdToday()}`],
+  ["lib/fortune/daily-data.ts", { id: "fortune-daily-package", volatile: true }],
 ]);
 
 const RUNTIME_READ_RE = /\breadFileSync\s*\(/;
@@ -233,6 +243,8 @@ export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath
   const textCache = new Map();
   const depsCache = new Map();
   const decided = new Map();
+  // 매일 바뀌는 런타임 데이터를 읽는 라우트. 드리프트 검사가 이 라우트의 lastmod 를 정규화한다.
+  const volatileRoutes = new Set();
   const unresolvedImports = [];
   // 라우트 그래프에 실제로 들어온 파일의 합집합. 런타임 데이터 의존 검사가 이 범위만 본다.
   const visitedFiles = new Set();
@@ -342,15 +354,19 @@ export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath
       files.sort();
     }
 
-    for (const [rel, sign] of RUNTIME_DATA_MODULES) {
-      if (files.includes(rel)) extras.push(sign());
+    let volatileSource = false;
+    for (const [rel, entry] of RUNTIME_DATA_MODULES) {
+      if (!files.includes(rel)) continue;
+      extras.push(entry.id);
+      if (entry.volatile) volatileSource = true;
     }
 
-    return { pageFile: page.file, files, extras };
+    return { pageFile: page.file, files, extras, volatileSource };
   }
 
   function signatureFor(pathname) {
-    const { files, extras } = sourcesFor(pathname);
+    const { files, extras, volatileSource } = sourcesFor(pathname);
+    if (volatileSource) volatileRoutes.add(pathname);
     const hash = createHash("sha256");
     for (const rel of files) {
       hash.update(rel);
@@ -392,7 +408,12 @@ export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath
       const signature = signatureFor(pathname);
       const previous = stored[pathname];
       let lastmod;
-      if (previous && previous.signature === signature && /^\d{4}-\d{2}-\d{2}$/.test(previous.lastmod || "")) {
+      // 🔴 매일 바뀌는 데이터를 읽는 라우트는 서명이 그대로여도 내용이 달라졌다. 예전에는 서명에
+      // 날짜를 섞어 이 분기를 우회했는데, 그 부작용이 원장의 매일 드리프트였다. 이제 명시적으로 판단한다.
+      if (volatileRoutes.has(pathname)) {
+        lastmod = today;
+        stats.updated += 1;
+      } else if (previous && previous.signature === signature && /^\d{4}-\d{2}-\d{2}$/.test(previous.lastmod || "")) {
         lastmod = previous.lastmod;
         stats.kept += 1;
       } else if (!previous && previousLastmod.has(pathname)) {
@@ -405,6 +426,14 @@ export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath
 
       decided.set(pathname, { signature, lastmod });
       return lastmod;
+    },
+
+    /**
+     * 매일 바뀌는 런타임 데이터를 읽어 lastmod 가 날마다 올라가는 라우트.
+     * 드리프트 검사가 이 라우트의 lastmod 만 정규화해 비교한다(서명은 그대로 비교한다).
+     */
+    volatileRoutes() {
+      return new Set(volatileRoutes);
     },
 
     /** 사이트맵에 실제로 실린 라우트만 남겨 원장을 다시 쓴다. */

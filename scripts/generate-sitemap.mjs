@@ -14,6 +14,23 @@ const { INSIGHT_SEED_ARTICLES } = await import(
   pathToFileURL(resolve(process.cwd(), "app", "insights", "seed-articles.js")).href
 );
 
+// 🔴 **가공 전** 원본도 함께 읽는다. seed-articles.js 의 normalizeIsoDate 는 날짜가 없는 글에
+// `Date.now() - (30 + index)일` 을 채워 주므로(seed-articles.js:208), 가공본만 보면 "날짜가 있다"로
+// 보이지만 그 값은 **매일 하루씩 미끄러진다.** 그러면 사이트맵의 lastmod 가 날마다 바뀌고,
+// verify:sitemap-drift 가 사이트맵과 무관한 PR 을 자정마다 전부 빨간불로 만든다
+// (2026-08-25 실측: /insights/ziwei-star-combinations-for-beginners/ 한 건이 그랬다).
+// 구글 입장에서도 "영원히 30일 전에 갱신됨"은 거짓 신선도 신호다.
+const [{ INSIGHT_ARTICLES }, { SEO_GROWTH_ARTICLES }] = await Promise.all([
+  import(pathToFileURL(resolve(process.cwd(), "app", "insights", "articles.js")).href),
+  import(pathToFileURL(resolve(process.cwd(), "app", "insights", "seo-growth-articles.js")).href),
+]);
+const EXPLICITLY_DATED_INSIGHT_SLUGS = new Set(
+  [...(INSIGHT_ARTICLES || []), ...(SEO_GROWTH_ARTICLES || [])]
+    .filter((article) => String(article?.updatedAt || article?.publishedAt || "").trim())
+    .map((article) => String(article?.slug || "").trim())
+    .filter(Boolean),
+);
+
 const rootDir = process.cwd();
 
 // 🔴 루트 정적 셸 라우트는 후행 슬래시를 붙이면 안 된다.
@@ -390,6 +407,20 @@ function extractInsightRoutes() {
     });
   }
 
+  // fail-closed: 날짜 없는 글이 사이트맵에 올라가면 그 lastmod 는 매일 바뀐다(위 상단 주석).
+  const undated = routes
+    .map((route) => route.path.slice("/insights/".length))
+    .filter((slug) => !EXPLICITLY_DATED_INSIGHT_SLUGS.has(slug));
+  if (undated.length > 0) {
+    throw new Error(
+      "[sitemap] updatedAt 이 없는 인사이트 글이 사이트맵에 있습니다:\n" +
+        undated.sort().map((slug) => `  - ${slug}`).join("\n") +
+        "\napp/insights/articles.js 의 해당 레코드에 updatedAt 을 적으세요(그 글을 마지막으로 고친 " +
+        "커밋 날짜). 비워 두면 seed-articles 의 폴백이 '오늘 - N일' 을 채워 lastmod 가 매일 바뀌고, " +
+        "verify:sitemap-drift 가 무관한 PR 을 자정마다 전부 실패시킵니다.",
+    );
+  }
+
   return routes;
 }
 
@@ -723,7 +754,7 @@ async function main() {
   const ledger = lastmodLedger.save({ dryRun: checkOnly });
 
   if (checkOnly) {
-    assertNoDrift(xml, ledger.serialized, sorted.length);
+    assertNoDrift(xml, ledger.serialized, sorted.length, lastmodLedger.volatileRoutes());
     return;
   }
 
@@ -745,20 +776,58 @@ async function main() {
  *   ② URL 집합이 다르면 실패한다 — 색인 대상이 조용히 늘거나 줄어든 것이다.
  *   ③ 바이트가 다르면 실패한다 — lastmod·priority 만 어긋난 경우까지 잡는다.
  *
- * 🔴 재생성은 결정적이다. lastmod 는 콘텐츠 서명이 그대로면 원장의 옛 날짜를 유지하므로
- *    (scripts/lib/sitemap-lastmod.mjs:395) 날짜가 바뀌어도 결과가 흔들리지 않는다.
+ * 🔴 재생성은 **한 곳만 빼고** 결정적이다. 매일 바뀌는 운세 데이터를 읽는 라우트는 lastmod 가
+ *    날마다 올라가는 것이 의도된 동작이라(sitemap-lastmod.mjs RUNTIME_DATA_MODULES), 그 값은
+ *    비교 전에 정규화한다. 정규화하지 않으면 사이트맵과 무관한 PR 이 자정마다 전부 빨간불이 된다
+ *    — 2026-08-25 에 실제로 그렇게 됐다. 서명은 정규화하지 않으므로 그 라우트의 **소스가 진짜로
+ *    바뀐 경우는 여전히 잡힌다**(이 검사가 막으려던 /ziwei/chart 형태의 누락).
  *    단 SITEMAP_USE_INSIGHTS_API=1 은 외부 응답에 따라 결과가 달라지므로 검사에서 뺀다.
  */
-function assertNoDrift(xml, ledgerSerialized, urlCount) {
+const VOLATILE_LASTMOD = "<runtime-daily>";
+
+/** 휘발성 라우트의 lastmod 를 상수로 바꿔 "날짜가 달라서 다른 것" 을 비교에서 제거한다. */
+function normalizeLedgerForDrift(text, volatilePaths) {
+  let parsed;
+  try {
+    parsed = JSON.parse(text);
+  } catch {
+    return text; // 깨진 JSON 은 정규화하지 않고 그대로 비교해 실패로 남긴다.
+  }
+  if (!parsed || typeof parsed.routes !== "object" || !parsed.routes) return text;
+  for (const pathname of volatilePaths) {
+    if (parsed.routes[pathname]) parsed.routes[pathname].lastmod = VOLATILE_LASTMOD;
+  }
+  return `${JSON.stringify(parsed, null, 2)}\n`;
+}
+
+function normalizeSitemapForDrift(text, volatileLocs) {
+  return text.replace(/<url>[\s\S]*?<\/url>/g, (block) => {
+    const loc = block.match(/<loc>([^<]+)<\/loc>/);
+    if (!loc || !volatileLocs.has(loc[1])) return block;
+    return block.replace(/<lastmod>[^<]*<\/lastmod>/, `<lastmod>${VOLATILE_LASTMOD}</lastmod>`);
+  });
+}
+
+function assertNoDrift(xml, ledgerSerialized, urlCount, volatilePaths = new Set()) {
   if (useInsightsApi) {
     console.log("[sitemap:check] SKIP — SITEMAP_USE_INSIGHTS_API=1 은 외부 응답에 의존해 비교할 수 없다.");
     return;
   }
 
+  // 🔴 정규화는 **양쪽에 똑같이** 건다. 한쪽만 걸면 비교가 항상 실패한다.
+  const volatileLocs = new Set([...volatilePaths].map((pathname) => toUrl(pathname)));
+  const normalizeXml = (text) => normalizeSitemapForDrift(text, volatileLocs);
+  const normalizeLedger = (text) => normalizeLedgerForDrift(text, volatilePaths);
+
   const targets = [
-    { label: "sitemap.xml", path: sitemapRootPath, expected: xml },
-    { label: "public/sitemap.xml", path: sitemapPublicPath, expected: xml },
-    { label: LEDGER_CHECK_LABEL, path: resolve(rootDir, LEDGER_CHECK_LABEL), expected: ledgerSerialized },
+    { label: "sitemap.xml", path: sitemapRootPath, expected: xml, normalize: normalizeXml },
+    { label: "public/sitemap.xml", path: sitemapPublicPath, expected: xml, normalize: normalizeXml },
+    {
+      label: LEDGER_CHECK_LABEL,
+      path: resolve(rootDir, LEDGER_CHECK_LABEL),
+      expected: ledgerSerialized,
+      normalize: normalizeLedger,
+    },
   ];
 
   const problems = [];
@@ -767,8 +836,8 @@ function assertNoDrift(xml, ledgerSerialized, urlCount) {
       problems.push(`- ${target.label}: 파일이 없다`);
       continue;
     }
-    const actual = readFileSync(target.path, "utf8");
-    if (actual === target.expected) continue;
+    const actual = target.normalize(readFileSync(target.path, "utf8"));
+    if (actual === target.normalize(target.expected)) continue;
 
     if (target.label.endsWith(".xml")) {
       const locsOf = (text) => new Set([...text.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]));
