@@ -155,11 +155,101 @@ function extractAssets(html) {
   // 같은 엣지 캐시 404 사고가 나도 위 정규식으로는 하나도 잡히지 않아 그동안 무방비였다.
   // 지연 로더가 쓰는 data-cd-noncritical-* 속성도 결국 같은 URL 을 요청하므로 함께 본다.
   for (const match of html.matchAll(
-    /(?:\ssrc|\shref|data-cd-noncritical-src|data-cd-noncritical-style-src)=["'](\/(?:js|styles|css)\/[^"'?\s>]+\.(?:js|css))/g,
+  // 🔴 이 저장소의 셸 자산은 전부 `?v=` 를 달고 나간다. 정규식이 `?` 앞에서 끊기던 동안
+  //    이 검증기는 **실제로 요청되는 URL 을 하나도 보지 않았다** — 검사도 재시도도 퍼지도
+  //    그 URL 을 비껴갔다(2026-08-24 실측: index.html 의 /js·/styles 참조 31/31 이 ?v= 부착).
+    /(?:\ssrc|\shref|data-cd-noncritical-src|data-cd-noncritical-style-src)=["'](\/(?:js|styles|css)\/[^"'\s>]+?\.(?:js|css)(?:\?[^"'\s>]*)?)/g,
   )) {
     found.add(match[1]);
   }
   return [...found];
+}
+
+/** 모듈 그래프를 몇 단계까지 따라갈지. app.js → bootstrapDestinyFlower.js → destiny-flower-art.js 가 3단이다. */
+const MODULE_GRAPH_DEPTH = 4;
+
+/** JS 본문에서 지역 import 지정자를 뽑는다. scripts/verify-js-module-graph.mjs 와 같은 규칙이다. */
+function extractModuleSpecifiers(source) {
+  const out = new Set();
+  const patterns = [
+    /\bimport\s*\(\s*["']([^"']+)["']\s*\)/g,
+    /\bimport\s+[^;()]*?\bfrom\s*["']([^"']+)["']/g,
+    /\bimport\s+["']([^"']+)["']/g,
+    /\bexport\s+[^;]*?\bfrom\s*["']([^"']+)["']/g,
+  ];
+  for (const pattern of patterns) {
+    for (const match of String(source || "").matchAll(pattern)) {
+      const value = match[1];
+      if (value.startsWith(".") || value.startsWith("/")) out.add(value);
+    }
+  }
+  return [...out];
+}
+
+/** `/js/app.js?v=x` 안의 `./core/init.js?v=y` 를 `/js/core/init.js?v=y` 로 편다. */
+function resolveModuleUrl(fromPath, specifier) {
+  try {
+    const base = new URL(fromPath, "https://cd.invalid");
+    const resolved = new URL(specifier, base);
+    if (resolved.origin !== base.origin) return null;
+    return resolved.pathname + resolved.search;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * HTML 이 참조한 JS 에서 시작해 모듈 그래프를 따라 내려간다.
+ *
+ * 🔴 2026-08-24 에 릴리스를 죽인 파일(`/js/services/destiny-flower-engine.js`)은 **HTML 에 없다.**
+ * `js/app.js` 가 동적 import 로 부르는 모듈 안에서만 보인다. HTML 속성만 훑던 동안 이 검증기의
+ * 재시도(8회×20초)와 퍼지는 그 파일에 원리적으로 닿을 수 없었고, 탐지 수단은 브라우저 스모크뿐이었다
+ * — 그런데 스모크는 재시도도 퍼지도 하지 않고 곧장 자동 롤백을 부른다.
+ *
+ * 반환: 새로 찾은 자산 → 그것을 참조한 부모 자산. 부모가 엣지에 굳은 옛 세대일 때
+ * **퍼지해야 하는 것은 자식이 아니라 부모**라서 출처를 남긴다.
+ */
+async function expandModuleGraph(found) {
+  const parents = new Map();
+  let frontier = [...found].filter((item) => /\.m?js(?:\?|$)/.test(item) && item.startsWith("/js/"));
+  for (let depth = 0; depth < MODULE_GRAPH_DEPTH && frontier.length; depth += 1) {
+    const next = [];
+    for (const item of frontier) {
+      let body;
+      try {
+        body = (await fetchText(`${ORIGIN}${item}`)).body;
+      } catch {
+        continue; // 못 받아오는 것은 checkAssets 가 상태코드로 이미 판정한다.
+      }
+      for (const specifier of extractModuleSpecifiers(body)) {
+        const resolved = resolveModuleUrl(item, specifier);
+        if (!resolved || found.has(resolved)) continue;
+        found.add(resolved);
+        parents.set(resolved, item);
+        if (/\.m?js(?:\?|$)/.test(resolved)) next.push(resolved);
+      }
+    }
+    frontier = next;
+  }
+  return parents;
+}
+
+/**
+ * 모듈 그래프에서 찾은 자식이 죽었는데 빌드에도 없다면, 그것은 **부모가 옛 세대**라는 뜻이다
+ * (자식은 이미 지워진 파일이다). 고쳐야 하는 URL 은 자식이 아니라 부모이므로 퍼지 대상을 갈아끼운다.
+ * artifact 모드는 불변 배포본이라 세대가 섞일 수 없으므로 이 완화를 적용하지 않는다 —
+ * 거기서의 404 는 빌드가 정말로 없는 파일을 참조한다는 뜻이고, 그건 실패가 맞다.
+ */
+function staleParentTargets(dead, moduleParents) {
+  if (MODE === "artifact") return [];
+  const out = [];
+  for (const item of dead || []) {
+    const parent = moduleParents?.get(item.path);
+    if (!parent) continue;
+    if (existsInBuild(item.path)) continue;
+    out.push({ child: item.path, parent, status: item.status });
+  }
+  return out;
 }
 
 async function collectAssetUrls() {
@@ -195,7 +285,8 @@ async function collectAssetUrls() {
     }
     for (const item of routeAssets) found.add(item);
   }
-  return { assets: [...found].sort(), routeFailures, skippedRoutes, staleRoutes };
+  const moduleParents = await expandModuleGraph(found);
+  return { assets: [...found].sort(), moduleParents, routeFailures, skippedRoutes, staleRoutes };
 }
 
 async function checkAssets(assets) {
@@ -332,9 +423,16 @@ async function main() {
       }
 
       // 엣지 오염분만 퍼지로 즉시 풀 수 있다. 미전파분은 기다리는 것 말고 할 수 있는 게 없다.
-      if (poisoned.length) {
-        const purged = await purge(poisoned.map((d) => d.path));
-        if (purged.attempted && purged.ok) console.log("[verify-deployed-assets] 엣지 오염 URL 캐시 퍼지 완료");
+      // 🔴 모듈 그래프에서 찾은 죽은 자식은 **부모**를 퍼지해야 풀린다 — 자식은 이미 지워진 파일이라
+      //    그 URL 을 아무리 퍼지해도 404 그대로다. 롤백으로도 안 풀린다(deploy-safe.mjs:840-843).
+      const roundStaleParents = staleParentTargets(classified, snapshot.moduleParents);
+      if (roundStaleParents.length) {
+        report(roundStaleParents.map((s) => `  - ${s.child} 는 빌드에 없습니다 — 부모 ${s.parent} 가 옛 세대입니다`));
+      }
+      const purgeTargets = [...new Set([...poisoned.map((d) => d.path), ...roundStaleParents.map((s) => s.parent)])];
+      if (purgeTargets.length) {
+        const purged = await purge(purgeTargets);
+        if (purged.attempted && purged.ok) console.log(`[verify-deployed-assets] 캐시 퍼지 완료 (${purgeTargets.length}건)`);
         else console.log(`[verify-deployed-assets] 퍼지 건너뜀 — ${purged.reason}`);
       }
     }
@@ -369,12 +467,17 @@ async function main() {
   // 🔴 "전파 지연" 으로 봐주는 것은 **방금 배포한 빌드에 그 파일이 실제로 있다고 증명될 때뿐**이다.
   // 기준 빌드가 없으면(수동 실행 등) 증명할 방법이 없으므로 종전대로 실패로 본다.
   const provenInBuild = (item) => Boolean(EXPECTED_DIR) && existsInBuild(item);
-  const missing = classified.filter((d) => !d.edgePoisoned && !provenInBuild(d.path));
-  const lagging = classified.filter((d) => !d.edgePoisoned && provenInBuild(d.path));
+  // 🔴 부모가 옛 세대라서 보이는 자식은 빌드/업로드 문제가 아니다. 롤백해도 안 풀리고
+  //    고칠 방법은 부모 퍼지뿐이라, 실패가 아니라 경고 + 퍼지로 처리한다.
+  const staleParents = staleParentTargets(classified, snapshot.moduleParents);
+  const staleChildren = new Set(staleParents.map((s) => s.child));
+  const missing = classified.filter((d) => !d.edgePoisoned && !provenInBuild(d.path) && !staleChildren.has(d.path));
+  const lagging = classified.filter((d) => !d.edgePoisoned && provenInBuild(d.path) && !staleChildren.has(d.path));
 
   report(classified.map((d) => {
     const tag = d.edgePoisoned
       ? "(엣지 캐시 오염 — 퍼지 필요)"
+      : staleChildren.has(d.path) ? "(옛 세대 모듈이 참조 — 부모 퍼지 필요)"
       : provenInBuild(d.path) ? "(빌드에는 있음 — 전파 미완)" : "(오리진 부재 — 빌드/업로드 문제)";
     return `  - ${ORIGIN}${d.path}  bare=${d.status} bypass=${d.bypassStatus} ${tag}`;
   }));
@@ -388,6 +491,17 @@ async function main() {
   }
   if (missing.length) {
     console.error(`::error::배포본에 존재하지 않는 자산 ${missing.length}건 — 빌드/업로드 문제입니다.`);
+  }
+
+  if (staleParents.length) {
+    console.error(`::warning::옛 세대 모듈 ${staleParents.length}건 — 엣지에 굳은 부모가 이미 지워진 자식을 참조합니다.`);
+    report(staleParents.map((s) => `  - ${ORIGIN}${s.parent} → ${s.child} (${s.status})`));
+    const purged = await purge(staleParents.map((s) => s.parent));
+    console.error(
+      purged.attempted && purged.ok
+        ? "::warning::부모 URL 캐시를 퍼지했습니다. 다음 요청부터 새 모듈이 내려갑니다."
+        : `::warning::퍼지 건너뜀 — ${purged.reason}. Cloudflare 대시보드에서 위 부모 URL 을 Custom Purge 하세요.`,
+    );
   }
 
   if (poisoned.length || missing.length) process.exit(1);

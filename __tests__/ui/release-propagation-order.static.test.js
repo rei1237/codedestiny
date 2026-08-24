@@ -148,7 +148,21 @@ test("the verifier still fails on a real missing asset and on edge-cached 404s",
   // 🔴 "전파 지연" 으로 봐주는 조건은 로컬 빌드에 파일이 실제로 있다고 증명될 때뿐이다.
   // 기준 빌드가 없으면 증명할 수 없으므로 종전대로 실패해야 한다.
   assert.match(verifier, /const provenInBuild = \(item\) => Boolean\(EXPECTED_DIR\) && existsInBuild\(item\)/);
-  assert.match(verifier, /const missing = classified\.filter\(\(d\) => !d\.edgePoisoned && !provenInBuild\(d\.path\)\)/);
+  assert.match(
+    verifier,
+    /const missing = classified\.filter\(\(d\) => !d\.edgePoisoned && !provenInBuild\(d\.path\) && !staleChildren\.has\(d\.path\)\)/,
+  );
+
+  // 🔴 두 번째 완화(2026-08-24) — 모듈 그래프에서 찾은 자식이 빌드에 없으면 그건 부모가 옛
+  //    세대라는 뜻이라 실패가 아니라 부모 퍼지로 처리한다. 그 완화가 **딱 그 집합에만** 걸리는지
+  //    고정한다. 넓어지면 진짜 자산 부재가 조용히 경고로 내려앉는다.
+  assert.match(verifier, /const staleChildren = new Set\(staleParents\.map\(\(s\) => s\.child\)\)/);
+  assert.match(verifier, /function staleParentTargets\(dead, moduleParents\) \{/);
+  // 불변 배포본(artifact)에는 세대가 섞일 수 없으므로 완화가 없어야 한다.
+  const staleFn = verifier.slice(verifier.indexOf("function staleParentTargets("));
+  assert.match(staleFn.slice(0, staleFn.indexOf("\n}")), /if \(MODE === "artifact"\) return \[\];/);
+  // 완화 대상은 부모가 있는 자식뿐이고, 빌드에 있는 것은 종전 경로(전파 지연)로 간다.
+  assert.match(staleFn.slice(0, staleFn.indexOf("\n}")), /if \(existsInBuild\(item\.path\)\) continue;/);
 
   // artifact 모드는 불변 URL 이라 세대 게이트를 걸지 않는다(걸면 진짜 결함을 놓친다).
   assert.match(verifier, /EXPECTED_DIR && MODE === "alias"/);
@@ -182,4 +196,75 @@ test("browser console errors are judged and reported with the resource URL", () 
   // 소음으로 넘긴 것도 로그에 남긴다(예외가 조용히 넓어지는 것을 막는다).
   assert.ok(handler.includes("ignoredConsoleErrors.push(detail)"), "넘긴 콘솔 에러를 모으지 않습니다");
   assert.ok(smoke.includes("[deploy-smoke] ignored console error: "), "넘긴 콘솔 에러를 출력하지 않습니다");
+});
+
+// 🔴 승격 전 관문이 자산 누락을 못 보던 구멍의 회귀 가드 (2026-08-24).
+//
+// 이 자리는 `isPagesPreview` 이기만 하면 **모든 404 콘솔 에러를** 무시했다 — 호스트도 경로도
+// 보지 않았다. 그래서 프리뷰 스모크는 같은 출처의 앱 자산이 통째로 빠져도 PASS 를 냈고,
+// 결함은 승격 뒤 커스텀 도메인 스모크에서야 드러나 릴리스가 통째로 자동 롤백됐다
+// (run 32683154849: /js/services/destiny-flower-engine.js 404 → Pages·Worker 롤백).
+//
+// 판정을 소스에서 그대로 꺼내 **실행**한다. 문자열 매칭만 하면 규칙이 다시 넓어져도 통과한다.
+function extractFunctionSource(source, signature) {
+  const start = source.indexOf(signature);
+  assert.ok(start > 0, `${signature} 를 찾지 못했습니다`);
+  let depth = 0;
+  for (let i = source.indexOf("{", start); i < source.length; i += 1) {
+    if (source[i] === "{") depth += 1;
+    else if (source[i] === "}") {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  assert.fail(`${signature} 의 중괄호 균형을 찾지 못했습니다`);
+}
+
+function loadIgnorablePreview404(isPagesPreview, smokeHost) {
+  const body = extractFunctionSource(smoke, "function isIgnorablePreview404(value) {");
+  // 본문에 백틱이 있으므로 템플릿 리터럴로 감싸지 않는다.
+  return new Function("isPagesPreview", "smokeHost", body + "; return isIgnorablePreview404;")(
+    isPagesPreview,
+    smokeHost,
+  );
+}
+
+test("the preview smoke only forgives 404s that cannot be app defects", () => {
+  const previewHost = "2a5f1e46.codedestiny-staging.pages.dev";
+  const ignorable = loadIgnorablePreview404(true, previewHost);
+  const line = (url) => `Failed to load resource: the server responded with a status of 404 () ${url}`;
+
+  // 진짜 결함 — 승격 전에 잡아야 한다. 이 한 줄이 이 가드의 존재 이유다.
+  assert.equal(
+    ignorable(line(`https://${previewHost}/js/services/destiny-flower-engine.js?v=20260625-df-i18n`)),
+    false,
+    "같은 출처의 앱 자산 404 를 여전히 무시합니다",
+  );
+  assert.equal(ignorable(line(`https://${previewHost}/styles/core-ui.css?v=build-abc`)), false, "같은 출처 CSS 404 를 무시합니다");
+  assert.equal(ignorable(line(`https://${previewHost}/icons/neo.webp`)), false, "같은 출처 이미지 404 를 무시합니다");
+
+  // 프리뷰에서 404 가 정상인 셋.
+  assert.equal(ignorable(line(`https://${previewHost}/cdn-cgi/rum?`)), true, "Cloudflare RUM 404 를 실패로 봅니다");
+  assert.equal(ignorable(line(`https://${previewHost}/api/health`)), true, "정적 전용 프리뷰의 /api 404 를 실패로 봅니다");
+  assert.equal(ignorable(line("https://assets.code-destiny.com/fonts/serif-kr/0fa5719f7323.woff2")), true, "교차 출처 404 를 실패로 봅니다");
+
+  // 출처를 모르면 무시하지 않는다(fail-closed).
+  assert.equal(ignorable("Failed to load resource: the server responded with a status of 404 ()"), false, "URL 없는 404 를 무시합니다");
+  // 404 가 아닌 것은 이 판정기의 소관이 아니다.
+  assert.equal(ignorable(line(`https://${previewHost}/x.js`).replace("404", "500")), false, "404 가 아닌 것을 무시합니다");
+
+  // 커스텀 도메인(프리뷰가 아님)에서는 어떤 404 도 넘기지 않는다.
+  const live = loadIgnorablePreview404(false, "staging.code-destiny.com");
+  assert.equal(live(line("https://staging.code-destiny.com/cdn-cgi/rum?")), false, "라이브에서 404 를 무시합니다");
+  assert.equal(live(line("https://assets.code-destiny.com/x.woff2")), false, "라이브에서 교차 출처 404 를 무시합니다");
+
+  // 판정기가 실제로 배선돼 있어야 한다 — 함수만 있고 안 부르면 아무것도 지키지 않는다.
+  const noise = extractFunctionSource(smoke, "function isExpectedConsoleNoise(value) {");
+  assert.ok(noise.includes("isIgnorablePreview404(value)"), "isExpectedConsoleNoise 가 새 404 판정기를 부르지 않습니다");
+
+  // 옛 무제한 규칙이 남아 있으면 위 판정기는 무의미하다.
+  const corsNoise = extractFunctionSource(smoke, "function isExpectedPreviewCorsNoise(value) {");
+  const pagesNoise = extractFunctionSource(smoke, "function isExpectedPagesPreviewNoise(value) {");
+  assert.ok(!/status of 404/.test(corsNoise), "isExpectedPreviewCorsNoise 에 무제한 404 규칙이 남아 있습니다");
+  assert.ok(!/status of 404/.test(pagesNoise), "isExpectedPagesPreviewNoise 에 무제한 404 규칙이 남아 있습니다");
 });

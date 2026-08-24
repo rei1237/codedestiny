@@ -229,6 +229,14 @@ jobs:
           npm run verify:public-mirror-fresh
           npm run verify:public-mirror-fresh -- --self-test
 
+      # 🔴 2026-08-24 릴리스 사고. js/app.js 가 삭제된 모듈을 손으로 박은 `?v=` 로 부르고 있어
+      #    엣지가 옛 파일을 계속 서빙했고, 승격 뒤 스모크가 404 로 죽어 릴리스가 자동 롤백됐다.
+      #    _headers:342-343 은 "수기 ?v= 금지" 를 이미 글로 적어 두었지만 강제하는 것이 없었다.
+      - name: Verify the shell module graph resolves and its cache keys rotate
+        run: |
+          npm run verify:js-module-graph -- --self-test
+          npm run verify:js-module-graph
+
       # 배선을 검사하는 가드가 배선되지 않으면 농담이 된다. allowlist 만 고쳐 침묵시키는
       # 경로도 여기서 함께 막힌다 — scripts/ 만 바꾸면 critical 티어가 돌지 않는다.
       - name: Verify guard wiring

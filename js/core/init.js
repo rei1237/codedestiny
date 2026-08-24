@@ -1,4 +1,4 @@
-import { bindGlobalActions } from './uiBindings.js?v=20260627-astrology-ai';
+import { bindGlobalActions } from './uiBindings.js?v=build-6f62c7ed1939';
 
 function applyProgressiveContainment(doc) {
   if (!doc || !doc.documentElement || !('contentVisibility' in doc.documentElement.style)) return;
