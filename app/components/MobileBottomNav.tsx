@@ -13,6 +13,7 @@ import {
   type MobileTabKey,
 } from "@/app/_lib/mobile-tabs";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import { useTPick } from "@/lib/i18n/useT";
 
 const NAV_ARIA_LABEL: Partial<Record<LoadingLocale, string>> = {
   ko: "주요 화면",
@@ -69,6 +70,9 @@ function MobileBottomNav() {
   const [activeKey, setActiveKey] = useState<MobileTabKey | null>(null);
   const [pendingKey, setPendingKey] = useState<MobileTabKey | null>(null);
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
+  // 탭 라벨·aria 문구는 정적 셸이 쓰던 코어 사전 키를 그대로 읽는다. useTPick 은 값이
+  // 없으면 넘긴 한국어를 돌려주므로 한국어 화면이 비지 않는다.
+  const pick = useTPick();
 
   useEffect(() => {
     const syncLocale = () => setLocale(getCurrentLoadingLocale());
@@ -151,13 +155,13 @@ function MobileBottomNav() {
                 prefetch={targetsStaticShellHome(tab.href) ? false : undefined}
                 className={loading ? "cd-mnav__link opacity-70" : "cd-mnav__link"}
                 data-nav-key={tab.key}
-                aria-label={tab.ariaLabel}
+                aria-label={pick(tab.ariaTransKey, tab.ariaLabel)}
                 aria-current={isActive ? "page" : undefined}
                 aria-busy={loading}
                 onClick={(event) => handleTabClick(event, tab)}
               >
                 <TabIcon tabKey={tab.key} />
-                <span className="cd-mnav__label">{tab.label}</span>
+                <span className="cd-mnav__label">{pick(tab.transKey, tab.label)}</span>
               </Link>
             </li>
           );
