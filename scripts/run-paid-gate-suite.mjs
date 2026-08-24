@@ -69,6 +69,9 @@ const SUITE = [
   { run: "npm run verify:ai-prompt-billing-policy", why: "AI 프롬프트 과금 정책." },
   { run: "npm run verify:palm-flow", why: "손금: 프로덕션 빌드가 output:'export' 라 app/api 라우트가 통째로 빠진다는 사실 때문에 Gemini Vision 이 로컬에서만 돌고 실제 사용자는 정적 템플릿을 받고 있었다(2026-07 발견)." },
   { run: "npm run verify:payment-choice-parity", why: "결제창 렌더러 3종의 정합성 — TTL 이 5분/15분으로 갈라진 채 배포된 흉터가 이 가드의 출발점이다." },
+  // 🔴 같은 가드의 자기검사. 이 가드의 구조 마커 절은 배열만 남고 집행이 사라진 채 오래 초록이었다
+  // (2026-08-24 발견) — 판정 자체가 살아 있는지 확인하는 것이 그 재발 방지책이다.
+  { run: "npm run verify:payment-choice-parity -- --self-test", why: "결제창 구조 마커 판정이 실제로 실패하는지. '검사가 통과했다'와 '검사가 없다'는 출력에서 구분되지 않으므로 판정을 합성 입력으로 직접 찔러 본다." },
   { run: "npm run verify:payment-copy-dictionary", why: "결제 문구가 코드 폴백과 사전 사이에서 갈라지는지. cdTranslate 는 키가 없으면 폴백이 아니라 'Translation pending' 을 내므로 한국어만 멀쩡하고 나머지 11개 로케일이 깨진다 — 2026-08-20 전수 조사에서 21건이 나왔고 그중 둘은 **PG창 통과 뒤의 결제 성공 오버레이**였다." },
   { run: "npm run verify:entry-fanout", why: "홈 진입 팬아웃 계약. 워밍이 채우던 것이 **이용권 스냅샷**이라, 이 계약이 깨지면 결제창 fast-path 와 이용권 판정이 함께 흔들린다. auth/me 의 degraded 응답을 스냅샷에 쓰면 tier:'free' 가 굳어 **이용권 보유자에게 결제창이 뜬다** — 돈 문제다." },
   { run: "npm run verify:pass-recovery-path", why: "이용권 구제 경로의 회귀 방지. 과거 두 사고가 모두 '핸들러·소비자는 남고 진입점만 사라진' 형태라 이름 grep 으로는 정상으로 보였다." },
