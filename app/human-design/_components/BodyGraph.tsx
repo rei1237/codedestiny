@@ -290,7 +290,7 @@ export default function BodyGraph({ chart, locale, selection, onSelect, interact
           className={styles.svg}
           viewBox={viewBox}
           role="img"
-          aria-label={locale === "ko" ? "내 바디그래프" : "My BodyGraph"}
+          aria-label={pick(UI_TEXT.bodyGraphAria, locale)}
           data-zoomed={interactive && zoom > 1 ? "true" : undefined}
           onPointerDown={interactive ? onPointerDown : undefined}
           onPointerMove={interactive ? onPointerMove : undefined}
@@ -418,7 +418,7 @@ export default function BodyGraph({ chart, locale, selection, onSelect, interact
               className={styles.controlButton}
               onClick={() => applyZoom(zoom - ZOOM_STEP)}
               disabled={zoom <= MIN_ZOOM}
-              aria-label={locale === "ko" ? "축소" : "Zoom out"}
+              aria-label={pick(UI_TEXT.zoomOut, locale)}
             >
               −
             </button>
@@ -435,7 +435,7 @@ export default function BodyGraph({ chart, locale, selection, onSelect, interact
               className={styles.controlButton}
               onClick={() => applyZoom(zoom + ZOOM_STEP)}
               disabled={zoom >= MAX_ZOOM}
-              aria-label={locale === "ko" ? "확대" : "Zoom in"}
+              aria-label={pick(UI_TEXT.zoomIn, locale)}
             >
               +
             </button>
@@ -446,9 +446,7 @@ export default function BodyGraph({ chart, locale, selection, onSelect, interact
             aria-pressed={showAllGateNumbers}
             onClick={() => setShowAllGateNumbers((current) => !current)}
           >
-            {locale === "ko"
-              ? (showAllGateNumbers ? "활성 번호만" : "모든 번호")
-              : (showAllGateNumbers ? "Active only" : "All numbers")}
+            {pick(showAllGateNumbers ? UI_TEXT.gateNumbersActiveOnly : UI_TEXT.gateNumbersAll, locale)}
           </button>
         </div>
       )}

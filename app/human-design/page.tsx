@@ -14,5 +14,5 @@ export const metadata = {
 };
 
 export default function HumanDesignPage() {
-  return <HumanDesignClient locale="ko" />;
+  return <HumanDesignClient />;
 }
