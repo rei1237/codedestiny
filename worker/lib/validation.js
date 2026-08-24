@@ -189,11 +189,29 @@ export function validateBirthYear(birthYearInput, now = null) {
   return { isValid: true, age, error: null };
 }
 
+/**
+ * 이메일 가입의 표시 이름을 **이메일 아이디에서** 만든다.
+ *
+ * 가입 화면이 이름을 받지 않게 되면서(2026-08-25) 어딘가는 이름을 만들어야 하는데,
+ * User.name 은 스키마상 2~40자 필수다(worker/lib/models.js). 클라이언트가 보낸 값을 쓰지 않는
+ * 이유는 폼이 사라진 뒤에도 서버가 유일한 출처여야 계약이 살기 때문이다.
+ *
+ * 로컬파트가 1자면 뒤에 "user" 를 붙인다 — 한 글자짜리 이메일은 드물지만 유효하고,
+ * 그때 스키마 최소길이에 걸려 가입이 통째로 막히면 원인을 찾기 어렵다.
+ */
+export function deriveNameFromEmail(email) {
+  const local = String(email || "").split("@")[0].trim();
+  if (!local) return "";
+  return (local.length >= 2 ? local : `${local}user`).slice(0, 40);
+}
+
 export function validateRegisterPayload(payload = {}) {
   const errors = [];
 
-  const name = String(payload.name || "").trim();
   const email = String(payload.email || "").trim().toLowerCase();
+  // 🔴 payload.name 은 보지 않는다(2026-08-25). 가입 화면에 이름 칸이 없고, 표시 이름은 서버가
+  // 이메일 아이디에서 만든다 — 클라이언트가 보낸 이름을 받으면 폼 없이도 임의 이름을 넣을 수 있다.
+  const name = deriveNameFromEmail(email);
   const password = String(payload.password || "");
   // 구버전 앱이 phone 으로 보내던 것을 계속 받는다(현재 웹은 phoneNumber 로 보낸다).
   const phoneNumber = normalizeKoreanPhoneNumber(payload.phoneNumber || payload.phone);
@@ -203,8 +221,9 @@ export function validateRegisterPayload(payload = {}) {
   // 지나가는 것이라 미만 연령을 실제로 걸러내지 못했다 — 이제 서버가 연도로 판정한다.
   const birthYearCheck = validateBirthYear(payload.birthYear);
 
+  // 이름은 이메일에서 파생하므로 이메일이 유효하면 항상 만족한다. 그래도 남겨 두는 이유는
+  // 파생 규칙이 바뀌어 스키마 하한을 깨뜨리면 여기서 먼저 잡히게 하려는 것이다.
   if (!name || name.length < 2) errors.push("Name must be at least 2 characters.");
-  if (name.length > 40) errors.push("Name must be 40 characters or fewer.");
   if (!emailRegex.test(email)) errors.push("Email format is invalid.");
   // 🔴 휴대폰 번호는 필수다(2026-08-19 정책). 프론트 우회를 막기 위해 서버에서도 판정한다.
   if (!phoneNumber) errors.push("Phone number is invalid.");

@@ -97,6 +97,55 @@ assertContains(authRouteSource, 'body?.termsAccepted !== true || body?.privacyAc
   "🔴 social signup must still refuse without consent — the provider does not agree to our terms for us");
 assertContains(authShellSource, "needsBirthYear && !isBirthYearOk(birthYear)", "signup age guard");
 
+/* 🔴 소셜 가입이 **화면 없이** 끝나는 경로 (2026-08-25).
+   카카오·네이버는 인증 후 우리 화면을 띄우지 않고 콜백에서 계정을 만든다. 판정 자체는
+   __tests__/worker/auth.social-phone-scope.test.js 가 값으로 확인하고, 여기서는 그 판정이
+   **실제로 배선돼 있는지**를 본다 — 판정 함수만 살아 있고 콜백이 안 쓰면 아무 일도 안 일어난다. */
+
+// 두 콜백 분기(google·naver / kakao)가 모두 조건부 생성이어야 한다.
+assert.equal(
+  authRouteSource.split("createIfMissing: autoSignup.canAutoCreate").length - 1,
+  2,
+  "both OAuth callbacks must create the account only when the provider settled the age",
+);
+
+// 🔴 미성년은 티켓조차 받지 못해야 한다. 티켓을 주면 가입 마무리 화면에서 생년을 다시 적어
+//    우회할 수 있고, 그러면 공급자가 알려 준 나이를 우리가 스스로 버리는 셈이다.
+//    그래서 "!socialUser.user 직후"라는 **위치**까지 고정한다 — 뒤로 밀리면 티켓이 먼저 나간다.
+{
+  const marker = "if (!socialUser.user) {";
+  let cursor = 0;
+  let branches = 0;
+  for (;;) {
+    const at = authRouteSource.indexOf(marker, cursor);
+    if (at < 0) break;
+    branches += 1;
+    const head = authRouteSource.slice(at, authRouteSource.indexOf("buildSocialSignupTicket", at));
+    assert.ok(
+      head.includes("if (autoSignup.underage) return buildOAuthFailureRedirect"),
+      "underage must be refused before a signup ticket is issued",
+    );
+    cursor = at + marker.length;
+  }
+  assert.equal(branches, 2, "expected exactly the two social callback branches");
+}
+
+// 🔴 화면이 없어졌으므로 동의 고지는 **버튼을 누르기 전**에 보여야 한다. /login 에서 카카오를
+//    눌러도 계정이 생기므로 로그인 화면에도 있어야 한다 — 소셜 버튼 묶음 안에 둔 이유다.
+assertContains(
+  authShellSource,
+  "{copy.providerPolicy}</p><section aria-label={copy.agreeOnSubmit}",
+  "the consent notice must sit with the social buttons so it shows before the provider screen",
+);
+
+// 이름은 더 이상 받지 않는다 — 소셜은 공급자가, 이메일은 서버가 이메일 아이디에서 만든다.
+assertNotContains(authShellSource, 'id="auth-name"', "signup must not ask for a name");
+assertContains(
+  readFileSync(resolve(root, "worker/lib/validation.js"), "utf8"),
+  "const name = deriveNameFromEmail(email);",
+  "🔴 the display name must come from the server, not from whatever the client posts",
+);
+
 /* 🔴 2026-08-15 "로그아웃 → 재로그인 → 즉시 튕김" 회귀 가드 (P0-3·P0-4a).
    셋 다 되살아나기 쉬운 형태다 — 각각 "세션 정리를 더 확실히 한다"처럼 보이기 때문이다. */
 
