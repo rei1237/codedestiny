@@ -1469,7 +1469,43 @@ const AGE_VERIFIED_BY_PROVIDER = new Set(["kakao"]);
  *
  * 켜지 않아도 가입은 정상 동작한다 — 값이 없으면 가입 화면이 생년 입력칸을 보여준다(안전 강등).
  */
-const BIRTH_YEAR_SCOPE_BY_PROVIDER = { naver: "birthyear" };
+const BIRTH_YEAR_SCOPE_BY_PROVIDER = {
+  naver: "birthyear",
+  // 🔴 구글은 **민감 범위(sensitive scope)** 라 앱 검증(OAuth verification)이 끝나기 전에는
+  // 켜지 말 것. 미검증 앱은 "확인되지 않은 앱" 경고 화면과 100명 상한에 걸려 구글 로그인
+  // 자체가 망가진다 — 카카오 phone_number 를 콘솔 설정 없이 켰다가 KOE205 를 맞은 것과 같은 형태다.
+  google: "https://www.googleapis.com/auth/user.birthday.read",
+};
+
+// 구글 생일은 userinfo 가 아니라 People API 에 있다.
+const GOOGLE_PEOPLE_BIRTHDAY_ENDPOINT = "https://people.googleapis.com/v1/people/me?personFields=birthdays";
+
+/**
+ * 구글 People API 에서 **출생 연도**만 뽑는다.
+ *
+ * 🔴 연도가 없는 경우가 흔하다 — 구글 사용자는 생일을 월·일만 공개해 두는 일이 많아서
+ * `date` 에 `year` 가 아예 안 오는 응답이 정상이다. 그래서 실패도 빈 값도 던지지 않고 "" 로
+ * 돌려주고, 호출부는 그때 가입 화면에서 생년을 직접 묻는다(안전 강등).
+ */
+async function fetchGoogleBirthYear(accessToken, request, env) {
+  try {
+    const response = await fetchOAuthProvider(GOOGLE_PEOPLE_BIRTHDAY_ENDPOINT, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+    });
+    if (!response.ok) return "";
+    const data = await response.json().catch(() => null);
+    const entries = Array.isArray(data?.birthdays) ? data.birthdays : [];
+    // primary 를 먼저 보고, 없으면 연도가 실린 아무 항목이나 쓴다.
+    const withYear = entries.filter((entry) => Number(entry?.date?.year) > 0);
+    const primary = withYear.find((entry) => entry?.metadata?.primary === true) || withYear[0];
+    const year = Number(primary?.date?.year);
+    return Number.isFinite(year) && year > 0 ? String(year) : "";
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/oauth/callback", "google", "google_birthday_fetch_failed", error);
+    return "";
+  }
+}
 
 function birthYearScopeSuffix(provider, env) {
   const scope = BIRTH_YEAR_SCOPE_BY_PROVIDER[provider];
@@ -1536,7 +1572,7 @@ function buildProviderConfig(provider, request, env) {
       authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
       tokenEndpoint: "https://oauth2.googleapis.com/token",
       userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
-      scope: "openid email profile",
+      scope: `openid email profile${birthYearScopeSuffix("google", env)}`,
       redirectUri,
     };
   }
@@ -1716,6 +1752,12 @@ async function fetchSocialProfile(provider, accessToken, request, env) {
   const mapped = mapSocialProfile(provider, data);
   if (!mapped.providerId) {
     throw new Error(`${provider}_profile_invalid`);
+  }
+
+  // 구글만 생년이 다른 엔드포인트(People API)에 있다. scope 를 요청하지 않았으면 부르지 않는다 —
+  // 부르면 403 만 받고 로그인 경로에 왕복 하나를 얹는다.
+  if (provider === "google" && birthYearScopeSuffix("google", env)) {
+    mapped.birthYear = await fetchGoogleBirthYear(accessToken, request, env);
   }
 
   return mapped;
