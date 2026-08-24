@@ -101,7 +101,7 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
           {scene.actor === "narrator" ? (
             <Image
               src={getNarratorAsset(line?.mood)}
-              alt="연애 고수"
+              alt={copy.narratorName}
               width={520}
               height={720}
               unoptimized
@@ -113,7 +113,7 @@ export default function CodexPrologueScene({ stage, onStageChange, onChoice, onC
           {scene.actor === "book" ? (
             <Image
               src={masterLoveCodexAssets.cover}
-              alt={`${scene.title} 장면`}
+              alt={copy.prologueSceneAlt(scene.title)}
               width={640}
               height={427}
               unoptimized

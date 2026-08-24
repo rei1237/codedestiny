@@ -130,6 +130,59 @@ PR #1121(`feature/naming-locale-branch`). 커밋 5개.
 🔴 검사 대상은 손으로 열거하지 않고 모듈·소스에서 전수 발견한다. 음성 테스트 5건으로 가드가 실제로
 실패하는 것까지 확인했다(한글 이름 혼입 / ko 누출 / 패턴 누락 / 카피 공백 / 로케일 미전달).
 
+### 끝난 것 — 2026-08-25 후속 2회차 (유료 결과 화면)
+
+작명에서 고친 것과 같은 축을 다른 유료 결과 화면으로 넓혔다. 결제가 끝난 사용자가 **자기 언어의 본문을
+한국어 껍데기 안에서** 받던 자리들이다.
+
+| 화면 | 고친 것 |
+|---|---|
+| 인연의 서 결과 | `MasterLoveCodexResultClient`(오류·aria·생년월일 줄) · `CodexReader`(PDF 파일명·표지 부제) · `CodexChapter`(sr-only 장 번호·화자 이름) · `CodexPrologueScene`(alt 2) · `CodexReportOutro`(마무리 한 줄) |
+| 베다점 결과 | `app/vedic-ai/result/resultCopy.ts` 신설 + 화면 문구 14개 배선 |
+| 자미두수 심화 PDF | 내려받는 **파일명과 표지 제목**이 한국어 고정이었다(화면 표지는 이미 로케일화돼 있었는데 export 경로만 새고 있었다) |
+
+🔴 **`useMasterLoveCodexCopy()` 는 렌더마다 새 객체를 돌려준다**(EN 과 스프레드 병합). 의존성 배열에
+그대로 넣으면 무한 fetch 가 된다 — 결과 화면에서 실제로 밟았고, `useMasterLoveCodexLocale()` + `useMemo`
+로 신원을 고정해 고쳤다. 훅 쪽에도 경고를 적어 두었다.
+
+가드: `__tests__/ui/paid-result-locale-copy.test.js` (node --test — 티어 무관 항상 돈다). 넷을 본다 —
+①소스 카피 표의 **로케일 간 키 집합 일치**(레포 전수, `i18n:check` 가 못 보는 층이다) ②유료 카피 모듈의
+저작 5로케일 커버리지 ③그 블록이 **조회표에 등록돼 실제로 도달 가능한가** ④유료 결과 화면에 하드코딩된
+한국어가 없는가. 음성 테스트 4건으로 전부 실패하는 것을 확인했다.
+
+#### 🔴 앞선 실측이 부풀려져 있었다 — 다시 재는 법
+
+"한국어 + 로케일 배선 없음 180개" 같은 수치는 **탐지기가 놓치는 배선 방식** 때문에 크게 부푼다.
+2026-08-25 재측정에서 다음이 전부 오탐이었다:
+
+- **사전 배선**(`useTPick`/`useT`) — 소스의 한국어가 ko 정본이고 나머지 11개는 `public/i18n/**.json` 이 준다.
+  `FeatureMarketingDetailModal.tsx`(501줄) 이 이 모양이라 최대 결함으로 잡혔지만 **이미 완료**였다.
+- **`Partial<Record<NonKoLocale, …>>`** — `Record<LoadingLocale` 만 찾으면 안 걸린다.
+  `src/features/neo-war-room/data/result-copy.ts`(94줄)가 그렇고, ko·en·ja·zh-CN·zh-TW 완비였다.
+- **`const X_EN` 폴백 상수** — Record 안에 `en:` 키가 없는 것이 정본이다. "en 누락" 7건 중 6건이 이것이었다.
+- **개발 전용 픽스처** — `NeoOperationRoomResultPage.tsx` 의 한국어 83줄은 전부 `NODE_ENV !== "production"`
+  게이트 뒤의 미리보기 데이터와 개발 네비다. 라이브 노출 **0**.
+- **기계 계약 키** — `realityCheckOptions` 의 한국어는 파서 키이고 렌더는 `getNeoRealityCheckLabel(item, locale)` 이다.
+  `CodexChapter` 의 `/^제\s*\d+\s*장\s*·\s*/` 도 같다. **번역하면 조용히 죽는다.**
+
+재측정 결과(2026-08-25, `app/**` + `components/**` + `src/**` 의 `"use client"` 파일):
+**78개 파일 · 한국어 표면 2,092개**. 관리자 콘솔(사용자 노출 없음)과 찻집(별도 워크스트림)은 뺀 수치다.
+
+### 🔴 남은 것
+
+**0. 다음 슬라이스 후보** (위 재측정 기준, 큰 것부터)
+
+| 문자열 | 대상 | 성격 |
+|---|---|---|
+| 495 | `app/components/AdvancedZiweiSectionV2.tsx` | 유료(자미두수 심화) 설명 산문 |
+| 356+66 | `app/saju/love-simulation/_components/{LoveSimulationEngine,CustomSajuForm}.tsx` | 무료 체험 |
+| 271 | `components/fpti/*` 6개 | 무료 체험, 전환 앞단 |
+| 216 | `app/components/{MindScanTarot,SunHealingTarot,LoveRelationshipTarot}.tsx` | 홈에서 바로 닿는 첫 접점 |
+| 113 | `app/saju/animal-destiny/components/*` | 무료 체험 |
+| 91 | `app/oracle/sikojen-povailu/*` | 무료 체험 |
+
+그 밖에 **`app/saju/love-simulation/LoveSimulationClient.tsx` 는 카피 표에 `en` 이 아예 없다**(폴백 상수도 없다) —
+"en 누락 7건" 중 유일하게 진짜였다.
 ### 🔴 남은 것
 
 **1. vi·hi 전용 프로파일**
@@ -201,7 +254,7 @@ npm run verify:naming-prompt          # 작명 배선 + 로케일 프로파일 �
 npm run test:jest -- __tests__/worker/naming-prompt.locale-profile.test.js
 npm run test:jest -- __tests__/lib/assistant-sections.numbered-headings.test.js
 npm run i18n:check                    # 사전 패리티(①)
-npm run test:node                     # 로케일 이름 풀·초안 카피·장 제목 패턴 가드
+npm run test:node                     # 로케일 이름 풀·초안 카피·장 제목 패턴 + 유료 결과 화면 카피 가드
 ```
 
 🔴 **LLM 실호출은 하지 않는다.** 위 전부 정적이거나 로컬 렌더다. 지시 준수율은 과금 실호출 없이는

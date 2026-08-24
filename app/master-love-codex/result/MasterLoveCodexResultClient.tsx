@@ -8,7 +8,7 @@
  * 회당 결제지만 결과는 서버에 영구 저장되므로 이 화면은 재결제 없이 열린다.
  */
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import { authFetch } from "@/app/_lib/auth-client";
 import { isRetriableResultPollFailure } from "@/app/_lib/consultationResultPolling";
@@ -16,6 +16,7 @@ import CodexAmbience from "@/src/features/master-love-codex/components/CodexAmbi
 import CodexReader, { type CodexChapter, type CodexLoveDna } from "@/src/features/master-love-codex/components/CodexReader";
 import CodexShell from "@/src/features/master-love-codex/components/CodexShell";
 import { masterLoveCodexBgmTracks } from "@/src/features/master-love-codex/data/assets";
+import { getMasterLoveCodexCopy, useMasterLoveCodexLocale, type MasterLoveCodexCopy } from "@/src/features/master-love-codex/_lib/copy";
 import styles from "@/src/features/master-love-codex/styles/codex.module.css";
 
 type SessionState = {
@@ -38,16 +39,22 @@ type SessionState = {
   } | null;
 };
 
-function buildBirthLine(birthInfo: SessionState["birthInfo"]) {
+function buildBirthLine(birthInfo: SessionState["birthInfo"], copy: MasterLoveCodexCopy) {
   if (!birthInfo) return "";
-  const parts: string[] = [birthInfo.calendarType === "lunar" ? "음력" : "양력"];
+  const parts: string[] = [birthInfo.calendarType === "lunar" ? copy.calendarLunar : copy.calendarSolar];
   if (birthInfo.birthDate) parts.push(birthInfo.birthDate);
-  parts.push(birthInfo.birthTimeUnknown ? "태어난 시각 모름" : birthInfo.birthTime || "");
-  if (birthInfo.gender) parts.push(birthInfo.gender === "male" ? "남성" : "여성");
+  parts.push(birthInfo.birthTimeUnknown ? copy.birthTimeUnknownShort : birthInfo.birthTime || "");
+  if (birthInfo.gender) parts.push(birthInfo.gender === "male" ? copy.genderMale : copy.genderFemale);
   return parts.filter(Boolean).join(" · ");
 }
 
 export default function MasterLoveCodexResultClient() {
+  // 🔴 useMasterLoveCodexCopy() 를 그대로 쓰면 안 된다 — getMasterLoveCodexCopy 가 EN 과 스프레드
+  //    병합을 하므로 **렌더마다 새 객체**를 돌려준다. 그 값을 아래 load 의 의존성에 넣는 순간
+  //    useCallback 이 매 렌더 새로 만들어지고, 그것을 보는 useEffect 가 다시 돌아 무한 fetch 가 된다.
+  //    로케일로 메모해 신원을 고정한다(이 레포의 언어 전환은 경로 이동이라 실제로는 안 바뀐다).
+  const locale = useMasterLoveCodexLocale();
+  const copy = useMemo(() => getMasterLoveCodexCopy(locale), [locale]);
   const [session, setSession] = useState<SessionState | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
@@ -56,7 +63,7 @@ export default function MasterLoveCodexResultClient() {
     if (typeof window === "undefined") return;
     const sessionId = new URLSearchParams(window.location.search).get("sessionId") || "";
     if (!sessionId) {
-      setError("보관 번호가 없습니다. 서재에서 인연의 서를 다시 선택해 주세요.");
+      setError(copy.resultMissingSessionIdError);
       setLoading(false);
       return;
     }
@@ -68,13 +75,13 @@ export default function MasterLoveCodexResultClient() {
       const payload = await response.json().catch(() => ({}));
       if (!response.ok || !payload?.ok) {
         if (isRetriableResultPollFailure(response.status, payload)) {
-          setError("연결이 잠시 불안정합니다. 잠시 후 새로고침해 주세요.");
+          setError(copy.resultUnstableRefreshError);
         } else if (response.status === 401) {
-          setError("인연의 서를 열려면 로그인이 필요합니다.");
+          setError(copy.errorText.LOGIN_REQUIRED);
         } else if (response.status === 404) {
-          setError("요청하신 인연의 서를 찾을 수 없습니다.");
+          setError(copy.resultNotFoundError);
         } else {
-          setError(payload?.message || "인연의 서를 불러오지 못했습니다.");
+          setError(payload?.message || copy.resultLoadFailedError);
         }
         setLoading(false);
         return;
@@ -92,11 +99,11 @@ export default function MasterLoveCodexResultClient() {
         birthInfo: payload.birthInfo || null,
       });
     } catch {
-      setError("연결이 불안정합니다. 잠시 후 다시 시도해 주세요.");
+      setError(copy.errorText.NETWORK_ERROR);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [copy]);
 
   useEffect(() => { void load(); }, [load]);
 
@@ -108,7 +115,7 @@ export default function MasterLoveCodexResultClient() {
     return (
       <>
         {ambience}
-        <CodexShell ariaLabel="보관된 인연의 서를 여는 중">
+        <CodexShell ariaLabel={copy.resultLoadingAriaLabel}>
           <div className="flex min-h-[100svh] items-center justify-center text-center">
             <p
               className={`${styles.numeral} text-[0.9375rem]`}
@@ -125,12 +132,12 @@ export default function MasterLoveCodexResultClient() {
 
   if (error || !session) {
     return (
-      <CodexShell ariaLabel="인연의 서를 열 수 없음">
+      <CodexShell ariaLabel={copy.resultErrorAriaLabel}>
         <div className="flex min-h-[100svh] flex-col items-center justify-center text-center">
           <div className={styles.measure}>
-            <p role="alert" className="text-[0.9375rem] leading-8">{error || "인연의 서를 찾을 수 없습니다."}</p>
+            <p role="alert" className="text-[0.9375rem] leading-8">{error || copy.resultNotFoundFallback}</p>
             <div className="mt-10">
-              <Link href="/master-love-codex" className={styles.cta}>인연의 서 화면으로</Link>
+              <Link href="/master-love-codex" className={styles.cta}>{copy.resultBackToLanding}</Link>
             </div>
           </div>
         </div>
@@ -144,9 +151,9 @@ export default function MasterLoveCodexResultClient() {
       {session.status !== "completed" ? (
         <div className="bg-[#0a0818] pt-6">
           <p className={`${styles.measure} text-center text-[0.8125rem] leading-7`} style={{ color: "#b9ad99" }}>
-            아직 다 쓰이지 않은 인연의 서입니다.{" "}
+            {copy.resultIncompleteNotice}{" "}
             <Link href="/master-love-codex" className="underline underline-offset-4" style={{ color: "#e8d5a3" }}>
-              이어 쓰기
+              {copy.resultContinueWriting}
             </Link>
           </p>
         </div>
@@ -155,7 +162,7 @@ export default function MasterLoveCodexResultClient() {
         chapters={session.chapters}
         loveDna={session.loveDna}
         name={session.birthInfo?.name || ""}
-        birthLine={buildBirthLine(session.birthInfo)}
+        birthLine={buildBirthLine(session.birthInfo, copy)}
         totalCharCount={session.totalCharCount}
         sessionId={session.sessionId}
         mode={session.mode === "compat" ? "compat" : "solo"}

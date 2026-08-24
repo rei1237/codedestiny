@@ -50,7 +50,13 @@ function normalizeHeadings(body: string): string {
   return String(body || "").replace(/^[ \t]*●[ \t]*/gm, "## ");
 }
 
-/** "제3장 · 부부궁이 말하는 배우자상" → "부부궁이 말하는 배우자상" */
+/**
+ * "제3장 · 부부궁이 말하는 배우자상" → "부부궁이 말하는 배우자상"
+ *
+ * 🔴 이 정규식은 번역하지 않는다. 서버가 붙이는 접두를 걷어내는 **기계 계약**이고,
+ *    출력 언어가 바뀌면 그 접두 자체가 나오지 않아 아무것도 걷어내지 않는 것이 정상이다.
+ *    로케일별 접두를 흉내 내면 오히려 제목 앞머리를 잘라먹는다.
+ */
 function stripChapterPrefix(title: string): string {
   return String(title || "").replace(/^제\s*\d+\s*장\s*·\s*/, "");
 }
@@ -78,7 +84,7 @@ export default function CodexChapter({ chapter, forceVisible = false }: CodexCha
             {String(chapter.order).padStart(2, "0")}
           </p>
           <h2 className={`${styles.chapterTitle} mt-3`}>
-            <span className="sr-only">{`제${chapter.order}장 · `}</span>
+            <span className="sr-only">{copy.chapterOrderSrLabel(chapter.order)}</span>
             {heading}
           </h2>
           <hr className={`${styles.rule} ${styles.ruleShort} mt-6 !ml-0`} />
@@ -87,7 +93,7 @@ export default function CodexChapter({ chapter, forceVisible = false }: CodexCha
         <CodexReveal forceVisible={forceVisible} index={1} className="mt-10">
           {content?.narration ? (
             <blockquote className={styles.narration}>
-              <span aria-hidden="true">연애 고수</span>
+              <span aria-hidden="true">{copy.narratorName}</span>
               <p>{content.narration}</p>
             </blockquote>
           ) : null}

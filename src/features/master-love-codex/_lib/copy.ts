@@ -177,6 +177,38 @@ export interface MasterLoveCodexCopy {
 
   reportStampSolo: string;
   reportStampCompat: string;
+  /**
+   * 화자 이름의 **표시 문구**. 🔴 data/prologue.ts 의 `speaker: "연애 고수"` 리터럴과 혼동하지 말 것 —
+   * 그쪽은 대사 스크립트를 가르는 키라 로케일 불문 한국어로 고정이고, 이것은 화면에 그리는 이름이다.
+   * (narratorReadingAlt·narratorClosingAlt 가 이미 로케일마다 이 이름을 번역해 쓰고 있었는데,
+   *  정작 본문 인용부와 프롤로그 이미지 alt 는 한국어가 박혀 있었다.)
+   */
+  narratorName: string;
+  /** 장 번호 스크린리더 접두. 화면에는 숫자만 보이고 이 문구는 sr-only 로만 읽힌다. */
+  chapterOrderSrLabel: (order: number) => string;
+  prologueSceneAlt: (title: string) => string;
+  /** 이름을 안 적었을 때 PDF 파일명에 들어가는 말. */
+  pdfNameFallback: string;
+  pdfCoverSubtitle: (chapters: number, typeName?: string) => string;
+  /**
+   * 마무리 카드 한 줄. 🔴 판정(이용권 열람인가)은 data/premium.ts 의 codexAccessLabel 이 그대로 갖고,
+   * 여기는 그 판정을 문장으로 옮기기만 한다 — CodexReportStamp 가 passIncludedNote 를 쓰는 것과 같은 모양.
+   */
+  reportOutroAccessLine: (productTitle: string, includedWithPass: boolean) => string;
+
+  resultMissingSessionIdError: string;
+  resultUnstableRefreshError: string;
+  resultNotFoundError: string;
+  resultLoadFailedError: string;
+  resultLoadingAriaLabel: string;
+  resultErrorAriaLabel: string;
+  resultNotFoundFallback: string;
+  resultBackToLanding: string;
+  resultIncompleteNotice: string;
+  resultContinueWriting: string;
+  /** 생년월일 줄에 들어가는 짧은 표기. birthTimeUnknownLabel 은 체크박스 문구라 다르다. */
+  birthTimeUnknownShort: string;
+
   passIncludedNote: string;
   monthlyCreditUsedNote: string;
 
@@ -365,6 +397,23 @@ const MASTER_LOVE_CODEX_COPY_EN: MasterLoveCodexCopy = {
 
   reportStampSolo: "PREMIUM AI RELATIONSHIP REPORT",
   reportStampCompat: "PREMIUM AI COMPATIBILITY REPORT",
+  narratorName: "The love master",
+  chapterOrderSrLabel: (order) => `Chapter ${order} · `,
+  prologueSceneAlt: (title) => `Scene: ${title}`,
+  pdfNameFallback: "LoveCodex",
+  pdfCoverSubtitle: (chapters, typeName) => (typeName ? `${typeName} · ${chapters} chapters` : `${chapters} chapters`),
+  reportOutroAccessLine: (productTitle, includedWithPass) => (includedWithPass ? `You are reading the ${productTitle} premium AI consultation report with your pass.` : `This report is the result of the ${productTitle} premium AI consultation.`),
+  resultMissingSessionIdError: "No archive number was given. Please pick the codex again from your library.",
+  resultUnstableRefreshError: "The connection is briefly unstable. Please refresh in a moment.",
+  resultNotFoundError: "We couldn't find the codex you asked for.",
+  resultLoadFailedError: "We couldn't load the codex.",
+  resultLoadingAriaLabel: "Opening the archived codex",
+  resultErrorAriaLabel: "The codex can't be opened",
+  resultNotFoundFallback: "We couldn't find the codex.",
+  resultBackToLanding: "Back to the codex",
+  resultIncompleteNotice: "This codex has not been finished yet.",
+  resultContinueWriting: "Continue writing",
+  birthTimeUnknownShort: "Birth time unknown",
   passIncludedNote: "Included with your pass",
   monthlyCreditUsedNote: "Paid with monthly credit",
 
@@ -554,6 +603,23 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
 
     reportStampSolo: "PREMIUM AI RELATIONSHIP REPORT",
     reportStampCompat: "PREMIUM AI COMPATIBILITY REPORT",
+    narratorName: "연애 고수",
+    chapterOrderSrLabel: (order) => `제${order}장 · `,
+    prologueSceneAlt: (title) => `${title} 장면`,
+    pdfNameFallback: "인연의서",
+    pdfCoverSubtitle: (chapters, typeName) => (typeName ? `${typeName} · 전 ${chapters}장` : `전 ${chapters}장`),
+    reportOutroAccessLine: (productTitle, includedWithPass) => (includedWithPass ? `이용권으로 열람 중인 ${productTitle} 프리미엄 AI 상담 리포트입니다.` : `본 리포트는 ${productTitle} 프리미엄 AI 상담 결과입니다.`),
+    resultMissingSessionIdError: "보관 번호가 없습니다. 서재에서 인연의 서를 다시 선택해 주세요.",
+    resultUnstableRefreshError: "연결이 잠시 불안정합니다. 잠시 후 새로고침해 주세요.",
+    resultNotFoundError: "요청하신 인연의 서를 찾을 수 없습니다.",
+    resultLoadFailedError: "인연의 서를 불러오지 못했습니다.",
+    resultLoadingAriaLabel: "보관된 인연의 서를 여는 중",
+    resultErrorAriaLabel: "인연의 서를 열 수 없음",
+    resultNotFoundFallback: "인연의 서를 찾을 수 없습니다.",
+    resultBackToLanding: "인연의 서 화면으로",
+    resultIncompleteNotice: "아직 다 쓰이지 않은 인연의 서입니다.",
+    resultContinueWriting: "이어 쓰기",
+    birthTimeUnknownShort: "태어난 시각 모름",
     passIncludedNote: "이용권 포함",
     monthlyCreditUsedNote: "월정석 사용",
 
@@ -741,6 +807,23 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
 
     reportStampSolo: "PREMIUM AI RELATIONSHIP REPORT",
     reportStampCompat: "PREMIUM AI COMPATIBILITY REPORT",
+    narratorName: "恋愛の達人",
+    chapterOrderSrLabel: (order) => `第${order}章 · `,
+    prologueSceneAlt: (title) => `${title}の場面`,
+    pdfNameFallback: "縁の書",
+    pdfCoverSubtitle: (chapters, typeName) => (typeName ? `${typeName} · 全${chapters}章` : `全${chapters}章`),
+    reportOutroAccessLine: (productTitle, includedWithPass) => (includedWithPass ? `利用券でご覧いただいている${productTitle}プレミアムAI相談レポートです。` : `本レポートは${productTitle}プレミアムAI相談の結果です。`),
+    resultMissingSessionIdError: "保管番号がありません。書斎から縁の書をもう一度お選びください。",
+    resultUnstableRefreshError: "接続が少し不安定です。しばらくしてから再読み込みしてください。",
+    resultNotFoundError: "お探しの縁の書が見つかりませんでした。",
+    resultLoadFailedError: "縁の書を読み込めませんでした。",
+    resultLoadingAriaLabel: "保管された縁の書を開いています",
+    resultErrorAriaLabel: "縁の書を開けません",
+    resultNotFoundFallback: "縁の書が見つかりません。",
+    resultBackToLanding: "縁の書の画面へ",
+    resultIncompleteNotice: "まだ書き終えていない縁の書です。",
+    resultContinueWriting: "続きを書く",
+    birthTimeUnknownShort: "生まれた時刻は不明",
     passIncludedNote: "利用券に含まれています",
     monthlyCreditUsedNote: "月定石を使用",
 
@@ -928,6 +1011,23 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
 
     reportStampSolo: "PREMIUM AI RELATIONSHIP REPORT",
     reportStampCompat: "PREMIUM AI COMPATIBILITY REPORT",
+    narratorName: "恋爱高人",
+    chapterOrderSrLabel: (order) => `第${order}章 · `,
+    prologueSceneAlt: (title) => `${title}的场景`,
+    pdfNameFallback: "情缘之书",
+    pdfCoverSubtitle: (chapters, typeName) => (typeName ? `${typeName} · 共${chapters}章` : `共${chapters}章`),
+    reportOutroAccessLine: (productTitle, includedWithPass) => (includedWithPass ? `这是以通行证阅览的${productTitle}高级 AI 咨询报告。` : `本报告是${productTitle}高级 AI 咨询的结果。`),
+    resultMissingSessionIdError: "没有保管编号。请从书房重新选择情缘之书。",
+    resultUnstableRefreshError: "连接暂时不稳定，请稍后刷新。",
+    resultNotFoundError: "找不到你要的情缘之书。",
+    resultLoadFailedError: "无法载入情缘之书。",
+    resultLoadingAriaLabel: "正在打开保管的情缘之书",
+    resultErrorAriaLabel: "无法打开情缘之书",
+    resultNotFoundFallback: "找不到情缘之书。",
+    resultBackToLanding: "返回情缘之书页面",
+    resultIncompleteNotice: "这本情缘之书还没有写完。",
+    resultContinueWriting: "继续书写",
+    birthTimeUnknownShort: "出生时辰未知",
     passIncludedNote: "已包含在通行证内",
     monthlyCreditUsedNote: "已使用月石",
 
@@ -1115,6 +1215,23 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
 
     reportStampSolo: "PREMIUM AI RELATIONSHIP REPORT",
     reportStampCompat: "PREMIUM AI COMPATIBILITY REPORT",
+    narratorName: "戀愛高人",
+    chapterOrderSrLabel: (order) => `第${order}章 · `,
+    prologueSceneAlt: (title) => `${title}的場景`,
+    pdfNameFallback: "情緣之書",
+    pdfCoverSubtitle: (chapters, typeName) => (typeName ? `${typeName} · 共${chapters}章` : `共${chapters}章`),
+    reportOutroAccessLine: (productTitle, includedWithPass) => (includedWithPass ? `這是以通行證閱覽的${productTitle}進階 AI 諮詢報告。` : `本報告是${productTitle}進階 AI 諮詢的結果。`),
+    resultMissingSessionIdError: "沒有保管編號。請從書房重新選擇情緣之書。",
+    resultUnstableRefreshError: "連線暫時不穩定，請稍後重新整理。",
+    resultNotFoundError: "找不到你要的情緣之書。",
+    resultLoadFailedError: "無法載入情緣之書。",
+    resultLoadingAriaLabel: "正在開啟保管的情緣之書",
+    resultErrorAriaLabel: "無法開啟情緣之書",
+    resultNotFoundFallback: "找不到情緣之書。",
+    resultBackToLanding: "返回情緣之書頁面",
+    resultIncompleteNotice: "這本情緣之書還沒有寫完。",
+    resultContinueWriting: "繼續書寫",
+    birthTimeUnknownShort: "出生時辰未知",
     passIncludedNote: "已包含在通行證內",
     monthlyCreditUsedNote: "已使用月石",
 
@@ -1150,6 +1267,13 @@ export function useMasterLoveCodexLocale(): LoadingLocale {
   return locale;
 }
 
+/**
+ * 🔴 돌려주는 객체는 **렌더마다 새것**이다 — getMasterLoveCodexCopy 가 EN 과 스프레드 병합을 한다.
+ *    그래서 이 값을 useCallback·useEffect·useMemo 의 의존성 배열에 그대로 넣으면 매 렌더 무효화되고,
+ *    그 콜백을 보는 effect 가 다시 돌아 **무한 루프**가 된다(fetch 를 하는 effect 면 무한 요청).
+ *    의존성으로 써야 하면 이 훅 대신 `useMasterLoveCodexLocale()` + `useMemo` 로 신원을 고정할 것
+ *    (정본: app/master-love-codex/result/MasterLoveCodexResultClient.tsx).
+ */
 export function useMasterLoveCodexCopy(): MasterLoveCodexCopy {
   const locale = useMasterLoveCodexLocale();
   return getMasterLoveCodexCopy(locale);
