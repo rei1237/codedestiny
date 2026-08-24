@@ -1823,7 +1823,16 @@
         "monthly": "Anda boleh membukanya dengan batu bulan sedia ada — tanpa kos tambahan!",
         "direct": "Anda boleh buka kandungan ini sahaja dengan segera."
       },
-      "goLabel": "Buka begini"
+      "goLabel": "Buka begini",
+      "method": {
+        "prompt": "Bagaimana anda mahu membayar?",
+        "card": "Kad kredit · Bayaran pantas",
+        "transfer": "Pemindahan bank masa nyata",
+        "mobile": "Bayaran melalui bil telefon",
+        "giftCertificate": "Baucar budaya",
+        "comingSoon": "Akan datang",
+        "back": "Kembali"
+      }
     },
     "overlay": {
       "unlockPreparing": {

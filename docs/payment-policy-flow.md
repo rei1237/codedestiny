@@ -33,6 +33,15 @@
   - 실패는 문구로만 알린다. **월정석 카드의 `disabled` 상태는 어느 경로에서도 건드리지 않는다**(미확정 ≠ 부족).
   - 문구 키: `payment.directModal.monthlyBalance.{checkButton,recheckButton,checking,error,signedOut}` + 값 라벨 `payment.directModal.currentMonthly`(12로케일).
   - 가드: `verify:payment-choice-parity`(자동 조회 잔여바 마커 부활 금지 + 확인 버튼 구조·문구 3렌더러 동일) · `verify:paid-gate-ui`(각 렌더러의 잔량 조회 호출이 **정확히 1곳**이고 그 위치가 확인 버튼 마크업보다 뒤 = 핸들러 안인지 확인).
+- 🔴 **단건결제는 2단계다**(2026-08-24). 결제창 1단계는 이용권/단건/월정석 3옵션 동등 노출로 **불변**이고, `[단건 결제]` 를 누르면 **같은 창 안에서** 결제수단 4종 + `[뒤로]` 로 바뀐다: 신용카드·간편결제(`CARD`) / 실시간 계좌이체(`TRANSFER`) / 휴대폰 소액결제(`MOBILE`) / 문화상품권(`GIFT_CERTIFICATE`). 이니시스 계약이 끝난 수단만 활성이고 나머지는 `준비 중` 으로 잠긴다.
+  - **활성 여부의 정본은 `js/core/checkout-entry.js` 의 `DIRECT_PAY_METHODS` 표 하나다** — PG 승인이 떨어지면 그 표의 `enabled` 한 줄만 true 로 바꾼다(키가 PortOne V2 `payMethod` enum 값 그대로라 매핑 테이블이 없다). 🔴 등록 전에 켜면 PG 가 결제창을 그리기 전에 거절해 "결제창이 아예 안 뜬다" 가 된다.
+  - 마크업·문구도 같은 파일의 `buildDirectPayMethodStepHtml` 하나가 소유한다. 렌더러가 각자 그리면 승인 시 한 렌더러만 `준비 중` 으로 남는다.
+  - 🔴 2단계 노드에 **`data-mode` 를 붙이지 않는다**(선택은 `data-pay-method`, 복귀는 `data-pay-step="back"`). 세 렌더러가 `[data-mode]` 를 "고르면 모달을 닫는" 노드로 일괄 처리하므로 붙이면 수단을 고르는 대신 창이 닫힌다 — 월정석 잔량 확인 버튼과 같은 이유·같은 규율이다.
+  - 🔴 2단계 진입은 1단계 그리드를 **교체하지 않고 `hidden` 으로 감추며**, 카드에 `is-loading`/`disabled` 를 걸지 않는다. 둘 중 하나라도 어기면 `[뒤로]` 로 돌아온 카드가 죽는다.
+  - 앱(Play Billing) 런타임에서는 2단계를 만들지 않는다 — KR PG 수단 목록은 사실과 다르고 Play 정책에도 걸린다.
+  - 반환 계약은 그대로 `'direct'` 다. 고른 수단은 `window.__cdSelectedDirectPayMethod`(TTL 120초)에 실려 `resolveDirectPayMethod()` 를 거쳐 PortOne 요청의 `payMethod` 가 된다. 서버 `getPortOnePublicConfig` 의 `payMethod:"CARD"` 는 그 폴백일 뿐이며, 확정 후 실제 수단은 PG 응답에서 `worker/payments/pg.js` 가 기록한다.
+  - 범위는 **콘텐츠 단건결제뿐**이다. 이용권 상품 구매(`/points`·앱 상점)는 아래 "이용권 상품 자체의 구매 흐름" 그대로 원화 단건 결제 하나다.
+  - 가드: `verify:checkout-pass-card`(⑬ 실행 검증 — 2단계 전환·[뒤로] 복귀·준비중 클릭) · `verify:payment-choice-parity`(세 렌더러가 공유 빌더를 참조하는가 + 문구 12로케일) · `verify:paid-gate-ui`(셸·React 소스 계약).
 - **월정석 원자성** — 월정석 lot 차감·원장·멱등 기록·권한 저장은 하나의 Mongo 트랜잭션이어야 한다. 트랜잭션을 사용할 수 없으면 차감 전에 `503 MONTHLY_ATOMIC_UNAVAILABLE`로 종료하며, 차감 후 restore를 결제 쓰기 폴백으로 사용하지 않는다.
 - **결제 POST 자동 재시도 금지** — network status 0, 401 refresh, 503에서 checkout·confirm POST를 자동 재전송하지 않는다. 동일 사용자 행동의 멱등키는 유지하되 재시도는 사용자의 명시적 행동으로만 시작한다.
 - 단, **결제수단이 이미 확정된 뒤의 UI 강제는 여전히 금지** — `paymentMode: "DIRECT_KRW"`를 클라이언트 게이트에 하드코딩하면 결제창에서 월정석 옵션이 사라진다(2026-07-08 ziwei-ai에서 제거). 결제수단 노출은 게이트가 `buildPassPaymentDecision` 결과로 스스로 정한다.
@@ -49,7 +58,8 @@
       ├─ [이용권으로 구매] → 그 자리에서 서버 이용권 검사
       │      ├─ 커버       → 결제창 닫고 무료 실행
       │      └─ 미커버     → /points 이용권 결제 모달 자동 오픈 → 결제 → 원래 화면 복귀
-      ├─ [단건 결제]       → checkout 1회 → PortOne 1회 → 서버 confirm 1회
+      ├─ [단건 결제]       → 결제수단 2단계(카드·간편결제 / 계좌이체 / 휴대폰 / 문화상품권)
+      │      └─ 활성 수단 선택 → checkout 1회 → PortOne 1회 → 서버 confirm 1회
       └─ [월정석]          → 월정석 차감 (코인은 내부 단위, 최종 청구는 원화)
 ```
 이용권 보유자는 결제 선택창에서만 서버 상태를 확인하며, 메인 진입 시에는 월정석·레거시 잔액을 예열하지 않는다.
@@ -74,6 +84,7 @@
 
 | 날짜 | 변경 내용 |
 |---|---|
+| 2026-08-24 | **단건결제에 결제수단 2단계 도입.** 1단계 3옵션은 불변이고, 단건 카드를 누르면 같은 창에서 카드·간편결제 / 실시간 계좌이체 / 휴대폰 소액결제 / 문화상품권으로 갈린다. 이니시스 계약이 끝난 `CARD` 만 활성이고 나머지는 `준비 중`. 활성 여부 정본은 `js/core/checkout-entry.js` 의 `DIRECT_PAY_METHODS` 표 하나. |
 | 2026-08-04 | **달빛 이용권 상품을 원화 단건 결제로만 구매하도록 고정.** subscription prepare/confirm의 월정석 요청을 `SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED`로 거부하고 `/points` 구매 UI에서 월정석 구매 선택지를 제거했다. |
 | 2026-08-03 | **명시적 결제수단 경계 복구.** `DIRECT_KRW`의 이용권 자동 전환과 결제수단 모달의 checkout POST 사전발급을 제거했다. `MEMBERSHIP_PASS`만 서버 이용권 판정을 실행하며, 결제 POST는 자동 재시도하지 않는다. |
 | 2026-07-04 | 결제 정책 3부작 최초 작성(개요/콘텐츠 접근 유형/결제 플로우로 분할). 코인 단위 사용자 노출 UI 5곳을 원화 표시로 수정(코드 내부 변수명은 유지). 이용권=구독형(자동갱신 없음)/월정석=비구독 방침 확정. 숙요점 궁합은 유료 회당 결제로 유지 확정 |

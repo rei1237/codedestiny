@@ -40,6 +40,7 @@ const read = (rel) => readFileSync(resolve(root, rel), "utf8");
 const SHELL = "index.html";
 const REACT_CLIENT = "app/_lib/billing-client.ts";
 const STANDALONE = "js/destiny-profile.js";
+const CORE = "js/core/checkout-entry.js";
 
 // 래퍼는 넷 다 js/core/checkout-entry.js 의 checkoutText 와 같은 (key, fallback, vars) 시그니처다.
 const SOURCES = [
@@ -47,6 +48,9 @@ const SOURCES = [
   { rel: SHELL, wrapper: "__cdText", label: "정적 셸(공용)" },
   { rel: REACT_CLIENT, wrapper: "checkoutEntry\\.text", label: "React" },
   { rel: STANDALONE, wrapper: "_dpCheckoutText", label: "독립 폴백" },
+  // 2026-08-24: 결제수단 2단계 문구는 렌더러 본문이 아니라 세 렌더러 공유 코어에 있다.
+  // 여기 없으면 그 문구만 사전 검사(폴백==ko.json · 12로케일)를 통째로 빠져나간다.
+  { rel: CORE, wrapper: "checkoutText", label: "공유 코어" },
 ];
 
 const I18N_LOCALES = ["ko", "en", "ja", "zh-cn", "zh-tw", "es", "fr", "de", "nl", "vi", "ms", "hi"];
@@ -249,6 +253,7 @@ const READ_PATHS = [
   SHELL,
   REACT_CLIENT,
   STANDALONE,
+  CORE,
   ...I18N_LOCALES.map((locale) => `public/i18n/${locale}.json`),
 ];
 for (const rel of READ_PATHS) {

@@ -60,6 +60,14 @@
       '.cd-direct-payment-note strong{display:block;margin-bottom:4px;color:#F5F1FB;font-size:15px;font-weight:700;line-height:1.32;word-break:keep-all}',
       '.cd-direct-payment-note span{display:block}',
       '.cd-direct-payment-choice-grid{display:grid;grid-template-columns:1fr;gap:9px}',
+      // 2단계(결제수단) 그리드. 🔴 1단계 그리드와 클래스를 나눈다 — verify-checkout-pass-card 가
+      // `.cd-direct-payment-choice-grid [data-mode]` 의 첫 요소를 이용권 카드로 단언하므로,
+      // 같은 클래스를 재사용하면 2단계 버튼이 그 단언에 끼어든다.
+      '.cd-direct-payment-method-grid{display:grid;grid-template-columns:1fr;gap:9px}',
+      '.cd-direct-payment-method-prompt{margin:0 0 10px;font-size:13px;line-height:1.5;color:rgba(237,232,245,.82);word-break:keep-all}',
+      '.cd-direct-payment-method-back{display:inline-flex;align-items:center;margin:0 0 10px;padding:6px 13px;border:1px solid rgba(232,200,138,.2);border-radius:999px;background:transparent;color:rgba(237,232,245,.82);font-size:12.5px;font-weight:700;line-height:1.35;cursor:pointer;transition:border-color 170ms ease,color 170ms ease}',
+      '.cd-direct-payment-method-back:hover{border-color:rgba(232,200,138,.4);color:#EDE8F5}',
+      '.cd-direct-payment-method-back:focus-visible{outline:2px solid #E8C88A;outline-offset:2px}',
       '.cd-direct-payment-option{width:100%;margin:0;padding:14px;border:1px solid rgba(232,200,138,.16);border-radius:14px;background:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,0) 55%),#251F45;box-shadow:inset 0 1px 0 rgba(237,232,245,.06);color:inherit;text-align:left;cursor:pointer;position:relative;overflow:hidden;transition:border-color 170ms ease,filter 170ms ease,transform 170ms ease,box-shadow 170ms ease}',
       '.cd-direct-payment-option::before{content:"";position:absolute;inset:0;background:linear-gradient(115deg,transparent 30%,rgba(237,232,245,.10) 46%,rgba(232,200,138,.20) 50%,rgba(237,232,245,.10) 54%,transparent 70%);transform:translateX(-120%);transition:transform 520ms ease;pointer-events:none}',
       '.cd-direct-payment-option:hover::before{transform:translateX(120%)}',
@@ -111,7 +119,7 @@
       '@keyframes cdMoonlitFireflyA{0%,100%{transform:translate3d(0,0,0);opacity:.32}25%{opacity:.68}50%{transform:translate3d(16px,-20px,0);opacity:.48}75%{opacity:.6}}',
       '@keyframes cdMoonlitFireflyB{0%,100%{transform:translate3d(0,0,0);opacity:.28}30%{opacity:.58}55%{transform:translate3d(-18px,16px,0);opacity:.42}80%{opacity:.55}}',
       '@keyframes cdMoonlitPetalDrift{0%{left:2%;opacity:0}10%{opacity:.6}50%{left:94%;opacity:.75}90%{opacity:.5}100%{left:2%;opacity:0}}',
-      '@media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-legal{font-size:10.5px}}',
+      '@media(max-width:760px){.cd-direct-payment-dialog{padding:0 14px 14px}.cd-direct-payment-hairline{margin:0 -14px 14px}.cd-direct-payment-guide{gap:11px;margin-bottom:13px}.cd-direct-payment-guide__pig{width:64px}.cd-direct-payment-title{font-size:18px}.cd-direct-payment-sub{font-size:12.5px}.cd-direct-payment-note{padding:11px 12px;margin-bottom:11px}.cd-direct-payment-note strong{font-size:14px}.cd-direct-payment-choice-grid,.cd-direct-payment-method-grid{gap:8px}.cd-direct-payment-option{padding:12px}.cd-direct-payment-option--recommended{padding:14px}.cd-direct-payment-option--recommended strong{font-size:15.5px}.cd-direct-payment-option--recommended strong .cd-direct-payment-amount{font-size:17px}.cd-direct-payment-go{margin-top:10px;padding:9px 12px;font-size:13px}.cd-direct-payment-option--secondary{padding:10px 12px}.cd-direct-payment-option--secondary strong{font-size:13px}.cd-direct-payment-legal{font-size:10.5px}}',
       '@media(prefers-reduced-motion:reduce){.cd-direct-payment-option,.cd-direct-payment-option::before,.cd-direct-payment-cancel{transition:none}.cd-direct-payment-option:active{transform:none}.cd-direct-payment-modal.is-open::before,.cd-direct-payment-modal.is-open::after,.cd-direct-payment-hairline::after{animation:none!important}}'
   ];
   var RETURN_KEY = "cd_checkout_return_v1";
@@ -389,6 +397,145 @@
       var afterHtml = cardHtml && spec && spec.afterHtml ? spec.afterHtml : "";
       return cardHtml + afterHtml;
     }).join("");
+  }
+
+  // ── 단건결제 결제수단(2단계) ────────────────────────────────────────────────────────
+  //
+  // 🔴 **PG 승인이 떨어지면 고치는 곳은 아래 enabled 한 줄뿐이다.** 키는 PortOne V2 의 payMethod
+  // enum 값 그대로라 중간 매핑 테이블이 없고, 이 표 하나가 ① 준비중 배지 렌더 ② 선택 허용 여부
+  // ③ 실제 요청에 실리는 payMethod 셋을 동시에 정한다.
+  //
+  // 🔴 결제수단은 이니시스 상점(MID)에 **수단별로 계약·등록**돼 있어야 결제창에 뜬다. 등록 전에
+  // enabled 를 켜면 PG 가 결제창을 그리기 전에 거절해 "결제창이 아예 안 뜬다"가 된다(PR #104 의
+  // windowType 회귀와 같은 증상). 승인 근거 없이 켜지 말 것.
+  var DIRECT_PAY_METHOD_ORDER = ["CARD", "TRANSFER", "MOBILE", "GIFT_CERTIFICATE"];
+  var DIRECT_PAY_METHODS = {
+    CARD: { enabled: true, glyph: "💳" },
+    TRANSFER: { enabled: false, glyph: "🏦" },
+    MOBILE: { enabled: false, glyph: "📱" },
+    GIFT_CERTIFICATE: { enabled: false, glyph: "🎁" },
+  };
+  var DEFAULT_DIRECT_PAY_METHOD = "CARD";
+
+  /**
+   * 결제수단 라벨.
+   *
+   * 🔴 **키와 폴백을 문자열 리터럴로 적는다.** 표에 labelKey 를 넣고 checkoutText(entry.labelKey, …)
+   * 로 부르면 verify-payment-copy-dictionary / verify-payment-choice-parity 의 추출 정규식
+   * (리터럴만 매칭)에 안 잡혀 **12로케일 검사를 조용히 통과**한다 — 그러면 비한국어 사용자만
+   * "Translation pending" 을 보게 되고 가드는 초록이다.
+   */
+  function directPayMethodLabel(id) {
+    if (id === "CARD") return checkoutText("payment.directModal.method.card", "신용카드 · 간편결제");
+    if (id === "TRANSFER") return checkoutText("payment.directModal.method.transfer", "실시간 계좌이체");
+    if (id === "MOBILE") return checkoutText("payment.directModal.method.mobile", "휴대폰 소액결제");
+    if (id === "GIFT_CERTIFICATE") return checkoutText("payment.directModal.method.giftCertificate", "문화상품권");
+    return "";
+  }
+
+  /** 아직 열리지 않은 수단의 상태 문구. 렌더러가 상태줄에 그대로 쓴다. */
+  function directPayMethodComingSoonText() {
+    return checkoutText("payment.directModal.method.comingSoon", "준비 중");
+  }
+
+  function isDirectPayMethodEnabled(id) {
+    var entry = DIRECT_PAY_METHODS[text(id).toUpperCase()];
+    return !!(entry && entry.enabled === true);
+  }
+
+  /**
+   * 2단계(결제수단 고르기) 패널 HTML. 세 렌더러(정적 셸·React·독립 정적)가 각자 그리지 않고
+   * 이 하나를 부른다 — 사본을 만들면 한 렌더러만 준비중 목록이 낡는다.
+   *
+   * 🔴 **data-mode 를 쓰지 않는다.** 세 렌더러 모두 [data-mode] 를 "누르면 모달을 닫는" 노드로
+   * 일괄 처리하므로(index.html · billing-client.ts · destiny-profile.js 의 클릭 델리게이션),
+   * 붙이는 순간 결제수단을 고르는 게 아니라 창이 닫힌다. 월정석 잔량 확인 버튼이 같은 이유로
+   * data-mode 를 안 쓴다. 선택은 data-pay-method, 복귀는 data-pay-step="back" 이다.
+   */
+  function buildDirectPayMethodStepHtml(input) {
+    var opts = input || {};
+    var escape = opts.escape || function (value) { return String(value === null || value === undefined ? "" : value); };
+    var comingSoon = directPayMethodComingSoonText();
+    var activeHint = checkoutText("payment.directModal.directHint", "지금 보고 있는 콘텐츠 하나만 바로 열려요.");
+    var cards = DIRECT_PAY_METHOD_ORDER.map(function (id) {
+      var entry = DIRECT_PAY_METHODS[id];
+      if (!entry) return "";
+      var enabled = entry.enabled === true;
+      var label = directPayMethodLabel(id);
+      return (
+        '<button type="button" class="cd-direct-payment-option cd-direct-payment-option--secondary'
+        + (enabled ? "" : " is-disabled") + '" data-pay-method="' + id + '"'
+        // 🔴 disabled 속성이 아니라 aria-disabled 다. 진짜 disabled 인 <button> 은 click 이벤트를
+        // 아예 발화하지 않아 "왜 못 누르는지"를 말해 줄 수 없다.
+        + (enabled ? "" : ' aria-disabled="true"')
+        + ' aria-label="' + escape(enabled ? label : label + " (" + comingSoon + ")") + '">'
+        + '<span class="cd-direct-payment-cardhead"><span class="cd-direct-payment-badge">'
+        + '<span class="cd-direct-payment-glyph" aria-hidden="true">' + entry.glyph + "</span>"
+        + (enabled ? "" : escape(comingSoon)) + "</span></span>"
+        + "<strong>" + escape(label) + "</strong>"
+        + '<span class="cd-direct-payment-desc">' + escape(enabled ? activeHint : comingSoon) + "</span>"
+        + "</button>"
+      );
+    }).join("");
+    return (
+      '<button type="button" class="cd-direct-payment-method-back" data-pay-step="back">'
+      + escape(checkoutText("payment.directModal.method.back", "뒤로")) + "</button>"
+      + '<p class="cd-direct-payment-method-prompt" id="cdDirectPaymentMethodPrompt">'
+      + escape(checkoutText("payment.directModal.method.prompt", "어떤 방법으로 결제할까요?")) + "</p>"
+      + '<div class="cd-direct-payment-method-grid" role="group" aria-labelledby="cdDirectPaymentMethodPrompt">'
+      + cards + "</div>"
+    );
+  }
+
+  // ── 고른 결제수단 보관 ──────────────────────────────────────────────────────────────
+  //
+  // 🔴 상태는 모듈 클로저가 아니라 window 에 둔다. 이 파일은 classic script(globalThis.__cdCheckoutEntry)
+  // 와 webpack import 두 경로로 로드돼 인스턴스가 둘이므로(CHOICE_LOCK_KEY 와 같은 이유), 클로저에
+  // 두면 React 결제창이 고른 값을 셸의 _cdRunDirectKrwCheckout 이 못 본다.
+  var SELECTED_PAY_METHOD_KEY = "__cdSelectedDirectPayMethod";
+  var SELECTED_PAY_METHOD_TTL_MS = 120000;
+
+  function setSelectedDirectPayMethod(id) {
+    var win = runtimeWindow();
+    if (!win) return "";
+    var normalized = text(id).toUpperCase();
+    if (!isDirectPayMethodEnabled(normalized)) return "";
+    win[SELECTED_PAY_METHOD_KEY] = { method: normalized, at: Date.now() };
+    return normalized;
+  }
+
+  function clearSelectedDirectPayMethod() {
+    var win = runtimeWindow();
+    if (win) win[SELECTED_PAY_METHOD_KEY] = null;
+  }
+
+  /** TTL·활성 여부를 다시 확인해 돌려준다. 🔴 **소비하지 않는다** — 아래 resolve 머리주석 참고. */
+  function peekSelectedDirectPayMethod() {
+    var win = runtimeWindow();
+    if (!win) return "";
+    var picked = win[SELECTED_PAY_METHOD_KEY];
+    if (!picked) return "";
+    if (Date.now() - Number(picked.at || 0) > SELECTED_PAY_METHOD_TTL_MS) {
+      win[SELECTED_PAY_METHOD_KEY] = null;
+      return "";
+    }
+    if (!isDirectPayMethodEnabled(picked.method)) return "";
+    return text(picked.method).toUpperCase();
+  }
+
+  /**
+   * PortOne 요청에 실을 payMethod. 결제수단 요청 조립부(셸 _cdRunDirectKrwCheckout · 독립 정적
+   * _dpRunDirectKrwCheckout)가 `config.payMethod || 'CARD'` 대신 이걸 부른다.
+   *
+   * 🔴 **읽고 지우지 않는다(take 아님).** 두 조립부는 전화번호 입력·멱등키 충돌에서 자기 자신을
+   * 재귀 호출하는데, 소비형이면 재귀 진입에서 값이 사라져 사용자가 고른 수단이 조용히 CARD 로
+   * 되돌아간다. 수명은 TTL 과 "결제창을 열 때 / direct 아닌 값으로 닫을 때 clear" 로 닫는다.
+   */
+  function resolveDirectPayMethod(configPayMethod) {
+    var picked = peekSelectedDirectPayMethod();
+    if (picked) return picked;
+    var fromConfig = text(configPayMethod).toUpperCase();
+    return fromConfig || DEFAULT_DIRECT_PAY_METHOD;
   }
 
   /**
@@ -679,6 +826,15 @@
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
     buildPaymentChoiceCardsHtml: buildPaymentChoiceCardsHtml,
+    DIRECT_PAY_METHOD_ORDER: DIRECT_PAY_METHOD_ORDER,
+    DEFAULT_DIRECT_PAY_METHOD: DEFAULT_DIRECT_PAY_METHOD,
+    isDirectPayMethodEnabled: isDirectPayMethodEnabled,
+    directPayMethodComingSoonText: directPayMethodComingSoonText,
+    buildDirectPayMethodStepHtml: buildDirectPayMethodStepHtml,
+    setSelectedDirectPayMethod: setSelectedDirectPayMethod,
+    clearSelectedDirectPayMethod: clearSelectedDirectPayMethod,
+    peekSelectedDirectPayMethod: peekSelectedDirectPayMethod,
+    resolveDirectPayMethod: resolveDirectPayMethod,
     resolveStorePlan: resolveStorePlan,
     buildPassStoreUrl: buildPassStoreUrl,
     shouldUseAppStoreEntry: shouldUseAppStoreEntry,

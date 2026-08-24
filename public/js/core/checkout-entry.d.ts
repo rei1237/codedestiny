@@ -6,6 +6,12 @@ export type CheckoutStorePlan = "standard" | "premium" | "vvip" | "family";
 /** 결제창 선택지 3종. data-mode 값('pass-store'|'direct'|'monthly')과는 별개인 내부 키다. */
 export type CheckoutOptionKey = "pass" | "direct" | "monthly";
 
+/**
+ * 단건결제 2단계에서 고르는 결제수단. 값은 PortOne V2 의 payMethod enum 그대로다
+ * (중간 매핑 테이블 없음). 활성 여부의 정본은 checkout-entry.js 의 DIRECT_PAY_METHODS 하나다.
+ */
+export type DirectPayMethodId = "CARD" | "TRANSFER" | "MOBILE" | "GIFT_CERTIFICATE";
+
 export type CheckoutReturnPoint = {
   /** 이용권 구매 후 돌아갈 화면. rememberCheckoutReturn 이 남긴 값 그대로다. */
   url: string;
@@ -136,6 +142,26 @@ declare const checkoutEntry: {
     goLabel: string;
     cards: Partial<Record<CheckoutOptionKey, PaymentChoiceCardSpec>>;
   }): string;
+  /** 2단계 결제수단의 표시 순서. 활성 여부와 무관하게 전부 그린다(준비 중 포함). */
+  DIRECT_PAY_METHOD_ORDER: DirectPayMethodId[];
+  DEFAULT_DIRECT_PAY_METHOD: DirectPayMethodId;
+  /** PG 계약이 끝나 실제로 결제할 수 있는 수단인가. 정본은 DIRECT_PAY_METHODS 표 하나다. */
+  isDirectPayMethodEnabled(id: unknown): boolean;
+  /** 아직 열리지 않은 수단의 상태 문구. 렌더러가 결제창 상태줄에 그대로 쓴다. */
+  directPayMethodComingSoonText(): string;
+  /**
+   * 2단계(결제수단) 패널 HTML. 세 렌더러가 각자 그리지 않고 이 하나를 부른다.
+   * 방출 속성은 data-pay-method / data-pay-step 이며 data-mode 는 쓰지 않는다 —
+   * 세 렌더러가 [data-mode] 를 "누르면 모달을 닫는" 노드로 일괄 처리하기 때문이다.
+   */
+  buildDirectPayMethodStepHtml(input: { escape: (value: unknown) => string }): string;
+  /** 활성 수단만 받아 기록하고 정규화된 값을 돌려준다. 거부되면 빈 문자열. */
+  setSelectedDirectPayMethod(id: unknown): DirectPayMethodId | "";
+  clearSelectedDirectPayMethod(): void;
+  /** TTL·활성 여부를 다시 확인해 돌려준다(소비하지 않음). */
+  peekSelectedDirectPayMethod(): DirectPayMethodId | "";
+  /** PortOne 요청에 실을 payMethod. 고른 값 → config 값 → 'CARD' 순. 읽어도 지우지 않는다. */
+  resolveDirectPayMethod(configPayMethod?: unknown): DirectPayMethodId;
   /** 이 금액을 덮는 가장 낮은 이용권 등급(보유 등급 이하는 제외). 판정 불가 시 빈 문자열. */
   resolveStorePlan(costCoins: number, currentTier?: unknown): CheckoutStorePlan | "";
   buildPassStoreUrl(options: {
