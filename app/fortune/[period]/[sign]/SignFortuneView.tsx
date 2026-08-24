@@ -95,7 +95,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
     >
       <div className="mx-auto max-w-3xl px-4 pt-8 sm:px-6 sm:pt-12">
         <nav aria-label="위치" className={`flex flex-wrap items-center gap-1.5 text-xs ${MUTED}`}>
-          <Link href="/" className="hover:underline">홈</Link>
+          <Link href="/" className="hover:underline" data-cd-trans="home.nav.home">홈</Link>
           <span aria-hidden="true">›</span>
           <Link href="/today/" className="hover:underline">오늘의 운세</Link>
           <span aria-hidden="true">›</span>

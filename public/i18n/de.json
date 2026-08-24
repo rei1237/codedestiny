@@ -1638,7 +1638,8 @@
     "requiredStar": "* erforderlich",
     "monthShort": "Monat",
     "dayShort": "Tag",
-    "download": "Herunterladen"
+    "download": "Herunterladen",
+    "andBetweenLinks": "und"
   },
   "privacy": {
     "consentTitle": "Einwilligung zur Erhebung und Nutzung personenbezogener Daten",

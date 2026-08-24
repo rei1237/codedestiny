@@ -1638,7 +1638,8 @@
     "requiredStar": "* 必須",
     "monthShort": "月",
     "dayShort": "日",
-    "download": "ダウンロード"
+    "download": "ダウンロード",
+    "andBetweenLinks": "と"
   },
   "privacy": {
     "consentTitle": "個人情報の収集および利用への同意",

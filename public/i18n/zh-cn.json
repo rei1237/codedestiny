@@ -1638,7 +1638,8 @@
     "requiredStar": "* 必填",
     "monthShort": "月",
     "dayShort": "日",
-    "download": "下载"
+    "download": "下载",
+    "andBetweenLinks": "与"
   },
   "privacy": {
     "consentTitle": "同意收集和使用个人信息",
