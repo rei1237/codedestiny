@@ -337,6 +337,14 @@ jobs:
         if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:worker-size
 
+      # 🔴 배포와 같은 조건에서 돌아야 한다. deploy-safe.mjs:720 은 `risk.level !== "low"` 일 때
+      # smoke:core 를 돌리는데, 그 판정은 여기 티어와 **같은 모듈**(scripts/lib/change-risk.mjs)이
+      # 낸다 — level!==low 가 곧 runs_build 다. 그런데 PR CI 에는 이 스텝이 없어서, 머지 전에는
+      # 아무도 돌리지 않고 배포에서 처음 돌았다.
+      - name: Run the core mock smoke tests the release runs
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        run: npm run smoke:core
+
   critical:
     name: Critical checks
     needs: classify
@@ -369,6 +377,32 @@ jobs:
       - name: Test
         if: needs.classify.outputs.runs_critical == 'true'
         run: npm test
+
+      # 🔴 `deploy:critical` 의 게이트를 머지 전으로 당긴다 (2026-08-24).
+      #
+      # deploy-safe.mjs:724-729 는 risk=high 이거나 deep 이 걸리면 `npm run deploy:critical` 을
+      # 돌린다. 그 판정은 여기 티어와 **같은 모듈**(scripts/lib/change-risk.mjs)이 내므로
+      # runs_critical 과 같은 집합이다. 그런데 그 23개 게이트 중 PR CI 에도 있던 것은
+      # typecheck·build:worker 둘뿐이었다 — 나머지는 **머지된 뒤 배포에서 처음** 돌았다.
+      #
+      # 실제로 그 경로로 릴리스가 세 번 죽었다(7e7f05a9 · 72e5c0d4 · ddf032d2, 최근 6실패 중 5건).
+      # 전부 verify:worker-no-undef 가 worker/lib 의 미선언 식별자를 잡은 것이고, 전부 PR 은
+      # 초록불로 머지됐다. 배포가 막히는 동안 머지한 내용은 스테이징에 도달하지 못한다.
+      #
+      # 목록을 손으로 지키지 않는다 — verify:guard-wiring 이 package.json 의 deploy:critical 을
+      # 파싱해 전수 발견하고, 여기에도 없고 POST_MERGE_BY_DESIGN 선언도 없는 게이트를 실패시킨다.
+      - name: Run the deploy-only gates before the merge, not after
+        if: needs.classify.outputs.runs_critical == 'true'
+        run: |
+          npm run verify:worker-no-undef
+          npm run verify:env-parity
+          npm run verify:no-nested-retry
+          npm run verify:mongo-reset-callers
+          npm run verify:admin-route-error-context
+          npm run verify:analytics-events
+          npm run verify:pass-snapshot
+          npm run verify:phone-encryption
+          npm run verify:signup-phone-required
 
       # 배포 파이프라인 자체의 회귀. 이 가드가 죽으면 증상이 "배포가 그냥 잘 됨"이라
       # 아무도 모르고, 다음 사고는 프로덕션에서 코드가 사라지는 형태로 온다.
