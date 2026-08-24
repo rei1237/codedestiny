@@ -1,6 +1,7 @@
 import Link from "next/link";
 import StoryIntegrityNote from "../components/StoryIntegrityNote";
 import { buildSeoMetadata } from "../../lib/seo";
+import { buildBreadcrumbJsonLd } from "../../lib/structured-data";
 import {
   ARC_GUIDE_LINKS,
   STORY_ARCS,
@@ -36,9 +37,20 @@ const CHARACTERS = [
   { key: "god", role: "운명의 신. 읽는 쪽과 쓰는 쪽을 가르는 마지막 관문." },
 ];
 
+// 회차 페이지(app/stories/[episode]/page.tsx)와 같은 계층을 허브에서도 내보낸다.
+// 여기가 빠지면 검색 결과의 경로가 회차에서만 그려지고 허브는 맨 URL 로 남는다.
+const storiesBreadcrumbJsonLd = buildBreadcrumbJsonLd([
+  { name: "홈", path: "/" },
+  { name: "연이의 운명 노벨", path: "/stories/" },
+]);
+
 export default function StoriesHubPage() {
   return (
     <main className="mx-auto w-full max-w-4xl px-4 py-10 text-slate-100 md:px-6 md:py-14">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(storiesBreadcrumbJsonLd) }}
+      />
       <header className="rounded-3xl border border-white/10 bg-[#10172b] px-5 py-7 md:px-8 md:py-9">
         <p className="text-xs font-semibold uppercase tracking-[0.2em] text-amber-100/70">Code Destiny Novel</p>
         <h1 className="mt-3 break-keep text-3xl font-bold leading-tight text-amber-50 md:text-4xl">
