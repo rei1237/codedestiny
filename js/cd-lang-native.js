@@ -246,6 +246,32 @@
     });
   }
 
+  /**
+   * `@some.dict.key` 꼴 변수값을 사전에서 풀어 준다.
+   * 🔴 lib/i18n/dictionary.ts 의 resolveVars 와 **같은 동작이어야 한다**(이중 구현).
+   * 왜 필요한가: 마커가 붙는 HTML 은 서버에서 한 번 렌더되고 그때는 로케일을 모른다.
+   * 변수 자리에 값을 박으면 번역문 안에 한국어가 남으므로, 값 대신 키를 넣게 한다.
+   * `@` 뒤가 키로 풀리지 않으면 원문을 그대로 둔다(이메일 같은 값을 삼키지 않기 위해).
+   */
+  function resolveVars(dictionary, vars) {
+    if (!vars || typeof vars !== 'object') return vars;
+    var changed = false;
+    var out = {};
+    Object.keys(vars).forEach(function (name) {
+      var raw = vars[name];
+      if (typeof raw === 'string' && raw.length > 1 && raw.charCodeAt(0) === 64) {
+        var looked = valueAtPath(dictionary, raw.slice(1));
+        if (typeof looked === 'string') {
+          out[name] = looked;
+          changed = true;
+          return;
+        }
+      }
+      out[name] = raw;
+    });
+    return changed ? out : vars;
+  }
+
   function readVars(el) {
     var raw = el && el.getAttribute && el.getAttribute('data-cd-vars');
     if (!raw) return null;
@@ -331,7 +357,7 @@
       var attrName = String(parts.shift() || '').trim();
       var attrKey = String(parts.join(':') || '').trim();
       if (!attrName || !attrKey) return;
-      var value = interpolate(resolveValue(dictionary, attrKey, lang, attrName), vars);
+      var value = interpolate(resolveValue(dictionary, attrKey, lang, attrName), resolveVars(dictionary, vars));
       el.setAttribute(attrName, value);
     });
   }
@@ -362,7 +388,7 @@
       Array.prototype.forEach.call(document.querySelectorAll('[data-cd-trans], [data-cd-trans-attr], .custom-trans'), function (el) {
         var key = el.getAttribute('data-key') || el.getAttribute('data-cd-trans');
         var vars = readVars(el);
-        if (key) el.textContent = interpolate(resolveValue(dictionary, key, lang, 'text'), vars);
+        if (key) el.textContent = interpolate(resolveValue(dictionary, key, lang, 'text'), resolveVars(dictionary, vars));
         applyAttributeTranslations(el, dictionary, lang, vars);
       });
       return repairUnmarkedKoreanText(dictionary, lang);
@@ -524,7 +550,7 @@
     var lang = getSavedLang();
     if (lang === 'ko') return typeof fallback === 'string' ? interpolate(fallback, vars || {}) : key;
     if (!activeDictionary || activeDictionaryLang !== lang) return typeof fallback === 'string' ? interpolate(fallback, vars || {}) : missingText(lang);
-    return interpolate(resolveValue(activeDictionary, key, lang, 'text'), vars || {});
+    return interpolate(resolveValue(activeDictionary, key, lang, 'text'), resolveVars(activeDictionary, vars || {}));
   };
   window.__cdShouldSkipGoogleTranslate = shouldSkipGoogleTranslate;
   window.__cdNativeLangBound = true;

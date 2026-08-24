@@ -16,6 +16,7 @@ import { PERIOD_LABEL, PERIOD_TITLE, type FortunePeriodId } from "@/lib/fortune/
 import { getSignProfile, getSiblingProfiles, type SignProfile } from "@/lib/fortune/sign-profiles";
 import { getPeriodReading } from "@/lib/fortune/period-readings";
 import { buildPeriodFaqs } from "@/lib/fortune/period-faqs";
+import { markerAttrs } from "@/lib/fortune/i18n-marker";
 import YeoniPortrait, { moodForScore } from "../YeoniPortrait";
 
 const SCORE_AXES = [
@@ -128,11 +129,11 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
             {vm.facts.map((fact) => (
               <div key={fact.label}>
                 <dt className={`text-xs ${MUTED}`}>{fact.label}</dt>
-                <dd className="mt-0.5 break-keep font-bold">{fact.value}</dd>
+                <dd {...markerAttrs(fact.valueI18n)} className="mt-0.5 break-keep font-bold">{fact.value}</dd>
               </div>
             ))}
           </dl>
-          <p className={`mt-4 break-keep text-sm leading-7 ${MUTED}`}>{vm.narrative}</p>
+          <p {...markerAttrs(vm.narrativeI18n)} className={`mt-4 break-keep text-sm leading-7 ${MUTED}`}>{vm.narrative}</p>
         </section>
 
         {vm.relation && (
@@ -140,10 +141,13 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
             <h2 id="relation-heading" className={`break-keep text-sm font-extrabold ${ACCENT}`}>
               {`${profile.nameKo}와 ${periodLabel} 기운의 관계`}
             </h2>
-            <p className="mt-2 inline-block rounded-full border border-[#b31955]/35 px-3 py-1 text-xs font-bold text-[#b31955] dark:border-[rgba(255,196,222,0.4)] dark:text-[rgba(255,196,222,0.96)]">
+            <p
+              {...markerAttrs(vm.relation.badgeI18n)}
+              className="mt-2 inline-block rounded-full border border-[#b31955]/35 px-3 py-1 text-xs font-bold text-[#b31955] dark:border-[rgba(255,196,222,0.4)] dark:text-[rgba(255,196,222,0.96)]"
+            >
               {vm.relation.badge}
             </p>
-            <p className="mt-3 break-keep text-sm leading-7">{vm.relation.detail}</p>
+            <p {...markerAttrs(vm.relation.detailI18n)} className="mt-3 break-keep text-sm leading-7">{vm.relation.detail}</p>
           </section>
         )}
 
@@ -238,7 +242,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
               {vm.highlights.map((row) => (
                 <div key={row.label} className={`p-5 ${CARD}`}>
                   <dt className={`text-xs font-extrabold ${ACCENT}`}>{row.label}</dt>
-                  <dd className="mt-1.5 break-keep text-sm leading-7">{row.value}</dd>
+                  <dd {...markerAttrs(row.valueI18n)} className="mt-1.5 break-keep text-sm leading-7">{row.value}</dd>
                 </div>
               ))}
             </dl>

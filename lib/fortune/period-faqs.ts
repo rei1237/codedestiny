@@ -19,6 +19,24 @@
 import type { FortunePeriodId } from "./periods";
 import type { SignFaq, SignProfile } from "./sign-profiles";
 
+/**
+ * 받침 유무로 `와`/`과` 를 고른다.
+ *
+ * 왜 필요한가: `ruler` 값은 `화성`·`토성`·`달` 처럼 대부분 받침으로 끝나는데 템플릿이 `와` 를
+ * 하드코딩해 `금성와`·`달와` 가 24개 sign x 4개 기간 FAQ 와 그 FAQPage 구조화 데이터에 그대로
+ * 나갔다(2026-08-24 발견). 띠 쪽 값은 `신자진 수국(水局)` 처럼 **괄호로 끝나서** 마지막 문자만
+ * 보면 받침이 없다고 잘못 판정하므로, 뒤쪽 괄호와 그 안을 떼고 본다.
+ *
+ * 같은 계산이 `lib/famous-saju/celebrity-saju-service.ts` 에도 모듈 내부 함수로 있다.
+ * 이번 변경 범위가 아니라 합치지 않았다 — 공용 모듈로 뽑는 것은 별 작업으로 남긴다.
+ */
+function withGwaWa(value: string): string {
+  const bare = String(value || "").replace(/\s*[([{][^)\]}]*[)\]}]\s*$/, "").trim();
+  const code = bare.charCodeAt(bare.length - 1) - 0xac00;
+  const hasFinal = code >= 0 && code <= 11171 && code % 28 !== 0;
+  return `${value}${hasFinal ? "과" : "와"}`;
+}
+
 type BasisCopy = { question: (name: string) => string; answer: (p: SignProfile) => string };
 
 const PERIOD_BASIS: Record<FortunePeriodId, BasisCopy> = {
@@ -41,7 +59,7 @@ const PERIOD_BASIS: Record<FortunePeriodId, BasisCopy> = {
     question: (name) => `${name} 주간 운세는 하루 운세를 일곱 번 더한 건가요?`,
     answer: (p) =>
       `아닙니다. 주간 페이지는 이번 주 7일의 일진을 한 줄로 늘어놓고, `
-      + `${p.nameKo}의 ${p.ruler}와 삼합(三合)·충(沖) 관계를 따져 기운이 붙는 날과 부딪히는 날을 먼저 가려냅니다. `
+      + `${p.nameKo}의 ${withGwaWa(p.ruler)} 삼합(三合)·충(沖) 관계를 따져 기운이 붙는 날과 부딪히는 날을 먼저 가려냅니다. `
       + `그래서 결과가 "며칠에 무엇을 하라"는 배치 조언으로 나오고, 하루 단위 총운 점수와는 축이 다릅니다.`,
   },
   monthly: {

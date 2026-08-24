@@ -250,6 +250,30 @@ if (nativeScriptLoaded && rootNativeExists) {
     failures.push("js/cd-lang-native.js must set window.__cdNativeLangBound");
   }
 
+  // 마커 변수의 `@키` 해석은 두 런타임에 같은 동작으로 있어야 한다(이중 구현).
+  // 한쪽만 있으면 같은 마커가 정적 셸과 React 페이지에서 다르게 풀려, 번역문 안에
+  // 한국어 변수가 남는다. 이름 grep 이 아니라 **호출 지점까지** 본다.
+  if (!/function resolveVars\(/.test(nativeSource)) {
+    failures.push("js/cd-lang-native.js must define resolveVars() — `@key` marker vars would stay Korean");
+  }
+  const bareVarInterp = nativeSource.match(/interpolate\(resolveValue\([^)]*\),\s*vars(?!\s*\|\|)/g) || [];
+  if (bareVarInterp.length) {
+    failures.push(`js/cd-lang-native.js passes raw vars to interpolate ${bareVarInterp.length} time(s) — route them through resolveVars()`);
+  }
+
+  const coreDictPath = resolve(rootDir, "lib", "i18n", "dictionary.ts");
+  if (!existsSync(coreDictPath)) {
+    failures.push("lib/i18n/dictionary.ts is missing — the shared i18n core is gone");
+  } else {
+    const coreSource = readText(coreDictPath);
+    if (!/export function resolveVars\(/.test(coreSource)) {
+      failures.push("lib/i18n/dictionary.ts must export resolveVars() — the React runtime would leave `@key` vars unresolved");
+    }
+    if (!/interpolate\(value,\s*resolveVars\(/.test(coreSource)) {
+      failures.push("lib/i18n/dictionary.ts resolveKey() must pass vars through resolveVars()");
+    }
+  }
+
   if (!publicNativeExists) {
     failures.push("index.html loads /js/cd-lang-native.js but public/js/cd-lang-native.js is missing; run npm run sync:public");
   } else {

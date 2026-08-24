@@ -906,3 +906,15 @@ export function getSignProfile(id: string): SignProfile | null {
 export function getSiblingProfiles(kind: SignKind): SignProfile[] {
   return kind === "zodiac" ? ZODIAC_PROFILES : ANIMAL_PROFILES;
 }
+
+const BY_NAME_EN = new Map(ZODIAC_PROFILES.map((p) => [p.nameEn.toLowerCase(), p]));
+
+/**
+ * 영어 궁 이름을 한국어 표기로 옮긴다. 일일 패키지의 `sky_today.moon_sign` 은
+ * "Virgo" 처럼 **영어로만** 오므로, 이걸 거치지 않으면 한국어 문장에 영어가 그대로 박힌다.
+ * 모르는 값은 원문을 돌려준다 — 화면이 비는 것보다 낫다.
+ */
+export function zodiacNameKoFromEn(nameEn: string): string {
+  const hit = BY_NAME_EN.get(String(nameEn || "").trim().toLowerCase());
+  return hit ? hit.nameKo : String(nameEn || "");
+}

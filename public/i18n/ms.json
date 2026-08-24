@@ -14697,5 +14697,99 @@
         }
       }
     }
+  },
+  "fortuneVar": {
+    "branch": {
+      "zi": "Zi (子)",
+      "chou": "Chou (丑)",
+      "yin": "Yin (寅)",
+      "mao": "Mao (卯)",
+      "chen": "Chen (辰)",
+      "si": "Si (巳)",
+      "wu": "Wu (午)",
+      "wei": "Wei (未)",
+      "shen": "Shen (申)",
+      "you": "You (酉)",
+      "xu": "Xu (戌)",
+      "hai": "Hai (亥)"
+    },
+    "trine": {
+      "water": "the water trine (水局)",
+      "wood": "the wood trine (木局)",
+      "fire": "the fire trine (火局)",
+      "metal": "the metal trine (金局)"
+    },
+    "animal": {
+      "rat": "Rat",
+      "ox": "Ox",
+      "tiger": "Tiger",
+      "rabbit": "Rabbit",
+      "dragon": "Dragon",
+      "snake": "Snake",
+      "horse": "Horse",
+      "goat": "Goat",
+      "monkey": "Monkey",
+      "rooster": "Rooster",
+      "dog": "Dog",
+      "pig": "Pig"
+    },
+    "sign": {
+      "aries": "Aries",
+      "taurus": "Taurus",
+      "gemini": "Gemini",
+      "cancer": "Cancer",
+      "leo": "Leo",
+      "virgo": "Virgo",
+      "libra": "Libra",
+      "scorpio": "Scorpio",
+      "sagittarius": "Sagittarius",
+      "capricorn": "Capricorn",
+      "aquarius": "Aquarius",
+      "pisces": "Pisces"
+    },
+    "stem": {
+      "wood": "Wood",
+      "fire": "Fire",
+      "earth": "Earth",
+      "metal": "Metal",
+      "water": "Water"
+    },
+    "element": {
+      "fire": "fire",
+      "earth": "earth",
+      "air": "air",
+      "water": "water"
+    },
+    "period": {
+      "today": "Today's",
+      "tomorrow": "Tomorrow's",
+      "weekly": "This week's",
+      "monthly": "This month's"
+    }
+  },
+  "fortuneTpl": {
+    "animalSame": "Today's day-branch is {branch}, the same as this sign's. It is a day of bihwa — the same force doubled — so your usual disposition comes through as it is, only a little stronger. Strengths and habits both grow, so keep pushing what already works and only watch that it does not run to excess.",
+    "animalSameBadge": "Bihwa · the same force",
+    "animalClash": "Today's day-branch {branch} stands head-on against this sign — a clash. That does not mean an unlucky day; it means a day of wider swings. Travel, messages and plans may not go as scheduled, so leave slack, and a decision carrying emotion usually settles itself if you put it off a day.",
+    "animalClashBadge": "Clash · {own}–{day}",
+    "animalTrine": "Today's day-branch {branch} forms a trine with this sign, making {trine}. It is a day whose grain matches the {a1} and the {a2}, so cooperation and asking for things go through easily. A good spot to share out work you have been carrying alone.",
+    "animalTrineBadge": "Trine · {trine}",
+    "animalNeutral": "Today's day-branch is {branch}, which forms no particular union or clash with this sign. With few outside variables, the day returns results in proportion to your own preparation. A fine day for clearing what you have been putting off.",
+    "animalNeutralBadge": "Day-branch {branch}",
+    "zodiacSunHome": "The Sun is resting in {sign} today. With the Sun in your own house, presence and initiative rise, and force gathers behind what you begin. It is the best stretch of the year for putting your own story forward.",
+    "zodiacMoonHome": "The Moon passes through {sign} today. The Moon changes house roughly every two or three days, and on the day it enters your own, feeling turns clear and instinct lands well. A day on which you may trust the way your heart leans.",
+    "zodiacNeutral": "Today the Sun rests in {sun} and the Moon passes through {moon}. For {sign} this is a stretch in which no outside force pulls hard, so pushing on with your own plan works out better than riding a current.",
+    "zodiacNeutralNoSun": "For {sign}, today is a day with little interference from outside forces. Move by your own plan.",
+    "zodiacSunHomeBadge": "Where the Sun rests",
+    "zodiacMoonHomeBadge": "Where the Moon rests",
+    "zodiacSunBadge": "Sun in {sun}",
+    "zodiacSkyBadge": "Today's sky",
+    "dailyNarrative": "{period} day-ganji is {ilchin}, and the Moon passes through {moon}. The scores below are what you get where those values meet the temperament of {sign}, and the grounds for each are written out alongside.",
+    "weeklyNarrative": "This week's seven day-ganji run {ganji}. For {sign} that arrangement lifts the force on {up} of them and collides on {down}. Even within the same week this map differs for every animal sign and zodiac sign, so it is worth arranging your schedule against the day-by-day table below.",
+    "monthlyNarrative": "The month-ganji for {month}/{year} is {monthGanji}. The month-ganji turns not on the first of the solar month but on the solar-term entry day, so this month's force is led by the {termText} stretch. The scores below are computed from that month-ganji against {sign}, so when the month turns, the arrangement shifts wholesale for all twelve animal signs and twelve zodiac signs.",
+    "newMoonFact": "Around the new moon, {date} — force gathers behind what you newly start",
+    "fullMoonFact": "Around the full moon, {date} — suited to bearing fruit and tidying up",
+    "zodiacElementBadge": "{sign} · {element} element",
+    "zodiacOtherBadge": "{sign} · another house"
   }
 }

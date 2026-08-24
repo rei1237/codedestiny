@@ -9,6 +9,8 @@
  *  - 별자리: 날짜로 정해지는 태양궁과, 일일 패키지가 담고 있는 그날의 달 자리.
  */
 import type { SignProfile } from "./sign-profiles";
+import { zodiacNameKoFromEn } from "./sign-profiles";
+import { ANIMAL_KEY_BY_BRANCH, BRANCH_KEY, ELEMENT_KEY, SIGN_KEY, TRINE_KEY, ref, type MarkedText } from "./i18n-marker";
 
 /** 띠 → 십이지 지지 */
 const BRANCH_BY_ANIMAL: Record<string, string> = {
@@ -88,6 +90,13 @@ export interface DayRelation {
   badge: string;
   /** 한 문단 설명 — 매일 달라진다 */
   detail: string;
+  /**
+   * 같은 문장의 런타임 치환 재료. `detail`·`badge` 는 한국어 원문 그대로 남는다
+   * (기존 소비자와 AdSense 의 서버 렌더 분량을 건드리지 않기 위해). 뷰가 이 두 필드를
+   * `data-cd-trans` / `data-cd-vars` 로 내보내면 비-ko 화면에서 번역된다.
+   */
+  detailI18n?: MarkedText;
+  badgeI18n?: MarkedText;
 }
 
 /**
@@ -151,6 +160,8 @@ export function animalDayRelation(animalId: string, ilchin: string): DayRelation
     return {
       kind: "same",
       badge: "비화 · 같은 기운",
+      badgeI18n: { key: "fortuneTpl.animalSameBadge", vars: {} },
+      detailI18n: { key: "fortuneTpl.animalSame", vars: { branch: ref(BRANCH_KEY, day, dayKo) } },
       detail: `오늘 일진의 지지가 ${dayKo}로 이 띠와 같습니다. 같은 기운이 겹치는 비화(比和)의 날이라 평소 성향이 그대로, 그리고 조금 더 진하게 나옵니다. 강점도 습관도 함께 커지므로 잘하던 방식을 밀고 나가되 과해지지 않도록만 살피세요.`,
     };
   }
@@ -159,6 +170,8 @@ export function animalDayRelation(animalId: string, ilchin: string): DayRelation
     return {
       kind: "clash",
       badge: `충 · ${BRANCH_KO[own]}${BRANCH_KO[day]}충`,
+      badgeI18n: { key: "fortuneTpl.animalClashBadge", vars: { own: BRANCH_KO[own], day: BRANCH_KO[day] } },
+      detailI18n: { key: "fortuneTpl.animalClash", vars: { branch: ref(BRANCH_KEY, day, dayKo) } },
       detail: `오늘 일진의 지지 ${dayKo}는 이 띠와 정면으로 부딪히는 충(沖)입니다. 흉한 날이라는 뜻이 아니라 변동 폭이 커지는 날입니다. 이동·연락·계획이 예정대로 가지 않을 수 있으니 여유를 두고, 감정이 실린 결정은 하루 미루면 대개 정리됩니다.`,
     };
   }
@@ -169,6 +182,16 @@ export function animalDayRelation(animalId: string, ilchin: string): DayRelation
     return {
       kind: "trine",
       badge: `삼합 · ${trine.label}`,
+      badgeI18n: { key: "fortuneTpl.animalTrineBadge", vars: { trine: ref(TRINE_KEY, trine.label, trine.label) } },
+      detailI18n: {
+        key: "fortuneTpl.animalTrine",
+        vars: {
+          branch: ref(BRANCH_KEY, day, dayKo),
+          trine: ref(TRINE_KEY, trine.label, trine.label),
+          a1: ref(ANIMAL_KEY_BY_BRANCH, day, dayAnimal),
+          a2: ref(ANIMAL_KEY_BY_BRANCH, partner, ANIMAL_KO_BY_BRANCH[partner]),
+        },
+      },
       detail: `오늘 일진의 지지 ${dayKo}는 이 띠와 삼합(三合)을 이뤄 ${trine.label}을 만듭니다. ${dayAnimal}띠·${ANIMAL_KO_BY_BRANCH[partner]}띠와 결이 맞는 날이라 협력과 부탁이 잘 통합니다. 혼자 끌고 가던 일을 나누기 좋은 자리입니다.`,
     };
   }
@@ -176,6 +199,8 @@ export function animalDayRelation(animalId: string, ilchin: string): DayRelation
   return {
     kind: "neutral",
     badge: `일진 ${dayKo}`,
+    badgeI18n: { key: "fortuneTpl.animalNeutralBadge", vars: { branch: ref(BRANCH_KEY, day, dayKo) } },
+    detailI18n: { key: "fortuneTpl.animalNeutral", vars: { branch: ref(BRANCH_KEY, day, dayKo) } },
     detail: `오늘 일진의 지지는 ${dayKo}로, 이 띠와 특별한 합이나 충을 이루지 않습니다. 외부 변수가 적은 만큼 결과가 자기 준비대로 나오는 날입니다. 평소 미뤄 둔 일을 처리하기에 무난합니다.`,
   };
 }
@@ -224,6 +249,8 @@ export function zodiacDayRelation(
     return {
       kind: "same",
       badge: "태양이 머무는 자리",
+      badgeI18n: { key: "fortuneTpl.zodiacSunHomeBadge", vars: {} },
+      detailI18n: { key: "fortuneTpl.zodiacSunHome", vars: { sign: ref(SIGN_KEY, profile.id, profile.nameKo) } },
       detail: `오늘 태양은 ${profile.nameKo}에 머물러 있습니다. 자기 궁에 태양이 있는 시기라 존재감과 주도권이 올라가고, 시작한 일에 힘이 실립니다. 한 해 중 자기 이야기를 꺼내기 가장 좋은 구간입니다.`,
     };
   }
@@ -232,6 +259,8 @@ export function zodiacDayRelation(
     return {
       kind: "trine",
       badge: "달이 머무는 자리",
+      badgeI18n: { key: "fortuneTpl.zodiacMoonHomeBadge", vars: {} },
+      detailI18n: { key: "fortuneTpl.zodiacMoonHome", vars: { sign: ref(SIGN_KEY, profile.id, profile.nameKo) } },
       detail: `오늘 달이 ${profile.nameKo}를 지납니다. 달은 약 2~3일마다 궁을 옮기는데, 자기 궁에 달이 든 날은 감정이 선명해지고 직관이 잘 맞습니다. 마음이 기우는 쪽을 신뢰해도 좋은 날입니다.`,
     };
   }
@@ -240,8 +269,21 @@ export function zodiacDayRelation(
   return {
     kind: "neutral",
     badge: sunProfileName ? `태양 ${sunProfileName} 구간` : "오늘의 하늘",
+    badgeI18n: sunId
+      ? { key: "fortuneTpl.zodiacSunBadge", vars: { sun: ref(SIGN_KEY, sunId, sunProfileName || "") } }
+      : { key: "fortuneTpl.zodiacSkyBadge", vars: {} },
+    detailI18n: sunProfileName && sunId
+      ? {
+          key: "fortuneTpl.zodiacNeutral",
+          vars: {
+            sun: ref(SIGN_KEY, sunId, sunProfileName),
+            moon: moonSignEn ? ref(SIGN_KEY, String(moonSignEn).trim().toLowerCase(), zodiacNameKoFromEn(moonSignEn)) : "이동 중",
+            sign: ref(SIGN_KEY, profile.id, profile.nameKo),
+          },
+        }
+      : { key: "fortuneTpl.zodiacNeutralNoSun", vars: { sign: ref(SIGN_KEY, profile.id, profile.nameKo) } },
     detail: sunProfileName
-      ? `오늘 태양은 ${sunProfileName}에 머물고 달은 ${moonSignEn || "이동 중"} 자리를 지납니다. ${profile.nameKo}에게는 외부 기운이 강하게 끌어당기지 않는 구간이라, 흐름을 타기보다 자기 계획대로 밀고 가는 편이 결과가 좋습니다.`
+      ? `오늘 태양은 ${sunProfileName}에 머물고 달은 ${moonSignEn ? zodiacNameKoFromEn(moonSignEn) : "이동 중"} 자리를 지납니다. ${profile.nameKo}에게는 외부 기운이 강하게 끌어당기지 않는 구간이라, 흐름을 타기보다 자기 계획대로 밀고 가는 편이 결과가 좋습니다.`
       : `${profile.nameKo}에게 오늘은 외부 기운의 개입이 적은 날입니다. 자기 계획대로 움직이세요.`,
   };
 }

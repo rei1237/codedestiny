@@ -1144,11 +1144,24 @@ function escapeIgnorePattern(relPath) {
   return relPath.replace(/[[\]*?!#\\]/g, (ch) => `\\${ch}`);
 }
 
+/**
+ * 빌드가 만드는 산출물 디렉터리 — 미러 목록에 넣으면 안 된다.
+ *
+ * 왜 (2026-08-24): 이 블록은 **디스크에 있는 것**으로 만들어진다. `fortune/data/` 는
+ * scripts/fortune-daily-once.mjs 가 빌드 때 만드는 추적 밖 데이터라, 로컬에서는 있고
+ * CI 의 새 체크아웃에는 없다. 그래서 그 경로가 커밋된 `.ignore` 에 들어가면
+ * verify:public-mirror-fresh 가 **환경에 따라 반대 결론**을 낸다 — 로컬은 "넣어라",
+ * CI 는 "빼라". 어느 쪽으로 커밋해도 한쪽이 빨간불이라서, 매 세션 손으로 되돌리고 있었다.
+ * 파일명이 날짜를 물고 도는 것(`daily-2026-08-24.json`)도 같은 뿌리의 증상이다.
+ */
+const MIRROR_EXCLUDED_DIRS = ["fortune/data"];
+
 /** public/ 아래에서 "루트에 바이트 동일한 원본이 있는" 파일만 모은다. */
 function collectMirroredPublicPaths(absDir, relDir, out) {
   for (const entry of readdirSync(absDir, { withFileTypes: true })) {
     const rel = relDir ? `${relDir}/${entry.name}` : entry.name;
     const abs = join(absDir, entry.name);
+    if (MIRROR_EXCLUDED_DIRS.some((dir) => rel === dir || rel.startsWith(`${dir}/`))) continue;
     if (entry.isDirectory()) {
       collectMirroredPublicPaths(abs, rel, out);
       continue;

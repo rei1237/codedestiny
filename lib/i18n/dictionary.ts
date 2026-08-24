@@ -89,6 +89,38 @@ export function missingText(locale: RuntimeLocale): string {
 
 const missingKeyLog = new Set<string>();
 
+/**
+ * `@some.dict.key` 꼴 변수값을 사전에서 풀어 준다.
+ *
+ * 왜 필요한가: 마커는 **서버에서 한 번 렌더된 HTML** 에 붙고, 그 시점에는 로케일을 모른다.
+ * 그래서 `data-cd-vars` 에 한국어 값을 박으면 번역된 문장 안에 한국어가 그대로 남는다
+ * (실측: `/fortune` 의 일진·궁 문장은 조합이 3,456가지라 완성문을 키로 고정할 수도 없다).
+ * 변수 자리에 값 대신 **키**를 넣게 하면 문장과 변수가 각자 자기 로케일로 풀린다.
+ *
+ * 안전장치: `@` 뒤가 실제 키로 해석되지 않으면 원문을 그대로 둔다. 이메일이나
+ * 핸들처럼 `@` 로 시작하는 평범한 값을 삼키지 않기 위한 것이다.
+ */
+export function resolveVars(
+  dictionary: Dictionary | null,
+  vars: Record<string, unknown> | null | undefined,
+): Record<string, unknown> | null | undefined {
+  if (!vars || typeof vars !== "object") return vars;
+  let changed = false;
+  const out: Record<string, unknown> = {};
+  for (const [name, raw] of Object.entries(vars)) {
+    if (typeof raw === "string" && raw.length > 1 && raw.charCodeAt(0) === 64 /* @ */) {
+      const looked = valueAtPath(dictionary, raw.slice(1));
+      if (typeof looked === "string") {
+        out[name] = looked;
+        changed = true;
+        continue;
+      }
+    }
+    out[name] = raw;
+  }
+  return changed ? out : vars;
+}
+
 export function resolveKey(
   dictionary: Dictionary | null,
   key: string,
@@ -96,7 +128,7 @@ export function resolveKey(
   vars?: Record<string, unknown> | null,
 ): string {
   const value = valueAtPath(dictionary, key);
-  if (typeof value === "string") return interpolate(value, vars);
+  if (typeof value === "string") return interpolate(value, resolveVars(dictionary, vars));
   const id = `${locale}|${key}`;
   if (!missingKeyLog.has(id)) {
     missingKeyLog.add(id);
