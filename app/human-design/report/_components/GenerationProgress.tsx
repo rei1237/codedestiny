@@ -6,8 +6,9 @@
 //    하면 4~5분을 견딜 이유가 없다. 완성된 장은 이 화면 아래에서 그 자리에서 열린다.
 // 🔴 가짜 퍼센트를 만들지 않는다. 보여 주는 것은 실제로 완성된 장 수와 실측 경과 시간뿐이다.
 
+import type { Locale as ViewerLocale } from "@/app/human-design/_copy";
 import { say } from "../_lib/copy";
-import type { ReportLocale, ReportPlanEntry } from "../_lib/types";
+import type { ReportPlanEntry } from "../_lib/types";
 import styles from "../report.module.css";
 
 type Props = {
@@ -15,7 +16,8 @@ type Props = {
   completedKeys: Set<string>;
   total: number;
   elapsedMs: number;
-  locale: ReportLocale;
+  /** 🔴 화면 크롬의 언어(다섯). 본문 언어와 다른 축이다 — 본문은 bodyLocale/ReportLocale 을 받는다. */
+  locale: ViewerLocale;
 };
 
 function formatElapsed(ms: number): string {

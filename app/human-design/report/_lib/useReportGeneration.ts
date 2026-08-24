@@ -16,6 +16,7 @@
 //    만들 수 있고, 재개 경로는 결제를 다시 부르지 않는다.
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import type { Locale as ViewerLocale } from "@/app/human-design/_copy";
 
 import { authFetch } from "@/app/_lib/auth-client";
 import { useCoinGate } from "@/app/hooks/useCoinGate";
@@ -98,7 +99,7 @@ type Options = {
   locale: ReportLocale;
   birth: Record<string, unknown> | null;
   /** 화면 문구의 언어. 본문 언어(report.locale)와 다를 수 있다. */
-  uiLocale: ReportLocale;
+  uiLocale: ViewerLocale;
 };
 
 export type ReportGeneration = {

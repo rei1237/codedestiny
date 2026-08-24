@@ -43,21 +43,23 @@ import {
   TYPE_COPY,
   UI_TEXT,
   pick,
+  resolveHumanDesignLocale,
   type Locale,
 } from "./_copy";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import type { HdChart, HdInterpretation, HdPipelineStage, HdSelection } from "./_lib/types";
 import styles from "./human-design.module.css";
 
 /** 실제 계산 순서. 로딩 화면이 보여 주는 것은 이 순서이고, 진행률 숫자는 만들지 않는다. */
-const PIPELINE_STEPS: Array<{ key: string; ko: string; en: string }> = [
-  { key: "BIRTH_DATA", ko: "출생 정보", en: "Birth data" },
-  { key: "TIMEZONE", ko: "타임존 · UTC 변환", en: "Timezone → UTC" },
-  { key: "PERSONALITY", ko: "퍼스낼리티 13천체", en: "Personality bodies" },
-  { key: "DESIGN_MOMENT", ko: "88° 태양호 역탐색", en: "88° solar arc search" },
-  { key: "DESIGN", ko: "디자인 13천체", en: "Design bodies" },
-  { key: "GATES", ko: "26 활성 → 64 게이트", en: "26 activations → 64 gates" },
-  { key: "CHANNELS", ko: "36 채널 완성 판정", en: "36 channels" },
-  { key: "CENTERS", ko: "9 센터 정의", en: "9 centers" },
+const PIPELINE_STEPS: Array<{ key: string; copyKey: keyof typeof UI_TEXT }> = [
+  { key: "BIRTH_DATA", copyKey: "stageBirthData" as const },
+  { key: "TIMEZONE", copyKey: "stageTimezone" as const },
+  { key: "PERSONALITY", copyKey: "stagePersonality" as const },
+  { key: "DESIGN_MOMENT", copyKey: "stageDesignMoment" as const },
+  { key: "DESIGN", copyKey: "stageDesign" as const },
+  { key: "GATES", copyKey: "stageGates" as const },
+  { key: "CHANNELS", copyKey: "stageChannels" as const },
+  { key: "CENTERS", copyKey: "stageCenters" as const },
 ];
 
 const TIMEZONE_PRESETS = [
@@ -92,7 +94,29 @@ function normalizeTimeInput(value: string): string {
   return `${digits.slice(0, 2)}:${digits.slice(2)}`;
 }
 
-export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }) {
+/**
+ * 🔴 로케일은 런타임에서 읽는다. 2026-08-25 까지 page.tsx 가 locale="ko" 를 넘겨서, 이 화면이
+ *    갖고 있던 **영어 카피 163항목이 한 번도 렌더된 적이 없었다.** 다른 기능(작명·베다점)과 같은
+ *    방식으로 맞춘다 — 언어 전환은 경로가 아니라 cdGetCurrentLanguage·?lang·localStorage 로 온다.
+ */
+function useHumanDesignLocale(override?: Locale): Locale {
+  const [locale, setLocale] = useState<Locale>(override || "ko");
+  useEffect(() => {
+    if (override) return;
+    const sync = () => setLocale(resolveHumanDesignLocale(getCurrentLoadingLocale()));
+    sync();
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      document.removeEventListener("cd:language-change", sync);
+    };
+  }, [override]);
+  return locale;
+}
+
+export default function HumanDesignClient({ locale: localeOverride }: { locale?: Locale } = {}) {
+  const locale = useHumanDesignLocale(localeOverride);
   const { seed } = useAiProfileSeed();
 
   const [birthDate, setBirthDate] = useState("");
@@ -145,9 +169,7 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
       });
       const data = result.data as { ok?: boolean; chart?: HdChart; pipeline?: HdPipelineStage[]; reused?: boolean; message?: string };
       if (!result.response.ok || !data?.ok || !data.chart) {
-        setError(data?.message || (locale === "ko"
-          ? "차트를 만들지 못했습니다. 잠시 후 '다시 시도'를 눌러 주세요."
-          : "Could not build the chart. Please retry in a moment."));
+        setError(data?.message || pick(UI_TEXT.chartFailed, locale));
         return;
       }
       setChart(data.chart);
@@ -327,11 +349,11 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
 
         {loading && (
           <section className={styles.pipeline} aria-live="polite">
-            <h2 className={styles.pipelineHeading}>{locale === "ko" ? "계산 중" : "Calculating"}</h2>
+            <h2 className={styles.pipelineHeading}>{pick(UI_TEXT.pipelineHeading, locale)}</h2>
             <ol className={styles.pipelineList}>
               {PIPELINE_STEPS.map((step) => (
                 <li className={styles.pipelineStep} key={step.key}>
-                  {locale === "ko" ? step.ko : step.en}
+                  {pick(UI_TEXT[step.copyKey], locale)}
                 </li>
               ))}
             </ol>
@@ -344,7 +366,7 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
           <div className={styles.error} role="alert">
             <p>{error}</p>
             <button type="button" className={styles.retry} onClick={() => void retry()} disabled={loading}>
-              {locale === "ko" ? "다시 시도" : "Retry"}
+              {pick(UI_TEXT.retry, locale)}
             </button>
           </div>
         )}
@@ -406,7 +428,7 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
                   </span>
                   <span className={styles.legendItem}>
                     <i className={`${styles.swatch} ${styles.swatchMixed}`} aria-hidden="true" />
-                    {locale === "ko" ? "두 계층이 함께" : "Both layers"}
+                    {pick(UI_TEXT.bothLayers, locale)}
                   </span>
                 </div>
               </section>
@@ -574,9 +596,7 @@ export default function HumanDesignClient({ locale = "ko" }: { locale?: Locale }
                               {PLANET_COPY[activation.planet as keyof typeof PLANET_COPY]?.glyph || "•"}
                             </span>
                             <span className={styles.activationName}>
-                              {locale === "ko"
-                                ? PLANET_COPY[activation.planet as keyof typeof PLANET_COPY]?.ko
-                                : PLANET_COPY[activation.planet as keyof typeof PLANET_COPY]?.en}
+                              {pick(PLANET_COPY[activation.planet as keyof typeof PLANET_COPY], locale)}
                             </span>
                             <span className={styles.activationCell}>{activation.gate}.{activation.line}</span>
                           </button>
