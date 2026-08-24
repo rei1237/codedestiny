@@ -136,6 +136,18 @@ for (const bad of ["weekly", "monthly"]) {
     `[period-faqs] ${bad} 문답이 "그날의 일진"을 설명한다 — 그 페이지는 하루치 일진을 쓰지 않는다.`);
 }
 
+// ── 6b. 조사를 하드코딩하지 않았는가 ────────────────────────────────────
+// 사고 이력(2026-08-24): `${p.ruler}와` 로 조사를 박아 `금성와`·`달와` 가 sign 24개 x 기간 4개
+// = 96편의 본문과 그 FAQPage 구조화 데이터에 그대로 실렸다. 받침 유무는 값을 끼워 봐야 알 수 있으니
+// 템플릿에 조사를 박는 것 자체를 막는다.
+{
+  const hardcoded = [...faqSrc.matchAll(/\$\{[^}]+\}\s*(와|과|은|는|이|가|을|를)(?=[\s`.,·])/g)];
+  assert(hardcoded.length === 0,
+    `[period-faqs] 보간 뒤에 조사를 하드코딩했다(${hardcoded.map((m) => m[0].slice(-6)).join(", ")}) — 받침에 따라 갈리므로 조사 유틸을 쓸 것.`);
+  assert(/function withGwaWa/.test(faqSrc),
+    "[period-faqs] withGwaWa 조사 유틸이 없다 — 지우면 `금성와` 가 돌아온다.");
+}
+
 // 화면과 스키마가 같은 목록을 쓰는가 (한쪽만 고치면 구조화 데이터가 4벌 동일로 돌아간다)
 const viewSrc = read("app/fortune/[period]/[sign]/SignFortuneView.tsx");
 const pageSrc = read("app/fortune/[period]/[sign]/page.tsx");
