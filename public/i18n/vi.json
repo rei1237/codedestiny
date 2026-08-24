@@ -2024,19 +2024,19 @@
       "packages": {
         "standard": {
           "name": "Mật Ong Tiêu Chuẩn 30 Ngày",
-          "desc": "30 ngày · Tính năng lên tới 3.000 KRW · 3 hồ sơ"
+          "desc": "30 ngày · Nội dung đến khoảng 5.000 KRW · Tối đa 30.000 KRW mỗi tháng · Tối đa 3 hồ sơ"
         },
         "premium": {
           "name": "Mật Ong Cao Cấp 30 Ngày",
-          "desc": "30 ngày · Tính năng lên tới 5.000 KRW · 7 hồ sơ"
+          "desc": "30 ngày · Nội dung đến khoảng 10.000 KRW · Tối đa 100.000 KRW mỗi tháng · Tối đa 7 hồ sơ"
         },
         "vvip": {
           "name": "Hũ Mật Ong VVIP 30 Ngày",
-          "desc": "30 ngày · Tính năng lên tới 10.000 KRW · 15 hồ sơ"
+          "desc": "30 ngày · Nội dung đến khoảng 20.000 KRW · Tối đa 200.000 KRW mỗi tháng · Tối đa 15 hồ sơ"
         },
         "family": {
           "name": "Mã Định Mệnh Gia Đình 30 Ngày",
-          "desc": "30 ngày · Không giới hạn dưới 30.000 KRW · 10 lượt tư vấn chuyên gia · Hồ sơ không giới hạn"
+          "desc": "30 ngày · Toàn bộ nội dung áp dụng gói · Tối đa 500.000 KRW mỗi tháng · Hồ sơ không giới hạn"
         }
       },
       "monthlyStatusChecking": "Đang kiểm tra số dư và trạng thái Thẻ Pass.",

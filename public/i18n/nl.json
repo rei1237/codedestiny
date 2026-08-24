@@ -2024,19 +2024,19 @@
       "packages": {
         "standard": {
           "name": "Standaardhoning 30 dagen",
-          "desc": "30 dagen · Functies tot 3.000 KRW · 3 profielen"
+          "desc": "30 dagen · Content tot KRW 5.000 · Tot KRW 30.000 per maand · Maximaal 3 profielen"
         },
         "premium": {
           "name": "Premiumhoning 30 dagen",
-          "desc": "30 dagen · Functies tot 5.000 KRW · 7 profielen"
+          "desc": "30 dagen · Content tot KRW 10.000 · Tot KRW 100.000 per maand · Maximaal 7 profielen"
         },
         "vvip": {
           "name": "VVIP Honingpot 30 dagen",
-          "desc": "30 dagen · Functies tot 10.000 KRW · 15 profielen"
+          "desc": "30 dagen · Content tot KRW 20.000 · Tot KRW 200.000 per maand · Maximaal 15 profielen"
         },
         "family": {
           "name": "Code Destiny Familie 30 dagen",
-          "desc": "30 dagen · Onbeperkt onder KRW 30.000 · 10 expertconsulten · Onbeperkte profielen"
+          "desc": "30 dagen · Alle content die de pass dekt · Tot KRW 500.000 per maand · Onbeperkt profielen"
         }
       },
       "monthlyStatusChecking": "We controleren het resterende saldo en de Pas-status.",

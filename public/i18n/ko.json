@@ -1520,7 +1520,21 @@
       "provisionNotice": "이용권은 결제 완료 즉시 활성화되어 바로 이용할 수 있으며, 활성화 이후에는 관련 법령에 따라 청약철회가 제한될 수 있습니다.",
       "monthlyButton": "월정석 {credits}로 결제",
       "monthlyButtonBusy": "월정석으로 이용권을 활성화하는 중...",
-      "monthlyButtonShort": "월정석 {credits} 필요 · 잔량 부족"
+      "monthlyButtonShort": "월정석 {credits} 필요 · 잔량 부족",
+      "packages": {
+        "standard": {
+          "desc": "30일 · 5천원급 콘텐츠까지 · 월 최대 3만원 상당 · 프로필 최대 3개"
+        },
+        "premium": {
+          "desc": "30일 · 1만원급 콘텐츠까지 · 월 최대 10만원 상당 · 프로필 최대 7개"
+        },
+        "vvip": {
+          "desc": "30일 · 2만원급 콘텐츠까지 · 월 최대 20만원 상당 · 프로필 최대 15개"
+        },
+        "family": {
+          "desc": "30일 · 이용권 대상 전체 · 월 최대 50만원 상당 · 프로필 무제한"
+        }
+      }
     },
     "access": {
       "passAppliedContinue": "이용권으로 열람되었습니다."
