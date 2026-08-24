@@ -1823,7 +1823,16 @@
         "monthly": "Je kunt dit openen met je huidige maanstenen — zonder extra kosten!",
         "direct": "Je kunt alleen dit ene item meteen openen."
       },
-      "goLabel": "Zo openen"
+      "goLabel": "Zo openen",
+      "method": {
+        "prompt": "Hoe wil je betalen?",
+        "card": "Creditcard · Snelbetalen",
+        "transfer": "Realtime bankoverschrijving",
+        "mobile": "Betalen via mobiele rekening",
+        "giftCertificate": "Cultuurbon",
+        "comingSoon": "Binnenkort beschikbaar",
+        "back": "Terug"
+      }
     },
     "overlay": {
       "unlockPreparing": {

@@ -1823,7 +1823,16 @@
         "monthly": "Bạn có thể mở bằng nguyệt tinh thạch đang có mà không tốn thêm!",
         "direct": "Bạn có thể mở ngay riêng nội dung này."
       },
-      "goLabel": "Mở theo cách này"
+      "goLabel": "Mở theo cách này",
+      "method": {
+        "prompt": "Bạn muốn thanh toán bằng cách nào?",
+        "card": "Thẻ tín dụng · Thanh toán nhanh",
+        "transfer": "Chuyển khoản ngân hàng tức thì",
+        "mobile": "Thanh toán qua cước điện thoại",
+        "giftCertificate": "Phiếu quà tặng văn hóa",
+        "comingSoon": "Sắp ra mắt",
+        "back": "Quay lại"
+      }
     },
     "overlay": {
       "unlockPreparing": {

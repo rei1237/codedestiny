@@ -3,7 +3,7 @@
   "note": "사이트맵 lastmod 원장. scripts/lib/sitemap-lastmod.mjs 가 라우트별 소스 서명을 계산해 다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
   "routes": {
     "/": {
-      "signature": "7171f4158d965412",
+      "signature": "49c76e35cac516fc",
       "lastmod": "2026-08-24"
     },
     "/about/": {
@@ -55,7 +55,7 @@
       "lastmod": "2026-08-23"
     },
     "/destiny-compass/": {
-      "signature": "729e1fa57ad75088",
+      "signature": "076bfadd387e4251",
       "lastmod": "2026-08-24"
     },
     "/destiny-poker": {
@@ -83,7 +83,7 @@
       "lastmod": "2026-08-23"
     },
     "/en/": {
-      "signature": "21c5eb35a9985ef3",
+      "signature": "e02fa1760f36461a",
       "lastmod": "2026-08-24"
     },
     "/en/insights/": {
@@ -127,7 +127,7 @@
       "lastmod": "2026-08-23"
     },
     "/fortune-tea-house/": {
-      "signature": "63ab4980a05c159e",
+      "signature": "08f0fa39910c4bea",
       "lastmod": "2026-08-24"
     },
     "/fortune/": {
@@ -135,7 +135,7 @@
       "lastmod": "2026-08-16"
     },
     "/fortune/prompt-hub/": {
-      "signature": "78e9c726c6bb876d",
+      "signature": "3c016c5535fa4230",
       "lastmod": "2026-08-24"
     },
     "/fortune/today/": {
@@ -403,7 +403,7 @@
       "lastmod": "2026-08-24"
     },
     "/ja/": {
-      "signature": "21c5eb35a9985ef3",
+      "signature": "e02fa1760f36461a",
       "lastmod": "2026-08-24"
     },
     "/ja/insights/": {
@@ -447,7 +447,7 @@
       "lastmod": "2026-08-24"
     },
     "/karma-destiny-ai/": {
-      "signature": "884436ca961ba2e1",
+      "signature": "a07732f306f2a758",
       "lastmod": "2026-08-24"
     },
     "/kkul-kkul-unse/": {
@@ -455,11 +455,11 @@
       "lastmod": "2026-08-16"
     },
     "/life-book-ai/": {
-      "signature": "6308ff51a8ee55e1",
+      "signature": "1fb2afd63ac28493",
       "lastmod": "2026-08-24"
     },
     "/love-secret-ai/": {
-      "signature": "8c8549ebf4114951",
+      "signature": "d1e14e4783f5db4f",
       "lastmod": "2026-08-24"
     },
     "/love/": {
@@ -471,7 +471,7 @@
       "lastmod": "2026-08-24"
     },
     "/master-love-codex/": {
-      "signature": "3bdd3fca596d3a31",
+      "signature": "3050124ff6485ac5",
       "lastmod": "2026-08-24"
     },
     "/mayan-calendar/guide/": {
@@ -491,123 +491,123 @@
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/0/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/1/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/10/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/11/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/12/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/13/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/14/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/15/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/16/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/17/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/18/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/19/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/2/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/20/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/21/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/22/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/23/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/24/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/25/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/26/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/3/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/4/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/5/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/6/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/7/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/8/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/nakshatra/codex/9/": {
-      "signature": "6901e96831b8e2e1",
+      "signature": "f52dcdf4d495db26",
       "lastmod": "2026-08-24"
     },
     "/naming-ai/": {
-      "signature": "93473f6cefbb61b4",
+      "signature": "5345181ece13195e",
       "lastmod": "2026-08-24"
     },
     "/neo-operation-room/": {
-      "signature": "1f916e859e290cfd",
+      "signature": "0aaf30f710a3a6e1",
       "lastmod": "2026-08-24"
     },
     "/new-year-ai-consultation/": {
-      "signature": "5978c38b2c2cd35e",
+      "signature": "8f25b0d9ec90caad",
       "lastmod": "2026-08-24"
     },
     "/oracle/hwatu-life/": {
@@ -619,7 +619,7 @@
       "lastmod": "2026-08-23"
     },
     "/oracle/rune/": {
-      "signature": "d9ae683a10b016ae",
+      "signature": "74e062c81cc0e3ba",
       "lastmod": "2026-08-24"
     },
     "/oracle/sukuyo/": {
@@ -647,7 +647,7 @@
       "lastmod": "2026-08-24"
     },
     "/saju-guardian/": {
-      "signature": "b522b6c356df3506",
+      "signature": "58e71d10ff4a0b0c",
       "lastmod": "2026-08-24"
     },
     "/saju/": {
@@ -671,7 +671,7 @@
       "lastmod": "2026-08-24"
     },
     "/saju/destiny-meeting-place/": {
-      "signature": "4c93fa7103c33a34",
+      "signature": "60ded868c7df5469",
       "lastmod": "2026-08-24"
     },
     "/saju/five-elements/": {
@@ -683,7 +683,7 @@
       "lastmod": "2026-08-23"
     },
     "/saju/love-simulation/": {
-      "signature": "c13578f92b398a4f",
+      "signature": "94b38da0b9270411",
       "lastmod": "2026-08-24"
     },
     "/saju/sibyl/": {
@@ -875,7 +875,7 @@
       "lastmod": "2026-08-24"
     },
     "/sukuyo-compatibility-ai/": {
-      "signature": "e7cc54b25d64af53",
+      "signature": "2c57af3055a687a4",
       "lastmod": "2026-08-24"
     },
     "/sukuyo/": {
@@ -907,7 +907,7 @@
       "lastmod": "2026-08-23"
     },
     "/tarot/mindscan/": {
-      "signature": "cc3c5db2d2c5d5e9",
+      "signature": "6a675cbaa57fcb11",
       "lastmod": "2026-08-24"
     },
     "/tarot/mingri/": {
@@ -915,11 +915,11 @@
       "lastmod": "2026-08-23"
     },
     "/tarot/numerology/": {
-      "signature": "867d0ec773b7ad85",
+      "signature": "1907a9ee7c7f1ddb",
       "lastmod": "2026-08-24"
     },
     "/tarot/prompt-maker/": {
-      "signature": "8b8f029969d86cf4",
+      "signature": "77a10eca1250adbd",
       "lastmod": "2026-08-24"
     },
     "/tarot/reunion/": {
@@ -943,7 +943,7 @@
       "lastmod": "2026-08-24"
     },
     "/vedic-ai/": {
-      "signature": "9b2ab26fe2c5acf2",
+      "signature": "56bcbe3883300d4d",
       "lastmod": "2026-08-24"
     },
     "/vedic/": {
@@ -963,7 +963,7 @@
       "lastmod": "2026-08-24"
     },
     "/zh-tw/": {
-      "signature": "21c5eb35a9985ef3",
+      "signature": "e02fa1760f36461a",
       "lastmod": "2026-08-24"
     },
     "/zh-tw/insights/": {
@@ -1003,7 +1003,7 @@
       "lastmod": "2026-08-24"
     },
     "/zh/": {
-      "signature": "21c5eb35a9985ef3",
+      "signature": "e02fa1760f36461a",
       "lastmod": "2026-08-24"
     },
     "/zh/insights/": {
@@ -1043,7 +1043,7 @@
       "lastmod": "2026-08-24"
     },
     "/ziwei-ai/": {
-      "signature": "dfc0e7fae95472b5",
+      "signature": "0c5dfd7eb428488b",
       "lastmod": "2026-08-24"
     },
     "/ziwei/": {
@@ -1051,7 +1051,7 @@
       "lastmod": "2026-08-24"
     },
     "/ziwei/chart/": {
-      "signature": "127976d8edf74173",
+      "signature": "71552b47e8c8e180",
       "lastmod": "2026-08-24"
     },
     "/ziwei/guide/": {

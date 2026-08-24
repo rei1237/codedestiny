@@ -647,6 +647,94 @@ console.log("\n[12] 결제 서비스 경계를 중첩해도 결제창이 뜨는�
   }
 }
 
+// ── ⑬ 단건결제 2단계(결제수단 고르기) ──────────────────────────────────────
+//
+// 🔴 문자열 단언으로는 "패널이 있다"까지밖에 못 본다. 실제로 눌러서 확인해야 하는 성질이 셋이다:
+//   ① 단건 카드를 눌러도 창이 닫히지 않고 2단계로 바뀐다(닫히면 결제가 그대로 시작된다).
+//   ② [뒤로] 로 돌아온 1단계 카드가 **다시 눌린다** — 2단계 진입에서 is-loading/disabled 를
+//      걸거나 그리드를 innerHTML 로 교체하면 여기서 죽는다.
+//   ③ 준비중 수단은 창을 닫지 않고 상태만 알린다(aria-disabled 라 click 은 발화한다).
+console.log("\n[13] 단건결제 2단계 결제수단 흐름");
+{
+  const { window } = bootRuntime();
+  const entry = window.__cdCheckoutEntry;
+  const q = (sel) => window.document.querySelector(sel);
+  const clickNode = (sel) => q(sel)?.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  const choicePromise = openChoice(window);
+  await flush();
+
+  check("2단계 패널이 감춰진 채로 함께 렌더된다", () => {
+    const methods = q('[data-choice-step="methods"]');
+    assert.ok(methods, "결제수단 2단계 패널이 없다");
+    assert.equal(methods.hidden, true, "2단계 패널이 처음부터 보인다");
+  });
+  check("4종이 전부 렌더되고 활성은 정본 표를 따른다", () => {
+    const ids = Array.from(window.document.querySelectorAll("[data-pay-method]"))
+      .map((node) => node.getAttribute("data-pay-method"));
+    // 🔴 Array.from 으로 Node 렐름 배열을 만든다 — jsdom 렐름 배열을 그대로 넘기면
+    // deepStrictEqual 이 프로토타입 불일치로 값이 같아도 실패한다.
+    assert.deepEqual(ids, Array.from(entry.DIRECT_PAY_METHOD_ORDER), "결제수단 목록이 정본 순서와 다르다");
+    for (const id of ids) {
+      const disabled = q(`[data-pay-method="${id}"]`).getAttribute("aria-disabled") === "true";
+      assert.equal(disabled, !entry.isDirectPayMethodEnabled(id), `${id} 의 준비중 표시가 정본 표와 어긋난다`);
+    }
+  });
+  check("🔴 2단계 버튼에는 data-mode 가 없다(붙으면 누를 때 결제창이 닫힌다)", () => {
+    const tagged = window.document.querySelectorAll('[data-pay-method][data-mode], [data-pay-step][data-mode]');
+    assert.equal(tagged.length, 0, `2단계 노드 ${tagged.length}개에 data-mode 가 붙어 있다`);
+  });
+
+  clickNode('[data-mode="direct"]');
+  await flush();
+  check("단건 카드는 창을 닫지 않고 2단계로 전환한다", () => {
+    assert.ok(q("#cdStandalonePaymentChoice"), "결제창이 닫혔다 — 2단계 가로채기가 동작하지 않았다");
+    assert.equal(q('[data-choice-step="options"]').hidden, true);
+    assert.equal(q('[data-choice-step="methods"]').hidden, false);
+  });
+  check("2단계 진입은 1단계 카드를 잠그지 않는다(뒤로 복귀 대비)", () => {
+    const locked = Array.from(window.document.querySelectorAll('.cd-direct-payment-choice-grid [data-mode]'))
+      .filter((node) => node.hasAttribute("disabled"));
+    assert.equal(locked.length, 0, `1단계 카드 ${locked.length}개가 잠겼다 — [뒤로] 로 돌아가면 죽는다`);
+  });
+
+  clickNode('[data-pay-method="TRANSFER"]');
+  await flush();
+  check("준비중 수단은 창을 닫지 않고 상태로만 알린다", () => {
+    assert.ok(q("#cdStandalonePaymentChoice"), "준비중 수단 클릭이 결제창을 닫았다");
+    assert.equal(q("[data-payment-status]").textContent, entry.directPayMethodComingSoonText());
+    assert.equal(entry.peekSelectedDirectPayMethod(), "", "준비중 수단이 선택으로 기록됐다");
+  });
+
+  clickNode('[data-pay-step="back"]');
+  await flush();
+  check("[뒤로] 로 1단계가 돌아온다", () => {
+    assert.equal(q('[data-choice-step="options"]').hidden, false);
+    assert.equal(q('[data-choice-step="methods"]').hidden, true);
+  });
+
+  clickNode('[data-mode="direct"]');
+  await flush();
+  clickNode('[data-pay-method="CARD"]');
+  const resolved = await choicePromise;
+  check("활성 수단을 고르면 'direct' 로 닫힌다(호출부 계약 불변)", () => {
+    assert.equal(resolved, "direct");
+  });
+  check("고른 수단이 PortOne 요청 payMethod 로 이어진다", () => {
+    assert.equal(entry.resolveDirectPayMethod("CARD"), "CARD");
+  });
+
+  const cancelled = openChoice(window);
+  await flush();
+  check("새 결제창을 열면 이전 선택이 비워진다", () => {
+    assert.equal(entry.peekSelectedDirectPayMethod(), "");
+  });
+  clickNode('[data-mode="cancel"]');
+  await cancelled;
+  check("취소로 닫으면 선택이 남지 않는다", () => {
+    assert.equal(entry.peekSelectedDirectPayMethod(), "");
+  });
+}
+
 if (failures.length) {
   console.error(`\n[verify-checkout-pass-card] FAIL (${failures.length})`);
   for (const failure of failures) console.error(`  - ${failure}`);

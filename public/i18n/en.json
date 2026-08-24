@@ -1823,7 +1823,16 @@
         "monthly": "You can open this with the moonstones you already have — no extra cost!",
         "direct": "You can open just this one piece of content right away."
       },
-      "goLabel": "Open with this"
+      "goLabel": "Open with this",
+      "method": {
+        "prompt": "How would you like to pay?",
+        "card": "Credit card · Easy pay",
+        "transfer": "Real-time bank transfer",
+        "mobile": "Mobile carrier billing",
+        "giftCertificate": "Culture gift certificate",
+        "comingSoon": "Coming soon",
+        "back": "Back"
+      }
     },
     "overlay": {
       "unlockPreparing": {

@@ -2831,6 +2831,29 @@
     if (!api || typeof api.getPaymentChoiceLockNode !== 'function') return null;
     try { return api.getPaymentChoiceLockNode(); } catch (_lockNodeError) { return null; }
   }
+  // ── 단건결제 결제수단(2단계) 위임 ────────────────────────────────────────────────
+  // 🔴 수단 표·문구·마크업의 정본은 checkout-entry 하나다(셸·React 와 공유). 사본 금지.
+  function _dpDirectPayMethodComingSoonText() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.directPayMethodComingSoonText !== 'function') return '';
+    try { return api.directPayMethodComingSoonText(); } catch (_comingSoonError) { return ''; }
+  }
+  function _dpSetSelectedDirectPayMethod(id) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.setSelectedDirectPayMethod !== 'function') return '';
+    try { return api.setSelectedDirectPayMethod(id) || ''; } catch (_selectError) { return ''; }
+  }
+  function _dpClearSelectedDirectPayMethod() {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.clearSelectedDirectPayMethod !== 'function') return;
+    try { api.clearSelectedDirectPayMethod(); } catch (_clearError) { /* noop */ }
+  }
+  // PortOne 요청에 실을 payMethod. 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.
+  function _dpResolveDirectPayMethod(configPayMethod) {
+    var api = _dpCheckoutEntry();
+    if (!api || typeof api.resolveDirectPayMethod !== 'function') return configPayMethod || 'CARD';
+    try { return api.resolveDirectPayMethod(configPayMethod) || 'CARD'; } catch (_payMethodError) { return configPayMethod || 'CARD'; }
+  }
   // 앱에서는 /points 가 번들에 없다 — 판정이 애매하면 앱 경로(충전 모달)로 폴백한다.
   function _dpShouldUseAppStoreEntry() {
     var api = _dpCheckoutEntry();
@@ -4582,7 +4605,8 @@
         orderName: _dpResolvePortOneOrderName(order, checkoutPayload),
         totalAmount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
-        payMethod: config.payMethod || 'CARD',
+        // 🔴 사용자가 결제창 2단계에서 고른 수단이 있으면 그것이 이긴다. 없으면 서버 config(=CARD).
+        payMethod: _dpResolveDirectPayMethod(config.payMethod),
         // 🔴 안 보내면 PG 가 한국어 결제창을 연다. 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
         locale: _dpPgWindowLocale(),
         // [regression-guard] Do NOT send windowType. PR #104 added { pc:'IFRAME', mobile:'REDIRECTION' }
@@ -11267,6 +11291,12 @@
           },
         })
       : '';
+    // 🔴 단건결제 2단계(결제수단 고르기). 마크업·문구·수단 표는 공유 코어 하나가 소유한다.
+    // 앱(Play Billing)에서는 만들지 않는다 — KR PG 수단 목록은 사실과 다르고 Play 정책에도 걸린다.
+    var directMethodStepHtml = (!directUsesAppStore
+      && __dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildDirectPayMethodStepHtml === 'function')
+      ? __dpPaymentCardsApi.buildDirectPayMethodStepHtml({ escape: esc })
+      : '';
     _dpEnsureStandalonePaymentChoiceStyle();
     return new Promise(function(resolve) {
       var settled = false;
@@ -11309,9 +11339,11 @@
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.basis', '결제 금액 {amount}', { amount: _dpCheckoutFormatKrw(amountKrw) })) + '</span>' +
             '<span>' + esc(_dpCheckoutText('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.')) + '</span>' +
           '</div>' +
-          '<div class="cd-direct-payment-choice-grid">' +
+          '<div class="cd-direct-payment-choice-grid" data-choice-step="options">' +
             orderedChoiceCardsHtml +
           '</div>' +
+          // 🔴 1단계 그리드를 교체하지 않고 hidden 으로 감춘다(셸과 같은 계약).
+          (directMethodStepHtml ? '<div data-choice-step="methods" hidden>' + directMethodStepHtml + '</div>' : '') +
           '<div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>' +
           '<p class="cd-direct-payment-legal">' + esc(_dpCheckoutText('payment.directModal.legal.provisionTiming', '본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다.')) + '</p>' +
           '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + esc(_dpCheckoutText('common.cancel', '취소')) + '</button></div>' +
@@ -11328,10 +11360,50 @@
         choiceLockToken = null;
         if (root.parentNode) root.parentNode.removeChild(root);
         var resolved = (choice === 'direct' || choice === 'monthly' || choice === 'pass') ? choice : 'cancel';
+        // 'direct' 로 닫힐 때만 고른 결제수단을 남긴다(셸 close() 와 같은 계약).
+        if (resolved !== 'direct') _dpClearSelectedDirectPayMethod();
         if (resolved === 'cancel' && !leavingForPassStore) {
           _dpTrackCheckoutEvent('checkout_dismissed', { coinPrice: cost, featureKey: opts.featureKey, dwellMs: Date.now() - modalOpenedAt });
         }
         resolve(resolved);
+      }
+      // 🔴 노드 교체가 아니라 hidden 토글이다(셸과 같은 계약). 교체하면 [뒤로] 복귀가 원래 카드를
+      // 잃는다 — 카드에 걸린 상태(disabled·is-loading)와 잔량 확인 버튼의 진행 상태까지 함께 사라진다.
+      function _dpMethodStepNodes() {
+        return {
+          options: root.querySelector('[data-choice-step="options"]'),
+          methods: root.querySelector('[data-choice-step="methods"]')
+        };
+      }
+      function _dpSetPaymentStatusText(message) {
+        var node = root.querySelector('[data-payment-status]');
+        if (!node) return;
+        node.textContent = String(message || '');
+        node.style.color = '#fbbf24';
+      }
+      function _dpEnterMethodStep() {
+        var nodes = _dpMethodStepNodes();
+        if (!nodes.options || !nodes.methods) return false;
+        nodes.options.hidden = true;
+        nodes.methods.hidden = false;
+        _dpSetPaymentStatusText('');
+        try {
+          var first = nodes.methods.querySelector('[data-pay-method]:not([aria-disabled="true"])')
+            || nodes.methods.querySelector('[data-pay-step="back"]');
+          if (first && typeof first.focus === 'function') first.focus();
+        } catch (_focusError) {}
+        return true;
+      }
+      function _dpLeaveMethodStep() {
+        var nodes = _dpMethodStepNodes();
+        if (!nodes.options || !nodes.methods) return;
+        nodes.methods.hidden = true;
+        nodes.options.hidden = false;
+        _dpSetPaymentStatusText('');
+        try {
+          var back = nodes.options.querySelector('[data-mode="direct"]');
+          if (back && typeof back.focus === 'function') back.focus();
+        } catch (_focusError) {}
       }
       function onKey(e) { if (e.key === 'Escape') { e.preventDefault(); finish('cancel'); } }
       function goPassStore() {
@@ -11389,6 +11461,32 @@
           balanceHit.removeAttribute('disabled');
           return;
         }
+        // 🔴 2단계 버튼에는 data-mode 가 없다 — 붙이면 아래 [data-mode] 분기가 창을 닫는다.
+        // 그래서 선택·복귀는 이 두 분기가 [data-mode] 분기보다 **앞에서** 받는다.
+        var backHit = e.target && e.target.closest ? e.target.closest('[data-pay-step="back"]') : null;
+        if (backHit) {
+          e.preventDefault();
+          _dpLeaveMethodStep();
+          return;
+        }
+        var methodHit = e.target && e.target.closest ? e.target.closest('[data-pay-method]') : null;
+        if (methodHit) {
+          e.preventDefault();
+          if (methodHit.getAttribute('aria-disabled') === 'true') {
+            // 아직 PG 계약이 끝나지 않은 수단. 창을 닫지 않고 왜 못 누르는지만 말한다.
+            _dpSetPaymentStatusText(_dpDirectPayMethodComingSoonText());
+            return;
+          }
+          var pickedMethod = _dpSetSelectedDirectPayMethod(methodHit.getAttribute('data-pay-method'));
+          if (!pickedMethod) return;
+          _dpTrackCheckoutEvent('checkout_option_click', { option: 'direct_' + pickedMethod.toLowerCase(), coinPrice: cost, featureKey: opts.featureKey });
+          Array.prototype.forEach.call(root.querySelectorAll('[data-mode],[data-pay-method],[data-pay-step]'), function(node) {
+            node.setAttribute('disabled', 'disabled');
+            node.classList.add('is-loading');
+          });
+          finish('direct');
+          return;
+        }
         var hit = e.target && e.target.closest ? e.target.closest('[data-mode]') : null;
         if (hit) {
           var act = hit.getAttribute('data-mode');
@@ -11434,6 +11532,9 @@
           if (hit.hasAttribute('disabled')) return; // 잔량 부족으로 비활성화된 월정석 버튼
           if (act === 'direct' || act === 'monthly') {
             _dpTrackCheckoutEvent('checkout_option_click', { option: act, coinPrice: cost, featureKey: opts.featureKey });
+            // 🔴 단건은 닫지 않고 결제수단 2단계로 넘어간다. 아직 로딩이 없으므로 잠그지도 않는다 —
+            // 잠그면 [뒤로] 로 돌아온 카드가 죽는다.
+            if (act === 'direct' && _dpEnterMethodStep()) return;
             // 🔴 고른 즉시 세 카드를 모두 잠근다(셸 index.html · React billing-client 와 같은 계약).
             // 여기만 그 표시가 없어서, 주문 발급이 도는 동안 카드가 그대로 눌리는 상태로 보였다 —
             // finish() 의 settled 가 중복 실행은 이미 막지만, 반응이 없는 것처럼 보이면 사용자는
@@ -11452,6 +11553,8 @@
       // 🔴 붙이기 직전에 남의(그리고 내 옛) 고아 결제창을 걷어낸다. 안 걷으면 같은 id 오버레이가
       // 두 겹으로 깔려, 아래 깔린 창이 살아 있는 keydown 리스너와 미해결 프로미스를 붙든 채 남는다.
       _dpSweepOrphanChoiceModals(root);
+      // 이전 결제 시도가 남긴 결제수단 선택은 여기서 비운다(셸과 같은 계약 + checkout-entry TTL 이중 방어).
+      _dpClearSelectedDirectPayMethod();
       document.body.appendChild(root);
       choiceLockToken = _dpAcquireChoiceLock(root);
       // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.

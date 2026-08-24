@@ -1448,7 +1448,16 @@
         "monthly": "가지고 있는 월정석으로 추가 지출 없이 열 수 있어요!",
         "direct": "이번 콘텐츠 하나만 바로 열어볼 수 있어요."
       },
-      "goLabel": "이 방법으로 열기"
+      "goLabel": "이 방법으로 열기",
+      "method": {
+        "prompt": "어떤 방법으로 결제할까요?",
+        "card": "신용카드 · 간편결제",
+        "transfer": "실시간 계좌이체",
+        "mobile": "휴대폰 소액결제",
+        "giftCertificate": "문화상품권",
+        "comingSoon": "준비 중",
+        "back": "뒤로"
+      }
     },
     "overlay": {
       "unlockPreparing": {

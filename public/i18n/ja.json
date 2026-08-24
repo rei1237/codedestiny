@@ -1823,7 +1823,16 @@
         "monthly": "お持ちの月精石で追加の出費なしに開けます！",
         "direct": "今見ているコンテンツだけをすぐ開けます。"
       },
-      "goLabel": "この方法で開く"
+      "goLabel": "この方法で開く",
+      "method": {
+        "prompt": "どのお支払い方法にしますか？",
+        "card": "クレジットカード · 簡単決済",
+        "transfer": "リアルタイム口座振替",
+        "mobile": "携帯キャリア決済",
+        "giftCertificate": "文化商品券",
+        "comingSoon": "準備中",
+        "back": "戻る"
+      }
     },
     "overlay": {
       "unlockPreparing": {

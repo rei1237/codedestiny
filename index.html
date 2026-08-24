@@ -22974,7 +22974,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-d5eb5a3ad6c9" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-d5eb5a3ad6c9" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-1e92fb001e76" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-d5eb5a3ad6c9" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-d5eb5a3ad6c9" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -23588,6 +23588,30 @@ return you.name.restore();</span>
       monthlyCovers: monthlyCovers,
     };
   }
+  // ── 단건결제 결제수단(2단계) 위임 ────────────────────────────────────────────────
+  // 🔴 수단 표·문구·마크업의 정본은 /js/core/checkout-entry.js 하나다(React·독립 정적과 공유).
+  // 셸에 사본을 만들지 말 것 — PG 승인이 떨어질 때 한 렌더러만 준비중으로 남는다.
+  function _cdDirectPayMethodComingSoonText() {
+    var api = _cdCheckoutEntry();
+    if (!api || typeof api.directPayMethodComingSoonText !== 'function') return '';
+    try { return api.directPayMethodComingSoonText(); } catch (_comingSoonError) { return ''; }
+  }
+  function _cdSetSelectedDirectPayMethod(id) {
+    var api = _cdCheckoutEntry();
+    if (!api || typeof api.setSelectedDirectPayMethod !== 'function') return '';
+    try { return api.setSelectedDirectPayMethod(id) || ''; } catch (_selectError) { return ''; }
+  }
+  function _cdClearSelectedDirectPayMethod() {
+    var api = _cdCheckoutEntry();
+    if (!api || typeof api.clearSelectedDirectPayMethod !== 'function') return;
+    try { api.clearSelectedDirectPayMethod(); } catch (_clearError) { /* noop */ }
+  }
+  // PortOne 요청에 실을 payMethod. 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.
+  function _cdResolveDirectPayMethod(configPayMethod) {
+    var api = _cdCheckoutEntry();
+    if (!api || typeof api.resolveDirectPayMethod !== 'function') return configPayMethod || 'CARD';
+    try { return api.resolveDirectPayMethod(configPayMethod) || 'CARD'; } catch (_payMethodError) { return configPayMethod || 'CARD'; }
+  }
   // 🔴 결제창 단일 인스턴스 정본도 /js/core/checkout-entry.js 하나다(React·독립 정적과 공유).
   // 셸은 ① 새 결제창을 붙이기 직전에 남의 고아 노드를 걷어내고 ② 자기 모달을 거기 등록해 다른 두
   // 런타임이 볼 수 있게 한다. 셸 안에 또 다른 락을 만들지 않는다(중첩 금지).
@@ -24027,6 +24051,14 @@ return you.name.restore();</span>
           },
         })
       : '';
+    // 🔴 단건결제 2단계(결제수단 고르기). 마크업·문구·수단 표는 세 렌더러 공유 코어 하나가 소유한다
+    // (js/core/checkout-entry.js buildDirectPayMethodStepHtml) — 사본을 만들면 한 렌더러만 준비중
+    // 목록이 낡는다. 앱(Play Billing)에서는 만들지 않는다: KR PG 수단 목록은 사실과 다르고 Play
+    // 정책에도 걸린다. 공유 코어가 없으면 빈 문자열 → 2단계 없음 → 종전 동작 그대로다.
+    var directMethodStepHtml = (allowDirectChoice && !directUsesAppStore
+      && __cdPaymentCardsApi && typeof __cdPaymentCardsApi.buildDirectPayMethodStepHtml === 'function')
+      ? __cdPaymentCardsApi.buildDirectPayMethodStepHtml({ escape: escapeHtml })
+      : '';
     // 이용권 선검사 결과를 결제창에서 한 줄로 설명한다(왜 결제창이 떴는지 모르겠다는 피드백).
     // 기존 .cd-direct-payment-sub 스타일을 그대로 상속하므로 CSS 추가는 없다.
     var passOutcomeNote = String(opts.passOutcomeNote || '').trim();
@@ -24064,9 +24096,12 @@ return you.name.restore();</span>
           '</div>' +
           passOutcomeNoteHtml +
           '<div class="cd-direct-payment-note"><strong>' + escapeHtml(title) + '</strong><span>' + escapeHtml(_cdPaymentI18n('payment.directModal.note.basis', '결제 금액 {amount}', { amount: directPaymentBasisLabel })) + '</span>' + (allowPassChoice ? '<span>' + escapeHtml(_cdPaymentI18n('payment.directModal.note.withPass', '이용권 · 월정석 · 카드 중에서 고를 수 있어요.')) + '</span>' : '<span>' + escapeHtml(_cdPaymentI18n('payment.directModal.note.directOnly', '이 콘텐츠는 카드 결제로 열려요.')) + '</span>') + '</div>' +
-          '<div class="cd-direct-payment-choice-grid">' +
+          '<div class="cd-direct-payment-choice-grid" data-choice-step="options">' +
           orderedChoiceCardsHtml +
           '</div>' +
+          // 🔴 1단계 그리드를 innerHTML 로 갈아치우지 않고 hidden 토글로 감춘다 — 갈아치우면
+          // 카드마다 붙여 둔 [data-mode] 리스너가 사라져 [뒤로] 로 돌아왔을 때 카드가 죽는다.
+          (directMethodStepHtml ? '<div data-choice-step="methods" hidden>' + directMethodStepHtml + '</div>' : '') +
           '<div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>' +
           '<p class="cd-direct-payment-legal">' + escapeHtml(_cdPaymentI18n('payment.directModal.legal.provisionTiming', '본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다.')) + '</p>' +
           '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + escapeHtml(_cdPaymentI18n('common.cancel', '취소')) + '</button></div>' +
@@ -24217,6 +24252,10 @@ return you.name.restore();</span>
         }
         // 공용 락은 어느 경로로 닫히든 반드시 푼다. 락을 쥔 채로 두면 재제안이 통째로 막힌다.
         _cdPublishChoiceModalToSharedLock(null);
+        // 🔴 'direct' 로 닫히는 경우에만 고른 결제수단을 남긴다 — 그 값을 읽는 곳이
+        // _cdRunDirectKrwCheckout 하나이고, 다른 경로로 닫혔는데 값이 남아 있으면 다음 결제가
+        // 엉뚱한 수단으로 열린다(수명은 checkout-entry 의 TTL 이 이중으로 닫는다).
+        if (mode !== 'direct') _cdClearSelectedDirectPayMethod();
         // 이탈 계측 — 아무 것도 고르지 않고 닫은 경우만. dwellMs 로 '읽다가 포기'와 '즉시 닫음'을 가른다.
         if (mode === 'cancel' || !mode) {
           _cdTrackCheckoutEvent('checkout_dismissed', {
@@ -24227,7 +24266,69 @@ return you.name.restore();</span>
         }
         resolve(mode);
       }
+      // 🔴 1단계↔2단계는 노드 교체가 아니라 hidden 토글이다. 교체하면 아래에서 카드마다 붙이는
+      // [data-mode] 리스너가 사라져 [뒤로] 로 돌아온 화면이 죽는다.
+      function methodStepNodes() {
+        return {
+          options: modal.querySelector('[data-choice-step="options"]'),
+          methods: modal.querySelector('[data-choice-step="methods"]')
+        };
+      }
+      function enterMethodStep() {
+        var nodes = methodStepNodes();
+        if (!nodes.options || !nodes.methods) return false;
+        nodes.options.hidden = true;
+        nodes.methods.hidden = false;
+        status('', false);
+        try {
+          var first = nodes.methods.querySelector('[data-pay-method]:not([aria-disabled="true"])')
+            || nodes.methods.querySelector('[data-pay-step="back"]');
+          if (first && typeof first.focus === 'function') first.focus();
+        } catch (_focusError) {}
+        return true;
+      }
+      function leaveMethodStep() {
+        var nodes = methodStepNodes();
+        if (!nodes.options || !nodes.methods) return;
+        nodes.methods.hidden = true;
+        nodes.options.hidden = false;
+        status('', false);
+        try {
+          var back = nodes.options.querySelector('[data-mode="direct"]');
+          if (back && typeof back.focus === 'function') back.focus();
+        } catch (_focusError) {}
+      }
       modal.addEventListener('click', function(event) {
+        // 🔴 2단계 버튼에는 data-mode 가 없다(붙이면 아래 일괄 리스너가 창을 닫는다). 그래서 선택과
+        // 복귀는 여기 델리게이션이 받는다 — 새 리스너를 따로 걸지 않는 이유는 순서가 불확정해지기
+        // 때문이다(월정석 잔량 버튼도 같은 규율).
+        var target = event.target;
+        var backHit = target && target.closest ? target.closest('[data-pay-step="back"]') : null;
+        if (backHit) {
+          leaveMethodStep();
+          return;
+        }
+        var methodHit = target && target.closest ? target.closest('[data-pay-method]') : null;
+        if (methodHit) {
+          if (methodHit.getAttribute('aria-disabled') === 'true') {
+            // 아직 PG 계약이 끝나지 않은 수단. 창을 닫지 않고 왜 못 누르는지만 말한다.
+            status(_cdDirectPayMethodComingSoonText(), false);
+            return;
+          }
+          var pickedMethod = _cdSetSelectedDirectPayMethod(methodHit.getAttribute('data-pay-method'));
+          if (!pickedMethod) return;
+          _cdTrackCheckoutEvent('checkout_option_click', {
+            option: 'direct_' + pickedMethod.toLowerCase(),
+            featureKey: featureKey || opts.featureKey,
+            coinPrice: coinPrice
+          });
+          Array.prototype.forEach.call(modal.querySelectorAll('[data-mode],[data-pay-method],[data-pay-step]'), function(btn) {
+            btn.disabled = true;
+            btn.classList.add('is-loading');
+          });
+          close('direct');
+          return;
+        }
         if (event.target === modal) close('cancel');
       });
       bindMonthlyBalanceCheck();
@@ -24317,6 +24418,9 @@ return you.name.restore();</span>
           }
           if (mode === 'direct' || mode === 'monthly') {
             _cdTrackCheckoutEvent('checkout_option_click', { option: mode, featureKey: featureKey || opts.featureKey, coinPrice: coinPrice });
+            // 🔴 단건은 여기서 닫지 않고 결제수단 2단계로 넘어간다. 아직 아무것도 로딩하지 않으므로
+            // is-loading(pointer-events:none)도 걸지 않는다 — 걸면 [뒤로] 로 돌아온 카드가 죽는다.
+            if (mode === 'direct' && enterMethodStep()) return;
             Array.prototype.forEach.call(modal.querySelectorAll('[data-mode]'), function(btn) {
               btn.disabled = true;
               btn.classList.add('is-loading');
@@ -24329,6 +24433,8 @@ return you.name.restore();</span>
       // 안 걷으면 게이트의 재제안 루프가 그 위에 두 번째 결제창을 덧붙여
       // 사용자에게는 "실패 후 다시 누르니 다른 결제창"으로 보인다.
       _cdSweepOrphanChoiceModals(modal);
+      // 이전 결제 시도가 남긴 결제수단 선택은 여기서 반드시 비운다(TTL 과 이중 방어).
+      _cdClearSelectedDirectPayMethod();
       window.__cdDirectPaymentChoiceActive = { modal: modal, startedAt: Date.now() };
       _cdPublishChoiceModalToSharedLock(modal);
       // 퍼널 시작점. 여기부터 checkout_option_click / checkout_dismissed 까지가 한 세션이다.
@@ -25341,7 +25447,9 @@ return you.name.restore();</span>
       orderName: _cdResolvePortOneOrderName(order, checkoutPayload),
       totalAmount: orderAmount,
       currency: config.currency || 'CURRENCY_KRW',
-      payMethod: config.payMethod || 'CARD',
+      // 🔴 사용자가 결제창 2단계에서 고른 수단이 있으면 그것이 이긴다. 없으면 서버 config(=CARD).
+      // 활성 여부 재검증은 checkout-entry 가 하므로 미승인 값이 PG 로 나가지 않는다.
+      payMethod: _cdResolveDirectPayMethod(config.payMethod),
       // 🔴 안 보내면 PG 가 한국어 결제창을 연다 — 결제창까지 영어로 온 사용자가 마지막 화면에서
       // 한국어를 만난다. 쓸 수 있는 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
       locale: _cdPgWindowLocale(),

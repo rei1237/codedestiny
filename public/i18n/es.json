@@ -1823,7 +1823,16 @@
         "monthly": "¡Puedes abrirlo con las piedras lunares que ya tienes, sin gasto extra!",
         "direct": "Puedes abrir solo este contenido ahora mismo."
       },
-      "goLabel": "Abrir así"
+      "goLabel": "Abrir así",
+      "method": {
+        "prompt": "¿Cómo quieres pagar?",
+        "card": "Tarjeta de crédito · Pago rápido",
+        "transfer": "Transferencia bancaria en tiempo real",
+        "mobile": "Pago con factura móvil",
+        "giftCertificate": "Vale cultural",
+        "comingSoon": "Próximamente",
+        "back": "Atrás"
+      }
     },
     "overlay": {
       "unlockPreparing": {

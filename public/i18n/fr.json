@@ -1823,7 +1823,16 @@
         "monthly": "Vous pouvez l'ouvrir avec vos pierres de lune, sans frais supplémentaires !",
         "direct": "Vous pouvez ouvrir uniquement ce contenu tout de suite."
       },
-      "goLabel": "Ouvrir ainsi"
+      "goLabel": "Ouvrir ainsi",
+      "method": {
+        "prompt": "Comment souhaitez-vous payer ?",
+        "card": "Carte bancaire · Paiement express",
+        "transfer": "Virement bancaire instantané",
+        "mobile": "Paiement sur facture mobile",
+        "giftCertificate": "Chèque culture",
+        "comingSoon": "Bientôt disponible",
+        "back": "Retour"
+      }
     },
     "overlay": {
       "unlockPreparing": {

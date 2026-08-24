@@ -85,6 +85,11 @@ for (const needle of [
   // 2026-08-13: 월정석 카드 아래 온디맨드 [보유 월정석 확인] 버튼 + 결과 줄.
   ".cd-direct-payment-balance-check",
   ".cd-direct-payment-balance-value",
+  // 2026-08-24: 단건결제 2단계(결제수단 고르기) 패널. 1단계 그리드와 클래스를 나눈 이유는
+  // verify-checkout-pass-card 가 `.cd-direct-payment-choice-grid [data-mode]` 의 첫 요소를
+  // 이용권 카드로 단언하기 때문이다 — 같은 클래스를 재사용하면 2단계 버튼이 거기 끼어든다.
+  ".cd-direct-payment-method-grid",
+  ".cd-direct-payment-method-back",
 ]) {
   assert.ok(CANONICAL_CSS.includes(needle), `정본 CSS에 ${needle} 규칙이 없습니다`);
 }
@@ -165,6 +170,18 @@ const RENDERERS = [
   { rel: REACT_CLIENT, label: "React" },
   ...STANDALONE_FALLBACKS.map((rel) => ({ rel, label: "독립 폴백" })),
 ];
+
+// 🔴 단건결제 2단계(결제수단) 패널도 정본은 하나다 — js/core/checkout-entry.js 의
+// buildDirectPayMethodStepHtml. 렌더러가 각자 마크업을 손으로 그리면 PG 승인이 떨어졌을 때
+// 한 렌더러만 '준비 중' 목록이 낡은 채 남는다(CSS 배열이 정확히 그 이유로 공유로 옮겨졌다).
+// 마커 리터럴이 아니라 **참조**를 보는 이유도 같다: 마크업이 빌더 안으로 들어가는 순간
+// 리터럴 검사는 조용히 무력해진다(이 파일의 STRUCTURE_MARKERS 가 그렇게 죽어 있다).
+for (const { rel, label } of RENDERERS) {
+  assert.ok(
+    read(rel).includes("buildDirectPayMethodStepHtml"),
+    `${label} ${rel}: 결제수단 2단계 패널을 공유 빌더(buildDirectPayMethodStepHtml)에 위임하지 않습니다.`,
+  );
+}
 
 // 세 렌더러가 **모두** 써야 하는 키. 조건 분기와 무관하게 항상 렌더되는 문구다.
 const REQUIRED_ALL = [
@@ -357,6 +374,35 @@ for (const renderer of KEYED_RENDERERS) {
         + `  나머지 11개 로케일은 옛 문구의 번역을 계속 봅니다. 사전 값을 함께 갱신하세요.`,
     );
   }
+}
+
+// 🔴 결제창 문구가 렌더러 본문에만 있는 시대는 끝났다 — 2단계 결제수단 문구는 세 렌더러가
+// 공유하는 js/core/checkout-entry.js 안에서 checkoutText() 로 조회된다. 위 루프는 렌더러
+// 함수 본문만 훑으므로 그 키들은 **어느 가드에도 안 잡힌다**. 여기서 같은 계약(집합 고정 +
+// ko 폴백 == ko.json + 12로케일)을 코어에도 건다.
+const CORE_METHOD_KEYS = [
+  "payment.directModal.method.prompt",
+  "payment.directModal.method.card",
+  "payment.directModal.method.transfer",
+  "payment.directModal.method.mobile",
+  "payment.directModal.method.giftCertificate",
+  "payment.directModal.method.comingSoon",
+  "payment.directModal.method.back",
+];
+const coreCopy = extractKeyedCopy(read("js/core/checkout-entry.js"), "checkoutText");
+assert.deepEqual(
+  [...coreCopy.keys()].filter((key) => key.startsWith("payment.directModal.method.")).sort(),
+  [...CORE_METHOD_KEYS].sort(),
+  "js/core/checkout-entry.js: 결제수단 2단계 문구 키 집합이 계약과 다릅니다."
+    + " 키를 늘렸다면 CORE_METHOD_KEYS 에도 등록하세요(12로케일 검사가 그 목록을 탑니다).",
+);
+for (const [key, fallback] of coreCopy) {
+  usedKeys.add(key);
+  assert.equal(
+    fallback,
+    readI18nKey(KO_DICTIONARY, key),
+    `js/core/checkout-entry.js: ${key} 의 ko 폴백이 public/i18n/ko.json 과 다릅니다.`,
+  );
 }
 
 // 쓰이는 키는 12개 런타임 로케일 전부에 값이 있어야 한다. 하나라도 비면 그 로케일 사용자는
