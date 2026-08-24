@@ -32,6 +32,7 @@
     "verify:adsense-readiness": "node scripts/verify-adsense-readiness.mjs",
     "verify:editor-notes": "node scripts/verify-editor-notes.mjs",
     "verify:sitemap": "node scripts/verify-sitemap-integrity.mjs",
+    "verify:sitemap-drift": "node scripts/generate-sitemap.mjs --check",
     "verify:fortune-period-axis": "node scripts/verify-fortune-period-axis.mjs",
     "verify:guide-feature-cta": "node scripts/verify-guide-feature-cta.mjs",
     "verify:fortune-freshness": "node scripts/verify-fortune-freshness.mjs",
