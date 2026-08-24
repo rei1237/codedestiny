@@ -1,0 +1,31 @@
+{
+  "_comment": "서비스 페이지 고유 산문. tmp-build-from-dump.mjs 가 렌더 덤프의 원문과 번역표를 합쳐 만든다. ko 는 화면 원문 그대로다.",
+  "shellRuntime.f2888": {
+    "ko": "개인정보처리방침",
+    "en": "Privacy policy",
+    "ja": "プライバシーポリシー",
+    "zh-CN": "隐私政策",
+    "zh-TW": "隱私政策",
+    "vi": "Privacy policy",
+    "hi": "Privacy policy",
+    "es": "Privacy policy",
+    "fr": "Privacy policy",
+    "de": "Privacy policy",
+    "nl": "Privacy policy",
+    "ms": "Privacy policy"
+  },
+  "shellRuntime.f2889": {
+    "ko": "이용약관",
+    "en": "Terms of service",
+    "ja": "利用規約",
+    "zh-CN": "使用条款",
+    "zh-TW": "使用條款",
+    "vi": "Terms of service",
+    "hi": "Terms of service",
+    "es": "Terms of service",
+    "fr": "Terms of service",
+    "de": "Terms of service",
+    "nl": "Terms of service",
+    "ms": "Terms of service"
+  }
+}
