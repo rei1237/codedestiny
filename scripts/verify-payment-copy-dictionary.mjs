@@ -33,6 +33,7 @@ import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
+import { gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const read = (rel) => readFileSync(resolve(root, rel), "utf8");
@@ -231,22 +232,13 @@ for (const key of ["payment.wait.fallback.title", "payment.wait.fallback.sub"]) 
 // 🔴 검사기가 멀쩡한 것과 검사기가 **실행되는** 것은 다른 문제다. 이 스크립트가 여는 파일이
 // 트리거 목록에 없으면, 그 파일만 바꾼 PR 에서는 게이트가 초록인 채로 통과한다.
 const GATE_WORKFLOW = ".github/workflows/paid-flow-gates.yml";
-const gatePatterns = read(GATE_WORKFLOW)
-  .split(/\r?\n/)
-  .map((line) => line.match(/^\s*-\s*"([^"]+)"\s*$/)?.[1])
-  .filter(Boolean);
+const gatePatterns = readGatePatterns(resolve(root, GATE_WORKFLOW));
 
 function gateCovers(rel) {
-  return gatePatterns.some((pattern) => {
-    if (pattern === rel) return true;
-    if (!pattern.includes("*")) return false;
-    const source = pattern
-      .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-      .replace(/\*\*/g, " ")
-      .replace(/\*/g, "[^/]*")
-      .replace(/ /g, ".*");
-    return new RegExp(`^${source}$`).test(rel);
-  });
+  // 🔴 공용 모듈에 위임한다. 이 사본은 `**` 센티널로 **공백 한 칸**을 썼다 — 패턴에 공백이
+  // 들어오는 날 조용히 오작동한다(`paths` 는 사람이 쓰는 목록이다). parity 쪽 사본은 같은
+  // 자리에 리터럴 NUL 을 써서 git 이 그 파일을 바이너리로 취급했다.
+  return gateCoversAny(gatePatterns, rel);
 }
 
 const READ_PATHS = [

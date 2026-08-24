@@ -16,6 +16,7 @@ import { execFileSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 import { sliceFunction } from "./lib/js-source-slice.mjs";
+import { assertGlobSelfTest, gateCovers as gateCoversAny, readGatePatterns } from "./lib/gate-trigger-coverage.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const read = (rel) => readFileSync(resolve(root, rel), "utf8");
@@ -427,24 +428,15 @@ for (const locale of I18N_LOCALES) {
 // 위에서 실제로 읽는 렌더러 파일은 전부 그 트리거 목록에 있어야 한다. 여기서 강제하지 않으면
 // 같은 구멍이 조용히 다시 열린다 — 증상이 "게이트가 초록"이라 아무도 눈치채지 못한다.
 const GATE_WORKFLOW = ".github/workflows/paid-flow-gates.yml";
-const gatePatterns = read(GATE_WORKFLOW)
-  .split(/\r?\n/)
-  .map((line) => line.match(/^\s*-\s*"([^"]+)"\s*$/)?.[1])
-  .filter(Boolean);
+const gatePatterns = readGatePatterns(resolve(root, GATE_WORKFLOW));
 
-/** 글롭(`lib/payment/**`)도 커버로 인정한다. `**` 는 경계를 넘고 `*` 는 한 세그먼트 안에서만 넓힌다. */
-function gateCovers(rel) {
-  return gatePatterns.some((pattern) => {
-    if (pattern === rel) return true;
-    if (!pattern.includes("*")) return false;
-    const source = pattern
-      .replace(/[.+^${}()|[\]\\]/g, "\\$&")
-      .replace(/\*\*/g, " ")
-      .replace(/\*/g, "[^/]*")
-      .replace(/ /g, ".*");
-    return new RegExp(`^${source}$`).test(rel);
-  });
-}
+// 🔴 글롭 판정은 scripts/lib/gate-trigger-coverage.mjs 하나다. 예전에는 이 파일과
+// verify-payment-copy-dictionary.mjs 가 같은 변환을 각자 복사해 갖고 있었고, 이쪽 사본은
+// `**` 센티널로 **리터럴 NUL 바이트**를 썼다 — 실행은 됐지만 git 이 이 파일을 바이너리로
+// 취급해 diff 가 리뷰에서 사라졌다(grep 도 -a 없이는 안 먹었다). 공용 모듈은 센티널 없는
+// 단일 패스라 그 문제 자체가 없다.
+assertGlobSelfTest(assert);
+const gateCovers = (rel) => gateCoversAny(gatePatterns, rel);
 
 // ── 결제 런타임 캐시 핀 ────────────────────────────────────────────────────────────────
 //
