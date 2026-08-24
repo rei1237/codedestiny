@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import StoryIntegrityNote from "../../components/StoryIntegrityNote";
 import { buildSeoMetadata } from "../../../lib/seo";
+import { buildBreadcrumbJsonLd } from "../../../lib/structured-data";
 import {
   ARC_GUIDE_LINKS,
   STORY_EPISODES,
@@ -50,8 +51,21 @@ export default function StoryEpisodePage({ params }: { params: { episode: string
   const previous = index > 0 ? STORY_EPISODES[index - 1] : null;
   const next = index < STORY_EPISODES.length - 1 ? STORY_EPISODES[index + 1] : null;
 
+  // 화면 빵부스러기(아래 nav)와 같은 계층을 구조화 데이터로도 내보낸다. 구글은 둘이
+  // 일치할 때만 검색 결과에 경로를 그려 주고, 색인이 돼도 이게 없으면 맨 URL 로 나온다.
+  // 🔴 아크는 <span> 이라 링크가 없다 — 링크 없는 마디를 넣으면 화면과 어긋나므로 뺀다.
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "홈", path: "/" },
+    { name: "연이의 운명 노벨", path: "/stories/" },
+    { name: `${episode.no} ${episode.title}`, path: `/stories/${episode.slug}/` },
+  ]);
+
   return (
     <main className="mx-auto w-full max-w-3xl px-4 py-10 text-slate-100 md:px-6 md:py-14">
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
+      />
       <nav aria-label="위치" className="flex flex-wrap gap-2 text-xs text-slate-300">
         <Link href="/stories/" className="rounded-full border border-white/10 bg-white/[0.04] px-3 py-1.5 hover:text-amber-100">
           연이의 운명 노벨

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { SEO_SITE_CONFIG } from "../../lib/seo/siteConfig";
-import { SEO_INDEXABLE_LOCALES } from "../../lib/i18n/locales";
+import { LOCALE_CONFIG, SEO_INDEXABLE_LOCALES } from "../../lib/i18n/locales";
 import { I18N_POLICY_ROUTE_MAP } from "../../lib/i18n/routes";
 
 /* 배지에 쓸 색인 대상 로케일 목록. 리터럴로 적어 두면 로케일을 늘렸을 때 조용히 어긋난다
@@ -150,6 +150,23 @@ export default function I18nSeoPageTemplate({
     return raw.endsWith("/") ? raw : `${raw}/`;
   };
   const heroAsset = resolveHeroAsset(currentPath);
+
+  // 이 로케일의 홈 → 이 페이지. 로케일 홈 자신이면(= 아래 두 경로가 같으면) 마디가 하나뿐이라
+  // 빵부스러기를 만들지 않는다 — 한 마디짜리 BreadcrumbList 는 검색 결과에 아무것도 못 그린다.
+  // 🔴 로케일 홈 경로를 손으로 적지 말 것. LOCALE_CONFIG.pathPrefix 가 정본이고,
+  //    사이트맵(scripts/generate-sitemap.mjs 의 i18nRouteGroups)도 같은 값을 쓴다.
+  const localeHomePath = `${LOCALE_CONFIG[locale].pathPrefix.replace(/\/$/, "")}/`;
+  const normalizedCurrent = currentPath.endsWith("/") ? currentPath : `${currentPath}/`;
+  const breadcrumbJsonLd = normalizedCurrent === localeHomePath
+    ? null
+    : {
+      "@context": "https://schema.org",
+      "@type": "BreadcrumbList",
+      itemListElement: [
+        { "@type": "ListItem", position: 1, name: LOCALE_CONFIG[locale].siteName, item: toAbsolute(localeHomePath) },
+        { "@type": "ListItem", position: 2, name: content.h1, item: toAbsolute(normalizedCurrent) },
+      ],
+    };
 
   const webPageJsonLd = {
     "@context": "https://schema.org",
@@ -336,6 +353,9 @@ export default function I18nSeoPageTemplate({
         <Link href={policyHref("refundPolicy")} className="underline-offset-2 hover:text-slate-200 hover:underline">{ui.refund}</Link>
       </nav>
 
+      {breadcrumbJsonLd ? (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
+      ) : null}
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
     </main>

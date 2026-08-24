@@ -5,7 +5,7 @@ import { crosswalkFromSukuyo } from "@/constants/nakshatra-crosswalk";
 import { getFusionBySukuyo } from "@/constants/nakshatra-fusion";
 import { SUKUYO_MANSIONS } from "@/worker/lib/sukuyo-premium.js";
 import { GRAHA_KO } from "@/worker/lib/vedic-derived-calculations.js";
-import { buildFaqPageJsonLd } from "@/lib/structured-data";
+import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
 import { siteSeo } from "@/lib/seo/siteSeo";
 
 export const dynamicParams = false;
@@ -85,12 +85,24 @@ export default function NakshatraCodexPage({ params }: { params: { index: string
   const prev = (idx + 26) % 27;
   const next = (idx + 1) % 27;
   const lordKo = GRAHA_KO[attrs.lord] || attrs.lord;
+  // 화면 빵부스러기(아래 nav: 나크샤트라 결정판 → 27수 도감)와 같은 계층을 구조화 데이터로도
+  // 내보낸다. 이 페이지에는 그동안 사이트 공용 Organization·WebSite 말고는 아무 구조화
+  // 데이터가 없었다(2026-08-24 dist/ 실측).
+  const breadcrumbJsonLd = buildBreadcrumbJsonLd([
+    { name: "홈", path: "/" },
+    { name: "나크샤트라 결정판", path: "/nakshatra/" },
+    { name: `${suk.nameKo}수 · ${attrs.nameKo}`, path: `/nakshatra/codex/${idx}/` },
+  ]);
 
   return (
     <main className="relative isolate min-h-[100dvh] overflow-hidden bg-[#070812] px-4 py-8 text-slate-100 md:py-12">
       <div
         aria-hidden="true"
         className="pointer-events-none absolute inset-0 -z-10 bg-[radial-gradient(circle_at_20%_10%,rgba(212,175,55,0.1),transparent_38%),linear-gradient(160deg,#0a0818_0%,#12102a_55%,#070510_100%)]"
+      />
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }}
       />
       <div className="mx-auto w-full max-w-3xl">
         <nav className="mb-5 flex flex-wrap gap-2 text-sm text-slate-300">
