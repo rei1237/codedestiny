@@ -79,8 +79,23 @@ assertContains(authShellSource, "disabled={busy || Boolean(socialBusy)}", "submi
 assertContains(authShellSource, "disabled={Boolean(socialBusy) || busy}", "social disabled binding");
 assertContains(authShellSource, "{busy ? copy.processing :", "busy label binding");
 
-// 가입은 필수 동의 없이 진행되지 않는다.
-assertContains(authShellSource, "!privacy || !terms || !age", "signup required-consent guard");
+// 가입 동의 — 2026-08-25 에 **클릭에서 제출로** 옮겼다(체크박스 2개 제거).
+//
+// 왜: 카카오·네이버로 가입하면 그 계정에서 이미 동의를 거치므로 우리 화면에 채울 것이 남으면
+// 안 된다는 요구였다. 없앤 것은 **클릭이지 고지도 기록도 아니다** — 그래서 이 가드가 셋을 함께 본다.
+//   ① 화면이 무엇에 동의하는지 보여준다(고지 문장 + 약관·방침 링크)
+//   ② 클라이언트가 동의를 실어 보낸다
+//   ③ 🔴 서버가 여전히 요구한다 — 여기가 뚫리면 동의 없는 계정이 생긴다
+// 🔴 체크박스로 되돌리려면 세 단언을 함께 뒤집을 것. 하나만 지우면 "고지는 있는데 기록이 없다"
+//    거나 "기록은 있는데 화면에 근거가 없다" 는 상태가 조용히 만들어진다.
+assertContains(authShellSource, "{copy.agreeOnSubmit}", "signup consent notice must be on screen");
+assertContains(authShellSource, 'href="/terms"', "signup consent notice must link the terms");
+assertContains(authShellSource, 'href="/privacy"', "signup consent notice must link the privacy policy");
+assertContains(authShellSource, "privacyAccepted: true, termsAccepted: true",
+  "the signup request must still carry consent — submitting is the consent");
+assertContains(authRouteSource, 'body?.termsAccepted !== true || body?.privacyAccepted !== true',
+  "🔴 social signup must still refuse without consent — the provider does not agree to our terms for us");
+assertContains(authShellSource, "needsBirthYear && !isBirthYearOk(birthYear)", "signup age guard");
 
 /* 🔴 2026-08-15 "로그아웃 → 재로그인 → 즉시 튕김" 회귀 가드 (P0-3·P0-4a).
    셋 다 되살아나기 쉬운 형태다 — 각각 "세션 정리를 더 확실히 한다"처럼 보이기 때문이다. */

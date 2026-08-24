@@ -29,7 +29,7 @@ import { signJwt, verifyJwt } from "../lib/jwt.js";
 import { hashPassword, needsPasswordRehash, verifyPassword } from "../lib/password.js";
 import { checkPasswordBreached } from "../lib/password-breach.js";
 import { decryptPhoneNumber, encryptPhoneNumber } from "../lib/pii-crypto.js";
-import { MIN_NEW_PASSWORD_LENGTH, validateLoginPayload, validateNewPassword, validateRegisterPayload } from "../lib/validation.js";
+import { MIN_NEW_PASSWORD_LENGTH, MIN_SELF_CONSENT_AGE, validateBirthYear, validateLoginPayload, validateNewPassword, validateRegisterPayload } from "../lib/validation.js";
 import {
   buildSocialSignupRedirectUrl,
   signSocialSignupTicket,
@@ -73,7 +73,7 @@ const LOGIN_RATE_LIMIT_DEFAULT_WINDOW_MS = 60 * 1000;
 const SIGNUP_MONTHLY_CREDIT_GRANT = 500;
 const AUTH_TERMS_VERSION = "2026-04-11";
 // 🔴 app/privacy-policy/PrivacyPolicyContent.jsx 의 PRIVACY_POLICY_EFFECTIVE_DATE 와 같아야 한다.
-const AUTH_PRIVACY_VERSION = "2026-08-19";
+const AUTH_PRIVACY_VERSION = "2026-08-25";
 const REFERRAL_REWARD_MONTHLY_CREDIT = 100;
 const REFERRAL_DAILY_MONTHLY_CREDIT_CAP = 500;
 const withdrawRateLimitMap = new Map();
@@ -1449,6 +1449,91 @@ async function verifySocialGrant(token, env) {
 const PHONE_SCOPE_BY_PROVIDER = { kakao: "phone_number", naver: "mobile" };
 
 /**
+ * 로그인 폼에서 만 14세 확인을 **공급자가 직접** 받는 곳.
+ *
+ * 카카오는 카카오계정 로그인 단계에서 만 14세 확인을 받으므로 우리 가입 화면이 같은 확인을
+ * 한 번 더 물을 이유가 없다(2026-08-25 사용자 확인). 네이버·구글에는 그 단계가 없어서,
+ * 그쪽은 가입 화면에서 **생년**을 받아 서버가 직접 만 14세 미만을 거른다(validateBirthYear).
+ *
+ * 🔴 목록에 공급자를 추가하려면 그 공급자가 실제로 그 확인을 받는지 먼저 확인할 것 —
+ * 여기 들어가는 순간 우리 쪽 연령 검사가 통째로 면제된다.
+ */
+const AGE_VERIFIED_BY_PROVIDER = new Set(["kakao"]);
+
+/**
+ * 출생연도를 **제공 항목으로 받아오는** 공급자. 지금은 네이버뿐이다(응답 필드 `birthyear`).
+ *
+ * 🔴 phone 과 **같은 이유로 env 스위치를 둔다.** 2026-08-25 에 카카오 phone_number 를 콘솔에서
+ * 설정하지 않은 채 scope 에 넣었다가 authorize 가 KOE205 로 거절해 스테이징 카카오 로그인이
+ * 전면 중단됐다. 네이버 제공 항목도 개발자센터에서 먼저 켜야 하므로 기본값은 **요청 안 함**이다.
+ *
+ * 켜지 않아도 가입은 정상 동작한다 — 값이 없으면 가입 화면이 생년 입력칸을 보여준다(안전 강등).
+ */
+const BIRTH_YEAR_SCOPE_BY_PROVIDER = {
+  naver: "birthyear",
+  // 🔴 구글은 **민감 범위(sensitive scope)** 라 앱 검증(OAuth verification)이 끝나기 전에는
+  // 켜지 말 것. 미검증 앱은 "확인되지 않은 앱" 경고 화면과 100명 상한에 걸려 구글 로그인
+  // 자체가 망가진다 — 카카오 phone_number 를 콘솔 설정 없이 켰다가 KOE205 를 맞은 것과 같은 형태다.
+  google: "https://www.googleapis.com/auth/user.birthday.read",
+};
+
+// 구글 생일은 userinfo 가 아니라 People API 에 있다.
+const GOOGLE_PEOPLE_BIRTHDAY_ENDPOINT = "https://people.googleapis.com/v1/people/me?personFields=birthdays";
+
+/**
+ * 구글 People API 에서 **출생 연도**만 뽑는다.
+ *
+ * 🔴 연도가 없는 경우가 흔하다 — 구글 사용자는 생일을 월·일만 공개해 두는 일이 많아서
+ * `date` 에 `year` 가 아예 안 오는 응답이 정상이다. 그래서 실패도 빈 값도 던지지 않고 "" 로
+ * 돌려주고, 호출부는 그때 가입 화면에서 생년을 직접 묻는다(안전 강등).
+ */
+async function fetchGoogleBirthYear(accessToken, request, env) {
+  try {
+    const response = await fetchOAuthProvider(GOOGLE_PEOPLE_BIRTHDAY_ENDPOINT, {
+      method: "GET",
+      headers: { Authorization: `Bearer ${accessToken}`, Accept: "application/json" },
+    });
+    if (!response.ok) return "";
+    const data = await response.json().catch(() => null);
+    const entries = Array.isArray(data?.birthdays) ? data.birthdays : [];
+    // primary 를 먼저 보고, 없으면 연도가 실린 아무 항목이나 쓴다.
+    const withYear = entries.filter((entry) => Number(entry?.date?.year) > 0);
+    const primary = withYear.find((entry) => entry?.metadata?.primary === true) || withYear[0];
+    const year = Number(primary?.date?.year);
+    return Number.isFinite(year) && year > 0 ? String(year) : "";
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/oauth/callback", "google", "google_birthday_fetch_failed", error);
+    return "";
+  }
+}
+
+function birthYearScopeSuffix(provider, env) {
+  const scope = BIRTH_YEAR_SCOPE_BY_PROVIDER[provider];
+  if (!scope) return "";
+  const enabled = String(getEnv(env, "SOCIAL_BIRTHYEAR_SCOPE_PROVIDERS") || "")
+    .split(",")
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+  return enabled.includes(provider) ? ` ${scope}` : "";
+}
+
+/**
+ * 공급자가 준 출생연도로 만 14세 이상인지 본다.
+ * 값이 없거나 형식이 틀리면 `settled:false` 로 돌려준다 — 그때는 가입 화면이 직접 묻는다.
+ */
+function resolveProviderAgeVerdict(socialProfile) {
+  const raw = String(socialProfile?.birthYear || "").trim();
+  if (!/^\d{4}$/.test(raw)) return { settled: false, underage: false };
+  const check = validateBirthYear(raw);
+  if (check.age < 0) return { settled: false, underage: false };
+  return { settled: check.isValid, underage: !check.isValid };
+}
+
+function providerVerifiesAge(provider) {
+  return AGE_VERIFIED_BY_PROVIDER.has(String(provider || "").trim().toLowerCase());
+}
+
+/**
  * 이미 로그인한 사용자에게 전화번호 동의를 **다시** 요청하는 모드.
  *
  * 왜 필요한가: 카카오 phone_number 는 **선택 동의**라 사용자가 한 번 거부하면 다음 로그인의
@@ -1487,7 +1572,7 @@ function buildProviderConfig(provider, request, env) {
       authorizationEndpoint: "https://accounts.google.com/o/oauth2/v2/auth",
       tokenEndpoint: "https://oauth2.googleapis.com/token",
       userInfoEndpoint: "https://openidconnect.googleapis.com/v1/userinfo",
-      scope: "openid email profile",
+      scope: `openid email profile${birthYearScopeSuffix("google", env)}`,
       redirectUri,
     };
   }
@@ -1500,7 +1585,7 @@ function buildProviderConfig(provider, request, env) {
       tokenEndpoint: "https://nid.naver.com/oauth2.0/token",
       userInfoEndpoint: "https://openapi.naver.com/v1/nid/me",
       // mobile 이 붙으면 프로필 응답의 response.mobile / mobile_e164 가 채워진다(mapSocialProfile 이 이미 읽는다).
-      scope: `name email${phoneScopeSuffix("naver", env)}`,
+      scope: `name email${birthYearScopeSuffix("naver", env)}${phoneScopeSuffix("naver", env)}`,
       redirectUri,
     };
   }
@@ -1543,6 +1628,8 @@ function mapSocialProfile(provider, payload) {
       name: String(profile?.name || profile?.nickname || "Naver user"),
       image: String(profile?.profile_image || ""),
       phoneNumber: normalizeKoreanPhoneNumber(profile?.mobile || profile?.mobile_e164 || profile?.phone || profile?.phoneNumber || ""),
+      // 제공 항목 "출생연도" 가 켜져 있을 때만 온다(YYYY). 없으면 가입 화면이 직접 묻는다.
+      birthYear: String(profile?.birthyear || "").trim(),
     };
   }
 
@@ -1665,6 +1752,12 @@ async function fetchSocialProfile(provider, accessToken, request, env) {
   const mapped = mapSocialProfile(provider, data);
   if (!mapped.providerId) {
     throw new Error(`${provider}_profile_invalid`);
+  }
+
+  // 구글만 생년이 다른 엔드포인트(People API)에 있다. scope 를 요청하지 않았으면 부르지 않는다 —
+  // 부르면 403 만 받고 로그인 경로에 왕복 하나를 얹는다.
+  if (provider === "google" && birthYearScopeSuffix("google", env)) {
+    mapped.birthYear = await fetchGoogleBirthYear(accessToken, request, env);
   }
 
   return mapped;
@@ -2511,25 +2604,15 @@ async function handleRegister(request, env) {
     );
   }
 
-  // 프론트 우회를 막기 위해 서버에서도 만 나이를 판정한다. 만 14세 미만은 가입 불가.
-  const ageCheck = {
-    isValid: body.ageAttested === true,
-    age: body.ageAttested === true ? 14 : 0,
-    error: "Age 14 or older attestation is required.",
-  };
-  if (!ageCheck.isValid) {
-    const isUnderage = ageCheck.age >= 0 && ageCheck.age < 14;
-    return signupErrorResponse(
-      request,
-      env,
-      400,
-      isUnderage ? "underage" : "invalid_birth_date",
-      ageCheck.error || "올바른 생년월일을 입력해주세요.",
-    );
-  }
-
+  // 🔴 만 나이 판정은 validateRegisterPayload 안의 생년 검사 하나다(2026-08-25). 예전에는
+  // 여기에 ageAttested 체크박스 선검사가 따로 있었는데, 체크박스는 눌러서 지나가는 것이라
+  // 미만 연령을 실제로 걸러내지 못했고 판정이 두 곳으로 갈라져 있었다.
   const validated = validateRegisterPayload(body);
   if (!validated.isValid) {
+    // 만 14세 미만은 "다시 입력"이 아니라 "가입 불가"다 — 화면이 다르게 말할 수 있어야 한다.
+    if (validated.isUnderage) {
+      return signupErrorResponse(request, env, 400, "underage", validated.errors[validated.errors.length - 1]);
+    }
     // 번호 하나 때문에 막힌 경우는 따로 알린다 — 뭉뚱그린 invalid_request_body 로 내보내면
     // 클라이언트가 "이름·비밀번호를 확인하세요"로 접어 버려 원인을 못 찾는다.
     const onlyPhoneMissing = validated.errors.length === 1
@@ -4290,6 +4373,9 @@ async function buildSocialSignupTicket(provider, socialProfile, statePayload, en
     name: String(socialProfile?.name || ""),
     image: String(socialProfile?.image || ""),
     phoneNumber: normalizeKoreanPhoneNumber(socialProfile?.phoneNumber) || "",
+    // 🔴 공급자가 준 출생연도는 **티켓에** 싣는다. 클라이언트가 보낸 값을 믿으면 만 14세 검사를
+    // 누구나 건너뛸 수 있다 — 서버는 언제나 이 서명된 값을 먼저 본다.
+    birthYear: String(socialProfile?.birthYear || "").trim(),
     emailVerified: socialProfile?.emailVerified === true ? true : (socialProfile?.emailVerified === false ? false : null),
     nextPath: nextPath || "/",
     flow: flow || "signup",
@@ -4532,6 +4618,10 @@ async function handleOAuthCallback(request, env, provider) {
           nextPath,
           flow,
           hasPhoneNumber: Boolean(normalizeKoreanPhoneNumber(socialProfile?.phoneNumber)),
+          name: socialProfile?.name,
+          // 카카오는 로그인 폼이 확인을 받고, 네이버는 출생연도를 넘겨 준다. 둘 다 아니면(구글 등)
+          // 가입 화면이 생년을 직접 묻는다 — 제공 항목이 꺼져 있어 값이 안 와도 여기로 떨어진다.
+          ageVerifiedByProvider: providerVerifiesAge(provider) || resolveProviderAgeVerdict(socialProfile).settled,
         }));
       }
       const user = socialUser.user;
@@ -4590,6 +4680,10 @@ async function handleOAuthCallback(request, env, provider) {
           nextPath,
           flow,
           hasPhoneNumber: Boolean(normalizeKoreanPhoneNumber(socialProfile?.phoneNumber)),
+          name: socialProfile?.name,
+          // 카카오는 로그인 폼이 확인을 받고, 네이버는 출생연도를 넘겨 준다. 둘 다 아니면(구글 등)
+          // 가입 화면이 생년을 직접 묻는다 — 제공 항목이 꺼져 있어 값이 안 와도 여기로 떨어진다.
+          ageVerifiedByProvider: providerVerifiesAge(provider) || resolveProviderAgeVerdict(socialProfile).settled,
         }));
       }
       const user = socialUser.user;
@@ -4827,21 +4921,36 @@ async function handleOAuthCompleteSignup(request, env) {
     return signupErrorResponse(request, env, 400, "invalid_social_signup_ticket", "지원하지 않는 소셜 로그인입니다.");
   }
 
-  // 만 14세 미만이면 계정을 만들기 전에 거부한다 — 소셜도 이메일 가입과 같은 기준이다.
-  const ageCheck = {
-    isValid: body?.ageAttested === true && body?.termsAccepted === true && body?.privacyAccepted === true,
-    age: body?.ageAttested === true ? 14 : 0,
-    error: "Required signup consent is missing.",
-  };
-  if (!ageCheck.isValid) {
-    const isUnderage = ageCheck.age >= 0 && ageCheck.age < 14;
+  // 약관·개인정보 동의는 공급자가 대신 받아 줄 수 없다 — 우리 약관과 우리 방침이기 때문이다.
+  if (body?.termsAccepted !== true || body?.privacyAccepted !== true) {
     return signupErrorResponse(
       request,
       env,
       400,
-      isUnderage ? "underage" : "invalid_birth_date",
-      ageCheck.error || "올바른 생년월일을 입력해주세요.",
+      "invalid_birth_date",
+      "Required signup consent is missing.",
     );
+  }
+
+  // 🔴 만 14세 판정은 **공급자별로 갈린다**(2026-08-25). 카카오는 카카오계정 로그인이 이미
+  // 그 확인을 받으므로 면제하고, 네이버·구글은 그 단계가 없어 생년을 받아 서버가 직접 거른다.
+  // 판정 근거를 body 가 아니라 **티켓의 provider** 로 삼는 것이 핵심이다 — 화면이 보낸
+  // social_age 를 믿으면 누구나 붙여서 검사를 건너뛸 수 있다.
+  if (!providerVerifiesAge(provider)) {
+    // 🔴 공급자가 준 값(티켓, 서명됨)이 있으면 그것이 우선이다. 없을 때만 화면이 보낸 값을 본다 —
+    // 순서가 뒤집히면 네이버 사용자가 자기 출생연도를 아무 값으로 덮어써 검사를 건너뛸 수 있다.
+    const providerBirthYear = String(ticket?.birthYear || "").trim();
+    const birthYearCheck = validateBirthYear(providerBirthYear || body?.birthYear);
+    if (!birthYearCheck.isValid) {
+      const isUnderage = birthYearCheck.age >= 0 && birthYearCheck.age < MIN_SELF_CONSENT_AGE;
+      return signupErrorResponse(
+        request,
+        env,
+        400,
+        isUnderage ? "underage" : "invalid_birth_date",
+        birthYearCheck.error,
+      );
+    }
   }
 
   // 소셜 제공자 정보는 이름의 기본값으로만 사용하고, 신규 계정의 결제 고객정보는 사용자가 확인한다.
@@ -4856,11 +4965,13 @@ async function handleOAuthCompleteSignup(request, env) {
   //   ② 본문의 번호 — 공급자가 주지 않을 때(구글은 항상, 카카오도 동의항목 미승인 시) 가입
   //      마무리 화면에서 사용자가 직접 입력한 값.
   // 둘 다 없으면 계정을 만들지 않는다. 실제 우선순위 적용은 findOrCreateSocialUser 한 곳이다.
+  // 🔴 소셜 가입은 번호 없이도 끝난다(2026-08-25). 공급자가 준 값이 있으면 쓰고, 없으면
+  // (구글) 번호 없이 계정을 만든 뒤 **첫 카드 결제 화면**에서 받는다 — 그 경로는 이미 있고
+  // 개인정보처리방침도 그 수집 방법을 고지한다.
+  // 🔴 이메일 가입은 그대로 번호 필수다(validateRegisterPayload) — 카카오 동의항목 심사가 보는
+  // 것이 "**자체** 회원가입 프로세스에서도 수집하는가" 라서, 그쪽을 완화하면 요건이 깨진다.
   const ticketPhoneNumber = normalizeKoreanPhoneNumber(ticket?.phoneNumber);
   const bodyPhoneNumber = normalizeKoreanPhoneNumber(body?.phoneNumber || body?.phone);
-  if (!ticketPhoneNumber && !bodyPhoneNumber) {
-    return signupErrorResponse(request, env, 400, "phone_required", phoneRequiredMessage(request));
-  }
 
   try {
     await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_social_signup_connect_db");
@@ -5063,6 +5174,7 @@ export const __authTestUtils = {
   handlePaymentPhoneStatus,
   handleOAuthStart,
   handleOAuthCallback,
+  handleOAuthCompleteSignup,
   findOrCreateSocialUser,
   buildProviderConfig,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),

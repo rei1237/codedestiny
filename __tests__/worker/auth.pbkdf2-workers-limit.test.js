@@ -170,7 +170,7 @@ describe("이메일 회원가입 — 500 회귀 고정", () => {
         email: "pbkdf2-tester@example.com",
         password: "Quiet!Harbor42",
         phoneNumber: "01071807398",
-        ageAttested: true,
+        birthYear: "1990",
         termsAccepted: true,
         privacyAccepted: true,
       }),

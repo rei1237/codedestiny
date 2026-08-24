@@ -79,9 +79,41 @@ describe("전화번호 scope 스위치", () => {
     expect(scopeFor("naver", both)).toBe("name email mobile");
   });
 
-  test("구글은 어떤 값을 넣어도 scope 가 그대로다 — People API·추가 scope 를 붙이지 않는다", () => {
+  test("구글은 전화번호 스위치에 반응하지 않는다 — 구글은 번호를 주지 않는다", () => {
     for (const value of ["kakao,naver", "google", "google,kakao,naver"]) {
       expect(scopeFor("google", { SOCIAL_PHONE_SCOPE_PROVIDERS: value })).toBe("openid email profile");
     }
+  });
+});
+
+/**
+ * 출생연도 스위치. 전화번호와 **같은 이유로** 따로 켠다 — 제공 항목/검증이 공급자마다 따로 나고,
+ * 승인 전에 요청하면 그 공급자 로그인이 통째로 죽는다(2026-08-25 카카오 KOE205).
+ */
+describe("출생연도 scope 스위치", () => {
+  test("기본값은 요청하지 않는다", () => {
+    expect(scopeFor("naver", {})).toBe("name email");
+    expect(scopeFor("google", {})).toBe("openid email profile");
+  });
+
+  test("네이버만 켜면 birthyear 만 붙는다", () => {
+    const naverOnly = { SOCIAL_BIRTHYEAR_SCOPE_PROVIDERS: "naver" };
+    expect(scopeFor("naver", naverOnly)).toBe("name email birthyear");
+    expect(scopeFor("google", naverOnly)).toBe("openid email profile");
+    expect(scopeFor("kakao", naverOnly)).toBe("profile_nickname account_email");
+  });
+
+  // 🔴 구글 생일은 **민감 범위**라 앱 검증 전에는 켜면 안 된다. 그래도 켤 수 있어야 하므로
+  // 스위치는 존재하고, 이 단언은 "켰을 때 정확히 그 scope 하나만 붙는다"를 고정한다.
+  test("구글을 켜면 People API 생일 범위가 붙는다", () => {
+    const googleOnly = { SOCIAL_BIRTHYEAR_SCOPE_PROVIDERS: "google" };
+    expect(scopeFor("google", googleOnly)).toBe("openid email profile https://www.googleapis.com/auth/user.birthday.read");
+    expect(scopeFor("naver", googleOnly)).toBe("name email");
+  });
+
+  test("전화번호와 출생연도는 서로 독립이다", () => {
+    const both = { SOCIAL_PHONE_SCOPE_PROVIDERS: "naver", SOCIAL_BIRTHYEAR_SCOPE_PROVIDERS: "naver" };
+    // 순서까지 고정한다 — 문자열 조립 순서가 바뀌면 공급자 쪽 동의 화면 항목 순서가 흔들린다.
+    expect(scopeFor("naver", both)).toBe("name email birthyear mobile");
   });
 });

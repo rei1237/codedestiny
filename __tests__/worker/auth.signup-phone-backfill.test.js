@@ -232,7 +232,7 @@ function buildRegisterRequest(overrides = {}) {
       email: "tester@example.com",
       password: "Quiet!Harbor42",
       phoneNumber: TYPED_PHONE,
-      ageAttested: true,
+      birthYear: "1990",
       termsAccepted: true,
       privacyAccepted: true,
       ...overrides,
@@ -273,7 +273,7 @@ describe("번호 필수 가입", () => {
         name: "Tester",
         email: "app@example.com",
         password: "Quiet!Harbor42",
-        ageAttested: true,
+        birthYear: "1990",
         termsAccepted: true,
         privacyAccepted: true,
       }),
@@ -316,9 +316,9 @@ describe("번호 필수 가입", () => {
   });
 
   test("소셜 가입 — 공급자도 사용자도 번호를 안 주면 번호 없이 생성된다", async () => {
-    // 🔴 이 갈래는 계정 생성 함수의 계약이고, "둘 다 없으면 거절"은 그 앞단
-    // (handleOAuthCompleteSignup)이 판정한다 — 소셜 로그인 백필 경로가 같은 함수를 쓰기 때문에
-    // 여기서 던지면 번호 없는 기존 회원의 로그인까지 막힌다.
+    // 🔴 2026-08-25 부터 앞단(handleOAuthCompleteSignup)도 거절하지 않는다 — 소셜 가입은 번호
+    // 없이 끝나고, 그 계정의 번호는 첫 카드 결제 화면이 받는다. 아래 "소셜 가입 — 번호 없이 끝난다"
+    // 가 그 라우트 계약을 따로 고정한다.
     await authRoutes.__authTestUtils.findOrCreateSocialUser(
       "google",
       { providerId: "g-2", email: "nophone@example.com", phoneNumber: "", emailVerified: true },
@@ -367,6 +367,69 @@ describe("번호 필수 가입", () => {
     );
 
     expect(mockUserCreate.mock.calls[0][0].phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${PROVIDER_PHONE})`);
+  });
+});
+
+/**
+ * 🔴 2026-08-25 정책: 소셜 가입은 번호 없이도 끝난다.
+ *
+ * 이 정책은 두 번 뒤집혔다(08-15 결제 때만 → 08-19 전 경로 필수 → 08-25 자체 가입만 필수).
+ * 되돌리려는 사람은 scripts/verify-signup-phone-required.mjs 머리주석의 이력을 먼저 읽을 것.
+ */
+describe("소셜 가입 — 번호 없이 끝난다", () => {
+  const TICKET_ISSUER = "code-destiny-api";
+
+  async function completeSocialSignup({ provider, ticketPhoneNumber = "", body = {} }) {
+    const { signSocialSignupTicket } = await import("../../worker/lib/social-signup-ticket.js");
+    const ticket = await signSocialSignupTicket(
+      {
+        provider,
+        providerId: `${provider}-nophone-1`,
+        email: `${provider}-nophone@example.com`,
+        name: "소셜 사용자",
+        image: "",
+        phoneNumber: ticketPhoneNumber,
+        emailVerified: true,
+        nextPath: "/",
+        flow: "signup",
+      },
+      ENV.JWT_ACCESS_SECRET,
+      TICKET_ISSUER,
+    );
+    const request = new Request("https://code-destiny.com/api/auth/oauth/complete-signup", {
+      method: "POST",
+      headers: { "content-type": "application/json", origin: "https://code-destiny.com" },
+      body: JSON.stringify({
+        socialSignupTicket: ticket,
+        name: "소셜 사용자",
+        termsAccepted: true,
+        privacyAccepted: true,
+        ...body,
+      }),
+    });
+    return authRoutes.__authTestUtils.handleOAuthCompleteSignup(request, ENV);
+  }
+
+  // 구글은 번호를 아예 주지 않는다. 예전에는 여기서 400 phone_required 가 나가 사용자가
+  // 소셜로 시작하고도 폼을 채워야 했다.
+  test("구글 — 공급자도 화면도 번호를 안 줘도 phone_required 로 막지 않는다", async () => {
+    const response = await completeSocialSignup({ provider: "google", body: { birthYear: "1990" } });
+    const payload = await response.json().catch(() => ({}));
+    expect(payload.code).not.toBe("phone_required");
+    expect(mockUserCreate).toHaveBeenCalled();
+    // 조건부 스프레드라 키 자체가 붙지 않는다(스키마 default "" 가 적용된다).
+    expect(mockUserCreate.mock.calls[0][0]).not.toHaveProperty("phoneNumber");
+  });
+
+  // 카카오·네이버는 동의항목으로 번호를 넘긴다 — 그 값은 그대로 암호문으로 저장돼야 한다.
+  test("카카오 — 공급자가 준 번호는 암호문으로 저장된다", async () => {
+    const response = await completeSocialSignup({ provider: "kakao", ticketPhoneNumber: PROVIDER_PHONE });
+    const payload = await response.json().catch(() => ({}));
+    expect(payload.code).not.toBe("phone_required");
+    expect(mockUserCreate).toHaveBeenCalled();
+    const created = mockUserCreate.mock.calls[0][0];
+    expect(created.phoneNumber).toBe(`${ENCRYPTED_PREFIX}enc(${PROVIDER_PHONE})`);
+    expect(created.phoneNumber).not.toBe(PROVIDER_PHONE);
   });
 });
 

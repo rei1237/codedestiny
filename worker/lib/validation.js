@@ -146,6 +146,49 @@ export function validateNewPassword(password, { email = "", name = "" } = {}) {
   return { isValid: errors.length === 0, errors };
 }
 
+/**
+ * 가입용 **생년(4자리)** 검증. 만 ${MIN_SELF_CONSENT_AGE}세 미만이면 막는다.
+ *
+ * 왜 생년월일이 아니라 생년인가: 가입 화면의 마찰을 최소로 두려는 제품 결정이다(2026-08-25).
+ * 🔴 그 대가를 정확히 적어 둔다 — 이건 **달력 연도 근사**다. 올해 안에 만 ${MIN_SELF_CONSENT_AGE}세가
+ * 되는 사람(=생일 전)이 통과할 수 있다. 정확히 막으려면 같은 파일의 validateBirthDateWithAge
+ * (YYYY-MM-DD, KST 기준 만 나이)를 대신 쓰면 되고 그쪽은 이미 테스트가 붙어 있다.
+ *
+ * 카카오 가입은 이 검사를 타지 않는다 — 카카오 로그인 폼이 만 ${MIN_SELF_CONSENT_AGE}세 확인을
+ * 자체적으로 받기 때문이다(2026-08-25 사용자 확인). 네이버·구글·이메일 가입에는 그 단계가 없다.
+ */
+export function validateBirthYear(birthYearInput, now = null) {
+  const raw = String(birthYearInput == null ? "" : birthYearInput).trim();
+  if (!/^\d{4}$/.test(raw)) {
+    return { isValid: false, age: -1, error: "태어난 연도를 4자리로 입력해 주세요." };
+  }
+
+  const birthYear = Number(raw);
+  const reference = now || new Date();
+  // 기준은 KST 달력 연도다. UTC 로 재면 매년 12/31 09:00~24:00(KST 1/1) 구간에서 한 살이 어긋난다.
+  const kstNow = new Date(reference.getTime() + 9 * 60 * 60 * 1000);
+  const currentYear = kstNow.getUTCFullYear();
+
+  if (birthYear > currentYear) {
+    return { isValid: false, age: -1, error: "미래 연도는 입력할 수 없습니다." };
+  }
+  // 사람이 살 수 있는 범위를 벗어난 값은 오타로 본다(1900년 이전은 서비스 대상이 아니다).
+  if (birthYear < 1900) {
+    return { isValid: false, age: -1, error: "태어난 연도를 다시 확인해 주세요." };
+  }
+
+  const age = currentYear - birthYear;
+  if (age < MIN_SELF_CONSENT_AGE) {
+    return {
+      isValid: false,
+      age,
+      error: `만 ${MIN_SELF_CONSENT_AGE}세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다.`,
+    };
+  }
+
+  return { isValid: true, age, error: null };
+}
+
 export function validateRegisterPayload(payload = {}) {
   const errors = [];
 
@@ -154,9 +197,11 @@ export function validateRegisterPayload(payload = {}) {
   const password = String(payload.password || "");
   // 구버전 앱이 phone 으로 보내던 것을 계속 받는다(현재 웹은 phoneNumber 로 보낸다).
   const phoneNumber = normalizeKoreanPhoneNumber(payload.phoneNumber || payload.phone);
-  const ageAttested = payload.ageAttested === true;
   const termsAccepted = payload.termsAccepted === true;
   const privacyAccepted = payload.privacyAccepted === true;
+  // 🔴 만 14세 확인이 체크박스에서 **생년 입력**으로 바뀌었다(2026-08-25). 체크박스는 눌러서
+  // 지나가는 것이라 미만 연령을 실제로 걸러내지 못했다 — 이제 서버가 연도로 판정한다.
+  const birthYearCheck = validateBirthYear(payload.birthYear);
 
   if (!name || name.length < 2) errors.push("Name must be at least 2 characters.");
   if (name.length > 40) errors.push("Name must be 40 characters or fewer.");
@@ -166,18 +211,22 @@ export function validateRegisterPayload(payload = {}) {
   errors.push(...validateNewPassword(password, { email, name }).errors);
   if (!termsAccepted) errors.push("Terms acceptance is required.");
   if (!privacyAccepted) errors.push("Privacy policy acceptance is required.");
-  if (!ageAttested) errors.push("Age 14 or older attestation is required.");
+  if (!birthYearCheck.isValid) errors.push(birthYearCheck.error);
 
-  // 만 14세 이상 검증
   return {
     isValid: errors.length === 0,
     errors,
+    // 🔴 underage 와 그 밖의 입력 오류를 호출부가 구분할 수 있어야 한다 — 라우트가 다른 코드로
+    // 응답해야 화면이 "다시 입력" 과 "가입 불가" 를 다르게 말할 수 있다.
+    isUnderage: birthYearCheck.age >= 0 && birthYearCheck.age < MIN_SELF_CONSENT_AGE,
     sanitized: {
       name,
       email,
       password,
       phoneNumber,
-      ageAttested,
+      birthYear: birthYearCheck.isValid ? Number(String(payload.birthYear).trim()) : 0,
+      // 생년을 실제로 받아 통과했다는 사실이 곧 만 14세 이상 확인이다(제22조 입증 기록).
+      ageAttested: birthYearCheck.isValid,
       termsAccepted,
       privacyAccepted,
     },

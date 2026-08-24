@@ -20,7 +20,12 @@ test("shared auth shell keeps email and social login in one mobile-first surface
   assert.match(shell, /type=\"email\"/);
   assert.match(shell, /autoComplete=\{isSignup \? \"new-password\" : \"current-password\"\}/);
   assert.match(shell, /\["google", "naver", "kakao"\]/);
-  assert.match(shell, /ageAttested: age/);
+  // 🔴 만 14세 확인은 체크박스가 아니라 생년이다(2026-08-25). 카카오는 로그인 폼이, 네이버는
+  // 제공 항목이 그 확인을 대신하므로 그때만 칸이 숨는다 — 구글·이메일 가입에는 항상 남는다.
+  assert.match(shell, /birthYear: birthYear.trim()/);
+  assert.match(shell, /id="auth-birth-year"/);
+  assert.match(shell, /needsBirthYear/);
+  assert.doesNotMatch(shell, /ageAttested/);
   assert.match(shell, /min-h-\[100dvh\]/);
   // 가입 화면이 받는 것은 이름·이메일·비밀번호·휴대폰 번호·필수동의뿐이다.
   // 🔴 번호는 2026-08-19 부터 필수 입력이다 — 카카오 개인정보 동의항목 심사가 "자체 회원가입에서도
@@ -28,8 +33,9 @@ test("shared auth shell keeps email and social login in one mobile-first surface
   assert.doesNotMatch(shell, /birthDate|birthTime|gender/);
   assert.match(shell, /id="auth-phone"/);
   assert.match(shell, /type="tel"/);
-  // 공급자가 번호를 넘긴 소셜 가입에서만 입력칸이 숨는다.
-  assert.match(shell, /socialPhoneProvided/);
+  // 🔴 번호 칸은 이메일 가입 전용이다(2026-08-25). 소셜은 공급자가 주거나 첫 결제에서 받는다.
+  assert.match(shell, /isSignup && !ticket && <Field id="auth-phone"/);
+  assert.doesNotMatch(shell, /socialPhoneProvided/);
 });
 
 test("web auth response does not expose bearer tokens and post-login bootstrap is bounded", () => {
