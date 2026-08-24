@@ -12,7 +12,7 @@
 import { PriceBadge } from "@/app/components/PriceBadge";
 import { codexAccessLabel } from "../data/premium";
 import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
-import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
+import { codexAccessNoteText, useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 interface CodexReportStampProps {
@@ -25,10 +25,8 @@ export default function CodexReportStamp({ mode, accessType, className = "" }: C
   const locale = useMasterLoveCodexLocale();
   const copy = useMasterLoveCodexCopy();
   const billing = masterLoveCodexBilling(mode, locale);
-  const { showPrice, note: accessNote } = codexAccessLabel(accessType);
-  const note = accessNote === "이용권 포함" ? copy.passIncludedNote
-    : accessNote === "월정석 사용" ? copy.monthlyCreditUsedNote
-    : accessNote;
+  const { showPrice, noteKey } = codexAccessLabel(accessType);
+  const note = codexAccessNoteText(copy, noteKey);
 
   return (
     <p className={`${styles.badge} ${className}`}>

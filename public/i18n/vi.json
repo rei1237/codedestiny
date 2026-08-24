@@ -14791,5 +14791,198 @@
     "fullMoonFact": "Around the full moon, {date} — suited to bearing fruit and tidying up",
     "zodiacElementBadge": "{sign} · {element} element",
     "zodiacOtherBadge": "{sign} · another house"
+  },
+  "masterLoveCodex": {
+    "prologueScenes": {
+      "0": {
+        "eyebrow": "Where the lights went out",
+        "title": "Stars light up in the dark, one by one",
+        "lines": {
+          "0": {
+            "text": "You can see nothing at all.\nThen, as your eyes settle into the dark, stars begin to light up overhead, one by one.",
+            "cta": "Open your eyes"
+          },
+          "1": {
+            "text": "The stars were not scattered at random.\nOne by one they link up, drawing the outline of an enormous book.",
+            "cta": "Follow the stars"
+          }
+        }
+      },
+      "1": {
+        "eyebrow": "A single warm light",
+        "title": "A candle approaches from far off",
+        "lines": {
+          "0": {
+            "text": "A small light sways on the far side of the dark.\nSomeone is walking toward you, candlestick in hand.",
+            "cta": "Wait"
+          },
+          "1": {
+            "text": "The footsteps stop.\nWhere the light falls, a bookcase without end comes into view.",
+            "cta": "Look up"
+          }
+        }
+      },
+      "2": {
+        "eyebrow": "Shelves without end",
+        "title": "The library of mysteries",
+        "lines": {
+          "0": {
+            "text": "Shelves that reach the ceiling are packed with countless books.\nOn every spine, a person's name is engraved.",
+            "cta": "Study the spines"
+          },
+          "1": {
+            "text": "Only one slot stands empty.\nIt is the place for a book that has not been written yet.",
+            "cta": "Look at the empty slot"
+          }
+        }
+      },
+      "3": {
+        "eyebrow": "Someone who has read people's love lives for decades",
+        "title": "The love master welcomes you",
+        "lines": {
+          "0": {
+            "text": "So you've come.",
+            "cta": "Greet them"
+          },
+          "1": {
+            "text": "Every book here is a record of someone's love.\nThings I have read, heard and written down over decades.",
+            "cta": "Look around"
+          },
+          "2": {
+            "text": "And yet that one slot is still empty.\nBecause no one has read your story yet.",
+            "cta": "Look at the empty space"
+          }
+        }
+      },
+      "4": {
+        "eyebrow": "The first scroll",
+        "title": "Four Pillars (BaZi) tells what kind of person you are",
+        "lines": {
+          "0": {
+            "text": "The master unrolls a scroll on the desk.\nOnly eight characters are written on it — two each for the year, month, day and hour of your birth.",
+            "cta": "Take a closer look"
+          },
+          "1": {
+            "text": "This is where your temperament in love comes from.\nWhether you reach out first or wait to be reached, whether your feelings cool fast or slowly — the day stem, the Ten Gods and the weight of the Five Elements say it.",
+            "cta": "See the second scroll"
+          }
+        }
+      },
+      "5": {
+        "eyebrow": "The second scroll",
+        "title": "Zi Wei Dou Shu looks at where a person is placed",
+        "lines": {
+          "0": {
+            "text": "On the second scroll there are no characters, only a circle.\nThe circle is divided into twelve houses, and a star sits in each one.",
+            "cta": "See the twelve houses"
+          },
+          "1": {
+            "text": "Life Palace, Spouse Palace, Fortune Palace, Travel Palace — every house has a name.\nWhat kind of person comes to the spouse seat, and which door a bond opens through, is what these houses tell.",
+            "cta": "Lay the two scrolls side by side"
+          }
+        }
+      },
+      "6": {
+        "eyebrow": "Why the two charts are laid over each other",
+        "title": "Read only one chart and something is always missed",
+        "lines": {
+          "0": {
+            "text": "Some people read as reserved in the Four Pillars, and yet their Spouse Palace stands bright on the star chart.\nNeither reading is wrong. The two charts are looking at different layers.",
+            "cta": "Hear why"
+          },
+          "1": {
+            "text": "That is why I always lay the two over each other.\nWhere they say the same thing, I tell you with confidence; where they diverge, I explain why. One of the twenty chapters is given to this cross-check alone.",
+            "cta": "Ask for a promise"
+          },
+          "2": {
+            "text": "There is one thing I cannot promise, though.\nI do not know any fixed ending. What this book does is show you, with evidence, the patterns you repeat in love — and no further.",
+            "cta": "That is enough"
+          }
+        }
+      },
+      "7": {
+        "eyebrow": "One question first",
+        "title": "Do you want to know the human heart?",
+        "lines": {
+          "0": {
+            "text": "Before the book opens, let me ask you one thing.\nDo you want to know the human heart?"
+          }
+        }
+      },
+      "8": {
+        "eyebrow": "It begins now",
+        "title": "The book opens",
+        "lines": {
+          "0": {
+            "text": "Then let me begin with your destiny.\nI will lay your Four Pillars chart and your Zi Wei Dou Shu chart open together, and go through them slowly across twenty chapters.",
+            "cta": "Enter your birth details"
+          }
+        }
+      }
+    },
+    "prologueChoices": {
+      "0": {
+        "label": "Yes, I want to know.",
+        "reply": "Clear enough. Then I will not begin with comfort. I will start with the evidence."
+      },
+      "1": {
+        "label": "I'm not sure yet.",
+        "reply": "Not knowing does not mean there is nothing there. It only means you have not named it yet."
+      },
+      "2": {
+        "label": "I want to know about the other person.",
+        "reply": "Then we will talk about them. But in the end it always comes back to you."
+      },
+      "3": {
+        "label": "I want to understand myself.",
+        "reply": "You have chosen the answer that takes the longest and lasts the longest. Then we begin with you."
+      }
+    },
+    "heroSpecs": {
+      "0": "In-depth AI compatibility analysis",
+      "1": "Your innate disposition in love",
+      "2": "How far the relationship can go",
+      "3": "Where conflict starts",
+      "4": "Marriage prospects and timing",
+      "5": "Long-term bond simulation"
+    },
+    "planBenefits": {
+      "solo": {
+        "0": "20 chapters reading your Four Pillars chart and Zi Wei Dou Shu chart together",
+        "1": "10 love-DNA metrics, each with its evidence",
+        "2": "Cross-checked down to where the two systems disagree",
+        "3": "Keep it as a PDF · results stored permanently"
+      },
+      "compat": {
+        "0": "20 chapters comparing all four charts of the two of you",
+        "1": "10 compatibility metrics and an overall score",
+        "2": "Conflict patterns, how to work through them, and marriage prospects",
+        "3": "Keep it as a PDF · results stored permanently"
+      }
+    },
+    "whyPremium": {
+      "0": {
+        "title": "Two systems, drawn separately, then compared",
+        "body": "We draw your Four Pillars chart and your Zi Wei Dou Shu chart separately, then put the same question to both. Where they say the same thing, we treat it as a high-confidence trait; where they diverge, we write down why."
+      },
+      "1": {
+        "title": "Not one piece, but twenty chapters",
+        "body": "Disposition, feeling, the temperature of the relationship, conflict, marriage and the long arc are written out across five acts and twenty chapters. Not a few lines of summary, but a book you read from beginning to end."
+      },
+      "2": {
+        "title": "No sentence without evidence",
+        "body": "Every judgement carries the stems, branches and star names it was actually drawn from. Empty lines such as “the two of you are a good match” are blocked at generation time."
+      },
+      "3": {
+        "title": "Not read once, but kept",
+        "body": "Your result stays on the server, so you can reopen it any time, and you can keep it as a PDF. Reopening never costs again."
+      }
+    },
+    "trustPoints": {
+      "0": "Four Pillars chart × Zi Wei Dou Shu chart, cross-checked",
+      "1": "Results kept on the server · reopen without paying again",
+      "2": "Keep it as a PDF",
+      "3": "HTTPS-encrypted end to end"
+    }
   }
 }

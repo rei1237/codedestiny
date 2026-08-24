@@ -24,6 +24,7 @@ import { masterLoveCodexAssets } from "../data/assets";
 import { CODEX_HERO_SPECS } from "../data/premium";
 import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
 import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
+import { useCodexContentCopy } from "../_lib/contentCopy";
 import styles from "../styles/codex.module.css";
 
 interface CodexLandingProps {
@@ -40,6 +41,7 @@ const FLOATING_MODE: MasterLoveCodexMode = "compat";
 export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, onReplayPrologue }: CodexLandingProps) {
   const locale = useMasterLoveCodexLocale();
   const copy = useMasterLoveCodexCopy();
+  const heroSpecs = useCodexContentCopy("heroSpecs", CODEX_HERO_SPECS);
   const floatingBilling = masterLoveCodexBilling(FLOATING_MODE, locale);
   const soloTitle = masterLoveCodexBilling("solo", locale).title;
 
@@ -80,7 +82,7 @@ export default function CodexLanding({ hasSeenPrologue, chapterCount, onEnter, o
           {/* 이 상담이 실제로 다루는 축 — 무엇을 사는지 목록으로 먼저 훑게 한다 */}
           <CodexReveal index={2} className="mt-9">
             <ul className="mx-auto grid max-w-[36ch] gap-x-6 gap-y-3 text-left sm:grid-cols-2">
-              {CODEX_HERO_SPECS.map((spec) => (
+              {heroSpecs.map((spec) => (
                 <li key={spec} className="flex items-center gap-2.5">
                   <Check className="h-4 w-4 shrink-0" style={{ color: "var(--codex-gold)" }} aria-hidden="true" />
                   <span style={{ fontSize: "var(--codex-caption)", color: "var(--codex-ink-text)" }}>{spec}</span>

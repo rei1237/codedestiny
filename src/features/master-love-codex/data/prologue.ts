@@ -3,6 +3,12 @@
  *
  * 운명 찻집(entryStory.ts)의 2단 구조(씬 배열 → 라인 배열)를 그대로 따른다.
  * 프롤로그는 전면 무료이며 결제 이전에 재생된다.
+ *
+ * 🔴 여기 한국어가 ko 정본이다. 다른 로케일은 `CodexPrologueScene` 이 걸어 둔
+ * `useCodexContentCopy("prologueScenes"|"prologueChoices", …)` 가 사전
+ * (`masterLoveCodex.*`, 저작 정본 `i18n/authored/masterLoveCodex-*.json`)에서 가져간다.
+ * 그러니 문장을 고치면 사전 키도 같이 고쳐야 한다 — 안 고치면 한국어만 바뀌고 나머지 11개는
+ * 옛 문장을 계속 서빙한다. 배열 순서를 바꾸는 것도 같다(사전 키가 인덱스다).
  */
 import type { CodexNarratorMood } from "./assets";
 
@@ -257,10 +263,6 @@ export const codexPrologueStageOrder = codexPrologueScenes.map((scene) => scene.
 
 export function isCodexPrologueStage(value: string): value is CodexPrologueStage {
   return (codexPrologueStageOrder as readonly string[]).includes(value);
-}
-
-export function getCodexPrologueScene(stage: CodexPrologueStage) {
-  return codexPrologueScenes.find((scene) => scene.stage === stage) || codexPrologueScenes[0];
 }
 
 export function getNextCodexPrologueStage(stage: CodexPrologueStage): CodexPrologueStage | null {
