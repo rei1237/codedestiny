@@ -3332,6 +3332,8 @@
   var DP_PAYMENT_PHONE_SOCIAL_CTA_NAVER = '네이버에서 번호 가져오기';
   var DP_PAYMENT_PHONE_SOCIAL_BLOCKED = '팝업이 차단됐어요. 아래에 직접 입력해 주세요.';
   var DP_PAYMENT_PHONE_SOCIAL_FAILED = '번호를 가져오지 못했어요. 아래에 직접 입력해 주세요.';
+  /** 공급자에게서 번호를 가져오는 경로일 때 제목 아래 설명. 직접 입력 안내를 대신한다. */
+  var DP_PAYMENT_PHONE_SOCIAL_DESC = '소셜 계정에 등록된 번호를 가져옵니다. 동의 창에서 번호 제공에 동의하면 결제가 이어집니다.';
   var DP_SOCIAL_CONSENT_TIMEOUT_MS = 120000;
 
   function dpPaymentPhoneSocialCtaLabel(provider) {
@@ -3428,6 +3430,17 @@
         resolve(value || null);
       }
 
+      // 🔴 공급자가 번호를 줄 수 있으면 **직접 입력을 보여주지 않는다**(2026-08-25). 카카오·네이버는
+      // 전화번호가 선택 동의라 거부한 채로 가입이 끝날 수 있고, 그 사용자는 결제할 때 자기 소셜에서
+      // 동의해야 한다. 구글은 애초에 번호를 주지 않으므로 이 묶음이 그대로 보인다.
+      // 🔴 이 함수를 지우고 항상 보이게 되돌리면, 소셜 동의 경로가 "둘 중 아무거나" 로 돌아간다.
+      function setManualEntryVisible(visible) {
+        var nodes = [fieldLabel, input, notice, consentLabel, submitButton];
+        for (var mi = 0; mi < nodes.length; mi += 1) {
+          if (nodes[mi]) nodes[mi].style.display = visible ? '' : 'none';
+        }
+      }
+
       function setBusy(isBusy) {
         input.disabled = !!isBusy;
         consentInput.disabled = !!isBusy;
@@ -3468,7 +3481,8 @@
 
       title.id = 'dp-payment-phone-title';
       title.textContent = '단건결제를 위해 휴대폰 번호가 필요해요';
-      desc.textContent = 'KG이니시스 결제 진행에 필요한 정보입니다. 최초 1회만 입력하면 다음 결제부터는 바로 결제창이 열립니다.';
+      var manualDesc = 'KG이니시스 결제 진행에 필요한 정보입니다. 최초 1회만 입력하면 다음 결제부터는 바로 결제창이 열립니다.';
+      desc.textContent = manualDesc;
       input.id = 'dp-payment-phone-input';
       input.type = 'tel';
       input.inputMode = 'tel';
@@ -3568,8 +3582,14 @@
           socialPopup = null;
         }
         if (!socialPopup) {
+          // 🔴 여기가 유일한 안전 밸브다. 팝업이 막힌 사용자는 소셜 동의 창을 열 방법이 없으므로,
+          // 그때만 직접 입력을 되살린다 — 동의 우회가 아니라 브라우저 조건에 대한 대비이고,
+          // 어차피 같은 번호를 같은 고지·동의와 함께 받는다. 이걸 지우면 그 사용자는 결제를 못 한다.
           socialButton.style.display = 'none';
+          setManualEntryVisible(true);
+          desc.textContent = manualDesc;
           error.textContent = DP_PAYMENT_PHONE_SOCIAL_BLOCKED;
+          try { input.focus(); } catch (_) {}
           return;
         }
         socialButton.disabled = true;
@@ -3664,6 +3684,10 @@
         socialProvider = provider;
         socialButton.textContent = dpPaymentPhoneSocialCtaLabel(provider);
         socialButton.style.display = 'block';
+        // 주 경로이므로 입력칸 자리로 올린다(원래는 입력칸 아래의 보조 버튼이었다).
+        try { card.insertBefore(socialButton, fieldLabel); } catch (_) {}
+        setManualEntryVisible(false);
+        desc.textContent = DP_PAYMENT_PHONE_SOCIAL_DESC;
       }).catch(function() {});
       // 진입 모션은 Web Animations 로만 준다(인라인 스타일이라 @keyframes 를 쓸 수 없다).
       try {
