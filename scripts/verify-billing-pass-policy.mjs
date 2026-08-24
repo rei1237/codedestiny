@@ -158,25 +158,35 @@ const standard30 = decision({
   coinCost: 30,
   monthlyBalance: 300,
 });
-assert.equal(PASS_LIMITS_KRW[PASS_TIERS.STANDARD], 3000, "standard pass limit is 3,000 KRW");
-assert.equal(PASS_LIMITS_KRW[PASS_TIERS.PREMIUM], 5000, "premium pass limit is 5,000 KRW");
-assert.equal(PASS_LIMITS_KRW[PASS_TIERS.VVIP], 10000, "vvip pass limit is 10,000 KRW");
+// 2026-08-24 개정: 건당 적용 가격 범위 3,000/5,000/10,000 → 5,000/10,000/20,000.
+assert.equal(PASS_LIMITS_KRW[PASS_TIERS.STANDARD], 5000, "standard pass limit is 5,000 KRW");
+assert.equal(PASS_LIMITS_KRW[PASS_TIERS.PREMIUM], 10000, "premium pass limit is 10,000 KRW");
+assert.equal(PASS_LIMITS_KRW[PASS_TIERS.VVIP], 20000, "vvip pass limit is 20,000 KRW");
 assert.equal(HONEY_PASS_POLICY.standard.maxProfiles, 3, "standard profile limit comes from shared policy");
 assert.equal(HONEY_PASS_POLICY.premium.maxProfiles, 7, "premium profile limit comes from shared policy");
 assert.equal(HONEY_PASS_POLICY.vvip.maxProfiles, 15, "vvip profile limit comes from shared policy");
 assert.equal(HONEY_PASS_POLICY.family.maxProfiles, 0, "family profile limit remains unlimited");
 assert.equal(canUseByPass(activePass(PASS_TIERS.STANDARD), 30), true, "standard covers 30 coins");
 assert.equal(standard30.amountKRW, 3000, "standard 30 amountKRW");
-assert.equal(standard30.passLimitKRW, 3000, "standard 30 passLimitKRW");
+assert.equal(standard30.passLimitKRW, 5000, "standard 30 passLimitKRW");
 assertPassFree(standard30, "standard 30");
 assertFinalPass(standard30, "pass", "standard 30 requested pass");
 
+// 50코인(5,000원)은 새 상한과 정확히 같아 커버되고, 51코인부터 단건으로 넘어간다.
 const standard50 = decision({
   pass: activePass(PASS_TIERS.STANDARD),
   coinCost: 50,
   monthlyBalance: 500,
 });
-assertPaidFallback(standard50, "standard 50");
+assertPassFree(standard50, "standard 50");
+assertFinalPass(standard50, "pass", "standard 50 requested pass");
+
+const standard51 = decision({
+  pass: activePass(PASS_TIERS.STANDARD),
+  coinCost: 51,
+  monthlyBalance: 510,
+});
+assertPaidFallback(standard51, "standard 51");
 
 const premium50 = decision({
   pass: activePass(PASS_TIERS.PREMIUM),
@@ -194,12 +204,21 @@ const vvip100 = decision({
 assertPassFree(vvip100, "vvip 100");
 assertFinalPass(vvip100, "pass", "vvip 100 requested pass");
 
+// 200코인(20,000원)은 새 VVIP 상한과 정확히 같아 커버되고, 201코인부터 단건으로 넘어간다.
 const vvip200 = decision({
   pass: activePass(PASS_TIERS.VVIP),
   coinCost: 200,
   monthlyBalance: 2000,
 });
-assertPaidFallback(vvip200, "vvip 200");
+assertPassFree(vvip200, "vvip 200");
+assertFinalPass(vvip200, "pass", "vvip 200 requested pass");
+
+const vvip201 = decision({
+  pass: activePass(PASS_TIERS.VVIP),
+  coinCost: 201,
+  monthlyBalance: 2010,
+});
+assertPaidFallback(vvip201, "vvip 201");
 
 const family690 = decision({
   pass: activePass(PASS_TIERS.FAMILY),
@@ -295,15 +314,11 @@ for (const featureKey of listServerPricedFeatureKeys()) {
     assert.equal(premiumDecision.canUseByPass, false, `${featureKey}: premium PDF remains product payment`);
     assert.equal(vvipDecision.canUseByPass, false, `${featureKey}: vvip PDF remains product payment`);
   } else {
+    // 2026-08-24: 세 등급 모두 규칙이 하나다 — 건당 적용 가격 범위 이하인가. 예외 없음.
+    // (구 정책의 '상담 포함횟수 기준가 이상이면 상한 우회'는 폐지됐다.)
     assert.equal(standardDecision.canUseByPass, coinCost <= PASS_LIMITS.standard, `${featureKey}: standard pass limit`);
     assert.equal(premiumDecision.canUseByPass, coinCost <= PASS_LIMITS.premium, `${featureKey}: premium pass limit`);
-    // vvip는 건당 상한(100코인) 이하거나, 상담 포함횟수 기준가(300코인) 이상이면(=미소진 상태의
-    // 신선한 이용권이라 항상 미소진) 포함횟수로 커버된다. 101~299코인 구간은 계속 미커버.
-    assert.equal(
-      vvipDecision.canUseByPass,
-      coinCost <= PASS_LIMITS.vvip || coinCost >= PREMIUM_QUOTA_MIN_COIN_COST,
-      `${featureKey}: vvip pass limit (건당 상한 이하 또는 상담 포함횟수 기준가 이상)`,
-    );
+    assert.equal(vvipDecision.canUseByPass, coinCost <= PASS_LIMITS.vvip, `${featureKey}: vvip pass limit`);
   }
 }
 
@@ -325,20 +340,21 @@ const unchangedPdfDecision = decision({
 });
 assert.equal(unchangedPdfDecision.canUseByPass, false, "PDF over premium pass limit requires payment");
 
+// standard 상한(50코인) 초과 · premium 상한(100코인) 이내인 값이어야 아래 두 단언이 함께 성립한다.
 const smallPdfUnchanged = applyPdfPassDiscountToPricing({
   billingType: "pdf",
-  cost: 50,
-  coinPrice: 50,
-  amountKRW: 5000,
-  cashPrice: 5000,
-  membershipCreditCost: 500,
+  cost: 60,
+  coinPrice: 60,
+  amountKRW: 6000,
+  cashPrice: 6000,
+  membershipCreditCost: 600,
 }, activePass(PASS_TIERS.STANDARD));
 const smallPdfDecision = __billingTestUtils.buildPassPaymentDecision(
   activePass(PASS_TIERS.STANDARD),
   smallPdfUnchanged,
-  { membershipCreditBalance: 500 },
+  { membershipCreditBalance: 600 },
 );
-assert.equal(smallPdfUnchanged.coinPrice, 50, "standard pass leaves small PDF price unchanged");
+assert.equal(smallPdfUnchanged.coinPrice, 60, "standard pass leaves small PDF price unchanged");
 assert.equal(smallPdfUnchanged.passDiscount, undefined, "standard pass does not attach small PDF pass discount");
 assert.equal(smallPdfDecision.canUseByPass, false, "small PDF over standard pass limit requires payment");
 assert.equal(smallPdfDecision.canUseByMonthly, true, "small PDF can still use internal entitlement fallback");
@@ -939,35 +955,40 @@ for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP, PA
   assert.equal(newCycleReset.canUseByPass, true, `${tier}: 사이클 키가 바뀌면 이전 누적치를 무시하고 리셋해야 한다`);
 }
 
-// ── 상담 포함횟수(family 10회 · vvip 3회, 2026-08 VVIP 확장) ────────────────
-// VVIP 는 건당 상한(100코인=10,000원)이 포함횟수 기준가(300코인=30,000원)보다 낮아, 포함횟수
-// 대상 건은 건당 상한 검사를 우회해서 판정해야 한다 — canUseByPass 만 보면 죽은 코드가 된다.
-for (const [tier, included] of [[PASS_TIERS.VVIP, 3], [PASS_TIERS.FAMILY, 10]]) {
-  const cycle = futureDate();
-  const withinQuota = decision({
-    pass: activePass(tier, cycle),
-    coinCost: 300,
-    premiumUseCycleKey: cycle,
-    premiumUseCount: included - 1,
-  });
-  assert.equal(withinQuota.canUseByPass, true, `${tier}: 포함횟수(${included}회) 중 마지막 1회는 통과해야 한다`);
-  assert.equal(withinQuota.familyPremiumIncluded, included, `${tier}: 포함횟수는 ${included}회`);
-  assert.equal(withinQuota.familyPremiumRemaining, 1, `${tier}: ${included - 1}회 사용 후 잔여 1회`);
+// ── 상담 포함횟수 폐지 역단언 (2026-08-24) ──────────────────────────────────
+// 구 정책에는 '프리미엄 상담 포함 횟수'(family 10회 · vvip 3회)라는 세 번째 규칙이 있었고,
+// 그 대상 건은 건당 상한을 우회했다. 새 정책의 규칙은 둘뿐이라 그 표를 비웠다
+// (PREMIUM_QUOTA_INCLUDED_USES_BY_TIER = {}). 여기서는 **되살아나지 않았는지**를 본다 —
+// 되살아나면 VVIP 가 20,000원 초과를 커버해 가격 페이지 문구와 서버 판정이 어긋난다.
+assert.deepEqual(
+  Object.keys(PREMIUM_QUOTA_INCLUDED_USES_BY_TIER),
+  [],
+  "상담 포함횟수 표는 비어 있어야 한다 — 등급을 되살리면 건당 상한 우회가 함께 돌아온다",
+);
 
-  const exhaustedQuota = decision({
-    pass: activePass(tier, cycle),
-    coinCost: 300,
-    premiumUseCycleKey: cycle,
-    premiumUseCount: included,
-  });
-  assert.equal(exhaustedQuota.canUseByPass, false, `${tier}: 포함횟수를 다 쓰면 다음 상담은 거부해야 한다`);
-  assert.equal(exhaustedQuota.decisionReason, "PREMIUM_QUOTA_EXHAUSTED", `${tier}: 소진 사유는 PREMIUM_QUOTA_EXHAUSTED`);
-  assert.deepEqual(exhaustedQuota.hiddenMethods, [], `${tier}: 포함횟수 소진이어도 결제수단은 숨기면 안 된다`);
+// vvip: 건당 상한(200코인=20,000원) 초과는 옛 포함횟수 기준가(300코인)여도 미커버여야 한다.
+const vvipOverCap = decision({ pass: activePass(PASS_TIERS.VVIP), coinCost: 300 });
+assert.equal(vvipOverCap.canUseByPass, false, "vvip: 300코인(30,000원)은 건당 상한 초과라 미커버");
+assert.equal(vvipOverCap.decisionReason, "PRICE_EXCEEDS_PASS_LIMIT", "vvip: 사유는 건당 상한 초과");
+assert.deepEqual(vvipOverCap.hiddenMethods, [], "vvip: 상한 초과여도 결제수단은 숨기면 안 된다");
+
+// family: 건당 상한이 없으므로 같은 300코인이 커버돼야 한다(월 이용 한도는 별도 검사).
+const familyHighPrice = decision({ pass: activePass(PASS_TIERS.FAMILY), coinCost: 300 });
+assert.equal(familyHighPrice.canUseByPass, true, "family: 건당 상한이 없어 고가 상품도 커버");
+
+// 건당 상한 경계 — 정확히 상한이면 커버, 1코인 넘으면 미커버.
+for (const tier of [PASS_TIERS.STANDARD, PASS_TIERS.PREMIUM, PASS_TIERS.VVIP]) {
+  const limit = PASS_LIMITS[tier];
+  assert.equal(
+    decision({ pass: activePass(tier), coinCost: limit }).canUseByPass,
+    true,
+    `${tier}: 건당 상한 ${limit}코인 정확히 일치는 커버`,
+  );
+  assert.equal(
+    decision({ pass: activePass(tier), coinCost: limit + 1 }).canUseByPass,
+    false,
+    `${tier}: 건당 상한 +1코인은 미커버`,
+  );
 }
-
-// vvip 는 건당 상한(100코인) 초과 · 포함횟수 기준가(300코인) 미만인 101~299코인 구간이 계속
-// 미커버로 남는다 — 포함횟수 대상 확장이 건당 상한 자체를 올린 것은 아니다.
-const vvipGapZone = decision({ pass: activePass(PASS_TIERS.VVIP), coinCost: 150 });
-assert.equal(vvipGapZone.canUseByPass, false, "vvip: 101~299코인 구간은 건당 상한도 포함횟수 기준가도 충족 못해 미커버");
 
 console.log("billing pass policy regression checks passed");

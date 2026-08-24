@@ -182,11 +182,11 @@ export default function RootLayout({ children }) {
   return (
     <html lang="ko" dir="ltr" className={notoSansKRVariable}>
       <head>
-        <Script src="/js/core/pass-verdict.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
-        <Script src="/js/core/auth-hint.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
+        <Script src="/js/core/pass-verdict.js?v=build-80c190afe8ed" strategy="beforeInteractive" />
+        <Script src="/js/core/auth-hint.js?v=build-80c190afe8ed" strategy="beforeInteractive" />
         {/* 앱 판별 정본. checkout-entry 가 진입 분기에서 읽으므로 그보다 먼저 둔다. */}
         <Script src="/js/core/app-context.js?v=20260812-app-context-v1" strategy="beforeInteractive" />
-        <Script src="/js/core/checkout-entry.js?v=build-ce0e961efebc" strategy="beforeInteractive" />
+        <Script src="/js/core/checkout-entry.js?v=build-80c190afe8ed" strategy="beforeInteractive" />
         <Script src="/js/core/access-store.js?v=20260804-access-v3" strategy="beforeInteractive" />
         <Script src="/js/core/payment-service.js?v=20260804" strategy="beforeInteractive" />
         {/* GA4 측정 ID 는 공개 식별자다. 값이 없으면 analytics.js 가 통째로 no-op 이 되므로

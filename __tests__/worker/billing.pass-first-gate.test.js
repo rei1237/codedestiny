@@ -10,6 +10,7 @@
  */
 
 let buildPassPaymentDecision;
+let PASS_LIMITS;
 
 const EQUAL_METHODS = ["DIRECT_KRW", "MOONLIGHT_STONE"];
 
@@ -31,6 +32,9 @@ function pricing(coinPrice, featureKey = "tarot-year-fortune") {
 beforeAll(async () => {
   const billingMod = await import("../../worker/routes/billing.js");
   buildPassPaymentDecision = billingMod.__billingTestUtils.buildPassPaymentDecision;
+  // 🔴 상한 숫자를 여기 박지 않는다 — 적용 가격 범위가 바뀌면 이 테스트가 정책이 아니라
+  //    옛 숫자를 지킨다(2026-08-24 상향에서 실제로 걸렸다).
+  ({ PASS_LIMITS } = await import("../../worker/lib/profile-limits.js"));
 });
 
 describe("이용권 선검사 게이트", () => {
@@ -62,9 +66,9 @@ describe("이용권 선검사 게이트", () => {
   });
 
   test("이용권 한도를 넘는 가격이면 다시 단건/월정석 2옵션이어야 한다", () => {
-    // standard 한도 30코인 < 기능 50코인
+    // 적용 가격 범위 바로 바깥(상한 + 1코인)
     const sub = activePass("standard").profileSubscription;
-    const decision = buildPassPaymentDecision({}, pricing(50), sub);
+    const decision = buildPassPaymentDecision({}, pricing(PASS_LIMITS.standard + 1), sub);
 
     expect(decision.hasActivePass).toBe(true);
     expect(decision.canUseByPass).toBe(false);

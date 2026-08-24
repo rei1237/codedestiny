@@ -8,22 +8,31 @@ export const PASS_TIERS = Object.freeze({
 export const FAMILY_PASS_MAX_COVERED_COIN = 999999999;
 export const KRW_PER_COIN = 100;
 
-// ── 공정이용: 프리미엄 상담 포함 횟수 + 월 누적 한도 ──────────────────────
-// Family/VVIP 는 각자의 건당 상한 이하 기능을 무제한 커버하고, 그 위(300코인=
-// 30,000원 이상)의 프리미엄 상담은 이용권 기간당 정해진 횟수만 포함한다(Family
-// 10회 · VVIP 3회). 모든 등급은 여기에 더해 30일 사이클 동안 이용권으로 커버된
-// 거래의 합계가 등급별 월 누적 한도(MONTHLY_PASS_LIMITS)를 넘으면 그 사이클
-// 안에서는 커버가 끊긴다. 어느 쪽이든 초과분은 차단이 아니라 단건/월정석 결제로
-// 넘긴다 — 막다른 길을 만들지 않는 것이 이 설계의 핵심이다.
+// ── 공정이용: 월 이용 한도 ────────────────────────────────────────────────
+// 2026-08-24 정책은 규칙이 둘뿐이다: ①건당 적용 가격 범위(PASS_LIMITS) ②월 이용
+// 한도(MONTHLY_PASS_LIMITS). 30일 사이클 동안 이용권으로 커버된 거래의 코인가
+// 합계가 등급별 한도를 넘으면 그 사이클 안에서는 커버가 끊긴다. 초과분은 차단이
+// 아니라 단건/월정석 결제로 넘긴다 — 막다른 길을 만들지 않는 것이 이 설계의 핵심이다.
+// 그 위에 있던 세 번째 규칙('프리미엄 상담 포함 횟수')은 폐지됐다 — 아래 참고.
 //
 // 카운터는 profileSubscription 안에 둔다. 이용권 판정이 이미 그 문서를 읽고,
 // 소비 시 이미 findOneAndUpdate 를 돌리므로 왕복도 쓰기도 늘지 않는다.
+
+/* 포함횟수 판정의 기준가. 표(아래)가 비어 있어 지금은 어떤 등급도 이 값에 걸리지 않지만,
+   상수 자체는 레거시 호출부와 js/core/pass-verdict.js 가 공유하므로 남긴다. */
 export const PREMIUM_QUOTA_MIN_COIN_COST = 300;
 
-export const PREMIUM_QUOTA_INCLUDED_USES_BY_TIER = Object.freeze({
-  [PASS_TIERS.FAMILY]: 10,
-  [PASS_TIERS.VVIP]: 3,
-});
+/* 🔴 2026-08-24 폐지 — 비어 있는 것이 정책이다(지우지 말 것).
+ * 새 정책은 "건당 적용 가격 범위 + 월 이용 한도" 2규칙뿐이고 '상담 포함 횟수'라는 재화가 없다.
+ * 이 표가 비면 resolvePremiumQuota 는 항상 applies=false 를 돌려주므로
+ *   ① VVIP 의 건당-상한 우회가 사라진다(= 20,000원 초과는 VVIP 미커버, 문구와 정확히 일치)
+ *   ② family 의 '기간당 10회' 상한도 사라진다(family 는 건당 상한이 없고 월 한도만 적용)
+ * 두 효과 모두 의도한 것이다. 등급을 다시 넣으면 가격 페이지 문구와 서버 판정이 어긋난다.
+ * 함수 자체는 남긴다 — 레거시 billing.js·entitlement-policy.js·nakshatra-paid-access.js 가
+ * 아직 호출하며, 빈 표를 받으면 전부 "혜택 없음"으로 조용히 올바르게 동작한다.
+ * 가드: scripts/verify-billing-pass-policy.mjs(포함횟수 폐지 역단언) · verify-pass-tier-policy.mjs
+ */
+export const PREMIUM_QUOTA_INCLUDED_USES_BY_TIER = Object.freeze({});
 
 /**
  * 사이클 키 = 이용권 만료일. 이용권을 새로 사면 만료일이 바뀌어 키가 달라지고,
@@ -74,10 +83,21 @@ export function resolvePremiumQuota(profileSubscription, entitlement, coinCost) 
   return { applies: true, eligible, cycleKey, included, used, remaining, exhausted: remaining <= 0 };
 }
 
+// ── 건당 적용 가격 범위 (코인, 1코인=100원) ────────────────────────
+// 2026-08-24 개정: 50 / 100 / 200 = 5,000원 / 10,000원 / 20,000원 (이전 30/50/100).
+// 이 값이 정본이고 PASS_LIMITS_KRW·HONEY_PASS_POLICY.maxCoveredCoin 은 전부 파생이다.
+// 같은 숫자의 하드코딩 사본이 3곳 더 있다 — 바꿀 때 함께 바꿔야 한다:
+//   worker/lib/app-store-pricing.js  PASS_TIER_TABLE[].coinLimit  (verify:app-store-pricing 이 대조)
+//   js/core/pass-verdict.js          PASS_LIMIT_BY_TIER           (클라 스냅샷 판정)
+//   index.html                       goldenPackages[].freeLimit   (정적 셸 + public 미러)
+// 전수 대조 가드: scripts/verify-pass-tier-policy.mjs
+//
+// family 는 건당 상한이 없다(사용자 확정 2026-08-24). 금액과 무관하게 커버하되
+// 월 이용 한도(MONTHLY_PASS_LIMITS.family = 500,000원)는 동일하게 적용된다.
 export const PASS_LIMITS = Object.freeze({
-  [PASS_TIERS.STANDARD]: 30,
-  [PASS_TIERS.PREMIUM]: 50,
-  [PASS_TIERS.VVIP]: 100,
+  [PASS_TIERS.STANDARD]: 50,   // 5,000원
+  [PASS_TIERS.PREMIUM]: 100,   // 10,000원
+  [PASS_TIERS.VVIP]: 200,      // 20,000원
   [PASS_TIERS.FAMILY]: FAMILY_PASS_MAX_COVERED_COIN,
 });
 

@@ -33,9 +33,14 @@ afterEach(() => {
 
 describe("resolveStorePlan", () => {
   it("금액을 덮는 가장 낮은 등급을 고른다", () => {
-    expect(checkoutEntry.resolveStorePlan(30)).toBe("standard");
-    expect(checkoutEntry.resolveStorePlan(50)).toBe("premium");
-    expect(checkoutEntry.resolveStorePlan(100)).toBe("vvip");
+    // 2026-08-24 적용 가격 범위: standard 50 · premium 100 · vvip 200 코인(family 상한 없음).
+    // 경계 금액과 그 바로 위를 함께 재서 "가장 낮은 등급"의 의미를 고정한다.
+    expect(checkoutEntry.resolveStorePlan(50)).toBe("standard");
+    expect(checkoutEntry.resolveStorePlan(51)).toBe("premium");
+    expect(checkoutEntry.resolveStorePlan(100)).toBe("premium");
+    expect(checkoutEntry.resolveStorePlan(101)).toBe("vvip");
+    expect(checkoutEntry.resolveStorePlan(200)).toBe("vvip");
+    expect(checkoutEntry.resolveStorePlan(201)).toBe("family");
     expect(checkoutEntry.resolveStorePlan(500)).toBe("family");
   });
 
@@ -145,8 +150,9 @@ describe("buildPaymentChoiceCardsHtml", () => {
 
 describe("buildPassStoreUrl", () => {
   it("cdco=1 이 붙어야 /points 가 결제 확인 모달을 자동으로 연다", () => {
+    // 50코인(5,000원)은 standard 적용 범위 안이라 가장 낮은 등급이 실린다.
     const url = checkoutEntry.buildPassStoreUrl({ costCoins: 50, source: "shell" });
-    expect(url).toBe("/points?plan=premium&source=shell&cdco=1");
+    expect(url).toBe("/points?plan=standard&source=shell&cdco=1");
   });
 });
 

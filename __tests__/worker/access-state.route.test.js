@@ -23,6 +23,11 @@ let handleAccessStateRoutes;
 let invalidateAccessStateCacheForUser;
 
 beforeAll(async () => {
+  // 🔴 profile-limits 는 **부분** 모킹이다 — 스텁하려는 것은 resolveActivePassPolicy 하나뿐이고
+  //    나머지 export(상수·정규화 함수)는 진짜를 그대로 쓴다. 옛 코드는 스텁만 담은 객체를
+  //    돌려주어, access-state.js 가 이 모듈에서 상수를 하나만 더 가져와도 "export 가 없다"로
+  //    스위트 전체가 죽었다(2026-08-24 passUsage 추가에서 실제로 그랬다).
+  const actualProfileLimits = await import("../../worker/lib/profile-limits.js");
   await Promise.all([
     jest.unstable_mockModule("../../worker/lib/auth.js", () => ({
       requireUserFromRequest,
@@ -30,6 +35,7 @@ beforeAll(async () => {
       isAuthDbInfraError: () => false,
     })),
     jest.unstable_mockModule("../../worker/lib/profile-limits.js", () => ({
+      ...actualProfileLimits,
       resolveActivePassPolicy,
     })),
     jest.unstable_mockModule("../../worker/lib/models.js", () => ({

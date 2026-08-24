@@ -4,6 +4,7 @@ import {
   isProfileScopedContentUnlockFeatureKey,
 } from "./content-unlocks.js";
 import { isUnlockPaidFeatureKey } from "./paid-feature-registry.js";
+import { KRW_PER_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS, normalizePassTier } from "./profile-limits.js";
 
 const ACCESS_STATE_TTL_MS = 60000;
 const ACCESS_STATE_STALE_TTL_MS = 30 * 60 * 1000;
@@ -56,6 +57,41 @@ function toNonNegativeInteger(value) {
 function normalizeStringArray(value) {
   const array = Array.isArray(value) ? value : [];
   return Array.from(new Set(array.map((item) => String(item || "").trim()).filter(Boolean)));
+}
+
+/**
+ * 이번 이용권 사이클의 월 이용 한도 현황. **추가 왕복 0회** — 호출부가 이미 읽은
+ * profileSubscription 안에 카운터(monthlySpendCoin)와 사이클 키가 함께 있다.
+ *
+ * 사이클 키 = 이용권 만료일(worker/lib/profile-limits.js resolvePremiumQuotaCycleKey).
+ * 키가 다르면 이전 사이클의 누적치이므로 0 으로 본다 — 리셋 크론이 없는 이유가 이것이다.
+ * 만료일이 없어 셀 수 없는 상태면 null 을 돌려준다(0 이 아니다: "한도를 다 썼다"와
+ * "잴 수 없다"는 화면에서 완전히 다른 말이다).
+ *
+ * 🔴 계산은 서버에서만 한다. 클라이언트가 보낸 사용액을 신뢰하는 경로를 만들지 말 것.
+ */
+function buildPassUsage(profileSubscription = {}, rawTier = "") {
+  const tier = normalizePassTier(rawTier);
+  if (!tier) return null;
+  const limitCoin = Math.max(0, Math.floor(Number(MONTHLY_PASS_LIMITS[tier] || 0)));
+  if (!(limitCoin > 0)) return null;
+  const cycleKey = String(profileSubscription?.expiresAt
+    ? new Date(profileSubscription.expiresAt).toISOString()
+    : "");
+  if (!cycleKey || cycleKey === "Invalid Date") return null;
+  const usedCoin = String(profileSubscription?.premiumUseCycleKey || "") === cycleKey
+    ? Math.max(0, Math.floor(Number(profileSubscription?.monthlySpendCoin || 0)))
+    : 0;
+  const perItemCoin = Math.max(0, Math.floor(Number(PASS_LIMITS[tier] || 0)));
+  return {
+    tier,
+    limitKRW: limitCoin * KRW_PER_COIN,
+    usedKRW: Math.min(usedCoin, limitCoin) * KRW_PER_COIN,
+    remainingKRW: Math.max(0, limitCoin - usedCoin) * KRW_PER_COIN,
+    // null = 건당 상한 없음(family).
+    perItemLimitKRW: perItemCoin >= 999999999 ? null : perItemCoin * KRW_PER_COIN,
+    cycleEndsAt: cycleKey,
+  };
 }
 
 function buildMonthlyBalance(profileSubscription = {}, nowMs = Date.now()) {
@@ -149,6 +185,7 @@ export function buildAccessState({
   };
   const lockMap = Object.fromEntries(unlockedFeatureIds.map((key) => [key, false]));
   const monthlyBalance = buildMonthlyBalance(entitlement, fetchedMs);
+  const passUsage = buildPassUsage(entitlement, hasActivePass ? tier : "");
   const entitlementVersion = [
     entitlement?.entitlementVersion
       || entitlement?.version
@@ -177,6 +214,7 @@ export function buildAccessState({
     userId: normalizeUserId(userId),
     tier: hasActivePass ? tier : "free",
     activePasses,
+    passUsage,
     unlockedFeatureIds,
     monthlyBalance,
     profileEntitlements,

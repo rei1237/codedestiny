@@ -21,7 +21,7 @@
 
 ## B. 이용할 때마다 구매 (Per-Use Payment / 회당 결제)
 
-- **정의**: 사용할 때마다 매번 단건 결제(코인/원화)하는 것이 기본이나, **이용권(구독 패스)이 있고 그 가격이 이용권의 커버 한도 이내이면 이용권으로 무료 처리**한다(2026-07-04 재확정, 2026-08 월 누적 한도 추가). 즉 이용권 보유·티어(standard/premium/vvip/family)에 따라 무료 커버 여부가 달라진다 — family는 건당 상한이 없어 사실상 전부 커버되지만, **모든 등급에 등급별 30일 누적 한도**(스탠다드 3만원·프리미엄 10만원·VVIP 20만원·family 50만원)가 함께 적용된다(`MONTHLY_PASS_LIMITS`). 이용권이 없거나 가격이 건당 상한을 초과하거나 이번 사이클 누적 한도를 넘으면 단건 결제로 진행. 결과를 저장하지 않으므로 매 사용마다 이 판정을 다시 거친다.
+- **정의**: 사용할 때마다 매번 단건 결제(코인/원화)하는 것이 기본이나, **이용권이 있고 그 가격이 등급의 적용 가격 범위 안이면 이용권으로 결제 없이 처리**한다(2026-07-04 재확정, 2026-08-24 범위 상향). 판정 규칙은 둘뿐이다 — ①등급별 적용 가격 범위(스탠다드 5,000원·프리미엄 10,000원·VVIP 20,000원 이하, family 상한 없음) ②등급별 월 이용 한도(3만·10만·20만·50만원, `MONTHLY_PASS_LIMITS`). 둘 중 하나라도 걸리면 단건 결제로 진행한다. 결과를 저장하지 않으므로 매 사용마다 이 판정을 다시 거친다. 월 한도 차감은 **정상 판매가** 기준이다(할인가·PG 실결제액 아님).
 - **식별 마커**: `PER_USE_PAID_FEATURE_KEY_LIST`/`RAW_FEATURE_KEY_PRICE_TABLE`에 등록(`unlock.` 접두 없음, `forceDeduct` 플래그 없음), `PERSISTENT_UNLOCK_KEY_SET` 미포함. 결제/이용권/월정석 판정과 차감은 `worker/lib/payment-service.js` 경계와 `worker/routes/billing.js` 어댑터에서 수행하고, 각 `worker/routes/*-ai.js`는 검증된 access grant만 소비한다.
 - **현재 예시**:
   - 궁합 분석 전체: `compat-saju-compatibility`, `compat-ziwei-compatibility`, `compat-sukuyo-compatibility`, `vedic-compatibility-per-use`, `compat-astro-synastry` 등
@@ -29,13 +29,13 @@
   - 타로 전체: `tarot-year-fortune`, `tarot-love-relationship`, `tarot-reunion-reading` 등 `tarot-*`
   - AI 상담 전반: 인생의 책, 연애 비책, 신년운세, 운명 찻집, 팩폭 전략실(`life-book-ai`, `love-secret-ai`, `new-year-ai`, `fortune-tea-house`, `neo-operation-room` 등), 숙요점 궁합 AI 상담(`sukuyo-compatibility-ai`) — 위 이용권 커버 규칙 동일 적용
   - **연이 운명 상담(`fortune-chat-consultation`, 50코인=5,000원)** — `/fortune-chat`. 하루 무료 3회를 소진한 뒤부터 회당 결제. 매 턴이 새로 생성되는 개인화 상담이라 B유형이다
-  - **초융합 심층 리딩(`fusion-fortune-consultation`, 300코인=30,000원)** — `/fusion-fortune`. 여섯 체계를 한 번에 엮어 20,000자 이상을 새로 쓴다. 🔴 30,000원이라 `PASS_LIMITS`(건당 상한) 상 **family 이용권만 커버**되고 `PREMIUM_QUOTA_MIN_COIN_COST`(300)에 걸려 family는 이용권 기간당 10회, **VVIP는 이용권 기간당 3회**(2026-08 추가, VVIP 건당 상한은 10,000원이라 원래 이 가격대는 못 커버했으나 이 상담만 예외로 포함횟수를 받는다) 정책이 적용된다. 선착순 하루 100자리는 결제와 별개 장치이며, **마감 검사가 결제보다 먼저** 돌아야 한다(결제 후 마감은 자동 환불 경로가 없다)
+  - **초융합 심층 리딩(`fusion-fortune-consultation`, 300코인=30,000원)** — `/fusion-fortune`. 여섯 체계를 한 번에 엮어 20,000자 이상을 새로 쓴다. 🔴 30,000원이라 **family 이용권만 커버**된다(건당 상한이 없는 유일한 등급). 2026-08-24 이전에는 VVIP 도 '상담 포함횟수 3회'로 커버됐으나 그 제도가 폐지돼 VVIP 는 이제 미커버다 — VVIP 적용 범위 20,000원을 문자 그대로 지키기 위한 교환이었다. family 도 월 이용 한도 500,000원 안에서만 커버된다. 선착순 하루 100자리는 결제와 별개 장치이며, **마감 검사가 결제보다 먼저** 돌아야 한다(결제 후 마감은 자동 환불 경로가 없다)
   - ⚠️ 위 두 기능은 2026-08-08까지 전용 재화(대화권 / 초융합 상담권)로 굴러갔다. 그 재화는 폐지됐으니 되살리지 말 것 — 판매 라우트·잔액 컬렉션·전용 상점을 모두 제거했고 컬렉션 드롭 마이그레이션(`scripts/migrations/20260808-drop-legacy-consultation-currencies.mjs`)까지 준비돼 있다
   - 숙요점 기본 궁합(`compat-sukuyo-compatibility`, 50코인=5,000원, 2026-08-12 100코인=10,000원에서 인하): **콘텐츠는 잠금 UI 없이 노출**되지만 궁합 계산 실행 시마다 회당 결제(위 이용권 커버 규칙 적용). "비잠금"이 "무료"를 뜻하지 않음에 주의
   - **숙요 인연 레이더(`sukuyo-past-life-reading`, 100코인=10,000원)** — 상대의 생년월일을 넣을 때마다 새로 산출되는 관계 리포트라 **상대 1명당 1결제**다. 같은 상대·같은 관계목적은 서버 아카이브(`readSukuyoPastLifeArchive`)가 영수증 역할을 해 재결제 없이 다시 열린다. ⚠️ 이 키를 `PREMIUM_UNLOCK_POLICY`(영구 해금 후보)나 클라 `syMarkPaidSukuyoFeatureUnlocked` 에 되살리지 말 것 — 그러면 1회 결제로 모든 상대가 무료가 된다(2026-08-01 정정). 구 `sukuyo-symbolic-comparison`(인연 레이더 5,000원)은 이 기능에 통합돼 UI 미사용, 과거 결제 이력 보존용으로 레지스트리에만 남는다
   - **휴먼 디자인 프리미엄 리포트(`human-design-report`, 100코인=10,000원, 2026-09)** — 무료 바디그래프 위에서 여는 25,000자 개인 분석 + PDF. 18유닛을 여러 요청에 걸쳐 생성하며(엣지 데드라인 100초라 한 요청에 못 담는다) 클라이언트가 반복 호출한다. 같은 출생 데이터·같은 로케일·같은 계약이면 `humanDesignReports` 의 `reportKey` 문서가 영수증 역할을 해 **재결제 없이** 다시 열리고 Gemini 도 다시 부르지 않는다.
     - 🔴 **회당 결제다.** LLM 생성물이고 출생 데이터마다 별개 상품이라 `unlock` 으로 옮기면 1회 결제로 모든 프로필의 리포트가 열린다(`sukuyo-past-life-reading` 과 같은 이유).
-    - 🔴 **100코인을 넘기지 말 것** — `PASS_LIMITS.vvip = 100` 이라 넘는 순간 VVIP 이용권 커버를 잃고 family 등급만 남는다.
+    - 🔴 **200코인을 넘기지 말 것** — `PASS_LIMITS.vvip = 200`(2026-08-24 100 → 200) 이라 넘는 순간 VVIP 이용권 커버를 잃고 family 등급만 남는다. 현재 100코인이라 여유가 있다.
     - 결제와 생성을 한 트랜잭션으로 묶지 않는다. `/start` 가 결제를 확인하고 환불 가능 상태를 열며, 생성 실패는 `ServiceExecutionTransaction` 으로 되돌린다. 다만 **전달 하한**(18유닛 중 14개 이상 + 20,000자 이상 + 렌더 가능)을 넘으면 일부 섹션이 degraded 여도 결제를 유지하고 전달한다(경량 보장 계약).
     - `/generate` 는 결제를 재검증하지 않는다 — 문서 자체가 증빙이다. 재검증을 넣으면 생성 중간에 결제한 사용자가 막힌다.
 - **UI**: 이용권으로 커버되면 무료 처리 안내(결제창 미노출), 그렇지 않으면 결제창에 **단건결제(KRW)/월정석 2옵션**을 동등 제시(월정석은 잔액이 비용 이상일 때만 활성) — [3부 결제창 노출 규칙(공통)](payment-policy-flow.md#결제창-노출-규칙-공통) 참고
@@ -55,7 +55,7 @@
 - **정의**: 운세 대상 인물(프로필 카드)의 추가·삭제에 부과되는 **건당 고정 수수료**. 잠금 콘텐츠(A)도 회당 결제(B)도 아닌 별도 유형이다.
 - **금액**: **건당 5,000원 단건결제** 또는 **월정석 500**(코인 50 상당). 서버 상수 `PROFILE_CARD_DELETE_COST_KRW = 5000`(`worker/lib/profile-card-mutation-policy.js`). 클라이언트가 보낸 금액은 신뢰하지 않고 서버 상수와 일치 검증(`worker/routes/payments.js`의 `CLIENT_AMOUNT_MISMATCH`).
 - **첫 프로필 무료**: 계정당 최초 1개는 무료 생성(`FREE_INITIAL_PROFILE_CARD_COUNT = 1`).
-- **개수 상한은 client-first 기본 슬롯 기준값**: 이용권 등급별 개수(standard 3 / premium 7 / vvip 15)는 클라이언트가 로그인/앱 시작 시 받은 `profilePolicySnapshot.maxProfileCount`로 먼저 판정한다. 일반 생성 버튼은 로컬 프로필 수가 기준값 이상이면 `/api/profile` POST 없이 차단하고, 기존 카드 정리 또는 이용권 확인 CTA로 안내한다. 초과 생성은 자동 호출하지 않으며, 명시적 단건결제/월정석 컨텍스트가 있는 별도 결제 흐름에서만 서버 최종 검증을 통과할 수 있다.
+- **개수 상한은 client-first 기본 슬롯 기준값**: 이용권 등급별 개수(standard 3 / premium 7 / vvip 15 / family 무제한, 이용권 미보유 1)는 클라이언트가 로그인/앱 시작 시 받은 `profilePolicySnapshot.maxProfileCount`로 먼저 판정한다. **슬롯 이내 생성은 무료이고, 5,000원이 붙는 것은 슬롯을 초과할 때뿐이다**(2026-08-24 재확인 — 유료 초과 추가 경로는 유지 결정). 한도 도달 안내는 단순 오류가 아니라 상위 등급의 프로필 수를 함께 보여준다. 일반 생성 버튼은 로컬 프로필 수가 기준값 이상이면 `/api/profile` POST 없이 차단하고, 기존 카드 정리 또는 이용권 확인 CTA로 안내한다. 초과 생성은 자동 호출하지 않으며, 명시적 단건결제/월정석 컨텍스트가 있는 별도 결제 흐름에서만 서버 최종 검증을 통과할 수 있다.
 - **삭제**: 건당 5,000원(또는 월정석). **보유 개수 하한 없음 — 프로필이 1개여도 삭제 가능**(결제는 필수). 삭제 후 최초 무료 슬롯이 다시 열린다.
 - **family 이용권만 무료**: family 등급은 추가·삭제 모두 무료·무제한(`isFamilyOrAbove`). 그 외 등급은 이용권 보유와 무관하게 결제 필요. **이 무료는 "이용권으로 결제"가 아니라 가격 자체가 0원인 정책 바이패스**이며, 판정은 결제 게이트(`billing.js`/coin-gate)가 아니라 **정책 계층(`worker/lib/profile-card-mutation-policy.js` → `worker/routes/profile.js`)에서만** 이뤄진다. coin-gate는 `profile.js`가 402(결제 필요)를 준 뒤에만 열리므로 무료 카드는 이용권 경로에 아예 도달하지 않는다.
 - **⚠️ 이용권(pass)으로는 결제 불가 (family 포함 전 등급)**: 프로필 추가/삭제는 **오직 단건결제(`single_purchase`) 또는 월정석(`membership_credit`)** 으로만 정산된다. 이용권 잔여/커버 한도로 대체 결제되지 않으며(`evidenceCostMatches`가 두 방식만 인정), 프론트에도 이용권 결제 옵션을 노출하지 않는다(`ProfileActionPaymentMethod = "card" | "monthly_stones"`).

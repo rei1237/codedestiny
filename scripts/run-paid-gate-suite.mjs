@@ -87,6 +87,7 @@ const SUITE = [
   { run: "npm run verify:master-love-codex-compat", why: "궁합 판정이 결정론을 잃거나 축 점수가 한쪽으로 쏠리면 20장이 모든 짝에게 같은 말을 한다." },
   { run: "npm run verify:payment-freeze", why: "🔴 재작성 기간 한정 가드. worker/payments/ 로 결제를 옮기는 동안 구현이 두 벌 존재하는데, 가장 비싼 사고는 충돌이 아니라 **조용한 분기**다 — 구 코드에만 얹은 정책은 컷오버 순간 소리 없이 사라진다. 구 결제 코드가 전부 삭제되면 이 항목도 함께 지운다." },
   { run: "npm run verify:billing-pass-policy", why: "이용권 정책." },
+  { run: "npm run verify:pass-tier-policy", why: "등급별 적용 가격 범위·월 이용 한도·프로필 수의 절대값과, 같은 숫자를 든 하드코딩 사본 5곳(앱 SKU·pass-verdict·셸 goldenPackages·셸 미니배지·/points)의 일치. 정책이 코드 한 곳만 바뀌면 '화면은 5천원까지인데 서버는 3천원에서 막는' 조용한 어긋남이 된다. 사본에서 4등급을 다 못 뽑으면 통과가 아니라 실패다(fail-closed)." },
   { run: "npm run verify:checkout-auth-recovery", why: "결제 POST(checkout·confirm)의 401 리프레시 복구 계약 — fetchJsonWithAuth 본문을 실제로 구동해 같은 키·같은 body 1회 재전송(이중 주문 금지)과 coin-gate 제외, 확정 401 의 로그인 모달 종단, PR #470 단일비행 바이패스 회귀까지 실행으로 확인한다." },
   { run: "npm run verify:direct-confirm-pending-recovery", why: "승인 후 복구 계약 — 복귀 티켓 수명과 202 PENDING_CONFIRMATION 이 '결제가 완료되지 않았어요'(재결제 유도)로 세탁되지 않는 분기를 브레이스 균형 슬라이스로 7셸+dp 에서 고정한다." },
   { run: "npm run verify:paid-feature-common-flow", why: "유료 기능 공통 플로우." },
