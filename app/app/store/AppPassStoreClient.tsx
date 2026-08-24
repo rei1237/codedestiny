@@ -11,6 +11,8 @@ import {
   type AppProductDetails,
 } from "@/app/app/_lib/native-billing";
 import { useAppShellCopy, type AppShellCopy, type PassTier } from "@/app/app/_lib/copy";
+// 🔴 순수 상수 테이블이라 클라이언트 번들에 안전하게 들어간다(worker 전용 모듈을 import 하지 않는다).
+import { MONTHLY_PASS_LIMITS_KRW } from "@/worker/lib/profile-limits";
 
 type PassPlan = {
   passTier: PassTier;
@@ -24,7 +26,8 @@ type PassPlan = {
 // productId는 서버 가격표(worker/lib/app-store-pricing.js)와 Play Console 등록값의 정본이다.
 // 표시 가격은 여기 두지 않는다 — Play의 formattedPrice를 받아 쓴다.
 // 커버 금액도 여기 두지 않는다 — 서버가 웹 정본(PASS_LIMITS)에서 앱가로 환산해 내려준다.
-// 이용권은 30일 기간만 있고 사용 횟수 제한이 없다.
+// 🔴 월 이용 한도 금액도 여기 적지 않는다 — 서버 정본 MONTHLY_PASS_LIMITS_KRW 를 import 해서 쓴다.
+//    "횟수 제한 없음"은 쓰지 않는다(2026-08-24): 모든 등급에 월 이용 한도가 있어 모순이다.
 function buildPassPlans(copy: AppShellCopy): PassPlan[] {
   return [
     { passTier: "standard", productId: "cd_pass_standard_30d", ...copy.passPlans.standard },
@@ -35,12 +38,12 @@ function buildPassPlans(copy: AppShellCopy): PassPlan[] {
 }
 
 function buildBenefits(copy: AppShellCopy, plan: PassPlan, coverageKRW: number | null): string[] {
+  const monthlyCapKRW = Number(MONTHLY_PASS_LIMITS_KRW[plan.passTier] || 0);
   return [
     coverageKRW
       ? copy.benefitCoverageFree(`${coverageKRW.toLocaleString("ko-KR")}원`)
       : copy.benefitAllFree,
-    // 이용권에 사용 횟수 제한은 없다 — 커버 범위 안이면 30일간 몇 번이든.
-    copy.benefitNoLimitUse,
+    copy.benefitMonthlyCap(`${monthlyCapKRW.toLocaleString("ko-KR")}원`),
     plan.profileLabel,
     copy.benefit30Days,
   ];

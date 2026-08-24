@@ -450,7 +450,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-fa9bf9ed11e4";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-bd2a01eb9188";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -853,19 +853,22 @@ function formatCoinValueWon(amount: number): string {
 }
 
 /**
- * 이용권 커버 한도 안내.
+ * 이용권 적용 가격 범위 안내.
  *
  * 한도는 코인으로 관리되고(canUseByPass), 원화는 표시용이다. 앱에서는 같은 기능이 더
  * 비싸므로 웹가(코인×100)를 그대로 보여주면 결제창 금액과 어긋난다 — 앱 확정가로 바꾼다.
- * 이용권은 30일 기간만 있고 사용 횟수 제한이 없으므로 그 점을 문구로 못박는다.
+ *
+ * 🔴 "횟수 제한 없이"·"무제한"을 쓰지 않는다(2026-08-24). 모든 등급에 월 이용 한도가 있어
+ *    그 표현이 실제 정책과 모순된다 — 한도를 다 쓴 사용자가 "횟수 제한이 없다더니"를 겪는다.
+ *    family 도 예외가 아니다(건당 상한만 없고 월 50만원 한도는 동일하게 적용된다).
  */
 function formatMembershipPassLimitLabel(tier: unknown, limit: number): string {
   const normalizedTier = toText(tier).toLowerCase();
-  if (normalizedTier === "family" || limit >= 999999999) return "모든 유료 기능을 횟수 제한 없이 이용할 수 있습니다.";
+  if (normalizedTier === "family" || limit >= 999999999) return "이용권 대상 기능 전체가 월 이용 한도 안에서 열립니다.";
   if (limit > 0) {
     const appCoverageKRW = isMobileAppRuntime() ? resolveAppPassCoverageKRW(limit) : null;
     const coverageLabel = appCoverageKRW ? formatPaymentWon(appCoverageKRW) : formatCoinValueWon(limit);
-    return `${coverageLabel} 이하 기능은 이용권으로 횟수 제한 없이 바로 열립니다.`;
+    return `${coverageLabel} 이하 기능이 월 이용 한도 안에서 바로 열립니다.`;
   }
   return "현재 서비스는 이용권 적용 범위 밖이라 결제가 필요합니다.";
 }
