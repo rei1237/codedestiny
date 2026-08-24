@@ -53,11 +53,52 @@ export const PAYMENT_PHONE_CONSENT_LINES = [
 export const PAYMENT_PHONE_CONSENT_LABEL = "결제 진행 목적의 휴대폰 번호 수집·이용에 동의합니다. (필수)";
 export const PAYMENT_PHONE_CONSENT_REQUIRED = "휴대폰 번호 수집·이용에 동의해 주셔야 결제를 진행할 수 있어요.";
 
+/**
+ * 소셜 계정에서 번호를 가져오는 가속 버튼의 문구.
+ *
+ * 🔴 위 고지와 같은 이유로 렌더러 3벌에 **글자 그대로 같아야 한다** —
+ * npm run verify:payment-phone-consent 가 동일성을 강제한다.
+ *
+ * 이 버튼은 **가속기일 뿐이다.** 눌러도 안 되면(팝업 차단·거부·공급자 오류) 아래 직접 입력이
+ * 항상 그대로 남아 있다. 그래서 실패 문구가 전부 "아래에 직접 입력해 주세요" 로 끝난다.
+ */
+export const PAYMENT_PHONE_SOCIAL_CTA_KAKAO = "카카오에서 번호 가져오기";
+export const PAYMENT_PHONE_SOCIAL_CTA_NAVER = "네이버에서 번호 가져오기";
+export const PAYMENT_PHONE_SOCIAL_BLOCKED = "팝업이 차단됐어요. 아래에 직접 입력해 주세요.";
+export const PAYMENT_PHONE_SOCIAL_FAILED = "번호를 가져오지 못했어요. 아래에 직접 입력해 주세요.";
+
+/** 팝업을 열어 둔 채 사용자가 손을 놓았을 때 버튼을 되살리기까지의 시간. */
+const SOCIAL_CONSENT_TIMEOUT_MS = 120000;
+
+export function paymentPhoneSocialCtaLabel(provider: string): string {
+  if (provider === "kakao") return PAYMENT_PHONE_SOCIAL_CTA_KAKAO;
+  if (provider === "naver") return PAYMENT_PHONE_SOCIAL_CTA_NAVER;
+  return "";
+}
+
+/**
+ * 소셜 추가 동의(가속 버튼) 배관. 넘기지 않으면 버튼이 아예 없다 — 직접 입력만 남는다.
+ *
+ * 🔴 공급자 목록은 **서버가 판정한다**(GET /api/me/payment-phone 의 socialPhoneProviders).
+ * 계정에 그 소셜이 연결돼 있고 그 공급자의 동의항목이 승인돼 scope 가 켜져 있을 때만 온다.
+ * 프론트에서 추측하면 승인 전에 버튼이 뜨고, 누르면 카카오가 KOE205 로 거절하는 창을 보게 된다.
+ */
+interface PaymentPhoneSocialConsent {
+  /** 지금 번호를 가져올 수 있는 공급자. 조회에 실패하면 빈 배열을 돌려준다(버튼이 안 뜬다). */
+  listProviders: () => Promise<string[]>;
+  /** 추가 동의 팝업으로 열 절대/상대 URL. */
+  startUrl: (provider: string) => string;
+  /** 팝업이 성공을 알린 뒤 서버에서 저장된 번호를 다시 읽는다. */
+  readSavedPhoneNumber: () => Promise<string>;
+}
+
 interface PromptPaymentPhoneOptions {
   /** 입력된 번호를 정규화해 반환하는 함수(빈 문자열이면 실패로 본다). */
   normalize: (value: string) => string;
   /** 서버 저장. 실패 시 사용자에게 보여줄 메시지를 담아 throw 해야 한다. */
   onSave: (phoneNumber: string, consented: boolean) => Promise<string>;
+  /** 있으면 "카카오에서 번호 가져오기" 가속 버튼이 붙는다. */
+  socialConsent?: PaymentPhoneSocialConsent | null;
 }
 
 /** 저장까지 성공한 번호를 반환한다. 사용자가 취소하면 빈 문자열. */
@@ -74,6 +115,7 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
     const fieldLabel = document.createElement("label");
     const input = document.createElement("input");
     const error = document.createElement("p");
+    const socialButton = document.createElement("button");
     const notice = document.createElement("p");
     const disclosure = document.createElement("ul");
     const consentLabel = document.createElement("label");
@@ -106,6 +148,7 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
       consentInput.disabled = isBusy;
       cancelButton.disabled = isBusy;
       submitButton.disabled = isBusy;
+      socialButton.disabled = isBusy;
       submitButton.style.opacity = isBusy ? ".62" : "1";
       submitButton.textContent = isBusy ? "저장 중..." : "저장하고 결제 계속하기";
     };
@@ -128,6 +171,10 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
     fieldLabel.style.cssText = "display:block;margin:0 0 8px;color:rgba(232,213,163,.9);font-size:12px;font-weight:700;";
     input.style.cssText = "width:100%;height:52px;box-sizing:border-box;border-radius:14px;border:1px solid rgba(196,181,253,.30);background:rgba(8,6,20,.7);color:#f8f6ff;font-size:16px;font-weight:600;letter-spacing:.02em;padding:0 15px;outline:none;transition:border-color .16s ease,box-shadow .16s ease;";
     error.style.cssText = "min-height:18px;margin:9px 0 0;color:#f7b7c4;font-size:12.5px;line-height:1.5;";
+    // 보조 수단이라 제출 버튼보다 낮은 위계로 둔다(테두리만, 채우지 않음).
+    socialButton.style.cssText = "display:none;width:100%;min-height:46px;margin:2px 0 0;box-sizing:border-box;"
+      + "border-radius:14px;border:1px solid rgba(232,213,163,.42);background:rgba(232,213,163,.08);color:#f0dcab;"
+      + "padding:0 14px;font-size:13.5px;font-weight:700;letter-spacing:-.01em;cursor:pointer;";
     notice.style.cssText = "margin:9px 0 0;color:rgba(198,190,228,.72);font-size:11.5px;line-height:1.55;";
     disclosure.style.cssText = "margin:12px 0 0;padding:12px 14px;list-style:none;border:1px solid rgba(196,181,253,.20);border-radius:14px;background:rgba(6,4,16,.5);color:rgba(210,203,238,.85);font-size:11.5px;line-height:1.6;";
     consentLabel.style.cssText = "display:flex;align-items:flex-start;gap:11px;margin-top:12px;padding:11px 12px;box-sizing:border-box;min-height:44px;border:1px solid rgba(196,181,253,.22);border-radius:14px;background:rgba(16,12,38,.55);cursor:pointer;color:#eee9ff;font-size:12.5px;line-height:1.6;transition:border-color .16s ease,background-color .16s ease;";
@@ -191,6 +238,91 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
       const formatted = formatKoreanPhoneInput(input.value);
       if (formatted !== input.value) input.value = formatted;
     });
+    socialButton.type = "button";
+
+    // ── 소셜 추가 동의 (가속기) ───────────────────────────────────────────────────
+    // 🔴 전체 페이지 리다이렉트 폴백을 만들지 않는다. 이 모달이 뜬 시점에는 주문이 이미
+    // 생성돼 있어(POST /api/billing/checkout) 페이지를 떠나면 미결제 주문이 남는다.
+    // 팝업이 막히면 그냥 버튼을 감춘다 — 직접 입력이 항상 살아 있으므로 막다른 길이 아니다.
+    let socialProvider = "";
+    let popup: Window | null = null;
+    let popupPoll = 0;
+    let popupTimeout = 0;
+    let onSocialMessage: ((event: MessageEvent) => void) | null = null;
+
+    const stopWatchingPopup = () => {
+      if (popupPoll) window.clearInterval(popupPoll);
+      if (popupTimeout) window.clearTimeout(popupTimeout);
+      popupPoll = 0;
+      popupTimeout = 0;
+      if (onSocialMessage) window.removeEventListener("message", onSocialMessage);
+      onSocialMessage = null;
+      popup = null;
+    };
+
+    const releaseSocialButton = () => {
+      stopWatchingPopup();
+      if (settled) return;
+      socialButton.disabled = false;
+      socialButton.textContent = paymentPhoneSocialCtaLabel(socialProvider);
+    };
+
+    socialButton.addEventListener("click", () => {
+      const social = options.socialConsent;
+      if (!social || !socialProvider) return;
+      const url = social.startUrl(socialProvider);
+      popup = window.open(url, "cdPhoneConsent", "width=480,height=720,noopener=no");
+      if (!popup) {
+        socialButton.style.display = "none";
+        error.textContent = PAYMENT_PHONE_SOCIAL_BLOCKED;
+        return;
+      }
+      socialButton.disabled = true;
+      socialButton.textContent = "동의 창을 여는 중...";
+      error.textContent = "";
+
+      // 동의 페이지는 워커(API) 오리진에서 서빙된다 — 페이지 오리진과 다를 수 있으므로
+      // 우리가 실제로 연 URL 에서 기대 오리진을 뽑는다(추측하지 않는다).
+      const expectedOrigin = new URL(url, window.location.href).origin;
+      onSocialMessage = (event: MessageEvent) => {
+        if (event.origin !== expectedOrigin) return;
+        if (popup && event.source !== popup) return;
+        const data = event.data as { type?: string; ok?: boolean } | null;
+        if (!data || data.type !== "cd-phone-consent") return;
+        stopWatchingPopup();
+        if (data.ok !== true) {
+          socialButton.disabled = false;
+          socialButton.textContent = paymentPhoneSocialCtaLabel(socialProvider);
+          error.textContent = PAYMENT_PHONE_SOCIAL_FAILED;
+          input.focus();
+          return;
+        }
+        socialButton.textContent = "번호를 가져오는 중...";
+        social.readSavedPhoneNumber()
+          .then((saved) => {
+            const normalized = options.normalize(saved);
+            if (normalized) {
+              close(normalized);
+              return;
+            }
+            socialButton.disabled = false;
+            socialButton.textContent = paymentPhoneSocialCtaLabel(socialProvider);
+            error.textContent = PAYMENT_PHONE_SOCIAL_FAILED;
+          })
+          .catch(() => {
+            socialButton.disabled = false;
+            socialButton.textContent = paymentPhoneSocialCtaLabel(socialProvider);
+            error.textContent = PAYMENT_PHONE_SOCIAL_FAILED;
+          });
+      };
+      window.addEventListener("message", onSocialMessage);
+      // 사용자가 팝업을 그냥 닫았을 때도 버튼이 잠긴 채로 남지 않게 한다.
+      popupPoll = window.setInterval(() => {
+        if (popup && popup.closed) releaseSocialButton();
+      }, 600);
+      popupTimeout = window.setTimeout(releaseSocialButton, SOCIAL_CONSENT_TIMEOUT_MS);
+    });
+
     cancelButton.addEventListener("click", () => close(""));
     card.addEventListener("submit", (event) => {
       event.preventDefault();
@@ -224,6 +356,7 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
     card.appendChild(fieldLabel);
     card.appendChild(input);
     card.appendChild(error);
+    card.appendChild(socialButton);
     card.appendChild(notice);
     card.appendChild(disclosure);
     card.appendChild(consentLabel);
@@ -244,5 +377,20 @@ export function promptPaymentPhoneNumber(options: PromptPaymentPhoneOptions): Pr
       );
     }
     input.focus();
+
+    // 🔴 조회는 모달이 **뜬 뒤**에 한다. 앞으로 옮기면 2026-08-15 에 의도적으로 제거한
+    // 결제 임계경로의 왕복이 되살아난다 — 모달은 즉시 뜨고, 버튼만 나중에 드러난다.
+    if (options.socialConsent) {
+      options.socialConsent.listProviders()
+        .then((providers) => {
+          if (settled) return;
+          const provider = (providers || []).find((candidate) => paymentPhoneSocialCtaLabel(candidate));
+          if (!provider) return;
+          socialProvider = provider;
+          socialButton.textContent = paymentPhoneSocialCtaLabel(provider);
+          socialButton.style.display = "block";
+        })
+        .catch(() => {});
+    }
   });
 }

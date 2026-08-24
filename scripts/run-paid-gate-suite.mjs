@@ -72,6 +72,8 @@ const SUITE = [
   // 🔴 같은 가드의 자기검사. 이 가드의 구조 마커 절은 배열만 남고 집행이 사라진 채 오래 초록이었다
   // (2026-08-24 발견) — 판정 자체가 살아 있는지 확인하는 것이 그 재발 방지책이다.
   { run: "npm run verify:payment-choice-parity -- --self-test", why: "결제창 구조 마커 판정이 실제로 실패하는지. '검사가 통과했다'와 '검사가 없다'는 출력에서 구분되지 않으므로 판정을 합성 입력으로 직접 찔러 본다." },
+  { run: "npm run verify:payment-phone-consent", why: "🔴 결제용 휴대폰 번호의 법정 고지(개인정보 보호법 제15조 제2항)가 렌더러 3벌에서 같은지. 2026-08-25 까지 이 가드는 **주석에만 존재했다** — 세 렌더러가 모두 'verify:payment-phone-consent 가 동일성을 강제한다'고 적어 놓고 스크립트는 없었고, 그동안 한 곳만 고치면 사용자마다 다른 고지를 받았다." },
+  { run: "npm run verify:payment-phone-consent -- --self-test", why: "위 가드의 판정이 실제로 실패하는지. 이 가드가 없던 채로 오래 초록이었던 이유가 정확히 '검사가 없다'와 '검사가 통과했다'를 구분하지 못한 것이라, 판정 자체를 합성 입력으로 찔러 본다." },
   { run: "npm run verify:payment-copy-dictionary", why: "결제 문구가 코드 폴백과 사전 사이에서 갈라지는지. cdTranslate 는 키가 없으면 폴백이 아니라 'Translation pending' 을 내므로 한국어만 멀쩡하고 나머지 11개 로케일이 깨진다 — 2026-08-20 전수 조사에서 21건이 나왔고 그중 둘은 **PG창 통과 뒤의 결제 성공 오버레이**였다." },
   { run: "npm run verify:entry-fanout", why: "홈 진입 팬아웃 계약. 워밍이 채우던 것이 **이용권 스냅샷**이라, 이 계약이 깨지면 결제창 fast-path 와 이용권 판정이 함께 흔들린다. auth/me 의 degraded 응답을 스냅샷에 쓰면 tier:'free' 가 굳어 **이용권 보유자에게 결제창이 뜬다** — 돈 문제다." },
   { run: "npm run verify:pass-recovery-path", why: "이용권 구제 경로의 회귀 방지. 과거 두 사고가 모두 '핸들러·소비자는 남고 진입점만 사라진' 형태라 이름 grep 으로는 정상으로 보였다." },
