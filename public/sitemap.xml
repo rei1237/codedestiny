@@ -338,7 +338,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/today/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
@@ -488,7 +488,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/fortune/tomorrow/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>daily</changefreq>
     <priority>0.90</priority>
   </url>
@@ -644,7 +644,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/high-value/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.84</priority>
   </url>
@@ -662,7 +662,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/high-value/complete-guide-to-saju/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -835,6 +835,12 @@
     <priority>0.74</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/insights/famous-saju-day-master-reading-practice/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/insights/famous-saju/</loc>
     <lastmod>2026-08-23</lastmod>
     <changefreq>weekly</changefreq>
@@ -963,6 +969,12 @@
   <url>
     <loc>https://code-destiny.com/insights/saju-job-change-timing-checklist-2026/</loc>
     <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/saju-without-birth-time-three-pillars-guide/</loc>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
