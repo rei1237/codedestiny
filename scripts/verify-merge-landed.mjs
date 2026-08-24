@@ -74,11 +74,14 @@ const SEVERITY_RANK = { ok: 0, info: 1, critical: 2 };
  *      아니라서(내용이 다른 PR 로 회수돼도 커밋은 영영 고아다) 이게 없으면 상시 빨간불이 된다.
  *   5) 판정에 필요한 값을 못 구했으면 "모른다"로 두고 조용히 넘어간다.
  *   6) 머지 커밋은 고아인데 head 는 main 에 있으면 내용은 살아 있다는 뜻이다.
- *   7) 커밋이 둘 다 고아여도 그 PR 이 바꾼 파일의 내용이 main 과 같으면 착지한 것이다.
- *      부모를 스쿼시로 머지하면 자식의 머지 커밋과 head 커밋이 **동시에** 고아가 되므로
- *      (#1061·#1084 실측) 조상 관계만으로는 영영 구제되지 않고, 사람이 매번 대장에 손으로
- *      등재할 때까지 워치독이 빨간불로 남는다 — 그게 진짜 경보를 덮는 경로다.
- *   8) 둘 다 없고 내용도 다르면 진짜 좌초다.
+ *   7) 자식의 머지 커밋이 **머지된 부모 PR** 의 head 안에 들어 있고, 그 부모의 머지 커밋이
+ *      main 에 있으면 자식은 부모의 스쿼시에 흡수돼 착지한 것이다. 부모를 스쿼시로 머지하면
+ *      자식의 머지 커밋과 head 커밋이 **동시에** 고아가 되므로(#1061·#1084·#1100 실측)
+ *      조상 관계만으로는 영영 구제되지 않아 사람이 매번 대장에 손으로 등재해야 했다 —
+ *      그게 진짜 경보를 덮는 경로다. 이 축은 내용이 아니라 **조상**이라 부모와 자식이 같은
+ *      파일을 둘 다 고쳐도 흔들리지 않는다. #1100 이 정확히 그래서 8) 로 구제되지 않았다.
+ *   8) 커밋이 둘 다 고아여도 그 PR 이 바꾼 파일의 내용이 main 과 같으면 착지한 것이다.
+ *   9) 둘 다 없고 내용도 다르면 진짜 좌초다.
  */
 export function classifyMergedPr(input) {
   const {
@@ -91,6 +94,7 @@ export function classifyMergedPr(input) {
     headCommitInMain = null,
     parentPrOpen = false,
     acknowledged = false,
+    parentAbsorbed = null,
     contentInMain = null,
     now = 0,
     graceMs = MERGE_GRACE_MS,
@@ -109,6 +113,9 @@ export function classifyMergedPr(input) {
   }
   if (headCommitInMain === true) {
     return verdict("recovered", "info", "머지 커밋은 고아지만 내용(head 커밋)은 main 에 있습니다.");
+  }
+  if (parentAbsorbed === true) {
+    return verdict("landed-via-parent", "info", `부모 PR 의 스쿼시에 흡수돼 착지했습니다 (base 가 ${baseRefName} 였습니다).`);
   }
   if (contentInMain === true) {
     return verdict("content-landed", "info", "커밋은 둘 다 고아지만 변경 파일 내용이 main 과 동일합니다.");
@@ -458,6 +465,70 @@ function isAncestor(sha, base) {
 }
 
 /**
+ * 커밋 하나를 로컬에 확보한다. 브랜치가 지워졌어도 GitHub 은 refs/pull/<n>/head 를 영구
+ * 보관하므로 그것으로 되받는다. 확보 실패는 false — 부르는 쪽이 fail-closed 로 처리한다.
+ *
+ * 🔴 여기서 커밋을 확보해 두지 않으면 isAncestor 가 로컬 경로에서 exit 128 을 내고 null 로
+ *    떨어진다. "모른다"는 좌초를 낮추지 않으므로, 확보 실패는 곧 오탐 유지다.
+ */
+function ensureLocalCommit(sha, prNumber) {
+  if (!/^[0-9a-f]{7,40}$/i.test(String(sha || ""))) return false;
+  if (git(["cat-file", "-e", `${sha}^{commit}`]).status === 0) return true;
+  git(["fetch", "--no-tags", "--quiet", "origin", `refs/pull/${prNumber}/head`]);
+  return git(["cat-file", "-e", `${sha}^{commit}`]).status === 0;
+}
+
+/**
+ * 스택 자식이 **부모 PR 의 스쿼시에 흡수돼** 착지했는가.
+ *
+ * 부모 브랜치로 머지된 자식은 부모가 main 에 스쿼시되는 순간 머지 커밋도 head 커밋도 동시에
+ * 고아가 된다. 세 번 났다 — #1061·#1084 는 대장에 손으로 등재해 껐고, #1100 은 부모와 자식이
+ * `app/high-value/page.js` 를 둘 다 고쳐서 내용 대조(contentLandedInMain)마저 빗나갔다.
+ * 내용은 뒤이은 변경에 흔들리지만 **조상 관계는 흔들리지 않는다** — 그래서 이 축을 둔다.
+ *
+ * 요구 조건 셋을 **전부** 만족해야 참이다:
+ *   ① 이 PR 의 base 브랜치를 head 로 갖는 **머지된** PR(= 부모)이 있다
+ *   ② 그 부모의 머지 커밋이 main 의 조상이다 (부모가 실제로 착지했는가)
+ *   ③ 이 PR 의 머지 커밋이 그 부모의 head 커밋의 조상이다 (자식이 정말 그 안에 담겼는가)
+ *
+ * 🔴 fail-closed 다. 조회 실패·SHA 형식 불일치·커밋 확보 실패·isAncestor 가 null → 전부
+ *    null(= 좌초 유지)로 떨어진다. 부모를 못 찾은 것이 확실하면 false 다. 이 축은 경보를
+ *    끄는 근거이지 못 본 것을 눈감는 근거가 아니다.
+ */
+function parentAbsorbedInMain({ baseRefName, mergeCommitOid }, baseRef) {
+  if (!baseRefName || baseRefName === "main") return false;
+  if (!/^[0-9a-f]{7,40}$/i.test(String(mergeCommitOid || ""))) return null;
+
+  const parents = ghJson([
+    "pr", "list", "--state", "merged", "--head", baseRefName, "--limit", "10",
+    "--json", "number,headRefOid,mergeCommit",
+  ]);
+  if (!parents) return null;
+  if (!parents.length) return false;
+
+  let undecided = false;
+  for (const parent of parents) {
+    const parentHead = String(parent?.headRefOid || "");
+    const parentMerge = String(parent?.mergeCommit?.oid || "");
+    if (!/^[0-9a-f]{7,40}$/i.test(parentHead) || !/^[0-9a-f]{7,40}$/i.test(parentMerge)) {
+      undecided = true;
+      continue;
+    }
+    // ② 부모가 실제로 main 에 들어갔는가. 아니면 자식도 아직 착지한 것이 아니다.
+    const parentLanded = isAncestor(parentMerge, baseRef);
+    if (parentLanded === null) { undecided = true; continue; }
+    if (parentLanded !== true) continue;
+    // ③ 자식의 머지 커밋이 부모 head 안에 있는가. 부모 head 를 먼저 로컬에 확보해야
+    //    merge-base 가 exit 128 로 죽지 않는다(부모 브랜치는 대개 삭제돼 있다).
+    if (!ensureLocalCommit(parentHead, parent.number)) { undecided = true; continue; }
+    const contained = isAncestor(mergeCommitOid, parentHead);
+    if (contained === null) { undecided = true; continue; }
+    if (contained === true) return true;
+  }
+  return undecided ? null : false;
+}
+
+/**
  * 커밋 조상으로는 좌초인 PR 의 **내용**이 base 에 있는가.
  *
  * 스택 PR 의 부모를 스쿼시로 머지하면 자식의 머지 커밋도 head 커밋도 동시에 고아가 된다.
@@ -487,11 +558,7 @@ function contentLandedInMain({ number, headRefOid }, baseRef) {
     .filter(Boolean);
   if (!files.length) return null;
 
-  // 브랜치가 지워졌어도 GitHub 은 refs/pull/<n>/head 를 영구 보관한다.
-  if (git(["cat-file", "-e", `${headRefOid}^{commit}`]).status !== 0) {
-    git(["fetch", "--no-tags", "--quiet", "origin", `refs/pull/${number}/head`]);
-    if (git(["cat-file", "-e", `${headRefOid}^{commit}`]).status !== 0) return null;
-  }
+  if (!ensureLocalCommit(headRefOid, number)) return null;
 
   // -z: 경로를 NUL 로 끊어 C-따옴표 인용을 피한다. --no-renames: 리네임을 한 줄로 접으면
   // 원래 경로가 목록에서 사라져 "차이 없음" 으로 오독된다.
@@ -724,7 +791,11 @@ async function collectFindings({ check, baseRef, origin, days, limit, now }) {
       // 20분마다 돌릴 수 있고, 좌초는 드물어서(7일 창에서 0~2건) 그 몇 번의 API·git
       // 왕복이 곧 판정 정확도가 된다. 전부에 돌리면 PR 수만큼 왕복한다.
       if (verdict.status !== "stranded") return verdict;
-      return classifyMergedPr({ ...input, contentInMain: contentLandedInMain(pr, baseRef) });
+      // 🔴 조상 축을 먼저 본다. 내용 대조보다 싸고(gh 1회 + git 조상 판정) 뒤이은 변경에
+      //    흔들리지 않는다. 참이면 파일 목록 조회·전체 diff 를 아예 돌리지 않는다.
+      const parentAbsorbed = parentAbsorbedInMain(pr, baseRef);
+      if (parentAbsorbed === true) return classifyMergedPr({ ...input, parentAbsorbed });
+      return classifyMergedPr({ ...input, parentAbsorbed, contentInMain: contentLandedInMain(pr, baseRef) });
     });
   }
 
@@ -825,6 +896,18 @@ function selfTest() {
     [classify({ mergeCommitInMain: true, headCommitInMain: false, contentInMain: false }), "landed", "착지가 내용 대조보다 앞선다"],
     [classify({ mergeCommitInMain: false, headCommitInMain: true, contentInMain: false }), "recovered", "head 착지가 내용 대조보다 앞선다"],
     [classify({ mergeCommitInMain: null, headCommitInMain: null, contentInMain: true }), "unknown", "판정 불가에는 내용 대조를 적용하지 않는다"],
+
+    // 부모 흡수 — 스택 자식의 머지 커밋이 **머지된 부모의 head** 안에 있는가(조상 축).
+    [classify({ mergeCommitInMain: false, headCommitInMain: false, parentAbsorbed: true }), "landed-via-parent", "부모 스쿼시에 흡수됐으면 착지다"],
+    [classify({ mergeCommitInMain: false, headCommitInMain: false, parentAbsorbed: false }), "stranded", "부모를 못 찾으면 좌초 그대로"],
+    [classify({ mergeCommitInMain: false, headCommitInMain: false, parentAbsorbed: null }), "stranded", "부모 판정 실패는 좌초를 낮추지 않는다(fail-closed)"],
+    [classify({ mergeCommitInMain: false, headCommitInMain: false, parentAbsorbed: true, contentInMain: false }), "landed-via-parent", "조상 축이 내용 대조보다 앞선다"],
+    [classify({ mergeCommitInMain: false, headCommitInMain: false, parentAbsorbed: false, contentInMain: true }), "content-landed", "부모 흡수가 아니어도 내용 대조는 그대로 산다"],
+    [classify({ mergeCommitInMain: false, headCommitInMain: false, parentPrOpen: true, parentAbsorbed: true }), "pending-parent", "부모가 아직 열려 있으면 대기가 먼저다"],
+    [classify({ mergeCommitInMain: true, headCommitInMain: false, parentAbsorbed: false }), "landed", "착지가 부모 흡수 판정보다 앞선다"],
+    [classify({ mergeCommitInMain: false, headCommitInMain: true, parentAbsorbed: false }), "recovered", "head 착지가 부모 흡수 판정보다 앞선다"],
+    [classify({ mergeCommitInMain: null, headCommitInMain: null, parentAbsorbed: true }), "unknown", "판정 불가에는 부모 흡수를 적용하지 않는다"],
+    [classifyMergedPr({ number: 2, mergedAtMs: old, now, mergeCommitInMain: false, headCommitInMain: false, parentAbsorbed: true }).severity, "info", "부모 흡수는 info"],
 
     // 심각도
     [classifyMergedPr({ number: 2, mergedAtMs: old, now, mergeCommitInMain: false, headCommitInMain: false }).severity, "critical", "좌초는 critical"],

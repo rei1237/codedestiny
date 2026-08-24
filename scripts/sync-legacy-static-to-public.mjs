@@ -443,6 +443,34 @@ function cacheBustUiBindingsScriptRefs(source, buildTimestamp) {
   );
 }
 
+/**
+ * ES 모듈 import 지정자의 ?v= 를 회전시킨다.
+ *
+ * 🔴 2026-08-24 릴리스 사고의 근본원인. js/app.js 가 `./core/bootstrapDestinyFlower.js` 를
+ * `?v=20260625-df-i18n` 이라는 **손으로 박은 날짜 키**로 부르고 있었다. 그 파일 내용이
+ * 바뀌어도(매칭 엔진을 워커로 옮기면서 import 한 줄이 사라졌다) URL 이 그대로라, _headers 의
+ * `/js/*.js  max-age=604800` 을 타고 엣지가 **삭제된 모듈을 참조하는 옛 파일**을 계속 서빙했다.
+ * 승격 후 스모크가 그 404 를 잡아 릴리스가 통째로 자동 롤백됐다(run 32683154849).
+ *
+ * 위쪽 셋(index-inline-runtime·uiBindings·mobile-interaction-patch)의 정규식은 `/js/…` 나
+ * `js/…` 로 **시작하는** 참조만 본다. 모듈 지정자는 `./core/…`·`../services/…` 라 구조적으로
+ * 안 걸렸다 — bare 루트 자산이 안 걸렸던 것(syncRootAssetCacheKeys 주석, 2026-08-08 장애)과
+ * 정확히 같은 모양의 구멍이다.
+ *
+ * 🔴 이 목록 밖에서 수기 `?v=` 를 모듈 지정자에 새로 박지 말 것. verify:js-module-graph 가
+ *    회전 형식(build-…/h…)이 아닌 키를 실패로 잡는다.
+ */
+function cacheBustModuleImportSpecifiers(source, buildTimestamp) {
+  return String(source || "").replace(/(\.js\?v=)[a-zA-Z0-9_-]+/g, `$1${buildTimestamp}`);
+}
+
+/** 모듈 지정자 캐시 키를 회전시킬 파일. 루트와 public 사본에 같은 목록을 쓴다. */
+const MODULE_IMPORT_CACHE_KEY_FILES = [
+  ["js", "app.js"],
+  ["js", "core", "init.js"],
+  ["js", "core", "bootstrapDestinyFlower.js"],
+];
+
 function preserveIndependentCacheKeys(source) {
   return String(source || "").replace(
     /(\/js\/mobile-interaction-patch\.js\?v=)[a-zA-Z0-9_-]+/g,
@@ -938,6 +966,17 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     }
   }
 
+  for (const parts of MODULE_IMPORT_CACHE_KEY_FILES) {
+    const modulePath = resolve(publicDir, ...parts);
+    if (!existsSync(modulePath)) continue;
+    const moduleJs = readFileSync(modulePath, "utf8");
+    const bustedModuleJs = cacheBustModuleImportSpecifiers(moduleJs, buildTimestamp);
+    if (bustedModuleJs !== moduleJs) {
+      writeFileSync(modulePath, bustedModuleJs);
+      console.log(`[sync-legacy-static-to-public] Auto cache-busted ${parts.join("/")} module imports with ${buildTimestamp}`);
+    }
+  }
+
   assertEntryHtmlHealthy(baseIndexHtml, "public/index.html");
   const indexBuf = Buffer.from(baseIndexHtml, "utf8");
   const currentPublicHtml = existsSync(publicIndex)
@@ -1002,6 +1041,17 @@ if (existsSync(publicIndex) || existsSync(rootIndexPath)) {
     if (bustedRootMobilePatchJs !== rootMobilePatchJs) {
       writeFileSync(rootMobilePatchPath, bustedRootMobilePatchJs);
       console.log(`[sync-legacy-static-to-public] Updated root mobile-interaction-patch.js tarot loader with ${buildTimestamp}`);
+    }
+  }
+
+  for (const parts of MODULE_IMPORT_CACHE_KEY_FILES) {
+    const rootModulePath = resolve(rootDir, ...parts);
+    if (!existsSync(rootModulePath)) continue;
+    const rootModuleJs = readFileSync(rootModulePath, "utf8");
+    const bustedRootModuleJs = cacheBustModuleImportSpecifiers(rootModuleJs, buildTimestamp);
+    if (bustedRootModuleJs !== rootModuleJs) {
+      writeFileSync(rootModulePath, bustedRootModuleJs);
+      console.log(`[sync-legacy-static-to-public] Updated root ${parts.join("/")} module imports with ${buildTimestamp}`);
     }
   }
 

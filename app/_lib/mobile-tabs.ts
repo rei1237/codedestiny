@@ -16,6 +16,12 @@ export interface MobileTab {
   label: string;
   href: string;
   ariaLabel: string;
+  /**
+   * 런타임 사전 키. 값은 정적 셸이 쓰던 것을 그대로 가리킨다 — 여기서 새로 번역하지 않는다.
+   * 🔴 마커 키는 **코어 사전에서만** 해석된다(app/components/LocaleRuntimeBridge.tsx).
+   */
+  transKey: string;
+  ariaTransKey: string;
   /** 정적 셸의 data-nav-icon 글리프 (React 는 SVG 아이콘을 쓰지만 동기화 검사 대상) */
   glyph: string;
   /**
@@ -42,12 +48,14 @@ export const PROFILE_SHEET_ACTION = "dpOpenList";
 export const MOBILE_TAB_STATE_KEY = "cd.mobileTab.v1";
 
 export const MOBILE_TABS: readonly MobileTab[] = [
-  { key: "home", label: "홈", href: "/", ariaLabel: "홈", glyph: "⌂" },
+  { key: "home", label: "홈", href: "/", ariaLabel: "홈", glyph: "⌂", transKey: "home.nav.home", ariaTransKey: "home.nav.home" },
   {
     key: "saju",
     label: "사주",
     href: `/?action=${SAJU_TAB_ACTION}`,
     ariaLabel: "내 프로필로 사주 보기",
+    transKey: "home.nav.saju",
+    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.kb86wy0.ariaLabel",
     glyph: "命",
     shellAction: SAJU_TAB_ACTION,
   },
@@ -56,16 +64,22 @@ export const MOBILE_TABS: readonly MobileTab[] = [
     label: "모든 운세",
     href: `/?action=${ALL_FORTUNES_ACTION}`,
     ariaLabel: "모든 운세 둘러보기",
+    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to",
+    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k1mpcz5w.ariaLabel",
     glyph: "✦",
     shellAction: ALL_FORTUNES_ACTION,
   },
-  { key: "pass", label: "이용권", href: "/points/", ariaLabel: "이용권 상점", glyph: "◈" },
+  { key: "pass", label: "이용권", href: "/points/", ariaLabel: "이용권 상점", glyph: "◈",
+    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.ku6gdz",
+    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16eawmw.ariaLabel" },
   // 셸에서는 프로필 시트를 열고, React 페이지에서는 셸로 넘어가 같은 시트를 연다(사주·모든 운세 탭과 동일).
   {
     key: "my",
     label: "마이",
     href: `/?action=${PROFILE_SHEET_ACTION}`,
     ariaLabel: "마이페이지",
+    transKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.kwp0s",
+    ariaTransKey: "shell.cdMobileBottomNav.cdMobileBottomNavMain.k164wabc.ariaLabel",
     glyph: "☰",
     shellAction: PROFILE_SHEET_ACTION,
   },
