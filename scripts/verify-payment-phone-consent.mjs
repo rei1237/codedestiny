@@ -38,9 +38,26 @@ const SELF = "scripts/verify-payment-phone-consent.mjs";
 // 상수 이름은 렌더러마다 접두사만 다르다: (React) PAYMENT_PHONE_CONSENT_* /
 // (셸) CD_PAYMENT_PHONE_CONSENT_* / (독립 폴백) DP_PAYMENT_PHONE_CONSENT_*.
 const NAME = "PAYMENT_PHONE_CONSENT";
+const SCALAR_BASE = "PAYMENT_PHONE";
 const PREFIX = "(?:CD_|DP_)?";
 const linesAssignment = () => new RegExp(`${PREFIX}${NAME}_LINES\\s*=\\s*\\[`);
-const scalarAssignment = (key) => new RegExp(`${PREFIX}${NAME}_${key}\\s*=\\s*`);
+const scalarAssignment = (key) => new RegExp(`${PREFIX}${SCALAR_BASE}_${key}\\s*=\\s*`);
+
+/**
+ * 고지 배열 말고 **낱개 문자열**로 동일성을 봐야 하는 상수들.
+ *
+ * CONSENT_* 는 동의 UI 자체의 문구이고, SOCIAL_* 은 "카카오에서 번호 가져오기" 가속 버튼과
+ * 그 실패 문구다. 둘 다 렌더러 3벌이 각자 들고 있어서 한 곳만 고치면 사용자마다 다른 화면을
+ * 받는다 — 이 가드가 존재하는 이유와 정확히 같은 이유로 여기에 함께 건다.
+ */
+const SCALAR_KEYS = [
+  "CONSENT_LABEL",
+  "CONSENT_REQUIRED",
+  "SOCIAL_CTA_KAKAO",
+  "SOCIAL_CTA_NAVER",
+  "SOCIAL_BLOCKED",
+  "SOCIAL_FAILED",
+];
 
 // 개인정보 보호법 제15조 제2항이 요구하는 고지 항목 수(수집 항목 · 이용 목적 · 보유 기간 · 거부 권리).
 // 줄이 이보다 적어지면 문구가 같더라도 고지 자체가 미달이므로 실패시킨다.
@@ -117,13 +134,13 @@ function readScalar(source, key, rel) {
   const match = source.match(scalarAssignment(key));
   assert.ok(
     match,
-    `${rel}: ${NAME}_LINES 는 있는데 ${NAME}_${key} 가 없습니다 — 고지 3종(LINES·LABEL·REQUIRED)은 한 벌입니다.`,
+    `${rel}: ${NAME}_LINES 는 있는데 ${SCALAR_BASE}_${key} 가 없습니다 — 고지와 버튼 문구는 한 벌입니다.`,
   );
   const start = match.index + match[0].length;
   const literal = readStringLiteral(source, start);
   assert.ok(
     literal,
-    `${rel}: ${NAME}_${key} 의 값이 문자열 리터럴이 아닙니다 — ${JSON.stringify(source.slice(start, start + 40))}`,
+    `${rel}: ${SCALAR_BASE}_${key} 의 값이 문자열 리터럴이 아닙니다 — ${JSON.stringify(source.slice(start, start + 40))}`,
   );
   return decodeLiteral(literal.raw, rel);
 }
@@ -141,12 +158,9 @@ function extractConsent(rel) {
     `${rel}: 고지가 ${lines.length}줄뿐입니다 — 개인정보 보호법 제15조 제2항 고지 ${MIN_CONSENT_LINES}항목`
     + "(수집 항목 · 이용 목적 · 보유 기간 · 거부 권리)이 모두 있어야 합니다.",
   );
-  return {
-    rel,
-    lines,
-    label: readScalar(source, "LABEL", rel),
-    required: readScalar(source, "REQUIRED", rel),
-  };
+  const scalars = {};
+  for (const key of SCALAR_KEYS) scalars[key] = readScalar(source, key, rel);
+  return { rel, lines, scalars };
 }
 
 // ── 판정 ──────────────────────────────────────────────────────────────────────────────
@@ -161,16 +175,13 @@ function assertSameConsent(entries) {
       + `  ${entry.rel}:\n${entry.lines.map((line) => `    ${line}`).join("\n")}\n`
       + "  🔴 사용자마다 다른 법정 고지를 받게 됩니다. 세 렌더러를 함께 고치고 npm run sync:public 산출물도 담으세요.",
     );
-    assert.equal(
-      entry.label,
-      canon.label,
-      `동의 라벨이 다릅니다.\n  ${canon.rel}: ${canon.label}\n  ${entry.rel}: ${entry.label}`,
-    );
-    assert.equal(
-      entry.required,
-      canon.required,
-      `미동의 경고 문구가 다릅니다.\n  ${canon.rel}: ${canon.required}\n  ${entry.rel}: ${entry.required}`,
-    );
+    for (const key of SCALAR_KEYS) {
+      assert.equal(
+        entry.scalars[key],
+        canon.scalars[key],
+        `${SCALAR_BASE}_${key} 문구가 렌더러마다 다릅니다.\n  ${canon.rel}: ${canon.scalars[key]}\n  ${entry.rel}: ${entry.scalars[key]}`,
+      );
+    }
   }
 }
 
@@ -238,21 +249,23 @@ if (process.argv.includes("--self-test")) {
     throw new Error(`self-test: ${label} — 깨진 입력인데 판정이 통과했습니다`);
   };
   const base = entries[0];
-  const clone = (patch) => ({ rel: "fixture", lines: [...base.lines], label: base.label, required: base.required, ...patch });
+  const clone = (patch) => ({ rel: "fixture", lines: [...base.lines], scalars: { ...base.scalars }, ...patch });
 
   shouldThrow("고지 한 줄이 다름", () =>
     assertSameConsent([base, clone({ lines: [...base.lines.slice(0, -1), "다른 문구"] })]));
   shouldThrow("고지 줄 수가 다름", () =>
     assertSameConsent([base, clone({ lines: base.lines.slice(0, -1) })]));
-  shouldThrow("동의 라벨이 다름", () => assertSameConsent([base, clone({ label: `${base.label} ` })]));
-  shouldThrow("미동의 경고가 다름", () => assertSameConsent([base, clone({ required: "" })]));
+  for (const key of SCALAR_KEYS) {
+    shouldThrow(`${key} 문구가 다름`, () =>
+      assertSameConsent([base, clone({ scalars: { ...base.scalars, [key]: `${base.scalars[key]} ` } })]));
+  }
   shouldThrow("배열에 리터럴 아닌 요소", () =>
     readArrayLiterals("[ buildConsentLines() ]", 0, "fixture"));
   shouldThrow("배열이 닫히지 않음", () => readArrayLiterals("[ 'a', 'b'", 0, "fixture"));
   shouldThrow("LABEL 값이 리터럴이 아님", () =>
-    readScalar("var CD_PAYMENT_PHONE_CONSENT_LABEL = buildLabel();", "LABEL", "fixture"));
+    readScalar("var CD_PAYMENT_PHONE_CONSENT_LABEL = buildLabel();", "CONSENT_LABEL", "fixture"));
   shouldThrow("LINES 만 있고 LABEL 이 없음", () =>
-    readScalar("var CD_PAYMENT_PHONE_CONSENT_LINES = [];", "LABEL", "fixture"));
+    readScalar("var CD_PAYMENT_PHONE_CONSENT_LINES = [];", "CONSENT_LABEL", "fixture"));
 
   // 정상 입력은 통과해야 한다 — 무조건 던지는 것도 가드가 아니다.
   assertSameConsent([base, clone({})]);
@@ -260,12 +273,12 @@ if (process.argv.includes("--self-test")) {
   // 🔴 이스케이프 차이는 실패가 아니어야 한다. 셸 편집이 한글을 \uXXXX 로 기록하는 실사고가 있었고,
   // 그때 사용자가 보는 문구는 그대로다 — 여기서 실패시키면 없는 결함을 만든다.
   assert.deepEqual(readArrayLiterals(`[ '\\uC218\\uC9D1', '수집' ]`, 0, "fixture"), ["수집", "수집"]);
-  assert.equal(readScalar(`var DP_PAYMENT_PHONE_CONSENT_REQUIRED = 'it\\'s';`, "REQUIRED", "fixture"), "it's");
+  assert.equal(readScalar(`var DP_PAYMENT_PHONE_CONSENT_REQUIRED = 'it\\'s';`, "CONSENT_REQUIRED", "fixture"), "it's");
 
-  console.log("[verify-payment-phone-consent] self-test OK — 8개 음성 케이스 + 정상 4건");
+  console.log(`[verify-payment-phone-consent] self-test OK — ${4 + SCALAR_KEYS.length}개 음성 케이스 + 정상 4건`);
 }
 
 console.log(
   `[verify-payment-phone-consent] PASS (${canonicalRenderers.length} canonical + ${mirrorRenderers.length} mirrors, `
-  + `${entries[0].lines.length} consent lines, label+required 동일, ${renderers.length} gate-triggered paths)`,
+  + `${entries[0].lines.length} consent lines + ${SCALAR_KEYS.length} scalars 동일, ${renderers.length} gate-triggered paths)`,
 );

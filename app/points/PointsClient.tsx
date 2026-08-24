@@ -478,6 +478,30 @@ async function getSavedPaymentPhoneNumber(apiBase: string): Promise<string> {
   return normalizePaymentPhoneNumber(attempt.data.phoneNumber || attempt.data.phone || "");
 }
 
+/**
+ * 지금 번호를 가져올 수 있는 소셜 공급자. 판정은 서버가 한다(계정 연결 ∩ 동의항목 승인).
+ *
+ * 🔴 실패를 던지지 않는다 — 이건 가속 버튼을 띄울지 말지의 재료일 뿐이라, 못 물어보면
+ * 버튼이 안 뜨고 직접 입력만 남으면 된다. 던지면 번호 입력 자체가 막힌다.
+ */
+async function getSocialPhoneProviders(apiBase: string): Promise<string[]> {
+  try {
+    const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
+      method: "GET",
+      credentials: "include",
+    }, {
+      retryOn401: true,
+      apiBase,
+      clientSource: "app:points",
+    });
+    if (!response.ok) return [];
+    const parsed = await safeParseJson<{ socialPhoneProviders?: string[] }>(response);
+    return Array.isArray(parsed?.socialPhoneProviders) ? parsed.socialPhoneProviders : [];
+  } catch {
+    return [];
+  }
+}
+
 async function savePaymentPhoneNumber(apiBase: string, phoneNumber: string, consented: boolean): Promise<string> {
   const response = await authFetch(`${apiBase}/api/me/payment-phone`, {
     method: "POST",
@@ -519,6 +543,12 @@ async function ensurePaymentPhoneNumber(
   const nextPhone = await promptPaymentPhoneNumber({
     normalize: normalizePaymentPhoneNumber,
     onSave: (phone, consented) => savePaymentPhoneNumber(apiBase, phone, consented),
+    // 가속기. 조회·팝업이 모두 실패해도 위 직접 입력이 그대로 남는다.
+    socialConsent: {
+      listProviders: () => getSocialPhoneProviders(apiBase),
+      startUrl: (provider) => `${apiBase}/api/auth/oauth/${provider}/start?mode=phone-consent`,
+      readSavedPhoneNumber: () => getSavedPaymentPhoneNumber(apiBase),
+    },
   });
   if (!nextPhone) throw new Error("단건 결제를 진행하려면 구매자 휴대폰 번호가 필요합니다.");
   const latestUser = readSanitizedAuthUser() as AuthUser | null;

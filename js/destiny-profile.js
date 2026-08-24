@@ -3319,6 +3319,43 @@
   var DP_PAYMENT_PHONE_CONSENT_LABEL = '결제 진행 목적의 휴대폰 번호 수집·이용에 동의합니다. (필수)';
   var DP_PAYMENT_PHONE_CONSENT_REQUIRED = '휴대폰 번호 수집·이용에 동의해 주셔야 결제를 진행할 수 있어요.';
 
+  /**
+   * 소셜 계정에서 번호를 가져오는 가속 버튼의 문구.
+   *
+   * 🔴 위 고지와 같은 이유로 렌더러 3벌에 **글자 그대로 같아야 한다** —
+   * verify:payment-phone-consent 가 동일성을 강제한다.
+   *
+   * 이 버튼은 **가속기일 뿐이다.** 눌러도 안 되면(팝업 차단·거부·공급자 오류) 아래 직접 입력이
+   * 항상 그대로 남아 있다. 그래서 실패 문구가 전부 "아래에 직접 입력해 주세요" 로 끝난다.
+   */
+  var DP_PAYMENT_PHONE_SOCIAL_CTA_KAKAO = '카카오에서 번호 가져오기';
+  var DP_PAYMENT_PHONE_SOCIAL_CTA_NAVER = '네이버에서 번호 가져오기';
+  var DP_PAYMENT_PHONE_SOCIAL_BLOCKED = '팝업이 차단됐어요. 아래에 직접 입력해 주세요.';
+  var DP_PAYMENT_PHONE_SOCIAL_FAILED = '번호를 가져오지 못했어요. 아래에 직접 입력해 주세요.';
+  var DP_SOCIAL_CONSENT_TIMEOUT_MS = 120000;
+
+  function dpPaymentPhoneSocialCtaLabel(provider) {
+    if (provider === 'kakao') return DP_PAYMENT_PHONE_SOCIAL_CTA_KAKAO;
+    if (provider === 'naver') return DP_PAYMENT_PHONE_SOCIAL_CTA_NAVER;
+    return '';
+  }
+
+  /**
+   * 지금 번호를 가져올 수 있는 소셜 공급자. 판정은 서버가 한다(계정 연결 ∩ 동의항목 승인).
+   * 🔴 던지지 않는다 — 가속 버튼을 띄울지의 재료일 뿐이라, 못 물어보면 직접 입력만 남으면 된다.
+   */
+  async function dpGetSocialPhoneProviders() {
+    try {
+      var result = await _dpPaymentFetchJson('/api/me/payment-phone', { method: 'GET' });
+      if (!result || !result.ok) return [];
+      var list = result.payload && result.payload.socialPhoneProviders;
+      return Array.isArray(list) ? list : [];
+    } catch (_socialProvidersError) {
+      return [];
+    }
+  }
+
+
   async function _dpSavePaymentPhoneNumber(phoneNumber, consented) {
     var result = await _dpPaymentFetchJson('/api/me/payment-phone', {
       method: 'POST',
@@ -3362,6 +3399,7 @@
       var fieldLabel = document.createElement('label');
       var input = document.createElement('input');
       var error = document.createElement('p');
+      var socialButton = document.createElement('button');
       var notice = document.createElement('p');
       var disclosure = document.createElement('ul');
       var consentLabel = document.createElement('label');
@@ -3395,6 +3433,7 @@
         consentInput.disabled = !!isBusy;
         cancelButton.disabled = !!isBusy;
         submitButton.disabled = !!isBusy;
+        socialButton.disabled = !!isBusy;
         submitButton.style.opacity = isBusy ? '.62' : '1';
         submitButton.textContent = isBusy ? '저장 중...' : '저장하고 결제 계속하기';
       }
@@ -3480,6 +3519,97 @@
         var formatted = _dpFormatKoreanPhoneInput(input.value);
         if (formatted !== input.value) input.value = formatted;
       });
+      socialButton.type = 'button';
+      // 보조 수단이라 제출 버튼보다 낮은 위계로 둔다(테두리만, 채우지 않음).
+      socialButton.style.cssText = 'display:none;width:100%;min-height:46px;margin:2px 0 0;box-sizing:border-box;'
+        + 'border-radius:14px;border:1px solid rgba(232,213,163,.42);background:rgba(232,213,163,.08);color:#f0dcab;'
+        + 'padding:0 14px;font-size:13.5px;font-weight:700;letter-spacing:-.01em;cursor:pointer;';
+
+      // ── 소셜 추가 동의 (가속기) ───────────────────────────────────────────────────
+      // 🔴 전체 페이지 리다이렉트 폴백을 만들지 않는다. 이 모달이 뜬 시점에는 주문이 이미
+      // 생성돼 있어(POST /api/billing/checkout) 페이지를 떠나면 미결제 주문이 남는다.
+      // 팝업이 막히면 그냥 버튼을 감춘다 — 직접 입력이 항상 살아 있으므로 막다른 길이 아니다.
+      //
+      // 🔴 팝업 URL 은 **상대 경로**다. 프로덕션은 워커가 사이트와 API 를 같은 오리진에서 서빙한다
+      // (worker/wrangler.toml: SITE_BASE_URL = AUTH_API_BASE_URL = https://code-destiny.com).
+      var socialProvider = '';
+      var socialPopup = null;
+      var socialPoll = 0;
+      var socialTimeout = 0;
+      var onSocialMessage = null;
+
+      function stopWatchingSocialPopup() {
+        if (socialPoll) { try { clearInterval(socialPoll); } catch (_) {} }
+        if (socialTimeout) { try { clearTimeout(socialTimeout); } catch (_) {} }
+        socialPoll = 0;
+        socialTimeout = 0;
+        if (onSocialMessage) { try { window.removeEventListener('message', onSocialMessage); } catch (_) {} }
+        onSocialMessage = null;
+        socialPopup = null;
+      }
+
+      function resetSocialButton() {
+        socialButton.disabled = false;
+        socialButton.textContent = dpPaymentPhoneSocialCtaLabel(socialProvider);
+      }
+
+      function releaseSocialButton() {
+        stopWatchingSocialPopup();
+        if (settled) return;
+        resetSocialButton();
+      }
+
+      socialButton.addEventListener('click', function() {
+        if (!socialProvider) return;
+        var startUrl = '/api/auth/oauth/' + socialProvider + '/start?mode=phone-consent';
+        try {
+          socialPopup = window.open(startUrl, 'cdPhoneConsent', 'width=480,height=720');
+        } catch (_openError) {
+          socialPopup = null;
+        }
+        if (!socialPopup) {
+          socialButton.style.display = 'none';
+          error.textContent = DP_PAYMENT_PHONE_SOCIAL_BLOCKED;
+          return;
+        }
+        socialButton.disabled = true;
+        socialButton.textContent = '동의 창을 여는 중...';
+        error.textContent = '';
+
+        var expectedOrigin = window.location.origin;
+        onSocialMessage = function(event) {
+          if (event.origin !== expectedOrigin) return;
+          if (socialPopup && event.source !== socialPopup) return;
+          var data = event.data;
+          if (!data || data.type !== 'cd-phone-consent') return;
+          stopWatchingSocialPopup();
+          if (data.ok !== true) {
+            resetSocialButton();
+            error.textContent = DP_PAYMENT_PHONE_SOCIAL_FAILED;
+            try { input.focus(); } catch (_) {}
+            return;
+          }
+          socialButton.textContent = '번호를 가져오는 중...';
+          _dpGetPaymentPhoneStatus().then(function(state) {
+            if (state && state.hasPhone && state.phoneNumber) {
+              close(state);
+              return;
+            }
+            resetSocialButton();
+            error.textContent = DP_PAYMENT_PHONE_SOCIAL_FAILED;
+          }).catch(function() {
+            resetSocialButton();
+            error.textContent = DP_PAYMENT_PHONE_SOCIAL_FAILED;
+          });
+        };
+        window.addEventListener('message', onSocialMessage);
+        // 사용자가 팝업을 그냥 닫았을 때도 버튼이 잠긴 채로 남지 않게 한다.
+        socialPoll = setInterval(function() {
+          if (socialPopup && socialPopup.closed) releaseSocialButton();
+        }, 600);
+        socialTimeout = setTimeout(releaseSocialButton, DP_SOCIAL_CONSENT_TIMEOUT_MS);
+      });
+
       cancelButton.addEventListener('click', function() { close(null); });
       card.addEventListener('submit', function(event) {
         event.preventDefault();
@@ -3510,6 +3640,7 @@
       card.appendChild(desc);
       card.appendChild(input);
       card.appendChild(error);
+      card.appendChild(socialButton);
       card.appendChild(notice);
       card.appendChild(disclosure);
       card.appendChild(consentLabel);
@@ -3521,6 +3652,19 @@
       syncConsentAffordance();
       document.body.appendChild(overlay);
       document.addEventListener('keydown', onOverlayKeydown, true);
+      // 🔴 조회는 모달이 **뜬 뒤**에 한다. 앞으로 옮기면 2026-08-15 에 의도적으로 제거한
+      // 결제 임계경로의 왕복이 되살아난다 — 모달은 즉시 뜨고, 버튼만 나중에 드러난다.
+      dpGetSocialPhoneProviders().then(function(providers) {
+        if (settled) return;
+        var provider = '';
+        for (var i = 0; i < (providers || []).length; i += 1) {
+          if (dpPaymentPhoneSocialCtaLabel(providers[i])) { provider = providers[i]; break; }
+        }
+        if (!provider) return;
+        socialProvider = provider;
+        socialButton.textContent = dpPaymentPhoneSocialCtaLabel(provider);
+        socialButton.style.display = 'block';
+      }).catch(function() {});
       // 진입 모션은 Web Animations 로만 준다(인라인 스타일이라 @keyframes 를 쓸 수 없다).
       try {
         var _dpPromptReduceMotion = !!(window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches);

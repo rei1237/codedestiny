@@ -1448,6 +1448,25 @@ async function verifySocialGrant(token, env) {
  */
 const PHONE_SCOPE_BY_PROVIDER = { kakao: "phone_number", naver: "mobile" };
 
+/**
+ * 이미 로그인한 사용자에게 전화번호 동의를 **다시** 요청하는 모드.
+ *
+ * 왜 필요한가: 카카오 phone_number 는 **선택 동의**라 사용자가 한 번 거부하면 다음 로그인의
+ * 동의 화면에 그 항목이 다시 뜨지 않는다. 즉 로그인 scope 를 켜는 것만으로는 거부한 사용자와
+ * 그 전에 가입한 사용자의 번호를 영영 못 받는다. 공급자가 그 경우를 위해 두는 것이
+ * 카카오 "추가 항목 동의 받기"(추가 항목만 scope 에 실어 authorize 재요청)와
+ * 네이버 auth_type=reprompt 다.
+ *
+ * 🔴 이 모드는 세션을 새로 발급하지 않는다 — 신원은 start 시점에 확인해 state JWT 에 싣고,
+ * 콜백은 그 사용자에게 번호만 붙인다. 콜백에서 쿠키로 신원을 다시 찾지 않는 이유는
+ * SameSite·앱 커스텀탭 경우의 수를 통째로 없애기 위해서다.
+ */
+const PHONE_CONSENT_MODE = "phone-consent";
+
+function sanitizeOAuthMode(value) {
+  return String(value || "").trim().toLowerCase() === PHONE_CONSENT_MODE ? PHONE_CONSENT_MODE : "";
+}
+
 function phoneScopeSuffix(provider, env) {
   const scope = PHONE_SCOPE_BY_PROVIDER[provider];
   if (!scope) return "";
@@ -3341,7 +3360,23 @@ const PAYMENT_PHONE_USER_PROJECTION = {
   _id: 1,
   phoneNumber: 1,
   phone: 1,
+  // 번호 입력 모달이 "카카오에서 가져오기" 버튼을 띄울지 판단할 재료. 이 조회는 결제창 직전
+  // 경로라 왕복을 늘리지 않는 것이 중요해서, 새 엔드포인트를 만들지 않고 여기에 얹는다.
+  socialAccounts: 1,
 };
+
+/**
+ * 이 사용자가 **지금** 번호를 가져올 수 있는 소셜 공급자.
+ *
+ * 두 조건의 교집합이다: ① 계정에 그 소셜이 연결돼 있다 ② 그 공급자의 전화번호 동의항목이
+ * 승인돼 scope 가 켜져 있다(SOCIAL_PHONE_SCOPE_PROVIDERS). 판정을 서버에 두는 이유는
+ * 승인 상태가 env 하나로만 바뀌기 때문이다 — 네이버가 승인되면 **코드 변경 없이** 버튼이 켜진다.
+ */
+function resolveSocialPhoneProviders(user, env) {
+  return OAUTH_PROVIDERS.filter(
+    (provider) => phoneScopeSuffix(provider, env) && String(user?.socialAccounts?.[provider]?.id || ""),
+  );
+}
 
 async function handlePaymentPhoneStatus(request, env) {
   const timeoutMs = getAuthOpTimeoutMs(env);
@@ -3379,8 +3414,73 @@ async function handlePaymentPhoneStatus(request, env) {
 
   return json({
     ok: true,
+    socialPhoneProviders: resolveSocialPhoneProviders(user, env),
     ...(await buildPaymentPhoneResponse(user, env)),
   });
+}
+
+/**
+ * 결제용 번호 **최초 등록** 쓰기. 결제 모달(POST /me/payment-phone)과 소셜 추가 동의 콜백이
+ * 이 하나를 공유한다 — 암호화·phoneSource·동의 기록이 두 곳에 복사되면 한쪽이 조용히 갈라진다.
+ * 이미 번호가 있으면 덮어쓰지 않는다(변경은 /me/phone-number 담당).
+ */
+async function savePaymentPhoneForUser({ userId, phoneNumber, source, consentedAt, env, timeoutMs, dbMaxTimeMs }) {
+  if (!mongoose.Types.ObjectId.isValid(String(userId || ""))) return { outcome: "invalid_user" };
+
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
+  const currentUser = await withAuthOpTimeout(
+    User.findById(userId)
+      .select("phoneNumber phone")
+      .maxTimeMS(dbMaxTimeMs)
+      .lean(),
+    timeoutMs,
+    "auth_payment_phone_find_current",
+  );
+  if (!currentUser) return { outcome: "user_not_found" };
+
+  const currentPhoneNumber = await decryptPhoneNumber(currentUser?.phoneNumber || currentUser?.phone, env);
+  if (currentPhoneNumber) return { outcome: "already_set", user: currentUser };
+
+  // 🔴 raw driver 경로라 Mongoose setter 가 돌지 않는다 — 여기서 직접 암호화해야 한다.
+  // 키가 없으면 preparePhoneForStorage 가 throw 하고, 평문으로 폴백하지 않는다(fail-closed).
+  let storedPhoneNumber = "";
+  try {
+    ({ storedPhoneNumber } = await preparePhoneForStorage(phoneNumber, env));
+  } catch (error) {
+    return { outcome: "encryption_unavailable" };
+  }
+
+  // 🔴 동의를 번호와 **같은 쓰기**에 담는다(개인정보 보호법 제22조 입증책임).
+  // 따로 쓰면 한쪽만 남는 창이 생긴다.
+  const updatedResult = await withAuthOpTimeout(
+    User.collection.findOneAndUpdate(
+      { _id: new mongoose.Types.ObjectId(userId) },
+      {
+        $set: {
+          phoneNumber: storedPhoneNumber,
+          phoneSource: source,
+          phoneUpdatedAt: new Date(),
+          ...(consentedAt
+            ? { "legalConsents.phoneVersion": AUTH_PRIVACY_VERSION, "legalConsents.phoneAcceptedAt": consentedAt }
+            : {}),
+        },
+      },
+      {
+        returnDocument: "after",
+        projection: {
+          _id: 1,
+          phoneNumber: 1,
+          phone: 1,
+        },
+        maxTimeMS: dbMaxTimeMs,
+      },
+    ),
+    timeoutMs,
+    "auth_phone_update_user",
+  );
+  const user = unwrapFindOneAndUpdateResult(updatedResult);
+  if (!user) return { outcome: "user_not_found" };
+  return { outcome: "saved", user };
 }
 
 async function handleSavePaymentPhoneNumber(request, env) {
@@ -3406,35 +3506,28 @@ async function handleSavePaymentPhoneNumber(request, env) {
     return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
   }
 
-  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
-  const currentUser = await withAuthOpTimeout(
-    User.findById(userId)
-      .select("phoneNumber phone")
-      .maxTimeMS(dbMaxTimeMs)
-      .lean(),
+  // 🔴 여기서는 동의를 **강제하지 않는다** — 이 경로는 사용자가 이미 결제를 시작한 시점이라
+  // 번호 수집의 근거가 계약 이행(제15조 1항 4호)으로도 선다. 400 으로 막으면 스토어에 남은
+  // 구버전 앱이 결제를 통째로 못 하게 되는데, 그 위험이 얻는 것보다 크다.
+  // 동의를 실제로 보내는 것은 렌더러 3벌이 모두 막고 있다(체크 전에는 저장 호출 자체가 없다).
+  const consentedAt = body?.phoneConsent === true ? new Date() : null;
+  const saved = await savePaymentPhoneForUser({
+    userId,
+    phoneNumber,
+    source: "checkout",
+    consentedAt,
+    env,
     timeoutMs,
-    "auth_payment_phone_find_current",
-  );
+    dbMaxTimeMs,
+  });
 
-  if (!currentUser) {
+  if (saved.outcome === "invalid_user") {
+    return json({ ok: false, code: "invalid_auth_token", message: "Invalid authentication token." }, { status: 401 });
+  }
+  if (saved.outcome === "user_not_found") {
     return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
   }
-
-  const currentPhoneNumber = await decryptPhoneNumber(currentUser?.phoneNumber || currentUser?.phone, env);
-  if (currentPhoneNumber) {
-    return json({
-      ok: true,
-      updated: false,
-      ...(await buildPaymentPhoneResponse(currentUser, env)),
-    });
-  }
-
-  // 🔴 raw driver 경로라 Mongoose setter 가 돌지 않는다 — 여기서 직접 암호화해야 한다.
-  // 키가 없으면 preparePhoneForStorage 가 throw 하고, 평문으로 폴백하지 않는다(fail-closed).
-  let storedPhoneNumber = "";
-  try {
-    ({ storedPhoneNumber } = await preparePhoneForStorage(phoneNumber, env));
-  } catch (error) {
+  if (saved.outcome === "encryption_unavailable") {
     return json({
       ok: false,
       code: "phone_encryption_unavailable",
@@ -3442,50 +3535,10 @@ async function handleSavePaymentPhoneNumber(request, env) {
     }, { status: 503 });
   }
 
-  // 🔴 모달에서 받은 선택 동의를 번호와 **같은 쓰기**에 담는다(개인정보 보호법 제22조 입증책임).
-  // 따로 쓰면 한쪽만 남는 창이 생긴다.
-  //
-  // 🔴 여기서는 동의를 **강제하지 않는다** — 이 경로는 사용자가 이미 결제를 시작한 시점이라
-  // 번호 수집의 근거가 계약 이행(제15조 1항 4호)으로도 선다. 400 으로 막으면 스토어에 남은
-  // 구버전 앱이 결제를 통째로 못 하게 되는데, 그 위험이 얻는 것보다 크다.
-  // 동의를 실제로 보내는 것은 렌더러 3벌이 모두 막고 있다(체크 전에는 저장 호출 자체가 없다).
-  const consentedAt = body?.phoneConsent === true ? new Date() : null;
-  const updatedResult = await withAuthOpTimeout(
-    User.collection.findOneAndUpdate(
-      { _id: new mongoose.Types.ObjectId(userId) },
-      {
-        $set: {
-          phoneNumber: storedPhoneNumber,
-          phoneSource: "checkout",
-          phoneUpdatedAt: new Date(),
-          ...(consentedAt
-            ? { "legalConsents.phoneVersion": AUTH_PRIVACY_VERSION, "legalConsents.phoneAcceptedAt": consentedAt }
-            : {}),
-        },
-      },
-      {
-        returnDocument: "after",
-        projection: {
-          _id: 1,
-          phoneNumber: 1,
-          phone: 1,
-        },
-        maxTimeMS: dbMaxTimeMs,
-      },
-    ),
-    timeoutMs,
-    "auth_phone_update_user",
-  );
-  const user = unwrapFindOneAndUpdateResult(updatedResult);
-
-  if (!user) {
-    return json({ ok: false, code: "user_not_found", message: "User not found." }, { status: 404 });
-  }
-
   return json({
     ok: true,
-    updated: true,
-    ...(await buildPaymentPhoneResponse(user, env)),
+    updated: saved.outcome === "saved",
+    ...(await buildPaymentPhoneResponse(saved.user, env)),
   });
 }
 
@@ -4144,6 +4197,35 @@ async function handleOAuthStart(request, env, provider) {
     }
 
     const url = new URL(request.url);
+    const mode = sanitizeOAuthMode(url.searchParams.get("mode"));
+    let phoneConsentUserId = "";
+    if (mode === PHONE_CONSENT_MODE) {
+      // 🔴 구글은 영구 미지원이다 — People API 를 붙이지 않기로 한 결정이고
+      // __tests__/worker/auth.social-phone-scope.test.js 가 구글 scope 고정을 단언한다.
+      if (provider === "google") {
+        return json({
+          ok: false,
+          code: "phone_scope_unsupported",
+          message: "이 소셜 계정으로는 번호를 가져올 수 없어요.",
+        }, { status: 400 });
+      }
+      // 🔴 승인 게이트를 두 개 만들지 않는다 — 로그인 scope 를 켜는 env 하나가 이 경로의 게이트다.
+      // 미승인 상태에서 열어 두면 authorize 가 KOE205 로 죽는 창을 사용자에게 보이게 된다.
+      if (!phoneScopeSuffix(provider, env)) {
+        return json({
+          ok: false,
+          code: "phone_scope_disabled",
+          message: "번호 가져오기가 아직 준비되지 않았어요.",
+        }, { status: 400 });
+      }
+      // 🔴 requireUserFromRequest 가 아니라 resolvePaidRouteAuth — 이 경로는 결제 직전이라
+      // DB 일시 장애를 401(로그인 필요)로 오판하면 사용자가 손쓸 방법이 없다.
+      const consentAuth = await resolvePaidRouteAuth(request, env);
+      if (!consentAuth?.userId) {
+        return json({ ok: false, code: "UNAUTHORIZED", message: "Authentication is required." }, { status: 401 });
+      }
+      phoneConsentUserId = String(consentAuth.userId);
+    }
     const nextPath = sanitizeOAuthNextPath(url.searchParams.get("next") || "");
     const appRedirect = sanitizeAppOAuthRedirect(url.searchParams.get("appRedirect") || "");
     const flow = sanitizeAuthFlow(url.searchParams.get("flow"));
@@ -4163,6 +4245,7 @@ async function handleOAuthStart(request, env, provider) {
       referralCode: referralCapture.referralCode,
       referralShareToken: referralCapture.referralShareToken,
       referralSource: referralCapture.referralSource,
+      ...(mode ? { mode, phoneConsentUserId } : {}),
     }, env);
 
     const params = new URLSearchParams({
@@ -4173,7 +4256,15 @@ async function handleOAuthStart(request, env, provider) {
       state: stateToken,
     });
     if (provider === "google") params.set("prompt", "select_account");
-    if (provider === "kakao") params.set("prompt", "login");
+    // 🔴 추가 동의에서는 prompt=login 을 붙이지 않는다 — 기존 카카오 세션 위에서 **새 항목만**
+    // 물어야 하는데, 재로그인을 강요하면 그 화면이 아니라 로그인 화면이 뜬다.
+    if (provider === "kakao" && mode !== PHONE_CONSENT_MODE) params.set("prompt", "login");
+    if (mode === PHONE_CONSENT_MODE) {
+      // 카카오 "추가 항목 동의 받기" 규격: 추가로 받을 항목만 scope 에 싣는다.
+      if (provider === "kakao") params.set("scope", PHONE_SCOPE_BY_PROVIDER.kakao);
+      // 네이버는 이미 판단이 끝난 항목을 다시 물으려면 재동의 화면을 명시해야 한다.
+      if (provider === "naver") params.set("auth_type", "reprompt");
+    }
 
     return redirect(`${cfg.authorizationEndpoint}?${params.toString()}`);
   } catch (error) {
@@ -4246,6 +4337,93 @@ async function applySocialOAuthReferralReward(request, env, user, payload, fallb
   );
 }
 
+/**
+ * 팝업을 연 창에 결과만 알리고 자기를 닫는 최소 페이지.
+ *
+ * 🔴 번호를 payload 에 싣지 않는다. 부모 창은 이미 GET /api/me/payment-phone 를 갖고 있어
+ * 다시 물으면 되고, 그러면 PII 가 HTML 과 postMessage 를 타고 흐르지 않는다.
+ */
+function buildPhoneConsentResultPage(frontendBase, result) {
+  const payload = JSON.stringify({ type: "cd-phone-consent", ok: result.ok === true, reason: String(result.reason || "") });
+  const targetOrigin = JSON.stringify(String(frontendBase || "").replace(/\/+$/, "") || "*");
+  const message = result.ok === true
+    ? "번호를 가져왔어요. 이 창은 곧 닫힙니다."
+    : "번호를 가져오지 못했어요. 창을 닫고 직접 입력해 주세요.";
+  const html = `<!doctype html><html lang="ko"><head><meta charset="utf-8">`
+    + `<meta name="viewport" content="width=device-width,initial-scale=1"><meta name="robots" content="noindex">`
+    + `<title>전화번호 동의</title></head>`
+    + `<body style="margin:0;display:flex;align-items:center;justify-content:center;min-height:100vh;`
+    + `background:#100c26;color:#f6f3ff;font-family:system-ui,-apple-system,sans-serif;font-size:14px;`
+    + `line-height:1.7;text-align:center;padding:24px"><p>${message}</p>`
+    + `<script>(function(){var p=${payload};try{if(window.opener)window.opener.postMessage(p,${targetOrigin});}catch(e){}`
+    + `try{window.close();}catch(e){}})();</script></body></html>`;
+  return new Response(html, {
+    status: 200,
+    headers: { "Content-Type": "text/html; charset=utf-8", "Cache-Control": "no-store" },
+  });
+}
+
+/**
+ * 추가 동의 콜백 — 공급자가 준 번호를 **state 에 실린 그 사용자**에게 붙인다.
+ *
+ * 🔴 소유권 검증이 이 함수의 핵심이다. providerId 가 그 계정에 연결된 소셜 id 와 다르면
+ * 저장하지 않는다 — 없으면 남의 카카오 계정으로 로그인해 내 계정에 그 번호를 붙일 수 있다.
+ */
+async function handlePhoneConsentCallback({ request, env, provider, code, stateRaw, statePayload, frontendBase }) {
+  const timeoutMs = getAuthOpTimeoutMs(env);
+  const dbMaxTimeMs = Math.max(1000, timeoutMs - 1000);
+  const fail = (reason) => buildPhoneConsentResultPage(frontendBase, { ok: false, reason });
+
+  const userId = String(statePayload.phoneConsentUserId || "");
+  if (!mongoose.Types.ObjectId.isValid(userId)) return fail("invalid_state");
+
+  let socialProfile = null;
+  try {
+    const accessToken = await exchangeCodeForAccessToken(
+      provider,
+      code,
+      request,
+      env,
+      stateRaw,
+      String(statePayload.redirectUri || ""),
+    );
+    socialProfile = await fetchSocialProfile(provider, accessToken, request, env);
+  } catch (error) {
+    logAuthDiagnostic(request, env, "/api/auth/oauth/callback", provider, "phone_consent_exchange_failed", error);
+    return fail("provider_error");
+  }
+
+  await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_phone_connect_db");
+  const user = await withAuthOpTimeout(
+    User.findById(userId).select("socialAccounts").maxTimeMS(dbMaxTimeMs).lean(),
+    timeoutMs,
+    "auth_phone_consent_find_user",
+  );
+  if (!user) return fail("user_not_found");
+
+  const linkedProviderId = String(user?.socialAccounts?.[provider]?.id || "");
+  if (!linkedProviderId || linkedProviderId !== String(socialProfile?.providerId || "")) {
+    return fail("account_mismatch");
+  }
+
+  const phoneNumber = normalizeKoreanPhoneNumber(socialProfile?.phoneNumber);
+  // 항목만 거부한 경우다. 로그인은 멀쩡하고 번호만 안 온다 — 부모 창은 직접 입력으로 계속한다.
+  if (!phoneNumber) return fail("declined");
+
+  const saved = await savePaymentPhoneForUser({
+    userId,
+    phoneNumber,
+    // 🔴 공급자 동의 화면 자체가 동의 근거다(제22조 입증책임).
+    consentedAt: new Date(),
+    source: "social",
+    env,
+    timeoutMs,
+    dbMaxTimeMs,
+  });
+  if (saved.outcome !== "saved" && saved.outcome !== "already_set") return fail(saved.outcome);
+  return buildPhoneConsentResultPage(frontendBase, { ok: true, reason: saved.outcome });
+}
+
 async function handleOAuthCallback(request, env, provider) {
   const frontendBase = getFrontendBaseUrl(env);
 
@@ -4315,6 +4493,20 @@ async function handleOAuthCallback(request, env, provider) {
     if (exchangeGuard.blocked) {
       logKakaoCallbackMarker(request, provider, "loopGuardTriggered", { redirectTarget: nextPath });
       return buildOAuthDuplicateCallbackResponse(safeFrontendBase, nextPath, appRedirect, flow);
+    }
+
+    // 🔴 추가 동의 콜백은 로그인이 아니다 — 세션을 발급하지 않고 번호만 붙인 뒤 팝업을 닫는다.
+    // 공급자 분기보다 앞에 둔다(카카오/네이버가 각자 세션 발급 경로를 갖고 있어서다).
+    if (sanitizeOAuthMode(statePayload.mode) === PHONE_CONSENT_MODE) {
+      return await handlePhoneConsentCallback({
+        request,
+        env,
+        provider,
+        code,
+        stateRaw,
+        statePayload,
+        frontendBase: safeFrontendBase,
+      });
     }
 
     if (provider !== "kakao") {
@@ -4868,6 +5060,9 @@ export const __authTestUtils = {
   handleWithdrawCsrfIssue,
   handleChangePhoneNumber,
   handleSavePaymentPhoneNumber,
+  handlePaymentPhoneStatus,
+  handleOAuthStart,
+  handleOAuthCallback,
   findOrCreateSocialUser,
   buildProviderConfig,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
