@@ -15,7 +15,8 @@
  *   ③ requestPayment 가 실패해도 __cdSuppressPaymentUnloadBlock 이 true 로 남지 않는다.
  *   ④ 중복 paymentId → confirm 422 → **새 키로 1회** 재시도한다(셸과 같은 계약).
  *   ⑤ 409 IDEMPOTENCY_CONFLICT → 새 키로 1회 재시도하고 결제창까지 간다.
- *   ⑥ 결제창에서 단건을 고르면 세 카드가 모두 disabled 가 된다.
+ *   ⑥ 잠금 시점이 **결제수단 확정 순간**이다 — 단건 카드는 2단계(결제수단 고르기)로 넘어갈 뿐이라
+ *      잠그지 않고, 수단을 고르면 그때 전부 잠긴다.
  *   ⑦ **결정적 requestId 만 주면 시도마다 다른 멱등키가 나간다**(2026-08-16).
  *   ⑧ 셸(index.html)의 게이트도 같은 성질을 갖는다 — 스코프를 재제안 루프 **바깥**에서 뽑는다.
  *
@@ -284,9 +285,16 @@ await check("checkout 409 IDEMPOTENCY_CONFLICT 는 새 키로 재시도해 결�
   assertEqual(requestPaymentCalls, 1, "재시도 뒤 결제창 호출까지 도달해야 한다");
 });
 
-/* ⑥ 단건을 고르면 세 카드가 잠긴다 ────────────────────────────────────────────────
-   finish() 의 settled 가 중복 실행은 막지만, 반응이 없어 보이면 사용자는 다시 누른다. */
-await check("결제창에서 단건을 고르면 [data-mode] 카드가 모두 disabled 가 된다", async () => {
+/* ⑥ 결제수단을 확정하는 순간 전부 잠긴다 ──────────────────────────────────────────
+   finish() 의 settled 가 중복 실행은 막지만, 반응이 없어 보이면 사용자는 다시 누른다.
+
+   🔴 2026-08-24: 잠금 시점이 옮겨졌다. 단건 카드는 이제 **2단계(결제수단 고르기)로 넘어갈 뿐**이라
+   거기서 잠그면 [뒤로] 로 돌아온 1단계 카드가 죽는다(is-loading 이 pointer-events:none 이다).
+   그래서 이 가드는 두 가지를 함께 고정한다:
+     - 단건 클릭은 아무것도 잠그지 않는다(아직 주문을 만들지 않았다)
+     - 수단을 고르면 1·2단계 노드가 **전부** 잠긴다(그 클릭이 checkout 을 발사한다)
+   실행 흐름 전체(전환·복귀·준비중)는 verify-checkout-pass-card ⑬ 이 본다. */
+await check("결제수단을 고르는 순간 결제창 노드가 모두 잠긴다", async () => {
   const { window } = bootRuntime({ routes: {} });
   if (typeof window._cdChooseServicePaymentMode !== "function") throw new Error("독립 정적 결제창 렌더러가 없다");
   const pending = window._cdChooseServicePaymentMode({
@@ -297,10 +305,23 @@ await check("결제창에서 단건을 고르면 [data-mode] 카드가 모두 di
   while (!window.document.querySelector('[data-mode="direct"]') && Date.now() < deadline) await flush(10);
   const direct = window.document.querySelector('[data-mode="direct"]');
   if (!direct) throw new Error("단건 카드가 렌더되지 않았다");
-  const cards = Array.from(window.document.querySelectorAll("[data-mode]"));
+  const stepOneCards = Array.from(window.document.querySelectorAll("[data-mode]"));
   direct.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
-  const locked = cards.filter((node) => node.hasAttribute("disabled"));
-  assertEqual(locked.length, cards.length, "고른 순간 모든 결제수단 카드가 잠겨야 한다");
+  await flush(10);
+  const methodStep = window.document.querySelector('[data-choice-step="methods"]');
+  if (!methodStep) throw new Error("결제수단 2단계 패널이 없다");
+  assertEqual(methodStep.hidden, false, "단건 카드가 2단계를 열지 않았다");
+  assertEqual(
+    stepOneCards.filter((node) => node.hasAttribute("disabled")).length,
+    0,
+    "2단계로 넘어가는 클릭은 1단계 카드를 잠그지 않아야 한다([뒤로] 복귀가 죽는다)",
+  );
+  const active = methodStep.querySelector('[data-pay-method]:not([aria-disabled="true"])');
+  if (!active) throw new Error("활성 결제수단이 하나도 없다 — DIRECT_PAY_METHODS 표를 확인하라");
+  const allNodes = Array.from(window.document.querySelectorAll("[data-mode],[data-pay-method],[data-pay-step]"));
+  active.dispatchEvent(new window.MouseEvent("click", { bubbles: true }));
+  const locked = allNodes.filter((node) => node.hasAttribute("disabled"));
+  assertEqual(locked.length, allNodes.length, "수단을 고른 순간 결제창 노드가 모두 잠겨야 한다");
 });
 
 /* ⑦ 결정적 requestId 만 줘도 시도마다 멱등키가 갈린다 ────────────────────────────────
