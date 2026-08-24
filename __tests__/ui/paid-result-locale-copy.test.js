@@ -207,9 +207,14 @@ function collectCopyTables(file) {
 // 🔴 app/admin/** 는 뺀다 — 내부 관리자 콘솔이라 사용자에게 나가지 않고 한국어가 정상이다.
 //    (2026-08-25 실측: app/admin/insights/page.tsx 의 AdminInsightsCopy 는 en 에 키 10개가
 //     빠져 있다. 화면이 한국어 전용이라 실사고는 아니지만, 이 가드의 축은 아니므로 손대지 않았다.)
-const FILES = [...walk(path.join(root, "app")), ...walk(path.join(root, "src"))].filter(
-  (file) => !file.startsWith("app/admin/"),
-);
+// 🔴 최상위 `components/` 를 빼면 안 된다. 유료 결과 화면들이 공통으로 쓰는 껍데기가 거기 산다
+//    (components/fortune/**). 2026-08-25 에 음성 테스트로 발견했다 — 그 디렉터리를 안 훑던 동안
+//    공용 카피 표의 키 드리프트를 아무도 보지 않았다.
+const FILES = [
+  ...walk(path.join(root, "app")),
+  ...walk(path.join(root, "components")),
+  ...walk(path.join(root, "src")),
+].filter((file) => !file.startsWith("app/admin/"));
 
 test("로케일 카피 표는 로케일마다 같은 키 집합을 갖는다", () => {
   let checked = 0;
@@ -250,6 +255,8 @@ const PAID_RESULT_COPY_MODULES = [
   "app/components/ziwei/_lib/ziwei-deep-pdf-copy.ts",
   "src/features/master-love-codex/_lib/copy.ts",
   "src/features/neo-war-room/data/result-copy.ts",
+  // 🔴 유료 결과 화면 11곳이 함께 쓰는 껍데기(페이지 뷰어·근거 패널). 한 곳이 낡으면 전부 낡는다.
+  "components/fortune/_lib/fortune-shared-copy.ts",
 ];
 
 test("유료 결과 화면의 카피 표는 ko·en·ja·zh-CN·zh-TW 를 모두 덮는다", () => {
@@ -298,6 +305,12 @@ const PAID_RESULT_SURFACES = [
   "src/features/master-love-codex/components/CodexChapter.tsx",
   "src/features/master-love-codex/components/CodexPrologueScene.tsx",
   "src/features/master-love-codex/components/CodexReportOutro.tsx",
+  // 유료 결과 화면들이 공통으로 얹는 껍데기 — 여기가 한국어면 본문만 번역된 화면이 된다.
+  "components/fortune/PagedResultViewer.tsx",
+  "components/fortune/AnalysisBasisPanel.tsx",
+  "components/fortune/AnalysisBasisLoading.tsx",
+  "components/fortune/GlossaryTerm.tsx",
+  "components/yeon/YeonSpriteFrame.tsx",
 ];
 
 test("허용목록의 예외는 소스에 실제로 남아 있다", () => {

@@ -3,6 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AnalysisBasis, BasisItem } from "@/lib/fortune/analysis-basis";
 import { BasisItemRow } from "./AnalysisBasisPanel";
+import { currentFortuneSharedCopy } from "./_lib/fortune-shared-copy";
+
+const COPY = currentFortuneSharedCopy();
 import styles from "./analysis-basis.module.css";
 
 interface AnalysisBasisLoadingProps {
@@ -29,8 +32,8 @@ const DEFAULT_STAGE_INTERVAL_MS = 2600;
  */
 export default function AnalysisBasisLoading({
   basis,
-  fallbackLabel = "상담문을 엮고 있습니다",
-  fallbackDetail = "잠시만 기다려 주세요",
+  fallbackLabel = COPY.basisLoadingLabel,
+  fallbackDetail = COPY.basisLoadingDetail,
   stageIntervalMs = DEFAULT_STAGE_INTERVAL_MS,
   className = "",
 }: AnalysisBasisLoadingProps) {

@@ -3,6 +3,9 @@
 import type { AnalysisBasis, BasisGroup, BasisItem } from "@/lib/fortune/analysis-basis";
 import GlossaryTerm from "./GlossaryTerm";
 import styles from "./analysis-basis.module.css";
+import { currentFortuneSharedCopy } from "./_lib/fortune-shared-copy";
+
+const COPY = currentFortuneSharedCopy();
 
 interface AnalysisBasisPanelProps {
   basis: AnalysisBasis | null;
@@ -22,8 +25,8 @@ interface AnalysisBasisPanelProps {
  */
 export default function AnalysisBasisPanel({
   basis,
-  title = "이 상담이 계산한 값",
-  note = "전문가가 지어낸 값이 아니라, 입력하신 정보로 계산된 결과입니다.",
+  title = COPY.basisTitle,
+  note = COPY.basisNote,
   className = "",
   multiColumn = true,
 }: AnalysisBasisPanelProps) {

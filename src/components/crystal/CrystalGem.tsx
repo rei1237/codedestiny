@@ -25,6 +25,13 @@ type CrystalGemProps = {
   progress?: number;
   compact?: boolean;
   className?: string;
+  /**
+   * 이 보석을 가리키는 접근성 이름.
+   * 🔴 넘기지 않으면 GemShape.label 의 **한국어**가 그대로 aria-label 이 된다. 호출부는
+   *    이미 로케일별 보석 이름을 갖고 있으므로(getLocalizedGemMeta) 그것을 넘겨야 한다 —
+   *    이 컴포넌트 자신은 로케일을 모른다.
+   */
+  ariaLabel?: string;
 };
 
 type GemShape = {
@@ -335,6 +342,7 @@ export default function CrystalGem({
   progress = 0,
   compact = false,
   className = "",
+  ariaLabel,
 }: CrystalGemProps) {
   const id = useId().replace(/:/g, "");
   const shape = GEM_SHAPES[type];
@@ -351,7 +359,7 @@ export default function CrystalGem({
     <span
       className={`crystal-gem crystal-gem--${type} crystal-gem--${state} ${compact ? "crystal-gem--compact" : ""} ${className}`}
       style={{ width: size, height: size, ...style }}
-      aria-label={shape.label}
+          aria-label={ariaLabel || shape.label}
       role="img"
     >
       <svg className="crystal-gem__svg" viewBox="0 0 120 120" focusable="false">

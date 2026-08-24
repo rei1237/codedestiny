@@ -80,6 +80,16 @@ export interface AnimalDestinyCopy {
   quickNoteRhythmLabel: string;
 
   shareCardEyebrow: string;
+  /** 공유 카드 라벨. 🔴 값(animal.*)은 데이터 콘텐츠라 이 모듈의 대상이 아니다 — 라벨만 여기 둔다. */
+  shareCardKicker: string;
+  shareCardAnimalLabel: string;
+  shareCardStageLabel: string;
+  shareCardPillarYear: string;
+  shareCardPillarMonth: string;
+  shareCardPillarDay: string;
+  shareCardPillarHour: string;
+  shareCardLuckColor: string;
+  shareCardLuckItem: string;
   todayLuckLabel: string;
   growthMantraLabel: string;
 
@@ -232,6 +242,15 @@ const ANIMAL_DESTINY_COPY_EN: AnimalDestinyCopy = {
   quickNoteRhythmLabel: "Stage mood",
 
   shareCardEyebrow: "Destiny Animal Codex · Result Summary Card",
+  shareCardKicker: "Twelve-Stage Animal Reading",
+  shareCardAnimalLabel: "Your animal",
+  shareCardStageLabel: "Twelve stage",
+  shareCardPillarYear: "Year pillar",
+  shareCardPillarMonth: "Month pillar",
+  shareCardPillarDay: "Day pillar",
+  shareCardPillarHour: "Hour pillar",
+  shareCardLuckColor: "Lucky colour",
+  shareCardLuckItem: "Lucky item",
   todayLuckLabel: "Opening today's luck",
   growthMantraLabel: "Growth mantra",
 
@@ -397,6 +416,15 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
     quickNoteRhythmLabel: "운성 무드",
 
     shareCardEyebrow: "운명의 동물 도감 · 결과 요약 카드",
+    shareCardKicker: "십이운성 동물점",
+    shareCardAnimalLabel: "대표 동물",
+    shareCardStageLabel: "십이운성",
+    shareCardPillarYear: "연주",
+    shareCardPillarMonth: "월주",
+    shareCardPillarDay: "일주",
+    shareCardPillarHour: "시주",
+    shareCardLuckColor: "행운 컬러",
+    shareCardLuckItem: "행운 아이템",
     todayLuckLabel: "오늘의 운 열기",
     growthMantraLabel: "성장 주문",
 
@@ -528,6 +556,15 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
     quickNoteRhythmLabel: "運星ムード",
 
     shareCardEyebrow: "運命の動物図鑑・結果要約カード",
+    shareCardKicker: "十二運星の動物占い",
+    shareCardAnimalLabel: "あなたの動物",
+    shareCardStageLabel: "十二運星",
+    shareCardPillarYear: "年柱",
+    shareCardPillarMonth: "月柱",
+    shareCardPillarDay: "日柱",
+    shareCardPillarHour: "時柱",
+    shareCardLuckColor: "ラッキーカラー",
+    shareCardLuckItem: "ラッキーアイテム",
     todayLuckLabel: "今日の運を開く",
     growthMantraLabel: "成長の呪文",
 
@@ -659,6 +696,15 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
     quickNoteRhythmLabel: "运星心情",
 
     shareCardEyebrow: "命运动物图鉴 · 结果摘要卡",
+    shareCardKicker: "十二运星动物占卜",
+    shareCardAnimalLabel: "你的动物",
+    shareCardStageLabel: "十二运星",
+    shareCardPillarYear: "年柱",
+    shareCardPillarMonth: "月柱",
+    shareCardPillarDay: "日柱",
+    shareCardPillarHour: "时柱",
+    shareCardLuckColor: "幸运色",
+    shareCardLuckItem: "幸运物",
     todayLuckLabel: "开启今日好运",
     growthMantraLabel: "成长咒语",
 
@@ -790,6 +836,15 @@ const ANIMAL_DESTINY_COPY: Partial<Record<LoadingLocale, AnimalDestinyCopy>> = {
     quickNoteRhythmLabel: "運星心情",
 
     shareCardEyebrow: "命運動物圖鑑 · 結果摘要卡",
+    shareCardKicker: "十二運星動物占卜",
+    shareCardAnimalLabel: "你的動物",
+    shareCardStageLabel: "十二運星",
+    shareCardPillarYear: "年柱",
+    shareCardPillarMonth: "月柱",
+    shareCardPillarDay: "日柱",
+    shareCardPillarHour: "時柱",
+    shareCardLuckColor: "幸運色",
+    shareCardLuckItem: "幸運物",
     todayLuckLabel: "開啟今日好運",
     growthMantraLabel: "成長咒語",
 

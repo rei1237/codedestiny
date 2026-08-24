@@ -168,37 +168,66 @@ PR #1121(`feature/naming-locale-branch`). 커밋 5개.
 재측정 결과(2026-08-25, `app/**` + `components/**` + `src/**` 의 `"use client"` 파일):
 **78개 파일 · 한국어 표면 2,092개**. 관리자 콘솔(사용자 노출 없음)과 찻집(별도 워크스트림)은 뺀 수치다.
 
-### 🔴 남은 것
+### 끝난 것 — 2026-08-25 후속 3회차 (공용 껍데기)
 
-**0. 다음 슬라이스 후보** (위 재측정 기준, 큰 것부터)
+유료 결과 화면들이 **공통으로 얹는** 컴포넌트가 한국어로 남아 있었다. 본문은 일본어인데 넘김 버튼만
+한국어인 화면이 나오던 자리다. `components/fortune/_lib/fortune-shared-copy.ts` 를 신설해 한 번에 고쳤다.
 
-| 문자열 | 대상 | 성격 |
+| 대상 | 왜 값어치가 큰가 |
+|---|---|
+| `PagedResultViewer` | 유료 결과 화면 **11곳**이 함께 쓴다(astrology·destiny-compass·island-consult·life-book·love-secret·naming·sukuyo·vedic·ziwei·인연의 서·네오 작전실) |
+| `AnalysisBasisPanel` · `AnalysisBasisLoading` | 기본 prop 값이 한국어였다 — 여러 상담 결과가 그대로 받아 썼다 |
+| `GlossaryTerm` · `YeonSpriteFrame` | aria 기본값 |
+| `CrystalGem` | SVG `aria-label` 이 한국어 고정이었다. 호출부는 이미 로케일 이름을 갖고 있어 `ariaLabel` prop 으로 넘기게 했다 |
+| `AnimalShareCard` | 라벨을 `_lib/copy.ts` 로 옮겼다(값 `animal.*` 은 그 모듈이 명시적으로 제외하는 데이터 콘텐츠라 그대로) |
+
+🔴 **리터럴 grep 가드가 하나 깨졌다.** `__tests__/ui/animal-destiny-narrative.static.test.js` 가 공유 카드의
+한국어 문구(`row("연주"` 등)를 단언하고 있어서, 문구가 로케일화됐다는 이유만으로 실패했다. 지키려던 것은
+문구가 아니라 **네 기둥이 카드에 다 들어가는가** 였으므로 카피 키와 데이터 경로로 재조준했다.
+
+🔴 **가드 자신의 구멍도 음성 테스트가 찾았다.** `paid-result-locale-copy.test.js` 의 파일 수집이 `app/`·`src/`
+만 훑고 **최상위 `components/` 를 빼먹고 있었다** — 공용 껍데기가 사는 바로 그 디렉터리다. 고쳤다.
+
+### 🔴 남은 것 — 2026-08-25 3차 재측정
+
+앞선 두 번의 수치(180개 → 2,092개)가 **둘 다 부풀려져 있었다.** 원인은 탐지기가 배선 방식을 못 본 것이고,
+가장 크게 놓친 것은 **형제 디렉터리의 `_lib/*-copy.ts` 모듈**이었다(같은 폴더의 `*Copy.ts` 만 봤다).
+임포트를 한 단계 따라가도록 고쳐 다시 재면:
+
+```
+"use client" + 한국어 · 배선 있음      132개
+"use client" + 한국어 · 배선 전무       27개 · 한국어 표면 123
+```
+
+재현: 측정기는 다음 여섯 가지를 **전부** 배선으로 인정해야 한다 — 하나라도 빠지면 수치가 부푼다.
+
+1. `Record<LoadingLocale, X>` / `Partial<Record<…>>`
+2. `Partial<Record<NonKoLocale, X>>` + ko 기본값 (예: neo-war-room `result-copy.ts`)
+3. `const X_EN` 폴백 **객체**
+4. `const X_EN` 폴백 **문자열** (예: `LoveSimulationClient.tsx` — "진짜 en 누락"이라 적었던 것은 오탐이었다)
+5. 사전 훅 `useT` / `useTPick`
+6. 🔴 **형제 `_lib/*-copy.ts` 모듈 import** — FPTI·animal-destiny·sikojen-povailu·타로 3종·자미두수가 전부 이 모양이다
+
+그리고 배선이 없어도 **결함이 아닌 것**이 남은 123개의 상당수다:
+
+- `SikojenpovailuContext.tsx`(15) — `'금전운' | '연애운' | '행운'` 은 **한국어 타입 리터럴 = 기계 키**다.
+- `CrystalGem.tsx`(48) — `GEM_META.name/keywords` 는 ko 정본이고 호출부가 `GEM_DISPLAY_COPY` 로 덮어쓴다.
+  🔴 다만 `GEM_META.energy`(12문장)는 **소비처가 하나도 없는 데드 필드**다(3면 grep). 지우지는 않았다.
+- `app/dev-status/page.tsx`(4) — production 에서 404 인 개발 전용 페이지.
+- `LocaleSwitcher.tsx`(3) — "한국어"는 그 언어 자신의 표기라 번역 대상이 아니다.
+
+**실제로 남은 결함**
+
+| 대상 | 문자열 | 성격 |
 |---|---|---|
-| 495 | `app/components/AdvancedZiweiSectionV2.tsx` | 유료(자미두수 심화) 설명 산문 |
-| 356+66 | `app/saju/love-simulation/_components/{LoveSimulationEngine,CustomSajuForm}.tsx` | 무료 체험 |
-| 271 | `components/fpti/*` 6개 | 무료 체험, 전환 앞단 |
-| 216 | `app/components/{MindScanTarot,SunHealingTarot,LoveRelationshipTarot}.tsx` | 홈에서 바로 닿는 첫 접점 |
-| 113 | `app/saju/animal-destiny/components/*` | 무료 체험 |
-| 91 | `app/oracle/sikojen-povailu/*` | 무료 체험 |
+| `app/human-design/**` | ~18 | 🔴 **ko/en 이중 언어만** 있다(`locale === "ko" ? A : B` 삼항). ja·zh 가 아예 없어 카피 모듈 신설이 필요하다 — 이 슬라이스에서 가장 큰 실제 결함 |
+| `app/_lib/moonlight-store-snapshot.ts` | 4 | 상점 요약 오류 메시지 |
+| `app/saju/animal-destiny/components/*` | ~15 | Hero·연출 컴포넌트 3종. 이미 있는 `_lib/copy.ts` 에 키를 더하면 된다 |
+| `app/saju/love-simulation/_components/DialogueBox.tsx` | 2 | |
 
-그 밖에 **`app/saju/love-simulation/LoveSimulationClient.tsx` 는 카피 표에 `en` 이 아예 없다**(폴백 상수도 없다) —
-"en 누락 7건" 중 유일하게 진짜였다.
-### 🔴 남은 것
-
-**1. vi·hi 전용 프로파일**
-
-지금은 라틴 프로파일에 묶여 있고, 무료 초안도 라틴 이름 풀(영어 이름)을 본다. vi 는 Hán-Việt 이 있어
-CJK 쪽에 가깝고, hi 는 나크샤트라 기반 Namakaran 전통이 따로 있다. **미구현이지 "해당 없음"이 아니다.**
-지금은 `freeDraftPoolNote` 로 "영어 이름 목록"임을 밝혀 두었을 뿐이다.
-
-**2. `verify:naming-prompt` 가 CI 에서 안 돈다 — 사유가 사실과 다르다**
-
-`scripts/verify-guard-wiring.mjs` 가 이 가드를 "LLM 실호출 — 원칙 8, 사용자 허락 후 수동" 으로
-분류해 두었는데, `scripts/verify-naming-prompt-flow.mjs` 는 **전부 정적 검사다**(스크립트 자체 헤더가
-그렇게 적고 있고, 실제로 import 하는 것은 `paid-feature-registry.js` 뿐이다). 즉 지금 이 가드는
-아무것도 지키지 않는다. 배선은 게이트 추가라 사용자 승인 사항이므로 손대지 않았다.
-그래서 이번 작업의 가드는 그 스크립트가 아니라 `__tests__/` 쪽에 두었다.
-
+🔴 **콘텐츠 번역은 별개 계보다.** `love-simulation/_data/loveCodeMvp.ts` 한 파일이 5,323줄이고,
+자미두수 해석 엔진 문장과 12궁·별 이름은 `advanced-ziwei-copy.ts` 헤더가 **로케일 무관으로 명시 제외**한다
+(Vedic·나크샤트라와 같은 규칙). UI 카피 슬라이스와 섞어 세지 말 것.
 ## 다른 서비스로 넓힐 때 — 무엇을 실제로 확인할 것인가
 
 작명에서 얻은 체크리스트다. `grep locale` 로 끝내지 말고 이 순서로 본다.
