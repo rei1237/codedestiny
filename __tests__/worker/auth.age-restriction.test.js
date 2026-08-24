@@ -18,7 +18,7 @@ function baseSignupPayload(overrides = {}) {
     password: "password123",
     // 2026-08-19 정책: 가입 페이로드에 휴대폰 번호가 없으면 검증을 통과하지 못한다.
     phoneNumber: "010-1234-5678",
-    ageAttested: true,
+    birthYear: "1990",
     termsAccepted: true,
     privacyAccepted: true,
     ...overrides,
@@ -56,10 +56,22 @@ describe("age policy helpers", () => {
 });
 
 describe("minimal signup validation", () => {
-  test("requires a 14+ attestation", () => {
-    const result = validateRegisterPayload(baseSignupPayload({ ageAttested: false }));
-    expect(result.isValid).toBe(false);
-    expect(result.errors).toContain("Age 14 or older attestation is required.");
+  // 🔴 2026-08-25: 체크박스(ageAttested) 대신 **생년**으로 판정한다. 체크박스는 눌러서 지나가는
+  // 것이라 만 14세 미만을 실제로 걸러내지 못했다. 아래 두 단언이 그 전환을 고정한다.
+  test("만 14세 미만 생년은 거절한다", () => {
+    const underage = validateRegisterPayload(baseSignupPayload({ birthYear: "2020" }));
+    expect(underage.isValid).toBe(false);
+    expect(underage.isUnderage).toBe(true);
+    expect(underage.errors.join(" ")).toContain(`만 ${MIN_SELF_CONSENT_AGE}세 미만`);
+  });
+
+  test("생년이 없거나 형식이 틀리면 거절하되 미성년으로 분류하지 않는다", () => {
+    for (const birthYear of [undefined, "", "20", "abcd"]) {
+      const result = validateRegisterPayload(baseSignupPayload({ birthYear }));
+      expect(result.isValid).toBe(false);
+      // 화면이 "다시 입력"과 "가입 불가"를 다르게 말할 수 있어야 한다.
+      expect(result.isUnderage).toBe(false);
+    }
   });
 
   test("requires terms and privacy consent", () => {
@@ -70,7 +82,9 @@ describe("minimal signup validation", () => {
   test("does not require fortune profile fields at account creation", () => {
     const result = validateRegisterPayload(baseSignupPayload());
     expect(result.isValid).toBe(true);
+    // 생년을 실제로 받아 통과했다는 사실이 곧 만 14세 이상 확인이다(제22조 입증 기록).
     expect(result.sanitized.ageAttested).toBe(true);
+    expect(result.sanitized.birthYear).toBe(1990);
     expect(result.sanitized.birthDate).toBeUndefined();
     expect(result.sanitized.gender).toBeUndefined();
   });

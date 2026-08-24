@@ -249,7 +249,7 @@ describe("회원가입 응답 본문의 리프레시 토큰 노출 범위", () =
         email: "newbie@example.com",
         password: "correct-horse-battery",
         phoneNumber: "01012345678",
-        ageAttested: true,
+        birthYear: "1990",
         termsAccepted: true,
         privacyAccepted: true,
       }),

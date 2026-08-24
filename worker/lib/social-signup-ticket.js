@@ -44,6 +44,8 @@ export function socialProfileFromSignupTicket(ticket) {
     name: String(ticket?.name || ""),
     image: String(ticket?.image || ""),
     phoneNumber: String(ticket?.phoneNumber || ""),
+    // 공급자(네이버)가 준 출생연도. 만 14세 판정의 서명된 근거라 복원할 때도 잃지 않는다.
+    birthYear: String(ticket?.birthYear || ""),
     emailVerified: ticket?.emailVerified === true ? true : (ticket?.emailVerified === false ? false : null),
   };
 }
@@ -52,12 +54,24 @@ export function socialProfileFromSignupTicket(ticket) {
  * 가입 마무리 화면 URL. 앱(Capacitor) 경로도 딥링크 대신 이 웹 화면을 거친다 —
  * 패키징된 구버전 앱 브릿지는 social_grant 만 이해하므로, 계정이 만들어진 뒤 딥링크로 돌려보낸다.
  */
-export function buildSocialSignupRedirectUrl(frontendBase, ticket, { nextPath, flow, hasPhoneNumber } = {}) {
+export function buildSocialSignupRedirectUrl(
+  frontendBase,
+  ticket,
+  { nextPath, flow, hasPhoneNumber, name, ageVerifiedByProvider } = {},
+) {
   const params = new URLSearchParams({ social_signup: ticket, flow: flow || "signup" });
   if (nextPath && nextPath !== "/") params.set("next", nextPath);
   // 공급자가 번호를 넘겼으면 가입 마무리 화면이 번호 입력칸을 감춘다.
   // 🔴 표시 힌트일 뿐 판정이 아니다 — 이 값을 지우고 번호를 적어 보내도 서버는 티켓의 번호를
   // 우선하고(handleOAuthCompleteSignup), 붙여 보내도 번호 없이 가입되지는 않는다.
   if (hasPhoneNumber) params.set("social_phone", "1");
+  // 공급자가 준 이름을 프리필한다. 티켓은 서명 JWT 라 클라이언트가 읽지 않으므로 따로 싣는다.
+  // 🔴 같은 이유로 이것도 힌트다 — 서버는 body.name 이 비면 티켓의 이름을 쓴다.
+  const displayName = String(name || "").trim().slice(0, 40);
+  if (displayName) params.set("social_name", displayName);
+  // 공급자 로그인 폼이 만 14세 확인을 자체적으로 받는 경우(카카오)에만 1 이다.
+  // 🔴 화면 분기용 힌트이고 판정이 아니다 — 서버는 티켓의 provider 로 다시 판단하므로
+  // 이 값을 손으로 붙여 보내도 네이버·구글은 생년 없이 가입되지 않는다.
+  if (ageVerifiedByProvider) params.set("social_age", "1");
   return `${String(frontendBase || "").replace(/\/+$/, "")}/signup?${params.toString()}`;
 }

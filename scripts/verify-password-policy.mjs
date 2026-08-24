@@ -54,7 +54,11 @@ check("가입 검증기는 신규 비밀번호 정책을 그대로 쓴다", () =
   const base = {
     name: "테스터",
     email: "policy-test@example.com",
-    ageAttested: true,
+    // 🔴 번호는 2026-08-19 부터, 생년은 2026-08-25 부터 가입 필수다. 둘 중 하나라도 빠지면 이
+    // 검사는 "비밀번호 정책"이 아니라 그 필수값 때문에 실패한다 — 실제로 번호가 빠진 채 main 에서
+    // 오래 빨간불이었다(2026-08-25 발견).
+    phoneNumber: "01012345678",
+    birthYear: "1990",
     termsAccepted: true,
     privacyAccepted: true,
   };
