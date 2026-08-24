@@ -19,13 +19,20 @@
  *      전부 뺀다. 목록을 손으로 적지 않고 산출물에서 계산하므로(원칙 10) 새 공용 문구가
  *      생겨도 자동으로 잡힌다.
  *
- * 임계값 근거 (2026-08-24, dist/ 색인 372개 실측):
- *   최소 755(/destiny-poker) · p05 1,004 · 중앙 1,922.
- *   MIN_PROSE_LENGTH = 700 이면 오늘 색인 중인 라우트는 **0개** 가 실패한다.
- *   같은 기준으로 그때 noindex 였던 "JS 안에 갇힌" 라우트는 전부 걸린다 —
+ * 임계값 근거 — 도입 시점 (2026-08-24, dist/ 색인 372개 실측):
+ *   최소 755(/destiny-poker) · p05 1,004 · 중앙 1,922. 700 으로 시작했다.
+ *   그때 noindex 였던 "JS 안에 갇힌" 라우트는 그 값으로 전부 걸렸다 —
  *   /oracle/ifa 0 · /saju/love-simulation 0 · /neo-operation-room 45 · /saju-guardian 97 ·
  *   /saju/destiny-bias 173 · /tarot/healing 635.
- *   임계를 900 으로 올리려면 /destiny-poker(755) 본문을 먼저 채워야 한다.
+ *
+ * 임계값 근거 — 현재 (2026-08-24 후반, dist/ 색인 377개 실측):
+ *   700 미만이 아니라 **900 미만이던 라우트 4개**를 채우고 임계를 900 으로 올렸다.
+ *     /destiny-poker 755 → 1,612   (게임 데이터 SUITS·HAND_FORTUNES 를 안내로 노출)
+ *     /tarot/love    792 → 1,0xx   (relationship_six_card 의 가중치·읽는 법 2개 추가)
+ *     /saju/sibyl    822 → 1,2xx   (결정론 근거·활용법 2개 추가)
+ *     /high-value    866 → 1,6xx   (허브 고유 산문 3문단)
+ *   🔴 다음 상한은 929 다(/fortune/tomorrow/pig). 그 위로 올리려면 자동 생성되는
+ *      /fortune/{기간}/{sign} 96개의 문안 생성기를 손봐야 하므로 별건이다.
  *
  * fail-closed (guard-integrity G-2: 대상이 없을 때 통과시키는 가드는 가드가 아니다):
  *   ① dist/ 가 없으면 실패한다 — 빌드 전에 돌리면 "검사할 게 없어서 통과"가 된다.
@@ -55,7 +62,7 @@ const MIN_FRAGMENT_LENGTH = 40;
 /** 색인 페이지 이만큼 이상에 등장하는 조각은 사이트 공용 문구로 보고 뺀다. */
 const BOILERPLATE_MIN_DOCS = 20;
 /** 색인 라우트가 가져야 할 최소 문장급 본문 길이. */
-const MIN_PROSE_LENGTH = 700;
+const MIN_PROSE_LENGTH = 900;
 
 /**
  * 의도적으로 임계 미만인 라우트를 사유와 함께 선언한다.

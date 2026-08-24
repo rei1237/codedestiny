@@ -299,6 +299,7 @@ const PAID_SLUG_META: Record<string, { featureKey: string }> = {
   "/tarot/reunion": { featureKey: "tarot-reunion-reading" },
   "/tarot/year": { featureKey: "tarot-year-fortune" },
   "/oracle/royal-tea": { featureKey: "royal-tea-oracle" },
+  "/oracle/ifa": { featureKey: "ifa-oracle" },
   "/yoga-guru": { featureKey: "yoga-guru-per-use" },
 };
 
@@ -622,6 +623,11 @@ export default function FeatureLandingPage({ service }: { service?: ServiceLike 
     ? "/oracle/sikojen-povailu"
     : basePath === "/oracle/rune"
     ? "/oracle/rune"
+    // 이파점의 도구는 App Router 가 아니라 정적 파일(public/ifa-oracle.html)이고
+    // Cloudflare Pages 가 확장자를 떼고 /ifa-oracle 로 서빙한다. 랜딩(/oracle/ifa)은
+    // 색인 대상이고 도구는 noindex 라, 실행 버튼만 그쪽으로 보낸다.
+    : basePath === "/oracle/ifa"
+    ? "/ifa-oracle"
     : basePath === "/ziwei/chart"
     ? "/ziwei/chart"
     : action
