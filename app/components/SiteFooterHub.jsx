@@ -79,6 +79,8 @@ const SEO_LINK_GROUPS = [
       { href: "/fortune/", text: "별자리·띠 운세 허브" },
       { href: "/destiny-compass/", text: "운명의 나침반" },
       { href: "/saju/destiny-meeting-place/", text: "사주로 보는 인연의 장소" },
+      // 2026-08-24 에 색인으로 되돌렸는데(#1092) 링크를 안 걸어 고아로 남아 있었다.
+      { href: "/saju-guardian/", text: "사주 가디언 수호 인장" },
     ],
   },
   {
@@ -112,7 +114,9 @@ const SEO_LINK_GROUPS = [
       { href: "/nakshatra/", text: "숙요점 × 베다 점성술 통합 별자리" },
       { href: "/dream/", text: "꿈해몽 무료 해석" },
       { href: "/oracle/hwatu-life/", text: "화투 인생 패 테스트" },
-      { href: "/ifa-oracle.html", text: "IFA 오라클" },
+      // /ifa-oracle.html 이 아니라 랜딩을 가리킨다 — 정본이 2026-08-24 에 /oracle/ifa 로
+      // 옮겨졌고, 옛 URL 은 308 을 타고 noindex 인 도구 화면으로 간다.
+      { href: "/oracle/ifa/", text: "IFA 오라클" },
       { href: "/oracle/royal-tea/", text: "로열 티 오라클" },
       { href: "/oracle/rune/", text: "스톤헨지 룬 오라클" },
       { href: "/oracle/sikojen-povailu/", text: "핀란드 주석점" },

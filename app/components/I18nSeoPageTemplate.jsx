@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { SEO_SITE_CONFIG } from "../../lib/seo/siteConfig";
 import { SEO_INDEXABLE_LOCALES } from "../../lib/i18n/locales";
+import { I18N_POLICY_ROUTE_MAP } from "../../lib/i18n/routes";
 
 /* 배지에 쓸 색인 대상 로케일 목록. 리터럴로 적어 두면 로케일을 늘렸을 때 조용히 어긋난다
    — 실제로 2026-08 에 zh-TW 를 열고도 이 배지는 "KO · EN · JA · ZH" 로 남아 있었다. */
@@ -16,6 +17,10 @@ const TEMPLATE_UI_COPY = {
     faq: "자주 묻는 질문",
     localMode: "현재 언어 모드",
     trustedBy: "다국어 지원",
+    policy: "약관·정책",
+    privacy: "개인정보처리방침",
+    terms: "이용약관",
+    refund: "환불정책",
   },
   ja: {
     heroTagline: "GLOBAL FORTUNE LANDING",
@@ -26,6 +31,10 @@ const TEMPLATE_UI_COPY = {
     faq: "よくある質問",
     localMode: "現在の言語モード",
     trustedBy: "多言語対応",
+    policy: "規約・ポリシー",
+    privacy: "プライバシーポリシー",
+    terms: "利用規約",
+    refund: "返金ポリシー",
   },
   zh: {
     heroTagline: "GLOBAL FORTUNE LANDING",
@@ -36,6 +45,10 @@ const TEMPLATE_UI_COPY = {
     faq: "常见问题",
     localMode: "当前语言模式",
     trustedBy: "多语言支持",
+    policy: "条款与政策",
+    privacy: "隐私政策",
+    terms: "服务条款",
+    refund: "退款政策",
   },
   // 🔴 zh-TW 가 없으면 아래 조회가 en 으로 떨어져 **번체 방문자가 영어 UI** 를 본다.
   //    /zh-tw 는 lib/i18n/locales.ts 의 PUBLIC_LOCALES 에 든 색인 대상 로케일이다.
@@ -48,6 +61,10 @@ const TEMPLATE_UI_COPY = {
     faq: "常見問題",
     localMode: "目前語言模式",
     trustedBy: "多語言支援",
+    policy: "條款與政策",
+    privacy: "隱私政策",
+    terms: "服務條款",
+    refund: "退款政策",
   },
   en: {
     heroTagline: "GLOBAL FORTUNE LANDING",
@@ -58,6 +75,10 @@ const TEMPLATE_UI_COPY = {
     faq: "FAQ",
     localMode: "Current Language Mode",
     trustedBy: "Multi-language Support",
+    policy: "Terms and policies",
+    privacy: "Privacy Policy",
+    terms: "Terms of Service",
+    refund: "Refund Policy",
   },
 };
 
@@ -122,6 +143,12 @@ export default function I18nSeoPageTemplate({
   inLanguage,
 }) {
   const ui = TEMPLATE_UI_COPY[locale] || TEMPLATE_UI_COPY.en;
+  // 정책 URL 은 로케일마다 슬러그가 다르다(ko 는 /terms, 나머지는 /{loc}/terms-of-service).
+  // lib/i18n/routes.ts 의 I18N_POLICY_ROUTE_MAP 이 정본이며 사이트맵도 같은 값을 쓴다.
+  const policyHref = (key) => {
+    const raw = I18N_POLICY_ROUTE_MAP[key][locale] || I18N_POLICY_ROUTE_MAP[key]["x-default"];
+    return raw.endsWith("/") ? raw : `${raw}/`;
+  };
   const heroAsset = resolveHeroAsset(currentPath);
 
   const webPageJsonLd = {
@@ -298,6 +325,16 @@ export default function I18nSeoPageTemplate({
         </div>
         <p className="mt-5 text-xs leading-6 text-slate-400">{content.disclaimer}</p>
       </section>
+
+      {/* 🔴 이 로케일의 정책 페이지로 들어가는 유일한 입구다. 이 줄이 없으면 en·zh·zh-TW 의
+          정책 세 페이지가 서로만 링크하는 닫힌 고리가 되어 홈에서 도달할 수 없다
+          (2026-08-24 실측: 그렇게 9개가 도달 불가였다). hreflang 은 크롤 경로가 아니다. */}
+      <nav className="mt-6 flex flex-wrap items-center gap-x-4 gap-y-2 px-1 text-xs text-slate-400" aria-label={ui.policy}>
+        <span className="font-semibold text-slate-300">{ui.policy}</span>
+        <Link href={policyHref("terms")} className="underline-offset-2 hover:text-slate-200 hover:underline">{ui.terms}</Link>
+        <Link href={policyHref("privacy")} className="underline-offset-2 hover:text-slate-200 hover:underline">{ui.privacy}</Link>
+        <Link href={policyHref("refundPolicy")} className="underline-offset-2 hover:text-slate-200 hover:underline">{ui.refund}</Link>
+      </nav>
 
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPageJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
