@@ -14697,5 +14697,99 @@
         }
       }
     }
+  },
+  "fortuneVar": {
+    "branch": {
+      "zi": "子",
+      "chou": "丑",
+      "yin": "寅",
+      "mao": "卯",
+      "chen": "辰",
+      "si": "巳",
+      "wu": "午",
+      "wei": "未",
+      "shen": "申",
+      "you": "酉",
+      "xu": "戌",
+      "hai": "亥"
+    },
+    "trine": {
+      "water": "水局",
+      "wood": "木局",
+      "fire": "火局",
+      "metal": "金局"
+    },
+    "animal": {
+      "rat": "鼠",
+      "ox": "牛",
+      "tiger": "虎",
+      "rabbit": "兔",
+      "dragon": "龍",
+      "snake": "蛇",
+      "horse": "馬",
+      "goat": "羊",
+      "monkey": "猴",
+      "rooster": "雞",
+      "dog": "狗",
+      "pig": "豬"
+    },
+    "sign": {
+      "aries": "牡羊座",
+      "taurus": "金牛座",
+      "gemini": "雙子座",
+      "cancer": "巨蟹座",
+      "leo": "獅子座",
+      "virgo": "處女座",
+      "libra": "天秤座",
+      "scorpio": "天蠍座",
+      "sagittarius": "射手座",
+      "capricorn": "摩羯座",
+      "aquarius": "水瓶座",
+      "pisces": "雙魚座"
+    },
+    "stem": {
+      "wood": "木",
+      "fire": "火",
+      "earth": "土",
+      "metal": "金",
+      "water": "水"
+    },
+    "element": {
+      "fire": "火",
+      "earth": "土",
+      "air": "風",
+      "water": "水"
+    },
+    "period": {
+      "today": "今天的",
+      "tomorrow": "明天的",
+      "weekly": "本週的",
+      "monthly": "本月的"
+    }
+  },
+  "fortuneTpl": {
+    "animalSame": "今天日辰的地支是{branch}，與這個生肖相同。這是同氣重疊的比和之日，平時的性情會照樣顯出來，只是濃一些。強項與習慣會一起變大，所以順手的做法繼續推，只要留意別過頭。",
+    "animalSameBadge": "比和 · 同氣",
+    "animalClash": "今天日辰的地支{branch}與這個生肖正面相沖。這不是說日子凶，而是說波動會變大。出行、聯絡、計畫可能不照原樣走，所以留些餘裕；帶著情緒的決定，往後放一天，多半就理清了。",
+    "animalClashBadge": "沖 · {own}{day}沖",
+    "animalTrine": "今天日辰的地支{branch}與這個生肖成三合，合成{trine}。這是與{a1}、{a2}紋理相合的日子，合作與託付都容易談通。適合把一直獨自扛著的事分出去。",
+    "animalTrineBadge": "三合 · {trine}",
+    "animalNeutral": "今天日辰的地支是{branch}，與這個生肖既不成合也不成沖。外部變數少，結果就照你自己的準備來。適合把一直往後放的事處理掉。",
+    "animalNeutralBadge": "日辰 {branch}",
+    "zodiacSunHome": "今天太陽停在{sign}。太陽在自己的宮位，存在感與主導權都會上來，開了頭的事也更有力。這是一年裡最適合把自己的話說出來的一段。",
+    "zodiacMoonHome": "今天月亮經過{sign}。月亮大約每兩三天換一宮，而它進到自己宮位的那天，情緒會變清晰，直覺也準。這是可以相信心往哪邊傾的日子。",
+    "zodiacNeutral": "今天太陽停在{sun}，月亮經過{moon}。對{sign}來說，這是外面的氣沒有強拉的一段，所以照自己的計畫推進，比順流而走的結果更好。",
+    "zodiacNeutralNoSun": "對{sign}來說，今天外面的氣介入得少。照自己的計畫走就好。",
+    "zodiacSunHomeBadge": "太陽停留之位",
+    "zodiacMoonHomeBadge": "月亮停留之位",
+    "zodiacSunBadge": "太陽 {sun} 區間",
+    "zodiacSkyBadge": "今天的天空",
+    "dailyNarrative": "{period}日辰是{ilchin}，月亮經過{moon}。下面的分數是這些值與{sign}的氣質相遇之處算出來的，算法依據也一併寫上。",
+    "weeklyNarrative": "本週七天的日辰依次是{ganji}。對{sign}來說，這個排布裡有{up}天助氣、{down}天相撞。即便同一週，各生肖與星座的這張地圖也完全不同，所以按下面的逐日表來安排行程會更好。",
+    "monthlyNarrative": "{year}年{month}月的月建是{monthGanji}。月建不在陽曆一日轉換，而在節入日轉換，因此本月的氣由{termText}這一段帶領。下面的分數是以這個月建對{sign}計算的，所以月份一換，十二生肖與十二星座的排布就整個不同。",
+    "newMoonFact": "{date} 新月前後——新開的事會得力",
+    "fullMoonFact": "{date} 滿月前後——適合收成與收拾",
+    "zodiacElementBadge": "{sign} · {element}元素區間",
+    "zodiacOtherBadge": "{sign} · 別的宮"
   }
 }

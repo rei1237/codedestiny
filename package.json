@@ -34,6 +34,7 @@
     "verify:sitemap": "node scripts/verify-sitemap-integrity.mjs",
     "verify:sitemap-drift": "node scripts/generate-sitemap.mjs --check",
     "verify:fortune-period-axis": "node scripts/verify-fortune-period-axis.mjs",
+    "verify:fortune-marker-keys": "node scripts/verify-fortune-marker-keys.mjs",
     "verify:guide-feature-cta": "node scripts/verify-guide-feature-cta.mjs",
     "verify:fortune-freshness": "node scripts/verify-fortune-freshness.mjs",
     "verify:fortune-hub-shell": "node scripts/build-fortune-hub-shell.mjs --check",

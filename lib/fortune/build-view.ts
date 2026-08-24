@@ -15,6 +15,7 @@ import type { FortunePeriodId } from "./periods";
 import { PERIOD_TITLE } from "./periods";
 import type { SignProfile } from "./sign-profiles";
 import { zodiacNameKoFromEn } from "./sign-profiles";
+import { PERIOD_KEY, SIGN_KEY, ref, type MarkedText } from "./i18n-marker";
 import { animalDayRelation, zodiacDayRelation, type DayRelation } from "./day-relation";
 import { averageScores, computeSignScore, type FortuneScore, type ScoreAxis } from "./fortune-score";
 import { formatShortDate, loadMonthRange, loadWeekRange, type DayCell } from "./range-data";
@@ -22,6 +23,8 @@ import { formatShortDate, loadMonthRange, loadWeekRange, type DayCell } from "./
 export interface FactRow {
   label: string;
   value: string;
+  /** 값이 그날 하늘에 따라 도는 경우의 런타임 치환 재료. 없으면 값이 번역 대상이 아니다. */
+  valueI18n?: MarkedText;
 }
 
 export interface WeekDayRow {
@@ -58,6 +61,8 @@ export interface SignViewModel {
   facts: FactRow[];
   /** 기간 고유 서술 — 매 기간 반드시 달라진다 */
   narrative: string;
+  /** 같은 서술의 런타임 치환 재료. 한국어 원문은 narrative 에 그대로 남는다. */
+  narrativeI18n?: MarkedText;
   relation: DayRelation | null;
   weekDays?: WeekDayRow[];
   highlights?: FactRow[];
@@ -111,6 +116,15 @@ function buildDaily(profile: SignProfile, period: "today" | "tomorrow"): SignVie
     narrative:
       `${PERIOD_TITLE[period]} 일진은 ${pkg.calendar.ilchin} 이고 달은 ${zodiacNameKoFromEn(pkg.sky_today.moon_sign)} 자리를 지납니다. ` +
       `아래 점수는 이 값들과 ${profile.nameKo}의 기질이 만나는 지점을 계산한 결과이며, 산출 근거를 그대로 함께 적었습니다.`,
+    narrativeI18n: {
+      key: "fortuneTpl.dailyNarrative",
+      vars: {
+        period: `@${PERIOD_KEY[period]}`,
+        ilchin: pkg.calendar.ilchin,
+        moon: ref(SIGN_KEY, String(pkg.sky_today.moon_sign || "").trim().toLowerCase(), zodiacNameKoFromEn(pkg.sky_today.moon_sign)),
+        sign: ref(SIGN_KEY, profile.id, profile.nameKo),
+      },
+    },
   };
 }
 
@@ -188,6 +202,15 @@ function buildWeekly(profile: SignProfile): SignViewModel | null {
       `이번 주 7일의 일진은 ${week.days.map((d) => d.ganji).join(" · ")} 로 이어집니다. ` +
       `${profile.nameKo}에게 이 배치는 ${trineDays.length}일이 기운을 북돋고 ${clashDays.length}일이 부딪히는 형태입니다. ` +
       `같은 주라도 띠와 별자리마다 이 지도가 전부 다르기 때문에, 아래 요일별 표를 기준으로 일정을 배치하시면 좋습니다.`,
+    narrativeI18n: {
+      key: "fortuneTpl.weeklyNarrative",
+      vars: {
+        ganji: week.days.map((d) => d.ganji).join(" · "),
+        sign: ref(SIGN_KEY, profile.id, profile.nameKo),
+        up: String(trineDays.length),
+        down: String(clashDays.length),
+      },
+    },
   };
 }
 
@@ -229,14 +252,32 @@ function buildMonthly(profile: SignProfile): SignViewModel | null {
       { label: "이달의 망(보름)", value: month.fullMoonYmd },
     ],
     highlights: [
-      { label: "시작하기 좋은 때", value: `${month.newMoonYmd} 신월 전후 — 새로 벌이는 일에 힘이 붙습니다` },
-      { label: "매듭짓기 좋은 때", value: `${month.fullMoonYmd} 보름 전후 — 결실과 정리에 맞습니다` },
+      {
+        label: "시작하기 좋은 때",
+        value: `${month.newMoonYmd} 신월 전후 — 새로 벌이는 일에 힘이 붙습니다`,
+        valueI18n: { key: "fortuneTpl.newMoonFact", vars: { date: month.newMoonYmd } },
+      },
+      {
+        label: "매듭짓기 좋은 때",
+        value: `${month.fullMoonYmd} 보름 전후 — 결실과 정리에 맞습니다`,
+        valueI18n: { key: "fortuneTpl.fullMoonFact", vars: { date: month.fullMoonYmd } },
+      },
       { label: "기운이 바뀌는 날", value: month.termTo ? `${month.termTo.ymd} ${month.termTo.name}` : "이달 안에는 없습니다" },
     ],
     narrative:
       `${month.year}년 ${month.month}월의 월건은 ${month.monthGanji} 입니다. 월건은 양력 1일이 아니라 절입일에 바뀌므로, ` +
       `이달의 기운은 ${termText} 구간이 이끕니다. 아래 점수는 이 월건과 ${profile.nameKo}의 관계를 계산한 것이라 ` +
       `달이 바뀌면 12띠·12별자리의 배치가 통째로 달라집니다.`,
+    narrativeI18n: {
+      key: "fortuneTpl.monthlyNarrative",
+      vars: {
+        year: String(month.year),
+        month: String(month.month),
+        monthGanji: month.monthGanji,
+        termText,
+        sign: ref(SIGN_KEY, profile.id, profile.nameKo),
+      },
+    },
   };
 }
 

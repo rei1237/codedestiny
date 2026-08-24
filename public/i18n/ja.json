@@ -14697,5 +14697,99 @@
         }
       }
     }
+  },
+  "fortuneVar": {
+    "branch": {
+      "zi": "子",
+      "chou": "丑",
+      "yin": "寅",
+      "mao": "卯",
+      "chen": "辰",
+      "si": "巳",
+      "wu": "午",
+      "wei": "未",
+      "shen": "申",
+      "you": "酉",
+      "xu": "戌",
+      "hai": "亥"
+    },
+    "trine": {
+      "water": "水局",
+      "wood": "木局",
+      "fire": "火局",
+      "metal": "金局"
+    },
+    "animal": {
+      "rat": "子（ねずみ）",
+      "ox": "丑（うし）",
+      "tiger": "寅（とら）",
+      "rabbit": "卯（うさぎ）",
+      "dragon": "辰（たつ）",
+      "snake": "巳（へび）",
+      "horse": "午（うま）",
+      "goat": "未（ひつじ）",
+      "monkey": "申（さる）",
+      "rooster": "酉（とり）",
+      "dog": "戌（いぬ）",
+      "pig": "亥（いのしし）"
+    },
+    "sign": {
+      "aries": "牡羊座",
+      "taurus": "牡牛座",
+      "gemini": "双子座",
+      "cancer": "蟹座",
+      "leo": "獅子座",
+      "virgo": "乙女座",
+      "libra": "天秤座",
+      "scorpio": "蠍座",
+      "sagittarius": "射手座",
+      "capricorn": "山羊座",
+      "aquarius": "水瓶座",
+      "pisces": "魚座"
+    },
+    "stem": {
+      "wood": "木",
+      "fire": "火",
+      "earth": "土",
+      "metal": "金",
+      "water": "水"
+    },
+    "element": {
+      "fire": "火",
+      "earth": "土",
+      "air": "風",
+      "water": "水"
+    },
+    "period": {
+      "today": "今日の",
+      "tomorrow": "明日の",
+      "weekly": "今週の",
+      "monthly": "今月の"
+    }
+  },
+  "fortuneTpl": {
+    "animalSame": "今日の日辰の地支が{branch}で、この干支と同じです。同じ気が重なる比和の日なので、普段の性向がそのまま、少し濃く出ます。強みも癖も一緒に大きくなるため、うまくいっているやり方は押し進めつつ、過剰にならないかだけ見ておいてください。",
+    "animalSameBadge": "比和・同じ気",
+    "animalClash": "今日の日辰の地支{branch}は、この干支と正面からぶつかる冲です。凶の日という意味ではなく、振れ幅が大きくなる日です。移動・連絡・予定が予定どおりに進まないことがあるので余裕を持ち、感情の乗った決定は一日先送りすればおおむね整います。",
+    "animalClashBadge": "冲・{own}{day}冲",
+    "animalTrine": "今日の日辰の地支{branch}は、この干支と三合をなして{trine}をつくります。{a1}年・{a2}年と質が合う日なので、協力や頼みごとがよく通ります。ひとりで抱えてきた仕事を分けるのによい場です。",
+    "animalTrineBadge": "三合・{trine}",
+    "animalNeutral": "今日の日辰の地支は{branch}で、この干支と特別な合も冲もつくりません。外部の変数が少ないぶん、結果が自分の準備どおりに出る日です。普段先送りにしていたことを片づけるのに無難です。",
+    "animalNeutralBadge": "日辰 {branch}",
+    "zodiacSunHome": "今日、太陽は{sign}にとどまっています。自分の宮に太陽がある時期なので存在感と主導権が上がり、始めたことに力が乗ります。一年のうちで自分の話を切り出すのに最も良い区間です。",
+    "zodiacMoonHome": "今日、月が{sign}を通ります。月はおよそ二〜三日ごとに宮を移りますが、自分の宮に月が入った日は感情が鮮明になり、直感がよく当たります。心が傾くほうを信じてよい日です。",
+    "zodiacNeutral": "今日、太陽は{sun}にとどまり、月は{moon}を通ります。{sign}にとっては外の気が強く引っ張らない区間なので、流れに乗るより自分の計画どおりに押し進めるほうが結果が良くなります。",
+    "zodiacNeutralNoSun": "{sign}にとって今日は、外の気の介入が少ない日です。自分の計画どおりに動いてください。",
+    "zodiacSunHomeBadge": "太陽がとどまる座",
+    "zodiacMoonHomeBadge": "月がとどまる座",
+    "zodiacSunBadge": "太陽 {sun} 区間",
+    "zodiacSkyBadge": "今日の空",
+    "dailyNarrative": "{period}日辰は{ilchin}で、月は{moon}を通ります。以下の点数はこれらの値と{sign}の気質が出会う地点を計算した結果で、算出根拠もそのまま併記しています。",
+    "weeklyNarrative": "今週七日の日辰は{ganji}と続きます。{sign}にとってこの配置は、{up}日が気を後押しし、{down}日がぶつかる形です。同じ週でも干支・星座ごとにこの地図がまるで違うので、下の曜日別の表を基準に予定を組まれるとよいでしょう。",
+    "monthlyNarrative": "{year}年{month}月の月建は{monthGanji}です。月建は新暦1日ではなく節入日に変わるので、今月の気は{termText}の区間が導きます。以下の点数はこの月建と{sign}の関係を計算したものなので、月が変わると十二支・十二星座の配置が丸ごと変わります。",
+    "newMoonFact": "{date} 新月前後——新しく始めることに力が乗ります",
+    "fullMoonFact": "{date} 満月前後——結実と整理に向きます",
+    "zodiacElementBadge": "{sign}・{element}のエレメント区間",
+    "zodiacOtherBadge": "{sign}・別の宮"
   }
 }

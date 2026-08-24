@@ -328,6 +328,14 @@ jobs:
         if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:fortune-period-axis
 
+      # /fortune 의 회전 문장은 data-cd-trans 로 사전 템플릿을 가리키고, 변수 값이 `@키` 면
+      # 런타임이 그 값도 사전에서 풀어 넣는다. 키가 하나라도 없으면 그 자리만 조용히
+      # 한국어로 남는다 — 화면을 열어 보지 않으면 모르므로 여기서 막는다. 소스에서
+      # 키를 전수 발견하고 템플릿 슬롯과 넘기는 변수 이름이 맞는지도 본다.
+      - name: Verify fortune marker keys
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        run: npm run verify:fortune-marker-keys
+
       # 번들 1MB 제한과 문법 오류를 업로드 없이 잡는다(--dry-run 은 아무것도 올리지 않는다).
       - name: Build Worker bundle (dry run)
         if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
