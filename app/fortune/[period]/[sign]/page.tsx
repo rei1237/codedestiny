@@ -30,6 +30,38 @@ export function generateStaticParams() {
   );
 }
 
+/** 메타 설명 상한. 한국어 SERP 는 대략 이 길이에서 잘린다. */
+const DESCRIPTION_MAX = 155;
+
+/**
+ * sign 고유 문장을 앞세운 메타 설명을 만든다.
+ *
+ * 재료는 그날 그 sign 의 키워드와 총평이다. 둘 다 scripts/gen-daily.mjs 가 dateStr 과 sign 을
+ * 함께 시드로 넣어 풀에서 뽑으므로 sign 축과 날짜 축이 동시에 갈라진다.
+ *
+ * 🔴 relation.detail 을 쓰지 말 것. 그럴듯해 보이지만 kind 가 "neutral" 인 sign 이 다수라
+ *    ("특별한 합이나 충을 이루지 않는 날" 계열) 그 문장 자체가 또 하나의 공용 템플릿이다 —
+ *    2026-08-24 에 실제로 그렇게 바꿨다가 설명 근중복 쌍이 295 → 301 로 **늘었다**.
+ */
+function buildSignDescription(
+  vm: NonNullable<ReturnType<typeof buildSignViewModel>>,
+  nameKo: string,
+  periodTitle: string,
+): string {
+  const keyword = vm.entry.keyword?.kr?.trim();
+  const head = keyword
+    ? `${vm.rangeLabel} ${nameKo} ${periodTitle} 운세 — ${keyword}. `
+    : `${vm.rangeLabel} ${nameKo} ${periodTitle} 운세. `;
+  const tail = vm.entry.sections.overall?.kr?.trim()
+    || `총운 ${vm.score.overall}점, 애정운·재물운·건강운·직장운과 행운의 색 ${vm.entry.lucky.color_kr}까지 함께 봅니다.`;
+  const full = head + tail;
+  if (full.length <= DESCRIPTION_MAX) return full;
+  // 문장 경계에서 자른다 — 낱말 중간에서 끊기면 SERP 에서 읽히지 않는다.
+  const cut = full.slice(0, DESCRIPTION_MAX);
+  const lastStop = Math.max(cut.lastIndexOf(". "), cut.lastIndexOf("다. "), cut.lastIndexOf("요. "));
+  return lastStop > head.length ? cut.slice(0, lastStop + 1) : `${cut.trimEnd()}…`;
+}
+
 function seoText(periodParam: string, signParam: string) {
   if (!isFortunePeriodId(periodParam)) return null;
   const profile = getSignProfile(signParam);
@@ -50,10 +82,15 @@ function seoText(periodParam: string, signParam: string) {
     // (/saju·/manse·/today·/ziwei 실측 25~28자). 이 라우트만 44자에 브랜드까지 붙어
     // 한국어 SERP 폭을 넘겼고, 잘린 꼬리가 하필 "무료 별자리 운세" 였다.
     title: `${profile.nameKo} ${title} 운세 ${vm.titleDateLabel} | 무료 ${kindSearchLabel} 운세`,
-    description:
-      `${vm.rangeLabel} ${profile.nameKo} ${title} 운세. 총운 ${vm.score.overall}점, ` +
-      `애정운·재물운·건강운·직장운과 행운의 색 ${vm.entry.lucky.color_kr}, 행운의 숫자 ${vm.entry.lucky.number}까지. ` +
-      `${vm.facts[0]?.label} ${vm.facts[0]?.value} 기준으로 계산한 무료 운세이며 산출 근거를 함께 공개합니다.`,
+    // 🔴 설명은 이 sign 고유 문장으로 연다. 예전에는 총운 점수·행운의 색·행운의 숫자로
+    //    시작했는데, 그 셋은 같은 날 여러 sign 이 같은 값을 갖는 일이 흔하다. 그러면 sign
+    //    이름 하나만 다른 설명이 24개 깔린다 — 2026-08-24 실측: 색인 378개 중 설명이 70%
+    //    이상 닮은 쌍이 295개였고 그중 264쌍이 /fortune 이었다("총운 6점 … 행운의 색
+    //    아이보리" 가 양자리·천칭자리·궁수자리에 그대로 반복). GSC 「크롤링됨 – 현재 색인이
+    //    생성되지 않음」이 380쪽인 상태에서 이 모양은 그 판정을 그대로 부른다.
+    //    vm.relation.detail 은 그날 일진·달자리와 이 sign 의 관계를 서술한 문장이라
+    //    sign 마다 실제로 다르다(본문에도 같은 문장이 쓰인다).
+    description: buildSignDescription(vm, profile.nameKo, title),
     keywords: [
       `${profile.nameKo} 운세`,
       `${profile.nameKo} ${PERIOD_LABEL[periodParam]} 운세`,
