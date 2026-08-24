@@ -159,6 +159,19 @@ jobs:
       - name: Run the static UI guards the release runs
         run: npm run test:node
 
+      # 🔴 이것은 **fast 잡**이어야 한다. 사이트맵을 어긋나게 만드는 것은 라우트 추가만이
+      # 아니라 글 한 편, 공용 컴포넌트 한 줄이다(lastmod 서명이 소스 파일에서 나온다).
+      # build 잡에 두면 티어가 fast 로 잡히는 문구·콘텐츠 변경에서 깨어나지 않는데, 그게 정확히
+      # 지키려는 경로다. 빌드 산출물을 읽지 않고 소스와 추적본만 비교하므로 몇 초면 끝난다.
+      #
+      # 왜 필요한가 (2026-08-24 하루에 세 번): 라우트·콘텐츠를 바꾼 PR 이 사이트맵을 함께
+      # 갱신하지 않아 ①#1076 의 /ziwei/chart 가 추적본에서 빠진 채 머지돼 헤딩 가드가 그
+      # 라우트를 건너뛰었고 ②낡은 추적본으로 검증한 #1079 가 CI 에서 터졌으며 ③#1099 가
+      # lastmod 52개를 낡은 채로 남겼다. 기존 verify:sitemap 은 배포 워크플로에만 있어
+      # 전부 머지 뒤에야 알 수 있었다.
+      - name: Verify the tracked sitemap matches its sources
+        run: npm run verify:sitemap-drift
+
       # 🔴 이 두 가드는 **fast 잡**에 있어야 한다. 입력이 CSS·정적 셸·package.json 이라
       # build/critical 잡에 두면 `styles/mobile-lite.css` 한 줄 수정에는 깨어나지 않는데,
       # 그게 정확히 지키려는 경로다. 둘 다 node 내장 모듈만 쓰는 정적 파일 읽기라 1초 미만이다.

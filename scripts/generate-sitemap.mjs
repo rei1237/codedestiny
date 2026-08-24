@@ -1,4 +1,4 @@
-import { readdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { register } from "node:module";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
@@ -38,6 +38,10 @@ const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
 const today = new Date().toISOString().slice(0, 10);
+// --check 는 아무것도 쓰지 않고 "지금 다시 만들면 나올 결과" 를 추적본과 비교만 한다.
+// 라우트·콘텐츠를 바꾸고 사이트맵을 갱신하지 않은 PR 을 CI 에서 잡기 위한 모드다.
+const checkOnly = process.argv.includes("--check");
+const LEDGER_CHECK_LABEL = "config/sitemap-lastmod.json";
 // 확장자가 있는 경로는 normalizeSitemapPath 가 후행 슬래시를 붙이지 않아
 // noindexPathPrefixes(startsWith prefix + "/")로 걸러지지 않는다. 정확 일치로 제외한다.
 const excludedExactSitemapPaths = new Set([
@@ -716,7 +720,12 @@ async function main() {
   // 🔴 사이트맵을 쓰기 **전**에 원장을 확정한다. 여기서 던지는 검사(미분류 런타임 데이터 의존,
   // 풀리지 않는 로컬 import)가 통과 못 하면 서명이 부실하다는 뜻이므로, 그 상태의 사이트맵을
   // 디스크에 남기면 안 된다.
-  const ledger = lastmodLedger.save();
+  const ledger = lastmodLedger.save({ dryRun: checkOnly });
+
+  if (checkOnly) {
+    assertNoDrift(xml, ledger.serialized, sorted.length);
+    return;
+  }
 
   writeFileSync(sitemapRootPath, xml, "utf8");
   writeFileSync(sitemapPublicPath, xml, "utf8");
@@ -726,6 +735,72 @@ async function main() {
   console.log(
     `[sitemap] lastmod 원장 ${ledger.path}: ${ledger.count}개 (유지 ${kept} / 갱신 ${updated} / 이전 사이트맵에서 승계 ${seeded})`,
   );
+}
+
+/**
+ * 추적본이 "지금 다시 만들면 나올 것" 과 같은지 단언한다.
+ *
+ * fail-closed 세 방향:
+ *   ① 추적본 파일이 없으면 실패한다(검사할 게 없어서 통과하는 상태를 만들지 않는다).
+ *   ② URL 집합이 다르면 실패한다 — 색인 대상이 조용히 늘거나 줄어든 것이다.
+ *   ③ 바이트가 다르면 실패한다 — lastmod·priority 만 어긋난 경우까지 잡는다.
+ *
+ * 🔴 재생성은 결정적이다. lastmod 는 콘텐츠 서명이 그대로면 원장의 옛 날짜를 유지하므로
+ *    (scripts/lib/sitemap-lastmod.mjs:395) 날짜가 바뀌어도 결과가 흔들리지 않는다.
+ *    단 SITEMAP_USE_INSIGHTS_API=1 은 외부 응답에 따라 결과가 달라지므로 검사에서 뺀다.
+ */
+function assertNoDrift(xml, ledgerSerialized, urlCount) {
+  if (useInsightsApi) {
+    console.log("[sitemap:check] SKIP — SITEMAP_USE_INSIGHTS_API=1 은 외부 응답에 의존해 비교할 수 없다.");
+    return;
+  }
+
+  const targets = [
+    { label: "sitemap.xml", path: sitemapRootPath, expected: xml },
+    { label: "public/sitemap.xml", path: sitemapPublicPath, expected: xml },
+    { label: LEDGER_CHECK_LABEL, path: resolve(rootDir, LEDGER_CHECK_LABEL), expected: ledgerSerialized },
+  ];
+
+  const problems = [];
+  for (const target of targets) {
+    if (!existsSync(target.path)) {
+      problems.push(`- ${target.label}: 파일이 없다`);
+      continue;
+    }
+    const actual = readFileSync(target.path, "utf8");
+    if (actual === target.expected) continue;
+
+    if (target.label.endsWith(".xml")) {
+      const locsOf = (text) => new Set([...text.matchAll(/<loc>([^<]+)<\/loc>/g)].map((m) => m[1]));
+      const now = locsOf(target.expected);
+      const tracked = locsOf(actual);
+      const added = [...now].filter((u) => !tracked.has(u));
+      const removed = [...tracked].filter((u) => !now.has(u));
+      if (added.length || removed.length) {
+        problems.push(`- ${target.label}: URL 집합이 다르다 (추가 ${added.length} / 누락 ${removed.length})`);
+        added.slice(0, 8).forEach((u) => problems.push(`    + ${u}`));
+        removed.slice(0, 8).forEach((u) => problems.push(`    - ${u}`));
+      } else {
+        problems.push(`- ${target.label}: URL 집합은 같지만 lastmod·priority 가 다르다`);
+      }
+    } else {
+      problems.push(`- ${target.label}: 원장 내용이 다르다`);
+    }
+  }
+
+  if (problems.length === 0) {
+    console.log(`[sitemap:check] OK — 추적본이 재생성 결과와 일치한다 (URL ${urlCount}개)`);
+    return;
+  }
+
+  console.error("[sitemap:check] FAIL: 사이트맵이 소스와 어긋나 있다(드리프트).");
+  for (const line of problems) console.error(`  ${line}`);
+  console.error("");
+  console.error("  고치는 법: npm run sitemap:generate 를 돌리고 바뀐 파일을 같은 커밋에 담는다.");
+  console.error("  🔴 라우트를 색인으로 되돌리거나 글을 추가한 PR 이 이걸 빠뜨리면, 그 작업은");
+  console.error("     배포 산출물에는 반영돼도 추적본에는 없어서 다른 가드가 그 라우트를 건너뛴다");
+  console.error("     (2026-08-24 에 /ziwei/chart 가 그렇게 헤딩 검사에서 빠졌다).");
+  process.exit(1);
 }
 
 main();

@@ -408,7 +408,13 @@ export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath
     },
 
     /** 사이트맵에 실제로 실린 라우트만 남겨 원장을 다시 쓴다. */
-    save() {
+    /**
+     * 원장을 확정한다.
+     * @param {{ dryRun?: boolean }} [options] dryRun 이면 파일을 쓰지 않고 내용만 돌려준다 —
+     *   generate-sitemap 의 --check 모드가 작업 트리를 건드리지 않고 비교하기 위해 쓴다.
+     *   검사(미분류 런타임 데이터·풀리지 않는 import)는 dryRun 에서도 그대로 돈다.
+     */
+    save(options) {
       assertRuntimeDataModulesAreClassified();
 
       if (unresolvedImports.length > 0) {
@@ -431,8 +437,9 @@ export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath
           "다시 쓴다. 손으로 고치지 말고 npm run sitemap:generate 로 갱신할 것.",
         routes,
       };
-      writeFileSync(ledgerPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
-      return { path: LEDGER_REL_PATH, count: Object.keys(routes).length };
+      const serialized = `${JSON.stringify(payload, null, 2)}\n`;
+      if (!options?.dryRun) writeFileSync(ledgerPath, serialized, "utf8");
+      return { path: LEDGER_REL_PATH, count: Object.keys(routes).length, serialized };
     },
 
     summary() {
