@@ -2,11 +2,16 @@
 //
 // 배경: 이 서비스의 UI 는 12개 로케일인데 작명 엔진은 한국 전용이었다 — 프롬프트가 한국어로
 // 하드코딩되고 "한국 사회에서 자연스럽게", "대법원 인명용 한자", "현대 한국에서" 같은 한국 전용
-// 제약이 박혀 있었다. 영어 사용자가 결제해도 한국어 리포트로 한국 이름을 받았다.
+// 제약이 박혀 있었다. 영어 사용자가 결제해도 한국 이름과 한국 법 기준을 받았다.
 //
-// 🔴 프롬프트 지시문 자체는 한국어로 유지한다. 출력 언어만 지시한다.
+// 🔴 정정: **출력 언어는 원래부터 이미 처리되고 있었다.** worker/index.js 가 모든 라우트를
+//    runWithAiLocale 로 감싸고, gemini.js → llm-client 의 applyOutputLocale 이 지시문을
+//    systemPrompt 와 프롬프트 꼬리 양쪽에 넣는다. 한국어로 리포트가 나가던 것이 아니라,
+//    **한국 이름과 한국 법·전통이 나가던 것**이 문제였다. 이 파일이 고치는 것은 그 문화 축이다.
+//
+// 🔴 프롬프트 지시문 자체는 한국어로 유지한다.
 //    이유: ①한국어 원문 1,800줄을 4개 언어로 복제하면 팀이 검토할 수 없고 ②ko 프롬프트가
-//    바이트 단위로 보존되어 회귀가 원천 차단되며 ③모델은 교차 언어 지시를 문제없이 따른다.
+//    바이트 단위로 보존되어 회귀가 원천 차단되며 ③출력 언어는 위 파이프가 이미 강제한다.
 //
 // 🔴 로케일은 결제 정체성(inputHash)에 넣지 않는다. 넣으면 (a) 배포 전 결제·배포 후 생성
 //    사용자가 해시 불일치로 생성이 막히고 (b) 언어만 바꿔 재요청할 때 30,000원이 다시 청구된다.
@@ -22,32 +27,53 @@ import { analyzeSoundFlow, soundElementOf, soundFiveElementsList } from "./namin
 import { BLOCK_CLOSE, BLOCK_OPEN, NAME_CARD_BLOCK_CONTRACT } from "./naming-result-cards.js";
 import { AUSPICIOUS, HALF, INAUSPICIOUS, RADICAL_ORIGINAL_STROKES, suriPromptBlock } from "./naming-suri.js";
 import { ELEMENT_LABELS_KO, GENERATE_TO } from "./saju-yongshin-policy.js";
+// 🔴 AI 출력 언어는 이 레포에 단일 정본이 있다. 정규화도 지시문도 여기서 다시 만들지 않는다.
+import {
+  AI_LOCALE_LABEL,
+  AI_OUTPUT_FALLBACK,
+  AI_OUTPUT_LOCALES,
+  toAiLocale,
+} from "../../lib/i18n/ai-locale.js";
 
-/** 이 레포가 서빙하는 12개 로케일. 🔴 프로파일은 이 목록을 전부 덮어야 한다(가드가 검사). */
-export const NAMING_LOCALES = Object.freeze([
-  "ko", "en", "ja", "zh-CN", "zh-TW", "vi", "hi", "es", "fr", "de", "nl", "ms",
-]);
+/**
+ * 프로파일이 덮어야 하는 로케일.
+ * 🔴 목록을 여기서 다시 쓰지 않고 AI 출력 로케일 정본을 그대로 승계한다 — 두 목록이 갈라지면
+ *    새 로케일이 조용히 ko 프로파일로 떨어져 한국어 작명첩을 받는다. 가드가 동일성을 단언한다.
+ */
+export const NAMING_LOCALES = Object.freeze([...AI_OUTPUT_LOCALES]);
 
-export const NAMING_DEFAULT_LOCALE = "ko";
+export const NAMING_DEFAULT_LOCALE = AI_OUTPUT_FALLBACK;
 
-/** 라틴 프로파일이 로케일마다 갈아 끼우는 것 — 출력 언어와 사회 표기뿐이다. */
-const LATIN_LANGUAGES = Object.freeze({
-  en: { language: "영어(English)", society: "영어권 사회" },
-  vi: { language: "베트남어(Tiếng Việt)", society: "베트남 사회" },
-  hi: { language: "힌디어(हिन्दी)", society: "인도 사회" },
-  es: { language: "스페인어(Español)", society: "스페인어권 사회" },
-  fr: { language: "프랑스어(Français)", society: "프랑스어권 사회" },
-  de: { language: "독일어(Deutsch)", society: "독일어권 사회" },
-  nl: { language: "네덜란드어(Nederlands)", society: "네덜란드어권 사회" },
-  ms: { language: "말레이어(Bahasa Melayu)", society: "말레이시아 사회" },
+/** 라틴 프로파일이 로케일마다 갈아 끼우는 것 — 사회 표기뿐이다(언어 이름은 정본 라벨을 쓴다). */
+const LATIN_SOCIETIES = Object.freeze({
+  en: "영어권 사회",
+  vi: "베트남 사회",
+  hi: "인도 사회",
+  es: "스페인어권 사회",
+  fr: "프랑스어권 사회",
+  de: "독일어권 사회",
+  nl: "네덜란드어권 사회",
+  ms: "말레이시아 사회",
 });
 
-function outputLanguageBlock(language) {
-  return `\n🔴 **출력 언어: ${language}**
-아래 지시문은 한국어로 쓰여 있지만, **당신이 쓰는 작명첩 본문은 처음부터 끝까지 ${language}로 쓰세요.**
-장 제목(## 1. …)의 번호와 순서는 그대로 두되 제목 문구는 ${language}로 옮깁니다.
-사주·오행 용어는 ${language}의 통용 표기를 쓰고, 필요하면 한자 원어를 괄호로 병기하세요.
-한국어 문장을 그대로 남기지 마세요.
+/**
+ * 작명첩 고유의 출력 계약.
+ *
+ * 🔴 **출력 언어 지시는 여기서 하지 않는다.** 이 레포는 요청 스코프 앰비언트 파이프로 이미
+ *    전 라우트에 지시문을 넣는다: worker/index.js 의 runWithAiLocale → gemini.js 의
+ *    getAmbientAiLocale → llm-client 의 applyOutputLocale 이 systemPrompt 와 프롬프트 꼬리
+ *    **양쪽에** buildOutputLanguageDirective 를 붙인다. 여기서 또 붙이면 세 번 들어간다.
+ *    (이 사실을 모르고 한국어 지시 블록을 새로 만들었다가 걷어낸 자리다 — 정본은
+ *     "지시문을 한국어로 쓰지 말 것"까지 실측 근거와 함께 적어 두었다.)
+ *
+ * 남는 것은 언어가 바뀌어도 **고정이어야 하는 작명첩 구조 계약** 둘뿐이다.
+ */
+function promptContractBlock(locale) {
+  if (toAiLocale(locale) === AI_OUTPUT_FALLBACK) return "";
+  return `
+[NAMING BOOKLET CONTRACT — keep these fixed in every language]
+Keep the chapter numbering "## 1." … "## 8." exactly as given; translate only the chapter titles after the number.
+Keep the name-card block labels (후보/한자/뜻/보완오행/소리/수리/총평/최종/이유) in Korean exactly as given — the screen parses them.
 `;
 }
 
@@ -129,7 +155,7 @@ export function soundGuidanceForFamilyName(familyName) {
 const KO = {
   id: "ko",
   language: "한국어",
-  outputLanguageBlock: "",
+  promptContract: "",
   persona: "당신은 대한민국 최고의 작명 전문가입니다. 30년 이상 실무 경험을 쌓은 사주명리학자이자 성명학자로서, 수만 건의 작명과 개명을 해왔습니다.",
   society: "한국 사회",
   usesHanja: true,
@@ -175,8 +201,8 @@ ${suriPromptBlock()}
  * ------------------------------------------------------------------ */
 const JA = {
   id: "ja",
-  language: "일본어(日本語)",
-  outputLanguageBlock: outputLanguageBlock("일본어(日本語)"),
+  language: AI_LOCALE_LABEL.ja,
+  promptContract: promptContractBlock("ja"),
   persona: "당신은 일본 최고의 命名(なづけ) 전문가입니다. 30년 이상 실무 경험을 쌓은 四柱推命家이자 姓名判断家로서, 수만 건의 命名과 改名을 해왔습니다.",
   society: "일본 사회",
   usesHanja: true,
@@ -241,8 +267,8 @@ ${suriFortuneTable()}
 function zhProfile({ id, language, society, charStandard, phonetic, registration, cardExample, cardFinalExample }) {
   return {
     id,
-    language,
-    outputLanguageBlock: outputLanguageBlock(language),
+    language: AI_LOCALE_LABEL[id],
+    promptContract: promptContractBlock(id),
     persona: `당신은 중화권 최고의 起名 전문가입니다. 30년 이상 실무 경험을 쌓은 八字命理 전문가이자 姓名學 전문가로서, 수만 건의 起名과 改名을 해왔습니다.`,
     society,
     usesHanja: true,
@@ -331,11 +357,11 @@ const ZH_TW = zhProfile({
  *    오행은 버리지 않고 **이름의 어원·의미·음상**으로 옮겨 싣는다.
  * ------------------------------------------------------------------ */
 function latinProfile(locale) {
-  const { language, society } = LATIN_LANGUAGES[locale];
+  const society = LATIN_SOCIETIES[locale];
   return {
     id: locale,
-    language,
-    outputLanguageBlock: outputLanguageBlock(language),
+    language: AI_LOCALE_LABEL[locale],
+    promptContract: promptContractBlock(locale),
     persona: `당신은 사주명리(四柱命理)를 ${society}의 작명 관습에 접목해 온 작명 전문가입니다. 사주로 사람의 기운을 읽는 훈련과, 그 결론을 ${society}에서 실제로 통용되는 이름으로 옮기는 훈련을 함께 받았습니다.`,
     society,
     usesHanja: false,
@@ -406,17 +432,13 @@ const PROFILES = Object.freeze({
   ms: latinProfile("ms"),
 });
 
-/** 입력 로케일을 표준 표기로 접는다. `zh`·`zh_cn`·`ZH-Hans` 같은 변형이 실제로 들어온다. */
+/**
+ * 입력 로케일을 표준 표기로 접는다(`zh`·`zh_cn`·`ZH-Hans` 같은 변형이 실제로 들어온다).
+ * 🔴 정규화를 여기서 다시 구현하지 않는다 — 정본 toAiLocale 이 dictionary 의 normalizeLocale 을
+ *    거쳐 그 흡수를 이미 하고, 지원 밖은 AI_OUTPUT_FALLBACK(ko)으로 떨어뜨린다.
+ */
 export function normalizeNamingLocale(raw) {
-  const value = String(raw || "").trim().replace(/_/g, "-");
-  if (!value) return NAMING_DEFAULT_LOCALE;
-  const lower = value.toLowerCase();
-  if (lower === "zh" || lower === "zh-cn" || lower === "zh-hans" || lower.startsWith("zh-hans")) return "zh-CN";
-  if (lower === "zh-tw" || lower === "zh-hant" || lower === "zh-hk" || lower.startsWith("zh-hant")) return "zh-TW";
-  const base = lower.split("-")[0];
-  const match = NAMING_LOCALES.find((locale) => locale.toLowerCase() === lower)
-    || NAMING_LOCALES.find((locale) => locale.toLowerCase() === base);
-  return match || NAMING_DEFAULT_LOCALE;
+  return toAiLocale(raw);
 }
 
 /** 🔴 알 수 없는 로케일은 ko 로 떨어진다 — 조용히 영어로 새지 않게 하기 위해서다. */
