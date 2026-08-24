@@ -30,7 +30,7 @@ function centerName(center: string, locale: Locale): string {
 function planetName(planet: string, locale: Locale): string {
   const entry = PLANET_COPY[planet as keyof typeof PLANET_COPY];
   if (!entry) return planet;
-  return locale === "ko" ? entry.ko : entry.en;
+  return pick(entry, locale);
 }
 
 function layerName(layer: string, locale: Locale): string {
@@ -144,7 +144,7 @@ export default function DetailSheet({ chart, locale, selection, onClose }: Props
         const compositionLabel = complete.composition === "MIXED"
           ? `${pick(UI_TEXT.personality, locale)} + ${pick(UI_TEXT.design, locale)}`
           : layerName(complete.composition === "PERSONALITY_ONLY" ? "personality" : "design", locale);
-        rows.push({ label: locale === "ko" ? "구성" : "Composition", value: compositionLabel });
+        rows.push({ label: pick(UI_TEXT.composition, locale), value: compositionLabel });
       }
       listBlocks.push({
         heading: pick(UI_TEXT.gate, locale),

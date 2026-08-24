@@ -7,6 +7,7 @@
 //    확정값뿐이다.
 // 🔴 문구를 만들지 않는다 — 표지 텍스트도 플랜의 cover 에서 온다.
 
+import type { Locale as ViewerLocale } from "@/app/human-design/_copy";
 import { say } from "../_lib/copy";
 import type { ReportLocale, ReportPlan } from "../_lib/types";
 import styles from "../report.module.css";
@@ -14,8 +15,18 @@ import styles from "../report.module.css";
 type Props = {
   cover: ReportPlan["cover"];
   stats: ReportPlan["stats"];
-  locale: ReportLocale;
+  /** 🔴 화면 크롬의 언어(다섯). 본문 언어와 다른 축이다 — 본문은 bodyLocale/ReportLocale 을 받는다. */
+  locale: ViewerLocale;
   bodyLocale: ReportLocale;
+};
+
+/** 숫자 표기용 BCP-47 태그. 🔴 `locale === "en" ? "en-US" : "ko-KR"` 이던 자리 — 언어가 둘일 때만 맞았다. */
+const NUMBER_LOCALE: Record<ViewerLocale, string> = {
+  ko: "ko-KR",
+  en: "en-US",
+  ja: "ja-JP",
+  "zh-CN": "zh-CN",
+  "zh-TW": "zh-TW",
 };
 
 export default function ReportCover({ cover, stats, locale, bodyLocale }: Props) {
@@ -40,7 +51,7 @@ export default function ReportCover({ cover, stats, locale, bodyLocale }: Props)
         </div>
         <div className={styles.coverMetaRow}>
           <dt>{say("metaChars", locale)}</dt>
-          <dd>{stats.chars.toLocaleString(locale === "en" ? "en-US" : "ko-KR")}{say("charsUnit", locale)}</dd>
+          <dd>{stats.chars.toLocaleString(NUMBER_LOCALE[locale])}{say("charsUnit", locale)}</dd>
         </div>
         <div className={styles.coverMetaRow}>
           <dt>{say("metaLocale", locale)}</dt>

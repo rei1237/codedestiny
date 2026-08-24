@@ -2,6 +2,9 @@
 
 import { useEffect, useId, useRef, useState } from "react";
 import styles from "./analysis-basis.module.css";
+import { currentFortuneSharedCopy } from "./_lib/fortune-shared-copy";
+
+const COPY = currentFortuneSharedCopy();
 
 interface GlossaryTermProps {
   /** 화면에 보이는 말 (보통 근거 항목의 label) */
@@ -48,7 +51,7 @@ export default function GlossaryTerm({ children, hint, detail }: GlossaryTermPro
         className={styles.termButton}
         aria-expanded={open}
         aria-describedby={open ? popoverId : undefined}
-        aria-label={`${children} 용어 설명`}
+        aria-label={COPY.glossaryAria(String(children))}
         onClick={() => setOpen((previous) => !previous)}
         onMouseEnter={() => setOpen(true)}
         onMouseLeave={() => setOpen(false)}

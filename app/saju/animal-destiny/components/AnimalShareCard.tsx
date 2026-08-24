@@ -6,6 +6,12 @@ import type { FourPillarStageItem } from "../lib/twelveStages";
 import type { StageScore } from "../lib/stageScore";
 import AnimalSymbol, { type AnimalSymbolName } from "@/app/components/icons/AnimalSymbol";
 import CosmicSigil from "./CosmicSigil";
+import { getAnimalDestinyCopy } from "../_lib/copy";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
+
+// 🔴 값(animal.*)은 데이터 콘텐츠라 한국어가 정본이다 — 여기서 로케일화하는 것은 라벨뿐이다.
+//    언어 전환은 경로 이동이라 렌더 시점에 한 번 읽으면 충분하다.
+const COPY = getAnimalDestinyCopy(getCurrentLoadingLocale());
 
 interface Props {
   animal: AnimalDestinyData;
@@ -74,22 +80,22 @@ const AnimalShareCard = forwardRef<HTMLDivElement, Props>(function AnimalShareCa
         <div>
           <p className="text-[11px] font-black uppercase tracking-[0.2em] text-cyan-100/85">Code Destiny</p>
           <p className="mt-1 text-xs font-semibold text-cyan-100">Celestial Animal Destiny</p>
-          <p className="mt-1 text-[11px] font-semibold text-cyan-100/85">십이운성 동물점</p>
+          <p className="mt-1 text-[11px] font-semibold text-cyan-100/85">{COPY.shareCardKicker}</p>
 
           <div className="mt-4 rounded-2xl border border-cyan-100/30 bg-slate-950/22 p-3 text-center">
             <p className="text-5xl inline-flex items-center justify-center">
               <AnimalSymbol name={symbolName} size={54} className="text-cyan-50" />
             </p>
-            <h4 className="mt-1 text-xl font-black text-white">대표 동물: {animal.animal_ko}</h4>
-            <p className="text-sm font-semibold text-cyan-100">십이운성: {animal.saju_stage}</p>
+            <h4 className="mt-1 text-xl font-black text-white">{COPY.shareCardAnimalLabel}: {animal.animal_ko}</h4>
+            <p className="text-sm font-semibold text-cyan-100">{COPY.shareCardStageLabel}: {animal.saju_stage}</p>
             <p className="mt-2 text-xs font-medium leading-relaxed text-cyan-50/90">{oneLine}</p>
           </div>
 
           <div className="mt-3 rounded-2xl border border-cyan-100/30 bg-slate-950/24 p-3 text-xs text-cyan-50/92">
-            <p>{row("연주", pillars.year)}</p>
-            <p className="mt-1">{row("월주", pillars.month)}</p>
-            <p className="mt-1">{row("일주", pillars.day)}</p>
-            <p className="mt-1">{row("시주", pillars.hour)}</p>
+            <p>{row(COPY.shareCardPillarYear, pillars.year)}</p>
+            <p className="mt-1">{row(COPY.shareCardPillarMonth, pillars.month)}</p>
+            <p className="mt-1">{row(COPY.shareCardPillarDay, pillars.day)}</p>
+            <p className="mt-1">{row(COPY.shareCardPillarHour, pillars.hour)}</p>
           </div>
 
           <div className="mt-3 grid grid-cols-2 gap-2 rounded-2xl border border-cyan-100/30 bg-slate-950/24 p-3 text-xs font-bold text-cyan-50">
@@ -100,8 +106,8 @@ const AnimalShareCard = forwardRef<HTMLDivElement, Props>(function AnimalShareCa
           </div>
 
           <div className="mt-3 rounded-2xl border border-cyan-100/30 bg-slate-950/24 p-3 text-xs text-cyan-50">
-            <p><span className="font-bold">행운 컬러:</span> {animal.luck_essentials.color}</p>
-            <p className="mt-1"><span className="font-bold">행운 아이템:</span> {animal.luck_essentials.item}</p>
+            <p><span className="font-bold">{COPY.shareCardLuckColor}:</span> {animal.luck_essentials.color}</p>
+            <p className="mt-1"><span className="font-bold">{COPY.shareCardLuckItem}:</span> {animal.luck_essentials.item}</p>
           </div>
         </div>
 

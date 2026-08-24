@@ -8,17 +8,19 @@
 //    찍으면 빈 페이지가 되고, 읽을 수 없는 문서를 주느니 못 만든다고 말하는 편이 낫다.
 //    **웹 리포트는 그대로 남으므로 결과 유실이 아니다.**
 
+import type { Locale as ViewerLocale } from "@/app/human-design/_copy";
 import { useCallback, useState } from "react";
 
 import { say } from "../_lib/copy";
 import type { HdChart } from "../../_lib/types";
-import type { ReportLocale, ReportPlan } from "../_lib/types";
+import type { ReportPlan } from "../_lib/types";
 import styles from "../report.module.css";
 
 type Props = {
   plan: ReportPlan;
   chart: HdChart;
-  locale: ReportLocale;
+  /** 🔴 화면 크롬의 언어(다섯). 본문 언어와 다른 축이다 — 본문은 bodyLocale/ReportLocale 을 받는다. */
+  locale: ViewerLocale;
 };
 
 export default function ReportDownload({ plan, chart, locale }: Props) {

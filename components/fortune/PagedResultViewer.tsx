@@ -3,6 +3,11 @@
 import Image from "next/image";
 import { useCallback, useEffect, useRef, useState, type KeyboardEvent, type PointerEvent, type ReactNode } from "react";
 import styles from "./paged-result-viewer.module.css";
+import { currentFortuneSharedCopy } from "./_lib/fortune-shared-copy";
+
+// 🔴 이 껍데기가 한국어면, 본문이 일본어인 작명첩에서도 넘김 버튼만 한국어로 남는다.
+//    언어 전환은 경로 이동이라 렌더 시점에 한 번 읽으면 충분하다(_lib/fortune-shared-copy.ts 주석).
+const COPY = currentFortuneSharedCopy();
 
 export type ResultBreakImage = {
   src: string;
@@ -131,9 +136,9 @@ export default function PagedResultViewer({
   return (
     <div className={`${styles.viewer} ${className}`.trim()} data-export={expandForExport ? "true" : "false"}>
       {!expandForExport ? (
-        <div className={styles.modeToggle} role="group" aria-label="결과 보기 방식">
-          <button type="button" aria-pressed={!viewAll} onClick={() => onViewAllChange(false)}>한 장씩 보기</button>
-          <button type="button" aria-pressed={viewAll} onClick={() => onViewAllChange(true)}>전체 보기</button>
+        <div className={styles.modeToggle} role="group" aria-label={COPY.viewModeGroupAria}>
+          <button type="button" aria-pressed={!viewAll} onClick={() => onViewAllChange(false)}>{COPY.viewOneByOne}</button>
+          <button type="button" aria-pressed={viewAll} onClick={() => onViewAllChange(true)}>{COPY.viewAll}</button>
         </div>
       ) : null}
       <div
@@ -141,7 +146,7 @@ export default function PagedResultViewer({
         data-view={showAll ? "all" : "paged"}
         data-dir={direction}
         role="region"
-        aria-roledescription="페이지 넘김 보기"
+        aria-roledescription={COPY.pagerRoleDescription}
         aria-label={deckLabel}
         tabIndex={showAll ? -1 : 0}
         onKeyDown={handleKeyDown}
@@ -175,15 +180,15 @@ export default function PagedResultViewer({
         })}
       </div>
       {!showAll ? (
-        <nav className={styles.pageNav} aria-label={`${deckLabel} 페이지 이동`}>
-          <button type="button" aria-label="이전 장" disabled={current === 0} onClick={() => goTo(current - 1)}>
-            ← 이전 장
+        <nav className={styles.pageNav} aria-label={COPY.pageNavAria(deckLabel)}>
+          <button type="button" aria-label={COPY.prevPageAria} disabled={current === 0} onClick={() => goTo(current - 1)}>
+            {COPY.prevPageLabel}
           </button>
           <span className={styles.pageIndicator} aria-live="polite">
             {pages[current]?.label ? `${pages[current].label} · ` : ""}{current + 1} / {total}
           </span>
-          <button type="button" aria-label="다음 장" disabled={current === total - 1} onClick={() => goTo(current + 1)}>
-            다음 장 →
+          <button type="button" aria-label={COPY.nextPageAria} disabled={current === total - 1} onClick={() => goTo(current + 1)}>
+            {COPY.nextPageLabel}
           </button>
         </nav>
       ) : null}

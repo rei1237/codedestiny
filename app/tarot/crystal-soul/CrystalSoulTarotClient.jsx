@@ -715,7 +715,7 @@ function GemSelectScreen({ selectedGem, onSelect, copy, locale }) {
               onClick={() => onSelect(type)}
               aria-pressed={selected}
             >
-              <CrystalGem type={type} size="min(116px, 24vw)" compact state={selected ? "activated" : "idle"} />
+              <CrystalGem type={type} size="min(116px, 24vw)" compact state={selected ? "activated" : "idle"} ariaLabel={meta.name} />
               <span className="gem-card__name">{meta.name}</span>
               <span className="gem-card__keywords">{meta.keywords}</span>
             </button>
@@ -742,7 +742,7 @@ function GemRubScreen({ gemType, onBack, onRevealed, copy, locale }) {
       <div className="rub-stage" {...handlers}>
         <span className="rub-stage__aura" aria-hidden="true" />
         <span className="rub-stage__grain" aria-hidden="true" />
-        <CrystalGem type={gemType} size="min(280px, 70vw)" state={rubState} progress={progress} />
+        <CrystalGem type={gemType} size="min(280px, 70vw)" state={rubState} progress={progress} ariaLabel={meta.name} />
       </div>
       <div className="rub-progress" aria-label={formatCopy(copy.rubProgressLabel, { progress: Math.round(progress) })}>
         <span style={{ width: `${progress}%` }} />
@@ -772,7 +772,7 @@ function TarotReaderChat({ gemType, reading, loading, paying, error, onStart, co
   return (
     <section className="crystal-screen crystal-screen--reader">
       <div className="reader-gem-pin">
-        <CrystalGem type={gemType} size={58} compact state="revealed" />
+        <CrystalGem type={gemType} size={58} compact state="revealed" ariaLabel={meta.name} />
         <span>{meta.name}</span>
       </div>
 

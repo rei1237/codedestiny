@@ -22,6 +22,8 @@ import { buildHumanDesignReportPlan, buildReportCoverFacts } from "@/lib/human-d
 import { reportContents } from "@/lib/human-design/report-sections";
 
 import type { HdChart } from "../_lib/types";
+import { resolveHumanDesignLocale, type Locale as ViewerLocale } from "../_copy";
+import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import ReportCover from "./_components/ReportCover";
 import ReportDownload from "./_components/ReportDownload";
 import GenerationProgress from "./_components/GenerationProgress";
@@ -61,7 +63,29 @@ function readBirth(): BirthInput | null {
   }
 }
 
-export default function HumanDesignReportClient({ locale = "ko" }: { locale?: ReportLocale }) {
+/**
+ * 🔴 화면 크롬의 언어는 런타임에서 읽는다. 2026-08-25 까지 page.tsx 가 locale="ko" 를 넘겨서
+ *    이 화면의 영어 카피 41항목이 한 번도 렌더된 적이 없었다.
+ *    본문 언어(bodyLocale)는 **저장된 report.locale** 이라 이것과 무관하다 — 아래에서 따로 구한다.
+ */
+function useReportViewerLocale(override?: ViewerLocale): ViewerLocale {
+  const [locale, setLocale] = useState<ViewerLocale>(override || "ko");
+  useEffect(() => {
+    if (override) return;
+    const sync = () => setLocale(resolveHumanDesignLocale(getCurrentLoadingLocale()));
+    sync();
+    window.addEventListener("languagechange", sync);
+    document.addEventListener("cd:language-change", sync);
+    return () => {
+      window.removeEventListener("languagechange", sync);
+      document.removeEventListener("cd:language-change", sync);
+    };
+  }, [override]);
+  return locale;
+}
+
+export default function HumanDesignReportClient({ locale: localeOverride }: { locale?: ViewerLocale } = {}) {
+  const locale = useReportViewerLocale(localeOverride);
   const [birth, setBirth] = useState<BirthInput | null>(null);
   const [chart, setChart] = useState<HdChart | null>(null);
   const [inputHash, setInputHash] = useState("");
@@ -93,9 +117,15 @@ export default function HumanDesignReportClient({ locale = "ko" }: { locale?: Re
     return () => { cancelled = true; };
   }, [locale]);
 
+  // 🔴 본문 언어는 뷰어 언어를 따르지 않는다. 서버 생성 계약이 ko|en 이고, 무엇보다
+  //    이 값이 stableRequestId 에 들어가 **결제 요청 식별자**가 된다 — 바꾸면 지금까지
+  //    ":ko" 로 만들던 사용자가 새 id 를 받아 재청구 위험이 생긴다. 본문 언어를 뷰어에
+  //    맞추는 것은 서버 계약과 결제 검토가 함께 필요한 별도 작업이다.
+  const bodyRequestLocale: ReportLocale = "ko";
+
   const generation = useReportGeneration({
     inputHash,
-    locale,
+    locale: bodyRequestLocale,
     birth: birth as unknown as Record<string, unknown> | null,
     uiLocale: locale,
   });
