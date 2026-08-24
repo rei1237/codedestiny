@@ -734,7 +734,7 @@
     <xhtml:link rel="alternate" hreflang="en" href="https://code-destiny.com/en/insights/" />
     <xhtml:link rel="alternate" hreflang="en-US" href="https://code-destiny.com/en/insights/" />
     <xhtml:link rel="alternate" hreflang="x-default" href="https://code-destiny.com/insights/" />
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.90</priority>
   </url>
@@ -788,7 +788,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/astrology/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -812,7 +812,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/compatibility/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -824,7 +824,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/dream/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.82</priority>
   </url>
@@ -848,7 +848,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/fusion/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -968,7 +968,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/saju/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.84</priority>
   </url>
@@ -1148,7 +1148,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/sukuyo/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
@@ -1226,7 +1226,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/tarot/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -1304,7 +1304,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/vedic/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.83</priority>
   </url>
@@ -1381,6 +1381,18 @@
     <priority>0.74</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/insights/ziwei-jumen-star-speech-and-doubt/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/ziwei-lianzhen-star-principle-and-passion/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/insights/ziwei-life-palaces/</loc>
     <lastmod>2026-07-04</lastmod>
     <changefreq>monthly</changefreq>
@@ -1389,6 +1401,18 @@
   <url>
     <loc>https://code-destiny.com/insights/ziwei-minggong/</loc>
     <lastmod>2026-07-04</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/ziwei-pojun-star-change-and-rebuild/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/ziwei-qisha-star-decision-and-frontier/</loc>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -1411,6 +1435,12 @@
     <priority>0.74</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/insights/ziwei-tanlang-star-desire-and-talent/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/insights/ziwei-tiandong-meaning-and-palaces/</loc>
     <lastmod>2026-07-10</lastmod>
     <changefreq>monthly</changefreq>
@@ -1419,6 +1449,24 @@
   <url>
     <loc>https://code-destiny.com/insights/ziwei-tianfu-star-wealth-and-stability/</loc>
     <lastmod>2026-07-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/ziwei-tianji-star-strategy-and-change/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/ziwei-tianliang-star-guardian-and-principle/</loc>
+    <lastmod>2026-08-24</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.74</priority>
+  </url>
+  <url>
+    <loc>https://code-destiny.com/insights/ziwei-tianxiang-star-coordination-and-trust/</loc>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.74</priority>
   </url>
@@ -1448,7 +1496,7 @@
   </url>
   <url>
     <loc>https://code-destiny.com/insights/ziwei/</loc>
-    <lastmod>2026-08-23</lastmod>
+    <lastmod>2026-08-24</lastmod>
     <changefreq>weekly</changefreq>
     <priority>0.88</priority>
   </url>
