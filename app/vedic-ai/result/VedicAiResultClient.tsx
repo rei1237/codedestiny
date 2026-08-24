@@ -239,7 +239,7 @@ export default function VedicAiResultClient() {
             </Link>
             <Link href="/" className={styles.resultFooterSecondary}>
               <Home size={16} aria-hidden="true" />
-              <span>홈</span>
+              <span data-cd-trans="home.nav.home">홈</span>
             </Link>
           </div>
         </footer>
