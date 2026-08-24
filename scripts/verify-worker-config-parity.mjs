@@ -70,6 +70,12 @@ const MUST_DIFFER_KEYS = new Set([
   "vars.WORKERS_AI_ENABLED",
   "vars.GUARDIAN_FORTUNE_LLM_PROVIDER",
   "vars.ENABLE_FUSION_FORTUNE_MOCK_FLOW",
+  // 🔴 **한시 선언 — 프로덕션에도 켜는 PR 에서 이 줄을 지운다.** 카카오 phone_number 동의항목이
+  //    선택 동의로 승인됐지만 승인이 실제로 활성인지는 코드로 알 수 없고, 아니면 authorize 가
+  //    KOE205 로 거절돼 **카카오 로그인이 전면 중단**된다. 그래서 스테이징만 먼저 켜서 실측한다.
+  //    이 목록은 "선언했는데 값이 같으면" 도 실패시키므로(위 314행), 프로덕션을 켜는 순간 이
+  //    선언이 스스로 만료된다 — 카나리를 걷어내는 것을 잊어도 가드가 알려 준다.
+  "vars.SOCIAL_PHONE_SCOPE_PROVIDERS",
 ]);
 
 /** 스테이징에만 있어야 하는 키. 프로덕션에 나타나면 실패한다. */
