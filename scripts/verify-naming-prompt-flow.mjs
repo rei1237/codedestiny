@@ -127,12 +127,26 @@ for (const marker of ["locale: clean(raw.locale", "locale: raw.locale", "locale,
   assertNotIncludes("worker/routes/naming-prompt.js", route, marker);
 }
 {
-  // 손으로 적은 목록이 아니라 프로파일 소스에서 전수 발견해 미분류를 실패시킨다.
+  // 🔴 로케일 목록은 AI 출력 정본(lib/i18n/ai-locale.js)에서 읽는다. 프로파일이 목록을 따로
+  //    적으면 두 목록이 갈라져 새 로케일이 조용히 ko 작명첩을 받으므로, 승계 자체를 단언한다.
   const profileSrc = read("worker/lib/naming-locale-profile.js");
-  const listed = profileSrc.match(/export const NAMING_LOCALES = Object\.freeze\(\[([\s\S]*?)\]\)/);
-  assert(listed, "naming-locale-profile.js: NAMING_LOCALES 목록을 찾지 못했다");
-  const locales = [...listed[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]);
-  assert(locales.length >= 12, `naming-locale-profile.js: 로케일이 ${locales.length}개뿐이다(12개 이상이어야 한다)`);
+  assertIncludes(
+    "worker/lib/naming-locale-profile.js",
+    profileSrc,
+    "export const NAMING_LOCALES = Object.freeze([...AI_OUTPUT_LOCALES]);",
+  );
+  // 🔴 출력 언어 지시문은 여기서 만들지도, 다시 붙이지도 않는다. 요청 스코프 파이프
+  //    (worker/index.js runWithAiLocale → gemini.js → llm-client applyOutputLocale)가 이미
+  //    systemPrompt 와 프롬프트 꼬리 양쪽에 넣는다. 여기서 또 넣으면 같은 지시가 세 번 간다.
+  //    정본은 "지시문을 한국어로 쓰지 말 것"까지 실측 근거와 함께 적어 두었다.
+  //    (호출 형태로만 본다 — 왜 부르면 안 되는지 설명하는 주석에는 이 이름이 나와야 한다.)
+  assertNotIncludes("worker/lib/naming-locale-profile.js", profileSrc, "buildOutputLanguageDirective(");
+  assertNotIncludes("worker/lib/naming-locale-profile.js", profileSrc, "**출력 언어:");
+  assertIncludes("worker/lib/naming-locale-profile.js", profileSrc, "NAMING BOOKLET CONTRACT");
+  const canonical = read("lib/i18n/ai-locale.js").match(/export const AI_OUTPUT_LOCALES = \[([\s\S]*?)\]/);
+  assert(canonical, "lib/i18n/ai-locale.js: AI_OUTPUT_LOCALES 목록을 찾지 못했다");
+  const locales = [...canonical[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+  assert(locales.length >= 12, `ai-locale.js: 로케일이 ${locales.length}개뿐이다(12개 이상이어야 한다)`);
   const profileKeys = profileSrc.slice(profileSrc.indexOf("const PROFILES = Object.freeze({"));
   for (const locale of locales) {
     const key = /^[a-z]+$/.test(locale) ? `  ${locale}:` : `  "${locale}":`;

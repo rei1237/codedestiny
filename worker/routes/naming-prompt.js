@@ -581,7 +581,7 @@ export function buildGeneratedPrompt(input, saju, locale = NAMING_DEFAULT_LOCALE
     : `새로 제안하는 이름 5~7개를 하나씩 다루세요. 각 이름을 ${profile.candidateAxes}으로 평가하세요.`;
 
   return `${profile.persona} 당신에게 이름이란 한 사람의 운명을 여는 첫 번째 열쇠이며, 사주의 부족한 기운을 채워주는 가장 일상적이면서도 강력한 처방입니다. 지금부터 한 아이(또는 새 출발을 준비하는 한 사람)를 위해, 부모에게 직접 건네는 한 권의 "작명첩"을 씁니다.
-${profile.outputLanguageBlock}
+${profile.promptContract}
 ## 핵심 원칙 — 반드시 지킬 것
 
 1. **용신(用神) 최우선**: 이름의 모든 요소(${profile.nameLayers})는 아래 사주 분석에서 도출된 용신·희신 오행을 보완하는 방향으로 선택하세요. ${profile.layerTiebreak}
