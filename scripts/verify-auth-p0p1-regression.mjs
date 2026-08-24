@@ -80,7 +80,11 @@ assertContains(authShellSource, "disabled={Boolean(socialBusy) || busy}", "socia
 assertContains(authShellSource, "{busy ? copy.processing :", "busy label binding");
 
 // 가입은 필수 동의 없이 진행되지 않는다.
-assertContains(authShellSource, "!privacy || !terms || !age", "signup required-consent guard");
+// 🔴 만 14세 확인은 2026-08-25 에 체크박스에서 **생년**으로 옮겼다 — 체크박스는 눌러서 지나가는
+// 것이라 미만 연령을 실제로 걸러내지 못했다. 그래서 동의 가드에서 age 가 빠지고, 연령은 아래
+// 별도 가드가 지킨다(둘을 한 줄에 다시 합치면 그 구분이 사라진다).
+assertContains(authShellSource, "!privacy || !terms", "signup required-consent guard");
+assertContains(authShellSource, "needsBirthYear && !isBirthYearOk(birthYear)", "signup age guard");
 
 /* 🔴 2026-08-15 "로그아웃 → 재로그인 → 즉시 튕김" 회귀 가드 (P0-3·P0-4a).
    셋 다 되살아나기 쉬운 형태다 — 각각 "세션 정리를 더 확실히 한다"처럼 보이기 때문이다. */
