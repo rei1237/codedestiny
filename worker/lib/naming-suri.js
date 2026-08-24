@@ -82,4 +82,4 @@ ${RADICAL_ORIGINAL_STROKES.map(([shape, origin]) => `- ${shape} → ${origin}`).
 **획수를 확신할 수 없는 한자는 추정치를 쓰지 말고 "획수 검증 필요"로 표시하세요.**`;
 }
 
-export { AUSPICIOUS, HALF, INAUSPICIOUS, DIGIT_ELEMENT };
+export { AUSPICIOUS, HALF, INAUSPICIOUS, DIGIT_ELEMENT, RADICAL_ORIGINAL_STROKES };

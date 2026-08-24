@@ -9,10 +9,9 @@ import { findMoonstoneSpendEvidence } from "../lib/moonstone-spend-proof.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { restoreMonthlyCreditLot } from "../lib/monthly-credit-store.js";
-import { NAME_CARD_BLOCK_CONTRACT, parseNamingResultCards } from "../lib/naming-result-cards.js";
-import { analyzeSoundFlow, soundElementOf, soundFiveElementsList } from "../lib/naming-sound-elements.js";
-import { suriPromptBlock } from "../lib/naming-suri.js";
-import { ELEMENT_LABELS_KO, GENERATE_TO, labelElements, resolveNamingYongshin } from "../lib/saju-yongshin-policy.js";
+import { parseNamingResultCards } from "../lib/naming-result-cards.js";
+import { NAMING_DEFAULT_LOCALE, resolveNamingLocaleProfile } from "../lib/naming-locale-profile.js";
+import { labelElements, resolveNamingYongshin } from "../lib/saju-yongshin-policy.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
 
 const PRODUCT_TYPE = "naming_prompt";
@@ -545,28 +544,10 @@ function buildPreferenceContext(input) {
   return parts.length ? parts.join(" / ") : "미입력";
 }
 
-/**
- * 성씨의 소리오행과, 그 뒤에 붙었을 때 상생이 되는 오행을 실제로 계산해 프롬프트에 넣는다.
- * 표만 주고 "상생이 되게 하라"고 하면 모델이 성씨 초성을 잘못 읽는 경우가 있다.
- */
-function soundGuidanceForFamilyName(familyName) {
-  const syllables = Array.from(clean(familyName, 10)).filter((char) => /^[가-힣]$/.test(char));
-  if (!syllables.length) return "";
-  const lastElement = soundElementOf(syllables[syllables.length - 1]);
-  if (!lastElement) return "";
-  const flow = analyzeSoundFlow(syllables.join(""));
-  const chain = syllables.length > 1 && flow.elements.every(Boolean)
-    ? ` (성씨 자체 흐름 ${flow.elements.map((key) => ELEMENT_LABELS_KO[key] || key).join("→")})`
-    : "";
-  // 상생은 두 방향 모두 성립한다: 성씨가 생하는 오행, 성씨를 생하는 오행.
-  const generatedBy = Object.keys(GENERATE_TO).find((key) => GENERATE_TO[key] === lastElement);
-  const friendly = [GENERATE_TO[lastElement], generatedBy]
-    .filter(Boolean)
-    .map((key) => ELEMENT_LABELS_KO[key] || key);
-  return `\n**이 성씨의 소리오행은 ${ELEMENT_LABELS_KO[lastElement]}입니다${chain}.** 이름 첫 글자의 초성 오행을 ${friendly.join(" 또는 ")}로 두면 성씨와 상생으로 이어집니다. 다른 오행을 쓸 때는 왜 그 편이 나은지(용신 보완이 더 급한 경우 등) 근거를 밝히세요.`;
-}
-
-function buildGeneratedPrompt(input, saju) {
+// 🔴 테스트 전용 export 가 아니다 — ko 프롬프트가 바뀌지 않았음을 골든 스냅샷으로 증명하려면
+//    실제로 렌더해 봐야 한다. 정적 grep 으로는 조립 결과가 같은지 알 수 없다.
+export function buildGeneratedPrompt(input, saju, locale = NAMING_DEFAULT_LOCALE) {
+  const profile = resolveNamingLocaleProfile(locale);
   const hasSeedNames = Boolean(input.currentName || input.desiredNames.length || input.desiredSyllables.length);
   const preferenceContext = buildPreferenceContext(input);
   const calendarLabel = input.calendarType === "lunar" || input.calendarType === "lunar_leap" ? "음력" : "양력";
@@ -574,14 +555,16 @@ function buildGeneratedPrompt(input, saju) {
   const genderKey = clean(input.gender, 20).toUpperCase();
 
   const genderNote = genderKey === "M" || genderKey === "F"
-    ? `2. **성별 어울림 우선**: 이 아이는 ${genderLabel}입니다. 모든 추천 이름·한자·소리는 한국 사회에서 ${genderLabel}에게 자연스럽게 어울리는 것이어야 합니다. 사용자가 입력한 분위기·이미지 선호가 성별과 충돌하면 성별 어울림을 우선하고 왜 그렇게 조정했는지 설명하세요. 특정 성별에 강하게 치우친 관습적 한자·어감(예: 여성 전용 한자를 남아에게, 남성 전용 한자를 여아에게)은 배제하세요.`
+    ? `2. **성별 어울림 우선**: 이 아이는 ${genderLabel}입니다. 모든 ${profile.genderScope}는 ${profile.society}에서 ${genderLabel}에게 자연스럽게 어울리는 것이어야 합니다. 사용자가 입력한 분위기·이미지 선호가 성별과 충돌하면 성별 어울림을 우선하고 왜 그렇게 조정했는지 설명하세요. ${profile.genderAvoid}`
     : "2. **성별 어울림 우선**: 성별이 기타/미지정으로 입력되었습니다. 특정 성별에 강하게 치우치지 않는 이름을 우선 고려하되, 사용자가 입력한 분위기·이미지 선호를 최대한 반영하세요.";
 
   const timeNote = input.birthTimeUnknown
     ? "\n9. **출생시간 미상**: 시주(時柱)가 확정되지 않았으므로, 시주에 크게 의존하는 판단(시주 천간의 통근 여부 등)은 \"시간 확인 시 재검토 권장\"으로 유보하고, 년·월·일주 기반 분석은 그대로 진행하세요."
     : "";
   // 번호 없는 bullet 로 붙이면 위 원칙 목록의 번호 매김이 끊긴다 — 원칙 하나로 번호를 이어 붙인다.
-  const hanjaNote = input.desiredNames.some((item) => item.hangul && item.hanjaCandidates.length === 0) || (input.currentName && !input.useHanja)
+  // 🔴 획수 수리를 안 쓰는 문화권(라틴 계열)에서는 이 원칙 자체가 성립하지 않는다.
+  const hanjaNote = profile.usesStrokeNumerology
+    && (input.desiredNames.some((item) => item.hangul && item.hanjaCandidates.length === 0) || (input.currentName && !input.useHanja))
     ? "\n11. **한글만 입력된 후보**: 한자 획수와 수리 풀이는 한자 조합이 확정된 뒤에 최종 판단하고, 그 전 단계에서는 소리오행과 어감 위주로 평가하세요."
     : "";
   // 사주 계산이 실패한 2차 폴백에서는 명식 자리에 "계산 실패" 문자열이 들어간다. 그대로 두면
@@ -594,19 +577,19 @@ function buildGeneratedPrompt(input, saju) {
     : "\n10. **신규 제안 모드**: 사용자가 후보 이름을 제시하지 않았으므로, 아래 사주 분석과 선호를 바탕으로 최적의 이름 5~7개를 새로 제안하세요.";
 
   const candidateChapterNote = hasSeedNames
-    ? "사용자가 제시한 후보 이름을 먼저 다루고, 이어서 새로 제안하는 이름을 다루세요. 각 이름을 사주 보완도(용신·희신 반영), 소리오행 흐름, 한자 의미·자원오행, 수리(원형이정 4격) 길흉, 현대적 사용성(어감·놀림 소지)의 다섯 축으로 평가하세요."
-    : "새로 제안하는 이름 5~7개를 하나씩 다루세요. 각 이름을 사주 보완도(용신·희신 반영), 소리오행 흐름, 한자 의미·자원오행, 수리(원형이정 4격) 길흉, 현대적 사용성(어감·놀림 소지)의 다섯 축으로 평가하세요.";
+    ? `사용자가 제시한 후보 이름을 먼저 다루고, 이어서 새로 제안하는 이름을 다루세요. 각 이름을 ${profile.candidateAxes}으로 평가하세요.`
+    : `새로 제안하는 이름 5~7개를 하나씩 다루세요. 각 이름을 ${profile.candidateAxes}으로 평가하세요.`;
 
-  return `당신은 대한민국 최고의 작명 전문가입니다. 30년 이상 실무 경험을 쌓은 사주명리학자이자 성명학자로서, 수만 건의 작명과 개명을 해왔습니다. 당신에게 이름이란 한 사람의 운명을 여는 첫 번째 열쇠이며, 사주의 부족한 기운을 채워주는 가장 일상적이면서도 강력한 처방입니다. 지금부터 한 아이(또는 새 출발을 준비하는 한 사람)를 위해, 부모에게 직접 건네는 한 권의 "작명첩"을 씁니다.
-
+  return `${profile.persona} 당신에게 이름이란 한 사람의 운명을 여는 첫 번째 열쇠이며, 사주의 부족한 기운을 채워주는 가장 일상적이면서도 강력한 처방입니다. 지금부터 한 아이(또는 새 출발을 준비하는 한 사람)를 위해, 부모에게 직접 건네는 한 권의 "작명첩"을 씁니다.
+${profile.outputLanguageBlock}
 ## 핵심 원칙 — 반드시 지킬 것
 
-1. **용신(用神) 최우선**: 이름의 모든 요소(한자의 자원오행, 소리오행, 수리)는 아래 사주 분석에서 도출된 용신·희신 오행을 보완하는 방향으로 선택하세요. 수리(획수)만 좋고 사주에 맞지 않는 이름은 낮게 평가하세요.
+1. **용신(用神) 최우선**: 이름의 모든 요소(${profile.nameLayers})는 아래 사주 분석에서 도출된 용신·희신 오행을 보완하는 방향으로 선택하세요. ${profile.layerTiebreak}
 ${genderNote}
 3. **용신 판단은 종합적으로**: 월령(계절)·일간 강약·신강/신약·조후·통근·투간을 모두 고려해 용신을 확인하세요. 아래 제공된 용신 후보를 검증하되, 판단이 다르다면 근거와 함께 수정하세요.
-4. **인명용 한자만 사용**: 대법원 인명용 한자에 없는 글자는 후보에서 배제하고, 확실하지 않은 한자는 "인명용 확인 필요"로 표기하세요.
-5. **전통 + 현대 균형**: 한자의 뜻과 오행이 좋아도 현대 한국에서 부르기 어색하거나, 놀림 소지가 있거나, 발음이 어려운 이름은 피하세요.
-6. **불확실하면 단정하지 마세요**: 획수 계산이 불확실한 한자, 오행 배속이 논쟁적인 글자는 "검증 필요"로 명시하세요.
+${profile.legalCharRule}
+${profile.modernBalanceRule}
+${profile.uncertaintyRule}
 7. **후보를 무조건 부정하지 마세요**: 사용자가 제시한 후보는 정성적으로 평가하되, 문제가 있으면 구체적인 대안과 함께 설명하세요.
 8. **사람의 말로 쓰세요**: "오행 균형이 양호합니다" 같은 기계적 요약이 아니라, 작명가가 부모 앞에서 직접 설명하듯 따뜻한 존댓말로, 단정할 것은 단정하고 권할 것은 분명히 권하세요. **마크다운 표(|)는 절대 쓰지 마세요** — 모든 비교는 소제목과 목록, 문장으로 풀어 쓰세요.${timeNote}${seedNote}${hanjaNote}${sajuFailureNote}
 
@@ -667,20 +650,9 @@ ${genderNote}
 
 ---
 
-## [한국 작명 기준]
+${profile.criteriaHeading}
 
-### A. 소리오행 (초성 기준)
-${soundFiveElementsList()}
-성씨와 이름 각 글자의 초성 오행 흐름이 상생(相生) 관계가 되도록 배치하세요. 상생은 木→火→土→金→水→木 순환이며, 서로 극(剋)하는 배치(木剋土·土剋水·水剋火·火剋金·金剋木)는 피합니다.${soundGuidanceForFamilyName(input.familyName)}
-
-${suriPromptBlock()}
-
-### C. 자원오행 (한자 뜻·부수)
-한자의 부수·의미·상징에서 비롯되는 오행입니다. 사주 용신·희신 오행과 일치하는 한자를 최우선으로 선택하세요.${input.useHanja ? "" : "\n> 사용자가 한글 이름 중심을 원합니다. 한자는 참고용으로 제시하되 한글 소리오행과 수리 분석에 비중을 두세요."}
-
-### D. 불용문자·부정 의미 검사
-- 인명용 한자 여부, 부정 의미, 불용문자 가능성, 획수 데이터 유무를 확인하세요. 확인할 수 없는 한자는 단정하지 말고 "검증 필요"로 표시하세요.
-- 동음이의어로 부정 뜻이 연상되는 조합을 피하세요.
+${profile.criteriaBody(input)}
 
 ---
 
@@ -712,30 +684,26 @@ ${desiredNamesMarkdown(input.desiredNames)}
 (명식·오행 분포·신강약·조후를 풀고, 위 용신/기신 후보를 검증한 결과를 동의/수정 근거와 함께. 목록 활용.)
 
 ## 3. 이 아이의 작명 원칙
-(이 사주에 맞춘 구체적 기준 — 담을 오행과 피할 오행, 소리 흐름 방향, 수리 우선순위, 성별·선호 반영 방침.)
+(이 사주에 맞춘 구체적 기준 — 담을 오행과 피할 오행, ${profile.principleAxes}, 성별·선호 반영 방침.)
 
 ## 4. 이름 후보 상세
 (${candidateChapterNote}
-각 이름은 "### 이름(漢字)" 소제목으로 시작하고, 아래 항목을 목록으로 짚은 뒤 종합평을 문장으로 쓰세요:
-- 뜻: 각 글자의 훈음과 이름 전체의 의미
-- 자원오행: 사주 보완 관계
-- 소리오행: 성씨부터의 초성 흐름과 상생 여부
-- 수리: 원격·형격·이격·정격 수와 길흉
-- 이름감: 현대적 어감, 부르기 좋은지, 유의점)
+각 이름은 ${profile.candidateHeading} 소제목으로 시작하고, 아래 항목을 목록으로 짚은 뒤 종합평을 문장으로 쓰세요:
+${profile.candidateItems})
 
 ## 5. 세 이름을 나란히 놓고
 (TOP 3를 골라 서로 비교. 어떤 아이로 자라길 바라는지에 따라 어느 이름이 맞는지, 각각의 결이 어떻게 다른지 문장으로.)
 
 ## 6. 최종 추천
-(최종 1개를 확정하고, 작명가가 직접 말하듯 확신 있게. 좋은 예: "준서(俊瑞)를 추천합니다. 사주에 부족한 金 기운을 '준(俊)'의 자원오행이 채워주고, 소리오행도 土→金으로 상생합니다. '뛰어날 준, 상서로울 서' — 빼어나면서도 복된 기운을 가진 이름입니다." 나쁜 예: "오행 균형이 좋고 수리가 길해서 추천합니다.")
+(최종 1개를 확정하고, 작명가가 직접 말하듯 확신 있게. 좋은 예: ${profile.finalExample} 나쁜 예: "오행 균형이 좋고 수리가 길해서 추천합니다.")
 
 ## 7. 피해야 할 이름
-(이 사주에서 특히 피할 오행·발음·한자 패턴과 그 이유. 실제 예시 이름 두어 개와 함께.)
+(이 사주에서 특히 피할 ${profile.avoidAxes}과 그 이유. 실제 예시 이름 두어 개와 함께.)
 
 ## 8. 이름을 올리기 전에
-(출생신고·개명 절차에서 확인할 것 — 대법원 인명용 한자 조회 방법, 가족관계등록부 표기, 한자 확정 시 유의점 — 현실 조언 한두 문단.)
+${profile.registrationChapter}
 
-${NAME_CARD_BLOCK_CONTRACT}`;
+${profile.cardBlockContract}`;
 }
 
 function buildCheckoutPayload(inputHash, sajuEvidenceHash = "") {
@@ -1658,7 +1626,10 @@ async function handleGenerate(request, env, ctx = null) {
   }
 
   const sajuSnapshot = buildSajuContext(input, sajuEvidence.evidence, sajuEvidence.evidenceHash);
-  const generatedPrompt = buildGeneratedPrompt(input, sajuSnapshot);
+  // 🔴 로케일은 `input` 밖에서 읽는다 — `input` 은 통째로 inputHash 가 되므로 여기에 넣으면
+  //    (a) 배포 전 결제·배포 후 생성 사용자가 해시 불일치로 생성이 막히고
+  //    (b) 언어만 바꿔 재요청할 때 같은 리딩에 30,000원이 다시 청구된다.
+  const generatedPrompt = buildGeneratedPrompt(input, sajuSnapshot, body.locale);
   const claimedAt = new Date();
 
   const claim = await beginNamingGeneration(env, auth, access, inputHash, input, sajuSnapshot, generatedPrompt, claimedAt);

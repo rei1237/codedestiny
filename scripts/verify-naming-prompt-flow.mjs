@@ -118,6 +118,35 @@ assertIncludes(
   "return { evidence: null, evidenceHash: \"\", baseInputHash: await buildInputHash(input) };",
 );
 
+// ---- 4b. 로케일별 작명 문화 분기 ----
+// 🔴 로케일은 프롬프트 조립에만 쓰고 inputHash 에는 절대 넣지 않는다. 넣으면
+//    (a) 배포 전 결제·배포 후 생성 사용자가 해시 불일치로 막히고
+//    (b) 언어만 바꿔 재요청할 때 같은 리딩에 30,000원이 다시 청구된다.
+assertIncludes("worker/routes/naming-prompt.js", route, "buildGeneratedPrompt(input, sajuSnapshot, body.locale)");
+for (const marker of ["locale: clean(raw.locale", "locale: raw.locale", "locale,\n    year:"]) {
+  assertNotIncludes("worker/routes/naming-prompt.js", route, marker);
+}
+{
+  // 손으로 적은 목록이 아니라 프로파일 소스에서 전수 발견해 미분류를 실패시킨다.
+  const profileSrc = read("worker/lib/naming-locale-profile.js");
+  const listed = profileSrc.match(/export const NAMING_LOCALES = Object\.freeze\(\[([\s\S]*?)\]\)/);
+  assert(listed, "naming-locale-profile.js: NAMING_LOCALES 목록을 찾지 못했다");
+  const locales = [...listed[1].matchAll(/"([^"]+)"/g)].map((match) => match[1]);
+  assert(locales.length >= 12, `naming-locale-profile.js: 로케일이 ${locales.length}개뿐이다(12개 이상이어야 한다)`);
+  const profileKeys = profileSrc.slice(profileSrc.indexOf("const PROFILES = Object.freeze({"));
+  for (const locale of locales) {
+    const key = /^[a-z]+$/.test(locale) ? `  ${locale}:` : `  "${locale}":`;
+    assert(profileKeys.includes(key), `naming-locale-profile.js: ${locale} 프로파일이 없다 — 조용히 ko 로 떨어진다`);
+  }
+  // 카드 블록 라벨은 파서의 키다. 번역하지 말라는 지시가 빠지면 비-ko 이름 카드가 사라진다.
+  assertIncludes("worker/lib/naming-locale-profile.js", profileSrc, "한국어 그대로 두세요");
+  // 골든 스냅샷이 있어야 ko 프롬프트 회귀를 잡을 수 있다.
+  assert(
+    fs.existsSync(rel("__tests__/worker/__fixtures__/naming-prompt.ko.golden.txt")),
+    "ko 프롬프트 골든 스냅샷이 없다 — 로케일 분기가 ko 를 바꿔도 아무도 모른다",
+  );
+}
+
 // ---- 5. worker/index.js: AI 라우트 보안 래퍼 적용 확인 ----
 const workerIndex = read("worker/index.js");
 assertIncludes("worker/index.js", workerIndex, 'runAiRouteWithSecurity(request, env, "naming-prompt", handleNamingPromptRoutes, ctx)');
@@ -168,8 +197,13 @@ for (const marker of ["accessType: access.accessType", "accessMethod: access.acc
   assertIncludes("app/naming-ai/NamingAiClient.tsx", formClient, marker);
 }
 // 워커 쪽 방어 — Payment 조회 404는 즉시 던지지 말고 이용권/월정석 분기로 폴백해야 한다.
-for (const marker of ["pendingPaymentMiss", "resolveNamingYongshin", "suriPromptBlock()", "soundGuidanceForFamilyName"]) {
+for (const marker of ["pendingPaymentMiss", "resolveNamingYongshin"]) {
   assertIncludes("worker/routes/naming-prompt.js", route, marker);
+}
+// 소리오행·수리 블록은 로케일 분기 도입 때 프로파일 모듈로 옮겼다. 라우트가 아니라
+// 거기 있는지 보되, ko 프로파일이 여전히 두 블록을 **호출**하는지까지 확인한다.
+for (const marker of ["suriPromptBlock()", "soundGuidanceForFamilyName(input.familyName)", "soundFiveElementsList()"]) {
+  assertIncludes("worker/lib/naming-locale-profile.js", read("worker/lib/naming-locale-profile.js"), marker);
 }
 // 🔴 회당 결제 증빙은 canAccessPaidFeature 보다 **먼저** 확인해야 한다.
 // canAccessPaidFeature 는 지속 엔티틀먼트(이용권·영구해금)만 판정하고 회당 결제(월정석·코인 차감)에는
@@ -329,12 +363,13 @@ assert(
 
 // ---- 9. 작명첩 8장 프롬프트 계약 + 카드 블록 배선 (정적) ----
 for (const marker of [
-  'import { NAME_CARD_BLOCK_CONTRACT, parseNamingResultCards } from "../lib/naming-result-cards.js";',
+  'import { parseNamingResultCards } from "../lib/naming-result-cards.js";',
   'const RESULT_VERSION = "naming-result-v20260712";',
   "## 1. 작명가의 총평",
   "## 4. 이름 후보 상세",
   "## 8. 이름을 올리기 전에",
-  "${NAME_CARD_BLOCK_CONTRACT}",
+  // 카드 계약문은 로케일마다 갈리므로 프로파일에서 온다. ko 는 기존 상수를 그대로 재수출한다.
+  "${profile.cardBlockContract}",
   "parseNamingResultCards(generated.text)",
   "nameCards: parsed.cards",
   "finalPick: parsed.finalPick",
