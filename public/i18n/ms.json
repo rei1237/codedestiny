@@ -2024,19 +2024,19 @@
       "packages": {
         "standard": {
           "name": "Madu Standard 30 Hari",
-          "desc": "30 hari · Menampilkan sehingga 3,000 KRW · 3 profil"
+          "desc": "30 hari · Kandungan sehingga KRW 5,000 · Sehingga KRW 30,000 sebulan · Sehingga 3 profil"
         },
         "premium": {
           "name": "Madu Premium 30 Hari",
-          "desc": "30 hari · Menampilkan sehingga 5,000 KRW · 7 profil"
+          "desc": "30 hari · Kandungan sehingga KRW 10,000 · Sehingga KRW 100,000 sebulan · Sehingga 7 profil"
         },
         "vvip": {
           "name": "Balang Madu VVIP 30 Hari",
-          "desc": "30 hari · Menampilkan sehingga 10,000 KRW · 15 profil"
+          "desc": "30 hari · Kandungan sehingga KRW 20,000 · Sehingga KRW 200,000 sebulan · Sehingga 15 profil"
         },
         "family": {
           "name": "Kod Destiny Keluarga 30 Hari",
-          "desc": "30 hari · Tanpa had di bawah KRW 30,000 · 10 perundingan pakar · Profil tanpa had"
+          "desc": "30 hari · Semua kandungan yang dilindungi pas · Sehingga KRW 500,000 sebulan · Profil tanpa had"
         }
       },
       "monthlyStatusChecking": "Menyemak baki dan status Pas.",

@@ -2024,19 +2024,19 @@
       "packages": {
         "standard": {
           "name": "Miel Estándar 30 Días",
-          "desc": "30 días · Funciones de hasta 3000 KRW · 3 perfiles"
+          "desc": "30 días · Contenido de hasta 5.000 KRW · Hasta 30.000 KRW al mes · Hasta 3 perfiles"
         },
         "premium": {
           "name": "Miel Premium 30 Días",
-          "desc": "30 días · Funciones de hasta 5000 KRW · 7 perfiles"
+          "desc": "30 días · Contenido de hasta 10.000 KRW · Hasta 100.000 KRW al mes · Hasta 7 perfiles"
         },
         "vvip": {
           "name": "Tarro de Miel VVIP 30 Días",
-          "desc": "30 días · Funciones hasta 10,000 KRW · 15 perfiles"
+          "desc": "30 días · Contenido de hasta 20.000 KRW · Hasta 200.000 KRW al mes · Hasta 15 perfiles"
         },
         "family": {
           "name": "Código Destino Familia 30 Días",
-          "desc": "30 días · Ilimitado bajo KRW 30.000 · 10 consultas de experto · Perfiles ilimitados"
+          "desc": "30 días · Todo el contenido incluido en el pase · Hasta 500.000 KRW al mes · Perfiles ilimitados"
         }
       },
       "monthlyStatusChecking": "Verificando el saldo y el estado del Pase.",

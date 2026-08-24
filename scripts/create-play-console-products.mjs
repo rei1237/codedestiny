@@ -67,10 +67,12 @@ const PASS_TIER_BY_SKU = Object.fromEntries(listAppPassProducts().map((pass) => 
 
 function passDescription(sku) {
   const row = PASS_LISTINGS[sku];
-  const scope = row.coverage === "이용권 대상 전체" ? "이용권 대상 유료 기능 전체" : `${row.coverage} 유료 기능`;
+  // 목적격 조사를 scope 안에 담는다 — "전체" 뒤에는 '를', "유료 기능" 뒤에는 '을'이라
+  // 문장 쪽에 하나로 박으면 한쪽이 "…전체을"이 된다(Play 스토어에 그대로 등록되던 문구다).
+  const scope = row.coverage === "이용권 대상 전체" ? "이용권 대상 유료 기능 전체를" : `${row.coverage} 유료 기능을`;
   const monthlyKRW = Number(MONTHLY_PASS_LIMITS_KRW[PASS_TIER_BY_SKU[sku]] || 0);
   const monthly = `월 최대 ${monthlyKRW.toLocaleString("ko-KR")}원 상당`;
-  return `30일간 ${scope}을 ${monthly}까지 이용합니다. ${row.profiles}. 자동 갱신되지 않습니다.`;
+  return `30일간 ${scope} ${monthly}까지 이용합니다. ${row.profiles}. 자동 갱신되지 않습니다.`;
 }
 
 function buildProducts() {

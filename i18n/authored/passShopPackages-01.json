@@ -1,0 +1,59 @@
+{
+  "_comment": "이용권 등급 카드 요약 문구(payment.passShop.packages.<tier>.desc). 옛 값은 'KRW 30,000 이하 무제한' + 폐지된 상담 포함횟수를 담고 있어 월 이용 한도와 모순됐다(2026-08-24 정책). 값은 새로 번역하지 않고 같은 사전의 home.passMini.<tier>Line / Benefit1 / Benefit2 를 그대로 이어붙인 것이며, scripts/verify-pass-tier-policy.mjs 가 12개 로케일에서 그 조합을 다시 검사한다.",
+  "payment.passShop.packages.standard.desc": {
+    "ko": "30일 · 5천원급 콘텐츠까지 · 월 최대 3만원 상당 · 프로필 최대 3개",
+    "en": "30 days · Content up to KRW 5,000 · Up to KRW 30,000 worth per month · Up to 3 profiles",
+    "ja": "30日 · 5,000ウォン級のコンテンツまで · 月あたり最大30,000ウォン相当 · 最大 3 つのプロファイル",
+    "zh-CN": "30天 · 5,000韩元级内容 · 每月最多30,000韩元 · 最多 3 个配置文件",
+    "zh-TW": "30天 · 5,000韓元級內容 · 每月最多30,000韓元 · 最多 3 個設定檔",
+    "vi": "30 ngày · Nội dung đến khoảng 5.000 KRW · Tối đa 30.000 KRW mỗi tháng · Tối đa 3 hồ sơ",
+    "hi": "30 दिन · KRW 5,000 तक की सामग्री · हर महीने KRW 30,000 तक · 3 प्रोफ़ाइल तक",
+    "es": "30 días · Contenido de hasta 5.000 KRW · Hasta 30.000 KRW al mes · Hasta 3 perfiles",
+    "fr": "30 jours · Contenus jusqu'à 5 000 KRW · Jusqu'à 30 000 KRW par mois · Jusqu'à 3 profils",
+    "de": "30 Tage · Inhalte bis 5.000 KRW · Bis zu 30.000 KRW pro Monat · Bis zu 3 Profile",
+    "nl": "30 dagen · Content tot KRW 5.000 · Tot KRW 30.000 per maand · Maximaal 3 profielen",
+    "ms": "30 hari · Kandungan sehingga KRW 5,000 · Sehingga KRW 30,000 sebulan · Sehingga 3 profil"
+  },
+  "payment.passShop.packages.premium.desc": {
+    "ko": "30일 · 1만원급 콘텐츠까지 · 월 최대 10만원 상당 · 프로필 최대 7개",
+    "en": "30 days · Content up to KRW 10,000 · Up to KRW 100,000 worth per month · Up to 7 profiles",
+    "ja": "30日 · 10,000ウォン級のコンテンツまで · 月あたり最大100,000ウォン相当 · 最大 7 つのプロファイル",
+    "zh-CN": "30天 · 10,000韩元级内容 · 每月最多100,000韩元 · 最多 7 个配置文件",
+    "zh-TW": "30天 · 10,000韓元級內容 · 每月最多100,000韓元 · 最多 7 個設定檔",
+    "vi": "30 ngày · Nội dung đến khoảng 10.000 KRW · Tối đa 100.000 KRW mỗi tháng · Tối đa 7 hồ sơ",
+    "hi": "30 दिन · KRW 10,000 तक की सामग्री · हर महीने KRW 100,000 तक · 7 प्रोफ़ाइल तक",
+    "es": "30 días · Contenido de hasta 10.000 KRW · Hasta 100.000 KRW al mes · Hasta 7 perfiles",
+    "fr": "30 jours · Contenus jusqu'à 10 000 KRW · Jusqu'à 100 000 KRW par mois · Jusqu'à 7 profils",
+    "de": "30 Tage · Inhalte bis 10.000 KRW · Bis zu 100.000 KRW pro Monat · Bis zu 7 Profile",
+    "nl": "30 dagen · Content tot KRW 10.000 · Tot KRW 100.000 per maand · Maximaal 7 profielen",
+    "ms": "30 hari · Kandungan sehingga KRW 10,000 · Sehingga KRW 100,000 sebulan · Sehingga 7 profil"
+  },
+  "payment.passShop.packages.vvip.desc": {
+    "ko": "30일 · 2만원급 콘텐츠까지 · 월 최대 20만원 상당 · 프로필 최대 15개",
+    "en": "30 days · Content up to KRW 20,000 · Up to KRW 200,000 worth per month · Up to 15 profiles",
+    "ja": "30日 · 20,000ウォン級のコンテンツまで · 月あたり最大200,000ウォン相当 · 最大 15 個のプロファイル",
+    "zh-CN": "30天 · 20,000韩元级内容 · 每月最多200,000韩元 · 最多 15 个配置文件",
+    "zh-TW": "30天 · 20,000韓元級內容 · 每月最多200,000韓元 · 最多 15 個設定檔",
+    "vi": "30 ngày · Nội dung đến khoảng 20.000 KRW · Tối đa 200.000 KRW mỗi tháng · Tối đa 15 hồ sơ",
+    "hi": "30 दिन · KRW 20,000 तक की सामग्री · हर महीने KRW 200,000 तक · 15 प्रोफ़ाइल तक",
+    "es": "30 días · Contenido de hasta 20.000 KRW · Hasta 200.000 KRW al mes · Hasta 15 perfiles",
+    "fr": "30 jours · Contenus jusqu'à 20 000 KRW · Jusqu'à 200 000 KRW par mois · Jusqu'à 15 profils",
+    "de": "30 Tage · Inhalte bis 20.000 KRW · Bis zu 200.000 KRW pro Monat · Bis zu 15 Profile",
+    "nl": "30 dagen · Content tot KRW 20.000 · Tot KRW 200.000 per maand · Maximaal 15 profielen",
+    "ms": "30 hari · Kandungan sehingga KRW 20,000 · Sehingga KRW 200,000 sebulan · Sehingga 15 profil"
+  },
+  "payment.passShop.packages.family.desc": {
+    "ko": "30일 · 이용권 대상 전체 · 월 최대 50만원 상당 · 프로필 무제한",
+    "en": "30 days · All pass-eligible content · Up to KRW 500,000 worth per month · Unlimited profiles",
+    "ja": "30日 · 利用券対象すべて · 月あたり最大500,000ウォン相当 · プロフィール無制限",
+    "zh-CN": "30天 · 使用权涵盖的全部内容 · 每月最多500,000韩元 · 档案数量不限",
+    "zh-TW": "30天 · 使用權涵蓋的全部內容 · 每月最多500,000韓元 · 檔案數量不限",
+    "vi": "30 ngày · Toàn bộ nội dung áp dụng gói · Tối đa 500.000 KRW mỗi tháng · Hồ sơ không giới hạn",
+    "hi": "30 दिन · पास में शामिल सभी सामग्री · हर महीने KRW 500,000 तक · असीमित प्रोफ़ाइल",
+    "es": "30 días · Todo el contenido incluido en el pase · Hasta 500.000 KRW al mes · Perfiles ilimitados",
+    "fr": "30 jours · Tout le contenu inclus dans le pass · Jusqu'à 500 000 KRW par mois · Profils illimités",
+    "de": "30 Tage · Alle im Pass enthaltenen Inhalte · Bis zu 500.000 KRW pro Monat · Unbegrenzte Profile",
+    "nl": "30 dagen · Alle content die de pass dekt · Tot KRW 500.000 per maand · Onbeperkt profielen",
+    "ms": "30 hari · Semua kandungan yang dilindungi pas · Sehingga KRW 500,000 sebulan · Profil tanpa had"
+  }
+}
