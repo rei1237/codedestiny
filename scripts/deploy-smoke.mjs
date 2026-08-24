@@ -20,6 +20,13 @@ const isPagesPreview = (() => {
     return false;
   }
 })();
+const smokeHost = (() => {
+  try {
+    return new URL(base).hostname.toLowerCase();
+  } catch {
+    return "";
+  }
+})();
 if (!/^https?:\/\//i.test(base)) throw new Error("Smoke base must be an absolute HTTP(S) URL.");
 
 const failures = [];
@@ -32,24 +39,55 @@ function isExpectedFontNoise(value) {
     /font.*blocked by CORS policy/i.test(value) ||
     /blocked by CORS policy.*font/i.test(value);
 }
+/**
+ * 프리뷰에서 무시해도 되는 404 인가.
+ *
+ * 🔴 2026-08-24 까지 이 자리는 `isPagesPreview` 이기만 하면 **모든 404 를** 무시했다. 호스트도
+ * 경로도 보지 않았으므로, 승격 전 관문인 프리뷰 스모크가 **같은 출처의 앱 자산이 통째로 빠져도
+ * 초록불**을 냈다. 실제로 그날 릴리스는 프리뷰 PASS → 승격 → 커스텀 도메인에서
+ * `/js/services/destiny-flower-engine.js` 404 로 FAIL → 자동 롤백이었다. 관문이 뒤에 있었다.
+ *
+ * 프리뷰 호스트에서 404 가 정상인 것은 셋뿐이다:
+ *   · 교차 출처 — assets.code-destiny.com 등. 프리뷰 배포본에 없는 것이 정상이다.
+ *   · /cdn-cgi/* — Cloudflare RUM·beacon. 프리뷰 배포에는 붙지 않는다.
+ *   · /api/* — 프리뷰 Pages 배포는 정적 전용이라 워커 라우트가 없다(deploy-safe.mjs:793-795).
+ * 그 밖의 같은 출처 404 는 진짜 결함이므로 **승격 전에** 실패로 잡는다.
+ *
+ * 출처를 판정할 URL 이 문자열에 없으면 무시하지 않는다(fail-closed).
+ */
+function isIgnorablePreview404(value) {
+  if (!isPagesPreview) return false;
+  if (!/status of 404/i.test(value)) return false;
+  if (/\/cdn-cgi\//i.test(value)) return true;
+  const urls = String(value).match(/https?:\/\/[^\s)"'`]+/gi) || [];
+  if (!urls.length) return false;
+  return urls.every((raw) => {
+    try {
+      const parsed = new URL(raw);
+      if (parsed.hostname.toLowerCase() !== smokeHost) return true;
+      return parsed.pathname.startsWith("/api/");
+    } catch {
+      return false;
+    }
+  });
+}
 function isExpectedPreviewCorsNoise(value) {
-  return isPagesPreview && (
-    /code-destiny\.com\/api\//i.test(value) && /CORS policy|preflight|ERR_FAILED/i.test(value) ||
-    /Failed to load resource: the server responded with a status of 404/i.test(value)
-  );
+  return isPagesPreview &&
+    /code-destiny\.com\/api\//i.test(value) &&
+    /CORS policy|preflight|ERR_FAILED/i.test(value);
 }
 function isExpectedPagesPreviewNoise(value) {
-  return isPagesPreview && (
-    (/code-destiny\.com\/api\//i.test(value) && /CORS policy/i.test(value)) ||
-    /server responded with a status of 404/i.test(value)
-  );
+  return isPagesPreview &&
+    /code-destiny\.com\/api\//i.test(value) &&
+    /CORS policy/i.test(value);
 }
 
 function isExpectedConsoleNoise(value) {
   return isExpectedFontNoise(value) ||
     isExpectedPreviewCorsNoise(value) ||
     (isPagesPreview && /Failed to load resource: net::ERR_FAILED/i.test(value)) ||
-    isExpectedPagesPreviewNoise(value);
+    isExpectedPagesPreviewNoise(value) ||
+    isIgnorablePreview404(value);
 }
 
 async function checkApi(pathname) {
