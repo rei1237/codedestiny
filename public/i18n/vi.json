@@ -1638,7 +1638,8 @@
     "requiredStar": "* bắt buộc",
     "monthShort": "Tháng",
     "dayShort": "Ngày",
-    "download": "Tải xuống"
+    "download": "Tải xuống",
+    "andBetweenLinks": "và"
   },
   "privacy": {
     "consentTitle": "Đồng ý thu thập và sử dụng thông tin cá nhân",
