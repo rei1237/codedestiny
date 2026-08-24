@@ -99,7 +99,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
           <span aria-hidden="true">›</span>
           <Link href="/today/" className="hover:underline">오늘의 운세</Link>
           <span aria-hidden="true">›</span>
-          <Link href={`/fortune/${period}/`} className="hover:underline">{periodLabel} {kindLabel} 운세</Link>
+          <Link href={`/fortune/${period}/`} className="hover:underline">{`${periodLabel} ${kindLabel} 운세`}</Link>
           <span aria-hidden="true">›</span>
           <span className={ACCENT}>{profile.nameKo}</span>
         </nav>
@@ -110,10 +110,10 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
             <p className={`text-xs font-bold tracking-wider ${ACCENT}`}>{vm.rangeLabel}</p>
             <h1 className="mt-3 break-keep text-3xl font-black leading-tight sm:text-4xl">
               <span aria-hidden="true" className="mr-2">{profile.symbol}</span>
-              {profile.nameKo} {PERIOD_TITLE[period]} 운세
+              {`${profile.nameKo} ${PERIOD_TITLE[period]} 운세`}
             </h1>
             <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>
-              {profile.rangeLabel} · {profile.element} · {profile.ruler}
+              {`${profile.rangeLabel} · ${profile.element} · ${profile.ruler}`}
             </p>
           </div>
           <YeoniPortrait mood={moodForScore(score.overall)} size={104} priority className="mt-1" />
@@ -122,7 +122,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
         {/* 기간별 기준 값 — 매 기간 실제로 다른 값이다 */}
         <section aria-labelledby="facts-heading" className={`mt-8 p-5 ${CARD}`}>
           <h2 id="facts-heading" className={`break-keep text-sm font-extrabold ${ACCENT}`}>
-            {periodLabel}의 기준 값
+            {`${periodLabel}의 기준 값`}
           </h2>
           <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 text-sm sm:grid-cols-4">
             {vm.facts.map((fact) => (
@@ -138,7 +138,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
         {vm.relation && (
           <section aria-labelledby="relation-heading" className="mt-4 rounded-2xl border border-[#ead089]/60 bg-[#fff8dc]/50 p-5 dark:border-[#ead089]/25 dark:bg-[#ead089]/[0.06]">
             <h2 id="relation-heading" className={`break-keep text-sm font-extrabold ${ACCENT}`}>
-              {profile.nameKo}와 {periodLabel} 기운의 관계
+              {`${profile.nameKo}와 ${periodLabel} 기운의 관계`}
             </h2>
             <p className="mt-2 inline-block rounded-full border border-[#b31955]/35 px-3 py-1 text-xs font-bold text-[#b31955] dark:border-[rgba(255,196,222,0.4)] dark:text-[rgba(255,196,222,0.96)]">
               {vm.relation.badge}
@@ -150,7 +150,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
         {/* 점수 + 산출 근거 */}
         <section aria-labelledby="score-heading" className="mt-8">
           <h2 id="score-heading" className="break-keep text-lg font-extrabold">
-            {periodLabel}의 운세 점수
+            {`${periodLabel}의 운세 점수`}
           </h2>
           <div className={`mt-4 p-5 ${CARD}`}>
             <div className="flex flex-wrap items-center gap-3">
@@ -189,7 +189,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
           <section aria-labelledby="week-heading" className="mt-8">
             <h2 id="week-heading" className="break-keep text-lg font-extrabold">요일별 흐름</h2>
             <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-              같은 주라도 띠와 별자리마다 이 배치가 전부 다릅니다. 일진의 지지가 이 {kindLabel}와 어떤 관계를 맺는지로 판정합니다.
+              {`같은 주라도 띠와 별자리마다 이 배치가 전부 다릅니다. 일진의 지지가 이 ${kindLabel}와 어떤 관계를 맺는지로 판정합니다.`}
             </p>
             <div className="mt-4 overflow-x-auto">
               <table className={`w-full min-w-[30rem] border-collapse text-sm ${CARD}`}>
@@ -232,7 +232,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
         {vm.highlights && (
           <section aria-labelledby="highlight-heading" className="mt-8">
             <h2 id="highlight-heading" className="break-keep text-lg font-extrabold">
-              {periodLabel} 짚어 둘 것
+              {`${periodLabel} 짚어 둘 것`}
             </h2>
             <dl className="mt-4 grid gap-3 sm:grid-cols-2">
               {vm.highlights.map((row) => (
@@ -248,11 +248,10 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
         {/* 상시 톤 — 날짜와 무관한 값이므로 라벨을 그렇게 붙인다 */}
         <section aria-labelledby="tone-heading" className="mt-12">
           <h2 id="tone-heading" className="break-keep text-lg font-extrabold">
-            {profile.nameKo}의 기본 결
+            {`${profile.nameKo}의 기본 결`}
           </h2>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
-            아래는 날짜와 무관하게 이 {kindLabel}가 늘 지니는 성향입니다. 위의 점수·관계가 그날그날 달라지는 부분이고,
-            이 문단은 그 위에 깔리는 바탕입니다.
+            {`아래는 날짜와 무관하게 이 ${kindLabel}가 늘 지니는 성향입니다. 위의 점수·관계가 그날그날 달라지는 부분이고, 이 문단은 그 위에 깔리는 바탕입니다.`}
           </p>
           <div className="mt-4 grid gap-3 sm:grid-cols-2">
             {SCORE_AXES.map((axis) => (
@@ -266,7 +265,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
 
         {/* 행운 포인트 + 연이 서명 */}
         <section aria-labelledby="lucky-heading" className={`mt-8 p-5 ${CARD}`}>
-          <h2 id="lucky-heading" className="break-keep text-lg font-extrabold">{periodLabel}의 행운 포인트</h2>
+          <h2 id="lucky-heading" className="break-keep text-lg font-extrabold">{`${periodLabel}의 행운 포인트`}</h2>
           <dl className="mt-4 flex flex-wrap gap-x-8 gap-y-3 text-sm">
             <div>
               <dt className={`text-xs ${MUTED}`}>행운의 색</dt>
@@ -299,7 +298,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
         {/* 상시 해설 */}
         <section aria-labelledby="profile-heading" className="mt-12">
           <h2 id="profile-heading" className="break-keep text-lg font-extrabold">
-            {profile.nameKo}는 어떤 기질인가
+            {`${profile.nameKo}는 어떤 기질인가`}
           </h2>
           <p className={`mt-3 break-keep text-sm leading-7 ${MUTED}`}>{profile.essence}</p>
 
@@ -321,7 +320,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
         {/* 궁합 */}
         <section aria-labelledby="compat-heading" className="mt-12">
           <h2 id="compat-heading" className="break-keep text-lg font-extrabold">
-            {profile.nameKo}와 잘 맞는 상대
+            {`${profile.nameKo}와 잘 맞는 상대`}
           </h2>
           <p className={`mt-2 break-keep text-sm leading-7 ${MUTED}`}>
             {profile.kind === "zodiac"
@@ -380,7 +379,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
         {/* 기간 전환 + 전체 목록 */}
         <section aria-labelledby="more-heading" className="mt-12">
           <h2 id="more-heading" className="break-keep text-lg font-extrabold">
-            다른 기간과 다른 {kindLabel}
+            {`다른 기간과 다른 ${kindLabel}`}
           </h2>
           <ul className="mt-3 flex flex-wrap gap-2">
             {otherPeriods.map((p) => (
@@ -389,7 +388,7 @@ export default function SignFortuneView({ vm }: { vm: SignViewModel }) {
                   href={`/fortune/${p}/${profile.id}/`}
                   className="inline-flex min-h-[44px] items-center rounded-full border border-[#b31955]/35 bg-[#b31955]/[0.06] px-5 text-sm font-bold text-[#b31955] hover:bg-[#b31955]/12 dark:border-[rgba(255,196,222,0.35)] dark:bg-white/[0.06] dark:text-[rgba(255,196,222,0.96)]"
                 >
-                  {profile.nameKo} {PERIOD_LABEL[p]} 운세 →
+                  {`${profile.nameKo} ${PERIOD_LABEL[p]} 운세 →`}
                 </Link>
               </li>
             ))}
