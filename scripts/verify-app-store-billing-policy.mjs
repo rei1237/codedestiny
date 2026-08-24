@@ -151,7 +151,7 @@ check(
 );
 
 console.log("\n[8] 이용권 커버 금액이 앱 기준으로 파생되는가");
-for (const [tier, expectedKRW] of [["standard", 3900], ["premium", 6000], ["vvip", 13000]]) {
+for (const [tier, expectedKRW] of [["standard", 6000], ["premium", 13000], ["vvip", 25000]]) {
   const coverage = resolveAppPassCoverageKRW(PASS_LIMITS[tier]);
   check(
     `${tier}: 웹 ₩${(PASS_LIMITS[tier] * 100).toLocaleString("ko-KR")} → 앱 ₩${expectedKRW.toLocaleString("ko-KR")}`,

@@ -69,14 +69,31 @@ describe("정책 — 건당 상한 + 단일 월 예산 2규칙", () => {
     expect(result.reason).toBe("price_exceeds_pass_limit");
   });
 
-  test("🔴 프리미엄 상담(300코인 이상)은 vvip·family 에서 건당 상한을 우회한다 — 우회를 없애면 혜택이 사라진다", () => {
-    // vvip 건당 상한은 100코인이라, 우회가 없으면 300코인 상담이 전부 막힌다.
+  test("🔴 건당 상한 우회는 폐지됐다 — 고가 상담(300코인)은 family 만 커버한다", () => {
+    // 2026-08-24: 구 정책은 '프리미엄 상담 포함 횟수'(family 10회·vvip 3회)를 가진 등급이
+    // 300코인 이상에서 건당 상한을 우회했다. vvip 상한이 200코인(20,000원)으로 오른 뒤
+    // 그 우회를 남기면 20,001~29,999원만 미커버인 설명 불가능한 구간이 생겨 폐지했다.
+    // 이제 규칙은 하나다: 정상 판매가가 등급의 적용 가격 범위 안인가.
     expect(PASS_LIMITS.vvip).toBeLessThan(300);
-    const vvip = evaluatePassCoverage({ user: { profileSubscription: activePass("vvip") }, entitlement: ent("vvip"), coinCost: 300 });
-    expect(vvip.covered).toBe(true);
-    // standard 는 우회 대상이 아니다(구 포함횟수 혜택이 없던 등급).
-    const standard = evaluatePassCoverage({ user: { profileSubscription: activePass("standard") }, entitlement: ent("standard"), coinCost: 300 });
-    expect(standard.covered).toBe(false);
+    for (const tier of ["standard", "premium", "vvip"]) {
+      const result = evaluatePassCoverage({ user: { profileSubscription: activePass(tier) }, entitlement: ent(tier), coinCost: 300 });
+      expect(result.covered).toBe(false);
+      expect(result.reason).toBe("price_exceeds_pass_limit");
+    }
+    // family 는 건당 상한이 없어 그대로 커버된다(월 이용 한도는 별도 검사).
+    const family = evaluatePassCoverage({ user: { profileSubscription: activePass("family") }, entitlement: ent("family"), coinCost: 300 });
+    expect(family.covered).toBe(true);
+  });
+
+  test("건당 상한 경계 — 정확히 상한이면 커버, 1코인 넘으면 미커버", () => {
+    for (const tier of ["standard", "premium", "vvip"]) {
+      const limit = PASS_LIMITS[tier];
+      const atLimit = evaluatePassCoverage({ user: { profileSubscription: activePass(tier) }, entitlement: ent(tier), coinCost: limit });
+      expect(atLimit.covered).toBe(true);
+      const overLimit = evaluatePassCoverage({ user: { profileSubscription: activePass(tier) }, entitlement: ent(tier), coinCost: limit + 1 });
+      expect(overLimit.covered).toBe(false);
+      expect(overLimit.reason).toBe("price_exceeds_pass_limit");
+    }
   });
 
   test("월 예산 소진 → monthly_pass_limit_exceeded (건당 상한을 통과해도 막힌다)", () => {

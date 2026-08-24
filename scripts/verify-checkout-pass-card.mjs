@@ -18,6 +18,9 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { JSDOM, VirtualConsole } from "jsdom";
 import { sliceFunction } from "./lib/js-source-slice.mjs";
+// 🔴 기대 등급을 리터럴로 박지 않는다 — 적용 가격 범위가 바뀌면 같은 금액의 답이 달라진다.
+//    (2026-08-24 상한 상향에서 'premium' 리터럴이 실제로 여기서 걸렸다.)
+import { PASS_LIMITS } from "../worker/lib/profile-limits.js";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 // 🔴 payment-service.js 가 맨 앞이어야 한다 — 실제 독립 정적 페이지의 로드 순서가 그렇고
@@ -272,7 +275,14 @@ console.log("\n[3] 이용권 카드 클릭 → 미커버면 /points 로 인계�
     assert.match(storeUrls[0], /^\/points\?/);
   });
   check("웹에서는 중간 충전 모달을 거치지 않는다", () => assert.equal(chargeModalCalls, 0));
-  check("추천 플랜이 프리셋으로 실린다", () => assert.match(storeUrls[0], /[?&]plan=premium(&|$)/));
+  check("추천 플랜이 프리셋으로 실린다", () => {
+    // 계약은 "그 금액을 덮는 **가장 낮은** 등급이 실린다"이지 특정 등급 이름이 아니다.
+    const costCoins = 50; // openChoice 픽스처의 coinPrice
+    const expected = ["standard", "premium", "vvip", "family"]
+      .find((tier) => costCoins <= Number(PASS_LIMITS[tier] || 0));
+    assert.ok(expected, "이 금액을 덮는 등급이 하나도 없다 — 정책이 깨졌다");
+    assert.match(storeUrls[0], new RegExp(`[?&]plan=${expected}(&|$)`));
+  });
   check("cdco=1 이 붙어야 결제 확인 모달이 자동으로 열린다", () => assert.match(storeUrls[0], /[?&]cdco=1(&|$)/));
   check("복귀 지점 저장(결제 후 원래 화면으로 돌아간다)", () => {
     const raw = window.sessionStorage.getItem("cd_checkout_return_v1");

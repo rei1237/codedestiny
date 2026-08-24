@@ -19,6 +19,7 @@
 import { config } from "dotenv";
 import { createSign } from "node:crypto";
 import { listAppContentTiers, listAppPassProducts } from "../worker/lib/app-store-pricing.js";
+import { MONTHLY_PASS_LIMITS_KRW } from "../worker/lib/profile-limits.js";
 
 for (const path of [".env.cloudflare.local", ".env.cloudflare", ".env.local", ".env"]) {
   config({ path, override: false });
@@ -51,18 +52,25 @@ const CONTENT_LISTINGS = {
   cd_content_tier_13: { title: "프리미엄 전체 해금 89,000원", description: "선택하신 프리미엄 전체 묶음을 영구 해금하는 단건 결제입니다." },
 };
 
-// 이용권: 30일 · 자동갱신 없음 · 사용 횟수 제한 없음.
+// 이용권: 30일 · 자동갱신 없음 · 등급별 월 이용 한도 있음.
+// 🔴 "무제한"·"횟수 제한 없음"으로 쓰지 말 것 — 모든 등급에 월 이용 한도가 있어 문구가
+//    실제 정책과 모순된다(2026-08-24). 월 한도 금액은 웹 정본 MONTHLY_PASS_LIMITS_KRW 에서
+//    파생시킨다 — 여기에 숫자를 다시 적으면 사본이 하나 더 생긴다.
 const PASS_LISTINGS = {
-  cd_pass_standard_30d: { title: "스탠다드 이용권 (30일)", coverage: "3,900원 이하", profiles: "프로필 3개" },
-  cd_pass_premium_30d: { title: "프리미엄 이용권 (30일)", coverage: "6,000원 이하", profiles: "프로필 7개" },
-  cd_pass_vvip_30d: { title: "VVIP 이용권 (30일)", coverage: "12,900원 이하", profiles: "프로필 15개" },
-  cd_pass_family_30d: { title: "패밀리 이용권 (30일)", coverage: "모든", profiles: "프로필 무제한" },
+  cd_pass_standard_30d: { title: "스탠다드 꿀 (30일)", coverage: "6,000원 이하", profiles: "프로필 3개" },
+  cd_pass_premium_30d: { title: "프리미엄 꿀 (30일)", coverage: "13,000원 이하", profiles: "프로필 7개" },
+  cd_pass_vvip_30d: { title: "VVIP 꿀단지 (30일)", coverage: "25,000원 이하", profiles: "프로필 15개" },
+  cd_pass_family_30d: { title: "Code Destiny Family (30일)", coverage: "이용권 대상 전체", profiles: "프로필 무제한" },
 };
+
+const PASS_TIER_BY_SKU = Object.fromEntries(listAppPassProducts().map((pass) => [pass.productId, pass.passTier]));
 
 function passDescription(sku) {
   const row = PASS_LISTINGS[sku];
-  const scope = row.coverage === "모든" ? "모든 유료 기능" : `${row.coverage} 유료 기능`;
-  return `30일간 ${scope}을 횟수 제한 없이 이용합니다. ${row.profiles}. 자동 갱신되지 않습니다.`;
+  const scope = row.coverage === "이용권 대상 전체" ? "이용권 대상 유료 기능 전체" : `${row.coverage} 유료 기능`;
+  const monthlyKRW = Number(MONTHLY_PASS_LIMITS_KRW[PASS_TIER_BY_SKU[sku]] || 0);
+  const monthly = `월 최대 ${monthlyKRW.toLocaleString("ko-KR")}원 상당`;
+  return `30일간 ${scope}을 ${monthly}까지 이용합니다. ${row.profiles}. 자동 갱신되지 않습니다.`;
 }
 
 function buildProducts() {

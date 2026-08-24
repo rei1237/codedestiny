@@ -161,13 +161,19 @@ test("fusion fortune production switches enable the approved live flow and keep 
 test("family shop copy states the real fusion coverage", () => {
   const points = read("app/points/PointsClient.tsx");
   const html = read("index.html");
-  // family 는 초융합을 커버한다(이용권 기간당 10회). "별도 상담권" 문구는 사실과 다르다.
-  assert.match(points, /초융합 포함 전문가 상담 10회/);
+  // family 는 초융합(30,000원)을 커버한다 — 건당 상한이 없는 유일한 등급이기 때문이다.
+  // "별도 상담권"·"초융합 제외"는 사실과 다르고, 2026-08-24 부터 "포함 횟수"도 사실이 아니다
+  // (PREMIUM_QUOTA_INCLUDED_USES_BY_TIER 가 빈 표 = 횟수 제도 폐지). 남은 제약은 월 이용 한도뿐.
+  assert.match(points, /초융합 심층 리딩까지 이용권으로/);
   assert.doesNotMatch(points, /초융합 제외/);
+  assert.doesNotMatch(points, /Fusion Fortune excluded/);
   assert.doesNotMatch(points, /별도 상담권/);
   assert.doesNotMatch(points, /모든 유료 서비스(?:를)? 이용/);
-  assert.match(html, /3만원 미만 기능 무제한\(월 누적 50만원까지\) · 초융합 포함 전문가 상담 10회/);
+  assert.match(html, /이용권 대상 전체\(초융합 심층 리딩 포함\) · 월 최대 50만원 상당/);
   assert.doesNotMatch(html, /모든 유료 서비스(?:를)? 이용/);
+  // 🔴 월 이용 한도가 있는 등급에 '무제한'·'월 누적'을 쓰지 않는다(2026-08-24 문구 정책).
+  assert.doesNotMatch(points, /상담 10회|무제한\(월/);
+  assert.doesNotMatch(html, /기능 무제한|월 누적/);
 });
 
 test("the destiny gate states the free quota before the paid price", () => {

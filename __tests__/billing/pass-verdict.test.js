@@ -46,9 +46,10 @@ afterEach(() => {
 
 describe("passLimitForTier", () => {
   it("등급별 한도가 결제 정책과 일치한다", () => {
-    expect(passVerdict.passLimitForTier("standard")).toBe(30);
-    expect(passVerdict.passLimitForTier("premium")).toBe(50);
-    expect(passVerdict.passLimitForTier("vvip")).toBe(100);
+    // 2026-08-24 적용 가격 범위: 5,000 / 10,000 / 20,000원 (코인 = 원/100)
+    expect(passVerdict.passLimitForTier("standard")).toBe(50);
+    expect(passVerdict.passLimitForTier("premium")).toBe(100);
+    expect(passVerdict.passLimitForTier("vvip")).toBe(200);
     expect(passVerdict.passLimitForTier("family")).toBe(999999999);
     expect(passVerdict.passLimitForTier("free")).toBe(0);
     expect(passVerdict.passLimitForTier(undefined)).toBe(0);
@@ -223,25 +224,30 @@ describe("resolveVerdict — 한도 판정", () => {
   });
 
   it("가격이 등급 한도를 넘으면 미커버 확정이다", () => {
-    const verdict = passVerdict.resolveVerdict(activeSnapshot("standard"), 50);
+    // standard 상한은 50코인(5,000원)이므로 51코인이 경계 바깥이다.
+    const verdict = passVerdict.resolveVerdict(activeSnapshot("standard"), 51);
     expect(verdict.coversNow).toBe(false);
     expect(verdict.cannotCover).toBe(true);
   });
 
-  it("family 는 프리미엄 문턱 아래에서는 가격과 무관하게 커버한다", () => {
-    // 299코인(29,900원)까지는 한도가 사실상 무제한이라 즉시 커버 확정.
-    const verdict = passVerdict.resolveVerdict(activeSnapshot("family"), 299);
+  it("가격이 등급 한도와 정확히 같으면 커버 확정이다", () => {
+    const verdict = passVerdict.resolveVerdict(activeSnapshot("standard"), 50);
     expect(verdict.coversNow).toBe(true);
     expect(verdict.cannotCover).toBe(false);
   });
 
-  it("family 의 프리미엄 상담(300코인 이상)은 어느 쪽도 확정하지 않는다", () => {
-    // 포함 횟수(기간당 10회) 소진 여부는 서버만 안다. 여기서 커버로 단정하면
-    // 결제창 없이 진행하다 402 를 맞고, 미커버로 단정하면 남은 횟수가 있는데도
-    // 결제를 요구한다. 그래서 미확정으로 두어 호출부가 서버에 물어보게 한다.
-    for (const cost of [300, 500, 100000]) {
+  it("vvip 는 200코인까지 커버하고 201코인부터 미커버 확정이다", () => {
+    expect(passVerdict.resolveVerdict(activeSnapshot("vvip"), 200).coversNow).toBe(true);
+    expect(passVerdict.resolveVerdict(activeSnapshot("vvip"), 201).cannotCover).toBe(true);
+  });
+
+  it("family 는 금액과 무관하게 커버한다 — 건당 상한이 없는 유일한 등급이다", () => {
+    // 🔴 2026-08-24: '프리미엄 상담 포함 횟수'(기간당 10회)가 폐지돼, 300코인 이상을
+    //    '미확정'으로 남길 이유가 사라졌다. 남은 제약은 월 이용 한도 하나이고 그건
+    //    아래 별도 분기(monthlySpendRemainingCoin)가 판정한다.
+    for (const cost of [299, 300, 500, 100000]) {
       const verdict = passVerdict.resolveVerdict(activeSnapshot("family"), cost);
-      expect(verdict.coversNow).toBe(false);
+      expect(verdict.coversNow).toBe(true);
       expect(verdict.cannotCover).toBe(false);
     }
   });
@@ -312,8 +318,8 @@ describe("coverageFromSnapshot — 기존 런타임이 쓰던 모양 유지", ()
     const snapshot = { userId: USER_ID, state: "active", tier: "vvip", expiresAt: new Date(Date.now() + DAY).toISOString(), checkedAt: Date.now(), purchaseVersion: "", source: "server", stale: false };
     const coverage = passVerdict.coverageFromSnapshot(snapshot, 100);
     expect(coverage.canUseByPass).toBe(true);
-    expect(coverage.freeLimit).toBe(100);
-    expect(coverage.passLimit).toBe(100);
+    expect(coverage.freeLimit).toBe(200);
+    expect(coverage.passLimit).toBe(200);
     expect(coverage.coinCost).toBe(100);
     expect(coverage.passTier).toBe("vvip");
   });

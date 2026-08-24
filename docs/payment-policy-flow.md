@@ -7,9 +7,13 @@
 > **개정 요지**: 이용권, 단건 결제, 월정석은 사용자가 명시적으로 선택한다.
 > 조회 화면은 snapshot으로 빠르게 표시하지만 돈과 권한이 바뀌는 각 경로는 서버가 최종 판정한다.
 
-모든 유료 결제는 다음 순서로 판정한다(구현 정본: `worker/routes/billing.js`의 `buildPassPaymentDecision`·`processCoinGateFromPricing`, `worker/lib/profile-limits.js`의 `canUseByPass`/`PASS_LIMITS`(건당 상한)·`resolveMonthlySpendQuota`/`MONTHLY_PASS_LIMITS`(월 누적 한도, 2026-08 도입)·`resolvePremiumQuota`(상담 포함횟수, family 10회·vvip 3회)):
+모든 유료 결제는 다음 순서로 판정한다. 🔴 **판정 정본은 `worker/payments/passes.js`의 `evaluatePassCoverage` 하나**이고(V2 컷오버 이후 `/api/payments/coin-gate/pass-check` 가 전부 여기로 온다), 레거시 `worker/routes/billing.js`의 `buildPassPaymentDecision`·`processCoinGateFromPricing`은 `/api/billing/purchase|charge` 경로에만 남아 같은 상수(`worker/lib/profile-limits.js`의 `PASS_LIMITS`·`MONTHLY_PASS_LIMITS`)를 읽는다.
 
-> **월 누적 한도**(2026-08): 건당 상한을 통과해도 이번 사이클 누적 사용액이 등급별 한도(스탠다드 3만원·프리미엄 10만원·VVIP 20만원·family 50만원)를 넘으면 `decisionReason: "MONTHLY_PASS_LIMIT_EXCEEDED"`로 미커버 처리된다. 상담 포함횟수 소진은 `"PREMIUM_QUOTA_EXHAUSTED"`(구 `FAMILY_PREMIUM_QUOTA_EXHAUSTED`), 건당 상한 초과는 기존과 동일하게 `"PRICE_EXCEEDS_PASS_LIMIT"`. VVIP는 건당 상한(10,000원)이 상담 포함횟수 기준가(300코인=30,000원)보다 낮아, 상담 포함횟수 대상 건은 건당 상한 검사를 우회하고 포함횟수로만 판정한다(`familyQuota.applies` 체크가 `canUseByPass` 앞선다) — family는 건당 상한이 없어 이 문제가 없었다.
+> **규칙은 둘뿐이다**(2026-08-24): ①**적용 가격 범위** — 정상 판매가가 등급 상한(스탠다드 5,000 · 프리미엄 10,000 · VVIP 20,000원, family 상한 없음)을 넘으면 `"PRICE_EXCEEDS_PASS_LIMIT"`. ②**월 이용 한도** — ①을 통과해도 이번 사이클 누적 사용액이 등급별 한도(3만·10만·20만·50만원)를 넘으면 `"MONTHLY_PASS_LIMIT_EXCEEDED"`. 어느 쪽이든 차단이 아니라 단건/월정석 결제로 넘긴다.
+>
+> 🔴 구 정책의 세 번째 규칙 '**프리미엄 상담 포함 횟수**'(family 10회·vvip 3회, `"PREMIUM_QUOTA_EXHAUSTED"`)와 그 대상 건의 **건당 상한 우회는 2026-08-24 폐지**됐다. VVIP 상한이 20,000원으로 오른 뒤 우회를 남기면 20,001~29,999원만 미커버인 설명 불가능한 구간이 생겨 가격 페이지 문구와 어긋나기 때문이다. 정본은 빈 표(`PREMIUM_QUOTA_INCLUDED_USES_BY_TIER = {}`)이며 `resolvePremiumQuota` 함수는 레거시 호출부 호환을 위해 남아 항상 "혜택 없음"을 돌려준다. 되살리지 말 것 — 가드 `verify:pass-tier-policy`·`verify:billing-pass-policy`가 막는다.
+>
+> 사이클 키 = **이용권 만료일**이라 재구매 시 카운터가 자동으로 0부터 다시 센다(리셋 크론 없음). 월 한도 차감액은 **정상 판매가** 기준이며 할인가·PG 실결제액이 아니다. 동시 요청은 소비 CAS 필터(`monthlySpendCoin ≤ 예산 - 비용`)가 막아 한도를 넘겨 통과할 수 없다.
 
 > 같은 파일의 `grantPassFreeAccessBeforeCardIfAvailable`은 **호출자가 없는 죽은 코드**다(2026-08-08 확인). 카드 주문 직전 이용권 재검사는 의도적으로 제거됐고 `scripts/verify-billing-pass-policy.mjs`·`verify-paid-gate-ui-regression.mjs`가 되살리는 것을 막는다 — 정본으로 참조하지 말 것.
 
@@ -84,6 +88,7 @@
 
 | 날짜 | 변경 내용 |
 |---|---|
+| 2026-08-24 | **등급별 적용 가격 범위 상향 + 상담 포함횟수 폐지.** 건당 상한 3,000/5,000/10,000 → **5,000/10,000/20,000원**(family 상한 없음 유지). 월 이용 한도(3만·10만·20만·50만원)와 프로필 수(3/7/15/무제한)는 종전 그대로. '프리미엄 상담 포함 횟수'(family 10회·vvip 3회)와 그 대상 건의 건당 상한 우회를 폐지해 판정 규칙을 둘로 줄였다. 이용권 앱(Play) SKU 가격을 **웹가와 동일**하게 맞췄다(콘텐츠 티어는 종전대로 20~30% 인상 유지). 사용자 화면에서 '무제한'·'월 누적'·'횟수 제한 없음' 표현을 제거하고 `N원급 콘텐츠까지 · 월 최대 N원 상당 · 프로필 최대 N개`로 통일. 신규 가드 `verify:pass-tier-policy`가 정본과 하드코딩 사본 5곳, 가격 경계, 금지 문구를 함께 강제한다. |
 | 2026-08-24 | **단건결제에 결제수단 2단계 도입.** 1단계 3옵션은 불변이고, 단건 카드를 누르면 같은 창에서 카드·간편결제 / 실시간 계좌이체 / 휴대폰 소액결제 / 문화상품권으로 갈린다. 이니시스 계약이 끝난 `CARD` 만 활성이고 나머지는 `준비 중`. 활성 여부 정본은 `js/core/checkout-entry.js` 의 `DIRECT_PAY_METHODS` 표 하나. |
 | 2026-08-04 | **달빛 이용권 상품을 원화 단건 결제로만 구매하도록 고정.** subscription prepare/confirm의 월정석 요청을 `SUBSCRIPTION_MONTHLY_CREDIT_UNSUPPORTED`로 거부하고 `/points` 구매 UI에서 월정석 구매 선택지를 제거했다. |
 | 2026-08-03 | **명시적 결제수단 경계 복구.** `DIRECT_KRW`의 이용권 자동 전환과 결제수단 모달의 checkout POST 사전발급을 제거했다. `MEMBERSHIP_PASS`만 서버 이용권 판정을 실행하며, 결제 POST는 자동 재시도하지 않는다. |

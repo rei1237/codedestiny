@@ -548,13 +548,19 @@ const SUBSCRIPTION_DURATION_OPTIONS = [
   { months: 1, label: "30d", discount: 0, badge: "" },
 ] as const;
 
+/* freeUpTo 는 서버 정본 worker/lib/profile-limits.js 의 PASS_LIMITS(코인) 사본이다 — 프론트는
+   worker/ 를 import 할 수 없다. 2026-08-24: 50 / 100 / 200 = 5,000 / 10,000 / 20,000원.
+   대조 가드: scripts/verify-pass-tier-policy.mjs
+   ⚠️ features 의 under3000·under5000·under10000 은 **플랜별 네임스페이스 안의 키 이름일 뿐**이며
+   금액을 뜻하지 않는다(각 플랜의 planFeatures 아래에서만 해석된다). 실제 문구는 그 아래 카피
+   테이블에 있고, 지금 값은 5천원급/1만원급/2만원급이다. 키 이름 정리는 이 페이지 개편 때 함께 한다. */
 const SUBSCRIPTION_BASE_PLANS = [
   {
     tier:         "standard",
     title:        "standard",
     baseWonPrice: PASS_MONTHLY_WON.standard,
     profileLimit: 3,
-    freeUpTo:     30,
+    freeUpTo:     50,
     theme:        "amber",
     badge:        "",
     features:     [
@@ -572,7 +578,7 @@ const SUBSCRIPTION_BASE_PLANS = [
     title:        "premium",
     baseWonPrice: PASS_MONTHLY_WON.premium,
     profileLimit: 7,
-    freeUpTo:     50,
+    freeUpTo:     100,
     theme:        "rose",
     features:     [
       "profile7",
@@ -590,13 +596,12 @@ const SUBSCRIPTION_BASE_PLANS = [
     title:        "vvip",
     baseWonPrice: PASS_MONTHLY_WON.vvip,
     profileLimit: 15,
-    freeUpTo:     100,
+    freeUpTo:     200,
     theme:        "purple",
     features:     [
       "profile15",
       "under10000",
       "monthlyCap",
-      "vvipConsult",
       "over10000Single",
       "pdfSingle",
       "activeImmediately",
@@ -615,7 +620,6 @@ const SUBSCRIPTION_BASE_PLANS = [
       "profileUnlimited",
       "allPaidPdf",
       "monthlyCap",
-      "familyIncluded",
       "activeImmediately",
       "notAutoBilling",
     ],
@@ -760,7 +764,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "회원",
     duration30: "30일",
     heldPass: "보유 이용권",
-    allPaidPdfPolicy: "3만원 미만 무제한(월 50만원까지) · 초융합 포함 전문가 상담 10회",
+    allPaidPdfPolicy: "이용권 대상 전체 · 월 최대 50만원 상당",
     generalLimitPolicy: (value) => `일반 ${value} 이하 이용 가능`,
     familyValueLine: (duration) => `Family 전체 혜택 / ${duration}`,
     planValueLine: (value, duration) => `${value} 이하 기능 / ${duration}`,
@@ -782,8 +786,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       free: {},
       standard: {
         profile3: "프로필 최대 3개 생성",
-        under3000: "3,000원 이하 유료 기능 횟수 제한 없이 이용",
-        monthlyCap: "월 누적 3만원까지 이용 가능",
+        under3000: "5천원급 콘텐츠까지 이용",
+        monthlyCap: "월 최대 3만원 상당",
         over3000Single: "30일 동안 스탠다드 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -791,8 +795,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       premium: {
         profile7: "프로필 최대 7개 생성",
-        under5000: "5,000원 이하 유료 기능 횟수 제한 없이 이용",
-        monthlyCap: "월 누적 10만원까지 이용 가능",
+        under5000: "1만원급 콘텐츠까지 이용",
+        monthlyCap: "월 최대 10만원 상당",
         over5000Single: "30일 동안 프리미엄 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -800,9 +804,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       vvip: {
         profile15: "프로필 최대 15개 생성",
-        under10000: "10,000원 이하 유료 기능 횟수 제한 없이 이용",
-        monthlyCap: "월 누적 20만원까지 이용 가능",
-        vvipConsult: "전문가 상담 30일 3회 포함 (초과분 단건 결제)",
+        under10000: "2만원급 콘텐츠까지 이용",
+        monthlyCap: "월 최대 20만원 상당",
         over10000Single: "30일 동안 VVIP 혜택 유지",
         pdfSingle: "PDF 상품 조건은 결제 전 안내",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
@@ -810,9 +813,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         profileUnlimited: "프로필 추가·수정·삭제 무료, 제한 없음",
-        allPaidPdf: "3만원 미만 무제한 · 초융합 포함 10회",
-        monthlyCap: "월 누적 50만원까지 이용 가능",
-        familyIncluded: "전문가 상담 30일 10회 포함 (초과분 단건 결제)",
+        allPaidPdf: "이용권 대상 콘텐츠 전체 이용",
+        monthlyCap: "월 최대 50만원 상당",
         activeImmediately: "결제 즉시 30일 이용권 활성화",
         notAutoBilling: "원화 단건 결제로 구매 가능",
       },
@@ -876,7 +878,7 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
     defaultMemberName: "Member",
     duration30: "30 days",
     heldPass: "Active pass",
-    allPaidPdfPolicy: "Fusion Fortune excluded · Unlimited under KRW 30,000 (up to KRW 500,000/month) · 10 expert consultations",
+    allPaidPdfPolicy: "All pass-eligible content · Up to KRW 500,000 worth per month",
     generalLimitPolicy: (value) => `General services up to ${value}`,
     familyValueLine: (duration) => `All Family benefits / ${duration}`,
     planValueLine: (value, duration) => `Services up to ${value} / ${duration}`,
@@ -898,8 +900,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       free: {},
       standard: {
         profile3: "Create up to 3 profiles",
-        under3000: "Unlimited use of paid features up to KRW 3,000",
-        monthlyCap: "Up to KRW 30,000 total per month",
+        under3000: "Content priced around KRW 5,000 and below",
+        monthlyCap: "Up to KRW 30,000 worth per month",
         over3000Single: "Standard benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
@@ -907,8 +909,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       premium: {
         profile7: "Create up to 7 profiles",
-        under5000: "Unlimited use of paid features up to KRW 5,000",
-        monthlyCap: "Up to KRW 100,000 total per month",
+        under5000: "Content priced around KRW 10,000 and below",
+        monthlyCap: "Up to KRW 100,000 worth per month",
         over5000Single: "Premium benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
@@ -916,9 +918,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       vvip: {
         profile15: "Create up to 15 profiles",
-        under10000: "Unlimited use of paid features up to KRW 10,000",
-        monthlyCap: "Up to KRW 200,000 total per month",
-        vvipConsult: "3 expert consultations per 30 days (extra via single payment)",
+        under10000: "Content priced around KRW 20,000 and below",
+        monthlyCap: "Up to KRW 200,000 worth per month",
         over10000Single: "VVIP benefits stay active for 30 days",
         pdfSingle: "PDF terms are shown before purchase",
         activeImmediately: "30-day pass activates after payment",
@@ -926,9 +927,8 @@ const POINTS_PAGE_COPY: Record<LoadingLocale, PointsPageCopy> = {
       },
       family: {
         profileUnlimited: "Unlimited profile add/edit/delete",
-        allPaidPdf: "Fusion Fortune excluded · Unlimited for features under KRW 30,000",
-        monthlyCap: "Up to KRW 500,000 total per month",
-        familyIncluded: "10 expert consultations per 30 days (extra via single payment)",
+        allPaidPdf: "All pass-eligible content",
+        monthlyCap: "Up to KRW 500,000 worth per month",
         activeImmediately: "30-day pass activates after payment",
         notAutoBilling: "Monthly credits or KRW purchase available",
       },
@@ -1916,7 +1916,7 @@ function SubscriptionSection({
                 {plan.features.map((f) => {
                   const translatedFeature = copy.planFeatures[plan.tier]?.[f] || f;
                   const isBonus = f.startsWith("bonus");
-                  const isKey = ["under3000", "under5000", "under10000", "allPaidPdf", "familyIncluded", "monthlyCap", "vvipConsult"].includes(f);
+                  const isKey = ["under3000", "under5000", "under10000", "allPaidPdf", "monthlyCap"].includes(f);
                   return (
                     <li
                       key={f}
@@ -2252,11 +2252,14 @@ function getMoonlightProfileLabel(subscription: SubscriptionStatus) {
   return limit <= 0 ? "프로필 무제한" : `프로필 최대 ${limit.toLocaleString(FORMAT_LOCALE_BY_LANG[getCurrentLoadingLocale()])}개`;
 }
 
+// 🔴 2026-08-24 문구 정책: 모든 등급에 월 이용 한도가 있으므로 한도가 없다는 뜻의 표현을 쓰지
+//    않는다. 금액은 worker/lib/profile-limits.js 의 PASS_LIMITS 와 뜻이 같아야 한다
+//    (5,000 / 10,000 / 20,000원, family 상한 없음). 가드: verify:pass-tier-policy
 function getMoonlightBenefitLabel(tier: SubscriptionTier) {
-  if (tier === "family") return "3만원 미만 무제한 · 초융합 포함 10회";
-  if (tier === "vvip") return "1만원 이하 유료 무료";
-  if (tier === "premium") return "5천원 이하 유료 무료";
-  if (tier === "standard") return "3천원 이하 유료 무료";
+  if (tier === "family") return "이용권 대상 전체";
+  if (tier === "vvip") return "2만원급 콘텐츠까지";
+  if (tier === "premium") return "1만원급 콘텐츠까지";
+  if (tier === "standard") return "5천원급 콘텐츠까지";
   return "30일 혜택 선택 가능";
 }
 
@@ -2376,7 +2379,7 @@ function MoonlightActivePassCard({
     { icon: "👤", label: getMoonlightProfileLabel(subscription) },
     { icon: "✨", label: getMoonlightBenefitLabel(tier) },
     { icon: "🌙", label: "월정석으로도 구매 가능" },
-    { icon: "🗝️", label: tier === "family" ? "초융합 포함 전문가 상담 10회" : "한도 내 유료 리딩 혜택" },
+    { icon: "🗝️", label: tier === "family" ? "초융합 심층 리딩까지 이용권으로" : "한도 내 유료 리딩 혜택" },
   ];
 
   return (

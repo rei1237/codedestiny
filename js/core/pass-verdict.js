@@ -45,7 +45,10 @@
   // checkedAt 이 미래로 적힌 스냅샷(시계 조작·다른 기기 시계 오차)은 age 가 음수가 되어 영원히 신선해진다.
   var FUTURE_CLOCK_SKEW_MAX_MS = 24 * 60 * 60 * 1000;
 
-  var PASS_LIMIT_BY_TIER = { family: 999999999, vvip: 100, premium: 50, standard: 30, free: 0 };
+  // 서버 정본은 worker/lib/profile-limits.js 의 PASS_LIMITS(건당 적용 가격 범위, coin 단위).
+  // 2026-08-24: 50 / 100 / 200 = 5,000원 / 10,000원 / 20,000원 (이전 30/50/100).
+  // family 는 건당 상한이 없다 — 금액 무관 커버, 다만 월 이용 한도는 동일 적용.
+  var PASS_LIMIT_BY_TIER = { family: 999999999, vvip: 200, premium: 100, standard: 50, free: 0 };
   // 서버 정본은 lib/profile-limits.js 의 MONTHLY_PASS_LIMITS(월 누적 한도, coin 단위).
   // 건당 상한과는 별개의 AND 게이트 — 이번 건이 건당 상한을 통과해도 이번 사이클
   // 누적 사용액이 이 값을 넘으면 이용권으로 커버되지 않는다.
@@ -53,13 +56,11 @@
   // 월 누적 잔여 캐시(monthlySpendRemainingCoin)를 신선하다고 볼 상한. 이 안에서는 서버
   // 왕복 없이 로컬 값으로 판정하고, 넘기면 "모름"으로 남겨 서버 최종 판정으로 넘긴다.
   var MONTHLY_QUOTA_CACHE_TTL_MS = ACTIVE_TTL_MS;
-  // 서버 정본은 lib/profile-limits.js 의 PREMIUM_QUOTA_MIN_COIN_COST. 이 값 이상의 기능은
-  // family/vvip 라도 포함 횟수(기간당 N회 — family 10회, vvip 3회)를 다 썼을 수 있어
-  // 스냅샷만으로 커버를 단정할 수 없다. 남은 횟수는 서버만 안다 — 그래서 '커버 확정'도
-  // '커버 불가'도 아닌 미확정으로 두어 호출부가 서버에 물어보게 한다. 여기서 커버로
-  // 단정하면 결제창 없이 진행하다 402 를 맞는다.
-  var PREMIUM_QUOTA_MIN_COIN_COST = 300;
-  var PREMIUM_QUOTA_TIERS = { family: true, vvip: true };
+  /* 🔴 '프리미엄 상담 포함 횟수'는 2026-08-24 폐지됐다(서버 정본
+     worker/lib/profile-limits.js 의 PREMIUM_QUOTA_INCLUDED_USES_BY_TIER 가 빈 표다).
+     그래서 여기에도 그 개념이 없다 — 판정은 건당 상한 + 월 이용 한도 둘뿐이다.
+     되살리면 스냅샷이 '미확정'으로 남기던 구간이 다시 생겨 서버 왕복이 늘고,
+     무엇보다 가격 페이지 문구('2만원급 콘텐츠까지')와 어긋난다. */
   var ACTIVE_STATUS_RE = /^(active|subscribed|paid|success|succeeded|complete|completed|confirmed|approved)$/i;
   var INACTIVE_STATUS_RE = /^(none|free|inactive|expired|canceled|cancelled|refunded|failed|paused)$/i;
 
@@ -411,19 +412,13 @@
     result.passLimit = limit;
     result.hasActivePass = true;
     if (!(limit > 0)) return result;
-    // 상담 포함횟수 대상(family/vvip, 300코인 이상)이면 건당 상한 확정 거부를 건너뛴다 — VVIP는
-    // 건당 상한(100코인=10,000원)이 포함횟수 기준가(300코인=30,000원)보다 낮아서, 순서를
-    // 바꾸지 않으면 여기서 무조건 cannotCover가 확정돼 버려 서버가 판정할 기회조차 없다.
-    var isPremiumQuotaEligible = Boolean(PREMIUM_QUOTA_TIERS[snapshot.tier]) && cost >= PREMIUM_QUOTA_MIN_COIN_COST;
-    if (snapshot.tier !== "family" && !isPremiumQuotaEligible && cost > limit) {
+    // family 는 건당 상한이 없다(limit = 999999999) — 아래 비교가 참이 될 수 없어 그대로 통과하고
+    // 월 이용 한도 검사로 넘어간다. 나머지 등급은 상한을 넘으면 여기서 확정 거부다.
+    if (cost > limit) {
       result.cannotCover = true;
       return result;
     }
-    // family/vvip 의 프리미엄 상담은 포함 횟수(family 10회 · vvip 3회) 소진 여부를 서버만
-    // 안다 → 미확정으로 남긴다. (coversNow=false, cannotCover=false = "모름". 호출부는
-    // 서버 판정을 기다린다.)
-    if (isPremiumQuotaEligible) return result;
-    // 월 누적 한도: 로컬 캐시가 신선하고(TTL 이내) 남은 한도가 이번 건보다 적다는 게 확인될
+    // 월 이용 한도: 로컬 캐시가 신선하고(TTL 이내) 남은 한도가 이번 건보다 적다는 게 확인될
     // 때만 확정 거부한다. 캐시가 없거나 낡았으면 검사를 건너뛰고 기존처럼 낙관 통과시킨다 —
     // "캐시가 없으면 결제창으로" 를 택하면, 캐시가 아직 한 번도 채워지지 않은 모든 사용자가
     // 매번 서버 왕복을 타게 되어 이 파일이 막으려는 바로 그 회귀(TTL 초과 시 재왕복)가 다시

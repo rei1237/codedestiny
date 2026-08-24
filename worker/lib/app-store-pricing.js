@@ -43,21 +43,26 @@ const CONTENT_TIER_TABLE = Object.freeze([
   { productId: "cd_content_tier_13", amountKRW: 89000, webAmountKRW: 70000, coinPrices: Object.freeze([700]) },
 ]);
 
-// 이용권: 30일, 자동갱신 없음. 건당 커버 범위 안이면 몇 번이든 무료지만, 등급별 월 누적
+// 이용권: 30일, 자동갱신 없음. 건당 커버 범위 안이면 몇 번이든 무료지만, 등급별 월 이용
 // 한도(coin 단위, 웹 정본 MONTHLY_PASS_LIMITS)를 넘으면 그 사이클 안에서는 커버가 끊긴다.
-// 앱 가격은 그 등급이 커버하는 금액이 오른 비율만큼 올린다 — 값과 혜택이 비례해야
-// "앱은 왜 더 비싼가"가 설명된다. coinLimit은 웹 정본(PASS_LIMITS, 건당 상한)과 같은 값이며,
-// 커버 기능 집합은 앱·웹이 동일하다(canUseByPass가 코인으로 판정하므로). 월 누적 한도는
-// 앱 SKU 필드로는 노출하지 않는다(앱은 이용권 상품 자체를 판매할 뿐 콘텐츠별 소비를 다루지 않음).
+//
+// 🔴 2026-08-24 개정 — **이용권만 앱가 = 웹가다**(사용자 확정). 콘텐츠 티어는 종전대로
+// 20~30% 인상하지만 이용권 SKU 는 인상하지 않는다. 그 결과 Play 수수료 15%를 이용권에서
+// 그대로 부담한다 — 의도된 선택이며, 되돌리려면 그것도 정책 결정이다.
+// 옛 기준("커버 금액이 오른 비율만큼 이용권가도 올린다")은 폐기했다: 건당 상한이 30/50/100
+// → 50/100/200 으로 오르면서 각 등급이 참조하는 콘텐츠 티어가 바뀌어 세 등급 전부 밴드를
+// 벗어났고, 그때 고른 답이 "앱가를 웹가에 맞춘다"였다.
+// 🔴 amountKRW 는 Play Console 등록가와 1:1 이어야 한다 — 이 값을 바꿨으면 Play Console
+//    에서도 사람이 같은 값으로 바꿔야 한다. 가드: scripts/verify-app-store-pricing.mjs
+//
+// coinLimit 은 웹 정본(PASS_LIMITS, 건당 상한)과 같은 값이며, 커버 기능 집합은 앱·웹이
+// 동일하다(canUseByPass 가 코인으로 판정하므로). 월 이용 한도는 앱 SKU 필드로는 노출하지
+// 않는다(앱은 이용권 상품 자체를 판매할 뿐 콘텐츠별 소비를 다루지 않음).
 const PASS_TIER_TABLE = Object.freeze([
-  // 커버 3,000→3,900(+30.0%) → 이용권도 9,900→13,000(+31.3%)
-  { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 13000, webAmountKRW: 9900, coinLimit: 30 },
-  // 커버 5,000→6,000(+20.0%) → 이용권도 +20.4%
-  { passTier: "premium", productId: "cd_pass_premium_30d", amountKRW: 36000, webAmountKRW: 29900, coinLimit: 50 },
-  // 커버 10,000→13,000(+30.0%) → 이용권도 +28.6%
-  { passTier: "vvip", productId: "cd_pass_vvip_30d", amountKRW: 75900, webAmountKRW: 59000, coinLimit: 100 },
-  // 전체 커버라 대응 티어가 없다 → 콘텐츠 티어 평균 인상률(+25% 부근)을 따른다.
-  { passTier: "family", productId: "cd_pass_family_30d", amountKRW: 185000, webAmountKRW: 149000, coinLimit: null },
+  { passTier: "standard", productId: "cd_pass_standard_30d", amountKRW: 9900, webAmountKRW: 9900, coinLimit: 50 },
+  { passTier: "premium", productId: "cd_pass_premium_30d", amountKRW: 29900, webAmountKRW: 29900, coinLimit: 100 },
+  { passTier: "vvip", productId: "cd_pass_vvip_30d", amountKRW: 59000, webAmountKRW: 59000, coinLimit: 200 },
+  { passTier: "family", productId: "cd_pass_family_30d", amountKRW: 149000, webAmountKRW: 149000, coinLimit: null },
 ]);
 
 const CONTENT_TIER_BY_COIN_PRICE = (() => {

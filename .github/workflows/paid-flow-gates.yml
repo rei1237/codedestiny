@@ -39,6 +39,13 @@ on:
       - "worker/lib/payment-reconcile-task.js"
       - "worker/lib/content-unlocks.js"
       - "worker/lib/profile-limits.js"
+      # 🔴 같은 구멍이 둘 더 있었다(2026-08-24 실측). verify:app-store-pricing 과 신규
+      #    verify:pass-tier-policy 가 app-store-pricing.js 를 import 해 이용권 SKU 의 coinLimit 이
+      #    웹 정본 PASS_LIMITS 와 같은지 대조하는데, 이 파일이 트리거에 없어 여기만 고친 PR 은
+      #    게이트가 깨어나지 않았다. access-state.js 는 이용권 월 이용 한도 현황(passUsage)을
+      #    스냅샷에 실어 화면이 읽는 값을 만든다 — 결제 판정과 같은 카운터를 읽는 파일이다.
+      - "worker/lib/app-store-pricing.js"
+      - "worker/lib/access-state.js"
       - "worker/lib/portone.js"
       # 🔴 결제 **레인**이 사는 곳이다(2026-08-12 추가). connectPaymentDb(전용 소켓 풀) ·
       #    mongoPaymentAdmission(전용 admission 레인) · withMongoRetry 의 skipSharedConnect 가

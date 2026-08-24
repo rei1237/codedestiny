@@ -5337,11 +5337,25 @@
 
   function _dpGetTierLabel(tierRaw) {
     var tier = _dpNormalizeTier(tierRaw);
-    if (tier === 'standard') return '스탠다드';
-    if (tier === 'premium') return '프리미엄';
-    if (tier === 'vvip') return 'VVIP';
-    if (tier === 'family') return '패밀리';
+    if (tier === 'standard') return '스탠다드 꿀';
+    if (tier === 'premium') return '프리미엄 꿀';
+    if (tier === 'vvip') return 'VVIP 꿀단지';
+    if (tier === 'family') return 'Code Destiny Family';
     return '무료';
+  }
+
+  /* 한도 안내에 쓰는 상위 등급 요약. 오류 문구만 던지지 않고 "다음 등급에서는 몇 개까지"를
+     함께 보여 주기 위한 것이다(2026-08-24 정책 10항). 개수 정본은 _dpGetTierProfileLimit 이며
+     서버 정본 HONEY_PASS_POLICY.maxProfiles 와 같은 값을 든다. */
+  function _dpDescribeUpgradeProfileLimits(currentTierRaw) {
+    var current = _dpNormalizeTier(currentTierRaw);
+    var order = ['standard', 'premium', 'vvip', 'family'];
+    var startIndex = order.indexOf(current) + 1;
+    var parts = [];
+    for (var i = startIndex; i < order.length; i += 1) {
+      parts.push(_dpGetTierLabel(order[i]) + ' ' + _dpFormatLimitLabel(_dpGetTierProfileLimit(order[i])));
+    }
+    return parts.join(' · ');
   }
 
   function _dpGetNextTier(tierRaw) {
@@ -5841,7 +5855,7 @@
     if (!_dpSubIsActive) {
       quotaText.textContent = '무료 계정 · 기본 프로필 카드 1개 사용 완료 · 추가 생성 ' + (PROFILE_CARD_MANAGE_COST * 100).toLocaleString('ko-KR') + '원';
     } else {
-      quotaText.textContent = label + ' · 기본 한도 ' + limitLabel + '개 사용 완료 · 추가 생성 5,000원';
+      quotaText.textContent = '현재 ' + label + '에서는 프로필 최대 ' + limitLabel + '개 · 추가 생성 5,000원';
     }
   }
 
@@ -8882,10 +8896,14 @@
           var limitLabel = _dpFormatLimitLabel(limit);
           var tierLabel = _dpGetTierLabel(tier);
           var nextTier = _dpGetNextTier(tier);
-          var guide = nextTier
-            ? ('\n/points 페이지에서 ' + _dpGetTierLabel(nextTier) + '로 업그레이드하면 더 많은 프로필을 추가할 수 있습니다.')
+          /* 🔴 단순 오류 문구를 쓰지 않는다(2026-08-24 정책 10항). 지금 등급에서 몇 개까지
+             쓸 수 있는지 먼저 말하고, 상위 등급의 개수를 함께 보여 준다. 과한 결제 유도는
+             하지 않는다 — 사실만 적고 마지막 한 줄에서만 안내한다. */
+          var upgradeSummary = _dpDescribeUpgradeProfileLimits(tier);
+          var guide = nextTier && upgradeSummary
+            ? ('\n' + upgradeSummary + '까지 쓸 수 있어요. /points 에서 확인할 수 있습니다.')
             : '';
-          window.alert(msg || (tierLabel + ' 플랜 한도(' + limitLabel + ')에 도달했습니다.' + guide));
+          window.alert(msg || ('현재 ' + tierLabel + '에서는 프로필을 최대 ' + limitLabel + ' 사용할 수 있어요.' + guide));
           restoreCardAfterSaveAttempt();
           return null;
         }

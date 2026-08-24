@@ -24,10 +24,11 @@ const active = (tier, extra = {}) => ({
 });
 
 describe("canonical entitlement and feature access policy", () => {
+  // 2026-08-24 적용 가격 범위: standard 50 · premium 100 · vvip 200 코인(= 5,000/10,000/20,000원).
   test.each([
-    ["standard", 30, 31],
-    ["premium", 50, 51],
-    ["vvip", 100, 101],
+    ["standard", 50, 51],
+    ["premium", 100, 101],
+    ["vvip", 200, 201],
   ])("%s uses its canonical feature limit", (tier, allowedCost, deniedCost) => {
     expect(policy.resolveFeatureAccessPolicy({ user: active(tier), coinCost: allowedCost })).toMatchObject({
       allowed: true,
@@ -57,7 +58,8 @@ describe("canonical entitlement and feature access policy", () => {
       source: "profileSubscription",
       conflict: false,
     });
-    expect(policy.resolveFeatureAccessPolicy({ user, coinCost: 31 }).allowed).toBe(false);
+    // standard 상한(50코인)을 넘는 금액이라야 "legacy family 가 끌어올리지 않는다"가 실제로 재진다.
+    expect(policy.resolveFeatureAccessPolicy({ user, coinCost: 51 }).allowed).toBe(false);
   });
 
   test("expired canonical entitlement does not fall back to active legacy", () => {

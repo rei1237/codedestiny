@@ -12,6 +12,10 @@ import { readFileSync, existsSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createRequire } from "node:module";
+// 🔴 등급 한도는 여기에 리터럴로 적지 않는다 — 서버 정본에서 끌어와 대조한다.
+//    옛 코드는 30/50/100 을 손으로 박아 두어, 정책이 바뀔 때 이 가드가 정책이 아니라
+//    옛 숫자를 지켰다(2026-08-24 상한 상향에서 실제로 여기서 걸렸다).
+import { PASS_LIMITS, FAMILY_PASS_MAX_COVERED_COIN } from "../worker/lib/profile-limits.js";
 
 const rootDir = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const require = createRequire(import.meta.url);
@@ -65,10 +69,16 @@ if (passVerdict) {
   assert(passVerdict.NONE_TTL_MS === 60000, "미보유 스냅샷 TTL 은 60초여야 한다");
   assert(passVerdict.ACTIVE_TTL_MS === 5 * 60 * 1000, "보유 스냅샷 재검증 간격은 5분이어야 한다");
   assert(passVerdict.NONE_STALE_MAX_MS === 24 * 60 * 60 * 1000, "미보유 stale 상한은 24시간이어야 한다");
-  assert(passVerdict.passLimitForTier("standard") === 30, "standard 한도는 30이어야 한다");
-  assert(passVerdict.passLimitForTier("premium") === 50, "premium 한도는 50이어야 한다");
-  assert(passVerdict.passLimitForTier("vvip") === 100, "vvip 한도는 100이어야 한다");
-  assert(passVerdict.passLimitForTier("family") === 999999999, "family 는 사실상 무제한이어야 한다");
+  for (const tier of ["standard", "premium", "vvip"]) {
+    assert(
+      passVerdict.passLimitForTier(tier) === PASS_LIMITS[tier],
+      `${tier} 한도는 서버 정본 PASS_LIMITS 와 같아야 한다(정본=${PASS_LIMITS[tier]}, 클라=${passVerdict.passLimitForTier(tier)})`,
+    );
+  }
+  assert(
+    passVerdict.passLimitForTier("family") === FAMILY_PASS_MAX_COVERED_COIN,
+    "family 는 건당 상한이 없어야 한다",
+  );
 
   // 🔴 이번 변경의 핵심 성질: TTL 을 넘겼어도 이용권 만료일이 남아 있으면 커버 판정을 유지한다.
   const now = Date.now();
@@ -91,8 +101,12 @@ if (passVerdict) {
     "만료일을 모르는 stale active 는 커버 확정을 내리면 안 된다",
   );
   assert(
-    passVerdict.resolveVerdict({ ...staleButValid, tier: "standard" }, 50).cannotCover === true,
+    passVerdict.resolveVerdict({ ...staleButValid, tier: "standard" }, PASS_LIMITS.standard + 1).cannotCover === true,
     "가격이 등급 한도를 넘으면 미커버 확정이어야 한다",
+  );
+  assert(
+    passVerdict.resolveVerdict({ ...staleButValid, tier: "standard" }, PASS_LIMITS.standard).cannotCover === false,
+    "가격이 등급 한도와 정확히 같으면 미커버로 확정하면 안 된다",
   );
 }
 

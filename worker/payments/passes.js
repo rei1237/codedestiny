@@ -17,10 +17,11 @@
  */
 import { Payment, PointHistory, User } from "../lib/models.js";
 import {
+  FAMILY_PASS_MAX_COVERED_COIN,
   HONEY_PASS_POLICY,
+  KRW_PER_COIN,
   MONTHLY_PASS_LIMITS,
   PASS_LIMITS,
-  PREMIUM_QUOTA_MIN_COIN_COST,
   normalizePassTier,
   resolvePremiumQuotaCycleKey,
 } from "../lib/profile-limits.js";
@@ -304,10 +305,15 @@ export function presentPassSubscription(profileSubscription, plan, { customerUid
  * 구 판정은 ①건당 상한 ②프리미엄 상담 포함횟수(family 10회·vvip 3회) ③월 누적 한도의 3중이었다.
  * ②와 ③을 **단일 월 예산(코인)** 하나로 합친다 — 카운터가 하나면 판정과 소비가 같은 수를 보므로
  * "판정은 커버라 했는데 소비가 거부"하는 막다른 길(과거 프로필카드 실사고와 동형)이 구조적으로
- * 사라진다. 예산 수치는 현행 월 누적 한도(MONTHLY_PASS_LIMITS)를 그대로 승계하므로 체감 변화가 없고,
- * 고가 상담도 코인 예산에서 자연히 차단된다(vvip 2,000코인 = 20만원).
- * 건당 상한 우회는 유지한다: 프리미엄 상담(300코인 이상)을 포함 혜택으로 갖던 등급(family·vvip)은
- * 상한 대신 예산으로만 판정한다 — 이걸 빼면 vvip 상한(100코인)이 상담을 전부 막아 혜택이 사라진다.
+ * 사라진다. 예산 수치는 현행 월 이용 한도(MONTHLY_PASS_LIMITS)를 그대로 승계한다.
+ *
+ * ## 건당-상한 우회 폐지 (2026-08-24 사용자 확정)
+ * 2026-08-12~24 사이에는 family·vvip 가 300코인 이상 상품에서 건당 상한을 우회했다. vvip 상한이
+ * 100코인(10,000원)이라 그 우회가 없으면 고가 상담 혜택이 통째로 사라졌기 때문이다. 이제 vvip
+ * 상한이 200코인(20,000원)으로 올랐고, 새 정책은 "2만원급 콘텐츠까지"를 문자 그대로 지킨다 —
+ * 우회를 남기면 20,001~29,999원만 미커버인 설명 불가능한 구간이 생기고 가격 페이지 문구가
+ * 서버 판정과 어긋난다. family 는 애초에 건당 상한이 없어 우회가 필요 없었다.
+ * 정본은 PASS_LIMITS 하나이며, 여기에 등급별 예외 분기를 되살리지 말 것.
  *
  * ## 왕복 예산
  * 판정은 넘겨받은 User 문서 하나로 끝나고(추가 조회 0), 소비는 CAS 1회다. 구 경로는 인증 조회 +
@@ -315,9 +321,6 @@ export function presentPassSubscription(profileSubscription, plan, { customerUid
  * 오탐의 최대 지점이었다(worker/lib/db.js 결제 레인 주석과 한 세트다).
  */
 const PASS_MARKER_CAP = 40;
-
-/** 프리미엄 상담 건당-상한 우회 대상 등급. 구 PREMIUM_QUOTA_INCLUDED_USES_BY_TIER 의 키와 같다. */
-const PREMIUM_BYPASS_TIERS = new Set(["family", "vvip"]);
 
 export function buildPassConsumeMarker(featureKey, requestId) {
   const key = String(featureKey || "").trim();
@@ -345,8 +348,7 @@ export function evaluatePassCoverage({ user, entitlement, coinCost }) {
     ? Math.max(0, Math.floor(Number(sub.monthlySpendCoin || 0)))
     : 0;
 
-  const premiumBypass = PREMIUM_BYPASS_TIERS.has(tier) && cost >= PREMIUM_QUOTA_MIN_COIN_COST;
-  if (!premiumBypass && cost > perItemLimit) {
+  if (cost > perItemLimit) {
     return { covered: false, reason: "price_exceeds_pass_limit", tier, perItemLimit, coinCost: cost };
   }
   if (budgetApplies && usedCoin + cost > budgetCoin) {
@@ -360,6 +362,78 @@ export function evaluatePassCoverage({ user, entitlement, coinCost }) {
     budgetApplies, budgetCoin, usedCoin, cycleKey,
     remainingCoin: budgetApplies ? Math.max(0, budgetCoin - usedCoin - cost) : budgetCoin,
     sameCycle: budgetApplies && String(sub.premiumUseCycleKey || "") === cycleKey,
+  };
+}
+
+/**
+ * 이용권 판정을 **사람이 읽는 모양**으로 한 번에 설명한다. 읽기·쓰기 0회 — 호출부가 이미 읽은
+ * User 문서와 이미 해석한 상품(catalog.resolveProduct 결과)만 쓴다.
+ *
+ * 왜 별도 함수인가: "이 서비스가 내 이용권으로 열리나?" 를 화면마다 각자 계산하면(가격 비교를
+ * 페이지에 흩뿌리면) 가격이 바뀔 때마다 화면이 조용히 어긋난다. 판정의 정본은
+ * evaluatePassCoverage 하나이고, 이 함수는 **그 결과를 그대로 옮겨 담는 어댑터**다 —
+ * 여기서 커버 여부를 다시 계산하지 말 것(판정 두 벌 = 막다른 길의 씨앗).
+ *
+ * 🔴 게이트가 아니다. 실제 허용/차감은 evaluatePassCoverage + consumePassCoverage 가 한다.
+ *    이 결과를 보고 소비를 건너뛰는 코드를 만들지 말 것(원칙 6 — 중첩 사전검사 금지).
+ *
+ * @param {{ user?: object, entitlement?: object, product?: object }} input
+ *   product 는 { featureKey, priceCoins, priceKRW, passExcluded } 를 갖는 catalog 해석 결과.
+ * @returns {{
+ *   hasPass: boolean, tier: string|null, tierLabel: string,
+ *   featureKey: string, canonicalPriceKRW: number,
+ *   perItemLimitKRW: number|null, monthlyLimitKRW: number,
+ *   monthlyUsedKRW: number, monthlyRemainingKRW: number,
+ *   eligible: boolean, reason: string, deductKRW: number,
+ *   profileLimit: number, expiresAt: string|null, cycleEndsAt: string|null,
+ * }}
+ *   perItemLimitKRW 가 null = 건당 상한 없음(family). profileLimit 0 = 무제한.
+ *   reason 은 evaluatePassCoverage 의 사유를 그대로 쓰고, 이용권 제외 상품만
+ *   "pass_excluded" 를 더한다.
+ */
+export function describePassEligibility({ user, entitlement, product } = {}) {
+  const tier = normalizePassTier(entitlement?.passTier || entitlement?.tier);
+  const policy = tier ? HONEY_PASS_POLICY[tier] : null;
+  const hasPass = Boolean(entitlement?.isActive) && Boolean(tier);
+  const priceCoins = Math.max(0, Math.floor(Number(product?.priceCoins || 0)));
+  const canonicalPriceKRW = Math.max(0, Math.floor(Number(product?.priceKRW || 0)));
+  const cycleKey = resolvePremiumQuotaCycleKey(entitlement);
+
+  const perItemLimitCoin = tier ? Number(PASS_LIMITS[tier] || 0) : 0;
+  const monthlyLimitCoin = tier ? Number(MONTHLY_PASS_LIMITS[tier] || 0) : 0;
+  const sub = user?.profileSubscription && typeof user.profileSubscription === "object" ? user.profileSubscription : {};
+  const usedCoin = cycleKey && String(sub.premiumUseCycleKey || "") === cycleKey
+    ? Math.max(0, Math.floor(Number(sub.monthlySpendCoin || 0)))
+    : 0;
+
+  const base = {
+    hasPass,
+    tier: tier || null,
+    tierLabel: policy ? policy.label : HONEY_PASS_POLICY.none.label,
+    featureKey: String(product?.featureKey || ""),
+    canonicalPriceKRW,
+    perItemLimitKRW: !tier || perItemLimitCoin >= FAMILY_PASS_MAX_COVERED_COIN
+      ? null
+      : perItemLimitCoin * KRW_PER_COIN,
+    monthlyLimitKRW: monthlyLimitCoin * KRW_PER_COIN,
+    monthlyUsedKRW: usedCoin * KRW_PER_COIN,
+    monthlyRemainingKRW: Math.max(0, monthlyLimitCoin - usedCoin) * KRW_PER_COIN,
+    profileLimit: policy ? Number(policy.maxProfiles || 0) : HONEY_PASS_POLICY.none.maxProfiles,
+    expiresAt: entitlement?.expiresAt ? String(entitlement.expiresAt) : null,
+    cycleEndsAt: cycleKey || null,
+  };
+
+  if (product?.passExcluded) {
+    return { ...base, eligible: false, reason: "pass_excluded", deductKRW: 0 };
+  }
+
+  const coverage = evaluatePassCoverage({ user, entitlement, coinCost: priceCoins });
+  return {
+    ...base,
+    eligible: coverage.covered === true,
+    reason: coverage.covered === true ? "covered" : String(coverage.reason || "not_covered"),
+    // 차감은 정상 판매가 기준이다 — 할인·쿠폰·프로모션가가 아니라 canonical price.
+    deductKRW: coverage.covered === true ? canonicalPriceKRW : 0,
   };
 }
 
