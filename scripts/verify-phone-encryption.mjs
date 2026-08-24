@@ -193,19 +193,24 @@ assert.equal(entry.secret, true, "PII_ENC_KEY must be marked as a secret");
 assert.ok(entry.required_in?.includes("production"), "PII_ENC_KEY must be required in production");
 assert.ok(entry.targets?.includes("worker"), "PII_ENC_KEY must target the worker");
 
-// 12. 🔴 수집 지점 — 2026-08-19 부터 **회원가입이 1차 수집 지점**이다.
-//     이 절은 여러 번 방향이 바뀌었다. ①가입 화면이 암호화 보관을 안내 ②2026-08-15 "가입 폼에
-//     번호 입력이 있으면 실패"(수집 지점을 첫 결제 모달 하나로 좁힘) ③2026-08-19 다시 가입 필수 —
-//     카카오 개인정보 동의항목 심사가 "자체 회원가입에서도 전화번호를 수집할 것"을 요구한다.
+// 12. 🔴 수집 지점 — **이메일 가입이 1차 수집 지점**이다(2026-08-25 기준).
+//     이 절은 여러 번 방향이 바뀌었다. 되돌리기 전에 이 이력을 먼저 읽을 것:
+//       ① 가입 화면이 암호화 보관을 안내
+//       ② 2026-08-15 "가입 폼에 번호 입력이 있으면 실패"(수집 지점을 첫 결제 모달 하나로 좁힘)
+//       ③ 2026-08-19 전 경로 가입 필수 — 카카오 동의항목 심사가 "자체 회원가입에서도 수집할 것"을 요구
+//       ④ 2026-08-25 **자체(이메일) 가입만 필수**. 소셜은 공급자가 주면 쓰고(카카오·네이버),
+//          주지 않으면(구글) 첫 결제 화면이 받는다. 심사가 보는 것은 ③의 "자체" 쪽이고 그건 그대로다.
 //     지금 번호가 들어오는 경로는 셋이고, 방침 2항의 서술이 이 목록과 같아야 한다:
-//     ①가입 화면 직접 입력 ②소셜 공급자가 자기 동의로 넘긴 값 ③기존 회원의 첫 카드결제 모달.
+//     ①이메일 가입 화면 직접 입력 ②소셜 공급자가 자기 동의로 넘긴 값 ③번호 없는 회원의 첫 카드결제 모달.
 const authShellSource = read("app/components/auth/AuthShell.tsx");
 assertContains(authShellSource, 'id="auth-phone"',
-  "signup screen must collect a phone number (Kakao consent-item review requires it)");
+  "email signup must collect a phone number (Kakao consent-item review requires it)");
 assertContains(authShellSource, 'type="tel"',
   "the phone field must use the tel input type so mobile shows a numeric keypad");
-assertContains(authShellSource, "socialPhoneProvided",
-  "the field may only be hidden when the provider already supplied a number");
+// 🔴 번호 칸은 **이메일 가입 전용**이다. 소셜 티켓 화면에 되살리면 공급자가 이미 넘긴 번호를
+//    한 번 더 입력시키는 화면이 되고, 구글은 "소셜로 시작했는데 폼을 채우는" 상태로 돌아간다.
+assertContains(authShellSource, 'isSignup && !ticket && <Field id="auth-phone"',
+  "the phone field must render for email signup only, never on the social ticket screen");
 // 🔴 프론트 검증은 서버와 **같은 규칙**을 써야 한다 — 갈라지면 화면은 통과시키고 서버가 400 을 낸다.
 assertContains(authShellSource, 'from "../../_lib/korean-phone"',
   "AuthShell must normalize with the shared front-end helper, not a private copy");
@@ -215,9 +220,13 @@ assertContains(validationSource, 'from "./pii-crypto.js"',
   "validateRegisterPayload must normalize with the same rule the storage path uses");
 assertContains(validationSource, 'errors.push("Phone number is invalid.")',
   "server-side signup validation must reject a missing or malformed number");
-// 소셜 가입은 공급자 값과 입력값이 **둘 다** 없을 때만 거절한다.
-assertContains(authSource, "if (!ticketPhoneNumber && !bodyPhoneNumber) {",
-  "social signup must require a number from either the provider ticket or the form");
+// 🔴 소셜 가입은 **번호 없이도 끝난다**(2026-08-25). 되살리면 구글 사용자가 소셜로 시작하고도
+//    폼을 채워야 하는 화면으로 돌아간다. 그 계정의 번호는 첫 카드 결제 화면이 받는다.
+//    이메일 가입의 필수화는 바로 위 validateRegisterPayload 단언이 계속 지킨다.
+assert.ok(
+  !authSource.includes("if (!ticketPhoneNumber && !bodyPhoneNumber) {"),
+  "social signup must not require a phone number — 2026-08-25 정책. 이메일 가입만 필수다.",
+);
 assert.ok(
   !existsSync(join(repoRoot, "app/onboarding")),
   "/onboarding must stay removed — signup and checkout are the only collection surfaces",
@@ -316,8 +325,8 @@ assertContains(read("app/_lib/payment-phone-prompt.ts"), "서버에",
   "payment-phone prompt must tell the user the number is stored on the server");
 assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "AES-256 방식으로 암호화해 보관합니다",
   "privacy policy must state that the phone number is stored encrypted");
-assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 회원가입 시 필수로 수집하며",
-  "privacy policy must state that the phone number is a required signup field");
+assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "휴대폰 번호는 이메일로 가입하시는 경우 회원가입 시 필수로 수집하며",
+  "privacy policy must scope the required-at-signup claim to email signup (2026-08-25)");
 // 실제로 하지 않는 목적을 방침에 적으면 그 자체가 허위 고지다 — 이 서비스에는 SMS 발송 기능이 없다.
 assertContains(read("app/privacy-policy/PrivacyPolicyContent.jsx"), "광고성 문자나 전화를 보내지 않습니다",
   "privacy policy must not claim a messaging purpose the service does not have");

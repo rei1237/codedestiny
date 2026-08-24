@@ -11,7 +11,7 @@ import { OPERATOR_NAME, SUPPORT_EMAIL, SUPPORT_MAILTO } from "../../lib/site-pol
 
 // 🔴 worker/routes/auth.js 의 AUTH_PRIVACY_VERSION 과 **같은 값이어야 한다**(수동 동기화).
 // 한쪽만 고치면 사용자가 본 방침과 DB 에 기록되는 동의 버전이 조용히 어긋난다.
-export const PRIVACY_POLICY_EFFECTIVE_DATE = "2026-08-19";
+export const PRIVACY_POLICY_EFFECTIVE_DATE = "2026-08-25";
 
 export const PRIVACY_POLICY_SECTIONS = [
   {
