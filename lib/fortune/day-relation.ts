@@ -9,6 +9,7 @@
  *  - 별자리: 날짜로 정해지는 태양궁과, 일일 패키지가 담고 있는 그날의 달 자리.
  */
 import type { SignProfile } from "./sign-profiles";
+import { zodiacNameKoFromEn } from "./sign-profiles";
 
 /** 띠 → 십이지 지지 */
 const BRANCH_BY_ANIMAL: Record<string, string> = {
@@ -241,7 +242,7 @@ export function zodiacDayRelation(
     kind: "neutral",
     badge: sunProfileName ? `태양 ${sunProfileName} 구간` : "오늘의 하늘",
     detail: sunProfileName
-      ? `오늘 태양은 ${sunProfileName}에 머물고 달은 ${moonSignEn || "이동 중"} 자리를 지납니다. ${profile.nameKo}에게는 외부 기운이 강하게 끌어당기지 않는 구간이라, 흐름을 타기보다 자기 계획대로 밀고 가는 편이 결과가 좋습니다.`
+      ? `오늘 태양은 ${sunProfileName}에 머물고 달은 ${moonSignEn ? zodiacNameKoFromEn(moonSignEn) : "이동 중"} 자리를 지납니다. ${profile.nameKo}에게는 외부 기운이 강하게 끌어당기지 않는 구간이라, 흐름을 타기보다 자기 계획대로 밀고 가는 편이 결과가 좋습니다.`
       : `${profile.nameKo}에게 오늘은 외부 기운의 개입이 적은 날입니다. 자기 계획대로 움직이세요.`,
   };
 }

@@ -14,6 +14,7 @@ import { formatKoreanDate, getSignEntry, loadDailyPackage, resolvePeriodDate } f
 import type { FortunePeriodId } from "./periods";
 import { PERIOD_TITLE } from "./periods";
 import type { SignProfile } from "./sign-profiles";
+import { zodiacNameKoFromEn } from "./sign-profiles";
 import { animalDayRelation, zodiacDayRelation, type DayRelation } from "./day-relation";
 import { averageScores, computeSignScore, type FortuneScore, type ScoreAxis } from "./fortune-score";
 import { formatShortDate, loadMonthRange, loadWeekRange, type DayCell } from "./range-data";
@@ -108,7 +109,7 @@ function buildDaily(profile: SignProfile, period: "today" | "tomorrow"): SignVie
       { label: "달의 위상", value: pkg.sky_today.moon_phase },
     ],
     narrative:
-      `${PERIOD_TITLE[period]} 일진은 ${pkg.calendar.ilchin} 이고 달은 ${pkg.sky_today.moon_sign} 자리를 지납니다. ` +
+      `${PERIOD_TITLE[period]} 일진은 ${pkg.calendar.ilchin} 이고 달은 ${zodiacNameKoFromEn(pkg.sky_today.moon_sign)} 자리를 지납니다. ` +
       `아래 점수는 이 값들과 ${profile.nameKo}의 기질이 만나는 지점을 계산한 결과이며, 산출 근거를 그대로 함께 적었습니다.`,
   };
 }
