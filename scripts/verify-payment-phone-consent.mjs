@@ -57,6 +57,7 @@ const SCALAR_KEYS = [
   "SOCIAL_CTA_NAVER",
   "SOCIAL_BLOCKED",
   "SOCIAL_FAILED",
+  "SOCIAL_DESC",
 ];
 
 // 개인정보 보호법 제15조 제2항이 요구하는 고지 항목 수(수집 항목 · 이용 목적 · 보유 기간 · 거부 권리).
