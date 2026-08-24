@@ -114,6 +114,15 @@ const SUITE = [
   { run: "npm run verify:astrology-sectioned", why: "점성술 섹션 생성." },
   { run: "npm run verify:ai-consultation-flows", why: "목록 정본은 package.json 의 verify:ai-consultation-flows 하나다. 여기에 다시 늘어놓으면 배포 경로(deploy:critical)와 CI 가 서로 다른 목록을 갖게 되고, 그 드리프트가 곧 'CI 에서만 터지는 게이트'가 된다." },
 
+  // 🔴 아래 넷은 2026-08-25 까지 verify-guard-wiring 의 "유료 LLM 실호출 계열" 버킷에 "LLM 실호출 —
+  //    원칙 8, 사용자 허락 후 수동" 이라는 사유로 미배선 선언돼 있었다. **넷 다 사실이 아니었다.**
+  //    실호출 히트(GEMINIF_API_KEY·env.AI.run·generativelanguage·fetch)가 0이고, 넷을 합쳐 2.1초에
+  //    통과한다. 바로 위 verify:payment-reconcile 과 같은 형태의 거짓말이었고 같은 자리에 배선한다.
+  { run: "npm run verify:naming-prompt", why: "작명 AI(premium-naming-prompt, 30,000원)의 프롬프트 배선·로케일 프로파일 전수·ko 프롬프트 골든 스냅샷·한국 전용 수리 누출 줄 단위 검사. 순수 정적이다(스크립트 헤더가 그렇게 적고 있고, 실제로 import 하는 것은 paid-feature-registry.js 뿐이다). 지키는 것 중 가장 조용한 실패는 골든 스냅샷이다 — 로케일 분기가 ko 프롬프트를 건드려도 아무도 모른 채 한국어 작명첩만 달라진다." },
+  { run: "npm run verify:fortune-chat-reading", why: "연이 운명 상담(fortune-chat, 무료 3회 이후 회당 5,000원)의 결과 계약 — 분량 1,500~2,500자, evidenceLines·followUpQuestions, 폴백이 하한을 채우는지, 대화 맥락이 프롬프트에 실리는지. 🔴 실제 모델 호출은 하지 않는다(providerCall 주입, 정본 패턴은 verify-mindscan-reading.mjs 의 fetchImpl 주입). 출력 마지막 줄에 'mock only — 실제 모델 호출 없음'을 찍는다." },
+  { run: "npm run verify:fusion-fortune-quality", why: "초융합 상담(fusion-fortune-consultation, 30,000원)의 그룹 생성·재시도·결정론 백필·여섯 체계 판정 계약. 🔴 기본 경로가 mock 이다 — 실호출은 --live 뒤에 있고 키도 'verify-only-not-a-real-key' 를 넣는다. CI 는 플래그 없이 부르므로 과금이 발생하지 않는다." },
+  { run: "npm run verify:vedic-basic-quality", why: "무료 베다점 해석 품질 — 서양 점성술 용어 누출, 토픽 7개 최소 분량, 헤지 표현, 서로 다른 명식이 같은 문단을 뱉는 템플릿 고착. vedic-astrology.html 의 인라인 엔진을 jsdom 으로 **실제 구동**한다. LLM 은 관여하지 않는다." },
+
   // verify:all-paid-services-payment-flow 는 여기 넣지 않는다 — 코드 가드가 아니라 MONGO_URI
   // 실환경을 요구하는 라이브 점검이라, 시크릿 없는 PR 러너에서는 항상 실패한다.
 ];

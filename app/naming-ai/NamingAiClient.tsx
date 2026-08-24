@@ -146,8 +146,11 @@ interface NamingCopy {
   freeDraftHeading: string;
   freeDraftBadge: string;
   freeDraftEmpty: string;
-  /** 무료 초안은 한국 이름 음절 풀 기반이라 비-ko 에서만 그 사실을 밝힌다. ko 는 빈 문자열. */
-  freeDraftKoreanOnlyNote: string;
+  /**
+   * 무료 초안이 그 로케일의 이름 목록에서 나오지 **않을 때만** 그 사실을 밝힌다.
+   * ko·ja·zh-CN·zh-TW·en 은 자기 풀이 있어 빈 문자열이고, 라틴 풀로 폴백하는 일곱만 채운다.
+   */
+  freeDraftPoolNote: string;
   step1PrevButton: string;
   step1NextButton: string;
   step2Heading: string;
@@ -277,7 +280,7 @@ const NAMING_EN: NamingCopy = {
   freeDraftHeading: "Free draft recommendations",
   freeDraftBadge: "For reference only · unrelated to payment",
   freeDraftEmpty: "We can't build draft candidates from your current input yet.",
-  freeDraftKoreanOnlyNote: "These drafts are built from Korean name syllables. The booklet generated after payment follows the naming tradition of the language you are using.",
+  freeDraftPoolNote: "",
   step1PrevButton: "Previous",
   step1NextButton: "Next · Detailed preferences",
   step2Heading: "Detailed preferences (optional)",
@@ -408,7 +411,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "무료 초안 추천",
     freeDraftBadge: "참고용 · 결제와 무관",
     freeDraftEmpty: "입력한 조건으로는 초안 후보를 아직 만들 수 없습니다.",
-    freeDraftKoreanOnlyNote: "",
+    freeDraftPoolNote: "",
     step1PrevButton: "이전",
     step1NextButton: "다음 · 세부 취향",
     step2Heading: "세부 취향 (선택)",
@@ -537,7 +540,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "無料初案の推薦",
     freeDraftBadge: "参考用 · 決済とは無関係",
     freeDraftEmpty: "入力された条件ではまだ初案候補を作成できません。",
-    freeDraftKoreanOnlyNote: "この初案候補は韓国語の名前を基準に作られています。決済後に生成される作名帖は、ご利用中の言語の命名の伝統に従います。",
+    freeDraftPoolNote: "",
     step1PrevButton: "前へ",
     step1NextButton: "次へ · 詳細な好み",
     step2Heading: "詳細な好み（任意）",
@@ -666,7 +669,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "免费初稿推荐",
     freeDraftBadge: "仅供参考 · 与付款无关",
     freeDraftEmpty: "根据目前输入的条件，暂时无法生成初稿候选。",
-    freeDraftKoreanOnlyNote: "这些草稿候选是以韩语名字为基准生成的。付款后生成的取名册会遵循你当前使用语言的取名传统。",
+    freeDraftPoolNote: "",
     step1PrevButton: "上一步",
     step1NextButton: "下一步 · 详细偏好",
     step2Heading: "详细偏好（可选）",
@@ -795,7 +798,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "免費初稿推薦",
     freeDraftBadge: "僅供參考 · 與付款無關",
     freeDraftEmpty: "根據目前輸入的條件，暫時無法生成初稿候選。",
-    freeDraftKoreanOnlyNote: "這些草稿候選是以韓語名字為基準生成的。付款後生成的取名冊會遵循你目前使用語言的取名傳統。",
+    freeDraftPoolNote: "",
     step1PrevButton: "上一步",
     step1NextButton: "下一步 · 詳細偏好",
     step2Heading: "詳細偏好（可選）",
@@ -924,7 +927,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Đề xuất bản nháp miễn phí",
     freeDraftBadge: "Chỉ để tham khảo · không liên quan đến thanh toán",
     freeDraftEmpty: "Chưa thể tạo ứng viên bản nháp từ dữ liệu nhập hiện tại.",
-    freeDraftKoreanOnlyNote: "Các bản nháp này được dựng từ âm tiết tên tiếng Hàn. Bản luận tên tạo sau khi thanh toán sẽ theo truyền thống đặt tên của ngôn ngữ bạn đang dùng.",
+    freeDraftPoolNote: "Các bản nháp này được chọn từ danh sách tên tiếng Anh. Bản luận tên tạo sau khi thanh toán sẽ theo truyền thống đặt tên của ngôn ngữ bạn đang dùng.",
     step1PrevButton: "Trước",
     step1NextButton: "Tiếp theo · Sở thích chi tiết",
     step2Heading: "Sở thích chi tiết (tùy chọn)",
@@ -1053,7 +1056,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "मुफ्त प्रारूप सुझाव",
     freeDraftBadge: "केवल संदर्भ हेतु · भुगतान से असंबद्ध",
     freeDraftEmpty: "दर्ज की गई शर्तों से अभी प्रारूप उम्मीदवार नहीं बनाए जा सकते।",
-    freeDraftKoreanOnlyNote: "ये ड्राफ्ट कोरियाई नाम अक्षरों से बने हैं। भुगतान के बाद बनने वाली नामकरण पुस्तिका आपकी चुनी हुई भाषा की नामकरण परंपरा का पालन करेगी।",
+    freeDraftPoolNote: "ये ड्राफ्ट अंग्रेज़ी नामों की सूची से चुने गए हैं। भुगतान के बाद बनने वाली नामकरण पुस्तिका आपकी चुनी हुई भाषा की नामकरण परंपरा का पालन करेगी।",
     step1PrevButton: "पिछला",
     step1NextButton: "आगे · विस्तृत प्राथमिकताएं",
     step2Heading: "विस्तृत प्राथमिकताएं (वैकल्पिक)",
@@ -1182,7 +1185,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Recomendaciones de borrador gratuitas",
     freeDraftBadge: "Solo de referencia · no relacionado con el pago",
     freeDraftEmpty: "Aún no podemos crear candidatos de borrador con tu entrada actual.",
-    freeDraftKoreanOnlyNote: "Estos borradores se construyen con sílabas de nombres coreanos. El cuadernillo que se genera tras el pago sigue la tradición de nombres del idioma que estás usando.",
+    freeDraftPoolNote: "Estos borradores se eligen de una lista de nombres en inglés. El cuadernillo que se genera tras el pago sigue la tradición de nombres del idioma que estás usando.",
     step1PrevButton: "Anterior",
     step1NextButton: "Siguiente · Preferencias detalladas",
     step2Heading: "Preferencias detalladas (opcional)",
@@ -1311,7 +1314,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Recommandations de brouillon gratuites",
     freeDraftBadge: "À titre indicatif · sans rapport avec le paiement",
     freeDraftEmpty: "Nous ne pouvons pas encore créer de candidats de brouillon à partir de votre saisie actuelle.",
-    freeDraftKoreanOnlyNote: "Ces brouillons sont construits à partir de syllabes de prénoms coréens. Le livret généré après paiement suit la tradition de dénomination de la langue que vous utilisez.",
+    freeDraftPoolNote: "Ces brouillons sont choisis dans une liste de prénoms anglais. Le livret généré après paiement suit la tradition de dénomination de la langue que vous utilisez.",
     step1PrevButton: "Précédent",
     step1NextButton: "Suivant · Préférences détaillées",
     step2Heading: "Préférences détaillées (facultatif)",
@@ -1440,7 +1443,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Kostenlose Entwurfsempfehlungen",
     freeDraftBadge: "Nur zur Referenz · unabhängig von der Zahlung",
     freeDraftEmpty: "Wir können mit deiner aktuellen Eingabe noch keine Entwurfskandidaten erstellen.",
-    freeDraftKoreanOnlyNote: "Diese Entwürfe entstehen aus koreanischen Namenssilben. Das nach der Zahlung erzeugte Namensbüchlein folgt der Namenstradition Ihrer aktuellen Sprache.",
+    freeDraftPoolNote: "Diese Entwürfe stammen aus einer Liste englischer Vornamen. Das nach der Zahlung erzeugte Namensbüchlein folgt der Namenstradition Ihrer aktuellen Sprache.",
     step1PrevButton: "Zurück",
     step1NextButton: "Weiter · Detaillierte Vorlieben",
     step2Heading: "Detaillierte Vorlieben (optional)",
@@ -1569,7 +1572,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Gratis conceptaanbevelingen",
     freeDraftBadge: "Alleen ter referentie · niet gerelateerd aan betaling",
     freeDraftEmpty: "We kunnen nog geen conceptkandidaten maken op basis van je huidige invoer.",
-    freeDraftKoreanOnlyNote: "Deze concepten zijn opgebouwd uit Koreaanse naamlettergrepen. Het naamboekje dat na betaling wordt gemaakt volgt de naamtraditie van de taal die je gebruikt.",
+    freeDraftPoolNote: "Deze concepten komen uit een lijst met Engelse voornamen. Het naamboekje dat na betaling wordt gemaakt volgt de naamtraditie van de taal die je gebruikt.",
     step1PrevButton: "Vorige",
     step1NextButton: "Volgende · Gedetailleerde voorkeuren",
     step2Heading: "Gedetailleerde voorkeuren (optioneel)",
@@ -1698,7 +1701,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Cadangan draf percuma",
     freeDraftBadge: "Untuk rujukan sahaja · tidak berkaitan dengan pembayaran",
     freeDraftEmpty: "Kami belum dapat membina calon draf daripada input anda sekarang.",
-    freeDraftKoreanOnlyNote: "Draf ini dibina daripada suku kata nama Korea. Buku penamaan yang dijana selepas pembayaran mengikut tradisi penamaan bahasa yang anda guna.",
+    freeDraftPoolNote: "Draf ini dipilih daripada senarai nama Inggeris. Buku penamaan yang dijana selepas pembayaran mengikut tradisi penamaan bahasa yang anda guna.",
     step1PrevButton: "Sebelumnya",
     step1NextButton: "Seterusnya · Keutamaan terperinci",
     step2Heading: "Keutamaan terperinci (pilihan)",
@@ -1747,7 +1750,7 @@ function getNamingCopy(locale: LoadingLocale): NamingCopy {
   return NAMING_COPY[locale] || NAMING_EN;
 }
 
-function useNamingCopy(): NamingCopy {
+function useNamingLocale(): LoadingLocale {
   const [locale, setLocale] = useState<LoadingLocale>(() => getCurrentLoadingLocale());
   useEffect(() => {
     const sync = () => setLocale(getCurrentLoadingLocale());
@@ -1758,7 +1761,11 @@ function useNamingCopy(): NamingCopy {
       document.removeEventListener("cd:language-change", sync);
     };
   }, []);
-  return getNamingCopy(locale);
+  return locale;
+}
+
+function useNamingCopy(): NamingCopy {
+  return getNamingCopy(useNamingLocale());
 }
 
 function errorMessage(code: string, copy: NamingCopy): string {
@@ -2001,7 +2008,8 @@ const PHASE_PROGRESS: Record<Phase, number> = {
 };
 
 export default function NamingAiClient() {
-  const copy = useNamingCopy();
+  const locale = useNamingLocale();
+  const copy = getNamingCopy(locale);
   const { seed, reload } = useAiProfileSeed();
   const [form, setForm] = useState<FormState>(() => ({ ...INITIAL_FORM, birthPlace: copy.defaultBirthPlace }));
   const defaultBirthPlaceRef = useRef(form.birthPlace);
@@ -2062,14 +2070,16 @@ export default function NamingAiClient() {
       if (cancelled) return;
       // 사주 힌트는 별도 useEffect가 비동기로 채운다(무거운 만세력 모듈을 dynamic import 하기 때문).
       // 아직 안 왔으면 null로 먼저 그리고, 도착하면 이 effect가 다시 돌아 오행 축이 반영된다.
-      setRecommendation(buildRecommendationBundle(recInput, sajuHints));
+      // 🔴 locale 은 화면 표시 전용이다 — 여기서 나온 것은 서버로 가지 않으므로 inputHash 와 무관하다.
+      //    비-ko 로케일은 한글 조합 대신 그 문화권의 실재 이름 목록에서 고른다(namingNamePools.ts).
+      setRecommendation(buildRecommendationBundle(recInput, sajuHints, locale));
     }, 250);
     return () => {
       cancelled = true;
       window.clearTimeout(timer);
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [sajuHints, form.familyName, form.nameLength, form.desiredType, form.preferenceTone, form.currentName, form.desiredSyllablesText, form.requiredSyllablesText, form.blockedSyllablesText, form.desiredNamesText, form.birthDate, form.gender]);
+  }, [locale, sajuHints, form.familyName, form.nameLength, form.desiredType, form.preferenceTone, form.currentName, form.desiredSyllablesText, form.requiredSyllablesText, form.blockedSyllablesText, form.desiredNamesText, form.birthDate, form.gender]);
 
   // 무료 초안용 용신 계산 — 생년월일이 채워진 뒤에만 만세력 모듈을 dynamic import 한다.
   // 유료 프롬프트(worker/routes/naming-prompt.js)와 같은 모듈을 쓰므로 무료 초안과 결과의 오행 축이 같다.
@@ -2644,10 +2654,10 @@ export default function NamingAiClient() {
                         <span className="text-xs font-semibold text-[#e8d5a3]">{copy.freeDraftBadge}</span>
                       </div>
                       <p className="mt-1.5 text-xs leading-relaxed text-[#c8aaff]/75">{recommendation.status}</p>
-                      {/* 무료 초안은 한국 이름 음절 풀에서 나온다. 유료 작명첩은 로케일별 작명 전통을
-                          따르므로, 밝히지 않으면 결제 직전에 본 후보와 결과가 어긋나 보인다. */}
-                      {copy.freeDraftKoreanOnlyNote ? (
-                        <p className="mt-1.5 text-xs leading-relaxed text-[#e8d5a3]/80">{copy.freeDraftKoreanOnlyNote}</p>
+                      {/* ja·zh-CN·zh-TW·en 은 자기 문화권의 실재 이름 목록에서 고르므로 고지가 비어 있다.
+                          라틴 풀로 폴백하는 일곱 로케일만, 유료 작명첩과 초안의 출처가 다름을 밝힌다. */}
+                      {copy.freeDraftPoolNote ? (
+                        <p className="mt-1.5 text-xs leading-relaxed text-[#e8d5a3]/80">{copy.freeDraftPoolNote}</p>
                       ) : null}
                       <div className="mt-3.5 grid gap-2 sm:grid-cols-2">
                         {recommendation.candidates.length ? recommendation.candidates.map((item) => (

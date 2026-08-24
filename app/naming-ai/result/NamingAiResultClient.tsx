@@ -9,6 +9,7 @@ import { handleSessionInvalidated } from "@/app/_lib/auth-store";
 import { friendlyErrorMessage } from "@/app/_lib/friendly-error";
 import { readNamingRetryPayload, clearNamingRetryPayload } from "../retryHandoff";
 import { parseAssistantSections, toDisplayText } from "@/lib/llm-text";
+import { currentNamingResultCopy } from "./resultCopy";
 import PagedResultViewer, { usePagedViewerMode } from "@/components/fortune/PagedResultViewer";
 import AiResultProse from "@/components/fortune/AiResultProse";
 import { withCharacterBreaks, yeoniBreaks } from "@/components/fortune/result-character-breaks";
@@ -76,30 +77,25 @@ type ResultEnvelope = {
   message?: string;
 };
 
+// 🔴 8장 제목·성별·대기 문구는 이제 로케일 카피에서 온다(app/naming-ai/result/resultCopy.ts).
+//    워커 프롬프트가 로케일별 작명 전통으로 갈라진 뒤(worker/lib/naming-locale-profile.js)
+//    이 화면만 한국어면, 일본어 작명첩이 한국어 껍데기 안에 담겨 나온다.
+const COPY = currentNamingResultCopy();
+
 // 작명첩 8장 계약(worker/routes/naming-prompt.js buildGeneratedPrompt)과 동일한 제목.
-const FALLBACK_SECTION_TITLES = [
-  "작명가의 총평",
-  "사주 풀이와 용신 검증",
-  "이 아이의 작명 원칙",
-  "이름 후보 상세",
-  "세 이름을 나란히 놓고",
-  "최종 추천",
-  "피해야 할 이름",
-  "이름을 올리기 전에",
-];
+const FALLBACK_SECTION_TITLES = COPY.chapterTitles;
 
-// 8장 제목에만 맞고 본문 문장에는 잘 걸리지 않도록 제목 문구를 그대로 사용한다.
-const SECTION_TITLE_KEYWORDS = /작명가의 총평|사주 풀이|작명 원칙|이름 후보 상세|나란히 놓고|최종 추천|피해야 할 이름|올리기 전에/;
+// 8장 제목에만 맞고 본문 문장에는 잘 걸리지 않도록 제목 문구의 고유한 조각을 쓴다.
+// 🔴 예전에는 한국어 패턴만 있었다. 프롬프트가 장 제목을 출력 언어로 옮기라고 지시하므로 비-ko
+//    응답에는 그 낱말이 없어, 로케일이 바뀌면 매번 numberedHeadings 폴백(## N.)에 기대야 했다.
+//    그 폴백은 모델이 장 번호를 지켰을 때만 듣는다 — 번호를 흘리면 문단 균등 분할로 떨어져
+//    내용이 엉뚱한 장 제목 아래로 들어간다. 그래서 로케일별 제목 패턴을 1차 그물로 둔다.
+const SECTION_TITLE_KEYWORDS = COPY.chapterTitleKeywords;
 
-const GENDER_LABELS: Record<string, string> = { M: "남성", F: "여성", OTHER: "기타/미지정" };
+const GENDER_LABELS: Record<string, string> = { M: COPY.genderM, F: COPY.genderF, OTHER: COPY.genderOther };
 
 // 생성 대기 중 회전 문구 — 작명가의 실제 작업 순서를 그대로 들려준다.
-const WAIT_STEPS = [
-  "사주 명식을 세우는 중",
-  "용신과 희신을 검증하는 중",
-  "소리와 한자를 고르는 중",
-  "작명첩을 엮는 중",
-];
+const WAIT_STEPS = COPY.waitSteps;
 
 // 네오 정본(달빛 다크) 스코프 — DESIGN.md: bg #0a0818/#13102a, 강조 violet #c4b5fd, 골드 #e8d5a3.
 // Glow-Not-Shadow: 회색 드롭섀도 대신 평상시 플랫, 강조 지점만 브랜드 색 글로우.
@@ -113,13 +109,13 @@ function toText(value: unknown) {
 
 function genderLabel(value?: string) {
   const key = toText(value).toUpperCase();
-  return GENDER_LABELS[key] || toText(value) || "미입력";
+  return GENDER_LABELS[key] || toText(value) || COPY.notEntered;
 }
 
 function calendarLabel(input?: NamingInputSnapshot | null) {
   if (!input) return "";
   const isLunar = toText(input.calendarType).startsWith("lunar");
-  return `${isLunar ? "음력" : "양력"}${input.isLeapMonth ? " · 윤달" : ""}`;
+  return `${isLunar ? COPY.lunar : COPY.solar}${input.isLeapMonth ? COPY.leapSuffix : ""}`;
 }
 
 async function copyTextToClipboard(text: string): Promise<boolean> {
@@ -183,7 +179,7 @@ export default function NamingAiResultClient() {
   useEffect(() => {
     if (!queryReady) return;
     if (!executionId) {
-      setError("결과 링크를 확인하지 못했습니다.");
+      setError(COPY.errLinkMissing);
       setLoading(false);
       return;
     }
@@ -205,7 +201,7 @@ export default function NamingAiResultClient() {
           attempts += 1;
           if (attempts >= maxAttempts) {
             setPending(false);
-            setError("작명 결과 생성이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.");
+            setError(COPY.errDelayed);
             return;
           }
           setPending(true);
@@ -218,7 +214,7 @@ export default function NamingAiResultClient() {
           attempts += 1;
           if (attempts >= maxAttempts) {
             setPending(false);
-            setError("작명 결과 생성이 지연되고 있습니다. 잠시 후 다시 시도해 주세요.");
+            setError(COPY.errDelayed);
             return;
           }
           setPending(true);
@@ -229,12 +225,12 @@ export default function NamingAiResultClient() {
         if (response.status === 503) {
           if (!alive) return;
           setFailed(true);
-          setError(toText(payload?.message) || "작명 결과 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.");
+          setError(toText(payload?.message) || COPY.errGenerateFailed);
           return;
         }
         if (!response.ok || payload?.ok === false || !payload?.result) {
           // 앱 수준 확정 실패(404 등)는 재시도하지 않고 즉시 종료한다 — catch는 순수 네트워크 오류만 담당.
-          if (alive) setError(toText(payload?.message) || "작명 결과를 불러오지 못했습니다.");
+          if (alive) setError(toText(payload?.message) || COPY.errLoadFailed);
           return;
         }
         if (alive) {
@@ -253,7 +249,7 @@ export default function NamingAiResultClient() {
           timer = window.setTimeout(loadResult, 4000);
           return;
         }
-        setError(friendlyErrorMessage(caught, "작명 결과를 불러오지 못했습니다."));
+        setError(friendlyErrorMessage(caught, COPY.errLoadFailed));
       } finally {
         if (alive) setLoading(false);
       }
@@ -271,6 +267,7 @@ export default function NamingAiResultClient() {
         titleKeywords: SECTION_TITLE_KEYWORDS,
         fallbackTitles: FALLBACK_SECTION_TITLES,
         minHeadings: 5,
+        numberedHeadings: true,
       }),
     [result?.generatedResult],
   );
@@ -292,7 +289,7 @@ export default function NamingAiResultClient() {
 
   const input = result?.inputSnapshot || null;
   const saju = result?.sajuSnapshot || null;
-  const familyName = toText(input?.familyName) || "미입력";
+  const familyName = toText(input?.familyName) || COPY.notEntered;
   const generatedAt = result?.generatedAt ? new Date(result.generatedAt) : null;
   const generatedAtIntlLocale = INTL_LOCALE_BY_LOADING_LOCALE[getCurrentLoadingLocale()];
   const generatedAtLabel = generatedAt && !Number.isNaN(generatedAt.getTime())
@@ -309,10 +306,10 @@ export default function NamingAiResultClient() {
   );
 
   const pillarRows: Array<[string, string | undefined]> = [
-    ["년주", saju?.yearPillar],
-    ["월주", saju?.monthPillar],
-    ["일주", saju?.dayPillar],
-    ["시주", saju?.hourPillar],
+    [COPY.rowYearPillar, saju?.yearPillar],
+    [COPY.rowMonthPillar, saju?.monthPillar],
+    [COPY.rowDayPillar, saju?.dayPillar],
+    [COPY.rowHourPillar, saju?.hourPillar],
   ];
 
   const viewerPages = useMemo(
@@ -320,7 +317,7 @@ export default function NamingAiResultClient() {
       withCharacterBreaks(
         sections.map((section, index) => ({
           id: `naming-section-${index}`,
-          label: toText(section.title).slice(0, 12) || `${index + 1}장`,
+          label: toText(section.title).slice(0, 12) || COPY.chapterFallback(index + 1),
           content: <NamingResultSection title={section.title} body={section.body} />,
         })),
         yeoniBreaks,
@@ -394,13 +391,13 @@ export default function NamingAiResultClient() {
         fileName: `naming-ai-result-${executionId}.pdf`,
         backgroundColor: "#0a0818",
         cover: {
-          title: `${familyName}씨 아이의 작명첩`,
-          subtitle: `${toText(input?.birthDate) || "생년월일 미입력"}${calendarLabel(input) ? ` (${calendarLabel(input)})` : ""} 생 · 사주 맞춤 작명`,
+          title: COPY.pdfTitle(familyName),
+          subtitle: `${toText(input?.birthDate) || COPY.birthDateMissing}${calendarLabel(input) ? ` (${calendarLabel(input)})` : ""}${COPY.pdfSubtitleSuffix}`,
           date,
         },
       });
     } catch {
-      setPdfError("작명 결과를 PDF로 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.");
+      setPdfError(COPY.errPdfFailed);
     } finally {
       detailsElements.forEach((details, index) => {
         details.open = previousOpenStates[index] ?? details.open;
@@ -425,7 +422,7 @@ export default function NamingAiResultClient() {
             className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#c4b5fd]/25 bg-[#13102a]/60 px-5 text-sm font-bold text-[#f4eeff] transition hover:border-[#c4b5fd]/55 hover:bg-[#c4b5fd]/10"
           >
             <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-            작명소로 돌아가기
+            {COPY.backToStudio}
           </Link>
           {result && (
             <button
@@ -437,7 +434,7 @@ export default function NamingAiResultClient() {
               {pdfLoading
                 ? <span className="h-4 w-4 animate-spin rounded-full border-2 border-[#0a0818]/30 border-t-[#0a0818] motion-reduce:animate-none" aria-hidden="true" />
                 : <Download className="h-4 w-4" aria-hidden="true" />}
-              {pdfLoading ? "작명첩을 정리하는 중입니다" : "PDF로 소장하기"}
+              {pdfLoading ? COPY.pdfMaking : COPY.pdfSave}
             </button>
           )}
         </div>
@@ -445,10 +442,10 @@ export default function NamingAiResultClient() {
         {loading && (
           <div className={`${PANEL} min-h-[60vh] p-7 sm:p-10`}>
             <p className="text-lg font-black text-[#f4eeff] [font-family:var(--font-display)] sm:text-xl" aria-live="polite">
-              {pending ? `${WAIT_STEPS[waitStep]}…` : "저장된 작명첩을 펼치고 있습니다…"}
+              {pending ? `${WAIT_STEPS[waitStep]}…` : COPY.openingSaved}
             </p>
             <p className="mt-3 max-w-xl text-sm leading-7 text-[#c8aaff]/80">
-              사주와 성명학 원리를 함께 살펴 이름을 짓는 동안 이 창을 열어 두세요. 완성되면 이 자리에서 바로 펼쳐집니다.
+              {COPY.waitingBody}
             </p>
             {pending && (
               <ol className="mt-6 grid gap-2 text-sm" aria-hidden="true">
@@ -479,7 +476,7 @@ export default function NamingAiResultClient() {
             <div className="max-w-md">
               <AlertCircle className="mx-auto h-9 w-9 text-[#c4b5fd]" aria-hidden="true" />
               <h1 className="mt-4 text-2xl font-black text-[#f4eeff] [font-family:var(--font-display)]">
-                {failed ? "작명 결과 생성에 실패했습니다" : "결과를 열 수 없습니다"}
+                {failed ? COPY.headingGenerateFailed : COPY.headingCannotOpen}
               </h1>
               <p className="mt-3 text-sm leading-7 text-[#c8aaff]/85">{error}</p>
               <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
@@ -488,13 +485,13 @@ export default function NamingAiResultClient() {
                   onClick={handleRetry}
                   className={`inline-flex min-h-11 items-center gap-2 rounded-full bg-[#c4b5fd] px-5 text-sm font-black text-[#0a0818] transition hover:bg-[#d5cafe] ${VIOLET_GLOW}`}
                 >
-                  다시 시도
+                  {COPY.retry}
                 </button>
                 <Link
                   href="/naming-ai"
                   className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[#c4b5fd]/25 bg-[#13102a]/60 px-5 text-sm font-bold text-[#f4eeff] transition hover:border-[#c4b5fd]/55"
                 >
-                  작명소로 돌아가기
+                  {COPY.backToStudio}
                 </Link>
               </div>
             </div>
@@ -511,25 +508,24 @@ export default function NamingAiResultClient() {
               >
                 名
               </span>
-              <p className="text-sm font-bold text-[#c8aaff]/80">훈민정음 작명소 · 사주 맞춤 작명첩</p>
+              <p className="text-sm font-bold text-[#c8aaff]/80">{COPY.brandLine}</p>
               <h1 className="mt-3 text-3xl font-black leading-tight text-[#f4eeff] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
-                {familyName}씨 아이의 작명첩
+                {COPY.pdfTitle(familyName)}
               </h1>
               <p className="mt-4 max-w-3xl text-base leading-8 text-[#e6ddfa]">
-                사주에서 검증한 용신과 희신을 바탕으로 소리오행·수리오행·자원오행을 함께 짚어,
-                이 아이에게 가장 어울리는 이름을 지었습니다.
+                {COPY.coverBody}
               </p>
               <dl className="mt-6 grid gap-x-8 gap-y-2 text-sm sm:grid-cols-2 lg:grid-cols-4">
-                <CoverRow label="성별" value={genderLabel(input?.gender)} />
-                <CoverRow label="생년월일" value={`${toText(input?.birthDate) || "미입력"}${calendarLabel(input) ? ` · ${calendarLabel(input)}` : ""}`} />
-                <CoverRow label="이름 글자 수" value={input?.nameLength ? `성 제외 ${input.nameLength}자` : "미입력"} />
-                <CoverRow label="발급일" value={generatedAtLabel} />
+                <CoverRow label={COPY.rowGender} value={genderLabel(input?.gender)} />
+                <CoverRow label={COPY.rowBirthDate} value={`${toText(input?.birthDate) || COPY.notEntered}${calendarLabel(input) ? ` · ${calendarLabel(input)}` : ""}`} />
+                <CoverRow label={COPY.rowNameLength} value={input?.nameLength ? COPY.nameLengthValue(input.nameLength) : COPY.notEntered} />
+                <CoverRow label={COPY.rowIssuedAt} value={generatedAtLabel} />
               </dl>
             </header>
 
             {input?.birthTimeUnknown && (
               <section data-naming-pdf-page className="rounded-3xl border border-[#e8d5a3]/25 bg-[#e8d5a3]/[0.07] p-5 text-sm leading-7 text-[#f2e9d3]">
-                출생시간 미상으로 시주(時柱)는 확정하지 않고, 년·월·일주를 중심으로 용신을 판단해 작명에 반영했습니다.
+                {COPY.hourUnknownNote}
               </section>
             )}
 
@@ -539,10 +535,10 @@ export default function NamingAiResultClient() {
                 data-naming-pdf-page
                 className={`relative overflow-hidden rounded-[28px] border border-[#e8d5a3]/40 bg-[linear-gradient(160deg,rgba(232,213,163,0.12),rgba(19,16,42,0.9)_58%)] p-7 sm:p-10 ${MOON_GLOW}`}
               >
-                <p className="text-sm font-bold text-[#e8d5a3]">작명가의 최종 추천</p>
+                <p className="text-sm font-bold text-[#e8d5a3]">{COPY.finalPickLabel}</p>
                 <div className="mt-4 flex flex-wrap items-end gap-x-5 gap-y-2">
                   <h2 className="text-5xl font-black leading-none text-[#f4eeff] [font-family:var(--font-display)] sm:text-6xl">
-                    {familyName !== "미입력" ? familyName : ""}{toText(finalPick.name)}
+                    {familyName !== COPY.notEntered ? familyName : ""}{toText(finalPick.name)}
                   </h2>
                   {finalPickCard?.hanja && (
                     <p className="text-2xl font-bold text-[#e8d5a3] sm:text-3xl">{toText(finalPickCard.hanja)}</p>
@@ -563,9 +559,9 @@ export default function NamingAiResultClient() {
             {/* 이름 후보 카드 */}
             {otherCards.length > 0 && (
               <section data-naming-pdf-page className={`${PANEL} p-6 sm:p-8`}>
-                <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">함께 살펴본 이름들</h2>
+                <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.cardsHeading}</h2>
                 <p className="mt-2 text-sm leading-7 text-[#c8aaff]/80">
-                  각 이름의 결이 어떻게 다른지는 아래 작명첩 본문에서 자세히 풀었습니다.
+                  {COPY.cardsSub}
                 </p>
                 <div className="mt-5 grid gap-4 sm:grid-cols-2">
                   {otherCards.map((card, index) => (
@@ -575,7 +571,7 @@ export default function NamingAiResultClient() {
                     >
                       <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1">
                         <h3 className="text-2xl font-black text-[#f4eeff] [font-family:var(--font-display)]">
-                          {familyName !== "미입력" ? familyName : ""}{toText(card.name)}
+                          {familyName !== COPY.notEntered ? familyName : ""}{toText(card.name)}
                         </h3>
                         {card.hanja && <p className="text-lg font-bold text-[#c4b5fd]">{toText(card.hanja)}</p>}
                       </div>
@@ -590,7 +586,7 @@ export default function NamingAiResultClient() {
 
             {saju && (
               <section data-naming-pdf-page className={`${PANEL} p-6 sm:p-8`}>
-                <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">이름의 근거가 된 사주</h2>
+                <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.sajuHeading}</h2>
                 <div className="mt-4 grid grid-cols-2 gap-2 text-center text-sm sm:grid-cols-4">
                   {pillarRows.map(([labelText, value]) => (
                     <div key={labelText} className="rounded-2xl border border-[#c4b5fd]/15 bg-[#0a0818]/55 px-2 py-3.5">
@@ -600,33 +596,33 @@ export default function NamingAiResultClient() {
                   ))}
                 </div>
                 <dl className="mt-5 grid gap-x-6 gap-y-2 text-sm leading-7 sm:grid-cols-2">
-                  <SajuRow label="일간" value={toText(saju.dayMaster)} />
-                  <SajuRow label="오행 분포" value={toText(saju.fiveElementBalance)} />
-                  <SajuRow label="용신 후보" value={toText(saju.usefulGodCandidates)} />
-                  <SajuRow label="기신 후보" value={toText(saju.unfavorableGodCandidates)} />
-                  <SajuRow label="이름에 담으면 좋은 오행" value={toText(saju.recommendedNameElements)} wide />
-                  <SajuRow label="피하면 좋은 오행" value={toText(saju.avoidNameElements)} wide />
+                  <SajuRow label={COPY.rowDayMaster} value={toText(saju.dayMaster)} />
+                  <SajuRow label={COPY.rowFiveElements} value={toText(saju.fiveElementBalance)} />
+                  <SajuRow label={COPY.rowUsefulGod} value={toText(saju.usefulGodCandidates)} />
+                  <SajuRow label={COPY.rowUnfavorableGod} value={toText(saju.unfavorableGodCandidates)} />
+                  <SajuRow label={COPY.rowRecommendedElements} value={toText(saju.recommendedNameElements)} wide />
+                  <SajuRow label={COPY.rowAvoidElements} value={toText(saju.avoidNameElements)} wide />
                 </dl>
               </section>
             )}
 
             {hasPreferenceCard && (
               <section data-naming-pdf-page className={`${PANEL} p-6 sm:p-8`}>
-                <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">부모님이 청한 조건</h2>
+                <h2 className="text-xl font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.requestHeading}</h2>
                 <dl className="mt-4 grid gap-2 text-sm leading-7">
-                  {input?.desiredType && <SajuRow label="원하는 방향" value={toText(input.desiredType)} wide />}
-                  {preferenceItems.length > 0 && <SajuRow label="분위기·이미지" value={preferenceItems.join(", ")} wide />}
-                  {input?.desiredSyllables?.length ? <SajuRow label="사용하고 싶은 음절" value={input.desiredSyllables.join(", ")} wide /> : null}
-                  {input?.requiredSyllables?.length ? <SajuRow label="반드시 넣고 싶은 글자" value={input.requiredSyllables.join(", ")} wide /> : null}
-                  {input?.blockedSyllables?.length ? <SajuRow label="피하고 싶은 글자" value={input.blockedSyllables.join(", ")} wide /> : null}
+                  {input?.desiredType && <SajuRow label={COPY.rowDesiredType} value={toText(input.desiredType)} wide />}
+                  {preferenceItems.length > 0 && <SajuRow label={COPY.rowPreference} value={preferenceItems.join(", ")} wide />}
+                  {input?.desiredSyllables?.length ? <SajuRow label={COPY.rowDesiredSyllables} value={input.desiredSyllables.join(", ")} wide /> : null}
+                  {input?.requiredSyllables?.length ? <SajuRow label={COPY.rowRequiredSyllables} value={input.requiredSyllables.join(", ")} wide /> : null}
+                  {input?.blockedSyllables?.length ? <SajuRow label={COPY.rowBlockedSyllables} value={input.blockedSyllables.join(", ")} wide /> : null}
                   {input?.desiredNames?.length ? (
                     <div className="sm:col-span-2">
-                      <dt className="font-black text-[#c4b5fd]">미리 생각해 온 후보</dt>
+                      <dt className="font-black text-[#c4b5fd]">{COPY.preThoughtCandidates}</dt>
                       <dd className="mt-1">
                         <ul className="list-disc space-y-1 pl-5 text-[#e6ddfa]">
                           {input.desiredNames.map((candidate, index) => (
                             <li key={`${candidate.hangul || "candidate"}-${index}`}>
-                              {toText(candidate.hangul) || "한글 미입력"}
+                              {toText(candidate.hangul) || COPY.nameMissing}
                               {candidate.hanjaCandidates?.length ? ` (${candidate.hanjaCandidates.join(", ")})` : ""}
                               {candidate.note ? ` — ${toText(candidate.note)}` : ""}
                             </li>
@@ -635,7 +631,7 @@ export default function NamingAiResultClient() {
                       </dd>
                     </div>
                   ) : null}
-                  {input?.memo && <SajuRow label="기타 요청" value={toText(input.memo)} wide />}
+                  {input?.memo && <SajuRow label={COPY.rowMemo} value={toText(input.memo)} wide />}
                 </dl>
               </section>
             )}
@@ -644,7 +640,7 @@ export default function NamingAiResultClient() {
             <section>
               <PagedResultViewer
                 pages={viewerPages}
-                deckLabel="작명첩 본문"
+                deckLabel={COPY.deckLabel}
                 viewAll={viewAll}
                 onViewAllChange={setViewAll}
                 expandForExport={exportExpand}
@@ -666,8 +662,8 @@ export default function NamingAiResultClient() {
                         <ScrollText className="h-5 w-5 text-[#c4b5fd]" aria-hidden="true" />
                       </span>
                       <span>
-                        <span className="block text-lg font-black text-[#f4eeff] [font-family:var(--font-display)]">이 작명첩을 만든 프롬프트</span>
-                        <span className="mt-0.5 block text-xs text-[#c8aaff]/70">결과와 함께 원문 그대로 드립니다</span>
+                        <span className="block text-lg font-black text-[#f4eeff] [font-family:var(--font-display)]">{COPY.promptHeading}</span>
+                        <span className="mt-0.5 block text-xs text-[#c8aaff]/70">{COPY.promptSub}</span>
                       </span>
                     </span>
                     <span className="text-xs font-bold text-[#c4b5fd] transition group-open:rotate-180" aria-hidden="true">▾</span>
@@ -675,8 +671,7 @@ export default function NamingAiResultClient() {
                 </summary>
                 <div className="mt-5">
                   <p className="text-sm leading-7 text-[#c8aaff]/85">
-                    이 작명첩은 아래 프롬프트로 만들어졌습니다. 사주 계산 결과와 작명 원칙이 모두 담겨 있어,
-                    다른 AI에 붙여넣으면 같은 기준으로 분석을 재현하거나 조건을 바꿔 변형해 볼 수 있습니다.
+                    {COPY.promptBody}
                   </p>
                   <div className="mt-4 flex justify-end">
                     <button
@@ -685,7 +680,7 @@ export default function NamingAiResultClient() {
                       className="inline-flex min-h-10 items-center gap-1.5 rounded-full border border-[#c4b5fd]/30 bg-[#c4b5fd]/10 px-4 text-xs font-bold text-[#f4eeff] transition hover:border-[#c4b5fd]/60 hover:bg-[#c4b5fd]/20"
                     >
                       {copied ? <Check className="h-3.5 w-3.5 text-[#e8d5a3]" aria-hidden="true" /> : <Copy className="h-3.5 w-3.5" aria-hidden="true" />}
-                      {copied ? "복사되었습니다" : "프롬프트 복사"}
+                      {copied ? COPY.copied : COPY.copyPrompt}
                     </button>
                   </div>
                   <pre
@@ -694,15 +689,14 @@ export default function NamingAiResultClient() {
                     {result.generatedPrompt}
                   </pre>
                   <p className="mt-3 text-xs text-[#c8aaff]/55">
-                    {[result.provider, result.model].filter(Boolean).join(" / ") || "AI 생성"} · {generatedAtLabel}
+                    {[result.provider, result.model].filter(Boolean).join(" / ") || COPY.aiGenerated} · {generatedAtLabel}
                   </p>
                 </div>
               </details>
             )}
 
             <footer data-naming-pdf-page className="rounded-3xl border border-[#c4b5fd]/15 bg-[#13102a]/45 p-5 text-xs leading-6 text-[#c8aaff]/70">
-              이 작명첩은 사주명리와 성명학 이론에 근거한 참고 자료입니다. 출생신고·개명 전에는 대법원 인명용 한자 여부와
-              가족관계등록부 표기를 반드시 직접 확인해 주세요. — Code Destiny 훈민정음 작명소 · {generatedAtLabel}
+              {COPY.disclaimer(generatedAtLabel)}
             </footer>
 
             {pdfError && (
@@ -737,9 +731,9 @@ function SajuRow({ label, value, wide = false }: { label: string; value: string;
 
 function NameCardPills({ card, tone, className = "" }: { card: NamingNameCard; tone: "gold" | "violet"; className?: string }) {
   const pills = [
-    card.elements ? `보완오행 ${toDisplayText(card.elements)}` : "",
-    card.soundFlow ? `소리 ${toDisplayText(card.soundFlow)}` : "",
-    card.suri ? `수리 ${toDisplayText(card.suri)}` : "",
+    card.elements ? `${COPY.pillElements} ${toDisplayText(card.elements)}` : "",
+    card.soundFlow ? `${COPY.pillSound} ${toDisplayText(card.soundFlow)}` : "",
+    card.suri ? `${COPY.pillSuri} ${toDisplayText(card.suri)}` : "",
   ].filter(Boolean);
   if (!pills.length) return null;
   const pillClass = tone === "gold"
