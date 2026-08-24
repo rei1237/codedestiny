@@ -1,15 +1,23 @@
 /**
  * 회원가입 휴대폰 번호 필수 정책 가드 (DB·네트워크 없음).
  *
- * 2026-08-19 정책: 모든 회원은 전화번호를 확보해야 가입이 끝난다. 카카오 개인정보 동의항목
- * 심사가 "자체 회원가입 프로세스에서도 전화번호를 수집할 것"을 요구하기 때문이다.
- * 직전 정책(2026-08-15)은 정반대였고, 그때의 가드가 이 파일과 반대 방향으로 걸려 있었다.
+ * 🔴 이 정책은 **두 번 뒤집혔다.** 되돌리기 전에 이 이력을 먼저 읽을 것.
+ *   2026-08-15 — 번호는 첫 카드결제 때만 1회 수집(가입에서 안 받음)
+ *   2026-08-19 — 전 경로 가입 필수. 카카오 동의항목 심사가 "자체 회원가입 프로세스에서도
+ *                전화번호를 수집할 것"을 요구했기 때문
+ *   2026-08-25 — **자체(이메일) 가입만 필수**로 좁힘. 소셜은 공급자가 주면 쓰고(카카오·네이버),
+ *                주지 않으면(구글) 번호 없이 가입시킨 뒤 첫 결제 화면에서 받는다.
+ *
+ * 왜 좁혔나: 심사가 보는 것은 **자체** 회원가입이고 그쪽은 그대로 필수다. 소셜 가입에서까지
+ * 번호를 다시 묻는 것은 공급자가 이미 넘겨 준 값을 한 번 더 입력시키는 일이었고, 구글은 번호를
+ * 아예 주지 않아 "소셜로 시작했는데 폼을 채워야 하는" 화면이 남았다.
  *
  * 이 가드가 지키는 것:
  *  1) 🔴 **평문 저장 방지** — User.phoneNumber 에 들어가는 값은 preparePhoneForStorage 가 만든
  *     암호화 봉투이거나 빈 문자열뿐이어야 한다. **손으로 쓴 목록을 두지 않고 소스에서 전수
  *     발견해, 분류되지 않는 쓰기가 나타나면 실패**시킨다(CLAUDE.md 코딩 원칙 10).
- *  2) 필수화 자체 — 프론트·서버 양쪽이 번호 없는 가입을 거절하는지.
+ *  2) 필수화 자체 — **이메일 가입**에서 프론트·서버 양쪽이 번호 없는 가입을 거절하는지.
+ *     소셜 가입은 반대로 **번호 없이도 끝나는지**를 본다(위 2026-08-25 항).
  *  3) 중복 허용 유지 — 번호로 계정을 막는 로직이 되살아나면 방침 문구와 다시 어긋난다.
  *  4) 고지 일치 — 실제 수집 행위와 개인정보처리방침·동의 요약 문구가 어긋나지 않는지.
  *
@@ -168,9 +176,10 @@ assertContains(authShell, "phoneNumber: normalizedPhone",
   "the signup request must carry the normalized number");
 assertContains(authShell, 'from "../../_lib/korean-phone"',
   "AuthShell must reuse the shared normalizer instead of a private copy");
-// 소셜 공급자가 이미 번호를 넘긴 경우에만 칸을 감출 수 있다.
-assertContains(authShell, "socialPhoneProvided",
-  "the field may only be hidden when the provider already supplied a number");
+// 🔴 번호 칸은 **이메일 가입 전용**이다(2026-08-25). 소셜 티켓 화면에는 없어야 한다 —
+// 있으면 공급자가 넘긴 번호를 한 번 더 입력시키는 화면이 되살아난다.
+assertContains(authShell, 'isSignup && !ticket && <Field id="auth-phone"',
+  "the phone field must render only for email signup, never on the social ticket screen");
 
 const validation = read("worker/lib/validation.js");
 assertContains(validation, 'errors.push("Phone number is invalid.")',
@@ -180,11 +189,19 @@ assertContains(validation, "phoneNumber,",
 assertContains(authSource, "const phoneNumber = validated.sanitized.phoneNumber;",
   "handleRegister must take the number from the validated payload, not straight from the body");
 
-// 소셜 가입: 공급자 값과 입력값이 둘 다 없을 때만 거절한다(구글은 번호를 주지 않는다).
-assertContains(authSource, "if (!ticketPhoneNumber && !bodyPhoneNumber) {",
-  "social signup must require a number from either the ticket or the form");
+// 🔴 소셜 가입은 **번호 없이도 끝난다**(2026-08-25). 되살리면 구글 사용자가 소셜로 시작하고도
+// 폼을 채워야 하는 화면으로 돌아간다. 그 계정의 번호는 첫 카드 결제 화면이 받는다.
+assert.ok(
+  !authSource.includes("if (!ticketPhoneNumber && !bodyPhoneNumber) {"),
+  `${AUTH_ROUTE}: 소셜 가입에 번호 필수화를 되살리지 말 것 — 2026-08-25 정책.\n`
+  + "  자체(이메일) 가입의 필수화는 validateRegisterPayload 가 계속 지킨다.",
+);
+// 그 대신 번호 없는 계정을 결제 화면이 받는 경로가 살아 있어야 한다.
+assertContains(authSource, "handlePaymentPhoneStatus",
+  "the payment screen must still be able to collect a number for accounts that have none");
+// 이메일 가입의 필수화는 그대로다 — 심사가 보는 것이 이쪽이다.
 assertContains(authSource, '"phone_required"',
-  "social signup must answer with a phone_required code the client can branch on");
+  "email signup must still answer with a phone_required code the client can branch on");
 
 // ─────────────────────────────────────────────────────────────────────────────
 // 3. 🔴 중복 허용 유지 (2026-08-19 결정).
@@ -212,8 +229,13 @@ assertContains(withdrawSet, 'phoneNumber: ""',
 //    회원가입 화면은 방침 본문을 임베드하지 않고 한 줄 요약만 보여주므로, 둘이 따로 논다.
 // ─────────────────────────────────────────────────────────────────────────────
 const policy = read("app/privacy-policy/PrivacyPolicyContent.jsx");
-assertContains(policy, "휴대폰 번호는 회원가입 시 필수로 수집하며",
-  "privacy policy must state that the number is a required signup field");
+// 🔴 2026-08-25: "회원가입 시 필수" 에서 "**이메일로 가입하시는 경우** 필수" 로 좁혔다.
+// 소셜 가입은 공급자가 주거나(카카오·네이버) 첫 결제에서 받으므로(구글), 옛 문장을 그대로 두면
+// 방침이 하지 않는 일을 고지하는 셈이 된다.
+assertContains(policy, "휴대폰 번호는 이메일로 가입하시는 경우 회원가입 시 필수로 수집하며",
+  "privacy policy must scope the required-at-signup claim to email signup");
+assertContains(policy, "구글 로그인으로 가입하신 경우",
+  "privacy policy must name the social path whose number is collected at first payment");
 assertContains(policy, "필수 항목(이름, 이메일, 휴대폰 번호)",
   "privacy policy must list the phone number among the required items");
 // 🔴 실제로 하지 않는 목적을 적으면 그 자체가 허위 고지다 — 이 서비스에는 SMS 발송 기능이 없다

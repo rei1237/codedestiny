@@ -46,7 +46,7 @@ type Copy = {
   email: string; password: string; name: string; phone: string; phoneHint: string; invalidPhone: string;
   showPassword: string; hidePassword: string; capsLock: string; passwordHint: string; login: string; signup: string;
   processing: string; switchToSignup: string; switchToLogin: string; noAccount: string; hasAccount: string;
-  privacy: string; privacySummary: string; terms: string; birthYear: string; invalidAge: string; required: string; finishTitle: string;
+  privacy: string; privacySummary: string; terms: string; birthYear: string; invalidAge: string; agreeOnSubmit: string; finishTitle: string;
   finishDescription: string; finish: string; invalidEmail: string; invalidSignup: string;
   credentialsError: string; network: string; unavailable: string; providerPolicy: string;
 };
@@ -64,10 +64,10 @@ const EN: Copy = {
   passwordHint: `At least ${MIN_NEW_PASSWORD_LENGTH} characters. Passwords found in known breaches are rejected.`,
   login: "Log in", signup: "Create account", processing: "Checking securely…",
   switchToSignup: "Create account", switchToLogin: "Log in", noAccount: "New here?", hasAccount: "Already have an account?",
-  privacy: "I agree to the collection and use of personal information.",
+  privacy: "Privacy Policy",
   privacySummary: "Name, email, mobile number / account management and payment / until account deletion, except where law requires retention.",
-  terms: "I agree to the Terms of Service.",
-  birthYear: "Birth year", invalidAge: "You must be at least 14 years old to sign up.", required: "Required agreements",
+  terms: "Terms of Service",
+  birthYear: "Birth year", invalidAge: "You must be at least 14 years old to sign up.", agreeOnSubmit: "By signing up you agree to the following.",
   finishTitle: "One last check", finishDescription: "We only need a few details and the required agreements.",
   finish: "Finish and continue", invalidEmail: "Enter a valid email address.",
   invalidSignup: "Check your name, password, mobile number, and required agreements.",
@@ -90,10 +90,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `${MIN_NEW_PASSWORD_LENGTH}자 이상이어야 하고, 이미 유출된 것으로 알려진 비밀번호는 쓸 수 없어요.`,
     login: "로그인", signup: "가입하고 바로 시작하기", processing: "안전하게 확인 중…",
     switchToSignup: "회원가입", switchToLogin: "로그인", noAccount: "처음 오셨나요?", hasAccount: "이미 계정이 있나요?",
-    privacy: "개인정보 수집·이용에 동의합니다.",
+    privacy: "개인정보처리방침",
     privacySummary: "수집: 이름·이메일·휴대폰 번호 / 목적: 계정 관리·결제 진행 / 보유: 탈퇴 시까지(법령상 보존 제외)",
-    terms: "이용약관에 동의합니다.",
-    birthYear: "태어난 연도", invalidAge: "만 14세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다.", required: "필수 동의",
+    terms: "이용약관",
+    birthYear: "태어난 연도", invalidAge: "만 14세 미만은 대한민국 관련 법령에 따라 가입할 수 없습니다.", agreeOnSubmit: "가입하면 아래에 동의하는 것으로 봅니다.",
     finishTitle: "마지막으로 조금만 확인할게요", finishDescription: "몇 가지만 확인하면 바로 이용할 수 있어요.",
     finish: "확인하고 바로 시작하기", invalidEmail: "이메일 형식을 확인해 주세요.",
     invalidSignup: "이름·비밀번호·휴대폰 번호와 필수 동의를 확인해 주세요.",
@@ -115,10 +115,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `${MIN_NEW_PASSWORD_LENGTH}文字以上で入力してください。漏えいが確認されているパスワードは使用できません。`,
     login: "ログイン", signup: "登録して始める", processing: "安全に確認しています…",
     switchToSignup: "会員登録", switchToLogin: "ログイン", noAccount: "はじめてですか?", hasAccount: "すでにアカウントをお持ちですか?",
-    privacy: "個人情報の収集・利用に同意します。",
+    privacy: "プライバシーポリシー",
     privacySummary: "収集項目: 名前・メールアドレス・携帯電話番号 / 目的: アカウント管理・決済処理 / 保存期間: 退会まで(法令上の保存義務を除く)",
-    terms: "利用規約に同意します。",
-    birthYear: "生まれた年", invalidAge: "満14歳未満の方はご登録いただけません。", required: "必須同意",
+    terms: "利用規約",
+    birthYear: "生まれた年", invalidAge: "満14歳未満の方はご登録いただけません。", agreeOnSubmit: "登録すると以下に同意したものとみなされます。",
     finishTitle: "最後にもう少しだけ確認します", finishDescription: "必要な情報と同意事項だけ確認すればすぐにご利用いただけます。",
     finish: "確認してすぐに始める", invalidEmail: "有効なメールアドレスを入力してください。",
     invalidSignup: "お名前・パスワード・携帯電話番号と必須同意事項をご確認ください。",
@@ -140,10 +140,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `至少${MIN_NEW_PASSWORD_LENGTH}个字符。已知泄露的密码将被拒绝。`,
     login: "登录", signup: "注册并开始", processing: "正在安全验证…",
     switchToSignup: "注册", switchToLogin: "登录", noAccount: "第一次使用?", hasAccount: "已有账号?",
-    privacy: "我同意收集和使用个人信息。",
+    privacy: "隐私政策",
     privacySummary: "收集项目: 姓名·邮箱·手机号码 / 用途: 账户管理·支付处理 / 保留期限: 至注销为止(法律要求保留的除外)",
-    terms: "我同意服务条款。",
-    birthYear: "出生年份", invalidAge: "未满14周岁无法注册。", required: "必选同意",
+    terms: "服务条款",
+    birthYear: "出生年份", invalidAge: "未满14周岁无法注册。", agreeOnSubmit: "注册即视为您同意以下内容。",
     finishTitle: "最后再确认一下", finishDescription: "只需确认必要信息和同意事项即可立即使用。",
     finish: "确认并立即开始", invalidEmail: "请输入有效的邮箱地址。",
     invalidSignup: "请确认姓名·密码·手机号码及必选同意事项。",
@@ -165,10 +165,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `至少需要${MIN_NEW_PASSWORD_LENGTH}個字元。已知外洩的密碼將被拒絕。`,
     login: "登入", signup: "註冊並開始", processing: "正在安全驗證中…",
     switchToSignup: "註冊", switchToLogin: "登入", noAccount: "第一次使用嗎?", hasAccount: "已經有帳號了嗎?",
-    privacy: "我同意個人資料的蒐集與利用。",
+    privacy: "隱私權政策",
     privacySummary: "蒐集項目: 姓名·電子郵件·手機號碼 / 用途: 帳戶管理·付款處理 / 保存期限: 至退出會員為止(法令要求保存者除外)",
-    terms: "我同意服務條款。",
-    birthYear: "出生年份", invalidAge: "未滿14歲無法註冊。", required: "必要同意",
+    terms: "服務條款",
+    birthYear: "出生年份", invalidAge: "未滿14歲無法註冊。", agreeOnSubmit: "註冊即視為您同意以下內容。",
     finishTitle: "最後再確認一下", finishDescription: "只要確認必要資訊與同意事項即可立即使用。",
     finish: "確認並立即開始", invalidEmail: "請輸入有效的電子郵件地址。",
     invalidSignup: "請確認姓名·密碼·手機號碼與必要同意事項。",
@@ -190,10 +190,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `Tối thiểu ${MIN_NEW_PASSWORD_LENGTH} ký tự. Mật khẩu từng bị rò rỉ sẽ không được chấp nhận.`,
     login: "Đăng nhập", signup: "Tạo tài khoản", processing: "Đang xác thực an toàn…",
     switchToSignup: "Tạo tài khoản", switchToLogin: "Đăng nhập", noAccount: "Lần đầu đến đây?", hasAccount: "Đã có tài khoản?",
-    privacy: "Tôi đồng ý với việc thu thập và sử dụng thông tin cá nhân.",
+    privacy: "Chính sách bảo mật",
     privacySummary: "Thu thập: Họ tên·Email·Số điện thoại / Mục đích: Quản lý tài khoản·Xử lý thanh toán / Lưu trữ: Đến khi xóa tài khoản (trừ trường hợp pháp luật yêu cầu lưu giữ)",
-    terms: "Tôi đồng ý với Điều khoản dịch vụ.",
-    birthYear: "Năm sinh", invalidAge: "Bạn phải từ 14 tuổi trở lên để đăng ký.", required: "Đồng ý bắt buộc",
+    terms: "Điều khoản dịch vụ",
+    birthYear: "Năm sinh", invalidAge: "Bạn phải từ 14 tuổi trở lên để đăng ký.", agreeOnSubmit: "Khi đăng ký, bạn đồng ý với các nội dung sau.",
     finishTitle: "Chỉ còn một bước kiểm tra cuối cùng", finishDescription: "Chỉ cần xác nhận vài thông tin và các đồng ý bắt buộc là có thể sử dụng ngay.",
     finish: "Xác nhận và bắt đầu ngay", invalidEmail: "Vui lòng nhập địa chỉ email hợp lệ.",
     invalidSignup: "Vui lòng kiểm tra họ tên, mật khẩu, số điện thoại và các đồng ý bắt buộc.",
@@ -215,10 +215,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `कम से कम ${MIN_NEW_PASSWORD_LENGTH} अक्षर होने चाहिए। ज्ञात रूप से लीक हुए पासवर्ड स्वीकार नहीं किए जाते।`,
     login: "लॉग इन करें", signup: "खाता बनाएँ", processing: "सुरक्षित रूप से जाँच रहे हैं…",
     switchToSignup: "खाता बनाएँ", switchToLogin: "लॉग इन करें", noAccount: "पहली बार आए हैं?", hasAccount: "पहले से खाता है?",
-    privacy: "मैं व्यक्तिगत जानकारी के संग्रह और उपयोग से सहमत हूँ।",
+    privacy: "गोपनीयता नीति",
     privacySummary: "संग्रह: नाम·ईमेल·मोबाइल नंबर / उद्देश्य: खाता प्रबंधन·भुगतान प्रक्रिया / अवधि: खाता हटाने तक (कानूनी आवश्यकता को छोड़कर)",
-    terms: "मैं सेवा की शर्तों से सहमत हूँ।",
-    birthYear: "जन्म का वर्ष", invalidAge: "साइन अप करने के लिए आपकी आयु कम से कम 14 वर्ष होनी चाहिए।", required: "आवश्यक सहमति",
+    terms: "सेवा की शर्तें",
+    birthYear: "जन्म का वर्ष", invalidAge: "साइन अप करने के लिए आपकी आयु कम से कम 14 वर्ष होनी चाहिए।", agreeOnSubmit: "साइन अप करने पर आप निम्नलिखित से सहमत होते हैं।",
     finishTitle: "बस आखिरी जाँच बाकी है", finishDescription: "बस कुछ जानकारी और आवश्यक सहमति चाहिए, फिर आप तुरंत उपयोग कर सकते हैं।",
     finish: "पुष्टि करें और तुरंत शुरू करें", invalidEmail: "कृपया मान्य ईमेल पता दर्ज करें।",
     invalidSignup: "कृपया अपना नाम, पासवर्ड, मोबाइल नंबर और आवश्यक सहमति जाँचें।",
@@ -240,10 +240,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `Al menos ${MIN_NEW_PASSWORD_LENGTH} caracteres. Se rechazan las contraseñas encontradas en filtraciones conocidas.`,
     login: "Iniciar sesión", signup: "Crear cuenta", processing: "Verificando de forma segura…",
     switchToSignup: "Crear cuenta", switchToLogin: "Iniciar sesión", noAccount: "¿Primera vez aquí?", hasAccount: "¿Ya tienes una cuenta?",
-    privacy: "Acepto la recopilación y el uso de mis datos personales.",
+    privacy: "Política de privacidad",
     privacySummary: "Recopilación: nombre, correo electrónico, número de móvil / Finalidad: gestión de cuenta y procesamiento de pagos / Conservación: hasta la eliminación de la cuenta, salvo obligación legal.",
-    terms: "Acepto los Términos del servicio.",
-    birthYear: "Año de nacimiento", invalidAge: "Debes tener al menos 14 años para registrarte.", required: "Consentimientos obligatorios",
+    terms: "Términos del servicio",
+    birthYear: "Año de nacimiento", invalidAge: "Debes tener al menos 14 años para registrarte.", agreeOnSubmit: "Al registrarte, aceptas lo siguiente.",
     finishTitle: "Una última comprobación", finishDescription: "Solo necesitamos unos datos y los consentimientos obligatorios.",
     finish: "Confirmar y continuar", invalidEmail: "Introduce una dirección de correo electrónico válida.",
     invalidSignup: "Comprueba tu nombre, contraseña, número de móvil y los consentimientos obligatorios.",
@@ -265,10 +265,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `Au moins ${MIN_NEW_PASSWORD_LENGTH} caractères. Les mots de passe connus pour avoir été compromis sont refusés.`,
     login: "Se connecter", signup: "Créer un compte", processing: "Vérification sécurisée en cours…",
     switchToSignup: "Créer un compte", switchToLogin: "Se connecter", noAccount: "Première visite ?", hasAccount: "Vous avez déjà un compte ?",
-    privacy: "J'accepte la collecte et l'utilisation de mes données personnelles.",
+    privacy: "Politique de confidentialité",
     privacySummary: "Collecte : nom, e-mail, numéro de mobile / Finalité : gestion du compte, traitement des paiements / Conservation : jusqu'à la suppression du compte, sauf obligation légale.",
-    terms: "J'accepte les Conditions d'utilisation.",
-    birthYear: "Année de naissance", invalidAge: "Vous devez avoir au moins 14 ans pour vous inscrire.", required: "Consentements obligatoires",
+    terms: "Conditions d'utilisation",
+    birthYear: "Année de naissance", invalidAge: "Vous devez avoir au moins 14 ans pour vous inscrire.", agreeOnSubmit: "En vous inscrivant, vous acceptez ce qui suit.",
     finishTitle: "Encore une dernière vérification", finishDescription: "Il ne reste que quelques informations et les consentements obligatoires à confirmer.",
     finish: "Confirmer et continuer", invalidEmail: "Veuillez saisir une adresse e-mail valide.",
     invalidSignup: "Veuillez vérifier votre nom, mot de passe, numéro de mobile et les consentements obligatoires.",
@@ -290,10 +290,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `Mindestens ${MIN_NEW_PASSWORD_LENGTH} Zeichen. Passwörter aus bekannten Datenlecks werden abgelehnt.`,
     login: "Anmelden", signup: "Konto erstellen", processing: "Sichere Überprüfung läuft…",
     switchToSignup: "Konto erstellen", switchToLogin: "Anmelden", noAccount: "Zum ersten Mal hier?", hasAccount: "Bereits ein Konto?",
-    privacy: "Ich stimme der Erhebung und Nutzung meiner personenbezogenen Daten zu.",
+    privacy: "Datenschutzerklärung",
     privacySummary: "Erhebung: Name, E-Mail, Mobilnummer / Zweck: Kontoverwaltung, Zahlungsabwicklung / Speicherdauer: bis zur Kontolöschung, sofern gesetzlich nicht anders vorgeschrieben.",
-    terms: "Ich stimme den Nutzungsbedingungen zu.",
-    birthYear: "Geburtsjahr", invalidAge: "Sie müssen mindestens 14 Jahre alt sein, um sich zu registrieren.", required: "Erforderliche Zustimmungen",
+    terms: "Nutzungsbedingungen",
+    birthYear: "Geburtsjahr", invalidAge: "Sie müssen mindestens 14 Jahre alt sein, um sich zu registrieren.", agreeOnSubmit: "Mit der Registrierung stimmen Sie dem Folgenden zu.",
     finishTitle: "Nur noch eine letzte Prüfung", finishDescription: "Wir brauchen nur noch ein paar Angaben und die erforderlichen Zustimmungen.",
     finish: "Bestätigen und fortfahren", invalidEmail: "Bitte gib eine gültige E-Mail-Adresse ein.",
     invalidSignup: "Bitte überprüfe deinen Namen, dein Passwort, deine Mobilnummer und die erforderlichen Zustimmungen.",
@@ -315,10 +315,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `Minimaal ${MIN_NEW_PASSWORD_LENGTH} tekens. Wachtwoorden die bekend zijn van datalekken worden geweigerd.`,
     login: "Inloggen", signup: "Account aanmaken", processing: "Veilig aan het controleren…",
     switchToSignup: "Account aanmaken", switchToLogin: "Inloggen", noAccount: "Voor het eerst hier?", hasAccount: "Heb je al een account?",
-    privacy: "Ik ga akkoord met het verzamelen en gebruiken van mijn persoonsgegevens.",
+    privacy: "Privacybeleid",
     privacySummary: "Verzameling: naam, e-mail, mobiel nummer / Doel: accountbeheer, betalingsverwerking / Bewaartermijn: tot verwijdering van het account, tenzij wettelijk anders vereist.",
-    terms: "Ik ga akkoord met de Servicevoorwaarden.",
-    birthYear: "Geboortejaar", invalidAge: "Je moet minstens 14 jaar oud zijn om je aan te melden.", required: "Verplichte toestemmingen",
+    terms: "Servicevoorwaarden",
+    birthYear: "Geboortejaar", invalidAge: "Je moet minstens 14 jaar oud zijn om je aan te melden.", agreeOnSubmit: "Door je aan te melden ga je akkoord met het volgende.",
     finishTitle: "Nog één laatste controle", finishDescription: "We hebben alleen nog wat gegevens en de verplichte toestemmingen nodig.",
     finish: "Bevestigen en direct beginnen", invalidEmail: "Voer een geldig e-mailadres in.",
     invalidSignup: "Controleer je naam, wachtwoord, mobiel nummer en de verplichte toestemmingen.",
@@ -340,10 +340,10 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     passwordHint: `Sekurang-kurangnya ${MIN_NEW_PASSWORD_LENGTH} aksara. Kata laluan yang diketahui pernah bocor tidak akan diterima.`,
     login: "Log masuk", signup: "Cipta akaun", processing: "Sedang menyemak dengan selamat…",
     switchToSignup: "Cipta akaun", switchToLogin: "Log masuk", noAccount: "Kali pertama di sini?", hasAccount: "Sudah ada akaun?",
-    privacy: "Saya bersetuju dengan pengumpulan dan penggunaan maklumat peribadi saya.",
+    privacy: "Dasar Privasi",
     privacySummary: "Pengumpulan: nama·e-mel·nombor telefon bimbit / Tujuan: pengurusan akaun·pemprosesan bayaran / Tempoh simpanan: sehingga akaun dipadam, kecuali dikehendaki oleh undang-undang.",
-    terms: "Saya bersetuju dengan Terma Perkhidmatan.",
-    birthYear: "Tahun lahir", invalidAge: "Anda mesti berumur sekurang-kurangnya 14 tahun untuk mendaftar.", required: "Persetujuan wajib",
+    terms: "Terma Perkhidmatan",
+    birthYear: "Tahun lahir", invalidAge: "Anda mesti berumur sekurang-kurangnya 14 tahun untuk mendaftar.", agreeOnSubmit: "Dengan mendaftar, anda bersetuju dengan perkara berikut.",
     finishTitle: "Satu semakan terakhir sahaja", finishDescription: "Kami hanya perlukan sedikit maklumat dan persetujuan wajib sahaja.",
     finish: "Sahkan dan mula sekarang", invalidEmail: "Sila masukkan alamat e-mel yang sah.",
     invalidSignup: "Sila semak nama, kata laluan, nombor telefon bimbit dan persetujuan wajib anda.",
@@ -371,7 +371,6 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const [ticket, setTicket] = useState("");
   // 공급자(카카오·네이버)가 동의항목으로 번호를 넘겼는지. 넘겼으면 입력칸을 감춘다.
   // 🔴 표시 판단일 뿐이다 — 이걸 false 로 만들어 번호를 적어 보내도 서버는 티켓의 번호를 쓴다.
-  const [socialPhoneProvided, setSocialPhoneProvided] = useState(false);
   // 공급자 로그인 폼이 만 14세 확인을 이미 받은 경우(카카오)에만 true — 그때는 생년을 묻지 않는다.
   const [socialAgeVerified, setSocialAgeVerified] = useState(false);
   const [birthYear, setBirthYear] = useState("");
@@ -381,8 +380,6 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [capsLock, setCapsLock] = useState(false);
-  const [privacy, setPrivacy] = useState(false);
-  const [terms, setTerms] = useState(false);
   const [busy, setBusy] = useState(false);
   const [socialBusy, setSocialBusy] = useState<SocialProvider | null>(null);
   const [error, setError] = useState("");
@@ -398,7 +395,6 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     setTicket(params.get("social_signup") || params.get("socialSignupTicket") || "");
-    setSocialPhoneProvided(params.get("social_phone") === "1");
     setSocialAgeVerified(params.get("social_age") === "1");
     // 공급자가 준 이름을 그대로 채운다. 편집은 열어 둔다 — 카카오 닉네임이 실명이 아닐 수 있다.
     const providedName = (params.get("social_name") || "").trim().slice(0, 40);
@@ -461,7 +457,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     // 🔴 로그인은 8자 그대로다. 기존 회원이 8~9자로 가입했을 수 있어 여기서 올리면 로그인이 막힌다.
     // 가입만 서버(worker/lib/validation.js MIN_NEW_PASSWORD_LENGTH)와 같은 10자를 요구한다.
     const minPasswordLength = mode === "signup" ? MIN_NEW_PASSWORD_LENGTH : 8;
-    if (password.length < minPasswordLength || (mode === "signup" && (name.trim().length < 2 || !privacy || !terms))) {
+    if (password.length < minPasswordLength || (mode === "signup" && name.trim().length < 2)) {
       setError(mode === "login" ? copy.credentialsError : copy.invalidSignup); return;
     }
     if (needsBirthYear && !isBirthYearOk(birthYear)) { setError(copy.invalidAge); return; }
@@ -480,7 +476,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       const current = new URLSearchParams(window.location.search);
       const response = await authFetch(`${apiBase}/api/auth/register`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
-        body: JSON.stringify({ name: name.trim(), email: email.trim(), password, phoneNumber: normalizedPhone, privacyAccepted: privacy, termsAccepted: terms, birthYear: birthYear.trim(), nextPath: nextPath(), referralCode: current.get("ref") || undefined, referralShareToken: current.get("rs") || undefined, referralSource: current.get("via") || undefined }),
+        body: JSON.stringify({ name: name.trim(), email: email.trim(), password, phoneNumber: normalizedPhone, privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath(), referralCode: current.get("ref") || undefined, referralShareToken: current.get("rs") || undefined, referralSource: current.get("via") || undefined }),
       });
       const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
       // 🔴 5xx 를 throw 로 넘기지 않는다 — 아래 catch 의 /failed|invalid|.../ 정규식이 진단 꼬리표
@@ -500,17 +496,17 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const finishSocialSignup = async (event: FormEvent) => {
     event.preventDefault();
     if (busy) return;
-    if (name.trim().length < 2 || !privacy || !terms) { setError(copy.invalidSignup); return; }
+    if (name.trim().length < 2) { setError(copy.invalidSignup); return; }
     // 카카오는 이 검사를 타지 않는다(ageVerifiedByProvider). 서버도 티켓의 provider 로 같은 분기를 한다.
     if (needsBirthYear && !isBirthYearOk(birthYear)) { setError(copy.invalidAge); return; }
-    // 공급자가 번호를 넘겼으면 입력칸이 없다 — 그때는 티켓의 번호로 가입이 끝난다.
-    const normalizedPhone = normalizeKoreanPhoneNumber(phone);
-    if (!socialPhoneProvided && !normalizedPhone) { setError(copy.invalidPhone); return; }
+    // 🔴 소셜 가입은 번호를 묻지 않는다(2026-08-25). 카카오·네이버는 공급자가 넘겨 주고,
+    // 구글은 주지 않으므로 **첫 결제 화면**이 받는다 — 그 경로는 이미 살아 있다
+    // (_cdEnsureDirectCheckoutPaymentPhoneNumber). 이메일 가입의 번호 필수는 그대로다.
     setBusy(true); setError("");
     try {
       const response = await authFetch(`${apiBase}/api/auth/oauth/complete-signup`, {
         method: "POST", credentials: "include", headers: { "Content-Type": "application/json", ...mobileAppAuthHeaders() },
-        body: JSON.stringify({ socialSignupTicket: ticket, name: name.trim(), phoneNumber: normalizedPhone, privacyAccepted: privacy, termsAccepted: terms, birthYear: birthYear.trim(), nextPath: nextPath() }),
+        body: JSON.stringify({ socialSignupTicket: ticket, name: name.trim(), privacyAccepted: true, termsAccepted: true, birthYear: birthYear.trim(), nextPath: nextPath() }),
       });
       const payload = await response.json().catch(() => ({})) as { message?: string; code?: string; requestId?: string; nextPath?: string; appRedirectUrl?: string; accessToken?: string; refreshToken?: string; user?: AuthUser };
       if (!response.ok && response.status >= 500) { setError(withServerDiagnostics(copy.unavailable, payload)); return; }
@@ -538,12 +534,18 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
               동의항목으로 번호를 이미 넘긴 경우(social_phone=1)이고, 그때만 칸을 감춘다.
               고지 문구는 아래 개인정보 동의 체크(privacySummary)와 개인정보처리방침 2항에 맞춘다. */}
           {!ticket && <><Field id="auth-email" label={copy.email}><input id="auth-email" type="email" inputMode="email" autoComplete={isSignup ? "email" : "username"} value={email} onChange={(event) => setEmail(event.target.value)} className={inputClass} /></Field><Field id="auth-password" label={copy.password}><div className="relative"><input id="auth-password" type={showPassword ? "text" : "password"} autoComplete={isSignup ? "new-password" : "current-password"} minLength={isSignup ? MIN_NEW_PASSWORD_LENGTH : 8} value={password} onChange={(event) => setPassword(event.target.value)} onKeyUp={(event) => setCapsLock(event.getModifierState("CapsLock"))} className={`${inputClass} pr-14`} /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? copy.hidePassword : copy.showPassword} className="absolute inset-y-0 right-0 min-w-12 px-3 text-xs font-bold text-[#d6c9eb] focus-visible:outline focus-visible:outline-2 focus-visible:outline-[#dbc9ff]">{showPassword ? "Hide" : "Show"}</button></div>{isSignup && <p className="mt-1.5 text-xs leading-5 text-[#b9aecf]">{copy.passwordHint}</p>}{capsLock && <p className="mt-1.5 text-xs text-[#ffd18a]">{copy.capsLock}</p>}</Field></>}
-          {isSignup && !(ticket && socialPhoneProvided) && <Field id="auth-phone" label={copy.phone}><input id="auth-phone" type="tel" inputMode="numeric" autoComplete="tel" maxLength={13} placeholder="010-1234-5678" value={phone} onChange={(event) => setPhone(formatKoreanPhoneInput(event.target.value))} aria-describedby="auth-phone-hint" className={inputClass} /><p id="auth-phone-hint" className="mt-1.5 text-xs leading-5 text-[#b9aecf]">{copy.phoneHint}</p></Field>}
+          {/* 🔴 번호 칸은 **이메일 가입 전용**이다(2026-08-25). 소셜은 공급자가 주거나(카카오·네이버)
+              주지 않으면 첫 결제 화면이 받는다(구글) — 가입 화면에서 다시 묻지 않는다. */}
+          {isSignup && !ticket && <Field id="auth-phone" label={copy.phone}><input id="auth-phone" type="tel" inputMode="numeric" autoComplete="tel" maxLength={13} placeholder="010-1234-5678" value={phone} onChange={(event) => setPhone(formatKoreanPhoneInput(event.target.value))} aria-describedby="auth-phone-hint" className={inputClass} /><p id="auth-phone-hint" className="mt-1.5 text-xs leading-5 text-[#b9aecf]">{copy.phoneHint}</p></Field>}
           {/* 🔴 만 14세 확인은 체크박스가 아니라 **생년**이다(2026-08-25). 체크박스는 눌러서
               지나가는 것이라 미만 연령을 실제로 걸러내지 못했다. 카카오 가입만 예외인데,
               카카오계정 로그인이 그 확인을 이미 받기 때문이다(social_age=1). 판정 정본은 서버다. */}
           {needsBirthYear && <Field id="auth-birth-year" label={copy.birthYear}><input id="auth-birth-year" type="text" inputMode="numeric" autoComplete="bday-year" maxLength={4} placeholder="2000" value={birthYear} onChange={(event) => setBirthYear(event.target.value.replace(/\D+/g, "").slice(0, 4))} className={inputClass} /></Field>}
-          {isSignup && <fieldset className="space-y-2 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3"><legend className="px-1 text-xs font-bold text-[#cfc4e5]">{copy.required}</legend><Check id="auth-privacy" checked={privacy} onChange={setPrivacy}><Link href="/privacy" target="_blank" className="underline underline-offset-4">{copy.privacy}</Link></Check><p className="pl-9 text-[11px] leading-5 text-[#aa9fbd]">{copy.privacySummary}</p><Check id="auth-terms" checked={terms} onChange={setTerms}><Link href="/terms" target="_blank" className="underline underline-offset-4">{copy.terms}</Link></Check></fieldset>}
+          {/* 🔴 동의는 체크박스가 아니라 **가입 버튼**이다(2026-08-25). 카카오·네이버처럼 이름·번호·
+              연령을 공급자가 다 넘긴 경로에서는 이 화면에 채울 것이 하나도 남지 않아야 한다는 요구다.
+              고지(privacySummary)는 그대로 화면에 남고 동의 시각·버전 기록도 서버가 그대로 남긴다
+              (worker/routes/auth.js legalConsents) — 없앤 것은 클릭이지 고지도 기록도 아니다. */}
+          {isSignup && <section aria-label={copy.agreeOnSubmit} className="space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section>}
           <button type="submit" disabled={busy || Boolean(socialBusy)} aria-busy={busy} className="min-h-12 w-full rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff] disabled:opacity-55">{busy ? copy.processing : ticket ? copy.finish : isSignup ? copy.signup : copy.login}</button>
         </form>
         {!ticket && <p className="mt-5 text-center text-sm text-[#cfc4e1]">{isSignup ? copy.hasAccount : copy.noAccount} <Link href={isSignup ? `/login?next=${encodeURIComponent(nextPath())}` : `/signup?next=${encodeURIComponent(nextPath())}`} onClick={() => { setMode(isSignup ? "login" : "signup"); setError(""); }} className="ml-1 min-h-11 font-black text-[#d7c1ff] underline underline-offset-4">{isSignup ? copy.switchToLogin : copy.switchToSignup}</Link></p>}

@@ -4965,11 +4965,13 @@ async function handleOAuthCompleteSignup(request, env) {
   //   ② 본문의 번호 — 공급자가 주지 않을 때(구글은 항상, 카카오도 동의항목 미승인 시) 가입
   //      마무리 화면에서 사용자가 직접 입력한 값.
   // 둘 다 없으면 계정을 만들지 않는다. 실제 우선순위 적용은 findOrCreateSocialUser 한 곳이다.
+  // 🔴 소셜 가입은 번호 없이도 끝난다(2026-08-25). 공급자가 준 값이 있으면 쓰고, 없으면
+  // (구글) 번호 없이 계정을 만든 뒤 **첫 카드 결제 화면**에서 받는다 — 그 경로는 이미 있고
+  // 개인정보처리방침도 그 수집 방법을 고지한다.
+  // 🔴 이메일 가입은 그대로 번호 필수다(validateRegisterPayload) — 카카오 동의항목 심사가 보는
+  // 것이 "**자체** 회원가입 프로세스에서도 수집하는가" 라서, 그쪽을 완화하면 요건이 깨진다.
   const ticketPhoneNumber = normalizeKoreanPhoneNumber(ticket?.phoneNumber);
   const bodyPhoneNumber = normalizeKoreanPhoneNumber(body?.phoneNumber || body?.phone);
-  if (!ticketPhoneNumber && !bodyPhoneNumber) {
-    return signupErrorResponse(request, env, 400, "phone_required", phoneRequiredMessage(request));
-  }
 
   try {
     await withAuthOpTimeout(connectDb(env), timeoutMs, "auth_social_signup_connect_db");
@@ -5172,6 +5174,7 @@ export const __authTestUtils = {
   handlePaymentPhoneStatus,
   handleOAuthStart,
   handleOAuthCallback,
+  handleOAuthCompleteSignup,
   findOrCreateSocialUser,
   buildProviderConfig,
   clearLoginRateLimitState: () => loginRateLimitMap.clear(),
