@@ -16,6 +16,13 @@ import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loading
 
 export type NamingResultCopy = {
   chapterTitles: string[];
+  /**
+   * 작명첩 8장을 응답 본문에서 집어내는 제목 패턴.
+   * 🔴 chapterTitles 를 그대로 이어 붙이지 않는다 — 모델이 제목을 조금 줄이거나 늘여 쓰면
+   *    통째 일치는 빗나가는 반면, 장마다 고유한 조각은 살아남는다. 조각이 안 맞을 때의
+   *    다음 그물은 parseAssistantSections 의 numberedHeadings 폴백(## N.)이다.
+   */
+  chapterTitleKeywords: RegExp;
   genderM: string;
   genderF: string;
   genderOther: string;
@@ -97,6 +104,7 @@ const RESULT_KO: NamingResultCopy = {
     "피해야 할 이름",
     "이름을 올리기 전에",
   ],
+  chapterTitleKeywords: /작명가의 총평|사주 풀이|작명 원칙|이름 후보 상세|나란히 놓고|최종 추천|피해야 할 이름|올리기 전에/,
   genderM: "남성",
   genderF: "여성",
   genderOther: "기타/미지정",
@@ -178,6 +186,7 @@ const RESULT_EN: NamingResultCopy = {
     "Names to avoid",
     "Before you register the name",
   ],
+  chapterTitleKeywords: /overall reading|favou?rable element|naming principles|candidate names|side by side|final recommendation|names to avoid|before you register/i,
   genderM: "Male",
   genderF: "Female",
   genderOther: "Other / unspecified",
@@ -264,6 +273,7 @@ const RESULT_JA: NamingResultCopy = {
     "避けたい名前",
     "名前を届け出る前に",
   ],
+  chapterTitleKeywords: /命名家の総評|用神の検証|命名原則|名前候補の詳細|並べて|最終のおすすめ|避けたい名前|届け出る前に/,
   genderM: "男性",
   genderF: "女性",
   genderOther: "その他・未指定",
@@ -345,6 +355,7 @@ const RESULT_ZH_CN: NamingResultCopy = {
     "该避开的名字",
     "上户口之前",
   ],
+  chapterTitleKeywords: /起名师总评|用神验证|取名原则|名字候选详解|并排来看|最终推荐|该避开的名字|上户口之前/,
   genderM: "男",
   genderF: "女",
   genderOther: "其他／未指定",
@@ -426,6 +437,7 @@ const RESULT_ZH_TW: NamingResultCopy = {
     "該避開的名字",
     "報戶口之前",
   ],
+  chapterTitleKeywords: /取名師總評|用神驗證|取名原則|名字候選詳解|並排來看|最終推薦|該避開的名字|報戶口之前/,
   genderM: "男",
   genderF: "女",
   genderOther: "其他／未指定",

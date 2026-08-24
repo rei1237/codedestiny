@@ -8,6 +8,14 @@
 // "무료 초안에선 金이라더니 결과는 水" 같은 어긋남이 생기지 않는다.
 
 import { analyzeSoundFlow, soundElementOf } from "@/worker/lib/naming-sound-elements.js";
+import { getNamingDraftCopy, type NamingDraftCopy } from "./namingDraftCopy";
+import {
+  getNamePool,
+  resolveNamePoolBucket,
+  type LocaleNameEntry,
+  type NamePoolBucket,
+  type NamePoolSpec,
+} from "./namingNamePools";
 
 export type ElementKey = "wood" | "fire" | "earth" | "metal" | "water";
 
@@ -500,9 +508,159 @@ function generateMoodDrafts(input: NamingRecommendationInput, presets: StylePres
   return uniqueList(moods).slice(0, 5);
 }
 
-export function buildRecommendationBundle(input: NamingRecommendationInput, sajuHints: NamingSajuHints | null): RecommendationBundle {
+/* ------------------------------------------------------------------
+ * 비-한국어 로케일 경로 — 조합이 아니라 실재 이름 목록에서 고른다.
+ *
+ * 🔴 위쪽 한국어 경로와 코드를 공유하지 않는다. 그쪽은 한글 음절을 회전시켜 **조합**하고
+ *    초성 소리오행으로 줄세우는데, 두 축 모두 한국어 전용이다(초성이 없는 문자에는 적용 자체가
+ *    성립하지 않는다). 억지로 공유하면 한국어 경로가 흔들리고, 그 경로는 골든 동작이다.
+ * ------------------------------------------------------------------ */
+
+/** 라틴권 이름에는 "음절" 개념이 없다 — 대소문자 무시 부분 문자열로 본다. */
+function containsToken(name: string, token: string): boolean {
+  return name.toLowerCase().indexOf(token.toLowerCase()) >= 0;
+}
+
+function localeCandidateNote(entry: LocaleNameEntry, copy: NamingDraftCopy): string {
+  const parts: string[] = [];
+  parts.push(entry.gender === "N" ? copy.genderNeutral : entry.gender === "M" ? copy.genderM : copy.genderF);
+  parts.push(copy.supplements(copy.elementLabels[entry.element] || entry.element));
+  const reading = entry.reading ? copy.reading(entry.reading) : "";
+  if (reading) parts.push(reading);
+  if (entry.meaning) parts.push(entry.meaning);
+  return parts.join(" · ") || copy.noteFallback;
+}
+
+function scoreLocaleEntry(
+  entry: LocaleNameEntry,
+  nameElements: ElementKey[],
+  avoidElements: ElementKey[],
+  gender: GenderLean | "",
+  requiredTokens: string[],
+  preferredTokens: string[],
+): number {
+  let score = 0;
+  if (nameElements.indexOf(entry.element) >= 0) score += 4;
+  if (avoidElements.indexOf(entry.element) >= 0) score -= 4;
+  // 그 문화권에서 실제로 남녀 공용인 이름은 반대 성별 취급을 하지 않는다(중립 가점).
+  if (gender) score += entry.gender === gender ? 2 : entry.gender === "N" ? 1 : -3;
+  requiredTokens.forEach((token) => {
+    if (containsToken(entry.name, token)) score += 5;
+  });
+  preferredTokens.forEach((token) => {
+    if (containsToken(entry.name, token)) score += 2;
+  });
+  return score;
+}
+
+function buildLocaleBundle(
+  input: NamingRecommendationInput,
+  hints: NamingSajuHints | null,
+  elementKeys: ElementKey[],
+  gender: GenderLean | "",
+  pool: NamePoolSpec,
+  copy: NamingDraftCopy,
+): RecommendationBundle {
+  const familyName = input.familyName || "";
+  const notices: string[] = [];
+  const length = Math.max(1, Math.min(4, Number(input.nameLength) || 2));
+
+  const blockedTokens = uniqueList(input.blockedSyllables.map(cleanString)).filter(Boolean);
+  const requiredTokens = uniqueList(input.requiredSyllables.map(cleanString)).filter(Boolean);
+  const preferredTokens = uniqueList(input.desiredSyllables.map(cleanString)).filter(Boolean);
+  const currentName = cleanString(input.currentName);
+  const existingNames = uniqueList(
+    input.desiredNames.map((item) => cleanString(item?.hangul)).concat(currentName),
+  );
+  const isBlocked = (name: string) => blockedTokens.some((token) => containsToken(name, token));
+
+  let entries = pool.entries.filter((entry) => !isBlocked(entry.name) && existingNames.indexOf(entry.name) < 0);
+  if (pool.honorsNameLength) {
+    const sized = entries.filter((entry) => Array.from(entry.name).length === length);
+    // 요청한 글자 수의 후보가 하나도 없으면 조건을 풀되, 푼 사실을 말한다(조용히 무시하지 않는다).
+    if (sized.length) entries = sized;
+    else notices.push(copy.statusLengthRelaxed(length));
+  } else {
+    notices.push(copy.statusLengthNotApplicable);
+  }
+
+  const nameElements = uniqueList((hints?.nameElements || []).concat(elementKeys));
+  const avoidElements = uniqueList(hints?.avoidElements || []);
+
+  const taken = new Set<string>();
+  const pinned: DraftNameCandidate[] = [];
+  const generated: DraftNameCandidate[] = [];
+  const addCandidate = (bucket: DraftNameCandidate[], name: string, note: string) => {
+    if (!name || taken.has(name) || pinned.length + generated.length >= FINAL_CANDIDATE_LIMIT) return;
+    taken.add(name);
+    bucket.push({ name, fullName: pool.joinFullName(familyName, name), note });
+  };
+
+  // 사용자가 이름을 통째로 적어 준 경우 — 그대로 첫 후보로 둔다(한국어 경로와 같은 규칙).
+  // 라틴권은 글자 수 조건이 없으므로 길이로 거르지 않는다.
+  const writtenNames = requiredTokens.filter((token) => Array.from(token).length > 1 && !isBlocked(token));
+  const pinnedNames = pool.honorsNameLength
+    ? writtenNames.filter((name) => Array.from(name).length === length)
+    : writtenNames;
+  pinnedNames.forEach((name) => addCandidate(pinned, name, copy.pinnedNote));
+  if (pinnedNames.length) notices.push(copy.statusPinnedNotice);
+  if (currentName && !isBlocked(currentName) && (!pool.honorsNameLength || Array.from(currentName).length === length)) {
+    addCandidate(pinned, currentName, copy.currentNameNote);
+  }
+
+  entries
+    .map((entry, index) => ({
+      entry,
+      index,
+      score: scoreLocaleEntry(entry, nameElements, avoidElements, gender, requiredTokens, preferredTokens),
+    }))
+    .sort((a, b) => (b.score - a.score) || (a.index - b.index))
+    .forEach((row) => addCandidate(generated, row.entry.name, localeCandidateNote(row.entry, copy)));
+
+  const moods: string[] = [];
+  if (input.desiredType) moods.push(cleanString(input.desiredType));
+  elementKeys.forEach((key) => (copy.moodsByElement[key] || []).forEach((item) => moods.push(item)));
+  copy.moodsGeneral.forEach((item) => moods.push(item));
+
+  const labelsOf = (keys: ElementKey[]) => keys.map((key) => copy.elementLabels[key] || key).join(" · ");
+  const statusParts: string[] = [];
+  if (elementKeys.length) {
+    statusParts.push(copy.statusWithElements(labelsOf(elementKeys)));
+    if (avoidElements.length) statusParts.push(copy.statusAvoid(labelsOf(avoidElements)));
+  } else if (gender) {
+    statusParts.push(copy.statusGender(gender === "M" ? copy.genderM : copy.genderF));
+  } else {
+    statusParts.push(copy.statusNoElements);
+  }
+  statusParts.push(copy.statusPoolScope);
+  uniqueList(notices).forEach((notice) => statusParts.push(notice));
+  if (!gender) statusParts.push(copy.statusGenderPrompt);
+  if (!elementKeys.length && input.birthDate) statusParts.push(copy.statusComputing);
+  else if (!input.birthDate) statusParts.push(copy.statusNeedBirthDate);
+  statusParts.push(copy.statusReference);
+
+  return {
+    candidates: pinned.concat(generated).slice(0, FINAL_CANDIDATE_LIMIT),
+    moods: uniqueList(moods).slice(0, 5),
+    status: statusParts.join(" "),
+  };
+}
+
+/**
+ * @param locale 화면 로케일. 🔴 비워 두면 한국어 경로다 — 기존 호출부와 테스트가 그대로 돌아야 하고,
+ *   알 수 없는 값을 조용히 영어로 흘리지 않기 위해서다(resolveNamePoolBucket 이 ko/빈 값을 null 로 준다).
+ */
+export function buildRecommendationBundle(
+  input: NamingRecommendationInput,
+  sajuHints: NamingSajuHints | null,
+  locale?: string,
+): RecommendationBundle {
   const elementKeys = extractElementKeys(sajuHints);
   const gender = normalizeGender(input.gender);
+  const bucket: NamePoolBucket | null = resolveNamePoolBucket(locale || "");
+  if (bucket) {
+    return buildLocaleBundle(input, sajuHints, elementKeys, gender, getNamePool(bucket), getNamingDraftCopy(locale || "en"));
+  }
   const presets = rankStylePresets(input, elementKeys, gender);
   const draft = generateDraftNames(input, presets, elementKeys, gender, sajuHints);
   const moods = generateMoodDrafts(input, presets, elementKeys);
