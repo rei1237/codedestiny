@@ -13,6 +13,7 @@ import { dirname, join } from "node:path";
 
 import { buildGeneratedPrompt } from "../../worker/routes/naming-prompt.js";
 import { parseNamingResultCards } from "../../worker/lib/naming-result-cards.js";
+import { AI_OUTPUT_FALLBACK, AI_OUTPUT_LOCALES, buildOutputLanguageDirective } from "../../lib/i18n/ai-locale.js";
 import {
   NAMING_DEFAULT_LOCALE,
   NAMING_LOCALES,
@@ -102,13 +103,25 @@ describe("작명 프롬프트 로케일 분기", () => {
     }
   });
 
-  test("비-ko 로케일은 출력 언어를 명시하고, ko 는 그 블록이 없다", () => {
-    expect(buildGeneratedPrompt(INPUT, SAJU, "ko")).not.toContain("출력 언어");
+  test("비-ko 로케일은 정본 출력 언어 지시문을 쓰고, ko 는 그 블록이 없다", () => {
+    // 🔴 지시문을 여기서 새로 만들지 않는다 — 정본(lib/i18n/ai-locale.js)이 대상 언어 + 영어를
+    //    병기하는 이유를 실측으로 기록해 두었다(한국어로 쓴 지시는 폴백 모델이 무시한다).
+    //    이 테스트는 그 정본을 실제로 태우고 있는지 본다.
+    expect(buildGeneratedPrompt(INPUT, SAJU, "ko")).not.toContain("OUTPUT LANGUAGE");
     for (const locale of NAMING_LOCALES.filter((item) => item !== "ko")) {
       const prompt = buildGeneratedPrompt(INPUT, SAJU, locale);
-      expect(prompt).toContain("🔴 **출력 언어:");
-      expect(prompt).toContain(NAMING_LOCALE_PROFILES[locale].language);
+      expect([locale, prompt.includes(buildOutputLanguageDirective(locale))]).toEqual([locale, true]);
+      expect(prompt).toContain("[OUTPUT LANGUAGE — HIGHEST PRIORITY]");
+      // 작명첩 고유 계약 — 장 번호와 카드 라벨은 언어가 바뀌어도 고정이다.
+      expect(prompt).toContain('Keep the chapter numbering "## 1."');
+      expect(prompt).toContain("Keep the name-card block labels in Korean");
     }
+  });
+
+  test("로케일 목록과 기본값이 AI 출력 정본과 갈리지 않는다", () => {
+    // 두 목록이 갈라지면 새 로케일이 조용히 ko 프로파일로 떨어져 한국어 작명첩을 받는다.
+    expect([...NAMING_LOCALES]).toEqual([...AI_OUTPUT_LOCALES]);
+    expect(NAMING_DEFAULT_LOCALE).toBe(AI_OUTPUT_FALLBACK);
   });
 
   test("획수 체계가 없는 로케일에는 한국식 수리가 새어 나오지 않는다", () => {
