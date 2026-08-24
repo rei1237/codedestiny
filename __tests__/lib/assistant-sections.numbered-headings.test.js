@@ -6,6 +6,8 @@
  * parseAssistantSections 가 **문단 개수로 균등 분할**해 버려서, 내용이 엉뚱한 장 제목 아래로
  * 들어간 채 아무 에러 없이 렌더된다. 이 스위트는 그 조용한 오배치를 막는다.
  */
+import fs from "node:fs";
+import path from "node:path";
 import { parseAssistantSections } from "../../lib/llm-text.js";
 
 const KO_TITLES = [
@@ -58,4 +60,49 @@ describe("parseAssistantSections — 번호 헤딩 폴백", () => {
     const sections = parseAssistantSections(short, OPTIONS);
     expect(sections.map((section) => section.title)).toEqual(KO_TITLES.slice(0, sections.length));
   });
+});
+
+/**
+ * 🔴 위 폴백은 모델이 "## N." 번호를 지켰을 때만 듣는다. 번호를 흘린 비-ko 응답은 그대로
+ *    문단 균등 분할로 떨어졌다 — 그래서 로케일별 제목 패턴을 1차 그물로 두었다.
+ *    여기서는 소스에 적힌 패턴을 그대로 꺼내 **실제 파서에 통과시켜** 확인한다
+ *    (docs/handoff/locale-service-optimization-2026-08-25.md "기계 계약" 항목의 확인 방법).
+ */
+describe("로케일별 장 제목 패턴 — 번호 없는 응답도 잡는다", () => {
+  // 이 스위트는 ESM 이라 __dirname 이 없다. jest 의 roots 는 리포 루트이므로 cwd 기준으로 읽는다.
+  const source = fs.readFileSync(
+    path.join(process.cwd(), "app/naming-ai/result/resultCopy.ts"),
+    "utf8",
+  );
+  const blockPattern = /chapterTitles:\s*\[([\s\S]*?)\],\s*chapterTitleKeywords:\s*\/((?:[^/\\\n]|\\.)+)\/([a-z]*),/g;
+  const locales = [];
+  for (let match = blockPattern.exec(source); match; match = blockPattern.exec(source)) {
+    locales.push({
+      titles: (match[1].match(/"((?:[^"\\]|\\.)*)"/g) || []).map((raw) => JSON.parse(raw)),
+      pattern: new RegExp(match[2], match[3]),
+    });
+  }
+
+  // 🔴 전수 발견 — 하나라도 패턴 없이 남으면 여기서 죽는다(손으로 쓴 목록을 두지 않는다).
+  test("모든 장 제목 표에 패턴이 붙어 있다", () => {
+    expect(locales.length).toBe((source.match(/chapterTitles:\s*\[/g) || []).length);
+    expect(locales.length).toBeGreaterThanOrEqual(5);
+  });
+
+  test.each(locales.map((locale, index) => [index, locale]))(
+    "로케일 #%i — 번호 없는 헤딩만으로 8장이 갈린다",
+    (_index, locale) => {
+      const unnumbered = locale.titles
+        .map((title, index) => `## ${title}\n\nBody paragraph ${index + 1}, long enough to survive the split.`)
+        .join("\n\n");
+      const sections = parseAssistantSections(unnumbered, {
+        titleKeywords: locale.pattern,
+        fallbackTitles: KO_TITLES,
+        minHeadings: 5,
+        numberedHeadings: true,
+      });
+      expect(sections).toHaveLength(8);
+      expect(sections.map((section) => section.title)).toEqual(locale.titles);
+    },
+  );
 });
