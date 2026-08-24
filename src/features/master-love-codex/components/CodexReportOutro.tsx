@@ -11,7 +11,7 @@
 
 import CodexReveal from "./CodexReveal";
 import CodexReportStamp from "./CodexReportStamp";
-import { codexAccessOutroLine } from "../data/premium";
+import { codexAccessLabel } from "../data/premium";
 import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
 import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
@@ -66,7 +66,7 @@ export default function CodexReportOutro({
             </p>
 
             <p className="mx-auto mt-8 max-w-[36ch] leading-8" style={{ fontSize: "var(--codex-caption)", color: "var(--codex-silver)" }}>
-              {codexAccessOutroLine(accessType, billing.title)} {copy.reportOutroClosingLine}
+              {copy.reportOutroAccessLine(billing.title, !codexAccessLabel(accessType).showPrice)} {copy.reportOutroClosingLine}
             </p>
           </div>
         </CodexReveal>

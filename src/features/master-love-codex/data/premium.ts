@@ -91,13 +91,12 @@ export function codexAccessLabel(accessType: string): { showPrice: boolean; note
   }
 }
 
-/** 마무리 카드 한 줄 — 같은 판정을 문장으로 */
-export function codexAccessOutroLine(accessType: string, productTitle: string) {
-  const { showPrice } = codexAccessLabel(accessType);
-  return showPrice
-    ? `본 리포트는 ${productTitle} 프리미엄 AI 상담 결과입니다.`
-    : `이용권으로 열람 중인 ${productTitle} 프리미엄 AI 상담 리포트입니다.`;
-}
+// 🔴 codexAccessOutroLine 은 2026-08-25 에 지웠다. 로케일 불문 한국어 문장을 돌려주던 자리라,
+//    비-ko 사용자는 한 문단 안에서 한국어와 자기 언어가 섞인 문장을 봤다(그 자체가
+//    docs/handoff/global-i18n-audit-remaining.md 에 알려진 이슈로 적혀 있었다).
+//    문장은 _lib/copy.ts 의 reportOutroAccessLine 으로 옮겼고, **판정은 여기 남는다** —
+//    CodexReportOutro 가 codexAccessLabel(accessType).showPrice 로 묻는다.
+//    (삭제 전 3면 grep: 소스 임포터 0 · __tests__ 0 · scripts/verify-* 0)
 
 /** 종합 점수 구간 라벨 — CodexScoreOverview 가 쓴다 */
 export const CODEX_SCORE_TIERS = [

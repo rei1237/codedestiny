@@ -55,8 +55,8 @@ interface CodexReaderProps {
   accessType?: string;
 }
 
-function safeFilePart(value: string) {
-  return String(value || "인연의서").replace(/[^\p{L}\p{N}_-]+/gu, "").slice(0, 24) || "인연의서";
+function safeFilePart(value: string, fallback: string) {
+  return String(value || fallback).replace(/[^\p{L}\p{N}_-]+/gu, "").slice(0, 24) || fallback;
 }
 
 const DECRYPT_LINES = ["Decrypting", "Reading Destiny", "Synchronizing"] as const;
@@ -178,11 +178,11 @@ export default function CodexReader({
       const today = new Date().toISOString().slice(0, 10);
       await exportResultPdf({
         captureTargets: ["#master-love-codex-document [data-codex-pdf-page]"],
-        fileName: `${copy.pdfFileNamePrefix}_${safeFilePart(name)}_${today.replace(/-/g, "")}.pdf`,
+        fileName: `${copy.pdfFileNamePrefix}_${safeFilePart(name, copy.pdfNameFallback)}_${today.replace(/-/g, "")}.pdf`,
         backgroundColor: "#0a0818",
         cover: {
-          title: copy.possessiveBookTitle(safeFilePart(name), bookTitle),
-          subtitle: loveDna?.typeName ? `${loveDna.typeName} · 전 ${ordered.length}장` : `전 ${ordered.length}장`,
+          title: copy.possessiveBookTitle(safeFilePart(name, copy.pdfNameFallback), bookTitle),
+          subtitle: copy.pdfCoverSubtitle(ordered.length, loveDna?.typeName),
           name: birthLine,
           date: today,
         },

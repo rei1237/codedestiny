@@ -13,6 +13,11 @@ import { StructuredReadingResult, parseStructuredReading, splitAssistantSections
 import styles from "../VedicAiClient.module.css";
 import { readDevPreviewState } from "@/lib/dev-preview/core";
 import { buildVedicPreviewPayload } from "@/lib/dev-preview/fixtures/vedic";
+import { currentVedicResultCopy } from "./resultCopy";
+
+// 🔴 결제가 끝난 뒤 사용자가 실제로 결과를 받아 보는 화면이라 한국어 하드코딩이 그대로 노출됐다.
+//    언어 전환은 경로 이동이라 렌더 시점에 한 번 읽으면 충분하다(resultCopy.ts 주석 참조).
+const COPY = currentVedicResultCopy();
 
 type Message = {
   role: "user" | "assistant";
@@ -121,7 +126,7 @@ export default function VedicAiResultClient() {
   const backLink = (
     <Link href="/vedic-ai/" className={styles.resultListItem} style={{ flexDirection: "row", alignItems: "center", gap: "0.5rem" }}>
       <ArrowLeft size={16} aria-hidden="true" />
-      <strong>베다점 전문가 상담으로 돌아가기</strong>
+      <strong>{COPY.backToConsult}</strong>
     </Link>
   );
 
@@ -130,7 +135,7 @@ export default function VedicAiResultClient() {
       <main className={styles.shell} aria-busy="true">
         <section className={styles.resultPanel} style={{ minHeight: "60dvh", display: "grid", placeItems: "center" }}>
           <p style={{ display: "flex", alignItems: "center", gap: "0.5rem" }}>
-            <Loader2 className={styles.spin} size={18} aria-hidden="true" /> 저장된 별의 지도를 여는 중입니다.
+            <Loader2 className={styles.spin} size={18} aria-hidden="true" /> {COPY.loadingSaved}
           </p>
         </section>
       </main>
@@ -142,8 +147,8 @@ export default function VedicAiResultClient() {
       <main className={styles.shell}>
         <section className={styles.resultPanel}>
           <div className={styles.emptyState}>
-            <h2>로그인이 필요합니다</h2>
-            <p>저장된 베다점 상담은 본인 계정으로 로그인해야 다시 볼 수 있습니다.</p>
+            <h2>{COPY.loginTitle}</h2>
+            <p>{COPY.loginBody}</p>
             {backLink}
           </div>
         </section>
@@ -156,8 +161,8 @@ export default function VedicAiResultClient() {
       <main className={styles.shell}>
         <section className={styles.resultPanel}>
           <div className={styles.emptyState}>
-            <h2>상담 기록을 찾지 못했습니다</h2>
-            <p>주소가 잘못되었거나 다른 계정의 상담일 수 있습니다.</p>
+            <h2>{COPY.missingTitle}</h2>
+            <p>{COPY.missingBody}</p>
             {backLink}
           </div>
         </section>
@@ -170,21 +175,21 @@ export default function VedicAiResultClient() {
       <main className={styles.shell}>
         <section className={styles.resultPanel}>
           <div className={styles.summaryHeader}>
-            <span>지난 베다점 상담 다시 보기</span>
+            <span>{COPY.listHeading}</span>
           </div>
           {view.items.length ? (
             <div className={styles.resultListCard}>
               {view.items.map((item) => (
                 <Link key={item.id} href={`/vedic-ai/result/?id=${encodeURIComponent(item.id)}`} className={styles.resultListItem}>
-                  <strong>{item.topic || "베다점 전문가 상담"}{item.name ? ` · ${item.name}` : ""}</strong>
+                  <strong>{item.topic || COPY.topicFallback}{item.name ? ` · ${item.name}` : ""}</strong>
                   <small>{[item.chartSummary, formatDate(item.updatedAt || item.createdAt)].filter(Boolean).join(" · ")}</small>
                 </Link>
               ))}
             </div>
           ) : (
             <div className={styles.emptyState}>
-              <h2>아직 저장된 상담이 없습니다</h2>
-              <p>상담을 완료하면 이곳에서 언제든 다시 볼 수 있습니다.</p>
+              <h2>{COPY.emptyTitle}</h2>
+              <p>{COPY.emptyBody}</p>
             </div>
           )}
           <div style={{ marginTop: "1rem" }}>{backLink}</div>
@@ -222,7 +227,7 @@ export default function VedicAiResultClient() {
               />
             ) : (
               <article className={styles.userMsg} key={`${message.role}-${index}`}>
-                <span>나의 질문</span>
+                <span>{COPY.myQuestion}</span>
                 <p>{message.content}</p>
               </article>
             );
@@ -231,11 +236,11 @@ export default function VedicAiResultClient() {
 
         <footer className={styles.resultFooter}>
           <span className={styles.resultFooterRule} aria-hidden="true" />
-          <p className={styles.resultFooterNote}>별의 지도는 저장되어 언제든 다시 열람할 수 있습니다.</p>
+          <p className={styles.resultFooterNote}>{COPY.footerNote}</p>
           <div className={styles.resultFooterActions}>
             <Link href="/vedic-ai/" className={styles.resultFooterPrimary}>
               <ArrowLeft size={16} aria-hidden="true" />
-              <span>베다점 전문가 상담으로 돌아가기</span>
+              <span>{COPY.backToConsult}</span>
             </Link>
             <Link href="/" className={styles.resultFooterSecondary}>
               <Home size={16} aria-hidden="true" />
@@ -264,10 +269,10 @@ function AssistantSectionsView({ content, viewAll, onViewAllChange }: { content:
     <PagedResultViewer
       pages={sections.map((section, index) => ({
         id: `vedic-section-${index}`,
-        label: toText(section.title).slice(0, 12) || `${index + 1}장`,
+        label: toText(section.title).slice(0, 12) || COPY.chapterFallback(index + 1),
         content: renderSection(section, index),
       }))}
-      deckLabel="베다점 상담 전문"
+      deckLabel={COPY.deckLabel}
       viewAll={viewAll}
       onViewAllChange={onViewAllChange}
     />

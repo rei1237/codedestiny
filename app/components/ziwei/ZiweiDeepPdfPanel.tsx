@@ -142,8 +142,8 @@ function buildBillingGateInput(paymentPayload: Record<string, unknown>, idempote
   };
 }
 
-function safePdfName(value: string) {
-  return String(value || "자미두수").replace(/[^\p{L}\p{N}_-]+/gu, "").slice(0, 24) || "자미두수";
+function safePdfName(value: string, fallback: string) {
+  return String(value || fallback).replace(/[^\p{L}\p{N}_-]+/gu, "").slice(0, 24) || fallback;
 }
 
 type ApiResult = {
@@ -389,10 +389,10 @@ export default function ZiweiDeepPdfPanel({ birth, disabled = false }: Props) {
       const date = new Date().toLocaleDateString("ko-KR").replace(/\./g, "").replace(/\s/g, "");
       await exportResultPdf({
         captureTargets: ["#ziwei-deep-pdf-report [data-ziwei-pdf-section]"],
-        fileName: `심화자미두수_${safePdfName(birth.name)}_${date}.pdf`,
+        fileName: `${copy.pdfFileNameStem}_${safePdfName(birth.name, copy.pdfNameFallback)}_${date}.pdf`,
         backgroundColor: "#0b1020",
         cover: {
-          title: `${safePdfName(birth.name)}님의 심화 자미두수 리포트`,
+          title: copy.pdfCoverTitle(safePdfName(birth.name, copy.pdfNameFallback)),
           date: new Date().toISOString().slice(0, 10),
         },
       });

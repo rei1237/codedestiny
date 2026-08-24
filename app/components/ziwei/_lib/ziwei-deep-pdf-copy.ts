@@ -64,6 +64,12 @@ export interface ZiweiDeepPdfCopy {
   timeUnknownLabel: string;
   genderMaleLabel: string;
   genderFemaleLabel: string;
+  /** 내려받는 PDF 파일명의 앞머리. 화면 문구가 아니라 파일 이름이라 별도 키다. */
+  pdfFileNameStem: string;
+  /** 이름을 안 적었을 때 파일명에 들어가는 말. reportCoverDefaultName("당신")은 소유격이라 파일명에 안 맞는다. */
+  pdfNameFallback: string;
+  /** PDF 표지 제목. 화면 표지(reportCoverNameTemplate)와 문구가 달라 키를 따로 둔다. */
+  pdfCoverTitle: (name: string) => string;
   pdfDownloadError: string;
   gateTitleChecking: string;
   gateTitleComplete: string;
@@ -137,6 +143,9 @@ const ZIWEI_DEEP_PDF_COPY_EN: ZiweiDeepPdfCopy = {
   timeUnknownLabel: "Birth time unknown",
   genderMaleLabel: "Male",
   genderFemaleLabel: "Female",
+  pdfFileNameStem: "ZiweiDeepReport",
+  pdfNameFallback: "Ziwei",
+  pdfCoverTitle: (name) => `${name}'s Advanced Zi Wei report`,
   pdfDownloadError: "Something went wrong while saving the PDF. Please try again shortly.",
   gateTitleChecking: "Confirming payment",
   gateTitleComplete: "Confirmed",
@@ -211,6 +220,9 @@ const ZIWEI_DEEP_PDF_COPY: Partial<Record<LoadingLocale, ZiweiDeepPdfCopy>> = {
     timeUnknownLabel: "출생시간 모름",
     genderMaleLabel: "남성",
     genderFemaleLabel: "여성",
+    pdfFileNameStem: "심화자미두수",
+    pdfNameFallback: "자미두수",
+    pdfCoverTitle: (name) => `${name}님의 심화 자미두수 리포트`,
     pdfDownloadError: "PDF 저장 중 문제가 발생했습니다. 잠시 후 다시 시도해 주세요.",
     gateTitleChecking: "결제 확인",
     gateTitleComplete: "확인 완료",
@@ -283,6 +295,9 @@ const ZIWEI_DEEP_PDF_COPY: Partial<Record<LoadingLocale, ZiweiDeepPdfCopy>> = {
     timeUnknownLabel: "出生時刻不明",
     genderMaleLabel: "男性",
     genderFemaleLabel: "女性",
+    pdfFileNameStem: "深化紫微斗数",
+    pdfNameFallback: "紫微斗数",
+    pdfCoverTitle: (name) => `${name}様の深化紫微斗数レポート`,
     pdfDownloadError: "PDF保存中に問題が発生しました。しばらくしてから再度お試しください。",
     gateTitleChecking: "決済確認",
     gateTitleComplete: "確認完了",
@@ -355,6 +370,9 @@ const ZIWEI_DEEP_PDF_COPY: Partial<Record<LoadingLocale, ZiweiDeepPdfCopy>> = {
     timeUnknownLabel: "出生时间未知",
     genderMaleLabel: "男性",
     genderFemaleLabel: "女性",
+    pdfFileNameStem: "深化紫微斗数",
+    pdfNameFallback: "紫微斗数",
+    pdfCoverTitle: (name) => `${name}的深化紫微斗数报告`,
     pdfDownloadError: "保存 PDF 时出现问题，请稍后重试。",
     gateTitleChecking: "确认支付",
     gateTitleComplete: "确认完成",
@@ -427,6 +445,9 @@ const ZIWEI_DEEP_PDF_COPY: Partial<Record<LoadingLocale, ZiweiDeepPdfCopy>> = {
     timeUnknownLabel: "出生時間未知",
     genderMaleLabel: "男性",
     genderFemaleLabel: "女性",
+    pdfFileNameStem: "深化紫微斗數",
+    pdfNameFallback: "紫微斗數",
+    pdfCoverTitle: (name) => `${name}的深化紫微斗數報告`,
     pdfDownloadError: "儲存 PDF 時發生問題，請稍後再試。",
     gateTitleChecking: "確認付款",
     gateTitleComplete: "確認完成",
