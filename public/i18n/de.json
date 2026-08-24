@@ -1823,7 +1823,16 @@
         "monthly": "Du kannst ihn mit deinen vorhandenen Mondsteinen öffnen – ohne Zusatzkosten!",
         "direct": "Du kannst nur diesen einen Inhalt sofort öffnen."
       },
-      "goLabel": "So öffnen"
+      "goLabel": "So öffnen",
+      "method": {
+        "prompt": "Wie möchten Sie bezahlen?",
+        "card": "Kreditkarte · Express-Zahlung",
+        "transfer": "Echtzeit-Banküberweisung",
+        "mobile": "Zahlung per Mobilfunkrechnung",
+        "giftCertificate": "Kulturgutschein",
+        "comingSoon": "Demnächst verfügbar",
+        "back": "Zurück"
+      }
     },
     "overlay": {
       "unlockPreparing": {

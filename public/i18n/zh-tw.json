@@ -1823,7 +1823,16 @@
         "monthly": "可以用你已有的月精石打開，無需額外支出！",
         "direct": "可以只打開你正在看的這一個內容。"
       },
-      "goLabel": "用這個方式打開"
+      "goLabel": "用這個方式打開",
+      "method": {
+        "prompt": "您想用哪種方式付款？",
+        "card": "信用卡 · 快捷支付",
+        "transfer": "即時銀行轉帳",
+        "mobile": "手機小額支付",
+        "giftCertificate": "文化禮券",
+        "comingSoon": "敬請期待",
+        "back": "返回"
+      }
     },
     "overlay": {
       "unlockPreparing": {

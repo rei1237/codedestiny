@@ -130,6 +130,24 @@ assertBefore(perUseGateSource, "_cdBeginPaidFeatureInFlight(action, paidGateFeat
 
 assertBefore(checkoutEntrySource, 'data-mode="pass-store"', 'data-mode="direct"', "pass store option appears before direct card");
 assertContains(indexSource, "extraDataAttrs: ' data-monthly-option'", "monthly payment option restored");
+// 🔴 단건결제 2단계(결제수단 고르기). 실행 검증은 verify-checkout-pass-card 가 독립 정적 렌더러로
+// 하지만, 셸·React 는 jsdom 으로 띄울 하네스가 없어 여기서 소스로 고정한다.
+//   ① 2단계 패널은 공유 빌더에서 온다(사본 금지 — 승인 시 한 렌더러만 준비중으로 남는다).
+//   ② 단건 클릭은 close() 가 아니라 enterMethodStep() 으로 간다.
+//   ③ 고른 수단이 PortOne 요청의 payMethod 로 이어진다.
+//   ④ 앱(Play Billing)에서는 KR PG 수단 목록을 만들지 않는다.
+for (const [source, label, enterCall, appGate] of [
+  [indexSource, "shell", "if (mode === 'direct' && enterMethodStep()) return;", "allowDirectChoice && !directUsesAppStore"],
+  [billingClientSource, "react", 'if (mode === "direct" && enterMethodStep()) return;', "canShowDirect && !directUsesAppStore"],
+  [destinyProfileSource, "standalone", "if (act === 'direct' && _dpEnterMethodStep()) return;", "!directUsesAppStore"],
+]) {
+  assertContains(source, "buildDirectPayMethodStepHtml", `${label}: payment method step comes from the shared builder`);
+  assertContains(source, enterCall, `${label}: direct card opens the method step instead of closing the modal`);
+  assertContains(source, appGate, `${label}: app runtime must not render the KR PG method list`);
+  assertContains(source, 'data-choice-step="methods"', `${label}: method step is a hidden sibling, not a grid replacement`);
+}
+assertContains(indexSource, "payMethod: _cdResolveDirectPayMethod(config.payMethod)", "shell sends the chosen pay method to PortOne");
+assertContains(destinyProfileSource, "payMethod: _dpResolveDirectPayMethod(config.payMethod)", "standalone sends the chosen pay method to PortOne");
 assertContains(indexSource, "var passMode = 'pass-store';", "pass store mode");
 assertContains(indexSource, "var passDisabledClass = ' is-store';", "pass store visual state");
 assertContains(indexSource, "direct-payment-pass-store-v20260607", "pass store modal marker");
@@ -203,7 +221,7 @@ assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "Rea
 // 키가 3종(build-a300cf84f0f5 · build-4b96ba87f36f · 셸 키)으로 갈라져 있었고, destiny-profile.js
 // 를 고쳐도 그 참조들은 엣지 캐시(/*.js max-age 7일)의 옛 파일을 계속 받았다.
 // 지금은 셋을 셸 키로 통일했다. destiny-profile.js 를 고치면 이 값도 함께 올려야 한다.
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-fa9bf9ed11e4"', "React paid runtime cache key carries the moonstone 409 same-requestId retry");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-2c15a024dace"', "React paid runtime cache key carries the moonstone 409 same-requestId retry");
 assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");

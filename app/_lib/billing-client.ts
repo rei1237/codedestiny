@@ -450,7 +450,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-fa9bf9ed11e4";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-2c15a024dace";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1208,6 +1208,12 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
       },
     },
   });
+  // 🔴 단건결제 2단계(결제수단 고르기). 마크업·문구·수단 표는 세 렌더러 공유 코어 하나가 소유한다
+  // (js/core/checkout-entry.js buildDirectPayMethodStepHtml). 앱(Play Billing)에서는 만들지 않는다 —
+  // KR PG 수단 목록은 사실과 다르고 Play 정책에도 걸린다.
+  const directMethodStepHtml = canShowDirect && !directUsesAppStore
+    ? checkoutEntry.buildDirectPayMethodStepHtml({ escape: escapePaymentText })
+    : "";
   const noteBasisText = checkoutEntry.text("payment.directModal.note.basis", "결제 금액 {amount}", { amount: formatPaymentWon(directAmount) });
   const noteWithPassText = checkoutEntry.text("payment.directModal.note.withPass", "이용권 · 월정석 · 카드 중에서 고를 수 있어요.");
   const noteWithPassHtml = canShowPassStore ? `<span>${escapePaymentText(noteWithPassText)}</span>` : "";
@@ -1233,9 +1239,10 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
           </div>
         </div>
         <div class="cd-direct-payment-note"><strong>${escapePaymentText(title)}</strong><span>${escapePaymentText(noteBasisText)}</span>${noteWithPassHtml}</div>
-        <div class="cd-direct-payment-choice-grid">
+        <div class="cd-direct-payment-choice-grid" data-choice-step="options">
           ${paymentChoiceButtonsHtml}
         </div>
+        ${directMethodStepHtml ? `<div data-choice-step="methods" hidden>${directMethodStepHtml}</div>` : ""}
         <div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>
         <p class="cd-direct-payment-legal">${escapePaymentText(checkoutEntry.text("payment.directModal.legal.provisionTiming", "본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다."))}</p>
         <div class="cd-direct-payment-actions">
@@ -1256,6 +1263,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         checkoutEntry.releasePaymentChoiceLock(sharedChoiceLockToken);
         sharedChoiceLockToken = null;
       }
+      // 🔴 'direct' 로 닫힐 때만 고른 결제수단을 남긴다(셸 close() 와 같은 계약). 다른 경로로
+      // 닫혔는데 값이 남으면 다음 결제가 엉뚱한 수단으로 열린다.
+      if (mode !== "direct") checkoutEntry.clearSelectedDirectPayMethod();
       unlockBodyScroll();
       // 🔴 단건도 여기서 바로 제거한다(셸 index.html 의 close 와 동일 계약). 예전에는 PG창이 그려지기
       // 직전까지 이 노드를 붙잡아 '여는 중' 표시를 대신했는데, 노드가 DOM 에 남아 있는 동안
@@ -1337,7 +1347,59 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     };
 
     lockBodyScroll();
+    // 🔴 1단계↔2단계는 노드 교체가 아니라 hidden 토글이다. 교체하면 아래에서 카드마다 붙이는
+    // [data-mode] 리스너가 사라져 [뒤로] 로 돌아온 화면이 죽는다.
+    const enterMethodStep = (): boolean => {
+      const options = modal.querySelector<HTMLElement>('[data-choice-step="options"]');
+      const methods = modal.querySelector<HTMLElement>('[data-choice-step="methods"]');
+      if (!options || !methods) return false;
+      options.hidden = true;
+      methods.hidden = false;
+      setStatus("");
+      (methods.querySelector<HTMLButtonElement>('[data-pay-method]:not([aria-disabled="true"])')
+        || methods.querySelector<HTMLButtonElement>('[data-pay-step="back"]'))?.focus();
+      return true;
+    };
+    const leaveMethodStep = (): void => {
+      const options = modal.querySelector<HTMLElement>('[data-choice-step="options"]');
+      const methods = modal.querySelector<HTMLElement>('[data-choice-step="methods"]');
+      if (!options || !methods) return;
+      methods.hidden = true;
+      options.hidden = false;
+      setStatus("");
+      modal.querySelector<HTMLButtonElement>('[data-mode="direct"]')?.focus();
+    };
     modal.addEventListener("click", (event) => {
+      // 🔴 2단계 버튼에는 data-mode 가 없다(붙이면 아래 일괄 리스너가 창을 닫는다). 선택과 복귀는
+      // 여기 델리게이션이 받는다 — 리스너를 따로 걸지 않는 이유는 순서가 불확정해지기 때문이다.
+      const target = event.target instanceof Element ? event.target : null;
+      if (target?.closest('[data-pay-step="back"]')) {
+        leaveMethodStep();
+        return;
+      }
+      const methodHit = target?.closest<HTMLButtonElement>("[data-pay-method]");
+      if (methodHit) {
+        if (methodHit.getAttribute("aria-disabled") === "true") {
+          // 아직 PG 계약이 끝나지 않은 수단. 창을 닫지 않고 왜 못 누르는지만 말한다.
+          setStatus(checkoutEntry.directPayMethodComingSoonText());
+          return;
+        }
+        const pickedMethod = checkoutEntry.setSelectedDirectPayMethod(methodHit.getAttribute("data-pay-method"));
+        if (!pickedMethod) return;
+        checkoutEntry.trackCheckoutEvent("checkout_option_click", {
+          option: `direct_${pickedMethod.toLowerCase()}`,
+          renderer: "react",
+          featureKey: passCheckFeatureKey,
+          coinPrice,
+        });
+        modal.querySelectorAll<HTMLButtonElement>("[data-mode],[data-pay-method],[data-pay-step]").forEach((node) => {
+          node.disabled = true;
+        });
+        // 오버레이는 결제창을 닫은 뒤에 켠다(아래 [data-mode] 경로와 같은 이유).
+        close("direct");
+        showWaitOverlay("direct");
+        return;
+      }
       if (event.target === modal) close("cancel");
     });
     bindMonthlyBalanceCheck();
@@ -1415,6 +1477,9 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         if (mode === "direct" || mode === "monthly") {
           checkoutEntry.trackCheckoutEvent("checkout_option_click", { option: mode, renderer: "react", featureKey: passCheckFeatureKey, coinPrice });
         }
+        // 🔴 단건은 여기서 닫지 않고 결제수단 2단계로 넘어간다. 아직 아무것도 로딩하지 않으므로
+        // 카드를 잠그지도 않는다 — 잠그면 [뒤로] 로 돌아온 카드가 죽는다.
+        if (mode === "direct" && enterMethodStep()) return;
         modal.querySelectorAll<HTMLButtonElement>("[data-mode]").forEach((node) => {
           node.disabled = true;
         });
@@ -1436,6 +1501,8 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
     // 볼 수 있게 한다 — 락은 close() 에서 반드시 푼다.
     // 🔴 emitPaymentLoadingState(false) 와 appendChild 사이에는 아무 것도 끼우지 않는다.
     //    verify:portone-single-payment 가 두 줄의 인접을 리터럴로 고정한다(대기 오버레이 겹침 회귀).
+    // 이전 결제 시도가 남긴 결제수단 선택은 여기서 비운다(checkout-entry TTL 과 이중 방어).
+    checkoutEntry.clearSelectedDirectPayMethod();
     checkoutEntry.sweepOrphanChoiceModals(modal);
     emitPaymentLoadingState(false);
     document.body.appendChild(modal);
