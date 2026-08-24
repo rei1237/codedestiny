@@ -146,6 +146,8 @@ interface NamingCopy {
   freeDraftHeading: string;
   freeDraftBadge: string;
   freeDraftEmpty: string;
+  /** 무료 초안은 한국 이름 음절 풀 기반이라 비-ko 에서만 그 사실을 밝힌다. ko 는 빈 문자열. */
+  freeDraftKoreanOnlyNote: string;
   step1PrevButton: string;
   step1NextButton: string;
   step2Heading: string;
@@ -275,6 +277,7 @@ const NAMING_EN: NamingCopy = {
   freeDraftHeading: "Free draft recommendations",
   freeDraftBadge: "For reference only · unrelated to payment",
   freeDraftEmpty: "We can't build draft candidates from your current input yet.",
+  freeDraftKoreanOnlyNote: "These drafts are built from Korean name syllables. The booklet generated after payment follows the naming tradition of the language you are using.",
   step1PrevButton: "Previous",
   step1NextButton: "Next · Detailed preferences",
   step2Heading: "Detailed preferences (optional)",
@@ -405,6 +408,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "무료 초안 추천",
     freeDraftBadge: "참고용 · 결제와 무관",
     freeDraftEmpty: "입력한 조건으로는 초안 후보를 아직 만들 수 없습니다.",
+    freeDraftKoreanOnlyNote: "",
     step1PrevButton: "이전",
     step1NextButton: "다음 · 세부 취향",
     step2Heading: "세부 취향 (선택)",
@@ -533,6 +537,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "無料初案の推薦",
     freeDraftBadge: "参考用 · 決済とは無関係",
     freeDraftEmpty: "入力された条件ではまだ初案候補を作成できません。",
+    freeDraftKoreanOnlyNote: "この初案候補は韓国語の名前を基準に作られています。決済後に生成される作名帖は、ご利用中の言語の命名の伝統に従います。",
     step1PrevButton: "前へ",
     step1NextButton: "次へ · 詳細な好み",
     step2Heading: "詳細な好み（任意）",
@@ -661,6 +666,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "免费初稿推荐",
     freeDraftBadge: "仅供参考 · 与付款无关",
     freeDraftEmpty: "根据目前输入的条件，暂时无法生成初稿候选。",
+    freeDraftKoreanOnlyNote: "这些草稿候选是以韩语名字为基准生成的。付款后生成的取名册会遵循你当前使用语言的取名传统。",
     step1PrevButton: "上一步",
     step1NextButton: "下一步 · 详细偏好",
     step2Heading: "详细偏好（可选）",
@@ -789,6 +795,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "免費初稿推薦",
     freeDraftBadge: "僅供參考 · 與付款無關",
     freeDraftEmpty: "根據目前輸入的條件，暫時無法生成初稿候選。",
+    freeDraftKoreanOnlyNote: "這些草稿候選是以韓語名字為基準生成的。付款後生成的取名冊會遵循你目前使用語言的取名傳統。",
     step1PrevButton: "上一步",
     step1NextButton: "下一步 · 詳細偏好",
     step2Heading: "詳細偏好（可選）",
@@ -917,6 +924,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Đề xuất bản nháp miễn phí",
     freeDraftBadge: "Chỉ để tham khảo · không liên quan đến thanh toán",
     freeDraftEmpty: "Chưa thể tạo ứng viên bản nháp từ dữ liệu nhập hiện tại.",
+    freeDraftKoreanOnlyNote: "Các bản nháp này được dựng từ âm tiết tên tiếng Hàn. Bản luận tên tạo sau khi thanh toán sẽ theo truyền thống đặt tên của ngôn ngữ bạn đang dùng.",
     step1PrevButton: "Trước",
     step1NextButton: "Tiếp theo · Sở thích chi tiết",
     step2Heading: "Sở thích chi tiết (tùy chọn)",
@@ -1045,6 +1053,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "मुफ्त प्रारूप सुझाव",
     freeDraftBadge: "केवल संदर्भ हेतु · भुगतान से असंबद्ध",
     freeDraftEmpty: "दर्ज की गई शर्तों से अभी प्रारूप उम्मीदवार नहीं बनाए जा सकते।",
+    freeDraftKoreanOnlyNote: "ये ड्राफ्ट कोरियाई नाम अक्षरों से बने हैं। भुगतान के बाद बनने वाली नामकरण पुस्तिका आपकी चुनी हुई भाषा की नामकरण परंपरा का पालन करेगी।",
     step1PrevButton: "पिछला",
     step1NextButton: "आगे · विस्तृत प्राथमिकताएं",
     step2Heading: "विस्तृत प्राथमिकताएं (वैकल्पिक)",
@@ -1173,6 +1182,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Recomendaciones de borrador gratuitas",
     freeDraftBadge: "Solo de referencia · no relacionado con el pago",
     freeDraftEmpty: "Aún no podemos crear candidatos de borrador con tu entrada actual.",
+    freeDraftKoreanOnlyNote: "Estos borradores se construyen con sílabas de nombres coreanos. El cuadernillo que se genera tras el pago sigue la tradición de nombres del idioma que estás usando.",
     step1PrevButton: "Anterior",
     step1NextButton: "Siguiente · Preferencias detalladas",
     step2Heading: "Preferencias detalladas (opcional)",
@@ -1301,6 +1311,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Recommandations de brouillon gratuites",
     freeDraftBadge: "À titre indicatif · sans rapport avec le paiement",
     freeDraftEmpty: "Nous ne pouvons pas encore créer de candidats de brouillon à partir de votre saisie actuelle.",
+    freeDraftKoreanOnlyNote: "Ces brouillons sont construits à partir de syllabes de prénoms coréens. Le livret généré après paiement suit la tradition de dénomination de la langue que vous utilisez.",
     step1PrevButton: "Précédent",
     step1NextButton: "Suivant · Préférences détaillées",
     step2Heading: "Préférences détaillées (facultatif)",
@@ -1429,6 +1440,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Kostenlose Entwurfsempfehlungen",
     freeDraftBadge: "Nur zur Referenz · unabhängig von der Zahlung",
     freeDraftEmpty: "Wir können mit deiner aktuellen Eingabe noch keine Entwurfskandidaten erstellen.",
+    freeDraftKoreanOnlyNote: "Diese Entwürfe entstehen aus koreanischen Namenssilben. Das nach der Zahlung erzeugte Namensbüchlein folgt der Namenstradition Ihrer aktuellen Sprache.",
     step1PrevButton: "Zurück",
     step1NextButton: "Weiter · Detaillierte Vorlieben",
     step2Heading: "Detaillierte Vorlieben (optional)",
@@ -1557,6 +1569,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Gratis conceptaanbevelingen",
     freeDraftBadge: "Alleen ter referentie · niet gerelateerd aan betaling",
     freeDraftEmpty: "We kunnen nog geen conceptkandidaten maken op basis van je huidige invoer.",
+    freeDraftKoreanOnlyNote: "Deze concepten zijn opgebouwd uit Koreaanse naamlettergrepen. Het naamboekje dat na betaling wordt gemaakt volgt de naamtraditie van de taal die je gebruikt.",
     step1PrevButton: "Vorige",
     step1NextButton: "Volgende · Gedetailleerde voorkeuren",
     step2Heading: "Gedetailleerde voorkeuren (optioneel)",
@@ -1685,6 +1698,7 @@ const NAMING_COPY: Partial<Record<LoadingLocale, NamingCopy>> = {
     freeDraftHeading: "Cadangan draf percuma",
     freeDraftBadge: "Untuk rujukan sahaja · tidak berkaitan dengan pembayaran",
     freeDraftEmpty: "Kami belum dapat membina calon draf daripada input anda sekarang.",
+    freeDraftKoreanOnlyNote: "Draf ini dibina daripada suku kata nama Korea. Buku penamaan yang dijana selepas pembayaran mengikut tradisi penamaan bahasa yang anda guna.",
     step1PrevButton: "Sebelumnya",
     step1NextButton: "Seterusnya · Keutamaan terperinci",
     step2Heading: "Keutamaan terperinci (pilihan)",
@@ -2173,6 +2187,10 @@ export default function NamingAiClient() {
       executionId?: string;
       result?: { id: string };
     }>("/api/naming-prompt/generate", {
+      // 🔴 locale 은 input 밖에 둔다 — input 은 통째로 inputHash 가 되므로, 안에 넣으면
+      //    배포 전 결제·배포 후 생성 사용자가 해시 불일치로 막히고, 언어만 바꿔 재요청할 때
+      //    같은 리딩에 30,000원이 다시 청구된다. 작명 문화 분기는 프롬프트에서만 쓴다.
+      locale: getCurrentLoadingLocale(),
       paymentId: access.paymentId,
       accessType: access.accessType,
       accessMethod: access.accessMethod,
@@ -2626,6 +2644,11 @@ export default function NamingAiClient() {
                         <span className="text-xs font-semibold text-[#e8d5a3]">{copy.freeDraftBadge}</span>
                       </div>
                       <p className="mt-1.5 text-xs leading-relaxed text-[#c8aaff]/75">{recommendation.status}</p>
+                      {/* 무료 초안은 한국 이름 음절 풀에서 나온다. 유료 작명첩은 로케일별 작명 전통을
+                          따르므로, 밝히지 않으면 결제 직전에 본 후보와 결과가 어긋나 보인다. */}
+                      {copy.freeDraftKoreanOnlyNote ? (
+                        <p className="mt-1.5 text-xs leading-relaxed text-[#e8d5a3]/80">{copy.freeDraftKoreanOnlyNote}</p>
+                      ) : null}
                       <div className="mt-3.5 grid gap-2 sm:grid-cols-2">
                         {recommendation.candidates.length ? recommendation.candidates.map((item) => (
                           <button

@@ -5,8 +5,11 @@
 // 라인 단위 블록 + 파싱 실패 시 조용한 강등(카드 없이 본문만 렌더)으로 설계한다.
 // 이 모듈은 외부 import가 없는 순수 함수만 담는다(verify 스크립트가 직접 import해 테스트).
 
-const BLOCK_OPEN = "[이름카드]";
-const BLOCK_CLOSE = "[/이름카드]";
+// 🔴 라벨과 여는/닫는 토큰은 **기계 계약**이다. 출력 언어가 바뀌어도 번역되면 안 된다 —
+//    파서가 이 한국어 라벨로 값을 찾으므로, 번역되는 순간 카드가 조용히 사라진다.
+//    naming-locale-profile.js 가 비-ko 계약문을 만들 때 이 토큰을 그대로 가져다 쓴다.
+export const BLOCK_OPEN = "[이름카드]";
+export const BLOCK_CLOSE = "[/이름카드]";
 
 export const NAME_CARD_BLOCK_CONTRACT = `---
 
