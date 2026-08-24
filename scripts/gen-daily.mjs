@@ -203,6 +203,35 @@ const COLOR_POOL = [
  * 날짜 × sign 으로 문안을 고른다. `signKey` 에는 반드시 그룹 접두사를 붙일 것 —
  * 같은 이름의 별자리·띠가 없더라도, 접두사가 없으면 두 그룹이 같은 칸에 몰릴 수 있다.
  */
+/**
+ * 🔴 별자리 전용 풀 — overall 과 planet_message 는 2026-08-17 의 풀 전환에서 빠져 있었다.
+ * `mkZodiacs()` 가 `namesKr[i] + '는 오늘 …'` 처럼 **한 문장에 이름만 끼워** 12개를 만들었고,
+ * 2026-08-24 실측에서 "이름 제거 후 고유 문장 1개" 로 잡혔다. 본문 첫 문단이자 메타 설명의
+ * 재료라 색인 중인 별자리 24개(today·tomorrow × 12)가 거의 같은 페이지로 보였다.
+ * 풀 크기는 위 TONE_POOLS 와 같은 이유로 8 미만으로 줄이지 말 것.
+ */
+const ZODIAC_OVERALL_POOL = [
+  box('오늘은 말수를 줄이고 관찰을 늘릴수록 판이 선명해집니다. 결론은 저녁에 내려도 늦지 않아요.', 'Speak less and observe more today—the board clears up. Deciding by evening is not late.', '今日は口数を減らし観察を増やすほど盤面が澄みます。結論は夕方でも遅くない。', '今天少说多看，局面会更清晰。傍晚再下结论也不迟。', 'Parlez moins, observez plus—le tableau s’éclaircit. Décider le soir suffit.', 'Praat minder, kijk meer—het beeld klaart op. Beslissen kan vanavond.', 'Hôm nay nói ít quan sát nhiều—cục diện sáng ra. Quyết vào chiều vẫn kịp.', 'Hari ini kurangkan bicara, tambah perhatian—gambaran jadi jelas. Putuskan petang pun memadai.'),
+  box('벌여 둔 일 하나를 닫으면 나머지가 가벼워지는 날입니다. 새로 여는 건 그다음이에요.', 'Close one open loop and the rest gets lighter—open something new only after that.', '広げた一つを閉じると残りが軽くなる日。新しく開くのはその後で。', '关掉一件已开的事，其余会变轻。新的等之后再说。', 'Fermez une boucle ouverte—le reste s’allège. Ouvrez ensuite.', 'Sluit één open lus—de rest wordt lichter. Daarna pas iets nieuws.', 'Đóng một việc đang mở, phần còn lại nhẹ đi. Mở mới sau đó.', 'Tutup satu perkara terbuka—selebihnya jadi ringan. Buka yang baharu kemudian.'),
+  box('속도를 올리기보다 방향을 한 번 더 확인할 때 성과가 붙습니다. 목적지를 먼저 말해 보세요.', 'Results come from rechecking direction, not raising speed—say the destination out loud first.', '速度より方向をもう一度確かめる日。目的地を先に口に出して。', '与其加速，不如再确认方向。先把目的地说出来。', 'Revérifiez la direction plutôt que la vitesse—dites d’abord la destination.', 'Check de richting, niet de snelheid—benoem eerst de bestemming.', 'Kiểm lại hướng thay vì tăng tốc—nói ra đích đến trước.', 'Semak arah, bukan naikkan laju—sebut destinasi dahulu.'),
+  box('오늘 오는 제안은 조건보다 사람을 보세요. 숫자는 나중에도 고칠 수 있습니다.', 'Judge today’s offer by the people, not the terms—numbers can be revised later.', '今日の提案は条件より人を見て。数字は後からでも直せます。', '今天的提议先看人再看条件，数字之后还能改。', 'Jugez l’offre du jour aux personnes, pas aux clauses—les chiffres se révisent.', 'Beoordeel het voorstel op mensen, niet op cijfers—die kun je later bijstellen.', 'Xét đề nghị hôm nay ở con người, không ở điều khoản—số liệu sửa sau được.', 'Nilai tawaran hari ini pada orangnya, bukan syaratnya—angka boleh dipinda kemudian.'),
+  box('미뤄 둔 연락 하나가 오늘의 매듭입니다. 길게 쓰지 말고 한 줄로 먼저 보내 보세요.', 'One postponed message is today’s knot—send a single line instead of a long letter.', '先延ばしの連絡が今日の結び目。長文より一行を先に。', '拖着的那条消息就是今天的结。别写长，先发一行。', 'Un message reporté est le nœud du jour—une ligne suffit pour commencer.', 'Eén uitgesteld bericht is de knoop—stuur eerst één regel.', 'Một tin nhắn bị hoãn là nút thắt hôm nay—gửi một dòng trước.', 'Satu mesej tertangguh ialah simpulan hari ini—hantar satu baris dahulu.'),
+  box('기준을 하나 정해 두면 오늘의 선택이 빨라집니다. 무엇을 포기할지 먼저 적어 보세요.', 'Set one criterion and today’s choices speed up—write down what you will give up first.', '基準を一つ決めると選択が速くなります。まず何を諦めるかを書いて。', '定下一个标准，今天的选择会变快。先写下要放弃什么。', 'Fixez un critère—les choix s’accélèrent. Notez d’abord ce que vous lâchez.', 'Kies één criterium—beslissen gaat sneller. Schrijf op wat je loslaat.', 'Đặt một tiêu chí—lựa chọn nhanh hơn. Ghi trước điều bạn buông.', 'Tetapkan satu kriteria—pilihan jadi pantas. Tulis dahulu apa yang dilepaskan.'),
+  box('오늘은 결과보다 기록이 남는 날입니다. 지금 한 판단의 이유를 한 줄로 남겨 두세요.', 'Today the record outlasts the result—leave one line on why you chose what you chose.', '今日は結果より記録が残ります。判断の理由を一行だけ残して。', '今天留下的是记录而非结果。把判断的理由写一行。', 'Aujourd’hui la trace dure plus que le résultat—notez la raison en une ligne.', 'Vandaag blijft de notitie langer dan het resultaat—noteer je reden.', 'Hôm nay ghi chép còn lại lâu hơn kết quả—ghi một dòng lý do.', 'Hari ini catatan kekal lebih lama daripada hasil—tulis satu baris sebabnya.'),
+  box('작게 시작한 일이 오늘 예상보다 멀리 갑니다. 완벽한 시작을 기다리지 마세요.', 'What you start small travels further than expected today—don’t wait for a perfect opening.', '小さく始めたことが今日は思ったより遠くまで。完璧な出だしを待たないで。', '小处起步的事今天会走得比预想更远。别等完美的开始。', 'Ce qui commence petit va plus loin aujourd’hui—n’attendez pas le départ parfait.', 'Wat klein begint reikt vandaag verder—wacht niet op de perfecte start.', 'Việc bắt đầu nhỏ hôm nay đi xa hơn dự tính—đừng chờ khởi đầu hoàn hảo.', 'Yang bermula kecil hari ini pergi lebih jauh—jangan tunggu permulaan sempurna.'),
+];
+
+const ZODIAC_PLANET_POOL = [
+  box('행성의 각이 좁아지는 구간이라 감정의 진폭이 커집니다. 반응하기 전에 한 박자를 두세요.', 'Tightening planetary angles widen the emotional swing—leave one beat before reacting.', '天体の角が狭まり感情の振れ幅が大きく。反応の前に一拍を。', '行星角度收紧，情绪起伏加大。反应前先停一拍。', 'Les angles se resserrent—l’amplitude émotionnelle grandit. Une pause avant de réagir.', 'Krappere hoeken vergroten de emotionele slag—wacht één tel.', 'Góc hành tinh hẹp lại, biên độ cảm xúc tăng—dừng một nhịp trước khi phản ứng.', 'Sudut planet menyempit, ayunan emosi membesar—berhenti satu detik sebelum bertindak.'),
+  box('달의 위상이 마음의 초점을 안쪽으로 옮깁니다. 혼자 정리하는 시간이 오늘은 낭비가 아니에요.', 'The Moon’s phase turns focus inward—time alone to sort things is not wasted today.', '月の位相が焦点を内へ。ひとりで整える時間は無駄になりません。', '月相把焦点转向内在。今天独处整理不是浪费。', 'La phase lunaire tourne le regard vers l’intérieur—le temps seul n’est pas perdu.', 'De maanfase draait de focus naar binnen—alleen zijn is geen verspilling.', 'Pha Mặt Trăng đưa tiêu điểm vào trong—thời gian một mình không phí.', 'Fasa bulan mengalih fokus ke dalam—masa bersendirian bukan sia-sia.'),
+  box('태양이 지나는 자리가 표현의 문을 엽니다. 준비된 말부터 꺼내면 흐름이 잡힙니다.', 'The Sun’s current house opens a door for expression—lead with the words already prepared.', '太陽の位置が表現の扉を開きます。用意できた言葉から。', '太阳所在的位置打开表达之门，先说准备好的话。', 'La maison solaire ouvre la parole—commencez par les mots déjà prêts.', 'Het zonneteken opent de deur naar expressie—begin met wat al klaar is.', 'Vị trí Mặt Trời mở cánh cửa biểu đạt—nói lời đã chuẩn bị trước.', 'Kedudukan Matahari membuka pintu ekspresi—mulakan dengan kata yang sudah siap.'),
+  box('빠른 별의 기운이 일정에 속도를 붙입니다. 약속을 늘리기보다 사이 간격을 지키세요.', 'A fast-moving planet accelerates the schedule—protect the gaps rather than adding plans.', '速い星の気配が予定を加速。約束を増やすより間隔を守って。', '快速行星让日程提速。与其加约会，不如守住间隔。', 'Une planète rapide accélère l’agenda—protégez les intervalles.', 'Een snelle planeet versnelt de agenda—bewaak de tussenruimtes.', 'Hành tinh nhanh làm lịch tăng tốc—giữ khoảng trống thay vì thêm hẹn.', 'Planet laju mempercepat jadual—jaga jarak antara janji.'),
+  box('무거운 별의 각이 오래된 주제를 다시 꺼내 놓습니다. 이번엔 결론보다 기준을 정하세요.', 'A slow planet’s angle reopens an old theme—this time settle the criterion, not the verdict.', '重い星の角が古い主題を再び。今回は結論より基準を。', '重星的角度把旧议题再翻出来。这次先定标准，别急着下结论。', 'L’angle d’une planète lente rouvre un vieux sujet—fixez le critère, pas le verdict.', 'Een trage planeet heropent een oud thema—bepaal het criterium, niet het oordeel.', 'Góc hành tinh chậm mở lại chủ đề cũ—lần này định tiêu chí, không phán quyết.', 'Sudut planet perlahan membuka semula tema lama—kali ini tetapkan kriteria, bukan keputusan.'),
+  box('별자리 사이의 원소 균형이 관계 쪽으로 기웁니다. 오늘은 설득보다 질문이 통합니다.', 'The elemental balance tilts toward relationships—questions work better than persuasion today.', '星座間の元素バランスが関係へ。今日は説得より質問。', '星座之间的元素平衡偏向关系。今天提问比说服有效。', 'L’équilibre des éléments penche vers les liens—questionner vaut mieux que convaincre.', 'De elementenbalans neigt naar relaties—vragen werkt beter dan overtuigen.', 'Cân bằng nguyên tố nghiêng về quan hệ—hôm nay hỏi hơn thuyết phục.', 'Imbangan unsur condong ke hubungan—hari ini bertanya lebih berkesan daripada memujuk.'),
+  box('역행 구간의 잔향이 남아 확인 절차가 값을 합니다. 보낸 것을 한 번 더 열어 보세요.', 'Echoes of a retrograde make double-checking pay—reopen what you already sent.', '逆行の余韻が残り確認が効きます。送ったものをもう一度。', '逆行的余波still在，核对很值。把已发出的再打开一次。', 'L’écho d’une rétrogradation rend la vérification payante—rouvrez ce qui est parti.', 'Naklank van retrograde maakt controleren lonend—open wat je verstuurde.', 'Dư âm nghịch hành khiến việc kiểm lại đáng giá—mở lại thứ đã gửi.', 'Gema retrograd menjadikan semakan berbaloi—buka semula apa yang dihantar.'),
+  box('하늘의 무게중심이 실무 쪽으로 내려옵니다. 큰 그림보다 오늘 끝낼 한 칸을 고르세요.', 'The sky’s centre of gravity drops toward the practical—pick one square to finish today.', '空の重心が実務へ。大きな絵より今日終える一マスを。', '天象重心落到执行面。与其看大图，不如挑今天能收尾的一格。', 'Le centre de gravité descend vers le concret—choisissez une case à finir.', 'Het zwaartepunt zakt naar het praktische—kies één vakje om af te maken.', 'Trọng tâm bầu trời hạ về việc thực tế—chọn một ô để xong hôm nay.', 'Pusat graviti langit turun ke hal praktikal—pilih satu petak untuk disiapkan.'),
+];
+
 function pickTone(section, signKey) {
   return hashPick(`${dateStr}|${signKey}|${section}`, TONE_POOLS[section]);
 }
@@ -401,35 +430,15 @@ function mkAnimals() {
 
 function mkZodiacs() {
   const signs = ['aries', 'taurus', 'gemini', 'cancer', 'leo', 'virgo', 'libra', 'scorpio', 'sagittarius', 'capricorn', 'aquarius', 'pisces'];
-  const namesKr = ['양자리', '황소자리', '쌍둥이자리', '게자리', '사자자리', '처녀자리', '천칭자리', '전갈자리', '사수자리', '염소자리', '물병자리', '물고기자리'];
-  const namesEn = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
   const o = {};
   signs.forEach((id, i) => {
     o[id] = {
       keyword: hashPick(`${dateStr}|z:${id}|keyword`, KEYWORD_POOL),
       score: { overall: 6 + (i % 4), love: 5 + (i % 5), money: 5 + (i % 5), health: 6 + (i % 4), work: 5 + (i % 5) },
       lucky: { ...hashPick(`${dateStr}|z:${id}|color`, COLOR_POOL), number: 1 + (i % 9) },
-      planet_message: box(
-        namesKr[i] + ' 에너지는 오늘 호흡을 길게 가져갈수록 선택이 선명해져요. 속도보다 방향을 먼저 잡아 보세요.',
-        namesEn[i] + ' energy clarifies choices when you lengthen your breath—choose direction before speed.',
-        namesEn[i] + 'のエネルギーは呼吸を長くすると選択が澄みます。速度より方向。',
-        namesEn[i] + ' 能量在放慢呼吸时更清晰，先方向后速度。',
-        'Énergie ' + namesEn[i] + ' : la direction avant la vitesse.',
-        namesEn[i] + '-energie: richting vóór snelheid.',
-        'Năng lượng ' + namesEn[i] + ': hướng trước, tốc độ sau.',
-        'Tenaga ' + namesEn[i] + ': arah dahulu, laju kemudian.'
-      ),
+      planet_message: hashPick(`${dateStr}|z:${id}|planet`, ZODIAC_PLANET_POOL),
       sections: {
-        overall: box(
-          namesKr[i] + '는 오늘 우주의 스포트라이트가 자기표현 쪽으로 기울어요. 짧게 말하고 길게 듣는 하루가 이깁니다.',
-          'For ' + namesEn[i] + ', spotlight tilts toward self-expression—short words and long listening win today.',
-          namesEn[i] + 'には自己表現へスポットライト。短く話し、長く聴く一日が勝ち。',
-          namesEn[i] + '今日聚光灯倾向自我表达，少说多听更占优。',
-          'Pour ' + namesEn[i] + ', projecteurs vers l’expression—parler court, écouter longtemps.',
-          'Voor ' + namesEn[i] + ': spotlight naar expressie—kort spreken, lang luisteren.',
-          'Với ' + namesEn[i] + ', ánh đèn về thể hiện—nói ngắn, nghe dài thắng.',
-          'Untuk ' + namesEn[i] + ', sorot ke ekspresi—bercakap pendek, mendengar panjang menang.'
-        ),
+        overall: hashPick(`${dateStr}|z:${id}|overall`, ZODIAC_OVERALL_POOL),
         ...toneSections(`z:${id}`)
       },
       cta: [
