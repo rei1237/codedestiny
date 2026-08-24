@@ -15,7 +15,7 @@
  * 정규식이 리팩터링에 빗나가면 "검사 대상이 없어서 통과"가 되는 게 이 종류 가드의 전형적인
  * 사고인데, 그때 조용히 초록불이 되면 안 된다.
  */
-import { readFileSync } from "node:fs";
+import { readdirSync, readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -294,6 +294,54 @@ for (const [label, texts] of [["셸 이용권 카드", goldenDescs], ["/points �
   }
 }
 
+/* ── ⑤ 12개 로케일 사전의 등급 카드 요약 문구 ────────────────────────────
+   ④는 한국어 원문(셸·/points)만 봤다. 비-ko 화면은 사전의
+   payment.passShop.packages.<tier>.desc 를 렌더링하므로, ④가 초록불인 채로
+   11개 로케일이 "KRW 30,000 이하 무제한 · 상담 10회"를 계속 서빙했다(2026-08-24 실측).
+
+   금지어 목록을 12개 언어로 다시 쓰는 대신, **같은 사전 안의 조각과 대조**한다 —
+   home.passMini.<tier>Line(가격대) · Benefit1(월 한도) · Benefit2(프로필). 이 세 조각은
+   ②③이 지키는 숫자에서 나온 문구이고 로케일마다 이미 번역돼 있다. desc 가 그 조합이
+   아니게 되는 순간(무제한이 끼어들든, 밴드가 낡든) 실패한다.
+
+   fail-closed: 사전 파일을 손으로 열거하지 않고 디렉터리에서 전수 발견하며,
+   조각이나 desc 가 없으면 통과가 아니라 실패다. */
+const I18N_DIR = path.join(ROOT, "public", "i18n");
+const localeFiles = readdirSync(I18N_DIR).filter((name) => name.endsWith(".json")).sort();
+check("로케일 사전을 찾았다", localeFiles.length >= 12, `실제=${localeFiles.length}개`);
+
+const dictValue = (dict, dotted) => dotted.split(".").reduce((node, key) => (node == null ? node : node[key]), dict);
+
+for (const file of localeFiles) {
+  const locale = file.replace(/\.json$/, "");
+  const dict = JSON.parse(readFileSync(path.join(I18N_DIR, file), "utf8"));
+  for (const tier of TIERS) {
+    const desc = dictValue(dict, `payment.passShop.packages.${tier}.desc`);
+    const fragments = ["Line", "Benefit1", "Benefit2"].map((suffix) => dictValue(dict, `home.passMini.${tier}${suffix}`));
+    if (typeof desc !== "string" || !desc.trim()) {
+      failures.push(`[${locale}] payment.passShop.packages.${tier}.desc 가 없다 — 사전이 이 등급 카드를 번역하지 못한다`);
+      continue;
+    }
+    if (fragments.some((fragment) => typeof fragment !== "string" || !fragment.trim())) {
+      failures.push(`[${locale}] home.passMini.${tier}{Line,Benefit1,Benefit2} 조각이 비어 있다 — desc 를 대조할 기준이 없다`);
+      continue;
+    }
+    const segments = desc.split(" · ").map((part) => part.trim());
+    check(
+      `[${locale}] ${tier} 카드는 '기간 · 가격대 · 월 한도 · 프로필' 4토막`,
+      segments.length === 4,
+      `실제 ${segments.length}토막 문구="${desc}"`,
+    );
+    check(
+      `[${locale}] ${tier} 카드 문구가 사전 조각과 일치`,
+      segments.slice(1).join(" · ") === fragments.join(" · "),
+      `문구="${desc}" 기대="… · ${fragments.join(" · ")}"`
+      + ` / desc 와 home.passMini.${tier}{Line,Benefit1,Benefit2} 는 같은 정책 한 줄이라 함께 고쳐야 한다`
+      + " (문안을 바꿀 때는 i18n/authored/passShopPackages-01.json 을 고치고 i18n-merge-authored.mjs --core 로 다시 병합)",
+    );
+  }
+}
+
 if (failures.length) {
   console.error(`\n[실패] 이용권 등급 정책 검증 ${failures.length}건`);
   for (const failure of failures) console.error(`  ✗ ${failure}`);
@@ -301,5 +349,5 @@ if (failures.length) {
 }
 console.log(
   "[통과] 이용권 등급 정책 검증 — 4등급 절대값 · 가격 경계 7종 × 4등급 · 월 한도 경계 ·"
-  + " 중앙 설명자 정합 · 하드코딩 사본 5곳 · 문구 금지 표현\n",
+  + ` 중앙 설명자 정합 · 하드코딩 사본 5곳 · 문구 금지 표현 · 로케일 사전 ${localeFiles.length}개 × 4등급 카드 문구\n`,
 );
