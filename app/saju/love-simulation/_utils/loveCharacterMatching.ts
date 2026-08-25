@@ -1,4 +1,11 @@
-import type { CharacterId, LoveCharacter, LoveStats } from "../_data/loveCodeMvp";
+import type { CharacterId, LoveCharacter, LoveCharacterCopyEntry, LoveStats } from "../_data/loveCodeMvp";
+
+/**
+ * 캐릭터 표면 4필드의 로케일 사본. 🔴 엔진은 순수 함수라 훅을 못 부른다 — 컴포넌트가
+ * `useLoveSimCopy("characters", LOVE_CHARACTER_COPY_KO)` 로 받아 인자로 내려준다
+ * (슬라이스 2에서 `LoveMatchingCopy` 를 내려주는 것과 같은 계약).
+ */
+export type LoveCharacterCopy = Record<CharacterId, LoveCharacterCopyEntry>;
 
 type MatchElement = LoveCharacter["element"];
 type MatchYinYang = LoveCharacter["yinYang"];
@@ -59,8 +66,9 @@ type ScoredMatch = LoveCharacterMatchResult & {
  * 매칭이 통째로 죽는다.
  *
  * 🔴 `{...}` 자리에 들어가는 값 중 `characterName`·`archetype`·`profileLine`·`bestApproach`
- * 는 `_data/loveCodeMvp.ts` 가 갖는 한국어이고 아직 로케일화되지 않았다(콘텐츠 번역 슬라이스
- * 3·4). 그때까지 비-ko 화면은 **틀은 그 언어, 캐릭터 이름·소개는 한국어**로 섞여 나온다.
+ * 는 `_data/loveCodeMvp.ts` 의 `LOVE_CHARACTER_COPY_KO` 가 정본이고, 그 로케일 사본이
+ * `characterCopy` 로 내려온다. 나머지 캐릭터 한국어(`personality`·`conflictPattern`·장면 본문)는
+ * 아직 로케일화 전이라, 비-ko 화면은 매칭 카드까지만 그 언어로 나온다(슬라이스 3·4).
  */
 export const LOVE_MATCHING_COPY_KO = {
   /** 일간 표시 이름. 조회 키는 `GAN_DAY_MASTER` 가 따로 갖는다(그쪽은 한국어 고정). */
@@ -687,15 +695,21 @@ function confidenceKey(score: number): LoveCharacterMatchResult["confidenceKey"]
   return "low";
 }
 
-function buildSummary(character: LoveCharacter, copy: LoveMatchingCopy) {
+function buildSummary(entry: LoveCharacterCopyEntry, copy: LoveMatchingCopy) {
   return formatTemplate(copy.matchSummary, {
-    profileLine: character.profileLine,
-    bestApproach: character.bestApproach,
+    profileLine: entry.profileLine,
+    bestApproach: entry.bestApproach,
   });
 }
 
-function scoreCharacter(character: LoveCharacter, sajuProfile: ExtractedSajuProfile, copy: LoveMatchingCopy): ScoredMatch {
+function scoreCharacter(
+  character: LoveCharacter,
+  sajuProfile: ExtractedSajuProfile,
+  copy: LoveMatchingCopy,
+  characterCopy: LoveCharacterCopy,
+): ScoredMatch {
   const profile = getProfile(character);
+  const entry = characterCopy[character.id];
   let score = 0;
   const reasons: string[] = [];
 
@@ -704,7 +718,7 @@ function scoreCharacter(character: LoveCharacter, sajuProfile: ExtractedSajuProf
     reasons.push(
       formatTemplate(copy.matchReason.dayMaster, {
         dayMaster: dayMasterName(copy, sajuProfile.dayMaster),
-        name: character.name,
+        name: entry.name,
       }),
     );
   }
@@ -748,18 +762,18 @@ function scoreCharacter(character: LoveCharacter, sajuProfile: ExtractedSajuProf
   }
 
   const fallbackReasons = [
-    formatTemplate(copy.matchReason.fallbackArchetype, { name: character.name, archetype: character.archetype }),
+    formatTemplate(copy.matchReason.fallbackArchetype, { name: entry.name, archetype: entry.archetype }),
     copy.matchReason.fallbackDisclaimer,
   ];
 
   return {
     characterId: character.id,
-    characterName: character.name,
+    characterName: entry.name,
     confidenceKey: confidenceKey(score),
-    matchLabel: formatTemplate(copy.matchLabel, { name: character.name }),
+    matchLabel: formatTemplate(copy.matchLabel, { name: entry.name }),
     reasonBullets: Array.from(new Set([...reasons, ...fallbackReasons])).slice(0, 3),
     score,
-    summary: buildSummary(character, copy),
+    summary: buildSummary(entry, copy),
   };
 }
 
@@ -767,6 +781,7 @@ export function matchLoveCharactersFromSaju(
   sajuResult: unknown,
   characters: LoveCharacter[],
   copy: LoveMatchingCopy,
+  characterCopy: LoveCharacterCopy,
   targetGender?: LoveCharacter["gender"],
 ): LoveCharacterMatchResult[] {
   const sajuProfile = extractSajuProfile(sajuResult);
@@ -775,7 +790,7 @@ export function matchLoveCharactersFromSaju(
   if (candidateCharacters.length === 0) return [];
 
   return candidateCharacters
-    .map((character) => scoreCharacter(character, sajuProfile, copy))
+    .map((character) => scoreCharacter(character, sajuProfile, copy, characterCopy))
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
     .map(({ score, ...result }) => result);

@@ -3,7 +3,7 @@
 import React, { lazy, Suspense, useEffect, useMemo, useState } from "react";
 import { m, AnimatePresence } from "framer-motion";
 import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, UserRound } from "lucide-react";
-import { INITIAL_STATS, LOVE_CHARACTERS, getLocalizedLoveScenes, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
+import { INITIAL_STATS, LOVE_CHARACTERS, LOVE_CHARACTER_COPY_KO, getLocalizedLoveScenes, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
 import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics } from "../_utils/loveCodeScoring";
 import { buildSajuCoupleCompatibility, matchLoveCharactersFromSaju, LOVE_MATCHING_COPY_KO, type LoveCharacterMatchResult, type LoveMatchingCopy, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
@@ -968,7 +968,7 @@ function RecommendedMatchCard({
           </div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-100/72">Main Match</p>
           <h3 className="mt-2 text-2xl font-black leading-tight text-white">
-            입력한 상대는 <span className={character.palette.accent}>{character.name}형 성향</span>과 가장 가까워요.
+            입력한 상대는 <span className={character.palette.accent}>{result.characterName}형 성향</span>과 가장 가까워요.
           </h3>
           <p className="mt-3 text-sm font-semibold leading-7 text-white/70">{result.summary}</p>
           {compatibility ? (
@@ -999,7 +999,7 @@ function RecommendedMatchCard({
             onClick={onStart}
             className={`mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-4 py-3 text-sm font-black text-zinc-950 shadow-[0_16px_34px_rgba(0,0,0,0.22)] transition hover:brightness-110 ${character.palette.button}`}
           >
-            {character.name}형 시뮬레이션 시작하기
+            {result.characterName}형 시뮬레이션 시작하기
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -1508,6 +1508,9 @@ export const LoveSimulationEngine: React.FC = () => {
   // 🔴 `copy` 와 별개다. 위는 버튼·라벨 같은 UI 크롬(ko·en 표), 아래는 사주 해석이 조립하는
   //    콘텐츠 문장(12개 로케일 사전). 경계는 `_utils/loveSimCopy.ts` 헤더에 적혀 있다.
   const matchingCopy = useLoveSimCopy("matching", LOVE_MATCHING_COPY_KO);
+  // 캐릭터 표면 4필드(이름·아키타입·프로필라인·베스트어프로치)의 로케일 사본.
+  // 🔴 나머지 캐릭터 한국어(personality·conflictPattern·장면 본문)는 아직 정본이 한국어뿐이다.
+  const characterCopy = useLoveSimCopy("characters", LOVE_CHARACTER_COPY_KO);
   // 값은 그대로 IANA 타임존 문자열 유지 — matchPartner/자동저장/onSubmit 이 이미 이 값을 그대로 쓴다.
   const partnerCountryOptions = useMemo(
     () => [
@@ -1753,7 +1756,7 @@ export const LoveSimulationEngine: React.FC = () => {
             })
           : Promise.resolve(null),
       ]);
-      const results = matchLoveCharactersFromSaju(partnerSaju, LOVE_CHARACTERS, matchingCopy, targetInput.gender);
+      const results = matchLoveCharactersFromSaju(partnerSaju, LOVE_CHARACTERS, matchingCopy, characterCopy, targetInput.gender);
       const compatibility = selfSaju ? buildSajuCoupleCompatibility(selfSaju, partnerSaju, matchingCopy) : null;
 
       if (results.length === 0) throw new Error("empty love character match result");
@@ -2122,7 +2125,7 @@ export const LoveSimulationEngine: React.FC = () => {
                         {isExpanded ? (
                           <img
                             src={item.asset}
-                            alt={`${item.name} 전체 프로필`}
+                            alt={`${characterCopy[item.id].name} 전체 프로필`}
                             className="relative z-10 h-full w-full object-contain p-3 drop-shadow-[0_22px_34px_rgba(0,0,0,0.48)]"
                           />
                         ) : (
@@ -2132,8 +2135,8 @@ export const LoveSimulationEngine: React.FC = () => {
                       <div className="border-t border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
                         <div className="flex flex-wrap items-start justify-between gap-3">
                           <div className="min-w-0">
-                            <p className={`text-sm font-bold ${item.palette.accent}`}>{item.archetype}</p>
-                            <h3 className="mt-1 text-3xl font-black text-white">{item.name}</h3>
+                            <p className={`text-sm font-bold ${item.palette.accent}`}>{characterCopy[item.id].archetype}</p>
+                            <h3 className="mt-1 text-3xl font-black text-white">{characterCopy[item.id].name}</h3>
                             <p className="mt-2 text-sm font-semibold leading-6 text-white/62">{isExpanded ? "전체 이미지와 상세 프로필이 열렸습니다." : "좌측 상단 얼굴과 기본정보를 먼저 확인하세요."}</p>
                           </div>
                           <span className="shrink-0 rounded-full border border-rose-100/18 bg-white/12 px-3 py-1 text-xs font-black text-white/78">
@@ -2161,7 +2164,7 @@ export const LoveSimulationEngine: React.FC = () => {
                                   {item.gender === "male" ? "남성 캐릭터" : "여성 캐릭터"}
                                 </span>
                               </div>
-                              <p className="text-sm leading-7 text-white/72">{item.profileLine}</p>
+                              <p className="text-sm leading-7 text-white/72">{characterCopy[item.id].profileLine}</p>
                               <div className="mt-5 flex flex-wrap gap-2">
                                 {item.keywords.slice(0, 5).map((keyword) => (
                                   <span key={keyword} className="rounded-full bg-white/10 px-3 py-1 text-xs font-semibold text-white/75">
@@ -2190,7 +2193,7 @@ export const LoveSimulationEngine: React.FC = () => {
                               disabled={isStartingSimulation}
                               className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-5 py-3 text-sm font-bold text-zinc-950 shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition hover:brightness-110 ${item.palette.button}`}
                             >
-                              {item.name}와 대화하기
+                              {characterCopy[item.id].name}와 대화하기
                               <ChevronRight className="h-4 w-4" />
                             </button>
                           </div>
@@ -2271,8 +2274,8 @@ export const LoveSimulationEngine: React.FC = () => {
             <div>
               <CharacterPortrait character={character} mode="result" />
               <div className="mt-5">
-                <p className={`text-sm font-semibold ${character.palette.accent}`}>{character.dayMaster} 일간 · {character.archetype}</p>
-                <h2 className="mt-2 text-4xl font-bold">{character.name}</h2>
+                <p className={`text-sm font-semibold ${character.palette.accent}`}>{character.dayMaster} 일간 · {characterCopy[character.id].archetype}</p>
+                <h2 className="mt-2 text-4xl font-bold">{characterCopy[character.id].name}</h2>
               </div>
             </div>
           </div>
@@ -2419,8 +2422,8 @@ export const LoveSimulationEngine: React.FC = () => {
             </button>
             <div className="rounded-lg border border-white/10 bg-black/28 p-5 backdrop-blur-xl">
               <p className={`text-sm font-bold ${character.palette.accent}`}>{character.dayMaster} 일간</p>
-              <h1 className="mt-2 text-4xl font-black">{character.name}</h1>
-              <p className="mt-3 text-sm leading-7 text-white/68">{character.profileLine}</p>
+              <h1 className="mt-2 text-4xl font-black">{characterCopy[character.id].name}</h1>
+              <p className="mt-3 text-sm leading-7 text-white/68">{characterCopy[character.id].profileLine}</p>
               <p className="mt-3 text-xs font-bold text-white/42">
                 {entryMode === "sajuMatch" ? "사주 매칭 추천으로 시작한 시뮬레이션" : "직접 선택으로 시작한 시뮬레이션"}
               </p>
@@ -2457,7 +2460,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/48">
                   장면 {sceneIndex + 1}/{scenes.length}
                 </p>
-                <h2 className="mt-1 truncate text-2xl font-black text-white">{character.name}</h2>
+                <h2 className="mt-1 truncate text-2xl font-black text-white">{characterCopy[character.id].name}</h2>
               </div>
               <span className="shrink-0 rounded-full border border-white/14 bg-white/8 px-3 py-1 text-xs font-bold text-white/72">
                 {currentScene.location}
@@ -2472,10 +2475,10 @@ export const LoveSimulationEngine: React.FC = () => {
             >
               <div className="mb-4 flex items-center gap-3">
                 <div className="h-10 w-10 overflow-hidden rounded-full border border-white/20 bg-black/30">
-                  <img src={character.asset} alt={`${character.name} 미니 얼굴`} className="h-full w-full origin-top-left scale-[3.02] object-contain object-left-top" />
+                  <img src={character.asset} alt={`${characterCopy[character.id].name} 미니 얼굴`} className="h-full w-full origin-top-left scale-[3.02] object-contain object-left-top" />
                 </div>
                 <div>
-                  <p className={`text-sm font-black ${character.palette.accent}`}>{character.name}</p>
+                  <p className={`text-sm font-black ${character.palette.accent}`}>{characterCopy[character.id].name}</p>
                   <p className="truncate text-xs font-semibold text-white/48">{currentScene.title}</p>
                 </div>
               </div>
@@ -2485,7 +2488,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 <details className="group mt-4 rounded-lg border border-rose-100/12 bg-black/18">
                   <summary
                     className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-black text-rose-50/82"
-                    aria-label={copy.sajuHintAria(character.name)}
+                    aria-label={copy.sajuHintAria(characterCopy[character.id].name)}
                   >
                     <span>{copy.sajuHint}</span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-rose-100/66 transition group-open:rotate-90" />
