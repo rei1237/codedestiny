@@ -175,6 +175,91 @@ for (const rel of MIRRORS) {
   }
 }
 
+// ── 4) 월정석 잔량 부족을 **사용자에게 보여주는가** ─────────────────────────
+// 위 1-b 는 "월정석 카드를 회색으로 내릴지"만 본다. 그건 다음 결제창이 열린 뒤의 이야기이고,
+// 그 사이(월정석 진행 화면이 사라지고 결제창이 다시 뜨기까지) 아무 설명이 없으면 사용자에게는
+// "눌렀는데 그냥 처음으로 돌아간다"로 보인다(실제 신고). 결과를 꽃돼지 화면으로 말해야 한다.
+{
+  // (a) 안내가 '진짜 부족'으로 확정된 분기 **안에서만** 뜬다. 밖으로 나가면 일시 장애(503/409)에도
+  //     "월정석이 부족하다"고 거짓말하게 된다 — 1-b 가 지키는 계약과 같은 이유다.
+  const branchStart = rootHtml.indexOf('if (_cdShouldDisableMonthlyAfterError(_cdLeafError)) {');
+  ok(branchStart > 0, '월정석 비활성 분기를 index.html 에서 찾지 못함');
+  if (branchStart > 0) {
+    const braceStart = rootHtml.indexOf('{', branchStart);
+    let depth = 0;
+    let branchEnd = -1;
+    for (let i = braceStart; i < rootHtml.length; i += 1) {
+      const ch = rootHtml[i];
+      if (ch === '{') depth += 1;
+      else if (ch === '}') {
+        depth -= 1;
+        if (depth === 0) { branchEnd = i + 1; break; }
+      }
+    }
+    ok(branchEnd > 0, '월정석 비활성 분기의 끝을 찾지 못함');
+    const branch = branchEnd > 0 ? rootHtml.slice(branchStart, branchEnd) : '';
+    ok(
+      branch.includes('_cdShowMonthlyInsufficientOverlay('),
+      '월정석 잔량 부족을 사용자에게 알리지 않는다 — 진행 화면이 그냥 사라지고 결제창만 다시 뜬다',
+    );
+    // 분기 밖에 같은 호출이 또 있으면 일시 장애에도 부족하다고 알리게 된다.
+    const totalCalls = rootHtml.split('_cdShowMonthlyInsufficientOverlay(').length - 1;
+    ok(
+      totalCalls === 2, // 정의 1 + 호출 1
+      `_cdShowMonthlyInsufficientOverlay 참조가 ${totalCalls}회다(기대 2 = 정의+호출). 분기 밖 호출은 일시 장애를 부족으로 오인시킨다`,
+    );
+  }
+
+  // (b) 'monthly-insufficient' 는 오버레이 허용목록과 **종단(결과)** 목록에 모두 있어야 한다.
+  //     허용목록에 없으면 화면이 아예 안 뜨고, 종단이 아니면 결제창이 떠 있는 동안 억제돼 삼켜진다.
+  ok(
+    /CD_WAIT_UI_ALLOWED_MODE_RE = [^\n]*monthly-insufficient/.test(rootHtml),
+    "'monthly-insufficient' 가 대기/결과 오버레이 허용목록에 없다 — 화면이 뜨지 않는다",
+  );
+  ok(
+    /CD_DIRECT_PG_TERMINAL_MODE_RE = [^\n]*monthly-insufficient/.test(rootHtml),
+    "'monthly-insufficient' 가 종단 모드가 아니다 — 결제창이 떠 있는 동안 안내가 억제된다",
+  );
+
+  // (c) 카피 해석기를 실제로 돌려 결과 화면이 채워지는지 본다(마커 grep 이 아니라 실행).
+  const copySrc = extractFn(rootHtml, '_cdResolvePaymentOverlayCopy');
+  ok(!!copySrc, '_cdResolvePaymentOverlayCopy 를 index.html 에서 찾지 못함');
+  if (copySrc) {
+    // eslint-disable-next-line no-new-func
+    const copyFactory = new Function(`
+      function _cdPaymentI18n(key, fallback) { return fallback; }
+      function _cdCleanPaymentStageMessage(value) { return String(value == null ? '' : value).trim(); }
+      var SAJU_PASS_CHECKING_MESSAGE = '이용권 확인 중';
+      ${copySrc}
+      return _cdResolvePaymentOverlayCopy;
+    `);
+    const resolveCopy = copyFactory();
+    const copy = resolveCopy('현재 잔여 100 · 필요 월정석 500', 'monthly-insufficient');
+    ok(copy.mode === 'monthly-insufficient', `부족 안내가 등록되지 않은 모드다 → '${copy.mode}' 로 폴백됐다`);
+    ok(!!String(copy.title || '').trim(), '부족 안내에 제목이 없다');
+    ok(!!String(copy.meta || '').trim(), '부족 안내에 다음 행동 안내(meta)가 없다');
+    // 🔴 수치가 본문에 살아남아야 한다. normalizePaymentOverlayBody 가 'monthly' 계열 문구를
+    //    폴백으로 치환하는 규칙을 갖고 있어, 모드를 잘못 붙이면 보유/필요가 통째로 사라진다.
+    ok(
+      String(copy.message || '').includes('100') && String(copy.message || '').includes('500'),
+      `보유/필요 수치가 본문에서 사라졌다 → "${copy.message}"`,
+    );
+    // 결제 실패(환불 안내가 붙는다)와 같은 화면을 쓰면 안 된다 — 여기서는 청구된 것이 없다.
+    const failedCopy = resolveCopy('', 'payment-failed');
+    ok(copy.title !== failedCopy.title, '부족 안내가 결제 실패 화면과 같은 제목을 쓴다(환불 안내가 붙어 사실과 어긋난다)');
+  }
+
+  // (d) 6미러 패리티 — 정본만 고치면 프로덕션에서 한쪽만 반영된다.
+  for (const rel of MIRRORS) {
+    let html;
+    try { html = read(rel); } catch (e) { fails.push(`미러 읽기 실패: ${rel} (${e.message})`); continue; }
+    ok(html.includes("'monthly-insufficient': {"), `미러에 부족 안내 카피가 없다: ${rel}`);
+    ok(html.includes('_cdShowMonthlyInsufficientOverlay('), `미러에 부족 안내 호출이 없다: ${rel}`);
+  }
+
+  rows.push({ 케이스: '㉶ 월정석 부족 → 꽃돼지 안내 노출', 재노출: '-', 정상취소: '-', 판정: fails.length ? 'FAIL' : 'PASS' });
+}
+
 // ── 출력 ────────────────────────────────────────────────────────────────────
 console.log('=== 정적 결제 게이트 fail-safe fixture ===\n');
 console.table(rows);
