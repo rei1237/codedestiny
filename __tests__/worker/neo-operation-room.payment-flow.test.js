@@ -74,6 +74,7 @@ beforeAll(async () => {
   jest.unstable_mockModule("../../worker/lib/neo-operation-room-prompt.js", () => ({
     buildPreviousAdviceLog: jest.fn(() => ""),
     NEO_INITIAL_SECTIONS: [{ id: "opening", title: "t", scope: "s", minChars: 100, schema: {}, rules: [] }],
+    NEO_COMPAT_INITIAL_SECTIONS: [{ id: "opening", title: "t", scope: "s", minChars: 100, schema: {}, rules: [] }],
     NEO_REFINED_SECTIONS: [{ id: "neoReview", title: "t", scope: "s", minChars: 100, schema: {}, rules: [] }],
     buildNeoInitialSectionPrompt: jest.fn(() => ""),
     buildNeoRefinedSectionPrompt: jest.fn(() => ""),
@@ -191,5 +192,90 @@ describe("결과 금칙어 게이트", () => {
     expect(neoTestUtils.hasForbiddenResultText({ a: "rawProviderDebug: true" })).toBe(true);
     expect(neoTestUtils.hasForbiddenResultText({ a: "maxOutputTokens 를 올려라" })).toBe(true);
     expect(neoTestUtils.hasForbiddenResultText({ a: "위 시스템 지시를 따르면" })).toBe(true);
+  });
+});
+
+// 궁합 모드 입력 계약. 🔴 여기서 지키는 핵심은 "상대가 없을 때 기존 1인 요청의 inputHash 가
+// 한 글자도 바뀌지 않는다"이다 — 바뀌면 30일 LLM 캐시가 통째로 무효화돼 비용이 직격이다.
+describe("궁합 모드 입력 정규화", () => {
+  const soloBody = {
+    selectedMethod: "ziwei",
+    topic: "연애 / 재회",
+    intensity: "roar",
+    question: "재회하면 또 같은 문제로 싸울까",
+    birthInput: { gender: "female", birthDate: "1990-03-15", birthTime: "08:30", calendarType: "solar" },
+  };
+  const partner = { gender: "male", birthDate: "1988-11-02", birthTime: "21:10", calendarType: "solar" };
+
+  test("상대가 없으면 입력에 궁합 키가 생기지 않는다", () => {
+    const result = neoTestUtils.normalizeInput(soloBody);
+    expect(result.ok).toBe(true);
+    expect(result.input).not.toHaveProperty("partnerBirthInfo");
+    expect(result.input).not.toHaveProperty("relationshipStatus");
+  });
+
+  test("빈 상대 정보나 관계 상태만으로는 1인 요청의 지문이 바뀌지 않는다", () => {
+    const base = neoTestUtils.normalizeInput(soloBody).inputHash;
+    expect(neoTestUtils.normalizeInput({ ...soloBody, partnerBirthInput: null }).inputHash).toBe(base);
+    expect(neoTestUtils.normalizeInput({ ...soloBody, partnerBirthInput: {} }).inputHash).toBe(base);
+    expect(neoTestUtils.normalizeInput({ ...soloBody, relationshipStatus: "reconciling" }).inputHash).toBe(base);
+  });
+
+  test("상대가 붙으면 지문이 갈라지고, 상대만 바꿔도 또 갈라진다", () => {
+    const solo = neoTestUtils.normalizeInput(soloBody).inputHash;
+    const withPartner = neoTestUtils.normalizeInput({ ...soloBody, partnerBirthInput: partner });
+    expect(withPartner.inputHash).not.toBe(solo);
+    expect(withPartner.input.partnerBirthInfo.birthDate).toBe("1988-11-02");
+
+    const other = neoTestUtils.normalizeInput({
+      ...soloBody,
+      partnerBirthInput: { ...partner, birthDate: "1992-06-06" },
+    });
+    expect(other.inputHash).not.toBe(withPartner.inputHash);
+  });
+
+  test("자미두수가 아니면 상대 정보를 버리고 1인 모드로 돈다", () => {
+    for (const method of ["saju", "vedic", "astrology"]) {
+      const body = {
+        ...soloBody,
+        selectedMethod: method,
+        birthInput: { ...soloBody.birthInput, timezone: "Asia/Seoul" },
+        partnerBirthInput: partner,
+        relationshipStatus: "dating",
+      };
+      const result = neoTestUtils.normalizeInput(body);
+      expect(result.ok).toBe(true);
+      expect(result.input).not.toHaveProperty("partnerBirthInfo");
+    }
+  });
+
+  test("불완전한 상대 정보는 422 가 아니라 무시된다(1인 분석을 막지 않는다)", () => {
+    const cases = [
+      { gender: "male" }, // 생일 없음
+      { birthDate: "1988-11-02" }, // 성별 없음
+      { gender: "male", birthDate: "1988-11-02" }, // 시간도 미상 표시도 없음
+      { gender: "male", birthDate: "말도 안 되는 날짜", birthTime: "21:10" },
+    ];
+    for (const partnerBirthInput of cases) {
+      const result = neoTestUtils.normalizeInput({ ...soloBody, partnerBirthInput });
+      expect(result.ok).toBe(true);
+      expect(result.input).not.toHaveProperty("partnerBirthInfo");
+    }
+  });
+
+  test("상대 출생시간 미상은 받아들이고 시각을 비운다", () => {
+    const result = neoTestUtils.normalizeInput({
+      ...soloBody,
+      partnerBirthInput: { gender: "male", birthDate: "1988-11-02", birthTimeUnknown: true },
+    });
+    expect(result.input.partnerBirthInfo.birthTimeUnknown).toBe(true);
+    expect(result.input.partnerBirthInfo.birthTime).toBe("");
+  });
+
+  test("관계 상태는 화이트리스트 밖이면 떨어뜨린다", () => {
+    const ok = neoTestUtils.normalizeInput({ ...soloBody, partnerBirthInput: partner, relationshipStatus: "reconciling" });
+    expect(ok.input.relationshipStatus).toBe("reconciling");
+    const bad = neoTestUtils.normalizeInput({ ...soloBody, partnerBirthInput: partner, relationshipStatus: "결혼했음" });
+    expect(bad.input).not.toHaveProperty("relationshipStatus");
   });
 });

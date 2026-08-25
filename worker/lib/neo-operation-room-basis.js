@@ -18,13 +18,14 @@
 import { basisGroup, basisItem } from "./analysis-basis-contract.js";
 
 /** 챕터가 `basisGroups` 로 선언할 수 있는 그룹 키. 술수 4종이 같은 어휘를 쓴다. */
-export const NEO_BASIS_GROUP_KEYS = Object.freeze(["core", "strength", "topic", "timing"]);
+export const NEO_BASIS_GROUP_KEYS = Object.freeze(["core", "strength", "topic", "timing", "compat"]);
 
 const GROUP_TITLES = Object.freeze({
   core: "중심 지표",
   strength: "강약 분포",
   topic: "자리별 판독",
   timing: "시기 흐름",
+  compat: "두 사람 교차",
 });
 
 function asArray(value) {
@@ -148,7 +149,39 @@ function ziweiGroups(summary) {
       item("대한 흐름", asArray(summary.majorLuck).map((cycle) => valuesOf(cycle)).filter(Boolean).join(" · ")),
       item("올해 유년", yearly ? `${yearly.year || ""}년 ${yearly.palaceName || yearly.earthlyBranch || ""}${asArray(yearly.mainStars).length ? ` (${asArray(yearly.mainStars).join(" · ")})` : ""}`.trim() : ""),
     ]),
+    // 궁합 모드에서만. 1인 모드는 compat 이 없어 group() 이 null 을 돌려주고 그룹째 사라진다.
+    ziweiCompatGroup(summary.compat),
   ];
+}
+
+/**
+ * 두 사람 교차 확정값.
+ * 🔴 낙궁·교차는 sanFangLine 과 같은 이유로 `valuesOf` 로 뭉개지 않는다 — "무엇이 어디에
+ *    떨어졌는가"가 사라지면 근거가 못 되고, 모델이 방향을 뒤집어 쓴다.
+ */
+function ziweiCompatGroup(compat) {
+  if (!compat || typeof compat !== "object") return null;
+  const digest = compat.partnerDigest || {};
+  const scores = compat.scores || {};
+  return group("compat", [
+    item("상대 성별", compat.partnerGenderLabel),
+    item("상대 명궁", [digest.mingGong, digest.mingGongStars].filter(Boolean).join(" — ")),
+    item("상대 신궁", digest.shenGong),
+    item("상대 부부궁", digest.spousePalaceStars),
+    item("상대 복덕궁", digest.fortunePalaceStars),
+    item("상대 생년 사화", digest.fourTransformations),
+    item("상대 국수", digest.bureau),
+    // 교차 판독은 항목마다 한 칸씩 — 한 칸에 합치면 basisItem 의 300자 상한에 뒤쪽이 잘린다.
+    ...asArray(compat.highlights).map((entry) => item(entry?.label, entry?.value)),
+    item("관계 지표", [
+      Number.isFinite(scores.overall) ? `종합 ${scores.overall}` : "",
+      Number.isFinite(scores.resonance) ? `공명 ${scores.resonance}` : "",
+      Number.isFinite(scores.friction) ? `갈등 위험 ${scores.friction}` : "",
+      Number.isFinite(scores.growth) ? `함께 크는 힘 ${scores.growth}` : "",
+    ].filter(Boolean).join(" · ")),
+    item("관계 상태", compat.relationshipStatusLabel),
+    item("상대 출생시간", compat.uncertainty?.partnerBirthTimeUnknown ? "미상(정오 기준으로 계산됨)" : ""),
+  ]);
 }
 
 // ─── 베다점 ────────────────────────────────────────────────────────────────

@@ -655,6 +655,32 @@ export function buildSajuLoveCompatibility({ selfSaju, partnerSaju } = {}) {
   return { dayStemRelation, elementBalance, tenGodInteraction, yongshinSupport, branchRelations, axisScores };
 }
 
+/**
+ * 두 사람의 자미두수 명반만으로 궁합 축을 산출한다. 순수 함수.
+ *
+ * buildMasterLoveCodexCompatibility 의 자미두수 절반을 그대로 떼어낸 것이며,
+ * 사주 없이 명반만 쓰는 라우트(네오 작전실 궁합 모드)가 재사용한다.
+ * 🔴 반환 객체의 키 순서는 buildMasterLoveCodexCompatibility 의 `ziwei` 와 동일해야 한다
+ *    — hashSignature 가 키 순서에 민감해 verify:master-love-codex-compat 이 이를 검사한다.
+ *    (사주 절반의 buildSajuLoveCompatibility 가 지는 것과 같은 제약이다.)
+ *
+ * @param {object} params
+ * @param {object} params.selfZiwei     calculateZiweiAiChart(본인)
+ * @param {object} params.partnerZiwei  calculateZiweiAiChart(상대)
+ */
+export function buildZiweiLoveCompatibility({ selfZiwei, partnerZiwei } = {}) {
+  const sZiwei = asObject(selfZiwei);
+  const pZiwei = asObject(partnerZiwei);
+
+  const palaceOverlay = buildPalaceOverlay(sZiwei, pZiwei);
+  const spouseCross = buildSpouseCross(sZiwei, pZiwei);
+  const maleficImpact = buildMaleficImpact(sZiwei, pZiwei);
+  const sihuaExchange = buildSihuaExchange(sZiwei, pZiwei);
+  const axisScores = buildZiweiAxisScores({ palaceOverlay, spouseCross, maleficImpact, sihuaExchange });
+
+  return { palaceOverlay, spouseCross, maleficImpact, sihuaExchange, axisScores };
+}
+
 export function buildMasterLoveCodexCompatibility({ selfSaju, selfZiwei, partnerSaju, partnerZiwei } = {}) {
   const sSaju = asObject(selfSaju);
   const pSaju = asObject(partnerSaju);
@@ -664,11 +690,8 @@ export function buildMasterLoveCodexCompatibility({ selfSaju, selfZiwei, partner
   const saju = buildSajuLoveCompatibility({ selfSaju, partnerSaju });
   const sajuAxisScores = saju.axisScores;
 
-  const palaceOverlay = buildPalaceOverlay(sZiwei, pZiwei);
-  const spouseCross = buildSpouseCross(sZiwei, pZiwei);
-  const maleficImpact = buildMaleficImpact(sZiwei, pZiwei);
-  const sihuaExchange = buildSihuaExchange(sZiwei, pZiwei);
-  const ziweiAxisScores = buildZiweiAxisScores({ palaceOverlay, spouseCross, maleficImpact, sihuaExchange });
+  const ziwei = buildZiweiLoveCompatibility({ selfZiwei, partnerZiwei });
+  const ziweiAxisScores = ziwei.axisScores;
 
   const cross = buildCross(sajuAxisScores, ziweiAxisScores);
 
@@ -677,8 +700,6 @@ export function buildMasterLoveCodexCompatibility({ selfSaju, selfZiwei, partner
   if (asObject(pSaju.calculationMeta).timeUnknown) uncertainty.push("partner_birth_time_unknown");
   if (asObject(sZiwei.uncertainty).birthTimeUnknown) uncertainty.push("self_ziwei_noon_basis");
   if (asObject(pZiwei.uncertainty).birthTimeUnknown) uncertainty.push("partner_ziwei_noon_basis");
-
-  const ziwei = { palaceOverlay, spouseCross, maleficImpact, sihuaExchange, axisScores: ziweiAxisScores };
 
   return {
     version: MASTER_LOVE_CODEX_COMPAT_VERSION,

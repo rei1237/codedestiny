@@ -18,6 +18,7 @@
  * 사용: node scripts/verify-neo-operation-room-output-safety.mjs
  */
 import {
+  NEO_COMPAT_INITIAL_SECTIONS,
   NEO_INITIAL_SECTIONS,
   NEO_REFINED_SECTIONS,
   buildNeoInitialSectionPrompt,
@@ -27,6 +28,8 @@ import {
   mergeNeoRefinedSections,
 } from "../worker/lib/neo-operation-room-prompt.js";
 import { NEO_BASIS_GROUP_KEYS, buildNeoBasisPayload, measureNeoBasisCoverage } from "../worker/lib/neo-operation-room-basis.js";
+import { buildNeoZiweiCompat } from "../worker/lib/neo-operation-room-compat.js";
+import { calculateZiweiAiChart } from "../worker/lib/ziwei-ai-chart.js";
 import { findInternalKeyPaths } from "../worker/lib/llm-leak-guard.js";
 import { endsWithSentence } from "../lib/llm-text.js";
 
@@ -143,6 +146,7 @@ for (const [label, merged] of [["1차", initialBriefing], ["2차", refinedOrder]
 // 🔴 minChars 만 올리고 clean/cleanProse 상한을 그대로 두면(= aedb1edb9) 여기서 실패한다.
 for (const [label, sections, merge, mergeArgs] of [
   ["1차", NEO_INITIAL_SECTIONS, mergeNeoInitialSections, [{ selectedMethod: "ziwei" }, {}]],
+  ["1차(궁합)", NEO_COMPAT_INITIAL_SECTIONS, mergeNeoInitialSections, [{ selectedMethod: "ziwei" }, {}]],
   ["2차", NEO_REFINED_SECTIONS, mergeNeoRefinedSections, [{ selectedMethod: "ziwei" }]],
 ]) {
   for (const section of sections) {
@@ -233,7 +237,7 @@ ok(safeMerge.bluntTruth === SAFE, `오탐으로 정상 문장이 바뀌었다 �
 
 // ── 8) 프롬프트: 내부 키 0건 + 챕터별 데이터 슬라이싱 ────────────────────
 const promptCtx = { selectedMethod: "ziwei", topic: "돈/재물", intensity: "roar", question: "돈이 안 모인다", methodSummary: ZIWEI_SUMMARY };
-for (const section of NEO_INITIAL_SECTIONS) {
+for (const section of [...NEO_INITIAL_SECTIONS, ...NEO_COMPAT_INITIAL_SECTIONS]) {
   ok(section.basisGroups !== undefined, `${section.id}: basisGroups 선언이 없다(어떤 계산값을 볼지 정해야 한다).`);
   const prompt = buildNeoInitialSectionPrompt(section, promptCtx);
   const found = findInternalKeyPaths(prompt);
@@ -251,7 +255,7 @@ for (const section of NEO_REFINED_SECTIONS) {
   ok(found.length === 0, `${section.id}(2차) 프롬프트에 내부 키 경로가 있다 — ${JSON.stringify(found)}`);
 }
 // 선언한 그룹 키는 실재해야 하고, 어떤 그룹도 사장되면 안 된다.
-const declared = new Set([...NEO_INITIAL_SECTIONS, ...NEO_REFINED_SECTIONS].flatMap((s) => (s.basisGroups === "*" ? NEO_BASIS_GROUP_KEYS : s.basisGroups)));
+const declared = new Set([...NEO_INITIAL_SECTIONS, ...NEO_COMPAT_INITIAL_SECTIONS, ...NEO_REFINED_SECTIONS].flatMap((s) => (s.basisGroups === "*" ? NEO_BASIS_GROUP_KEYS : s.basisGroups)));
 for (const key of declared) ok(NEO_BASIS_GROUP_KEYS.includes(key), `알 수 없는 basisGroups 키: ${key}`);
 for (const key of NEO_BASIS_GROUP_KEYS) ok(declared.has(key), `basisGroups "${key}" 를 보는 챕터가 하나도 없다(사장된 계산값).`);
 // 슬라이싱이 실제로 작동하는가 — 시기 챕터는 12궁 표를 보면 안 된다.
@@ -265,12 +269,32 @@ ok(
   `라벨 표가 계산값을 잃었다 — ${coverage.covered}/${coverage.total}, 누락 ${JSON.stringify(coverage.missing.slice(0, 8))}`,
 );
 
+const COMPAT_SUMMARY = { ...ZIWEI_SUMMARY, compat: buildNeoZiweiCompat({
+  selfChart: calculateZiweiAiChart({ birthInfo: { birthDate: "1990-03-15", birthTime: "08:30", gender: "female", calendarType: "solar" } }, { year: 2026 }),
+  partnerChart: calculateZiweiAiChart({ birthInfo: { birthDate: "1988-11-02", birthTime: "21:10", gender: "male", calendarType: "solar" } }, { year: 2026 }),
+  relationshipStatus: "reconciling",
+  partnerGender: "male",
+}) };
+const compatCoverage = measureNeoBasisCoverage(COMPAT_SUMMARY, buildNeoBasisPayload(COMPAT_SUMMARY));
+ok(
+  compatCoverage.total === 0 || compatCoverage.covered / compatCoverage.total >= 0.85,
+  "궁합 라벨 표가 계산값을 잃었다 — " + compatCoverage.covered + "/" + compatCoverage.total + ", 누락 " + JSON.stringify(compatCoverage.missing.slice(0, 8)),
+);
+ok(
+  buildNeoBasisPayload(COMPAT_SUMMARY).groups.some((entry) => entry.key === "compat"),
+  "궁합 계산값이 있는데 표에 두 사람 교차 그룹이 없다.",
+);
+ok(
+  !buildNeoBasisPayload(ZIWEI_SUMMARY).groups.some((entry) => entry.key === "compat"),
+  "1인 모드인데 두 사람 교차 그룹이 생겼다.",
+);
+
 if (failures.length) {
   console.error("[verify-neo-output-safety] 실패:");
   failures.forEach((f) => console.error("  - " + f));
   process.exit(1);
 }
 console.log(
-  `[verify-neo-output-safety] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터 / 2차 ${NEO_REFINED_SECTIONS.length}챕터, `
+  `[verify-neo-output-safety] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터 / 궁합 ${NEO_COMPAT_INITIAL_SECTIONS.length}챕터 / 2차 ${NEO_REFINED_SECTIONS.length}챕터, `
   + "중간 끊김 0 · 말줄임 최후수단 0 · 분량 계약 충족 · 잘린 JSON 복구 · 중복 제거",
 );
