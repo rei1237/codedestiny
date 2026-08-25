@@ -551,7 +551,9 @@ async function handlePrepare(request, env) {
   }
 
   await connectDb(env);
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
+  // 회당 결제라 이번 주문(idempotencyKey)의 결제만 근거가 된다. 402 응답이 그 키로 결제하라고
+  // 지시하므로(paymentRequired), 결제 후 같은 키로 돌아오면 여기서 통과한다.
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
   if (decision?.allowed) {
     return json({
       ok: true,
@@ -586,7 +588,7 @@ async function resolveGenerateAccess(request, env, auth, body, normalized, idemp
   if (isAdmin(auth)) return { ok: true, accessType: "admin", charsSoFar: 0, okChaptersSoFar: 0 };
   // 2) 엔타이틀먼트/이용권/방금 완료된 회당 결제 확인
   await connectDb(env);
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
   if (decision?.allowed) return { ok: true, accessType: "paid", charsSoFar: 0, okChaptersSoFar: 0 };
   return { ok: false, reason: "PAYMENT_REQUIRED" };
 }

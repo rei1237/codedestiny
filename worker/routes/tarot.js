@@ -129,12 +129,20 @@ async function findYearResult({ env, userId, year, resultId = "" }) {
     .lean(), YEAR_TAROT_DB_OPTIONS);
 }
 
-async function requireYearTarotAccess(request, env) {
+/**
+ * 🔴 requestId 는 선택이 아니라 계약이다. 이 기능은 회당 결제라 "산 적이 있는가"가 아니라
+ * "**이번 리딩의** 결제가 있는가"를 물어야 한다. 안 넘기면 과거 결제 하나로
+ * 이후 모든 리딩이 무료가 된다.
+ */
+async function requireYearTarotAccess(request, env, requestId) {
   const auth = await requireAuth(request, env, { userProjection: PAID_FEATURE_ACCESS_USER_PROJECTION });
   const decision = await canAccessPaidFeature(auth.userId, YEAR_TAROT_FEATURE_KEY, {
     env,
     userDoc: auth.authUserDoc,
     reason: "십이지신 천운 타로",
+    // 회당 결제라 "이번 리딩의 결제"만 근거가 된다. 클라이언트는 결제와 이 요청에 같은
+    // requestId 를 쓰고(sessionStorage 보존), 리딩을 마치면 지운다 — 다음 리딩은 새 키다.
+    requestId,
   });
   if (!decision?.allowed) {
     return {
@@ -1834,10 +1842,12 @@ export async function handleTarotRoutes(request, env = {}) {
       let existingYearRecord = null;
 
       if (isYearReading) {
-        yearAccess = await requireYearTarotAccess(request, env);
-        if (!yearAccess.ok) return yearAccess.response;
+        // 🔴 결제 증빙 조회의 열쇠라 게이트보다 **먼저** 확정한다. 예전에는 게이트 뒤에서 만들어
+        //    게이트가 그 값을 쓸 수 없었고, 그래서 "산 적 있는가"로만 물었다.
         year = resolveYearValue(body?.year);
         requestId = resolveYearRequestId(body, year, cards);
+        yearAccess = await requireYearTarotAccess(request, env, requestId);
+        if (!yearAccess.ok) return yearAccess.response;
         const existing = await withMongoRetry(env, () => PaidExecutionRecord.findOne({
           userId: asText(yearAccess.auth.userId),
           featureId: YEAR_TAROT_FEATURE_KEY,

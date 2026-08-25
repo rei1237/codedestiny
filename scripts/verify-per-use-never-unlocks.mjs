@@ -378,6 +378,78 @@ check("🔴 이 가드가 보는 파일은 결제 게이트 트리거에도 있�
   }
 });
 
+// ── 5-c. 회당 결제 라우트는 "이번 요청의 결제"를 묻는다 ────────────────────────
+// canAccessPaidFeature 의 Payment 조회는 회당 결제에 한해 requestId 로 좁혀진다. 라우트가 그 키를
+// 안 넘기면 결제창으로 떨어지고(안전한 방향), 넘기지도 않고 자체 증빙도 없으면 **방금 카드로 결제한
+// 사용자가 402** 를 받는다. 그래서 호출부를 전수로 훑어 셋 중 하나를 만족하는지 본다.
+check("회당 결제 라우트가 결제 증빙을 요청 단위로 묻는다 (호출부 전수)", () => {
+  const ROUTES_DIR = path.join(ROOT, "worker/routes");
+  // 라우트가 스스로 이번 결제를 증명하는 방법들. 이름 목록이 아니라 **형태**로 잡는다 —
+  // 새 방식이 생기면 여기 안 걸려 실패하는데, 그건 좋은 실패다(사람이 한 번 보게 된다).
+  const SELF_EVIDENCE = /verify[A-Z]\w*(?:Evidence|Payment|Token)\b|already_purchased/;
+  const offenders = [];
+  let callSites = 0;
+
+  for (const file of fs.readdirSync(ROUTES_DIR).filter((name) => name.endsWith(".js")).sort()) {
+    const rel = `worker/routes/${file}`;
+    const source = read(rel);
+    // 파일이 선언한 featureKey 상수들 — 유형 판정의 재료다.
+    const declaredKeys = [...source.matchAll(/(?:const|let|var)\s+[A-Z0-9_]*FEATURE_KEY[A-Z0-9_]*\s*=\s*"([^"]+)"/g)]
+      .map((match) => match[1]);
+    const declaresPerUse = declaredKeys.some((key) => registry.isPerUsePaidFeatureKey(key));
+    const hasSelfEvidence = SELF_EVIDENCE.test(source);
+
+    for (const match of source.matchAll(/canAccessPaidFeature(?:sBatch)?\(/g)) {
+      // 주석 안의 언급은 호출부가 아니다.
+      const lineStart = source.lastIndexOf("\n", match.index) + 1;
+      const linePrefix = source.slice(lineStart, match.index);
+      if (/^\s*(\/\/|\*|\/\*)/.test(linePrefix)) continue;
+      callSites += 1;
+      const tail = source.slice(match.index, match.index + 700);
+      if (/requestId\s*[:,]|requestId\s*\}/.test(tail)) continue;
+      if (hasSelfEvidence) continue;
+      if (!declaresPerUse) continue; // 영구 해금/음악 트랙 등 — 회당 결제가 아니라 좁힐 대상이 아니다
+      const line = source.slice(0, match.index).split("\n").length;
+      offenders.push(`${rel}:${line}`);
+    }
+  }
+
+  assert.ok(callSites >= 15, `호출부를 ${callSites}곳밖에 못 찾았다 — 이 가드의 스캔이 낡았다(fail-closed)`);
+  assert.deepEqual(
+    offenders,
+    [],
+    `회당 결제인데 requestId 도 자체 증빙도 없다 — 결제한 사용자가 402 를 받는다:\n  ${offenders.join("\n  ")}`,
+  );
+});
+
+check("requestId 를 넘기기로 한 라우트가 계속 넘긴다", () => {
+  // 이 다섯은 자체 증빙이 없어 requestId 가 유일한 근거다. 빠지면 조용히 결제창 무한루프가 된다.
+  const REQUIRED = [
+    ["worker/routes/tarot.js", "async function requireYearTarotAccess(request, env, requestId)"],
+    ["worker/routes/ziwei-deep-report.js", "requestId: idempotencyKey"],
+    ["worker/routes/astrology-ai.js", "requestId: idempotencyKey"],
+    ["worker/routes/sukuyo-compatibility-ai.js", "requestId: idempotencyKey"],
+  ];
+  for (const [file, marker] of REQUIRED) {
+    assert.ok(read(file).includes(marker), `${file}: "${marker}" 가 사라졌다 — 회당 결제 증빙이 요청 단위를 잃는다`);
+  }
+  // ziwei 는 prepare·generate 두 곳 모두여야 한다. 402 응답(paymentRequired)에도 같은 문자열이
+  // 있으므로 파일 전체가 아니라 **canAccessPaidFeature 호출부**만 센다.
+  const ziweiSource = read("worker/routes/ziwei-deep-report.js");
+  const ziweiWired = [...ziweiSource.matchAll(/canAccessPaidFeature\([^;]*?\);/gs)]
+    .filter((match) => match[0].includes("requestId: idempotencyKey")).length;
+  assert.equal(ziweiWired, 2, `ziwei-deep-report 의 게이트 호출 ${ziweiWired}곳만 requestId 를 넘긴다(기대 2 = prepare + generate)`);
+});
+
+check("회당 결제의 Payment 조회는 requestId 없이는 나가지 않는다", () => {
+  const body = sliceFunctionBody(
+    read("worker/lib/paid-feature-access.js"),
+    "export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = {})",
+  );
+  assert.match(body, /perUseLookupCandidates\.size && requestScopeToken/, "회당 결제 조회가 requestId 를 요구하지 않는다");
+  assert.match(body, /\{ requestId: requestScopeToken \}/, "요청 스코프 절이 사라졌다 — 과거 결제가 다시 영원히 통과한다");
+});
+
 // ── 6. 셸 마크업 불변식 ────────────────────────────────────────────────────────
 // _cdFinalizeUnlockState(=영구 해금 확정 경로)의 진입점은 이 두 속성뿐이다. 여기에 회당 결제 키가
 // 들어오면 그 경로가 회당 결제를 영구 해금으로 만든다.

@@ -5399,6 +5399,9 @@ async function handlePaidAccessCheck(request, env) {
     subFeatureKey: body?.subFeatureKey || url.searchParams.get("subFeatureKey") || "",
     reason: body?.reason || url.searchParams.get("reason") || "",
     userDoc: auth?.authUserDoc || null,
+    // 회당 결제는 "이번 요청의 결제"만 근거가 된다. 이 조회가 게이트와 다른 답을 내면 화면과
+    // 서버 판정이 갈라지므로, 호출자가 준 요청 키를 그대로 넘겨 같은 질문을 하게 한다.
+    requestId: body?.requestId || body?.idempotencyKey || url.searchParams.get("requestId") || "",
   });
   const status = decision.reason === "LOGIN_REQUIRED" ? 401 : 200;
   return json({ ok: decision.allowed, data: decision, code: decision.reason }, { status });
