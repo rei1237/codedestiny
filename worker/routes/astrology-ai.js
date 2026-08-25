@@ -466,7 +466,9 @@ async function resolveEnsureAccess(env, auth, pricing, idempotencyKey, inputHash
     return { ok: true, accessType: "admin", paymentId: "" };
   }
 
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user });
+  // 회당 결제라 이번 상담(idempotencyKey)의 결제만 근거가 된다 — 예전에는 과거 결제 하나가
+  // 이후 모든 상담을 통과시켰다.
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: user, requestId: idempotencyKey });
   if (!decision.allowed) return { ok: false, reason: "PAYMENT_REQUIRED" };
 
   const accessType = mapAccessType(decision, user);

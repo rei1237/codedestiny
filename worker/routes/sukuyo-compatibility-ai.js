@@ -1166,7 +1166,9 @@ async function handleEnsureAccess(request, env) {
       accessType: "admin",
     });
   }
-  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc });
+  // 회당 결제라 이번 요청(idempotencyKey)의 결제만 근거가 된다. 402 가 이 키로 결제하라고
+  // 지시하므로(buildPaymentPayload), 결제 후 같은 키로 돌아오면 통과한다.
+  const decision = await canAccessPaidFeature(auth.userId, FEATURE_KEY, { env, reason: TITLE, userDoc: auth.authUserDoc, requestId: idempotencyKey });
   if (decision.allowed) {
     const accessType = mapAccessType(decision, user || {});
     logSukyoAi("[Sukyo AI LLM Access Check Success]", {

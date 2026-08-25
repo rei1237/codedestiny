@@ -426,22 +426,59 @@ export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = 
     }
   }
 
-  // 기존 Payment 기록은 ContentEntitlement와 User 호환 기록에 없는 경우만 읽는다.
-  const lookupCandidates = new Set();
+  /* 기존 Payment 기록은 ContentEntitlement와 User 호환 기록에 없는 경우만 읽는다.
+
+     🔴 영구 해금과 회당 결제는 **조회 범위가 다르다.**
+     - 영구 해금: 그 기능을 산 적이 있는가 → 결제 건을 특정하지 않는다(예전 그대로).
+     - 회당 결제: **이번 요청의** 결제가 있는가 → requestId 로 그 건을 찍어야 한다.
+     예전에는 둘 다 "산 적 있는가"로 물었다. 그래서 회당 결제를 카드로 한 번 결제하면 그
+     Payment 행이 영원히 남아 매 요청을 통과시켰다 — 새로고침으로도 안 풀리는 "한 번 사면
+     영원히 무료". requestId 는 worker/lib/nakshatra-paid-access.js 의 findPaidPayment 와 같은
+     네 필드로 찾는다(그쪽이 회당 결제 증빙의 정본 패턴이다).
+
+     🔴 requestId 를 안 넘긴 회당 결제 호출은 이 근거를 얻지 못한다(= 결제창으로 떨어진다).
+     그쪽이 안전한 기본값이다 — 반대로 열어 두면 그게 지금 고치는 결함이다. 회당 결제 라우트는
+     자기 idempotencyKey/requestId 를 넘겨야 하며, 그 배선은 verify:per-use-never-unlocks 가 본다. */
+  const requestScopeToken = cleanText(options.requestId || options.idempotencyKey);
+  const unlockLookupCandidates = new Set();
+  const perUseLookupCandidates = new Set();
   for (const spec of pendingSpecs) {
     if (spec.featureCandidates.some((key) => grantedKeySet.has(key))) continue;
-    for (const key of spec.featureCandidates) lookupCandidates.add(key);
+    const bucket = isPerUsePaidFeatureKey(spec.effectiveFeatureKey)
+      ? perUseLookupCandidates
+      : unlockLookupCandidates;
+    for (const key of spec.featureCandidates) bucket.add(key);
   }
 
-  if (lookupCandidates.size) {
-    // READ 전용 — 위 User 조회와 같은 사유로 재시도한다.
-    const payments = await withMongoRetry(env, () => Payment.find({
+  const paymentQueries = [];
+  if (unlockLookupCandidates.size) {
+    paymentQueries.push({
       userId: normalizedUserId,
-      featureKey: { $in: Array.from(lookupCandidates) },
+      featureKey: { $in: Array.from(unlockLookupCandidates) },
       paymentType: "digital_content",
       accessType: "single_purchase",
       status: { $in: SINGLE_PAYMENT_STATUSES },
-    }).select("featureKey").lean());
+    });
+  }
+  if (perUseLookupCandidates.size && requestScopeToken) {
+    paymentQueries.push({
+      userId: normalizedUserId,
+      featureKey: { $in: Array.from(perUseLookupCandidates) },
+      paymentType: "digital_content",
+      accessType: "single_purchase",
+      status: { $in: SINGLE_PAYMENT_STATUSES },
+      $or: [
+        { requestId: requestScopeToken },
+        { idempotencyKey: requestScopeToken },
+        { merchantUid: requestScopeToken },
+        { impUid: requestScopeToken },
+      ],
+    });
+  }
+
+  for (const query of paymentQueries) {
+    // READ 전용 — 위 User 조회와 같은 사유로 재시도한다.
+    const payments = await withMongoRetry(env, () => Payment.find(query).select("featureKey").lean());
     for (const payment of Array.isArray(payments) ? payments : []) {
       const key = cleanText(payment?.featureKey);
       if (key) grantedKeySet.add(key);

@@ -106,18 +106,49 @@ test("② 레지스트리에서 빠진 과거 키는 계속 열린다 (게이트
   expect(decision.allowed).toBe(true);
 });
 
-test("③ 회당 결제의 Payment 행 경로는 아직 살아 있다 (같이 막으면 방금 결제한 사용자가 402)", async () => {
+test("③ 회당 결제는 **이번 요청의** 결제만 근거가 된다 — requestId 를 넘기면 통과", async () => {
   const userId = nextUserId();
   seedUser(userId);
   paymentFind.mockReturnValue({
     select: () => ({ lean: async () => [{ featureKey: "ziwei-deep-pdf" }] }),
   });
 
+  const decision = await canAccessPaidFeature(userId, "ziwei-deep-pdf", { env: {}, requestId: "order-abc" });
+
+  expect(decision.allowed).toBe(true);
+  // 조회가 그 건으로 좁혀졌는지 — 이게 "한 번 사면 영원히 무료"를 끊는 지점이다.
+  const query = paymentFind.mock.calls[0][0];
+  expect(query.$or).toEqual([
+    { requestId: "order-abc" },
+    { idempotencyKey: "order-abc" },
+    { merchantUid: "order-abc" },
+    { impUid: "order-abc" },
+  ]);
+});
+
+test("③ requestId 가 없으면 과거 회당 결제는 근거가 되지 않는다 (한 번 사면 영원히 무료 차단)", async () => {
+  const userId = nextUserId();
+  seedUser(userId);
+  // 과거 결제가 DB 에 있어도 — 조회 자체가 나가지 않아야 한다.
+  paymentFind.mockReturnValue({
+    select: () => ({ lean: async () => [{ featureKey: "ziwei-deep-pdf" }] }),
+  });
+
   const decision = await canAccessPaidFeature(userId, "ziwei-deep-pdf", { env: {} });
 
-  // 🔴 이 단언이 깨지면 그건 회귀가 아니라 **다음 작업이 시작된 것**이다. 그때는
-  //    tarot-year-fortune · ziwei-deep-pdf 라우트에 requestId 스코프 증빙을 먼저 넣고
-  //    이 테스트를 "소비된 결제는 다시 통과시키지 않는다" 로 다시 쓴다.
+  expect(decision.allowed).toBe(false);
+  expect(paymentFind).not.toHaveBeenCalled();
+});
+
+test("③ 영구 해금의 Payment 조회는 여전히 결제 건을 특정하지 않는다 (대조군)", async () => {
+  const userId = nextUserId();
+  seedUser(userId);
+  paymentFind.mockReturnValue({
+    select: () => ({ lean: async () => [{ featureKey: "sukuyo-relationship-encyclopedia" }] }),
+  });
+
+  const decision = await canAccessPaidFeature(userId, "sukuyo-relationship-encyclopedia", { env: {} });
+
   expect(decision.allowed).toBe(true);
-  expect(paymentFind).toHaveBeenCalled();
+  expect(paymentFind.mock.calls[0][0].$or).toBeUndefined();
 });
