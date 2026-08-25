@@ -15189,6 +15189,143 @@
         "profileLine": "She reads the grain of your heart with a soft sensibility, yet she blooms slowly, and only for someone who tends her own wounds as well — a healer.",
         "bestApproach": "Come closer slowly with soft, sincere words, and do not only expect the comfort she gives; ask after her heart in return."
       }
+    },
+    "chrome": {
+      "preparingStoryLocation": "Love Code",
+      "preparingStoryTitle": "Story in preparation",
+      "preparingStorySituation": "This character's story is still being prepared.",
+      "preparingStoryDialogue": "{name}'s story will open more deeply soon.",
+      "matchFormAria": "Match by partner information",
+      "partnerNamePlaceholder": "Enter a name",
+      "birthDateAria": "Birth date",
+      "birthHourAria": "Birth time",
+      "birthCountryAria": "Birth country",
+      "countryOptions": {
+        "seoul": "Korea · Seoul time",
+        "tokyo": "Japan · Tokyo time",
+        "shanghai": "China · Shanghai time",
+        "newYork": "United States · New York time",
+        "paris": "France · Paris time"
+      },
+      "backToIntro": "Back to intro",
+      "backToCharacterSelect": "Back to character selection",
+      "sajuHint": "View saju hints",
+      "sajuHintAria": "Open saju hints for {name}",
+      "finalRelationship": {
+        "fateOpen": {
+          "title": "A relationship where destiny's code opened",
+          "body": "Your hearts met in a fairly natural rhythm. It was not only attraction leading the way; you also created a pace where the other person could feel safe."
+        },
+        "slowBond": {
+          "title": "A bond that deepens slowly",
+          "body": "This connection is closer to something that lasts than something that burns quickly. Small gestures and repeated sincerity quietly opened the door between you."
+        },
+        "needsTuning": {
+          "title": "A spark that needs gentle tuning",
+          "body": "There was clear attraction, but your pace and ways of expressing love still need delicate adjustment. A slower check-in will help the feeling last."
+        },
+        "learnLanguage": {
+          "title": "A relationship learning each other's language",
+          "body": "The heart moved, but your emotional textures were not fully the same. Once you learn how the other person feels loved, the air between you can soften."
+        },
+        "needsSpace": {
+          "title": "A relationship that needs distance control",
+          "body": "This connection asks you to sense distance before emotional temperature. Leave enough space for the other person to breathe instead of rushing closer."
+        }
+      },
+      "matchFormDescription": "Enter their name and birth date to open the Love Code partner who matches closest within the gender you chose.",
+      "nameFieldLabel": "Name",
+      "birthDateFieldLabel": "Birth date",
+      "calendarOptions": {
+        "solar": "Solar",
+        "lunarRegular": "Lunar (regular month)",
+        "lunarLeap": "Lunar (leap month)"
+      },
+      "calendarHint": "We match their love style based on the calendar you chose.",
+      "birthTimeFieldLabel": "Birth time",
+      "birthCountryFieldLabel": "Birth country (place)",
+      "birthCountryNote": "*Daylight saving and longitude correction applied automatically",
+      "matchNote": "This match reflects both the time and place you entered.",
+      "partnerGenderFieldLabel": "Partner's gender",
+      "genderFemaleOption": "♀ Female",
+      "genderMaleOption": "♂ Male",
+      "timeKnownNote": "We reflect the birth time you chose.",
+      "timeUnknownNote": "Marked as unknown birth time; using a noon-based auxiliary calculation.",
+      "unknownTimeButton": "I don't know the birth time · use noon instead",
+      "matchingInProgress": "Finding the thread of fate...",
+      "startMatchButton": "Start matching with partner info",
+      "matchAnalysisFailedError": "We couldn't load their Saju information. Please check your input and try again.",
+      "loginRequiredError": "Login required.",
+      "paymentRequiredError": "Payment is required. Please choose a product in the payment window.",
+      "paymentVerifyFailedError": "Payment verification failed.",
+      "checkingPassMessage": "Checking your pass",
+      "introEyebrow": "A conversation whose flow changes with your Four Pillars and your choices",
+      "introTitle": "Love Code: Talk with the one fate picked",
+      "introDescription": "A visual-novel compatibility reading that follows each character's temperament, taste and sense of distance.",
+      "introChips": {
+        "saju": "Four Pillars profile",
+        "dialogue": "Character dialogue",
+        "flow": "Relationship flow"
+      },
+      "selectCharacterButton": "Choose a character",
+      "matchingReadingButton": "Reading the thread of fate",
+      "matchWithPartnerButton": "Match with partner info",
+      "mainMatchLeadPrefix": "Your partner is closest to ",
+      "mainMatchLeadHighlight": "the {name} type",
+      "mainMatchLeadSuffix": ".",
+      "dayMasterBadge": "{dayMaster} day master",
+      "confidenceBadge": "Confidence {value}",
+      "coupleScoreLine": "{grade} · {score} pts",
+      "coupleUnlinkedNote": "Link the birth date on your profile card and the reading will cover both sides of the match.",
+      "secondaryMatchLine": "Also close: {labels}",
+      "secondaryMatchTypeLabel": "the {name} type",
+      "startWithMatchButton": "Start the {name} simulation",
+      "characterSelectTitle": "Choose who to talk with",
+      "fullProfileAlt": "{name} full profile",
+      "portraitAlt": "{name} portrait",
+      "profileFaceAlt": "{name} face and basic profile",
+      "dialogueFaceAlt": "{name} dialogue portrait",
+      "miniFaceAlt": "{name} mini face",
+      "profileExpandedNote": "The full image and detailed profile are open.",
+      "profileCollapsedNote": "Start with the face and basic details at the top left.",
+      "profileCollapseButton": "Collapse profile",
+      "profileExpandButton": "View profile",
+      "maleCharacterBadge": "Male character",
+      "femaleCharacterBadge": "Female character",
+      "talkWithButton": "Talk with {name}",
+      "reselectCharacterButton": "Choose a character again",
+      "calculatingCompatibility": "Calculating your compatibility from both charts…",
+      "compatibilityInfoMissing": "We couldn't find the chart data needed for this compatibility reading.",
+      "reselectButton": "Choose again",
+      "compatibilityResultBody": "{grade} · {score} pts — calculated from both charts. Look again and the score is the same; only the order of the story changes.",
+      "riskLine": "Risk: {risk}",
+      "dateTipLine": "Date tip: {tip}",
+      "relationshipRouteLine": "Relationship route: {title}. {body}",
+      "dimensionLabels": {
+        "attraction": "Attraction",
+        "stability": "Stability",
+        "communication": "Communication",
+        "longevity": "Longevity",
+        "conflict": "Conflict handling"
+      },
+      "metricTone": {
+        "deep": "Deepening",
+        "steady": "Holding",
+        "careful": "Careful"
+      },
+      "sajuSummaryTitle": "Chart profile summary",
+      "myeongliPointsTitle": "Compatibility points",
+      "avoidFlowTitle": "Flows to avoid",
+      "choiceAnalysisTitle": "Analysis from your choices",
+      "choiceRecapLabel": "Choice {index} · {scene}",
+      "choiceRecapInsight": "A {tone} response. {insight}",
+      "openingStoryMessage": "Opening the character story.",
+      "restartButton": "Start over",
+      "entryModeMatchNote": "Simulation started from a chart-based recommendation",
+      "entryModePresetNote": "Simulation started from your own pick",
+      "sceneCounter": "Scene {index}/{total}",
+      "storyHoldTail": "Right now it matters more to read the mood than to answer.",
+      "openChoicesButton": "Choose your answer at the key moment"
     }
   }
 }

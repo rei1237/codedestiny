@@ -27,12 +27,12 @@ test("러브 시뮬레이션 콘텐츠가 12개 로케일 사전에 전부 있�
     featureDir,
     componentsDir,
   });
-  // 🔴 개수를 찍는다. 배선이 조용히 하나로 줄어도 위 fail-closed(>0)만으로는 안 잡힌다
-  //    — 지금 배선은 매칭 문장 하나다(`matching`).
+  // 🔴 개수를 찍는다. 배선이 조용히 하나로 줄어도 위 fail-closed(>0)만으로는 안 잡힌다.
+  //    지금 배선은 셋이다 — UI 크롬(`chrome`) · 캐릭터 표면(`characters`) · 매칭 문장(`matching`).
   const scopes = [...new Set(wired.map((entry) => entry.scope))].sort();
   assert.deepEqual(
     scopes,
-    ["characters", "matching"],
+    ["characters", "chrome", "matching"],
     "콘텐츠 배선 scope 집합이 달라졌다 — 배선을 지웠거나 새로 늘렸다면 이 목록도 함께 갱신할 것",
   );
 });
@@ -72,7 +72,7 @@ test("콘텐츠 정본은 소스에 남아 있고 ko 는 소스와 일치한다"
       );
     }
   }
-  assert.ok(checked >= 144, `저작 항목을 ${checked}개밖에 못 읽었다 — 파일이 비었거나 형식이 바뀌었다`);
+  assert.ok(checked >= 257, `저작 항목을 ${checked}개밖에 못 읽었다 — 파일이 비었거나 형식이 바뀌었다`);
 });
 
 test("자리표시자는 12개 로케일에서 같은 집합이다", () => {

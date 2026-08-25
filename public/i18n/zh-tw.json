@@ -15189,6 +15189,143 @@
         "profileLine": "她用柔軟的感性讀出你心裡的紋理，卻只在也會照看她傷口的人面前，慢慢綻放——療癒者型。",
         "bestApproach": "用柔軟而真誠的表達慢慢靠近，別只期待她給的安慰，也要回問她的心情。"
       }
+    },
+    "chrome": {
+      "preparingStoryLocation": "Love Code",
+      "preparingStoryTitle": "籌備中的故事",
+      "preparingStorySituation": "這位角色的故事還在籌備中。",
+      "preparingStoryDialogue": "{name} 的故事很快就會更深地展開。",
+      "matchFormAria": "輸入對方資訊進行配對",
+      "partnerNamePlaceholder": "請輸入姓名",
+      "birthDateAria": "出生日期",
+      "birthHourAria": "出生時間",
+      "birthCountryAria": "出生國家",
+      "countryOptions": {
+        "seoul": "韓國 · 首爾時間",
+        "tokyo": "日本 · 東京時間",
+        "shanghai": "中國 · 上海時間",
+        "newYork": "美國 · 紐約時間",
+        "paris": "法國 · 巴黎時間"
+      },
+      "backToIntro": "返回開頭",
+      "backToCharacterSelect": "返回角色選擇",
+      "sajuHint": "查看四柱八字提示",
+      "sajuHintAria": "展開 {name} 的四柱八字提示",
+      "finalRelationship": {
+        "fateOpen": {
+          "title": "命運代碼打開的關係",
+          "body": "兩個人的心相當自然地咬合在了一起。不只是吸引力走在前面，你們還一起造出了讓對方安心的節奏。"
+        },
+        "slowBond": {
+          "title": "慢慢加深的緣分",
+          "body": "這段關係更接近久留，而不是快速燃燒。細小的體貼與一再重複的真心，安靜地打開了你們之間的門。"
+        },
+        "needsTuning": {
+          "title": "有心動但需要調音的關係",
+          "body": "吸引力很明確，但你們的速度與表達方式還需要更細緻的調整。想讓心動久留，慢半拍的確認更有用。"
+        },
+        "learnLanguage": {
+          "title": "要學習彼此語言的關係",
+          "body": "心動了，但你們表達的質地並不完全相同。當你學會對方以什麼方式感受愛，兩人之間的空氣就會柔和許多。"
+        },
+        "needsSpace": {
+          "title": "需要調節距離感的關係",
+          "body": "在這段關係裡，距離感比情緒溫度更先被提出來。與其勉強靠近，不如留出讓對方能喘口氣的餘白。"
+        }
+      },
+      "matchFormDescription": "留下姓名與出生日期，就會在您選擇的性別裡打開最相似的 Love Code 對象。",
+      "nameFieldLabel": "姓名",
+      "birthDateFieldLabel": "出生日期",
+      "calendarOptions": {
+        "solar": "陽曆",
+        "lunarRegular": "農曆（平月）",
+        "lunarLeap": "農曆（閏月）"
+      },
+      "calendarHint": "以您選擇的曆法為準，來對齊對方的戀愛質地。",
+      "birthTimeFieldLabel": "出生時間",
+      "birthCountryFieldLabel": "出生國家（地點）",
+      "birthCountryNote": "*自動套用夏令時與經度校正",
+      "matchNote": "目前的配對會一併反映您輸入的時間與地點訊號。",
+      "partnerGenderFieldLabel": "對方性別",
+      "genderFemaleOption": "♀ 女性",
+      "genderMaleOption": "♂ 男性",
+      "timeKnownNote": "會連您選的出生時刻一起反映。",
+      "timeUnknownNote": "標記為出生時間不詳，並採用以正午為準的輔助計算。",
+      "unknownTimeButton": "我不知道出生時間 · 以正午為準查看",
+      "matchingInProgress": "正在尋找緣分的紋路...",
+      "startMatchButton": "用對方資訊開始配對",
+      "matchAnalysisFailedError": "沒能讀取對方的四柱八字資訊。請確認輸入內容後再試一次。",
+      "loginRequiredError": "需要先登入。",
+      "paymentRequiredError": "需要付費。請在支付視窗中選擇商品。",
+      "paymentVerifyFailedError": "支付確認失敗。",
+      "checkingPassMessage": "正在確認通行證",
+      "introEyebrow": "隨四柱八字傾向與選擇而改變走向的對話",
+      "introTitle": "Love Code：與命定的對象對話",
+      "introDescription": "這是一場跟著角色的性情、喜好與距離感走的視覺小說式合盤。",
+      "introChips": {
+        "saju": "四柱八字傾向",
+        "dialogue": "角色對話",
+        "flow": "關係走向"
+      },
+      "selectCharacterButton": "選擇角色",
+      "matchingReadingButton": "正在讀取緣分的紋路",
+      "matchWithPartnerButton": "用對方資訊配對",
+      "mainMatchLeadPrefix": "您輸入的對象最接近",
+      "mainMatchLeadHighlight": "{name} 型的性情",
+      "mainMatchLeadSuffix": "。",
+      "dayMasterBadge": "{dayMaster} 日干",
+      "confidenceBadge": "可信度 {value}",
+      "coupleScoreLine": "{grade} · {score} 分",
+      "coupleUnlinkedNote": "把個人資料卡上的出生日期連上，就會連雙向合盤一起反映進來。",
+      "secondaryMatchLine": "同樣接近的性情：{labels}",
+      "secondaryMatchTypeLabel": "{name} 型",
+      "startWithMatchButton": "開始 {name} 型模擬",
+      "characterSelectTitle": "選擇對話的對象",
+      "fullProfileAlt": "{name} 的完整形象",
+      "portraitAlt": "{name} 的形象",
+      "profileFaceAlt": "{name} 的面容與基本資料",
+      "dialogueFaceAlt": "{name} 的對話面容",
+      "miniFaceAlt": "{name} 的迷你頭像",
+      "profileExpandedNote": "完整圖像與詳細資料已經展開。",
+      "profileCollapsedNote": "請先看左上角的面容與基本資訊。",
+      "profileCollapseButton": "收起資料",
+      "profileExpandButton": "查看資料",
+      "maleCharacterBadge": "男性角色",
+      "femaleCharacterBadge": "女性角色",
+      "talkWithButton": "和 {name} 對話",
+      "reselectCharacterButton": "重新選擇角色",
+      "calculatingCompatibility": "正在用兩個人的四柱八字計算合盤…",
+      "compatibilityInfoMissing": "沒能確認到用來計算合盤的四柱八字資訊。",
+      "reselectButton": "重新選擇",
+      "compatibilityResultBody": "{grade} · {score} 分 —— 由兩個人的四柱八字算出的結果。再看一次分數也一樣，只是故事的順序會變。",
+      "riskLine": "風險：{risk}",
+      "dateTipLine": "約會提示：{tip}",
+      "relationshipRouteLine": "關係路線：{title}。{body}",
+      "dimensionLabels": {
+        "attraction": "吸引",
+        "stability": "穩定性",
+        "communication": "溝通",
+        "longevity": "持續性",
+        "conflict": "衝突管理"
+      },
+      "metricTone": {
+        "deep": "正在加深",
+        "steady": "持續著",
+        "careful": "還很謹慎"
+      },
+      "sajuSummaryTitle": "四柱八字傾向摘要",
+      "myeongliPointsTitle": "命理合盤要點",
+      "avoidFlowTitle": "該避開的走向",
+      "choiceAnalysisTitle": "基於對話選擇的分析",
+      "choiceRecapLabel": "選擇 {index} · {scene}",
+      "choiceRecapInsight": "{tone} 的反應。{insight}",
+      "openingStoryMessage": "正在打開角色故事。",
+      "restartButton": "重新開始",
+      "entryModeMatchNote": "由四柱八字配對推薦開始的模擬",
+      "entryModePresetNote": "由您自己挑選開始的模擬",
+      "sceneCounter": "場景 {index}/{total}",
+      "storyHoldTail": "此刻比起回答，更該讀一讀氣氛。",
+      "openChoicesButton": "在關鍵時刻選擇回答"
     }
   }
 }
