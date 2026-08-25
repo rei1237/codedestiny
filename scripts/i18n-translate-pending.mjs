@@ -148,6 +148,17 @@ const mirrorEnLocales = (() => {
  */
 const neuronBudget = Number(flagValue("--neuron-budget", String(WORKERS_AI_DAILY_FREE_NEURONS - 500)));
 
+/**
+ * Gemini **누적** 지출 상한(USD). 🔴 하루 단위가 아니라 누적이다 — Cloudflare 의 Neuron 은
+ * 매일 무료분이 리셋되지만 Gemini 는 그냥 월 청구라, 막아야 하는 것은 총액이다.
+ *
+ * gemini-2.5-flash 유료 티어 단가(2026-08-25 조회): 입력 $0.30 / 출력 $2.50 per M tokens.
+ * 키가 무료 티어면 실제 청구는 0 이고 이 계산은 상한(worst case) 추정으로 동작한다.
+ */
+const geminiBudgetUsd = Number(flagValue("--gemini-budget-usd", "5"));
+const GEMINI_USD_PER_M_INPUT = 0.3;
+const GEMINI_USD_PER_M_OUTPUT = 2.5;
+
 // 🔴 자격증명 파일은 체인에 무엇이 들어 있든 먼저 읽는다. GEMINIF_API_KEY 도 여기 들어 있고,
 //    워크트리에서 돌 때는 저장소 루트를 되짚어야 잡힌다.
 if (!dryRun) loadLocalEnvFiles();
@@ -171,12 +182,20 @@ if (usesWorkersAi && !dryRun) {
  * 🔴 캐시 키에 provider·model 이 들어간다. 청크 내용만 해싱하면 Gemini 로 만든 캐시를
  * Workers AI 실행이 그대로 주워 써서, 백엔드를 바꾼 의미가 사라지고 품질 비교도 못 한다.
  */
+/**
+ * 🔴 용어집도 해시에 넣는다. 용어집은 프롬프트에 통째로 주입되므로 **번역 결과를 바꾸는 입력**이다.
+ * 넣지 않으면 용어집을 고쳐도 옛 캐시가 그대로 적중해 고친 보람이 없다 — 2026-08-25 에
+ * 캐릭터 이름 16개를 용어집에 넣고도 zh 가 계속 "새벽 → 凌晨" 을 돌려주던 이유가 이것이다.
+ */
+const glossaryHash = createHash("sha1").update(JSON.stringify(glossary)).digest("hex").slice(0, 8);
+
 const chunkHash = (chunk) =>
   createHash("sha1")
     .update(
       JSON.stringify({
         chain: providerChain.join(","),
         model: usesWorkersAi ? workersAiModel : null,
+        glossary: glossaryHash,
         chunk,
       }),
     )
@@ -224,31 +243,67 @@ function buildPrompt(entries, target) {
   ].join("\n");
 }
 
-/** 예산 소진은 재시도 대상이 아니다 — translateChunk 가 이 클래스를 보고 즉시 손을 뗀다. */
-class NeuronBudgetExhausted extends Error {}
+/**
+ * 예산 소진은 재시도 대상이 아니다 — translateChunk 가 이 클래스를 보고 즉시 손을 뗀다.
+ * Workers AI(Neuron)와 Gemini(USD) 양쪽이 같은 클래스를 쓴다.
+ */
+class BudgetExhausted extends Error {}
+/** 예전 이름. 지우지 말 것 — 아래 분기들이 이 이름으로 잡는다. */
+const NeuronBudgetExhausted = BudgetExhausted;
 
 const ledgerPath = () => join(cacheDir, "neuron-ledger.json");
 /** 🔴 Cloudflare 의 리셋 기준은 00:00 **UTC** 다. 로컬 날짜로 세면 한국시간 오전 9시에 어긋난다. */
 const utcDay = () => new Date().toISOString().slice(0, 10);
 
+/**
+ * 원장 형식. 예전에는 `{ "2026-08-25": 1025 }` 처럼 날짜→Neuron 평면 객체였다.
+ * 🔴 옛 형식을 그대로 읽어 옮긴다 — 안 그러면 오늘 이미 쓴 Neuron 이 0 으로 보여
+ * 하루 한도를 두 번 쓰게 된다.
+ */
 function readLedger() {
+  let raw;
   try {
-    return JSON.parse(readFileSync(ledgerPath(), "utf8"));
+    raw = JSON.parse(readFileSync(ledgerPath(), "utf8"));
   } catch {
-    return {};
+    raw = {};
   }
+  if (raw && raw.neuronsByUtcDay) return raw;
+  // 옛 평면 형식 → 새 형식
+  const legacy = {};
+  for (const [key, value] of Object.entries(raw || {})) {
+    if (/^\d{4}-\d{2}-\d{2}$/.test(key) && typeof value === "number") legacy[key] = value;
+  }
+  return { neuronsByUtcDay: legacy, geminiUsdTotal: 0, geminiUsdByUtcDay: {} };
+}
+
+function writeLedger(ledger) {
+  mkdirSync(cacheDir, { recursive: true });
+  writeFileSync(ledgerPath(), `${JSON.stringify(ledger, null, 2)}\n`, "utf8");
 }
 
 function spentToday() {
-  return Number(readLedger()[utcDay()] || 0);
+  return Number(readLedger().neuronsByUtcDay?.[utcDay()] || 0);
+}
+
+/** Gemini 누적 지출(USD). 상한은 하루가 아니라 총액에 건다. */
+function geminiSpentUsd() {
+  return Number(readLedger().geminiUsdTotal || 0);
 }
 
 function recordNeurons(amount) {
-  mkdirSync(cacheDir, { recursive: true });
   const ledger = readLedger();
-  ledger[utcDay()] = Number(ledger[utcDay()] || 0) + amount;
-  writeFileSync(ledgerPath(), `${JSON.stringify(ledger, null, 2)}\n`, "utf8");
-  return ledger[utcDay()];
+  ledger.neuronsByUtcDay[utcDay()] = Number(ledger.neuronsByUtcDay[utcDay()] || 0) + amount;
+  writeLedger(ledger);
+  return ledger.neuronsByUtcDay[utcDay()];
+}
+
+function recordGeminiUsd(amount) {
+  const ledger = readLedger();
+  ledger.geminiUsdTotal = Number(ledger.geminiUsdTotal || 0) + amount;
+  ledger.geminiUsdByUtcDay = ledger.geminiUsdByUtcDay || {};
+  ledger.geminiUsdByUtcDay[utcDay()] = Number(ledger.geminiUsdByUtcDay[utcDay()] || 0) + amount;
+  writeLedger(ledger);
+  return ledger.geminiUsdTotal;
 }
 
 /**
@@ -332,6 +387,15 @@ async function callModel(prompt) {
         providerUse.gemini += 1;
         return result;
       } catch (error) {
+        // 누적 지출 상한도 '쓸 수 없게 된 경우' 다 — 뒤에 백엔드가 있으면 넘긴다.
+        if (error instanceof BudgetExhausted) {
+          geminiQuotaSpent = true;
+          if (providerChain.indexOf(name) < providerChain.length - 1) {
+            console.log(`[translate] ⏭ ${error.message} — 이후는 Workers AI 가 처리합니다`);
+            continue;
+          }
+          throw error;
+        }
         // 🔴 429 만 넘긴다. 다른 오류(스키마·빈 응답 등)는 백엔드를 바꿔도 같은 결과라
         //    재시도 로직이 받는 편이 맞다.
         const rateLimited = /\b429\b|RESOURCE_EXHAUSTED|quota/i.test(String(error?.message || ""));
@@ -348,7 +412,18 @@ async function callModel(prompt) {
   throw new NeuronBudgetExhausted(`쓸 수 있는 백엔드가 없습니다 (체인: ${providerChain.join(",")})`);
 }
 
+/** 관측된 Gemini 1회 최대 비용(USD). Neuron 쪽과 같은 이유로 평균이 아니라 최대를 예약한다. */
+let maxObservedGeminiUsd = 0;
+const FIRST_GEMINI_CALL_RESERVE_USD = 0.05;
+
 async function callGemini(prompt) {
+  const spentUsd = geminiSpentUsd();
+  const reserveUsd = maxObservedGeminiUsd || FIRST_GEMINI_CALL_RESERVE_USD;
+  if (spentUsd + reserveUsd > geminiBudgetUsd) {
+    throw new BudgetExhausted(
+      `Gemini 누적 예산 $${geminiBudgetUsd} 에 도달했습니다 (사용 $${spentUsd.toFixed(4)} + 다음 호출 예약 $${reserveUsd.toFixed(4)})`,
+    );
+  }
   const response = await fetch(`${ENDPOINT}?key=${apiKey}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
@@ -365,6 +440,15 @@ async function callGemini(prompt) {
   });
   if (!response.ok) throw new Error(`Gemini ${response.status}: ${(await response.text()).slice(0, 300)}`);
   const json = await response.json();
+  // 🔴 usageMetadata 를 반드시 읽는다. 안 읽으면 얼마를 썼는지 모른 채로 도는 것이고,
+  //    그 상태의 예산 상한은 가드가 아니다.
+  const usage = json?.usageMetadata || {};
+  const inTok = Number(usage.promptTokenCount || 0);
+  const outTok = Number(usage.candidatesTokenCount || 0) + Number(usage.thoughtsTokenCount || 0);
+  const usd = (inTok / 1e6) * GEMINI_USD_PER_M_INPUT + (outTok / 1e6) * GEMINI_USD_PER_M_OUTPUT;
+  if (usd > maxObservedGeminiUsd) maxObservedGeminiUsd = usd;
+  const usdTotal = recordGeminiUsd(usd);
+  lastUsage = { prompt_tokens: inTok, completion_tokens: outTok, usd, usdTotal };
   const text = json?.candidates?.[0]?.content?.parts?.map((p) => p.text).join("") || "";
   if (!text.trim()) throw new Error(`빈 응답 (finishReason=${json?.candidates?.[0]?.finishReason})`);
   return JSON.parse(text);
@@ -626,6 +710,16 @@ summary.forEach((s) => console.log(`[translate]   ${s.locale.padEnd(6)} 적용 $
 console.log(
   `[translate] 백엔드 사용: workers-ai ${providerUse["workers-ai"]}청크 · gemini ${providerUse.gemini}청크`,
 );
+
+if (usesGemini) {
+  const usd = geminiSpentUsd();
+  console.log(
+    `[translate] Gemini 누적 지출: $${usd.toFixed(4)} / 상한 $${geminiBudgetUsd} (남은 $${(geminiBudgetUsd - usd).toFixed(4)})`,
+  );
+  console.log(
+    "[translate]   단가 기준 gemini-2.5-flash 유료 티어 $0.30/M in · $2.50/M out — 키가 무료 티어면 실제 청구는 0 이다.",
+  );
+}
 
 if (usesWorkersAi) {
   const spent = spentToday();
