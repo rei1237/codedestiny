@@ -19,7 +19,7 @@
       "file": "index.html",
       "marker": "  async function _cdOpenPaidServiceGate(options) {",
       "why": "정적 셸의 유료 게이트 진입점.",
-      "sha256": "b320d519d47394a1"
+      "sha256": "481f20feb2765d16"
     },
     {
       "file": "js/destiny-profile.js",
