@@ -105,7 +105,19 @@ const mirrorEnLocales = (() => {
   const raw = flagValue("--mirror-en", "");
   return raw ? raw.split(",").map((s) => s.trim()).filter(Boolean) : [];
 })();
-const neuronBudget = Number(flagValue("--neuron-budget", String(WORKERS_AI_DAILY_FREE_NEURONS)));
+/**
+ * 하루 예산. 🔴 기본값이 무료 할당(10,000)이 **아니라** 그보다 낮다.
+ *
+ * 두 가지 이유다.
+ *  1. 예산 검사는 호출 **전에** 한다. 아래 reserve 로직이 다음 호출 몫을 미리 빼 두지만,
+ *     관측값이 없는 첫 호출은 추정치라 여유가 필요하다.
+ *  2. 🔴 원장은 **이 스크립트가 쓴 것만** 센다. 같은 계정의 프로덕션 폴백
+ *     (lib/llm-client.ts → env.AI.run)이 쓴 양은 안 잡힌다. Gemini 가 실패해 폴백이 도는
+ *     날에는 계정 총량이 원장보다 크고, 그 차이가 그대로 초과분이 된다.
+ *
+ * 계정의 **실제** 소비량은 `node scripts/check-workers-ai-quota.mjs` 로 확인한다(조회 전용).
+ */
+const neuronBudget = Number(flagValue("--neuron-budget", String(WORKERS_AI_DAILY_FREE_NEURONS - 500)));
 
 const apiKey = process.env.GEMINIF_API_KEY;
 if (provider === "gemini" && !apiKey && !dryRun) {
@@ -201,10 +213,23 @@ function recordNeurons(amount) {
   return ledger[utcDay()];
 }
 
+/**
+ * 관측된 호출 1회 최대 비용. 🔴 평균이 아니라 **최대**를 예약분으로 쓴다 — 평균으로 잡으면
+ * 평균보다 비싼 호출 하나가 그대로 한도를 넘긴다.
+ * 관측 전 첫 호출은 실측 상한(2026-08-25: 50키 청크 약 210)에 여유를 붙인 값을 쓴다.
+ */
+let maxObservedNeurons = 0;
+const FIRST_CALL_RESERVE = 400;
+
 async function callWorkersAi(prompt) {
   const spent = spentToday();
-  if (spent >= neuronBudget) {
-    throw new NeuronBudgetExhausted(`오늘(UTC ${utcDay()}) 예산 ${neuronBudget} Neuron 을 다 썼습니다 (${spent.toFixed(0)})`);
+  const reserve = maxObservedNeurons || FIRST_CALL_RESERVE;
+  // 🔴 "다 썼는가" 가 아니라 "이번 호출까지 하면 넘는가" 로 판단한다. 호출 전 검사라 그렇게
+  //    해야 마지막 한 번이 한도를 넘지 않는다 — Paid 플랜에서 초과분은 그대로 청구된다.
+  if (spent + reserve > neuronBudget) {
+    throw new NeuronBudgetExhausted(
+      `오늘(UTC ${utcDay()}) 예산 ${neuronBudget} Neuron 에 도달했습니다 (사용 ${spent.toFixed(0)} + 다음 호출 예약 ${reserve.toFixed(0)})`,
+    );
   }
 
   // 요청 모양은 lib/llm-client.ts 의 buildWorkersAiInput 과 같다.
@@ -218,6 +243,7 @@ async function callWorkersAi(prompt) {
 
   const result = await workersAi.run(workersAiModel, input);
   const used = neuronsFor(workersAiModel, result?.usage);
+  if (used > maxObservedNeurons) maxObservedNeurons = used;
   const total = recordNeurons(used);
   lastUsage = { ...result?.usage, neurons: used, todayTotal: total };
 
@@ -518,6 +544,7 @@ if (provider === "workers-ai") {
     .map(([f, t]) => `${t.code} ${missingKeysFor(f).length}`)
     .join(" · ");
   console.log(`[translate] 남은 결손: ${remaining}`);
+  console.log("[translate] 🔴 원장은 이 스크립트가 쓴 것만 셉니다 — 계정 실제 소비량은 node scripts/check-workers-ai-quota.mjs 로 확인하세요.");
 }
 
 if (budgetStop) {
