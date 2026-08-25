@@ -7,6 +7,11 @@
  *
  * 🔴 금액을 여기 적지 않는다 — 가격 정본은 서버 레지스트리이고 화면은 PriceBadge 로만
  *    그린다. 여기에 리터럴을 넣으면 가격이 바뀌는 순간 화면이 거짓말을 한다.
+ *
+ * 🔴 여기 한국어가 ko 정본이다. 다른 로케일은 랜딩 컴포넌트가 걸어 둔
+ *    `useCodexContentCopy("heroSpecs"|"planBenefits"|"whyPremium"|"trustPoints", …)` 가 사전
+ *    (`masterLoveCodex.*`, 저작 정본 `i18n/authored/masterLoveCodex-*.json`)에서 가져간다.
+ *    문장을 고치거나 배열 순서를 바꾸면 사전 키도 같이 고쳐야 한다 — 사전 키가 인덱스다.
  */
 
 /** 히어로 스펙 — 이 상담이 실제로 다루는 축 */
@@ -77,17 +82,23 @@ export const CODEX_TRUST_POINTS = [
  * 🔴 이용권·월정석으로 무료 통과한 사용자에게 정가를 그대로 띄우면, 결제하지 않은 금액을
  *    청구받은 것처럼 보인다. 서버가 세션에 남긴 accessType 으로 갈라 준다.
  *    (worker/routes/master-love-codex.js — paid / pass / monthly_credit / admin)
+ *
+ * 🔴 여기서 돌려주는 것은 **판정과 키**뿐이고 문장은 `_lib/copy.ts` 가 갖는다 —
+ *    codexAccessOutroLine 을 지운 것과 같은 이유다(아래 주석). 한국어 문장을 돌려주면
+ *    로케일 불문 그대로 화면에 찍혀, 비-ko 사용자가 자기 언어 옆에서 한국어를 본다.
  */
-export function codexAccessLabel(accessType: string): { showPrice: boolean; note: string } {
+export type CodexAccessNoteKey = "pass" | "monthly_credit" | "";
+
+export function codexAccessLabel(accessType: string): { showPrice: boolean; noteKey: CodexAccessNoteKey } {
   switch (String(accessType || "").toLowerCase()) {
     case "pass":
-      return { showPrice: false, note: "이용권 포함" };
+      return { showPrice: false, noteKey: "pass" };
     case "monthly_credit":
-      return { showPrice: false, note: "월정석 사용" };
+      return { showPrice: false, noteKey: "monthly_credit" };
     case "admin":
-      return { showPrice: false, note: "" };
+      return { showPrice: false, noteKey: "" };
     default:
-      return { showPrice: true, note: "" };
+      return { showPrice: true, noteKey: "" };
   }
 }
 
@@ -98,13 +109,20 @@ export function codexAccessLabel(accessType: string): { showPrice: boolean; note
 //    CodexReportOutro 가 codexAccessLabel(accessType).showPrice 로 묻는다.
 //    (삭제 전 3면 grep: 소스 임포터 0 · __tests__ 0 · scripts/verify-* 0)
 
-/** 종합 점수 구간 라벨 — CodexScoreOverview 가 쓴다 */
+/**
+ * 종합 점수 구간 — CodexScoreOverview 가 쓴다.
+ *
+ * 🔴 `label` 은 화면 문구가 아니라 **로케일 문구를 고르는 영문 키**다(CodexScoreOverview 의
+ *    tierCopy). 구간마다 한국어를 병기하던 `korean` 필드는 읽는 곳이 한 군데도 없었고
+ *    (3면 grep 2026-08-25: 소스·__tests__·scripts/verify-* 전부 0), 같은 문구를
+ *    `_lib/copy.ts` 의 scoreTier* 가 5개 로케일로 이미 갖고 있어 지웠다.
+ */
 export const CODEX_SCORE_TIERS = [
-  { min: 85, label: "Excellent Match", korean: "매우 좋은 결" },
-  { min: 70, label: "Strong Match", korean: "잘 맞는 결" },
-  { min: 55, label: "Balanced Match", korean: "균형 잡힌 결" },
-  { min: 40, label: "Growing Match", korean: "다듬어 가는 결" },
-  { min: 0, label: "Challenging Match", korean: "노력이 필요한 결" },
+  { min: 85, label: "Excellent Match" },
+  { min: 70, label: "Strong Match" },
+  { min: 55, label: "Balanced Match" },
+  { min: 40, label: "Growing Match" },
+  { min: 0, label: "Challenging Match" },
 ] as const;
 
 export function codexScoreTier(score: number) {

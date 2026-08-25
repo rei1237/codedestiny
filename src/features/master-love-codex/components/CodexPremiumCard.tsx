@@ -19,6 +19,7 @@ import {
   type MasterLoveCodexMode,
 } from "../constants";
 import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
+import { useCodexContentCopy } from "../_lib/contentCopy";
 import styles from "../styles/codex.module.css";
 
 interface CodexPremiumCardProps {
@@ -35,7 +36,7 @@ export default function CodexPremiumCard({ mode, featured = false, onSelect }: C
   const headline = mode === "compat"
     ? { eyebrow: codexCopy.compatEyebrow, title: codexCopy.compatTitle, note: codexCopy.compatNote }
     : { eyebrow: codexCopy.personalEyebrow, title: codexCopy.personalTitle, note: codexCopy.personalNote };
-  const benefits = CODEX_PLAN_BENEFITS[mode];
+  const benefits = useCodexContentCopy("planBenefits", CODEX_PLAN_BENEFITS)[mode];
 
   return (
     <article className={`${styles.premiumCard} ${featured ? styles.premiumCardFeatured : ""}`}>

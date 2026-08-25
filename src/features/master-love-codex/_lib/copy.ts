@@ -9,6 +9,7 @@
 
 import { useEffect, useState } from "react";
 import { getCurrentLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
+import type { CodexAccessNoteKey } from "../data/premium";
 
 export interface MasterLoveCodexErrorText {
   LOGIN_REQUIRED: string;
@@ -1250,6 +1251,19 @@ const MASTER_LOVE_CODEX_COPY: Partial<Record<LoadingLocale, MasterLoveCodexCopy>
 
 export function getMasterLoveCodexCopy(locale: LoadingLocale): MasterLoveCodexCopy {
   return { ...MASTER_LOVE_CODEX_COPY_EN, ...(MASTER_LOVE_CODEX_COPY[locale] || {}) };
+}
+
+/**
+ * `codexAccessLabel(accessType).noteKey` 를 화면 문구로 옮긴다.
+ *
+ * 🔴 판정은 `data/premium.ts` 가 갖고 문장은 여기가 갖는다. 이 함수가 없으면 두 소비처
+ * (CodexGenerating·CodexReportStamp)가 각자 키를 문장에 매핑하게 되고, 실제로 그렇게 갈라져
+ * 있던 동안 CodexGenerating 은 한국어를 로케일 불문 그대로 찍고 있었다.
+ */
+export function codexAccessNoteText(copy: MasterLoveCodexCopy, noteKey: CodexAccessNoteKey): string {
+  if (noteKey === "pass") return copy.passIncludedNote;
+  if (noteKey === "monthly_credit") return copy.monthlyCreditUsedNote;
+  return "";
 }
 
 export function useMasterLoveCodexLocale(): LoadingLocale {

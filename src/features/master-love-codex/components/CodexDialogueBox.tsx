@@ -85,7 +85,9 @@ export default function CodexDialogueBox({
     onAdvance?.();
   }, [characters.length, isAdvanceDisabled, isComplete, onAdvance]);
 
-  const label = speaker === "narration" ? "" : speaker;
+  // 🔴 `speaker` 는 대사 스크립트를 가르는 키(로케일 불문 한국어 고정)라 그대로 그리면 안 된다.
+  //    화면에 찍는 이름은 로케일별 표시 문구인 copy.narratorName 이다.
+  const label = speaker === "narration" ? "" : copy.narratorName;
 
   return (
     <div

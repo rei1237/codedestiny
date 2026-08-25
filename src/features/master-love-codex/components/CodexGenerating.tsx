@@ -14,7 +14,7 @@ import { getNarratorAsset } from "../data/assets";
 import { actsForMode } from "../data/acts";
 import { codexAccessLabel } from "../data/premium";
 import { masterLoveCodexBilling, type MasterLoveCodexMode } from "../constants";
-import { useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
+import { codexAccessNoteText, useMasterLoveCodexCopy, useMasterLoveCodexLocale } from "../_lib/copy";
 import styles from "../styles/codex.module.css";
 
 const DECRYPT_LATIN = ["Decrypting", "Reading Destiny", "Cross-checking", "Tracing Threads", "Synchronizing", "Sealing"] as const;
@@ -55,6 +55,7 @@ export default function CodexGenerating({
   const [lineIndex, setLineIndex] = useState(0);
   const billing = masterLoveCodexBilling(mode, locale);
   const access = codexAccessLabel(accessType);
+  const accessNote = codexAccessNoteText(copy, access.noteKey);
 
   // 시작 직후 0%로 멈춰 보이거나 끝나기 전에 100%로 보이지 않게 5~95로 가둔다.
   const raw = total > 0 ? Math.round((completed / total) * 100) : 0;
@@ -91,10 +92,10 @@ export default function CodexGenerating({
               <PriceBadge featureKey={billing.featureKey} fallbackCoins={billing.cost} className="font-bold" />
             </>
           ) : null}
-          {access.note ? (
+          {accessNote ? (
             <>
               <span aria-hidden="true">·</span>
-              {access.note}
+              {accessNote}
             </>
           ) : null}
         </p>
