@@ -11,8 +11,9 @@
 | 1. `master-love-codex/data/prologue.ts` + `premium.ts` | 2,354자 · 87키 | ✅ **완료** (PR #1131) — 아래 "슬라이스 1에서 정해진 것" |
 | 2. `love-simulation/_utils/loveCharacterMatching.ts` | 1,432자 · 80키 | ✅ **완료** — 아래 "슬라이스 2에서 정해진 것" |
 | ~~2b. `love-simulation/_data/scenarios.ts`~~ | ~~2,148자~~ | 🗑️ **삭제** — 참조 0이었다(아래) |
-| 3. `loveCharacterStories.ts` | 26,723자 | ⛔ 미착수 (캐릭터 단위로 쪼갤 것) |
-| 4. `loveCodeMvp.ts` | 106,658자 | ⛔ 미착수 (시나리오 블록 단위로 쪼갤 것) |
+| 3a. `loveCodeMvp.ts` 의 캐릭터 표면 4필드 | 1,643자 · 64키 | ✅ **완료** (PR #1133) — 아래 "슬라이스 3a에서 정해진 것" |
+| 3b. `loveCharacterStories.ts` | 26,723자 | ⛔ 미착수 (캐릭터 단위로 쪼갤 것) |
+| 4. `loveCodeMvp.ts` 나머지 | 105,015자 | ⛔ 미착수 (시나리오 블록 단위로 쪼갤 것) |
 
 ### 🔴 슬라이스 1에서 정해진 것 — 뒤 슬라이스는 그대로 따라 쓴다
 
@@ -82,17 +83,46 @@
    음성 테스트 실측 2026-08-25: `en.json` 에서 `loveSimulation.matching.coupleGrade.excellent` 를
    지우자 그 키 이름을 대며 실패했다.
 
-### 🔴 슬라이스 2가 남긴 것 — 슬라이스 3·4가 닫아야 한다
+### ~~슬라이스 2가 남긴 것~~ — 슬라이스 3a 가 닫았다
 
-매칭 문장의 `{name}`·`{archetype}`·`{profileLine}`·`{bestApproach}` 는 `_data/loveCodeMvp.ts` 의
-한국어를 그대로 받는다. 그래서 **지금 비-ko 화면은 틀만 그 언어이고 캐릭터 이름·소개는 한국어**다.
-캐릭터 16명 × 4필드(이름·아키타입·프로필라인·베스트어프로치) ≈ 2,560자가 이 구멍을 정확히 메운다 —
-🔴 **슬라이스 3을 시작할 때 이 4필드를 첫 덩어리로 잡을 것.** 캐릭터 이름은 `LoveSimulationEngine`
-곳곳에도 찍히므로 **캐릭터 표면 전체를 한 PR 에서 함께 옮겨야** 화면이 섞이지 않는다.
+~~매칭 문장의 `{name}`·`{archetype}`·`{profileLine}`·`{bestApproach}` 가 한국어를 그대로 받는다.~~
+→ ✅ PR #1133. 실측 1,643자(2,560자 추정보다 작았다).
 
-또 하나(미조치, 저위험): 매칭 결과는 **만들어진 시점의 언어 그대로 state 에 담긴다.** 매칭 후
+여전히 미조치(저위험): 매칭 결과는 **만들어진 시점의 언어 그대로 state 에 담긴다.** 매칭 후
 언어를 바꾸면 카드가 이전 언어를 유지하고, 다시 매칭해야 갱신된다. 고치려면 문장 대신
 `키 + 파라미터`를 state 에 담고 렌더 시점에 조립해야 하는데 상태 구조를 바꿔야 해서 미뤘다.
+
+### 🔴 슬라이스 3a에서 정해진 것 — 뒤 슬라이스는 그대로 따라 쓴다
+
+1. **`data/` 상수의 로케일화는 "리터럴 표를 정본으로 세우고 원본이 그걸 펼쳐 쓰는" 모양이다.**
+   `LOVE_CHARACTER_COPY_KO`(16명 × 4필드)를 `_data/loveCodeMvp.ts` 에 **객체 리터럴**로 두고,
+   `LOVE_CHARACTERS` 의 각 항목이 `...LOVE_CHARACTER_COPY_KO["<id>"]` 로 펼쳐 쓴다.
+   사본이 아니라 **유일한 출처**라 드리프트가 구조적으로 불가능하다.
+   🔴 `map` 으로 만들어 내지 말 것 — 가드가 AST 로 **리터럴 선언**을 찾아 검사 대상을 정하므로
+   파생시키면 "리터럴을 못 찾았다"로 통째로 죽는다.
+2. **한 상수에서 번역 대상은 표시 4필드뿐이다.** `id`·`dayMaster`(`병화`)·`element`·`keywords`·
+   `matchKeywords`·`sajuMatchProfile` 은 사주 계산 결과와 대조하는 **조회 키**라 한국어로 남는다
+   (슬라이스 2의 5번과 같은 부류). 그래서 `skipKeys` 대신 **필드를 아예 분리한 표**를 만들었다 —
+   `skipKeys` 로 걷어내려면 스킵 이름을 8개 넘게 적어야 하고 그건 손으로 쓴 대상 목록이 된다.
+3. **고유명사 표기는 새로 정하지 말고 이미 나간 것을 따른다.** 캐릭터 이름은 `shellRuntime`
+   사전(같은 페이지 `page.tsx` 소개 문단, 키 `f2205`·`f2211`·`f2217`·`f2222`·`f2223`)에 이미
+   12개 로케일로 나가 있었다 — **en·zh 는 로마자**(`Kang Tae-jun`), **ja 는 カタカナ**(`カン・テジュン`).
+   아키타입도 그중 7개가 이미 번역돼 있어 그대로 가져왔다. `Neo`·`Yeoni` 는 `glossary.json` 의
+   `doNotTranslate` 라 en·zh 에서 원형 유지, ja 만 관용 표기(`ネオ`·`ヨニ`)다.
+   🔴 **새 캐릭터·지명을 옮기기 전에 `i18n/authored/shellRuntime-*.json` 부터 grep 할 것.**
+4. **가드는 파일명을 손으로 적지 않는다.** `__tests__/ui/love-simulation-content-i18n.static.test.js`
+   가 `i18n/authored/loveSimulation-*.json` 을 **디렉터리에서 전수 발견**하고, ko 대조 범위도
+   한 파일이 아니라 **피처 전체 TS 소스**다. 다음 청크(`-03.json`)는 파일을 만들기만 하면 자동으로
+   검사에 든다. scope 집합 단언만 함께 갱신하면 된다(현재 `["characters", "matching"]`).
+   음성 테스트 실측 2026-08-25 — 4건 전부 실패 확인: en.json 키 삭제 / ja.json 에 한국어 잔존 /
+   저작 ko 를 소스와 불일치 / `characters` 배선 제거.
+5. 🔴 **화면이 섞이는 범위를 정직하게 적을 것.** 이 피처의 캐릭터 선택 화면은 아직 생 한국어 JSX
+   ("대화할 상대 선택"·"프로필 보기"·"…형 성향과 가장 가까워요")가 그대로 있다 — **UI 축이고
+   locale-service 문서 소관이다.** 그래서 지금 비-ko 화면은 *이름·아키타입·소개만* 그 언어이고
+   껍데기는 한국어다. 슬라이스 3a 는 그걸 고치지 않았다(감싸지 않는다 — 슬라이스 2의 3번).
+6. **하위 컴포넌트의 `alt` 는 남겨 두었다.** `CharacterPortrait`·`CharacterProfileCrop`·
+   `CharacterDialogueCrop` 은 `character` 만 받아서 카피를 넘기려면 prop 을 늘려야 한다.
+   다음에 이 셋을 건드릴 때 함께 처리할 것(3곳, `LoveSimulationEngine.tsx` 686·703·717 근처).
 
 ## 🔴 먼저: 이건 한 세션에 안 끝난다
 
@@ -100,7 +130,7 @@
 
 | 파일 | 줄 | 한글 자수 | 무엇 |
 |---|---|---|---|
-| `app/saju/love-simulation/_data/loveCodeMvp.ts` | 4,546 | **106,658** | 러브 시뮬레이션 시나리오·대사 본문 |
+| `app/saju/love-simulation/_data/loveCodeMvp.ts` | 4,620 | **105,015** | 러브 시뮬레이션 시나리오·대사 본문 (캐릭터 표면 4필드 1,643자는 ✅ 완료) |
 | `app/saju/love-simulation/_data/loveCharacterStories.ts` | 408 | 26,723 | 캐릭터 서사 |
 | ~~`app/saju/love-simulation/_data/scenarios.ts`~~ | 135 | ~~2,148~~ | 🗑️ 참조 0이라 삭제 |
 | ~~`app/saju/love-simulation/_utils/loveCharacterMatching.ts`~~ | 158 | 1,432 | ✅ 완료 |
@@ -133,10 +163,18 @@
 
 1. ~~**`master-love-codex/data/prologue.ts` + `premium.ts`**~~ (2,354자) — ✅ 완료(PR #1131).
 2. ~~**`love-simulation/_utils/loveCharacterMatching.ts`**~~ (1,432자) — ✅ 완료. `scenarios.ts` 는 삭제.
-3. **`loveCharacterStories.ts`** (26,723자) — 캐릭터 단위로 더 잘린다. 캐릭터 N명씩 나눠 여러 PR.
-   🔴 **첫 덩어리는 `loveCodeMvp.ts` 의 캐릭터 4필드**(이름·아키타입·프로필라인·베스트어프로치)다 —
-   슬라이스 2가 남긴 구멍을 그게 메운다(위 "슬라이스 2가 남긴 것").
-4. **`loveCodeMvp.ts`** (106,658자) — 반드시 **시나리오 블록 단위**로 쪼갠다. 한 PR = 블록 몇 개.
+3. ~~**`loveCodeMvp.ts` 의 캐릭터 표면 4필드**~~ (1,643자) — ✅ 완료(PR #1133).
+4. **`loveCharacterStories.ts`** (26,723자) — 캐릭터 단위로 더 잘린다. 캐릭터 N명씩 나눠 여러 PR.
+   🔴 **다음 세션은 여기부터.** 저작 파일은 `i18n/authored/loveSimulation-03.json` 으로 잡고,
+   가드의 scope 집합 단언에 새 scope 를 더하는 것 말고는 배선할 게 없다(위 3a-4).
+   🔴 **옮기기 전에 소비처부터 확인할 것** — `LoveCharacterStorySection.tsx` 가 실제로 무엇을
+   렌더하는지 먼저 본다(슬라이스 2의 `scenarios.ts` 는 참조 0이라 번역이 아니라 삭제였다).
+5. **`loveCodeMvp.ts` 나머지** (105,015자) — 반드시 **시나리오 블록 단위**로 쪼갠다. 한 PR = 블록 몇 개.
+   🔴 **장면 제목은 이미 로케일화됐다고 믿지 말 것**(실측 2026-08-25). `LOVE_SCENE_TITLE_TRANSLATIONS`
+   에 실제 문구가 있는 로케일은 **`ko` 하나뿐**이고, 나머지 11개는 `LOVE_SCENE_TITLE_GENERIC` 이
+   기계로 만든다 — en 은 `titleKey` 를 단어로 쪼갠 로마자(`Court Sunlight · Chapter 1`), ja·zh 등은
+   `ラブコード 3章` 처럼 **장 번호뿐이라 장면 구분이 사라진다.** 제목도 옮길 몫에 든다.
+   그 외 남은 몫은 `situation`·`dialogue`·`choices[].text/response/insight` 다.
 
 ## 시작하기 전에 정해야 할 것 (사용자 결정) — 2026-08-25 결정됨
 

@@ -111,16 +111,137 @@ export const INITIAL_STATS: LoveStats = {
   stability: 48,
 };
 
+/**
+ * 로케일화 대상인 캐릭터 표면 4필드의 **한국어 정본**. `LOVE_CHARACTERS` 가 이 표를 펼쳐
+ * 쓰므로 사본이 아니라 유일한 출처다.
+ *
+ * 다른 로케일은 `LoveSimulationEngine` 이 걸어 둔 `useLoveSimCopy("characters", LOVE_CHARACTER_COPY_KO)`
+ * 가 사전(`loveSimulation.characters.*`, 저작 정본 `i18n/authored/loveSimulation-02.json`)에서
+ * 가져간다. 문구를 고치면 사전 ko 도 같이 고쳐야 한다 — 안 고치면 한국어만 바뀌고 나머지
+ * 11개 로케일이 옛 문장을 계속 서빙한다(가드가 대조한다).
+ *
+ * 🔴 여기 없는 캐릭터 한국어(`personality`·`speechStyle`·`likes`·`conflictPattern`·장면 본문)는
+ * 아직 로케일화 전이다 — 콘텐츠 번역 슬라이스 3·4 소관이고, 그때까지 비-ko 화면은
+ * 캐릭터 이름·소개만 그 언어로 나온다.
+ *
+ * 🔴 객체 리터럴로 둔다. 가드(`__tests__/fixtures/scoped-copy-i18n-guard.js`)가 AST 로 이 선언을
+ * 읽어 검사 대상 키를 정하므로, `LOVE_CHARACTERS` 에서 map 으로 만들어 내면 검사가 통째로 죽는다.
+ */
+export type LoveCharacterCopyEntry = {
+  name: string;
+  archetype: string;
+  profileLine: string;
+  bestApproach: string;
+};
+
+export const LOVE_CHARACTER_COPY_KO: Record<CharacterId, LoveCharacterCopyEntry> = {
+  "kang-taejun": {
+    name: "강태준",
+    archetype: "열정적인 에이스",
+    profileLine: "표현이 빠르고 마음이 정해지면 숨기지 않지만, 진짜 사랑 앞에서는 승부보다 함께 뛰는 호흡을 배우는 직진형",
+    bestApproach: "애매하게 밀당하기보다 솔직하게 응원하고 함께 달려주는 태도가 좋다. 단, 그의 속도에 휩쓸리지 않고 쉬어야 할 때를 같이 말해줘야 오래간다.",
+  },
+  "kwon-sehyun": {
+    name: "권세현",
+    archetype: "차가운 전략가",
+    profileLine: "감정을 쉽게 드러내지 않지만, 신뢰가 쌓이면 자신의 계획표 안에 상대의 안전한 자리를 만드는 전략형",
+    bestApproach: "그를 바꾸려 하기보다, 신뢰할 수 있는 사람이라는 인상을 꾸준히 주어야 한다. 단정한 약속과 침착한 확인이 세현에게 가장 깊게 닿는다.",
+  },
+  "michael": {
+    name: "미카엘",
+    archetype: "고요한 밤의 관찰자",
+    profileLine: "쉽게 들뜨지 않고 말의 여백과 고요한 신뢰를 오래 바라보며, 한 번 마음을 열면 어둠까지 함께 건너는 타입",
+    bestApproach: "그의 침묵을 무관심으로 오해하지 말고, 고요한 방식으로 다가가야 한다. 답을 재촉하기보다 마음의 물길이 스스로 흐를 시간을 남겨야 한다.",
+  },
+  "seo-yuan": {
+    name: "서유안",
+    archetype: "포근한 문학 선배",
+    profileLine: "작은 일에도 감사하고 상대가 편안해지도록 조용히 배려하지만, 진짜 사랑 앞에서는 자신도 기대고 싶다는 마음을 배우는 타입",
+    bestApproach: "편안한 분위기에서 진심을 천천히 보여주는 것이 좋다. 그의 다정함을 당연하게 받기보다, 어떤 배려가 당신을 살렸는지 구체적으로 말해야 한다.",
+  },
+  "seo-ijun": {
+    name: "서이준",
+    archetype: "퇴폐적인 철학자",
+    profileLine: "쉽게 가까워지지 않지만 진짜 대화에는 강하게 끌리고, 고독을 침범하지 않는 사람에게 오래 머무는 깊은 관찰자",
+    bestApproach: "그를 설득하려 하기보다, 대화의 깊이를 함께 만들어야 한다. 확신을 강요하지 말고, 혼자 있을 시간과 돌아올 자리를 동시에 남겨야 한다.",
+  },
+  "yoon-siwoo": {
+    name: "윤시우",
+    archetype: "청량한 캠퍼스 선배",
+    profileLine: "부드럽고 성실하며 누구에게나 친절하지만 선을 지킬 줄 알고, 함께 성장하되 쉬어 가는 계절도 지키려는 타입",
+    bestApproach: "편안한 친구처럼 시작해 안정적으로 가까워지는 흐름이 좋다. 꿈을 묻되 평가하지 않고, 계획을 존중하되 지친 날에는 쉬어도 된다고 말해야 한다.",
+  },
+  "han-yunseo": {
+    name: "한윤서",
+    archetype: "무대 위의 반짝이는 별",
+    profileLine: "장난스럽지만 음악과 감정에는 진심이고, 환호보다 한 사람의 정확한 시선에 더 깊이 흔들리는 자유로운 타입",
+    bestApproach: "진지함과 유쾌함의 균형을 맞추는 것이 중요하다. 장난을 받아주되, 그 안에 숨어 있는 진심을 놓치지 않아야 한다.",
+  },
+  "kim-ming": {
+    name: "김밍",
+    archetype: "은빛의 로맨티스트",
+    profileLine: "감정의 결째 분위기를 중요하게 여기고, 작은 예의와 조심스러운 확신으로 사랑을 아름답게 다듬는 타입",
+    bestApproach: "화려한 말보다 조심스럽고 진심 어린 태도가 잘 맞는다. 분위기를 맞추는 것보다, 그 분위기 안에서 그녀가 안전하다고 느끼게 하는 예의가 중요하다.",
+  },
+  "park-jieun": {
+    name: "박지은",
+    archetype: "검은 장미의 미스터리",
+    profileLine: "깊고 복잡한 감정을 숨긴 채 진심의 일관성을 조용히 시험하지만, 안전하다고 느끼면 누구보다 깊이 머무는 타입",
+    bestApproach: "감정 싸움으로 받아치지 말고, 경계를 세우되 진심은 분명히 표현해야 한다. 그녀의 불안을 받아주되 시험이 사랑의 방식이 되지 않도록 부드럽게 멈춰 세워야 한다.",
+  },
+  "saebyeok": {
+    name: "새벽",
+    archetype: "도시의 붉은 빛",
+    profileLine: "분명하고 도회적인 태도 속에 섬세함을 숨기며, 강함을 꺾지 않는 사람에게만 약한 순간을 맡기는 주도적인 타입",
+    bestApproach: "분명하고 성숙한 태도로 대화해야 한다. 그녀의 강함과 경쟁하지 말고, 같은 방향을 보는 편이라는 확신을 꾸준히 보여줘야 한다.",
+  },
+  "seoyeon": {
+    name: "서연",
+    archetype: "꽃향기 같은 첫사랑",
+    profileLine: "작은 말과 표정에도 설레지만, 오래 기억해준 마음 앞에서만 온전히 피어나는 첫사랑 타입",
+    bestApproach: "속도보다 온도가 중요하다. 다정하고 안정적인 표현으로 작은 약속을 지키며, 그녀의 리듬을 재촉하지 않아야 한다.",
+  },
+  "soha": {
+    name: "소화",
+    archetype: "햇살 같은 에너지 메이트",
+    profileLine: "함께 있으면 힘이 나지만, 밝지 않은 날까지 같이 숨 쉬어주는 관계를 꿈꾸는 에너지 메이트",
+    bestApproach: "같이 움직이고 웃는 경험을 많이 만들되, 기록보다 컨디션을 먼저 보고 밝지 않은 날에도 곁을 지켜야 한다.",
+  },
+  "jiyoon": {
+    name: "지윤",
+    archetype: "바다처럼 환한 사람",
+    profileLine: "바다처럼 밝고 유연하지만, 편안함 속의 진심을 가볍게 취급하지 않는 사람에게 깊어지는 타입",
+    bestApproach: "무겁게 묶으려 하기보다, 편안하고 청량한 관계감을 주되 진심은 분명히 확인해주는 것이 좋다.",
+  },
+  "harin": {
+    name: "하린",
+    archetype: "핑크 네온의 장난꾸러기",
+    profileLine: "톡톡 튀는 리듬으로 마음을 열지만, 장난 뒤의 진심까지 봐주는 사람에게 오래 머무는 타입",
+    bestApproach: "너무 무겁게 접근하지 말고, 밝고 즐거운 리듬으로 가까워지되 장난 속 진심을 놓치지 않아야 한다.",
+  },
+  "neo": {
+    name: "네오",
+    archetype: "조용한 은빛 소년",
+    profileLine: "가까워지는 속도는 느리지만, 사소한 취향과 약속을 오래 저장해 두는 은빛 관찰자",
+    bestApproach: "빠르게 다가가기보다, 그의 생각과 취향을 천천히 알아가야 한다. 질문은 짧게, 기억은 오래 남기는 방식이 가장 잘 맞는다.",
+  },
+  "yeoni": {
+    name: "연이",
+    archetype: "분홍빛 치유자",
+    profileLine: "부드러운 감성으로 마음의 결을 읽지만, 자신의 상처도 함께 돌봐주는 사람에게 천천히 피어나는 치유자 타입",
+    bestApproach: "부드럽고 진심 어린 표현으로 천천히 가까워지되, 받은 위로만 기대하지 말고 그녀의 마음도 되물어야 한다.",
+  },
+};
+
 export const LOVE_CHARACTERS: LoveCharacter[] = [
   {
     id: "kang-taejun",
-    name: "강태준",
+    ...LOVE_CHARACTER_COPY_KO["kang-taejun"],
     gender: "male",
     asset: "/fuctionassets/러브 코드/남_강태준.webp",
     dayMaster: "병화",
     element: "fire",
     yinYang: "yang",
-    archetype: "열정적인 에이스",
     keywords: ["열정", "리더십", "승부욕", "의리", "직진"],
     matchKeywords: ["직진", "열정", "응원", "승부", "확신", "리더십"],
     sajuMatchProfile: {
@@ -131,7 +252,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["홍염"],
       relationshipKeywords: ["직진", "열정", "승부", "응원", "확신"],
     },
-    profileLine: "표현이 빠르고 마음이 정해지면 숨기지 않지만, 진짜 사랑 앞에서는 승부보다 함께 뛰는 호흡을 배우는 직진형",
     personality: "표현이 빠르고 감정이 솔직하다. 좋아하면 숨기지 않고 먼저 움직이며, 상대가 망설이면 길을 열어 주려 한다. 다만 노력과 진심을 가볍게 보는 말에는 쉽게 상처받고, 불안할수록 더 밝고 강한 사람처럼 굴어 기대고 싶은 마음을 숨긴다.",
     speechStyle: "직설적이고 짧은 문장. 감정이 올라오면 말보다 행동이 먼저 나오지만, 상대가 다칠 것 같으면 마지막 한마디는 꼭 부드럽게 고른다.",
     likes: {
@@ -148,7 +268,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["진심 어린 응원", "노력을 알아봐주는 말", "함께 움직이는 데이트", "결과보다 다시 뛰는 과정을 기억해주는 태도"],
     trustTriggers: ["약속 지키기", "정면으로 말하기", "힘든 순간에 편 들어주기", "팀처럼 함께 방향을 정리하는 말"],
     conflictPattern: "자존심이 다치면 먼저 다가가기보다 더 강한 척한다. 이때 승부욕만 탓하면 속마음을 닫고, 과정을 알아봐 주면 다시 돌아온다.",
-    bestApproach: "애매하게 밀당하기보다 솔직하게 응원하고 함께 달려주는 태도가 좋다. 단, 그의 속도에 휩쓸리지 않고 쉬어야 할 때를 같이 말해줘야 오래간다.",
     palette: {
       shell: "from-zinc-950 via-red-950 to-amber-950",
       scene: "bg-[radial-gradient(circle_at_70%_18%,rgba(251,146,60,0.28),transparent_34%),linear-gradient(135deg,#160d0b_0%,#331313_48%,#281b0b_100%)]",
@@ -160,13 +279,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "kwon-sehyun",
-    name: "권세현",
+    ...LOVE_CHARACTER_COPY_KO["kwon-sehyun"],
     gender: "male",
     asset: "/fuctionassets/러브 코드/남_권세현.webp",
     dayMaster: "경금",
     element: "metal",
     yinYang: "yang",
-    archetype: "차가운 전략가",
     keywords: ["권력", "통제", "신뢰", "완벽주의", "비밀"],
     matchKeywords: ["신뢰", "통제", "책임", "거리감", "완벽주의", "전략"],
     sajuMatchProfile: {
@@ -177,7 +295,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["화개"],
       relationshipKeywords: ["신뢰", "통제", "책임", "거리감", "완벽주의"],
     },
-    profileLine: "감정을 쉽게 드러내지 않지만, 신뢰가 쌓이면 자신의 계획표 안에 상대의 안전한 자리를 만드는 전략형",
     personality: "감정을 쉽게 드러내지 않고 상황을 분석한다. 신뢰가 쌓이기 전까지는 거리를 두지만, 관심 있는 사람에게는 말보다 준비로 먼저 다가간다. 불확실한 관계를 두려워해 기준이 엄격해 보일 수 있으나, 그 기준 안쪽에는 상대를 놓치지 않으려는 보호 본능이 숨어 있다.",
     speechStyle: "낮고 단정한 말투. 질문보다 판단이 먼저 나올 때가 있지만, 중요한 순간에는 추측보다 확인을 택한다.",
     likes: {
@@ -194,7 +311,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["능력을 인정하는 말", "침착한 대화", "비밀을 지켜주는 태도", "기준을 공격하지 않고 이유를 물어보는 태도"],
     trustTriggers: ["일관성", "예의", "시간 약속", "감정적 압박을 하지 않는 태도", "말한 것을 다음 행동으로 지키는 습관"],
     conflictPattern: "실망하면 바로 표현하지 않고 조용히 거리를 둔다. 예고 없는 변화와 애매한 말이 반복되면 감정보다 기준을 먼저 세운다.",
-    bestApproach: "그를 바꾸려 하기보다, 신뢰할 수 있는 사람이라는 인상을 꾸준히 주어야 한다. 단정한 약속과 침착한 확인이 세현에게 가장 깊게 닿는다.",
     palette: {
       shell: "from-zinc-950 via-neutral-900 to-stone-950",
       scene: "bg-[radial-gradient(circle_at_72%_18%,rgba(212,212,216,0.22),transparent_34%),linear-gradient(135deg,#09090b_0%,#1f1f24_48%,#17120f_100%)]",
@@ -206,13 +322,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "michael",
-    name: "미카엘",
+    ...LOVE_CHARACTER_COPY_KO["michael"],
     gender: "male",
     asset: "/fuctionassets/러브 코드/남_미카엘.webp",
     dayMaster: "계수",
     element: "water",
     yinYang: "yin",
-    archetype: "고요한 밤의 관찰자",
     keywords: ["절제", "신비", "고독", "지성", "신뢰"],
     matchKeywords: ["고요", "관찰", "비밀", "신뢰", "절제", "지성"],
     sajuMatchProfile: {
@@ -223,7 +338,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["화개"],
       relationshipKeywords: ["고요", "관찰", "비밀", "신뢰", "절제"],
     },
-    profileLine: "쉽게 들뜨지 않고 말의 여백과 고요한 신뢰를 오래 바라보며, 한 번 마음을 열면 어둠까지 함께 건너는 타입",
     personality: "차분하고 신중하다. 쉽게 들뜨지 않지만, 마음속 기준이 분명하고 오래 관찰한 감정은 쉽게 버리지 않는다. 좋아하는 사람에게는 큰 고백보다 조용한 동행, 기억해 둔 문장, 늦은 밤의 작은 배려로 마음을 건넨다.",
     speechStyle: "조용하고 정돈된 말투. 감정을 직접 말하기보다 은유적으로 표현하지만, 중요한 순간에는 숨지 않고 낮은 문장으로 진심을 남긴다.",
     likes: {
@@ -240,7 +354,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["말의 여백을 이해해주는 태도", "조용한 동행", "깊이 있는 질문", "어둠을 고치려 하지 않고 곁에 있어주는 태도"],
     trustTriggers: ["비밀을 존중함", "감정의 속도를 맞춤", "판단하지 않는 태도", "사라진 뒤에도 돌아올 수 있게 기다려주는 말"],
     conflictPattern: "갈등이 생기면 잠시 사라지듯 거리를 둔 뒤, 차분히 돌아온다. 이때 침묵을 벌처럼 해석하거나 감정을 억지로 끌어내면 더 깊이 잠긴다.",
-    bestApproach: "그의 침묵을 무관심으로 오해하지 말고, 고요한 방식으로 다가가야 한다. 답을 재촉하기보다 마음의 물길이 스스로 흐를 시간을 남겨야 한다.",
     palette: {
       shell: "from-slate-950 via-indigo-950 to-zinc-950",
       scene: "bg-[radial-gradient(circle_at_70%_18%,rgba(129,140,248,0.24),transparent_34%),linear-gradient(135deg,#080b18_0%,#141a33_48%,#0f1117_100%)]",
@@ -252,13 +365,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "seo-yuan",
-    name: "서유안",
+    ...LOVE_CHARACTER_COPY_KO["seo-yuan"],
     gender: "male",
     asset: "/fuctionassets/러브 코드/남_서유안.webp",
     dayMaster: "기토",
     element: "earth",
     yinYang: "yin",
-    archetype: "포근한 문학 선배",
     keywords: ["다정함", "배려심", "청초함", "포근함", "순한 매력"],
     matchKeywords: ["배려", "안정", "포근함", "감사", "편안함", "다정함"],
     sajuMatchProfile: {
@@ -269,7 +381,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["화개"],
       relationshipKeywords: ["배려", "안정", "포근함", "감사", "편안함"],
     },
-    profileLine: "작은 일에도 감사하고 상대가 편안해지도록 조용히 배려하지만, 진짜 사랑 앞에서는 자신도 기대고 싶다는 마음을 배우는 타입",
     personality: "작은 일에도 감사하고, 상대가 편안해지도록 배려한다. 갈등을 싫어하지만 속마음은 깊고, 다정함을 당연하게 소비당하면 웃으면서도 오래 지친다. 좋아하는 사람에게는 생활의 작은 루틴과 조용한 문장으로 마음을 쌓는다.",
     speechStyle: "부드럽고 조심스러운 말투. 상대가 부담 느끼지 않도록 천천히 말하지만, 신뢰가 쌓이면 접어 두었던 욕구와 서운함도 차분히 꺼낸다.",
     likes: {
@@ -286,7 +397,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["따뜻한 말", "작은 배려 기억하기", "천천히 걷는 데이트", "그의 피로를 먼저 알아차리는 태도"],
     trustTriggers: ["부드러운 일관성", "안심시키는 말", "고마움을 표현하는 태도", "그도 기대도 된다고 말해주는 확신"],
     conflictPattern: "상처를 받아도 바로 말하지 않고 혼자 삼키는 편이다. 괜찮다는 말을 반복할수록 사실은 마음속에서 관계의 안전 여부를 재검토한다.",
-    bestApproach: "편안한 분위기에서 진심을 천천히 보여주는 것이 좋다. 그의 다정함을 당연하게 받기보다, 어떤 배려가 당신을 살렸는지 구체적으로 말해야 한다.",
     palette: {
       shell: "from-stone-950 via-emerald-950 to-amber-950",
       scene: "bg-[radial-gradient(circle_at_68%_20%,rgba(187,247,208,0.22),transparent_34%),linear-gradient(135deg,#10110c_0%,#1f2b1b_48%,#2a2114_100%)]",
@@ -298,13 +408,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "seo-ijun",
-    name: "서이준",
+    ...LOVE_CHARACTER_COPY_KO["seo-ijun"],
     gender: "male",
     asset: "/fuctionassets/러브 코드/남_서이준.webp",
     dayMaster: "임수",
     element: "water",
     yinYang: "yang",
-    archetype: "퇴폐적인 철학자",
     keywords: ["지성", "냉소", "관찰", "고독", "미스터리"],
     matchKeywords: ["관찰", "지성", "고독", "거리감", "깊은 대화", "미스터리"],
     sajuMatchProfile: {
@@ -315,7 +424,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["화개"],
       relationshipKeywords: ["관찰", "지성", "고독", "거리감", "깊은 대화"],
     },
-    profileLine: "쉽게 가까워지지 않지만 진짜 대화에는 강하게 끌리고, 고독을 침범하지 않는 사람에게 오래 머무는 깊은 관찰자",
     personality: "사람과 감정을 깊이 관찰한다. 쉽게 가까워지지 않지만, 진짜 대화에는 강하게 끌린다. 냉소는 무관심이 아니라 진심을 가볍게 취급당하지 않기 위한 얇은 방어막에 가깝다.",
     speechStyle: "지적이고 약간 냉소적인 말투. 감정 표현 대신 생각을 던지는 방식이 많지만, 신뢰가 쌓이면 비꼼보다 정직한 질문으로 다가온다.",
     likes: {
@@ -332,7 +440,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["생각을 이어받는 대화", "깊이 있는 질문", "고독을 존중하는 태도", "그의 반박을 싸움이 아니라 초대로 받아주는 태도"],
     trustTriggers: ["사생활 존중", "지적 자극", "감정의 복잡함을 인정함", "확인을 요구하기보다 경계를 먼저 물어보는 태도"],
     conflictPattern: "상대가 가볍게 굴면 냉소로 방어한다. 통제받는 느낌이 들면 감정이 식은 것처럼 멀어지지만, 사실은 자기 자유가 사라질까 확인하는 중이다.",
-    bestApproach: "그를 설득하려 하기보다, 대화의 깊이를 함께 만들어야 한다. 확신을 강요하지 말고, 혼자 있을 시간과 돌아올 자리를 동시에 남겨야 한다.",
     palette: {
       shell: "from-zinc-950 via-slate-950 to-violet-950",
       scene: "bg-[radial-gradient(circle_at_70%_20%,rgba(167,139,250,0.24),transparent_34%),linear-gradient(135deg,#09090b_0%,#151826_48%,#181020_100%)]",
@@ -344,13 +451,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "yoon-siwoo",
-    name: "윤시우",
+    ...LOVE_CHARACTER_COPY_KO["yoon-siwoo"],
     gender: "male",
     asset: "/fuctionassets/러브 코드/남_윤시우.webp",
     dayMaster: "갑목",
     element: "wood",
     yinYang: "yang",
-    archetype: "청량한 캠퍼스 선배",
     keywords: ["청춘", "설렘", "햇살", "지성", "청량미"],
     matchKeywords: ["청춘", "성실", "성장", "계획", "친절", "설렘"],
     sajuMatchProfile: {
@@ -361,7 +467,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["도화"],
       relationshipKeywords: ["청춘", "성실", "성장", "계획", "친절"],
     },
-    profileLine: "부드럽고 성실하며 누구에게나 친절하지만 선을 지킬 줄 알고, 함께 성장하되 쉬어 가는 계절도 지키려는 타입",
     personality: "부드럽고 성실하다. 누구에게나 친절하지만 선을 지킬 줄 안다. 밝은 얼굴 뒤에는 늘 든든한 사람이 되어야 한다는 부담이 있고, 좋아하는 사람 앞에서는 응원뿐 아니라 약한 날의 쉼도 배우고 싶어 한다.",
     speechStyle: "밝고 안정적인 말투. 상대를 자연스럽게 배려하지만, 신뢰가 쌓이면 긍정으로 덮지 않고 지친 마음도 정직하게 말한다.",
     likes: {
@@ -378,7 +483,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["성실함을 알아봐주는 말", "함께 걷기", "밝은 리액션", "그의 쉬는 날까지 응원해주는 태도"],
     trustTriggers: ["계획을 존중함", "상대의 시간을 배려함", "긍정적인 대화", "해결보다 먼저 들어주는 태도"],
     conflictPattern: "갈등을 크게 만들지 않으려 하지만, 계속 무시당하면 조용히 멀어진다. 응원이라는 이름으로 압박받으면 웃으면서도 관계를 숙제처럼 느낀다.",
-    bestApproach: "편안한 친구처럼 시작해 안정적으로 가까워지는 흐름이 좋다. 꿈을 묻되 평가하지 않고, 계획을 존중하되 지친 날에는 쉬어도 된다고 말해야 한다.",
     palette: {
       shell: "from-sky-950 via-emerald-950 to-zinc-950",
       scene: "bg-[radial-gradient(circle_at_68%_18%,rgba(125,211,252,0.25),transparent_34%),linear-gradient(135deg,#06121c_0%,#123127_48%,#101314_100%)]",
@@ -390,13 +494,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "han-yunseo",
-    name: "한윤서",
+    ...LOVE_CHARACTER_COPY_KO["han-yunseo"],
     gender: "male",
     asset: "/fuctionassets/러브 코드/남_한윤서.webp",
     dayMaster: "정화",
     element: "fire",
     yinYang: "yin",
-    archetype: "무대 위의 반짝이는 별",
     keywords: ["창의성", "자유", "장난기", "무대", "열정"],
     matchKeywords: ["창의성", "자유", "무대", "장난기", "표현", "열정"],
     sajuMatchProfile: {
@@ -407,7 +510,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["도화", "홍염"],
       relationshipKeywords: ["창의성", "자유", "무대", "장난기", "표현"],
     },
-    profileLine: "장난스럽지만 음악과 감정에는 진심이고, 환호보다 한 사람의 정확한 시선에 더 깊이 흔들리는 자유로운 타입",
     personality: "자유롭고 감각적이다. 장난스럽지만 자신의 음악과 감정에는 진심이다. 사람들이 자신을 재미있는 사람으로만 기억할까 봐 두려워하고, 진짜로 좋아하는 사람 앞에서는 무대보다 무대 뒤의 불안을 먼저 들키고 싶어 한다.",
     speechStyle: "가볍고 장난스러운 말투 속에 진심을 숨긴다. 중요한 순간에는 농담으로 문을 열지만, 상대가 도망가지 않으면 낮은 목소리로 진짜 마음을 꺼낸다.",
     likes: {
@@ -424,7 +526,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["그의 음악을 진심으로 들어주는 것", "장난을 받아주는 센스", "새로움을 함께 즐김", "환호보다 디테일을 기억해주는 말"],
     trustTriggers: ["표현을 존중함", "무대 뒤의 불안을 알아줌", "자유를 억누르지 않음", "웃기지 않아도 괜찮다고 말해주는 태도"],
     conflictPattern: "답답함을 느끼면 농담으로 피하거나 갑자기 거리를 둔다. 통제받는 순간 사랑이 무대 규칙처럼 느껴져, 반짝임보다 탈출을 먼저 생각한다.",
-    bestApproach: "진지함과 유쾌함의 균형을 맞추는 것이 중요하다. 장난을 받아주되, 그 안에 숨어 있는 진심을 놓치지 않아야 한다.",
     palette: {
       shell: "from-zinc-950 via-fuchsia-950 to-amber-950",
       scene: "bg-[radial-gradient(circle_at_70%_18%,rgba(217,70,239,0.24),transparent_34%),linear-gradient(135deg,#100914_0%,#2b1230_48%,#231307_100%)]",
@@ -436,13 +537,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "kim-ming",
-    name: "김밍",
+    ...LOVE_CHARACTER_COPY_KO["kim-ming"],
     gender: "female",
     asset: "/fuctionassets/러브 코드/여_김밍.webp",
     dayMaster: "신금",
     element: "metal",
     yinYang: "yin",
-    archetype: "은빛의 로맨티스트",
     keywords: ["우아함", "섬세함", "고요", "감성", "로맨틱"],
     matchKeywords: ["섬세함", "감성", "분위기", "로맨틱", "예의", "우아함"],
     sajuMatchProfile: {
@@ -453,7 +553,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["도화"],
       relationshipKeywords: ["섬세함", "감성", "분위기", "로맨틱", "예의"],
     },
-    profileLine: "감정의 결째 분위기를 중요하게 여기고, 작은 예의와 조심스러운 확신으로 사랑을 아름답게 다듬는 타입",
     personality: "차분하고 섬세하다. 감정의 결을 중요하게 여기며, 무심한 말에 쉽게 상처받는다. 아름다운 분위기를 좋아하는 것은 허영이 아니라 마음을 안전하게 놓을 수 있는 질서를 찾는 방식이다.",
     speechStyle: "부드럽고 조용한 말투. 직접 요구하기보다 분위기로 마음을 표현하지만, 신뢰가 쌓이면 불편했던 순간도 우아하게 숨기지 않고 말한다.",
     likes: {
@@ -470,7 +569,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["섬세한 칭찬", "분위기를 기억해주는 것", "예의 있는 태도", "작은 취향을 정확히 기억하는 마음"],
     trustTriggers: ["감정의 결을 존중함", "천천히 기다려줌", "부드러운 확신", "상처를 그냥 넘기지 않고 구체적으로 수리하려는 태도"],
     conflictPattern: "속상해도 우아하게 넘기려 하지만, 마음속에는 오래 남긴다. 괜찮다는 말 뒤에 남은 상처를 방치하면 어느 날 조용히 문을 닫는다.",
-    bestApproach: "화려한 말보다 조심스럽고 진심 어린 태도가 잘 맞는다. 분위기를 맞추는 것보다, 그 분위기 안에서 그녀가 안전하다고 느끼게 하는 예의가 중요하다.",
     palette: {
       shell: "from-zinc-950 via-rose-950 to-slate-950",
       scene: "bg-[radial-gradient(circle_at_68%_18%,rgba(251,207,232,0.24),transparent_34%),linear-gradient(135deg,#100b10_0%,#2a1420_48%,#151720_100%)]",
@@ -482,13 +580,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "park-jieun",
-    name: "박지은",
+    ...LOVE_CHARACTER_COPY_KO["park-jieun"],
     gender: "female",
     asset: "/fuctionassets/러브 코드/여_박지은.webp",
     dayMaster: "계수",
     element: "water",
     yinYang: "yin",
-    archetype: "검은 장미의 미스터리",
     keywords: ["신비", "위험", "질투", "집착", "위선"],
     matchKeywords: ["신비", "질투", "집착", "진심 확인", "비밀", "미스터리"],
     sajuMatchProfile: {
@@ -499,7 +596,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["홍염", "화개"],
       relationshipKeywords: ["신비", "질투", "집착", "진심 확인", "비밀"],
     },
-    profileLine: "깊고 복잡한 감정을 숨긴 채 진심의 일관성을 조용히 시험하지만, 안전하다고 느끼면 누구보다 깊이 머무는 타입",
     personality: "감정이 깊고 복잡하다. 쉽게 마음을 보이지 않으며, 불안할수록 상대를 시험하려 한다. 질투와 집착은 소유욕만이 아니라 버려질지 모른다는 오래된 공포에서 올라온다.",
     speechStyle: "부드럽지만 날카로운 말투. 질문 속에 의도를 숨기지만, 신뢰가 쌓이면 시험 대신 부탁의 문장으로 불안을 꺼낸다.",
     likes: {
@@ -516,7 +612,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["불안을 알아차려주는 말", "특별하게 대우받는 느낌", "진심을 확인시켜주는 행동", "질투를 비난하기보다 이유를 묻는 태도"],
     trustTriggers: ["일관된 관심", "비밀을 지킴", "쉽게 떠나지 않는 태도", "시험을 멈출 수 있도록 분명한 경계를 세워주는 태도"],
     conflictPattern: "불안이 커지면 시험하듯 말하고, 상대 반응을 관찰한다. 애매한 태도나 비교가 반복되면 매혹적으로 가까워졌다가 갑자기 차갑게 사라진다.",
-    bestApproach: "감정 싸움으로 받아치지 말고, 경계를 세우되 진심은 분명히 표현해야 한다. 그녀의 불안을 받아주되 시험이 사랑의 방식이 되지 않도록 부드럽게 멈춰 세워야 한다.",
     palette: {
       shell: "from-zinc-950 via-rose-950 to-neutral-950",
       scene: "bg-[radial-gradient(circle_at_68%_18%,rgba(190,18,60,0.28),transparent_34%),linear-gradient(135deg,#10070a_0%,#2b0812_48%,#120f12_100%)]",
@@ -528,13 +623,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "saebyeok",
-    name: "새벽",
+    ...LOVE_CHARACTER_COPY_KO["saebyeok"],
     gender: "female",
     asset: "/fuctionassets/러브 코드/여_새벽.webp",
     dayMaster: "병화",
     element: "fire",
     yinYang: "yang",
-    archetype: "도시의 붉은 빛",
     keywords: ["자신감", "카리스마", "도회적", "단호함", "섬세함"],
     matchKeywords: ["자신감", "주도", "도회적", "확실한 표현", "성숙", "카리스마"],
     sajuMatchProfile: {
@@ -545,7 +639,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["홍염"],
       relationshipKeywords: ["자신감", "주도", "도회적", "확실한 표현", "성숙"],
     },
-    profileLine: "분명하고 도회적인 태도 속에 섬세함을 숨기며, 강함을 꺾지 않는 사람에게만 약한 순간을 맡기는 주도적인 타입",
     personality: "자신감 있고 상황을 주도한다. 표현은 단호하지만 속은 섬세하다. 모두가 기대는 사람으로 살아온 탓에 약한 모습을 보이는 데 서툴고, 좋아하는 사람에게는 자신을 이기려 하기보다 옆에 설 용기를 원한다.",
     speechStyle: "여유롭고 확신 있는 말투. 상대의 태도를 빠르게 파악하며, 마음이 깊어질수록 단호함 뒤의 피로와 부탁을 짧고 솔직하게 드러낸다.",
     likes: {
@@ -562,7 +655,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["당당한 태도", "취향을 맞춘 준비", "세련된 칭찬", "약한 순간을 자존심 상하지 않게 받아주는 태도"],
     trustTriggers: ["확실한 표현", "책임감", "선 넘지 않는 자신감", "편이 되어주되 통제하지 않는 태도"],
     conflictPattern: "상대가 흐릿하게 굴면 흥미를 잃고 거리를 둔다. 강한 사람이라 괜찮겠지라는 태도가 반복되면, 새벽은 가장 차분한 얼굴로 관계의 문을 닫는다.",
-    bestApproach: "분명하고 성숙한 태도로 대화해야 한다. 그녀의 강함과 경쟁하지 말고, 같은 방향을 보는 편이라는 확신을 꾸준히 보여줘야 한다.",
     palette: {
       shell: "from-zinc-950 via-red-950 to-stone-950",
       scene: "bg-[radial-gradient(circle_at_70%_18%,rgba(239,68,68,0.28),transparent_34%),linear-gradient(135deg,#120909_0%,#2b0f11_48%,#17110f_100%)]",
@@ -574,13 +666,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "seoyeon",
-    name: "서연",
+    ...LOVE_CHARACTER_COPY_KO["seoyeon"],
     gender: "female",
     asset: "/fuctionassets/러브 코드/여_서연.webp",
     dayMaster: "을목",
     element: "wood",
     yinYang: "yin",
-    archetype: "꽃향기 같은 첫사랑",
     keywords: ["다정함", "로맨틱", "산뜻함", "따뜻함", "부드러움"],
     matchKeywords: ["다정함", "로맨틱", "따뜻함", "꾸준함", "설렘", "부드러움"],
     sajuMatchProfile: {
@@ -591,7 +682,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["도화"],
       relationshipKeywords: ["다정함", "로맨틱", "따뜻함", "꾸준함", "설렘"],
     },
-    profileLine: "작은 말과 표정에도 설레지만, 오래 기억해준 마음 앞에서만 온전히 피어나는 첫사랑 타입",
     personality: "따뜻하고 섬세하다. 작은 말과 표정에 쉽게 설레고, 진심 어린 배려를 오래 기억한다. 밝게 웃는 일이 익숙하지만 속마음은 천천히 열리며, 좋아하는 사람에게는 서두름보다 계속 곁에 남는 온도를 바란다.",
     speechStyle: "부드럽고 수줍은 말투. 감정이 얼굴에 잘 드러나지만 상처받은 말은 바로 꺼내지 못하고, 안심되는 확인을 받으면 조심스럽게 진심을 말한다.",
     likes: {
@@ -608,7 +698,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["작은 변화를 알아봐주는 말", "따뜻한 칭찬", "같이 걷는 시간", "기억해준 약속"],
     trustTriggers: ["꾸준한 연락", "다정한 확인", "상처 주지 않는 표현", "기다릴 줄 아는 태도"],
     conflictPattern: "상처받으면 밝게 웃으며 넘기지만, 혼자 오래 생각한다. 무심함이 반복되면 서운함을 말하기보다 조용히 마음의 물을 줄인다.",
-    bestApproach: "속도보다 온도가 중요하다. 다정하고 안정적인 표현으로 작은 약속을 지키며, 그녀의 리듬을 재촉하지 않아야 한다.",
     palette: {
       shell: "from-rose-950 via-pink-950 to-emerald-950",
       scene: "bg-[radial-gradient(circle_at_68%_18%,rgba(244,114,182,0.24),transparent_34%),linear-gradient(135deg,#160b12_0%,#2a1430_44%,#10251b_100%)]",
@@ -620,13 +709,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "soha",
-    name: "소화",
+    ...LOVE_CHARACTER_COPY_KO["soha"],
     gender: "female",
     asset: "/fuctionassets/러브 코드/여_소화.webp",
     dayMaster: "갑목",
     element: "wood",
     yinYang: "yang",
-    archetype: "햇살 같은 에너지 메이트",
     keywords: ["운동", "건강미", "밝은 미소", "친근함", "에너지"],
     matchKeywords: ["운동", "건강", "긍정", "에너지", "응원", "친근함"],
     sajuMatchProfile: {
@@ -637,7 +725,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["도화"],
       relationshipKeywords: ["운동", "건강", "긍정", "에너지", "응원"],
     },
-    profileLine: "함께 있으면 힘이 나지만, 밝지 않은 날까지 같이 숨 쉬어주는 관계를 꿈꾸는 에너지 메이트",
     personality: "밝고 긍정적이다. 함께 있으면 힘이 나고, 건강한 관계를 좋아한다. 장난스럽게 분위기를 살리지만 속으로는 자신도 쉬어도 되는 사람인지 확인하고 싶어 하며, 사랑을 경쟁보다 함께 회복하는 리듬으로 느낀다.",
     speechStyle: "활기차고 솔직한 말투. 장난스럽지만 배려심이 있고, 마음이 깊어질수록 응원과 부탁을 같은 문장 안에 담는다.",
     likes: {
@@ -654,7 +741,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["함께 도전하기", "건강한 칭찬", "밝은 리액션", "컨디션을 먼저 물어보는 태도"],
     trustTriggers: ["약속한 루틴 지키기", "긍정적인 태도", "서로 응원하는 분위기", "쉬는 날을 존중하기"],
     conflictPattern: "기운 빠지는 관계라고 느끼면 점점 멀어진다. 하지만 밝아야만 사랑받는다고 느끼면, 소화는 웃으면서도 마음의 페이스를 잃는다.",
-    bestApproach: "같이 움직이고 웃는 경험을 많이 만들되, 기록보다 컨디션을 먼저 보고 밝지 않은 날에도 곁을 지켜야 한다.",
     palette: {
       shell: "from-emerald-950 via-lime-950 to-sky-950",
       scene: "bg-[radial-gradient(circle_at_68%_18%,rgba(132,204,22,0.24),transparent_34%),linear-gradient(135deg,#07150d_0%,#17321a_46%,#071827_100%)]",
@@ -666,13 +752,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "jiyoon",
-    name: "지윤",
+    ...LOVE_CHARACTER_COPY_KO["jiyoon"],
     gender: "female",
     asset: "/fuctionassets/러브 코드/여_지윤.webp",
     dayMaster: "임수",
     element: "water",
     yinYang: "yang",
-    archetype: "바다처럼 환한 사람",
     keywords: ["청량", "바다", "긍정", "편안함", "여자친구 감성"],
     matchKeywords: ["청량", "자유", "긍정", "여행", "편안함", "유연함"],
     sajuMatchProfile: {
@@ -683,7 +768,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["도화", "홍염"],
       relationshipKeywords: ["자유", "긍정", "편안한 대화", "여행", "밝은 리듬"],
     },
-    profileLine: "바다처럼 밝고 유연하지만, 편안함 속의 진심을 가볍게 취급하지 않는 사람에게 깊어지는 타입",
     personality: "밝고 긍정적이며 편안하다. 자유로운 분위기를 좋아하고, 함께 웃는 시간을 중요하게 여긴다. 사람들에게 쉬운 숨을 돌려주지만 자기 깊이는 늦게 꺼내며, 좋아하는 사람에게는 붙잡힘보다 돌아올 수 있는 믿음을 원한다.",
     speechStyle: "맑고 자연스러운 말투. 무겁지 않지만 진심은 분명하며, 마음이 깊어질수록 농담 끝에 진짜 감정을 조용히 남긴다.",
     likes: {
@@ -700,7 +784,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["함께 웃기", "가벼운 여행 제안", "밝은 칭찬", "편안함 속에 진심을 확인해주는 말"],
     trustTriggers: ["자유를 존중함", "편안한 대화", "긍정적인 리듬", "돌아올 자리를 남기는 신뢰"],
     conflictPattern: "답답함을 느끼면 바람처럼 거리를 두려 한다. 편하다는 이유로 중요한 감정을 미루면 지윤은 웃으며 흘려보내다가 어느 순간 멀어진다.",
-    bestApproach: "무겁게 묶으려 하기보다, 편안하고 청량한 관계감을 주되 진심은 분명히 확인해주는 것이 좋다.",
     palette: {
       shell: "from-sky-950 via-cyan-950 to-blue-950",
       scene: "bg-[radial-gradient(circle_at_34%_20%,rgba(125,211,252,0.26),transparent_34%),linear-gradient(135deg,#071827_0%,#123047_44%,#10223f_100%)]",
@@ -712,13 +795,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "harin",
-    name: "하린",
+    ...LOVE_CHARACTER_COPY_KO["harin"],
     gender: "female",
     asset: "/fuctionassets/러브 코드/여_하린.webp",
     dayMaster: "정화",
     element: "fire",
     yinYang: "yin",
-    archetype: "핑크 네온의 장난꾸러기",
     keywords: ["발랄함", "트렌디", "장난기", "자유분방", "귀여움"],
     matchKeywords: ["발랄함", "장난기", "리액션", "트렌디", "표현력", "즐거움"],
     sajuMatchProfile: {
@@ -729,7 +811,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["도화", "홍염"],
       relationshipKeywords: ["장난", "반응", "친구 같은 연애", "트렌드", "밝은 표현"],
     },
-    profileLine: "톡톡 튀는 리듬으로 마음을 열지만, 장난 뒤의 진심까지 봐주는 사람에게 오래 머무는 타입",
     personality: "명랑하고 호기심이 많다. 친구들과 어울리는 것을 좋아하고, 반응이 좋은 사람에게 빨리 마음이 열린다. 가볍게 웃는 일이 익숙하지만 진지한 자신이 재미없어 보일까 봐 두려워하며, 좋아하는 사람에게는 귀엽다는 말보다 소중하다는 확인을 더 오래 기억한다.",
     speechStyle: "톡톡 튀고 장난스러운 말투. 리액션이 크고 감정 표현이 빠르며, 마음이 깊어질수록 농담 안에 진짜 질문을 숨긴다.",
     likes: {
@@ -746,7 +827,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["장난을 받아주는 센스", "귀엽게 반응하기", "새로운 곳에 같이 가기", "진심을 놓치지 않는 확인"],
     trustTriggers: ["친구 관계를 존중함", "자유로운 표현을 인정함", "즐거운 분위기", "가벼운 순간 뒤에도 애정을 분명히 말하기"],
     conflictPattern: "분위기가 무거워지면 장난으로 넘기거나 회피한다. 무반응이 반복되면 관심을 구걸하는 것 같아져 갑자기 차갑게 식는다.",
-    bestApproach: "너무 무겁게 접근하지 말고, 밝고 즐거운 리듬으로 가까워지되 장난 속 진심을 놓치지 않아야 한다.",
     palette: {
       shell: "from-pink-950 via-fuchsia-950 to-zinc-950",
       scene: "bg-[radial-gradient(circle_at_32%_18%,rgba(244,114,182,0.3),transparent_34%),linear-gradient(135deg,#1b0c16_0%,#351538_44%,#17111f_100%)]",
@@ -758,13 +838,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "neo",
-    name: "네오",
+    ...LOVE_CHARACTER_COPY_KO["neo"],
     gender: "male",
     asset: "/fuctionassets/러브 코드/남_네오.webp",
     dayMaster: "신금",
     element: "metal",
     yinYang: "yin",
-    archetype: "조용한 은빛 소년",
     keywords: ["섬세함", "호기심", "청량감", "도시적", "은근한 고집"],
     matchKeywords: ["섬세함", "관찰", "거리감", "취향", "조용한 신뢰", "도시적"],
     sajuMatchProfile: {
@@ -775,7 +854,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["화개"],
       relationshipKeywords: ["섬세함", "관찰", "거리감", "취향", "조용한 신뢰"],
     },
-    profileLine: "가까워지는 속도는 느리지만, 사소한 취향과 약속을 오래 저장해 두는 은빛 관찰자",
     personality: "말수는 많지 않지만 관찰력이 좋다. 낯선 친밀감 앞에서는 한 걸음 물러서지만, 상대가 자신의 침묵을 빈칸이 아니라 리듬으로 받아들이면 천천히 오래 머문다. 좋아하는 사람에게는 먼저 티를 내기보다 길을 외워 두고, 취향을 기억하고, 사람이 많은 곳에서 조용히 빠져나갈 출구를 찾아 주는 방식으로 마음을 쓴다.",
     speechStyle: "짧고 조심스럽다. 감정보다는 생각을 먼저 말하지만, 불쑥 건네는 한 문장에 진심이 선명하게 섞인다.",
     likes: {
@@ -792,7 +870,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["취향을 조용히 기억해주는 것", "생각을 물어봐주는 것", "거리감을 존중하는 태도", "말 없는 시간을 어색하게 몰아가지 않는 것"],
     trustTriggers: ["작은 약속 지키기", "말없이 곁에 있어주기", "부담 없는 배려", "비밀을 캐묻지 않고 기다려주기"],
     conflictPattern: "불편하면 바로 말하지 않고 혼자 정리한 뒤 다시 대화하려 한다. 이때 침묵을 무관심으로 단정하면 더 깊이 닫힌다.",
-    bestApproach: "빠르게 다가가기보다, 그의 생각과 취향을 천천히 알아가야 한다. 질문은 짧게, 기억은 오래 남기는 방식이 가장 잘 맞는다.",
     palette: {
       shell: "from-slate-950 via-cyan-950 to-zinc-950",
       scene: "bg-[radial-gradient(circle_at_68%_22%,rgba(125,211,252,0.28),transparent_34%),linear-gradient(135deg,#07111f_0%,#10202a_42%,#15151d_100%)]",
@@ -804,13 +881,12 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
   },
   {
     id: "yeoni",
-    name: "연이",
+    ...LOVE_CHARACTER_COPY_KO["yeoni"],
     gender: "female",
     asset: "/fuctionassets/러브 코드/여_연이 프로필 사복버전.webp",
     dayMaster: "을목",
     element: "wood",
     yinYang: "yin",
-    archetype: "분홍빛 치유자",
     keywords: ["치유", "섬세함", "전통미", "몽환", "따뜻함"],
     matchKeywords: ["치유", "섬세함", "전통미", "따뜻함", "천천히", "몽환"],
     sajuMatchProfile: {
@@ -821,7 +897,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
       charmHints: ["도화", "화개"],
       relationshipKeywords: ["치유", "섬세함", "전통미", "따뜻함", "천천히"],
     },
-    profileLine: "부드러운 감성으로 마음의 결을 읽지만, 자신의 상처도 함께 돌봐주는 사람에게 천천히 피어나는 치유자 타입",
     personality: "조용하고 섬세한 감성을 지녔다. 자연, 음악, 이야기에서 위로를 얻고, 다른 사람의 마음을 부드럽게 어루만진다. 다정함이 익숙해 자기 피로를 뒤로 미루지만, 좋아하는 사람에게는 받는 사랑을 연습하고 싶어 한다.",
     speechStyle: "따뜻하고 조심스럽다. 상대가 상처받지 않도록 단어를 고르며, 마음이 깊어질수록 꿈과 상징을 빌려 자기 진심을 천천히 말한다.",
     likes: {
@@ -838,7 +913,6 @@ export const LOVE_CHARACTERS: LoveCharacter[] = [
     affectionTriggers: ["상대의 마음을 조심스럽게 물어봐주는 태도", "고요한 배려", "자연스러운 칭찬", "받은 위로를 되돌려주는 말"],
     trustTriggers: ["편안한 침묵", "감정을 존중하는 말", "상처를 가볍게 여기지 않는 태도", "연이의 피로를 먼저 알아차림"],
     conflictPattern: "갈등을 피하려 하지만, 마음이 닫히면 회복에 시간이 걸린다. 위로를 당연하게 받기만 하면 연이는 더 다정해지다가 조용히 시든다.",
-    bestApproach: "부드럽고 진심 어린 표현으로 천천히 가까워지되, 받은 위로만 기대하지 말고 그녀의 마음도 되물어야 한다.",
     palette: {
       shell: "from-stone-950 via-rose-950 to-emerald-950",
       scene: "bg-[radial-gradient(circle_at_32%_18%,rgba(244,114,182,0.28),transparent_34%),linear-gradient(135deg,#1a1114_0%,#2b1822_45%,#10261d_100%)]",

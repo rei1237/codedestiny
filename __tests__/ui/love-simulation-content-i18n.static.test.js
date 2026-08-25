@@ -32,40 +32,61 @@ test("러브 시뮬레이션 콘텐츠가 12개 로케일 사전에 전부 있�
   const scopes = [...new Set(wired.map((entry) => entry.scope))].sort();
   assert.deepEqual(
     scopes,
-    ["matching"],
+    ["characters", "matching"],
     "콘텐츠 배선 scope 집합이 달라졌다 — 배선을 지웠거나 새로 늘렸다면 이 목록도 함께 갱신할 것",
   );
 });
 
-test("콘텐츠 정본은 _utils 에 남아 있고 ko 는 소스와 일치한다", () => {
+/** 🔴 파일명을 손으로 적지 않는다. loveSimulation-*.json 을 전수 발견해 새 청크가 자동으로 검사에 든다. */
+function readAuthoredChunks() {
+  const dir = path.join(root, "i18n/authored");
+  const files = fs.readdirSync(dir).filter((name) => /^loveSimulation-\d+\.json$/.test(name)).sort();
+  assert.ok(files.length > 0, "i18n/authored 에 loveSimulation 저작 파일이 하나도 없다 — 가드가 무력화된 상태다");
+  return files.map((name) => ({ name, entries: JSON.parse(fs.readFileSync(path.join(dir, name), "utf8")) }));
+}
+
+/** 피처 안의 모든 TS 소스를 한 덩어리로 읽는다. 콘텐츠 정본이 _utils 든 _data 든 여기 있어야 한다. */
+function readFeatureSources(dir = featureDir) {
+  let source = "";
+  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+    const full = path.join(dir, entry.name);
+    if (entry.isDirectory()) source += readFeatureSources(full);
+    else if (/\.tsx?$/.test(entry.name)) source += fs.readFileSync(full, "utf8");
+  }
+  return source;
+}
+
+test("콘텐츠 정본은 소스에 남아 있고 ko 는 소스와 일치한다", () => {
   // 🔴 ko 를 사전으로 옮기고 소스를 비우면 한국어 정본이 사라진다. 사전의 ko 는 소스의
   //    사본이어야 하며, 어긋나면 한국어 화면만 바뀌고 나머지 11개 로케일이 옛 문장을 계속 서빙한다.
-  const authored = JSON.parse(fs.readFileSync(path.join(root, "i18n/authored/loveSimulation-01.json"), "utf8"));
-  const source = fs.readFileSync(path.join(featureDir, "_utils/loveCharacterMatching.ts"), "utf8");
+  const source = readFeatureSources();
 
   let checked = 0;
-  for (const [key, entry] of Object.entries(authored)) {
-    if (key.startsWith("_")) continue;
-    checked += 1;
-    assert.ok(
-      source.includes(entry.ko),
-      `${key}: 사전의 ko 가 _utils 소스에 없다 — 한쪽만 고친 것이다\n  ${entry.ko.slice(0, 40)}`,
-    );
+  for (const { name, entries } of readAuthoredChunks()) {
+    for (const [key, entry] of Object.entries(entries)) {
+      if (key.startsWith("_")) continue;
+      checked += 1;
+      assert.ok(
+        source.includes(entry.ko),
+        `${name} ${key}: 사전의 ko 가 피처 소스에 없다 — 한쪽만 고친 것이다\n  ${entry.ko.slice(0, 40)}`,
+      );
+    }
   }
-  assert.ok(checked >= 80, `저작 항목을 ${checked}개밖에 못 읽었다 — 파일이 비었거나 형식이 바뀌었다`);
+  assert.ok(checked >= 144, `저작 항목을 ${checked}개밖에 못 읽었다 — 파일이 비었거나 형식이 바뀌었다`);
 });
 
 test("자리표시자는 12개 로케일에서 같은 집합이다", () => {
   // 🔴 `formatTemplate` 은 채우지 못한 `{name}` 을 빈 문자열로 지운다. 번역이 자리표시자를
   //    빠뜨리면 화면에 값이 통째로 사라지고, 그건 렌더링만 봐서는 안 잡힌다.
-  const authored = JSON.parse(fs.readFileSync(path.join(root, "i18n/authored/loveSimulation-01.json"), "utf8"));
   const placeholders = (value) => [...value.matchAll(/\{(\w+)\}/g)].map((match) => match[1]).sort().join(",");
 
-  for (const [key, entry] of Object.entries(authored)) {
-    if (key.startsWith("_")) continue;
-    const expected = placeholders(entry.ko);
-    for (const [locale, value] of Object.entries(entry)) {
-      assert.equal(placeholders(value), expected, `${key}: ${locale} 의 자리표시자가 ko 와 다르다`);
+  for (const { name, entries } of readAuthoredChunks()) {
+    for (const [key, entry] of Object.entries(entries)) {
+      if (key.startsWith("_")) continue;
+      const expected = placeholders(entry.ko);
+      for (const [locale, value] of Object.entries(entry)) {
+        assert.equal(placeholders(value), expected, `${name} ${key}: ${locale} 의 자리표시자가 ko 와 다르다`);
+      }
     }
   }
 });

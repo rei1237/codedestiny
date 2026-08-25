@@ -15091,6 +15091,104 @@
       },
       "matchLabel": "Close to the {name} type",
       "matchSummary": "Reads as: {profileLine}. In a relationship: {bestApproach}"
+    },
+    "characters": {
+      "kang-taejun": {
+        "name": "Kang Tae-jun",
+        "archetype": "The Passionate Ace",
+        "profileLine": "Quick to show what he feels and never one to hide a mind already made up, yet real love is where he trades winning for running in step with someone — a straight-ahead type.",
+        "bestApproach": "Cheering him on honestly and running alongside him works far better than vague push-and-pull. Just don't get swept up in his pace — say out loud when it is time to rest, and it lasts."
+      },
+      "kwon-sehyun": {
+        "name": "Kwon Se-hyun",
+        "archetype": "The Cold Strategist",
+        "profileLine": "He rarely lets emotion show, but once trust has been built he carves out a safe seat for you inside his own schedule — a strategist through and through.",
+        "bestApproach": "Rather than trying to change him, keep giving the steady impression that you can be trusted. Tidy promises and calm follow-through reach Se-hyun most deeply."
+      },
+      "michael": {
+        "name": "Michael",
+        "archetype": "The Quiet Watcher of the Night",
+        "profileLine": "He is not easily carried away; he watches the silences between words and quiet trust for a long time, and once he opens his heart he will cross even the dark with you.",
+        "bestApproach": "Do not mistake his silence for indifference; come close in a quiet way. Instead of pressing for an answer, leave time for the water of his heart to find its own course."
+      },
+      "seo-yuan": {
+        "name": "Seo Yu-an",
+        "archetype": "The Cozy Literary Senior",
+        "profileLine": "He is grateful for small things and quietly arranges everything so you can relax, yet real love is where he learns that he, too, wants someone to lean on.",
+        "bestApproach": "Show your sincerity slowly, in a relaxed atmosphere. Instead of taking his kindness for granted, tell him specifically which piece of care carried you through."
+      },
+      "seo-ijun": {
+        "name": "Seo I-jun",
+        "archetype": "The Decadent Philosopher",
+        "profileLine": "He does not come close easily, but a real conversation pulls him hard, and he stays longest beside someone who never trespasses on his solitude — a deep observer.",
+        "bestApproach": "Rather than trying to persuade him, build the depth of the conversation together. Do not force certainty on him; leave him both time alone and a place to come back to."
+      },
+      "yoon-siwoo": {
+        "name": "Yoon Si-woo",
+        "archetype": "The Clear-Skied Campus Senior",
+        "profileLine": "Gentle, diligent and kind to everyone, he still knows exactly where the line is; he wants to grow together while protecting the seasons meant for rest.",
+        "bestApproach": "Start out like an easy friend and let closeness build steadily. Ask about his dreams without grading them, respect his plans, and on tired days tell him it is fine to rest."
+      },
+      "han-yunseo": {
+        "name": "Han Yoon-seo",
+        "archetype": "The Glittering Star on Stage",
+        "profileLine": "Playful on the surface but wholly serious about music and feeling, he is shaken more deeply by one person's accurate gaze than by any cheering crowd — a free spirit.",
+        "bestApproach": "Balancing seriousness and lightness is what matters. Play along with his teasing, but never miss the real feeling hidden inside it."
+      },
+      "kim-ming": {
+        "name": "Kim Ming",
+        "archetype": "The Silver Romantic",
+        "profileLine": "She cares about the grain of a feeling and the mood around it, polishing love into something beautiful with small courtesies and careful certainty.",
+        "bestApproach": "A careful, sincere manner suits her far better than showy words. More than matching the mood, what matters is the courtesy that makes her feel safe inside it."
+      },
+      "park-jieun": {
+        "name": "Park Ji-eun",
+        "archetype": "The Black Rose Mystery",
+        "profileLine": "She hides deep, complicated feelings and quietly tests whether your sincerity stays consistent — but once she feels safe, no one stays deeper than she does.",
+        "bestApproach": "Do not answer her with an emotional fight; set boundaries, but state your sincerity clearly. Hold her anxiety, and gently stop her before testing becomes her way of loving."
+      },
+      "saebyeok": {
+        "name": "Saebyeok",
+        "archetype": "The Red Light of the City",
+        "profileLine": "She hides a fine-grained sensitivity inside a clear, urban manner, and entrusts her weaker moments only to someone who never tries to break her strength — a woman who leads.",
+        "bestApproach": "Talk to her clearly and like an adult. Do not compete with her strength; keep showing her, steadily, that you are on the side facing the same direction."
+      },
+      "seoyeon": {
+        "name": "Seoyeon",
+        "archetype": "A First Love Like Flower Scent",
+        "profileLine": "A small word or expression is enough to flutter her, yet she blooms fully only before a heart that remembered her for a long time — a first-love type.",
+        "bestApproach": "Temperature matters more than speed. Keep small promises with warm, steady words, and never rush her rhythm."
+      },
+      "soha": {
+        "name": "Sohwa",
+        "archetype": "The Sunlit Energy Mate",
+        "profileLine": "Being with her gives you energy, yet what she dreams of is a bond that keeps breathing with her on the days that are not bright either — an energy mate.",
+        "bestApproach": "Make plenty of moments where you move and laugh together, but look at her condition before her records, and stay beside her on the days that are not bright."
+      },
+      "jiyoon": {
+        "name": "Jiyoon",
+        "archetype": "Bright as the Sea",
+        "profileLine": "Bright and flexible as the sea, she deepens only with someone who never treats the sincerity inside that ease as something light.",
+        "bestApproach": "Rather than tying her down, keep the relationship easy and clear-aired while confirming your sincerity in plain words."
+      },
+      "harin": {
+        "name": "Harin",
+        "archetype": "The Pink-Neon Mischief-Maker",
+        "profileLine": "She opens up on a bouncy, sparkling rhythm, but stays long only with someone who sees the real feeling behind the teasing.",
+        "bestApproach": "Do not come at her too heavily; get close on a bright, playful rhythm, and do not miss the sincerity tucked inside the jokes."
+      },
+      "neo": {
+        "name": "Neo",
+        "archetype": "The Quiet Silver Boy",
+        "profileLine": "He closes the distance slowly, but he keeps small preferences and promises stored for a long time — a silver observer.",
+        "bestApproach": "Rather than rushing in, learn his thoughts and tastes slowly. Short questions and a long memory suit him best."
+      },
+      "yeoni": {
+        "name": "Yeoni",
+        "archetype": "The Rose-Pink Healer",
+        "profileLine": "She reads the grain of your heart with a soft sensibility, yet she blooms slowly, and only for someone who tends her own wounds as well — a healer.",
+        "bestApproach": "Come closer slowly with soft, sincere words, and do not only expect the comfort she gives; ask after her heart in return."
+      }
     }
   }
 }
