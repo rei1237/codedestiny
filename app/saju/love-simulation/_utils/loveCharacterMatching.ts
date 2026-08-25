@@ -7,7 +7,12 @@ export type LoveCharacterMatchResult = {
   characterId: CharacterId;
   characterName: string;
   matchLabel: string;
-  confidenceLabel: "높음" | "보통" | "낮음";
+  /**
+   * 🔴 화면 문구가 아니라 **판정 키**다. 예전에는 `confidenceLabel: "높음" | "보통" | "낮음"`
+   * 이었고 `RecommendedMatchCard` 가 그 한국어를 그대로 찍어, 비-ko 사용자가 자기 언어 옆에서
+   * 한국어를 봤다. 문장은 `LOVE_MATCHING_COPY_KO.confidence` 가 갖는다.
+   */
+  confidenceKey: "high" | "medium" | "low";
   summary: string;
   reasonBullets: string[];
 };
@@ -39,6 +44,183 @@ type ExtractedSajuProfile = {
 type ScoredMatch = LoveCharacterMatchResult & {
   score: number;
 };
+
+/**
+ * 화면에 찍히는 문장의 **한국어 정본**. 다른 로케일은 `LoveSimulationEngine` 이 걸어 둔
+ * `useLoveSimCopy("matching", LOVE_MATCHING_COPY_KO)` 가 사전
+ * (`loveSimulation.matching.*`, 저작 정본 `i18n/authored/loveSimulation-*.json`)에서 가져간다.
+ * 그러니 문장을 고치면 사전 키도 같이 고쳐야 한다 — 안 고치면 한국어만 바뀌고 나머지 11개는
+ * 옛 문장을 계속 서빙한다.
+ *
+ * 🔴 이 파일에 남은 한국어 중 **여기 없는 것은 전부 기계 키**다(`GAN_DAY_MASTER` 의 `갑`,
+ * `BRANCH_ELEMENT` 의 `자`, `TEN_GOD_TERMS` 의 `비견`, `FALLBACK_PROFILE` 의 키워드…).
+ * 저것들은 사주 계산 결과 문자열과 대조하는 조회 키라 로케일 불문 한국어로 남는다 —
+ * CLAUDE.md 의 "한국어 타입 리터럴 = 기계 키" 제외 대상과 같은 부류다. 사전으로 옮기면
+ * 매칭이 통째로 죽는다.
+ *
+ * 🔴 `{...}` 자리에 들어가는 값 중 `characterName`·`archetype`·`profileLine`·`bestApproach`
+ * 는 `_data/loveCodeMvp.ts` 가 갖는 한국어이고 아직 로케일화되지 않았다(콘텐츠 번역 슬라이스
+ * 3·4). 그때까지 비-ko 화면은 **틀은 그 언어, 캐릭터 이름·소개는 한국어**로 섞여 나온다.
+ */
+export const LOVE_MATCHING_COPY_KO = {
+  /** 일간 표시 이름. 조회 키는 `GAN_DAY_MASTER` 가 따로 갖는다(그쪽은 한국어 고정). */
+  dayMasterNames: {
+    jiaWood: "갑목",
+    yiWood: "을목",
+    bingFire: "병화",
+    dingFire: "정화",
+    wuEarth: "무토",
+    jiEarth: "기토",
+    gengMetal: "경금",
+    xinMetal: "신금",
+    renWater: "임수",
+    guiWater: "계수",
+  },
+  /** 배우자궁(일지) 표시 이름. */
+  branchNames: {
+    zi: "자",
+    chou: "축",
+    yin: "인",
+    mao: "묘",
+    chen: "진",
+    si: "사",
+    wu: "오",
+    wei: "미",
+    shen: "신",
+    you: "유",
+    xu: "술",
+    hai: "해",
+  },
+  elementNames: {
+    wood: "목",
+    fire: "화",
+    earth: "토",
+    metal: "금",
+    water: "수",
+  },
+  yinYangNames: {
+    yin: "음",
+    yang: "양",
+  },
+  unknownElement: "미확인",
+  elementEnergy: "{element} 기운",
+  coupleGrade: {
+    excellent: "상급 궁합",
+    generating: "자연 상생궁합",
+    tuning: "설렘 조율궁합",
+    pacing: "속도 조절궁합",
+    cooling: "냉각 주의궁합",
+  },
+  elementRelation: {
+    unknown: "오행 정보 일부 미확인",
+    resonance: "{element} 기운 공명",
+    generating: "오행 상생 흐름",
+    controlling: "오행 긴장 흐름",
+    neutral: "오행 중립 흐름",
+  },
+  coupleReason: {
+    sameDayMaster: "두 사람의 일간이 {dayMaster}으로 같아 감정의 반응 속도를 서로 빨리 알아차립니다.",
+    sameElement: "{element} 기운이 함께 울려 취향과 표현 방식이 자연스럽게 닿습니다.",
+    generating: "{relation}이라 한쪽의 마음이 다른 쪽의 안정과 설렘을 살려줍니다.",
+    controlling: "{relation}이라 강하게 끌리지만 표현 방식이 부딪힐 수 있습니다.",
+    sameBranch: "배우자궁의 지지가 {branch}으로 같아 관계의 기본 리듬이 닮아 있습니다.",
+    sameBranchElement: "배우자궁의 바탕 기운이 {element}으로 맞아 생활 감각을 맞추기 쉽습니다.",
+    branchControlling: "배우자궁의 기운이 서로를 자극해 작은 오해도 크게 번질 수 있습니다.",
+    sameYinYang: "{yinYang}의 리듬이 닮아 관계 속도를 맞추기 좋습니다.",
+    differentYinYang: "음양이 달라 서로의 빈칸을 채우지만, 확인의 언어를 자주 맞춰야 합니다.",
+    sharedElements: "강한 오행 중 {elements}이 겹쳐 반복되는 끌림 포인트가 있습니다.",
+    sharedKeywords: "관계 키워드가 일부 겹쳐 서로가 원하는 안정감의 모양이 비슷합니다.",
+  },
+  chip: {
+    yinYangSync: "음양 동조",
+    yinYangComplement: "음양 보완",
+    yinYangUnknown: "음양 일부 미확인",
+    spousePalace: "배우자궁 {self}-{partner}",
+    spousePalaceUnknown: "배우자궁 일부 미확인",
+  },
+  risk: {
+    controlling: "강한 끌림이 먼저 올라오는 대신, 말의 속도와 자존심이 부딪히면 긴장이 빨리 커집니다.",
+    smooth: "관계가 비교적 자연스럽게 흐르지만, 익숙함 때문에 확인을 생략하면 온도가 서서히 낮아질 수 있습니다.",
+    steady: "서로의 마음을 단정하기보다 반응을 짧고 자주 확인해야 안정감이 쌓입니다.",
+  },
+  dateTip: {
+    smooth: "첫 데이트는 오래 걷는 동선보다 서로의 취향을 확인할 수 있는 작은 선택지가 많은 코스가 좋습니다.",
+    controlling: "처음부터 결론을 내기보다 짧은 대화, 분명한 약속, 가벼운 애프터로 긴장을 낮추는 편이 좋습니다.",
+    steady: "대화가 끊기지 않는 조용한 공간에서 호감 표현보다 생활 리듬을 먼저 맞춰보세요.",
+  },
+  coupleSummary:
+    "{self}인 당신과 {partner}인 상대는 {relation}으로 읽힙니다. 전체 궁합은 {grade}이며, 설렘보다 오래 남는 포인트는 {reason}입니다.",
+  coupleSummaryFallbackReason: "서로의 반응을 천천히 확인하는 태도",
+  confidence: {
+    high: "높음",
+    medium: "보통",
+    low: "낮음",
+  },
+  matchReason: {
+    dayMaster: "{dayMaster} 일간의 결이 {name}형 관계 패턴과 닮아 있습니다.",
+    element: "{element}의 기운이 관계 표현 방식과 자연스럽게 맞닿습니다.",
+    generating: "오행의 흐름이 서로를 돕는 상생의 방향으로 이어집니다.",
+    yinYang: "{yinYang}의 리듬이 캐릭터의 거리감과 비슷합니다.",
+    keywords: "사주 결과의 관계 힌트가 캐릭터 키워드와 일부 겹칩니다.",
+    tenGod: "십성 성향에서 가까운 관계 반응이 보입니다.",
+    charm: "매력 신살의 분위기가 캐릭터의 끌림 방식과 닮았습니다.",
+    relationship: "관계 성향 요약에서 비슷한 흐름이 잡힙니다.",
+    fallbackArchetype: "{name}형은 {archetype}의 결을 가진 페르소나입니다.",
+    fallbackDisclaimer: "시뮬레이션을 위한 성향 매칭으로, 실제 상대를 단정하지 않습니다.",
+  },
+  matchLabel: "{name}형 성향과 가까워요",
+  matchSummary: "{profileLine}으로 해석됩니다. 관계에서는 {bestApproach}",
+};
+
+export type LoveMatchingCopy = typeof LOVE_MATCHING_COPY_KO;
+
+/** 조회 키(한국어 고정) → 표시 이름 키. 사전이 덮는 것은 오른쪽뿐이다. */
+const DAY_MASTER_COPY_KEY: Record<string, keyof LoveMatchingCopy["dayMasterNames"]> = {
+  갑목: "jiaWood",
+  을목: "yiWood",
+  병화: "bingFire",
+  정화: "dingFire",
+  무토: "wuEarth",
+  기토: "jiEarth",
+  경금: "gengMetal",
+  신금: "xinMetal",
+  임수: "renWater",
+  계수: "guiWater",
+};
+
+const BRANCH_COPY_KEY: Record<string, keyof LoveMatchingCopy["branchNames"]> = {
+  자: "zi",
+  축: "chou",
+  인: "yin",
+  묘: "mao",
+  진: "chen",
+  사: "si",
+  오: "wu",
+  미: "wei",
+  신: "shen",
+  유: "you",
+  술: "xu",
+  해: "hai",
+};
+
+/**
+ * `{name}` 자리를 채운다. 사전이 채우지 못한 자리는 남겨 두지 않고 빈 문자열로 지운다 —
+ * 번역이 자리표시자를 빠뜨렸을 때 화면에 `{name}` 이 그대로 찍히는 것보다 낫다.
+ */
+function formatTemplate(template: string, values: Record<string, string>): string {
+  return template.replace(/\{(\w+)\}/g, (_match, key: string) => values[key] ?? "");
+}
+
+/** 사전에 없는 일간·지지(계산기가 새 값을 내놓은 경우)는 원문을 그대로 보여준다. */
+function dayMasterName(copy: LoveMatchingCopy, dayMaster: string): string {
+  const key = DAY_MASTER_COPY_KEY[dayMaster];
+  return key ? copy.dayMasterNames[key] : dayMaster;
+}
+
+function branchName(copy: LoveMatchingCopy, branch: string): string {
+  const key = BRANCH_COPY_KEY[branch];
+  return key ? copy.branchNames[key] : branch;
+}
 
 const GAN_DAY_MASTER: Record<string, string> = {
   갑: "갑목",
@@ -72,14 +254,6 @@ const KOREAN_ELEMENT_TO_CODE: Record<string, MatchElement> = {
   토: "earth",
   금: "metal",
   수: "water",
-};
-
-const CODE_TO_KOREAN_ELEMENT: Record<MatchElement, string> = {
-  wood: "목",
-  fire: "화",
-  earth: "토",
-  metal: "금",
-  water: "수",
 };
 
 const GENERATES: Record<MatchElement, MatchElement> = {
@@ -353,32 +527,35 @@ function countMatches(source: string[], target: string[]) {
   return target.filter((item) => sourceText.includes(item) || source.some((sourceItem) => item.includes(sourceItem))).length;
 }
 
-function resolveCoupleGrade(score: number) {
-  if (score >= 86) return "상급 궁합";
-  if (score >= 76) return "자연 상생궁합";
-  if (score >= 64) return "설렘 조율궁합";
-  if (score >= 52) return "속도 조절궁합";
-  return "냉각 주의궁합";
+function resolveCoupleGrade(score: number, copy: LoveMatchingCopy) {
+  if (score >= 86) return copy.coupleGrade.excellent;
+  if (score >= 76) return copy.coupleGrade.generating;
+  if (score >= 64) return copy.coupleGrade.tuning;
+  if (score >= 52) return copy.coupleGrade.pacing;
+  return copy.coupleGrade.cooling;
 }
 
 function clampScore(score: number) {
   return Math.max(0, Math.min(100, Math.round(score)));
 }
 
-function elementLabel(element: MatchElement | null) {
-  return element ? CODE_TO_KOREAN_ELEMENT[element] : "미확인";
+function elementLabel(element: MatchElement | null, copy: LoveMatchingCopy) {
+  return element ? copy.elementNames[element] : copy.unknownElement;
 }
 
-function profileLabel(profile: ExtractedSajuProfile) {
-  return profile.dayMaster || `${elementLabel(profile.dayElement)} 기운`;
+function profileLabel(profile: ExtractedSajuProfile, copy: LoveMatchingCopy) {
+  if (profile.dayMaster) return dayMasterName(copy, profile.dayMaster);
+  return formatTemplate(copy.elementEnergy, { element: elementLabel(profile.dayElement, copy) });
 }
 
-function elementRelationLabel(selfElement: MatchElement | null, partnerElement: MatchElement | null) {
-  if (!selfElement || !partnerElement) return "오행 정보 일부 미확인";
-  if (selfElement === partnerElement) return `${elementLabel(selfElement)} 기운 공명`;
-  if (hasGeneratingRelation(selfElement, partnerElement)) return "오행 상생 흐름";
-  if (hasControllingRelation(selfElement, partnerElement)) return "오행 긴장 흐름";
-  return "오행 중립 흐름";
+function elementRelationLabel(selfElement: MatchElement | null, partnerElement: MatchElement | null, copy: LoveMatchingCopy) {
+  if (!selfElement || !partnerElement) return copy.elementRelation.unknown;
+  if (selfElement === partnerElement) {
+    return formatTemplate(copy.elementRelation.resonance, { element: elementLabel(selfElement, copy) });
+  }
+  if (hasGeneratingRelation(selfElement, partnerElement)) return copy.elementRelation.generating;
+  if (hasControllingRelation(selfElement, partnerElement)) return copy.elementRelation.controlling;
+  return copy.elementRelation.neutral;
 }
 
 function buildCoupleStatEffects(score: number, hasControl: boolean): Partial<LoveStats> {
@@ -389,7 +566,11 @@ function buildCoupleStatEffects(score: number, hasControl: boolean): Partial<Lov
   return { affection: -2, trust: -1, chemistry: 2, stability: -2, tension: 8 };
 }
 
-export function buildSajuCoupleCompatibility(selfSaju: unknown, partnerSaju: unknown): SajuCoupleCompatibility | null {
+export function buildSajuCoupleCompatibility(
+  selfSaju: unknown,
+  partnerSaju: unknown,
+  copy: LoveMatchingCopy,
+): SajuCoupleCompatibility | null {
   const self = extractSajuProfile(selfSaju);
   const partner = extractSajuProfile(partnerSaju);
   if (!self.dayMaster && !self.dayElement && !partner.dayMaster && !partner.dayElement) return null;
@@ -402,78 +583,96 @@ export function buildSajuCoupleCompatibility(selfSaju: unknown, partnerSaju: unk
 
   if (self.dayMaster && partner.dayMaster && self.dayMaster === partner.dayMaster) {
     score += 8;
-    reasons.push(`두 사람의 일간이 ${self.dayMaster}으로 같아 감정의 반응 속도를 서로 빨리 알아차립니다.`);
+    reasons.push(formatTemplate(copy.coupleReason.sameDayMaster, { dayMaster: dayMasterName(copy, self.dayMaster) }));
   } else if (selfElement && partnerElement && selfElement === partnerElement) {
     score += 10;
-    reasons.push(`${elementLabel(selfElement)} 기운이 함께 울려 취향과 표현 방식이 자연스럽게 닿습니다.`);
+    reasons.push(formatTemplate(copy.coupleReason.sameElement, { element: elementLabel(selfElement, copy) }));
   } else if (hasGeneratingRelation(selfElement, partnerElement || null)) {
     score += 14;
-    reasons.push(`${elementRelationLabel(selfElement, partnerElement)}이라 한쪽의 마음이 다른 쪽의 안정과 설렘을 살려줍니다.`);
+    reasons.push(
+      formatTemplate(copy.coupleReason.generating, { relation: elementRelationLabel(selfElement, partnerElement, copy) }),
+    );
   } else if (hasControl) {
     score -= 10;
-    reasons.push(`${elementRelationLabel(selfElement, partnerElement)}이라 강하게 끌리지만 표현 방식이 부딪힐 수 있습니다.`);
+    reasons.push(
+      formatTemplate(copy.coupleReason.controlling, { relation: elementRelationLabel(selfElement, partnerElement, copy) }),
+    );
   }
 
   const selfBranchElement = self.dayBranch ? BRANCH_ELEMENT[self.dayBranch] ?? null : null;
   const partnerBranchElement = partner.dayBranch ? BRANCH_ELEMENT[partner.dayBranch] ?? null : null;
   if (self.dayBranch && partner.dayBranch && self.dayBranch === partner.dayBranch) {
     score += 5;
-    reasons.push(`배우자궁의 지지가 ${self.dayBranch}으로 같아 관계의 기본 리듬이 닮아 있습니다.`);
+    reasons.push(formatTemplate(copy.coupleReason.sameBranch, { branch: branchName(copy, self.dayBranch) }));
   } else if (selfBranchElement && partnerBranchElement && selfBranchElement === partnerBranchElement) {
     score += 4;
-    reasons.push(`배우자궁의 바탕 기운이 ${elementLabel(selfBranchElement)}으로 맞아 생활 감각을 맞추기 쉽습니다.`);
+    reasons.push(
+      formatTemplate(copy.coupleReason.sameBranchElement, { element: elementLabel(selfBranchElement, copy) }),
+    );
   } else if (hasControllingRelation(selfBranchElement, partnerBranchElement)) {
     score -= 5;
-    reasons.push("배우자궁의 기운이 서로를 자극해 작은 오해도 크게 번질 수 있습니다.");
+    reasons.push(copy.coupleReason.branchControlling);
   }
 
   if (self.yinYang && partner.yinYang) {
     if (self.yinYang === partner.yinYang) {
       score += 5;
-      reasons.push(`${self.yinYang === "yin" ? "음" : "양"}의 리듬이 닮아 관계 속도를 맞추기 좋습니다.`);
+      reasons.push(formatTemplate(copy.coupleReason.sameYinYang, { yinYang: copy.yinYangNames[self.yinYang] }));
     } else {
       score += 3;
-      reasons.push("음양이 달라 서로의 빈칸을 채우지만, 확인의 언어를 자주 맞춰야 합니다.");
+      reasons.push(copy.coupleReason.differentYinYang);
     }
   }
 
   const sharedStrongElements = self.strongElements.filter((element) => partner.strongElements.includes(element));
   if (sharedStrongElements.length > 0) {
     score += Math.min(sharedStrongElements.length, 2) * 3;
-    reasons.push(`강한 오행 중 ${sharedStrongElements.map(elementLabel).join(", ")}이 겹쳐 반복되는 끌림 포인트가 있습니다.`);
+    reasons.push(
+      formatTemplate(copy.coupleReason.sharedElements, {
+        elements: sharedStrongElements.map((element) => elementLabel(element, copy)).join(", "),
+      }),
+    );
   }
 
   const sharedRelationHints = countMatches(self.relationshipHints, partner.relationshipHints);
   if (sharedRelationHints > 0) {
     score += Math.min(sharedRelationHints, 2) * 4;
-    reasons.push("관계 키워드가 일부 겹쳐 서로가 원하는 안정감의 모양이 비슷합니다.");
+    reasons.push(copy.coupleReason.sharedKeywords);
   }
 
   const finalScore = clampScore(score);
-  const grade = resolveCoupleGrade(finalScore);
-  const relationLabel = elementRelationLabel(selfElement, partnerElement);
+  const grade = resolveCoupleGrade(finalScore, copy);
+  const relationLabel = elementRelationLabel(selfElement, partnerElement, copy);
+  const selfLabel = profileLabel(self, copy);
+  const partnerLabel = profileLabel(partner, copy);
   const chips = [
-    `${profileLabel(self)} × ${profileLabel(partner)}`,
+    `${selfLabel} × ${partnerLabel}`,
     relationLabel,
-    self.yinYang && partner.yinYang ? `음양 ${self.yinYang === partner.yinYang ? "동조" : "보완"}` : "음양 일부 미확인",
-    self.dayBranch && partner.dayBranch ? `배우자궁 ${self.dayBranch}-${partner.dayBranch}` : "배우자궁 일부 미확인",
+    self.yinYang && partner.yinYang
+      ? self.yinYang === partner.yinYang
+        ? copy.chip.yinYangSync
+        : copy.chip.yinYangComplement
+      : copy.chip.yinYangUnknown,
+    self.dayBranch && partner.dayBranch
+      ? formatTemplate(copy.chip.spousePalace, {
+          self: branchName(copy, self.dayBranch),
+          partner: branchName(copy, partner.dayBranch),
+        })
+      : copy.chip.spousePalaceUnknown,
   ];
-  const risk = hasControl
-    ? "강한 끌림이 먼저 올라오는 대신, 말의 속도와 자존심이 부딪히면 긴장이 빨리 커집니다."
-    : finalScore >= 76
-      ? "관계가 비교적 자연스럽게 흐르지만, 익숙함 때문에 확인을 생략하면 온도가 서서히 낮아질 수 있습니다."
-      : "서로의 마음을 단정하기보다 반응을 짧고 자주 확인해야 안정감이 쌓입니다.";
-  const dateTip =
-    finalScore >= 76
-      ? "첫 데이트는 오래 걷는 동선보다 서로의 취향을 확인할 수 있는 작은 선택지가 많은 코스가 좋습니다."
-      : hasControl
-        ? "처음부터 결론을 내기보다 짧은 대화, 분명한 약속, 가벼운 애프터로 긴장을 낮추는 편이 좋습니다."
-        : "대화가 끊기지 않는 조용한 공간에서 호감 표현보다 생활 리듬을 먼저 맞춰보세요.";
+  const risk = hasControl ? copy.risk.controlling : finalScore >= 76 ? copy.risk.smooth : copy.risk.steady;
+  const dateTip = finalScore >= 76 ? copy.dateTip.smooth : hasControl ? copy.dateTip.controlling : copy.dateTip.steady;
 
   return {
     score: finalScore,
     grade,
-    summary: `${profileLabel(self)}인 당신과 ${profileLabel(partner)}인 상대는 ${relationLabel}으로 읽힙니다. 전체 궁합은 ${grade}이며, 설렘보다 오래 남는 포인트는 ${reasons[0] || "서로의 반응을 천천히 확인하는 태도"}입니다.`,
+    summary: formatTemplate(copy.coupleSummary, {
+      self: selfLabel,
+      partner: partnerLabel,
+      relation: relationLabel,
+      grade,
+      reason: reasons[0] || copy.coupleSummaryFallbackReason,
+    }),
     reasons: Array.from(new Set(reasons)).slice(0, 4),
     chips,
     risk,
@@ -482,83 +681,92 @@ export function buildSajuCoupleCompatibility(selfSaju: unknown, partnerSaju: unk
   };
 }
 
-function confidenceLabel(score: number): LoveCharacterMatchResult["confidenceLabel"] {
-  if (score >= 55) return "높음";
-  if (score >= 32) return "보통";
-  return "낮음";
+function confidenceKey(score: number): LoveCharacterMatchResult["confidenceKey"] {
+  if (score >= 55) return "high";
+  if (score >= 32) return "medium";
+  return "low";
 }
 
-function buildSummary(character: LoveCharacter) {
-  return `${character.profileLine}으로 해석됩니다. 관계에서는 ${character.bestApproach}`;
+function buildSummary(character: LoveCharacter, copy: LoveMatchingCopy) {
+  return formatTemplate(copy.matchSummary, {
+    profileLine: character.profileLine,
+    bestApproach: character.bestApproach,
+  });
 }
 
-function scoreCharacter(character: LoveCharacter, sajuProfile: ExtractedSajuProfile): ScoredMatch {
+function scoreCharacter(character: LoveCharacter, sajuProfile: ExtractedSajuProfile, copy: LoveMatchingCopy): ScoredMatch {
   const profile = getProfile(character);
   let score = 0;
   const reasons: string[] = [];
 
   if (sajuProfile.dayMaster && (character.dayMaster === sajuProfile.dayMaster || profile.primaryDayMasters?.includes(sajuProfile.dayMaster))) {
     score += 30;
-    reasons.push(`${sajuProfile.dayMaster} 일간의 결이 ${character.name}형 관계 패턴과 닮아 있습니다.`);
+    reasons.push(
+      formatTemplate(copy.matchReason.dayMaster, {
+        dayMaster: dayMasterName(copy, sajuProfile.dayMaster),
+        name: character.name,
+      }),
+    );
   }
 
   if (sajuProfile.strongElements.includes(character.element) || profile.elementBias?.some((element) => sajuProfile.strongElements.includes(element as MatchElement))) {
     score += 20;
-    reasons.push(`${CODE_TO_KOREAN_ELEMENT[character.element]}의 기운이 관계 표현 방식과 자연스럽게 맞닿습니다.`);
+    reasons.push(formatTemplate(copy.matchReason.element, { element: elementLabel(character.element, copy) }));
   } else if (hasGeneratingRelation(sajuProfile.dayElement, character.element)) {
     score += 10;
-    reasons.push("오행의 흐름이 서로를 돕는 상생의 방향으로 이어집니다.");
+    reasons.push(copy.matchReason.generating);
   }
 
   if (sajuProfile.yinYang && (profile.yinYang === sajuProfile.yinYang || profile.yinYang === "balanced" || character.yinYang === sajuProfile.yinYang)) {
     score += profile.yinYang === "balanced" ? 4 : 8;
-    reasons.push(`${sajuProfile.yinYang === "yin" ? "음" : "양"}의 리듬이 캐릭터의 거리감과 비슷합니다.`);
+    reasons.push(formatTemplate(copy.matchReason.yinYang, { yinYang: copy.yinYangNames[sajuProfile.yinYang] }));
   }
 
   const matchKeywords = [...(character.matchKeywords ?? []), ...character.keywords, ...(profile.relationshipKeywords ?? [])];
   const keywordMatches = countMatches(sajuProfile.allHints, matchKeywords);
   if (keywordMatches > 0) {
     score += Math.min(keywordMatches, 5) * 3;
-    reasons.push("사주 결과의 관계 힌트가 캐릭터 키워드와 일부 겹칩니다.");
+    reasons.push(copy.matchReason.keywords);
   }
 
   const tenGodMatches = countMatches(sajuProfile.tenGodHints, profile.tenGodHints ?? []);
   if (tenGodMatches > 0) {
     score += tenGodMatches * 5;
-    reasons.push("십성 성향에서 가까운 관계 반응이 보입니다.");
+    reasons.push(copy.matchReason.tenGod);
   }
 
   const charmMatches = countMatches(sajuProfile.charmHints, profile.charmHints ?? []);
   if (charmMatches > 0) {
     score += charmMatches * 5;
-    reasons.push("매력 신살의 분위기가 캐릭터의 끌림 방식과 닮았습니다.");
+    reasons.push(copy.matchReason.charm);
   }
 
   const relationshipMatches = countMatches(sajuProfile.relationshipHints, profile.relationshipKeywords ?? []);
   if (relationshipMatches > 0) {
     score += relationshipMatches * 5;
-    reasons.push("관계 성향 요약에서 비슷한 흐름이 잡힙니다.");
+    reasons.push(copy.matchReason.relationship);
   }
 
   const fallbackReasons = [
-    `${character.name}형은 ${character.archetype}의 결을 가진 페르소나입니다.`,
-    "시뮬레이션을 위한 성향 매칭으로, 실제 상대를 단정하지 않습니다.",
+    formatTemplate(copy.matchReason.fallbackArchetype, { name: character.name, archetype: character.archetype }),
+    copy.matchReason.fallbackDisclaimer,
   ];
 
   return {
     characterId: character.id,
     characterName: character.name,
-    confidenceLabel: confidenceLabel(score),
-    matchLabel: `${character.name}형 성향과 가까워요`,
+    confidenceKey: confidenceKey(score),
+    matchLabel: formatTemplate(copy.matchLabel, { name: character.name }),
     reasonBullets: Array.from(new Set([...reasons, ...fallbackReasons])).slice(0, 3),
     score,
-    summary: buildSummary(character),
+    summary: buildSummary(character, copy),
   };
 }
 
 export function matchLoveCharactersFromSaju(
   sajuResult: unknown,
   characters: LoveCharacter[],
+  copy: LoveMatchingCopy,
   targetGender?: LoveCharacter["gender"],
 ): LoveCharacterMatchResult[] {
   const sajuProfile = extractSajuProfile(sajuResult);
@@ -567,7 +775,7 @@ export function matchLoveCharactersFromSaju(
   if (candidateCharacters.length === 0) return [];
 
   return candidateCharacters
-    .map((character) => scoreCharacter(character, sajuProfile))
+    .map((character) => scoreCharacter(character, sajuProfile, copy))
     .sort((a, b) => b.score - a.score)
     .slice(0, 3)
     .map(({ score, ...result }) => result);

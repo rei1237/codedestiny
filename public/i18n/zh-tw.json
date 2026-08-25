@@ -14984,5 +14984,113 @@
       "2": "可轉存為 PDF 收藏",
       "3": "全程 HTTPS 加密傳輸"
     }
+  },
+  "loveSimulation": {
+    "matching": {
+      "dayMasterNames": {
+        "jiaWood": "甲木",
+        "yiWood": "乙木",
+        "bingFire": "丙火",
+        "dingFire": "丁火",
+        "wuEarth": "戊土",
+        "jiEarth": "己土",
+        "gengMetal": "庚金",
+        "xinMetal": "辛金",
+        "renWater": "壬水",
+        "guiWater": "癸水"
+      },
+      "branchNames": {
+        "zi": "子",
+        "chou": "丑",
+        "yin": "寅",
+        "mao": "卯",
+        "chen": "辰",
+        "si": "巳",
+        "wu": "午",
+        "wei": "未",
+        "shen": "申",
+        "you": "酉",
+        "xu": "戌",
+        "hai": "亥"
+      },
+      "elementNames": {
+        "wood": "木",
+        "fire": "火",
+        "earth": "土",
+        "metal": "金",
+        "water": "水"
+      },
+      "yinYangNames": {
+        "yin": "陰",
+        "yang": "陽"
+      },
+      "unknownElement": "未確認",
+      "elementEnergy": "{element}之氣",
+      "coupleGrade": {
+        "excellent": "上等合婚",
+        "generating": "自然相生合婚",
+        "tuning": "心動調和合婚",
+        "pacing": "節奏調節合婚",
+        "cooling": "降溫警示合婚"
+      },
+      "elementRelation": {
+        "unknown": "五行資訊部分未確認",
+        "resonance": "{element}之氣共鳴",
+        "generating": "五行相生之流",
+        "controlling": "五行相剋的張力",
+        "neutral": "五行中立之流"
+      },
+      "coupleReason": {
+        "sameDayMaster": "兩人的日主同為{dayMaster}，因此彼此很快就能察覺對方情緒的節奏。",
+        "sameElement": "{element}之氣彼此呼應，喜好與表達方式自然相通。",
+        "generating": "屬於{relation}，一方的心意能帶出另一方的安穩與悸動。",
+        "controlling": "屬於{relation}，吸引力很強，但表達方式容易起衝突。",
+        "sameBranch": "配偶宮的地支同為{branch}，關係的基本節奏因此相近。",
+        "sameBranchElement": "配偶宮的底氣同為{element}，生活步調容易磨合。",
+        "branchControlling": "配偶宮的氣場彼此刺激，小誤會也可能迅速擴大。",
+        "sameYinYang": "{yinYang}的節奏相近，因此容易調整關係的速度。",
+        "differentYinYang": "陰陽不同，能互相填補空缺，但需要經常用言語確認彼此。",
+        "sharedElements": "在偏強的五行中，{elements}重疊，形成反覆出現的吸引點。",
+        "sharedKeywords": "關係關鍵詞有部分重疊，兩人想要的安全感樣貌相近。"
+      },
+      "chip": {
+        "yinYangSync": "陰陽同調",
+        "yinYangComplement": "陰陽互補",
+        "yinYangUnknown": "陰陽部分未確認",
+        "spousePalace": "配偶宮 {self}-{partner}",
+        "spousePalaceUnknown": "配偶宮部分未確認"
+      },
+      "risk": {
+        "controlling": "強烈的吸引會先出現，但一旦說話的節奏與自尊心相撞，緊張感就會迅速升高。",
+        "smooth": "關係走得相對自然，但若因熟悉而省略確認，溫度會慢慢降下來。",
+        "steady": "與其斷定對方的心意，不如簡短而頻繁地確認反應，安全感才會累積。"
+      },
+      "dateTip": {
+        "smooth": "第一次約會與其安排長距離步行，不如選擇有許多小選擇、能看出彼此喜好的行程。",
+        "controlling": "與其一開始就下結論，不如用簡短的對話、明確的約定和輕鬆的續攤來降低緊張。",
+        "steady": "在對話不會中斷的安靜空間裡，先對齊生活節奏，再談好感的表達。"
+      },
+      "coupleSummary": "身為{self}的您與身為{partner}的對方，可解讀為{relation}。整體合婚為{grade}，而比悸動更長久的重點是：{reason}",
+      "coupleSummaryFallbackReason": "慢慢確認彼此反應的態度",
+      "confidence": {
+        "high": "高",
+        "medium": "中等",
+        "low": "低"
+      },
+      "matchReason": {
+        "dayMaster": "{dayMaster}日主的質地，與{name}型的關係模式相似。",
+        "element": "{element}之氣與這種關係的表達方式自然相接。",
+        "generating": "五行的流向走在彼此扶持的相生方向上。",
+        "yinYang": "{yinYang}的節奏與這位角色的距離感相近。",
+        "keywords": "四柱八字結果中的關係線索，與角色的關鍵詞有部分重疊。",
+        "tenGod": "十神的傾向顯示出相近的關係反應。",
+        "charm": "魅力神煞的氣息，與這位角色吸引人的方式相似。",
+        "relationship": "關係傾向的摘要中可以看到相似的走向。",
+        "fallbackArchetype": "{name}型是帶有{archetype}質地的人格形象。",
+        "fallbackDisclaimer": "這是為模擬而做的傾向配對，並不對真實對象下定論。"
+      },
+      "matchLabel": "接近{name}型的傾向",
+      "matchSummary": "可解讀為：{profileLine}。在關係中：{bestApproach}"
+    }
   }
 }

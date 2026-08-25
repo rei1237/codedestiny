@@ -8428,5 +8428,113 @@
       "2": "PDF로 옮겨 소장",
       "3": "전 구간 HTTPS 암호화 전송"
     }
+  },
+  "loveSimulation": {
+    "matching": {
+      "dayMasterNames": {
+        "jiaWood": "갑목",
+        "yiWood": "을목",
+        "bingFire": "병화",
+        "dingFire": "정화",
+        "wuEarth": "무토",
+        "jiEarth": "기토",
+        "gengMetal": "경금",
+        "xinMetal": "신금",
+        "renWater": "임수",
+        "guiWater": "계수"
+      },
+      "branchNames": {
+        "zi": "자",
+        "chou": "축",
+        "yin": "인",
+        "mao": "묘",
+        "chen": "진",
+        "si": "사",
+        "wu": "오",
+        "wei": "미",
+        "shen": "신",
+        "you": "유",
+        "xu": "술",
+        "hai": "해"
+      },
+      "elementNames": {
+        "wood": "목",
+        "fire": "화",
+        "earth": "토",
+        "metal": "금",
+        "water": "수"
+      },
+      "yinYangNames": {
+        "yin": "음",
+        "yang": "양"
+      },
+      "unknownElement": "미확인",
+      "elementEnergy": "{element} 기운",
+      "coupleGrade": {
+        "excellent": "상급 궁합",
+        "generating": "자연 상생궁합",
+        "tuning": "설렘 조율궁합",
+        "pacing": "속도 조절궁합",
+        "cooling": "냉각 주의궁합"
+      },
+      "elementRelation": {
+        "unknown": "오행 정보 일부 미확인",
+        "resonance": "{element} 기운 공명",
+        "generating": "오행 상생 흐름",
+        "controlling": "오행 긴장 흐름",
+        "neutral": "오행 중립 흐름"
+      },
+      "coupleReason": {
+        "sameDayMaster": "두 사람의 일간이 {dayMaster}으로 같아 감정의 반응 속도를 서로 빨리 알아차립니다.",
+        "sameElement": "{element} 기운이 함께 울려 취향과 표현 방식이 자연스럽게 닿습니다.",
+        "generating": "{relation}이라 한쪽의 마음이 다른 쪽의 안정과 설렘을 살려줍니다.",
+        "controlling": "{relation}이라 강하게 끌리지만 표현 방식이 부딪힐 수 있습니다.",
+        "sameBranch": "배우자궁의 지지가 {branch}으로 같아 관계의 기본 리듬이 닮아 있습니다.",
+        "sameBranchElement": "배우자궁의 바탕 기운이 {element}으로 맞아 생활 감각을 맞추기 쉽습니다.",
+        "branchControlling": "배우자궁의 기운이 서로를 자극해 작은 오해도 크게 번질 수 있습니다.",
+        "sameYinYang": "{yinYang}의 리듬이 닮아 관계 속도를 맞추기 좋습니다.",
+        "differentYinYang": "음양이 달라 서로의 빈칸을 채우지만, 확인의 언어를 자주 맞춰야 합니다.",
+        "sharedElements": "강한 오행 중 {elements}이 겹쳐 반복되는 끌림 포인트가 있습니다.",
+        "sharedKeywords": "관계 키워드가 일부 겹쳐 서로가 원하는 안정감의 모양이 비슷합니다."
+      },
+      "chip": {
+        "yinYangSync": "음양 동조",
+        "yinYangComplement": "음양 보완",
+        "yinYangUnknown": "음양 일부 미확인",
+        "spousePalace": "배우자궁 {self}-{partner}",
+        "spousePalaceUnknown": "배우자궁 일부 미확인"
+      },
+      "risk": {
+        "controlling": "강한 끌림이 먼저 올라오는 대신, 말의 속도와 자존심이 부딪히면 긴장이 빨리 커집니다.",
+        "smooth": "관계가 비교적 자연스럽게 흐르지만, 익숙함 때문에 확인을 생략하면 온도가 서서히 낮아질 수 있습니다.",
+        "steady": "서로의 마음을 단정하기보다 반응을 짧고 자주 확인해야 안정감이 쌓입니다."
+      },
+      "dateTip": {
+        "smooth": "첫 데이트는 오래 걷는 동선보다 서로의 취향을 확인할 수 있는 작은 선택지가 많은 코스가 좋습니다.",
+        "controlling": "처음부터 결론을 내기보다 짧은 대화, 분명한 약속, 가벼운 애프터로 긴장을 낮추는 편이 좋습니다.",
+        "steady": "대화가 끊기지 않는 조용한 공간에서 호감 표현보다 생활 리듬을 먼저 맞춰보세요."
+      },
+      "coupleSummary": "{self}인 당신과 {partner}인 상대는 {relation}으로 읽힙니다. 전체 궁합은 {grade}이며, 설렘보다 오래 남는 포인트는 {reason}입니다.",
+      "coupleSummaryFallbackReason": "서로의 반응을 천천히 확인하는 태도",
+      "confidence": {
+        "high": "높음",
+        "medium": "보통",
+        "low": "낮음"
+      },
+      "matchReason": {
+        "dayMaster": "{dayMaster} 일간의 결이 {name}형 관계 패턴과 닮아 있습니다.",
+        "element": "{element}의 기운이 관계 표현 방식과 자연스럽게 맞닿습니다.",
+        "generating": "오행의 흐름이 서로를 돕는 상생의 방향으로 이어집니다.",
+        "yinYang": "{yinYang}의 리듬이 캐릭터의 거리감과 비슷합니다.",
+        "keywords": "사주 결과의 관계 힌트가 캐릭터 키워드와 일부 겹칩니다.",
+        "tenGod": "십성 성향에서 가까운 관계 반응이 보입니다.",
+        "charm": "매력 신살의 분위기가 캐릭터의 끌림 방식과 닮았습니다.",
+        "relationship": "관계 성향 요약에서 비슷한 흐름이 잡힙니다.",
+        "fallbackArchetype": "{name}형은 {archetype}의 결을 가진 페르소나입니다.",
+        "fallbackDisclaimer": "시뮬레이션을 위한 성향 매칭으로, 실제 상대를 단정하지 않습니다."
+      },
+      "matchLabel": "{name}형 성향과 가까워요",
+      "matchSummary": "{profileLine}으로 해석됩니다. 관계에서는 {bestApproach}"
+    }
   }
 }

@@ -14984,5 +14984,113 @@
       "2": "Keep it as a PDF",
       "3": "HTTPS-encrypted end to end"
     }
+  },
+  "loveSimulation": {
+    "matching": {
+      "dayMasterNames": {
+        "jiaWood": "Jia Wood",
+        "yiWood": "Yi Wood",
+        "bingFire": "Bing Fire",
+        "dingFire": "Ding Fire",
+        "wuEarth": "Wu Earth",
+        "jiEarth": "Ji Earth",
+        "gengMetal": "Geng Metal",
+        "xinMetal": "Xin Metal",
+        "renWater": "Ren Water",
+        "guiWater": "Gui Water"
+      },
+      "branchNames": {
+        "zi": "Zi",
+        "chou": "Chou",
+        "yin": "Yin",
+        "mao": "Mao",
+        "chen": "Chen",
+        "si": "Si",
+        "wu": "Wu",
+        "wei": "Wei",
+        "shen": "Shen",
+        "you": "You",
+        "xu": "Xu",
+        "hai": "Hai"
+      },
+      "elementNames": {
+        "wood": "Wood",
+        "fire": "Fire",
+        "earth": "Earth",
+        "metal": "Metal",
+        "water": "Water"
+      },
+      "yinYangNames": {
+        "yin": "Yin",
+        "yang": "Yang"
+      },
+      "unknownElement": "unconfirmed",
+      "elementEnergy": "{element} energy",
+      "coupleGrade": {
+        "excellent": "Top-tier compatibility",
+        "generating": "Naturally generating compatibility",
+        "tuning": "Spark that needs tuning",
+        "pacing": "Pace-adjusting compatibility",
+        "cooling": "Cooling-risk compatibility"
+      },
+      "elementRelation": {
+        "unknown": "Some Five Elements data is unconfirmed",
+        "resonance": "resonance of {element} energy",
+        "generating": "a generating flow between the Five Elements",
+        "controlling": "a controlling tension between the Five Elements",
+        "neutral": "a neutral flow between the Five Elements"
+      },
+      "coupleReason": {
+        "sameDayMaster": "You share the same Day Master, {dayMaster}, so you notice each other's emotional tempo quickly.",
+        "sameElement": "{element} energy resonates on both sides, so your tastes and ways of expressing meet naturally.",
+        "generating": "This is {relation}, so one person's feelings bring out the other's sense of calm and excitement.",
+        "controlling": "This is {relation}, so the pull is strong but your ways of expressing it can clash.",
+        "sameBranch": "Your spouse palaces share the same earthly branch, {branch}, so the base rhythm of the relationship is alike.",
+        "sameBranchElement": "The underlying energy of both spouse palaces is {element}, which makes it easy to align your daily habits.",
+        "branchControlling": "The energies of your spouse palaces provoke each other, so small misunderstandings can spread fast.",
+        "sameYinYang": "You share a {yinYang} rhythm, which makes it easy to match the pace of the relationship.",
+        "differentYinYang": "Your yin and yang differ, so you fill each other's gaps — but you need to check in with words often.",
+        "sharedElements": "Among your strongest Five Elements, {elements} overlap, giving you a recurring point of attraction.",
+        "sharedKeywords": "Some of your relationship keywords overlap, so the kind of security you each want looks similar."
+      },
+      "chip": {
+        "yinYangSync": "Yin-yang in sync",
+        "yinYangComplement": "Yin-yang complementary",
+        "yinYangUnknown": "Yin-yang partly unconfirmed",
+        "spousePalace": "Spouse palace {self}-{partner}",
+        "spousePalaceUnknown": "Spouse palace partly unconfirmed"
+      },
+      "risk": {
+        "controlling": "Strong attraction arrives first, but once your pace of speech and your pride collide, tension builds quickly.",
+        "smooth": "The relationship flows fairly naturally, but if familiarity makes you skip checking in, the warmth can slowly fade.",
+        "steady": "Rather than assuming how the other feels, check reactions briefly and often — that is how security accumulates."
+      },
+      "dateTip": {
+        "smooth": "For a first date, choose a course with many small choices that reveal each other's tastes rather than a long walking route.",
+        "controlling": "Instead of reaching conclusions right away, lower the tension with short conversations, clear plans, and a light follow-up.",
+        "steady": "In a quiet place where conversation keeps flowing, align your daily rhythms before expressing affection."
+      },
+      "coupleSummary": "You as {self} and your partner as {partner} read as {relation}. Overall compatibility is {grade}, and what lasts longer than the spark is this: {reason}",
+      "coupleSummaryFallbackReason": "an attitude of checking each other's reactions slowly",
+      "confidence": {
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      },
+      "matchReason": {
+        "dayMaster": "The grain of a {dayMaster} Day Master resembles the relationship pattern of the {name} type.",
+        "element": "The energy of {element} naturally meets this way of expressing a relationship.",
+        "generating": "The flow of the Five Elements runs in a generating direction that supports both sides.",
+        "yinYang": "Your {yinYang} rhythm is similar to this character's sense of distance.",
+        "keywords": "The relationship hints in the Four Pillars (BaZi) reading partly overlap with this character's keywords.",
+        "tenGod": "The Ten Gods tendencies show a close match in how you respond within a relationship.",
+        "charm": "The air of your charm stars resembles the way this character draws people in.",
+        "relationship": "The summary of your relationship tendencies picks up a similar flow.",
+        "fallbackArchetype": "The {name} type is a persona with the grain of {archetype}.",
+        "fallbackDisclaimer": "This is a tendency match for the simulation; it does not make claims about a real person."
+      },
+      "matchLabel": "Close to the {name} type",
+      "matchSummary": "Reads as: {profileLine}. In a relationship: {bestApproach}"
+    }
   }
 }
