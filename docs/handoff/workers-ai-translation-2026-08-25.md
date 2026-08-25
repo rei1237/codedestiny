@@ -1,4 +1,4 @@
-# Workers AI 배치 번역 — 인수인계 (2026-08-25 시작)
+# 배치 번역(Gemini + Workers AI) — 인수인계 (2026-08-25 시작)
 
 > **이 문서만 읽고 이어서 시작할 수 있게 쓴다.**
 > 무엇을 왜 번역하는지는 [content-translation-2026-08-25.md](content-translation-2026-08-25.md) 가 갖는다.
@@ -16,15 +16,11 @@ node scripts/check-workers-ai-quota.mjs
 # 1b) 참고: 이 스크립트가 쓴 몫만 세는 원장 (00:00 UTC = 한국 09:00 에 리셋)
 cat i18n/.translate-cache/neuron-ledger.json
 
-# 2) 오늘치 배치. 예산에 닿으면 스스로 멈추고 exit 0 한다.
+# 2) 배치. 저작 4개 로케일 + 미저작 7개 영어 복사를 한 번에 한다.
+#    🔴 순서가 gemini,workers-ai 인 것이 중요하다(아래 "왜 Gemini 가 먼저인가").
 node scripts/i18n-translate-pending.mjs --namespace loveSimulationScenes \
-  --provider workers-ai --locales en          # 예산 기본값 9,500 (무료 10,000 에서 500 유보)
-
-# 3) en 이 다 차면(결손 0) 미저작 7개 로케일을 영어로 채운다 — API 호출 없음, 즉시 끝난다.
-node scripts/i18n-translate-pending.mjs --namespace loveSimulationScenes \
-  --provider workers-ai --locales en --mirror-en vi,hi,es,fr,de,nl,ms
-
-# 4) 그다음 ja → zh-CN → zh-TW 순서로 --locales 를 바꿔 반복한다.
+  --provider gemini,workers-ai --locales en,ja,zh-CN,zh-TW \
+  --mirror-en vi,hi,es,fr,de,nl,ms
 
 # 5) 검증하고 커밋한 뒤 아래 "진행 기록" 표에 그날 줄을 추가한다.
 npm run i18n:check
@@ -39,6 +35,26 @@ git diff --numstat -- public/i18n/     # 추가만 / 삭제 0 이어야 한다
 프로덕션의 Workers AI 폴백까지 그날 내내 에러로 죽는다. 로케일을 나눠 병렬로 돌리고 싶으면
 원장을 파일 락이나 append-only 로 바꾸는 것이 선행돼야 한다.
 
+## 🔴 왜 Gemini 가 먼저인가 (2026-08-25 실측)
+
+| | Gemini 2.5 Flash | Workers AI `glm-4.7-flash` |
+|---|---|---|
+| 50키 청크 1개 | **6초** | **4~5분** (약 **45배** 느리다) |
+| 한도 초과 시 | 429 (쿼터 락) — **청구 없음** | 🔴 이 계정은 Workers **Paid** 라 **자동 청구** |
+| 하루 상한 | 키의 쿼터 락 | 무료 10,000 Neuron (기본 예산 9,500) |
+
+그래서 기본 체인은 **`gemini,workers-ai`** 다. 빠르고 초과해도 안 물리는 쪽을 앞에 둔다.
+전체 4,699키 × 4로케일이 Gemini 만으로 **약 40분**이면 끝난다(Workers AI 만으로는 약 8일이었다).
+
+**체인은 오류 폴백이 아니라 "쓸 수 없게 되면 넘긴다"** 이다.
+- Gemini 가 **429/쿼터**면 → Workers AI 무료분이 이어받는다.
+- Workers AI 가 **예산 소진**이면 → Gemini 가 이어받는다.
+- 그 외 오류는 넘기지 않는다. 백엔드를 바꿔도 같은 결과라, 이미 있는 재시도·분할 로직이 받는 게 맞다
+  (원칙 6 — 중첩 방어 금지).
+
+음성 테스트 실측 2026-08-25: Workers AI 예산을 1,100 으로 막고 돌리자
+`⏭ Workers AI 예산 소진 — 이후는 Gemini 가 처리합니다` 를 찍고 Gemini 가 50키를 6초에 처리했다.
+
 ## 🔴 과금 위험 — 어디서 새는가
 
 **플랜에 따라 결과가 완전히 다르다**(Cloudflare 공식 문서, 2026-08-25 조회):
@@ -48,8 +64,12 @@ git diff --numstat -- public/i18n/     # 추가만 / 삭제 0 이어야 한다
 | Workers **Free** | "further operations will fail with an error" — **청구 없음**, 그냥 멈춘다 |
 | Workers **Paid** | "you will be charged at $0.011 / 1,000 Neurons for any usage above the free allocation" — **자동 청구** |
 
-이 계정의 플랜은 API 로 못 읽었다(`/accounts/{id}/workers/subscription` → 400). **대시보드에서 한 번
-확인해 둘 것.** Paid 라면 아래 세 경로가 실제 청구로 이어진다.
+🔴 **이 계정은 Workers Paid 다**(사용자 확인 2026-08-25). 즉 무료 10,000 Neuron 을 넘기면
+**초과분이 그대로 청구된다.** 아래 세 경로가 실제 청구로 이어지므로 가드가 유일한 방어선이다.
+(API 로는 못 읽는다 — `/accounts/{id}/workers/subscription` → 400.)
+
+반면 **Gemini 키에는 쿼터 락이 걸려 있다**(사용자 확인 2026-08-25) — 넘기면 청구가 아니라 429 다.
+체인에서 Gemini 를 앞에 두는 두 번째 이유가 이것이다.
 
 1. **마지막 호출 오버슈트** — 예산 검사는 호출 **전에** 한다. → 고쳤다. 이제 관측된 1회 최대 비용을
    예약분으로 빼고 `사용 + 예약 > 예산` 이면 호출 자체를 안 한다. 음성 테스트 실측 2026-08-25:
@@ -65,9 +85,8 @@ git diff --numstat -- public/i18n/     # 추가만 / 삭제 0 이어야 한다
    원장이 정확히 일치했으므로 **그 2건은 청구되지 않았다**. 그래도 타임아웃을 420초로 올린 이유가
    이것이다 — 짧은 타임아웃은 안전장치가 아니라 돈을 태우는 쪽에 가깝다.
 
-**소요 시간 감각(실측)**: 50키 청크 하나에 **4~5분**. 하루 예산 10,000 Neuron ≈ **47청크 ≈ 4시간**.
-전체(4개 로케일 376청크)는 **약 8일 · 누적 31시간**이다. 백그라운드로 돌려 놓고 다른 일을 하다가
-끝나면 커밋하는 리듬이 맞다.
+**소요 시간 감각(실측)**: Gemini 6초/청크 → 전체 4개 로케일이 **약 40분**. Workers AI 로만 하면
+4~5분/청크라 **약 8일**이었다. Gemini 쿼터가 살아 있는 한 하루에 끝나는 작업이다.
 
 ## 실측 단가 (2026-08-25)
 
@@ -75,7 +94,8 @@ git diff --numstat -- public/i18n/     # 추가만 / 삭제 0 이어야 한다
 |---|---|
 | 무료 할당 | **10,000 Neuron/일**, 00:00 UTC 리셋. 배치 기본 예산은 **9,500**(폴백 몫 500 유보) |
 | 모델 | `@cf/zai-org/glm-4.7-flash` (입력 5,500 / 출력 36,400 Neuron per M tokens) |
-| 50키 청크 1개 | **약 210 Neuron**, 소요 **약 4~5분** |
+| 50키 청크 1개 (Workers AI) | **약 210 Neuron**, 소요 **약 4~5분** |
+| 50키 청크 1개 (Gemini) | Neuron 소모 0, 소요 **약 6초** |
 | 로케일 1개(4,699키 = 94청크) | 약 **19,700 Neuron**, 약 **7시간** |
 | 저작 4개 로케일 합계 | 약 **79,000 Neuron** → **약 8일** |
 
