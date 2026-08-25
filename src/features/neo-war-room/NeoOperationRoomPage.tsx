@@ -19,6 +19,7 @@ import LlmParagraphs from "@/components/fortune/LlmParagraphs";
 import NeoFactPunch from "./components/NeoFactPunch";
 import NeoSpriteActor from "./components/NeoSpriteActor";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
+import NeoCompatSummaryCard, { type NeoCompatSummary } from "./components/NeoCompatSummaryCard";
 import {
   type NeoWarRoomAsset,
   type NeoWarRoomConsultMode,
@@ -81,7 +82,27 @@ type PendingAccess = {
   payload: NeoWarRoomAccessPayload;
 };
 type AccessType = "pass" | "paid" | "subscription" | "admin";
-type NeoBriefing = {
+// 궁합 모드 챕터 4종. 1인 상담에서는 서버가 이 키들을 빈 값으로 실어 보내므로 화면은 값이 있을 때만 그린다.
+// 정본: worker/lib/neo-operation-room-prompt.js 의 mergeNeoCompatSections.
+type NeoCompatSide = { title?: string; description?: string; signals?: string[] };
+type NeoCompatSections = {
+  mutualRead?: { towardPartner?: NeoCompatSide; towardMe?: NeoCompatSide; coreKeyword?: string };
+  palaceCross?: Array<{ palace?: string; reading?: string }>;
+  conflictPattern?: {
+    title?: string;
+    trigger?: string;
+    escalation?: string;
+    dialogue?: Array<{ speaker?: string; line?: string }>;
+    resolution?: string;
+  };
+  relationStrategy?: {
+    title?: string;
+    situationRead?: string;
+    steps?: Array<{ stage?: string; doThis?: string; avoidThis?: string }>;
+  };
+};
+
+type NeoBriefing = NeoCompatSections & {
   selectedMethod?: NeoWarRoomConsultMode;
   operationTitle?: string;
   neoOpening?: string;
@@ -129,6 +150,10 @@ type NeoSession = {
   accessType?: AccessType;
   initialBriefing?: NeoBriefing | null;
   refinedOrder?: NeoRefinedOrder | null;
+  relationshipMode?: string;
+  relationshipStatus?: string;
+  compatScores?: NeoCompatSummary["scores"];
+  partnerBirthTimeUnknown?: boolean;
   realityCheck?: { selectedChecks?: string[]; freeform?: string };
   versionHistory?: Array<{ version?: number; documentType?: string; operationTitle?: string; createdAt?: string }>;
   resultUrl?: string;
@@ -1401,6 +1426,7 @@ export default function NeoOperationRoomPage() {
   const [validationErrors, setValidationErrors] = useState<NeoWarRoomValidationError[]>([]);
   const [pendingAccess, setPendingAccess] = useState<PendingAccess | null>(null);
   const [briefing, setBriefing] = useState<NeoBriefing | null>(null);
+  const [compatSummary, setCompatSummary] = useState<NeoCompatSummary | null>(null);
   const [sessionId, setSessionId] = useState("");
   const [selectedRealityChecks, setSelectedRealityChecks] = useState<string[]>([]);
   const [realityFreeform, setRealityFreeform] = useState("");
@@ -1475,6 +1501,10 @@ export default function NeoOperationRoomPage() {
   const displayBriefingFrontline = getBriefingFrontline(displayBriefing);
   const displayBriefingRepeatedChoice = getBriefingRepeatedChoice(displayBriefing);
   const displayBriefingMisalignedFlow = getBriefingMisalignedFlow(displayBriefing);
+  const displayBriefingMutualRead = displayBriefing?.mutualRead || null;
+  const displayBriefingPalaceCross = displayBriefing?.palaceCross || [];
+  const displayBriefingConflict = displayBriefing?.conflictPattern || null;
+  const displayBriefingRelationStrategy = displayBriefing?.relationStrategy || null;
   const showBriefingPanel = Boolean(displayBriefing);
   const briefingFullyRevealed = briefingRevealStep >= BRIEFING_REVEAL_STEP_COUNT;
   const showRealityPanel = Boolean(briefing || localPreviewMode === "reality" || localPreviewMode === "refined") && briefingFullyRevealed;
@@ -2059,6 +2089,15 @@ export default function NeoOperationRoomPage() {
     }
     setSessionId(session.sessionId || session.id || "");
     setBriefing(session.initialBriefing || null);
+    setCompatSummary(
+      session.compatScores
+        ? {
+            scores: session.compatScores,
+            relationshipStatus: session.relationshipStatus || "",
+            partnerBirthTimeUnknown: session.partnerBirthTimeUnknown === true,
+          }
+        : null,
+    );
     setRefinedOrder(session.refinedOrder || null);
     setSelectedRealityChecks(session.realityCheck?.selectedChecks || []);
     setRealityFreeform(session.realityCheck?.freeform || "");
@@ -2254,6 +2293,7 @@ export default function NeoOperationRoomPage() {
       setOperationReady(false);
       setPendingAccess(null);
       setBriefing(null);
+      setCompatSummary(null);
       setSessionId("");
       setRefinedOrder(null);
       setRefinePhase("idle");
@@ -2280,6 +2320,7 @@ export default function NeoOperationRoomPage() {
       payload,
     });
     setBriefing(null);
+    setCompatSummary(null);
     setSessionId("");
     setRefinedOrder(null);
     setSelectedRealityChecks([]);
@@ -2397,6 +2438,7 @@ export default function NeoOperationRoomPage() {
     setValidationErrors([]);
     setPendingAccess(null);
     setBriefing(null);
+    setCompatSummary(null);
     setSessionId("");
     setRefinedOrder(null);
     setSelectedRealityChecks([]);
@@ -3123,16 +3165,43 @@ export default function NeoOperationRoomPage() {
                   ) : null}
                 </div>
                 {displayBriefing.neoOpening ? <p className={`${styles.neoOpening} ${styles.revealBlock}`}>{displayBriefing.neoOpening}</p> : null}
+                {compatSummary ? (
+                  <div className={styles.revealBlock}>
+                    <NeoCompatSummaryCard
+                      scores={compatSummary.scores}
+                      relationshipStatus={compatSummary.relationshipStatus}
+                      partnerBirthTimeUnknown={compatSummary.partnerBirthTimeUnknown}
+                      locale={dialogueLocale}
+                    />
+                  </div>
+                ) : null}
                 {briefingRevealStep >= 1 ? (
                 <div className={`${styles.briefingGrid} ${styles.revealBlock}`}>
                   <article>
                     <strong>{formCopy["briefing.frontlineLabel"]}</strong>
                     <LlmParagraphs text={displayBriefingFrontline} />
                   </article>
-                  <article>
-                    <strong>{displayBriefingRepeatedChoice.title || formCopy["briefing.repeatedChoiceFallback"]}</strong>
-                    <LlmParagraphs text={displayBriefingRepeatedChoice.description} />
-                  </article>
+                  {displayBriefingRepeatedChoice.description ? (
+                    <article>
+                      <strong>{displayBriefingRepeatedChoice.title || formCopy["briefing.repeatedChoiceFallback"]}</strong>
+                      <LlmParagraphs text={displayBriefingRepeatedChoice.description} />
+                    </article>
+                  ) : null}
+                  {displayBriefingConflict && (displayBriefingConflict.trigger || displayBriefingConflict.resolution) ? (
+                    <article>
+                      <strong>{displayBriefingConflict.title || formCopy["briefing.compatConflictFallback"]}</strong>
+                      <LlmParagraphs text={displayBriefingConflict.trigger} />
+                      <LlmParagraphs text={displayBriefingConflict.escalation} />
+                      {displayBriefingConflict.dialogue?.length ? (
+                        <ul>
+                          {displayBriefingConflict.dialogue.map((item, index) => (
+                            <li key={`${index}-${item.line}`}>{item.speaker} — {item.line}</li>
+                          ))}
+                        </ul>
+                      ) : null}
+                      <LlmParagraphs text={displayBriefingConflict.resolution} />
+                    </article>
+                  ) : null}
                   {displayBriefing.innateNature?.description ? (
                     <article>
                       <strong>{displayBriefing.innateNature.title || formCopy["briefing.innateNatureFallback"]}</strong>
@@ -3181,6 +3250,44 @@ export default function NeoOperationRoomPage() {
                       </ul>
                     </article>
                   ) : null}
+                  {displayBriefingMutualRead?.towardPartner?.description ? (
+                    <article>
+                      <strong>{displayBriefingMutualRead.towardPartner.title || formCopy["briefing.compatTowardPartnerFallback"]}</strong>
+                      <LlmParagraphs text={displayBriefingMutualRead.towardPartner.description} />
+                      {displayBriefingMutualRead.towardPartner.signals?.length ? (
+                        <ul>
+                          {displayBriefingMutualRead.towardPartner.signals.map((signal) => <li key={signal}>{signal}</li>)}
+                        </ul>
+                      ) : null}
+                    </article>
+                  ) : null}
+                  {displayBriefingMutualRead?.towardMe?.description ? (
+                    <article>
+                      <strong>{displayBriefingMutualRead.towardMe.title || formCopy["briefing.compatTowardMeFallback"]}</strong>
+                      <LlmParagraphs text={displayBriefingMutualRead.towardMe.description} />
+                      {displayBriefingMutualRead.towardMe.signals?.length ? (
+                        <ul>
+                          {displayBriefingMutualRead.towardMe.signals.map((signal) => <li key={signal}>{signal}</li>)}
+                        </ul>
+                      ) : null}
+                    </article>
+                  ) : null}
+                  {displayBriefingMutualRead?.coreKeyword ? (
+                    <article>
+                      <strong>{formCopy["briefing.compatCoreKeywordLabel"]}</strong>
+                      <LlmParagraphs text={displayBriefingMutualRead.coreKeyword} />
+                    </article>
+                  ) : null}
+                  {displayBriefingPalaceCross.length ? (
+                    <article>
+                      <strong>{formCopy["briefing.compatPalaceCrossLabel"]}</strong>
+                      <ul>
+                        {displayBriefingPalaceCross.map((item) => (
+                          <li key={item.palace}><strong>{item.palace}</strong> — {item.reading}</li>
+                        ))}
+                      </ul>
+                    </article>
+                  ) : null}
                   {displayBriefing.topicTiming?.description ? (
                     <article>
                       <strong>{displayBriefing.topicTiming.title || formCopy["briefing.topicTimingFallback"]}</strong>
@@ -3201,10 +3308,28 @@ export default function NeoOperationRoomPage() {
                       </ul>
                     ) : null}
                   </article>
-                  <article>
-                    <strong>{displayBriefingMisalignedFlow.title || formCopy["briefing.misalignedFlowFallback"]}</strong>
-                    <LlmParagraphs text={displayBriefingMisalignedFlow.description} />
-                  </article>
+                  {displayBriefingMisalignedFlow.description ? (
+                    <article>
+                      <strong>{displayBriefingMisalignedFlow.title || formCopy["briefing.misalignedFlowFallback"]}</strong>
+                      <LlmParagraphs text={displayBriefingMisalignedFlow.description} />
+                    </article>
+                  ) : null}
+                  {displayBriefingRelationStrategy && (displayBriefingRelationStrategy.situationRead || displayBriefingRelationStrategy.steps?.length) ? (
+                    <article>
+                      <strong>{displayBriefingRelationStrategy.title || formCopy["briefing.compatStrategyFallback"]}</strong>
+                      <LlmParagraphs text={displayBriefingRelationStrategy.situationRead} />
+                      {displayBriefingRelationStrategy.steps?.length ? (
+                        <ul>
+                          {displayBriefingRelationStrategy.steps.map((step, index) => (
+                            <li key={`${index}-${step.stage}`}>
+                              <strong>{step.stage}</strong> — {formCopy["briefing.compatStrategyDoLabel"]}: {step.doThis}
+                              {step.avoidThis ? ` / ${formCopy["briefing.compatStrategyAvoidLabel"]}: ${step.avoidThis}` : ""}
+                            </li>
+                          ))}
+                        </ul>
+                      ) : null}
+                    </article>
+                  ) : null}
                 </div>
                 ) : null}
                 {/* 브리핑 카드 8장이 연달아 나오는 구간 뒤에 삽화 1컷 — 시선이 쉬는 지점.
@@ -3340,10 +3465,17 @@ export default function NeoOperationRoomPage() {
                     <strong>{displayBriefing.originalStrategy?.title || formCopy["briefing.originalStrategyFallback"]}</strong>
                     <LlmParagraphs text={displayBriefing.originalStrategy?.description} />
                   </article>
-                  <article>
-                    <strong>{displayBriefingMisalignedFlow.title || formCopy["briefing.misalignedFlowFallback"]}</strong>
-                    <LlmParagraphs text={displayBriefingMisalignedFlow.description} />
-                  </article>
+                  {displayBriefingMisalignedFlow.description ? (
+                    <article>
+                      <strong>{displayBriefingMisalignedFlow.title || formCopy["briefing.misalignedFlowFallback"]}</strong>
+                      <LlmParagraphs text={displayBriefingMisalignedFlow.description} />
+                    </article>
+                  ) : displayBriefingRelationStrategy && displayBriefingRelationStrategy.situationRead ? (
+                    <article>
+                      <strong>{displayBriefingRelationStrategy.title || formCopy["briefing.compatStrategyFallback"]}</strong>
+                      <LlmParagraphs text={displayBriefingRelationStrategy.situationRead} />
+                    </article>
+                  ) : null}
                 </div>
 
                 {displayBriefing.realityCheckQuestions?.length ? (
