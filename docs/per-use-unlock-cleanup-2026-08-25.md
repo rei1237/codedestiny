@@ -1,7 +1,7 @@
 # 회당 결제 잔존 해금 정리 — 실행 절차
 
-> 🔴 **아직 실행하지 않았다.** 이 문서는 절차서이고, 각 단계는 사용자의 명시적 허락이 필요하다
-> (CLAUDE.md 규칙 2 — 프로덕션 DB 쓰기).
+> **2026-08-25 프로덕션 실행 완료.** 아래 "기록" 절 참고. 절차 자체는 재실행·감사용으로 남긴다.
+> 🔴 각 단계는 사용자의 명시적 허락이 필요하다(CLAUDE.md 규칙 2 — 프로덕션 DB 쓰기).
 
 ## 무엇을 정리하나
 
@@ -25,8 +25,9 @@
   돈 낸 사용자의 콘텐츠를 지우게 되므로, `--self-test` 가 대표 키 3종으로 매 CI 에서 확인한다.
 - **레지스트리에서 은퇴한 키** — `isPerUsePaidFeatureKey` 가 false 다. 정당한 과거 구매일 수 있다.
 - **과금 유형이 바뀐 적 있는 키의 구간 구매자** — 예외를 만들지 않는다(2026-08-25 사용자 결정).
-  `tarot-prompt-maker` 가 2026-08-14~08-21 에만 영구 해금으로 팔렸으나 해당 구매자가 없음이
-  확인돼 있다([scripts/audit-tarot-prompt-maker-purchasers.mjs](../scripts/audit-tarot-prompt-maker-purchasers.mjs)).
+  🔴 계획 당시 전제는 "`tarot-prompt-maker` 의 그 구간 구매자가 없다" 였는데 **틀렸다** —
+  2026-08-20 자 ￦10,000 구매가 1건 있었다(아래 "실행 전에 멈추고 확인한 것"). 실행 시점에 그 계정이
+  오너 본인임을 확인하고 진행했다. 다음에 같은 정리를 할 때는 **전제를 믿지 말고 먼저 조회할 것**.
 
 ## 실행 순서
 
@@ -62,14 +63,52 @@ before-image 의 `documents` 를 그대로 `ContentEntitlement` 에 다시 넣�
 **애초에 존재하면 안 되는 행**이기 때문이며(2026-08-25 사용자 결정), 그 대가로 되돌릴 근거를
 before-image 와 전량 백업 두 겹으로 둔다.
 
-## 기록 (실행 후 채운다)
+## 기록 — 2026-08-25 프로덕션 실행
 
 | 항목 | 값 |
 |---|---|
-| 실행 시각(UTC) | |
-| 백업 위치 · 해시 | |
-| 2단계 사전 건수 (entitlement / 계정) | |
-| 3단계 실제 삭제 · $pull 건수 | |
-| before-image 경로 | |
-| 사후 잔여 (0 기대) | |
-| 파기 완료 | |
+| 실행 시각(UTC) | 2026-08-25 08:0x (승격 `403768ee0` 이후) |
+| 대상 DB | `code_destiny` (실행 전 `databaseName` 으로 확인) |
+| 백업 | `D:\Development\codedestiny-backups\20260825-per-use-unlock-cleanup` (레포 밖) · `users` 264건 + `content_entitlements` 1,385건 = 1,649건 |
+| 사전 건수 | ContentEntitlement **1** · 계정 **1** |
+| 실행 명령 | `--apply --expect 1` |
+| 삭제 | ContentEntitlement **1건** |
+| 배열 정리 | 계정 **1건** (`tarot-prompt-maker`, `tarot-love-relationship`) |
+| before-image | `backups/migrations/20260825-drop-per-use-permanent-unlocks.before.json` |
+| 사후 잔여 | **0 / 0** (스크립트 자체 검증 + 독립 `--check` 재확인) |
+| 결과 | `RESULT OK` |
+
+### 실행 전에 멈추고 확인한 것
+
+🔴 **조회 결과가 예상과 달랐다.** 유일한 대상 행이 `tarot-prompt-maker` 였는데, 이 키는
+2026-08-14~08-21 에만 **₩10,000 영구 해금 상품**으로 팔린 이력이 있다. 그래서 삭제를 보류하고
+행의 내역을 먼저 읽었다(개인정보 미출력):
+
+| 필드 | 값 | 해석 |
+|---|---|---|
+| `grantedAt` | 2026-08-20 | 영구 해금으로 팔던 구간 **안** |
+| `coinPrice` / `amountKRW` | 100 / ₩10,000 | 영구 해금 가격(회당가는 50 / ₩5,000) |
+| `source` | `MONTHLY` | 월정석 결제 |
+| `grantType` | `permanent_unlock` | |
+
+즉 **버그 잔존분이 아니라 정상 구매**였다. 월정석 경로에는 `billingType` 경계가 원래 있었고, 그
+시점에 이 키는 실제로 unlock 유형이었다 — 서버가 옳게 동작한 결과이고 나중에 상품 정의가 바뀐 것이다.
+
+사용자에게 보고한 뒤 **회당 결제로 통일(B)** 을 선택받았고, 그 근거인 "아직 고객이 없다"를
+읽기 전용으로 검증했다 — **해당 계정은 오너 본인 계정**(전체 가입 264계정 중)이었다. 실제 고객의
+구매를 회수하는 것이 아님을 확인한 뒤 진행했다.
+
+### 부수 확인
+
+- **카드 경로 잔존분은 0건이었다.** 이 정리의 원래 표적이었던 `grantOrderEntitlement` 버그로 생긴
+  행은 하나도 없었다 — 그 경로가 라이브였던 창이 짧았기 때문으로 보인다(미검증 추정).
+- 실제로 지워진 잔존분은 계정 배열의 `tarot-love-relationship` 하나다. 이 키는 한 번도 unlock 인
+  적이 없어 명백한 잔존분이었고, 대응하는 entitlement 행은 없었다.
+
+### 남은 파기 대상
+
+검증이 끝났으므로 아래 둘은 파기한다(둘 다 개인정보 포함):
+
+1. `D:\Development\codedestiny-backups\20260825-per-use-unlock-cleanup`
+2. `backups/migrations/20260825-drop-per-use-permanent-unlocks.before.json`
+   — 워크트리 안에 생성됐으므로 그 워크트리를 지우면 함께 사라진다.
