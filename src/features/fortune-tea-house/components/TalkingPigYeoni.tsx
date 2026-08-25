@@ -1,10 +1,10 @@
 "use client";
 
-import type { CSSProperties } from "react";
 import { useEffect, useMemo, useState } from "react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import { talkingPigYeoniFrameCrops, talkingPigYeoniFrames } from "../data/assets";
 import { pigMoodFrameMap, type PigExpressionId, type YeoniMood } from "../data/yeoniSprites";
+import { pigSpriteFrameStyle } from "../lib/pigSpriteStyle";
 import styles from "../styles/fortune-tea-house.module.css";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 
@@ -78,18 +78,7 @@ export default function TalkingPigYeoni({ isSpeaking = true, mood, frame }: Talk
       <span
         className={`${styles.pigImage} ${styles.pigSpriteFrame}`}
         data-failed={failed ? "true" : "false"}
-        style={
-          {
-            "--pig-sprite-x": `${activeFrame.x}px`,
-            "--pig-sprite-y": `${activeFrame.y}px`,
-            "--pig-sprite-width": `${activeFrame.width}px`,
-            "--pig-sprite-height": `${activeFrame.height}px`,
-            "--pig-sprite-aspect-width": activeFrame.width,
-            "--pig-sprite-aspect-height": activeFrame.height,
-            "--pig-sprite-sheet-width": `${activeFrame.sheetWidth}px`,
-            "--pig-sprite-sheet-height": `${activeFrame.sheetHeight}px`,
-          } as CSSProperties
-        }
+        style={pigSpriteFrameStyle(activeFrame)}
       >
         {!failed ? (
           <img

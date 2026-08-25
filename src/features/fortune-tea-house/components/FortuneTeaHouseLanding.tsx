@@ -5,6 +5,7 @@ import Image from "next/image";
 import { Clock3, DoorOpen, Sparkles } from "lucide-react";
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import { fortuneTeaHouseAssets, talkingPigYeoniFrameCrops } from "../data/assets";
+import { pigSpriteFrameStyle } from "../lib/pigSpriteStyle";
 import { useTeaHouseCopy } from "../lib/teaHouseCopy";
 import TeaHouseButton from "./TeaHouseButton";
 import styles from "../styles/fortune-tea-house.module.css";
@@ -188,18 +189,7 @@ export default function FortuneTeaHouseLanding({ hasSeenPrologue, onEnter, onRep
             <span
               ref={pigGate.ref}
               className={`${styles.landingPigMascot} ${usePigSingleFallback ? "" : styles.pigSpriteFrame}`}
-              style={
-                {
-                  "--pig-sprite-x": `${activePig.x}px`,
-                  "--pig-sprite-y": `${activePig.y}px`,
-                  "--pig-sprite-width": `${activePig.width}px`,
-                  "--pig-sprite-height": `${activePig.height}px`,
-                  "--pig-sprite-aspect-width": activePig.width,
-                  "--pig-sprite-aspect-height": activePig.height,
-                  "--pig-sprite-sheet-width": `${activePig.sheetWidth}px`,
-                  "--pig-sprite-sheet-height": `${activePig.sheetHeight}px`,
-                } as CSSProperties
-              }
+              style={pigSpriteFrameStyle(activePig)}
             >
               <Image
                 className={usePigSingleFallback ? styles.landingPigSingleImage : styles.pigSpriteSheet}
