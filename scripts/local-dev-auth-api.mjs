@@ -1,39 +1,11 @@
 import http from "node:http";
-import { existsSync, readFileSync } from "node:fs";
 
-function clean(value) {
-  return String(value || "").trim();
-}
+import { createWorkersAiRunner, loadLocalEnvFiles } from "./lib/workers-ai-rest.mjs";
 
-function cleanBearerToken(value) {
-  return clean(value).replace(/^Bearer\s+/i, "");
-}
-
-function loadEnvFile(path, override = true) {
-  if (!existsSync(path)) return;
-  const text = readFileSync(path, "utf8");
-  for (const line of text.split(/\r?\n/)) {
-    // = 뿐만 아니라 : 구분자도 파싱할 수 있도록 개선
-    const match = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*[=:]\s*(.*)\s*$/);
-    if (!match) continue;
-    const key = match[1];
-    // override가 false이고 기존 유효값이 있으면 건너뜀
-    if (!override && process.env[key] !== undefined && process.env[key] !== "") continue;
-    let value = match[2].trim();
-    if (
-      (value.startsWith('"') && value.endsWith('"')) ||
-      (value.startsWith("'") && value.endsWith("'"))
-    ) {
-      value = value.slice(1, -1);
-    }
-    process.env[key] = value.replace(/\\n/g, "\n");
-  }
-}
-
-loadEnvFile(".env", true);
-loadEnvFile(".env.local", true);
-loadEnvFile(".env.cloudflare.local", true);
-loadEnvFile(".dev.vars", true);
+// 🔴 자격증명 로딩과 Workers AI REST 러너는 `scripts/lib/workers-ai-rest.mjs` 가 정본이다.
+//    번역기(`i18n-translate-pending.mjs --provider workers-ai`)가 같은 구현을 쓴다 —
+//    한쪽만 고치면 dev 서버와 배치가 서로 다른 계정·토큰 후보를 보게 된다.
+loadLocalEnvFiles();
 
 const worker = (await import("../worker/index.js")).default;
 
@@ -41,69 +13,10 @@ const host = process.env.LOCAL_DEV_AUTH_API_HOST || "127.0.0.1";
 const port = Number(process.env.LOCAL_DEV_AUTH_API_PORT || process.env.PORT || 8790);
 const frontendBase = process.env.LOCAL_DEV_AUTH_FRONTEND_BASE_URL || "http://127.0.0.1:3000";
 
-function createLocalWorkersAiBinding(env) {
-  const accountIds = [
-    clean(env.CLOUDFLARE_WORKERS_AI_ACCOUNT_ID),
-    clean(env.WORKERS_AI_ACCOUNT_ID),
-    clean(env.CLOUDFLARE_ACCOUNT_ID),
-    clean(env.Account_ID),
-    clean(env.ACCOUNT_ID),
-  ].filter(Boolean);
-  const tokens = [
-    cleanBearerToken(env.WorkerAi),
-    cleanBearerToken(env.WORKERAI),
-    cleanBearerToken(env.WORKER_AI_KEY),
-    cleanBearerToken(env.WORKER_AI_TOKEN),
-    cleanBearerToken(env.WORKERS_AI_API_TOKEN),
-    cleanBearerToken(env.WORKERS_AI_TOKEN),
-    cleanBearerToken(env.CLOUDFLARE_WORKERS_AI_API_TOKEN),
-    cleanBearerToken(env.CLOUDFLARE_WORKERS_AI_TOKEN),
-    cleanBearerToken(env.CLOUDFLARE_API_TOKEN),
-    cleanBearerToken(env.CF_API_TOKEN),
-    cleanBearerToken(env.CLOUDFLARE_APITOKEN),
-  ].filter(Boolean);
-  if (!accountIds.length || !tokens.length) return undefined;
-
-  return {
-    async run(model, input) {
-      let lastError = "";
-      const modelPath = String(model || "")
-        .split("/")
-        .map((segment) => encodeURIComponent(segment))
-        .join("/");
-      for (const accountId of accountIds) {
-        for (const token of tokens) {
-          const endpoint = `https://api.cloudflare.com/client/v4/accounts/${encodeURIComponent(accountId)}/ai/run/${modelPath}`;
-          const response = await fetch(endpoint, {
-            method: "POST",
-            headers: {
-              authorization: `Bearer ${token}`,
-              "content-type": "application/json",
-            },
-            body: JSON.stringify(input || {}),
-          });
-
-          const payload = await response.json().catch(() => ({}));
-          if (response.ok && payload?.success !== false) {
-            return payload?.result || payload;
-          }
-          const message = clean(payload?.errors?.[0]?.message || payload?.message || response.statusText);
-          lastError = message;
-          if (response.status === 429 || /daily free allocation|quota|rate/i.test(message)) {
-            throw Object.assign(new Error(`local_workers_ai_failed:${message || "Workers AI quota exceeded"}`), {
-              status: response.status,
-            });
-          }
-        }
-      }
-      throw new Error(`local_workers_ai_failed:${lastError || "Workers AI authentication failed"}`);
-    },
-  };
-}
 
 const workerEnv = {
   ...process.env,
-  AI: createLocalWorkersAiBinding(process.env),
+  AI: createWorkersAiRunner(process.env),
   LOCAL_DEV_AUTH_ENABLED: process.env.LOCAL_DEV_AUTH_ENABLED || "true",
   JWT_SECRET: process.env.JWT_SECRET || process.env.AUTH_SECRET || "local-dev-auth-secret",
   JWT_ACCESS_SECRET: process.env.JWT_ACCESS_SECRET || process.env.JWT_SECRET || process.env.AUTH_SECRET || "local-dev-auth-secret",

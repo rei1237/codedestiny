@@ -15,10 +15,27 @@
  *
  * 사용법:
  *   GEMINIF_API_KEY=... node scripts/i18n-translate-pending.mjs [--locales ja,en] [--dry-run] [--limit 2]
+ *
+ * 백엔드는 두 가지다.
+ *   --provider gemini      (기본) Gemini 2.5 Flash. GEMINIF_API_KEY 필요.
+ *   --provider workers-ai  Cloudflare Workers AI REST. 자격증명은 .env/.dev.vars 에서 읽는다.
+ *
+ * 🔴 Workers AI 는 **하루 10,000 Neuron 무료**이고 넘기면 요청이 에러로 실패한다. 그리고 그
+ * 할당량은 프로덕션의 Workers AI 폴백(lib/llm-client.ts)과 **같은 계정에서 공유**된다. 그래서
+ * 이 스크립트는 응답의 usage 로 실제 소비량을 세어 i18n/.translate-cache/neuron-ledger.json 에
+ * UTC 날짜별로 누적하고, --neuron-budget 에 닿으면 그 자리에서 멈춘다. 남은 결손은 다음 날
+ * 같은 명령으로 이어서 하면 된다(missingKeysFor 가 이미 채운 키를 건너뛴다).
  */
 import { readFileSync, writeFileSync, existsSync, mkdirSync, readdirSync } from "node:fs";
 import { resolve, join } from "node:path";
 import { createHash } from "node:crypto";
+
+import {
+  createWorkersAiRunner,
+  loadLocalEnvFiles,
+  neuronsFor,
+  WORKERS_AI_DAILY_FREE_NEURONS,
+} from "./lib/workers-ai-rest.mjs";
 
 const rootDir = process.cwd();
 const i18nDir = resolve(rootDir, "public", "i18n");
@@ -66,13 +83,55 @@ const namespaceArg = (() => {
   return i >= 0 && args[i + 1] ? args[i + 1] : null;
 })();
 
+const flagValue = (name, fallback) => {
+  const i = args.indexOf(name);
+  return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
+};
+
+const provider = flagValue("--provider", "gemini");
+if (provider !== "gemini" && provider !== "workers-ai") {
+  console.error(`[translate] --provider 는 gemini 또는 workers-ai 만 받습니다 (받은 값: ${provider})`);
+  process.exit(1);
+}
+const workersAiModel = flagValue("--model", "@cf/zai-org/glm-4.7-flash");
+/**
+ * 번역이 끝난 뒤 **en 값을 그대로 복사할** 로케일. API 를 부르지 않는다.
+ *
+ * 🔴 사용자 지시(2026-08-25): 손으로 저작하는 것은 en·ja·zh-CN·zh-TW 넷뿐이고
+ * vi·hi·es·fr·de·nl·ms 는 영어를 그대로 채운다. 기계 번역도 같은 정책을 따른다 —
+ * 11개 전부를 부르면 토큰이 2.75배가 되는데 결과물은 정책상 쓰지도 않는다.
+ */
+const mirrorEnLocales = (() => {
+  const raw = flagValue("--mirror-en", "");
+  return raw ? raw.split(",").map((s) => s.trim()).filter(Boolean) : [];
+})();
+const neuronBudget = Number(flagValue("--neuron-budget", String(WORKERS_AI_DAILY_FREE_NEURONS)));
+
 const apiKey = process.env.GEMINIF_API_KEY;
-if (!apiKey && !dryRun) {
+if (provider === "gemini" && !apiKey && !dryRun) {
   console.error("[translate] GEMINIF_API_KEY 가 없습니다. --dry-run 으로 프롬프트만 확인할 수 있습니다.");
   process.exit(1);
 }
 
-const chunkHash = (chunk) => createHash("sha1").update(JSON.stringify(chunk)).digest("hex").slice(0, 12);
+let workersAi = null;
+if (provider === "workers-ai" && !dryRun) {
+  loadLocalEnvFiles();
+  workersAi = createWorkersAiRunner(process.env);
+  if (!workersAi) {
+    console.error("[translate] Workers AI 자격증명을 찾지 못했습니다 — 계정 ID 와 토큰이 .env/.dev.vars 에 있어야 합니다.");
+    process.exit(1);
+  }
+}
+
+/**
+ * 🔴 캐시 키에 provider·model 이 들어간다. 청크 내용만 해싱하면 Gemini 로 만든 캐시를
+ * Workers AI 실행이 그대로 주워 써서, 백엔드를 바꾼 의미가 사라지고 품질 비교도 못 한다.
+ */
+const chunkHash = (chunk) =>
+  createHash("sha1")
+    .update(JSON.stringify({ provider, model: provider === "workers-ai" ? workersAiModel : "gemini-2.5-flash", chunk }))
+    .digest("hex")
+    .slice(0, 12);
 
 const placeholdersOf = (value) =>
   [...String(value).matchAll(/\{\{?\s*[A-Za-z0-9_.-]+\s*\}?\}/g)].map((m) => m[0]).sort().join(" ");
@@ -113,6 +172,67 @@ function buildPrompt(entries, target) {
     "INPUT (JSON: key → Korean source)",
     JSON.stringify(entries, null, 2),
   ].join("\n");
+}
+
+/** 예산 소진은 재시도 대상이 아니다 — translateChunk 가 이 클래스를 보고 즉시 손을 뗀다. */
+class NeuronBudgetExhausted extends Error {}
+
+const ledgerPath = () => join(cacheDir, "neuron-ledger.json");
+/** 🔴 Cloudflare 의 리셋 기준은 00:00 **UTC** 다. 로컬 날짜로 세면 한국시간 오전 9시에 어긋난다. */
+const utcDay = () => new Date().toISOString().slice(0, 10);
+
+function readLedger() {
+  try {
+    return JSON.parse(readFileSync(ledgerPath(), "utf8"));
+  } catch {
+    return {};
+  }
+}
+
+function spentToday() {
+  return Number(readLedger()[utcDay()] || 0);
+}
+
+function recordNeurons(amount) {
+  mkdirSync(cacheDir, { recursive: true });
+  const ledger = readLedger();
+  ledger[utcDay()] = Number(ledger[utcDay()] || 0) + amount;
+  writeFileSync(ledgerPath(), `${JSON.stringify(ledger, null, 2)}\n`, "utf8");
+  return ledger[utcDay()];
+}
+
+async function callWorkersAi(prompt) {
+  const spent = spentToday();
+  if (spent >= neuronBudget) {
+    throw new NeuronBudgetExhausted(`오늘(UTC ${utcDay()}) 예산 ${neuronBudget} Neuron 을 다 썼습니다 (${spent.toFixed(0)})`);
+  }
+
+  // 요청 모양은 lib/llm-client.ts 의 buildWorkersAiInput 과 같다.
+  // response_format 은 @cf/meta/* 가 아닐 때만 붙는다(meta 계열은 json_schema 를 요구한다).
+  const input = {
+    messages: [{ role: "user", content: prompt }],
+    max_tokens: 16384,
+    temperature: 0.3,
+  };
+  if (!workersAiModel.startsWith("@cf/meta/")) input.response_format = { type: "json_object" };
+
+  const result = await workersAi.run(workersAiModel, input);
+  const used = neuronsFor(workersAiModel, result?.usage);
+  const total = recordNeurons(used);
+  lastUsage = { ...result?.usage, neurons: used, todayTotal: total };
+
+  // 응답 파싱은 lib/llm-client.ts 의 extractWorkersAiText 와 같은 후보 순서다.
+  const choice = result?.choices?.[0];
+  const text = String(result?.response || choice?.message?.content || choice?.text || result?.text || "").trim();
+  if (!text) throw new Error(`빈 응답 (finish_reason=${choice?.finish_reason || result?.finish_reason})`);
+  return JSON.parse(text);
+}
+
+let lastUsage = null;
+
+/** provider 분기. 이 함수 밖에서는 어느 백엔드인지 몰라도 된다. */
+async function callModel(prompt) {
+  return provider === "workers-ai" ? callWorkersAi(prompt) : callGemini(prompt);
 }
 
 async function callGemini(prompt) {
@@ -159,11 +279,13 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 async function translateChunk(chunk, target, label, depth = 0) {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt += 1) {
     try {
-      const candidate = await callGemini(buildPrompt(chunk, target));
+      const candidate = await callModel(buildPrompt(chunk, target));
       const problem = validate(chunk, candidate);
       if (problem) throw new Error(problem);
       return candidate;
     } catch (error) {
+      // 🔴 예산 소진은 내용 문제가 아니다. 재시도하면 실패한 호출을 예산 없이 반복할 뿐이다.
+      if (error instanceof NeuronBudgetExhausted) throw error;
       const last = attempt === MAX_ATTEMPTS;
       // 429 는 내용 문제가 아니라 속도 문제다. 쪼개 봐야 요청 수만 늘어 악화되므로
       // 훨씬 길게 쉬고 같은 크기로 다시 친다.
@@ -175,9 +297,11 @@ async function translateChunk(chunk, target, label, depth = 0) {
         console.warn(`[translate] ${label} 레이트리밋 지속 — 60초 대기 후 최종 재시도`);
         await sleep(60_000);
         try {
-          const candidate = await callGemini(buildPrompt(chunk, target));
+          const candidate = await callModel(buildPrompt(chunk, target));
           if (!validate(chunk, candidate)) return candidate;
-        } catch {}
+        } catch (retryError) {
+          if (retryError instanceof NeuronBudgetExhausted) throw retryError;
+        }
       }
     }
   }
@@ -286,9 +410,17 @@ if (args.includes("--sample")) {
   for (const [fileName, target] of Object.entries(TARGETS)) {
     if (localeFilter && !localeFilter.has(target.code)) continue;
     const sample = Object.fromEntries(Object.entries(chunkify(allKeys)[0]).slice(0, 12));
-    const translated = await callGemini(buildPrompt(sample, target));
+    const translated = await callModel(buildPrompt(sample, target));
     const problem = validate(sample, translated);
     console.log(`\n──── ${target.code} ${problem ? `❌ ${problem}` : "✅ 검증 통과"} ────`);
+    if (lastUsage) {
+      const koChars = Object.values(sample).join("").replace(/[^가-힣]/g, "").length;
+      console.log(
+        `  usage: prompt ${lastUsage.prompt_tokens} / completion ${lastUsage.completion_tokens}` +
+          ` → ${lastUsage.neurons.toFixed(1)} Neuron (오늘 누적 ${lastUsage.todayTotal.toFixed(0)}/${neuronBudget})`,
+      );
+      console.log(`  한글 ${koChars}자 → 입력 ${(lastUsage.prompt_tokens / Math.max(koChars, 1)).toFixed(2)} 토큰/자`);
+    }
     for (const [key, ko] of Object.entries(sample)) {
       console.log(`  ${key}\n    ko: ${ko}\n    ${target.code}: ${translated[key]}`);
     }
@@ -308,8 +440,11 @@ console.log(`[translate] ko.json 병합 완료 (+${allKeys.length}키)`);
 
 // ── 로케일별 번역 ─────────────────────────────────────────────────────────
 const summary = [];
+/** 예산이 끊긴 사유. 채워지면 남은 로케일도 돌지 않고 요약으로 넘어간다. */
+let budgetStop = "";
 for (const [fileName, target] of Object.entries(TARGETS)) {
   if (localeFilter && !localeFilter.has(target.code)) continue;
+  if (budgetStop) break;
   const filePath = localePath(fileName);
   const json = readLocale(fileName);
   const chunks = chunkify(missingKeysFor(fileName));
@@ -325,13 +460,21 @@ for (const [fileName, target] of Object.entries(TARGETS)) {
     const cachePath = join(cacheDir, `${target.code}.${chunkHash(chunk)}.json`);
     let translated = existsSync(cachePath) ? JSON.parse(readFileSync(cachePath, "utf8")) : null;
     if (!translated) {
-      translated = await translateChunk(chunk, target, `${target.code} 청크 ${index}`);
+      try {
+        translated = await translateChunk(chunk, target, `${target.code} 청크 ${index}`);
+      } catch (error) {
+        if (!(error instanceof NeuronBudgetExhausted)) throw error;
+        budgetStop = error.message;
+        break;
+      }
       if (translated) writeFileSync(cachePath, `${JSON.stringify(translated, null, 2)}\n`, "utf8");
       await sleep(400); // 쿼터 여유. 캐시 적중 시에는 쉬지 않는다.
     }
 
     if (!translated) { failed += Object.keys(chunk).length; continue; }
-    for (const [key, value] of Object.entries(translated)) { setDeep(json, key, value); applied += 1; }
+    // 🔴 **요청한 키만** 쓴다. validate 는 요청 키가 다 왔는지만 보고 모델이 덤으로 만들어낸
+    //    키는 거르지 않는다 — 그대로 순회하면 환각 키가 setDeep 으로 사전에 박힌다.
+    for (const key of Object.keys(chunk)) { setDeep(json, key, translated[key]); applied += 1; }
     process.stdout.write(`\r[translate] ${target.code}: ${applied}/${pendingCount}   `);
   }
 
@@ -340,9 +483,49 @@ for (const [fileName, target] of Object.entries(TARGETS)) {
   summary.push({ locale: target.code, applied, failed });
 }
 
+// ── en 을 미저작 로케일로 복사 (API 호출 없음) ─────────────────────────────
+if (mirrorEnLocales.length) {
+  const enJson = readLocale("en.json");
+  const sourceKeys = allKeys.filter((key) => typeof getDeep(enJson, key) === "string");
+  for (const code of mirrorEnLocales) {
+    const entry = Object.entries(TARGETS).find(([, t]) => t.code === code);
+    if (!entry) {
+      console.warn(`[translate] --mirror-en: 모르는 로케일 ${code} — 건너뜁니다`);
+      continue;
+    }
+    const [fileName] = entry;
+    const json = readLocale(fileName);
+    let copied = 0;
+    for (const key of sourceKeys) {
+      if (typeof getDeep(json, key) === "string") continue;
+      setDeep(json, key, getDeep(enJson, key));
+      copied += 1;
+    }
+    writeFileSync(localePath(fileName), `${JSON.stringify(json, null, 2)}\n`, "utf8");
+    console.log(`[translate] ${code}: en 복사 ${copied}키 (en 보유 ${sourceKeys.length})`);
+  }
+}
+
 console.log("");
 console.log("[translate] 요약");
 summary.forEach((s) => console.log(`[translate]   ${s.locale.padEnd(6)} 적용 ${String(s.applied).padStart(5)}  실패 ${s.failed}`));
+
+if (provider === "workers-ai") {
+  const spent = spentToday();
+  console.log(`[translate] Neuron: 오늘(UTC ${utcDay()}) ${spent.toFixed(0)} / 예산 ${neuronBudget} (무료 할당 ${WORKERS_AI_DAILY_FREE_NEURONS})`);
+  const remaining = Object.entries(TARGETS)
+    .filter(([, t]) => !localeFilter || localeFilter.has(t.code))
+    .map(([f, t]) => `${t.code} ${missingKeysFor(f).length}`)
+    .join(" · ");
+  console.log(`[translate] 남은 결손: ${remaining}`);
+}
+
+if (budgetStop) {
+  console.log(`[translate] ⏸ ${budgetStop}`);
+  console.log("[translate] 00:00 UTC(한국 09:00) 이후에 같은 명령을 다시 실행하면 남은 결손만 이어서 처리합니다.");
+  process.exit(0);
+}
+
 const totalFailed = summary.reduce((sum, s) => sum + s.failed, 0);
 if (totalFailed) {
   console.log(`[translate] 실패분이 남아 있습니다. 같은 명령을 다시 실행하면 캐시된 성공분은 건너뛰고 실패분만 재시도합니다.`);

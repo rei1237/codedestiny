@@ -57,6 +57,17 @@ const RULES = [
     why: "과금 모델 엔드포인트 직접 호출",
   },
   {
+    // 🔴 2026-08-25 발견: 실제로 Gemini/Workers AI 를 부르는 스크립트인데 위 규칙 어디에도
+    //    안 걸렸다. llm-endpoint 는 **명령줄에** 엔드포인트가 있어야 매치하는데, 이 스크립트는
+    //    URL 을 소스 안에 갖고 있어서 명령줄에는 나타나지 않는다.
+    //    --dry-run 은 프롬프트만 찍고 끝나므로(스크립트가 exit 0) 제외한다.
+    //    🔴 --sample 은 제외하지 않는다 — 12키를 **실제로** 번역해 과금된다.
+    id: "llm-batch-translate",
+    re: /\bnode\s+scripts[/\\]i18n-translate-pending|\bnpm\s+run\s+i18n:translate-pending\b/i,
+    unless: /--dry-run/i,
+    why: "배치 번역 실호출(Gemini 또는 Workers AI) — 과금·일일 Neuron 할당이 소모됩니다",
+  },
+  {
     id: "deploy",
     re: /\bwrangler\s+(deploy|publish|versions\s+(upload|deploy)|pages\s+deploy)\b|\bnpm\s+run\s+deploy:(?!check\b|critical\b)|\bdeploy:cf:|\bdeploy:safe\b|\bdeploy:rollback\b|\bdeploy:production\b|\bnode\s+scripts[/\\](deploy-|opennext-deploy)/i,
     // --dry-run/--outdir 은 업로드가 없는 번들 빌드다(build:worker).

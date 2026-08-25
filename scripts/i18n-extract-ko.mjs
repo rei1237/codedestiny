@@ -179,7 +179,7 @@ const OMITTED = Symbol("omitted");
 const missing = [];
 const placeholderDropped = [];
 const placeholdersOf = (value) =>
-  [...String(value).matchAll(/\{[A-Za-z0-9_.-]+\}/g)].map((m) => m[0]).sort().join(" ");
+  [...String(value).matchAll(/\{[A-Za-z0-9_.-]+\}/g)].map((m) => m[0]).sort().join("\0");
 function build(node, prefix = "") {
   if (Array.isArray(node)) {
     const items = node.map((item, i) => build(item, `${prefix}.${i}`));
@@ -274,8 +274,13 @@ const pendingDir = resolve(rootDir, "i18n", "pending");
 mkdirSync(pendingDir, { recursive: true });
 // 추출 규칙이 바뀌면 키 이름도 바뀐다. 이전 실행의 산출물을 남겨 두면 폐기된 키가
 // 번역 파이프라인 입력으로 되살아나 사전 최상위에 쓰레기 키가 생긴다.
-// 단 다른 도구가 소유한 파일은 건드리지 않는다 — shell.ko.json 은 i18n-mark-shell 의 것이다.
-const FOREIGN_PENDING = new Set(["shell.ko.json"]);
+// 🔴 단 다른 도구가 소유한 파일은 건드리지 않는다. 이 목록에서 빠지면 그 도구의 산출물이
+// 이 스크립트를 한 번 돌리는 것만으로 조용히 사라진다(2026-08-25 실측: shellRuntime.ko.json
+// 1,114키와 loveSimulationScenes.ko.json 4,699키가 둘 다 삭제 대상이었다).
+//   shell.ko.json              ← scripts/i18n-mark-shell.mjs
+//   shellRuntime.ko.json       ← scripts/i18n-extract-runtime-ui.mjs
+//   loveSimulationScenes.ko.json ← scripts/i18n-extract-love-simulation.mjs
+const FOREIGN_PENDING = new Set(["shell.ko.json", "shellRuntime.ko.json", "loveSimulationScenes.ko.json"]);
 for (const stale of readdirSync(pendingDir)) {
   if (!stale.endsWith(".ko.json") || FOREIGN_PENDING.has(stale)) continue;
   rmSync(join(pendingDir, stale));
