@@ -10,6 +10,7 @@
  * 사용: node scripts/verify-neo-operation-room-quality.mjs
  */
 import {
+  NEO_COMPAT_INITIAL_SECTIONS,
   NEO_INITIAL_SECTIONS,
   NEO_REFINED_SECTIONS,
   buildNeoInitialSectionPrompt,
@@ -28,6 +29,14 @@ const initTotal = NEO_INITIAL_SECTIONS.reduce((s, c) => s + c.minChars, 0);
 const refinedTotal = NEO_REFINED_SECTIONS.reduce((s, c) => s + c.minChars, 0);
 ok(initTotal >= INITIAL_TARGET_CHARS, `1차 minChars 합계 ${initTotal} < ${INITIAL_TARGET_CHARS}`);
 ok(refinedTotal >= REFINED_TARGET_CHARS, `2차 minChars 합계 ${refinedTotal} < ${REFINED_TARGET_CHARS}`);
+
+// 궁합 모드도 같은 분량 약속을 진다. 챕터를 갈아 끼우면서 목표가 조용히 깎이는 것을 막는다.
+const compatTotal = NEO_COMPAT_INITIAL_SECTIONS.reduce((s, c) => s + c.minChars, 0);
+ok(compatTotal >= INITIAL_TARGET_CHARS, "궁합 1차 minChars 합계 " + compatTotal + " < " + INITIAL_TARGET_CHARS);
+ok(
+  NEO_COMPAT_INITIAL_SECTIONS.length === NEO_INITIAL_SECTIONS.length,
+  "궁합 챕터 수 " + NEO_COMPAT_INITIAL_SECTIONS.length + " != 1인 " + NEO_INITIAL_SECTIONS.length + " — 웨이브가 늘면 LLM 예산을 넘긴다.",
+);
 
 const initIds = NEO_INITIAL_SECTIONS.map((c) => c.id);
 const refinedIds = NEO_REFINED_SECTIONS.map((c) => c.id);
@@ -67,4 +76,4 @@ if (failures.length) {
   failures.forEach((f) => console.error("  - " + f));
   process.exit(1);
 }
-console.log(`[verify-neo] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터/${initTotal}자(목표 ${INITIAL_TARGET_CHARS}), 2차 ${NEO_REFINED_SECTIONS.length}챕터/${refinedTotal}자(목표 ${REFINED_TARGET_CHARS})`);
+console.log(`[verify-neo] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터/${initTotal}자(목표 ${INITIAL_TARGET_CHARS}), 궁합 ${NEO_COMPAT_INITIAL_SECTIONS.length}챕터/${compatTotal}자, 2차 ${NEO_REFINED_SECTIONS.length}챕터/${refinedTotal}자(목표 ${REFINED_TARGET_CHARS})`);

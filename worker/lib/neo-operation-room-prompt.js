@@ -5,6 +5,7 @@ import { buildNeoBasisPayload, sliceNeoBasisPayload } from "./neo-operation-room
 import { REASONING_OUTPUT_RULE_LINES } from "./fortune-reasoning-contract.js";
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.js";
+import { neoRelationshipStatusFocus } from "./neo-operation-room-compat.js";
 
 const METHOD_LABELS = Object.freeze({
   saju: "사주",
@@ -693,6 +694,32 @@ function ziweiPersonalityContextLinesFor(method, methodSummary) {
   return method === "ziwei" ? buildZiweiPersonalityContextLines(methodSummary) : [];
 }
 
+// 궁합 모드일 때만 붙는 공통 지침. 챕터 4개만 갈아 끼우지만 나머지 10개도 상대가 있다는 것을
+// 알아야 한다 — 모르면 "너는 혼자다" 같은 1인 전제 문장이 그대로 나온다.
+// 🔴 여기 문장은 전부 한국어여야 한다. 서술 지시부에 camelCase 가 섞이면 모델이 본문에 인용하고,
+//    verify:neo-operation-room-output-safety 의 식별자 누출 검사가 실패한다.
+function compatGuideLines(ctx) {
+  const compat = ctx?.methodSummary?.compat;
+  if (!compat) return [];
+  const statusLabel = clean(compat.relationshipStatusLabel, 40);
+  const statusFocus = clean(neoRelationshipStatusFocus(ctx.relationshipStatus), 400);
+  return [
+    "",
+    "[궁합 모드 — 두 사람을 함께 본다]",
+    "이 상담에는 상대의 명반이 함께 계산돼 있다. 상대가 없는 것처럼 쓰지 않는다.",
+    ...(statusLabel ? [`두 사람의 관계 상태: ${statusLabel}`] : []),
+    ...(statusFocus ? [statusFocus] : []),
+    "🔴 상대의 현재 속마음·행동을 사실로 단정하지 않는다. '명반상 이런 관계 패턴이 나타날 가능성이 있다'로 쓴다.",
+    "🔴 확정적 예언을 하지 않는다 — 반드시 결혼한다 / 반드시 헤어진다 / 상대가 반드시 연락한다 같은 문장을 쓰지 않는다.",
+    "🔴 행동 패턴을 비판하되 사람 자체를 공격하지 않는다. 상대에게 인격 낙인을 찍는 표현을 쓰지 않는다.",
+    "🔴 점술을 근거로 외도·범죄 등 특정 행위를 단정하지 않는다.",
+    "이 상담의 주인은 어디까지나 이 사용자다. 상대의 1인 상담을 대신 써 주지 않는다.",
+    ...(compat.uncertainty?.partnerBirthTimeUnknown
+      ? ["상대의 출생시간이 미상이라 정오 기준으로 계산했다. 상대 쪽 궁위 판정은 단정하지 말고 여지를 남겨 쓴다."]
+      : []),
+  ];
+}
+
 // 챕터 프롬프트 공통 컨텍스트 라인(1차/2차 공유).
 function neoSectionCommonLines(section, ctx) {
   const method = clean(ctx.selectedMethod, 30);
@@ -721,6 +748,7 @@ function neoSectionCommonLines(section, ctx) {
     "",
     "[주제별 판독 지침]",
     topicMethodFocusFor(ctx.topic, method) || "선택한 주제와 직접 연결되는 계산 항목을 우선 판독하고, 주제와 무관한 일반 해석은 줄인다.",
+    ...compatGuideLines(ctx),
     "",
     ...neoBasisLines(section, ctx),
     ...otherChapterScopeLines(section),
@@ -776,7 +804,8 @@ function neoBasisLines(section, ctx) {
 // 다른 챕터가 맡는 범위를 레지스트리에서 파생해 알려준다(손으로 쓴 목록이 아니다).
 // 🔴 section.id 를 쓰지 말 것 — camelCase 가 프롬프트에 들어가면 모델이 그대로 에코한다. title 만 쓴다.
 function otherChapterScopeLines(section) {
-  const registry = NEO_INITIAL_SECTIONS.some((entry) => entry.id === section.id) ? NEO_INITIAL_SECTIONS : NEO_REFINED_SECTIONS;
+  const registry = [NEO_INITIAL_SECTIONS, NEO_COMPAT_INITIAL_SECTIONS, NEO_REFINED_SECTIONS]
+    .find((entries) => entries.some((entry) => entry.id === section.id)) || NEO_REFINED_SECTIONS;
   const others = registry.filter((entry) => entry.id !== section.id).map((entry) => entry.title);
   if (!others.length) return [];
   return [
@@ -984,6 +1013,101 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
     ],
   },
 ]);
+
+// ─── 궁합 모드(상대 명반 동반) 챕터 ────────────────────────────────────────
+// 🔴 **더하지 않고 갈아 끼운다.** 1차는 동시성 4라 14챕터 = 4웨이브이고, 챕터를 늘리면
+//    SYNC_LLM_TIMEOUT_CEILING_MS 예산 안에서 완주하지 못한다. 아래 4개는 각각 1인 모드의
+//    topicStyle / topicAreaBreakdown / repeatedChoice / misalignedFlow 자리를 대신한다.
+// 🔴 새 챕터의 스키마 필드는 반드시 mergeNeoInitialSections 가 병합해야 한다 —
+//    안 그러면 결과에 0자로 실려 verify:neo-operation-room-output-safety 의 분량 계약이 실패한다.
+const NEO_COMPAT_SECTION_OVERRIDES = Object.freeze({
+  topicStyle: {
+    id: "compatMutualRead",
+    basisGroups: ["compat", "core"],
+    title: "상호 판독 — 서로를 어떻게 느끼는가",
+    minChars: 1900,
+    scope: "두 명반을 교차해, 상대가 이 사람을 어떻게 느낄 수 있는지와 이 사람이 상대를 어떻게 느끼는지를 양방향으로 진단한다. 매력·기대·불안·답답함을 함께 다룬다.",
+    schema: {
+      mutualRead: {
+        towardPartner: { title: "내가 상대에게 느끼는 것", description: "끌리는 지점과 답답한 지점을 교차 근거로 해석", signals: ["신호1", "신호2", "신호3"] },
+        towardMe: { title: "상대가 나에게 느낄 수 있는 것", description: "상대 명반 구조가 이 관계에서 만들 반응", signals: ["신호1", "신호2", "신호3"] },
+        coreKeyword: "이 관계를 한 문장으로 요약한 핵심 키워드",
+      },
+    },
+    counts: { "mutualRead.towardPartner.signals": 3, "mutualRead.towardMe.signals": 3 },
+    rules: [
+      "[계산 확정값]의 '두 사람 교차' 표에 실재하는 항목(상대 명궁 주성, 부부궁 교차, 사화 낙궁, 살성 낙궁)을 최소 2개 인용한다.",
+      "🔴 상대의 현재 속마음이나 실제 행동을 사실로 단정하지 않는다. '명반상 이런 반응이 나오기 쉽다'로 쓴다.",
+      "한쪽 명반만 보고 상대의 마음을 확정하지 않는다. towardMe 는 반드시 상대 명반 근거로 쓴다.",
+      "signals 는 각각 3~5개.",
+    ],
+  },
+  topicAreaBreakdown: {
+    id: "compatPalaceCross",
+    basisGroups: ["compat", "topic"],
+    title: "궁위 교차 — 자리마다 다른 온도",
+    minChars: 2000,
+    scope: "부부궁·복덕궁·재백궁·관록궁·천이궁을 각각 두 사람 기준으로 교차해, 그 자리에서 맞물리는 방식과 부딪히는 방식을 나눠 분석한다.",
+    schema: { palaceCross: [{ palace: "궁 이름", reading: "그 자리에서 두 사람이 맞물리거나 부딪히는 방식(계산 근거 포함)" }] },
+    counts: { palaceCross: 4 },
+    rules: [
+      "palaceCross 는 4~6개. palace 는 부부궁·복덕궁·재백궁·관록궁·천이궁 중에서 고르고, [계산 확정값]에 실재하는 이름 그대로 쓴다.",
+      "복덕궁에서는 싸웠을 때 누가 먼저 닫히고 누가 계속 말하려 하는지를 반드시 짚는다.",
+      "재백궁에서는 소비·저축 성향 차이와 공동재정에서 부딪힐 지점을 짚는다.",
+      "🔴 천이궁을 근거로 외도·범죄 등 특정 행위를 단정하지 않는다. 바깥에서의 활동 방식 차이까지만 쓴다.",
+      "각 reading 에 계산 근거(궁 주성·별 세기·사화 낙궁·살성 낙궁)를 최소 1개 인용한다. 없는 값은 지어내지 않는다.",
+    ],
+  },
+  repeatedChoice: {
+    id: "compatConflictPattern",
+    basisGroups: ["compat", "core"],
+    title: "최악의 교전 패턴 — 이렇게 싸운다",
+    minChars: 1500,
+    scope: "이 두 사람이 실제로 어떻게 싸우게 되는지를 방아쇠부터 확대 과정까지 재구성하고, 실제로 오갈 법한 대화를 짧게 만든 뒤 푸는 순서를 준다.",
+    schema: {
+      conflictPattern: {
+        title: "이 관계에서 가장 위험한 패턴",
+        trigger: "싸움이 시작되는 방아쇠(계산 근거 포함)",
+        escalation: "그 방아쇠가 어떻게 커지는가",
+        dialogue: [{ speaker: "말하는 쪽(나 / 상대)", line: "실제로 나올 법한 한 마디" }],
+        resolution: "감정 → 공감 → 의도 → 해결 순서로 푸는 구체적인 방법",
+      },
+    },
+    counts: { "conflictPattern.dialogue": 4 },
+    rules: [
+      "dialogue 는 4~6개를 번갈아 쓰고, 각 line 은 실제 대화체 한 마디로 짧게 쓴다.",
+      "resolution 은 반드시 감정 → 공감 → 의도 → 해결 순서를 그대로 밟는다.",
+      "🔴 행동 패턴을 비판하되 사람 자체를 공격하지 않는다. 상대에게 인격 낙인을 찍는 표현을 쓰지 않는다.",
+      "방아쇠를 [계산 확정값]의 살성 낙궁·화기 낙궁·부부궁 교차 중 하나로 특정한다.",
+    ],
+  },
+  misalignedFlow: {
+    id: "compatRelationStrategy",
+    basisGroups: ["compat", "timing"],
+    title: "관계 작전 — 지금 상태에서 무엇을 하는가",
+    minChars: 1500,
+    scope: "[상담 맥락]의 관계 상태에 맞춰, 지금 이 사람이 밟아야 할 단계를 순서대로 준다. 감성적 위로가 아니라 명반 성향에 맞춘 개인화된 행동 지침이어야 한다.",
+    schema: {
+      relationStrategy: {
+        title: "지금 상태에서의 작전",
+        situationRead: "관계 상태와 명반 교차를 함께 읽은 현재 판단",
+        steps: [{ stage: "단계 이름", doThis: "이 단계에서 할 것", avoidThis: "이 단계에서 하지 말 것" }],
+      },
+    },
+    counts: { "relationStrategy.steps": 4 },
+    rules: [
+      "steps 는 4~5개. [상담 맥락]의 관계 상태가 '재회 시도'면 접근 금지 → 첫 접촉 → 관계 회복 → 재회 판단 → 재회 후 순서로 쓴다.",
+      "관계 상태가 '결혼 예정'이면 생활 궁합·돈·역할 분담·양가 문제·결혼 후 주의점 중심으로 전환한다.",
+      "각 단계의 doThis 는 상대 명반 성향에 맞춘 구체 행동으로 쓴다. 일반적인 연애 조언으로 흐르지 않는다.",
+      "🔴 '반드시 재회한다 / 반드시 헤어진다 / 상대가 반드시 연락한다' 같은 확정 예언을 쓰지 않는다.",
+    ],
+  },
+});
+
+/** 궁합 모드 1차 레지스트리 — 1인 모드와 챕터 수가 같아야 한다(예산 동일). */
+export const NEO_COMPAT_INITIAL_SECTIONS = Object.freeze(
+  NEO_INITIAL_SECTIONS.map((section) => NEO_COMPAT_SECTION_OVERRIDES[section.id] || section),
+);
 
 // ─── 2차(수정 작전) 챕터 레지스트리 ────────────────────────────────────────
 /* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
@@ -1223,6 +1347,58 @@ function sectionMap(results) {
   return map;
 }
 
+/**
+ * 궁합 챕터 4종을 병합한다. 1인 모드에서는 해당 챕터가 아예 안 돌아 전부 빈 값이 되고,
+ * 결과 화면의 `when` 필터가 그 페이지들을 통째로 뺀다.
+ * 🔴 여기서 다루지 않은 스키마 필드는 결과에 0자로 실려 분량 계약 가드가 실패한다.
+ */
+function mergeNeoCompatSections(map) {
+  const mutual = firstObject(firstObject(map.compatMutualRead).mutualRead);
+  const conflict = firstObject(firstObject(map.compatConflictPattern).conflictPattern);
+  const strategy = firstObject(firstObject(map.compatRelationStrategy).relationStrategy);
+  const side = (node, fallbackTitle) => {
+    const raw = firstObject(node);
+    return {
+      title: clean(raw.title || fallbackTitle, 120),
+      description: cleanProse(raw.description, 3000),
+      signals: dedupeTextList(safeArray(raw.signals).map((item) => cleanProse(item, LIST_ITEM_CAP)).filter(Boolean)).slice(0, 5),
+    };
+  };
+  return {
+    mutualRead: {
+      towardPartner: side(mutual.towardPartner, "내가 상대에게 느끼는 것"),
+      towardMe: side(mutual.towardMe, "상대가 나에게 느낄 수 있는 것"),
+      coreKeyword: cleanProse(mutual.coreKeyword, 400),
+    },
+    palaceCross: dedupeTextList(
+      safeArray(firstObject(map.compatPalaceCross).palaceCross).map((item) => ({
+        palace: clean(firstObject(item).palace, 120),
+        reading: cleanProse(firstObject(item).reading, 2000),
+      })).filter((item) => item.palace && item.reading),
+      (item) => item.palace,
+    ).slice(0, 6),
+    conflictPattern: {
+      title: clean(conflict.title || "이 관계에서 가장 위험한 패턴", 120),
+      trigger: cleanProse(conflict.trigger, 1500),
+      escalation: cleanProse(conflict.escalation, 1500),
+      dialogue: safeArray(conflict.dialogue).map((item) => ({
+        speaker: clean(firstObject(item).speaker, 40),
+        line: cleanProse(firstObject(item).line, 400),
+      })).filter((item) => item.line).slice(0, 6),
+      resolution: cleanProse(conflict.resolution, 2000),
+    },
+    relationStrategy: {
+      title: clean(strategy.title || "지금 상태에서의 작전", 120),
+      situationRead: cleanProse(strategy.situationRead, 2000),
+      steps: safeArray(strategy.steps).map((item) => ({
+        stage: clean(firstObject(item).stage, 80),
+        doThis: cleanProse(firstObject(item).doThis, 600),
+        avoidThis: cleanProse(firstObject(item).avoidThis, 600),
+      })).filter((item) => item.stage && item.doThis).slice(0, 5),
+    },
+  };
+}
+
 export function mergeNeoInitialSections(results, input, methodSummary) {
   const map = sectionMap(results);
   const selectedMethod = clean(input?.selectedMethod, 30);
@@ -1288,6 +1464,7 @@ export function mergeNeoInitialSections(results, input, methodSummary) {
     repeatedPattern: repeatedChoice,
     misalignedFlow,
     currentProblem: misalignedFlow,
+    ...mergeNeoCompatSections(map),
     methodEvidence: safeArray(firstObject(map.methodEvidence).methodEvidence).map((item) => ({
       method: clean(firstObject(item).method || selectedMethod, 30),
       label: clean(firstObject(item).label, 160),

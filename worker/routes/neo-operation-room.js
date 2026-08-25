@@ -27,7 +27,12 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import {
+  buildNeoZiweiCompat,
+  NEO_RELATIONSHIP_STATUSES,
+} from "../lib/neo-operation-room-compat.js";
+import {
   buildPreviousAdviceLog,
+  NEO_COMPAT_INITIAL_SECTIONS,
   NEO_INITIAL_SECTIONS,
   NEO_REFINED_SECTIONS,
   buildNeoInitialSectionPrompt,
@@ -54,6 +59,7 @@ const SERVER_ERROR_MESSAGE = "작전실을 여는 중 문제가 생겼다. 결�
 const RESULT_NOT_FOUND_MESSAGE = "저장된 작전 브리핑을 찾지 못했다.";
 const METHODS = new Set(["saju", "ziwei", "vedic", "astrology"]);
 const INTENSITIES = new Set(["soft", "standard", "roar"]);
+const RELATIONSHIP_STATUSES = new Set(NEO_RELATIONSHIP_STATUSES);
 const MIN_QUESTION_LENGTH = 12;
 
 function clean(value, maxLength = 0) {
@@ -130,6 +136,38 @@ function normalizeBirthInfo(source = {}) {
   };
 }
 
+function withBirthPlace(birthInfo) {
+  return {
+    ...birthInfo,
+    birthPlace: {
+      city: birthInfo.city,
+      country: birthInfo.country,
+      timezone: birthInfo.timezone,
+      latitude: birthInfo.latitude,
+      longitude: birthInfo.longitude,
+    },
+  };
+}
+
+/**
+ * 궁합 모드(상대 명반 동반)로 볼지 판정한다.
+ *
+ * 🔴 자미두수에서만 궁합을 연다. 재사용하는 궁합 엔진(master-love-codex-compat)이 명반 교차를
+ *    전제로 하기 때문이고, 사주·베다·점성술에는 대응하는 결정론 엔진이 없다.
+ * 🔴 조건을 못 채운 상대 정보는 422 로 막지 않고 **버린다.** 이 값은 전부 선택 입력이라,
+ *    거부하면 상대 칸을 실수로 건드린 사용자가 기존 1인 분석까지 못 하게 된다.
+ */
+function normalizePartnerBirthInfo(body, selectedMethod) {
+  if (selectedMethod !== "ziwei") return null;
+  const source = body.partnerBirthInput || body.partnerBirthInfo || body.partner;
+  if (!source || typeof source !== "object") return null;
+  const partner = normalizeBirthInfo({ birthInput: source });
+  if (!isValidDateKey(partner.birthDate)) return null;
+  if (!partner.gender) return null;
+  if (!partner.birthTimeUnknown && !partner.birthTime) return null;
+  return withBirthPlace(partner);
+}
+
 function normalizeInput(body = {}) {
   const selectedMethod = clean(body.selectedMethod || body.method, 30);
   const topic = clean(body.topic, 120);
@@ -146,22 +184,22 @@ function normalizeInput(body = {}) {
   if ((selectedMethod === "vedic" || selectedMethod === "astrology") && !birthInfo.timezone) {
     return { ok: false, message: INVALID_INPUT_MESSAGE };
   }
+  const partnerBirthInfo = normalizePartnerBirthInfo(body, selectedMethod);
+  const relationshipStatusRaw = clean(body.relationshipStatus, 20);
+  const relationshipStatus = RELATIONSHIP_STATUSES.has(relationshipStatusRaw) ? relationshipStatusRaw : "";
   const input = {
     selectedMethod,
     topic,
     intensity,
     question,
-    birthInfo: {
-      ...birthInfo,
-      birthPlace: {
-        city: birthInfo.city,
-        country: birthInfo.country,
-        timezone: birthInfo.timezone,
-        latitude: birthInfo.latitude,
-        longitude: birthInfo.longitude,
-      },
-    },
+    birthInfo: withBirthPlace(birthInfo),
   };
+  // 🔴 궁합 모드가 아닐 때는 키를 **넣지 않는다**. null 이라도 실으면 stableJson 이 바뀌어
+  //    기존 1인 상담의 inputHash 가 전부 갈리고, 30일 LLM 캐시가 통째로 무효화된다.
+  if (partnerBirthInfo) {
+    input.partnerBirthInfo = partnerBirthInfo;
+    if (relationshipStatus) input.relationshipStatus = relationshipStatus;
+  }
   return {
     ok: true,
     input,
@@ -756,7 +794,21 @@ async function calculateMethodSummary(env, normalized, request) {
     return summarizeSaju(calculateLifeBookAiSaju(input.birthInfo));
   }
   if (input.selectedMethod === "ziwei") {
-    return summarizeZiwei(calculateZiweiAiChart({ birthInfo: input.birthInfo }, { year: new Date().getFullYear() }));
+    const year = new Date().getFullYear();
+    const selfChart = calculateZiweiAiChart({ birthInfo: input.birthInfo }, { year });
+    const summary = summarizeZiwei(selfChart);
+    // 상대 명반이 없으면 1인 모드 — 아래 한 줄 위로는 기존 경로와 완전히 같다.
+    if (!input.partnerBirthInfo) return summary;
+    const partnerChart = calculateZiweiAiChart({ birthInfo: input.partnerBirthInfo }, { year });
+    return {
+      ...summary,
+      compat: buildNeoZiweiCompat({
+        selfChart,
+        partnerChart,
+        relationshipStatus: input.relationshipStatus || "",
+        partnerGender: input.partnerBirthInfo.gender || "",
+      }),
+    };
   }
   if (input.selectedMethod === "vedic") {
     return summarizeVedic(await calculateVedicAiChart(env, {
@@ -889,15 +941,19 @@ async function generateBriefing(env, normalized, methodSummary) {
     intensity: normalized.input.intensity,
     question: normalized.input.question,
     birthTimeUnknown: normalized.input.birthInfo?.birthTimeUnknown === true,
+    relationshipStatus: normalized.input.relationshipStatus || "",
     methodSummary,
   };
+  // 궁합 모드는 챕터를 **더하지 않고 갈아 끼운다**(개수 14 유지) — 웨이브가 늘면
+  // SYNC_LLM_TIMEOUT_CEILING_MS 예산 안에서 완주하지 못한다.
+  const sections = methodSummary?.compat ? NEO_COMPAT_INITIAL_SECTIONS : NEO_INITIAL_SECTIONS;
   const cacheStore = createLlmCacheStore(env);
   // #706 은 /refine 에만 예산을 넣고 /start 는 "안정적으로 도는 경로"라 손대지 않았다. 여기서 함께
   // 건다 — 1차는 14챕터/동시성 4 = 4웨이브라 2차(2웨이브)보다 노출이 크고, 이 PR 이 폴백 잘림까지
   // 재시도 대상으로 넓혔다. 예산은 일을 앞당겨 끊을 뿐 늘리지 않으므로, 엣지가 요청을 통째로
   // 끊어 환불 경로까지 죽는 것보다 부분 결과라도 라우트가 판정하는 쪽이 낫다.
   const deadlineAt = Date.now() + SYNC_LLM_TIMEOUT_CEILING_MS;
-  const results = await runWithConcurrency(NEO_INITIAL_SECTIONS, NEO_SECTION_CONCURRENCY, (section) => {
+  const results = await runWithConcurrency(sections, NEO_SECTION_CONCURRENCY, (section) => {
     const prompt = buildNeoInitialSectionPrompt(section, ctx);
     const cacheConfig = {
       store: cacheStore,
@@ -922,7 +978,7 @@ async function generateBriefing(env, normalized, methodSummary) {
   // 근거 인용 가드: 정찰 보고(methodEvidence) 챕터가 계산값을 인용하지 않으면 그 챕터만 재생성.
   const tokens = safeArray(methodSummary?.evidenceTokens).map((token) => clean(token, 60)).filter(Boolean);
   if (tokens.length && !briefingCitesEvidence(briefing, tokens)) {
-    const evidenceSection = NEO_INITIAL_SECTIONS.find((section) => section.id === "methodEvidence");
+    const evidenceSection = sections.find((section) => section.id === "methodEvidence");
     if (evidenceSection) {
       const retryPrompt = [
         buildNeoInitialSectionPrompt(evidenceSection, ctx),
@@ -1109,6 +1165,7 @@ async function failRefundableExecution(env, auth, idempotencyKey, sessionId, err
 
 function publicSession(doc) {
   const raw = typeof doc?.toObject === "function" ? doc.toObject() : doc;
+  const compat = raw?.methodSummary?.compat || null;
   return {
     ok: true,
     id: clean(raw?.id || raw?._id),
@@ -1119,6 +1176,12 @@ function publicSession(doc) {
     topic: clean(raw?.topic),
     intensity: clean(raw?.intensity),
     question: clean(raw?.question),
+    // 궁합 모드 요약. 🔴 상대의 생년월일·출생지는 싣지 않는다 — 결과 화면이 쓰지 않는 값이라
+    //    응답에 담을 이유가 없다(상담 문서에는 재열람을 위해 남는다).
+    relationshipMode: compat ? "compat" : "solo",
+    relationshipStatus: clean(raw?.relationshipStatus),
+    compatScores: compat?.scores || null,
+    partnerBirthTimeUnknown: compat?.uncertainty?.partnerBirthTimeUnknown === true,
     methodSummary: raw?.methodSummary || null,
     initialBriefing: raw?.initialBriefing || null,
     realityCheck: raw?.realityCheck || null,
@@ -1406,6 +1469,10 @@ async function handleStart(request, env, ctx = null) {
     idempotencyKey,
     inputHash: normalized.inputHash,
     birthInfo: normalized.input.birthInfo,
+    // 궁합 모드가 아니면 null 로 남는다. 결과 재열람 때 같은 명반을 다시 계산하기 위해 저장하며,
+    // 재사용 가능한 프로필(ProfileCard)로는 승격하지 않는다.
+    partnerBirthInfo: normalized.input.partnerBirthInfo || null,
+    relationshipStatus: normalized.input.relationshipStatus || "",
     selectedMethod: normalized.input.selectedMethod,
     topic: normalized.input.topic,
     intensity: normalized.input.intensity,

@@ -1429,6 +1429,21 @@ const neoOperationRoomConsultationSchema = new mongoose.Schema({
     calendarType: { type: String, enum: ["solar", "lunar"], default: "solar" },
     birthPlace: { type: mongoose.Schema.Types.Mixed, default: null },
   },
+  // 궁합 모드(자미두수 한정)에서만 채워진다. 결과 재열람용 상담 기록이며 ProfileCard 로
+  // 승격되지 않는다 — 다음 상담에서 자동으로 불러오지 않는다.
+  partnerBirthInfo: {
+    type: {
+      name: { type: String, default: "", trim: true, maxlength: 80 },
+      gender: { type: String, default: "", trim: true, maxlength: 40 },
+      birthDate: { type: String, default: "", trim: true },
+      birthTime: { type: String, default: "", trim: true, maxlength: 5 },
+      birthTimeUnknown: { type: Boolean, default: false },
+      calendarType: { type: String, enum: ["solar", "lunar"], default: "solar" },
+      birthPlace: { type: mongoose.Schema.Types.Mixed, default: null },
+    },
+    default: null,
+  },
+  relationshipStatus: { type: String, default: "", trim: true, maxlength: 20 },
   selectedMethod: { type: String, enum: ["saju", "ziwei", "vedic", "astrology"], required: true, index: true },
   topic: { type: String, required: true, trim: true, maxlength: 120 },
   intensity: { type: String, enum: ["soft", "standard", "roar"], required: true },
