@@ -40,21 +40,26 @@ import {
   NEO_WAR_ROOM_ACCESS_ENDPOINT,
   buildInitialNeoWarRoomBirthState,
   buildDefaultNeoWarRoomBirthState,
+  buildDefaultNeoWarRoomPartnerState,
   buildNeoWarRoomAccessPayload,
   clearNeoWarRoomIdempotencyKey,
   createNeoWarRoomInputFingerprint,
+  isNeoWarRoomCompatActive,
   resolveNeoWarRoomIdempotencyKey,
   validateNeoWarRoomInput,
   type NeoWarRoomAccessPayload,
   type NeoWarRoomBirthInput,
   type NeoWarRoomGender,
   type NeoWarRoomIntensityId,
+  type NeoWarRoomPartnerState,
   type NeoWarRoomValidationError,
   type NeoWarRoomValidationInput,
 } from "./data/input-flow";
 import { getLocalizedNeoWarRoomMethodRegistry } from "./data/method-registry";
 import {
+  NEO_COMPAT_RELATIONSHIP_STATUSES,
   getNeoCommandStepQuestionHint,
+  getNeoCompatStatusLabel,
   getNeoErrorCopy,
   getNeoFeatureTitle,
   getNeoFormCopy,
@@ -1416,6 +1421,7 @@ function useNeoTypewriter(text: string, enabled: boolean) {
 
 export default function NeoOperationRoomPage() {
   const [birthState, setBirthState] = useState(buildDefaultNeoWarRoomBirthState);
+  const [partnerState, setPartnerState] = useState(buildDefaultNeoWarRoomPartnerState);
   const [method, setMethod] = useState<NeoWarRoomConsultMode | "">("");
   const [topic, setTopic] = useState<(typeof topicOptions)[number] | "">("");
   const [intensity, setIntensity] = useState<IntensityId | "">("");
@@ -1489,6 +1495,7 @@ export default function NeoOperationRoomPage() {
     topic,
     intensity,
     question,
+    partner: partnerState,
   };
   const refining = refinePhase === "generating";
   const busy = flowPhase === "checking" || flowPhase === "payment" || flowPhase === "generating" || refining;
@@ -1539,6 +1546,8 @@ export default function NeoOperationRoomPage() {
           : Math.min(92, 34 + operationStageIndex * 6);
   const canStart = !busy;
   const birthFieldsDisabled = birthState.profileMode === "saved";
+  const compatActive = isNeoWarRoomCompatActive({ method, partner: partnerState });
+  const compatStatusLabel = getNeoCompatStatusLabel(partnerState.relationshipStatus, dialogueLocale);
   const actorState: NeoWarRoomEmotionState = busy || previewOperationMap
     ? "analyzing"
     : operationReady
@@ -2465,6 +2474,33 @@ export default function NeoOperationRoomPage() {
     }));
   }
 
+  function updatePartnerBirthInput(field: keyof NeoWarRoomBirthInput, value: string | boolean) {
+    resetPendingFlow();
+    setLastCommandChoice(null);
+    setPartnerState((prev) => ({
+      ...prev,
+      birth: {
+        ...prev.birth,
+        [field]: value,
+        ...(field === "birthTimeUnknown" && value === true ? { birthTime: "" } : {}),
+      },
+    }));
+  }
+
+  // 🔴 끄더라도 입력한 상대 정보는 지우지 않는다 — 다시 켜면 그대로 돌아온다.
+  //    페이로드와 지문은 enabled 를 보므로 꺼진 값이 새어 나가지는 않는다.
+  function setPartnerEnabled(enabled: boolean) {
+    resetPendingFlow();
+    setLastCommandChoice(null);
+    setPartnerState((prev) => ({ ...prev, enabled }));
+  }
+
+  function selectRelationshipStatus(status: NeoWarRoomPartnerState["relationshipStatus"]) {
+    resetPendingFlow();
+    setLastCommandChoice(null);
+    setPartnerState((prev) => ({ ...prev, relationshipStatus: status }));
+  }
+
   function selectSavedProfile() {
     if (!birthState.hasSavedProfile) return;
     resetPendingFlow();
@@ -2974,6 +3010,111 @@ export default function NeoOperationRoomPage() {
                   {formCopy["birthInfo.birthTimeUnknown"]}
                 </label>
               </div>
+              {method === "ziwei" ? (
+                <div className={styles.partnerBlock}>
+                  <strong>{formCopy["partner.title"]}</strong>
+                  <p className={styles.sectionCopy}>{formCopy["partner.sectionCopy"]}</p>
+                  <div className={styles.profileModeGrid} role="group" aria-label={formCopy["partner.modeGroupAria"]}>
+                    <button
+                      type="button"
+                      className={styles.choiceButton}
+                      data-active={partnerState.enabled ? "false" : "true"}
+                      aria-pressed={!partnerState.enabled}
+                      onClick={() => setPartnerEnabled(false)}
+                    >
+                      {formCopy["partner.modeSolo"]}
+                    </button>
+                    <button
+                      type="button"
+                      className={styles.choiceButton}
+                      data-active={partnerState.enabled ? "true" : "false"}
+                      aria-pressed={partnerState.enabled}
+                      onClick={() => setPartnerEnabled(true)}
+                    >
+                      {formCopy["partner.modeCompat"]}
+                    </button>
+                  </div>
+                  <p className={styles.profileModeHint}>
+                    {partnerState.enabled ? formCopy["partner.hintCompat"] : formCopy["partner.hintSolo"]}
+                  </p>
+                  {partnerState.enabled ? (
+                    <>
+                      <p className={styles.profileModeHint}>
+                        {formCopy["partner.statusLabel"]} · {formCopy["partner.statusHint"]}
+                      </p>
+                      <div className={styles.topicGrid} role="group" aria-label={formCopy["partner.statusGroupAria"]}>
+                        {NEO_COMPAT_RELATIONSHIP_STATUSES.map((status) => (
+                          <button
+                            key={status}
+                            type="button"
+                            className={styles.choiceButton}
+                            data-active={partnerState.relationshipStatus === status ? "true" : "false"}
+                            aria-pressed={partnerState.relationshipStatus === status}
+                            onClick={() => selectRelationshipStatus(status)}
+                          >
+                            {getNeoCompatStatusLabel(status, dialogueLocale)}
+                          </button>
+                        ))}
+                      </div>
+                      <div className={styles.birthGrid}>
+                        <label className={styles.fieldLabel}>
+                          {formCopy["partner.name"]}
+                          <input
+                            type="text"
+                            value={partnerState.birth.name}
+                            placeholder={formCopy["partner.namePlaceholder"]}
+                            onChange={(event) => updatePartnerBirthInput("name", event.target.value)}
+                          />
+                        </label>
+                        <label className={styles.fieldLabel}>
+                          {formCopy["birthInfo.gender"]}
+                          {/* 🔴 자기 명반과 달리 "모름"을 두지 않는다 — 명반 계산이 gender !== "male" 을
+                              여성으로 취급해 대운 방향이 조용히 뒤집힌다. 상대의 성별은 늘 아는 값이다. */}
+                          <select
+                            value={partnerState.birth.gender}
+                            onChange={(event) => updatePartnerBirthInput("gender", event.target.value as NeoWarRoomGender)}
+                          >
+                            <option value="">{formCopy["birthInfo.genderSelect"]}</option>
+                            <option value="female">{formCopy["birthInfo.genderFemale"]}</option>
+                            <option value="male">{formCopy["birthInfo.genderMale"]}</option>
+                          </select>
+                        </label>
+                        <label className={styles.fieldLabel}>
+                          {formCopy["birthInfo.birthDate"]}
+                          <input {...birthDateTextInputProps(partnerState.birth.birthDate, (nextBirthDate) => updatePartnerBirthInput("birthDate", nextBirthDate))} />
+                        </label>
+                        <label className={styles.fieldLabel}>
+                          {formCopy["birthInfo.birthTime"]}
+                          <input
+                            type="time"
+                            value={partnerState.birth.birthTime}
+                            disabled={partnerState.birth.birthTimeUnknown}
+                            onChange={(event) => updatePartnerBirthInput("birthTime", event.target.value)}
+                          />
+                        </label>
+                        <label className={styles.fieldLabel}>
+                          {formCopy["birthInfo.calendar"]}
+                          <select
+                            value={partnerState.birth.calendarType}
+                            onChange={(event) => updatePartnerBirthInput("calendarType", event.target.value)}
+                          >
+                            <option value="solar">{formCopy["birthInfo.calendarSolar"]}</option>
+                            <option value="lunar">{formCopy["birthInfo.calendarLunar"]}</option>
+                          </select>
+                        </label>
+                        <label className={styles.checkField}>
+                          <input
+                            type="checkbox"
+                            checked={partnerState.birth.birthTimeUnknown}
+                            onChange={(event) => updatePartnerBirthInput("birthTimeUnknown", event.target.checked)}
+                          />
+                          {formCopy["birthInfo.birthTimeUnknown"]}
+                        </label>
+                      </div>
+                    </>
+                  ) : null}
+                </div>
+              ) : null}
             </section>
             ) : null}
 
@@ -3102,6 +3243,9 @@ export default function NeoOperationRoomPage() {
               <div className={styles.launchSummary}>
                 <strong>{formCopy["launchConfirm.title"]}</strong>
                 <span>{selectedMethod?.label} · {topic && getNeoTopicLabel(topic, dialogueLocale)} · {selectedIntensity?.label}</span>
+                {compatActive ? (
+                  <span>{formCopy["partner.launchBadge"]}{compatStatusLabel ? ` · ${compatStatusLabel}` : ""}</span>
+                ) : null}
                 <span>{displayConsultPriceLabel ? `${getNeoFeatureTitle(dialogueLocale)} · ${displayConsultPriceLabel}` : getNeoFeatureTitle(dialogueLocale)}</span>
               </div>
               <button type="submit" className={styles.startButton} disabled={!canStart} aria-busy={busy}>

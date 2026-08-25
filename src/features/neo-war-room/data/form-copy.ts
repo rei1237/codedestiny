@@ -125,6 +125,19 @@ export type NeoFormCopyKey =
   | "briefing.compatStrategySituationLabel"
   | "briefing.compatStrategyDoLabel"
   | "briefing.compatStrategyAvoidLabel"
+  | "partner.title"
+  | "partner.sectionCopy"
+  | "partner.modeGroupAria"
+  | "partner.modeSolo"
+  | "partner.modeCompat"
+  | "partner.hintSolo"
+  | "partner.hintCompat"
+  | "partner.statusLabel"
+  | "partner.statusHint"
+  | "partner.statusGroupAria"
+  | "partner.name"
+  | "partner.namePlaceholder"
+  | "partner.launchBadge"
   | "briefing.forbiddenActionFallback"
   | "briefing.actionOrdersLabel"
   | "briefing.sevenDayLabel"
@@ -274,6 +287,19 @@ const NEO_FORM_COPY_KO: NeoFormCopyTable = {
   "briefing.compatStrategySituationLabel": "지금 상태 판독",
   "briefing.compatStrategyDoLabel": "할 것",
   "briefing.compatStrategyAvoidLabel": "하지 말 것",
+  "partner.title": "상대 정보",
+  "partner.sectionCopy": "자미두수에서만 열린다. 상대의 명반을 함께 놓으면 네오가 관계 구조를 근거로 답한다.",
+  "partner.modeGroupAria": "상담 인원 선택",
+  "partner.modeSolo": "혼자 본다",
+  "partner.modeCompat": "둘이 함께 본다",
+  "partner.hintSolo": "네 명반만 놓고 본다.",
+  "partner.hintCompat": "상대의 명반을 교차해 챕터 4개가 궁합 판독으로 바뀐다. 가격은 그대로다.",
+  "partner.statusLabel": "관계 상태",
+  "partner.statusHint": "지금 어느 단계인지에 따라 작전 챕터의 무게중심이 바뀐다.",
+  "partner.statusGroupAria": "관계 상태 선택",
+  "partner.name": "상대 이름",
+  "partner.namePlaceholder": "표기용. 비워도 된다",
+  "partner.launchBadge": "궁합 모드",
   "briefing.forbiddenActionFallback": "오늘 금지 행동",
   "briefing.actionOrdersLabel": "바로 해야 할 작전",
   "briefing.sevenDayLabel": "7일 작전",
@@ -422,6 +448,19 @@ const NEO_FORM_COPY_EN: NeoFormCopyTable = {
   "briefing.compatStrategySituationLabel": "Reading of where you stand",
   "briefing.compatStrategyDoLabel": "Do this",
   "briefing.compatStrategyAvoidLabel": "Avoid this",
+  "partner.title": "Your partner",
+  "partner.sectionCopy": "Ziwei only. Put their chart next to yours and NEO answers from the structure of the relationship.",
+  "partner.modeGroupAria": "Choose who this reading is for",
+  "partner.modeSolo": "Just me",
+  "partner.modeCompat": "The two of us",
+  "partner.hintSolo": "Reading your chart alone.",
+  "partner.hintCompat": "Crossing their chart swaps four chapters for a compatibility reading. The price does not change.",
+  "partner.statusLabel": "Relationship status",
+  "partner.statusHint": "Which stage you are in shifts where the strategy chapter puts its weight.",
+  "partner.statusGroupAria": "Choose the relationship status",
+  "partner.name": "Partner's name",
+  "partner.namePlaceholder": "For display only - you can leave it blank",
+  "partner.launchBadge": "Compatibility mode",
   "briefing.forbiddenActionFallback": "Forbidden action for today",
   "briefing.actionOrdersLabel": "Orders to act on now",
   "briefing.sevenDayLabel": "7-Day Operation",
@@ -570,6 +609,19 @@ const NEO_FORM_COPY_JA: NeoFormCopyTable = {
   "briefing.compatStrategySituationLabel": "今の状態の判読",
   "briefing.compatStrategyDoLabel": "やること",
   "briefing.compatStrategyAvoidLabel": "やらないこと",
+  "partner.title": "相手の情報",
+  "partner.sectionCopy": "紫微斗数でのみ開く。相手の命盤を並べれば、ネオが関係の構造を根拠に答える。",
+  "partner.modeGroupAria": "鑑定の人数を選択",
+  "partner.modeSolo": "一人で見る",
+  "partner.modeCompat": "二人で見る",
+  "partner.hintSolo": "あなたの命盤だけを見る。",
+  "partner.hintCompat": "相手の命盤と交差させ、4章が相性判読に変わる。価格は変わらない。",
+  "partner.statusLabel": "関係の状態",
+  "partner.statusHint": "今どの段階かで、作戦章の重心が変わる。",
+  "partner.statusGroupAria": "関係の状態を選択",
+  "partner.name": "相手の名前",
+  "partner.namePlaceholder": "表示用。空欄でもよい",
+  "partner.launchBadge": "相性モード",
   "briefing.forbiddenActionFallback": "今日の禁止行動",
   "briefing.actionOrdersLabel": "今すぐやるべき作戦",
   "briefing.sevenDayLabel": "7日間作戦",
@@ -718,6 +770,19 @@ const NEO_FORM_COPY_ZH_CN: NeoFormCopyTable = {
   "briefing.compatStrategySituationLabel": "当前状态解读",
   "briefing.compatStrategyDoLabel": "要做的",
   "briefing.compatStrategyAvoidLabel": "不要做的",
+  "partner.title": "对方信息",
+  "partner.sectionCopy": "仅紫微斗数开放。把对方的命盘并排放上，尼奥就能依据关系结构作答。",
+  "partner.modeGroupAria": "选择本次咨询的人数",
+  "partner.modeSolo": "只看我自己",
+  "partner.modeCompat": "两个人一起看",
+  "partner.hintSolo": "只看你的命盘。",
+  "partner.hintCompat": "与对方命盘交叉后，四个章节会换成合盘解读。价格不变。",
+  "partner.statusLabel": "关系状态",
+  "partner.statusHint": "处于哪个阶段，会改变作战章节的重心。",
+  "partner.statusGroupAria": "选择关系状态",
+  "partner.name": "对方姓名",
+  "partner.namePlaceholder": "仅用于显示，可以留空",
+  "partner.launchBadge": "合盘模式",
   "briefing.forbiddenActionFallback": "今日禁止行动",
   "briefing.actionOrdersLabel": "现在就该执行的作战",
   "briefing.sevenDayLabel": "7日作战",
@@ -866,6 +931,19 @@ const NEO_FORM_COPY_ZH_TW: NeoFormCopyTable = {
   "briefing.compatStrategySituationLabel": "當前狀態解讀",
   "briefing.compatStrategyDoLabel": "要做的",
   "briefing.compatStrategyAvoidLabel": "不要做的",
+  "partner.title": "對方資訊",
+  "partner.sectionCopy": "僅紫微斗數開放。把對方的命盤並排放上，尼奧就能依據關係結構作答。",
+  "partner.modeGroupAria": "選擇本次諮詢的人數",
+  "partner.modeSolo": "只看我自己",
+  "partner.modeCompat": "兩個人一起看",
+  "partner.hintSolo": "只看你的命盤。",
+  "partner.hintCompat": "與對方命盤交叉後，四個章節會換成合盤解讀。價格不變。",
+  "partner.statusLabel": "關係狀態",
+  "partner.statusHint": "處於哪個階段，會改變作戰章節的重心。",
+  "partner.statusGroupAria": "選擇關係狀態",
+  "partner.name": "對方姓名",
+  "partner.namePlaceholder": "僅用於顯示，可以留空",
+  "partner.launchBadge": "合盤模式",
   "briefing.forbiddenActionFallback": "今日禁止行動",
   "briefing.actionOrdersLabel": "現在就該執行的作戰",
   "briefing.sevenDayLabel": "7日作戰",
