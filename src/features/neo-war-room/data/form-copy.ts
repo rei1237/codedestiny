@@ -97,6 +97,34 @@ export type NeoFormCopyKey =
   | "briefing.topicTimingFallback"
   | "briefing.originalStrategyFallback"
   | "briefing.misalignedFlowFallback"
+  | "briefing.compatScoresLabel"
+  | "briefing.compatScoreOverall"
+  | "briefing.compatScoreResonance"
+  | "briefing.compatScoreFriction"
+  | "briefing.compatScoreGrowth"
+  | "briefing.compatScoreNote"
+  | "briefing.compatStatusLabel"
+  | "briefing.compatPartnerTimeUnknownNote"
+  | "briefing.compatStatus.crush"
+  | "briefing.compatStatus.dating"
+  | "briefing.compatStatus.longterm"
+  | "briefing.compatStatus.breakup"
+  | "briefing.compatStatus.reconciling"
+  | "briefing.compatStatus.engaged"
+  | "briefing.compatStatus.married"
+  | "briefing.compatTowardPartnerFallback"
+  | "briefing.compatTowardMeFallback"
+  | "briefing.compatCoreKeywordLabel"
+  | "briefing.compatPalaceCrossLabel"
+  | "briefing.compatConflictFallback"
+  | "briefing.compatConflictTriggerLabel"
+  | "briefing.compatConflictEscalationLabel"
+  | "briefing.compatConflictDialogueLabel"
+  | "briefing.compatConflictResolutionLabel"
+  | "briefing.compatStrategyFallback"
+  | "briefing.compatStrategySituationLabel"
+  | "briefing.compatStrategyDoLabel"
+  | "briefing.compatStrategyAvoidLabel"
   | "briefing.forbiddenActionFallback"
   | "briefing.actionOrdersLabel"
   | "briefing.sevenDayLabel"
@@ -218,6 +246,34 @@ const NEO_FORM_COPY_KO: NeoFormCopyTable = {
   "briefing.topicTimingFallback": "이 주제의 시기 흐름",
   "briefing.originalStrategyFallback": "본래 너는 이렇게 움직여야 한다",
   "briefing.misalignedFlowFallback": "지금 흐름이 어긋난 자리",
+  "briefing.compatScoresLabel": "궁합 계기판",
+  "briefing.compatScoreOverall": "종합",
+  "briefing.compatScoreResonance": "공명",
+  "briefing.compatScoreFriction": "갈등 위험",
+  "briefing.compatScoreGrowth": "성장",
+  "briefing.compatScoreNote": "공명과 성장은 높을수록, 갈등 위험은 낮을수록 좋다.",
+  "briefing.compatStatusLabel": "관계 상태",
+  "briefing.compatPartnerTimeUnknownNote": "상대의 출생시간이 미상이라, 시간에 기대는 판독은 폭을 넓게 잡았다.",
+  "briefing.compatStatus.crush": "썸",
+  "briefing.compatStatus.dating": "연애 중",
+  "briefing.compatStatus.longterm": "장기 연애",
+  "briefing.compatStatus.breakup": "이별",
+  "briefing.compatStatus.reconciling": "재회 시도",
+  "briefing.compatStatus.engaged": "결혼 예정",
+  "briefing.compatStatus.married": "부부",
+  "briefing.compatTowardPartnerFallback": "내가 상대에게 느끼는 것",
+  "briefing.compatTowardMeFallback": "상대가 나에게 느낄 수 있는 것",
+  "briefing.compatCoreKeywordLabel": "이 관계의 핵심 키워드",
+  "briefing.compatPalaceCrossLabel": "궁 교차 판독",
+  "briefing.compatConflictFallback": "이 관계에서 가장 위험한 패턴",
+  "briefing.compatConflictTriggerLabel": "불이 붙는 지점",
+  "briefing.compatConflictEscalationLabel": "번져 가는 경로",
+  "briefing.compatConflictDialogueLabel": "실제로 오가는 말",
+  "briefing.compatConflictResolutionLabel": "푸는 순서",
+  "briefing.compatStrategyFallback": "지금 상태에서의 작전",
+  "briefing.compatStrategySituationLabel": "지금 상태 판독",
+  "briefing.compatStrategyDoLabel": "할 것",
+  "briefing.compatStrategyAvoidLabel": "하지 말 것",
   "briefing.forbiddenActionFallback": "오늘 금지 행동",
   "briefing.actionOrdersLabel": "바로 해야 할 작전",
   "briefing.sevenDayLabel": "7일 작전",
@@ -338,6 +394,34 @@ const NEO_FORM_COPY_EN: NeoFormCopyTable = {
   "briefing.topicTimingFallback": "The timing flow of this topic",
   "briefing.originalStrategyFallback": "How you were meant to move",
   "briefing.misalignedFlowFallback": "Where your current flow is off",
+  "briefing.compatScoresLabel": "Compatibility gauges",
+  "briefing.compatScoreOverall": "Overall",
+  "briefing.compatScoreResonance": "Resonance",
+  "briefing.compatScoreFriction": "Conflict risk",
+  "briefing.compatScoreGrowth": "Growth",
+  "briefing.compatScoreNote": "Resonance and growth read better high; conflict risk reads better low.",
+  "briefing.compatStatusLabel": "Relationship status",
+  "briefing.compatPartnerTimeUnknownNote": "Your partner's birth time is unknown, so time-dependent readings are kept deliberately wide.",
+  "briefing.compatStatus.crush": "Crushing",
+  "briefing.compatStatus.dating": "Dating",
+  "briefing.compatStatus.longterm": "Long-term",
+  "briefing.compatStatus.breakup": "Broken up",
+  "briefing.compatStatus.reconciling": "Trying to reconcile",
+  "briefing.compatStatus.engaged": "Engaged",
+  "briefing.compatStatus.married": "Married",
+  "briefing.compatTowardPartnerFallback": "What you feel toward them",
+  "briefing.compatTowardMeFallback": "What they may feel toward you",
+  "briefing.compatCoreKeywordLabel": "The keyword for this relationship",
+  "briefing.compatPalaceCrossLabel": "Palace cross-reading",
+  "briefing.compatConflictFallback": "The riskiest pattern in this relationship",
+  "briefing.compatConflictTriggerLabel": "Where it ignites",
+  "briefing.compatConflictEscalationLabel": "How it spreads",
+  "briefing.compatConflictDialogueLabel": "What actually gets said",
+  "briefing.compatConflictResolutionLabel": "The order to unwind it",
+  "briefing.compatStrategyFallback": "The operation for where you are now",
+  "briefing.compatStrategySituationLabel": "Reading of where you stand",
+  "briefing.compatStrategyDoLabel": "Do this",
+  "briefing.compatStrategyAvoidLabel": "Avoid this",
   "briefing.forbiddenActionFallback": "Forbidden action for today",
   "briefing.actionOrdersLabel": "Orders to act on now",
   "briefing.sevenDayLabel": "7-Day Operation",
@@ -458,6 +542,34 @@ const NEO_FORM_COPY_JA: NeoFormCopyTable = {
   "briefing.topicTimingFallback": "このテーマの時期の流れ",
   "briefing.originalStrategyFallback": "本来お前はこう動くべきだ",
   "briefing.misalignedFlowFallback": "今の流れがずれている場所",
+  "briefing.compatScoresLabel": "相性の計器盤",
+  "briefing.compatScoreOverall": "総合",
+  "briefing.compatScoreResonance": "共鳴",
+  "briefing.compatScoreFriction": "衝突リスク",
+  "briefing.compatScoreGrowth": "成長",
+  "briefing.compatScoreNote": "共鳴と成長は高いほど、衝突リスクは低いほど良い。",
+  "briefing.compatStatusLabel": "関係の状態",
+  "briefing.compatPartnerTimeUnknownNote": "相手の出生時間が不明のため、時間に依存する判読は幅を広く取っている。",
+  "briefing.compatStatus.crush": "片思い",
+  "briefing.compatStatus.dating": "交際中",
+  "briefing.compatStatus.longterm": "長期交際",
+  "briefing.compatStatus.breakup": "別れた",
+  "briefing.compatStatus.reconciling": "復縁を試み中",
+  "briefing.compatStatus.engaged": "結婚予定",
+  "briefing.compatStatus.married": "夫婦",
+  "briefing.compatTowardPartnerFallback": "私が相手に感じるもの",
+  "briefing.compatTowardMeFallback": "相手が私に感じうるもの",
+  "briefing.compatCoreKeywordLabel": "この関係の核心キーワード",
+  "briefing.compatPalaceCrossLabel": "宮の交差判読",
+  "briefing.compatConflictFallback": "この関係で最も危険なパターン",
+  "briefing.compatConflictTriggerLabel": "火がつく地点",
+  "briefing.compatConflictEscalationLabel": "燃え広がる経路",
+  "briefing.compatConflictDialogueLabel": "実際に交わされる言葉",
+  "briefing.compatConflictResolutionLabel": "解く順序",
+  "briefing.compatStrategyFallback": "今の状態での作戦",
+  "briefing.compatStrategySituationLabel": "今の状態の判読",
+  "briefing.compatStrategyDoLabel": "やること",
+  "briefing.compatStrategyAvoidLabel": "やらないこと",
   "briefing.forbiddenActionFallback": "今日の禁止行動",
   "briefing.actionOrdersLabel": "今すぐやるべき作戦",
   "briefing.sevenDayLabel": "7日間作戦",
@@ -578,6 +690,34 @@ const NEO_FORM_COPY_ZH_CN: NeoFormCopyTable = {
   "briefing.topicTimingFallback": "此主题的时机流向",
   "briefing.originalStrategyFallback": "你本该这样行动",
   "briefing.misalignedFlowFallback": "当前偏离轨道的地方",
+  "briefing.compatScoresLabel": "合盘仪表盘",
+  "briefing.compatScoreOverall": "综合",
+  "briefing.compatScoreResonance": "共鸣",
+  "briefing.compatScoreFriction": "冲突风险",
+  "briefing.compatScoreGrowth": "成长",
+  "briefing.compatScoreNote": "共鸣与成长越高越好，冲突风险越低越好。",
+  "briefing.compatStatusLabel": "关系状态",
+  "briefing.compatPartnerTimeUnknownNote": "对方的出生时间不详，因此依赖时辰的解读刻意放宽了范围。",
+  "briefing.compatStatus.crush": "暧昧期",
+  "briefing.compatStatus.dating": "恋爱中",
+  "briefing.compatStatus.longterm": "长期恋爱",
+  "briefing.compatStatus.breakup": "已分手",
+  "briefing.compatStatus.reconciling": "尝试复合",
+  "briefing.compatStatus.engaged": "准备结婚",
+  "briefing.compatStatus.married": "已婚",
+  "briefing.compatTowardPartnerFallback": "我对对方的感受",
+  "briefing.compatTowardMeFallback": "对方可能对我的感受",
+  "briefing.compatCoreKeywordLabel": "这段关系的核心关键词",
+  "briefing.compatPalaceCrossLabel": "宫位交叉解读",
+  "briefing.compatConflictFallback": "这段关系中最危险的模式",
+  "briefing.compatConflictTriggerLabel": "引爆点",
+  "briefing.compatConflictEscalationLabel": "蔓延路径",
+  "briefing.compatConflictDialogueLabel": "实际会说出口的话",
+  "briefing.compatConflictResolutionLabel": "化解顺序",
+  "briefing.compatStrategyFallback": "当前状态下的作战",
+  "briefing.compatStrategySituationLabel": "当前状态解读",
+  "briefing.compatStrategyDoLabel": "要做的",
+  "briefing.compatStrategyAvoidLabel": "不要做的",
   "briefing.forbiddenActionFallback": "今日禁止行动",
   "briefing.actionOrdersLabel": "现在就该执行的作战",
   "briefing.sevenDayLabel": "7日作战",
@@ -698,6 +838,34 @@ const NEO_FORM_COPY_ZH_TW: NeoFormCopyTable = {
   "briefing.topicTimingFallback": "此主題的時機流向",
   "briefing.originalStrategyFallback": "你本該這樣行動",
   "briefing.misalignedFlowFallback": "當前偏離軌道的地方",
+  "briefing.compatScoresLabel": "合盤儀表板",
+  "briefing.compatScoreOverall": "綜合",
+  "briefing.compatScoreResonance": "共鳴",
+  "briefing.compatScoreFriction": "衝突風險",
+  "briefing.compatScoreGrowth": "成長",
+  "briefing.compatScoreNote": "共鳴與成長越高越好，衝突風險越低越好。",
+  "briefing.compatStatusLabel": "關係狀態",
+  "briefing.compatPartnerTimeUnknownNote": "對方的出生時間不詳，因此依賴時辰的解讀刻意放寬了範圍。",
+  "briefing.compatStatus.crush": "曖昧期",
+  "briefing.compatStatus.dating": "戀愛中",
+  "briefing.compatStatus.longterm": "長期戀愛",
+  "briefing.compatStatus.breakup": "已分手",
+  "briefing.compatStatus.reconciling": "嘗試復合",
+  "briefing.compatStatus.engaged": "準備結婚",
+  "briefing.compatStatus.married": "已婚",
+  "briefing.compatTowardPartnerFallback": "我對對方的感受",
+  "briefing.compatTowardMeFallback": "對方可能對我的感受",
+  "briefing.compatCoreKeywordLabel": "這段關係的核心關鍵詞",
+  "briefing.compatPalaceCrossLabel": "宮位交叉解讀",
+  "briefing.compatConflictFallback": "這段關係中最危險的模式",
+  "briefing.compatConflictTriggerLabel": "引爆點",
+  "briefing.compatConflictEscalationLabel": "蔓延路徑",
+  "briefing.compatConflictDialogueLabel": "實際會說出口的話",
+  "briefing.compatConflictResolutionLabel": "化解順序",
+  "briefing.compatStrategyFallback": "當前狀態下的作戰",
+  "briefing.compatStrategySituationLabel": "當前狀態解讀",
+  "briefing.compatStrategyDoLabel": "要做的",
+  "briefing.compatStrategyAvoidLabel": "不要做的",
   "briefing.forbiddenActionFallback": "今日禁止行動",
   "briefing.actionOrdersLabel": "現在就該執行的作戰",
   "briefing.sevenDayLabel": "7日作戰",
@@ -733,6 +901,32 @@ const NEO_FORM_COPY_BY_LOCALE: Partial<Record<NonKoLocale, NeoFormCopyTable>> = 
 export function getNeoFormCopy(locale: LoadingLocale): NeoFormCopyTable {
   if (locale === "ko") return NEO_FORM_COPY_KO;
   return NEO_FORM_COPY_BY_LOCALE[locale as NonKoLocale] || NEO_FORM_COPY_EN;
+}
+/**
+ * 관계 상태 라벨. 서버는 식별자(crush/dating/...)만 돌려주므로 표기는 이 표가 책임진다.
+ * 🔴 상태 목록의 정본은 worker/lib/neo-operation-room-compat.js 의 NEO_RELATIONSHIP_STATUSES 다 —
+ *    여기에만 새 상태를 더하면 서버가 그 값을 버려 라벨만 남는다.
+ */
+const NEO_COMPAT_STATUS_COPY_KEYS = {
+  crush: "briefing.compatStatus.crush",
+  dating: "briefing.compatStatus.dating",
+  longterm: "briefing.compatStatus.longterm",
+  breakup: "briefing.compatStatus.breakup",
+  reconciling: "briefing.compatStatus.reconciling",
+  engaged: "briefing.compatStatus.engaged",
+  married: "briefing.compatStatus.married",
+} as const satisfies Record<string, NeoFormCopyKey>;
+
+export type NeoCompatRelationshipStatus = keyof typeof NEO_COMPAT_STATUS_COPY_KEYS;
+
+export const NEO_COMPAT_RELATIONSHIP_STATUSES = Object.keys(
+  NEO_COMPAT_STATUS_COPY_KEYS,
+) as NeoCompatRelationshipStatus[];
+
+/** 모르는 값이면 빈 문자열 — 화면이 관계 상태 줄을 통째로 뺀다. */
+export function getNeoCompatStatusLabel(status: string, locale: LoadingLocale): string {
+  const key = NEO_COMPAT_STATUS_COPY_KEYS[status as NeoCompatRelationshipStatus];
+  return key ? getNeoFormCopy(locale)[key] : "";
 }
 
 export function getNeoOperationMapStages(locale: LoadingLocale): string[] {

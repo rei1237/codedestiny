@@ -15,6 +15,7 @@ import { neoInitialBreaks, neoRefinedBreaks, withCharacterBreaks } from "@/compo
 import { useSpritePlaybackGate } from "@/src/hooks/useSpritePlaybackGate";
 import NeoFactPunch from "./components/NeoFactPunch";
 import NeoWarRoomAssetImage from "./components/NeoWarRoomAssetImage";
+import NeoCompatSummaryCard, { type NeoCompatSummary } from "./components/NeoCompatSummaryCard";
 import { type NeoWarRoomConsultMode, neoWarRoomAssets } from "./data/assets";
 import { getLocalizedNeoWarRoomMethodDefinition, getLocalizedNeoWarRoomMethodRegistry } from "./data/method-registry";
 import { getNeoRealityCheckLabel, getNeoFormCopy, getNeoTopicLabel } from "./data/form-copy";
@@ -31,7 +32,27 @@ import {
 } from "./data/result-copy";
 import styles from "./neo-operation-room-result.module.css";
 
-type NeoBriefing = {
+// 궁합 모드 챕터 4종. 1인 상담에서는 서버가 이 키들을 빈 값으로 실어 보내므로(궁합 챕터가 아예 안 돈다)
+// 화면은 값이 있을 때만 페이지를 만든다. 정본: worker/lib/neo-operation-room-prompt.js 의 mergeNeoCompatSections.
+type NeoCompatSide = { title?: string; description?: string; signals?: string[] };
+type NeoCompatSections = {
+  mutualRead?: { towardPartner?: NeoCompatSide; towardMe?: NeoCompatSide; coreKeyword?: string };
+  palaceCross?: Array<{ palace?: string; reading?: string }>;
+  conflictPattern?: {
+    title?: string;
+    trigger?: string;
+    escalation?: string;
+    dialogue?: Array<{ speaker?: string; line?: string }>;
+    resolution?: string;
+  };
+  relationStrategy?: {
+    title?: string;
+    situationRead?: string;
+    steps?: Array<{ stage?: string; doThis?: string; avoidThis?: string }>;
+  };
+};
+
+type NeoBriefing = NeoCompatSections & {
   selectedMethod?: NeoWarRoomConsultMode;
   operationTitle?: string;
   neoOpening?: string;
@@ -84,6 +105,11 @@ type NeoResultSession = {
   question?: string;
   initialBriefing?: NeoBriefing | null;
   refinedOrder?: NeoRefinedOrder | null;
+  // 궁합 모드 요약. 상대의 생년월일·출생지는 응답에 없다(상담 문서에만 남는다).
+  relationshipMode?: string;
+  relationshipStatus?: string;
+  compatScores?: NeoCompatSummary["scores"];
+  partnerBirthTimeUnknown?: boolean;
   realityCheck?: { selectedChecks?: string[]; freeform?: string } | null;
   generationError?: { message?: string } | null;
   refinementError?: { message?: string } | null;
@@ -710,6 +736,13 @@ export default function NeoOperationRoomResultPage() {
 
   const briefing = session?.initialBriefing || null;
   const refined = session?.refinedOrder || null;
+  const compatSummary: NeoCompatSummary | null = session?.compatScores
+    ? {
+        scores: session.compatScores,
+        relationshipStatus: session.relationshipStatus || "",
+        partnerBirthTimeUnknown: session.partnerBirthTimeUnknown === true,
+      }
+    : null;
   const isGenerating = loading || session?.status === "generating";
   const isFailed = Boolean(error) || session?.status === "generation_failed";
   const canUnlockNeoBenefits = !neoBenefitsUnlocked && !isLocalPreview && badgeAward.count >= NEO_LETTER_BADGE_COST;
@@ -845,6 +878,7 @@ export default function NeoOperationRoomResultPage() {
             {briefing ? (
               <InitialBriefingDocument
                 briefing={briefing}
+                compat={compatSummary}
                 evidenceFallbackLabel={selectedMethodDefinition.resultEvidenceLabel}
                 hasRefined={Boolean(refined)}
                 badgeIndex={badgeAward.currentBadgeIndex}
@@ -1076,6 +1110,7 @@ function ResultSummaryCover({
 
 function InitialBriefingDocument({
   briefing,
+  compat,
   evidenceFallbackLabel,
   hasRefined,
   badgeIndex,
@@ -1086,6 +1121,7 @@ function InitialBriefingDocument({
   locale,
 }: {
   briefing: NeoBriefing;
+  compat: NeoCompatSummary | null;
   evidenceFallbackLabel: string;
   hasRefined: boolean;
   badgeIndex: number;
@@ -1160,6 +1196,103 @@ function InitialBriefingDocument({
               ...(briefing.innateStrength?.weakPoints || []).map((point) => `⚠ ${toDisplayText(point)}`),
             ]}
           />
+        </>
+      ),
+    },
+    {
+      id: "briefing-compat-scores",
+      label: resultCopy.tabCompatScores,
+      when: Boolean(compat?.scores),
+      content: (
+        <NeoCompatSummaryCard
+          scores={compat?.scores}
+          relationshipStatus={compat?.relationshipStatus}
+          partnerBirthTimeUnknown={compat?.partnerBirthTimeUnknown}
+          locale={locale}
+        />
+      ),
+    },
+    {
+      id: "briefing-compat-mutual",
+      label: resultCopy.tabCompatMutual,
+      when: Boolean(
+        toDisplayText(briefing.mutualRead?.towardPartner?.description)
+          || toDisplayText(briefing.mutualRead?.towardMe?.description),
+      ),
+      content: (
+        <>
+          <Section
+            title={briefing.mutualRead?.towardPartner?.title || formCopy["briefing.compatTowardPartnerFallback"]}
+            body={briefing.mutualRead?.towardPartner?.description}
+            list={briefing.mutualRead?.towardPartner?.signals}
+          />
+          <Section
+            title={briefing.mutualRead?.towardMe?.title || formCopy["briefing.compatTowardMeFallback"]}
+            body={briefing.mutualRead?.towardMe?.description}
+            list={briefing.mutualRead?.towardMe?.signals}
+          />
+          <Section title={formCopy["briefing.compatCoreKeywordLabel"]} body={briefing.mutualRead?.coreKeyword} />
+        </>
+      ),
+    },
+    {
+      id: "briefing-compat-palace",
+      label: resultCopy.tabCompatPalace,
+      when: Boolean(briefing.palaceCross?.length),
+      content: (
+        <Section
+          title={formCopy["briefing.compatPalaceCrossLabel"]}
+          list={briefing.palaceCross?.map((item) => `${toDisplayText(item.palace)} — ${toDisplayText(item.reading)}`)}
+        />
+      ),
+    },
+    {
+      id: "briefing-compat-conflict",
+      label: resultCopy.tabCompatConflict,
+      when: Boolean(
+        toDisplayText(briefing.conflictPattern?.trigger) || toDisplayText(briefing.conflictPattern?.resolution),
+      ),
+      // 챕터 제목(conflictPattern.title)은 목차 라벨이 이미 이름을 대므로 본문에 다시 찍지 않는다.
+      content: (
+        <>
+          <Section title={formCopy["briefing.compatConflictTriggerLabel"]} body={briefing.conflictPattern?.trigger} />
+          <Section title={formCopy["briefing.compatConflictEscalationLabel"]} body={briefing.conflictPattern?.escalation} />
+          {briefing.conflictPattern?.dialogue?.length ? (
+            <Section
+              title={formCopy["briefing.compatConflictDialogueLabel"]}
+              list={briefing.conflictPattern.dialogue.map((item) => `${toDisplayText(item.speaker)} — ${toDisplayText(item.line)}`)}
+            />
+          ) : null}
+          <Section title={formCopy["briefing.compatConflictResolutionLabel"]} body={briefing.conflictPattern?.resolution} />
+        </>
+      ),
+    },
+    {
+      id: "briefing-compat-strategy",
+      label: resultCopy.tabCompatStrategy,
+      when: Boolean(
+        toDisplayText(briefing.relationStrategy?.situationRead) || briefing.relationStrategy?.steps?.length,
+      ),
+      content: (
+        <>
+          <Section
+            title={formCopy["briefing.compatStrategySituationLabel"]}
+            body={briefing.relationStrategy?.situationRead}
+          />
+          {briefing.relationStrategy?.steps?.length ? (
+            <div className={styles.gridList}>
+              {briefing.relationStrategy.steps.map((step, index) => (
+                <Section
+                  key={`${index}-${toDisplayText(step.stage).slice(0, 24)}`}
+                  title={toDisplayText(step.stage)}
+                  list={[
+                    toDisplayText(step.doThis) ? `${formCopy["briefing.compatStrategyDoLabel"]} — ${toDisplayText(step.doThis)}` : "",
+                    toDisplayText(step.avoidThis) ? `${formCopy["briefing.compatStrategyAvoidLabel"]} — ${toDisplayText(step.avoidThis)}` : "",
+                  ]}
+                />
+              ))}
+            </div>
+          ) : null}
         </>
       ),
     },

@@ -63,6 +63,11 @@ export type NeoResultCopyKey =
   | "tabTiming"
   | "tabEvidence"
   | "tabMission"
+  | "tabCompatScores"
+  | "tabCompatMutual"
+  | "tabCompatPalace"
+  | "tabCompatConflict"
+  | "tabCompatStrategy"
   | "tabBadge"
   | "firstJudgementTitle"
   | "answerThenRefineCta"
@@ -145,6 +150,11 @@ const NEO_RESULT_COPY_KO: NeoResultCopyTable = {
   tabTiming: "시기와 전략",
   tabEvidence: "어긋난 자리와 근거",
   tabMission: "금지와 7일 작전",
+  tabCompatScores: "궁합 계기판",
+  tabCompatMutual: "서로를 보는 눈",
+  tabCompatPalace: "궁 교차 판독",
+  tabCompatConflict: "갈등 패턴",
+  tabCompatStrategy: "관계 작전",
   tabBadge: "사자 휘장",
   firstJudgementTitle: "네오의 첫 판단",
   answerThenRefineCta: "답하고 수정 작전 명령서 받기",
@@ -226,6 +236,11 @@ const NEO_RESULT_COPY_EN: NeoResultCopyTable = {
   tabTiming: "Timing and strategy",
   tabEvidence: "Where it's off and the evidence",
   tabMission: "Forbidden actions and 7-day mission",
+  tabCompatScores: "Compatibility gauges",
+  tabCompatMutual: "How you read each other",
+  tabCompatPalace: "Palace cross-reading",
+  tabCompatConflict: "Conflict pattern",
+  tabCompatStrategy: "Relationship strategy",
   tabBadge: "Lion Seal",
   firstJudgementTitle: "NEO's first judgement",
   answerThenRefineCta: "Answer and get the revised operation order",
@@ -307,6 +322,11 @@ const NEO_RESULT_COPY_JA: NeoResultCopyTable = {
   tabTiming: "時期と戦略",
   tabEvidence: "ずれている場所と根拠",
   tabMission: "禁止事項と7日間作戦",
+  tabCompatScores: "相性の計器盤",
+  tabCompatMutual: "お互いをどう見ているか",
+  tabCompatPalace: "宮の交差判読",
+  tabCompatConflict: "衝突パターン",
+  tabCompatStrategy: "関係の作戦",
   tabBadge: "獅子紋章",
   firstJudgementTitle: "ネオの第一判断",
   answerThenRefineCta: "回答して修正作戦命令書を受け取る",
@@ -388,6 +408,11 @@ const NEO_RESULT_COPY_ZH_CN: NeoResultCopyTable = {
   tabTiming: "时机与策略",
   tabEvidence: "偏离之处与依据",
   tabMission: "禁令与7日作战",
+  tabCompatScores: "合盘仪表盘",
+  tabCompatMutual: "彼此如何看待对方",
+  tabCompatPalace: "宫位交叉解读",
+  tabCompatConflict: "冲突模式",
+  tabCompatStrategy: "关系作战",
   tabBadge: "狮徽",
   firstJudgementTitle: "尼奥的初步判断",
   answerThenRefineCta: "回答后领取修正作战命令书",
@@ -469,6 +494,11 @@ const NEO_RESULT_COPY_ZH_TW: NeoResultCopyTable = {
   tabTiming: "時機與策略",
   tabEvidence: "偏離之處與依據",
   tabMission: "禁令與7日作戰",
+  tabCompatScores: "合盤儀表板",
+  tabCompatMutual: "彼此如何看待對方",
+  tabCompatPalace: "宮位交叉解讀",
+  tabCompatConflict: "衝突模式",
+  tabCompatStrategy: "關係作戰",
   tabBadge: "獅徽",
   firstJudgementTitle: "尼歐的初步判斷",
   answerThenRefineCta: "回答後領取修正作戰命令書",
