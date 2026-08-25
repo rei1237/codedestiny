@@ -11,6 +11,7 @@ import {
   type TeaHouseEntryActor,
   type TeaHouseEntryStage,
 } from "../data/entryStory";
+import { pigSpriteFrameStyle } from "../lib/pigSpriteStyle";
 import { usePrefersReducedMotion } from "../lib/usePrefersReducedMotion";
 import TeaHouseButton from "./TeaHouseButton";
 import TeaHouseDialogueBox from "./TeaHouseDialogueBox";
@@ -365,18 +366,7 @@ function EntryActor({
         <span className={styles.entryActorAura} aria-hidden />
         <span
           className={`${styles.entryPigFrame} ${styles.pigSpriteFrame}`}
-          style={
-            {
-              "--pig-sprite-x": `${pigFrame.x}px`,
-              "--pig-sprite-y": `${pigFrame.y}px`,
-              "--pig-sprite-width": `${pigFrame.width}px`,
-              "--pig-sprite-height": `${pigFrame.height}px`,
-              "--pig-sprite-aspect-width": pigFrame.width,
-              "--pig-sprite-aspect-height": pigFrame.height,
-              "--pig-sprite-sheet-width": `${pigFrame.sheetWidth}px`,
-              "--pig-sprite-sheet-height": `${pigFrame.sheetHeight}px`,
-            } as CSSProperties
-          }
+          style={pigSpriteFrameStyle(pigFrame)}
         >
           <Image
             className={styles.pigSpriteSheet}

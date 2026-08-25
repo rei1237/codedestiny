@@ -3020,14 +3020,17 @@
 }
 
 .pigSpriteFrame {
-  --pig-sprite-x: 0px;
-  --pig-sprite-y: 0px;
-  --pig-sprite-width: 266px;
-  --pig-sprite-height: 338px;
+  /* 기본값 = welcome 프레임(x 34, y 20, 266x338 / 시트 1254x1254)을 미리 계산한 값.
+     🔴 이 % 들은 반드시 JS(lib/pigSpriteStyle.ts)에서 계산해 넘긴다 —
+     CSS 에서 calc(<length> / <length>) 로 계산하면 구형 엔진에서 선언이 통째로
+     무효가 되고, next/image 의 fill 인라인 right/bottom 만 남아 시트가 원본 크기로
+     우하단에 붙는다(2026-08-25 네이버 인앱 브라우저 실사고). */
   --pig-sprite-aspect-width: 266;
   --pig-sprite-aspect-height: 338;
-  --pig-sprite-sheet-width: 1254px;
-  --pig-sprite-sheet-height: 1254px;
+  --pig-sprite-left: -12.781954887218044%;
+  --pig-sprite-top: -5.9171597633136095%;
+  --pig-sprite-img-width: 471.42857142857144%;
+  --pig-sprite-img-height: 371.0059171597633%;
   position: relative;
   display: block !important;
   overflow: hidden;
@@ -3041,10 +3044,14 @@
 
 .pigSpriteSheet {
   position: absolute !important;
-  left: calc(var(--pig-sprite-x) / var(--pig-sprite-width) * -100%) !important;
-  top: calc(var(--pig-sprite-y) / var(--pig-sprite-height) * -100%) !important;
-  width: calc(var(--pig-sprite-sheet-width) / var(--pig-sprite-width) * 100%) !important;
-  height: calc(var(--pig-sprite-sheet-height) / var(--pig-sprite-height) * 100%) !important;
+  left: var(--pig-sprite-left) !important;
+  top: var(--pig-sprite-top) !important;
+  /* next/image 의 fill 은 right:0; bottom:0 을 인라인으로 넣는다. 그대로 두면 위
+     left/width 가 어떤 이유로든 무효가 됐을 때 시트가 우하단 구석에 정렬된다. */
+  right: auto !important;
+  bottom: auto !important;
+  width: var(--pig-sprite-img-width) !important;
+  height: var(--pig-sprite-img-height) !important;
   max-width: none !important;
   min-width: 0 !important;
   min-height: 0 !important;
@@ -10969,7 +10976,6 @@
   z-index: 2;
   width: min(32vw, 400px);
   min-width: 280px;
-  aspect-ratio: 1;
   display: block;
   filter: drop-shadow(0 34px 58px rgba(5, 2, 14, 0.46)) drop-shadow(0 0 28px rgba(248, 187, 221, 0.2));
   animation: characterFloat 5.8s ease-in-out infinite;
