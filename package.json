@@ -301,6 +301,7 @@
     "i18n:audit": "node scripts/i18n-audit-hardcoded-copy.mjs",
     "i18n:extract-ko": "node scripts/i18n-extract-ko.mjs",
     "i18n:extract-love-simulation": "node scripts/i18n-extract-love-simulation.mjs",
+    "audit:love-sim-translations": "node scripts/audit-love-simulation-translations.mjs",
     "i18n:key-usage": "node scripts/i18n-key-usage.mjs",
     "i18n:translate-pending": "node scripts/i18n-translate-pending.mjs",
     "verify:i18n-ko-coverage": "node scripts/verify-i18n-ko-coverage.mjs",
