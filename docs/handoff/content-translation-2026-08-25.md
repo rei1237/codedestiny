@@ -12,6 +12,7 @@
 | 2. `love-simulation/_utils/loveCharacterMatching.ts` | 1,432자 · 80키 | ✅ **완료** — 아래 "슬라이스 2에서 정해진 것" |
 | ~~2b. `love-simulation/_data/scenarios.ts`~~ | ~~2,148자~~ | 🗑️ **삭제** — 참조 0이었다(아래) |
 | 3a. `loveCodeMvp.ts` 의 캐릭터 표면 4필드 | 1,643자 · 64키 | ✅ **완료** (PR #1133) — 아래 "슬라이스 3a에서 정해진 것" |
+| C. UI 크롬 전량 (`LoveSimulationEngine`) | 1,243자 · 113키 | ✅ **완료** (PR #1135) — 아래 "UI 크롬 슬라이스" |
 | 3b. `loveCharacterStories.ts` | 26,723자 | ⛔ 미착수 (캐릭터 단위로 쪼갤 것) |
 | 4. `loveCodeMvp.ts` 나머지 | 105,015자 | ⛔ 미착수 (시나리오 블록 단위로 쪼갤 것) |
 
@@ -126,7 +127,19 @@
 
 ## 🔴 먼저: 이건 한 세션에 안 끝난다
 
-**실측 2026-08-25 — 한글 139,315자.** 저작 로케일 4개(en·ja·zh-CN·zh-TW)로 옮기면 **약 557,000자**다.
+**실측 2026-08-25(PR #1135 이후, `app/saju/love-simulation` 전체 · 주석 제외)**
+
+| 항목 | 자수 |
+|---|---|
+| 피처의 한글 총량 | **145,146** |
+| 이미 사전에 든 것 (257키 = matching 80 + characters 64 + chrome 113) | **3,790** |
+| **남은 것** | **약 141,356** |
+| 저작 로케일 4개로 옮기면 | **약 565,000** |
+
+재는 법: `node scripts/…` 가 아니라 아래 한 줄이다(파일별 한글 자수, 주석 제외).
+사전에 든 양은 `i18n/authored/loveSimulation-*.json` 의 `ko` 값 한글 자수 합이다.
+
+🔴 **"거의 다 됐다"가 아니다.** 세 슬라이스를 합쳐 끝낸 것이 전체의 **2.6%** 다.
 
 | 파일 | 줄 | 한글 자수 | 무엇 |
 |---|---|---|---|
@@ -139,7 +152,72 @@
 
 여기에 자미두수 해석 엔진 문장(`AdvancedZiweiSectionV2` + `_lib` 의 `PALACE_DEFINITION_MAP`·`STAR_MEANING_MAP`)이 더 있는데, 그쪽은 **의도된 제외**다(아래).
 
-## 🔴 자동 번역기를 쓸 수 없다
+### 🔴 UI 크롬 슬라이스 (PR #1135) — 콘텐츠 축이 아니라 **누수**였다
+
+이 문서는 원래 UI 카피를 locale-service 문서 소관으로 밀어 두었는데, 사용자 지시(2026-08-25)로
+"비-ko 화면에 남은 한국어"를 닫는 쪽이 우선이 되어 여기서 함께 처리했다.
+
+1. `LOVE_SIMULATION_COPY_TRANSLATIONS` 는 **ko·en 2개짜리 표**였고 10개 로케일이 en 별칭이었다 —
+   ja·zh 사용자가 자기 언어 화면에서 **영어 크롬**을 봤다. 표를 걷어내고
+   `useLoveSimCopy("chrome", LOVE_SIMULATION_CHROME_KO)` 로 12개 로케일 사전을 타게 했다.
+   🔴 **옛 en 문구 50개는 글자 그대로** `loveSimulation-03.json` 의 en 값으로 옮겼다(문구 변경 0).
+2. 그 표에 없던 **생 한국어 약 70곳**(버튼·제목·배지·alt·안내)이 11개 로케일에 한국어로 나가고 있었다.
+3. 🔴 **함수 멤버는 사전이 못 덮는다.** `preparingStoryDialogue: (name) => …` 같은 멤버는
+   `useScopedCopy` 가 문자열만 갈아끼우므로 그대로 통과한다. `{name}` 템플릿 + `formatTemplate` 로
+   바꿔야 한다(`formatTemplate` 은 `_utils/loveCharacterMatching.ts` 에서 export 한다).
+4. **하위 컴포넌트가 한국어를 조립하고 있으면 prop 으로 올린다.** `CharacterPortrait` ·
+   `CharacterProfileCrop` · `CharacterDialogueCrop` · `MetricBar` 가 `alt`/판정 문구를 안에서
+   만들고 있었다 — 부모가 카피를 넘기게 바꿨다.
+5. **강조 `<span>` 이 낀 문장은 3조각 키로 나눈다**(`mainMatchLeadPrefix`/`Highlight`/`Suffix`).
+   언어에 따라 앞뒤 어느 쪽이 비어도 되게 두었다.
+6. 함께 고친 결함: `loveCodeScoringText` 의 폴백이 **ko** 였다 — vi·hi·es·fr·de·nl·ms 7개 로케일이
+   관계 지표 라벨과 결과 문안을 한국어로 봤다. 폴백을 en 으로 바꿨다.
+   🔴 **다른 피처에도 같은 모양이 있는지 볼 것**: `if (locale === "en" || …) return TABLE[locale]; return TABLE.ko;`
+7. 🔴 **가드 구멍을 하나 막았다.** 자리표시자 검사가 저작 파일만 보고 **배포되는 사전은 안 봤다** —
+   사전에서 `{index}/{total}` 을 지워도 통과했다(`formatTemplate` 이 빈 문자열로 지우므로 화면에서
+   값이 통째로 사라지는데도). 이제 공유 엔진 `__tests__/fixtures/scoped-copy-i18n-guard.js` 가
+   사전 값의 자리표시자를 ko 와 대조한다(찻집·인연의 서도 함께 덮인다).
+8. 🔴 **건드리면 안 되는 것**: `buildSajuCompatibilityVerdict` 는
+   `verify-love-compat-determinism.mjs` 가 시그니처를 **문자 그대로** 단언한다
+   (`buildSajuCompatibilityVerdict(profile: CompatibilityProfile)`). 여기 든 한국어
+   (`끌림 {n}`·리스크·데이트 팁)를 옮기려면 그 결정론 계약을 먼저 다시 설계해야 한다.
+9. **첫 페인트 회귀(수용함)**: 예전에는 `getLoveSimulationCopy(locale)` 가 동기적으로 en 을 줬는데
+   이제 사전을 비동기로 읽어 도착 전에는 원문(ko)이 보인다. 같은 파일의 `matching`·`characters` 가
+   이미 같은 계약이고 사전 캐시는 모듈 전역이라, 감싸서 이중화하지 않았다(원칙 6).
+
+## 🔴 자동 번역기 — Gemini 는 금지, Workers AI 는 "가능하지만 그냥은 안 된다"
+
+**사용자 제안(2026-08-25): "Cloudflare Workers AI 로 무료 경계선까지 번역하면 좋겠다."**
+레포 실측으로 확인한 것과 아직 확인 못 한 것을 나눠 적는다.
+
+**실측으로 확인한 것**
+- `worker/wrangler.toml` 에 `[ai] binding = "AI"` 가 있고, `lib/llm-client.ts` 가 Gemini 실패 시
+  `env.AI.run` 으로 내려간다. 기본 모델은 `@cf/zai-org/glm-4.7-flash`(131k 컨텍스트,
+  `response_format` 지원) → `@cf/meta/llama-3.3-70b-instruct-fp8-fast` 순이다.
+- 🔴 **`env.AI.run` 은 워커 런타임 안에서만 존재한다.** 번역기
+  `scripts/i18n-translate-pending.mjs` 는 로컬 Node 라 그 바인딩을 못 부른다. 쓰려면
+  **REST(`POST /accounts/{account_id}/ai/run/{model}`)** 로 가야 하고, 그건 Workers AI Run 권한이
+  붙은 토큰이 필요하다. 레포에 `CF_ACCOUNT_ID`·`CF_API_TOKEN` 이름은 이미 있다.
+- 🔴 **CLAUDE.md 절대 규칙 1은 Gemini 와 Workers AI 를 **함께** 지목한다.** 그러므로 Workers AI 로
+  바꾼다고 해서 허락이 면제되지 않는다 — ①mock 으로 왜 안 되는지 ②몇 회 ③어떤 키·모델인지 밝혀
+  1회 한정 허락을 받아야 하고, 막는 주체는 훅 `guard-costly-commands.mjs` 다.
+
+**아직 확인 못 한 것 (미검증 — 추측으로 적지 않는다)**
+- 기존 `CF_API_TOKEN` 에 Workers AI Run 스코프가 있는지. 배포용 토큰이면 대개 없다.
+- **모델별 Neuron 소비율.** 무료 허용량(일 단위)을 141,356자 × 4 로케일이 며칠에 나눠 들어가는지는
+  **재 보기 전에는 알 수 없다.** 여기 숫자를 지어 적지 말 것.
+
+**그래서 권하는 순서**
+1. 토큰 스코프부터 확인한다(대시보드). 없으면 Workers AI Run 전용 토큰을 새로 판다.
+2. `scripts/i18n-translate-pending.mjs` 에 `--provider workers-ai` 를 더한다. **파이프라인은 그대로
+   재사용한다** — 청크 캐시(중단 재개·재청구 없음), 반환값 검증(키 집합 동일 / 자리표시자 보존 /
+   한글 잔존 없음), 실패 청크 3회 재시도. 백엔드만 갈아끼우는 것이 핵심이다.
+3. **캘리브레이션 1회**: 50키 × 1로케일만 돌려 실제 Neuron 소비를 읽고, 거기서 하루치 배치 크기를
+   역산한다. 그 수치를 이 문서에 날짜와 함께 남긴다.
+4. 그 다음에야 일 단위 배치로 돌린다. 🔴 품질은 가드가 못 잡는다 — 기계적 결함(키 누락·자리표시자
+   증발·한글 잔존)만 잡힌다. 톤·존대·용어는 로케일별로 표본을 눈으로 봐야 한다.
+
+## ~~자동 번역기를 쓸 수 없다~~ (2026-08-25 갱신 — 위 절로 대체)
 
 이 레포에서 번역 자동화는 **Gemini 유료 실호출**이고, CLAUDE.md 절대 규칙 1이 사용자 허락 없는 실호출을 금지한다.
 그래서 이 분량은 **손으로 쓰는 수밖에 없다**(선례: `docs/handoff/` 의 "셸 새 카피 = 12개 로케일 수작업").
