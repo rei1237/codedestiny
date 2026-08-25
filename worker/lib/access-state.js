@@ -3,7 +3,7 @@ import {
   getUnlockedContentSnapshot,
   isProfileScopedContentUnlockFeatureKey,
 } from "./content-unlocks.js";
-import { isUnlockPaidFeatureKey } from "./paid-feature-registry.js";
+import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey } from "./paid-feature-registry.js";
 import { KRW_PER_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS, normalizePassTier } from "./profile-limits.js";
 
 const ACCESS_STATE_TTL_MS = 60000;
@@ -162,8 +162,12 @@ export function buildAccessState({
   const unlockedFeatureIds = normalizeStringArray(
     resolvedUnlockedFeatureIds === null
       ? [
-        ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []),
-        ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
+        // 🔴 회당 결제 키를 해금 맵으로 내보내지 않는다 — 클라이언트가 그 맵을 보고
+        // 결제창 없이 already_unlocked 로 통과시킨다. 아래 본 경로(accountFeatureIds)는 이미
+        // 걸러 내는데 이 폴백만 빠져 있었다. contentState.featureKeys 는 getUnlockedContentSnapshot
+        // 이 이미 걸러서 준다.
+        ...(Array.isArray(user?.unlockedFeatures) ? user.unlockedFeatures : []).filter((key) => !isPerUsePaidFeatureKey(key)),
+        ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []).filter((key) => !isPerUsePaidFeatureKey(key)),
         ...(Array.isArray(contentState?.featureKeys) ? contentState.featureKeys : []),
       ]
       : resolvedUnlockedFeatureIds,
@@ -173,7 +177,8 @@ export function buildAccessState({
     ...(Array.isArray(contentState?.contentKeys) ? contentState.contentKeys : []),
   ]);
   const ownedProductIds = normalizeStringArray([
-    ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []),
+    // 같은 이유로 회당 결제 키는 '보유 상품'이 아니다 — 그 결제는 1회 소비로 끝난 거래다.
+    ...(Array.isArray(user?.paidFeatures) ? user.paidFeatures : []).filter((key) => !isPerUsePaidFeatureKey(key)),
     ...(Array.isArray(contentState?.featureKeys) ? contentState.featureKeys : []),
   ]);
   const profileEntitlements = contentState?.entitlementsByProfile && typeof contentState.entitlementsByProfile === "object"

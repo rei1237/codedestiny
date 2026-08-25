@@ -7,7 +7,7 @@ import {
   User,
 } from "./models.js";
 import { createHttpError } from "./http.js";
-import { isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 
 // 계정 스코프(프로필 무관) 엔타이틀먼트의 profileId 자리표시자. 읽기 절(buildProfileScopeClause)과
 // 쓰기 경로가 같은 값을 써야 하므로 정산 코드(payments.js)에서도 이 상수를 가져다 쓴다.
@@ -229,6 +229,12 @@ export async function findActivePaidContentUnlock(input = {}) {
   const target = resolvePaidContentUnlockTarget(input);
   if (!target.userId || !target.serviceKey || !target.contentKey) return null;
   if (target.requiresProfile && !target.profileId) return null;
+  /* 🔴 회당 결제 키는 영구 해금 행을 가질 수 없다. 가지고 있다면 그건 단건 KRW 확정 경로가
+     billingType 검사 없이 썼던 잔존분이다(PR #1137 이전). 그 행 하나로 coin-gate 가
+     already_unlocked 를 돌려 **결제창이 아예 안 열린다**(billing.js resolvePaidContentAccess).
+     형제 근거인 hasUserScopedPermanentUnlock 은 이미 같은 경계를 가지고 있었고, 이쪽만 빠져 있었다.
+     호출부마다 감싸지 않고 공유 리더인 여기 한 곳에서 막는다(원칙 6). */
+  if (isPerUsePaidFeatureKey(target.featureKey)) return null;
 
   const profileScopeClause = target.profileId
     ? buildProfileScopeClause(target.profileId)

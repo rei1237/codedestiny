@@ -49,12 +49,12 @@
     {
       "file": "worker/routes/billing.js",
       "why": "라이브 코드라 버그 수정은 계속 필요하다. 고치는 것은 되고 키우는 것은 안 된다 — 재작성의 방향은 이 파일이 0 이 되는 것이다.",
-      "maxLines": 7258
+      "maxLines": 7262
     },
     {
       "file": "worker/routes/payments.js",
       "why": "위와 같다.",
-      "maxLines": 5954
+      "maxLines": 5958
     }
   ],
   "notFrozen": {

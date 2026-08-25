@@ -288,6 +288,96 @@ check("낙관 해금은 accessGrant.ok 만으로 찍히지 않는다", () => {
   }
 });
 
+// ── 5-b. 읽는 쪽: 잔존 해금이 무료로 열어주지 않는다 ─────────────────
+// 쓰는 경로를 막아도 PR #1137 이전에 기록된 계정은 남아 있다. 읽는 옆이 과금 유형을
+// 안 보면 그 행 하나로 **새로고침을 해도 영원히 무료**가 된다.
+check("계정 배열의 회당 결제 키는 접근 근거가 되지 않는다", () => {
+  const body = sliceFunctionBody(
+    read("worker/lib/paid-feature-access.js"),
+    "export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = {})",
+  );
+  const grantedAt = body.indexOf("const grantedKeySet = new Set([");
+  assert.ok(grantedAt > 0, "grantedKeySet 구성부를 찾지 못했다 — 이 가드의 슬라이스가 낡았다");
+  const grantedBlock = body.slice(grantedAt, grantedAt + 400);
+  assert.match(
+    grantedBlock,
+    /!isPerUsePaidFeatureKey\(key\)/,
+    "paidFeatures/unlockedFeatures 에서 회당 결제 키를 걸러 내지 않는다 — 잔존분이 영구 무료를 만든다",
+  );
+});
+
+check("coin-gate 의 entitlement 근거도 회당 결제를 배제한다", () => {
+  // billing.js resolvePaidContentAccess 는 findActivePaidContentUnlock 결과 하나로 already_unlocked 를
+  // 돌려 결제창을 아예 안 열어 준다. 형제 근거(hasUserScopedPermanentUnlock)는 이미 걸러 낸다.
+  const body = sliceFunctionBody(
+    read("worker/lib/content-unlocks.js"),
+    "export async function findActivePaidContentUnlock(input = {})",
+  );
+  assert.match(
+    body,
+    /isPerUsePaidFeatureKey\(target\.featureKey\)/,
+    "공유 entitlement 리더가 회당 결제 행을 그대로 돌려준다",
+  );
+});
+
+check("해금 맵 방출구가 회당 결제 키를 실어 보내지 않는다", () => {
+  // 클라이언트는 이 맵을 해금 상태로 그대로 쓴다(isTileKeyUnlocked → already_unlocked 지름길).
+  const billingBody = sliceFunctionBody(
+    read("worker/routes/billing.js"),
+    "function normalizeUnlockedFeatureList(values = [])",
+  );
+  assert.match(
+    billingBody,
+    /isPerUsePaidFeatureKey/,
+    "worker/routes/billing.js: 스냅샷 방출 시 회당 결제 키를 걸러 내지 않는다",
+  );
+
+  // 🔴 buildAccessState 는 인자가 구조분해라 중괄호 슬라이스가 본문이 아니라 파라미터를 잡는다.
+  //    그래서 이 파일만은 지점을 정규식으로 못박는다 — 무필터 폴백과 ownedProductIds 두 곳이다.
+  const accessState = read("worker/lib/access-state.js");
+  const fallbackAt = accessState.indexOf("resolvedUnlockedFeatureIds === null");
+  assert.ok(fallbackAt > 0, "worker/lib/access-state.js: 무필터 폴백 지점을 찾지 못했다 — 이 가드의 선택자가 낡았다");
+  const fallbackBlock = accessState.slice(fallbackAt, fallbackAt + 900);
+  const fallbackGates = fallbackBlock.split("!isPerUsePaidFeatureKey(key)").length - 1;
+  assert.equal(
+    fallbackGates,
+    2,
+    `worker/lib/access-state.js: 폴백의 unlockedFeatures/paidFeatures 두 배열 모두 걸러야 한다(현재 ${fallbackGates}곳)`,
+  );
+  assert.match(
+    accessState,
+    /const ownedProductIds = normalizeStringArray\(\[[\s\S]{0,400}?isPerUsePaidFeatureKey/,
+    "worker/lib/access-state.js: ownedProductIds 가 회당 결제 키를 '보유 상품'으로 내보낸다",
+  );
+  const paymentsMe = read("worker/routes/payments.js");
+  assert.match(
+    paymentsMe,
+    /unlockedFeatures = \(Array\.isArray\(safeUser\.unlockedFeatures\)[\s\S]{0,160}isPerUsePaidFeatureKey/,
+    "/api/payments/me 가 회당 결제 키를 해금 맵으로 내보낸다",
+  );
+});
+
+check("Google RTDN 복구가 회당 결제를 영구 해금으로 적지 않는다", () => {
+  const body = sliceFunctionBody(
+    read("worker/routes/app-store.js"),
+    "async function updateActiveGoogleEntitlement({ payment, googlePurchase, notification })",
+  );
+  const gateAt = body.indexOf("isPerUsePaidFeatureKey(featureKey)");
+  const writeAt = body.indexOf("unlockedFeatures: featureKey");
+  assert.ok(gateAt > 0, "RTDN 경로에 회당 결제 경계가 없다 — 정리해도 다시 쌓인다");
+  assert.ok(gateAt < writeAt, "경계가 쓰기보다 뒤에 있으면 아무것도 막지 못한다");
+});
+
+check("🔴 이 가드가 보는 파일은 결제 게이트 트리거에도 있다 (원칙 10)", () => {
+  const workflow = read(".github/workflows/paid-flow-gates.yml");
+  for (const file of ["worker/lib/paid-feature-access.js", "worker/lib/content-unlocks.js", "worker/lib/access-state.js"]) {
+    assert.ok(
+      workflow.includes(`"${file}"`),
+      `${file} 이 paid-flow-gates.yml 트리거 paths 에 없다 — 이 파일만 고친 PR 은 결제 게이트가 깨어나지 않는다`,
+    );
+  }
+});
+
 // ── 6. 셸 마크업 불변식 ────────────────────────────────────────────────────────
 // _cdFinalizeUnlockState(=영구 해금 확정 경로)의 진입점은 이 두 속성뿐이다. 여기에 회당 결제 키가
 // 들어오면 그 경로가 회당 결제를 영구 해금으로 만든다.

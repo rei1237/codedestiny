@@ -1,6 +1,6 @@
 import { connectDb, withMongoRetry } from "./db.js";
 import { getBillingFeaturePricing } from "./billing-feature-registry.js";
-import { isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
+import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey, normalizePaidFeatureKey } from "./paid-feature-registry.js";
 import { Payment, User } from "./models.js";
 import { getUnlockedContentSnapshot } from "./content-unlocks.js";
 import { PermissionService } from "./permission-service.js";
@@ -397,10 +397,22 @@ export async function canAccessPaidFeaturesBatch(userId, featureKeys, options = 
     return decisions;
   }
 
+  /* 🔴 계정 배열(paidFeatures / unlockedFeatures)에서 **회당 결제 키를 걸러 낸다.**
+     이 배열은 영구 해금 전용인데, 단건 KRW 확정 경로가 billingType 검사 없이 쓰던 탓에
+     회당 결제 키가 섞여 들어갔다(PR #1137 이전). 그 행 하나로 아래 hasPurchase 가 참이 돼
+     `ALREADY_PURCHASED` — 즉 **새로고침을 해도 영원히 무료**가 된다.
+     쓰는 경로는 막았지만 이미 기록된 계정이 남아 있어, 읽는 옆에서도 닫는다.
+     판정은 레지스트리만 본다 — `!isPerUsePaidFeatureKey` 로 걸러 **아는 회당결제만** 막는다.
+     `isUnlockPaidFeatureKey` 로 걸면 레지스트리에서 빠진 과거 키(둘 다 false)까지 잠겨
+     정당한 구매자를 막는다.
+     🔴 아래 Payment 행 조회는 건드리지 않는다 — 그건 두 기능(tarot-year-fortune ·
+     ziwei-deep-pdf)이 현재 **회당 결제 증빙으로 쓰고 있는** 경로라, 여기서 같이 막으면
+     방금 카드로 결제한 사용자가 402 를 받는다. 그 경로를 요청 단위로 좁히는 것은 별도 작업이다
+     (그것이 "한 번 사면 영원히 무료"의 나머지 절반이다). */
   const grantedKeySet = new Set([
     ...(Array.isArray(user.paidFeatures) ? user.paidFeatures : []),
     ...(Array.isArray(user.unlockedFeatures) ? user.unlockedFeatures : []),
-  ].map((key) => cleanText(key)).filter(Boolean));
+  ].map((key) => cleanText(key)).filter((key) => key && !isPerUsePaidFeatureKey(key)));
 
   const needsUnlockSnapshot = pendingSpecs.some((spec) => isUnlockPaidFeatureKey(spec.effectiveFeatureKey)
     && !spec.featureCandidates.some((key) => grantedKeySet.has(key)));

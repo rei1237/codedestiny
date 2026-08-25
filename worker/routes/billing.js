@@ -13,6 +13,7 @@ import {
   listBillingFeatures,
 } from "../lib/billing-feature-registry.js";
 import {
+  isPerUsePaidFeatureKey,
   isUnlockPaidFeatureKey,
 } from "../lib/paid-feature-registry.js";
 import {
@@ -2613,11 +2614,14 @@ function isProfileScopedUnlockKey(featureKey) {
   return Boolean(resolveSajuProfileUnlockContentKey(key));
 }
 
+// 🔴 회당 결제 키를 해금 목록으로 내보내지 않는다. 클라이언트는 이 목록과 unlockMap 을
+// 해금 상태로 그대로 쓰고(isTileKeyUnlocked → already_unlocked 지름길), 그러면 회당 결제가
+// 결제창 없이 열린다. 진입 직전까지 오가는 모든 방출구가 이 함수를 거치므로 여기 한 곳에서 걱러낸다.
 function normalizeUnlockedFeatureList(values = []) {
   if (!Array.isArray(values)) return [];
   return values
     .map((key) => String(key || "").trim())
-    .filter((key) => key && key !== LOTTO_RITUAL_REPORT_FEATURE_KEY);
+    .filter((key) => key && key !== LOTTO_RITUAL_REPORT_FEATURE_KEY && !isPerUsePaidFeatureKey(key));
 }
 
 async function resolveProfileScopedUnlocks(authUserId, profileId, accountFeatureKeys = []) {
