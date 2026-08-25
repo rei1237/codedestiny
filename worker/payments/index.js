@@ -582,6 +582,21 @@ async function confirmOrder(env, ctx, { orderId, actorUserId = "" }, options = {
 }
 
 /**
+ * 회당 결제(per_use)인가. 회당 결제는 결제할 때마다 다시 사야 하므로 영구 해금(ContentEntitlement ·
+ * User.unlockedFeatures)도, 응답의 해금 선언(unlockedFeatures/unlockMap)도 남기면 안 된다 —
+ * 남기는 순간 다음 이용이 공짜가 된다. 판정 정본은 worker/lib/paid-feature-registry.js 의
+ * PER_USE_PAID_FEATURE_KEY_LIST 이고, catalog.resolveProduct 가 billingType 으로 실어 준다.
+ * 카탈로그에 없어 유형을 모르면 회당으로 본다(fail-closed — 모르는 키에 영구 해금을 주지 않는다).
+ */
+function isPerUseFeatureKey(featureKey) {
+  try {
+    return String(resolveProduct({ featureKey: String(featureKey || "") }).billingType || "per_use") === "per_use";
+  } catch {
+    return true;
+  }
+}
+
+/**
  * 이용권 주문의 지급 = profileSubscription 활성화. confirmOrder 를 타는 세 주체(클라이언트 확정 ·
  * webhook · 크론) 모두 이 분기로 온다 — 이용권 결제의 webhook 이 카탈로그 지급 경로에 빠지면
  * 활성화 없이 entitlementGranted 만 실패로 남는다.
@@ -626,6 +641,15 @@ async function grantOrderEntitlement(db, order) {
       productId: String(order.productId || ""),
       featureKey: String(order.featureKey || ""),
     });
+    /* 🔴 회당 결제(per_use)는 영구 해금을 남기지 않는다 — 남기면 다음 이용이 공짜가 된다.
+       월정석(coin-gate/moonstone)·이용권(coin-gate/pass-check) 경로에는 있던 이 경계가 단건 KRW
+       확정 경로에만 빠져 있었다. 회당 결제의 증빙은 Payment 문서가 맡으므로(verifyPerUsePayment)
+       여기서는 지급을 건너뛰고 주문 상태만 마무리한다. */
+    if (String(product.billingType || "per_use") === "per_use") {
+      await markEntitlementGranted(db, { orderId: String(order.merchantUid || "") });
+      invalidateBalanceSnapshot(order?.userId);
+      return true;
+    }
     await grantEntitlement(db, {
       userId: String(order.userId || ""),
       product,
@@ -865,7 +889,11 @@ const ROUTES = {
       // 결제 확정이 GET /api/auth/me 의 entitlement/points 필드를 바꾼다 — 30초 엣지 캐시를 지운다
       // (근거는 handlePassConfirm 의 같은 주석, worker/lib/credential-scoped-cache.js).
       await purgeCredentialCache(request, CREDENTIAL_CACHE_PREFIXES);
-      const envelope = legacyConfirmEnvelope(result.order, { granted: result.granted, replayed: result.replayed });
+      const envelope = legacyConfirmEnvelope(result.order, {
+        granted: result.granted,
+        replayed: result.replayed,
+        unlock: !isPerUseFeatureKey(result.order?.featureKey),
+      });
       // 🔴 프리미엄 리포트류는 확정 응답의 premiumAccessToken(+쿠키)이 열람 자격이다 — 구 confirm 의
       // successWithPremiumAccess 승계. 빠지면 결제는 됐는데 콘텐츠 접근이 막힌다(2026-08-12 수정).
       const featureKey = String(result.order?.featureKey || "");

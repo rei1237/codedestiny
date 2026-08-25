@@ -143,11 +143,16 @@ export function legacyBillingCheckoutEnvelope(prepareEnvelope) {
 /**
  * 구 /api/billing/confirm 성공 봉투. 셸 판정기 `_cdHasVerifiedServerAccess` 가 읽는 것:
  * top-level `accessGrant` 에서 ok !== false · (evidenceId|purchaseId|paymentId|merchantUid 중 하나) ·
- * featureKey(별칭 일치). 증빙 폴백 경로는 unlockedFeatures/unlockMap/status 를 본다 — 전부 싣는다.
+ * featureKey(별칭 일치). 증빙 폴백 경로는 unlockedFeatures/unlockMap/status 를 본다.
  * granted=false(지급 마무리 대기)는 성공 봉투가 아니라 GRANT_PENDING 으로 나가야 한다:
  * 셸 PR #478 분기가 top-level code 로 그 상태를 "다시 결제하지 마세요" UX 로 처리한다.
+ *
+ * 🔴 `unlock` 이 참일 때만 해금을 선언한다(월정석·이용권 봉투와 같은 경계). 회당 결제에까지 실으면
+ * 클라이언트 해금 맵에 그 키가 들어가고, 다음 진입이 결제창 없이 통과한다(이집트 신탁 실사고).
+ * 접근 증빙은 위의 accessGrant 하나로 충분하다 — _cdHasVerifiedServerAccess 는 unlockMap 없이도
+ * evidenceId + featureKey 만으로 통과한다.
  */
-export function legacyConfirmEnvelope(order, { granted = false, replayed = false } = {}) {
+export function legacyConfirmEnvelope(order, { granted = false, replayed = false, unlock = false } = {}) {
   const merchantUid = String(order?.merchantUid || "");
   const featureKey = String(order?.featureKey || "");
   const impUid = String(order?.impUid || "");
@@ -179,8 +184,7 @@ export function legacyConfirmEnvelope(order, { granted = false, replayed = false
       profileId: String(snapshot.profileId || ""),
       paidAt: order?.paidAt || null,
     },
-    unlockedFeatures: featureKey ? [featureKey] : [],
-    unlockMap: featureKey ? { [featureKey]: true } : {},
+    ...(unlock && featureKey ? { unlockedFeatures: [featureKey], unlockMap: { [featureKey]: true } } : {}),
     payment: {
       merchantUid,
       paymentId: impUid || merchantUid,

@@ -86,6 +86,15 @@ on:
       - "js/destiny-profile.js"
       # 미러도 함께 건다 — verify:payment-choice-parity 가 이 사본을 실제로 열어 검사한다.
       - "public/js/destiny-profile.js"
+      # 🔴 verify:per-use-never-unlocks 가 여는 파일들(2026-08-25 추가). 그 가드는 결제 성공
+      #    이벤트를 jsdom 에서 실제로 흘려 "회당 결제가 해금 맵에 들어가는가"를 전수로 본다.
+      #    미러(public/js/core/payment-service.js)도 함께 검사하므로 정본만 걸어 두면 미러만
+      #    어긋난 PR 에서 가드가 깨어나지 않는다 — destiny-profile 미러를 건 이유와 같다.
+      - "public/js/core/payment-service.js"
+      # 🔴 이집트 신탁의 결제 호출부. featureKey 를 넘기지 않으면 비한국어 로케일에서 빈 키가 되어
+      #    가격·회당결제 판정이 통째로 어긋난다 — 위 가드가 이 파일을 열어 단언한다.
+      - "js/oracle-kcg.js"
+      - "public/js/oracle-kcg.js"
       # 🔴 아래 셋은 cd:auth-changed 리스너를 갖고 있어 verify:auth-changed-coverage 의 스캔 대상이다.
       # 가드가 검사하는데 트리거에 없으면 "그 파일만 고친 PR 에서는 가드가 안 도는" 구멍이 된다
       # (index-inline-runtime 은 verify:auth-event-loop 가 이미 검사하고 있었는데도 빠져 있었다).
@@ -206,6 +215,8 @@ on:
       #    정작 이 게이트를 깨우지 않는다.
       - "scripts/run-paid-gate-suite.mjs"
       - "scripts/verify-fusion-fortune-quality.mjs"
+      # 🔴 아래 와일드카드(*billing*·*paid*·*pass*·*payment*·*auth*)에 이 파일명이 걸리지 않는다.
+      - "scripts/verify-per-use-never-unlocks.mjs"
       - "scripts/verify-*billing*.mjs"
       - "scripts/verify-*paid*.mjs"
       - "scripts/verify-*pass*.mjs"

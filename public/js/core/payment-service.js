@@ -94,6 +94,20 @@
     };
   }
 
+  /**
+   * 서버가 이 featureKey 를 영구 해금으로 선언했는가.
+   * 선언 형태는 두 가지뿐이다 — `unlockMap[featureKey] === true`(월정석·이용권·단건 확정 봉투),
+   * 또는 `accessGrant.unlockGrant.grantType === "permanent_unlock"`(entitlement 지급 결과).
+   * 회당 결제(per_use)는 서버가 둘 다 싣지 않으므로 여기서 false 가 된다.
+   */
+  function declaresPermanentUnlock(event, featureKey) {
+    var key = text(featureKey);
+    if (!key) return false;
+    if (record(event.unlockMap)[key] === true) return true;
+    var grant = record(record(event.accessGrant).unlockGrant);
+    return text(grant.grantType) === "permanent_unlock" && text(grant.status).toLowerCase() !== "refunded";
+  }
+
   function reducePaymentSuccess(payload) {
     var event = normalizeSuccessEvent(payload);
     var successKey = event.operationId + "|" + event.requestId;
@@ -107,7 +121,12 @@
       if (accessStore && typeof accessStore.applyPaymentPayload === "function") {
         accessStore.applyPaymentPayload(unlockPayload, { profileId: event.profileId });
       }
-      if (event.featureKey && event.accessGrant && event.accessGrant.ok === true
+      /* 🔴 결제가 성공했다는 사실만으로 해금을 찍지 않는다 — 회당 결제도 accessGrant.ok 는 true 다.
+         서버가 이 featureKey 를 **영구 해금으로 선언했을 때만** 낙관 기록을 남긴다(선언 형태는
+         unlockMap 또는 accessGrant.unlockGrant). 회당 결제 응답에는 둘 다 없고, 없는 것이 정상이다.
+         예전에는 ok:true 만 보고 10분짜리 해금을 찍어, 회당 결제 기능이 결제 직후부터 새로고침
+         전까지 결제창 없이 열렸다. */
+      if (event.featureKey && declaresPermanentUnlock(event, event.featureKey)
         && accessStore && typeof accessStore.markOptimisticallyUnlocked === "function") {
         accessStore.markOptimisticallyUnlocked(event.featureKey, event.profileId, { source: "PaymentSuccessEvent" });
       }
