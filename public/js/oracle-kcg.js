@@ -834,11 +834,21 @@ function consumeKemetPerUseCoin() {
     }
 
     try {
+      // 🔴 featureKey 를 명시해서 넘긴다. 예전에는 사유 문자열(REASON)만 넘겼고, 게이트가 그걸
+      // 한글 매핑('이집트 신탁 리딩' → openKemetModal, js/destiny-profile.js)으로만 되돌렸다.
+      // en/ja/zh 로케일의 REASON 은 그 매핑에도, 영문 식별자 패턴(공백 불가)에도 안 걸려
+      // featureKey 가 빈 문자열이 됐다 — 가격·회당결제 판정이 통째로 어긋나는 자리다.
       window._cdCoinGatePerUse(
         COST,
         REASON,
         function() { resolve(true); },
-        function() { resolve(false); }
+        function() { resolve(false); },
+        {
+          featureKey: 'openKemetModal',
+          serviceKey: 'kemet-oracle',
+          action: 'openKemetModal',
+          requestId: 'kemet-oracle:' + Date.now().toString(36) + '-' + Math.random().toString(36).slice(2, 9)
+        }
       );
     } catch (_err) {
       alert(getKemetOracleCopy().gateError);

@@ -450,7 +450,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-3e6d6231dc08";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-f0d3065085e6";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -3865,7 +3865,12 @@ function emitUnifiedPaymentSuccess(
     || requestId,
   );
   const applied = resolveAppliedBillingPayment(data, toText(input.paymentMode), false);
-  const unlockMap = asRecord(data.unlockMap) || (featureKey ? { [featureKey]: true } : {});
+  // 🔴 서버가 선언하지 않은 해금을 만들지 않는다. 예전에는 응답에 unlockMap 이 없으면 결제한
+  // featureKey 를 넣어 줬는데, 회당 결제 응답은 원래 unlockMap 을 안 싣는다(그게 정상이다).
+  // 그래서 회당 결제가 낙관 해금(10분)으로 기록돼 다음 진입이 결제창 없이 통과했다.
+  // 같은 파일의 optimistic-unlock-ledger 계약("회당 결제를 영구 해금으로 남기면 다음 이용이
+  // 공짜가 되어 버린다")이 이미 이 규칙을 지키고 있었는데, 이 한 줄만 그걸 우회했다.
+  const unlockMap = asRecord(data.unlockMap) || {};
   resolvePaymentService().reducePaymentSuccess({
     operationId,
     requestId,
