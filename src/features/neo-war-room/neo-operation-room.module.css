@@ -2353,6 +2353,24 @@
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+/* 상대 정보(궁합 모드) — 03 섹션 안의 선택 블록.
+   섹션을 새로 만들지 않는 이유는 데크 번호(01~05)가 마크업에 박혀 있어서다. */
+.partnerBlock {
+  display: grid;
+  gap: 12px;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(202, 214, 236, 0.18);
+}
+
+.partnerBlock > strong {
+  margin: 0;
+  color: #f5d487;
+  font-size: 0.98rem;
+  font-weight: 950;
+  line-height: 1.35;
+}
+
 .fieldLabel {
   min-width: 0;
   display: grid;
