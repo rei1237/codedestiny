@@ -57,6 +57,15 @@ const CASES = [
   // --- 과금 실호출 ---
   ["ASK ", "Bash", "node scripts/verify-mindscan-reading.mjs --live"],
   ["ASK ", "Bash", "npm run audit:content-headroom:live"],
+  // 배치 번역: 소스 안에 엔드포인트가 있어서 llm-endpoint 규칙에 안 걸렸다(2026-08-25 발견).
+  ["ASK ", "Bash", "node scripts/i18n-translate-pending.mjs --namespace loveSimulationScenes"],
+  ["ASK ", "Bash", "node scripts/i18n-translate-pending.mjs --provider workers-ai --neuron-budget 10000"],
+  ["ASK ", "Bash", "npm run i18n:translate-pending"],
+  // 🔴 --sample 은 12키를 실제로 번역해 과금된다 — 통과시키면 안 된다.
+  ["ASK ", "Bash", "node scripts/i18n-translate-pending.mjs --provider workers-ai --locales ja --sample"],
+  // --dry-run 은 프롬프트만 찍고 exit 0 이라 과금이 없다.
+  ["PASS", "Bash", "node scripts/i18n-translate-pending.mjs --dry-run"],
+  ["PASS", "Bash", "npm run i18n:translate-pending -- --dry-run"],
   // --- 배포 (npm 별칭과 실제 스크립트 경로 둘 다) ---
   ["ASK ", "Bash", "npx wrangler deploy"],
   ["ASK ", "Bash", "npx wrangler versions upload"],
