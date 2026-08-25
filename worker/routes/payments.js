@@ -38,7 +38,7 @@ import {
   resolveServerProductType,
 } from "../lib/entitlement-policy.js";
 import { applyPdfPassDiscountToPricing } from "../lib/pdf-pass-discount.js";
-import { isUnlockPaidFeatureKey } from "../lib/paid-feature-registry.js";
+import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey } from "../lib/paid-feature-registry.js";
 import { PASS_MONTHLY_WON } from "../../lib/payment/pass-pricing.js";
 import {
   formatPermanentUnlockGrant,
@@ -5444,7 +5444,11 @@ function buildMeResponseBody(auth, user, recentPayments, pointHistories, monthly
   generatedAt = new Date().toISOString(),
 } = {}) {
   const safeUser = user || {};
-  const unlockedFeatures = Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [];
+  // 🔴 회당 결제 키는 해금 맵에서 미리 걸러 낸다. 이 응답을 받는 클라이언트는 unlockMap 을
+  // 그대로 해금 상태로 쓰고, 그러면 결제창 없이 already_unlocked 로 통과한다.
+  // 회당 결제는 1회 소비로 끝난 거래라 애초에 '보유한 해금'이 아니다.
+  const unlockedFeatures = (Array.isArray(safeUser.unlockedFeatures) ? safeUser.unlockedFeatures : [])
+    .filter((key) => !isPerUsePaidFeatureKey(key));
   const unlockMap = Object.create(null);
   for (let i = 0; i < unlockedFeatures.length; i += 1) {
     const key = String(unlockedFeatures[i] || "").trim();

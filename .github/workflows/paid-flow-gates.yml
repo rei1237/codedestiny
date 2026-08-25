@@ -57,6 +57,11 @@ on:
       #      · bbea34aed admission 포화가 checkout 을 하드 503 으로
       - "worker/lib/db.js"
       - "worker/lib/nakshatra-paid-access.js"
+      # 🔴 유료 기능 접근 판정의 정본이다(canAccessPaidFeature). 논리가 여기 있는데 트리거에는
+      #    없어서, 이 파일만 고친 PR 은 결제 게이트가 깨어나지 않았다 — content-unlocks.js ·
+      #    access-state.js 는 이미 있는데 짝인 이것만 빠진 구멍이다(2026-08-25).
+      #    verify:per-use-never-unlocks 가 이 파일을 열어 판정을 단언한다(원칙 10).
+      - "worker/lib/paid-feature-access.js"
       - "worker/lib/profile-card-mutation-policy.js"
       - "worker/routes/access.js"
       - "worker/routes/profile.js"

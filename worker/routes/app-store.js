@@ -1134,12 +1134,13 @@ async function updateActiveGoogleEntitlement({ payment, googlePurchase, notifica
   });
   const featureKey = cleanText(payment.featureKey);
   if (!featureKey) return;
-  const update = {
-    $addToSet: {
-      unlockedFeatures: featureKey,
-      paidFeatures: featureKey,
-    },
-  };
+  const update = {};
+  /* 🔴 회당 결제(PER_USE)는 영구 해금 목록에 넣지 않는다 — 넣으면 결제 없이 영구 무료가 된다.
+     같은 경계가 바로 위 복원 경로(restorableRows)에는 있는데 이 RTDN 경로에만 빠져 있었다.
+     구독(subs)의 profileSubscription 갱신은 과금 유형과 무관하므로 그대로 둔다. */
+  if (!isPerUsePaidFeatureKey(featureKey)) {
+    update.$addToSet = { unlockedFeatures: featureKey, paidFeatures: featureKey };
+  }
   if (notification.productType === "subs") {
     update.$set = {
       "profileSubscription.lastBillingStatus": "success",
@@ -1149,6 +1150,7 @@ async function updateActiveGoogleEntitlement({ payment, googlePurchase, notifica
       update.$set["profileSubscription.expiresAt"] = new Date(Number(googlePurchase.expiryTimeMillis));
     }
   }
+  if (!Object.keys(update).length) return;
   await User.findByIdAndUpdate(payment.userId, update);
 }
 

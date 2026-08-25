@@ -118,6 +118,9 @@ beforeAll(async () => {
     Payment: {
       exists: jest.fn(async () => false),
       findOne: jest.fn(() => chainLean(null)),
+      // 회당 결제 키는 이제 계정 배열(paidFeatures)로 단축되지 않고 실제 결제 증빙까지 내려간다
+      // (paid-feature-access.js). 그 조회를 목에서 빼 두면 판정이 아니라 예외로 500 이 난다.
+      find: jest.fn(() => chainLean([])),
     },
     PaidExecutionRecord: {
       findOneAndUpdate: jest.fn(() => chainLean(null)),
