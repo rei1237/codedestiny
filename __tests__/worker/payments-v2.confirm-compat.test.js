@@ -26,8 +26,10 @@ function seedPaidOrder(db, overrides = {}) {
   const order = {
     merchantUid: "cdconfirmorder0000000000000000000000000",
     userId: USER,
-    productId: "test-product",
-    featureKey: "test-feature",
+    // 🔴 카탈로그에 실재하는 **영구 해금(unlock)** 키다. 확정 봉투의 해금 선언은 과금 유형에
+    // 달려 있어서(회당 결제는 선언하지 않는다) 가짜 키로는 그 갈래를 검증할 수 없다.
+    productId: "sukuyo-relationship-encyclopedia",
+    featureKey: "sukuyo-relationship-encyclopedia",
     paymentType: "digital_content",
     status: "paid",
     orderState: "PAID_VERIFIED",
@@ -80,6 +82,28 @@ test("PAID+지급 완료 주문: 셸 판정기가 요구하는 accessGrant·해�
   expect(payload.unlockMap[order.featureKey]).toBe(true);
   expect(payload.payment.transactionId).toBe("portone-tx-1");
   expect(payload.accessGrant.profileId).toBe("profile-9");
+});
+
+test("회당 결제(per_use) 확정: accessGrant 는 주되 해금 선언(unlockedFeatures/unlockMap)은 주지 않는다", async () => {
+  /* 🔴 회당 결제를 해금으로 선언하면 클라이언트 해금 맵에 그 키가 들어가고, 다음 진입이 결제창
+     없이 already_unlocked 로 통과한다 — 이집트 신탁이 "한 번 결제하면 새로고침 전까지 계속 무료"
+     였던 실사고의 서버 절반이다. 접근 증빙은 accessGrant 하나로 충분하다
+     (_cdHasVerifiedServerAccess 는 evidenceId + featureKey 만으로 통과한다). */
+  const db = makeFakePaymentDb();
+  const order = seedPaidOrder(db, { productId: "openKemetModal", featureKey: "openKemetModal", paymentAmount: 3000 });
+  const { response, payload } = await postConfirm(db, {
+    merchantUid: order.merchantUid,
+    impUid: "portone-tx-1",
+    paymentId: "portone-tx-1",
+    featureKey: order.featureKey,
+  });
+  expect(response.status).toBe(200);
+  expect(payload.ok).toBe(true);
+  expect(payload.accessGrant.ok).toBe(true);
+  expect(payload.accessGrant.featureKey).toBe("openKemetModal");
+  expect(payload.accessGrant.evidenceId).toBe(order.merchantUid);
+  expect(payload.unlockedFeatures).toBeUndefined();
+  expect(payload.unlockMap).toBeUndefined();
 });
 
 test("PAID 인데 지급 마무리 대기: GRANT_PENDING + '다시 결제하지 마세요' (성공 봉투 금지)", async () => {

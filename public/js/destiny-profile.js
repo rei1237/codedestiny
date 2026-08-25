@@ -5017,8 +5017,12 @@
     var normalizedRequestId = String(accessGrant.requestId || consume.requestId || data.requestId || requestId || operationId).trim();
     if (!operationId || !normalizedRequestId) return;
     var normalizedFeatureKey = String(featureKey || accessGrant.featureKey || data.featureKey || '').trim();
+    // 🔴 서버가 선언하지 않은 해금을 여기서 만들지 않는다. 예전에는 응답에 unlockMap 이 없으면
+    // 결제한 featureKey 를 넣어 줬는데, 회당 결제 응답은 원래 unlockMap 을 안 싣는다(그게 정상이다).
+    // 그래서 회당 결제가 낙관 해금(10분)으로 기록됐고, 다음 진입이 결제창 없이 already_unlocked 로
+    // 통과했다 — 이집트 신탁 "한 번 결제하면 새로고침 전까지 계속 무료" 의 실제 원인.
+    // React 원장(app/_lib/optimistic-unlock-ledger.ts)이 이미 지키는 계약과 같은 규칙이다.
     var unlockMap = data.unlockMap && typeof data.unlockMap === 'object' ? data.unlockMap : {};
-    if (normalizedFeatureKey && !Object.keys(unlockMap).length) unlockMap[normalizedFeatureKey] = true;
     service.reducePaymentSuccess({
       operationId: operationId,
       requestId: normalizedRequestId,

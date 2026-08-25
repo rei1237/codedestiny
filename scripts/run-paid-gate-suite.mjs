@@ -66,6 +66,7 @@ const SUITE = [
   { run: "npm run verify:auth-hint-single-source", why: "로그인 힌트(hasClientAuthHint 류) 판정이 js/core/auth-hint.js 단일 정본에서 다시 사본으로 갈라지는 것을 막는다 — 힌트가 잘못 false 로 갈라지면 일부 소비처가 서버를 안 부르고 게스트 응답을 합성해, 로그인된 사용자가 로그아웃된 것처럼 보이는 장애가 난 적이 있다." },
   { run: "npm run verify:auth-p0p1", why: "🔴 handleMe 가 쿠키를 지우지 않는다는 단언은 jest 커버가 아예 없어서, 여기 없으면 '로그아웃 → 재로그인 → 즉시 튕김' 의 절반이 CI 검증 0 이 된다." },
   { run: "npm run verify:paid-feature-billing-policy", why: "유료 기능 과금 정책." },
+  { run: "npm run verify:per-use-never-unlocks", why: "🔴 회당 결제가 영구 해금으로 기록되는 것을 막는다. 이집트 신탁이 '한 번 결제하면 새로고침 전까지 계속 무료'였고, 원인은 두 곳이었다 — 클라이언트가 서버가 주지 않은 unlockMap 을 합성했고, 단건 KRW 확정 경로에만 billingType 경계가 빠져 있었다. 위 과금 정책 가드는 '레지스트리 분류가 맞는가'만 보고 '그 분류가 실제로 지켜지는가'는 보지 않는다." },
   { run: "npm run verify:ai-prompt-billing-policy", why: "AI 프롬프트 과금 정책." },
   { run: "npm run verify:palm-flow", why: "손금: 프로덕션 빌드가 output:'export' 라 app/api 라우트가 통째로 빠진다는 사실 때문에 Gemini Vision 이 로컬에서만 돌고 실제 사용자는 정적 템플릿을 받고 있었다(2026-07 발견)." },
   { run: "npm run verify:payment-choice-parity", why: "결제창 렌더러 3종의 정합성 — TTL 이 5분/15분으로 갈라진 채 배포된 흉터가 이 가드의 출발점이다." },
