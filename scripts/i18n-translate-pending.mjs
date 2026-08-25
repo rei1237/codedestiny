@@ -88,11 +88,40 @@ const flagValue = (name, fallback) => {
   return i >= 0 && args[i + 1] ? args[i + 1] : fallback;
 };
 
-const provider = flagValue("--provider", "gemini");
-if (provider !== "gemini" && provider !== "workers-ai") {
-  console.error(`[translate] --provider 는 gemini 또는 workers-ai 만 받습니다 (받은 값: ${provider})`);
+/**
+ * 백엔드 **체인**. 쉼표로 여러 개를 주면 앞에서부터 쓸 수 있는 것을 고른다.
+ *
+ * 🔴 오류 폴백이 아니라 **예산 라우팅**이다. Workers AI 는 하루 무료분(기본 9,500 Neuron)까지만
+ * 쓰고, 그 뒤로는 Gemini 가 이어받는다. 이렇게 하는 이유:
+ *   - 이 계정은 Workers **Paid** 라 무료 할당을 넘기면 초과분이 자동 청구된다
+ *     ($0.011 / 1,000 Neuron). 예산에서 멈추는 것이 유일한 방어선이다.
+ *   - Gemini 키는 쿼터 락이 걸려 있어(사용자 확인 2026-08-25) 넘기면 청구가 아니라 429 다.
+ *     그래서 그쪽이 하루의 나머지를 받아 주는 쪽으로 더 안전하다.
+ * 두 무료분을 합쳐 쓰므로 하루 처리량도 늘어난다.
+ *
+ * 🔴 넘어가는 조건은 **쓸 수 없게 된 경우 하나뿐**이다 — Workers AI 는 예산 소진, Gemini 는
+ * 쿼터/레이트리밋(429). 그 외의 오류는 다음 백엔드로 넘기지 않고 그대로 던져서 이미 있는
+ * 재시도·분할 로직이 받게 한다. 모든 오류를 넘기면 같은 실패를 두 백엔드에 각각 3번씩
+ * 던지게 된다(원칙 6 — 중첩 방어 금지).
+ *
+ * 🔴 **권장 순서는 `gemini,workers-ai` 다.** 2026-08-25 실측: 50키 청크 하나에 Gemini 6초,
+ * Workers AI(glm-4.7-flash) 4~5분 — **45배** 차이다. 게다가 Gemini 쿼터 초과는 429 이고
+ * Workers AI 초과는 Paid 플랜에서 **청구**다. 빠르고 안전한 쪽을 앞에 두는 게 맞다.
+ */
+const providerChain = flagValue("--provider", "gemini")
+  .split(",")
+  .map((s) => s.trim())
+  .filter(Boolean);
+const KNOWN_PROVIDERS = new Set(["gemini", "workers-ai"]);
+const unknownProvider = providerChain.find((p) => !KNOWN_PROVIDERS.has(p));
+if (!providerChain.length || unknownProvider) {
+  console.error(
+    `[translate] --provider 는 gemini · workers-ai 를 쉼표로 나열합니다 (문제된 값: ${unknownProvider || "(빈 값)"})`,
+  );
   process.exit(1);
 }
+const usesWorkersAi = providerChain.includes("workers-ai");
+const usesGemini = providerChain.includes("gemini");
 const workersAiModel = flagValue("--model", "@cf/zai-org/glm-4.7-flash");
 /**
  * 번역이 끝난 뒤 **en 값을 그대로 복사할** 로케일. API 를 부르지 않는다.
@@ -105,17 +134,32 @@ const mirrorEnLocales = (() => {
   const raw = flagValue("--mirror-en", "");
   return raw ? raw.split(",").map((s) => s.trim()).filter(Boolean) : [];
 })();
-const neuronBudget = Number(flagValue("--neuron-budget", String(WORKERS_AI_DAILY_FREE_NEURONS)));
+/**
+ * 하루 예산. 🔴 기본값이 무료 할당(10,000)이 **아니라** 그보다 낮다.
+ *
+ * 두 가지 이유다.
+ *  1. 예산 검사는 호출 **전에** 한다. 아래 reserve 로직이 다음 호출 몫을 미리 빼 두지만,
+ *     관측값이 없는 첫 호출은 추정치라 여유가 필요하다.
+ *  2. 🔴 원장은 **이 스크립트가 쓴 것만** 센다. 같은 계정의 프로덕션 폴백
+ *     (lib/llm-client.ts → env.AI.run)이 쓴 양은 안 잡힌다. Gemini 가 실패해 폴백이 도는
+ *     날에는 계정 총량이 원장보다 크고, 그 차이가 그대로 초과분이 된다.
+ *
+ * 계정의 **실제** 소비량은 `node scripts/check-workers-ai-quota.mjs` 로 확인한다(조회 전용).
+ */
+const neuronBudget = Number(flagValue("--neuron-budget", String(WORKERS_AI_DAILY_FREE_NEURONS - 500)));
+
+// 🔴 자격증명 파일은 체인에 무엇이 들어 있든 먼저 읽는다. GEMINIF_API_KEY 도 여기 들어 있고,
+//    워크트리에서 돌 때는 저장소 루트를 되짚어야 잡힌다.
+if (!dryRun) loadLocalEnvFiles();
 
 const apiKey = process.env.GEMINIF_API_KEY;
-if (provider === "gemini" && !apiKey && !dryRun) {
+if (usesGemini && !apiKey && !dryRun) {
   console.error("[translate] GEMINIF_API_KEY 가 없습니다. --dry-run 으로 프롬프트만 확인할 수 있습니다.");
   process.exit(1);
 }
 
 let workersAi = null;
-if (provider === "workers-ai" && !dryRun) {
-  loadLocalEnvFiles();
+if (usesWorkersAi && !dryRun) {
   workersAi = createWorkersAiRunner(process.env);
   if (!workersAi) {
     console.error("[translate] Workers AI 자격증명을 찾지 못했습니다 — 계정 ID 와 토큰이 .env/.dev.vars 에 있어야 합니다.");
@@ -129,7 +173,13 @@ if (provider === "workers-ai" && !dryRun) {
  */
 const chunkHash = (chunk) =>
   createHash("sha1")
-    .update(JSON.stringify({ provider, model: provider === "workers-ai" ? workersAiModel : "gemini-2.5-flash", chunk }))
+    .update(
+      JSON.stringify({
+        chain: providerChain.join(","),
+        model: usesWorkersAi ? workersAiModel : null,
+        chunk,
+      }),
+    )
     .digest("hex")
     .slice(0, 12);
 
@@ -201,10 +251,23 @@ function recordNeurons(amount) {
   return ledger[utcDay()];
 }
 
+/**
+ * 관측된 호출 1회 최대 비용. 🔴 평균이 아니라 **최대**를 예약분으로 쓴다 — 평균으로 잡으면
+ * 평균보다 비싼 호출 하나가 그대로 한도를 넘긴다.
+ * 관측 전 첫 호출은 실측 상한(2026-08-25: 50키 청크 약 210)에 여유를 붙인 값을 쓴다.
+ */
+let maxObservedNeurons = 0;
+const FIRST_CALL_RESERVE = 400;
+
 async function callWorkersAi(prompt) {
   const spent = spentToday();
-  if (spent >= neuronBudget) {
-    throw new NeuronBudgetExhausted(`오늘(UTC ${utcDay()}) 예산 ${neuronBudget} Neuron 을 다 썼습니다 (${spent.toFixed(0)})`);
+  const reserve = maxObservedNeurons || FIRST_CALL_RESERVE;
+  // 🔴 "다 썼는가" 가 아니라 "이번 호출까지 하면 넘는가" 로 판단한다. 호출 전 검사라 그렇게
+  //    해야 마지막 한 번이 한도를 넘지 않는다 — Paid 플랜에서 초과분은 그대로 청구된다.
+  if (spent + reserve > neuronBudget) {
+    throw new NeuronBudgetExhausted(
+      `오늘(UTC ${utcDay()}) 예산 ${neuronBudget} Neuron 에 도달했습니다 (사용 ${spent.toFixed(0)} + 다음 호출 예약 ${reserve.toFixed(0)})`,
+    );
   }
 
   // 요청 모양은 lib/llm-client.ts 의 buildWorkersAiInput 과 같다.
@@ -218,6 +281,7 @@ async function callWorkersAi(prompt) {
 
   const result = await workersAi.run(workersAiModel, input);
   const used = neuronsFor(workersAiModel, result?.usage);
+  if (used > maxObservedNeurons) maxObservedNeurons = used;
   const total = recordNeurons(used);
   lastUsage = { ...result?.usage, neurons: used, todayTotal: total };
 
@@ -230,9 +294,58 @@ async function callWorkersAi(prompt) {
 
 let lastUsage = null;
 
-/** provider 분기. 이 함수 밖에서는 어느 백엔드인지 몰라도 된다. */
+/** 이번 실행에서 Workers AI 무료분을 이미 다 쓴 뒤인가. 한 번 켜지면 다시 안 본다. */
+let workersAiBudgetSpent = false;
+/** Gemini 가 쿼터에 걸린 뒤인가. 같은 실행에서 계속 던져 봐야 의미가 없다. */
+let geminiQuotaSpent = false;
+/** 실제로 어떤 백엔드가 몇 청크를 처리했는지 — 요약에 찍는다. */
+const providerUse = { gemini: 0, "workers-ai": 0 };
+
+/**
+ * 체인에서 **지금 쓸 수 있는** 백엔드를 골라 부른다.
+ * Workers AI 는 예산이 남아 있을 때만 고른다 — 예산이 끝나면 조용히 다음(Gemini)으로 넘어간다.
+ * 🔴 체인에 Workers AI 만 있고 예산이 끝났으면 그때는 멈춘다(예전 동작 그대로).
+ */
 async function callModel(prompt) {
-  return provider === "workers-ai" ? callWorkersAi(prompt) : callGemini(prompt);
+  for (const name of providerChain) {
+    if (name === "workers-ai") {
+      if (workersAiBudgetSpent) continue;
+      try {
+        const result = await callWorkersAi(prompt);
+        providerUse["workers-ai"] += 1;
+        return result;
+      } catch (error) {
+        if (!(error instanceof NeuronBudgetExhausted)) throw error;
+        workersAiBudgetSpent = true;
+        // 체인에 뒤가 있으면 넘어가고, 없으면 아래에서 그대로 던진다.
+        if (providerChain.length > 1) {
+          console.log(`[translate] ⏭ Workers AI 예산 소진 — 이후는 Gemini 가 처리합니다 (${error.message})`);
+          continue;
+        }
+        throw error;
+      }
+    }
+    if (name === "gemini") {
+      if (geminiQuotaSpent) continue;
+      try {
+        const result = await callGemini(prompt);
+        providerUse.gemini += 1;
+        return result;
+      } catch (error) {
+        // 🔴 429 만 넘긴다. 다른 오류(스키마·빈 응답 등)는 백엔드를 바꿔도 같은 결과라
+        //    재시도 로직이 받는 편이 맞다.
+        const rateLimited = /\b429\b|RESOURCE_EXHAUSTED|quota/i.test(String(error?.message || ""));
+        const hasNext = providerChain.indexOf(name) < providerChain.length - 1;
+        if (!rateLimited || !hasNext) throw error;
+        geminiQuotaSpent = true;
+        console.log(
+          `[translate] ⏭ Gemini 쿼터/레이트리밋 — 이후는 Workers AI 무료분이 처리합니다 (${String(error.message).slice(0, 100)})`,
+        );
+        continue;
+      }
+    }
+  }
+  throw new NeuronBudgetExhausted(`쓸 수 있는 백엔드가 없습니다 (체인: ${providerChain.join(",")})`);
 }
 
 async function callGemini(prompt) {
@@ -510,7 +623,11 @@ console.log("");
 console.log("[translate] 요약");
 summary.forEach((s) => console.log(`[translate]   ${s.locale.padEnd(6)} 적용 ${String(s.applied).padStart(5)}  실패 ${s.failed}`));
 
-if (provider === "workers-ai") {
+console.log(
+  `[translate] 백엔드 사용: workers-ai ${providerUse["workers-ai"]}청크 · gemini ${providerUse.gemini}청크`,
+);
+
+if (usesWorkersAi) {
   const spent = spentToday();
   console.log(`[translate] Neuron: 오늘(UTC ${utcDay()}) ${spent.toFixed(0)} / 예산 ${neuronBudget} (무료 할당 ${WORKERS_AI_DAILY_FREE_NEURONS})`);
   const remaining = Object.entries(TARGETS)
@@ -518,6 +635,7 @@ if (provider === "workers-ai") {
     .map(([f, t]) => `${t.code} ${missingKeysFor(f).length}`)
     .join(" · ");
   console.log(`[translate] 남은 결손: ${remaining}`);
+  console.log("[translate] 🔴 원장은 이 스크립트가 쓴 것만 셉니다 — 계정 실제 소비량은 node scripts/check-workers-ai-quota.mjs 로 확인하세요.");
 }
 
 if (budgetStop) {
