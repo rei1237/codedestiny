@@ -17,6 +17,12 @@
   - 프로덕션이 `main` HEAD 보다 뒤처져 있는 것은 **정상 상태**다(승격 전까지). `node scripts/verify-merge-landed.mjs --check=drift --json --soft --base=origin/main --origin=https://code-destiny.com` 로 확인하면 드리프트가 있어도 `severity: "ok"`.
   - 예외: 일일 운세 재발행(`fortune-daily-publish`)은 여전히 프로덕션을 직접 건드린다 — 오늘 운세를 읽는 곳이 프로덕션이라 명시적으로 남긴 예외.
   - 프로덕션 승격(`workflow_dispatch mode=production`)은 실제 배포 행위다. **사용자의 명시적 승인 없이 실행하지 않는다.**
+    - 반대로 사용자가 승격을 명시적으로 요청하면 에이전트가 대신 실행한다:
+      `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`
+    - 그 허락은 요청한 그 한 번에 대한 것이다. 상시 위임이 아니며, 다음 승격에는 다시 요청이 필요하다.
+    - 실행 뒤 런을 폴링하지 않는다(`gh run watch`·`gh run view --log` 는 비용 가드 대상이고, 이 저장소에는
+      "머지하면 끝 — 배포를 지켜보지 않는다"는 고정 룰이 있다). 런 URL 을 사용자에게 넘기고 끝낸다.
+    - 로컬 wrangler 경로는 `scripts/lib/production-deploy-guard.mjs` 가 계속 막는다. 우회하지 않는다.
   - **`main` 에 직접 push 할 수 없다** — 브랜치 룰셋이 막는다. 모든 변경은 PR 을 거친다.
   - **로컬에서 프로덕션 배포는 불가능하다** — `scripts/lib/production-deploy-guard.mjs` 가 `deploy:safe` 승격·`deploy:rollback`·`deploy:cf:worker`·`deploy:cf:pages`·`deploy:cf:opennext` 를 모두 막는다. 로컬에 남는 것은 `deploy:check`(업로드 없음)와 `deploy:preview`·`deploy:smoke` 뿐이다.
   - **Pages 와 Worker 는 항상 같은 SHA 로 나간다.** 릴리스는 `github.sha` 를 체크아웃해 한 번 빌드하고, 배포 후 `npm run verify:deployed-sha` 가 `/version.json`(Pages)과 `/api/version`(Worker)을 읽어 그 SHA 와 대조한다. 하나라도 다르면 릴리스는 실패다.
