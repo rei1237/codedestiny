@@ -15189,6 +15189,143 @@
         "profileLine": "やわらかな感性で心の質感を読み取りますが、自分の傷も一緒に手当てしてくれる人の前でゆっくり花開く癒し手タイプです。",
         "bestApproach": "やわらかく心のこもった言葉でゆっくり近づきつつ、もらう慰めだけを期待せず、彼女の心も尋ね返してください。"
       }
+    },
+    "chrome": {
+      "preparingStoryLocation": "Love Code",
+      "preparingStoryTitle": "準備中の物語",
+      "preparingStorySituation": "このキャラクターの物語はただいま準備中です。",
+      "preparingStoryDialogue": "{name}の物語は、まもなくもっと深く開かれる予定です。",
+      "matchFormAria": "相手の情報を入力してマッチング",
+      "partnerNamePlaceholder": "名前を入力してください",
+      "birthDateAria": "生年月日",
+      "birthHourAria": "出生時刻",
+      "birthCountryAria": "出生国",
+      "countryOptions": {
+        "seoul": "韓国・ソウル基準",
+        "tokyo": "日本・東京基準",
+        "shanghai": "中国・上海基準",
+        "newYork": "アメリカ・ニューヨーク基準",
+        "paris": "フランス・パリ基準"
+      },
+      "backToIntro": "イントロに戻る",
+      "backToCharacterSelect": "キャラクター選択に戻る",
+      "sajuHint": "四柱推命のヒントを見る",
+      "sajuHintAria": "{name}の四柱推命ヒントを開く",
+      "finalRelationship": {
+        "fateOpen": {
+          "title": "運命のコードが開いた関係",
+          "body": "お互いの心が比較的自然に噛み合いました。惹かれる気持ちが先走っただけでなく、相手が安心できるリズムを一緒に作り上げた流れです。"
+        },
+        "slowBond": {
+          "title": "ゆっくり深まる縁",
+          "body": "速く燃え上がるより、長く残るほうに近い関係です。小さな気遣いと繰り返される真心が、二人のあいだの扉を静かに開いてくれました。"
+        },
+        "needsTuning": {
+          "title": "ときめきはあるけれど調整が要る関係",
+          "body": "はっきりとした惹かれ合いはありましたが、お互いの速度と表現の仕方にはもう少し繊細な調整が必要です。ときめきを長く保つには、一拍おいた確認が効きます。"
+        },
+        "learnLanguage": {
+          "title": "互いの言語を学ぶ関係",
+          "body": "心は動きましたが、表現の質感は完全に同じではありませんでした。相手がどんな形で愛を感じるのかを学んだ瞬間、二人の空気はずっとやわらかくなります。"
+        },
+        "needsSpace": {
+          "title": "距離感の調整が要る関係",
+          "body": "感情の温度より距離の感覚が先に問われた関係です。無理に近づくより、相手が息をつける余白を残しておくほうが良いでしょう。"
+        }
+      },
+      "matchFormDescription": "名前と生年月日を入力すると、選んだ性別の中で最も近いラブコードの相手が開きます。",
+      "nameFieldLabel": "名前",
+      "birthDateFieldLabel": "生年月日",
+      "calendarOptions": {
+        "solar": "新暦",
+        "lunarRegular": "旧暦（平月）",
+        "lunarLeap": "旧暦（閏月）"
+      },
+      "calendarHint": "選んだ暦を基準に、相手の恋の質感を合わせてみます。",
+      "birthTimeFieldLabel": "出生時刻",
+      "birthCountryFieldLabel": "出生国（場所）",
+      "birthCountryNote": "※サマータイムおよび経度補正を自動適用",
+      "matchNote": "現在のマッチングは、入力された時刻と場所の信号を一緒に反映します。",
+      "partnerGenderFieldLabel": "相手の性別",
+      "genderFemaleOption": "♀ 女性",
+      "genderMaleOption": "♂ 男性",
+      "timeKnownNote": "選ばれた出生時刻まで反映します。",
+      "timeUnknownNote": "出生時刻を不明として扱い、正午を基準にした補助計算を使います。",
+      "unknownTimeButton": "出生時刻がわかりません・正午を基準に見る",
+      "matchingInProgress": "縁の糸をたどっています...",
+      "startMatchButton": "相手の情報でマッチングを開始",
+      "matchAnalysisFailedError": "相手の四柱推命情報を読み込めませんでした。入力内容をご確認のうえ、もう一度お試しください。",
+      "loginRequiredError": "ログインが必要です。",
+      "paymentRequiredError": "お支払いが必要です。決済ウィンドウで商品をお選びください。",
+      "paymentVerifyFailedError": "決済の確認に失敗しました。",
+      "checkingPassMessage": "利用券を確認中",
+      "introEyebrow": "四柱推命の傾向と選択で流れが変わる対話",
+      "introTitle": "Love Code: 運命の相手と対話する",
+      "introDescription": "キャラクターの性格、好み、距離感をたどるビジュアルノベル相性診断です。",
+      "introChips": {
+        "saju": "四柱推命の傾向",
+        "dialogue": "キャラクターとの対話",
+        "flow": "関係の流れ"
+      },
+      "selectCharacterButton": "キャラクターを選ぶ",
+      "matchingReadingButton": "縁の糸を読んでいます",
+      "matchWithPartnerButton": "相手の情報でマッチング",
+      "mainMatchLeadPrefix": "入力された相手は",
+      "mainMatchLeadHighlight": "{name}タイプの気質",
+      "mainMatchLeadSuffix": "に最も近いです。",
+      "dayMasterBadge": "日干 {dayMaster}",
+      "confidenceBadge": "信頼度 {value}",
+      "coupleScoreLine": "{grade}・{score}点",
+      "coupleUnlinkedNote": "プロフィールカードの生年月日を連携すると、双方向の相性まで一緒に反映されます。",
+      "secondaryMatchLine": "近い傾向: {labels}",
+      "secondaryMatchTypeLabel": "{name}タイプ",
+      "startWithMatchButton": "{name}タイプのシミュレーションを始める",
+      "characterSelectTitle": "話す相手を選ぶ",
+      "fullProfileAlt": "{name}の全身プロフィール",
+      "portraitAlt": "{name}のプロフィール",
+      "profileFaceAlt": "{name}の顔と基本プロフィール",
+      "dialogueFaceAlt": "{name}の対話用の顔",
+      "miniFaceAlt": "{name}のミニ顔アイコン",
+      "profileExpandedNote": "全身画像と詳細プロフィールが開きました。",
+      "profileCollapsedNote": "まずは左上の顔と基本情報をご確認ください。",
+      "profileCollapseButton": "プロフィールを閉じる",
+      "profileExpandButton": "プロフィールを見る",
+      "maleCharacterBadge": "男性キャラクター",
+      "femaleCharacterBadge": "女性キャラクター",
+      "talkWithButton": "{name}と話す",
+      "reselectCharacterButton": "キャラクターを選び直す",
+      "calculatingCompatibility": "二人の四柱推命で相性を計算しています…",
+      "compatibilityInfoMissing": "相性を計算するための四柱推命情報を確認できませんでした。",
+      "reselectButton": "選び直す",
+      "compatibilityResultBody": "{grade}・{score}点 — 二人の四柱推命から計算した結果です。見直しても点数は同じで、物語の順番だけが変わります。",
+      "riskLine": "リスク: {risk}",
+      "dateTipLine": "デートのヒント: {tip}",
+      "relationshipRouteLine": "関係のルート: {title}。{body}",
+      "dimensionLabels": {
+        "attraction": "惹かれ合い",
+        "stability": "安定感",
+        "communication": "コミュニケーション",
+        "longevity": "持続性",
+        "conflict": "衝突の扱い"
+      },
+      "metricTone": {
+        "deep": "深まっています",
+        "steady": "続いています",
+        "careful": "慎重です"
+      },
+      "sajuSummaryTitle": "四柱推命の傾向まとめ",
+      "myeongliPointsTitle": "命理の相性ポイント",
+      "avoidFlowTitle": "避けたい流れ",
+      "choiceAnalysisTitle": "対話の選択にもとづく分析",
+      "choiceRecapLabel": "選択 {index}・{scene}",
+      "choiceRecapInsight": "{tone}の反応。{insight}",
+      "openingStoryMessage": "キャラクターのストーリーを開いています。",
+      "restartButton": "はじめからやり直す",
+      "entryModeMatchNote": "四柱推命マッチングのおすすめから始めたシミュレーション",
+      "entryModePresetNote": "自分で選んで始めたシミュレーション",
+      "sceneCounter": "シーン {index}/{total}",
+      "storyHoldTail": "今は答えを出すより、空気を読むべき場面です。",
+      "openChoicesButton": "大事な場面で返事を選ぶ"
     }
   }
 }

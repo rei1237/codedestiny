@@ -70,11 +70,17 @@ const LOVE_CODE_SCORING_TEXT_TRANSLATIONS = {
   },
 } as const;
 
+/**
+ * 🔴 미저작 로케일의 폴백은 **en 이다. ko 가 아니다.**
+ * 2026-08-25 이전에는 여기서 ko 를 돌려줬고, 그래서 vi·hi·es·fr·de·nl·ms 7개 로케일 사용자가
+ * 관계 지표 라벨과 결과 문안을 **한국어로** 봤다(사용자 지시: 미저작 로케일은 영어를 채운다).
+ */
 function loveCodeScoringText(key: keyof typeof LOVE_CODE_SCORING_TEXT_TRANSLATIONS.ko, locale: LoveCodeScoringLocale = "ko") {
-  if (locale === "en" || locale === "ja" || locale === "zh-CN" || locale === "zh-TW") {
+  if (locale === "ko") return LOVE_CODE_SCORING_TEXT_TRANSLATIONS.ko[key];
+  if (locale === "ja" || locale === "zh-CN" || locale === "zh-TW") {
     return LOVE_CODE_SCORING_TEXT_TRANSLATIONS[locale][key];
   }
-  return LOVE_CODE_SCORING_TEXT_TRANSLATIONS.ko[key];
+  return LOVE_CODE_SCORING_TEXT_TRANSLATIONS.en[key];
 }
 
 function clampStat(value: number) {

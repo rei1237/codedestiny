@@ -6,7 +6,7 @@ import { ArrowLeft, ChevronRight, Heart, MessageCircle, RefreshCw, Sparkles, Use
 import { INITIAL_STATS, LOVE_CHARACTERS, LOVE_CHARACTER_COPY_KO, getLocalizedLoveScenes, type CharacterId, type ChoiceLog, type LoveCharacter, type LoveChoice, type LoveScene, type LoveStats } from "../_data/loveCodeMvp";
 import { fetchSajuPillar } from "../_services/sajuApi";
 import { applyEffects, getRelationshipMetrics } from "../_utils/loveCodeScoring";
-import { buildSajuCoupleCompatibility, matchLoveCharactersFromSaju, LOVE_MATCHING_COPY_KO, type LoveCharacterMatchResult, type LoveMatchingCopy, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
+import { buildSajuCoupleCompatibility, formatTemplate, matchLoveCharactersFromSaju, LOVE_MATCHING_COPY_KO, type LoveCharacterMatchResult, type LoveMatchingCopy, type SajuCoupleCompatibility } from "../_utils/loveCharacterMatching";
 import { useLoveSimCopy } from "../_utils/loveSimCopy";
 import { computeCompatibilityProfile } from "../_engine/compatibilityEngine";
 import { normalizeSajuForPerson } from "../_engine/normalizeSaju";
@@ -89,207 +89,161 @@ function resolveLoveSimulationLocale() {
   return "ko";
 }
 
-type LoveSimulationCopy = {
-  preparingStoryLocation: string;
-  preparingStoryTitle: string;
-  preparingStorySituation: string;
-  preparingStoryDialogue: (name: string) => string;
-  matchFormAria: string;
-  partnerNamePlaceholder: string;
-  birthDateAria: string;
-  birthHourAria: string;
-  birthCountryAria: string;
+/**
+ * 러브 시뮬레이션 **UI 크롬**(버튼·필드 라벨·안내·에러)의 한국어 정본.
+ *
+ * 🔴 2026-08-25 이전에는 이 자리가 `LOVE_SIMULATION_COPY_TRANSLATIONS` 라는 **ko·en 2개짜리 표**였고
+ * 나머지 10개 로케일은 en 별칭이었다. 그래서 ja·zh 사용자는 자기 언어 화면에서 영어 크롬을 봤다.
+ * 지금은 `useLoveSimCopy("chrome", …)` 로 12개 로케일 사전을 탄다 — 저작 정본은
+ * `i18n/authored/loveSimulation-03.json` 이고, 옛 표의 en 문구는 그 파일의 en 값으로 그대로 옮겼다.
+ *
+ * 🔴 콘텐츠(사주 해석이 조립하는 문장)와는 여전히 경계가 다르다. 저쪽은 `_utils` 의
+ * `LOVE_MATCHING_COPY_KO` · `_data` 의 `LOVE_CHARACTER_COPY_KO` 가 갖는다. 경계 설명은
+ * `_utils/loveSimCopy.ts` 헤더에 있다.
+ *
+ * 🔴 함수 멤버를 두지 말 것. `useScopedCopy` 는 **문자열만** 갈아끼우므로 함수는 사전이 못 덮는다.
+ * 값이 끼어드는 자리는 `{name}` 자리표시자 + `formatTemplate` 이다(가드가 로케일별 자리표시자
+ * 집합이 같은지 검사한다).
+ */
+const LOVE_SIMULATION_CHROME_KO = {
+  preparingStoryLocation: "Love Code",
+  preparingStoryTitle: "준비 중인 이야기",
+  preparingStorySituation: "이 캐릭터의 스토리를 준비하고 있어요.",
+  preparingStoryDialogue: "{name}의 이야기는 곧 더 깊게 열릴 예정입니다.",
+  matchFormAria: "상대 정보 입력 매칭",
+  partnerNamePlaceholder: "이름을 입력하세요",
+  birthDateAria: "생년월일",
+  birthHourAria: "출생 시간",
+  birthCountryAria: "출생 국가",
   countryOptions: {
-    seoul: string;
-    tokyo: string;
-    shanghai: string;
-    newYork: string;
-    paris: string;
-  };
-  backToIntro: string;
-  backToCharacterSelect: string;
-  sajuHint: string;
-  sajuHintAria: (name: string) => string;
-  finalRelationship: Record<"fateOpen" | "slowBond" | "needsTuning" | "learnLanguage" | "needsSpace", {
-    title: string;
-    body: string;
-  }>;
-  matchFormDescription: string;
-  nameFieldLabel: string;
-  birthDateFieldLabel: string;
-  calendarOptions: { solar: string; lunarRegular: string; lunarLeap: string };
-  calendarHint: string;
-  birthTimeFieldLabel: string;
-  birthCountryFieldLabel: string;
-  birthCountryNote: string;
-  matchNote: string;
-  partnerGenderFieldLabel: string;
-  genderFemaleOption: string;
-  genderMaleOption: string;
-  timeKnownNote: string;
-  timeUnknownNote: string;
-  unknownTimeButton: string;
-  matchingInProgress: string;
-  startMatchButton: string;
-  matchAnalysisFailedError: string;
-  loginRequiredError: string;
-  paymentRequiredError: string;
-  paymentVerifyFailedError: string;
-  checkingPassMessage: string;
-};
-
-const LOVE_SIMULATION_COPY_TRANSLATIONS: Record<"ko" | "en", LoveSimulationCopy> = {
-  ko: {
-    preparingStoryLocation: "Love Code",
-    preparingStoryTitle: "준비 중인 이야기",
-    preparingStorySituation: "이 캐릭터의 스토리를 준비하고 있어요.",
-    preparingStoryDialogue: (name: string) => `${name}의 이야기는 곧 더 깊게 열릴 예정입니다.`,
-    matchFormAria: "상대 정보 입력 매칭",
-    partnerNamePlaceholder: "이름을 입력하세요",
-    birthDateAria: "생년월일",
-    birthHourAria: "출생 시간",
-    birthCountryAria: "출생 국가",
-    countryOptions: {
-      seoul: "대한민국 · 서울 기준",
-      tokyo: "일본 · 도쿄 기준",
-      shanghai: "중국 · 상하이 기준",
-      newYork: "미국 · 뉴욕 기준",
-      paris: "프랑스 · 파리 기준",
-    },
-    backToIntro: "인트로로 돌아가기",
-    backToCharacterSelect: "캐릭터 선택으로 돌아가기",
-    sajuHint: "사주 힌트 보기",
-    sajuHintAria: (name: string) => `${name} 사주 힌트 펼치기`,
-    finalRelationship: {
-      fateOpen: {
-        title: "운명의 코드가 열린 관계",
-        body: "서로의 마음이 비교적 자연스럽게 맞물렸습니다. 끌림만 앞선 것이 아니라, 상대가 안심할 수 있는 리듬을 함께 만들어낸 흐름이에요.",
-      },
-      slowBond: {
-        title: "천천히 깊어지는 인연",
-        body: "빠르게 타오르기보다 오래 남는 쪽에 가까운 관계입니다. 작은 배려와 반복되는 진심이 둘 사이의 문을 조용히 열어주었어요.",
-      },
-      needsTuning: {
-        title: "설렘은 있지만 조율이 필요한 관계",
-        body: "분명한 끌림이 있었지만, 서로의 속도와 표현 방식에는 조금 더 섬세한 조율이 필요합니다. 설렘을 오래 지키려면 한 박자 느린 확인이 좋아요.",
-      },
-      learnLanguage: {
-        title: "서로의 언어를 배워야 하는 관계",
-        body: "마음은 움직였지만 표현의 결이 완전히 같지는 않았습니다. 상대가 어떤 방식으로 사랑을 느끼는지 배우는 순간, 관계의 분위기가 훨씬 부드러워질 수 있어요.",
-      },
-      needsSpace: {
-        title: "거리감 조절이 필요한 관계",
-        body: "감정의 온도보다 거리의 감각이 먼저 중요하게 드러난 관계입니다. 무리하게 가까워지기보다, 상대가 숨 쉴 수 있는 여백을 남겨두는 편이 좋습니다.",
-      },
-    },
-    matchFormDescription: "이름과 생년월일을 남기면 선택한 성별 안에서 가장 닮은 러브 코드 상대가 열립니다.",
-    nameFieldLabel: "이름",
-    birthDateFieldLabel: "생년월일",
-    calendarOptions: { solar: "양력", lunarRegular: "음력(평달)", lunarLeap: "음력(윤달)" },
-    calendarHint: "선택한 달력 기준으로 상대의 연애 결을 맞춰봅니다.",
-    birthTimeFieldLabel: "출생 시간",
-    birthCountryFieldLabel: "출생 국가 (장소)",
-    birthCountryNote: "*서머타임 및 경도 보정 자동 적용",
-    matchNote: "현재 매칭은 입력 시간과 장소 신호를 함께 반영합니다.",
-    partnerGenderFieldLabel: "상대 성별",
-    genderFemaleOption: "♀ 여성",
-    genderMaleOption: "♂ 남성",
-    timeKnownNote: "선택한 출생 시각까지 반영합니다.",
-    timeUnknownNote: "출생시간 미상으로 표시하고 낮 12시 기준 보조 계산을 사용합니다.",
-    unknownTimeButton: "출생시간을 몰라요 · 낮 12시 기준으로 보기",
-    matchingInProgress: "인연의 결을 찾는 중...",
-    startMatchButton: "상대 정보로 매칭 시작",
-    matchAnalysisFailedError: "상대의 사주 정보를 불러오지 못했어요. 입력값을 확인한 뒤 다시 시도해주세요.",
-    loginRequiredError: "로그인이 필요합니다.",
-    paymentRequiredError: "유료 결제가 필요합니다. 결제창에서 상품을 선택해 주세요.",
-    paymentVerifyFailedError: "결제 확인에 실패했습니다.",
-    checkingPassMessage: "이용권 확인 중",
+    seoul: "대한민국 · 서울 기준",
+    tokyo: "일본 · 도쿄 기준",
+    shanghai: "중국 · 상하이 기준",
+    newYork: "미국 · 뉴욕 기준",
+    paris: "프랑스 · 파리 기준",
   },
-  en: {
-    preparingStoryLocation: "Love Code",
-    preparingStoryTitle: "Story in preparation",
-    preparingStorySituation: "This character's story is still being prepared.",
-    preparingStoryDialogue: (name: string) => `${name}'s story will open more deeply soon.`,
-    matchFormAria: "Match by partner information",
-    partnerNamePlaceholder: "Enter a name",
-    birthDateAria: "Birth date",
-    birthHourAria: "Birth time",
-    birthCountryAria: "Birth country",
-    countryOptions: {
-      seoul: "Korea · Seoul time",
-      tokyo: "Japan · Tokyo time",
-      shanghai: "China · Shanghai time",
-      newYork: "United States · New York time",
-      paris: "France · Paris time",
+  backToIntro: "인트로로 돌아가기",
+  backToCharacterSelect: "캐릭터 선택으로 돌아가기",
+  sajuHint: "사주 힌트 보기",
+  sajuHintAria: "{name} 사주 힌트 펼치기",
+  finalRelationship: {
+    fateOpen: {
+      title: "운명의 코드가 열린 관계",
+      body: "서로의 마음이 비교적 자연스럽게 맞물렸습니다. 끌림만 앞선 것이 아니라, 상대가 안심할 수 있는 리듬을 함께 만들어낸 흐름이에요.",
     },
-    backToIntro: "Back to intro",
-    backToCharacterSelect: "Back to character selection",
-    sajuHint: "View saju hints",
-    sajuHintAria: (name: string) => `Open saju hints for ${name}`,
-    finalRelationship: {
-      fateOpen: {
-        title: "A relationship where destiny's code opened",
-        body: "Your hearts met in a fairly natural rhythm. It was not only attraction leading the way; you also created a pace where the other person could feel safe.",
-      },
-      slowBond: {
-        title: "A bond that deepens slowly",
-        body: "This connection is closer to something that lasts than something that burns quickly. Small gestures and repeated sincerity quietly opened the door between you.",
-      },
-      needsTuning: {
-        title: "A spark that needs gentle tuning",
-        body: "There was clear attraction, but your pace and ways of expressing love still need delicate adjustment. A slower check-in will help the feeling last.",
-      },
-      learnLanguage: {
-        title: "A relationship learning each other's language",
-        body: "The heart moved, but your emotional textures were not fully the same. Once you learn how the other person feels loved, the air between you can soften.",
-      },
-      needsSpace: {
-        title: "A relationship that needs distance control",
-        body: "This connection asks you to sense distance before emotional temperature. Leave enough space for the other person to breathe instead of rushing closer.",
-      },
+    slowBond: {
+      title: "천천히 깊어지는 인연",
+      body: "빠르게 타오르기보다 오래 남는 쪽에 가까운 관계입니다. 작은 배려와 반복되는 진심이 둘 사이의 문을 조용히 열어주었어요.",
     },
-    matchFormDescription: "Enter their name and birth date to open the Love Code partner who matches closest within the gender you chose.",
-    nameFieldLabel: "Name",
-    birthDateFieldLabel: "Birth date",
-    calendarOptions: { solar: "Solar", lunarRegular: "Lunar (regular month)", lunarLeap: "Lunar (leap month)" },
-    calendarHint: "We match their love style based on the calendar you chose.",
-    birthTimeFieldLabel: "Birth time",
-    birthCountryFieldLabel: "Birth country (place)",
-    birthCountryNote: "*Daylight saving and longitude correction applied automatically",
-    matchNote: "This match reflects both the time and place you entered.",
-    partnerGenderFieldLabel: "Partner's gender",
-    genderFemaleOption: "♀ Female",
-    genderMaleOption: "♂ Male",
-    timeKnownNote: "We reflect the birth time you chose.",
-    timeUnknownNote: "Marked as unknown birth time; using a noon-based auxiliary calculation.",
-    unknownTimeButton: "I don't know the birth time · use noon instead",
-    matchingInProgress: "Finding the thread of fate...",
-    startMatchButton: "Start matching with partner info",
-    matchAnalysisFailedError: "We couldn't load their Saju information. Please check your input and try again.",
-    loginRequiredError: "Login required.",
-    paymentRequiredError: "Payment is required. Please choose a product in the payment window.",
-    paymentVerifyFailedError: "Payment verification failed.",
-    checkingPassMessage: "Checking your pass",
+    needsTuning: {
+      title: "설렘은 있지만 조율이 필요한 관계",
+      body: "분명한 끌림이 있었지만, 서로의 속도와 표현 방식에는 조금 더 섬세한 조율이 필요합니다. 설렘을 오래 지키려면 한 박자 느린 확인이 좋아요.",
+    },
+    learnLanguage: {
+      title: "서로의 언어를 배워야 하는 관계",
+      body: "마음은 움직였지만 표현의 결이 완전히 같지는 않았습니다. 상대가 어떤 방식으로 사랑을 느끼는지 배우는 순간, 관계의 분위기가 훨씬 부드러워질 수 있어요.",
+    },
+    needsSpace: {
+      title: "거리감 조절이 필요한 관계",
+      body: "감정의 온도보다 거리의 감각이 먼저 중요하게 드러난 관계입니다. 무리하게 가까워지기보다, 상대가 숨 쉴 수 있는 여백을 남겨두는 편이 좋습니다.",
+    },
   },
+  matchFormDescription: "이름과 생년월일을 남기면 선택한 성별 안에서 가장 닮은 러브 코드 상대가 열립니다.",
+  nameFieldLabel: "이름",
+  birthDateFieldLabel: "생년월일",
+  calendarOptions: { solar: "양력", lunarRegular: "음력(평달)", lunarLeap: "음력(윤달)" },
+  calendarHint: "선택한 달력 기준으로 상대의 연애 결을 맞춰봅니다.",
+  birthTimeFieldLabel: "출생 시간",
+  birthCountryFieldLabel: "출생 국가 (장소)",
+  birthCountryNote: "*서머타임 및 경도 보정 자동 적용",
+  matchNote: "현재 매칭은 입력 시간과 장소 신호를 함께 반영합니다.",
+  partnerGenderFieldLabel: "상대 성별",
+  genderFemaleOption: "♀ 여성",
+  genderMaleOption: "♂ 남성",
+  timeKnownNote: "선택한 출생 시각까지 반영합니다.",
+  timeUnknownNote: "출생시간 미상으로 표시하고 낮 12시 기준 보조 계산을 사용합니다.",
+  unknownTimeButton: "출생시간을 몰라요 · 낮 12시 기준으로 보기",
+  matchingInProgress: "인연의 결을 찾는 중...",
+  startMatchButton: "상대 정보로 매칭 시작",
+  matchAnalysisFailedError: "상대의 사주 정보를 불러오지 못했어요. 입력값을 확인한 뒤 다시 시도해주세요.",
+  loginRequiredError: "로그인이 필요합니다.",
+  paymentRequiredError: "유료 결제가 필요합니다. 결제창에서 상품을 선택해 주세요.",
+  paymentVerifyFailedError: "결제 확인에 실패했습니다.",
+  checkingPassMessage: "이용권 확인 중",
+
+  // ── 인트로 ──
+  introEyebrow: "사주 성향과 선택으로 흐름이 달라지는 대화",
+  introTitle: "Love Code: 운명의 상대와 대화하기",
+  introDescription: "캐릭터의 성향, 취향, 거리감을 따라가는 비주얼 노벨 궁합입니다.",
+  introChips: { saju: "사주 성향", dialogue: "캐릭터 대화", flow: "관계 흐름" },
+  selectCharacterButton: "캐릭터 선택하기",
+  matchingReadingButton: "인연의 결을 읽는 중",
+  matchWithPartnerButton: "상대 정보로 매칭하기",
+
+  // ── 매칭 결과 카드 ──
+  // 🔴 3조각으로 나눈 이유: 가운데가 캐릭터 색으로 강조되는 <span> 이라 한 문장으로는 못 담는다.
+  //    언어에 따라 앞뒤 어느 쪽이든 비어도 되게 두었다.
+  mainMatchLeadPrefix: "입력한 상대는 ",
+  mainMatchLeadHighlight: "{name}형 성향",
+  mainMatchLeadSuffix: "과 가장 가까워요.",
+  dayMasterBadge: "{dayMaster} 일간",
+  confidenceBadge: "신뢰도 {value}",
+  coupleScoreLine: "{grade} · {score}점",
+  coupleUnlinkedNote: "내 프로필 카드 생년월일을 연결하면 쌍방 궁합까지 함께 반영됩니다.",
+  secondaryMatchLine: "함께 가까운 성향: {labels}",
+  secondaryMatchTypeLabel: "{name}형",
+  startWithMatchButton: "{name}형 시뮬레이션 시작하기",
+
+  // ── 캐릭터 선택 ──
+  characterSelectTitle: "대화할 상대 선택",
+  fullProfileAlt: "{name} 전체 프로필",
+  portraitAlt: "{name} 프로필",
+  profileFaceAlt: "{name} 얼굴 및 기본정보 프로필",
+  dialogueFaceAlt: "{name} 대화 얼굴 프로필",
+  miniFaceAlt: "{name} 미니 얼굴",
+  profileExpandedNote: "전체 이미지와 상세 프로필이 열렸습니다.",
+  profileCollapsedNote: "좌측 상단 얼굴과 기본정보를 먼저 확인하세요.",
+  profileCollapseButton: "프로필 접기",
+  profileExpandButton: "프로필 보기",
+  maleCharacterBadge: "남성 캐릭터",
+  femaleCharacterBadge: "여성 캐릭터",
+  talkWithButton: "{name}와 대화하기",
+  reselectCharacterButton: "캐릭터 다시 선택하기",
+
+  // ── 결과 화면 ──
+  calculatingCompatibility: "두 사람의 사주로 궁합을 계산하고 있어요…",
+  compatibilityInfoMissing: "궁합을 계산할 사주 정보를 확인하지 못했어요.",
+  reselectButton: "다시 선택하기",
+  compatibilityResultBody: "{grade} · {score}점 — 두 사람의 사주로 계산된 결과예요. 다시 봐도 점수는 같고, 이야기 순서만 달라집니다.",
+  riskLine: "리스크: {risk}",
+  dateTipLine: "데이트 팁: {tip}",
+  relationshipRouteLine: "관계 루트: {title}. {body}",
+  dimensionLabels: {
+    attraction: "끌림",
+    stability: "안정성",
+    communication: "소통",
+    longevity: "지속성",
+    conflict: "갈등 관리",
+  },
+  metricTone: { deep: "깊어짐", steady: "이어짐", careful: "조심스러움" },
+  sajuSummaryTitle: "사주 성향 요약",
+  myeongliPointsTitle: "명리 궁합 포인트",
+  avoidFlowTitle: "피해야 할 흐름",
+  choiceAnalysisTitle: "대화 선택 기반 분석",
+  choiceRecapLabel: "선택 {index} · {scene}",
+  choiceRecapInsight: "{tone} 반응. {insight}",
+  openingStoryMessage: "캐릭터 스토리를 여는 중입니다.",
+  restartButton: "다시 시작하기",
+
+  // ── 플레이 화면 ──
+  entryModeMatchNote: "사주 매칭 추천으로 시작한 시뮬레이션",
+  entryModePresetNote: "직접 선택으로 시작한 시뮬레이션",
+  sceneCounter: "장면 {index}/{total}",
+  storyHoldTail: "지금은 대답보다 분위기를 읽어야 하는 순간입니다.",
+  openChoicesButton: "중요한 순간에 대답 선택하기",
 };
 
-const LOVE_SIMULATION_COPY_FALLBACK_LOCALES: Record<Exclude<LoveSimulationLocale, "ko" | "en">, LoveSimulationCopy> = {
-  ja: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-  "zh-CN": LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-  "zh-TW": LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-  vi: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-  hi: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-  es: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-  fr: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-  de: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-  nl: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-  ms: LOVE_SIMULATION_COPY_TRANSLATIONS.en,
-};
-
-function getLoveSimulationCopy(locale?: string | null): LoveSimulationCopy {
-  const activeLocale = normalizeLoveSimulationLocale(locale);
-  return LOVE_SIMULATION_COPY_TRANSLATIONS[activeLocale as keyof typeof LOVE_SIMULATION_COPY_TRANSLATIONS] || LOVE_SIMULATION_COPY_FALLBACK_LOCALES[activeLocale as Exclude<LoveSimulationLocale, "ko" | "en">] || LOVE_SIMULATION_COPY_TRANSLATIONS.en;
-}
+type LoveSimulationCopy = typeof LOVE_SIMULATION_CHROME_KO;
 
 type PartnerMatchInput = {
   name: string;
@@ -672,7 +626,7 @@ function partnerFieldsToAnimalInput(fields: {
   };
 }
 
-function CharacterPortrait({ character, mode }: { character: LoveCharacter; mode: "card" | "stage" | "result" }) {
+function CharacterPortrait({ character, mode, alt }: { character: LoveCharacter; mode: "card" | "stage" | "result"; alt: string }) {
   const sizeClass =
     mode === "stage"
       ? "h-[48svh] max-h-[560px] min-h-[320px] w-full"
@@ -685,7 +639,7 @@ function CharacterPortrait({ character, mode }: { character: LoveCharacter; mode
       <div className={`absolute inset-x-8 bottom-5 h-16 rounded-full blur-3xl ${character.palette.halo}`} />
       <img
         src={character.asset}
-        alt={`${character.name} 프로필`}
+        alt={alt}
         className="relative z-10 h-full w-full object-contain object-bottom drop-shadow-[0_26px_34px_rgba(0,0,0,0.55)]"
       />
     </div>
@@ -696,13 +650,13 @@ function getCropPositionClass(className: string) {
   return /\b(absolute|fixed|relative)\b/.test(className) ? "" : "relative";
 }
 
-function CharacterProfileCrop({ character, className = "" }: { character: LoveCharacter; className?: string }) {
+function CharacterProfileCrop({ character, className = "", alt }: { character: LoveCharacter; className?: string; alt: string }) {
   return (
     <div className={`${getCropPositionClass(className)} overflow-hidden rounded-lg bg-[#f3efe8] ${className}`}>
       <div className={`absolute inset-x-8 bottom-6 h-20 rounded-full blur-3xl ${character.palette.halo}`} />
       <img
         src={character.asset}
-        alt={`${character.name} 얼굴 및 기본정보 프로필`}
+        alt={alt}
         style={getProfileCropStyle(character)}
         className="z-10 max-w-none drop-shadow-[0_18px_28px_rgba(0,0,0,0.34)]"
       />
@@ -710,25 +664,25 @@ function CharacterProfileCrop({ character, className = "" }: { character: LoveCh
   );
 }
 
-function CharacterDialogueCrop({ character, className = "" }: { character: LoveCharacter; className?: string }) {
+function CharacterDialogueCrop({ character, className = "", alt }: { character: LoveCharacter; className?: string; alt: string }) {
   return (
     <div className={`${getCropPositionClass(className)} overflow-hidden rounded-lg bg-black/18 ${className}`}>
       <div className={`absolute inset-x-8 bottom-6 h-20 rounded-full blur-3xl ${character.palette.halo}`} />
       <img
         src={character.asset}
-        alt={`${character.name} 대화 얼굴 프로필`}
+        alt={alt}
         className="relative z-10 h-full w-full origin-top-left scale-[3.02] object-contain object-left-top drop-shadow-[0_22px_34px_rgba(0,0,0,0.52)]"
       />
     </div>
   );
 }
 
-function MetricBar({ label, value }: { label: string; value: number }) {
+function MetricBar({ label, value, tone }: { label: string; value: number; tone: LoveSimulationCopy["metricTone"] }) {
   return (
     <div className="min-w-0">
       <div className="mb-2 flex items-center justify-between gap-3 text-xs text-white/70">
         <span>{label}</span>
-        <span>{value >= 74 ? "깊어짐" : value >= 52 ? "이어짐" : "조심스러움"}</span>
+        <span>{value >= 74 ? tone.deep : value >= 52 ? tone.steady : tone.careful}</span>
       </div>
       <div className="h-2 overflow-hidden rounded-full bg-white/10">
         <m.div
@@ -916,7 +870,7 @@ function buildPlayableScenes(character: LoveCharacter | null, rawScenes: LoveSce
             location: copy.preparingStoryLocation,
             title: copy.preparingStoryTitle,
             situation: copy.preparingStorySituation,
-            dialogue: copy.preparingStoryDialogue(character.name),
+            dialogue: formatTemplate(copy.preparingStoryDialogue, { name: character.name }),
             choices: [
               createFallbackChoice(character, 1, 1, "warm"),
               createFallbackChoice(character, 1, 2, "curious"),
@@ -941,6 +895,7 @@ function RecommendedMatchCard({
   secondaryLabels,
   compatibility,
   matchingCopy,
+  copy,
   onStart,
 }: {
   character: LoveCharacter;
@@ -948,6 +903,7 @@ function RecommendedMatchCard({
   secondaryLabels: string[];
   compatibility: SajuCoupleCompatibility | null;
   matchingCopy: LoveMatchingCopy;
+  copy: LoveSimulationCopy;
   onStart: () => void;
 }) {
   return (
@@ -958,30 +914,36 @@ function RecommendedMatchCard({
       className="overflow-hidden rounded-lg border border-rose-100/22 bg-white/[0.12] shadow-[0_22px_60px_rgba(244,114,182,0.16)] backdrop-blur-2xl"
     >
       <div className="grid gap-0 sm:grid-cols-[0.42fr_0.58fr]">
-        <CharacterProfileCrop character={character} className="min-h-48 rounded-none sm:min-h-full" />
+        <CharacterProfileCrop
+          character={character}
+          className="min-h-48 rounded-none sm:min-h-full"
+          alt={formatTemplate(copy.profileFaceAlt, { name: result.characterName })}
+        />
         <div className="p-4 sm:p-5">
           <div className="mb-3 flex flex-wrap items-center gap-2">
-            <span className={`rounded-full border px-3 py-1 text-xs font-black ${character.palette.chip}`}>{character.dayMaster} 일간</span>
+            <span className={`rounded-full border px-3 py-1 text-xs font-black ${character.palette.chip}`}>{formatTemplate(copy.dayMasterBadge, { dayMaster: character.dayMaster })}</span>
             <span className="rounded-full border border-rose-100/20 bg-rose-50/12 px-3 py-1 text-xs font-black text-rose-50/82">
-              신뢰도 {matchingCopy.confidence[result.confidenceKey]}
+              {formatTemplate(copy.confidenceBadge, { value: matchingCopy.confidence[result.confidenceKey] })}
             </span>
           </div>
           <p className="text-xs font-black uppercase tracking-[0.2em] text-rose-100/72">Main Match</p>
           <h3 className="mt-2 text-2xl font-black leading-tight text-white">
-            입력한 상대는 <span className={character.palette.accent}>{result.characterName}형 성향</span>과 가장 가까워요.
+            {copy.mainMatchLeadPrefix}
+            <span className={character.palette.accent}>{formatTemplate(copy.mainMatchLeadHighlight, { name: result.characterName })}</span>
+            {copy.mainMatchLeadSuffix}
           </h3>
           <p className="mt-3 text-sm font-semibold leading-7 text-white/70">{result.summary}</p>
           {compatibility ? (
             <div className="mt-4 rounded-lg border border-rose-100/18 bg-rose-100/10 px-4 py-3">
               <p className="text-xs font-black uppercase tracking-[0.18em] text-rose-100/72">Couple Code</p>
               <p className="mt-2 text-sm font-black text-white">
-                {compatibility.grade} · {compatibility.score}점
+                {formatTemplate(copy.coupleScoreLine, { grade: compatibility.grade, score: String(compatibility.score) })}
               </p>
               <p className="mt-2 text-xs font-bold leading-6 text-white/68">{compatibility.summary}</p>
             </div>
           ) : (
             <p className="mt-4 rounded-lg border border-white/10 bg-black/18 px-3 py-2 text-xs font-bold leading-5 text-white/58">
-              내 프로필 카드 생년월일을 연결하면 쌍방 궁합까지 함께 반영됩니다.
+              {copy.coupleUnlinkedNote}
             </p>
           )}
           <div className="mt-4 grid gap-2">
@@ -992,14 +954,14 @@ function RecommendedMatchCard({
             ))}
           </div>
           {secondaryLabels.length > 0 ? (
-            <p className="mt-4 text-sm font-bold text-rose-50/78">함께 가까운 성향: {secondaryLabels.join(", ")}</p>
+            <p className="mt-4 text-sm font-bold text-rose-50/78">{formatTemplate(copy.secondaryMatchLine, { labels: secondaryLabels.join(", ") })}</p>
           ) : null}
           <button
             type="button"
             onClick={onStart}
             className={`mt-5 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-4 py-3 text-sm font-black text-zinc-950 shadow-[0_16px_34px_rgba(0,0,0,0.22)] transition hover:brightness-110 ${character.palette.button}`}
           >
-            {result.characterName}형 시뮬레이션 시작하기
+            {formatTemplate(copy.startWithMatchButton, { name: result.characterName })}
             <ChevronRight className="h-4 w-4" />
           </button>
         </div>
@@ -1504,7 +1466,7 @@ export const LoveSimulationEngine: React.FC = () => {
     };
   }, []);
 
-  const copy = useMemo(() => getLoveSimulationCopy(locale), [locale]);
+  const copy = useLoveSimCopy("chrome", LOVE_SIMULATION_CHROME_KO);
   // 🔴 `copy` 와 별개다. 위는 버튼·라벨 같은 UI 크롬(ko·en 표), 아래는 사주 해석이 조립하는
   //    콘텐츠 문장(12개 로케일 사전). 경계는 `_utils/loveSimCopy.ts` 헤더에 적혀 있다.
   const matchingCopy = useLoveSimCopy("matching", LOVE_MATCHING_COPY_KO);
@@ -1534,7 +1496,9 @@ export const LoveSimulationEngine: React.FC = () => {
     () => (primaryMatch ? LOVE_CHARACTERS.find((item) => item.id === primaryMatch.characterId) ?? null : null),
     [primaryMatch],
   );
-  const secondaryMatchLabels = matchResults.slice(1, 3).map((item) => `${item.characterName}형`);
+  const secondaryMatchLabels = matchResults
+    .slice(1, 3)
+    .map((item) => formatTemplate(copy.secondaryMatchTypeLabel, { name: item.characterName }));
   const canMatchPartner = Boolean(partnerBirthDate && !isMatching);
 
   // 유료 게이트는 이 한 곳(시뮬레이션 시작)에서만 돈다. 진입점(메인 타일·사주 분석 카드·직접 URL)에는
@@ -1818,27 +1782,27 @@ export const LoveSimulationEngine: React.FC = () => {
                 <Sparkles className="h-3.5 w-3.5 text-rose-100" />
                 Visual Novel Match
               </m.div>
-              <p className="mb-4 text-sm font-black text-rose-100/92">사주 성향과 선택으로 흐름이 달라지는 대화</p>
+              <p className="mb-4 text-sm font-black text-rose-100/92">{copy.introEyebrow}</p>
               <h1 className="max-w-[760px] text-5xl font-black leading-[1.02] text-white drop-shadow-[0_12px_38px_rgba(0,0,0,0.55)] sm:text-6xl lg:text-7xl">
-                Love Code: 운명의 상대와 대화하기
+                {copy.introTitle}
               </h1>
               <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-rose-50/78 drop-shadow-[0_10px_30px_rgba(0,0,0,0.45)] sm:text-lg">
-                캐릭터의 성향, 취향, 거리감을 따라가는 비주얼 노벨 궁합입니다.
+                {copy.introDescription}
               </p>
               <div className="mt-6 grid max-w-xl gap-2 text-sm font-bold text-white/72 sm:grid-cols-3">
-                {["사주 성향", "캐릭터 대화", "관계 흐름"].map((label) => (
+                {[copy.introChips.saju, copy.introChips.dialogue, copy.introChips.flow].map((label) => (
                   <div key={label} className="rounded-lg border border-white/12 bg-black/18 px-4 py-3 shadow-[0_14px_34px_rgba(0,0,0,0.18)] backdrop-blur-xl">
                     {label}
                   </div>
                 ))}
               </div>
               <div className="hidden">
-              <p className="mb-5 text-sm font-black text-rose-100/92">사주 성향과 선택으로 흐름이 달라지는 대화</p>
+              <p className="mb-5 text-sm font-black text-rose-100/92">{copy.introEyebrow}</p>
               <h1 className="text-5xl font-black leading-[0.98] text-white sm:text-6xl lg:text-7xl">
-                Love Code: 운명의 상대와 대화하기
+                {copy.introTitle}
               </h1>
               <p className="mt-6 max-w-xl text-base font-semibold leading-8 text-white/66 sm:text-lg">
-                캐릭터의 성향, 취향, 거리감을 따라가는 비주얼 노벨 궁합입니다.
+                {copy.introDescription}
               </p>
               </div>
               <div className="mt-9 flex flex-col gap-3 sm:flex-row">
@@ -1846,7 +1810,7 @@ export const LoveSimulationEngine: React.FC = () => {
                   onClick={() => setScreen("select")}
                   className="inline-flex min-h-13 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-white via-rose-50 to-pink-100 px-6 py-4 text-sm font-black text-zinc-950 shadow-[0_22px_56px_rgba(255,198,218,0.28)] transition hover:brightness-105"
                 >
-                  캐릭터 선택하기
+                  {copy.selectCharacterButton}
                   <ChevronRight className="h-4 w-4" />
                 </button>
                 <button
@@ -1854,7 +1818,7 @@ export const LoveSimulationEngine: React.FC = () => {
                   disabled={!canMatchPartner}
                   className="inline-flex min-h-13 items-center justify-center gap-2 rounded-lg border border-rose-100/32 bg-white/[0.12] px-6 py-4 text-sm font-black text-white/90 shadow-[0_18px_42px_rgba(0,0,0,0.24)] backdrop-blur-xl transition hover:bg-white/20 disabled:cursor-not-allowed disabled:text-white/38 disabled:hover:bg-white/10"
                 >
-                  {isMatching ? "인연의 결을 읽는 중" : "상대 정보로 매칭하기"}
+                  {isMatching ? copy.matchingReadingButton : copy.matchWithPartnerButton}
                   <ChevronRight className="h-4 w-4" />
                 </button>
               </div>
@@ -2057,6 +2021,7 @@ export const LoveSimulationEngine: React.FC = () => {
                       secondaryLabels={secondaryMatchLabels}
                       compatibility={coupleCompatibility}
                       matchingCopy={matchingCopy}
+                      copy={copy}
                       onStart={() => void startWithCharacter(primaryMatch.characterId, "sajuMatch")}
                     />
                   ) : null}
@@ -2087,7 +2052,7 @@ export const LoveSimulationEngine: React.FC = () => {
             </button>
             <div className="text-right">
               <p className="text-xs font-black uppercase tracking-[0.22em] text-rose-100/60">Preset Character</p>
-              <h2 className="text-xl font-black">대화할 상대 선택</h2>
+              <h2 className="text-xl font-black">{copy.characterSelectTitle}</h2>
             </div>
           </header>
 
@@ -2125,11 +2090,15 @@ export const LoveSimulationEngine: React.FC = () => {
                         {isExpanded ? (
                           <img
                             src={item.asset}
-                            alt={`${characterCopy[item.id].name} 전체 프로필`}
+                            alt={formatTemplate(copy.fullProfileAlt, { name: characterCopy[item.id].name })}
                             className="relative z-10 h-full w-full object-contain p-3 drop-shadow-[0_22px_34px_rgba(0,0,0,0.48)]"
                           />
                         ) : (
-                          <CharacterProfileCrop character={item} className="absolute inset-0 rounded-none" />
+                          <CharacterProfileCrop
+                            character={item}
+                            className="absolute inset-0 rounded-none"
+                            alt={formatTemplate(copy.profileFaceAlt, { name: characterCopy[item.id].name })}
+                          />
                         )}
                       </div>
                       <div className="border-t border-white/10 bg-white/[0.04] p-5 backdrop-blur-xl">
@@ -2137,10 +2106,10 @@ export const LoveSimulationEngine: React.FC = () => {
                           <div className="min-w-0">
                             <p className={`text-sm font-bold ${item.palette.accent}`}>{characterCopy[item.id].archetype}</p>
                             <h3 className="mt-1 text-3xl font-black text-white">{characterCopy[item.id].name}</h3>
-                            <p className="mt-2 text-sm font-semibold leading-6 text-white/62">{isExpanded ? "전체 이미지와 상세 프로필이 열렸습니다." : "좌측 상단 얼굴과 기본정보를 먼저 확인하세요."}</p>
+                            <p className="mt-2 text-sm font-semibold leading-6 text-white/62">{isExpanded ? copy.profileExpandedNote : copy.profileCollapsedNote}</p>
                           </div>
                           <span className="shrink-0 rounded-full border border-rose-100/18 bg-white/12 px-3 py-1 text-xs font-black text-white/78">
-                            {isExpanded ? "프로필 접기" : "프로필 보기"}
+                            {isExpanded ? copy.profileCollapseButton : copy.profileExpandButton}
                           </span>
                         </div>
                       </div>
@@ -2159,9 +2128,9 @@ export const LoveSimulationEngine: React.FC = () => {
                           <div className="flex max-h-[72svh] flex-col justify-between gap-7 overflow-y-auto p-5 sm:p-7">
                             <div>
                               <div className="mb-4 flex flex-wrap items-center gap-2">
-                                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${item.palette.chip}`}>{item.dayMaster} 일간</span>
+                                <span className={`rounded-full border px-3 py-1 text-xs font-semibold ${item.palette.chip}`}>{formatTemplate(copy.dayMasterBadge, { dayMaster: item.dayMaster })}</span>
                                 <span className="rounded-full border border-white/10 bg-white/10 px-3 py-1 text-xs text-white/60">
-                                  {item.gender === "male" ? "남성 캐릭터" : "여성 캐릭터"}
+                                  {item.gender === "male" ? copy.maleCharacterBadge : copy.femaleCharacterBadge}
                                 </span>
                               </div>
                               <p className="text-sm leading-7 text-white/72">{characterCopy[item.id].profileLine}</p>
@@ -2193,7 +2162,7 @@ export const LoveSimulationEngine: React.FC = () => {
                               disabled={isStartingSimulation}
                               className={`inline-flex min-h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-5 py-3 text-sm font-bold text-zinc-950 shadow-[0_18px_36px_rgba(0,0,0,0.22)] transition hover:brightness-110 ${item.palette.button}`}
                             >
-                              {characterCopy[item.id].name}와 대화하기
+                              {formatTemplate(copy.talkWithButton, { name: characterCopy[item.id].name })}
                               <ChevronRight className="h-4 w-4" />
                             </button>
                           </div>
@@ -2214,7 +2183,7 @@ export const LoveSimulationEngine: React.FC = () => {
     return (
       <section className="flex min-h-[100svh] items-center justify-center bg-zinc-950 p-6 text-white">
         <button onClick={() => setScreen("select")} className="rounded-lg bg-white px-5 py-3 text-sm font-bold text-zinc-950">
-          캐릭터 다시 선택하기
+          {copy.reselectCharacterButton}
         </button>
       </section>
     );
@@ -2226,7 +2195,7 @@ export const LoveSimulationEngine: React.FC = () => {
         <section className="flex min-h-[100svh] items-center justify-center bg-[#0b0710] p-6 text-center text-white">
           <div className="max-w-sm space-y-3">
             <div className="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-white/25 border-t-rose-200" />
-            <p className="text-sm font-bold text-rose-50">두 사람의 사주로 궁합을 계산하고 있어요…</p>
+            <p className="text-sm font-bold text-rose-50">{copy.calculatingCompatibility}</p>
           </div>
         </section>
       );
@@ -2236,10 +2205,10 @@ export const LoveSimulationEngine: React.FC = () => {
         <section className="flex min-h-[100svh] items-center justify-center bg-[#0b0710] p-6 text-center text-white">
           <div className="max-w-sm space-y-4">
             <p className="text-base font-bold leading-7 text-rose-50">
-              {initialCompatibilityNote || "궁합을 계산할 사주 정보를 확인하지 못했어요."}
+              {initialCompatibilityNote || copy.compatibilityInfoMissing}
             </p>
             <button onClick={resetToSelect} className="rounded-lg bg-white px-5 py-3 text-sm font-bold text-zinc-950">
-              다시 선택하기
+              {copy.reselectButton}
             </button>
           </div>
         </section>
@@ -2247,7 +2216,7 @@ export const LoveSimulationEngine: React.FC = () => {
     }
     const result = {
       title: profile.coreVerdict,
-      body: `${profile.grade} · ${profile.score}점 — 두 사람의 사주로 계산된 결과예요. 다시 봐도 점수는 같고, 이야기 순서만 달라집니다.`,
+      body: formatTemplate(copy.compatibilityResultBody, { grade: profile.grade, score: String(profile.score) }),
     };
     const choiceAnalysis = analyzeChoiceLogs(choiceLog);
     const characterResultSummary = CHARACTER_RESULT_SUMMARIES[character.id];
@@ -2272,7 +2241,11 @@ export const LoveSimulationEngine: React.FC = () => {
               <ArrowLeft className="h-5 w-5" />
             </button>
             <div>
-              <CharacterPortrait character={character} mode="result" />
+              <CharacterPortrait
+                character={character}
+                mode="result"
+                alt={formatTemplate(copy.portraitAlt, { name: characterCopy[character.id].name })}
+              />
               <div className="mt-5">
                 <p className={`text-sm font-semibold ${character.palette.accent}`}>{character.dayMaster} 일간 · {characterCopy[character.id].archetype}</p>
                 <h2 className="mt-2 text-4xl font-bold">{characterCopy[character.id].name}</h2>
@@ -2298,7 +2271,7 @@ export const LoveSimulationEngine: React.FC = () => {
               </p>
 
               <div className="mt-7 grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-                <ResultCard eyebrow="Saju Compatibility" title={`${sajuCompatibility.grade} · ${sajuCompatibility.score}점`}>
+                <ResultCard eyebrow="Saju Compatibility" title={formatTemplate(copy.coupleScoreLine, { grade: sajuCompatibility.grade, score: String(sajuCompatibility.score) })}>
                   <p>{sajuCompatibility.body}</p>
                   <div className="mt-4 flex flex-wrap gap-2">
                     {sajuCompatibility.chips.map((chip) => (
@@ -2315,60 +2288,60 @@ export const LoveSimulationEngine: React.FC = () => {
                     ))}
                   </div>
                   <p className="mt-4 rounded-lg border border-rose-100/14 bg-rose-100/10 px-3 py-2 text-xs font-bold leading-6 text-rose-50/78">
-                    리스크: {sajuCompatibility.risk}
+                    {formatTemplate(copy.riskLine, { risk: sajuCompatibility.risk })}
                   </p>
-                  <p className="mt-3 text-xs font-bold leading-6 text-white/58">데이트 팁: {sajuCompatibility.dateTip}</p>
+                  <p className="mt-3 text-xs font-bold leading-6 text-white/58">{formatTemplate(copy.dateTipLine, { tip: sajuCompatibility.dateTip })}</p>
                 </ResultCard>
                 <ResultCard eyebrow="Date Result" title={dateOutcome.title}>
                   <p>{dateOutcome.body}</p>
                   <p className="mt-3 rounded-lg border border-rose-100/18 bg-rose-100/10 px-3 py-2 text-xs font-black leading-6 text-rose-50/86">{dateOutcome.highlight}</p>
                   <p className="mt-3 text-xs font-bold leading-6 text-white/58">
-                    관계 루트: {finalRelationshipType.title}. {finalRelationshipType.body}
+                    {formatTemplate(copy.relationshipRouteLine, { title: finalRelationshipType.title, body: finalRelationshipType.body })}
                   </p>
                 </ResultCard>
               </div>
 
               <div className="mt-7 grid gap-4 sm:grid-cols-3 lg:grid-cols-5">
                 {[
-                  { label: "끌림", value: profile.dimensions.attraction.score },
-                  { label: "안정성", value: profile.dimensions.stability.score },
-                  { label: "소통", value: profile.dimensions.communication.score },
-                  { label: "지속성", value: profile.dimensions.longevity.score },
-                  { label: "갈등 관리", value: 100 - profile.dimensions.conflict.score },
+                  { label: copy.dimensionLabels.attraction, value: profile.dimensions.attraction.score },
+                  { label: copy.dimensionLabels.stability, value: profile.dimensions.stability.score },
+                  { label: copy.dimensionLabels.communication, value: profile.dimensions.communication.score },
+                  { label: copy.dimensionLabels.longevity, value: profile.dimensions.longevity.score },
+                  { label: copy.dimensionLabels.conflict, value: 100 - profile.dimensions.conflict.score },
                 ].map((metric) => (
-                  <MetricBar key={metric.label} label={metric.label} value={metric.value} />
+                  <MetricBar key={metric.label} label={metric.label} value={metric.value} tone={copy.metricTone} />
                 ))}
               </div>
 
               <div className="mt-8 grid gap-5 lg:grid-cols-3">
                 <div className="rounded-lg border border-white/10 bg-white/10 p-4">
-                  <h3 className="mb-3 text-sm font-bold text-white">사주 성향 요약</h3>
+                  <h3 className="mb-3 text-sm font-bold text-white">{copy.sajuSummaryTitle}</h3>
                   <p className="text-sm leading-7 text-white/70">
                     {sajuEntrySummary}
                   </p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-white/10 p-4">
-                  <h3 className="mb-3 text-sm font-bold text-white">명리 궁합 포인트</h3>
+                  <h3 className="mb-3 text-sm font-bold text-white">{copy.myeongliPointsTitle}</h3>
                   <p className="text-sm leading-7 text-white/70">{customAdvice}</p>
                 </div>
                 <div className="rounded-lg border border-white/10 bg-white/10 p-4">
-                  <h3 className="mb-3 text-sm font-bold text-white">피해야 할 흐름</h3>
+                  <h3 className="mb-3 text-sm font-bold text-white">{copy.avoidFlowTitle}</h3>
                   <p className="text-sm leading-7 text-white/70">{riskCoda}</p>
                 </div>
               </div>
 
               <div className="mt-6 rounded-lg border border-white/10 bg-white/10 p-4">
-                <h3 className="mb-3 text-sm font-bold text-white">대화 선택 기반 분석</h3>
+                <h3 className="mb-3 text-sm font-bold text-white">{copy.choiceAnalysisTitle}</h3>
                 <div className="grid gap-3">
                   <p className="text-sm leading-7 text-white/76">{choiceAnalysis.summary}</p>
                   {recentChoiceRecaps.map((recap, index) => (
                     <div key={`${recap.sceneLabel}-${recap.choiceText}`} className="border-b border-white/10 pb-3 last:border-b-0 last:pb-0">
-                      <p className="text-xs font-semibold text-white/50">선택 {choiceLog.length - recentChoiceRecaps.length + index + 1} · {recap.sceneLabel}</p>
+                      <p className="text-xs font-semibold text-white/50">{formatTemplate(copy.choiceRecapLabel, { index: String(choiceLog.length - recentChoiceRecaps.length + index + 1), scene: recap.sceneLabel })}</p>
                       <p className="mt-1 text-sm text-white/80">
                         {recap.choiceText}
                       </p>
                       <p className="mt-1 text-xs font-semibold leading-6 text-white/58">
-                        {recap.tone} 반응. {recap.insight}
+                        {formatTemplate(copy.choiceRecapInsight, { tone: recap.tone, insight: recap.insight })}
                       </p>
                     </div>
                   ))}
@@ -2379,7 +2352,7 @@ export const LoveSimulationEngine: React.FC = () => {
               <Suspense
                 fallback={
                   <div className="mt-6 rounded-[1.75rem] border border-white/10 bg-white/8 p-5 text-sm font-bold leading-7 text-white/64">
-                    캐릭터 스토리를 여는 중입니다.
+                    {copy.openingStoryMessage}
                   </div>
                 }
               >
@@ -2391,7 +2364,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 className={`mt-8 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-5 py-3 text-sm font-bold text-zinc-950 transition hover:brightness-110 ${character.palette.button}`}
               >
                 <RefreshCw className="h-4 w-4" />
-                다시 시작하기
+                {copy.restartButton}
               </button>
             </div>
           </m.div>
@@ -2425,13 +2398,13 @@ export const LoveSimulationEngine: React.FC = () => {
               <h1 className="mt-2 text-4xl font-black">{characterCopy[character.id].name}</h1>
               <p className="mt-3 text-sm leading-7 text-white/68">{characterCopy[character.id].profileLine}</p>
               <p className="mt-3 text-xs font-bold text-white/42">
-                {entryMode === "sajuMatch" ? "사주 매칭 추천으로 시작한 시뮬레이션" : "직접 선택으로 시작한 시뮬레이션"}
+                {entryMode === "sajuMatch" ? copy.entryModeMatchNote : copy.entryModePresetNote}
               </p>
               {initialCompatibilityNote ? <p className="mt-2 text-xs font-bold text-rose-100/62">{initialCompatibilityNote}</p> : null}
             </div>
             <div className="grid gap-3 rounded-lg border border-white/10 bg-black/24 p-5 backdrop-blur-xl">
               {metrics.map((metric) => (
-                <MetricBar key={metric.label} label={metric.label} value={metric.value} />
+                <MetricBar key={metric.label} label={metric.label} value={metric.value} tone={copy.metricTone} />
               ))}
             </div>
           </aside>
@@ -2453,12 +2426,16 @@ export const LoveSimulationEngine: React.FC = () => {
             </header>
 
             <div className="relative h-[34svh] min-h-[220px] max-h-[380px] shrink-0 overflow-hidden">
-              <CharacterDialogueCrop character={character} className="absolute inset-0 rounded-none" />
+              <CharacterDialogueCrop
+                character={character}
+                className="absolute inset-0 rounded-none"
+                alt={formatTemplate(copy.dialogueFaceAlt, { name: characterCopy[character.id].name })}
+              />
             </div>
             <div className="flex shrink-0 items-end justify-between gap-3 border-t border-white/10 bg-[#111017] px-5 py-4">
               <div className="min-w-0">
                 <p className="text-xs font-bold uppercase tracking-[0.18em] text-white/48">
-                  장면 {sceneIndex + 1}/{scenes.length}
+                  {formatTemplate(copy.sceneCounter, { index: String(sceneIndex + 1), total: String(scenes.length) })}
                 </p>
                 <h2 className="mt-1 truncate text-2xl font-black text-white">{characterCopy[character.id].name}</h2>
               </div>
@@ -2475,7 +2452,7 @@ export const LoveSimulationEngine: React.FC = () => {
             >
               <div className="mb-4 flex items-center gap-3">
                 <div className="h-10 w-10 overflow-hidden rounded-full border border-white/20 bg-black/30">
-                  <img src={character.asset} alt={`${characterCopy[character.id].name} 미니 얼굴`} className="h-full w-full origin-top-left scale-[3.02] object-contain object-left-top" />
+                  <img src={character.asset} alt={formatTemplate(copy.miniFaceAlt, { name: characterCopy[character.id].name })} className="h-full w-full origin-top-left scale-[3.02] object-contain object-left-top" />
                 </div>
                 <div>
                   <p className={`text-sm font-black ${character.palette.accent}`}>{characterCopy[character.id].name}</p>
@@ -2488,7 +2465,7 @@ export const LoveSimulationEngine: React.FC = () => {
                 <details className="group mt-4 rounded-lg border border-rose-100/12 bg-black/18">
                   <summary
                     className="flex min-h-12 cursor-pointer list-none items-center justify-between gap-3 px-4 py-3 text-sm font-black text-rose-50/82"
-                    aria-label={copy.sajuHintAria(characterCopy[character.id].name)}
+                    aria-label={formatTemplate(copy.sajuHintAria, { name: characterCopy[character.id].name })}
                   >
                     <span>{copy.sajuHint}</span>
                     <ChevronRight className="h-4 w-4 shrink-0 text-rose-100/66 transition group-open:rotate-90" />
@@ -2535,7 +2512,7 @@ export const LoveSimulationEngine: React.FC = () => {
                   <m.div key="story-hold" initial={{ opacity: 0, y: 8 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -8 }}>
                     <div className="mt-3 rounded-lg border border-white/10 bg-black/18 p-4">
                       <p className="text-sm leading-7 text-white/70">
-                        {character.conflictPattern} {character.bestApproach} 지금은 대답보다 분위기를 읽어야 하는 순간입니다.
+                        {character.conflictPattern} {character.bestApproach} {copy.storyHoldTail}
                       </p>
                     </div>
                     <button
@@ -2543,7 +2520,7 @@ export const LoveSimulationEngine: React.FC = () => {
                       onClick={() => setIsChoiceOpen(true)}
                       className={`mt-3 inline-flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-gradient-to-r px-4 py-3 text-sm font-black text-zinc-950 transition hover:brightness-110 ${character.palette.button}`}
                     >
-                      중요한 순간에 대답 선택하기
+                      {copy.openChoicesButton}
                       <ChevronRight className="h-4 w-4" />
                     </button>
                   </m.div>

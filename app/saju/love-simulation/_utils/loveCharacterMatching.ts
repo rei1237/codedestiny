@@ -215,7 +215,7 @@ const BRANCH_COPY_KEY: Record<string, keyof LoveMatchingCopy["branchNames"]> = {
  * `{name}` 자리를 채운다. 사전이 채우지 못한 자리는 남겨 두지 않고 빈 문자열로 지운다 —
  * 번역이 자리표시자를 빠뜨렸을 때 화면에 `{name}` 이 그대로 찍히는 것보다 낫다.
  */
-function formatTemplate(template: string, values: Record<string, string>): string {
+export function formatTemplate(template: string, values: Record<string, string>): string {
   return template.replace(/\{(\w+)\}/g, (_match, key: string) => values[key] ?? "");
 }
 

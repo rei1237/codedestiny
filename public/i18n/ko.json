@@ -8633,6 +8633,143 @@
         "profileLine": "부드러운 감성으로 마음의 결을 읽지만, 자신의 상처도 함께 돌봐주는 사람에게 천천히 피어나는 치유자 타입",
         "bestApproach": "부드럽고 진심 어린 표현으로 천천히 가까워지되, 받은 위로만 기대하지 말고 그녀의 마음도 되물어야 한다."
       }
+    },
+    "chrome": {
+      "preparingStoryLocation": "Love Code",
+      "preparingStoryTitle": "준비 중인 이야기",
+      "preparingStorySituation": "이 캐릭터의 스토리를 준비하고 있어요.",
+      "preparingStoryDialogue": "{name}의 이야기는 곧 더 깊게 열릴 예정입니다.",
+      "matchFormAria": "상대 정보 입력 매칭",
+      "partnerNamePlaceholder": "이름을 입력하세요",
+      "birthDateAria": "생년월일",
+      "birthHourAria": "출생 시간",
+      "birthCountryAria": "출생 국가",
+      "countryOptions": {
+        "seoul": "대한민국 · 서울 기준",
+        "tokyo": "일본 · 도쿄 기준",
+        "shanghai": "중국 · 상하이 기준",
+        "newYork": "미국 · 뉴욕 기준",
+        "paris": "프랑스 · 파리 기준"
+      },
+      "backToIntro": "인트로로 돌아가기",
+      "backToCharacterSelect": "캐릭터 선택으로 돌아가기",
+      "sajuHint": "사주 힌트 보기",
+      "sajuHintAria": "{name} 사주 힌트 펼치기",
+      "finalRelationship": {
+        "fateOpen": {
+          "title": "운명의 코드가 열린 관계",
+          "body": "서로의 마음이 비교적 자연스럽게 맞물렸습니다. 끌림만 앞선 것이 아니라, 상대가 안심할 수 있는 리듬을 함께 만들어낸 흐름이에요."
+        },
+        "slowBond": {
+          "title": "천천히 깊어지는 인연",
+          "body": "빠르게 타오르기보다 오래 남는 쪽에 가까운 관계입니다. 작은 배려와 반복되는 진심이 둘 사이의 문을 조용히 열어주었어요."
+        },
+        "needsTuning": {
+          "title": "설렘은 있지만 조율이 필요한 관계",
+          "body": "분명한 끌림이 있었지만, 서로의 속도와 표현 방식에는 조금 더 섬세한 조율이 필요합니다. 설렘을 오래 지키려면 한 박자 느린 확인이 좋아요."
+        },
+        "learnLanguage": {
+          "title": "서로의 언어를 배워야 하는 관계",
+          "body": "마음은 움직였지만 표현의 결이 완전히 같지는 않았습니다. 상대가 어떤 방식으로 사랑을 느끼는지 배우는 순간, 관계의 분위기가 훨씬 부드러워질 수 있어요."
+        },
+        "needsSpace": {
+          "title": "거리감 조절이 필요한 관계",
+          "body": "감정의 온도보다 거리의 감각이 먼저 중요하게 드러난 관계입니다. 무리하게 가까워지기보다, 상대가 숨 쉴 수 있는 여백을 남겨두는 편이 좋습니다."
+        }
+      },
+      "matchFormDescription": "이름과 생년월일을 남기면 선택한 성별 안에서 가장 닮은 러브 코드 상대가 열립니다.",
+      "nameFieldLabel": "이름",
+      "birthDateFieldLabel": "생년월일",
+      "calendarOptions": {
+        "solar": "양력",
+        "lunarRegular": "음력(평달)",
+        "lunarLeap": "음력(윤달)"
+      },
+      "calendarHint": "선택한 달력 기준으로 상대의 연애 결을 맞춰봅니다.",
+      "birthTimeFieldLabel": "출생 시간",
+      "birthCountryFieldLabel": "출생 국가 (장소)",
+      "birthCountryNote": "*서머타임 및 경도 보정 자동 적용",
+      "matchNote": "현재 매칭은 입력 시간과 장소 신호를 함께 반영합니다.",
+      "partnerGenderFieldLabel": "상대 성별",
+      "genderFemaleOption": "♀ 여성",
+      "genderMaleOption": "♂ 남성",
+      "timeKnownNote": "선택한 출생 시각까지 반영합니다.",
+      "timeUnknownNote": "출생시간 미상으로 표시하고 낮 12시 기준 보조 계산을 사용합니다.",
+      "unknownTimeButton": "출생시간을 몰라요 · 낮 12시 기준으로 보기",
+      "matchingInProgress": "인연의 결을 찾는 중...",
+      "startMatchButton": "상대 정보로 매칭 시작",
+      "matchAnalysisFailedError": "상대의 사주 정보를 불러오지 못했어요. 입력값을 확인한 뒤 다시 시도해주세요.",
+      "loginRequiredError": "로그인이 필요합니다.",
+      "paymentRequiredError": "유료 결제가 필요합니다. 결제창에서 상품을 선택해 주세요.",
+      "paymentVerifyFailedError": "결제 확인에 실패했습니다.",
+      "checkingPassMessage": "이용권 확인 중",
+      "introEyebrow": "사주 성향과 선택으로 흐름이 달라지는 대화",
+      "introTitle": "Love Code: 운명의 상대와 대화하기",
+      "introDescription": "캐릭터의 성향, 취향, 거리감을 따라가는 비주얼 노벨 궁합입니다.",
+      "introChips": {
+        "saju": "사주 성향",
+        "dialogue": "캐릭터 대화",
+        "flow": "관계 흐름"
+      },
+      "selectCharacterButton": "캐릭터 선택하기",
+      "matchingReadingButton": "인연의 결을 읽는 중",
+      "matchWithPartnerButton": "상대 정보로 매칭하기",
+      "mainMatchLeadPrefix": "입력한 상대는 ",
+      "mainMatchLeadHighlight": "{name}형 성향",
+      "mainMatchLeadSuffix": "과 가장 가까워요.",
+      "dayMasterBadge": "{dayMaster} 일간",
+      "confidenceBadge": "신뢰도 {value}",
+      "coupleScoreLine": "{grade} · {score}점",
+      "coupleUnlinkedNote": "내 프로필 카드 생년월일을 연결하면 쌍방 궁합까지 함께 반영됩니다.",
+      "secondaryMatchLine": "함께 가까운 성향: {labels}",
+      "secondaryMatchTypeLabel": "{name}형",
+      "startWithMatchButton": "{name}형 시뮬레이션 시작하기",
+      "characterSelectTitle": "대화할 상대 선택",
+      "fullProfileAlt": "{name} 전체 프로필",
+      "portraitAlt": "{name} 프로필",
+      "profileFaceAlt": "{name} 얼굴 및 기본정보 프로필",
+      "dialogueFaceAlt": "{name} 대화 얼굴 프로필",
+      "miniFaceAlt": "{name} 미니 얼굴",
+      "profileExpandedNote": "전체 이미지와 상세 프로필이 열렸습니다.",
+      "profileCollapsedNote": "좌측 상단 얼굴과 기본정보를 먼저 확인하세요.",
+      "profileCollapseButton": "프로필 접기",
+      "profileExpandButton": "프로필 보기",
+      "maleCharacterBadge": "남성 캐릭터",
+      "femaleCharacterBadge": "여성 캐릭터",
+      "talkWithButton": "{name}와 대화하기",
+      "reselectCharacterButton": "캐릭터 다시 선택하기",
+      "calculatingCompatibility": "두 사람의 사주로 궁합을 계산하고 있어요…",
+      "compatibilityInfoMissing": "궁합을 계산할 사주 정보를 확인하지 못했어요.",
+      "reselectButton": "다시 선택하기",
+      "compatibilityResultBody": "{grade} · {score}점 — 두 사람의 사주로 계산된 결과예요. 다시 봐도 점수는 같고, 이야기 순서만 달라집니다.",
+      "riskLine": "리스크: {risk}",
+      "dateTipLine": "데이트 팁: {tip}",
+      "relationshipRouteLine": "관계 루트: {title}. {body}",
+      "dimensionLabels": {
+        "attraction": "끌림",
+        "stability": "안정성",
+        "communication": "소통",
+        "longevity": "지속성",
+        "conflict": "갈등 관리"
+      },
+      "metricTone": {
+        "deep": "깊어짐",
+        "steady": "이어짐",
+        "careful": "조심스러움"
+      },
+      "sajuSummaryTitle": "사주 성향 요약",
+      "myeongliPointsTitle": "명리 궁합 포인트",
+      "avoidFlowTitle": "피해야 할 흐름",
+      "choiceAnalysisTitle": "대화 선택 기반 분석",
+      "choiceRecapLabel": "선택 {index} · {scene}",
+      "choiceRecapInsight": "{tone} 반응. {insight}",
+      "openingStoryMessage": "캐릭터 스토리를 여는 중입니다.",
+      "restartButton": "다시 시작하기",
+      "entryModeMatchNote": "사주 매칭 추천으로 시작한 시뮬레이션",
+      "entryModePresetNote": "직접 선택으로 시작한 시뮬레이션",
+      "sceneCounter": "장면 {index}/{total}",
+      "storyHoldTail": "지금은 대답보다 분위기를 읽어야 하는 순간입니다.",
+      "openChoicesButton": "중요한 순간에 대답 선택하기"
     }
   }
 }
