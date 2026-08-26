@@ -1,12 +1,14 @@
 import { Lunar, Solar } from "lunar-javascript";
 // 소한 상수·계산은 셸 엔진과 공유한다(lib/ziwei-minor-limit.js 머리말 참고).
 import { buildMinorLimitEntries, describeMinorLimit } from "../../lib/ziwei-minor-limit.js";
+// 화성·영성 기점도 같은 이유로 공유한다(lib/ziwei-fire-bell.js 머리말 참고).
+import { placeFireAndBell } from "../../lib/ziwei-fire-bell.js";
 
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
 const PALACE_NAMES = ["명궁", "형제궁", "부부궁", "자녀궁", "재백궁", "질액궁", "천이궁", "노복궁", "관록궁", "전택궁", "복덕궁", "부모궁"];
 const MAIN_STARS = ["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량", "칠살", "파군"];
-const ASSISTANT_STARS = ["문창", "문곡", "좌보", "우필", "천괴", "천월", "녹존", "함지", "천요"];
+const ASSISTANT_STARS = ["문창", "문곡", "좌보", "우필", "천괴", "천월", "녹존", "천마", "함지", "천요"];
 const MALEFIC_STARS = ["경양", "타라", "화성", "영성", "지공", "지겁"];
 
 const STEM_ALIAS = {
@@ -288,9 +290,15 @@ function placeAssistantAndMaleficStars(shells, lunarMonth, hourIdx, stemIndex, b
   addStar(shells, luCun + 1, "경양", "malefic");
   addStar(shells, luCun - 1, "타라", "malefic");
 
-  const fireStart = [2, 3, 1, 9][branchIndex % 4] || 2;
-  addStar(shells, fireStart + hourIdx, "화성", "malefic");
-  addStar(shells, fireStart - hourIdx, "영성", "malefic");
+  // 천마(天馬) — 역마 규칙. 申子辰→寅(2), 巳酉丑→亥(11), 寅午戌→申(8), 亥卯未→巳(5).
+  // 명암표에는 오래전부터 '천마' 행이 있었는데 배치가 없어서 그 행이 죽어 있었다.
+  addStar(shells, [2, 11, 8, 5][branchIndex % 4], "천마", "assistant");
+
+  // 🔴 예전에는 영성을 화성 기점에서 `- hourIdx` 로 역행시켰다. 그러면 자시·오시 출생에서
+  // 화성과 영성이 같은 궁에 겹친다(2 × hourIdx ≡ 0 mod 12). 두 별은 각자의 기점에서 순행한다.
+  const fireBell = placeFireAndBell({ yearBranchIndex: branchIndex, hourIndex: hourIdx });
+  addStar(shells, fireBell.fireBranchIndex, "화성", "malefic");
+  addStar(shells, fireBell.bellBranchIndex, "영성", "malefic");
   addStar(shells, 11 - hourIdx, "지공", "malefic");
   addStar(shells, 11 + hourIdx, "지겁", "malefic");
 

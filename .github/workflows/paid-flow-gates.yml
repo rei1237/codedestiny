@@ -153,6 +153,7 @@ on:
       #    verify:llm-generation-resilience) 통째로 못 깨우고 있었다(CLAUDE.md 원칙 10).
       - "worker/lib/ziwei-ai-*"
       - "lib/ziwei-minor-limit.js"
+      - "lib/ziwei-fire-bell.js"
       - "worker/lib/gemini.js"
       - "worker/lib/gemini-client.js"
       - "worker/lib/structured-consultation.js"
