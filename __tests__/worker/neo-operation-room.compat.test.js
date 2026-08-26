@@ -1,27 +1,36 @@
 /**
- * 네오 팩폭 작전실 — 자미두수 궁합(상대 명반 동반) 모드.
+ * 네오 팩폭 작전실 — 궁합(상대 차트 동반) 모드.
  *
- * 이 스위트가 지키는 것은 두 가지다.
+ * 이 스위트가 지키는 것은 세 가지다.
  *  1) 상대가 없으면 기존 1인 경로가 **글자 하나 다르지 않게** 그대로 돈다.
  *  2) 상대가 있으면 궁합이 실제로 계산되고, 그 값이 프롬프트가 보는 확정값 표까지 흘러간다.
+ *  3) 술수를 넷으로 넓히면서 **자미두수가 내던 숫자가 한 자리도 안 바뀐다.**
  *
- * 계산 엔진은 순수 함수라 모킹이 필요 없다.
+ * 계산 엔진은 순수 함수라 모킹이 필요 없다. 베다·점성술은 차트 계산이 외부/WASM 왕복이라
+ * 여기서 세우지 않는다 — 그 두 술수의 확정값은 verify-neo-operation-room-output-safety.mjs 가
+ * 손으로 세운 픽스처로 본다.
  */
 import { calculateZiweiAiChart } from "../../worker/lib/ziwei-ai-chart.js";
 import {
+  buildNeoCompat,
   buildNeoCompatScores,
   buildNeoZiweiCompat,
+  NEO_COMPAT_METHODS,
   NEO_RELATIONSHIP_STATUSES,
   neoRelationshipStatusFocus,
   neoRelationshipStatusLabel,
 } from "../../worker/lib/neo-operation-room-compat.js";
 import { buildNeoBasisPayload } from "../../worker/lib/neo-operation-room-basis.js";
 import {
-  NEO_COMPAT_INITIAL_SECTIONS,
+  neoCompatInitialSections,
+  NEO_COMPAT_PROMPT_METHODS,
   NEO_INITIAL_SECTIONS,
   buildNeoInitialSectionPrompt,
   mergeNeoInitialSections,
 } from "../../worker/lib/neo-operation-room-prompt.js";
+
+/** 이 스위트가 실제로 차트를 세울 수 있는 술수. 나머지는 위 머리말 참고. */
+const ZIWEI_SECTIONS = neoCompatInitialSections("ziwei");
 import { buildMasterLoveCodexCompatibility, buildZiweiLoveCompatibility } from "../../worker/lib/master-love-codex-compat.js";
 import { calculateLifeBookAiSaju } from "../../worker/lib/life-book-ai-saju.js";
 
@@ -41,23 +50,65 @@ function compatOf(partner = PARTNER, relationshipStatus = "reconciling") {
 }
 
 describe("궁합 계산", () => {
-  test("두 명반에서 점수 4종이 나오고 전부 0~100 범위다", () => {
+  test("두 명반에서 종합과 3축이 나오고 전부 0~100 범위다", () => {
     const { scores } = compatOf();
-    for (const key of ["overall", "resonance", "friction", "growth"]) {
-      expect(Number.isInteger(scores[key])).toBe(true);
-      expect(scores[key]).toBeGreaterThanOrEqual(0);
-      expect(scores[key]).toBeLessThanOrEqual(100);
+    expect(Number.isInteger(scores.overall)).toBe(true);
+    expect(scores.axes.map((axis) => axis.key)).toEqual(["resonance", "friction", "growth"]);
+    for (const value of [scores.overall, ...scores.axes.map((axis) => axis.value)]) {
+      expect(Number.isInteger(value)).toBe(true);
+      expect(value).toBeGreaterThanOrEqual(0);
+      expect(value).toBeLessThanOrEqual(100);
     }
   });
 
   test("종합 점수는 3축 평균이고 마찰만 뒤집는다", () => {
-    // 🔴 이 공식이 화면 고지 문구("공명·마찰·성장 3축의 평균")와 같은 것이어야 한다.
-    expect(buildNeoCompatScores({ resonance: 80, friction: 20, growth: 60 })).toEqual({
-      overall: 73, // (80 + 80 + 60) / 3
-      resonance: 80,
-      friction: 20,
-      growth: 60,
+    // 🔴 축 배열로 일반화하면서 이 숫자가 바뀌면 이미 상담을 본 사용자가 재열람할 때
+    //    점수가 달라진다. 축 배열 이전 식 `(resonance + (100 - friction) + growth) / 3` 의 값을
+    //    그대로 박아 둔다.
+    const scores = buildNeoCompatScores("ziwei", { resonance: 80, friction: 20, growth: 60 });
+    expect(scores.overall).toBe(73); // (80 + 80 + 60) / 3
+    expect(scores.axes).toEqual([
+      { key: "resonance", label: "공명", value: 80, inverted: false },
+      { key: "friction", label: "갈등 위험", value: 20, inverted: true },
+      { key: "growth", label: "함께 크는 힘", value: 60, inverted: false },
+    ]);
+  });
+
+  test("사주는 엔진이 내는 4축을 그대로 쓴다 — 자미두수 축으로 매핑하지 않는다", () => {
+    const scores = buildNeoCompatScores("saju", {
+      attraction: 60, stability: 40, communication: 50, endurance: 70,
     });
+    expect(scores.axes.map((axis) => axis.key)).toEqual(["attraction", "stability", "communication", "endurance"]);
+    expect(scores.axes.every((axis) => axis.inverted === false)).toBe(true);
+    expect(scores.overall).toBe(55); // 뒤집을 축이 없으므로 단순 평균
+  });
+
+  test("배점이 없는 술수는 점수를 만들지 않는다", () => {
+    // 🔴 점성술에는 결정론 배점이 없다. 없는 공식을 지어내면 근거 없는 숫자가 화면에 뜬다.
+    expect(buildNeoCompatScores("astrology", { anything: 50 })).toBeNull();
+    expect(buildNeoCompatScores("ziwei", null)).toBeNull();
+  });
+
+  test("사주 궁합도 같은 모양으로 나온다 — 술수마다 다른 계약을 만들지 않는다", () => {
+    const compat = buildNeoCompat({
+      method: "saju",
+      selfChart: calculateLifeBookAiSaju(ME),
+      partnerChart: calculateLifeBookAiSaju(PARTNER),
+      relationshipStatus: "dating",
+      partnerGender: "male",
+    });
+    expect(compat.method).toBe("saju");
+    expect(compat.scores.axes.length).toBe(4);
+    expect(compat.highlights.length).toBeGreaterThan(3);
+    expect(compat.relationshipStatusLabel).toBe("연애 중");
+    // 사주 요약은 일주·일간까지만 — 상대의 1인 상담을 대신 쓰지 않기 위해서다.
+    expect(compat.partnerDigest.dayMaster).not.toBe("");
+    expect(compat).not.toHaveProperty("branchRelations");
+  });
+
+  test("궁합 술수 목록은 교차 빌더에서 파생되고 프롬프트 어휘 표와 일치한다", () => {
+    expect([...NEO_COMPAT_METHODS].sort()).toEqual([...NEO_COMPAT_PROMPT_METHODS].sort());
+    expect(NEO_COMPAT_METHODS).toContain("ziwei");
   });
 
   test("같은 입력이면 같은 결과다(결정론)", () => {
@@ -138,11 +189,11 @@ describe("확정값 표", () => {
 
 describe("챕터 레지스트리", () => {
   test("궁합 레지스트리는 1인과 챕터 수가 같다 — 늘리면 LLM 예산을 넘긴다", () => {
-    expect(NEO_COMPAT_INITIAL_SECTIONS).toHaveLength(NEO_INITIAL_SECTIONS.length);
+    expect(ZIWEI_SECTIONS).toHaveLength(NEO_INITIAL_SECTIONS.length);
   });
 
   test("궁합 챕터 4개가 1인 챕터 4개 자리를 대신한다", () => {
-    const compatIds = NEO_COMPAT_INITIAL_SECTIONS.map((s) => s.id);
+    const compatIds = ZIWEI_SECTIONS.map((s) => s.id);
     expect(compatIds).toEqual(expect.arrayContaining([
       "compatMutualRead", "compatPalaceCross", "compatConflictPattern", "compatRelationStrategy",
     ]));
@@ -173,7 +224,7 @@ describe("프롬프트", () => {
   });
 
   test("궁합 모드 프롬프트에 교차 표와 궁합 지침이 함께 들어간다", () => {
-    const section = NEO_COMPAT_INITIAL_SECTIONS.find((s) => s.id === "compatPalaceCross");
+    const section = ZIWEI_SECTIONS.find((s) => s.id === "compatPalaceCross");
     const prompt = buildNeoInitialSectionPrompt(section, { ...ctx({ compat }), relationshipStatus: "reconciling" });
     expect(prompt).toContain("두 사람 교차");
     expect(prompt).toContain("[궁합 모드");
@@ -188,7 +239,7 @@ describe("프롬프트", () => {
   });
 
   test("상대 시간 미상이면 단정하지 말라는 지침이 붙는다", () => {
-    const section = NEO_COMPAT_INITIAL_SECTIONS.find((s) => s.id === "compatMutualRead");
+    const section = ZIWEI_SECTIONS.find((s) => s.id === "compatMutualRead");
     const prompt = buildNeoInitialSectionPrompt(section, ctx({ compat: compatOf(PARTNER_NO_TIME) }));
     expect(prompt).toContain("정오 기준");
   });

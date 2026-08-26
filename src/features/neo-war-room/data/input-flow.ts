@@ -135,8 +135,9 @@ export type NeoWarRoomBirthInput = {
 export type NeoWarRoomRelationshipStatus = "" | NeoCompatRelationshipStatus;
 
 /**
- * 상대 명반(궁합 모드) 입력. 🔴 자미두수에서만 열린다 — 재사용하는 궁합 엔진이 명반 교차를
- * 전제로 하고, 사주·베다·점성술에는 대응하는 결정론 엔진이 없다(서버도 같은 조건으로 버린다).
+ * 상대 명반(궁합 모드) 입력. 🔴 연애·재회 주제에서만 열린다 — 궁합 챕터 4개가 관계 전용이라
+ * (교전 패턴 챕터는 연인 간 대화를 만든다) 다른 주제에서 켜지면 상담이 주제를 벗어난다.
+ * 서버도 같은 조건으로 버린다(worker/routes/neo-operation-room.js 의 normalizePartnerBirthInfo).
  */
 export type NeoWarRoomPartnerState = {
   enabled: boolean;
@@ -229,12 +230,33 @@ export function buildDefaultNeoWarRoomPartnerState(): NeoWarRoomPartnerState {
   return { enabled: false, relationshipStatus: "", birth: { ...defaultBirthInput, name: "" } };
 }
 
+/** 궁합을 여는 주제. 🔴 서버의 normalizeTopicKey 가 "연애/재회" 로 정규화하는 값과 짝이다. */
+export const NEO_COMPAT_TOPIC = "연애 / 재회";
+
 /**
- * 궁합 모드가 켜져 있는가. 술수와 토글을 함께 본다 — 상대를 채운 뒤 술수를 바꾸면
- * 화면에서는 상대 칸이 사라지는데 페이로드에는 남는 사고를 여기서 막는다.
+ * 궁합을 지원하는 술수. 여기 없는 술수는 상대 칸 자체가 열리지 않는다.
+ * 🔴 서버 worker/lib/neo-operation-room-compat.js 의 NEO_COMPAT_METHODS 와 같아야 한다 —
+ *    화면에만 있으면 상대를 받아 놓고 서버가 버려 결제한 요청이 1인 상담으로 나간다.
  */
-export function isNeoWarRoomCompatActive(input: { method: NeoWarRoomConsultMode | ""; partner: NeoWarRoomPartnerState }) {
-  return input.method === "ziwei" && input.partner.enabled;
+export const NEO_COMPAT_METHODS: readonly NeoWarRoomConsultMode[] = ["ziwei", "saju", "vedic", "astrology"];
+
+export function isNeoWarRoomCompatSupported(method: NeoWarRoomConsultMode | "") {
+  return NEO_COMPAT_METHODS.includes(method as NeoWarRoomConsultMode);
+}
+
+/**
+ * 궁합 모드가 켜져 있는가. 주제·술수·토글 셋을 함께 본다 — 상대를 채운 뒤 주제나 술수를
+ * 바꾸면 화면에서는 상대 칸이 사라지는데 페이로드에는 남는 사고를 여기서 막는다.
+ *
+ * 🔴 검증·페이로드·요청지문 세 곳이 전부 이 함수 하나를 통과한다. 조건을 여기 말고 다른 데
+ *    복제하면 셋 중 하나만 갈려서, 상대를 결제한 요청이 1인 상담으로 나가거나 그 반대가 된다.
+ */
+export function isNeoWarRoomCompatActive(input: {
+  method: NeoWarRoomConsultMode | "";
+  topic: string;
+  partner: NeoWarRoomPartnerState;
+}) {
+  return isNeoWarRoomCompatSupported(input.method) && input.topic === NEO_COMPAT_TOPIC && input.partner.enabled;
 }
 // 스토리지를 읽지 않는 결정적 기본 상태. 서버 프리렌더와 클라이언트 첫 렌더가 항상 일치해야
 // 하이드레이션 예외("client-side exception")가 나지 않으므로, 초기 useState 값은 이 함수를 쓴다.

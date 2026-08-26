@@ -94,6 +94,7 @@ function sajuGroups(summary) {
       item("올해 세운", yearly[0] ? `${yearly[0].year || ""}년 ${yearly[0].pillar || ""}${yearly[0].stemTenGod ? ` (${yearly[0].stemTenGod})` : ""}`.trim() : ""),
       item("다가오는 세운", yearly.slice(1).map((entry) => `${entry?.year || ""}년 ${entry?.pillar || ""}`.trim()).filter(Boolean).join(" · ")),
     ]),
+    compatGroup("saju", summary.compat),
   ];
 }
 
@@ -150,38 +151,77 @@ function ziweiGroups(summary) {
       item("올해 유년", yearly ? `${yearly.year || ""}년 ${yearly.palaceName || yearly.earthlyBranch || ""}${asArray(yearly.mainStars).length ? ` (${asArray(yearly.mainStars).join(" · ")})` : ""}`.trim() : ""),
     ]),
     // 궁합 모드에서만. 1인 모드는 compat 이 없어 group() 이 null 을 돌려주고 그룹째 사라진다.
-    ziweiCompatGroup(summary.compat),
+    compatGroup("ziwei", summary.compat),
   ];
 }
 
 /**
- * 두 사람 교차 확정값.
- * 🔴 낙궁·교차는 sanFangLine 과 같은 이유로 `valuesOf` 로 뭉개지 않는다 — "무엇이 어디에
- *    떨어졌는가"가 사라지면 근거가 못 되고, 모델이 방향을 뒤집어 쓴다.
+ * 상대 차트 요약을 라벨 줄로 편다. 술수마다 담는 값이 다르므로 여기서만 갈라진다.
+ * 🔴 상대의 전체 차트를 싣지 않는다 — buildNeoCompat 의 partnerDigest 가 이미 몇 줄로
+ *    끊어 놨고, 그 이유(챕터가 "상대의 1인 상담"을 쓰기 시작한다)가 거기 주석에 있다.
  */
-function ziweiCompatGroup(compat) {
-  if (!compat || typeof compat !== "object") return null;
-  const digest = compat.partnerDigest || {};
-  const scores = compat.scores || {};
-  return group("compat", [
-    item("상대 성별", compat.partnerGenderLabel),
+const COMPAT_PARTNER_ITEMS = Object.freeze({
+  ziwei: (digest) => [
     item("상대 명궁", [digest.mingGong, digest.mingGongStars].filter(Boolean).join(" — ")),
     item("상대 신궁", digest.shenGong),
     item("상대 부부궁", digest.spousePalaceStars),
     item("상대 복덕궁", digest.fortunePalaceStars),
     item("상대 생년 사화", digest.fourTransformations),
     item("상대 국수", digest.bureau),
+  ],
+  saju: (digest) => [
+    item("상대 일주", [digest.dayPillar, digest.dayMaster ? `일간 ${digest.dayMaster}` : ""].filter(Boolean).join(" — ")),
+    item("상대 월주", digest.monthPillar),
+    item("상대 신강약", digest.strength),
+    item("상대 용신", digest.usefulGod),
+    item("상대 기신", digest.unfavorableGod),
+  ],
+  // 나크샤트라는 highlights 가 가나·주재성까지 붙여 싣는다 — 여기 또 적으면 표에 두 줄이 된다.
+  vedic: (digest) => [
+    item("상대 라그나", digest.lagna),
+    item("상대 달 사인", digest.moonSign),
+  ],
+  astrology: (digest) => [
+    item("상대 태양", digest.sun),
+    item("상대 달", digest.moon),
+    item("상대 금성", digest.venus),
+    item("상대 화성", digest.mars),
+    item("상대 상승궁", digest.ascendant),
+  ],
+});
+
+/**
+ * 두 사람 교차 확정값. 술수 4종이 같은 함수를 쓴다 — 갈라지는 건 상대 차트 요약뿐이고,
+ * 교차 판독(highlights)·관계 지표·관계 상태는 buildNeoCompat 이 이미 같은 모양으로 낸다.
+ *
+ * 🔴 낙궁·교차는 sanFangLine 과 같은 이유로 `valuesOf` 로 뭉개지 않는다 — "무엇이 어디에
+ *    떨어졌는가"가 사라지면 근거가 못 되고, 모델이 방향을 뒤집어 쓴다.
+ */
+function compatGroup(method, compat) {
+  if (!compat || typeof compat !== "object") return null;
+  const digest = compat.partnerDigest || {};
+  const partnerItems = COMPAT_PARTNER_ITEMS[method];
+  return group("compat", [
+    item("상대 성별", compat.partnerGenderLabel),
+    ...(partnerItems ? partnerItems(digest) : []),
     // 교차 판독은 항목마다 한 칸씩 — 한 칸에 합치면 basisItem 의 300자 상한에 뒤쪽이 잘린다.
     ...asArray(compat.highlights).map((entry) => item(entry?.label, entry?.value)),
-    item("관계 지표", [
-      Number.isFinite(scores.overall) ? `종합 ${scores.overall}` : "",
-      Number.isFinite(scores.resonance) ? `공명 ${scores.resonance}` : "",
-      Number.isFinite(scores.friction) ? `갈등 위험 ${scores.friction}` : "",
-      Number.isFinite(scores.growth) ? `함께 크는 힘 ${scores.growth}` : "",
-    ].filter(Boolean).join(" · ")),
+    // 🔴 축은 술수마다 다르다. 이름을 박지 말고 서버가 낸 라벨을 그대로 읽는다 — 박아 두면
+    //    술수가 늘 때 표에서 조용히 빠지고 measureNeoBasisCoverage 가 그제야 잡는다.
+    item("관계 지표", compatScoreLine(compat.scores)),
     item("관계 상태", compat.relationshipStatusLabel),
     item("상대 출생시간", compat.uncertainty?.partnerBirthTimeUnknown ? "미상(정오 기준으로 계산됨)" : ""),
   ]);
+}
+
+function compatScoreLine(scores) {
+  if (!scores || typeof scores !== "object") return "";
+  return [
+    Number.isFinite(scores.overall) ? `종합 ${scores.overall}` : "",
+    ...asArray(scores.axes)
+      .filter((axis) => axis && Number.isFinite(axis.value))
+      .map((axis) => `${axis.label} ${axis.value}`),
+  ].filter(Boolean).join(" · ");
 }
 
 // ─── 베다점 ────────────────────────────────────────────────────────────────
@@ -206,6 +246,7 @@ function vedicGroups(summary) {
       item("다가오는 다샤", asArray(dasha.upcoming).map((period) => valuesOf(period)).filter(Boolean).join(" · ")),
       item("고차라", summary.transits),
     ]),
+    compatGroup("vedic", summary.compat),
   ];
 }
 
@@ -227,6 +268,7 @@ function astrologyGroups(summary) {
     group("timing", [
       item("시기 신호", summary.timingInsights),
     ]),
+    compatGroup("astrology", summary.compat),
   ];
 }
 

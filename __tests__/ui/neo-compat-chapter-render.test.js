@@ -13,9 +13,12 @@ const test = require("node:test");
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
+const { stripTypeScriptTypes } = require("node:module");
+const { pathToFileURL } = require("node:url");
 
 const root = path.resolve(__dirname, "../..");
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
+const toDataUrl = (source) => `data:text/javascript;base64,${Buffer.from(source, "utf8").toString("base64")}`;
 
 const PROMPT_SOURCE = "worker/lib/neo-operation-room-prompt.js";
 const SURFACES = [
@@ -115,18 +118,63 @@ test("궁합 계기판이 읽는 응답 키가 서버 응답과 일치한다", (
   }
 
   const cardSource = read("src/features/neo-war-room/components/NeoCompatSummaryCard.tsx");
-  const scoreAxes = ["overall", "resonance", "friction", "growth"];
-  const compatSource = read("worker/lib/neo-operation-room-compat.js");
-  const scoresBody = sliceFunctionBody(compatSource, "export function buildNeoCompatScores(axisScores)");
-  for (const axis of scoreAxes) {
-    // 반환 리터럴이 축약 표기(`resonance,`)를 쓰므로 `키:` 로 찾지 않는다.
-    assert.ok(new RegExp(`\\b${axis}\\b`).test(scoresBody), `서버가 ${axis} 축을 더 이상 내지 않는다`);
-    // 타입 선언이 아니라 실제로 값을 읽는 자리를 본다.
-    assert.ok(cardSource.includes(`scores.${axis}`), `계기판이 ${axis} 축을 안 그린다`);
+  // 종합은 술수 무관으로 늘 있다.
+  assert.ok(cardSource.includes("scores.overall"), "계기판이 종합 점수를 안 그린다");
+  // 축은 술수마다 다르므로(자미두수 3 · 사주 4 · 베다 0) 이름을 박지 않고 배열을 순회해야 한다.
+  assert.ok(cardSource.includes("resolveAxes(scores)"), "계기판이 축 배열을 순회하지 않는다 — 축 이름을 박아 두면 술수가 늘 때 게이지가 빈다");
+  // 🔴 옛 상담(2026-08-26 이전 자미두수)은 평면 키로 저장돼 있다. 폴백이 사라지면 재열람이 빈 카드가 된다.
+  for (const legacyAxis of ["resonance", "friction", "growth"]) {
+    assert.ok(
+      cardSource.includes(`scores.${legacyAxis}`),
+      `옛 모양 폴백에서 ${legacyAxis} 가 빠졌다 — 이전에 저장된 궁합 상담의 점수 카드가 빈다`,
+    );
   }
 
   // 궁합 요약을 실제로 화면에 넘기는 배선까지 — 카드만 있고 아무도 안 부르면 점수는 영영 안 보인다.
   for (const surface of SURFACES) {
     assert.match(read(surface), /<NeoCompatSummaryCard/, `${surface}: 궁합 계기판을 렌더하지 않는다`);
   }
+});
+
+/**
+ * 🔴 서버가 낼 수 있는 축을 화면이 전부 로케일화하는가.
+ *
+ * 서버 label 은 한국어라 카드가 그대로 그리면 en/ja/zh 화면에 한국어가 박힌다. 카드의
+ * AXIS_COPY_KEYS 가 축 키를 카피 키로 옮기고, 그 카피 키가 다섯 저작 로케일에 다 있어야 한다.
+ * 축을 더하면서 카피를 빠뜨리면 여기서 걸린다.
+ */
+test("서버가 내는 모든 궁합 축을 화면이 로케일별로 부른다", async () => {
+  const { NEO_COMPAT_METHODS, buildNeoCompat } = await import(
+    pathToFileURL(path.join(root, "worker/lib/neo-operation-room-compat.js")).href
+  );
+  const formCopyUrl = toDataUrl(stripTypeScriptTypes(read("src/features/neo-war-room/data/form-copy.ts"), { mode: "strip" }));
+  const { getNeoFormCopy } = await import(formCopyUrl);
+
+  const cardSource = read("src/features/neo-war-room/components/NeoCompatSummaryCard.tsx");
+  const mapBlock = cardSource.match(/const AXIS_COPY_KEYS = \{([\s\S]*?)\} as const;/);
+  assert.ok(mapBlock, "카드의 AXIS_COPY_KEYS 를 못 찾았다 — 이름이 바뀌었으면 가드도 함께 고칠 것");
+  const axisCopyKeys = new Map(
+    [...mapBlock[1].matchAll(/(\w+):\s*"([^"]+)"/g)].map((match) => [match[1], match[2]]),
+  );
+  assert.ok(axisCopyKeys.size > 0, "축 카피 매핑을 못 읽었다 — 탐지가 깨진 것이다");
+
+  // 축 이름은 엔진 산출물에서 나온다. 실제 차트를 세우는 대신 축 표를 그대로 읽어 전수로 본다.
+  const compatSource = read("worker/lib/neo-operation-room-compat.js");
+  const axesBlock = compatSource.match(/const COMPAT_SCORE_AXES = Object\.freeze\(\{([\s\S]*?)\n\}\);/);
+  assert.ok(axesBlock, "서버의 COMPAT_SCORE_AXES 를 못 찾았다 — 이름이 바뀌었으면 가드도 함께 고칠 것");
+  const serverAxisKeys = [...axesBlock[1].matchAll(/key: "(\w+)"/g)].map((match) => match[1]);
+  assert.ok(serverAxisKeys.length >= 3, `서버 축을 ${serverAxisKeys.length}개밖에 못 찾았다 — 탐지가 깨진 것이다`);
+
+  const copies = ["ko", "en", "ja", "zh-CN", "zh-TW"].map((locale) => [locale, getNeoFormCopy(locale)]);
+  for (const axisKey of serverAxisKeys) {
+    const copyKey = axisCopyKeys.get(axisKey);
+    assert.ok(copyKey, `축 "${axisKey}" 의 화면 카피 키가 없다 — 다른 로케일에 한국어 라벨이 박힌다`);
+    for (const [locale, copy] of copies) {
+      assert.ok(copy[copyKey] && copy[copyKey].length > 0, `${locale}/${copyKey}: 축 라벨이 비었다`);
+    }
+  }
+
+  // 궁합 술수 전부에 축 표가 있거나(점수를 낸다) 없거나(베다처럼 종합만) 둘 중 하나여야 한다.
+  assert.ok(NEO_COMPAT_METHODS.length > 0, "궁합 술수 목록이 비었다");
+  assert.equal(typeof buildNeoCompat, "function");
 });

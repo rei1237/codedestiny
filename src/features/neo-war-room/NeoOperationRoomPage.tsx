@@ -45,6 +45,8 @@ import {
   clearNeoWarRoomIdempotencyKey,
   createNeoWarRoomInputFingerprint,
   isNeoWarRoomCompatActive,
+  isNeoWarRoomCompatSupported,
+  NEO_COMPAT_TOPIC,
   resolveNeoWarRoomIdempotencyKey,
   validateNeoWarRoomInput,
   type NeoWarRoomAccessPayload,
@@ -1546,7 +1548,10 @@ export default function NeoOperationRoomPage() {
           : Math.min(92, 34 + operationStageIndex * 6);
   const canStart = !busy;
   const birthFieldsDisabled = birthState.profileMode === "saved";
-  const compatActive = isNeoWarRoomCompatActive({ method, partner: partnerState });
+  const compatActive = isNeoWarRoomCompatActive({ method, topic, partner: partnerState });
+  // 상대 칸은 궁합을 지원하는 술수 + 연애·재회 주제일 때만 연다. 조건이 깨지면 칸이 사라지고,
+  // isNeoWarRoomCompatActive 가 페이로드·요청지문에서도 함께 빼므로 상태를 되돌릴 필요가 없다.
+  const compatAvailable = isNeoWarRoomCompatSupported(method) && topic === NEO_COMPAT_TOPIC;
   const compatStatusLabel = getNeoCompatStatusLabel(partnerState.relationshipStatus, dialogueLocale);
   const actorState: NeoWarRoomEmotionState = busy || previewOperationMap
     ? "analyzing"
@@ -3010,7 +3015,7 @@ export default function NeoOperationRoomPage() {
                   {formCopy["birthInfo.birthTimeUnknown"]}
                 </label>
               </div>
-              {method === "ziwei" ? (
+              {compatAvailable ? (
                 <div className={styles.partnerBlock}>
                   <strong>{formCopy["partner.title"]}</strong>
                   <p className={styles.sectionCopy}>{formCopy["partner.sectionCopy"]}</p>

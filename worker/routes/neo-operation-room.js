@@ -27,12 +27,18 @@ import {
   startServiceExecution,
 } from "../lib/service-execution-task.js";
 import {
-  buildNeoZiweiCompat,
+  buildNeoCompat,
+  NEO_COMPAT_METHODS,
+  NEO_COMPAT_TOPIC_KEY,
+  neoVedicMoonLongitude,
   NEO_RELATIONSHIP_STATUSES,
+  normalizeTopicKey,
 } from "../lib/neo-operation-room-compat.js";
+import { assembleNakshatraCompat } from "../lib/nakshatra-compat.js";
+import { buildNeoAstroSynastry } from "../lib/neo-synastry.js";
 import {
   buildPreviousAdviceLog,
-  NEO_COMPAT_INITIAL_SECTIONS,
+  neoCompatInitialSections,
   NEO_INITIAL_SECTIONS,
   NEO_REFINED_SECTIONS,
   buildNeoInitialSectionPrompt,
@@ -149,16 +155,23 @@ function withBirthPlace(birthInfo) {
   };
 }
 
+/** 궁합을 지원하는 술수. 교차 엔진이 있는 술수만 들어간다(정본은 궁합 모듈이 들고 있다). */
+const COMPAT_METHODS = new Set(NEO_COMPAT_METHODS);
+
 /**
  * 궁합 모드(상대 명반 동반)로 볼지 판정한다.
  *
+ * 🔴 연애·재회 주제에서만 궁합을 연다. 궁합 챕터 4개가 관계 전용이기 때문이다 — 특히
+ *    교전 패턴 챕터는 연인 간 대화를 재구성하므로, 돈·직업 주제에서 열리면 상담이 주제를
+ *    통째로 벗어난다. 주제는 자유 문자열로 오므로 normalizeTopicKey 로 정규화해 본다.
  * 🔴 자미두수에서만 궁합을 연다. 재사용하는 궁합 엔진(master-love-codex-compat)이 명반 교차를
  *    전제로 하기 때문이고, 사주·베다·점성술에는 대응하는 결정론 엔진이 없다.
  * 🔴 조건을 못 채운 상대 정보는 422 로 막지 않고 **버린다.** 이 값은 전부 선택 입력이라,
  *    거부하면 상대 칸을 실수로 건드린 사용자가 기존 1인 분석까지 못 하게 된다.
  */
-function normalizePartnerBirthInfo(body, selectedMethod) {
-  if (selectedMethod !== "ziwei") return null;
+function normalizePartnerBirthInfo(body, selectedMethod, topic) {
+  if (!COMPAT_METHODS.has(selectedMethod)) return null;
+  if (normalizeTopicKey(topic) !== NEO_COMPAT_TOPIC_KEY) return null;
   const source = body.partnerBirthInput || body.partnerBirthInfo || body.partner;
   if (!source || typeof source !== "object") return null;
   const partner = normalizeBirthInfo({ birthInput: source });
@@ -184,7 +197,7 @@ function normalizeInput(body = {}) {
   if ((selectedMethod === "vedic" || selectedMethod === "astrology") && !birthInfo.timezone) {
     return { ok: false, message: INVALID_INPUT_MESSAGE };
   }
-  const partnerBirthInfo = normalizePartnerBirthInfo(body, selectedMethod);
+  const partnerBirthInfo = normalizePartnerBirthInfo(body, selectedMethod, topic);
   const relationshipStatusRaw = clean(body.relationshipStatus, 20);
   const relationshipStatus = RELATIONSHIP_STATUSES.has(relationshipStatusRaw) ? relationshipStatusRaw : "";
   const input = {
@@ -788,34 +801,105 @@ function summarizeAstrology(prepared) {
   };
 }
 
+/**
+ * 베다 아쉬타쿠타 교차. 궁합 모듈이 nakshatra-* 를 직접 물 수 없어(그 파일 머리말 참고)
+ * 라우트가 계산해 주입한다.
+ * 🔴 sukuyo 는 넘기지 않는다 — 네오는 숙요를 계산하지 않는다. 넘기지 않으면
+ *    assembleNakshatraCompat 이 dongyang 을 null 로 두고 아쉬타쿠타만 성립시킨다.
+ */
+/**
+ * 점성술 계산기가 받는 출생 입력 모양. 1인 경로가 쓰던 것과 같은 매핑이며, 궁합에서 상대에게도
+ * 그대로 쓴다 — 상대만 다른 모양으로 넣으면 두 차트가 다른 규칙으로 세워진다.
+ */
+function astroBirthInput(birth) {
+  return {
+    birthDate: birth.birthDate,
+    birthTime: birth.birthTimeUnknown ? "12:00" : birth.birthTime,
+    birthTimeUnknown: birth.birthTimeUnknown,
+    gender: birth.gender,
+    timezone: birth.timezone,
+    birthPlace: birth.city,
+    latitude: birth.latitude,
+    longitude: birth.longitude,
+    location: birth.birthPlace,
+  };
+}
+
+function buildNeoVedicCompat(selfChart, partnerChart, partnerInfo) {
+  const selfMoon = neoVedicMoonLongitude(selfChart);
+  const partnerMoon = neoVedicMoonLongitude(partnerChart);
+  if (!Number.isFinite(selfMoon) || !Number.isFinite(partnerMoon)) return null;
+  return assembleNakshatraCompat(
+    { moonLon: selfMoon },
+    { moonLon: partnerMoon, gender: clean(partnerInfo?.gender, 20) },
+  );
+}
+
+/**
+ * 궁합 확정값을 붙인다. 🔴 상대가 없으면 summary 를 **그대로** 돌려준다 — 1인 경로는
+ * 이 함수를 지나도 한 바이트도 달라지지 않아야 한다.
+ */
+function withCompat(summary, input, method, selfChart, partnerChart, engineExtras = {}) {
+  if (!partnerChart) return summary;
+  const compat = buildNeoCompat({
+    method,
+    selfChart,
+    partnerChart,
+    ...engineExtras,
+    relationshipStatus: input.relationshipStatus || "",
+    partnerGender: input.partnerBirthInfo?.gender || "",
+  });
+  return compat ? { ...summary, compat } : summary;
+}
+
 async function calculateMethodSummary(env, normalized, request) {
   const input = normalized.input;
+  const partner = input.partnerBirthInfo || null;
   if (input.selectedMethod === "saju") {
-    return summarizeSaju(calculateLifeBookAiSaju(input.birthInfo));
+    const selfChart = calculateLifeBookAiSaju(input.birthInfo);
+    const partnerChart = partner ? calculateLifeBookAiSaju(partner) : null;
+    return withCompat(summarizeSaju(selfChart), input, "saju", selfChart, partnerChart);
   }
   if (input.selectedMethod === "ziwei") {
     const year = new Date().getFullYear();
     const selfChart = calculateZiweiAiChart({ birthInfo: input.birthInfo }, { year });
-    const summary = summarizeZiwei(selfChart);
-    // 상대 명반이 없으면 1인 모드 — 아래 한 줄 위로는 기존 경로와 완전히 같다.
-    if (!input.partnerBirthInfo) return summary;
-    const partnerChart = calculateZiweiAiChart({ birthInfo: input.partnerBirthInfo }, { year });
-    return {
-      ...summary,
-      compat: buildNeoZiweiCompat({
-        selfChart,
-        partnerChart,
-        relationshipStatus: input.relationshipStatus || "",
-        partnerGender: input.partnerBirthInfo.gender || "",
-      }),
-    };
+    const partnerChart = partner ? calculateZiweiAiChart({ birthInfo: partner }, { year }) : null;
+    return withCompat(summarizeZiwei(selfChart), input, "ziwei", selfChart, partnerChart);
   }
   if (input.selectedMethod === "vedic") {
-    return summarizeVedic(await calculateVedicAiChart(env, {
-      birthInfo: input.birthInfo,
+    const vedicChart = (birthInfo) => calculateVedicAiChart(env, {
+      birthInfo,
       topic: input.topic,
       userQuestion: input.question,
-    }, { requestUrl: request.url }));
+    }, { requestUrl: request.url });
+    // 🔴 두 차트를 **병렬로** 세운다. 베다 계산은 외부/WASM 왕복이라 직렬로 두면 왕복이
+    //    두 배가 되고, 챕터 14개를 만들기도 전에 SYNC_LLM_TIMEOUT_CEILING_MS 예산이 깎인다.
+    const [selfChart, partnerChart] = await Promise.all([
+      vedicChart(input.birthInfo),
+      partner ? vedicChart(partner) : Promise.resolve(null),
+    ]);
+    return withCompat(summarizeVedic(selfChart), input, "vedic", selfChart, partnerChart, {
+      // 아쉬타쿠타는 여기서 계산해 넣는다 — neo-operation-room-compat.js 가 nakshatra-* 를 직접
+      // 물면 번들러 밖(가드·테스트)에서 로드되지 않는다. 그 이유는 그 파일 머리말에 적혀 있다.
+      vedicCompat: partnerChart ? buildNeoVedicCompat(selfChart, partnerChart, partner) : null,
+    });
+  }
+  if (partner) {
+    // 🔴 베다와 같은 이유로 병렬. 점성술도 외부/WASM 왕복이다.
+    const [selfPrepared, partnerPrepared] = await Promise.all([
+      prepareAstroPremiumCalculation(env, { birthInput: astroBirthInput(input.birthInfo) }, { requestUrl: request.url }),
+      prepareAstroPremiumCalculation(env, { birthInput: astroBirthInput(partner) }, { requestUrl: request.url }),
+    ]);
+    return withCompat(
+      summarizeAstrology(selfPrepared),
+      input,
+      "astrology",
+      selfPrepared,
+      partnerPrepared,
+      // 시나스트리도 라우트가 계산해 주입한다 — swiss-ephemeris 는 WASM 을 끌고 오므로
+      // 궁합 모듈이 물면 가드가 그 모듈을 못 읽는다.
+      { synastry: buildNeoAstroSynastry(selfPrepared, partnerPrepared) },
+    );
   }
   const birth = input.birthInfo;
   return summarizeAstrology(await prepareAstroPremiumCalculation(env, {
@@ -946,7 +1030,9 @@ async function generateBriefing(env, normalized, methodSummary) {
   };
   // 궁합 모드는 챕터를 **더하지 않고 갈아 끼운다**(개수 14 유지) — 웨이브가 늘면
   // SYNC_LLM_TIMEOUT_CEILING_MS 예산 안에서 완주하지 못한다.
-  const sections = methodSummary?.compat ? NEO_COMPAT_INITIAL_SECTIONS : NEO_INITIAL_SECTIONS;
+  const sections = methodSummary?.compat
+    ? neoCompatInitialSections(normalized.input.selectedMethod)
+    : NEO_INITIAL_SECTIONS;
   const cacheStore = createLlmCacheStore(env);
   // #706 은 /refine 에만 예산을 넣고 /start 는 "안정적으로 도는 경로"라 손대지 않았다. 여기서 함께
   // 건다 — 1차는 14챕터/동시성 4 = 4웨이브라 2차(2웨이브)보다 노출이 크고, 이 PR 이 폴백 잘림까지

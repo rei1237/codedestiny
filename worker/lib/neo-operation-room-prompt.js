@@ -5,7 +5,7 @@ import { buildNeoBasisPayload, sliceNeoBasisPayload } from "./neo-operation-room
 import { REASONING_OUTPUT_RULE_LINES } from "./fortune-reasoning-contract.js";
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.js";
-import { neoRelationshipStatusFocus } from "./neo-operation-room-compat.js";
+import { neoRelationshipStatusFocus, normalizeTopicKey } from "./neo-operation-room-compat.js";
 
 const METHOD_LABELS = Object.freeze({
   saju: "사주",
@@ -124,19 +124,6 @@ const TOPIC_METHOD_FOCUS = Object.freeze({
     astrology: "달-화성/토성 하드 애스펙트나 반복 각도를 인용해 방아쇠-반응 회로를 단정한다. 감정(달)이 어느 지점에서 선택을 대신하는지 특정한다.",
   },
 });
-
-function normalizeTopicKey(topic) {
-  const compact = clean(topic).replace(/\s+/g, "");
-  if (/연애|재회/.test(compact)) return "연애/재회";
-  if (/직업|이직/.test(compact)) return "직업/이직";
-  if (/돈|재물/.test(compact)) return "돈/재물";
-  if (/인간관계/.test(compact)) return "인간관계";
-  if (/멘탈|자기관리/.test(compact)) return "멘탈/자기관리";
-  if (/인생방향/.test(compact)) return "인생방향";
-  if (/지금선택/.test(compact)) return "지금선택";
-  if (/반복|실수/.test(compact)) return "반복실수";
-  return "";
-}
 
 function topicMethodFocusFor(topic, method) {
   const topicKey = normalizeTopicKey(topic);
@@ -804,7 +791,7 @@ function neoBasisLines(section, ctx) {
 // 다른 챕터가 맡는 범위를 레지스트리에서 파생해 알려준다(손으로 쓴 목록이 아니다).
 // 🔴 section.id 를 쓰지 말 것 — camelCase 가 프롬프트에 들어가면 모델이 그대로 에코한다. title 만 쓴다.
 function otherChapterScopeLines(section) {
-  const registry = [NEO_INITIAL_SECTIONS, NEO_COMPAT_INITIAL_SECTIONS, NEO_REFINED_SECTIONS]
+  const registry = [NEO_INITIAL_SECTIONS, ...Object.values(NEO_COMPAT_SECTIONS_BY_METHOD), NEO_REFINED_SECTIONS]
     .find((entries) => entries.some((entry) => entry.id === section.id)) || NEO_REFINED_SECTIONS;
   const others = registry.filter((entry) => entry.id !== section.id).map((entry) => entry.title);
   if (!others.length) return [];
@@ -1020,42 +1007,117 @@ export const NEO_INITIAL_SECTIONS = Object.freeze([
 //    topicStyle / topicAreaBreakdown / repeatedChoice / misalignedFlow 자리를 대신한다.
 // 🔴 새 챕터의 스키마 필드는 반드시 mergeNeoInitialSections 가 병합해야 한다 —
 //    안 그러면 결과에 0자로 실려 verify:neo-operation-room-output-safety 의 분량 계약이 실패한다.
-const NEO_COMPAT_SECTION_OVERRIDES = Object.freeze({
+/**
+ * 술수별 궁합 어휘. 🔴 자미두수 항목은 이 표가 생기기 전 문장을 **한 글자도 바꾸지 않고**
+ * 옮긴 것이다 — 자미두수 궁합 프롬프트가 달라지면 LLM 캐시가 회전하고 이미 본 상담의 재생성
+ * 결과가 바뀐다. 새 술수를 더할 때 자미두수 문장을 "정리"하지 말 것.
+ *
+ * 각 술수는 같은 네 자리를 자기 어휘로 채운다:
+ *  - evidenceHint : 상호 판독 챕터가 인용해야 할 교차 항목
+ *  - crossTitle/crossScope/crossAreaLabel/crossAreas : 자리별 교차 챕터의 범위
+ *  - mentalArea/moneyArea/outerArea : 멘탈·돈·바깥활동을 각 술수에서 무엇으로 보는가
+ *  - crossEvidence : 자리별 교차 챕터가 인용해야 할 계산 근거
+ *  - triggerBasis : 교전 패턴 챕터가 방아쇠를 특정할 근거
+ */
+const NEO_COMPAT_METHOD_FOCUS = Object.freeze({
+  ziwei: Object.freeze({
+    chartWord: "명반",
+    evidenceHint: "상대 명궁 주성, 부부궁 교차, 사화 낙궁, 살성 낙궁",
+    crossTitle: "궁위 교차 — 자리마다 다른 온도",
+    crossScope: "부부궁·복덕궁·재백궁·관록궁·천이궁을 각각 두 사람 기준으로 교차해, 그 자리에서 맞물리는 방식과 부딪히는 방식을 나눠 분석한다.",
+    crossAreaLabel: "궁 이름",
+    crossAreas: "부부궁·복덕궁·재백궁·관록궁·천이궁",
+    mentalArea: "복덕궁",
+    moneyArea: "재백궁",
+    moneyRule: "재백궁에서는 소비·저축 성향 차이와 공동재정에서 부딪힐 지점을 짚는다.",
+    outerRule: "🔴 천이궁을 근거로 외도·범죄 등 특정 행위를 단정하지 않는다. 바깥에서의 활동 방식 차이까지만 쓴다.",
+    crossEvidence: "궁 주성·별 세기·사화 낙궁·살성 낙궁",
+    triggerBasis: "살성 낙궁·화기 낙궁·부부궁 교차",
+  }),
+  saju: Object.freeze({
+    chartWord: "명식",
+    evidenceHint: "두 일간의 관계, 천간 합충, 지지 합충, 상대가 내 명식에 앉는 십성, 용신 공급 여부",
+    crossTitle: "명식 교차 — 자리마다 다른 온도",
+    crossScope: "일지(배우자궁)·재성과 관성·인성과 식상·지지 합충·오행 보완을 각각 두 사람 기준으로 교차해, 그 자리에서 맞물리는 방식과 부딪히는 방식을 나눠 분석한다.",
+    crossAreaLabel: "자리 이름",
+    crossAreas: "일지(배우자궁)·재성과 관성·인성과 식상·지지 합충·오행 보완",
+    mentalArea: "인성과 식상",
+    moneyArea: "재성",
+    moneyRule: "재성에서는 소비·저축 성향 차이와 공동재정에서 부딪힐 지점을 짚는다.",
+    outerRule: "🔴 지지 충형을 근거로 외도·범죄 등 특정 행위를 단정하지 않는다. 생활 리듬과 활동 방식의 차이까지만 쓴다.",
+    crossEvidence: "일간 관계·천간 합충·지지 합충·십성 역할·용신 공급",
+    triggerBasis: "지지 충형·기신을 키우는 오행·일주끼리 걸린 자리",
+  }),
+  astrology: Object.freeze({
+    chartWord: "차트",
+    evidenceHint: "두 사람 사이의 각과 오브, 상대 행성이 내 하우스에 떨어지는 자리, 상대의 태양·달·금성·화성 사인",
+    crossTitle: "시나스트리 교차 — 자리마다 다른 온도",
+    crossScope: "7하우스·금성·화성·달·상대 행성이 내 하우스에 떨어지는 자리를 각각 두 사람 기준으로 교차해, 그 자리에서 맞물리는 방식과 부딪히는 방식을 나눠 분석한다.",
+    crossAreaLabel: "자리 이름",
+    crossAreas: "7하우스·금성·화성·달·상승궁·상대 행성이 떨어진 하우스",
+    mentalArea: "달",
+    moneyArea: "금성",
+    moneyRule: "금성에서는 소비·저축 성향 차이와 공동재정에서 부딪힐 지점을 짚는다.",
+    outerRule: "🔴 화성이나 특정 각을 근거로 외도·범죄 등 특정 행위를 단정하지 않는다. 부딪히는 방식의 차이까지만 쓴다.",
+    crossEvidence: "각의 종류와 오브·행성이 떨어진 하우스·사인",
+    triggerBasis: "오브가 좁은 사각·대칭 각·상대 화성이 떨어진 하우스",
+  }),
+  vedic: Object.freeze({
+    chartWord: "차트",
+    evidenceHint: "아쉬타쿠타 쿠타별 점수, 도샤, 두 사람의 달 나크샤트라와 가나",
+    crossTitle: "쿠타 교차 — 자리마다 다른 온도",
+    crossScope: "요니와 가나·그라하 마이트리·바쿠트·나디·타라를 각각 두 사람 기준으로 교차해, 그 자리에서 맞물리는 방식과 부딪히는 방식을 나눠 분석한다.",
+    crossAreaLabel: "쿠타 이름",
+    crossAreas: "요니·가나·그라하 마이트리·바쿠트·나디·타라·바샤",
+    mentalArea: "가나",
+    moneyArea: "바쿠트",
+    moneyRule: "바쿠트에서는 생활 기반과 살림 운영에서 부딪힐 지점을 짚는다.",
+    outerRule: "🔴 나디·바쿠트 도샤를 근거로 질병·불임·이혼 같은 결과를 단정하지 않는다. 주의해서 관리할 결까지만 쓴다.",
+    crossEvidence: "쿠타별 점수와 만점·도샤·나크샤트라·가나·나디",
+    triggerBasis: "점수가 0에 가까운 쿠타·도샤가 걸린 쿠타",
+  }),
+});
+
+export function neoCompatMethodFocus(method) {
+  return NEO_COMPAT_METHOD_FOCUS[clean(method, 30)] || null;
+}
+
+const buildNeoCompatSectionOverrides = (focus) => Object.freeze({
   topicStyle: {
     id: "compatMutualRead",
     basisGroups: ["compat", "core"],
     title: "상호 판독 — 서로를 어떻게 느끼는가",
     minChars: 1900,
-    scope: "두 명반을 교차해, 상대가 이 사람을 어떻게 느낄 수 있는지와 이 사람이 상대를 어떻게 느끼는지를 양방향으로 진단한다. 매력·기대·불안·답답함을 함께 다룬다.",
+    scope: `두 ${focus.chartWord}을 교차해, 상대가 이 사람을 어떻게 느낄 수 있는지와 이 사람이 상대를 어떻게 느끼는지를 양방향으로 진단한다. 매력·기대·불안·답답함을 함께 다룬다.`,
     schema: {
       mutualRead: {
         towardPartner: { title: "내가 상대에게 느끼는 것", description: "끌리는 지점과 답답한 지점을 교차 근거로 해석", signals: ["신호1", "신호2", "신호3"] },
-        towardMe: { title: "상대가 나에게 느낄 수 있는 것", description: "상대 명반 구조가 이 관계에서 만들 반응", signals: ["신호1", "신호2", "신호3"] },
+        towardMe: { title: "상대가 나에게 느낄 수 있는 것", description: `상대 ${focus.chartWord} 구조가 이 관계에서 만들 반응`, signals: ["신호1", "신호2", "신호3"] },
         coreKeyword: "이 관계를 한 문장으로 요약한 핵심 키워드",
       },
     },
     counts: { "mutualRead.towardPartner.signals": 3, "mutualRead.towardMe.signals": 3 },
     rules: [
-      "[계산 확정값]의 '두 사람 교차' 표에 실재하는 항목(상대 명궁 주성, 부부궁 교차, 사화 낙궁, 살성 낙궁)을 최소 2개 인용한다.",
-      "🔴 상대의 현재 속마음이나 실제 행동을 사실로 단정하지 않는다. '명반상 이런 반응이 나오기 쉽다'로 쓴다.",
-      "한쪽 명반만 보고 상대의 마음을 확정하지 않는다. towardMe 는 반드시 상대 명반 근거로 쓴다.",
+      `[계산 확정값]의 '두 사람 교차' 표에 실재하는 항목(${focus.evidenceHint})을 최소 2개 인용한다.`,
+      `🔴 상대의 현재 속마음이나 실제 행동을 사실로 단정하지 않는다. '${focus.chartWord}상 이런 반응이 나오기 쉽다'로 쓴다.`,
+      `한쪽 ${focus.chartWord}만 보고 상대의 마음을 확정하지 않는다. towardMe 는 반드시 상대 ${focus.chartWord} 근거로 쓴다.`,
       "signals 는 각각 3~5개.",
     ],
   },
   topicAreaBreakdown: {
     id: "compatPalaceCross",
     basisGroups: ["compat", "topic"],
-    title: "궁위 교차 — 자리마다 다른 온도",
+    title: focus.crossTitle,
     minChars: 2000,
-    scope: "부부궁·복덕궁·재백궁·관록궁·천이궁을 각각 두 사람 기준으로 교차해, 그 자리에서 맞물리는 방식과 부딪히는 방식을 나눠 분석한다.",
-    schema: { palaceCross: [{ palace: "궁 이름", reading: "그 자리에서 두 사람이 맞물리거나 부딪히는 방식(계산 근거 포함)" }] },
+    scope: focus.crossScope,
+    schema: { palaceCross: [{ palace: focus.crossAreaLabel, reading: "그 자리에서 두 사람이 맞물리거나 부딪히는 방식(계산 근거 포함)" }] },
     counts: { palaceCross: 4 },
     rules: [
-      "palaceCross 는 4~6개. palace 는 부부궁·복덕궁·재백궁·관록궁·천이궁 중에서 고르고, [계산 확정값]에 실재하는 이름 그대로 쓴다.",
-      "복덕궁에서는 싸웠을 때 누가 먼저 닫히고 누가 계속 말하려 하는지를 반드시 짚는다.",
-      "재백궁에서는 소비·저축 성향 차이와 공동재정에서 부딪힐 지점을 짚는다.",
-      "🔴 천이궁을 근거로 외도·범죄 등 특정 행위를 단정하지 않는다. 바깥에서의 활동 방식 차이까지만 쓴다.",
-      "각 reading 에 계산 근거(궁 주성·별 세기·사화 낙궁·살성 낙궁)를 최소 1개 인용한다. 없는 값은 지어내지 않는다.",
+      `palaceCross 는 4~6개. palace 는 ${focus.crossAreas} 중에서 고르고, [계산 확정값]에 실재하는 이름 그대로 쓴다.`,
+      `${focus.mentalArea}에서는 싸웠을 때 누가 먼저 닫히고 누가 계속 말하려 하는지를 반드시 짚는다.`,
+      focus.moneyRule,
+      focus.outerRule,
+      `각 reading 에 계산 근거(${focus.crossEvidence})를 최소 1개 인용한다. 없는 값은 지어내지 않는다.`,
     ],
   },
   repeatedChoice: {
@@ -1078,7 +1140,7 @@ const NEO_COMPAT_SECTION_OVERRIDES = Object.freeze({
       "dialogue 는 4~6개를 번갈아 쓰고, 각 line 은 실제 대화체 한 마디로 짧게 쓴다.",
       "resolution 은 반드시 감정 → 공감 → 의도 → 해결 순서를 그대로 밟는다.",
       "🔴 행동 패턴을 비판하되 사람 자체를 공격하지 않는다. 상대에게 인격 낙인을 찍는 표현을 쓰지 않는다.",
-      "방아쇠를 [계산 확정값]의 살성 낙궁·화기 낙궁·부부궁 교차 중 하나로 특정한다.",
+      `방아쇠를 [계산 확정값]의 ${focus.triggerBasis} 중 하나로 특정한다.`,
     ],
   },
   misalignedFlow: {
@@ -1086,11 +1148,11 @@ const NEO_COMPAT_SECTION_OVERRIDES = Object.freeze({
     basisGroups: ["compat", "timing"],
     title: "관계 작전 — 지금 상태에서 무엇을 하는가",
     minChars: 1500,
-    scope: "[상담 맥락]의 관계 상태에 맞춰, 지금 이 사람이 밟아야 할 단계를 순서대로 준다. 감성적 위로가 아니라 명반 성향에 맞춘 개인화된 행동 지침이어야 한다.",
+    scope: `[상담 맥락]의 관계 상태에 맞춰, 지금 이 사람이 밟아야 할 단계를 순서대로 준다. 감성적 위로가 아니라 ${focus.chartWord} 성향에 맞춘 개인화된 행동 지침이어야 한다.`,
     schema: {
       relationStrategy: {
         title: "지금 상태에서의 작전",
-        situationRead: "관계 상태와 명반 교차를 함께 읽은 현재 판단",
+        situationRead: `관계 상태와 ${focus.chartWord} 교차를 함께 읽은 현재 판단`,
         steps: [{ stage: "단계 이름", doThis: "이 단계에서 할 것", avoidThis: "이 단계에서 하지 말 것" }],
       },
     },
@@ -1098,16 +1160,34 @@ const NEO_COMPAT_SECTION_OVERRIDES = Object.freeze({
     rules: [
       "steps 는 4~5개. [상담 맥락]의 관계 상태가 '재회 시도'면 접근 금지 → 첫 접촉 → 관계 회복 → 재회 판단 → 재회 후 순서로 쓴다.",
       "관계 상태가 '결혼 예정'이면 생활 궁합·돈·역할 분담·양가 문제·결혼 후 주의점 중심으로 전환한다.",
-      "각 단계의 doThis 는 상대 명반 성향에 맞춘 구체 행동으로 쓴다. 일반적인 연애 조언으로 흐르지 않는다.",
+      `각 단계의 doThis 는 상대 ${focus.chartWord} 성향에 맞춘 구체 행동으로 쓴다. 일반적인 연애 조언으로 흐르지 않는다.`,
       "🔴 '반드시 재회한다 / 반드시 헤어진다 / 상대가 반드시 연락한다' 같은 확정 예언을 쓰지 않는다.",
     ],
   },
 });
 
-/** 궁합 모드 1차 레지스트리 — 1인 모드와 챕터 수가 같아야 한다(예산 동일). */
-export const NEO_COMPAT_INITIAL_SECTIONS = Object.freeze(
-  NEO_INITIAL_SECTIONS.map((section) => NEO_COMPAT_SECTION_OVERRIDES[section.id] || section),
-);
+/**
+ * 궁합 모드 1차 레지스트리. 🔴 1인 모드와 챕터 수가 **같아야** 한다(예산 동일) —
+ * 갈아 끼우는 것이지 더하는 게 아니다. 술수마다 어휘가 다르므로 술수별로 만든다.
+ * 결과는 고정이라 한 번만 만들어 재사용한다(같은 배열이어야 프롬프트 캐시 키도 안정적이다).
+ */
+const NEO_COMPAT_SECTIONS_BY_METHOD = Object.freeze(Object.fromEntries(
+  Object.entries(NEO_COMPAT_METHOD_FOCUS).map(([method, focus]) => {
+    const overrides = buildNeoCompatSectionOverrides(focus);
+    return [method, Object.freeze(NEO_INITIAL_SECTIONS.map((section) => overrides[section.id] || section))];
+  }),
+));
+
+/** 궁합을 지원하는 술수 목록(프롬프트 기준). 라우트·화면의 목록과 같아야 한다. */
+export const NEO_COMPAT_PROMPT_METHODS = Object.freeze(Object.keys(NEO_COMPAT_SECTIONS_BY_METHOD));
+
+/**
+ * 해당 술수의 궁합 챕터 레지스트리. 궁합을 지원하지 않는 술수면 1인 레지스트리를 그대로 돌려준다
+ * — 라우트가 compat 없이 이 함수를 부르는 일은 없지만, 여기서 빈 배열을 내면 챕터가 통째로 사라진다.
+ */
+export function neoCompatInitialSections(method) {
+  return NEO_COMPAT_SECTIONS_BY_METHOD[clean(method, 30)] || NEO_INITIAL_SECTIONS;
+}
 
 // ─── 2차(수정 작전) 챕터 레지스트리 ────────────────────────────────────────
 /* 관리자 프롬프트 랩 전용(lib/admin/prompt-lab-registry.mjs 참고).
