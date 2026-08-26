@@ -17,6 +17,7 @@ const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
 const { stripTypeScriptTypes } = require("node:module");
+const { pathToFileURL } = require("node:url");
 
 const root = path.resolve(__dirname, "../..");
 const read = (relativePath) => fs.readFileSync(path.join(root, relativePath), "utf8");
@@ -141,15 +142,20 @@ test("서버가 버리는 범위 밖 생년월일을 화면이 먼저 막는다"
   }
 });
 
-test("자미두수가 아니면 궁합은 아예 열리지 않는다", async () => {
-  const { validateNeoWarRoomInput, buildNeoWarRoomAccessPayload, isNeoWarRoomCompatActive } = await loadInputFlow();
-  const input = buildInput({ method: "saju" }, { enabled: true, relationshipStatus: "" });
-  assert.equal(isNeoWarRoomCompatActive(input), false);
-  // 관계 상태가 비어 있어도 사주 상담을 막지 않는다 — 서버도 같은 조건으로 상대를 버린다.
-  assert.deepEqual(validateNeoWarRoomInput(input).filter((error) => error.field.startsWith("partner")), []);
-  const payload = buildNeoWarRoomAccessPayload(input, "key-1");
-  assert.equal("partnerBirthInput" in payload, false, "술수를 바꿨는데 상대가 페이로드에 남았다");
-  assert.equal("relationshipStatus" in payload, false);
+test("궁합 엔진이 없는 술수면 궁합은 아예 열리지 않는다", async () => {
+  const { validateNeoWarRoomInput, buildNeoWarRoomAccessPayload, isNeoWarRoomCompatActive, NEO_COMPAT_METHODS } = await loadInputFlow();
+  // 지원 목록에 없는 술수를 소스에서 골라 온다 — 목록이 늘어도 이 테스트가 낡지 않는다.
+  const unsupported = ["saju", "ziwei", "vedic", "astrology"].filter((method) => !NEO_COMPAT_METHODS.includes(method));
+  assert.ok(unsupported.length > 0, "네 술수가 전부 궁합을 지원하면 이 테스트를 지울 것");
+  for (const method of unsupported) {
+    const input = buildInput({ method }, { enabled: true, relationshipStatus: "" });
+    assert.equal(isNeoWarRoomCompatActive(input), false, `${method}: 궁합이 열렸다`);
+    // 관계 상태가 비어 있어도 1인 상담을 막지 않는다 — 서버도 같은 조건으로 상대를 버린다.
+    assert.deepEqual(validateNeoWarRoomInput(input).filter((error) => error.field.startsWith("partner")), []);
+    const payload = buildNeoWarRoomAccessPayload(input, "key-1");
+    assert.equal("partnerBirthInput" in payload, false, `${method}: 술수를 바꿨는데 상대가 페이로드에 남았다`);
+    assert.equal("relationshipStatus" in payload, false);
+  }
 });
 
 test("연애·재회가 아닌 주제에서는 궁합이 아예 열리지 않는다", async () => {
@@ -204,16 +210,25 @@ test("서버 게이트가 화면 게이트와 같은 주제를 연다", () => {
   );
 });
 
-test("궁합을 여는 술수 목록이 화면과 서버에서 같다", async () => {
+test("궁합을 여는 술수 목록이 화면·서버·프롬프트에서 모두 같다", async () => {
   const { NEO_COMPAT_METHODS } = await loadInputFlow();
-  const routeSource = read("worker/routes/neo-operation-room.js");
-  const block = routeSource.match(/COMPAT_METHODS = new Set\(\[([^\]]*)\]\)/);
-  assert.ok(block, "라우트의 COMPAT_METHODS 를 못 찾았다 — 이름이 바뀌었으면 가드도 함께 고칠 것");
-  const serverMethods = [...block[1].matchAll(/"([a-z]+)"/g)].map((match) => match[1]);
-  assert.ok(serverMethods.length >= 1, "서버 술수 목록을 못 읽었다 — 탐지가 깨진 것이다");
+  // 🔴 문자열 검사가 아니라 실제 모듈을 로드해 본다. 서버 목록은 교차 빌더 표에서
+  //    파생되므로(Object.keys), 빌더를 안 만들고 목록에만 이름을 적으면 여기서 걸린다.
+  const { NEO_COMPAT_METHODS: serverMethods } = await import(pathToFileURL(path.join(root, "worker/lib/neo-operation-room-compat.js")).href);
+  const { NEO_COMPAT_PROMPT_METHODS } = await import(pathToFileURL(path.join(root, "worker/lib/neo-operation-room-prompt.js")).href);
+
   // 🔴 화면에만 있는 술수는 상대 칸을 열어 놓고 서버가 조용히 버려, 결제한 요청이
   //    1인 상담으로 나간다. 서버에만 있는 술수는 아무도 못 쓰는 죽은 경로가 된다.
-  assert.deepEqual([...NEO_COMPAT_METHODS].sort(), [...serverMethods].sort());
+  assert.deepEqual([...NEO_COMPAT_METHODS].sort(), [...serverMethods].sort(), "화면 목록 != 서버 교차 빌더");
+  // 프롬프트 어휘가 없으면 그 술수의 궁합 챕터가 자미두수 어휘("부부궁"…)로 나간다.
+  assert.deepEqual([...serverMethods].sort(), [...NEO_COMPAT_PROMPT_METHODS].sort(), "서버 교차 빌더 != 프롬프트 어휘 표");
+
+  // 라우트가 그 목록을 그대로 쓰는지 — 손으로 다시 적어 두면 조용히 갈라진다.
+  assert.match(
+    read("worker/routes/neo-operation-room.js"),
+    /COMPAT_METHODS = new Set\(NEO_COMPAT_METHODS\)/,
+    "라우트가 궁합 술수 목록을 따로 적고 있다 — 정본 하나를 쓸 것",
+  );
 });
 
 test("페이로드는 궁합일 때만 상대 키를 싣는다", async () => {

@@ -85,7 +85,9 @@
   background: linear-gradient(90deg, rgba(214, 188, 118, 0.7), #f5d487);
 }
 
-.gauge[data-axis="friction"] .fill {
+/* 높을수록 나쁜 축(자미두수의 갈등 위험 등)만 경고색. 축 이름은 술수마다 다르므로
+   data-axis 가 아니라 서버가 낸 방향 플래그로 건다 — 이름으로 걸면 술수가 늘 때 색이 빠진다. */
+.gauge[data-inverted="true"] .fill {
   background: linear-gradient(90deg, rgba(255, 208, 160, 0.6), #ffd0a0);
 }
 

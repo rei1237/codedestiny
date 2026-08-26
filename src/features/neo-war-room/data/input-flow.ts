@@ -233,8 +233,13 @@ export function buildDefaultNeoWarRoomPartnerState(): NeoWarRoomPartnerState {
 /** 궁합을 여는 주제. 🔴 서버의 normalizeTopicKey 가 "연애/재회" 로 정규화하는 값과 짝이다. */
 export const NEO_COMPAT_TOPIC = "연애 / 재회";
 
-/** 궁합을 지원하는 술수. 여기 없는 술수는 상대 칸 자체가 열리지 않는다. */
-export const NEO_COMPAT_METHODS: readonly NeoWarRoomConsultMode[] = ["ziwei"];
+/**
+ * 궁합을 지원하는 술수. 여기 없는 술수는 상대 칸 자체가 열리지 않는다.
+ * 🔴 서버 worker/lib/neo-operation-room-compat.js 의 NEO_COMPAT_METHODS 와 같아야 한다 —
+ *    화면에만 있으면 상대를 받아 놓고 서버가 버려 결제한 요청이 1인 상담으로 나간다.
+ *    (점성술은 서버에 시나스트리 엔진이 없어 아직 빠져 있다.)
+ */
+export const NEO_COMPAT_METHODS: readonly NeoWarRoomConsultMode[] = ["ziwei", "saju", "vedic"];
 
 export function isNeoWarRoomCompatSupported(method: NeoWarRoomConsultMode | "") {
   return NEO_COMPAT_METHODS.includes(method as NeoWarRoomConsultMode);

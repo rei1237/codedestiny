@@ -102,7 +102,12 @@ export type NeoFormCopyKey =
   | "briefing.compatScoreResonance"
   | "briefing.compatScoreFriction"
   | "briefing.compatScoreGrowth"
+  | "briefing.compatScoreAttraction"
+  | "briefing.compatScoreStability"
+  | "briefing.compatScoreCommunication"
+  | "briefing.compatScoreEndurance"
   | "briefing.compatScoreNote"
+  | "briefing.compatScoreAshtakutaNote"
   | "briefing.compatStatusLabel"
   | "briefing.compatPartnerTimeUnknownNote"
   | "briefing.compatStatus.crush"
@@ -264,7 +269,12 @@ const NEO_FORM_COPY_KO: NeoFormCopyTable = {
   "briefing.compatScoreResonance": "공명",
   "briefing.compatScoreFriction": "갈등 위험",
   "briefing.compatScoreGrowth": "성장",
-  "briefing.compatScoreNote": "공명과 성장은 높을수록, 갈등 위험은 낮을수록 좋다.",
+  "briefing.compatScoreAttraction": "끌림",
+  "briefing.compatScoreStability": "안정",
+  "briefing.compatScoreCommunication": "소통",
+  "briefing.compatScoreEndurance": "지구력",
+  "briefing.compatScoreNote": "각 축은 높을수록 좋다. 방향이 반대인 축(갈등 위험)은 라벨에 그렇게 적혀 있다.",
+  "briefing.compatScoreAshtakutaNote": "인도 전통 아쉬타쿠타 36점 만점을 백분율로 환산한 값이다. 항목별 점수는 아래 근거에 있다.",
   "briefing.compatStatusLabel": "관계 상태",
   "briefing.compatPartnerTimeUnknownNote": "상대의 출생시간이 미상이라, 시간에 기대는 판독은 폭을 넓게 잡았다.",
   "briefing.compatStatus.crush": "썸",
@@ -425,7 +435,12 @@ const NEO_FORM_COPY_EN: NeoFormCopyTable = {
   "briefing.compatScoreResonance": "Resonance",
   "briefing.compatScoreFriction": "Conflict risk",
   "briefing.compatScoreGrowth": "Growth",
-  "briefing.compatScoreNote": "Resonance and growth read better high; conflict risk reads better low.",
+  "briefing.compatScoreAttraction": "Attraction",
+  "briefing.compatScoreStability": "Stability",
+  "briefing.compatScoreCommunication": "Communication",
+  "briefing.compatScoreEndurance": "Endurance",
+  "briefing.compatScoreNote": "Higher is better on every gauge. Any gauge that runs the other way (Conflict risk) says so in its label.",
+  "briefing.compatScoreAshtakutaNote": "The traditional Indian Ashtakuta score out of 36, shown as a percentage. The per-item scores are in the evidence below.",
   "briefing.compatStatusLabel": "Relationship status",
   "briefing.compatPartnerTimeUnknownNote": "Your partner's birth time is unknown, so time-dependent readings are kept deliberately wide.",
   "briefing.compatStatus.crush": "Crushing",
@@ -586,7 +601,12 @@ const NEO_FORM_COPY_JA: NeoFormCopyTable = {
   "briefing.compatScoreResonance": "共鳴",
   "briefing.compatScoreFriction": "衝突リスク",
   "briefing.compatScoreGrowth": "成長",
-  "briefing.compatScoreNote": "共鳴と成長は高いほど、衝突リスクは低いほど良い。",
+  "briefing.compatScoreAttraction": "惹かれ",
+  "briefing.compatScoreStability": "安定",
+  "briefing.compatScoreCommunication": "対話",
+  "briefing.compatScoreEndurance": "持久力",
+  "briefing.compatScoreNote": "各軸は高いほど良い。方向が逆の軸（衝突リスク）はラベルにそう書いてある。",
+  "briefing.compatScoreAshtakutaNote": "インド伝統のアシュタクータ36点満点を百分率に換算した値だ。項目別の点数は下の根拠にある。",
   "briefing.compatStatusLabel": "関係の状態",
   "briefing.compatPartnerTimeUnknownNote": "相手の出生時間が不明のため、時間に依存する判読は幅を広く取っている。",
   "briefing.compatStatus.crush": "片思い",
@@ -747,7 +767,12 @@ const NEO_FORM_COPY_ZH_CN: NeoFormCopyTable = {
   "briefing.compatScoreResonance": "共鸣",
   "briefing.compatScoreFriction": "冲突风险",
   "briefing.compatScoreGrowth": "成长",
-  "briefing.compatScoreNote": "共鸣与成长越高越好，冲突风险越低越好。",
+  "briefing.compatScoreAttraction": "吸引",
+  "briefing.compatScoreStability": "稳定",
+  "briefing.compatScoreCommunication": "沟通",
+  "briefing.compatScoreEndurance": "耐力",
+  "briefing.compatScoreNote": "每个指标都是越高越好。方向相反的指标（冲突风险）已在标签上注明。",
+  "briefing.compatScoreAshtakutaNote": "这是印度传统八字合婚（Ashtakuta）满分36分换算成的百分比。各项分数见下方依据。",
   "briefing.compatStatusLabel": "关系状态",
   "briefing.compatPartnerTimeUnknownNote": "对方的出生时间不详，因此依赖时辰的解读刻意放宽了范围。",
   "briefing.compatStatus.crush": "暧昧期",
@@ -908,7 +933,12 @@ const NEO_FORM_COPY_ZH_TW: NeoFormCopyTable = {
   "briefing.compatScoreResonance": "共鳴",
   "briefing.compatScoreFriction": "衝突風險",
   "briefing.compatScoreGrowth": "成長",
-  "briefing.compatScoreNote": "共鳴與成長越高越好，衝突風險越低越好。",
+  "briefing.compatScoreAttraction": "吸引",
+  "briefing.compatScoreStability": "穩定",
+  "briefing.compatScoreCommunication": "溝通",
+  "briefing.compatScoreEndurance": "耐力",
+  "briefing.compatScoreNote": "每個指標都是越高越好。方向相反的指標（衝突風險）已在標籤上註明。",
+  "briefing.compatScoreAshtakutaNote": "這是印度傳統八字合婚（Ashtakuta）滿分36分換算成的百分比。各項分數見下方依據。",
   "briefing.compatStatusLabel": "關係狀態",
   "briefing.compatPartnerTimeUnknownNote": "對方的出生時間不詳，因此依賴時辰的解讀刻意放寬了範圍。",
   "briefing.compatStatus.crush": "曖昧期",

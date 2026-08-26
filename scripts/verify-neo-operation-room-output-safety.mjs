@@ -18,7 +18,8 @@
  * 사용: node scripts/verify-neo-operation-room-output-safety.mjs
  */
 import {
-  NEO_COMPAT_INITIAL_SECTIONS,
+  neoCompatInitialSections,
+  NEO_COMPAT_PROMPT_METHODS,
   NEO_INITIAL_SECTIONS,
   NEO_REFINED_SECTIONS,
   buildNeoInitialSectionPrompt,
@@ -28,8 +29,9 @@ import {
   mergeNeoRefinedSections,
 } from "../worker/lib/neo-operation-room-prompt.js";
 import { NEO_BASIS_GROUP_KEYS, buildNeoBasisPayload, measureNeoBasisCoverage } from "../worker/lib/neo-operation-room-basis.js";
-import { buildNeoZiweiCompat } from "../worker/lib/neo-operation-room-compat.js";
+import { buildNeoCompat } from "../worker/lib/neo-operation-room-compat.js";
 import { calculateZiweiAiChart } from "../worker/lib/ziwei-ai-chart.js";
+import { calculateLifeBookAiSaju } from "../worker/lib/life-book-ai-saju.js";
 import { findInternalKeyPaths } from "../worker/lib/llm-leak-guard.js";
 import { endsWithSentence } from "../lib/llm-text.js";
 
@@ -146,7 +148,9 @@ for (const [label, merged] of [["1차", initialBriefing], ["2차", refinedOrder]
 // 🔴 minChars 만 올리고 clean/cleanProse 상한을 그대로 두면(= aedb1edb9) 여기서 실패한다.
 for (const [label, sections, merge, mergeArgs] of [
   ["1차", NEO_INITIAL_SECTIONS, mergeNeoInitialSections, [{ selectedMethod: "ziwei" }, {}]],
-  ["1차(궁합)", NEO_COMPAT_INITIAL_SECTIONS, mergeNeoInitialSections, [{ selectedMethod: "ziwei" }, {}]],
+  ...NEO_COMPAT_PROMPT_METHODS.map((method) => [
+    `1차(궁합·${method})`, neoCompatInitialSections(method), mergeNeoInitialSections, [{ selectedMethod: method }, {}],
+  ]),
   ["2차", NEO_REFINED_SECTIONS, mergeNeoRefinedSections, [{ selectedMethod: "ziwei" }]],
 ]) {
   for (const section of sections) {
@@ -237,7 +241,7 @@ ok(safeMerge.bluntTruth === SAFE, `오탐으로 정상 문장이 바뀌었다 �
 
 // ── 8) 프롬프트: 내부 키 0건 + 챕터별 데이터 슬라이싱 ────────────────────
 const promptCtx = { selectedMethod: "ziwei", topic: "돈/재물", intensity: "roar", question: "돈이 안 모인다", methodSummary: ZIWEI_SUMMARY };
-for (const section of [...NEO_INITIAL_SECTIONS, ...NEO_COMPAT_INITIAL_SECTIONS]) {
+for (const section of [...NEO_INITIAL_SECTIONS, ...NEO_COMPAT_PROMPT_METHODS.flatMap((m) => neoCompatInitialSections(m))]) {
   ok(section.basisGroups !== undefined, `${section.id}: basisGroups 선언이 없다(어떤 계산값을 볼지 정해야 한다).`);
   const prompt = buildNeoInitialSectionPrompt(section, promptCtx);
   const found = findInternalKeyPaths(prompt);
@@ -249,13 +253,47 @@ for (const section of [...NEO_INITIAL_SECTIONS, ...NEO_COMPAT_INITIAL_SECTIONS])
   ok(prompt.includes("[계산 확정값]"), `${section.id}: [계산 확정값] 블록이 없다.`);
   ok(!prompt.includes("[계산 요약 데이터]"), `${section.id}: raw JSON 덤프 블록이 되살아났다.`);
 }
+
+// ── 8-b) 궁합 챕터가 남의 술수 어휘로 말하지 않는가 ───────────────────────
+// 🔴 어휘 표를 술수별로 갈랐어도 한 칸만 복사해 두면 그 술수의 궁합 챕터가 통째로 다른
+//    술수 용어로 나간다("사주 명반의 부부궁"). 계산값과 어긋난 용어는 상담 신뢰를 바로 깬다.
+//    술수마다 **자기 어휘가 있고 남의 전용어가 없는지**를 갈아 끼운 4개 챕터에서 본다.
+const METHOD_VOCAB = {
+  ziwei: { own: ["명반", "부부궁"], foreign: ["명식", "일간", "나크샤트라", "아쉬타쿠타", "쿠타"] },
+  saju: { own: ["명식", "십성"], foreign: ["명반", "부부궁", "사화", "나크샤트라", "아쉬타쿠타"] },
+  vedic: { own: ["나크샤트라", "쿠타"], foreign: ["명반", "명식", "부부궁", "사화", "일간"] },
+};
+for (const method of NEO_COMPAT_PROMPT_METHODS) {
+  const vocab = METHOD_VOCAB[method];
+  ok(vocab, `궁합 술수 "${method}" 의 어휘 검사 목록이 없다 — 술수를 더했으면 이 표도 함께 채울 것.`);
+  if (!vocab) continue;
+  const soloIds = new Set(NEO_INITIAL_SECTIONS.map((section) => section.id));
+  const swapped = neoCompatInitialSections(method).filter((section) => !soloIds.has(section.id));
+  ok(swapped.length === 4, `궁합(${method}) 갈아 끼운 챕터가 ${swapped.length}개다 — 4개여야 한다.`);
+  // 🔴 렌더된 프롬프트를 자르지 말 것. rules 는 [계산 확정값] **뒤에** 붙으므로
+  //    앞쪽만 슬라이스하면 규칙이 통째로 빠져 어휘 드리프트를 못 잡는다(실제로 놓쳤다).
+  //    챕터 선언(제목·범위·규칙·스키마)을 그대로 본다 — 술수별로 갈라지는 자리가 정확히 거기다.
+  const text = swapped
+    .map((section) => JSON.stringify({
+      title: section.title, scope: section.scope, rules: section.rules, schema: section.schema,
+    }))
+    .join("\n");
+  ok(vocab.own.some((word) => text.includes(word)), `궁합(${method}) 챕터에 자기 어휘(${vocab.own.join("·")})가 하나도 없다.`);
+  for (const word of vocab.foreign) {
+    ok(!text.includes(word), `궁합(${method}) 챕터가 남의 술수 어휘 "${word}" 로 말한다 — 어휘 표를 복사한 자리를 찾을 것.`);
+  }
+}
 for (const section of NEO_REFINED_SECTIONS) {
   ok(section.basisGroups !== undefined, `${section.id}: basisGroups 선언이 없다.`);
   const found = findInternalKeyPaths(buildNeoRefinedSectionPrompt(section, { ...promptCtx, initialBriefing: {}, realityCheck: {} }));
   ok(found.length === 0, `${section.id}(2차) 프롬프트에 내부 키 경로가 있다 — ${JSON.stringify(found)}`);
 }
 // 선언한 그룹 키는 실재해야 하고, 어떤 그룹도 사장되면 안 된다.
-const declared = new Set([...NEO_INITIAL_SECTIONS, ...NEO_COMPAT_INITIAL_SECTIONS, ...NEO_REFINED_SECTIONS].flatMap((s) => (s.basisGroups === "*" ? NEO_BASIS_GROUP_KEYS : s.basisGroups)));
+const declared = new Set([
+  ...NEO_INITIAL_SECTIONS,
+  ...NEO_COMPAT_PROMPT_METHODS.flatMap((m) => neoCompatInitialSections(m)),
+  ...NEO_REFINED_SECTIONS,
+].flatMap((s) => (s.basisGroups === "*" ? NEO_BASIS_GROUP_KEYS : s.basisGroups)));
 for (const key of declared) ok(NEO_BASIS_GROUP_KEYS.includes(key), `알 수 없는 basisGroups 키: ${key}`);
 for (const key of NEO_BASIS_GROUP_KEYS) ok(declared.has(key), `basisGroups "${key}" 를 보는 챕터가 하나도 없다(사장된 계산값).`);
 // 슬라이싱이 실제로 작동하는가 — 시기 챕터는 12궁 표를 보면 안 된다.
@@ -269,25 +307,48 @@ ok(
   `라벨 표가 계산값을 잃었다 — ${coverage.covered}/${coverage.total}, 누락 ${JSON.stringify(coverage.missing.slice(0, 8))}`,
 );
 
-const COMPAT_SUMMARY = { ...ZIWEI_SUMMARY, compat: buildNeoZiweiCompat({
-  selfChart: calculateZiweiAiChart({ birthInfo: { birthDate: "1990-03-15", birthTime: "08:30", gender: "female", calendarType: "solar" } }, { year: 2026 }),
-  partnerChart: calculateZiweiAiChart({ birthInfo: { birthDate: "1988-11-02", birthTime: "21:10", gender: "male", calendarType: "solar" } }, { year: 2026 }),
-  relationshipStatus: "reconciling",
-  partnerGender: "male",
-}) };
-const compatCoverage = measureNeoBasisCoverage(COMPAT_SUMMARY, buildNeoBasisPayload(COMPAT_SUMMARY));
-ok(
-  compatCoverage.total === 0 || compatCoverage.covered / compatCoverage.total >= 0.85,
-  "궁합 라벨 표가 계산값을 잃었다 — " + compatCoverage.covered + "/" + compatCoverage.total + ", 누락 " + JSON.stringify(compatCoverage.missing.slice(0, 8)),
-);
-ok(
-  buildNeoBasisPayload(COMPAT_SUMMARY).groups.some((entry) => entry.key === "compat"),
-  "궁합 계산값이 있는데 표에 두 사람 교차 그룹이 없다.",
-);
+// 궁합 표도 술수 전수로 본다. 🔴 베다는 nakshatra-* 가 번들러 밖에서 로드되지 않아
+// 여기서 실차트를 세울 수 없다 — 라우트가 주입하는 vedicCompat 없이 부르면 점수가 null 이고
+// 나크샤트라 사실만 남는 폴백 경로가 되므로, 그 경로가 표를 깨뜨리지 않는지를 본다.
+const ME = { birthDate: "1990-03-15", birthTime: "08:30", gender: "female", calendarType: "solar" };
+const YOU = { birthDate: "1988-11-02", birthTime: "21:10", gender: "male", calendarType: "solar" };
+const COMPAT_FIXTURES = {
+  ziwei: {
+    selfChart: calculateZiweiAiChart({ birthInfo: ME }, { year: 2026 }),
+    partnerChart: calculateZiweiAiChart({ birthInfo: YOU }, { year: 2026 }),
+  },
+  saju: { selfChart: calculateLifeBookAiSaju(ME), partnerChart: calculateLifeBookAiSaju(YOU) },
+};
+for (const [method, charts] of Object.entries(COMPAT_FIXTURES)) {
+  const compat = buildNeoCompat({ method, ...charts, relationshipStatus: "reconciling", partnerGender: "male" });
+  ok(compat, `${method}: buildNeoCompat 이 궁합을 못 만들었다.`);
+  ok(compat.highlights.length >= 3, `${method}: 교차 판독이 ${compat.highlights.length}건뿐이다 — 근거가 얕다.`);
+  ok(compat.scores && compat.scores.axes.length > 0, `${method}: 엔진이 축을 내는데 점수가 비었다.`);
+  const summary = { ...ZIWEI_SUMMARY, method, compat };
+  const cov = measureNeoBasisCoverage(summary, buildNeoBasisPayload(summary));
+  ok(
+    cov.total === 0 || cov.covered / cov.total >= 0.85,
+    `궁합(${method}) 라벨 표가 계산값을 잃었다 — ${cov.covered}/${cov.total}, 누락 ${JSON.stringify(cov.missing.slice(0, 8))}`,
+  );
+  ok(
+    buildNeoBasisPayload(summary).groups.some((entry) => entry.key === "compat"),
+    `궁합(${method}) 계산값이 있는데 표에 두 사람 교차 그룹이 없다.`,
+  );
+}
 ok(
   !buildNeoBasisPayload(ZIWEI_SUMMARY).groups.some((entry) => entry.key === "compat"),
   "1인 모드인데 두 사람 교차 그룹이 생겼다.",
 );
+
+// 🔴 자미두수 궁합 점수 회귀 고정. 축 배열로 일반화하면서 종합이 흔들리면 이미 상담을
+//    본 사용자가 재열람할 때 점수가 바뀐다. 예전 식과 항등인지 직접 잰다.
+{
+  const { scores } = buildNeoCompat({ method: "ziwei", ...COMPAT_FIXTURES.ziwei, partnerGender: "male" });
+  const axis = (key) => scores.axes.find((entry) => entry.key === key)?.value;
+  const legacy = Math.round((axis("resonance") + (100 - axis("friction")) + axis("growth")) / 3);
+  ok(scores.overall === legacy, `자미두수 종합이 예전 식과 다르다 — ${scores.overall} != ${legacy}`);
+  ok(scores.axes.find((entry) => entry.key === "friction")?.inverted === true, "갈등 위험 축의 방향 표시가 사라졌다.");
+}
 
 if (failures.length) {
   console.error("[verify-neo-output-safety] 실패:");
@@ -295,6 +356,6 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  `[verify-neo-output-safety] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터 / 궁합 ${NEO_COMPAT_INITIAL_SECTIONS.length}챕터 / 2차 ${NEO_REFINED_SECTIONS.length}챕터, `
+  `[verify-neo-output-safety] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터 / 궁합 ${NEO_COMPAT_PROMPT_METHODS.join("·")} / 2차 ${NEO_REFINED_SECTIONS.length}챕터, `
   + "중간 끊김 0 · 말줄임 최후수단 0 · 분량 계약 충족 · 잘린 JSON 복구 · 중복 제거",
 );

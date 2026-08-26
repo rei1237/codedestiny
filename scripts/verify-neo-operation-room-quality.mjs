@@ -10,7 +10,8 @@
  * 사용: node scripts/verify-neo-operation-room-quality.mjs
  */
 import {
-  NEO_COMPAT_INITIAL_SECTIONS,
+  neoCompatInitialSections,
+  NEO_COMPAT_PROMPT_METHODS,
   NEO_INITIAL_SECTIONS,
   NEO_REFINED_SECTIONS,
   buildNeoInitialSectionPrompt,
@@ -31,12 +32,21 @@ ok(initTotal >= INITIAL_TARGET_CHARS, `1차 minChars 합계 ${initTotal} < ${INI
 ok(refinedTotal >= REFINED_TARGET_CHARS, `2차 minChars 합계 ${refinedTotal} < ${REFINED_TARGET_CHARS}`);
 
 // 궁합 모드도 같은 분량 약속을 진다. 챕터를 갈아 끼우면서 목표가 조용히 깎이는 것을 막는다.
-const compatTotal = NEO_COMPAT_INITIAL_SECTIONS.reduce((s, c) => s + c.minChars, 0);
-ok(compatTotal >= INITIAL_TARGET_CHARS, "궁합 1차 minChars 합계 " + compatTotal + " < " + INITIAL_TARGET_CHARS);
-ok(
-  NEO_COMPAT_INITIAL_SECTIONS.length === NEO_INITIAL_SECTIONS.length,
-  "궁합 챕터 수 " + NEO_COMPAT_INITIAL_SECTIONS.length + " != 1인 " + NEO_INITIAL_SECTIONS.length + " — 웨이브가 늘면 LLM 예산을 넘긴다.",
-);
+// 🔴 술수 전수로 본다 — 새 술수를 더하면서 그 술수만 챕터가 빠지거나 짧아지는 것을 막는다.
+ok(NEO_COMPAT_PROMPT_METHODS.length > 0, "궁합 어휘 표가 비었다 — 궁합 챕터가 술수 어휘 없이 나간다.");
+const compatTotals = NEO_COMPAT_PROMPT_METHODS.map((method) => {
+  const sections = neoCompatInitialSections(method);
+  const total = sections.reduce((s, c) => s + c.minChars, 0);
+  ok(total >= INITIAL_TARGET_CHARS, `궁합(${method}) 1차 minChars 합계 ${total} < ${INITIAL_TARGET_CHARS}`);
+  ok(
+    sections.length === NEO_INITIAL_SECTIONS.length,
+    `궁합(${method}) 챕터 수 ${sections.length} != 1인 ${NEO_INITIAL_SECTIONS.length} — 웨이브가 늘면 LLM 예산을 넘긴다.`,
+  );
+  // 궁합 챕터가 실제로 갈아 끼워졌는가. 어휘 표만 만들고 오버라이드를 안 걸면 여기서 걸린다.
+  const swapped = sections.filter((section, index) => section.id !== NEO_INITIAL_SECTIONS[index].id);
+  ok(swapped.length === 4, `궁합(${method}) 갈아 끼운 챕터가 ${swapped.length}개다 — 4개여야 한다.`);
+  return `${method} ${total}자`;
+});
 
 const initIds = NEO_INITIAL_SECTIONS.map((c) => c.id);
 const refinedIds = NEO_REFINED_SECTIONS.map((c) => c.id);
@@ -76,4 +86,4 @@ if (failures.length) {
   failures.forEach((f) => console.error("  - " + f));
   process.exit(1);
 }
-console.log(`[verify-neo] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터/${initTotal}자(목표 ${INITIAL_TARGET_CHARS}), 궁합 ${NEO_COMPAT_INITIAL_SECTIONS.length}챕터/${compatTotal}자, 2차 ${NEO_REFINED_SECTIONS.length}챕터/${refinedTotal}자(목표 ${REFINED_TARGET_CHARS})`);
+console.log(`[verify-neo] OK — 1차 ${NEO_INITIAL_SECTIONS.length}챕터/${initTotal}자(목표 ${INITIAL_TARGET_CHARS}), 궁합 ${compatTotals.join(" · ")}, 2차 ${NEO_REFINED_SECTIONS.length}챕터/${refinedTotal}자(목표 ${REFINED_TARGET_CHARS})`);
