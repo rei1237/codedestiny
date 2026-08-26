@@ -101,7 +101,7 @@ async function verifyVisualCueBindings() {
   try {
     const { document } = dom.window;
     const visualCues = [
-      [36, 19, "memoryVault", "memory-vault-release-v1.webp"],
+      [36, 20, "memoryVault", "memory-vault-release-v1.webp"],
       [41, 24, "clearMoonWater", "clear-moon-waterway-v1.webp"],
       [43, 8, "cherryMoonPortal", "cherry-moon-portal-promise-v1.webp"],
     ];
