@@ -78,7 +78,7 @@
 | 코즈믹 & 별자리 | 모바일 빠른 탐색, 별자리 컬렉션 | `cosmicCollection`, `openAstroModal` | 무료/유료 혼합 | 기본 차트와 AI 상담이 섞여 복잡함 | chart route, modal, AI route 혼합 | 별자리 탭에서 기본 차트와 유료 상담 분리 |
 | 서양 점성술 기본 차트 | 코즈믹 & 별자리 컬렉션 | `openAstroModal`, `/astrology/cosmic` | 기본 무료 | 코즈믹 카드 사이에 묻힘 | hidden modal/route | 별자리 chip 후 노출 |
 | 자미두수 기본 명반 | 코즈믹 & 별자리 컬렉션 | `openZiweiModal`, `/ziwei/chart` | 기본 무료 | 이름이 길어 모바일 폭 부담 | hidden modal/route | 제목 축약 유지 |
-| 자미두수 심화 | 코즈믹 & 별자리 컬렉션 | `navigateToZiweiChart`, `/ziwei/chart` | 해금 20,000원 | 고가 잠금 UI가 큼 | 권한 확인 | preview에서 안내 |
+| 자미두수 심화 | 코즈믹 & 별자리 컬렉션 | `navigateToZiweiChart`, `/ziwei/chart` | 명반 무료 · 심층 PDF 30,000원 | 무료 명반과 유료 PDF 구분이 필요 | 진입 게이트 없음 | preview에서 안내 |
 | 베다 점성술 | 코즈믹 & 별자리 컬렉션 | `navigateToVedic`, `/vedic-ai`, `/vedic/jyotish` | 기본 무료, AI 상담 유료 | 기본/AI가 혼재 | route bundle | 기본 차트와 AI 상담 분리 |
 | 올림푸스 신탁 | 코즈믹 & 별자리 컬렉션 | `openOlympusOracleModal` | 해금 10,000원 | modal 진입이 카드 안에 묻힘 | lazy script | 별자리 chip 내부 |
 | 운명의 꽃 & 해몽 | 모바일 빠른 탐색, 꽃/해몽 컬렉션 | `flowerCollection`, `openDestinyFlowerStudio` | 무료/유료 혼합 | 꽃 1종과 해몽 2종 | studio modal/engine, dream modal 혼합 | 꽃/해몽 탭에서 대표 카드와 더보기 |

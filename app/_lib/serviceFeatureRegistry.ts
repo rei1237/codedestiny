@@ -3928,8 +3928,11 @@ const FEATURE_DEFINITIONS: ServiceFeatureDefinition[] = ([
     image: stableServiceAsset("/fuctionassets/jami.webp"),
     detailRoute: "/services/ziwei",
     launchRoute: "/ziwei/chart",
-    accessType: "paid",
-    featureKey: "premium-ziwei",
+    // 명반 열람은 무료다. 영구 해금 모델은 없어졌고(AdvancedZiweiSectionV2 에 게이트 렌더가 없다)
+    // 이 라우트의 유료 요소는 페이지 안쪽의 전문가 상담·PDF(ziwei-deep-pdf) 회당 결제뿐이다.
+    // featureKey 를 남겨 두면 lookupServerCoinPrice 가 죽은 premium-ziwei 가격(200코인)을 끌어와
+    // 앱 홈 배지가 유료로 표시된다 — 무료 항목은 featureKey 를 갖지 않는다.
+    accessType: "free",
   },
   {
     slug: "sukyo",
