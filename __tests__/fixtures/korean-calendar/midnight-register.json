@@ -1,0 +1,368 @@
+{
+  "note": "KST 자정 ±5분 안에 든 삭·절기. scripts/verify-korean-calendar-midnight-register.mjs --update 로 갱신한다.",
+  "windowSeconds": 300,
+  "blockYears": [
+    1900,
+    2101
+  ],
+  "astronomyEngine": "2.1.19",
+  "entries": [
+    {
+      "kind": "term",
+      "termIndex": 11,
+      "name": "하지(절기)",
+      "kst": "1903-06-23T00:04:48",
+      "secondsFromMidnight": 288.5
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "1908-09-25T23:59:44",
+      "secondsFromMidnight": 15.1
+    },
+    {
+      "kind": "term",
+      "termIndex": 10,
+      "name": "망종(절기)",
+      "kst": "1910-06-06T23:56:15",
+      "secondsFromMidnight": 224
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "1913-12-27T23:59:03",
+      "secondsFromMidnight": 56.2
+    },
+    {
+      "kind": "term",
+      "termIndex": 8,
+      "name": "입하(절기)",
+      "kst": "1915-05-07T00:03:03",
+      "secondsFromMidnight": 183.1
+    },
+    {
+      "kind": "term",
+      "termIndex": 21,
+      "name": "소설(절기)",
+      "kst": "1916-11-22T23:57:48",
+      "secondsFromMidnight": 131.1
+    },
+    {
+      "kind": "term",
+      "termIndex": 17,
+      "name": "추분(절기)",
+      "kst": "1917-09-24T00:00:14",
+      "secondsFromMidnight": 14.7
+    },
+    {
+      "kind": "term",
+      "termIndex": 14,
+      "name": "입추(절기)",
+      "kst": "1919-08-08T23:58:03",
+      "secondsFromMidnight": 116.6
+    },
+    {
+      "kind": "term",
+      "termIndex": 23,
+      "name": "동지(절기)",
+      "kst": "1922-12-22T23:56:41",
+      "secondsFromMidnight": 198.3
+    },
+    {
+      "kind": "term",
+      "termIndex": 5,
+      "name": "춘분(절기)",
+      "kst": "1927-03-21T23:59:11",
+      "secondsFromMidnight": 48.1
+    },
+    {
+      "kind": "term",
+      "termIndex": 19,
+      "name": "상강(절기)",
+      "kst": "1932-10-24T00:04:05",
+      "secondsFromMidnight": 245.3
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "1932-10-29T23:56:33",
+      "secondsFromMidnight": 206.5
+    },
+    {
+      "kind": "term",
+      "termIndex": 1,
+      "name": "대한(절기)",
+      "kst": "1950-01-20T23:59:58",
+      "secondsFromMidnight": 1
+    },
+    {
+      "kind": "term",
+      "termIndex": 0,
+      "name": "소한(절기)",
+      "kst": "1953-01-06T00:02:11",
+      "secondsFromMidnight": 131.5
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "1953-06-11T23:55:18",
+      "secondsFromMidnight": 281.2
+    },
+    {
+      "kind": "term",
+      "termIndex": 3,
+      "name": "우수(절기)",
+      "kst": "1964-02-19T23:57:16",
+      "secondsFromMidnight": 163
+    },
+    {
+      "kind": "term",
+      "termIndex": 16,
+      "name": "백로(절기)",
+      "kst": "1964-09-08T00:00:00",
+      "secondsFromMidnight": 0
+    },
+    {
+      "kind": "term",
+      "termIndex": 11,
+      "name": "하지(절기)",
+      "kst": "1965-06-21T23:55:27",
+      "secondsFromMidnight": 272.2
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "1967-05-09T23:56:00",
+      "secondsFromMidnight": 240
+    },
+    {
+      "kind": "term",
+      "termIndex": 14,
+      "name": "입추(절기)",
+      "kst": "1981-08-07T23:56:55",
+      "secondsFromMidnight": 184.8
+    },
+    {
+      "kind": "term",
+      "termIndex": 18,
+      "name": "한로(절기)",
+      "kst": "1982-10-09T00:02:02",
+      "secondsFromMidnight": 122.7
+    },
+    {
+      "kind": "term",
+      "termIndex": 7,
+      "name": "곡우(절기)",
+      "kst": "1987-04-20T23:57:27",
+      "secondsFromMidnight": 152.4
+    },
+    {
+      "kind": "term",
+      "termIndex": 22,
+      "name": "대설(절기)",
+      "kst": "1991-12-07T23:56:25",
+      "secondsFromMidnight": 214.4
+    },
+    {
+      "kind": "term",
+      "termIndex": 19,
+      "name": "상강(절기)",
+      "kst": "1998-10-23T23:59:16",
+      "secondsFromMidnight": 43.9
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2005-12-02T00:01:32",
+      "secondsFromMidnight": 93
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2012-06-20T00:02:50",
+      "secondsFromMidnight": 170.1
+    },
+    {
+      "kind": "term",
+      "termIndex": 6,
+      "name": "청명(절기)",
+      "kst": "2013-04-05T00:02:12",
+      "secondsFromMidnight": 132.4
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2017-02-26T23:59:03",
+      "secondsFromMidnight": 56.6
+    },
+    {
+      "kind": "term",
+      "termIndex": 21,
+      "name": "소설(절기)",
+      "kst": "2019-11-22T23:58:54",
+      "secondsFromMidnight": 65.4
+    },
+    {
+      "kind": "term",
+      "termIndex": 2,
+      "name": "입춘(절기)",
+      "kst": "2021-02-03T23:59:04",
+      "secondsFromMidnight": 55.5
+    },
+    {
+      "kind": "term",
+      "termIndex": 0,
+      "name": "소한(절기)",
+      "kst": "2023-01-06T00:04:35",
+      "secondsFromMidnight": 275.9
+    },
+    {
+      "kind": "term",
+      "termIndex": 11,
+      "name": "하지(절기)",
+      "kst": "2023-06-21T23:57:22",
+      "secondsFromMidnight": 157.6
+    },
+    {
+      "kind": "term",
+      "termIndex": 15,
+      "name": "처서(절기)",
+      "kst": "2024-08-22T23:55:15",
+      "secondsFromMidnight": 284
+    },
+    {
+      "kind": "term",
+      "termIndex": 23,
+      "name": "동지(절기)",
+      "kst": "2025-12-22T00:03:03",
+      "secondsFromMidnight": 183.9
+    },
+    {
+      "kind": "term",
+      "termIndex": 3,
+      "name": "우수(절기)",
+      "kst": "2030-02-18T23:59:38",
+      "secondsFromMidnight": 21.5
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2035-01-10T00:03:40",
+      "secondsFromMidnight": 220.9
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2044-11-19T23:58:18",
+      "secondsFromMidnight": 101.7
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2050-02-22T00:03:46",
+      "secondsFromMidnight": 226.2
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2051-11-03T23:59:43",
+      "secondsFromMidnight": 16.9
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2052-10-23T00:03:49",
+      "secondsFromMidnight": 229.1
+    },
+    {
+      "kind": "term",
+      "termIndex": 1,
+      "name": "대한(절기)",
+      "kst": "2053-01-19T23:59:10",
+      "secondsFromMidnight": 49.5
+    },
+    {
+      "kind": "term",
+      "termIndex": 20,
+      "name": "입동(절기)",
+      "kst": "2064-11-07T00:01:15",
+      "secondsFromMidnight": 75.7
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2071-04-01T00:03:37",
+      "secondsFromMidnight": 217.2
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2074-08-22T23:59:48",
+      "secondsFromMidnight": 11.9
+    },
+    {
+      "kind": "term",
+      "termIndex": 17,
+      "name": "추분(절기)",
+      "kst": "2074-09-23T00:03:34",
+      "secondsFromMidnight": 214.7
+    },
+    {
+      "kind": "term",
+      "termIndex": 7,
+      "name": "곡우(절기)",
+      "kst": "2082-04-19T23:55:42",
+      "secondsFromMidnight": 257
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2092-02-08T00:03:09",
+      "secondsFromMidnight": 189.2
+    },
+    {
+      "kind": "term",
+      "termIndex": 23,
+      "name": "동지(절기)",
+      "kst": "2095-12-22T00:00:31",
+      "secondsFromMidnight": 31.9
+    },
+    {
+      "kind": "newMoon",
+      "termIndex": null,
+      "name": "삭",
+      "kst": "2097-01-14T00:00:34",
+      "secondsFromMidnight": 34.2
+    },
+    {
+      "kind": "term",
+      "termIndex": 20,
+      "name": "입동(절기)",
+      "kst": "2097-11-07T00:03:49",
+      "secondsFromMidnight": 229.3
+    },
+    {
+      "kind": "term",
+      "termIndex": 8,
+      "name": "입하(절기)",
+      "kst": "2101-05-06T00:04:26",
+      "secondsFromMidnight": 266.8
+    }
+  ]
+}

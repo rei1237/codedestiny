@@ -1,0 +1,2914 @@
+{
+  "note": "KASI 공식 음양력 표본. scripts/verify-korean-calendar-kasi-samples.mjs --live 로 채집한다.",
+  "endpoint": "https://staging.code-destiny.com/api/kasi/calendar",
+  "coverageGap": "KASI LrsrCldInfoService 는 1391~2050 만 덮는다. 2051~2100 는 이 가드로 검증할 수 없다.",
+  "selectorRules": {
+    "version": 1,
+    "range": [
+      1930,
+      2050
+    ],
+    "layers": {
+      "A": "lunar-javascript 와 갈리는 날 중 매 24번째",
+      "B": "자정 ±5분 등기부 항목의 당일과 다음날",
+      "C": "연도마다 7월 7일(층화 대조군)",
+      "D": "윤달의 첫날"
+    }
+  },
+  "selectorFingerprint": "sel1:da3f140508df",
+  "requested": 289,
+  "captured": 289,
+  "errors": 0,
+  "samples": [
+    {
+      "solar": "1930-07-07",
+      "lunarYear": 1930,
+      "lunarMonth": 6,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "庚午",
+      "wolgeon": "癸未",
+      "iljin": "戊午"
+    },
+    {
+      "solar": "1930-07-26",
+      "lunarYear": 1930,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "庚午",
+      "wolgeon": "",
+      "iljin": "丁丑"
+    },
+    {
+      "solar": "1931-05-17",
+      "lunarYear": 1931,
+      "lunarMonth": 3,
+      "lunarDay": 30,
+      "isLeapMonth": false,
+      "secha": "辛未",
+      "wolgeon": "壬辰",
+      "iljin": "壬申"
+    },
+    {
+      "solar": "1931-06-10",
+      "lunarYear": 1931,
+      "lunarMonth": 4,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "辛未",
+      "wolgeon": "癸巳",
+      "iljin": "丙申"
+    },
+    {
+      "solar": "1931-07-07",
+      "lunarYear": 1931,
+      "lunarMonth": 5,
+      "lunarDay": 22,
+      "isLeapMonth": false,
+      "secha": "辛未",
+      "wolgeon": "甲午",
+      "iljin": "癸亥"
+    },
+    {
+      "solar": "1932-07-07",
+      "lunarYear": 1932,
+      "lunarMonth": 6,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "壬申",
+      "wolgeon": "丁未",
+      "iljin": "己巳"
+    },
+    {
+      "solar": "1932-10-24",
+      "lunarYear": 1932,
+      "lunarMonth": 9,
+      "lunarDay": 25,
+      "isLeapMonth": false,
+      "secha": "壬申",
+      "wolgeon": "庚戌",
+      "iljin": "戊午"
+    },
+    {
+      "solar": "1932-10-25",
+      "lunarYear": 1932,
+      "lunarMonth": 9,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "壬申",
+      "wolgeon": "庚戌",
+      "iljin": "己未"
+    },
+    {
+      "solar": "1932-10-29",
+      "lunarYear": 1932,
+      "lunarMonth": 10,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "壬申",
+      "wolgeon": "辛亥",
+      "iljin": "癸亥"
+    },
+    {
+      "solar": "1932-10-30",
+      "lunarYear": 1932,
+      "lunarMonth": 10,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "壬申",
+      "wolgeon": "辛亥",
+      "iljin": "甲子"
+    },
+    {
+      "solar": "1933-06-23",
+      "lunarYear": 1933,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "癸酉",
+      "wolgeon": "",
+      "iljin": "庚申"
+    },
+    {
+      "solar": "1933-07-07",
+      "lunarYear": 1933,
+      "lunarMonth": 5,
+      "lunarDay": 15,
+      "isLeapMonth": true,
+      "secha": "癸酉",
+      "wolgeon": "",
+      "iljin": "甲戌"
+    },
+    {
+      "solar": "1934-07-07",
+      "lunarYear": 1934,
+      "lunarMonth": 5,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "甲戌",
+      "wolgeon": "庚午",
+      "iljin": "己卯"
+    },
+    {
+      "solar": "1934-10-26",
+      "lunarYear": 1934,
+      "lunarMonth": 9,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "甲戌",
+      "wolgeon": "甲戌",
+      "iljin": "庚午"
+    },
+    {
+      "solar": "1935-07-07",
+      "lunarYear": 1935,
+      "lunarMonth": 6,
+      "lunarDay": 7,
+      "isLeapMonth": false,
+      "secha": "乙亥",
+      "wolgeon": "癸未",
+      "iljin": "甲申"
+    },
+    {
+      "solar": "1936-04-21",
+      "lunarYear": 1936,
+      "lunarMonth": 3,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丙子",
+      "wolgeon": "",
+      "iljin": "癸酉"
+    },
+    {
+      "solar": "1936-07-07",
+      "lunarYear": 1936,
+      "lunarMonth": 5,
+      "lunarDay": 19,
+      "isLeapMonth": false,
+      "secha": "丙子",
+      "wolgeon": "甲午",
+      "iljin": "庚寅"
+    },
+    {
+      "solar": "1936-07-30",
+      "lunarYear": 1936,
+      "lunarMonth": 6,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "丙子",
+      "wolgeon": "乙未",
+      "iljin": "癸丑"
+    },
+    {
+      "solar": "1937-07-07",
+      "lunarYear": 1937,
+      "lunarMonth": 5,
+      "lunarDay": 29,
+      "isLeapMonth": false,
+      "secha": "丁丑",
+      "wolgeon": "丙午",
+      "iljin": "乙未"
+    },
+    {
+      "solar": "1938-07-07",
+      "lunarYear": 1938,
+      "lunarMonth": 6,
+      "lunarDay": 10,
+      "isLeapMonth": false,
+      "secha": "戊寅",
+      "wolgeon": "己未",
+      "iljin": "庚子"
+    },
+    {
+      "solar": "1938-08-25",
+      "lunarYear": 1938,
+      "lunarMonth": 7,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "戊寅",
+      "wolgeon": "",
+      "iljin": "己丑"
+    },
+    {
+      "solar": "1939-07-07",
+      "lunarYear": 1939,
+      "lunarMonth": 5,
+      "lunarDay": 21,
+      "isLeapMonth": false,
+      "secha": "己卯",
+      "wolgeon": "庚午",
+      "iljin": "乙巳"
+    },
+    {
+      "solar": "1940-07-07",
+      "lunarYear": 1940,
+      "lunarMonth": 6,
+      "lunarDay": 3,
+      "isLeapMonth": false,
+      "secha": "庚辰",
+      "wolgeon": "癸未",
+      "iljin": "辛亥"
+    },
+    {
+      "solar": "1941-07-07",
+      "lunarYear": 1941,
+      "lunarMonth": 6,
+      "lunarDay": 13,
+      "isLeapMonth": false,
+      "secha": "辛巳",
+      "wolgeon": "乙未",
+      "iljin": "丙辰"
+    },
+    {
+      "solar": "1941-07-24",
+      "lunarYear": 1941,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "辛巳",
+      "wolgeon": "",
+      "iljin": "癸酉"
+    },
+    {
+      "solar": "1942-07-07",
+      "lunarYear": 1942,
+      "lunarMonth": 5,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "壬午",
+      "wolgeon": "丙午",
+      "iljin": "辛酉"
+    },
+    {
+      "solar": "1942-09-16",
+      "lunarYear": 1942,
+      "lunarMonth": 8,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "壬午",
+      "wolgeon": "己酉",
+      "iljin": "壬申"
+    },
+    {
+      "solar": "1942-11-08",
+      "lunarYear": 1942,
+      "lunarMonth": 9,
+      "lunarDay": 30,
+      "isLeapMonth": false,
+      "secha": "壬午",
+      "wolgeon": "庚戌",
+      "iljin": "乙丑"
+    },
+    {
+      "solar": "1942-12-02",
+      "lunarYear": 1942,
+      "lunarMonth": 10,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "壬午",
+      "wolgeon": "辛亥",
+      "iljin": "己丑"
+    },
+    {
+      "solar": "1943-07-07",
+      "lunarYear": 1943,
+      "lunarMonth": 6,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "癸未",
+      "wolgeon": "己未",
+      "iljin": "丙寅"
+    },
+    {
+      "solar": "1943-12-15",
+      "lunarYear": 1943,
+      "lunarMonth": 11,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "癸未",
+      "wolgeon": "甲子",
+      "iljin": "丁未"
+    },
+    {
+      "solar": "1944-02-06",
+      "lunarYear": 1944,
+      "lunarMonth": 1,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "甲申",
+      "wolgeon": "丙寅",
+      "iljin": "庚子"
+    },
+    {
+      "solar": "1944-05-22",
+      "lunarYear": 1944,
+      "lunarMonth": 4,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "甲申",
+      "wolgeon": "",
+      "iljin": "丙戌"
+    },
+    {
+      "solar": "1944-07-07",
+      "lunarYear": 1944,
+      "lunarMonth": 5,
+      "lunarDay": 17,
+      "isLeapMonth": false,
+      "secha": "甲申",
+      "wolgeon": "庚午",
+      "iljin": "壬申"
+    },
+    {
+      "solar": "1945-07-07",
+      "lunarYear": 1945,
+      "lunarMonth": 5,
+      "lunarDay": 28,
+      "isLeapMonth": false,
+      "secha": "乙酉",
+      "wolgeon": "壬午",
+      "iljin": "丁丑"
+    },
+    {
+      "solar": "1946-07-07",
+      "lunarYear": 1946,
+      "lunarMonth": 6,
+      "lunarDay": 9,
+      "isLeapMonth": false,
+      "secha": "丙戌",
+      "wolgeon": "乙未",
+      "iljin": "壬午"
+    },
+    {
+      "solar": "1947-03-23",
+      "lunarYear": 1947,
+      "lunarMonth": 2,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丁亥",
+      "wolgeon": "",
+      "iljin": "辛丑"
+    },
+    {
+      "solar": "1947-07-07",
+      "lunarYear": 1947,
+      "lunarMonth": 5,
+      "lunarDay": 19,
+      "isLeapMonth": false,
+      "secha": "丁亥",
+      "wolgeon": "丙午",
+      "iljin": "丁亥"
+    },
+    {
+      "solar": "1948-07-07",
+      "lunarYear": 1948,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "戊子",
+      "wolgeon": "己未",
+      "iljin": "癸巳"
+    },
+    {
+      "solar": "1949-04-04",
+      "lunarYear": 1949,
+      "lunarMonth": 3,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "己丑",
+      "wolgeon": "戊辰",
+      "iljin": "甲子"
+    },
+    {
+      "solar": "1949-07-07",
+      "lunarYear": 1949,
+      "lunarMonth": 6,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "己丑",
+      "wolgeon": "辛未",
+      "iljin": "戊戌"
+    },
+    {
+      "solar": "1949-08-24",
+      "lunarYear": 1949,
+      "lunarMonth": 7,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "己丑",
+      "wolgeon": "",
+      "iljin": "丙戌"
+    },
+    {
+      "solar": "1950-01-20",
+      "lunarYear": 1949,
+      "lunarMonth": 12,
+      "lunarDay": 3,
+      "isLeapMonth": false,
+      "secha": "己丑",
+      "wolgeon": "丁丑",
+      "iljin": "乙卯"
+    },
+    {
+      "solar": "1950-01-21",
+      "lunarYear": 1949,
+      "lunarMonth": 12,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "己丑",
+      "wolgeon": "丁丑",
+      "iljin": "丙辰"
+    },
+    {
+      "solar": "1950-03-18",
+      "lunarYear": 1950,
+      "lunarMonth": 1,
+      "lunarDay": 30,
+      "isLeapMonth": false,
+      "secha": "庚寅",
+      "wolgeon": "戊寅",
+      "iljin": "壬子"
+    },
+    {
+      "solar": "1950-04-11",
+      "lunarYear": 1950,
+      "lunarMonth": 2,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "庚寅",
+      "wolgeon": "己卯",
+      "iljin": "丙子"
+    },
+    {
+      "solar": "1950-07-03",
+      "lunarYear": 1950,
+      "lunarMonth": 5,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "庚寅",
+      "wolgeon": "壬午",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "1950-07-07",
+      "lunarYear": 1950,
+      "lunarMonth": 5,
+      "lunarDay": 22,
+      "isLeapMonth": false,
+      "secha": "庚寅",
+      "wolgeon": "壬午",
+      "iljin": "癸卯"
+    },
+    {
+      "solar": "1951-07-07",
+      "lunarYear": 1951,
+      "lunarMonth": 6,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "辛卯",
+      "wolgeon": "乙未",
+      "iljin": "戊申"
+    },
+    {
+      "solar": "1952-06-22",
+      "lunarYear": 1952,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "壬辰",
+      "wolgeon": "",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "1952-07-07",
+      "lunarYear": 1952,
+      "lunarMonth": 5,
+      "lunarDay": 16,
+      "isLeapMonth": true,
+      "secha": "壬辰",
+      "wolgeon": "",
+      "iljin": "甲寅"
+    },
+    {
+      "solar": "1952-09-01",
+      "lunarYear": 1952,
+      "lunarMonth": 7,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "壬辰",
+      "wolgeon": "戊申",
+      "iljin": "庚戌"
+    },
+    {
+      "solar": "1953-01-06",
+      "lunarYear": 1952,
+      "lunarMonth": 11,
+      "lunarDay": 21,
+      "isLeapMonth": false,
+      "secha": "壬辰",
+      "wolgeon": "壬子",
+      "iljin": "丁巳"
+    },
+    {
+      "solar": "1953-01-07",
+      "lunarYear": 1952,
+      "lunarMonth": 11,
+      "lunarDay": 22,
+      "isLeapMonth": false,
+      "secha": "壬辰",
+      "wolgeon": "壬子",
+      "iljin": "戊午"
+    },
+    {
+      "solar": "1953-06-11",
+      "lunarYear": 1953,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "癸巳",
+      "wolgeon": "戊午",
+      "iljin": "癸巳"
+    },
+    {
+      "solar": "1953-06-12",
+      "lunarYear": 1953,
+      "lunarMonth": 5,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "癸巳",
+      "wolgeon": "戊午",
+      "iljin": "甲午"
+    },
+    {
+      "solar": "1953-07-07",
+      "lunarYear": 1953,
+      "lunarMonth": 5,
+      "lunarDay": 27,
+      "isLeapMonth": false,
+      "secha": "癸巳",
+      "wolgeon": "戊午",
+      "iljin": "己未"
+    },
+    {
+      "solar": "1954-02-09",
+      "lunarYear": 1954,
+      "lunarMonth": 1,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "甲午",
+      "wolgeon": "丙寅",
+      "iljin": "丙申"
+    },
+    {
+      "solar": "1954-07-07",
+      "lunarYear": 1954,
+      "lunarMonth": 6,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "甲午",
+      "wolgeon": "辛未",
+      "iljin": "甲子"
+    },
+    {
+      "solar": "1955-02-22",
+      "lunarYear": 1955,
+      "lunarMonth": 1,
+      "lunarDay": 30,
+      "isLeapMonth": false,
+      "secha": "乙未",
+      "wolgeon": "戊寅",
+      "iljin": "甲寅"
+    },
+    {
+      "solar": "1955-03-18",
+      "lunarYear": 1955,
+      "lunarMonth": 2,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "乙未",
+      "wolgeon": "己卯",
+      "iljin": "戊寅"
+    },
+    {
+      "solar": "1955-04-22",
+      "lunarYear": 1955,
+      "lunarMonth": 3,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "乙未",
+      "wolgeon": "",
+      "iljin": "癸丑"
+    },
+    {
+      "solar": "1955-07-07",
+      "lunarYear": 1955,
+      "lunarMonth": 5,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "乙未",
+      "wolgeon": "壬午",
+      "iljin": "己巳"
+    },
+    {
+      "solar": "1956-07-07",
+      "lunarYear": 1956,
+      "lunarMonth": 5,
+      "lunarDay": 29,
+      "isLeapMonth": false,
+      "secha": "丙申",
+      "wolgeon": "甲午",
+      "iljin": "乙亥"
+    },
+    {
+      "solar": "1957-07-07",
+      "lunarYear": 1957,
+      "lunarMonth": 6,
+      "lunarDay": 10,
+      "isLeapMonth": false,
+      "secha": "丁酉",
+      "wolgeon": "丁未",
+      "iljin": "庚辰"
+    },
+    {
+      "solar": "1957-09-24",
+      "lunarYear": 1957,
+      "lunarMonth": 8,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丁酉",
+      "wolgeon": "",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "1958-03-08",
+      "lunarYear": 1958,
+      "lunarMonth": 1,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "戊戌",
+      "wolgeon": "甲寅",
+      "iljin": "甲申"
+    },
+    {
+      "solar": "1958-07-07",
+      "lunarYear": 1958,
+      "lunarMonth": 5,
+      "lunarDay": 21,
+      "isLeapMonth": false,
+      "secha": "戊戌",
+      "wolgeon": "戊午",
+      "iljin": "乙酉"
+    },
+    {
+      "solar": "1959-07-07",
+      "lunarYear": 1959,
+      "lunarMonth": 6,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "己亥",
+      "wolgeon": "辛未",
+      "iljin": "庚寅"
+    },
+    {
+      "solar": "1960-07-07",
+      "lunarYear": 1960,
+      "lunarMonth": 6,
+      "lunarDay": 14,
+      "isLeapMonth": false,
+      "secha": "庚子",
+      "wolgeon": "癸未",
+      "iljin": "丙申"
+    },
+    {
+      "solar": "1960-07-24",
+      "lunarYear": 1960,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "庚子",
+      "wolgeon": "",
+      "iljin": "癸丑"
+    },
+    {
+      "solar": "1961-07-07",
+      "lunarYear": 1961,
+      "lunarMonth": 5,
+      "lunarDay": 25,
+      "isLeapMonth": false,
+      "secha": "辛丑",
+      "wolgeon": "甲午",
+      "iljin": "辛丑"
+    },
+    {
+      "solar": "1962-07-07",
+      "lunarYear": 1962,
+      "lunarMonth": 6,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "壬寅",
+      "wolgeon": "丁未",
+      "iljin": "丙午"
+    },
+    {
+      "solar": "1963-05-23",
+      "lunarYear": 1963,
+      "lunarMonth": 4,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "癸卯",
+      "wolgeon": "",
+      "iljin": "丙寅"
+    },
+    {
+      "solar": "1963-07-07",
+      "lunarYear": 1963,
+      "lunarMonth": 5,
+      "lunarDay": 17,
+      "isLeapMonth": false,
+      "secha": "癸卯",
+      "wolgeon": "戊午",
+      "iljin": "辛亥"
+    },
+    {
+      "solar": "1964-02-19",
+      "lunarYear": 1964,
+      "lunarMonth": 1,
+      "lunarDay": 7,
+      "isLeapMonth": false,
+      "secha": "甲辰",
+      "wolgeon": "丙寅",
+      "iljin": "戊戌"
+    },
+    {
+      "solar": "1964-02-20",
+      "lunarYear": 1964,
+      "lunarMonth": 1,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "甲辰",
+      "wolgeon": "丙寅",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "1964-07-07",
+      "lunarYear": 1964,
+      "lunarMonth": 5,
+      "lunarDay": 28,
+      "isLeapMonth": false,
+      "secha": "甲辰",
+      "wolgeon": "庚午",
+      "iljin": "丁巳"
+    },
+    {
+      "solar": "1964-09-08",
+      "lunarYear": 1964,
+      "lunarMonth": 8,
+      "lunarDay": 3,
+      "isLeapMonth": false,
+      "secha": "甲辰",
+      "wolgeon": "癸酉",
+      "iljin": "庚申"
+    },
+    {
+      "solar": "1964-09-09",
+      "lunarYear": 1964,
+      "lunarMonth": 8,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "甲辰",
+      "wolgeon": "癸酉",
+      "iljin": "辛酉"
+    },
+    {
+      "solar": "1965-06-21",
+      "lunarYear": 1965,
+      "lunarMonth": 5,
+      "lunarDay": 22,
+      "isLeapMonth": false,
+      "secha": "乙巳",
+      "wolgeon": "壬午",
+      "iljin": "丙午"
+    },
+    {
+      "solar": "1965-06-22",
+      "lunarYear": 1965,
+      "lunarMonth": 5,
+      "lunarDay": 23,
+      "isLeapMonth": false,
+      "secha": "乙巳",
+      "wolgeon": "壬午",
+      "iljin": "丁未"
+    },
+    {
+      "solar": "1965-07-07",
+      "lunarYear": 1965,
+      "lunarMonth": 6,
+      "lunarDay": 9,
+      "isLeapMonth": false,
+      "secha": "乙巳",
+      "wolgeon": "癸未",
+      "iljin": "壬戌"
+    },
+    {
+      "solar": "1966-02-02",
+      "lunarYear": 1966,
+      "lunarMonth": 1,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "丙午",
+      "wolgeon": "庚寅",
+      "iljin": "壬辰"
+    },
+    {
+      "solar": "1966-04-21",
+      "lunarYear": 1966,
+      "lunarMonth": 3,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丙午",
+      "wolgeon": "",
+      "iljin": "庚戌"
+    },
+    {
+      "solar": "1966-07-07",
+      "lunarYear": 1966,
+      "lunarMonth": 5,
+      "lunarDay": 19,
+      "isLeapMonth": false,
+      "secha": "丙午",
+      "wolgeon": "甲午",
+      "iljin": "丁卯"
+    },
+    {
+      "solar": "1967-05-09",
+      "lunarYear": 1967,
+      "lunarMonth": 4,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "丁未",
+      "wolgeon": "乙巳",
+      "iljin": "癸酉"
+    },
+    {
+      "solar": "1967-05-10",
+      "lunarYear": 1967,
+      "lunarMonth": 4,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "丁未",
+      "wolgeon": "乙巳",
+      "iljin": "甲戌"
+    },
+    {
+      "solar": "1967-07-07",
+      "lunarYear": 1967,
+      "lunarMonth": 5,
+      "lunarDay": 30,
+      "isLeapMonth": false,
+      "secha": "丁未",
+      "wolgeon": "丙午",
+      "iljin": "壬申"
+    },
+    {
+      "solar": "1968-05-03",
+      "lunarYear": 1968,
+      "lunarMonth": 4,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "戊申",
+      "wolgeon": "丁巳",
+      "iljin": "癸酉"
+    },
+    {
+      "solar": "1968-07-07",
+      "lunarYear": 1968,
+      "lunarMonth": 6,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "戊申",
+      "wolgeon": "己未",
+      "iljin": "戊寅"
+    },
+    {
+      "solar": "1968-08-24",
+      "lunarYear": 1968,
+      "lunarMonth": 7,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "戊申",
+      "wolgeon": "",
+      "iljin": "丙寅"
+    },
+    {
+      "solar": "1969-07-07",
+      "lunarYear": 1969,
+      "lunarMonth": 5,
+      "lunarDay": 23,
+      "isLeapMonth": false,
+      "secha": "己酉",
+      "wolgeon": "庚午",
+      "iljin": "癸未"
+    },
+    {
+      "solar": "1970-07-03",
+      "lunarYear": 1970,
+      "lunarMonth": 5,
+      "lunarDay": 30,
+      "isLeapMonth": false,
+      "secha": "庚戌",
+      "wolgeon": "壬午",
+      "iljin": "甲申"
+    },
+    {
+      "solar": "1970-07-07",
+      "lunarYear": 1970,
+      "lunarMonth": 6,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "庚戌",
+      "wolgeon": "癸未",
+      "iljin": "戊子"
+    },
+    {
+      "solar": "1970-07-27",
+      "lunarYear": 1970,
+      "lunarMonth": 6,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "庚戌",
+      "wolgeon": "癸未",
+      "iljin": "戊申"
+    },
+    {
+      "solar": "1971-06-23",
+      "lunarYear": 1971,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "辛亥",
+      "wolgeon": "",
+      "iljin": "己卯"
+    },
+    {
+      "solar": "1971-07-07",
+      "lunarYear": 1971,
+      "lunarMonth": 5,
+      "lunarDay": 15,
+      "isLeapMonth": true,
+      "secha": "辛亥",
+      "wolgeon": "",
+      "iljin": "癸巳"
+    },
+    {
+      "solar": "1972-07-07",
+      "lunarYear": 1972,
+      "lunarMonth": 5,
+      "lunarDay": 27,
+      "isLeapMonth": false,
+      "secha": "壬子",
+      "wolgeon": "丙午",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "1973-01-22",
+      "lunarYear": 1972,
+      "lunarMonth": 12,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "壬子",
+      "wolgeon": "癸丑",
+      "iljin": "戊午"
+    },
+    {
+      "solar": "1973-07-07",
+      "lunarYear": 1973,
+      "lunarMonth": 6,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "癸丑",
+      "wolgeon": "己未",
+      "iljin": "甲辰"
+    },
+    {
+      "solar": "1974-01-05",
+      "lunarYear": 1973,
+      "lunarMonth": 12,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "癸丑",
+      "wolgeon": "乙丑",
+      "iljin": "丙午"
+    },
+    {
+      "solar": "1974-05-22",
+      "lunarYear": 1974,
+      "lunarMonth": 4,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "甲寅",
+      "wolgeon": "",
+      "iljin": "癸亥"
+    },
+    {
+      "solar": "1974-07-07",
+      "lunarYear": 1974,
+      "lunarMonth": 5,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "甲寅",
+      "wolgeon": "庚午",
+      "iljin": "己酉"
+    },
+    {
+      "solar": "1975-07-07",
+      "lunarYear": 1975,
+      "lunarMonth": 5,
+      "lunarDay": 28,
+      "isLeapMonth": false,
+      "secha": "乙卯",
+      "wolgeon": "壬午",
+      "iljin": "甲寅"
+    },
+    {
+      "solar": "1976-07-07",
+      "lunarYear": 1976,
+      "lunarMonth": 6,
+      "lunarDay": 11,
+      "isLeapMonth": false,
+      "secha": "丙辰",
+      "wolgeon": "乙未",
+      "iljin": "庚申"
+    },
+    {
+      "solar": "1976-09-24",
+      "lunarYear": 1976,
+      "lunarMonth": 8,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丙辰",
+      "wolgeon": "",
+      "iljin": "己卯"
+    },
+    {
+      "solar": "1976-11-27",
+      "lunarYear": 1976,
+      "lunarMonth": 10,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "丙辰",
+      "wolgeon": "己亥",
+      "iljin": "癸未"
+    },
+    {
+      "solar": "1977-07-07",
+      "lunarYear": 1977,
+      "lunarMonth": 5,
+      "lunarDay": 21,
+      "isLeapMonth": false,
+      "secha": "丁巳",
+      "wolgeon": "丙午",
+      "iljin": "乙丑"
+    },
+    {
+      "solar": "1978-04-07",
+      "lunarYear": 1978,
+      "lunarMonth": 2,
+      "lunarDay": 30,
+      "isLeapMonth": false,
+      "secha": "戊午",
+      "wolgeon": "乙卯",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "1978-05-01",
+      "lunarYear": 1978,
+      "lunarMonth": 3,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "戊午",
+      "wolgeon": "丙辰",
+      "iljin": "癸亥"
+    },
+    {
+      "solar": "1978-07-07",
+      "lunarYear": 1978,
+      "lunarMonth": 6,
+      "lunarDay": 3,
+      "isLeapMonth": false,
+      "secha": "戊午",
+      "wolgeon": "己未",
+      "iljin": "庚午"
+    },
+    {
+      "solar": "1979-07-07",
+      "lunarYear": 1979,
+      "lunarMonth": 6,
+      "lunarDay": 14,
+      "isLeapMonth": false,
+      "secha": "己未",
+      "wolgeon": "辛未",
+      "iljin": "乙亥"
+    },
+    {
+      "solar": "1979-07-24",
+      "lunarYear": 1979,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "己未",
+      "wolgeon": "",
+      "iljin": "壬辰"
+    },
+    {
+      "solar": "1980-07-07",
+      "lunarYear": 1980,
+      "lunarMonth": 5,
+      "lunarDay": 25,
+      "isLeapMonth": false,
+      "secha": "庚申",
+      "wolgeon": "壬午",
+      "iljin": "辛巳"
+    },
+    {
+      "solar": "1981-07-07",
+      "lunarYear": 1981,
+      "lunarMonth": 6,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "辛酉",
+      "wolgeon": "乙未",
+      "iljin": "丙戌"
+    },
+    {
+      "solar": "1981-08-07",
+      "lunarYear": 1981,
+      "lunarMonth": 7,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "辛酉",
+      "wolgeon": "丙申",
+      "iljin": "丁巳"
+    },
+    {
+      "solar": "1981-08-08",
+      "lunarYear": 1981,
+      "lunarMonth": 7,
+      "lunarDay": 9,
+      "isLeapMonth": false,
+      "secha": "辛酉",
+      "wolgeon": "丙申",
+      "iljin": "戊午"
+    },
+    {
+      "solar": "1982-05-23",
+      "lunarYear": 1982,
+      "lunarMonth": 4,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "壬戌",
+      "wolgeon": "",
+      "iljin": "丙午"
+    },
+    {
+      "solar": "1982-07-07",
+      "lunarYear": 1982,
+      "lunarMonth": 5,
+      "lunarDay": 17,
+      "isLeapMonth": false,
+      "secha": "壬戌",
+      "wolgeon": "丙午",
+      "iljin": "辛卯"
+    },
+    {
+      "solar": "1982-10-09",
+      "lunarYear": 1982,
+      "lunarMonth": 8,
+      "lunarDay": 23,
+      "isLeapMonth": false,
+      "secha": "壬戌",
+      "wolgeon": "己酉",
+      "iljin": "乙丑"
+    },
+    {
+      "solar": "1982-10-10",
+      "lunarYear": 1982,
+      "lunarMonth": 8,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "壬戌",
+      "wolgeon": "己酉",
+      "iljin": "丙寅"
+    },
+    {
+      "solar": "1982-12-03",
+      "lunarYear": 1982,
+      "lunarMonth": 10,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "壬戌",
+      "wolgeon": "辛亥",
+      "iljin": "庚申"
+    },
+    {
+      "solar": "1983-07-07",
+      "lunarYear": 1983,
+      "lunarMonth": 5,
+      "lunarDay": 27,
+      "isLeapMonth": false,
+      "secha": "癸亥",
+      "wolgeon": "戊午",
+      "iljin": "丙申"
+    },
+    {
+      "solar": "1984-07-07",
+      "lunarYear": 1984,
+      "lunarMonth": 6,
+      "lunarDay": 9,
+      "isLeapMonth": false,
+      "secha": "甲子",
+      "wolgeon": "辛未",
+      "iljin": "壬寅"
+    },
+    {
+      "solar": "1984-11-23",
+      "lunarYear": 1984,
+      "lunarMonth": 10,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "甲子",
+      "wolgeon": "",
+      "iljin": "辛酉"
+    },
+    {
+      "solar": "1985-07-07",
+      "lunarYear": 1985,
+      "lunarMonth": 5,
+      "lunarDay": 20,
+      "isLeapMonth": false,
+      "secha": "乙丑",
+      "wolgeon": "壬午",
+      "iljin": "丁未"
+    },
+    {
+      "solar": "1986-07-07",
+      "lunarYear": 1986,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "丙寅",
+      "wolgeon": "乙未",
+      "iljin": "壬子"
+    },
+    {
+      "solar": "1987-04-20",
+      "lunarYear": 1987,
+      "lunarMonth": 3,
+      "lunarDay": 23,
+      "isLeapMonth": false,
+      "secha": "丁卯",
+      "wolgeon": "甲辰",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "1987-04-21",
+      "lunarYear": 1987,
+      "lunarMonth": 3,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "丁卯",
+      "wolgeon": "甲辰",
+      "iljin": "庚子"
+    },
+    {
+      "solar": "1987-06-08",
+      "lunarYear": 1987,
+      "lunarMonth": 5,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "丁卯",
+      "wolgeon": "丙午",
+      "iljin": "戊子"
+    },
+    {
+      "solar": "1987-07-07",
+      "lunarYear": 1987,
+      "lunarMonth": 6,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "丁卯",
+      "wolgeon": "丁未",
+      "iljin": "丁巳"
+    },
+    {
+      "solar": "1987-07-26",
+      "lunarYear": 1987,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丁卯",
+      "wolgeon": "",
+      "iljin": "丙子"
+    },
+    {
+      "solar": "1988-02-23",
+      "lunarYear": 1988,
+      "lunarMonth": 1,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "戊辰",
+      "wolgeon": "甲寅",
+      "iljin": "戊申"
+    },
+    {
+      "solar": "1988-07-07",
+      "lunarYear": 1988,
+      "lunarMonth": 5,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "戊辰",
+      "wolgeon": "戊午",
+      "iljin": "癸亥"
+    },
+    {
+      "solar": "1989-07-07",
+      "lunarYear": 1989,
+      "lunarMonth": 6,
+      "lunarDay": 5,
+      "isLeapMonth": false,
+      "secha": "己巳",
+      "wolgeon": "辛未",
+      "iljin": "戊辰"
+    },
+    {
+      "solar": "1989-10-29",
+      "lunarYear": 1989,
+      "lunarMonth": 9,
+      "lunarDay": 30,
+      "isLeapMonth": false,
+      "secha": "己巳",
+      "wolgeon": "甲戌",
+      "iljin": "壬戌"
+    },
+    {
+      "solar": "1989-11-22",
+      "lunarYear": 1989,
+      "lunarMonth": 10,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "己巳",
+      "wolgeon": "乙亥",
+      "iljin": "丙戌"
+    },
+    {
+      "solar": "1990-06-23",
+      "lunarYear": 1990,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "庚午",
+      "wolgeon": "",
+      "iljin": "己未"
+    },
+    {
+      "solar": "1990-07-07",
+      "lunarYear": 1990,
+      "lunarMonth": 5,
+      "lunarDay": 15,
+      "isLeapMonth": true,
+      "secha": "庚午",
+      "wolgeon": "",
+      "iljin": "癸酉"
+    },
+    {
+      "solar": "1990-11-05",
+      "lunarYear": 1990,
+      "lunarMonth": 9,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "庚午",
+      "wolgeon": "丙戌",
+      "iljin": "甲戌"
+    },
+    {
+      "solar": "1991-07-07",
+      "lunarYear": 1991,
+      "lunarMonth": 5,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "辛未",
+      "wolgeon": "甲午",
+      "iljin": "戊寅"
+    },
+    {
+      "solar": "1991-12-07",
+      "lunarYear": 1991,
+      "lunarMonth": 11,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "辛未",
+      "wolgeon": "庚子",
+      "iljin": "辛亥"
+    },
+    {
+      "solar": "1991-12-08",
+      "lunarYear": 1991,
+      "lunarMonth": 11,
+      "lunarDay": 3,
+      "isLeapMonth": false,
+      "secha": "辛未",
+      "wolgeon": "庚子",
+      "iljin": "壬子"
+    },
+    {
+      "solar": "1992-07-07",
+      "lunarYear": 1992,
+      "lunarMonth": 6,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "壬申",
+      "wolgeon": "丁未",
+      "iljin": "甲申"
+    },
+    {
+      "solar": "1993-04-22",
+      "lunarYear": 1993,
+      "lunarMonth": 3,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "癸酉",
+      "wolgeon": "",
+      "iljin": "癸酉"
+    },
+    {
+      "solar": "1993-07-07",
+      "lunarYear": 1993,
+      "lunarMonth": 5,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "癸酉",
+      "wolgeon": "戊午",
+      "iljin": "己丑"
+    },
+    {
+      "solar": "1994-07-07",
+      "lunarYear": 1994,
+      "lunarMonth": 5,
+      "lunarDay": 29,
+      "isLeapMonth": false,
+      "secha": "甲戌",
+      "wolgeon": "庚午",
+      "iljin": "甲午"
+    },
+    {
+      "solar": "1995-07-07",
+      "lunarYear": 1995,
+      "lunarMonth": 6,
+      "lunarDay": 10,
+      "isLeapMonth": false,
+      "secha": "乙亥",
+      "wolgeon": "癸未",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "1995-08-08",
+      "lunarYear": 1995,
+      "lunarMonth": 7,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "乙亥",
+      "wolgeon": "甲申",
+      "iljin": "辛未"
+    },
+    {
+      "solar": "1995-09-25",
+      "lunarYear": 1995,
+      "lunarMonth": 8,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "乙亥",
+      "wolgeon": "",
+      "iljin": "己未"
+    },
+    {
+      "solar": "1995-11-28",
+      "lunarYear": 1995,
+      "lunarMonth": 10,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "乙亥",
+      "wolgeon": "丁亥",
+      "iljin": "癸亥"
+    },
+    {
+      "solar": "1996-07-07",
+      "lunarYear": 1996,
+      "lunarMonth": 5,
+      "lunarDay": 22,
+      "isLeapMonth": false,
+      "secha": "丙子",
+      "wolgeon": "甲午",
+      "iljin": "乙巳"
+    },
+    {
+      "solar": "1997-02-07",
+      "lunarYear": 1996,
+      "lunarMonth": 12,
+      "lunarDay": 30,
+      "isLeapMonth": false,
+      "secha": "丙子",
+      "wolgeon": "辛丑",
+      "iljin": "庚辰"
+    },
+    {
+      "solar": "1997-03-03",
+      "lunarYear": 1997,
+      "lunarMonth": 1,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "丁丑",
+      "wolgeon": "壬寅",
+      "iljin": "甲辰"
+    },
+    {
+      "solar": "1997-07-07",
+      "lunarYear": 1997,
+      "lunarMonth": 6,
+      "lunarDay": 3,
+      "isLeapMonth": false,
+      "secha": "丁丑",
+      "wolgeon": "丁未",
+      "iljin": "庚戌"
+    },
+    {
+      "solar": "1998-06-24",
+      "lunarYear": 1998,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "戊寅",
+      "wolgeon": "",
+      "iljin": "壬寅"
+    },
+    {
+      "solar": "1998-07-07",
+      "lunarYear": 1998,
+      "lunarMonth": 5,
+      "lunarDay": 14,
+      "isLeapMonth": true,
+      "secha": "戊寅",
+      "wolgeon": "",
+      "iljin": "乙卯"
+    },
+    {
+      "solar": "1998-10-23",
+      "lunarYear": 1998,
+      "lunarMonth": 9,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "戊寅",
+      "wolgeon": "壬戌",
+      "iljin": "癸卯"
+    },
+    {
+      "solar": "1998-10-24",
+      "lunarYear": 1998,
+      "lunarMonth": 9,
+      "lunarDay": 5,
+      "isLeapMonth": false,
+      "secha": "戊寅",
+      "wolgeon": "壬戌",
+      "iljin": "甲辰"
+    },
+    {
+      "solar": "1999-02-04",
+      "lunarYear": 1998,
+      "lunarMonth": 12,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "戊寅",
+      "wolgeon": "乙丑",
+      "iljin": "丁亥"
+    },
+    {
+      "solar": "1999-07-07",
+      "lunarYear": 1999,
+      "lunarMonth": 5,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "己卯",
+      "wolgeon": "庚午",
+      "iljin": "庚申"
+    },
+    {
+      "solar": "2000-07-07",
+      "lunarYear": 2000,
+      "lunarMonth": 6,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "庚辰",
+      "wolgeon": "癸未",
+      "iljin": "丙寅"
+    },
+    {
+      "solar": "2001-05-05",
+      "lunarYear": 2001,
+      "lunarMonth": 4,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "辛巳",
+      "wolgeon": "癸巳",
+      "iljin": "戊辰"
+    },
+    {
+      "solar": "2001-05-23",
+      "lunarYear": 2001,
+      "lunarMonth": 4,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "辛巳",
+      "wolgeon": "",
+      "iljin": "丙戌"
+    },
+    {
+      "solar": "2001-07-07",
+      "lunarYear": 2001,
+      "lunarMonth": 5,
+      "lunarDay": 17,
+      "isLeapMonth": false,
+      "secha": "辛巳",
+      "wolgeon": "甲午",
+      "iljin": "辛未"
+    },
+    {
+      "solar": "2002-07-07",
+      "lunarYear": 2002,
+      "lunarMonth": 5,
+      "lunarDay": 27,
+      "isLeapMonth": false,
+      "secha": "壬午",
+      "wolgeon": "丙午",
+      "iljin": "丙子"
+    },
+    {
+      "solar": "2003-07-07",
+      "lunarYear": 2003,
+      "lunarMonth": 6,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "癸未",
+      "wolgeon": "己未",
+      "iljin": "辛巳"
+    },
+    {
+      "solar": "2004-03-21",
+      "lunarYear": 2004,
+      "lunarMonth": 2,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "甲申",
+      "wolgeon": "",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "2004-07-07",
+      "lunarYear": 2004,
+      "lunarMonth": 5,
+      "lunarDay": 20,
+      "isLeapMonth": false,
+      "secha": "甲申",
+      "wolgeon": "庚午",
+      "iljin": "丁亥"
+    },
+    {
+      "solar": "2005-07-07",
+      "lunarYear": 2005,
+      "lunarMonth": 6,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "乙酉",
+      "wolgeon": "癸未",
+      "iljin": "壬辰"
+    },
+    {
+      "solar": "2005-12-02",
+      "lunarYear": 2005,
+      "lunarMonth": 11,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "乙酉",
+      "wolgeon": "戊子",
+      "iljin": "庚申"
+    },
+    {
+      "solar": "2005-12-03",
+      "lunarYear": 2005,
+      "lunarMonth": 11,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "乙酉",
+      "wolgeon": "戊子",
+      "iljin": "辛酉"
+    },
+    {
+      "solar": "2005-12-07",
+      "lunarYear": 2005,
+      "lunarMonth": 11,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "乙酉",
+      "wolgeon": "戊子",
+      "iljin": "乙丑"
+    },
+    {
+      "solar": "2006-07-07",
+      "lunarYear": 2006,
+      "lunarMonth": 6,
+      "lunarDay": 12,
+      "isLeapMonth": false,
+      "secha": "丙戌",
+      "wolgeon": "乙未",
+      "iljin": "丁酉"
+    },
+    {
+      "solar": "2006-08-24",
+      "lunarYear": 2006,
+      "lunarMonth": 7,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丙戌",
+      "wolgeon": "",
+      "iljin": "乙酉"
+    },
+    {
+      "solar": "2007-07-07",
+      "lunarYear": 2007,
+      "lunarMonth": 5,
+      "lunarDay": 23,
+      "isLeapMonth": false,
+      "secha": "丁亥",
+      "wolgeon": "丙午",
+      "iljin": "壬寅"
+    },
+    {
+      "solar": "2008-07-07",
+      "lunarYear": 2008,
+      "lunarMonth": 6,
+      "lunarDay": 5,
+      "isLeapMonth": false,
+      "secha": "戊子",
+      "wolgeon": "己未",
+      "iljin": "戊申"
+    },
+    {
+      "solar": "2009-06-23",
+      "lunarYear": 2009,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "己丑",
+      "wolgeon": "",
+      "iljin": "己亥"
+    },
+    {
+      "solar": "2009-07-07",
+      "lunarYear": 2009,
+      "lunarMonth": 5,
+      "lunarDay": 15,
+      "isLeapMonth": true,
+      "secha": "己丑",
+      "wolgeon": "",
+      "iljin": "癸丑"
+    },
+    {
+      "solar": "2010-07-07",
+      "lunarYear": 2010,
+      "lunarMonth": 5,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "庚寅",
+      "wolgeon": "壬午",
+      "iljin": "戊午"
+    },
+    {
+      "solar": "2011-07-07",
+      "lunarYear": 2011,
+      "lunarMonth": 6,
+      "lunarDay": 7,
+      "isLeapMonth": false,
+      "secha": "辛卯",
+      "wolgeon": "乙未",
+      "iljin": "癸亥"
+    },
+    {
+      "solar": "2012-04-21",
+      "lunarYear": 2012,
+      "lunarMonth": 3,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "壬辰",
+      "wolgeon": "",
+      "iljin": "壬子"
+    },
+    {
+      "solar": "2012-05-15",
+      "lunarYear": 2012,
+      "lunarMonth": 3,
+      "lunarDay": 25,
+      "isLeapMonth": true,
+      "secha": "壬辰",
+      "wolgeon": "",
+      "iljin": "丙子"
+    },
+    {
+      "solar": "2012-06-08",
+      "lunarYear": 2012,
+      "lunarMonth": 4,
+      "lunarDay": 19,
+      "isLeapMonth": false,
+      "secha": "壬辰",
+      "wolgeon": "乙巳",
+      "iljin": "庚子"
+    },
+    {
+      "solar": "2012-06-20",
+      "lunarYear": 2012,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "壬辰",
+      "wolgeon": "丙午",
+      "iljin": "壬子"
+    },
+    {
+      "solar": "2012-06-21",
+      "lunarYear": 2012,
+      "lunarMonth": 5,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "壬辰",
+      "wolgeon": "丙午",
+      "iljin": "癸丑"
+    },
+    {
+      "solar": "2012-07-02",
+      "lunarYear": 2012,
+      "lunarMonth": 5,
+      "lunarDay": 13,
+      "isLeapMonth": false,
+      "secha": "壬辰",
+      "wolgeon": "丙午",
+      "iljin": "甲子"
+    },
+    {
+      "solar": "2012-07-07",
+      "lunarYear": 2012,
+      "lunarMonth": 5,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "壬辰",
+      "wolgeon": "丙午",
+      "iljin": "己巳"
+    },
+    {
+      "solar": "2012-08-24",
+      "lunarYear": 2012,
+      "lunarMonth": 7,
+      "lunarDay": 7,
+      "isLeapMonth": false,
+      "secha": "壬辰",
+      "wolgeon": "戊申",
+      "iljin": "丁巳"
+    },
+    {
+      "solar": "2013-04-05",
+      "lunarYear": 2013,
+      "lunarMonth": 2,
+      "lunarDay": 25,
+      "isLeapMonth": false,
+      "secha": "癸巳",
+      "wolgeon": "乙卯",
+      "iljin": "辛丑"
+    },
+    {
+      "solar": "2013-04-06",
+      "lunarYear": 2013,
+      "lunarMonth": 2,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "癸巳",
+      "wolgeon": "乙卯",
+      "iljin": "壬寅"
+    },
+    {
+      "solar": "2013-06-09",
+      "lunarYear": 2013,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "癸巳",
+      "wolgeon": "戊午",
+      "iljin": "丙午"
+    },
+    {
+      "solar": "2013-07-03",
+      "lunarYear": 2013,
+      "lunarMonth": 5,
+      "lunarDay": 25,
+      "isLeapMonth": false,
+      "secha": "癸巳",
+      "wolgeon": "戊午",
+      "iljin": "庚午"
+    },
+    {
+      "solar": "2013-07-07",
+      "lunarYear": 2013,
+      "lunarMonth": 5,
+      "lunarDay": 29,
+      "isLeapMonth": false,
+      "secha": "癸巳",
+      "wolgeon": "戊午",
+      "iljin": "甲戌"
+    },
+    {
+      "solar": "2014-07-07",
+      "lunarYear": 2014,
+      "lunarMonth": 6,
+      "lunarDay": 11,
+      "isLeapMonth": false,
+      "secha": "甲午",
+      "wolgeon": "辛未",
+      "iljin": "己卯"
+    },
+    {
+      "solar": "2014-10-24",
+      "lunarYear": 2014,
+      "lunarMonth": 9,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "甲午",
+      "wolgeon": "",
+      "iljin": "戊辰"
+    },
+    {
+      "solar": "2015-07-07",
+      "lunarYear": 2015,
+      "lunarMonth": 5,
+      "lunarDay": 22,
+      "isLeapMonth": false,
+      "secha": "乙未",
+      "wolgeon": "壬午",
+      "iljin": "甲申"
+    },
+    {
+      "solar": "2016-07-07",
+      "lunarYear": 2016,
+      "lunarMonth": 6,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "丙申",
+      "wolgeon": "乙未",
+      "iljin": "庚寅"
+    },
+    {
+      "solar": "2017-02-26",
+      "lunarYear": 2017,
+      "lunarMonth": 2,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "丁酉",
+      "wolgeon": "癸卯",
+      "iljin": "甲申"
+    },
+    {
+      "solar": "2017-02-27",
+      "lunarYear": 2017,
+      "lunarMonth": 2,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "丁酉",
+      "wolgeon": "癸卯",
+      "iljin": "乙酉"
+    },
+    {
+      "solar": "2017-06-24",
+      "lunarYear": 2017,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丁酉",
+      "wolgeon": "",
+      "iljin": "壬午"
+    },
+    {
+      "solar": "2017-07-07",
+      "lunarYear": 2017,
+      "lunarMonth": 5,
+      "lunarDay": 14,
+      "isLeapMonth": true,
+      "secha": "丁酉",
+      "wolgeon": "",
+      "iljin": "乙未"
+    },
+    {
+      "solar": "2017-07-13",
+      "lunarYear": 2017,
+      "lunarMonth": 5,
+      "lunarDay": 20,
+      "isLeapMonth": true,
+      "secha": "丁酉",
+      "wolgeon": "",
+      "iljin": "辛丑"
+    },
+    {
+      "solar": "2017-08-06",
+      "lunarYear": 2017,
+      "lunarMonth": 6,
+      "lunarDay": 15,
+      "isLeapMonth": false,
+      "secha": "丁酉",
+      "wolgeon": "丁未",
+      "iljin": "乙丑"
+    },
+    {
+      "solar": "2018-07-07",
+      "lunarYear": 2018,
+      "lunarMonth": 5,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "戊戌",
+      "wolgeon": "戊午",
+      "iljin": "庚子"
+    },
+    {
+      "solar": "2019-07-07",
+      "lunarYear": 2019,
+      "lunarMonth": 6,
+      "lunarDay": 5,
+      "isLeapMonth": false,
+      "secha": "己亥",
+      "wolgeon": "辛未",
+      "iljin": "乙巳"
+    },
+    {
+      "solar": "2019-11-22",
+      "lunarYear": 2019,
+      "lunarMonth": 10,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "己亥",
+      "wolgeon": "乙亥",
+      "iljin": "癸亥"
+    },
+    {
+      "solar": "2019-11-23",
+      "lunarYear": 2019,
+      "lunarMonth": 10,
+      "lunarDay": 27,
+      "isLeapMonth": false,
+      "secha": "己亥",
+      "wolgeon": "乙亥",
+      "iljin": "甲子"
+    },
+    {
+      "solar": "2019-12-04",
+      "lunarYear": 2019,
+      "lunarMonth": 11,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "己亥",
+      "wolgeon": "丙子",
+      "iljin": "乙亥"
+    },
+    {
+      "solar": "2020-02-25",
+      "lunarYear": 2020,
+      "lunarMonth": 2,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "庚子",
+      "wolgeon": "己卯",
+      "iljin": "戊戌"
+    },
+    {
+      "solar": "2020-03-20",
+      "lunarYear": 2020,
+      "lunarMonth": 2,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "庚子",
+      "wolgeon": "己卯",
+      "iljin": "壬戌"
+    },
+    {
+      "solar": "2020-05-23",
+      "lunarYear": 2020,
+      "lunarMonth": 4,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "庚子",
+      "wolgeon": "",
+      "iljin": "丙寅"
+    },
+    {
+      "solar": "2020-07-07",
+      "lunarYear": 2020,
+      "lunarMonth": 5,
+      "lunarDay": 17,
+      "isLeapMonth": false,
+      "secha": "庚子",
+      "wolgeon": "壬午",
+      "iljin": "辛亥"
+    },
+    {
+      "solar": "2021-02-03",
+      "lunarYear": 2020,
+      "lunarMonth": 12,
+      "lunarDay": 22,
+      "isLeapMonth": false,
+      "secha": "庚子",
+      "wolgeon": "己丑",
+      "iljin": "壬午"
+    },
+    {
+      "solar": "2021-02-04",
+      "lunarYear": 2020,
+      "lunarMonth": 12,
+      "lunarDay": 23,
+      "isLeapMonth": false,
+      "secha": "庚子",
+      "wolgeon": "己丑",
+      "iljin": "癸未"
+    },
+    {
+      "solar": "2021-07-07",
+      "lunarYear": 2021,
+      "lunarMonth": 5,
+      "lunarDay": 28,
+      "isLeapMonth": false,
+      "secha": "辛丑",
+      "wolgeon": "甲午",
+      "iljin": "丙辰"
+    },
+    {
+      "solar": "2022-07-07",
+      "lunarYear": 2022,
+      "lunarMonth": 6,
+      "lunarDay": 9,
+      "isLeapMonth": false,
+      "secha": "壬寅",
+      "wolgeon": "丁未",
+      "iljin": "辛酉"
+    },
+    {
+      "solar": "2023-01-06",
+      "lunarYear": 2022,
+      "lunarMonth": 12,
+      "lunarDay": 15,
+      "isLeapMonth": false,
+      "secha": "壬寅",
+      "wolgeon": "癸丑",
+      "iljin": "甲子"
+    },
+    {
+      "solar": "2023-01-07",
+      "lunarYear": 2022,
+      "lunarMonth": 12,
+      "lunarDay": 16,
+      "isLeapMonth": false,
+      "secha": "壬寅",
+      "wolgeon": "癸丑",
+      "iljin": "乙丑"
+    },
+    {
+      "solar": "2023-03-22",
+      "lunarYear": 2023,
+      "lunarMonth": 2,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "癸卯",
+      "wolgeon": "",
+      "iljin": "己卯"
+    },
+    {
+      "solar": "2023-06-08",
+      "lunarYear": 2023,
+      "lunarMonth": 4,
+      "lunarDay": 20,
+      "isLeapMonth": false,
+      "secha": "癸卯",
+      "wolgeon": "丁巳",
+      "iljin": "丁酉"
+    },
+    {
+      "solar": "2023-06-21",
+      "lunarYear": 2023,
+      "lunarMonth": 5,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "癸卯",
+      "wolgeon": "戊午",
+      "iljin": "庚戌"
+    },
+    {
+      "solar": "2023-06-22",
+      "lunarYear": 2023,
+      "lunarMonth": 5,
+      "lunarDay": 5,
+      "isLeapMonth": false,
+      "secha": "癸卯",
+      "wolgeon": "戊午",
+      "iljin": "辛亥"
+    },
+    {
+      "solar": "2023-07-07",
+      "lunarYear": 2023,
+      "lunarMonth": 5,
+      "lunarDay": 20,
+      "isLeapMonth": false,
+      "secha": "癸卯",
+      "wolgeon": "戊午",
+      "iljin": "丙寅"
+    },
+    {
+      "solar": "2024-07-07",
+      "lunarYear": 2024,
+      "lunarMonth": 6,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "甲辰",
+      "wolgeon": "辛未",
+      "iljin": "壬申"
+    },
+    {
+      "solar": "2024-08-22",
+      "lunarYear": 2024,
+      "lunarMonth": 7,
+      "lunarDay": 19,
+      "isLeapMonth": false,
+      "secha": "甲辰",
+      "wolgeon": "壬申",
+      "iljin": "戊午"
+    },
+    {
+      "solar": "2024-08-23",
+      "lunarYear": 2024,
+      "lunarMonth": 7,
+      "lunarDay": 20,
+      "isLeapMonth": false,
+      "secha": "甲辰",
+      "wolgeon": "壬申",
+      "iljin": "己未"
+    },
+    {
+      "solar": "2025-07-07",
+      "lunarYear": 2025,
+      "lunarMonth": 6,
+      "lunarDay": 13,
+      "isLeapMonth": false,
+      "secha": "乙巳",
+      "wolgeon": "癸未",
+      "iljin": "丁丑"
+    },
+    {
+      "solar": "2025-07-25",
+      "lunarYear": 2025,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "乙巳",
+      "wolgeon": "",
+      "iljin": "乙未"
+    },
+    {
+      "solar": "2025-12-22",
+      "lunarYear": 2025,
+      "lunarMonth": 11,
+      "lunarDay": 3,
+      "isLeapMonth": false,
+      "secha": "乙巳",
+      "wolgeon": "戊子",
+      "iljin": "乙丑"
+    },
+    {
+      "solar": "2025-12-23",
+      "lunarYear": 2025,
+      "lunarMonth": 11,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "乙巳",
+      "wolgeon": "戊子",
+      "iljin": "丙寅"
+    },
+    {
+      "solar": "2026-07-07",
+      "lunarYear": 2026,
+      "lunarMonth": 5,
+      "lunarDay": 23,
+      "isLeapMonth": false,
+      "secha": "丙午",
+      "wolgeon": "甲午",
+      "iljin": "壬午"
+    },
+    {
+      "solar": "2026-10-24",
+      "lunarYear": 2026,
+      "lunarMonth": 9,
+      "lunarDay": 14,
+      "isLeapMonth": false,
+      "secha": "丙午",
+      "wolgeon": "戊戌",
+      "iljin": "辛未"
+    },
+    {
+      "solar": "2027-02-14",
+      "lunarYear": 2027,
+      "lunarMonth": 1,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "丁未",
+      "wolgeon": "壬寅",
+      "iljin": "甲子"
+    },
+    {
+      "solar": "2027-07-07",
+      "lunarYear": 2027,
+      "lunarMonth": 6,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "丁未",
+      "wolgeon": "丁未",
+      "iljin": "丁亥"
+    },
+    {
+      "solar": "2028-01-28",
+      "lunarYear": 2028,
+      "lunarMonth": 1,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "戊申",
+      "wolgeon": "甲寅",
+      "iljin": "壬子"
+    },
+    {
+      "solar": "2028-02-21",
+      "lunarYear": 2028,
+      "lunarMonth": 1,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "戊申",
+      "wolgeon": "甲寅",
+      "iljin": "丙子"
+    },
+    {
+      "solar": "2028-06-23",
+      "lunarYear": 2028,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "戊申",
+      "wolgeon": "",
+      "iljin": "己卯"
+    },
+    {
+      "solar": "2028-07-07",
+      "lunarYear": 2028,
+      "lunarMonth": 5,
+      "lunarDay": 15,
+      "isLeapMonth": true,
+      "secha": "戊申",
+      "wolgeon": "",
+      "iljin": "癸巳"
+    },
+    {
+      "solar": "2029-07-07",
+      "lunarYear": 2029,
+      "lunarMonth": 5,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "己酉",
+      "wolgeon": "庚午",
+      "iljin": "戊戌"
+    },
+    {
+      "solar": "2029-07-31",
+      "lunarYear": 2029,
+      "lunarMonth": 6,
+      "lunarDay": 20,
+      "isLeapMonth": false,
+      "secha": "己酉",
+      "wolgeon": "辛未",
+      "iljin": "壬戌"
+    },
+    {
+      "solar": "2030-02-18",
+      "lunarYear": 2030,
+      "lunarMonth": 1,
+      "lunarDay": 16,
+      "isLeapMonth": false,
+      "secha": "庚戌",
+      "wolgeon": "戊寅",
+      "iljin": "甲申"
+    },
+    {
+      "solar": "2030-02-19",
+      "lunarYear": 2030,
+      "lunarMonth": 1,
+      "lunarDay": 17,
+      "isLeapMonth": false,
+      "secha": "庚戌",
+      "wolgeon": "戊寅",
+      "iljin": "乙酉"
+    },
+    {
+      "solar": "2030-07-07",
+      "lunarYear": 2030,
+      "lunarMonth": 6,
+      "lunarDay": 7,
+      "isLeapMonth": false,
+      "secha": "庚戌",
+      "wolgeon": "癸未",
+      "iljin": "癸卯"
+    },
+    {
+      "solar": "2031-03-07",
+      "lunarYear": 2031,
+      "lunarMonth": 2,
+      "lunarDay": 14,
+      "isLeapMonth": false,
+      "secha": "辛亥",
+      "wolgeon": "辛卯",
+      "iljin": "丙午"
+    },
+    {
+      "solar": "2031-04-22",
+      "lunarYear": 2031,
+      "lunarMonth": 3,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "辛亥",
+      "wolgeon": "",
+      "iljin": "壬辰"
+    },
+    {
+      "solar": "2031-07-07",
+      "lunarYear": 2031,
+      "lunarMonth": 5,
+      "lunarDay": 18,
+      "isLeapMonth": false,
+      "secha": "辛亥",
+      "wolgeon": "甲午",
+      "iljin": "戊申"
+    },
+    {
+      "solar": "2032-07-07",
+      "lunarYear": 2032,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "壬子",
+      "wolgeon": "丁未",
+      "iljin": "甲寅"
+    },
+    {
+      "solar": "2033-07-07",
+      "lunarYear": 2033,
+      "lunarMonth": 6,
+      "lunarDay": 11,
+      "isLeapMonth": false,
+      "secha": "癸丑",
+      "wolgeon": "己未",
+      "iljin": "己未"
+    },
+    {
+      "solar": "2033-12-22",
+      "lunarYear": 2033,
+      "lunarMonth": 11,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "癸丑",
+      "wolgeon": "",
+      "iljin": "丁未"
+    },
+    {
+      "solar": "2034-07-07",
+      "lunarYear": 2034,
+      "lunarMonth": 5,
+      "lunarDay": 22,
+      "isLeapMonth": false,
+      "secha": "甲寅",
+      "wolgeon": "庚午",
+      "iljin": "甲子"
+    },
+    {
+      "solar": "2035-01-10",
+      "lunarYear": 2034,
+      "lunarMonth": 12,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "甲寅",
+      "wolgeon": "丁丑",
+      "iljin": "辛未"
+    },
+    {
+      "solar": "2035-01-11",
+      "lunarYear": 2034,
+      "lunarMonth": 12,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "甲寅",
+      "wolgeon": "丁丑",
+      "iljin": "壬申"
+    },
+    {
+      "solar": "2035-01-17",
+      "lunarYear": 2034,
+      "lunarMonth": 12,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "甲寅",
+      "wolgeon": "丁丑",
+      "iljin": "戊寅"
+    },
+    {
+      "solar": "2035-07-07",
+      "lunarYear": 2035,
+      "lunarMonth": 6,
+      "lunarDay": 3,
+      "isLeapMonth": false,
+      "secha": "乙卯",
+      "wolgeon": "癸未",
+      "iljin": "己巳"
+    },
+    {
+      "solar": "2036-07-07",
+      "lunarYear": 2036,
+      "lunarMonth": 6,
+      "lunarDay": 14,
+      "isLeapMonth": false,
+      "secha": "丙辰",
+      "wolgeon": "乙未",
+      "iljin": "乙亥"
+    },
+    {
+      "solar": "2036-07-23",
+      "lunarYear": 2036,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丙辰",
+      "wolgeon": "",
+      "iljin": "辛卯"
+    },
+    {
+      "solar": "2036-12-19",
+      "lunarYear": 2036,
+      "lunarMonth": 11,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "丙辰",
+      "wolgeon": "庚子",
+      "iljin": "庚申"
+    },
+    {
+      "solar": "2037-01-12",
+      "lunarYear": 2036,
+      "lunarMonth": 11,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "丙辰",
+      "wolgeon": "庚子",
+      "iljin": "甲申"
+    },
+    {
+      "solar": "2037-07-07",
+      "lunarYear": 2037,
+      "lunarMonth": 5,
+      "lunarDay": 24,
+      "isLeapMonth": false,
+      "secha": "丁巳",
+      "wolgeon": "丙午",
+      "iljin": "庚辰"
+    },
+    {
+      "solar": "2038-07-07",
+      "lunarYear": 2038,
+      "lunarMonth": 6,
+      "lunarDay": 6,
+      "isLeapMonth": false,
+      "secha": "戊午",
+      "wolgeon": "己未",
+      "iljin": "乙酉"
+    },
+    {
+      "solar": "2039-06-22",
+      "lunarYear": 2039,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "己未",
+      "wolgeon": "",
+      "iljin": "乙亥"
+    },
+    {
+      "solar": "2039-07-07",
+      "lunarYear": 2039,
+      "lunarMonth": 5,
+      "lunarDay": 16,
+      "isLeapMonth": true,
+      "secha": "己未",
+      "wolgeon": "",
+      "iljin": "庚寅"
+    },
+    {
+      "solar": "2040-07-07",
+      "lunarYear": 2040,
+      "lunarMonth": 5,
+      "lunarDay": 28,
+      "isLeapMonth": false,
+      "secha": "庚申",
+      "wolgeon": "壬午",
+      "iljin": "丙申"
+    },
+    {
+      "solar": "2040-09-26",
+      "lunarYear": 2040,
+      "lunarMonth": 8,
+      "lunarDay": 20,
+      "isLeapMonth": false,
+      "secha": "庚申",
+      "wolgeon": "乙酉",
+      "iljin": "丁巳"
+    },
+    {
+      "solar": "2041-03-16",
+      "lunarYear": 2041,
+      "lunarMonth": 2,
+      "lunarDay": 14,
+      "isLeapMonth": false,
+      "secha": "辛酉",
+      "wolgeon": "辛卯",
+      "iljin": "戊申"
+    },
+    {
+      "solar": "2041-07-07",
+      "lunarYear": 2041,
+      "lunarMonth": 6,
+      "lunarDay": 10,
+      "isLeapMonth": false,
+      "secha": "辛酉",
+      "wolgeon": "乙未",
+      "iljin": "辛丑"
+    },
+    {
+      "solar": "2042-03-22",
+      "lunarYear": 2042,
+      "lunarMonth": 2,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "壬戌",
+      "wolgeon": "",
+      "iljin": "己未"
+    },
+    {
+      "solar": "2042-07-07",
+      "lunarYear": 2042,
+      "lunarMonth": 5,
+      "lunarDay": 20,
+      "isLeapMonth": false,
+      "secha": "壬戌",
+      "wolgeon": "丙午",
+      "iljin": "丙午"
+    },
+    {
+      "solar": "2043-07-07",
+      "lunarYear": 2043,
+      "lunarMonth": 6,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "癸亥",
+      "wolgeon": "己未",
+      "iljin": "辛亥"
+    },
+    {
+      "solar": "2044-07-07",
+      "lunarYear": 2044,
+      "lunarMonth": 6,
+      "lunarDay": 13,
+      "isLeapMonth": false,
+      "secha": "甲子",
+      "wolgeon": "辛未",
+      "iljin": "丁巳"
+    },
+    {
+      "solar": "2044-08-23",
+      "lunarYear": 2044,
+      "lunarMonth": 7,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "甲子",
+      "wolgeon": "",
+      "iljin": "甲辰"
+    },
+    {
+      "solar": "2044-11-19",
+      "lunarYear": 2044,
+      "lunarMonth": 10,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "甲子",
+      "wolgeon": "乙亥",
+      "iljin": "壬申"
+    },
+    {
+      "solar": "2044-11-20",
+      "lunarYear": 2044,
+      "lunarMonth": 10,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "甲子",
+      "wolgeon": "乙亥",
+      "iljin": "癸酉"
+    },
+    {
+      "solar": "2045-07-07",
+      "lunarYear": 2045,
+      "lunarMonth": 5,
+      "lunarDay": 23,
+      "isLeapMonth": false,
+      "secha": "乙丑",
+      "wolgeon": "壬午",
+      "iljin": "壬戌"
+    },
+    {
+      "solar": "2046-06-12",
+      "lunarYear": 2046,
+      "lunarMonth": 5,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "丙寅",
+      "wolgeon": "甲午",
+      "iljin": "壬寅"
+    },
+    {
+      "solar": "2046-07-07",
+      "lunarYear": 2046,
+      "lunarMonth": 6,
+      "lunarDay": 4,
+      "isLeapMonth": false,
+      "secha": "丙寅",
+      "wolgeon": "乙未",
+      "iljin": "丁卯"
+    },
+    {
+      "solar": "2047-06-23",
+      "lunarYear": 2047,
+      "lunarMonth": 5,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "丁卯",
+      "wolgeon": "",
+      "iljin": "戊午"
+    },
+    {
+      "solar": "2047-07-07",
+      "lunarYear": 2047,
+      "lunarMonth": 5,
+      "lunarDay": 15,
+      "isLeapMonth": true,
+      "secha": "丁卯",
+      "wolgeon": "",
+      "iljin": "壬申"
+    },
+    {
+      "solar": "2048-07-07",
+      "lunarYear": 2048,
+      "lunarMonth": 5,
+      "lunarDay": 27,
+      "isLeapMonth": false,
+      "secha": "戊辰",
+      "wolgeon": "戊午",
+      "iljin": "戊寅"
+    },
+    {
+      "solar": "2048-12-07",
+      "lunarYear": 2048,
+      "lunarMonth": 11,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "戊辰",
+      "wolgeon": "甲子",
+      "iljin": "辛亥"
+    },
+    {
+      "solar": "2048-12-31",
+      "lunarYear": 2048,
+      "lunarMonth": 11,
+      "lunarDay": 26,
+      "isLeapMonth": false,
+      "secha": "戊辰",
+      "wolgeon": "甲子",
+      "iljin": "乙亥"
+    },
+    {
+      "solar": "2049-07-07",
+      "lunarYear": 2049,
+      "lunarMonth": 6,
+      "lunarDay": 8,
+      "isLeapMonth": false,
+      "secha": "己巳",
+      "wolgeon": "辛未",
+      "iljin": "癸未"
+    },
+    {
+      "solar": "2050-02-22",
+      "lunarYear": 2050,
+      "lunarMonth": 2,
+      "lunarDay": 1,
+      "isLeapMonth": false,
+      "secha": "庚午",
+      "wolgeon": "己卯",
+      "iljin": "癸酉"
+    },
+    {
+      "solar": "2050-02-23",
+      "lunarYear": 2050,
+      "lunarMonth": 2,
+      "lunarDay": 2,
+      "isLeapMonth": false,
+      "secha": "庚午",
+      "wolgeon": "己卯",
+      "iljin": "甲戌"
+    },
+    {
+      "solar": "2050-03-13",
+      "lunarYear": 2050,
+      "lunarMonth": 2,
+      "lunarDay": 20,
+      "isLeapMonth": false,
+      "secha": "庚午",
+      "wolgeon": "己卯",
+      "iljin": "壬辰"
+    },
+    {
+      "solar": "2050-04-21",
+      "lunarYear": 2050,
+      "lunarMonth": 3,
+      "lunarDay": 1,
+      "isLeapMonth": true,
+      "secha": "庚午",
+      "wolgeon": "",
+      "iljin": "辛未"
+    },
+    {
+      "solar": "2050-07-07",
+      "lunarYear": 2050,
+      "lunarMonth": 5,
+      "lunarDay": 19,
+      "isLeapMonth": false,
+      "secha": "庚午",
+      "wolgeon": "壬午",
+      "iljin": "戊子"
+    }
+  ]
+}
