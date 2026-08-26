@@ -1,5 +1,12 @@
 # 인수인계 — 타로 오라클 상담 카드 수 구간별 가격 차등
 
+> ✅ **완료 — PR #1171 (2026-08-27). 아래 본문은 착수 시점의 기록이고, 실제로 한 일과는 세 군데가 다르다.**
+> 1. 3-2 표의 `클라이언트 ORACLE_CONSULTATION_MIN_COST` 는 **존재하지 않았다** — 클라는 `lookupServerCoinPrice` 로 레지스트리에서 읽는다.
+> 2. ₩7,000(70코인)에 **앱 결제 티어가 없어** `verify:app-store-pricing` 이 깨졌다. 사용자 결정으로 4단계를 유지하고 `cd_content_tier_14` 를 신설했다 — 🔴 Play Console 등록은 아직 사람 손 미완이다(docs/pricing/PLAY_CONSOLE_TASKS.md 3절).
+> 3. 8절의 `review-product-catalog` 관련 서술과 달리, `__tests__/worker/review-catalog-moderation.test.js` 는 **레지스트리 → 카탈로그 방향도 검사한다**. 신규 키 3개를 카탈로그에 넣어야 했다.
+>
+> 남은 부채는 8절 그대로다(`per-use-proof-roundtrip` 의 손으로 쓴 `ROUTE_KEY_SOURCES`, i18n fallback 드리프트, 법률 카테고리 실패 원인 미확정).
+
 > 이 문서만 읽고 시작할 수 있게 쓴다. 🔴 **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
 > 작성 2026-08-27 · 앞선 세션이 컨텍스트 한계로 넘김(CLAUDE.md 코딩 원칙 12)
 
