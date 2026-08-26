@@ -1,4 +1,5 @@
 import { Lunar } from "lunar-javascript";
+import { nodeTerms } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
 
 const LOCAL_SAJU_CALCULATOR_TEXT_TRANSLATIONS = {
@@ -208,7 +209,7 @@ export interface SolarTermBoundaryLocal {
   minute: number;
   second: number;
   isoLocal: string;
-  source: "kasi" | "lunar-javascript" | "validated-table" | "fixed-fallback";
+  source: "kasi" | "korean-calendar-core" | "validated-table" | "fixed-fallback";
 }
 
 export interface DaewoonStartLocal {
@@ -409,7 +410,11 @@ function equationOfTimeMinutes(year: number, month: number, day: number): number
 }
 
 const DEFAULT_TIMEZONE = "Asia/Seoul";
-const SOLAR_TERM_BASE_OFFSET_MINUTES = 480;
+// 한국 음양력 코어의 절기표는 KST 벽시계다. 여기서 순간(instant)으로 되돌린 뒤
+// 출생지 시간대의 벽시계로 다시 옮긴다.
+// 🔴 예전에는 480(중국 표준시)이 있었다 — lunar-javascript 가 CST 기준이라 필요했던 값이고,
+// 상수를 540 으로 바꾼 게 아니라 표의 기준 자체가 바뀌었다.
+const CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES = 540;
 const JIE_BOUNDARY_NAMES = [
   "\u5c0f\u5bd2",
   "\u7acb\u6625",
@@ -586,35 +591,25 @@ function boundaryInstantMs(boundary: SolarTermBoundaryLocal, timezoneOffsetMinut
   return wallTimeToInstantMs(boundary, timezoneOffsetMinutes);
 }
 
-function buildSolarTermBoundariesFromLunar(year: number, timezoneOffsetMinutes: number): SolarTermBoundaryLocal[] {
-  const table = Lunar.fromYmd(year, 1, 1).getJieQiTable() as Record<string, {
-    getYear: () => number;
-    getMonth: () => number;
-    getDay: () => number;
-    getHour: () => number;
-    getMinute: () => number;
-    getSecond: () => number;
-  }>;
+// 한국 음양력 코어의 12節(절) 경계. 코어의 nodeTerms 는 소한→대설 순서로 12개를 내고,
+// 그 순서가 JIE_BOUNDARY_NAMES / JIE_SOLAR_LONGITUDES 의 인덱스와 그대로 맞는다.
+function buildSolarTermBoundariesFromCore(year: number, timezoneOffsetMinutes: number): SolarTermBoundaryLocal[] {
+  const nodes = nodeTerms(year);
+  if (!nodes || nodes.length !== JIE_BOUNDARY_NAMES.length) {
+    throw new Error(`korean-calendar core has no node terms for ${year}`);
+  }
 
-  return JIE_BOUNDARY_NAMES.map((name, index) => {
-    const solar = table[name];
-    if (!solar) throw new Error(`missing solar term: ${name}`);
-    const instantMs = Date.UTC(
-      solar.getYear(),
-      solar.getMonth() - 1,
-      solar.getDay(),
-      solar.getHour(),
-      solar.getMinute(),
-      solar.getSecond(),
-    ) - SOLAR_TERM_BASE_OFFSET_MINUTES * 60000;
+  return nodes.map((node, index) => {
+    const instantMs = Date.UTC(node.year, node.month - 1, node.day, node.hour, node.minute, 0)
+      - CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES * 60000;
     const local = instantMsToWallParts(instantMs, timezoneOffsetMinutes);
     return {
       index,
-      name,
+      name: JIE_BOUNDARY_NAMES[index],
       solarLongitude: JIE_SOLAR_LONGITUDES[index],
       ...local,
       isoLocal: formatIsoLocal(local),
-      source: "lunar-javascript" as const,
+      source: "korean-calendar-core" as const,
     };
   });
 }
@@ -717,7 +712,7 @@ function getSolarTermBoundaries(
   if (kasi && kasi.length >= 12) return kasi;
 
   try {
-    const boundaries = buildSolarTermBoundariesFromLunar(year, timezoneOffsetMinutes);
+    const boundaries = buildSolarTermBoundariesFromCore(year, timezoneOffsetMinutes);
     if (boundaries.length >= 12) return boundaries;
   } catch {
     // Fallback is explicit in calculationEvidence; never silently invent API precision.
