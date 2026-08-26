@@ -12,6 +12,8 @@ import {
   resolveOracleConsultationTargetChars,
   validateOracleConsultationInput,
 } from "../lib/tarot/oracle-consultation.mjs";
+import { ORACLE_CONSULTATION_TIERS } from "../lib/tarot/oracle-consultation-pricing.mjs";
+import { FEATURE_KEY_PRICE_TABLE } from "../worker/lib/paid-feature-registry.js";
 
 const LIVE = process.argv.includes("--live");
 
@@ -249,6 +251,38 @@ async function runMockSuite() {
     const profile = getTopicProfile(built.topicKey);
     const ok = built.userPrompt.includes(profile.label) && built.userPrompt.includes(profile.scope);
     check(`${category} → ${built.topicKey} 프로파일이 프롬프트에 실린다`, ok, `label=${profile.label}`);
+  }
+
+  console.log("\n[케이스 7-3] 모든 스프레드의 카드 수가 정확히 한 가격 티어에 매핑된다");
+  // 🔴 스프레드 목록을 손으로 적지 않는다 — 적어 두면 스프레드가 늘어도 계속 초록불이다.
+  //    tarotSpreadLibrary.ts 를 전수 파싱하고, 파싱 자체가 빗나가 0건이 되는 것도 실패로 잡는다
+  //    (케이스 7-2 와 같은 이유). 15장짜리 스프레드가 생기면 여기서 먼저 깨진다.
+  const spreadSource = readFileSync(
+    new URL("../app/tarot/prompt-maker/data/tarotSpreadLibrary.ts", import.meta.url), "utf8");
+  // 숫자 리터럴만 잡는다. 같은 파일의 `cardCount: number;`(타입) · `cardCount: blueprint.cardCount,`
+  // (빌더) · `cardCount: (count) => ...`(로케일 카피 12종)는 \d+ 요구로 전부 배제된다.
+  const cardCounts = [...spreadSource.matchAll(/\bcardCount:\s*(\d+)\s*,/g)].map((m) => Number(m[1]));
+  check(`스프레드 cardCount 를 70개 이상 파싱했다 (실제 ${cardCounts.length}개)`, cardCounts.length >= 70);
+
+  const outOfRange = [...new Set(cardCounts.filter((n) => !Number.isInteger(n) || n < 1 || n > 14))];
+  check("모든 cardCount 가 1~14 안에 있다", outOfRange.length === 0, `범위밖=${outOfRange.join(",")}`);
+
+  const tiersFor = (n) => ORACLE_CONSULTATION_TIERS.filter((t) => n >= t.minCards && n <= t.maxCards);
+  const unmapped = [...new Set(cardCounts.filter((n) => tiersFor(n).length !== 1))];
+  check("모든 cardCount 가 정확히 한 티어에 매핑된다", unmapped.length === 0, `미매핑=${unmapped.join(",")}`);
+
+  // 사다리 자체의 빈틈·겹침 — 지금 아무 스프레드도 안 쓰는 구간(2·11·13장)까지 검사한다.
+  const ladderGaps = [];
+  for (let n = 1; n <= 14; n += 1) if (tiersFor(n).length !== 1) ladderGaps.push(n);
+  check("1~14 전 구간이 정확히 한 티어로 덮인다", ladderGaps.length === 0, `빈틈/겹침=${ladderGaps.join(",")}`);
+
+  // 🔴 가격 정본은 레지스트리 하나다. 티어가 전부 등록돼 있고 카드가 늘수록 비싸야 한다.
+  let previousTierCost = 0;
+  for (const tier of ORACLE_CONSULTATION_TIERS) {
+    const tierCost = Number(FEATURE_KEY_PRICE_TABLE[tier.featureKey]?.cost);
+    check(`${tier.featureKey} 가 레지스트리 가격표에 있다`, Number.isFinite(tierCost) && tierCost > 0, `cost=${tierCost}`);
+    check(`${tier.featureKey} 가 앞 티어보다 비싸다`, tierCost > previousTierCost, `cost=${tierCost} 앞=${previousTierCost}`);
+    previousTierCost = tierCost;
   }
 
   console.log("\n[케이스 8] 안전 차단은 JSON 깨짐과 구분되고 재시도하지 않는다");

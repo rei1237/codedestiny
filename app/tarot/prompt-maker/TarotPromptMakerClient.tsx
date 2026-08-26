@@ -8,6 +8,7 @@ import { getSubscriptionTierLabel, showSubscriptionIncludedNotice } from "../../
 import { useCoinGate } from "../../hooks/useCoinGate";
 import { fetchPaymentEligibility } from "@/app/_lib/billing-client";
 import { lookupServerCoinPrice } from "@/app/_lib/serviceCoinPrice";
+import { resolveOracleConsultationTier } from "@/lib/tarot/oracle-consultation-pricing.mjs";
 import {
   buildLocalizedRecommendedQuestionsForSpread,
   DIFFICULTY_LABEL,
@@ -1748,6 +1749,12 @@ function formatCoinValue(amount: number, copy: PromptMakerUiCopy = PROMPT_MAKER_
   return copy.currency(amount);
 }
 
+// 카드 수 구간(티어)의 가격 라벨. 🔴 새 카피 키를 만들지 않는다 — formatCoinValue 가 copy.currency 로
+// 로케일 12종을 이미 처리하므로 코인 수만 넘기면 된다. 가격 정본은 서버 레지스트리 하나다.
+function oracleTierPriceLabel(cardCount: number, copy: PromptMakerUiCopy = PROMPT_MAKER_UI_COPY.ko) {
+  return formatCoinValue(lookupServerCoinPrice(resolveOracleConsultationTier(cardCount).featureKey) ?? 0, copy);
+}
+
 function formatMonthlyCreditValue(amount: number, copy: PromptMakerUiCopy = PROMPT_MAKER_UI_COPY.ko) {
   return copy.creditValue(amount);
 }
@@ -2412,18 +2419,17 @@ function StarField() {
   );
 }
 
-const ORACLE_CONSULTATION_FEATURE_KEY = "tarot-prompt-maker";
 // 사용자가 누를 수 있는 무과금 재생성 횟수. 서버의 requestId 단위 상한(4회)보다 낮게 둬서
 // 정상 사용이 429 를 먼저 만나지 않게 한다(첫 생성 1회 + 여기 2회 = 3회).
 const ORACLE_CONSULTATION_MAX_RETRIES = 2;
 
 // 회당결제라 상담마다 새 requestId 가 필요하다(찻집·수비학 타로와 동일 계약) — 영구 해금이던
 // 시절의 고정 requestId(사용자당 결제 1회 전제)는 더 이상 맞지 않는다.
-function buildOracleConsultationRequestId(): string {
+function buildOracleConsultationRequestId(featureKey: string): string {
   const random = typeof crypto !== "undefined" && typeof crypto.randomUUID === "function"
     ? crypto.randomUUID()
     : `${Date.now()}_${Math.random().toString(36).slice(2, 10)}`;
-  return `${ORACLE_CONSULTATION_FEATURE_KEY}:req:${random}`;
+  return `${featureKey}:req:${random}`;
 }
 
 // 상담 카드가 지금 무엇을 보여줄지 정하는 단일 상태. 실패는 사유별로 갈라 각각 다른 안내와
@@ -2631,6 +2637,11 @@ export default function TarotPromptMakerPage() {
     };
   }, [feedbackCopy.free, locale, localizedSpreadLibrary, oracleModeMetaByMode, questionPlaceholder.lenormand, uiCopy]);
   const selectedSpread = isLenormandMode ? localizedLenormandSpread : findLocalizedSpreadById(selectedSpreadId, locale);
+  // 결제 티어는 카드 수에서 파생한다. 🔴 빌링 스냅샷 조회 · requestId 접두사 · ensurePaidAccess
+  // 세 곳이 반드시 이 변수를 써야 한다 — 어긋나면 결제한 키와 서버가 조회하는 키가 달라 402 가 난다.
+  // 원시값이라 아래 useEffect 의존성에 그대로 넣을 수 있다(티어 객체를 넣으면 매 렌더 새 identity 로 무한 조회).
+  const oracleTierFeatureKey = resolveOracleConsultationTier(selectedSpread.cardCount).featureKey;
+  const oracleTierCost = lookupServerCoinPrice(oracleTierFeatureKey);
   const activeCardPool = isLenormandMode ? LENORMAND_CARD_POOL : tarotCardPool;
   const cardPoolReady = isLenormandMode || tarotCardPool.length > 0;
   const activeDeckSize = isLenormandMode ? LENORMAND_CARD_POOL.length : (tarotCardPool.length || TAROT_CARD_POOL_SIZE);
@@ -2736,9 +2747,9 @@ export default function TarotPromptMakerPage() {
         // coinCost 까지 실제 게이트(ensurePaidAccess)와 똑같이 넘겨야 캐시 키가 일치해 클릭 시
         // 같은 조회가 다시 나가지 않는다(캐시 키에 coins/krw 가 들어간다).
         const result = await fetchPaymentEligibility({
-          featureKey: "tarot-prompt-maker",
+          featureKey: oracleTierFeatureKey,
           reason: feedbackCopy.subscriptionReason,
-          coinCost: lookupServerCoinPrice("tarot-prompt-maker"),
+          coinCost: oracleTierCost,
         }, { phase: "full" });
         if (!active) return;
         if (!result.ok || !result.data) {
@@ -2767,7 +2778,7 @@ export default function TarotPromptMakerPage() {
     }
     loadBillingSnapshot();
     return () => { active = false; };
-  }, [feedbackCopy.subscriptionReason]);
+  }, [feedbackCopy.subscriptionReason, oracleTierFeatureKey, oracleTierCost]);
 
   function resetDrawState() {
     setUsedDeckSlots([]);
@@ -2799,6 +2810,10 @@ export default function TarotPromptMakerPage() {
     setSelectedSpreadId(spreadId);
     setFeedback("");
     setShowSpreadPicker(false);
+    // 결제된 requestId 는 그때의 카드 수 티어에 묶여 있다. 서버가 카드 수로 키를 역산하므로
+    // 스프레드를 바꾸면 그 증빙으로는 새 티어를 통과하지 못한다 — 무과금 재시도 대상에서 뺀다.
+    setConsultationRequestId(null);
+    setConsultationRetryable(false);
   }
 
   async function buildPromptForCurrentState() {
@@ -2983,10 +2998,10 @@ export default function TarotPromptMakerPage() {
         showToast(feedbackCopy.lenormandCompleteToast, "success");
         return;
       }
-      const requestId = buildOracleConsultationRequestId();
+      const requestId = buildOracleConsultationRequestId(oracleTierFeatureKey);
       const paymentResult = await ensurePaidAccess({
-        featureKey: "tarot-prompt-maker",
-        cost: lookupServerCoinPrice("tarot-prompt-maker"),
+        featureKey: oracleTierFeatureKey,
+        cost: oracleTierCost,
         reason: feedbackCopy.subscriptionReason,
         requestId,
         onPaid: ({ chargedCoins, balanceAfter, accessSource, subscriptionTier, monthlyCreditsSpent, monthlyBalanceAfter }) => {
@@ -3268,7 +3283,7 @@ export default function TarotPromptMakerPage() {
                         <div>
                           <div className="text-[10px] uppercase tracking-[0.2em] text-[#7c3aed]/70 mb-1">{uiCopy.selectedSpread}</div>
                           <div className="text-[#e9d5ff] font-semibold text-base">{selectedSpread.title}</div>
-                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{uiCopy.cardCount(selectedSpread.cardCount)} · {DIFFICULTY_LABEL[selectedSpread.difficulty]} · {isLenormandMode ? uiCopy.lenormandLabel : uiCopy.consultationCategory(categoryLabel[selectedQuestionCategory])}</div>
+                          <div className="text-[#a78bfa]/70 text-xs mt-0.5">{uiCopy.cardCount(selectedSpread.cardCount)} · {DIFFICULTY_LABEL[selectedSpread.difficulty]} · {isLenormandMode ? uiCopy.lenormandLabel : uiCopy.consultationCategory(categoryLabel[selectedQuestionCategory])}{isLenormandMode ? "" : ` · ${oracleTierPriceLabel(selectedSpread.cardCount, uiCopy)}`}</div>
                           <div className="text-[#c4b5fd]/60 text-xs mt-1 leading-relaxed">{selectedSpread.purpose}</div>
                         </div>
                         {!isLenormandMode && <button
@@ -4005,7 +4020,7 @@ export default function TarotPromptMakerPage() {
                           {recommended && <span className="px-1.5 py-0.5 rounded-full border border-[#f59e0b]/35 bg-[#f59e0b]/10 text-[9px] text-[#fcd34d]">{uiCopy.recommendedBadge}</span>}
                         </div>
                         <div className="text-sm font-bold text-[#e9d5ff]">{spread.title}</div>
-                        <div className="text-xs text-[#a78bfa]/60 mt-0.5">{uiCopy.cardCount(spread.cardCount)} · {DIFFICULTY_LABEL[spread.difficulty]}</div>
+                        <div className="text-xs text-[#a78bfa]/60 mt-0.5">{uiCopy.cardCount(spread.cardCount)} · {DIFFICULTY_LABEL[spread.difficulty]} · {oracleTierPriceLabel(spread.cardCount, uiCopy)}</div>
                         <p className="mt-2 text-xs leading-relaxed text-white/55">{spread.purpose}</p>
                       </m.button>
                     );

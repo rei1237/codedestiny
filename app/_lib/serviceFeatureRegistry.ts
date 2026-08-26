@@ -349,7 +349,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "사용자의 질문을 카테고리로 분석하고 상황에 맞는 스프레드를 추천한 뒤, 직접 뽑은 카드를 바탕으로 AI가 실제 상담 결과를 작성합니다. 상담에 쓰인 Oracle Prompt 원문도 함께 열람할 수 있습니다.",
       "heroImageAlt": "타로 오라클 상담 대표 이미지",
       "tags": ["타로", "AI 상담", "스프레드", "전문가 리딩"],
-      "highlights": ["질문 자동 분류", "63개 스프레드 라이브러리", "회당 5,000원 · 실제 AI 상담"],
+      "highlights": ["질문 자동 분류", "63개 스프레드 라이브러리", "카드 수에 따라 회당 3,000~10,000원 · 실제 AI 상담"],
       "howItWorks": [
         {
           "title": "질문 입력",
@@ -378,6 +378,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
           "description": "포지션별 해석과 행동 조언을 담은 실제 상담 결과, 그리고 상담에 쓰인 Oracle Prompt 원문"
         }
       ],
+      "priceLabel": "3,000원~10,000원",
       "seo": {
         "title": "타로 오라클 상담 | Code Destiny",
         "description": "질문 기반 스프레드 선택과 카드 드로우로 실제 AI 타로 상담을 받는 타로 오라클 상담 소개 페이지입니다.",
@@ -1113,7 +1114,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "The service classifies your question, recommends a matching spread, and once you draw your cards an AI writes an actual consultation result from the positions and orientations. The Oracle Prompt behind that consultation stays available for you to read too.",
       "heroImageAlt": "Tarot Oracle Consultation symbolic preview",
       "tags": ["Tarot", "AI Consultation", "Spread", "Oracle Reading"],
-      "highlights": ["Automatic question classification", "Library of 63 spreads", "5,000 KRW per session · real AI consultation"],
+      "highlights": ["Automatic question classification", "Library of 63 spreads", "3,000-10,000 KRW per session by card count · real AI consultation"],
       "howItWorks": [
         {
           "title": "Ask your question",
@@ -1143,6 +1144,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "premiumOptions": [],
+      "priceLabel": "KRW 3,000~10,000",
       "seo": {
         "title": "Tarot Oracle Consultation | Code Destiny",
         "description": "Get a real AI tarot consultation by choosing a question-matched spread and drawing your own cards.",
@@ -1877,7 +1879,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "質問をカテゴリ分析し、状況に合ったスプレッドを提案したうえで、実際に引いたカードをもとにAIが本物の相談結果を作成します。相談に使われたOracle Promptの原文もあわせて確認できます。",
       "heroImageAlt": "タロットオラクル相談の象徴イメージ",
       "tags": ["タロット", "AI相談", "スプレッド", "専門家リーディング"],
-      "highlights": ["質問の自動分類", "63種のスプレッドライブラリ", "1回5,000ウォン・実際のAI相談"],
+      "highlights": ["質問の自動分類", "63種のスプレッドライブラリ", "1回3,000~10,000ウォン(枚数別)・実際のAI相談"],
       "howItWorks": [
         {
           "title": "質問を入力",
@@ -1907,6 +1909,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "premiumOptions": [],
+      "priceLabel": "3,000~10,000ウォン",
       "seo": {
         "title": "タロットオラクル相談 | Code Destiny",
         "description": "質問に合わせたスプレッド選択とカードドローで、実際のAIタロット相談を受けられるタロットオラクル相談の紹介ページです。",
@@ -2641,7 +2644,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "系统会分析你的问题类别，推荐合适的牌阵，在你抽牌后由AI根据牌位与正逆位撰写真实的咨询结果。咨询所使用的Oracle Prompt原文也会同时提供查看。",
       "heroImageAlt": "塔罗神谕咨询象征图像",
       "tags": ["塔罗", "AI咨询", "牌阵", "专家解读"],
-      "highlights": ["自动问题分类", "63种牌阵资料库", "每次5,000韩元 · 真实AI咨询"],
+      "highlights": ["自动问题分类", "63种牌阵资料库", "每次3,000~10,000韩元(按牌数) · 真实AI咨询"],
       "howItWorks": [
         {
           "title": "输入问题",
@@ -2671,6 +2674,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "premiumOptions": [],
+      "priceLabel": "3,000~10,000韩元",
       "seo": {
         "title": "塔罗神谕咨询 | Code Destiny",
         "description": "通过问题匹配的牌阵选择与亲自抽牌，获得真实AI塔罗咨询的塔罗神谕咨询介绍页面。",
@@ -3405,7 +3409,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
       "description": "系統會分析你的問題類別，推薦合適的牌陣，在你抽牌後由AI根據牌位與正逆位撰寫真實的諮詢結果。諮詢所使用的Oracle Prompt原文也會同時提供查看。",
       "heroImageAlt": "塔羅神諭諮詢象徵圖像",
       "tags": ["塔羅", "AI諮詢", "牌陣", "專家解讀"],
-      "highlights": ["自動問題分類", "63種牌陣資料庫", "每次5,000韓元 · 真實AI諮詢"],
+      "highlights": ["自動問題分類", "63種牌陣資料庫", "每次3,000~10,000韓元(依牌數) · 真實AI諮詢"],
       "howItWorks": [
         {
           "title": "輸入問題",
@@ -3435,6 +3439,7 @@ const SERVICE_FEATURE_TRANSLATIONS = {
         }
       ],
       "premiumOptions": [],
+      "priceLabel": "3,000~10,000韓元",
       "seo": {
         "title": "塔羅神諭諮詢 | Code Destiny",
         "description": "透過問題匹配的牌陣選擇與親自抽牌，獲得真實AI塔羅諮詢的塔羅神諭諮詢介紹頁面。",

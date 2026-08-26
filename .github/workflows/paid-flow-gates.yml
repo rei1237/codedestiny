@@ -190,7 +190,7 @@ on:
       #    verify:human-design-report 가 그 파일들을 **열어서** 초융합 공개 시그니처 유지와
       #    조판 규격 고정을 단언하므로, 여기 없으면 lib/pdf 만 고친 PR 에서 가드가 안 깨어난다.
       - "lib/pdf/**"
-      # ── 타로 오라클 상담 — 유료 기능(tarot-prompt-maker, 회당 5,000원) ──
+      # ── 타로 오라클 상담 — 유료 기능(카드 수 구간별 tarot-prompt-maker{,-standard,-deep,-master}, 회당 3,000~10,000원) ──
       # 🔴 2026-08-21 에 로컬 템플릿 빌더(buildOraclePrompt)에서 Gemini 실호출로 바뀌면서
       #    과금 유형이 영구 해금 → 회당으로 뒤집힌 기능이다. verify:oracle-consultation 이
       #    lib/tarot/oracle-consultation.mjs 를 **import 해서 실행**하므로 트리거에도 있어야

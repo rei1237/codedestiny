@@ -35,6 +35,11 @@ export const APP_FREE_MAX_COIN_PRICE = 10;
 const CONTENT_TIER_TABLE = Object.freeze([
   { productId: "cd_content_tier_01", amountKRW: 3900, webAmountKRW: 3000, coinPrices: Object.freeze([30]) },
   { productId: "cd_content_tier_02", amountKRW: 6000, webAmountKRW: 5000, coinPrices: Object.freeze([50]) },
+  // 2026-08-27 부활: 타로 오라클 상담 8~10카드 티어(70코인/₩7,000). 같은 코인가를 쓰던 옛 SKU
+  // cd_content_tier_04(₩8,900)는 2026-08-12 에 판매 중단됐고 Play 는 상품 ID 를 영구 점유하므로
+  // 🔴 되살리지 않고 다음 빈 번호로 새로 만든다. Play Console 등록은 사람 손이다
+  // (docs/pricing/PLAY_CONSOLE_TASKS.md). 등록 전까지 앱에서 이 구간만 티어 미등록 503 이다.
+  { productId: "cd_content_tier_14", amountKRW: 8900, webAmountKRW: 7000, coinPrices: Object.freeze([70]) },
   { productId: "cd_content_tier_06", amountKRW: 13000, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
   { productId: "cd_content_tier_09", amountKRW: 25000, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
   { productId: "cd_content_tier_10", amountKRW: 39000, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },

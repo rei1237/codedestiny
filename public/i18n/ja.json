@@ -590,7 +590,8 @@
       "petSajuTitle": "🐾 AIペット四柱推命",
       "petSajuDesc": "うちの子の五行と相性",
       "petSajuAria": "AIペット四柱推命を開く",
-      "petSajuAlt": "AIペット四柱推命のイメージ"
+      "petSajuAlt": "AIペット四柱推命のイメージ",
+      "promptMakerPrice": "枚数により 3,000~10,000ウォン"
     },
     "destinyFlowerStudio": {
       "closeAria": "運命の花アトリエを閉じる",

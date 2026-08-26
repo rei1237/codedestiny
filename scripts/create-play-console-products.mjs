@@ -50,6 +50,7 @@ const CONTENT_LISTINGS = {
   cd_content_tier_11: { title: "프리미엄 해금 49,000원", description: "선택하신 프리미엄 운세 묶음을 영구 해금하는 단건 결제입니다." },
   cd_content_tier_12: { title: "AI 상담 65,000원", description: "선택하신 심층 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_13: { title: "프리미엄 전체 해금 89,000원", description: "선택하신 프리미엄 전체 묶음을 영구 해금하는 단건 결제입니다." },
+  cd_content_tier_14: { title: "운세 콘텐츠 8,900원", description: "선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
 };
 
 // 이용권: 30일 · 자동갱신 없음 · 등급별 월 이용 한도 있음.
