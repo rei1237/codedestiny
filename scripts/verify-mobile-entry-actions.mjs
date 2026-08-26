@@ -20,6 +20,7 @@ const sourceFiles = [
 ];
 
 const sourceCorpus = sourceFiles.map((file) => readOptional(path.join(root, file))).join("\n");
+const redirectRules = parseRedirectRules();
 const rows = parseRows(registryText);
 const routeFailures = [];
 const actionFailures = [];
@@ -109,7 +110,61 @@ function routeHasImplementation(token) {
     if (staticOrAppRouteExists(routePath) || routeAliasExists(token)) return true;
   }
 
-  return staticOrAppRouteExists(routePath) || routeAliasExists(token);
+  return staticOrAppRouteExists(routePath) || routeAliasExists(token) || redirectResolves(token);
+}
+
+/**
+ * 301/302 로 회수되는 경로도 "도달 가능"으로 인정한다.
+ *
+ * 레지스트리는 은퇴한 경로를 일부러 남겨 둔다 — 예: `/famous-saju` 는 2026-08-17 에 라우트가
+ * 삭제됐지만 별칭 169개(`public/famous-saju-aliases.json`)와 `js/inline/saju-core-bootstrap.js`
+ * 가 아직 그 URL 을 만들어서, `public/_redirects` 의 301 이 유일한 회수 수단이다. 그 사실을
+ * 레지스트리에서 지우면 살아있는 리다이렉트 정보가 사라지므로, 지워야 할 쪽은 가드의 무지다.
+ *
+ * 🔴 fail-closed 로 판정한다 — 규칙이 있다는 것만으로 통과시키지 않고 **목적지가 실제로
+ * 존재할 때만** 통과시킨다. 목적지가 없는 리다이렉트는 그대로 실패로 남아야 한다.
+ * 🔴 목록을 손으로 적지 않는다(원칙 10) — `public/_redirects` 에서 전수로 읽는다.
+ */
+function redirectResolves(token) {
+  const normalized = token.split("?")[0].split("#")[0].replace(/\/+$/, "") || "/";
+  for (const rule of redirectRules) {
+    if (!matchesRedirectFrom(rule.from, normalized)) continue;
+    const target = rule.to.split("?")[0].split("#")[0].replace(/^\/+|\/+$/g, "");
+    if (!target) return true; // 루트로 회수
+    if (target.includes(":")) continue; // `:slug` 치환 목적지는 이 토큰만으로 확정할 수 없다
+    if (staticOrAppRouteExists(target)) return true;
+  }
+  return false;
+}
+
+/** `/a/:slug` 는 한 세그먼트, `/a/*` 는 나머지 전부를 매칭한다(Cloudflare Pages 규칙). */
+function matchesRedirectFrom(from, routeToken) {
+  const fromNorm = from.replace(/\/+$/, "") || "/";
+  if (fromNorm === routeToken) return true;
+  if (!fromNorm.includes(":") && !fromNorm.includes("*")) return false;
+  const pattern = fromNorm
+    .split("/")
+    .map((segment) => {
+      if (segment === "*") return "(?:.+)";
+      if (segment.startsWith(":")) return "[^/]+";
+      return segment.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    })
+    .join("/");
+  return new RegExp(`^${pattern}$`).test(routeToken);
+}
+
+function parseRedirectRules() {
+  const text = readOptional(path.join(root, "public", "_redirects"));
+  const rules = [];
+  for (const line of text.split(/\r?\n/)) {
+    const trimmed = line.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    const [from, to, status] = trimmed.split(/\s+/);
+    if (!from || !to || !from.startsWith("/")) continue;
+    if (status && !/^30[128]$/.test(status)) continue; // 200(rewrite)·404 는 회수가 아니다
+    rules.push({ from, to });
+  }
+  return rules;
 }
 
 function staticOrAppRouteExists(routePath) {

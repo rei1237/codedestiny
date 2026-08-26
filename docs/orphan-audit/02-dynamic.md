@@ -32,7 +32,7 @@
 
 | 스크립트 | 발견된 참조 | 판정 |
 |---|---|---|
-| `verify-mobile-live-deployment` · `verify-mobile-original-requirements` | **배선된 `verify-mobile-final-audit.mjs`가 직접 `node ...` 실행**(L75-76) | LIVE(위임) |
+| ~~`verify-mobile-live-deployment` · `verify-mobile-original-requirements`~~ | ~~배선된 `verify-mobile-final-audit.mjs`가 직접 `node ...` 실행(L75-76)~~ | 🔴 **오판이었다 — 2026-08-26 둘 다 삭제** |
 | `verify-physiognomy-scoring` | CLAUDE.md 문서화 + `.claude/settings.json` 허용목록 | 의도된 가드 |
 | `verify-insight-authored` | `.claude/settings.json` 다수 수동 실행 이력 | 의도된 가드 |
 | `verify-nakshatra-flow` | `worker/lib/nakshatra-codex.js`·`constants/nakshatra-attributes.js` 소스 주석이 자기 가드로 명시 | 의도된 가드 |
@@ -40,6 +40,23 @@
 | `verify-portone-webhook-signature`·`verify-auth-p0p1-regression`·`verify-coin-gate-degraded-preview`·`verify-famous-saju-magazine`·`verify-health-report-regression`·`verify-mindscan-reading`·`verify-admin-saju-prompt-kasi-calendar` | 외부 참조 없음(자기 파일만) | **미배선 가드** — 결제·인증 회귀 가드 포함 → **A등급 불가, B등급(소유자 의도 확인)** |
 
 → 결론: **verify 13종 중 A등급(안전제거) 0.** 메모리 `orphaned_verify_guards` 경고가 정확히 재현됨(미배선을 고아로 오판하면 회귀 가드 상실).
+
+🔴 **2026-08-26 정정 — 위 표 첫 줄의 `LIVE(위임)` 판정은 틀렸다.** `verify-mobile-final-audit.mjs` 의
+L75-76 은 실행 코드가 아니라 `finalAuditRequiredText` 배열, 즉 **마크다운 문서에 그 문자열이 적혀
+있는지** 보는 목록이었다. 그 스크립트에는 `child_process` 호출이 **0건**이라 두 파일을 실행한 적이
+없고, 존재 여부만 확인했다. 이 오판 때문에 죽은 검증기 2개가 이 감사를 통과해 살아남았고,
+`verify-mobile-original-requirements` 는 그 뒤로 19건 실패를 낸 채 방치됐다(그중 10건은 마크업이
+`setAttribute` 로 옮겨가며 생긴 오탐, 9건은 실제로 제거된 `#cdMobileDestinyHub` 허브).
+
+**교훈 — 이 감사를 다시 돌릴 때 적용할 것**: "다른 스크립트가 부른다"를 근거로 LIVE 로 올리기 전에
+**부르는 쪽이 정말 실행하는지** 확인한다. 파일명 문자열이 배열에 들어 있는 것과 `execSync`/`spawnSync`
+로 돌리는 것은 다르다. 판별은 한 줄이면 된다:
+
+```bash
+grep -n "execSync\|spawnSync\|child_process" scripts/<부르는쪽>.mjs
+```
+
+결과가 0건이면 그 참조는 **실행이 아니라 언급**이다. 관련: 메모리 `unwired-guard-reasons-can-be-false`.
 
 ## 3. js/** (①③④ 검증)
 
