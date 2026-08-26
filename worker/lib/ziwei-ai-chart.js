@@ -1,4 +1,6 @@
 import { Lunar, Solar } from "lunar-javascript";
+// 소한 상수·계산은 셸 엔진과 공유한다(lib/ziwei-minor-limit.js 머리말 참고).
+import { buildMinorLimitEntries, describeMinorLimit } from "../../lib/ziwei-minor-limit.js";
 
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
@@ -196,10 +198,12 @@ function createPalaceShells() {
     branchIndex: index,
     name: "",
     earthlyBranch: branch,
+    stem: "",
     mainStars: [],
     assistantStars: [],
     maleficStars: [],
     transformations: [],
+    selfTransformations: [],
     brightness: {},
     majorLuck: null,
   }));
@@ -295,9 +299,17 @@ function placeAssistantAndMaleficStars(shells, lunarMonth, hourIdx, stemIndex, b
   addStar(shells, lunarMonth + 1, "천요", "assistant");
 }
 
-function calculateBureau(stemIndex, mingIndex) {
+// 오호둔(五虎遁) — 생년간으로 인궁(寅宮)의 천간을 잡고 12지지를 순행으로 채운다.
+// 셸 엔진 js/saju-engine.js 의 gongGan 과 같은 식이다(셸은 한자 천간, 여기는 한글 천간).
+// 예전에는 calculateBureau 안에서 명궁 궁간 하나만 만들고 버렸다 — 그래서 상담 프롬프트가
+// 대한사화도 자화도 읽지 못했다. 이제 12궁 전부를 만들어 명반에 싣는다.
+function computePalaceStems(stemIndex) {
   const stemStart = [2, 4, 6, 8, 0][mod(stemIndex, 5)];
-  const mingStem = STEMS[mod(stemStart + mod(mingIndex - 2), 10)];
+  return BRANCHES.map((_, branchIndex) => STEMS[mod(stemStart + mod(branchIndex - 2), 10)]);
+}
+
+function calculateBureau(palaceStems, mingIndex) {
+  const mingStem = palaceStems[mod(mingIndex)];
   const stemElement = { 갑: 1, 을: 1, 병: 2, 정: 2, 무: 3, 기: 3, 경: 4, 신: 4, 임: 5, 계: 5 };
   const branchElement = { 0: 1, 1: 1, 2: 2, 3: 2, 4: 3, 5: 3, 6: 1, 7: 1, 8: 2, 9: 2, 10: 3, 11: 3 };
   let elementValue = (stemElement[mingStem] || 3) + (branchElement[mingIndex] || 3);
@@ -318,9 +330,53 @@ function applyTransformations(shells, fourTransformations) {
   }
 }
 
+function starSetOf(palace) {
+  return new Set([...(palace.mainStars || []), ...(palace.assistantStars || []), ...(palace.maleficStars || [])]);
+}
+
+// 궁간사화(宮干四化) — 한 궁의 궁간이 만드는 사화 4성이 어느 궁에 앉았는지. 생년간 사화와 별개다.
+// 대한(大限)은 그 궁의 궁간을 쓰므로 이 함수가 곧 대한사화 계산이다.
+//
+// 표기는 같은 파일의 palace.transformations 와 맞춘 "화록:무곡(재백궁)" 문자열이다.
+// 🔴 {label,star,palace} 객체로 두면 안 된다 — worker/routes/ziwei-ai.js 가 명반을
+// JSON.stringify(chart) 로 프롬프트에 싣고 섹션 그룹마다 반복 전송하는데,
+// 12궁×4 를 객체로 실으면 명반 JSON 이 2,386자 늘어난다(실측 2026-08-27).
+function resolveStemTransformations(stem, palaces) {
+  const table = FOUR_TRANSFORMATIONS[stem] || {};
+  const entries = [];
+  for (const [key, star] of Object.entries(table)) {
+    if (!star) continue;
+    const host = palaces.find((item) => starSetOf(item).has(star));
+    const label = TRANSFORMATION_LABELS[key] || key;
+    entries.push(`${label}:${star}${host?.name ? `(${host.name})` : ""}`);
+  }
+  return entries;
+}
+
+// 자화(自化) — 그 궁의 궁간사화가 그 궁 자신이 품은 별에 떨어진 경우.
+// 밖으로 비입(飛入)하지 않고 제자리에서 흩어지는 힘이라 해석이 달라진다.
+function applySelfTransformations(shells) {
+  for (const palace of shells) {
+    const own = starSetOf(palace);
+    const table = FOUR_TRANSFORMATIONS[palace.stem] || {};
+    palace.selfTransformations = Object.entries(table)
+      .filter(([, star]) => star && own.has(star))
+      .map(([key, star]) => `${TRANSFORMATION_LABELS[key]}:${star}`);
+  }
+}
+
+// 성별 판정 — 대한(음양남녀)과 소한(남순여역)이 모두 이 신호 하나에 걸린다.
+// 호출부가 정규화 없이 원본을 넘기는 경로가 있다(worker/routes/ziwei-deep-report.js 의
+// clean(src.gender), worker/lib/guardian-fortune/adapters/ziwei.js). 예전에는 여기서
+// gender === "M" 을 봤는데 calculateZiweiAiChart 가 이미 소문자화한 뒤라 도달할 수 없었다.
+function isMaleGender(gender) {
+  const text = String(gender || "").trim().toLowerCase();
+  return ["m", "male", "man", "남", "남성", "남자"].includes(text);
+}
+
 function applyMajorLuck(shells, mingIndex, stemIndex, gender, bureau) {
   const yangStem = [0, 2, 4, 6, 8].includes(stemIndex);
-  const male = gender === "male" || gender === "M";
+  const male = isMaleGender(gender);
   const direction = yangStem === male ? 1 : -1;
   for (let i = 0; i < 12; i += 1) {
     const index = mod(mingIndex + i * direction);
@@ -332,6 +388,47 @@ function applyMajorLuck(shells, mingIndex, stemIndex, gender, bureau) {
       direction: direction > 0 ? "순행" : "역행",
     };
   }
+}
+
+// 상담 프롬프트에 실을 소한 구간의 폭(대상 연도 앞뒤 몇 해까지).
+// 🔴 셸처럼 1~100세를 전부 실으면 안 된다 — worker/routes/ziwei-ai.js 가 명반을
+// JSON.stringify(chart) 로 프롬프트에 통째로 싣고 그것을 섹션 그룹마다 반복 전송한다.
+// 실측 2026-08-27: 100세분을 실으면 명반 JSON 이 9,937자 → 18,418자로 늘었다.
+const MINOR_LUCK_PROMPT_SPAN_YEARS = 5;
+
+// 공유 모듈이 돌려주는 인덱스를 이 엔진의 한글 표기와 궁 이름으로 옮긴다.
+// 셸은 같은 인덱스를 한자 표기로 옮긴다 — 표기 축이 갈리는 자리를 여기 한 곳으로 몰아 둔다.
+function buildMinorLuck({ yearStemIndex, yearBranchIndex, seedYear, isMale, outputPalaces, targetYear }) {
+  const summary = describeMinorLimit({
+    yearStemIndex,
+    yearBranchIndex,
+    solarBirthYear: seedYear,
+    isMale,
+  });
+  if (!summary) return null;
+  const palaceNameByBranchIndex = new Map(outputPalaces.map((palace) => [palace.branchIndex, palace.name]));
+  const entries = buildMinorLimitEntries({
+    yearStemIndex,
+    yearBranchIndex,
+    solarBirthYear: seedYear,
+    isMale,
+  }).map((entry) => ({
+    age: entry.age,
+    year: entry.year,
+    ganji: `${STEMS[entry.stemIndex]}${BRANCHES[entry.branchIndex]}`,
+    branchIndex: entry.palaceBranchIndex,
+    branch: BRANCHES[entry.palaceBranchIndex],
+    palaceName: palaceNameByBranchIndex.get(entry.palaceBranchIndex) || "",
+  }));
+  const window = entries.filter((entry) => Math.abs(entry.year - targetYear) <= MINOR_LUCK_PROMPT_SPAN_YEARS);
+  return {
+    startBranchIndex: summary.startBranchIndex,
+    startBranch: BRANCHES[summary.startBranchIndex],
+    direction: summary.direction > 0 ? "순행" : "역행",
+    baseYear: summary.baseYear,
+    current: entries.find((entry) => entry.year === targetYear) || null,
+    entries: window,
+  };
 }
 
 function summarizeSanFangSiZheng(outputPalaces) {
@@ -412,8 +509,10 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
   const baseIndex = mod(2 + lunarInfo.lunarMonth - 1);
   const mingIndex = mod(baseIndex - hIdx);
   const shenIndex = mod(baseIndex + hIdx);
-  const { bureau, bureauName } = calculateBureau(stemIndex, mingIndex);
+  const palaceStems = computePalaceStems(stemIndex);
+  const { bureau, bureauName } = calculateBureau(palaceStems, mingIndex);
   const shells = createPalaceShells();
+  for (const shell of shells) shell.stem = palaceStems[shell.branchIndex];
 
   placePalaces(mingIndex, shells);
   placeMainStars(shells, lunarInfo.lunarDay, bureau);
@@ -421,6 +520,7 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
   const fourTransformations = FOUR_TRANSFORMATIONS[yearStem] || {};
   applyTransformations(shells, fourTransformations);
   applyMajorLuck(shells, mingIndex, stemIndex, gender, bureau);
+  applySelfTransformations(shells);
 
   const outputPalaces = PALACE_NAMES
     .map((name) => shells.find((palace) => palace.name === name))
@@ -429,10 +529,12 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
       name: palace.name,
       earthlyBranch: palace.earthlyBranch,
       branchIndex: palace.branchIndex,
+      stem: palace.stem,
       mainStars: palace.mainStars.filter((star) => MAIN_STARS.includes(star)),
       assistantStars: palace.assistantStars.filter((star) => ASSISTANT_STARS.includes(star)),
       maleficStars: palace.maleficStars.filter((star) => MALEFIC_STARS.includes(star)),
       transformations: palace.transformations,
+      selfTransformations: palace.selfTransformations,
       brightness: palace.brightness,
       majorLuck: palace.majorLuck,
     }));
@@ -440,8 +542,21 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
   const lifePalace = shells[mingIndex]?.name || "명궁";
   const bodyPalace = shells[shenIndex]?.name || "";
   const sanFangSiZheng = summarizeSanFangSiZheng(outputPalaces);
-  const targetYear = Number(options.year || new Date().getFullYear());
-  const yearlyLuck = yearlyLuckFor(Number.isFinite(targetYear) ? targetYear : new Date().getFullYear(), outputPalaces);
+
+  const rawTargetYear = Number(options.year || new Date().getFullYear());
+  const targetYear = Number.isFinite(rawTargetYear) ? rawTargetYear : new Date().getFullYear();
+
+  // 소한(小限) — 대한 안에서 한 해씩 옮겨 앉는 자리. 상수·계산은 셸 엔진과 공유한다.
+  // 🔴 방향 규칙이 대한과 다르다(남순여역). applyMajorLuck 의 direction 을 재사용하지 말 것.
+  const minorLuck = buildMinorLuck({
+    yearStemIndex: stemIndex,
+    yearBranchIndex: branchIndex,
+    seedYear: dateParts.year,
+    isMale: isMaleGender(gender),
+    outputPalaces,
+    targetYear,
+  });
+  const yearlyLuck = yearlyLuckFor(targetYear, outputPalaces);
   const strongest = outputPalaces
     .map((palace) => ({ palace: palace.name, score: palace.mainStars.length * 3 + palace.assistantStars.length - palace.maleficStars.length }))
     .sort((a, b) => b.score - a.score)
@@ -467,8 +582,12 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
     majorLuck: outputPalaces.map((palace) => ({
       palaceName: palace.name,
       earthlyBranch: palace.earthlyBranch,
+      // 대한은 그 궁의 궁간을 쓴다 — 생년간 사화(fourTransformations)와 다른 벌이다.
+      stem: palace.stem,
+      transformations: resolveStemTransformations(palace.stem, outputPalaces),
       ...palace.majorLuck,
     })),
+    minorLuck,
     yearlyLuck,
     sanFangSiZheng,
     chartSummary: buildSummary(outputPalaces, lifePalace, bodyPalace, fourTransformations),
@@ -500,6 +619,8 @@ export const __ziweiAiChartTestUtils = {
   ASSISTANT_STARS,
   MALEFIC_STARS,
   FOUR_TRANSFORMATIONS,
+  TRANSFORMATION_LABELS,
+  computePalaceStems,
   parseDate,
   parseTime,
 };
