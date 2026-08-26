@@ -232,7 +232,9 @@ jobs:
       # worker/lib/ziwei-ai-chart.js 셋에 걸쳐 있는데, 앞의 둘만 고치는 PR 은 티어가 critical 로
       # 올라가지 않는다(scripts/resolve-ci-tier.mjs 는 worker/routes/ziwei-ai.js 만 critical 로 못 박는다).
       # 이 가드가 잡으려는 것이 바로 "한 엔진만 고쳐서 셋이 갈리는" 경우라, critical 에 두면 잠든다.
-      # 세 엔진을 28명분 돌려 별 위치를 인덱스로 대조한다. 네트워크·LLM 호출 없이 몇 초면 끝난다.
+      # 세 엔진을 29명분 돌려 별 위치를 인덱스로 대조한다. 네트워크·LLM 호출 없이 몇 초면 끝난다.
+      # 🔴 대조 인물에 1997-02-10 이 들어 있다 — 한국 설날(2/8)과 중국 설날(2/7)이 갈리는 날이라,
+      # 어느 엔진이든 lunar-javascript 로 되돌아가면 그 자리에서 빨간불이 된다(검사 ⑦).
       - name: Verify ziwei star placement parity (셸·워커·앱)
         run: npm run verify:ziwei-star-parity
 

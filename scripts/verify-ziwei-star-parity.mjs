@@ -145,14 +145,16 @@ async function loadAppEngine() {
 // 12 생년지 × 시지 두 축을 덮는다. 🔴 오시(hourIndex 6)·자시(hourIndex 0)를 반드시 포함한다 —
 // 워커의 옛 영성 규칙(화성 기점 역행)이 화성·영성을 같은 궁에 겹쳐 놓던 시각이 바로 그 둘이다.
 //
-// 🔴 1997-02-10 은 일부러 뺐다. 그 날짜만 세 엔진의 **음력일이 갈린다** — 셸에는
-// js/saju-engine.js 의 KASI_LOCAL_PATCH_SEED 에 그 하루짜리 덮어쓰기(음력 1월 3일)가 있고,
-// 워커·앱은 lunar-javascript(음력 1월 4일)를 쓴다. 음력일이 다르면 자미 위치가 밀려 14주성이
-// 통째로 어긋나므로, 그 케이스로는 **배치 규칙을 검사할 수 없다**(달력을 검사하게 된다).
-// 어느 달력이 맞는지는 자미두수가 아니라 역법 문제이고 이 가드의 판정 범위 밖이다.
-// 대신 아래 ⑤ 가 케이스 전체에서 셸·워커의 음력월·음력일 일치를 요구하므로,
-// 시드가 하나라도 케이스 범위 안으로 들어오면 그때 빨간불이 된다.
+// 🔴 1997-02-10 은 **일부러 넣었다.** 2026-08-27 이전에는 이 날짜만 세 엔진의 음력일이 갈려서
+// 빼 두었다 — 셸은 KASI_LOCAL_PATCH_SEED 라는 하루짜리 하드코딩으로 음력 1월 3일, 워커·앱은
+// lunar-javascript 로 음력 1월 4일이었다. 원인은 그 날짜의 특수성이 아니라 타임존이다:
+// 1997년 2월 삭이 CST 23:06 / KST 00:06 이라 중국 설날은 2/7, 한국 설날은 2/8 이다.
+// 이제 세 엔진이 모두 한국 음양력 코어(KST 기준)를 읽으므로 셋 다 음력 1월 3일이 되고,
+// **이 케이스가 초록인 것이 시드를 지워도 된다는 증거**다. 다시 빼지 말 것.
+// 같은 모양의 날짜를 더 넣으려면 node scripts/verify-korean-calendar-divergence.mjs --explain <날짜>
+// 로 밴드 안(in-band: yes)인지 먼저 확인한다.
 const CASES = [
+  { label: "1997-02-10 09:00 M (한·중 설날이 갈리는 날 — 음력 1997/1/3)", gender: "M", year: 1997, month: 2, day: 10, hour: 9, minute: 0 },
   { label: "1980-01-01 14:10 M (외부 명반 대조본)", gender: "M", year: 1980, month: 1, day: 1, hour: 14, minute: 10 },
   { label: "1991-02-20 08:30 M", gender: "M", year: 1991, month: 2, day: 20, hour: 8, minute: 30 },
   { label: "1991-09-02 11:45 F", gender: "F", year: 1991, month: 9, day: 2, hour: 11, minute: 45 },
@@ -348,7 +350,20 @@ const calcAppPalaces = await loadAppEngine();
   ok(
     `⑤ ${CASES.length}건 전부에서 셸·워커의 음력월·음력일이 같다`,
     calendarDrift.length === 0,
-    `달력 드리프트 ${calendarDrift.length}건 — js/saju-engine.js 의 KASI_LOCAL_PATCH_SEED 를 볼 것\n      ${calendarDrift.slice(0, 12).join("\n      ")}`,
+    `달력 드리프트 ${calendarDrift.length}건 — 세 엔진이 전부 lib/korean-calendar 를 읽고 있는지 볼 것\n      ${calendarDrift.slice(0, 12).join("\n      ")}`,
+  );
+  // ⑦ 그 음력일이 **KASI 값과 같은지**까지 본다. ⑤ 는 세 엔진이 같기만 하면 통과하므로,
+  // 셋이 나란히 틀리는 경우(예: 다시 lunar-javascript 로 돌아가는 경우)를 잡지 못한다.
+  ok(
+    `⑦ 1997-02-10 의 음력일이 KASI 값(1997/1/3)이다`,
+    (() => {
+      const subject = CASES.find((c) => c.year === 1997 && c.month === 2 && c.day === 10);
+      if (!subject) return false;
+      const shell = shellPlacement(subject);
+      const worker = workerPlacement(subject);
+      return shell.lunarMonth === 1 && shell.lunarDay === 3 && worker.lunarMonth === 1 && worker.lunarDay === 3;
+    })(),
+    "중국 표준시 기준(음력 1/4)으로 돌아갔다면 어딘가에서 lunar-javascript 를 다시 읽고 있는 것이다",
   );
   ok(
     `⑥ ${CASES.length}건 전부에서 오행국이 세 엔진에 같고, 앱의 국 명칭이 자기 대한과 맞는다`,

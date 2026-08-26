@@ -1,7 +1,7 @@
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27
 
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
-> 🟢 코어(PR-B)는 끝났다. 남은 것은 **소비자 전환**이다.
+> 🟢 코어(PR-B)와 자미두수 3엔진(PR-C)은 끝났다. 남은 것은 **사주 간지(PR-D) · 나머지 소비자(PR-E) · lunar-javascript 제거(PR-F)** 다.
 
 ## 0. 왜 하는 작업인가 — 사용자 요구 원문
 
@@ -35,7 +35,8 @@
 |---|---|---|
 | **#1163** | 자미두수 셸·워커·앱 별 배치 정합 + `verify:ziwei-star-parity` | **머지됨** `d4dbaed05` |
 | **#1167** | 섬 별 설명 맵 정합(`록존`→`녹존`·`청양`→`경양`·천마/함지/천요 추가) + `verify:island-star-copy` | **머지됨** `deb2ff514` |
-| **#1170** | 이 문서를 담은 PR — 한국 음양력 코어 신설 | **리뷰 대기** (`feat/korean-calendar-core`, base `58267ff8b`) |
+| **#1170** | 이 문서를 담은 PR — 한국 음양력 코어 신설 | **머지됨** `cc22b4520` |
+| **PR-C** | 자미두수 3엔진을 코어로 + 하드코딩 시드 3곳 제거 | `feat/ziwei-korean-calendar` (base `cc22b4520`) |
 
 🔴 #1170 은 `.github/workflows/pr-ci.yml` 에서 한 번 충돌했다. #1167(섬 가드)과 이 PR(달력 가드 5종)이
 **같은 앵커(`run: npm run verify:ziwei-star-parity`) 뒤에** 각자 블록을 넣어서다. 의미 충돌이 아니므로
@@ -92,12 +93,22 @@ KASI `getLunCalInfo` 의 `lunSecha`/`lunWolgeon` 은 **음력 프레임**이다 
 
 → **절기 프레임 세차·월건을 KASI 로 검증하려면 `get24DivisionsInfo` 를 써야 한다.** 아직 안 했다.
 
-### (C) `js/` 아래 파일 하나가 22개 파일을 딸려온다
+### (C) 🟢 클래식 스크립트판은 PR-C 에서 만들어졌다 — `js/core/korean-calendar.js`
 
-정적 셸용 클래식 스크립트판(`js/core/korean-calendar-table.generated.js`)을 만들면
-`sync:public` 이 캐시키를 회전시켜 `index.html` 포함 **22개 파일**이 함께 바뀐다.
-그래서 PR-B 에서는 **만들지 않았다** — 셸이 실제로 그 표를 읽는 PR-C 에서 한 번만 회전시킨다.
-그때 `verify-korean-calendar-table-fresh.mjs` 의 ② 자리에 "두 산출 파일의 지문이 같다" 검사를 더한다.
+**표만이 아니라 코어 소스 자체를 변환해 싣는다.** `scripts/build-korean-calendar-table.mjs` 가
+`lib/korean-calendar/{policy,labels,core,ganji}.js` 에서 모듈 구문(import/export)만 걷어내
+IIFE 하나로 감싸고, 전역 `window.KoreanCalendar` 를 만든다. 손으로 한 벌 더 쓰지 않은 이유는
+그 순간 두 벌이 갈라지기 때문이다 — 이 작업의 시작점이 바로 "엔진마다 달력이 다르다" 였다.
+
+- 공개 표면은 `lib/korean-calendar/index.js` 에서 **읽어서** 만든다(손으로 적은 목록은 가드가 아니다)
+- 최상위 이름이 겹치면 **빌드가 죽는다**. 실제로 `core.js`·`ganji.js` 가 `DAY_MS` 를 각자 선언하고
+  있었고, 그래서 `core.js` 가 그것을 export 하도록 바꿨다
+- `verify:korean-calendar-table-fresh` ② 가 클래식 번들을 **실제로 평가해** ESM 코어와
+  2,010건(음력·간지)을 대조하고 지문·표면까지 본다. 검사 21건 → **29건**
+- 로드는 `js/core/index-inline-runtime.js` 의 체인 **두 곳**(`__cdEnsureSajuCoreLoaded` ·
+  `__cdEnsureSajuRenderersLoaded`) 맨 앞. 하네스도 같은 순서로 미리 평가한다
+  (`scripts/lib/ziwei-engine-harness.cjs` 의 `PRELUDE_SCRIPTS`)
+- 예고대로 `sync:public` 캐시키가 돌아 `index.html` 포함 22개 미러가 함께 바뀌었다
 
 ## 4. 남은 작업 — 전환 PR
 
@@ -112,27 +123,62 @@ node scripts/verify-korean-calendar-divergence.mjs --explain 1980-01-01
 - 밴드 **안** → 그 픽스처는 중국 음력으로 계산된 값이다. 갱신하고 커밋 메시지에 근거를 적는다.
 - 밴드 **밖인데 값이 움직였다** → 🔴 그 PR 의 버그다. 즉시 멈춘다.
 
-### PR-C — 자미두수 3엔진 + 하드코딩 시드 제거
+### 🟢 PR-C — 자미두수 3엔진 + 하드코딩 시드 제거 (끝)
 
-| 대상 | 할 일 |
+브랜치 `feat/ziwei-korean-calendar`, base `cc22b4520`. 예고된 6곳을 전부 했고, **예고에 없던 것 하나를 더 고쳤다**(아래 (가)).
+
+| 대상 | 한 것 |
 |---|---|
-| `js/saju-engine.js:850` | `KASI_LOCAL_PATCH_SEED` 삭제 |
-| `js/core/kasi/calendar.js:10` | 같은 시드 삭제 (🔴 이 파일은 어느 HTML 도 로드하지 않는 고아다) |
-| `js/core/kasi-calendar-service.js:165-169` | `_AUTHORITATIVE_*` 삭제 |
-| `worker/lib/ziwei-ai-chart.js:168-190` | `getLunarDate` → 코어 |
-| `app/_lib/ziwei-engine.ts:117-118` | `Solar.getLunar()` → 코어 |
-| `js/core/index-inline-runtime.js:2248` | 로드 체인 맨 앞에 표 스크립트 추가 |
+| `js/saju-engine.js` | `KASI_LOCAL_PATCH_SEED`·`_applyKasiSeedGuard` 삭제. `KasiEngine.solarToLunar/lunarToSolar` 가 코어를 읽는다. `calcZiweiPalaces`·`safeSolarToLunar`·`safeLunarToSolar` 의 lunar-javascript 폴백 제거 — 코어가 없으면 **던진다** |
+| `js/core/kasi/calendar.js` | 같은 시드 삭제 + 변환을 코어로. 🔴 **이 파일은 죽어 있다** — 아래 (나) |
+| `js/core/kasi-calendar-service.js` | `_AUTHORITATIVE_*` 하드코딩 표 → `_applyCoreCalendarCorrection`(코어와 어긋나면 코어로 맞추고 `korean-calendar-core-correction` 진단을 남긴다). 두 폴백도 코어로 |
+| `worker/lib/ziwei-ai-chart.js` | `getLunarDate` → 코어. 세차는 `sexagenaryYearIndexes(lunarYear)`. lunar-javascript import 0 |
+| `app/_lib/ziwei-engine.ts` | 같음. import 는 `@/lib/korean-calendar` |
+| `js/core/index-inline-runtime.js` | 체인 **두 곳** 맨 앞에 `/js/core/korean-calendar.js` |
+| `scripts/lib/ziwei-engine-harness.cjs` | `PRELUDE_SCRIPTS` — 하네스가 브라우저와 같은 순서로 코어를 먼저 평가한다 |
+| `scripts/verify-ziwei-star-parity.mjs` | 1997-02-10 **복귀** + 검사 ⑦ 신설 |
 
-**미리 지목된 고정값**
+**미리 지목된 고정값 — 전부 예고대로였다**
 
-| 대상 | 판정 |
+| 대상 | 결과 |
 |---|---|
-| `verify-ziwei-star-parity.mjs` 의 1997-02-10 **제외** | 🔴 **제외를 없애야 한다.** 세 엔진이 코어를 쓰면 셋 다 음력 1/3 이 된다. **이 케이스가 다시 들어와 초록이 되는 것이 성공의 증거다** |
-| `verify-ziwei-brightness-constraints.cjs` C 케이스 | 값은 안 바뀌고 **근거가 시드 → 로직**으로 바뀐다. 45건 중 19건 실패는 별개 사안(셸 튜닝 명암 모델)이니 **19건 그대로인지** 확인할 것. 숫자가 움직이면 이 PR 이 명암에 손댄 것이다 |
-| `verify-admin-saju-prompt-kasi-calendar.mjs` | 음력 1997-01-03 ↔ 양력 1997-02-10 을 **이미 단언 중**. 시드를 지워도 통과해야 한다 |
-| `verify-ziwei-sohan` / `verify-ziwei-worker-chart-facts` (1980-01-01 14:10) | `--explain` 으로 밴드 판정 먼저 |
+| star-parity 의 1997-02-10 제외 | 🟢 제외 없앰. 세 엔진 전부 음력 1997/1/3. 검사 20건/28명 → **21건/29명** |
+| `verify-ziwei-brightness-constraints.cjs` | 🟢 **45건 중 19건 실패, 숫자 그대로.** C 케이스 값도 그대로고 근거만 시드 → 로직 |
+| `verify-admin-saju-prompt-kasi-calendar.mjs` | 🟢 PASS |
+| `verify-ziwei-sohan`(35) / `verify-ziwei-worker-chart-facts`(114) | 🟢 통과. 1980-01-01 은 `--explain` 결과 `in-band: no` 라 안 움직이는 게 맞다 |
 
-### PR-D — 사주 간지(절기) 전환
+밴드 판정 실측(2026-08-27): 1980-01-01 · 1991-02-20 · 1991-09-02 · 2000-01-01 = `in-band: no`,
+**1997-02-10 만 `in-band: yes`**. 즉 star-parity 케이스 중 값이 움직여야 할 날짜는 하나뿐이었고, 실제로 하나만 움직였다.
+
+#### (가) 🔴 예고에 없던 수정 — 셸의 자미 세차가 브라우저에서만 절기 프레임이었다
+
+셸 `calcZiweiPalaces` 는 년간지를 `KasiEngine.getGanji(baseDate).secha` 로 덮어쓰고 있었다.
+그 값은 `js/core/kasi-calendar-service.js` 의 `_yearGanjiFromIpchun` — **절기 프레임(입춘 경계)** 이다.
+그러나 자미두수의 년간지는 **음력 프레임(설날 경계)** 이고, 워커·앱은 둘 다 음력 프레임이었다.
+
+- **가드가 못 봤다.** 하네스에는 `window.KasiCalendarService` 가 없어 그 호출이 항상 null 로 떨어졌다.
+  브라우저에서만 갈렸다는 뜻이다.
+- **실측 범위는 좁다.** `_VALIDATED_SOLAR_TERMS_BY_YEAR` 에 **1990년치만** 있고
+  `_computeGanjiFromDate` 는 월경계 절기 12개 미만이면 null 을 낸다. 그래서 실제로 갈리는 것은
+  1990-01-27(설날) ~ 1990-02-04 11:13(입춘) 출생 **9일 구간**이고, 셸=己巳 · 워커/앱=庚午 였다.
+  🔴 그 표에 다른 해를 추가하면 그 해에도 즉시 갈렸을 것이다.
+- 고친 방법: 덮어쓰기를 지우고 `sexagenaryYearIndexes(음력해)` 로 뽑는다. 셸의 표기 축은 한자라
+  `STEM_HANJA`/`BRANCH_HANJA` 를 쓴다.
+- 🔴 **PR-D 를 할 때 이 구분을 다시 확인할 것** — 사주는 절기 프레임이 맞다. 같은 `getGanji` 를
+  사주 경로에서는 계속 쓴다. 프레임이 두 개라는 것이 문제가 아니라, **자미가 사주 것을 쓰던 것**이 문제였다.
+
+#### (나) `js/core/kasi/calendar.js` 는 죽은 파일이다 (3면 grep 실측 2026-08-27)
+
+- 어느 HTML 도 로드하지 않는다(`index.html` 에 스크립트 태그 없음)
+- `__tests__/` 참조 0건, `scripts/verify-*` 참조 0건
+- 읽는 곳은 `scripts/test-saju-regression.js` · `scripts/test-saju-solar-term-regression.mjs` ·
+  `scripts/validate-phase4.mjs` 셋뿐이고, **셋 다 `package.json`·`.github/workflows/` 어디에도 배선돼 있지 않다**
+- `window.KasiEngine` 을 두 번째로 만드는 사본이라, 로드되면 살아 있는 정본과 충돌한다
+
+이번에는 **지우지 않고** 시드만 걷어내고 변환을 코어로 맞췄다(다음 세션이 읽고 CST 달력을 복제하는 것을 막기 위해).
+🔴 지우는 판단은 사용자에게 남긴다 — 지우려면 위 세 스크립트도 함께 정리해야 한다.
+
+### 🔴 PR-D — 사주 간지(절기) 전환 — **여기서부터 남았다**
 
 애드혹 CST 보정 **5곳**을 코어로 대체한다:
 `worker/routes/kasi.js:176`(+1h) · `js/saju-engine.js:9544`(+1h) · `js/core/kasi-calendar-service.js:840-863`(+1h) ·
@@ -181,6 +227,26 @@ npm run test:node
 
 기준선(2026-08-27 `58267ff8b`, 리베이스 후 실측): jest **176 스위트 / 1,977 테스트 통과** ·
 `test:node` **551 통과 / 0 실패** · `verify:guard-wiring` 252개 중 156개 배선.
+
+**PR-C 이후 실측(2026-08-27, `cc22b4520` 위)**: 위 세 숫자 **전부 그대로**. 추가로
+`verify:ziwei-star-parity` 21건/29명 · `verify:korean-calendar-table-fresh` 29건 ·
+`verify:ziwei-sohan` 35 · `verify:ziwei-worker-chart-facts` 114 ·
+`verify:worker-size` raw 9.61 MiB / gzip 2.50 MiB (예산 10 MiB, 25.0%) ·
+`verify:public-mirror-fresh` OK · `verify:payment-freeze` 통과 · typecheck · lint.
+자미 3엔진에 필요한 명령:
+
+```
+npm run verify:ziwei-star-parity
+npm run verify:ziwei-sohan
+npm run verify:ziwei-worker-chart-facts
+node scripts/verify-ziwei-brightness-constraints.cjs      # 미배선. 45건 중 19건 실패가 정상값이다
+node scripts/verify-admin-saju-prompt-kasi-calendar.mjs
+npm run sync:public && npm run verify:public-mirror-fresh # js/ 를 고쳤으면 반드시
+```
+
+🔴 `js/core/korean-calendar.js` 는 **생성물**이다. 손으로 고치면
+`verify:korean-calendar-table-fresh` ① 이 바이트 비교로 잡는다 —
+`node scripts/build-korean-calendar-table.mjs` 를 돌리고 결과를 같은 커밋에 담을 것.
 
 ## 6. 🔴 이 레포 고유의 작업 규칙
 

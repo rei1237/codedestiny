@@ -162,14 +162,6 @@
     '\uc790':'\u5b50','\ucd95':'\u4e11','\uc778':'\u5bc5','\ubb18':'\u536f','\uc9c4':'\u8fb0','\uc0ac':'\u5df3','\uc624':'\u5348','\ubbf8':'\u672a','\uc2e0':'\u7533','\uc720':'\u9149','\uc220':'\u620c','\ud574':'\u4ea5'
   };
 
-  var _AUTHORITATIVE_SOLAR_TO_LUNAR = {
-    '1997-02-10': { year: 1997, month: 1, day: 3, isLeap: false }
-  };
-
-  var _AUTHORITATIVE_LUNAR_TO_SOLAR = {
-    '1997-01-03|0': { year: 1997, month: 2, day: 10 }
-  };
-
   var _VALIDATED_SOLAR_TERMS_BY_YEAR = {
     '1990': [
       { name: '\uc18c\ud55c', atLocal: '1990-01-05T23:33:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
@@ -187,79 +179,52 @@
     ]
   };
 
-  function _solarKey(y, m, d) {
-    return String(y) + '-' + _pad2(m) + '-' + _pad2(d);
-  }
-
-  function _lunarKey(y, m, d, isLeap) {
-    return String(y) + '-' + _pad2(m) + '-' + _pad2(d) + '|' + (isLeap ? '1' : '0');
-  }
-
-  function _applyAuthoritativeCalendarCorrection(context) {
+  /**
+   * 컨텍스트의 음력·양력이 한국 음양력 코어와 어긋나면 코어 쪽으로 맞춘다.
+   *
+   * 🔴 예전에는 이 자리에 1997-02-10 하루짜리 표가 박혀 있었다. 그 날짜만 특별했던 게 아니라
+   * lunar-javascript 가 중국 표준시(UTC+8) 기준이어서 삭이 CST 23시대에 든 달 전체가 밀렸던 것이고,
+   * 1900~2100 전수로 73,414일 중 2,997일(4.08%)이 그렇다(verify:korean-calendar-divergence).
+   * 그래서 표를 지우고 **규칙**으로 바꿨다. 코어는 window.KoreanCalendar 에 있고,
+   * KASI 응답과는 289건 표본 전건 일치한다(verify:korean-calendar-kasi-samples).
+   *
+   * 코어가 없거나(스크립트 미로드) 지원 범위 밖이면 아무것도 하지 않는다 — 손댈 근거가 없다.
+   */
+  function _applyCoreCalendarCorrection(context) {
     if (!context || typeof context !== 'object') return false;
+    var core = w.KoreanCalendar;
+    if (!core || typeof core.solarToLunar !== 'function') return false;
 
-    var corrected = false;
     var solar = context.solar || {};
-    var lunar = context.lunar || {};
-
     var sy = _toInt(solar.year, null);
     var sm = _toInt(solar.month, null);
     var sd = _toInt(solar.day, null);
-    var ly = _toInt(lunar.year, null);
-    var lm = _toInt(lunar.month, null);
-    var ld = _toInt(lunar.day, null);
+    if (!sy || !sm || !sd) return false;
 
-    if (sy && sm && sd) {
-      var forcedLunar = _AUTHORITATIVE_SOLAR_TO_LUNAR[_solarKey(sy, sm, sd)];
-      if (forcedLunar) {
-        if (!context.lunar) context.lunar = {};
-        if (
-          _toInt(context.lunar.year, null) !== forcedLunar.year ||
-          _toInt(context.lunar.month, null) !== forcedLunar.month ||
-          _toInt(context.lunar.day, null) !== forcedLunar.day ||
-          !!context.lunar.isLeap !== !!forcedLunar.isLeap
-        ) {
-          context.lunar.year = forcedLunar.year;
-          context.lunar.month = forcedLunar.month;
-          context.lunar.day = forcedLunar.day;
-          context.lunar.isLeap = !!forcedLunar.isLeap;
-          corrected = true;
-        }
-        ly = forcedLunar.year;
-        lm = forcedLunar.month;
-        ld = forcedLunar.day;
-      }
+    var truth = core.solarToLunar(sy, sm, sd);
+    if (!truth) return false;
+
+    if (!context.lunar) context.lunar = {};
+    var corrected = (
+      _toInt(context.lunar.year, null) !== truth.lunarYear ||
+      _toInt(context.lunar.month, null) !== truth.lunarMonth ||
+      _toInt(context.lunar.day, null) !== truth.lunarDay ||
+      !!context.lunar.isLeap !== !!truth.isLeapMonth
+    );
+    if (!corrected) return false;
+
+    context.lunar.year = truth.lunarYear;
+    context.lunar.month = truth.lunarMonth;
+    context.lunar.day = truth.lunarDay;
+    context.lunar.isLeap = !!truth.isLeapMonth;
+    context.leapMonth = !!truth.isLeapMonth;
+    context.meta = context.meta || {};
+    if (!Array.isArray(context.meta.diagnostics)) context.meta.diagnostics = [];
+    if (context.meta.diagnostics.indexOf('korean-calendar-core-correction') === -1) {
+      context.meta.diagnostics.push('korean-calendar-core-correction');
     }
-
-    var lunarLeap = !!(context.lunar && context.lunar.isLeap);
-    if (ly && lm && ld) {
-      var forcedSolar = _AUTHORITATIVE_LUNAR_TO_SOLAR[_lunarKey(ly, lm, ld, lunarLeap)];
-      if (forcedSolar) {
-        if (!context.solar) context.solar = {};
-        if (
-          _toInt(context.solar.year, null) !== forcedSolar.year ||
-          _toInt(context.solar.month, null) !== forcedSolar.month ||
-          _toInt(context.solar.day, null) !== forcedSolar.day
-        ) {
-          context.solar.year = forcedSolar.year;
-          context.solar.month = forcedSolar.month;
-          context.solar.day = forcedSolar.day;
-          corrected = true;
-        }
-      }
-    }
-
-    if (corrected) {
-      context.leapMonth = !!(context.lunar && context.lunar.isLeap);
-      context.meta = context.meta || {};
-      if (!Array.isArray(context.meta.diagnostics)) context.meta.diagnostics = [];
-      if (context.meta.diagnostics.indexOf('authoritative-calendar-correction') === -1) {
-        context.meta.diagnostics.push('authoritative-calendar-correction');
-      }
-      context.meta.authoritativeCorrection = true;
-    }
-
-    return corrected;
+    context.meta.coreCalendarCorrection = true;
+    return true;
   }
 
   function _toInt(v, fallback) {
@@ -664,23 +629,12 @@
         return { year: conv.year, month: conv.month, day: conv.day, source: 'fallback' };
       }
     }
-    if (typeof w.Lunar !== 'undefined' && typeof w.Lunar.fromYmd === 'function') {
-      try {
-        var m = norm.calendarType === 'lunar_leap' ? -Math.abs(norm.month) : Math.abs(norm.month);
-        var lunar = w.Lunar.fromYmd(norm.year, m, norm.day);
-        if (!lunar && norm.calendarType === 'lunar_leap') {
-          lunar = w.Lunar.fromYmd(norm.year, Math.abs(norm.month), norm.day);
-        }
-        var solar = lunar && lunar.getSolar ? lunar.getSolar() : null;
-        if (solar && typeof solar.getYear === 'function') {
-          return {
-            year: _toInt(solar.getYear(), null),
-            month: _toInt(solar.getMonth(), null),
-            day: _toInt(solar.getDay(), null),
-            source: 'fallback'
-          };
-        }
-      } catch (e) {}
+    // 🔴 lunar-javascript 폴백은 두지 않는다 — 중국 표준시(UTC+8) 기준이라 음력일이 하루 밀린다.
+    if (w.KoreanCalendar && typeof w.KoreanCalendar.lunarToSolar === 'function') {
+      var isLeap = norm.calendarType === 'lunar_leap';
+      var conv = w.KoreanCalendar.lunarToSolar(norm.year, Math.abs(norm.month), norm.day, isLeap);
+      if (!conv && isLeap) conv = w.KoreanCalendar.lunarToSolar(norm.year, Math.abs(norm.month), norm.day, false);
+      if (conv) return { year: conv.year, month: conv.month, day: conv.day, source: 'korean-calendar-core' };
     }
     return null;
   }
@@ -698,27 +652,18 @@
         };
       }
     }
-    if (typeof w.Solar !== 'undefined' && typeof w.Solar.fromYmdHms === 'function') {
-      try {
-        var solar = w.Solar.fromYmdHms(
-          solarDate.getFullYear(),
-          solarDate.getMonth() + 1,
-          solarDate.getDate(),
-          solarDate.getHours(),
-          solarDate.getMinutes(),
-          solarDate.getSeconds()
-        );
-        var lunar = solar && solar.getLunar ? solar.getLunar() : null;
-        if (lunar && typeof lunar.getYear === 'function') {
-          return {
-            year: _toInt(lunar.getYear(), null),
-            month: Math.abs(_toInt(lunar.getMonth(), 0)),
-            day: _toInt(lunar.getDay(), null),
-            isLeap: _toInt(lunar.getMonth(), 0) < 0,
-            source: 'fallback'
-          };
-        }
-      } catch (e) {}
+    // 🔴 _fallbackSolarFromLunar 와 같은 이유로 lunar-javascript 폴백을 두지 않는다.
+    if (w.KoreanCalendar && typeof w.KoreanCalendar.solarToLunar === 'function') {
+      var lun = w.KoreanCalendar.solarToLunar(solarDate.getFullYear(), solarDate.getMonth() + 1, solarDate.getDate());
+      if (lun) {
+        return {
+          year: lun.lunarYear,
+          month: lun.lunarMonth,
+          day: lun.lunarDay,
+          isLeap: !!lun.isLeapMonth,
+          source: 'korean-calendar-core'
+        };
+      }
     }
     return null;
   }
@@ -1069,7 +1014,7 @@
     var cacheKey = _makeCacheKey(norm);
     var cached = _readCache(cacheKey);
     if (cached) {
-      if (_applyAuthoritativeCalendarCorrection(cached)) {
+      if (_applyCoreCalendarCorrection(cached)) {
         _writeCache(cacheKey, cached);
       }
       if (!cached.ganji || !cached.ganji.hour) {
@@ -1233,7 +1178,7 @@
         }
       };
 
-      _applyAuthoritativeCalendarCorrection(context);
+      _applyCoreCalendarCorrection(context);
 
       if (fallbackUsed && hadProxyFailure) {
         _warnOnce('kasi-fallback-' + context.dateKey, 'KASI fallback used', {
@@ -1270,14 +1215,13 @@
     },
 
     resolveContexts: function (inputs, options) {
-      var self = this;
       var list = Array.isArray(inputs) ? inputs : [];
       var opts = options || {};
       var setCurrentIndex = (typeof opts.setCurrentIndex === 'number') ? opts.setCurrentIndex : -1;
-      return Promise.all(list.map(function (input, idx) {
+      return Promise.all(list.map((input, idx) => {
         var localOptions = Object.assign({}, opts);
         localOptions.setCurrent = setCurrentIndex === idx;
-        return self.resolveDateContext(input, localOptions);
+        return this.resolveDateContext(input, localOptions);
       }));
     },
 

@@ -17,6 +17,13 @@ const { Solar, Lunar } = require("lunar-javascript");
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const DEFAULT_ENGINE = "js/saju-engine.js";
 
+/**
+ * 🔴 엔진보다 먼저 평가해야 하는 것들. 브라우저의 로드 체인(js/core/index-inline-runtime.js 의
+ * __cdEnsureSajuCoreLoaded)과 같은 순서다. 여기를 비워 두면 엔진이 window.KoreanCalendar 를
+ * 못 찾아 던지고, 그게 곧 "가드는 초록인데 브라우저는 죽는다" 가 된다.
+ */
+const PRELUDE_SCRIPTS = ["js/core/korean-calendar.js"];
+
 let loadedEnginePath = null;
 
 function createDummyEl() {
@@ -109,6 +116,10 @@ function loadEngine(engineRelPath = DEFAULT_ENGINE) {
     throw new Error(`engine already loaded from ${loadedEnginePath}; cannot re-load ${enginePath}`);
   }
   bootstrapDom();
+  for (const rel of PRELUDE_SCRIPTS) {
+    const abs = path.resolve(REPO_ROOT, rel);
+    vm.runInThisContext(fs.readFileSync(abs, "utf8"), { filename: abs });
+  }
   const code = fs.readFileSync(enginePath, "utf8");
   vm.runInThisContext(code, { filename: enginePath });
   if (typeof global.calcZiweiPalaces !== "function") {

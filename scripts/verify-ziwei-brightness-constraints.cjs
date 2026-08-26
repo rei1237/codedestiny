@@ -41,8 +41,10 @@ const CASES = {
     minute: 45,
   },
   C: {
-    // KASI local seed in this repo maps lunar 1997-01-03 -> solar 1997-02-10.
-    label: '1997-01-03 12:00 (lunar, female; seeded solar=1997-02-10)',
+    // 음력 1997-01-03 → 양력 1997-02-10. 예전에는 KASI_LOCAL_PATCH_SEED 라는 하루짜리
+    // 하드코딩이 이 값을 만들었고, 지금은 한국 음양력 코어(lib/korean-calendar)가 규칙으로 낸다.
+    // 값은 바뀌지 않았다 — 근거만 바뀌었다.
+    label: '1997-01-03 12:00 (lunar, female; solar=1997-02-10)',
     gender: 'F',
     year: 1997,
     month: 2,

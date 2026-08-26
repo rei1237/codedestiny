@@ -15,13 +15,18 @@
  *      🔴 이 값들은 코어 안에 없다. 여기 가드에만 있다 — 그게 하드코딩을 없앤 목적이다.
  *   ④ 🔴 런타임 모듈이 astronomy-engine 을 import 하지 않는지. 이게 깨지면 116KB 천문
  *      라이브러리가 정적 셸·앱 클라이언트 번들로 끌려 들어온다.
+ *
+ * 산출물이 둘이라는 것이 ①②의 핵심이다 — ESM(워커·앱)과 클래식(정적 셸)이 같은 표와
+ * **같은 코어 소스**를 담는다. ② 는 클래식판을 실제로 평가해 ESM 과 답을 대조한다.
  */
 import { readFileSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import vm from "node:vm";
 
 import { buildTable, renderOutputs } from "./build-korean-calendar-table.mjs";
 import { lunarToSolar, solarToLunar, TABLE_FINGERPRINT, TABLE_META, MIDNIGHT_RISKS } from "../lib/korean-calendar/core.js";
+import { ganji } from "../lib/korean-calendar/ganji.js";
 
 const REPO_ROOT = join(dirname(fileURLToPath(import.meta.url)), "..");
 const REPORT = process.argv.includes("--report");
@@ -65,8 +70,46 @@ for (const [key, expected] of Object.entries(EXPECTED)) {
 }
 ok("② 커밋된 표의 지문이 재생성 지문과 같다", TABLE_FINGERPRINT === rebuilt.fingerprint, `commit=${TABLE_FINGERPRINT} rebuilt=${rebuilt.fingerprint}`);
 
-// 🔴 정적 셸용 클래식 스크립트판은 셸이 실제로 그 표를 읽는 PR 에서 만든다. 그때 이 자리에
-// "두 산출 파일의 지문이 같다" 검사를 더한다 — 세 엔진이 같은 숫자를 보는 근거가 그것이다.
+// 🔴 정적 셸용 클래식 스크립트판(js/core/korean-calendar.js)은 표뿐 아니라 코어 소스 자체를
+// 실어 나른다. 지문만 맞추고 로직이 갈리면 아무 소용이 없으므로, 여기서 **실제로 평가해**
+// ESM 코어와 답을 대조한다. 셸·워커·앱이 같은 숫자를 보는 근거가 이 검사다.
+{
+  const classicSource = read("js/core/korean-calendar.js");
+  ok("② 클래식 번들이 존재한다", classicSource !== null);
+  if (classicSource !== null) {
+    const sandbox = { console };
+    vm.createContext(sandbox);
+    let evalError = null;
+    try {
+      vm.runInContext(classicSource, sandbox, { filename: "js/core/korean-calendar.js" });
+    } catch (error) {
+      evalError = error;
+    }
+    ok("② 클래식 번들이 클래식 스크립트로 평가된다", evalError === null, String(evalError && evalError.message));
+    const K = sandbox.KoreanCalendar;
+    ok("② 클래식 번들이 전역 KoreanCalendar 하나만 만든다", Boolean(K) && Object.keys(sandbox).filter((k) => k !== "console").length === 1, Object.keys(sandbox).join(", "));
+    if (K) {
+      ok("② 두 산출 파일의 지문이 같다", K.TABLE_FINGERPRINT === TABLE_FINGERPRINT, `classic=${K.TABLE_FINGERPRINT} esm=${TABLE_FINGERPRINT}`);
+      // 표면이 index.js 와 같아야 한다 — 한쪽에만 심볼이 늘면 셸이 조용히 다른 API 를 쓴다.
+      const esmSurface = Object.keys(await import("../lib/korean-calendar/index.js")).sort().join(",");
+      ok("② 클래식 표면이 index.js 의 공개 표면과 같다", Object.keys(K).sort().join(",") === esmSurface, `classic=${Object.keys(K).sort().join(",")}`);
+      // 동작 대조. 1900~2100 을 5일씩 훑어 음력·간지를 전부 맞춘다.
+      let compared = 0;
+      const drift = [];
+      for (let year = TABLE_META.supportedMinYear; year <= TABLE_META.supportedMaxYear; year += 1) {
+        for (const [month, day] of [[1, 1], [2, 10], [6, 15], [10, 8], [12, 31]]) {
+          compared += 2;
+          if (JSON.stringify(K.solarToLunar(year, month, day)) !== JSON.stringify(solarToLunar(year, month, day))) {
+            drift.push(`${year}-${month}-${day} 음력`);
+          }
+          const at = { year, month, day, hour: 14, minute: 10 };
+          if (JSON.stringify(K.ganji(at)) !== JSON.stringify(ganji(at))) drift.push(`${year}-${month}-${day} 간지`);
+        }
+      }
+      ok(`② 클래식·ESM 이 ${compared}건에서 같은 답을 낸다`, drift.length === 0, `${drift.length}건 드리프트: ${drift.slice(0, 8).join(", ")}`);
+    }
+  }
+}
 ok("② TABLE_META.timezone 이 Asia/Seoul 이다", TABLE_META.timezone === "Asia/Seoul", String(TABLE_META.timezone));
 ok("② TABLE_META.utcOffsetMinutes 가 540 이다", TABLE_META.utcOffsetMinutes === 540, String(TABLE_META.utcOffsetMinutes));
 

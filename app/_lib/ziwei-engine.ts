@@ -1,4 +1,7 @@
-import { Solar } from "lunar-javascript";
+// 🔴 음양력 변환은 한국 음양력 코어(KST 기준)만 쓴다. lunar-javascript 는 중국 표준시(UTC+8)
+// 기준이라 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀리고, 음력일이 밀리면 자미성이
+// 밀려 14주성이 통째로 어긋난다(1900~2100 전수 4.08% — verify:korean-calendar-divergence).
+import { sexagenaryYearIndexes, solarToLunar } from "@/lib/korean-calendar";
 // 화성·영성 기점은 셸·워커 엔진과 공유한다(lib/ziwei-fire-bell.js 머리말 참고).
 import { placeFireAndBell } from "@/lib/ziwei-fire-bell";
 import { generateZiweiDeepSummary } from "./generate-ziwei-deep-summary";
@@ -36,16 +39,6 @@ import {
 export const ZHI_LIST = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
 /** 자미두수 천간 목록 */
 export const GAN_LIST = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
-
-const HAN_TO_KR_GAN: Record<string, string> = {
-  "甲": "갑", "乙": "을", "丙": "병", "丁": "정", "戊": "무",
-  "己": "기", "庚": "경", "辛": "신", "壬": "임", "癸": "계",
-};
-
-const HAN_TO_KR_ZHI: Record<string, string> = {
-  "子": "자", "丑": "축", "寅": "인", "卯": "묘", "辰": "진", "巳": "사",
-  "午": "오", "未": "미", "申": "신", "酉": "유", "戌": "술", "亥": "해",
-};
 
 export interface ZiweiStar {
   name: string;
@@ -114,21 +107,23 @@ export function calcZiweiPalaces(
   minute: number,
   gender: "M" | "F"
 ): ZiweiChartData {
-  const solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-  const lunar = solar.getLunar();
+  const lunar = solarToLunar(year, month, day);
+  if (!lunar) {
+    throw new Error(`ZIWEI_UNSUPPORTED_BIRTH_DATE: ${year}-${month}-${day} (지원 범위 1900~2100)`);
+  }
 
-  const lYear = lunar.getYear();
-  const lMonth = Math.abs(lunar.getMonth());
-  const lDay = lunar.getDay();
-  
-  const yGanRaw = String(lunar.getYearGan() || "");
-  const yZhiRaw = String(lunar.getYearZhi() || "");
-  const yGan = HAN_TO_KR_GAN[yGanRaw] || yGanRaw;
-  const yZhi = HAN_TO_KR_ZHI[yZhiRaw] || yZhiRaw;
-  let gIdx = GAN_LIST.indexOf(yGan);
-  let zIdx = ZHI_LIST.indexOf(yZhi);
-  if (gIdx < 0) gIdx = ((lYear - 4) % 10 + 10) % 10;
-  if (zIdx < 0) zIdx = ((lYear - 4) % 12 + 12) % 12;
+  const lYear = lunar.lunarYear;
+  const lMonth = lunar.lunarMonth;
+  const lDay = lunar.lunarDay;
+
+  // 자미두수의 년간지는 **음력 프레임**이다 — 세차가 설날에 바뀐다(사주의 입춘 경계가 아니다).
+  // 예전에는 lunar-javascript 의 getYearGan/getYearZhi 를 문자열로 읽고 실패 시 (음력해-4)로
+  // 폴백했다 — 값은 그대로이고 근거만 코어로 옮겼다.
+  const yearIndexes = sexagenaryYearIndexes(lYear);
+  const gIdx = yearIndexes.stemIndex;
+  const zIdx = yearIndexes.branchIndex;
+  const yGan = GAN_LIST[gIdx];
+  const yZhi = ZHI_LIST[zIdx];
   
   // 시지 index (자시=0, 축시=1 ...)
   const hIdx = (hour === 23 || hour === 0) ? 0 : Math.floor((hour + 1) / 2);

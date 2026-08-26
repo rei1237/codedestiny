@@ -1,4 +1,7 @@
-import { Lunar, Solar } from "lunar-javascript";
+// 🔴 음양력 변환은 한국 음양력 코어(KST 기준)만 쓴다. lunar-javascript 는 중국 표준시(UTC+8)
+// 기준이라 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀리고, 음력일이 밀리면 자미성이
+// 밀려 14주성이 통째로 어긋난다(1900~2100 전수 4.08% — verify:korean-calendar-divergence).
+import { sexagenaryYearIndexes, solarToLunar, lunarToSolar } from "../../lib/korean-calendar/index.js";
 // 소한 상수·계산은 셸 엔진과 공유한다(lib/ziwei-minor-limit.js 머리말 참고).
 import { buildMinorLimitEntries, describeMinorLimit } from "../../lib/ziwei-minor-limit.js";
 // 화성·영성 기점도 같은 이유로 공유한다(lib/ziwei-fire-bell.js 머리말 참고).
@@ -10,34 +13,6 @@ const PALACE_NAMES = ["명궁", "형제궁", "부부궁", "자녀궁", "재백�
 const MAIN_STARS = ["자미", "천기", "태양", "무곡", "천동", "염정", "천부", "태음", "탐랑", "거문", "천상", "천량", "칠살", "파군"];
 const ASSISTANT_STARS = ["문창", "문곡", "좌보", "우필", "천괴", "천월", "녹존", "천마", "함지", "천요"];
 const MALEFIC_STARS = ["경양", "타라", "화성", "영성", "지공", "지겁"];
-
-const STEM_ALIAS = {
-  "甲": "갑",
-  "乙": "을",
-  "丙": "병",
-  "丁": "정",
-  "戊": "무",
-  "己": "기",
-  "庚": "경",
-  "辛": "신",
-  "壬": "임",
-  "癸": "계",
-};
-
-const BRANCH_ALIAS = {
-  "子": "자",
-  "丑": "축",
-  "寅": "인",
-  "卯": "묘",
-  "辰": "진",
-  "巳": "사",
-  "午": "오",
-  "未": "미",
-  "申": "신",
-  "酉": "유",
-  "戌": "술",
-  "亥": "해",
-};
 
 const FOUR_TRANSFORMATIONS = {
   갑: { huaLu: "염정", huaQuan: "파군", huaKe: "무곡", huaJi: "태양" },
@@ -132,20 +107,6 @@ function clean(value, max = 0) {
   return max > 0 ? text.slice(0, max) : text;
 }
 
-function normalizeStem(value, fallbackYear) {
-  const text = clean(value);
-  if (STEMS.includes(text)) return text;
-  if (STEM_ALIAS[text]) return STEM_ALIAS[text];
-  return STEMS[mod(Number(fallbackYear) - 4, 10)] || "갑";
-}
-
-function normalizeBranch(value, fallbackYear) {
-  const text = clean(value);
-  if (BRANCHES.includes(text)) return text;
-  if (BRANCH_ALIAS[text]) return BRANCH_ALIAS[text];
-  return BRANCHES[mod(Number(fallbackYear) - 4, 12)] || "자";
-}
-
 function parseDate(dateText) {
   const match = clean(dateText).match(/^(\d{4})-(\d{2})-(\d{2})$/);
   if (!match) return null;
@@ -165,29 +126,36 @@ function parseTime(timeText, unknown) {
   return { hour: Number(match[1]), minute: Number(match[2]), unknown: false };
 }
 
-function getLunarDate(parts, time, calendarType, isLeapMonth) {
+/**
+ * 명반의 음력 날짜.
+ * 🔴 자미두수의 년간지는 **음력 프레임**이다 — 세차가 설날에 바뀐다. 코어의 ganji() 는
+ * 절기 프레임(입춘 경계)이라 여기서 쓰면 안 된다. 음력해에서 직접 유도한다.
+ */
+function getLunarDate(parts, calendarType, isLeapMonth) {
   if (calendarType === "lunar") {
-    const lunarMonth = isLeapMonth ? -Math.abs(parts.month) : Math.abs(parts.month);
-    const lunar = Lunar.fromYmd(parts.year, lunarMonth, parts.day);
+    // 그 해에 그 윤달이 없으면 평달로 읽는다.
+    const leap = Boolean(isLeapMonth) && Boolean(lunarToSolar(parts.year, Math.abs(parts.month), parts.day, true));
     return {
-      lunar,
-      lunarYear: Number(lunar.getYear()),
-      lunarMonth: Math.abs(Number(lunar.getMonth())),
-      lunarDay: Number(lunar.getDay()),
-      isLeapMonth: Number(lunar.getMonth()) < 0,
+      lunarYear: parts.year,
+      lunarMonth: Math.abs(parts.month),
+      lunarDay: parts.day,
+      isLeapMonth: leap,
       source: "user-lunar-input",
     };
   }
 
-  const solar = Solar.fromYmdHms(parts.year, parts.month, parts.day, time.hour, time.minute, 0);
-  const lunar = solar.getLunar();
+  const lunar = solarToLunar(parts.year, parts.month, parts.day);
+  if (!lunar) {
+    const error = new Error("UNSUPPORTED_BIRTH_DATE");
+    error.code = "INVALID_INPUT";
+    throw error;
+  }
   return {
-    lunar,
-    lunarYear: Number(lunar.getYear()),
-    lunarMonth: Math.abs(Number(lunar.getMonth())),
-    lunarDay: Number(lunar.getDay()),
-    isLeapMonth: Number(lunar.getMonth()) < 0,
-    source: "lunar-javascript",
+    lunarYear: lunar.lunarYear,
+    lunarMonth: lunar.lunarMonth,
+    lunarDay: lunar.lunarDay,
+    isLeapMonth: lunar.isLeapMonth,
+    source: "korean-calendar-core",
   };
 }
 
@@ -508,9 +476,12 @@ export function calculateZiweiAiChart(input = {}, options = {}) {
 
   const calendarType = clean(birthInfo.calendarType).toLowerCase() === "lunar" ? "lunar" : "solar";
   const gender = clean(birthInfo.gender).toLowerCase();
-  const lunarInfo = getLunarDate(dateParts, timeParts, calendarType, birthInfo.isLeapMonth === true);
-  const yearStem = normalizeStem(lunarInfo.lunar.getYearGan(), lunarInfo.lunarYear);
-  const yearBranch = normalizeBranch(lunarInfo.lunar.getYearZhi(), lunarInfo.lunarYear);
+  const lunarInfo = getLunarDate(dateParts, calendarType, birthInfo.isLeapMonth === true);
+  // 세차는 음력해에서 바로 나온다(甲=0 / 子=0). 예전에는 lunar-javascript 의 getYearGan/getYearZhi
+  // 를 읽고 실패 시 같은 식으로 폴백했다 — 값은 그대로이고 근거만 코어로 옮겼다.
+  const yearIndexes = sexagenaryYearIndexes(lunarInfo.lunarYear);
+  const yearStem = STEMS[yearIndexes.stemIndex];
+  const yearBranch = BRANCHES[yearIndexes.branchIndex];
   const stemIndex = STEMS.indexOf(yearStem);
   const branchIndex = BRANCHES.indexOf(yearBranch);
   const hIdx = hourIndex(timeParts.hour);
