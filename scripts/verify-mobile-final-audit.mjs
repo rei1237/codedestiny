@@ -32,10 +32,10 @@ const npmScripts = [
   "typecheck",
 ];
 
-const directVerifierFiles = [
-  "scripts/verify-mobile-original-requirements.mjs",
-  "scripts/verify-mobile-live-deployment.mjs",
-];
+// directVerifierFiles 는 2026-08-26 에 없앴다. verify-mobile-original-requirements.mjs 와
+// verify-mobile-live-deployment.mjs 두 파일이 존재하는지만 보는 배열이었는데, 그 둘이
+// 은퇴하면서 배열이 통째로 빈다. 🔴 "이 스크립트가 그 둘을 실행한다"는 서술을 어디선가
+// 보더라도 믿지 말 것 — 이 파일에는 child_process 호출이 없었고 지금도 없다.
 
 const shellFiles = [
   "index.html",
@@ -72,26 +72,22 @@ const finalAuditRequiredText = [
   "npm run verify:entry-encoding -- --strict-core",
   "npm run typecheck -- --pretty false",
   "npm run build",
-  "node scripts/verify-mobile-original-requirements.mjs",
-  "node scripts/verify-mobile-live-deployment.mjs",
   "sandbox",
   "verify:test-account-payment-flow",
   "verify:test-account-all-paid-services",
   "verify:paid-gate-ui",
   "verify:billing-pass-policy",
   "verify:portone-single-payment",
-  "cdMobileDestinyHub",
-  "배포 후 live marker 재검증이 필요하다",
+  // 2026-08-26 에 두 줄을 뺐다. "cdMobileDestinyHub" 는 어느 셸에도 엘리먼트가 없는 허브인데
+  // 이 배열이 "감사 문서가 그 이름을 언급하도록" 강제하고 있었고(index.html:7369 주석 참고),
+  // "배포 후 live marker 재검증이 필요하다" 는 은퇴한 verify-mobile-live-deployment.mjs 의
+  // 미완 항목을 문서에 붙들어 두던 줄이다. 남은 항목은 실제로 살아있는 명령·정책만 가리킨다.
 ];
 
 const failures = [];
 
 for (const file of reportFiles) {
   if (!exists(file)) failures.push(`missing report: ${file}`);
-}
-
-for (const file of directVerifierFiles) {
-  if (!exists(file)) failures.push(`missing direct verifier: ${file}`);
 }
 
 const packageJson = JSON.parse(read("package.json"));
@@ -131,7 +127,6 @@ const mojibakeHits = scanCoreMojibake([
   "MOBILE_FINAL_COMPLETION_AUDIT.md",
   "MOBILE_FEATURE_REGISTRY.md",
   "scripts/verify-mobile-final-audit.mjs",
-  "scripts/verify-mobile-original-requirements.mjs",
 ]);
 if (mojibakeHits.length) failures.push(`core mojibake patterns found: ${mojibakeHits.join(", ")}`);
 
@@ -143,7 +138,6 @@ if (failures.length) {
   console.log("Mobile final audit verification OK");
   console.log(`- Reports: ${reportFiles.length}/${reportFiles.length}`);
   console.log(`- Package scripts: ${npmScripts.length}/${npmScripts.length}`);
-  console.log(`- Direct verifiers: ${directVerifierFiles.length}/${directVerifierFiles.length}`);
   console.log(`- Shell marker files: ${shellFiles.length}/${shellFiles.length}`);
   console.log(`- Cache key: ${[...uniqueCacheKeys][0]}`);
   console.log(`- Registry rows: ${registryRows.length}`);
