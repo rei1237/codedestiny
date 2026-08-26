@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "fc9876eee4e47d50f3f7af77c9855c102c2563a5de9bb0e59d5187f5be10e1ce",
+  "sourceHash": "99e0640841249630d3cff4c001d778e9afa9be0c5cc1d6ba3f6960187451c9b0",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -27976,7 +27976,7 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-40:89",
+          "beatId": "ep-40:71",
           "pacing": "impact"
         },
         {
@@ -28147,7 +28147,67 @@
           "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
         },
         {
+          "beatId": "ep-40:36",
+          "background": "neoBound3",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "neoBound3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:37",
+          "background": "neoBound3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "neoBound3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:38",
+          "background": "neoBound3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "hands",
+          "camera": "drift",
+          "accessibility": "neoBound3 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:39",
+          "background": "neoBound3",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "neoBound3 배경에서 진행되는 서술"
+        },
+        {
           "beatId": "ep-40:40",
+          "background": "fateTarot",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:41",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:46",
           "background": "fateTarot",
           "transition": "hold",
           "tone": "dark",
@@ -28157,7 +28217,7 @@
           "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:44",
+          "beatId": "ep-40:50",
           "background": "fateTarot",
           "transition": "hold",
           "tone": "dark",
@@ -28167,7 +28227,7 @@
           "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
         },
         {
-          "beatId": "ep-40:45",
+          "beatId": "ep-40:51",
           "background": "room",
           "transition": "crossfade",
           "tone": "dark",
@@ -28177,7 +28237,7 @@
           "accessibility": "room 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:48",
+          "beatId": "ep-40:54",
           "background": "room",
           "transition": "hold",
           "tone": "dark",
@@ -28187,7 +28247,7 @@
           "accessibility": "room 배경에서 진행되는 god의 대사"
         },
         {
-          "beatId": "ep-40:49",
+          "beatId": "ep-40:55",
           "background": "room",
           "transition": "hold",
           "tone": "dark",
@@ -28197,7 +28257,7 @@
           "accessibility": "room 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:52",
+          "beatId": "ep-40:58",
           "background": "room",
           "transition": "hold",
           "tone": "dark",
@@ -28207,7 +28267,7 @@
           "accessibility": "room 배경에서 진행되는 god의 대사"
         },
         {
-          "beatId": "ep-40:56",
+          "beatId": "ep-40:62",
           "background": "room",
           "transition": "hold",
           "tone": "dark",
@@ -28217,7 +28277,7 @@
           "accessibility": "room 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:57",
+          "beatId": "ep-40:63",
           "background": "room",
           "transition": "hold",
           "tone": "dark",
@@ -28227,7 +28287,7 @@
           "accessibility": "room 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:59",
+          "beatId": "ep-40:65",
           "background": "neoBound3",
           "transition": "crossfade",
           "tone": "dark",
@@ -28237,7 +28297,7 @@
           "accessibility": "neoBound3 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:61",
+          "beatId": "ep-40:67",
           "background": "neoBound3",
           "transition": "hold",
           "tone": "dark",
@@ -28247,7 +28307,7 @@
           "accessibility": "neoBound3 배경에서 진행되는 god의 대사"
         },
         {
-          "beatId": "ep-40:62",
+          "beatId": "ep-40:68",
           "background": "neoBound3",
           "transition": "hold",
           "tone": "dark",
@@ -28257,7 +28317,7 @@
           "accessibility": "neoBound3 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:64",
+          "beatId": "ep-40:70",
           "background": "neoBound3",
           "transition": "hold",
           "tone": "dark",
@@ -28267,7 +28327,7 @@
           "accessibility": "neoBound3 배경에서 진행되는 god의 대사"
         },
         {
-          "beatId": "ep-40:65",
+          "beatId": "ep-40:71",
           "background": "memoryVault",
           "transition": "crossfade",
           "tone": "dark",
@@ -28277,7 +28337,7 @@
           "accessibility": "memoryVault 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:66",
+          "beatId": "ep-40:72",
           "background": "memoryVault",
           "transition": "hold",
           "tone": "dark",
@@ -28287,7 +28347,7 @@
           "accessibility": "memoryVault 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:67",
+          "beatId": "ep-40:73",
           "background": "memoryVault",
           "transition": "hold",
           "tone": "dark",
@@ -28297,7 +28357,7 @@
           "accessibility": "memoryVault 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:72",
+          "beatId": "ep-40:77",
           "background": "memoryVault",
           "transition": "hold",
           "tone": "dark",
@@ -28307,7 +28367,7 @@
           "accessibility": "memoryVault 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:75",
+          "beatId": "ep-40:80",
           "background": "memoryVault",
           "transition": "hold",
           "tone": "dark",
@@ -28317,7 +28377,7 @@
           "accessibility": "memoryVault 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:76",
+          "beatId": "ep-40:81",
           "background": "memoryVault",
           "transition": "hold",
           "tone": "dark",
@@ -28327,7 +28387,7 @@
           "accessibility": "memoryVault 배경에서 진행되는 god의 대사"
         },
         {
-          "beatId": "ep-40:77",
+          "beatId": "ep-40:82",
           "background": "ziwei2",
           "transition": "crossfade",
           "tone": "dark",
@@ -28337,36 +28397,6 @@
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:78",
-          "background": "ziwei2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "ziwei2 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:81",
-          "background": "ziwei2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "ziwei2 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:82",
-          "background": "ziwei2",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "ziwei2 배경에서 진행되는 yeon의 대사"
-        },
-        {
           "beatId": "ep-40:83",
           "background": "ziwei2",
           "transition": "hold",
@@ -28374,10 +28404,40 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "steady",
+          "accessibility": "ziwei2 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:86",
+          "background": "ziwei2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
           "accessibility": "ziwei2 배경에서 진행되는 god의 대사"
         },
         {
-          "beatId": "ep-40:84",
+          "beatId": "ep-40:87",
+          "background": "ziwei2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "ziwei2 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:88",
+          "background": "ziwei2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "ziwei2 배경에서 진행되는 god의 대사"
+        },
+        {
+          "beatId": "ep-40:89",
           "background": "handsRush",
           "transition": "crossfade",
           "tone": "dark",
@@ -28387,7 +28447,7 @@
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:85",
+          "beatId": "ep-40:90",
           "background": "handsRush",
           "transition": "hold",
           "tone": "dark",
@@ -28397,7 +28457,7 @@
           "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:87",
+          "beatId": "ep-40:92",
           "background": "handsRush",
           "transition": "hold",
           "tone": "dark",
@@ -28407,7 +28467,7 @@
           "accessibility": "handsRush 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:89",
+          "beatId": "ep-40:94",
           "background": "cherryMoonPortal",
           "transition": "crossfade",
           "tone": "dark",
@@ -28415,26 +28475,6 @@
           "eventEffect": "stars",
           "camera": "focus",
           "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:92",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:96",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 god의 대사"
         },
         {
           "beatId": "ep-40:97",
@@ -28447,217 +28487,67 @@
           "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:100",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
+          "beatId": "ep-40:101",
+          "background": "river",
+          "transition": "crossfade",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 god의 대사"
+          "camera": "drift",
+          "accessibility": "river 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:102",
+          "background": "river",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "water",
+          "camera": "drift",
+          "accessibility": "river 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:103",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:114",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:115",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:117",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:119",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:120",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:122",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:124",
-          "background": "cherryMoonPortal",
+          "background": "river",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
+          "accessibility": "river 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:125",
-          "background": "cherryMoonPortal",
+          "beatId": "ep-40:104",
+          "background": "river",
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:126",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:129",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
           "camera": "drift",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
+          "accessibility": "river 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:131",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:133",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:135",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:137",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:153",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 god의 대사"
-        },
-        {
-          "beatId": "ep-40:154",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:156",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:160",
-          "background": "cherryMoonPortal",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "cherryMoonPortal 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:168",
+          "beatId": "ep-40:105",
           "background": "fateTarot",
           "transition": "crossfade",
           "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": "stars",
-          "camera": "focus",
+          "eventEffect": null,
+          "camera": "drift",
           "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:169",
+          "beatId": "ep-40:107",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
+        },
+        {
+          "beatId": "ep-40:108",
           "background": "fateTarot",
           "transition": "hold",
           "tone": "dark",
@@ -28667,7 +28557,247 @@
           "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
         },
         {
+          "beatId": "ep-40:111",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
+        },
+        {
+          "beatId": "ep-40:114",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:125",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
+        },
+        {
+          "beatId": "ep-40:126",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:128",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:130",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:131",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
+        },
+        {
+          "beatId": "ep-40:133",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 god의 대사"
+        },
+        {
+          "beatId": "ep-40:135",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:136",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:137",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:140",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "stars",
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:142",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:143",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:145",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:147",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:163",
+          "background": "sukuyo",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:164",
+          "background": "sukuyo",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:165",
+          "background": "sukuyo",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "drift",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:166",
+          "background": "sukuyo",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "thread",
+          "camera": "drift",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:167",
+          "background": "sukuyo",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "sukuyo 배경에서 진행되는 god의 대사"
+        },
+        {
+          "beatId": "ep-40:168",
+          "background": "sukuyo",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:169",
+          "background": "fateTarot",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": "stars",
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
           "beatId": "ep-40:171",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:179",
           "background": "fateTarot",
           "transition": "hold",
           "tone": "dark",
@@ -28697,7 +28827,17 @@
           "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
         },
         {
-          "beatId": "ep-40:185",
+          "beatId": "ep-40:184",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+        },
+        {
+          "beatId": "ep-40:186",
           "background": "fateTarot",
           "transition": "hold",
           "tone": "dark",
@@ -28712,9 +28852,19 @@
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
+          "eventEffect": "burst",
+          "camera": "focus",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:189",
+          "background": "fateTarot",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
+          "camera": "drift",
+          "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:190",
@@ -28722,27 +28872,7 @@
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "steady",
-          "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:192",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "burst",
-          "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:193",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
+          "eventEffect": "stars",
           "camera": "drift",
           "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
@@ -28752,39 +28882,69 @@
           "transition": "hold",
           "tone": "dark",
           "ambient": "moonlight",
-          "eventEffect": "stars",
+          "eventEffect": null,
           "camera": "drift",
           "accessibility": "fateTarot 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:195",
+          "background": "handsRush",
+          "transition": "crossfade",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:196",
-          "background": "fateTarot",
+          "background": "handsRush",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": "stars",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
+        },
+        {
+          "beatId": "ep-40:197",
+          "background": "handsRush",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": "thread",
           "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
+          "accessibility": "handsRush 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-40:198",
+          "background": "handsRush",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "steady",
+          "accessibility": "handsRush 배경에서 진행되는 pje의 대사"
         },
         {
           "beatId": "ep-40:199",
-          "background": "fateTarot",
+          "background": "handsRush",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
+          "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
+          "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:200",
-          "background": "fateTarot",
+          "background": "handsRush",
           "transition": "hold",
           "tone": "dark",
-          "ambient": "moonlight",
+          "ambient": null,
           "eventEffect": null,
           "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 시스템 메시지"
+          "accessibility": "handsRush 배경에서 진행되는 시스템 메시지"
         }
       ]
     },
