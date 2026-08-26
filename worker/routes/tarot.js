@@ -15,7 +15,7 @@ import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mj
 import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.mjs";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { enhanceLoveReadingWithLlm } from "../../lib/tarot/love-reading-llm.mjs";
-import { generateOracleConsultation } from "../../lib/tarot/oracle-consultation.mjs";
+import { generateOracleConsultation, validateOracleConsultationInput } from "../../lib/tarot/oracle-consultation.mjs";
 import {
   buildPremiumYearReading,
   drawPremiumYearCards,
@@ -350,6 +350,37 @@ async function verifyNumerologyReadingAccess(request, env, body = {}) {
       ? "결제 요청 정보가 없어 확인하지 못했습니다. 결과 보기 버튼으로 다시 진행해 주세요."
       : "결제 완료 내역을 확인할 수 없습니다. 결과 보기 버튼으로 결제를 완료한 뒤 다시 시도해 주세요.",
   };
+}
+
+// 한 번의 결제(= 하나의 requestId)로 상담을 몇 번까지 생성할 수 있는가.
+// 첫 생성 1회 + 사용자가 누르는 재시도 2회 + 여유 1회.
+const ORACLE_CONSULTATION_RETRY_MAX = 4;
+const ORACLE_CONSULTATION_RETRY_WINDOW_MS = 10 * 60 * 1000;
+
+// 🔴 DB 가 죽었을 때는 통과시킨다(fail-open). 결제를 끝낸 사용자를 레이트리밋 인프라 장애로
+// 막는 것이 과금 초과보다 나쁘다 — destiny-compass.js 의 checkRateLimit 과 같은 판단이다.
+//
+// 🔴 rate-limit.js 와 node:crypto 는 **지연 import** 다. 정적으로 걸면 이 파일의 모듈 그래프에
+// models.js 전체(AbuseScore 포함)가 딸려 들어와, models.js 를 부분 mock 하는 다른 타로 라우트
+// 테스트들이 "does not provide an export named 'AbuseScore'" 로 통째로 죽는다. 이 파일은 이미
+// buildIjikReading 등을 같은 방식으로 늦게 부른다.
+async function checkOracleConsultationRetryBudget(env, subject) {
+  try {
+    const [{ incrementRateLimit }, { createHash }] = await Promise.all([
+      import("../lib/rate-limit.js"),
+      import("node:crypto"),
+    ]);
+    const { count } = await incrementRateLimit({
+      subjectHash: createHash("sha256").update(String(subject)).digest("hex"),
+      endpoint: "tarot:oracle-consultation",
+      windowMs: ORACLE_CONSULTATION_RETRY_WINDOW_MS,
+      env,
+    });
+    return count <= ORACLE_CONSULTATION_RETRY_MAX;
+  } catch (error) {
+    console.warn("[tarot] oracle consultation retry budget check failed", String(error?.message || error).slice(0, 200));
+    return true;
+  }
 }
 
 // 타로 오라클 상담 — verifyNumerologyReadingAccess 와 동일한 회당결제 증빙 패턴을 그대로 따른다.
@@ -1750,6 +1781,20 @@ export async function handleTarotRoutes(request, env = {}) {
     }
 
     if (path === "/oracle-consultation") {
+      // 🔴 입력 검증을 결제·LLM 앞에 둔다. 예전에는 generateOracleConsultation 안에서 걸려
+      // `unknown_card_id:2` 같은 **영구 실패**가 LLM 실패와 똑같이 502 로 나갔고, 클라이언트는
+      // 그걸 재시도 대상으로 오해했다. 재시도해도 결과가 같은 실패는 400 으로 구분한다.
+      const validated = validateOracleConsultationInput(body);
+      if (!validated.ok) {
+        return json({
+          ok: false,
+          code: "ORACLE_CONSULTATION_INVALID_INPUT",
+          reason: validated.reason || "",
+          message: "카드 정보를 확인하지 못했습니다. 카드를 다시 뽑아 주세요.",
+          retryable: false,
+        }, { status: 400 });
+      }
+
       const access = await verifyOracleConsultationAccess(request, env, body);
       if (!access.ok) {
         return json(
@@ -1758,10 +1803,30 @@ export async function handleTarotRoutes(request, env = {}) {
             code: access.code || "ORACLE_CONSULTATION_PAYMENT_NOT_VERIFIED",
             reason: access.reason || "",
             message: access.message,
+            // 결제 증빙 지연(402)·인프라 장애(503)는 시간이 지나면 풀리므로 재시도 대상이다.
+            // 인증 실패는 로그인을 다시 해야 하므로 아니다.
+            retryable: access.status !== 401 && access.status !== 403,
           },
           { status: access.status || 402 },
         );
       }
+
+      // 🔴 재생성 한도. verifyPerUsePayment 는 읽기 전용이라 같은 requestId 로 몇 번이든 통과한다
+      // (worker/lib/nakshatra-paid-access.js). 무과금 재시도 버튼과 짝이 되는 상한이 없으면
+      // 결제 1회로 Gemini 를 무제한 호출할 수 있다.
+      const consultationRetryKey = `${access.auth?.userId || "anon"}:${asText(body?.requestId) || "no-request-id"}`;
+      const withinRetryBudget = await checkOracleConsultationRetryBudget(env, consultationRetryKey);
+      if (!withinRetryBudget) {
+        return json({
+          ok: false,
+          code: "ORACLE_CONSULTATION_RETRY_LIMIT",
+          reason: "retry_budget_exhausted",
+          message: "이 상담의 재생성 횟수를 모두 사용했습니다. 아래 프롬프트를 복사해 사용해 주세요.",
+          accessVerified: true,
+          retryable: false,
+        }, { status: 429 });
+      }
+
       const result = await generateOracleConsultation(body, {
         env,
         fetchImpl: globalThis.fetch,
@@ -1770,12 +1835,16 @@ export async function handleTarotRoutes(request, env = {}) {
       // Gemini 실패는 결제를 되돌리지 않는다(이미 검증된 회당결제 증빙 기반) — 대신 클라이언트가
       // 기존 "생성된 프롬프트" 폴백 화면으로 저하할 수 있게 ok:false + reason 만 돌려준다.
       if (!result.ok) {
+        const reason = result.reason || "";
+        // 설정 누락과 안전 차단은 같은 입력으로 다시 불러도 결과가 같다 — 재시도 버튼을 띄우지 않는다.
+        const permanent = reason === "missing_config" || reason.startsWith("blocked_");
         return json({
           ok: false,
           code: "ORACLE_CONSULTATION_GENERATION_FAILED",
-          reason: result.reason || "",
+          reason,
           message: "AI 상담 생성에 실패했습니다. 아래 프롬프트를 복사해 다른 AI에 붙여넣어 보세요.",
           accessVerified: true,
+          retryable: !permanent,
         }, { status: 502 });
       }
       return json({
