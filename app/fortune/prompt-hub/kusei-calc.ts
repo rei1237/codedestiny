@@ -1,4 +1,5 @@
 import { Lunar } from "lunar-javascript";
+import { nodeTerms } from "@/lib/korean-calendar";
 
 export type NineStarNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
 export type KuseiElement = "수" | "목" | "화" | "토" | "금";
@@ -107,7 +108,9 @@ const KUSEI_CALC_TEXT_TRANSLATIONS = {
 function kuseiCalcText(key: keyof typeof KUSEI_CALC_TEXT_TRANSLATIONS.ko): string {
   return KUSEI_CALC_TEXT_TRANSLATIONS.ko[key] || "Translation pending";
 }
-const SOLAR_TERM_BASE_OFFSET_MINUTES = 480;
+// 한국 음양력 코어의 절기표는 KST 벽시계다. 순간(instant)으로 되돌린 뒤 요청 시간대로 옮긴다.
+// 🔴 예전에는 480(중국 표준시)이 있었다 — lunar-javascript 가 CST 기준이라 필요했던 값이다.
+const CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES = 540;
 const TIMEZONE_OFFSETS: Record<string, number> = {
   UTC: 0,
   "Asia/Seoul": 540,
@@ -348,25 +351,29 @@ export function convertLunarToSolar(birthDate: string, isLeapMonth = false) {
   }
 }
 
+// TERM_META 의 12節 순서 = 코어 nodeTerms 의 인덱스 순서(소한 0 … 대설 11).
+const JIE_INDEX_BY_TERM_NAME: Record<string, number> = {
+  小寒: 0,
+  立春: 1,
+  惊蛰: 2,
+  清明: 3,
+  立夏: 4,
+  芒种: 5,
+  小暑: 6,
+  立秋: 7,
+  白露: 8,
+  寒露: 9,
+  立冬: 10,
+  大雪: 11,
+};
+
 function makeSolarTerm(year: number, term: { name: string; label: string }, timezone: string): SolarTerm {
-  const table = Lunar.fromYmd(year, 1, 1).getJieQiTable() as Record<string, {
-    getYear: () => number;
-    getMonth: () => number;
-    getDay: () => number;
-    getHour: () => number;
-    getMinute: () => number;
-    getSecond: () => number;
-  }>;
-  const solar = table[term.name];
-  if (!solar) throw new Error("절기 데이터 필요");
-  const instantMs = Date.UTC(
-    solar.getYear(),
-    solar.getMonth() - 1,
-    solar.getDay(),
-    solar.getHour(),
-    solar.getMinute(),
-    solar.getSecond(),
-  ) - SOLAR_TERM_BASE_OFFSET_MINUTES * 60000;
+  const index = JIE_INDEX_BY_TERM_NAME[term.name];
+  const nodes = index == null ? null : nodeTerms(year);
+  const node = nodes && nodes[index];
+  if (!node) throw new Error("절기 데이터 필요");
+  const instantMs = Date.UTC(node.year, node.month - 1, node.day, node.hour, node.minute, 0)
+    - CORE_SOLAR_TERM_TIMEZONE_OFFSET_MINUTES * 60000;
   const at = msToDateParts(instantMs, timezone);
   return {
     name: term.name,

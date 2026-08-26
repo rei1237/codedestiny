@@ -110,7 +110,14 @@ function buildSolarTerms() {
       year,
       terms
         .map((term) => {
-          const p = kstParts(term.ms);
+          // 🔴 분 반올림. 절사가 아니다 — 표의 분은 월건 경계 비교에 그대로 쓰이므로
+          // 절사하면 경계가 최대 59초 이르고, 그 1분 창에 태어난 사람이 다음 달 월건을 받는다.
+          // 실측(2026-08-27): 1990 입춘 실제 11:13:58 → 절사 11:13 이라 11:13 출생이 경오로 넘어갔다
+          // (scripts/test-saju-solar-term-regression.mjs 의 입춘 ±1분 케이스가 잡았다).
+          // 반올림하면 최대 오차가 30초로 반감한다. 4,872건 중 분이 바뀌는 것 2,430건이고
+          // 민용일이 바뀌는 것은 2건뿐인데(1950 대한 23:59:58 · 2030 우수 23:59:38)
+          // 둘 다 節이 아닌 氣라 월건 경계가 아니며, 이미 자정 등기부에 올라 있다.
+          const p = kstParts(term.ms + 30000);
           return `${pad(p.month, 2)}${pad(p.day, 2)}${pad(p.hour, 2)}${pad(p.minute, 2)}`;
         })
         .join(","),
@@ -276,7 +283,7 @@ function renderEsm(table) {
     "/** 블록당 `시작일인덱스,달수,대소월비트,윤달인덱스`. 블록 = S11(Y-1) ~ S11(Y)-1. */",
     `export const LUNAR_BLOCKS = ${JSON.stringify(table.lunarBlocks)};`,
     "",
-    "/** 연도당 `YYYY:MMDDhhmm×24`(KST 벽시계, 분 절사). 인덱스 0=소한 … 23=동지. */",
+    "/** 연도당 `YYYY:MMDDhhmm×24`(KST 벽시계, 분 반올림). 인덱스 0=소한 … 23=동지. */",
     `export const SOLAR_TERMS = ${JSON.stringify(table.solarTerms)};`,
     "",
     "/** KST 자정 ±5분 안에 든 절기·삭. 천체력 오차가 민용일을 뒤집을 수 있는 유일한 구간이다. */",

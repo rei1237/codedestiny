@@ -9433,16 +9433,6 @@ function bindManseCharTap(container){
   });
 }
 
-// 24절기: lunar-javascript 절기 이름(한자/로마자) → 한국어
-var ST24_NAME_TO_KO = {
-  '冬至':'동지','小寒':'소한','大寒':'대한','立春':'입춘','雨水':'우수','惊蛰':'경칩','驚蟄':'경칩','春分':'춘분',
-  '清明':'청명','淸明':'청명','谷雨':'곡우','穀雨':'곡우','立夏':'입하','小满':'소만','小滿':'소만','芒种':'망종','芒種':'망종',
-  '夏至':'하지','小暑':'소서','大暑':'대서','立秋':'입추','处暑':'처서','處暑':'처서','白露':'백로','秋分':'추분',
-  '寒露':'한로','霜降':'상강','立冬':'입동','小雪':'소설','大雪':'대설',
-  'DONG_ZHI':'동지','XIAO_HAN':'소한','DA_HAN':'대한','LI_CHUN':'입춘','YU_SHUI':'우수','JING_ZHE':'경칩','CHUN_FEN':'춘분','QING_MING':'청명',
-  'GU_YU':'곡우','LI_XIA':'입하','XIAO_MAN':'소만','MANG_ZHONG':'망종','XIA_ZHI':'하지','XIAO_SHU':'소서','DA_SHU':'대서','LI_QIU':'입추',
-  'CHU_SHU':'처서','BAI_LU':'백로','QIU_FEN':'추분','HAN_LU':'한로','SHUANG_JIANG':'상강','LI_DONG':'입동','XIAO_XUE':'소설','DA_XUE':'대설'
-};
 var ST24_HANJA = {
   '입춘':'立春','우수':'雨水','경칩':'驚蟄','춘분':'春分','청명':'淸明','곡우':'穀雨',
   '입하':'立夏','소만':'小滿','망종':'芒種','하지':'夏至','소서':'小暑','대서':'大暑',
@@ -9455,35 +9445,20 @@ var ST24_BRANCH_TO_JIEIP = {
   '인':'입춘','묘':'경칩','진':'청명','사':'입하','오':'망종','미':'소서','신':'입추','유':'백로','술':'한로','해':'입동','자':'대설','축':'소한'
 };
 
-// 특정 연도의 24절기를 lunar-javascript로 로컬 계산 (KST +1h 보정, 워커 폴백과 동일 로직)
+// 특정 연도의 24절기를 한국 음양력 코어에서 읽는다.
+// 🔴 예전에는 lunar-javascript getJieQiTable 에 +1시간을 더했다 — 그 라이브러리가 중국 표준시(UTC+8)
+// 기준이라 애드혹 보정이 필요했던 것이고, 코어의 절기표는 이미 KST 다.
+// 표시 전용 카드라 코어가 없으면 던지지 않고 null 을 돌려 카드를 숨긴다(현행 계약 유지).
 function computeSolarTermsForYear(year){
   var y0 = parseInt(year, 10);
-  if(!y0 || typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return null;
-  var table;
-  try { table = Solar.fromYmdHms(y0, 1, 1, 12, 0, 0).getLunar().getJieQiTable(); }
-  catch(e){ return null; }
-  if(!table || typeof table !== 'object') return null;
-
-  var byName = {};
-  Object.keys(table).forEach(function(raw){
-    var ko = ST24_NAME_TO_KO[String(raw || '').trim()];
-    if(!ko) return;
-    var s = table[raw];
-    if(!s || typeof s.getYear !== 'function') return;
-    var mo = s.getMonth(), d = s.getDay();
-    var hh = (typeof s.getHour === 'function' ? s.getHour() : 0) || 0;
-    var mi = (typeof s.getMinute === 'function' ? s.getMinute() : 0) || 0;
-    // lunar-javascript 절기 시각은 CST(UTC+8) → KST(UTC+9)로 +1시간 보정
-    var kst = new Date(Date.UTC(s.getYear(), mo - 1, d, hh, mi, 0) + 3600 * 1000);
-    if(kst.getUTCFullYear() !== y0) return;
-    if(byName[ko]) return;
-    byName[ko] = { name: ko, month: kst.getUTCMonth() + 1, day: kst.getUTCDate(), hour: kst.getUTCHours(), minute: kst.getUTCMinutes() };
+  if(!y0) return null;
+  var core;
+  try { core = _koreanCalendar(); } catch(e){ return null; }
+  var terms = core.solarTerms(y0);
+  if(!terms || !terms.length) return null;
+  return terms.map(function(t){
+    return { name: core.TERM_NAME_KO[t.index], month: t.month, day: t.day, hour: t.hour, minute: t.minute };
   });
-
-  var rows = [];
-  for(var k in byName){ if(Object.prototype.hasOwnProperty.call(byName, k)) rows.push(byName[k]); }
-  rows.sort(function(a, b){ return (a.month - b.month) || (a.day - b.day); });
-  return rows;
 }
 
 // 24절기 카드 전용 스타일 주입 (번들 CSS 로드 여부와 무관하게 적용 보장 — 스킬트리 카드와 동일 패턴)

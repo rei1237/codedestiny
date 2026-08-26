@@ -1,5 +1,6 @@
 import { createHttpError, getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { Lunar, Solar } from "lunar-javascript";
+import { solarTerms, TERM_NAME_KO } from "../../lib/korean-calendar/index.js";
 
 const SPCDE_INFO_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService";
 const LRSR_CLD_INFO_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService";
@@ -122,82 +123,27 @@ function computeLocalCalendarFallback(method, params) {
   return null;
 }
 
-// lunar-javascript의 절기 이름 → 한국어 표기 매핑(24절기 전체).
-// getJieQiTable은 연 경계 절기를 한자 대신 로마자 키(예: DONG_ZHI)로도 돌려주므로 둘 다 매핑한다.
-const JIEQI_NAME_TO_KO = {
-  // 한자(간체/번체)
-  "冬至": "동지", "小寒": "소한", "大寒": "대한", "立春": "입춘",
-  "雨水": "우수", "惊蛰": "경칩", "驚蟄": "경칩", "春分": "춘분",
-  "清明": "청명", "淸明": "청명", "谷雨": "곡우", "穀雨": "곡우",
-  "立夏": "입하", "小满": "소만", "小滿": "소만", "芒种": "망종", "芒種": "망종",
-  "夏至": "하지", "小暑": "소서", "大暑": "대서", "立秋": "입추",
-  "处暑": "처서", "處暑": "처서", "白露": "백로", "秋分": "추분",
-  "寒露": "한로", "霜降": "상강", "立冬": "입동", "小雪": "소설", "大雪": "대설",
-  // 로마자(연 경계 절기)
-  "DONG_ZHI": "동지", "XIAO_HAN": "소한", "DA_HAN": "대한", "LI_CHUN": "입춘",
-  "YU_SHUI": "우수", "JING_ZHE": "경칩", "CHUN_FEN": "춘분", "QING_MING": "청명",
-  "GU_YU": "곡우", "LI_XIA": "입하", "XIAO_MAN": "소만", "MANG_ZHONG": "망종",
-  "XIA_ZHI": "하지", "XIAO_SHU": "소서", "DA_SHU": "대서", "LI_QIU": "입추",
-  "CHU_SHU": "처서", "BAI_LU": "백로", "QIU_FEN": "추분", "HAN_LU": "한로",
-  "SHUANG_JIANG": "상강", "LI_DONG": "입동", "XIAO_XUE": "소설", "DA_XUE": "대설",
-};
-
-// KASI 24절기 업스트림 장애 시 lunar-javascript getJieQiTable로 해당 연도의 절기를 로컬 계산한다.
-// lunar-javascript 절기 시각은 CST(UTC+8) 기준이므로 KST(UTC+9)로 +1시간 보정한다
-// (참조: js/core/kasi-calendar-service.js `_fallbackSolarTerms`).
+// KASI 24절기 업스트림 장애 시 한국 음양력 코어의 절기표로 해당 연도를 로컬 계산한다.
+// 🔴 예전에는 lunar-javascript getJieQiTable 을 읽고 +1시간을 더했다. 그 라이브러리는
+// 중국 표준시(UTC+8) 기준이라 애드혹 보정이 필요했던 것이고, 코어의 표는 이미 KST 다.
+// 코어는 astronomy-engine 실계산의 산출물이고 KASI 와 평균 0.211분 차이다
+// (verify:korean-calendar-solar-terms).
 function computeLocalSolarTerms(solYearRaw) {
   const solYear = toInt(solYearRaw);
   if (!solYear) return null;
 
-  let table;
-  try {
-    table = Solar.fromYmdHms(solYear, 1, 1, 12, 0, 0).getLunar().getJieQiTable();
-  } catch (e) {
-    return null;
-  }
-  if (!table || typeof table !== "object") return null;
+  const terms = solarTerms(solYear);
+  if (!terms || !terms.length) return null;
 
-  const byName = new Map();
-  Object.keys(table).forEach((rawName) => {
-    const koName = JIEQI_NAME_TO_KO[String(rawName || "").trim()];
-    if (!koName) return;
-    const solar = table[rawName];
-    if (!solar || typeof solar.getYear !== "function") return;
-
-    const y = toInt(solar.getYear());
-    const mo = toInt(solar.getMonth());
-    const d = toInt(solar.getDay());
-    if (!y || !mo || !d) return;
-    const hh = toInt(typeof solar.getHour === "function" ? solar.getHour() : 0, 0);
-    const mi = toInt(typeof solar.getMinute === "function" ? solar.getMinute() : 0, 0);
-    const ss = toInt(typeof solar.getSecond === "function" ? solar.getSecond() : 0, 0);
-
-    // 컴포넌트를 UTC로 간주해 +1시간 → KST 컴포넌트로 재해석(로컬 타임존 영향 배제)
-    const kst = new Date(Date.UTC(y, mo - 1, d, hh, mi, ss) + 3600 * 1000);
-    const ky = kst.getUTCFullYear();
-    if (ky !== solYear) return; // 요청 연도(1~12월)의 절기만 반환
-    const km = kst.getUTCMonth() + 1;
-    const kd = kst.getUTCDate();
-    const kh = kst.getUTCHours();
-    const kmin = kst.getUTCMinutes();
-
-    // 같은 절기가 한자·로마자 키로 중복될 수 있으므로 이름 기준 1건으로 정리한다.
-    if (byName.has(koName)) return;
-    byName.set(koName, {
-      dateName: koName,
-      solYear: String(ky),
-      solMonth: pad2(km),
-      solDay: pad2(kd),
-      locdate: `${ky}${pad2(km)}${pad2(kd)}`,
-      kst: `${pad2(kh)}${pad2(kmin)}`,
-      time: `${pad2(kh)}:${pad2(kmin)}`,
-    });
-  });
-
-  const rows = Array.from(byName.values());
-  if (!rows.length) return null;
-  rows.sort((a, b) => String(a.locdate).localeCompare(String(b.locdate)));
-  return rows;
+  return terms.map((term) => ({
+    dateName: TERM_NAME_KO[term.index],
+    solYear: String(term.year),
+    solMonth: pad2(term.month),
+    solDay: pad2(term.day),
+    locdate: `${term.year}${pad2(term.month)}${pad2(term.day)}`,
+    kst: `${pad2(term.hour)}${pad2(term.minute)}`,
+    time: `${pad2(term.hour)}:${pad2(term.minute)}`,
+  }));
 }
 
 function normalizeCalendarType(value) {

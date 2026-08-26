@@ -770,50 +770,33 @@
     return { year: null, month: null, day: null, source: 'disabled' };
   }
 
-  function _solarObjToDate(solarObj) {
-    if (!solarObj || typeof solarObj.getYear !== 'function') return null;
-    var y = _toInt(solarObj.getYear(), null);
-    var m = _toInt(solarObj.getMonth(), null);
-    var d = _toInt(solarObj.getDay(), null);
-    if (!y || !m || !d) return null;
-    var hh = _toInt(typeof solarObj.getHour === 'function' ? solarObj.getHour() : 0, 0);
-    var mm = _toInt(typeof solarObj.getMinute === 'function' ? solarObj.getMinute() : 0, 0);
-    var ss = _toInt(typeof solarObj.getSecond === 'function' ? solarObj.getSecond() : 0, 0);
-    return _dateFromParts(y, m, d, hh, mm, ss);
-  }
-
+  /**
+   * KASI 24절기 API 가 실패했을 때 쓰는 로컬 절기표.
+   *
+   * 🔴 예전에는 lunar-javascript getJieQiTable 을 읽고 +1시간을 더했다. 그 라이브러리가
+   * 중국 표준시(UTC+8) 기준이라 애드혹 보정이 필요했던 것이고, 코어의 절기표는 이미 KST 다.
+   * 🔴 그리고 그 함수는 **한 번도 불리지 않았다** — 호출부가 fallbackTerms 를 빈 배열로 넘겼다.
+   * 그래서 KASI 가 죽으면 _VALIDATED_SOLAR_TERMS_BY_YEAR 에 든 1990년 말고는
+   * 12중절이 모자라 년주·월주가 통째로 null 로 떨어졌다(_fallbackGanji 의 hasMonthTerms).
+   * 이제 코어가 1900~2100 전 구간을 덮으므로 그 구멍이 닫힌다.
+   */
   function _fallbackSolarTerms(year) {
-    if (typeof w.Solar === 'undefined' || typeof w.Solar.fromYmdHms !== 'function') return [];
+    var core = w.KoreanCalendar;
+    if (!core || typeof core.solarTerms !== 'function') return [];
+    var y = _toInt(year, null);
+    if (!y) return [];
 
-    try {
-      var solar = w.Solar.fromYmdHms(year, 1, 1, 12, 0, 0);
-      var lunar = solar.getLunar();
-      if (!lunar || typeof lunar.getJieQiTable !== 'function') return [];
+    var terms = core.solarTerms(y);
+    if (!terms || !terms.length) return [];
 
-      var table = lunar.getJieQiTable() || {};
-      var out = [];
-
-      Object.keys(table).forEach(function (name) {
-        var dt = _solarObjToDate(table[name]);
-        if (!dt) return;
-        // lunar-javascript는 절기 시각을 CST(UTC+8) 기준으로 저장하지만
-        // _solarObjToDate는 로컬 시각(KST=UTC+9)으로 해석하므로 1시간 보정 필요
-        var kstDt = new Date(dt.getTime() + 3600 * 1000);
-        out.push({
-          name: String(name),
-          atLocal: _toIsoLocal(kstDt),
-          source: 'fallback'
-        });
-      });
-
-      out.sort(function (a, b) {
-        return (a.atLocal || '').localeCompare(b.atLocal || '');
-      });
-
-      return out;
-    } catch (e) {
-      return [];
-    }
+    return terms.map(function (t) {
+      return {
+        name: core.TERM_NAME_KO[t.index],
+        atLocal: t.year + '-' + _pad2(t.month) + '-' + _pad2(t.day) +
+          'T' + _pad2(t.hour) + ':' + _pad2(t.minute) + ':00',
+        source: 'korean-calendar-core'
+      };
+    });
   }
 
   function _normalizeTerms(apiRows, fallbackTerms, requestedYear) {
@@ -875,13 +858,21 @@
       }
     }
 
+    // 12중절이 모자라면 로컬로 내려간다. 순서는 검증캐시 → 코어다 —
+    // 검증캐시(1990)는 KASI 응답을 그대로 받아 적은 것이고, 코어의 표는 astronomy-engine 산출물이라
+    // 같은 절기가 최대 1분 다르다(실측 2026-08-27, 1990: 12중절 중 5건이 1분 차).
+    // 기존 값을 바꾸지 않으려고 캐시를 앞에 둔다.
     var validated = _readValidatedSolarTerms(fallbackYear);
-    if (!out.length && _countMonthBoundaryTerms(validated) >= 12) {
-      return validated;
+    var local = _countMonthBoundaryTerms(validated) >= 12
+      ? validated
+      : (_countMonthBoundaryTerms(fallbackTerms) >= 12 ? _clone(fallbackTerms) : []);
+
+    if (!out.length && local.length) {
+      return local;
     }
 
-    if (out.length && _countMonthBoundaryTerms(out) < 12 && _countMonthBoundaryTerms(validated) >= 12) {
-      return validated;
+    if (out.length && _countMonthBoundaryTerms(out) < 12 && local.length) {
+      return local;
     }
 
     if (!out.length || _countMonthBoundaryTerms(out) < 12) return [];
@@ -1098,7 +1089,7 @@
           hadProxyFailure = true;
         }
       }
-      var fallbackTerms = [];
+      var fallbackTerms = _fallbackSolarTerms(solarDate.getFullYear());
       if (!apiTerms.length) {
         diagnostics.push(localOnly ? 'local-only: solar terms unavailable' : 'solar terms unavailable');
         hadProxyFailure = hadProxyFailure || !!_lastProxyFailure;
