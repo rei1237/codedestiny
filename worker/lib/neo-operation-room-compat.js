@@ -10,6 +10,31 @@
 
 import { buildZiweiLoveCompatibility } from "./master-love-codex-compat.js";
 
+/**
+ * 궁합을 여는 주제 키. 클라이언트의 NEO_COMPAT_TOPIC("연애 / 재회") 이 여기로 정규화된다.
+ *
+ * 🔴 궁합을 여는 조건이라 프롬프트 모듈이 아니라 여기에 둔다. 프롬프트 모듈은 라우트 테스트가
+ *    통째로 mock 하므로, 게이트를 거기 두면 mock 이 게이트를 지워 가드가 조용히 죽는다.
+ */
+export const NEO_COMPAT_TOPIC_KEY = "연애/재회";
+
+/**
+ * 자유 문자열로 오는 상담 주제를 정본 키로 정규화한다. 클라이언트가 보내는 값은 topicOptions 의
+ * 한국어 원문이지만(로케일 라벨은 표시용일 뿐이다), 공백 표기가 흔들려도 흡수하도록 압축해서 본다.
+ */
+export function normalizeTopicKey(topic) {
+  const compact = clean(topic).replace(/\s+/g, "");
+  if (/연애|재회/.test(compact)) return NEO_COMPAT_TOPIC_KEY;
+  if (/직업|이직/.test(compact)) return "직업/이직";
+  if (/돈|재물/.test(compact)) return "돈/재물";
+  if (/인간관계/.test(compact)) return "인간관계";
+  if (/멘탈|자기관리/.test(compact)) return "멘탈/자기관리";
+  if (/인생방향/.test(compact)) return "인생방향";
+  if (/지금선택/.test(compact)) return "지금선택";
+  if (/반복|실수/.test(compact)) return "반복실수";
+  return "";
+}
+
 /** 관계 상태 — 이 집합을 벗어난 값은 빈 문자열로 떨어뜨린다. */
 export const NEO_RELATIONSHIP_STATUSES = Object.freeze([
   "crush",

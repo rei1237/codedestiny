@@ -278,4 +278,32 @@ describe("궁합 모드 입력 정규화", () => {
     const bad = neoTestUtils.normalizeInput({ ...soloBody, partnerBirthInput: partner, relationshipStatus: "결혼했음" });
     expect(bad.input).not.toHaveProperty("relationshipStatus");
   });
+
+  // 🔴 궁합 챕터 4개는 관계 전용이다 — 특히 교전 패턴 챕터는 연인 간 대화를 재구성한다.
+  //    돈·직업 주제에서 열리면 ₩30,000 짜리 상담이 주제를 통째로 벗어난다.
+  test("연애·재회가 아닌 주제면 상대 정보를 버리고 1인 모드로 돈다", () => {
+    const otherTopics = ["직업 / 이직", "돈 / 재물", "인간관계", "멘탈 / 자기관리", "인생 방향", "지금 선택", "내가 반복하는 실수"];
+    const soloHash = neoTestUtils.normalizeInput(soloBody).inputHash;
+    for (const topic of otherTopics) {
+      const result = neoTestUtils.normalizeInput({
+        ...soloBody,
+        topic,
+        partnerBirthInput: partner,
+        relationshipStatus: "married",
+      });
+      expect(result.ok).toBe(true);
+      expect(result.input).not.toHaveProperty("partnerBirthInfo");
+      expect(result.input).not.toHaveProperty("relationshipStatus");
+      // 주제가 다르니 해시 자체는 다르지만, 상대가 실렸는지는 같은 주제끼리 비교해야 안다.
+      expect(result.inputHash).toBe(neoTestUtils.normalizeInput({ ...soloBody, topic }).inputHash);
+    }
+    expect(neoTestUtils.normalizeInput({ ...soloBody, partnerBirthInput: partner }).inputHash).not.toBe(soloHash);
+  });
+
+  test("주제 표기가 흔들려도 연애·재회면 궁합이 열린다", () => {
+    for (const topic of ["연애/재회", "연애 / 재회", "재회", "  연애 / 재회  "]) {
+      const result = neoTestUtils.normalizeInput({ ...soloBody, topic, partnerBirthInput: partner });
+      expect(result.input.partnerBirthInfo?.birthDate).toBe("1988-11-02");
+    }
+  });
 });

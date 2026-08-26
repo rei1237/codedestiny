@@ -5,7 +5,7 @@ import { buildNeoBasisPayload, sliceNeoBasisPayload } from "./neo-operation-room
 import { REASONING_OUTPUT_RULE_LINES } from "./fortune-reasoning-contract.js";
 import { escapeRawControlCharsInJsonStrings } from "./json-text-repair.js";
 import { buildZiweiPersonalityContextLines } from "./ziwei-personality-context.js";
-import { neoRelationshipStatusFocus } from "./neo-operation-room-compat.js";
+import { neoRelationshipStatusFocus, normalizeTopicKey } from "./neo-operation-room-compat.js";
 
 const METHOD_LABELS = Object.freeze({
   saju: "사주",
@@ -124,19 +124,6 @@ const TOPIC_METHOD_FOCUS = Object.freeze({
     astrology: "달-화성/토성 하드 애스펙트나 반복 각도를 인용해 방아쇠-반응 회로를 단정한다. 감정(달)이 어느 지점에서 선택을 대신하는지 특정한다.",
   },
 });
-
-function normalizeTopicKey(topic) {
-  const compact = clean(topic).replace(/\s+/g, "");
-  if (/연애|재회/.test(compact)) return "연애/재회";
-  if (/직업|이직/.test(compact)) return "직업/이직";
-  if (/돈|재물/.test(compact)) return "돈/재물";
-  if (/인간관계/.test(compact)) return "인간관계";
-  if (/멘탈|자기관리/.test(compact)) return "멘탈/자기관리";
-  if (/인생방향/.test(compact)) return "인생방향";
-  if (/지금선택/.test(compact)) return "지금선택";
-  if (/반복|실수/.test(compact)) return "반복실수";
-  return "";
-}
 
 function topicMethodFocusFor(topic, method) {
   const topicKey = normalizeTopicKey(topic);

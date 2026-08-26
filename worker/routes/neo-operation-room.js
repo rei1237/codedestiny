@@ -28,7 +28,9 @@ import {
 } from "../lib/service-execution-task.js";
 import {
   buildNeoZiweiCompat,
+  NEO_COMPAT_TOPIC_KEY,
   NEO_RELATIONSHIP_STATUSES,
+  normalizeTopicKey,
 } from "../lib/neo-operation-room-compat.js";
 import {
   buildPreviousAdviceLog,
@@ -149,16 +151,23 @@ function withBirthPlace(birthInfo) {
   };
 }
 
+/** 궁합을 지원하는 술수. 명반 교차 엔진이 있는 술수만 들어간다. */
+const COMPAT_METHODS = new Set(["ziwei"]);
+
 /**
  * 궁합 모드(상대 명반 동반)로 볼지 판정한다.
  *
+ * 🔴 연애·재회 주제에서만 궁합을 연다. 궁합 챕터 4개가 관계 전용이기 때문이다 — 특히
+ *    교전 패턴 챕터는 연인 간 대화를 재구성하므로, 돈·직업 주제에서 열리면 상담이 주제를
+ *    통째로 벗어난다. 주제는 자유 문자열로 오므로 normalizeTopicKey 로 정규화해 본다.
  * 🔴 자미두수에서만 궁합을 연다. 재사용하는 궁합 엔진(master-love-codex-compat)이 명반 교차를
  *    전제로 하기 때문이고, 사주·베다·점성술에는 대응하는 결정론 엔진이 없다.
  * 🔴 조건을 못 채운 상대 정보는 422 로 막지 않고 **버린다.** 이 값은 전부 선택 입력이라,
  *    거부하면 상대 칸을 실수로 건드린 사용자가 기존 1인 분석까지 못 하게 된다.
  */
-function normalizePartnerBirthInfo(body, selectedMethod) {
-  if (selectedMethod !== "ziwei") return null;
+function normalizePartnerBirthInfo(body, selectedMethod, topic) {
+  if (!COMPAT_METHODS.has(selectedMethod)) return null;
+  if (normalizeTopicKey(topic) !== NEO_COMPAT_TOPIC_KEY) return null;
   const source = body.partnerBirthInput || body.partnerBirthInfo || body.partner;
   if (!source || typeof source !== "object") return null;
   const partner = normalizeBirthInfo({ birthInput: source });
@@ -184,7 +193,7 @@ function normalizeInput(body = {}) {
   if ((selectedMethod === "vedic" || selectedMethod === "astrology") && !birthInfo.timezone) {
     return { ok: false, message: INVALID_INPUT_MESSAGE };
   }
-  const partnerBirthInfo = normalizePartnerBirthInfo(body, selectedMethod);
+  const partnerBirthInfo = normalizePartnerBirthInfo(body, selectedMethod, topic);
   const relationshipStatusRaw = clean(body.relationshipStatus, 20);
   const relationshipStatus = RELATIONSHIP_STATUSES.has(relationshipStatusRaw) ? relationshipStatusRaw : "";
   const input = {
