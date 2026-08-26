@@ -5,6 +5,7 @@ import { connectDb, withMongoRetry } from "../lib/db.js";
 import { PaidExecutionRecord } from "../lib/models.js";
 import { canAccessPaidFeature, PAID_FEATURE_ACCESS_USER_PROJECTION } from "../lib/paid-feature-access.js";
 import { logPerUsePaymentProof, verifyPerUsePayment } from "../lib/nakshatra-paid-access.js";
+import { FEATURE_KEY_PRICE_TABLE } from "../lib/paid-feature-registry.js";
 import { buildImageCandidates, getTarotCardByAnyId, TAROT_CARDS } from "../../lib/tarot/tarot-cards.mjs";
 import {
   getWarningCardGuard,
@@ -20,6 +21,7 @@ import {
   resolveOracleConsultationTargetChars,
   validateOracleConsultationInput,
 } from "../../lib/tarot/oracle-consultation.mjs";
+import { resolveOracleConsultationTier } from "../../lib/tarot/oracle-consultation-pricing.mjs";
 import {
   buildPremiumYearReading,
   drawPremiumYearCards,
@@ -50,8 +52,10 @@ function asText(value) {
 
 const NUMEROLOGY_TAROT_READING_FEATURE_KEY = "tarot-numerology-reading";
 const NUMEROLOGY_TAROT_READING_MIN_COST = 30;
-const ORACLE_CONSULTATION_FEATURE_KEY = "tarot-prompt-maker";
-const ORACLE_CONSULTATION_MIN_COST = 50;
+// 🔴 타로 오라클 상담은 단일 키·단일 가격이 아니다. 카드 수 구간마다 서비스키가 갈리고,
+//    그 매핑은 verifyOracleConsultationAccess 가 제출된 카드 수에서 직접 역산한다
+//    (lib/tarot/oracle-consultation-pricing.mjs). 여기에 상수를 되살리지 말 것 —
+//    되살리는 순간 ₩3,000 티어로 결제하고 14장을 제출하는 경로가 열린다.
 const IJIK_READING_FEATURE_KEY = "tarot-ijik";
 const IJIK_READING_MIN_COST = 50;
 const IJIK_READING_CARD_COUNT = 7;
@@ -390,6 +394,17 @@ async function checkOracleConsultationRetryBudget(env, subject) {
 // 타로 오라클 상담 — verifyNumerologyReadingAccess 와 동일한 회당결제 증빙 패턴을 그대로 따른다.
 // (canAccessPaidFeature 지름길 → 로그인/인프라 오류 분기 → verifyPerUsePayment 증빙 확인)
 async function verifyOracleConsultationAccess(request, env, body = {}) {
+  // 🔴 지불 티어는 클라이언트가 보낸 값이 아니라 **제출된 카드 수**에서 서버가 직접 역산한다.
+  //    증빙 조회(nakshatra-paid-access.js 의 findPaidPayment/findDeduction)가 featureKey
+  //    완전일치라, ₩3,000 티어로 결제하고 14장을 제출하면 NO_RECORD → 402 가 자동으로 성립한다.
+  //    카드 수 자체는 이 함수 앞에서 validateOracleConsultationInput 이 1~14 로 검증한다.
+  const featureKey = resolveOracleConsultationTier(
+    Array.isArray(body?.cards) ? body.cards.length : 0,
+  ).featureKey;
+  // 🔴 가격도 함께 티어를 따라가야 한다. 이 값이 canUseByPass(이용권 건당 상한 판정)로 넘어가므로
+  //    옛 상수 50 을 남겨 두면 standard 이용권이 ₩10,000 짜리 14장 상담을 무료로 커버한다.
+  const coinPrice = Number(FEATURE_KEY_PRICE_TABLE[featureKey]?.cost) || 0;
+
   let auth = null;
   let authError = null;
   try {
@@ -401,14 +416,14 @@ async function verifyOracleConsultationAccess(request, env, body = {}) {
   if (auth?.userId) {
     let accessDecision = null;
     try {
-      accessDecision = await canAccessPaidFeature(auth.userId, ORACLE_CONSULTATION_FEATURE_KEY, {
+      accessDecision = await canAccessPaidFeature(auth.userId, featureKey, {
         env,
         userDoc: auth.authUserDoc,
         reason: "타로 오라클 상담",
       });
     } catch (error) {
       console.error("[tarot] oracle consultation entitlement precheck failed", JSON.stringify({
-        featureKey: ORACLE_CONSULTATION_FEATURE_KEY,
+        featureKey,
         name: error?.name || "Error",
         message: String(error?.message || "").slice(0, 200),
       }));
@@ -439,11 +454,11 @@ async function verifyOracleConsultationAccess(request, env, body = {}) {
 
   const proof = await verifyPerUsePayment(env, {
     userId: auth.userId,
-    featureKey: ORACLE_CONSULTATION_FEATURE_KEY,
-    coinPrice: ORACLE_CONSULTATION_MIN_COST,
+    featureKey,
+    coinPrice,
     requestId: asText(body?.requestId || body?.idempotencyKey),
   });
-  logPerUsePaymentProof(ORACLE_CONSULTATION_FEATURE_KEY, proof);
+  logPerUsePaymentProof(featureKey, proof);
 
   if (proof.proven === true) {
     return { ok: true, auth, evidence: { source: proof.source || "per_use_payment" } };

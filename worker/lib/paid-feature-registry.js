@@ -55,6 +55,9 @@ const INTERNAL_FRONTEND_FEATURE_KEYS = [
   "tarot-crystal-soul-reading",
   "tarot-numerology-reading",
   "tarot-prompt-maker",
+  "tarot-prompt-maker-standard",
+  "tarot-prompt-maker-deep",
+  "tarot-prompt-maker-master",
   "maya-prompt-generator",
   "tarot-ijik",
   "royal-tea-oracle",
@@ -185,7 +188,14 @@ const RAW_FEATURE_KEY_PRICE_TABLE = Object.freeze({
   "tarot-celestial-harmony": { cost: 100, reason: "셀레스티얼 하모니 타로 리딩" },
   "tarot-crystal-soul-reading": { cost: 50, reason: "크리스탈 소울 타로 리딩" },
   "tarot-numerology-reading": { cost: 30, reason: "수비학 타로 리딩" },
-  "tarot-prompt-maker": { cost: 50, amountKRW: 5000, reason: "타로 오라클 상담" },
+  // 타로 오라클 상담은 카드 수 구간마다 별도 서비스키를 둔다(찻집 타로 3카드/5카드와 같은 패턴).
+  // 구간 매핑 정본은 lib/tarot/oracle-consultation-pricing.mjs 이고, 서버는 제출된 카드 수에서
+  // 그 키를 직접 역산한다 — 클라이언트가 보낸 티어를 믿지 않는다.
+  // 🔴 1~4장은 기존 키를 재사용한다(결제 이력·감사 스크립트가 붙어 있다). ₩5,000 → ₩3,000 인하.
+  "tarot-prompt-maker": { cost: 30, amountKRW: 3000, reason: "타로 오라클 상담 (1~4카드)" },
+  "tarot-prompt-maker-standard": { cost: 50, amountKRW: 5000, reason: "타로 오라클 상담 (5~7카드)" },
+  "tarot-prompt-maker-deep": { cost: 70, amountKRW: 7000, reason: "타로 오라클 상담 (8~10카드)" },
+  "tarot-prompt-maker-master": { cost: 100, amountKRW: 10000, reason: "타로 오라클 상담 (11~14카드)" },
   "maya-prompt-generator": { cost: 30, reason: "마야점 상담 프롬프트 생성" },
   "tarot-ijik": { cost: 50, reason: "이직 타로 리딩" },
   "royal-tea-oracle": { cost: 50, reason: "영국 홍차점 리딩" },
@@ -399,6 +409,9 @@ const PER_USE_PAID_FEATURE_KEY_LIST = Object.freeze([
   "tarot-crystal-soul-reading",
   "tarot-numerology-reading",
   "tarot-prompt-maker",
+  "tarot-prompt-maker-standard",
+  "tarot-prompt-maker-deep",
+  "tarot-prompt-maker-master",
   "maya-prompt-generator",
   "tarot-ijik",
   "royal-tea-oracle",

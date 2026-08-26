@@ -10,6 +10,7 @@
 | `T0_FREE` | ₩0 | — | — | 무료 | — | 무료 진입 콘텐츠 |
 | `T1_LITE` | ₩3,000 | 30 | `cd_content_tier_01` | ₩3,900 | 1.30 | 단문 리딩·프롬프트 생성 |
 | `T2_BASIC` | ₩5,000 | 50 | `cd_content_tier_02` | ₩6,000 | 1.20 | 표준 단품·궁합·심화 해금 |
+| `T2_DEEP` | ₩7,000 | 70 | `cd_content_tier_14` | ₩8,900 | 1.27 | 카드 수 구간형 상담(타로 오라클 8~10카드) |
 | `T3_PLUS` | ₩10,000 | 100 | `cd_content_tier_06` | ₩13,000 | 1.30 | 심화 리포트·영구 해금 |
 | `T4_PREMIUM` | ₩20,000 | 200 | `cd_content_tier_09` | ₩25,000 | 1.25 | 장문 상담·번들 해금 |
 | `T5_MASTER` | ₩30,000 | 300 | `cd_content_tier_10` | ₩39,000 | 1.30 | 최상위 AI 상담 |
@@ -99,16 +100,35 @@
 
 | 상품 | 이전 | 이후 | 근거 |
 |---|---|---|---|
-| 타로 오라클 상담(구 "타로 프롬프트 라이브러리", `tarot-prompt-maker`) | 1회 ₩10,000 (100코인, 영구 해금) | **회당 ₩5,000 (50코인, per-use)** | 위 2026-08-14 전환의 전제("서버 LLM 호출이 없어 한계비용 0")가 깨졌다 — 이제 결제 시 실제 Gemini 호출로 개인화 상담을 매번 새로 생성한다(`worker/routes/tarot.js`). 더 이상 재열람 가능한 고정 콘텐츠가 아니라 B유형(회당결제)이다. 가격은 63개 스프레드 카드 수(1~10장)와 무관하게 고정 ₩5,000 — 참조 정본인 운명 찻집 타로 상담(`fortune-tea-house-tarot-consultation`)의 3카드 가격과 동일 |
+| 타로 오라클 상담(구 "타로 프롬프트 라이브러리", `tarot-prompt-maker`) | 1회 ₩10,000 (100코인, 영구 해금) | **회당 ₩5,000 (50코인, per-use)** | 위 2026-08-14 전환의 전제("서버 LLM 호출이 없어 한계비용 0")가 깨졌다 — 이제 결제 시 실제 Gemini 호출로 개인화 상담을 매번 새로 생성한다(`worker/routes/tarot.js`). 더 이상 재열람 가능한 고정 콘텐츠가 아니라 B유형(회당결제)이다. 가격은 스프레드 카드 수와 무관하게 고정 ₩5,000 — 참조 정본인 운명 찻집 타로 상담(`fortune-tea-house-tarot-consultation`)의 3카드 가격과 동일. 🔴 이 "카드 수 무관" 부분은 아래 2026-08-27 항목에서 폐기됐다 |
 
 **기존 ₩10,000 영구해금 구매자**: 사용자 결정으로 별도 유예 없이 전원 회당결제로 전환(소급 부여·환불 없음). 영향 인원은 배포 전 실측 필요.
 
 **부작용**: 이용권 커버가 다시 한 단계 내려간다 — 100코인일 때는 vvip·family 만 커버했으나 50코인이 되어 **premium·vvip·family 가 커버**한다.
 
+### 2026-08-27 세분화 — 타로 오라클 상담을 카드 수 구간 4단계로 (T2 단일가 → T1·T2·T2_DEEP·T3)
+
+| 구간 | 서비스키 | 코인 | 웹가 | 스프레드 수 |
+|---|---|---:|---:|---:|
+| 1~4장 | `tarot-prompt-maker` (기존 키 재사용) | 30 | ₩3,000 | 4 |
+| 5~7장 | `tarot-prompt-maker-standard` | 50 | ₩5,000 | 55 |
+| 8~10장 | `tarot-prompt-maker-deep` | 70 | ₩7,000 | 16 |
+| 11~14장 | `tarot-prompt-maker-master` | 100 | ₩10,000 | 2 |
+
+**근거**: 실측 2026-08-27 (`gemini-2.5-flash`) 로 3카드 3,132자 / 2,426 출력토큰, 14카드 6,128자 / 4,960 출력토큰 — 정확히 2배다. 카드 수와 무관한 단일가에 근거가 없었다. 카드 수 구간마다 별도 서비스키를 두는 방식은 운명 찻집 타로(`fortune-tea-house-tarot-consultation` 3카드 / `-five-consultation` 5카드)에 이미 있던 패턴이다.
+
+🔴 **지불 티어는 서버가 제출된 카드 수에서 역산한다** — 클라이언트가 보낸 티어·키·가격을 신뢰하지 않는다. 증빙 조회가 `featureKey` 완전일치라(`worker/lib/nakshatra-paid-access.js`), ₩3,000 티어 증빙으로 14장을 제출하면 `NO_RECORD` → 402 다. 구간 매핑 정본은 `lib/tarot/oracle-consultation-pricing.mjs` 하나이고, 스프레드 전수 매핑과 사다리 빈틈은 `verify:oracle-consultation` 케이스 7-3 이 소스를 파싱해 지킨다.
+
+**기존 구매자**: 1~4장 구간은 ₩5,000 → ₩3,000 **인하**라 소급 이슈가 없다. 5~7장(55종)은 변동 0, 8장 이상(18종)만 인상이다.
+
+**부작용**: 이용권 커버가 구간마다 갈린다 — standard(50코인 상한)는 1~7장까지만 커버하고 8장 이상은 단건 결제로 넘어간다. premium 이상은 네 구간 전부 커버한다. 🔴 featureKey 별 예외 분기를 만들지 않는다(`isPassExcludedPricing` 원칙) — 가격이 오르면 커버가 끊기는 것이 기존 정책의 정상 동작이다.
+
+**새 가격 포인트 ₩7,000(70코인)**: 아래 §5-2 의 "새 가격 포인트를 만들지 않는다" 원칙을 사용자 결정으로 한 번 깬 것이다. 같은 코인가를 쓰던 옛 SKU `cd_content_tier_04`(₩8,900)는 2026-08-12 에 판매 중단됐고 Play 는 상품 ID 를 영구 점유하므로 **재사용하지 않고** `cd_content_tier_14` 를 새로 만들었다. 🔴 Play Console 등록은 사람 손이며 [PLAY_CONSOLE_TASKS.md](./PLAY_CONSOLE_TASKS.md) 에 남겼다 — 등록 전까지 안드로이드 앱에서 8~10장 구간만 티어 미등록 503 이다(웹은 정상).
+
 ## 5. 티어를 새로 쓸 때
 
 1. **가격은 `worker/lib/paid-feature-registry.js`에만 적는다.** 코인 정수이며 원화는 `cost × 100`으로 파생된다(`KRW_PER_COIN = 100`).
-2. 위 5개 값 중 하나를 고른다. **새 가격 포인트를 만들지 않는다** — 만들면 앱 SKU도 새로 등록해야 하고(사람 손), `verify:app-store-pricing`이 "미커버 가격대"로 실패시킨다.
+2. 위 표의 값 중 하나를 고른다. **새 가격 포인트를 만들지 않는다** — 만들면 앱 SKU도 새로 등록해야 하고(사람 손), `verify:app-store-pricing`이 "미커버 가격대"로 실패시킨다. 🔴 그래도 만들어야 한다면(2026-08-27 ₩7,000 이 그 사례) ①사용자 결정을 먼저 받고 ②`CONTENT_TIER_TABLE`에 **쓰지 않은 새 번호로** 티어를 추가하고(폐기 SKU 재사용 금지) ③인상률 20~30% 밴드를 지키고 ④[PLAY_CONSOLE_TASKS.md](./PLAY_CONSOLE_TASKS.md)에 수동 등록 작업을 남긴다.
 3. 프론트 폴백 상수(`FEATURE_COST`/`AMOUNT_KRW`)를 쓴다면 레지스트리와 같은 값이어야 한다. 서버 `runtimeGate` 실패 시 그 값이 그대로 결제창에 간다.
 4. 정적 셸 타일이면 `data-coin-cost` / `data-price-krw` 속성도 맞춘다(`verify:mobile-pricing-parity`가 대조).
 5. 검증: `verify:paid-feature-billing-policy` → `verify:app-store-pricing` → `verify:billing-pass-policy` → `verify:mobile-pricing-parity`.

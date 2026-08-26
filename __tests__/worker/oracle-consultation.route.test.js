@@ -235,3 +235,67 @@ describe("무과금 재시도와 그 상한", () => {
     expect(payload.ok).toBe(true);
   });
 });
+
+// 🔴 서버는 클라이언트가 보낸 티어·키·가격을 믿지 않는다. 제출된 카드 수에서 직접 역산하므로
+//    ₩3,000 티어(1~4장) 증빙으로 14장을 제출하면 증빙이 없는 것과 같다 —
+//    증빙 조회가 featureKey 완전일치이기 때문이다(worker/lib/nakshatra-paid-access.js findPaidPayment).
+describe("카드 수 티어 결박", () => {
+  // 🔴 M00~M13 은 전부 실재하는 카드 ID 다(lib/tarot/tarot-cards.mjs 로 확인).
+  //    없는 ID 를 쓰면 라우트가 400 으로 먼저 끊어서, 아래 402 단언이 티어 가드가 아니라
+  //    입력 검증 덕에 통과한다 — 그러면 이 테스트가 아무것도 지키지 않는다.
+  function cards(count) {
+    return Array.from({ length: count }, (_, index) => ({
+      cardId: `M${String(index).padStart(2, "0")}`,
+      orientation: "upright",
+      positionLabel: `${index + 1}번 자리`,
+      positionDescription: "",
+    }));
+  }
+
+  test("3장은 기본 티어 키·가격(₩3,000)으로 증빙을 조회한다", async () => {
+    await postConsultation(buildBody());
+    expect(verifyPerUsePaymentMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ featureKey: "tarot-prompt-maker", coinPrice: 30 }),
+    );
+  });
+
+  test("14장은 마스터 티어 키·가격(₩10,000)으로 증빙을 조회한다", async () => {
+    await postConsultation(buildBody({ cards: cards(14), spreadTitle: "14장 대배열" }));
+    expect(verifyPerUsePaymentMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ featureKey: "tarot-prompt-maker-master", coinPrice: 100 }),
+    );
+  });
+
+  test("8장은 심층 티어 키·가격(₩7,000)으로 증빙을 조회한다", async () => {
+    await postConsultation(buildBody({ cards: cards(8), spreadTitle: "8장 배열" }));
+    expect(verifyPerUsePaymentMock).toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ featureKey: "tarot-prompt-maker-deep", coinPrice: 70 }),
+    );
+  });
+
+  test("₩3,000 티어 증빙으로 14장을 제출하면 402 이고 Gemini 를 부르지 않는다", async () => {
+    // ₩3,000 결제가 남긴 행의 featureKey 는 "tarot-prompt-maker" 하나뿐이다.
+    verifyPerUsePaymentMock.mockImplementation(async (_env, { featureKey }) => (
+      featureKey === "tarot-prompt-maker"
+        ? { proven: true, source: "coin", reason: "" }
+        : { proven: false, source: "", reason: "NO_RECORD" }
+    ));
+    const { response, payload } = await postConsultation(buildBody({ cards: cards(14), spreadTitle: "14장 대배열" }));
+    expect(response.status).toBe(402);
+    expect(payload.code).toBe("ORACLE_CONSULTATION_PAYMENT_NOT_VERIFIED");
+    expect(payload.reason).toBe("NO_RECORD");
+    expect(generateOracleConsultationMock).not.toHaveBeenCalled();
+  });
+
+  test("이용권 선검사도 티어 키로 나간다(하위 티어 키로 상위 상담을 커버하지 않는다)", async () => {
+    await postConsultation(buildBody({ cards: cards(14), spreadTitle: "14장 대배열" }));
+    expect(canAccessPaidFeatureMock).toHaveBeenCalledWith(
+      expect.any(String),
+      "tarot-prompt-maker-master",
+      expect.any(Object),
+    );
+  });
+});

@@ -57,11 +57,17 @@
 | `cd_content_tier_10` | `39000` | AI 상담 39,000원 | 선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 | `cd_content_tier_11` | `49000` | 프리미엄 해금 49,000원 | 선택하신 프리미엄 운세 묶음을 영구 해금하는 단건 결제입니다. |
 | `cd_content_tier_13` | `89000` | 프리미엄 전체 해금 89,000원 | 선택하신 프리미엄 전체 묶음을 영구 해금하는 단건 결제입니다. |
+| `cd_content_tier_14` | `8900` | 운세 콘텐츠 8,900원 | 선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다. |
 
 > **2026-08-12 가격 티어 정비로 6개 SKU(`tier_03`·`04`·`05`·`07`·`08`·`12`)가 판매 중단됐다.**
 > 대응하는 코인가가 레지스트리에서 사라졌기 때문이며, 남은 SKU의 **가격은 한 건도 바뀌지 않았다.**
 > 비활성화 절차와 기존 구매자 영향은 [docs/pricing/PLAY_CONSOLE_TASKS.md](pricing/PLAY_CONSOLE_TASKS.md) 참고.
 > 🔴 폐기한 productId 는 **재사용 금지** — Play 는 상품 ID 를 영구 점유한다.
+>
+> **2026-08-27 — `cd_content_tier_14`(₩8,900 / 70코인) 1개가 새로 필요하다(미등록).**
+> 타로 오라클 상담을 카드 수 구간 4단계로 나누며 웹 ₩7,000 가격 포인트가 생겼다.
+> 같은 코인가를 쓰던 `cd_content_tier_04` 는 폐기된 ID 라 되살리지 않고 새 번호를 썼다.
+> 등록 절차는 [docs/pricing/PLAY_CONSOLE_TASKS.md](pricing/PLAY_CONSOLE_TASKS.md) 3절.
 
 **각 티어가 실제로 커버하는 기능** (레지스트리 실측 — 참고용, Play Console 입력 불필요)
 
@@ -69,6 +75,7 @@
 |---|---|---|---|---|
 | `cd_content_tier_01` | 3,000 | +30.0% | 18 | tarot-numerology-reading, animal-totem-basic |
 | `cd_content_tier_02` | 5,000 | +20.0% | 58 | tarot-love-relationship, royal-tea-oracle, physiognomy-*, animal-totem-deep |
+| `cd_content_tier_14` | 7,000 | +27.1% | 1 | tarot-prompt-maker-deep (타로 오라클 상담 8~10카드) |
 | `cd_content_tier_06` | 10,000 | +30.0% | 50 | tarot-year-fortune, fortune-tea-house-saju-consultation, ziwei_love_deep |
 | `cd_content_tier_09` | 20,000 | +25.0% | 10 | cosmic-soul-meditation, life-book-ai-consultation, master-love-codex |
 | `cd_content_tier_10` | 30,000 | +30.0% | 18 | vedic-ai-consultation, karma-destiny-ai-consultation, fusion-fortune-consultation |
