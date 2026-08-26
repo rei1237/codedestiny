@@ -22,8 +22,19 @@
 ### PR #1156 — 기본 명반 간소/상세 + 소한 + 궁합 노출
 브랜치 `worktree-ziwei-chart-detail-view` · 워크트리 `.claude/worktrees/ziwei-chart-detail-view` (keep 상태로 남아 있음)
 
-- **CI 5개 검사 전부 SUCCESS · `mergeStateStatus: CLEAN` · 머지 대기 중** (2026-08-26 15:45 KST 확인)
-- 🔴 `gh run list` 에서 이 런이 `startup_failure` 로 보이는데 **무시해도 된다** — 5개 잡은 전부 success 이고, 같은 현상이 무관한 브랜치(`worktree-drop-dead-mobile-hub` run 32984369558)에도 있다. 내 변경 탓이 아니고 머지를 막지도 않는다. 판정은 `gh pr view 1156 --json mergeStateStatus` 로 할 것.
+- 한때 **5개 검사 전부 SUCCESS · `mergeStateStatus: CLEAN`** 이었다(2026-08-26 15:45 KST).
+- 🔴 **그 뒤 검사가 통째로 사라져 `BLOCKED` 가 됐다.** `statusCheckRollup` 이 0개다.
+  원인은 PR CI 런 `32985754586` 의 **런 단위 결론이 `startup_failure`** 라서, 잡 5개가 모두
+  success 였는데도 GitHub 이 그 체크들을 붙잡아 두지 않은 것으로 보인다.
+  - 내 변경 탓이 아니다 — 같은 현상이 무관한 브랜치에도 있다(`worktree-drop-dead-mobile-hub`
+    run `32984369558`, 0s startup_failure).
+  - 그 시각 러너 큐가 심하게 밀려 있었다(무관한 런들이 13~38분 queued). 지금은 큐가 풀렸다.
+  - 워크플로 파일 자체는 문제가 아니다 — 두 브랜치의 `pr-ci.yml` 을 js-yaml 로 파싱해
+    둘 다 정상(jobs 5개, fast 스텝 22/21개)임을 확인했다.
+  - **조치: `gh run rerun 32985754586` 을 실행해 뒀다.** 결과는 이어서 하는 세션이 확인할 것.
+  - 그래도 검사가 안 붙으면 **close/reopen** 이 다음 수단이다(base 재타게팅은 CI 를 안 깨운다).
+- 판정은 언제나 `gh pr view 1156 --json mergeStateStatus,statusCheckRollup` 로 한다.
+  `gh run list` 의 런 단위 `startup_failure` 표시만 보고 코드 문제로 오진하지 말 것.
 
 내용:
 - `js/saju-engine.js` `calcZiweiPalaces` 에 **소한(小限)** 계산 추가 → 리턴에 `soHan` / `soHanList` (기존 키는 하나도 안 바꿨다)
@@ -37,8 +48,19 @@
 ### PR #1157 — 상담 카테고리 8 → 15종
 브랜치 `worktree-ziwei-consult-categories` · 워크트리 `.claude/worktrees/ziwei-consult-categories` (keep 상태)
 
-- **🔴 CI 미확인.** PR 생성 직후 러너 큐가 밀려 있어 체크가 아직 안 붙었다(`gh pr checks 1157` → "no checks reported"). **이어서 하는 세션이 가장 먼저 확인할 것.**
-- 로컬 검증은 전부 통과: typecheck · lint(error 0) · jest `__tests__/worker/` 158 스위트 1731 테스트 · `verify:ziwei-consult-categories`(146) · `verify:ziwei-ai-consultation-flow` · `verify:ziwei-personality-context` · `verify:ai-prompt-billing-policy` · `verify:paid-feature-billing-policy` · `verify:guard-wiring`
+- 첫 CI 에서 **`verify:sitemap-drift` 로 한 번 빨간불이 났고, 커밋 `789e500e5` 로 고쳐 재실행 중이다.** 최종 결과는 이어서 하는 세션이 `gh pr checks 1157` 로 확인할 것.
+- 로컬 검증은 전부 통과: typecheck · lint(error 0) · jest `__tests__/worker/` 158 스위트 1731 테스트 · `verify:ziwei-consult-categories`(146) · `verify:ziwei-ai-consultation-flow` · `verify:ziwei-personality-context` · `verify:ai-prompt-billing-policy` · `verify:paid-feature-billing-policy` · `verify:guard-wiring` · `verify:sitemap-drift`
+
+🔴 **밟은 함정 — `app/**` 라우트를 고치면 sitemap 원장이 무효화된다.**
+`app/ziwei-ai/ZiweiAiClient.tsx` 한 줄만 고쳐도 그 라우트의 서명이 바뀌어
+`sitemap.xml` · `public/sitemap.xml` · `config/sitemap-lastmod.json` 세 파일이 소스와 어긋난다.
+로컬에서 typecheck·lint·jest 를 다 돌려도 **이건 안 걸린다** — 별도 검증기이기 때문이다.
+
+- 증상: CI 가 **"Typecheck and lint" 잡 이름으로** 실패한다. 이름만 보면 타입 오류처럼 보이지만 아니다.
+- 진단: `gh run view <runId> --log-failed` 로 **어느 스텝**인지 먼저 볼 것.
+- 고치는 법: `npm run sitemap:generate` 를 돌리고 바뀐 세 파일을 **같은 PR 에** 담는다.
+- 확인: `npm run verify:sitemap-drift` → `OK — 추적본이 재생성 결과와 일치한다`
+- 🔴 **`app/**` 아래 라우트 파일을 건드리는 PR 은 전부 해당한다.** PR-C 는 워커만 만지므로 아마 해당 없지만, 커밋 전에 `verify:sitemap-drift` 를 한 번 돌려 확인할 것.
 
 내용:
 - 도달 불가였던 `lawsuit`·`life_direction` 노출 + 신규 5종(`study`·`move`·`property`·`children`·`family`)
@@ -160,6 +182,14 @@ npm run verify:paid-feature-billing-policy
 npm run verify:guard-wiring
 ```
 
+### `app/**` 아래 라우트 파일을 만졌으면 반드시
+```
+npm run sitemap:generate     # 바뀐 3파일을 같은 PR 에 담는다
+npm run verify:sitemap-drift
+```
+🔴 이걸 빠뜨리면 CI 가 **"Typecheck and lint" 이름으로** 실패한다(실제 원인은 sitemap 이다).
+PR #1157 이 정확히 이걸로 한 번 막혔다.
+
 ### 셸(`js/saju-engine.js`)을 만졌으면 추가로
 ```
 npm run sync:public          # 산출물 커밋 필수
@@ -181,8 +211,8 @@ npm run check:critical
 
 ## 6. 첫 30분에 할 일
 
-1. `gh pr view 1156 --json mergeStateStatus,state` — 머지됐는지 확인. 안 됐으면 사용자에게 머지 요청(에이전트가 머지하지 않는다)
-2. `gh pr checks 1157` — CI 가 붙었는지·통과했는지 확인. **아직 미확인 상태로 넘긴 것이다.** 실패하면 로그를 `gh run view --log-failed` 로 볼 것
+1. `gh pr checks 1157` — sitemap 수정(`789e500e5`) 후 재실행 결과를 확인한다. **미확인 상태로 넘긴 것이다.** 실패하면 `gh run view <runId> --log-failed` 로 **어느 스텝**인지부터 볼 것(잡 이름이 원인을 가린다)
+2. `gh pr view 1156 --json mergeStateStatus,statusCheckRollup` — 재실행으로 검사가 다시 붙었는지 확인. 여전히 0개면 close/reopen 으로 CI 를 깨운다. 머지는 **사용자가 한다**
 3. 위 §2-(B) 발견 3건을 사용자에게 보고하고 처리 방향을 묻는다
 4. PR #1157 이 머지된 뒤에 PR-C 를 `origin/main` 에서 분기해 시작한다
 
