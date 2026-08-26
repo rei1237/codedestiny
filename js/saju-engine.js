@@ -843,19 +843,19 @@ function _hideLibOverlay() {
 }
 
 /**
- * [Backend Engine] 한국 표준 고정밀 음양력 변환 성궁 진법
- * KASI(한국천문연구원) 표준 음양력 변환 데이터 및 1분 1초 24절기 오차 보정 반영
+ * [Backend Engine] 한국 표준 고정밀 음양력 변환
+ *
+ * 🔴 음양력 변환은 window.KoreanCalendar(js/core/korean-calendar.js) 하나에서만 나온다.
+ * 그 파일은 scripts/build-korean-calendar-table.mjs 가 astronomy-engine 으로 계산한
+ * **KST 기준** 표와 코어 소스를 그대로 실은 생성물이고, 워커·앱이 읽는 것과 같은 코드다.
+ * lunar-javascript 는 중국 표준시(UTC+8) 기준이라 삭이 CST 23시대에 들면 음력일이 하루 밀린다 —
+ * 1997-02-10 이 그 사례였고, 예전에는 그 하루를 KASI_LOCAL_PATCH_SEED 로 덮고 있었다.
+ * 이제는 규칙만으로 같은 답이 나오므로 시드가 없다. 되살리지 말 것.
+ *
+ * 아래 로컬 패치 스토어는 **KASI API 응답을 기억해 두는 캐시**다(registerCalendarReference).
+ * 하드코딩이 아니며, 코어와 어긋나는 값을 심는 통로로 쓰지 않는다.
  */
 var KASI_LOCAL_PATCH_STORAGE_KEY = 'kasi:local-calendar-patch:v1';
-var KASI_LOCAL_PATCH_SEED = {
-  solarToLunar: {
-    '1997-02-10': { year: 1997, month: 1, day: 3, isLeap: false, source: 'kasi_seed' }
-  },
-  lunarToSolar: {
-    '1997-01-03|0': { year: 1997, month: 2, day: 10, dateStr: '1997-02-10', source: 'kasi_seed' }
-  }
-};
-
 function _kasiPad2(v) {
   return String(v).padStart(2, '0');
 }
@@ -868,78 +868,32 @@ function _kasiLunarKey(y, m, d, isLeap) {
   return String(y) + '-' + _kasiPad2(m) + '-' + _kasiPad2(d) + '|' + (isLeap ? '1' : '0');
 }
 
-function _clonePlain(obj) {
-  try {
-    return JSON.parse(JSON.stringify(obj));
-  } catch (e) {
-    return obj;
-  }
+function _emptyKasiPatchStore() {
+  return { solarToLunar: {}, lunarToSolar: {} };
 }
 
-function _applyKasiSeedGuard(store) {
-  if (!store || typeof store !== 'object') return false;
-  var changed = false;
-
-  if (!store.solarToLunar || typeof store.solarToLunar !== 'object') {
-    store.solarToLunar = {};
-    changed = true;
-  }
-  if (!store.lunarToSolar || typeof store.lunarToSolar !== 'object') {
-    store.lunarToSolar = {};
-    changed = true;
-  }
-
-  var seedSolar = KASI_LOCAL_PATCH_SEED.solarToLunar || {};
-  Object.keys(seedSolar).forEach(function(key) {
-    var seed = seedSolar[key] || {};
-    var cur = store.solarToLunar[key] || {};
-    if (
-      cur.year !== seed.year ||
-      cur.month !== seed.month ||
-      cur.day !== seed.day ||
-      !!cur.isLeap !== !!seed.isLeap
-    ) {
-      store.solarToLunar[key] = _clonePlain(seed);
-      changed = true;
-    }
+/* 예전 버전이 심어 둔 시드(1997-02-10 하루짜리 덮어쓰기)는 이미 방문자 localStorage 에 남아 있다.
+   코어가 같은 답을 내므로 값이 틀리지는 않지만, 하드코딩을 지우는 것이 이 작업의 목적이므로
+   읽는 김에 걷어낸다. 여기 남는 것은 KASI API 응답으로 채워진 항목뿐이다. */
+function _dropSeedEntries(map) {
+  var out = {};
+  Object.keys(map || {}).forEach(function(key) {
+    var row = map[key];
+    if (row && row.source === 'kasi_seed') return;
+    out[key] = row;
   });
-
-  var seedLunar = KASI_LOCAL_PATCH_SEED.lunarToSolar || {};
-  Object.keys(seedLunar).forEach(function(key) {
-    var seed = seedLunar[key] || {};
-    var cur = store.lunarToSolar[key] || {};
-    if (
-      cur.year !== seed.year ||
-      cur.month !== seed.month ||
-      cur.day !== seed.day
-    ) {
-      store.lunarToSolar[key] = _clonePlain(seed);
-      changed = true;
-      return;
-    }
-    var seedDateStr = seed.dateStr || (String(seed.year) + '-' + _kasiPad2(seed.month) + '-' + _kasiPad2(seed.day));
-    var curDateStr = cur.dateStr || (String(cur.year) + '-' + _kasiPad2(cur.month) + '-' + _kasiPad2(cur.day));
-    if (curDateStr !== seedDateStr) {
-      store.lunarToSolar[key] = _clonePlain(seed);
-      changed = true;
-    }
-  });
-
-  return changed;
+  return out;
 }
 
 function _loadKasiLocalPatchStore() {
-  var base = _clonePlain(KASI_LOCAL_PATCH_SEED);
+  var base = _emptyKasiPatchStore();
   try {
     var raw = localStorage.getItem(KASI_LOCAL_PATCH_STORAGE_KEY);
     if (!raw) return base;
     var parsed = JSON.parse(raw);
     if (!parsed || typeof parsed !== 'object') return base;
-    base.solarToLunar = Object.assign({}, parsed.solarToLunar || {}, base.solarToLunar || {});
-    base.lunarToSolar = Object.assign({}, parsed.lunarToSolar || {}, base.lunarToSolar || {});
-    if (_applyKasiSeedGuard(base)) {
-      _saveKasiLocalPatchStore(base);
-    }
+    base.solarToLunar = _dropSeedEntries(parsed.solarToLunar);
+    base.lunarToSolar = _dropSeedEntries(parsed.lunarToSolar);
     return base;
   } catch (e) {
     return base;
@@ -953,6 +907,20 @@ function _saveKasiLocalPatchStore(store) {
 }
 
 var _kasiLocalPatchStore = _loadKasiLocalPatchStore();
+
+/**
+ * 한국 음양력 코어(js/core/korean-calendar.js)를 집는다.
+ * 🔴 없으면 던진다. lunar-javascript 로 조용히 떨어지면 중국 표준시 기준 음력이 섞여 들어와
+ * 자미두수 명반이 하루 밀린 채로 나온다 — 눈에 보이지 않는 오답이 화면에 남는 쪽이 더 나쁘다.
+ * 로드 순서는 js/core/index-inline-runtime.js 의 __cdEnsureSajuCoreLoaded 체인이 보장한다.
+ */
+function _koreanCalendar() {
+  var core = (typeof window !== 'undefined' && window.KoreanCalendar) || (typeof KoreanCalendar !== 'undefined' ? KoreanCalendar : null);
+  if (!core || typeof core.solarToLunar !== 'function') {
+    throw new Error('KoreanCalendar 미로드 — js/core/korean-calendar.js 가 먼저 실행돼야 한다');
+  }
+  return core;
+}
 
 function _getPatchedSolarToLunar(y, m, d) {
   var key = _kasiSolarKey(y, m, d);
@@ -992,7 +960,7 @@ function rememberKasiCalendarReference(reference) {
   if (!sy || !sm || !sd || !ly || !lm || !ld) return false;
 
   if (!_kasiLocalPatchStore || typeof _kasiLocalPatchStore !== 'object') {
-    _kasiLocalPatchStore = _clonePlain(KASI_LOCAL_PATCH_SEED);
+    _kasiLocalPatchStore = _emptyKasiPatchStore();
   }
   if (!_kasiLocalPatchStore.solarToLunar) _kasiLocalPatchStore.solarToLunar = {};
   if (!_kasiLocalPatchStore.lunarToSolar) _kasiLocalPatchStore.lunarToSolar = {};
@@ -1013,8 +981,6 @@ function rememberKasiCalendarReference(reference) {
     source: source
   };
 
-  _applyKasiSeedGuard(_kasiLocalPatchStore);
-
   _saveKasiLocalPatchStore(_kasiLocalPatchStore);
   return true;
 }
@@ -1029,30 +995,28 @@ const KasiEngine = {
         var y = tDate.getFullYear(), m = tDate.getMonth() + 1, d = tDate.getDate();
         var patched = _getPatchedSolarToLunar(y, m, d);
         if (patched) return patched;
-        var h = tDate.getHours(), min = tDate.getMinutes(), s = tDate.getSeconds();
-        var solar = Solar.fromYmdHms(y, m, d, h, min, s);
-        var lunar = solar.getLunar();
+        var lunar = _koreanCalendar().solarToLunar(y, m, d);
+        if (!lunar) return null; // 지원 범위(1900~2100) 밖. 검증하지 않은 구간을 답하지 않는다.
         return {
-            year: lunar.getYear(),
-            month: Math.abs(lunar.getMonth()),
-            day: lunar.getDay(),
-            isLeap: lunar.getMonth() < 0
+            year: lunar.lunarYear,
+            month: lunar.lunarMonth,
+            day: lunar.lunarDay,
+            isLeap: lunar.isLeapMonth
         };
     },
     lunarToSolar: function(year, month, day, isLeap) {
       var patched = _getPatchedLunarToSolar(year, month, day, !!isLeap);
       if (patched) return patched;
-        var m = isLeap ? -Math.abs(month) : Math.abs(month);
-        var lunar = Lunar.fromYmd(year, m, day);
-        if (isLeap && (!lunar || Math.abs(lunar.getMonth()) !== Math.abs(month))) {
-            lunar = Lunar.fromYmd(year, Math.abs(month), day);
-        }
-        var solar = lunar.getSolar();
+        var core = _koreanCalendar();
+        var solar = core.lunarToSolar(year, Math.abs(month), day, !!isLeap);
+        // 윤달을 요청했는데 그 해에 그 윤달이 없으면 평달로 읽는다(기존 동작 유지).
+        if (!solar && isLeap) solar = core.lunarToSolar(year, Math.abs(month), day, false);
+        if (!solar) return null;
         return {
-            year: solar.getYear(),
-            month: solar.getMonth(),
-            day: solar.getDay(),
-            dateStr: solar.getYear() + '-' + String(solar.getMonth()).padStart(2, '0') + '-' + String(solar.getDay()).padStart(2, '0')
+            year: solar.year,
+            month: solar.month,
+            day: solar.day,
+            dateStr: solar.year + '-' + _kasiPad2(solar.month) + '-' + _kasiPad2(solar.day)
         };
     },
         registerCalendarReference: function(reference) {
@@ -1479,8 +1443,6 @@ function buildFallbackDateContext(input, reason) {
 
     var solarDate = null;
     var lunarObj = null;
-    var hasSolarLib = (typeof Solar !== 'undefined' && typeof Solar.fromYmdHms === 'function');
-    var hasLunarLib = (typeof Lunar !== 'undefined' && typeof Lunar.fromYmd === 'function');
     var canUseEngine = (typeof KasiEngine !== 'undefined');
 
     function isValidLunar(obj) {
@@ -1495,27 +1457,8 @@ function buildFallbackDateContext(input, reason) {
           if (isValidLunar(byEngine)) return byEngine;
         }
       } catch (_e0) {}
-      try {
-        if (hasSolarLib) {
-          var s = Solar.fromYmdHms(
-            dateObj.getFullYear(),
-            dateObj.getMonth() + 1,
-            dateObj.getDate(),
-            dateObj.getHours(),
-            dateObj.getMinutes(),
-            dateObj.getSeconds()
-          );
-          var l = s && s.getLunar ? s.getLunar() : null;
-          if (l && typeof l.getYear === 'function') {
-            return {
-              year: l.getYear(),
-              month: Math.abs(l.getMonth()),
-              day: l.getDay(),
-              isLeap: l.getMonth() < 0
-            };
-          }
-        }
-      } catch (_e1) {}
+      // 🔴 lunar-javascript 폴백은 두지 않는다 — 중국 표준시 기준이라 음력일이 하루 밀린다.
+      // 코어가 못 답하면 null 을 돌려주고, 호출부가 그 사실을 알게 둔다.
       return null;
     }
 
@@ -1526,24 +1469,7 @@ function buildFallbackDateContext(input, reason) {
           if (conv && conv.year && conv.month && conv.day) return conv;
         }
       } catch (_e2) {}
-      try {
-        if (hasLunarLib) {
-          var lm = isLeap ? -Math.abs(mo) : Math.abs(mo);
-          var lobj = Lunar.fromYmd(y, lm, da);
-          if (!lobj && isLeap) {
-            lobj = Lunar.fromYmd(y, Math.abs(mo), da);
-          }
-          var sobj = lobj && lobj.getSolar ? lobj.getSolar() : null;
-          if (sobj && typeof sobj.getYear === 'function') {
-            return {
-              year: sobj.getYear(),
-              month: sobj.getMonth(),
-              day: sobj.getDay(),
-              dateStr: sobj.getYear() + '-' + String(sobj.getMonth()).padStart(2, '0') + '-' + String(sobj.getDay()).padStart(2, '0')
-            };
-          }
-        }
-      } catch (_e3) {}
+      // 🔴 safeSolarToLunar 와 같은 이유로 lunar-javascript 폴백을 두지 않는다.
       return null;
     }
 
@@ -3120,11 +3046,15 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     }
   } catch (_kasiLunarErr) {}
 
-  var lmonth = (kasiLunar && kasiLunar.month) ? Math.abs(Number(kasiLunar.month)) : Math.abs(lunar.getMonth());
-  var lday = (kasiLunar && kasiLunar.day) ? Number(kasiLunar.day) : lunar.getDay();
-  var isLeap = (kasiLunar && kasiLunar.isLeap != null)
-    ? !!kasiLunar.isLeap
-    : (typeof lunar.isLeap === 'function' ? lunar.isLeap() : (lunar.getIsLeap ? lunar.getIsLeap() : false));
+  // 🔴 여기에 lunar-javascript 폴백을 두지 말 것. 그 라이브러리는 중국 표준시(UTC+8) 기준이라
+  // 삭이 CST 23시대에 든 달은 음력일이 하루 밀리고, 자미성이 밀리면 14주성이 통째로 어긋난다.
+  // 근거·실측: docs/handoff/korean-calendar-migration-2026-08-27.md, npm run verify:korean-calendar-divergence
+  if (!kasiLunar || !kasiLunar.month || !kasiLunar.day) {
+    throw new Error('자미두수: 음력 변환 실패 — 한국 음양력 코어가 답하지 못했다 (' + year + '-' + month + '-' + day + ')');
+  }
+  var lmonth = Math.abs(Number(kasiLunar.month));
+  var lday = Number(kasiLunar.day);
+  var isLeap = !!kasiLunar.isLeap;
   var yearGan = lunar.getYearGan();
   var yearZhi = lunar.getYearZhi();
   try {

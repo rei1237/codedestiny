@@ -83,6 +83,7 @@
 /public/js/core/init.js
 /public/js/core/kasi-calendar-service.js
 /public/js/core/kasi/calendar.js
+/public/js/core/korean-calendar.js
 /public/js/core/pass-verdict.d.ts
 /public/js/core/pass-verdict.js
 /public/js/core/payment-service.d.ts

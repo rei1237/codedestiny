@@ -2245,6 +2245,10 @@ function __cdEnsureSajuCoreLoaded() {
    *    압축 전송 실측(2026-08-16): lunar.js 110,003 B → lunar.min.js 96,753 B (-13,250 B).
    *    두 경로를 같은 URL 로 맞춰야 __cdLoadScriptOnce 의 파일명 기반 중복제거가 실제로 물린다. */
   var chain = [
+    /* 🔴 맨 앞이어야 한다. 아래 kasi-calendar-service·saju-engine 이 window.KoreanCalendar 를
+     * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
+     * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
+    '/js/core/korean-calendar.js?v=build-432d01a0fa9d',
     'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.7/lunar.min.js',
     '/js/core/kasi-calendar-service.js?v=build-432d01a0fa9d',
     '/js/compat-llm-prompts.js?v=build-432d01a0fa9d',
@@ -8115,6 +8119,10 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
   if (!needsCore) return Promise.resolve(true);
 
   var chain = [
+    /* 🔴 맨 앞이어야 한다. 아래 kasi-calendar-service·saju-engine 이 window.KoreanCalendar 를
+     * 음양력 변환의 유일한 근거로 쓰고, 없으면 던진다(조용히 lunar-javascript 로 떨어지면
+     * 중국 표준시 기준 음력이 섞여 자미두수 명반이 하루 밀린다). 로컬 파일이라 CDN 보다 안전하다. */
+    '/js/core/korean-calendar.js?v=build-432d01a0fa9d',
     '/js/compat-llm-prompts.js?v=build-432d01a0fa9d',
       '/js/saju-engine.js?v=build-432d01a0fa9d',
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-432d01a0fa9d'

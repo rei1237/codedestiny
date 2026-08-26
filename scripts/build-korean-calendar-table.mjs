@@ -21,9 +21,10 @@
  * 머리말의 1984년 사례를 볼 것 — 순간으로 비교하면 그 해 이후 모든 달이 한 칸 밀린다.
  *
  * ── 산출물 ──────────────────────────────────────────────────────────────────
- *   lib/korean-calendar/table.generated.js        ESM (워커·앱·스크립트)
- *   js/core/korean-calendar-table.generated.js    클래식 스크립트 (정적 셸 — import 불가라서)
- * 둘은 같은 데이터를 담고 같은 fingerprint 를 갖는다. 세 엔진이 같은 숫자를 보는 근거다.
+ *   lib/korean-calendar/table.generated.js   ESM 표 (워커·앱·스크립트)
+ *   js/core/korean-calendar.js               클래식 스크립트 (정적 셸 — import 불가라서)
+ * 클래식판은 표뿐 아니라 코어 소스 자체를 모듈 구문만 걷어내 실은 것이라, 셸이 읽는 코드는
+ * 워커·앱이 읽는 코드와 글자 단위로 같다. 세 엔진이 같은 숫자를 보는 근거가 그것이다.
  */
 import { createHash } from "node:crypto";
 import { mkdirSync, readFileSync, writeFileSync } from "node:fs";
@@ -288,15 +289,110 @@ function renderEsm(table) {
 
 export const OUTPUT_FILES = Object.freeze({
   esm: "lib/korean-calendar/table.generated.js",
+  classic: "js/core/korean-calendar.js",
 });
 
-// 🔴 정적 셸(js/saju-engine.js)은 브라우저 클래식 스크립트라 import 가 불가능하므로 같은 표를
-// 전역 하나로 실어 줄 파일이 따로 필요하다. 그건 **셸이 실제로 그 표를 읽는 PR** 에서 만든다.
-// 지금 만들면 소비처도 없이 js/ 아래 파일이 하나 늘어 sync:public 이 캐시키를 회전시키고,
-// index.html 을 포함한 22개 파일이 딸려온다 — 그 회전을 두 번 할 이유가 없다.
+// ── 정적 셸용 클래식 스크립트 ───────────────────────────────────────────────
+// 정적 셸(js/saju-engine.js)은 브라우저 클래식 스크립트라 import 가 불가능하다.
+// 🔴 그렇다고 코어 로직을 손으로 한 벌 더 쓰면 그 순간 두 벌이 갈라진다 — 이 작업의 시작점이
+// 바로 "엔진마다 달력이 다르다" 였다. 그래서 표뿐 아니라 **코어 소스 자체를 여기서 변환**한다.
+// 모듈 구문(import/export)만 걷어내고 한 IIFE 로 감싸므로, 셸이 읽는 코드는 워커·앱이 읽는
+// 코드와 글자 단위로 같은 것이다. 변환이 모듈 구문을 하나라도 남기면 빌드가 실패한다.
+
+/** 변환 순서. const 는 호이스팅되지 않으므로 정책 → 표기 → 코어 → 간지 순이어야 한다. */
+const CLASSIC_MODULES = Object.freeze([
+  "lib/korean-calendar/policy.js",
+  "lib/korean-calendar/labels.js",
+  "lib/korean-calendar/core.js",
+  "lib/korean-calendar/ganji.js",
+]);
+
+/** 모듈 구문을 걷어낸다. 남으면 던진다 — 조용히 반쪽짜리 파일을 내는 것이 최악이다. */
+function stripModuleSyntax(rel, source) {
+  const out = source
+    .replace(/^import\s[^;]*;[ \t]*\n/gm, "")
+    .replace(/^export\s*\{[^}]*\}\s*;[ \t]*\n/gm, "")
+    .replace(/^export\s+(const|let|function|class)\b/gm, "$1");
+  const leftover = out.match(/^(?:import|export)\b.*$/m);
+  if (leftover) throw new Error(`${rel}: 클래식 변환이 모듈 구문을 남겼다 — ${leftover[0].trim()}`);
+  return out;
+}
+
+/**
+ * 클래식 번들의 공개 표면은 lib/korean-calendar/index.js 에서 **읽어 온다**.
+ * 손으로 두 벌 적으면 한쪽에만 심볼이 늘어난다(원칙 10 — 손으로 쓴 목록은 가드가 아니다).
+ */
+function classicSurface() {
+  const source = readFileSync(join(REPO_ROOT, "lib/korean-calendar/index.js"), "utf8");
+  const names = [];
+  for (const m of source.matchAll(/export\s*\{([^}]*)\}\s*from\s*"[^"]+"/g)) {
+    for (const raw of m[1].split(",")) {
+      const name = raw.trim();
+      if (name) names.push(name);
+    }
+  }
+  if (names.length < 10) throw new Error(`index.js 에서 공개 표면을 못 읽었다 (${names.length}개)`);
+  return names.sort();
+}
+
+const CLASSIC_HEADER = [
+  "//",
+  "// 정적 셸(클래식 스크립트) 판. lib/korean-calendar/*.js 를 모듈 구문만 걷어내 그대로 실었다.",
+  "// 🔴 셸·워커·앱이 같은 답을 내는 근거가 이 파일이다 — 손으로 고치면 그 근거가 사라진다.",
+  "// 전역 하나만 만든다: window.KoreanCalendar",
+].join("\n");
+
+/**
+ * 이어 붙인 소스의 최상위 선언 이름을 모은다.
+ * 🔴 두 모듈이 같은 이름을 최상위에 선언하면 한 스코프로 합칠 때 SyntaxError 가 난다.
+ * 실제로 core.js 와 ganji.js 가 `DAY_MS` 를 각자 선언하고 있었다(2026-08-27).
+ * 그래서 빌드가 그 자리에서 죽게 만든다 — 뒤늦게 브라우저에서 발견할 일이 아니다.
+ */
+function topLevelNames(rel, source, seen, clashes) {
+  for (const m of source.matchAll(/^(?:const|let|function|class)\s+([A-Za-z_$][\w$]*)/gm)) {
+    const name = m[1];
+    if (seen.has(name)) clashes.push(`${name} — ${seen.get(name)} 와 ${rel}`);
+    else seen.set(name, rel);
+  }
+}
+
+function renderClassic(table) {
+  const seen = new Map();
+  const clashes = [];
+  const tableBody = stripModuleSyntax(OUTPUT_FILES.esm, renderEsm(table).slice(HEADER.length));
+  topLevelNames(OUTPUT_FILES.esm, tableBody, seen, clashes);
+  const modules = CLASSIC_MODULES.map((rel) => {
+    const source = readFileSync(join(REPO_ROOT, rel), "utf8").replace(/\r\n/g, "\n");
+    const stripped = stripModuleSyntax(rel, source);
+    topLevelNames(rel, stripped, seen, clashes);
+    return `// ── ${rel} ${"─".repeat(Math.max(3, 62 - rel.length))}\n${stripped}`;
+  });
+  if (clashes.length) {
+    throw new Error(`클래식 번들: 최상위 이름이 겹친다 (${clashes.length}건)\n  ${clashes.join("\n  ")}`);
+  }
+  return [
+    HEADER,
+    CLASSIC_HEADER,
+    "",
+    "(function (root) {",
+    '"use strict";',
+    tableBody.trimStart(),
+    "",
+    ...modules,
+    "",
+    "root.KoreanCalendar = Object.freeze({",
+    ...classicSurface().map((name) => `  ${name}: ${name},`),
+    "});",
+    '})(typeof globalThis !== "undefined" ? globalThis : window);',
+    "",
+  ].join("\n");
+}
 
 export function renderOutputs(table) {
-  return { [OUTPUT_FILES.esm]: renderEsm(table) };
+  return {
+    [OUTPUT_FILES.esm]: renderEsm(table),
+    [OUTPUT_FILES.classic]: renderClassic(table),
+  };
 }
 
 function main() {
