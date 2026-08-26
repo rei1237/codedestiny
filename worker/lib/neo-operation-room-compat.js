@@ -357,6 +357,56 @@ function buildSajuPartnerDigest(partnerSaju) {
 }
 
 /**
+ * 점성술 시나스트리 사실. buildNeoAstroSynastry 산출물을 그대로 읽는다 — 새 각도 규칙 없음.
+ * 🔴 하우스 오버레이는 "무엇이 어디에 떨어졌는가"라서 방향을 잃으면 근거가 못 된다.
+ *    내→상대와 상대→나를 각각 한 칸으로 남긴다.
+ */
+function buildAstrologyHighlights(synastry) {
+  const { items, push } = highlightCollector();
+  if (!synastry) return items;
+  const overlay = synastry.houseOverlay || {};
+  const overlayLine = (prefix, suffix) => ["Sun", "Moon", "Venus", "Mars"]
+    .map((key) => {
+      const house = overlay[`${prefix}${key}${suffix}`];
+      return Number.isFinite(house) ? `${PLANET_KO[key]} → ${house}하우스` : "";
+    })
+    .filter(Boolean)
+    .join(" · ");
+  push("내 행성이 상대 하우스에 떨어지는 자리", overlayLine("my", "InPartnerHouse"));
+  push("상대 행성이 내 하우스에 떨어지는 자리", overlayLine("partner", "InMyHouse"));
+
+  const aspects = asArray(synastry.crossAspects);
+  push(
+    "두 사람 사이의 각(오브가 좁은 순)",
+    aspects.map((entry) => `내 ${entry?.myPlanet} ↔ 상대 ${entry?.partnerPlanet} ${entry?.type}(오브 ${entry?.orb}도)`).join(" / "),
+  );
+  if (synastry.uncertainty?.partnerHousesUnavailable || synastry.uncertainty?.selfHousesUnavailable) {
+    push("하우스 판독", "출생 정보가 하우스를 세우기에 부족해 각(角) 위주로만 읽었다");
+  }
+  return items;
+}
+
+const PLANET_KO = Object.freeze({ Sun: "태양", Moon: "달", Venus: "금성", Mars: "화성" });
+
+/** 상대 점성술 차트 요약 — 시나스트리가 이미 뽑아 둔 네 행성의 사인. */
+function buildAstrologyPartnerDigest(partnerChart, synastry) {
+  const partner = synastry?.partner && typeof synastry.partner === "object" ? synastry.partner : {};
+  const chart = asObjectLike(asObjectLike(partnerChart).localAstroChartJson).chart;
+  const ascendant = asObjectLike(asObjectLike(chart).ascendant);
+  return {
+    sun: clean(partner["태양"], 40),
+    moon: clean(partner["달"], 40),
+    venus: clean(partner["금성"], 40),
+    mars: clean(partner["화성"], 40),
+    ascendant: clean(ascendant.signKo || ascendant.sign, 40),
+  };
+}
+
+function asObjectLike(value) {
+  return value && typeof value === "object" && !Array.isArray(value) ? value : {};
+}
+
+/**
  * 상대 베다 차트 요약.
  * 🔴 나크샤트라는 여기 담지 않는다 — buildVedicHighlights 가 가나·주재성까지 붙여 한국어로
  *    이미 싣는다. 둘 다 담으면 [계산 확정값] 표에 같은 항목이 두 줄로 나온다.
@@ -406,6 +456,16 @@ const COMPAT_BUILDERS = Object.freeze({
       partnerDigest: buildVedicPartnerDigest(partnerChart),
     };
   },
+  // 🔴 점수가 없다. 시나스트리에는 이 레포가 근거로 삼을 결정론 배점이 없어서
+  //    (자미두수 3축·사주 4축·베다 아쉬타쿠타 36점과 달리) 숫자를 만들지 않는다.
+  //    화면은 scores 가 없으면 점수 카드를 통째로 빼고, 근거와 챕터 4개는 그대로 나온다.
+  astrology({ partnerChart, synastry }) {
+    return {
+      scores: null,
+      highlights: buildAstrologyHighlights(synastry),
+      partnerDigest: buildAstrologyPartnerDigest(partnerChart, synastry),
+    };
+  },
 });
 
 /** 궁합을 지원하는 술수. 라우트·화면의 목록이 이 키 집합과 같아야 한다(가드가 단언한다). */
@@ -431,13 +491,17 @@ export const NEO_COMPAT_METHODS = Object.freeze(Object.keys(COMPAT_BUILDERS));
  * @param {object} [params.vedicCompat]      베다 전용. assembleNakshatraCompat 결과를 라우트가
  *                                           계산해 넣는다(위 import 주석의 이유). 없으면 점수 없이
  *                                           나크샤트라 사실만 남는다.
+ * @param {object} [params.synastry]         점성술 전용. buildNeoAstroSynastry 결과. 이쪽도
+ *                                           라우트가 계산해 넣는다 — swiss-ephemeris 는 WASM 을
+ *                                           끌고 오므로 이 모듈이 물면 안 된다.
  */
 export function buildNeoCompat({
-  method, selfChart, partnerChart, relationshipStatus = "", partnerGender = "", vedicCompat = null,
+  method, selfChart, partnerChart, relationshipStatus = "", partnerGender = "",
+  vedicCompat = null, synastry = null,
 } = {}) {
   const builder = COMPAT_BUILDERS[clean(method)];
   if (!builder || !selfChart || !partnerChart) return null;
-  const built = builder({ selfChart, partnerChart, partnerGender, vedicCompat });
+  const built = builder({ selfChart, partnerChart, partnerGender, vedicCompat, synastry });
   return {
     method: clean(method, 30),
     ...built,

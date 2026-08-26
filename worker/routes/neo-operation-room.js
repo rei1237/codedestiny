@@ -35,6 +35,7 @@ import {
   normalizeTopicKey,
 } from "../lib/neo-operation-room-compat.js";
 import { assembleNakshatraCompat } from "../lib/nakshatra-compat.js";
+import { buildNeoAstroSynastry } from "../lib/neo-synastry.js";
 import {
   buildPreviousAdviceLog,
   neoCompatInitialSections,
@@ -806,6 +807,24 @@ function summarizeAstrology(prepared) {
  * 🔴 sukuyo 는 넘기지 않는다 — 네오는 숙요를 계산하지 않는다. 넘기지 않으면
  *    assembleNakshatraCompat 이 dongyang 을 null 로 두고 아쉬타쿠타만 성립시킨다.
  */
+/**
+ * 점성술 계산기가 받는 출생 입력 모양. 1인 경로가 쓰던 것과 같은 매핑이며, 궁합에서 상대에게도
+ * 그대로 쓴다 — 상대만 다른 모양으로 넣으면 두 차트가 다른 규칙으로 세워진다.
+ */
+function astroBirthInput(birth) {
+  return {
+    birthDate: birth.birthDate,
+    birthTime: birth.birthTimeUnknown ? "12:00" : birth.birthTime,
+    birthTimeUnknown: birth.birthTimeUnknown,
+    gender: birth.gender,
+    timezone: birth.timezone,
+    birthPlace: birth.city,
+    latitude: birth.latitude,
+    longitude: birth.longitude,
+    location: birth.birthPlace,
+  };
+}
+
 function buildNeoVedicCompat(selfChart, partnerChart, partnerInfo) {
   const selfMoon = neoVedicMoonLongitude(selfChart);
   const partnerMoon = neoVedicMoonLongitude(partnerChart);
@@ -820,13 +839,13 @@ function buildNeoVedicCompat(selfChart, partnerChart, partnerInfo) {
  * 궁합 확정값을 붙인다. 🔴 상대가 없으면 summary 를 **그대로** 돌려준다 — 1인 경로는
  * 이 함수를 지나도 한 바이트도 달라지지 않아야 한다.
  */
-function withCompat(summary, input, method, selfChart, partnerChart, vedicCompat = null) {
+function withCompat(summary, input, method, selfChart, partnerChart, engineExtras = {}) {
   if (!partnerChart) return summary;
   const compat = buildNeoCompat({
     method,
     selfChart,
     partnerChart,
-    vedicCompat,
+    ...engineExtras,
     relationshipStatus: input.relationshipStatus || "",
     partnerGender: input.partnerBirthInfo?.gender || "",
   });
@@ -859,15 +878,27 @@ async function calculateMethodSummary(env, normalized, request) {
       vedicChart(input.birthInfo),
       partner ? vedicChart(partner) : Promise.resolve(null),
     ]);
-    return withCompat(
-      summarizeVedic(selfChart),
-      input,
-      "vedic",
-      selfChart,
-      partnerChart,
+    return withCompat(summarizeVedic(selfChart), input, "vedic", selfChart, partnerChart, {
       // 아쉬타쿠타는 여기서 계산해 넣는다 — neo-operation-room-compat.js 가 nakshatra-* 를 직접
       // 물면 번들러 밖(가드·테스트)에서 로드되지 않는다. 그 이유는 그 파일 머리말에 적혀 있다.
-      partnerChart ? buildNeoVedicCompat(selfChart, partnerChart, partner) : null,
+      vedicCompat: partnerChart ? buildNeoVedicCompat(selfChart, partnerChart, partner) : null,
+    });
+  }
+  if (partner) {
+    // 🔴 베다와 같은 이유로 병렬. 점성술도 외부/WASM 왕복이다.
+    const [selfPrepared, partnerPrepared] = await Promise.all([
+      prepareAstroPremiumCalculation(env, { birthInput: astroBirthInput(input.birthInfo) }, { requestUrl: request.url }),
+      prepareAstroPremiumCalculation(env, { birthInput: astroBirthInput(partner) }, { requestUrl: request.url }),
+    ]);
+    return withCompat(
+      summarizeAstrology(selfPrepared),
+      input,
+      "astrology",
+      selfPrepared,
+      partnerPrepared,
+      // 시나스트리도 라우트가 계산해 주입한다 — swiss-ephemeris 는 WASM 을 끌고 오므로
+      // 궁합 모듈이 물면 가드가 그 모듈을 못 읽는다.
+      { synastry: buildNeoAstroSynastry(selfPrepared, partnerPrepared) },
     );
   }
   const birth = input.birthInfo;

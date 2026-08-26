@@ -142,18 +142,27 @@ test("서버가 버리는 범위 밖 생년월일을 화면이 먼저 막는다"
   }
 });
 
-test("궁합 엔진이 없는 술수면 궁합은 아예 열리지 않는다", async () => {
+test("궁합은 술수마다 열리고, 지원 밖 술수는 상대를 버린다", async () => {
   const { validateNeoWarRoomInput, buildNeoWarRoomAccessPayload, isNeoWarRoomCompatActive, NEO_COMPAT_METHODS } = await loadInputFlow();
-  // 지원 목록에 없는 술수를 소스에서 골라 온다 — 목록이 늘어도 이 테스트가 낡지 않는다.
-  const unsupported = ["saju", "ziwei", "vedic", "astrology"].filter((method) => !NEO_COMPAT_METHODS.includes(method));
-  assert.ok(unsupported.length > 0, "네 술수가 전부 궁합을 지원하면 이 테스트를 지울 것");
-  for (const method of unsupported) {
-    const input = buildInput({ method }, { enabled: true, relationshipStatus: "" });
-    assert.equal(isNeoWarRoomCompatActive(input), false, `${method}: 궁합이 열렸다`);
-    // 관계 상태가 비어 있어도 1인 상담을 막지 않는다 — 서버도 같은 조건으로 상대를 버린다.
-    assert.deepEqual(validateNeoWarRoomInput(input).filter((error) => error.field.startsWith("partner")), []);
+  const allMethods = ["saju", "ziwei", "vedic", "astrology"];
+  for (const method of allMethods) {
+    const supported = NEO_COMPAT_METHODS.includes(method);
+    const input = buildInput({ method }, { enabled: true, relationshipStatus: "dating" });
+    assert.equal(isNeoWarRoomCompatActive(input), supported, `${method}: 궁합 개폐가 지원 목록과 어긋난다`);
     const payload = buildNeoWarRoomAccessPayload(input, "key-1");
-    assert.equal("partnerBirthInput" in payload, false, `${method}: 술수를 바꿨는데 상대가 페이로드에 남았다`);
+    assert.equal(
+      "partnerBirthInput" in payload,
+      supported,
+      supported ? `${method}: 궁합인데 상대가 페이로드에 없다` : `${method}: 술수를 바꿨는데 상대가 페이로드에 남았다`,
+    );
+  }
+  // 🔴 지원 술수라도 토글을 끄면 상대는 사라져야 한다. 여기가 무너지면 1인 결제로 궁합이 나간다.
+  for (const method of NEO_COMPAT_METHODS) {
+    const off = buildInput({ method }, { enabled: false, relationshipStatus: "dating" });
+    assert.equal(isNeoWarRoomCompatActive(off), false, `${method}: 토글을 껐는데 궁합이 켜져 있다`);
+    assert.deepEqual(validateNeoWarRoomInput(off).filter((error) => error.field.startsWith("partner")), []);
+    const payload = buildNeoWarRoomAccessPayload(off, "key-off");
+    assert.equal("partnerBirthInput" in payload, false, `${method}: 토글을 껐는데 상대가 페이로드에 남았다`);
     assert.equal("relationshipStatus" in payload, false);
   }
 });

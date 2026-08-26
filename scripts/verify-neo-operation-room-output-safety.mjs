@@ -30,6 +30,7 @@ import {
 } from "../worker/lib/neo-operation-room-prompt.js";
 import { NEO_BASIS_GROUP_KEYS, buildNeoBasisPayload, measureNeoBasisCoverage } from "../worker/lib/neo-operation-room-basis.js";
 import { buildNeoCompat } from "../worker/lib/neo-operation-room-compat.js";
+import { buildNeoAstroSynastry } from "../worker/lib/neo-synastry.js";
 import { calculateZiweiAiChart } from "../worker/lib/ziwei-ai-chart.js";
 import { calculateLifeBookAiSaju } from "../worker/lib/life-book-ai-saju.js";
 import { findInternalKeyPaths } from "../worker/lib/llm-leak-guard.js";
@@ -262,6 +263,7 @@ const METHOD_VOCAB = {
   ziwei: { own: ["명반", "부부궁"], foreign: ["명식", "일간", "나크샤트라", "아쉬타쿠타", "쿠타"] },
   saju: { own: ["명식", "십성"], foreign: ["명반", "부부궁", "사화", "나크샤트라", "아쉬타쿠타"] },
   vedic: { own: ["나크샤트라", "쿠타"], foreign: ["명반", "명식", "부부궁", "사화", "일간"] },
+  astrology: { own: ["하우스", "금성"], foreign: ["명반", "명식", "부부궁", "사화", "일간", "나크샤트라", "쿠타"] },
 };
 for (const method of NEO_COMPAT_PROMPT_METHODS) {
   const vocab = METHOD_VOCAB[method];
@@ -312,19 +314,55 @@ ok(
 // 나크샤트라 사실만 남는 폴백 경로가 되므로, 그 경로가 표를 깨뜨리지 않는지를 본다.
 const ME = { birthDate: "1990-03-15", birthTime: "08:30", gender: "female", calendarType: "solar" };
 const YOU = { birthDate: "1988-11-02", birthTime: "21:10", gender: "male", calendarType: "solar" };
+// 점성술 픽스처는 손으로 세운다 — prepareAstroPremiumCalculation 은 WASM/외부 왕복이라
+// 가드에서 부를 수 없다. buildNeoAstroSynastry 가 읽는 자리만 채운 최소 차트를 쓴다.
+const astroCusps = (start) => Array.from({ length: 12 }, (_, index) => (start + index * 30) % 360);
+const astroChart = (sun, moon, venus, mars, ascendant) => ({
+  resolved: {
+    swissChart: {
+      planets: { Sun: { longitude: sun }, Moon: { longitude: moon }, Venus: { longitude: venus }, Mars: { longitude: mars } },
+      houseCusps: astroCusps(ascendant),
+    },
+  },
+  localAstroChartJson: { chart: { ascendant: { signKo: "물병자리" } } },
+});
+const ASTRO_ME = astroChart(354.6, 120.3, 12.1, 200.5, 310);
+const ASTRO_YOU = astroChart(220.2, 122.9, 250.0, 20.4, 95);
+
 const COMPAT_FIXTURES = {
   ziwei: {
     selfChart: calculateZiweiAiChart({ birthInfo: ME }, { year: 2026 }),
     partnerChart: calculateZiweiAiChart({ birthInfo: YOU }, { year: 2026 }),
   },
   saju: { selfChart: calculateLifeBookAiSaju(ME), partnerChart: calculateLifeBookAiSaju(YOU) },
+  astrology: {
+    selfChart: ASTRO_ME,
+    partnerChart: ASTRO_YOU,
+    synastry: buildNeoAstroSynastry(ASTRO_ME, ASTRO_YOU),
+  },
 };
+// 픽스처가 없는 궁합 술수는 표·점수가 검사되지 않은 채 나간다. 미분류를 실패시킨다.
+for (const method of NEO_COMPAT_PROMPT_METHODS) {
+  ok(
+    COMPAT_FIXTURES[method] || method === "vedic",
+    `궁합 술수 "${method}" 의 확정값 픽스처가 없다 — 술수를 더했으면 여기도 함께 채울 것.`,
+  );
+}
 for (const [method, charts] of Object.entries(COMPAT_FIXTURES)) {
   const compat = buildNeoCompat({ method, ...charts, relationshipStatus: "reconciling", partnerGender: "male" });
   ok(compat, `${method}: buildNeoCompat 이 궁합을 못 만들었다.`);
   ok(compat.highlights.length >= 3, `${method}: 교차 판독이 ${compat.highlights.length}건뿐이다 — 근거가 얕다.`);
-  ok(compat.scores && compat.scores.axes.length > 0, `${method}: 엔진이 축을 내는데 점수가 비었다.`);
-  const summary = { ...ZIWEI_SUMMARY, method, compat };
+  // 🔴 점성술은 결정론 배점이 없어 점수를 내지 않는다(compat 모듈 머리말의 계약). 나머지는
+  //    엔진이 축을 내므로 비어 있으면 안 된다. "전부 null 허용"으로 풀면 계약이 사라진다.
+  if (method === "astrology") {
+    ok(compat.scores === null, "점성술이 없는 배점으로 점수를 만들었다 — 근거 없는 숫자다.");
+  } else {
+    ok(compat.scores && Number.isFinite(compat.scores.overall), `${method}: 엔진이 점수를 내는데 종합이 비었다.`);
+  }
+  // 🔴 술수 요약을 섞지 않는다 — 여기서 재는 것은 "궁합 확정값이 표에 다 실렸는가" 하나다.
+  //    자미두수 요약을 섞으면 점성술 표가 렌더할 이유가 없는 명궁·천이궁이 누락으로 잡힌다.
+  //    1인 요약의 커버리지는 위 ZIWEI_SUMMARY 검사가 이미 본다.
+  const summary = { method, compat };
   const cov = measureNeoBasisCoverage(summary, buildNeoBasisPayload(summary));
   ok(
     cov.total === 0 || cov.covered / cov.total >= 0.85,

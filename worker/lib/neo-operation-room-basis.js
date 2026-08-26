@@ -181,6 +181,13 @@ const COMPAT_PARTNER_ITEMS = Object.freeze({
     item("상대 라그나", digest.lagna),
     item("상대 달 사인", digest.moonSign),
   ],
+  astrology: (digest) => [
+    item("상대 태양", digest.sun),
+    item("상대 달", digest.moon),
+    item("상대 금성", digest.venus),
+    item("상대 화성", digest.mars),
+    item("상대 상승궁", digest.ascendant),
+  ],
 });
 
 /**
@@ -261,6 +268,7 @@ function astrologyGroups(summary) {
     group("timing", [
       item("시기 신호", summary.timingInsights),
     ]),
+    compatGroup("astrology", summary.compat),
   ];
 }
 

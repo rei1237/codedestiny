@@ -451,7 +451,12 @@ async function getExternalWesternChart(env, input, options = {}) {
   }
 }
 
-function aspectBetween(a, b) {
+/**
+ * 두 황경 사이의 주요 애스펙트(오브 8도). 순수 함수 — 시나스트리(neo-synastry.js)가
+ * 같은 규칙을 다시 쓰기 위해 export 한다. 여기 규칙을 복제하면 네이탈과 시나스트리의
+ * 오브가 조용히 갈라진다.
+ */
+export function aspectBetween(a, b) {
   const diff = Math.abs(nd(a) - nd(b));
   const normalized = diff > 180 ? 360 - diff : diff;
   const defs = [[0, "conjunction"], [60, "sextile"], [90, "square"], [120, "trine"], [180, "opposition"]];
@@ -492,7 +497,8 @@ function extractHouseCusps(housesResult) {
   return [];
 }
 
-function locateHouseByCusps(longitude, cusps) {
+/** 황경이 어느 하우스에 떨어지는가. 시나스트리의 하우스 오버레이가 그대로 재사용한다. */
+export function locateHouseByCusps(longitude, cusps) {
   const lon = nd(longitude);
   if (!Number.isFinite(lon) || !Array.isArray(cusps) || cusps.length !== 12) return null;
   for (let i = 0; i < 12; i += 1) {
