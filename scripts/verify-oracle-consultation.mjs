@@ -191,6 +191,33 @@ async function runMockSuite() {
   const withHiddenKey = { ...fixtureConsultation(), notRenderedByTheClient: "가".repeat(5000) };
   check("렌더링 안 되는 키는 세지 않는다", measureConsultationChars(withHiddenKey) === measured);
   check("공백은 제외한다", measureConsultationChars({ coreQuestion: "가 나 다" }) === 3);
+
+  console.log("\n[케이스 8] 안전 차단은 JSON 깨짐과 구분되고 재시도하지 않는다");
+  // 차단되면 Gemini 는 candidates 를 통째로 비우고 promptFeedback 만 보낸다.
+  const blockedFetch = mockFetch(() => jsonResponse({ promptFeedback: { blockReason: "SAFETY" } }));
+  const blockedResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: blockedFetch });
+  check("reason=blocked_SAFETY", blockedResult?.reason === "blocked_SAFETY", `reason=${blockedResult?.reason}`);
+  check("재시도하지 않는다(1회)", blockedFetch.calls.length === 1, `calls=${blockedFetch.calls.length}`);
+
+  const finishBlockedFetch = mockFetch(() => jsonResponse({ candidates: [{ finishReason: "SAFETY", content: { parts: [] } }] }));
+  const finishBlockedResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: finishBlockedFetch });
+  check("finishReason 차단도 blocked_ 로", finishBlockedResult?.reason === "blocked_SAFETY", `reason=${finishBlockedResult?.reason}`);
+  check("finishReason 차단도 1회", finishBlockedFetch.calls.length === 1, `calls=${finishBlockedFetch.calls.length}`);
+
+  const emptyFetch = mockFetch(() => jsonResponse({ candidates: [] }));
+  const emptyResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: emptyFetch });
+  check("candidates 없음은 empty_candidates", emptyResult?.reason === "empty_candidates", `reason=${emptyResult?.reason}`);
+
+  console.log("\n[케이스 9] 재시도 대상 분류 — 429/5xx 는 다시, 4xx 는 그만");
+  const rateLimitedFetch = mockFetch(() => jsonResponse({}, 429));
+  const rateLimitedResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: rateLimitedFetch });
+  check("429 는 reason 유지", rateLimitedResult?.reason === "gemini_http_429", `reason=${rateLimitedResult?.reason}`);
+  check("429 는 재시도한다(3회)", rateLimitedFetch.calls.length === 3, `calls=${rateLimitedFetch.calls.length}`);
+
+  const badRequestFetch = mockFetch(() => jsonResponse({}, 400));
+  const badRequestResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: badRequestFetch });
+  check("400 은 reason 유지", badRequestResult?.reason === "gemini_http_400", `reason=${badRequestResult?.reason}`);
+  check("400 은 재시도하지 않는다(1회)", badRequestFetch.calls.length === 1, `calls=${badRequestFetch.calls.length}`);
 }
 
 async function runLive() {
