@@ -2423,12 +2423,18 @@ function buildOracleConsultationRequestId(): string {
   return `${ORACLE_CONSULTATION_FEATURE_KEY}:req:${random}`;
 }
 
-type OracleConsultationPositionReading = { positionOrder: number; headline: string; reading: string };
+type OracleConsultationPositionReading = { positionOrder: number; headline: string; reading: string; positionAdvice?: string };
+type OracleConsultationSynergy = { pairLabel?: string; insight?: string };
+type OracleConsultationTimeline = { now?: string; near?: string; turning?: string };
+// 🔴 확대 섹션 4개는 전부 optional 이다 — 모델이 하나를 빠뜨려도 화면이 죽으면 안 된다.
 type OracleConsultation = {
   coreQuestion: string;
   bigPicture: string;
   positionReadings: OracleConsultationPositionReading[];
+  cardSynergies?: OracleConsultationSynergy[];
+  timeline?: OracleConsultationTimeline;
   tension: string;
+  categoryFocus?: string;
   caution: string;
   actions: string[];
   closingLine: string;
@@ -2439,6 +2445,8 @@ type OracleConsultation = {
 // (기존 PROMPT_MAKER_UI_COPY[locale] || PROMPT_MAKER_UI_COPY.ko 관례와 동일).
 const ORACLE_CONSULTATION_UI_COPY: Record<"ko" | "en", {
   badge: string; title: string; loading: string; unavailable: string; showPrompt: string; hidePrompt: string;
+  synergyHeading: string; timelineHeading: string; timelineNow: string; timelineNear: string; timelineTurning: string;
+  focusHeading: string; actionsHeading: string;
 }> = {
   ko: {
     badge: "AI 타로 오라클 상담",
@@ -2447,6 +2455,13 @@ const ORACLE_CONSULTATION_UI_COPY: Record<"ko" | "en", {
     unavailable: "지금은 AI 상담 생성에 실패했어요. 아래 프롬프트를 복사해 다른 AI 챗봇에 붙여넣어 보세요.",
     showPrompt: "이 상담에 쓰인 프롬프트 보기",
     hidePrompt: "프롬프트 접기",
+    synergyHeading: "카드가 서로 만드는 의미",
+    timelineHeading: "시기의 흐름",
+    timelineNow: "지금",
+    timelineNear: "다가오는 흐름",
+    timelineTurning: "분기점",
+    focusHeading: "이 주제에서 특히 볼 것",
+    actionsHeading: "지금 할 수 있는 것",
   },
   en: {
     badge: "AI Tarot Oracle Consultation",
@@ -2455,6 +2470,13 @@ const ORACLE_CONSULTATION_UI_COPY: Record<"ko" | "en", {
     unavailable: "AI consultation generation failed right now. Copy the prompt below and paste it into another AI chatbot.",
     showPrompt: "View the prompt used for this consultation",
     hidePrompt: "Hide prompt",
+    synergyHeading: "What the cards mean together",
+    timelineHeading: "How the timing unfolds",
+    timelineNow: "Now",
+    timelineNear: "What is approaching",
+    timelineTurning: "Turning point",
+    focusHeading: "What matters most for this topic",
+    actionsHeading: "What you can do now",
   },
 };
 
@@ -3636,15 +3658,55 @@ export default function TarotPromptMakerPage() {
                                 <div key={row.positionOrder} className="rounded-xl border border-white/10 p-3" style={{ background: "rgba(0,0,0,0.3)" }}>
                                   <div className="text-xs font-semibold text-[#e9d5ff] mb-1">{row.headline}</div>
                                   <p className="text-[#f3e8ff]/80 text-sm leading-6">{row.reading}</p>
+                                  {row.positionAdvice && (
+                                    <p className="mt-2 pt-2 border-t border-white/10 text-[#c4b5fd]/85 text-xs leading-6">{row.positionAdvice}</p>
+                                  )}
                                 </div>
                               ))}
                             </div>
+                            {(consultation.cardSynergies?.length ?? 0) > 0 && (
+                              <div className="space-y-2">
+                                <div className="text-xs font-semibold text-[#e9d5ff]">{consultationCopy.synergyHeading}</div>
+                                {consultation.cardSynergies?.map((row, idx) => (
+                                  <div key={idx} className="rounded-xl border border-white/10 p-3" style={{ background: "rgba(0,0,0,0.22)" }}>
+                                    {row.pairLabel && <div className="text-xs text-[#c084fc] mb-1">{row.pairLabel}</div>}
+                                    <p className="text-[#f3e8ff]/80 text-sm leading-6">{row.insight}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {(consultation.timeline?.now || consultation.timeline?.near || consultation.timeline?.turning) && (
+                              <div className="space-y-2">
+                                <div className="text-xs font-semibold text-[#e9d5ff]">{consultationCopy.timelineHeading}</div>
+                                <dl className="space-y-2">
+                                  {([
+                                    [consultationCopy.timelineNow, consultation.timeline?.now],
+                                    [consultationCopy.timelineNear, consultation.timeline?.near],
+                                    [consultationCopy.timelineTurning, consultation.timeline?.turning],
+                                  ] as const).filter(([, body]) => Boolean(body)).map(([label, body]) => (
+                                    <div key={label} className="rounded-xl border border-white/10 p-3" style={{ background: "rgba(0,0,0,0.22)" }}>
+                                      <dt className="text-xs text-[#c084fc] mb-1">{label}</dt>
+                                      <dd className="text-[#f3e8ff]/80 text-sm leading-6">{body}</dd>
+                                    </div>
+                                  ))}
+                                </dl>
+                              </div>
+                            )}
                             <p className="text-[#f3e8ff]/80">{consultation.tension}</p>
+                            {consultation.categoryFocus && (
+                              <div className="rounded-xl border border-[#c084fc]/25 p-3" style={{ background: "rgba(124,58,237,0.12)" }}>
+                                <div className="text-xs font-semibold text-[#e9d5ff] mb-1">{consultationCopy.focusHeading}</div>
+                                <p className="text-[#f3e8ff]/85 text-sm leading-6">{consultation.categoryFocus}</p>
+                              </div>
+                            )}
                             <p className="text-amber-200/80 text-xs leading-6">{consultation.caution}</p>
                             {consultation.actions?.length > 0 && (
-                              <ul className="list-disc list-inside space-y-1 text-[#f3e8ff]/85">
-                                {consultation.actions.map((action, idx) => (<li key={idx}>{action}</li>))}
-                              </ul>
+                              <div className="space-y-1">
+                                <div className="text-xs font-semibold text-[#e9d5ff]">{consultationCopy.actionsHeading}</div>
+                                <ul className="list-disc list-inside space-y-1 text-[#f3e8ff]/85">
+                                  {consultation.actions.map((action, idx) => (<li key={idx}>{action}</li>))}
+                                </ul>
+                              </div>
                             )}
                             <p className="italic text-[#e9d5ff] text-center pt-3 mt-2 border-t border-white/10">{consultation.closingLine}</p>
                           </div>
