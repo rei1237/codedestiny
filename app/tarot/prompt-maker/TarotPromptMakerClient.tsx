@@ -2413,6 +2413,9 @@ function StarField() {
 }
 
 const ORACLE_CONSULTATION_FEATURE_KEY = "tarot-prompt-maker";
+// 사용자가 누를 수 있는 무과금 재생성 횟수. 서버의 requestId 단위 상한(4회)보다 낮게 둬서
+// 정상 사용이 429 를 먼저 만나지 않게 한다(첫 생성 1회 + 여기 2회 = 3회).
+const ORACLE_CONSULTATION_MAX_RETRIES = 2;
 
 // 회당결제라 상담마다 새 requestId 가 필요하다(찻집·수비학 타로와 동일 계약) — 영구 해금이던
 // 시절의 고정 requestId(사용자당 결제 1회 전제)는 더 이상 맞지 않는다.
@@ -2423,12 +2426,31 @@ function buildOracleConsultationRequestId(): string {
   return `${ORACLE_CONSULTATION_FEATURE_KEY}:req:${random}`;
 }
 
-type OracleConsultationPositionReading = { positionOrder: number; headline: string; reading: string };
+// 상담 카드가 지금 무엇을 보여줄지 정하는 단일 상태. 실패는 사유별로 갈라 각각 다른 안내와
+// 재시도 가능 여부를 갖는다(서버가 code + retryable 로 알려 준다).
+type OracleConsultationStatus =
+  | "llm"
+  | "failed_auth"
+  | "failed_payment"
+  | "failed_infra"
+  | "failed_input"
+  | "failed_limit"
+  | "failed_generation"
+  | "failed_network"
+  | null;
+
+type OracleConsultationPositionReading = { positionOrder: number; headline: string; reading: string; positionAdvice?: string };
+type OracleConsultationSynergy = { pairLabel?: string; insight?: string };
+type OracleConsultationTimeline = { now?: string; near?: string; turning?: string };
+// 🔴 확대 섹션 4개는 전부 optional 이다 — 모델이 하나를 빠뜨려도 화면이 죽으면 안 된다.
 type OracleConsultation = {
   coreQuestion: string;
   bigPicture: string;
   positionReadings: OracleConsultationPositionReading[];
+  cardSynergies?: OracleConsultationSynergy[];
+  timeline?: OracleConsultationTimeline;
   tension: string;
+  categoryFocus?: string;
   caution: string;
   actions: string[];
   closingLine: string;
@@ -2439,6 +2461,10 @@ type OracleConsultation = {
 // (기존 PROMPT_MAKER_UI_COPY[locale] || PROMPT_MAKER_UI_COPY.ko 관례와 동일).
 const ORACLE_CONSULTATION_UI_COPY: Record<"ko" | "en", {
   badge: string; title: string; loading: string; unavailable: string; showPrompt: string; hidePrompt: string;
+  synergyHeading: string; timelineHeading: string; timelineNow: string; timelineNear: string; timelineTurning: string;
+  focusHeading: string; actionsHeading: string;
+  failedAuth: string; failedPayment: string; failedInfra: string; failedInput: string; failedLimit: string; failedNetwork: string;
+  retry: string; retrying: string; retryExhausted: string;
 }> = {
   ko: {
     badge: "AI 타로 오라클 상담",
@@ -2447,6 +2473,22 @@ const ORACLE_CONSULTATION_UI_COPY: Record<"ko" | "en", {
     unavailable: "지금은 AI 상담 생성에 실패했어요. 아래 프롬프트를 복사해 다른 AI 챗봇에 붙여넣어 보세요.",
     showPrompt: "이 상담에 쓰인 프롬프트 보기",
     hidePrompt: "프롬프트 접기",
+    synergyHeading: "카드가 서로 만드는 의미",
+    timelineHeading: "시기의 흐름",
+    timelineNow: "지금",
+    timelineNear: "다가오는 흐름",
+    timelineTurning: "분기점",
+    focusHeading: "이 주제에서 특히 볼 것",
+    actionsHeading: "지금 할 수 있는 것",
+    failedAuth: "로그인이 풀렸어요. 다시 로그인하면 추가 결제 없이 상담을 이어서 받을 수 있어요.",
+    failedPayment: "결제 확인이 아직 반영되지 않았어요. 추가 결제 없이 다시 시도해 주세요.",
+    failedInfra: "서버 확인이 잠시 지연되고 있어요. 추가 결제 없이 다시 시도해 주세요.",
+    failedInput: "카드 정보를 서버가 확인하지 못했어요. 아래 프롬프트를 복사해 다른 AI 챗봇에 붙여넣어 보세요.",
+    failedLimit: "이 상담의 재생성 횟수를 모두 사용했어요. 아래 프롬프트를 복사해 사용해 주세요.",
+    failedNetwork: "연결이 불안정해요. 추가 결제 없이 다시 시도해 주세요.",
+    retry: "추가 결제 없이 다시 생성",
+    retrying: "다시 생성하는 중…",
+    retryExhausted: "재시도 가능 횟수를 모두 사용했어요.",
   },
   en: {
     badge: "AI Tarot Oracle Consultation",
@@ -2455,8 +2497,37 @@ const ORACLE_CONSULTATION_UI_COPY: Record<"ko" | "en", {
     unavailable: "AI consultation generation failed right now. Copy the prompt below and paste it into another AI chatbot.",
     showPrompt: "View the prompt used for this consultation",
     hidePrompt: "Hide prompt",
+    synergyHeading: "What the cards mean together",
+    timelineHeading: "How the timing unfolds",
+    timelineNow: "Now",
+    timelineNear: "What is approaching",
+    timelineTurning: "Turning point",
+    focusHeading: "What matters most for this topic",
+    actionsHeading: "What you can do now",
+    failedAuth: "Your session expired. Sign in again and you can continue the consultation at no extra charge.",
+    failedPayment: "Your payment has not registered yet. Try again at no extra charge.",
+    failedInfra: "Server verification is briefly delayed. Try again at no extra charge.",
+    failedInput: "The server could not verify the card data. Copy the prompt below and paste it into another AI chatbot.",
+    failedLimit: "You have used every regeneration for this consultation. Please copy the prompt below.",
+    failedNetwork: "The connection is unstable. Try again at no extra charge.",
+    retry: "Generate again at no extra charge",
+    retrying: "Generating again…",
+    retryExhausted: "You have used every retry.",
   },
 };
+
+// 서버 응답(status + code)을 화면 상태로 접는다. 🔴 응답을 못 읽은 경우까지 포함해 **모든** 실패가
+// 여기서 사유를 얻는다 — 하나라도 빠지면 예전처럼 "생성 실패" 한 줄로 되돌아간다.
+function resolveConsultationFailure(status: number, code: string): Exclude<OracleConsultationStatus, "llm" | null> {
+  if (code === "ORACLE_CONSULTATION_INVALID_INPUT") return "failed_input";
+  if (code === "ORACLE_CONSULTATION_RETRY_LIMIT") return "failed_limit";
+  if (status === 401 || status === 403) return "failed_auth";
+  if (status === 402) return "failed_payment";
+  if (status === 503) return "failed_infra";
+  if (status === 429) return "failed_limit";
+  if (status === 0) return "failed_network";
+  return "failed_generation";
+}
 
 /* ─── Main Component ─── */
 export default function TarotPromptMakerPage() {
@@ -2474,8 +2545,14 @@ export default function TarotPromptMakerPage() {
   const [promptResult, setPromptResult] = useState<PromptResult | null>(null);
   const [consultation, setConsultation] = useState<OracleConsultation | null>(null);
   const [consultationLoading, setConsultationLoading] = useState(false);
-  // "llm" = 실제 AI 상담 성공 / "unavailable" = 결제는 됐지만 생성 실패해 프롬프트만 남은 상태
-  const [consultationSource, setConsultationSource] = useState<"llm" | "unavailable" | null>(null);
+  // "llm" = AI 상담 성공. failed_* = 결제는 됐지만 생성이 안 돼 프롬프트만 남은 상태이며,
+  // 🔴 사유를 구분한다 — 예전에는 402(결제 증빙)·502(생성 실패)·503(인프라)이 전부 같은 문구로
+  // 접혀 사용자도 우리도 원인을 볼 수 없었다.
+  const [consultationSource, setConsultationSource] = useState<OracleConsultationStatus>(null);
+  // 무과금 재시도용. 이미 결제가 끝난 requestId 를 그대로 다시 쓴다.
+  const [consultationRequestId, setConsultationRequestId] = useState<string | null>(null);
+  const [consultationRetries, setConsultationRetries] = useState(0);
+  const [consultationRetryable, setConsultationRetryable] = useState(false);
   const [showPromptDetail, setShowPromptDetail] = useState(false);
   const [feedback, setFeedback] = useState("");
   const [questionStatus, setQuestionStatus] = useState("");
@@ -2493,6 +2570,16 @@ export default function TarotPromptMakerPage() {
   const uiCopy = PROMPT_MAKER_UI_COPY[locale] || PROMPT_MAKER_UI_COPY.ko;
   const feedbackCopy = PROMPT_MAKER_FEEDBACK_COPY[locale] || PROMPT_MAKER_FEEDBACK_COPY.ko;
   const consultationCopy = ORACLE_CONSULTATION_UI_COPY[locale as "ko" | "en"] || ORACLE_CONSULTATION_UI_COPY.ko;
+  // 실패 사유 → 안내 문구. failed_generation 은 기존 unavailable 문구를 그대로 쓴다.
+  const consultationFailureMessage = {
+    failed_auth: consultationCopy.failedAuth,
+    failed_payment: consultationCopy.failedPayment,
+    failed_infra: consultationCopy.failedInfra,
+    failed_input: consultationCopy.failedInput,
+    failed_limit: consultationCopy.failedLimit,
+    failed_network: consultationCopy.failedNetwork,
+    failed_generation: consultationCopy.unavailable,
+  }[consultationSource as string] || consultationCopy.unavailable;
   const localizedPromptData = useMemo(() => getLocalizedPromptMakerData(locale), [locale]);
   const localizedSpreadLibrary = useMemo(() => getLocalizedSpreadLibrary(locale), [locale]);
   const categoryLabel = localizedPromptData.categoryLabel;
@@ -2689,6 +2776,9 @@ export default function TarotPromptMakerPage() {
     setConsultation(null);
     setConsultationSource(null);
     setConsultationLoading(false);
+    setConsultationRequestId(null);
+    setConsultationRetries(0);
+    setConsultationRetryable(false);
     setShowPromptDetail(false);
     setCopied(false);
     setShowFullDeck(false);
@@ -2725,6 +2815,8 @@ export default function TarotPromptMakerPage() {
     setConsultationLoading(true);
     setConsultation(null);
     setConsultationSource(null);
+    // 실패해도 재시도 버튼이 결제된 requestId 를 쥐고 있어야 한다.
+    setConsultationRequestId(requestId);
     try {
       const { authFetch } = await import("../../_lib/auth-client");
       const res = await authFetch("/api/tarot/oracle-consultation", {
@@ -2749,16 +2841,31 @@ export default function TarotPromptMakerPage() {
       if (res.ok && data?.ok && data?.consultation) {
         setConsultation(data.consultation as OracleConsultation);
         setConsultationSource("llm");
+        setConsultationRetryable(false);
       } else {
-        setConsultationSource("unavailable");
+        setConsultationSource(resolveConsultationFailure(res.status, String(data?.code || "")));
+        // 서버가 판정을 안 보냈으면(구버전 워커 등) 재시도를 허용한다 — 막는 쪽이 더 나쁘다.
+        setConsultationRetryable(data?.retryable !== false);
         setShowPromptDetail(true);
       }
     } catch {
-      setConsultationSource("unavailable");
+      // fetch 자체가 던진 경우. 응답이 없으므로 status 0 으로 네트워크 실패로 접는다.
+      setConsultationSource("failed_network");
+      setConsultationRetryable(true);
       setShowPromptDetail(true);
     } finally {
       setConsultationLoading(false);
     }
+  }
+
+  // 🔴 결제된 requestId 를 그대로 재사용한다 — ensurePaidAccess 를 다시 부르지 않으므로 추가 과금이
+  // 없다(verifyPerUsePayment 는 조회만 하므로 같은 requestId 가 반복 증빙된다). 서버에도
+  // requestId 단위 재생성 상한이 걸려 있어 이 버튼이 무제한 호출 경로가 되지 않는다.
+  async function handleRetryOracleConsultation() {
+    if (consultationLoading || !consultationRequestId) return;
+    if (consultationRetries >= ORACLE_CONSULTATION_MAX_RETRIES) return;
+    setConsultationRetries((prev) => prev + 1);
+    await requestOracleConsultation(consultationRequestId);
   }
 
   function handleQuestionChip(text: string) {
@@ -3623,7 +3730,7 @@ export default function TarotPromptMakerPage() {
                         {consultationLoading && (
                           <div className="flex items-center justify-center gap-3 py-8 text-[#c4b5fd]/80 text-sm">
                             <span className="inline-block w-4 h-4 rounded-full border-2 border-[#c084fc]/40 border-t-[#c084fc] animate-spin" aria-hidden />
-                            {consultationCopy.loading}
+                            {consultationRetries > 0 ? consultationCopy.retrying : consultationCopy.loading}
                           </div>
                         )}
 
@@ -3636,22 +3743,79 @@ export default function TarotPromptMakerPage() {
                                 <div key={row.positionOrder} className="rounded-xl border border-white/10 p-3" style={{ background: "rgba(0,0,0,0.3)" }}>
                                   <div className="text-xs font-semibold text-[#e9d5ff] mb-1">{row.headline}</div>
                                   <p className="text-[#f3e8ff]/80 text-sm leading-6">{row.reading}</p>
+                                  {row.positionAdvice && (
+                                    <p className="mt-2 pt-2 border-t border-white/10 text-[#c4b5fd]/85 text-xs leading-6">{row.positionAdvice}</p>
+                                  )}
                                 </div>
                               ))}
                             </div>
+                            {(consultation.cardSynergies?.length ?? 0) > 0 && (
+                              <div className="space-y-2">
+                                <div className="text-xs font-semibold text-[#e9d5ff]">{consultationCopy.synergyHeading}</div>
+                                {consultation.cardSynergies?.map((row, idx) => (
+                                  <div key={idx} className="rounded-xl border border-white/10 p-3" style={{ background: "rgba(0,0,0,0.22)" }}>
+                                    {row.pairLabel && <div className="text-xs text-[#c084fc] mb-1">{row.pairLabel}</div>}
+                                    <p className="text-[#f3e8ff]/80 text-sm leading-6">{row.insight}</p>
+                                  </div>
+                                ))}
+                              </div>
+                            )}
+                            {(consultation.timeline?.now || consultation.timeline?.near || consultation.timeline?.turning) && (
+                              <div className="space-y-2">
+                                <div className="text-xs font-semibold text-[#e9d5ff]">{consultationCopy.timelineHeading}</div>
+                                <dl className="space-y-2">
+                                  {([
+                                    [consultationCopy.timelineNow, consultation.timeline?.now],
+                                    [consultationCopy.timelineNear, consultation.timeline?.near],
+                                    [consultationCopy.timelineTurning, consultation.timeline?.turning],
+                                  ] as const).filter(([, body]) => Boolean(body)).map(([label, body]) => (
+                                    <div key={label} className="rounded-xl border border-white/10 p-3" style={{ background: "rgba(0,0,0,0.22)" }}>
+                                      <dt className="text-xs text-[#c084fc] mb-1">{label}</dt>
+                                      <dd className="text-[#f3e8ff]/80 text-sm leading-6">{body}</dd>
+                                    </div>
+                                  ))}
+                                </dl>
+                              </div>
+                            )}
                             <p className="text-[#f3e8ff]/80">{consultation.tension}</p>
+                            {consultation.categoryFocus && (
+                              <div className="rounded-xl border border-[#c084fc]/25 p-3" style={{ background: "rgba(124,58,237,0.12)" }}>
+                                <div className="text-xs font-semibold text-[#e9d5ff] mb-1">{consultationCopy.focusHeading}</div>
+                                <p className="text-[#f3e8ff]/85 text-sm leading-6">{consultation.categoryFocus}</p>
+                              </div>
+                            )}
                             <p className="text-amber-200/80 text-xs leading-6">{consultation.caution}</p>
                             {consultation.actions?.length > 0 && (
-                              <ul className="list-disc list-inside space-y-1 text-[#f3e8ff]/85">
-                                {consultation.actions.map((action, idx) => (<li key={idx}>{action}</li>))}
-                              </ul>
+                              <div className="space-y-1">
+                                <div className="text-xs font-semibold text-[#e9d5ff]">{consultationCopy.actionsHeading}</div>
+                                <ul className="list-disc list-inside space-y-1 text-[#f3e8ff]/85">
+                                  {consultation.actions.map((action, idx) => (<li key={idx}>{action}</li>))}
+                                </ul>
+                              </div>
                             )}
                             <p className="italic text-[#e9d5ff] text-center pt-3 mt-2 border-t border-white/10">{consultation.closingLine}</p>
                           </div>
                         )}
 
-                        {!consultationLoading && consultationSource === "unavailable" && (
-                          <p className="text-amber-200/80 text-xs leading-6">{consultationCopy.unavailable}</p>
+                        {!consultationLoading && consultationSource?.startsWith("failed") && (
+                          <div className="space-y-3">
+                            <p className="text-amber-200/80 text-xs leading-6">
+                              {consultationFailureMessage}
+                            </p>
+                            {consultationRetryable && consultationRequestId && consultationRetries < ORACLE_CONSULTATION_MAX_RETRIES && (
+                              <button
+                                type="button"
+                                onClick={handleRetryOracleConsultation}
+                                className="rounded-xl border border-[#c084fc]/40 px-4 py-2 text-xs font-semibold text-[#e9d5ff] hover:border-[#c084fc] hover:text-white transition-colors"
+                                style={{ background: "rgba(124,58,237,0.18)" }}
+                              >
+                                {consultationCopy.retry}
+                              </button>
+                            )}
+                            {consultationRetryable && consultationRetries >= ORACLE_CONSULTATION_MAX_RETRIES && (
+                              <p className="text-[#c4b5fd]/70 text-xs leading-6">{consultationCopy.retryExhausted}</p>
+                            )}
+                          </div>
                         )}
                       </div>
                     )}

@@ -2,7 +2,13 @@
 // 타로 오라클 상담(lib/tarot/oracle-consultation.mjs) 회귀 검증
 // - mock fetch로 카드 검증·LLM 성공/HTTP 오류/JSON 깨짐 케이스에서 source·필드·재시도 동작을 검증한다.
 // - `node scripts/verify-oracle-consultation.mjs --live` 실행 시 실제 GEMINIF_API_KEY로 1회 호출해 실물 품질을 출력한다.
-import { generateOracleConsultation, validateOracleConsultationInput } from "../lib/tarot/oracle-consultation.mjs";
+import {
+  buildOracleConsultationPrompt,
+  generateOracleConsultation,
+  measureConsultationChars,
+  resolveOracleConsultationTargetChars,
+  validateOracleConsultationInput,
+} from "../lib/tarot/oracle-consultation.mjs";
 
 const LIVE = process.argv.includes("--live");
 
@@ -42,19 +48,57 @@ function jsonResponse(body, status = 200) {
   return { ok: status >= 200 && status < 300, status, json: async () => body };
 }
 
+// 분량 게이트가 생긴 뒤로 fixture 는 "목표 분량을 넘는 정상 응답"이어야 한다 —
+// 짧으면 재요청 경로로 빠져 source 가 llm_short 가 된다(그 경로는 케이스 5가 따로 본다).
+function sentences(seed, count) {
+  const out = [];
+  for (let index = 0; index < count; index += 1) {
+    out.push(`${seed}에 대해 ${index + 1}번째로 짚어 보면, 지금 흐름에서 실제로 무엇이 움직이고 있는지가 더 또렷해집니다.`);
+  }
+  return out.join(" ");
+}
+
 function fixtureConsultation() {
   return {
-    coreQuestion: "지금 상대의 마음이 어디로 향해 있는지가 핵심입니다.",
-    bigPicture: "전체 흐름은 과거의 선택이 현재의 망설임을 거쳐 새로운 시작으로 이어집니다.",
+    coreQuestion: sentences("질문자가 지금 묻고 있는 진짜 주제", 3),
+    bigPicture: sentences("스프레드 전체에서 먼저 보이는 큰 흐름", 6),
     positionReadings: [
-      { positionOrder: 1, headline: "과거의 진심", reading: "연인 카드는 두 사람이 가치관을 나누며 진심으로 이어졌던 시기를 보여줍니다." },
-      { positionOrder: 2, headline: "흔들리는 현재", reading: "역방향 바보는 지금 확신 없이 결정을 미루는 상태를 나타냅니다." },
-      { positionOrder: 3, headline: "완성으로 가는 미래", reading: "세계 카드는 매듭짓고 다음 단계로 나아갈 가능성을 보여줍니다." },
+      { positionOrder: 1, headline: "과거의 진심", reading: sentences("연인 카드가 놓인 과거 자리", 7), positionAdvice: sentences("이 자리에서 취할 태도", 2) },
+      { positionOrder: 2, headline: "흔들리는 현재", reading: sentences("역방향 바보가 놓인 현재 자리", 7), positionAdvice: sentences("이 자리에서 취할 태도", 2) },
+      { positionOrder: 3, headline: "완성으로 가는 미래", reading: sentences("세계 카드가 놓인 미래 자리", 7), positionAdvice: sentences("이 자리에서 취할 태도", 2) },
     ],
-    tension: "과거의 확신과 현재의 망설임이 부딪히지만, 그 긴장이 결국 성숙한 선택으로 이어집니다.",
-    caution: "상대의 침묵을 무관심으로 단정하지 마세요.",
-    actions: ["먼저 가벼운 안부를 건네 보세요.", "확답을 재촉하지 말고 여지를 남겨 두세요."],
-    closingLine: "마음이 아직 그 자리에 있다면, 서두르지 않아도 길은 다시 이어집니다.",
+    cardSynergies: [
+      { pairLabel: "1번 연인 × 3번 세계", insight: sentences("두 카드가 함께 만드는 의미", 4) },
+      { pairLabel: "2번 바보 × 3번 세계", insight: sentences("두 카드가 함께 만드는 의미", 4) },
+    ],
+    timeline: {
+      now: sentences("지금 국면에서 일어나고 있는 것", 3),
+      near: sentences("다가오는 국면", 3),
+      turning: sentences("흐름이 갈리는 분기점", 3),
+    },
+    tension: sentences("카드들이 서로 만드는 긴장과 조화", 5),
+    categoryFocus: sentences("이 카테고리에서만 의미가 있는 심화 조언", 5),
+    caution: sentences("조심해야 할 착각과 과잉 기대", 4),
+    actions: [
+      sentences("오늘부터 가능한 첫 번째 행동", 2),
+      sentences("오늘부터 가능한 두 번째 행동", 2),
+      sentences("오늘부터 가능한 세 번째 행동", 2),
+      sentences("오늘부터 가능한 네 번째 행동", 2),
+    ],
+    closingLine: sentences("마음을 정리하는 마지막 한마디", 3),
+  };
+}
+
+// 렌더러가 그리는 필드가 거의 비어 있어 목표 분량에 한참 못 미치는 응답.
+function shortFixtureConsultation() {
+  return {
+    coreQuestion: "짧습니다.",
+    bigPicture: "짧습니다.",
+    positionReadings: [{ positionOrder: 1, headline: "짧음", reading: "짧습니다." }],
+    tension: "짧습니다.",
+    caution: "짧습니다.",
+    actions: ["짧습니다."],
+    closingLine: "짧습니다.",
   };
 }
 
@@ -107,6 +151,73 @@ async function runMockSuite() {
   console.log("\n[케이스 4] Gemini 키 없음 → missing_config 로 즉시 실패(재시도 없음)");
   const noKeyResult = await generateOracleConsultation(SAMPLE_INPUT, { env: {}, fetchImpl: okFetch });
   check("reason=missing_config", noKeyResult?.reason === "missing_config", `reason=${noKeyResult?.reason}`);
+
+  console.log("\n[케이스 5] 분량 미달 → 보강 지시로 재요청, 끝까지 미달이면 결과를 버리지 않는다");
+  const shortFetch = mockFetch(() => jsonResponse({
+    candidates: [{ finishReason: "STOP", content: { parts: [{ text: JSON.stringify(shortFixtureConsultation()) }] } }],
+  }));
+  const shortResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: shortFetch });
+  // 🔴 이미 결제가 끝난 사용자에게 실패 화면을 주지 않는다 — 짧아도 결과는 나가야 한다.
+  check("ok:true (결과 유지)", shortResult?.ok === true, `ok=${shortResult?.ok} reason=${shortResult?.reason}`);
+  check("source=llm_short", shortResult?.source === "llm_short", `source=${shortResult?.source}`);
+  check("3회까지 재요청", shortFetch.calls.length === 3, `calls=${shortFetch.calls.length}`);
+  const retryPrompt = JSON.parse(shortFetch.calls[1]?.init?.body || "{}")?.contents?.[0]?.parts?.[0]?.text || "";
+  check("2회차 프롬프트에 보강 지시가 붙는다", retryPrompt.includes("[재작성]"));
+  const firstPrompt = JSON.parse(shortFetch.calls[0]?.init?.body || "{}")?.contents?.[0]?.parts?.[0]?.text || "";
+  check("1회차에는 보강 지시가 없다", !firstPrompt.includes("[재작성]"));
+
+  console.log("\n[케이스 6] 확대된 출력 스키마와 목표 분량이 프롬프트에 실린다");
+  const NEW_KEYS = ["positionAdvice", "cardSynergies", "timeline", "categoryFocus"];
+  for (const key of NEW_KEYS) {
+    check(`프롬프트에 ${key} 포함`, promptText.includes(key));
+  }
+  const target3 = resolveOracleConsultationTargetChars(3, {});
+  check("프롬프트에 목표 분량 숫자 포함", promptText.includes(String(target3)), `target=${target3}`);
+  check("조합 개수 지시 포함", promptText.includes("[조합 개수]"));
+
+  // 🔴 카드 수에 비례하는지 — 값을 손으로 적지 않고 실제 빌더 출력에서 확인한다.
+  const targets = [1, 3, 7, 10, 14].map((n) => {
+    const cards = Array.from({ length: n }, (_, i) => ({ cardId: SAMPLE_INPUT.cards[i % 3].cardId, orientation: "upright", positionLabel: `P${i}` }));
+    const validated = validateOracleConsultationInput({ ...SAMPLE_INPUT, cards });
+    return validated.ok ? buildOracleConsultationPrompt({ ...validated.data, locale: "ko" }).targetChars : -1;
+  });
+  check("목표 분량이 카드 수에 따라 단조 증가", targets.every((v, i) => v > 0 && (i === 0 || v > targets[i - 1])), `targets=${targets.join(",")}`);
+  check("1카드 목표가 현행 3카드 실측(1457자)보다 크다", targets[0] > 1457, `1카드=${targets[0]}`);
+
+  console.log("\n[케이스 7] measureConsultationChars 는 렌더러가 그리는 필드만 센다");
+  const measured = measureConsultationChars(fixtureConsultation());
+  check("정상 fixture 가 3카드 목표를 넘는다", measured >= Math.round(target3 * 0.7), `measured=${measured} min=${Math.round(target3 * 0.7)}`);
+  check("빈 값은 0", measureConsultationChars(null) === 0 && measureConsultationChars({}) === 0);
+  const withHiddenKey = { ...fixtureConsultation(), notRenderedByTheClient: "가".repeat(5000) };
+  check("렌더링 안 되는 키는 세지 않는다", measureConsultationChars(withHiddenKey) === measured);
+  check("공백은 제외한다", measureConsultationChars({ coreQuestion: "가 나 다" }) === 3);
+
+  console.log("\n[케이스 8] 안전 차단은 JSON 깨짐과 구분되고 재시도하지 않는다");
+  // 차단되면 Gemini 는 candidates 를 통째로 비우고 promptFeedback 만 보낸다.
+  const blockedFetch = mockFetch(() => jsonResponse({ promptFeedback: { blockReason: "SAFETY" } }));
+  const blockedResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: blockedFetch });
+  check("reason=blocked_SAFETY", blockedResult?.reason === "blocked_SAFETY", `reason=${blockedResult?.reason}`);
+  check("재시도하지 않는다(1회)", blockedFetch.calls.length === 1, `calls=${blockedFetch.calls.length}`);
+
+  const finishBlockedFetch = mockFetch(() => jsonResponse({ candidates: [{ finishReason: "SAFETY", content: { parts: [] } }] }));
+  const finishBlockedResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: finishBlockedFetch });
+  check("finishReason 차단도 blocked_ 로", finishBlockedResult?.reason === "blocked_SAFETY", `reason=${finishBlockedResult?.reason}`);
+  check("finishReason 차단도 1회", finishBlockedFetch.calls.length === 1, `calls=${finishBlockedFetch.calls.length}`);
+
+  const emptyFetch = mockFetch(() => jsonResponse({ candidates: [] }));
+  const emptyResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: emptyFetch });
+  check("candidates 없음은 empty_candidates", emptyResult?.reason === "empty_candidates", `reason=${emptyResult?.reason}`);
+
+  console.log("\n[케이스 9] 재시도 대상 분류 — 429/5xx 는 다시, 4xx 는 그만");
+  const rateLimitedFetch = mockFetch(() => jsonResponse({}, 429));
+  const rateLimitedResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: rateLimitedFetch });
+  check("429 는 reason 유지", rateLimitedResult?.reason === "gemini_http_429", `reason=${rateLimitedResult?.reason}`);
+  check("429 는 재시도한다(3회)", rateLimitedFetch.calls.length === 3, `calls=${rateLimitedFetch.calls.length}`);
+
+  const badRequestFetch = mockFetch(() => jsonResponse({}, 400));
+  const badRequestResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: badRequestFetch });
+  check("400 은 reason 유지", badRequestResult?.reason === "gemini_http_400", `reason=${badRequestResult?.reason}`);
+  check("400 은 재시도하지 않는다(1회)", badRequestFetch.calls.length === 1, `calls=${badRequestFetch.calls.length}`);
 }
 
 async function runLive() {
@@ -117,9 +228,14 @@ async function runLive() {
   }
   console.log("\n[라이브] 실제 Gemini 호출 1회");
   const result = await generateOracleConsultation(SAMPLE_INPUT, { env: process.env });
+  const chars = measureConsultationChars(result?.consultation);
+  const target = resolveOracleConsultationTargetChars(SAMPLE_INPUT.cards.length, process.env);
   console.log(`ok: ${result?.ok} source: ${result?.source} reason: ${result?.reason || "(없음)"}`);
+  console.log(`분량: ${chars}자 (목표 ${target}자, 하한 ${Math.round(target * 0.7)}자)`);
   console.log(JSON.stringify(result?.consultation, null, 2));
-  check("라이브 source가 llm", result?.ok === true && result?.source === "llm", `ok=${result?.ok} reason=${result?.reason}`);
+  // llm_short 도 성공이다 — 분량 미달이어도 결제한 사용자에게 결과는 나간다.
+  check("라이브 생성 성공", result?.ok === true, `ok=${result?.ok} reason=${result?.reason}`);
+  check("라이브 분량이 목표 하한 이상(source=llm)", result?.source === "llm", `source=${result?.source} chars=${chars}`);
 }
 
 if (LIVE) {

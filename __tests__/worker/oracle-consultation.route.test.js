@@ -18,6 +18,7 @@ let verifyPerUsePaymentMock;
 let canAccessPaidFeatureMock;
 let requireAuthMock;
 let generateOracleConsultationMock;
+let incrementRateLimitMock;
 
 beforeAll(async () => {
   const realAuth = await import("../../worker/lib/auth.js");
@@ -28,6 +29,7 @@ beforeAll(async () => {
     userId: "6512f0000000000000000001",
     authUserDoc: { _id: "6512f0000000000000000001" },
   }));
+  incrementRateLimitMock = jest.fn(async () => ({ count: 1 }));
   generateOracleConsultationMock = jest.fn(async () => ({
     ok: true,
     source: "llm",
@@ -53,8 +55,15 @@ beforeAll(async () => {
     verifyPerUsePayment: (...args) => verifyPerUsePaymentMock(...args),
     logPerUsePaymentProof: jest.fn(),
   }));
+  // 🔴 validateOracleConsultationInput 은 mock 하지 않고 실물을 쓴다 — 라우트가 그 판정으로
+  // 400 을 만드는지가 이 파일이 지키는 계약이라, 여기서 통째로 가짜를 끼우면 가드가 사라진다.
+  const realOracle = await import("../../lib/tarot/oracle-consultation.mjs");
   jest.unstable_mockModule("../../lib/tarot/oracle-consultation.mjs", () => ({
+    ...realOracle,
     generateOracleConsultation: (...args) => generateOracleConsultationMock(...args),
+  }));
+  jest.unstable_mockModule("../../worker/lib/rate-limit.js", () => ({
+    incrementRateLimit: (...args) => incrementRateLimitMock(...args),
   }));
 
   ({ handleTarotRoutes } = await import("../../worker/routes/tarot.js"));
@@ -68,6 +77,7 @@ beforeEach(() => {
   });
   canAccessPaidFeatureMock.mockResolvedValue({ allowed: false, reason: "PAYMENT_REQUIRED" });
   verifyPerUsePaymentMock.mockResolvedValue({ proven: true, source: "coin", reason: "" });
+  incrementRateLimitMock.mockResolvedValue({ count: 1 });
   generateOracleConsultationMock.mockResolvedValue({
     ok: true,
     source: "llm",
@@ -145,5 +155,83 @@ describe("결제 확인됨", () => {
     expect(payload.ok).toBe(false);
     expect(payload.code).toBe("ORACLE_CONSULTATION_GENERATION_FAILED");
     expect(payload.accessVerified).toBe(true);
+  });
+});
+
+// 실패 사유를 구분해 주지 않으면 클라이언트는 402·502·503 을 전부 같은 문구로 접는다.
+// 아래는 "어떤 실패가 다시 눌러 볼 만한가"를 서버가 판정한다는 계약이다.
+describe("실패 사유 구분과 재시도 판정", () => {
+  test("카드 ID 가 잘못되면 400 이고 Gemini 를 부르지 않는다(재시도해도 같은 실패)", async () => {
+    const { response, payload } = await postConsultation(buildBody({
+      cards: [{ cardId: "NOT_A_CARD", orientation: "upright", positionLabel: "과거", positionDescription: "" }],
+    }));
+    expect(response.status).toBe(400);
+    expect(payload.code).toBe("ORACLE_CONSULTATION_INVALID_INPUT");
+    expect(payload.retryable).toBe(false);
+    expect(payload.reason).toMatch(/unknown_card_id/);
+    expect(generateOracleConsultationMock).not.toHaveBeenCalled();
+    // 결제 증빙 조회보다도 앞이다 — 못 쓸 입력으로 결제 확인 왕복을 돌 이유가 없다.
+    expect(verifyPerUsePaymentMock).not.toHaveBeenCalled();
+  });
+
+  test("설정 누락은 retryable:false, 일시적 실패는 retryable:true 와 reason 을 함께 준다", async () => {
+    generateOracleConsultationMock.mockResolvedValue({ ok: false, reason: "missing_config" });
+    const permanent = await postConsultation(buildBody());
+    expect(permanent.payload.retryable).toBe(false);
+
+    generateOracleConsultationMock.mockResolvedValue({ ok: false, reason: "gemini_http_429" });
+    const transient = await postConsultation(buildBody());
+    expect(transient.payload.retryable).toBe(true);
+    expect(transient.payload.reason).toBe("gemini_http_429");
+  });
+
+  test("안전 차단은 재시도 대상이 아니다", async () => {
+    generateOracleConsultationMock.mockResolvedValue({ ok: false, reason: "blocked_SAFETY" });
+    const { payload } = await postConsultation(buildBody());
+    expect(payload.reason).toBe("blocked_SAFETY");
+    expect(payload.retryable).toBe(false);
+  });
+
+  test("결제 증빙 미확인(402)은 재시도 대상이고, 인증 실패(401)는 아니다", async () => {
+    verifyPerUsePaymentMock.mockResolvedValue({ proven: false, source: "", reason: "NO_RECORD" });
+    const unpaid = await postConsultation(buildBody());
+    expect(unpaid.response.status).toBe(402);
+    expect(unpaid.payload.retryable).toBe(true);
+
+    requireAuthMock.mockRejectedValue(Object.assign(new Error("no token"), { status: 401 }));
+    const unauthed = await postConsultation(buildBody());
+    expect(unauthed.response.status).toBe(401);
+    expect(unauthed.payload.retryable).toBe(false);
+  });
+});
+
+describe("무과금 재시도와 그 상한", () => {
+  test("같은 requestId 로 다시 불러도 통과한다 — 재시도에 추가 과금이 없다는 근거", async () => {
+    const body = buildBody();
+    const first = await postConsultation(body);
+    const second = await postConsultation(body);
+    expect(first.response.status).toBe(200);
+    expect(second.response.status).toBe(200);
+    expect(verifyPerUsePaymentMock).toHaveBeenCalledTimes(2);
+    // verifyPerUsePayment 는 조회 전용이라 차감이 일어나지 않는다(worker/lib/nakshatra-paid-access.js).
+    // 그 계약이 깨지면 이 재시도 버튼이 곧 이중 결제가 된다.
+    expect(generateOracleConsultationMock).toHaveBeenCalledTimes(2);
+  });
+
+  test("재생성 상한을 넘기면 429 로 막고 Gemini 를 부르지 않는다", async () => {
+    incrementRateLimitMock.mockResolvedValue({ count: 5 });
+    const { response, payload } = await postConsultation(buildBody());
+    expect(response.status).toBe(429);
+    expect(payload.code).toBe("ORACLE_CONSULTATION_RETRY_LIMIT");
+    expect(payload.retryable).toBe(false);
+    expect(payload.accessVerified).toBe(true);
+    expect(generateOracleConsultationMock).not.toHaveBeenCalled();
+  });
+
+  test("상한 카운터가 죽어도 결제한 사용자를 막지 않는다(fail-open)", async () => {
+    incrementRateLimitMock.mockRejectedValue(new Error("rate limit store down"));
+    const { response, payload } = await postConsultation(buildBody());
+    expect(response.status).toBe(200);
+    expect(payload.ok).toBe(true);
   });
 });
