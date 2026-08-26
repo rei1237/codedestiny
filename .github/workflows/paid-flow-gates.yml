@@ -200,6 +200,13 @@ on:
       - "worker/routes/tarot.js"
       - "app/tarot/prompt-maker/**"
       - "scripts/verify-oracle-consultation.mjs"
+      #    verify:oracle-consultation-fallback 은 Workers AI 폴백 배선을 **실행해서** 본다.
+      #    그래서 어댑터와 그 아래 정본 체인이 바뀌어도 이 잡이 깨어나야 한다.
+      - "scripts/verify-oracle-consultation-fallback.mjs"
+      - "worker/lib/tarot-oracle-llm.js"
+      - "worker/lib/structured-consultation.js"
+      - "worker/lib/gemini.js"
+      - "lib/llm-client.ts"
       # ── 작명 AI — 유료 기능(premium-naming-prompt, 30,000원) ──
       # 🔴 verify:naming-prompt 를 2026-08-25 에 배선하면서 함께 넣는다(CLAUDE.md 원칙 10 —
       #    가드가 보는 파일은 그 가드를 부르는 워크플로 트리거 paths 에도 있어야 한다).

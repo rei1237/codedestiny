@@ -13,13 +13,16 @@ import { readFileSync } from "node:fs";
 import { JSDOM } from "jsdom";
 
 import {
+  SYMBOL_AXIS,
+  SYMBOL_TRANSLATIONS,
+  TOPIC_LOCK_PROFILES,
   TOPIC_LOCK_PROMPT_MARKERS,
   buildCardTopicContext,
   buildTopicLockPromptBlock,
   detectTopicDrift,
 } from "../lib/tarot/topic-lock.mjs";
 import { getMeaningByQuestion, inferQuestionType } from "../lib/tarot/tarot-interpretation-engine.mjs";
-import { getTarotCardByAnyId, TAROT_CARDS } from "../lib/tarot/tarot-cards.mjs";
+import { getTarotCardByAnyId, QUESTION_TYPES, TAROT_CARDS } from "../lib/tarot/tarot-cards.mjs";
 import { buildLoveReadingPrompt } from "../lib/tarot/love-reading-llm.mjs";
 import { buildMindscanPrompt } from "../lib/tarot/mindscan-reading.mjs";
 import { buildCrystalSoulV3Reading } from "../lib/tarot/crystal-soul-reading.mjs";
@@ -353,7 +356,46 @@ function verifyDriftDetection() {
   }
 }
 
+// 🔴 프로파일 무결성 전수. topic-lock 은 값이 빠져도 **조용히 general 로 떨어지도록** 만들어져
+// 있다(translateSymbolForTopic 의 `|| SYMBOL_TRANSLATIONS.general`, getMeaningByQuestion 의
+// general 폴백, table[axis] 의 `|| table.turning`). 그 관대함 덕에 프로파일을 잘못 만들어도
+// 화면은 멀쩡해 보이고 주제 구별만 사라진다 — 그래서 여기서 전수로 못 박는다.
+function verifyProfileIntegrity() {
+  console.log("\n[5] 주제 프로파일 무결성 (전수)");
+  const profileKeys = Object.keys(TOPIC_LOCK_PROFILES);
+  check(`프로파일이 비어 있지 않다 (${profileKeys.length}개)`, profileKeys.length > 0);
+
+  const meaningKeys = new Set(QUESTION_TYPES);
+  const symbolKeys = new Set(Object.keys(SYMBOL_TRANSLATIONS));
+  const axisKeys = Object.keys(SYMBOL_AXIS);
+
+  const bad = [];
+  for (const [key, profile] of Object.entries(TOPIC_LOCK_PROFILES)) {
+    if (profile.key !== key) bad.push(`${key}: key 필드가 "${profile.key}"`);
+    if (!profile.label) bad.push(`${key}: label 없음`);
+    if (!profile.scope) bad.push(`${key}: scope 없음`);
+    if (!meaningKeys.has(profile.cardMeaningKey)) bad.push(`${key}: cardMeaningKey "${profile.cardMeaningKey}" 가 QUESTION_TYPES 밖`);
+    if (!symbolKeys.has(profile.symbolKey)) bad.push(`${key}: symbolKey "${profile.symbolKey}" 표가 없음 → general 로 조용히 강등된다`);
+    if (!Array.isArray(profile.allowedVocab)) bad.push(`${key}: allowedVocab 이 배열이 아님`);
+    if (!Array.isArray(profile.foreignVocab)) bad.push(`${key}: foreignVocab 이 배열이 아님`);
+  }
+  check("모든 프로파일이 유효하다", bad.length === 0, bad.join(" / "));
+
+  const brokenTables = [];
+  for (const [key, table] of Object.entries(SYMBOL_TRANSLATIONS)) {
+    const missing = axisKeys.filter((axis) => !table[axis]);
+    if (missing.length) brokenTables.push(`${key}: ${missing.join(",")} 축 없음`);
+  }
+  // 축이 하나라도 비면 `table[axis] || table.turning` 으로 접혀 다른 슈트가 같은 문장을 받는다.
+  check("모든 상징표가 5축을 전부 갖는다", brokenTables.length === 0, brokenTables.join(" / "));
+
+  // 라벨/스코프가 중복되면 프로파일을 나눈 의미가 없다.
+  const labels = Object.values(TOPIC_LOCK_PROFILES).map((p) => p.label);
+  check("프로파일 라벨이 서로 다르다", new Set(labels).size === labels.length, `중복=${labels.length - new Set(labels).size}건`);
+}
+
 console.log("타로 해석 Topic Lock 검증 (LLM 미호출)");
+verifyProfileIntegrity();
 verifyMyeongriTarot();
 verifyCardFaceImages();
 verifyQuestionTypePrecedence();
