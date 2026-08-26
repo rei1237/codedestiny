@@ -157,7 +157,16 @@ function useZiweiAiCopy(): ZiweiAiCopy {
 type AccessType = "pass" | "paid" | "subscription" | "admin";
 type CalendarType = "solar" | "lunar";
 type Gender = "female" | "male" | "unknown" | "";
-type FocusArea = "overall" | "love" | "money" | "career" | "health" | "relationship" | "personality" | "custom";
+// 🔴 worker/routes/ziwei-ai.js 의 FOCUS_AREA_LABELS 와 같은 키를 가져야 한다.
+// 여기만 늘리면 서버가 "상담 주제를 다시 선택해 주세요" 로 되돌려보내고,
+// 서버만 늘리면 사용자가 그 주제를 고를 길이 없다(lawsuit·life_direction 이 그랬다).
+type FocusArea =
+  | "overall" | "personality" | "life_direction"
+  | "career" | "study"
+  | "money" | "property"
+  | "love" | "relationship" | "family" | "children"
+  | "health" | "move" | "lawsuit"
+  | "custom";
 type Phase = "idle" | "checking" | "payment" | "reading" | "ready";
 
 type BirthInfo = {
@@ -399,14 +408,23 @@ function MajorLuckTimeline({ chart, birthDate }: { chart?: ZiweiChart; birthDate
   );
 }
 
+// 라벨은 서버 FOCUS_AREA_LABELS 와 글자까지 같아야 한다 — 클라이언트가 이 라벨을 topic 으로
+// 그대로 올려 보내고, 서버는 TOPICS 화이트리스트로 검사한다.
 const FOCUS_OPTIONS: Array<{ value: FocusArea; label: string }> = [
   { value: "overall", label: "전체 명반 해석" },
   { value: "personality", label: "타고난 성향" },
+  { value: "life_direction", label: "인생 방향" },
   { value: "career", label: "직업/사업운" },
+  { value: "study", label: "학업/시험운" },
   { value: "money", label: "재물운" },
+  { value: "property", label: "부동산/전택운" },
   { value: "love", label: "연애/결혼운" },
   { value: "relationship", label: "인간관계" },
+  { value: "family", label: "부모/가족운" },
+  { value: "children", label: "자녀/출산운" },
   { value: "health", label: "건강/멘탈" },
+  { value: "move", label: "이동/이주운" },
+  { value: "lawsuit", label: "송사/분쟁" },
   { value: "custom", label: "현재 고민 상담" },
 ];
 

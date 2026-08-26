@@ -158,9 +158,12 @@ export const ZIWEI_PROMPT_TEMPLATES = Object.freeze({
       "2~6주 대응 우선순위를 제시해주세요.",
     ],
     primaryPalaces: {
+      // 🔴 천이궁의 삼합은 부부궁·복덕궁이다(궁 배치가 명궁에서 역행하므로 지지 +4·+8 이
+      // 각각 offset -4·-8 로 떨어진다). 예전에는 재백궁·관록궁이 적혀 있었는데 그건 명궁의
+      // 삼합이다 — 삼방사정 정합성 가드(verify:ziwei-consult-categories)가 이제 막는다.
       main: "천이궁",
       opposite: "명궁",
-      triad: ["재백궁", "관록궁"],
+      triad: ["부부궁", "복덕궁"],
       support: ["노복궁", "질액궁", "형제궁"],
     },
     readingChain: [
@@ -398,6 +401,221 @@ export const ZIWEI_PROMPT_TEMPLATES = Object.freeze({
       "좋은 성격과 나쁜 성격으로 가르지 않는다. 작동하는 조건으로 말한다",
     ],
   },
+  study: {
+    domain: "study",
+    domainKo: "학업/시험",
+    keywordWeights: {
+      "관록궁": { weight: 0.94, depth: "핵심", markers: ["career", "ming"] },
+      "집중 지속력": { weight: 0.88, depth: "중요", markers: ["fortune", "health"] },
+      "시험 리듬": { weight: 0.84, depth: "중요", markers: ["annualFlow", "majorPeriods"] },
+      "학습 환경": { weight: 0.8, depth: "보조", markers: ["parents", "property"] },
+    },
+    analysisAngles: [
+      "관록궁 중심 학업 지속력과 성취 방식 분석",
+      "명궁 기질과 실제 공부 습관의 어긋남 지점 특정",
+      "시험 주기에 맞춘 12주 학습 리듬 제시",
+    ],
+    questionPatterns: [
+      "제 기질에 맞는 공부 방식은 어떤 쪽인가요?",
+      "시험 준비에서 무너지는 지점은 어디인가요?",
+      "다음 시험까지의 학습 리듬을 잡아주세요.",
+    ],
+    primaryPalaces: {
+      main: "관록궁",
+      opposite: "부부궁",
+      triad: ["명궁", "재백궁"],
+      support: ["부모궁", "복덕궁"],
+    },
+    readingChain: [
+      "관록궁 주성으로 이 사람이 누적형인지 몰입형인지, 넓게 훑는 쪽인지 깊게 파는 쪽인지 학습의 기본 결을 잡는다",
+      "관록궁 삼방사정(관록·부부·명궁·재백)을 함께 읽어 공부가 자격과 성과로 이어지는 경로를 확인한다",
+      "문창·문곡의 위치와 강약으로 글·시험·기획 중 어느 형식에서 힘이 실리는지 나눈다",
+      "복덕궁으로 지구력의 원천을, 질액궁으로 무너지는 지점(수면·불안·번아웃)을 나눠 본다",
+      "대한과 세운이 관록·명궁을 지나는 구간을 성과가 드러나는 시기로 잡는다",
+    ],
+    mustCheckStars: [
+      "문창·문곡: 글과 시험의 형식 적합도",
+      "천기·태음: 사고의 세밀함과 몰입의 결",
+      "화과: 인정과 합격의 명분",
+      "경양·타라·지공·지겁: 집중이 새는 지점과 반복되는 제동",
+    ],
+    avoid: [
+      "합격·불합격을 단정하지 않는다. 준비 방식과 리듬으로 말한다",
+      "특정 학교나 전공을 지정하지 않는다. 맞는 학습 환경의 성질로 말한다",
+    ],
+  },
+  move: {
+    domain: "move",
+    domainKo: "이동/이주",
+    keywordWeights: {
+      "천이궁": { weight: 0.95, depth: "핵심", markers: ["travel", "ming"] },
+      "환경 적합도": { weight: 0.88, depth: "중요", markers: ["property", "fortune"] },
+      "이동 타이밍": { weight: 0.84, depth: "중요", markers: ["annualFlow", "majorPeriods"] },
+      "정착 비용": { weight: 0.8, depth: "보조", markers: ["wealth", "health"] },
+    },
+    analysisAngles: [
+      "천이궁 중심 이동이 운을 넓히는지 흩는지 판별",
+      "명궁(대궁)과 대조해 익숙한 자리와 낯선 자리의 손익 비교",
+      "이주·이직·유학 등 이동 형태별 준비 순서 제시",
+    ],
+    questionPatterns: [
+      "지금 자리를 옮기는 편이 나은가요, 버티는 편이 나은가요?",
+      "제게 운이 넓어지는 환경은 어떤 성질인가요?",
+      "이동을 준비한다면 무엇부터 정리해야 하나요?",
+    ],
+    primaryPalaces: {
+      main: "천이궁",
+      opposite: "명궁",
+      triad: ["부부궁", "복덕궁"],
+      support: ["관록궁", "전택궁"],
+    },
+    readingChain: [
+      "천이궁 주성과 강약으로 바깥에서 기회가 열리는 사람인지, 자리를 지킬 때 힘이 붙는 사람인지 축을 잡는다",
+      "천이궁 삼방사정(천이·명궁·부부·복덕)을 함께 읽어 이동이 관계와 마음의 안정까지 흔드는지 본다",
+      "전택궁으로 떠난 뒤 남는 기반의 무게를, 관록궁으로 옮긴 자리에서 일이 이어지는지를 나눠 본다",
+      "사화가 천이궁에 어떻게 걸리는지 본다. 화록은 넓어지는 기회, 화권은 주도적 결단, 화과는 평판의 이동, 화기는 옮겨도 따라오는 반복 과제다",
+      "대한이 천이·명궁을 지나는 구간과 세운을 겹쳐 떠날 시기와 자리를 다질 시기를 구분한다",
+    ],
+    mustCheckStars: [
+      "천마: 이동 자체의 동력",
+      "태양·거문: 낯선 환경에서의 노출과 구설",
+      "천량·천동: 정착의 안정감과 돌봄의 필요",
+      "지공·지겁·화성: 옮기는 과정에서 새는 비용과 급발진",
+    ],
+    avoid: [
+      "이사·이민 여부를 대신 결정해 주지 않는다. 판단 기준과 조건을 준다",
+      "특정 도시나 나라를 지정하지 않는다. 맞는 환경의 성질로 말한다",
+    ],
+  },
+  property: {
+    domain: "property",
+    domainKo: "부동산/전택",
+    keywordWeights: {
+      "전택궁": { weight: 0.95, depth: "핵심", markers: ["property", "wealth"] },
+      "기반 안정성": { weight: 0.88, depth: "중요", markers: ["siblings", "health"] },
+      "매수·매도 시기": { weight: 0.84, depth: "중요", markers: ["majorPeriods", "annualFlow"] },
+      "부채 관리": { weight: 0.8, depth: "보조", markers: ["wealth", "fortune"] },
+    },
+    analysisAngles: [
+      "전택궁 단독이 아닌 재백/복덕/형제 연동으로 기반의 무게 분석",
+      "보유가 안정인지 부담인지 분리",
+      "12개월 주거·자산 정리 순서 제시",
+    ],
+    questionPatterns: [
+      "지금 집을 늘리는 편이 나은가요, 줄이는 편이 나은가요?",
+      "제 기반이 흔들리는 지점은 어디인가요?",
+      "주거를 정리한다면 어떤 순서로 해야 하나요?",
+    ],
+    primaryPalaces: {
+      main: "전택궁",
+      opposite: "자녀궁",
+      triad: ["형제궁", "질액궁"],
+      support: ["재백궁", "복덕궁"],
+    },
+    readingChain: [
+      "전택궁 주성과 강약으로 기반을 쌓는 사람인지 옮겨 다니며 사는 사람인지 축을 잡는다",
+      "전택궁 삼방사정(전택·자녀·형제·질액)을 함께 읽어 공간이 몸과 관계에 주는 부담까지 본다",
+      "재백궁으로 유지 비용을 감당할 흐름이 있는지, 복덕궁으로 그 공간이 마음을 쉬게 하는지 나눠 본다",
+      "사화가 전택궁에 걸리는 방식을 본다. 화록은 늘어나는 자산, 화권은 결정권, 화과는 이름값, 화기는 묶이는 돈과 반복되는 수리·분쟁이다",
+      "대한이 전택·재백을 지나는 구간을 늘릴 시기와 정리할 시기로 나눈다",
+    ],
+    mustCheckStars: [
+      "무곡·천부: 축적과 보존의 힘",
+      "태음: 부동산과 안식처의 결",
+      "파군·칠살: 갈아엎고 옮기는 변동",
+      "화기·지공·지겁: 묶이는 자금과 새는 유지비",
+    ],
+    avoid: [
+      "매수·매도 시점을 연도로 단정하지 않는다",
+      "투자 수익을 예측하지 않는다. 감당 가능한 조건과 리스크로 말한다",
+    ],
+  },
+  children: {
+    domain: "children",
+    domainKo: "자녀/출산",
+    keywordWeights: {
+      "자녀궁": { weight: 0.95, depth: "핵심", markers: ["children", "spouse"] },
+      "양육 방식": { weight: 0.88, depth: "중요", markers: ["parents", "ming"] },
+      "돌봄 지속력": { weight: 0.84, depth: "중요", markers: ["health", "fortune"] },
+      "가정 리듬": { weight: 0.8, depth: "보조", markers: ["property", "annualFlow"] },
+    },
+    analysisAngles: [
+      "자녀궁 중심 관계 방식과 기대의 결 분석",
+      "명궁 기질과 실제 양육 태도의 마찰 지점 특정",
+      "돌봄 소모를 줄이는 현실 루틴 제시",
+    ],
+    questionPatterns: [
+      "저는 아이와 어떤 방식으로 연결되는 사람인가요?",
+      "양육에서 반복해 지치는 지점은 어디인가요?",
+      "가정의 리듬을 어떻게 잡아야 할까요?",
+    ],
+    primaryPalaces: {
+      main: "자녀궁",
+      opposite: "전택궁",
+      triad: ["부모궁", "노복궁"],
+      support: ["부부궁", "복덕궁"],
+    },
+    readingChain: [
+      "자녀궁 주성과 강약으로 이 사람이 자녀·후배·결과물과 맺는 기본 거리(밀착형인지 방임형인지)를 잡는다",
+      "자녀궁 삼방사정(자녀·전택·부모·노복)을 함께 읽어 양육이 가정과 주변 도움 속에서 어떻게 굴러가는지 본다",
+      "부모궁으로 자신이 받은 양육의 방식이 지금 되풀이되는지 확인하고, 명궁 기질과의 마찰을 특정한다",
+      "사화가 자녀궁에 걸리는 방식을 본다. 화록은 늘어나는 인연과 결실, 화권은 통제와 기대, 화과는 자랑과 명분, 화기는 집착과 반복되는 걱정이다",
+      "대한과 세운이 자녀·전택을 지나는 구간을 관계의 밀도가 달라지는 시기로 잡는다",
+    ],
+    mustCheckStars: [
+      "천동·태음: 돌봄의 결과 정서적 밀착",
+      "탐랑·염정: 자녀와의 활력과 긴장",
+      "천량·천상: 보호와 조율의 역할",
+      "화기·경양·타라: 반복되는 걱정과 소모의 지점",
+    ],
+    avoid: [
+      "자녀의 수나 임신·출산 시기를 단정하지 않는다",
+      "아이의 미래를 예언형으로 말하지 않는다. 관계 방식과 조율 조건으로 바꿔 말한다",
+    ],
+  },
+  family: {
+    domain: "family",
+    domainKo: "부모/가족",
+    keywordWeights: {
+      "부모궁": { weight: 0.95, depth: "핵심", markers: ["parents", "ming"] },
+      "지원과 압력": { weight: 0.88, depth: "중요", markers: ["health", "siblings"] },
+      "돌봄 부담": { weight: 0.84, depth: "중요", markers: ["fortune", "majorPeriods"] },
+      "거리 조절": { weight: 0.8, depth: "보조", markers: ["friends", "annualFlow"] },
+    },
+    analysisAngles: [
+      "부모궁 중심 윗세대에게서 오는 도움과 압력의 분리",
+      "질액궁(대궁)과 대조해 가족 관계가 몸과 마음에 남기는 부담 확인",
+      "거리와 역할을 다시 잡는 실행 순서 제시",
+    ],
+    questionPatterns: [
+      "부모님과의 거리를 어떻게 잡아야 하나요?",
+      "가족에게서 오는 부담이 반복되는 이유는 무엇인가요?",
+      "돌봄과 제 생활을 어떻게 나눠야 할까요?",
+    ],
+    primaryPalaces: {
+      main: "부모궁",
+      opposite: "질액궁",
+      triad: ["자녀궁", "노복궁"],
+      support: ["명궁", "형제궁"],
+    },
+    readingChain: [
+      "부모궁 주성과 강약으로 윗세대가 이 사람에게 자원이었는지 과제였는지 기본 축을 잡는다",
+      "부모궁 삼방사정(부모·질액·자녀·노복)을 함께 읽어 돌봄이 몸과 주변 관계로 어떻게 번지는지 본다",
+      "질액궁(대궁)으로 그 관계가 몸에 남기는 흔적을, 형제궁으로 부담을 나눌 사람이 있는지 나눠 본다",
+      "사화가 부모궁에 걸리는 방식을 본다. 화록은 실질적 지원, 화권은 간섭과 결정권, 화과는 체면과 명분, 화기는 끊기지 않는 죄책감과 반복 갈등이다",
+      "대한이 부모·질액을 지나는 구간을 돌봄의 무게가 달라지는 시기로 잡는다",
+    ],
+    mustCheckStars: [
+      "태양·태음: 아버지·어머니 축의 기운",
+      "천량: 손윗사람의 보호와 책임",
+      "거문: 말로 쌓이는 오해와 구설",
+      "화기·경양·타라: 반복되는 갈등과 끊어내기 어려운 얽힘",
+    ],
+    avoid: [
+      "부모의 건강이나 수명을 단정하지 않는다",
+      "관계를 끊으라거나 이어가라고 결정해 주지 않는다. 거리 조절의 기준을 준다",
+    ],
+  },
 });
 
 export function getZiweiPromptTemplate(domain) {
@@ -407,13 +625,25 @@ export function getZiweiPromptTemplate(domain) {
 
 export function classifyQuestionToZiweiDomain(question) {
   const text = String(question || "").toLowerCase();
+  // 🔴 순서가 곧 우선순위다(첫 매칭이 이긴다). 신규 도메인은 기존 7종 **뒤**, 그러나
+  // life_direction **앞**에 둔다 — 기존 분류를 건드리지 않으면서, "인생/방향/미래" 같은
+  // 넓은 말에 삼켜지지 않게 하려는 배치다.
+  //
+  // 🔴 키워드는 부분 문자열로 매칭된다. 한국어에서 짧은 토막은 엉뚱한 단어를 문다 —
+  // 예전에 lawsuit 에 있던 한 글자 "법" 은 "방법·요법·법인"에까지 걸려서, 평범한
+  // "가장 좋은 방법이 뭔가요" 질문을 송사 상담으로 보냈다. 두 글자 이상으로만 적는다.
   const map = {
-    lawsuit: ["소송", "고소", "재판", "법", "송사", "분쟁"],
+    lawsuit: ["소송", "고소", "재판", "법적", "변호사", "송사", "분쟁", "합의금"],
     career: ["직업", "진로", "이직", "사업", "회사", "커리어"],
     money: ["돈", "재물", "수익", "매출", "투자", "저축"],
     love: ["연애", "결혼", "재회", "인연", "상대"],
     relationship: ["인간관계", "가족", "친구", "동료", "갈등"],
     health: ["건강", "멘탈", "스트레스", "불안", "회복"],
+    study: ["학업", "시험", "공부", "수능", "자격증", "합격", "유학", "진학", "대학원"],
+    children: ["자녀", "임신", "출산", "육아", "양육"],
+    property: ["부동산", "집값", "주택", "전세", "매매", "청약", "아파트", "이사"],
+    move: ["이민", "이주", "해외", "전근", "파견", "귀국"],
+    family: ["부모", "어머니", "아버지", "엄마", "아빠", "시부모", "장인"],
     life_direction: ["인생", "방향", "미래", "운명", "전환"],
   };
 
@@ -423,8 +653,13 @@ export function classifyQuestionToZiweiDomain(question) {
   return "life_direction";
 }
 
-// 초기 상담의 focusArea(8종)를 도메인 템플릿으로 잇는다. custom 은 사용자가 쓴 질문에서 도메인을 뽑고,
+// 초기 상담의 focusArea 를 도메인 템플릿으로 잇는다. custom 은 사용자가 쓴 질문에서 도메인을 뽑고,
 // 뽑히지 않으면 classifyQuestionToZiweiDomain 의 기본값인 life_direction 으로 떨어진다.
+//
+// 🔴 이 표는 worker/routes/ziwei-ai.js 의 FOCUS_AREA_LABELS·TOPICS 와
+// app/ziwei-ai/ZiweiAiClient.tsx 의 FOCUS_OPTIONS 까지 **손으로 맞춘 목록 네 벌**이다.
+// 한 곳만 고치면 조용히 어긋난다 — 예전에 lawsuit·life_direction 템플릿이 다 쓰여 있는데도
+// 선택지에 없어서 도달 자체가 불가능했다. verify:ziwei-consult-categories 가 네 벌을 대조한다.
 const FOCUS_AREA_TO_DOMAIN = Object.freeze({
   overall: "overall",
   personality: "personality",
@@ -433,6 +668,13 @@ const FOCUS_AREA_TO_DOMAIN = Object.freeze({
   love: "love",
   relationship: "relationship",
   health: "health",
+  lawsuit: "lawsuit",
+  life_direction: "life_direction",
+  study: "study",
+  move: "move",
+  property: "property",
+  children: "children",
+  family: "family",
 });
 
 export function resolveZiweiDomainFromFocus(focusArea, question = "") {
