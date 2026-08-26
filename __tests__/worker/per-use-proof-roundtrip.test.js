@@ -249,9 +249,9 @@ function importedKeyConsts(source) {
     const relative = statement[2].replace(/^\.\.\/\.\.\//, "").replace(/^\.\.\//, "worker/");
     const absolute = path.join(process.cwd(), relative);
     if (!fs.existsSync(absolute)) continue;
-    const module = fs.readFileSync(absolute, "utf8");
+    const moduleSource = fs.readFileSync(absolute, "utf8");
     for (const name of names) {
-      const match = module.match(new RegExp(`^export const ${name} = "([^"]+)";`, "m"));
+      const match = moduleSource.match(new RegExp(`^export const ${name} = "([^"]+)";`, "m"));
       if (match) keys.push(match[1]);
     }
   }
