@@ -18,6 +18,13 @@
  */
 
 const highPatterns = [
+  // 🔴 2026-08-27 — 테스트 파일 자체가 미분류라 medium 으로 떨어지고 있었다. medium 은
+  //    resolve-ci-tier 에서 standard 가 되고 standard 는 npm test 를 건너뛴다. 결과:
+  //    **테스트만 고친 PR 은 그 테스트가 CI 에서 한 번도 안 돈 채 머지된다.**
+  //    PR #1174(회당결제 증빙 왕복 가드)가 정확히 그렇게 초록불이었다 —
+  //    Critical checks 가 "tier=standard … 전체 테스트를 건너뜁니다" 를 찍고 통과했다.
+  //    아래 두 사고(#940·#924)와 같은 계열이다: 목록에 없어서 조용히 안 돈다.
+  /^__tests__\//i,
   /^worker\//i, /(^|\/)(payment|billing|auth|login|signup|access|unlock|entitlement|mongo|database|migration|migrate|kv|d1|r2|durable)/i,
   /(^|\/)wrangler\.(toml|jsonc?)$/i, /(^|\/)\.env/i, /^\.github\/workflows\//i,
   /(^|\/)package-lock\.json$/i, /(^|\/)scripts\/deploy/i,
@@ -132,6 +139,9 @@ export function selfTest() {
     ["worker/routes/payments.js", "high"],
     ["wrangler.toml", "high"],
     [".github/workflows/release.yml", "high"],
+    // 테스트를 고쳤으면 테스트가 돌아야 한다. 이 두 줄이 없으면 규칙이 조용히 사라진다.
+    ["__tests__/worker/per-use-proof-roundtrip.test.js", "high"],
+    ["__tests__/ui/fusion-fortune.static.test.js", "high"],
   ];
   for (const [file, expected] of levelCases) {
     const actual = classifyFile(file).level;
