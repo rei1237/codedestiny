@@ -15,7 +15,11 @@ import { buildMindscanReadingPayload } from "../../lib/tarot/mindscan-reading.mj
 import { buildCrystalSoulV3Reading } from "../../lib/tarot/crystal-soul-reading.mjs";
 import { buildLoveConsultingHighlights, normalizeLoveReadingPayload } from "../../lib/tarot/love-reading-normalizer.mjs";
 import { enhanceLoveReadingWithLlm } from "../../lib/tarot/love-reading-llm.mjs";
-import { generateOracleConsultation, validateOracleConsultationInput } from "../../lib/tarot/oracle-consultation.mjs";
+import {
+  generateOracleConsultation,
+  resolveOracleConsultationTargetChars,
+  validateOracleConsultationInput,
+} from "../../lib/tarot/oracle-consultation.mjs";
 import {
   buildPremiumYearReading,
   drawPremiumYearCards,
@@ -1827,10 +1831,22 @@ export async function handleTarotRoutes(request, env = {}) {
         }, { status: 429 });
       }
 
+      // 🔴 지연 import — 정적으로 걸면 이 라우트 모듈 그래프에 llm-client 체인과 models.js 가
+      // 딸려와, models.js 를 부분 mock 하는 다른 타로 라우트 테스트들이 통째로 죽는다
+      // (rate-limit.js 를 정적으로 걸었다가 같은 일을 겪고 되돌렸다).
+      const consultationLocale = asText(body?.locale) || "ko";
+      const { createOracleConsultationLlm } = await import("../lib/tarot-oracle-llm.js");
       const result = await generateOracleConsultation(body, {
         env,
         fetchImpl: globalThis.fetch,
-        locale: asText(body?.locale) || "ko",
+        locale: consultationLocale,
+        // 정본 경로(Gemini → Workers AI 폴백 체인)를 주입한다. 목표 분량은 폴백 응답이 너무
+        // 짧을 때 거절할 문턱(fallbackMinChars)을 카드 수에 비례시키는 데 쓰인다.
+        callJson: createOracleConsultationLlm(env, {
+          locale: consultationLocale,
+          requestId: asText(body?.requestId),
+          targetChars: resolveOracleConsultationTargetChars(validated.data.cards.length, env),
+        }),
       });
       // Gemini 실패는 결제를 되돌리지 않는다(이미 검증된 회당결제 증빙 기반) — 대신 클라이언트가
       // 기존 "생성된 프롬프트" 폴백 화면으로 저하할 수 있게 ok:false + reason 만 돌려준다.

@@ -324,6 +324,7 @@
     "verify:tarot-love-flow": "node scripts/verify-tarot-love-instant-flow.mjs",
     "verify:tarot-topic-lock": "node scripts/verify-tarot-topic-lock.mjs",
     "verify:oracle-consultation": "node scripts/verify-oracle-consultation.mjs",
+    "verify:oracle-consultation-fallback": "node --experimental-strip-types --no-warnings scripts/verify-oracle-consultation-fallback.mjs",
     "verify:sun-recovery-copy": "node scripts/verify-sun-recovery-card-copy.mjs",
     "verify:mobile-feature-coverage": "node scripts/verify-mobile-feature-coverage.mjs",
     "verify:mobile-pricing-parity": "node scripts/inspect-mobile-pricing-parity.mjs --strict",

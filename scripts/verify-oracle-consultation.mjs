@@ -3,7 +3,9 @@
 // - mock fetch로 카드 검증·LLM 성공/HTTP 오류/JSON 깨짐 케이스에서 source·필드·재시도 동작을 검증한다.
 // - `node scripts/verify-oracle-consultation.mjs --live` 실행 시 실제 GEMINIF_API_KEY로 1회 호출해 실물 품질을 출력한다.
 import { readFileSync } from "node:fs";
+import { getTopicProfile, resolveTopicKey } from "../lib/tarot/topic-lock.mjs";
 import {
+  CATEGORY_TOPIC_MAP,
   buildOracleConsultationPrompt,
   generateOracleConsultation,
   measureConsultationChars,
@@ -224,6 +226,31 @@ async function runMockSuite() {
     );
   }
 
+  console.log("\n[케이스 7-2] UI 카테고리 16개가 전부 자기 주제를 갖는다 (general 뭉갬 금지)");
+  // 🔴 카테고리 목록을 손으로 적지 않는다 — 적어 두면 UI 가 카테고리를 추가해도 계속 초록불이다.
+  // types.ts 의 유니온을 소스에서 파싱하고, 파싱 자체가 빗나가면 그것도 실패로 잡는다.
+  const typesSource = readFileSync(new URL("../app/tarot/prompt-maker/types.ts", import.meta.url), "utf8");
+  const unionMatch = typesSource.match(/export type TarotSpreadCategory =([\s\S]*?);/);
+  check("types.ts 에서 카테고리 유니온을 찾았다", Boolean(unionMatch));
+  const categories = unionMatch ? [...unionMatch[1].matchAll(/"([a-z_]+)"/g)].map((m) => m[1]) : [];
+  check(`카테고리를 16개 이상 파싱했다 (실제 ${categories.length}개)`, categories.length >= 16);
+
+  // general 로 떨어져도 되는 카테고리는 여기 명시된 것뿐이다. 늘리려면 사람이 이 줄을 고쳐야 한다.
+  const GENERAL_ALLOWED = new Set([]);
+  const missing = categories.filter((c) => !(c in CATEGORY_TOPIC_MAP));
+  check("모든 카테고리가 CATEGORY_TOPIC_MAP 에 있다", missing.length === 0, `누락=${missing.join(",")}`);
+  const collapsed = categories.filter((c) => !GENERAL_ALLOWED.has(c) && resolveTopicKey(CATEGORY_TOPIC_MAP[c]) === "general");
+  check("general 로 뭉개지는 카테고리가 없다", collapsed.length === 0, `뭉갬=${collapsed.join(",")}`);
+
+  // 프로파일이 실제로 프롬프트에 실리는지 — 매핑만 바꾸고 표를 안 만들면 여기서 걸린다.
+  for (const category of categories) {
+    const validated = validateOracleConsultationInput({ ...SAMPLE_INPUT, category });
+    const built = buildOracleConsultationPrompt({ ...validated.data, locale: "ko" });
+    const profile = getTopicProfile(built.topicKey);
+    const ok = built.userPrompt.includes(profile.label) && built.userPrompt.includes(profile.scope);
+    check(`${category} → ${built.topicKey} 프로파일이 프롬프트에 실린다`, ok, `label=${profile.label}`);
+  }
+
   console.log("\n[케이스 8] 안전 차단은 JSON 깨짐과 구분되고 재시도하지 않는다");
   // 차단되면 Gemini 는 candidates 를 통째로 비우고 promptFeedback 만 보낸다.
   const blockedFetch = mockFetch(() => jsonResponse({ promptFeedback: { blockReason: "SAFETY" } }));
@@ -250,6 +277,45 @@ async function runMockSuite() {
   const badRequestResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: badRequestFetch });
   check("400 은 reason 유지", badRequestResult?.reason === "gemini_http_400", `reason=${badRequestResult?.reason}`);
   check("400 은 재시도하지 않는다(1회)", badRequestFetch.calls.length === 1, `calls=${badRequestFetch.calls.length}`);
+
+  console.log("\n[케이스 10] callJson 주입 — 전송 재시도는 어댑터가, 분량 재요청은 여기가 소유한다");
+  function stubCallJson(handler) {
+    const calls = [];
+    const impl = async (args) => { calls.push(args); return handler(calls.length, args); };
+    impl.calls = calls;
+    return impl;
+  }
+  const neverFetch = mockFetch(() => { throw new Error("직접 fetch 가 호출됐다"); });
+
+  const okJson = stubCallJson(() => ({ ok: true, text: JSON.stringify(fixtureConsultation()), provider: "gemini" }));
+  const adapterOk = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: neverFetch, callJson: okJson });
+  check("어댑터 성공 → ok:true", adapterOk?.ok === true, `reason=${adapterOk?.reason}`);
+  check("직접 fetch 를 타지 않는다", neverFetch.calls.length === 0, `calls=${neverFetch.calls.length}`);
+  check("어댑터를 1회만 부른다", okJson.calls.length === 1, `calls=${okJson.calls.length}`);
+  check("systemPrompt·userPrompt 를 함께 넘긴다", Boolean(okJson.calls[0]?.systemPrompt && okJson.calls[0]?.userPrompt));
+
+  // 코드펜스가 섞여 와도 직접 fetch 경로와 같은 파서를 타야 한다.
+  const fencedJson = stubCallJson(() => ({ ok: true, text: "```json\n" + JSON.stringify(fixtureConsultation()) + "\n```", provider: "workers-ai" }));
+  const fencedResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: neverFetch, callJson: fencedJson });
+  check("코드펜스 응답도 파싱된다", fencedResult?.ok === true, `reason=${fencedResult?.reason}`);
+  check("폴백 결과는 source=llm_fallback", fencedResult?.source === "llm_fallback", `source=${fencedResult?.source}`);
+
+  // 🔴 어댑터가 이미 전송 재시도를 했으므로 여기서 또 돌면 중첩이다(원칙 6).
+  const failJson = stubCallJson(() => ({ ok: false, reason: "llm_fallback_output_too_short" }));
+  const failResult = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: neverFetch, callJson: failJson });
+  check("어댑터 실패 사유가 그대로 올라온다", failResult?.reason === "llm_fallback_output_too_short", `reason=${failResult?.reason}`);
+  check("어댑터 실패에 전송 재시도를 얹지 않는다(1회)", failJson.calls.length === 1, `calls=${failJson.calls.length}`);
+
+  // 분량 미달은 전송이 아니라 내용 판정이라 어댑터 경로에서도 재요청한다.
+  const shortJson = stubCallJson(() => ({ ok: true, text: JSON.stringify(shortFixtureConsultation()), provider: "gemini" }));
+  const shortAdapter = await generateOracleConsultation(SAMPLE_INPUT, { env, fetchImpl: neverFetch, callJson: shortJson });
+  check("어댑터 경로도 분량 미달이면 재요청한다(3회)", shortJson.calls.length === 3, `calls=${shortJson.calls.length}`);
+  check("어댑터 경로도 짧은 결과를 버리지 않는다", shortAdapter?.ok === true && shortAdapter?.source === "llm_short", `source=${shortAdapter?.source}`);
+  check("2회차 프롬프트에 보강 지시", String(shortJson.calls[1]?.userPrompt || "").includes("[재작성]"));
+
+  // 어댑터가 있으면 Gemini 키가 없어도 동작해야 한다(키는 어댑터가 챙긴다).
+  const noKeyAdapter = await generateOracleConsultation(SAMPLE_INPUT, { env: {}, fetchImpl: neverFetch, callJson: okJson });
+  check("어댑터가 있으면 키 없이도 missing_config 가 아니다", noKeyAdapter?.ok === true, `reason=${noKeyAdapter?.reason}`);
 }
 
 async function runLive() {
