@@ -872,8 +872,21 @@ async function calculateMethodSummary(env, normalized, request) {
       topic: input.topic,
       userQuestion: input.question,
     }, { requestUrl: request.url });
-    // 🔴 두 차트를 **병렬로** 세운다. 베다 계산은 외부/WASM 왕복이라 직렬로 두면 왕복이
-    //    두 배가 되고, 챕터 14개를 만들기도 전에 SYNC_LLM_TIMEOUT_CEILING_MS 예산이 깎인다.
+    // 두 차트를 병렬로 세운다. 천체력 파일을 네트워크로 가져오는 구간이 겹치게 하려는 것이다.
+    //
+    // 🔴 이 시간은 SYNC_LLM_TIMEOUT_CEILING_MS(85s) 예산을 깎지 않는다 — 그 시계는
+    //    generateBriefing 안에서 이 함수가 끝난 **뒤에** 시작한다. 걸리는 것은
+    //    EDGE_RESPONSE_DEADLINE_MS(100s) 와의 차이, 즉 인증·DB·차트·후처리가 나눠 쓰는
+    //    15초 여유다(worker/lib/sync-llm-timeout.js). 차트가 그 여유를 먹으면 결제까지
+    //    마친 사용자가 라우트의 실패 처리도 못 받고 엣지에서 끊긴다.
+    //
+    // 실측(2026-08-26, staging): 상대 차트 한 장을 더 세우는 비용은 **측정 한계 이하**다.
+    //   웜 isolate 에서 Swiss 계산 있는 응답 400~451ms vs 계산 없는 같은 라우터 응답
+    //   398~428ms — 차이가 노이즈 안이다. 콜드 isolate 의 1.0~1.3초는 WASM 초기화와
+    //   천체력 fetch 값인데, swissPromise 가 isolate 단위로 메모이즈하므로 같은 요청의
+    //   두 번째 차트는 그 값을 다시 내지 않는다.
+    //   재현: POST https://staging.code-destiny.com/api/nakshatra/resolve 에 매번 다른 분(minute)을
+    //   주고 같은 라우터의 빈 바디(400) 응답과 번갈아 잰다. 인증·결제·LLM 이 필요 없는 경로다.
     const [selfChart, partnerChart] = await Promise.all([
       vedicChart(input.birthInfo),
       partner ? vedicChart(partner) : Promise.resolve(null),
@@ -885,7 +898,7 @@ async function calculateMethodSummary(env, normalized, request) {
     });
   }
   if (partner) {
-    // 🔴 베다와 같은 이유로 병렬. 점성술도 외부/WASM 왕복이다.
+    // 베다와 같은 이유로 병렬 — 위 주석의 15초 여유 설명이 그대로 적용된다.
     const [selfPrepared, partnerPrepared] = await Promise.all([
       prepareAstroPremiumCalculation(env, { birthInput: astroBirthInput(input.birthInfo) }, { requestUrl: request.url }),
       prepareAstroPremiumCalculation(env, { birthInput: astroBirthInput(partner) }, { requestUrl: request.url }),
