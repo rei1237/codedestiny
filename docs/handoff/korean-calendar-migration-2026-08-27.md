@@ -1,7 +1,8 @@
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27
 
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
-> 🟢 코어(PR-B)와 자미두수 3엔진(PR-C)은 끝났다. 남은 것은 **사주 간지(PR-D) · 나머지 소비자(PR-E) · lunar-javascript 제거(PR-F)** 다.
+> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D)까지 끝났다.
+> 남은 것은 **워커 EightChar 경계(PR-D2) · 나머지 소비자(PR-E) · lunar-javascript 제거(PR-F)** 다.
 
 ## 0. 왜 하는 작업인가 — 사용자 요구 원문
 
@@ -36,7 +37,8 @@
 | **#1163** | 자미두수 셸·워커·앱 별 배치 정합 + `verify:ziwei-star-parity` | **머지됨** `d4dbaed05` |
 | **#1167** | 섬 별 설명 맵 정합(`록존`→`녹존`·`청양`→`경양`·천마/함지/천요 추가) + `verify:island-star-copy` | **머지됨** `deb2ff514` |
 | **#1170** | 이 문서를 담은 PR — 한국 음양력 코어 신설 | **머지됨** `cc22b4520` |
-| **PR-C** | 자미두수 3엔진을 코어로 + 하드코딩 시드 3곳 제거 | `feat/ziwei-korean-calendar` (base `cc22b4520`) |
+| **#1176** | 자미두수 3엔진을 코어로 + 하드코딩 시드 3곳 제거 | **머지됨** `afd219b6f` |
+| **#1179** | 사주 절기 경계 5곳을 코어로 + 표 분 반올림 + `verify:saju-solar-term-core` | `feat/saju-korean-calendar` (base `afd219b6f`) |
 
 🔴 #1170 은 `.github/workflows/pr-ci.yml` 에서 한 번 충돌했다. #1167(섬 가드)과 이 PR(달력 가드 5종)이
 **같은 앵커(`run: npm run verify:ziwei-star-parity`) 뒤에** 각자 블록을 넣어서다. 의미 충돌이 아니므로
@@ -178,16 +180,84 @@ node scripts/verify-korean-calendar-divergence.mjs --explain 1980-01-01
 이번에는 **지우지 않고** 시드만 걷어내고 변환을 코어로 맞췄다(다음 세션이 읽고 CST 달력을 복제하는 것을 막기 위해).
 🔴 지우는 판단은 사용자에게 남긴다 — 지우려면 위 세 스크립트도 함께 정리해야 한다.
 
-### 🔴 PR-D — 사주 간지(절기) 전환 — **여기서부터 남았다**
+### 🟢 PR-D — 사주 간지(절기) 전환 (끝)
 
-애드혹 CST 보정 **5곳**을 코어로 대체한다:
-`worker/routes/kasi.js:176`(+1h) · `js/saju-engine.js:9544`(+1h) · `js/core/kasi-calendar-service.js:840-863`(+1h) ·
-`app/saju/animal-destiny/engine/localSajuCalculator.ts:412,609`(`SOLAR_TERM_BASE_OFFSET_MINUTES=480`) ·
-`app/fortune/prompt-hub/kusei-calc.ts:110,369`(480).
+브랜치 `feat/saju-korean-calendar`, base `afd219b6f`, **PR #1179**. 예고된 애드혹 CST 보정 5곳을 전부 코어로 대체했다.
+`SOLAR_TERM_BASE_OFFSET_MINUTES = 480` 은 예고대로 **삭제**했고(540 으로 바꾼 게 아니다),
+`verify:hour-pillar-parity` 6케이스는 예고대로 **하나도 안 움직였다**.
 
-🔴 `SOLAR_TERM_BASE_OFFSET_MINUTES = 480` 은 **상수를 540 으로 바꾸는 게 아니라 삭제**한다. 표가 이미 KST 다.
+| 대상 | 한 것 |
+|---|---|
+| `worker/routes/kasi.js` | `computeLocalSolarTerms` → 코어. 필요 없어진 lunar-javascript 이름 별칭 맵 삭제 |
+| `js/saju-engine.js` | 24절기 카드 → `window.KoreanCalendar`. 고아가 된 `ST24_NAME_TO_KO` 삭제 |
+| `js/core/kasi-calendar-service.js` | `_fallbackSolarTerms` → 코어 + **호출부 배선**(아래 ㄱ). 고아가 된 `_solarObjToDate` 삭제 |
+| `app/saju/animal-destiny/engine/localSajuCalculator.ts` | 480 삭제. `buildSolarTermBoundariesFromCore`, `source: "korean-calendar-core"` |
+| `app/fortune/prompt-hub/kusei-calc.ts` | 480 삭제. `makeSolarTerm` 이 `nodeTerms` 를 읽는다 |
+| `scripts/build-korean-calendar-table.mjs` | 절기 저장을 **분 절사 → 분 반올림**(아래 ㄴ) |
+| `scripts/verify-saju-solar-term-core.mjs` | **신규 가드** + `pr-ci.yml` fast 잡 배선 |
 
-🔴 `verify:hour-pillar-parity` 6케이스는 **안 바뀌어야 정상**이다(시주는 절기와 무관). 바뀌면 그 자체가 신호다.
+#### (ㄱ) 🔴 `_fallbackSolarTerms` 는 한 번도 불린 적이 없었다
+
+호출부가 `fallbackTerms` 를 하드코딩 `[]` 로 넘기고 있었다. 그래서 KASI 24절기 API 가 죽으면
+`_VALIDATED_SOLAR_TERMS_BY_YEAR` 에 든 **1990년 말고는** 12중절이 모자라 `_fallbackGanji` 의
+`hasMonthTerms` 가 거짓이 되고 **년주·월주가 통째로 null** 로 떨어졌다. 코어가 1900~2100 을 덮으므로 닫혔다.
+순서는 **API → 검증캐시(1990) → 코어** 다. 기존 값이 하나도 안 움직이게 캐시를 앞에 뒀다.
+
+#### (ㄴ) 🔴 절기 표를 분 반올림으로 바꿨다 — 밴드 판정의 실제 사례
+
+`scripts/test-saju-solar-term-regression.mjs` 의 입춘 ±1분 케이스가 잡았다.
+
+- 1990 입춘 실제 = **11:13:58**(astronomy-engine). 절사 저장 → `11:13` → **11:13 출생이 경오로 넘어갔다.**
+- 절사는 경계를 **항상 최대 59초 이르게** 만드는 편향이다. 반올림은 최대 오차 30초에 편향이 없다.
+- 영향 실측(1899~2101, 4,872건): 분이 바뀌는 것 2,430건 · **민용일이 바뀌는 것 2건**
+  (1950 대한 23:59:58 · 2030 우수 23:59:38) · 양력해가 바뀌는 것 0건.
+  그 2건은 節이 아닌 **氣** 라 월건 경계가 아니고, 이미 자정 등기부에 올라 있었다.
+- 달력 가드 5종 **수치 전부 불변**. 지문만 `kc1:fc26f10b8aed` → **`kc1:fa21fe1cc7dc`**.
+
+🔴 판정 원칙의 적용례로 남긴다: 값이 움직였을 때 **픽스처를 고치지 말고 원인을 찾는다.**
+여기서 원인은 코어의 표현 방식이었고, 그것을 고치니 픽스처가 그대로 통과했다.
+
+#### 새 가드 `verify:saju-solar-term-core` (pr-ci **fast** 잡)
+
+- ① `js/`·`worker/`·`app/`·`lib/` 에서 절기를 다루는 파일을 **전수 발견**(44개)해 CST 애드혹 보정
+  (`+3600*1000` · `480 * 60000` · `SOLAR_TERM_BASE_OFFSET_MINUTES`)이 되살아났는지 본다. 발견 0이면 실패.
+  🔴 주석은 검사에서 뺀다 — 안 그러면 "예전에는 +1시간을 더했다"는 설명이 자기 자신을 잡는다.
+- ② 로컬 절기 생성기 **5벌을 실제로 실행**해 표본 7개 연도의 12節을 코어와 분 단위 대조.
+  셋(워커 라우트·셸·kasi-calendar-service)은 모듈 표면이 없어 소스에서 함수를 잘라 실행한다.
+  워커 라우트는 `time`·`kst`·`locdate` 를 함께 본다(한 필드만 보면 나머지가 조용히 어긋난다 — 실제로 놓쳤다).
+- ③ 1990 입춘 ±1분에서 세차·월건이 실제로 갈리는지. 표에만 반영되고 비교가 딴 값을 쓰는 경우를 잡는다.
+- 음성 테스트 4종 전부 빨간불 확인.
+
+#### 🔴 이 PR 이 CI 에서 한 번 죽은 이유
+
+`verify:sitemap-drift`. 셸(`index.html`)과 앱 두 파일이 바뀌면 lastmod 원장이 무효가 된다.
+`npm run sitemap:generate` 를 돌려 `sitemap.xml`·`public/sitemap.xml`·`config/sitemap-lastmod.json` 을
+**같은 PR 에** 담아야 한다. 실패는 `Typecheck and lint` 라는 이름으로 오므로 `--log-failed` 로 스텝을 먼저 볼 것.
+
+### 🔴 PR-D2 — 워커 사주 엔진의 EightChar 경계 — **여기서부터 남았다**
+
+`worker/lib/destiny-bias-engine.js` 는 년주·월주를 lunar-javascript `EightChar` 로 잡는다
+(`eightCharClock.getYearGan()` / `getMonthGan()`). 그 라이브러리는 생시를 CST 벽시계로 보고
+절기도 CST 벽시계로 비교하므로, **KST 로는 월건 경계가 정확히 60분 이르다.**
+
+실측(2026-08-27, 1960~2030 節 경계 ±150분 창 13,632건, `formatPillar(...,"hanja")` 로 표기 축을 맞춰 비교):
+
+| 항목 | 값 |
+|---|---|
+| 월주 불일치 | **5,553건(40.74%)** — 전부 오프셋 `-60`~`-1`분 구간 |
+| 년주 불일치 | **459건(3.37%)** — 입춘 구간 |
+| 갈리는 창 | 각 節 직전 **60분** |
+
+🔴 PR-D 이후 **워커만 다른 경계를 쓴다.** 셸·앱 두 엔진은 코어를 따르고 워커만 1시간 이르다.
+`verify:hour-pillar-parity` 는 시주·일주만 보므로 이걸 못 잡는다 — 그 가드에 월주·년주를 더하는 것이
+가장 싼 회귀망이다.
+
+같은 EightChar 경로를 쓰는 곳이 더 있다(전수, 2026-08-27 `git grep "getEightChar"`):
+`js/saju-engine.js:1275` · `js/luck-sync-diary.js:366,436` ·
+`js/saju-engine-tarot-sukuyo-quantum.js:3070,3077,6038,6062,16900,17549` · `js/core/kasi/calendar.js:234,243`(죽은 파일).
+
+🔴 **대운(`getYun`)이 같은 객체에 얽혀 있다.** 년·월주만 코어로 바꾸고 대운을 그대로 두면 한 결과 안에서
+두 프레임이 섞인다. PR-F 의 대운 포팅과 **함께 계획**할 것 — 순서를 정하기 전에 사용자에게 물어라.
 
 ### PR-E — 나머지 소비자
 
