@@ -263,6 +263,8 @@
     "verify:static-paid-gate-failsafe": "node scripts/verify-static-paid-gate-failsafe.mjs",
     "verify:saju-fun-content-gate": "node scripts/verify-saju-fun-content-gate.mjs",
     "verify:hour-pillar-parity": "node scripts/verify-hour-pillar-parity.mjs",
+    "verify:ziwei-sohan": "node scripts/verify-ziwei-sohan.mjs",
+    "verify:ziwei-chart-detail-view": "node scripts/verify-ziwei-chart-detail-view.mjs",
     "verify:rpt-preview-cta": "node scripts/verify-rpt-preview-cta-flow.mjs",
     "verify:profile-card-action-policy": "node scripts/verify-profile-card-action-policy.mjs",
     "verify:profile-card-add-entry": "node scripts/verify-profile-card-add-entry.mjs",

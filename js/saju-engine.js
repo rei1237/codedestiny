@@ -3334,6 +3334,56 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     });
   }
 
+  // ─── 소한(小限) ───────────────────────────────────────────────
+  // 대한(10년)이 큰 물길이라면 소한은 그 안에서 한 해씩 옮겨 앉는 자리다.
+  // 시작궁은 생년지의 삼합국으로 정한다 — 寅午戌→辰, 申子辰→戌, 巳酉丑→未, 亥卯未→丑.
+  // 1세를 그 궁에 두고 남명은 순행, 여명은 역행으로 한 해에 한 궁씩 옮긴다.
+  // 🔴 방향 규칙이 대한(음양남녀)과 다르다 — 위 direction 을 재사용하지 말 것.
+  var SOHAN_START_ZHI_BY_YEAR_ZHI = {
+    '寅':'辰','午':'辰','戌':'辰',
+    '申':'戌','子':'戌','辰':'戌',
+    '巳':'未','酉':'未','丑':'未',
+    '亥':'丑','卯':'丑','未':'丑'
+  };
+  var soHanStartZhi = SOHAN_START_ZHI_BY_YEAR_ZHI[yearZhi] || '';
+  var soHanStartIdx = soHanStartZhi ? ZHI_LIST.indexOf(soHanStartZhi) : -1;
+  var soHan = null;
+  var soHanList = [];
+  // 🔴 나이의 기준은 양력 생년이 아니라 **세차(歲次) 연도**다. 1월 1일생처럼 입춘 전에 태어나면
+  // 세차가 전년도라, 양력 연도로 세면 평생 한 살씩 어긋난다. yearGan/yearZhi 가 KASI 세차이므로
+  // 그 간지와 일치하는 해를 생년 근처에서 되찾아 기준으로 삼는다.
+  var soHanBaseYear = year;
+  for (var cy = year - 1; cy <= year + 1; cy++) {
+    if (GAN_LIST_ZW[(((cy - 4) % 10) + 10) % 10] === yearGan && ZHI_LIST[(((cy - 4) % 12) + 12) % 12] === yearZhi) {
+      soHanBaseYear = cy;
+      break;
+    }
+  }
+  if (soHanStartIdx >= 0) {
+    var soHanDir = isMale ? 1 : -1;
+    for (var sa = 1; sa <= 100; sa++) {
+      var soIdx = (((soHanStartIdx + (sa - 1) * soHanDir) % 12) + 12) % 12;
+      var soYear = soHanBaseYear + sa - 1;
+      var soGan = GAN_LIST_ZW[(((soYear - 4) % 10) + 10) % 10];
+      var soSecha = ZHI_LIST[(((soYear - 4) % 12) + 12) % 12];
+      soHanList.push({
+        age: sa,
+        year: soYear,
+        ganji: soGan + soSecha,
+        idx: soIdx,
+        branch: ZHI_LIST[soIdx],
+        palaceName: palacesByIndex[soIdx] || ''
+      });
+    }
+    soHan = {
+      startZhi: soHanStartZhi,
+      startIdx: soHanStartIdx,
+      direction: soHanDir,
+      baseYear: soHanBaseYear,
+      solarBirthYear: year
+    };
+  }
+
   var palaceStarData = [];
   for (var pi = 0; pi < 12; pi++) {
     var gName = palacesByIndex[pi] || '';
@@ -3404,6 +3454,8 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     juInfo: juNames[ju] || juNames[4],
     daHan: daHan,
     daHanList: daHanList,
+    soHan: soHan,
+    soHanList: soHanList,
     sihuaData: sihuaData,
     direction: direction,
     ju: ju,
@@ -15918,6 +15970,22 @@ function zwDeepEsc(value) {
   return String(value == null ? '' : value)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
+/**
+ * 자미두수 궁합의 회당 결제 단위(코인). 정본은 worker/lib/paid-feature-registry.js 의
+ * "compat-ziwei-compatibility"(cost: 50) 이고, 사용자에게는 언제나 원화로 환산해 보여준다
+ * (1코인 = 100원). 게이트 호출과 카드 표기가 같은 값을 쓰도록 여기 하나만 둔다 —
+ * 예전에는 게이트에 50 이 박혀 있고 카드는 금액을 아예 안 보여줬다.
+ */
+var ZW_COMPAT_COST = 50;
+
+/**
+ * 삼방사정(三方四正) — 본궁에서 +4·+8 이 삼합 두 궁, +6 이 대궁이다.
+ * 명반 격자·상세 표·12궁 정밀 해설이 같은 규칙을 써야 해서 한 곳에 둔다.
+ */
+function zwTriadIndexes(branchIdx) {
+  var b = ((Number(branchIdx) % 12) + 12) % 12;
+  return { self: b, triA: (b + 4) % 12, opposite: (b + 6) % 12, triB: (b + 8) % 12 };
+}
 function zwDeepPalaceEntry(pd, pName) {
   var rows = (pd && Array.isArray(pd.palaceStarData)) ? pd.palaceStarData : [];
   for (var i = 0; i < rows.length; i += 1) {
@@ -16029,7 +16097,8 @@ function buildZwTwelvePalaceDeepHtml(pd) {
         +'</div>';
       });
       if (branchIdx >= 0 && pd.palacesByIndex) {
-        var oppIdx = (branchIdx + 6) % 12, triA = (branchIdx + 4) % 12, triB = (branchIdx + 8) % 12;
+        var _tri = zwTriadIndexes(branchIdx);
+        var oppIdx = _tri.opposite, triA = _tri.triA, triB = _tri.triB;
         var relNames = [oppIdx, triA, triB].map(function(idx){
           var rp = pd.palacesByIndex[idx] || '';
           var re = zwDeepPalaceEntry(pd, rp);
@@ -19432,11 +19501,245 @@ function renderZiwei(p, natal, targetId) {
     }
   }
 
+  /* ─── 간소 / 상세 뷰 ─────────────────────────────────────────────────
+     간소가 기본이고, 그 화면은 상세 도입 이전과 픽셀 단위로 같아야 한다.
+     그래서 상세 전용 요소는 마크업에 항상 넣되 간소에서 display:none 으로 접는다
+     (없는 노드를 만들었다 지우는 것이 아니라 감추는 것이라 전환 비용이 0이다). */
+  #ziweiModalSection .zw-view-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    flex-wrap: wrap;
+    margin-bottom: 9px;
+  }
+  #ziweiModalSection .zw-view-toggle-label {
+    color: #a5b4fc;
+    font-size: 0.7rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+    margin-right: 2px;
+  }
+  #ziweiModalSection .zw-view-chip {
+    -webkit-appearance: none;
+    appearance: none;
+    min-height: 34px;
+    padding: 7px 14px;
+    border-radius: 999px;
+    border: 1px solid rgba(196,181,253,0.32);
+    background: rgba(15,23,42,0.6);
+    color: #c7d2fe;
+    font-family: inherit;
+    font-size: 0.76rem;
+    font-weight: 900;
+    line-height: 1;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+  }
+  #ziweiModalSection .zw-view-chip[aria-pressed="true"] {
+    border-color: rgba(250,204,21,0.6);
+    background: rgba(250,204,21,0.16);
+    color: #fde68a;
+  }
+  #ziweiModalSection .zw-view-chip:focus-visible {
+    outline: 2px solid rgba(196,181,253,0.85);
+    outline-offset: 2px;
+  }
+  #ziweiModalSection .zw-view-hint {
+    width: 100%;
+    color: #94a3b8;
+    font-size: 0.68rem;
+    line-height: 1.5;
+  }
+
+  /* 상세 전용 요소 — 기본(간소)에서는 자리를 차지하지 않는다. */
+  #ziweiModalSection .zw-dashboard:not([data-zw-view="detail"]) .zw-detail-only {
+    display: none !important;
+  }
+
+  #ziweiModalSection .zw-cell-extra {
+    margin-top: 4px;
+    padding-top: 4px;
+    border-top: 1px dashed rgba(196,181,253,0.22);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 3px 6px;
+    font-size: 0.56rem;
+    line-height: 1.35;
+  }
+  #ziweiModalSection .zw-cell-extra b {
+    color: #a5b4fc;
+    font-weight: 900;
+    margin-right: 2px;
+  }
+  #ziweiModalSection .zw-cell-extra span {
+    color: #dbeafe;
+    white-space: nowrap;
+  }
+  #ziweiModalSection .zw-cell-extra .zw-cell-extra-now {
+    color: #fde68a;
+  }
+
+  /* 삼방사정 연결선. 좌표는 JS 가 실제 셀 위치를 재서 넣는다 —
+     행 높이가 minmax(85px, auto) 라 내용에 따라 달라지므로 퍼센트 고정으로는 어긋난다. */
+  #ziweiModalSection .zw-triad-overlay {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    z-index: 2;
+    overflow: visible;
+  }
+  #ziweiModalSection .zw-triad-overlay .zw-triad-poly {
+    fill: rgba(96,165,250,0.07);
+    stroke: rgba(96,165,250,0.85);
+    stroke-width: 1.5;
+    stroke-linejoin: round;
+  }
+  #ziweiModalSection .zw-triad-overlay .zw-triad-axis {
+    stroke: rgba(147,197,253,0.75);
+    stroke-width: 1.5;
+    stroke-dasharray: 6 4;
+  }
+  #ziweiModalSection .zw-triad-overlay .zw-triad-node {
+    fill: rgba(191,219,254,0.95);
+    stroke: rgba(30,58,138,0.75);
+    stroke-width: 1;
+  }
+  #ziweiModalSection .zw-triad-overlay .zw-triad-node-self {
+    fill: #fde68a;
+  }
+
+  /* 상세 표 — 삼방사정 / 대한 · 소한 */
+  /* 🔴 minmax(0, 1fr) 이어야 한다. 그냥 1fr 이면 그리드 아이템의 자동 최소 크기(min-width:auto)가
+     콘텐츠 폭이 되어, 안에 있는 nowrap 표가 트랙을 통째로 밀어낸다 — 390px 뷰포트에서 카드가
+     760px 로 벌어지는 것을 실측했다. 아이템 쪽 min-width:0 도 같은 이유로 함께 둔다. */
+  #ziweiModalSection .zw-fact-tables {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    margin-top: 12px;
+  }
+  #ziweiModalSection .zw-fact-card {
+    min-width: 0;
+    border: 1px solid rgba(196,181,253,0.24);
+    border-radius: 12px;
+    background: rgba(15,23,42,0.55);
+    padding: 11px 12px;
+  }
+  #ziweiModalSection .zw-fact-head {
+    display: flex;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+  }
+  #ziweiModalSection .zw-fact-title {
+    color: #f8fafc;
+    font-size: 0.9rem;
+    font-weight: 900;
+  }
+  #ziweiModalSection .zw-fact-sub {
+    color: #94a3b8;
+    font-size: 0.67rem;
+    line-height: 1.5;
+  }
+  #ziweiModalSection .zw-fact-quad {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 7px;
+  }
+  #ziweiModalSection .zw-fact-quad-item {
+    border: 1px solid rgba(148,163,184,0.24);
+    border-radius: 9px;
+    background: rgba(2,6,23,0.4);
+    padding: 8px 9px;
+    min-width: 0;
+  }
+  #ziweiModalSection .zw-fact-quad-item[data-zw-quad="self"] {
+    border-color: rgba(250,204,21,0.5);
+    background: rgba(250,204,21,0.08);
+  }
+  #ziweiModalSection .zw-fact-quad-role {
+    color: #a5b4fc;
+    font-size: 0.63rem;
+    font-weight: 900;
+    letter-spacing: 0.02em;
+  }
+  #ziweiModalSection .zw-fact-quad-name {
+    color: #f1f5f9;
+    font-size: 0.84rem;
+    font-weight: 900;
+    margin-top: 2px;
+  }
+  #ziweiModalSection .zw-fact-quad-stars {
+    color: #cbd5e1;
+    font-size: 0.68rem;
+    line-height: 1.5;
+    margin-top: 3px;
+    word-break: keep-all;
+  }
+  /* 🔴 표는 자기 컨테이너 안에서만 가로로 흐른다. 본문이 함께 밀리면 모바일이 통째로 깨진다. */
+  #ziweiModalSection .zw-fact-scroll {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-x: contain;
+  }
+  #ziweiModalSection .zw-fact-table {
+    border-collapse: collapse;
+    min-width: 100%;
+    font-size: 0.68rem;
+  }
+  #ziweiModalSection .zw-fact-table th,
+  #ziweiModalSection .zw-fact-table td {
+    border: 1px solid rgba(148,163,184,0.22);
+    padding: 5px 8px;
+    text-align: center;
+    white-space: nowrap;
+    color: #e2e8f0;
+  }
+  #ziweiModalSection .zw-fact-table th {
+    background: rgba(30,27,75,0.55);
+    color: #ddd6fe;
+    font-weight: 900;
+    position: sticky;
+    left: 0;
+    z-index: 1;
+  }
+  #ziweiModalSection .zw-fact-table td.zw-fact-now {
+    background: rgba(250,204,21,0.14);
+    color: #fde68a;
+    font-weight: 900;
+  }
+  #ziweiModalSection .zw-fact-table td b {
+    color: #f8fafc;
+    display: block;
+    font-weight: 900;
+  }
+  #ziweiModalSection .zw-fact-table td small {
+    color: #94a3b8;
+    display: block;
+    font-size: 0.9em;
+  }
+  @media (min-width: 760px) {
+    #ziweiModalSection .zw-fact-quad {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+    }
+  }
+
   </style>
 
-  <div class="zw-dashboard">
+  <div class="zw-dashboard" data-zw-view="simple">
     <!-- Left: Grid -->
     <div class="zw-grid-wrap" data-zw-chart-ui="cosmic-chart-ui-v20260606">
+      <div class="zw-view-toggle" role="group" aria-label="명반 보기 방식">
+        <span class="zw-view-toggle-label">명반 보기</span>
+        <button type="button" class="zw-view-chip" data-zw-view-mode="simple" aria-pressed="true" onclick="window._zwSetChartView('simple')">간소</button>
+        <button type="button" class="zw-view-chip" data-zw-view-mode="detail" aria-pressed="false" onclick="window._zwSetChartView('detail')">상세</button>
+        <span class="zw-view-hint zw-detail-only">궁을 누르면 그 궁 기준으로 삼방사정 연결선이 다시 그려집니다.</span>
+      </div>
       <div class="zw-chart-mobile-note">명반을 좌우로 밀어 12궁의 별자리 흐름을 확인하세요.</div>
       <div class="zw-grid">
   `;
@@ -20026,6 +20329,116 @@ function renderZiwei(p, natal, targetId) {
           + '</details>';
       }).join('')
       + '</div>';
+  }
+
+  /**
+   * 상세 뷰의 사실 표 두 장 — 삼방사정 / 대한·소한.
+   *
+   * 🔴 여기 들어가는 것은 "명반 사실"뿐이다: 궁 이름, 지지, 궁간, 주성 이름, 나이, 연도.
+   * 흐름의 해석 문장은 지금처럼 유료 장(ziwei_decade_luck 등) 안에 남는다 — 격자 셀이 이미
+   * 대한 나이를 무료로 보여주고 있으므로 이 표는 같은 층위의 표시 확장이지 정책 변경이 아니다.
+   */
+  function _zwBuildChartFactTables(pd, ctx) {
+    var byIdx = Array.isArray(pd && pd.palacesByIndex) ? pd.palacesByIndex : [];
+    if (!byIdx.length) return '';
+    var nowYear = (ctx && ctx.nowYear) || new Date().getFullYear();
+    var flowIdx = (ctx && typeof ctx.flowIdx === 'number') ? ctx.flowIdx : -1;
+    var soHanNow = (ctx && ctx.soHanNow) || null;
+    var gongGan = (pd && pd.gongGan) || {};
+
+    function palaceMainStars(idx) {
+      var entry = zwDeepPalaceEntry(pd, byIdx[idx] || '');
+      var names = (entry && Array.isArray(entry.stars) ? entry.stars : [])
+        .filter(function(s){ return s && !s.borrowed; })
+        .map(function(s){ return s.name; });
+      return names.length ? names.join(' · ') : '공궁';
+    }
+    function quadItem(role, idx, isSelf) {
+      var zhi = ZHI_LIST[idx];
+      return '<div class="zw-fact-quad-item"' + (isSelf ? ' data-zw-quad="self"' : '') + '>'
+        + '<div class="zw-fact-quad-role">' + zwDeepEsc(role) + '</div>'
+        + '<div class="zw-fact-quad-name">' + zwDeepEsc(byIdx[idx] || '-') + ' · ' + zwDeepEsc(zhi) + '</div>'
+        + '<div class="zw-fact-quad-stars">' + zwDeepEsc(palaceMainStars(idx)) + '</div>'
+        + '</div>';
+    }
+
+    // 기본 기준은 명궁이다. 셀을 누르면 _zwDrawTriad 가 이 블록을 통째로 갈아 끼운다.
+    var baseIdx = ZHI_LIST.indexOf(pd.meng);
+    if (baseIdx < 0) baseIdx = 0;
+    var tri = zwTriadIndexes(baseIdx);
+    var quadHtml = quadItem('본궁', tri.self, true)
+      + quadItem('삼합궁', tri.triA, false)
+      + quadItem('삼합궁', tri.triB, false)
+      + quadItem('대궁', tri.opposite, false);
+
+    var out = '<div class="zw-fact-tables zw-detail-only">';
+
+    out += '<div class="zw-fact-card">'
+      + '<div class="zw-fact-head">'
+      + '<span class="zw-fact-title">삼방사정 <span style="font-size:0.72rem;font-weight:800;color:#94a3b8;">三方四正</span></span>'
+      + '<span class="zw-fact-sub" data-zw-triad-base>기준: ' + zwDeepEsc(byIdx[baseIdx] || '') + '</span>'
+      + '</div>'
+      + '<div class="zw-fact-quad" data-zw-triad-quad>' + quadHtml + '</div>'
+      + '</div>';
+
+    // ── 대한 · 소한 ──
+    var daList = Array.isArray(pd.daHanList) ? pd.daHanList : [];
+    var soList = Array.isArray(pd.soHanList) ? pd.soHanList : [];
+    var baseYear = (pd.soHan && pd.soHan.baseYear) || null;
+    var nowAge = baseYear ? (nowYear - baseYear + 1) : null;
+
+    if (daList.length || soList.length) {
+      out += '<div class="zw-fact-card">'
+        + '<div class="zw-fact-head">'
+        + '<span class="zw-fact-title">대한 · 소한 <span style="font-size:0.72rem;font-weight:800;color:#94a3b8;">大限 · 小限</span></span>'
+        + '<span class="zw-fact-sub">대한은 10년, 소한은 한 해의 자리입니다'
+        + (nowAge ? ' · 올해 ' + nowYear + '년 ' + nowAge + '세' : '')
+        + '</span>'
+        + '</div>'
+        + '<div class="zw-fact-scroll"><table class="zw-fact-table"><tbody>';
+
+      if (daList.length) {
+        out += '<tr><th>대한</th>';
+        daList.slice(0, 8).forEach(function(d){
+          var isNow = (nowAge !== null && nowAge >= d.startAge && nowAge <= d.endAge);
+          out += '<td' + (isNow ? ' class="zw-fact-now"' : '') + '>'
+            + '<b>' + d.startAge + '~' + d.endAge + '세</b>'
+            + zwDeepEsc((gongGan[d.zhi] || '') + d.zhi)
+            + '<small>' + zwDeepEsc(d.palaceName || '') + '</small>'
+            + '</td>';
+        });
+        out += '</tr>';
+      }
+
+      if (soList.length) {
+        // 지금을 가운데 두고 앞뒤로 잘라 본다. 100년을 다 깔면 표가 아니라 벽이 된다.
+        var startAgeIdx = Math.max(0, (nowAge || 1) - 3);
+        var window10 = soList.slice(startAgeIdx, startAgeIdx + 11);
+        out += '<tr><th>소한</th>';
+        window10.forEach(function(s){
+          var isNow = soHanNow && s.year === soHanNow.year;
+          out += '<td' + (isNow ? ' class="zw-fact-now"' : '') + '>'
+            + '<b>' + s.year + '년</b>'
+            + zwDeepEsc(s.ganji) + ' ' + s.age + '세'
+            + '<small>' + zwDeepEsc(s.palaceName || s.branch) + '</small>'
+            + '</td>';
+        });
+        out += '</tr>';
+      }
+
+      if (flowIdx >= 0 && byIdx[flowIdx]) {
+        out += '<tr><th>유년</th><td class="zw-fact-now" colspan="' + 12 + '">'
+          + '<b>' + nowYear + '년</b>'
+          + zwDeepEsc(byIdx[flowIdx]) + ' · ' + zwDeepEsc(ZHI_LIST[flowIdx])
+          + '<small>올해의 무대가 되는 궁</small>'
+          + '</td></tr>';
+      }
+
+      out += '</tbody></table></div></div>';
+    }
+
+    out += '</div>';
+    return out;
   }
 
   function _zwBuildLifeAnimalCards(pd) {
@@ -21018,6 +21431,22 @@ function renderZiwei(p, natal, targetId) {
       + '<div class="zwp-swipe-hint">아래로 스와이프하거나 ✶ 버튼으로 닫을 수 있습니다.</div>';
   }
 
+  // ─── 상세 뷰용 시간축 사실 ───────────────────────────────────────────
+  // 간소 뷰는 이 값을 쓰지 않는다. 계산은 셀 루프 밖에서 한 번만 한다.
+  var zwNowYear = new Date().getFullYear();
+  var zwFlowIdx = (((zwNowYear - 4) % 12) + 12) % 12;           // 올해 유년(流年)이 앉는 궁
+  var zwSoHanList = Array.isArray(palace.soHanList) ? palace.soHanList : [];
+  var zwSoHanNow = zwSoHanList.find(function(s){ return s.year === zwNowYear; }) || null;
+  // 궁마다 "지금 기준으로 가장 가까운 소한 해"를 하나씩 붙여 둔다(소한은 12년마다 같은 궁으로 온다).
+  var zwSoHanByPalace = {};
+  for (var zsi = 0; zsi < zwSoHanList.length; zsi++) {
+    var zsRow = zwSoHanList[zsi];
+    var prev = zwSoHanByPalace[zsRow.idx];
+    if (!prev || (Math.abs(zsRow.year - zwNowYear) < Math.abs(prev.year - zwNowYear))) {
+      zwSoHanByPalace[zsRow.idx] = zsRow;
+    }
+  }
+
   for(let i=0; i<12; i++) {
     let pName = palace.palacesByIndex[i]; // 명궁, 형제궁..
     let pZhi = ZHI_LIST[i];
@@ -21086,6 +21515,17 @@ function renderZiwei(p, natal, targetId) {
     let dAge = (palace.daHan && palace.daHan[i]) ? palace.daHan[i] : '';
     if(dAge) html += '<div class="zw-dahan">' + dAge + '</div>';
 
+    // 상세 뷰 전용 줄. 간소에서는 CSS 가 접으므로 셀 높이에 영향을 주지 않는다.
+    var extraBits = [];
+    extraBits.push('<span><b>대한</b>' + pGan + pZhi + (dAge ? ' ' + dAge + '세' : '') + '</span>');
+    var soRow = zwSoHanByPalace[i];
+    if (soRow) {
+      var soNow = zwSoHanNow && zwSoHanNow.idx === i;
+      extraBits.push('<span class="' + (soNow ? 'zw-cell-extra-now' : '') + '"><b>소한</b>' + soRow.age + '세 ' + soRow.year + '</span>');
+    }
+    if (i === zwFlowIdx) extraBits.push('<span class="zw-cell-extra-now"><b>유년</b>' + zwNowYear + '</span>');
+    html += '<div class="zw-cell-extra zw-detail-only">' + extraBits.join('') + '</div>';
+
     html += '<div class="zw-palace-gan">' + pGan + '</div>';
     html += '<div class="zw-branch-name">' + pZhi + '</div>';
     html += '</div>';
@@ -21114,7 +21554,29 @@ function renderZiwei(p, natal, targetId) {
   html += '</div>';
   html += '</div>';
   html += '</div>';
-  html += '</div></div>';
+
+  // 삼방사정 연결선. 좌표는 비워 두고 _zwDrawTriad 가 실제 셀 위치를 재서 채운다.
+  html += '<svg class="zw-triad-overlay zw-detail-only" data-zw-triad-overlay aria-hidden="true" xmlns="http://www.w3.org/2000/svg">'
+    + '<polygon class="zw-triad-poly" data-zw-triad-poly points=""></polygon>'
+    + '<line class="zw-triad-axis" data-zw-triad-axis x1="0" y1="0" x2="0" y2="0"></line>'
+    + '<circle class="zw-triad-node zw-triad-node-self" data-zw-triad-node="self" r="5" cx="-99" cy="-99"></circle>'
+    + '<circle class="zw-triad-node" data-zw-triad-node="triA" r="4" cx="-99" cy="-99"></circle>'
+    + '<circle class="zw-triad-node" data-zw-triad-node="triB" r="4" cx="-99" cy="-99"></circle>'
+    + '<circle class="zw-triad-node" data-zw-triad-node="opposite" r="4" cx="-99" cy="-99"></circle>'
+    + '</svg>';
+  html += '</div>'; // /.zw-grid
+  html += '</div>'; // /.zw-grid-wrap
+
+  // 🔴 표는 격자 래퍼 **밖**에 둔다. 래퍼는 모바일에서 overflow-x:auto 인 가로 스크롤러라,
+  // 그 안에 두면 표가 자기 폭을 잡지 못하고 명반과 함께 통째로 밀린다(390px 뷰포트에서
+  // 스크롤 컨테이너가 760px 로 벌어지는 것을 실측했다). 대시보드는 세로 flex 라 폭이 확정된다.
+  try {
+    html += _zwBuildChartFactTables(palace, {
+      nowYear: zwNowYear,
+      flowIdx: zwFlowIdx,
+      soHanNow: zwSoHanNow
+    });
+  } catch(e) { console.error('ChartFactTables 에러:', e); }
   try { html += _zwBuildLifeAnimalCards(palace); } catch(e) { console.error('LifeAnimal 에러:', e); }
   try { html += _zwBuildDeepAiPromptPanel(); } catch(e) { console.error('DeepAiPrompt 에러:', e); }
 
@@ -21139,6 +21601,17 @@ function renderZiwei(p, natal, targetId) {
     sec.innerHTML = html;
     if (typeof applySectionGates === 'function') requestAnimationFrame(function() { applySectionGates(); });
     if (typeof refreshUnlockButtons === 'function') requestAnimationFrame(function() { refreshUnlockButtons(); });
+    // 아래 정의부(_zwRestoreChartView)는 이 함수 본문이 끝나야 붙으므로 다음 프레임에 부른다.
+    requestAnimationFrame(function() {
+      if (typeof window._zwRestoreChartView === 'function') window._zwRestoreChartView();
+      if (window._zwTriadResizeObserver) {
+        var grid = sec.querySelector('.zw-grid');
+        if (grid) {
+          try { window._zwTriadResizeObserver.disconnect(); } catch (_) {}
+          window._zwTriadResizeObserver.observe(grid);
+        }
+      }
+    });
   }
   if (!window._zwToggleAnimalCodex) {
     window._zwToggleAnimalCodex = function(detailsId) {
@@ -21363,10 +21836,134 @@ function renderZiwei(p, natal, targetId) {
     window._renderZwDestinyPortfolio('zwDestinyPortfolioMount', window._currentZiweiData);
   }
 
+  if(!window._zwSetChartView) {
+    var ZW_CHART_VIEW_KEY = 'zwChartViewV1';
+
+    function zwChartWrap() {
+      return document.querySelector('#ziweiModalSection .zw-dashboard[data-zw-view]')
+        || document.querySelector('.zw-dashboard[data-zw-view]');
+    }
+
+    /**
+     * 삼방사정 연결선을 다시 그린다.
+     * 🔴 좌표는 퍼센트가 아니라 실제 셀 위치를 재서 넣는다 — 격자 행이 minmax(85px, auto) 라
+     * 셀 내용에 따라 행 높이가 달라지고, 그러면 12.5%/37.5% 같은 고정 좌표는 셀 중심을 빗나간다.
+     */
+    window._zwDrawTriad = function(branchIdx) {
+      var wrap = zwChartWrap();
+      if (!wrap) return;
+      var grid = wrap.querySelector('.zw-grid');
+      var svg = wrap.querySelector('[data-zw-triad-overlay]');
+      if (!grid || !svg) return;
+
+      var base = Number(branchIdx);
+      if (!isFinite(base)) base = Number(wrap.getAttribute('data-zw-triad-idx'));
+      if (!isFinite(base)) base = 0;
+      base = ((base % 12) + 12) % 12;
+      wrap.setAttribute('data-zw-triad-idx', String(base));
+
+      var gridRect = grid.getBoundingClientRect();
+      if (!gridRect.width || !gridRect.height) return;
+      svg.setAttribute('viewBox', '0 0 ' + gridRect.width + ' ' + gridRect.height);
+
+      var tri = zwTriadIndexes(base);
+      function centerOf(idx) {
+        var cell = grid.querySelector('.zw-cell-' + idx);
+        if (!cell) return null;
+        var r = cell.getBoundingClientRect();
+        return { x: (r.left - gridRect.left) + r.width / 2, y: (r.top - gridRect.top) + r.height / 2 };
+      }
+      var pts = { self: centerOf(tri.self), triA: centerOf(tri.triA), triB: centerOf(tri.triB), opposite: centerOf(tri.opposite) };
+      if (!pts.self || !pts.triA || !pts.triB || !pts.opposite) return;
+
+      var poly = svg.querySelector('[data-zw-triad-poly]');
+      if (poly) {
+        poly.setAttribute('points', [pts.self, pts.triA, pts.triB]
+          .map(function(p){ return p.x.toFixed(1) + ',' + p.y.toFixed(1); }).join(' '));
+      }
+      var axis = svg.querySelector('[data-zw-triad-axis]');
+      if (axis) {
+        axis.setAttribute('x1', pts.self.x.toFixed(1));
+        axis.setAttribute('y1', pts.self.y.toFixed(1));
+        axis.setAttribute('x2', pts.opposite.x.toFixed(1));
+        axis.setAttribute('y2', pts.opposite.y.toFixed(1));
+      }
+      ['self', 'triA', 'triB', 'opposite'].forEach(function(role){
+        var node = svg.querySelector('[data-zw-triad-node="' + role + '"]');
+        if (node && pts[role]) {
+          node.setAttribute('cx', pts[role].x.toFixed(1));
+          node.setAttribute('cy', pts[role].y.toFixed(1));
+        }
+      });
+
+      // 삼방사정 표도 같은 기준으로 맞춘다.
+      var pd = window._currentZiweiData;
+      var quad = wrap.querySelector('[data-zw-triad-quad]');
+      if (pd && quad && Array.isArray(pd.palacesByIndex)) {
+        var order = [['본궁', tri.self, true], ['삼합궁', tri.triA, false], ['삼합궁', tri.triB, false], ['대궁', tri.opposite, false]];
+        quad.innerHTML = order.map(function(row){
+          var idx = row[1];
+          var entry = zwDeepPalaceEntry(pd, pd.palacesByIndex[idx] || '');
+          var names = (entry && Array.isArray(entry.stars) ? entry.stars : [])
+            .filter(function(s){ return s && !s.borrowed; })
+            .map(function(s){ return s.name; });
+          return '<div class="zw-fact-quad-item"' + (row[2] ? ' data-zw-quad="self"' : '') + '>'
+            + '<div class="zw-fact-quad-role">' + zwDeepEsc(row[0]) + '</div>'
+            + '<div class="zw-fact-quad-name">' + zwDeepEsc(pd.palacesByIndex[idx] || '-') + ' · ' + zwDeepEsc(ZHI_LIST[idx]) + '</div>'
+            + '<div class="zw-fact-quad-stars">' + zwDeepEsc(names.length ? names.join(' · ') : '공궁') + '</div>'
+            + '</div>';
+        }).join('');
+      }
+      var baseLabel = wrap.querySelector('[data-zw-triad-base]');
+      if (baseLabel && pd && Array.isArray(pd.palacesByIndex)) {
+        baseLabel.textContent = '기준: ' + (pd.palacesByIndex[base] || '');
+      }
+    };
+
+    /** 간소 ↔ 상세 전환. 노드를 다시 만들지 않고 클래스만 바꾼다. */
+    window._zwSetChartView = function(mode, opts) {
+      var m = (mode === 'detail') ? 'detail' : 'simple';
+      var wrap = zwChartWrap();
+      if (!wrap) return;
+      wrap.setAttribute('data-zw-view', m);
+      wrap.querySelectorAll('[data-zw-view-mode]').forEach(function(btn){
+        btn.setAttribute('aria-pressed', btn.getAttribute('data-zw-view-mode') === m ? 'true' : 'false');
+      });
+      if (!(opts && opts.silent)) {
+        try { localStorage.setItem(ZW_CHART_VIEW_KEY, m); } catch (_) {}
+      }
+      if (m === 'detail') {
+        // 방금 display:none 이 풀렸으므로 다음 프레임에 재야 실제 크기가 나온다.
+        requestAnimationFrame(function(){ window._zwDrawTriad(); });
+      }
+    };
+
+    /** 렌더 직후 저장된 보기 방식을 되살린다. 기본은 간소다. */
+    window._zwRestoreChartView = function() {
+      var stored = '';
+      try { stored = localStorage.getItem(ZW_CHART_VIEW_KEY) || ''; } catch (_) {}
+      var wrap = zwChartWrap();
+      if (!wrap) return;
+      var meng = window._currentZiweiData && window._currentZiweiData.meng;
+      var mengIdx = meng ? ZHI_LIST.indexOf(meng) : 0;
+      wrap.setAttribute('data-zw-triad-idx', String(mengIdx < 0 ? 0 : mengIdx));
+      window._zwSetChartView(stored === 'detail' ? 'detail' : 'simple', { silent: true });
+    };
+
+    // 화면 폭이 바뀌면 셀 중심도 바뀐다. 상세일 때만 다시 그린다.
+    if (typeof ResizeObserver === 'function') {
+      window._zwTriadResizeObserver = new ResizeObserver(function(){
+        var wrap = zwChartWrap();
+        if (wrap && wrap.getAttribute('data-zw-view') === 'detail') window._zwDrawTriad();
+      });
+    }
+  }
+
   if(!window._handleZwClick) {
     window._handleZwClick = function(idx, el) {
       document.querySelectorAll('.zw-cell').forEach(c => c.classList.remove('active'));
       if(el) el.classList.add('active');
+      if (typeof window._zwDrawTriad === 'function') window._zwDrawTriad(idx);
 
       var pd = window._currentZiweiData;
       var pName = pd.palacesByIndex[idx];
@@ -21461,7 +22058,7 @@ function renderZiwei(p, natal, targetId) {
 
     window._runZwCompatibility = function() {
       if (typeof window._cdCoinGatePerUse === 'function') {
-        window._cdCoinGatePerUse(50, '자미두수 궁합 분석', function() { window._runZwCompatibilityCore(); });
+        window._cdCoinGatePerUse(ZW_COMPAT_COST, '자미두수 궁합 분석', function() { window._runZwCompatibilityCore(); });
         return;
       }
       // ⚠️ 미로그인 상태: _cdCoinGatePerUse 미정의
@@ -23688,11 +24285,11 @@ function renderZiwei(p, natal, targetId) {
           +'<div style="position:absolute;inset:-42% auto auto -10%;width:220px;height:220px;border-radius:50%;background:radial-gradient(circle,rgba(196,181,253,0.15),rgba(196,181,253,0));pointer-events:none;"></div>'
           +'<div style="position:absolute;inset:auto -16% -52% auto;width:300px;height:300px;border-radius:50%;background:radial-gradient(circle,rgba(192,132,252,0.12),rgba(192,132,252,0));pointer-events:none;"></div>'
           +'<div class="zw-cosmic-heading">'
-            +'<h2 class="section-title love-title" style="font-size:1.13rem;margin:0;font-weight:900;letter-spacing:0.01em;">🧿 [선택 확장 · 자미두수 궁합]</h2>'
-            +'<span class="zw-cosmic-chip">선택 입력</span>'
+            +'<h2 class="section-title love-title" style="font-size:1.13rem;margin:0;font-weight:900;letter-spacing:0.01em;">🧿 자미두수 궁합</h2>'
+            +'<span class="zw-cosmic-chip">' + (ZW_COMPAT_COST * 100).toLocaleString('ko-KR') + '원</span>'
           +'</div>'
           +'<div class="card-content love-text" style="position:relative;z-index:1;background:rgba(35,24,56,0.46);border:1px solid rgba(216,180,254,0.24);border-radius:10px;padding:11px 12px;margin-bottom:10px;">'
-            +'<div style="margin-bottom:8px;">상대 정보를 입력할 때만 별도로 계산되는 선택 확장 기능입니다. 기본 명반 해석과 구분해 확인하세요.</div>'
+            +'<div style="margin-bottom:8px;">상대의 태어난 순간을 넣으면 두 명반을 나란히 놓고 읽습니다. 기본 명반 해석과는 별도로 계산되며, <b>궁합 보기</b>를 누른 뒤 ' + (ZW_COMPAT_COST * 100).toLocaleString('ko-KR') + '원 결제 안내가 나옵니다.</div>'
             +'<div class="zw-cosmic-input-grid">'
               +'<label class="zw-cosmic-field"><span>상대 생년월일</span><input id="zwCompatBirthDate" type="text" inputmode="numeric" maxlength="8" pattern="[0-9]{8}" placeholder="YYYYMMDD" data-cd-birthdate-digits class="zw-cosmic-control"></label>'
               +'<label class="zw-cosmic-field"><span>상대 태어난 시간</span><input id="zwCompatBirthTime" type="time" value="12:00" class="zw-cosmic-control"></label>'
@@ -25107,10 +25704,15 @@ function renderZiwei(p, natal, targetId) {
           +zwReadingPanel('부부궁 관계 흐름', '03 관계 · 부부궁', sec_love_basic_digest, false, '#f9a8d4', ziweiRelationPreview)
           +ziweiBasicCompleteHtml
         +'</section>'
+        // 궁합은 접힌 <details> 안에 있었다. 홈 타일이 "궁합은 선택 확장 5,000원"이라고 광고하는데
+        // 정작 결과 화면에서는 펼치기 전까지 보이지 않아, 있는 줄도 모르고 지나가는 자리였다.
+        // 결제 경로는 그대로다 — [궁합 보기] → _runZwCompatibility → _cdCoinGatePerUse.
+        +'<section data-cd-marker="ziwei-compat-card-v20260827" style="margin-bottom:18px;">'
+          +sec_compat
+        +'</section>'
         +'<section data-cd-marker="ziwei-extension-stack-v20260615-step2" style="margin-bottom:20px;opacity:0.96;">'
-          +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>무료 기본 3장을 먼저 읽고, 필요한 심화 장만 원화 기준으로 여는 구조입니다. 이미 유료인 궁합·대한 흐름은 기존 결제 흐름을 유지합니다.</div>'
+          +'<div style="margin:4px 0 9px;padding:10px 12px;border:1px solid rgba(196,181,253,0.2);border-radius:10px;background:rgba(30,27,75,0.18);color:#ddd6fe;font-size:0.77rem;line-height:1.6;"><b style="color:#f5d0fe;">더 깊이 볼 때</b><br>무료 기본 3장을 먼저 읽고, 필요한 심화 장만 원화 기준으로 여는 구조입니다. 이미 유료인 대한 흐름은 기존 결제 흐름을 유지합니다.</div>'
           +zwReadingPanel('부부궁 심화 상담', '유료 관계 · 10,000원', zwBasicPaidGateHtml('ziwei_love_deep', 100, '부부궁 심화 상담', '반복 패턴·공식화 시기·관계 조언을 엽니다.', sec_love_deep_reading, '#f9a8d4', 'ziwei.loveDeep'), false, '#f9a8d4', '관계 그림, 반복 패턴, 공식화 시기를 상담형으로 봅니다.')
-          +zwReadingPanel('궁합 보기', '상대 비교', sec_compat, false, '#c084fc', '상대 정보를 넣었을 때만 열리는 선택 장입니다. 이용 전 원화 금액이 안내됩니다.')
           +zwReadingPanel('12궁 정밀 해설', '유료 궁위 · 10,000원', zwBasicPaidGateHtml('ziwei_twelve_palaces', 100, '12궁 정밀 해설', '명궁부터 복덕궁까지 세부 근거를 엽니다.', sec2, '#6ee7b7', 'ziwei.twelvePalaces'), false, '#6ee7b7', '세부 궁위를 모두 펼쳐 기본 결론의 근거를 확인합니다.')
           +zwReadingPanel('대한·변곡점 요약', '흐름 장', sec_dahan + sec_pivot, false, '#a78bfa', '시기별 변화와 전환점을 참고용으로 봅니다.')
           +zwReadingPanel('상징 보조층', '유료 상징 · 10,000원', zwBasicPaidGateHtml('ziwei_symbolic_layer', 100, '상징 보조층', '명궁·신궁·사화의 상징 인장을 엽니다.', sec_olympus_ziwei, '#c084fc', 'ziwei.symbolicLayer'), false, '#c084fc', '정통 명반 해석 뒤에 덧붙이는 선택형 상징 해설입니다.')

@@ -1,11 +1,7 @@
-const path = require('path');
-const fs = require('fs');
-const vm = require('vm');
-
-const { Solar, Lunar } = require('lunar-javascript');
-
-global.Solar = Solar;
-global.Lunar = Lunar;
+// DOM 부트스트랩과 엔진 로딩은 scripts/lib/ziwei-engine-harness.cjs 하나를 쓴다.
+// 예전에는 그 120줄이 이 파일 안에 있었는데, 같은 엔진을 verify:ziwei-sohan 도 돌리게 되면서
+// 두 벌로 갈라질 자리가 됐다.
+const harness = require('./lib/ziwei-engine-harness.cjs');
 
 const CASES = {
   A: {
@@ -115,95 +111,6 @@ function parseArgs(argv) {
   return out;
 }
 
-function createDummyEl() {
-  return {
-    style: {},
-    dataset: {},
-    classList: { add() {}, remove() {}, contains() { return false; } },
-    appendChild() {},
-    removeChild() {},
-    setAttribute() {},
-    getAttribute() { return null; },
-    addEventListener() {},
-    removeEventListener() {},
-    querySelector() { return null; },
-    querySelectorAll() { return []; },
-    focus() {},
-    blur() {},
-    click() {},
-    innerHTML: '',
-    textContent: '',
-    value: '',
-    checked: false,
-    options: [{
-      text: '대한민국 · 서울',
-      value: 'Asia/Seoul',
-      getAttribute(name) {
-        if (name === 'data-long') return '126.978';
-        if (name === 'data-lat') return '37.5665';
-        if (name === 'data-base-tz' || name === 'data-tz') return '9';
-        return '';
-      },
-    }],
-    selectedIndex: 0,
-  };
-}
-
-function bootstrapDom() {
-  const cache = new Map();
-  const getEl = (id) => {
-    if (!cache.has(id)) cache.set(id, createDummyEl());
-    return cache.get(id);
-  };
-
-  global.window = global;
-  global.navigator = { userAgent: 'node' };
-  global.location = { href: '' };
-  global.localStorage = {
-    _s: {},
-    getItem(k) { return this._s[k] || null; },
-    setItem(k, v) { this._s[k] = String(v); },
-    removeItem(k) { delete this._s[k]; },
-  };
-  global.sessionStorage = {
-    _s: {},
-    getItem(k) { return this._s[k] || null; },
-    setItem(k, v) { this._s[k] = String(v); },
-    removeItem(k) { delete this._s[k]; },
-  };
-  global.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {} });
-  global.alert = () => {};
-  global.confirm = () => true;
-  global.requestAnimationFrame = (cb) => setTimeout(() => cb(Date.now()), 0);
-  global.cancelAnimationFrame = (id) => clearTimeout(id);
-  global.document = {
-    head: { appendChild() {}, removeChild() {} },
-    body: { appendChild() {}, removeChild() {} },
-    documentElement: { style: {} },
-    getElementById(id) { return getEl(id); },
-    getElementsByName() { return []; },
-    querySelector() { return null; },
-    querySelectorAll() { return []; },
-    createElement() { return createDummyEl(); },
-    addEventListener() {},
-    removeEventListener() {},
-  };
-
-  global.window.addEventListener = () => {};
-  global.window.removeEventListener = () => {};
-  global.window.scrollTo = () => {};
-}
-
-function loadEngine(engineRelPath) {
-  const enginePath = path.resolve(__dirname, '..', engineRelPath);
-  const code = fs.readFileSync(enginePath, 'utf8');
-  vm.runInThisContext(code, { filename: enginePath });
-  if (typeof global.calcZiweiPalaces !== 'function') {
-    throw new Error('calcZiweiPalaces not found after engine load: ' + enginePath);
-  }
-  return enginePath;
-}
-
 function symbolPass(current, target) {
   if (target === '○|◎') return current === '○' || current === '◎';
   return current === target;
@@ -229,10 +136,9 @@ function buildStarMap(zw) {
   return map;
 }
 
-function evalCase(caseKey) {
+function evalCase(caseKey, engineRelPath) {
   const c = CASES[caseKey];
-  global.GENDER = c.gender;
-  const zw = global.calcZiweiPalaces(c.year, c.month, c.day, c.hour, c.minute);
+  const zw = harness.calcChart(c, engineRelPath);
   return {
     caseInfo: c,
     map: buildStarMap(zw),
@@ -241,12 +147,11 @@ function evalCase(caseKey) {
 
 function main() {
   const args = parseArgs(process.argv);
-  bootstrapDom();
-  const enginePath = loadEngine(args.engine);
+  const enginePath = harness.loadEngine(args.engine);
 
   const caseData = {};
   for (const key of Object.keys(CASES)) {
-    caseData[key] = evalCase(key);
+    caseData[key] = evalCase(key, args.engine);
   }
 
   const details = [];
