@@ -2,6 +2,7 @@
 // 타로 오라클 상담(lib/tarot/oracle-consultation.mjs) 회귀 검증
 // - mock fetch로 카드 검증·LLM 성공/HTTP 오류/JSON 깨짐 케이스에서 source·필드·재시도 동작을 검증한다.
 // - `node scripts/verify-oracle-consultation.mjs --live` 실행 시 실제 GEMINIF_API_KEY로 1회 호출해 실물 품질을 출력한다.
+import { readFileSync } from "node:fs";
 import {
   buildOracleConsultationPrompt,
   generateOracleConsultation,
@@ -182,7 +183,20 @@ async function runMockSuite() {
     return validated.ok ? buildOracleConsultationPrompt({ ...validated.data, locale: "ko" }).targetChars : -1;
   });
   check("목표 분량이 카드 수에 따라 단조 증가", targets.every((v, i) => v > 0 && (i === 0 || v > targets[i - 1])), `targets=${targets.join(",")}`);
-  check("1카드 목표가 현행 3카드 실측(1457자)보다 크다", targets[0] > 1457, `1카드=${targets[0]}`);
+
+  // 🔴 상수를 실측에 결박한다. 목표가 실제 출력보다 한참 낮으면 미달 게이트의 하한도 같이
+  // 낮아져 정작 짧은 응답을 못 잡고, 한참 높으면 매번 재요청이 돌아 시간·비용만 늘어난다.
+  // 기준값은 2026-08-27 실측(3카드 3,132자 / 14카드 6,128자)이며 ±15% 를 허용한다.
+  const MEASURED = [{ cards: 3, chars: 3132 }, { cards: 14, chars: 6128 }];
+  for (const row of MEASURED) {
+    const target = resolveOracleConsultationTargetChars(row.cards, {});
+    const ratio = target / row.chars;
+    check(
+      `${row.cards}카드 목표가 실측 ${row.chars}자의 ±15% 안에 있다`,
+      ratio >= 0.85 && ratio <= 1.15,
+      `target=${target} 실측=${row.chars} 비율=${ratio.toFixed(2)}`,
+    );
+  }
 
   console.log("\n[케이스 7] measureConsultationChars 는 렌더러가 그리는 필드만 센다");
   const measured = measureConsultationChars(fixtureConsultation());
@@ -191,6 +205,24 @@ async function runMockSuite() {
   const withHiddenKey = { ...fixtureConsultation(), notRenderedByTheClient: "가".repeat(5000) };
   check("렌더링 안 되는 키는 세지 않는다", measureConsultationChars(withHiddenKey) === measured);
   check("공백은 제외한다", measureConsultationChars({ coreQuestion: "가 나 다" }) === 3);
+
+  console.log("\n[케이스 7-1] 데드라인이 가장 큰 스프레드의 생성 시간을 두 번 담는다");
+  // 🔴 데드라인은 한 번의 생성 시간이 아니라 **재시도까지의 예산**이다. 14카드 실측이 25.3초인데
+  // 예산이 그 2배 미만이면 첫 시도가 끝나는 순간 남은 시간이 모자라 전송 재시도도 분량 미달
+  // 재요청도 못 들어간다(`remainingMs <= 1500` 에서 즉시 break). 상수는 소스에서 직접 읽는다 —
+  // 손으로 적은 사본을 두면 본체를 낮춰도 이 검사가 계속 초록불이다.
+  const MEASURED_SLOWEST_MS = 25284; // 14카드, 2026-08-27
+  const source = readFileSync(new URL("../lib/tarot/oracle-consultation.mjs", import.meta.url), "utf8");
+  const deadlineMatch = source.match(/ORACLE_CONSULTATION_TOTAL_TIMEOUT_MS,\s*(\d+)\s*,/);
+  check("데드라인 기본값을 소스에서 읽어냈다", Boolean(deadlineMatch), "정규식이 빗나갔다 — 상수 표기가 바뀌었는지 확인할 것");
+  if (deadlineMatch) {
+    const deadlineMs = Number(deadlineMatch[1]);
+    check(
+      `데드라인 ${deadlineMs}ms 가 최장 생성(${MEASURED_SLOWEST_MS}ms)의 2배 이상`,
+      deadlineMs >= MEASURED_SLOWEST_MS * 2,
+      `deadline=${deadlineMs} 필요=${MEASURED_SLOWEST_MS * 2}`,
+    );
+  }
 
   console.log("\n[케이스 8] 안전 차단은 JSON 깨짐과 구분되고 재시도하지 않는다");
   // 차단되면 Gemini 는 candidates 를 통째로 비우고 promptFeedback 만 보낸다.
