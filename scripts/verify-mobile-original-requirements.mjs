@@ -171,7 +171,9 @@ checkAll("static and react coverage", sources.index + sources.mobilePatch + sour
 ]);
 
 const registryRows = sources.registry.split(/\r?\n/).filter((line) => line.startsWith("|") && !line.includes("---") && !line.includes("| 기능명 |"));
-check("registry has at least 107 feature rows", registryRows.length >= 107, `rows=${registryRows.length}`);
+// verify-mobile-final-audit.mjs 가 같은 임계를 복사해 갖고 있다 — 한쪽만 고치지 말 것.
+// 2026-08-23 de1195b70 이 운명의 꽃 카드 4장을 아틀리에 1장으로 합쳐 행이 107 → 104 가 됐다.
+check("registry has at least 104 feature rows", registryRows.length >= 104, `rows=${registryRows.length}`);
 
 const requiredReports = [
   "MOBILE_FULL_SITE_AUDIT.md",

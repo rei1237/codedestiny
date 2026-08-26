@@ -121,7 +121,11 @@ if (uniqueCacheKeys.size !== 1 || cacheKeys.some(([, key]) => !key)) {
 }
 
 const registryRows = read("MOBILE_FEATURE_REGISTRY.md").split(/\r?\n/).filter((line) => line.startsWith("|") && !line.includes("---") && !line.includes("기능명 |"));
-if (registryRows.length < 107) failures.push(`registry rows below required count: ${registryRows.length}`);
+// 임계는 "대량 삭제 감지"용 하한이지 기능 개수의 정본이 아니다. 2026-08-23 de1195b70 이
+// 운명의 꽃 카드 4장을 아틀리에 1장으로 합치면서 행이 107 → 104 로 줄었는데 이 숫자를 같이
+// 내리지 않아, 그 뒤로 이 가드가 계속 빨간불이었다(미배선이라 CI 가 못 잡았다).
+// 기능을 합치거나 지웠으면 여기도 함께 내린다 — 통과시키려고 레지스트리에 빈 행을 넣지 말 것.
+if (registryRows.length < 104) failures.push(`registry rows below required count: ${registryRows.length}`);
 
 const mojibakeHits = scanCoreMojibake([
   "MOBILE_FINAL_COMPLETION_AUDIT.md",
