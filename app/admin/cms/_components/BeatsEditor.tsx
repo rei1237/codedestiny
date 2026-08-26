@@ -29,7 +29,7 @@ const SPEAKER_LABELS: Record<string, string> = {
   lns: "루나 언니",
   rab: "청토끼",
   baek: "백문",
-  pje: "박지은",
+  pje: "서한비",
   god: "운명의 신",
 };
 
