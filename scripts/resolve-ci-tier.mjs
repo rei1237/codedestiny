@@ -94,6 +94,9 @@ function selfTest() {
     [["app/hooks/useCoinGate.ts"], "critical"],
     [["app/_lib/billing-client.ts"], "critical"],
     [["js/core/pass-verdict.js"], "critical"],
+    // 🔴 테스트 파일을 고쳤으면 그 테스트가 CI 에서 돌아야 한다. 예전에는 미분류 medium 이라
+    //    standard 로 떨어져 npm test 를 건너뛴 채 초록불이었다(PR #1174 실측).
+    [["__tests__/worker/per-use-proof-roundtrip.test.js"], "critical"],
     // 섞이면 가장 높은 티어를 따른다.
     [["docs/a.md", "worker/routes/payments.js"], "critical"],
     [["docs/a.md", "components/Button.tsx"], "standard"],

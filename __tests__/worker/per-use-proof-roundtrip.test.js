@@ -24,6 +24,7 @@ import path from "node:path";
 import { jest } from "@jest/globals";
 import * as mongooseModule from "mongoose";
 import { makeFakePaymentDb, matches } from "../fixtures/fake-payment-db.mjs";
+import { ORACLE_CONSULTATION_TIERS } from "../../lib/tarot/oracle-consultation-pricing.mjs";
 
 const USER_ID = "507f1f77bcf86cd799439011";
 const FUSION_FEATURE_KEY = "fusion-fortune-consultation";
@@ -198,35 +199,117 @@ describe("writer 가 돌려주는 ledgerId (네오 팩폭 실사고)", () => {
  *
  * 🔴 키는 라우트 소스에서 직접 읽는다 — 손으로 적은 목록은 라우트가 키를 바꿔도 계속 초록불이다.
  */
-const ROUTE_KEY_SOURCES = Object.freeze([
-  "neo-operation-room",
-  "astrology-ai",
-  "nakshatra-ai",
-  "new-year-ai",
-  "karma-destiny-ai",
-  "ziwei-ai",
-  "ziwei-island-ai",
-  "vedic-ai",
-  "life-book-ai",
-  "sukuyo-compatibility-ai",
-  "love-secret-ai",
-  "naming-prompt",
-]);
+// 🔴 소비 라우트를 손으로 적지 않는다. 예전에는 12개를 배열에 열거했고, 추출기도 이름 4개
+//    ("FEATURE_KEY"·"SERVICE_KEY"·"LEGACY_FEATURE_KEY"·"FORTUNE_TEA_HOUSE_SERVICE_KEY")만
+//    알아봤다. 그 사이 소비 라우트가 21개로 늘었는데 목록은 12개에 멈춰 있었고, 빠진 9개
+//    (animal-totem·fortune·fortune-tea-house·fusion-fortune·human-design-report·master-love-codex
+//    ·nakshatra·nakshatra-premium·tarot)의 writer↔reader 왕복은 **한 번도 검사된 적이 없다**.
+//    목록이 가드가 아니다(CLAUDE.md 원칙 10) — 소스에서 전수 발견하고 미분류를 실패시킨다.
+const ROUTES_DIR = path.join(process.cwd(), "worker", "routes");
 
-function readRouteFeatureKeys(routeName) {
-  const source = fs.readFileSync(path.join(process.cwd(), "worker", "routes", `${routeName}.js`), "utf8");
+function readRouteSource(routeName) {
+  return fs.readFileSync(path.join(ROUTES_DIR, `${routeName}.js`), "utf8");
+}
+
+// 증빙 reader 를 실제로 부르는 라우트만 대상이다. 둘 중 하나라도 부르면 이 계약에 묶인다.
+function discoverConsumingRoutes() {
+  return fs.readdirSync(ROUTES_DIR)
+    .filter((file) => file.endsWith(".js"))
+    .map((file) => file.replace(/\.js$/, ""))
+    .filter((name) => /verifyPerUsePayment|findMoonstoneSpendEvidence/.test(readRouteSource(name)))
+    .sort();
+}
+
+// 상수 이름은 라우트마다 접두사가 붙는다(BASIC_FEATURE_KEY·YEAR_TAROT_FEATURE_KEY·SERVICE_KEY …).
+// 접두사를 열거하는 대신 접미사로 받는다.
+const KEY_CONST_NAME = "(?:[A-Z][A-Z0-9_]*_)?(?:FEATURE_KEY|SERVICE_KEY)";
+
+function localKeyConsts(source) {
+  return [...source.matchAll(new RegExp(`^const (${KEY_CONST_NAME}) = "([^"]+)";`, "gm"))].map((m) => m[2]);
+}
+
+// nakshatra-premium 처럼 상수 대신 상품 표를 두고 product.featureKey 를 넘기는 라우트.
+// 🔴 featureKey 리터럴을 파일 전체에서 훑지 않는다 — fortune.js 에서 결제와 무관한 항목
+//    (share-reward·pig-coin-charge 등)까지 딸려 와 대상이 부풀었다(실측).
+function productTableKeys(source) {
   const keys = [];
-  for (const name of ["FEATURE_KEY", "SERVICE_KEY", "LEGACY_FEATURE_KEY", "FORTUNE_TEA_HOUSE_SERVICE_KEY"]) {
-    const match = source.match(new RegExp(`^const ${name} = "([^"]+)";`, "m"));
-    if (match) keys.push(match[1]);
+  for (const table of source.matchAll(/^const [A-Z][A-Z0-9_]*PRODUCTS[A-Z0-9_]* = Object\.freeze\(\{([\s\S]*?)^\}\);/gm)) {
+    for (const hit of table[1].matchAll(/\bfeatureKey:\s*"([^"]+)"/g)) keys.push(hit[1]);
   }
   return keys;
 }
 
+// fortune.js·fusion-fortune.js 는 키를 worker/lib 에서 import 한다. 라우트 본문만 보면 0건이다.
+function importedKeyConsts(source) {
+  const keys = [];
+  for (const statement of source.matchAll(/import\s*\{([^}]+)\}\s*from\s*"([^"]+)"/g)) {
+    const names = statement[1].split(",").map((part) => part.trim())
+      .filter((name) => new RegExp(`^${KEY_CONST_NAME}$`).test(name));
+    if (!names.length) continue;
+    const relative = statement[2].replace(/^\.\.\/\.\.\//, "").replace(/^\.\.\//, "worker/");
+    const absolute = path.join(process.cwd(), relative);
+    if (!fs.existsSync(absolute)) continue;
+    const moduleSource = fs.readFileSync(absolute, "utf8");
+    for (const name of names) {
+      const match = moduleSource.match(new RegExp(`^export const ${name} = "([^"]+)";`, "m"));
+      if (match) keys.push(match[1]);
+    }
+  }
+  return keys;
+}
+
+// 🔴 소스에 리터럴이 아예 없는 라우트. 여기에 키 문자열을 손으로 적지 않는다 —
+//    그 기능의 정본 모듈에서 뽑고, 뽑은 결과가 비면 아래 테스트가 실패한다.
+//    tarot 오라클 상담은 카드 수 구간마다 키가 갈리고 서버가 런타임에 역산한다(PR #1171).
+const DYNAMIC_ROUTE_KEYS = Object.freeze({
+  tarot: () => ORACLE_CONSULTATION_TIERS.map((tier) => tier.featureKey),
+});
+
+function readRouteFeatureKeys(routeName) {
+  const source = readRouteSource(routeName);
+  const dynamic = DYNAMIC_ROUTE_KEYS[routeName] ? DYNAMIC_ROUTE_KEYS[routeName]() : [];
+  return [...new Set([
+    ...localKeyConsts(source),
+    ...productTableKeys(source),
+    ...importedKeyConsts(source),
+    ...dynamic,
+  ])];
+}
+
+const ROUTE_KEY_SOURCES = Object.freeze(discoverConsumingRoutes());
+const ALL_ROUTE_FEATURE_KEYS = Object.freeze([
+  ...new Set(ROUTE_KEY_SOURCES.flatMap((routeName) => readRouteFeatureKeys(routeName))),
+]);
+
 describe("소비 라우트 전수 — 정본 reader 가 각 기능의 월정석 차감을 찾아낸다", () => {
-  test("🔴 라우트 키 추출이 비어 있지 않다 (가드가 대상 없이 통과하지 않게)", () => {
+  test("🔴 라우트 발견과 키 추출이 비어 있지 않다 (가드가 대상 없이 통과하지 않게)", () => {
+    // 발견이 통째로 빗나가면(경로 변경·정규식 오타) 대상 0개로 조용히 초록불이 된다.
+    // 실측 2026-08-27: 21개. 하한을 두어 붕괴를 잡되, 정당한 감소 1건까지는 허용한다.
+    expect(ROUTE_KEY_SOURCES.length).toBeGreaterThanOrEqual(20);
     for (const routeName of ROUTE_KEY_SOURCES) {
       expect(readRouteFeatureKeys(routeName).length).toBeGreaterThan(0);
+    }
+  });
+
+  test("🔴 타로 오라클 상담의 카드 수 구간 키가 전부 대상에 들어 있다", () => {
+    // DYNAMIC_ROUTE_KEYS 를 비우면 아래 루프는 공허하게 통과한다. 정본에서 직접 못박아
+    // 그 구멍을 막는다 — 티어가 늘면 자동으로 커버 대상이 늘고, 특례를 지우면 여기서 깨진다.
+    const tierKeys = ORACLE_CONSULTATION_TIERS.map((tier) => tier.featureKey);
+    expect(tierKeys.length).toBeGreaterThan(0);
+    for (const key of tierKeys) expect(ALL_ROUTE_FEATURE_KEYS).toContain(key);
+  });
+
+  test("🔴 동적 키 라우트는 정본 모듈에서 실제로 키를 뽑아 온다", () => {
+    // 정본이 비거나 모양이 바뀌면 위 테스트는 다른 경로로 통과할 수 있다. 여기서 직접 못박는다.
+    for (const [routeName, resolve] of Object.entries(DYNAMIC_ROUTE_KEYS)) {
+      expect(ROUTE_KEY_SOURCES).toContain(routeName);
+      const keys = resolve();
+      expect(keys.length).toBeGreaterThan(0);
+      expect(keys.every((key) => typeof key === "string" && key.length > 0)).toBe(true);
+      // 소스 리터럴만으로는 안 나오는 키여야 한다 — 나온다면 이 특례가 필요 없다는 뜻이다.
+      const source = readRouteSource(routeName);
+      const literal = new Set([...localKeyConsts(source), ...productTableKeys(source), ...importedKeyConsts(source)]);
+      expect(keys.some((key) => !literal.has(key))).toBe(true);
     }
   });
 
@@ -246,11 +329,23 @@ describe("소비 라우트 전수 — 정본 reader 가 각 기능의 월정석 
     })).resolves.toMatchObject({ sourceId: requestId, serviceKey: featureKey });
   });
 
+// 이 라우트가 소유하지 않은 실재 키를 대조군으로 고른다.
+// 🔴 고정 상수를 쓰면 안 된다 — 그 키를 실제로 소유한 라우트에서는 "다른 기능"이 아니게 되어
+//    테스트가 자기모순으로 깨진다(실측: fortune 라우트가 fortune-chat-consultation 을 소유한다).
+function pickForeignFeatureKey(ownKeys) {
+  const own = new Set(ownKeys);
+  const foreign = ALL_ROUTE_FEATURE_KEYS.find((key) => !own.has(key));
+  // 모든 라우트가 같은 키만 쓴다면 이 검사는 성립하지 않는다 — 조용히 넘기지 말고 실패시킨다.
+  if (!foreign) throw new Error(`${[...own].join(",")} 밖의 대조군 키를 찾지 못했다`);
+  return foreign;
+}
+
   test.each(ROUTE_KEY_SOURCES)("%s — 다른 기능의 차감으로는 열리지 않는다", async (routeName) => {
     const featureKeys = readRouteFeatureKeys(routeName);
+    const foreignKey = pickForeignFeatureKey(featureKeys);
     const requestId = "cross-feature-request-id";
     await runWriter({
-      product: { ...PRODUCT, productId: OTHER_FEATURE_KEY, featureKey: OTHER_FEATURE_KEY },
+      product: { ...PRODUCT, productId: foreignKey, featureKey: foreignKey },
       purchaseId: requestId,
     });
     // 대조군: 위 차감이 실제로 기록됐는데도 이 라우트의 키로는 안 잡혀야 한다.
