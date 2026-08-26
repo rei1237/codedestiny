@@ -142,8 +142,8 @@ const SECTION_RULES = Object.freeze({
   personality_profile: "personality_profile은 [핵심 성향 Context]에 따라 이 명반 전체를 종합해 '이 사람은 기본적으로 어떤 사람인가'를 서술하는 자리입니다. 명궁·신궁·삼방사정·사화에서 반복되는 성향을 우선하여, 핵심 성격 → 겉과 속의 차이 → 장점과 그림자 → 인간관계를 맺는 방식과 화났을 때·상처받을 때의 반응 → 사고방식(직관형/분석형, 결정 속도) 순으로 자연스럽게 엮으세요. 이후 essence 이하 섹션들이 참조할 전제이므로, 개별 별의 사전적 정의 나열이 아니라 통합된 사람의 모습으로 마무리하세요.",
   essence: "essence는 personality_profile에서 정리한 핵심 성향을 전제로, 명궁 주성과 강약을 첫 흐름에 자연스럽게 밝히고 신궁·보성·살성의 영향까지 통합하세요.",
   flow: "flow는 화록·화권·화과·화기 네 별을 모두 별 이름으로 직접 언급하고, 계산 확정값의 궁 위치 그대로 각 사화가 놓인 궁의 욕망, 힘, 인정, 막힘을 현실적인 언어로 풀어주세요.",
-  triad_axis: "triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요.",
-  twelve_palaces: "twelve_palaces는 12궁 전체를 단순 나열하지 말고 명궁·재백궁·관록궁·부부궁·복덕궁·질액궁의 상호작용을 중심으로 연결해 주세요.",
+  triad_axis: "triad_axis는 질문과 가장 가까운 궁의 삼방사정, 대궁, 협조궁을 함께 읽어 에너지가 들어오고 새는 길을 밝히세요. [계산 확정값]의 '삼방사정 회조' 줄에 적힌 궁과 별을 이름으로 인용하고, 회조하는 별의 강약 표기(◎최상·O득지·▲이로움·△균형·X함몰)를 근거로 그 축이 실제로 힘을 들여보내는지 새게 하는지 판정하세요.",
+  twelve_palaces: "twelve_palaces는 12궁 전체를 단순 나열하지 말고 명궁·재백궁·관록궁·부부궁·복덕궁·질액궁의 상호작용을 중심으로 연결해 주세요. 각 궁의 강약 표기를 근거로 삼고, [계산 확정값]에 '자화' 줄이 있으면 그 궁은 힘이 밖으로 비입하지 않고 제자리에서 흩어진다는 뜻으로 구분해 읽으세요.",
   career: "career는 관록궁의 주성 강약과 삼방사정, 대운·세운 흐름을 질문 주제와 연결해 일의 성질과 지속 가능성을 밝히세요.",
   wealth: "wealth는 재백궁을 복덕궁·전택궁과 함께 읽어 버는 힘과 새는 통로를 나누어 말하세요.",
   relationship: "relationship은 부부궁과 그 삼방사정(관록·천이·복덕)을 함께 읽고, 노복궁의 관계망까지 이어 인연의 결을 밝히세요.",
@@ -1096,6 +1096,40 @@ function buildCanonicalZiweiFacts(chart) {
     .join(" · ");
   if (sihuaLine) lines.push(`사화: ${sihuaLine}`);
   if (chart?.bureau?.name) lines.push(`오행국: ${chart.bureau.name} (첫 대한 ${chart.bureau.number}세 시작)`);
+
+  // 삼방사정 회조 — 엔진이 이미 계산해 두는데(chart.sanFangSiZheng) 확정값 줄에는 없었다.
+  // 🔴 요약본의 mainStars 는 flatMap 이라 강약이 소실된다 — palaceNames 로 돌아가 궁마다 다시 읽는다.
+  const triadNames = chart?.sanFangSiZheng?.byPalace?.["명궁"]?.palaceNames;
+  if (Array.isArray(triadNames) && triadNames.length) {
+    const rendered = triadNames
+      .map((name) => palaces.find((item) => item.name === name))
+      .filter(Boolean)
+      .map((palace) => `${palace.name}(${palace.earthlyBranch}) ${starsWithBrightness(palace, palace.mainStars)}`)
+      .join(" ↔ ");
+    if (rendered) lines.push(`삼방사정 회조(명궁 기준): ${rendered}`);
+  }
+
+  // 자화(自化) — 그 궁의 궁간사화가 그 궁 자신의 별에 떨어진 것. 밖으로 비입하는 사화와 읽는 법이 다르다.
+  const selfLine = palaces
+    .filter((palace) => Array.isArray(palace.selfTransformations) && palace.selfTransformations.length)
+    .map((palace) => `${palace.name}=${palace.selfTransformations.join(",")}`)
+    .join(" · ");
+  if (selfLine) lines.push(`자화: ${selfLine}`);
+
+  const currentLuck = resolveCurrentMajorLuckByChartAge(chart);
+  if (currentLuck) {
+    const stemPart = currentLuck.stem ? ` 궁간 ${currentLuck.stem}` : "";
+    lines.push(`현재 대한: ${currentLuck.palaceName}(${currentLuck.earthlyBranch})${stemPart} · ${currentLuck.range}세 · ${currentLuck.direction} (세는나이 ${currentLuck.age}세)`);
+    if (Array.isArray(currentLuck.transformations) && currentLuck.transformations.length) {
+      lines.push(`대한사화(궁간 ${currentLuck.stem}): ${currentLuck.transformations.join(" · ")}`);
+    }
+  }
+
+  const minor = chart?.minorLuck?.current;
+  if (minor) {
+    lines.push(`소한: ${minor.year}년 ${minor.ganji} · ${minor.age}세 · ${minor.branch}궁 = ${minor.palaceName}`);
+  }
+
   if (palaces.length) {
     lines.push("12궁 강약(◎=묘·최상, O=득·안정, ▲=리·이로움, △=평·보통, X=함·주의):");
     for (const palace of palaces) {
@@ -1107,13 +1141,16 @@ function buildCanonicalZiweiFacts(chart) {
   return lines;
 }
 
-// 대한은 오행국이 정한 첫 대한 나이부터 10년씩 흐른다. 세는나이 기준이라 라벨에 그대로 밝힌다.
-function resolveCurrentMajorLuck(chart, birthDate) {
-  const birthYear = Number(String(birthDate || "").slice(0, 4));
-  if (!Number.isFinite(birthYear) || birthYear < 1900) return null;
-  const age = new Date().getFullYear() - birthYear + 1;
+// 현재 대한 — 나이 기준은 명반의 세차 연도(chart.lunar.year)다.
+// 🔴 양력 생년으로 세면 입춘 전 출생(예: 1월 1일생)이 평생 한 살씩 어긋난다.
+// meta.dayun 을 덮어쓰는 enforceZiweiChartFacts 와 확정값 사실 줄이 같은 기준을 써야 하므로
+// 두 곳이 이 함수 하나를 부른다.
+function resolveCurrentMajorLuckByChartAge(chart) {
+  const lunarYear = Number(chart?.lunar?.year);
+  if (!Number.isFinite(lunarYear)) return null;
+  const age = new Date().getFullYear() - lunarYear + 1;
   const rows = Array.isArray(chart?.majorLuck) ? chart.majorLuck : [];
-  const current = rows.find((row) => age >= Number(row?.startAge) && age <= Number(row?.endAge));
+  const current = rows.find((row) => Number(row?.startAge) <= age && age <= Number(row?.endAge));
   return current ? { ...current, age } : null;
 }
 
@@ -1124,7 +1161,10 @@ function buildZiweiAnalysisBasis(chart, birthInfo = {}) {
   const lifeData = palaces.find((item) => item.name === "명궁") || null;
   const bodyData = palaces.find((item) => item.name === chart?.bodyPalace) || null;
   const sihua = resolveSihuaPlacements(chart);
-  const currentLuck = resolveCurrentMajorLuck(chart, birthInfo?.birthDate);
+  // 🔴 예전에는 여기만 양력 생년(birthInfo.birthDate)으로 나이를 셌다. 확정값 사실 줄·meta.dayun 은
+  // 세차 연도(chart.lunar.year)를 쓰므로, 입춘 전 출생(예: 1980-01-01)이면 같은 프롬프트 안에
+  // "세는나이 47세"와 "세는나이 48세"가 함께 실렸다. 세차 기준 하나로 모은다.
+  const currentLuck = resolveCurrentMajorLuckByChartAge(chart);
   const yearly = chart?.yearlyLuck || {};
   const triad = chart?.sanFangSiZheng?.byPalace?.["명궁"] || null;
 
@@ -1178,6 +1218,40 @@ function buildZiweiAnalysisBasis(chart, birthInfo = {}) {
   });
 }
 
+// 삼방사정을 실제로 엮어 읽었는지 가르는 개념어.
+const TRIAD_TERMS = Object.freeze(["삼방사정", "회조", "삼방", "대궁"]);
+
+// 묘왕함약(강약)을 근거로 삼았는지 가르는 표기. 확정값 블록이 내보내는 기호와 뜻풀이를 그대로 쓴다
+// (BRIGHTNESS_SYMBOL / BRIGHTNESS_MEANING — worker/lib/ziwei-ai-chart.js).
+// 🔴 'O'·'X' 는 라틴 문자라 한국어 본문에서 우연히 걸릴 수 있어 넣지 않는다.
+const BRIGHTNESS_TERMS = Object.freeze(["◎", "▲", "△", "최상", "득지", "이로움", "균형", "함몰", "묘왕", "함약", "강약"]);
+
+// 그라운딩 이슈를 고칠 수 있는 섹션 그룹(SECTION_GROUP_SPECS 의 id).
+// 🔴 이슈 종류를 새로 만들면 반드시 여기 등록한다 — 미등록 이슈는 재시도 대상이 없어
+// 경고만 남기고 조용히 배달된다. verify:ziwei-worker-chart-facts 가 미등록을 실패시킨다.
+//
+// 🔴 기존 두 이슈(SIHUA_STAR_UNSTATED·PALACE_COVERAGE)의 essence 배정은 그대로 둔다.
+// 섹션 소유권만 보면 사화·12궁은 flow 그룹의 몫이지만(SECTION_GROUP_SPECS 의 flow.focus),
+// 검출은 전 섹션을 합친 본문에서 하므로 essence 재생성으로도 해소돼 왔다. 실호출 없이는
+// 옮긴 쪽이 더 낫다고 증명할 수 없어 이번 PR 에서는 건드리지 않는다.
+const GROUNDING_ISSUE_SECTION_GROUP = Object.freeze({
+  SIHUA_STAR_UNSTATED: "essence",
+  MINGGONG_STAR_UNSTATED: "essence",
+  PALACE_COVERAGE: "essence",
+  TRIAD_UNSTATED: "flow",
+  BRIGHTNESS_UNSTATED: "flow",
+});
+
+// 이슈 목록 → 다시 부를 섹션 그룹 id 목록(중복 제거, 등장 순서 유지).
+function resolveGroundingRetryGroupIds(issues) {
+  const ids = [];
+  for (const issue of issues || []) {
+    const groupId = GROUNDING_ISSUE_SECTION_GROUP[String(issue).split(":")[0]];
+    if (groupId && !ids.includes(groupId)) ids.push(groupId);
+  }
+  return ids;
+}
+
 // LLM 응답의 meta를 서버 계산 확정값으로 덮어쓰고, 본문이 사화·12궁을 실제로 참조했는지 검증한다.
 function enforceZiweiChartFacts(text, chart) {
   const parsed = parseStructuredConsultationResult(text);
@@ -1206,12 +1280,7 @@ function enforceZiweiChartFacts(text, chart) {
   }
   meta.sihua = metaSihua;
 
-  const currentYear = new Date().getFullYear();
-  const lunarYear = Number(chart?.lunar?.year);
-  const age = Number.isFinite(lunarYear) ? currentYear - lunarYear + 1 : null;
-  const currentLuck = age != null
-    ? (chart?.majorLuck || []).find((cycle) => Number(cycle.startAge) <= age && age <= Number(cycle.endAge))
-    : null;
+  const currentLuck = resolveCurrentMajorLuckByChartAge(chart);
   if (currentLuck) {
     const luckPalace = palaces.find((item) => item.name === currentLuck.palaceName) || null;
     meta.dayun = {
@@ -1238,6 +1307,15 @@ function enforceZiweiChartFacts(text, chart) {
   if (bodyText && (lifeData?.mainStars || []).length && !lifeData.mainStars.some((star) => bodyText.includes(star))) {
     issues.push("MINGGONG_STAR_UNSTATED");
   }
+  // 삼방사정을 실제로 읽었는가. 궁 이름 등장만으로는 못 가른다(PALACE_COVERAGE가 이미 그걸 본다) —
+  // 회조로 엮어 읽었는지를 보려면 개념어 자체를 찾아야 한다.
+  if (bodyText && chart?.sanFangSiZheng?.byPalace && !TRIAD_TERMS.some((term) => bodyText.includes(term))) {
+    issues.push("TRIAD_UNSTATED");
+  }
+  // 묘왕함약(강약)을 근거로 삼았는가. 확정값 블록이 기호와 뜻풀이를 함께 주므로 둘 중 하나만 나와도 통과시킨다.
+  if (bodyText && palaces.some((item) => Object.keys(item.brightness || {}).length) && !BRIGHTNESS_TERMS.some((term) => bodyText.includes(term))) {
+    issues.push("BRIGHTNESS_UNSTATED");
+  }
 
   return { text: JSON.stringify(parsed, null, 2), issues };
 }
@@ -1250,6 +1328,12 @@ function describeZiweiGroundingIssues(issues, chart) {
     lines.push("- 12궁 가운데 최소 9개 궁을 본문에서 궁 이름으로 직접 참조하라. 막연한 총평으로 궁 참조를 대체하지 마라.");
   }
   if (issues.includes("MINGGONG_STAR_UNSTATED")) lines.push("- 명궁 주성을 본문에서 별 이름으로 직접 언급하며 근거로 삼아라.");
+  if (issues.includes("TRIAD_UNSTATED")) {
+    lines.push("- 삼방사정(본궁·대궁·삼합 두 궁)을 궁 이름으로 묶어 회조를 밝히고, 그 회조가 무엇을 들여보내고 무엇을 새게 하는지 서술하라.");
+  }
+  if (issues.includes("BRIGHTNESS_UNSTATED")) {
+    lines.push("- 별의 묘왕함약(강약)을 근거로 삼아라. 아래 확정값의 강약 표기(◎최상·O득지·▲이로움·△균형·X함몰)를 그대로 인용해 어느 별이 어느 궁에서 어떤 힘인지 밝혀라.");
+  }
   lines.push("아래 계산 확정값과 다르게 서술하는 것은 금지한다:");
   lines.push(...buildCanonicalZiweiFacts(chart));
   return lines;
@@ -1792,13 +1876,17 @@ async function generateInitialConsultation(env, { input, chart, logContext = {} 
   }
 
   let grounding = enforceZiweiChartFacts(JSON.stringify({ meta: meta || {}, sections }, null, 2), chart);
-  if (grounding.issues.length && remainingMs() > SECTION_GROUP_RETRY_MIN_BUDGET_MS) {
-    // 근거 미달(사화 별 미언급·12궁 커버리지·명궁 주성 미언급)은 본질·사화·12궁을 맡은 essence 그룹의 몫이다.
-    // 예전처럼 상담 전체를 다시 만들지 않고 그 그룹만 다시 부른다.
-    const essenceGroup = SECTION_GROUP_SPECS.find((group) => group.id === "essence");
-    logZiweiAi("Grounding Retry", { ...logContext, issues: grounding.issues, sectionGroup: essenceGroup.id }, "warn");
+  // 근거 미달을 고칠 수 있는 그룹만 다시 부른다(상담 전체 재생성이 아니다).
+  // 🔴 예전에는 이슈 종류와 무관하게 essence 만 다시 불렀다. 삼방사정·명암 이슈는 flow 그룹
+  //    (triad_axis·twelve_palaces) 의 몫이라, 매핑 없이 새 이슈를 넣으면 영영 안 고쳐진 채
+  //    Grounding Residual 경고만 쌓인다. GROUNDING_ISSUE_SECTION_GROUP 이 그 매핑이다.
+  for (const groupId of resolveGroundingRetryGroupIds(grounding.issues)) {
+    if (!grounding.issues.length || remainingMs() <= SECTION_GROUP_RETRY_MIN_BUDGET_MS) break;
+    const targetGroup = SECTION_GROUP_SPECS.find((group) => group.id === groupId);
+    if (!targetGroup) continue;
+    logZiweiAi("Grounding Retry", { ...logContext, issues: grounding.issues, sectionGroup: targetGroup.id }, "warn");
     try {
-      const regenerated = await runGroup(essenceGroup, {
+      const regenerated = await runGroup(targetGroup, {
         attempts: 1,
         timeoutMs: retryTimeoutMs(),
         extraPrompt: [
@@ -1812,7 +1900,7 @@ async function generateInitialConsultation(env, { input, chart, logContext = {} 
         grounding = enforceZiweiChartFacts(JSON.stringify({ meta: meta || {}, sections }, null, 2), chart);
       }
     } catch (retryError) {
-      logZiweiAi("Grounding Retry Failed", { ...logContext, errorMessage: clean(retryError?.message || retryError, 300) }, "warn");
+      logZiweiAi("Grounding Retry Failed", { ...logContext, sectionGroup: targetGroup.id, errorMessage: clean(retryError?.message || retryError, 300) }, "warn");
     }
   }
   // meta 는 서버 확정값으로 덮어썼으므로, 본문 인용이 여전히 부족해도 실패 처리하지 않고 경고만 남긴다.
@@ -2519,6 +2607,8 @@ export const __ziweiAiTestUtils = {
   resolveSihuaPlacements,
   enforceZiweiChartFacts,
   describeZiweiGroundingIssues,
+  GROUNDING_ISSUE_SECTION_GROUP,
+  resolveGroundingRetryGroupIds,
   cleanForbiddenResult,
   countStructuredConsultationBodyChars,
   MIN_INITIAL_CONSULTATION_BODY_CHARS,

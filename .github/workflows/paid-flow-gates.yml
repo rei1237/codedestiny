@@ -146,6 +146,13 @@ on:
       #    밀리는데 응답은 정상으로 보인다. __tests__/worker/astro-timezone-dst.test.js 가
       #    이 파일을 실행해 검사하므로 트리거에도 있어야 한다(CLAUDE.md 원칙 10).
       - "worker/routes/astro.js"
+      # 🔴 자미두수 상담의 명반 계산·프롬프트 템플릿은 worker/lib 에 있는데 이 트리거에는
+      #    worker/routes/*-ai.js 만 있었다. 궁간·대한사화·자화·소한처럼 상담 정확도를 결정하는
+      #    값이 전부 ziwei-ai-chart.js 에서 나오므로, 그 파일만 고친 PR 이 이 게이트를
+      #    (verify:ai-consultation-flows · verify:analysis-basis-contract ·
+      #    verify:llm-generation-resilience) 통째로 못 깨우고 있었다(CLAUDE.md 원칙 10).
+      - "worker/lib/ziwei-ai-*"
+      - "lib/ziwei-minor-limit.js"
       - "worker/lib/gemini.js"
       - "worker/lib/gemini-client.js"
       - "worker/lib/structured-consultation.js"
