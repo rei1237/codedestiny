@@ -1215,14 +1215,13 @@
     },
 
     resolveContexts: function (inputs, options) {
-      var self = this;
       var list = Array.isArray(inputs) ? inputs : [];
       var opts = options || {};
       var setCurrentIndex = (typeof opts.setCurrentIndex === 'number') ? opts.setCurrentIndex : -1;
-      return Promise.all(list.map(function (input, idx) {
+      return Promise.all(list.map((input, idx) => {
         var localOptions = Object.assign({}, opts);
         localOptions.setCurrent = setCurrentIndex === idx;
-        return self.resolveDateContext(input, localOptions);
+        return this.resolveDateContext(input, localOptions);
       }));
     },
 

@@ -3055,17 +3055,19 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   var lmonth = Math.abs(Number(kasiLunar.month));
   var lday = Number(kasiLunar.day);
   var isLeap = !!kasiLunar.isLeap;
-  var yearGan = lunar.getYearGan();
-  var yearZhi = lunar.getYearZhi();
-  try {
-    if (KasiEngine && typeof KasiEngine.getGanji === 'function') {
-      var _kasiGanji = KasiEngine.getGanji(baseDate);
-      if (_kasiGanji && _kasiGanji.secha && String(_kasiGanji.secha).length >= 2) {
-        yearGan = String(_kasiGanji.secha).charAt(0) || yearGan;
-        yearZhi = String(_kasiGanji.secha).charAt(1) || yearZhi;
-      }
-    }
-  } catch (_kasiGanjiErr) {}
+  // 🔴 자미두수의 년간지는 **음력 프레임**이다 — 세차가 설날에 바뀐다. 사주(자평)의 입춘 경계와
+  // 다르며, 두 프레임을 섞으면 그 사이에 태어난 사람의 사화·녹존·경양·타라가 통째로 어긋난다.
+  //
+  // 예전에는 여기서 KasiEngine.getGanji(baseDate).secha 로 덮어썼는데, 그 값은
+  // js/core/kasi-calendar-service.js 의 _yearGanjiFromIpchun — **절기 프레임**이다.
+  // 하네스에는 KasiCalendarService 가 없어 그 호출이 항상 null 이라 verify:ziwei-star-parity 가
+  // 이 경로를 보지 못했고, 브라우저에서만 셸이 워커·앱과 갈렸다. 실측(2026-08-27): 그 서비스의
+  // 검증된 절기표에는 1990년치만 있어서, 1990-01-27(설날) ~ 02-04 11:13(입춘) 출생 9일 구간에서
+  // 셸=己巳 · 워커/앱=庚午 였다. 이제 코어의 음력해에서 바로 뽑아 세 엔진을 한 프레임으로 맞춘다.
+  var _zwCore = _koreanCalendar();
+  var _zwYear = _zwCore.sexagenaryYearIndexes(kasiLunar.year);
+  var yearGan = _zwCore.STEM_HANJA[_zwYear.stemIndex];
+  var yearZhi = _zwCore.BRANCH_HANJA[_zwYear.branchIndex];
 
   var h = hour;
   var hourIdx = (h === 23 || h === 0) ? 0 : Math.floor((h + 1) / 2);
