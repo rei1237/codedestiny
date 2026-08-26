@@ -3334,6 +3334,56 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     });
   }
 
+  // ─── 소한(小限) ───────────────────────────────────────────────
+  // 대한(10년)이 큰 물길이라면 소한은 그 안에서 한 해씩 옮겨 앉는 자리다.
+  // 시작궁은 생년지의 삼합국으로 정한다 — 寅午戌→辰, 申子辰→戌, 巳酉丑→未, 亥卯未→丑.
+  // 1세를 그 궁에 두고 남명은 순행, 여명은 역행으로 한 해에 한 궁씩 옮긴다.
+  // 🔴 방향 규칙이 대한(음양남녀)과 다르다 — 위 direction 을 재사용하지 말 것.
+  var SOHAN_START_ZHI_BY_YEAR_ZHI = {
+    '寅':'辰','午':'辰','戌':'辰',
+    '申':'戌','子':'戌','辰':'戌',
+    '巳':'未','酉':'未','丑':'未',
+    '亥':'丑','卯':'丑','未':'丑'
+  };
+  var soHanStartZhi = SOHAN_START_ZHI_BY_YEAR_ZHI[yearZhi] || '';
+  var soHanStartIdx = soHanStartZhi ? ZHI_LIST.indexOf(soHanStartZhi) : -1;
+  var soHan = null;
+  var soHanList = [];
+  // 🔴 나이의 기준은 양력 생년이 아니라 **세차(歲次) 연도**다. 1월 1일생처럼 입춘 전에 태어나면
+  // 세차가 전년도라, 양력 연도로 세면 평생 한 살씩 어긋난다. yearGan/yearZhi 가 KASI 세차이므로
+  // 그 간지와 일치하는 해를 생년 근처에서 되찾아 기준으로 삼는다.
+  var soHanBaseYear = year;
+  for (var cy = year - 1; cy <= year + 1; cy++) {
+    if (GAN_LIST_ZW[(((cy - 4) % 10) + 10) % 10] === yearGan && ZHI_LIST[(((cy - 4) % 12) + 12) % 12] === yearZhi) {
+      soHanBaseYear = cy;
+      break;
+    }
+  }
+  if (soHanStartIdx >= 0) {
+    var soHanDir = isMale ? 1 : -1;
+    for (var sa = 1; sa <= 100; sa++) {
+      var soIdx = (((soHanStartIdx + (sa - 1) * soHanDir) % 12) + 12) % 12;
+      var soYear = soHanBaseYear + sa - 1;
+      var soGan = GAN_LIST_ZW[(((soYear - 4) % 10) + 10) % 10];
+      var soSecha = ZHI_LIST[(((soYear - 4) % 12) + 12) % 12];
+      soHanList.push({
+        age: sa,
+        year: soYear,
+        ganji: soGan + soSecha,
+        idx: soIdx,
+        branch: ZHI_LIST[soIdx],
+        palaceName: palacesByIndex[soIdx] || ''
+      });
+    }
+    soHan = {
+      startZhi: soHanStartZhi,
+      startIdx: soHanStartIdx,
+      direction: soHanDir,
+      baseYear: soHanBaseYear,
+      solarBirthYear: year
+    };
+  }
+
   var palaceStarData = [];
   for (var pi = 0; pi < 12; pi++) {
     var gName = palacesByIndex[pi] || '';
@@ -3404,6 +3454,8 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
     juInfo: juNames[ju] || juNames[4],
     daHan: daHan,
     daHanList: daHanList,
+    soHan: soHan,
+    soHanList: soHanList,
     sihuaData: sihuaData,
     direction: direction,
     ju: ju,
