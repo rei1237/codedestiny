@@ -1,3 +1,21 @@
+// 자미두수 명암(廟旺利平陷) 제약 검사 — 셸 엔진(js/saju-engine.js)의 별 강약을 케이스 4건으로 본다.
+//
+// 🔴 상태(2026-08-27 실측): **미배선이고 45건 중 19건이 실패한다.**
+//    package.json 에도 .github/workflows/ 에도 등록돼 있지 않다(리포 전체 참조 0건).
+//    같은 날 표기 버그 3건을 고쳐 22건 → 19건이 됐다(symbolPass 의 '○' vs ASCII 'O' — 아래 참고).
+//
+// 🔴 남은 19건은 **이 스크립트만으로는 판정할 수 없다.** 아래 CASES 45개 기대값에 출처 주석이
+//    전혀 없어서, 엔진이 틀린 것인지 기대값이 낡은 것인지 가릴 근거가 파일 안에 없다.
+//    지금 엔진 출력으로 기대값을 다시 뜨면 "틀린 값을 고정하는 가드"가 될 위험이 있어 그러지 않았다.
+//    특히 세 패턴이 엔진 결함 쪽을 가리킨다:
+//      · 천마가 4개 케이스에서 4건 모두 실패(A·C·D 는 △ 기대에 ▲, B 는 X 기대에 △)
+//      · 지겁이 C·D 두 곳에서 같은 방향으로 실패(▲ 기대에 △)
+//      · B 케이스에 실패가 몰린다(자미·천상·무곡·태음이 한꺼번에 X) — 명궁/지지 산출 자체가 의심된다
+//
+//    배선은 그 판정이 끝난 뒤에 한다. 정본을 세우는 법은 verify:ziwei-sohan 이 보여 준다 —
+//    외부 명반 하나를 통째로 대조해 값을 박고 출처를 주석에 남기는 방식이다.
+//    실행: node scripts/verify-ziwei-brightness-constraints.cjs
+//
 // DOM 부트스트랩과 엔진 로딩은 scripts/lib/ziwei-engine-harness.cjs 하나를 쓴다.
 // 예전에는 그 120줄이 이 파일 안에 있었는데, 같은 엔진을 verify:ziwei-sohan 도 돌리게 되면서
 // 두 벌로 갈라질 자리가 됐다.
@@ -111,8 +129,12 @@ function parseArgs(argv) {
   return out;
 }
 
+// 🔴 '득'의 기호는 엔진에서 **ASCII 'O'** 다(js/saju-engine.js 의 map = {'묘':'◎','득':'O',…}).
+// 여기서는 전각 '○'(U+25CB) 만 비교하고 있어서, 엔진이 '득'을 내놓으면 '○|◎' 기대는
+// 구조적으로 절대 통과할 수 없었다. 앱 쪽은 이 이중성을 이미 알고 둘 다 받는다
+// (app/components/AdvancedZiweiSectionV2.tsx 의 `symbol === "O" || symbol === "○"`).
 function symbolPass(current, target) {
-  if (target === '○|◎') return current === '○' || current === '◎';
+  if (target === '○|◎') return current === '○' || current === 'O' || current === '◎';
   return current === target;
 }
 
