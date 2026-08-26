@@ -51,25 +51,39 @@
 ## 7. 최종 감사 Verifier
 - 검증 명령: `npm run verify:mobile-final-audit`
 - 검증 범위: 13개 모바일 보고서 존재, package mobile verifier script 연결, root/public shell marker, cache key sync, registry row count, 최종 감사 필수 기록, core mojibake pattern.
-- 기대 출력: Reports 13/13, package scripts 10/10, shell marker files 6/6, cache key `build-e72ad565e0f1`, registry rows 107 이상.
+- 기대 출력: Reports 13/13, package scripts 10/10, shell marker files 6/6, cache key 6개 셸 정렬, registry rows 104 이상.
+- 🔴 캐시키 해시를 이 문서에 박지 말 것 — `sync:public` 이 셸을 건드릴 때마다 회전하므로 적는 순간 낡는다(2026-08-26 에 `build-e72ad565e0f1` → 실제 `build-472ff1db4370` 으로 어긋나 있던 것을 걷어냈다). 가드가 보는 것은 특정 해시가 아니라 **6개 셸이 같은 해시를 갖는지**다.
 
-## 8. 원 요구사항 Verifier
-- 검증 명령: `node scripts/verify-mobile-original-requirements.mjs`
-- 검증 범위: compact home, category navigation, card system, collection length reduction, touch fallback, modal/body scroll lifecycle, lazy images/media, BGM no eager download, sprite/motion lightness, feature detail template, payment lock/pass UX, static/React hydration/Suspense coverage.
-- React 결제 overlay는 Suspense/dynamic fallback 감사 기록과 bottom sheet marker를 함께 확인한다.
+## 8. 원 요구사항 Verifier — 2026-08-26 은퇴
+`scripts/verify-mobile-original-requirements.mjs` 를 삭제했다. 🔴 되살리지 말 것.
 
-## 9. Live Deployment Gate
-- 검증 명령: `node scripts/verify-mobile-live-deployment.mjs`
-- 검증 범위: production HTML의 `cdMobileDestinyHub`, `cd-mobile-bottom-navigation-v20260701`, `MobileFeatureBottomSheet`, `openGoldenGrainCharge`, cache key marker.
-- 현재 결과: FAIL. `https://code-destiny.com/` 응답 HTML에서 `cdMobileDestinyHub`, `cd-mobile-bottom-navigation-v20260701`, `MobileFeatureBottomSheet`, `build-e72ad565e0f1` marker가 아직 보이지 않는다.
-- 배포 정책 확인: `node scripts/deploy-pages.mjs`는 로컬 direct deploy를 skip하고 Git push 기반 Cloudflare Pages 자동 배포를 요구한다.
-- 완료 기준: 배포 후 위 명령이 PASS해야 한다.
+- **왜**: 13개 그룹을 전부 **리터럴 부분문자열 grep** 으로 판정하던 가드라, 마크업이 동적 생성으로
+  옮겨가자 조용히 썩었다. 은퇴 시점 실패 19건 중 **10건이 오탐**이었다 — `data-mobile-card-kind`
+  (`index.html:18539`) · `data-mobile-detail-section`(`:37509`) · `data-mobile-media`(`:18496`) 는
+  전부 `setAttribute` 로 살아 있었고, body scroll lock 은 `PaymentProcessingContext.tsx` 에서
+  `app/components/common/PaymentLoading.tsx` 로 이사했는데 가드가 옛 파일만 읽고 있었다.
+- 나머지 9건(compact home)은 실제로 없다 — `#cdMobileDestinyHub` 허브 자체가 제거됐다
+  (`index.html:7369` 주석이 "그 요소는 어느 셸에도 없다"고 적어 두었다).
+- **대체**: 같은 계약을 렌더 기반 가드가 더 강하게 지킨다 — `verify:mobile-detail-render`
+  (390x844 로 실제 렌더 후 DOM 쿼리) · `verify:mobile-detail-nonintrusive`(CI 배선) ·
+  `verify:mobile-bottom-nav-sync` · `verify:mobile-feature-coverage` · `verify:mobile-lazy-mount-openers`(CI 배선).
+- 이 가드는 `package.json` 에 스크립트가 없었고 `.github/workflows/**` 참조도 0건이라, CI 에서
+  단 한 번도 돈 적이 없다.
+
+## 9. Live Deployment Gate — 2026-08-26 은퇴
+`scripts/verify-mobile-live-deployment.mjs` 를 삭제했다. 🔴 되살리지 말 것.
+
+- **왜**: 프로덕션 HTML 에 `cdMobileDestinyHub` 가 있는지 보는 게이트였는데, 그 허브는 없어졌고
+  응답에 문자열이 남아 있던 이유는 **죽은 CSS 379줄이 아직 배포되기 때문**이었다. 즉 통과해도
+  잘못된 이유로 통과하는 가드였다. 역시 npm 스크립트·워크플로 참조 0건.
+- 배포 SHA 검증은 `scripts/verify-deployed-sha.mjs`(Pages `/version.json` + Worker `/api/version`)가,
+  셸 캐시키 정렬은 `verify:mobile-final-audit` 가 이어받는다.
 
 ## 10. Build/Dist Gate
 - 검증 명령: `npm run build`
 - 검증 결과: PASS. `sync:public`, `verify:public-parity`, `i18n:check`, `verify:locale-main-sync`, `verify:runtime-cache-sync`, `verify:adsense-route-policy`, Next build, `postbuild`, `adsense-readiness`가 통과했다.
 - 안정화 기록: Next export worker가 완료 후 종료하지 않는 경우 `scripts/next-build-with-pages-manifest.mjs`의 watchdog이 완료된 export를 finalize하며, 실패 시 `.next/out`을 지우고 1회 재시도한다.
-- dist 확인: `dist/index.html`, `dist/static/index.html`, `dist/en/index.html`, `dist/ja/index.html`, `dist/zh/index.html`에서 `cdMobileDestinyHub`, `cd-mobile-bottom-navigation-v20260701`, `MobileFeatureBottomSheet`, `build-e72ad565e0f1` marker를 확인했다.
+- dist 확인: `dist/index.html`, `dist/static/index.html`, `dist/en/index.html`, `dist/ja/index.html`, `dist/zh/index.html`에서 `cd-mobile-bottom-navigation-v20260701`, `MobileFeatureBottomSheet`, 그리고 6개 셸에 정렬된 cache key marker를 확인했다. (2026-08-26: `cdMobileDestinyHub` 는 없어진 요소라 목록에서 뺐고, 캐시키 해시는 회전하므로 박지 않는다.)
 
 ## 11. 최종 검증 기록
 | 명령 | 결과 |
@@ -79,8 +93,6 @@
 | `npm run verify:mobile-runtime-readiness` | PASS |
 | `npm run verify:mobile-cdp-smoke` | PASS |
 | `npm run verify:mobile-final-audit` | PASS |
-| `node scripts/verify-mobile-original-requirements.mjs` | PASS |
-| `node scripts/verify-mobile-live-deployment.mjs` | FAIL - 배포 후 재검증 필요 |
 | `npm run build` | PASS |
 | `npm run verify:billing-pass-policy` | PASS |
 | `npm run verify:paid-gate-ui` | PASS |
@@ -96,7 +108,7 @@
 | `git diff --check` | PASS - 줄끝 경고만 출력, whitespace 오류 없음 |
 
 ## 12. 운영 확인 사항
-- 라이브 URL `https://code-destiny.com/` 확인 결과, `cdMobileDestinyHub`, `cd-mobile-bottom-navigation-v20260701`, `MobileFeatureBottomSheet`, `build-e72ad565e0f1` marker는 아직 응답 HTML에 나타나지 않았다. 배포 후 live marker 재검증이 필요하다.
+- (2026-08-26 갱신) 라이브 marker 재검증 항목은 8·9절과 함께 은퇴했다. `cdMobileDestinyHub` 는 어느 셸에도 없는 요소라 "아직 안 보인다"가 영영 해소되지 않는 조건이었다. 배포 도달 확인은 `scripts/verify-deployed-sha.mjs` 가 Pages·Worker 양쪽 SHA 를 대조하는 쪽으로 일원화됐다.
 - 모바일 브라우저 실제 결제 완료/실패/재시도는 sandbox 계정으로 별도 확인한다.
 - iOS Safari와 Android Chrome 실기기 확인은 배포 URL에서 마지막으로 수행한다.
 - `index.html` 변경 뒤에는 항상 `npm run sync:public`, `npm run verify:locale-main-sync`, `npm run verify:runtime-cache-sync` 순서를 유지한다.
