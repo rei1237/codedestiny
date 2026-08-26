@@ -1,4 +1,6 @@
 import { Solar } from "lunar-javascript";
+// 화성·영성 기점은 셸·워커 엔진과 공유한다(lib/ziwei-fire-bell.js 머리말 참고).
+import { placeFireAndBell } from "@/lib/ziwei-fire-bell";
 import { generateZiweiDeepSummary } from "./generate-ziwei-deep-summary";
 import {
   calculateFourTransformations,
@@ -162,7 +164,10 @@ export function calcZiweiPalaces(
   if (wVal > 5) wVal -= 5;
   const juMap: Record<number, number> = { 1: 3, 2: 4, 3: 2, 4: 6, 5: 5 };
   const ju = juMap[wVal] || 4; 
-  const juLabels: Record<number, string> = { 2: "목3국", 3: "화6국", 4: "금4국", 5: "토5국", 6: "수2국" };
+  // 오국 명칭은 국수(局數)에 고정된다 — 2국=수2국, 3국=목3국, 4국=금4국, 5국=토5국, 6국=화6국.
+  // 🔴 예전에는 2·3·6 이 서로 밀려 있어서, 대한이 3세에 시작하는 목3국 명반에 "화6국"이라 적혔다.
+  // 셸(js/saju-engine.js 의 juNames)·워커(calculateBureau 의 bureauName)와 이제 같다.
+  const juLabels: Record<number, string> = { 2: "수2국", 3: "목3국", 4: "금4국", 5: "토5국", 6: "화6국" };
 
   // 주성 배치
   let q = Math.floor(lDay / ju);
@@ -216,13 +221,40 @@ export function calcZiweiPalaces(
   const luCunMap = [2, 3, 5, 6, 5, 6, 8, 9, 11, 0];
   const luCunPos = luCunMap[gIdx];
   if (Number.isFinite(luCunPos)) {
-    addStar(luCunPos, "록존", "aux");
+    addStar(luCunPos, "녹존", "aux");
     addStar(luCunPos + 1, "경양", "bad");
     addStar(luCunPos + 11, "타라", "bad");
   }
-  
+
+  // 천괴(天魁)·천월(天鉞) — 생년간 규칙표. 셸 js/saju-engine.js 의 kuiMap·yueMap 과 같은 값이다.
+  const kuiYueMap: [number, number][] = [
+    [1, 7],   // 갑 → 丑·未
+    [0, 8],   // 을 → 子·申
+    [11, 9],  // 병 → 亥·酉
+    [11, 9],  // 정 → 亥·酉
+    [1, 7],   // 무 → 丑·未
+    [0, 8],   // 기 → 子·申
+    [1, 7],   // 경 → 丑·未
+    [2, 6],   // 신 → 寅·午
+    [3, 5],   // 임 → 卯·巳
+    [3, 5],   // 계 → 卯·巳
+  ];
+  const kuiYue = kuiYueMap[gIdx];
+  if (kuiYue) {
+    addStar(kuiYue[0], "천괴", "aux");
+    addStar(kuiYue[1], "천월", "aux");
+  }
+
+  // 천마(天馬) — 역마 규칙. 申子辰→寅(2), 巳酉丑→亥(11), 寅午戌→申(8), 亥卯未→巳(5).
+  addStar([2, 11, 8, 5][zIdx % 4], "천마", "aux");
+
   addStar(11 - hIdx, "지공", "bad");
   addStar(11 + hIdx, "지겁", "bad");
+
+  // 화성(火星)·영성(鈴星) — 두 별은 각자의 기점에서 시지만큼 순행한다.
+  const fireBell = placeFireAndBell({ yearBranchIndex: zIdx, hourIndex: hIdx });
+  addStar(fireBell.fireBranchIndex, "화성", "bad");
+  addStar(fireBell.bellBranchIndex, "영성", "bad");
 
   // 사화(생년간 기준 중앙 상수)
   const stem = normalizeYearStem(yGan) as keyof typeof FOUR_TRANSFORMATIONS_BY_YEAR_STEM;
@@ -311,7 +343,7 @@ const PALACE_ID_ORDER: ZiweiPalaceId[] = [
   "parents",
 ];
 
-const LUCKY_STAR_SET = new Set(["문창", "문곡", "좌보", "우필", "록존", "천괴", "천월", "천마"]);
+const LUCKY_STAR_SET = new Set(["문창", "문곡", "좌보", "우필", "녹존", "천괴", "천월", "천마"]);
 
 const STAR_KEYWORD_MAP: Record<string, string[]> = {
   자미: ["중심", "리더십", "책임"],
