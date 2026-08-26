@@ -642,6 +642,7 @@ var LNS_HEAL={h1:NOVEL+enc("루나 언니 회복1-Photoroom.webp"),h2:NOVEL+enc(
   h4:NOVEL+enc("루나 언니 회복4-Photoroom.webp"),h5:NOVEL+enc("루나 언니 회복5-Photoroom.webp"),h6:NOVEL+enc("루나 언니 회복6-Photoroom.webp")};
 var BAEK={base:NOVEL+enc("백문 기본-Photoroom.webp"),read:NOVEL+enc("백문 독서-Photoroom.webp"),magic:NOVEL+enc("백문 마법-Photoroom.webp"),
   lib:NOVEL+enc("백문 도서관-Photoroom.webp"),lib2:NOVEL+enc("백문 도서관2-Photoroom.webp"),lib4:NOVEL+enc("백문 도서관4-Photoroom.webp"),lib5:NOVEL+enc("백문 도서관5-Photoroom.webp")};
+/* PJE = 서한비(徐寒霏). 표시명은 서한비지만 아래 파일명은 R2 실물이라 구명 「박지은」을 유지한다 — 바꾸면 전 컷 404. */
 var PJE={base:NOVEL+enc("박지은 기본.webp"),blank:NOVEL+enc("박지은 무표정.webp"),talk:NOVEL+enc("박지은 말함.webp"),talk2:NOVEL+enc("박지은 말함2.webp"),
   cynic:NOVEL+enc("박지은 냉소.webp"),mock:NOVEL+enc("박지은 조롱.webp"),lure:NOVEL+enc("박지은 유혹.webp"),angry:NOVEL+enc("박지은 화남.webp"),mad:NOVEL+enc("박지은 광기.webp")};
 var MU_TRUE={base:"/images/novel/mu-01.webp",sly:"/images/novel/mu-02.webp",talk:"/images/novel/mu-03.webp",angry:"/images/novel/mu-04.webp",laugh:"/images/novel/mu-05.webp",
@@ -731,7 +732,7 @@ var TRK={
   /* 완결부 신규 트랙 */
   jaeEnter:NOVEL+enc("재성의 섬 진입.mp3"),
   riverCross:NOVEL+enc("강을 건너는 두 사람.mp3"),
-  /* 박지은 결전 — 음악방 DestinyWar */
+  /* 서한비 결전 — 음악방 DestinyWar */
   warTheme:MUSIC+enc("The war.mp3"),
   /* Meditation — 정적·계시·회복 구간 */
   templeGate:MED+enc("Moonlit Temple Gate.mp3"),
@@ -789,7 +790,7 @@ NEO_CELL.angry=NEO_CELL.shock;NEO_CELL.sad=NEO_CELL.calm;NEO_CELL.think=NEO_CELL
 MU_TRUE.serious=MU_TRUE.calm;MU_TRUE.surprise=MU_TRUE.think;MU_TRUE.smile=MU_TRUE.laugh;MU_TRUE.soft=MU_TRUE.calm;MU_TRUE.shock=MU_TRUE.think;
 /* 백문(BAEK): 강의=독서 포즈, 그 외 무효→기본 */
 BAEK.lecture=BAEK.read;BAEK.sigh=BAEK.base;BAEK.surprise=BAEK.base;BAEK.shock=BAEK.base;BAEK.cry=BAEK.base;BAEK.talk=BAEK.base;
-/* 박지은(PJE): 흔들림=가면 벗겨진 무표정, 울음=붕괴(광기) */
+/* 서한비(PJE): 흔들림=가면 벗겨진 무표정, 울음=붕괴(광기) */
 PJE.waver=PJE.blank;PJE.cry=PJE.mad;PJE.sad=PJE.blank;PJE.think=PJE.blank;PJE.surprise=PJE.blank;PJE.serious=PJE.blank;
 /* 꽃돼지 연이(PIG_CELL) 보강 — shock/serious는 시트에 없어 neutral 폴백되던 것 교정 */
 PIG_CELL.shock=PIG_CELL.surprise;PIG_CELL.serious=PIG_CELL.neutral;
@@ -1370,9 +1371,9 @@ function updateActive(){
 
 /* --- dialogue + typewriter --- */
 var ICON={yeon:"연",neo:"NEO",mu:"무",geo:"?",moka:"모카",crow:"까악",luna:"루나",n:"달",sys:"코드",
-  ln:"루나",lns:"언니",rab:"청",baek:"백문",pje:"박",god:"運"};
+  ln:"루나",lns:"언니",rab:"청",baek:"백문",pje:"서",god:"運"};
 var NAME={yeon:"연이",neo:"네오",mu:"무성",geo:"거울 속 연이",moka:"모카",crow:"까마귀",luna:"루나블룸",n:"",sys:"",
-  ln:"루나",lns:"루나 언니",rab:"청토끼",baek:"백문",pje:"박지은",god:"운명의 신"};
+  ln:"루나",lns:"루나 언니",rab:"청토끼",baek:"백문",pje:"서한비",god:"운명의 신"};
 function showDialogue(b){
   clearTimeout(typeTimer);
   var spk=b.s||"n";

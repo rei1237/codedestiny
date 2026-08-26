@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "sourceHash": "c833fbb75a279c24c227791f5d437d7b7c27cf542814ba22f1bbe44ca4c8e4a9",
+  "sourceHash": "031fa2e1b14eb8e2dfc1bd102833f4c91dd11962042f65980775b944523f992c",
   "note": "정본 비트에서 생성한 연출 검수 매트릭스입니다. 목적과 갈등은 각 화 제목/사건 신호를 보존하며, 장면·감정 호흡·접근성 큐를 한 곳에서 검수합니다.",
   "episodes": [
     {
@@ -16728,7 +16728,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "이전 배경에서 진행되는 서술"
         },
         {
@@ -16792,23 +16792,13 @@
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-31:13",
-          "background": "ziwei1",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "ziwei1 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-31:15",
           "background": "ziwei1",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -16848,17 +16838,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
-          "accessibility": "ziwei1 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-31:23",
-          "background": "ziwei1",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -16878,7 +16858,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -17368,7 +17348,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -17398,7 +17378,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -17498,7 +17478,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "water",
-          "camera": "focus",
+          "camera": "steady",
           "accessibility": "ziwei1 배경에서 진행되는 mu의 대사"
         },
         {
@@ -17848,7 +17828,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -17908,7 +17888,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -18153,7 +18133,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "wood",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei3 배경에서 진행되는 서술"
         },
         {
@@ -18173,7 +18153,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "water",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei3 배경에서 진행되는 서술"
         },
         {
@@ -18253,7 +18233,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "water",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei3 배경에서 진행되는 서술"
         },
         {
@@ -18293,7 +18273,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "wood",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei3 배경에서 진행되는 서술"
         },
         {
@@ -18483,7 +18463,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "claw",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18503,7 +18483,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "metal",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18543,7 +18523,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "claw",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18583,7 +18563,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "metal",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18653,7 +18633,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18703,7 +18683,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "water",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18813,7 +18793,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "metal",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18823,7 +18803,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "root",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18843,7 +18823,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18873,7 +18853,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "wood",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -18983,7 +18963,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "wood",
-          "camera": "drift",
+          "camera": "focus",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -19134,6 +19114,16 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
+          "accessibility": "ziwei2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-32:162",
+          "background": "ziwei2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -19355,6 +19345,16 @@
           "eventEffect": null,
           "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
+        },
+        {
+          "beatId": "ep-32:197",
+          "background": "ziwei2",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "ziwei2 배경에서 진행되는 yeon의 대사"
         },
         {
           "beatId": "ep-32:198",
@@ -20378,7 +20378,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "hands",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20408,7 +20408,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20438,7 +20438,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20458,7 +20458,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20478,7 +20478,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20488,7 +20488,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20508,7 +20508,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20518,7 +20518,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20528,7 +20528,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20538,7 +20538,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20548,7 +20548,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei1 배경에서 진행되는 서술"
         },
         {
@@ -20753,7 +20753,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "claw",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei4 배경에서 진행되는 서술"
         },
         {
@@ -20773,7 +20773,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "claw",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei4 배경에서 진행되는 서술"
         },
         {
@@ -20793,7 +20793,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "claw",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei4 배경에서 진행되는 서술"
         },
         {
@@ -20823,7 +20823,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "water",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei4 배경에서 진행되는 서술"
         },
         {
@@ -20873,7 +20873,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "net",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei4 배경에서 진행되는 서술"
         },
         {
@@ -20913,7 +20913,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "claw",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei4 배경에서 진행되는 서술"
         },
         {
@@ -20967,16 +20967,6 @@
           "accessibility": "ziwei4 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-34:43",
-          "background": "ziwei4",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "ziwei4 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-34:44",
           "background": "ziwei4",
           "transition": "hold",
@@ -20993,7 +20983,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei4 배경에서 진행되는 서술"
         },
         {
@@ -21093,7 +21083,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "root",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei4 배경에서 진행되는 서술"
         },
         {
@@ -21113,7 +21103,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "steady",
+          "camera": "focus",
           "accessibility": "ziwei4 배경에서 진행되는 mu의 대사"
         },
         {
@@ -21293,7 +21283,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -21383,7 +21373,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
@@ -21753,7 +21743,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "ziwei3 배경에서 진행되는 서술"
         },
         {
@@ -21822,7 +21812,7 @@
         {
           "phase": "압력·전환",
           "beatId": "ep-35:79",
-          "pacing": "impact"
+          "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
@@ -21868,7 +21858,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -21992,16 +21982,6 @@
           "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
         },
         {
-          "beatId": "ep-35:45",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-35:46",
           "background": "sukuyo",
           "transition": "hold",
@@ -22108,7 +22088,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -22128,7 +22108,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -22288,7 +22268,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -22358,7 +22338,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -22368,7 +22348,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -22468,7 +22448,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -22548,7 +22528,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -22638,7 +22618,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -22668,7 +22648,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -22688,7 +22668,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -22755,8 +22735,8 @@
     },
     {
       "id": "ep-36",
-      "title": "박지은",
-      "purpose": "박지은",
+      "title": "서한비",
+      "purpose": "서한비",
       "conflictBeatId": "ep-36:2",
       "emotionPath": [
         {
@@ -22766,7 +22746,7 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-36:67",
+          "beatId": "ep-36:82",
           "pacing": "impact"
         },
         {
@@ -22973,7 +22953,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "memoryVault 배경에서 진행되는 서술"
         },
         {
@@ -23123,7 +23103,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "hands",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "memoryVault 배경에서 진행되는 서술"
         },
         {
@@ -23243,7 +23223,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "memoryVault 배경에서 진행되는 서술"
         },
         {
@@ -23347,16 +23327,6 @@
           "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
         },
         {
-          "beatId": "ep-36:95",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-36:100",
           "background": "sukuyo",
           "transition": "hold",
@@ -23373,7 +23343,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "hands",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -23417,16 +23387,6 @@
           "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
         },
         {
-          "beatId": "ep-36:114",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-36:118",
           "background": "sukuyo",
           "transition": "hold",
@@ -23463,7 +23423,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -23573,7 +23533,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -23633,7 +23593,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -23713,7 +23673,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "hands",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -23862,7 +23822,7 @@
       "id": "ep-37",
       "title": "박병하",
       "purpose": "박병하",
-      "conflictBeatId": "ep-37:3",
+      "conflictBeatId": "ep-37:8",
       "emotionPath": [
         {
           "phase": "진입",
@@ -23892,23 +23852,13 @@
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-37:3",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
           "beatId": "ep-37:5",
           "background": "sukuyo",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "steady",
           "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
         },
         {
@@ -23918,7 +23868,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -23952,16 +23902,6 @@
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-37:11",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-37:12",
           "background": "sukuyo",
           "transition": "hold",
@@ -23972,23 +23912,13 @@
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-37:14",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
-        },
-        {
           "beatId": "ep-37:15",
           "background": "sukuyo",
           "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -24080,16 +24010,6 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "sukuyo 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-37:29",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 neo의 대사"
         },
         {
           "beatId": "ep-37:36",
@@ -24938,7 +24858,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "hands",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -24958,7 +24878,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -25018,7 +24938,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "hands",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -25087,7 +25007,7 @@
         {
           "phase": "압력·전환",
           "beatId": "ep-38:73",
-          "pacing": "impact"
+          "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
@@ -25123,7 +25043,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -25383,7 +25303,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -25483,7 +25403,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -25603,7 +25523,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "fuse",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -25683,7 +25603,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -25693,7 +25613,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "burst",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -25763,7 +25683,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "fire",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -25943,7 +25863,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "fuse",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -25963,7 +25883,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "fuse",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -26053,7 +25973,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "burst",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -26093,7 +26013,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -26522,7 +26442,7 @@
       "id": "ep-39",
       "title": "붙잡힌 파수꾼",
       "purpose": "붙잡힌 파수꾼",
-      "conflictBeatId": "ep-39:6",
+      "conflictBeatId": "ep-39:11",
       "emotionPath": [
         {
           "phase": "진입",
@@ -26531,7 +26451,7 @@
         },
         {
           "phase": "압력·전환",
-          "beatId": "ep-39:71",
+          "beatId": "ep-39:82",
           "pacing": "impact"
         },
         {
@@ -26588,7 +26508,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -26688,7 +26608,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -26788,7 +26708,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -26918,7 +26838,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -26968,7 +26888,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -27038,7 +26958,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -27148,7 +27068,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "metal",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -27168,7 +27088,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "metal",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "handsRush 배경에서 진행되는 서술"
         },
         {
@@ -27558,7 +27478,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "neoBound3 배경에서 진행되는 서술"
         },
         {
@@ -27828,7 +27748,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
-          "camera": "drift",
+          "camera": "focus",
           "accessibility": "neoBound3 배경에서 진행되는 서술"
         },
         {
@@ -27838,7 +27758,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "neoBound3 배경에서 진행되는 서술"
         },
         {
@@ -27888,7 +27808,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "neoBound3 배경에서 진행되는 서술"
         },
         {
@@ -27957,16 +27877,6 @@
           "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-40:2",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-40:3",
           "background": "fateTarot",
           "transition": "hold",
@@ -27985,16 +27895,6 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:5",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:7",
@@ -28023,7 +27923,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
@@ -28063,17 +27963,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:22",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
@@ -28085,16 +27975,6 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "fateTarot 배경에서 진행되는 yeon의 대사"
-        },
-        {
-          "beatId": "ep-40:24",
-          "background": "fateTarot",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": "moonlight",
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-40:27",
@@ -28170,16 +28050,6 @@
           "beatId": "ep-40:45",
           "background": "room",
           "transition": "crossfade",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-40:46",
-          "background": "room",
-          "transition": "hold",
           "tone": "dark",
           "ambient": null,
           "eventEffect": null,
@@ -28573,7 +28443,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "cherryMoonPortal 배경에서 진행되는 서술"
         },
         {
@@ -28763,7 +28633,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
@@ -28773,7 +28643,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "fateTarot 배경에서 진행되는 서술"
         },
         {
@@ -28812,7 +28682,7 @@
         {
           "phase": "압력·전환",
           "beatId": "ep-41:82",
-          "pacing": "impact"
+          "pacing": "normal"
         },
         {
           "phase": "정리·다음 걸음",
@@ -28878,7 +28748,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -28998,7 +28868,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "water",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -29018,7 +28888,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -29078,7 +28948,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -29098,7 +28968,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -29198,7 +29068,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "library 배경에서 진행되는 서술"
         },
         {
@@ -29318,7 +29188,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -29348,7 +29218,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "thread",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -29370,6 +29240,16 @@
           "eventEffect": null,
           "camera": "steady",
           "accessibility": "sukuyo 배경에서 진행되는 pje의 대사"
+        },
+        {
+          "beatId": "ep-41:89",
+          "background": "sukuyo",
+          "transition": "hold",
+          "tone": "dark",
+          "ambient": null,
+          "eventEffect": null,
+          "camera": "focus",
+          "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
           "beatId": "ep-41:90",
@@ -29498,7 +29378,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "heart",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -29588,7 +29468,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "burst",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -29598,7 +29478,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -29608,7 +29488,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -29728,7 +29608,7 @@
           "tone": "dark",
           "ambient": "moonlight",
           "eventEffect": "stars",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "clearMoonWater 배경에서 진행되는 서술"
         },
         {
@@ -29977,7 +29857,7 @@
       "id": "ep-42",
       "title": "읽는 이름, 쓰는 운명",
       "purpose": "읽는 이름, 쓰는 운명",
-      "conflictBeatId": "ep-42:11",
+      "conflictBeatId": "ep-42:12",
       "emotionPath": [
         {
           "phase": "진입",
@@ -30007,16 +29887,6 @@
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-42:11",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-42:12",
           "background": "sukuyo",
           "transition": "hold",
@@ -30037,16 +29907,6 @@
           "accessibility": "ziwei2 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-42:16",
-          "background": "ziwei2",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "ziwei2 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-42:23",
           "background": "ziwei2",
           "transition": "hold",
@@ -30064,16 +29924,6 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:44",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "natural",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
           "accessibility": "sukuyo 배경에서 진행되는 서술"
         },
         {
@@ -30107,16 +29957,6 @@
           "accessibility": "sukuyo 배경에서 진행되는 mu의 대사"
         },
         {
-          "beatId": "ep-42:54",
-          "background": "sukuyo",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "sukuyo 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-42:70",
           "background": "tarotDoor",
           "transition": "crossfade",
@@ -30134,16 +29974,6 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "room 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:76",
-          "background": "room",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
           "accessibility": "room 배경에서 진행되는 서술"
         },
         {
@@ -30177,26 +30007,6 @@
           "accessibility": "bench 배경에서 진행되는 서술"
         },
         {
-          "beatId": "ep-42:107",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:108",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
           "beatId": "ep-42:110",
           "background": "bench",
           "transition": "hold",
@@ -30208,26 +30018,6 @@
         },
         {
           "beatId": "ep-42:113",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:115",
-          "background": "bench",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
-          "accessibility": "bench 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:125",
           "background": "bench",
           "transition": "hold",
           "tone": "dark",
@@ -30254,16 +30044,6 @@
           "ambient": null,
           "eventEffect": null,
           "camera": "drift",
-          "accessibility": "campus 배경에서 진행되는 서술"
-        },
-        {
-          "beatId": "ep-42:130",
-          "background": "campus",
-          "transition": "hold",
-          "tone": "dark",
-          "ambient": null,
-          "eventEffect": null,
-          "camera": "focus",
           "accessibility": "campus 배경에서 진행되는 서술"
         },
         {
@@ -30303,7 +30083,7 @@
           "tone": "dark",
           "ambient": null,
           "eventEffect": "heart",
-          "camera": "focus",
+          "camera": "drift",
           "accessibility": "bench 배경에서 진행되는 서술"
         },
         {

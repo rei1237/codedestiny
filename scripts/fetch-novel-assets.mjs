@@ -53,7 +53,8 @@ const push = (remote, rel) => items.push([remote, rel]);
   "까마귀 빌런1", "까마귀 빌런2",
 ].forEach((n) => push(`${ASSETS}/CodeDestinyNovel/${enc(n + ".png")}`, `CodeDestinyNovel/${n}.png`));
 
-// 완결부(EP.15~40) 캐릭터 — 루나 자매·청토끼·백문·박지은·무성 본모습 (webp)
+// 완결부(EP.15~40) 캐릭터 — 루나 자매·청토끼·백문·서한비·무성 본모습 (webp)
+// 🔴 서한비의 파일명은 R2 실물이라 개명 전 「박지은」을 그대로 쓴다. 바꾸면 전 컷 404.
 [
   "루나-Photoroom", "루나 언니-Photoroom",
   "루나 언니 회복1-Photoroom", "루나 언니 회복2-Photoroom", "루나 언니 회복3-Photoroom", "루나 언니 회복4-Photoroom", "루나 언니 회복5-Photoroom", "루나 언니 회복6-Photoroom",
