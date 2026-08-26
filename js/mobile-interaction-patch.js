@@ -1264,7 +1264,7 @@
 
   function ensureMobileBackstackRuntime() {
     if (window.__cdMobileNav) return;
-    loadScript('/js/mobile-backstack-navigation.js?v=build-f7312a56fbd1').catch(function(err) {
+    loadScript('/js/mobile-backstack-navigation.js?v=build-48712933b5ad').catch(function(err) {
       console.error('[mobile-interaction-patch] mobile backstack load failed:', err);
     });
   }
@@ -1355,24 +1355,24 @@
     openMbtiModal: ['js/astral-soul.js'],
     openAnimalTotemModal: [
       'js/services/animal-totem-content-engine.js',
-      'js/animal-totem-experience.js?v=build-f7312a56fbd1'
+      'js/animal-totem-experience.js?v=build-48712933b5ad'
     ],
     openHwatuModal: ['HwatuFortune.js?v=h9ee7eacf3957'],
     // NOTE: uiBindings uses the js/... path; keep the mobile patch path aligned.
     // ensure the latest script is loaded on launch.
-    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-f7312a56fbd1'],
-    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-f7312a56fbd1'],
-    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-f7312a56fbd1'],
+    openTarotLoveModal: ['js/tarot-love-experience.js?v=build-48712933b5ad'],
+    openTarotReunionModal: ['js/tarot-reunion-experience.js?v=build-48712933b5ad'],
+    openTarotSelfEsteemModal: ['js/tarot-self-esteem-experience.js?v=build-48712933b5ad'],
 
-    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-f7312a56fbd1'],
-    openDreamModal: ['js/dream-ledger.js?v=build-f7312a56fbd1'],
-    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-f7312a56fbd1'],
+    openTarotYearFortuneModal: ['js/tarot-year-fortune-experience.js?v=build-48712933b5ad'],
+    openDreamModal: ['js/dream-ledger.js?v=build-48712933b5ad'],
+    openPsychoDreamModal: ['js/psycho-dream-analyzer-freuds-study.js?v=build-48712933b5ad'],
     openKemetModal: ['js/oracle-kcg.js'],
     openJuyukModal: ['js/iching-engine.js', 'js/iching-modal.js'],
     openRoyalTeaOracle: [],
     openOlympusOracleModal: ['js/olympus-oracle.js'],
     gotoNamingPremium: [],
-    openSibylModal: ['js/sibyl-system.js?v=build-f7312a56fbd1']
+    openSibylModal: ['js/sibyl-system.js?v=build-48712933b5ad']
   };
 
   // 제자리(in-place)에서 모달을 여는 액션인지 판정한다.
@@ -1938,7 +1938,7 @@
 
   function bindDirectFeatureCardActions(root) {
     var scope = root && root.querySelectorAll ? root : document;
-    var nodes = scope.querySelectorAll('.feature-card-grid [data-action], .moon-collection-nav [data-action], #cdMobileDestinyHub [data-action]');
+    var nodes = scope.querySelectorAll('.feature-card-grid [data-action], .moon-collection-nav [data-action]');
     nodes.forEach(function(node) {
       if (!node || node.__cdMobileDirectActionBound) return;
       var action = node.getAttribute('data-action');
