@@ -929,7 +929,7 @@ const HIDDEN_STEMS_BY_BRANCH: Record<BranchKr, Array<{ stem: StemKr; weight: num
   [BRANCHES[2]]: [{ stem: STEMS[0], weight: 0.6 }, { stem: STEMS[2], weight: 0.25 }, { stem: STEMS[4], weight: 0.15 }],
   [BRANCHES[3]]: [{ stem: STEMS[1], weight: 1 }],
   [BRANCHES[4]]: [{ stem: STEMS[4], weight: 0.6 }, { stem: STEMS[1], weight: 0.3 }, { stem: STEMS[9], weight: 0.1 }],
-  [BRANCHES[5]]: [{ stem: STEMS[2], weight: 0.6 }, { stem: STEMS[4], weight: 0.25 }, { stem: STEMS[6], weight: 0.15 }],
+  [BRANCHES[5]]: [{ stem: STEMS[2], weight: 0.6 }, { stem: STEMS[6], weight: 0.25 }, { stem: STEMS[4], weight: 0.15 }],
   [BRANCHES[6]]: [{ stem: STEMS[3], weight: 0.7 }, { stem: STEMS[5], weight: 0.3 }],
   [BRANCHES[7]]: [{ stem: STEMS[5], weight: 0.6 }, { stem: STEMS[3], weight: 0.25 }, { stem: STEMS[1], weight: 0.15 }],
   [BRANCHES[8]]: [{ stem: STEMS[6], weight: 0.6 }, { stem: STEMS[8], weight: 0.25 }, { stem: STEMS[4], weight: 0.15 }],
