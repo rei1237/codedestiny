@@ -14,7 +14,6 @@ import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
-import { Solar } from "lunar-javascript";
 
 // 🔴 년주·월주는 **절기 프레임**이고 그 경계는 코어의 KST 절기표에서만 나온다.
 // 예전에는 월주를 lunar-javascript `getMonthInGanZhi()` 로 잡았는데, 그 라이브러리의 절기 시각은
@@ -22,10 +21,15 @@ import { Solar } from "lunar-javascript";
 // 節 경계 −30분·−1분 표본 각 72/72 전건 불일치, −61/+1/+30/+61분 0/72).
 // 🔴 년주도 `getYearInGanZhi()` — **음력 프레임(설날 경계)** 이었다. 그 아래 격국·용신·십신은
 // 사주 계산이라 년주는 **입춘 경계**여야 한다(실측: 정오 표본 6,804건 중 129건 1.90% 가 갈렸다).
-// 🔴 일주·시주는 여기서 바꾸지 않는다 — 코어의 야자시 기본값(shift-day)과 lunar-javascript 가
-// 23시대에서 정면으로 갈린다(실측 540/540). 그 축을 정하는 것은 PR-F 의 몫이다.
+// 🔴 일주·시주도 이제 코어에서 나온다(PR-F2). 야자시 축은 **keep-day** 로 명시한다 — 23시대도
+// 당일 일진을 쓴다는 뜻이고, 그래야 일간이 안 움직여 격국·용신·십신·조후가 그대로다.
+// 실측 2026-08-28(표본 18,090건, 1900~2100): 23시 **밖**은 어느 정책이든 전건 불변이다.
+// 이관 전 `getDayInGanZhi`/`getTimeInGanZhi` 조합은 **일주 keep-day + 시주 shift-day 혼종**이라
+// (일진은 안 밀면서 시주 천간만 민 날의 일간으로 뽑았다) 어느 정책으로도 그대로 재현되지 않는다.
+// 🔴 그래서 23시대 시주는 여기서 **바뀐다**. life-book-ai-saju.js 와 같은 축이다.
 import {
   BRANCH_HANJA,
+  NIGHT_ZI_POLICY,
   STEM_HANJA,
   ganji,
   lunarToSolar,
@@ -182,7 +186,7 @@ const GEMINI_ENV_KEYS = [
 ];
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
-// lunar-javascript는 간지를 한자로 반환하므로, 한글 키 오행/십신 테이블과 맞추기 위해 정규화한다.
+// 코어는 간지를 한자로 내므로, 한글 키 오행/십신 테이블과 맞추기 위해 정규화한다.
 const HANJA_TO_KO_GANZI = {
   甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
   子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
@@ -630,7 +634,8 @@ function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranc
   };
 }
 
-function buildLunarFromInput(dateParts, birthTime, calendarType) {
+/** 입력을 양력 KST 벽시계 한 덩어리로 정규화한다. 네 기둥이 전부 이 시각에서 나온다. */
+function resolveSolarBirth(dateParts, birthTime, calendarType) {
   if (calendarType === "lunar") {
     // 🔴 음력 입력의 양력 환산도 코어가 한다. lunar-javascript 는 중국 음력이라 표본 4,860건 중
     // 180건(3.70%)에서 하루 어긋나고(실측 2026-08-27), 그 하루가 네 기둥을 통째로 옮긴다.
@@ -640,31 +645,28 @@ function buildLunarFromInput(dateParts, birthTime, calendarType) {
       error.code = "INVALID_BIRTH_DATE";
       throw error;
     }
-    return Solar.fromYmdHms(converted.year, converted.month, converted.day, birthTime.hour, birthTime.minute, 0).getLunar();
+    return { year: converted.year, month: converted.month, day: converted.day, hour: birthTime.hour, minute: birthTime.minute };
   }
-  return Solar.fromYmdHms(dateParts.year, dateParts.month, dateParts.day, birthTime.hour, birthTime.minute, 0).getLunar();
+  return { year: dateParts.year, month: dateParts.month, day: dateParts.day, hour: birthTime.hour, minute: birthTime.minute };
 }
 
-/** 코어의 절기 프레임 년주·월주(한자). 지원 범위(1900~2100) 밖이면 던진다. */
-function coreYearMonthPillars(solar) {
-  const core = ganji({
-    year: solar.getYear(),
-    month: solar.getMonth(),
-    day: solar.getDay(),
-    hour: solar.getHour(),
-    minute: solar.getMinute(),
-  });
+/**
+ * 코어가 내는 원국 네 기둥(한자). 지원 범위(1900~2100) 밖이면 던진다.
+ *
+ * 🔴 야자시 정책을 **명시해서** 넘긴다. 코어 기본값은 shift-day 지만 이 소비자는 keep-day 다 —
+ * 기본값에 기대면 코어 기본값이 바뀌는 날 여기 값이 조용히 따라간다.
+ */
+function coreNatalPillars(at) {
+  const core = ganji(at, { nightZiPolicy: NIGHT_ZI_POLICY.KEEP_DAY });
   if (!core) {
     // parseDateParts 가 1900~2100 으로 자르므로 여기 오면 표가 깨진 것이다.
     // 조용히 CST 달력으로 떨어지지 않는다.
-    const error = new Error(`korean-calendar core returned no ganji for ${solar.toYmd()}`);
+    const error = new Error(`korean-calendar core returned no ganji for ${at.year}-${at.month}-${at.day}`);
     error.code = "CALENDAR_OUT_OF_RANGE";
     throw error;
   }
-  return {
-    year: `${STEM_HANJA[core.year.stemIndex]}${BRANCH_HANJA[core.year.branchIndex]}`,
-    month: `${STEM_HANJA[core.month.stemIndex]}${BRANCH_HANJA[core.month.branchIndex]}`,
-  };
+  const pillar = (p) => `${STEM_HANJA[p.stemIndex]}${BRANCH_HANJA[p.branchIndex]}`;
+  return { year: pillar(core.year), month: pillar(core.month), day: pillar(core.day), hour: pillar(core.hour) };
 }
 
 /** 서기 연도의 세차(한자). 세운은 입춘이 지난 뒤를 보므로 연도만으로 닫힌다. */
@@ -694,13 +696,12 @@ function calculateNewYearFortuneData(input) {
     throw error;
   }
   const birthTime = parseBirthTime(birth.birthTime);
-  const lunar = buildLunarFromInput(dateParts, birthTime, birth.calendarType);
-  const solar = lunar.getSolar();
-  const corePillars = coreYearMonthPillars(solar);
+  const solarBirth = resolveSolarBirth(dateParts, birthTime, birth.calendarType);
+  const corePillars = coreNatalPillars(solarBirth);
   const yearPillar = toKoreanGanzi(corePillars.year);
   const monthPillar = toKoreanGanzi(corePillars.month);
-  const dayPillar = toKoreanGanzi(lunar.getDayInGanZhi());
-  const hourPillar = birthTime.timeUnknown ? "" : toKoreanGanzi(lunar.getTimeInGanZhi());
+  const dayPillar = toKoreanGanzi(corePillars.day);
+  const hourPillar = birthTime.timeUnknown ? "" : toKoreanGanzi(corePillars.hour);
   const pillarMap = { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
   const dayMaster = pillarStem(dayPillar);
@@ -767,7 +768,7 @@ function calculateNewYearFortuneData(input) {
 
   return {
     birthCalendar: {
-      solarDate: `${solar.getYear()}-${String(solar.getMonth()).padStart(2, "0")}-${String(solar.getDay()).padStart(2, "0")}`,
+      solarDate: `${solarBirth.year}-${String(solarBirth.month).padStart(2, "0")}-${String(solarBirth.day).padStart(2, "0")}`,
       inputCalendarType: birth.calendarType,
       timeUnknown: birthTime.timeUnknown,
     },

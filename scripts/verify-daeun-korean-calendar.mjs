@@ -256,18 +256,14 @@ let divergence = null;
   const SCAN_DIRS = ["js", "worker", "app", "lib", "src"];
   const SCAN_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx"]);
   const SKIP_DIR_NAMES = new Set(["node_modules", ".next", "dist", "out", ".wrangler", "build-cache"]);
+  // 🔴 정규식은 매 호출마다 새로 만든다 — /g 플래그가 없어 lastIndex 문제는 없지만, 한 곳에 모아
+  // 두어야 아래 탐지기 자기검사(detectorProbe)가 **같은 패턴**을 검사한다.
+  const IMPORT_PATTERN = /from\s+["']lunar-javascript["']|require\(\s*["']lunar-javascript["']\s*\)|import\(\s*["']lunar-javascript["']\s*\)/;
 
-  /**
-   * 아직 lunar-javascript 를 import 하는 것이 **알려져 있는** 파일과 그 이유.
-   * 🔴 여기에 올린다고 옳아지는 것이 아니다 — 남은 이관 목록이고 줄어들기만 해야 한다.
-   * 대운도 명리 상수 표도 이제 하나도 없다(표는 lib/saju/myeongri-tables.js · verify:myeongri-tables).
-   * 남은 것은 전부 **일주·시주 EightChar** 다.
-   */
-  const KNOWN_REMAINING = new Map([
-    ["worker/lib/destiny-bias-engine.js", "일주 EightChar + Lunar/Solar 변환 — 대운은 이관 완료"],
-    ["worker/lib/life-book-ai-saju.js", "일주·시주 EightChar — 대운·LunarUtil 명리 표는 이관 완료"],
-    ["worker/routes/new-year-ai.js", "일주·시주 EightChar — 대운 없음"],
-  ]);
+  // 🔴 2026-08-28(PR-F2) 부터 **제품 소스의 lunar-javascript import 는 0 이어야 한다.**
+  // 예전에는 여기에 잔존 목록(KNOWN_REMAINING)이 있었고 "줄어들기만 해야 한다" 를 지켰다.
+  // 이제 목표에 도달했으므로 단언을 뒤집는다 — 하나라도 되살아나면 그 자리에서 빨간불이다.
+  // 🔴 라이브러리 자체를 지우지는 않았다. 이 가드를 포함한 달력 가드 5개가 **대조 대상**으로 읽는다.
 
   function walk(dir, out) {
     for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -288,7 +284,6 @@ let divergence = null;
   }
 
   const found = [];
-  const unclassified = [];
   let scanned = 0;
   for (const dirName of SCAN_DIRS) {
     const dir = path.join(root, dirName);
@@ -298,21 +293,23 @@ let divergence = null;
       if (relative === "js/core/korean-calendar.js") continue; // 코어 생성물
       scanned += 1;
       const code = stripComments(fs.readFileSync(file, "utf8"));
-      if (!/from\s+["']lunar-javascript["']|require\(\s*["']lunar-javascript["']\s*\)|import\(\s*["']lunar-javascript["']\s*\)/.test(code)) continue;
+      if (!IMPORT_PATTERN.test(code)) continue;
       found.push(relative);
-      if (!KNOWN_REMAINING.has(relative)) unclassified.push(relative);
     }
   }
   ok("⑤ 스캔이 실제로 소스를 읽었다(0 이면 가드가 깨진 것)", scanned >= 200, `${scanned}개 파일`);
-  // 🔴 이관이 끝날 때마다 이 숫자를 내린다. 올라가면 새로 생긴 것이다.
-  ok("⑤ import 를 실제로 발견했다(발견 0 = 탐지가 깨진 것)", found.length >= 3, `발견 ${found.length}개`);
   ok(
-    "⑤ 발견된 파일이 전부 잔존 분류에 있다(미분류 = 새로 생긴 것)",
-    unclassified.length === 0,
-    unclassified.join("\n      "),
+    "⑤ 제품 소스에 lunar-javascript import 가 하나도 없다",
+    found.length === 0,
+    found.join("\n      "),
   );
-  const stale = [...KNOWN_REMAINING.keys()].filter((relative) => !found.includes(relative));
-  ok("⑤ 잔존 분류에 이미 이관된 항목이 남아 있지 않다(줄어들기만 해야 한다)", stale.length === 0, stale.join(", "));
+  // 🔴 탐지가 살아 있는지 확인한다 — 정규식이 깨져 0 을 내는 것과 실제로 0 인 것은 다르다.
+  const detectorProbe = [
+    'import { Solar } from "lunar-javascript";',
+    'const { Lunar } = require("lunar-javascript");',
+    'await import("lunar-javascript");',
+  ].filter((line) => IMPORT_PATTERN.test(stripComments(line)));
+  ok("⑤ import 탐지기가 살아 있다(스텁 3종을 실제로 잡는다)", detectorProbe.length === 3, `${detectorProbe.length}/3`);
 }
 
 if (failures.length) {
