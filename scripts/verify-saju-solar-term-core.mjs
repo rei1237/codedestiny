@@ -366,20 +366,16 @@ for (const year of SAMPLE_YEARS) {
    * 아직 이 축을 lunar-javascript 로 잡는 것이 **알려져 있는** 파일과 그 이유.
    * 🔴 여기에 올린다고 옳아지는 것이 아니다 — 남은 이관 목록이다. 줄어들기만 해야 한다.
    */
+  // 🔴 2026-08-28 에 **유령 9건을 지웠다.** 그 아홉은 이 목록이 만들어진 뒤 이관됐거나
+  // (js/saju-engine.js · worker/lib/destiny-bias-engine.js · worker/lib/life-book-ai-saju.js),
+  // 애초에 위 CST_GANJI_APIS 를 부르지 않는 파일이었다(나머지 여섯 — lunar-javascript 를 쓰긴
+  // 하지만 다른 API 로 쓴다). 즉 목록의 2/3 이 아무것도 안 지키면서 "아직 남아 있다" 고
+  // 말하고 있었고, 아래 neverFound 단언이 없어서 그게 조용했다.
   const KNOWN_REMAINING = new Map([
-    ["js/saju-engine.js", "대운 브리지(attachKasiDaewunBridge)의 EightChar 한 자리뿐 — PR-F"],
     ["js/core/kasi/calendar.js", "죽은 사본 — 어느 HTML 도 로드하지 않는다(3면 grep 2026-08-27). 삭제 판단은 사용자에게"],
-    ["worker/lib/destiny-bias-engine.js", "일주·시주 전용 EightChar. 년·월주는 이미 코어다(PR-D2)"],
-    ["worker/lib/life-book-ai-saju.js", "일주·시주 전용 EightChar + 대운 getYun. 년·월주는 코어다"],
-    ["scripts/verify-korean-calendar-solar-terms.mjs", "코어와 대조하는 가드 자신 — 대조 대상이라 남아야 한다"],
     ["scripts/verify-saju-solar-term-core.mjs", "이 파일. 위 목록의 문자열이 자기 자신에 잡힌다"],
     ["scripts/verify-shell-korean-calendar.mjs", "정적 셸을 코어와 대조하는 가드 — 대조 대상이라 남아야 한다"],
     ["scripts/verify-daeun-korean-calendar.mjs", "대운 관례 재현을 lunar-javascript 와 대조하는 가드 — 대조 대상이라 남아야 한다"],
-    ["scripts/test-saju-solar-term-regression.mjs", "회귀 대조 스크립트 — 대조 대상이라 남아야 한다"],
-    ["scripts/lib/ziwei-engine-harness.cjs", "자미 하네스의 브라우저 전역 스텁"],
-    ["scripts/ziwei-autotune-report.cjs", "미배선 튜닝 리포트"],
-    ["scripts/test-saju-regression.js", "미배선 회귀 스크립트"],
-    ["scripts/validate-phase4.mjs", "미배선 검증 스크립트"],
   ]);
 
   const GANJI_SCAN_DIRS = ["js", "worker", "app", "lib", "src", "scripts"];
@@ -413,6 +409,19 @@ for (const year of SAMPLE_YEARS) {
   // 잔존 목록이 늘어나기만 하는 것을 막는다 — 실제로 존재하지 않는 파일을 올려 두면 실패한다.
   const stale = [...KNOWN_REMAINING.keys()].filter((relative) => !fs.existsSync(path.join(root, relative)));
   ok("⑤ 잔존 분류에 유령 경로가 없다", stale.length === 0, stale.join(", "));
+
+  // 🔴 2026-08-28 신설. 위 stale 은 **파일이 사라졌는지**만 본다 — 파일은 그대로인데 그 안의
+  // 호출이 이관돼 더는 발견되지 않는 항목은 못 잡는다. 그래서 이 목록의 2/3(9건)이 아무것도
+  // 안 지키면서 "아직 남아 있다" 고 말하는 상태로 오래 살아 있었다.
+  // ① 이 이미 갖고 있던 역포함 검사를 여기에도 둔다 — 목록은 **줄어들기만** 해야 한다.
+  const neverFound = [...KNOWN_REMAINING.keys()].filter(
+    (relative) => !found.some((row) => row.startsWith(`${relative} —`)),
+  );
+  ok(
+    "⑤ 잔존 분류에 이미 이관된 항목이 남아 있지 않다(줄어들기만 해야 한다)",
+    neverFound.length === 0,
+    neverFound.join(", "),
+  );
 }
 
 // ── ⑥ 워커 AI 사주 두 벌(인생책·신년운세)의 년주·월주가 節 경계에서 코어를 따른다 ──
