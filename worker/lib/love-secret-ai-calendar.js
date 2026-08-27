@@ -5,10 +5,10 @@
 // 여기서 결정론적으로 계산하고, LLM 은 계산된 목록을 **해석만** 한다.
 // (프롬프트 쪽 INVENTED_DATE 검증이 이 목록을 기준으로 반려한다.)
 //
-// 간지는 lunar-javascript(이미 worker 의존성)의 Solar→Lunar 변환을 쓴다.
+// 간지는 한국 음양력 코어(lib/korean-calendar)가 낸다.
 // 90일 산출 실측 14ms / 3.8KB — 요청 예산에 사실상 영향이 없다.
 
-import { Solar } from "lunar-javascript";
+import { formatPillar, ganji } from "../../lib/korean-calendar/index.js";
 import {
   ELEMENT_KO,
   branchElementKey,
@@ -24,6 +24,7 @@ import {
 } from "./saju-shinsal.js";
 
 const WEEKDAY_KO = Object.freeze(["일", "월", "화", "수", "목", "금", "토"]);
+const DAY_MS = 86400000;
 const ELEMENT_GENERATES = Object.freeze({ wood: "fire", fire: "earth", earth: "metal", metal: "water", water: "wood" });
 const ELEMENT_CONTROLS = Object.freeze({ wood: "earth", earth: "water", water: "fire", fire: "metal", metal: "wood" });
 
@@ -180,19 +181,27 @@ export function buildLoveDayCalendar({
     gongmangSet: new Set((Array.isArray(gongmangBranches) ? gongmangBranches : []).map(normalizeBranchChar).filter(Boolean)),
   };
 
-  const startSolar = Solar.fromYmd(start.year, start.month, start.day);
+  // 🔴 일진은 한국 음양력 코어가 낸다. 실측(2026-08-27, 1950~2035 정자시 28,896일)으로
+  //    lunar-javascript 의 getDayInGanZhi() 와 **불일치 0** 이라 이 이관으로 움직이는 값은 없다.
+  //    그래도 옮기는 이유는 달력이 두 벌이면 다음 사람이 어느 쪽을 고쳐야 할지 모르기 때문이다.
+  const startUtc = Date.UTC(start.year, start.month - 1, start.day);
   const rows = [];
   for (let offset = 0; offset < total; offset += 1) {
-    const solar = offset === 0 ? startSolar : startSolar.next(offset);
-    const ganji = String(solar.getLunar().getDayInGanZhi() || "");
-    const stem = normalizeStemChar(ganji.charAt(0));
-    const branch = normalizeBranchChar(ganji.charAt(1));
+    const cursor = new Date(startUtc + offset * DAY_MS);
+    const year = cursor.getUTCFullYear();
+    const month = cursor.getUTCMonth() + 1;
+    const day = cursor.getUTCDate();
+    const pillars = ganji({ year, month, day, hour: 0, minute: 0 });
+    if (!pillars) continue; // 코어 지원 범위(1900~2100) 밖.
+    const dayGanji = formatPillar(pillars.day.stemIndex, pillars.day.branchIndex, "hanja");
+    const stem = normalizeStemChar(dayGanji.charAt(0));
+    const branch = normalizeBranchChar(dayGanji.charAt(1));
     if (!stem || !branch) continue;
     const { score, tags } = scoreLoveDay({ stem, branch }, context);
-    const date = solar.toYmd();
+    const date = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
     rows.push({
       date,
-      weekday: WEEKDAY_KO[solar.getWeek()] || "",
+      weekday: WEEKDAY_KO[cursor.getUTCDay()] || "",
       ganji: `${stem}${branch}`,
       ganjiKo: `${toStemKo(stem)}${toBranchKo(branch)}`,
       stem,
@@ -232,7 +241,7 @@ export function buildLoveDayCalendar({
 
   return {
     available: true,
-    basis: "lunar-javascript Solar.getLunar().getDayInGanZhi() (KST 달력일 기준)",
+    basis: "한국 음양력 코어 ganji().day (KST 달력일 기준)",
     rangeStart: rows[0]?.date || "",
     rangeEnd: rows[rows.length - 1]?.date || "",
     days: rows,

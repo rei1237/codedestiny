@@ -291,6 +291,15 @@ jobs:
       - name: Verify sukuyo lunar dates all come from the core
         run: npm run verify:sukuyo-korean-calendar
 
+      # 🔴 이것도 **fast 잡**이다. 음력↔양력 변환은 자미두수(자미성)·숙요(본명숙)·휴먼디자인
+      # (행성 황경)이 전부 올라타는 축이라, 하루가 밀리면 그 세 결과가 통째로 다른 값이 된다.
+      # 변환 API 를 부르는 소스를 전수 발견해 잔존 분류와 대조하고, 소비자 13벌을 실제로 실행해
+      # **갈리는 날짜에서** 코어 쪽 날짜를 내는지 본다. 🔴 KASI 로컬 폴백도 여기서 본다 —
+      # 그 라우트는 레포가 "권위 있는 한국 달력"으로 삼는 지점이라, 중국 음력이면 업스트림이
+      # 죽는 동안에만 조용히 틀린다(실제로 그 상태였다).
+      - name: Verify lunar conversions all come from the core
+        run: npm run verify:lunar-conversion-core
+
       # 🔴 이것도 **fast 잡**이어야 한다. 입력이 index.html 인라인 스크립트와 js/saju-engine*.js 라
       # 티어가 fast/standard 로 갈리는데, build/critical 잡에 두면 정작 지켜야 할 셸 한 줄 수정에
       # 깨어나지 않는다. 모바일 지연 마운트가 오버레이를 DOM 밖으로 들어낸 뒤 여는 경로를 빠뜨리면

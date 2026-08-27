@@ -43,7 +43,7 @@ import { getSwissWesternChart, getSwissVedicPlanets } from "../lib/swiss-ephemer
 import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput } from "../lib/astro-premium-generator.js";
 import { buildVedicLocalChartJson } from "../lib/vedic-premium-generator.js";
 import { requestKasiLegacyCalendarMethod } from "./kasi.js";
-import { Lunar, Solar } from "lunar-javascript";
+import { solarToLunar } from "../../lib/korean-calendar/index.js";
 
 // 관리자 READ 전용 Mongo 재시도 래퍼. 쓰기에는 사용하지 않는다.
 //
@@ -491,17 +491,6 @@ function assertAdminCalendarBirthDate(birthDate, calendarType) {
 
   if (birthDate.month < 1 || birthDate.month > 12 || birthDate.day < 1 || birthDate.day > 30) {
     throw createHttpError(400, "\uc74c\ub825 \uc0dd\ub144\uc6d4\uc77c \uac12\uc774 \uc62c\ubc14\ub974\uc9c0 \uc54a\uc2b5\ub2c8\ub2e4.", { code: "INVALID_LUNAR_DATE" });
-  }
-  return;
-
-  const lunarMonth = calendarType === "lunar_leap" ? -Math.abs(birthDate.month) : Math.abs(birthDate.month);
-  try {
-    Lunar.fromYmd(birthDate.year, lunarMonth, birthDate.day);
-  } catch (error) {
-    if (calendarType === "lunar_leap") {
-      throw createHttpError(400, "선택한 생년월일에는 윤달이 없습니다. 음력 평달이면 음력을 선택해 주세요.", { code: "INVALID_LUNAR_LEAP_DATE" });
-    }
-    throw createHttpError(400, "음력 생년월일 값이 올바르지 않습니다.", { code: "INVALID_LUNAR_DATE" });
   }
 }
 
@@ -1145,16 +1134,17 @@ function resolveAdminSukuyoStar(person) {
     };
   }
 
-  const solar = Solar.fromYmdHms(person.year, person.month, person.day, person.timeUnknown ? 12 : person.hour, person.minute || 0, 0);
-  const lunar = solar.getLunar();
-  const lunarMonthRaw = Number(lunar?.getMonth?.() || person.month);
-  const lunarMonth = Math.max(1, Math.abs(lunarMonthRaw));
-  const lunarDay = Math.max(1, Number(lunar?.getDay?.() || person.day));
+  // 🔴 음력은 한국 음양력 코어(KST 삭 기준)가 낸다. 중국 음력(lunar-javascript)은 삭이 CST 23시대에
+  //    들면 그 달 전체가 하루 밀려 27수 본명숙이 옆 칸으로 간다(실측 2026-08-27 3.67%).
+  //    생시는 음력일을 바꾸지 않으므로 코어는 날짜만 받는다.
+  const lunar = solarToLunar(person.year, person.month, person.day);
+  const lunarMonth = Math.max(1, lunar ? lunar.lunarMonth : Math.abs(person.month));
+  const lunarDay = Math.max(1, lunar ? lunar.lunarDay : person.day);
   return {
     lunarMonth,
     lunarDay,
     sukuyo: buildSukuyoFromLunar(lunarMonth, lunarDay, {
-      isLeapMonth: typeof lunar?.isLeap === "function" ? lunar.isLeap() : lunarMonthRaw < 0,
+      isLeapMonth: Boolean(lunar?.isLeapMonth),
       source: "admin-prompt-lab-lunar",
     }),
   };
@@ -5063,6 +5053,9 @@ export async function handleAdminRoutes(request, env) {
 /* 테스트 전용 노출. 글 저장 경로는 라우터를 태우려면 DB·인증 하네스가 필요한데, 여기서 지키려는
    계약(두 경로가 같은 필드를 쓴다 / isPublished 는 status 에서 파생된다 / 목록에 본문을 싣지 않는다)은
    순수 함수 수준에서 검증할 수 있다. 다른 라우트의 __*TestUtils 와 같은 관례다. */
+// 🔴 검증 전용 표면. verify:lunar-conversion-core 가 음력 축을 실제로 돌린다.
+export const __adminSukuyoTestUtils = { resolveAdminSukuyoStar };
+
 export const __adminContentTestUtils = {
   normalizeContentPayload,
   toContentItem,

@@ -69,7 +69,15 @@ function isLunarCalType(calType: unknown): boolean {
   return value.includes("lun") || value.includes("음");
 }
 
-/** 음력(윤달 포함) 생년월일을 양력으로 변환. resolve는 양력만 받는다. lunar-javascript를 lazy 로드. */
+/**
+ * 음력(윤달 포함) 생년월일을 양력으로 변환. resolve는 양력만 받는다.
+ *
+ * 🔴 한국 음양력 코어를 **lazy 로드**한다. 표가 gzip 26.6KB 라 첫 화면 번들에 넣지 않는다 —
+ *    예전에 lunar-javascript 를 lazy 로드하던 이유와 같다.
+ * 🔴 코어로 옮긴 이유: 중국 음력(lunar-javascript)은 3.68% 의 음력 날짜에서 하루 어긋나고
+ *    (실측 2026-08-27) 그 양력일이 그대로 서버로 간다. 서버는 이미 코어를 쓰므로,
+ *    여기만 두면 음력 입력자만 두 달력이 섞인 결과를 받는다.
+ */
 export async function toSolarYmd(
   year: number,
   month: number,
@@ -79,18 +87,10 @@ export async function toSolarYmd(
   if (!isLunarCalType(calType)) return { year, month, day };
   const isLeap = String(calType || "").toLowerCase().includes("leap") || String(calType || "").includes("윤");
   try {
-    type LunarLib = {
-      Lunar: {
-        fromYmd: (y: number, m: number, d: number) => {
-          getSolar: () => { getYear: () => number; getMonth: () => number; getDay: () => number };
-        };
-      };
-    };
-    const mod = (await import("lunar-javascript")) as unknown as Partial<LunarLib> & { default?: Partial<LunarLib> };
-    const Lunar = mod.Lunar || mod.default?.Lunar;
-    if (!Lunar) return { year, month, day };
-    const solar = Lunar.fromYmd(year, isLeap ? -month : month, day).getSolar();
-    return { year: solar.getYear(), month: solar.getMonth(), day: solar.getDay() };
+    const { lunarToSolar } = await import("@/lib/korean-calendar");
+    const solar = lunarToSolar(year, Math.abs(month), day, isLeap);
+    if (!solar) return { year, month, day };
+    return { year: solar.year, month: solar.month, day: solar.day };
   } catch {
     return { year, month, day };
   }

@@ -13,7 +13,7 @@
  *    어긋난다 = 게이트 하나가 통째로 바뀔 수 있다.
  */
 
-import { Lunar } from "lunar-javascript";
+import { lunarToSolar } from "../../lib/korean-calendar/index.js";
 
 import {
   getSwissTropicalLongitudes,
@@ -89,9 +89,13 @@ export function resolveBirthMoment(birthInput) {
 
   let solarDate = { year, month, day };
   if (isLunarCalendar(birthInput.calendar)) {
+    // 🔴 음력→양력도 한국 음양력 코어가 한다. 중국 음력(lunar-javascript)은 3.68% 의 음력 날짜에서
+    //    하루 어긋나고(실측 2026-08-27, 1950~2035 29,928건 중 1,102건), 하루가 밀리면 행성
+    //    황경이 통째로 다른 게이트를 가리킨다. 없는 윤달이면 코어가 null 을 낸다.
     const leap = isLeapMonth(birthInput.calendar) || birthInput.isLeapMonth === true;
-    const solar = Lunar.fromYmd(year, leap ? -month : month, day).getSolar();
-    solarDate = { year: solar.getYear(), month: solar.getMonth(), day: solar.getDay() };
+    const solar = lunarToSolar(year, month, day, leap);
+    if (!solar) throw new RangeError(`음력 ${year}-${month}-${day}${leap ? "(윤달)" : ""} 을 양력으로 옮기지 못했습니다(지원 1900~2100).`);
+    solarDate = { year: solar.year, month: solar.month, day: solar.day };
   }
 
   const wallClock = { ...solarDate, hour, minute, second: 0 };

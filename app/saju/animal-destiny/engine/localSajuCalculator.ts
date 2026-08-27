@@ -1,4 +1,4 @@
-import { Lunar } from "lunar-javascript";
+import { lunarToSolar } from "@/lib/korean-calendar";
 import { nodeTerms } from "@/lib/korean-calendar";
 import { cmsRecord } from "@/lib/cms/build-text";
 
@@ -353,7 +353,7 @@ function makePillar(stemRaw: string, branchRaw: string): SajuPillarLocal {
 }
 
 function resolveSolarDate(input: LocalSajuInput) {
-  // KASI 음양력 변환 결과가 있으면 권위 값으로 우선한다(로컬 lunar-javascript 변환보다 우선).
+  // KASI 음양력 변환 결과가 있으면 권위 값으로 우선한다(로컬 코어 변환보다 우선).
   const kasiSolar = input.kasiSolarDate;
   if (
     kasiSolar
@@ -369,14 +369,11 @@ function resolveSolarDate(input: LocalSajuInput) {
   }
 
   if (input.calendarType === "lunar") {
-    const lunarMonth = input.lunarLeap ? -Math.abs(input.month) : Math.abs(input.month);
-    const lunar = Lunar.fromYmd(input.year, lunarMonth, input.day);
-    const solar = lunar.getSolar();
-    return {
-      year: solar.getYear(),
-      month: solar.getMonth(),
-      day: solar.getDay(),
-    };
+    // 🔴 음력→양력은 한국 음양력 코어가 한다. 중국 음력은 3.68% 의 음력 날짜에서 하루 어긋나고
+    //    (실측 2026-08-27) 그 하루가 일주·시주를 통째로 옮긴다. 절기는 이미 코어다(PR-D).
+    const solar = lunarToSolar(input.year, Math.abs(input.month), input.day, Boolean(input.lunarLeap));
+    if (!solar) throw new RangeError("음력 생년월일을 양력으로 옮기지 못했습니다(지원 1900~2100).");
+    return { year: solar.year, month: solar.month, day: solar.day };
   }
 
   return {

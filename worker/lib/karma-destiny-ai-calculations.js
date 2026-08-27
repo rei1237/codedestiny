@@ -1,4 +1,4 @@
-import { Solar } from "lunar-javascript";
+import { solarToLunar } from "../../lib/korean-calendar/index.js";
 import { buildAstroLocalChartJson, normalizeAstroPremiumBirthInput, toSwissChartInputFromBirthInput } from "./astro-premium-generator.js";
 import { calculateLifeBookAiSaju } from "./life-book-ai-saju.js";
 import { buildSukuyoFromLunar, getSukuyoByIndex, relationFromForwardDistance } from "./sukuyo-premium.js";
@@ -262,15 +262,17 @@ function toLunarParts(birthInfo = {}) {
     };
   }
 
-  const time = parseBirthTime(birthInfo.birthTime);
-  const lunar = Solar.fromYmdHms(date.year, date.month, date.day, time.hour, time.minute, 0).getLunar();
-  const lunarMonth = Number(lunar.getMonth());
+  // 🔴 음력은 한국 음양력 코어(KST 삭 기준)가 낸다. 중국 음력(lunar-javascript)은 삭이 CST 23시대에
+  //    들면 그 달 전체가 하루 밀린다 — 실측(2026-08-27, 1950~2035 28,896일) 3.67% 가 갈리고
+  //    27수 본명숙이 그대로 옆 칸으로 간다. 생시는 음력일을 바꾸지 않으므로 코어는 날짜만 받는다.
+  const lunar = solarToLunar(date.year, date.month, date.day);
+  if (!lunar) return null; // 코어 지원 범위(1900~2100) 밖 — 숙요 렌즈가 통째로 빠진다.
   return {
-    lunarYear: Number(lunar.getYear()),
-    lunarMonth: Math.abs(lunarMonth),
-    lunarDay: Number(lunar.getDay()),
-    isLeapMonth: lunarMonth < 0,
-    source: "lunar-javascript",
+    lunarYear: lunar.lunarYear,
+    lunarMonth: lunar.lunarMonth,
+    lunarDay: lunar.lunarDay,
+    isLeapMonth: lunar.isLeapMonth,
+    source: "korean-calendar-core",
   };
 }
 

@@ -1,4 +1,4 @@
-import { Lunar, Solar } from "lunar-javascript";
+import { lunarToSolar, solarToLunar } from "@/lib/korean-calendar";
 import { getCurrentLoadingLocale, normalizeLoadingLocale, type LoadingLocale } from "@/constants/loadingMessages";
 import {
   ZiweiCalendarType,
@@ -63,30 +63,28 @@ function convertLunarToSolar(
   day: number,
   isLeapMonth: boolean,
 ): { year: number; month: number; day: number } | null {
+  // 🔴 음력→양력은 한국 음양력 코어가 한다. 중국 음력(lunar-javascript)은 3.68% 의 음력 날짜에서
+  //    하루 어긋나고(실측 2026-08-27), 자미두수는 음력일로 자미성을 잡으므로 그 하루가
+  //    명반 14주성을 통째로 옮긴다. 없는 윤달·지원 범위 밖이면 코어가 null 을 낸다.
   try {
-    const lunarMonth = isLeapMonth ? -Math.abs(month) : Math.abs(month);
-    const lunar = Lunar.fromYmd(year, lunarMonth, day);
-    const solar = lunar.getSolar();
-    return {
-      year: solar.getYear(),
-      month: solar.getMonth(),
-      day: solar.getDay(),
-    };
+    const solar = lunarToSolar(year, Math.abs(month), day, isLeapMonth);
+    if (!solar) return null;
+    return { year: solar.year, month: solar.month, day: solar.day };
   } catch (e) {
     return null;
   }
 }
 
+// 달력 코어가 이 날짜를 실제로 다룰 수 있는지 확인한다.
+// 🔴 이전에는 lunar-javascript 가 객체를 만들 수 있는지만 봤다. 코어는 표 기반이라 이 검사가
+//    지원 범위(1900~2100) 확인까지 겸한다 — 범위 밖은 이제 여기서 걸러진다.
 function touchSolarLibrary(
   year: number,
   month: number,
   day: number,
-  hour: number,
-  minute: number,
 ): boolean {
   try {
-    const s = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-    return !!s;
+    return solarToLunar(year, month, day) !== null;
   } catch (e) {
     return false;
   }
@@ -247,7 +245,7 @@ export function normalizeZiweiInput(args: NormalizeZiweiInputArgs): NormalizeZiw
     });
   }
 
-  if (!touchSolarLibrary(year, month, day, birthHour, birthMinute)) {
+  if (!touchSolarLibrary(year, month, day)) {
     errors.push({
       code: "NORMALIZATION_FAILED",
       message: copy.dateDataFailed,
