@@ -1,5 +1,43 @@
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27
 
+## 🟢 다음 세션 시작점 (2026-08-28 갱신)
+
+**이 마이그레이션은 끝났다.** 새 세션이 이 주제로 할 일은 아래 후속 2건뿐이고, 둘 다 선택 사항이다.
+
+| PR | 내용 | 상태 |
+|---|---|---|
+| #1205 | PR-F4 앱 엔진 지장간 巳 | **머지됨** `febe2b322` |
+| #1207 | PR-F5 `lunar-javascript` → devDependencies | **머지됨** `38548e743` |
+| #1208 | PR-F6 셸 CDN 로더 제거 + 죽은 사본 삭제 | **머지됨** `e44c786d3` |
+
+시리즈 전체가 `main` 에 들어갔다. 이 문서 본문의 PR-B ~ PR-F6 기술은 전부 머지된 사실이다.
+
+### 남은 후속 2건 (둘 다 이번 범위 밖으로 **의도적으로** 남긴 것)
+
+1. **`js/destiny-profile.js:11080` 의 주석이 유령 함수를 가리킨다** — PR-F6 이 지운
+   `_applyBirthFormSnapshot` 이 "이 함수를 부르는 지점" 목록에 남아 있다.
+   🔴 **고치려면 캐시 핀 20여 곳을 같은 커밋에 담아야 한다.** 이 파일은 `PAID_SERVICE_RUNTIME_SRC`
+   라 내용이 바뀌면 독립 정적 페이지(`yoga-guru.html` 등 11개 + 미러 + `verify-paid-gate-ui-regression.mjs`)
+   의 `?v=` 핀을 손으로 돌려야 하고(`sync:public` 이 안 돌리는 축), 그러면 `_headers` 의
+   `/js/*.js`(max-age 7일 · SWR 30일)를 무효화해 **모든 독립 결제 페이지 방문자가 유료 런타임을
+   다시 받는다.** 주석 한 줄에 치를 값이 아니라고 판단했다. 확인 명령:
+   `npm run verify:payment-choice-parity` — 실패 메시지가 돌려야 할 정확한 값을 알려 준다.
+2. **`public/js/engines/ziwei-doushu.js:3`** 의 의존성 주석이 삭제된 `js/core/kasi/calendar.js` 를
+   가리킨다. 그 파일 자체가 `js/` 대응물 없는 **고아**(`2ef804d1c` 가 `js/engines/ziwei-doushu.js` 를
+   지웠다)라 손대려면 그 고아의 생사부터 판정해야 한다.
+
+### 🔴 이 세션이 배운 함정 둘 (다음에 또 밟지 말 것)
+
+1. **유료 런타임 소스는 주석도 못 고친다.** `js/destiny-profile.js`·`js/app.js` 등
+   `PAID_SERVICE_RUNTIME_SRC` 를 건드리면 `verify:payment-choice-parity` 가 CI(`paid-flow-gates`)
+   에서만 터진다. 셸을 고쳤으면 달력 가드뿐 아니라 **이것도 로컬에서 돌릴 것.**
+2. **가드 자기검사를 탐지 목록에서 만들면 동어반복이 된다.** `CONVERSION_APIS` 로 프로브를 만들면
+   오타 난 원소가 자기 프로브를 그대로 잡는다. 게다가 문자열이 서로 접두사라
+   (`Solar.fromYmd` ⊂ `Solar.fromYmdHms`) 프로브로는 원소별 판정이 불가능하다.
+   **목록 자체를 고정 리터럴에 못박는 것**이 답이고, 그 결함은 음성 테스트가 잡았다.
+
+---
+
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
 > 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · **대운(PR-F1 = #1194, 머지됨 `06c2916fc`)** 까지 끝났다.
 > 🟢 **명리 상수 표(PR-F2 ㄹ, 2026-08-28)** — `lib/saju/myeongri-tables.js` · `verify:myeongri-tables`.
