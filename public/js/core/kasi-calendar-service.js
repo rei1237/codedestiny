@@ -123,7 +123,7 @@
   var _JIEQI_MONTH_BRANCH = {
     '\uc18c\ud55c': '\u4e11', '\u5c0f\u5bd2': '\u4e11',   // 소한/小寒 → 丑(U+4E11)
     '\uc785\ucd98': '\u5bc5', '\u7acb\u6625': '\u5bc5',   // 입춘/立春 → 寅(U+5BC5)
-    '\uacbd\uce68': '\u536f', '\u9a5a\u86f0': '\u536f',   // 경칩/驚蟄 → 卯(U+536F)
+    '\uacbd\uce69': '\u536f', '\u9a5a\u86f0': '\u536f',   // 경칩/驚蟄 → 卯(U+536F)
     '\uccad\uba85': '\u8fb0', '\u6e05\u660e': '\u8fb0',   // 청명/清明 → 辰(U+8FB0)
     '\uc785\ud558': '\u5df3', '\u7acb\u590f': '\u5df3',   // 입하/立夏 → 巳(U+5DF3)
     '\ub9dd\uc885': '\u5348', '\u8292\u7a2e': '\u5348',   // 망종/芒種 → 午(U+5348)
@@ -166,7 +166,7 @@
     '1990': [
       { name: '\uc18c\ud55c', atLocal: '1990-01-05T23:33:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
       { name: '\uc785\ucd98', atLocal: '1990-02-04T11:14:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
-      { name: '\uacbd\uce68', atLocal: '1990-03-06T05:19:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
+      { name: '\uacbd\uce69', atLocal: '1990-03-06T05:19:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
       { name: '\uccad\uba85', atLocal: '1990-04-05T10:12:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
       { name: '\uc785\ud558', atLocal: '1990-05-06T03:35:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
       { name: '\ub9dd\uc885', atLocal: '1990-06-06T07:46:00', source: 'validated-cache', verifiedAt: '2026-06-02T00:00:00+09:00', timezone: 'Asia/Seoul' },
@@ -713,16 +713,36 @@
     return _cycleGanji(serial + 17);
   }
 
+  /**
+   * 🔴 벽시계 부품을 그대로 UTC 축에 얹은 ms. **절대시각이 아니다.**
+   *
+   * solarDate 는 KST 벽시계 부품으로 브라우저 로컬에 만든 Date 이고 절기의 atLocal 도 KST 벽시계다.
+   * 예전에는 atLocal 만 '+09:00' 을 붙여 **절대시각**으로 바꿔 놓고 solarDate.getTime() 과 비교했다.
+   * 브라우저 타임존이 KST 가 아니면 그 둘이 시차만큼 어긋난다 — 실측 2026-08-28, 입춘 ±10시간
+   * 710표본에서 UTC 브라우저 282건(39.7%) · 뉴욕 353건(49.7%) 이 세차·월건 모두 한 칸 어긋났다.
+   * 두 값을 같은 벽시계 축에 올리면 브라우저 타임존과 무관해진다.
+   */
+  function _wallClockMs(date) {
+    return Date.UTC(
+      date.getFullYear(), date.getMonth(), date.getDate(),
+      date.getHours(), date.getMinutes(), date.getSeconds()
+    );
+  }
+
+  /** 절기 atLocal('YYYY-MM-DDTHH:mm[:ss]' 또는 공백 구분)을 같은 벽시계 축의 ms 로. */
+  function _termWallClockMs(atLocal) {
+    var m = /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/.exec(String(atLocal || ''));
+    if (!m) return NaN;
+    return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
+  }
+
   function _yearGanjiFromIpchun(solarDate, terms) {
     var year = solarDate.getFullYear();
     var ipchun = _extractIpchun(terms);
     var pillarYear = year;
     if (ipchun && ipchun.atLocal) {
-      var isoStr = String(ipchun.atLocal).indexOf('T') >= 0
-        ? ipchun.atLocal + '+09:00'
-        : ipchun.atLocal.replace(' ', 'T') + '+09:00';
-      var ipchunMs = new Date(isoStr).getTime();
-      if (!isNaN(ipchunMs) && solarDate.getTime() < ipchunMs) pillarYear = year - 1;
+      var ipchunMs = _termWallClockMs(ipchun.atLocal);
+      if (!isNaN(ipchunMs) && _wallClockMs(solarDate) < ipchunMs) pillarYear = year - 1;
     } else if (solarDate.getMonth() === 0 || (solarDate.getMonth() === 1 && solarDate.getDate() < 4)) {
       pillarYear = year - 1;
     }
@@ -945,8 +965,10 @@
   function _computeMonthGanjiFromTerms(terms, solarDate, yearGanStr) {
     if (!terms || !terms.length || !solarDate) return null;
     try {
-      var birthMs = solarDate instanceof Date ? solarDate.getTime() : new Date(solarDate).getTime();
-      if (isNaN(birthMs)) return null;
+      // 🔴 절대시각이 아니라 벽시계 축이다 — 이유는 _wallClockMs 주석에 있다.
+      var birthDate = solarDate instanceof Date ? solarDate : new Date(solarDate);
+      if (isNaN(birthDate.getTime())) return null;
+      var birthMs = _wallClockMs(birthDate);
 
       // 12중절만 필터링하여 정렬
       var brackets = [];
@@ -957,11 +979,7 @@
         var n = String(t.name || '').replace(/\([^)]*\)\s*$/, '').trim();
         var br = _JIEQI_MONTH_BRANCH[n];
         if (!br) continue;
-        // atLocal을 KST(+09:00)로 파싱하여 UTC ms 획득
-        var isoStr = String(t.atLocal).indexOf('T') >= 0
-          ? t.atLocal + '+09:00'
-          : t.atLocal.replace(' ', 'T') + '+09:00';
-        var ms = new Date(isoStr).getTime();
+        var ms = _termWallClockMs(t.atLocal);
         if (isNaN(ms)) continue;
         brackets.push({ ms: ms, branch: br });
       }
@@ -973,6 +991,11 @@
       for (var j = 0; j < brackets.length; j++) {
         if (birthMs >= brackets[j].ms) branch = brackets[j].branch;
       }
+      // 🔴 한 해의 첫 節은 소한(丑)이므로, 그보다 이른 생시는 이 목록 안에 걸칠 중절이 없다.
+      // 그 구간을 지배하는 節은 **전년 12월의 대설**이고 답은 언제나 子月 하나뿐이다.
+      // 예전에는 여기서 null 을 내서 1월 1일~소한 출생의 년주·월주가 통째로 비었다
+      // (실측 2026-08-28, 1950~2050 節 경계 표본에서 연 2건씩 202건이 null 이었다).
+      if (!branch && brackets[0].branch === '\u4e11') branch = '\u5b50';
       if (!branch) return null;
 
       // 오자배년법: 年干으로 寅月 시작 천간 인덱스 결정
