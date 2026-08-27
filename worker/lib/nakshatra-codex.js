@@ -142,7 +142,9 @@ export function assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown = fal
   // 시각 미상이면 파다 오차가 과대하므로 산출 금지(스펙 2.2).
   const pada = timeUnknown ? null : nak.pada;
 
-  const suk = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: Boolean(lunar.isLeap) });
+  // 🔴 lunar 는 호출부가 한국 음양력 코어로 만들어 넘긴다(routes/nakshatra.js·nakshatra-ai.js).
+  //    라벨은 그 사실을 그대로 적는다 — 기본값 "kasi-api" 는 이제 거짓이다.
+  const suk = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: Boolean(lunar.isLeap), source: "korean-calendar-core" });
 
   const dasha = buildVimshottariDasha(moonLon, birthUtc, now || birthUtc);
   const dashaSummary = summarizeDasha(dasha);
@@ -187,7 +189,7 @@ export function assembleTodayMoon({ moonLon, lunar, myMansionIndex = null }) {
   const nak = nakshatraInfo(moonLon);
   const attrs = getNakshatraAttributes(nak.index);
   const todaySuk = lunar
-    ? buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: Boolean(lunar.isLeap) })
+    ? buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: Boolean(lunar.isLeap), source: "korean-calendar-core" })
     : null;
   const cross = crosswalkFromSukuyo(todaySuk ? todaySuk.index : ((nak.index - 13 + 27) % 27));
 

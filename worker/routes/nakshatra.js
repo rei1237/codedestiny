@@ -6,9 +6,9 @@
 //
 // 위 두 무료 라우트는 결제 게이팅·인증이 없다. compat 만 인증 + 결제 증빙 확인을 거친다.
 // 순수 조립 로직은 worker/lib/nakshatra-codex.js(WASM 비의존)에 있고, 이 파일은
-// Swiss WASM(시데리얼 Lahiri) + lunar-javascript(음력) I/O만 배선한다.
+// Swiss WASM(시데리얼 Lahiri) + 한국 음양력 코어(음력) I/O만 배선한다.
 
-import { Solar } from "lunar-javascript";
+import { solarToLunar } from "../../lib/korean-calendar/index.js";
 import { handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { requireAuth } from "../lib/auth.js";
 import { getSwissVedicPlanets } from "../lib/swiss-ephemeris.js";
@@ -46,7 +46,7 @@ async function resolvePersonMoonAndSukuyo(env, input, requestUrl) {
   const moonLon = Number(swiss?.planets?.Moon);
   if (!Number.isFinite(moonLon)) return null;
   const lunar = lunarFromInput(input);
-  const sukuyo = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap });
+  const sukuyo = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap, source: "korean-calendar-core" });
   return { moonLon, sukuyo, gender: input.gender };
 }
 
@@ -71,7 +71,8 @@ async function resolveCompat(env, body, options) {
 
 function isValidBirth(input) {
   return (
-    Number.isFinite(input.year) &&
+    // 🔴 한국 음양력 코어의 지원 범위(1900~2100)다. 밖이면 음력을 못 만들므로 여기서 400 으로 끊는다.
+    Number.isFinite(input.year) && input.year >= 1900 && input.year <= 2100 &&
     Number.isFinite(input.month) &&
     Number.isFinite(input.day) &&
     input.month >= 1 && input.month <= 12 &&
@@ -86,11 +87,13 @@ function birthUtcFromInput(input) {
   return new Date(utcMillis);
 }
 
+// 🔴 음력은 한국 음양력 코어(KST 삭 기준)가 낸다. 중국 음력(lunar-javascript)은 삭이 CST 23시대에
+//    들면 그 달 전체가 하루 밀려 27수 본명숙이 통째로 다른 수가 된다(실측 3.57%).
+//    생시는 음력일을 바꾸지 않으므로 코어는 날짜만 받는다.
 function lunarFromInput(input) {
-  const lunar = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute, 0).getLunar();
-  // lunar-javascript: 윤달이면 getMonth()가 음수. 절댓값이 월, 음수면 윤달.
-  const rawMonth = lunar.getMonth();
-  return { month: Math.abs(rawMonth), day: lunar.getDay(), isLeap: rawMonth < 0 };
+  const lunar = solarToLunar(input.year, input.month, input.day);
+  if (!lunar) throw new RangeError(`지원 범위 밖 생년월일: ${input.year}-${input.month}-${input.day}`);
+  return { month: lunar.lunarMonth, day: lunar.lunarDay, isLeap: lunar.isLeapMonth };
 }
 
 async function resolveNatal(env, body, options) {
@@ -182,3 +185,7 @@ export async function handleNakshatraRoutes(request, env) {
     return handleRouteError(error);
   }
 }
+
+// 🔴 검증 전용 표면. verify:sukuyo-korean-calendar 가 음력 축을 **실제로 실행해** 본다 —
+//    import 수준 검사만으로는 이관이 남긴 죽은 참조를 못 본다(PR-E2 에서 실제로 놓쳤다).
+export const __nakshatraTestUtils = { normalizeBirthBody, isValidBirth, lunarFromInput };

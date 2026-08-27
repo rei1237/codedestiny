@@ -1,8 +1,8 @@
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27
 
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
-> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2)까지 끝났다.
-> 남은 것은 **낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · lunar-javascript 제거(PR-F)** 다.
+> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3)까지 끝났다.
+> 남은 것은 **나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · lunar-javascript 제거(PR-F)** 다.
 > 🔴 다음 세션은 가드 두 개의 `KNOWN_REMAINING` 목록을 먼저 열어라 — 남은 일이 거기 적혀 있고, 그 줄을 지우는 것이 완료 조건이다.
 > `scripts/verify-saju-solar-term-core.mjs` 검사 ⑤(절기 프레임) · `scripts/verify-sukuyo-korean-calendar.mjs` 검사 ①(음력일).
 
@@ -43,7 +43,8 @@
 | **#1179** | 사주 절기 경계 5곳을 코어로 + 표 분 반올림 + `verify:saju-solar-term-core` | **머지됨** `8aa5da6d9` |
 | **#1181** | 워커 사주 년·월주를 코어로(월건 경계 60분 정정) + 가드 검사 ④ | **머지됨** `d854ccf1d` |
 | **#1183** | 남은 절기 프레임 소비자 6곳 + 가드 검사 ⑤⑥⑦⑧ | **머지됨** `161836714` |
-| **#1185** | 숙요 음력일 10곳 + `verify:sukuyo-korean-calendar` | `feat/sukuyo-korean-calendar` (base `161836714`) |
+| **#1185** | 숙요 음력일 10곳 + `verify:sukuyo-korean-calendar` | **머지됨** `0366f5152` |
+| **PR-E3** | 낙샤트라 3라우트 · 베다 어댑터 · 숙요 가드 검사 ②③⑤ 확장 | `feat/nakshatra-korean-calendar` (base `0366f5152`) |
 
 🔴 #1170 은 `.github/workflows/pr-ci.yml` 에서 한 번 충돌했다. #1167(섬 가드)과 이 PR(달력 가드 5종)이
 **같은 앵커(`run: npm run verify:ziwei-star-parity`) 뒤에** 각자 블록을 넣어서다. 의미 충돌이 아니므로
@@ -401,13 +402,72 @@ lunar-javascript 가 **CST 절기로 잡은 기둥**에 붙어 있어서, 년·�
 음성 테스트 7종 전부 빨간불 확인. 🔴 **가드 작성 중 오탐이 한 번 났다** — 27수 이름이 한 글자라
 `text.includes("진")` 이 본문 아무 데나 걸렸다. 문자열 판정은 정확히 잘라 읽을 것.
 
-### PR-E3~E5 — 나머지 소비자
+### 🟢 PR-E3 — 낙샤트라·베다 (끝)
 
-`lunar-javascript` 실 import 는 PR-E2 이후 **30곳**(2026-08-27 `git grep`, `public/**` 제외). 도메인별로 나뉜다.
+브랜치 `feat/nakshatra-korean-calendar`, base `0366f5152`. 예고된 4개 파일을 전부 했고,
+**예고에 없던 것 둘을 더 고쳤다**(아래 ㄱ·ㄴ).
+
+**실측 이동(2026-08-27, 이 브랜치에서 잰 값)**
+- 양력→음력 1950~2030 29,585일 — 음력일 1,079일(3.65%) · 27수 1,055일(3.57%)  (E2 와 같은 수치)
+- **음력→양력 1950~2030 표본 28,188건 — 1,044건(3.70%)** 이 하루 어긋난다.
+  그 하루가 그대로 요일을 밀고, 베다 어댑터의 **바라(지배 행성)** 가 바뀐다.
+
+| 파일 | 한 것 |
+|---|---|
+| `worker/routes/nakshatra.js` | `lunarFromInput` → 코어. `isValidBirth` 에 1900~2100 범위 추가. 궁합 경로의 `source` 라벨 |
+| `worker/routes/nakshatra-ai.js` | `lunarFromInput` → 코어. 범위는 `isValidBirthInput` 이 이미 막고 있었다 |
+| `worker/routes/nakshatra-premium.js` | 3곳(택일 스캔·본인 명식·VVIP)을 `sukuyoFromSolarDate` 하나로 접었다. `isValidBirth` 범위 추가 |
+| `worker/lib/nakshatra-codex.js` | (ㄱ) `source` 라벨 2곳 |
+| `app/destiny-compass/_engine/adapters/vedicAdapter.ts` | `Lunar.fromYmd().getSolar()` → `lunarToSolar`. 실패 시 던진다(상위 try/catch 가 흡수) |
+| `scripts/verify-nakshatra-premium.mjs` | (ㄴ) 하네스가 자기 달력을 갖고 있었다 |
+| `scripts/verify-sukuyo-korean-calendar.mjs` | 잔존 4건 제거 + 검사 ②③ 에 소비자 3벌 · 검사 ⑤ 신설. **25건/7벌 → 31건/10벌** |
+
+#### (ㄱ) 라벨이 거짓이 될 뻔했다 — `buildSukuyoFromLunar` 의 기본값 두 개
+
+핸드오프가 경고한 `worker/lib/sukuyo-ai-calculation.js:137` 의 `"lunar-javascript"` 기본값은
+**낙샤트라와 무관했다.** 낙샤트라는 `worker/lib/sukuyo-premium.js:117` 의 다른 벌을 쓰고
+그쪽 기본값은 `"kasi-api"` 다. 실측(2026-08-27 `git grep`):
+
+- `sukuyo-ai-calculation.js` 벌의 프로덕션 호출부 **4곳 전부가 `source` 를 명시로 넘긴다**
+  (guardian 어댑터 · 찻집 워커 · 숙요궁합AI · 찻집 앱). 기본값은 이미 도달 불가다.
+- `sukuyo-premium.js` 벌에서 아직 코어가 아닌 음력을 먹이는 곳은 `worker/lib/karma-destiny-ai-calculations.js:809`
+  와 `worker/routes/admin.js:1141,1156` — **둘 다 E4** 다.
+
+🔴 **그래서 두 기본값은 E4 에서 함께 바꾼다.** E3 만으로는 아직 이르다. 이번에는 낙샤트라가
+넘기는 자리(라우트 1곳 + `nakshatra-codex.js` 2곳)에만 `source: "korean-calendar-core"` 를 적었다.
+
+#### (ㄴ) 검증 하네스가 자기 달력을 갖고 있었다 (PR-E2 4번의 재발)
+
+`scripts/verify-nakshatra-premium.mjs` 의 `buildMuhurtaScanDays` 가 `Solar.fromYmdHms` 로
+택일 스캔 60일을 만들고 있었다 — 프로덕션 `buildScanDays` 의 사본인데 달력이 달랐다.
+단언이 구조적(길일 개수·결정론·목적 6종 분기)이라 값이 안 걸렸을 뿐이다.
+🔴 실제로 `2026-08-01`+60일 구간은 코어와 **불일치 0** 이라 이번엔 아무 수치도 안 움직였다.
+그래도 옮겼다 — 창이 옮겨가는 순간 조용히 갈릴 자리였다.
+
+#### 🔴 라우트 안 순수 함수의 검증 표면
+
+`worker/routes/nakshatra*.js` 는 **node 로 직접 import 되지 않는다** — Swiss WASM(`.wasm`)과
+`@/` TS 모듈을 끌고 온다(`Cannot find module .../lib/cms/build-text`). 그래서 가드는
+레포의 다른 낙샤트라 가드와 같이 **esbuild 로 번들해 돌린다**(`loader: { ".wasm": "empty" }` —
+이 가드는 달 황경을 안 쓴다). 번들 116ms · 3.6MB, 캐시 없음.
+세 라우트에 `__nakshatraTestUtils` · `__nakshatraAiTestUtils` · `__nakshatraPremiumTestUtils` 를 열었다.
+
+#### 검사 ⑤ — 반대 방향(음력→양력)을 보는 첫 검사
+
+이 어댑터는 27수를 안 쓰지만 **같은 달력 축의 반대 방향**이다. 갈리는 음력 날짜를 실제로 찾아
+어댑터를 돌리고, `evidence[0].detail` 의 행성이 **코어 양력일의 요일**에서 나온 것인지 본다
+(중국 음력 쪽 행성이면 그 사실도 함께 찍는다).
+
+음성 테스트 6종 전부 빨간불 확인(복원은 메모리 버퍼).
+🔴 이 PR 도 `verify:sitemap-drift` 에 걸렸다 — `app/destiny-compass/**` 가 원장을 무효화한다.
+`npm run sitemap:generate` 산출물을 같은 커밋에 담아 해소했다.
+
+### PR-E4~E5 — 나머지 소비자
+
+`lunar-javascript` 실 import 는 PR-E3 이후 **25곳**(2026-08-27 `git grep`, `public/**` 제외). 도메인별로 나뉜다.
 
 | 묶음 | 파일 | 축 | 비고 |
 |---|---|---|---|
-| **E3 낙샤트라·베다** | `worker/routes/nakshatra.js` · `nakshatra-ai.js` · `nakshatra-premium.js`(3곳) · `app/destiny-compass/_engine/adapters/vedicAdapter.ts` | 음력일 | 같음 |
 | **E4 나머지 음력 변환** | `app/_lib/normalize-ziwei-input.ts` · `app/fortune/prompt-hub/{dangsaju-calc,kusei-calc,lite-prompt-tools}.ts` · `app/saju/animal-destiny/engine/localSajuCalculator.ts` · `worker/lib/human-design-ephemeris.js` · `worker/lib/karma-destiny-ai-calculations.js` · `worker/lib/love-secret-ai-calendar.js` · `worker/routes/admin.js` | 음력↔양력 | `Lunar.fromYmd(y, leap?-m:m, d).getSolar()` 꼴이 대부분 — `lunarToSolar` 로 |
 | **E5 정적 셸** | `js/saju-engine.js` · `js/saju-engine-tarot-sukuyo-quantum.js` · `js/luck-sync-diary.js` · `js/sibyl-system.js` | 절기 프레임 | 🔴 `sync:public` 이 캐시키를 돌려 미러 22개가 딸려온다 |
 

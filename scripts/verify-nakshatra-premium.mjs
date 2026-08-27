@@ -7,6 +7,9 @@
 //   실행: node scripts/verify-nakshatra-premium.mjs
 
 import { build } from "esbuild";
+// 🔴 택일 스캔 표본은 프로덕션(worker/routes/nakshatra-premium.js)과 같은 달력이어야 한다.
+//    하네스가 자기 달력을 갖고 있으면 4% 의 날짜에서 조용히 갈린다(숙요 이관 때 실제로 있었다).
+import { solarToLunar } from "../lib/korean-calendar/index.js";
 import { readFileSync, readdirSync, writeFileSync } from "node:fs";
 import { createRequire } from "node:module";
 import { tmpdir } from "node:os";
@@ -27,7 +30,6 @@ const entry = [
   `export { buildNakshatraVvipCodex, __nakshatraVvipTestUtils } from ${JSON.stringify(path.join(repoRoot, "worker/lib/nakshatra-vvip-codex.js"))};`,
   `export { getSukuyoByIndex } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
   `export { buildSukuyoFromLunar } from ${JSON.stringify(path.join(repoRoot, "worker/lib/sukuyo-premium.js"))};`,
-  `export { Solar } from "lunar-javascript";`,
   `export { buildVimshottariDasha, nakshatraInfo, DASHA_ORDER, DASHA_YEARS } from ${JSON.stringify(path.join(repoRoot, "worker/lib/vedic-derived-calculations.js"))};`,
   `export { NAKSHATRA_ATTRIBUTES } from ${JSON.stringify(path.join(repoRoot, "constants/nakshatra-attributes.js"))};`,
   `export { UNLOCK_PAID_FEATURE_KEYS, UNLOCK_PRODUCT_BY_FEATURE_KEY, isUnlockPaidFeatureKey } from ${JSON.stringify(path.join(repoRoot, "worker/lib/paid-feature-registry.js"))};`,
@@ -53,7 +55,7 @@ const {
   UNLOCK_PRODUCT_BY_FEATURE_KEY, isUnlockPaidFeatureKey,
   buildNakshatraMuhurta, listMuhurtaPurposes, __nakshatraMuhurtaTestUtils,
   buildNakshatraVvipCodex, __nakshatraVvipTestUtils,
-  buildSukuyoFromLunar, getSukuyoByIndex, Solar,
+  buildSukuyoFromLunar, getSukuyoByIndex,
 } = m;
 
 // 택일 스캔 입력 — 달 황경은 실제 Swiss 대신 물리적으로 타당한 근사로 채운다(엔진은 황경만 받는다).
@@ -64,9 +66,9 @@ function buildMuhurtaScanDays(startIso, count) {
   const out = [];
   for (let i = 0; i < count; i += 1) {
     const cursor = new Date(base.getTime() + i * 86400000);
-    const lunar = Solar.fromYmdHms(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, cursor.getUTCDate(), 12, 0, 0).getLunar();
-    const rawMonth = lunar.getMonth();
-    const suk = buildSukuyoFromLunar(Math.abs(rawMonth), lunar.getDay(), { isLeapMonth: rawMonth < 0 });
+    const lunar = solarToLunar(cursor.getUTCFullYear(), cursor.getUTCMonth() + 1, cursor.getUTCDate());
+    if (!lunar) continue;
+    const suk = buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, { isLeapMonth: lunar.isLeapMonth, source: "korean-calendar-core" });
     if (!suk) continue;
     const mean = (35 + i * 13.1763) % 360;
     const wobble = 6.29 * Math.sin(((i * 13.06) * Math.PI) / 180);
