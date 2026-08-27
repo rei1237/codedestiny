@@ -35,7 +35,9 @@ const BRANCH_META = Object.freeze({
   寅: { element: "wood", hiddenStems: ["甲", "丙", "戊"], ko: "인" },
   卯: { element: "wood", hiddenStems: ["乙"], ko: "묘" },
   辰: { element: "earth", hiddenStems: ["戊", "乙", "癸"], ko: "진" },
-  巳: { element: "fire", hiddenStems: ["丙", "戊", "庚"], ko: "사" },
+  // 🔴 巳 는 본기 丙 → 중기 庚 → 여기 戊 다(2026-08-28 정정). 정본 lib/saju/myeongri-tables.js 의
+  // ZHI_HIDE_GAN 과 같은 순서이며, 여기서는 지장간마다 가중치가 같아 순서만 바뀌고 값은 안 움직인다.
+  巳: { element: "fire", hiddenStems: ["丙", "庚", "戊"], ko: "사" },
   午: { element: "fire", hiddenStems: ["丁", "己"], ko: "오" },
   未: { element: "earth", hiddenStems: ["己", "丁", "乙"], ko: "미" },
   申: { element: "metal", hiddenStems: ["庚", "壬", "戊"], ko: "신" },

@@ -51,20 +51,11 @@ export const BRANCH_ELEMENT = {
   子: "수", 丑: "토", 寅: "목", 卯: "목", 辰: "토", 巳: "화",
   午: "화", 未: "토", 申: "금", 酉: "금", 戌: "토", 亥: "수",
 };
-export const HIDDEN_STEMS = {
-  子: ["癸"],
-  丑: ["己", "癸", "辛"],
-  寅: ["甲", "丙", "戊"],
-  卯: ["乙"],
-  辰: ["戊", "乙", "癸"],
-  巳: ["丙", "戊", "庚"],
-  午: ["丁", "己"],
-  未: ["己", "丁", "乙"],
-  申: ["庚", "壬", "戊"],
-  酉: ["辛"],
-  戌: ["戊", "辛", "丁"],
-  亥: ["壬", "甲"],
-};
+// 🔴 지장간은 정본 표 하나만 둔다. 예전에는 여기 사본이 한 벌 더 있었고 巳 만 순서가 갈려 있었다
+// (사본 丙戊庚 · 정본 丙庚戊). 같은 pillarDetails 안에서 hiddenStems 는 사본을, branchTenGods 는
+// 정본을 읽어 **한 기둥 안에서 두 순서가 섞였다**(집합은 같아 눈에 안 띄었다). 정기→중기→여기 규칙은
+// 寅(甲丙戊)·申(庚壬戊)이 따르는 것과 같고 巳 는 丙庚戊 다. 값 한 글자를 고치면 또 갈리므로 사본을 없앤다.
+export const HIDDEN_STEMS = ZHI_HIDE_GAN;
 const PRODUCES = { 목: "화", 화: "토", 토: "금", 금: "수", 수: "목" };
 const CONTROLS = { 목: "토", 토: "수", 수: "화", 화: "금", 금: "목" };
 const CHINESE_TEN_GOD_TO_KO = {
@@ -309,14 +300,15 @@ function coreSexagenaryYear(year) {
 
 /**
  * @param {object} facts `pillarFacts()` 가 만든 파생 필드 게터 묶음.
- * @param {object} [options]
- * @param {boolean} [options.detached]
- *   기둥이 `facts` 와 다른 시각에서 나온 경우(예: 진태양시 보정된 시주 override).
- *   그 자리의 naYin·십이운성·순공은 보정 전 시각 기준이라 틀리므로 비운다.
+ *
+ * 🔴 예전에는 `options.detached` 로 이 필드들을 비우는 길이 있었다 — 진태양시로 보정된 시주를
+ * 호출부가 넘길 때(love-secret), 파생 필드가 **보정 전 시각에 묶인 `EightChar` 객체**에서 나와
+ * 틀렸기 때문이다. 지금 `facts` 는 `pillarFacts()` 가 만들고 그건 (기둥 문자열 + 일간) 순수 조회라
+ * 보정된 기둥에서도 값이 맞는다. 그래서 비울 이유가 사라졌고 게이트를 없앴다 —
+ * 같은 레코드의 `hiddenStems`·`stemTenGod` 은 애초에 비운 적이 없어 모순 상태이기도 했다.
  */
-function buildPillarDetail(key, pillar, facts, dayStem, options = {}) {
+function buildPillarDetail(key, pillar, facts, dayStem) {
   if (!pillar) return null;
-  const detached = options.detached === true;
   const methodPrefix = key.charAt(0).toUpperCase() + key.slice(1);
   const stem = pillarStem(pillar);
   const branch = pillarBranch(pillar);
@@ -333,14 +325,14 @@ function buildPillarDetail(key, pillar, facts, dayStem, options = {}) {
     branchElement: BRANCH_ELEMENT[branch] || "",
     hiddenStems: buildHiddenStemDetails(dayStem, branch),
     stemTenGod: key === "day" ? "일간" : tenGodFor(dayStem, stem),
-    branchTenGods: !detached && Array.isArray(rawBranchTenGods)
+    branchTenGods: Array.isArray(rawBranchTenGods)
       ? rawBranchTenGods.map(normalizeTenGodName).filter(Boolean)
       : [],
-    elementPair: !detached && typeof facts?.[`get${methodPrefix}WuXing`] === "function" ? clean(facts[`get${methodPrefix}WuXing`](), 20) : "",
-    naYin: !detached && typeof facts?.[`get${methodPrefix}NaYin`] === "function" ? clean(facts[`get${methodPrefix}NaYin`](), 40) : "",
-    twelveStage: !detached && typeof facts?.[`get${methodPrefix}DiShi`] === "function" ? clean(facts[`get${methodPrefix}DiShi`](), 20) : "",
-    xun: !detached && typeof facts?.[`get${methodPrefix}Xun`] === "function" ? clean(facts[`get${methodPrefix}Xun`](), 20) : "",
-    xunKong: !detached && typeof facts?.[`get${methodPrefix}XunKong`] === "function" ? clean(facts[`get${methodPrefix}XunKong`](), 20) : "",
+    elementPair: typeof facts?.[`get${methodPrefix}WuXing`] === "function" ? clean(facts[`get${methodPrefix}WuXing`](), 20) : "",
+    naYin: typeof facts?.[`get${methodPrefix}NaYin`] === "function" ? clean(facts[`get${methodPrefix}NaYin`](), 40) : "",
+    twelveStage: typeof facts?.[`get${methodPrefix}DiShi`] === "function" ? clean(facts[`get${methodPrefix}DiShi`](), 20) : "",
+    xun: typeof facts?.[`get${methodPrefix}Xun`] === "function" ? clean(facts[`get${methodPrefix}Xun`](), 20) : "",
+    xunKong: typeof facts?.[`get${methodPrefix}XunKong`] === "function" ? clean(facts[`get${methodPrefix}XunKong`](), 20) : "",
   };
 }
 
@@ -768,15 +760,11 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
     year: buildPillarDetail("year", yearPillar, pillarFacts("year", yearPillar, dayMaster), dayMaster),
     month: buildPillarDetail("month", monthPillar, pillarFacts("month", monthPillar, dayMaster), dayMaster),
     day: buildPillarDetail("day", dayPillar, pillarFacts("day", dayPillar, dayMaster), dayMaster),
-    // 🔴 시주만 파생 필드를 **일부러 안 넘긴다**(null). 이관 전에도 이 자리는 항상 비어 있었다 —
-    // buildPillarDetail 이 `getHourNaYin` 을 찾는데 lunar-javascript 의 EightChar 는 `getTimeNaYin` 만
-    // 갖고 있어서(실측 2026-08-28: getHour* 전부 undefined) 가드가 전건 실패했다. pillarFacts 로 바꾸면
-    // 이름이 맞아 저절로 채워지는데, 그러면 이 이관 PR 이 23시대뿐 아니라 **전 사용자**의 리포트와
-    // LLM 입력(tenGodsByPillar)을 함께 바꾸게 되어 회귀가 나도 원인을 못 가른다.
-    // 🔴 그래서 이 버그 수정은 별도 PR 로 뺐다. 고칠 때는 pillarFacts("hour", hourPillar, dayMaster) 를 넘기면 된다.
-    hour: timeUnknown
-      ? null
-      : buildPillarDetail("hour", hourPillar, null, dayMaster, { detached: Boolean(hourPillarOverride) }),
+    // 🔴 시주도 같은 표를 지난다. 이관 전에는 이 자리가 **항상** 비어 있었다 — buildPillarDetail 이
+    // `getHourNaYin` 을 찾는데 lunar-javascript 의 EightChar 는 `getTimeNaYin` 만 갖고 있어서
+    // (실측 2026-08-28: getHour* 전부 undefined) 納音·十二運星·旬空·오행쌍·지지십신이 전건 공란이었다.
+    // 실측 2026-08-28: 표본 424건 중 424건이 공란 → 424건 전건 채워진다.
+    hour: timeUnknown ? null : buildPillarDetail("hour", hourPillar, pillarFacts("hour", hourPillar, dayMaster), dayMaster),
   };
   const tenGodsByPillar = buildTenGodByPillar(pillarDetails);
   const seasonalBalance = buildSeasonalBalance(pillarBranch(monthPillar), fiveElements, dayMaster);

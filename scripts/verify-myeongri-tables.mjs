@@ -21,8 +21,13 @@
  *   ③ 旬空을 60갑자 **전건** 대조 — 표가 아니라 인덱스 산술로 다시 썼기 때문이다
  *   ④ 十神 표를 레포의 **독립 규칙**(`tenGodFor` 의 오행·음양 판정)과 교차 검증 — 출처가 둘이라
  *      한쪽이 틀어지면 드러난다
- *   ⑤ 소비자(`calculateLifeBookAiSaju`)를 **실제로 실행**해 파생 필드를 `LunarUtil` 직접 조회와 대조
+ *   ⑤ 소비자(`calculateLifeBookAiSaju`)를 **실제로 실행**해 네 기둥의 파생 필드를 `LunarUtil` 직접
+ *      조회와 대조 — 지장간은 개수가 아니라 **순서**까지 본다
  *   ⑥ 제품 소스에 `LunarUtil` 참조가 0건임을 전수 스캔으로 확인(fail-closed)
+ *   ⑦ 레포의 **지장간 표를 소스에서 전수 발견**해 정본과 대조 — 미분류 표는 실패시킨다(fail-closed)
+ *
+ * 🔴 ⑤ 가 년·월주만 보던 동안 **시주의 파생 필드가 전건 공란**이었고(getHour* 가 EightChar 에 없다),
+ * ⑦ 이 없던 동안 巳 의 순서 오기가 **6개 파일**에 복제돼 있었다. 둘 다 2026-08-28 에 드러났다.
  *
  * 🔴 `scripts/` 는 스캔하지 않는다 — verify:lunar-conversion-core 와 같은 이유로, 이 파일이 가진
  * 스크립트 경로 문자열을 verify:guard-wiring 이 배선 간선으로 오독한다.
@@ -219,7 +224,9 @@ ok("② 표본이 0이 아니다", comparedKeys >= 216, `대조 키 ${comparedKe
       });
       probes += 1;
       const dayStem = result?.dayMaster;
-      for (const key of ["year", "month"]) {
+      // 🔴 네 기둥 전부를 본다. 예전에는 년·월만 봤고, 그래서 시주의 파생 필드가 **전건 공란**인 것을
+      // 이 가드가 못 봤다(buildPillarDetail 이 EightChar 에 없는 getHour* 를 찾고 있었다 — 2026-08-28).
+      for (const key of ["year", "month", "day", "hour"]) {
         const detail = result?.pillarDetails?.[key];
         if (!detail?.pillar) { rows.push(`${label} ${key}주 없음`); continue; }
         const want = expected(detail.pillar, dayStem);
@@ -230,6 +237,13 @@ ok("② 표본이 0이 아니다", comparedKeys >= 216, `대조 키 ${comparedKe
         }
         if (detail.branchTenGods.length !== want.branchTenGodCount) {
           rows.push(`${label} ${key}주 ${detail.pillar} 지지십신 ${detail.branchTenGods.length}개 vs ${want.branchTenGodCount}개`);
+        }
+        // 🔴 개수가 아니라 **순서**를 본다. hiddenStems 는 소비자의 표를, branchTenGods 는 정본 표를
+        // 읽으므로 둘이 갈리면 한 기둥 안에서 두 순서가 섞인다(巳 가 실제로 그랬다 — 집합은 같아 안 보였다).
+        const gotStems = (detail.hiddenStems || []).map((hidden) => hidden.stem).join("");
+        const wantStems = (LunarUtil.ZHI_HIDE_GAN[detail.pillar.charAt(1)] || []).join("");
+        if (gotStems !== wantStems) {
+          rows.push(`${label} ${key}주 ${detail.pillar} 지장간 순서 ${gotStems} vs ${wantStems}`);
         }
       }
       for (const cycle of result?.majorLuck?.cycles || []) {
@@ -287,6 +301,210 @@ ok("② 표본이 0이 아니다", comparedKeys >= 216, `대조 키 ${comparedKe
   ok("⑥ 제품 소스에 LunarUtil 참조가 없다", found.length === 0, found.join("\n      "));
 }
 
+// ── ⑦ 지장간 표 전수 발견 — 사본이 갈리는 것을 소스에서 잡는다 ─────────────
+// 🔴 왜 필요한가: 2026-08-28 에 巳 의 순서 오기(丙戊庚, 정본은 丙庚戊)가 레포 **6개 파일**에
+// 복제돼 있었다. 집합이 같아 눈에 안 띄었고, 한 파일 안에서도 사본과 정본이 섞여 있었다.
+// 손으로 파일 목록을 적으면 7번째 사본이 생겨도 조용하므로(CLAUDE.md 코딩 원칙 10) **소스에서
+// 전수 발견**하고 **미분류를 실패**시킨다.
+//
+// 발견 신호: 12개 지지를 전부 키로 갖고, 각 행의 첫 배열이 천간 1~3개인 리터럴.
+// 지지 키는 한자(`巳:`)·한글(`사:`)·계산 키(`[BRANCHES[5]]:`) 세 형태를 다 본다.
+let findHiddenStemTables = null;
+let compareHiddenStemTable = null;
+{
+  const BRANCH_HANGUL = "자축인묘진사오미신유술해".split("");
+  const STEM_HANGUL = "갑을병정무기경신임계".split("");
+  const SCAN_DIRS = ["js", "worker", "app", "lib", "src"];
+  const SCAN_EXTENSIONS = new Set([".js", ".mjs", ".cjs", ".ts", ".tsx"]);
+  const SKIP_DIR_NAMES = new Set(["node_modules", ".next", "dist", "out", ".wrangler", "build-cache"]);
+
+  /**
+   * 발견된 표는 전부 여기 있어야 한다. `order` 는 배열 방향이다 —
+   * 정본(ZHI_HIDE_GAN)은 본기→중기→여기(`main-first`), 셸의 CD_JANGGAN 은 그 반대다.
+   */
+  const CLASSIFIED = new Map([
+    ["lib/saju/myeongri-tables.js::ZHI_HIDE_GAN", { order: "main-first" }],
+    ["worker/lib/saju-ai-prompt.js::HIDDEN_STEMS_BY_BRANCH", { order: "main-first" }],
+    ["worker/routes/new-year-ai.js::HIDDEN_STEMS", { order: "main-first" }],
+    ["worker/lib/destiny-bias-engine.js::BRANCH_META", { order: "main-first" }],
+    ["app/saju/destiny-bias/engine/sajuPersonality.ts::BRANCH_META", { order: "main-first" }],
+    // 셸은 여기(餘氣)부터 적는 반대 방향이고, 子·卯·酉·亥 에 정본에 없는 여기를 더 싣는다
+    // (그쪽이 더 자세한 표다). 뒤집었을 때 정본이 앞자리와 맞으면 통과시킨다.
+    // 🔴 辰戌丑未(土 창고) 4개는 **관례가 갈리는 자리**다 — 한국식은 중기에 창고에 든 오행을 두고
+    // (丑=癸·辛·己 → 己辛癸), 중국식 藏干 나열은 己癸辛 이다. 집합은 같고 어느 쪽도 오기가 아니다.
+    // 사본이 갈린 巳 와는 성격이 다르므로 여기 적어 두고, 그 밖이 어긋나면 터진다.
+    ["js/saju-engine.js::CD_JANGGAN", {
+      order: "residual-first",
+      allowExtraResidual: true,
+      divergent: ["丑", "辰", "未", "戌"],
+    }],
+    ["app/saju/animal-destiny/engine/localSajuCalculator.ts::HIDDEN_STEMS_BY_BRANCH", {
+      order: "main-first",
+      // 🔴 아직 안 고쳤다. 이 표만 층 가중치가 **자리로** 정해져 있어(0.6/0.25/0.15) 순서를 고치면
+      // 신강약·득령 점수가 함께 움직인다 — 값이 안 움직이는 나머지와 성격이 달라 별도 PR 이다.
+      divergent: ["巳"],
+    }],
+  ]);
+
+  function walk(dir, out) {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name.startsWith(".") || SKIP_DIR_NAMES.has(entry.name)) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full, out);
+      else if (SCAN_EXTENSIONS.has(path.extname(entry.name))) out.push(full);
+    }
+    return out;
+  }
+  function stripComments(source) {
+    return source
+      .replace(/\/\*[\s\S]*?\*\//g, "")
+      .split("\n")
+      // 🔴 `$` 앵커를 쓰지 않는다 — CRLF 파일에서 행 끝 \r 이 `.` 에 안 잡혀 앵커가 막힌다.
+      .map((line) => line.replace(/(^|[^:])\/\/.*/, "$1"))
+      .join("\n");
+  }
+
+  const KEY_PATTERNS = BRANCHES.map((branch, index) => new RegExp(
+    `(?:['"\`]?${branch}['"\`]?|['"\`]?${BRANCH_HANGUL[index]}['"\`]?|\\[\\s*BRANCHES\\[\\s*${index}\\s*\\]\\s*\\])\\s*:`,
+  ));
+  const STEM_VALUE = new RegExp(
+    `STEMS\\[\\s*(\\d+)\\s*\\]|['"\`]([${STEMS.join("")}${STEM_HANGUL.join("")}])['"\`]`,
+    "g",
+  );
+
+  /** 여는 괄호에서 시작해 균형으로 잘라 낸다(문자열 안의 괄호는 안 센다). */
+  function sliceBalanced(source, start, open, close, limit = 8000) {
+    let depth = 0;
+    let quote = "";
+    for (let i = start; i < source.length && i - start < limit; i += 1) {
+      const ch = source[i];
+      if (quote) {
+        if (ch === "\\") { i += 1; continue; }
+        if (ch === quote) quote = "";
+        continue;
+      }
+      if (ch === "'" || ch === '"' || ch === "`") { quote = ch; continue; }
+      if (ch === open) depth += 1;
+      else if (ch === close) {
+        depth -= 1;
+        if (depth === 0) return source.slice(start, i + 1);
+      }
+    }
+    return "";
+  }
+
+  /** 행의 **첫 배열**에서 천간을 등장 순서대로 뽑아 한자로 통일한다. */
+  function readStemList(row) {
+    const open = row.indexOf("[");
+    if (open < 0) return [];
+    const list = sliceBalanced(row, open, "[", "]");
+    if (!list) return [];
+    const values = [];
+    STEM_VALUE.lastIndex = 0;
+    for (let match = STEM_VALUE.exec(list); match; match = STEM_VALUE.exec(list)) {
+      if (match[1] !== undefined) values.push(STEMS[Number(match[1])] || "?");
+      else {
+        const index = STEM_HANGUL.indexOf(match[2]);
+        values.push(index >= 0 ? STEMS[index] : match[2]);
+      }
+    }
+    return values;
+  }
+
+  function readIdentifier(source, at) {
+    const head = source.slice(Math.max(0, at - 400), at).split("\n").pop().trim();
+    return /([A-Za-z_$][\w$]*)\s*(?::\s*[^=]*)?=\s*(?:Object\.freeze\(\s*)?$/.exec(head)?.[1] || "";
+  }
+
+  /** 소스 한 벌에서 지장간 표를 전부 뽑는다. 음성 테스트가 합성 소스로 이 함수를 직접 부른다. */
+  function findTables(source) {
+    const found = [];
+    if (!KEY_PATTERNS.every((pattern) => pattern.test(source))) return found;
+    for (let i = 0; i < source.length; i += 1) {
+      if (source[i] !== "{") continue;
+      const literal = sliceBalanced(source, i, "{", "}");
+      if (!literal || !KEY_PATTERNS.every((pattern) => pattern.test(literal))) continue;
+      const rows = [];
+      for (let b = 0; b < 12; b += 1) {
+        const match = KEY_PATTERNS[b].exec(literal);
+        if (!match) { rows.length = 0; break; }
+        const from = match.index + match[0].length;
+        const nextStarts = KEY_PATTERNS
+          .map((pattern, other) => (other === b ? -1 : (pattern.exec(literal.slice(from))?.index ?? -1)))
+          .filter((index) => index >= 0);
+        rows.push(literal.slice(from, nextStarts.length ? from + Math.min(...nextStarts) : literal.length));
+      }
+      const values = rows.length === 12 ? rows.map(readStemList) : null;
+      // 지장간표는 지지마다 천간 1~3개이고, 3개인 행이 6개 이상이다(정본이 7, 셸의 자세한 표가 9).
+      const isTable = values
+        && values.every((list) => list.length >= 1 && list.length <= 3)
+        && values.filter((list) => list.length === 3).length >= 6;
+      if (!isTable) continue;
+      found.push({ identifier: readIdentifier(source, i), values });
+      i += literal.length - 1;
+    }
+    return found;
+  }
+
+  /** 표 하나를 정본과 대조해 어긋난 지지를 돌려준다. */
+  function compareTable(values, spec) {
+    const mismatched = [];
+    for (let b = 0; b < 12; b += 1) {
+      const branch = BRANCHES[b];
+      const canonical = ZHI_HIDE_GAN[branch];
+      const got = spec.order === "residual-first" ? [...values[b]].reverse() : values[b];
+      const comparable = spec.allowExtraResidual ? got.slice(0, canonical.length) : got;
+      if (comparable.join("") !== canonical.join("")) mismatched.push({ branch, got: got.join(""), canonical: canonical.join("") });
+    }
+    return mismatched;
+  }
+  findHiddenStemTables = findTables;
+  compareHiddenStemTable = compareTable;
+
+  const discovered = [];
+  let scanned = 0;
+  for (const dirName of SCAN_DIRS) {
+    const dir = path.join(root, dirName);
+    if (!fs.existsSync(dir)) continue;
+    for (const file of walk(dir, [])) {
+      const relative = path.relative(root, file).split(path.sep).join("/");
+      scanned += 1;
+      const source = stripComments(fs.readFileSync(file, "utf8"));
+      for (const table of findTables(source)) {
+        discovered.push({ key: `${relative}::${table.identifier}`, values: table.values });
+      }
+    }
+  }
+
+  ok("⑦ 스캔이 실제로 소스를 읽었다(0 이면 가드가 깨진 것)", scanned >= 200, `${scanned}개 파일`);
+  ok(
+    "⑦ 발견한 지장간 표가 전부 분류돼 있다(미분류는 새 사본이다)",
+    discovered.every((table) => CLASSIFIED.has(table.key)),
+    discovered.filter((table) => !CLASSIFIED.has(table.key)).map((table) => table.key).join("\n      "),
+  );
+  const discoveredKeys = new Set(discovered.map((table) => table.key));
+  ok(
+    "⑦ 분류표에 유령 항목이 없다(못 찾은 항목은 발견 신호가 깨진 것이다)",
+    [...CLASSIFIED.keys()].every((key) => discoveredKeys.has(key)),
+    [...CLASSIFIED.keys()].filter((key) => !discoveredKeys.has(key)).join("\n      "),
+  );
+
+  const drift = [];
+  for (const table of discovered) {
+    const spec = CLASSIFIED.get(table.key);
+    if (!spec) continue;
+    const mismatched = compareTable(table.values, spec);
+    const expectedDivergent = (spec.divergent || []).join(",");
+    const actualDivergent = mismatched.map((row) => row.branch).join(",");
+    if (actualDivergent !== expectedDivergent) {
+      const detail = mismatched.map((row) => `${row.branch}(${row.got} vs ${row.canonical})`).join(" ");
+      drift.push(`${table.key} — 어긋남 [${detail}] · 분류표가 예상한 것 [${expectedDivergent || "없음"}]`);
+    }
+  }
+  ok("⑦ 표를 실제로 발견했다(0 이면 가드가 깨진 것)", discovered.length >= 6, `${discovered.length}개 표`);
+  ok("⑦ 모든 지장간 표가 정본과 같다(분류표가 사유를 적은 것만 예외)", drift.length === 0, drift.join("\n      "));
+}
+
 // ── 음성 테스트 — 이 가드가 실제로 빨간불이 되는지 ─────────────────────────
 // 🔴 파일을 건드리지 않는다. 메모리 사본만 뒤집는다(`git checkout` 복원은 미커밋 작업을 날린다).
 if (SELF_TEST) {
@@ -303,6 +521,28 @@ if (SELF_TEST) {
   probe("플레이스홀더 키가 섞이면 잡는다", { ...NAYIN, "{jz.jiaZi}": "海中金" }, LunarUtil.NAYIN);
   probe("배열 순서를 바꾸면 잡는다",
     { ...ZHI_HIDE_GAN, 巳: ["丙", "戊", "庚"] }, LunarUtil.ZHI_HIDE_GAN);
+
+  // ⑦ — 발견기와 대조기를 합성 소스로 직접 돌린다(파일은 안 건드린다).
+  const canonicalRows = BRANCHES.map((branch) => ZHI_HIDE_GAN[branch]);
+  const asSource = (rows) => `const T = {\n${BRANCHES
+    .map((branch, index) => `  ${branch}: [${rows[index].map((stem) => `"${stem}"`).join(", ")}],`)
+    .join("\n")}\n};`;
+
+  const clean = findHiddenStemTables(asSource(canonicalRows));
+  cases.push(["⑦ 합성 지장간 표를 실제로 발견한다", clean.length === 1 && clean[0].identifier === "T"]);
+  cases.push(["⑦ 정본 그대로면 어긋남이 없다",
+    clean.length === 1 && compareHiddenStemTable(clean[0].values, { order: "main-first" }).length === 0]);
+
+  const swapped = canonicalRows.map((row, index) => (index === 5 ? ["丙", "戊", "庚"] : row));
+  const swappedFound = findHiddenStemTables(asSource(swapped));
+  cases.push(["⑦ 巳 를 뒤집은 사본을 잡는다",
+    swappedFound.length === 1
+      && compareHiddenStemTable(swappedFound[0].values, { order: "main-first" })
+        .map((row) => row.branch).join(",") === "巳"]);
+
+  // 지장간이 아닌 12지지 표(지지→오행)는 후보로 올라오면 안 된다 — 그러면 분류표가 소음으로 찬다.
+  cases.push(["⑦ 지장간이 아닌 12지지 표는 안 잡는다",
+    findHiddenStemTables(`const E = {${BRANCHES.map((branch) => `${branch}: "토"`).join(", ")}};`).length === 0]);
 
   const red = cases.filter(([, caught]) => caught).length;
   for (const [label, caught] of cases) {

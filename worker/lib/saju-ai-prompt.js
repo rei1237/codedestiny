@@ -319,7 +319,10 @@ const HIDDEN_STEMS_BY_BRANCH = Object.freeze({
   寅: Object.freeze([{ stem: "甲", layer: "정기", weight: 60 }, { stem: "丙", layer: "중기", weight: 30 }, { stem: "戊", layer: "여기", weight: 10 }]),
   卯: Object.freeze([{ stem: "乙", layer: "정기", weight: 100 }]),
   辰: Object.freeze([{ stem: "戊", layer: "정기", weight: 60 }, { stem: "乙", layer: "중기", weight: 30 }, { stem: "癸", layer: "여기", weight: 10 }]),
-  巳: Object.freeze([{ stem: "丙", layer: "정기", weight: 60 }, { stem: "戊", layer: "중기", weight: 30 }, { stem: "庚", layer: "여기", weight: 10 }]),
+  // 🔴 巳 는 중기가 庚, 여기가 戊 다(2026-08-28 정정). 같은 生地 인 寅(甲·丙·戊)·申(庚·壬·戊)이
+  // 따르는 "본기 → 장생하는 오행 → 戊" 규칙과 같고, 정본 표 lib/saju/myeongri-tables.js 의
+  // ZHI_HIDE_GAN 도 丙庚戊 다. 여기만 戊·庚 이 뒤집혀 있어 층(중기/여기)과 가중치가 반대로 실렸다.
+  巳: Object.freeze([{ stem: "丙", layer: "정기", weight: 60 }, { stem: "庚", layer: "중기", weight: 30 }, { stem: "戊", layer: "여기", weight: 10 }]),
   午: Object.freeze([{ stem: "丁", layer: "정기", weight: 70 }, { stem: "己", layer: "중기", weight: 30 }]),
   未: Object.freeze([{ stem: "己", layer: "정기", weight: 60 }, { stem: "丁", layer: "중기", weight: 30 }, { stem: "乙", layer: "여기", weight: 10 }]),
   申: Object.freeze([{ stem: "庚", layer: "정기", weight: 60 }, { stem: "壬", layer: "중기", weight: 30 }, { stem: "戊", layer: "여기", weight: 10 }]),
