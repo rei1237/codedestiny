@@ -1,4 +1,4 @@
-import { Lunar } from "lunar-javascript";
+import { lunarToSolar } from "@/lib/korean-calendar";
 import { nodeTerms } from "@/lib/korean-calendar";
 
 export type NineStarNumber = 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 | 9;
@@ -341,11 +341,12 @@ export function getNineStarMeta(number: number): NineStar {
 
 export function convertLunarToSolar(birthDate: string, isLeapMonth = false) {
   const parsed = parseDate(birthDate);
+  // 🔴 음력→양력은 한국 음양력 코어가 한다(절기는 이미 코어다 — PR-D 의 nodeTerms).
+  //    중국 음력은 3.68% 의 음력 날짜에서 하루 어긋난다(실측 2026-08-27).
   try {
-    const lunarMonth = isLeapMonth ? -Math.abs(parsed.month) : Math.abs(parsed.month);
-    const lunar = Lunar.fromYmd(parsed.year, lunarMonth, parsed.day);
-    const solar = lunar.getSolar();
-    return { year: solar.getYear(), month: solar.getMonth(), day: solar.getDay() };
+    const solar = lunarToSolar(parsed.year, Math.abs(parsed.month), parsed.day, isLeapMonth);
+    if (!solar) throw new Error("OUT_OF_RANGE");
+    return { year: solar.year, month: solar.month, day: solar.day };
   } catch {
     throw new Error("음력 변환에 실패했습니다. 날짜와 윤달 여부를 확인해 주세요.");
   }
@@ -555,7 +556,7 @@ export function buildKuseiPromptPayload(input: KuseiPromptInput): KuseiPromptPay
     honmeiToCurrentYearRelation: getElementRelation(honmei.honmeiStar.element, current.currentYearStar.element),
     honmeiToCurrentMonthRelation: getElementRelation(honmei.honmeiStar.element, current.currentMonthStar.element),
     honmeiToGetsumeiRelation,
-    solarTermSource: "lunar-javascript 절기 시각",
+    solarTermSource: "한국 음양력 코어 절기 시각(KST)",
     dayHourStarPolicy: "일명성·시명성은 음둔/양둔 전환과 절기 기준이 필요하므로, 검증된 계산 엔진 연결 후 제공",
     warnings,
   };

@@ -151,11 +151,10 @@ const SUKUYO_MARKERS = [
  * 숙요를 다루면서 아직 lunar-javascript 를 import 하는 것이 **알려져 있는** 파일과 그 이유.
  * 🔴 남은 이관 목록이다 — 줄어들기만 해야 한다. 여기 올린다고 옳아지지 않는다.
  */
-const KNOWN_REMAINING = new Map([
-  ["app/fortune/prompt-hub/lite-prompt-tools.ts", "프롬프트 허브 라이트 도구 — PR-E4"],
-  ["worker/routes/admin.js", "관리자 프롬프트 랩 — PR-E4"],
-  ["worker/lib/karma-destiny-ai-calculations.js", "카르마 — PR-E4"],
-]);
+// 🔴 2026-08-27(PR-E4) 부로 **비었다.** 숙요를 다루는 소스 중 lunar-javascript 를 import 하는
+// 것이 하나도 없다는 뜻이다. 비어 있는 것이 통과 조건이 아니라, 아래 ① 의 "발견 0 = 실패" 가
+// 가드를 fail-closed 로 잡는다.
+const KNOWN_REMAINING = new Map([]);
 
 function walk(dir, out) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

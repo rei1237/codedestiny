@@ -1,6 +1,5 @@
 import { createHttpError, getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
-import { Lunar, Solar } from "lunar-javascript";
-import { solarTerms, TERM_NAME_KO } from "../../lib/korean-calendar/index.js";
+import { lunarToSolar, solarToLunar, solarTerms, TERM_NAME_KO } from "../../lib/korean-calendar/index.js";
 
 const SPCDE_INFO_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/SpcdeInfoService";
 const LRSR_CLD_INFO_BASE_URL = "https://apis.data.go.kr/B090041/openapi/service/LrsrCldInfoService";
@@ -76,7 +75,13 @@ function toInt(value, fallback = null) {
   return Math.trunc(n);
 }
 
-// KASI 업스트림이 장애일 때 lunar-javascript로 음양력 변환을 로컬 계산해 서비스 연속성을 유지한다.
+// KASI 업스트림이 장애일 때 한국 음양력 코어로 음양력 변환을 로컬 계산해 서비스 연속성을 유지한다.
+//
+// 🔴 이 폴백은 예전에 lunar-javascript(중국 표준시 기준 중국 음력)를 썼다. 이 라우트는 레포 전체가
+// "권위 있는 한국 달력"으로 삼는 지점이라, 업스트림이 죽는 동안에만 조용히 3.67% 의 날짜에서
+// 하루 밀린 음력을 돌려주고 있었다(실측 2026-08-27, 1950~2035 28,896일).
+// verify:korean-calendar-kasi-samples 가 `source:"local"` 응답을 정답으로 받기를 거부하는 이유가
+// 바로 그것이었다 — 이제 그 폴백도 코어다.
 function computeLocalCalendarFallback(method, params) {
   if (method === "getLunCalInfo") {
     const solYear = toInt(params?.solYear);
@@ -84,16 +89,16 @@ function computeLocalCalendarFallback(method, params) {
     const solDay = toInt(params?.solDay);
     if (!solYear || !solMonth || !solDay) return null;
 
-    const lunar = Solar.fromYmd(solYear, solMonth, solDay).getLunar();
-    const lunarMonth = lunar.getMonth();
+    const lunar = solarToLunar(solYear, solMonth, solDay);
+    if (!lunar) return null; // 코어 지원 범위(1900~2100) 밖 — 폴백 없이 업스트림 오류를 그대로 낸다.
     return [{
       solYear: String(solYear),
       solMonth: String(solMonth).padStart(2, "0"),
       solDay: String(solDay).padStart(2, "0"),
-      lunYear: String(lunar.getYear()),
-      lunMonth: String(Math.abs(lunarMonth)).padStart(2, "0"),
-      lunDay: String(lunar.getDay()).padStart(2, "0"),
-      lunLeapmonth: lunarMonth < 0 ? "윤" : "평",
+      lunYear: String(lunar.lunarYear),
+      lunMonth: String(lunar.lunarMonth).padStart(2, "0"),
+      lunDay: String(lunar.lunarDay).padStart(2, "0"),
+      lunLeapmonth: lunar.isLeapMonth ? "윤" : "평",
     }];
   }
 
@@ -105,14 +110,15 @@ function computeLocalCalendarFallback(method, params) {
     const isLeapMonth = String(params?.leapMonth || params?.lunLeapmonth || "").trim() === "윤"
       || String(params?.leapMonth || "").trim().toLowerCase() === "y";
 
-    const solar = Lunar.fromYmd(lunYear, isLeapMonth ? -lunMonth : lunMonth, lunDay).getSolar();
+    const solar = lunarToSolar(lunYear, Math.abs(lunMonth), lunDay, isLeapMonth);
+    if (!solar) return null; // 없는 윤달이거나 지원 범위 밖.
     return [{
       lunYear: String(lunYear),
       lunMonth: String(lunMonth).padStart(2, "0"),
       lunDay: String(lunDay).padStart(2, "0"),
-      solYear: String(solar.getYear()),
-      solMonth: String(solar.getMonth()).padStart(2, "0"),
-      solDay: String(solar.getDay()).padStart(2, "0"),
+      solYear: String(solar.year),
+      solMonth: String(solar.month).padStart(2, "0"),
+      solDay: String(solar.day).padStart(2, "0"),
     }];
   }
 
@@ -732,6 +738,10 @@ async function requestCalendarSummary(env, inputRaw) {
     CALENDAR_RESULT_INFLIGHT.delete(dateKey);
   });
 }
+
+// 🔴 검증 전용 표면. verify:lunar-conversion-core 가 KASI 장애 시의 로컬 폴백을 **실제로 돌려**
+//    코어와 같은 음양력을 내는지 본다. 이 폴백이 어긋나면 업스트림이 죽는 동안에만 조용히 틀린다.
+export const __kasiTestUtils = { computeLocalCalendarFallback };
 
 export async function handleKasiRoutes(request, env = {}) {
   try {

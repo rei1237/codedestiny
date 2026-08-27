@@ -143,7 +143,7 @@ export function assembleNatalCodex({ moonLon, birthUtc, lunar, timeUnknown = fal
   const pada = timeUnknown ? null : nak.pada;
 
   // 🔴 lunar 는 호출부가 한국 음양력 코어로 만들어 넘긴다(routes/nakshatra.js·nakshatra-ai.js).
-  //    라벨은 그 사실을 그대로 적는다 — 기본값 "kasi-api" 는 이제 거짓이다.
+  //    라벨은 그 자리에서 명시한다 — 기본값에 기대면 기본값이 바뀔 때 조용히 따라간다.
   const suk = buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: Boolean(lunar.isLeap), source: "korean-calendar-core" });
 
   const dasha = buildVimshottariDasha(moonLon, birthUtc, now || birthUtc);

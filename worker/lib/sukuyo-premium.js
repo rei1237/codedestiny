@@ -127,7 +127,7 @@ function buildSukuyoFromLunar(lunarMonthRaw, lunarDayRaw, options = {}) {
     lunarMonth,
     lunarDay,
     isLeapMonth: Boolean(options.isLeapMonth),
-    source: String(options.source || "kasi-api"),
+    source: String(options.source || "korean-calendar-core"),
   };
 }
 

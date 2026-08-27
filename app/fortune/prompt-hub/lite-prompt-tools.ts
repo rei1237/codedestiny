@@ -1,4 +1,4 @@
-import { Lunar, Solar } from "lunar-javascript";
+import { lunarToSolar, solarToLunar } from "@/lib/korean-calendar";
 import { calculateLocalSaju } from "../../saju/animal-destiny/engine/localSajuCalculator";
 
 export type LitePromptMode = "saju" | "vedic" | "astrology" | "sukuyo";
@@ -146,19 +146,22 @@ function calendarForEngine(value: LiteCalendarType) {
 
 function solarFromInput(date: { year: number; month: number; day: number }, calendarType: LiteCalendarType) {
   if (calendarType === "solar") return date;
-  const lunarMonth = calendarType === "lunarLeap" ? -Math.abs(date.month) : Math.abs(date.month);
-  const lunar = Lunar.fromYmd(date.year, lunarMonth, date.day);
-  const solar = lunar.getSolar();
-  return { year: solar.getYear(), month: solar.getMonth(), day: solar.getDay() };
+  // 🔴 두 방향 모두 한국 음양력 코어가 한다. 중국 음력은 삭이 CST 23시대에 들면 그 달 전체가
+  //    하루 밀린다 — 실측 2026-08-27: 양력→음력 3.67% · 음력→양력 3.68%.
+  const solar = lunarToSolar(date.year, Math.abs(date.month), date.day, calendarType === "lunarLeap");
+  if (!solar) throw new RangeError("음력 생년월일을 양력으로 옮기지 못했습니다(지원 1900~2100).");
+  return { year: solar.year, month: solar.month, day: solar.day };
 }
 
-function lunarFromSolar(date: { year: number; month: number; day: number }, hour = 12, minute = 0) {
-  const lunar = Solar.fromYmdHms(date.year, date.month, date.day, hour, minute, 0).getLunar();
+// 생시는 음력일을 바꾸지 않으므로 코어는 날짜만 받는다.
+function lunarFromSolar(date: { year: number; month: number; day: number }) {
+  const lunar = solarToLunar(date.year, date.month, date.day);
+  if (!lunar) throw new RangeError("양력 생년월일을 음력으로 옮기지 못했습니다(지원 1900~2100).");
   return {
-    year: lunar.getYear(),
-    month: Math.abs(lunar.getMonth()),
-    day: lunar.getDay(),
-    isLeapMonth: lunar.getMonth() < 0,
+    year: lunar.lunarYear,
+    month: lunar.lunarMonth,
+    day: lunar.lunarDay,
+    isLeapMonth: lunar.isLeapMonth,
   };
 }
 
@@ -186,7 +189,7 @@ function normalizeLiteInput(input: LitePromptInput) {
   const time = parseBirthTime(input.birthTime, input.timeUnknown);
   const calendar = calendarForEngine(input.calendarType);
   const solar = solarFromInput(birth, input.calendarType);
-  const lunar = lunarFromSolar(solar, time.hour, time.minute);
+  const lunar = lunarFromSolar(solar);
   const warnings = input.timeUnknown ? ["출생시간 미상으로 시간 기반 산출값은 제한됩니다."] : [];
   return {
     birth,
