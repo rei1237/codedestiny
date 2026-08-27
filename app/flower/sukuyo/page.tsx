@@ -6,6 +6,13 @@ import { redirect } from "next/navigation";
  * 네 페이지 모두 원래 noindex 였고 scripts/generate-sitemap.mjs 가 "/flower" 접두어를
  * 통째로 제외하므로 색인 손실은 없다.
  */
+// 🔴 metadata 를 선언하지 않으면 app/layout.js 의 `alternates` 를 상속받아
+//    `index, follow` + `canonical=홈` 으로 나갔다(out/ 실측 2026-08-27). 위 주석대로
+//    원래 noindex 였던 라우트이므로 여기서 명시한다. follow 는 남겨 /flower 로 신호를 넘긴다.
+export const metadata = {
+  robots: { index: false, follow: true },
+};
+
 export default function FlowerSukuyoLegacyRedirect() {
   redirect("/flower");
 }

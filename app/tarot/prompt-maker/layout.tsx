@@ -36,6 +36,16 @@ export const metadata: Metadata = {
     description: tarotPromptMakerLayoutCopy.ogDescription,
     url: "/tarot/prompt-maker",
     type: "website",
+    // og:image 가 없어 공유 카드가 비어 있었다(2026-08-27 dist/ 전수 실측).
+    // 사이트 기본 OG 이미지(lib/seo/siteSeo.ts 의 defaultOgImage)와 같은 자산을 쓴다.
+    images: [
+      {
+        url: "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba",
+        width: 1200,
+        height: 630,
+        alt: tarotPromptMakerLayoutCopy.title,
+      },
+    ],
   },
 };
 

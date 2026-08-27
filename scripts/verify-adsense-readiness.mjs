@@ -237,6 +237,9 @@ const xRobotsNoindexHeaderPatterns = [
   "/emoi_omikuji_v2.html",
   "/fortune-teller-fish.html",
   "/geomancy-oracle-v4.html",
+  // 2026-08-27 추가 — 같은 셸의 `/static/` 사본. 루트 사본만 막혀 있었고 이쪽은
+  // canonical·robots meta 없이 열려 있었다(out/ 전수 실측).
+  "/static/geomancy-oracle-v4.html",
   "/ifa-oracle.html",
   "/ifa-oracle-about.html",
   "/neville-meditation.html",
@@ -1416,6 +1419,40 @@ function verifyBlockedIndexableSitemapRouteQuality(baseDir) {
   }
 }
 
+// 홈을 canonical 로 가리켜도 되는 문서. 산출물에서 전수 발견하고 **여기 없는 것은 실패**시킨다.
+// 🔴 목록을 늘리기 전에 그 문서가 정말 홈과 같은 문서인지 확인할 것 — 대부분의 경우
+//    정답은 목록 추가가 아니라 그 페이지가 자기 canonical 을 선언하는 것이다.
+const homeCanonicalAllowedRoutes = new Set([
+  "/",
+  // 레거시 셸 사본(public/static/index.html). 홈과 같은 문서라 홈을 가리키는 것이 맞다.
+  "/static",
+]);
+
+/**
+ * 홈 canonical 상속 회귀 가드 (2026-08-27 추가).
+ *
+ * app/layout.js 가 `alternates.canonical: "/"` 를 들고 있던 동안, `alternates` 를 선언하지
+ * 않고 평범한 `export const metadata = {...}` 만 쓰는 페이지는 그것을 그대로 상속받아
+ * **자기 URL 대신 홈을 canonical 로 내보냈다**(out/ 실측 55개).
+ *
+ * 🔴 바로 아래 verifyIndexableRouteCoverage 로는 이걸 못 잡는다. 그 가드는 canonical 목적지가
+ *    사이트맵에 있으면 통과시키는데 홈은 당연히 사이트맵에 있다 — 즉 상속된 canonical 이
+ *    가드를 **통과시키는 쪽으로** 작동했다(/flower/* 4개가 실제로 그렇게 새 나갔다).
+ */
+function verifyNoInheritedHomeCanonical(baseDir) {
+  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  for (const absolutePath of htmlFiles) {
+    const pathname = routeFromHtmlPath(baseDir, absolutePath);
+    if (homeCanonicalAllowedRoutes.has(pathname)) continue;
+    const canonical = getCanonical(readFileUtf8WithRetry(absolutePath));
+    if (!canonical) continue;
+    assert(
+      canonicalPathnameFromUrl(canonical) !== "/",
+      `${baseDir}${pathname}: canonical 이 홈(${canonical})을 가리킨다 — 페이지가 alternates 를 선언하지 않아 app/layout.js 의 값을 상속받았을 가능성이 높다. generatePageMetadata() 를 쓰거나 alternates.canonical 을 직접 선언할 것.`,
+    );
+  }
+}
+
 function verifyIndexableRouteCoverage(baseDir) {
   const sitemapPath = `${baseDir}/sitemap.xml`;
   const sitemapText = readRequired(sitemapPath);
@@ -1481,6 +1518,8 @@ for (const baseDir of ["out", "dist"]) {
   verifyAdsenseEligibleRouteSitemapAlignment(baseDir);
   trace(`${baseDir}: blocked indexable sitemap route quality`);
   verifyBlockedIndexableSitemapRouteQuality(baseDir);
+  trace(`${baseDir}: no inherited home canonical`);
+  verifyNoInheritedHomeCanonical(baseDir);
   trace(`${baseDir}: indexable route coverage`);
   verifyIndexableRouteCoverage(baseDir);
   trace(`${baseDir}: generated AdSense-eligible routes`);

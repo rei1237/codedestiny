@@ -86,22 +86,17 @@ export const metadata = {
     title: siteSeo.siteName,
     statusBarStyle: "default",
   },
-  alternates: {
-    canonical: "/",
-    languages: {
-      ko: "/",
-      "ko-KR": "/",
-      ja: "/ja/",
-      "ja-JP": "/ja/",
-      "zh-CN": "/zh/",
-      zh: "/zh/",
-      "zh-TW": "/zh-tw/",
-      "zh-Hant": "/zh-tw/",
-      en: "/en/",
-      "en-US": "/en/",
-      "x-default": "/",
-    },
-  },
+  // 🔴 여기에 `alternates` 를 다시 두지 말 것 (2026-08-27 제거).
+  //    Next 는 자식이 `alternates` 를 선언하지 않으면 이 객체를 **통째로 상속**시킨다.
+  //    그래서 평범한 `export const metadata = {...}` 만 쓰는 페이지 55개가 자기 URL 대신
+  //    `canonical=https://code-destiny.com/` 와 홈의 hreflang 11줄을 내보내고 있었다
+  //    (out/ 전수 실측 2026-08-27 — `/human-design` `/face-reading` `/nakshatra/*` 등).
+  //    generatePageMetadata()·createI18nMetadata() 를 쓰는 페이지는 자기 alternates 를
+  //    선언하므로 애초에 상속되지 않았다 — 즉 이 값은 **의도한 곳에는 안 닿고**
+  //    의도하지 않은 곳에만 닿고 있었다. 홈 `/` 도 정적 셸 index.html 의 승격본이라
+  //    이 레이아웃의 메타데이터가 덮이므로, 홈의 canonical·hreflang 은 셸의 <head> 와
+  //    사이트맵(scripts/generate-sitemap.mjs 의 i18nRouteGroups)이 담당한다.
+  //    회귀 가드: scripts/verify-adsense-readiness.mjs 의 verifyNoInheritedHomeCanonical.
   openGraph: {
     type: "website",
     locale: "ko_KR",
