@@ -14,21 +14,18 @@
 })();
 
 /* ═══════════════════════════════════════
-   STEP 1: CDN 폴백 라이브러리 로딩
+   STEP 1: 달력 코어
+   ───────────────────────────────────────
+   🔴 예전에는 여기서 lunar-javascript 를 CDN 6곳에서 받아 왔다(핀 없는 @latest 포함).
+   PR-B~F2 로 이 엔진의 달력은 전부 한국 음양력 코어(window.KoreanCalendar)에서 나오고,
+   그 사실을 verify:shell-korean-calendar 와 verify:daeun-korean-calendar 가 셸을
+   `global.Solar`/`global.Lunar` 를 **지운 채** 평가해 매번 증명한다.
+
+   그래서 로더와 그 가용성 게이트를 전부 걷어냈다. 게이트가 있던 동안은 CDN 이 막힌
+   사용자가 **값 계산에 그 라이브러리를 한 글자도 안 쓰는데도** 사주를 못 봤다.
+   코어 미로드에 대한 방어는 _koreanCalendar() 의 throw 하나로 충분하다 —
+   조용한 폴백이 아니라 터지는 설계가 이 파일의 정본이다.
 ═══════════════════════════════════════ */
-var CDN_URLS=[
-  'https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.js',
-  'https://unpkg.com/lunar-javascript@latest/lunar.js',
-  'https://cdn.jsdelivr.net/npm/lunar-javascript/lunar.js',
-  'https://unpkg.com/lunar-javascript/lunar.js',
-  'https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.min.js',
-  'https://unpkg.com/lunar-javascript@latest/lunar.min.js'
-];
-var tried=0;
-var __libReady = false;
-var __libLoading = false;
-var __pendingAutoCalculation = false;
-var __pendingAutoBirthSnapshot = null;
 var SAJU_ENGINE_TEXT_TRANSLATIONS = {
   ko: {
     "se_10026_prop_title": "일·공부",
@@ -720,128 +717,6 @@ if (document.readyState === 'loading') {
   _cdInstallBirthDateDigitInputs(document);
 }
 
-function _captureBirthFormSnapshot() {
-  try {
-    var dateEl = document.getElementById('birthDate');
-    var hourEl = document.getElementById('birthHour');
-    var minuteEl = document.getElementById('birthMinute');
-    var countryEl = document.getElementById('birthCountry');
-    var calType = 'solar';
-    var calTypeBtns = document.getElementsByName('calType');
-    for (var i = 0; i < calTypeBtns.length; i++) {
-      if (calTypeBtns[i].checked) {
-        calType = calTypeBtns[i].value;
-        break;
-      }
-    }
-
-    var hourVal = hourEl ? String(hourEl.value || '').trim() : '';
-    var minuteVal = minuteEl ? String(minuteEl.value || '').trim() : '';
-    var profileBirth = null;
-    try {
-      profileBirth = window.__cdActiveBirthProfile && window.__cdActiveBirthProfile.birth;
-    } catch (_) {}
-    if (hourVal === '' && profileBirth && profileBirth.hour != null) hourVal = String(profileBirth.hour);
-    if (minuteVal === '' && profileBirth && profileBirth.minute != null) minuteVal = String(profileBirth.minute);
-
-    var countryOpt = (countryEl && countryEl.selectedIndex >= 0) ? countryEl.options[countryEl.selectedIndex] : null;
-    return {
-      birthDate: dateEl ? _cdBirthDateInputDigits(dateEl.value || '') : '',
-      birthHour: hourVal,
-      birthMinute: minuteVal,
-      birthCountry: countryEl ? String(countryEl.value || '') : '',
-      // 도시 식별용 라벨/경도도 함께 저장한다. value(tz)는 모든 한국 도시가 'Asia/Seoul'로 동일해
-      // value만으로 복원하면 목록 첫 도시로 붕괴하므로 라벨/경도로 정확히 되돌린다.
-      birthCountryLabel: countryOpt ? String(countryOpt.text || '') : '',
-      birthCountryLong: countryOpt ? String(countryOpt.getAttribute('data-long') || '') : '',
-      calType: calType
-    };
-  } catch (_) {
-    return null;
-  }
-}
-
-function _applyBirthFormSnapshot(snapshot) {
-  if (!snapshot) return;
-  try {
-    var dateEl = document.getElementById('birthDate');
-    var hourEl = document.getElementById('birthHour');
-    var minuteEl = document.getElementById('birthMinute');
-    var countryEl = document.getElementById('birthCountry');
-    if (dateEl && snapshot.birthDate) dateEl.value = _cdBirthDateInputDigits(snapshot.birthDate);
-    if (hourEl && snapshot.birthHour !== '') hourEl.value = snapshot.birthHour;
-    if (minuteEl && snapshot.birthMinute !== '') minuteEl.value = snapshot.birthMinute;
-    if (countryEl) {
-      // 도시 복원: 라벨(고유) → 경도 최근접 → value 순. value(tz)만으로는 모든 한국 도시가
-      // 'Asia/Seoul'로 동일해 첫 도시로 붕괴하므로 라벨/경도로 정확히 되돌린다.
-      var restoredCountry = false;
-      if (snapshot.birthCountryLabel) {
-        for (var _ci = 0; _ci < countryEl.options.length; _ci++) {
-          if (String(countryEl.options[_ci].text || '') === snapshot.birthCountryLabel) { countryEl.selectedIndex = _ci; restoredCountry = true; break; }
-        }
-      }
-      if (!restoredCountry && snapshot.birthCountryLong != null && snapshot.birthCountryLong !== '') {
-        var _wantLong = parseFloat(snapshot.birthCountryLong);
-        if (isFinite(_wantLong)) {
-          var _bestCi = -1, _bestDiff = Infinity;
-          for (var _cj = 0; _cj < countryEl.options.length; _cj++) {
-            if (snapshot.birthCountry && countryEl.options[_cj].value !== snapshot.birthCountry) continue;
-            var _oLong = parseFloat(countryEl.options[_cj].getAttribute('data-long'));
-            if (!isFinite(_oLong)) continue;
-            var _d = Math.abs(_oLong - _wantLong);
-            if (_d < _bestDiff) { _bestDiff = _d; _bestCi = _cj; }
-          }
-          if (_bestCi >= 0) { countryEl.selectedIndex = _bestCi; restoredCountry = true; }
-        }
-      }
-      if (!restoredCountry && snapshot.birthCountry) countryEl.value = snapshot.birthCountry;
-      if (typeof window._cdSyncBirthCountryDisplay === 'function') window._cdSyncBirthCountryDisplay();
-    }
-
-    if (snapshot.calType) {
-      var calTypeBtns = document.getElementsByName('calType');
-      for (var i = 0; i < calTypeBtns.length; i++) {
-        calTypeBtns[i].checked = (calTypeBtns[i].value === snapshot.calType);
-      }
-    }
-  } catch (_) {}
-}
-
-function _setRunButtonToRetry() {
-  var btnEl = document.getElementById('run-btn');
-  if (!btnEl) return;
-  btnEl.disabled = false;
-  btnEl.textContent = '🔄 라이브러리 다시 시도';
-  btnEl.onclick = function() {
-    retrySajuLibraryLoad();
-  };
-}
-
-window.retrySajuLibraryLoad = function() {
-  if (__libLoading) return;
-  tried = 0;
-  __libReady = false;
-  __libLoading = true;
-
-  var btnEl = document.getElementById('run-btn');
-  if (btnEl) {
-    btnEl.disabled = true;
-    btnEl.textContent = '🔄 라이브러리 재시도 중...';
-  }
-
-  loadNext();
-};
-
-function _hideLibOverlay() {
-  var ov = document.getElementById('lib-overlay');
-  if (!ov) return;
-  ov.style.display = 'none';
-  ov.classList.add('done');
-  if (ov.parentNode) {
-    ov.parentNode.removeChild(ov);
-  }
-}
-
 /**
  * [Backend Engine] 한국 표준 고정밀 음양력 변환
  *
@@ -925,9 +800,9 @@ function _koreanCalendar() {
 /**
  * 코어 간지를 lunar-javascript EightChar 과 같은 표면으로 감싼다.
  *
- * 🔴 EightChar 을 **값의 원천으로** 쓰던 자리만 대신한다. 대운(getYun/getDaYun)은 아직
- * lunar-javascript 다 — 기운 나이의 절사 관례를 재현하는 것이 별도 작업이라 미뤘고,
- * 그 축이 필요한 자리는 attachKasiDaewunBridge 가 따로 붙인다.
+ * 🔴 EightChar 을 **값의 원천으로** 쓰던 자리를 대신한다. 대운(getYun/getDaYun)은 이 표면에
+ * 없으므로 attachKasiDaewunBridge 가 따로 붙인다 — 그쪽도 PR-F1 이후 코어(core.daeun)이고,
+ * lunar-javascript 의 sect 1 관례를 재현한 것이라 값은 그 라이브러리와 잔차 0 이다.
  *
  * 야자시(23시대 일진)는 코어 기본값 shift-day 이고, 이는 lunar-javascript 의 기본 유파(晚子時=익일)와 같다.
  * 바뀌는 것은 **세차·월건을 어느 나라 시간의 절기로 가르느냐** 하나다 — 이제 KST 절기표가 가른다.
@@ -1911,83 +1786,6 @@ window.updateLunarPreview = function(dateId, radioName, previewId) {
       pEl.style.display = 'none';
     });
 };
-
-function loadNext(){
-  __libLoading = true;
-  if(tried>=CDN_URLS.length){
-    __libLoading = false;
-    var msgEl = document.getElementById('lib-msg');
-    var subEl = document.getElementById('lib-sub');
-    var btnEl = document.getElementById('run-btn');
-    if (msgEl) msgEl.textContent='❌ 라이브러리 로드 실패';
-    if (subEl) subEl.textContent='새로고침 후 다시 시도해주세요';
-    if (btnEl) btnEl.textContent='⚠️ 로드 실패 (다시 시도)';
-    setTimeout(function(){ _hideLibOverlay(); }, 900);
-    _setRunButtonToRetry();
-    return;
-  }
-  var url=CDN_URLS[tried];
-  var sub = document.getElementById('lib-sub');
-  if (sub) sub.textContent='CDN '+(tried+1)+'/'+CDN_URLS.length+' 시도 중...';
-  tried++;
-  var done = false;
-  var s=document.createElement('script');s.src=url;s.async=false;
-  var failTimer = setTimeout(function(){
-    if (done) return;
-    done = true;
-    try { if (s && s.parentNode) s.parentNode.removeChild(s); } catch (e) {}
-    loadNext();
-  }, 6000);
-
-  s.onload=function(){
-    if (done) return;
-    done = true;
-    clearTimeout(failTimer);
-    waitForSolar(0);
-  };
-  s.onerror=function(){
-    if (done) return;
-    done = true;
-    clearTimeout(failTimer);
-    loadNext();
-  };
-  document.head.appendChild(s);
-}
-function waitForSolar(n){
-  if(n>30){loadNext();return;}
-  if(typeof Solar!=='undefined'&&typeof Solar.fromYmdHms==='function'){onLibReady();}
-  else{setTimeout(function(){waitForSolar(n+1);},100);}
-}
-function onLibReady(){
-  __libLoading = false;
-  __libReady = true;
-  _hideLibOverlay();
-  var btn=document.getElementById('run-btn');
-  if (btn) {
-    btn.disabled=false;
-    btn.textContent='무료로 사주 보기 →';
-    /* INP: onclick은 data-action 경로를 타지 않으므로 동일하게 한 틱 지연 */
-    btn.onclick = function () { setTimeout(checkPrivacyAndCalculate, 0); };
-  }
-
-  if (__pendingAutoCalculation) {
-    __pendingAutoCalculation = false;
-    setTimeout(function() {
-      try {
-        if (typeof checkPrivacyAndCalculate === 'function') {
-          _applyBirthFormSnapshot(__pendingAutoBirthSnapshot);
-          __pendingAutoBirthSnapshot = null;
-          checkPrivacyAndCalculate();
-        }
-      } catch (e) {
-        console.error('[saju] pending auto calculation failed', e);
-      }
-    }, 0);
-  }
-}
-
-/* 라이브러리 오버레이 잔존 방지: 15초 경과 시 강제 해제 */
-setTimeout(function(){ _hideLibOverlay(); }, 15000);
 
 /* ═══════════════════════════════════════
    STEP 2: 명리학 데이터
@@ -3036,8 +2834,8 @@ window.computeProfileForModal = function(profile) {
 
   try {
     var bazi = _coreEightChar(corrYear, corrMonth, corrDay, corrH, corrM);
-    // 대운은 아직 lunar-javascript 다(getYun). 코어 팔자에는 그 축이 없으므로 여기서 붙인다 —
-    // 안 붙이면 이 경로(모달 프로필)로 들어온 사용자만 퀀텀 전략의 대운이 조용히 빈다.
+    // 코어 팔자에는 대운(getYun) 축이 없으므로 여기서 붙인다 — 안 붙이면 이 경로(모달 프로필)로
+    // 들어온 사용자만 퀀텀 전략의 대운이 조용히 빈다.
     // 🔴 넘기는 시각은 **진태양시 보정 전** 원본이다 — calculate() 의 같은 호출과 축을 맞춘다.
     attachKasiDaewunBridge(bazi, {
       year: year,
@@ -4973,16 +4771,6 @@ async function startSajuCalculationFlow() {
   if (typeof window.cdTrack === 'function') {
     window.cdTrack('free_saju_started', { signed_in: !!(typeof window.__dpHasLoginSession === 'function' && window.__dpHasLoginSession()) });
   }
-  if(typeof Solar==='undefined'||typeof Solar.fromYmdHms!=='function'){
-    setSajuFormStatus('사주 계산 엔진을 불러오는 중입니다. 잠시만 기다려 주세요.', 'info');
-    __pendingAutoBirthSnapshot = _captureBirthFormSnapshot();
-    __pendingAutoCalculation = true;
-    if (!__libLoading && !__libReady) {
-      retrySajuLibraryLoad();
-    }
-    return;
-  }
-  __pendingAutoCalculation = false;
   var bd=_cdReadBirthDateInput('birthDate');
   if(!bd){setSajuFormStatus('생년월일을 YYYYMMDD 숫자 8자리로 입력해 주세요.', 'error', 'birthDate');return;}
   var selectedGender = String(GENDER || window._gender || '').trim().toUpperCase();
@@ -5148,9 +4936,6 @@ function invokeOptionalGlobalRendererWithRetry(fnName, args, options) {
    STEP 6: 메인 계산
 ═══════════════════════════════════════ */
 async function calculate(){
-  if(typeof Solar==='undefined'||typeof Solar.fromYmdHms!=='function'){
-    setSajuFormStatus('사주 계산 엔진을 불러오는 중입니다. 잠시 후 다시 시도해 주세요.', 'info');return;
-  }
   var existingCharm=document.getElementById('specialCharmCard');
   if(existingCharm)existingCharm.remove();
 

@@ -58,12 +58,6 @@
       if (splash.parentNode) splash.parentNode.removeChild(splash);
     }
 
-    var libOv = document.getElementById('lib-overlay');
-    if (libOv) {
-      libOv.style.display = 'none';
-      if (libOv.parentNode) libOv.parentNode.removeChild(libOv);
-    }
-
     var loader = document.getElementById('sajuLoaderOverlay');
     if (loader) {
       hardHide(loader, false);

@@ -204,18 +204,16 @@ body::after{
 
 
 
-/* ─── 로딩 오버레이 ─── */
-#lib-overlay{position:fixed;inset:0;background:var(--bg-color, linear-gradient(135deg,#FFF5F8,#FFF0FA));
-  z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px}
-#lib-overlay.done{display:none}
+/* ─── 로딩 인디케이터 ───
+   🔴 #lib-overlay·#lib-msg·#lib-sub 는 lunar-javascript CDN 로더가 쓰던 것이고 2026-08-28 에
+   로더와 함께 지웠다(마크업은 이미 어느 HTML 에도 없었다). 아래 클래스 3종은 그 오버레이의
+   자식이었지만 이름이 일반명이라 다른 소비자 확인이 이 변경의 범위 밖이라 남겨 둔다. */
 .pig-float{font-size:4rem;animation:float 1.8s ease-in-out infinite}
 @keyframes float{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
 .dots{display:flex;gap:7px}
 .dot{width:9px;height:9px;border-radius:50%;background:var(--point-color, var(--pink-l));animation:pulse 1.2s ease-in-out infinite}
 .dot:nth-child(2){animation-delay:.2s}.dot:nth-child(3){animation-delay:.4s}
 @keyframes pulse{0%,100%{opacity:.3;transform:scale(.8)}50%{opacity:1;transform:scale(1)}}
-#lib-msg{font-size:1rem;font-weight:700;color:var(--point-color, var(--pink))}
-#lib-sub{font-size:.8rem;color:#bbb}
 
 /* ─── 공통 카드 ─── */
 .card{background:var(--card-glass, var(--card-bg, #fff));border-radius:var(--radius-lg, 20px);padding:22px;
@@ -5172,8 +5170,6 @@ body.neo-mode .dw-item.good{border-color:rgba(34,197,94,.3)!important}
 body.neo-mode .dw-item.bad{border-color:rgba(239,68,68,.3)!important}
 body.neo-mode .modal-overlay{background:rgba(0,0,0,.95)!important}
 body.neo-mode .modal-card{background:#0d0e1a!important;border:1px solid rgba(255,215,0,.18)!important;color:#c8c8c8!important}
-body.neo-mode #lib-overlay{background:#0a0b10!important}
-body.neo-mode #lib-msg{color:#FFD700!important}
 body.neo-mode .dot{background:#FFD700!important}
 body.neo-mode .logo-area h1{color:#FFD700!important;text-shadow:0 0 16px rgba(255,215,0,.4)}
 body.neo-mode .logo-area p{color:#444!important}
