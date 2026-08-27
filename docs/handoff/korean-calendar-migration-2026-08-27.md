@@ -4,6 +4,7 @@
 > 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · **대운(PR-F1 = #1194, 머지됨 `06c2916fc`)** 까지 끝났다.
 > 🟢 **명리 상수 표(PR-F2 ㄹ, 2026-08-28)** — `lib/saju/myeongri-tables.js` · `verify:myeongri-tables`.
 > 🟢 **일주·시주 EightChar(PR-F2 나머지, 2026-08-28)** — 워커 3파일 전부 코어로.
+> 🟢 **시주 파생 필드 · 지장간 巳 순서(PR-F3 = #1202, 2026-08-28)** — 아래 (ㅅ). 남은 것은 (ㅈ)·(ㅇ)·(ㅁ).
 > 🔴🔴 **`worker/`·`app/`·`lib/`·`src/` 의 lunar-javascript import 는 이제 0건이다**(가드 3개가 매번 전수 스캔).
 > 남은 것은 **정적 셸 3파일의 CDN 로더**뿐이고 그건 계산 진입 UI 흐름을 함께 바꾸는 별도 단계다 — 아래 (ㅁ).
 > 🔴 다음 세션은 가드의 잔존 목록을 먼저 열어라 — `scripts/verify-lunar-conversion-core.mjs` 의
@@ -794,21 +795,57 @@ PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다
 실제로 돌려 네 기둥이 코어 keep-day 와 전건 일치 · ③ destiny-bias 정책 3종이 코어와 1:1 · ④ 23시대에서
 두 정책이 **실제로 갈리는지**·23시 밖에서 같은지 · ⑤ 제품 소스 import 0건(탐지기 자기검사 포함).
 
-#### 🔴 (ㅅ) 이 이관에서 **찾았지만 안 고친 것**
+#### 🟢 (ㅅ) PR-F2 가 넘긴 것 — PR-F3(#1202)에서 처리 (2026-08-28)
 
-1. 🔴 **시주 파생 필드가 처음부터 항상 비어 있었다.** `buildPillarDetail` 이 `getHourNaYin()` 을 찾는데
-   lunar-javascript 의 `EightChar` 는 `getTimeNaYin()` 만 갖는다(실측: `getHour*` 전부 `undefined`).
-   그래서 `pillarDetails.hour` 의 納音·十二運星·旬空·오행쌍·지지십신이 전부 `""`/`[]` 였다.
-   코어의 `pillarFacts` 로 바꾸면 이름이 맞아 **저절로 채워진다** — 실측 2,050행 전건 변경.
-   🔴 그러면 이 PR 이 23시대뿐 아니라 **전 사용자**의 리포트와 LLM 입력(`tenGodsByPillar`)을 함께 바꿔
-   회귀 원인을 못 가르므로, `facts` 에 `null` 을 넘겨 **현행(빈 값)을 유지**했다.
-   고칠 때는 `pillarFacts("hour", hourPillar, dayMaster)` 를 넘기면 된다. 별도 PR.
-2. 🔴 **`lib/korean-calendar/policy.js` 의 `SHIFT_DAY` 주석이 앱을 잘못 적고 있다**(위 ㅂ).
-3. 🔴 **`worker/lib/life-book-ai-saju.js` 안에 지장간이 두 벌**이다 — `HIDDEN_STEMS` 는 巳를
-   `["丙","戊","庚"]`, `ZHI_HIDE_GAN` 은 `["丙","庚","戊"]`. 같은 `pillarDetails.year` 안에서
-   `branchTenGods` 와 `hiddenStems` 의 순서가 갈린다(집합은 같다).
+1. 🟢 **시주 파생 필드가 처음부터 항상 비어 있었다 — 채웠다.** `buildPillarDetail` 이 `getHourNaYin()` 을
+   찾는데 lunar-javascript 의 `EightChar` 는 `getTimeNaYin()` 만 갖는다. 그래서 `pillarDetails.hour` 의
+   納音·十二運星·旬空·오행쌍·지지십신이 전부 `""`/`[]` 였다. `pillarFacts("hour", …)` 를 넘겨 고쳤다 —
+   실측 2026-08-28: 표본 424건 중 **424건 공란 → 424건 전건 채워짐**.
+   🟢 함께 없앤 것: `options.detached` 게이트. 그 게이트는 진태양시 보정 시주의 파생 필드가 **보정 전
+   시각에 묶인 `EightChar`** 에서 나와 틀렸기 때문에 있었는데, `pillarFacts` 는 (기둥 문자열 + 일간)
+   순수 조회라 보정된 기둥에서도 맞는다. 같은 레코드의 `hiddenStems`·`stemTenGod` 은 애초에 비운 적이
+   없어 모순이기도 했다 — love-secret 306표본 중 **84건(27.5%) 공란 → 0건**.
+2. 🟢 **`lib/korean-calendar/policy.js` 의 `SHIFT_DAY` 주석 정정.** 앱 기본값은 `zashiMode "late"`(:556)
+   이고 일자를 미는 것은 `"early"` 뿐이라(:803) keep-day 다. 주석만 고쳤고 값은 안 건드렸다.
+   🔴 `policy.js` 는 `CLASSIC_MODULES` 라 고치면 `node scripts/build-korean-calendar-table.mjs` 를
+   돌려 `js/core/korean-calendar.js` 를 같은 커밋에 담아야 한다(지문 `kc1:fa21fe1cc7dc` 는 안 바뀐다).
+3. 🟢 **지장간 巳 의 순서가 레포 6곳에 갈려 있었다 — 5곳을 정본으로 모았다.** 정본 `ZHI_HIDE_GAN` 은
+   丙庚戊 인데 사본들이 丙戊庚 이었다. 寅(甲丙戊)·申(庚壬戊) 이 따르는 「본기 → 장생하는 오행 → 戊」
+   규칙과 어긋나고, 셸의 `CD_JANGGAN`(여기부터 적는 반대 방향)도 巳 의 중기를 庚 으로 둔다.
+   - `worker/lib/life-book-ai-saju.js` — 사본을 없애고 `ZHI_HIDE_GAN` 을 가리킨다(값 한 글자만
+     고치면 또 갈린다). 한 `pillarDetails` 안에서 `hiddenStems` 는 사본을, `branchTenGods` 는 정본을
+     읽어 **한 기둥 안에 두 순서가 섞여** 있었다 — 집합이 같아 눈에 안 띄었다.
+   - `worker/lib/saju-ai-prompt.js` — 巳 의 **층(중기/여기)과 가중치(30/10)** 까지 반대로 실려
+     LLM 프롬프트에 들어가고 있었다.
+   - `worker/routes/new-year-ai.js` · `worker/lib/destiny-bias-engine.js` ·
+     `app/saju/destiny-bias/engine/sajuPersonality.ts` — 배열 순서.
+
+   **실측한 값 이동**(life-book 424표본 전체 출력 대조): 巳 를 안 가진 표본은 지장간이 **0건** 움직인다 ·
+   십신 점수는 **424건 전건 수치 동일**(46건은 `counts` 키 순서만 바뀌고 그중 **2건**에서 동점 0.7 인
+   십신의 top-5 표시 순서가 갈린다) · `destiny-bias` 284표본은 문자열 배열 순서만 113건, 그 밖 0건.
 4. **[Cleanup]** 죽은 코드 2개 제거 — `eightCharClock`(대입만 하고 안 씀) ·
-   `createSolarFromBirth`(`git grep` 참조 0건).
+   `createSolarFromBirth`(`git grep` 참조 0건). PR-F2 에서 이미 지웠다(현재 참조 0건).
+
+**새 가드 — `verify:myeongri-tables` 검사 24 → 30건**
+- ⑤ 를 년·월주에서 **네 기둥 전부**로 넓히고 지장간을 개수가 아니라 **순서**까지 본다.
+  ⑤ 가 년·월만 보던 동안 시주 공란을 못 봤다.
+- **⑦ 신설** — 레포의 지장간 표를 **소스에서 전수 발견**해 정본과 대조하고 **미분류를 실패**시킨다
+  (CLAUDE.md 코딩 원칙 10 — 손으로 적은 목록은 7번째 사본이 생겨도 조용하다). 발견 신호는
+  「12개 지지를 전부 키로 갖고 각 행의 첫 배열이 천간 1~3개」이고 한자·한글·`[BRANCHES[n]]`
+  세 키 형태를 다 본다. 현재 발견 7건이며 분류표의 예외는 둘뿐이다 —
+  셸 `CD_JANGGAN`(반대 방향 관례 + 辰戌丑未 는 한·중 관례가 갈리는 자리) ·
+  app `localSajuCalculator`(아래 ㅈ, 미수정).
+- 음성 9건 전부 빨간불 확인. 실제 파일을 되돌려 놓고 돌린 회귀 5종도 전부 잡는다
+  (복원은 **메모리 버퍼** — `git checkout` 금지).
+
+#### 🔴 (ㅈ) PR-F3 이 **일부러 안 고친 것** — 다음 PR 감
+
+**`app/saju/animal-destiny/engine/localSajuCalculator.ts` 의 `HIDDEN_STEMS_BY_BRANCH`** 도 같은 巳 오기를
+갖는다(`STEMS[2] 0.6 · STEMS[4] 0.25 · STEMS[6] 0.15` = 丙戊庚). 🔴 **이 표만 층 가중치가 자리로**
+정해져 있어 순서를 고치면 `戊` 0.25→0.15, `庚` 0.15→0.25 로 **신강약·득령 점수가 함께 움직인다.**
+값이 안 움직이는 나머지 5곳과 성격이 달라 분리했다. 고칠 때 재야 할 것: 巳 를 가진 명식의 신강약
+판정이 몇 % 뒤집히는지. 가드 ⑦ 의 `CLASSIFIED` 에 사유와 함께 등재돼 있으니, 고치면 그 항목을
+지워야 가드가 통과한다(유령 항목·예상 밖 어긋남 양쪽으로 터진다).
 
 #### 🔴 (ㅇ) 남은 마지막 두 걸음
 
@@ -853,7 +890,7 @@ npm run verify:sukuyo-korean-calendar
 npm run verify:lunar-conversion-core
 npm run verify:shell-korean-calendar                 # 🔴 셸을 고쳤으면 이것부터
 npm run verify:daeun-korean-calendar                 # 🔴 대운 관례 재현 잔차 0
-npm run verify:myeongri-tables                       # 🔴 명리 표 216키 잔차 0 (--self-test 로 음성 테스트)
+npm run verify:myeongri-tables                       # 🔴 명리 표 216키 잔차 0 + 지장간 표 전수 발견 (--self-test)
 npm run verify:natal-day-pillar-axis                 # 🔴 야자시 축 명시 + import 0건 (--self-test)
 npm run verify:guard-wiring
 npm run typecheck && npm run lint
@@ -866,6 +903,16 @@ npm run test:node
 
 기준선(2026-08-27 `58267ff8b`, 리베이스 후 실측): jest **176 스위트 / 1,977 테스트 통과** ·
 `test:node` **551 통과 / 0 실패** · `verify:guard-wiring` 252개 중 156개 배선.
+
+**PR-F3 이후 실측(2026-08-28, `79aa91d33` 위 = PR #1202)**: jest **176 스위트 / 2,002 테스트 통과** ·
+`test:node` **553 통과 / 0 실패** · `verify:guard-wiring` **259개 중 163개 배선** ·
+`verify:myeongri-tables` **검사 30건**(216키 잔차 0 · 지장간 표 발견 7건 · 음성 9건) ·
+`verify:natal-day-pillar-axis` 13건 · `verify:korean-calendar-table-fresh` 29건(`kc1:fa21fe1cc7dc`) ·
+`verify:saju-solar-term-core` 51건 · `verify:shell-korean-calendar` 25건 ·
+`verify:life-book-ai-flow` PASS · `verify:love-secret-ai-flow` PASS · `verify:new-year-ai-flow` ok ·
+`verify:saju-ai-section-plan` 160건 · `verify:hour-pillar-parity` 통과 ·
+`verify:worker-size` gzip 2.50 MiB(예산 25.0%) · `verify:public-mirror-fresh` OK ·
+`verify:sitemap-drift` OK(URL 388개) · typecheck · lint(에러 0).
 
 **PR-F2 완료 후 실측(2026-08-28, `6ac3ed0cb` 위)**: jest **176 스위트 / 2,002 테스트 통과** ·
 `test:node` **551 통과 / 0 실패** · `verify:guard-wiring` **259개 중 163개 배선** ·
