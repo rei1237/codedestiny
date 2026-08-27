@@ -82,12 +82,13 @@ try {
     { name: 'Canonical Redirect', pattern: /canonical-redirect/, required: true },
     { name: 'PWA Theme Init', pattern: /pwa-theme-init/, required: true },
     { name: 'Swisseph Loader', pattern: /swisseph-loader/, required: true },
-    { name: 'Chinese Astrology', pattern: /chinese-astrology\.js/, required: true },
     { name: 'KASI Calendar', pattern: /kasi.*calendar\.js/, required: true }
     // 🔴 'Lunar Library'(/lunar-javascript/) 항목을 지웠다. index.html 에 그 문자열이 없어진
     // 뒤로 **이미 실패하고 있던 기대**이고(이 스크립트는 package.json·워크플로 어디에도
     // 배선돼 있지 않아 아무도 못 봤다), 2026-08-28 에 셸의 CDN 로더 자체가 사라졌다.
     // 달력은 /js/core/korean-calendar.js 에서 나온다.
+    // 🔴 같은 이유로 2026-08-28 에 'Chinese Astrology' 항목도 지웠다 — js/data/chinese-astrology.js 는
+    // 로드 지점이 0건이라 js/·public/ 양쪽에서 삭제됐다.
   ];
 
   let criticalOk = true;
@@ -142,12 +143,13 @@ try {
   // 테스트 7: 스크립트 로드 순서 검증
   console.log('✅ 7. 스크립트 로드 순서 검증\n');
 
+  // 🔴 2026-08-28 에 'chinese-astrology' 와 'sajuAnalyzer|ziwei-doushu' 를 지웠다 — 그 세 파일이
+  // 삭제됐다. 남은 'swisseph-loader' 는 index.html 에 없어(indexOf = -1) 이 순서 검사는 지금도
+  // 실패한다. 이번 정리의 범위 밖이라 그대로 뒀다.
   const scriptSequence = [
     'swisseph-loader',
-    'chinese-astrology',
     'calendar',
     'destiny-profile|compat-llm',
-    'sajuAnalyzer|ziwei-doushu',
     'saju-engine',
     'app'
   ];

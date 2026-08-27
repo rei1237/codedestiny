@@ -2,29 +2,32 @@
 
 ## 🟢 다음 세션 시작점 (2026-08-28 갱신)
 
-**이 마이그레이션은 끝났다.** 새 세션이 이 주제로 할 일은 아래 후속 2건뿐이고, 둘 다 선택 사항이다.
+**이 마이그레이션은 끝났다.** 새 세션이 이 주제로 할 일은 아래 후속 **1건**뿐이고, 그것도 선택 사항이다.
 
 | PR | 내용 | 상태 |
 |---|---|---|
 | #1205 | PR-F4 앱 엔진 지장간 巳 | **머지됨** `febe2b322` |
 | #1207 | PR-F5 `lunar-javascript` → devDependencies | **머지됨** `38548e743` |
 | #1208 | PR-F6 셸 CDN 로더 제거 + 죽은 사본 삭제 | **머지됨** `e44c786d3` |
+| — | PR-G Phase-4 죽은 모듈 3파일 + 미러 2 삭제 | 아래 §PR-G |
 
 시리즈 전체가 `main` 에 들어갔다. 이 문서 본문의 PR-B ~ PR-F6 기술은 전부 머지된 사실이다.
 
-### 남은 후속 2건 (둘 다 이번 범위 밖으로 **의도적으로** 남긴 것)
+### 남은 후속 1건 (사용자 판단으로 **의도적으로** 미룬 것 · 2026-08-28)
 
 1. **`js/destiny-profile.js:11080` 의 주석이 유령 함수를 가리킨다** — PR-F6 이 지운
    `_applyBirthFormSnapshot` 이 "이 함수를 부르는 지점" 목록에 남아 있다.
-   🔴 **고치려면 캐시 핀 20여 곳을 같은 커밋에 담아야 한다.** 이 파일은 `PAID_SERVICE_RUNTIME_SRC`
-   라 내용이 바뀌면 독립 정적 페이지(`yoga-guru.html` 등 11개 + 미러 + `verify-paid-gate-ui-regression.mjs`)
-   의 `?v=` 핀을 손으로 돌려야 하고(`sync:public` 이 안 돌리는 축), 그러면 `_headers` 의
-   `/js/*.js`(max-age 7일 · SWR 30일)를 무효화해 **모든 독립 결제 페이지 방문자가 유료 런타임을
-   다시 받는다.** 주석 한 줄에 치를 값이 아니라고 판단했다. 확인 명령:
-   `npm run verify:payment-choice-parity` — 실패 메시지가 돌려야 할 정확한 값을 알려 준다.
-2. **`public/js/engines/ziwei-doushu.js:3`** 의 의존성 주석이 삭제된 `js/core/kasi/calendar.js` 를
-   가리킨다. 그 파일 자체가 `js/` 대응물 없는 **고아**(`2ef804d1c` 가 `js/engines/ziwei-doushu.js` 를
-   지웠다)라 손대려면 그 고아의 생사부터 판정해야 한다.
+   🔴 **고치려면 캐시 핀 25곳을 같은 커밋에 담아야 한다**(실측 2026-08-28: 독립 정적 HTML 11개
+   + 그 미러 + `public/static/` + `app/_lib/billing-client.ts:453` + `verify-paid-gate-ui-regression.mjs:224`).
+   `scripts/verify-payment-choice-parity.mjs:580` 의 `derivePinKey()` 가 **파일 내용 sha1** 이라
+   주석 한 글자에도 키가 돈다(현재 핀 `build-f0d3065085e6` = 유도값, **안 낡음**).
+   파일은 637KB / **gzip 171KB** 이고 `public/_headers:310` 이 `/js/*.js` 를 max-age 7일 · SWR 30일로
+   잡으므로, 핀을 돌리면 **유료 게이트를 여는 방문자 전원이 그 171KB 를 1회 다시 받는다**
+   (독립 정적 페이지뿐 아니라 App Router 도 — `billing-client.ts:1918` 이 이 스크립트를 지연 로드한다).
+   🔴 **그래서 미룬다. 이 파일을 실제 이유로 고치는 다음 PR 에 얹으면 핀 회전이 어차피 일어나므로 그때는 공짜다.**
+   확인 명령: `npm run verify:payment-choice-parity` — 실패 메시지가 돌려야 할 정확한 값을 알려 준다.
+
+🟢 **둘째 후속(고아 `public/js/engines/ziwei-doushu.js`)은 PR-G 로 닫혔다** — 아래 §PR-G.
 
 ### 🔴 이 세션이 배운 함정 둘 (다음에 또 밟지 말 것)
 
@@ -46,6 +49,7 @@
 > 🟢 **앱 엔진 지장간 巳(PR-F4 = #1205, 2026-08-28)** — 아래 (ㅈ). 레포의 지장간 표 7개가 전부 정본이다.
 > 🟢 **의존성 분류(PR-F5 = #1207, 2026-08-28)** — 아래 (ㅇ). `lunar-javascript` 가 devDependencies 다.
 > 🟢 **셸 CDN 로더 제거(PR-F6, 2026-08-28)** — 아래 (ㅁ). **이 마이그레이션은 이것으로 끝났다.**
+> 🟢 **Phase-4 죽은 모듈 정리(PR-G, 2026-08-28)** — 아래 §PR-G. 마이그레이션 본체가 아니라 그 뒤처리다.
 >
 > 🔴🔴 **이 레포는 이제 lunar-javascript 를 브라우저로 보내지 않는다.** 제품 소스의 import 0건이고
 > CDN 로드 지점도 0건이다(`verify:lunar-conversion-core` ①·①-b 가 매번 전수 스캔한다).
@@ -1052,6 +1056,62 @@ PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다
 
 🔴 **남긴 것 하나**: `public/js/engines/ziwei-doushu.js:3` 의 의존성 주석이 지워진 파일을 가리킨다.
 그 파일 자체가 `js/` 대응물 없는 고아라 이번 범위 밖으로 뒀다.
+🟢 **PR-G(2026-08-28)가 그 고아를 지워 닫았다** — 아래 §PR-G.
+
+### 🟢 PR-G — Phase-4 죽은 모듈 정리 (끝)
+
+브랜치 `chore/drop-phase4-dead-modules`, base `54ca07a32`.
+
+PR-F6 이 남긴 고아 `public/js/engines/ziwei-doushu.js` 의 생사를 판정했고, **죽었다**.
+같은 Phase-4 묶음의 나머지 둘도 함께 죽어 있어서 **셋을 함께** 지웠다 — 서로를 의존성 주석으로
+가리키고 있어서 하나만 지우면 **새 유령 주석이 생긴다.**
+
+**3면 grep 실측(2026-08-28, `git grep`)**
+
+| 축 | 실측 |
+|---|---|
+| HTML 로드 | `git grep -n "js/data/|js/services/sajuAnalyzer|js/engines/" -- '*.html'` → **0건** |
+| 동적 로더 | `index-inline-runtime.js`·`uiBindings.js` 의 `__cdLoadScriptOnce`/`__loadScriptOnce` 인자 전수 → **0건** |
+| `__tests__/` | **0건** |
+| `scripts/`·`.github/`·`config/`·`package.json` | `scripts/validate-mobile-touch.js` **3줄뿐**(85·147·150). 그 스크립트는 **미배선** |
+
+| 파일 | 한 것 |
+|---|---|
+| `public/js/engines/ziwei-doushu.js` | **삭제.** `.ignore` 미러 목록에 없는 **고아 원본**이었다 — PR-F6 이 지운 `public/js/services/saju-library-loader.js` 와 같은 모양 |
+| `js/data/chinese-astrology.js` + 미러 | **삭제.** `js/data/` 의 유일한 파일이라 디렉터리가 사라졌다 |
+| `js/services/sajuAnalyzer.js` + 미러 | **삭제** |
+| `scripts/validate-mobile-touch.js` | 죽은 기대 3줄 제거(아래 ㄱ) |
+
+🔴 **미러는 손으로 지웠다.** `sync:public` 은 `public/` 에 남는 사본을 **정리하지 않는다** —
+`collectMirroredPublicPaths`(`scripts/sync-legacy-static-to-public.mjs:1171`)가 "루트에 대응 파일이
+없으면 원본"으로 판정해 `.ignore` 에서 **빼기만** 한다. 안 지웠으면 고아 사본 2개가 새로 생겼을 것이다.
+
+#### (ㄱ) 죽은 기대 3줄을 지우면서 **거짓 초록불이 안 되는지 확인했다**
+
+`scriptSequence` 의 남은 원소 중 `'swisseph-loader'` 가 `index.html` 에 **없어서**(`indexOf` = -1)
+로드순서 검사는 제거 후에도 계속 실패한다. 실측(2026-08-28, `index.html` 안의 등장 횟수):
+`calendar` 128 · `destiny-profile` 39 · `saju-engine` 6 · `compat-llm` 1 · **`swisseph-loader` 0**.
+🔴 `swisseph-loader` 기대와 `{ name: 'KASI Calendar', pattern: /kasi.*calendar.js/ }` 는 **범위 밖이라 안 건드렸다** —
+둘 다 이미 실패하고 있는 기대이고, 이 스크립트 자체가 미배선이다.
+
+#### 캐시키가 돈다 — 예고대로 22개가 딸려왔다
+
+`CACHE_KEY_SOURCE_DIRS`(`sync-legacy-static-to-public.mjs:262`)가 `js/` 아래 `.js`·`.mjs`·`.cjs`·`.json`
+**전수**를 해싱하므로 `js/` 에서 두 파일을 지운 것만으로 셸 키가 `build-b571e777f574` → **`build-9bc9e0c39bdd`**
+로 돌았다. 산출물 21개 수정(`index.html` + 로케일 셸 5벌 + `js/core/*`·`js/app.js`·미러) + `.ignore` 미러 수
+**171 → 169**. 전부 `?v=` 1:1 치환이라 `--numstat` 이 좌우 같은 수다.
+
+🟢 `verify:sitemap-drift` 는 **안 걸렸다**(URL 388개 그대로) — `index.html` 이 캐시키만 바뀌어서다.
+PR-D·PR-E1·PR-E3 처럼 `sitemap:generate` 를 돌릴 필요가 없었다.
+
+#### 이 PR 이 **안 건드린 것**
+
+- `js/destiny-profile.js:11080` 의 유령 주석 — 위 §다음 세션 시작점 참조. 사용자 판단으로 미뤘다.
+- 🔴 **미검증**: `public/js/services/` 에 **루트 대응물 없는 사본 6개**가 더 있다 —
+  `fortune-point-service.js` · `hwatu-life.js` · `pig-oracle.js` · `service-registry.js` ·
+  `stonehenge-rune.js` · `tarot.js`. 이번에 눈에 띄었을 뿐 **생사 판정을 안 했다.**
+  `.ignore` 미러 목록에 없으므로 미러가 아니라 원본이고, `saju-library-loader.js`(PR-F6 이 지운 것)와
+  같은 모양일 수 있다. 지우기 전에 3면 grep 을 다시 돌릴 것.
 
 ## 5. 검증 명령
 
