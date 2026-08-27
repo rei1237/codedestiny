@@ -1,4 +1,7 @@
-import { Lunar, Solar } from "lunar-javascript";
+// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
+// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
+// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+import { lunarToSolar, solarToLunar } from "@/lib/korean-calendar";
 import { buildSukuyoAiCompatibility, buildSukuyoFromLunar, describeSukuyoDirectionalRelation } from "@/worker/lib/sukuyo-ai-calculation.js";
 import type {
   FortuneTeaHouseCalendarType,
@@ -101,7 +104,7 @@ function lunarForPerson(person: FortuneTeaHouseSukuyoPersonInput): LunarBirth {
   if (!birth) throw new Error("INVALID_SUKUYO_BIRTH");
   const calendarType = normalizeCalendarType(person.calendarType);
   if (calendarType === "lunar") {
-    Lunar.fromYmd(birth.year, birth.month, birth.day);
+    if (!lunarToSolar(birth.year, birth.month, birth.day, false)) throw new Error("INVALID_SUKUYO_BIRTH");
     return {
       lunarYear: birth.year,
       lunarMonth: birth.month,
@@ -111,14 +114,14 @@ function lunarForPerson(person: FortuneTeaHouseSukuyoPersonInput): LunarBirth {
     };
   }
 
-  const lunar = Solar.fromYmdHms(birth.year, birth.month, birth.day, 12, 0, 0).getLunar();
-  const lunarMonth = Number(lunar.getMonth());
+  const lunar = solarToLunar(birth.year, birth.month, birth.day);
+  if (!lunar) throw new Error("INVALID_SUKUYO_BIRTH");
   return {
-    lunarYear: Number(lunar.getYear()),
-    lunarMonth: Math.abs(lunarMonth),
-    lunarDay: Number(lunar.getDay()),
-    isLeapMonth: lunarMonth < 0,
-    source: "lunar-javascript",
+    lunarYear: lunar.lunarYear,
+    lunarMonth: lunar.lunarMonth,
+    lunarDay: lunar.lunarDay,
+    isLeapMonth: lunar.isLeapMonth,
+    source: "korean-calendar-core",
   };
 }
 
@@ -370,7 +373,7 @@ export function buildFortuneTeaSukuyoCompatibility(request: FortuneTeaHouseConsu
           lunarMonth: Number(userSukuyo?.lunarMonth),
           lunarDay: Number(userSukuyo?.lunarDay),
           isLeapMonth: Boolean(userSukuyo?.isLeapMonth),
-          source: cleanText(userSukuyo?.source, "lunar-javascript", 40),
+          source: cleanText(userSukuyo?.source, "korean-calendar-core", 40),
           group: sukuyoGroup(userSukuyo),
           guardian: sukuyoGuardian(userSukuyo),
           yinYang: sukuyoYinYang(userSukuyo),
@@ -381,7 +384,7 @@ export function buildFortuneTeaSukuyoCompatibility(request: FortuneTeaHouseConsu
           lunarMonth: Number(partnerSukuyo?.lunarMonth),
           lunarDay: Number(partnerSukuyo?.lunarDay),
           isLeapMonth: Boolean(partnerSukuyo?.isLeapMonth),
-          source: cleanText(partnerSukuyo?.source, "lunar-javascript", 40),
+          source: cleanText(partnerSukuyo?.source, "korean-calendar-core", 40),
           group: sukuyoGroup(partnerSukuyo),
           guardian: sukuyoGuardian(partnerSukuyo),
           yinYang: sukuyoYinYang(partnerSukuyo),

@@ -4,7 +4,7 @@
 // 오늘의 길흉을 낸다. 이 파일에는 점술 로직이 없다 — 배선만 한다.
 //
 //   사주   calculateLifeBookAiSaju(명식 정본) + judgeSajuDayFortune(일진 길흉)
-//   숙요점 Solar.getLunar()(기본 숙요점과 같은 음력 변환) + buildSukuyoFromLunar + judgeDayFortune
+//   숙요점 solarToLunar()(기본 숙요점과 같은 음력 변환) + buildSukuyoFromLunar + judgeDayFortune
 //   베다점 Swiss Ephemeris 시데리얼 달 + assembleTodayMoon(= /api/nakshatra/today 와 동일 경로)
 //
 // 무료·무인증이다. 결제 게이트도 로그인 요구도 걸지 않는다(홈 퍼널 최상단).
@@ -19,10 +19,11 @@
 //   detail=1     각 점술의 sections(전문 상세)를 함께 싣는다. 플래그가 없으면 홈 카드용
 //                highlights(≤3)까지만 실어 홈 payload 를 가볍게 유지한다.
 
-import { Solar } from "lunar-javascript";
+// 🔴 음력일도 한국 음양력 코어에서 나온다(1900~2100 전수 73,414일 중 2,997일 4.08% 가
+// 중국 음력과 갈린다 — 실측 2026-08-27). 27수는 음력 월·일로 직접 결정되므로 그 하루가 다른 수다.
 // 🔴 일주는 한국 음양력 코어에서 잡는다. 값은 안 움직인다 — 정오 일주는 lunar-javascript 와
 // 코어가 표본 7,224건(1950~2035)에서 전건 일치한다(실측 2026-08-27). 달력 축을 하나로 두는 것이 목적이다.
-import { BRANCH_HANJA, STEM_HANJA, ganji } from "../../lib/korean-calendar/index.js";
+import { BRANCH_HANJA, STEM_HANJA, ganji, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { getRoutePath, json, methodNotAllowed, notFound } from "../lib/http.js";
 import { calculateLifeBookAiSaju } from "../lib/life-book-ai-saju.js";
 import { judgeSajuDayFortune } from "../lib/saju-day-fortune.js";
@@ -141,9 +142,10 @@ function toLunarParts(input) {
   if (input.calendarType === "lunar" || input.calendarType === "lunar_leap") {
     return { month: input.month, day: input.day, isLeap: input.calendarType === "lunar_leap" };
   }
-  const lunar = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute, 0).getLunar();
-  const lunarMonth = Number(lunar.getMonth());
-  return { month: Math.abs(lunarMonth), day: Number(lunar.getDay()), isLeap: lunarMonth < 0 };
+  // 생시는 음력일을 바꾸지 않는다(실측: 0~23시 전부 같은 음력일) — 날짜만 넘긴다.
+  const lunar = solarToLunar(input.year, input.month, input.day);
+  if (!lunar) throw new Error(`korean-calendar core returned no lunar date for ${input.year}-${input.month}-${input.day}`);
+  return { month: lunar.lunarMonth, day: lunar.lunarDay, isLeap: lunar.isLeapMonth };
 }
 
 function todayDayPillar(today) {
@@ -209,7 +211,7 @@ function buildSaju(input, today, wantDetail) {
 }
 
 function buildSukuyo(natalIndex, natalSukuyo, todayLunar, wantDetail) {
-  const todaySukuyo = buildSukuyoFromLunar(todayLunar.month, todayLunar.day, { isLeapMonth: todayLunar.isLeap });
+  const todaySukuyo = buildSukuyoFromLunar(todayLunar.month, todayLunar.day, { isLeapMonth: todayLunar.isLeap, source: "korean-calendar-core" });
   if (!todaySukuyo) return null;
 
   if (natalIndex == null) {
@@ -306,11 +308,11 @@ async function resolveTodaySky(env, today, natalIndex, requestUrl) {
     const moonLon = Number(swiss?.planets?.Moon);
     const sunLon = Number(swiss?.planets?.Sun);
     if (!Number.isFinite(moonLon)) return null;
-    const lunar = Solar.fromYmdHms(today.year, today.month, today.day, 12, 0, 0).getLunar();
-    const lunarMonth = Number(lunar.getMonth());
+    const lunar = solarToLunar(today.year, today.month, today.day);
+    if (!lunar) return null;
     const todayMoon = assembleTodayMoon({
       moonLon,
-      lunar: { month: Math.abs(lunarMonth), day: Number(lunar.getDay()), isLeap: lunarMonth < 0 },
+      lunar: { month: lunar.lunarMonth, day: lunar.lunarDay, isLeap: lunar.isLeapMonth },
       myMansionIndex: natalIndex,
     });
     // 판창가는 니라야나(시데리얼) 황경으로 계산한다 — swiss 가 주는 값 그대로다.
@@ -335,7 +337,7 @@ async function buildTodayHubPayload(request, env, input, wantDetail) {
   const todayLunar = toLunarParts({ ...today, hour: 12, minute: 0, calendarType: "solar" });
   const natalLunar = input ? toLunarParts(input) : null;
   const natalSukuyo = natalLunar
-    ? buildSukuyoFromLunar(natalLunar.month, natalLunar.day, { isLeapMonth: natalLunar.isLeap })
+    ? buildSukuyoFromLunar(natalLunar.month, natalLunar.day, { isLeapMonth: natalLunar.isLeap, source: "korean-calendar-core" })
     : null;
   const natalIndex = Number.isInteger(Number(natalSukuyo?.index)) ? Number(natalSukuyo.index) : null;
 

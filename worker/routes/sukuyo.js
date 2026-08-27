@@ -1,5 +1,8 @@
 import { primeCmsRecords } from "../lib/cms-records.js";
-import { Solar } from "lunar-javascript";
+// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
+// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
+// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+import { solarToLunar } from "../../lib/korean-calendar/index.js";
 import { cookieValue, getRoutePath, handleRouteError, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getOptionalUserFromRequest, requireAuth, resolvePaidRouteAuth } from "../lib/auth.js";
 import { requirePremiumReportAccess } from "../lib/access-control.js";
@@ -179,14 +182,12 @@ function buildSukuyoCalendarInterpretation(sukuyo = {}) {
 }
 
 function buildSukuyoCalendarDay(year, month, day, todayKey, myMansionIndex = null) {
-  const solar = Solar.fromYmdHms(year, month, day, 12, 0, 0);
-  const lunar = solar.getLunar();
-  const lunarMonthRaw = Number(lunar.getMonth());
-  const lunarMonth = Math.abs(lunarMonthRaw);
-  const lunarDay = Number(lunar.getDay());
+  const lunar = solarToLunar(year, month, day);
+  if (!lunar) throw new Error("숙요 달력이 다루는 범위를 벗어난 날짜입니다(지원 1900~2100).");
+  const { lunarMonth, lunarDay } = lunar;
   const sukuyo = buildSukuyoFromLunar(lunarMonth, lunarDay, {
-    isLeapMonth: lunarMonthRaw < 0,
-    source: "lunar-javascript",
+    isLeapMonth: lunar.isLeapMonth,
+    source: "korean-calendar-core",
   });
   const mansionIndex = Number(sukuyo?.index);
   if (!Number.isInteger(mansionIndex) || mansionIndex < 0 || mansionIndex > 26) {
@@ -208,10 +209,10 @@ function buildSukuyoCalendarDay(year, month, day, todayKey, myMansionIndex = nul
     keywords: reading.keywords,
     isToday: date === todayKey,
     lunarDate: {
-      year: Number.isFinite(Number(lunar.getYear())) ? Number(lunar.getYear()) : null,
+      year: lunar.lunarYear,
       month: lunarMonth,
       day: lunarDay,
-      isLeapMonth: lunarMonthRaw < 0,
+      isLeapMonth: lunar.isLeapMonth,
     },
     core: reading.core,
     usagePoint: reading.usagePoint,
@@ -505,18 +506,16 @@ function toLunarBirth(person) {
     };
   }
 
-  const hour = Number.isFinite(person.birthHour) ? person.birthHour : 12;
-  const minute = Number.isFinite(person.birthMinute) ? person.birthMinute : 0;
-  const solar = Solar.fromYmdHms(person.birthYear, person.birthMonth, person.birthDay, hour, minute, 0);
-  const lunar = solar.getLunar();
-  const lunarMonth = Number(lunar.getMonth());
+  // 생시는 음력일을 바꾸지 않는다(실측: 0~23시 전부 같은 음력일) — 날짜만 넘긴다.
+  const lunar = solarToLunar(person.birthYear, person.birthMonth, person.birthDay);
+  if (!lunar) throw new Error("숙요가 다루는 범위를 벗어난 생년월일입니다(지원 1900~2100).");
 
   return {
-    lunarYear: Number(lunar.getYear()),
-    lunarMonth: Math.abs(lunarMonth),
-    lunarDay: Number(lunar.getDay()),
-    isLeapMonth: lunarMonth < 0,
-    source: "lunar-javascript",
+    lunarYear: lunar.lunarYear,
+    lunarMonth: lunar.lunarMonth,
+    lunarDay: lunar.lunarDay,
+    isLeapMonth: lunar.isLeapMonth,
+    source: "korean-calendar-core",
   };
 }
 
@@ -1370,7 +1369,7 @@ async function handleSukuyoPastLifeReading(request, env) {
       personBInput: { year: partner.birthYear, month: partner.birthMonth, day: partner.birthDay, hour: partner.birthHour, minute: partner.birthMinute },
       personASukuyo: selfSukuyo,
       personBSukuyo: partnerSukuyo,
-      calendarSource: "lunar-javascript",
+      calendarSource: "korean-calendar-core",
       methodVersion: SUKYO_PAST_LIFE_LOGIC_VERSION,
     });
   } catch (error) {
@@ -1554,13 +1553,14 @@ function resolveSukuyoLunarFromProfile(profile) {
   if (calendarType === "lunar" || calendarType === "lunar_leap") {
     return { year, month, day, isLeap: calendarType === "lunar_leap" };
   }
-  const lunar = Solar.fromYmdHms(year, month, day, hour, minute, 0).getLunar();
-  const lunarMonth = Number(lunar.getMonth());
+  // 시·분은 위에서 접어 두었지만 음력일 판정에는 쓰이지 않는다(실측: 0~23시 동일).
+  const lunar = solarToLunar(year, month, day);
+  if (!lunar) return null;
   return {
-    year: Number(lunar.getYear()),
-    month: Math.abs(lunarMonth),
-    day: Number(lunar.getDay()),
-    isLeap: lunarMonth < 0,
+    year: lunar.lunarYear,
+    month: lunar.lunarMonth,
+    day: lunar.lunarDay,
+    isLeap: lunar.isLeapMonth,
   };
 }
 
@@ -1724,22 +1724,20 @@ function formatSukuyoYearlyAnchorDate(year, month) {
 }
 
 function resolveSukuyoYearlyAnchor(year, month) {
-  const solar = Solar.fromYmdHms(Number(year), Number(month), 15, 12, 0, 0);
-  const lunar = solar.getLunar();
-  const lunarMonthRaw = Number(lunar.getMonth());
-  const lunarMonth = Math.abs(lunarMonthRaw);
-  const lunarDay = Number(lunar.getDay());
+  const lunar = solarToLunar(Number(year), Number(month), 15);
+  if (!lunar) throw new Error("숙요 1년운이 다루는 범위를 벗어난 연도입니다(지원 1900~2100).");
+  const { lunarMonth, lunarDay } = lunar;
   const monthSukuyo = buildSukuyoFromLunar(lunarMonth, lunarDay, {
-    isLeapMonth: lunarMonthRaw < 0,
+    isLeapMonth: lunar.isLeapMonth,
     source: "yearly-month-anchor",
   }) || {};
   return {
     anchorDate: formatSukuyoYearlyAnchorDate(year, month),
     lunarDate: {
-      year: Number(lunar.getYear()),
+      year: lunar.lunarYear,
       month: lunarMonth,
       day: lunarDay,
-      isLeapMonth: lunarMonthRaw < 0,
+      isLeapMonth: lunar.isLeapMonth,
     },
     monthSukuyo,
   };
@@ -2293,6 +2291,13 @@ async function upsertSukuyoYearlyUnlockFromEvidence({ env, auth, profile, target
 }
 
 export const __sukuyoYearlyTestUtils = {
+  // 🔴 달력·프로필·1년운 앵커 셋은 라우트 안의 순수 함수라 밖에서 못 돌린다.
+  // 그 탓에 verify:sukuyo-korean-calendar 가 이 파일을 import 수준에서만 보고 있었고,
+  // 이관 때 남은 죽은 참조(lunarMonthRaw)를 CI 의 worker-no-undef 가 대신 잡았다.
+  // 가드가 **실제로 실행해** 대조할 수 있게 표면을 연다.
+  buildSukuyoCalendarDay,
+  resolveSukuyoLunarFromProfile,
+  resolveSukuyoYearlyAnchor,
   buildSukuyoYearlyFortuneResult: buildSukuyoYearlyFortuneResultV2,
   buildSukuyoYearlyPreview,
   collectSukuyoYearlyEvidenceIds,

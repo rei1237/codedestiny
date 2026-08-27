@@ -7,7 +7,9 @@
 // 판창가(티티·요가·카라나)는 이 레포에 없던 계산이라 경계값을 못박는다.
 // 나머지 둘은 기존 정본 함수의 결과를 읽어 쓰는 층이므로 "버려지던 값이 실제로 나오는가"를 본다.
 
-const { Solar } = require("lunar-javascript");
+// 🔴 음력 변환은 프로덕션과 같은 한국 음양력 코어를 쓴다. 여기만 lunar-javascript 를 남기면
+// 테스트가 **다른 달력으로 만든 기대값**을 단언하게 되고, 4.08% 의 날짜에서 조용히 갈린다.
+const { solarToLunar } = require("../../lib/korean-calendar/index.js");
 const { calculateLifeBookAiSaju } = require("../../worker/lib/life-book-ai-saju.js");
 const { judgeSajuDayFortune, scoreBranchForNatal } = require("../../worker/lib/saju-day-fortune.js");
 const { buildSukuyoFromLunar } = require("../../worker/lib/sukuyo-premium.js");
@@ -101,9 +103,8 @@ describe("today-saju-detail", () => {
 
 describe("today-sukuyo-detail", () => {
   function lunarOf(y, m, d) {
-    const lunar = Solar.fromYmdHms(y, m, d, 12, 0, 0).getLunar();
-    const raw = Number(lunar.getMonth());
-    return { month: Math.abs(raw), day: Number(lunar.getDay()), isLeap: raw < 0 };
+    const lunar = solarToLunar(y, m, d);
+    return { month: lunar.lunarMonth, day: lunar.lunarDay, isLeap: lunar.isLeapMonth };
   }
   const todayLunar = lunarOf(2026, 8, 15);
   const natalLunar = lunarOf(1990, 5, 14);

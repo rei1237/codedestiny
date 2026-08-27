@@ -340,6 +340,7 @@
     "verify:korean-calendar-midnight-register": "node scripts/verify-korean-calendar-midnight-register.mjs",
     "verify:korean-calendar-kasi-samples": "node scripts/verify-korean-calendar-kasi-samples.mjs",
     "verify:saju-solar-term-core": "node scripts/verify-saju-solar-term-core.mjs",
+    "verify:sukuyo-korean-calendar": "node scripts/verify-sukuyo-korean-calendar.mjs",
     "verify:guard-wiring": "node scripts/verify-guard-wiring.mjs",
     "verify:human-design": "node scripts/verify-human-design.mjs",
     "verify:human-design-ai": "node scripts/verify-human-design-ai.mjs",

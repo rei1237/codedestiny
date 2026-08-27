@@ -1,4 +1,7 @@
-﻿import { Solar } from "lunar-javascript";
+﻿// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
+// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
+// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+import { BRANCH_HANJA, STEM_HANJA, sexagenaryYearIndexes, solarToLunar } from "@/lib/korean-calendar";
 
 export interface MansionTraits {
   icon: string;
@@ -344,14 +347,22 @@ export function calcSukuyoForServer(
   day: number,
   hour: number = 12
 ): SukuyoCalcResult {
-  const solar = Solar.fromYmdHms(year, month, day, Math.floor(hour), 0, 0);
-  const lunar = solar.getLunar();
+  // 🔴 hour 는 본명숙 판정에 쓰이지 않는다 — 음력일은 민용일 단위라 시각이 바꾸지 않는다
+  //    (실측 2026-08-27: 0·1·6·12·18·22·23시 전부 정오와 같은 음력일, 표본 1,944건).
+  //    시그니처는 호출부(destiny-compass 어댑터)가 넘기고 있어 그대로 둔다.
+  void hour;
+  const lunar = solarToLunar(year, month, day);
+  if (!lunar) {
+    throw new RangeError(`한국 음양력 코어가 ${year}-${month}-${day} 를 답하지 못했습니다(지원 1900~2100).`);
+  }
 
-  const lMonth = lunar.getMonth();
-  const lDay   = lunar.getDay();
-  const isLeap = lunar.isLeap();
-  const yearGan = lunar.getYearGan();
-  const yearZhi = lunar.getYearZhi();
+  const lMonth = lunar.lunarMonth;
+  const lDay   = lunar.lunarDay;
+  const isLeap = lunar.isLeapMonth;
+  // 세차는 **음력 프레임**(설날 경계)이다 — 숙요는 사주가 아니라 음력 축을 쓴다.
+  const yearIndexes = sexagenaryYearIndexes(lunar.lunarYear);
+  const yearGan = STEM_HANJA[yearIndexes.stemIndex];
+  const yearZhi = BRANCH_HANJA[yearIndexes.branchIndex];
 
   let startIdx = MONTH_START_OFFSETS[lMonth - 1] ?? 11;
   const finalIdx = (startIdx + lDay - 1) % 27;

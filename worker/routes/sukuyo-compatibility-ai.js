@@ -1,4 +1,7 @@
-import { Lunar, Solar } from "lunar-javascript";
+// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
+// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
+// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+import { lunarToSolar, solarToLunar } from "../../lib/korean-calendar/index.js";
 import { requireAuth, isAuthDbInfraError, peekAccessTokenUserId } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
 import { clampSyncLlmTimeoutMs, EDGE_RESPONSE_DEADLINE_MS } from "../lib/sync-llm-timeout.js";
@@ -349,19 +352,20 @@ function lunarForPerson(person) {
   const { year, month, day } = person.birthParts || {};
   if (!year || !month || !day) throw Object.assign(new Error("INVALID_BIRTH_DATE"), { code: "INVALID_INPUT" });
   if (person.calendarType === "lunar") {
-    const lunarMonth = person.isLeapMonth ? -Math.abs(month) : Math.abs(month);
-    Lunar.fromYmd(year, lunarMonth, day);
+    if (!lunarToSolar(year, Math.abs(month), day, Boolean(person.isLeapMonth))) {
+      throw Object.assign(new Error("INVALID_BIRTH_DATE"), { code: "INVALID_INPUT" });
+    }
     return { lunarYear: year, lunarMonth: month, lunarDay: day, isLeapMonth: person.isLeapMonth, source: "user-lunar-input" };
   }
-  const [hour, minute] = person.birthTime ? person.birthTime.split(":").map(Number) : [12, 0];
-  const lunar = Solar.fromYmdHms(year, month, day, hour, minute, 0).getLunar();
-  const lunarMonth = Number(lunar.getMonth());
+  // 생시는 음력일을 바꾸지 않는다(실측: 0~23시 전부 같은 음력일) — 날짜만 넘긴다.
+  const lunar = solarToLunar(year, month, day);
+  if (!lunar) throw Object.assign(new Error("INVALID_BIRTH_DATE"), { code: "INVALID_INPUT" });
   return {
-    lunarYear: Number(lunar.getYear()),
-    lunarMonth: Math.abs(lunarMonth),
-    lunarDay: Number(lunar.getDay()),
-    isLeapMonth: lunarMonth < 0,
-    source: "lunar-javascript",
+    lunarYear: lunar.lunarYear,
+    lunarMonth: lunar.lunarMonth,
+    lunarDay: lunar.lunarDay,
+    isLeapMonth: lunar.isLeapMonth,
+    source: "korean-calendar-core",
   };
 }
 
