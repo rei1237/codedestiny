@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import DestinyMeetingPlaceRouteClient from "./DestinyMeetingPlaceRouteClient";
 import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
+import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 
 const DESTINY_MEETING_PLACE_METADATA_COPY = {
   ko: {
@@ -89,6 +90,7 @@ export default function Page() {
         </p>
       </section>
       <DestinyMeetingPlaceRouteClient />
+      <ImmersiveRelatedLinks fromPath="/saju/destiny-meeting-place" />
     </>
   );
 }

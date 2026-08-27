@@ -7,6 +7,7 @@ import {
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/master-love-codex/";
 const PAGE_TITLE = "사주 연애 리포트 · 자미두수 융합 20장 | 마스터 인연의 서";
@@ -256,6 +257,7 @@ export default function MasterLoveCodexPageRoute() {
           </div>
         ))}
       </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/master-love-codex" />
     </div>
   );
 }

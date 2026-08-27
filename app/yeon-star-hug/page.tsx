@@ -1,4 +1,5 @@
 import YeonStarHugRouteClient from "./YeonStarHugRouteClient";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 export default function YeonStarHugPage() {
   return (
@@ -76,6 +77,7 @@ export default function YeonStarHugPage() {
         </details>
         </div>
       </section>
+      <ImmersiveRelatedLinks fromPath="/yeon-star-hug" tone="light" />
     </div>
   );
 }

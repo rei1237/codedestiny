@@ -9,6 +9,7 @@ import { siteSeo } from "../../lib/seo/siteSeo";
 import { getSeoProfileKeywords } from "../../lib/seo/entity-registry.mjs";
 import { mergeKeywords } from "../../lib/seo-metadata";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/naming-ai/";
 const PAGE_TITLE = "무료 작명 사이트 · 사주 용신 이름 추천 | 훈민정음 작명소";
@@ -213,6 +214,7 @@ export default function NamingAiPage() {
           </div>
         ))}
       </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/naming-ai" />
     </>
   );
 }

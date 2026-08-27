@@ -15,6 +15,7 @@
 > / `#1186가 여전히 충돌이고 해소하고 머지후 남은 작업 인수인계 문서 만들어`
 > / `PR #1189 머지했으니 실측해줘`
 > / `docs/handoff/seo-followups-2026-08-27.md 그 다음 인수인계 작업 진행해`
+> / `docs/handoff/seo-followups-2026-08-27.md 읽고 인수 인계받아서 작업 진행해`
 
 즉 **렌더 실측 SEO 감사(#1184)가 남긴 후속 항목을 순서대로 닫는 작업**이다. 각 항목은
 "결정이 필요한 것"과 "결정 없이 바로 할 수 있는 것"이 섞여 있어서, **결정이 필요한 것은
@@ -27,7 +28,8 @@
 | #1184 | 렌더 감사 도구 + 상속 canonical 55건 | **머지됨** |
 | #1186 | 제목 표시 폭 125 → 0, `/static` 이중 신호, `/destiny-poker` 위양성 | **머지됨** (`1b4700c5`) |
 | #1189 | 이 인수인계 문서 신규 | **머지됨** |
-| #1191 | 설명 표시 폭 183 → 0 (§1) | 🔴 **CI 8/8 통과 · MERGEABLE — 사용자 머지 대기** |
+| #1191 | 설명 표시 폭 183 → 0 (§1) | **머지됨** (`87ae1f77f`) |
+| #1193 | 몰입형 라우트 18개의 아웃바운드 링크 0 → 4 (§2) | 🔴 **사용자 머지 대기** |
 
 🔴 **프로덕션 승격은 아직 안 됐다.** 머지는 스테이징(`staging.code-destiny.com`)까지만 자동으로
 간다. 2026-08-27 실측: 스테이징은 새 제목을 서빙하는데 프로덕션은 옛 제목이다.
@@ -46,8 +48,8 @@
 | `/static` 의 noindex + 홈 canonical 병존 | ✅ #1186 | canonical 제거, 허용목록을 산출물별로 |
 | `/destiny-poker` 인바운드 0 | ✅ #1186 | 감사 도구 위양성이었다(프로덕션 308 실측) |
 | **제목 표시 폭 초과 125개** | ✅ #1186 | 125 → 0, `verifyIndexableTitleWidth` 가 막는다 |
-| **설명 표시 폭 초과 183개** | ✅ PR #1191 | 183 → 0, `verifyIndexableDescriptionWidth` 가 막는다 |
-| 아웃바운드 링크 0인 색인 대상 18개 | ❌ **§2** | UI 정책 결정 필요 |
+| **설명 표시 폭 초과 183개** | ✅ #1191 | 183 → 0, `verifyIndexableDescriptionWidth` 가 막는다 |
+| **아웃바운드 링크 0인 색인 대상 18개** | ✅ PR #1193 | 18 → 0, `verifyIndexableOutboundLinks` 가 막는다 |
 | `/insights` HTML 1.83MB | ❌ **§3** | 리팩터링 설계 선행 |
 | HTML 에 ETag/Last-Modified 없음 | ❌ **§4** | 배포 파이프라인 결정 |
 | CWV·모바일 UX·검색 의도·네이버 | ❌ **§5** | 한 번도 재지 않았다 |
@@ -110,27 +112,71 @@
 **설명 문구를 줄일 때는 그 라우트가 필수 마커를 갖고 있는지 먼저 볼 것**
 (`scripts/verify-adsense-readiness.mjs` 의 `routeMetadataChecks`, 현재 3개 파일).
 
-## 2. 아웃바운드 내부 링크가 0인 색인 대상 18개
+## 2. ✅ 아웃바운드 내부 링크 0인 색인 대상 18개 — PR #1193 에서 18 → 0
 
-```
-/life-book-ai /love-secret-ai /master-love-codex /naming-ai /neo-operation-room
-/new-year-ai-consultation /oracle/rune /reviews /saju-guardian /saju/destiny-bias
-/saju/destiny-meeting-place /saju/love-simulation /sukuyo-compatibility-ai
-/tarot/prompt-maker /vedic-ai /yeon-star-hug /ziwei-ai /ziwei/chart
-```
+### 2-1. 결정
 
-색인 대상의 **4.6%** 가 링크를 받기만 하고 내보내지 않는 막다른 길이다.
+사용자가 2026-08-27 에 **"결과 하단 관련 링크 3~4개"** 를 골랐다(대안이던 "영구 예외 등재"는
+채택되지 않았다). `docs/CURRENT_DEV_BASELINE.md` Working Rule 4(몰입형 라우트는 공유 헤더·
+푸터·하단 네비를 렌더하지 않는다)는 **그대로 둔다** — 새 블록은 공유 크롬이 아니라 페이지
+자신의 본문 최하단이다.
 
-**이건 사고가 아니라 의도된 UI 결정의 부작용이다.** `docs/CURRENT_DEV_BASELINE.md` 의
-"Working Rules" 4번이 **몰입형 React 운세 라우트는 공유 헤더·푸터·하단 네비를 렌더하지 않는다**
-고 정하고 있다.
+### 2-2. 고친 것
 
-🔴 **먼저 정해야 할 것**: "몰입형 화면에도 최소한의 관련 링크 블록을 둘 것인가."
-정하지 않고 링크를 넣으면 그 Working Rule 을 조용히 뒤집는 것이 된다. 사용자에게 물을 것.
+| # | 파일 | 무엇을 |
+|---|---|---|
+| 1 | `app/components/ImmersiveRelatedLinks.tsx` **(신규)** | 서버 컴포넌트. 링크 4개(`/naming-ai` 만 3개) |
+| 2 | `page.tsx` 18개 | 몰입형 클라이언트 **뒤**에 한 줄씩(각 +2줄) |
+| 3 | `scripts/verify-adsense-readiness.mjs` | `verifyIndexableOutboundLinks` 신규 |
 
-넣기로 한다면 후보는 결과 화면 최하단의 "관련 운세" 3~4개 링크다(몰입 구간을 지난 뒤라
-UX 훼손이 가장 작다). 넣지 않기로 한다면 **이 항목을 감사에서 영구 예외로 등재**하고
-사유를 적어 다음 세션이 같은 판정을 다시 하지 않게 할 것.
+🔴 **서버 컴포넌트여야 한다.** 크롤러가 보는 것은 정적 HTML 이라, 링크를 클라이언트 컴포넌트
+안에 넣으면 산출물의 `<a href>` 수가 **그대로 0** 이다. 선례는 `app/tarot/mindscan/page.tsx:210`
+(같은 모양이라 `/tarot/mindscan` 은 18개 목록에 없었다).
+
+🔴 **링크 목적지는 손으로 들지 않았다.** `lib/seo/entity-registry.mjs` 의
+`getTopicClusterLinks(path)` 가 9개 라우트를 덮고, 프로필이 없는 나머지 9개만 컴포넌트 안
+`CURATED_RELATED_PATHS` 로 **경로만** 보완한다. 라벨은 어느 쪽이든 목적지 프로필의 `title` 을
+읽으므로 문구가 두 벌로 갈리지 않는다.
+🔴 **레지스트리에 프로필을 새로 추가하지 않았다** — `SEO_ROUTE_PROFILES` 는 랜딩 템플릿의
+키워드·클러스터 링크·구조화 데이터가 함께 읽는 공용 정본이라, 항목을 늘리면 범위 밖 페이지
+문구까지 움직인다.
+
+### 2-3. 실측 (2026-08-27)
+
+| 항목 | 전 | 후 |
+|---|---:|---:|
+| 아웃바운드 내부 링크 0인 색인 URL (dist, 388개) | 18 | **0** |
+| 같은 것 (out) | 18 | **0** |
+| `seo-audit --source=out` (dist) Issues | 0 | **0** |
+
+재현: `node -e` 로 사이트맵 `<loc>` 을 훑어 각 HTML 의 `<body>` 이후 `<a href>` 중
+`/` 또는 `code-destiny.com` 으로 시작하는 것을 세면 된다. 같은 판정이 이제 가드에 들어 있다.
+
+### 2-4. 🔴 남은 것 — 일부 라우트에서 이 블록은 몰입형 셸에 가려진다
+
+헤드리스 실측(390×844, **무상호작용 진입 상태**, 클립 스크린샷의 실제 픽셀로 대비 계산):
+
+- 잘 보인다(대비 7.9~16.0) — `/life-book-ai` `/master-love-codex` `/neo-operation-room`
+  `/new-year-ai-consultation` `/reviews` `/saju/destiny-meeting-place` `/saju/love-simulation`
+  `/vedic-ai` `/yeon-star-hug` `/ziwei-ai` `/ziwei/chart`
+- 몰입형 셸이 위를 덮는다(대비 1.0~3.5) — `/love-secret-ai` `/naming-ai`
+  `/sukuyo-compatibility-ai` `/oracle/rune` `/saju-guardian` `/saju/destiny-bias`
+  `/tarot/prompt-maker`
+
+🔴 **이건 #1193 이 만든 조건이 아니다.** 같은 방법으로 **기존** `ServiceIntroSection` 을 재 보니
+`/love-secret-ai` 1.10 · `/naming-ai` 1.07 · `/sukuyo-compatibility-ai` 1.10 으로 **똑같이 덮여
+있었다** — 그 라우트들에 이미 배포돼 있는 블록과 정확히 같은 가시성이다. 셸의 `position: fixed`
+를 걷어내는 것은 Working Rule 4 영역이라 별도 결정이 선행돼야 한다.
+**SEO 목표(크롤 가능한 아웃바운드 링크)는 가시성과 무관하게 달성됐다.**
+
+🔴 **측정할 때 두 번 헛짚었으니 반복하지 말 것** —
+① `element.scrollIntoView()` 는 이 페이지들에서 안 먹는다(하이드레이션·지연 로딩이 계속 높이를
+바꾼다). 뷰포트에 들어올 때까지 `window.scrollTo` 를 **반복**해야 한다.
+② `page.screenshot({ fullPage: true, clip })` 는 판정에 쓸 수 없다 — Chromium 이 뷰포트를 페이지
+높이로 늘려서 `position: fixed; inset: 0` 오버레이가 페이지 전체를 덮어 버린다. 실제로 스크롤한
+뒤 **뷰포트 좌표로 클립**할 것.
+③ `elementFromPoint` 는 `pointer-events: none` 인 오버레이를 통과하므로 "안 가려졌다"고 답한다.
+가림 판정은 반드시 **칠해진 픽셀**로 한다([computed-style-misreads-translucent-paint] 와 같은 함정).
 
 ---
 
@@ -182,13 +228,16 @@ Worker 응답에 ETag 가 없으니 304 재검증이 불가능하고, 크롤러�
 
 ## 6. 작업 순서 (추천)
 
-1. **§2 몰입형 18개** — 결정만 받으면 구현은 작다. 넣지 않기로 해도 예외 등재는 할 것
-2. §1-4 의 남은 두 갈래(`…` 15개 문안 · 허브 카드 문구) — 둘 다 작고 서로 독립이다
-3. §3 `/insights` 1.83MB — 검색 인덱스 설계부터
-4. §4 ETag — 배포 결정부터
-5. §5 는 새 측정 세션
+1. ~~§2 몰입형 18개~~ — ✅ PR #1193
+2. §1-4(a) `…` 15개 문안 — **결정이 필요 없다. 다음 세션의 기본 시작점.**
+   `…` 로 끝나는 42개 중 27개는 템플릿(`/nakshatra/codex/0~26`)이고, 손으로 쓸 것은 15개다
+3. §1-4(b) 허브 카드 문구 — 🔴 사용자가 2026-08-27 에 **"이번 세션은 손대지 않음"** 으로 보류했다.
+   다시 꺼내려면 목록 UI 변경 승인이 선행된다
+4. §3 `/insights` 1.83MB — 검색 인덱스 설계부터
+5. §4 ETag — 🔴 사용자가 2026-08-27 에 **보류**했다(배포 파이프라인 결정 선행)
+6. §5 는 새 측정 세션
 
-🔴 **1과 2는 서로 독립**이라 순서를 바꿔도 된다. 3·4 는 앞의 결정과 무관하게 언제든 시작 가능.
+🔴 **2·4 는 서로 독립**이라 순서를 바꿔도 된다.
 
 ---
 
@@ -284,9 +333,10 @@ E 시리즈 진행 상황은 [korean-calendar-migration-2026-08-27.md](korean-ca
 `seed-articles.js` 의 정규화를 거쳐 인사이트 허브 카드(`app/insights/page.js` ·
 `InsightsCosmicClient.js`)의 **화면 문구로도** 쓰인다. 거기에 쓰면 목록 UI 까지 바뀐다.
 
-**(4) 가드는 산출물에서 전수 발견한다** — `scripts/verify-adsense-readiness.mjs:1475`
-(`EAST_ASIAN_WIDE`) · `:1477`(`serpTitleWidth`) · `:1491`(`verifyIndexableTitleWidth`) ·
-`:1525`(`verifyIndexableDescriptionWidth`). 손으로 든 목록이 없고, `out/`·`dist/` 의 사이트맵
+**(4) 가드는 산출물에서 전수 발견한다** — `scripts/verify-adsense-readiness.mjs` 의
+`EAST_ASIAN_WIDE` · `serpTitleWidth` · `verifyIndexableTitleWidth` ·
+`verifyIndexableDescriptionWidth` · `verifyIndexableOutboundLinks`(2026-08-27 추가, §2).
+손으로 든 목록이 없고, `out/`·`dist/` 의 사이트맵
 URL 전량(`/x.html` 단독 라우트 포함)을 훑으며, URL 이 0개여도 실패한다.
 🔴 신규 `verify:*` npm 스크립트를 만들지 않는다 — `verify-guard-wiring` 이 배선을 요구하고
 CI 게이트 추가는 사용자 승인 사항이다(`docs/CURRENT_DEV_BASELINE.md` §6). 이미 `build:cf` 가
@@ -311,8 +361,10 @@ CI 게이트 추가는 사용자 승인 사항이다(`docs/CURRENT_DEV_BASELINE.
   🔴 그 grep 은 반드시 `git grep` — 리포 루트 `.ignore` 가 `sync:public` 미러 172개를
   Grep/Glob 에서 빼므로 rg 로는 미러의 참조를 못 본다.
 
-**정책·IA·UI 가 갈리는 지점은 임의로 고르지 말고 사용자에게 묻는다.** 지금 열려 있는 것 중
-§2(몰입형 라우트 링크) · §4(ETag) · §1-4(b)(허브 카드 문구)가 전부 그런 항목이다.
+**정책·IA·UI 가 갈리는 지점은 임의로 고르지 말고 사용자에게 묻는다.** 2026-08-27 에 §2 ·
+§1-4(b) · §4 를 그렇게 물었고, 답은 **§2 = 관련 링크 넣기 / §1-4(b) = 보류 / §4 = 보류** 였다.
+**보류는 "다시 물어라"가 아니라 "이 세션에서 하지 말라"는 뜻이다** — 되살리려면 사용자가 먼저
+꺼내야 한다.
 
 ---
 

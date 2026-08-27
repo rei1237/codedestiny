@@ -1543,6 +1543,47 @@ function verifyIndexableDescriptionWidth(baseDir) {
     );
   }
 }
+
+/**
+ * 색인 대상의 아웃바운드 내부 링크 가드 (2026-08-27 추가).
+ *
+ * 렌더 실측에서 **색인 URL 18개가 `<a href>` 를 하나도 서버 렌더하지 않았다**(dist·out 양쪽
+ * 388개 중, 4.6%). 링크를 받기만 하고 내보내지 않는 막다른 길이라 크롤러가 그 페이지에서
+ * 사이트 안으로 되돌아갈 길이 없다. 원인은 몰입형 라우트가 공유 헤더·푸터·하단 네비를
+ * 렌더하지 않는다는 정책(docs/CURRENT_DEV_BASELINE.md Working Rule 4)의 부작용이었다.
+ *
+ * 🔴 링크가 클라이언트 컴포넌트 안에만 있으면 이 가드는 그대로 실패한다 — 그게 의도다.
+ *    크롤러가 보는 것은 정적 HTML 이므로 출구는 **서버에서** 렌더해야 한다.
+ *    고치는 정본은 app/components/ImmersiveRelatedLinks.tsx 를 page.tsx 에 다는 것이다.
+ *
+ * 대상은 사이트맵 URL 전량 — 손으로 든 목록이 없고 산출물에서 전수 발견한다.
+ */
+function verifyIndexableOutboundLinks(baseDir) {
+  const sitemapPaths = getSitemapPaths(readRequired(`${baseDir}/sitemap.xml`));
+  assert(sitemapPaths.length > 0, `${baseDir}/sitemap.xml: URL 이 하나도 없다`);
+  for (const pathname of sitemapPaths) {
+    const relativePath = pathname === "/" ? "" : pathname.replace(/^\//, "");
+    const candidates = relativePath
+      ? [`${relativePath}/index.html`, `${relativePath}.html`]
+      : ["index.html"];
+    const absolutePath = candidates
+      .map((candidate) => resolve(rootDir, baseDir, candidate))
+      .find((candidate) => existsSync(candidate));
+    assert(Boolean(absolutePath), `${baseDir}${pathname}: 사이트맵 URL 의 HTML 이 산출물에 없다`);
+    const html = readFileUtf8WithRetry(absolutePath);
+    // `<a>` 는 body 에만 온다. head 를 함께 훑으면 JSON-LD 문자열이 우연히 걸린다.
+    const body = html.slice(html.indexOf("<body"));
+    const outbound = [...body.matchAll(/<a\b[^>]*href=["']([^"']+)["']/gi)]
+      .map((match) => match[1])
+      .filter((href) => href && !href.startsWith("#") && !href.startsWith("mailto:") && !href.startsWith("tel:"))
+      .filter((href) => href.startsWith("/") || href.includes("code-destiny.com"));
+    assert(
+      outbound.length > 0,
+      `${baseDir}${pathname}: 서버 렌더 HTML 에 내부 링크가 0개다 — 크롤러에게 막다른 길이다. page.tsx 에 <ImmersiveRelatedLinks fromPath="..." /> 를 달 것(app/components/ImmersiveRelatedLinks.tsx).`,
+    );
+  }
+}
+
 function verifyIndexableRouteCoverage(baseDir) {
   const sitemapPath = `${baseDir}/sitemap.xml`;
   const sitemapText = readRequired(sitemapPath);
@@ -1614,6 +1655,8 @@ for (const baseDir of ["out", "dist"]) {
   verifyIndexableTitleWidth(baseDir);
   trace(`${baseDir}: indexable description width`);
   verifyIndexableDescriptionWidth(baseDir);
+  trace(`${baseDir}: indexable outbound links`);
+  verifyIndexableOutboundLinks(baseDir);
   trace(`${baseDir}: indexable route coverage`);
   verifyIndexableRouteCoverage(baseDir);
   trace(`${baseDir}: generated AdSense-eligible routes`);

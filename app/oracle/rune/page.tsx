@@ -6,6 +6,7 @@ import {
   buildServiceJsonLd,
 } from "../../../lib/structured-data";
 import { siteSeo } from "../../../lib/seo/siteSeo";
+import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/oracle/rune/";
 const PAGE_TITLE = "무료 룬 점 보기 | 엘더 푸타르크 24룬 오라클 — 꿀꿀 운세";
@@ -142,6 +143,7 @@ export default function RunePage() {
         ))}
       </section>
       <RuneRouteClient />
+      <ImmersiveRelatedLinks fromPath="/oracle/rune" />
     </>
   );
 }

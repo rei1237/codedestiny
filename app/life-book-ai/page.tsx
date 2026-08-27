@@ -1,5 +1,6 @@
 import LifeBookAiRouteClient from "./LifeBookAiRouteClient";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 export const metadata = {
   title: "인생 총운 | 사주로 보는 평생 운세 리포트 — 인생의 책",
@@ -34,6 +35,7 @@ export default function LifeBookAiPage() {
           당신의 시간이 충분히 정리되면, 삶의 큰 장면은 한 장씩 조용히 펼쳐지고 오래 묻어 둔 질문에도 새로운 문장이 머물기 시작합니다.
         </p>
       </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/life-book-ai" />
     </>
   );
 }
