@@ -2802,26 +2802,60 @@ function applyRuntimeYongshinPolicy(power, jong, johu) {
   return power;
 }
 
+/**
+ * 대운을 코어에서 뽑아 lunar-javascript `getYun()` 과 같은 표면으로 붙인다.
+ *
+ * 🔴 관례는 하나도 안 바꿨다 — 코어의 daeun() 은 lunar-javascript 의 sect 1 계산을 그대로
+ * 재현한 것이고, 그 사실을 가드가 **잔차 0** 으로 매번 다시 증명한다
+ * (verify:daeun-korean-calendar 검사 ①: 같은 함수에 중국 표준시 절기를 먹이면
+ *  lunar-javascript 와 한 글자도 다르지 않다).
+ * 바뀌는 것은 節을 어느 나라 시간으로 잡느냐 하나다. 예전에는 **생시는 KST 벽시계인데
+ * 절기는 CST 벽시계**라 두 축이 60분 어긋난 채로 시진을 셌다.
+ *
+ * 표면(getDaYun 의 각 행)은 소비자 4곳이 쓰는 것만 낸다:
+ * getGanZhi · getStartAge · getEndAge · getStartYear · getEndYear · getIndex.
+ */
 function attachKasiDaewunBridge(bazi, birth) {
   if (!bazi || typeof bazi.getYun === 'function') return bazi;
   try {
-    if (!birth || typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return bazi;
-    var solar = Solar.fromYmdHms(
-      birth.year,
-      birth.month,
-      birth.day,
-      birth.hour,
-      birth.minute || 0,
-      birth.second || 0
-    );
-    var lunar = solar && typeof solar.getLunar === 'function' ? solar.getLunar() : null;
-    var daewunBazi = lunar && typeof lunar.getEightChar === 'function' ? lunar.getEightChar() : null;
-    if (!daewunBazi || typeof daewunBazi.getYun !== 'function') return bazi;
+    if (!birth) return bazi;
+    var core = _koreanCalendar();
+    if (typeof core.daeun !== 'function') return bazi;
+
     bazi.getYun = function(genderFlag) {
-      return daewunBazi.getYun(genderFlag);
+      var result = core.daeun({
+        year: birth.year,
+        month: birth.month,
+        day: birth.day,
+        hour: birth.hour,
+        minute: birth.minute || 0
+      }, { gender: genderFlag === 1 ? 'M' : 'F' });
+      if (!result) return null;
+
+      var rows = result.cycles.map(function(cycle) {
+        var ganzhi = cycle.stemIndex === null
+          ? ''
+          : core.formatPillar(cycle.stemIndex, cycle.branchIndex, 'hanja');
+        return {
+          getIndex: function() { return cycle.index; },
+          getGanZhi: function() { return ganzhi; },
+          getStartAge: function() { return cycle.startAge; },
+          getEndAge: function() { return cycle.endAge; },
+          getStartYear: function() { return cycle.startYear; },
+          getEndYear: function() { return cycle.endYear; }
+        };
+      });
+
+      return {
+        isForward: function() { return result.forward; },
+        getStartYear: function() { return result.start.years; },
+        getStartMonth: function() { return result.start.months; },
+        getStartDay: function() { return result.start.days; },
+        getDaYun: function() { return rows; }
+      };
     };
     bazi.__daewunBridge = {
-      source: 'kasi-corrected-solar-daewun-bridge',
+      source: 'korean-calendar-core-daeun',
       year: birth.year,
       month: birth.month,
       day: birth.day,
@@ -2830,7 +2864,7 @@ function attachKasiDaewunBridge(bazi, birth) {
     };
     window.__cdDaewunBridge = bazi.__daewunBridge;
   } catch (e) {
-    console.warn('[saju] KASI daewun bridge failed:', e && e.message ? e.message : e);
+    console.warn('[saju] 대운 브리지 실패:', e && e.message ? e.message : e);
   }
   return bazi;
 }

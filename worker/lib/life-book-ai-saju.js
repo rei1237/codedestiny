@@ -1,5 +1,7 @@
 import { LunarUtil, Solar } from "lunar-javascript";
 
+import { daeun } from "../../lib/korean-calendar/index.js";
+
 // 🔴 년주·월주의 절기 경계는 전부 코어에서 나온다. lunar-javascript 의 절기 시각은 **중국 표준시(CST)
 // 벽시계**라, 생시를 KST 벽시계로 넘기면 월건 경계가 정확히 60분 이르다.
 // 실측 2026-08-27: 節 경계 오프셋별 월주 불일치 −61분 0/72 · **−30분 72/72 · −1분 72/72** ·
@@ -588,36 +590,41 @@ function normalizeGenderCode(gender) {
 
 const SEXAGENARY_CYCLE = Array.from({ length: 60 }, (_, index) => `${STEMS[index % 10]}${BRANCHES[index % 12]}`);
 
-function buildMajorLuck({ eightChar, birthYear, currentYear, gender, dayMaster, pillarDetails, monthPillar }) {
+/**
+ * 대운. 🔴 순역·나이·간지 전부 한국 음양력 코어에서 나온다.
+ * 코어의 daeun() 은 lunar-javascript `getYun()` sect 1 을 **그대로 재현**한 것이라
+ * 관례는 안 바뀌고 節의 시간대만 KST 로 바뀐다(가드가 잔차 0 으로 증명한다).
+ */
+function buildMajorLuck({ birth, birthYear, currentYear, gender, dayMaster, pillarDetails, monthPillar }) {
   const genderCode = normalizeGenderCode(gender);
-  if (!eightChar || typeof eightChar.getYun !== "function") {
-    return { available: false, reason: "대운 계산용 EightChar 데이터가 없습니다." };
-  }
   if (genderCode === null) {
     return {
       available: false,
       reason: "성별 비공개 입력이어서 대운 순행·역행을 단정하지 않습니다.",
     };
   }
+  const yun = birth ? daeun(birth, { gender: genderCode === 1 ? "M" : "F" }) : null;
+  if (!yun) {
+    return { available: false, reason: "대운 계산에 필요한 생년월일시를 확인할 수 없습니다." };
+  }
 
-  const yun = eightChar.getYun(genderCode);
-  // 🔴 대운 간지는 cycle.getGanZhi() 가 아니라 **코어 월주**에서 파생한다(PR-D2 와 같은 이유).
-  // 그러지 않으면 節 직전 60분 창에서 월주는 코어를 따르는데 대운만 lunar-javascript 를 따라 갈린다.
-  // 나이·연도는 손대지 않는다 — 세는 나이/소수 나이가 섞인 축 정리는 PR-F 의 몫이다.
+  // 🔴 대운 간지는 **코어 월주**에서 파생한다(PR-D2 와 같은 이유) — 節 직전 60분 창에서
+  // 월주만 코어를 따르고 대운은 다른 프레임을 따르는 상태를 만들지 않기 위해서다.
+  // 나이 축은 그대로 **세는 나이 정수**다(daeun 머리말 참고).
   const monthCycleIndex = SEXAGENARY_CYCLE.indexOf(clean(monthPillar, 10));
-  const cycleStep = yun.isForward?.() ? 1 : -1;
-  const cycles = (yun.getDaYun?.() || []).slice(0, 10).map((cycle, index) => {
-    const rowIndex = Number(cycle.getIndex?.());
+  const cycleStep = yun.forward ? 1 : -1;
+  const cycles = yun.cycles.slice(0, 10).map((cycle, index) => {
+    const rowIndex = Number(cycle.index);
     const pillar = Number.isFinite(rowIndex) && rowIndex >= 1 && monthCycleIndex >= 0
       ? SEXAGENARY_CYCLE[(monthCycleIndex + cycleStep * rowIndex + 6000) % 60]
-      : clean(cycle.getGanZhi?.(), 10);
+      : "";
     const branch = pillarBranch(pillar);
-    const startYear = Number(cycle.getStartYear?.() || 0);
-    const endYear = Number(cycle.getEndYear?.() || 0);
+    const startYear = Number(cycle.startYear || 0);
+    const endYear = Number(cycle.endYear || 0);
     return {
       index,
-      startAge: Number(cycle.getStartAge?.() || 0),
-      endAge: Number(cycle.getEndAge?.() || 0),
+      startAge: Number(cycle.startAge || 0),
+      endAge: Number(cycle.endAge || 0),
       startYear,
       endYear,
       pillar,
@@ -632,24 +639,26 @@ function buildMajorLuck({ eightChar, birthYear, currentYear, gender, dayMaster, 
     };
   });
 
-  const startSolar = yun.getStartSolar?.();
+  const s = yun.startSolar;
+  const startSolarDate = `${s.year}-${String(s.month).padStart(2, "0")}-${String(s.day).padStart(2, "0")}`;
   return {
     available: true,
-    direction: yun.isForward?.() ? "순행" : "역행",
+    direction: yun.forward ? "순행" : "역행",
     genderCode,
     startAfterBirth: {
-      years: Number(yun.getStartYear?.() || 0),
-      months: Number(yun.getStartMonth?.() || 0),
-      days: Number(yun.getStartDay?.() || 0),
-      hours: Number(yun.getStartHour?.() || 0),
+      years: Number(yun.start.years || 0),
+      months: Number(yun.start.months || 0),
+      days: Number(yun.start.days || 0),
+      // 🔴 sect 1 관례는 시(時) 단위를 안 낸다 — 시진으로 자르고 남는 것을 일로 환산한다.
+      hours: 0,
     },
-    startSolarDate: startSolar?.toYmd?.() || "",
-    startSolarDateTime: startSolar?.toYmdHms?.() || "",
+    startSolarDate,
+    startSolarDateTime: `${startSolarDate} 00:00:00`,
     currentYear: Number(currentYear),
     currentAgeKoreanStyle: Number(currentYear) - Number(birthYear) + 1,
     currentCycle: cycles.find((cycle) => cycle.isCurrent) || null,
     cycles,
-    calculationBasis: "대운 순·역행과 나이는 lunar-javascript EightChar.getYun(gender), 간지는 한국 음양력 코어 월주에서 파생",
+    calculationBasis: "대운 순·역행·나이는 한국 음양력 코어 daeun(KST 절기, lunar-javascript sect 1 관례 재현), 간지는 코어 월주에서 파생",
   };
 }
 
@@ -744,7 +753,18 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
   const seasonalBalance = buildSeasonalBalance(pillarBranch(monthPillar), fiveElements, dayMaster);
   const natalInteractions = buildNatalInteractions(pillarDetails);
   const relationSummary = summarizeRelations(natalInteractions);
-  const majorLuck = buildMajorLuck({ eightChar, birthYear: solar?.getYear?.() || birthDate.year, currentYear, gender: birthInfo.gender, dayMaster, pillarDetails, monthPillar });
+  const majorLuck = buildMajorLuck({
+    // 🔴 음력 입력이면 이미 코어가 환산한 양력이다(buildLunar). 대운은 그 양력 생시로 잰다.
+    birth: solar
+      ? { year: solar.getYear(), month: solar.getMonth(), day: solar.getDay(), hour: solar.getHour(), minute: solar.getMinute() }
+      : null,
+    birthYear: solar?.getYear?.() || birthDate.year,
+    currentYear,
+    gender: birthInfo.gender,
+    dayMaster,
+    pillarDetails,
+    monthPillar,
+  });
   const yearlyLuck = buildYearlyLuck({ startYear: currentYear, dayMaster, birthYear: solar?.getYear?.() || birthDate.year, majorLuck, pillarDetails });
   const strength = judgeStrength(dayMaster, fiveElements);
   const usefulGod = usefulElement ? `${usefulElement} 기운을 보완 축으로 봅니다.` : "";

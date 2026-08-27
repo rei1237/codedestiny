@@ -374,6 +374,7 @@ for (const year of SAMPLE_YEARS) {
     ["scripts/verify-korean-calendar-solar-terms.mjs", "코어와 대조하는 가드 자신 — 대조 대상이라 남아야 한다"],
     ["scripts/verify-saju-solar-term-core.mjs", "이 파일. 위 목록의 문자열이 자기 자신에 잡힌다"],
     ["scripts/verify-shell-korean-calendar.mjs", "정적 셸을 코어와 대조하는 가드 — 대조 대상이라 남아야 한다"],
+    ["scripts/verify-daeun-korean-calendar.mjs", "대운 관례 재현을 lunar-javascript 와 대조하는 가드 — 대조 대상이라 남아야 한다"],
     ["scripts/test-saju-solar-term-regression.mjs", "회귀 대조 스크립트 — 대조 대상이라 남아야 한다"],
     ["scripts/lib/ziwei-engine-harness.cjs", "자미 하네스의 브라우저 전역 스텁"],
     ["scripts/ziwei-autotune-report.cjs", "미배선 튜닝 리포트"],
