@@ -1,8 +1,8 @@
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27
 
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
-> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D)까지 끝났다.
-> 남은 것은 **워커 EightChar 경계(PR-D2) · 나머지 소비자(PR-E) · lunar-javascript 제거(PR-F)** 다.
+> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2)까지 끝났다.
+> 남은 것은 **나머지 소비자(PR-E) · lunar-javascript 제거(PR-F)** 다.
 
 ## 0. 왜 하는 작업인가 — 사용자 요구 원문
 
@@ -38,7 +38,8 @@
 | **#1167** | 섬 별 설명 맵 정합(`록존`→`녹존`·`청양`→`경양`·천마/함지/천요 추가) + `verify:island-star-copy` | **머지됨** `deb2ff514` |
 | **#1170** | 이 문서를 담은 PR — 한국 음양력 코어 신설 | **머지됨** `cc22b4520` |
 | **#1176** | 자미두수 3엔진을 코어로 + 하드코딩 시드 3곳 제거 | **머지됨** `afd219b6f` |
-| **#1179** | 사주 절기 경계 5곳을 코어로 + 표 분 반올림 + `verify:saju-solar-term-core` | `feat/saju-korean-calendar` (base `afd219b6f`) |
+| **#1179** | 사주 절기 경계 5곳을 코어로 + 표 분 반올림 + `verify:saju-solar-term-core` | **머지됨** `8aa5da6d9` |
+| **#1181** | 워커 사주 년·월주를 코어로(월건 경계 60분 정정) + 가드 검사 ④ | `feat/worker-saju-korean-calendar` (base `8aa5da6d9`) |
 
 🔴 #1170 은 `.github/workflows/pr-ci.yml` 에서 한 번 충돌했다. #1167(섬 가드)과 이 PR(달력 가드 5종)이
 **같은 앵커(`run: npm run verify:ziwei-star-parity`) 뒤에** 각자 블록을 넣어서다. 의미 충돌이 아니므로
@@ -234,30 +235,59 @@ node scripts/verify-korean-calendar-divergence.mjs --explain 1980-01-01
 `npm run sitemap:generate` 를 돌려 `sitemap.xml`·`public/sitemap.xml`·`config/sitemap-lastmod.json` 을
 **같은 PR 에** 담아야 한다. 실패는 `Typecheck and lint` 라는 이름으로 오므로 `--log-failed` 로 스텝을 먼저 볼 것.
 
-### 🔴 PR-D2 — 워커 사주 엔진의 EightChar 경계 — **여기서부터 남았다**
+### 🟢 PR-D2 — 워커 사주 엔진의 EightChar 경계 (끝)
 
-`worker/lib/destiny-bias-engine.js` 는 년주·월주를 lunar-javascript `EightChar` 로 잡는다
-(`eightCharClock.getYearGan()` / `getMonthGan()`). 그 라이브러리는 생시를 CST 벽시계로 보고
-절기도 CST 벽시계로 비교하므로, **KST 로는 월건 경계가 정확히 60분 이르다.**
+브랜치 `feat/worker-saju-korean-calendar`, base `8aa5da6d9`, **PR #1181**.
 
-실측(2026-08-27, 1960~2030 節 경계 ±150분 창 13,632건, `formatPillar(...,"hanja")` 로 표기 축을 맞춰 비교):
+`worker/lib/destiny-bias-engine.js` 가 년주·월주를 lunar-javascript `EightChar` 로 잡고 있었다.
+그 라이브러리는 생시도 절기도 CST 벽시계로 보므로 **KST 로는 월건 경계가 정확히 60분 일렀다.**
 
-| 항목 | 값 |
+실측(2026-08-27, 1960~2030 節 경계 ±150분 창 13,632건, 표기 축을 한자로 맞춰 비교):
+월주 불일치 **5,553건(40.74%)** · 년주 불일치 **459건(3.37%)** — 전부 오프셋 `-60`~`-1`분 구간.
+각 節 직전 60분에 태어난 사람이 월건을 한 칸 밀린 채로 받고 있었다(입춘이면 세차까지).
+
+| 대상 | 한 것 |
 |---|---|
-| 월주 불일치 | **5,553건(40.74%)** — 전부 오프셋 `-60`~`-1`분 구간 |
-| 년주 불일치 | **459건(3.37%)** — 입춘 구간 |
-| 갈리는 창 | 각 節 직전 **60분** |
+| 년주·월주 | `ganji()` 로. 표기는 그 파일의 기존 한자 알파벳. 범위 밖이면 **던진다**(입력은 이미 1900~2100 클램프) |
+| `previousMajorTerm`·`nextMajorTerm`·`monthBoundaryTerm`·`ipchun` | CST 벽시계를 `dateTimeKst` 라는 **이름으로** 실어 보내고 있었다. 코어의 KST 절기표로 |
+| 대운 기운 나이 | CST 절기 − KST 생시를 그대로 빼서 최대 60분(≈5일) 어긋나 있었다. 양쪽 다 KST 순간으로 |
+| 대운 간지 목록 | **코어 월주에서 파생.** 안 그러면 60분 창에서 월주만 코어를 따르고 대운은 갈린다 |
+| 삭제 | `normalizeSolarTermName`·`getSolarTermFromTable`·`toSolarTermSummary`·`solarToUtcMs`(3면 grep: 파일 밖 참조 0) |
+| `verify:saju-solar-term-core` | 검사 ④ 신설. 검사 39건 → **41건** |
 
-🔴 PR-D 이후 **워커만 다른 경계를 쓴다.** 셸·앱 두 엔진은 코어를 따르고 워커만 1시간 이르다.
-`verify:hour-pillar-parity` 는 시주·일주만 보므로 이걸 못 잡는다 — 그 가드에 월주·년주를 더하는 것이
-가장 싼 회귀망이다.
+#### 🔴 대운 나이 관례는 일부러 안 건드렸다 — 다음 사람이 판단할 것
 
-같은 EightChar 경로를 쓰는 곳이 더 있다(전수, 2026-08-27 `git grep "getEightChar"`):
+실측(1960~2020 표본 2,304건): `getYun()` 의 **간지 목록은 월주 순/역행과 전건 동일**하다.
+그러나 **나이는 축이 다르다** — `getYun().getStartAge()` 는 **세는 나이 정수(1부터)** 이고
+`buildDaewoonFromCore` 의 `startAgeYearsDecimalByDiff` 는 **0부터의 소수 나이**라 최대 **12년** 벌어진다
+(1964-09-07 22:59 여: getYun 12세 vs 워커 0세).
+
+🔴 그래서 한 응답 안에 두 축이 섞여 있다 — `displayText` 는 소수 나이, `list[].startAgeDisplay` 는 세는 나이.
+**이 PR 이전부터 있던 결함**이고, 어느 쪽으로 통일하든 화면의 대운 나이가 크게 움직이므로 여기서 정하지 않았다.
+PR-F 로 `getYun` 을 지울 때 반드시 같이 결정해야 한다 — 핸드오프가 경고한 "절사 관례" 가 이것이다.
+
+#### 검사 ④ 가 보는 것
+
+節 경계 ±61·30·1분에서 **워커와 앱 두 엔진을 실제로 돌려** 년주·월주가 코어와 같은지 본다
+(표본 3개 연도 × 12節 × 6오프셋 = 216건). 경계 그 분(±0)은 일부러 뺐다 — 표가 분 해상도라
+그 1분은 어느 쪽으로도 읽힐 수 있고, 잡아야 할 것은 "경계가 60분 밀렸는가" 다.
+음성 테스트: 두 줄을 옛 `eightCharClock.getYearGan()/getMonthGan()` 으로 되돌리면 즉시 빨간불.
+
+🔴 `verify:hour-pillar-parity` 는 **시주·일주만** 대조한다. 이 결함이 안 보였던 이유가 그것이다.
+
+#### 🔴 이 PR 이 남기는 것 — 아직 EightChar 로 절기 프레임을 잡는 곳
+
+전수(2026-08-27 `git grep "getEightChar"`):
 `js/saju-engine.js:1275` · `js/luck-sync-diary.js:366,436` ·
 `js/saju-engine-tarot-sukuyo-quantum.js:3070,3077,6038,6062,16900,17549` · `js/core/kasi/calendar.js:234,243`(죽은 파일).
+셸의 메인 사주 경로는 `KasiCalendarService` 를 타므로 코어를 따르지만, 위 파일들은 별도다.
 
-🔴 **대운(`getYun`)이 같은 객체에 얽혀 있다.** 년·월주만 코어로 바꾸고 대운을 그대로 두면 한 결과 안에서
-두 프레임이 섞인다. PR-F 의 대운 포팅과 **함께 계획**할 것 — 순서를 정하기 전에 사용자에게 물어라.
+#### 🔴 신규 발견(미조치) — 셸의 세차가 비KST 브라우저에서 어긋난다
+
+`js/core/kasi-calendar-service.js` 의 `_yearGanjiFromIpchun` 은 입춘을 `atLocal + '+09:00'` 로
+**절대시각**으로 파싱해 놓고, 브라우저 로컬 시각으로 만들어진 `solarDate.getTime()` 과 비교한다.
+브라우저 타임존이 KST 가 아니면 그 비교가 최대 시차만큼 어긋나 입춘 경계 판정이 틀린다.
+CST 문제와는 다른 축(브라우저 타임존)이라 이번 범위 밖으로 뒀다. **재현은 `TZ=UTC` 로 셸 서비스를 평가하면 된다.**
 
 ### PR-E — 나머지 소비자
 
