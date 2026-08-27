@@ -894,11 +894,15 @@ function _sibylText(key) {
         if (fromFn) return fromFn;
       }
     } catch (_) {}
+    /* 위 getMonthGanZhi(사주 엔진)가 없을 때의 폴백. 🔴 예전에는 lunar-javascript EightChar 이었는데
+       그것은 중국 표준시(UTC+8) 기준이라 절기가 CST 23시대에 든 해에서 월건 경계가 하루 어긋난다.
+       한국 음양력 코어는 사주 엔진이 쓰는 것과 같은 KST 절기표라 두 경로의 답이 같아진다.
+       근거: docs/handoff/korean-calendar-migration-2026-08-27.md */
     try {
-      if (typeof Solar !== 'undefined' && Solar && typeof Solar.fromYmdHms === 'function') {
-        var s = Solar.fromYmdHms(year, month, 15, 12, 0, 0);
-        var ec = s.getLunar().getEightChar();
-        return { g: ec.getMonthGan(), j: ec.getMonthZhi() };
+      var core = (typeof window !== 'undefined' && window.KoreanCalendar) || null;
+      if (core && typeof core.ganji === 'function') {
+        var gz = core.ganji({ year: year, month: month, day: 15, hour: 12, minute: 0 });
+        if (gz) return { g: core.STEM_HANJA[gz.month.stemIndex], j: core.BRANCH_HANJA[gz.month.branchIndex] };
       }
     } catch (_) {}
 

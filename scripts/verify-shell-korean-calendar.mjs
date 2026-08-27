@@ -1,0 +1,449 @@
+#!/usr/bin/env node
+/**
+ * 정적 셸 달력 단일 출처 가드 — "셸의 간지도 한국 음양력 코어 하나에서만 나온다".
+ *
+ *   node scripts/verify-shell-korean-calendar.mjs [--report]
+ *
+ * 🔴 LLM 실호출 없음. 네트워크 없음. DB 없음.
+ *
+ * ── 왜 별도 가드인가 ────────────────────────────────────────────────────────
+ * `verify:saju-solar-term-core` 와 `verify:lunar-conversion-core` 는 **소스 스캔 + 모듈 실행**이다.
+ * 정적 셸(`js/saju-engine.js` 등)은 ESM 이 아니라 브라우저 전역에 얹히는 한 덩어리 스크립트라
+ * import 수준 검사로는 값을 못 본다 — PR-E2 가 정확히 그렇게 셸을 놓쳤다.
+ * 그래서 여기서는 `scripts/lib/ziwei-engine-harness.cjs` 의 DOM 부트스트랩으로 셸을 **실제로
+ * 평가하고** 함수를 불러 값을 대조한다.
+ *
+ * ── 이 가드가 보는 것 ───────────────────────────────────────────────────────
+ *   ① 셸 3벌이 **lunar-javascript 전역 없이** 평가되고 간지 함수가 살아난다.
+ *      🔴 이것이 이 가드의 핵심이다. `global.Solar`/`global.Lunar` 를 지운 채 평가하므로,
+ *      누가 셸에 EightChar 를 되살리면 그 경로가 조용한 폴백이 아니라 **여기서 터진다.**
+ *   ② 절기 프레임이 실제로 갈리는 표본을 **찾는다**(손으로 안 적는다). 0 이면 실패한다.
+ *   ③~⑥ 셸의 간지 함수 4벌이 그 표본에서 코어와 같은 값을 낸다.
+ *   ⑦ `calcZiweiPalaces` 가 lunar-javascript 없이 돈다(자미 축이 셸에서 코어만으로 닫힌다).
+ *   ⑧ `js/luck-sync-diary.js` 가 야자시 정책을 **명시적으로** 넘긴다 — 그 파일은 KasiEngine 을
+ *      `{ yaja: false }` 로 부르므로 코어 기본값(shift-day)으로 부르면 23시대 일진만 하루 밀린다.
+ *      문자열 매칭이 아니라 그 함수를 꺼내 **실행하고** 넘어온 인자를 관찰한다.
+ *   ⑨ `js/sibyl-system.js` 의 월건 폴백이 코어와 같다(같은 방식으로 실행 관찰).
+ */
+import fs from "node:fs";
+import path from "node:path";
+import vm from "node:vm";
+import { createRequire } from "node:module";
+import { fileURLToPath } from "node:url";
+
+import { Solar } from "lunar-javascript";
+
+import {
+  BRANCH_HANJA,
+  NIGHT_ZI_POLICY,
+  STEM_HANJA,
+  formatPillar,
+  ganji,
+  nodeTerms,
+} from "../lib/korean-calendar/index.js";
+
+const require = createRequire(import.meta.url);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const root = path.resolve(__dirname, "..");
+const REPORT = process.argv.includes("--report");
+
+const failures = [];
+let checks = 0;
+function ok(label, condition, detail = "") {
+  checks += 1;
+  if (!condition) failures.push(`${label}${detail ? `\n      ${detail}` : ""}`);
+  else if (REPORT) console.log(`  ok  ${label}`);
+}
+
+const pad2 = (v) => String(v).padStart(2, "0");
+const stamp = (s) => `${s.year}-${pad2(s.month)}-${pad2(s.day)} ${pad2(s.hour)}:${pad2(s.minute)}`;
+
+/** 코어의 4기둥을 셸과 같은 한자 표기로. */
+function corePillars(at, options) {
+  const gz = ganji(at, options || {});
+  if (!gz) return null;
+  return {
+    year: formatPillar(gz.year.stemIndex, gz.year.branchIndex, "hanja"),
+    month: formatPillar(gz.month.stemIndex, gz.month.branchIndex, "hanja"),
+    day: formatPillar(gz.day.stemIndex, gz.day.branchIndex, "hanja"),
+    hour: formatPillar(gz.hour.stemIndex, gz.hour.branchIndex, "hanja"),
+  };
+}
+
+/** lunar-javascript(중국 표준시 프레임)의 같은 4기둥. 대조용이지 정답이 아니다. */
+function cstPillars(at) {
+  const ec = Solar.fromYmdHms(at.year, at.month, at.day, at.hour, at.minute, 0).getLunar().getEightChar();
+  return { year: ec.getYear(), month: ec.getMonth(), day: ec.getDay(), hour: ec.getTime() };
+}
+
+// ── ② 밴드 안 표본 — 손으로 날짜를 적지 않는다 ──────────────────────────────
+//
+// 절(節)은 KST 시각으로 표에 있고, lunar-javascript 는 같은 순간을 CST 벽시계(=60분 이른 값)로
+// 본다. 그래서 절입 **직전 30분**은 두 프레임이 서로 다른 달을 가리키는 구간이다.
+// 그 구간을 찾아서 표본으로 쓴다 — 밴드가 움직이면 표본도 따라 움직인다.
+function findFrameDivergent(limit) {
+  const found = [];
+  for (let year = 1950; year <= 2030 && found.length < limit; year += 1) {
+    const nodes = nodeTerms(year) || [];
+    for (const term of nodes) {
+      if (found.length >= limit) break;
+      const minuteOfDay = term.hour * 60 + term.minute;
+      if (minuteOfDay < 40) continue; // 자정을 넘겨 전날로 가면 날짜 조립이 번거로워진다
+      const probeMinutes = minuteOfDay - 30;
+      const at = {
+        year: term.year,
+        month: term.month,
+        day: term.day,
+        hour: Math.floor(probeMinutes / 60),
+        minute: probeMinutes % 60,
+      };
+      const core = corePillars(at);
+      const cst = cstPillars(at);
+      if (!core) continue;
+      if (core.year === cst.year && core.month === cst.month) continue;
+      found.push({ at, core, cst, termIndex: term.index });
+    }
+  }
+  return found;
+}
+
+const ALL_DIVERGENT = findFrameDivergent(4000);
+// 해를 흩어서 고른다 — 한 해에 몰리면 한 절기만 보게 된다.
+const SAMPLES = ALL_DIVERGENT.filter((_, index) => index % 37 === 0).slice(0, 24);
+
+ok(
+  "② 절기 프레임이 갈리는 표본을 실제로 찾았다(0 이면 가드가 깨진 것)",
+  SAMPLES.length >= 10,
+  `${ALL_DIVERGENT.length}건 중 표본 ${SAMPLES.length}건`,
+);
+
+// ── ① 셸을 lunar-javascript 전역 없이 평가한다 ──────────────────────────────
+//
+// 🔴 하네스의 bootstrapDom 을 그대로 쓴다(DOM 스텁이 두 벌로 갈리는 것을 막는 이유는 그 파일
+// 머리말에 있다). 다만 그것이 심어 주는 global.Solar/global.Lunar 는 **지운다** — 이 가드의
+// 요점이 "셸이 그 라이브러리 없이 돈다" 이기 때문이다.
+const SHELL_SCRIPTS = [
+  "js/core/korean-calendar.js",
+  "js/saju-engine.js",
+  "js/saju-engine-tarot-sukuyo-quantum.js",
+];
+
+let evalError = null;
+try {
+  const harness = require(path.join(root, "scripts/lib/ziwei-engine-harness.cjs"));
+  harness.bootstrapDom();
+  delete globalThis.Solar;
+  delete globalThis.Lunar;
+  for (const relative of SHELL_SCRIPTS) {
+    const abs = path.join(root, relative);
+    vm.runInThisContext(fs.readFileSync(abs, "utf8"), { filename: abs });
+  }
+} catch (err) {
+  evalError = err;
+}
+
+ok(
+  "① 정적 셸이 lunar-javascript 전역 없이 평가된다",
+  !evalError,
+  evalError ? String(evalError && evalError.message ? evalError.message : evalError) : "",
+);
+ok(
+  "① 평가 뒤에도 lunar-javascript 전역이 살아나지 않았다",
+  typeof globalThis.Solar === "undefined" && typeof globalThis.Lunar === "undefined",
+  `Solar=${typeof globalThis.Solar} · Lunar=${typeof globalThis.Lunar}`,
+);
+
+const shellFns = {
+  getGanZhiForDate: globalThis.getGanZhiForDate,
+  getMonthGanZhi: globalThis.getMonthGanZhi,
+  buildGanjiRepairCandidate: globalThis.buildGanjiRepairCandidate,
+  _calculateMonthBranchBySolarTerm: globalThis._calculateMonthBranchBySolarTerm,
+  calcZiweiPalaces: globalThis.calcZiweiPalaces,
+};
+const missingFns = Object.keys(shellFns).filter((name) => typeof shellFns[name] !== "function");
+ok("① 셸의 간지 함수 5벌이 전역에 살아 있다", missingFns.length === 0, missingFns.join(", "));
+
+if (!missingFns.length) {
+  // ── ③ buildGanjiRepairCandidate — KASI 두 경로가 죽었을 때의 마지막 안전망 ──
+  //
+  // 하네스에는 KasiCalendarService 도 검증된 절기표도 없으므로 이 호출은 반드시 마지막
+  // 폴백까지 내려간다. 즉 여기서 보는 것이 정확히 "KASI 가 죽은 순간의 셸" 이다.
+  {
+    const rows = [];
+    let cstDiff = 0;
+    for (const sample of SAMPLES) {
+      const { at, core, cst } = sample;
+      const date = new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0);
+      const got = shellFns.buildGanjiRepairCandidate(date) || {};
+      if (core.year !== cst.year || core.month !== cst.month) cstDiff += 1;
+      if (got.year !== core.year || got.month !== core.month || got.day !== core.day || got.hour !== core.hour) {
+        const which = (got.year === cst.year && got.month === cst.month) ? " ← 중국 음력 프레임" : "";
+        rows.push(`${stamp(at)} 코어 ${core.year}/${core.month}/${core.day}/${core.hour} · 셸 ${got.year}/${got.month}/${got.day}/${got.hour}${which}`);
+      }
+    }
+    ok("③ 표본이 실제로 두 프레임을 가른다(0 이면 표본이 무의미하다)", cstDiff === SAMPLES.length, `${cstDiff}/${SAMPLES.length}건`);
+    ok("③ buildGanjiRepairCandidate 의 4기둥이 코어와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+  }
+
+  // ── ④ _calculateMonthBranchBySolarTerm — 월지 하나 ────────────────────────
+  {
+    const rows = [];
+    for (const sample of SAMPLES) {
+      const { at, core, cst } = sample;
+      const date = new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0);
+      const got = shellFns._calculateMonthBranchBySolarTerm(date);
+      if (got !== core.month.charAt(1)) {
+        const which = got === cst.month.charAt(1) ? " ← 중국 음력 프레임" : "";
+        rows.push(`${stamp(at)} 코어 ${core.month.charAt(1)} · 셸 ${got}${which}`);
+      }
+    }
+    ok("④ _calculateMonthBranchBySolarTerm 의 월지가 코어와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+  }
+
+  // ── ⑤ getMonthGanZhi — 셸 전체의 월운 원천(js/share.js·js/sibyl-system.js 도 여기를 부른다) ──
+  //
+  // 인자가 (연, 월)뿐이라 절입 경계는 못 찌른다. 대신 1950~2030 전 구간의 매월을 훑어
+  // 코어와 전건 대조한다. 이 축은 15일 정오 조회라 두 프레임의 답이 원래 같아야 정상이고,
+  // 다르면 그것 자체가 결함이다.
+  {
+    const rows = [];
+    let probes = 0;
+    for (let year = 1950; year <= 2030; year += 1) {
+      for (let month = 1; month <= 12; month += 1) {
+        const core = corePillars({ year, month, day: 15, hour: 12, minute: 0 });
+        const got = shellFns.getMonthGanZhi(year, month);
+        probes += 1;
+        if (!got || got.g + got.j !== core.month) {
+          rows.push(`${year}-${pad2(month)} 코어 ${core.month} · 셸 ${got ? got.g + got.j : "null"}`);
+        }
+      }
+    }
+    ok("⑤ getMonthGanZhi 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", probes >= 900, `표본 ${probes}건`);
+    ok("⑤ getMonthGanZhi 가 코어 월건과 전건 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+  }
+
+  // ── ⑥ getGanZhiForDate — 일진. 🔴 23시대(야자시)를 반드시 포함한다 ─────────
+  //
+  // 🔴 이 함수의 야자시 축은 **keep-day** 다. 셸에는 야자시 정책이 두 개 있고 이 함수는
+  // "오늘 일진" 쪽이다 — 그 값을 덮어쓰는 KASI 경로(KasiCalendarService.computeGanjiFromDate)가
+  // 날짜를 밀지 않고, lunar-javascript EightChar 의 기본 유파(sect 2)도 같은 값이었다.
+  // 그래서 이 검사는 "코어 keep-day 와 같고, **lunar-javascript 와도 값이 안 움직였다**" 를 본다.
+  // 출생 원국의 일주(_cdCivilDayPillar)는 반대인 shift-day 다 — 아래 ⑥-b 가 그 축을 따로 본다.
+  {
+    const rows = [];
+    const movedRows = [];
+    let probes = 0;
+    let nightProbes = 0;
+    let policySplit = 0;
+    for (let year = 1950; year <= 2030; year += 3) {
+      for (let month = 1; month <= 12; month += 1) {
+        for (const day of [1, 9, 17, 25]) {
+          for (const hour of [0, 12, 23]) {
+            const at = { year, month, day, hour, minute: 30 };
+            const keepDay = corePillars(at, { nightZiPolicy: NIGHT_ZI_POLICY.KEEP_DAY });
+            const shiftDay = corePillars(at, { nightZiPolicy: NIGHT_ZI_POLICY.SHIFT_DAY });
+            const got = shellFns.getGanZhiForDate(year, month, day, hour);
+            probes += 1;
+            if (hour === 23) {
+              nightProbes += 1;
+              if (keepDay.day !== shiftDay.day) policySplit += 1;
+            }
+            if (!got || got.g + got.j !== keepDay.day) {
+              rows.push(`${stamp(at)} 코어(keep-day) ${keepDay.day} · 셸 ${got ? got.g + got.j : "null"} · shift-day ${shiftDay.day}`);
+            }
+            // 이관 전 값(lunar-javascript EightChar)과 한 글자도 달라지면 안 된다.
+            if (got && got.g + got.j !== cstPillars(at).day) {
+              movedRows.push(`${stamp(at)} 셸 ${got.g + got.j} · 이관 전 ${cstPillars(at).day}`);
+            }
+          }
+        }
+      }
+    }
+    ok("⑥ getGanZhiForDate 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", probes >= 3000, `표본 ${probes}건`);
+    ok("⑥ 23시대 표본이 두 야자시 정책을 실제로 가른다(0 이면 검사가 무의미하다)", policySplit === nightProbes && nightProbes > 0, `${policySplit}/${nightProbes}건`);
+    ok("⑥ getGanZhiForDate 가 코어 일진(keep-day)과 전건 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+    ok("⑥ 이관으로 값이 움직이지 않았다(lunar-javascript 와 전건 같다)", movedRows.length === 0, movedRows.slice(0, 10).join("\n      "));
+  }
+
+  // ── ⑥-b 출생 원국 축 — 마지막 안전망이 셸의 정본 규칙과 같은 야자시를 쓴다 ──
+  //
+  // buildGanjiRepairCandidate 는 KASI 두 경로가 모두 죽었을 때만 도는 자리다. 그 값이
+  // _cdCivilDayPillar(셸이 원국 일주로 쓰는 정본, shift-day)와 어긋나면 KASI 가 죽는 동안에만
+  // 일주가 하루 다른 결과가 나온다 — 화면도 콘솔도 조용하다.
+  // 🔴 예전에는 여기가 lunar-javascript 였고, 그 라이브러리는 23시대에 **일주는 안 밀고 시주만
+  // 미는** 혼종이었다(sect 2). 그래서 이관 전 이 자리는 자기 자신과도 어긋나 있었다.
+  {
+    const civilDayPillar = globalThis._cdCivilDayPillar;
+    const hourFromDayStem = globalThis._cdHourPillarFromDayStem;
+    ok(
+      "⑥-b 셸의 정본 일주·시주 헬퍼가 전역에 있다",
+      typeof civilDayPillar === "function" && typeof hourFromDayStem === "function",
+      `_cdCivilDayPillar=${typeof civilDayPillar} · _cdHourPillarFromDayStem=${typeof hourFromDayStem}`,
+    );
+    if (typeof civilDayPillar === "function" && typeof hourFromDayStem === "function") {
+      const rows = [];
+      let nightProbes = 0;
+      for (let year = 1950; year <= 2030; year += 3) {
+        for (const [month, day] of [[1, 9], [5, 17], [9, 25]]) {
+          const at = { year, month, day, hour: 23, minute: 30 };
+          nightProbes += 1;
+          const got = shellFns.buildGanjiRepairCandidate(new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0)) || {};
+          const canonicalDay = civilDayPillar(at.year, at.month, at.day, at.hour);
+          const canonicalHour = hourFromDayStem(canonicalDay.g, at.hour);
+          if (got.day !== canonicalDay.g + canonicalDay.j || got.hour !== canonicalHour.g + canonicalHour.j) {
+            rows.push(`${stamp(at)} 정본 ${canonicalDay.g + canonicalDay.j}/${canonicalHour.g + canonicalHour.j} · 셸 ${got.day}/${got.hour}`);
+          }
+        }
+      }
+      ok("⑥-b 23시대 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", nightProbes >= 60, `표본 ${nightProbes}건`);
+      ok("⑥-b 마지막 안전망의 일주·시주가 _cdCivilDayPillar 와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+    }
+  }
+
+  // ── ⑦ calcZiweiPalaces — 자미 축이 셸에서 코어만으로 닫힌다 ────────────────
+  {
+    let chart = null;
+    let err = null;
+    try {
+      globalThis.GENDER = "F";
+      chart = shellFns.calcZiweiPalaces(1997, 2, 10, 12, 0);
+    } catch (e) {
+      err = e;
+    }
+    ok(
+      "⑦ calcZiweiPalaces 가 lunar-javascript 없이 명반을 낸다",
+      !!(chart && chart.calcMeta),
+      err ? String(err && err.message ? err.message : err) : "명반이 비었다",
+    );
+    // 1997-02-10 은 이 작업의 발단이 된 날이다 — 한국 음력 1/3, 중국 음력 1/4.
+    ok(
+      "⑦ 1997-02-10 의 음력일이 한국 프레임(3일)이다",
+      !!chart && chart.calcMeta.lunarDay === 3,
+      `lunarDay=${chart ? chart.calcMeta.lunarDay : "?"}`,
+    );
+  }
+}
+
+// ── ⑧⑨ IIFE 안의 비공개 함수를 꺼내 실행한다 ───────────────────────────────
+//
+// 🔴 문자열 매칭으로 때우지 않는다. `js/luck-sync-diary.js` 는 `window.LuckSyncDiary` 에
+// open/close 만 내주므로 함수를 부를 길이 없다 — 그래서 소스에서 **중괄호 균형으로 잘라내**
+// 실제로 실행한다(CLAUDE.md 코딩 원칙 6 이 이름 grep 대신 쓰라고 한 그 방식이다).
+function extractFunctionSource(source, name) {
+  const marker = `function ${name}(`;
+  const start = source.indexOf(marker);
+  if (start < 0) return null;
+  const braceStart = source.indexOf("{", start);
+  if (braceStart < 0) return null;
+  let depth = 0;
+  for (let i = braceStart; i < source.length; i += 1) {
+    if (source[i] === "{") depth += 1;
+    else if (source[i] === "}") {
+      depth -= 1;
+      if (depth === 0) return source.slice(start, i + 1);
+    }
+  }
+  return null;
+}
+
+{
+  const source = fs.readFileSync(path.join(root, "js/luck-sync-diary.js"), "utf8");
+  const fnSource = extractFunctionSource(source, "_coreGanjiPillars");
+  ok("⑧ js/luck-sync-diary.js 에서 _coreGanjiPillars 를 잘라냈다", !!fnSource, "함수를 못 찾았다");
+
+  if (fnSource) {
+    const seen = [];
+    const spyWindow = {
+      KoreanCalendar: {
+        NIGHT_ZI_POLICY,
+        formatPillar,
+        STEM_HANJA,
+        BRANCH_HANJA,
+        ganji(at, options) {
+          seen.push({ at, options });
+          return ganji(at, options);
+        },
+      },
+    };
+    // eslint-disable-next-line no-new-func
+    const build = new Function("window", `${fnSource}\nreturn _coreGanjiPillars;`)(spyWindow);
+
+    // 23시대 — 야자시 정책이 갈리는 유일한 구간이다.
+    const at = { year: 2024, month: 3, day: 10, hour: 23, minute: 30 };
+    const got = build(at.year, at.month, at.day, at.hour, at.minute);
+    const keepDay = corePillars(at, { nightZiPolicy: NIGHT_ZI_POLICY.KEEP_DAY });
+    const shiftDay = corePillars(at, { nightZiPolicy: NIGHT_ZI_POLICY.SHIFT_DAY });
+
+    ok(
+      "⑧ _coreGanjiPillars 가 코어를 실제로 부른다",
+      seen.length === 1,
+      `호출 ${seen.length}회`,
+    );
+    ok(
+      "⑧ 야자시 정책을 명시적으로 넘긴다(기본값에 기대지 않는다)",
+      seen.length === 1 && seen[0].options && seen[0].options.nightZiPolicy === NIGHT_ZI_POLICY.KEEP_DAY,
+      `넘어온 값: ${seen.length ? JSON.stringify(seen[0].options) : "없음"}`,
+    );
+    ok(
+      "⑧ 23시대 일진이 keep-day 쪽이다(= KasiEngine { yaja:false } 와 같은 축)",
+      !!got && got.day === keepDay.day,
+      `셸 ${got ? got.day : "null"} · keep-day ${keepDay.day} · shift-day ${shiftDay.day}`,
+    );
+    // 두 정책이 실제로 다른 날짜를 가리키는 표본이어야 위 검사가 의미를 갖는다.
+    ok(
+      "⑧ 표본이 두 야자시 정책을 실제로 가른다",
+      keepDay.day !== shiftDay.day,
+      `keep-day ${keepDay.day} · shift-day ${shiftDay.day}`,
+    );
+  }
+}
+
+{
+  const source = fs.readFileSync(path.join(root, "js/sibyl-system.js"), "utf8");
+  const fnSource = extractFunctionSource(source, "_getMonthGanZhiFor");
+  ok("⑨ js/sibyl-system.js 에서 _getMonthGanZhiFor 를 잘라냈다", !!fnSource, "함수를 못 찾았다");
+
+  if (fnSource) {
+    // window.getMonthGanZhi(사주 엔진)를 일부러 비워 **폴백 경로**를 강제한다.
+    const spyWindow = { KoreanCalendar: { ganji, STEM_HANJA, BRANCH_HANJA } };
+    // 마지막 안전망(하드코딩 월지 표)이 불리면 그 사실이 드러나도록 던지게 둔다.
+    const stubs = {
+      _normalizeGanZhiPair: () => null,
+      _getYearGanZhi: () => { throw new Error("마지막 안전망까지 내려갔다 — 코어 폴백이 안 물렸다"); },
+    };
+    // eslint-disable-next-line no-new-func
+    const build = new Function(
+      "window",
+      "_normalizeGanZhiPair",
+      "_getYearGanZhi",
+      `${fnSource}\nreturn _getMonthGanZhiFor;`,
+    )(spyWindow, stubs._normalizeGanZhiPair, stubs._getYearGanZhi);
+
+    const rows = [];
+    for (let year = 1950; year <= 2030; year += 7) {
+      for (let month = 1; month <= 12; month += 1) {
+        const core = corePillars({ year, month, day: 15, hour: 12, minute: 0 });
+        let got = null;
+        try {
+          got = build(year, month);
+        } catch (err) {
+          rows.push(`${year}-${pad2(month)} ${err && err.message ? err.message : err}`);
+          continue;
+        }
+        if (!got || got.g + got.j !== core.month) {
+          rows.push(`${year}-${pad2(month)} 코어 ${core.month} · 셸 ${got ? got.g + got.j : "null"}`);
+        }
+      }
+    }
+    ok("⑨ 시빌 월건 폴백이 코어와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+  }
+}
+
+if (failures.length) {
+  console.error(`[verify:shell-korean-calendar] 실패 ${failures.length}건 / 검사 ${checks}건`);
+  for (const failure of failures) console.error(`  ✗ ${failure}`);
+  process.exit(1);
+}
+console.log(
+  `[verify:shell-korean-calendar] OK — 검사 ${checks}건 · 프레임이 갈리는 날 ${ALL_DIVERGENT.length}건 중 표본 ${SAMPLES.length}건`,
+);

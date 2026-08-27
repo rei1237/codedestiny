@@ -922,6 +922,46 @@ function _koreanCalendar() {
   return core;
 }
 
+/**
+ * 코어 간지를 lunar-javascript EightChar 과 같은 표면으로 감싼다.
+ *
+ * 🔴 EightChar 을 **값의 원천으로** 쓰던 자리만 대신한다. 대운(getYun/getDaYun)은 아직
+ * lunar-javascript 다 — 기운 나이의 절사 관례를 재현하는 것이 별도 작업이라 미뤘고,
+ * 그 축이 필요한 자리는 attachKasiDaewunBridge 가 따로 붙인다.
+ *
+ * 야자시(23시대 일진)는 코어 기본값 shift-day 이고, 이는 lunar-javascript 의 기본 유파(晚子時=익일)와 같다.
+ * 바뀌는 것은 **세차·월건을 어느 나라 시간의 절기로 가르느냐** 하나다 — 이제 KST 절기표가 가른다.
+ * 근거·실측: docs/handoff/korean-calendar-migration-2026-08-27.md
+ */
+function _coreEightChar(year, month, day, hour, minute, options) {
+  var core = _koreanCalendar();
+  var gz = core.ganji({
+    year: year,
+    month: month,
+    day: day,
+    hour: Number(hour) || 0,
+    minute: Number(minute) || 0
+  }, options || {});
+  if (!gz) {
+    throw new Error('한국 음양력 코어가 답하지 못했다 — 지원 범위 밖 (' + year + '-' + month + '-' + day + ')');
+  }
+  var S = core.STEM_HANJA, B = core.BRANCH_HANJA;
+  return {
+    getYearGan:  function() { return S[gz.year.stemIndex]; },
+    getYearZhi:  function() { return B[gz.year.branchIndex]; },
+    getMonthGan: function() { return S[gz.month.stemIndex]; },
+    getMonthZhi: function() { return B[gz.month.branchIndex]; },
+    getDayGan:   function() { return S[gz.day.stemIndex]; },
+    getDayZhi:   function() { return B[gz.day.branchIndex]; },
+    getTimeGan:  function() { return S[gz.hour.stemIndex]; },
+    getTimeZhi:  function() { return B[gz.hour.branchIndex]; },
+    getYear:  function() { return core.formatPillar(gz.year.stemIndex, gz.year.branchIndex, 'hanja'); },
+    getMonth: function() { return core.formatPillar(gz.month.stemIndex, gz.month.branchIndex, 'hanja'); },
+    getDay:   function() { return core.formatPillar(gz.day.stemIndex, gz.day.branchIndex, 'hanja'); },
+    getTime:  function() { return core.formatPillar(gz.hour.stemIndex, gz.hour.branchIndex, 'hanja'); }
+  };
+}
+
 function _getPatchedSolarToLunar(y, m, d) {
   var key = _kasiSolarKey(y, m, d);
   var row = _kasiLocalPatchStore && _kasiLocalPatchStore.solarToLunar ? _kasiLocalPatchStore.solarToLunar[key] : null;
@@ -1255,34 +1295,27 @@ function buildGanjiRepairCandidate(date, terms24) {
   }
 
   /* 한글 주석:
-     위 두 경로가 모두 비는 경우에만 lunisolar 라이브러리의 팔자를 마지막 안전망으로 사용한다.
-     기존 KASI 기준 우선순서는 유지하고, 누락된 필드만 최소 보충한다. */
-  if (
-    (!candidate || !candidate.year || !candidate.month || !candidate.day || !candidate.hour) &&
-    typeof Solar !== 'undefined' &&
-    typeof Solar.fromYmdHms === 'function'
-  ) {
+     위 두 경로가 모두 비는 경우에만 한국 음양력 코어의 간지를 마지막 안전망으로 사용한다.
+     기존 KASI 기준 우선순서는 유지하고, 누락된 필드만 최소 보충한다.
+     🔴 예전에는 이 자리가 lunar-javascript EightChar 이었다. 그 라이브러리는 중국 표준시(UTC+8)
+     기준이라, 위 두 경로가 죽은 순간에만 다른 프레임의 세차·월건이 조용히 섞여 들어왔다. */
+  if (!candidate || !candidate.year || !candidate.month || !candidate.day || !candidate.hour) {
     try {
-      var solar = Solar.fromYmdHms(
+      var baZi = _coreEightChar(
         date.getFullYear(),
         date.getMonth() + 1,
         date.getDate(),
         date.getHours(),
-        date.getMinutes(),
-        date.getSeconds()
+        date.getMinutes()
       );
-      var lunar = solar && solar.getLunar ? solar.getLunar() : null;
-      var baZi = lunar && lunar.getEightChar ? lunar.getEightChar() : null;
-      if (baZi) {
-        candidate = Object.assign({}, candidate || {}, {
-          year: (candidate && candidate.year) || (typeof baZi.getYear === 'function' ? baZi.getYear() : null),
-          month: (candidate && candidate.month) || (typeof baZi.getMonth === 'function' ? baZi.getMonth() : null),
-          day: (candidate && candidate.day) || (typeof baZi.getDay === 'function' ? baZi.getDay() : null),
-          hour: (candidate && candidate.hour) || (typeof baZi.getTime === 'function' ? baZi.getTime() : null)
-        });
-      }
-    } catch (solarErr) {
-      console.warn('[KASI] solar ganji repair failed:', solarErr && solarErr.message ? solarErr.message : solarErr);
+      candidate = Object.assign({}, candidate || {}, {
+        year: (candidate && candidate.year) || baZi.getYear(),
+        month: (candidate && candidate.month) || baZi.getMonth(),
+        day: (candidate && candidate.day) || baZi.getDay(),
+        hour: (candidate && candidate.hour) || baZi.getTime()
+      });
+    } catch (coreErr) {
+      console.warn('[KASI] core ganji repair failed:', coreErr && coreErr.message ? coreErr.message : coreErr);
     }
   }
 
@@ -2967,10 +3000,19 @@ window.computeProfileForModal = function(profile) {
   if (typeof setGender === 'function') setGender(profile.gender || 'F');
   GENDER = profile.gender || 'F';
 
-  if (typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return false;
   try {
-    var solar = Solar.fromYmdHms(corrYear, corrMonth, corrDay, corrH, corrM, 0);
-    var bazi  = solar.getLunar().getEightChar();
+    var bazi = _coreEightChar(corrYear, corrMonth, corrDay, corrH, corrM);
+    // 대운은 아직 lunar-javascript 다(getYun). 코어 팔자에는 그 축이 없으므로 여기서 붙인다 —
+    // 안 붙이면 이 경로(모달 프로필)로 들어온 사용자만 퀀텀 전략의 대운이 조용히 빈다.
+    // 🔴 넘기는 시각은 **진태양시 보정 전** 원본이다 — calculate() 의 같은 호출과 축을 맞춘다.
+    attachKasiDaewunBridge(bazi, {
+      year: year,
+      month: month,
+      day: day,
+      hour: hour,
+      minute: minute,
+      second: 0
+    });
     try {
       var _d  = new Date(corrYear, corrMonth - 1, corrDay, corrH, corrM);
       var _gj = KasiEngine.getGanji(_d);
@@ -3036,8 +3078,9 @@ function zwDisplayPalaceName(name){
 }
 
 function calcZiweiPalaces(year, month, day, hour, minute) {
-  var solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-  var lunar = solar.getLunar();
+  // [Cleanup] lunar-javascript 의 solar/lunar 지역변수는 PR-C 가 폴백을 걷어낸 뒤로 한 번도
+  // 읽히지 않았다(이 함수 전체에서 참조 0). 남겨 두면 이 함수가 그 라이브러리 없이는 못 도는
+  // 것처럼 보이는데, 실제로는 아래 KasiEngine → 한국 음양력 코어만 있으면 된다.
   var baseDate = new Date(year, month - 1, day, hour || 0, minute || 0, 0);
   var kasiLunar = null;
   try {
@@ -26155,20 +26198,15 @@ function _resolveMonthCommandBirthDate() {
 
 function _calculateMonthBranchBySolarTerm(dateObj) {
   if (!dateObj || isNaN(dateObj.getTime())) return '';
-  if (typeof Solar === 'undefined' || typeof Solar.fromYmdHms !== 'function') return '';
   try {
-    var s = Solar.fromYmdHms(
+    var bazi = _coreEightChar(
       dateObj.getFullYear(),
       dateObj.getMonth() + 1,
       dateObj.getDate(),
       dateObj.getHours(),
-      dateObj.getMinutes(),
-      dateObj.getSeconds()
+      dateObj.getMinutes()
     );
-    var lunar = s && s.getLunar ? s.getLunar() : null;
-    var bazi = lunar && lunar.getEightChar ? lunar.getEightChar() : null;
-    var monthGanji = bazi && bazi.getMonth ? String(bazi.getMonth()) : '';
-    return monthGanji.length >= 2 ? monthGanji.charAt(1) : '';
+    return bazi.getMonthZhi();
   } catch (_e) {
     return '';
   }
@@ -27851,8 +27889,7 @@ async function runCompatCore(compatRunBtn, name, bd, type){
       day = pairCtx.partner.solar.day || day;
     }
 
-    var solar=Solar.fromYmdHms(year,month,day,hour,minute,0);
-    var bazi=solar.getLunar().getEightChar();
+    var bazi=_coreEightChar(year,month,day,hour,minute);
 
     var kasiYearPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.year) : null;
     var kasiMonthPair = pairCtx && pairCtx.partner && pairCtx.partner.ganji ? parseKasiGanjiPair(pairCtx.partner.ganji.month) : null;
@@ -29032,8 +29069,7 @@ function renderCurrentSeasonSummary(bazi){
     var nowYear=new Date().getFullYear();
     var yg='',yz='';
     try{
-      var ySolar=Solar.fromYmdHms(nowYear,6,15,12,0,0);
-      var yBazi=ySolar.getLunar().getEightChar();
+      var yBazi=_coreEightChar(nowYear,6,15,12,0);
       try{
         var _sj=KasiEngine.getGanji(new Date(nowYear,5,15,12,0,0));
         if(_sj&&_sj.secha){ yBazi.getYearGan=function(){return _sj.secha[0];}; yBazi.getYearZhi=function(){return _sj.secha[1];}; }
@@ -29157,8 +29193,7 @@ function showDwDetail(age,gan,zhi,evaluation,score){
   var yearHTML='';
   for(var yr=startYear;yr<=startYear+9;yr++){
     try{
-      var ySolar=Solar.fromYmdHms(yr,6,15,12,0,0);
-      var yBazi=ySolar.getLunar().getEightChar();
+      var yBazi=_coreEightChar(yr,6,15,12,0);
 
       try {
         var _sj = KasiEngine.getGanji(new Date(yr, 5, 15, 12, 0, 0));
@@ -29855,8 +29890,7 @@ function findSimilarCelebs(p){
     var minute = c.minute !== undefined ? c.minute : 0;
 
     try {
-      var solar = Solar.fromYmdHms(year, month, day, hour, minute, 0);
-      var bazi = solar.getLunar().getEightChar();
+      var bazi = _coreEightChar(year, month, day, hour, minute);
 
       try {
         var _sj = KasiEngine.getGanji(new Date(year, month-1, day, hour, minute));

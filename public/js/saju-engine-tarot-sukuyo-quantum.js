@@ -3064,17 +3064,23 @@ function switchFortune(tab, btn){
   }
 }
 
+/* 🔴 야자시(23시대) 정책을 **명시적으로** 넘긴다 — 코어 기본값(shift-day)으로 부르면
+   23:00~23:59 의 "오늘 일진"만 하루 밀린다. 이 함수의 값을 덮어쓰는 KASI 경로
+   (KasiCalendarService.computeGanjiFromDate)가 날짜를 밀지 않는 keep-day 이고,
+   이 함수를 부르는 세 곳(js/share.js · 이 파일의 일·월운 카드 · js/luck-sync-diary.js)이
+   전부 그 값과 나란히 쓰이므로 축을 그쪽에 맞춘다.
+   🔴 출생 원국의 일주는 반대다 — _cdCivilDayPillar(js/saju-engine.js)가 shift-day 이고
+   그것이 코어 기본값이다. 두 축이 다른 것은 이 파일이 정할 문제가 아니라 유파 결정이다. */
 function getGanZhiForDate(y,m,d,h){
   try{
-    var s=Solar.fromYmdHms(y,m,d,h,0,0);
-    var ec=s.getLunar().getEightChar();
+    var core=_koreanCalendar();
+    var ec=_coreEightChar(y,m,d,h,0,{nightZiPolicy:core.NIGHT_ZI_POLICY.KEEP_DAY});
     return {g:ec.getDayGan(),j:ec.getDayZhi()};
   }catch(e){return null;}
 }
 function getMonthGanZhi(y,m){
   try{
-    var s=Solar.fromYmdHms(y,m,15,12,0,0);
-    var ec=s.getLunar().getEightChar();
+    var ec=_coreEightChar(y,m,15,12,0);
     return {g:ec.getMonthGan(),j:ec.getMonthZhi()};
   }catch(e){return null;}
 }
@@ -6034,8 +6040,7 @@ function renderLottoNumbers(natal, bazi){
       gs.forEach(function(c,i){s+=(c.charCodeAt(0)||0)*(i+1);});
     }
     try {
-      var solarToday = Solar.fromYmdHms(today.getFullYear(), today.getMonth()+1, today.getDate(), 12, 0, 0);
-      var baziToday = solarToday.getLunar().getEightChar();
+      var baziToday = _coreEightChar(today.getFullYear(), today.getMonth()+1, today.getDate(), 12, 0);
       [baziToday.getYearGan(), baziToday.getMonthGan(), baziToday.getDayGan()].forEach(function(c,i){s+=(c.charCodeAt(0)||0)*(i+10);});
       [baziToday.getYearZhi(), baziToday.getMonthZhi(), baziToday.getDayZhi()].forEach(function(c,i){s+=(c.charCodeAt(0)||0)*(i+20);});
     } catch(e) {}
@@ -6058,8 +6063,7 @@ function renderLottoNumbers(natal, bazi){
     s += today.getFullYear() * 365 + (today.getMonth()+1) * 31 + today.getDate() * (counts[primary]||1) * 13;
     try {
       if(G_PILLARS){
-        var solarToday2 = Solar.fromYmdHms(today.getFullYear(), today.getMonth()+1, today.getDate(), 12, 0, 0);
-        var baziToday2 = solarToday2.getLunar().getEightChar();
+        var baziToday2 = _coreEightChar(today.getFullYear(), today.getMonth()+1, today.getDate(), 12, 0);
         var dGz = baziToday2.getDayGan() + baziToday2.getDayZhi();
         var dEv = analyzeFortuneGZ(dGz, G_PILLARS, '일진');
         s += (dEv.score || 50) * 7;
@@ -16892,12 +16896,14 @@ function renderQuantumStrategy(p, natal, bazi){
   }catch(e){}
 
   /* ── 현재 세운 추출 ──
-     오늘 실제 날짜로 뽑는다. lunar-javascript의 EightChar 연주는 입춘(立春) 경계를 적용하므로
-     1/1~입춘 전에는 전년 세운이 나온다. (과거 6/15 고정값은 이 구간에서 1년 앞선 세운을 표시했다) */
+     오늘 실제 날짜로 뽑는다. 세차는 입춘(立春) 경계를 적용하므로 1/1~입춘 전에는 전년 세운이
+     나온다. (과거 6/15 고정값은 이 구간에서 1년 앞선 세운을 표시했다)
+     그 입춘을 이제 한국 음양력 코어의 KST 절기표가 가른다 — lunar-javascript 는 중국 표준시
+     기준이라 절기가 CST 23시대에 든 해(1930~2030 중 4.0%)에서 경계일이 하루 어긋났다. */
   var qNow=new Date();
   var sg='', sz='';
   try{
-    var baziY=Solar.fromYmdHms(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0,0).getLunar().getEightChar();
+    var baziY=_coreEightChar(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0);
     sg=baziY.getYearGan(); sz=baziY.getYearZhi();
   }catch(e){}
 
@@ -17543,10 +17549,9 @@ function renderQuantumStrategy(p, natal, bazi){
       for(var off=0;off<5;off++){
         var y=qNow.getFullYear()+off;
         /* 첫 행만 오늘 날짜(입춘 반영), 이후는 각 연도 중반으로 안전하게 조회 */
-        var probe=(off===0)
-          ? Solar.fromYmdHms(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0,0)
-          : Solar.fromYmdHms(y,6,15,12,0,0);
-        var ec=probe.getLunar().getEightChar();
+        var ec=(off===0)
+          ? _coreEightChar(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0)
+          : _coreEightChar(y,6,15,12,0);
         var gz={g:ec.getYearGan(),j:ec.getYearZhi()};
         var res=null;
         try{ res=analyzeFortuneGZ(gz,p,(off===0?'올해 세운':(y+'년 세운'))); }catch(_){}

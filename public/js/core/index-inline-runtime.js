@@ -8089,27 +8089,30 @@ function __cdForceUnlockBodyScroll() {
   } catch (e) {}
 }
 
+/* 🔴 판정 기준이 lunar-javascript(window.Solar/Lunar)가 아니라 한국 음양력 코어다.
+ * 숙요·자미 렌더러가 실제로 읽는 달력이 window.KoreanCalendar 이고, 예전 조건이었다면
+ * 그 라이브러리를 걷어내는 순간 생년월일 모달이 통째로 열리지 않는다.
+ * 근거: docs/handoff/korean-calendar-migration-2026-08-27.md */
 function __cdBirthModalDepsMissing() {
   return (
     typeof _ModalProfileState === 'undefined' ||
     typeof _renderSukuyoSection !== 'function' ||
     typeof _renderZiweiSection !== 'function' ||
     typeof _renderAstroSection !== 'function' ||
-    typeof window.Solar === 'undefined' ||
-    typeof window.Solar.fromYmdHms !== 'function' ||
-    typeof window.Lunar === 'undefined' ||
-    typeof window.Lunar.fromYmd !== 'function' ||
+    typeof window.KoreanCalendar === 'undefined' ||
+    typeof window.KoreanCalendar.ganji !== 'function' ||
+    typeof window.KoreanCalendar.solarToLunar !== 'function' ||
     typeof window.renderSukuyo !== 'function' ||
     typeof window.renderZiwei !== 'function'
   );
 }
 
 function __cdEnsureSukuyoZiweiCoreLoaded() {
+  /* 위 __cdBirthModalDepsMissing 과 같은 이유로 한국 음양력 코어를 본다. */
   var needsCore = (
-    typeof window.Solar === 'undefined' ||
-    typeof window.Solar.fromYmdHms !== 'function' ||
-    typeof window.Lunar === 'undefined' ||
-    typeof window.Lunar.fromYmd !== 'function' ||
+    typeof window.KoreanCalendar === 'undefined' ||
+    typeof window.KoreanCalendar.ganji !== 'function' ||
+    typeof window.KoreanCalendar.solarToLunar !== 'function' ||
     typeof window.renderSukuyo !== 'function' ||
     typeof window.renderZiwei !== 'function' ||
     typeof window.calcSukuyoData !== 'function' ||
@@ -8128,7 +8131,14 @@ function __cdEnsureSukuyoZiweiCoreLoaded() {
       '/js/saju-engine-tarot-sukuyo-quantum.js?v=build-c31ee8d2c0a0'
   ];
 
-  return __cdEnsureLunarLibReady().then(function() {
+  /* 🔴 lunar-javascript 는 이제 이 화면의 **선택 의존성**이다 — 숙요·자미의 달력은 위 체인 1번
+   * (한국 음양력 코어)에서 나오고, 이 라이브러리가 남아 있는 이유는 사주 대운(getYun) 하나뿐이다.
+   * 그래서 CDN 이 막혀도 체인을 계속 태운다. 예전에는 여기서 reject 되면 생년월일 모달이
+   * 통째로 열리지 않았다(호출부 openSukuyoModal 의 catch 가 로그만 남기고 끝난다). */
+  return __cdEnsureLunarLibReady().catch(function(err) {
+    console.warn('[openSukuyoModal] lunar library unavailable — 한국 음양력 코어로 계속합니다:', err);
+    return false;
+  }).then(function() {
     return chain.reduce(function(promise, src) {
       return promise.then(function() { return __cdLoadScriptOnce(src); });
     }, Promise.resolve());
