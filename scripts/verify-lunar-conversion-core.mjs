@@ -148,12 +148,9 @@ const CONVERSION_APIS = [
  * 🔴 여기에 올린다고 옳아지는 것이 아니다 — 남은 이관 목록이다. 줄어들기만 해야 한다.
  */
 const KNOWN_REMAINING = new Map([
-  ["js/saju-engine.js", "정적 셸 사주 — PR-E5"],
-  ["js/saju-engine-tarot-sukuyo-quantum.js", "정적 셸 타로·숙요 — PR-E5"],
-  ["js/luck-sync-diary.js", "정적 셸 럭싱크 다이어리 — PR-E5"],
-  ["js/sibyl-system.js", "정적 셸 시빌 — PR-E5"],
+  ["js/saju-engine.js", "대운 브리지(attachKasiDaewunBridge)의 getYun 한 자리뿐 — PR-F"],
   ["js/core/kasi/calendar.js", "죽은 사본 — 어느 HTML 도 로드하지 않는다(3면 grep 2026-08-27)"],
-  ["js/core/index-inline-runtime.js", "정적 셸 인라인 런타임 — PR-E5"],
+  ["js/core/index-inline-runtime.js", "lunar 라이브러리 로더의 가용성 검사(__cdHasLunarLibReady) — PR-F"],
   ["worker/lib/destiny-bias-engine.js", "일주·시주 EightChar + 대운 getYun — PR-F"],
   ["worker/lib/life-book-ai-saju.js", "일주·시주 EightChar + 대운 getYun — PR-F"],
   ["worker/routes/new-year-ai.js", "일주·시주 EightChar — PR-F"],
@@ -195,7 +192,8 @@ for (const dirName of SCAN_DIRS) {
   }
 }
 
-ok("① 달력 변환 호출을 실제로 발견했다(발견 0 = 가드가 깨진 것)", found.length >= 8, `발견 ${found.length}개`);
+// 🔴 이관이 끝날 때마다 이 숫자를 내린다. 올라가는 방향으로 움직이면 새로 생긴 것이다.
+ok("① 달력 변환 호출을 실제로 발견했다(발견 0 = 가드가 깨진 것)", found.length >= 6, `발견 ${found.length}개`);
 ok("① 발견된 파일이 전부 잔존 분류에 있다(미분류 = 새로 생긴 것)", unclassified.length === 0, unclassified.join("\n      "));
 
 const stale = [...KNOWN_REMAINING.keys()].filter((relative) => !fs.existsSync(path.join(root, relative)));

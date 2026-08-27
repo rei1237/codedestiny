@@ -342,6 +342,7 @@
     "verify:saju-solar-term-core": "node scripts/verify-saju-solar-term-core.mjs",
     "verify:sukuyo-korean-calendar": "node scripts/verify-sukuyo-korean-calendar.mjs",
     "verify:lunar-conversion-core": "node scripts/verify-lunar-conversion-core.mjs",
+    "verify:shell-korean-calendar": "node scripts/verify-shell-korean-calendar.mjs",
     "verify:guard-wiring": "node scripts/verify-guard-wiring.mjs",
     "verify:human-design": "node scripts/verify-human-design.mjs",
     "verify:human-design-ai": "node scripts/verify-human-design-ai.mjs",

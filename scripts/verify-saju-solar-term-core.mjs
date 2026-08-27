@@ -367,15 +367,13 @@ for (const year of SAMPLE_YEARS) {
    * 🔴 여기에 올린다고 옳아지는 것이 아니다 — 남은 이관 목록이다. 줄어들기만 해야 한다.
    */
   const KNOWN_REMAINING = new Map([
-    ["js/saju-engine.js", "정적 셸 사주 — 별도 PR(PR-E 셸 구간)"],
-    ["js/saju-engine-tarot-sukuyo-quantum.js", "정적 셸 타로·숙요 — 별도 PR(PR-E 셸 구간)"],
-    ["js/luck-sync-diary.js", "정적 셸 럭싱크 다이어리 — 별도 PR(PR-E 셸 구간)"],
-    ["js/sibyl-system.js", "정적 셸 시빌 — 별도 PR(PR-E 셸 구간)"],
+    ["js/saju-engine.js", "대운 브리지(attachKasiDaewunBridge)의 EightChar 한 자리뿐 — PR-F"],
     ["js/core/kasi/calendar.js", "죽은 사본 — 어느 HTML 도 로드하지 않는다(3면 grep 2026-08-27). 삭제 판단은 사용자에게"],
     ["worker/lib/destiny-bias-engine.js", "일주·시주 전용 EightChar. 년·월주는 이미 코어다(PR-D2)"],
     ["worker/lib/life-book-ai-saju.js", "일주·시주 전용 EightChar + 대운 getYun. 년·월주는 코어다"],
     ["scripts/verify-korean-calendar-solar-terms.mjs", "코어와 대조하는 가드 자신 — 대조 대상이라 남아야 한다"],
     ["scripts/verify-saju-solar-term-core.mjs", "이 파일. 위 목록의 문자열이 자기 자신에 잡힌다"],
+    ["scripts/verify-shell-korean-calendar.mjs", "정적 셸을 코어와 대조하는 가드 — 대조 대상이라 남아야 한다"],
     ["scripts/test-saju-solar-term-regression.mjs", "회귀 대조 스크립트 — 대조 대상이라 남아야 한다"],
     ["scripts/lib/ziwei-engine-harness.cjs", "자미 하네스의 브라우저 전역 스텁"],
     ["scripts/ziwei-autotune-report.cjs", "미배선 튜닝 리포트"],
@@ -399,9 +397,10 @@ for (const year of SAMPLE_YEARS) {
     }
   }
 
+  // 🔴 이관이 끝날 때마다 이 숫자를 내린다. 올라가는 방향으로 움직이면 새로 생긴 것이다.
   ok(
     "⑤ 절기 프레임 간지 호출을 실제로 발견했다(발견 0 = 가드가 깨진 것)",
-    found.length >= 5,
+    found.length >= 4,
     `발견 ${found.length}개`,
   );
   ok(

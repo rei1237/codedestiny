@@ -336,6 +336,33 @@ function _lsdText(key) {
     };
   }
 
+  /**
+   * 한국 음양력 코어(window.KoreanCalendar)의 4기둥을 한자 표기로 돌려준다.
+   *
+   * 🔴 야자시(23시대 일진) 정책을 **명시적으로** 넘긴다. 이 파일은 아래 두 곳에서
+   * KasiEngine.getGanji 를 { yaja: false } 로 부르는데, 코어를 기본값(shift-day)으로 부르면
+   * 23시대 출생·23시대 조회의 일진만 하루 밀려 같은 화면에 두 축이 섞인다.
+   * 코어의 대응값은 NIGHT_ZI_POLICY.KEEP_DAY 다(lib/korean-calendar/policy.js).
+   *
+   * 못 구하면 null — 호출부가 기존과 같이 다음 폴백으로 넘어간다.
+   */
+  function _coreGanjiPillars(y, m, d, h, mi) {
+    var core = (typeof window !== 'undefined' && window.KoreanCalendar) || null;
+    if (!core || typeof core.ganji !== 'function' || typeof core.formatPillar !== 'function') return null;
+    var keepDay = (core.NIGHT_ZI_POLICY && core.NIGHT_ZI_POLICY.KEEP_DAY) || 'keep-day';
+    var gz = core.ganji(
+      { year: y, month: m, day: d, hour: Number(h) || 0, minute: Number(mi) || 0 },
+      { nightZiPolicy: keepDay }
+    );
+    if (!gz) return null;
+    return {
+      year: core.formatPillar(gz.year.stemIndex, gz.year.branchIndex, 'hanja'),
+      month: core.formatPillar(gz.month.stemIndex, gz.month.branchIndex, 'hanja'),
+      day: core.formatPillar(gz.day.stemIndex, gz.day.branchIndex, 'hanja'),
+      hour: core.formatPillar(gz.hour.stemIndex, gz.hour.branchIndex, 'hanja')
+    };
+  }
+
   function _readGanzhiFromEngineDate(dateObj) {
     var baseDate = (dateObj instanceof Date && !isNaN(dateObj.getTime())) ? dateObj : new Date();
     var y = baseDate.getFullYear();
@@ -360,23 +387,23 @@ function _lsdText(key) {
       } catch (e) {}
     }
 
-    if (window.Solar && typeof window.Solar.fromYmdHms === 'function') {
-      try {
-        var solar = window.Solar.fromYmdHms(y, m, d, h || 12, 0, 0);
-        var eightChar = solar && solar.getLunar && solar.getLunar().getEightChar();
-        var directYear = eightChar && _normalizeGanjiPair(eightChar.getYear && eightChar.getYear());
-        var directMonth = eightChar && _normalizeGanjiPair(eightChar.getMonth && eightChar.getMonth());
-        var directDay = eightChar && _normalizeGanjiPair(eightChar.getDay && eightChar.getDay());
-        if (directYear && directMonth && directDay) {
-          return {
-            year: directYear,
-            month: directMonth,
-            day: directDay,
-            source: 'lunar-javascript EightChar'
-          };
-        }
-      } catch (e) {}
-    }
+    /* 🔴 예전에는 이 폴백이 lunar-javascript EightChar 이었다. 위 KasiEngine 경로는 이미
+       한국 음양력 코어를 타므로, KASI 가 답하지 못한 순간에만 중국 표준시(UTC+8) 기준
+       세차·월건이 조용히 섞였다. 이제 두 경로가 같은 KST 절기표를 본다. */
+    try {
+      var corePillars = _coreGanjiPillars(y, m, d, h || 12, 0);
+      var directYear = corePillars && _normalizeGanjiPair(corePillars.year);
+      var directMonth = corePillars && _normalizeGanjiPair(corePillars.month);
+      var directDay = corePillars && _normalizeGanjiPair(corePillars.day);
+      if (directYear && directMonth && directDay) {
+        return {
+          year: directYear,
+          month: directMonth,
+          day: directDay,
+          source: 'korean-calendar-core'
+        };
+      }
+    } catch (e) {}
 
     if (typeof window.getGanZhiForDate === 'function') {
       try {
@@ -407,7 +434,10 @@ function _lsdText(key) {
     } catch (_) {}
 
     var birth = profile && profile.birth;
-    if (!birth || !window.Solar || typeof window.Solar.fromYmdHms !== 'function') return null;
+    /* 🔴 게이트를 lunar-javascript 가 아니라 한국 음양력 코어로 잡는다 — 아래 계산이 실제로
+       필요로 하는 것이 그것이고, 예전 조건이었다면 그 라이브러리를 걷어내는 순간
+       이 기능(활성 프로필 원국)이 통째로 죽는다. */
+    if (!birth || !window.KoreanCalendar || typeof window.KoreanCalendar.ganji !== 'function') return null;
 
     var year = Number(birth.year);
     var month = Number(birth.month);
@@ -432,15 +462,14 @@ function _lsdText(key) {
 
     try {
       var birthDate = new Date(year, month - 1, day, hour, minute, 0, 0);
-      var solar = window.Solar.fromYmdHms(year, month, day, hour, minute, 0);
-      var eightChar = solar && solar.getLunar && solar.getLunar().getEightChar();
+      var corePillars = _coreGanjiPillars(year, month, day, hour, minute);
       var ganji = window.KasiEngine && typeof window.KasiEngine.getGanji === 'function'
         ? window.KasiEngine.getGanji(birthDate, { yaja: false, leapMonthOption: 'prev' })
         : null;
-      var yearPair = _normalizeGanjiPair(ganji && (ganji.secha || ganji.year)) || _normalizeGanjiPair(eightChar && eightChar.getYear && eightChar.getYear());
-      var monthPair = _normalizeGanjiPair(ganji && (ganji.weolgeon || ganji.month)) || _normalizeGanjiPair(eightChar && eightChar.getMonth && eightChar.getMonth());
-      var dayPair = _normalizeGanjiPair(ganji && (ganji.iljin || ganji.day)) || _normalizeGanjiPair(eightChar && eightChar.getDay && eightChar.getDay());
-      var hourPair = _normalizeGanjiPair(ganji && (ganji.sigan || ganji.hour)) || _normalizeGanjiPair(eightChar && eightChar.getTime && eightChar.getTime());
+      var yearPair = _normalizeGanjiPair(ganji && (ganji.secha || ganji.year)) || _normalizeGanjiPair(corePillars && corePillars.year);
+      var monthPair = _normalizeGanjiPair(ganji && (ganji.weolgeon || ganji.month)) || _normalizeGanjiPair(corePillars && corePillars.month);
+      var dayPair = _normalizeGanjiPair(ganji && (ganji.iljin || ganji.day)) || _normalizeGanjiPair(corePillars && corePillars.day);
+      var hourPair = _normalizeGanjiPair(ganji && (ganji.sigan || ganji.hour)) || _normalizeGanjiPair(corePillars && corePillars.hour);
       if (!yearPair || !monthPair || !dayPair || !hourPair) return null;
 
       var pillars = {
@@ -3891,7 +3920,9 @@ return true;
 
   /* ─── 모달 오픈 ──────────────────────────────────────────────── */
   function openDiary() {
-    if (!openDiary.__coreFailed && !(window.Solar && typeof window.Solar.fromYmdHms === 'function') && typeof window.__cdEnsureSajuCoreLoaded === 'function') {
+    /* 🔴 조건을 한국 음양력 코어로 잡는다. 예전에는 window.Solar 였는데, 이 화면이 실제로
+       필요로 하는 것은 그 라이브러리가 아니라 코어와 KasiEngine 이다. */
+    if (!openDiary.__coreFailed && !(window.KoreanCalendar && typeof window.KoreanCalendar.ganji === 'function') && typeof window.__cdEnsureSajuCoreLoaded === 'function') {
       if (openDiary.__loadingCore) return openDiary.__loadingCore;
       openDiary.__loadingCore = window.__cdEnsureSajuCoreLoaded().then(function () {
         openDiary.__loadingCore = null;

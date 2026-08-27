@@ -31,3 +31,13 @@ js/mobile-interaction-patch.js      merge=cachebust
 public/js/core/index-inline-runtime.js  merge=cachebust
 public/js/core/uiBindings.js            merge=cachebust
 public/js/mobile-interaction-patch.js   merge=cachebust
+# 🔴 2026-08-27 추가 — 아래 8개도 sync:public 이 ?v=build- 를 박는데 목록에 빠져 있었다.
+# PR #1192 가 #1191 과 정확히 이 파일들에서만 충돌했고, 내용 차이는 0건 · 전부 해시뿐이었다.
+js/app.js                                merge=cachebust
+js/core/init.js                          merge=cachebust
+js/core/bootstrapDestinyFlower.js        merge=cachebust
+js/destiny-profile.js                    merge=cachebust
+public/js/app.js                         merge=cachebust
+public/js/core/init.js                   merge=cachebust
+public/js/core/bootstrapDestinyFlower.js merge=cachebust
+public/js/destiny-profile.js             merge=cachebust
