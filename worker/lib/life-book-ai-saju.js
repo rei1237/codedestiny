@@ -1,6 +1,19 @@
-import { LunarUtil, Solar } from "lunar-javascript";
+import { Solar } from "lunar-javascript";
 
 import { daeun } from "../../lib/korean-calendar/index.js";
+// 🔴 명리 상수 표(納音·十神·지장간·오행·十二運星·旬空)는 달력이 아니라 문자열 조회 표다.
+// lunar-javascript 의 LunarUtil 에서 그대로 옮겨 왔고, verify:myeongri-tables 가 매번 잔차 0 을 다시 증명한다.
+import {
+  CHANG_SHENG,
+  CHANG_SHENG_OFFSET,
+  NAYIN,
+  SHI_SHEN,
+  WU_XING_GAN,
+  WU_XING_ZHI,
+  ZHI_HIDE_GAN,
+  getXun,
+  getXunKong,
+} from "../../lib/saju/myeongri-tables.js";
 
 // 🔴 년주·월주의 절기 경계는 전부 코어에서 나온다. lunar-javascript 의 절기 시각은 **중국 표준시(CST)
 // 벽시계**라, 생시를 KST 벽시계로 넘기면 월건 경계가 정확히 60분 이르다.
@@ -246,7 +259,7 @@ function buildHiddenStemDetails(dayStem, branch) {
  * 🔴 왜 필요한가: 년·월주는 코어(KST 절기)가 정본인데 eightChar 의 파생 필드(納音·旬空·十二運星·
  * 지지 십신·오행쌍)는 lunar-javascript 가 **CST 절기로 잡은 기둥**에 붙어 있다. 기둥이 갈리는
  * 節 직전 60분 창에서 그대로 두면 한 응답 안에 두 축이 섞인다.
- * 여기서 쓰는 `LunarUtil` 표는 전부 **문자열 조회**라 시간대와 무관하다 — 절기를 다시 재지 않는다.
+ * 여기서 쓰는 명리 표(lib/saju/myeongri-tables.js)는 전부 **문자열 조회**라 시간대와 무관하다 — 절기를 다시 재지 않는다.
  */
 function pillarFacts(key, pillar, dayStem) {
   const prefix = key.charAt(0).toUpperCase() + key.slice(1);
@@ -254,20 +267,20 @@ function pillarFacts(key, pillar, dayStem) {
   const branch = pillarBranch(pillar);
   const dayStemIndex = STEMS.indexOf(dayStem);
   const branchIndex = BRANCHES.indexOf(branch);
-  const changShengOffset = LunarUtil.CHANG_SHENG_OFFSET[dayStem];
+  const changShengOffset = CHANG_SHENG_OFFSET[dayStem];
   let diShi = "";
   if (dayStemIndex >= 0 && branchIndex >= 0 && Number.isFinite(changShengOffset)) {
     const raw = changShengOffset + (dayStemIndex % 2 === 0 ? branchIndex : -branchIndex);
-    diShi = LunarUtil.CHANG_SHENG[((raw % 12) + 12) % 12];
+    diShi = CHANG_SHENG[((raw % 12) + 12) % 12];
   }
-  const hiddenGans = LunarUtil.ZHI_HIDE_GAN[branch] || [];
+  const hiddenGans = ZHI_HIDE_GAN[branch] || [];
   return {
-    [`get${prefix}ShiShenZhi`]: () => hiddenGans.map((gan) => LunarUtil.SHI_SHEN[`${dayStem}${gan}`]).filter(Boolean),
-    [`get${prefix}WuXing`]: () => `${LunarUtil.WU_XING_GAN[stem] || ""}${LunarUtil.WU_XING_ZHI[branch] || ""}`,
-    [`get${prefix}NaYin`]: () => LunarUtil.NAYIN[pillar] || "",
+    [`get${prefix}ShiShenZhi`]: () => hiddenGans.map((gan) => SHI_SHEN[`${dayStem}${gan}`]).filter(Boolean),
+    [`get${prefix}WuXing`]: () => `${WU_XING_GAN[stem] || ""}${WU_XING_ZHI[branch] || ""}`,
+    [`get${prefix}NaYin`]: () => NAYIN[pillar] || "",
     [`get${prefix}DiShi`]: () => diShi,
-    [`get${prefix}Xun`]: () => LunarUtil.getXun(pillar),
-    [`get${prefix}XunKong`]: () => LunarUtil.getXunKong(pillar),
+    [`get${prefix}Xun`]: () => getXun(pillar),
+    [`get${prefix}XunKong`]: () => getXunKong(pillar),
   };
 }
 
@@ -633,8 +646,8 @@ function buildMajorLuck({ birth, birthYear, currentYear, gender, dayMaster, pill
       stemTenGod: pillar ? tenGodFor(dayMaster, pillarStem(pillar)) : "",
       hiddenStems: pillar ? buildHiddenStemDetails(dayMaster, branch) : [],
       natalInteractions: pillar ? buildLuckNatalInteractions(pillar, pillarDetails) : {},
-      xun: pillar ? clean(LunarUtil.getXun(pillar), 20) : "",
-      xunKong: pillar ? clean(LunarUtil.getXunKong(pillar), 20) : "",
+      xun: pillar ? clean(getXun(pillar), 20) : "",
+      xunKong: pillar ? clean(getXunKong(pillar), 20) : "",
       isCurrent: startYear > 0 && endYear > 0 && Number(currentYear) >= startYear && Number(currentYear) <= endYear,
     };
   });
