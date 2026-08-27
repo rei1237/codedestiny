@@ -1584,6 +1584,63 @@ function verifyIndexableOutboundLinks(baseDir) {
   }
 }
 
+/**
+ * 색인 대상의 RSC 플라이트 페이로드 예산 가드 (2026-08-28 추가).
+ *
+ * App Router 는 서버가 클라이언트 컴포넌트에 넘긴 props 를 프리렌더 HTML 안에
+ * `self.__next_f.push(...)` 로 통째로 실어 보낸다. 화면에 안 쓰는 데이터를 props 로 넘기면
+ * 그 바이트가 전부 색인 대상 문서에 실려 크롤 예산과 LCP 를 함께 먹는다.
+ *
+ * 실사고: `/insights` 가 씨드 기사 113개의 `contentHtml` 전문(1,115,537바이트)을 `body` props 로
+ * 넘기고 있었고, 화면에는 어디에도 렌더되지 않은 채 클라이언트 검색 필터 한 곳만 그걸 읽었다.
+ * 플라이트 페이로드가 504KB → **1.78MB** 였다(2026-08-27 실측, 사이트 중앙값 54KB).
+ * 고친 정본은 app/insights/page.js 의 `buildInsightSearchText()` — 본문 대신 축약 인덱스를 넘긴다.
+ *
+ * 🔴 `dist` 의 HTML 크기만 재면 이 회귀가 안 보인다 —
+ *    scripts/externalize-dist-inline-scripts.mjs 가 큰 인라인 블록을 `/js/shell/*.js` 로 빼내므로
+ *    HTML 은 작아 보이고 대신 **파서 차단 스크립트가 85개**로 늘어나 있었다(실측).
+ *    그래서 이 가드는 인라인 블록과 외부화된 파일을 **함께** 센다.
+ *
+ * 🔴 예외 목록이 없다. 정적 셸(`/`·`/en`·`/ja`·`/zh`·`/zh-tw`)은 플라이트 페이로드 자체가
+ *    0바이트라 재는 축이 다르고, 따라서 따로 빼 줄 필요가 없다. 대상은 사이트맵 URL 전량이다.
+ *    (셸 HTML 이 1.3MB 대인 것은 별개 항목이며 이 가드의 대상이 아니다.)
+ */
+const FLIGHT_PAYLOAD_BYTE_LIMIT = 700_000;
+
+function flightPayloadBytes(baseDir, html) {
+  let bytes = 0;
+  for (const match of html.matchAll(/<script\b[^>]*>([\s\S]*?)<\/script\s*>/gi)) {
+    if (match[1].includes("__next_f")) bytes += Buffer.byteLength(match[1]);
+  }
+  for (const match of html.matchAll(/<script src="\/js\/shell\/([^"]+)"/g)) {
+    const externalized = resolve(rootDir, baseDir, "js/shell", match[1]);
+    if (!existsSync(externalized)) continue;
+    const source = readFileUtf8WithRetry(externalized);
+    if (source.includes("__next_f")) bytes += Buffer.byteLength(source);
+  }
+  return bytes;
+}
+
+function verifyIndexableFlightPayloadBudget(baseDir) {
+  const sitemapPaths = getSitemapPaths(readRequired(`${baseDir}/sitemap.xml`));
+  assert(sitemapPaths.length > 0, `${baseDir}/sitemap.xml: URL 이 하나도 없다`);
+  for (const pathname of sitemapPaths) {
+    const relativePath = pathname === "/" ? "" : pathname.replace(/^\//, "");
+    const candidates = relativePath
+      ? [`${relativePath}/index.html`, `${relativePath}.html`]
+      : ["index.html"];
+    const absolutePath = candidates
+      .map((candidate) => resolve(rootDir, baseDir, candidate))
+      .find((candidate) => existsSync(candidate));
+    assert(Boolean(absolutePath), `${baseDir}${pathname}: 사이트맵 URL 의 HTML 이 산출물에 없다`);
+    const bytes = flightPayloadBytes(baseDir, readFileUtf8WithRetry(absolutePath));
+    assert(
+      bytes <= FLIGHT_PAYLOAD_BYTE_LIMIT,
+      `${baseDir}${pathname}: RSC 플라이트 페이로드 ${bytes}바이트 > ${FLIGHT_PAYLOAD_BYTE_LIMIT} — 화면에 안 쓰는 데이터를 클라이언트 컴포넌트 props 로 넘기고 있지 않은지 볼 것(정본: app/insights/page.js 의 buildInsightSearchText).`,
+    );
+  }
+}
+
 function verifyIndexableRouteCoverage(baseDir) {
   const sitemapPath = `${baseDir}/sitemap.xml`;
   const sitemapText = readRequired(sitemapPath);
@@ -1657,6 +1714,8 @@ for (const baseDir of ["out", "dist"]) {
   verifyIndexableDescriptionWidth(baseDir);
   trace(`${baseDir}: indexable outbound links`);
   verifyIndexableOutboundLinks(baseDir);
+  trace(`${baseDir}: indexable flight payload budget`);
+  verifyIndexableFlightPayloadBudget(baseDir);
   trace(`${baseDir}: indexable route coverage`);
   verifyIndexableRouteCoverage(baseDir);
   trace(`${baseDir}: generated AdSense-eligible routes`);

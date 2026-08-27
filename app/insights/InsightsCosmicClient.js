@@ -151,6 +151,9 @@ function normalizePost(raw) {
     excerpt,
     subtitle: normalizeText(raw?.subtitle, 240),
     body,
+    // 정적 허브(app/insights/page.js)는 본문 대신 축약 검색 인덱스를 넘긴다.
+    // `/api/insights` 응답에는 이 필드가 없고 `body` 가 오므로 filterPosts 가 둘 다 받는다.
+    searchText: normalizeText(raw?.searchText, 2000),
     category: categoryLabel,
     categoryLabel,
     tags,
@@ -196,7 +199,7 @@ function filterPosts(items, { query, category, tag, sort }) {
     const bag = toLowerNoSpace([
       item.title,
       item.excerpt,
-      stripHtml(item.body),
+      item.searchText || stripHtml(item.body),
       item.categoryLabel,
       item.tags.join(" "),
     ].join(" "));
