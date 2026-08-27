@@ -18,7 +18,7 @@
  * ── 이 가드가 보는 것 ───────────────────────────────────────────────────────
  *   ① 숙요를 다루는 소스에서 lunar-javascript 를 **전수 발견**하고, 잔존 분류에 없으면 실패한다.
  *      발견 방식이 깨져 0개가 나와도 실패한다(CLAUDE.md 코딩 원칙 10).
- *   ② 소비자 5벌을 **실제로 실행해** 코어와 같은 본명숙을 내는지 본다. 표본은 **값이 실제로
+ *   ② 소비자 7벌을 **실제로 실행해** 코어와 같은 본명숙을 내는지 본다. 표본은 **값이 실제로
  *      갈리는 날짜(밴드 안)** 를 반드시 포함한다 — 밴드 밖만 보면 되돌려도 초록불이다.
  *   ③ 소비자들끼리 **서로 같은 본명숙**을 내는지. 이 작업의 발단이 "엔진마다 달력이 다르다" 였다.
  *   ④ `calcSukuyoForServer` 의 세차가 **음력 프레임**(설날 경계)이고 코어 음력해에서 나오는지.
@@ -180,8 +180,13 @@ const sukuyoEngineServer = await loadTsModule("lib/sukuyo-engine-server.ts");
 const promptFacts = await loadTsModule("app/fortune/prompt-hub/sukuyo-prompt-facts.ts");
 const teaHouseAdapter = await loadTsModule("src/features/fortune-tea-house/lib/sukuyoCompatibilityAdapter.ts");
 const { buildSukuyoAdapter } = await import("../worker/lib/guardian-fortune/adapters/sukuyo.js");
+const { __sukuyoYearlyTestUtils: sukuyoRoute } = await import("../worker/routes/sukuyo.js");
 
-/** 소비자 5벌 — 이름과 "그 날짜의 27수 인덱스를 내는 방법". */
+/**
+ * 소비자 7벌 — 이름과 "그 날짜의 27수 인덱스를 내는 방법".
+ * 🔴 라우트 안의 순수 함수는 표면이 없으면 ①(import 수준)로만 보인다. 그 상태로 이관하다
+ * 죽은 참조를 놓쳤으므로(2026-08-27) `__sukuyoYearlyTestUtils` 로 표면을 열고 여기에 넣었다.
+ */
 const CONSUMERS = [
   {
     name: "lib/sukuyo-calendar.ts buildSukuyoCalendarDay",
@@ -190,6 +195,22 @@ const CONSUMERS = [
   {
     name: "lib/sukuyo-engine-server.ts calcSukuyoForServer",
     indexOf: (sample) => sukuyoEngineServer.calcSukuyoForServer(sample.year, sample.month, sample.day, 12).mansionIdx,
+  },
+  {
+    // 🔴 라우트 안의 순수 함수다. 표면이 없어 import 수준으로만 보던 동안 이관이 남긴
+    // 죽은 참조를 놓쳤다(CI 의 verify:worker-no-undef 가 대신 잡았다). 이제 실제로 돌린다.
+    name: "worker/routes/sukuyo.js buildSukuyoCalendarDay",
+    indexOf: (sample) => sukuyoRoute.buildSukuyoCalendarDay(sample.year, sample.month, sample.day, "1970-01-01").mansionIndex,
+  },
+  {
+    name: "worker/routes/sukuyo.js resolveSukuyoLunarFromProfile",
+    indexOf: (sample) => {
+      const lunar = sukuyoRoute.resolveSukuyoLunarFromProfile({
+        birth: { year: sample.year, month: sample.month, day: sample.day, calType: "solar" },
+      });
+      if (!lunar) return -1;
+      return buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap }).index;
+    },
   },
   {
     name: "worker/lib/guardian-fortune/adapters/sukuyo.js buildSukuyoAdapter",
@@ -276,7 +297,7 @@ for (const consumer of CONSUMERS) {
       disagreements.push(`${sample.ymd} — ${[...seen].map(([name, value]) => `${name.split(" ")[0]}:${value}`).join(" · ")}`);
     }
   }
-  ok("③ 숙요 소비자 5벌이 같은 날짜에 같은 본명숙을 낸다", disagreements.length === 0, disagreements.join("\n      "));
+  ok(`③ 숙요 소비자 ${CONSUMERS.length}벌이 같은 날짜에 같은 본명숙을 낸다`, disagreements.length === 0, disagreements.join("\n      "));
 }
 
 // ── ④ calcSukuyoForServer 의 세차가 음력 프레임이고 코어에서 나온다 ──────────

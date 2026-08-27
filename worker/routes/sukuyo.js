@@ -209,10 +209,10 @@ function buildSukuyoCalendarDay(year, month, day, todayKey, myMansionIndex = nul
     keywords: reading.keywords,
     isToday: date === todayKey,
     lunarDate: {
-      year: Number.isFinite(Number(lunar.getYear())) ? Number(lunar.getYear()) : null,
+      year: lunar.lunarYear,
       month: lunarMonth,
       day: lunarDay,
-      isLeapMonth: lunarMonthRaw < 0,
+      isLeapMonth: lunar.isLeapMonth,
     },
     core: reading.core,
     usagePoint: reading.usagePoint,
@@ -2291,6 +2291,13 @@ async function upsertSukuyoYearlyUnlockFromEvidence({ env, auth, profile, target
 }
 
 export const __sukuyoYearlyTestUtils = {
+  // 🔴 달력·프로필·1년운 앵커 셋은 라우트 안의 순수 함수라 밖에서 못 돌린다.
+  // 그 탓에 verify:sukuyo-korean-calendar 가 이 파일을 import 수준에서만 보고 있었고,
+  // 이관 때 남은 죽은 참조(lunarMonthRaw)를 CI 의 worker-no-undef 가 대신 잡았다.
+  // 가드가 **실제로 실행해** 대조할 수 있게 표면을 연다.
+  buildSukuyoCalendarDay,
+  resolveSukuyoLunarFromProfile,
+  resolveSukuyoYearlyAnchor,
   buildSukuyoYearlyFortuneResult: buildSukuyoYearlyFortuneResultV2,
   buildSukuyoYearlyPreview,
   collectSukuyoYearlyEvidenceIds,
