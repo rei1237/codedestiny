@@ -366,8 +366,11 @@ const TABLE_FINGERPRINT = "kc1:fa21fe1cc7dc";
  * 세 축을 섞지 않는 것이 이 상수가 여기 따로 있는 이유다.
  */
 const NIGHT_ZI_POLICY = Object.freeze({
-  /** 23시대 → 익일 일진. **출생 원국**의 일주 축이다 — 셸의 _cdCivilDayPillar(js/saju-engine.js)와
-   * 앱 localSajuCalculator 가 이 값을 쓰고, 그래서 기본값이다. */
+  /** 23시대 → 익일 일진. 셸의 _cdCivilDayPillar(js/saju-engine.js:1433)가 이 축이고, 그래서 기본값이다.
+   * 🔴 **앱 localSajuCalculator 는 이 축이 아니다**(2026-08-28 정정 — 그렇게 적혀 있었으나 사실이 아니다).
+   * 그쪽 기본값은 zashiMode `"late"` 이고(:556) 일자를 미는 것은 `"early"` 뿐이라(:803) keep-day 다.
+   * 🔴 출생 원국을 세우는 세 소비자(life-book·new-year·destiny-bias)도 keep-day 를 **소스에 명시**한다
+   * (verify:natal-day-pillar-axis ①). 즉 이 기본값에 기대는 23시대 원국 소비자는 현재 없다. */
   SHIFT_DAY: "shift-day",
   /** 23시대도 당일 일진. **"오늘 일진" 축**이고 호출부가 둘 있다 — 둘 다 KasiEngine.getGanji 를
    * { yaja: false } 로 부르거나 그 값과 나란히 쓰이므로 기본값으로 부르면 한 화면에 두 축이 섞인다.
