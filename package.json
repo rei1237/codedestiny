@@ -390,6 +390,7 @@
     "perf:tap-cost": "node scripts/with-utf8-console.mjs node scripts/measure-tap-fixed-cost.mjs",
     "perf:island": "node scripts/with-utf8-console.mjs node scripts/measure-island-interaction.mjs",
     "perf:lcp-budget": "node scripts/with-utf8-console.mjs node scripts/measure-home-lcp-budget.mjs",
+    "perf:crux": "node scripts/with-utf8-console.mjs node scripts/measure-crux-field.mjs",
     "measure:post-deploy-latency": "node scripts/measure-post-deploy-latency.mjs",
     "build:web-vitals": "npx esbuild scripts/web-vitals-console.mjs --bundle --format=esm --outfile=js/web-vitals-console.js --platform=browser",
     "prebuild:cf": "node scripts/with-utf8-console.mjs node scripts/ensure-ads-txt.mjs && node scripts/with-utf8-console.mjs node scripts/fortune-build-data.mjs && node scripts/with-utf8-console.mjs node scripts/sync-music-track-count.mjs && node scripts/with-utf8-console.mjs npm run sync:public && node scripts/with-utf8-console.mjs node scripts/verify-entry-encoding.mjs -- --strict-core && node scripts/with-utf8-console.mjs node scripts/build-shell-cms-defaults.mjs && node scripts/with-utf8-console.mjs node scripts/verify-story-text-sync.mjs",
