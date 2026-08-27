@@ -67,17 +67,19 @@ for (const [index, source] of inlineScripts.entries()) {
   try { new Function(source); } catch (error) { fail(`inline script ${index + 1} does not parse: ${error.message}`); }
 }
 
+// 정본(content/novel/episodes.source.json)의 총 비트 수. 비트를 더하거나 빼는 개편마다 같은 커밋에서 갱신한다.
+const EXPECTED_BEAT_COUNT = 8844;
 const runtime = buildNovelPayload();
 const manifest = JSON.parse(readFileSync(MANIFEST_PATH, "utf8"));
 const matrix = JSON.parse(readFileSync(SCENE_MATRIX_PATH, "utf8"));
-if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 44 || manifest.beatCount !== 8836) {
-  fail("manifest is not synchronized with the 44-episode canonical source");
+if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 44 || manifest.beatCount !== EXPECTED_BEAT_COUNT) {
+  fail(`manifest is not synchronized with the 44-episode canonical source (expected ${EXPECTED_BEAT_COUNT} beats, canonical source has ${runtime.beatCount}). 정본에 비트를 더하거나 뺐다면 이 파일의 EXPECTED_BEAT_COUNT 를 같은 커밋에서 갱신할 것.`);
 }
 if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => episode.emotionPath?.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
   fail("scene matrix is stale or missing its three-stage emotion/accessibility cues");
 }
 const expectedVisualCues = [
-  [36, 19, "memoryVault"],
+  [36, 20, "memoryVault"],
   [41, 24, "clearMoonWater"],
   [43, 8, "cherryMoonPortal"],
 ];
