@@ -12,6 +12,34 @@ const pageTitle = "운세 인사이트 허브 · 사주·타로·자미두수 | 
 const pageDescription =
   "사주, 자미두수, 숙요점, 타로, 점성술, 베다점성술을 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 인사이트 아카이브입니다.";
 
+/**
+ * 허브 검색용 축약 인덱스.
+ *
+ * 🔴 여기에 본문 전문(`contentHtml`)을 넣지 말 것 — 그게 이 함수가 생긴 이유다.
+ * 2026-08-27 실측: 씨드 기사 113개의 `contentHtml` 합이 1,115,537바이트였고,
+ * `toClientInsightItem` 이 그걸 `body` 로 넘기는 바람에 `/insights` 의 RSC 플라이트
+ * 페이로드가 dist 에서 HTML 314KB + 외부화된 파서 차단 스크립트 85개(1,521,155바이트)로
+ * 나갔다(사이트 중앙값 108KB). 검색은 [InsightsCosmicClient.js] `filterPosts` 한 곳만
+ * 그 본문을 쓰고 화면에는 어디에도 렌더되지 않는다.
+ *
+ * 소제목은 기사의 하위 주제를 그대로 열거하므로("궁위별 해석", "재물운과 직업운")
+ * 본문을 뺐을 때 재현율 손실이 가장 적은 축이다. `searchIntent` 와 FAQ 질문은
+ * 전 기사 공용 템플릿 문장이라 검색 노이즈만 늘리므로 넣지 않는다.
+ */
+function buildInsightSearchText(item) {
+  const headings = String(item?.contentHtml || "").match(/<h[1-4][^>]*>[\s\S]*?<\/h[1-4]>/g) || [];
+  const parts = [
+    ...headings,
+    item?.mainKeyword,
+    ...(Array.isArray(item?.relatedKeywords) ? item.relatedKeywords : []),
+  ];
+
+  return parts
+    .map((part) => String(part || "").replace(/<[^>]+>/g, " ").replace(/\s+/g, " ").trim())
+    .filter(Boolean)
+    .join(" ");
+}
+
 function toClientInsightItem(item) {
   return {
     id: String(item?.id || item?.slug || "").trim(),
@@ -19,7 +47,7 @@ function toClientInsightItem(item) {
     title: String(item?.title || "").trim(),
     subtitle: String(item?.subtitle || "").trim(),
     excerpt: String(item?.excerpt || item?.description || item?.subtitle || "").trim(),
-    body: String(item?.body || item?.contentHtml || "").trim(),
+    searchText: buildInsightSearchText(item),
     category: String(item?.category || "").trim(),
     categoryLabel: String(item?.categoryLabel || item?.category || "").trim(),
     tags: Array.isArray(item?.tags)
@@ -69,7 +97,6 @@ function buildFamousSajuInsightItems() {
     title: `${person.nameKo} 사주 분석`,
     subtitle: person.isBirthTimeKnown ? "사주 엔진 기반 사주팔자 분석" : "출생 시간 미상 / 삼주 기반 분석",
     excerpt: person.shortDescription,
-    body: person.shortDescription,
     category: "유명인 사주",
     categoryLabel: "유명인 사주",
     tags: Array.from(new Set(["유명인 사주", person.category, ...person.tags])).slice(0, 6),
