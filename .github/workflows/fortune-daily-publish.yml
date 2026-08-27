@@ -51,7 +51,7 @@
 #   뒤처진 만큼(결제·인증 코드 변경 포함)을 실제로 프로덕션에 실어 보내는 것은 이 워크플로가
 #   대신하지 않는다 — 사람이 mode=production 을 target_sha 없이 수동 실행해야 하는 별도 결정이다.
 #
-# 🔴 과금 없음 — scripts/gen-daily.mjs 는 lunar-javascript 역법 계산과 날짜 해시 선택만 쓴다.
+# 🔴 과금 없음 — scripts/gen-daily.mjs 는 한국 음양력 코어의 역법 조회와 날짜 해시 선택만 쓴다.
 #    LLM·외부 API 호출이 0이므로 매일 돌아도 비용이 발생하지 않는다.
 
 name: Fortune daily publish (once per KST day)

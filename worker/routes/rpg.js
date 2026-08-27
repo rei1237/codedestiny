@@ -1,5 +1,7 @@
 import { createHash } from "node:crypto";
-import { Solar } from "lunar-javascript";
+// 🔴 일주는 한국 음양력 코어에서 잡는다. 값은 안 움직인다 — 정오 일주는 lunar-javascript 와
+// 코어가 표본 7,224건(1950~2035)에서 전건 일치한다(실측 2026-08-27). 달력 축을 하나로 두는 것이 목적이다.
+import { BRANCH_HANJA, STEM_HANJA, ganji } from "../../lib/korean-calendar/index.js";
 
 import { connectDb, mongoose, withMongoRetry, mongoTransactionOptions } from "../lib/db.js";
 import {
@@ -461,18 +463,19 @@ function getOppositeElement(element) {
 
 function getTodayDayPillar() {
   const now = kstNow();
-  const solar = Solar.fromYmdHms(
-    now.getUTCFullYear(),
-    now.getUTCMonth() + 1,
-    now.getUTCDate(),
-    12,
-    0,
-    0,
-  );
-  const lunar = solar.getLunar();
-  const eightChar = lunar.getEightChar();
-  const stem = String(eightChar.getDayGan() || "");
-  const branch = String(eightChar.getDayZhi() || "");
+  const core = ganji({
+    year: now.getUTCFullYear(),
+    month: now.getUTCMonth() + 1,
+    day: now.getUTCDate(),
+    hour: 12,
+    minute: 0,
+  });
+  if (!core) {
+    // 오늘 날짜라 코어 지원 범위(1900~2100) 안이다. 여기 오면 표가 깨진 것이다.
+    throw new Error(`korean-calendar core returned no ganji for ${now.toISOString().slice(0, 10)}`);
+  }
+  const stem = STEM_HANJA[core.day.stemIndex];
+  const branch = BRANCH_HANJA[core.day.branchIndex];
 
   return {
     stem,

@@ -14,7 +14,23 @@ import { callGeminiText } from "../lib/gemini.js";
 import { hasRenderableLlmText } from "../lib/llm-result-delivery.js";
 import { createLlmCacheStore } from "../lib/llm-cache-store.js";
 import { handleBillingRoutes, BILLING_SNAPSHOT_USER_PROJECTION } from "./billing.js";
-import { Lunar, Solar } from "lunar-javascript";
+import { Solar } from "lunar-javascript";
+
+// 🔴 년주·월주는 **절기 프레임**이고 그 경계는 코어의 KST 절기표에서만 나온다.
+// 예전에는 월주를 lunar-javascript `getMonthInGanZhi()` 로 잡았는데, 그 라이브러리의 절기 시각은
+// 중국 표준시(CST) 벽시계라 KST 로는 월건 경계가 정확히 60분 일렀다(실측 2026-08-27:
+// 節 경계 −30분·−1분 표본 각 72/72 전건 불일치, −61/+1/+30/+61분 0/72).
+// 🔴 년주도 `getYearInGanZhi()` — **음력 프레임(설날 경계)** 이었다. 그 아래 격국·용신·십신은
+// 사주 계산이라 년주는 **입춘 경계**여야 한다(실측: 정오 표본 6,804건 중 129건 1.90% 가 갈렸다).
+// 🔴 일주·시주는 여기서 바꾸지 않는다 — 코어의 야자시 기본값(shift-day)과 lunar-javascript 가
+// 23시대에서 정면으로 갈린다(실측 540/540). 그 축을 정하는 것은 PR-F 의 몫이다.
+import {
+  BRANCH_HANJA,
+  STEM_HANJA,
+  ganji,
+  lunarToSolar,
+  sexagenaryYearIndexes,
+} from "../../lib/korean-calendar/index.js";
 
 const SERVICE_KEY = "new-year-ai";
 const FEATURE_KEY = "new-year-ai-consultation";
@@ -300,6 +316,8 @@ function parseDateParts(value) {
   const day = Number(match[3]);
   const date = new Date(Date.UTC(year, month - 1, day));
   if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) return null;
+  // 한국 음양력 코어가 답하는 구간. 밖이면 조용히 중국 달력으로 떨어지지 않고 입력을 거절한다.
+  if (year < 1900 || year > 2100) return null;
   return { year, month, day };
 }
 
@@ -614,9 +632,56 @@ function buildMonthlyDomainSignals({ element, branch, tenGod, relationToDayBranc
 
 function buildLunarFromInput(dateParts, birthTime, calendarType) {
   if (calendarType === "lunar") {
-    return Lunar.fromYmdHms(dateParts.year, dateParts.month, dateParts.day, birthTime.hour, birthTime.minute, 0);
+    // 🔴 음력 입력의 양력 환산도 코어가 한다. lunar-javascript 는 중국 음력이라 표본 4,860건 중
+    // 180건(3.70%)에서 하루 어긋나고(실측 2026-08-27), 그 하루가 네 기둥을 통째로 옮긴다.
+    const converted = lunarToSolar(dateParts.year, dateParts.month, dateParts.day, false);
+    if (!converted) {
+      const error = new Error("Invalid lunar birth date for new-year consultation.");
+      error.code = "INVALID_BIRTH_DATE";
+      throw error;
+    }
+    return Solar.fromYmdHms(converted.year, converted.month, converted.day, birthTime.hour, birthTime.minute, 0).getLunar();
   }
   return Solar.fromYmdHms(dateParts.year, dateParts.month, dateParts.day, birthTime.hour, birthTime.minute, 0).getLunar();
+}
+
+/** 코어의 절기 프레임 년주·월주(한자). 지원 범위(1900~2100) 밖이면 던진다. */
+function coreYearMonthPillars(solar) {
+  const core = ganji({
+    year: solar.getYear(),
+    month: solar.getMonth(),
+    day: solar.getDay(),
+    hour: solar.getHour(),
+    minute: solar.getMinute(),
+  });
+  if (!core) {
+    // parseDateParts 가 1900~2100 으로 자르므로 여기 오면 표가 깨진 것이다.
+    // 조용히 CST 달력으로 떨어지지 않는다.
+    const error = new Error(`korean-calendar core returned no ganji for ${solar.toYmd()}`);
+    error.code = "CALENDAR_OUT_OF_RANGE";
+    throw error;
+  }
+  return {
+    year: `${STEM_HANJA[core.year.stemIndex]}${BRANCH_HANJA[core.year.branchIndex]}`,
+    month: `${STEM_HANJA[core.month.stemIndex]}${BRANCH_HANJA[core.month.branchIndex]}`,
+  };
+}
+
+/** 서기 연도의 세차(한자). 세운은 입춘이 지난 뒤를 보므로 연도만으로 닫힌다. */
+function coreSexagenaryYear(year) {
+  const indexes = sexagenaryYearIndexes(year);
+  return `${STEM_HANJA[indexes.stemIndex]}${BRANCH_HANJA[indexes.branchIndex]}`;
+}
+
+/** 그 해 그 달의 월건(한자). 세운·월운은 15일 정오를 대표 시각으로 쓴다(기존 관례 그대로). */
+function coreMonthPillar(year, month) {
+  const core = ganji({ year, month, day: 15, hour: 12, minute: 0 });
+  if (!core) {
+    const error = new Error(`korean-calendar core returned no ganji for ${year}-${month}-15`);
+    error.code = "CALENDAR_OUT_OF_RANGE";
+    throw error;
+  }
+  return `${STEM_HANJA[core.month.stemIndex]}${BRANCH_HANJA[core.month.branchIndex]}`;
 }
 
 // 사주·세운 계산은 LLM에 넘길 구조 데이터만 만들고, 해석 문장은 LLM 상담 단계에서 생성한다.
@@ -631,8 +696,9 @@ function calculateNewYearFortuneData(input) {
   const birthTime = parseBirthTime(birth.birthTime);
   const lunar = buildLunarFromInput(dateParts, birthTime, birth.calendarType);
   const solar = lunar.getSolar();
-  const yearPillar = toKoreanGanzi(lunar.getYearInGanZhi());
-  const monthPillar = toKoreanGanzi(lunar.getMonthInGanZhi());
+  const corePillars = coreYearMonthPillars(solar);
+  const yearPillar = toKoreanGanzi(corePillars.year);
+  const monthPillar = toKoreanGanzi(corePillars.month);
   const dayPillar = toKoreanGanzi(lunar.getDayInGanZhi());
   const hourPillar = birthTime.timeUnknown ? "" : toKoreanGanzi(lunar.getTimeInGanZhi());
   const pillarMap = { year: yearPillar, month: monthPillar, day: dayPillar, hour: hourPillar };
@@ -646,8 +712,7 @@ function calculateNewYearFortuneData(input) {
   const dominantElement = pickElement(fiveElements, "dominant");
   const balancingElement = pickElement(fiveElements, "weak");
   const targetYear = Number(input.targetYear || input.year);
-  const targetLunar = Solar.fromYmdHms(targetYear, 7, 1, 12, 0, 0).getLunar();
-  const targetPillar = toKoreanGanzi(targetLunar.getYearInGanZhi());
+  const targetPillar = toKoreanGanzi(coreSexagenaryYear(targetYear));
   const targetStem = pillarStem(targetPillar);
   const targetBranch = pillarBranch(targetPillar);
   const targetTenGod = tenGodFor(dayMaster, targetStem);
@@ -664,7 +729,7 @@ function calculateNewYearFortuneData(input) {
   };
   const monthlyFlow = Array.from({ length: 12 }, (_, index) => {
     const month = index + 1;
-    const monthPillar = toKoreanGanzi(Solar.fromYmdHms(targetYear, month, 15, 12, 0, 0).getLunar().getMonthInGanZhi());
+    const monthPillar = toKoreanGanzi(coreMonthPillar(targetYear, month));
     const stem = pillarStem(monthPillar);
     const branch = pillarBranch(monthPillar);
     const element = STEM_ELEMENT[stem] || BRANCH_ELEMENT[branch] || "";
