@@ -7,6 +7,7 @@ import {
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/new-year-ai-consultation/";
 const PAGE_TITLE = "신년운세 보는 곳 | 새해 월별 운세·재물운·연애운 풀이";
@@ -146,6 +147,7 @@ export default function NewYearAiConsultationPage() {
           </div>
         ))}
                   </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/new-year-ai-consultation" />
     </>
   );
 }

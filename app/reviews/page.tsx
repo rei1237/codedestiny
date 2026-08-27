@@ -6,6 +6,7 @@ import {
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/reviews/";
 const PAGE_TITLE = "실시간 사용자 리뷰 | 구매 인증 후기 모음 — Code Destiny";
@@ -155,6 +156,7 @@ export default function ReviewsPage() {
           </div>
         ))}
       </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/reviews" />
     </>
   );
 }

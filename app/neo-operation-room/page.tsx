@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import NeoOperationRoomClient from "./NeoOperationRoomClient";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 export const metadata: Metadata = {
   title: "네오의 팩폭 작전실 | Code Destiny",
@@ -91,6 +92,7 @@ export default function NeoOperationRoomRoute() {
         </p>
       </section>
       <NeoOperationRoomClient />
+      <ImmersiveRelatedLinks fromPath="/neo-operation-room" />
     </>
   );
 }

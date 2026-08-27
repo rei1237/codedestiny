@@ -1,5 +1,6 @@
 import DestinyBiasRouteClient from "./DestinyBiasRouteClient";
 import MyDestinyBiasShell from "./components/MyDestinyBiasShell";
+import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 
 const DESTINY_BIAS_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -112,6 +113,7 @@ export default function DestinyBiasPage() {
         </p>
       </section>
       <DestinyBiasRouteClient />
+      <ImmersiveRelatedLinks fromPath="/saju/destiny-bias" />
     </MyDestinyBiasShell>
   );
 }

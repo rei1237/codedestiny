@@ -6,6 +6,7 @@ import {
   buildServiceJsonLd,
 } from "../../lib/structured-data";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/sukuyo-compatibility-ai/";
 const PAGE_TITLE = "숙요 궁합 상담 | 27수 관계 유형 1:1 해석 — Code Destiny";
@@ -130,6 +131,7 @@ export default function SukuyoCompatibilityAiPage() {
           </div>
         ))}
                   </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/sukuyo-compatibility-ai" />
     </>
   );
 }

@@ -1,6 +1,7 @@
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import ZiweiChartClientLoader from "./ZiweiChartClientLoader";
 import RouteMetadataLocaleSync from "../../components/RouteMetadataLocaleSync";
+import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 
 const ZIWEI_CHART_METADATA_COPY = {
   ko: {
@@ -146,6 +147,7 @@ export default function ZiweiChartPage() {
       </section>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: ZIWEI_FAQ_JSON_LD }} />
       <ZiweiChartClientLoader />
+      <ImmersiveRelatedLinks fromPath="/ziwei/chart" />
     </main>
   );
 }

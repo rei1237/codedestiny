@@ -7,6 +7,7 @@ import {
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/love-secret-ai/";
 const PAGE_TITLE = "짝사랑 운세 | 재회·연애 마음 리딩 — 사랑의 비밀";
@@ -194,6 +195,7 @@ export default function LoveSecretAiPage() {
           </div>
         ))}
       </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/love-secret-ai" />
     </>
   );
 }

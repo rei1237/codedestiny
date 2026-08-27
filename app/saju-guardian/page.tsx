@@ -1,4 +1,5 @@
 import SajuGuardianRouteClient from "./SajuGuardianRouteClient";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 export default function SajuGuardianPage() {
   return (
@@ -71,6 +72,7 @@ export default function SajuGuardianPage() {
         </p>
       </section>
       <SajuGuardianRouteClient />
+      <ImmersiveRelatedLinks fromPath="/saju-guardian" />
     </>
   );
 }

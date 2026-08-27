@@ -7,6 +7,7 @@ import {
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/vedic-ai/";
 const PAGE_TITLE = "베다 점성술 상담 · 나크샤트라·다샤 해석 | Code Destiny";
@@ -153,6 +154,7 @@ export default function VedicAiPage() {
           </div>
         ))}
                   </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/vedic-ai" />
     </>
   );
 }

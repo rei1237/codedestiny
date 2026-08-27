@@ -7,6 +7,7 @@ import {
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
 
 const PAGE_PATH = "/ziwei-ai/";
 const PAGE_TITLE = "자미두수 전문가 상담 | 명궁·사화·대운 풀이 — Code Destiny";
@@ -142,6 +143,7 @@ export default function ZiweiAiPage() {
           </div>
         ))}
                   </ServiceIntroSection>
+      <ImmersiveRelatedLinks fromPath="/ziwei-ai" />
     </>
   );
 }

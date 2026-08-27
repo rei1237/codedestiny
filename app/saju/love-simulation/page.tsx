@@ -1,4 +1,5 @@
 import LoveSimulationClient from "./LoveSimulationClient";
+import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
 
 const LOVE_SIMULATION_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -124,6 +125,7 @@ export default function LoveSimulationPage() {
         </p>
       </section>
       <LoveSimulationClient />
+      <ImmersiveRelatedLinks fromPath="/saju/love-simulation" />
     </main>
   );
 }
