@@ -2,9 +2,9 @@
  * 베다(Jyotish) 어댑터 — 판차앙가(Panchanga)의 한 요소인 '바라(Vāra: 요일 지배성)'로 방향성 기여를 만든다.
  * 각 요일은 고유 행성(그라하)이 지배한다: 일=태양·월=달·화=화성·수=수성·목=목성·금=금성·토=토성.
  * 숙요(27수)와는 완전히 다른 축(요일→행성)이라 신호 중복이 없다.
- * 결정론: 난수·Date 미사용 — Zeller 합동식(순수 산술)로 생년월일→요일 계산. 음력은 Lunar로 양력 변환 후 산정.
+ * 결정론: 난수·Date 미사용 — Zeller 합동식(순수 산술)로 생년월일→요일 계산. 음력은 한국 음양력 코어로 양력 변환 후 산정.
  */
-import { Lunar } from "lunar-javascript";
+import { lunarToSolar } from "@/lib/korean-calendar";
 import type { EngineAdapter } from "./types";
 import type { CompassInput, DirectionKey, EngineContribution } from "../types";
 
@@ -27,8 +27,11 @@ function clamp01(n: number): number {
 function toSolarYmd(birth: CompassInput["birth"]): { y: number; m: number; d: number } {
   const [yy, mm, dd] = birth.birthDate.split("-").map(Number);
   if (birth.calendarType === "lunar") {
-    const solar = Lunar.fromYmd(yy, birth.lunarLeap ? -mm : mm, dd).getSolar();
-    return { y: solar.getYear(), m: solar.getMonth(), d: solar.getDay() };
+    // 🔴 음력→양력도 한국 음양력 코어가 한다. 중국 음력은 3.70% 의 날짜에서 하루 어긋나고(실측
+    //    1950~2030 표본 28,188건 중 1,044건) 그 하루가 그대로 다른 요일 → 다른 바라(지배 행성)가 된다.
+    const solar = lunarToSolar(yy, mm, dd, Boolean(birth.lunarLeap));
+    if (!solar) throw new RangeError("음력 생년월일을 양력으로 옮기지 못했습니다(지원 1900~2100).");
+    return { y: solar.year, m: solar.month, d: solar.day };
   }
   return { y: yy, m: mm, d: dd };
 }

@@ -12,7 +12,7 @@
 // 정본 템플릿: worker/routes/ziwei-island-report.js (같은 계약의 결정론 유료 리포트).
 // 무인증·무DB 계약인 무료 라우트(worker/routes/nakshatra.js)는 건드리지 않고 파일을 분리했다.
 
-import { Solar } from "lunar-javascript";
+import { solarToLunar } from "../../lib/korean-calendar/index.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson, HttpError } from "../lib/http.js";
 import { getOptionalUserFromRequest, isAuthDbInfraError, requireAuth } from "../lib/auth.js";
 import { connectDb, isTransientMongoError, withMongoRetry } from "../lib/db.js";
@@ -93,12 +93,25 @@ function normalizeBirthBody(body) {
 
 function isValidBirth(input) {
   return (
-    Number.isFinite(input.year)
+    // 🔴 한국 음양력 코어의 지원 범위(1900~2100)다. 밖이면 음력을 못 만들므로 여기서 400 으로 끊는다.
+    Number.isFinite(input.year) && input.year >= 1900 && input.year <= 2100
     && Number.isFinite(input.month)
     && Number.isFinite(input.day)
     && input.month >= 1 && input.month <= 12
     && input.day >= 1 && input.day <= 31
   );
+}
+
+// 🔴 음력은 한국 음양력 코어(KST 삭 기준)가 낸다. 중국 음력(lunar-javascript)은 삭이 CST 23시대에
+//    들면 그 달 전체가 하루 밀려 27수 본명숙이 통째로 다른 수가 된다(실측 3.57%).
+//    생시는 음력일을 바꾸지 않으므로 코어는 날짜만 받는다. 범위 밖이면 null.
+function sukuyoFromSolarDate(year, month, day) {
+  const lunar = solarToLunar(year, month, day);
+  if (!lunar) return null;
+  return buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, {
+    isLeapMonth: lunar.isLeapMonth,
+    source: "korean-calendar-core",
+  });
 }
 
 function birthUtcFromInput(input) {
@@ -263,9 +276,7 @@ function buildScanDays(startDate, dayCount) {
     const year = cursor.getUTCFullYear();
     const month = cursor.getUTCMonth() + 1;
     const day = cursor.getUTCDate();
-    const lunar = Solar.fromYmdHms(year, month, day, 12, 0, 0).getLunar();
-    const rawMonth = lunar.getMonth();
-    const suk = buildSukuyoFromLunar(Math.abs(rawMonth), lunar.getDay(), { isLeapMonth: rawMonth < 0 });
+    const suk = sukuyoFromSolarDate(year, month, day);
     if (!suk) continue;
     out.push({
       date: `${year}-${pad2(month)}-${pad2(day)}`,
@@ -307,9 +318,7 @@ async function handleMuhurta(request, env) {
   if (moonLon == null) {
     return json({ ok: false, retryable: true, reason: "SWISS_MOON_UNAVAILABLE", message: MESSAGES.moonUnavailable }, { status: 502 });
   }
-  const myLunar = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute, 0).getLunar();
-  const myRawMonth = myLunar.getMonth();
-  const mySuk = buildSukuyoFromLunar(Math.abs(myRawMonth), myLunar.getDay(), { isLeapMonth: myRawMonth < 0 });
+  const mySuk = sukuyoFromSolarDate(input.year, input.month, input.day);
   if (!mySuk) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }
@@ -366,9 +375,7 @@ async function handleVvipCodex(request, env) {
     return json({ ok: false, retryable: true, reason: "SWISS_MOON_UNAVAILABLE", message: MESSAGES.moonUnavailable }, { status: 502 });
   }
 
-  const lunar = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute, 0).getLunar();
-  const rawMonth = lunar.getMonth();
-  const sukuyo = buildSukuyoFromLunar(Math.abs(rawMonth), lunar.getDay(), { isLeapMonth: rawMonth < 0 });
+  const sukuyo = sukuyoFromSolarDate(input.year, input.month, input.day);
   if (!sukuyo) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }
@@ -426,4 +433,4 @@ export async function handleNakshatraPremiumRoutes(request, env = {}) {
   }
 }
 
-export const __nakshatraPremiumTestUtils = { PRODUCTS, normalizeBirthBody, isValidBirth, birthUtcFromInput };
+export const __nakshatraPremiumTestUtils = { PRODUCTS, normalizeBirthBody, isValidBirth, birthUtcFromInput, sukuyoFromSolarDate, buildScanDays };

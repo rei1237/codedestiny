@@ -19,7 +19,7 @@
 //    말했는지를 근거로 받아야 "비교"가 성립하기 때문이다 — 이게 이 상품의 존재 이유다.
 
 import { createHash } from "node:crypto";
-import { Solar } from "lunar-javascript";
+import { solarToLunar } from "../../lib/korean-calendar/index.js";
 import { getRoutePath, json, methodNotAllowed, notFound, readJson } from "../lib/http.js";
 import { getAccessTokenSecret, getJwtAudience, getJwtIssuer, getOptionalUserFromRequest, isAuthDbInfraError } from "../lib/auth.js";
 import { signJwt, verifyJwt } from "../lib/jwt.js";
@@ -620,12 +620,17 @@ function birthUtcFromInput(input) {
   return new Date(utcMillis);
 }
 
+// 🔴 음력은 한국 음양력 코어(KST 삭 기준)가 낸다. 중국 음력(lunar-javascript)은 삭이 CST 23시대에
+//    들면 그 달 전체가 하루 밀려 27수 본명숙이 통째로 다른 수가 된다(실측 3.57%).
+//    입력 범위는 isValidBirthInput 이 1900~2100 으로 이미 막는다.
 function lunarFromInput(input) {
-  const lunar = Solar.fromYmdHms(input.year, input.month, input.day, input.hour, input.minute, 0).getLunar();
-  // lunar-javascript: 윤달이면 getMonth()가 음수. 절댓값이 월, 음수면 윤달.
-  const rawMonth = lunar.getMonth();
-  return { month: Math.abs(rawMonth), day: lunar.getDay(), isLeap: rawMonth < 0 };
+  const lunar = solarToLunar(input.year, input.month, input.day);
+  if (!lunar) throw new RangeError(`지원 범위 밖 생년월일: ${input.year}-${input.month}-${input.day}`);
+  return { month: lunar.lunarMonth, day: lunar.lunarDay, isLeap: lunar.isLeapMonth };
 }
+
+// 🔴 검증 전용 표면. verify:sukuyo-korean-calendar 가 음력 축을 **실제로 실행해** 본다.
+export const __nakshatraAiTestUtils = { normalizeBirthInput, isValidBirthInput, lunarFromInput };
 
 async function computeNatalFacts(env, normalized, request) {
   const input = normalized.input.birthInfo;

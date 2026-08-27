@@ -22,16 +22,19 @@
  *      갈리는 날짜(밴드 안)** 를 반드시 포함한다 — 밴드 밖만 보면 되돌려도 초록불이다.
  *   ③ 소비자들끼리 **서로 같은 본명숙**을 내는지. 이 작업의 발단이 "엔진마다 달력이 다르다" 였다.
  *   ④ `calcSukuyoForServer` 의 세차가 **음력 프레임**(설날 경계)이고 코어 음력해에서 나오는지.
+ *   ⑤ 베다 어댑터의 **음력→양력**(반대 방향)이 코어를 타는지. 하루가 밀리면 요일이 밀리고
+ *      그대로 다른 바라(지배 행성)가 된다 — 실측 1950~2030 28,188건 중 1,044건(3.70%)이 갈린다.
  */
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { Solar } from "lunar-javascript";
+import { Lunar, Solar } from "lunar-javascript";
 
 import {
   BRANCH_HANJA,
   STEM_HANJA,
+  lunarToSolar,
   sexagenaryYearIndexes,
   solarToLunar,
 } from "../lib/korean-calendar/index.js";
@@ -48,6 +51,36 @@ function ok(label, condition, detail = "") {
   checks += 1;
   if (!condition) failures.push(`${label}${detail ? `\n      ${detail}` : ""}`);
   else if (REPORT) console.log(`  ok  ${label}`);
+}
+
+/**
+ * 낙샤트라 3라우트의 검증 표면을 esbuild 로 번들해 돌린다.
+ * 🔴 node 로 직접 import 하면 죽는다 — Swiss WASM(`.wasm`)과 `@/` TS 모듈을 끌고 오기 때문이다.
+ * 레포의 다른 낙샤트라 가드(verify-nakshatra-flow·-premium)와 같은 방식이다.
+ */
+async function loadNakshatraRoutes() {
+  const { build } = await import("esbuild");
+  const { createRequire } = await import("node:module");
+  const { tmpdir } = await import("node:os");
+  const entry = [
+    `export { __nakshatraTestUtils } from ${JSON.stringify(path.join(root, "worker/routes/nakshatra.js"))};`,
+    `export { __nakshatraAiTestUtils } from ${JSON.stringify(path.join(root, "worker/routes/nakshatra-ai.js"))};`,
+    `export { __nakshatraPremiumTestUtils } from ${JSON.stringify(path.join(root, "worker/routes/nakshatra-premium.js"))};`,
+  ].join("\n");
+  const bundled = await build({
+    stdin: { contents: entry, resolveDir: root, sourcefile: "sukuyo-nakshatra-entry.js" },
+    bundle: true,
+    format: "cjs",
+    platform: "node",
+    write: false,
+    logLevel: "silent",
+    loader: { ".wasm": "empty" }, // Swiss WASM 은 이 가드가 쓰지 않는다(달 황경 미사용).
+  });
+  const tmpFile = path.join(tmpdir(), `sukuyo-nakshatra-${process.pid}.cjs`);
+  fs.writeFileSync(tmpFile, bundled.outputFiles[0].text);
+  const m = createRequire(import.meta.url)(tmpFile);
+  fs.rmSync(tmpFile, { force: true });
+  return { free: m.__nakshatraTestUtils, ai: m.__nakshatraAiTestUtils, premium: m.__nakshatraPremiumTestUtils };
 }
 
 /** 27수 한글 이름 → 인덱스. 정본(`buildSukuyoFromLunar`)에서 만든다 — 손으로 적지 않는다. */
@@ -119,10 +152,6 @@ const SUKUYO_MARKERS = [
  * 🔴 남은 이관 목록이다 — 줄어들기만 해야 한다. 여기 올린다고 옳아지지 않는다.
  */
 const KNOWN_REMAINING = new Map([
-  ["worker/routes/nakshatra.js", "낙샤트라 — PR-E3"],
-  ["worker/routes/nakshatra-ai.js", "낙샤트라 — PR-E3"],
-  ["worker/routes/nakshatra-premium.js", "낙샤트라 — PR-E3"],
-  ["app/destiny-compass/_engine/adapters/vedicAdapter.ts", "베다 어댑터 — PR-E3"],
   ["app/fortune/prompt-hub/lite-prompt-tools.ts", "프롬프트 허브 라이트 도구 — PR-E4"],
   ["worker/routes/admin.js", "관리자 프롬프트 랩 — PR-E4"],
   ["worker/lib/karma-destiny-ai-calculations.js", "카르마 — PR-E4"],
@@ -181,6 +210,11 @@ const promptFacts = await loadTsModule("app/fortune/prompt-hub/sukuyo-prompt-fac
 const teaHouseAdapter = await loadTsModule("src/features/fortune-tea-house/lib/sukuyoCompatibilityAdapter.ts");
 const { buildSukuyoAdapter } = await import("../worker/lib/guardian-fortune/adapters/sukuyo.js");
 const { __sukuyoYearlyTestUtils: sukuyoRoute } = await import("../worker/routes/sukuyo.js");
+
+// 🔴 낙샤트라 3라우트는 node 로 직접 import 되지 않는다 — Swiss WASM 과 `@/` TS 모듈을 끌고 온다.
+//    그래서 레포의 다른 낙샤트라 가드와 같은 방식으로 esbuild 번들해 **실제로 돌린다**.
+const nakshatra = await loadNakshatraRoutes();
+const vedicAdapterModule = loadTsModule("app/destiny-compass/_engine/adapters/vedicAdapter.ts");
 
 /**
  * 소비자 7벌 — 이름과 "그 날짜의 27수 인덱스를 내는 방법".
@@ -256,6 +290,24 @@ const CONSUMERS = [
       return snapshot?.user?.mansionIndex ?? snapshot?.user?.index ?? (snapshot?.user?.mansion?.includes(sample.koreanName) ? sample.koreanIndex : -1);
     },
   },
+  {
+    name: "worker/routes/nakshatra.js lunarFromInput",
+    indexOf: (sample) => {
+      const lunar = nakshatra.free.lunarFromInput({ year: sample.year, month: sample.month, day: sample.day, hour: 12, minute: 0 });
+      return buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap }).index;
+    },
+  },
+  {
+    name: "worker/routes/nakshatra-ai.js lunarFromInput",
+    indexOf: (sample) => {
+      const lunar = nakshatra.ai.lunarFromInput({ year: sample.year, month: sample.month, day: sample.day, hour: 12, minute: 0 });
+      return buildSukuyoFromLunar(lunar.month, lunar.day, { isLeapMonth: lunar.isLeap }).index;
+    },
+  },
+  {
+    name: "worker/routes/nakshatra-premium.js sukuyoFromSolarDate",
+    indexOf: (sample) => nakshatra.premium.sukuyoFromSolarDate(sample.year, sample.month, sample.day).index,
+  },
 ];
 
 for (const consumer of CONSUMERS) {
@@ -329,6 +381,69 @@ for (const consumer of CONSUMERS) {
     }
   }
   ok("④ 생시가 본명숙을 바꾸지 않는다(0·23시 = 정오)", hourDrift.length === 0, hourDrift.join("\n      "));
+}
+
+// ── ⑤ 베다 어댑터의 음력→양력이 코어를 탄다 ─────────────────────────────────
+//
+// 🔴 이 어댑터는 27수를 안 쓰지만 **같은 달력 축의 반대 방향**이다. 음력 생일이 하루 밀리면
+// 요일이 밀리고 그대로 다른 바라(지배 행성)가 나온다. 표본은 손으로 적지 않고 실제로 갈리는
+// 음력 날짜를 찾아서 쓴다 — 밴드 밖만 보는 표본은 되돌려도 초록불이다.
+{
+  const divergent = [];
+  for (let lunarYear = 1950; lunarYear <= 2030 && divergent.length < 8; lunarYear += 1) {
+    for (let lunarMonth = 1; lunarMonth <= 12 && divergent.length < 8; lunarMonth += 1) {
+      for (let lunarDay = 1; lunarDay <= 28 && divergent.length < 8; lunarDay += 1) {
+        const core = lunarToSolar(lunarYear, lunarMonth, lunarDay, false);
+        if (!core) continue;
+        let chinese;
+        try {
+          chinese = Lunar.fromYmd(lunarYear, lunarMonth, lunarDay).getSolar();
+        } catch {
+          continue;
+        }
+        if (chinese.getYear() === core.year && chinese.getMonth() === core.month && chinese.getDay() === core.day) continue;
+        divergent.push({ lunarYear, lunarMonth, lunarDay, core, chinese });
+      }
+    }
+  }
+  ok(
+    "⑤ 음력→양력이 갈리는 날짜를 실제로 찾았다(0 이면 가드가 깨진 것)",
+    divergent.length >= 4,
+    `발견 ${divergent.length}건`,
+  );
+
+  // 어댑터는 바라(요일 지배성)를 내므로, 코어 양력일의 요일에서 나온 행성과 대조한다.
+  const PLANET_BY_WEEKDAY = ["Surya", "Chandra", "Mangala", "Budha", "Guru", "Shukra", "Shani"];
+  const wrong = [];
+  let ran = 0;
+  for (const row of divergent) {
+    const input = {
+      birth: {
+        birthDate: `${row.lunarYear}-${String(row.lunarMonth).padStart(2, "0")}-${String(row.lunarDay).padStart(2, "0")}`,
+        calendarType: "lunar",
+        lunarLeap: false,
+      },
+    };
+    let contribution;
+    try {
+      contribution = await vedicAdapterModule.vedicAdapter.contribute(input);
+    } catch (error) {
+      wrong.push(`${input.birth.birthDate} 던짐: ${String(error?.message || error).slice(0, 90)}`);
+      continue;
+    }
+    ran += 1;
+    const expected = PLANET_BY_WEEKDAY[new Date(Date.UTC(row.core.year, row.core.month - 1, row.core.day)).getUTCDay()];
+    const chineseExpected = PLANET_BY_WEEKDAY[new Date(Date.UTC(row.chinese.getYear(), row.chinese.getMonth() - 1, row.chinese.getDay())).getUTCDay()];
+    const actual = String(contribution?.evidence?.[0]?.detail || "");
+    if (!actual.includes(expected)) {
+      wrong.push(
+        `음력 ${input.birth.birthDate} 코어 양력 ${row.core.year}-${row.core.month}-${row.core.day} → ${expected} · 실제 "${actual}"`
+        + (actual.includes(chineseExpected) ? ` = 중국 음력 ${chineseExpected}` : ""),
+      );
+    }
+  }
+  ok("⑤ 베다 어댑터를 표본 전건 실행했다", ran === divergent.length, `${ran}/${divergent.length}`);
+  ok("⑤ 베다 어댑터의 바라가 코어 양력일의 요일에서 나온다", wrong.length === 0, wrong.join("\n      "));
 }
 
 // ── 결과 ────────────────────────────────────────────────────────────────────
