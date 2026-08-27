@@ -11077,7 +11077,7 @@
      실제 값의 소스는 여전히 #birthCountry select다(15개 지점이 .options[selectedIndex]를 직접
      읽으므로 select는 지우지 않고 display:none으로만 숨긴다). 이 콤보박스는 그 select의
      selectedIndex를 옮기고 change 이벤트만 대신 쏴 준다. 프로그래밍적으로 select가 바뀌는
-     지점(populateBirthCountrySelector/_applyBirthFormSnapshot/_dpSelectBirthPlaceOption)은
+     지점(populateBirthCountrySelector/_dpSelectBirthPlaceOption)은
      window._cdSyncBirthCountryDisplay()를 각자 호출해 입력창 표시값을 맞춘다. */
   var _cdBirthCountryComboBound = false;
   var _cdBirthCountryActiveIndex = -1;
