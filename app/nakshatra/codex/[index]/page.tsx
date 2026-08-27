@@ -6,6 +6,7 @@ import { getFusionBySukuyo } from "@/constants/nakshatra-fusion";
 import { SUKUYO_MANSIONS } from "@/worker/lib/sukuyo-premium.js";
 import { GRAHA_KO } from "@/worker/lib/vedic-derived-calculations.js";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
+import { truncateToDisplayWidth } from "@/lib/seo";
 import { siteSeo } from "@/lib/seo/siteSeo";
 
 export const dynamicParams = false;
@@ -39,7 +40,11 @@ export function generateMetadata({ params }: { params: { index: string } }) {
   const r = resolve(params.index);
   if (!r) return {};
   const title = `${r.suk.nameKo}수(${r.suk.nameHan}) · ${r.attrs.nameKo} | 나크샤트라 결정판 27수 도감`;
-  const description = `동양 ${r.suk.nameKo}수(${r.suk.nameHan})와 인도 나크샤트라 ${r.attrs.nameKo}(${r.attrs.nameEn})의 통합 해설. ${r.fusion?.convergence?.slice(0, 90) || ""}`;
+  // 이 페이지는 buildSeoMetadata 를 거치지 않고 metadata 를 직접 조립한다 — 폭 절단도 여기서 한다.
+  // 예전에는 convergence 를 90**자**로 잘랐는데, 접두부까지 더하면 폭이 207~242 로 나갔다(2026-08-27 실측).
+  const description = truncateToDisplayWidth(
+    `동양 ${r.suk.nameKo}수(${r.suk.nameHan})와 인도 나크샤트라 ${r.attrs.nameKo}(${r.attrs.nameEn})의 통합 해설. ${r.fusion?.convergence || ""}`,
+  );
   const path = `/nakshatra/codex/${r.idx}`;
   return {
     metadataBase: new URL(siteSeo.siteUrl),

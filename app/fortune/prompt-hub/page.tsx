@@ -6,7 +6,7 @@ import { siteSeo } from "../../../lib/seo/siteSeo";
 const PAGE_PATH = "/fortune/prompt-hub/";
 const PAGE_TITLE = "운세 프롬프트 허브 · 사주·타로 질문 설계 | Code Destiny";
 const PAGE_DESCRIPTION =
-  "사주, 타로, 점성술, 자미두수, 숙요점, 수비학 등 여러 점술의 상담 질문을 한곳에서 다듬는 무료 프롬프트 허브. 질문의 목적을 정리하고 도구별 상담 프롬프트를 만들어 보세요.";
+  "사주·타로·점성술·자미두수·숙요점 상담 질문을 한곳에서 다듬는 무료 프롬프트 허브입니다. 질문의 목적을 정리하고 도구별 상담 프롬프트를 만들어 보세요.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

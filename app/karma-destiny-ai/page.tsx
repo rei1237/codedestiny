@@ -11,7 +11,7 @@ import ServiceIntroSection from "../components/ServiceIntroSection";
 const PAGE_PATH = "/karma-destiny-ai/";
 const PAGE_TITLE = "업보 운세 | 반복되는 인생 패턴 리딩 — 운명의 업";
 const PAGE_DESCRIPTION =
-  "사주·자미두수·숙요 27수·서양 점성술·베다 다섯 관점을 하나의 운명 지도로 잇는 운명의 업 전문가 상담. 같은 자리에서 되풀이되는 선택의 결을 관점별로 다르게 짚어 하나의 결론으로 모아 드립니다.";
+  "사주·자미두수·숙요 27수·서양 점성술·베다 다섯 관점을 하나의 운명 지도로 잇는 상담입니다. 되풀이되는 선택의 결을 관점별로 짚어 하나로 모읍니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

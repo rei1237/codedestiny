@@ -6,6 +6,36 @@
 
 ---
 
+## 왜 하는 작업인가
+
+사용자 요구 원문(2026-08-27, 순서대로):
+
+> `docs/handoff/seo-render-audit-2026-08-27.md` 읽고 나머지 seo 최적화 작업 진행해
+> / `#1186에 충돌이있으니 해소해`
+> / `#1186가 여전히 충돌이고 해소하고 머지후 남은 작업 인수인계 문서 만들어`
+> / `PR #1189 머지했으니 실측해줘`
+> / `docs/handoff/seo-followups-2026-08-27.md 그 다음 인수인계 작업 진행해`
+
+즉 **렌더 실측 SEO 감사(#1184)가 남긴 후속 항목을 순서대로 닫는 작업**이다. 각 항목은
+"결정이 필요한 것"과 "결정 없이 바로 할 수 있는 것"이 섞여 있어서, **결정이 필요한 것은
+사용자에게 물어보고 진행**해 왔다(아래 §0 표의 ✅ 항목은 전부 그렇게 처리됐다).
+
+🔴 **다음 세션이 다시 하면 안 되는 것** — 아래 PR 들은 이미 나갔다.
+
+| PR | 내용 | 상태 |
+|---|---|---|
+| #1184 | 렌더 감사 도구 + 상속 canonical 55건 | **머지됨** |
+| #1186 | 제목 표시 폭 125 → 0, `/static` 이중 신호, `/destiny-poker` 위양성 | **머지됨** (`1b4700c5`) |
+| #1189 | 이 인수인계 문서 신규 | **머지됨** |
+| #1191 | 설명 표시 폭 183 → 0 (§1) | 🔴 **CI 8/8 통과 · MERGEABLE — 사용자 머지 대기** |
+
+🔴 **프로덕션 승격은 아직 안 됐다.** 머지는 스테이징(`staging.code-destiny.com`)까지만 자동으로
+간다. 2026-08-27 실측: 스테이징은 새 제목을 서빙하는데 프로덕션은 옛 제목이다.
+승격은 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production` 이고,
+**그때 한 번의 명시적 허락이 있어야 실행한다**(CLAUDE.md 절대 규칙 3).
+
+---
+
 ## 0. 지금까지 닫힌 것 / 열려 있는 것
 
 | 항목 | 상태 | 근거 |
@@ -16,7 +46,7 @@
 | `/static` 의 noindex + 홈 canonical 병존 | ✅ #1186 | canonical 제거, 허용목록을 산출물별로 |
 | `/destiny-poker` 인바운드 0 | ✅ #1186 | 감사 도구 위양성이었다(프로덕션 308 실측) |
 | **제목 표시 폭 초과 125개** | ✅ #1186 | 125 → 0, `verifyIndexableTitleWidth` 가 막는다 |
-| **설명 표시 폭 초과 183개** | ❌ **§1** | 미착수 — 결정 먼저 |
+| **설명 표시 폭 초과 183개** | ✅ PR #1191 | 183 → 0, `verifyIndexableDescriptionWidth` 가 막는다 |
 | 아웃바운드 링크 0인 색인 대상 18개 | ❌ **§2** | UI 정책 결정 필요 |
 | `/insights` HTML 1.83MB | ❌ **§3** | 리팩터링 설계 선행 |
 | HTML 에 ETag/Last-Modified 없음 | ❌ **§4** | 배포 파이프라인 결정 |
@@ -24,78 +54,61 @@
 
 ---
 
-## 1. 🔴 설명(description) 표시 폭 — 183개 초과 (최우선)
+## 1. ✅ 설명(description) 표시 폭 — PR #1191 에서 183 → 0
 
-### 1-1. 왜 이제야 보이나
+### 1-1. 근본 원인은 측정축 + **생성기가 문구를 늘리고 있었다**
 
-제목과 **같은 측정축 오류**다. 1차 감사는 설명 길이를 **글자 수**로 쟀는데, Google 은
-설명도 픽셀 폭(데스크톱 약 920px)으로 자른다. 한중일 글자는 라틴의 약 2배 폭이다.
+제목(#1186)과 같은 축 문제인데 생성기가 하나 더 얹혀 있었다.
 
-| 측정축 | 160 초과 | "너무 짧다"(70 미만 / 폭 110 미만) |
+| 위치 | 하던 일 |
+|---|---|
+| `seed-articles.js` `normalizeSeoDescription()` | 짧으면 일반 문장을 **덧붙여** 120~160**자**로 채우고 길면 160자로 자른다 |
+| `[slug]/page.js` `articleDescription()` | 그 결과를 다시 `.slice(0, 160)` — 또 글자 수 |
+
+실측: 씨드 기사 113개의 `seoDescription` 폭이 **전부 160 초과**(최소 204 · 중앙 266)였고,
+렌더 결과에서 **설명이 정확히 160자인 페이지가 58개**였다(절단의 흔적).
+
+### 1-2. 고친 것
+
+| # | 파일 | 무엇을 |
+|---|---|---|
+| 1 | `lib/seo.ts` | `truncateToDisplayWidth()` 신규 + `buildSeoMetadata` 에 적용(43개 라우트 공통 진입점) |
+| 2 | `lib/generate-page-metadata.ts` · `lib/seo/createI18nMetadata.ts` | 다시 구현하지 않고 위 함수를 부른다(라우트 11개) |
+| 3 | `app/nakshatra/codex/[index]/page.tsx` | metadata 를 손으로 조립하므로 직접 부른다. 예전 `convergence.slice(0, 90)` 은 글자 수 절단이라 폭 207~242 였다 |
+| 4 | `app/insights/seo-descriptions.js` **(신규)** | 기사 114개 문안 재작성(폭 ≤152 · 중앙 142). 기계가 덧붙이던 일반 문구 제거 |
+| 5 | `lib/seo-landing-pages.js` | 랜딩 12개 재작성 — 공통 절단에 맡기면 문장이 중간에서 끊긴다 |
+| 6 | 개별 라우트 13개 · `index.html`(`/`) · `sync-legacy-static-to-public.mjs`(`/en`) | `export const metadata` 를 직접 쓰는 것들 |
+| 7 | `scripts/verify-adsense-readiness.mjs` | **`verifyIndexableDescriptionWidth` 신규** — 사이트맵 URL 전량, 손으로 든 목록 없음 |
+
+### 1-3. 실측 (dist, 색인 388개)
+
+| 항목 | 전 | 후 |
 |---|---:|---:|
-| 글자 수 (1차 감사) | 4 | 79 |
-| **표시 폭 (정정)** | **183** | 64 |
+| 설명 표시 폭 중앙 / 최대 | 153 / 277 | **141 / 160** |
+| 폭 160 초과 | 183 | **0** |
+| 중복 설명 · 빈 설명 | 0 · 0 | 0 · 0 |
 
-즉 1차 감사 §5-6 의 두 숫자는 **둘 다 뒤집힌다.** "70자 미만 79개" 는 폭으로 재면 대부분
-정상 범위이고, 실제 문제는 반대쪽에 183개가 쌓여 있었다.
+### 1-4. 🔴 남은 것 — 두 가지
 
-현재값(색인 388개): 폭 **중앙 153 · 최소 73 · 최대 277**.
+**(a) 공통 절단이 만든 `…` 42개.** 전부 한계 안이지만 문장이 중간에서 끝난다. 선택된 안이
+명시적으로 감수한 대가다. 27개는 템플릿인 `/nakshatra/codex/0~26` 이고, 나머지 15개는
+`/stories/{ep-02,ep-08,prologue}` · `/fortune/{today,tomorrow}` · `/animal/mbti` ·
+`/compare/fortune-apps` · `/dream/psycho` · `/insights/fusion` · `/ja/tokushoho` ·
+`/psychotest` · `/refund-policy` · `/sukuyo/compatibility` · `/tarot/healing` · `/vedic/jyotish` 다.
+손으로 쓰려면 문자열 15개를 각 파일에서 찾아 고치면 된다.
 
-### 1-2. 어디에 몰려 있나
+**(b) `normalizeSeoDescription()` 의 160**자** 천장은 그대로 뒀다.** 🔴 그 함수의 결과
+(`seoDescription`)를 인사이트 허브 카드(`app/insights/page.js`·`InsightsCosmicClient.js`)가
+**화면 문구로 읽는다** — 고치면 목록 UI 가 함께 바뀐다. 지금은 `<title>`/description 이 별도 표를
+쓰므로 색인에는 영향이 없지만, 허브 카드에는 여전히 기계가 덧붙인 일반 문구가 남아 있다.
+손대려면 그 UI 변경을 먼저 승인받을 것.
 
-```
-/insights  114   (그중 기사 /insights/<slug> 가 114 중 대부분 — 기사 125개 중 114개가 초과)
-/nakshatra  28   (28개 전부 초과. 최대 217)
-나머지      41   (라우트당 1~3개씩 흩어져 있음)
-```
+### 1-5. 이 작업에서 가드가 잡아낸 것
 
-재현:
-
-```bash
-npm run build:cf
-SEO_AUDIT_OUT_DIR=dist node scripts/seo-audit.mjs --source=out --crawl-sitemap
-node -e "const r=require('./seo-audit-report-out.json');\
-const W=/[ᄀ-ᅟ⺀-〾ぁ-㏿㐀-䶿一-鿿ꀀ-꓏가-힣豈-﫿︰-﹯＀-｠￠-￦]/;\
-const w=s=>[...String(s)].reduce((n,c)=>n+(W.test(c)?2:1),0);\
-const d=r.routes.filter(x=>x.shouldBeIndexed!==false&&x.metaDescription);\
-console.log(d.filter(x=>w(x.metaDescription)>160).length)"
-```
-
-🔴 폭 정규식을 손으로 다시 쓰지 말 것 — 정본은 `scripts/verify-adsense-readiness.mjs` 의
-`EAST_ASIAN_WIDE`·`serpTitleWidth` 다. 이 세션에서 CJK 통합 한자(U+4E00–U+9FFF)를 빠뜨린
-범위를 한 번 썼고, 일본어 제목이 61 → 48 로 잘못 나왔다.
-
-### 1-3. 🔴 결정이 먼저다 — 두 갈래
-
-**기사 설명은 이미 잘리고 있다.** `app/insights/[slug]/page.js` 의 `articleDescription()` 이
-`seoDescription → metaDescription → description → excerpt → subtitle` 순으로 고른 뒤
-**`.slice(0, 160)`** 한다. 글자 수로 자르므로 한국어에서는 **잘린 뒤에도 폭 320** 이다.
-실측: 설명이 정확히 160자인 페이지가 **58개** — 전부 이 절단의 흔적이다.
-
-| 안 | 내용 | 비용 | 위험 |
-|---|---|---|---|
-| **A. 절단 기준을 폭으로 (추천)** | `.slice(0,160)` 을 "폭 160 에서 단어 경계 절단" 으로 교체 | 코드 1곳 + 가드 | 문장 중간에서 끊긴 설명이 그대로 남는다 — **잘림은 없어지지만 문장이 완결되지 않는다** |
-| B. 제목처럼 별도 표 | `app/insights/seo-descriptions.js` 를 만들어 183개를 손으로 | 문안 183개 | 크지만 품질이 가장 좋다 |
-| C. A + 초과분만 손으로 | 폭 절단으로 전부 안전권에 넣고, `/nakshatra` 28개처럼 뭉친 곳만 재작성 | 중간 | — |
-
-**추천은 C** 다. A 만으로는 "잘린 문장" 이 남고, B 는 183개 문안이 필요하다. C 는 폭 절단으로
-바닥을 깔고 뭉친 두 덩어리(`/insights` 기사·`/nakshatra`)만 손으로 정리한다.
-
-🔴 어느 안이든 **`/nakshatra` 28개는 같은 템플릿에서 나온다** — 템플릿 한 곳을 고치면 28개가
-함께 움직인다. 먼저 그 생성 지점을 찾을 것(`/nakshatra` 최대 217, 전수 초과).
-
-### 1-4. 가드는 어디에 붙이나
-
-제목과 **같은 자리**에 붙인다 — `scripts/verify-adsense-readiness.mjs` 안,
-`verifyIndexableTitleWidth` 바로 옆. 신규 `verify:*` npm 스크립트를 만들면
-`verify-guard-wiring` 이 배선을 요구하고 CI 게이트 추가는 사용자 승인 사항이다
-(`docs/CURRENT_DEV_BASELINE.md` §6). 기존 가드에 판정을 하나 더 다는 것은 그 제약을 안 건드린다.
-
-`getMetaContent(html, "description")` 이 이미 그 파일에 있다. 한계값은 **160**(제목 60 과 같은
-근사 기준). 🔴 반드시 **음성 테스트**를 할 것 — dist 의 아무 페이지 설명을 길게 되돌려 넣어
-실패하는지 보고 복원한다(대상이 없어서 통과하는 가드는 가드가 아니다).
-
----
+🔴 문구를 줄이면서 `/tarot/prompt-maker` 의 `의료·법률·투자` 와 `/yeon-star-hug` 의
+`엔터테인먼트` 를 함께 날렸는데 `verifyPublicFeatureMetadataSource` 가 빌드를 세웠다.
+**설명 문구를 줄일 때는 그 라우트가 필수 마커를 갖고 있는지 먼저 볼 것**
+(`scripts/verify-adsense-readiness.mjs` 의 `routeMetadataChecks`, 현재 3개 파일).
 
 ## 2. 아웃바운드 내부 링크가 0인 색인 대상 18개
 
@@ -169,8 +182,8 @@ Worker 응답에 ETag 가 없으니 304 재검증이 불가능하고, 크롤러�
 
 ## 6. 작업 순서 (추천)
 
-1. **§1 설명 폭** — 결정(A/B/C) → 구현 → 가드 → 음성 테스트. 지금 가장 큰 단일 덩어리다
-2. **§2 몰입형 18개** — 결정만 받으면 구현은 작다. 넣지 않기로 해도 예외 등재는 할 것
+1. **§2 몰입형 18개** — 결정만 받으면 구현은 작다. 넣지 않기로 해도 예외 등재는 할 것
+2. §1-4 의 남은 두 갈래(`…` 15개 문안 · 허브 카드 문구) — 둘 다 작고 서로 독립이다
 3. §3 `/insights` 1.83MB — 검색 인덱스 설계부터
 4. §4 ETag — 배포 결정부터
 5. §5 는 새 측정 세션
@@ -251,7 +264,59 @@ E 시리즈 진행 상황은 [korean-calendar-migration-2026-08-27.md](korean-ca
 
 ---
 
-## 8. 참고 문서
+## 8. 🔴 정본 예시 — 폭 문제를 고치는 표준 모양
+
+새 라우트나 새 문구가 폭 한계를 넘으면 **아래 네 조각을 그대로 따라 한다.** 이미 두 번
+(제목 #1186 · 설명 #1191) 같은 모양으로 처리했고, 세 번째도 같아야 한다.
+
+**(1) 폭 계산은 한 곳에만 둔다** — `lib/seo.ts:42`(`SEO_DESCRIPTION_WIDTH_LIMIT`) ·
+`lib/seo.ts:50`(`truncateToDisplayWidth`). 🔴 **다시 구현하지 말 것.**
+`lib/generate-page-metadata.ts` 와 `lib/seo/createI18nMetadata.ts` 는 이 함수를 **부르기만** 한다.
+
+**(2) 공통 진입점에서 자른다** — `lib/seo.ts:71` 에서 `buildSeoMetadata` 의 description 에 적용.
+43개 라우트가 이 진입점을 공유하므로 개별 파일을 41곳 고칠 필요가 없었다.
+
+**(3) 문구 품질이 필요한 곳만 별도 표** — `app/insights/seo-descriptions.js`(설명 114개) ·
+`app/insights/seo-titles.js`(제목 104개). 소비는 `app/insights/[slug]/page.js:84`(설명) ·
+`app/insights/[slug]/page.js:110`(제목)에서 `표 우선, 없으면 기존 동작` 한 줄이다.
+
+🔴 **기사 레코드의 `metaTitle`/`seoTitle`/`seoDescription` 에 넣지 않는 이유** — 그 값들은
+`seed-articles.js` 의 정규화를 거쳐 인사이트 허브 카드(`app/insights/page.js` ·
+`InsightsCosmicClient.js`)의 **화면 문구로도** 쓰인다. 거기에 쓰면 목록 UI 까지 바뀐다.
+
+**(4) 가드는 산출물에서 전수 발견한다** — `scripts/verify-adsense-readiness.mjs:1475`
+(`EAST_ASIAN_WIDE`) · `:1477`(`serpTitleWidth`) · `:1491`(`verifyIndexableTitleWidth`) ·
+`:1525`(`verifyIndexableDescriptionWidth`). 손으로 든 목록이 없고, `out/`·`dist/` 의 사이트맵
+URL 전량(`/x.html` 단독 라우트 포함)을 훑으며, URL 이 0개여도 실패한다.
+🔴 신규 `verify:*` npm 스크립트를 만들지 않는다 — `verify-guard-wiring` 이 배선을 요구하고
+CI 게이트 추가는 사용자 승인 사항이다(`docs/CURRENT_DEV_BASELINE.md` §6). 이미 `build:cf` 가
+부르는 이 파일 안에 판정을 하나 더 다는 것이 정본이다.
+🔴 **가드를 넣었으면 반드시 음성 테스트를 한다** — dist 의 아무 페이지를 옛 값으로 되돌려 넣어
+실패하는 것을 보고 복원한다. 검사 대상이 없어서 통과하는 가드는 가드가 아니다(CLAUDE.md 원칙 10).
+
+🔴 **문구를 줄이기 전에 필수 마커부터 확인한다** —
+`scripts/verify-adsense-readiness.mjs` 의 `routeMetadataChecks`(현재 3개 파일).
+이번에 `의료·법률·투자`·`엔터테인먼트` 를 날려 빌드가 두 번 섰다.
+
+---
+
+## 9. 🔴 근거를 못 찾으면 추측하지 말고 물어라
+
+이 레포에서 추측이 사고로 이어진 실제 이력이 있다.
+
+- 이번 세션에서도 이 문서에 "`/nakshatra` 28개는 같은 템플릿에서 나온다"고 **추정으로** 적었는데,
+  실제로는 `lib/seo-landing-pages.js` 의 개별 문안이었다. 열어 보고 나서야 알았다.
+- "임포터 0" 은 죽었다는 증거가 아니다(`lib/payment/portone.ts`).
+- "없다/영향 없다" 는 **전수 검색을 실제로 돌린 뒤에만** 쓰고 검색 범위를 함께 적는다.
+  🔴 그 grep 은 반드시 `git grep` — 리포 루트 `.ignore` 가 `sync:public` 미러 172개를
+  Grep/Glob 에서 빼므로 rg 로는 미러의 참조를 못 본다.
+
+**정책·IA·UI 가 갈리는 지점은 임의로 고르지 말고 사용자에게 묻는다.** 지금 열려 있는 것 중
+§2(몰입형 라우트 링크) · §4(ETag) · §1-4(b)(허브 카드 문구)가 전부 그런 항목이다.
+
+---
+
+## 10. 참고 문서
 
 - [seo-render-audit-2026-08-27.md](seo-render-audit-2026-08-27.md) — 1차 감사 전문 + 2차 세션 §10
 - [seo-content-expansion-roadmap.md](seo-content-expansion-roadmap.md) — §I 의 P1 미착수분,

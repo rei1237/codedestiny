@@ -24,6 +24,7 @@ import { siteSeo } from "./seo/siteSeo";
 import { mergeKeywords, SEO_CORE_KEYWORDS, toAbsoluteUrl } from "./seo-metadata";
 import { getSeoProfileKeywords } from "./seo/entity-registry.mjs";
 import { buildOpenGraphImageUrl, getCanonicalUrl, isIndexableRoute, normalizePath } from "./seo.v2";
+import { truncateToDisplayWidth } from "./seo";
 
 const SITE_ORIGIN = siteSeo.siteUrl.replace(/\/$/, "");
 const DEFAULT_OG_IMAGE_URL = siteSeo.defaultOgImage;
@@ -61,7 +62,9 @@ function appendUniqueTitle(title: string, routeCode: string): string {
 
 function appendUniqueDescription(description: string, routeCode: string): string {
   void routeCode;
-  return String(description || "").trim();
+  // SERP 설명은 픽셀 폭으로 잘린다 — 한중일 글자는 라틴의 2배 폭이라 글자 수로는 잘림이 안 보인다.
+  // 절단 기준은 lib/seo.ts 한 곳에 두고 여기서는 그것을 부른다(중복 구현 금지).
+  return truncateToDisplayWidth(description);
 }
 
 function normalizeMetaText(value: unknown): string {

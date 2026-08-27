@@ -1510,6 +1510,39 @@ function verifyIndexableTitleWidth(baseDir) {
   }
 }
 
+/**
+ * SERP 설명 표시 폭 가드 (2026-08-27 추가).
+ *
+ * 제목과 같은 축이다 — Google 은 설명도 픽셀 폭(데스크톱 약 920px)으로 자른다.
+ * 2026-08-27 dist 실측: 글자 수로 재면 160 초과가 4개였는데 **표시 폭**으로는 183개였다
+ * (색인 388개 중, 중앙 153 · 최대 277). 기사 설명은 `.slice(0, 160)` 이 글자 수 절단이라
+ * 잘린 뒤에도 폭 320 이 나갔다.
+ *
+ * 대상·폭 계산·한계의 성격은 verifyIndexableTitleWidth 와 같다(운영 기준이지 자로 잰 상한이 아니다).
+ */
+const SERP_DESCRIPTION_WIDTH_LIMIT = 160;
+
+function verifyIndexableDescriptionWidth(baseDir) {
+  const sitemapPaths = getSitemapPaths(readRequired(`${baseDir}/sitemap.xml`));
+  assert(sitemapPaths.length > 0, `${baseDir}/sitemap.xml: URL 이 하나도 없다`);
+  for (const pathname of sitemapPaths) {
+    const relativePath = pathname === "/" ? "" : pathname.replace(/^\//, "");
+    const candidates = relativePath
+      ? [`${relativePath}/index.html`, `${relativePath}.html`]
+      : ["index.html"];
+    const absolutePath = candidates
+      .map((candidate) => resolve(rootDir, baseDir, candidate))
+      .find((candidate) => existsSync(candidate));
+    assert(Boolean(absolutePath), `${baseDir}${pathname}: 사이트맵 URL 의 HTML 이 산출물에 없다`);
+    const description = decodeTitleEntities(getMetaContent(readFileUtf8WithRetry(absolutePath), "description")).trim();
+    assert(description.length > 0, `${baseDir}${pathname}: meta description 이 비어 있다`);
+    const descriptionWidth = serpTitleWidth(description);
+    assert(
+      descriptionWidth <= SERP_DESCRIPTION_WIDTH_LIMIT,
+      `${baseDir}${pathname}: meta description 표시 폭 ${descriptionWidth} > ${SERP_DESCRIPTION_WIDTH_LIMIT} — SERP 에서 잘린다(한중일 글자는 라틴의 2배 폭). 설명: ${description}`,
+    );
+  }
+}
 function verifyIndexableRouteCoverage(baseDir) {
   const sitemapPath = `${baseDir}/sitemap.xml`;
   const sitemapText = readRequired(sitemapPath);
@@ -1579,6 +1612,8 @@ for (const baseDir of ["out", "dist"]) {
   verifyNoInheritedHomeCanonical(baseDir);
   trace(`${baseDir}: indexable title width`);
   verifyIndexableTitleWidth(baseDir);
+  trace(`${baseDir}: indexable description width`);
+  verifyIndexableDescriptionWidth(baseDir);
   trace(`${baseDir}: indexable route coverage`);
   verifyIndexableRouteCoverage(baseDir);
   trace(`${baseDir}: generated AdSense-eligible routes`);

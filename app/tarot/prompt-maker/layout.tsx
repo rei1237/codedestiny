@@ -4,7 +4,7 @@ import type { ReactNode } from "react";
 const TAROT_PROMPT_MAKER_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
     title: "타로 오라클 상담 | Code Destiny",
-    description: "질문과 카드 흐름을 바탕으로 AI가 실제 타로·레노먼드 상담 결과를 작성하는 서비스입니다(회당 5,000원). 상담에 쓰인 프롬프트도 함께 열람할 수 있으며, 의료·법률·투자 판단은 전문가 조언과 함께 확인하세요.",
+    description: "질문과 카드 흐름으로 AI가 타로·레노먼드 상담 결과를 작성합니다(회당 5,000원). 프롬프트도 함께 열람할 수 있고, 의료·법률·투자 판단은 전문가와 확인하세요.",
     ogDescription: "질문, 스프레드, 카드 흐름을 실제 AI 타로 상담으로 완성해 해석의 방향을 차분히 잡습니다.",
     keywords: ["타로 오라클 상담", "AI 타로", "레노먼드", "타로 스프레드", "타로 프롬프트"],
   },

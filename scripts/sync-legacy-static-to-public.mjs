@@ -541,7 +541,7 @@ const LOCALE_SHELL_SEO = {
     language: "English",
     title: "Free Fortune Telling | Saju, Tarot & Daily Horoscope — CODE DESTINY",
     description:
-      "Enter your birth date for free Korean Saju (Four Pillars) readings, tarot, Zi Wei Dou Shu, Sukuyo compatibility and daily horoscopes — warm, in-depth AI interpretations.",
+      "Enter your birth date for free Korean Saju (Four Pillars), tarot, Zi Wei Dou Shu and Sukuyo compatibility readings, with warm in-depth AI interpretations.",
     keywords:
       "free fortune telling, saju reading, four pillars of destiny, free tarot reading, daily horoscope, zi wei dou shu, compatibility test, korean astrology, birth chart",
     appTitle: "CODE DESTINY Honey Pig Fortune",
