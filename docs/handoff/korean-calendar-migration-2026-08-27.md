@@ -1,8 +1,10 @@
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27
 
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
-> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4) · **정적 셸(PR-E5)** 까지 끝났다.
-> 남은 것은 **lunar-javascript 제거(PR-F)** 하나다 — 그 라이브러리가 아직 하는 일은 **대운 `getYun`** 뿐이다.
+> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · **대운(PR-F1)** 까지 끝났다.
+> 🔴 **달력 축은 전부 끝났다.** 남은 것은 **PR-F2 — lunar-javascript 물리적 제거**이고,
+> 그 라이브러리가 아직 하는 일은 **달력이 아니라 명리 상수 표(`LunarUtil`)와 일주·시주 EightChar** 다.
+> 워커 3파일뿐이고, 목록은 `verify:daeun-korean-calendar` 검사 ⑤ 의 `KNOWN_REMAINING` 에 있다.
 > 🔴 다음 세션은 가드 세 개의 `KNOWN_REMAINING` 목록을 먼저 열어라 — 남은 일이 거기 적혀 있고, 그 줄을 지우는 것이 완료 조건이다.
 > `scripts/verify-saju-solar-term-core.mjs` 검사 ⑤(절기 프레임) · `scripts/verify-lunar-conversion-core.mjs` 검사 ①(음력 변환).
 > `scripts/verify-sukuyo-korean-calendar.mjs` 의 목록은 **비었다**(숙요 축 완료).
@@ -49,7 +51,8 @@
 | **#1185** | 숙요 음력일 10곳 + `verify:sukuyo-korean-calendar` | **머지됨** `0366f5152` |
 | **#1187** | 낙샤트라 3라우트 · 베다 어댑터 · 숙요 가드 검사 ②③⑤ 확장 | `feat/nakshatra-korean-calendar` (base `0366f5152`) |
 | **#1188** | 나머지 음력↔양력 변환 10곳 + `verify:lunar-conversion-core` 신설 | **머지됨** `50f3c0146` |
-| **PR-E5** | 정적 셸 5파일 + `verify:shell-korean-calendar` 신설 | `feat/shell-korean-calendar` (base `50f3c0146`) |
+| **#1192** | 정적 셸 5파일 + `verify:shell-korean-calendar` 신설 | **머지됨** `524e85c88` |
+| **PR-F1** | 대운을 코어로(`lib/korean-calendar/daeun.js`) + `verify:daeun-korean-calendar` 신설 | `feat/daeun-korean-calendar` (base `524e85c88`) |
 
 🔴 #1170 은 `.github/workflows/pr-ci.yml` 에서 한 번 충돌했다. #1167(섬 가드)과 이 PR(달력 가드 5종)이
 **같은 앵커(`run: npm run verify:ziwei-star-parity`) 뒤에** 각자 블록을 넣어서다. 의미 충돌이 아니므로
@@ -659,30 +662,104 @@ PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다
 🔴 예고대로 `sync:public` 캐시키가 돌아 **미러 13개 + `index.html`** 이 함께 바뀌었고,
 `verify:sitemap-drift` 도 걸려 원장 62개를 같은 커밋에 담았다.
 
-### PR-F — lunar-javascript 제거 (남은 유일한 작업)
+### 🟢 PR-F1 — 대운 (끝)
 
-워커 번들 **gzip 111KB** 절감. **PR-E5 이후 남는 용도는 대운 `getYun()`/`getDaYun()` 하나뿐이다.**
-셸에서는 `attachKasiDaewunBridge`(`js/saju-engine.js`) 한 자리가 그 축을 코어 팔자에 붙여 주고,
-소비자는 `js/saju-engine.js` 2벌 · `js/saju-engine-tarot-sukuyo-quantum.js` 2벌이다.
-워커에는 아직 일주·시주 EightChar 도 남아 있다 — `worker/lib/destiny-bias-engine.js` ·
-`worker/lib/life-book-ai-saju.js` · `worker/routes/new-year-ai.js`.
-🔴 줄 번호를 여기 적지 않는다 — 이 문서의 옛 번호가 PR-E5 로 전부 밀렸다. 가드의 `KNOWN_REMAINING` 에서 찾아라.
+브랜치 `feat/daeun-korean-calendar`, base `524e85c88`.
 
-포팅 자체는 가능하다(순역은 양남음녀, 기운 나이는 절까지의 거리, 3일=1년 환산). **위험은 절사 관례**다 —
-알고리즘 포팅이 아니라 **관례 재현**으로 접근하고, `divergence` 와 같은 구조의 잔차-0 가드를 세운 뒤에 지운다.
+🔴 **관례는 한 줄도 안 바꿨다.** 대운의 기운 나이는 유파마다 절사 관례가 갈리므로 "더 정확한
+계산"으로 바꾸면 기존 사용자의 대운이 이유 없이 전부 움직인다. `lunar-javascript` 1.7.7
+`getYun(gender)` 의 **sect 1** 계산을 그대로 옮겼다. 바뀌는 것은 節의 시간대 하나다.
 
-🔴 **PR-E5 가 남긴 야자시 함정을 여기서 다시 만난다.** `lunar-javascript` 의 EightChar 기본 유파(sect 2)는
-일주는 안 밀고 시주만 미는 **혼종**이다(§PR-E5 ㄱ 의 실측표). 워커의 EightChar 3벌을 코어로 옮길 때
-23시대 값을 그대로 재현하려 하지 말고, 그 자리가 **출생 원국 축(shift-day)** 인지
-**"오늘" 축(keep-day)** 인지를 먼저 정하고 명시해서 넘겨라.
+#### 🔴 (ㄱ) 실측 — 값이 절반에서 움직인다
 
-🔴 `js/saju-engine.js:20-21` 의 CDN 폴백은 `lunar-javascript@latest` 다 — **핀 없는 서드파티 실행 코드**다.
-제거 PR 이 이 구멍도 함께 닫는다. 셸에서 지울 때 함께 지워야 하는 것:
-`waitForSolar`/`onLibReady` 로더 · `startSajuCalculationFlow`·`calculate` 의 가용성 게이트 ·
-`__cdHasLunarLibReady` 와 `__cdEnsureLunarLibReady` · `__cdEnsureSajuCoreLoaded` 체인의 CDN URL ·
-`scripts/lib/ziwei-engine-harness.cjs` 의 `global.Solar` 스텁.
-🔴 `verify:shell-korean-calendar` 는 이미 `global.Solar` 없이 셸을 돌리므로, 그 가드가 초록이면
-**셸은 이미 그 라이브러리 없이 돈다**(대운을 빼고). 지우기 전에 그것부터 확인해라.
+| 축 | 표본 8,810건(1950~2035) |
+|---|---|
+| 어떤 축이든 움직인 것 | **4,409건 (50.05%)** |
+| 그중 1번 대운 **시작 나이**가 바뀐 것 | 187건 (2.1%) |
+| **순역이 뒤집힌 것** | 28건 (0.3%) — 입춘 경계 60분 창의 세차가 갈리는 경우 |
+
+50% 는 오타가 아니다. 사용자의 생시는 **KST 벽시계**인데 lunar-javascript 의 절기는
+**CST 벽시계**이고, 대운은 그 둘 사이의 **시진(2시간) 수**를 센다. 두 축이 60분 어긋나 있었으므로
+절반 정도의 표본에서 시진 하나(=10일)가 더/덜 세어졌다. PR-D2 가 월건에서 고친 것과 같은 결함이다.
+
+#### 🔴 (ㄴ) 재현한 관례 — 손대면 가드가 잡는다
+
+```
+순역   양년(세차 천간 짝수) 남자 · 음년 여자 → 순행
+구간   순행이면 [생시 → 다음 節], 역행이면 [직전 節 → 생시]
+거리   시진 단위. 🔴 23시대는 시지 0 이 아니라 11 로 본다
+       hourDiff<0 이면 +12 하고 dayDiff-1 · monthDiff=floor(hourDiff*10/30)
+       month=dayDiff*4+monthDiff · day=hourDiff*10-monthDiff*30 · year=floor(month/12)
+시작   생일 + year년 → + month월 → + day일  (🔴 이 **순서**와 월말 보정이 관례의 일부다)
+나이   세는 나이 정수. 0번 칸은 미입운 구간(간지 없음), 1번 칸부터 10년씩
+```
+
+#### 🔴 (ㄷ) 셸의 호출부는 한 줄도 안 건드렸다
+
+`attachKasiDaewunBridge`(`js/saju-engine.js`)가 코어 대운을 **`getYun()` 과 같은 표면**으로
+감싸 붙인다. 소비자 4곳(`js/saju-engine.js` 2 · `quantum` 2)은 그대로다.
+🔴 그래서 `.getYun(` 을 grep 해도 두 출처를 못 가른다 — 가드 ⑤ 가 **import 축**을 세는 이유다.
+
+#### 🔴 (ㄹ) 대운은 진태양시 보정 **전** 원본 생시로 잰다
+
+보정본을 넣으면 節까지의 거리가 경도 보정만큼 움직여 기운 나이가 달라진다.
+셸(`calculate`·`_calcModalProfilePillars`)과 워커(`destiny-bias-engine`) 모두 같은 축이다.
+
+#### 새 가드 `verify:daeun-korean-calendar` (pr-ci **fast** 잡)
+
+- ① 🔴 **핵심.** `daeunFromFrame` 은 표를 안 읽고 절기를 인자로 받으므로, **lunar-javascript
+  자신의 절기·세차·월주를 먹이면 그 라이브러리와 잔차 0** 이어야 한다(표본 8,810건 · 1902~2098).
+  이것이 "포팅이 관례 재현" 임의 유일한 근거다. 기운 **시작일**까지 대조한다 —
+  years/months/days 만 보면 월말 보정(2/29→2/28)을 지워도 통과한다(음성 테스트에서 실제로 그랬다).
+  표본에 말일 4종(1/31·2/29·3/31·5/31)을 넣은 이유가 그것이다.
+- ② KST 로 바꾸면 값이 실제로 움직이는지 **매번 다시 잰다**(위 표의 숫자가 여기서 나온다).
+- ③④ 소비자를 실제로 실행한다. 정적 셸은 `global.Solar` 를 **지운 채** 평가한다.
+- ⑤ lunar-javascript **import** 를 전수 발견해 잔존 분류와 대조. 대운은 이제 0건이다.
+- 검사 14건. 음성 테스트 **9종 전부 빨간불** 확인.
+
+### PR-F2 — lunar-javascript 물리적 제거 (남은 유일한 작업)
+
+🔴 **여기부터는 달력 작업이 아니다.** 남은 것은 **명리 상수 표**와 **일주·시주 EightChar** 다.
+
+| 파일 | 아직 쓰는 것 |
+|---|---|
+| `worker/lib/life-book-ai-saju.js` | `LunarUtil` 의 `NAYIN`(納音 60) · `getXun`/`getXunKong`(旬空) · `CHANG_SHENG`+`CHANG_SHENG_OFFSET`(十二運星) · `ZHI_HIDE_GAN`(지장간) · `SHI_SHEN`(십신) · `WU_XING_GAN`/`WU_XING_ZHI`, 그리고 일주·시주 EightChar |
+| `worker/lib/destiny-bias-engine.js` | 일주 EightChar + `Lunar`/`Solar` 변환 |
+| `worker/routes/new-year-ai.js` | 일주·시주 EightChar |
+
+**정본 목록은 손 목록이 아니다** — `verify:daeun-korean-calendar` 검사 ⑤ 의 `KNOWN_REMAINING` 에서
+그대로 옮겨 적은 것이고, 그 줄을 지우는 것이 완료 조건이다.
+
+착수 순서 제안
+1. **일주·시주 EightChar 3곳 먼저** — 축이 이미 정해져 있다(`shift-day`, §PR-E5 ㄱ 의 실측표).
+   🔴 lunar-javascript 의 sect 2 는 **일주는 안 밀고 시주만 미는 혼종**이라 23시대 값이 그대로
+   재현되지 않는다. 어느 축인지 정하고 `nightZiPolicy` 를 명시해 넘길 것.
+2. **`LunarUtil` 상수 표 이관** — 달력이 아니라 표다. 코어에 넣을지(`lib/korean-calendar/` 는
+   달력 전용이라 안 맞는다) 워커 쪽 `lib/saju-constants.js` 로 뺄지 **사용자에게 물어라.**
+   이관은 값 대조(60개 納音 · 100개 십신 …)로 잔차 0 을 확인하고 나서 한다.
+3. **그 다음에** `package.json` 에서 `dependencies` → `devDependencies` 로 내린다.
+   🔴 **지우면 안 된다** — 가드 4개(`korean-calendar-divergence`·`solar-terms`·
+   `shell-korean-calendar`·`daeun-korean-calendar`)가 **대조 대상으로** 이 라이브러리를 읽는다.
+4. **셸의 CDN 로더 제거는 별도 단계로 두는 편이 낫다** — 아래 (ㅁ).
+
+#### 🔴 (ㅁ) 셸의 CDN 로더 — PR-F1 이 일부러 안 건드린 것
+
+PR-F1 이후 **정적 셸은 lunar-javascript 를 하나도 안 쓴다**(가드 ③ 이 `global.Solar` 를 지운 채
+셸을 평가해 매번 증명한다). 그런데도 아직 받아 온다:
+
+- `js/saju-engine.js:20-25` `CDN_URLS` — 🔴 `lunar-javascript@latest`, **핀 없는 서드파티 실행 코드**
+- 같은 파일의 `loadNext`/`waitForSolar`/`onLibReady`/`retrySajuLibraryLoad` + 로딩 오버레이
+- `startSajuCalculationFlow`·`calculate` 의 가용성 게이트 2벌
+- `js/core/index-inline-runtime.js` `__cdHasLunarLibReady`/`__cdWaitForLunarLibReady`/
+  `__cdEnsureLunarLibReady` + `__cdEnsureSajuCoreLoaded` 체인의 CDN URL
+- `js/services/saju-library-loader.js` · `js/inline/saju-core-bootstrap.js` 의 호출부
+- `scripts/lib/ziwei-engine-harness.cjs` 의 `global.Solar` 스텁
+
+🔴 **왜 미뤘나**: 이 로더는 "엔진 로딩 중" 오버레이와 `__pendingAutoCalculation` 재시도 흐름을
+같이 들고 있어서, 지우면 **계산 진입 UI 흐름**이 바뀐다. 값이 절반에서 움직이는 달력 정정과
+UI 흐름 변경을 한 PR 에 담으면 회귀가 났을 때 어느 쪽 탓인지 판정할 수 없다
+(`lib/korean-calendar/policy.js` 머리말이 말하는 그 이유다). **지울 때 얻는 것**은
+핀 없는 CDN 실행 코드 제거 + 첫 계산 경로에서 gzip 약 97KB 다.
 
 ## 5. 검증 명령
 
@@ -698,6 +775,7 @@ npm run verify:saju-solar-term-core
 npm run verify:sukuyo-korean-calendar
 npm run verify:lunar-conversion-core
 npm run verify:shell-korean-calendar                 # 🔴 셸을 고쳤으면 이것부터
+npm run verify:daeun-korean-calendar                 # 🔴 대운 관례 재현 잔차 0
 npm run verify:guard-wiring
 npm run typecheck && npm run lint
 NODE_OPTIONS=--experimental-vm-modules npx --no-install jest --runInBand
@@ -709,6 +787,12 @@ npm run test:node
 
 기준선(2026-08-27 `58267ff8b`, 리베이스 후 실측): jest **176 스위트 / 1,977 테스트 통과** ·
 `test:node` **551 통과 / 0 실패** · `verify:guard-wiring` 252개 중 156개 배선.
+
+**PR-F1 이후 실측(2026-08-27, `524e85c88` 위)**: jest **176 스위트 / 2,002 테스트 통과** ·
+`test:node` **551 통과 / 0 실패** · `verify:guard-wiring` 257개 중 161개 배선 ·
+`verify:daeun-korean-calendar` 검사 14건(관례 재현 **잔차 0** · KST 전환으로 4,409/8,810건 이동) ·
+`verify:shell-korean-calendar` 25건 · `verify:worker-size` gzip 2.50 MiB(예산 25.0%) ·
+`verify:public-mirror-fresh` OK · `verify:sitemap-drift` OK · typecheck · lint(에러 0).
 
 **PR-E5 이후 실측(2026-08-27, `50f3c0146` 위)**: jest **176 스위트 / 2,002 테스트 통과** ·
 `test:node` **551 통과 / 0 실패** · `verify:guard-wiring` 256개 중 160개 배선 ·

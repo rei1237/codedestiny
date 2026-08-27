@@ -1,5 +1,7 @@
 import { Lunar, Solar } from "lunar-javascript";
 
+import { daeun } from "../../lib/korean-calendar/index.js";
+
 // 🔴 절기 축은 전부 여기서 나온다. lunar-javascript 의 절기 시각은 **중국 표준시(CST) 벽시계**라,
 // 생시를 KST 벽시계로 넘기면 월건 경계가 정확히 60분 이르다(실측 2026-08-27, 1960~2030
 // 節 경계 ±150분 창 13,632건 중 월주 5,553건 · 년주 459건 불일치, 전부 -60~-1분 구간).
@@ -777,14 +779,18 @@ function fallbackDaewoonList(monthGanji, direction, startAgeYearsDecimal, birthY
 }
 
 /**
- * 대운. 🔴 **간지는 코어 월주에서 파생하고 나이 관례는 lunar-javascript 것을 그대로 둔다.**
- * 실측(2026-08-27, 1960~2020 표본 2,304건): getYun() 이 내는 간지 목록과 월주에서 순/역행으로
- * 만든 목록은 **전건 동일**하다. 그러나 나이는 축이 다르다 — getYun 의 getStartAge() 는 세는 나이
- * 정수(1부터)이고 이 함수의 startAgeYearsDecimalByDiff 는 0부터의 소수 나이라 최대 12년 벌어진다
- * (한 응답 안에 두 축이 섞여 있는 것은 이 PR 이전부터 있던 결함이다 — 여기서 바꾸지 않는다).
- * 그래서 월주만 코어로 다시 앵커하고 나이는 손대지 않는다.
+ * 대운. 🔴 **간지는 코어 월주에서 파생하고, 순역·나이 관례는 코어 daeun() 이 낸다.**
+ *
+ * 코어의 daeun() 은 lunar-javascript `getYun()` 의 sect 1 계산을 **그대로 재현**한 것이고
+ * (가드가 잔차 0 으로 매번 다시 증명한다 — verify:daeun-korean-calendar 검사 ①),
+ * 바뀌는 것은 節을 어느 나라 시간으로 잡느냐 하나다. 예전에는 생시는 KST 벽시계인데
+ * 절기는 CST 벽시계라 두 축이 60분 어긋난 채로 시진을 셌다.
+ *
+ * 🔴 나이 축이 둘인 것은 그대로다 — daeun() 의 startAge 는 **세는 나이 정수**(1부터)이고
+ * 이 함수의 startAgeYearsDecimalByDiff 는 0부터의 소수 나이라 최대 12년 벌어진다.
+ * 한 응답 안에 두 축이 섞여 있는 것은 이 이관 이전부터 있던 결함이라 여기서 바꾸지 않는다.
  */
-function buildDaewoonFromCore(eightChar, yearStem, gender, termWindow, birthYear, monthPillarGanji, startAgeYearsDecimal) {
+function buildDaewoonFromCore(birthMoment, yearStem, gender, termWindow, birthYear, monthPillarGanji, startAgeYearsDecimal) {
   const isMale = gender === "M";
   const isFemale = gender === "F";
   const yearIsYang = YANG_STEMS.has(yearStem);
@@ -809,24 +815,22 @@ function buildDaewoonFromCore(eightChar, yearStem, gender, termWindow, birthYear
   const months = Math.floor(monthsFloat);
   const days = Math.max(0, Math.round((monthsFloat - months) * 30));
 
-  const yunGender = isMale ? 1 : (isFemale ? 0 : null);
   let list = [];
-  if (yunGender !== null && typeof eightChar.getYun === "function") {
+  if ((isMale || isFemale) && birthMoment) {
     try {
-      const yun = eightChar.getYun(yunGender);
-      const daYunRows = Array.isArray(yun?.getDaYun?.()) ? yun.getDaYun() : [];
+      const cycles = daeun(birthMoment, { gender: isMale ? "M" : "F" })?.cycles || [];
       const monthCycleIndex = SEXAGENARY_CYCLE.indexOf(monthPillarGanji);
       const step = direction === "BACKWARD" ? -1 : 1;
-      list = daYunRows
+      list = cycles
         .map((row) => {
-          // 🔴 간지는 row.getGanZhi() 가 아니라 **코어 월주**에서 파생한다. 그러지 않으면
-          // 節 직전 60분 창에서 월주는 코어를 따르는데 대운만 lunar-javascript 를 따라 갈린다.
-          const cycleStep = Number(row?.getIndex?.());
+          // 🔴 간지는 코어 월주에서 파생한다 — 그러지 않으면 節 직전 60분 창에서 월주는 코어를
+          // 따르는데 대운만 다른 프레임을 따라 갈린다. 0번 칸(미입운)은 간지가 없으므로 뺀다.
+          const cycleStep = Number(row?.index);
           if (!Number.isFinite(cycleStep) || cycleStep < 1 || monthCycleIndex < 0) return null;
           const pillar = SEXAGENARY_CYCLE[(monthCycleIndex + step * cycleStep + 6000) % 60];
           if (!pillar) return null;
-          const startAge = Number(row?.getStartAge?.());
-          const endAge = Number(row?.getEndAge?.());
+          const startAge = Number(row.startAge);
+          const endAge = Number(row.endAge);
           return {
             index: cycleStep + 1,
             pillar,
@@ -834,8 +838,8 @@ function buildDaewoonFromCore(eightChar, yearStem, gender, termWindow, birthYear
             endAgeDecimal: Number.isFinite(endAge) ? endAge + 0.999 : 9.999,
             startAgeDisplay: Number.isFinite(startAge) ? `${Math.floor(startAge)}세` : "0세",
             endAgeDisplay: Number.isFinite(endAge) ? `${Math.floor(endAge)}세` : "9세",
-            estimatedStartYear: Number(row?.getStartYear?.()),
-            estimatedEndYear: Number(row?.getEndYear?.()),
+            estimatedStartYear: Number(row.startYear),
+            estimatedEndYear: Number(row.endYear),
           };
         })
         .filter(Boolean)
@@ -961,7 +965,15 @@ export function buildSajuProfile(rawPerson) {
   const ipchunTerm = coreNodeTermSummary((nodeTerms(clockGanji.meta.sexagenaryYear) || [])[1]);
 
   const daewoon = buildDaewoonFromCore(
-    dayPillarEightChar,
+    // 🔴 대운은 **보정 전 원본 생시**로 잰다 — 진태양시 보정본을 넣으면 節까지의 거리가
+    // 경도 보정만큼 움직여 기운 나이가 달라진다. 셸의 attachKasiDaewunBridge 도 같은 축이다.
+    {
+      year: birth.year,
+      month: birth.month,
+      day: birth.day,
+      hour: birth.unknownTime ? 12 : birth.hour,
+      minute: birth.unknownTime ? 0 : birth.minute,
+    },
     pillars.year.stem,
     gender,
     termWindow,

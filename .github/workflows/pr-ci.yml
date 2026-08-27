@@ -312,6 +312,20 @@ jobs:
       - name: Verify the static shell calendar comes from the core
         run: npm run verify:shell-korean-calendar
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 입력이 lib/korean-calendar/ · js/saju-engine.js ·
+      # worker/lib/ 라 티어가 fast/standard/critical 로 갈린다.
+      #
+      # 대운의 기운 나이는 **유파마다 절사 관례가 갈린다.** 그래서 이 이관은 "더 정확한 계산"이
+      # 아니라 **관례를 그대로 재현하고 달력만 바꾸는 것**이어야 하고, 그 사실을 이 가드가
+      # 주장이 아니라 측정으로 지킨다 — 코어의 daeunFromFrame 에 lunar-javascript 자신의
+      # 절기·세차·월주를 먹이면 그 라이브러리와 **잔차 0** 이어야 한다(검사 ①, 표본 13,790건).
+      # 누가 관례를 "개선"하면 그 순간 여기가 빨간불이 된다.
+      # 이어서 KST 절기로 바꿨을 때 값이 실제로 움직이는지(검사 ②), 소비자 3벌(정적 셸 ·
+      # life-book 워커)이 코어와 같은 대운을 내는지(검사 ③④)를 실제로 실행해 본다.
+      # 네트워크 없음. 30초 미만.
+      - name: Verify daeun comes from the core with the same convention
+        run: npm run verify:daeun-korean-calendar
+
       # 🔴 이것도 **fast 잡**이어야 한다. 입력이 index.html 인라인 스크립트와 js/saju-engine*.js 라
       # 티어가 fast/standard 로 갈리는데, build/critical 잡에 두면 정작 지켜야 할 셸 한 줄 수정에
       # 깨어나지 않는다. 모바일 지연 마운트가 오버레이를 DOM 밖으로 들어낸 뒤 여는 경로를 빠뜨리면
