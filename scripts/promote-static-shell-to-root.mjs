@@ -75,6 +75,25 @@ function withNoindexRobots(html) {
   return html.replace(pattern, "$1noindex, follow$2");
 }
 
+/**
+ * 정적 셸 사본에서 hreflang alternate 를 걷어낸다.
+ *
+ * 이 사본들은 루트 셸의 `<head>` 만 갈아 끼우므로, 지우지 않으면 **홈의 alternate 12줄**
+ * (ko·ko-KR·ja·ja-JP·zh-CN·zh·zh-Hans·zh-TW·zh-Hant·en·en-US·x-default)을 그대로 들고 나간다.
+ * 즉 이 사본이 "이 사이트의 한국어판이자 x-default" 라고 주장하게 되고, 목적지들은 당연히
+ * 되돌아 가리키지 않아 상호참조가 깨진 채로 남는다 — Google "Localized versions" 는
+ * 역방향 링크가 없으면 주석이 무시되거나 잘못 해석될 수 있다고 명시한다.
+ * noindex 라 실제로 처리되지는 않지만, 홈의 hreflang 클러스터에 잡음을 남길 이유가 없다.
+ *
+ * 2026-08-27 dist/ 실측: `/oracle/juyuk`·`/oracle/hwatu`·`/static` 이 각각 12줄을 내보내고 있었다.
+ * 🔴 `rel="alternate"` 만 보고 지우지 말 것 — RSS 링크
+ *    (`<link rel="alternate" type="application/rss+xml" ...>`)가 같은 rel 을 쓴다.
+ *    반드시 `hreflang=` 이 함께 있는 태그만 지운다.
+ */
+function withoutHreflangLinks(html) {
+  return html.replace(/\s*<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']*["'][^>]*>/gi, "");
+}
+
 function writeHtml(sourcePath, destinationPath, label, options = {}) {
   if (!existsSync(sourcePath)) {
     throw new Error(`[promote-static-shell] Missing source: ${sourcePath}`);
@@ -84,7 +103,11 @@ function writeHtml(sourcePath, destinationPath, label, options = {}) {
   const html = buffer.toString("utf8");
   assertShellLooksReady(html, options);
   mkdirSync(dirname(destinationPath), { recursive: true });
-  writeFileSync(destinationPath, options.noindex ? Buffer.from(withNoindexRobots(html), "utf8") : buffer);
+  // noindex 사본은 언어 대체본이 아니다 — robots 와 함께 hreflang 도 걷어낸다.
+  writeFileSync(
+    destinationPath,
+    options.noindex ? Buffer.from(withoutHreflangLinks(withNoindexRobots(html)), "utf8") : buffer,
+  );
   console.log(`[promote-static-shell] ${label}: ${sourcePath} -> ${destinationPath}${options.noindex ? " (noindex)" : ""}`);
 }
 

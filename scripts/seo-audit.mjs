@@ -1,9 +1,29 @@
 import fs from "node:fs/promises";
 import path from "node:path";
 
-const baseUrl = (process.env.SEO_AUDIT_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
-const outJson = path.resolve("seo-audit-report.json");
-const outMd = path.resolve("seo-audit-report.md");
+const PRODUCTION_ORIGIN = "https://code-destiny.com";
+
+// `--source=out` 은 빌드 산출물(out/)을 **파일로** 읽어 감사한다(네트워크 요청 0회).
+// HTTP 모드가 못 보는 층이 있어서 붙였다 — canonical 상속, `_headers` X-Robots-Tag 와
+// meta robots 의 충돌, hreflang 상호참조, 그리고 **실제 링크 그래프**다. 소스 grep 으로는
+// `/fortune/${period}/${sign}` 같은 템플릿 문자열 때문에 고아 판정이 위양성 148건을 냈다.
+// 파서는 새로 만들지 않고 아래 기존 함수(getCanonical/getHreflang/getJsonLd/...)를 그대로 쓴다.
+const sourceArg = process.argv.find((arg) => arg.startsWith("--source="));
+const source = sourceArg ? sourceArg.slice("--source=".length) : "http";
+if (source !== "http" && source !== "out") {
+  console.error(`unknown --source=${source} (expected "http" or "out")`);
+  process.exit(1);
+}
+const artifactRoot = path.resolve(process.env.SEO_AUDIT_OUT_DIR || "out");
+// 🔴 out 모드의 기준 오리진은 프로덕션이다. 산출물 HTML 의 canonical·og:url 이 절대 URL 이라
+//    localhost 를 기준으로 잡으면 전 페이지가 "canonical 불일치"로 오보고된다.
+const baseUrl = source === "out"
+  ? PRODUCTION_ORIGIN
+  : (process.env.SEO_AUDIT_BASE_URL || "http://localhost:3000").replace(/\/$/, "");
+// 프로덕션 대상 리포트를 덮지 않도록 파일명을 분리한다.
+const reportSuffix = source === "out" ? "-out" : "";
+const outJson = path.resolve(`seo-audit-report${reportSuffix}.json`);
+const outMd = path.resolve(`seo-audit-report${reportSuffix}.md`);
 const crawlSitemap = process.argv.includes("--crawl-sitemap");
 
 // 🔴 색인 대상의 정본은 **사이트맵**이지 이 파일의 배열이 아니다.
@@ -165,7 +185,14 @@ function getJsonLd(html) {
 }
 
 function getImagesMissingAlt(html) {
-  const images = [...html.matchAll(/<img\b[^>]*>/gi)].map((match) => match[0]);
+  // 🔴 원본 HTML 을 그대로 훑지 말 것. 정적 셸은 주석과 인라인 스크립트 안에 `<img>` 라는
+  //    **문자열**을 갖고 있어서(예: "정적 <img>가 박혀 있는 카드만…") alt 없는 이미지로
+  //    잡힌다. 2026-08-27 실측: 5개 셸에서 신고된 10건이 전부 이 위양성이었다.
+  const markup = html
+    .replace(/<script[\s\S]*?<\/script>/gi, " ")
+    .replace(/<style[\s\S]*?<\/style>/gi, " ")
+    .replace(/<!--[\s\S]*?-->/g, " ");
+  const images = [...markup.matchAll(/<img\b[^>]*>/gi)].map((match) => match[0]);
   return images.filter((tag) => !/\salt=["'][^"']*["']/i.test(tag)).length;
 }
 
@@ -187,7 +214,36 @@ function hasNoindex(html) {
   return robots.includes("noindex");
 }
 
+/**
+ * out/ 산출물에서 URL 하나를 읽는다. `output: "export"` 규약대로
+ * `/` → `out/index.html`, `/x` → `out/x/index.html`(없으면 `out/x.html`),
+ * 확장자가 있으면 `out/<그대로>`. 없으면 404 로 취급해 HTTP 모드와 같은 모양을 돌려준다.
+ */
+async function readArtifact(url) {
+  const { pathname } = new URL(url);
+  let rel;
+  try {
+    rel = decodeURIComponent(pathname).replace(/^\/+/, "").replace(/\/+$/, "");
+  } catch {
+    return { response: { status: 400 }, text: "" };
+  }
+  const candidates = rel === ""
+    ? ["index.html"]
+    : /\.[a-z0-9]+$/i.test(rel)
+      ? [rel]
+      : [`${rel}/index.html`, `${rel}.html`];
+  for (const candidate of candidates) {
+    const file = path.resolve(artifactRoot, ...candidate.split("/"));
+    if (!file.startsWith(artifactRoot)) continue;
+    try {
+      return { response: { status: 200 }, text: await fs.readFile(file, "utf8") };
+    } catch {}
+  }
+  return { response: { status: 404 }, text: "" };
+}
+
 async function fetchText(url) {
+  if (source === "out") return readArtifact(url);
   const response = await fetch(url, { redirect: "follow" });
   const text = await response.text().catch(() => "");
   return { response, text };
@@ -365,6 +421,323 @@ function buildIssues(rows, support) {
   return issues;
 }
 
+// ── 산출물 전수 스윕 (`--source=out` 전용) ─────────────────────────────────
+// 위의 라우트별 감사는 "사이트맵에 있는 것"만 본다. 여기서는 out/ 의 HTML 을 전부 열어
+// 색인 정책의 사각지대와 관계형 결함(자기참조 canonical, hreflang 역방향, breadcrumb 목적지,
+// 인바운드 링크 0)을 잡는다. 판정 근거는 전부 산출물이고, 손으로 쓴 대상 목록은 두지 않는다.
+
+// 라우트가 아닌 산출물. 색인 정책 판정에서 제외한다.
+const ARTIFACT_ROUTE_EXCLUDE = new Set(["/404", "/500"]);
+
+async function listArtifactRoutes() {
+  const found = new Map();
+  const stack = [artifactRoot];
+  while (stack.length > 0) {
+    const dir = stack.pop();
+    let entries = [];
+    try {
+      entries = await fs.readdir(dir, { withFileTypes: true });
+    } catch {
+      continue;
+    }
+    for (const entry of entries) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        // _next 는 정적 자산이라 라우트가 아니다.
+        if (entry.name !== "_next") stack.push(full);
+        continue;
+      }
+      if (!entry.name.endsWith(".html")) continue;
+      const rel = path.relative(artifactRoot, full).split(path.sep).join("/");
+      const isIndexFile = rel === "index.html" || rel.endsWith("/index.html");
+      const routePath = rel === "index.html"
+        ? "/"
+        : isIndexFile
+          ? `/${rel.slice(0, -"/index.html".length)}`
+          : `/${rel.slice(0, -".html".length)}`;
+      // `X/index.html` 과 `X.html` 이 둘 다 있으면 전자가 정본이다.
+      if (found.has(routePath) && !isIndexFile) continue;
+      found.set(routePath, full);
+    }
+  }
+  return found;
+}
+
+async function readFirstExisting(files) {
+  for (const file of files) {
+    try {
+      return await fs.readFile(file, "utf8");
+    } catch {}
+  }
+  return "";
+}
+
+/**
+ * Cloudflare `_headers` 에서 X-Robots-Tag 규칙만 뽑는다.
+ * 들여쓰지 않은 줄이 경로 패턴, 들여쓴 줄이 그 패턴의 헤더다.
+ * 🔴 Cloudflare 의 정확한 우선순위까지 재현하지 않는다 — 목적이 "충돌 탐지"이므로
+ *    매칭되는 규칙을 전부 모아 하나라도 noindex 면 noindex 로 본다.
+ */
+function parseHeaderRobotsRules(text) {
+  const rules = [];
+  let current = null;
+  for (const rawLine of text.split(/\r?\n/)) {
+    const trimmed = rawLine.trim();
+    if (!trimmed || trimmed.startsWith("#")) continue;
+    if (/^\s/.test(rawLine)) {
+      const match = trimmed.match(/^X-Robots-Tag:\s*(.+)$/i);
+      if (match && current) current.robots = match[1].trim().toLowerCase();
+      continue;
+    }
+    current = { pattern: trimmed, robots: "" };
+    rules.push(current);
+  }
+  return rules.filter((rule) => rule.robots && rule.pattern.startsWith("/"));
+}
+
+function headerRobotsFor(routePath, rules) {
+  const values = [];
+  for (const rule of rules) {
+    const matched = rule.pattern.endsWith("*")
+      ? routePath.startsWith(rule.pattern.slice(0, -1))
+      : normalizePathname(rule.pattern) === routePath;
+    if (matched) values.push(rule.robots);
+  }
+  return values;
+}
+
+/** @graph·배열을 펼쳐 JSON-LD 노드를 전부 돌려준다. */
+function flattenJsonLd(value) {
+  const nodes = [];
+  const visit = (node) => {
+    if (Array.isArray(node)) {
+      node.forEach(visit);
+      return;
+    }
+    if (!node || typeof node !== "object") return;
+    nodes.push(node);
+    if (node["@graph"]) visit(node["@graph"]);
+  };
+  visit(value);
+  return nodes;
+}
+
+function pathFromUrl(href) {
+  try {
+    return normalizePathname(new URL(href, `${baseUrl}/`).pathname);
+  } catch {
+    return "";
+  }
+}
+
+/**
+ * 산출물 라우트 조회. `X.html` 은 Cloudflare Pages 가 확장자를 떼고 `X` 로 서빙하므로
+ * 두 표기를 같은 문서로 본다(이 별칭이 없으면 `/ifa-oracle` 의 canonical 이 위양성이 된다).
+ */
+function lookupArtifactPage(pages, routePath) {
+  if (pages.has(routePath)) return routePath;
+  const stripped = routePath.replace(/\.html$/i, "");
+  return stripped !== routePath && pages.has(stripped) ? stripped : "";
+}
+
+/**
+ * 사이트맵의 `xhtml:link rel="alternate"` 을 경로별로 모은다.
+ * Google 은 HTML link 태그 · HTTP 헤더 · 사이트맵을 **동등한** hreflang 전달 수단으로 본다
+ * (Search Central, Localized versions). 홈 `/` 은 정적 셸 승격본이라 HTML 태그가 없지만
+ * 사이트맵이 alternate 를 싣고 있으므로 역방향 링크가 성립한다.
+ */
+async function readSitemapAlternates() {
+  const { response, text } = await fetchText(absoluteUrl("/sitemap.xml"));
+  if (response.status !== 200) return new Map();
+  const map = new Map();
+  for (const block of text.matchAll(/<url>([\s\S]*?)<\/url>/gi)) {
+    const body = block[1];
+    const loc = body.match(/<loc>([^<]+)<\/loc>/i);
+    if (!loc) continue;
+    const from = pathFromUrl(decodeHtml(loc[1]));
+    if (!from) continue;
+    const targets = new Set();
+    for (const alt of body.matchAll(/hreflang="[^"]+"\s+href="([^"]+)"/gi)) {
+      const to = pathFromUrl(decodeHtml(alt[1]));
+      if (to) targets.add(to);
+    }
+    map.set(from, targets);
+  }
+  return map;
+}
+
+async function auditArtifacts(sitemapPathSet) {
+  const routeFiles = await listArtifactRoutes();
+  const headerRules = parseHeaderRobotsRules(
+    await readFirstExisting([path.join(artifactRoot, "_headers"), path.resolve("_headers")]),
+  );
+  const sitemapAlternates = await readSitemapAlternates();
+  const pages = new Map();
+  const inbound = new Map();
+
+  for (const [routePath, file] of routeFiles) {
+    const html = await fs.readFile(file, "utf8");
+    const jsonLdBlocks = getJsonLd(html);
+    const jsonLdTypes = new Set();
+    const breadcrumbItems = [];
+    let jsonLdMissingType = false;
+    for (const block of jsonLdBlocks) {
+      if (!block.valid) continue;
+      const nodes = flattenJsonLd(block.parsed);
+      if (nodes.length === 0 || nodes.every((node) => !node["@type"])) jsonLdMissingType = true;
+      for (const node of nodes) {
+        const types = [].concat(node["@type"] || []);
+        types.forEach((type) => jsonLdTypes.add(String(type)));
+        if (!types.includes("BreadcrumbList")) continue;
+        for (const element of [].concat(node.itemListElement || [])) {
+          const item = element && element.item;
+          const id = typeof item === "string" ? item : (item && item["@id"]) || (element && element["@id"]);
+          if (id) breadcrumbItems.push(String(id));
+        }
+      }
+    }
+    for (const link of new Set(getInternalLinks(html).map(normalizePathname))) {
+      if (link === routePath) continue;
+      inbound.set(link, (inbound.get(link) || 0) + 1);
+    }
+    pages.set(routePath, {
+      canonical: getCanonical(html),
+      metaNoindex: hasNoindex(html),
+      hreflang: getHreflang(html),
+      headerRobots: headerRobotsFor(routePath, headerRules),
+      jsonLdTypes: [...jsonLdTypes],
+      jsonLdValid: jsonLdBlocks.every((block) => block.valid),
+      jsonLdMissingType,
+      breadcrumbItems,
+    });
+  }
+
+  const issues = [];
+  const headerNoindex = (page) => page.headerRobots.some((value) => value.includes("noindex"));
+
+  // 1. 사이트맵 URL 은 자기 자신을 canonical 로 가리켜야 한다.
+  for (const routePath of sitemapPathSet) {
+    const page = pages.get(routePath);
+    if (!page) {
+      issues.push(`artifact: ${routePath} 는 사이트맵에 있는데 out/ 에 HTML 이 없다`);
+      continue;
+    }
+    if (!page.canonical) {
+      issues.push(`artifact: ${routePath} 에 canonical 이 없다`);
+      continue;
+    }
+    const canonicalPath = pathFromUrl(page.canonical);
+    if (canonicalPath !== routePath) {
+      issues.push(`artifact: ${routePath} 의 canonical 이 자기 자신이 아니다 (${page.canonical})`);
+    }
+  }
+
+  // 2. 사이트맵 밖 페이지가 다른 URL 로 canonical 을 위임하면 그 목적지가 색인 대상이어야 한다.
+  for (const [routePath, page] of pages) {
+    if (sitemapPathSet.has(routePath) || !page.canonical) continue;
+    // 자기 자신이 색인 대상이 아니면 어디를 가리키든 색인에 영향이 없다(/admin/* 등).
+    if (page.metaNoindex || headerNoindex(page)) continue;
+    const canonicalPath = pathFromUrl(page.canonical);
+    if (!canonicalPath || canonicalPath === routePath) continue;
+    const resolved = lookupArtifactPage(pages, canonicalPath);
+    if (!resolved) {
+      issues.push(`artifact: ${routePath} 의 canonical 목적지 ${canonicalPath} 가 out/ 에 없다`);
+    } else if (!sitemapPathSet.has(resolved)) {
+      issues.push(`artifact: ${routePath} 의 canonical 목적지 ${resolved} 가 사이트맵에 없다`);
+    } else if (pages.get(resolved).metaNoindex) {
+      issues.push(`artifact: ${routePath} 의 canonical 목적지 ${resolved} 가 noindex 다`);
+    }
+  }
+
+  // 3. 색인 대상인데 noindex 신호가 붙은 것. meta 와 헤더 양쪽을 본다(헤더가 더 세다).
+  for (const routePath of sitemapPathSet) {
+    const page = pages.get(routePath);
+    if (!page) continue;
+    if (page.metaNoindex) issues.push(`artifact: ${routePath} 는 사이트맵에 있는데 meta robots 가 noindex 다`);
+    if (headerNoindex(page)) issues.push(`artifact: ${routePath} 는 사이트맵에 있는데 _headers 가 noindex 다`);
+  }
+
+  // 4. hreflang 상호참조 — 목적지가 실재하고, 되돌아오는 alternate 를 갖고, x-default 는 1개.
+  for (const [routePath, page] of pages) {
+    if (page.hreflang.length === 0) continue;
+    const xDefaults = page.hreflang.filter((link) => link.lang.toLowerCase() === "x-default");
+    if (xDefaults.length !== 1) {
+      issues.push(`artifact: ${routePath} 의 x-default 가 ${xDefaults.length}개다 (1개여야 한다)`);
+    }
+    for (const { lang, href } of page.hreflang) {
+      const targetPath = pathFromUrl(href);
+      if (!targetPath) {
+        issues.push(`artifact: ${routePath} 의 hreflang(${lang}) href 를 URL 로 못 읽었다 (${href})`);
+        continue;
+      }
+      const target = pages.get(targetPath);
+      if (!target) {
+        issues.push(`artifact: ${routePath} 의 hreflang(${lang}) 목적지 ${targetPath} 가 out/ 에 없다`);
+        continue;
+      }
+      if (targetPath === routePath) continue;
+      // 역방향은 HTML 태그 **또는** 사이트맵 alternate 중 하나만 있으면 성립한다.
+      const reciprocal = target.hreflang.some((link) => pathFromUrl(link.href) === routePath)
+        || (sitemapAlternates.get(targetPath) || new Set()).has(routePath);
+      if (!reciprocal) {
+        issues.push(`artifact: hreflang 역방향 누락 — ${routePath} → ${targetPath} 는 있는데 ${targetPath} 가 HTML·사이트맵 어느 쪽으로도 ${routePath} 를 안 가리킨다`);
+      }
+    }
+  }
+
+  // 5. JSON-LD 건전성 — 색인 대상만 본다.
+  for (const routePath of sitemapPathSet) {
+    const page = pages.get(routePath);
+    if (!page) continue;
+    if (!page.jsonLdValid) issues.push(`artifact: ${routePath} 의 JSON-LD 가 파싱되지 않는다`);
+    if (page.jsonLdMissingType) issues.push(`artifact: ${routePath} 의 JSON-LD 블록에 @type 이 없다`);
+    for (const item of page.breadcrumbItems) {
+      const itemPath = pathFromUrl(item);
+      if (itemPath && !lookupArtifactPage(pages, itemPath)) {
+        issues.push(`artifact: ${routePath} 의 BreadcrumbList item ${itemPath} 가 out/ 에 없다`);
+      }
+    }
+  }
+
+  // 6. 진짜 고아 — out/ HTML 전량의 <a href> 로 센 인바운드가 0인 사이트맵 URL.
+  const orphans = [...sitemapPathSet]
+    .filter((routePath) => routePath !== "/")
+    .filter((routePath) => !(inbound.get(routePath) > 0))
+    .sort();
+  if (orphans.length > 0) {
+    issues.push(`artifact: 내부 인바운드 링크가 0인 사이트맵 URL ${orphans.length}개 — ${orphans.slice(0, 10).join(", ")}${orphans.length > 10 ? " …" : ""}`);
+  }
+
+  // 7. 색인 정책 사각지대 — 사이트맵에 없고, noindex 신호도 없고, 다른 URL 로 위임하지도 않는 페이지.
+  const strayIndexable = [];
+  for (const [routePath, page] of pages) {
+    if (ARTIFACT_ROUTE_EXCLUDE.has(routePath) || sitemapPathSet.has(routePath)) continue;
+    if (page.metaNoindex || headerNoindex(page)) continue;
+    const canonicalPath = page.canonical ? pathFromUrl(page.canonical) : "";
+    if (canonicalPath && canonicalPath !== routePath) continue;
+    strayIndexable.push(routePath);
+  }
+  strayIndexable.sort();
+  if (strayIndexable.length > 0) {
+    issues.push(`artifact: 사이트맵에 없는데 색인 가능한 페이지 ${strayIndexable.length}개 — ${strayIndexable.slice(0, 10).join(", ")}${strayIndexable.length > 10 ? " …" : ""}`);
+  }
+
+  const headerOnlyNoindex = [...pages.entries()]
+    .filter(([routePath, page]) => !ARTIFACT_ROUTE_EXCLUDE.has(routePath) && headerNoindex(page) && !page.metaNoindex)
+    .map(([routePath]) => routePath)
+    .sort();
+
+  return {
+    artifactRoot,
+    htmlPageCount: pages.size,
+    headerRuleCount: headerRules.length,
+    orphans,
+    strayIndexable,
+    // 헤더만 noindex 인 것은 결함이 아니다(X-Robots-Tag 가 meta 보다 세다). 규모만 남긴다.
+    headerOnlyNoindex,
+    issues: [...new Set(issues)],
+  };
+}
 function mdEscape(value) {
   return String(value || "").replace(/\|/g, "\\|").replace(/\n/g, " ");
 }
@@ -377,6 +750,14 @@ function buildMarkdown(report) {
   lines.push(`- Generated: ${report.generatedAt}`);
   lines.push(`- Sitemap URLs: ${report.support.sitemap.urls.length}`);
   lines.push(`- Issues: ${report.issues.length}`);
+  if (report.artifacts) {
+    lines.push(`- Artifact root: ${report.artifacts.artifactRoot}`);
+    lines.push(`- Artifact HTML pages: ${report.artifacts.htmlPageCount}`);
+    lines.push(`- _headers X-Robots rules: ${report.artifacts.headerRuleCount}`);
+    lines.push(`- Sitemap URLs with zero inbound links: ${report.artifacts.orphans.length}`);
+    lines.push(`- Indexable pages missing from sitemap: ${report.artifacts.strayIndexable.length}`);
+    lines.push(`- Header-only noindex pages (not a defect): ${report.artifacts.headerOnlyNoindex.length}`);
+  }
   lines.push("");
   lines.push("## Route Matrix");
   lines.push("| URL | Status | Robots | Canonical | Title | Description | H1 | OG Image | Lang | Hreflang | JSON-LD | Missing Alt | Text Length | Links | Index Target | Duplicates |");
@@ -417,15 +798,19 @@ const duplicates = {
   descriptions: duplicateMap(routes.filter((row) => row.shouldBeIndexed), "metaDescription"),
 };
 const support = await auditSitemapAndRobots(routes);
+// out 모드에서만 산출물 전수 스윕을 돌린다(HTTP 모드에는 읽을 파일이 없다).
+const artifacts = source === "out" ? await auditArtifacts(sitemapIndexablePaths) : null;
 const report = {
   baseUrl,
+  source,
   generatedAt: new Date().toISOString(),
   routes,
   duplicates,
   support,
+  artifacts,
   issues: [],
 };
-report.issues = buildIssues(routes, support);
+report.issues = [...buildIssues(routes, support), ...(artifacts ? artifacts.issues : [])];
 
 await fs.writeFile(outJson, `${JSON.stringify(report, null, 2)}\n`, "utf8");
 await fs.writeFile(outMd, buildMarkdown(report), "utf8");

@@ -59,6 +59,9 @@ ziwei_autotune_report.utf8.json
 # scripts/seo-audit.mjs 가 저장소 루트에 쓰는 산출물. 실행할 때마다 바뀌므로 커밋하지 않는다.
 seo-audit-report.json
 seo-audit-report.md
+# --source=out 모드가 쓰는 산출물(빌드 산출물 대상 감사). 같은 이유로 커밋하지 않는다.
+seo-audit-report-out.json
+seo-audit-report-out.md
 
 # temp/generated scripts
 _fix*.cjs

@@ -144,6 +144,15 @@
   X-Robots-Tag: noindex, nofollow
 /geomancy-oracle-v4*
   X-Robots-Tag: noindex, nofollow
+# `/static/` 아래에 같은 레거시 셸의 **두 번째 사본**이 있다(public/static/geomancy-oracle-v4.html).
+# 위 규칙은 경로 선두에 앵커되므로 그 사본을 못 덮는다 — 루트 사본만 색인이 막히고
+# `/static/` 사본은 canonical·robots meta 가 하나도 없이 열려 있었다(2026-08-27 out/ 실측).
+# 🔴 `/static*` 블록에 noindex 를 넣어 해결하지 말 것. 그 블록은 홈 셸 사본
+#    `/static/index.html` 까지 덮는데, 그 문서는 canonical 로 홈을 가리킨다.
+#    noindex + 타 URL canonical 조합은 noindex 가 canonical 목적지(= 홈)로 옮겨붙을 수 있어
+#    Google 이 권하지 않는 조합이다. 그래서 사본 하나만 정확히 집는다(규칙 +1).
+/static/geomancy-oracle-v4*
+  X-Robots-Tag: noindex, nofollow
 /yoga-guru*
   X-Robots-Tag: noindex, nofollow
 # destiny-poker 는 여기 없다 — 무료 기능이라 2026-08-16 에 색인 대상으로 전환했다.
