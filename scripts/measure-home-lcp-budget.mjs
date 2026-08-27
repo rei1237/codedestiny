@@ -19,26 +19,33 @@
  *   A  베이스라인(문서 그대로)
  *   B  히어로 앞 파서 차단 `<script src>` 를 **같은 자리에 인라인**으로 (실행 순서·의미 동일, 요청 0회)
  *   C  히어로 앞 파서 차단 `<script src>` 를 **삭제** (상한 측정 전용 — JS 의미가 깨진다)
- *   D  `<body>` 안 · 히어로 앞의 인라인 `<style>` 전부를 `</body>` 직전으로 이동
+ *   D  `<body>` 안 · 히어로 앞의 인라인 `<style>` **전부**를 `</body>` 직전으로 이동
  *   E  같은 블록들을 히어로의 `</header>` 직후로 이동
+ *   F  히어로 앞 인라인 `<style>` 중 **첫 화면에서 사용 바이트가 0 인 것만** 골라 `</body>` 앞으로
+ *      이동. 대상은 손으로 적지 않고 `page.coverage` 로 그때그때 발견한다(D/E 의 수술적 버전).
  *
- * 🔴 2026-08-28 실측 결론(프로덕션 문서 · 모바일 390x844 · CPU 4x · Slow 4G, 각 5회 중앙값).
- *    **다시 파지 말 것 — 아래 셋은 전부 기각됐다.**
- *      A 2,440 / B 2,472(+32) / C 2,384(-56) → 차단 스크립트 8개를 **통째로 지워도** 노이즈 안이다.
- *      D 3,800(+1,292, CLS 0.403) / E 3,780(+1,272, CLS 0.483) → 히어로 앞 인라인 CSS 를 뒤로
- *        내리면 히어로가 스타일 없이 먼저 그려져 LCP 후보가 더 큰 이미지로 바뀌고 CLS 가 터진다.
- *    같은 실측에서 LCP 앞 회선 바이트가 **430KB**(문서 240KB + CSS 125KB + JS 61KB)였고,
- *    1.6Mbps(=200KB/s)에서 그것만으로 **2,100ms** 다. 즉 홈 LCP 는 순서 문제가 아니라 **예산 문제**다.
+ * 🔴 2026-08-28 실측 결론(프로덕션 문서 · 모바일 390x844 · CPU 4x · Slow 4G, 중앙값).
+ *    **다시 파지 말 것 — B~E 는 전부 기각됐다.**
+ *      A 2,440 / B 2,472(+32) / C 2,384(-56), 각 5회 → 차단 스크립트 8개를 **통째로 지워도**
+ *        노이즈 안이다(A 한 변형의 회차 편차만 184ms).
+ *      D 3,800(+1,292, CLS 0.403) / E 3,780(+1,272, CLS 0.483), 각 5회 → 히어로 앞 인라인 CSS 를
+ *        통째로 뒤로 내리면 히어로가 스타일 없이 먼저 그려져 LCP 후보가 더 큰 이미지로 바뀌고 CLS 가 터진다.
+ *      **F 2,216 vs A 2,404(−188ms), 각 9회, CLS 0 유지 · LCP 요소 H1 유지** → 살아 있는 유일한 레버.
+ *        9회 중 8회에서 F 가 이겼다(밴드는 겹친다 — 쌍대 비교로 본 값이다).
+ *    같은 실측에서 LCP 앞 회선 바이트가 **465KB**(문서 240KB + CSS 97KB + JS 75KB + 그 외 64KB)였고,
+ *    1.6Mbps(=200KB/s)에서 그것만으로 **2,327ms** 다. 즉 홈 LCP 는 순서 문제가 아니라 **예산 문제**다.
  *    근거와 남은 선택지: docs/handoff/home-lcp-inp-2026-08-28.md
  *
  * 사용:
  *   npm run perf:lcp-budget                                  # 예산 덤프(1회)
  *   npm run perf:lcp-budget -- --variants=A,C --runs=5       # A/B
+ *   npm run perf:lcp-budget -- --variants=A,F --runs=9       # 커버리지 기반 수술 변형
  *   npm run perf:lcp-budget -- --url=https://staging.code-destiny.com
  *
  * 🔴 CLS 는 이 도구로 판정하지 말 것 — 스테이징은 noindex 라 광고 경로가 막혀 0 으로 과소평가된다.
  *    여기의 CLS 는 변형이 렌더를 깨뜨렸는지 보는 **경보등**이지 지표가 아니다.
  */
+import crypto from "node:crypto";
 import fs from "node:fs";
 import http from "node:http";
 import path from "node:path";
@@ -76,6 +83,7 @@ const BLOCKING_PREFIXES = [
 
 const gzip = (text) => zlib.gzipSync(Buffer.from(text, "utf8"));
 const bytes = (text) => Buffer.byteLength(text, "utf8");
+const sha1 = (text) => crypto.createHash("sha1").update(text).digest("hex");
 const median = (list) => {
   const s = [...list].sort((a, b) => a - b);
   if (!s.length) return 0;
@@ -183,12 +191,88 @@ async function buildVariants(baseHtml) {
     console.log(`${key}: body 안 히어로 앞 인라인 <style> ${hits.length}개(${bytes(moved)}B) 이동`);
   }
 
+  if (need.has("F")) {
+    const coverage = await measureInlineCssCoverage();
+    const hits = [];
+    let matched = 0;
+    let unmatched = 0;
+    const re = /<style\b[^>]*>([\s\S]*?)<\/style>/g;
+    let m;
+    while ((m = re.exec(baseHtml)) && m.index < heroOffset(baseHtml)) {
+      const entry = coverage.get(sha1(m[1]));
+      if (!entry) { unmatched += 1; continue; }
+      matched += 1;
+      if (entry.used === 0) hits.push({ start: m.index, end: m.index + m[0].length, text: m[0], total: entry.total });
+    }
+    const moved = hits.map((h) => h.text).join("\n");
+    const stripped = cut(baseHtml, hits);
+    const at = stripped.lastIndexOf("</body>");
+    if (at < 0) throw new Error("F: </body> 를 못 찾았다");
+    built.F = stripped.slice(0, at) + moved + stripped.slice(at);
+    console.log(
+      `F: 히어로 앞 <style> ${matched}개 중 첫 화면 사용 0B 인 ${hits.length}개(${bytes(moved)}B)를 </body> 앞으로 이동` +
+        (unmatched ? ` (커버리지 미매칭 ${unmatched}개는 건드리지 않았다)` : ""),
+    );
+  }
+
   for (const v of VARIANTS) {
     if (!built[v]) throw new Error(`알 수 없는 변형: ${v}`);
     const pre = built[v].slice(0, heroOffset(built[v]));
     console.log(`  ${v}: 히어로 앞 raw ${bytes(pre)}B · gzip ${gzip(pre).length}B`);
   }
   return built;
+}
+
+/**
+ * 첫 화면에서 인라인 `<style>` 이 실제로 몇 바이트나 쓰였는지 잰다.
+ *
+ * 🔴 CDP `CSS.stopRuleUsageTracking` 은 **쓰인 규칙만** 돌려줘서 전부 100% 로 보인다.
+ *    Playwright 의 `page.coverage` 를 써야 시트 원문(text)과 사용 범위를 함께 받는다.
+ * 🔴 커버리지의 "미사용" 은 **삭제 가능**이 아니다 — `@font-face`·`@keyframes`,
+ *    hover/JS 토글로만 켜지는 규칙이 전부 미사용으로 잡힌다. 뒤로 **미루는** 판단에만 쓸 것.
+ * 스로틀 없이(실사용 판정에는 필요 없다) 대상 오리진을 직접 연다.
+ */
+async function measureInlineCssCoverage() {
+  const browser = await chromium.launch();
+  try {
+    const ctx = await browser.newContext({
+      viewport: { width: 390, height: 844 },
+      deviceScaleFactor: 3,
+      isMobile: true,
+      hasTouch: true,
+    });
+    const page = await ctx.newPage();
+    await page.coverage.startCSSCoverage({ resetOnNavigation: false });
+    await page.goto(`${ORIGIN}/`, { waitUntil: "load", timeout: 180000 });
+    await page
+      .waitForFunction(() => !document.documentElement.classList.contains("cd-boot-gate"), { timeout: 20000 })
+      .catch(() => console.log("(부팅 게이트가 20초 안에 안 걷혔다 — 그대로 잰다)"));
+    await page.waitForTimeout(3000);
+    const entries = await page.coverage.stopCSSCoverage();
+    await ctx.close();
+
+    const inline = new Map();
+    const files = [];
+    for (const e of entries) {
+      const used = e.ranges.reduce((a, r) => a + (r.end - r.start), 0);
+      const total = (e.text || "").length;
+      if (/\.css(\?|$)/.test(e.url || "")) files.push({ name: e.url.replace(ORIGIN, ""), total, used });
+      else inline.set(sha1(e.text || ""), { used, total });
+    }
+    const pct = (a, b) => (b ? `${((a / b) * 100).toFixed(1)}%` : "-");
+    console.log("\n=== 첫 화면 CSS 사용률 ===");
+    for (const f of files.sort((a, b) => b.total - a.total)) {
+      console.log(`${String(f.total).padStart(8)}B 중 ${String(f.used).padStart(7)}B ${pct(f.used, f.total).padStart(7)}  ${f.name.slice(0, 55)}`);
+    }
+    const it = [...inline.values()];
+    console.log(
+      `인라인 <style> ${it.length}개 합계 ${it.reduce((a, r) => a + r.total, 0)}B 중 ` +
+        `${it.reduce((a, r) => a + r.used, 0)}B (${pct(it.reduce((a, r) => a + r.used, 0), it.reduce((a, r) => a + r.total, 0))})\n`,
+    );
+    return inline;
+  } finally {
+    await browser.close();
+  }
 }
 
 // ─────────────────────────────────────────────────────────── 프록시
