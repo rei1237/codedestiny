@@ -1,7 +1,7 @@
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27
 
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
-> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · **대운(PR-F1)** 까지 끝났다.
+> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · **대운(PR-F1 = #1194, 머지됨 `06c2916fc`)** 까지 끝났다.
 > 🔴 **달력 축은 전부 끝났다.** 남은 것은 **PR-F2 — lunar-javascript 물리적 제거**이고,
 > 그 라이브러리가 아직 하는 일은 **달력이 아니라 명리 상수 표(`LunarUtil`)와 일주·시주 EightChar** 다.
 > 워커 3파일뿐이고, 목록은 `verify:daeun-korean-calendar` 검사 ⑤ 의 `KNOWN_REMAINING` 에 있다.
@@ -52,7 +52,7 @@
 | **#1187** | 낙샤트라 3라우트 · 베다 어댑터 · 숙요 가드 검사 ②③⑤ 확장 | `feat/nakshatra-korean-calendar` (base `0366f5152`) |
 | **#1188** | 나머지 음력↔양력 변환 10곳 + `verify:lunar-conversion-core` 신설 | **머지됨** `50f3c0146` |
 | **#1192** | 정적 셸 5파일 + `verify:shell-korean-calendar` 신설 | **머지됨** `524e85c88` |
-| **PR-F1** | 대운을 코어로(`lib/korean-calendar/daeun.js`) + `verify:daeun-korean-calendar` 신설 | `feat/daeun-korean-calendar` (base `524e85c88`) |
+| **#1194** | 대운을 코어로(`lib/korean-calendar/daeun.js`) + `verify:daeun-korean-calendar` 신설 | **머지됨** `06c2916fc` |
 
 🔴 #1170 은 `.github/workflows/pr-ci.yml` 에서 한 번 충돌했다. #1167(섬 가드)과 이 PR(달력 가드 5종)이
 **같은 앵커(`run: npm run verify:ziwei-star-parity`) 뒤에** 각자 블록을 넣어서다. 의미 충돌이 아니므로
@@ -734,13 +734,55 @@ PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다
 1. **일주·시주 EightChar 3곳 먼저** — 축이 이미 정해져 있다(`shift-day`, §PR-E5 ㄱ 의 실측표).
    🔴 lunar-javascript 의 sect 2 는 **일주는 안 밀고 시주만 미는 혼종**이라 23시대 값이 그대로
    재현되지 않는다. 어느 축인지 정하고 `nightZiPolicy` 를 명시해 넘길 것.
-2. **`LunarUtil` 상수 표 이관** — 달력이 아니라 표다. 코어에 넣을지(`lib/korean-calendar/` 는
-   달력 전용이라 안 맞는다) 워커 쪽 `lib/saju-constants.js` 로 뺄지 **사용자에게 물어라.**
-   이관은 값 대조(60개 納音 · 100개 십신 …)로 잔차 0 을 확인하고 나서 한다.
+2. **`LunarUtil` 상수 표 이관** — 달력이 아니라 표다. 위치는 아래 (ㄹ) 에서 정한다.
 3. **그 다음에** `package.json` 에서 `dependencies` → `devDependencies` 로 내린다.
    🔴 **지우면 안 된다** — 가드 4개(`korean-calendar-divergence`·`solar-terms`·
    `shell-korean-calendar`·`daeun-korean-calendar`)가 **대조 대상으로** 이 라이브러리를 읽는다.
 4. **셸의 CDN 로더 제거는 별도 단계로 두는 편이 낫다** — 아래 (ㅁ).
+
+#### (ㄹ) `LunarUtil` 명리 표을 어디에 둘 것인가 — 🔴 사용자 선택 대기
+
+**실측(2026-08-28, `origin/main` `06c2916fc` 위, 이 워크트리)**
+
+- 제품 코드에서 `LunarUtil` 을 쓰는 파일은 **`worker/lib/life-book-ai-saju.js` 하나뿐**이다.
+  (`git grep -n "LunarUtil" -- .` → 그 파일 + 가드 `verify-daeun-korean-calendar.mjs` 의
+  `KNOWN_REMAINING` 문구 + docs. **앱·셸에는 0건.**) 쓰는 자리는
+  `worker/lib/life-book-ai-saju.js:252` `pillarFacts()` 와 `:636-637` 두 곳이다.
+- 옮길 표는 **7종 + 함수 2개**, JSON 직렬화 **8,724 B**:
+
+  | 이름 | 크기 | 쓰는 곳 |
+  |---|---|---|
+  | `NAYIN` (納音) | 120키 / 2,842 B | `get*NaYin` |
+  | `SHI_SHEN` (십신) | 200키 / 4,421 B | `get*ShiShenZhi` |
+  | `ZHI_HIDE_GAN` (지장간) | 24키 / 452 B | `get*ShiShenZhi` |
+  | `WU_XING_GAN` / `WU_XING_ZHI` (오행) | 20 + 24키 / 655 B | `get*WuXing` |
+  | `CHANG_SHENG` + `CHANG_SHENG_OFFSET` (십이운성) | 12 + 20 / 249 B | `get*DiShi` |
+  | `getXun` / `getXunKong` (순공) | 함수 2개 | `get*Xun`·`get*XunKong` |
+
+- 워커는 저장소 루트 `lib/` 를 **자유롭게 import 한다** — 실측: `lib/korean-calendar/` ·
+  `lib/human-design/` · `lib/i18n/` · `lib/tarot/` · `lib/llm-client.ts` ·
+  `lib/music-access-policy.js`. 따라서 "워커가 유일 소비자니까 워커 안에 둬야 한다"는 제약은 없다.
+- `lib/korean-calendar/` 5개 모듈은 `scripts/build-korean-calendar-table.mjs` 의
+  `CLASSIC_MODULES` 로 **`js/core/korean-calendar.js`(83,351 B)에 통째로 concat** 된다.
+
+**세 안 (추천순)**
+
+1. **추천 — `lib/saju/myeongri-tables.js` 새 도메인 디렉터리.** `lib/human-design/` 과 같은 모양이고,
+   워커·App Router 양쪽에서 쓸 수 있다. 지금 소비자는 워커 하나지만 레포에는 **이미 십신 구현이
+   흩어져 있다** — `lib/five-element-colors.ts` 의 `tenGodOfStem`,
+   `app/saju/animal-destiny/engine/localSajuCalculator.ts` 의 `tenGodForStem`. 나중에 합칠 자리가
+   생긴다(🔴 **합치는 것은 이 PR 의 범위가 아니다** — 값이 다를 수 있어 별도 대조가 필요하다).
+   셸 번들에는 안 들어간다.
+2. `worker/lib/saju-constants.js`. "소비자가 워커 하나"라는 지금 사실에 가장 정직하고 가장 작다.
+   단점: 위 십신 중복을 나중에 합치려면 또 옮겨야 하고, 워커→루트 `lib/` import 관례가 이미 있어
+   워커 안에 가둘 이유가 약하다.
+3. 🔴 **비추 — `lib/korean-calendar/` 안.** 코어의 "달력 전용" 경계가 무너지고, `CLASSIC_MODULES`
+   concat 때문에 **셸 소비자가 0인데** 클래식 번들이 8.7 KB 커진다.
+
+**어느 안을 고르든 이관 방법은 같다**: 표를 손으로 옮긴 뒤, 가드가 `LunarUtil` 과
+**키 단위로 전수 대조해 잔차 0** 을 매번 다시 증명하게 한다(대운 검사 ① 과 같은 구조 —
+`scripts/verify-daeun-korean-calendar.mjs` 참조). 표는 문자열 조회라 시간대와 무관하므로
+**값이 바뀌면 그건 이관 실수지 정정이 아니다.**
 
 #### 🔴 (ㅁ) 셸의 CDN 로더 — PR-F1 이 일부러 안 건드린 것
 
