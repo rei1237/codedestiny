@@ -1,10 +1,11 @@
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27
 
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
-> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3)까지 끝났다.
-> 남은 것은 **나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · lunar-javascript 제거(PR-F)** 다.
-> 🔴 다음 세션은 가드 두 개의 `KNOWN_REMAINING` 목록을 먼저 열어라 — 남은 일이 거기 적혀 있고, 그 줄을 지우는 것이 완료 조건이다.
-> `scripts/verify-saju-solar-term-core.mjs` 검사 ⑤(절기 프레임) · `scripts/verify-sukuyo-korean-calendar.mjs` 검사 ①(음력일).
+> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4)까지 끝났다.
+> 남은 것은 **정적 셸(PR-E5) · lunar-javascript 제거(PR-F)** 다.
+> 🔴 다음 세션은 가드 세 개의 `KNOWN_REMAINING` 목록을 먼저 열어라 — 남은 일이 거기 적혀 있고, 그 줄을 지우는 것이 완료 조건이다.
+> `scripts/verify-saju-solar-term-core.mjs` 검사 ⑤(절기 프레임) · `scripts/verify-lunar-conversion-core.mjs` 검사 ①(음력 변환).
+> `scripts/verify-sukuyo-korean-calendar.mjs` 의 목록은 **비었다**(숙요 축 완료).
 
 ## 0. 왜 하는 작업인가 — 사용자 요구 원문
 
@@ -44,7 +45,8 @@
 | **#1181** | 워커 사주 년·월주를 코어로(월건 경계 60분 정정) + 가드 검사 ④ | **머지됨** `d854ccf1d` |
 | **#1183** | 남은 절기 프레임 소비자 6곳 + 가드 검사 ⑤⑥⑦⑧ | **머지됨** `161836714` |
 | **#1185** | 숙요 음력일 10곳 + `verify:sukuyo-korean-calendar` | **머지됨** `0366f5152` |
-| **PR-E3** | 낙샤트라 3라우트 · 베다 어댑터 · 숙요 가드 검사 ②③⑤ 확장 | `feat/nakshatra-korean-calendar` (base `0366f5152`) |
+| **#1187** | 낙샤트라 3라우트 · 베다 어댑터 · 숙요 가드 검사 ②③⑤ 확장 | `feat/nakshatra-korean-calendar` (base `0366f5152`) |
+| **PR-E4** | 나머지 음력↔양력 변환 10곳 + `verify:lunar-conversion-core` 신설 | `feat/lunar-conversions-korean-calendar` (base `d72d5c672` = #1187 위) |
 
 🔴 #1170 은 `.github/workflows/pr-ci.yml` 에서 한 번 충돌했다. #1167(섬 가드)과 이 PR(달력 가드 5종)이
 **같은 앵커(`run: npm run verify:ziwei-star-parity`) 뒤에** 각자 블록을 넣어서다. 의미 충돌이 아니므로
@@ -462,14 +464,105 @@ lunar-javascript 가 **CST 절기로 잡은 기둥**에 붙어 있어서, 년·�
 🔴 이 PR 도 `verify:sitemap-drift` 에 걸렸다 — `app/destiny-compass/**` 가 원장을 무효화한다.
 `npm run sitemap:generate` 산출물을 같은 커밋에 담아 해소했다.
 
-### PR-E4~E5 — 나머지 소비자
+### 🟢 PR-E4 — 나머지 음력↔양력 변환 (끝)
 
-`lunar-javascript` 실 import 는 PR-E3 이후 **25곳**(2026-08-27 `git grep`, `public/**` 제외). 도메인별로 나뉜다.
+브랜치 `feat/lunar-conversions-korean-calendar`, base `d72d5c672`(**#1187 위에 쌓았다** — 같은
+생성 파일 `config/sitemap-lastmod.json` 과 같은 가드를 건드리므로 main 에서 병렬 분기하면 충돌한다).
+
+**실측(2026-08-27, 이 브랜치에서 잰 값 · 1950~2035)**
+
+| 축 | 표본 | 갈리는 것 |
+|---|---|---|
+| 양력→음력 | 28,896일 | 1,060일(3.67%) · 음력해도 7건 |
+| 음력→양력 | 29,928건 | 1,102건(3.68%) |
+| **일진** | 28,896일 | **0일(0.00%)** — 이 축은 원래부터 같다 |
+
+| 파일 | 한 것 |
+|---|---|
+| `worker/routes/kasi.js` | 로컬 폴백 **두 갈래 전부**(아래 ㄱ) |
+| `worker/lib/karma-destiny-ai-calculations.js` | `toLunarParts` + `source` 라벨 |
+| `worker/routes/admin.js` | 프롬프트 랩 숙요 + 도달 불가 블록 제거(아래 ㄷ) |
+| `worker/lib/human-design-ephemeris.js` | `resolveBirthMoment` 음력→양력 |
+| `worker/lib/love-secret-ai-calendar.js` | 일진 달력. 🔴 **값 불변**(위 표) — 그래도 옮긴 이유는 달력이 두 벌이면 다음 사람이 어느 쪽을 고칠지 모르기 때문이다 |
+| `app/_lib/normalize-ziwei-input.ts` | 음력→양력 + `touchSolarLibrary` 가 이제 지원 범위 확인을 겸한다 |
+| `app/fortune/prompt-hub/{dangsaju-calc,kusei-calc,lite-prompt-tools}.ts` | 양방향. `lunarFromSolar` 의 시각 인자는 음력일을 안 바꾸므로 뺐다 |
+| `app/saju/animal-destiny/engine/localSajuCalculator.ts` | `resolveSolarDate` 음력 분기 |
+| `app/nakshatra/nakshatra-birth.ts` | **클라이언트 폼 변환**(아래 ㄴ) |
+| `worker/lib/{sukuyo-ai-calculation,sukuyo-premium}.js` | `source` 기본값 두 개(아래 ㄹ) |
+| `scripts/verify-lunar-conversion-core.mjs` | **신규 가드** + `pr-ci.yml` fast 잡 배선 |
+
+#### (ㄱ) 🔴 KASI 폴백이 아직 중국 음력이었다 — 핸드오프 E4 목록에 없던 것
+
+`worker/routes/kasi.js` 의 `computeLocalCalendarFallback` 은 절기(`get24DivisionsInfo`)만 PR-D 에서
+코어로 갔고 **음양력 변환 두 갈래(`getLunCalInfo`·`getSolCalInfo`)는 그대로 lunar-javascript** 였다.
+
+이 라우트는 **레포 전체가 "권위 있는 한국 달력"으로 삼는 지점**이다(`localSajuCalculator` 는
+`kasiSolarDate` 를 코어 변환보다 우선하기까지 한다). 즉 KASI 업스트림이 죽는 동안에만
+3.67% 의 날짜에서 하루 밀린 음력을 조용히 내주고 있었고, 화면에는 아무 표시도 없었다.
+🔴 `verify:korean-calendar-kasi-samples` 가 `source:"local"` 응답을 정답으로 받기를 거부하는
+이유가 정확히 이것이었다.
+
+#### (ㄴ) 🔴 정적 grep 이 못 본 것 — 동적 import
+
+`app/nakshatra/nakshatra-birth.ts` 는 `await import("lunar-javascript")` 로 **지연 로드**하고 있어서
+`git grep "from \"lunar-javascript\""` 에 안 걸렸다. 음력 입력자의 양력일을 여기서 만들어 서버로
+보내는데 서버는 이미 코어라, 그대로 두면 **음력 입력자만 두 달력이 섞인 결과**를 받는다.
+코어도 같은 방식으로 지연 로드한다 — 표가 gzip **26.6KB** 라 첫 화면 번들에 넣지 않는다.
+🔴 다음에도 `import(` 형태를 함께 찾을 것.
+
+#### (ㄷ) [Cleanup] 도달 불가 블록
+
+`assertAdminCalendarBirthDate` 에 무조건 `return;` 뒤로 윤달 검증 블록이 있었다 — 한 번도 돈 적이 없다.
+3면 grep(소스·`__tests__`·`scripts/verify-*`)로 `INVALID_LUNAR_LEAP_DATE` 참조 0 확인 후 **지웠다**.
+🔴 **되살리지 않은 이유**: 지금 통과하는 관리자 입력을 갑자기 400 으로 막게 되고, 그 판단은 이 PR 것이 아니다.
+다만 근거는 남긴다 — 실측(1950~2035) 코어가 "없다"고 하는 윤달 1,001건 중 lunar-javascript 는
+999건에서 던지고 **2건은 조용히 값을 낸다.** 코어는 1,001건 전부 null 이다. 되살리려면 코어로 하는 게 맞다.
+
+#### (ㄹ) `source` 기본값 두 개를 이제 옮겼다
+
+PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다. E3 에서 그 노트가 어느 벌을
+지목했는지 틀렸다는 것이 드러났고(§PR-E3 ㄱ), 이 PR 이 마지막 비코어 공급자
+(`karma-destiny-ai-calculations.js`·`routes/admin.js`)를 없앴다. 이제 두 벌 모두 `korean-calendar-core` 다.
+
+#### 새 가드 `verify:lunar-conversion-core` (pr-ci **fast** 잡)
+
+- ① `js`·`worker`·`app`·`lib`·`src` 에서 변환 API 호출을 **전수 발견**해 잔존 분류와 대조. 발견 0이면 실패.
+- ② **소비자 13벌을 실제로 실행**해 갈리는 날짜에서 코어 쪽 날짜를 내는지. 표본은 손으로 안 적고 찾는다.
+  중국 음력 답이 나오면 그 사실도 함께 찍는다.
+- ③ 음력→양력 소비자 8벌이 서로 같은 날짜를 내는지.
+- ④ **일진 축을 매번 다시 잰다** — "이 축은 안 움직인다"가 주석 속 주장이 아니라 실측으로 남게.
+- 검사 35건. 음성 테스트 7종 전부 빨간불(숙요 가드까지 합해 8/8).
+
+🔴 **가드를 쓰면서 배운 함정 둘** (그 자리에 주석으로 박아 뒀다):
+
+1. **`.*$` 는 CRLF 파일의 줄 주석을 못 지운다.** JS 의 `.` 는 `\r` 을 안 넘고 `$` 는(`/m` 없이)
+   문자열 끝이라 앵커가 막힌다. 그래서 `scripts/gen-daily.mjs` 의 **주석 한 줄이 코드로 잡혔다.**
+2. 🔴 **`scripts/` 를 스캔 범위에서 뺐다.** 검증 스크립트는 두 달력을 비교하는 것이 일이라 전부
+   잔존 분류에 올라야 하는데, 그러면 이 파일이 `scripts/verify-*.mjs` 경로를 문자열로 갖게 되고
+   `verify:guard-wiring` 이 그 문자열을 **배선 간선으로** 읽는다 — 실제로 `verify:love-compat` 이
+   미배선에서 배선으로 뒤집혀 CI 가 빨간불이 됐다. 지켜야 할 것은 배포되는 코드다.
+
+#### 이 PR 이 남기는 것
+
+`verify:sukuyo-korean-calendar` 의 `KNOWN_REMAINING` 은 **비었다.** 비어 있는 것이 통과 조건이
+아니라, "발견 0 = 실패" 가 fail-closed 를 잡는다.
+
+🔴 이 PR 도 `verify:sitemap-drift` 에 걸렸다(원장 88개 갱신). 같은 커밋에 담아 해소했다.
+
+### PR-E5 — 정적 셸
+
+**제품 코드(`js`·`worker`·`app`·`lib`·`src`)에서 lunar-javascript 를 쓰는 곳은 PR-E4 이후 아래가 전부다** —
+손 목록이 아니라 `verify:lunar-conversion-core` 검사 ① 과 `verify:saju-solar-term-core` 검사 ⑤ 의
+`KNOWN_REMAINING` 에서 그대로 옮겨 적은 것이다. **그 줄을 지우는 것이 완료 조건이다.**
 
 | 묶음 | 파일 | 축 | 비고 |
 |---|---|---|---|
-| **E4 나머지 음력 변환** | `app/_lib/normalize-ziwei-input.ts` · `app/fortune/prompt-hub/{dangsaju-calc,kusei-calc,lite-prompt-tools}.ts` · `app/saju/animal-destiny/engine/localSajuCalculator.ts` · `worker/lib/human-design-ephemeris.js` · `worker/lib/karma-destiny-ai-calculations.js` · `worker/lib/love-secret-ai-calendar.js` · `worker/routes/admin.js` | 음력↔양력 | `Lunar.fromYmd(y, leap?-m:m, d).getSolar()` 꼴이 대부분 — `lunarToSolar` 로 |
-| **E5 정적 셸** | `js/saju-engine.js` · `js/saju-engine-tarot-sukuyo-quantum.js` · `js/luck-sync-diary.js` · `js/sibyl-system.js` | 절기 프레임 | 🔴 `sync:public` 이 캐시키를 돌려 미러 22개가 딸려온다 |
+| **E5 정적 셸** | `js/saju-engine.js` · `js/saju-engine-tarot-sukuyo-quantum.js` · `js/luck-sync-diary.js` · `js/sibyl-system.js` · `js/core/index-inline-runtime.js` | 절기 프레임 · 음력 변환 | 🔴 `sync:public` 이 캐시키를 돌려 미러 22개가 딸려온다 |
+| **E5 죽은 사본** | `js/core/kasi/calendar.js` | — | 어느 HTML 도 로드하지 않는다. 삭제 판단은 사용자에게 |
+| **F 대운·일주·시주** | `worker/lib/destiny-bias-engine.js` · `worker/lib/life-book-ai-saju.js` · `worker/routes/new-year-ai.js` | EightChar · `getYun` | 아래 PR-F |
+
+🔴 `worker/routes/kasi.js` 는 이 목록에 **없다** — PR-E4 에서 이관했다(§PR-E4 ㄱ).
+🔴 정적 import 만 세지 말 것 — `app/nakshatra/nakshatra-birth.ts` 는 **동적 import** 라 grep 에서 빠졌었다.
 
 **판정 도구는 그대로다** — 고정값 날짜에 `node scripts/verify-korean-calendar-divergence.mjs --explain <날짜>`
 를 먼저 돌려 밴드 안/밖 표를 만들고 나서 고친다.
