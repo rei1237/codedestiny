@@ -260,11 +260,12 @@ let divergence = null;
   /**
    * 아직 lunar-javascript 를 import 하는 것이 **알려져 있는** 파일과 그 이유.
    * 🔴 여기에 올린다고 옳아지는 것이 아니다 — 남은 이관 목록이고 줄어들기만 해야 한다.
-   * 대운은 이제 하나도 없다. 남은 것은 전부 **명리 상수 표(LunarUtil)** 와 일주·시주 EightChar 다.
+   * 대운도 명리 상수 표도 이제 하나도 없다(표는 lib/saju/myeongri-tables.js · verify:myeongri-tables).
+   * 남은 것은 전부 **일주·시주 EightChar** 다.
    */
   const KNOWN_REMAINING = new Map([
     ["worker/lib/destiny-bias-engine.js", "일주 EightChar + Lunar/Solar 변환 — 대운은 이관 완료"],
-    ["worker/lib/life-book-ai-saju.js", "LunarUtil 명리 표(納音·旬空·十二運星·지장간·십신) + 일주 EightChar — 대운은 이관 완료"],
+    ["worker/lib/life-book-ai-saju.js", "일주·시주 EightChar — 대운·LunarUtil 명리 표는 이관 완료"],
     ["worker/routes/new-year-ai.js", "일주·시주 EightChar — 대운 없음"],
   ]);
 

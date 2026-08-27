@@ -326,6 +326,18 @@ jobs:
       - name: Verify daeun comes from the core with the same convention
         run: npm run verify:daeun-korean-calendar
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 입력이 lib/saju/ 와 worker/lib/life-book-ai-saju.js 라
+      # 티어가 fast/critical 로 갈리는데, critical 잡에 두면 정작 지켜야 할 "표 한 줄 수정" 에서
+      # 잠든다(resolve-ci-tier 는 worker/routes/ziwei-ai.js 만 critical 로 못 박는다).
+      #
+      # 달력 가드들과 성격이 정반대다 — 이 표(納音·十神·지장간·오행·十二運星·旬空)는 간지 문자열
+      # 조회라 **시간대와 무관**하므로 값이 움직일 이유가 없다. 즉 **값이 바뀌면 정정이 아니라
+      # 이관 실수다.** 그런데 그 실수는 조용하다 — 이 파생 필드를 단언하는 테스트가 레포에 하나도
+      # 없었다. 그래서 이 가드가 유일한 안전망이고, LunarUtil 과 키 216개를 전수 대조한 뒤
+      # 소비자를 실제로 돌려 값까지 맞춘다. 네트워크 없음. 10초 미만.
+      - name: Verify the myeongri constant tables still match their source
+        run: npm run verify:myeongri-tables
+
       # 🔴 이것도 **fast 잡**이어야 한다. 입력이 index.html 인라인 스크립트와 js/saju-engine*.js 라
       # 티어가 fast/standard 로 갈리는데, build/critical 잡에 두면 정작 지켜야 할 셸 한 줄 수정에
       # 깨어나지 않는다. 모바일 지연 마운트가 오버레이를 DOM 밖으로 들어낸 뒤 여는 경로를 빠뜨리면
