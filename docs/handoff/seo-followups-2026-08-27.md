@@ -6,6 +6,36 @@
 
 ---
 
+## 왜 하는 작업인가
+
+사용자 요구 원문(2026-08-27, 순서대로):
+
+> `docs/handoff/seo-render-audit-2026-08-27.md` 읽고 나머지 seo 최적화 작업 진행해
+> / `#1186에 충돌이있으니 해소해`
+> / `#1186가 여전히 충돌이고 해소하고 머지후 남은 작업 인수인계 문서 만들어`
+> / `PR #1189 머지했으니 실측해줘`
+> / `docs/handoff/seo-followups-2026-08-27.md 그 다음 인수인계 작업 진행해`
+
+즉 **렌더 실측 SEO 감사(#1184)가 남긴 후속 항목을 순서대로 닫는 작업**이다. 각 항목은
+"결정이 필요한 것"과 "결정 없이 바로 할 수 있는 것"이 섞여 있어서, **결정이 필요한 것은
+사용자에게 물어보고 진행**해 왔다(아래 §0 표의 ✅ 항목은 전부 그렇게 처리됐다).
+
+🔴 **다음 세션이 다시 하면 안 되는 것** — 아래 PR 들은 이미 나갔다.
+
+| PR | 내용 | 상태 |
+|---|---|---|
+| #1184 | 렌더 감사 도구 + 상속 canonical 55건 | **머지됨** |
+| #1186 | 제목 표시 폭 125 → 0, `/static` 이중 신호, `/destiny-poker` 위양성 | **머지됨** (`1b4700c5`) |
+| #1189 | 이 인수인계 문서 신규 | **머지됨** |
+| #1191 | 설명 표시 폭 183 → 0 (§1) | 🔴 **CI 8/8 통과 · MERGEABLE — 사용자 머지 대기** |
+
+🔴 **프로덕션 승격은 아직 안 됐다.** 머지는 스테이징(`staging.code-destiny.com`)까지만 자동으로
+간다. 2026-08-27 실측: 스테이징은 새 제목을 서빙하는데 프로덕션은 옛 제목이다.
+승격은 `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production` 이고,
+**그때 한 번의 명시적 허락이 있어야 실행한다**(CLAUDE.md 절대 규칙 3).
+
+---
+
 ## 0. 지금까지 닫힌 것 / 열려 있는 것
 
 | 항목 | 상태 | 근거 |
@@ -234,7 +264,59 @@ E 시리즈 진행 상황은 [korean-calendar-migration-2026-08-27.md](korean-ca
 
 ---
 
-## 8. 참고 문서
+## 8. 🔴 정본 예시 — 폭 문제를 고치는 표준 모양
+
+새 라우트나 새 문구가 폭 한계를 넘으면 **아래 네 조각을 그대로 따라 한다.** 이미 두 번
+(제목 #1186 · 설명 #1191) 같은 모양으로 처리했고, 세 번째도 같아야 한다.
+
+**(1) 폭 계산은 한 곳에만 둔다** — `lib/seo.ts:42`(`SEO_DESCRIPTION_WIDTH_LIMIT`) ·
+`lib/seo.ts:50`(`truncateToDisplayWidth`). 🔴 **다시 구현하지 말 것.**
+`lib/generate-page-metadata.ts` 와 `lib/seo/createI18nMetadata.ts` 는 이 함수를 **부르기만** 한다.
+
+**(2) 공통 진입점에서 자른다** — `lib/seo.ts:71` 에서 `buildSeoMetadata` 의 description 에 적용.
+43개 라우트가 이 진입점을 공유하므로 개별 파일을 41곳 고칠 필요가 없었다.
+
+**(3) 문구 품질이 필요한 곳만 별도 표** — `app/insights/seo-descriptions.js`(설명 114개) ·
+`app/insights/seo-titles.js`(제목 104개). 소비는 `app/insights/[slug]/page.js:84`(설명) ·
+`app/insights/[slug]/page.js:110`(제목)에서 `표 우선, 없으면 기존 동작` 한 줄이다.
+
+🔴 **기사 레코드의 `metaTitle`/`seoTitle`/`seoDescription` 에 넣지 않는 이유** — 그 값들은
+`seed-articles.js` 의 정규화를 거쳐 인사이트 허브 카드(`app/insights/page.js` ·
+`InsightsCosmicClient.js`)의 **화면 문구로도** 쓰인다. 거기에 쓰면 목록 UI 까지 바뀐다.
+
+**(4) 가드는 산출물에서 전수 발견한다** — `scripts/verify-adsense-readiness.mjs:1475`
+(`EAST_ASIAN_WIDE`) · `:1477`(`serpTitleWidth`) · `:1491`(`verifyIndexableTitleWidth`) ·
+`:1525`(`verifyIndexableDescriptionWidth`). 손으로 든 목록이 없고, `out/`·`dist/` 의 사이트맵
+URL 전량(`/x.html` 단독 라우트 포함)을 훑으며, URL 이 0개여도 실패한다.
+🔴 신규 `verify:*` npm 스크립트를 만들지 않는다 — `verify-guard-wiring` 이 배선을 요구하고
+CI 게이트 추가는 사용자 승인 사항이다(`docs/CURRENT_DEV_BASELINE.md` §6). 이미 `build:cf` 가
+부르는 이 파일 안에 판정을 하나 더 다는 것이 정본이다.
+🔴 **가드를 넣었으면 반드시 음성 테스트를 한다** — dist 의 아무 페이지를 옛 값으로 되돌려 넣어
+실패하는 것을 보고 복원한다. 검사 대상이 없어서 통과하는 가드는 가드가 아니다(CLAUDE.md 원칙 10).
+
+🔴 **문구를 줄이기 전에 필수 마커부터 확인한다** —
+`scripts/verify-adsense-readiness.mjs` 의 `routeMetadataChecks`(현재 3개 파일).
+이번에 `의료·법률·투자`·`엔터테인먼트` 를 날려 빌드가 두 번 섰다.
+
+---
+
+## 9. 🔴 근거를 못 찾으면 추측하지 말고 물어라
+
+이 레포에서 추측이 사고로 이어진 실제 이력이 있다.
+
+- 이번 세션에서도 이 문서에 "`/nakshatra` 28개는 같은 템플릿에서 나온다"고 **추정으로** 적었는데,
+  실제로는 `lib/seo-landing-pages.js` 의 개별 문안이었다. 열어 보고 나서야 알았다.
+- "임포터 0" 은 죽었다는 증거가 아니다(`lib/payment/portone.ts`).
+- "없다/영향 없다" 는 **전수 검색을 실제로 돌린 뒤에만** 쓰고 검색 범위를 함께 적는다.
+  🔴 그 grep 은 반드시 `git grep` — 리포 루트 `.ignore` 가 `sync:public` 미러 172개를
+  Grep/Glob 에서 빼므로 rg 로는 미러의 참조를 못 본다.
+
+**정책·IA·UI 가 갈리는 지점은 임의로 고르지 말고 사용자에게 묻는다.** 지금 열려 있는 것 중
+§2(몰입형 라우트 링크) · §4(ETag) · §1-4(b)(허브 카드 문구)가 전부 그런 항목이다.
+
+---
+
+## 10. 참고 문서
 
 - [seo-render-audit-2026-08-27.md](seo-render-audit-2026-08-27.md) — 1차 감사 전문 + 2차 세션 §10
 - [seo-content-expansion-roadmap.md](seo-content-expansion-roadmap.md) — §I 의 P1 미착수분,
