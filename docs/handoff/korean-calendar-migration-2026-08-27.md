@@ -46,7 +46,7 @@
 | **#1183** | 남은 절기 프레임 소비자 6곳 + 가드 검사 ⑤⑥⑦⑧ | **머지됨** `161836714` |
 | **#1185** | 숙요 음력일 10곳 + `verify:sukuyo-korean-calendar` | **머지됨** `0366f5152` |
 | **#1187** | 낙샤트라 3라우트 · 베다 어댑터 · 숙요 가드 검사 ②③⑤ 확장 | `feat/nakshatra-korean-calendar` (base `0366f5152`) |
-| **PR-E4** | 나머지 음력↔양력 변환 10곳 + `verify:lunar-conversion-core` 신설 | `feat/lunar-conversions-korean-calendar` (base `d72d5c672` = #1187 위) |
+| **#1188** | 나머지 음력↔양력 변환 10곳 + `verify:lunar-conversion-core` 신설 | **머지됨** `50f3c0146` |
 
 🔴 #1170 은 `.github/workflows/pr-ci.yml` 에서 한 번 충돌했다. #1167(섬 가드)과 이 PR(달력 가드 5종)이
 **같은 앵커(`run: npm run verify:ziwei-star-parity`) 뒤에** 각자 블록을 넣어서다. 의미 충돌이 아니므로
@@ -549,7 +549,87 @@ PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다
 
 🔴 이 PR 도 `verify:sitemap-drift` 에 걸렸다(원장 88개 갱신). 같은 커밋에 담아 해소했다.
 
-### PR-E5 — 정적 셸
+### PR-E5 — 정적 셸 (미착수 · 아래는 2026-08-27 실측 조사 결과)
+
+🔴 **조사만 끝냈고 코드는 한 줄도 안 고쳤다.** 브랜치 `feat/shell-korean-calendar` 를
+`50f3c0146` 에서 따 두었지만 커밋은 이 문서 갱신 하나뿐이다.
+
+#### 전수 조사 — 고쳐야 할 자리 (2026-08-27, `git grep`)
+
+정규식 `getEightChar|getMonthInGanZhi|getYearInGanZhiExact|getPrevJieQi|getNextJieQi|Solar\.from|Lunar\.from|\.getLunar\(|\.getSolar\(`
+
+| 파일 | 자리 | 성격 |
+|---|---|---|
+| `js/saju-engine.js` | 1263·1266·1274·1275 · 2775~2785 · 2970~2973 · 3039~3040 · 26158~26169 · 27854~27855 · 29035~29036 · 29160~29161 · 29858~29859 | `Solar.fromYmdHms().getLunar().getEightChar()` |
+| `js/saju-engine.js` | 1925 · 4899 · 5074 | `typeof Solar.fromYmdHms` **가용성 검사** — 값이 아니라 게이트다 |
+| `js/saju-engine-tarot-sukuyo-quantum.js` | 3069~3070 · 3076~3077 · 6037~6038 · 6061~6062 · 16900 · 17547~17549 | 같음 |
+| `js/luck-sync-diary.js` | 363~378 · 410 · 435~443 · 3894 | **KasiEngine 폴백**(아래 ㄱ) |
+| `js/sibyl-system.js` | 898~901 | `_getMonthGanZhiFor` 의 마지막 폴백 |
+| `js/core/index-inline-runtime.js` | 2176~2178 · 8099~8112 | `window.Solar`/`window.Lunar` **가용성 검사** 3벌 |
+
+#### 🔴 (ㄱ) 착수 전에 반드시 알아야 할 것 — 셸에 야자시 정책이 **두 개** 있다
+
+`options.yaja` 는 23시대 출생의 **일진을 다음 날로 미룰지**를 정한다(`js/saju-engine.js:1031`).
+
+| 호출부 | `yaja` | 코어 대응 |
+|---|---|---|
+| `js/saju-engine.js:1026` | 기본 `true` | `NIGHT_ZI_POLICY.SHIFT_DAY` = **코어 기본값** |
+| `js/luck-sync-diary.js:348,438` | **명시적 `false`** | `NIGHT_ZI_POLICY.KEEP_DAY` |
+
+🔴 **`ganji()` 를 기본값으로 부르면 럭싱크 다이어리의 23시대 일진이 조용히 하루 밀린다.**
+그 파일은 `{ nightZiPolicy: "keep-day" }` 를 넘겨야 한다. 코어에 이 값이 있는데
+"지금 호출부는 없다"고 적혀 있다(`lib/korean-calendar/policy.js`) — **그 주석도 함께 고칠 것.**
+
+#### 🔴 (ㄴ) 셸의 EightChar 자리는 대부분 **폴백**이지 정본이 아니다
+
+`js/luck-sync-diary.js` 두 자리와 `js/sibyl-system.js` 한 자리는 전부
+`window.KasiEngine.getGanji` (→ `KasiCalendarService` → 코어)를 **먼저** 부르고
+실패했을 때만 EightChar 로 떨어진다. 즉 평소에는 코어를 타고, **KASI 경로가 죽을 때만
+중국 음력이 섞인다.** PR-C 가 `js/saju-engine.js` 에서 한 것과 같은 처방이 맞다 —
+폴백을 코어로 바꾸거나(권장), 아예 던지게 한다.
+
+🔴 `js/luck-sync-diary.js:410` 은 함수 진입 자체를 `window.Solar` 존재로 막는다
+(`if (!birth || !window.Solar || ...) return null;`). `window.KoreanCalendar` 로 바꾸지 않으면
+lunar-javascript 를 지운 뒤(PR-F) **그 기능이 통째로 죽는다.** 3894 줄의 코어 재로드 조건도 같다.
+
+#### 코어의 클래식 표면 (`window.KoreanCalendar`)
+
+`js/core/korean-calendar.js` 는 생성물이고 아래를 전역으로 낸다 — 손으로 만들지 말 것:
+`ganji` · `solarToLunar` · `lunarToSolar` · `solarTerms` · `nodeTerms` · `enclosingNodeTerm` ·
+`sexagenaryYearIndexes` · `formatPillar` · `stemIndexOf` · `branchIndexOf` ·
+`STEM_HANJA`/`BRANCH_HANJA`/`STEM_HANGUL`/`BRANCH_HANGUL` · `TERM_NAME_KO`/`TERM_NAME_HANJA` ·
+`NIGHT_ZI_POLICY` · `DEFAULT_NIGHT_ZI_POLICY` · `TABLE_META` · `TABLE_FINGERPRINT` ·
+`solarDayIndex` · `solarFromDayIndex` · `supportedRange` · `MIDNIGHT_RISKS`.
+
+셸의 표기 축은 **한자**이므로 `formatPillar(stemIndex, branchIndex, "hanja")` 를 쓴다
+(🔴 `formatPillar` 는 인자를 **3개** 받는다 — 기둥 객체를 통째로 넘기면 던진다).
+
+#### 갈라야 할 축 — E5 에 넣을 것과 PR-F 로 미룰 것
+
+| 축 | E5 | 근거 |
+|---|---|---|
+| 세차·월건(절기 프레임) | **넣는다** | PR-D2·E1 과 같은 처방. 코어 `ganji().year/.month` |
+| 일진 | **넣되 정책을 명시**한다 | 위 (ㄱ). 기본값으로 부르면 럭싱크가 갈린다 |
+| 시주 | 넣는다 | 코어 `ganji().hour`. 23시대에도 lunar-javascript 와 일치(PR-E1 실측 0/540) |
+| **대운 `getYun()`** | 🔴 **미룬다** | `js/saju-engine.js:2861,29037,29601` · `quantum:6044,16883`. 나이 관례 결정이 선행(§PR-D2) |
+
+#### 착수 순서 제안
+
+1. `js/sibyl-system.js`(1자리) · `js/luck-sync-diary.js`(4자리) 를 먼저 — 작고 자족적이다
+2. `js/core/index-inline-runtime.js` 의 가용성 검사 3벌
+3. `js/saju-engine.js` · `js/saju-engine-tarot-sukuyo-quantum.js` (대운 제외)
+4. 가드: `verify:lunar-conversion-core` 의 `KNOWN_REMAINING` 에서 그 줄을 지우고,
+   셸은 `scripts/lib/ziwei-engine-harness.cjs` 로 **실제 평가**해 값을 대조한다
+   (import 수준 검사만으로는 셸을 못 본다 — PR-E2 가 그렇게 놓쳤다)
+
+#### 🔴 잊으면 CI 가 죽는 것
+
+- `js/` 를 고치면 `npm run sync:public` 산출물(**미러 22개 + `index.html`**)을 **같은 커밋에** 담는다
+- `index.html` 이 바뀌면 `npm run sitemap:generate` 도 같은 커밋에 담는다(원장 무효화)
+- `js/core/korean-calendar.js` 는 **생성물**이다 — 손으로 고치면
+  `verify:korean-calendar-table-fresh` ① 이 바이트 비교로 잡는다
+
+### PR-E5 착수 시 참고 — 원래 요약
 
 **제품 코드(`js`·`worker`·`app`·`lib`·`src`)에서 lunar-javascript 를 쓰는 곳은 PR-E4 이후 아래가 전부다** —
 손 목록이 아니라 `verify:lunar-conversion-core` 검사 ① 과 `verify:saju-solar-term-core` 검사 ⑤ 의
