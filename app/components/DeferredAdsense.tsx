@@ -222,9 +222,19 @@ export default function DeferredAdsense() {
   if (!documentAllowsAdsense || !viewerAllowsAdsense) return null;
 
   return (
+    // 🔴 여기에 minHeight 를 두지 말 것. 이 래퍼는 next/script 만 감싸고 있고 그 스크립트는
+    //    문서 전역에 주입되므로 **이 자리에는 아무것도 그려지지 않는다** — 광고는 다른 슬롯에 뜬다.
+    //    2026-08-28 프로덕션 실측(15초 대기): 이 박스는 자식 0개 · innerHTML 0바이트로 영구히 비어
+    //    있었고, 같은 페이지의 실제 광고는 ins.adsbygoogle 1개 + 구글 iframe 2개로 바깥에 있었다.
+    //    그런데 이 컴포넌트는 서버에서 null 을 돌려주고 하이드레이션 뒤에야 나타나므로, 높이를
+    //    예약하면 그 예약이 곧 레이아웃 이동이 된다. <main> 이 y=61 -> y=311 로 밀리면서
+    //    /fortune/today/ · /insights/ 의 CLS 가 0.275 였다(기준 0.1).
+    //    minHeight 는 원래 CLS 를 막으려고 8f43f883b 에서 들어왔는데, 채워지지 않는 예약이라
+    //    목적과 정반대로 동작하고 있었다. 광고가 실제로 이 자리에 들어오게 되면 그때는
+    //    **서버에서도 같은 높이를 렌더**해야 하고(그래야 예약이 이동을 만들지 않는다), 지금처럼
+    //    클라이언트에서만 나타나게 두면 안 된다.
     <div
       style={{
-        minHeight: '250px',
         position: 'relative',
         display: 'flex',
         alignItems: 'center',
