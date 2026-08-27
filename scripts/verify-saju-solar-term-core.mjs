@@ -371,8 +371,10 @@ for (const year of SAMPLE_YEARS) {
   // 애초에 위 CST_GANJI_APIS 를 부르지 않는 파일이었다(나머지 여섯 — lunar-javascript 를 쓰긴
   // 하지만 다른 API 로 쓴다). 즉 목록의 2/3 이 아무것도 안 지키면서 "아직 남아 있다" 고
   // 말하고 있었고, 아래 neverFound 단언이 없어서 그게 조용했다.
+  // 🔴 **제품 소스는 0건이다.** 남은 셋은 전부 `scripts/` 의 가드 자신이고, 이 축을
+  // lunar-javascript 와 **대조하는 것이 그들의 일**이라 사라지면 안 된다.
+  // 2026-08-28 에 죽은 사본 `js/core/kasi/calendar.js` 가 지워지면서 제품 항목이 비었다.
   const KNOWN_REMAINING = new Map([
-    ["js/core/kasi/calendar.js", "죽은 사본 — 어느 HTML 도 로드하지 않는다(3면 grep 2026-08-27). 삭제 판단은 사용자에게"],
     ["scripts/verify-saju-solar-term-core.mjs", "이 파일. 위 목록의 문자열이 자기 자신에 잡힌다"],
     ["scripts/verify-shell-korean-calendar.mjs", "정적 셸을 코어와 대조하는 가드 — 대조 대상이라 남아야 한다"],
     ["scripts/verify-daeun-korean-calendar.mjs", "대운 관례 재현을 lunar-javascript 와 대조하는 가드 — 대조 대상이라 남아야 한다"],
@@ -381,10 +383,12 @@ for (const year of SAMPLE_YEARS) {
   const GANJI_SCAN_DIRS = ["js", "worker", "app", "lib", "src", "scripts"];
   const found = [];
   const unclassified = [];
+  let scannedFiles = 0;
   for (const dirName of GANJI_SCAN_DIRS) {
     const dir = path.join(root, dirName);
     if (!fs.existsSync(dir)) continue;
     for (const file of walk(dir, [])) {
+      scannedFiles += 1;
       const relative = path.relative(root, file).split(path.sep).join("/");
       const code = stripComments(fs.readFileSync(file, "utf8"));
       const hits = CST_GANJI_APIS.filter((api) => code.includes(`${api}(`));
@@ -394,12 +398,40 @@ for (const year of SAMPLE_YEARS) {
     }
   }
 
-  // 🔴 이관이 끝날 때마다 이 숫자를 내린다. 올라가는 방향으로 움직이면 새로 생긴 것이다.
-  ok(
-    "⑤ 절기 프레임 간지 호출을 실제로 발견했다(발견 0 = 가드가 깨진 것)",
-    found.length >= 4,
-    `발견 ${found.length}개`,
-  );
+  // 🔴 예전에는 여기에 `found.length >= 4` 가 있었다. 그건 "스캐너가 살아 있나"를 재려던 것인데
+  // **잔존 개수로는 그걸 못 잰다** — 이관이 끝날수록 임계값이 공허해지고(2026-08-28 에 죽은 사본
+  // js/core/kasi/calendar.js 가 지워져 발견이 3개로 떨어졌다), 반대로 CST_GANJI_APIS 원소 하나를
+  // 오타내도 나머지가 임계값을 채워 조용히 통과한다. ① 과 같은 방식으로 목적을 직접 잰다.
+  ok("⑤ 스캔이 실제로 소스를 읽었다(0 이면 경로가 바뀐 것)", scannedFiles >= 1000, `${scannedFiles}개 파일`);
+  {
+    // 🔴 프로브를 CST_GANJI_APIS 에서 만들면 오타 난 원소가 자기 프로브를 잡아 동어반복이 된다.
+    // 게다가 문자열이 서로 접두사다(`getMonthInGanZhi` ⊂ `getMonthInGanZhiExact`).
+    // 그래서 목록 자체를 고정 리터럴에 못박는다.
+    const EXPECTED_APIS = [
+      "getMonthInGanZhiExact",
+      "getMonthInGanZhi",
+      "getYearInGanZhiExact",
+      "getPrevJieQi",
+      "getNextJieQi",
+      "getEightChar",
+    ];
+    ok(
+      "⑤ 탐지 대상 API 목록이 그대로다(오타·삭제가 조용히 지나가지 않는다)",
+      JSON.stringify(CST_GANJI_APIS) === JSON.stringify(EXPECTED_APIS),
+      `현재 ${JSON.stringify(CST_GANJI_APIS)}\n      기대 ${JSON.stringify(EXPECTED_APIS)}`,
+    );
+    const catches = (line) => CST_GANJI_APIS.some((api) => stripComments(line).includes(`${api}(`));
+    const positive = ["  const bazi = lunar.getEightChar();", "  const m = lunar.getMonthInGanZhiExact();"].filter(catches);
+    const negative = [
+      "  // const bazi = lunar.getEightChar();",
+      "  const p = core.ganji({ year, month, day });",
+    ].filter(catches);
+    ok(
+      "⑤ 주석 제거기가 살아 있다(코드는 잡고 줄 주석·코어 호출은 안 잡는다)",
+      positive.length === 2 && negative.length === 0,
+      `양성 ${positive.length}/2 · 위양성 ${negative.length}`,
+    );
+  }
   ok(
     "⑤ 발견된 파일이 전부 잔존 분류에 있다(미분류 = 새로 생긴 것)",
     unclassified.length === 0,

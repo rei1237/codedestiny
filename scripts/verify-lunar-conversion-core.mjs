@@ -147,12 +147,12 @@ const CONVERSION_APIS = [
  * 아직 이 축을 lunar-javascript 로 잡는 것이 **알려져 있는** 파일과 그 이유.
  * 🔴 여기에 올린다고 옳아지는 것이 아니다 — 남은 이관 목록이다. 줄어들기만 해야 한다.
  */
-// 🔴 2026-08-28(PR-F2) 로 워커 3개가, 같은 날(PR-F6) 정적 셸 2개가 빠졌다.
-// 셸 2개는 값이 아니라 **가용성 검사**(`typeof Solar`)로만 걸려 있었고, CDN 로더를 걷어내면서
-// 그 검사가 통째로 사라졌다. 이제 남은 것은 로드되지 않는 죽은 사본 하나뿐이다.
-const KNOWN_REMAINING = new Map([
-  ["js/core/kasi/calendar.js", "죽은 사본 — 어느 HTML 도 로드하지 않는다(3면 grep 2026-08-27). 삭제 판단은 사용자에게"],
-]);
+// 🔴 **이 목록은 비어 있다. 그게 이 마이그레이션의 완료 조건이었다.**
+// 2026-08-28 에 워커 3개(PR-F2) → 정적 셸 2개(PR-F6) → 죽은 사본 `js/core/kasi/calendar.js`
+// (PR-F6) 순으로 비었다. 비어 있는 것 자체는 통과 조건이 아니다 — 아래 스캔 도달 검사와
+// 탐지기 자기검사가 "스캐너가 죽어서 0" 인 경우를 가른다.
+// 🔴 여기에 줄을 **더하는** 변경은 이관의 역행이다. 사유를 PR 본문에 적을 것.
+const KNOWN_REMAINING = new Map();
 
 function walk(dir, out) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {

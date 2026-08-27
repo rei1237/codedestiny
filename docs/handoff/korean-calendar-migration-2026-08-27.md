@@ -13,10 +13,12 @@
 > CDN 로드 지점도 0건이다(`verify:lunar-conversion-core` ①·①-b 가 매번 전수 스캔한다).
 > 그 패키지는 **가드 6개의 대조 대상**으로만 devDependencies 에 남아 있다 — 지우면 안 된다
 > (`verify:natal-day-pillar-axis` ⑥ 이 그것과 `--omit=dev` 를 함께 막는다).
-> 🔴 다음 세션은 가드의 잔존 목록을 먼저 열어라 — `scripts/verify-lunar-conversion-core.mjs` 의
-> `KNOWN_REMAINING`(**죽은 사본 `js/core/kasi/calendar.js` 하나만 남았다**) ·
-> `scripts/verify-saju-solar-term-core.mjs` 검사 ⑤(같은 죽은 사본 + 가드 자신 3개).
-> `scripts/verify-daeun-korean-calendar.mjs` 검사 ⑤ 와 `scripts/verify-sukuyo-korean-calendar.mjs` 의 목록은 **비었다**.
+> 🔴🔴 **네 가드의 잔존 목록이 전부 비었다.** `verify:lunar-conversion-core` 의 `KNOWN_REMAINING` 은
+> 빈 Map 이고(변환 소스 **0개**), `verify:saju-solar-term-core` ⑤ 에 남은 셋은 **가드 자신**이다
+> (그들이 lunar-javascript 와 대조하는 것이 일이라 사라지면 안 된다).
+> `verify:daeun-korean-calendar` ⑤ 와 `verify:sukuyo-korean-calendar` 의 목록도 비었다.
+> 비어 있는 것 자체는 통과 조건이 아니다 — **스캔 도달 검사 + 탐지 API 목록을 고정 리터럴에
+> 못박기**가 "스캐너가 죽어서 0" 인 경우를 가른다. 🔴 이 목록에 줄을 **더하는** 변경은 역행이다.
 > 🔴 셸에는 **소스 스캔이 안 보이는 축**이 있다 — `scripts/verify-shell-korean-calendar.mjs` 가
 > 셸을 `global.Solar` 없이 실제로 평가해 값까지 대조한다. 셸을 고쳤으면 그것부터 돌려라.
 
@@ -665,14 +667,14 @@ PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다
 | `js/saju-engine.js` | `attachKasiDaewunBridge` 한 자리 — 대운 `getYun` 을 코어 팔자에 붙여 준다 |
 | `js/saju-engine.js` 1958·4942·5117 | CDN 로더의 가용성 검사(대운이 아직 이 라이브러리를 쓰므로 유효하다) |
 | `js/core/index-inline-runtime.js` | `__cdHasLunarLibReady` — 로더 자신의 준비 판정 |
-| `js/core/kasi/calendar.js` | **죽은 사본** — 어느 HTML 도 로드하지 않는다. 삭제 판단은 사용자에게 |
+| `js/core/kasi/calendar.js` | **죽은 사본** — 어느 HTML 도 로드하지 않는다. 🔴 2026-08-28 에 **삭제됐다**(아래 PR-F6 절) |
 | `worker/lib/destiny-bias-engine.js` · `worker/lib/life-book-ai-saju.js` · `worker/routes/new-year-ai.js` | 일주·시주 EightChar + 대운 — PR-F |
 
 🔴 **위 표는 PR-E5 시점의 기록이고 지금은 사실이 아니다**(2026-08-28 정정). 세 가지가 틀렸다:
 ① `attachKasiDaewunBridge` 는 **PR-F1 이후 `core.daeun()` 이다** — lunar-javascript 를 안 쓴다.
 `:708-710` 이 맞고 이 표가 낡았다. ② 워커 3개는 PR-F2 에서 코어로 갔다.
 ③ 셸의 가용성 검사와 `__cdHasLunarLibReady` 는 PR-F6 에서 로더와 함께 사라졌다.
-**지금 남은 것은 `js/core/kasi/calendar.js` 한 줄뿐이다.**
+**지금은 한 줄도 안 남았다** — 마지막이던 `js/core/kasi/calendar.js` 도 PR-F6 에서 지웠다.
 
 🔴 예고대로 `sync:public` 캐시키가 돌아 **미러 13개 + `index.html`** 이 함께 바뀌었고,
 `verify:sitemap-drift` 도 걸려 원장 62개를 같은 커밋에 담았다.
@@ -980,12 +982,38 @@ PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다
 만들어 **자기 자신을 검사하는 동어반복**이었고 오타를 못 잡았다. 고정 리터럴 대조로 바꿔서 잡힌다.
 문자열이 서로 접두사라(`Solar.fromYmd` ⊂ `Solar.fromYmdHms`) 프로브 방식으로는 원소별 판정이 안 된다.
 
-#### 이 PR 이 남기는 것
+#### 🟢 죽은 사본 `js/core/kasi/calendar.js` — 사용자 판단으로 삭제했다 (2026-08-28)
 
-`js/core/kasi/calendar.js` — **죽은 사본**. 어느 HTML 도 로드하지 않고, 읽는 곳은 미배선 스크립트
-셋(`scripts/test-saju-regression.js` · `scripts/test-saju-solar-term-regression.mjs` ·
-`scripts/validate-phase4.mjs`)뿐이다. 🔴 **지우는 판단은 사용자에게 남긴다** — 지우려면 그 셋도 함께
-정리해야 하고, 두 가드의 `KNOWN_REMAINING` 이 비면 `found` 가 0 이 되는 자리도 함께 봐야 한다.
+**삭제 조건을 다시 실측했다**(3면 grep + 실행):
+
+| 축 | 실측 |
+|---|---|
+| HTML 로드 | `git grep "kasi/calendar" -- '*.html'` → **0건** |
+| 읽는 곳 | `scripts/` 3개뿐. **셋 다 `package.json`·워크플로 미배선** |
+| 그 셋의 현재 상태 | `test-saju-regression.js`·`validate-phase4.mjs` 는 **이미 깨져 있다** — 넷째 모듈 `js/engines/ziwei-doushu.js` 가 `2ef804d1c` 에서 지워져 `ENOENT` 로 죽는다 |
+| Phase-4 모듈 4개 | `chinese-astrology.js`·`kasi/calendar.js`·`sajuAnalyzer.js`·`ziwei-doushu.js` — **어느 것도 HTML 이 로드하지 않는다** |
+
+그래서 함께 정리했다:
+
+- `js/core/kasi/calendar.js` + 미러 — **삭제**. `.ignore` 의 미러 목록은 `sync:public` 이
+  172 → **171** 로 자동 갱신한다(손으로 지우지 말 것).
+- **[Cleanup]** `scripts/test-saju-regression.js` · `scripts/validate-phase4.mjs` — **삭제**.
+  Phase-4 시절의 스크립트 태그 배치를 검사하는 미배선 검증기이고 지금은 `ENOENT` 로 죽는다.
+  `validate-phase4.mjs` 는 `src="/js/core/kasi/calendar.js" defer` 가 `index.html` 에 있기를
+  기대하는데 그 태그는 존재한 적이 없다.
+- `scripts/test-saju-solar-term-regression.mjs` — `loadKasiEngineModule` 과 그것을 쓰는 단언 2개만
+  걷어냈다. 🔴 **이 스크립트의 본체는 살아 있는 `js/core/kasi-calendar-service.js` 를 쓴다**
+  (`loadKasiCalendarService`) — 절기 표를 분 반올림으로 바꾸게 만든 입춘 ±1분 케이스가 거기 있다.
+  삭제 후에도 `PASS saju solar-term regression`.
+
+**가드 갱신** — 두 곳의 개수 임계값을 같은 이유로 걷어냈다:
+`verify:lunar-conversion-core` 의 `KNOWN_REMAINING` 은 **빈 Map**(검사 40건 · 변환 소스 **0개**),
+`verify:saju-solar-term-core` ⑤ 는 `found.length >= 4` 를 지우고 **스캔 도달 검사 + API 목록 고정
+리터럴 대조 + 주석 제거기 검사**로 나눴다(검사 52 → **54건**). 음성 확인: ⑤ 의 API 를 오타내면
+빨간불 · ① 에 지워진 파일을 되살리면 유령/역포함 두 단언이 동시에 빨간불.
+
+🔴 **남긴 것 하나**: `public/js/engines/ziwei-doushu.js:3` 의 의존성 주석이 지워진 파일을 가리킨다.
+그 파일 자체가 `js/` 대응물 없는 고아라 이번 범위 밖으로 뒀다.
 
 ## 5. 검증 명령
 

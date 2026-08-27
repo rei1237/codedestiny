@@ -86,42 +86,6 @@ function loadKasiCalendarService() {
   return sandbox.window.KasiCalendarService;
 }
 
-function loadKasiEngineModule() {
-  const sandbox = {
-    console,
-    Date,
-    Math,
-    JSON,
-    String,
-    Number,
-    RegExp,
-    Array,
-    Object,
-    Error,
-    localStorage: {
-      _data: new Map(),
-      getItem(key) {
-        return this._data.get(String(key)) || null;
-      },
-      setItem(key, value) {
-        this._data.set(String(key), String(value));
-      },
-      removeItem(key) {
-        this._data.delete(String(key));
-      },
-    },
-    Solar,
-    Lunar,
-    module: { exports: {} },
-  };
-  sandbox.window = sandbox;
-  sandbox.globalThis = sandbox;
-
-  const code = fs.readFileSync(path.join(root, "js/core/kasi/calendar.js"), "utf8");
-  vm.runInNewContext(code, sandbox, { filename: "js/core/kasi/calendar.js" });
-  return sandbox.window.KasiEngine || sandbox.module.exports.KasiEngine;
-}
-
 function shiftDatePartsByDays(year, month, day, dayOffset) {
   const shifted = new Date(Date.UTC(year, month - 1, day) + dayOffset * 86400000);
   return { year: shifted.getUTCFullYear(), month: shifted.getUTCMonth() + 1, day: shifted.getUTCDate() };
@@ -719,10 +683,5 @@ if (!structuredReport.fourPillars?.year?.stem || !structuredReport.fourPillars?.
 if (!Array.isArray(structuredReport.actionPrescription) || !structuredReport.userReport?.markdown?.includes("QUANTUM MYEONGRI Engine v.2")) {
   throw new Error("local structured advanced report should include action prescriptions and user report markdown");
 }
-
-const kasiEngine = loadKasiEngineModule();
-const engineGanji = kasiEngine.getGanji(new Date("1990-03-18T07:20:00+09:00"));
-assertEqual(engineGanji.weolgeon, "己卯", "KasiEngine local month pillar");
-assertNotEqual(engineGanji.weolgeon, "戊寅", "KasiEngine must not return lunar-library month pillar");
 
 console.log("PASS saju solar-term regression");
