@@ -31,7 +31,7 @@ export function generateMetadata({ params }: { params: { episode: string } }) {
   // 로그라인만으로는 짧을 수 있어 아크 이름과 분량 정보를 덧붙인다.
   const description = `${logline} 연이의 운명 노벨 ${episode.no}${
     arc ? ` · ${arc.title}` : ""
-  }. 읽는 시간 약 ${readingMinutes(episode)}분의 창작 소설입니다.`;
+  }. 창작 소설, 읽는 시간 약 ${readingMinutes(episode)}분.`;
 
   return buildSeoMetadata({
     path: `/stories/${episode.slug}`,

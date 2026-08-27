@@ -4,7 +4,7 @@ import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 const VEDIC_JYOTISH_TEXT_TRANSLATIONS = {
   ko: {
     "meta.title": "조티쉬 차트 보는 곳 | 무료 라그나·라시·다샤 계산",
-    "meta.description": "생년월일과 출생 시간으로 라그나와 라시 차트, 빈쇼타리 다샤를 계산해 보여 주는 조티쉬 차트 화면입니다. 항성 황도와 Lahiri 아야남샤를 기준으로 그라하·바바·나크샤트라 배치까지 표로 확인할 수 있습니다.",
+    "meta.description": "생년월일과 출생 시간으로 라그나와 라시 차트, 빈쇼타리 다샤를 계산해 주는 조티쉬 차트입니다. 항성 황도와 Lahiri 아야남샤 기준으로 그라하·바바 배치를 표로 봅니다.",
     "service.h1": "조티쉬 차트 (Jyotish) — 라그나·라시·다샤",
     "service.seoText": "베다 점성술은 항성 황도, Lahiri 아야남샤, Whole Sign Bhava, 27개 나크샤트라와 빈쇼타리 다샤를 함께 살펴 삶의 주제를 읽는 전통 점성 체계입니다.",
     "valueGuide.title": "베다점 핵심 개념 6가지",

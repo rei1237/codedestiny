@@ -8,7 +8,7 @@ const path = "/insights/fusion";
 const INSIGHTS_FUSION_PAGE_TEXT_TRANSLATIONS = {
   ko: {
     title: "초융합 인사이트 허브 · 여섯 체계 함께 읽기 | Code Destiny",
-    description: `${FUSION_FORTUNE_PROFILE.topicSummary} 체계 간 비교 글을 모은 초융합 운세 전용 허브입니다.`,
+    description: `${FUSION_FORTUNE_PROFILE.topicSummary} 체계 간 비교 글 허브입니다.`,
     keywords: [FUSION_FORTUNE_PROFILE.primary, ...FUSION_FORTUNE_PROFILE.secondary, "사주 자미두수 비교", "여러 운세 함께 보기"],
     breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "초융합 인사이트"],
     archiveTitle: "초융합 운세 인사이트 허브",

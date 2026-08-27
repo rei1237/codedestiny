@@ -38,7 +38,7 @@ export function generateMetadata() {
   return generatePageMetadata({
     path: "/ja/tokushoho",
     title: "特定商取引法に基づく表記 | Code Destiny",
-    description: "Code Destinyの特定商取引法に基づく表記ページです。事業者情報、販売価格、支払方法、支払時期、商品の引渡時期、返品・キャンセルに関する特約など、法令が定める必須項目をまとめて掲載しています。",
+    description: "Code Destinyの特定商取引法に基づく表記です。事業者情報、販売価格、支払方法と時期、商品の引渡時期、返品・キャンセルの特約など、法令の必須項目を掲載しています。",
     inLanguage: "ja-JP",
   });
 }
