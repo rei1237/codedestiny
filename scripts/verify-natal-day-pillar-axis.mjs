@@ -29,6 +29,7 @@
  *   ③ destiny-bias 의 정책 3종이 코어 정책과 1:1 로 대응한다(실행 대조)
  *   ④ 23시대에서 두 정책이 **실제로 갈린다**(안 갈리면 이 가드가 아무것도 안 지킨다)
  *   ⑤ 제품 소스에 lunar-javascript import 가 0건이다(fail-closed)
+ *   ⑥ 그 라이브러리가 **devDependencies 에 남아 있고**, 어떤 워크플로도 dev 를 빼고 설치하지 않는다
  *
  * 🔴 `scripts/` 는 스캔하지 않는다 — 이 파일이 가진 스크립트 경로 문자열을 verify:guard-wiring
  * 이 배선 간선으로 오독한다(verify:lunar-conversion-core 와 같은 이유).
@@ -257,6 +258,64 @@ function* birthMoments({ fromYear = 1930, toYear = 2030, yearStep = 1 } = {}) {
   ].filter((line) => IMPORT_PATTERN.test(stripComments(line)));
   ok("⑤ 탐지기가 살아 있다(스텁 3종을 잡고 주석·코어 import 는 안 잡는다)",
     probe.length === 3 && negative.length === 0, `양성 ${probe.length}/3 · 위양성 ${negative.length}`);
+}
+
+// ── ⑥ 의존성 선언과 설치 플래그 ────────────────────────────────────────────
+//
+// ⑤ 가 "제품 소스가 이 라이브러리를 안 쓴다"를 지키므로 분류상 자리는 devDependencies 다
+// (2026-08-28 이동). 그런데 그 이동은 **새 실패 모드**를 만든다 — 이 라이브러리를 대조 대상으로
+// 읽는 가드가 6개(korean-calendar-divergence · korean-calendar-solar-terms · shell-korean-calendar ·
+// daeun-korean-calendar · myeongri-tables · lunar-conversion-core)이고, 누가 CI/배포의 설치에
+// `--omit=dev` 를 붙이면 그 여섯이 **한꺼번에, 조용히** 죽는다. 그래서 두 가지를 함께 못박는다.
+//
+// 🔴 지우는 것도 막는다. "제품이 안 쓰니 빼자" 는 이 가드들이 대조할 상대를 없애는 일이다.
+{
+  const pkg = JSON.parse(fs.readFileSync(path.join(root, "package.json"), "utf8"));
+  ok(
+    "⑥ lunar-javascript 가 devDependencies 에 있다(가드 6개의 대조 대상이라 지우면 안 된다)",
+    Boolean(pkg.devDependencies && pkg.devDependencies["lunar-javascript"]),
+    `devDependencies=${pkg.devDependencies?.["lunar-javascript"] ?? "없음"}`,
+  );
+  ok(
+    "⑥ lunar-javascript 가 dependencies 에는 없다(제품 소스 import 0건이므로 개발 의존성이다)",
+    !(pkg.dependencies && pkg.dependencies["lunar-javascript"]),
+    `dependencies=${pkg.dependencies?.["lunar-javascript"] ?? "없음"}`,
+  );
+
+  const workflowDir = path.join(root, ".github", "workflows");
+  const workflows = fs.existsSync(workflowDir)
+    ? fs.readdirSync(workflowDir).filter((name) => name.endsWith(".yml") || name.endsWith(".yaml"))
+    : [];
+  // 발견 0이면 경로가 바뀐 것이다 — 통과시키면 이 검사는 없는 것과 같다.
+  ok("⑥ 워크플로 파일을 실제로 읽었다(0 이면 가드가 깨진 것)", workflows.length >= 3, `${workflows.length}개`);
+
+  const OMIT_DEV = /npm\s+(?:ci|install|i)\b[^\n]*(?:--omit[= ]dev|--only[= ]prod|--production)/;
+  const offenders = [];
+  for (const name of workflows) {
+    const text = fs.readFileSync(path.join(workflowDir, name), "utf8");
+    for (const line of text.split("\n")) {
+      if (OMIT_DEV.test(line)) offenders.push(`${name} — ${line.trim()}`);
+    }
+  }
+  ok(
+    "⑥ 어떤 워크플로도 dev 를 빼고 설치하지 않는다(빼면 달력 가드 6개가 조용히 죽는다)",
+    offenders.length === 0,
+    offenders.join("\n      "),
+  );
+
+  const probe = [
+    "        run: npm ci --omit=dev",
+    "  npm install --production",
+    "npm ci --omit dev --foreground-scripts",
+  ].filter((line) => OMIT_DEV.test(line));
+  const negative = ["        run: npm ci", "npm run build:cf", "# npm ci --omit=dev 는 쓰지 않는다"]
+    .filter((line) => OMIT_DEV.test(line));
+  // 🔴 마지막 음성 표본은 **주석이라도 잡히는 것이 맞다** — 워크플로 YAML 은 주석 해제가 한 글자다.
+  ok(
+    "⑥ 탐지기가 살아 있다(스텁 3종을 잡고 맨 npm ci·빌드 명령은 안 잡는다)",
+    probe.length === 3 && negative.length === 1,
+    `양성 ${probe.length}/3 · 위양성 ${negative.length}/1`,
+  );
 }
 
 // ── 음성 테스트 — 파일을 안 건드리고 판정 함수만 뒤집는다 ──────────────────
