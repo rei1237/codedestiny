@@ -338,12 +338,11 @@ let compareHiddenStemTable = null;
       allowExtraResidual: true,
       divergent: ["丑", "辰", "未", "戌"],
     }],
-    ["app/saju/animal-destiny/engine/localSajuCalculator.ts::HIDDEN_STEMS_BY_BRANCH", {
-      order: "main-first",
-      // 🔴 아직 안 고쳤다. 이 표만 층 가중치가 **자리로** 정해져 있어(0.6/0.25/0.15) 순서를 고치면
-      // 신강약·득령 점수가 함께 움직인다 — 값이 안 움직이는 나머지와 성격이 달라 별도 PR 이다.
-      divergent: ["巳"],
-    }],
+    // 🔴 이 표만 층 가중치가 **자리로** 정해져 있다(0.6/0.25/0.15). 그래서 巳 를 정본 순서로
+    // 고치는 것이 곧 庚 0.15→0.25 · 戊 0.25→0.15 이고, 신강약·통근·격국이 함께 움직였다
+    // (실측 2026-08-28, 표본 1,032건: 巳 포함 304건 중 신강약 6건 1.97% · 격국 11건 3.62%).
+    // 순서를 되돌리면 그 가중치도 같이 되돌아가므로 여기서 지키는 것은 표기가 아니라 점수다.
+    ["app/saju/animal-destiny/engine/localSajuCalculator.ts::HIDDEN_STEMS_BY_BRANCH", { order: "main-first" }],
   ]);
 
   function walk(dir, out) {
