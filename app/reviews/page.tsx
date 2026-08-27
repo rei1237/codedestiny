@@ -10,7 +10,7 @@ import ServiceIntroSection from "../components/ServiceIntroSection";
 const PAGE_PATH = "/reviews/";
 const PAGE_TITLE = "실시간 사용자 리뷰 | 구매 인증 후기 모음 — Code Destiny";
 const PAGE_DESCRIPTION =
-  "코드데스티니를 실제로 이용한 분들이 남긴 후기입니다. 사주·타로·자미두수·점성술 등 상품별 평점과 구매 인증 리뷰를 확인하고, 직접 이용한 서비스에 후기를 남길 수 있습니다.";
+  "코드데스티니를 실제로 이용한 분들이 남긴 후기입니다. 사주·타로·자미두수·점성술 상품별 평점과 구매 인증 리뷰를 확인하고 직접 후기를 남길 수 있습니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

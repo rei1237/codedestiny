@@ -13,7 +13,7 @@ import ServiceIntroSection from "../components/ServiceIntroSection";
 const PAGE_PATH = "/naming-ai/";
 const PAGE_TITLE = "무료 작명 사이트 · 사주 용신 이름 추천 | 훈민정음 작명소";
 const PAGE_DESCRIPTION =
-  "성씨와 생년월일만 넣으면 사주 용신에 맞는 이름 후보를 무료로 추천하는 작명 사이트입니다. 소리오행(초성 흐름)·자원오행(한자의 뜻)·수리 4격을 함께 본 결과를 확인하고, 아기 이름과 개명 후보를 항목별로 비교해 볼 수 있습니다.";
+  "성씨와 생년월일만 넣으면 사주 용신에 맞는 이름 후보를 무료로 추천하는 작명 사이트입니다. 소리오행·자원오행·수리 4격을 함께 본 결과를 확인하세요.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,

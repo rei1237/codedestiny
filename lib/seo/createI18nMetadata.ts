@@ -4,6 +4,7 @@ import { getSeoProfileKeywords } from "./entity-registry.mjs";
 import { LOCALE_CONFIG, Locale, SEO_INDEXABLE_LOCALES } from "../i18n/locales";
 import { siteSeo } from "./siteSeo";
 import { createCanonicalFromLocaleRoutes, createHreflangFromRoutes } from "./createHreflang";
+import { truncateToDisplayWidth } from "../seo";
 
 type CreateI18nMetadataInput = {
   locale: Locale;
@@ -40,10 +41,13 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
     keywords,
   );
 
+  // SERP 설명 폭 절단은 lib/seo.ts 한 곳에서 한다(중복 구현 금지).
+  const cappedDescription = truncateToDisplayWidth(description);
+
   return {
     metadataBase: new URL(siteSeo.siteUrl),
     title,
-    description,
+    description: cappedDescription,
     keywords: mergedKeywords,
     alternates: {
       canonical,
@@ -53,7 +57,7 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
       type,
       locale: localeConfig.ogLocale,
       title,
-      description,
+      description: cappedDescription,
       url: canonical,
       siteName: localeConfig.siteName,
       images: [
@@ -68,7 +72,7 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
     twitter: {
       card: siteSeo.twitterCard,
       title,
-      description,
+      description: cappedDescription,
       images: [imageUrl],
     },
     robots: shouldNoindex

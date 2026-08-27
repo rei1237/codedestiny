@@ -3,7 +3,7 @@ import ServiceIntroSection from "../components/ServiceIntroSection";
 
 export const metadata = {
   title: "인생 총운 | 사주로 보는 평생 운세 리포트 — 인생의 책",
-  description: "생년월일로 세운 사주 명식의 흐름을 따라 인생 전체의 큰 결을 읽는 평생 운세 리포트입니다. 삶, 일, 관계, 재물의 방향과 시기를 긴 호흡의 상담 문장으로 정리해 드립니다.",
+  description: "생년월일로 세운 사주 명식의 흐름을 따라 인생 전체의 큰 결을 읽는 평생 운세 리포트입니다. 삶과 일, 관계와 재물의 방향과 시기를 정리해 드립니다.",
   alternates: {
     canonical: "https://code-destiny.com/life-book-ai/",
   },

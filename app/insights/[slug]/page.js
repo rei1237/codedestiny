@@ -2,6 +2,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug, getInsightSeedRelated } from "../seed-articles";
 import { INSIGHT_SEO_TITLES } from "../seo-titles";
+import { INSIGHT_SEO_DESCRIPTIONS } from "../seo-descriptions";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
@@ -78,10 +79,13 @@ export function generateStaticParams() {
 }
 
 function articleDescription(article) {
+  // 표에 있으면 그 문구가 완성본이다. 없으면 기존 우선순위대로 고른다 —
+  // 폭 절단은 buildSeoMetadata 가 한 곳에서 하므로 여기서 다시 감싸지 않는다.
+  const authored = INSIGHT_SEO_DESCRIPTIONS[article.slug];
+  if (authored) return authored;
   return String(article.seoDescription || article.metaDescription || article.description || article.excerpt || article.subtitle || "")
     .replace(/\s+/g, " ")
-    .trim()
-    .slice(0, 160);
+    .trim();
 }
 
 export async function generateMetadata({ params }) {

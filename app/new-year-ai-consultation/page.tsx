@@ -11,7 +11,7 @@ import ServiceIntroSection from "../components/ServiceIntroSection";
 const PAGE_PATH = "/new-year-ai-consultation/";
 const PAGE_TITLE = "신년운세 보는 곳 | 새해 월별 운세·재물운·연애운 풀이";
 const PAGE_DESCRIPTION =
-  "생년월일로 새해의 큰 흐름을 미리 읽는 신년운세 상담입니다. 한 해의 세운이 내 명식과 만나는 자리를 보고 재물운·연애운·커리어의 결과 월별 체크포인트를 사주 명식 기반 상담 문장으로 정리해 드립니다.";
+  "생년월일로 새해의 큰 흐름을 미리 읽는 신년운세 상담입니다. 그해 세운이 내 명식과 만나는 자리를 보고 재물·연애·커리어와 월별 체크포인트를 짚습니다.";
 
 export const metadata: Metadata = {
   title: PAGE_TITLE,
