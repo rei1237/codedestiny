@@ -345,6 +345,7 @@
     "verify:shell-korean-calendar": "node scripts/verify-shell-korean-calendar.mjs",
     "verify:daeun-korean-calendar": "node scripts/verify-daeun-korean-calendar.mjs",
     "verify:myeongri-tables": "node scripts/verify-myeongri-tables.mjs",
+    "verify:natal-day-pillar-axis": "node scripts/verify-natal-day-pillar-axis.mjs",
     "verify:guard-wiring": "node scripts/verify-guard-wiring.mjs",
     "verify:human-design": "node scripts/verify-human-design.mjs",
     "verify:human-design-ai": "node scripts/verify-human-design-ai.mjs",

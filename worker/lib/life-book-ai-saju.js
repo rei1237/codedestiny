@@ -1,5 +1,3 @@
-import { Solar } from "lunar-javascript";
-
 import { daeun } from "../../lib/korean-calendar/index.js";
 // 🔴 명리 상수 표(納音·十神·지장간·오행·十二運星·旬空)는 달력이 아니라 문자열 조회 표다.
 // lunar-javascript 의 LunarUtil 에서 그대로 옮겨 왔고, verify:myeongri-tables 가 매번 잔차 0 을 다시 증명한다.
@@ -19,10 +17,16 @@ import {
 // 벽시계**라, 생시를 KST 벽시계로 넘기면 월건 경계가 정확히 60분 이르다.
 // 실측 2026-08-27: 節 경계 오프셋별 월주 불일치 −61분 0/72 · **−30분 72/72 · −1분 72/72** ·
 // +1/+30/+61분 0/72 (1970·1985·1997·2004·2013·2024 × 12節).
-// 🔴 일주·시주는 여기서 바꾸지 않는다 — 코어의 야자시 기본값(shift-day)과 lunar-javascript 가
-// 23시대에서 정면으로 갈린다(실측 540/540 불일치). 그 축을 정하는 것은 PR-F 의 몫이다.
+// 🔴 일주·시주도 이제 코어에서 나온다(PR-F2). 야자시 축은 **keep-day** 로 명시한다 —
+// 23시대도 당일 일진을 쓴다는 뜻이고, 그래야 일간이 안 움직여 십신·용신·격국·대운이 그대로다.
+// 실측 2026-08-28(표본 18,090건, 1900~2100): 23시 **밖**은 어느 정책이든 전건 불변이고,
+// 23시대만 갈린다. 이관 전 lunar-javascript sect 2 는 **일주 keep-day + 시주 shift-day 혼종**이라
+// (일진은 안 밀면서 시주 천간만 민 날의 일간으로 뽑았다) 어느 정책으로도 그대로 재현되지 않는다.
+// 🔴 그래서 23시대 시주는 여기서 **바뀐다**. 그 혼종은 인정된 유파가 아니라 그 라이브러리의
+// 구현 특성이고, 셸(js/saju-engine.js)·앱·destiny-bias 도 각자 일관된 축을 쓴다.
 import {
   BRANCH_HANJA,
+  NIGHT_ZI_POLICY,
   STEM_HANJA,
   ganji,
   lunarToSolar,
@@ -247,19 +251,13 @@ function buildHiddenStemDetails(dayStem, branch) {
 }
 
 /**
- * @param {object} [options]
- * @param {boolean} [options.detached]
- *   기둥이 eightChar 와 다른 시각에서 나온 경우(예: 진태양시 보정된 시주).
- *   naYin·십이운성·순공 같은 eightChar 파생 필드는 보정 전 시각 기준이라 틀리므로 비운다.
- */
-/**
- * 기둥 문자열 + 일간만으로 파생 필드를 내는 어댑터. `buildPillarDetail` 이 eightChar 에서 찾는
- * 메서드 이름을 그대로 갖는다.
+ * 기둥 문자열 + 일간만으로 파생 필드를 내는 어댑터.
  *
- * 🔴 왜 필요한가: 년·월주는 코어(KST 절기)가 정본인데 eightChar 의 파생 필드(納音·旬空·十二運星·
- * 지지 십신·오행쌍)는 lunar-javascript 가 **CST 절기로 잡은 기둥**에 붙어 있다. 기둥이 갈리는
- * 節 직전 60분 창에서 그대로 두면 한 응답 안에 두 축이 섞인다.
- * 여기서 쓰는 명리 표(lib/saju/myeongri-tables.js)는 전부 **문자열 조회**라 시간대와 무관하다 — 절기를 다시 재지 않는다.
+ * 🔴 예전에는 년·월주만 이 어댑터를 쓰고 일·시주는 lunar-javascript 의 `EightChar` 객체에서
+ * 파생 필드를 뽑았다. 그 객체의 필드는 **CST 절기로 잡은 기둥**에 붙어 있어, 기둥이 갈리는
+ * 節 직전 60분 창에서 한 응답 안에 두 프레임이 섞였다. 지금은 네 기둥 전부 여기를 지난다.
+ * 쓰는 명리 표(lib/saju/myeongri-tables.js)는 전부 **문자열 조회**라 시간대와 무관하다 —
+ * 절기를 다시 재지 않는다.
  */
 function pillarFacts(key, pillar, dayStem) {
   const prefix = key.charAt(0).toUpperCase() + key.slice(1);
@@ -284,20 +282,23 @@ function pillarFacts(key, pillar, dayStem) {
   };
 }
 
-/** 코어의 절기 프레임 년주·월주(한자). 지원 범위(1900~2100) 밖이면 던진다. */
-function coreYearMonthPillars(date, hour, minute) {
-  const core = ganji({ year: date.year, month: date.month, day: date.day, hour, minute });
+/**
+ * 코어가 내는 네 기둥(한자). 지원 범위(1900~2100) 밖이면 던진다.
+ *
+ * 🔴 야자시 정책을 **명시해서** 넘긴다. 코어 기본값은 shift-day(출생 원국의 셸 축)지만
+ * 이 소비자는 keep-day 다 — 기본값에 기대면 코어 기본값이 바뀌는 날 여기 값이 조용히 따라간다.
+ */
+function corePillars(at) {
+  const core = ganji(at, { nightZiPolicy: NIGHT_ZI_POLICY.KEEP_DAY });
   if (!core) {
     // parseDate 가 1900~2100 으로 자르므로 여기 오면 표가 깨진 것이다.
     // 조용히 CST 달력으로 떨어지지 않는다.
-    const error = new Error(`korean-calendar core returned no ganji for ${date.year}-${date.month}-${date.day}`);
+    const error = new Error(`korean-calendar core returned no ganji for ${at.year}-${at.month}-${at.day}`);
     error.code = "CALENDAR_OUT_OF_RANGE";
     throw error;
   }
-  return {
-    year: `${STEM_HANJA[core.year.stemIndex]}${BRANCH_HANJA[core.year.branchIndex]}`,
-    month: `${STEM_HANJA[core.month.stemIndex]}${BRANCH_HANJA[core.month.branchIndex]}`,
-  };
+  const pillar = (p) => `${STEM_HANJA[p.stemIndex]}${BRANCH_HANJA[p.branchIndex]}`;
+  return { year: pillar(core.year), month: pillar(core.month), day: pillar(core.day), hour: pillar(core.hour) };
 }
 
 /** 서기 연도의 세차(한자). 세운은 입춘이 지난 뒤를 보므로 연도만으로 닫힌다. */
@@ -306,14 +307,21 @@ function coreSexagenaryYear(year) {
   return `${STEM_HANJA[indexes.stemIndex]}${BRANCH_HANJA[indexes.branchIndex]}`;
 }
 
-function buildPillarDetail(key, pillar, eightChar, dayStem, options = {}) {
+/**
+ * @param {object} facts `pillarFacts()` 가 만든 파생 필드 게터 묶음.
+ * @param {object} [options]
+ * @param {boolean} [options.detached]
+ *   기둥이 `facts` 와 다른 시각에서 나온 경우(예: 진태양시 보정된 시주 override).
+ *   그 자리의 naYin·십이운성·순공은 보정 전 시각 기준이라 틀리므로 비운다.
+ */
+function buildPillarDetail(key, pillar, facts, dayStem, options = {}) {
   if (!pillar) return null;
   const detached = options.detached === true;
   const methodPrefix = key.charAt(0).toUpperCase() + key.slice(1);
   const stem = pillarStem(pillar);
   const branch = pillarBranch(pillar);
-  const rawBranchTenGods = typeof eightChar?.[`get${methodPrefix}ShiShenZhi`] === "function"
-    ? eightChar[`get${methodPrefix}ShiShenZhi`]()
+  const rawBranchTenGods = typeof facts?.[`get${methodPrefix}ShiShenZhi`] === "function"
+    ? facts[`get${methodPrefix}ShiShenZhi`]()
     : [];
   return {
     key,
@@ -328,11 +336,11 @@ function buildPillarDetail(key, pillar, eightChar, dayStem, options = {}) {
     branchTenGods: !detached && Array.isArray(rawBranchTenGods)
       ? rawBranchTenGods.map(normalizeTenGodName).filter(Boolean)
       : [],
-    elementPair: !detached && typeof eightChar?.[`get${methodPrefix}WuXing`] === "function" ? clean(eightChar[`get${methodPrefix}WuXing`](), 20) : "",
-    naYin: !detached && typeof eightChar?.[`get${methodPrefix}NaYin`] === "function" ? clean(eightChar[`get${methodPrefix}NaYin`](), 40) : "",
-    twelveStage: !detached && typeof eightChar?.[`get${methodPrefix}DiShi`] === "function" ? clean(eightChar[`get${methodPrefix}DiShi`](), 20) : "",
-    xun: !detached && typeof eightChar?.[`get${methodPrefix}Xun`] === "function" ? clean(eightChar[`get${methodPrefix}Xun`](), 20) : "",
-    xunKong: !detached && typeof eightChar?.[`get${methodPrefix}XunKong`] === "function" ? clean(eightChar[`get${methodPrefix}XunKong`](), 20) : "",
+    elementPair: !detached && typeof facts?.[`get${methodPrefix}WuXing`] === "function" ? clean(facts[`get${methodPrefix}WuXing`](), 20) : "",
+    naYin: !detached && typeof facts?.[`get${methodPrefix}NaYin`] === "function" ? clean(facts[`get${methodPrefix}NaYin`](), 40) : "",
+    twelveStage: !detached && typeof facts?.[`get${methodPrefix}DiShi`] === "function" ? clean(facts[`get${methodPrefix}DiShi`](), 20) : "",
+    xun: !detached && typeof facts?.[`get${methodPrefix}Xun`] === "function" ? clean(facts[`get${methodPrefix}Xun`](), 20) : "",
+    xunKong: !detached && typeof facts?.[`get${methodPrefix}XunKong`] === "function" ? clean(facts[`get${methodPrefix}XunKong`](), 20) : "",
   };
 }
 
@@ -700,7 +708,11 @@ function buildYearlyLuck({ startYear = new Date().getFullYear(), dayMaster, birt
   });
 }
 
-function buildLunar(inputDate, birthTime, calendarType) {
+const pad2 = (value) => String(value).padStart(2, "0");
+const formatSolarDate = (at) => `${at.year}-${pad2(at.month)}-${pad2(at.day)}`;
+
+/** 입력을 양력 KST 벽시계 한 덩어리로 정규화한다. 네 기둥도 대운도 전부 이 시각에서 나온다. */
+function resolveSolarBirth(inputDate, birthTime, calendarType) {
   if (calendarType === "lunar") {
     // 🔴 음력 입력의 양력 환산도 코어가 한다. lunar-javascript 는 중국 음력이라 표본 4,860건 중
     // 180건(3.70%)에서 하루 어긋나고(실측 2026-08-27), 그 하루가 네 기둥을 통째로 옮긴다.
@@ -710,9 +722,9 @@ function buildLunar(inputDate, birthTime, calendarType) {
       error.code = "INVALID_BIRTH_DATE";
       throw error;
     }
-    return Solar.fromYmdHms(converted.year, converted.month, converted.day, birthTime.hour, birthTime.minute, 0).getLunar();
+    return { year: converted.year, month: converted.month, day: converted.day, hour: birthTime.hour, minute: birthTime.minute };
   }
-  return Solar.fromYmdHms(inputDate.year, inputDate.month, inputDate.day, birthTime.hour, birthTime.minute, 0).getLunar();
+  return { year: inputDate.year, month: inputDate.month, day: inputDate.day, hour: birthTime.hour, minute: birthTime.minute };
 }
 
 export function calculateLifeBookAiSaju(birthInfo = {}) {
@@ -731,54 +743,56 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
     throw error;
   }
 
-  const lunar = buildLunar(birthDate, birthTime, calendarType);
-  const solar = lunar.getSolar();
-  const eightChar = lunar.getEightChar?.();
-  const corePillars = coreYearMonthPillars(
-    { year: solar.getYear(), month: solar.getMonth(), day: solar.getDay() },
-    solar.getHour(),
-    solar.getMinute(),
-  );
-  const yearPillar = corePillars.year;
-  const monthPillar = corePillars.month;
-  const dayPillar = clean(eightChar?.getDay?.(), 10) || lunar.getDayInGanZhiExact?.() || lunar.getDayInGanZhi();
+  const solarBirth = resolveSolarBirth(birthDate, birthTime, calendarType);
+  const core = corePillars(solarBirth);
+  const yearPillar = core.year;
+  const monthPillar = core.month;
+  const dayPillar = core.day;
   // hourPillarOverride: 호출부가 자체 시각 보정(진태양시 등)으로 계산한 시주를 넘길 수 있다.
   // 넘기지 않으면 기존 동작(시계 시각 기준) 그대로다 — 나머지 5개 라우트는 영향받지 않는다.
   const hourPillarOverride = clean(birthInfo.hourPillarOverride, 10);
   const hourPillar = timeUnknown
     ? ""
-    : (hourPillarOverride || clean(eightChar?.getTime?.(), 10) || lunar.getTimeInGanZhi());
+    : (hourPillarOverride || core.hour);
   const pillars = [yearPillar, monthPillar, dayPillar, hourPillar].filter(Boolean);
-  const dayMaster = clean(eightChar?.getDayGan?.(), 4) || pillarStem(dayPillar);
+  const dayMaster = pillarStem(dayPillar);
   const fiveElements = buildElementDistribution(pillars);
   const tenGods = buildTenGodDistribution(dayMaster, pillars);
   const usefulElement = pickBalancingElement(fiveElements);
   const dominantElement = pickDominantElement(fiveElements);
   const currentYear = new Date().getFullYear();
   const pillarDetails = {
-    // 🔴 년·월주의 파생 필드는 코어 기둥에서 다시 뽑는다 — eightChar 의 것은 CST 기둥에 붙어 있다.
+    // 🔴 네 기둥의 파생 필드가 전부 같은 표에서 나온다(lib/saju/myeongri-tables.js).
+    // 예전에는 년·월만 여기서 뽑고 일·시는 eightChar 에서 뽑아, 節 경계 60분 창에서 한 응답 안에
+    // 두 프레임이 섞였다.
     year: buildPillarDetail("year", yearPillar, pillarFacts("year", yearPillar, dayMaster), dayMaster),
     month: buildPillarDetail("month", monthPillar, pillarFacts("month", monthPillar, dayMaster), dayMaster),
-    day: buildPillarDetail("day", dayPillar, eightChar, dayMaster),
-    hour: timeUnknown ? null : buildPillarDetail("hour", hourPillar, eightChar, dayMaster, { detached: Boolean(hourPillarOverride) }),
+    day: buildPillarDetail("day", dayPillar, pillarFacts("day", dayPillar, dayMaster), dayMaster),
+    // 🔴 시주만 파생 필드를 **일부러 안 넘긴다**(null). 이관 전에도 이 자리는 항상 비어 있었다 —
+    // buildPillarDetail 이 `getHourNaYin` 을 찾는데 lunar-javascript 의 EightChar 는 `getTimeNaYin` 만
+    // 갖고 있어서(실측 2026-08-28: getHour* 전부 undefined) 가드가 전건 실패했다. pillarFacts 로 바꾸면
+    // 이름이 맞아 저절로 채워지는데, 그러면 이 이관 PR 이 23시대뿐 아니라 **전 사용자**의 리포트와
+    // LLM 입력(tenGodsByPillar)을 함께 바꾸게 되어 회귀가 나도 원인을 못 가른다.
+    // 🔴 그래서 이 버그 수정은 별도 PR 로 뺐다. 고칠 때는 pillarFacts("hour", hourPillar, dayMaster) 를 넘기면 된다.
+    hour: timeUnknown
+      ? null
+      : buildPillarDetail("hour", hourPillar, null, dayMaster, { detached: Boolean(hourPillarOverride) }),
   };
   const tenGodsByPillar = buildTenGodByPillar(pillarDetails);
   const seasonalBalance = buildSeasonalBalance(pillarBranch(monthPillar), fiveElements, dayMaster);
   const natalInteractions = buildNatalInteractions(pillarDetails);
   const relationSummary = summarizeRelations(natalInteractions);
   const majorLuck = buildMajorLuck({
-    // 🔴 음력 입력이면 이미 코어가 환산한 양력이다(buildLunar). 대운은 그 양력 생시로 잰다.
-    birth: solar
-      ? { year: solar.getYear(), month: solar.getMonth(), day: solar.getDay(), hour: solar.getHour(), minute: solar.getMinute() }
-      : null,
-    birthYear: solar?.getYear?.() || birthDate.year,
+    // 🔴 음력 입력이면 이미 코어가 환산한 양력이다(resolveSolarBirth). 대운은 그 양력 생시로 잰다.
+    birth: solarBirth,
+    birthYear: solarBirth.year,
     currentYear,
     gender: birthInfo.gender,
     dayMaster,
     pillarDetails,
     monthPillar,
   });
-  const yearlyLuck = buildYearlyLuck({ startYear: currentYear, dayMaster, birthYear: solar?.getYear?.() || birthDate.year, majorLuck, pillarDetails });
+  const yearlyLuck = buildYearlyLuck({ startYear: currentYear, dayMaster, birthYear: solarBirth.year, majorLuck, pillarDetails });
   const strength = judgeStrength(dayMaster, fiveElements);
   const usefulGod = usefulElement ? `${usefulElement} 기운을 보완 축으로 봅니다.` : "";
   const unfavorableGod = dominantElement ? `${dominantElement} 기운이 과해질 때 균형을 살핍니다.` : "";
@@ -819,10 +833,12 @@ export function calculateLifeBookAiSaju(birthInfo = {}) {
     fortuneFacts,
     interpretationPlan,
     calculationMeta: {
-      method: "lunar-javascript-eightchar-core-pillars",
+      // 🔴 이 문자열은 출처 표기다. 예전 값은 "lunar-javascript-eightchar-core-pillars" 였는데
+      // 네 기둥이 전부 코어에서 나오게 된 뒤로는 사실이 아니다(guardian-fortune 어댑터가 source 로 읽는다).
+      method: "korean-calendar-core-pillars",
       sourceCalendarType: calendarType,
-      solarDate: solar?.toYmd?.() || "",
-      solarDateTime: solar?.toYmdHms?.() || "",
+      solarDate: formatSolarDate(solarBirth),
+      solarDateTime: `${formatSolarDate(solarBirth)} ${pad2(solarBirth.hour)}:${pad2(solarBirth.minute)}:00`,
       timeUnknown,
       uncertainty: timeUnknown
         ? "출생시간을 모르는 입력이어서 시주는 제외하고 입력된 정보 기준의 흐름으로 해석합니다."

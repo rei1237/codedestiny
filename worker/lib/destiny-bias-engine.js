@@ -1,11 +1,20 @@
-import { Lunar, Solar } from "lunar-javascript";
 
 import { daeun } from "../../lib/korean-calendar/index.js";
 
 // 🔴 절기 축은 전부 여기서 나온다. lunar-javascript 의 절기 시각은 **중국 표준시(CST) 벽시계**라,
 // 생시를 KST 벽시계로 넘기면 월건 경계가 정확히 60분 이르다(실측 2026-08-27, 1960~2030
 // 節 경계 ±150분 창 13,632건 중 월주 5,553건 · 년주 459건 불일치, 전부 -60~-1분 구간).
-import { BRANCH_HANJA, STEM_HANJA, ganji, nodeTerms } from "../../lib/korean-calendar/index.js";
+// 🔴 일주도 이제 코어에서 나온다(PR-F2). 야자시 축은 이 엔진의 dayChangePolicy 가 정하고,
+// nightZiPolicyForDayChange 가 코어 정책으로 옮긴다 — 1:1 이라 값이 안 움직인다.
+import {
+  BRANCH_HANJA,
+  NIGHT_ZI_POLICY,
+  STEM_HANJA,
+  ganji,
+  lunarToSolar,
+  nodeTerms,
+  solarToLunar,
+} from "../../lib/korean-calendar/index.js";
 
 const STEM_META = Object.freeze({
   甲: { element: "wood", yinYang: "yang", ko: "갑" },
@@ -358,22 +367,34 @@ export function resolveBirthLocation(rawBirth = {}, rawPerson = {}) {
   };
 }
 
-function createSolarFromNormalizedBirth(birth) {
+/**
+ * 입력을 양력 KST 벽시계 한 덩어리로 정규화한다.
+ *
+ * 🔴 음력 입력의 양력 환산도 코어가 한다. lunar-javascript 는 **중국 표준시 기준 중국 음력**이라
+ * 표본 4,860건 중 180건(3.70%)에서 하루 어긋나고(실측 2026-08-27), 그 하루가 네 기둥을 통째로 옮긴다.
+ */
+function resolveSolarBirth(birth) {
   if (birth.calendarType === "solar") {
-    return Solar.fromYmdHms(birth.year, birth.month, birth.day, birth.hour, birth.minute, 0);
+    return { year: birth.year, month: birth.month, day: birth.day, hour: birth.hour, minute: birth.minute, second: 0 };
   }
+  const converted = lunarToSolar(birth.year, birth.month, birth.day, birth.calendarType === "lunar_leap");
+  if (!converted) {
+    // normalizeBirthPayload 가 1900~2100 으로 자르므로, 여기 오는 것은 그 해에 없는 음력 날짜다.
+    // 조용히 중국 음력으로 떨어지지 않는다.
+    const error = new Error(`korean-calendar core cannot convert lunar ${birth.year}-${birth.month}-${birth.day}`);
+    error.code = "INVALID_BIRTH_DATE";
+    throw error;
+  }
+  return { year: converted.year, month: converted.month, day: converted.day, hour: birth.hour, minute: birth.minute, second: 0 };
+}
 
-  const lunarMonth = birth.calendarType === "lunar_leap" ? -birth.month : birth.month;
-  const lunar = Lunar.fromYmd(birth.year, lunarMonth, birth.day);
-  const solar = lunar.getSolar();
-  return Solar.fromYmdHms(
-    solar.getYear(),
-    solar.getMonth(),
-    solar.getDay(),
-    birth.hour,
-    birth.minute,
-    0,
-  );
+/**
+ * 율리우스일(UT). 벽시계를 그대로 넣는다 — 예전에 실려 나가던 `Solar.getJulianDay()` 와 같은 관례다
+ * (그 값도 타임존을 안 봤다). 1900~2100 은 전부 그레고리력이라 분기가 없다.
+ */
+function julianDayFromWallClock(at) {
+  const millis = Date.UTC(at.year, at.month - 1, at.day, at.hour, at.minute, at.second || 0);
+  return millis / 86400000 + 2440587.5;
 }
 
 export function normalizeBirthPayload(rawBirth = {}, rawPerson = {}) {
@@ -414,10 +435,6 @@ export function normalizeBirthPayload(rawBirth = {}, rawPerson = {}) {
     normalized.minute = 0;
   }
   return normalized;
-}
-
-function createSolarFromBirth(birth) {
-  return createSolarFromNormalizedBirth(normalizeBirthPayload(birth));
 }
 
 function stemElement(stem) {
@@ -604,20 +621,14 @@ function formatDateLabel(y, m, d) {
 
 function resolveLunarMonthValue(lunar) {
   if (!lunar || typeof lunar !== "object") return 1;
-  const monthRaw = typeof lunar.getMonth === "function" ? lunar.getMonth() : lunar.month;
-  const month = Number(monthRaw);
+  const month = Number(lunar.lunarMonth);
   if (!Number.isFinite(month)) return 1;
   return Math.max(1, Math.abs(Math.trunc(month)));
 }
 
 function resolveIsLeapMonth(lunar) {
   if (!lunar || typeof lunar !== "object") return false;
-  if (typeof lunar.isLeap === "function") {
-    return Boolean(lunar.isLeap());
-  }
-  const monthRaw = typeof lunar.getMonth === "function" ? lunar.getMonth() : lunar.month;
-  const month = Number(monthRaw);
-  return Number.isFinite(month) ? month < 0 : false;
+  return Boolean(lunar.isLeapMonth);
 }
 
 function solarToDateTimeKstString(solar) {
@@ -686,16 +697,28 @@ export function applyHourPillarTimeCorrection(birth, location, policy) {
   };
 }
 
-function buildEightCharForDayPolicy(lunar, dayPolicy) {
-  const eightChar = lunar.getEightChar();
-  if (typeof eightChar.setSect === "function") {
-    if (dayPolicy === DAY_CHANGE_POLICIES.LATE_ZI_NEXT_DAY || dayPolicy === DAY_CHANGE_POLICIES.TRUE_SOLAR_ZI_NEXT_DAY) {
-      eightChar.setSect(1);
-    } else {
-      eightChar.setSect(2);
-    }
+/**
+ * 이 엔진의 일변경 정책 → 코어의 야자시 정책.
+ *
+ * 🔴 예전에는 lunar-javascript 의 sect 로 갈랐다(sect 1 = 23시대 익일 일진, sect 2 = 당일).
+ * 코어의 두 정책과 **1:1** 로 대응하고, 실측 2026-08-28(표본 18,090건, 1900~2100)에서
+ * sect2↔keep-day · sect1↔shift-day 가 23시대 포함 **전건 일치**했다. 그래서 이 이관은
+ * 이 파일의 값을 하나도 움직이지 않는다.
+ * 🔴 시주는 여기서 안 나온다 — getHourBranchByClock + getHourStemByDayStem 이 일간에서 파생한다.
+ */
+function nightZiPolicyForDayChange(dayPolicy) {
+  return dayPolicy === DAY_CHANGE_POLICIES.LATE_ZI_NEXT_DAY || dayPolicy === DAY_CHANGE_POLICIES.TRUE_SOLAR_ZI_NEXT_DAY
+    ? NIGHT_ZI_POLICY.SHIFT_DAY
+    : NIGHT_ZI_POLICY.KEEP_DAY;
+}
+
+/** 코어 일주(한자). 지원 범위 밖이면 던진다 — 조용히 CST 달력으로 떨어지지 않는다. */
+function coreDayPillar(at, dayPolicy) {
+  const core = ganji(at, { nightZiPolicy: nightZiPolicyForDayChange(dayPolicy) });
+  if (!core) {
+    throw new Error(`korean-calendar core returned no ganji for ${at.year}-${at.month}-${at.day}`);
   }
-  return eightChar;
+  return { stem: STEM_HANJA[core.day.stemIndex], branch: BRANCH_HANJA[core.day.branchIndex] };
 }
 
 export function getHourBranchByClock(hour) {
@@ -889,28 +912,28 @@ export function buildSajuProfile(rawPerson) {
   );
   const dayChangePolicy = normalizeDayChangePolicy(rawPerson?.dayChangePolicy || rawPerson?.birth?.dayChangePolicy);
 
-  const solarClock = createSolarFromNormalizedBirth(birth);
-  const lunarClock = solarClock.getLunar();
+  const solarClock = resolveSolarBirth(birth);
+  // 🔴 표기용 음력도 코어가 낸다. 예전에는 lunar-javascript 의 **중국 음력**을 그대로 실어 보냈다.
+  const lunarClock = solarToLunar(solarClock.year, solarClock.month, solarClock.day);
   const lunarMonth = resolveLunarMonthValue(lunarClock);
 
   const correctedClock = applyHourPillarTimeCorrection(birth, location, hourPillarTimePolicy);
-  const correctedSolar = Solar.fromYmdHms(
-    correctedClock.correctedYear,
-    correctedClock.correctedMonth,
-    correctedClock.correctedDay,
-    correctedClock.correctedHour,
-    correctedClock.correctedMinute,
-    0,
-  );
-  const correctedLunar = correctedSolar.getLunar();
+  const correctedSolar = {
+    year: correctedClock.correctedYear,
+    month: correctedClock.correctedMonth,
+    day: correctedClock.correctedDay,
+    hour: correctedClock.correctedHour,
+    minute: correctedClock.correctedMinute,
+    second: 0,
+  };
 
-  const eightCharClock = buildEightCharForDayPolicy(lunarClock, DAY_CHANGE_POLICIES.MIDNIGHT);
-  const dayPillarLunar = dayChangePolicy === DAY_CHANGE_POLICIES.TRUE_SOLAR_ZI_NEXT_DAY ? correctedLunar : lunarClock;
-  const dayPillarEightChar = buildEightCharForDayPolicy(dayPillarLunar, dayChangePolicy);
+  // 🔴 진태양시 정책만 보정된 시각으로 일진을 잡는다(기존 동작 그대로).
+  const dayPillarAt = dayChangePolicy === DAY_CHANGE_POLICIES.TRUE_SOLAR_ZI_NEXT_DAY ? correctedSolar : solarClock;
+  const corePillarDay = coreDayPillar(dayPillarAt, dayChangePolicy);
 
   const includeHour = !birth.unknownTime;
-  const dayStem = String(dayPillarEightChar.getDayGan() || "");
-  const dayBranch = String(dayPillarEightChar.getDayZhi() || "");
+  const dayStem = corePillarDay.stem;
+  const dayBranch = corePillarDay.branch;
 
   let hourStem = "";
   let hourBranch = "";
@@ -921,17 +944,11 @@ export function buildSajuProfile(rawPerson) {
 
   // 🔴 년주·월주는 **절기 프레임**이고 그 경계는 코어의 KST 절기표에서만 나온다.
   // 야자시 정책은 일진에만 걸리므로 여기서는 인자를 넘기지 않는다.
-  const clockGanji = ganji({
-    year: solarClock.getYear(),
-    month: solarClock.getMonth(),
-    day: solarClock.getDay(),
-    hour: solarClock.getHour(),
-    minute: solarClock.getMinute(),
-  });
+  const clockGanji = ganji(solarClock);
   if (!clockGanji) {
     // 생년은 normalizeBirthPayload 가 1900~2100 으로 자르므로 코어 지원 범위 안이다.
     // 여기 오면 표가 깨진 것이지 입력이 이상한 것이 아니다 — 조용히 CST 달력으로 떨어지지 않는다.
-    throw new Error(`korean-calendar core returned no ganji for ${solarClock.getYear()}-${solarClock.getMonth()}-${solarClock.getDay()}`);
+    throw new Error(`korean-calendar core returned no ganji for ${solarClock.year}-${solarClock.month}-${solarClock.day}`);
   }
 
   const pillars = {
@@ -950,13 +967,7 @@ export function buildSajuProfile(rawPerson) {
 
   // 🔴 예전에는 lunar-javascript 의 절기를 그대로 `dateTimeKst` 라는 이름으로 실어 보냈다.
   // 그 값은 CST 벽시계라 이름과 내용이 어긋나 있었다.
-  const termWindow = coreNodeTermWindow({
-    year: solarClock.getYear(),
-    month: solarClock.getMonth(),
-    day: solarClock.getDay(),
-    hour: solarClock.getHour(),
-    minute: solarClock.getMinute(),
-  });
+  const termWindow = coreNodeTermWindow(solarClock);
   const prevMajorTerm = termWindow.previous;
   const nextMajorTerm = termWindow.next;
   const monthBoundaryTerm = prevMajorTerm;
@@ -977,7 +988,7 @@ export function buildSajuProfile(rawPerson) {
     pillars.year.stem,
     gender,
     termWindow,
-    solarClock.getYear(),
+    solarClock.year,
     pillars.month.ganji,
     0,
   );
@@ -996,9 +1007,9 @@ export function buildSajuProfile(rawPerson) {
     },
     normalized: {
       solarDateTimeKst: solarToDateTimeKstString(solarClock),
-      lunarDate: formatDateLabel(lunarClock.getYear(), lunarMonth, lunarClock.getDay()),
+      lunarDate: formatDateLabel(lunarClock?.lunarYear, lunarMonth, lunarClock?.lunarDay),
       isLeapMonth: resolveIsLeapMonth(lunarClock),
-      julianDay: Number(lunarClock.getSolar()?.getJulianDay?.() || solarClock.getJulianDay?.() || NaN),
+      julianDay: julianDayFromWallClock(solarClock),
     },
     location: {
       name: location.name,
@@ -1073,8 +1084,8 @@ export function buildSajuProfile(rawPerson) {
     dayChangePolicy,
     timeCorrection: coreResult.timeCorrection,
     calendar: {
-      solarDate: formatDateLabel(solarClock.getYear(), solarClock.getMonth(), solarClock.getDay()),
-      lunarDate: formatDateLabel(lunarClock.getYear(), lunarMonth, lunarClock.getDay()),
+      solarDate: formatDateLabel(solarClock.year, solarClock.month, solarClock.day),
+      lunarDate: formatDateLabel(lunarClock?.lunarYear, lunarMonth, lunarClock?.lunarDay),
       isLeapMonth: resolveIsLeapMonth(lunarClock),
       includeHour,
     },
@@ -1136,15 +1147,12 @@ function normalizeThemeKey(rawTheme) {
   return DESTINY_BIAS_THEME_PRESETS[key] ? key : "moonlight_neon";
 }
 
+/** 오늘의 일진. 정오를 대표 시각으로 쓰므로 야자시 정책과 무관하다(23시대가 아니다). */
 function todayDayPillar() {
   const now = new Date();
-  const solar = Solar.fromYmdHms(now.getFullYear(), now.getMonth() + 1, now.getDate(), 12, 0, 0);
-  const lunar = solar.getLunar();
-  const ec = lunar.getEightChar();
-  return {
-    stem: String(ec.getDayGan() || ""),
-    branch: String(ec.getDayZhi() || ""),
-  };
+  const core = ganji({ year: now.getFullYear(), month: now.getMonth() + 1, day: now.getDate(), hour: 12, minute: 0 });
+  if (!core) return { stem: "", branch: "" };
+  return { stem: STEM_HANJA[core.day.stemIndex], branch: BRANCH_HANJA[core.day.branchIndex] };
 }
 
 function todayActionGuide(userDayMasterStem, biasDayMasterElement) {
