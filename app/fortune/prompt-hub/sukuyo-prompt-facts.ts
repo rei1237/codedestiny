@@ -1,4 +1,7 @@
-import { Solar } from "lunar-javascript";
+// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
+// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
+// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+import { solarToLunar } from "@/lib/korean-calendar";
 import {
   buildSukuyoAiCompatibility,
   buildSukuyoFromLunar,
@@ -37,20 +40,22 @@ function isLunarCalendar(value: string | undefined) {
   return key === "음력" || key === "lunar";
 }
 
-function toLunarBirth(birth: ParsedYmd, calendarType: string | undefined): LunarBirth {
+// 코어 지원 범위(1900~2100) 밖이면 null 이다 — 조용히 중국 달력으로 떨어지지 않는다.
+function toLunarBirth(birth: ParsedYmd, calendarType: string | undefined): LunarBirth | null {
   if (isLunarCalendar(calendarType)) {
     return { lunarMonth: birth.month, lunarDay: birth.day, isLeapMonth: false };
   }
-  const lunar = Solar.fromYmdHms(birth.year, birth.month, birth.day, 12, 0, 0).getLunar();
-  const lunarMonth = Number(lunar.getMonth());
-  return { lunarMonth: Math.abs(lunarMonth), lunarDay: Number(lunar.getDay()), isLeapMonth: lunarMonth < 0 };
+  const lunar = solarToLunar(birth.year, birth.month, birth.day);
+  if (!lunar) return null;
+  return { lunarMonth: lunar.lunarMonth, lunarDay: lunar.lunarDay, isLeapMonth: lunar.isLeapMonth };
 }
 
 function mansionFor(birthDate: string, calendarType: string | undefined) {
   const birth = parseYmd(birthDate);
   if (!birth) return null;
   const lunar = toLunarBirth(birth, calendarType);
-  const mansion = buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, { isLeapMonth: lunar.isLeapMonth });
+  if (!lunar) return null;
+  const mansion = buildSukuyoFromLunar(lunar.lunarMonth, lunar.lunarDay, { isLeapMonth: lunar.isLeapMonth, source: "korean-calendar-core" });
   if (!mansion) return null;
   return mansion;
 }

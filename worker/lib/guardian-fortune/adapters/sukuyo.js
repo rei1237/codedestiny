@@ -1,4 +1,7 @@
-import { Solar } from "lunar-javascript";
+// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
+// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
+// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+import { solarToLunar } from "../../../../lib/korean-calendar/index.js";
 import { buildSukuyoFromLunar } from "../../sukuyo-ai-calculation.js";
 import { nonEmptyText, text } from "../../guardian-fortune-adapter-utils.js";
 
@@ -13,12 +16,12 @@ function lunarPartsForDate(date, calendarType) {
   if (calendarType === "lunar") {
     return { lunarMonth: parts.month, lunarDay: parts.day, isLeapMonth: false };
   }
-  const lunar = Solar.fromYmdHms(parts.year, parts.month, parts.day, 12, 0, 0).getLunar();
-  const rawMonth = Number(lunar.getMonth());
+  const lunar = solarToLunar(parts.year, parts.month, parts.day);
+  if (!lunar) throw new Error("SUKUYO_DATE_OUT_OF_RANGE");
   return {
-    lunarMonth: Math.abs(rawMonth),
-    lunarDay: Number(lunar.getDay()),
-    isLeapMonth: rawMonth < 0,
+    lunarMonth: lunar.lunarMonth,
+    lunarDay: lunar.lunarDay,
+    isLeapMonth: lunar.isLeapMonth,
   };
 }
 
@@ -32,11 +35,11 @@ export function buildSukuyoAdapter(input, options = {}) {
   const today = lunarPartsForDate(input.targetDate, "solar");
   const birthMansion = calculate(birth.lunarMonth, birth.lunarDay, {
     isLeapMonth: birth.isLeapMonth,
-    source: "lunar-javascript",
+    source: "korean-calendar-core",
   });
   const todayMansion = calculate(today.lunarMonth, today.lunarDay, {
     isLeapMonth: today.isLeapMonth,
-    source: "lunar-javascript",
+    source: "korean-calendar-core",
   });
 
   const birthLabel = mansionLabel(birthMansion);

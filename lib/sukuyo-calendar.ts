@@ -1,6 +1,9 @@
 import { cmsRecordRow } from "./cms/build-text";
 
-import { Solar } from "lunar-javascript";
+// 🔴 음력일은 한국 음양력 코어에서만 나온다. lunar-javascript 는 **중국 표준시(CST) 기준 중국 음력**이라
+// 삭이 CST 23시대에 들면 그 달 전체의 음력일이 하루 밀린다 — 실측 2026-08-27 기준 1900~2100 전수
+// 73,414일 중 2,997일(4.08%)이 갈린다. 27수는 음력 월·일로 직접 결정되므로 그 하루가 곧 다른 수(宿)다.
+import { solarToLunar } from "@/lib/korean-calendar";
 import { buildSukuyoFromLunar } from "@/worker/lib/sukuyo-premium.js";
 
 export const SUKUYO_CALENDAR_TIMEZONE = "Asia/Seoul";
@@ -493,15 +496,14 @@ function normalizeYearMonth(year: number, month: number) {
 }
 
 function resolveSukuyoBySolarDate(year: number, month: number, day: number) {
-  const lunar = Solar.fromYmdHms(year, month, day, 12, 0, 0).getLunar();
-  const rawLunarMonth = Number(lunar.getMonth());
-  const lunarMonth = Math.abs(rawLunarMonth);
-  const lunarDay = Number(lunar.getDay());
-  const lunarYear = Number(lunar.getYear());
-  const isLeapMonth = rawLunarMonth < 0;
+  const lunar = solarToLunar(year, month, day);
+  if (!lunar) {
+    throw new RangeError(`한국 음양력 코어가 ${formatKstDateKey(year, month, day)} 를 답하지 못했습니다(지원 1900~2100).`);
+  }
+  const { lunarMonth, lunarDay, lunarYear, isLeapMonth } = lunar;
   const sukuyo = buildSukuyoFromLunar(lunarMonth, lunarDay, {
     isLeapMonth,
-    source: "lunar-javascript",
+    source: "korean-calendar-core",
   });
   const mansionIndex = Number(sukuyo?.index);
   if (!Number.isInteger(mansionIndex) || mansionIndex < 0 || mansionIndex >= SUKUYO_CALENDAR_MANSIONS.length) {
@@ -512,7 +514,7 @@ function resolveSukuyoBySolarDate(year: number, month: number, day: number) {
     // 관리자 CMS(운세 콘텐츠 → 숙요 달력 해설)의 해당 수 행을 기본값 위에 얹는다.
     // 키는 27수 순서 인덱스라 임의로 늘지 않는다(폴백 우선).
     text: cmsRecordRow("sukuyo-calendar", "mansion", String(mansionIndex), SUKUYO_CALENDAR_MANSIONS[mansionIndex]),
-    lunarYear: Number.isFinite(lunarYear) ? lunarYear : null,
+    lunarYear,
     lunarMonth,
     lunarDay,
     isLeapMonth,

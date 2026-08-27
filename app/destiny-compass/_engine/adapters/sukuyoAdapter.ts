@@ -4,7 +4,7 @@
  * 결정론: 난수·Date 미사용(생년월일→숙요는 순수 함수). 시각 결측에도 날짜 기반이라 품질 높음.
  * 계산 경로 무침해: calcSukuyoForServer/Lunar를 import만(엔진 수정 없음).
  */
-import { Lunar } from "lunar-javascript";
+import { lunarToSolar } from "@/lib/korean-calendar";
 import { calcSukuyoForServer } from "@/lib/sukuyo-engine-server";
 import type { EngineAdapter } from "./types";
 import type { CompassInput, DirectionKey, EngineContribution } from "../types";
@@ -29,9 +29,11 @@ function toSolarYmd(birth: CompassInput["birth"]): { y: number; m: number; d: nu
   const [yy, mm, dd] = birth.birthDate.split("-").map(Number);
   const hour = birth.birthTime ? Number(birth.birthTime.split(":")[0]) || 12 : 12;
   if (birth.calendarType === "lunar") {
-    // lunar-javascript: 윤달은 음수 월. 실패 시 상위 try/catch가 흡수.
-    const solar = Lunar.fromYmd(yy, birth.lunarLeap ? -mm : mm, dd).getSolar();
-    return { y: solar.getYear(), m: solar.getMonth(), d: solar.getDay(), hour };
+    // 🔴 음력→양력도 한국 음양력 코어가 한다. 중국 음력은 3.7% 의 날짜에서 하루 어긋나고
+    //    그 하루가 그대로 다른 수(宿)가 된다. 실패 시 상위 try/catch가 흡수한다.
+    const solar = lunarToSolar(yy, mm, dd, Boolean(birth.lunarLeap));
+    if (!solar) throw new RangeError("음력 생년월일을 양력으로 옮기지 못했습니다(지원 1900~2100).");
+    return { y: solar.year, m: solar.month, d: solar.day, hour };
   }
   return { y: yy, m: mm, d: dd, hour };
 }
