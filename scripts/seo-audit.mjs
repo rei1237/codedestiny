@@ -612,6 +612,16 @@ async function auditArtifacts(sitemapPathSet) {
     });
   }
 
+  // `/x.html` 로 걸린 링크는 Pages 가 308 로 `/x` 에 붙인다(2026-08-27 프로덕션 실측:
+  // `/destiny-poker.html` → 308 → `/destiny-poker`). 접지 않으면 사이트맵 표기가 `/x` 인
+  // 페이지가 인바운드 0 으로 잡히는 위양성이 난다.
+  for (const [linkPath, count] of [...inbound]) {
+    const resolved = lookupArtifactPage(pages, linkPath);
+    if (!resolved || resolved === linkPath) continue;
+    inbound.set(resolved, (inbound.get(resolved) || 0) + count);
+    inbound.delete(linkPath);
+  }
+
   const issues = [];
   const headerNoindex = (page) => page.headerRobots.some((value) => value.includes("noindex"));
 

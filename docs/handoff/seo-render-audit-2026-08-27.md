@@ -2,6 +2,9 @@
 
 > **이 문서만 읽고 이어서 작업할 수 있게 쓴다.** 모든 수치는 그날의 실측이고 재현 명령을 함께 남긴다.
 > 브랜치: `worktree-seo-render-audit` · 기준 커밋 `2ffd4716b`
+>
+> 🔴 **2차 세션(2026-08-27, PR #1186)이 §5-1 · §5-3 · §5-6 의 제목 축을 처리했다 — §10 을 먼저 읽을 것.**
+> §5-6 의 길이 측정축이 틀렸다는 것도 거기서 나온다(글자 수 → 표시 폭).
 
 ---
 
@@ -290,3 +293,124 @@ npm run verify:indexable-prose-depth → OK — dist/ 색인 388개 전부 문�
 - 🔴 `.ignore` 가 내용 변화 없이 `M` 으로 뜨면 CRLF 정규화다. `git checkout -- .ignore` 로 되돌린다.
 - 워크트리에는 `node_modules` 심링크가 안 생긴다. 빌드 전에
   `cmd /c mklink /J "<워크트리>\node_modules" "<저장소 루트>\node_modules"` (지울 때는 링크부터 끊는다).
+
+---
+
+## 10. 2차 세션 — PR #1186 (2026-08-27)
+
+브랜치 `fix/seo-render-audit-followups` · 기준 커밋 `50beb2a72`(= #1184 머지본).
+
+### 10-1. 🔴 §5-6 의 측정축이 틀렸다 — 글자 수가 아니라 표시 폭
+
+Google 은 데스크톱 검색결과의 제목을 **픽셀 폭**(약 600px)으로 자른다. 한중일 글자는 라틴의 약
+2배 폭이라 한국어 사이트에서 60**자**는 폭으로 120 — 한계의 두 배다. 축을 바꿔 다시 재니:
+
+| 측정축 | 제목 한계 초과 (색인 388개) |
+|---|---:|
+| 글자 수 (§5-6 이 쓴 축) | 5 |
+| 표시 폭 (정정) | **125** — 중앙 51 · 최대 111 |
+
+재현:
+
+```bash
+node -e "const r=require('./seo-audit-report-out.json');\
+const W=/[\u1100-\u115F\u2E80-\u303E\u3041-\u33FF\u3400-\u4DBF\u4E00-\u9FFF\uA000-\uA4CF\uAC00-\uD7A3\uF900-\uFAFF\uFE30-\uFE6F\uFF00-\uFF60\uFFE0-\uFFE6]/;\
+const w=s=>[...String(s)].reduce((n,c)=>n+(W.test(c)?2:1),0);\
+const i=r.routes.filter(x=>x.shouldBeIndexed!==false&&x.title);\
+console.log(i.filter(x=>w(x.title)>60).length)"
+```
+
+🔴 **함정: 폭 계산 정규식의 한자 범위를 빠뜨리기 쉽다.** 이 세션에서 `⺀-䶿`(U+2E80–U+4DBF)로
+쓴 판이 한 번 있었는데, CJK 통합 한자(U+4E00–)가 빠져 `/ja` 가 61 → 48 로 잘못 나왔다.
+정본 범위는 `scripts/verify-adsense-readiness.mjs` 의 `EAST_ASIAN_WIDE` 다.
+
+### 10-2. 고친 것
+
+| # | 파일 | 무엇을 |
+|---|---|---|
+| 1 | `app/insights/seo-titles.js` **(신규)** | 기사 104개의 문서 제목을 손으로 재작성(폭 ≤60, 접미사 없음). 슬러그 → 제목 표 |
+| 2 | `app/insights/[slug]/page.js` | 위 표를 우선 적용, 없으면 기존 동작(`제목 \| 운세 인사이트`) |
+| 3 | `app/insights/{page.js,astrology,compatibility,fusion,saju,tarot,vedic,ziwei}` | 허브 8개 제목 축약(브랜드 접미사는 유지) |
+| 4 | `index.html` · `public/i18n/{en,ja}.json` | 셸 홈 3개(`/`·`/en`·`/ja`). `/zh`·`/zh-tw` 는 원래 한계 안이라 미변경 |
+| 5 | `app/stories/[episode]/page.tsx` | 템플릿에서 ` \| Code Destiny` 제거 → 회차 44개 전부 한계 안(최대 47) |
+| 6 | 개별 라우트 7개 | `/master-love-codex`·`/fortune/prompt-hub`·`/compare/sukuyo-vs-vedic`·`/naming-ai`·`/destiny-poker`(`destiny-poker.html`)·`/destiny-compass`·`/saju/sibyl`·`/vedic-ai` |
+| 7 | `scripts/verify-adsense-readiness.mjs` | **`verifyIndexableTitleWidth` 신규** — 사이트맵 URL 전량(`.html` 단독 라우트 포함) 폭 ≤60 강제 + `homeCanonicalAllowedRoutes` 를 산출물별로 |
+| 8 | `scripts/promote-static-shell-to-root.mjs` | noindex `/static` 사본에서 홈 canonical 제거(§5-1 해소) |
+| 9 | `scripts/seo-audit.mjs` | 인바운드 집계에서 `/x.html` → `/x` 별칭 접기(§5-3 해소) |
+
+#### 왜 기사 레코드가 아니라 별도 표인가
+
+🔴 `seed-articles.js` 는 이미 `metaTitle`/`seoTitle` 을 받아 정규화된 `seoTitle` 을 만들고,
+**그 값을 인사이트 허브 카드(`app/insights/page.js`·`InsightsCosmicClient.js`)가 화면 문구로 읽는다.**
+거기에 SEO 제목을 넣으면 문서 제목만이 아니라 목록 UI 까지 바뀐다. 화면 H1 은 설명적이어야 하고
+문서 제목은 폭 안에 들어와야 하므로 둘을 분리했다.
+
+#### §5-3 은 결함이 아니라 감사 도구의 위양성이었다
+
+`/destiny-poker` 로 들어오는 링크는 8개 페이지에 있었는데(셸 홈·`/static`·`/oracle/{juyuk,hwatu}`·
+로케일 4개) 표기가 `/destiny-poker.html` 이라 사이트맵 표기와 키가 갈렸다.
+**프로덕션 실측 2026-08-27**: `curl -I https://code-destiny.com/destiny-poker.html` → `308` →
+`/destiny-poker`. IA 결정은 필요 없었다.
+
+### 10-3. 실측 (dist, 색인 388개)
+
+| 항목 | 전 | 후 |
+|---|---:|---:|
+| 제목 표시 폭 중앙 / 최대 | 51 / 111 | **42 / 60** |
+| 폭 60 초과 | 125 | **0** |
+| 중복 title / 중복 description | 0 / 0 | 0 / 0 |
+| H1 ≠ 1 · JSON-LD 없음 | 0 · 0 | 0 · 0 |
+| 렌더 감사 Issues | 1 | **0** |
+
+### 10-4. 🔴 아직 안 고친 것 — 설명(description) 폭
+
+같은 축으로 재면 **183개가 폭 160 초과**다(중앙 153, 최대 277). §5-6 이 "160자 초과 4개" 로
+본 그 층이고, "70자 미만 79개" 는 **폭으로 재면 대부분 정상 범위**다(폭 110 미만은 64개).
+즉 §5-6 의 두 숫자는 둘 다 뒤집힌다. 이번 세션의 사용자 결정 범위는 제목이었다.
+
+고칠 때 주의: 기사 설명은 `articleDescription()` 이 `seoDescription → metaDescription →
+description → excerpt → subtitle` 순으로 골라 **160자로 자른다**(`app/insights/[slug]/page.js`).
+폭이 아니라 글자 수로 자르므로 한국어에서는 잘린 뒤에도 폭 한계를 넘는다. 제목과 같은 모양의
+별도 표를 만들 것인지, 자르는 기준을 폭으로 바꿀 것인지가 첫 결정이다.
+
+### 10-5. 갱신된 다음 단계
+
+**단기**
+1. **설명 폭 정리 183개** (§10-4) — 결정 먼저: 별도 표 vs 절단 기준 변경
+2. §5-2 몰입형 라우트 18개의 아웃바운드 링크 0 — "몰입형 화면에 최소 링크 블록을 둘 것인가" 결정 필요
+
+**중기**
+3. §5-4 `/insights` 1.83MB 페이로드 축소 — 검색 인덱스 분리 설계 선행
+4. §5-5 HTML ETag/304 — Worker 응답 헤더, 배포 파이프라인 결정
+
+**해소됨**: §5-1(/static 이중 신호) · §5-3(/destiny-poker 고아) · §5-6 의 제목 축.
+
+### 10-6. 검증
+
+```
+npm run lint                          → exit 0 (기존 경고만)
+npm run typecheck                     → exit 0
+NODE_OPTIONS=--experimental-vm-modules npx --no-install jest
+                                      → 176 suites / 2002 tests / 0 fail
+npm run test:node                     → tests 551 / pass 551 / fail 0
+npm run build:cf                      → exit 0 · [adsense-readiness] OK
+SEO_AUDIT_OUT_DIR=dist node scripts/seo-audit.mjs --source=out --crawl-sitemap → Issues 0
+npm run verify:sitemap / sitemap-drift / seo-heading-integrity /
+         indexable-prose-depth / www-canonical / staging-noindex /
+         seo-entity-registry / i18n-runtime / i18n-ko-coverage /
+         i18n-no-fallback / public-parity / guard-wiring / doc-freshness → 전부 OK
+node scripts/verify-payment-freeze.mjs → 통과
+```
+
+🔴 신규 가드 2개를 **음성 테스트**로 확인했다:
+- `dist/insights/ziwei-vs-saju` 에 옛 제목을 되돌려 넣으니 `표시 폭 99 > 60` 으로 실패 → 복원 후 통과
+- `dist/static/index.html` 에 홈 canonical 을 되돌려 넣으니 실패 → 복원 후 통과
+
+### 10-7. 이어받을 때 추가로 주의할 것
+
+- 🔴 **`__tests__/ui/svg-title-not-document-title.static.test.js` 는 소스에서 리터럴 `<` + `title` + `>` 를 찾는다.**
+  `app/**` 주석에 그 표기를 쓰면 SVG title 회귀로 오탐된다. 이 세션에서 한 번 걸렸고, 주석 표기를
+  "문서 제목" 으로 바꿔 피했다(가드는 건드리지 않았다).
+- **셸 제목을 고치면 `index.html` diff 가 90줄로 부푼다** — 실제 변경은 4줄(title·og:title·
+  twitter:title·JSON-LD name)이고 나머지는 `sync:public` 캐시버스트 회전이다. 미러 13개도 함께 커밋한다.
+- `verify:public-mirror-fresh` 가 `.ignore` 한 줄만 차이라고 하면 윈도우 개행 헛실패다(기존 기록).

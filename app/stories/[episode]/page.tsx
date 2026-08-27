@@ -35,7 +35,7 @@ export function generateMetadata({ params }: { params: { episode: string } }) {
 
   return buildSeoMetadata({
     path: `/stories/${episode.slug}`,
-    title: `${episode.no} ${episode.title} — 연이의 운명 노벨 | Code Destiny`,
+    title: `${episode.no} ${episode.title} — 연이의 운명 노벨`,
     description,
     keywords: ["연이의 운명 노벨", episode.title, "사주 소설", "운세 웹소설"],
   });

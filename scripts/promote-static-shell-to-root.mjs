@@ -94,6 +94,22 @@ function withoutHreflangLinks(html) {
   return html.replace(/\s*<link\s+[^>]*rel=["']alternate["'][^>]*hreflang=["'][^"']*["'][^>]*>/gi, "");
 }
 
+/**
+ * noindex 사본에서 홈을 가리키는 cross-canonical 을 걷어낸다.
+ *
+ * Google "Consolidate duplicate URLs" 는 canonical 선택에 noindex 를 쓰지 말라고 명시하고,
+ * 두 신호가 모순이면 어느 쪽이 이길지 보장되지 않는다 — 최악의 경우 noindex 가 canonical
+ * 목적지(여기서는 **홈**)로 옮겨붙는다. `/static` 은 중복 URL 이므로 남길 신호는 noindex 하나다.
+ * 2026-08-27 사용자 결정: noindex 유지 · canonical 제거.
+ */
+function withoutHomeCanonical(html) {
+  const pattern = /\s*<link\s+rel=["']canonical["']\s+href=["']https:\/\/code-destiny\.com\/["']\s*\/?>/i;
+  if (!pattern.test(html)) {
+    throw new Error("[promote-static-shell] home canonical not found in the static shell copy");
+  }
+  return html.replace(pattern, "");
+}
+
 function writeHtml(sourcePath, destinationPath, label, options = {}) {
   if (!existsSync(sourcePath)) {
     throw new Error(`[promote-static-shell] Missing source: ${sourcePath}`);
@@ -103,10 +119,13 @@ function writeHtml(sourcePath, destinationPath, label, options = {}) {
   const html = buffer.toString("utf8");
   assertShellLooksReady(html, options);
   mkdirSync(dirname(destinationPath), { recursive: true });
-  // noindex 사본은 언어 대체본이 아니다 — robots 와 함께 hreflang 도 걷어낸다.
+  // noindex 사본은 언어 대체본도 아니고 canonical 을 위임할 자격도 없다 —
+  // robots 와 함께 hreflang·홈 canonical 을 모두 걷어낸다.
   writeFileSync(
     destinationPath,
-    options.noindex ? Buffer.from(withoutHreflangLinks(withNoindexRobots(html)), "utf8") : buffer,
+    options.noindex
+      ? Buffer.from(withoutHomeCanonical(withoutHreflangLinks(withNoindexRobots(html))), "utf8")
+      : buffer,
   );
   console.log(`[promote-static-shell] ${label}: ${sourcePath} -> ${destinationPath}${options.noindex ? " (noindex)" : ""}`);
 }

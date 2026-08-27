@@ -8,7 +8,7 @@ import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-
 import { publishedCelebritySajuSeeds } from "../../lib/famous-saju/celebrity-saju-service";
 import { getPexelsSectionImage, resolvePexelsInsightImageRequest } from "../../lib/server/pexels";
 
-const pageTitle = "운세 인사이트 허브 | 사주·자미두수·숙요점·타로 가이드 | Code Destiny";
+const pageTitle = "운세 인사이트 허브 · 사주·타로·자미두수 | Code Destiny";
 const pageDescription =
   "사주, 자미두수, 숙요점, 타로, 점성술, 베다점성술을 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 인사이트 아카이브입니다.";
 

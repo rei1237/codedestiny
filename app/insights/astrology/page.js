@@ -5,7 +5,7 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/astrology";
 const INSIGHTS_ASTROLOGY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "점성술 인사이트 허브 · 출생차트·상승궁 해석 가이드 | Code Destiny",
+    title: "점성술 인사이트 허브 · 출생차트·상승궁 | Code Destiny",
     description: "점성술 차트, 태양궁·달궁·상승궁, 하우스 해석을 초보자 친화적으로 정리한 점성술 허브입니다.",
     keywords: ["상승궁", "달궁", "태양궁", "하우스 뜻", "점성술 용어"],
     breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "점성술 인사이트"],

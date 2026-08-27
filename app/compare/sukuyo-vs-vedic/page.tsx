@@ -16,7 +16,7 @@ import { buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@
  */
 
 const PATH = "/compare/sukuyo-vs-vedic";
-const TITLE = "숙요점과 베다 점성술은 같은 27수를 왜 다르게 읽는가 | Code Destiny";
+const TITLE = "숙요점 vs 베다 점성술 — 같은 27수를 다르게 읽는 이유";
 const DESCRIPTION =
   "숙요점과 베다 점성술은 27수라는 같은 재료를 쓰면서도 다른 것을 묻습니다. 본명숙과 라그나, 관계의 거리와 시간의 주기가 어떻게 갈리는지 비교해 정리합니다.";
 
