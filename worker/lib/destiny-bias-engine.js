@@ -1,5 +1,10 @@
 import { Lunar, Solar } from "lunar-javascript";
 
+// 🔴 절기 축은 전부 여기서 나온다. lunar-javascript 의 절기 시각은 **중국 표준시(CST) 벽시계**라,
+// 생시를 KST 벽시계로 넘기면 월건 경계가 정확히 60분 이르다(실측 2026-08-27, 1960~2030
+// 節 경계 ±150분 창 13,632건 중 월주 5,553건 · 년주 459건 불일치, 전부 -60~-1분 구간).
+import { BRANCH_HANJA, STEM_HANJA, ganji, nodeTerms } from "../../lib/korean-calendar/index.js";
+
 const STEM_META = Object.freeze({
   甲: { element: "wood", yinYang: "yang", ko: "갑" },
   乙: { element: "wood", yinYang: "yin", ko: "을" },
@@ -624,17 +629,6 @@ function solarToDateTimeKstString(solar) {
   return `${String(y).padStart(4, "0")}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")} ${String(h).padStart(2, "0")}:${String(min).padStart(2, "0")}:${String(sec).padStart(2, "0")}`;
 }
 
-function solarToUtcMs(solar) {
-  if (!solar || typeof solar !== "object") return NaN;
-  const y = Number(solar.getYear?.() ?? solar.year ?? 0);
-  const m = Number(solar.getMonth?.() ?? solar.month ?? 1);
-  const d = Number(solar.getDay?.() ?? solar.day ?? 1);
-  const h = Number(solar.getHour?.() ?? solar.hour ?? 0);
-  const min = Number(solar.getMinute?.() ?? solar.minute ?? 0);
-  const sec = Number(solar.getSecond?.() ?? solar.second ?? 0);
-  return Date.UTC(y, m - 1, d, h, min, sec);
-}
-
 function shiftYmdByDays(year, month, day, dayOffset) {
   const base = Date.UTC(year, month - 1, day, 0, 0, 0);
   const shifted = new Date(base + dayOffset * 86400000);
@@ -715,37 +709,50 @@ export function getHourStemByDayStem(dayStem, hourBranch) {
   return STEMS[(baseStemIndex + hourBranchIndex) % 10];
 }
 
-function normalizeSolarTermName(name) {
-  const raw = String(name || "").trim();
-  if (!raw) return "";
-  if (SOLAR_TERM_NAME_MAP[raw]) return SOLAR_TERM_NAME_MAP[raw];
-  for (const [alias, canonical] of Object.entries(SOLAR_TERM_NAME_MAP)) {
-    if (raw.toUpperCase() === alias) return canonical;
-  }
-  return raw;
+/**
+ * 節 12개의 이 파일 정본 표기. 코어 nodeTerms 의 순서(소한 0 … 대설 11)와 같은 자리다.
+ * 🔴 코어의 TERM_NAME_HANJA 는 번체(驚蟄·淸明·芒種)인데 이 파일의 정본은 SOLAR_TERM_NAME_MAP 의
+ * 간체(惊蛰·清明·芒种)다. 표기를 코어 쪽으로 바꾸면 응답을 이름으로 찾는 쪽이 조용히 못 찾는다.
+ */
+const CORE_NODE_TERM_ALIASES = Object.freeze([
+  "XIAO_HAN", "LI_CHUN", "JING_ZHE", "QING_MING", "LI_XIA", "MANG_ZHONG",
+  "XIAO_SHU", "LI_QIU", "BAI_LU", "HAN_LU", "LI_DONG", "DA_XUE",
+]);
+const CORE_NODE_TERM_NAMES = Object.freeze(CORE_NODE_TERM_ALIASES.map((alias) => SOLAR_TERM_NAME_MAP[alias]));
+
+const KST_OFFSET_MS = 9 * 3600 * 1000;
+
+/** KST 벽시계 → 순간(ms). 코어의 절기표도 출생 시각도 전부 KST 벽시계다. */
+function kstWallToMs(year, month, day, hour, minute) {
+  return Date.UTC(year, month - 1, day, hour, minute, 0) - KST_OFFSET_MS;
 }
 
-function getSolarTermFromTable(table, canonicalName) {
-  if (!table || typeof table !== "object") return null;
-  if (table[canonicalName]) return table[canonicalName];
-  for (const [key, value] of Object.entries(table)) {
-    if (normalizeSolarTermName(key) === canonicalName) {
-      return value;
+function coreNodeTermSummary(node) {
+  if (!node) return null;
+  return {
+    name: CORE_NODE_TERM_NAMES[node.index / 2],
+    dateTimeKst: formatDateLabel(node.year, node.month, node.day)
+      + ` ${String(node.hour).padStart(2, "0")}:${String(node.minute).padStart(2, "0")}:00`,
+    ms: kstWallToMs(node.year, node.month, node.day, node.hour, node.minute),
+  };
+}
+
+/**
+ * 그 시각을 감싸는 節 두 개. 앞뒤 해를 함께 펼치는 이유는 소한(1월 초)과 대설(12월 초) 바깥의
+ * 구간이 각각 전년 대설·익년 소한에 걸리기 때문이다.
+ */
+function coreNodeTermWindow(birthParts) {
+  const birthMs = kstWallToMs(birthParts.year, birthParts.month, birthParts.day, birthParts.hour, birthParts.minute);
+  let previous = null;
+  let next = null;
+  for (const year of [birthParts.year - 1, birthParts.year, birthParts.year + 1]) {
+    for (const node of nodeTerms(year) || []) {
+      const ms = kstWallToMs(node.year, node.month, node.day, node.hour, node.minute);
+      if (ms <= birthMs) previous = node;
+      else if (!next) next = node;
     }
   }
-  return null;
-}
-
-function toSolarTermSummary(jieQi) {
-  if (!jieQi || typeof jieQi !== "object") return null;
-  const name = normalizeSolarTermName(jieQi.getName?.() || jieQi.name || "");
-  const solar = jieQi.getSolar?.() || jieQi.solar || null;
-  if (!solar) return null;
-  return {
-    name,
-    dateTimeKst: solarToDateTimeKstString(solar),
-    solar,
-  };
+  return { previous: coreNodeTermSummary(previous), next: coreNodeTermSummary(next), birthMs };
 }
 
 function fallbackDaewoonList(monthGanji, direction, startAgeYearsDecimal, birthYear) {
@@ -769,7 +776,15 @@ function fallbackDaewoonList(monthGanji, direction, startAgeYearsDecimal, birthY
   });
 }
 
-function buildDaewoonFromEightChar(eightChar, yearStem, gender, lunar, birthSolar, monthPillarGanji, startAgeYearsDecimal) {
+/**
+ * 대운. 🔴 **간지는 코어 월주에서 파생하고 나이 관례는 lunar-javascript 것을 그대로 둔다.**
+ * 실측(2026-08-27, 1960~2020 표본 2,304건): getYun() 이 내는 간지 목록과 월주에서 순/역행으로
+ * 만든 목록은 **전건 동일**하다. 그러나 나이는 축이 다르다 — getYun 의 getStartAge() 는 세는 나이
+ * 정수(1부터)이고 이 함수의 startAgeYearsDecimalByDiff 는 0부터의 소수 나이라 최대 12년 벌어진다
+ * (한 응답 안에 두 축이 섞여 있는 것은 이 PR 이전부터 있던 결함이다 — 여기서 바꾸지 않는다).
+ * 그래서 월주만 코어로 다시 앵커하고 나이는 손대지 않는다.
+ */
+function buildDaewoonFromCore(eightChar, yearStem, gender, termWindow, birthYear, monthPillarGanji, startAgeYearsDecimal) {
   const isMale = gender === "M";
   const isFemale = gender === "F";
   const yearIsYang = YANG_STEMS.has(yearStem);
@@ -780,12 +795,12 @@ function buildDaewoonFromEightChar(eightChar, yearStem, gender, lunar, birthSola
     direction = forward ? "FORWARD" : "BACKWARD";
   }
 
-  const prevJie = toSolarTermSummary(lunar.getPrevJie?.(true));
-  const nextJie = toSolarTermSummary(lunar.getNextJie?.(true));
-  const referenceTerm = direction === "FORWARD" ? nextJie : prevJie;
+  const referenceTerm = direction === "FORWARD" ? termWindow.next : termWindow.previous;
 
-  const diffMinutes = referenceTerm?.solar
-    ? Math.abs(Math.round((solarToUtcMs(referenceTerm.solar) - solarToUtcMs(birthSolar)) / 60000))
+  // 🔴 두 값 모두 KST 순간이다. 예전에는 CST 벽시계인 절기와 KST 벽시계인 생시를 그대로 빼서
+  // 기운 나이가 최대 60분(≈5일)만큼 어긋났다.
+  const diffMinutes = referenceTerm
+    ? Math.abs(Math.round((referenceTerm.ms - termWindow.birthMs) / 60000))
     : Math.max(0, Math.round(startAgeYearsDecimal * 365 * 24 * 60 / 3));
 
   const startAgeYearsDecimalByDiff = diffMinutes / (60 * 24 * 3);
@@ -800,14 +815,20 @@ function buildDaewoonFromEightChar(eightChar, yearStem, gender, lunar, birthSola
     try {
       const yun = eightChar.getYun(yunGender);
       const daYunRows = Array.isArray(yun?.getDaYun?.()) ? yun.getDaYun() : [];
+      const monthCycleIndex = SEXAGENARY_CYCLE.indexOf(monthPillarGanji);
+      const step = direction === "BACKWARD" ? -1 : 1;
       list = daYunRows
         .map((row) => {
-          const pillar = String(row?.getGanZhi?.() || "").trim();
+          // 🔴 간지는 row.getGanZhi() 가 아니라 **코어 월주**에서 파생한다. 그러지 않으면
+          // 節 직전 60분 창에서 월주는 코어를 따르는데 대운만 lunar-javascript 를 따라 갈린다.
+          const cycleStep = Number(row?.getIndex?.());
+          if (!Number.isFinite(cycleStep) || cycleStep < 1 || monthCycleIndex < 0) return null;
+          const pillar = SEXAGENARY_CYCLE[(monthCycleIndex + step * cycleStep + 6000) % 60];
           if (!pillar) return null;
           const startAge = Number(row?.getStartAge?.());
           const endAge = Number(row?.getEndAge?.());
           return {
-            index: Number(row?.getIndex?.()) + 1,
+            index: cycleStep + 1,
             pillar,
             startAgeDecimal: Number.isFinite(startAge) ? startAge : 0,
             endAgeDecimal: Number.isFinite(endAge) ? endAge + 0.999 : 9.999,
@@ -825,7 +846,7 @@ function buildDaewoonFromEightChar(eightChar, yearStem, gender, lunar, birthSola
   }
 
   if (!list.length) {
-    list = fallbackDaewoonList(monthPillarGanji, direction, startAgeYearsDecimalByDiff, birthSolar.getYear());
+    list = fallbackDaewoonList(monthPillarGanji, direction, startAgeYearsDecimalByDiff, birthYear);
   }
 
   return {
@@ -894,9 +915,24 @@ export function buildSajuProfile(rawPerson) {
     hourStem = getHourStemByDayStem(dayStem, hourBranch);
   }
 
+  // 🔴 년주·월주는 **절기 프레임**이고 그 경계는 코어의 KST 절기표에서만 나온다.
+  // 야자시 정책은 일진에만 걸리므로 여기서는 인자를 넘기지 않는다.
+  const clockGanji = ganji({
+    year: solarClock.getYear(),
+    month: solarClock.getMonth(),
+    day: solarClock.getDay(),
+    hour: solarClock.getHour(),
+    minute: solarClock.getMinute(),
+  });
+  if (!clockGanji) {
+    // 생년은 normalizeBirthPayload 가 1900~2100 으로 자르므로 코어 지원 범위 안이다.
+    // 여기 오면 표가 깨진 것이지 입력이 이상한 것이 아니다 — 조용히 CST 달력으로 떨어지지 않는다.
+    throw new Error(`korean-calendar core returned no ganji for ${solarClock.getYear()}-${solarClock.getMonth()}-${solarClock.getDay()}`);
+  }
+
   const pillars = {
-    year: normalizePillar(eightCharClock.getYearGan(), eightCharClock.getYearZhi()),
-    month: normalizePillar(eightCharClock.getMonthGan(), eightCharClock.getMonthZhi()),
+    year: normalizePillar(STEM_HANJA[clockGanji.year.stemIndex], BRANCH_HANJA[clockGanji.year.branchIndex]),
+    month: normalizePillar(STEM_HANJA[clockGanji.month.stemIndex], BRANCH_HANJA[clockGanji.month.branchIndex]),
     day: normalizePillar(dayStem, dayBranch),
     hour: normalizePillar(hourStem, hourBranch),
   };
@@ -908,23 +944,28 @@ export function buildSajuProfile(rawPerson) {
   const tenGodProfile = buildTenGodProfile(dayMasterStem, pillars, includeHour);
   const usefulGods = buildUsefulGods(dayMasterElement, elementProfile);
 
-  const prevMajorTerm = toSolarTermSummary(lunarClock.getPrevJie?.(true));
-  const nextMajorTerm = toSolarTermSummary(lunarClock.getNextJie?.(true));
+  // 🔴 예전에는 lunar-javascript 의 절기를 그대로 `dateTimeKst` 라는 이름으로 실어 보냈다.
+  // 그 값은 CST 벽시계라 이름과 내용이 어긋나 있었다.
+  const termWindow = coreNodeTermWindow({
+    year: solarClock.getYear(),
+    month: solarClock.getMonth(),
+    day: solarClock.getDay(),
+    hour: solarClock.getHour(),
+    minute: solarClock.getMinute(),
+  });
+  const prevMajorTerm = termWindow.previous;
+  const nextMajorTerm = termWindow.next;
   const monthBoundaryTerm = prevMajorTerm;
-  const currentJieQiTable = lunarClock.getJieQiTable?.() || {};
-  let ipchunSolar = getSolarTermFromTable(currentJieQiTable, "立春");
-  if (ipchunSolar && solarToUtcMs(ipchunSolar) > solarToUtcMs(solarClock) && typeof solarClock.next === "function") {
-    const prevYearSolar = solarClock.next(-200);
-    const prevYearTable = prevYearSolar.getLunar().getJieQiTable?.() || {};
-    ipchunSolar = getSolarTermFromTable(prevYearTable, "立春") || ipchunSolar;
-  }
+  // 세차를 연 그 입춘. 코어가 이미 그 해를 판정해 두었으므로 다시 찾지 않는다
+  // (節 인덱스 1 = 입춘).
+  const ipchunTerm = coreNodeTermSummary((nodeTerms(clockGanji.meta.sexagenaryYear) || [])[1]);
 
-  const daewoon = buildDaewoonFromEightChar(
+  const daewoon = buildDaewoonFromCore(
     dayPillarEightChar,
     pillars.year.stem,
     gender,
-    lunarClock,
-    solarClock,
+    termWindow,
+    solarClock.getYear(),
     pillars.month.ganji,
     0,
   );
@@ -987,7 +1028,7 @@ export function buildSajuProfile(rawPerson) {
         dateTimeKst: monthBoundaryTerm?.dateTimeKst || "",
       },
       ipchun: {
-        dateTimeKst: solarToDateTimeKstString(ipchunSolar),
+        dateTimeKst: ipchunTerm?.dateTimeKst || "",
       },
     },
     daewoon,
