@@ -6,7 +6,7 @@ import { CompassApp } from "./_components/CompassApp";
 // buildSeoMetadata 가 self-canonical 과 index/follow 를 함께 세운다.
 export const metadata = buildSeoMetadata({
   path: "/destiny-compass",
-  title: "운명의 나침반 | 사주·자미두수로 읽는 오늘의 방향 — Code Destiny",
+  title: "운명의 나침반 · 사주·자미두수로 읽는 오늘의 방향",
   description:
     "사주 명식과 자미두수 명반을 함께 세워 지금 나아갈 방향과 오늘 실행할 한 걸음을 정리합니다. 계산 기준과 해석의 한계까지 함께 안내합니다.",
   keywords: ["운명의 나침반", "사주 자미두수 종합", "오늘의 방향", "사주 상담"],

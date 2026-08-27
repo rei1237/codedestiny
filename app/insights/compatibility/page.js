@@ -5,7 +5,7 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/compatibility";
 const INSIGHTS_COMPATIBILITY_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "궁합 인사이트 허브 · 사주·숙요점·자미두수 관계 가이드 | Code Destiny",
+    title: "궁합 인사이트 허브 · 사주·숙요점·자미두수 | Code Destiny",
     description: "사주 궁합, 숙요점 궁합, 자미두수 궁합을 비교하고 관계 운영법을 정리한 궁합 인사이트 허브입니다.",
     keywords: ["궁합 보는 법", "궁합 종류 비교", "관계 운영법", "궁합 해석 차이"],
     breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "궁합 인사이트"],

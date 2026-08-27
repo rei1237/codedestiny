@@ -9,7 +9,7 @@ import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const PAGE_PATH = "/vedic-ai/";
-const PAGE_TITLE = "베다 점성술 전문가 상담 | 나크샤트라·다샤 해석 — Code Destiny";
+const PAGE_TITLE = "베다 점성술 상담 · 나크샤트라·다샤 해석 | Code Destiny";
 const PAGE_DESCRIPTION =
   "인도 조티쉬(Jyotish) 전통의 나크샤트라와 행성 배치, 다샤 주기로 지금의 질문을 읽는 베다 점성술 전문가 상담. 달이 머문 별자리의 결과 시기 흐름을 상담 문장으로 풀어 드립니다.";
 

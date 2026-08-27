@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { INSIGHT_SEED_ARTICLES, getInsightSeedBySlug, getInsightSeedRelated } from "../seed-articles";
+import { INSIGHT_SEO_TITLES } from "../seo-titles";
 import { buildSeoMetadata } from "../../../lib/seo";
 import { SEO_LANDING_PAGES } from "../../../lib/seo-landing-pages";
 import { buildArticleJsonLd, buildBreadcrumbJsonLd } from "../../../lib/structured-data";
@@ -100,7 +101,9 @@ export async function generateMetadata({ params }) {
   const image = await getPexelsInsightImage(article).catch(() => getStaticInsightImage(article));
   return buildSeoMetadata({
     path: `/insights/${article.slug}`,
-    title: `${article.title} | ${copy.titleSuffix}`,
+    // 문서 제목은 화면 H1 과 다른 문구를 쓴다 — H1 은 설명적이어야 하고, 문서 제목은 SERP
+    // 표시 폭(약 60) 안에 들어와야 한다. 표에 없는 슬러그는 기존 동작(제목 + 접미사)을 그대로 쓴다.
+    title: INSIGHT_SEO_TITLES[article.slug] || `${article.title} | ${copy.titleSuffix}`,
     description: articleDescription(article),
     keywords: Array.from(new Set([article.category, ...(article.tags || []), ...(article.keywords || []), ...(article.relatedKeywords || [])].filter(Boolean))).slice(0, 12),
     ogImage: image.src,

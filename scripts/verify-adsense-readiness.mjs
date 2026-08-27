@@ -1422,10 +1422,14 @@ function verifyBlockedIndexableSitemapRouteQuality(baseDir) {
 // 홈을 canonical 로 가리켜도 되는 문서. 산출물에서 전수 발견하고 **여기 없는 것은 실패**시킨다.
 // 🔴 목록을 늘리기 전에 그 문서가 정말 홈과 같은 문서인지 확인할 것 — 대부분의 경우
 //    정답은 목록 추가가 아니라 그 페이지가 자기 canonical 을 선언하는 것이다.
-const homeCanonicalAllowedRoutes = new Set([
-  "/",
-  // 레거시 셸 사본(public/static/index.html). 홈과 같은 문서라 홈을 가리키는 것이 맞다.
-  "/static",
+// 값은 그 예외가 허용되는 산출물 디렉터리다. 배포 정본은 `dist` 이므로 `out` 에만 허용된
+// 예외는 배포물에서 다시 나타나면 실패한다.
+const homeCanonicalAllowedRoutes = new Map([
+  ["/", ["out", "dist"]],
+  // 레거시 셸 사본(public/static/index.html). 홈과 같은 문서라 Next export 원본에는 홈
+  // canonical 이 남지만, 배포 사본에서는 promote-static-shell 이 걷어낸다 —
+  // noindex 와 cross-canonical 을 함께 두지 않는다(2026-08-27 결정).
+  ["/static", ["out"]],
 ]);
 
 /**
@@ -1443,12 +1447,65 @@ function verifyNoInheritedHomeCanonical(baseDir) {
   const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
   for (const absolutePath of htmlFiles) {
     const pathname = routeFromHtmlPath(baseDir, absolutePath);
-    if (homeCanonicalAllowedRoutes.has(pathname)) continue;
+    if ((homeCanonicalAllowedRoutes.get(pathname) || []).includes(baseDir)) continue;
     const canonical = getCanonical(readFileUtf8WithRetry(absolutePath));
     if (!canonical) continue;
     assert(
       canonicalPathnameFromUrl(canonical) !== "/",
       `${baseDir}${pathname}: canonical 이 홈(${canonical})을 가리킨다 — 페이지가 alternates 를 선언하지 않아 app/layout.js 의 값을 상속받았을 가능성이 높다. generatePageMetadata() 를 쓰거나 alternates.canonical 을 직접 선언할 것.`,
+    );
+  }
+}
+
+/**
+ * SERP 제목 표시 폭 가드 (2026-08-27 추가).
+ *
+ * Google 은 데스크톱 검색결과의 제목을 **픽셀 폭**(약 600px)으로 자른다. 한중일 글자는
+ * 라틴 글자의 약 2배 폭이라, 글자 수로 재면 한국어 사이트에서 잘림이 보이지 않는다.
+ * 2026-08-27 dist 실측: 글자 수 기준 60자 초과는 5개였는데 **표시 폭** 기준으로는 125개였다
+ * (색인 대상 388개 중, 중앙 51 · 최대 111).
+ *
+ * 폭은 UAX#11 의 Wide/Fullwidth 를 2, 나머지를 1 로 세는 근사값이다. Ambiguous(—·… 등)는
+ * 1 로 센다. 픽셀을 직접 재지 않으므로 한계값 60 은 자로 잰 상한이 아니라 **운영 기준**이다.
+ *
+ * 대상은 사이트맵 URL 전량 — 목록을 손으로 들고 있지 않고 산출물에서 전수 발견한다.
+ * `/x.html` 로만 존재하는 라우트(`/destiny-poker`)도 함께 본다.
+ */
+const SERP_TITLE_WIDTH_LIMIT = 60;
+const EAST_ASIAN_WIDE = /[\u1100-\u115F\u2E80-\u303E\u3041-\u33FF\u3400-\u4DBF\u4E00-\u9FFF\uA000-\uA4CF\uAC00-\uD7A3\uF900-\uFAFF\uFE30-\uFE6F\uFF00-\uFF60\uFFE0-\uFFE6]/;
+
+function serpTitleWidth(title) {
+  return [...title].reduce((total, char) => total + (EAST_ASIAN_WIDE.test(char) ? 2 : 1), 0);
+}
+
+// `<title>` 안의 엔티티는 화면에서 한 글자로 보인다 — `&amp;` 를 5 로 세면 폭이 부풀려진다.
+function decodeTitleEntities(value) {
+  return value
+    .replace(/&(?:#x27|#39|apos);/gi, "'")
+    .replace(/&(?:#x22|#34|quot);/gi, '"')
+    .replace(/&(?:#x3c|#60|lt);/gi, "<")
+    .replace(/&(?:#x3e|#62|gt);/gi, ">")
+    .replace(/&(?:#x26|#38|amp);/gi, "&");
+}
+
+function verifyIndexableTitleWidth(baseDir) {
+  const sitemapPaths = getSitemapPaths(readRequired(`${baseDir}/sitemap.xml`));
+  assert(sitemapPaths.length > 0, `${baseDir}/sitemap.xml: URL 이 하나도 없다`);
+  for (const pathname of sitemapPaths) {
+    const relativePath = pathname === "/" ? "" : pathname.replace(/^\//, "");
+    const candidates = relativePath
+      ? [`${relativePath}/index.html`, `${relativePath}.html`]
+      : ["index.html"];
+    const absolutePath = candidates
+      .map((candidate) => resolve(rootDir, baseDir, candidate))
+      .find((candidate) => existsSync(candidate));
+    assert(Boolean(absolutePath), `${baseDir}${pathname}: 사이트맵 URL 의 HTML 이 산출물에 없다`);
+    const title = decodeTitleEntities(getTitleContent(readFileUtf8WithRetry(absolutePath))).trim();
+    assert(title.length > 0, `${baseDir}${pathname}: <title> 이 비어 있다`);
+    const titleWidth = serpTitleWidth(title);
+    assert(
+      titleWidth <= SERP_TITLE_WIDTH_LIMIT,
+      `${baseDir}${pathname}: <title> 표시 폭 ${titleWidth} > ${SERP_TITLE_WIDTH_LIMIT} — SERP 에서 잘린다(한중일 글자는 라틴의 2배 폭). 제목: ${title}`,
     );
   }
 }
@@ -1520,6 +1577,8 @@ for (const baseDir of ["out", "dist"]) {
   verifyBlockedIndexableSitemapRouteQuality(baseDir);
   trace(`${baseDir}: no inherited home canonical`);
   verifyNoInheritedHomeCanonical(baseDir);
+  trace(`${baseDir}: indexable title width`);
+  verifyIndexableTitleWidth(baseDir);
   trace(`${baseDir}: indexable route coverage`);
   verifyIndexableRouteCoverage(baseDir);
   trace(`${baseDir}: generated AdSense-eligible routes`);

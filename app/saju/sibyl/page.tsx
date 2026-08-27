@@ -157,7 +157,7 @@ const SERVICE = {
 
 const SAJU_SIBYL_METADATA_COPY = {
   ko: {
-    title: "시빌라 시스템 - 사주 진로 적성 × 운명 위험 계수 | Code Destiny",
+    title: "시빌라 시스템 — 사주 진로 적성·운명 위험 계수",
     description:
       "사주팔자 기반 진로 적성 섹터 배정과 운명 위험 계수 분석. 기본 무료, 도미네이터 리포트 10,000원.",
   },

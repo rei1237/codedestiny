@@ -5,7 +5,7 @@ import { buildBreadcrumbJsonLd, buildCollectionPageJsonLd } from "../../../lib/s
 const path = "/insights/tarot";
 const INSIGHTS_TAROT_PAGE_TEXT_TRANSLATIONS = {
   ko: {
-    title: "타로 인사이트 허브 · 질문법과 카드 해석 가이드 | Code Destiny",
+    title: "타로 인사이트 허브 · 질문법과 카드 해석 | Code Destiny",
     description: "무료 타로, 연애 타로, 재회운 타로, 상대방 속마음 타로의 질문 설계와 카드 해석을 차분한 말로 정리한 타로 인사이트 허브입니다.",
     keywords: ["타로 카드 의미", "타로 카드 해석", "타로 질문 설계", "메이저 아르카나"],
     breadcrumbs: ["꿀꿀 운세 홈", "운세 인사이트", "타로 인사이트"],
