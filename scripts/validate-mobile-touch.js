@@ -83,8 +83,11 @@ try {
     { name: 'PWA Theme Init', pattern: /pwa-theme-init/, required: true },
     { name: 'Swisseph Loader', pattern: /swisseph-loader/, required: true },
     { name: 'Chinese Astrology', pattern: /chinese-astrology\.js/, required: true },
-    { name: 'KASI Calendar', pattern: /kasi.*calendar\.js/, required: true },
-    { name: 'Lunar Library', pattern: /lunar-javascript/, required: true }
+    { name: 'KASI Calendar', pattern: /kasi.*calendar\.js/, required: true }
+    // 🔴 'Lunar Library'(/lunar-javascript/) 항목을 지웠다. index.html 에 그 문자열이 없어진
+    // 뒤로 **이미 실패하고 있던 기대**이고(이 스크립트는 package.json·워크플로 어디에도
+    // 배선돼 있지 않아 아무도 못 봤다), 2026-08-28 에 셸의 CDN 로더 자체가 사라졌다.
+    // 달력은 /js/core/korean-calendar.js 에서 나온다.
   ];
 
   let criticalOk = true;

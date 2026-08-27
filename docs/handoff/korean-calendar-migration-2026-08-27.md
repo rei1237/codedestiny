@@ -4,12 +4,21 @@
 > 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 절기 프레임(PR-E1) · 숙요(PR-E2) · 낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · **대운(PR-F1 = #1194, 머지됨 `06c2916fc`)** 까지 끝났다.
 > 🟢 **명리 상수 표(PR-F2 ㄹ, 2026-08-28)** — `lib/saju/myeongri-tables.js` · `verify:myeongri-tables`.
 > 🟢 **일주·시주 EightChar(PR-F2 나머지, 2026-08-28)** — 워커 3파일 전부 코어로.
-> 🟢 **시주 파생 필드 · 지장간 巳 순서(PR-F3 = #1202, 2026-08-28)** — 아래 (ㅅ). 남은 것은 (ㅈ)·(ㅇ)·(ㅁ).
-> 🔴🔴 **`worker/`·`app/`·`lib/`·`src/` 의 lunar-javascript import 는 이제 0건이다**(가드 3개가 매번 전수 스캔).
-> 남은 것은 **정적 셸 3파일의 CDN 로더**뿐이고 그건 계산 진입 UI 흐름을 함께 바꾸는 별도 단계다 — 아래 (ㅁ).
-> 🔴 다음 세션은 가드의 잔존 목록을 먼저 열어라 — `scripts/verify-lunar-conversion-core.mjs` 의
-> `KNOWN_REMAINING`(셸 3개만 남았다) · `scripts/verify-saju-solar-term-core.mjs` 검사 ⑤(절기 프레임).
-> `scripts/verify-daeun-korean-calendar.mjs` 검사 ⑤ 와 `scripts/verify-sukuyo-korean-calendar.mjs` 의 목록은 **비었다**.
+> 🟢 **시주 파생 필드 · 지장간 巳 순서(PR-F3 = #1202, 2026-08-28)** — 아래 (ㅅ).
+> 🟢 **앱 엔진 지장간 巳(PR-F4 = #1205, 2026-08-28)** — 아래 (ㅈ). 레포의 지장간 표 7개가 전부 정본이다.
+> 🟢 **의존성 분류(PR-F5 = #1207, 2026-08-28)** — 아래 (ㅇ). `lunar-javascript` 가 devDependencies 다.
+> 🟢 **셸 CDN 로더 제거(PR-F6, 2026-08-28)** — 아래 (ㅁ). **이 마이그레이션은 이것으로 끝났다.**
+>
+> 🔴🔴 **이 레포는 이제 lunar-javascript 를 브라우저로 보내지 않는다.** 제품 소스의 import 0건이고
+> CDN 로드 지점도 0건이다(`verify:lunar-conversion-core` ①·①-b 가 매번 전수 스캔한다).
+> 그 패키지는 **가드 6개의 대조 대상**으로만 devDependencies 에 남아 있다 — 지우면 안 된다
+> (`verify:natal-day-pillar-axis` ⑥ 이 그것과 `--omit=dev` 를 함께 막는다).
+> 🔴🔴 **네 가드의 잔존 목록이 전부 비었다.** `verify:lunar-conversion-core` 의 `KNOWN_REMAINING` 은
+> 빈 Map 이고(변환 소스 **0개**), `verify:saju-solar-term-core` ⑤ 에 남은 셋은 **가드 자신**이다
+> (그들이 lunar-javascript 와 대조하는 것이 일이라 사라지면 안 된다).
+> `verify:daeun-korean-calendar` ⑤ 와 `verify:sukuyo-korean-calendar` 의 목록도 비었다.
+> 비어 있는 것 자체는 통과 조건이 아니다 — **스캔 도달 검사 + 탐지 API 목록을 고정 리터럴에
+> 못박기**가 "스캐너가 죽어서 0" 인 경우를 가른다. 🔴 이 목록에 줄을 **더하는** 변경은 역행이다.
 > 🔴 셸에는 **소스 스캔이 안 보이는 축**이 있다 — `scripts/verify-shell-korean-calendar.mjs` 가
 > 셸을 `global.Solar` 없이 실제로 평가해 값까지 대조한다. 셸을 고쳤으면 그것부터 돌려라.
 
@@ -658,8 +667,14 @@ PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다
 | `js/saju-engine.js` | `attachKasiDaewunBridge` 한 자리 — 대운 `getYun` 을 코어 팔자에 붙여 준다 |
 | `js/saju-engine.js` 1958·4942·5117 | CDN 로더의 가용성 검사(대운이 아직 이 라이브러리를 쓰므로 유효하다) |
 | `js/core/index-inline-runtime.js` | `__cdHasLunarLibReady` — 로더 자신의 준비 판정 |
-| `js/core/kasi/calendar.js` | **죽은 사본** — 어느 HTML 도 로드하지 않는다. 삭제 판단은 사용자에게 |
+| `js/core/kasi/calendar.js` | **죽은 사본** — 어느 HTML 도 로드하지 않는다. 🔴 2026-08-28 에 **삭제됐다**(아래 PR-F6 절) |
 | `worker/lib/destiny-bias-engine.js` · `worker/lib/life-book-ai-saju.js` · `worker/routes/new-year-ai.js` | 일주·시주 EightChar + 대운 — PR-F |
+
+🔴 **위 표는 PR-E5 시점의 기록이고 지금은 사실이 아니다**(2026-08-28 정정). 세 가지가 틀렸다:
+① `attachKasiDaewunBridge` 는 **PR-F1 이후 `core.daeun()` 이다** — lunar-javascript 를 안 쓴다.
+`:708-710` 이 맞고 이 표가 낡았다. ② 워커 3개는 PR-F2 에서 코어로 갔다.
+③ 셸의 가용성 검사와 `__cdHasLunarLibReady` 는 PR-F6 에서 로더와 함께 사라졌다.
+**지금은 한 줄도 안 남았다** — 마지막이던 `js/core/kasi/calendar.js` 도 PR-F6 에서 지웠다.
 
 🔴 예고대로 `sync:public` 캐시키가 돌아 **미러 13개 + `index.html`** 이 함께 바뀌었고,
 `verify:sitemap-drift` 도 걸려 원장 62개를 같은 커밋에 담았다.
@@ -838,42 +853,167 @@ PR-E2 가 "E3·E4 가 끝나는 PR 에서 함께" 로 남긴 이월 항목이다
 - 음성 9건 전부 빨간불 확인. 실제 파일을 되돌려 놓고 돌린 회귀 5종도 전부 잡는다
   (복원은 **메모리 버퍼** — `git checkout` 금지).
 
-#### 🔴 (ㅈ) PR-F3 이 **일부러 안 고친 것** — 다음 PR 감
+### 🟢 PR-F4 — 앱 엔진 지장간 巳 (끝, #1205)
 
-**`app/saju/animal-destiny/engine/localSajuCalculator.ts` 의 `HIDDEN_STEMS_BY_BRANCH`** 도 같은 巳 오기를
-갖는다(`STEMS[2] 0.6 · STEMS[4] 0.25 · STEMS[6] 0.15` = 丙戊庚). 🔴 **이 표만 층 가중치가 자리로**
-정해져 있어 순서를 고치면 `戊` 0.25→0.15, `庚` 0.15→0.25 로 **신강약·득령 점수가 함께 움직인다.**
-값이 안 움직이는 나머지 5곳과 성격이 달라 분리했다. 고칠 때 재야 할 것: 巳 를 가진 명식의 신강약
-판정이 몇 % 뒤집히는지. 가드 ⑦ 의 `CLASSIFIED` 에 사유와 함께 등재돼 있으니, 고치면 그 항목을
-지워야 가드가 통과한다(유령 항목·예상 밖 어긋남 양쪽으로 터진다).
+브랜치 `fix/janggan-si-order-app-engine`, base `2988b09bd`.
 
-#### 🔴 (ㅇ) 남은 마지막 두 걸음
+`app/saju/animal-destiny/engine/localSajuCalculator.ts` 의 `HIDDEN_STEMS_BY_BRANCH` 만 巳 를 `丙戊庚`
+으로 싣고 있었다(정본 `丙庚戊`). PR-F3 이 이 한 곳을 남긴 이유는 **이 표만 층 가중치가 자리로**
+정해져 있어서다(`0.6 / 0.25 / 0.15`) — 순서 교정이 곧 庚 `0.15→0.25` · 戊 `0.25→0.15` 다.
+가중치 숫자는 한 글자도 안 건드렸다.
 
-1. **`package.json` 의 `lunar-javascript` 를 `devDependencies` 로.** 🔴 **이 PR 에서 안 했다** —
-   `package-lock.json` 이 `dependencies` 를 그대로 미러링하므로 락 재생성이 필요한데 그 파일은
-   CLAUDE.md 규칙 4 의 **수정 금지** 대상이다. 사용자 판단이 필요하다.
-   🔴 **지우면 안 된다** — 가드 6개(`korean-calendar-divergence`·`solar-terms`·`shell-korean-calendar`·
-   `daeun-korean-calendar`·`myeongri-tables`·`lunar-conversion-core`)가 **대조 대상으로** 읽는다.
-2. **셸의 CDN 로더 제거** — 아래 (ㅁ).
+**실측한 값 이동**(표본 1,032건 · 1950~2035 · `calculateLocalSaju` 전후 덤프 대조)
 
-#### 🔴 (ㅁ) 셸의 CDN 로더 — PR-F1 이 일부러 안 건드린 것
+| 무리 | 표본 | 결과 |
+|---|---|---|
+| 네 기둥 간지 | 1,032 | **0건 이동** |
+| 巳 없는 명식 | 728 | 신강약·`strengthIndex`·격국·통근 **전부 0건** |
+| 巳 포함 명식 | 304 | 신강약 뒤집힘 **6건(1.97%)** · `strengthIndex` 117건(38.49%, 평균 0.0109 · 최대 0.0200) · 격국 11건(3.62%) · 통근 173건(56.91%) |
+| 월지 巳 | 90 | 신강약 1건(1.11%) · 격국 8건(8.89%) |
 
-PR-F1 이후 **정적 셸은 lunar-javascript 를 하나도 안 쓴다**(가드 ③ 이 `global.Solar` 를 지운 채
-셸을 평가해 매번 증명한다). 그런데도 아직 받아 온다:
+뒤집힘은 전부 인접 등급 한 칸이다(과약→신약 3 · 중화→신약 1 · 신강→중화 1 · 신약→중화 1).
 
-- `js/saju-engine.js:20-25` `CDN_URLS` — 🔴 `lunar-javascript@latest`, **핀 없는 서드파티 실행 코드**
-- 같은 파일의 `loadNext`/`waitForSolar`/`onLibReady`/`retrySajuLibraryLoad` + 로딩 오버레이
-- `startSajuCalculationFlow`·`calculate` 의 가용성 게이트 2벌
-- `js/core/index-inline-runtime.js` `__cdHasLunarLibReady`/`__cdWaitForLunarLibReady`/
-  `__cdEnsureLunarLibReady` + `__cdEnsureSajuCoreLoaded` 체인의 CDN URL
-- `js/services/saju-library-loader.js` · `js/inline/saju-core-bootstrap.js` 의 호출부
-- `scripts/lib/ziwei-engine-harness.cjs` 의 `global.Solar` 스텁
+🔴 **巳 를 원국에 안 가졌는데 움직인 5건은 도충(倒沖)이다.** 전부 亥 를 3개 이상 가진 명식이고,
+`doChungAnalysis` 가 반복 지지의 반대편(巳↔亥)을 유도해 그 지장간 배열을 리포트에 싣는다
+(`localSajuCalculator.ts:1607` `hiddenStemsOfInduced`). 한 건을 통째로 diff 한 결과 **바뀐 값의 고유
+집합이 문자열 6개**(`경`·`무`·`정재`·`상관`·`metal`·`earth`)뿐이고 숫자는 0건이다.
+`yongshinAnalysis`·`scoringAnalysis`·`structuralIssues` 도 함께 움직인 것으로 잡히는데 그 셋이 같은
+배열을 그대로 품고 있어서다.
 
-🔴 **왜 미뤘나**: 이 로더는 "엔진 로딩 중" 오버레이와 `__pendingAutoCalculation` 재시도 흐름을
-같이 들고 있어서, 지우면 **계산 진입 UI 흐름**이 바뀐다. 값이 절반에서 움직이는 달력 정정과
-UI 흐름 변경을 한 PR 에 담으면 회귀가 났을 때 어느 쪽 탓인지 판정할 수 없다
-(`lib/korean-calendar/policy.js` 머리말이 말하는 그 이유다). **지울 때 얻는 것**은
-핀 없는 CDN 실행 코드 제거 + 첫 계산 경로에서 gzip 약 97KB 다.
+🔴 **측정 함정** — `calculateLocalSaju` **전체 출력**의 해시는 실행할 때마다 바뀐다(현재 시각을 담는
+필드가 있다). 동일 코드로 2회 돌려 갈랐다: `fullHash` 100% 이동 / `natalAnalysis` 해시 **0건**.
+값 이동을 잴 때는 `natalAnalysis` 를 쓸 것.
+
+🔴 **가드 ⑦ 의 해소 방법은 항목 삭제가 아니다.** `divergent: ["巳"]` 줄만 지우고 키와 `order` 는
+남긴다 — 드리프트 루프가 `if (!spec) continue` 라 키를 지우면 "미분류" 로 실패한다
+(이 문서가 앞서 "그 항목을 지워야" 라고 적었던 것은 오기였고 여기서 정정한다).
+음성 양방향 확인: 표를 오기로 되돌리면 빨간불 · 옛 가드를 고쳐진 표에 돌려도 빨간불.
+
+### 🟢 PR-F5 — `lunar-javascript` 를 devDependencies 로 (끝, #1207)
+
+브랜치 `chore/lunar-javascript-dev-dependency`, base `2988b09bd`.
+
+제품 소스 import 가 0건이라 분류상 자리는 개발 의존성이다. **실행 동작은 한 글자도 안 바뀐다**:
+레포 전체에 `--omit=dev`·`--production`·`npm prune` 이 **0건**이고(모든 `npm ci` 가 맨 명령),
+번들러는 import 그래프로만 담으며, Cloudflare Pages 는 자체 install 없이 산출물만 업로드한다.
+`npm ci --dry-run` 통과(1,475 패키지).
+
+🔴 `package-lock.json` 은 CLAUDE.md 규칙 4 의 수정 금지 대상이라 **사용자 승인을 받아 이 변경
+1회에 한해** 손편집했다. 움직인 것은 3자리다 — 루트 `dependencies` 에서 제거 · 루트
+`devDependencies` 에 추가 · `node_modules/lunar-javascript` 에 `"dev": true`.
+`npm install --package-lock-only` 를 안 쓴 이유는 lock 에 `package.json` 에 없는 유령 항목
+`jsonwebtoken`(소스 import 0건)이 남아 있어 재생성하면 그것이 함께 빠지기 때문이다.
+
+🔴 **이 이동이 만든 새 위험을 되받아 뒀다.** 이 라이브러리를 대조 대상으로 읽는 가드가 6개인데
+누가 설치에 `--omit=dev` 를 붙이면 그 여섯이 한꺼번에 조용히 죽는다. `verify:natal-day-pillar-axis`
+검사 ⑥(13→18건)이 ①devDependencies 에 있고 `dependencies` 엔 없다 ②어떤 워크플로도 dev 를 빼고
+설치하지 않는다를 못박는다. **지우는 것도 이 검사가 막는다.**
+
+### 🟢 PR-F6 — 셸의 CDN 로더 제거 (끝)
+
+브랜치 `refactor/shell-drop-lunar-cdn-loader`, base `febe2b322`.
+
+🔴 **이것은 성능 정리가 아니라 결함 수정이다.** 제거 전 실측한 두 갈래:
+
+1. **정상 진입** — `__cdEnsureSajuCoreLoaded` 체인의 2번째 원소가 lunar CDN 이었고, 그 체인은
+   순차 `reduce` + 전체 `.catch` 다. CDN 이 막히면 `saju-engine.js` 이하 **10개가 통째로 안 뜨고**
+   스텁의 catch 는 `console.error` 만 찍는다 → **run-btn 이 조용히 무반응.**
+2. **숙요·자미 모달을 먼저 연 경우** — `saju-engine.js` 는 떠 있고 `Solar` 만 없어서
+   `startSajuCalculationFlow` 의 `typeof Solar` 게이트에 걸린다 → CDN 6개 × 6초(최대 36초)를
+   전부 시도한 뒤 `_setRunButtonToRetry` 가 버튼의 **i18n span·연꽃 SVG·`FREE` pill 을
+   `textContent` 로 파괴**하고 무한 재시도로 바꾼다.
+
+값 계산에 그 라이브러리를 **한 글자도 안 쓰는데** 사주를 못 봤다.
+
+| 파일 | 한 것 |
+|---|---|
+| `js/saju-engine.js` | `CDN_URLS`+상태변수 5개 · `_captureBirthFormSnapshot` · `_applyBirthFormSnapshot` · `_setRunButtonToRetry` · `retrySajuLibraryLoad` · `_hideLibOverlay` · `loadNext`/`waitForSolar`/`onLibReady` · 15초 오버레이 타이머 · **가용성 게이트 2벌** 삭제(231줄). 낡은 주석 2곳 정정 |
+| `js/core/index-inline-runtime.js` | `__cdLunarLibLoadPromise`·`__cdHasLunarLibReady`·`__cdWaitForLunarLibReady`·`__cdEnsureLunarLibReady` 삭제 · **체인 2번 원소 한 줄** 제거 · 호출부 2곳(운명의 꽃 · 숙요/자미)에서 대기 블록 제거 |
+| `js/runtime-stability.js` | `lib-overlay` 제거 블록만(같은 함수의 `codeSplash`·`sajuLoaderOverlay` 는 안 건드림) |
+| `styles/fortune-ui.css` | `#lib-overlay`·`#lib-msg`·`#lib-sub` **id 선택자만**. 🔴 `.pig-float`·`.dots`·`.dot` 는 남겼다 — 이름이 일반명이라 소비자 확인이 범위 밖이다(이미 죽어 있던 CSS 다) |
+| `js/services/sajuService.js` | `retrySajuLibraryLoad` 래퍼(소비자 0) |
+| `js/inline/saju-core-bootstrap.js` | 3순위 폴백. 🔴 **원래 죽은 분기다** — 원하는 건 `KasiEngine` 인데 그 로더는 그것을 절대 안 만든다 |
+| `public/js/services/saju-library-loader.js` | **파일 삭제.** `js/` 에 대응물이 없고 `.ignore` 미러 목록에도 없는 고아 원본이었다. 이 파일이 `window.retrySajuLibraryLoad` 를 덮어써 run-btn 문구가 로드 순서에 따라 달라졌다 |
+| `scripts/validate-mobile-touch.js` | `'Lunar Library'` 필수 검사 한 줄 — 이미 실패 중이던 기대(미배선이라 아무도 못 봤다) |
+| `scripts/lib/ziwei-engine-harness.cjs` | 🔴 **안 건드렸다.** 두 가드가 이미 `delete globalThis.Solar` 로 증명하므로 스텁을 빼도 증명력이 안 늘고 자미 가드 6개가 영향권에 들어온다 |
+
+#### 🔴 게이트는 코어 판정으로 바꾸지 않고 **지웠다**
+
+준비 판정은 이미 있다 — `_koreanCalendar()`(`js/saju-engine.js`)가 없으면 `throw` 한다.
+로드 순서는 체인이 구조적으로 보장한다(두 체인 모두 1번 원소가 `/js/core/korean-calendar.js`,
+순차 `reduce`). **실측으로 확인했다**: 하네스에서 `Solar`/`Lunar` 를 지운 채
+`korean-calendar.js → kasi-calendar-service.js → saju-engine.js` 를 태우니 셋 다 평가되고
+`KasiEngine`·`KasiCalendarService` 가 만들어지며 값도 나온다(1990-05-15 10:30 → 庚午 辛巳 庚辰 辛巳).
+🔴 `kasi-calendar-service.js` 는 `verify:shell-korean-calendar` 의 `SHELL_SCRIPTS` 에 **없어서**
+이 축이 그전까지 측정된 적이 없었다.
+
+#### 🔴 값이 안 움직였다는 증거 — 그리고 가드가 15초 빨라졌다
+
+`verify:shell-korean-calendar` 가 전후 **동일하게 통과**한다(검사 25건 · 프레임 갈리는 날 939건 중
+표본 24건). 이 가드는 `global.Solar` 를 지운 채 셸을 실제로 평가해 4기둥을 밴드 안 표본에서 대조한다.
+
+덤으로 **15.21s → 0.36s** 다(실측 2026-08-28). `js/saju-engine.js` 최상위의
+`setTimeout(_hideLibOverlay, 15000)` 이 node 프로세스를 붙잡고 있었다. 같은 방식의
+`verify:daeun-korean-calendar` 도 3.4s 로 내려온다.
+
+#### 가드 갱신 — 이 PR 의 절반
+
+**`verify:lunar-conversion-core` (35 → 40건)**
+- `KNOWN_REMAINING` 3 → **1개**(죽은 사본만). 셸 2개는 값이 아니라 `typeof Solar` **가용성 검사**로만
+  걸려 있었고 로더와 함께 사라졌다.
+- 🔴 `found.length >= 3` 을 **낮추지 않고 지웠다.** 잔존 개수로는 "스캐너가 살아 있나"를 못 잰다 —
+  잔존이 줄수록 공허해지고, `CONVERSION_APIS` 원소 하나를 오타내도 나머지가 임계값을 채워 조용히
+  통과한다. 대신 ㉮ 스캔 도달 파일 수 ㉯ **API 목록을 고정 리터럴에 못박기** ㉰ 주석 제거기 검사로 나눴다.
+- 🔴 **①-b 신설 — "브라우저가 이 라이브러리를 받아 오지 않는다".** ① 은 값의 출처만 본다. 체인에
+  URL 을 되넣어도 값은 여전히 코어라 **모든 가드가 초록이었다.** 판정 신호는 **문자열 리터럴 안의
+  http URL 이 `lunar` 를 담는가** 이고, 산문(`calculationBasis: "… lunar-javascript sect 1 관례 재현"`)과
+  다른 CDN(astronomy-engine)은 안 잡는다. 🔴 스캔 범위에 **`public/js` 를 포함**한다 — 미러가 아닌
+  원본이 거기 살 수 있다(`saju-library-loader.js` 가 정확히 그랬다).
+
+**`verify:saju-solar-term-core` ⑤ (51 → 52건)**
+- 🔴 **유령 9건을 지웠다.** `KNOWN_REMAINING` 13개 중 실제로 발견되는 것은 **4개뿐**이었다.
+  ⑤ 에는 `stale`(파일 존재)만 있고 **역포함 검사가 없어서** 목록의 2/3 이 아무것도 안 지키면서
+  "아직 남아 있다" 고 말하는 상태로 살아 있었다. ① 과 대칭으로 `neverFound` 를 신설했다.
+
+**음성 테스트 5종 전부 빨간불 확인**(복원은 파일 복사 버퍼 — `git checkout` 금지)
+`CDN_URLS` 한 줄 복원 · 체인에 URL 한 줄 복원 · ① 에 유령 재추가 · ⑤ 에 유령 재추가 ·
+`CONVERSION_APIS` 오타.
+🔴 **음성 테스트가 실제로 결함을 잡았다** — 처음 쓴 ① 자기검사가 `CONVERSION_APIS` 에서 프로브를
+만들어 **자기 자신을 검사하는 동어반복**이었고 오타를 못 잡았다. 고정 리터럴 대조로 바꿔서 잡힌다.
+문자열이 서로 접두사라(`Solar.fromYmd` ⊂ `Solar.fromYmdHms`) 프로브 방식으로는 원소별 판정이 안 된다.
+
+#### 🟢 죽은 사본 `js/core/kasi/calendar.js` — 사용자 판단으로 삭제했다 (2026-08-28)
+
+**삭제 조건을 다시 실측했다**(3면 grep + 실행):
+
+| 축 | 실측 |
+|---|---|
+| HTML 로드 | `git grep "kasi/calendar" -- '*.html'` → **0건** |
+| 읽는 곳 | `scripts/` 3개뿐. **셋 다 `package.json`·워크플로 미배선** |
+| 그 셋의 현재 상태 | `test-saju-regression.js`·`validate-phase4.mjs` 는 **이미 깨져 있다** — 넷째 모듈 `js/engines/ziwei-doushu.js` 가 `2ef804d1c` 에서 지워져 `ENOENT` 로 죽는다 |
+| Phase-4 모듈 4개 | `chinese-astrology.js`·`kasi/calendar.js`·`sajuAnalyzer.js`·`ziwei-doushu.js` — **어느 것도 HTML 이 로드하지 않는다** |
+
+그래서 함께 정리했다:
+
+- `js/core/kasi/calendar.js` + 미러 — **삭제**. `.ignore` 의 미러 목록은 `sync:public` 이
+  172 → **171** 로 자동 갱신한다(손으로 지우지 말 것).
+- **[Cleanup]** `scripts/test-saju-regression.js` · `scripts/validate-phase4.mjs` — **삭제**.
+  Phase-4 시절의 스크립트 태그 배치를 검사하는 미배선 검증기이고 지금은 `ENOENT` 로 죽는다.
+  `validate-phase4.mjs` 는 `src="/js/core/kasi/calendar.js" defer` 가 `index.html` 에 있기를
+  기대하는데 그 태그는 존재한 적이 없다.
+- `scripts/test-saju-solar-term-regression.mjs` — `loadKasiEngineModule` 과 그것을 쓰는 단언 2개만
+  걷어냈다. 🔴 **이 스크립트의 본체는 살아 있는 `js/core/kasi-calendar-service.js` 를 쓴다**
+  (`loadKasiCalendarService`) — 절기 표를 분 반올림으로 바꾸게 만든 입춘 ±1분 케이스가 거기 있다.
+  삭제 후에도 `PASS saju solar-term regression`.
+
+**가드 갱신** — 두 곳의 개수 임계값을 같은 이유로 걷어냈다:
+`verify:lunar-conversion-core` 의 `KNOWN_REMAINING` 은 **빈 Map**(검사 40건 · 변환 소스 **0개**),
+`verify:saju-solar-term-core` ⑤ 는 `found.length >= 4` 를 지우고 **스캔 도달 검사 + API 목록 고정
+리터럴 대조 + 주석 제거기 검사**로 나눴다(검사 52 → **54건**). 음성 확인: ⑤ 의 API 를 오타내면
+빨간불 · ① 에 지워진 파일을 되살리면 유령/역포함 두 단언이 동시에 빨간불.
+
+🔴 **남긴 것 하나**: `public/js/engines/ziwei-doushu.js:3` 의 의존성 주석이 지워진 파일을 가리킨다.
+그 파일 자체가 `js/` 대응물 없는 고아라 이번 범위 밖으로 뒀다.
 
 ## 5. 검증 명령
 
@@ -887,7 +1027,7 @@ npm run verify:korean-calendar-kasi-samples          # 기본: 네트워크 0
 npm run verify:korean-calendar-kasi-samples -- --live --endpoint https://staging.code-destiny.com/api/kasi/calendar
 npm run verify:saju-solar-term-core
 npm run verify:sukuyo-korean-calendar
-npm run verify:lunar-conversion-core
+npm run verify:lunar-conversion-core                 # 🔴 ① 변환 출처 · ①-b CDN 로드 지점 0건 (public/js 까지 본다)
 npm run verify:shell-korean-calendar                 # 🔴 셸을 고쳤으면 이것부터
 npm run verify:daeun-korean-calendar                 # 🔴 대운 관례 재현 잔차 0
 npm run verify:myeongri-tables                       # 🔴 명리 표 216키 잔차 0 + 지장간 표 전수 발견 (--self-test)
@@ -903,6 +1043,25 @@ npm run test:node
 
 기준선(2026-08-27 `58267ff8b`, 리베이스 후 실측): jest **176 스위트 / 1,977 테스트 통과** ·
 `test:node` **551 통과 / 0 실패** · `verify:guard-wiring` 252개 중 156개 배선.
+
+**PR-F6 이후 실측(2026-08-28, `febe2b322` 위)**: jest **176 스위트 / 2,002 테스트 통과** ·
+`test:node` **555 통과 / 0 실패** · `verify:guard-wiring` **259개 중 163개 배선** ·
+`verify:lunar-conversion-core` **40건**(변환 소스 3→**1개**) · `verify:saju-solar-term-core` **52건** ·
+`verify:shell-korean-calendar` 25건 — 🔴 **15.21s → 0.36s**(셸의 15초 오버레이 타이머가
+node 프로세스를 붙잡고 있었다) · `verify:daeun-korean-calendar` 13건 3.4s ·
+`verify:myeongri-tables` 29건 · `verify:natal-day-pillar-axis` 13건 ·
+`verify:sukuyo-korean-calendar` 31건 · `verify:ziwei-star-parity` 21건/29명 ·
+`verify:ziwei-sohan` 35 · `verify:ziwei-worker-chart-facts` 114건 ·
+`verify:public-mirror-fresh` OK · `verify:sitemap-drift` OK(URL 388개) · typecheck · lint(에러 0).
+
+**PR-F5 이후 실측(2026-08-28, `2988b09bd` 위 = PR #1207)**: `npm ci --dry-run` OK(1,475 패키지) ·
+`verify:natal-day-pillar-axis` 13 → **18건** · 대조 대상 가드 6개 전부 통과 ·
+jest 176/2,002 · `test:node` 555/0 · typecheck · lint(에러 0).
+
+**PR-F4 이후 실측(2026-08-28, `2988b09bd` 위 = PR #1205)**: `verify:myeongri-tables` **29건**
+(`--self-test` 30건) · `verify:hour-pillar-parity` 통과 · `verify:saju-solar-term-core` 51건 ·
+`verify:lunar-conversion-core` 35건 · jest 176/2,002 · `test:node` 555/0 ·
+`verify:sitemap-drift` OK — `localSajuCalculator.ts` 가 여러 라우트의 import 그래프에 있어 원장 57개 갱신.
 
 **PR-F3 이후 실측(2026-08-28, `79aa91d33` 위 = PR #1202)**: jest **176 스위트 / 2,002 테스트 통과** ·
 `test:node` **553 통과 / 0 실패** · `verify:guard-wiring` **259개 중 163개 배선** ·

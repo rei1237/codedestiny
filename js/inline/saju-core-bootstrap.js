@@ -747,11 +747,10 @@ function _computePillarsViaEngine(y, m, d, callback) {
     doCompute();
   } else if (typeof window.__cdEnsureSajuCoreLoaded === 'function') {
     window.__cdEnsureSajuCoreLoaded().then(function() { doCompute(); }).catch(function() { callback(null, '엔진 로딩 실패'); });
-  } else if (typeof window.__cdEnsureLunarLibReady === 'function') {
-    window.__cdEnsureLunarLibReady().then(function() {
-      if (window.KasiEngine) { doCompute(); } else { callback(null, '엔진 없음'); }
-    }).catch(function() { callback(null, '라이브러리 로딩 실패'); });
   } else {
+    /* 🔴 예전에는 여기 __cdEnsureLunarLibReady 폴백이 하나 더 있었는데 **한 번도 계산에 도달한
+     * 적이 없다** — 이 함수가 원하는 것은 window.KasiEngine 이고, 그 로더는 lunar-javascript 만
+     * 받아 오지 KasiEngine 을 만들지 않았다. 즉 그 분기는 언제나 '엔진 없음' 으로 떨어졌다. */
     callback(null, '엔진 없음');
   }
 }

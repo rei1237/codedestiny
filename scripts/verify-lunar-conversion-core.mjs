@@ -147,13 +147,12 @@ const CONVERSION_APIS = [
  * 아직 이 축을 lunar-javascript 로 잡는 것이 **알려져 있는** 파일과 그 이유.
  * 🔴 여기에 올린다고 옳아지는 것이 아니다 — 남은 이관 목록이다. 줄어들기만 해야 한다.
  */
-// 🔴 2026-08-28(PR-F2) 로 **워커 3개가 목록에서 빠졌다.** 남은 셋은 전부 정적 셸이고,
-// 셸의 CDN 로더 제거는 계산 진입 UI 흐름을 함께 바꾸는 별도 단계다(핸드오프 §PR-F2 ㅁ).
-const KNOWN_REMAINING = new Map([
-  ["js/saju-engine.js", "대운 브리지(attachKasiDaewunBridge)의 getYun 한 자리뿐 — 셸 CDN 로더 제거 단계"],
-  ["js/core/kasi/calendar.js", "죽은 사본 — 어느 HTML 도 로드하지 않는다(3면 grep 2026-08-27)"],
-  ["js/core/index-inline-runtime.js", "lunar 라이브러리 로더의 가용성 검사(__cdHasLunarLibReady) — 셸 CDN 로더 제거 단계"],
-]);
+// 🔴 **이 목록은 비어 있다. 그게 이 마이그레이션의 완료 조건이었다.**
+// 2026-08-28 에 워커 3개(PR-F2) → 정적 셸 2개(PR-F6) → 죽은 사본 `js/core/kasi/calendar.js`
+// (PR-F6) 순으로 비었다. 비어 있는 것 자체는 통과 조건이 아니다 — 아래 스캔 도달 검사와
+// 탐지기 자기검사가 "스캐너가 죽어서 0" 인 경우를 가른다.
+// 🔴 여기에 줄을 **더하는** 변경은 이관의 역행이다. 사유를 PR 본문에 적을 것.
+const KNOWN_REMAINING = new Map();
 
 function walk(dir, out) {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -178,10 +177,12 @@ function stripComments(source) {
 
 const found = [];
 const unclassified = [];
+let scannedFiles = 0;
 for (const dirName of SCAN_DIRS) {
   const dir = path.join(root, dirName);
   if (!fs.existsSync(dir)) continue;
   for (const file of walk(dir, [])) {
+    scannedFiles += 1;
     const relative = path.relative(root, file).split(path.sep).join("/");
     const code = stripComments(fs.readFileSync(file, "utf8"));
     const hits = CONVERSION_APIS.filter((api) => code.includes(api));
@@ -191,9 +192,49 @@ for (const dirName of SCAN_DIRS) {
   }
 }
 
-// 🔴 이관이 끝날 때마다 이 숫자를 내린다. 올라가는 방향으로 움직이면 새로 생긴 것이다.
-// 2026-08-27 6개 → 2026-08-28 3개(워커 3개가 코어로 갔다). 남은 셋은 전부 정적 셸이다.
-ok("① 달력 변환 호출을 실제로 발견했다(발견 0 = 가드가 깨진 것)", found.length >= 3, `발견 ${found.length}개`);
+// 🔴 예전에는 여기에 `found.length >= 3` 이 있었다. 그건 "스캐너가 살아 있나"를 재려던 것인데
+// **잔존 개수로는 그걸 못 잰다** — 잔존이 줄어들수록 임계값이 공허해지고(2026-08-28 에 셸 2개가
+// 빠져 발견이 1개로 떨어졌다), 반대로 CONVERSION_APIS 원소 하나를 오타내도 나머지가 임계값을
+// 채워 조용히 통과한다. 그래서 목적을 직접 잰다 — ㉮ 스캐너가 실제로 파일을 훑었는가,
+// ㉯ 탐지기가 API 7종을 전부 잡는가. 잔존 목록은 포함(unclassified)·역포함(neverFound)이
+// 양방향으로 잠그므로 개수 단언이 따로 필요 없다.
+ok("① 스캔이 실제로 소스를 읽었다(0 이면 경로가 바뀐 것)", scannedFiles >= 500, `${scannedFiles}개 파일`);
+{
+  // 🔴 프로브를 CONVERSION_APIS 에서 **만들면 안 된다** — 오타 난 원소가 자기 프로브를 그대로
+  // 잡아 동어반복이 된다(2026-08-28 에 실제로 그렇게 썼다가 음성 테스트에서 드러났다).
+  // 게다가 문자열이 서로 접두사라(`Solar.fromYmd` ⊂ `Solar.fromYmdHms`) 프로브 한 줄로는
+  // 어느 원소가 잡았는지 가릴 수도 없다. 그래서 목록 자체를 고정 리터럴에 못박는다.
+  const EXPECTED_APIS = [
+    "Solar.fromYmd",
+    "Solar.fromYmdHms",
+    "Solar.fromDate",
+    "Lunar.fromYmd",
+    "Lunar.fromYmdHms",
+    ".getLunar(",
+    ".getSolar(",
+  ];
+  ok(
+    "① 탐지 대상 API 목록이 그대로다(오타·삭제가 조용히 지나가지 않는다)",
+    JSON.stringify(CONVERSION_APIS) === JSON.stringify(EXPECTED_APIS),
+    `현재 ${JSON.stringify(CONVERSION_APIS)}\n      기대 ${JSON.stringify(EXPECTED_APIS)}`,
+  );
+
+  // 주석 제거기가 살아 있는지는 따로 본다 — 이쪽이 실제 오탐/누락의 원천이다.
+  const catches = (line) => CONVERSION_APIS.some((api) => stripComments(line).includes(api));
+  const positive = [
+    "  const s = Solar.fromYmdHms(1990, 5, 15, 12, 0, 0);",
+    "  const l = solar.getLunar();",
+  ].filter(catches);
+  const negative = [
+    "  // const s = Solar.fromYmd(1990, 5, 15);",
+    "  const p = core.solarToLunar({ year: 1990, month: 5, day: 15 });",
+  ].filter(catches);
+  ok(
+    "① 주석 제거기가 살아 있다(코드는 잡고 줄 주석·코어 호출은 안 잡는다)",
+    positive.length === 2 && negative.length === 0,
+    `양성 ${positive.length}/2 · 위양성 ${negative.length}`,
+  );
+}
 ok("① 발견된 파일이 전부 잔존 분류에 있다(미분류 = 새로 생긴 것)", unclassified.length === 0, unclassified.join("\n      "));
 
 const stale = [...KNOWN_REMAINING.keys()].filter((relative) => !fs.existsSync(path.join(root, relative)));
@@ -207,6 +248,68 @@ ok(
   neverFound.length === 0,
   neverFound.join(", "),
 );
+
+// ── ①-b 브라우저가 이 라이브러리를 **받아 오지 않는다** ────────────────────
+//
+// 🔴 위 ① 은 "값이 어디서 나오는가" 만 본다. 그것만으로는 누가 체인에
+// `https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.js` 를 되넣어도 **모든 가드가
+// 초록이다** — 값은 여전히 코어에서 나오니까. 그런데 그건 핀 없는 서드파티 실행 코드를 첫
+// 계산 경로에 다시 들이는 일이고, 2026-08-28 이전에 실제로 그 상태였다.
+//
+// 그때 무슨 일이 있었나(제거 전 실측): __cdEnsureSajuCoreLoaded 의 체인은 순차 reduce 에
+// 전체 .catch 라, CDN 이 막힌 사용자는 그 원소에서 체인이 죽어 saju-engine 이하 10개가 안 뜨고
+// **run-btn 이 조용히 무반응**이었다. 숙요 모달을 먼저 연 경우에는 saju-engine 은 떠 있고
+// Solar 만 없어서 `typeof Solar` 게이트에 걸렸고, CDN 6개 × 6초를 다 시도한 뒤(최대 36초)
+// 버튼 라벨과 FREE pill 이 textContent 로 파괴됐다. 값 계산에 그 라이브러리를 한 글자도
+// 안 쓰는데 그랬다.
+//
+// 그래서 "URL 로 받아 오는 지점" 을 따로 센다. 판정 신호는 **문자열 리터럴 안의 http URL 이
+// lunar 를 담고 있는가** 다 — 산문(`calculationBasis: "… lunar-javascript sect 1 관례 재현"`)이나
+// 주석은 안 잡고, astronomy-engine 같은 다른 CDN 도 안 잡는다.
+{
+  // 🔴 public/js 를 함께 본다. 미러가 아닌 원본이 거기 살 수 있다 —
+  // public/js/services/saju-library-loader.js 가 정확히 그랬다(js/ 에 대응물이 없었다).
+  const CDN_SCAN_DIRS = [...SCAN_DIRS, "public/js"];
+  const LUNAR_CDN_URL = /["'`][^"'`\n]*https?:\/\/[^"'`\n]*lunar[^"'`\n]*["'`]/i;
+
+  const offenders = [];
+  let cdnScanned = 0;
+  for (const dirName of CDN_SCAN_DIRS) {
+    const dir = path.join(root, dirName);
+    if (!fs.existsSync(dir)) continue;
+    for (const file of walk(dir, [])) {
+      cdnScanned += 1;
+      const relative = path.relative(root, file).split(path.sep).join("/");
+      const lines = stripComments(fs.readFileSync(file, "utf8")).split("\n");
+      lines.forEach((line, index) => {
+        if (LUNAR_CDN_URL.test(line)) offenders.push(`${relative}:${index + 1} — ${line.trim().slice(0, 100)}`);
+      });
+    }
+  }
+  ok("①-b CDN 스캔이 실제로 소스를 읽었다(0 이면 경로가 바뀐 것)", cdnScanned >= 500, `${cdnScanned}개 파일`);
+  ok(
+    "①-b 제품 소스에 lunar-javascript CDN 로드 지점이 하나도 없다",
+    offenders.length === 0,
+    offenders.slice(0, 10).join("\n      "),
+  );
+
+  // 발견 0 이 "탐지기가 죽었다" 를 뜻하지 않도록 스텁으로 자기검사한다.
+  const probe = [
+    "  'https://cdn.jsdelivr.net/npm/lunar-javascript@latest/lunar.js',",
+    "    'https://cdn.jsdelivr.net/npm/lunar-javascript@1.7.7/lunar.min.js',",
+    '  var u = "https://unpkg.com/lunar-javascript/lunar.js";',
+  ].filter((line) => LUNAR_CDN_URL.test(line));
+  const negative = [
+    '  calculationBasis: "대운은 코어 daeun(lunar-javascript sect 1 관례 재현)",',
+    "  const core = require('../lib/korean-calendar/index.js');",
+    "  'https://cdn.jsdelivr.net/npm/astronomy-engine/esm/astronomy.js',",
+  ].filter((line) => LUNAR_CDN_URL.test(line));
+  ok(
+    "①-b 탐지기가 살아 있다(CDN URL 3종을 잡고 산문·다른 라이브러리 URL 은 안 잡는다)",
+    probe.length === 3 && negative.length === 0,
+    `양성 ${probe.length}/3 · 위양성 ${negative.length}`,
+  );
+}
 
 // ── ② 소비자를 실제로 실행한다 ──────────────────────────────────────────────
 const normalizeZiwei = loadTsModule("app/_lib/normalize-ziwei-input.ts");

@@ -15,10 +15,5 @@
     if (typeof window.updateLunarPreview !== 'function') return undefined;
     return window.updateLunarPreview(dateId, radioName, previewId);
   };
-
-  window.sajuService.retrySajuLibraryLoad = function () {
-    if (typeof window.retrySajuLibraryLoad !== 'function') return undefined;
-    return window.retrySajuLibraryLoad();
-  };
 })();
 
