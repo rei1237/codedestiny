@@ -23,7 +23,7 @@ import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { nodeTerms, solarTerms, TERM_NAME_KO } from "../lib/korean-calendar/index.js";
+import { formatPillar, ganji, nodeTerms, solarTerms, TERM_NAME_KO } from "../lib/korean-calendar/index.js";
 import { loadTsModule } from "./lib/load-ts-module.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -257,6 +257,90 @@ for (const year of SAMPLE_YEARS) {
   const after = probe(1);
   ok("③ 1990 입춘 -1분은 전년 세차(기사)·정축월", before.year.ganji === "기사" && before.month.ganji === "정축", `${before.year.ganji}/${before.month.ganji}`);
   ok("③ 1990 입춘 +1분은 당년 세차(경오)·무인월", after.year.ganji === "경오" && after.month.ganji === "무인", `${after.year.ganji}/${after.month.ganji}`);
+}
+
+// ── ④ 워커·앱 사주 엔진의 년주·월주가 節 경계에서 코어와 같이 갈린다 ────────
+//
+// 🔴 이것이 이 가드의 본론이다. ②·③ 은 절기 **시각**을 보지만, 사용자가 받는 것은 **기둥**이다.
+// 워커 엔진은 lunar-javascript EightChar 로 년·월주를 잡고 있었는데, 그 라이브러리는 생시도
+// 절기도 CST 벽시계로 보므로 월건 경계가 **정확히 60분 이르렀다**(실측 2026-08-27, 1960~2030
+// 節 경계 ±150분 창 13,632건 중 월주 5,553건 · 년주 459건 불일치, 전부 -60~-1분 구간).
+// `verify:hour-pillar-parity` 는 시주·일주만 대조해서 이걸 못 잡는다.
+{
+  const { buildSajuProfile } = await import("../worker/lib/destiny-bias-engine.js");
+
+  const KO_TO_HANJA = {
+    갑: "甲", 을: "乙", 병: "丙", 정: "丁", 무: "戊", 기: "己", 경: "庚", 신: "辛", 임: "壬", 계: "癸",
+    자: "子", 축: "丑", 인: "寅", 묘: "卯", 진: "辰", 사: "巳", 오: "午", 미: "未", 유: "酉", 술: "戌", 해: "亥",
+  };
+  // 신(辛/申)은 천간·지지에 같은 한글이 겹치므로 자리별로 변환한다.
+  const koGanjiToHanja = (ganjiKo) => {
+    const stem = String(ganjiKo || "").charAt(0);
+    const branch = String(ganjiKo || "").charAt(1);
+    return `${KO_TO_HANJA[stem] || ""}${branch === "신" ? "申" : KO_TO_HANJA[branch] || ""}`;
+  };
+
+  // 🔴 경계 자체(±0분)는 쓰지 않는다. 표가 분 해상도라 그 1분은 어느 쪽으로도 읽힐 수 있고,
+  // 가드가 잡아야 할 것은 "경계가 60분 밀렸는가" 이지 "경계 그 분에 어느 쪽인가" 가 아니다.
+  const PROBE_OFFSETS = [-61, -30, -1, 1, 30, 61];
+  // 절기 경계 근처를 전부 훑으므로 표본 연도는 셋이면 충분하다(엔진 두 벌 × 12節 × 6오프셋 × 3해).
+  const PARITY_YEARS = [1964, 1990, 2026];
+
+  let parityProbes = 0;
+  const parityRows = [];
+
+  for (const year of PARITY_YEARS) {
+    for (const node of nodeTerms(year)) {
+      for (const offset of PROBE_OFFSETS) {
+        const at = new Date(Date.UTC(node.year, node.month - 1, node.day, node.hour, node.minute) + offset * 60000);
+        const birth = {
+          year: at.getUTCFullYear(),
+          month: at.getUTCMonth() + 1,
+          day: at.getUTCDate(),
+          hour: at.getUTCHours(),
+          minute: at.getUTCMinutes(),
+        };
+
+        const core = ganji(birth);
+        if (!core) continue;
+        const expected = {
+          year: formatPillar(core.year.stemIndex, core.year.branchIndex, "hanja"),
+          month: formatPillar(core.month.stemIndex, core.month.branchIndex, "hanja"),
+        };
+
+        const worker = buildSajuProfile({
+          name: "패리티",
+          gender: "M",
+          calendarType: "solar",
+          timezone: "Asia/Seoul",
+          hourPillarTimePolicy: "KST_CLOCK_TIME",
+          birth: { ...birth, calendarType: "solar" },
+          location: { name: "서울", latitude: 37.5665, longitude: 126.978, timezone: "Asia/Seoul" },
+        });
+
+        const app = calculateLocalSaju({
+          hasTime: true,
+          calendarType: "solar",
+          timezone: "Asia/Seoul",
+          hourPillarTimePolicy: "KST_CLOCK_TIME",
+          ...birth,
+          gender: "male",
+        });
+
+        parityProbes += 1;
+        const workerPair = `${worker?.pillars?.year?.ganji || ""}/${worker?.pillars?.month?.ganji || ""}`;
+        const appPair = `${koGanjiToHanja(app?.pillars?.year?.ganji)}/${koGanjiToHanja(app?.pillars?.month?.ganji)}`;
+        const expectedPair = `${expected.year}/${expected.month}`;
+        if (workerPair !== expectedPair || appPair !== expectedPair) {
+          const stamp = `${birth.year}-${String(birth.month).padStart(2, "0")}-${String(birth.day).padStart(2, "0")} ${String(birth.hour).padStart(2, "0")}:${String(birth.minute).padStart(2, "0")} (節 ${offset >= 0 ? "+" : ""}${offset}분)`;
+          if (parityRows.length < 10) parityRows.push(`${stamp} 코어 ${expectedPair} · 워커 ${workerPair} · 앱 ${appPair}`);
+        }
+      }
+    }
+  }
+
+  ok("④ 년주·월주 패리티 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", parityProbes >= 200, `표본 ${parityProbes}건`);
+  ok("④ 節 경계 ±61분에서 워커·앱의 년주·월주가 코어와 같다", parityRows.length === 0, parityRows.join("\n      "));
 }
 
 // ── 결과 ────────────────────────────────────────────────────────────────────
