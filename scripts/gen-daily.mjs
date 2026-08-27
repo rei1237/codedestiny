@@ -7,12 +7,19 @@
 import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
-import { createRequire } from 'module';
 import { parseFortuneDate, kstIsoNow } from './lib/fortune-date.mjs';
 import { moonSkyForDate } from './lib/moon-sky.mjs';
+import {
+  BRANCH_HANJA,
+  STEM_HANJA,
+  ganji,
+  sexagenaryYearIndexes,
+  solarToLunar,
+} from '../lib/korean-calendar/index.js';
 
-const require = createRequire(import.meta.url);
-const { Solar, LunarYear } = require('lunar-javascript');
+// 🔴 음력·간지는 전부 한국 음양력 코어에서 나온다. lunar-javascript 는 중국 표준시(CST) 기준
+// 중국 음력이라 음력일이 3.7% 의 날짜에서 하루 어긋나고, 절기 시각이 60분 일러 월건 경계가 밀린다
+// (실측 2026-08-27). 이 파일은 **매일 발행되는 운세 데이터**를 만들므로 그 오차가 그대로 나간다.
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.join(__dirname, '..');
@@ -50,20 +57,28 @@ if (process.env.FORTUNE_IDEMPOTENT === '1') {
 }
 
 const [y, m, d] = dateStr.split('-').map(Number);
-const solar = Solar.fromYmd(y, m, d);
-const lunar = solar.getLunar();
-const lunarStr = `음력 ${lunar.getYear()}년 ${lunar.getMonth() < 0 ? '윤' : ''}${Math.abs(lunar.getMonth())}월 ${lunar.getDay()}일`;
-const ilchin = lunar.getDayInGanZhi();
-const yearGanji = LunarYear.fromYear(lunar.getYear()).getGanZhi() + '年';
-const nextYearGanji = LunarYear.fromYear(lunar.getYear() + 1).getGanZhi() + '年';
-const wolgeon = lunar.getMonthInGanZhiExact() + '月';
+const coreLunar = solarToLunar(y, m, d);
+// 일진·월건은 자정 기준으로 잡는다(기존 Solar.fromYmd 와 같은 시각).
+const coreGanji = ganji({ year: y, month: m, day: d, hour: 0, minute: 0 });
+if (!coreLunar || !coreGanji) {
+  console.error(`[gen-daily] 한국 음양력 코어가 ${dateStr} 를 답하지 못했습니다(지원 1900~2100).`);
+  process.exit(1);
+}
+const pillarOf = (part) => `${STEM_HANJA[part.stemIndex]}${BRANCH_HANJA[part.branchIndex]}`;
+const sexagenaryOf = (year) => pillarOf(sexagenaryYearIndexes(year));
+const lunarStr = `음력 ${coreLunar.lunarYear}년 ${coreLunar.isLeapMonth ? '윤' : ''}${coreLunar.lunarMonth}월 ${coreLunar.lunarDay}일`;
+const ilchin = pillarOf(coreGanji.day);
+const yearGanji = sexagenaryOf(coreLunar.lunarYear) + '年';
+const nextYearGanji = sexagenaryOf(coreLunar.lunarYear + 1) + '年';
+const wolgeon = pillarOf(coreGanji.month) + '月';
 const this_month = `${y}-${String(m).padStart(2, '0')}`;
 const this_year = y;
 const next_year = y + 1;
 const WEEK_EN = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 const WEEK_KR = ['일', '월', '화', '수', '목', '금', '토'];
-const varaEn = WEEK_EN[solar.getWeek()];
-const weekdayKr = WEEK_KR[solar.getWeek()];
+const weekdayIndex = new Date(Date.UTC(y, m - 1, d)).getUTCDay();
+const varaEn = WEEK_EN[weekdayIndex];
+const weekdayKr = WEEK_KR[weekdayIndex];
 const generated_at = kstIsoNow();
 const { moonSignEn, moonPhaseLabel, newMoonYmd, fullMoonYmd } = moonSkyForDate(y, m, d);
 

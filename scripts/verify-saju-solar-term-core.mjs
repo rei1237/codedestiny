@@ -15,6 +15,8 @@
  * 이 가드는 두 가지를 본다:
  *   ① 절기를 다루는 소스에 CST 애드혹 보정이 되살아나지 않았는지 — **손 목록이 아니라 전수 발견**
  *   ② 로컬 절기를 만드는 소비자 5벌이 코어와 **분 단위로 같은 12節** 을 내는지 — 실제로 실행해서
+ *   ⑤ 절기 프레임 간지를 아직 lunar-javascript 로 잡는 파일 전수 — 미분류가 있으면 실패
+ *   ⑥⑦⑧ 인생책·신년운세·주간월간 소비자를 실제로 돌려 코어와 대조
  *
  * ① 은 검사 대상이 0개면 실패한다. 발견이 0이라는 것은 규칙이 지켜졌다는 뜻이 아니라
  * 발견 방식이 깨졌다는 뜻이다(CLAUDE.md 코딩 원칙 10).
@@ -341,6 +343,210 @@ for (const year of SAMPLE_YEARS) {
 
   ok("④ 년주·월주 패리티 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", parityProbes >= 200, `표본 ${parityProbes}건`);
   ok("④ 節 경계 ±61분에서 워커·앱의 년주·월주가 코어와 같다", parityRows.length === 0, parityRows.join("\n      "));
+}
+
+// ── ⑤ 절기 프레임 간지를 아직 lunar-javascript 로 잡는 곳을 전수 발견한다 ────
+//
+// ④ 는 엔진 두 벌을 실제로 돌려 본다. ⑤ 는 그 밖에서 같은 결함이 되살아나거나 **남아 있는 것**을
+// 소스에서 전수로 세운다. 이 축의 API 는 전부 CST 벽시계로 판정하므로 KST 로는 경계가 60분 이르다.
+//
+// 🔴 손으로 적는 것은 "발견 목록"이 아니라 "잔존 분류"다. 발견은 소스에서 하고, 발견됐는데
+// 분류에 없는 파일이 하나라도 있으면 실패한다(CLAUDE.md 코딩 원칙 10). 이관이 끝나면 목록이 준다.
+{
+  const CST_GANJI_APIS = [
+    "getMonthInGanZhiExact",
+    "getMonthInGanZhi",
+    "getYearInGanZhiExact",
+    "getPrevJieQi",
+    "getNextJieQi",
+    "getEightChar",
+  ];
+
+  /**
+   * 아직 이 축을 lunar-javascript 로 잡는 것이 **알려져 있는** 파일과 그 이유.
+   * 🔴 여기에 올린다고 옳아지는 것이 아니다 — 남은 이관 목록이다. 줄어들기만 해야 한다.
+   */
+  const KNOWN_REMAINING = new Map([
+    ["js/saju-engine.js", "정적 셸 사주 — 별도 PR(PR-E 셸 구간)"],
+    ["js/saju-engine-tarot-sukuyo-quantum.js", "정적 셸 타로·숙요 — 별도 PR(PR-E 셸 구간)"],
+    ["js/luck-sync-diary.js", "정적 셸 럭싱크 다이어리 — 별도 PR(PR-E 셸 구간)"],
+    ["js/sibyl-system.js", "정적 셸 시빌 — 별도 PR(PR-E 셸 구간)"],
+    ["js/core/kasi/calendar.js", "죽은 사본 — 어느 HTML 도 로드하지 않는다(3면 grep 2026-08-27). 삭제 판단은 사용자에게"],
+    ["worker/lib/destiny-bias-engine.js", "일주·시주 전용 EightChar. 년·월주는 이미 코어다(PR-D2)"],
+    ["worker/lib/life-book-ai-saju.js", "일주·시주 전용 EightChar + 대운 getYun. 년·월주는 코어다"],
+    ["scripts/verify-korean-calendar-solar-terms.mjs", "코어와 대조하는 가드 자신 — 대조 대상이라 남아야 한다"],
+    ["scripts/verify-saju-solar-term-core.mjs", "이 파일. 위 목록의 문자열이 자기 자신에 잡힌다"],
+    ["scripts/test-saju-solar-term-regression.mjs", "회귀 대조 스크립트 — 대조 대상이라 남아야 한다"],
+    ["scripts/lib/ziwei-engine-harness.cjs", "자미 하네스의 브라우저 전역 스텁"],
+    ["scripts/ziwei-autotune-report.cjs", "미배선 튜닝 리포트"],
+    ["scripts/test-saju-regression.js", "미배선 회귀 스크립트"],
+    ["scripts/validate-phase4.mjs", "미배선 검증 스크립트"],
+  ]);
+
+  const GANJI_SCAN_DIRS = ["js", "worker", "app", "lib", "src", "scripts"];
+  const found = [];
+  const unclassified = [];
+  for (const dirName of GANJI_SCAN_DIRS) {
+    const dir = path.join(root, dirName);
+    if (!fs.existsSync(dir)) continue;
+    for (const file of walk(dir, [])) {
+      const relative = path.relative(root, file).split(path.sep).join("/");
+      const code = stripComments(fs.readFileSync(file, "utf8"));
+      const hits = CST_GANJI_APIS.filter((api) => code.includes(`${api}(`));
+      if (!hits.length) continue;
+      found.push(`${relative} — ${hits.join(", ")}`);
+      if (!KNOWN_REMAINING.has(relative)) unclassified.push(`${relative} — ${hits.join(", ")}`);
+    }
+  }
+
+  ok(
+    "⑤ 절기 프레임 간지 호출을 실제로 발견했다(발견 0 = 가드가 깨진 것)",
+    found.length >= 5,
+    `발견 ${found.length}개`,
+  );
+  ok(
+    "⑤ 발견된 파일이 전부 잔존 분류에 있다(미분류 = 새로 생긴 것)",
+    unclassified.length === 0,
+    unclassified.join("\n      "),
+  );
+
+  // 잔존 목록이 늘어나기만 하는 것을 막는다 — 실제로 존재하지 않는 파일을 올려 두면 실패한다.
+  const stale = [...KNOWN_REMAINING.keys()].filter((relative) => !fs.existsSync(path.join(root, relative)));
+  ok("⑤ 잔존 분류에 유령 경로가 없다", stale.length === 0, stale.join(", "));
+}
+
+// ── ⑥ 워커 AI 사주 두 벌(인생책·신년운세)의 년주·월주가 節 경계에서 코어를 따른다 ──
+//
+// ④ 가 보는 destiny-bias-engine·앱 엔진과 **다른 파일**이다. 이 둘은 EightChar 가 아니라
+// `getYearInGanZhi()`/`getMonthInGanZhi()` 를 직접 불러서 ④ 의 grep 에 안 걸렸다.
+// 🔴 신년운세의 년주는 그 위에 **음력 프레임(설날 경계)** 이기까지 했다 — 사주는 입춘 경계다
+// (실측 2026-08-27: 정오 표본 6,804건 중 129건 1.90% 가 갈렸다).
+{
+  const { calculateLifeBookAiSaju } = await import("../worker/lib/life-book-ai-saju.js");
+  const { __newYearAiTestUtils } = await import("../worker/routes/new-year-ai.js");
+  const { calculateNewYearFortuneData } = __newYearAiTestUtils;
+
+  const HANJA_TO_KO = {
+    甲: "갑", 乙: "을", 丙: "병", 丁: "정", 戊: "무", 己: "기", 庚: "경", 辛: "신", 壬: "임", 癸: "계",
+    子: "자", 丑: "축", 寅: "인", 卯: "묘", 辰: "진", 巳: "사", 午: "오", 未: "미", 申: "신", 酉: "유", 戌: "술", 亥: "해",
+  };
+  const toKo = (value) => String(value || "").split("").map((c) => HANJA_TO_KO[c] || c).join("");
+
+  const OFFSETS = [-61, -30, -1, 1, 30, 61];
+  const YEARS = [1964, 1990, 2026];
+  let probes = 0;
+  const rows = [];
+
+  for (const year of YEARS) {
+    for (const node of nodeTerms(year)) {
+      for (const offset of OFFSETS) {
+        const at = new Date(Date.UTC(node.year, node.month - 1, node.day, node.hour, node.minute) + offset * 60000);
+        const y = at.getUTCFullYear();
+        const m = at.getUTCMonth() + 1;
+        const d = at.getUTCDate();
+        const hh = at.getUTCHours();
+        const mm = at.getUTCMinutes();
+        const core = ganji({ year: y, month: m, day: d, hour: hh, minute: mm });
+        if (!core) continue;
+        const expected = `${formatPillar(core.year.stemIndex, core.year.branchIndex, "hanja")}/${formatPillar(core.month.stemIndex, core.month.branchIndex, "hanja")}`;
+
+        const birthDate = `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
+        const birthTime = `${String(hh).padStart(2, "0")}:${String(mm).padStart(2, "0")}`;
+
+        const lifeBook = calculateLifeBookAiSaju({ birthDate, birthTime, calendarType: "solar", gender: "male" });
+        const lifeBookPair = `${lifeBook?.pillarDetails?.year?.pillar || ""}/${lifeBook?.pillarDetails?.month?.pillar || ""}`;
+
+        const newYear = calculateNewYearFortuneData({
+          targetYear: 2026,
+          birthInfo: { birthDate, birthTime, calendarType: "solar", gender: "male" },
+        });
+        const newYearPair = `${newYear?.saju?.yearPillar || ""}/${newYear?.saju?.monthPillar || ""}`;
+
+        probes += 1;
+        if (lifeBookPair !== expected || newYearPair !== toKo(expected)) {
+          const stamp = `${birthDate} ${birthTime} (節 ${offset >= 0 ? "+" : ""}${offset}분)`;
+          if (rows.length < 10) rows.push(`${stamp} 코어 ${expected} · 인생책 ${lifeBookPair} · 신년운세 ${newYearPair}`);
+        }
+      }
+    }
+  }
+
+  ok("⑥ 인생책·신년운세 패리티 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", probes >= 200, `표본 ${probes}건`);
+  ok("⑥ 節 경계 ±61분에서 인생책·신년운세의 년주·월주가 코어와 같다", rows.length === 0, rows.join("\n      "));
+}
+
+// ── ⑦ 인생책의 년·월주 파생 필드가 기둥과 같은 축에 있다 ─────────────────────
+//
+// 년·월주는 코어(KST)에서 오는데 納音·旬空·十二運星·지지 십신은 lunar-javascript 의 EightChar 가
+// **CST 기둥**에 붙여 만든 값이었다. 두 기둥이 같은 날짜에서는 파생 필드도 같아야 한다 —
+// 다르면 다리(pillarFacts)가 EightChar 를 재현하지 못한다는 뜻이고, 갈리는 60분 창에서
+// 한 응답에 두 축이 섞인다.
+{
+  const { Solar } = await import("lunar-javascript");
+  const { calculateLifeBookAiSaju } = await import("../worker/lib/life-book-ai-saju.js");
+
+  let compared = 0;
+  const mismatches = [];
+  for (const year of [1955, 1978, 1990, 2003, 2019]) {
+    for (let month = 1; month <= 12; month += 1) {
+      for (const day of [9, 21]) {
+        const birthDate = `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+        const eightChar = Solar.fromYmdHms(year, month, day, 10, 30, 0).getLunar().getEightChar();
+        const result = calculateLifeBookAiSaju({ birthDate, birthTime: "10:30", calendarType: "solar", gender: "female" });
+        for (const key of ["year", "month"]) {
+          const detail = result?.pillarDetails?.[key];
+          const prefix = key === "year" ? "Year" : "Month";
+          // 이 날짜들은 節 경계에서 멀어 코어와 lunar-javascript 의 기둥이 같다. 같지 않으면 비교 대상이 아니다.
+          if (!detail || detail.pillar !== eightChar[`get${prefix}`]()) continue;
+          compared += 1;
+          const actual = [detail.naYin, detail.xun, detail.xunKong, detail.twelveStage, detail.elementPair].join("|");
+          const expected = [
+            eightChar[`get${prefix}NaYin`](),
+            eightChar[`get${prefix}Xun`](),
+            eightChar[`get${prefix}XunKong`](),
+            eightChar[`get${prefix}DiShi`](),
+            eightChar[`get${prefix}WuXing`](),
+          ].join("|");
+          if (actual !== expected && mismatches.length < 8) {
+            mismatches.push(`${birthDate} ${key} 기둥 ${detail.pillar} — 다리 ${actual} · EightChar ${expected}`);
+          } else if (actual !== expected) {
+            mismatches.push("…");
+          }
+        }
+      }
+    }
+  }
+
+  ok("⑦ 파생 필드 비교 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", compared >= 100, `표본 ${compared}건`);
+  ok("⑦ 코어 기둥에서 만든 파생 필드가 EightChar 의 것과 같다", mismatches.length === 0, mismatches.join("\n      "));
+}
+
+// ── ⑧ 주간·월간 운세 범위 데이터가 코어를 따른다 ────────────────────────────
+//
+// `/fortune` 월간 화면은 절기 이름을 **그대로 사용자에게 보여준다**. 예전에는 lunar-javascript 가
+// 내는 중국 간체(处暑·白露)가 한국어 화면에 나갔고, 절기 날짜도 CST 라 하루 어긋나는 달이 있었다
+// (실측 2026-08-27: 2026 우수 = lj 02-18 23:51 vs 코어 02-19 00:52).
+{
+  const rangeData = await loadTsModule("lib/fortune/range-data.ts");
+  const month = rangeData.loadMonthRange();
+  const [ay, am, ad] = String(month.anchorYmd).split("-").map(Number);
+  const anchorCore = ganji({ year: ay, month: am, day: ad, hour: 0, minute: 0 });
+
+  ok(
+    "⑧ 월간 월건이 코어와 같다",
+    Boolean(anchorCore) && month.monthGanji === formatPillar(anchorCore.month.stemIndex, anchorCore.month.branchIndex, "hanja"),
+    `월건 ${month.monthGanji} · 앵커 ${month.anchorYmd}`,
+  );
+  ok(
+    "⑧ 절기 이름이 코어의 한글 표기다(중국 간체가 화면에 나가지 않는다)",
+    [month.termFrom, month.termTo].every((term) => !term || TERM_NAME_KO.includes(term.name)),
+    `termFrom=${month.termFrom?.name || "-"} termTo=${month.termTo?.name || "-"}`,
+  );
+  ok(
+    "⑧ 일별 간지를 실제로 채웠다",
+    Array.isArray(month.days) && month.days.length >= 28 && month.days.every((day) => Array.from(String(day.ganji || "")).length === 2),
+    `일수 ${month.days?.length || 0}`,
+  );
 }
 
 // ── 결과 ────────────────────────────────────────────────────────────────────

@@ -10,8 +10,17 @@
  * 여기서 만드는 값은 전부 날짜에서 직접 계산한다. 일일 패키지를 그 기간만큼 생성할
  * 필요가 없다 — 필요한 것은 각 날짜의 간지와 달의 위치이고, 둘 다 순수 계산이다.
  */
-// lib/sukuyo-calendar.ts:3 과 같은 방식으로 가져온다(CJS 패키지지만 Next 가 처리한다).
-import { Solar } from "lunar-javascript";
+// 🔴 간지·절기는 한국 음양력 코어에서만 나온다. lunar-javascript 는 중국 표준시(CST) 기준이라
+// 절기 시각이 정확히 60분 이르고, 그 탓에 "기운이 바뀌는 날"이 하루 어긋나는 달이 있다
+// (실측 2026-08-27: 2026 우수 = lj 02-18 23:51 vs 코어 02-19 00:52).
+// 절기 이름도 그 라이브러리는 중국 간체(处暑·白露)를 내보내 한국어 화면에 그대로 나가고 있었다.
+import {
+  BRANCH_HANJA,
+  STEM_HANJA,
+  TERM_NAME_KO,
+  ganji,
+  solarTerms,
+} from "@/lib/korean-calendar";
 // 달의 궁·위상은 scripts/lib/moon-sky.mjs 가 astronomy-engine 으로 실계산한다.
 // 같은 계산을 여기 다시 쓰지 않는다(코딩 원칙 6).
 import { moonSkyForDate } from "@/scripts/lib/moon-sky.mjs";
@@ -78,19 +87,45 @@ function ymdOf(y: number, m: number, d: number): string {
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
 
-/** 간지에서 뒤에 붙는 "月"·"年" 같은 꼬리를 떼고 2글자만 남긴다 */
-function bareGanji(value: string): string {
-  return Array.from(String(value || "").trim()).slice(0, 2).join("");
+type CoreTerm = { index: number; year: number; month: number; day: number };
+
+/** 코어가 그 날짜를 답하지 못하면 조용히 중국 달력으로 떨어지지 않고 멈춘다. */
+function coreGanjiAtMidnight(y: number, m: number, d: number) {
+  const core = ganji({ year: y, month: m, day: d, hour: 0, minute: 0 });
+  if (!core) throw new RangeError(`한국 음양력 코어가 ${ymdOf(y, m, d)} 를 답하지 못했습니다(지원 1900~2100).`);
+  return core;
+}
+
+function pillarHanja(part: { stemIndex: number; branchIndex: number }): string {
+  return `${STEM_HANJA[part.stemIndex]}${BRANCH_HANJA[part.branchIndex]}`;
+}
+
+/**
+ * 앵커 날짜(민용일) 기준 직전·직후 24절기.
+ * 🔴 예전 `getPrevJieQi(true)` 와 같이 **그날에 든 절기는 "직전"으로 친다**.
+ * 해 경계를 넘을 수 있어 전후 해를 함께 늘어놓는다(코어의 한 해 절기는 그 양력 해 안에 닫힌다).
+ */
+function surroundingTerms(y: number, m: number, d: number): { prev: CoreTerm | null; next: CoreTerm | null } {
+  const anchor = Date.UTC(y, m - 1, d);
+  let prev: CoreTerm | null = null;
+  let next: CoreTerm | null = null;
+  for (const year of [y - 1, y, y + 1]) {
+    for (const term of solarTerms(year) || []) {
+      const at = Date.UTC(term.year, term.month - 1, term.day);
+      if (at <= anchor) prev = term;
+      else if (!next) next = term;
+    }
+  }
+  return { prev, next };
 }
 
 function buildDayCell(y: number, m: number, d: number): DayCell {
-  const solar = Solar.fromYmd(y, m, d);
-  const lunar = solar.getLunar();
+  const core = coreGanjiAtMidnight(y, m, d);
   const sky = moonSkyForDate(y, m, d);
   return {
     ymd: ymdOf(y, m, d),
-    weekdayKo: WEEKDAY_KO[solar.getWeek()],
-    ganji: bareGanji(lunar.getDayInGanZhi()),
+    weekdayKo: WEEKDAY_KO[new Date(Date.UTC(y, m - 1, d)).getUTCDay()],
+    ganji: pillarHanja(core.day),
     moonSign: sky.moonSignEn,
     moonPhase: sky.moonPhaseLabel,
   };
@@ -113,7 +148,7 @@ export function loadWeekRange(): WeekRange {
   return { start: days[0].ymd, end: days[6].ymd, days };
 }
 
-/** KST 기준 이번 달. 월건·절기는 lunar-javascript 의 실계산 값이다. */
+/** KST 기준 이번 달. 월건·절기는 한국 음양력 코어(KST)의 값이다. */
 export function loadMonthRange(): MonthRange {
   const { y, m, d } = kstToday();
   const lastDay = new Date(Date.UTC(y, m, 0)).getUTCDate();
@@ -123,26 +158,19 @@ export function loadMonthRange(): MonthRange {
     days.push(buildDayCell(y, m, day));
   }
 
-  const anchorSolar = Solar.fromYmd(y, m, d);
-  const anchorLunar = anchorSolar.getLunar();
+  const anchorCore = coreGanjiAtMidnight(y, m, d);
   const sky = moonSkyForDate(y, m, d);
 
   // 🔴 절기는 일일 패키지의 calendar.current_jeolgi 를 쓰지 않는다 —
   //    그 값은 "절기 전환기 · 기운 정돈" 고정 문자열이라 매달 같다(실측).
-  const prev = anchorLunar.getPrevJieQi(true);
-  const next = anchorLunar.getNextJieQi(true);
-  const toTerm = (jq: unknown) => {
-    if (!jq || typeof jq !== "object") return null;
-    const item = jq as { getName?: () => string; getSolar?: () => { toYmd?: () => string } };
-    const name = item.getName?.();
-    const ymd = item.getSolar?.()?.toYmd?.();
-    return name && ymd ? { name, ymd } : null;
-  };
+  const { prev, next } = surroundingTerms(y, m, d);
+  const toTerm = (term: CoreTerm | null) =>
+    term ? { name: TERM_NAME_KO[term.index], ymd: ymdOf(term.year, term.month, term.day) } : null;
 
   return {
     year: y,
     month: m,
-    monthGanji: bareGanji(anchorLunar.getMonthInGanZhiExact()),
+    monthGanji: pillarHanja(anchorCore.month),
     termFrom: toTerm(prev),
     termTo: toTerm(next),
     newMoonYmd: sky.newMoonYmd,

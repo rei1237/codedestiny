@@ -1,8 +1,9 @@
 # 한국 음양력 코어 마이그레이션 인수인계 — 2026-08-27
 
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
-> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2)까지 끝났다.
-> 남은 것은 **나머지 소비자(PR-E) · lunar-javascript 제거(PR-F)** 다.
+> 🟢 코어(PR-B) · 자미두수 3엔진(PR-C) · 사주 절기(PR-D) · 워커 사주(PR-D2) · 남은 절기 프레임(PR-E1)까지 끝났다.
+> 남은 것은 **숙요(PR-E2) · 낙샤트라(PR-E3) · 나머지 음력 변환(PR-E4) · 정적 셸(PR-E5) · lunar-javascript 제거(PR-F)** 다.
+> 🔴 다음 세션은 `verify:saju-solar-term-core` 검사 ⑤ 의 `KNOWN_REMAINING` 목록을 먼저 열어라 — 남은 일이 거기 적혀 있다.
 
 ## 0. 왜 하는 작업인가 — 사용자 요구 원문
 
@@ -39,7 +40,8 @@
 | **#1170** | 이 문서를 담은 PR — 한국 음양력 코어 신설 | **머지됨** `cc22b4520` |
 | **#1176** | 자미두수 3엔진을 코어로 + 하드코딩 시드 3곳 제거 | **머지됨** `afd219b6f` |
 | **#1179** | 사주 절기 경계 5곳을 코어로 + 표 분 반올림 + `verify:saju-solar-term-core` | **머지됨** `8aa5da6d9` |
-| **#1181** | 워커 사주 년·월주를 코어로(월건 경계 60분 정정) + 가드 검사 ④ | `feat/worker-saju-korean-calendar` (base `8aa5da6d9`) |
+| **#1181** | 워커 사주 년·월주를 코어로(월건 경계 60분 정정) + 가드 검사 ④ | **머지됨** `d854ccf1d` |
+| **#1183** | 남은 절기 프레임 소비자 6곳 + 가드 검사 ⑤⑥⑦⑧ | `feat/consumers-korean-calendar` (base `d854ccf1d`) |
 
 🔴 #1170 은 `.github/workflows/pr-ci.yml` 에서 한 번 충돌했다. #1167(섬 가드)과 이 PR(달력 가드 5종)이
 **같은 앵커(`run: npm run verify:ziwei-star-parity`) 뒤에** 각자 블록을 넣어서다. 의미 충돌이 아니므로
@@ -289,10 +291,84 @@ PR-F 로 `getYun` 을 지울 때 반드시 같이 결정해야 한다 — 핸드
 브라우저 타임존이 KST 가 아니면 그 비교가 최대 시차만큼 어긋나 입춘 경계 판정이 틀린다.
 CST 문제와는 다른 축(브라우저 타임존)이라 이번 범위 밖으로 뒀다. **재현은 `TZ=UTC` 로 셸 서비스를 평가하면 된다.**
 
-### PR-E — 나머지 소비자
+### 🟢 PR-E1 — 남은 절기 프레임 소비자 (끝)
 
-숙요·베다/낙샤트라·구성기학·당사주·휴먼디자인·오늘의운세 등. `lunar-javascript` import 는 **35개 파일**이다.
-숙요·낙샤트라는 음력일이 직접 입력이라 4.08% 밴드가 그대로 결과 이동으로 나타난다.
+브랜치 `feat/consumers-korean-calendar`, base `d854ccf1d`, **PR #1183**.
+
+🔴 **PR-D2 의 "전수 grep" 이 불완전했다.** `git grep "getEightChar"` 만 해서 `getMonthInGanZhi*` ·
+`getYearInGanZhiExact` 를 **직접 부르는 곳**과 `js/saju-engine.js` 의 자리 7곳 · `js/sibyl-system.js:900`
+을 놓쳤다. 이번에 정규식을 `getEightChar|getMonthInGanZhi|getYearInGanZhiExact|getPrevJieQi|getNextJieQi`
+로 넓혀 다시 세웠고, 그 발견을 **가드 검사 ⑤** 로 고정했다(손 목록이 아니라 소스에서 전수 발견).
+
+| 파일 | 한 것 |
+|---|---|
+| `worker/lib/life-book-ai-saju.js` | 년주·월주·세운 세차 → 코어. **파생 필드를 코어 기둥에서 다시 뽑는다**(아래 ㄱ). 대운 간지는 코어 월주에 재앵커 |
+| `worker/routes/new-year-ai.js` | 월주·세운·월운 → 코어. **년주 프레임 교정**(아래 ㄴ). `parseDateParts` 에 1900~2100 범위 검사 추가 |
+| `lib/fortune/range-data.ts` | 일진·월건·24절기 → 코어. 절기 이름 **중국 간체 → 한글**(아래 ㄷ) |
+| `worker/routes/fortune-today.js` · `worker/routes/rpg.js` | 정오 일주 → 코어. **값 불변**(표본 7,224건 불일치 0) |
+| `scripts/gen-daily.mjs` | 매일 발행 달력 블록 전부 코어. 고아가 된 `createRequire` 제거 |
+| `scripts/verify-saju-solar-term-core.mjs` | 검사 ⑤⑥⑦⑧ 신설. **41건 → 51건** |
+
+**실측 값 이동(2026-08-27)**
+- `gen-daily` 2024~2028 1,827일 — 음력 표기 **90일(4.93%)** · 월건 3 · 세차 2 · **일진 0**
+- `range-data` 2024~2028 60개월 — 절기 날짜 **3개월(5.00%)** · 월건 0 · 이름은 전 개월
+  (예: 2025-12 `12-21 冬至` → `12-22 동지`, 2026-02 `02-18 雨水` → `02-19 우수`)
+
+#### (ㄱ) 🔴 파생 필드가 기둥과 다른 축에 있었다
+
+`buildPillarDetail` 은 納音·旬·旬空·十二運星·지지 십신을 **eightChar 에서** 가져온다. 그 값들은
+lunar-javascript 가 **CST 절기로 잡은 기둥**에 붙어 있어서, 년·월주만 코어로 바꾸면 갈리는 60분 창에서
+**한 응답 안에 두 축이 섞인다.** 새 `pillarFacts(key, pillar, dayStem)` 이 `LunarUtil` 의 **문자열 조회**
+(`NAYIN`·`getXun`·`getXunKong`·`ZHI_HIDE_GAN`·`SHI_SHEN`·`CHANG_SHENG`)로 같은 값을 코어 기둥에서 만든다.
+🔴 **十二運星만 계산이다** — `CHANG_SHENG_OFFSET[일간] ± 지지인덱스`, 부호는 일간 인덱스의 짝수/홀수다.
+가드 검사 ⑦ 이 기둥이 같은 날짜 120건에서 `EightChar` 와 전건 대조한다.
+
+#### (ㄴ) 🔴 신년운세 년주가 음력 프레임이었다
+
+`getYearInGanZhi()` 는 **설날 경계**다. 그런데 그 아래는 격국·용신·십신을 뽑는 **사주** 계산이고
+사주 년주는 **입춘 경계**다. 실측: 정오 표본 6,804건(1950~2030) 중 **129건(1.90%)** 이 갈렸고
+전부 설날~입춘 구간이다(예: 1950-02-11 음력프레임 己丑 vs 절기프레임 庚寅).
+`life-book-ai-saju.js` 는 같은 자리에서 `getYearInGanZhiExact()` 를 써서 **두 엔진이 서로 달랐다.**
+사용자 확인을 받고 절기 프레임으로 통일했다.
+
+#### (ㄷ) `/fortune` 월간 화면이 중국 간체를 보여주고 있었다
+
+`termFrom.name` 이 `build-view.ts:265` 에서 그대로 렌더된다. 실측한 출력은 `处暑`·`白露`·`惊蛰`·`清明`
+등 **24종 전부 간체**였다. 코어의 `TERM_NAME_KO` 로 바꿨다(사용자 확인). 12개 로케일 템플릿의
+`{termText}` 에 보간되므로 비한국어 화면에도 한글이 나간다 — 이전에는 거기에 간체가 나갔다.
+
+#### 🔴 일부러 안 건드린 것 — 일주·시주의 야자시 축
+
+코어 기본값 `shift-day`(23시대 = 다음 날 일진)와 lunar-javascript `getDayInGanZhi()`(그 날 일진)가
+**정면으로 갈린다** — 실측 23:30 표본 **540/540 불일치**. 반면 0·1·6·12·18·22시는 전부 0/540 일치이고
+**시주는 23시대에서도 0/540 일치**한다. 즉 lunar-javascript 는 일주는 안 바꾸고 시주만 다음날 간으로
+뽑는다. 이 축을 정하면 23시대 출생자 **전원의 일주가 하루 움직인다.**
+🔴 **PR-F 에서 대운 나이 관례(§PR-D2)와 함께 결정해야 한다.**
+
+#### 검사 ⑤ — 잔존 목록이 줄어들기만 하게 만드는 장치
+
+`js`·`worker`·`app`·`lib`·`src`·`scripts` 에서 CST 프레임 간지 API 호출을 **전수 발견**하고,
+발견됐는데 `KNOWN_REMAINING` 에 없으면 실패한다. 발견 0이면 실패, 유령 경로도 실패.
+**다음 PR 은 이 목록에서 줄을 지우는 것이 곧 완료 조건이다.**
+
+음성 테스트 7종 전부 빨간불 확인(복원은 메모리 버퍼).
+
+🔴 이 PR 도 `verify:sitemap-drift` 에 걸렸다 — `lib/fortune/range-data.ts` 가 `/fortune` 라우트 산출물을
+바꾸기 때문이다. `npm run sitemap:generate` 산출물(원장 50개 갱신)을 같은 커밋에 담아 해소했다.
+
+### PR-E2~E5 — 나머지 소비자
+
+`lunar-javascript` 실 import 는 **40곳**(2026-08-27 `git grep`, `public/**` 제외). 도메인별로 나뉜다.
+
+| 묶음 | 파일 | 축 | 비고 |
+|---|---|---|---|
+| **E2 숙요** | `lib/sukuyo-calendar.ts` · `lib/sukuyo-engine-server.ts` · `worker/lib/guardian-fortune/adapters/sukuyo.js` · `worker/routes/sukuyo.js`(4곳) · `worker/routes/sukuyo-compatibility-ai.js` · `worker/routes/fortune-tea-house.js` · `worker/routes/fortune-today.js`(144·309) · `app/fortune/prompt-hub/sukuyo-prompt-facts.ts` · `app/destiny-compass/_engine/adapters/sukuyoAdapter.ts` · `src/features/fortune-tea-house/lib/sukuyoCompatibilityAdapter.ts` | 음력일 | 27수가 음력 월·일로 직접 결정돼 **3.69% 밴드가 그대로 결과 이동** |
+| **E3 낙샤트라·베다** | `worker/routes/nakshatra.js` · `nakshatra-ai.js` · `nakshatra-premium.js`(3곳) · `app/destiny-compass/_engine/adapters/vedicAdapter.ts` | 음력일 | 같음 |
+| **E4 나머지 음력 변환** | `app/_lib/normalize-ziwei-input.ts` · `app/fortune/prompt-hub/{dangsaju-calc,kusei-calc,lite-prompt-tools}.ts` · `app/saju/animal-destiny/engine/localSajuCalculator.ts` · `worker/lib/human-design-ephemeris.js` · `worker/lib/karma-destiny-ai-calculations.js` · `worker/lib/love-secret-ai-calendar.js` · `worker/routes/admin.js` | 음력↔양력 | `Lunar.fromYmd(y, leap?-m:m, d).getSolar()` 꼴이 대부분 — `lunarToSolar` 로 |
+| **E5 정적 셸** | `js/saju-engine.js` · `js/saju-engine-tarot-sukuyo-quantum.js` · `js/luck-sync-diary.js` · `js/sibyl-system.js` | 절기 프레임 | 🔴 `sync:public` 이 캐시키를 돌려 미러 22개가 딸려온다 |
+
+**판정 도구는 그대로다** — 고정값 날짜에 `node scripts/verify-korean-calendar-divergence.mjs --explain <날짜>`
+를 먼저 돌려 밴드 안/밖 표를 만들고 나서 고친다.
 
 ### PR-F — lunar-javascript 제거
 
