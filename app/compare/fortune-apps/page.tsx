@@ -31,7 +31,7 @@ import { buildBreadcrumbJsonLd, buildFaqPageJsonLd, buildWebPageJsonLd } from "@
 const PATH = "/compare/fortune-apps";
 const TITLE = "운세 앱마다 답이 다른 이유 | 점신·포스텔러·헬로우봇 비교";
 const DESCRIPTION =
-  "점신, 포스텔러, 헬로우봇처럼 많이 쓰는 운세 앱에서 같은 생년월일로 서로 다른 답이 나오는 이유를 사주·타로·점성술이 각각 무엇에 답하는 체계인지로 정리하고, 갈린 해석을 읽는 방법을 안내합니다.";
+  "점신, 포스텔러, 헬로우봇처럼 많이 쓰는 운세 앱이 같은 생년월일에 서로 다른 답을 내는 이유를 사주·타로·점성술이 각각 무엇에 답하는 체계인지로 정리합니다.";
 
 export function generateMetadata() {
   return generatePageMetadata({

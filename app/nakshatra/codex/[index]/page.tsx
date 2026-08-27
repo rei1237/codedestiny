@@ -6,7 +6,7 @@ import { getFusionBySukuyo } from "@/constants/nakshatra-fusion";
 import { SUKUYO_MANSIONS } from "@/worker/lib/sukuyo-premium.js";
 import { GRAHA_KO } from "@/worker/lib/vedic-derived-calculations.js";
 import { buildBreadcrumbJsonLd } from "@/lib/structured-data";
-import { truncateToDisplayWidth } from "@/lib/seo";
+import { SEO_DESCRIPTION_WIDTH_LIMIT, seoDisplayWidth, truncateToDisplayWidth } from "@/lib/seo";
 import { siteSeo } from "@/lib/seo/siteSeo";
 
 export const dynamicParams = false;
@@ -36,15 +36,35 @@ function resolve(indexParam: string) {
   return { idx, suk, cross, attrs, fusion };
 }
 
+/**
+ * convergence 는 문장이 여러 개다. 폭에서 그냥 끊는 공통 절단(truncateToDisplayWidth)에 맡기면
+ * 문장이 중간에서 끝나고 `…` 가 붙는다 — 2026-08-27 실측으로 이 라우트 27개가 전부 그랬다.
+ * 그래서 한계 안에 **온전히 들어오는 마지막 문장**까지만 쓴다.
+ *
+ * 🔴 공용 truncateToDisplayWidth 를 고치지 않는다 — 그 함수는 buildSeoMetadata 를 통해 라우트
+ *    43개가 공유하므로, 절단 방식을 바꾸면 이 작업 범위 밖의 설명까지 전부 움직인다.
+ * 접두부 한 문장만 남는 경우는 너무 짧아 설명 구실을 못 하므로 null 을 돌려 공통 절단에 맡긴다.
+ */
+function toLastCompleteSentence(text: string): string | null {
+  const sentences = text.match(/[^.!?]+[.!?]+\s*/g) || [];
+  let taken = 0;
+  let out = "";
+  for (const sentence of sentences) {
+    if (seoDisplayWidth((out + sentence).trim()) > SEO_DESCRIPTION_WIDTH_LIMIT) break;
+    out += sentence;
+    taken += 1;
+  }
+  return taken >= 2 ? out.trim() : null;
+}
+
 export function generateMetadata({ params }: { params: { index: string } }) {
   const r = resolve(params.index);
   if (!r) return {};
   const title = `${r.suk.nameKo}수(${r.suk.nameHan}) · ${r.attrs.nameKo} | 나크샤트라 결정판 27수 도감`;
   // 이 페이지는 buildSeoMetadata 를 거치지 않고 metadata 를 직접 조립한다 — 폭 절단도 여기서 한다.
   // 예전에는 convergence 를 90**자**로 잘랐는데, 접두부까지 더하면 폭이 207~242 로 나갔다(2026-08-27 실측).
-  const description = truncateToDisplayWidth(
-    `동양 ${r.suk.nameKo}수(${r.suk.nameHan})와 인도 나크샤트라 ${r.attrs.nameKo}(${r.attrs.nameEn})의 통합 해설. ${r.fusion?.convergence || ""}`,
-  );
+  const summary = `동양 ${r.suk.nameKo}수(${r.suk.nameHan})와 인도 나크샤트라 ${r.attrs.nameKo}(${r.attrs.nameEn})의 통합 해설. ${r.fusion?.convergence || ""}`;
+  const description = toLastCompleteSentence(summary) || truncateToDisplayWidth(summary);
   const path = `/nakshatra/codex/${r.idx}`;
   return {
     metadataBase: new URL(siteSeo.siteUrl),
