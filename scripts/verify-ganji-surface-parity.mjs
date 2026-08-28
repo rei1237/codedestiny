@@ -613,6 +613,73 @@ for (const tz of TZ_MATRIX.slice(1)) {
   );
 }
 
+// ── ④ 부품 진입점이 Date 진입점과 같은 값을 낸다 ──────────────────
+//
+// PR-C 가 심은 정본(parts)과 그 위에 남긴 어댑터(Date)가 **같은 것**임을 전 표본에서 본다.
+// 픽스처는 Date 갈래만 찍히므로, 이 검사가 없으면 **부품 갈래가 통째로 깨져도 전부 초록불이다** —
+// PR-D 가 호출부 22곳을 그 갈래로 옮겨담을 토대라 미리 고정해 둔다.
+//
+// 🔴 계측도 같이 본다 — 부품을 넣었을 때 로컬 Date 독출 카운터가 **한 칸도 안 올라가야** 한다.
+// 그것이 "부품 경로는 로컬 Date 를 안 만든다"의 유일한 실측 증거고, PR-E 가 그 카운터를 0 으로
+// 증명해 Date 진입점을 지운다.
+{
+  const svc = win.KasiCalendarService;
+  const eng = win.KasiEngine;
+  ok(
+    "④ 부품 진입점 3베가 전부 함수다",
+    typeof svc.computeGanjiFromParts === "function"
+      && typeof eng.getGanjiFromParts === "function"
+      && typeof eng.solarToLunarFromParts === "function",
+    `computeGanjiFromParts=${typeof svc.computeGanjiFromParts}`
+    + ` getGanjiFromParts=${typeof eng.getGanjiFromParts}`
+    + ` solarToLunarFromParts=${typeof eng.solarToLunarFromParts}`,
+  );
+
+  const reads = win.__CD_GANJI_LOCAL_DATE_READS__;
+  ok("④ 로컬 Date 독출 카운터가 살아 있다", !!reads && typeof reads.count === "number", String(reads && reads.count));
+
+  const lunarOf = (l) => (l ? `${l.year}-${pad2(l.month)}-${pad2(l.day)}${l.isLeap ? "L" : ""}` : null);
+  const diff = [];
+  let compared = 0;
+  let partsReads = 0;
+  for (const sample of SAMPLES) {
+    const at = sample.at;
+    const d = new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0);
+    // 🔴 서머타임 구멍에서는 두 갈래가 **달라야 정상**이다(Date 가 접힌다). 그건 ②③ 가 센다.
+    if (d.getFullYear() !== at.year || d.getMonth() + 1 !== at.month || d.getDate() !== at.day
+      || d.getHours() !== at.hour || d.getMinutes() !== at.minute) continue;
+    const parts = { year: at.year, month: at.month, day: at.day, hour: at.hour, minute: at.minute, second: 0 };
+    const before = reads.count;
+    const viaParts = [
+      pill(svc.computeGanjiFromParts(parts)),
+      pill(svc.computeGanjiFromParts(parts, termsFor(at.year))),
+      pill(eng.getGanjiFromParts(parts)),
+      pill(eng.getGanjiFromParts(parts, { yaja: false })),
+      lunarOf(eng.solarToLunarFromParts(parts)),
+    ].join("\t");
+    partsReads += reads.count - before;
+    const viaDate = [
+      pill(svc.computeGanjiFromDate(new Date(d.getTime()))),
+      pill(svc.computeGanjiFromDate(new Date(d.getTime()), termsFor(at.year))),
+      pill(eng.getGanji(new Date(d.getTime()))),
+      pill(eng.getGanji(new Date(d.getTime()), { yaja: false })),
+      lunarOf(eng.solarToLunar(new Date(d.getTime()))),
+    ].join("\t");
+    compared += 1;
+    if (viaParts !== viaDate) diff.push(`${sample.key}\n        parts ${viaParts}\n        date  ${viaDate}`);
+  }
+  ok("④ 대조 표본이 남아 있다(0 이면 가드가 깨진 것)", compared >= 600, `${compared}건`);
+  ok(
+    "④ 🔴 부품 진입점과 Date 진입점이 전건 같다",
+    diff.length === 0,
+    `${diff.length}건 다름\n      ${diff.slice(0, 3).join("\n      ")}`,
+  );
+  ok(
+    "④ 🔴 부품 경로는 로컬 Date 를 한 번도 안 읽는다",
+    partsReads === 0,
+    `부품 호출 중 Date 독출 ${partsReads}회 — 부품 갈래 어딘가에 로컬 Date 가 남아 있다`,
+  );
+}
 // 🔴 PR-D 의 졸업 조건. **지금은 요구하지 않는다** — 그것이 이 가드가 저울인 이유다.
 if (REPORT && census) {
   const total = TZ_MATRIX.reduce((sum, tz) => sum + ((census.gaps || {})[tz] || 0), 0);

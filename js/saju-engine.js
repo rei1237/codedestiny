@@ -900,14 +900,63 @@ function rememberKasiCalendarReference(reference) {
   return true;
 }
 
+/**
+ * 🔴 로컬 Date 를 읽는 지점은 이 파일에서 여기 하나다(다른 하나는 js/core/kasi-calendar-service.js
+ * 의 같은 이름). Date 를 받던 진입점의 하위 호환을 위해서만 살아 있고, PR-E 가 그것들을 지울
+ * 근거로 **호출 건수를 센다** — 카운터는 두 파일이 공유한다(window.__CD_GANJI_LOCAL_DATE_READS__).
+ *
+ * 🔴 서비스의 함수를 부르지 않고 같은 규칙을 여기 한 번 더 두는 이유: 셸에는 서비스 없이 이
+ * 파일만 싣는 체인이 하나 있다(js/core/index-inline-runtime.js:8052 생년월일 모달 경로).
+ * 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
+ */
+var _kasiLocalDateReads = (window.__CD_GANJI_LOCAL_DATE_READS__ = window.__CD_GANJI_LOCAL_DATE_READS__ || { count: 0 });
+
+function _kasiPartsFromLocalDate(date) {
+  _kasiLocalDateReads.count += 1;
+  if (!(date instanceof Date) || isNaN(date.getTime())) return null;
+  return {
+    year: date.getFullYear(),
+    month: date.getMonth() + 1,
+    day: date.getDate(),
+    hour: date.getHours(),
+    minute: date.getMinutes(),
+    second: date.getSeconds()
+  };
+}
+
+/** 부품을 날짜 축으로만 민다. 🔴 시·분은 그대로 — 로컬 Date 의 setDate 와 달리 접히지 않는다. */
+function _kasiShiftPartsByDays(parts, days) {
+  var shifted = _shiftDatePartsByDays(parts.year, parts.month, parts.day, days);
+  return {
+    year: shifted.year,
+    month: shifted.month,
+    day: shifted.day,
+    hour: parts.hour,
+    minute: parts.minute,
+    second: parts.second
+  };
+}
+
 const KasiEngine = {
+    /**
+     * 🔴 인자 1개로 **고정**한다. 두 호출부가 2번째 인자로 `true` 를 넘기는데
+     * (saju-engine-tarot-sukuyo-quantum.js) 오늘은 무시된다 — 여기에 options 를 붙이면 그 `true` 가
+     * 갑자기 의미를 갖고 `options.yaja` 가 undefined 로 읽혀 야자시가 꺼진다. 그러면 23시대
+     * 음력일이 하루 당겨지고 자미 14주성이 통째로 이동한다. 옵션은 solarToLunarFromParts 에만.
+     */
     solarToLunar: function(date) {
         if (!date) return null;
-        let tDate = new Date(date.getTime());
-        if (tDate.getHours() >= 23) {
-            tDate.setDate(tDate.getDate() + 1); // 명리학 자시 경계일 보정
+        return KasiEngine.solarToLunarFromParts(_kasiPartsFromLocalDate(date));
+    },
+    /** 정본. parts 는 KST 벽시계 부품 `{ year, month, day, hour, minute, second? }`. */
+    solarToLunarFromParts: function(parts, options) {
+        options = options || { yaja: true };
+        if (!parts) return null;
+        var at = parts;
+        if (at.hour >= 23 && options.yaja) {
+            at = _kasiShiftPartsByDays(at, 1); // 명리학 자시 경계일 보정
         }
-        var y = tDate.getFullYear(), m = tDate.getMonth() + 1, d = tDate.getDate();
+        var y = at.year, m = at.month, d = at.day;
         var patched = _getPatchedSolarToLunar(y, m, d);
         if (patched) return patched;
         var lunar = _koreanCalendar().solarToLunar(y, m, d);
@@ -937,17 +986,32 @@ const KasiEngine = {
         registerCalendarReference: function(reference) {
           return rememberKasiCalendarReference(reference);
         },
-    getGanji: function(date, options) {
+    /**
+     * 🔴 어댑터다. 리네임이 아니라 새 메서드 + 어댑터인 이유:
+     *   ① 호출부 13곳이 전부 `typeof ke.getGanji === 'function'` 가드 안이라 하드 리네임은
+     *      예외가 아니라 **조용한 성능저하**로 끝난다.
+     *   ② public/_headers 가 /js/*.js 를 max-age 7일로 잡아 옛 셸과 새 셸이 최대 7일 공존한다.
+     * PR-E 가 `_kasiPartsFromLocalDate` 호출 0 을 가드로 증명한 뒤에 이 갈래를 지운다.
+     */
+    getGanji: function(dateOrParts, options) {
+        var parts = (dateOrParts && typeof dateOrParts === 'object' && !(dateOrParts instanceof Date))
+          ? dateOrParts
+          : _kasiPartsFromLocalDate(dateOrParts);
+        return KasiEngine.getGanjiFromParts(parts, options);
+    },
+    /** 정본. parts 는 KST 벽시계 부품 `{ year, month, day, hour, minute, second? }`. */
+    getGanjiFromParts: function(parts, options) {
         options = options || { yaja: true };
-        if (!date || isNaN(date.getTime())) return null;
-        var tDate = new Date(date.getTime());
-        var h = tDate.getHours();
-        var min = tDate.getMinutes();
+        if (!parts) return null;
+        var h = parts.hour;
+        var min = parts.minute;
+        var at = parts;
+        // 🔴 이 조건식을 "정리"하지 말 것 — 두 갈래가 같은 값이지만 그 단순화는 무손실 계약 밖이다.
         if ((h === 23 && min >= 30 && options.yaja) || (h === 23 && options.yaja)) {
-          tDate.setDate(tDate.getDate() + 1);
+          at = _kasiShiftPartsByDays(at, 1);
         }
-        if (window.KasiCalendarService && typeof window.KasiCalendarService.computeGanjiFromDate === 'function') {
-          var computed = window.KasiCalendarService.computeGanjiFromDate(tDate);
+        if (window.KasiCalendarService && typeof window.KasiCalendarService.computeGanjiFromParts === 'function') {
+          var computed = window.KasiCalendarService.computeGanjiFromParts(at);
           if (computed && computed.year && computed.month && computed.day) {
             return {
               secha: computed.year,
