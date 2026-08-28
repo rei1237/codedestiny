@@ -38,6 +38,7 @@
  * **커밋해 선언**하게 하고, 마커와 픽스처의 존재를 3방향으로 배타 검사한다(검사 ①-e).
  * 둘 다 없으면 실패한다 — 조용한 skip 이 불가능해지는 자리다.
  */
+import { spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import fs from "node:fs";
 import path from "node:path";
@@ -47,7 +48,10 @@ import { fileURLToPath } from "node:url";
 // 🔴 러너 타임존을 못박는다. 검사 ⑦ 이 셸의 로컬 Date 경로를 타므로, 머신 로컬 TZ 가
 // 결과를 바꾸고 서머타임이 있는 존에서는 존재하지 않는 벽시계에 빠진다.
 // 레포 전체에 TZ 설정이 0건이라 개발 머신(KST)과 CI(UTC)가 서로 다른 것을 재고 있었다.
-process.env.TZ = "UTC";
+// 🔴 ⑪-h 의 자식만 예외다 — 그 자식은 **다른 존에서 같은 답이 나오는가**를 재는 것이
+// 목적이라 여기서 UTC 로 덮으면 아무것도 안 재게 된다. 부모는 언제나 UTC 다.
+const TZ_CHILD = process.env.CD_KASI_TZ_CHILD || "";
+if (!TZ_CHILD) process.env.TZ = "UTC";
 
 import {
   TERM_NAME_KO,
@@ -170,7 +174,7 @@ const readIfExists = (rel) => {
 // 머신마다 다른 것을 재고도 초록이 된다.
 ok(
   "⓪ 러너 타임존이 UTC 로 고정됐다",
-  new Date(2020, 0, 1).getTimezoneOffset() === 0,
+  TZ_CHILD ? true : new Date(2020, 0, 1).getTimezoneOffset() === 0,
   `offset=${new Date(2020, 0, 1).getTimezoneOffset()} — process.env.TZ 가 이 런타임에서 안 먹는다`,
 );
 
@@ -839,6 +843,9 @@ if (shellTest && typeof shellTest.computeGanjiFromParts === "function") {
 }
 
 // ── ⑨⑩ tier-2 ─────────────────────────────────────────────────────────────
+//
+// 🔴 교차검증을 못 한 사유는 실패가 아니라 **보고**로 남긴다 — pending 마커와 같은 계약이다.
+let crossCheckNote = "";
 if (fixture) {
   const years = Object.keys(fixture.years || {});
   ok("⑨ 픽스처가 연도를 담고 있다", years.length > 0, "years 가 비었다");
@@ -860,23 +867,60 @@ if (fixture) {
     `기대 ${fixture.groundTruthFingerprint} · 실측 ${fingerprint(JSON.stringify(fixture.years))}`,
   );
 
-  // 🔴 ⑩ 픽스처의 1990 이 검증캐시와 같은가. 다르면 "검증캐시는 KASI 응답을 그대로 받아
-  // 적은 것" 이라는 kasi-calendar-service.js 의 주장이 거짓이라는 뜻이다.
+  // 🔴 ⑩ 겹치는 해에서 픽스처와 검증캐시가 같은 절기 시각을 내는가. 다르면 "검증캐시는 KASI
+  // 응답을 그대로 받아 적은 것" 이라는 kasi-calendar-service.js 의 주장이 거짓이라는 뜻이다.
   // 값을 고치지 말고 인수인계에 적어라.
+  //
+  // 🔴 지금 겹치는 해는 **0** 이다 — 검증캐시는 1990 한 해뿐이고 KASI 절기 커버리지는
+  // 2000~2028 이다(실측 2026-08-29: 대조행 0건). 그런데도 예전 형태는 `if (!entry) continue`
+  // 로 1990 을 건너뛰고 "같다"를 초록으로 냈다 — 0행을 대조하고 통과하는 fail-open 이다
+  // (CLAUDE.md 원칙 10). 그래서 갈래를 나눈다:
+  //   겹치는 해 있음 → 전건 대조 + 대조행 0 금지(⑪-g 와 같은 계약)
+  //   겹치는 해 없음 → 교차검증을 **안 했다고 보고**하고, 그 사실이 커버리지로 설명되는지만 본다
+  // 🔴 그러므로 "검증캐시가 KASI 유래다" 는 이 가드가 **아직 증명하지 못한 주장**이다.
+  // KASI 가 1990 을 답하기 시작하면 ⑩-a 가 먼저 빨개져 재채집을 강제한다.
+  const groundYears = [...runtimeGround.keys()];
+  const overlapYears = groundYears.filter((y) => fixture.years[String(y)]);
+  const missingInCoverage = groundYears.filter(
+    (y) => !fixture.years[String(y)] && y >= KASI_MIN_YEAR && y <= KASI_MAX_YEAR,
+  );
   const crossRows = [];
-  for (const [year, groundRows] of runtimeGround) {
+  let crossCompared = 0;
+  for (const year of overlapYears) {
     const entry = fixture.years[String(year)];
-    if (!entry) continue;
     const cells = String(entry.cells || "").split(",").map((c) => c.trim());
-    for (const r of groundRows) {
+    for (const r of runtimeGround.get(year)) {
       const idx = (fixture.termNames || TERM_NAME_KO).indexOf(r.name);
       if (idx < 0 || !cells[idx]) continue;
+      crossCompared += 1;
       const cell = cells[idx];
       const fixtureMs = Date.UTC(year, Number(cell.slice(0, 2)) - 1, Number(cell.slice(2, 4)), Number(cell.slice(4, 6)), Number(cell.slice(6, 8)));
       if (fixtureMs !== wallMs(r.atLocal)) crossRows.push(`${year} ${r.name} 검증캐시 ${r.atLocal} vs 픽스처 ${cell}`);
     }
   }
-  ok("⑩ 🔴 픽스처와 검증캐시가 같은 절기 시각을 낸다", crossRows.length === 0, crossRows.slice(0, 8).join("\n      "));
+  ok(
+    "⑩-a 🔴 픽스처에 없는 지상값 해는 KASI 커버리지 밖에서만 나온다",
+    missingInCoverage.length === 0,
+    `${missingInCoverage.join(",")} 는 KASI 커버리지(${KASI_MIN_YEAR}~${KASI_MAX_YEAR}) 안인데 픽스처에 없다 — --live 재채집이 필요하다`,
+  );
+  if (overlapYears.length) {
+    ok("⑩-b 🔴 픽스처와 검증캐시가 같은 절기 시각을 낸다", crossRows.length === 0, crossRows.slice(0, 8).join("\n      "));
+    ok(
+      "⑩-c 교차검증이 0행을 대조하고 통과하지 않는다",
+      crossCompared > 0,
+      `겹치는 해 ${overlapYears.join(",")} 인데 대조행이 0 이다 — 절기 이름이 갈렸거나 cells 가 비었다`,
+    );
+  } else {
+    // 🔴 skip 이 아니다. 겹침이 0 이라는 사실을 **매 실행 출력에 찍고**, 그것이 커버리지로
+    // 설명되는지를 검사한다(⑩-a 와 합쳐 양방향 fail-closed).
+    crossCheckNote = `⑩ 교차검증 미실시 — 검증캐시 ${groundYears.join(",")} 와 KASI 커버리지 `
+      + `${KASI_MIN_YEAR}~${KASI_MAX_YEAR} 가 겹치지 않는다. "검증캐시는 KASI 유래" 는 미검증 주장이다.`;
+    ok(
+      "⑩-b 겹치는 해 0 이 커버리지로 설명된다(교차검증 미실시를 보고한다)",
+      groundYears.length > 0 && groundYears.every((y) => y < KASI_MIN_YEAR || y > KASI_MAX_YEAR),
+      `지상값 ${groundYears.join(",") || "(없음)"} · KASI ${KASI_MIN_YEAR}~${KASI_MAX_YEAR}`,
+    );
+  }
 }
 
 // ── ⑪ KASI 원본 행의 `kst` 를 셸 정규화기가 실제로 읽는가 ──────────────────
@@ -1035,6 +1079,115 @@ if (shellTest && typeof shellTest.normalizeTerms === "function" && fixture && fi
       shapes.map((shape, i) => `${shape}: ${rendered[i].slice(0, 90)}`).join("\n      "),
     );
   }
+
+  // ── ⑪-h 🔴 정규화가 **러너 타임존에 흔들리지 않는다** ────────────────────
+  //
+  // 인수인계 R4(간지 벽시계 부품 마이그레이션 §7)가 "KASI 응답 + 서머타임 구멍이 겹칠 때만
+  // 터지는데 get24DivisionsInfo 가 403 이라 가드에서 재현이 안 된다"로 열어 둔 칸이다.
+  // 403 이 풀렸으므로(#1229) 이제 잰다.
+  //
+  // 🔴 픽스처의 절입 시각이 우연히 어느 존의 구멍에 떨어지기를 기다리지 않는다 —
+  // 그 존의 **구멍 벽시계를 직접 유도해** 절기 시각으로 밀어 넣는다. 그러지 않으면 이 검사는
+  // 구멍을 한 번도 안 밟고 초록이 된다(간지 표면 가드가 같은 이유로 전이를 유도한다).
+  //
+  // 🔴 실측 2026-08-29: UTC · Asia/Seoul · America/New_York · Europe/Dublin ·
+  // Australia/Lord_Howe · Pacific/Chatham 6개 존에서 드리프트 0. CI 는 그중 구멍이 있는
+  // 한 존만 돌린다(자식 1개 · 실측 0.6초). 원인은 `_normalizeTerms` 가 `_partsOf`(Date.UTC)
+  // 만 쓰고 로컬 Date 캐리어를 안 만들기 때문이다 — 그 사본 동일성은 verify:shell-korean-calendar
+  // 검사 ⑮ 가 따로 얼린다.
+  const DST_PROBE_TZ = "America/New_York";
+
+  /** `tz` 의 `utcMs` 시점 오프셋(분). 러너 TZ 와 무관하게 답이 같다. */
+  function zoneOffsetMinutes(tz, utcMs) {
+    const dtf = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz, hour12: false, year: "numeric", month: "2-digit", day: "2-digit",
+      hour: "2-digit", minute: "2-digit", second: "2-digit",
+    });
+    const parts = Object.fromEntries(dtf.formatToParts(new Date(utcMs)).map((x) => [x.type, x.value]));
+    const asUtc = Date.UTC(Number(parts.year), Number(parts.month) - 1, Number(parts.day),
+      Number(parts.hour === "24" ? "00" : parts.hour), Number(parts.minute), Number(parts.second));
+    return Math.round((asUtc - utcMs) / 60000);
+  }
+
+  /** 그 존에서 **시계가 앞당겨지는** 전이 안의 벽시계 하나(= 그 존에 존재하지 않는 시각). */
+  function springForwardWallClock(tz, year) {
+    let prev = zoneOffsetMinutes(tz, Date.UTC(year, 0, 1));
+    for (let day = 1; day < 366; day += 1) {
+      const dayMs = Date.UTC(year, 0, 1 + day);
+      const cur = zoneOffsetMinutes(tz, dayMs);
+      if (cur > prev) {
+        for (let half = 0; half < 48; half += 1) {
+          const t = dayMs - 24 * 3600 * 1000 + half * 1800 * 1000;
+          if (zoneOffsetMinutes(tz, t + 1800 * 1000) > zoneOffsetMinutes(tz, t)) {
+            const w = new Date(t + zoneOffsetMinutes(tz, t) * 60000 + 1800 * 1000);
+            return { month: w.getUTCMonth() + 1, day: w.getUTCDate(), hour: w.getUTCHours(), minute: w.getUTCMinutes() };
+          }
+        }
+      }
+      prev = cur;
+    }
+    return null;
+  }
+
+  /** 부모·자식이 **완전히 같은 입력**을 먹도록 한 곳에서 만든다. */
+  function tzProbeInput() {
+    const sample = fixtureYears[0];
+    const gap = springForwardWallClock(DST_PROBE_TZ, sample.year);
+    const cells = [...sample.cells];
+    if (gap) {
+      // 첫 절기(소한)의 시각을 구멍 벽시계로 갈아 끼운다. 이름·개수는 그대로 24행이다.
+      cells[0] = `${pad2(gap.month)}${pad2(gap.day)}${pad2(gap.hour)}${pad2(gap.minute)}`;
+    }
+    return { year: sample.year, cells, gap };
+  }
+
+  /** 정규화 결과를 문자열 하나로. 부모와 자식이 이것을 대조한다. */
+  function tzProbeDigest() {
+    const { year, cells } = tzProbeInput();
+    const terms = shellTest.normalizeTerms(synthesizeKasiRows(year, cells, names), [], year);
+    if (!Array.isArray(terms)) return "null";
+    return terms.map((t) => `${t.name}=${t.atLocal}`).join("|");
+  }
+
+  // 🔴 자식은 여기서 답만 뱉고 끝난다. `process.exit` 를 write **직후**에 부르지 않는다 —
+  // POSIX 에서 파이프 stdout 은 비동기라 아직 안 나간 바이트가 버려진다(간지 가드 실사고).
+  if (TZ_CHILD) {
+    const offset = new Date(fixtureYears[0].year, 6, 1).getTimezoneOffset();
+    await new Promise((resolve) => process.stdout.write(JSON.stringify({
+      tz: TZ_CHILD, offsetMinutes: offset, digest: tzProbeDigest(),
+    }), resolve));
+    process.exit(0);
+  }
+
+  const probeInput = tzProbeInput();
+  const parentDigest = tzProbeDigest();
+  const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
+    encoding: "utf8",
+    env: { ...process.env, TZ: DST_PROBE_TZ, CD_KASI_TZ_CHILD: DST_PROBE_TZ },
+  });
+  let childOut = null;
+  try { childOut = JSON.parse(String(child.stdout || "").trim()); } catch { childOut = null; }
+
+  ok(
+    "⑪-h 서머타임 존 자식이 답을 냈다(하네스가 죽으면 아래 대조가 공허해진다)",
+    child.status === 0 && !!childOut && typeof childOut.digest === "string" && childOut.digest.length > 0,
+    `status=${child.status} · stdout=${String(child.stdout || "").slice(0, 120)} · stderr=${String(child.stderr || "").slice(0, 200)}`,
+  );
+  ok(
+    "⑪-h 자식의 타임존이 실제로 UTC 가 아니다(TZ 가 안 먹으면 UTC 를 두 번 재는 셈이다)",
+    !!childOut && childOut.offsetMinutes !== 0,
+    `${DST_PROBE_TZ} offset=${childOut ? childOut.offsetMinutes : "?"}분`,
+  );
+  ok(
+    `⑪-h 표본에 ${DST_PROBE_TZ} 의 구멍 벽시계가 실제로 들어갔다`,
+    !!probeInput.gap,
+    `${probeInput.year} 에서 앞당김 전이를 못 찾았다 — 존을 바꾸거나 표본 해를 바꿔라`,
+  );
+  ok(
+    "⑪-h 🔴 서머타임 구멍을 절입 시각으로 먹여도 UTC 와 같은 답이 나온다(R4)",
+    !!childOut && childOut.digest === parentDigest,
+    `UTC   ${parentDigest.slice(0, 120)}\n      ${DST_PROBE_TZ} ${childOut ? childOut.digest.slice(0, 120) : "(없음)"}`,
+  );
 
   // ⑪-f 그 terms 로 셸이 낸 세차·월건이 코어와 같다. 밴드(KASI 표기 ↔ 코어 표 사이 분)는 ③⑤ 가 설명했다.
   const frameRows = [];
@@ -1390,7 +1543,8 @@ if (PROBE) {
   const tier = fixture ? "tier-1 + tier-2" : "tier-1";
   console.log(
     `[verify:solar-term-frame-kasi] 통과 — 검사 ${checks}건 · ${tier} · 지상값 provider ${providers.length}개`
-    + (marker ? `\n  🟡 tier-2 미채집: ${marker.reason} (실측 ${marker.measuredAt})\n     해소: ${marker.unblockedBy}` : ""),
+    + (marker ? `\n  🟡 tier-2 미채집: ${marker.reason} (실측 ${marker.measuredAt})\n     해소: ${marker.unblockedBy}` : "")
+    + (crossCheckNote ? `\n  🟡 ${crossCheckNote}` : ""),
   );
 
 }
