@@ -67,8 +67,6 @@
 # `/premium*` 이 `/premium-reports` 계열까지 덮으므로 별도 규칙은 두지 않는다(규칙 100개 예산).
 /premium*
   X-Robots-Tag: noindex, nofollow
-/saju-fpti*
-  X-Robots-Tag: noindex, nofollow
 /saju-picture*
   X-Robots-Tag: noindex, nofollow
 /sukuyo/calendar*
@@ -85,10 +83,15 @@
   X-Robots-Tag: noindex, follow
 # 🔴 `/famous*` 로 합치지 말 것 — `/famous-saju/**` 를 삼켜 그 301 응답에 nofollow 가 붙고,
 #    그러면 `/insights/famous-saju/` 로 가는 회수 경로가 링크 신호를 잃는다.
+# 🔴 nofollow → follow (2026-08-28). /famous/ 는 301 스텁이 아니라 살아 있는 200 페이지이고,
+#    고유 렌더 텍스트가 8,821자다(/insights/famous-saju/ 와 토큰 중복 7.3% — 사본이 아니다).
+#    거기서 /insights/ 로 링크를 거는데 nofollow 가 그 신호를 끊고 있었다. 위 /blog 주석과
+#    같은 논리이고, /fortune 도 2026-08-17 에 같은 이유로 풀었다. 색인은 계속 막는다 —
+#    AdSense 거절 사유가 목록형 얇은 콘텐츠였고 /insights/famous-saju/ 와 키워드가 겹친다.
 /famous
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 /famous/*
-  X-Robots-Tag: noindex, nofollow
+  X-Robots-Tag: noindex, follow
 # 🔴 `/fortune` 의 noindex 는 2026-08-17 에 풀었다. 규칙이 붙던 시점의 그 페이지는 렌더 텍스트
 # 531자짜리 빈 허브였지만, 지금은 scripts/build-fortune-hub-shell.mjs 가 sign-profiles 에서
 # 만드는 2,955자 클러스터 루트다. 특히 `nofollow` 가 문제였다 — 이 페이지가 걸고 있던 기간 허브

@@ -37,6 +37,13 @@ const META = {
   ...TAROT_HEALING_START_METADATA_COPY.ko,
   image: "https://code-destiny.com/fuctionassets/healing.webp",
   applicationCategory: "EntertainmentApplication",
+  // 🔴 이 라우트는 /tarot/healing 으로 보내는 딥링크 스텁이라 서버 렌더 텍스트가 28자이고
+  //    h1 이 0개다(2026-08-28 dist 실측). 그런데 x-robots 헤더가 없고 metadata 의 path 가
+  //    부모라서 isNoindexPath 도 안 걸려, 라이브에서 index,follow 로 나가고 있었다.
+  //    사이트맵 밖 + 부모 canonical 이라 색인 이득은 0인데 얇은 페이지 신호만 남는다.
+  //    lib/seo/siteSeo.ts 의 noindexPathPrefixes 로는 못 막는다 — 그 목록은 위 path(부모)를
+  //    보고 판정하고, 부모까지 함께 막아 버린다. 그래서 이 옵션을 쓴다(ShareWidget 유지).
+  noindex: true,
 } as const;
 
 export function generateMetadata() {

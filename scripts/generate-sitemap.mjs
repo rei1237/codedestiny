@@ -76,7 +76,6 @@ const noindexPathPrefixes = [
   "/pdf",
   "/premium",
   "/premium-reports",
-  "/saju-fpti",
   "/saju-picture",
   "/sukuyo/calendar",
   // 2026-08-24: 이 목록에서 5개를 뺐다 — /saju/destiny-bias · /saju/love-simulation ·
@@ -208,6 +207,12 @@ const coreRoutes = [
   { path: "/tarot/mingri", changefreq: "weekly", priority: 0.93 },
   { path: "/tarot/love", changefreq: "weekly", priority: 0.9 },
   { path: "/tarot/healing", changefreq: "weekly", priority: 0.9 },
+  // 🔴 /saju-fpti 는 2026-08-28 에 색인으로 되돌렸다. noindex 이던 이유는 서버 렌더
+  //    텍스트가 431자뿐이어서였고(광고 게재 불가 라우트는 1,800자를 요구한다),
+  //    본문이 없어서가 아니라 본문이 클라이언트 JS 안에만 있어서였다 —
+  //    /tarot/healing 등 2026-08-24 의 5개와 같은 모양이다. page.tsx 에 서버 렌더
+  //    안내 섹션을 넣어 1,900자대로 올린 뒤 되돌렸다.
+  { path: "/saju-fpti", changefreq: "weekly", priority: 0.86 },
   // 🔴 coreRoutes 는 손으로 유지하는 목록이라, noindexPathPrefixes 에서 빼는 것만으로는
   //    사이트맵에 들어오지 않는다. 2026-08-24 에 색인으로 되돌린 5개 중 /tarot/healing 과
   //    /saju/love-simulation 은 이미(각각 여기와 정적 canonical 목록에) 등재돼 있었고,
