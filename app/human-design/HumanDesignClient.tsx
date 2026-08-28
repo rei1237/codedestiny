@@ -31,6 +31,7 @@ import { CENTER_GATES } from "@/lib/human-design/centers";
 
 import BodyGraph from "./_components/BodyGraph";
 import DetailSheet from "./_components/DetailSheet";
+import PipelineScene from "./_components/PipelineScene";
 import {
   AUTHORITY_COPY,
   CENTER_COPY,
@@ -49,18 +50,6 @@ import {
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
 import type { HdChart, HdInterpretation, HdPipelineStage, HdSelection } from "./_lib/types";
 import styles from "./human-design.module.css";
-
-/** 실제 계산 순서. 로딩 화면이 보여 주는 것은 이 순서이고, 진행률 숫자는 만들지 않는다. */
-const PIPELINE_STEPS: Array<{ key: string; copyKey: keyof typeof UI_TEXT }> = [
-  { key: "BIRTH_DATA", copyKey: "stageBirthData" as const },
-  { key: "TIMEZONE", copyKey: "stageTimezone" as const },
-  { key: "PERSONALITY", copyKey: "stagePersonality" as const },
-  { key: "DESIGN_MOMENT", copyKey: "stageDesignMoment" as const },
-  { key: "DESIGN", copyKey: "stageDesign" as const },
-  { key: "GATES", copyKey: "stageGates" as const },
-  { key: "CHANNELS", copyKey: "stageChannels" as const },
-  { key: "CENTERS", copyKey: "stageCenters" as const },
-];
 
 const TIMEZONE_PRESETS = [
   "Asia/Seoul", "Asia/Tokyo", "Asia/Shanghai", "Asia/Kolkata", "Asia/Kabul",
@@ -347,20 +336,7 @@ export default function HumanDesignClient({ locale: localeOverride }: { locale?:
           </section>
         )}
 
-        {loading && (
-          <section className={styles.pipeline} aria-live="polite">
-            <h2 className={styles.pipelineHeading}>{pick(UI_TEXT.pipelineHeading, locale)}</h2>
-            <ol className={styles.pipelineList}>
-              {PIPELINE_STEPS.map((step) => (
-                <li className={styles.pipelineStep} key={step.key}>
-                  {pick(UI_TEXT[step.copyKey], locale)}
-                </li>
-              ))}
-            </ol>
-            {/* 🔴 진행률을 지어내지 않는다. 여기 보이는 것은 실제로 흐른 시간뿐이다. */}
-            <p className={styles.pipelineElapsed}>{(elapsedMs / 1000).toFixed(1)}s</p>
-          </section>
-        )}
+        {loading && <PipelineScene locale={locale} elapsedMs={elapsedMs} />}
 
         {error && (
           <div className={styles.error} role="alert">

@@ -1,0 +1,415 @@
+/* 휴먼 디자인 — "계산 중" 대기 화면.
+ *
+ * 🔴 여기서 단계 진행 상태를 칠하지 않는다. 차트는 /api/human-design/chart 를 한 번 부를 뿐이라
+ *    지금 몇 번째 단계인지 알 수 없고, 시간으로 점등하면 그건 지어낸 진행률이다. 8개 노드는
+ *    전부 동등하게 살아 있고, 빛이 채널을 1→8 로 반복 순회하기만 한다.
+ * 🔴 애니메이션 속성은 transform / opacity 로만 쓴다. 노드 8개 × 레이어 3장이라 filter 나
+ *    box-shadow 를 매 프레임 바꾸면 대기 화면이 곧바로 버벅인다(발광은 정적 그라디언트로 낸다).
+ * 🔴 색·서체를 새로 들이지 않는다 — --hd-* 토큰은 human-design.module.css 의 .shell 이 선언한다.
+ */
+
+.scene {
+  --hd-gap: 16px;
+  --hd-mark: 54px;
+  --hd-cycle: 2.6s;
+  --hd-step: 300ms;
+
+  position: relative;
+  isolation: isolate;
+  overflow: hidden;
+  margin: 5vh auto 0;
+  max-width: 1080px;
+  padding: 1.75rem 1.25rem 2rem;
+  border: 1px solid var(--hd-border);
+  border-radius: 24px;
+  /* 브러시드 메탈 + 스페이스 글래스. 위에서 빛을 받고 아래로 가라앉는 한 장. */
+  background:
+    linear-gradient(163deg, rgba(255, 255, 255, 0.07) 0%, rgba(255, 255, 255, 0.015) 42%, rgba(0, 0, 0, 0.2) 100%),
+    var(--hd-panel);
+  box-shadow:
+    0 26px 72px rgba(0, 0, 0, 0.5),
+    inset 0 1px 0 rgba(255, 255, 255, 0.09);
+}
+
+/* ── 배경 에너지 필드 ─────────────────────────────────── */
+
+.field {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  overflow: hidden;
+}
+
+.nebula,
+.nebulaB {
+  position: absolute;
+  inset: -30%;
+}
+
+.nebula {
+  background:
+    radial-gradient(38% 46% at 24% 30%, rgba(124, 92, 240, 0.3) 0%, transparent 68%),
+    radial-gradient(30% 34% at 78% 66%, rgba(125, 211, 252, 0.16) 0%, transparent 70%);
+  animation: hdNebulaDrift 44s ease-in-out infinite alternate;
+}
+
+.nebulaB {
+  background:
+    radial-gradient(34% 40% at 68% 22%, rgba(232, 213, 163, 0.14) 0%, transparent 72%),
+    radial-gradient(40% 44% at 16% 78%, rgba(167, 139, 250, 0.16) 0%, transparent 70%);
+  animation: hdNebulaDrift 58s ease-in-out infinite alternate-reverse;
+}
+
+/* 별 하나당 DOM 노드를 만들지 않는다 — 그라디언트 점을 타일로 반복한다. */
+.stars {
+  position: absolute;
+  inset: -12%;
+  background-image:
+    radial-gradient(1.4px 1.4px at 18% 22%, rgba(255, 255, 255, 0.72), transparent 100%),
+    radial-gradient(1.1px 1.1px at 62% 12%, rgba(232, 213, 163, 0.6), transparent 100%),
+    radial-gradient(1.6px 1.6px at 84% 48%, rgba(255, 255, 255, 0.55), transparent 100%),
+    radial-gradient(1px 1px at 34% 72%, rgba(196, 181, 253, 0.62), transparent 100%),
+    radial-gradient(1.2px 1.2px at 8% 58%, rgba(255, 255, 255, 0.45), transparent 100%),
+    radial-gradient(1px 1px at 72% 88%, rgba(255, 255, 255, 0.5), transparent 100%);
+  background-size: 260px 240px;
+  animation: hdStarDrift 90s linear infinite;
+}
+
+/* 희미한 바디그래프 와이어프레임. lib/human-design/bodygraph-geometry.js 의 좌표 그대로다. */
+.wireframe {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.34;
+  animation: hdWireBreathe 26s ease-in-out infinite alternate;
+  /* 가장자리에서 녹아 사라지게 — 패널 테두리에 선이 잘려 붙는 인상을 지운다. */
+  -webkit-mask-image: radial-gradient(72% 82% at 50% 50%, #000 24%, transparent 82%);
+  mask-image: radial-gradient(72% 82% at 50% 50%, #000 24%, transparent 82%);
+}
+
+.wireframeSvg {
+  height: 92%;
+  width: auto;
+  max-width: none;
+}
+
+.wireCenter {
+  fill: none;
+  stroke: var(--hd-accent);
+  stroke-width: 2.4;
+}
+
+.wireChannel {
+  fill: none;
+  stroke: var(--hd-accent);
+  stroke-width: 1.2;
+  opacity: 0.62;
+}
+
+/* ── 머리글 ───────────────────────────────────────────── */
+
+.head {
+  position: relative;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.heading {
+  position: relative;
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--hd-ink);
+}
+
+.heading::before {
+  content: "";
+  position: absolute;
+  inset: -70% -35%;
+  z-index: -1;
+  border-radius: 50%;
+  background: radial-gradient(50% 60% at 50% 50%, rgba(232, 213, 163, 0.3) 0%, transparent 72%);
+  animation: hdGoldBreathe 3.2s ease-in-out infinite;
+}
+
+.elapsed {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--hd-accent-warm);
+}
+
+/* ── 단계 레일 ────────────────────────────────────────── */
+
+.rail {
+  position: relative;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  /* 🔴 기본은 세로 컬럼이다. flex 기본값(row)에 맡기면 390px 화면에서 8노드가 패널 밖으로 넘친다. */
+  flex-direction: column;
+  gap: var(--hd-gap);
+}
+
+.node {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  /* 🔴 채널 길이 계산이 노드 높이에 걸려 있다. 라벨 줄 수에 따라 높이가 흔들리면 선이 어긋난다. */
+  height: 64px;
+}
+
+/* 채널 — 노드와 노드를 잇는 정적 선. */
+.node:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  left: calc((var(--hd-mark) / 2) - 1px);
+  top: calc(50% + (var(--hd-mark) / 2) + 4px);
+  width: 2px;
+  height: calc(100% + var(--hd-gap) - var(--hd-mark) - 8px);
+  border-radius: 2px;
+  background: linear-gradient(to bottom, rgba(196, 181, 253, 0.42), rgba(196, 181, 253, 0.16));
+}
+
+/* 순회 펄스 — 같은 자리에 겹쳐 두고 위에서 아래로 차오른다. 지연이 노드마다 밀려 1→8 로 흐른다. */
+.node:not(:last-child)::before {
+  content: "";
+  position: absolute;
+  z-index: 1;
+  left: calc((var(--hd-mark) / 2) - 1.5px);
+  top: calc(50% + (var(--hd-mark) / 2) + 4px);
+  width: 3px;
+  height: calc(100% + var(--hd-gap) - var(--hd-mark) - 8px);
+  border-radius: 3px;
+  background: linear-gradient(to bottom, rgba(232, 213, 163, 0.95), rgba(196, 181, 253, 0.7));
+  transform-origin: top center;
+  transform: scaleY(0);
+  opacity: 0;
+  animation: hdChannelFlowY var(--hd-cycle) ease-in-out infinite;
+  animation-delay: calc(var(--hd-node-i) * var(--hd-step));
+}
+
+.mark {
+  position: relative;
+  flex: none;
+  width: var(--hd-mark);
+  height: var(--hd-mark);
+  display: grid;
+  place-items: center;
+}
+
+/* 발광. 🔴 filter 가 아니라 그라디언트다 — 8개가 매 프레임 다시 구워지지 않게. */
+.halo {
+  position: absolute;
+  inset: -9px;
+  border-radius: 50%;
+  background: radial-gradient(
+    50% 50% at 50% 50%,
+    rgba(232, 213, 163, 0.34) 0%,
+    rgba(196, 181, 253, 0.16) 52%,
+    transparent 74%
+  );
+  opacity: 0.45;
+  animation: hdHalo var(--hd-cycle) ease-in-out infinite;
+  animation-delay: calc(var(--hd-node-i) * var(--hd-step));
+}
+
+/* 소용돌이 링. 회전은 항상 돌고, 밝기만 펄스를 따라간다. */
+.vortex {
+  position: absolute;
+  inset: -1px;
+  border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0deg 210deg,
+    rgba(232, 213, 163, 0.62) 300deg,
+    rgba(196, 181, 253, 0.28) 340deg,
+    transparent 360deg
+  );
+  -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  mask: radial-gradient(farthest-side, transparent calc(100% - 3px), #000 calc(100% - 3px));
+  opacity: 0.4;
+  animation:
+    hdSpin 9s linear infinite,
+    hdVortexGlow var(--hd-cycle) ease-in-out infinite;
+  animation-delay: 0s, calc(var(--hd-node-i) * var(--hd-step));
+}
+
+.core {
+  position: absolute;
+  inset: 6px;
+  border-radius: 50%;
+  border: 1px solid var(--hd-border-strong);
+  background: linear-gradient(158deg, rgba(35, 30, 70, 0.96) 0%, rgba(10, 8, 26, 0.98) 100%);
+  box-shadow: inset 0 0 14px rgba(196, 181, 253, 0.24);
+}
+
+/* 팔괘 — 휴먼 디자인 64게이트가 곧 주역 64괘라 8단계에 팔괘가 그대로 맞는다. */
+.glyph {
+  position: relative;
+  width: 22px;
+  height: 16px;
+  color: var(--hd-accent-warm);
+}
+
+.glyphLine {
+  stroke: currentColor;
+  stroke-width: 2.2;
+  stroke-linecap: round;
+}
+
+.label {
+  min-width: 0;
+  font-size: 0.8125rem;
+  line-height: 1.35;
+  color: var(--hd-ink-dim);
+}
+
+.index {
+  margin-right: 0.35em;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  color: var(--hd-accent);
+}
+
+/* ── 가로 레일 — 라벨을 노드 아래로 내린다 ─────────────── */
+
+@media (min-width: 860px) {
+  .scene {
+    --hd-gap: 20px;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    min-height: 420px;
+    margin-top: 8vh;
+    padding: 2rem 1.75rem 2.25rem;
+  }
+
+  .rail {
+    flex-direction: row;
+    margin-top: 2.25rem;
+  }
+
+  .node {
+    flex: 1 1 0;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.7rem;
+    /* 라벨 두 줄을 미리 잡아 둔다 — 로케일마다 줄 수가 달라도 레일이 흔들리지 않는다. */
+    height: 118px;
+  }
+
+  .node:not(:last-child)::after,
+  .node:not(:last-child)::before {
+    left: calc(50% + (var(--hd-mark) / 2) + 4px);
+    top: calc((var(--hd-mark) / 2) - 1px);
+    width: calc(100% + var(--hd-gap) - var(--hd-mark) - 8px);
+    height: 2px;
+    background: linear-gradient(to right, rgba(196, 181, 253, 0.42), rgba(196, 181, 253, 0.16));
+  }
+
+  .node:not(:last-child)::before {
+    top: calc((var(--hd-mark) / 2) - 1.5px);
+    height: 3px;
+    background: linear-gradient(to right, rgba(232, 213, 163, 0.95), rgba(196, 181, 253, 0.7));
+    transform-origin: left center;
+    transform: scaleX(0);
+    animation-name: hdChannelFlowX;
+  }
+
+  .label {
+    font-size: 0.6875rem;
+    text-align: center;
+  }
+}
+
+/* ── 키프레임 ─────────────────────────────────────────── */
+
+@keyframes hdChannelFlowY {
+  0% { transform: scaleY(0); opacity: 0; }
+  12% { opacity: 1; }
+  55% { transform: scaleY(1); opacity: 1; }
+  100% { transform: scaleY(1); opacity: 0; }
+}
+
+@keyframes hdChannelFlowX {
+  0% { transform: scaleX(0); opacity: 0; }
+  12% { opacity: 1; }
+  55% { transform: scaleX(1); opacity: 1; }
+  100% { transform: scaleX(1); opacity: 0; }
+}
+
+@keyframes hdHalo {
+  0%, 100% { opacity: 0.4; transform: scale(1); }
+  45% { opacity: 0.92; transform: scale(1.16); }
+}
+
+@keyframes hdVortexGlow {
+  0%, 100% { opacity: 0.34; }
+  45% { opacity: 0.9; }
+}
+
+@keyframes hdSpin {
+  to { transform: rotate(360deg); }
+}
+
+@keyframes hdGoldBreathe {
+  0%, 100% { opacity: 0.45; }
+  50% { opacity: 1; }
+}
+
+@keyframes hdNebulaDrift {
+  from { transform: translate3d(-2%, -1.5%, 0) scale(1); }
+  to { transform: translate3d(2.5%, 2%, 0) scale(1.08); }
+}
+
+@keyframes hdStarDrift {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-260px, -240px, 0); }
+}
+
+@keyframes hdWireBreathe {
+  from { transform: translate3d(0, -6px, 0) scale(1); }
+  to { transform: translate3d(0, 6px, 0) scale(1.03); }
+}
+
+/* ── 접근성 ───────────────────────────────────────────── */
+
+/* 🔴 animation: none 으로 끝내면 scaleY(0)·opacity:0 이 그대로 남아 채널과 발광이 통째로 사라진다.
+ *    끄는 것이 아니라 **최종 상태로 앉히는** 것이 이 저장소의 규칙이다. */
+@media (prefers-reduced-motion: reduce) {
+  .nebula,
+  .nebulaB,
+  .stars,
+  .wireframe,
+  .heading::before {
+    animation: none;
+  }
+
+  .node:not(:last-child)::before {
+    animation: none;
+    transform: none;
+    opacity: 0.55;
+  }
+
+  .halo {
+    animation: none;
+    transform: none;
+    opacity: 0.7;
+  }
+
+  .vortex {
+    animation: none;
+    transform: none;
+    opacity: 0.5;
+  }
+}

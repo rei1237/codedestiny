@@ -99,3 +99,58 @@ test("등장 애니메이션이 reduced-motion 에서 최종 상태로 앉는다
   assert.ok(reduced.includes("stroke-dashoffset: 0"));
   assert.ok(reduced.includes("stroke-dasharray: none"));
 });
+
+// ── 계산 중 대기 화면 ────────────────────────────────────────────────────────
+
+test("대기 화면이 단계 진행 상태를 주장하지 않는다", () => {
+  const scene = read("app/human-design/_components/PipelineScene.tsx");
+  const railStart = scene.indexOf("const PipelineRail");
+  const railEnd = scene.indexOf("export default function PipelineScene");
+  assert.ok(railStart > 0 && railEnd > railStart, "PipelineRail 컴포넌트를 찾지 못했다");
+  const rail = scene.slice(railStart, railEnd);
+
+  // 🔴 차트는 /api/human-design/chart 를 한 번 부를 뿐이라 지금 몇 번째 단계인지 알 수 없다.
+  //    레일이 경과 시간을 만지는 순간 그건 지어낸 진행률이다
+  //    (worker/routes/human-design.js 의 요구사항 22 · AnalysisBasisLoading 의 정본 계약).
+  assert.ok(!/elapsed/i.test(rail), "레일이 경과 시간을 읽는다 — 시간 기반 점등은 지어낸 진행률이다");
+});
+
+test("대기 화면의 8단계와 팔괘가 1:1 로 맞는다", () => {
+  const scene = read("app/human-design/_components/PipelineScene.tsx");
+  const steps = scene.slice(scene.indexOf("const PIPELINE_STEPS"), scene.indexOf("const WIRE_CHANNELS"));
+
+  // 타입 선언에도 copyKey 가 한 번 나오므로 값이 붙은 형태로만 센다.
+  assert.equal((steps.match(/copyKey: "/g) || []).length, 8, "단계가 8개가 아니다");
+  const trigrams = steps.match(/trigram: \[[01], [01], [01]\]/g) || [];
+  assert.equal(trigrams.length, 8, "팔괘가 8개가 아니다");
+  assert.equal(new Set(trigrams).size, 8, "팔괘가 겹친다 — 여덟 괘가 모두 달라야 한다");
+});
+
+test("대기 화면의 경과 시간이 aria-live 로 읽히지 않는다", () => {
+  const scene = read("app/human-design/_components/PipelineScene.tsx");
+
+  // 🔴 200ms 마다 바뀌는 숫자가 aria-live 영역 안에 그대로 있으면 스크린리더가 초당 5회 읽는다.
+  //    (같은 결함을 막는 가드가 __tests__/ui/life-book-ux.static.test.js 에도 있다.)
+  assert.ok(
+    scene.includes('<p className={styles.elapsed} aria-hidden="true">'),
+    "경과 시간에 aria-hidden 이 없다",
+  );
+});
+
+test("대기 화면 애니메이션이 reduced-motion 에서 최종 상태로 앉는다", () => {
+  const css = read("app/human-design/_components/pipeline-scene.module.css");
+  const reduced = css.slice(css.indexOf("@media (prefers-reduced-motion: reduce)"));
+  assert.ok(reduced.length > 0, "reduced-motion 블록이 없다");
+
+  // 🔴 animation: none 만 두면 scaleY(0) · opacity: 0 이 그대로 남아 채널과 발광이 통째로 사라진다.
+  //    끄는 것이 아니라 최종 상태로 앉히는 것이 이 저장소의 규칙이다.
+  const settled = (selector, opacity) => new RegExp(
+    `${selector} \\{\\s*animation: none;\\s*transform: none;\\s*opacity: ${opacity};`,
+  );
+  assert.ok(settled("\\.halo", "0\\.7").test(reduced), "halo 가 최종 상태로 앉지 않는다");
+  assert.ok(settled("\\.vortex", "0\\.5").test(reduced), "소용돌이가 최종 상태로 앉지 않는다");
+  assert.ok(
+    /::before \{\s*animation: none;\s*transform: none;\s*opacity: 0\.55;/.test(reduced),
+    "채널 펄스가 최종 상태로 앉지 않는다",
+  );
+});
