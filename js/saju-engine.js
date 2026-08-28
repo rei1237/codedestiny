@@ -948,9 +948,20 @@ const KasiEngine = {
      * 정본. parts 는 KST 벽시계 부품 `{ year, month, day, hour, minute, second? }`.
      * 🔴 PR-E 이전에는 위에 로컬 Date 를 받는 `solarToLunar` 어댑터가 있었다 — 되살리지 말 것.
      * 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
+     *
+     * ── 🔴 야자시 규약은 두 축이 **일부러 다르다** ─────────────────────────
+     *   · 음력일 축(이 함수)  = **OFF**. 23시대에도 날짜를 안 민다.
+     *   · 간지 축(getGanjiFromParts) = **ON**. 23시대에 하루를 민다(명리학 자시 경계).
+     * 음력일은 삭망(달의 위상)이 정하는 천문 날짜라 자시 경계와 무관하다. 앱
+     * (app/_lib/ziwei-engine.ts:110)·워커(worker/lib/ziwei-ai-chart.js:147)·
+     * lib/sukuyo-calendar.ts 가 이미 안 밀고 있었고, 셸만 밀어서 같은 사람의 본명숙과
+     * 자미 명반이 어느 화면으로 들어왔느냐에 따라 갈렸다. 이 기본값이 그것을 맞춘 것이다.
+     * 🔴 그래서 여기 `{ yaja: true }` 를 되돌리거나 두 축을 "정리"해 통일하지 말 것 —
+     * verify:sukuyo-korean-calendar ⑥-b/⑥-f 와 verify:ganji-surface-parity 의 네 열이
+     * 두 축을 서로 다른 값으로 못박아 두었다.
      */
     solarToLunarFromParts: function(parts, options) {
-        options = options || { yaja: true };
+        options = options || {};
         if (!parts) return null;
         var at = parts;
         if (at.hour >= 23 && options.yaja) {

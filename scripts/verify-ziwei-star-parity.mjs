@@ -167,6 +167,13 @@ for (let year = 1980; year <= 1991; year += 1) {
 for (let year = 1992; year <= 2003; year += 1) {
   CASES.push({ label: `${year}-10-08 00:20 F`, gender: "F", year, month: 10, day: 8, hour: 0, minute: 20 });
 }
+// 🔴 2004~2015 = 다시 12 생년지, **23:30(야자시 경계)**. 이 축이 비어 있는 동안 셸만 음력일을
+// 하루 밀고 있었고(`solarToLunarFromParts` 의 기본값 ON) 워커·앱은 안 밀었는데 이 가드는 초록이었다
+// — 23시대 케이스가 한 건도 없었기 때문이다.
+// 🔴 이 루프를 빼지 말 것. 빼면 셸이 다시 하루를 밀어도 아무도 안 본다.
+for (let year = 2004; year <= 2015; year += 1) {
+  CASES.push({ label: `${year}-05-15 23:30 M (야자시 경계)`, gender: "M", year, month: 5, day: 15, hour: 23, minute: 30 });
+}
 
 // ── 엔진별 별 → 지지 인덱스 ────────────────────────────────────────────────
 function shellPlacement(subject) {

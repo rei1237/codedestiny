@@ -3,44 +3,50 @@
 `scripts/verify-sukuyo-korean-calendar.mjs` 의 **검사 ⑥**(셸 음력일 축)이 쓰는 픽스처다.
 손으로 고치지 말 것 — 갱신은 `node scripts/verify-sukuyo-korean-calendar.mjs --emit` 이 한다.
 
-## 🔴 이것은 정답이 아니라 **현행**이다
+## 계약 — 시각과 무관하게 **갈래 1**
 
 셸(`js/`)의 음력일 소비자 7벌을 브라우저와 같은 로드 체인에서 실제로 돌린 결과다.
-계약은 "이 값이 안 바뀐다" 하나이고, **값의 옳고 그름은 이 파일의 관심사가 아니다.**
+계약은 두 가지다: **소비자끼리 같은 값을 낸다**(`groupCounts` 전 행 1), 그리고 **그 값이
+한국 음양력 코어와 같다**(검사 ⑥-a, 대조군과 23시대 둘 다).
 
-그래서 여기에는 **지금 라이브인 불일치가 그대로 고정돼 있다.**
-
-### ① 23시대(야자시)에 셸 소비자끼리 답이 갈린다 — 갈래 **2**
-
-```
-갈래 1 (대조군 00·12·22시)  33행
-갈래 2 (23:00·23:29·23:30·23:59) 44행
-```
-
-예 — `1950-03-19 23:00`:
+### ① 23시대(야자시) — PR-1 때는 갈래 **2**, PR-3 이후 **1**
 
 ```
-KasiEngine.solarToLunarFromParts        루(婁)   ← 민다 (야자시 ON 기본값)
-calcZiweiPalaces:calcMeta               루(婁)   ← 민다
-buildFallbackDateContext                루(婁)   ← 민다
-modalProfileState._resolveSukuyoLunarObj 루(婁)  ← 민다
-indexInlineRuntime._dfExtractSukuyoLiveData 루(婁) ← 민다
-quantum.syRadarResolveLunar             규(奎)   ← 안 민다 (서비스 컨텍스트 우선)
-resolvePrimaryCalendarContext           규(奎)   ← 안 민다
+PR-1 (세울 때)   대조군 33행 갈래 1 · 23시대 44행 갈래 2
+PR-3 (지금)      전 77행 갈래 1
 ```
 
-**왜 서비스 갈래는 안 미는가** — `js/core/kasi-calendar-service.js:193` 의
+PR-1 때의 `1950-03-19 23:00` — 같은 사람의 본명숙이 화면마다 갈렸다:
+
+```
+KasiEngine.solarToLunarFromParts        루(婁)   ← 밀었다 (야자시 ON 기본값)
+calcZiweiPalaces:calcMeta               루(婁)   ← 밀었다
+buildFallbackDateContext                루(婁)   ← 밀었다
+modalProfileState._resolveSukuyoLunarObj 루(婁)  ← 밀었다
+indexInlineRuntime._dfExtractSukuyoLiveData 루(婁) ← 밀었다
+quantum.syRadarResolveLunar             규(奎)   ← 안 밀었다 (서비스 컨텍스트 우선)
+resolvePrimaryCalendarContext           규(奎)   ← 안 밀었다
+```
+
+PR-3 이 `js/saju-engine.js` 의 `solarToLunarFromParts` 기본값을 **OFF** 로 뒤집어 전원을
+`규(奎)` 로 모았다. 방향은 "OFF 를 ON 으로"가 아니라 **이미 안 밀던 쪽에 미는 쪽을 맞춘 것**이다:
+
+- **앱·워커는 처음부터 안 밀었다** — `app/_lib/ziwei-engine.ts:110` ·
+  `worker/lib/ziwei-ai-chart.js:147` · `lib/sukuyo-calendar.ts` 는 전부 3인자
+  `solarToLunar(y, m, d)` 라 야자시 개념이 없다.
+- 음력일은 삭망(달의 위상)이 정하는 천문 날짜라 명리학의 자시 경계와 무관하다.
+
+**서비스 갈래는 왜 원래부터 안 밀었나** — `js/core/kasi-calendar-service.js:193` 의
 `_applyCoreCalendarCorrection` 이 `context.lunar` 를 **밀지 않은**
 `KoreanCalendar.solarToLunar(y, m, d)` 로 덮어쓰고, 그 호출은 `:1074`(캐시 히트)·`:1238`(신규
-생성)에서 **무조건** 돈다. 진단 태그 `korean-calendar-core-correction` 이 그 증거이고, 검사 ⑥-e 가
-그 태그가 실제로 찍혔는지 본다 — 안 그러면 "네트워크가 없어서 통과"와 구별되지 않는다.
+생성)에서 **무조건** 돈다.
 
-**앱·워커는 이미 안 민다** — `app/_lib/ziwei-engine.ts:110` · `worker/lib/ziwei-ai-chart.js:147` ·
-`lib/sukuyo-calendar.ts` 는 전부 3인자 `solarToLunar(y, m, d)` 라 야자시 개념이 없다.
-즉 지금 셸의 "미는 갈래"는 **앱·워커와도 갈려 있다.**
-
-🔴 **이것을 고치는 것은 다음 PR 이다.** 그때 `groupCounts` 가 전 행 **1** 이 되고, 이 파일을
-`--emit` 으로 다시 뽑는다. 그 diff 가 곧 "무엇이 얼마나 바뀌었나"의 답이다.
+🔴 **그래서 ⑥-e 의 의미가 PR-3 에서 뒤집혔다.** PR-1 때는 진단 태그
+`korean-calendar-core-correction` 이 **찍히는지**를 봤다(보정이 밀린 값을 되돌린 증거).
+지금은 폴백이 애초에 코어와 같은 값을 내므로 그 보정이 **no-op** 이고 태그가 안 찍힌다 —
+⑥-e 는 이제 **안 찍히는지**를 본다. 음력 축 야자시가 되살아나면 보정이 다시 돌아 태그가
+찍히고 그 자리가 빨강이 된다. "네트워크가 없어서 통과"는 별도 태그
+`lunar conversion fallback` 이 실제로 찍혔는지로 계속 막는다.
 
 ### ② 이 저울이 못 보는 자리 — 정적 도달 3곳
 
@@ -73,7 +79,22 @@ resolvePrimaryCalendarContext           규(奎)   ← 안 민다
 
 `getGanjiFromParts` 의 야자시는 **ON 이 정본**이고 이 축과 규약이 다르다. 그 비대칭이 의도임을
 검사 ⑥-f 가 값으로 지킨다 — 23시대에 `{yaja:true}` 와 `{yaja:false}` 의 일주가 갈려야 한다.
-음력 축을 통일하는 PR 이 실수로 간지 축까지 끄면 여기서 빨간불이 난다.
+PR-3 이 음력 축을 OFF 로 통일할 때 간지 축까지 껐다면 여기서 빨간불이 났다.
+
+`ganji-surface-kst.json` 은 같은 비대칭을 **네 열**로 한 번 더 적는다 —
+`getGanjiFromParts`(ON) / `:noYaja`(OFF) / `solarToLunarFromParts`(OFF) /
+`:yaja`(ON). 누가 "규약을 정리"하면 열이 움직여 그쪽이 깨진다.
+
+### ⑥ 날짜 밀기 유틸도 전수 발견한다 (PR-3)
+
+`solarToLunarFromParts` 만 지키면 구멍이 남는다 — 그 함수를 **안 거치고** 부품을 직접 미는
+자리가 있기 때문이다. 실제로 숙요 3 폼의 음력 입력 갈래
+(`js/saju-engine-tarot-sukuyo-quantum.js`)가 `_kasiShiftPartsByDays(tBirthParts, 1)` 로 직접
+밀고 있었고, 기본값만 뒤집었다면 **같은 폼에서 양력은 안 밀고 음력은 미는 자가당착**이 남았다.
+그래서 검사 ⑥-0c 가 `_kasiShiftPartsByDays(` 호출을 전부 찾아 축(`lunar`/`ganji`/`util`)으로
+분류하고 미분류·stale 을 실패시킨다. 발견은 주석을 걷어낸 소스에서 하고
+(설명 주석이 호출로 잡히는 헛빨강을 막는다), 이름은 `function 이름(` 뿐 아니라
+`이름: function(` 도 본다(밀기 호출 둘이 `KasiEngine` 객체 리터럴 안에 있다).
 
 ## 시각 축
 

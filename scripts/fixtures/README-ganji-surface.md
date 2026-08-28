@@ -57,10 +57,37 @@ live 행 1 → **130**, 서로 다른 값 2 → **88**. 야자시 경계 표본(
 
 검증캐시 해 **밖**에서는 위 3벌이 여전히 `null` 이라, 그 표본에서는 무엇을 해도 `null == null` 이다.
 실측(2026-08-28): `getGanjiFromParts` 안에서 부품을 로컬 `Date` 로 접어도 **가드 57건이 전부 초록**이었다.
-그래서 값이 아니라 **행위**를 보는 검사 ⑮ 를 넣었다 — 표면 12벌을 표본 전건에 돌리는 동안
+그래서 값이 아니라 **행위**를 보는 검사 ⑮ 를 넣었다 — 표면 13벌을 표본 전건에 돌리는 동안
 로컬 타임존을 읽는 `Date` 조작(다인자 `new Date(`, `getFullYear()` 류)이 한 번이라도 일어나면 실패다.
 🔴 소스 검사(`verify:shell-korean-calendar` ⑬)는 `Date.UTC` 로 감싼 것을 안전으로 치므로
 `new Date(Date.UTC(...)).getFullYear()` 를 못 본다. ⑮ 는 그 모양도 잡는다(음성 테스트 확인).
+
+### ①-d 야자시 규약의 비대칭을 **네 열**로 적는다 (PR-3)
+
+음력일 축과 간지 축은 야자시 규약이 **일부러 다르다.** 주석은 아무도 안 읽으므로 값으로 적는다:
+
+| 열 | 기본값 | 23시대에 하루를 미는가 |
+|---|---|---|
+| `getGanjiFromParts` | ON | 민다 |
+| `getGanjiFromParts:noYaja` | (명시 OFF) | 안 민다 |
+| `solarToLunarFromParts` | **OFF**(PR-3) | 안 민다 |
+| `solarToLunarFromParts:yaja` | (명시 ON) | 민다 |
+
+누가 "규약을 정리"해 두 축을 한쪽으로 통일하면 이 네 열의 관계가 무너져 픽스처가 깨진다.
+근거는 `js/saju-engine.js` 의 `solarToLunarFromParts` 머리주석.
+
+**PR-3 이 실제로 움직인 칸** — 표본 1,645행 중 **23시대 123행**에서 기존 열 두 개만 바뀌었다:
+
+```
+solarToLunarFromParts       123칸
+calcZiweiPalaces:calcMeta   123칸   (lunarMonth/lunarDay 부분)
+합계 246칸 · 23시대 밖 0칸 · nullMap 0칸
+getGanjiFromParts · :noYaja · computeGanjiFromParts:* · 기둥 4벌 · getMonthGanZhi = 0칸
+```
+
+그 **0칸**이 "간지 축을 안 건드렸다"의 증거다. 재현:
+`git show <PR-3 직전>:scripts/fixtures/ganji-surface-kst.json` 과 현재 파일을 표면 이름으로
+짝지어 열 단위로 세면 위 숫자가 나온다.
 
 ### ② `Asia/Seoul` 에도 접히는 벽시계가 12건 있다
 
@@ -102,6 +129,7 @@ foldedWallClocks  Asia/Seoul 12 · UTC 0 · America/New_York 21
 | PR-E(Date 진입점 제거) | ✅ 끝났다(돌렸다). `gaps` 가 0 이 되고 `ganji-surface-kst.json` 의 `DST-GAP` 12행이 값으로 바뀌었다 — **Date 축 before-image 계약은 여기서 끝났다.** 무손실 증거: 옛 픽스처와 새 픽스처를 표면 이름으로 짝지어 1,504행 × 12벌 = 18,048셀 대조, 값 0건·`isNull` 0건 불일치 |
 | 표면·표본 정의를 바꿨을 때 | 돌린다. **바뀐 줄 수와 이유를 커밋 메시지에 적는다** |
 | PR-F(투영기 교정 + 검증캐시 해 표본) | ✅ 끝났다(돌렸다). 표본 1516 → **1645**, 상수였던 5열이 값을 나르기 시작했다. 셸은 안 바뀌었고, 무손실 증거는 위 ①-b 에 있다 |
+| PR-3(야자시 OFF 통일) | ✅ 끝났다(돌렸다). 표면 12 → **13**(`solarToLunarFromParts:yaja` 추가), 기존 열은 23시대 123행 × 2열 = 246칸만 움직였다. 위 ①-d 참조 |
 | 가드가 빨간불인데 원인을 모를 때 | 🔴 돌리지 않는다. `--emit` 은 회귀를 지우는 버튼이다 |
 
 ## 형식

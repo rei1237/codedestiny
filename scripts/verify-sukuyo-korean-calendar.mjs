@@ -27,9 +27,11 @@
  *   ⑥ 🔴 **셸(js/) 음력일 축**. ②~⑤ 의 소비자는 전부 `lib/`·`worker/`·`app/` 이라 셸은
  *      ①의 문자열 스캔 대상일 뿐 **실행 대상이 아니었다.** ⑥ 은 셸 소비자를 브라우저와 같은
  *      로드 체인에서 실제로 돌린다(자식 프로세스 — scripts/lib/sukuyo-shell-probe.cjs).
- *      🔴 ⑥ 이 박는 것은 "옳음"이 아니라 **현행**이다: 23시대(야자시)에 셸 소비자끼리
- *      **답이 갈린다**(갈래 2). 서비스 컨텍스트를 거치면 안 밀고, `solarToLunarFromParts` 를
- *      직접 부르면 민다. 통일은 다음 PR 이 하고, 이 절은 그 변화량을 잴 저울이다.
+ *      🔴 ⑥ 의 계약은 **갈래 1** 이다 — 시각과 무관하게 셸 소비자 전원이 코어와 같은 값을
+ *      낸다. 세우던 날(PR-1)에는 23시대 갈래가 2 였다: 서비스 컨텍스트를 거치면 안 밀고
+ *      `solarToLunarFromParts` 를 직접 부르면 밀었다. 그 기본값을 OFF 로 뒤집어(PR-3)
+ *      앱·워커(이미 안 미는 쪽)에 맞췄고, 이 절이 그것을 되돌리지 못하게 못박는다.
+ *      🔴 간지 축은 반대로 ON 이 정본이다 — ⑥-f 가 그 비대칭을 값으로 지킨다.
  */
 import { execFileSync } from "node:child_process";
 import fs from "node:fs";
@@ -47,6 +49,7 @@ import {
   solarToLunar,
 } from "../lib/korean-calendar/index.js";
 import { buildSukuyoFromLunar } from "../worker/lib/sukuyo-ai-calculation.js";
+import { stripComments } from "./lib/js-source-slice.mjs";
 import { loadTsModule } from "./lib/load-ts-module.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -471,15 +474,20 @@ for (const consumer of CONSUMERS) {
 
 // ── ⑥ 셸(js/) 음력일 축 — 소비자를 실제로 실행해 현행 불일치를 고정한다 ──────
 //
-// 🔴 **이 절은 지금 "옳음"이 아니라 "현행"을 박는다.** 셸 소비자마다 23시대(야자시) 처리가
-// 갈려 있고, 그 사실을 값으로 고정해 두는 것이 이 절의 계약이다. 통일은 다음 PR 이 한다.
+// 🔴 **이 절의 계약은 "시각과 무관하게 갈래 1"** 이다. 셸 소비자 전원이 코어와 같은 음력일을
+// 내야 하고, 23시대도 예외가 아니다.
 //
 //   · 서비스 컨텍스트를 거치는 소비자 → 안 민다
-//     (js/core/kasi-calendar-service.js:193 `_applyCoreCalendarCorrection` 이 `:1074`·`:1238`
-//      에서 **무조건** 돌아 `context.lunar` 를 밀지 않은 코어 값으로 덮는다)
-//   · `KasiEngine.solarToLunarFromParts` 를 직접 부르는 소비자 → 민다(기본값 ON)
+//   · `KasiEngine.solarToLunarFromParts` 를 직접 부르는 소비자 → 안 민다(기본값 OFF, PR-3)
 //   · 앱·워커(`app/_lib/ziwei-engine.ts` · `worker/lib/ziwei-ai-chart.js` · `lib/sukuyo-calendar.ts`)
 //     → 3인자 호출이라 야자시 개념이 없다 = 안 민다
+//
+// 🔴 PR-1 때는 23시대 갈래가 2 였고 이 절은 그 불일치를 **박제**하고 있었다. PR-3 이 셸의
+// 기본값을 OFF 로 뒤집어 앱·워커에 맞췄다 — 그때 ⑥-b 가 2→1 로, ⑥-e 가 아래처럼 바뀌었다.
+// 🔴 그 전에는 `_applyCoreCalendarCorrection`(js/core/kasi-calendar-service.js:193)이 밀린
+// 폴백 값을 코어 값으로 되돌리며 `korean-calendar-core-correction` 진단을 남겼다. 지금은
+// 폴백이 애초에 코어와 같은 값을 내므로 그 보정이 **no-op** 이고 진단도 안 찍힌다 —
+// ⑥-e 가 그 no-op 을 값으로 못박는다(다시 밀기 시작하면 진단이 되살아나 빨강이 된다).
 //
 // 자식 프로세스로 도는 이유·fetch 를 던지게 두는 이유는 scripts/lib/sukuyo-shell-probe.cjs
 // 머리주석에 있다. 여기서는 **판정만** 한다.
@@ -576,6 +584,64 @@ const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups
     staleCallsites.join("\n      "),
   );
 
+  // ── ⑥-0c 날짜 밀기 유틸 전수 발견 (R-c) ───────────────────────────────────
+  //
+  // 🔴 `solarToLunarFromParts` 만 지키면 구멍이 남는다 — 그 함수를 **안 거치고** 부품을 직접
+  // 미는 자리가 있기 때문이다. 실제로 숙요 3 폼의 음력 입력 갈래가 그랬다(PR-3 이 지웠다).
+  // 그래서 `_kasiShiftPartsByDays(` 호출을 전부 찾아 축별로 분류하고, 미분류·stale 을 실패시킨다.
+  const SHIFT_CALLSITES = new Map([
+    ["js/saju-engine.js#solarToLunarFromParts", { axis: "lunar", note: "기본값 OFF — options.yaja 를 명시해야만 민다" }],
+    ["js/saju-engine.js#getGanjiFromParts", { axis: "ganji", note: "기본값 ON — 명리학 자시 경계(정본)" }],
+    // 🔴 키의 이름은 **직전 함수 선언**이라 실제 감싸는 스코프(qDailyFlow IIFE)와 다르다 —
+    //    이름이 아니라 "소스에 이 자리가 있다" 를 지키는 앵커다.
+    ["js/saju-engine-tarot-sukuyo-quantum.js#rank", { axis: "util", note: "주간 일운 7칸의 날짜 산술(qDailyFlow) — 야자시와 무관" }],
+  ]);
+  const SHIFT_RE = /_kasiShiftPartsByDays\s*\(/g;
+  // 🔴 `function 이름(` 뿐 아니라 `이름: function(` 도 잡는다 — 밀기 호출 둘이 KasiEngine 객체
+  // 리터럴의 메서드 안에 있어서, 선언형만 보면 둘 다 바로 위의 `function _kasiShiftPartsByDays`
+  // 로 뭉쳐 한 칸이 된다(그러면 두 축을 구분하는 이 검사가 무의미해진다).
+  const ANY_FN_DECL_RE = /function\s+([A-Za-z0-9_$]+)\s*\(|([A-Za-z0-9_$]+)\s*:\s*function\s*\(/g;
+  const shiftFound = new Map();
+  for (const file of walk(path.join(root, "js"), [])) {
+    if (path.extname(file) !== ".js") continue;
+    const raw = fs.readFileSync(file, "utf8");
+    if (!raw.includes("_kasiShiftPartsByDays")) continue;
+    // 🔴 주석을 걷어낸 뒤 센다 — "예전에는 _kasiShiftPartsByDays(…) 로 밀었다" 같은 설명 주석이
+    //    호출로 잡히면 미분류로 헛빨강이 난다(실측: PR-3 이 남긴 주석 1건).
+    const source = stripComments(raw);
+    const relative = path.relative(root, file).split(path.sep).join("/");
+    for (const match of source.matchAll(SHIFT_RE)) {
+      // 정의 자신(`function _kasiShiftPartsByDays(`)은 호출이 아니다.
+      if (/function\s+$/.test(source.slice(Math.max(0, match.index - 12), match.index))) continue;
+      let nearest = "(top-level)";
+      for (const decl of source.slice(0, match.index).matchAll(ANY_FN_DECL_RE)) nearest = decl[1] || decl[2];
+      const key = `${relative}#${nearest}`;
+      shiftFound.set(key, (shiftFound.get(key) || 0) + 1);
+    }
+  }
+  ok(
+    "⑥ 날짜 밀기 유틸 호출부를 실제로 발견했다(발견 0 = 발견 방식이 깨진 것)",
+    shiftFound.size >= SHIFT_CALLSITES.size,
+    `발견 ${shiftFound.size}곳 / 분류 ${SHIFT_CALLSITES.size}곳`,
+  );
+  const unclassifiedShift = [...shiftFound.keys()].filter((key) => !SHIFT_CALLSITES.has(key));
+  ok(
+    "⑥ 날짜 밀기 호출부가 전부 축별로 분류돼 있다(미분류 = 음력일을 몰래 미는 새 자리)",
+    unclassifiedShift.length === 0,
+    unclassifiedShift.join("\n      "),
+  );
+  const staleShift = [...SHIFT_CALLSITES.keys()].filter((key) => !shiftFound.has(key));
+  ok(
+    "⑥ 날짜 밀기 분류에 소스에서 사라진 항목이 없다",
+    staleShift.length === 0,
+    staleShift.join("\n      "),
+  );
+  ok(
+    "⑥ 음력 축에서 날짜를 미는 자리가 solarToLunarFromParts 하나뿐이다(옵션 뒤에 있다)",
+    [...SHIFT_CALLSITES.entries()].filter(([, v]) => v.axis === "lunar").length === 1,
+    [...SHIFT_CALLSITES.entries()].filter(([, v]) => v.axis === "lunar").map(([k]) => k).join(", "),
+  );
+
   // ── ⑥-0b 표본 — 간지 축이 살아 있는 해를 셸에 물어 넣는다 ─────────────────
   //
   // 🔴 `getGanjiFromParts` 는 검증캐시에 있는 해(현재 1990) 말고는 전부 null 이다. 그 해가
@@ -630,10 +696,18 @@ const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups
       extraOutside.join(", "),
     );
 
-    // ⑥-e 서비스 갈래가 "네트워크가 없어서" 가 아니라 코어 보정이 돌아서 안 민다.
+    // ⑥-e 서비스 갈래가 실제로 음력 변환을 돌았다 — "네트워크가 없어서 통과" 를 막는다.
     ok(
-      "⑥-e 서비스 갈래에 korean-calendar-core-correction 진단이 찍혔다",
-      (self.diagnostics || []).includes("korean-calendar-core-correction"),
+      "⑥-e 서비스 갈래가 로컬 음력 폴백을 실제로 돌았다",
+      (self.diagnostics || []).includes("lunar conversion fallback"),
+      (self.diagnostics || []).join(" · "),
+    );
+    // 🔴 PR-3 계약. 폴백이 이미 코어와 같은 값을 내므로 `_applyCoreCalendarCorrection` 은
+    // no-op 이고 진단을 안 남긴다. 음력 축 야자시가 되살아나면 보정이 다시 돌아 진단이
+    // 찍히고 이 검사가 빨강이 된다.
+    ok(
+      "⑥-e 코어 보정이 no-op 이다(폴백이 이미 코어와 같은 음력일을 낸다)",
+      !(self.diagnostics || []).includes("korean-calendar-core-correction"),
       (self.diagnostics || []).join(" · "),
     );
 
@@ -654,25 +728,34 @@ const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups
     const controlRows = probe.rows.filter((row) => CONTROL_TIMES.has(row.key.slice(-5)));
     const yajaRows = probe.rows.filter((row) => row.hour === 23);
 
-    const controlWrong = controlRows.filter((row) => {
+    const wrongVsCore = (rows) => rows.filter((row) => {
       const core = solarToLunar(row.year, row.month, row.day);
       const expected = core ? coreMansionFull(core.lunarMonth, core.lunarDay, core.isLeapMonth) : null;
       return mansionsOf(row).some((m) => m !== expected);
     });
+    const controlWrong = wrongVsCore(controlRows);
     ok(
       "⑥-a 대조군 시각에서 셸 소비자 전원이 코어와 같은 본명숙을 낸다",
       controlRows.length > 0 && controlWrong.length === 0,
       controlWrong.map((row) => `${row.key} — ${mansionsOf(row).join(" · ")}`).join("\n      "),
+    );
+    // 🔴 PR-3 계약의 본체. 갈래 수만 보면 소비자 전원이 **같이** 밀어도 1 이라 통과한다 —
+    // 그래서 23시대도 코어 값과 직접 대조한다.
+    const yajaWrong = wrongVsCore(yajaRows);
+    ok(
+      "⑥-a 23시대에도 셸 소비자 전원이 코어와 같은 본명숙을 낸다(전원이 같이 미는 것을 막는다)",
+      yajaRows.length > 0 && yajaWrong.length === 0,
+      yajaWrong.map((row) => `${row.key} — ${mansionsOf(row).join(" · ")}`).join("\n      "),
     );
     ok(
       "⑥-c 대조군 시각의 갈래 수가 1 이다",
       controlRows.length > 0 && controlRows.every((row) => groupCount(row) === 1),
       controlRows.filter((row) => groupCount(row) !== 1).map((row) => `${row.key} 갈래 ${groupCount(row)}`).join(", "),
     );
-    // 🔴 이 줄이 이 PR 의 계약이다 — **2 가 현행**이다. 통일하는 PR 이 이 숫자를 1 로 바꾼다.
-    const wrongYaja = yajaRows.filter((row) => groupCount(row) !== 2);
+    // 🔴 PR-3 의 계약. PR-1 때는 이 숫자가 **2** 였다(서비스 경로는 안 밀고 직접 호출은 밀었다).
+    const wrongYaja = yajaRows.filter((row) => groupCount(row) !== 1);
     ok(
-      "⑥-b 23시대 갈래 수가 2 다(현행 — 통일하는 PR 이 이 숫자를 1 로 바꾼다)",
+      "⑥-b 23시대 갈래 수가 1 이다(PR-3 이 2→1 로 통일했다 — 되돌리면 여기서 잡힌다)",
       yajaRows.length > 0 && wrongYaja.length === 0,
       wrongYaja.map((row) => `${row.key} 갈래 ${groupCount(row)} — ${[...new Set(mansionsOf(row))].join(" · ")}`).join("\n      "),
     );
@@ -728,7 +811,7 @@ const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups
 
     // ── ⑥ 픽스처 — 현행을 박제한다 ─────────────────────────────────────────
     const snapshot = {
-      note: "🔴 정답이 아니라 **현행**이다. 셸 소비자마다 23시대 야자시 처리가 갈려 있는 상태를 그대로 박아 둔다. 자세한 것은 README-sukuyo-shell-axis.md.",
+      note: "🔴 PR-3(야자시 OFF 통일) 이후의 계약이다 — 시각과 무관하게 groupCounts 가 전 행 1 이다. PR-1 때는 23시대가 2 였다. 자세한 것은 README-sukuyo-shell-axis.md.",
       generatedBy: "node scripts/verify-sukuyo-korean-calendar.mjs --emit",
       tz: "Asia/Seoul",
       consumers,
@@ -737,7 +820,7 @@ const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups
       rows: probe.rows.map((row) => `${row.key}\t${row.values.map((v) => (v ? v.mansion : "")).join("\t")}`),
       // 🔴 값과 **따로** 적는다. 값만 대조하면 죽은 열이 `null == null` 로 조용히 통과한다.
       nullMap: probe.rows.map((row) => `${row.key}\t${row.values.map((v) => (v ? "0" : "1")).join("")}`),
-      // 🔴 통일하는 PR 이 무엇을 바꾸는지 예측 가능하게 만드는 칸 — 지금은 대조군 1 · 23시대 2 다.
+      // 🔴 규약이 되돌아가는지 한눈에 보는 칸 — 전 행 1 이다(PR-1 때는 23시대만 2 였다).
       groupCounts: probe.rows.map((row) => `${row.key}\t${groupCount(row)}`),
       monthly: probe.monthly.map((row) => `${row.key}\t${row.lunar}`),
     };

@@ -11623,9 +11623,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
       }
     }
     if (!lunarObj && typeof KasiEngine !== 'undefined' && typeof KasiEngine.solarToLunarFromParts === 'function') {
-      // 🔴 옛 2번째 인자 `true` 는 solarToLunar 가 **무시**하던 값이다. 부품 갈래는 옵션을 안 주면
-      // 야자시가 켜지므로(현행과 동일) 여기서 값이 안 바뀐다. 이 자리가 PR-E 의 야자시 결정 지점이다
-      // — 입력 시각이 23시일 수 있어 끄면 본명숙이 옆 칸으로 옮겨간다.
+      // 🔴 옵션을 안 준다 = 음력일 축 야자시 **OFF**(solarToLunarFromParts 의 기본값). 23시대
+      // 입력이 와도 날짜를 안 민다 — 위 서비스 컨텍스트 갈래가 이미 안 밀고 있어서 그쪽과 이쪽이
+      // 이제 같은 값을 낸다(예전에는 이 폴백만 하루를 밀었다). 규약 근거는 js/saju-engine.js 의
+      // solarToLunarFromParts 머리주석.
       lunarObj = KasiEngine.solarToLunarFromParts(_kasiPartsOf(parsed.year, parsed.month, parsed.day, hour, minute, 0));
     }
     if (!lunarObj) throw new Error('음력 변환에 실패했습니다.');
@@ -13262,7 +13263,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     try {
       if (typeof KasiEngine !== 'undefined' && typeof KasiEngine.solarToLunarFromParts === 'function') {
         // 🔴 monthIndex 는 0-based 다 — 부품의 월은 1-based 라 +1 이다(아래 폴백이 같은 +1 을 쓴다).
-        // 정오 고정이라 야자시가 절대 안 걸리고, 그래서 옛 2번째 인자 `true` 는 값에 영향이 없었다.
+        // 정오 고정이라 야자시 갈래가 애초에 안 걸린다 — 기본값이 ON 이던 시절에도, OFF 인 지금도
+        // 이 호출의 값은 같다.
         lunarObj = KasiEngine.solarToLunarFromParts(_kasiPartsOf(year, monthIndex + 1, 1, 12, 0, 0));
       }
     } catch (_e) {}
@@ -15882,10 +15884,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                     lunarObj = KasiEngine.solarToLunarFromParts(tBirthParts);
                   }
               } else {
-                  if(h >= 23) {
-                      let nextDay = _kasiShiftPartsByDays(tBirthParts, 1);
-                      y = nextDay.year; m = nextDay.month; d = nextDay.day;
-                  }
+                  // 🔴 음력 입력은 이미 음력일이다 — 여기서 하루를 밀지 않는다.
+                  // 예전에는 h >= 23 이면 _kasiShiftPartsByDays(tBirthParts, 1) 로 직접 밀었는데,
+                  // 위 양력 갈래는 solarToLunarFromParts 가 안 미는 쪽으로 바뀌었으므로 그대로 두면
+                  // **같은 폼에서 양력은 안 밀고 음력은 미는 자가당착**이 남는다. 음력일 축 야자시는
+                  // OFF 로 통일했다(근거: js/saju-engine.js 의 solarToLunarFromParts 머리주석).
                   let isLeap = (calType === 'lunar_leap');
                   lunarObj = { year: y, month: m, day: d, isLeap: isLeap };
               }
