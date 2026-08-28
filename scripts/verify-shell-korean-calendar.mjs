@@ -147,6 +147,17 @@ if (process.env.CD_SHELL_TZ_PROBE === "1") {
   process.exit(0);
 }
 
+/** 그 타임존에 고정된 자식에서 ⑫ 의 표본을 뽑는다. 실패하면 `null`. */
+function tzProbeChild(tz) {
+  const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
+    env: { ...process.env, TZ: tz, CD_SHELL_TZ_PROBE: "1" },
+    encoding: "utf8",
+    maxBuffer: 32 * 1024 * 1024,
+  });
+  if (child.status !== 0) return null;
+  try { return JSON.parse(child.stdout); } catch { return null; }
+}
+
 /** 코어의 4기둥을 셸과 같은 한자 표기로. */
 function corePillars(at, options) {
   const gz = ganji(at, options || {});
@@ -605,11 +616,21 @@ function extractFunctionSource(source, name) {
 
 // ── ⑫ 브라우저 타임존 축 ───────────────────────────────────────────────────
 {
-  const baseline = tzProbeRows();
-  ok("⑫ 타임존 표본을 실제로 만들었다(0 이면 가드가 깨진 것)", baseline.length >= 400, `${baseline.length}건`);
-  ok("⑫ 타임존 표본에 null 이 없다", !baseline.some((row) => row.includes("|null")), "");
+  // 🔴 baseline 을 **머신 로컬**에서 뽑으면 개발 머신(KST)과 CI(UTC)가 서로 다른 것을 재고도
+  // 둘 다 초록이 된다. 실제로 그랬다 — 아래 대조에 `UTC` 가 있어서 CI 에서는 UTC↔UTC 동어반복이었고,
+  // 정본인 `Asia/Seoul` 축은 CI 에서 **한 번도 안 돌았다.** baseline 도 자식으로 못박는다.
+  const baseline = tzProbeChild("Asia/Seoul");
+  ok("⑫ TZ=Asia/Seoul 기준 자식이 돌았다", Array.isArray(baseline), "자식 프로세스 실패 또는 파싱 실패");
+  ok("⑫ 타임존 표본을 실제로 만들었다(0 이면 가드가 깨진 것)", (baseline || []).length >= 400, `${(baseline || []).length}건`);
+  ok("⑫ 타임존 표본에 null 이 없다", !(baseline || []).some((row) => row.includes("|null")), "");
 
-  for (const tz of ["UTC", "America/New_York"]) {
+  // 🔴 매트릭스 6종은 **고정 리터럴**이고 접힘의 네 가지 모양을 하나씩 대표한다.
+  // 시각만 밀림(New_York) · 날짜가 통째로 없음(Apia) · 해가 넘어감(Kiritimati) · 30분 서머타임(Lord_Howe).
+  // 하나라도 빼면 그 모양을 못 본다. 같은 목록을 verify:ganji-surface-parity 도 쓴다.
+  const TZ_MATRIX = ["UTC", "America/New_York", "Pacific/Apia", "Pacific/Kiritimati", "Australia/Lord_Howe"];
+  ok("⑫ TZ 매트릭스가 기준 포함 6종이다", TZ_MATRIX.length === 5, `${TZ_MATRIX.length + 1}종`);
+
+  for (const tz of baseline ? TZ_MATRIX : []) {
     const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
       env: { ...process.env, TZ: tz, CD_SHELL_TZ_PROBE: "1" },
       encoding: "utf8",
