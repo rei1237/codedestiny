@@ -10,8 +10,10 @@
  */
 import {
   WEBHOOK_STALE_PROCESSING_MS,
+  WEBHOOK_TIMESTAMP_MAX_AGE_MS,
   __webhookTestUtils,
   acceptWebhook,
+  isWebhookTimestampStale,
   markEventFailed,
   markEventProcessed,
   reserveEvent,
@@ -41,6 +43,9 @@ async function signedHeaders(secret, id, timestamp, body) {
     "webhook-signature": `v1,${await signWebhookPayload(secret, id, timestamp, body)}`,
   });
 }
+
+/** acceptWebhook 은 신선도를 보므로 지금 시각으로 서명한다(고정 리터럴은 언젠가 반드시 낡는다). */
+const nowSeconds = () => String(Math.floor(Date.now() / 1000));
 
 describe("🔴 서명은 기존 구현과 동일하다", () => {
   let legacySign;
@@ -171,7 +176,7 @@ describe("acceptWebhook", () => {
     const db = makeWebhookDb();
     const result = await acceptWebhook(ENV, db, {
       rawBody: BODY,
-      headers: await signedHeaders(SECRET, EVENT, "1", BODY),
+      headers: await signedHeaders(SECRET, EVENT, nowSeconds(), BODY),
     });
     expect(result).toMatchObject({
       claimed: true, duplicate: false, eventId: EVENT, eventType: "Transaction.Paid", paymentId: "cdorder1",
@@ -191,7 +196,7 @@ describe("acceptWebhook", () => {
   test("🔴 시크릿 미설정은 500 이다 — 503 이면 PortOne 이 영원히 재전송한다", async () => {
     const db = makeWebhookDb();
     try {
-      await acceptWebhook({}, db, { rawBody: BODY, headers: await signedHeaders(SECRET, EVENT, "1", BODY) });
+      await acceptWebhook({}, db, { rawBody: BODY, headers: await signedHeaders(SECRET, EVENT, nowSeconds(), BODY) });
       throw new Error("expected a throw");
     } catch (error) {
       expect(error).toBeInstanceOf(PaymentError);
@@ -203,11 +208,57 @@ describe("acceptWebhook", () => {
     const db = makeWebhookDb();
     const bad = "not json";
     try {
-      await acceptWebhook(ENV, db, { rawBody: bad, headers: await signedHeaders(SECRET, EVENT, "1", bad) });
+      await acceptWebhook(ENV, db, { rawBody: bad, headers: await signedHeaders(SECRET, EVENT, nowSeconds(), bad) });
       throw new Error("expected a throw");
     } catch (error) {
       expect(classify(error).status).toBe(400);
     }
+  });
+});
+
+describe("타임스탬프 신선도", () => {
+  const BODY = '{"type":"Transaction.Paid","data":{"paymentId":"cdorder1"}}';
+  const ENV = { PORTONE_WEBHOOK_SECRET: SECRET };
+  const NOW = new Date("2026-08-28T00:00:00Z");
+  const at = (msAgo) => String(Math.floor((NOW.getTime() - msAgo) / 1000));
+
+  test("허용 범위 안이면 통과한다", () => {
+    expect(isWebhookTimestampStale(at(0), NOW)).toBe(false);
+    expect(isWebhookTimestampStale(at(WEBHOOK_TIMESTAMP_MAX_AGE_MS - 1000), NOW)).toBe(false);
+  });
+
+  test("허용 범위를 넘기면 오래된 것으로 본다", () => {
+    expect(isWebhookTimestampStale(at(WEBHOOK_TIMESTAMP_MAX_AGE_MS + 1000), NOW)).toBe(true);
+    expect(isWebhookTimestampStale("1", NOW)).toBe(true);
+  });
+
+  test("🔴 PortOne 재전송 지평(0→1→4→16→64→256분) 전체가 허용 범위 안에 있다", () => {
+    // 헤더 타임스탬프가 첫 발송 값으로 고정되더라도 마지막 재전송이 통과해야 한다.
+    // 여기서 막으면 결제 확정의 유일한 복구 경로가 끊긴다.
+    const lastRetryMs = (0 + 1 + 4 + 16 + 64 + 256) * 60_000;
+    expect(isWebhookTimestampStale(at(lastRetryMs), NOW)).toBe(false);
+    expect(WEBHOOK_TIMESTAMP_MAX_AGE_MS).toBeGreaterThan(lastRetryMs * 2);
+  });
+
+  test("🔴 판정할 수 없는 값은 막지 않는다 — 형식 오독의 대가가 webhook 전량 거부다", () => {
+    expect(isWebhookTimestampStale("not-a-number", NOW)).toBe(false);
+    // 밀리초 값이 오면 아득한 미래가 되어 자연히 통과한다(단위 분기를 두지 않는 이유).
+    expect(isWebhookTimestampStale(String(NOW.getTime()), NOW)).toBe(false);
+  });
+
+  test("오래된 타임스탬프는 서명이 맞아도 401 이고, 서명 불일치와 코드가 다르다", async () => {
+    const db = makeWebhookDb();
+    const stale = String(Math.floor((NOW.getTime() - WEBHOOK_TIMESTAMP_MAX_AGE_MS - 60_000) / 1000));
+    try {
+      await acceptWebhook(ENV, db, { rawBody: BODY, headers: await signedHeaders(SECRET, EVENT, stale, BODY), now: NOW });
+      throw new Error("expected a throw");
+    } catch (error) {
+      expect(error).toBeInstanceOf(PaymentError);
+      expect(error.code).toBe("WEBHOOK_TIMESTAMP_STALE");
+      expect(classify(error).status).toBe(401);
+    }
+    // 🔴 거절된 이벤트는 점유되지 않는다 — 점유되면 뒤이은 정상 재전송이 중복으로 밀린다.
+    expect(db.rows).toHaveLength(0);
   });
 });
 

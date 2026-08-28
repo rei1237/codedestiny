@@ -29,6 +29,20 @@ import { paymentError } from "./errors.js";
 /** 이 시간보다 오래된 processing 은 죽은 것으로 보고 재점유한다. */
 export const WEBHOOK_STALE_PROCESSING_MS = 2 * 60_000;
 
+/**
+ * 서명된 webhook-timestamp 를 이보다 오래되면 거절한다.
+ *
+ * 🔴 **Standard Webhooks 참조구현의 5분을 쓰면 안 된다.** PortOne 은 실패한 webhook 을
+ *    0 → 1 → 4 → 16 → 64 → 256분 backoff(+jitter)로 최대 5회 재전송한다 — 첫 발송에서
+ *    마지막 재전송까지 약 5시간 41분이다(developers.portone.io 웹훅 문서, 2026-08-28 확인).
+ *    그리고 **재전송이 헤더 타임스탬프를 갱신하는지 첫 발송 값으로 고정하는지는 문서에 없다**
+ *    (문서가 "재시도에도 동일하게 유지된다"고 말하는 것은 본문의 RFC 3339 `timestamp` 필드이지
+ *    이 헤더가 아니다 — 그 둘을 같은 것으로 읽어 5분을 잡으면 **모든 재전송이 거부**되고,
+ *    재전송은 이 레포에서 결제 확정의 유일한 복구 경로다). 고정이더라도 마지막 재전송이
+ *    통과하도록 그 지평의 네 배를 잡는다.
+ */
+export const WEBHOOK_TIMESTAMP_MAX_AGE_MS = 24 * 60 * 60_000;
+
 function timingSafeEqualText(left, right) {
   const a = String(left || "");
   const b = String(right || "");
@@ -85,9 +99,33 @@ export async function signWebhookPayload(secret, webhookId, timestamp, rawBody) 
   return bytesToBase64(new Uint8Array(signature));
 }
 
+/** 헤더 이름 폴백을 한 곳에만 둔다 — 사본을 만들면 한쪽만 고쳐져 서명 입력과 신선도 판정이 갈린다. */
+export function readWebhookTimestamp(headers) {
+  return String(headers.get("webhook-timestamp") || headers.get("x-webhook-timestamp") || "").trim();
+}
+
+/**
+ * 서명된 타임스탬프가 허용 범위를 넘겨 오래됐는가.
+ *
+ * 🔴 **서명 검증을 통과한 뒤에만 부른다.** 그래야 여기서 보는 값이 PortOne 이 서명한 값임이
+ *    보장된다. 서명 전에 보면 공격자가 채워 넣은 숫자를 판정하게 되어 아무것도 막지 못한다.
+ *
+ * 🔴 **판정할 수 없는 값은 통과시킨다.** 이 검사는 replay 방어의 **두 번째** 층이다 —
+ *    첫 층인 {provider, eventId} unique 는 TTL 이 없어 영구적이고(models.js:541), 같은
+ *    이벤트의 재처리를 이미 완전히 막는다. 반면 형식을 잘못 읽으면 대가가 **webhook 전량
+ *    거부 = 결제 확정 정지**다. 그래서 미래 방향은 아예 보지 않고(포획된 요청의 타임스탬프는
+ *    언제나 과거다) 초 단위가 아닌 값도 막지 않는다 — 밀리초 값이 오면 아득한 미래가 되어
+ *    자연히 통과하고, 숫자가 아니면 판정을 포기한다.
+ */
+export function isWebhookTimestampStale(timestamp, now = new Date()) {
+  const seconds = Number(String(timestamp || "").trim());
+  if (!Number.isFinite(seconds)) return false;
+  return now.getTime() - seconds * 1000 > WEBHOOK_TIMESTAMP_MAX_AGE_MS;
+}
+
 export async function verifyWebhookSignature(secret, rawBody, headers) {
   const webhookId = String(headers.get("webhook-id") || headers.get("x-webhook-id") || "").trim();
-  const timestamp = String(headers.get("webhook-timestamp") || headers.get("x-webhook-timestamp") || "").trim();
+  const timestamp = readWebhookTimestamp(headers);
   const header = String(headers.get("webhook-signature") || headers.get("x-webhook-signature") || "").trim();
   if (!webhookId || !timestamp || !header) return false;
 
@@ -183,6 +221,10 @@ export async function acceptWebhook(env, db, { rawBody, headers, now = new Date(
   }
   if (!(await verifyWebhookSignature(secret, rawBody, headers))) {
     throw paymentError("WEBHOOK_SIGNATURE_INVALID", "Webhook 서명이 올바르지 않습니다.");
+  }
+  /* 서명이 통과했으므로 이 타임스탬프는 PortOne 이 서명한 값이다. 순서를 뒤집지 말 것. */
+  if (isWebhookTimestampStale(readWebhookTimestamp(headers), now)) {
+    throw paymentError("WEBHOOK_TIMESTAMP_STALE", "Webhook 타임스탬프가 허용 범위를 벗어났습니다.");
   }
 
   let body = null;
