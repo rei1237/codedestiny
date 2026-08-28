@@ -3,7 +3,7 @@
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
 > 사용자 승인 계획: "전량 3단계"(2026-08-28). 여기 있는 PR-B~E 가 그것이다.
 
-## ✅ PR-D 완료 (2026-08-28) — **다음은 PR-E(§6)** 부터다
+## ✅ PR-D 완료 · **머지됨 (#1234, 2026-08-28)** — 다음은 PR-E(§6) 부터다
 
 간지 경로에서 **로컬 `Date` 를 캐리어로 쓰는 조립이 0건**이 됐다. 착수점은 §6 이다.
 
@@ -43,10 +43,12 @@
 의미는 §5 가 원하던 것과 같다("간지 경로가 브라우저 타임존과 무관해졌다"). 다른 점은 **골든 파일을
 다시 뽑지 않고** 존 간 동일성으로 재는 것이라, PR-B 가 세운 before-image 가 그대로 살아 있다는 것이다.
 
-🔴 **남은 선택지(사용자 결정 필요)**: 문자 그대로 `ganji-dst-gap-census.json` 을 0 으로 만들려면
-가드의 **Date 표면 12벌을 부품 표면으로 갈아치우고 `--emit` 으로 픽스처를 다시 뽑아야** 한다.
-그건 before-image 를 버리는 일이라 이 PR 에서 하지 않았다. Date 표면은 PR-E 가 진입점을 지울 때
-같이 사라지므로, **그때 한 번에 정리하는 것이 자연스럽다.**
+✅ **사용자 결정 (2026-08-28) — 문자 그대로 0 은 PR-E 에서 한 번에 한다.**
+문자 그대로 `ganji-dst-gap-census.json` 을 0 으로 만들려면 가드가 붙들고 있는 **Date 표면 12벌
+(`SURFACES`)을 걷어내고 `--emit` 으로 픽스처를 다시 뽑아야** 한다. 그건 before-image 를 버리는
+일이고, 그 12벌은 `computeGanjiFromDate`·`getGanji(Date)`·`solarToLunar(Date)` 어댑터를 부르므로
+**PR-E 가 진입점을 지우면 어차피 존립할 수 없다.** 그래서 따로 뽑지 않고 PR-E 에서 한 번에
+정리한다 — 절차와 **같은 커밋에서 갈아야 할 가드 3곳**은 §6-6 에 적어 뒀다.
 
 ### 🔴 문서가 놓쳤던 조립 사이트 3곳 (전부 이번에 변환했다)
 
@@ -369,14 +371,16 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 또 하나: `js/luck-sync-diary.js:265` `_makeLocalNoonDate` 는 **`monthIndex`(0-based)를 받는다.**
 `_makeNoonParts(year, month, day)` 로 바꾸면 **인자 규약이 바뀌므로** 호출 3곳을 함께 고쳐야 한다.
 
-### 졸업 조건
+### 졸업 조건 (🔴 두 번째 줄은 **PR-E 로 이관**했다 — 문서 맨 위와 §6-6)
 ```
 ✅ TZ=Asia/Seoul 산출물 == ganji-surface-kst.json (전건, 무수정)
-✅ 🔴 DST-GAP 총계 == 0            ← PR-B 에서는 못 켰던 조건
+➡️ 🔴 DST-GAP 총계 == 0            ← ①과 동시 성립 불가. PR-E(§6-6)로 이관
 ✅ 6개 TZ 전부 == KST (예외 0건)
 ✅ getGanji 의 isNull 지도가 픽스처와 동일
+✅ (대체) 검사 ⑤ — 부품 축 10벌이 6개 존에서 **구멍 제외 없이** 전건 KST 와 같다
 ```
-`ganji-dst-gap-census.json` 을 0 으로 바꾸는 것이 **이 PR 의 의도된 유일한 픽스처 변경**이다.
+🔴 위 두 번째 줄 탓에 여기 적혀 있던 *"census 를 0 으로 바꾸는 것이 이 PR 의 의도된 유일한 픽스처
+변경"* 은 **틀렸다.** PR-D 는 픽스처를 **한 바이트도 안 바꿨고**, census 0 은 §6-6 이 맡는다.
 
 ### ✅ 신설 검사 ⑬ (`verify:shell-korean-calendar`)
 간지 경로 파일에 `Date.UTC` 로 감싸이지 않은 다인자 `new Date(` 0건.
@@ -413,6 +417,31 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
    - `kasi-calendar-service.js` `_fallbackLunarFromSolar` 도 같은 결정에 걸린다(KASI 가 죽는 동안에만 돈다).
 5. 신설 검사 ⑭: `KasiCalendarService`·`KasiEngine` 공개 표면에 **Date 를 받는 함수 0개**임을
    실행으로 확인(`fn.length` 가 아니라 `new Date(...)` 를 넘겼을 때 null 을 내는지로).
+6. 🔴 **`ganji-dst-gap-census.json` 을 문자 그대로 0 으로** — 사용자 결정(2026-08-28). §5 가
+   PR-D 몫으로 적어 뒀던 일을 **1번과 같은 PR 에서** 한다. 진입점이 사라지면 가드의 Date 표면도
+   같이 사라지므로, 앞서 따로 하면 픽스처를 두 번 뽑게 된다.
+   - 🔴 **구멍을 만드는 주체는 셸이 아니라 가드다.** `probeSample`(`scripts/verify-ganji-surface-parity.mjs:398`)
+     이 `SURFACES` 12벌에 넘기려고 `new Date(at.year, at.month - 1, ...)` 를 직접 조립하고, 그게
+     접히면 그 표본을 `DST-GAP` 으로 버린다. 그래서 **호출부를 아무리 고쳐도 이 숫자는 안 움직인다**
+     (PR-D 실측: 22곳 전환 전후 census 완전 동일). 옆의 `probeSampleParts`(:386)·`PARTS_SURFACES`
+     10벌은 Date 를 한 번도 안 만들어 구멍이라는 개념 자체가 없다.
+   - 할 일: `SURFACES`·`probeSample` 의 gap 갈래를 걷어내고 `rows`/`nullMap` 을 `PARTS_SURFACES`
+     산출로 옮긴 뒤 `--emit` 으로 **두 픽스처를 같이** 다시 뽑는다. 그러면 census 는 값이 아니라
+     **구조적으로** 0 이 된다.
+   - 🔴 **`ganji-surface-kst.json` 의 before-image 계약은 여기서 끝난다.** `rows` 안 `DST-GAP`
+     12행(Seoul 1960-05-01 ×3 · 1961-08-10 ×3 · 1987-05-10 ×3 · 1988-05-08 ×3)이 값으로 바뀐다.
+     PR 본문에 그 사실을, 커밋 메시지에 **바뀐 줄 수와 이유**를 적는다(README 의 `--emit` 표 규약).
+   - 🔴 **같은 커밋에서 가드 3곳을 갈지 않으면 fail-closed 가 죽는다**(원칙 10):
+     - 검사 ② `🔴 서머타임 존이 전부 최소 1건의 구멍을 낸다(0 이면 존이 죽은 것)`(:637) — 지금은
+       구멍 ≥1 이 **TZ 핀이 먹었다는 증거**다. 0 이 되면 이 자기검사가 뒤집히므로 살아있음을 다른
+       것으로 재야 한다(예: 존별 `Intl` 오프셋이 서로 다르다 · 전이 탐색이 ≥1건을 찾았다).
+     - 검사 ⑤ `🔴 KST 구멍 표본도 부품 축에서는 값이 나온다`(:767) — `gapKeys.size > 0` 을 전제한다.
+       `rows` 에 `DST-GAP` 이 없어지면 **빈 집합을 재는 검사**가 된다.
+     - 검사 ③ 의 하한 `floor = SAMPLES.length - base.gaps - other.gaps`(:660) — 구멍이 0 이면
+       하한이 표본 전체가 된다. 의도한 강화지만 숫자가 맞는지 한 번 눈으로 확인할 것.
+   - ✅ 문구는 **이 결정과 같은 PR 에서 이미 PR-E 로 돌려놨다**: `README-ganji-surface.md` 3곳 ·
+     census `note` + 그것을 쓰는 `--emit`(:553) · 가드 머리주석(:26) · 보고 줄(:790·793) ·
+     `.github/workflows/pr-ci.yml:305`. PR-E 가 끝나면 그 문구들을 **"완료"로** 다시 고친다.
 
 ---
 

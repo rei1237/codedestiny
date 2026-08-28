@@ -1,5 +1,5 @@
 {
-  "note": "🔴 서머타임 구멍의 **현행 크기**다. PR-D 가 이 값을 전부 0 으로 만드는 것이 졸업 조건이다.",
+  "note": "🔴 서머타임 구멍의 **현행 크기**다. 총계 0 은 PR-E(Date 진입점 제거)의 졸업 조건이다 — PR-D 로는 안 움직인다(구멍을 만드는 것은 셸이 아니라 이 가드의 Date 표면이다).",
   "generatedBy": "scripts/verify-ganji-surface-parity.mjs --emit",
   "sampleCount": 1516,
   "gaps": {
