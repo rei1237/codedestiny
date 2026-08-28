@@ -125,10 +125,21 @@ PG 심사 탈락 사유이고, 환율이 움직일 때마다 판매가가 바뀌
 displayPrice: `${pass.amountKRW.toLocaleString("ko-KR")}원`,
 ```
 `buildPassPricingShape` 가 앱 이용권(`app-pass-<tier>`)에 같은 ko-KR 문자열을 굳힌다.
-**손대지 않았다** — 앱 상점은 Play SKU 가 통화를 따로 지역화하는 별개 표면이라
-(관련 메모 `new-price-point-needs-play-sku-in-three-places`), 이 문자열이 실제로 어디에
-렌더되는지 확인하지 않은 채 바꾸면 앱 확정가 표기와 어긋날 수 있다. 그 확인이 선행 조건이다.
-다만 이번 클라 수정 두 곳을 타고 흐르는 경로라면 이미 로케일 표기로 덮인다(미검증).
+**선행 조건이었던 "실제로 어디에 렌더되는지"를 2026-08-28 에 실측했다 → 렌더되는 곳이 없다.**
+
+검색 범위: `git grep displayPrice` 전수(추적 파일 전부, `public/` 미러 포함) = 15개 파일.
+그중 이 응답(`/api/app-store/*`)을 읽는 클라이언트는 0곳이다.
+- `app/app/store/AppPassStoreClient.tsx` 는 서버 `displayPrice` 를 **안 읽는다** — 금액을
+  `coverageKRW`/`monthlyCapKRW` 로 자기가 그린다(`:44,46`)
+- `scripts/app-payment-guard.js` · `scripts/app-native-bridge.js` 에 `pricing` 참조 0건
+- 나머지 `displayPrice` 소비자(`js/core/feature-pricing-store.js` · `app/_lib/billing-client.ts` ·
+  `app/hooks/useServerPrice.ts` · `index.html` 5곳)는 전부 `/api/billing/features` 계통이라
+  이번에 이미 로케일 인식으로 바뀌었다
+
+**그래서 그대로 둔다.** 화면에 안 나오므로 로케일 결함이 아니고, 반대로 응답 필드를 지우면
+레포 밖에 있는 **네이티브 앱 배포본**이 읽고 있을 가능성을 확인할 수 없다(원칙 9 — "임포터 0"은
+죽었다는 증거가 아니다). 앱 상점은 Play SKU 가 통화를 따로 지역화하는 별개 표면이기도 하다
+(관련 메모 `new-price-point-needs-play-sku-in-three-places`).
 
 ### ③ PG 결제창 중국어(ZH_CN) — **근거 선행 필요**
 `js/core/checkout-entry.js:245-254` `pgWindowLocale()` 이 `KO_KR`/`EN_US` 둘만 낸다.
@@ -181,6 +192,23 @@ displayPrice: `${pass.amountKRW.toLocaleString("ko-KR")}원`,
 하지 않는다. replay 는 `{provider,eventId}` unique 가 막으므로 **실질 위험은 낮다**.
 보고만 하고 손대지 않았다.
 
+### ⑧ 셸 가격 배지 옆 한국어 라벨 — **미수정 (이 PR 범위 밖 · 회귀 아님)**
+
+타일 배지 금액은 ②에서 로케일 표기로 바뀌었지만 **그 옆에 붙는 라벨은 셸에 한국어로 박혀 있다.**
+비한국어 화면에서 `전문가 상담 · 30,000 KRW` 처럼 절반만 번역된 채로 보인다.
+
+| 위치 | 문자열 |
+|---|---|
+| `index.html:32795` | `'전문가 상담 · '+pricing.displayPrice` |
+| `index.html:33206` | `featurePricing.displayPrice+' · 전문가 상담'` |
+| `index.html:32814` | `'가격 확인 필요'` |
+| `index.html:33209` · `:33566` · `:33573` · `:33632` | `'가격 확인 중'` |
+
+🔴 **이것은 ②가 만든 회귀가 아니다** — 고치기 전에도 `전문가 상담 · 30,000원` 이었다.
+`nav.aiConsult` 같은 기존 키는 **12벌 어디에도 없다**(실측: ko·en·ja·zh-CN 전부 `undefined`)이라
+새 사전 키를 12로케일에 손으로 써야 한다 — 관련 메모 `new-shell-copy-costs-12-hand-written-locales`.
+④와 같은 성격의 별도 PR 로 묶는 편이 맞다.
+
 ## 3. 손대면 안 되는 것 (이번에 확인 완료)
 
 전수 확인 결과 아래는 **이미 정상**이다. "해외 결제 최적화"라는 이름으로 다시 뜯지 말 것.
@@ -225,6 +253,13 @@ displayPrice: `${pass.amountKRW.toLocaleString("ko-KR")}원`,
    `js/core/checkout-entry.d.ts` · `lib/structured-data.ts` 는 CRLF다. Edit/sed 로 건드리면
    전 파일 diff 로 부푼다. node 패치 스크립트 + 개행 개수 검산으로 갈 것.
 5. **`.ignore` 개행 경고** — 내용 변경 0인데 Windows 에서 modified 로 뜬다. 스테이징하지 말 것.
+6. 🔴 **`npm run lint` 는 `__tests__/` 를 안 본다** — `next lint` 범위가 `pages/ app/ components/ lib/ src/`
+   뿐이라, 테스트 파일의 eslint 위반은 로컬 `lint` 초록불을 그대로 통과하고 PR CI 의
+   `Lint changed files exactly as the release does`(`npm run lint:changed`)에서만 터진다.
+   이번에 실제로 걸린 것: `__tests__/billing/checkout-entry.test.js` 의 로케일 세팅 헬퍼 이름이
+   `useLocale` 이라 `react-hooks/rules-of-hooks` 가 **루프 안에서 부르는 React 훅**으로 읽었다
+   (→ `setLocale` 로 개명해 해소). **테스트 헬퍼에 `use` 접두사를 쓰지 말 것.**
+   재현: `node scripts/lint-changed-files.mjs --base=$(git merge-base origin/main HEAD)`
 
 ## 6. 검증 명령 (이 영역을 고쳤을 때)
 
