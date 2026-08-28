@@ -3,15 +3,41 @@
 ## 🟢 다음 세션 시작점 (2026-08-28 갱신)
 
 **이 마이그레이션은 끝났고 PR-F6 이 남긴 후속 2건도 닫혔다.**
-🔴 **그러나 "전부 완료"는 아니다** — 이 작업이 발견해 **의도적으로 범위 밖에 둔 인접 항목 3건**이
-아래 본문에 살아 있다. 그 셋은 달력 축(CST↔KST)이 아니라 각각 다른 축이라 여기 묶이지 않았다.
-실재를 2026-08-28 에 코드로 재확인했다:
+범위 밖에 뒀던 **인접 항목 3건은 2026-08-28 에 착수했다.** 둘은 닫혔고 하나는 업스트림에 막혔다.
 
-| 남은 것 | 자리 | 상태 |
-|---|---|---|
-| **대운 나이 두 축 혼재** | `worker/lib/destiny-bias-engine.js:798` `startAgeDisplay`(세는 나이 정수) vs `:896` `startAgeYearsDecimal`(0부터 소수) | 한 응답에 두 축이 함께 나간다. 최대 12년 차. PR-D2 이전부터 있던 결함이고, 통일하면 화면의 대운 나이가 크게 움직여 결정을 남겼다 → §PR-D2 |
-| **셸 세차가 비KST 브라우저에서 어긋난다** | `js/core/kasi-calendar-service.js:716` `_yearGanjiFromIpchun` | 입춘을 `+09:00` **절대시각**으로 파싱해 놓고 브라우저 로컬로 만든 `solarDate.getTime()` 과 비교한다. 재현: `TZ=UTC` 로 셸 서비스 평가 → §PR-D2 |
-| **절기 프레임 세차·월건의 KASI 대조 미실시** | `get24DivisionsInfo` | 코어의 절기 프레임을 KASI 로 검증한 적이 없다(음력 프레임만 232/232 대조했다) → §(B) |
+| 남은 것 | 상태 (2026-08-28) |
+|---|---|
+| **대운 나이 두 축 혼재** | 🟢 **닫힘 — PR #1218.** 세는 나이로 통일(사용자 결정). 아래 §PR-D2 참조 |
+| **셸 세차가 비KST 브라우저에서 어긋난다** | 🟢 **닫힘 — PR #1217.** 같은 PR 이 **더 큰 결함 둘**을 함께 고쳤다(아래) |
+| **절기 프레임 세차·월건의 KASI 대조 미실시** | 🔴 **막혔다.** KASI `get24DivisionsInfo` 가 **HTTP 403** 이라 채집이 불가능하다. 원인 후보 둘 중 코드 쪽은 PR #1220 이 고쳤고, 나머지 갈래는 [docs/handoff/solar-term-frame-kasi-verification.md](solar-term-frame-kasi-verification.md) |
+
+### 🔴 그 착수가 찾아낸 것 — 예고에 없던 라이브 결함 셋
+
+셋 다 `js/core/kasi-calendar-service.js` 와 `worker/routes/kasi.js` 에 있었고, 전부 실측으로 확인했다.
+
+1. **12중절 이름 표의 `경칩` 키가 `경침`(U+CE68)이었다.** 그래서 `_countMonthBoundaryTerms` 가
+   영원히 11 이고 `_computeGanjiFromDate` 가 **모든 날짜에 null** 을 냈다(1960~2030 입춘 ±10시간
+   710표본 전건). 셸의 로컬 년주·월주 폴백이 통째로 죽어 있었고, KASI 응답이 있으면 절기 프레임이
+   아니라 **음력 프레임인 `lunSecha`/`lunWolgeon`** 이 대신 나갔다 — 아래 §(B) 가 "그냥 대조하면
+   45건 어긋난다"고 한 그 프레임이다. **핸드오프가 적은 타임존 결함보다 이쪽 피해가 크다.**
+2. **1월 1일~소한 출생의 년주·월주가 null 이었다.** 한 해의 첫 節이 소한이라 그 목록에 걸칠
+   중절이 없었다(1950~2050 표본에서 연 2건씩 202건). 그 구간의 답은 언제나 子月 하나뿐이다.
+3. **`get24DivisionsInfo` 가 프로덕션·스테이징 양쪽에서 403** 이라 24절기가 업스트림에 닿지 못하고
+   로컬 폴백(=우리 코어)으로 나가고 있었다. 게다가 그 403 한 번이 회로를 열어 **정상 동작하던
+   음양력 조회까지 10분간 함께 죽였다.**
+
+### 🔴 이 문서의 옛 기술 중 틀린 것
+
+- **"대운 나이 최대 12년 차"는 사실이 아니다.** 실측(1960~2020, 13,176표본) 차이는 **1년 47.86% ·
+  2년 52.14%** 이고 그 밖은 없다. 이 문서가 든 `1964-09-07 22:59 여` 예시를 실제로 돌리면
+  `displayText "10세 4개월경"` vs `list[0] "12세"` = **2년**이다.
+- **`verify:korean-calendar-solar-terms` 는 KASI 와 대조하지 않는다** — lunar-javascript 와 절기
+  순간을 비교한다. `worker/routes/kasi.js` 주석의 "KASI 와 평균 0.211분 차" 는 그 가드가 하는 일이
+  아니다. 절기의 KASI 대조는 아직 **어디에도 없다**(그게 위 세 번째 항목이다).
+- 🔴 **미조치로 남는 것**: KST 벽시계 부품으로 브라우저 로컬 `Date` 를 만드는 방식 자체가
+  **서머타임 구멍에서 손실적**이다(존재하지 않는 로컬 시각이 조용히 접힌다 — 예: 1974-01-06 02:19
+  뉴욕). 제대로 닫으려면 `kasi-calendar-service` 전체를 로컬 `Date` 없이 다시 짜야 해서 뒀다.
+  `verify:shell-korean-calendar` 검사 ⑫ 가 그 표본을 세어 보여준다.
 
 
 | PR | 내용 | 상태 |
@@ -175,7 +201,13 @@ KASI `getLunCalInfo` 의 `lunSecha`/`lunWolgeon` 은 **음력 프레임**이다 
 음력 프레임을 코어의 음력 출력에서 유도하면 KASI 와 전건 일치한다. `lunIljin`(일진)은
 연속 순환이라 프레임과 무관하고 **289/289 일치**한다.
 
-→ **절기 프레임 세차·월건을 KASI 로 검증하려면 `get24DivisionsInfo` 를 써야 한다.** 아직 안 했다.
+→ **절기 프레임 세차·월건을 KASI 로 검증하려면 `get24DivisionsInfo` 를 써야 한다.**
+
+🔴 **2026-08-28: 그 엔드포인트가 프로덕션·스테이징 양쪽에서 HTTP 403 이라 아직 못 했다.**
+같은 시각 `getLunCalInfo` 는 `source:"kasi"` 로 정상이다. 즉 24절기만 업스트림에 닿지 못하고
+로컬 폴백(=우리 코어)으로 나가고 있어, 그걸로 대조하면 **자기가 검증할 대상을 자기로 확인**하게 된다.
+원인 후보 둘 중 코드 쪽(서비스 base URL 순서 · 403 이 후보 탐색을 끊는 것)은 PR #1220 이 고쳤다.
+이후 절차 · 판정 기준 · 가드 설계 초안은 → [docs/handoff/solar-term-frame-kasi-verification.md](solar-term-frame-kasi-verification.md)
 
 ### (C) 🟢 클래식 스크립트판은 PR-C 에서 만들어졌다 — `js/core/korean-calendar.js`
 
@@ -336,7 +368,23 @@ node scripts/verify-korean-calendar-divergence.mjs --explain 1980-01-01
 | 삭제 | `normalizeSolarTermName`·`getSolarTermFromTable`·`toSolarTermSummary`·`solarToUtcMs`(3면 grep: 파일 밖 참조 0) |
 | `verify:saju-solar-term-core` | 검사 ④ 신설. 검사 39건 → **41건** |
 
-#### 🔴 대운 나이 관례는 일부러 안 건드렸다 — 다음 사람이 판단할 것
+#### 🟢 대운 나이 관례 — 세는 나이로 통일했다 (2026-08-28, PR #1218)
+
+아래 절이 "다음 사람이 판단할 것"으로 남긴 항목이다. 판단이 끝났다.
+
+- **사용자 결정: 세는 나이 축.** 화면(`sajuAdapter.ts:161`) · AI 프롬프트(`saju-ai-prompt.js:626`) ·
+  어드민(`admin.js:990`) · 양자명리(`saju-quantum-myeongri.js:513`) 가 **이미 전부 그 축**을 읽고,
+  검사 ① 이 lunar-javascript 관례 재현을 잔차 0 으로 증명하는 축도 그쪽이다.
+- 컨테이너에 `startAge`·`startYear` 를 두고 `displayText` 를 `"12세(1975년)부터"` 로. 경과 시간은
+  나이가 아니므로 `entryElapsed{years,months,days}` 로 분리했고 그 값도 코어 `daeun().start` 에서 온다.
+- 옛 `startAgeYears`·`startAgeMonths`·`startAgeDays`·`startAgeYearsDecimal` 은 삭제했다(3면 grep 결과 읽는 곳 0건).
+- **값 이동**: 남·여 경로는 `list`·legacy 전건 바이트 동일(19,764표본 중 13,176 = 66.67%).
+  움직인 것은 **성별 미상 폴백뿐**이고, 그쪽은 나이가 1~2세 오르고 구간 폭이 11년 → 10년으로 바로잡힌다.
+- 가드: `verify:daeun-korean-calendar` 검사 ⑥(13건 → 16건). 값이 아니라 **축**을 본다.
+
+🔴 **아래 절의 "최대 12년" 은 틀린 수치다** — 실측은 1년 47.86% · 2년 52.14% 뿐이다. 아래는 당시 기록으로 남긴다.
+
+#### 🔴 대운 나이 관례는 일부러 안 건드렸다 — 다음 사람이 판단할 것 (해소됨 — 위 참조)
 
 실측(1960~2020 표본 2,304건): `getYun()` 의 **간지 목록은 월주 순/역행과 전건 동일**하다.
 그러나 **나이는 축이 다르다** — `getYun().getStartAge()` 는 **세는 나이 정수(1부터)** 이고
@@ -363,12 +411,19 @@ PR-F 로 `getYun` 을 지울 때 반드시 같이 결정해야 한다 — 핸드
 `js/saju-engine-tarot-sukuyo-quantum.js:3070,3077,6038,6062,16900,17549` · `js/core/kasi/calendar.js:234,243`(죽은 파일).
 셸의 메인 사주 경로는 `KasiCalendarService` 를 타므로 코어를 따르지만, 위 파일들은 별도다.
 
-#### 🔴 신규 발견(미조치) — 셸의 세차가 비KST 브라우저에서 어긋난다
+#### 🟢 셸의 세차가 비KST 브라우저에서 어긋나던 것 — 고쳤다 (2026-08-28, PR #1217)
 
-`js/core/kasi-calendar-service.js` 의 `_yearGanjiFromIpchun` 은 입춘을 `atLocal + '+09:00'` 로
-**절대시각**으로 파싱해 놓고, 브라우저 로컬 시각으로 만들어진 `solarDate.getTime()` 과 비교한다.
-브라우저 타임존이 KST 가 아니면 그 비교가 최대 시차만큼 어긋나 입춘 경계 판정이 틀린다.
-CST 문제와는 다른 축(브라우저 타임존)이라 이번 범위 밖으로 뒀다. **재현은 `TZ=UTC` 로 셸 서비스를 평가하면 된다.**
+`js/core/kasi-calendar-service.js` 의 `_yearGanjiFromIpchun`(과 `_computeMonthGanjiFromTerms`)이
+절기를 `atLocal + '+09:00'` 로 **절대시각**으로 파싱해 놓고 브라우저 로컬로 만든
+`solarDate.getTime()` 과 비교했다. 재현했고(입춘 ±10시간 710표본: `TZ=UTC` **282건(39.7%)** ·
+`America/New_York` **353건(49.7%)** 이 세차·월건 모두 한 칸 어긋남), `_wallClockMs`/`_termWallClockMs`
+로 두 값을 **같은 벽시계 축**에 올려 고쳤다. 고친 뒤 타임존 3종 간 불일치 0.
+
+🔴 **그 재현을 하려면 먼저 `경침` 오타를 고쳐야 했다.** 그 전에는 `_computeGanjiFromDate` 가
+모든 날짜에 null 이라 타임존 차이가 아예 관측되지 않았다(문서 머리 §"예고에 없던 라이브 결함 셋" 참조).
+
+가드: `verify:shell-korean-calendar` 검사 ⑩⑪⑫(25건 → 40건). ⑫ 는 TZ 만 바꿔 자기를 자식으로
+띄워 대조하고, 서머타임 구멍은 건수를 찍어 보여준다.
 
 ### 🟢 PR-E1 — 남은 절기 프레임 소비자 (끝)
 
