@@ -24,8 +24,16 @@
  *   ④ `calcSukuyoForServer` 의 세차가 **음력 프레임**(설날 경계)이고 코어 음력해에서 나오는지.
  *   ⑤ 베다 어댑터의 **음력→양력**(반대 방향)이 코어를 타는지. 하루가 밀리면 요일이 밀리고
  *      그대로 다른 바라(지배 행성)가 된다 — 실측 1950~2030 28,188건 중 1,044건(3.70%)이 갈린다.
+ *   ⑥ 🔴 **셸(js/) 음력일 축**. ②~⑤ 의 소비자는 전부 `lib/`·`worker/`·`app/` 이라 셸은
+ *      ①의 문자열 스캔 대상일 뿐 **실행 대상이 아니었다.** ⑥ 은 셸 소비자를 브라우저와 같은
+ *      로드 체인에서 실제로 돌린다(자식 프로세스 — scripts/lib/sukuyo-shell-probe.cjs).
+ *      🔴 ⑥ 이 박는 것은 "옳음"이 아니라 **현행**이다: 23시대(야자시)에 셸 소비자끼리
+ *      **답이 갈린다**(갈래 2). 서비스 컨텍스트를 거치면 안 밀고, `solarToLunarFromParts` 를
+ *      직접 부르면 민다. 통일은 다음 PR 이 하고, 이 절은 그 변화량을 잴 저울이다.
  */
+import { execFileSync } from "node:child_process";
 import fs from "node:fs";
+import { createRequire } from "node:module";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
@@ -83,11 +91,27 @@ async function loadNakshatraRoutes() {
   return { free: m.__nakshatraTestUtils, ai: m.__nakshatraAiTestUtils, premium: m.__nakshatraPremiumTestUtils };
 }
 
-/** 27수 한글 이름 → 인덱스. 정본(`buildSukuyoFromLunar`)에서 만든다 — 손으로 적지 않는다. */
+/**
+ * 27수 한글 이름 → 인덱스. 정본(`buildSukuyoFromLunar`)에서 만든다 — 손으로 적지 않는다.
+ *
+ * 🔴 **이 맵은 한 칸을 잃는다** — 한글 이름이 겹치는 짝이 있다: 위(危, 10) 와 위(胃, 15).
+ * 뒤에 오는 것이 앞의 것을 덮으므로 `MANSION_NAME_TO_INDEX.get("위")` 는 15 만 돌려준다.
+ * ②의 prompt-facts 파서가 한글만 보는 것도 같은 함정 위에 있다(별건 — 여기서 안 고친다).
+ * ⑥ 의 셸 축은 그래서 한글이 아니라 **`"위(胃)"` 꼴의 한자 포함 이름**으로 대조한다.
+ */
 const MANSION_NAME_TO_INDEX = new Map();
+/** `"위(胃)"` 꼴 → 인덱스. 한자를 담아 위(危)·위(胃) 충돌이 없다. */
+const MANSION_FULL_TO_INDEX = new Map();
 for (let day = 1; day <= 27; day += 1) {
   const mansion = buildSukuyoFromLunar(1, day, {});
-  if (mansion) MANSION_NAME_TO_INDEX.set(mansion.nameKo, mansion.index);
+  if (!mansion) continue;
+  MANSION_NAME_TO_INDEX.set(mansion.nameKo, mansion.index);
+  MANSION_FULL_TO_INDEX.set(`${mansion.nameKo}(${mansion.nameHan})`, mansion.index);
+}
+/** 음력 → 셸이 쓰는 `"위(胃)"` 꼴 이름. 코어 쪽 기대값을 만드는 데 쓴다. */
+function coreMansionFull(lunarMonth, lunarDay, isLeapMonth) {
+  const mansion = buildSukuyoFromLunar(lunarMonth, lunarDay, { isLeapMonth: !!isLeapMonth });
+  return mansion ? `${mansion.nameKo}(${mansion.nameHan})` : null;
 }
 
 // ── 밴드 안 표본을 만든다 — 값이 실제로 움직이는 날짜 ────────────────────────
@@ -445,6 +469,305 @@ for (const consumer of CONSUMERS) {
   ok("⑤ 베다 어댑터의 바라가 코어 양력일의 요일에서 나온다", wrong.length === 0, wrong.join("\n      "));
 }
 
+// ── ⑥ 셸(js/) 음력일 축 — 소비자를 실제로 실행해 현행 불일치를 고정한다 ──────
+//
+// 🔴 **이 절은 지금 "옳음"이 아니라 "현행"을 박는다.** 셸 소비자마다 23시대(야자시) 처리가
+// 갈려 있고, 그 사실을 값으로 고정해 두는 것이 이 절의 계약이다. 통일은 다음 PR 이 한다.
+//
+//   · 서비스 컨텍스트를 거치는 소비자 → 안 민다
+//     (js/core/kasi-calendar-service.js:193 `_applyCoreCalendarCorrection` 이 `:1074`·`:1238`
+//      에서 **무조건** 돌아 `context.lunar` 를 밀지 않은 코어 값으로 덮는다)
+//   · `KasiEngine.solarToLunarFromParts` 를 직접 부르는 소비자 → 민다(기본값 ON)
+//   · 앱·워커(`app/_lib/ziwei-engine.ts` · `worker/lib/ziwei-ai-chart.js` · `lib/sukuyo-calendar.ts`)
+//     → 3인자 호출이라 야자시 개념이 없다 = 안 민다
+//
+// 자식 프로세스로 도는 이유·fetch 를 던지게 두는 이유는 scripts/lib/sukuyo-shell-probe.cjs
+// 머리주석에 있다. 여기서는 **판정만** 한다.
+const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups: "-", yajaGroups: "-" };
+{
+  const require_ = createRequire(import.meta.url);
+  const probeModule = require_("./lib/sukuyo-shell-probe.cjs");
+  const PROBE_PATH = path.join(root, "scripts/lib/sukuyo-shell-probe.cjs");
+  const FIXTURE_PATH = path.join(root, "scripts/fixtures/sukuyo-shell-axis.json");
+  const EMIT = process.argv.includes("--emit");
+
+  /** 대조군 3 + 야자시 경계 4. 🔴 23:29/23:30 은 간지 축의 `min>=30` 갈래와 대칭을 이룬다 —
+   *  음력 축에는 30분 하위 경계가 **없다**는 사실을 값으로 박아 둔다. */
+  const SHELL_TIMES = Object.freeze(["00:00", "12:00", "22:00", "23:00", "23:29", "23:30", "23:59"]);
+  const CONTROL_TIMES = new Set(["00:00", "12:00", "22:00"]);
+
+  function runProbe(request) {
+    let stdout;
+    try {
+      stdout = execFileSync(process.execPath, [PROBE_PATH], {
+        input: JSON.stringify(request),
+        encoding: "utf8",
+        // 🔴 stderr 는 버린다 — index-inline-runtime.js 가 DOM 스텁에서 던지며 내는
+        //    `[SibylGuard]` 소음이 이 가드의 초록/빨강 출력에 섞이면 오독한다.
+        stdio: ["pipe", "pipe", "ignore"],
+        maxBuffer: 64 * 1024 * 1024,
+        // 🔴 정본 축은 Asia/Seoul 이다. 부모의 머신 타임존에 맡기면 CI(UTC)와 개발(KST)이
+        //    서로 다른 것을 재고 둘 다 초록이 된다.
+        env: { ...process.env, TZ: "Asia/Seoul" },
+      });
+    } catch (error) {
+      return { ok: false, error: `프로브가 죽었다: ${String((error && error.message) || error).slice(0, 200)}` };
+    }
+    const line = stdout.split(/\r?\n/).find((l) => l.startsWith(probeModule.ENVELOPE_PREFIX));
+    if (!line) return { ok: false, error: "프로브 봉투가 stdout 에 없다(잘렸거나 안 찍혔다)" };
+    try {
+      return JSON.parse(line.slice(probeModule.ENVELOPE_PREFIX.length));
+    } catch (error) {
+      return { ok: false, error: `봉투 JSON 파싱 실패: ${String((error && error.message) || error).slice(0, 200)}` };
+    }
+  }
+
+  // ── ⑥-0 호출부 전수 발견 (CLAUDE.md 코딩 원칙 10) ─────────────────────────
+  //
+  // 🔴 대상을 손으로 열거하지 않는다. `js/**` 에서 `solarToLunarFromParts(` 호출을 전부 찾아
+  // **파일 + 직전 함수 선언 이름**을 키로 분류한다(줄 번호는 무관한 편집에 흔들린다).
+  // 셋 다 실패다 — 발견이 목록보다 적다 / 미분류가 있다 / 목록에만 있고 소스에 없다.
+  const SHELL_LUNAR_CALLSITES = new Map([
+    ["js/core/index-inline-runtime.js#_dfExtractSukuyoLiveData", { consumer: "indexInlineRuntime._dfExtractSukuyoLiveData" }],
+    ["js/core/kasi-calendar-service.js#_fallbackLunarFromSolar", { consumer: "resolvePrimaryCalendarContext" }],
+    ["js/core/saju/modalProfileState.js#_resolveSukuyoLunarObj", { consumer: "modalProfileState._resolveSukuyoLunarObj" }],
+    ["js/saju-engine-tarot-sukuyo-quantum.js#syRadarResolveLunar", { consumer: "quantum.syRadarResolveLunar" }],
+    ["js/saju-engine-tarot-sukuyo-quantum.js#syBuildMonthlySukuyoLunar", { consumer: "quantum.syBuildMonthlySukuyoLunar" }],
+    ["js/saju-engine.js#safeSolarToLunar", { consumer: "buildFallbackDateContext" }],
+    ["js/saju-engine.js#calcZiweiPalaces", { consumer: "calcZiweiPalaces:calcMeta" }],
+    // 🔴 아래 셋은 렌더러·핸들러 안이라 하네스에서 **실행이 안 닿는다**. 값으로는 못 재고
+    //    발견으로만 지킨다 — 여기서 빠지면 미분류로 실패한다.
+    ["js/saju-engine-tarot-sukuyo-quantum.js#renderSukuyo", { unreachable: "Lunar Nexus 렌더러 안 — window._ziweiBirth + DOM 의존" }],
+    ["js/saju-engine-tarot-sukuyo-quantum.js#syOpenAiChat", { unreachable: "숙요 3 폼 submit 핸들러 안" }],
+    ["js/saju-engine.js#_resetDashboardBeforeCalc", { unreachable: "히어로 카드 innerHTML 조립 안 — 문서 전체 + birthCountry select 필요" }],
+  ]);
+
+  const CALL_RE = /solarToLunarFromParts\s*\(/g;
+  const FN_DECL_RE = /function\s+([A-Za-z0-9_$]+)\s*\(/g;
+  const discovered = new Map();
+  for (const file of walk(path.join(root, "js"), [])) {
+    if (path.extname(file) !== ".js") continue;
+    const source = fs.readFileSync(file, "utf8");
+    if (!source.includes("solarToLunarFromParts")) continue;
+    const relative = path.relative(root, file).split(path.sep).join("/");
+    for (const match of source.matchAll(CALL_RE)) {
+      let nearest = "(top-level)";
+      for (const decl of source.slice(0, match.index).matchAll(FN_DECL_RE)) nearest = decl[1];
+      const key = `${relative}#${nearest}`;
+      discovered.set(key, (discovered.get(key) || 0) + 1);
+    }
+  }
+
+  ok(
+    "⑥ 셸에서 solarToLunarFromParts 호출부를 실제로 발견했다(발견 0 = 발견 방식이 깨진 것)",
+    discovered.size >= SHELL_LUNAR_CALLSITES.size,
+    `발견 ${discovered.size}곳 / 분류 ${SHELL_LUNAR_CALLSITES.size}곳`,
+  );
+  const unclassifiedCallsites = [...discovered.keys()].filter((key) => !SHELL_LUNAR_CALLSITES.has(key));
+  ok(
+    "⑥ 발견한 호출부가 전부 분류돼 있다(미분류 = 새로 생긴 것)",
+    unclassifiedCallsites.length === 0,
+    unclassifiedCallsites.join("\n      "),
+  );
+  const staleCallsites = [...SHELL_LUNAR_CALLSITES.keys()].filter((key) => !discovered.has(key));
+  ok(
+    "⑥ 분류에 소스에서 사라진 항목이 없다(stale = 이름이 바뀌었거나 지워졌다)",
+    staleCallsites.length === 0,
+    staleCallsites.join("\n      "),
+  );
+
+  // ── ⑥-0b 표본 — 간지 축이 살아 있는 해를 셸에 물어 넣는다 ─────────────────
+  //
+  // 🔴 `getGanjiFromParts` 는 검증캐시에 있는 해(현재 1990) 말고는 전부 null 이다. 그 해가
+  // 표본에 없으면 ⑥-f 가 `null == null` 로 조용히 통과한다 — PR-F 가 닫은 그 함정이다.
+  // 손으로 1990 을 적지 않고 **셸에 묻는다**(캐시가 늘면 표본도 따라 는다).
+  const discovery = runProbe({ discover: true });
+  ok("⑥ 프로브 발견 모드가 봉투를 돌려줬다", discovery.ok === true, discovery.error || "");
+  const ganjiYears = discovery.ganjiAnsweringYears || [];
+  ok("⑥ 간지 축이 값을 내는 해를 셸에서 찾았다(0 이면 ⑥-f 가 무의미해진다)", ganjiYears.length >= 1, `해 ${ganjiYears.join(",")}`);
+
+  const shellSamples = SAMPLES.map((s) => ({ year: s.year, month: s.month, day: s.day }));
+  for (const year of ganjiYears) {
+    if (shellSamples.some((s) => s.year === year)) continue;
+    // 그 해의 갈리는 날을 먼저 쓰고, 없으면 그 해의 고정 날짜를 쓴다(둘 다 유도값이다).
+    const inYear = ALL_DIVERGENT.find((row) => row.year === year);
+    shellSamples.push(inYear ? { year: inYear.year, month: inYear.month, day: inYear.day } : { year, month: 6, day: 15 });
+  }
+  ok(
+    "⑥ 표본이 간지 축이 살아 있는 해를 담는다",
+    ganjiYears.every((year) => shellSamples.some((s) => s.year === year)),
+    `표본 해 ${[...new Set(shellSamples.map((s) => s.year))].join(",")}`,
+  );
+
+  const probe = runProbe({ samples: shellSamples, times: [...SHELL_TIMES] });
+  ok("⑥ 프로브가 봉투를 돌려줬다", probe.ok === true, probe.error || "");
+
+  if (probe.ok) {
+    const self = probe.selfCheck;
+    const consumers = probe.consumers;
+
+    // ── ⑥ 프로브 자기검사 — "안 돌아서 통과" 를 막는다 ─────────────────────
+    ok("⑥ 프로브가 Asia/Seoul 로 고정돼 돌았다", probe.offsetMinutes === -540, `오프셋 ${probe.offsetMinutes}분`);
+    ok("⑥ 프로브가 표본 전건을 실제로 돌았다", self.ran === self.expectedRuns && self.threw === 0, `실행 ${self.ran}/${self.expectedRuns} · 던짐 ${self.threw}`);
+    ok(
+      "⑥ 던지며 평가되는 파일에서도 소비자 선언이 살아남았다",
+      self.resolveSukuyoLunarObj === "function" && self.dfExtractSukuyoLiveData === "function"
+      && self.syRadarResolveLunar === "function" && self.syBuildMonthlySukuyoLunar === "function"
+      && self.calcSukuyoData === "function",
+      JSON.stringify({
+        _resolveSukuyoLunarObj: self.resolveSukuyoLunarObj,
+        _dfExtractSukuyoLiveData: self.dfExtractSukuyoLiveData,
+        syRadarResolveLunar: self.syRadarResolveLunar,
+        syBuildMonthlySukuyoLunar: self.syBuildMonthlySukuyoLunar,
+        calcSukuyoData: self.calcSukuyoData,
+      }),
+    );
+    // 프로브가 더 싣는 파일이 전수 발견 결과 안에 있어야 한다 — 임의의 파일을 싣지 못하게.
+    const extraOutside = probe.extraScripts.filter((file) => ![...discovered.keys()].some((key) => key.startsWith(`${file}#`)));
+    ok(
+      "⑥ 프로브가 더 싣는 파일이 전부 호출부 발견 결과에서 나왔다",
+      extraOutside.length === 0,
+      extraOutside.join(", "),
+    );
+
+    // ⑥-e 서비스 갈래가 "네트워크가 없어서" 가 아니라 코어 보정이 돌아서 안 민다.
+    ok(
+      "⑥-e 서비스 갈래에 korean-calendar-core-correction 진단이 찍혔다",
+      (self.diagnostics || []).includes("korean-calendar-core-correction"),
+      (self.diagnostics || []).join(" · "),
+    );
+
+    // ⑥-g 같은 프로세스에서 한 바퀴 더 돌아도 값이 같다(순서 오염 탐지).
+    const repeatMismatch = probe.rows
+      .map((row, index) => [row.key, JSON.stringify(row.values), JSON.stringify(probe.repeat[index] && probe.repeat[index].values)])
+      .filter(([, a, b]) => a !== b);
+    ok(
+      "⑥-g 같은 프로세스에서 두 바퀴를 돌아도 값이 같다(순서 오염 없음)",
+      repeatMismatch.length === 0,
+      repeatMismatch.map(([key]) => key).join(", "),
+    );
+
+    // ── ⑥-a/b/c 갈래 수 ────────────────────────────────────────────────────
+    const mansionsOf = (row) => row.values.map((v) => (v ? v.mansion : null));
+    const groupCount = (row) => new Set(mansionsOf(row).filter(Boolean)).size;
+
+    const controlRows = probe.rows.filter((row) => CONTROL_TIMES.has(row.key.slice(-5)));
+    const yajaRows = probe.rows.filter((row) => row.hour === 23);
+
+    const controlWrong = controlRows.filter((row) => {
+      const core = solarToLunar(row.year, row.month, row.day);
+      const expected = core ? coreMansionFull(core.lunarMonth, core.lunarDay, core.isLeapMonth) : null;
+      return mansionsOf(row).some((m) => m !== expected);
+    });
+    ok(
+      "⑥-a 대조군 시각에서 셸 소비자 전원이 코어와 같은 본명숙을 낸다",
+      controlRows.length > 0 && controlWrong.length === 0,
+      controlWrong.map((row) => `${row.key} — ${mansionsOf(row).join(" · ")}`).join("\n      "),
+    );
+    ok(
+      "⑥-c 대조군 시각의 갈래 수가 1 이다",
+      controlRows.length > 0 && controlRows.every((row) => groupCount(row) === 1),
+      controlRows.filter((row) => groupCount(row) !== 1).map((row) => `${row.key} 갈래 ${groupCount(row)}`).join(", "),
+    );
+    // 🔴 이 줄이 이 PR 의 계약이다 — **2 가 현행**이다. 통일하는 PR 이 이 숫자를 1 로 바꾼다.
+    const wrongYaja = yajaRows.filter((row) => groupCount(row) !== 2);
+    ok(
+      "⑥-b 23시대 갈래 수가 2 다(현행 — 통일하는 PR 이 이 숫자를 1 로 바꾼다)",
+      yajaRows.length > 0 && wrongYaja.length === 0,
+      wrongYaja.map((row) => `${row.key} 갈래 ${groupCount(row)} — ${[...new Set(mansionsOf(row))].join(" · ")}`).join("\n      "),
+    );
+
+    // ⑥-d 야자시 축 자체 — 명시 옵션으로 잰다(기본값이 바뀌어도 이 검사는 같은 것을 잰다).
+    const axis23 = probe.yajaAxis.filter((row) => row.hour === 23);
+    const axisControl = probe.yajaAxis.filter((row) => row.hour !== 23);
+    const moved = axis23.filter((row) => row.moved).length;
+    ok(
+      "⑥-d 야자시를 끄면 23시대 본명숙이 옮겨간다(축이 살아 있다는 증거)",
+      axis23.length > 0 && moved / axis23.length >= 0.8,
+      `23시대 ${moved}/${axis23.length} 이동`,
+    );
+    ok(
+      "⑥-d 23시대 밖에서는 야자시가 본명숙을 안 바꾼다",
+      axisControl.length > 0 && axisControl.every((row) => !row.moved),
+      axisControl.filter((row) => row.moved).map((row) => row.key).join(", "),
+    );
+
+    // ⑥-f 간지(일주) 축은 ON 이 정본이다 — 음력 축을 통일하는 PR 의 안전벨트.
+    const ganjiLive = probe.ganjiAxis.filter((row) => row.hour === 23 && row.on && row.off);
+    ok(
+      "⑥-f 간지 축의 23시대 비교 대상이 0 이 아니다(전부 null 이면 다음 검사가 무의미하다)",
+      ganjiLive.length > 0,
+      `살아 있는 행 ${ganjiLive.length} / 23시대 ${probe.ganjiAxis.filter((r) => r.hour === 23).length}`,
+    );
+    ok(
+      "⑥-f 간지 축은 23시에 여전히 하루를 민다(음력 축과 규약이 다른 것이 의도다)",
+      ganjiLive.length > 0 && ganjiLive.every((row) => row.on !== row.off),
+      ganjiLive.filter((row) => row.on === row.off).map((row) => `${row.key} ${row.on}`).join(", "),
+    );
+
+    // ④ 상수 열 금지 이식 — 열이 태어날 때부터 죽어 있으면 접어도 안 움직인다.
+    const constantColumns = consumers
+      .map((name, index) => [name, new Set(probe.rows.map((row) => JSON.stringify(row.values[index]))).size])
+      .filter(([, distinct]) => distinct < 2);
+    ok(
+      "⑥ 상수 열이 없다(서로 다른 값이 2 미만인 소비자 = 재고 있지 않다)",
+      constantColumns.length === 0,
+      constantColumns.map(([name, distinct]) => `${name} 값 ${distinct}종`).join(", "),
+    );
+    ok(
+      "⑥ 월간 숙요 표면이 값을 낸다(시각 축이 없는 소비자)",
+      probe.monthly.length > 0 && probe.monthly.every((row) => row.lunar),
+      probe.monthly.filter((row) => !row.lunar).map((row) => row.key).join(", "),
+    );
+
+    SHELL_AXIS_REPORT.consumers = consumers.length;
+    SHELL_AXIS_REPORT.unreachable = [...SHELL_LUNAR_CALLSITES.values()].filter((v) => v.unreachable).length;
+    SHELL_AXIS_REPORT.rows = probe.rows.length;
+    SHELL_AXIS_REPORT.controlGroups = [...new Set(controlRows.map(groupCount))].sort().join("/");
+    SHELL_AXIS_REPORT.yajaGroups = [...new Set(yajaRows.map(groupCount))].sort().join("/");
+
+    // ── ⑥ 픽스처 — 현행을 박제한다 ─────────────────────────────────────────
+    const snapshot = {
+      note: "🔴 정답이 아니라 **현행**이다. 셸 소비자마다 23시대 야자시 처리가 갈려 있는 상태를 그대로 박아 둔다. 자세한 것은 README-sukuyo-shell-axis.md.",
+      generatedBy: "node scripts/verify-sukuyo-korean-calendar.mjs --emit",
+      tz: "Asia/Seoul",
+      consumers,
+      times: [...SHELL_TIMES],
+      sampleCount: probe.rows.length,
+      rows: probe.rows.map((row) => `${row.key}\t${row.values.map((v) => (v ? v.mansion : "")).join("\t")}`),
+      // 🔴 값과 **따로** 적는다. 값만 대조하면 죽은 열이 `null == null` 로 조용히 통과한다.
+      nullMap: probe.rows.map((row) => `${row.key}\t${row.values.map((v) => (v ? "0" : "1")).join("")}`),
+      // 🔴 통일하는 PR 이 무엇을 바꾸는지 예측 가능하게 만드는 칸 — 지금은 대조군 1 · 23시대 2 다.
+      groupCounts: probe.rows.map((row) => `${row.key}\t${groupCount(row)}`),
+      monthly: probe.monthly.map((row) => `${row.key}\t${row.lunar}`),
+    };
+
+    if (EMIT) {
+      fs.writeFileSync(FIXTURE_PATH, `${JSON.stringify(snapshot, null, 2)}\n`, "utf8");
+      console.log(`[verify:sukuyo-korean-calendar] --emit → ${path.relative(root, FIXTURE_PATH)} (표본 ${snapshot.sampleCount}행)`);
+    } else {
+      const exists = fs.existsSync(FIXTURE_PATH);
+      ok("⑥ 픽스처 파일을 읽었다", exists, FIXTURE_PATH);
+      if (exists) {
+        const fixture = JSON.parse(fs.readFileSync(FIXTURE_PATH, "utf8"));
+        ok("⑥ 소비자 목록이 픽스처와 같다", JSON.stringify(fixture.consumers) === JSON.stringify(consumers), `픽스처 ${(fixture.consumers || []).length}벌 · 지금 ${consumers.length}벌`);
+        ok("⑥ 시각 축이 픽스처와 같다", JSON.stringify(fixture.times) === JSON.stringify([...SHELL_TIMES]), `${(fixture.times || []).join(",")}`);
+        ok("⑥ 표본 수가 픽스처와 같다", fixture.sampleCount === snapshot.sampleCount, `픽스처 ${fixture.sampleCount} · 지금 ${snapshot.sampleCount}`);
+        for (const field of ["rows", "nullMap", "groupCounts", "monthly"]) {
+          const before = fixture[field] || [];
+          const after = snapshot[field];
+          const diff = after.filter((line, index) => line !== before[index]);
+          ok(
+            `⑥ ${field} 가 픽스처와 전건 같다`,
+            before.length === after.length && diff.length === 0,
+            diff.slice(0, 6).map((line, index) => `지금 ${line}\n      전에 ${before[index] ?? "(없음)"}`).join("\n      "),
+          );
+        }
+      }
+    }
+  }
+}
+
 // ── 결과 ────────────────────────────────────────────────────────────────────
 if (failures.length) {
   console.error(`\n[verify:sukuyo-korean-calendar] 실패 ${failures.length}건 / 검사 ${checks}건`);
@@ -454,4 +777,8 @@ if (failures.length) {
 console.log(
   `[verify:sukuyo-korean-calendar] 통과 — 검사 ${checks}건 · 숙요 소스 ${sukuyoFiles.length}개 · `
   + `소비자 ${CONSUMERS.length}벌 · 갈리는 날 ${ALL_DIVERGENT.length}일 중 표본 ${SAMPLES.length}일`,
+);
+console.log(
+  `  셸 음력일 축 — 실행 소비자 ${SHELL_AXIS_REPORT.consumers}벌 · 정적 도달 ${SHELL_AXIS_REPORT.unreachable}곳 · `
+  + `표본 ${SHELL_AXIS_REPORT.rows}행 · 대조군 갈래 ${SHELL_AXIS_REPORT.controlGroups} · 23시대 갈래 ${SHELL_AXIS_REPORT.yajaGroups}`,
 );

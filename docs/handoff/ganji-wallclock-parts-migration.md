@@ -134,13 +134,43 @@ Date 를 받는 진입점이 **소스에서 0개**가 됐고, `ganji-dst-gap-cen
 
 🔴 **그 대신 남는 것**(별건, 이 계획 밖):
 
-- **소스 간 불일치가 그대로 남는다** — KASI API 가 살아 있으면 23시대를 안 밀고, 죽어서
-  `_fallbackLunarFromSolar` 로 내려가면 민다. 즉 **같은 사용자가 KASI 상태에 따라 다른 본명숙**을
-  본다. 닫으려면 KASI 응답에도 같은 밀기를 얹어야 한다(값이 바뀌는 작업이라 별건).
-- 그 불일치를 지금 재는 가드는 없다. 착수하면 `verify:sukuyo-korean-calendar` 에 "세 소스가 23시대에
-  같은 답을 낸다"를 세우는 것이 첫 칸이다.
+- ~~**소스 간 불일치가 그대로 남는다** — KASI API 가 살아 있으면 23시대를 안 밀고, 죽어서
+  `_fallbackLunarFromSolar` 로 내려가면 민다.~~
+  🔴 **이 서술은 틀렸다 — 정정 2026-08-28.** 아래 "야자시 축 정정" 절을 볼 것.
+- ~~그 불일치를 지금 재는 가드는 없다.~~ ✅ **저울이 섰다** — `verify:sukuyo-korean-calendar`
+  **검사 ⑥**(셸 음력일 축)이 셸 소비자 7벌을 실제로 실행해 현행 불일치를 픽스처로 고정한다.
 
 아래는 그 결정의 근거로 남긴 실측이다(고치지 말 것).
+
+### 🔴 야자시 축 정정 (2026-08-28) — "KASI 생사에 따라 갈린다"는 **틀렸다**
+
+위 표의 **KASI API vs 폴백** 축은 실재하지 않는다. `js/core/kasi-calendar-service.js:193`
+`_applyCoreCalendarCorrection` 이 `context.lunar` 를 **밀지 않은** `KoreanCalendar.solarToLunar(y,m,d)`
+로 덮어쓰고, 그 호출은 `:1074`(캐시 히트)·`:1238`(신규 생성)에서 **무조건** 돈다. 그래서
+`_fallbackLunarFromSolar`(`:698`)가 야자시로 하루를 밀어도 **즉시 되돌아간다.**
+하네스 실측: 던지는 fetch(= KASI 죽은 상태)로도 `resolvePrimaryCalendarContext` 가 안 밀린 값을 내고
+진단에 `korean-calendar-core-correction` 이 찍힌다.
+
+**실재하는 불일치는 소비자마다 우선순위가 정반대**라는 것이다(실측 `1990-06-15 23:00`):
+
+| 소비자 | 1순위 | 23시 |
+|---|---|---|
+| `quantum:11629` `syRadarResolveLunar` · `resolvePrimaryCalendarContext` | 서비스 컨텍스트 | **안 민다** |
+| `KasiEngine.solarToLunarFromParts` · `calcZiweiPalaces`(`saju-engine.js:2979`) · `buildFallbackDateContext`(`:1424`) · `modalProfileState.js:107` · `index-inline-runtime.js:4162` | 직접 호출 | **민다** |
+| 앱 `app/_lib/ziwei-engine.ts:110` · 워커 `worker/lib/ziwei-ai-chart.js:147` · `lib/sukuyo-calendar.ts` | 3인자 호출 | 야자시 개념 없음 = **안 민다** |
+
+⇒ 같은 사용자가 **어느 렌더러로 들어왔느냐**에 따라 본명숙과 자미 명반이 갈린다. 그리고 셸의
+"미는 갈래"는 **앱·워커와도 갈려 있다**(실측: 23:30 셸 음력 5/24 vs 워커 5/23).
+
+🔴 이 구멍은 그동안 어느 가드에도 안 잡혔다 — 자미 가드 4벌의 표본 시각이 9·14:10·8:30·11:45·
+12:00·0:20 뿐이라 **23시대가 한 건도 없고**, `verify-sukuyo-korean-calendar` 의 `CONSUMERS` 10벌은
+전부 `lib/`·`worker/`·`app/` 이라 셸은 실행 대상이 아니었다.
+
+✅ **검사 ⑥ 이 그 저울이다**(2026-08-28). 셸 소비자 7벌을 브라우저와 같은 로드 체인에서 실제로
+돌리고(자식 프로세스 `scripts/lib/sukuyo-shell-probe.cjs`), 현행을
+`scripts/fixtures/sukuyo-shell-axis.json` 에 박는다 — **대조군 갈래 1 · 23시대 갈래 2** 가 계약이다.
+통일하는 PR 이 그 숫자를 1 로 바꾸고, 그 diff 가 곧 변화량이다.
+상세: [scripts/fixtures/README-sukuyo-shell-axis.md](../../scripts/fixtures/README-sukuyo-shell-axis.md)
 
 ### 🔴 (결정 완료) §6-4 야자시 의미 결정 — 근거 실측
 
@@ -150,6 +180,9 @@ Date 를 받는 진입점이 **소스에서 0개**가 됐고, `ganji-dst-gap-cen
 `_fallbackLunarFromSolar`(`:697`)도 걸린다 — KASI 가 죽는 동안에만 돈다.
 
 **지금 무엇이 벌어지나.** 셸의 세 음력 소스가 23시대에 **서로 다른 답**을 낸다:
+
+🔴 **아래 표는 낡았다 (2026-08-28 정정)** — KASI 생사 축은 `_applyCoreCalendarCorrection` 이
+지우고 있다. 위 "야자시 축 정정" 절의 표가 현행이다. 이 표는 그날의 서술로만 남긴다.
 
 | 소스 | 23시 처리 |
 |---|---|
