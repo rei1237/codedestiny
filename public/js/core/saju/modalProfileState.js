@@ -1,7 +1,22 @@
 // Mystic modals (Sukuyo / Ziwei / Astro) profile-to-render bridge
 // NOTE: compute/render functions live in `js/saju-engine*.js` + `js/core/saju/reportDashboard.js` (리포트 그리드).
 
-var _ModalProfileState = (function () {
+/**
+ * 🔴 이 파일은 **두 번 실행될 수 있다.** 셸에 이 스크립트를 싣는 로더가 셋이고 dedupe 규칙이
+ * 서로 다르기 때문이다(실측 2026-08-28):
+ *   · 체인 `__cdLoadScriptOnce`(js/core/index-inline-runtime.js) — DOM 을 훑고 `?v=` 를 **무시**한다
+ *   · `__loadScriptOnce`(js/core/uiBindings.js:118) — DOM 을 훑지만 **정확한 문자열**로 비교해
+ *     `?v=` 가 붙은 체인 태그를 못 본다(무버전으로 부른다)
+ *   · `cd-lazy-feature-loader`(index.html 의 `data-cd-lazy-src`) — **DOM 을 아예 안 보고**
+ *     자기 맵만 본다
+ * 즉 체인이 먼저 돌면 나머지 둘은 태그를 하나 더 심고, 그러면 이 파일이 다시 평가된다.
+ *
+ * 다시 평가되면 아래 IIFE 가 새 인스턴스를 만들어 `_subs` 가 빈 채로 갈아치워지고,
+ * **열려 있던 모달의 구독이 조용히 사라진다**(예외도 안 난다 — 실측: dispatch 가 0회 전달).
+ * 그래서 이미 있으면 그것을 그대로 쓴다. 로더 셋을 통일하는 것은 공유 모듈 변경이라 별건이다.
+ * 가드: verify:shell-korean-calendar 검사 ⑲(같은 소스를 두 번 평가해 인스턴스와 구독을 본다).
+ */
+var _ModalProfileState = window._ModalProfileState || (function () {
   var _subs = {};
 
   function _syncGlobals(profile) {
