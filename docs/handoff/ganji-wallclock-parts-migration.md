@@ -16,7 +16,10 @@
   **남은 것은 별건 3건과 PR-5 가 새로 연 후속 2건뿐.**
 - ✅ **후속-1 — `zwFlowGanji` 프로브 시각을 정정했다(2026-08-28).** 축 D 가 **40 → 0** 이 됐고,
   같은 함정을 소스에서 전수 발견해 막는 **검사 ⑯** 이 섰다. 아래 "후속-1" 절.
-  **남은 것은 별건 3건과 후속-2(야자시 시프트 범위)뿐.**
+- ✅ **후속-2 — 야자시 시프트 범위를 코어에 맞췄다(2026-08-28).** 간지 축이 부품을 통째로 밀던
+  것을 **일진만** 미는 것으로 고쳤다. 축 B 가 **19 → 0**, 오늘 화면 값은 1990-01-05 23:32 의
+  월건 한 칸(丁丑 → 丙子, 코어와 일치)만 움직였다. **검사 ⑰ 11건** 신설. 아래 "후속-2" 절.
+  **남은 것은 별건 3건뿐.**
 
 Date 를 받는 진입점이 **소스에서 0개**가 됐고, `ganji-dst-gap-census.json` 의 `gaps` 가 6개 존
 전부 **문자 그대로 0** 이 됐다.
@@ -81,15 +84,15 @@ PR-2 가 `kst` 결함을 고쳤지만 **localStorage 180일 보유자에게는 �
 
 ### 🔴 남은 계획 항목 — 착수 전에 이 절을 읽어라 (2026-08-28 실측)
 
-**PR-4 · PR-5 — ✅ 둘 다 끝났다(아래 각 절).** 남은 것은 아래 별건 3건과, PR-5 가 실측으로
-연 후속 2건이다.
+**PR-4 · PR-5 — ✅ 둘 다 끝났다(아래 각 절).** PR-5 가 연 후속 2건도 닫혔다.
+남은 것은 아래 **별건 3건뿐**이다.
 
-**PR-5 가 연 후속 (전부 측정 결과이지 결정이 아니다 — 고치려면 사용자 승인부터).**
+**PR-5 가 연 후속 (둘 다 닫혔다).**
 
 1. ~~🔴 `zwFlowGanji` 의 프로브 시각이 틀렸다.~~ ✅ **닫혔다 (2026-08-28, 후속-1).** 아래 절.
-2. 🔴 **야자시 시프트 범위가 코어와 다르다.** 엔진은 23시대에 **부품 전체**를 하루 밀어
-   節 프레임(세차·월건)까지 움직이는데, 코어 `ganji()` 는 **일진만** 민다(`nightZiApplied`).
-   전환 후 코어와 어긋나는 표본 19건이 **전부** 이 축이다(절기표 축 0건).
+2. ~~🔴 **야자시 시프트 범위가 코어와 다르다.**~~ ✅ **닫혔다 (2026-08-28, 후속-2).** 아래 절.
+   엔진이 23시대에 **부품 전체**를 하루 밀어 節 프레임(세차·월건)까지 움직이던 것을,
+   서비스가 **일진만** 미는 것으로 바꿨다(코어 `nightZiApplied` 와 같은 축).
 
 **별건으로 남긴 것 (발견만 기록).**
 
@@ -174,6 +177,96 @@ npm run verify:ganji-surface-parity     # 검사 66건 — 표면 값이 안 움
 - 검사 ⑯ 은 `GANJI_PATH_FILES` 7파일만 본다. 그 밖에서 `getGanjiFromParts` 를 부르면 안 잡힌다 —
   다만 `git grep` 전수상 `js/` 밖에 호출부가 없다(실측 2026-08-28).
 - 프로브가 **변수**로 계산되는 자리는 원리상 못 잰다. 지금은 그런 자리가 0건이다.
+
+## ✅ 후속-2 — 야자시 시프트 범위를 **일진 하나로** 좁혔다 (2026-08-28)
+
+**오늘 화면 값은 한 칸 움직인다** — 1990-01-05 23:32 의 월건 `丁丑 → 丙子`. 그 한 칸이 곧
+코어(`_coreEightChar`)가 이미 내고 있던 값이고, 픽스처의 이웃 열이 그것을 그대로 보여 준다.
+나머지 해는 `getGanjiFromParts` 가 여전히 null 이라(검증캐시 1990 한 해) 움직일 값이 없다.
+
+### 무엇이 틀렸었나
+
+야자시(夜子時)가 닿는 축은 **일진 하나뿐**이다 — 세차·월건은 절기가 가르고, 시지는 자시가
+23:00~00:59 로 자정을 감싸므로 둘 다 날짜와 무관하다. 정본은 코어에 이미 적혀 있었다
+(`lib/korean-calendar/policy.js` 의 `NIGHT_ZI_POLICY` 주석 · `lib/korean-calendar/ganji.js`
+의 `nightZiApplied`). 그런데 셸의 `KasiEngine.getGanjiFromParts` 는 23시대에 **부품 전체**를
+하루 밀어 서비스에 넘겼고, 그러면 그 하루가 節 프레임까지 밀어 세차·월건이 함께 갈렸다.
+
+| 표면 | 코어와 어긋난 표본(1,645건 중) | 기둥별 | 시각축 |
+|---|---|---|---|
+| 정정 전 `getGanjiFromParts` | **19** (1.2%) | 세차 4 · 월건 19 · 일진 0 · 시간 0 | 23시대 19 · 그 밖 0 |
+| 정정 후 | **0** | 전부 0 | 0 · 0 |
+
+### 바꾼 것
+
+| 파일 | 무엇 |
+|---|---|
+| `js/core/kasi-calendar-service.js` | `_computeGanjiFromParts(parts, terms, options)` 에 `options.nightZi` 신설(기본 OFF). `_dayGanjiFromParts` 가 일 수 하나만 더한다 — 부품을 밀지 않는다 |
+| `js/saju-engine.js` `getGanjiFromParts` | 프리시프트(`_kasiShiftPartsByDays`) 제거 → `{ nightZi: !!options.yaja }` 위임. 머리주석의 낡은 "호출부 13곳" 도 실측 11곳으로 |
+| `scripts/verify-shell-korean-calendar.mjs` | **검사 ⑰ 11건** 신설(값 8 + 소스 3) |
+| `scripts/verify-sukuyo-korean-calendar.mjs` | ⑥-0c 분류표에서 간지 축 항목 제거 + `간지 축 0곳` 단언 신설 |
+| `scripts/measure-ganji-null-transition.mjs` | 시뮬레이션 래핑이 3번째 인자를 삼키지 않게 + ⓪ 자기검사 신설 |
+| `scripts/verify-solar-term-frame-kasi.mjs` | ⑬-a 로직 지문 lock 갱신(**세대는 안 올렸다** — 아래) |
+| `scripts/fixtures/ganji-surface-kst.json` | 1행 1칸(위 월건) |
+| `public/**` · `index.html` 외 | `npm run sync:public` 산출물(미러 + 캐시키 회전) |
+
+🔴 **`_CONTEXT_LOGIC_VERSION` 은 안 올렸다.** 저장되는 컨텍스트(`terms24`·`ganji`·`lunar`)를
+만드는 것은 `_fallbackGanji` 이고 그쪽은 `_dayGanjiFromParts(solarParts)` 를 **인자 하나로**
+부른다(= 야자시 OFF, 정정 전과 동일). 새 옵션을 넘기는 곳은 `KasiEngine.getGanjiFromParts`
+하나뿐이라 캐시 엔트리의 값이 안 바뀐다 — 그래서 lock 의 fingerprint 만 갈았다.
+근거: `js/core/kasi-calendar-service.js` 안의 `_dayGanjiFromParts(` 호출 2곳 전수
+(841행 `_fallbackGanji` 인자 1개 · 1033행 `_computeGanjiFromParts` 인자 2개).
+
+### 검사 ⑰ — 값과 소스를 함께 본다
+
+값만 보면 엔진이 다시 부품을 밀어도 이 블록은 서비스를 직접 부르므로 초록이고, 소스만 보면
+서비스 구현이 갈려도 못 본다. 그래서 두 축을 같이 둔다.
+
+- 표본은 손으로 안 적는다 — 1950~2050 의 節 이 든 날과 그 전날의 23시대(00·30·59분)를
+  코어 節 목록에서 유도한다(실측 **7,272건**, 전건 23시).
+- ⑰ `nightZi` 켠 4기둥이 코어 `SHIFT_DAY` 와 **전건** 같다 · null 0건.
+- ⑰ ON/OFF 대조로 **야자시가 닿는 축이 정확히 둘**임을 값으로 못박는다 — 세차·월건은 전건
+  같고, 일진·시주는 전건 다르다. 한쪽만 두면 나머지가 죽어도 동어반복으로 통과한다.
+- ⑰ 판별력 자기검사 — 정정 전 동작(부품 통째 밀기)을 그 자리에서 흉내 내 실제로 걸리는지 본다.
+- ⑰ 소스 — `getGanjiFromParts` 정의를 `GANJI_PATH_FILES` 에서 전수 발견해 **정확히 한 벌**을
+  요구하고, 그 본문에 `_kasiShiftPartsByDays(` 가 없고 `nightZi` 위임이 있는지 본다.
+
+### 음성 테스트 6종 (전부 fail-closed · 바이트 백업으로 복구, 복원 후 전건 초록)
+
+| 심은 것 | 빨강이 된 검사 |
+|---|---|
+| 엔진이 다시 부품을 통째로 민다 | `⑰ … 부품을 밀지 않는다` + `⑥ 날짜 밀기 호출부가 전부 분류돼 있다` + `① 픽스처와 전건 같다`(1990-01-05 23:32) |
+| 엔진이 `nightZi` 위임을 끊는다 | `⑰ … 야자시를 서비스에 위임한다` + `⑥-f 간지 축은 23시에 여전히 하루를 민다` |
+| 서비스가 `nightZi` 를 받고도 일진을 안 민다 | `⑰ nightZi 켠 4기둥이 코어와 전건 같다` + `⑰ 야자시가 일진·시주는 전건 움직인다` |
+| 서비스가 야자시를 **부품 통째 밀기**로 구현 | `⑰ 야자시가 세차·월건을 안 움직인다` + `⑰ … 코어와 전건 같다` (덤으로 ⑮ 미분류) |
+| 분류표에 간지 축을 다시 등재 | `⑥ 간지 축에서 부품을 미는 자리가 0곳이다` |
+| 측정기 래핑이 옵션을 삼킨다 | `⓪ 시뮬레이션 래핑이 야자시 옵션을 삼키지 않는다` |
+
+### 재현
+
+```
+npm run measure:ganji-null-transition   # 축 B: getGanjiFromParts 0건 (정정 전 19건)
+npm run verify:shell-korean-calendar    # 검사 82건 (⑰ 11건 포함)
+npm run verify:sukuyo-korean-calendar   # 검사 68건 (⑥-f 가 일진 밀기를 계속 지킨다)
+npm run verify:ganji-surface-parity     # 검사 66건 — 움직인 칸이 그 하나뿐이라는 증거
+```
+
+같이 돌려 초록을 확인한 것: `verify:solar-term-frame-kasi`(59) · `verify:ziwei-star-parity`(21) ·
+`verify:ziwei-worker-chart-facts`(114) · `verify:ziwei-chart-detail-view`(46) · `verify:ziwei-sohan`(35) ·
+`verify:daeun-korean-calendar`(16) · `verify:hour-pillar-parity` · `verify:natal-day-pillar-axis`(18) ·
+`verify:myeongri-tables`(29) · `verify:saju-solar-term-core`(54).
+
+### 🔴 남는 것 (부정 단언 금지)
+
+- `:noYaja` 축의 **123건은 그대로다.** `js/luck-sync-diary.js:407`·`:505` 가 `{ yaja: false }` 로
+  부르는 자리이고, 측정기의 대조군인 `_coreEightChar` 는 기본값(shift-day)이라 일진·시주가
+  갈리는 것이 **정상**이다(코어 `policy.js` 의 `KEEP_DAY` 주석이 그 두 소비자를 이름으로 적는다).
+  🔴 다만 그 두 줄이 실제로 keep-day 를 원하는지는 이 PR 에서 **재검증하지 않았다**.
+- KASI 컨텍스트 갈래(`_fallbackGanji`)는 여전히 야자시를 **안 민다**(keep-day). 즉 셸 안에
+  간지 축이 두 벌 있고(엔진 표면 = shift-day / 컨텍스트 = keep-day), 그 둘 중 무엇이 화면에
+  닿는지는 호출부마다 다르다 — PR-5 의 호출부 재고 11곳 표가 그 지도다. **미판정**.
+- 검사 ⑰ 의 값 축은 서비스를 직접 부른다. 엔진→서비스 배선이 끊기는 회귀는 소스 축(⑰)과
+  픽스처 한 칸(`verify:ganji-surface-parity`)이 잡는다 — 값 축이 잡는 게 아니다.
 
 ## ✅ PR-5 — `getGanjiFromParts` null 전환 영향을 쟀다 (2026-08-28, 측정 전용)
 

@@ -591,7 +591,11 @@ const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups
   // 그래서 `_kasiShiftPartsByDays(` 호출을 전부 찾아 축별로 분류하고, 미분류·stale 을 실패시킨다.
   const SHIFT_CALLSITES = new Map([
     ["js/saju-engine.js#solarToLunarFromParts", { axis: "lunar", note: "기본값 OFF — options.yaja 를 명시해야만 민다" }],
-    ["js/saju-engine.js#getGanjiFromParts", { axis: "ganji", note: "기본값 ON — 명리학 자시 경계(정본)" }],
+    // 🔴 여기에 "js/saju-engine.js#getGanjiFromParts" 가 있었다(축 ganji). 후속-2 가 그 자리를
+    //    지웠다 — 간지 축 야자시는 부품을 미는 것이 아니라 **일진만** 미는 것이고, 그 적용 자리는
+    //    js/core/kasi-calendar-service.js 의 _dayGanjiFromParts 다. 부품을 통째로 밀면 節 프레임이
+    //    따라 움직여 23시대 출생의 세차·월건이 코어와 갈렸다(실측 2026-08-28: 1,645건 중 19건).
+    //    되돌리면 위 "미분류" 검사가, 되돌리면서 여기 다시 등재하면 아래 "간지 축 0곳" 이 잡는다.
     // 🔴 키의 이름은 **직전 함수 선언**이라 실제 감싸는 스코프(qDailyFlow IIFE)와 다르다 —
     //    이름이 아니라 "소스에 이 자리가 있다" 를 지키는 앵커다.
     ["js/saju-engine-tarot-sukuyo-quantum.js#rank", { axis: "util", note: "주간 일운 7칸의 날짜 산술(qDailyFlow) — 야자시와 무관" }],
@@ -640,6 +644,12 @@ const SHELL_AXIS_REPORT = { consumers: 0, unreachable: 0, rows: 0, controlGroups
     "⑥ 음력 축에서 날짜를 미는 자리가 solarToLunarFromParts 하나뿐이다(옵션 뒤에 있다)",
     [...SHIFT_CALLSITES.entries()].filter(([, v]) => v.axis === "lunar").length === 1,
     [...SHIFT_CALLSITES.entries()].filter(([, v]) => v.axis === "lunar").map(([k]) => k).join(", "),
+  );
+  // 🔴 후속-2 계약. 간지 축은 부품을 밀어서 야자시를 표현하지 않는다 — 일진 하나만 민다.
+  ok(
+    "⑥ 간지 축에서 부품을 미는 자리가 0곳이다(후속-2 — 야자시는 일진에만 적용된다)",
+    [...SHIFT_CALLSITES.entries()].filter(([, v]) => v.axis === "ganji").length === 0,
+    [...SHIFT_CALLSITES.entries()].filter(([, v]) => v.axis === "ganji").map(([k]) => k).join(", "),
   );
 
   // ── ⑥-0b 표본 — 간지 축이 살아 있는 해를 셸에 물어 넣는다 ─────────────────
