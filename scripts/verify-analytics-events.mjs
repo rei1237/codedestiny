@@ -170,4 +170,54 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   );
 }
 
-console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화");
+/* ⑧ useAnalytics 훅은 태그를 다시 붙이지 않고, 발화를 전부 trackEvent 로 보낸다 */
+{
+  const hook = fs.readFileSync(path.join(ROOT, "app/hooks/useAnalytics.ts"), "utf8");
+  // 주석에도 gtag·page_view 가 설명으로 등장한다. 정규식 대신 줄 단위로 주석을 걷어낸다.
+  const source = hook
+    .split("\n")
+    .filter((line) => {
+      const trimmed = line.trim();
+      return trimmed && !trimmed.startsWith("*") && !trimmed.startsWith("/*") && !trimmed.startsWith("//");
+    })
+    .join("\n");
+
+  for (const forbidden of ["googletagmanager", "dataLayer", "gtag(", "createElement"]) {
+    assert.ok(
+      !source.includes(forbidden),
+      "useAnalytics.ts 가 " + forbidden + " 을 직접 만진다 — gtag 설치 정본은 js/core/analytics.js 하나이고, "
+        + "훅이 태그를 다시 붙이면 같은 방문이 두 번 집계된다",
+    );
+  }
+  assert.ok(
+    !source.includes("window."),
+    "useAnalytics.ts 가 window 를 직접 만진다 — 모든 발화가 trackEvent 를 거쳐야 스크립트 부재 시 no-op 이 보장된다",
+  );
+  assert.ok(
+    hook.includes('from "../../lib/analytics"'),
+    "useAnalytics.ts 가 lib/analytics 의 trackEvent 를 쓰지 않는다",
+  );
+
+  /* ⑨ 훅이 쏘는 이벤트 이름이 이미 쓰는 이름과 겹치지 않는가 */
+  const TAKEN_EVENT_NAMES = new Set([
+    // 이 레포가 이미 쓰는 이름
+    "page_view", "login", "signup", "purchase_complete",
+    "cross_sell_click", "share_receive", "retention_visit",
+    // GA4 가 자동 수집하거나 예약해 둔 이름
+    "purchase", "first_visit", "session_start", "user_engagement", "click", "scroll",
+  ]);
+  const emitted = source.split('trackEvent("').slice(1).map((chunk) => chunk.split('"')[0]);
+  // 🔴 대상이 0개일 때 통과하는 검사는 가드가 아니다(CLAUDE.md 원칙 10).
+  assert.ok(
+    emitted.length >= 4,
+    "useAnalytics.ts 에서 찾은 이벤트가 " + emitted.length + "개다 — 훅이 비었거나 이 파서가 낡았다",
+  );
+  for (const name of emitted) {
+    assert.ok(
+      !TAKEN_EVENT_NAMES.has(name),
+      "useAnalytics.ts 의 " + name + " 이 이미 쓰는 이벤트 이름과 겹친다 — 두 지점이 한 이름에 쏘면 분해가 불가능해진다",
+    );
+  }
+}
+
+console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약");
