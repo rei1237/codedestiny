@@ -86,6 +86,19 @@ function loadKasiCalendarService() {
   return sandbox.window.KasiCalendarService;
 }
 
+/**
+ * 🔴 KST 벽시계 부품. `computeMonthGanjiFromTerms` 는 PR-E 부터 부품만 받는다 —
+ * 로컬 `Date` 를 캐리어로 쓰면 그 벽시계가 없는 타임존에서 조용히 접힌다.
+ * 인자는 절대시각(ISO)이고, 그것을 KST 로 읽은 벽시계를 돌려준다. 프로세스 TZ 와 무관하다.
+ */
+function kstParts(iso) {
+  const w = new Date(new Date(iso).getTime() + 9 * 3600000);
+  return {
+    year: w.getUTCFullYear(), month: w.getUTCMonth() + 1, day: w.getUTCDate(),
+    hour: w.getUTCHours(), minute: w.getUTCMinutes(), second: 0,
+  };
+}
+
 function shiftDatePartsByDays(year, month, day, dayOffset) {
   const shifted = new Date(Date.UTC(year, month - 1, day) + dayOffset * 86400000);
   return { year: shifted.getUTCFullYear(), month: shifted.getUTCMonth() + 1, day: shifted.getUTCDate() };
@@ -143,7 +156,7 @@ assertNotEqual(ctx1990.ganji.month, "戊寅", "KASI context month regression gua
 
 const p = {
   year: ctx1990.ganji.year,
-  month: testApi.computeMonthGanjiFromTerms(terms1990, new Date("1990-03-18T07:20:00+09:00"), yearGan) || ctx1990.ganji.month,
+  month: testApi.computeMonthGanjiFromTerms(terms1990, kstParts("1990-03-18T07:20:00+09:00"), yearGan) || ctx1990.ganji.month,
   day: ctx1990.ganji.day,
   hour: ctx1990.ganji.hour,
 };
@@ -151,22 +164,22 @@ const p = {
 assertEqual(`${p.year} ${p.month} ${p.day} ${p.hour}`, "庚午 己卯 壬午 癸卯", "1990-03-18 Seoul female pillars");
 assertNotEqual(p.month, "戊寅", "month pillar regression guard");
 
-const gyeongchipBefore = testApi.computeMonthGanjiFromTerms(terms1990, new Date("1990-03-06T05:18:00+09:00"), yearGan);
-const gyeongchipAfter = testApi.computeMonthGanjiFromTerms(terms1990, new Date("1990-03-06T05:20:00+09:00"), yearGan);
+const gyeongchipBefore = testApi.computeMonthGanjiFromTerms(terms1990, kstParts("1990-03-06T05:18:00+09:00"), yearGan);
+const gyeongchipAfter = testApi.computeMonthGanjiFromTerms(terms1990, kstParts("1990-03-06T05:20:00+09:00"), yearGan);
 assertEqual(gyeongchipBefore, "戊寅", "Gyeongchip -1m");
 assertEqual(gyeongchipAfter, "己卯", "Gyeongchip +1m");
 
-const cheongmyeongBefore = testApi.computeMonthGanjiFromTerms(terms1990, new Date("1990-04-05T10:11:00+09:00"), yearGan);
-const cheongmyeongAfter = testApi.computeMonthGanjiFromTerms(terms1990, new Date("1990-04-05T10:13:00+09:00"), yearGan);
+const cheongmyeongBefore = testApi.computeMonthGanjiFromTerms(terms1990, kstParts("1990-04-05T10:11:00+09:00"), yearGan);
+const cheongmyeongAfter = testApi.computeMonthGanjiFromTerms(terms1990, kstParts("1990-04-05T10:13:00+09:00"), yearGan);
 assertEqual(cheongmyeongBefore, "己卯", "Cheongmyeong -1m");
 assertEqual(cheongmyeongAfter, "庚辰", "Cheongmyeong +1m");
 
-const ipchunBefore = testApi.computeMonthGanjiFromTerms(terms1990, new Date("1990-02-04T11:13:00+09:00"), "己巳");
-const ipchunAfter = testApi.computeMonthGanjiFromTerms(terms1990, new Date("1990-02-04T11:15:00+09:00"), yearGan);
+const ipchunBefore = testApi.computeMonthGanjiFromTerms(terms1990, kstParts("1990-02-04T11:13:00+09:00"), "己巳");
+const ipchunAfter = testApi.computeMonthGanjiFromTerms(terms1990, kstParts("1990-02-04T11:15:00+09:00"), yearGan);
 assertEqual(ipchunBefore, "丁丑", "Ipchun -1m month");
 assertEqual(ipchunAfter, "戊寅", "Ipchun +1m month");
 
-const lunarMisuseSolar = new Date("1990-03-18T07:20:00+09:00");
+const lunarMisuseSolar = kstParts("1990-03-18T07:20:00+09:00");
 const lunarMisuseMonth = testApi.computeMonthGanjiFromTerms(terms1990, lunarMisuseSolar, yearGan);
 assertEqual(lunarMisuseMonth, "己卯", "lunar month must not drive month pillar");
 
@@ -176,7 +189,8 @@ const partialTerms = testApi.normalizeTerms([
 assertEqual(partialTerms.length, 12, "partial KASI terms must use validated cache when available");
 assertEqual(testApi.computeMonthGanjiFromTerms(partialTerms, lunarMisuseSolar, yearGan), "己卯", "validated cache month pillar");
 
-const utcSameInstant = new Date("1990-03-17T22:20:00.000Z");
+// 같은 절대시각을 UTC 로 적어도 KST 벽시계로 읽으면 같은 월건이어야 한다.
+const utcSameInstant = kstParts("1990-03-17T22:20:00.000Z");
 const kstMonth = testApi.computeMonthGanjiFromTerms(terms1990, utcSameInstant, yearGan);
 assertEqual(kstMonth, "己卯", "UTC instant converted to KST boundary-safe month");
 

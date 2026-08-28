@@ -766,10 +766,17 @@ function sweepMinutes(provider, exhaustive) {
 
 // ── ⑦ 프로덕션 셸 경로도 같은 답을 낸다 ────────────────────────────────────
 //
-// 🔴 `_computeGanjiFromDate` 는 **KASI 절기 행을 실제로 먹는 유일한 프로덕션 코드**다.
+// 🔴 `_computeGanjiFromParts` 는 **KASI 절기 행을 실제로 먹는 유일한 프로덕션 코드**다.
 // 검증캐시가 소비되는 바로 그 지점이라, '경침' 오타(모든 날짜 null)와 비KST 타임존 결함이
 // 둘 다 여기서 드러났을 자리다.
-if (shellTest && typeof shellTest.computeGanjiFromDate === "function") {
+// 🔴 배선이 끊기면 아래 블록이 통째로 안 돌고 "0건이라 통과"가 된다. 그래서 존재 여부를
+// 블록 밖에서 **단언**한다(원칙 10 — 검사 대상이 없을 때 통과시키는 가드는 가드가 아니다).
+ok(
+  "⑦ 셸의 부품 진입점이 __test 에 있다",
+  !!shellTest && typeof shellTest.computeGanjiFromParts === "function",
+  `shellTest=${shellTest ? "있음" : "없음"} · computeGanjiFromParts=${shellTest && typeof shellTest.computeGanjiFromParts}`,
+);
+if (shellTest && typeof shellTest.computeGanjiFromParts === "function") {
   const rows = [];
   let probed = 0;
   let nullRows = 0;
@@ -800,10 +807,7 @@ if (shellTest && typeof shellTest.computeGanjiFromDate === "function") {
         const gz = ganji(at, {});
         if (!gz) continue;
         probed += 1;
-        const got = shellTest.computeGanjiFromDate(
-          new Date(at.year, at.month - 1, at.day, at.hour, at.minute),
-          provider.rows,
-        );
+        const got = shellTest.computeGanjiFromParts({ ...at, second: 0 }, provider.rows);
         if (!got) { nullRows += 1; continue; }
         const expectYear = formatPillar(gz.year.stemIndex, gz.year.branchIndex, "hanja");
         const expectMonth = formatPillar(gz.month.stemIndex, gz.month.branchIndex, "hanja");

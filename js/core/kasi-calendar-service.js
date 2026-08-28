@@ -676,30 +676,6 @@
       'T' + _pad2(parts.hour) + ':' + _pad2(parts.minute) + ':' + _pad2(parts.second || 0);
   }
 
-  /**
-   * 🔴 이 레포에서 **로컬 Date 를 읽는 지점**은 여기와 js/saju-engine.js 의 같은 이름 둘뿐이다.
-   * Date 를 받던 진입점(`computeGanjiFromDate` · `KasiEngine.getGanji(Date)`)의 하위 호환을 위해
-   * 남아 있고, PR-E 가 그것들을 지울 근거로 **호출 건수를 센다** — 0 이면 아무도 안 쓰는 것이다.
-   *
-   * 두 파일이 파일별 리더 대신 같은 카운터를 공유하는 이유: 셸에는 서비스 없이 엔진만 싣는
-   * 체인이 하나 있어(js/core/index-inline-runtime.js:8052 생년월일 모달) 엔진이 서비스의
-   * 함수를 부를 수 있다고 전제할 수 없다.
-   */
-  var _localDateReads = (w.__CD_GANJI_LOCAL_DATE_READS__ = w.__CD_GANJI_LOCAL_DATE_READS__ || { count: 0 });
-
-  function _partsFromLocalDate(date) {
-    _localDateReads.count += 1;
-    if (!(date instanceof Date) || isNaN(date.getTime())) return null;
-    return {
-      year: date.getFullYear(),
-      month: date.getMonth() + 1,
-      day: date.getDate(),
-      hour: date.getHours(),
-      minute: date.getMinutes(),
-      second: date.getSeconds()
-    };
-  }
-
   function _fallbackSolarFromLunar(norm) {
     if (w.KasiEngine && typeof w.KasiEngine.lunarToSolar === 'function') {
       var conv = w.KasiEngine.lunarToSolar(norm.year, norm.month, norm.day, norm.calendarType === 'lunar_leap');
@@ -987,7 +963,12 @@
     return count;
   }
 
-  /** 🔴 정본. Date 를 받는 진입점은 아래 `_computeGanjiFromDate` 어댑터 하나뿐이다. */
+  /**
+   * 🔴 정본이자 **유일한** 진입점이다. 인자는 KST 벽시계 부품이다.
+   * PR-E 이전에는 여기 위에 로컬 Date 를 읽는 `_computeGanjiFromDate` 어댑터가 있었다 —
+   * 다시 만들지 말 것. 그 캐리어는 존재하지 않는 벽시계를 담지 못해 조용히 접힌다.
+   * 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
+   */
   function _computeGanjiFromParts(solarParts, terms) {
     if (!_partsValid(solarParts)) return null;
     var localTerms = terms && terms.length ? terms : _readValidatedSolarTerms(solarParts.year);
@@ -1003,15 +984,6 @@
       hour: _hourGanjiFromDay(dayGanji, solarParts),
       source: String((localTerms[0] && localTerms[0].source) || 'validated-cache')
     };
-  }
-
-  /**
-   * 🔴 얇은 어댑터다. 옛 호출부(호출 13곳 + 가드 몇 개)가 로컬 Date 를 넘기는 동안만 산다.
-   * `_partsFromLocalDate` 의 `instanceof Date` 검사가 예전 입구 가드와 같은 강도다 —
-   * 여기를 duck-typing 으로 풀면 verify:shell-korean-calendar 가 재던 축이 통째로 바뀐다.
-   */
-  function _computeGanjiFromDate(solarDate, terms) {
-    return _computeGanjiFromParts(_partsFromLocalDate(solarDate), terms);
   }
 
   function _extractIpchun(terms) {
@@ -1336,11 +1308,6 @@
       return _clone(_computeGanjiFromParts(parts, terms));
     },
 
-    /** 🔴 하위 호환 어댑터. PR-E 가 지운다 — 그 근거가 __CD_GANJI_LOCAL_DATE_READS__ 다. */
-    computeGanjiFromDate: function (date, terms) {
-      return _clone(_computeGanjiFromDate(date, terms));
-    },
-
 
     getCurrentContext: function () {
       return _clone(_currentContext || w.__KASI_DATE_CONTEXT__ || null);
@@ -1397,13 +1364,11 @@
 
   if (w.__CD_SAJU_TEST_MODE__) {
     service.__test = {
-      // 🔴 Date 를 받는 두 줄은 어댑터다. 기존 검증기들이 로컬 Date 를 넘기므로 그대로 남긴다
-      //    (scripts/verify-shell-korean-calendar.mjs ⑪⑫ · verify-solar-term-frame-kasi.mjs ⑦ ·
-      //     scripts/test-saju-solar-term-regression.mjs). 부품으로 옮기는 것은 PR-E 다.
-      computeMonthGanjiFromTerms: function (terms, date, yearGanStr) {
-        return _computeMonthGanjiFromTerms(terms, _partsFromLocalDate(date), yearGanStr);
+      // 🔴 전부 KST 벽시계 부품을 받는다. PR-E 이전에는 위 두 줄이 로컬 Date 어댑터였고
+      //    검증기 네 개가 Date 를 넘겼다 — 같은 커밋에서 전부 부품으로 옮겼다.
+      computeMonthGanjiFromTerms: function (terms, parts, yearGanStr) {
+        return _computeMonthGanjiFromTerms(terms, parts, yearGanStr);
       },
-      computeGanjiFromDate: _computeGanjiFromDate,
       computeGanjiFromParts: _computeGanjiFromParts,
       normalizeTerms: _normalizeTerms,
       readValidatedSolarTerms: _readValidatedSolarTerms

@@ -303,8 +303,10 @@ function parseDate(value: string) {
   const year = Number(match[1]);
   const month = Number(match[2]);
   const day = Number(match[3]);
-  const date = new Date(year, month - 1, day);
-  if (date.getFullYear() !== year || date.getMonth() !== month - 1 || date.getDate() !== day) throw new Error("생년월일을 다시 확인해 주세요.");
+  // 🔴 UTC 축으로 왕복한다. 로컬 Date 로 재면 그 벽시계가 없는 타임존(서머타임 시계 앞당김)에서
+  // JS 가 조용히 접어 **유효한 생일을 거부**한다. 2월 30일은 UTC 축에서도 그대로 걸러진다.
+  const date = new Date(Date.UTC(year, month - 1, day));
+  if (date.getUTCFullYear() !== year || date.getUTCMonth() !== month - 1 || date.getUTCDate() !== day) throw new Error("생년월일을 다시 확인해 주세요.");
   return { year, month, day };
 }
 

@@ -3066,7 +3066,7 @@ function switchFortune(tab, btn){
 
 /* 🔴 야자시(23시대) 정책을 **명시적으로** 넘긴다 — 코어 기본값(shift-day)으로 부르면
    23:00~23:59 의 "오늘 일진"만 하루 밀린다. 이 함수의 값을 덮어쓰는 KASI 경로
-   (KasiCalendarService.computeGanjiFromDate)가 날짜를 밀지 않는 keep-day 이고,
+   (KasiCalendarService.computeGanjiFromParts)가 날짜를 밀지 않는 keep-day 이고,
    이 함수를 부르는 세 곳(js/share.js · 이 파일의 일·월운 카드 · js/luck-sync-diary.js)이
    전부 그 값과 나란히 쓰이므로 축을 그쪽에 맞춘다.
    🔴 출생 원국의 일주는 반대다 — _cdCivilDayPillar(js/saju-engine.js)가 shift-day 이고
