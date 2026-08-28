@@ -17,26 +17,30 @@
  * 간지 경로에서 로컬 `Date` 를 캐리어로 쓰는 것 자체를 그만두는 것이 유일한 정답이다.
  * 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
  *
- * 이 가드는 그 전환이 **KST 에서 무손실**임을 증명하는 저울이다. 그래서 세 가지를 동시에 본다.
+ * 이 가드는 그 전환이 **KST 에서 무손실**임을 증명하는 저울이다. 그래서 네 가지를 동시에 본다.
  *
  *   ① `TZ=Asia/Seoul` 산출물이 픽스처와 **전건** 같다        (정본 축이 안 움직였다)
- *   ② 각 TZ 의 서머타임 구멍 건수가 census 와 **정확히** 같다 (구멍이 조용히 늘거나 줄지 않았다)
- *   ③ 구멍을 뺀 나머지에서 모든 TZ 가 KST 와 같다            (타임존 무관성)
+ *   ② 버린 표본이 6개 존 전부 0 이고, 접힌 벽시계 수는 census 와 같다
+ *   ③ **제외 없이** 모든 TZ 가 KST 와 같다                   (타임존 무관성)
+ *   ⑭ 공개 표면에 Date 를 받는 함수가 하나도 없다            (어댑터가 되살아나는 것을 막는다)
  *
- * 🔴 ②의 "총계 0" 은 **아직 요구하지 않는다.** 그것은 **PR-E**(Date 진입점 제거)의 졸업 조건이다.
- * 지금 0 을 요구하면 이 가드는 현행을 재는 저울이 아니라 실패 선언이 된다.
- * 🔴 PR-D 몫이 아니었다 — 구멍을 만드는 것은 셸이 아니라 아래 `probeSample` 이 조립하는 **Date**
- * 라, 호출부를 전부 부품으로 옮겨도 이 숫자는 안 움직인다(PR-D 실측: 전후 완전 동일).
+ * ✅ **②의 "총계 0" 은 PR-E 에서 달성됐다.** PR-B~D 동안 이 가드는 로컬 `Date` 를 캐리어로 받는
+ * 옛 진입점 12벌을 따로 재고 있었고, 그 캐리어에 담기지 않는 벽시계 표본을 `DST-GAP` 으로
+ * **버렸다** — 그래서 구멍을 만드는 것은 셸이 아니라 이 가드 자신이었고, 호출부를 전부 부품으로
+ * 옮겨도(PR-D) 그 숫자는 안 움직였다(실측: 전후 완전 동일). PR-E 가 그 진입점들을 소스에서
+ * 지우면서 표면 목록도 부품 축 하나로 합쳤고, 버릴 표본이 없어져 0 은 값이 아니라 **구조**가 됐다.
+ * 🔴 그 대신 "그 존에 존재하지 않는 벽시계 표본 수"(`foldedWallClocks`)를 계속 세서 **0 이 아님**을
+ * 요구한다. 그것이 매트릭스가 UTC 를 여섯 번 재고 있지 않다는 유일한 증거다.
  *
  * ── 🔴 값이 아니라 `isNull` 지도를 본다 ────────────────────────────────────
  *
- * `KasiEngine.getGanji` 는 지금 **1990년 말고 전부 `null`** 이다(실측). 원인은 terms 없이 부른
- * `computeGanjiFromDate` 가 검증캐시(1990 한 해)만 보기 때문이다.
- * 그래서 **값 대조만으로는 이 표면이 통째로 `null == null` 로 통과한다.** 전환 중에 실수로
- * getGanji 가 답하기 시작하면 13개 호출부가 한꺼번에 절기 프레임 세차로 갈아타는데,
+ * terms 없이 부르는 갈래(`computeGanjiFromParts(parts)`)는 검증캐시(1990 한 해)만 보기 때문에
+ * **1990년 말고 전부 `null`** 이다(실측).
+ * 그래서 **값 대조만으로는 그 표면이 통째로 `null == null` 로 통과한다.** 전환 중에 실수로
+ * 그 표면이 답하기 시작하면 13개 호출부가 한꺼번에 절기 프레임 세차로 갈아타는데,
  * 어떤 값 대조도 그것을 못 잡는다. 그래서 `isNull` 을 **값과 별도 필드**로 찍고 따로 단언한다.
  *
- * 🔴 픽스처는 **정답이 아니라 현행**이다. getGanji 의 null 지도는 알려진 결함이며 별건이다
+ * 🔴 픽스처는 **정답이 아니라 현행**이다. 그 null 지도는 알려진 결함이며 별건이다
  * (scripts/fixtures/README-ganji-surface.md). 회귀 없음이 최우선이라 의도적으로 그렇게 고정한다.
  */
 
@@ -279,10 +283,15 @@ function buildSamples() {
 
 const SAMPLES = buildSamples();
 
-// ── 표면 12벌 ──────────────────────────────────────────────────────────────
+// ── 표면 12벌 — 전부 **부품 진입점**이다 ───────────────────────────────────
 //
 // 🔴 브라우저에서 실제로 불리는 진입점만 담는다. 각 표면은 `null` 을 낼 수 있고,
 // 그 `null` 여부가 값과 **따로** 기록된다(위 머리말 참조).
+//
+// 🔴 PR-E 이전에는 여기에 로컬 `Date` 를 캐리어로 받는 옛 진입점 12벌이 따로 있었고, 그
+// 캐리어가 존재하지 않는 벽시계를 담지 못해 가드가 표본을 `DST-GAP` 으로 **버렸다**.
+// PR-E 가 그 진입점들을 소스에서 지웠으므로 버릴 표본도 함께 사라졌다 — 그래서 아래 대조는
+// 전부 **구멍 제외 없이 전 표본**이다. 그것이 census 총계 0 의 실체다(구조적으로 0).
 const g = (o, ...keys) => {
   if (!o || typeof o !== "object") return null;
   for (const k of keys) if (o[k]) return String(o[k]);
@@ -291,15 +300,21 @@ const g = (o, ...keys) => {
 const pill = (o) => (o ? [g(o, "secha", "year"), g(o, "weolgeon", "month"), g(o, "iljin", "day"), g(o, "sigan", "hour")].join("/") : null);
 
 const SURFACES = Object.freeze([
-  ["getGanji", (at, d) => pill(win.KasiEngine.getGanji(d))],
-  ["getGanji:noYaja", (at, d) => pill(win.KasiEngine.getGanji(d, { yaja: false }))],
-  ["solarToLunar", (at, d) => {
-    const l = win.KasiEngine.solarToLunar(d);
+  ["getGanjiFromParts", (at, p) => pill(win.KasiEngine.getGanjiFromParts(p))],
+  ["getGanjiFromParts:noYaja", (at, p) => pill(win.KasiEngine.getGanjiFromParts(p, { yaja: false }))],
+  ["solarToLunarFromParts", (at, p) => {
+    const l = win.KasiEngine.solarToLunarFromParts(p);
     return l ? `${l.year}-${pad2(l.month)}-${pad2(l.day)}${l.isLeap ? "L" : ""}` : null;
   }],
-  ["computeGanjiFromDate:noTerms", (at, d) => pill(win.KasiCalendarService.computeGanjiFromDate(d))],
-  ["computeGanjiFromDate:terms", (at, d) => pill(win.KasiCalendarService.computeGanjiFromDate(d, termsFor(at.year)))],
-  ["buildGanjiRepairCandidate", (at, d) => pill(win.buildGanjiRepairCandidate(d, termsFor(at.year)))],
+  ["computeGanjiFromParts:noTerms", (at, p) => pill(win.KasiCalendarService.computeGanjiFromParts(p))],
+  ["computeGanjiFromParts:terms", (at, p) => pill(win.KasiCalendarService.computeGanjiFromParts(p, termsFor(at.year)))],
+  ["buildGanjiRepairCandidateFromParts", (at, p) => pill(win.buildGanjiRepairCandidateFromParts(p, termsFor(at.year)))],
+  ["_calculateMonthBranchBySolarTermFromParts", (at, p) => {
+    const r = win._calculateMonthBranchBySolarTermFromParts(p);
+    return typeof r === "string" ? r : pill(r);
+  }],
+  // 아래 4벌은 처음부터 스칼라 인자다 — Date 를 만든 적이 없어 PR-C~E 로 한 글자도 안 바뀌었다.
+  // 🔴 그래서 이 줄들이 움직이면 그것이 곧 회귀 신호다.
   ["_cdCivilDayPillar", (at) => {
     const r = win._cdCivilDayPillar(at.year, at.month, at.day, at.hour);
     return typeof r === "string" ? r : pill(r);
@@ -318,123 +333,65 @@ const SURFACES = Object.freeze([
     const r = win.getMonthGanZhi(at.year, at.month);
     return typeof r === "string" ? r : pill(r);
   }],
-  ["_calculateMonthBranchBySolarTerm", (at, d) => {
-    const r = win._calculateMonthBranchBySolarTerm(d);
-    return typeof r === "string" ? r : pill(r);
-  }],
-  // 🔴 이 표면만 Date 를 안 받는다 — `calcZiweiPalaces` 는 처음부터 부품 인자다(y,m,d,h,mi).
-  // 그래서 이 줄은 PR-D 이후에도 안 바뀌고, 바뀌면 그것이 곧 회귀 신호다.
   ["calcZiweiPalaces:calcMeta", (at) => {
     win.GENDER = "M";
     const chart = win.calcZiweiPalaces(at.year, at.month, at.day, at.hour, at.minute);
     const meta = chart && chart.calcMeta;
-    if (!meta) return null;
     // 🔴 객체 전체를 찍으면 무관한 필드가 흔들려 가드가 못 쓰게 된다. 간지 축만 집는다.
-    return [meta.yearGanji, meta.monthGanji, meta.dayGanji, meta.hourGanji, meta.lunarDay, meta.isLeapMonth]
-      .map((v) => (v === undefined || v === null ? "" : String(v))).join("/");
-  }],
-]);
-
-/**
- * 표본 하나를 12벌 표면에 통과시킨다.
- *
- * 🔴 로컬 `Date` 를 만든 뒤 **부품을 되읽어 입력과 같은지 확인**한다. 다르면 그 벽시계는
- * 이 타임존에 존재하지 않는 것이고(서머타임 앞당김), 그 표본은 값이 아니라 `DST-GAP` 으로 센다.
- * 이 되읽기가 곧 이 가드가 세려는 구멍의 정의다.
- */
-/**
- * ── 부품 표면 ─────────────────────────────────────────────────────────────
- *
- * 🔴 위 12벌은 전부 **로컬 Date 를 캐리어로** 받는 옛 진입점이라, 그 벽시계가 존재하지 않는
- * 타임존에서는 가드가 값을 못 만들고 표본을 `DST-GAP` 으로 버린다(그 구멍이 곧 이 작업의 대상이다).
- * 아래는 PR-C·PR-D 가 세운 **부품 진입점**이다 — 캐리어가 없으므로 버릴 표본도 없다.
- *
- * 그래서 검사 ⑤ 는 **구멍 제외 없이 1516 표본 전부**를 6개 존에서 대조한다. 그것이
- * "간지 경로가 브라우저 타임존과 무관해졌다"의 실측이고, 옛 축(①②③)이 못 재던 자리다.
- */
-const PARTS_SURFACES = Object.freeze([
-  ["getGanjiFromParts", (at, p) => pill(win.KasiEngine.getGanjiFromParts(p))],
-  ["getGanjiFromParts:noYaja", (at, p) => pill(win.KasiEngine.getGanjiFromParts(p, { yaja: false }))],
-  ["solarToLunarFromParts", (at, p) => {
-    const l = win.KasiEngine.solarToLunarFromParts(p);
-    return l ? `${l.year}-${pad2(l.month)}-${pad2(l.day)}${l.isLeap ? "L" : ""}` : null;
-  }],
-  ["computeGanjiFromParts:noTerms", (at, p) => pill(win.KasiCalendarService.computeGanjiFromParts(p))],
-  ["computeGanjiFromParts:terms", (at, p) => pill(win.KasiCalendarService.computeGanjiFromParts(p, termsFor(at.year)))],
-  ["buildGanjiRepairCandidateFromParts", (at, p) => pill(win.buildGanjiRepairCandidateFromParts(p, termsFor(at.year)))],
-  ["_calculateMonthBranchBySolarTermFromParts", (at, p) => {
-    const r = win._calculateMonthBranchBySolarTermFromParts(p);
-    return typeof r === "string" ? r : pill(r);
-  }],
-  ["_cdCivilDayPillar", (at) => {
-    const r = win._cdCivilDayPillar(at.year, at.month, at.day, at.hour);
-    return typeof r === "string" ? r : pill(r);
-  }],
-  ["getGanZhiForDate", (at) => {
-    const r = win.getGanZhiForDate(at.year, at.month, at.day, at.hour);
-    return typeof r === "string" ? r : pill(r);
-  }],
-  ["calcZiweiPalaces:calcMeta", (at) => {
-    win.GENDER = "M";
-    const chart = win.calcZiweiPalaces(at.year, at.month, at.day, at.hour, at.minute);
-    const meta = chart && chart.calcMeta;
     if (!meta) return null;
     return [meta.yearGanji, meta.monthGanji, meta.dayGanji, meta.hourGanji, meta.lunarDay, meta.isLeapMonth]
       .map((v) => (v === undefined || v === null ? "" : String(v))).join("/");
   }],
 ]);
 
-/** 🔴 로컬 Date 를 **한 번도 안 만든다**. 그래서 구멍이라는 개념 자체가 없다. */
-function probeSampleParts(sample) {
-  const at = sample.at;
-  const p = { year: at.year, month: at.month, day: at.day, hour: at.hour, minute: at.minute, second: 0 };
-  const values = [];
-  for (const [, fn] of PARTS_SURFACES) {
-    let v = null;
-    try { v = fn(at, { ...p }); } catch (err) { v = `THROW:${String(err && err.message).slice(0, 60)}`; }
-    values.push(v === null || v === undefined ? "" : String(v));
-  }
-  return values.join("\t");
-}
-
+/** 표본 하나를 12벌 표면에 통과시킨다. 🔴 로컬 `Date` 를 **한 번도 안 만든다**. */
 function probeSample(sample) {
   const at = sample.at;
-  const d = new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0);
-  if (d.getFullYear() !== at.year || d.getMonth() + 1 !== at.month || d.getDate() !== at.day
-    || d.getHours() !== at.hour || d.getMinutes() !== at.minute) {
-    return { gap: true };
-  }
+  const p = { year: at.year, month: at.month, day: at.day, hour: at.hour, minute: at.minute, second: 0 };
   const values = [];
   const nulls = [];
   for (const [, fn] of SURFACES) {
     let v = null;
-    try { v = fn(at, new Date(d.getTime())); } catch (err) { v = `THROW:${String(err && err.message).slice(0, 60)}`; }
+    try { v = fn(at, { ...p }); } catch (err) { v = `THROW:${String(err && err.message).slice(0, 60)}`; }
     const isNull = v === null || v === undefined || v === "";
     values.push(isNull ? "" : String(v));
     nulls.push(isNull ? "1" : "0");
   }
-  return { gap: false, values: values.join("\t"), nulls: nulls.join("") };
+  return { values: values.join("\t"), nulls: nulls.join("") };
+}
+
+/**
+ * 🔴 이 표본의 벽시계가 **이 프로세스의 타임존에 존재하는가**만 본다. 출력 경로가 아니다.
+ *
+ * PR-E 이전에는 이 되읽기가 표본을 버리는 조건이었고(`DST-GAP`), 그 건수가 census 였다.
+ * 지금은 아무것도 안 버린다 — 표면이 부품을 받으므로 캐리어가 없기 때문이다. 그래도 이 수를
+ * 계속 재는 이유는 **매트릭스가 살아 있다는 유일한 증거**이기 때문이다: 이 수가 0 이면 그 존이
+ * 죽었거나 TZ 핀이 안 먹은 것이고, 그러면 아래 전건 대조는 UTC 를 여섯 번 재는 셈이 된다.
+ * 🔴 그러니 census 의 `gaps`(=버린 표본 0)와 `foldedWallClocks`(=존이 살아 있다)를 헷갈리지 말 것.
+ */
+function wallClockFolds(sample) {
+  const at = sample.at;
+  const d = new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0);
+  return d.getFullYear() !== at.year || d.getMonth() + 1 !== at.month || d.getDate() !== at.day
+    || d.getHours() !== at.hour || d.getMinutes() !== at.minute;
 }
 
 /** 이 프로세스의 타임존에서 전 표본을 훑는다. */
 function sweep() {
   const rows = [];
   const nullMap = [];
-  const partsRows = [];
-  let gaps = 0;
+  const foldedKeys = [];
   for (const sample of SAMPLES) {
-    partsRows.push(`${sample.key}\t${probeSampleParts(sample)}`);
     const r = probeSample(sample);
-    if (r.gap) {
-      rows.push(`${sample.key}\tDST-GAP`);
-      nullMap.push(`${sample.key}\tDST-GAP`);
-      gaps += 1;
-      continue;
-    }
     rows.push(`${sample.key}\t${r.values}`);
     nullMap.push(`${sample.key}\t${r.nulls}`);
+    if (wallClockFolds(sample)) foldedKeys.push(sample.key);
   }
-  return { rows, nullMap, partsRows, gaps, tz: PINNED.tz, offsetMinutes: PINNED.offsetMinutes };
+  // 🔴 `gaps` 는 **대조에서 버린 표본 수**다. 이제 버리는 갈래가 없으므로 구조적으로 0 이다.
+  return {
+    rows, nullMap, gaps: 0, foldedKeys,
+    tz: PINNED.tz, offsetMinutes: PINNED.offsetMinutes,
+  };
 }
 
 // ── 자식 프로세스 모드 ─────────────────────────────────────────────────────
@@ -458,14 +415,15 @@ ok(
   PINNED.tz === BASE_TZ && PINNED.offsetMinutes === -540,
   `tz=${PINNED.tz} offset=${PINNED.offsetMinutes} — process.env.TZ 가 이 런타임에서 안 먹는다`,
 );
-// 🔴 이름으로 전역을 찾지 않는다 — `getGanji` 는 `window.KasiEngine` 아래에 있고 전역에는 없다.
-// 표면을 **실제로 한 번 돌려** 던지지 않는지 본다. 이름 검사는 배선이 끊긴 것을 못 잡는다.
+// 🔴 이름으로 전역을 찾지 않는다 — `getGanjiFromParts` 는 `window.KasiEngine` 아래에 있고
+// 전역에는 없다. 표면을 **실제로 한 번 돌려** 던지지 않는지 본다. 이름 검사는 배선이 끊긴 것을
+// 못 잡는다.
 {
-  const probe = { year: 1990, month: 6, day: 15, hour: 12, minute: 0 };
+  const probe = { year: 1990, month: 6, day: 15, hour: 12, minute: 0, second: 0 };
   const threw = [];
   for (const [name, fn] of SURFACES) {
     try {
-      fn(probe, new Date(probe.year, probe.month - 1, probe.day, probe.hour, probe.minute, 0));
+      fn(probe, { ...probe });
     } catch (err) {
       threw.push(`${name}: ${String(err && err.message).slice(0, 80)}`);
     }
@@ -474,23 +432,23 @@ ok(
   ok("⓪ 표면 목록이 12벌이다", SURFACES.length === 12, `${SURFACES.length}벌`);
 }
 // 🔴 하네스에서 kasi-calendar-service.js 가 빠지는 것을 잡는 **유일한** 프로브다.
-// 다른 해로 만들면 null==null 로 통과한다 — getGanji 는 1990 말고 전부 null 이기 때문이다.
+// 다른 해로 만들면 null==null 로 통과한다 — terms 없이 부르는 갈래는 1990 말고 전부 null 이다.
 {
   // 🔴 스택 트레이스로 죽지 않게 감싼다. 이 자리에서 죽는 이유는 거의 항상 하나(체인에서
   // 서비스가 빠졌다)인데, 그 사실이 TypeError 뒤에 숨으면 다음 사람이 원인을 다시 찾아야 한다.
   let probe = null;
   let why = "";
   try {
-    probe = win.KasiCalendarService.computeGanjiFromDate(new Date(1990, 5, 15, 12, 0));
+    probe = win.KasiCalendarService.computeGanjiFromParts({ year: 1990, month: 6, day: 15, hour: 12, minute: 0 });
   } catch (err) {
     why = `: ${String(err && err.message).slice(0, 120)}`;
   }
   ok(
     "⓪ 🔴 1990 프로브가 값을 낸다(서비스가 체인에서 빠지면 여기서 죽는다)",
     !!probe,
-    `computeGanjiFromDate(1990-06-15 12:00) 가 값을 못 냈다${why}\n      `
+    `computeGanjiFromParts(1990-06-15 12:00) 가 값을 못 냈다${why}\n      `
     + "→ shell-ganji-harness.cjs 의 SHELL_CHAIN 에 js/core/kasi-calendar-service.js 가 있는지 확인하라.\n      "
-    + "🔴 다른 해로 프로브를 만들지 말 것 — getGanji 는 1990 말고 전부 null 이라 null==null 로 통과한다.",
+    + "🔴 다른 해로 프로브를 만들지 말 것 — terms 없는 갈래는 1990 말고 전부 null 이라 null==null 로 통과한다.",
   );
 }
 ok("⓪ 표본을 실제로 만들었다(0 이면 가드가 깨진 것)", SAMPLES.length >= 600, `${SAMPLES.length}건`);
@@ -519,7 +477,7 @@ if (EMIT) {
     nullMap: base.nullMap,
   };
   fs.writeFileSync(path.join(root, FIXTURE), `${JSON.stringify(payload, null, 2)}\n`);
-  console.log(`[--emit] ${FIXTURE} (표본 ${SAMPLES.length} · 표면 ${SURFACES.length} · KST 구멍 ${base.gaps})`);
+  console.log(`[--emit] ${FIXTURE} (표본 ${SAMPLES.length} · 표면 ${SURFACES.length} · 버린 표본 ${base.gaps})`);
 }
 
 // ── TZ 매트릭스 ────────────────────────────────────────────────────────────
@@ -552,13 +510,15 @@ for (const tz of TZ_MATRIX.slice(1)) {
 
 if (EMIT) {
   const census = {
-    note: "🔴 서머타임 구멍의 **현행 크기**다. 총계 0 은 PR-E(Date 진입점 제거)의 졸업 조건이다 — PR-D 로는 안 움직인다(구멍을 만드는 것은 셸이 아니라 이 가드의 Date 표면이다).",
+    note: "🔴 `gaps` 는 **대조에서 버린 표본 수**다. PR-E 가 Date 진입점을 지워 버리는 갈래 자체가 사라졌으므로 이제 구조적으로 전부 0 이다 — 값이 아니라 구조가 0 을 만든다. 옆의 `foldedWallClocks` 는 그 존에 **존재하지 않는 벽시계 표본 수**로, 0 이 아니어야 정상이다(존이 살아 있다는 증거). 둘을 헷갈리지 말 것.",
     generatedBy: "scripts/verify-ganji-surface-parity.mjs --emit",
     sampleCount: SAMPLES.length,
     gaps: Object.fromEntries(TZ_MATRIX.map((tz) => [tz, matrix.get(tz) ? matrix.get(tz).gaps : null])),
+    foldedWallClocks: Object.fromEntries(TZ_MATRIX.map((tz) => [tz, matrix.get(tz) ? (matrix.get(tz).foldedKeys || []).length : null])),
   };
   fs.writeFileSync(path.join(root, CENSUS), `${JSON.stringify(census, null, 2)}\n`);
-  console.log(`[--emit] ${CENSUS} — ${TZ_MATRIX.map((tz) => `${tz}:${matrix.get(tz)?.gaps}`).join(" · ")}`);
+  console.log(`[--emit] ${CENSUS} — 버린 표본 ${TZ_MATRIX.map((tz) => `${tz}:${matrix.get(tz)?.gaps}`).join(" · ")}`);
+  console.log(`[--emit] ${CENSUS} — 접힌 벽시계 ${TZ_MATRIX.map((tz) => `${tz}:${(matrix.get(tz)?.foldedKeys || []).length}`).join(" · ")}`);
   console.log("[--emit] 🔴 픽스처를 갱신했다. 이어서 기본 모드를 돌려 전건 대조를 확인하라.");
   process.exit(failures.length ? 1 : 0);
 }
@@ -610,7 +570,7 @@ if (!TZ_ONLY) {
   }
 }
 
-// ── ② 구멍 census ─────────────────────────────────────────────────────────
+// ── ② census — 버린 표본 0 · 존은 살아 있다 ────────────────────────────────
 ok(`② census 를 읽었다(${CENSUS})`, !!census, `${CENSUS} 없음 또는 파싱 실패`);
 if (census) {
   ok(
@@ -627,65 +587,94 @@ if (census) {
     const got = matrix.get(tz);
     if (!got) continue;
     ok(
-      `② TZ=${tz} 서머타임 구멍이 census 와 같다`,
+      `② TZ=${tz} 버린 표본 수가 census 와 같다`,
       got.gaps === (census.gaps || {})[tz],
       `실측 ${got.gaps} / census ${(census.gaps || {})[tz]}`,
     );
   }
-  // 🔴 서머타임이 있는 존은 **최소 1건**의 구멍이 나와야 한다. 0 이면 그 존이 매트릭스에서
-  // 빠졌거나 TZ 핀이 안 먹은 것이고, 그러면 이 가드는 UTC 를 여섯 번 재는 셈이 된다.
-  const dstZones = TZ_MATRIX.filter((tz) => tz !== "UTC" && tz !== "Asia/Seoul");
+  // 🔴 PR-E 졸업 조건. Date 진입점이 사라져 표본을 버리는 갈래 자체가 없으므로 **구조적으로** 0 이다.
+  const total = TZ_MATRIX.reduce((sum, tz) => sum + ((census.gaps || {})[tz] || 0), 0);
   ok(
-    "② 🔴 서머타임 존이 전부 최소 1건의 구멍을 낸다(0 이면 존이 죽은 것)",
-    dstZones.every((tz) => ((census.gaps || {})[tz] || 0) >= 1),
-    dstZones.map((tz) => `${tz}:${(census.gaps || {})[tz]}`).join(" · "),
+    "② 🔴 서머타임 구멍 총계가 0 이다(PR-E 졸업 조건)",
+    total === 0,
+    `총계 ${total} — ${TZ_MATRIX.map((tz) => `${tz}:${(census.gaps || {})[tz]}`).join(" · ")}`,
   );
-  // Asia/Seoul 은 1988 이후 서머타임이 없다. 표본이 1960~2030 이라 1988 이전 서머타임 구간을
-  // 밟을 수는 있으므로 0 을 단언하지 않고 census 값만 지킨다(위 루프가 한다).
+  // 🔴 위 0 만으로는 아무것도 안 지킨다 — 표면이 전부 죽어도 0 이기 때문이다. 그래서 "그 존에
+  // 존재하지 않는 벽시계 표본"의 수를 따로 세고, 그것이 **0 이 아님**을 여기서 요구한다.
+  // 그것이 이 매트릭스가 UTC 를 여섯 번 재고 있지 않다는 유일한 증거다(PR-E 이전에는 ②의
+  // "구멍 ≥1" 이 그 역할을 했고, 구멍이 0 이 되면서 이 자리로 옮겼다).
+  const dstZones = TZ_MATRIX.filter((tz) => tz !== "UTC" && tz !== "Asia/Seoul");
+  for (const tz of TZ_MATRIX) {
+    const got = matrix.get(tz);
+    if (!got) continue;
+    ok(
+      `② TZ=${tz} 접힌 벽시계 수가 census 와 같다`,
+      (got.foldedKeys || []).length === (census.foldedWallClocks || {})[tz],
+      `실측 ${(got.foldedKeys || []).length} / census ${(census.foldedWallClocks || {})[tz]}`,
+    );
+  }
+  ok(
+    "② 🔴 서머타임 존이 전부 최소 1건의 접힌 벽시계를 낸다(0 이면 존이 죽은 것)",
+    dstZones.every((tz) => ((census.foldedWallClocks || {})[tz] || 0) >= 1),
+    dstZones.map((tz) => `${tz}:${(census.foldedWallClocks || {})[tz]}`).join(" · "),
+  );
+  ok(
+    "② UTC 에는 접힌 벽시계가 없다(핀이 안 먹으면 여기가 0 이 아니다)",
+    ((census.foldedWallClocks || {}).UTC || 0) === 0,
+    `UTC:${(census.foldedWallClocks || {}).UTC}`,
+  );
 }
 
-// ── ③ 구멍을 뺀 나머지에서 모든 TZ 가 KST 와 같다 ──────────────────────────
+// ── ③ 모든 TZ 가 KST 와 같다 — 🔴 제외 없이 전 표본 ────────────────────────
+//
+// PR-E 이전에는 여기서 구멍 표본을 뺐다. 옛 진입점에 그 벽시계를 담을 로컬 Date 가 없었기
+// 때문이다. 지금은 표면이 부품을 받으므로 뺄 표본이 없다 — 그 차이가 이 작업의 결과다.
 for (const tz of TZ_MATRIX.slice(1)) {
   const other = matrix.get(tz);
   if (!other) continue;
   const diff = [];
-  let compared = 0;
   base.rows.forEach((row, i) => {
-    const mine = row;
-    const theirs = other.rows[i];
-    if (mine.endsWith("\tDST-GAP") || String(theirs).endsWith("\tDST-GAP")) return;
-    compared += 1;
-    if (mine !== theirs) diff.push(`${mine}\n        →  ${theirs}`);
+    if (row !== other.rows[i]) diff.push(`${row}\n        →  ${other.rows[i]}`);
   });
-  // 🔴 하한은 **두 존 구멍의 합**이다(합집합의 최악값). 이보다 적게 대조됐다면 구멍이 아닌
-  // 이유로 표본이 사라진 것이고, 그러면 "전건 같다"는 통과가 아무것도 안 지킨 것이 된다.
-  const floor = SAMPLES.length - base.gaps - other.gaps;
   ok(
-    `③ TZ=${tz} 대조 대상이 남아 있다(구멍 제외)`,
-    compared >= floor,
-    `대조 ${compared}건 / 하한 ${floor}건 (표본 ${SAMPLES.length} · KST 구멍 ${base.gaps} · ${tz} 구멍 ${other.gaps})`,
+    `③ TZ=${tz} 대조 대상이 표본 전부다(제외 없음)`,
+    other.rows.length === SAMPLES.length && base.rows.length === SAMPLES.length,
+    `${tz} ${other.rows.length}건 / KST ${base.rows.length}건 / 표본 ${SAMPLES.length}건`,
   );
   ok(
     `③ 🔴 TZ=${tz} 에서도 셸의 간지가 KST 와 같다`,
     diff.length === 0,
     `${diff.length}건 다름\n      ${diff.slice(0, 3).join("\n      ")}`,
   );
+  // 🔴 접힌 벽시계 표본을 **따로** 다시 본다. 위 전건 대조에 이미 들어 있지만, 그 표본이
+  // 표본 목록에서 조용히 빠지면 위 검사는 그대로 통과한다. 이것이 이 PR 의 결과 그 자체다.
+  const folded = new Set(other.foldedKeys || []);
+  let foldedSeen = 0;
+  let foldedDiff = 0;
+  base.rows.forEach((row, i) => {
+    if (!folded.has(row.split("\t")[0])) return;
+    foldedSeen += 1;
+    if (row !== other.rows[i]) foldedDiff += 1;
+  });
+  ok(
+    `③ 🔴 TZ=${tz} 의 접힌 벽시계 ${folded.size}건도 KST 와 같다`,
+    foldedSeen === folded.size && foldedDiff === 0,
+    `표본 매치 ${foldedSeen}/${folded.size} · 불일치 ${foldedDiff}건`,
+  );
 }
 
-// ── ④ 부품 진입점이 Date 진입점과 같은 값을 낸다 ──────────────────
-//
-// PR-C 가 심은 정본(parts)과 그 위에 남긴 어댑터(Date)가 **같은 것**임을 전 표본에서 본다.
-// 픽스처는 Date 갈래만 찍히므로, 이 검사가 없으면 **부품 갈래가 통째로 깨져도 전부 초록불이다** —
-// PR-D 가 호출부 22곳을 그 갈래로 옮겨담을 토대라 미리 고정해 둔다.
-//
-// 🔴 계측도 같이 본다 — 부품을 넣었을 때 로컬 Date 독출 카운터가 **한 칸도 안 올라가야** 한다.
-// 그것이 "부품 경로는 로컬 Date 를 안 만든다"의 유일한 실측 증거고, PR-E 가 그 카운터를 0 으로
-// 증명해 Date 진입점을 지운다.
+// ── ④ 값이 실제로 나온다 — 빈 값끼리 대조하지 않는다 ──────────────────────
 {
+  const emptyRows = base.rows.filter((r) => r.split("\t").slice(1).every((v) => v === "")).length;
+  ok(
+    "④ 🔴 산출물이 전부 비어 있는 행이 없다(빈 값끼리 대조하면 아무것도 안 지킨다)",
+    emptyRows === 0,
+    `전부 빈 행 ${emptyRows}건`,
+  );
   const svc = win.KasiCalendarService;
   const eng = win.KasiEngine;
   ok(
-    "④ 부품 진입점 3베가 전부 함수다",
+    "④ 부품 진입점 3벌이 전부 함수다",
     typeof svc.computeGanjiFromParts === "function"
       && typeof eng.getGanjiFromParts === "function"
       && typeof eng.solarToLunarFromParts === "function",
@@ -693,107 +682,84 @@ for (const tz of TZ_MATRIX.slice(1)) {
     + ` getGanjiFromParts=${typeof eng.getGanjiFromParts}`
     + ` solarToLunarFromParts=${typeof eng.solarToLunarFromParts}`,
   );
-
-  const reads = win.__CD_GANJI_LOCAL_DATE_READS__;
-  ok("④ 로컬 Date 독출 카운터가 살아 있다", !!reads && typeof reads.count === "number", String(reads && reads.count));
-
-  const lunarOf = (l) => (l ? `${l.year}-${pad2(l.month)}-${pad2(l.day)}${l.isLeap ? "L" : ""}` : null);
-  const diff = [];
-  let compared = 0;
-  let partsReads = 0;
-  for (const sample of SAMPLES) {
-    const at = sample.at;
-    const d = new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0);
-    // 🔴 서머타임 구멍에서는 두 갈래가 **달라야 정상**이다(Date 가 접힌다). 그건 ②③ 가 센다.
-    if (d.getFullYear() !== at.year || d.getMonth() + 1 !== at.month || d.getDate() !== at.day
-      || d.getHours() !== at.hour || d.getMinutes() !== at.minute) continue;
-    const parts = { year: at.year, month: at.month, day: at.day, hour: at.hour, minute: at.minute, second: 0 };
-    const before = reads.count;
-    const viaParts = [
-      pill(svc.computeGanjiFromParts(parts)),
-      pill(svc.computeGanjiFromParts(parts, termsFor(at.year))),
-      pill(eng.getGanjiFromParts(parts)),
-      pill(eng.getGanjiFromParts(parts, { yaja: false })),
-      lunarOf(eng.solarToLunarFromParts(parts)),
-    ].join("\t");
-    partsReads += reads.count - before;
-    const viaDate = [
-      pill(svc.computeGanjiFromDate(new Date(d.getTime()))),
-      pill(svc.computeGanjiFromDate(new Date(d.getTime()), termsFor(at.year))),
-      pill(eng.getGanji(new Date(d.getTime()))),
-      pill(eng.getGanji(new Date(d.getTime()), { yaja: false })),
-      lunarOf(eng.solarToLunar(new Date(d.getTime()))),
-    ].join("\t");
-    compared += 1;
-    if (viaParts !== viaDate) diff.push(`${sample.key}\n        parts ${viaParts}\n        date  ${viaDate}`);
-  }
-  ok("④ 대조 표본이 남아 있다(0 이면 가드가 깨진 것)", compared >= 600, `${compared}건`);
-  ok(
-    "④ 🔴 부품 진입점과 Date 진입점이 전건 같다",
-    diff.length === 0,
-    `${diff.length}건 다름\n      ${diff.slice(0, 3).join("\n      ")}`,
-  );
-  ok(
-    "④ 🔴 부품 경로는 로컬 Date 를 한 번도 안 읽는다",
-    partsReads === 0,
-    `부품 호출 중 Date 독출 ${partsReads}회 — 부품 갈래 어딘가에 로컬 Date 가 남아 있다`,
-  );
 }
-// ── ⑤ 부품 진입점은 구멍에서도 타임존과 무관하다 ──────────────────────────
+
+// ── ⑭ 🔴 공개 표면에 Date 를 받는 함수가 하나도 없다 ───────────────────────
 //
-// 🔴 ③ 은 구멍 표본을 **빼고** 대조한다 — 옛 진입점에는 그 벽시계를 담을 로컬 Date 가 없기 때문이다.
-// 부품 진입점에는 그 제약이 없으므로 여기서는 **1516 표본 전부**를 예외 없이 대조한다.
-// 이것이 "간지 경로가 브라우저 타임존과 무관해졌다"의 실측이다.
+// PR-C 가 남긴 하위 호환 어댑터(로컬 Date 를 읽는 유일한 지점)를 PR-E 가 지웠다. 이 검사는
+// 그것이 **다시 들어오는 것**을 막는다.
+// 🔴 `fn.length` 로 재지 않는다 — 인자 개수는 Date 를 받는지와 무관하고, 어댑터가 되살아나도
+// 그대로다. **실제로 `new Date(...)` 를 넘겨 보고** 값이 나오면 실패로 친다.
 {
+  const svc = win.KasiCalendarService;
+  const eng = win.KasiEngine;
+
+  // ① 지운 이름이 실제로 없다.
+  const removed = [
+    ["KasiCalendarService.computeGanjiFromDate", svc.computeGanjiFromDate],
+    ["KasiCalendarService.__test.computeGanjiFromDate", svc.__test && svc.__test.computeGanjiFromDate],
+    ["KasiEngine.getGanji", eng.getGanji],
+    ["KasiEngine.solarToLunar", eng.solarToLunar],
+    ["globalThis.buildGanjiRepairCandidate", win.buildGanjiRepairCandidate],
+    ["globalThis._calculateMonthBranchBySolarTerm", win._calculateMonthBranchBySolarTerm],
+  ].filter(([, v]) => v !== undefined);
   ok(
-    "⑤ 부품 표면 목록이 비어 있지 않다",
-    PARTS_SURFACES.length >= 10,
-    `${PARTS_SURFACES.length}벌`,
+    "⑭ 🔴 Date 를 받던 진입점 6벌이 전부 사라졌다",
+    removed.length === 0,
+    `${removed.length}벌 남아 있다: ${removed.map(([n]) => n).join(", ")}`,
   );
-  ok(
-    "⑤ KST 부품 산출물이 표본 수만큼 나왔다",
-    Array.isArray(base.partsRows) && base.partsRows.length === SAMPLES.length,
-    `${(base.partsRows || []).length}건 / 표본 ${SAMPLES.length}건`,
-  );
-  // 🔴 값이 통째로 비면 위 대조가 ""=="" 로 전건 통과한다. 실제로 답이 나오는지 따로 본다.
-  const emptyRows = (base.partsRows || []).filter((r) => /^[^\t]*(\t)+$/.test(r) || r.split("\t").slice(1).every((v) => v === "")).length;
-  ok(
-    "⑤ 🔴 부품 산출물이 전부 비어 있지 않다(빈 값끼리 대조하면 아무것도 안 지킨다)",
-    emptyRows === 0,
-    `전부 빈 행 ${emptyRows}건`,
-  );
-  // 🔴 옛 축이 버리던 12개 구멍 표본도 부품 축에서는 답이 나와야 한다 — 그게 이 PR 의 결과다.
-  const gapKeys = new Set((base.rows || []).filter((r) => r.endsWith("\tDST-GAP")).map((r) => r.split("\t")[0]));
-  const gapPartsRows = (base.partsRows || []).filter((r) => gapKeys.has(r.split("\t")[0]));
-  ok(
-    "⑤ 🔴 KST 구멍 표본도 부품 축에서는 값이 나온다",
-    gapKeys.size > 0 && gapPartsRows.length === gapKeys.size
-      && gapPartsRows.every((r) => r.split("\t").slice(1).some((v) => v !== "")),
-    `구멍 ${gapKeys.size}건 중 부품 값 ${gapPartsRows.length}건`,
-  );
-  for (const tz of TZ_MATRIX.slice(1)) {
-    const other = matrix.get(tz);
-    if (!other) continue;
-    if (!Array.isArray(other.partsRows)) {
-      ok(`⑤ TZ=${tz} 자식이 부품 산출물을 냈다`, false, "partsRows 없음");
-      continue;
+
+  // ② 살아남은 부품 표면에 Date 를 넘기면 전부 null 이다(입구 가드가 같은 강도로 옮겨졌다).
+  const d = new Date(1990, 5, 15, 12, 0, 0);
+  const dateProbes = [
+    ["KasiCalendarService.computeGanjiFromParts", () => svc.computeGanjiFromParts(d)],
+    ["KasiCalendarService.computeGanjiFromParts:terms", () => svc.computeGanjiFromParts(d, termsFor(1990))],
+    ["KasiEngine.getGanjiFromParts", () => eng.getGanjiFromParts(d)],
+    ["KasiEngine.solarToLunarFromParts", () => eng.solarToLunarFromParts(d)],
+    ["buildGanjiRepairCandidateFromParts", () => win.buildGanjiRepairCandidateFromParts(d, termsFor(1990))],
+    ["_calculateMonthBranchBySolarTermFromParts", () => win._calculateMonthBranchBySolarTermFromParts(d)],
+  ];
+  const answered = [];
+  // 🔴 셸이 나쁜 입력에 대해 console 로 우는 것은 **정상 동작**이다. 그 소음이 가드 출력에
+  // 섞이면 실패로 오해되므로 이 프로브 동안만 막는다(프로브 밖에서는 그대로 둔다).
+  const quiet = { log: console.log, warn: console.warn, error: console.error };
+  console.log = console.warn = console.error = () => {};
+  try {
+    for (const [name, fn] of dateProbes) {
+      let v;
+      try { v = fn(); } catch { v = null; } // 던지는 것도 "값을 안 낸다"로 친다
+      if (v !== null && v !== undefined && v !== "") answered.push(`${name} → ${JSON.stringify(v).slice(0, 80)}`);
     }
-    const diff = [];
-    base.partsRows.forEach((row, i) => {
-      if (row !== other.partsRows[i]) diff.push(`${row}` + String.fromCharCode(10) + `        →  ${other.partsRows[i]}`);
-    });
-    ok(
-      `⑤ 🔴 TZ=${tz} 의 부품 산출물이 KST 와 전건 같다(구멍 제외 없음)`,
-      diff.length === 0 && other.partsRows.length === base.partsRows.length,
-      `${diff.length}건 다름` + String.fromCharCode(10) + "      " + diff.slice(0, 3).join(String.fromCharCode(10) + "      "),
-    );
+  } finally {
+    console.log = quiet.log; console.warn = quiet.warn; console.error = quiet.error;
   }
-}
-// 🔴 PR-E 의 졸업 조건. **지금은 요구하지 않는다** — 그것이 이 가드가 저울인 이유다.
-if (REPORT && census) {
-  const total = TZ_MATRIX.reduce((sum, tz) => sum + ((census.gaps || {})[tz] || 0), 0);
-  console.log(`      [PR-E 졸업 조건] 서머타임 구멍 총계 ${total} → 0 이 되어야 한다`);
-  console.log(`      ${TZ_MATRIX.map((tz) => `${tz}:${(census.gaps || {})[tz]}`).join(" · ")}`);
+  ok("⑭ Date 프로브를 실제로 돌렸다(0 이면 가드가 깨진 것)", dateProbes.length === 6, `${dateProbes.length}벌`);
+  ok(
+    "⑭ 🔴 부품 표면에 Date 를 넘기면 전부 값을 안 낸다",
+    answered.length === 0,
+    `${answered.length}벌이 답했다\n      ${answered.join("\n      ")}`,
+  );
+  // ③ 같은 표면이 **부품에는** 답한다 — 위 검사가 "전부 죽어서 통과"가 아님을 증명한다.
+  const p = { year: 1990, month: 6, day: 15, hour: 12, minute: 0, second: 0 };
+  const silent = [
+    ["computeGanjiFromParts:terms", svc.computeGanjiFromParts(p, termsFor(1990))],
+    ["getGanjiFromParts", eng.getGanjiFromParts(p)],
+    ["solarToLunarFromParts", eng.solarToLunarFromParts(p)],
+    ["buildGanjiRepairCandidateFromParts", win.buildGanjiRepairCandidateFromParts(p, termsFor(1990))],
+  ].filter(([, v]) => !v);
+  ok(
+    "⑭ 🔴 같은 표면이 부품에는 답한다(전부 죽어서 통과하는 것을 막는다)",
+    silent.length === 0,
+    `${silent.length}벌이 null: ${silent.map(([n]) => n).join(", ")}`,
+  );
+
+  // ④ 로컬 Date 독출 계측 전역이 아예 없다. PR-C 가 심고 PR-E 가 지운 카운터다.
+  ok(
+    "⑭ 🔴 로컬 Date 독출 계측 전역이 남아 있지 않다",
+    win.__CD_GANJI_LOCAL_DATE_READS__ === undefined,
+    `__CD_GANJI_LOCAL_DATE_READS__ = ${JSON.stringify(win.__CD_GANJI_LOCAL_DATE_READS__)}`
+    + " — 어댑터가 되살아났거나 계측만 남은 데드코드다",
+  );
 }
 
 if (failures.length) {
@@ -803,6 +769,6 @@ if (failures.length) {
 }
 console.log(
   `[verify:ganji-surface-parity] 통과 — 검사 ${checks}건 · 표본 ${SAMPLES.length}건 · TZ ${TZ_MATRIX.length}종`
-  + `\n  Date 축(옛 진입점) 표면 ${SURFACES.length}벌 · 구멍 ${TZ_MATRIX.map((tz) => `${tz.split("/").pop()}:${matrix.get(tz)?.gaps ?? "?"}`).join(" ")}`
-  + `\n  부품 축(정본) 표면 ${PARTS_SURFACES.length}벌 · 구멍 제외 없이 6개 존 전건 일치`,
+  + `\n  부품 축(정본) 표면 ${SURFACES.length}벌 · 구멍 제외 없이 6개 존 전건 일치 · 버린 표본 0`
+  + `\n  접힌 벽시계 ${TZ_MATRIX.map((tz) => `${tz.split("/").pop()}:${(matrix.get(tz)?.foldedKeys || []).length}`).join(" ")}`,
 );

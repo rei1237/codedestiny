@@ -113,7 +113,7 @@ function evalKasiService() {
 function tzProbeRows() {
   const win = evalKasiService();
   const core = win.KoreanCalendar;
-  const compute = win.KasiCalendarService.__test.computeGanjiFromDate;
+  const compute = win.KasiCalendarService.__test.computeGanjiFromParts;
   const rows = [];
   for (let year = 1960; year <= 2030; year += 7) {
     const terms = coreTermRows(year, core);
@@ -125,15 +125,11 @@ function tzProbeRows() {
           year: w.getUTCFullYear(), month: w.getUTCMonth() + 1, day: w.getUTCDate(),
           hour: w.getUTCHours(), minute: w.getUTCMinutes(),
         };
-        const local = new Date(at.year, at.month - 1, at.day, at.hour, at.minute);
-        // 🔴 그 벽시계가 이 타임존에 **존재하지 않는 시각**이면(서머타임 시작 구간) JS 가 조용히
-        // 다른 시각으로 접는다. 1974-01-06 02:19 은 뉴욕에 없는 시각이다(1974년 미국 연중 서머타임).
-        // 그건 이 가드가 보려는 축이 아니므로 표시만 남기고 대조에서 뺀다 — 아래에서 건수를 찍는다.
-        if (local.getDate() !== at.day || local.getHours() !== at.hour || local.getMinutes() !== at.minute) {
-          rows.push(`${stamp(at)}|DST-GAP`);
-          continue;
-        }
-        const got = compute(local, terms) || {};
+        // 🔴 PR-E 이전에는 여기서 이 벽시계로 로컬 `Date` 를 조립해 넘겼고, 그 시각이 이 존에
+        // **존재하지 않으면**(1974-01-06 02:19 은 뉴욕에 없다 — 1974년 미국 연중 서머타임)
+        // JS 가 조용히 접어서 그 표본을 `DST-GAP` 으로 버려야 했다. 지금은 부품을 그대로
+        // 넘기므로 버릴 표본이 없다 — 아래 ⑫ 가 제외 없이 전건 대조하는 이유다.
+        const got = compute({ ...at, second: 0 }, terms) || {};
         rows.push(`${stamp(at)}|${got.year || "null"}|${got.month || "null"}|${got.day || "null"}`);
       }
     }
@@ -258,18 +254,20 @@ ok(
   `Solar=${typeof globalThis.Solar} · Lunar=${typeof globalThis.Lunar}`,
 );
 
+// 🔴 전부 KST 벽시계 부품(또는 스칼라)을 받는다. PR-E 이전에는 아래 두 줄이 로컬 Date 를 받는
+// 어댑터였다 — 이름을 되돌리면 그 캐리어가 다시 들어온다.
 const shellFns = {
   getGanZhiForDate: globalThis.getGanZhiForDate,
   getMonthGanZhi: globalThis.getMonthGanZhi,
-  buildGanjiRepairCandidate: globalThis.buildGanjiRepairCandidate,
-  _calculateMonthBranchBySolarTerm: globalThis._calculateMonthBranchBySolarTerm,
+  buildGanjiRepairCandidateFromParts: globalThis.buildGanjiRepairCandidateFromParts,
+  _calculateMonthBranchBySolarTermFromParts: globalThis._calculateMonthBranchBySolarTermFromParts,
   calcZiweiPalaces: globalThis.calcZiweiPalaces,
 };
 const missingFns = Object.keys(shellFns).filter((name) => typeof shellFns[name] !== "function");
 ok("① 셸의 간지 함수 5벌이 전역에 살아 있다", missingFns.length === 0, missingFns.join(", "));
 
 if (!missingFns.length) {
-  // ── ③ buildGanjiRepairCandidate — KASI 두 경로가 죽었을 때의 마지막 안전망 ──
+  // ── ③ buildGanjiRepairCandidateFromParts — KASI 두 경로가 죽었을 때의 마지막 안전망 ──
   //
   // 하네스에는 KasiCalendarService 도 검증된 절기표도 없으므로 이 호출은 반드시 마지막
   // 폴백까지 내려간다. 즉 여기서 보는 것이 정확히 "KASI 가 죽은 순간의 셸" 이다.
@@ -278,8 +276,7 @@ if (!missingFns.length) {
     let cstDiff = 0;
     for (const sample of SAMPLES) {
       const { at, core, cst } = sample;
-      const date = new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0);
-      const got = shellFns.buildGanjiRepairCandidate(date) || {};
+      const got = shellFns.buildGanjiRepairCandidateFromParts({ ...at, second: 0 }) || {};
       if (core.year !== cst.year || core.month !== cst.month) cstDiff += 1;
       if (got.year !== core.year || got.month !== core.month || got.day !== core.day || got.hour !== core.hour) {
         const which = (got.year === cst.year && got.month === cst.month) ? " ← 중국 음력 프레임" : "";
@@ -287,22 +284,21 @@ if (!missingFns.length) {
       }
     }
     ok("③ 표본이 실제로 두 프레임을 가른다(0 이면 표본이 무의미하다)", cstDiff === SAMPLES.length, `${cstDiff}/${SAMPLES.length}건`);
-    ok("③ buildGanjiRepairCandidate 의 4기둥이 코어와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+    ok("③ buildGanjiRepairCandidateFromParts 의 4기둥이 코어와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
   }
 
-  // ── ④ _calculateMonthBranchBySolarTerm — 월지 하나 ────────────────────────
+  // ── ④ _calculateMonthBranchBySolarTermFromParts — 월지 하나 ───────────────
   {
     const rows = [];
     for (const sample of SAMPLES) {
       const { at, core, cst } = sample;
-      const date = new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0);
-      const got = shellFns._calculateMonthBranchBySolarTerm(date);
+      const got = shellFns._calculateMonthBranchBySolarTermFromParts({ ...at, second: 0 });
       if (got !== core.month.charAt(1)) {
         const which = got === cst.month.charAt(1) ? " ← 중국 음력 프레임" : "";
         rows.push(`${stamp(at)} 코어 ${core.month.charAt(1)} · 셸 ${got}${which}`);
       }
     }
-    ok("④ _calculateMonthBranchBySolarTerm 의 월지가 코어와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+    ok("④ _calculateMonthBranchBySolarTermFromParts 의 월지가 코어와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
   }
 
   // ── ⑤ getMonthGanZhi — 셸 전체의 월운 원천(js/share.js·js/sibyl-system.js 도 여기를 부른다) ──
@@ -330,7 +326,7 @@ if (!missingFns.length) {
   // ── ⑥ getGanZhiForDate — 일진. 🔴 23시대(야자시)를 반드시 포함한다 ─────────
   //
   // 🔴 이 함수의 야자시 축은 **keep-day** 다. 셸에는 야자시 정책이 두 개 있고 이 함수는
-  // "오늘 일진" 쪽이다 — 그 값을 덮어쓰는 KASI 경로(KasiCalendarService.computeGanjiFromDate)가
+  // "오늘 일진" 쪽이다 — 그 값을 덮어쓰는 KASI 경로(KasiCalendarService.computeGanjiFromParts)가
   // 날짜를 밀지 않고, lunar-javascript EightChar 의 기본 유파(sect 2)도 같은 값이었다.
   // 그래서 이 검사는 "코어 keep-day 와 같고, **lunar-javascript 와도 값이 안 움직였다**" 를 본다.
   // 출생 원국의 일주(_cdCivilDayPillar)는 반대인 shift-day 다 — 아래 ⑥-b 가 그 축을 따로 본다.
@@ -372,7 +368,7 @@ if (!missingFns.length) {
 
   // ── ⑥-b 출생 원국 축 — 마지막 안전망이 셸의 정본 규칙과 같은 야자시를 쓴다 ──
   //
-  // buildGanjiRepairCandidate 는 KASI 두 경로가 모두 죽었을 때만 도는 자리다. 그 값이
+  // buildGanjiRepairCandidateFromParts 는 KASI 두 경로가 모두 죽었을 때만 도는 자리다. 그 값이
   // _cdCivilDayPillar(셸이 원국 일주로 쓰는 정본, shift-day)와 어긋나면 KASI 가 죽는 동안에만
   // 일주가 하루 다른 결과가 나온다 — 화면도 콘솔도 조용하다.
   // 🔴 예전에는 여기가 lunar-javascript 였고, 그 라이브러리는 23시대에 **일주는 안 밀고 시주만
@@ -392,7 +388,7 @@ if (!missingFns.length) {
         for (const [month, day] of [[1, 9], [5, 17], [9, 25]]) {
           const at = { year, month, day, hour: 23, minute: 30 };
           nightProbes += 1;
-          const got = shellFns.buildGanjiRepairCandidate(new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0)) || {};
+          const got = shellFns.buildGanjiRepairCandidateFromParts({ ...at, second: 0 }) || {};
           const canonicalDay = civilDayPillar(at.year, at.month, at.day, at.hour);
           const canonicalHour = hourFromDayStem(canonicalDay.g, at.hour);
           if (got.day !== canonicalDay.g + canonicalDay.j || got.hour !== canonicalHour.g + canonicalHour.j) {
@@ -572,9 +568,9 @@ function extractFunctionSource(source, name) {
   const win = evalKasiService();
   const core = win.KoreanCalendar;
   const compute = win.KasiCalendarService && win.KasiCalendarService.__test
-    ? win.KasiCalendarService.__test.computeGanjiFromDate
+    ? win.KasiCalendarService.__test.computeGanjiFromParts
     : null;
-  ok("⑪ KasiCalendarService 를 lunar-javascript 없이 평가했다", typeof compute === "function", "__test.computeGanjiFromDate 가 없다");
+  ok("⑪ KasiCalendarService 를 lunar-javascript 없이 평가했다", typeof compute === "function", "__test.computeGanjiFromParts 가 없다");
 
   if (typeof compute === "function") {
     const rows = [];
@@ -606,7 +602,7 @@ function extractFunctionSource(source, name) {
           month: formatPillar(gz.month.stemIndex, gz.month.branchIndex, "hanja"),
           day: formatPillar(gz.day.stemIndex, gz.day.branchIndex, "hanja"),
         };
-        const got = compute(new Date(at.year, at.month - 1, at.day, at.hour, at.minute), terms);
+        const got = compute({ ...at, second: 0 }, terms);
         if (!got) { nullRows += 1; rows.push(`${stamp(at)} null`); continue; }
         if (got.year !== expect.year || got.month !== expect.month || got.day !== expect.day) {
           rows.push(`${stamp(at)} 코어 ${expect.year}/${expect.month}/${expect.day} · 셸 ${got.year}/${got.month}/${got.day}`);
@@ -649,18 +645,17 @@ function extractFunctionSource(source, name) {
     try { rows = JSON.parse(child.stdout); } catch { rows = null; }
     ok(`⑫ TZ=${tz} 자식 프로세스가 돌았다`, Array.isArray(rows) && rows.length === baseline.length, `${rows ? rows.length : "파싱 실패"}건 / 기준 ${baseline.length}건`);
     if (!Array.isArray(rows)) continue;
-    const gaps = [];
     const diff = [];
     baseline.forEach((row, index) => {
       const other = rows[index];
-      if (row.endsWith("|DST-GAP") || String(other).endsWith("|DST-GAP")) { gaps.push(row); return; }
       if (row !== other) diff.push(`${row}  →  ${other}`);
     });
-    // 서머타임 구멍은 조용히 넘기지 않고 건수를 찍는다. 표본 전체가 구멍이면 대조가 무의미하다.
+    // 🔴 PR-E 이전에는 여기서 서머타임 구멍 표본을 뺐다(위 tzProbeRows 가 로컬 Date 를 조립했다).
+    // 지금은 부품을 넘기므로 뺄 표본이 없다 — 제외 없이 전건이다.
     ok(
-      `⑫ TZ=${tz} 대조 대상이 남아 있다(서머타임 구멍 ${gaps.length}건 제외)`,
-      baseline.length - gaps.length >= 400,
-      `대조 ${baseline.length - gaps.length}건 / 표본 ${baseline.length}건`,
+      `⑫ TZ=${tz} 대조 대상이 표본 전부다(제외 없음)`,
+      rows.length === baseline.length && baseline.length >= 400,
+      `대조 ${rows.length}건 / 기준 ${baseline.length}건`,
     );
     ok(
       `⑫ TZ=${tz} 브라우저에서도 셸의 간지가 같다`,
@@ -694,16 +689,21 @@ function extractFunctionSource(source, name) {
 
   // 🔴 남겨 둔 다인자 `new Date(` — 전부 **표시 축**이고 간지를 만들지 않는다.
   // args 는 인자 문자열을 공백 제거해 그대로 적는다. 옮기거나 지웠으면 이 표도 같이 고쳐라.
+  //
+  // 🔴 PR-E 가 여기까지 손대지 않은 이유: 이 자리들은 달력 그리드의 칸·요일·일수를 그리고,
+  // 그 결과가 간지 계산에 들어가지 않는다. 접히면 표시가 하루 어긋날 수는 있어도 사주가
+  // 틀어지지는 않는다. 반면 **날짜 키 유효성**은 접힘이 곧 "실재하는 날짜의 거부"라
+  // PR-E 가 `_parseDateKeyToDate` 를 UTC 왕복으로 옮겼다(`_makeLocalNoonDate` 자체는 유지).
   const ALLOWED = Object.freeze([
     { file: "js/saju-engine-tarot-sukuyo-quantum.js", args: "d.getFullYear(),0,1", why: "lottoWeekKey — ISO 주차 표시" },
-    { file: "js/luck-sync-diary.js", args: "Number(year),Number(monthIndex),Number(day),12,0,0,0", why: "_makeLocalNoonDate — 달력 표시 축(PR-E)" },
-    { file: "js/luck-sync-diary.js", args: "year,month,1", why: "월 그리드 첫 칸(PR-E)" },
-    { file: "js/luck-sync-diary.js", args: "year,month+1,0", why: "월 그리드 말일(PR-E)" },
-    { file: "js/luck-sync-diary.js", args: "year,month,0", why: "월 그리드 전월 말일(PR-E)" },
-    { file: "js/luck-sync-diary.js", args: "year,month-1,dayNum,12", why: "월 그리드 전월 칸(PR-E)" },
-    { file: "js/luck-sync-diary.js", args: "year,month+1,dayNum,12", why: "월 그리드 익월 칸(PR-E)" },
-    { file: "js/luck-sync-diary.js", args: "year,month,dayNum,12", why: "월 그리드 당월 칸(PR-E)" },
-    { file: "js/luck-sync-diary.js", args: "year,monthIndex+1,0", why: "월 일수 계산(PR-E)" },
+    { file: "js/luck-sync-diary.js", args: "Number(year),Number(monthIndex),Number(day),12,0,0,0", why: "_makeLocalNoonDate — 달력 표시 축" },
+    { file: "js/luck-sync-diary.js", args: "year,month,1", why: "월 그리드 첫 칸" },
+    { file: "js/luck-sync-diary.js", args: "year,month+1,0", why: "월 그리드 말일" },
+    { file: "js/luck-sync-diary.js", args: "year,month,0", why: "월 그리드 전월 말일" },
+    { file: "js/luck-sync-diary.js", args: "year,month-1,dayNum,12", why: "월 그리드 전월 칸" },
+    { file: "js/luck-sync-diary.js", args: "year,month+1,dayNum,12", why: "월 그리드 익월 칸" },
+    { file: "js/luck-sync-diary.js", args: "year,month,dayNum,12", why: "월 그리드 당월 칸" },
+    { file: "js/luck-sync-diary.js", args: "year,monthIndex+1,0", why: "월 일수 계산" },
   ]);
 
   // 🔴 주석·문자열을 **걷어내고** 센다. 안 그러면 이 검사가 자기를 설명하는 주석에 걸린다

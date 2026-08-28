@@ -901,30 +901,6 @@ function rememberKasiCalendarReference(reference) {
 }
 
 /**
- * 🔴 로컬 Date 를 읽는 지점은 이 파일에서 여기 하나다(다른 하나는 js/core/kasi-calendar-service.js
- * 의 같은 이름). Date 를 받던 진입점의 하위 호환을 위해서만 살아 있고, PR-E 가 그것들을 지울
- * 근거로 **호출 건수를 센다** — 카운터는 두 파일이 공유한다(window.__CD_GANJI_LOCAL_DATE_READS__).
- *
- * 🔴 서비스의 함수를 부르지 않고 같은 규칙을 여기 한 번 더 두는 이유: 셸에는 서비스 없이 이
- * 파일만 싣는 체인이 하나 있다(js/core/index-inline-runtime.js:8052 생년월일 모달 경로).
- * 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
- */
-var _kasiLocalDateReads = (window.__CD_GANJI_LOCAL_DATE_READS__ = window.__CD_GANJI_LOCAL_DATE_READS__ || { count: 0 });
-
-function _kasiPartsFromLocalDate(date) {
-  _kasiLocalDateReads.count += 1;
-  if (!(date instanceof Date) || isNaN(date.getTime())) return null;
-  return {
-    year: date.getFullYear(),
-    month: date.getMonth() + 1,
-    day: date.getDate(),
-    hour: date.getHours(),
-    minute: date.getMinutes(),
-    second: date.getSeconds()
-  };
-}
-
-/**
  * 벽시계 부품 조립 — `new Date(y, m - 1, d, h, mi, s)` 를 대신한다.
  *
  * 🔴 정규화는 그 생성자와 **한 글자도 달라지면 안 된다**(초과 일수는 다음 달로, 0~99 년은 1900+y).
@@ -969,16 +945,10 @@ const KasiEngine = {
         return _kasiPartsOf(year, month, day, hour, minute, second);
     },
     /**
-     * 🔴 인자 1개로 **고정**한다. 두 호출부가 2번째 인자로 `true` 를 넘기는데
-     * (saju-engine-tarot-sukuyo-quantum.js) 오늘은 무시된다 — 여기에 options 를 붙이면 그 `true` 가
-     * 갑자기 의미를 갖고 `options.yaja` 가 undefined 로 읽혀 야자시가 꺼진다. 그러면 23시대
-     * 음력일이 하루 당겨지고 자미 14주성이 통째로 이동한다. 옵션은 solarToLunarFromParts 에만.
+     * 정본. parts 는 KST 벽시계 부품 `{ year, month, day, hour, minute, second? }`.
+     * 🔴 PR-E 이전에는 위에 로컬 Date 를 받는 `solarToLunar` 어댑터가 있었다 — 되살리지 말 것.
+     * 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
      */
-    solarToLunar: function(date) {
-        if (!date) return null;
-        return KasiEngine.solarToLunarFromParts(_kasiPartsFromLocalDate(date));
-    },
-    /** 정본. parts 는 KST 벽시계 부품 `{ year, month, day, hour, minute, second? }`. */
     solarToLunarFromParts: function(parts, options) {
         options = options || { yaja: true };
         if (!parts) return null;
@@ -1017,19 +987,11 @@ const KasiEngine = {
           return rememberKasiCalendarReference(reference);
         },
     /**
-     * 🔴 어댑터다. 리네임이 아니라 새 메서드 + 어댑터인 이유:
-     *   ① 호출부 13곳이 전부 `typeof ke.getGanji === 'function'` 가드 안이라 하드 리네임은
-     *      예외가 아니라 **조용한 성능저하**로 끝난다.
-     *   ② public/_headers 가 /js/*.js 를 max-age 7일로 잡아 옛 셸과 새 셸이 최대 7일 공존한다.
-     * PR-E 가 `_kasiPartsFromLocalDate` 호출 0 을 가드로 증명한 뒤에 이 갈래를 지운다.
+     * 정본. parts 는 KST 벽시계 부품 `{ year, month, day, hour, minute, second? }`.
+     * 🔴 PR-E 이전에는 위에 로컬 Date 도 받는 `getGanji` 어댑터가 있었다 — 되살리지 말 것.
+     * 호출부 13곳이 전부 `typeof ke.getGanjiFromParts === 'function'` 가드 안이라, 이름을 바꾸면
+     * 예외가 아니라 **조용한 성능저하**로 끝난다. 이름은 고정이다.
      */
-    getGanji: function(dateOrParts, options) {
-        var parts = (dateOrParts && typeof dateOrParts === 'object' && !(dateOrParts instanceof Date))
-          ? dateOrParts
-          : _kasiPartsFromLocalDate(dateOrParts);
-        return KasiEngine.getGanjiFromParts(parts, options);
-    },
-    /** 정본. parts 는 KST 벽시계 부품 `{ year, month, day, hour, minute, second? }`. */
     getGanjiFromParts: function(parts, options) {
         options = options || { yaja: true };
         if (!parts) return null;
@@ -1225,11 +1187,10 @@ function hasCompleteGanjiContext(ctx) {
   );
 }
 
-/** 🔴 하위 호환 어댑터. 정본은 아래 buildGanjiRepairCandidateFromParts 다. */
-function buildGanjiRepairCandidate(date, terms24) {
-  return buildGanjiRepairCandidateFromParts(_kasiPartsFromLocalDate(date), terms24);
-}
-
+/**
+ * 🔴 PR-E 이전에는 위에 로컬 Date 를 받는 `buildGanjiRepairCandidate` 어댑터가 있었다 —
+ * 되살리지 말 것. parts 는 KST 벽시계 부품이다.
+ */
 function buildGanjiRepairCandidateFromParts(parts, terms24) {
   if (!parts) return null;
 
@@ -26114,11 +26075,10 @@ function _resolveMonthCommandBirthParts() {
   return null;
 }
 
-/** 🔴 하위 호환 어댑터. 정본은 아래 부품 갈래다. */
-function _calculateMonthBranchBySolarTerm(dateObj) {
-  return _calculateMonthBranchBySolarTermFromParts(_kasiPartsFromLocalDate(dateObj));
-}
-
+/**
+ * 🔴 PR-E 이전에는 위에 로컬 Date 를 받는 `_calculateMonthBranchBySolarTerm` 어댑터가 있었다 —
+ * 되살리지 말 것. parts 는 KST 벽시계 부품이다.
+ */
 function _calculateMonthBranchBySolarTermFromParts(parts) {
   if (!parts) return '';
   try {

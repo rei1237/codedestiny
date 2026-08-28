@@ -3,7 +3,135 @@
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
 > 사용자 승인 계획: "전량 3단계"(2026-08-28). 여기 있는 PR-B~E 가 그것이다.
 
-## ✅ PR-D 완료 · **머지됨 (#1234, 2026-08-28)** — 다음은 PR-E(§6) 부터다
+## ✅ PR-E 완료 (2026-08-28) — 🔴 **남은 것은 §6-4 야자시 결정 하나뿐이다**
+
+Date 를 받는 진입점이 **소스에서 0개**가 됐고, `ganji-dst-gap-census.json` 의 `gaps` 가 6개 존
+전부 **문자 그대로 0** 이 됐다. 이 계획에서 코드로 할 일은 여기까지다 — 마지막 한 칸(§6-4)은
+**값이 바뀌는 결정**이라 사용자 답을 기다린다(실측 표는 아래).
+
+| 파일 | 무엇이 바뀌었나 |
+|---|---|
+| `js/core/kasi-calendar-service.js` | `_partsFromLocalDate` · `_localDateReads` · `_computeGanjiFromDate` · 공개 `computeGanjiFromDate` · `__test.computeGanjiFromDate` 삭제. `__test.computeMonthGanjiFromTerms` 를 부품 인자로 |
+| `js/saju-engine.js` | `_kasiPartsFromLocalDate` · `_kasiLocalDateReads` · `KasiEngine.getGanji` · `KasiEngine.solarToLunar` · `buildGanjiRepairCandidate` · `_calculateMonthBranchBySolarTerm` 삭제(어댑터 6벌) |
+| `js/luck-sync-diary.js` | `_parseDateKeyToDate` 유효성을 `Date.UTC` 왕복으로. `_makeLocalNoonDate` 자체는 유지(표시 축) |
+| `app/_lib/normalize-ziwei-input.ts` · `app/fortune/prompt-hub/{dangsaju-calc,kusei-calc,lite-prompt-tools}.ts` | 생일 유효성 4곳을 `Date.UTC` 왕복으로 (§6-2) |
+| `scripts/verify-ganji-surface-parity.mjs` | Date 표면 12벌 삭제 → 부품 표면 **12벌**이 정본(`_cdHourPillarFromDayStem`·`getMonthGanZhi` 를 부품 축에 추가해 열 수를 맞췄다). ②③ 재편 · ④ 축소 · **⑭ 신설** · 검사 51→57건 |
+| `scripts/verify-shell-korean-calendar.mjs` | ③④⑥-b⑪⑫ 를 부품으로. ⑫ 의 `DST-GAP` 제외 갈래 삭제(제외 없이 전건) |
+| `scripts/verify-solar-term-frame-kasi.mjs` | ⑦ 을 부품으로 + **fail-open 을 fail-closed 로**(아래 참조). 검사 41→42건 |
+| `scripts/test-saju-solar-term-regression.mjs` | `computeMonthGanjiFromTerms` 호출 7곳을 부품으로(`kstParts(iso)` 헬퍼 신설) |
+| 픽스처 2개 · `README-ganji-surface.md` · `pr-ci.yml` | `--emit` 재생성 + 문구를 "달성"으로 |
+
+### ✅ 픽스처 교체는 무손실이다 — 18,048셀 실측
+
+`ganji-surface-kst.json` 의 `rows`/`nullMap` 이 **Date 축 12벌 → 부품 축 12벌**로 통째로 바뀌었다.
+그 교체가 값을 안 움직였다는 증거는 옛 픽스처(`git show 83f0cfe54:scripts/fixtures/ganji-surface-kst.json`)와
+새 픽스처를 **표면 이름으로 짝지어** 대조한 결과다:
+
+```
+행 1516 · 옛 축이 버린 DST-GAP 행 12 · 대조 행 1504 · 대조 셀 18048
+값 불일치 0건 · isNull 불일치 0건
+옛 축이 버린 12행 중 새 축이 값을 낸 행 12
+```
+
+짝은 `getGanji↔getGanjiFromParts` · `solarToLunar↔solarToLunarFromParts` ·
+`computeGanjiFromDate:*↔computeGanjiFromParts:*` · `buildGanjiRepairCandidate↔…FromParts` ·
+`_calculateMonthBranchBySolarTerm↔…FromParts` + 이름이 같은 4벌이다.
+🔴 재현하려면 옛 픽스처를 꺼내 같은 짝짓기로 다시 돌려야 한다 — 일회성 스크립트라 레포에 안 남겼다.
+
+### 🔴 새로 알게 된 것
+
+1. **R7(캐시 7일 공존)은 이 축에 해당이 없다 — 실측.** 간지 경로 js 는 `index.html` 이 직접 참조하지
+   않고 `js/core/index-inline-runtime.js:2193` 의 체인이 **전부 같은 `?v=build-<hash>` 토큰**으로 부른다
+   (`saju-engine.js` · `saju-engine-tarot-sukuyo-quantum.js` · `luck-sync-diary.js:2509` 등).
+   `sync:public` 이 그 토큰을 빌드마다 돌리므로 **옛 파일과 새 파일이 섞일 캐시 키 조합이 없다.**
+   `public/_headers:310` 의 `max-age=604800` 은 그 토큰이 같은 동안에만 유효하다.
+   → 그래서 어댑터를 유예 없이 지웠다. 다음에 셸 모듈 간 API 를 지울 때도 같은 근거를 쓸 수 있다.
+2. 🔴 **`verify:solar-term-frame-kasi` ⑦ 은 fail-open 이었다** — `if (shellTest && typeof
+   shellTest.computeGanjiFromDate === "function")` 하나로 블록 전체를 감싸고 있어서, 그 이름이
+   사라지면 **검사 3건이 통째로 안 돌고 초록**이었다(원칙 10 위반). 존재 단언을 블록 밖으로 꺼냈다.
+   음성 테스트로 확인: `__test` 에서 그 줄을 빼면 `✗ ⑦ 셸의 부품 진입점이 __test 에 있다`.
+3. 🔴 **`getGanjiFromParts` 를 로컬 Date 로 접어도 가드가 못 잡는다** — 음성 테스트에서 실측했다
+   (57건 전부 초록). 이유는 그 표면이 **1990 말고 전부 null** 이라 접힘이 `null==null` 로 묻히기
+   때문이다(README ①). 같은 변조를 `_computeGanjiFromParts`(서비스 정본)에 넣으면 **9건 실패**한다.
+   → 값 대조가 못 지키는 그 한 표면은 소스 쪽 검사 **⑬**(다인자 `new Date(` 0건)와 **⑭**(Date 진입점
+   0개)가 막는다. 저 null 지도를 고치는 별건이 끝나면 이 구멍도 같이 닫힌다.
+4. **`gaps` 와 `foldedWallClocks` 는 다른 수다.** census 를 문자 그대로 0 으로 만들면 옛 ②의
+   자기검사(`서머타임 존이 전부 최소 1건의 구멍`)가 뒤집혀 죽는다 — §6-6 이 예고한 그대로다.
+   그래서 "그 존에 존재하지 않는 벽시계 표본 수"를 **출력 경로 밖에서** 계속 세어
+   `foldedWallClocks` 로 픽스처에 넣고, **0 이 아님**을 요구한다. 숫자는 옛 `gaps` 와 정확히 같다
+   (Seoul 12 · UTC 0 · New_York 21 · Apia 18 · Kiritimati 6 · Lord_Howe 18) — 즉 매트릭스는 그대로다.
+5. **§6-4 의 두 줄은 PR-D 가 이미 처리했다.** `tarot:13261` 의 2번째 인자 `true` 는 PR-D 의 부품
+   전환에서 사라졌고, `tarot:11626` 도 인자 1개다. 부품 갈래는 옵션을 안 주면 야자시가 켜지므로
+   **현행과 값이 같다.** 남은 것은 "켜 두는 게 맞나"라는 **의미 결정**뿐이다(아래).
+
+### 🔴 남은 것 하나 — §6-4 야자시 의미 결정 (사용자 답 대기)
+
+**어디가 걸리나.** `js/saju-engine-tarot-sukuyo-quantum.js` 의 `syRadarResolveLunar`(인연 레이더).
+🔴 **호출 2곳 중 내 쪽은 `'12:00'` 하드코딩이라 안 걸린다**(`:12386`). 23시가 들어올 수 있는 것은
+**상대방 경로 하나**다(`:12394`, `partnerTime`). 같은 결정에 `js/core/kasi-calendar-service.js`
+`_fallbackLunarFromSolar`(`:697`)도 걸린다 — KASI 가 죽는 동안에만 돈다.
+
+**지금 무엇이 벌어지나.** 셸의 세 음력 소스가 23시대에 **서로 다른 답**을 낸다:
+
+| 소스 | 23시 처리 |
+|---|---|
+| `KasiEngine.solarToLunarFromParts`(옵션 없음) | **하루 민다**(야자시 ON — 현행 기본값) |
+| KASI API `_fetchLunarFromSolar` | 안 민다 |
+| `KoreanCalendar.solarToLunar`(서비스 내부 2차 폴백 `:709`) | 안 민다 |
+
+**실측 (2026-08-28, `TZ=Asia/Seoul`).** 1950~2030 × 6일 × 23:00/23:29/23:30/23:59 = **1,944 표본**:
+
+```
+야자시를 끄면 본명숙이 옆 칸으로 옮겨가는 표본: 1,924건 (99.0%)
+  1950-01-09 23:00 · 음력 ON 1949-11-22 → OFF 1949-11-21 · 본명숙 익(翼)숙 → 장(張)숙
+  1950-03-21 23:00 · 음력 ON 1950-2-4  → OFF 1950-2-3  · 본명숙 묘(昴)숙 → 위(胃)숙
+대조군(00·12·22시) 729건 · 옮겨간 표본 0건   ← 23시대 밖은 이 결정에 안 걸린다
+```
+
+**선택지**(추천 순):
+
+1. **`추천` 현행 유지(야자시 ON).** 값 변화 0. 명리 관례상 23시 이후는 다음 날 자시로 보는 것이
+   셸 전체의 축(`getGanjiFromParts`·`_cdCivilDayPillar` 모두 shift-day)이라 숙요만 반대로 두면
+   같은 화면에서 규칙이 갈린다. 대신 위 표의 **소스 간 불일치는 남는다**(KASI 가 살아 있으면 안 밀고,
+   죽으면 민다) — 그것을 닫으려면 KASI 응답에도 같은 밀기를 얹어야 하고, 그건 별건이다.
+2. **숙요만 야자시 OFF.** 27수는 원래 태음일(lunar day) 기반이라 명리 자시 경계와 무관하다는 해석.
+   고르면 **23시대 사용자의 본명숙이 99% 바뀐다** — 회귀가 아니라 정정이지만 사용자에게 보이는 변화다.
+
+🔴 **결정 전에는 코드를 건드리지 않았다.** 1번이면 코드 변경 0(문서에 근거만 남기면 끝),
+2번이면 `syRadarResolveLunar:11629` 와 `_fallbackLunarFromSolar:697` 에 `{ yaja: false }` 를 주고
+`verify:sukuyo-korean-calendar` 의 픽스처를 다시 뽑는다.
+
+### PR-E 음성 테스트 7종 (전부 fail-closed → 복구 후 초록)
+
+| 변조 | 잡은 검사 |
+|---|---|
+| `KasiEngine.getGanji` 어댑터 되살리기 | `✗ ⑭ Date 를 받던 진입점 6벌이 전부 사라졌다` |
+| census `foldedWallClocks['Pacific/Apia']` → 0 | `✗ ② 접힌 벽시계 수가 census 와 같다` + `✗ ② 서머타임 존이 전부 최소 1건` |
+| census `gaps['America/New_York']` → 21 | `✗ ② 버린 표본 수가 census 와 같다` + `✗ ② 구멍 총계가 0 이다` |
+| `_computeGanjiFromParts` 를 로컬 Date 로 접기 | **9건** — ① + ③ 6개 존(그중 `접힌 벽시계 N건도 KST 와 같다` 4건) |
+| `solarToLunarFromParts` → 항상 null | `✗ ⑭ 같은 표면이 부품에는 답한다` + ⓪① |
+| `__test.computeGanjiFromParts` 제거 | `✗ ⑦ 셸의 부품 진입점이 __test 에 있다` (이번에 fail-closed 로 고친 자리) |
+| `getGanjiFromParts` 를 로컬 Date 로 접기 | 🔴 **아무것도 안 잡힌다**(위 "새로 알게 된 것" 3번) |
+
+### 검증 (전부 이 브랜치에서 실행한 출력)
+
+```
+verify:ganji-surface-parity   통과 — 검사 57건 · 표본 1516건 · TZ 6종 · 버린 표본 0
+verify:shell-korean-calendar  OK  — 검사 55건
+verify:solar-term-frame-kasi  통과 — 검사 42건 · 지상값 provider 29개
+test-saju-solar-term-regression PASS
+verify:ziwei-star-parity      통과 — 검사 21건 · 대조 인물 29명
+verify:hour-pillar-parity     모든 케이스 통과 — 세 엔진의 시주가 일치한다
+verify:lunar-conversion-core  통과 — 검사 40건
+verify:sukuyo-korean-calendar 통과 — 검사 31건
+verify:daeun-korean-calendar  OK  — 검사 16건 · 관례 재현 잔차 0
+verify:payment-freeze         통과 · verify:guard-wiring OK (262개 중 166 배선)
+jest 177 스위트 2007개 · test:node 555개 · typecheck 0 · lint 오류 0
+```
+
+---
+
+## ✅ PR-D 완료 · **머지됨 (#1234, 2026-08-28)**
 
 간지 경로에서 **로컬 `Date` 를 캐리어로 쓰는 조립이 0건**이 됐다. 착수점은 §6 이다.
 
@@ -398,50 +526,49 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 
 ---
 
-## 6. PR-E — Date 진입점 제거 · 유효성 · 🔴 야자시 결정
+## 6. ✅ PR-E — Date 진입점 제거 · 유효성 (완료) · 🔴 야자시 결정만 남음
 
-1. `computeGanjiFromDate` · `_partsFromLocalDate` · `getGanji(Date)` 어댑터 삭제 —
-   **PR-C 가 심은 계측이 호출 0 임을 가드로 증명한 뒤에만.**
-   🔴 계측의 실체는 전역 `window.__CD_GANJI_LOCAL_DATE_READS__.count` 하나다(두 파일이 공유).
-   `verify:ganji-surface-parity` 의 검사 ④ 가 이미 "부품 경로에서 그 수가 안 오른다"를 단언하므로,
-   PR-E 는 "전 표면을 부품으로 한 바퀴 돌린 뒤 그 수가 **0**" 을 더하면 된다.
-   🔴 `verify:shell-korean-calendar` ③⑥-b·⑪ 이 전역 이름으로 Date 를 넘기므로 **같은 커밋**에서 부품으로.
-2. 유효성 5곳(§2 마지막 줄)을 `Date.UTC` 왕복으로. 2월 30일은 여전히 거르고 DST 구멍은 안 거른다.
-3. ~~`_toIsoLocal` 삭제, `isoLocal` 을 정수에서 직접 조립.~~ ✅ **PR-C 에서 끝났다**
-   (`_partsToIsoLocal`). 출력 문자열은 한 글자도 안 바뀌었다.
-4. 🔴 **야자시 의미 결정 — 이 계획 전체에서 값이 바뀌는 유일한 자리.**
-   - `tarot:13261` 은 정오 고정이라 야자시가 절대 안 걸린다 → `true` 를 지운다. **값 변화 0**(가드로 증명).
-   - `tarot:11626` 은 입력 시각이 23시일 수 있다 → **유일한 실제 결정 지점.**
-     *"1950~2030 23시대 표본 N건 중 M건에서 본명숙이 옆 칸으로 이동"* 실측 표를 PR 본문에 붙이고
-     **사용자 결정을 받는다.** 결정 전에는 `true` 를 남긴 채(=현행) 둔다.
-   - `kasi-calendar-service.js` `_fallbackLunarFromSolar` 도 같은 결정에 걸린다(KASI 가 죽는 동안에만 돈다).
-5. 신설 검사 ⑭: `KasiCalendarService`·`KasiEngine` 공개 표면에 **Date 를 받는 함수 0개**임을
-   실행으로 확인(`fn.length` 가 아니라 `new Date(...)` 를 넘겼을 때 null 을 내는지로).
-6. 🔴 **`ganji-dst-gap-census.json` 을 문자 그대로 0 으로** — 사용자 결정(2026-08-28). §5 가
-   PR-D 몫으로 적어 뒀던 일을 **1번과 같은 PR 에서** 한다. 진입점이 사라지면 가드의 Date 표면도
-   같이 사라지므로, 앞서 따로 하면 픽스처를 두 번 뽑게 된다.
-   - 🔴 **구멍을 만드는 주체는 셸이 아니라 가드다.** `probeSample`(`scripts/verify-ganji-surface-parity.mjs:398`)
-     이 `SURFACES` 12벌에 넘기려고 `new Date(at.year, at.month - 1, ...)` 를 직접 조립하고, 그게
-     접히면 그 표본을 `DST-GAP` 으로 버린다. 그래서 **호출부를 아무리 고쳐도 이 숫자는 안 움직인다**
-     (PR-D 실측: 22곳 전환 전후 census 완전 동일). 옆의 `probeSampleParts`(:386)·`PARTS_SURFACES`
-     10벌은 Date 를 한 번도 안 만들어 구멍이라는 개념 자체가 없다.
-   - 할 일: `SURFACES`·`probeSample` 의 gap 갈래를 걷어내고 `rows`/`nullMap` 을 `PARTS_SURFACES`
-     산출로 옮긴 뒤 `--emit` 으로 **두 픽스처를 같이** 다시 뽑는다. 그러면 census 는 값이 아니라
-     **구조적으로** 0 이 된다.
-   - 🔴 **`ganji-surface-kst.json` 의 before-image 계약은 여기서 끝난다.** `rows` 안 `DST-GAP`
-     12행(Seoul 1960-05-01 ×3 · 1961-08-10 ×3 · 1987-05-10 ×3 · 1988-05-08 ×3)이 값으로 바뀐다.
-     PR 본문에 그 사실을, 커밋 메시지에 **바뀐 줄 수와 이유**를 적는다(README 의 `--emit` 표 규약).
-   - 🔴 **같은 커밋에서 가드 3곳을 갈지 않으면 fail-closed 가 죽는다**(원칙 10):
-     - 검사 ② `🔴 서머타임 존이 전부 최소 1건의 구멍을 낸다(0 이면 존이 죽은 것)`(:637) — 지금은
-       구멍 ≥1 이 **TZ 핀이 먹었다는 증거**다. 0 이 되면 이 자기검사가 뒤집히므로 살아있음을 다른
-       것으로 재야 한다(예: 존별 `Intl` 오프셋이 서로 다르다 · 전이 탐색이 ≥1건을 찾았다).
-     - 검사 ⑤ `🔴 KST 구멍 표본도 부품 축에서는 값이 나온다`(:767) — `gapKeys.size > 0` 을 전제한다.
-       `rows` 에 `DST-GAP` 이 없어지면 **빈 집합을 재는 검사**가 된다.
-     - 검사 ③ 의 하한 `floor = SAMPLES.length - base.gaps - other.gaps`(:660) — 구멍이 0 이면
-       하한이 표본 전체가 된다. 의도한 강화지만 숫자가 맞는지 한 번 눈으로 확인할 것.
-   - ✅ 문구는 **이 결정과 같은 PR 에서 이미 PR-E 로 돌려놨다**: `README-ganji-surface.md` 3곳 ·
-     census `note` + 그것을 쓰는 `--emit`(:553) · 가드 머리주석(:26) · 보고 줄(:790·793) ·
-     `.github/workflows/pr-ci.yml:305`. PR-E 가 끝나면 그 문구들을 **"완료"로** 다시 고친다.
+착수 전에 적어 둔 명세다. **실제로 어떻게 됐는지는 문서 맨 위 PR-E 절**에 있고, 아래는 그
+명세에 결과를 표시해 둔 것이다.
+
+1. ✅ `computeGanjiFromDate` · `_partsFromLocalDate` · `getGanji(Date)` 어댑터 삭제.
+   🔴 실제로는 **6벌**이었다 — 위 셋에 더해 `KasiEngine.solarToLunar` · `buildGanjiRepairCandidate` ·
+   `_calculateMonthBranchBySolarTerm` 도 `_kasiPartsFromLocalDate` 를 타고 있었다.
+   삭제 근거: `git grep` 축(미러 제외)에서 **프로덕션 호출부 0건** — 남은 호출부는 가드 4개뿐이라
+   같은 커밋에서 부품으로 옮겼다(`verify-ganji-surface-parity` · `verify-shell-korean-calendar` ③④⑥-b⑪⑫ ·
+   `verify-solar-term-frame-kasi` ⑦ · `test-saju-solar-term-regression`).
+   🔴 계측 전역 `__CD_GANJI_LOCAL_DATE_READS__` 는 **함께 지웠다** — 어댑터가 사라지면 쓰는 쪽이
+   없어 계측만 남은 데드코드가 된다. 그 자리를 검사 ⑭ 가 "전역이 아예 없다"로 대신 지킨다.
+2. ✅ 유효성 5곳을 `Date.UTC` 왕복으로. 2월 30일은 여전히 거르고 DST 구멍은 안 거른다.
+   `app/_lib/normalize-ziwei-input.ts` · `app/fortune/prompt-hub/{dangsaju-calc,kusei-calc,lite-prompt-tools}.ts` ·
+   `js/luck-sync-diary.js` `_parseDateKeyToDate`. 🔴 마지막 것은 **유효성만** 옮겼다 —
+   `_makeLocalNoonDate` 가 돌려주는 Date 를 5곳이 `getTime()`·`getDay()` 로 쓰는 **표시 축**이라
+   그 캐리어는 그대로 두고, 검사 ⑬ 의 `ALLOWED` 에 사유와 함께 등재된 상태를 유지한다.
+3. ~~`_toIsoLocal` 삭제~~ ✅ **PR-C 에서 끝났다**(`_partsToIsoLocal`).
+4. 🔴 **야자시 의미 결정 — 이 계획에서 유일하게 남은 칸. 사용자 답 대기.**
+   - `tarot:13261` 의 `true` 는 ✅ PR-D 의 부품 전환에서 이미 사라졌다(값 변화 0).
+   - `tarot:11626`(=현행 `:11629`) 이 **유일한 결정 지점**이고, 실측 표·선택지·바꿀 자리는
+     **문서 맨 위 "남은 것 하나"** 에 있다. 요약: 23시대 표본 1,944건 중 **1,924건(99.0%)** 이동.
+   - `kasi-calendar-service.js` `_fallbackLunarFromSolar` 도 같은 결정에 걸린다.
+   - 🔴 결정 전에는 `yaja` 기본값 ON(=현행)을 그대로 뒀다.
+5. ✅ 신설 검사 ⑭: `KasiCalendarService`·`KasiEngine` 공개 표면에 Date 를 받는 함수 0개.
+   네 갈래로 잰다 — ① 지운 이름 6벌이 실제로 없다 ② 살아남은 부품 표면에 `new Date(...)` 를
+   넘기면 전부 값을 안 낸다(`fn.length` 가 아니라 **실행**으로) ③ 🔴 그런데 같은 표면이 **부품에는**
+   답한다(전부 죽어서 ②가 통과하는 것을 막는다) ④ 계측 전역이 남아 있지 않다.
+6. ✅ **`ganji-dst-gap-census.json` 을 문자 그대로 0 으로.** `SURFACES`(Date 축 12벌)와
+   `probeSample` 의 gap 갈래를 걷어내고 부품 축을 `rows`/`nullMap` 의 정본으로 올린 뒤 `--emit`
+   으로 두 픽스처를 같이 다시 뽑았다. census 는 값이 아니라 **구조적으로** 0 이다.
+   - 🔴 예고대로 가드 3곳을 같은 커밋에서 갈았다:
+     - 검사 ② `서머타임 존이 전부 최소 1건의 구멍` → **`… 최소 1건의 접힌 벽시계`** 로.
+       구멍(=버린 표본)과 접힌 벽시계(=그 존에 없는 시각)를 분리해 census 에 `foldedWallClocks`
+       필드를 추가했다. 숫자는 옛 `gaps` 와 정확히 같다 — 즉 매트릭스는 그대로다.
+     - 검사 ⑤ `KST 구멍 표본도 부품 축에서는 값이 나온다` → ③ 안으로 흡수.
+       `TZ=<존> 의 접힌 벽시계 N건도 KST 와 같다` 가 그 자리를 대신한다(집합이 비면 실패한다).
+     - 검사 ③ 의 하한 `floor = SAMPLES - gaps` → **`제외 없이 표본 전부`** 로. 의도한 강화다.
+   - ✅ **before-image 계약은 무손실로 넘겼다.** 옛 픽스처와 새 픽스처를 표면 이름으로 짝지어
+     1,504행 × 12벌 = **18,048셀** 대조 — 값 0건·`isNull` 0건 불일치(문서 맨 위 참조).
+   - ✅ 문구는 전부 "달성"으로 돌렸다: `README-ganji-surface.md` · census `note` · 가드 머리주석 ·
+     보고 줄 · `.github/workflows/pr-ci.yml`.
 
 ---
 
@@ -453,11 +580,11 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 | R2 | **월 인덱스 off-by-one** 4건 | 세운·유년 표시라 눈에 안 띈다. 월건 한 칸 = 십신 전부 이동 | KST 픽스처가 바로 잡는다 + 리뷰 체크리스트 |
 | R3 | **`solarToLunar` 에 옵션을 붙이면 `true` 둘이 의미를 갖는다** | 야자시 OFF → 자미 14주성 이동 | 인자 1개 고정. 옵션은 새 이름에만 |
 | R4 | **`_normalizeTerms` 의 `atLocal` 이 지금 Date 왕복으로 접히고 있다** | KASI 응답 + DST 구멍이 겹칠 때만. `get24DivisionsInfo` 는 403 이라 **가드에서 재현이 안 된다** | 픽스처에 **API 응답 모킹 갈래** — `__test.normalizeTerms` 에 KASI 형태 행을 먹여 `atLocal` 대조 |
-| R5 | **가드가 `buildGanjiRepairCandidate`·`_cdCivilDayPillar` 를 전역 이름으로 꺼내 쓴다** | 가드는 초록인데 재는 대상이 바뀐다(`extractFunctionSource` 는 이름으로 자른다) | PR-D 에서 옛 이름 어댑터 유지, PR-E 에서 가드와 소스를 같은 커밋에 |
+| R5 | ✅ **닫혔다(PR-E)** — 가드가 `buildGanjiRepairCandidate`·`_calculateMonthBranchBySolarTerm` 를 전역 이름으로 꺼내 썼다 | 가드는 초록인데 재는 대상이 바뀐다 | PR-D 가 옛 이름 어댑터를 유지했고, PR-E 가 가드와 소스를 같은 커밋에서 `…FromParts` 로 옮겼다 |
 | R6 | **localStorage 캐시 TTL 180일이 옛 값을 되살린다** | 캐시 보유자는 옛 값을 계속 본다 | 출력 스키마 불변이므로 **값이 같아야 정상**. 회전이 필요하면 멈추고 보고 |
-| R7 | **캐시키 회전으로 옛 셸 + 새 셸이 최대 7일 공존** | 규약이 갈리면 그 창에서 조용히 null | PR-C 의 어댑터 필수(앞뒤 양방향). `sync:public` 을 같은 커밋에 |
+| R7 | ✅ **이 축에는 해당 없음 — 실측(PR-E)** | — | 간지 경로 js 는 `index-inline-runtime.js:2193` 체인이 **전부 같은 `?v=build-<hash>`** 로 부르고 `sync:public` 이 빌드마다 그 토큰을 돌린다. 옛 파일과 새 파일이 섞일 캐시 키 조합이 없다 → 어댑터를 유예 없이 지웠다. `sync:public` 을 같은 커밋에 담는 것은 그대로 필수 |
 | R8 | **CI 는 UTC, 개발은 KST** | 둘 다 초록인데 서로 다른 것을 잰다 | `pinTimezone()` + 6종 매트릭스 + 오프셋 자기검사 |
-| R9 | **`_partsOf` 를 지금보다 엄격하게 만들면** 접혀서 계산되던 입력이 null 이 된다 | "고침"이지만 무손실 계약 위반 | PR-C 는 현행과 같은 정규화. 엄격화는 PR-E |
+| R9 | **`_partsOf` 를 지금보다 엄격하게 만들면** 접혀서 계산되던 입력이 null 이 된다 | "고침"이지만 무손실 계약 위반 | PR-C 는 현행과 같은 정규화. 🔴 **PR-E 도 엄격화를 안 했다** — 유효성 5곳만 UTC 왕복으로 옮겼고 `_partsOf` 의 정규화는 그대로다. 엄격화가 필요하면 별건으로 실측과 함께 |
 | R10 | **`js/destiny-profile.js` 에 손이 닿으면** 핀 25곳 + `payment-freeze` 회전 필요, `verify:payment-choice-parity` 는 **CI 에서만** 터진다 | 로컬 전부 초록인데 CI 만 빨갛다 | 전 PR 이 그 파일을 안 건드리는 것이 계약 |
 | R11 | **`verify:ganji-surface-parity` 가 fast 잡 예산을 넘긴다** | 가드가 있는데 안 돈다 | 표본 수를 재고 예산 안에. 쪼개도 **둘 다 fast 잡**에 |
 | R12 | **픽스처가 "지금 값"이라 결함(R1 의 null 지도)을 정본으로 고정한다** | 회귀 가드가 결함을 지킨다 | **의도적이다** — "회귀 없음이 최우선"이 사용자 요구. README 에 "정답이 아니라 현행"을 명시하고 별건으로 넘긴다 |

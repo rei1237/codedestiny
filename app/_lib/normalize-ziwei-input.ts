@@ -40,8 +40,11 @@ function isValidDate(y: number, m: number, d: number): boolean {
   if (y < 1900 || y > 2099) return false;
   if (m < 1 || m > 12) return false;
   if (d < 1 || d > 31) return false;
-  const dt = new Date(y, m - 1, d);
-  return dt.getFullYear() === y && dt.getMonth() === m - 1 && dt.getDate() === d;
+  // 🔴 UTC 축으로 왕복한다. 로컬 Date 로 재면 그 벽시계가 없는 타임존(서머타임 시계 앞당김)에서
+  // JS 가 조용히 접어 **유효한 생일을 거부**한다 — 왕복 검사가 곧 접힘 탐지기이기 때문이다.
+  // 2월 30일 같은 없는 날짜는 UTC 축에서도 그대로 걸러진다.
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  return dt.getUTCFullYear() === y && dt.getUTCMonth() === m - 1 && dt.getUTCDate() === d;
 }
 
 function normalizeGender(raw: unknown): ZiweiGender | null {

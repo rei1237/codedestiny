@@ -1,8 +1,16 @@
 {
-  "note": "🔴 서머타임 구멍의 **현행 크기**다. 총계 0 은 PR-E(Date 진입점 제거)의 졸업 조건이다 — PR-D 로는 안 움직인다(구멍을 만드는 것은 셸이 아니라 이 가드의 Date 표면이다).",
+  "note": "🔴 `gaps` 는 **대조에서 버린 표본 수**다. PR-E 가 Date 진입점을 지워 버리는 갈래 자체가 사라졌으므로 이제 구조적으로 전부 0 이다 — 값이 아니라 구조가 0 을 만든다. 옆의 `foldedWallClocks` 는 그 존에 **존재하지 않는 벽시계 표본 수**로, 0 이 아니어야 정상이다(존이 살아 있다는 증거). 둘을 헷갈리지 말 것.",
   "generatedBy": "scripts/verify-ganji-surface-parity.mjs --emit",
   "sampleCount": 1516,
   "gaps": {
+    "Asia/Seoul": 0,
+    "UTC": 0,
+    "America/New_York": 0,
+    "Pacific/Apia": 0,
+    "Pacific/Kiritimati": 0,
+    "Australia/Lord_Howe": 0
+  },
+  "foldedWallClocks": {
     "Asia/Seoul": 12,
     "UTC": 0,
     "America/New_York": 21,

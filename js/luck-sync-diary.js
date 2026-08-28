@@ -262,7 +262,8 @@ function _lsdText(key) {
   }
 
   /* 🔴 달력 표시 축 전용이다. 간지 축에서는 쓰지 말 것 — 벽시계가 그 타임존에 없으면 접힌다.
-     이 축(달력 그리드·요일·일수 계산)의 부품 전환은 PR-E 다. */
+     PR-E 는 이 축의 **유효성 검사**만 UTC 왕복으로 옮겼다(없는 날짜 키를 거부하던 결함).
+     달력 그리드·요일·일수 계산이 로컬 Date 를 쓰는 것은 그대로다 — 표시 축이라 간지를 안 만든다. */
   function _makeLocalNoonDate(year, monthIndex, day) {
     return new Date(Number(year), Number(monthIndex), Number(day), 12, 0, 0, 0);
   }
@@ -290,9 +291,12 @@ function _lsdText(key) {
     var y = Number(match[1]);
     var m = Number(match[2]);
     var d = Number(match[3]);
-    var dt = _makeLocalNoonDate(y, m - 1, d);
-    if (dt.getFullYear() !== y || dt.getMonth() !== m - 1 || dt.getDate() !== d) return null;
-    return dt;
+    /* 🔴 유효성은 UTC 축에서 왕복으로 잰다. 정오 로컬 Date 로 재면 그 날짜가 통째로 없는
+       타임존(Pacific/Apia 2011-12-30)에서 접혀 **실재하는 날짜 키를 거부**한다 — 왕복 검사가
+       곧 접힘 탐지기이기 때문이다. 2월 30일 같은 없는 날짜는 UTC 축에서도 그대로 걸러진다. */
+    var probe = new Date(Date.UTC(y, m - 1, d));
+    if (probe.getUTCFullYear() !== y || probe.getUTCMonth() !== m - 1 || probe.getUTCDate() !== d) return null;
+    return _makeLocalNoonDate(y, m - 1, d);
   }
 
   function _getSeoulDateParts(date) {
