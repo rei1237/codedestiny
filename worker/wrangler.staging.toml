@@ -272,6 +272,11 @@ GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_TIMEOUT_MS = "45000"
 WORKERS_AI_ENABLED = "false"
+# SNS 일일 자동 발행 스위치. 스테이징은 crons = [] 라 이 태스크가 트리거되지 않으므로
+# 켜져 있어도 발행은 일어나지 않는다. 값을 프로덕션과 같게 두는 이유는 드리프트 가드
+# (verify:worker-config-parity)가 [vars] 의 값 불일치를 실패로 보기 때문이다.
+# 🔴 스테이징에 crons 를 넣는 날에는 이 줄을 "0" 으로 내려야 같은 채널에 두 번 발행되지 않는다.
+SNS_DAILY_POST_ENABLED = "1"
 # Worker-native route groups:
 # - /api/auth/*
 # - /api/payments/*

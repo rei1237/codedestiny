@@ -257,6 +257,12 @@ GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_MODEL = "gemini-2.5-flash"
 PREMIUM_GEMINI_TIMEOUT_MS = "45000"
 WORKERS_AI_ENABLED = "true"
+# SNS 일일 자동 발행(worker/lib/sns-daily-post-task.js). 2026-08-28 활성화.
+# 발행 대상은 텔레그램 채널 @Codedestinyofficial (chat id -1004394943772) 이고,
+# 봇 @My_codedestiny_bot 이 그 채널의 관리자다(can_post_messages 실측 확인).
+# 🔴 코드 기본값은 꺼짐이며 이 줄이 프로덕션의 실제 값이다 — 끄려면 "0" 으로 바꾼다.
+# 🔴 대상 채널은 TELEGRAM_CHAT_ID 시크릿이 정하고, 이 값은 스위치일 뿐이다.
+SNS_DAILY_POST_ENABLED = "1"
 # Worker-native route groups:
 # - /api/auth/*
 # - /api/payments/*
