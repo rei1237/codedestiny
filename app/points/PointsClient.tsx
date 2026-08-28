@@ -2615,6 +2615,42 @@ function MoonlightMonthlyCreditCard({
   );
 }
 
+type OverseasCharge = { notice: string; approx: (krw: number) => string };
+
+/**
+ * 해외카드 결제 고지 — 이용권 상점용.
+ *
+ * 🔴 문구·환산 규격의 정본은 js/core/checkout-entry.js 하나다(결제창 3종과 **같은 i18n 키**를 쓴다).
+ *    여기서 문구를 새로 적으면 12개 로케일을 또 손으로 써야 하고, 결제창과 상점의 고지가 갈라진다.
+ * 🔴 마운트 뒤에만 조회한다 — checkoutEntry 는 레거시 스크립트가 올라온 뒤에야 존재해서
+ *    렌더 중에 부르면 SSR 과 첫 클라 렌더에서 throw 한다(legacy-core-runtime 계약).
+ * 한국어 화면에서는 null 이라 기존 마크업과 완전히 같다.
+ */
+function useOverseasCharge(): OverseasCharge | null {
+  const [charge, setCharge] = useState<OverseasCharge | null>(null);
+  useEffect(() => {
+    try {
+      // 빈 문자열이면 한국어 화면이다 — 고지를 통째로 생략한다(국내 사용자에게는 노이즈).
+      if (checkoutEntry.buildOverseasChargeNoticeHtml({ amountKrw: 0 }) === "") return;
+      const notice = checkoutEntry.text(
+        "payment.overseas.chargedInKrw",
+        "결제는 원화(KRW)로 승인됩니다. 해외 카드(VISA · Mastercard · JCB · Diners)도 사용할 수 있으며, 환전은 카드사 환율로 이루어집니다.",
+      );
+      setCharge(() => ({
+        notice,
+        approx: (krw: number) => {
+          // 🔴 표시 전용이다. 이 값을 결제 금액으로 쓰면 화면 금액 ≠ 승인 금액이 된다
+          //    (승인 통화는 언제나 KRW — scripts/verify-overseas-payment-notice.mjs 가 막는다).
+          const amount = checkoutEntry.formatReferenceAmount(krw);
+          return amount ? checkoutEntry.text("payment.overseas.approx", "약 {amount} 상당", { amount }) : "";
+        },
+      }));
+    } catch {
+      // 런타임이 아직 없으면 고지를 생략한다 — 결제 자체와 무관한 부가 표기다.
+    }
+  }, []);
+  return charge;
+}
 function MoonlightShopPlans({
   subscription,
   onSubscribe,
@@ -2633,6 +2669,7 @@ function MoonlightShopPlans({
   formatLocale: string;
 }) {
   const activeTierRank = subscription.isActive ? getSubscriptionTierRank(subscription.tier) : 0;
+  const overseasCharge = useOverseasCharge();
 
   return (
     <section className="moon-card rounded-[24px] p-5 sm:p-6" aria-label={copy.subscriptionAria}>
@@ -2694,6 +2731,9 @@ function MoonlightShopPlans({
                 </div>
                 <div className="flex flex-col gap-3 sm:min-w-[176px] sm:items-end">
                   <p className="text-2xl font-black text-[color:var(--moon-gold)]">{formatWon(plan.wonPrice, copy, formatLocale)}</p>
+                  {overseasCharge?.approx(plan.wonPrice) ? (
+                    <p className="text-xs font-bold text-[color:var(--moon-mist)]">{overseasCharge.approx(plan.wonPrice)}</p>
+                  ) : null}
                   <button
                     type="button"
                     onClick={() => onSubscribe(plan)}
@@ -2711,6 +2751,9 @@ function MoonlightShopPlans({
           );
         })}
       </div>
+      {overseasCharge ? (
+        <p className="mt-4 text-xs font-bold leading-relaxed text-[color:var(--moon-mist)]">{overseasCharge.notice}</p>
+      ) : null}
     </section>
   );
 }

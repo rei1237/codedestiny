@@ -2049,6 +2049,10 @@
     },
     "access": {
       "passAppliedContinue": "Abierto con su pase."
+    },
+    "overseas": {
+      "approx": "approx. {amount}",
+      "chargedInKrw": "Payment is authorized in Korean Won (KRW). International cards (VISA · Mastercard · JCB · Diners) are accepted, and your card issuer applies its own exchange rate."
     }
   },
   "auth": {
@@ -7885,7 +7889,7 @@
     "successErased": "Toda tu información personal ha sido eliminada de inmediato.",
     "successRedirect": "Redirigiendo a la página de inicio en 3 segundos…",
     "warningHeading": "Confirma antes de eliminar tu cuenta",
-    "warningPointsPrefix": "Tus puntos y todos tus datos serán",
+    "warningPointsPrefix": "Tus pases y todos tus datos serán",
     "warningPointsStrong": "eliminados de forma permanente e inmediata",
     "warningPointsSuffix": ".",
     "warningRejoinPrefix": "Si vuelves a registrarte con el mismo correo, tus datos anteriores",

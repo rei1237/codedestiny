@@ -450,7 +450,7 @@ const BILLING_FETCH_DEFAULT_TIMEOUT_MS = 20000;
 const BILLING_FETCH_CHECKOUT_TIMEOUT_MS = 40000;
 const BILLING_FETCH_CONFIRM_TIMEOUT_MS = 60000;
 const PAYMENT_CHOICE_IN_FLIGHT_TTL_MS = 45000;
-export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-00ace0f98d79";
+export const PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-31da94916c77";
 // 🔴 이용권 스냅샷의 상수·읽기·쓰기·판정은 전부 js/core/pass-verdict.js 가 소유한다.
 // 셸(index.html)·독립 정적(js/destiny-profile.js)과 **같은 localStorage 키**를 공유하므로 값이 갈리면
 // 같은 사용자가 어느 런타임에서 클릭했느냐에 따라 판정이 달라지고, 한쪽이 만료로 보고 지운 캐시가
@@ -1170,6 +1170,12 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
   // 카드 뼈대(배지·추천 리본·go 스트립·variant 클래스) 조립은 세 렌더러 공유 함수 하나가 맡는다
   // (js/core/checkout-entry.js buildPaymentChoiceCardsHtml). React 만 갖는 aria-label·잔량 예측 문구는
   // 여기서 계산해 spec 으로 넘긴다 — 렌더러별 실제 정보량 차이라 억지로 지우지 않는다.
+  // 🔴 해외카드 고지. 문구·환산 규격은 세 렌더러 공유 코어 하나가 소유한다
+  // (js/core/checkout-entry.js buildOverseasChargeNoticeHtml) — 사본을 만들면 한 렌더러만 낡는다.
+  const overseasNoticeHtml = checkoutEntry.buildOverseasChargeNoticeHtml({
+    amountKrw: directAmount,
+    escape: escapePaymentText,
+  });
   const paymentChoiceButtonsHtml = checkoutEntry.buildPaymentChoiceCardsHtml({
     order: checkoutRecommendation.order || [],
     recommendedOption,
@@ -1247,6 +1253,7 @@ async function openReactPaymentChoiceModalInner(options: Record<string, unknown>
         </div>
         ${directMethodStepHtml ? `<div data-choice-step="methods" hidden>${directMethodStepHtml}</div>` : ""}
         <div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>
+        ${overseasNoticeHtml}
         <p class="cd-direct-payment-legal">${escapePaymentText(checkoutEntry.text("payment.directModal.legal.provisionTiming", "본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다."))}</p>
         <div class="cd-direct-payment-actions">
           <button type="button" class="cd-direct-payment-cancel" data-mode="cancel">${escapePaymentText(checkoutEntry.text("common.cancel", "취소"))}</button>
@@ -2263,7 +2270,9 @@ function resolveRuntimeBillingPricing(input: BillingCoinGateInput, eligibility: 
     cost,
     coinPrice: cost,
     displayUnit: toText(rawPricing.displayUnit || "coin"),
-    displayPrice: toText(rawPricing.displayPrice || formatCoinValueWon(cost)),
+    // 🔴 서버의 displayPrice 는 "30,000원" 으로 굳어 있다(worker/lib/billing-feature-registry.js).
+    //    그 응답은 가격이 국가 불변이라 캐시되므로 로케일 반영은 클라 몫이다 — formatPaymentWon 이 정본.
+    displayPrice: toText(amountKRW > 0 ? formatPaymentWon(amountKRW) : (rawPricing.displayPrice || formatCoinValueWon(cost))),
     reason: toText(rawPricing.reason || input.reason || featureKey),
     currency: toText(rawPricing.currency || "KRW"),
     cashPrice: amountKRW,

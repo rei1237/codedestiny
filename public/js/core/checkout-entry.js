@@ -258,6 +258,108 @@
     return checkoutText("payment.currency.krw", fallbackText || "{amount}원", { amount: amount });
   }
 
+  // ── 해외카드 결제 — 참고 환산과 원화 청구 고지 ───────────────────────────────────────
+  //
+  // 🔴 **지원 통화는 KRW 하나다.** KG이니시스 해외카드결제 특약은 승인·정산이 모두 원화다
+  //    (help.portone.io/content/inicis-international, 2026-08-28 확인). 아래 표는 화면에 괄호로
+  //    개산가를 보여 주기 위한 것이고, **결제 금액 계산에 쓰지 않는다.** 환산값이
+  //    totalAmount·paymentAmount·currency 로 흘러들어가면 화면 금액 ≠ 승인 금액이 되어 PG 심사에서
+  //    걸린다 — 그걸 scripts/verify-overseas-payment-notice.mjs 가 막는다.
+  //
+  // 🔴 실시간 환율 API 를 부르지 않는다. 환율이 움직일 때마다 표시가가 바뀌면 그것만으로 가격
+  //    정책이 되어 버리고, 실제 청구는 여전히 KRW 라 사용자에게 두 숫자가 어긋난다.
+  //    값은 app/nakshatra/_lib/copy.ts 의 기존 표와 같은 2026-08 기준이다.
+  var REFERENCE_FX_AS_OF = "2026-08";
+  /** 통화 1단위당 원. 로케일에 해당 항목이 없으면 보조 표기를 아예 그리지 않는다. */
+  var REFERENCE_FX_BY_LANG = {
+    en: { code: "USD", symbol: "$", krwPerUnit: 1350 },
+    ja: { code: "JPY", symbol: "¥", krwPerUnit: 9.2 },
+    "zh-CN": { code: "CNY", symbol: "¥", krwPerUnit: 188 },
+    "zh-TW": { code: "TWD", symbol: "NT$", krwPerUnit: 43 },
+    de: { code: "EUR", symbol: "€", krwPerUnit: 1460 },
+    fr: { code: "EUR", symbol: "€", krwPerUnit: 1460 },
+    nl: { code: "EUR", symbol: "€", krwPerUnit: 1460 },
+    es: { code: "EUR", symbol: "€", krwPerUnit: 1460 },
+    vi: { code: "VND", symbol: "₫", krwPerUnit: 0.0551 },
+    hi: { code: "INR", symbol: "₹", krwPerUnit: 16.2 },
+    ms: { code: "MYR", symbol: "RM", krwPerUnit: 288 },
+  };
+
+  function currentLang() {
+    try {
+      var win = runtimeWindow();
+      return win && typeof win.cdGetCurrentLanguage === "function" ? text(win.cdGetCurrentLanguage()) : "";
+    } catch (_langError) {
+      return "";
+    }
+  }
+
+  /** 한국어 화면인가. 고지·보조 표기를 통째로 생략하는 유일한 조건이다. */
+  function isKoreanSurface() {
+    var lang = currentLang();
+    return !lang || lang.toLowerCase().indexOf("ko") === 0;
+  }
+
+  /**
+   * 개산가는 **유효숫자 2자리**로 자른다. 그래야 $7.41 처럼 확정가로 보이지 않고, 환율 표가
+   * 조금 낡아도 표시가가 틀렸다고 읽힐 여지가 줄어든다.
+   */
+  function roundToTwoSignificantDigits(value) {
+    var n = Number(value);
+    if (!isFinite(n) || n <= 0) return 0;
+    var magnitude = Math.pow(10, Math.floor(Math.log10(n)) - 1);
+    return Math.round(n / magnitude) * magnitude;
+  }
+
+  /**
+   * 원화 금액의 현지통화 **참고** 표기(예: "$7.4"). 한국어거나 환산표에 없는 로케일이면
+   * 빈 문자열을 돌려 호출부가 보조 표기를 통째로 생략하게 한다.
+   * 🔴 리턴값은 **표시 전용**이다 — 결제 요청 필드에 실으면 안 된다.
+   */
+  function formatReferenceAmount(krwAmount) {
+    var krw = Number(krwAmount);
+    if (!isFinite(krw) || krw <= 0) return "";
+    if (isKoreanSurface()) return "";
+    var fx = REFERENCE_FX_BY_LANG[currentLang()];
+    if (!fx) return "";
+    var converted = roundToTwoSignificantDigits(krw / fx.krwPerUnit);
+    if (converted <= 0) return "";
+    var digits = Math.max(0, 1 - Math.floor(Math.log10(converted)));
+    return fx.symbol + converted.toLocaleString(displayLocale(), {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits,
+    });
+  }
+
+  /**
+   * 결제창 하단에 붙는 원화 청구 고지 한 줄. 한국어 화면에서는 빈 문자열이다
+   * (국내 사용자에게는 자명한 사실이라 결제 임계화면의 노이즈다).
+   *
+   * 🔴 세 렌더러(정적 셸·React·독립 정적)가 문구를 각자 적지 않고 이 하나를 부른다 — 사본을
+   *    만들면 한 렌더러만 고지가 낡는다(buildDirectPayMethodStepHtml 과 같은 계약).
+   * 🔴 기존 .cd-direct-payment-legal 스타일을 그대로 상속한다 — CSS 를 늘리면
+   *    PAYMENT_CHOICE_CSS_RULES 가 바뀌고 verify:payment-choice-parity 가 세 곳을 다시 맞춰야 한다.
+   * 🔴 data-mode 를 붙이지 않는다(세 렌더러가 "누르면 닫는" 노드로 일괄 처리한다).
+   */
+  function buildOverseasChargeNoticeHtml(input) {
+    var opts = input || {};
+    if (isKoreanSurface()) return "";
+    var escape = opts.escape || function (value) { return String(value === null || value === undefined ? "" : value); };
+    var approx = formatReferenceAmount(opts.amountKrw);
+    var approxHtml = approx
+      ? escape(checkoutText("payment.overseas.approx", "약 {amount} 상당", { amount: approx })) + " · "
+      : "";
+    return (
+      '<p class="cd-direct-payment-legal" data-overseas-notice>'
+      + approxHtml
+      + escape(checkoutText(
+        "payment.overseas.chargedInKrw",
+        "결제는 원화(KRW)로 승인됩니다. 해외 카드(VISA · Mastercard · JCB · Diners)도 사용할 수 있으며, 환전은 카드사 환율로 이루어집니다.",
+      ))
+      + "</p>"
+    );
+  }
+
   function runtimeWindow() {
     try {
       return typeof window !== "undefined" ? window : null;
@@ -823,6 +925,9 @@
     displayLocale: displayLocale,
     pgWindowLocale: pgWindowLocale,
     formatKrwAmount: formatKrwAmount,
+    REFERENCE_FX_AS_OF: REFERENCE_FX_AS_OF,
+    formatReferenceAmount: formatReferenceAmount,
+    buildOverseasChargeNoticeHtml: buildOverseasChargeNoticeHtml,
     mintPaymentAttemptScope: mintPaymentAttemptScope,
     resolveCheckoutRecommendation: resolveCheckoutRecommendation,
     buildPaymentChoiceCardsHtml: buildPaymentChoiceCardsHtml,

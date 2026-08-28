@@ -2049,6 +2049,10 @@
     },
     "access": {
       "passAppliedContinue": "Đã mở bằng thẻ của bạn."
+    },
+    "overseas": {
+      "approx": "approx. {amount}",
+      "chargedInKrw": "Payment is authorized in Korean Won (KRW). International cards (VISA · Mastercard · JCB · Diners) are accepted, and your card issuer applies its own exchange rate."
     }
   },
   "auth": {
@@ -7885,7 +7889,7 @@
     "successErased": "Toàn bộ thông tin cá nhân của bạn đã được xóa ngay lập tức.",
     "successRedirect": "Sẽ chuyển về trang chủ sau 3 giây…",
     "warningHeading": "Vui lòng xác nhận trước khi xóa tài khoản",
-    "warningPointsPrefix": "Điểm và toàn bộ dữ liệu của bạn sẽ bị",
+    "warningPointsPrefix": "Thẻ và toàn bộ dữ liệu của bạn sẽ bị",
     "warningPointsStrong": "xóa vĩnh viễn ngay lập tức",
     "warningPointsSuffix": ".",
     "warningRejoinPrefix": "Nếu đăng ký lại bằng cùng email sau khi xóa, dữ liệu trước đó",

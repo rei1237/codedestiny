@@ -10,6 +10,7 @@ import { getSeoProfileKeywords } from "../../lib/seo/entity-registry.mjs";
 import { mergeKeywords } from "../../lib/seo-metadata";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
+import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/naming-ai/";
 const PAGE_TITLE = "무료 작명 사이트 · 사주 용신 이름 추천 | 훈민정음 작명소";
@@ -90,6 +91,9 @@ const namingAiJsonLd = [
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "사주 작명 서비스",
+    // 🔴 가격은 서버 가격표에서 푼다(lib/seo/paid-offer.ts). 못 풀면 null 이라 offers 가 빠진다.
+    //    통화는 언제나 KRW — 이니시스 해외카드 특약은 승인·정산이 모두 원화다.
+    offer: buildKrwOffer("premium-naming-prompt", PAGE_PATH),
   }),
   buildFaqPageJsonLd(namingAiFaqItems),
   buildBreadcrumbJsonLd([
