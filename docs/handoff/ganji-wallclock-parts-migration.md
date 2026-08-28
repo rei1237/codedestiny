@@ -71,6 +71,51 @@ PR-2 가 `kst` 결함을 고쳤지만 **localStorage 180일 보유자에게는 �
 캐시(`LEGACY_CACHE_TTL_MS` 30분 · `CALENDAR_CACHE_TTL_MS` 12시간)다. 도달성은 위 "PR-2 —
 도달성" 표 그대로(`localOnly:true` 는 `js/saju-engine.js` 한 곳뿐, 나머지는 KASI 갈래를 탈 수 있다).
 
+### 🔴 남은 계획 항목 — 착수 전에 이 절을 읽어라 (2026-08-28 실측)
+
+**PR-4 — `_partsOf` 복제 동일성 가드 (값 변화 0).**
+
+🔴 **원 계획의 발견 규칙이 틀렸다.** *"본문에 `Date.UTC(` · `getUTCFullYear()` ·
+`getUTCMonth() + 1` 을 전부 포함하는 함수"* 로 스캔하면 **2벌이 아니라 7벌**이 잡힌다 —
+`_partsOf` · `_dpHasValidProfileDate` · `_addDaysToParts` · `_kasiPartsOf` ·
+`_shiftDatePartsByDays` · `_cdCivilDayPillar` · `_formatUtcFromLocal`.
+"정확히 2벌" 단언을 그대로 쓰면 **즉시 빨강**이다.
+
+대안(실현가능성 실측함): **전수 정규화 지문 인덱스.** `GANJI_PATH_FILES` 7개에서
+`function <이름>(...)` 선언을 전부 잘라 이름 → `F`, 파라미터 → 위치 토큰, 주석 제거,
+공백 정규화한 지문으로 묶으면 — **함수 1,839개 · 서로 다른 지문 1,821개 · 중복 그룹 14개**,
+그중 `kasi-calendar-service.js:_partsOf ↔ saju-engine.js:_kasiPartsOf` 가 **332자 지문의
+단독 그룹**이다(나머지 13개는 `escapeHtml`·`_pad2` 류의 무해한 복제 = 정상 배경).
+⇒ lock 지문을 가진 함수 집합이 정확히 그 2개인지 보면, 한 벌이 드리프트할 때 그룹에서 빠져
+1벌이 되므로 **동일성 단언까지 한 검사가 흡수**한다.
+
+- 🔴 **검사 번호는 ⑮ 다** — ⑭ 는 PR-4′ 가 무버전 참조 가드로 썼다.
+- **public 미러 지문 대조는 빼라**(원칙 6). `verify:public-mirror-fresh` 가 생성기를 실제로
+  돌려 대조하고, 실측상 미러 7개가 전부 정본과 blob 해시 동일이다.
+- 절단은 `scripts/lib/js-source-slice.mjs` 의 `sliceFunction` 을 import 해서 쓴다 —
+  `verify-shell-korean-calendar.mjs` 자체 `extractFunctionSource` 는 문자열·정규식 리터럴을
+  처리하지 않는다.
+- **R9 대상 곳수 정정**: 계획의 "`_kasiPartsOf` 13곳" 은 `js/saju-engine.js` 안만 센 값이다.
+  실측은 saju-engine.js 13곳(래퍼 제외) + `saju-engine-tarot-sukuyo-quantum.js` **5곳** = 18곳.
+  `_partsOf` 4곳 · 공개 `partsOf` 외부 3곳을 더해 **총 25곳**(계획의 20곳이 아니다).
+- `_partsValid` 는 `js/core/kasi-calendar-service.js` 에 있고 호출부 4곳.
+
+**PR-5 — `getGanjiFromParts` null 전환 영향 측정 (측정 전용).** PR-3 이 머지됐으므로 착수 가능.
+🔴 표본 생성기 추출 범위가 계획보다 넓다 — `verify-ganji-surface-parity.mjs` 의 `buildSamples()`
+는 같은 파일의 **지역 정의** `TZ_MATRIX` · `YEARS` · `LEAP_SCAN_FROM/TO` · `forwardTransitions` ·
+`spread` · `partsOfWallMs` 에 의존한다. `scripts/lib/ganji-samples.mjs` 로 옮길 때 이들도 같이
+가고 코어 `KoreanCalendar` 는 인자로 주입한다.
+
+**별건으로 남긴 것 (발견만 기록).**
+
+1. `modalProfileState.js` **이중 로드 가능성** — 체인(`?v=` 있음)과 lazy-src·`__loadScriptOnce`
+   (`?v=` 없음)가 서로 다른 URL 이라 dedupe 가 갈린다. 실제 이중 실행 여부는 **미측정**.
+2. `kasi:local-calendar-patch:v1`(`js/saju-engine.js`) — **TTL 없음 · 버전 검사 없음**이고
+   `solarToLunarFromParts` 가 코어보다 **먼저** 읽는다. 키에 시각이 없어(`YYYY-MM-DD`)
+   야자시 축과 무관하다고 **추정**하나 미검증.
+3. MongoDB 박제 값(R-h) — `worker/lib/models.js` 의 `ziweiAiChartSchema.lunar` ·
+   `sukuyoCompatibility…shuku/shukuIndex` · `lifeBookAi…sajuResult`. 로직 버전 필드가 없다.
+
 ## ✅ PR-3 — 음력일 축 야자시를 **OFF 로 통일**했다 (2026-08-28)
 
 🔴 **§6-4 의 "현행 유지(ON)" 결정을 뒤집는다.** 그 결정의 근거였던
