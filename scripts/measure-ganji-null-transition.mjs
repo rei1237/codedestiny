@@ -90,11 +90,13 @@ const SAMPLES = buildSamples(core, YEARS);
  */
 function withFilledCache(run) {
   const real = svc.computeGanjiFromParts;
-  svc.computeGanjiFromParts = function (parts, terms) {
-    if (terms && terms.length) return real.call(svc, parts, terms);
+  // 🔴 세 번째 인자(options.nightZi)를 **그대로 넘긴다**. 삼키면 야자시가 조용히 꺼지고
+  //    아래 축 B 의 23시대 행이 통째로 다른 것을 재게 된다(⓪ 자기검사가 그것을 잡는다).
+  svc.computeGanjiFromParts = function (parts, terms, options) {
+    if (terms && terms.length) return real.call(svc, parts, terms, options);
     const year = parts && parts.year;
-    if (!year || year < 1900 || year > 2100) return real.call(svc, parts, terms);
-    return real.call(svc, parts, termsFor(year));
+    if (!year || year < 1900 || year > 2100) return real.call(svc, parts, terms, options);
+    return real.call(svc, parts, termsFor(year), options);
   };
   try { return run(); } finally { svc.computeGanjiFromParts = real; }
 }
@@ -158,6 +160,15 @@ need("⓪ 표본을 실제로 만들었다", SAMPLES.length >= 600, `${SAMPLES.l
     !!during, `2000년 시뮬레이션 → ${JSON.stringify(during)}`);
   need("⓪ 시뮬레이션이 원상복구된다", !after, `복구 후 2000년 → ${JSON.stringify(after)}`);
 }
+{
+  // 🔴 래핑이 옵션을 나르는지 **값으로** 확인한다. 야자시가 꺼진 채로 재면 아래 축 B 의
+  //    23시대 행이 "일진·시간이 어긋난다"로 바뀌는데, 그것은 코드가 아니라 이 측정기의 결함이다.
+  const at23 = { year: 2000, month: 6, day: 15, hour: 23, minute: 30, second: 0 };
+  const on = withFilledCache(() => safe(() => eng.getGanjiFromParts(at23, { yaja: true })));
+  const off = withFilledCache(() => safe(() => eng.getGanjiFromParts(at23, { yaja: false })));
+  need("⓪ 시뮬레이션 래핑이 야자시 옵션을 삼키지 않는다", !!(on && off && on.iljin && off.iljin && on.iljin !== off.iljin),
+    `ON ${on && on.iljin} / OFF ${off && off.iljin}`);
+}
 
 if (problems.length) {
   console.error(`[measure:ganji-null-transition] 전제가 깨졌다 — ${problems.length}건`);
@@ -179,9 +190,11 @@ const vsCore = new Map([["getGanjiFromParts", null], ["getGanjiFromParts:noYaja"
     compared: 0,
     mismatch: Object.fromEntries(AXES.map((a) => [a, 0])),
     rows: [],
-    // 🔴 원인을 두 축으로 가른다. 23시대 행은 **야자시 규약의 차이**이고(엔진은 부품 전체를
-    //    하루 밀어 節 프레임까지 움직이는데 코어는 일진만 민다), 그 밖의 행이 있다면 그것이
-    //    비로소 **절기표 차이**다. 섞어 세면 둘 다 못 고친다.
+    // 🔴 원인을 두 축으로 가른다. 23시대 행은 **야자시 규약의 차이**이고, 그 밖의 행이 있다면
+    //    그것이 비로소 **절기표 차이**다. 섞어 세면 둘 다 못 고친다.
+    // 🔴 후속-2 이전에는 엔진이 부품 전체를 하루 밀어 節 프레임까지 움직였고 그래서 이 칸이
+    //    19 였다(전부 23시대 · 세차 4 · 월건 19). 지금은 서비스가 **일진만** 민다 —
+    //    getGanjiFromParts 축의 23시대 행이 다시 0 이 아니게 되면 그 범위가 되돌아간 것이다.
     night: 0,
     day: 0,
     byKind: new Map(),

@@ -787,9 +787,20 @@
     return _HS.charAt(idx % 10) + _EB.charAt(idx % 12);
   }
 
-  function _dayGanjiFromParts(solarParts) {
+  /**
+   * 일진(日辰). `nightZiApplied` 는 야자시(夜子時) — 23시대를 익일 일진으로 본다.
+   *
+   * 🔴 야자시가 닿는 축은 **일진 하나뿐**이다(정본: lib/korean-calendar/policy.js 의
+   * NIGHT_ZI_POLICY 주석, 구현: lib/korean-calendar/ganji.js `nightZiApplied`).
+   * 세차·월건은 절기가 가르므로 날짜와 무관하고, 시지는 자시가 23:00~00:59 로 자정을
+   * 감싸므로 역시 날짜와 무관하다. 그래서 **부품을 통째로 밀지 않고** 여기서 일 수 하나만 더한다.
+   * 🔴 통째로 밀면 節 프레임까지 따라 움직여 23시대 출생의 세차·월건이 코어와 갈린다 —
+   * 실측 2026-08-28(후속-2 착수 전): 표본 1,645건 중 19건이 어긋났고 전부 23시대였다
+   * (세차 4 · 월건 19 · 일진 0 · 시간 0). 재현: npm run measure:ganji-null-transition 축 B.
+   */
+  function _dayGanjiFromParts(solarParts, nightZiApplied) {
     var serial = Math.floor(Date.UTC(solarParts.year, solarParts.month - 1, solarParts.day) / 86400000);
-    return _cycleGanji(serial + 17);
+    return _cycleGanji(serial + 17 + (nightZiApplied ? 1 : 0));
   }
 
   /** 절기 atLocal('YYYY-MM-DDTHH:mm[:ss]' 또는 공백 구분)을 같은 벽시계 축의 ms 로. */
@@ -1005,13 +1016,21 @@
    * PR-E 이전에는 여기 위에 로컬 Date 를 읽는 `_computeGanjiFromDate` 어댑터가 있었다 —
    * 다시 만들지 말 것. 그 캐리어는 존재하지 않는 벽시계를 담지 못해 조용히 접힌다.
    * 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
+   *
+   * `options.nightZi` 를 켜면 야자시가 **일진에만** 적용된다(기본값 OFF = 안 민다).
+   * 🔴 이 옵션이 여기 있는 이유는 코어와 같은 자리이기 때문이다 — 호출부가 부품을 미리 밀어
+   * 넘기면 그 하루가 절기 프레임까지 밀어 세차·월건이 함께 갈린다(위 `_dayGanjiFromParts` 주석).
+   * 지금 켜는 곳은 `KasiEngine.getGanjiFromParts` 하나이고, 여기 기본값 OFF 는
+   * `buildGanjiRepairCandidateFromParts`·KASI 컨텍스트 갈래의 현행 동작(keep-day)을 그대로 둔다
+   * (verify:shell-korean-calendar ⑪ 이 그 축을 코어 KEEP_DAY 로 못박고 있다).
    */
-  function _computeGanjiFromParts(solarParts, terms) {
+  function _computeGanjiFromParts(solarParts, terms, options) {
     if (!_partsValid(solarParts)) return null;
     var localTerms = terms && terms.length ? terms : _readValidatedSolarTerms(solarParts.year);
     if (_countMonthBoundaryTerms(localTerms) < 12) return null;
+    var nightZiApplied = !!(options && options.nightZi) && solarParts.hour >= 23;
     var yearGanji = _yearGanjiFromIpchun(solarParts, localTerms);
-    var dayGanji = _dayGanjiFromParts(solarParts);
+    var dayGanji = _dayGanjiFromParts(solarParts, nightZiApplied);
     var monthGanji = _computeMonthGanjiFromTerms(localTerms, solarParts, yearGanji);
     if (!yearGanji || !monthGanji || !dayGanji) return null;
     return {
@@ -1341,8 +1360,8 @@
      * 🔴 정본 진입점. 인자는 KST 벽시계 부품이다 — `{ year, month, day, hour, minute, second? }`.
      * 로컬 Date 를 만들어 넘기지 말 것(서머타임 구멍에서 조용히 다른 시각으로 접힌다).
      */
-    computeGanjiFromParts: function (parts, terms) {
-      return _clone(_computeGanjiFromParts(parts, terms));
+    computeGanjiFromParts: function (parts, terms, options) {
+      return _clone(_computeGanjiFromParts(parts, terms, options));
     },
 
 

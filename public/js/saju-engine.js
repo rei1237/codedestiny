@@ -951,7 +951,8 @@ const KasiEngine = {
      *
      * ── 🔴 야자시 규약은 두 축이 **일부러 다르다** ─────────────────────────
      *   · 음력일 축(이 함수)  = **OFF**. 23시대에도 날짜를 안 민다.
-     *   · 간지 축(getGanjiFromParts) = **ON**. 23시대에 하루를 민다(명리학 자시 경계).
+     *   · 간지 축(getGanjiFromParts) = **ON**. 23시대에 **일진만** 하루를 민다(명리학 자시 경계).
+     *     🔴 그 축은 부품을 밀지 않는다 — 미는 자리는 서비스의 `_dayGanjiFromParts` 하나다.
      * 음력일은 삭망(달의 위상)이 정하는 천문 날짜라 자시 경계와 무관하다. 앱
      * (app/_lib/ziwei-engine.ts:110)·워커(worker/lib/ziwei-ai-chart.js:147)·
      * lib/sukuyo-calendar.ts 가 이미 안 밀고 있었고, 셸만 밀어서 같은 사람의 본명숙과
@@ -1000,21 +1001,21 @@ const KasiEngine = {
     /**
      * 정본. parts 는 KST 벽시계 부품 `{ year, month, day, hour, minute, second? }`.
      * 🔴 PR-E 이전에는 위에 로컬 Date 도 받는 `getGanji` 어댑터가 있었다 — 되살리지 말 것.
-     * 호출부 13곳이 전부 `typeof ke.getGanjiFromParts === 'function'` 가드 안이라, 이름을 바꾸면
-     * 예외가 아니라 **조용한 성능저하**로 끝난다. 이름은 고정이다.
+     * 호출부 11곳(실측 2026-08-28 · verify:shell-korean-calendar ⑯ 이 전수 발견한다)이 전부
+     * `typeof ke.getGanjiFromParts === 'function'` 가드 안이라, 이름을 바꾸면 예외가 아니라
+     * **조용한 성능저하**로 끝난다. 이름은 고정이다.
      */
     getGanjiFromParts: function(parts, options) {
         options = options || { yaja: true };
         if (!parts) return null;
-        var h = parts.hour;
-        var min = parts.minute;
-        var at = parts;
-        // 🔴 이 조건식을 "정리"하지 말 것 — 두 갈래가 같은 값이지만 그 단순화는 무손실 계약 밖이다.
-        if ((h === 23 && min >= 30 && options.yaja) || (h === 23 && options.yaja)) {
-          at = _kasiShiftPartsByDays(at, 1);
-        }
+        // 🔴 야자시를 여기서 **부품을 밀어** 표현하지 말 것 — 그 하루가 절기 프레임까지 밀어
+        // 23시대 출생의 세차·월건이 코어(lib/korean-calendar/ganji.js)와 갈린다. 야자시가 닿는
+        // 축은 일진 하나뿐이고(lib/korean-calendar/policy.js), 그 적용 자리는 서비스 안이다.
+        // 실측 2026-08-28: 부품을 통째로 밀던 동안 표본 1,645건 중 19건(전부 23시대)이 코어와
+        // 어긋났다 — 세차 4 · 월건 19 · 일진 0 · 시간 0. 되돌리면
+        // verify:shell-korean-calendar ⑰ 과 verify:sukuyo-korean-calendar ⑥-0c 가 잡는다.
         if (window.KasiCalendarService && typeof window.KasiCalendarService.computeGanjiFromParts === 'function') {
-          var computed = window.KasiCalendarService.computeGanjiFromParts(at);
+          var computed = window.KasiCalendarService.computeGanjiFromParts(parts, null, { nightZi: !!options.yaja });
           if (computed && computed.year && computed.month && computed.day) {
             return {
               secha: computed.year,

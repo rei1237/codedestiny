@@ -1235,7 +1235,7 @@ if (logicVersionMatch) {
 
 const CONTEXT_LOGIC_LOCK = Object.freeze({
   version: 2,
-  fingerprint: "8943625edab4b395f7901c1f6d4d7460167bf22740cbc12cc4b5175997b8a3cf",
+  fingerprint: "257019548adef53c47efb22c4575d4f1bd351976f96b8b0b7e9fa54804d5d30f",
 });
 
 {

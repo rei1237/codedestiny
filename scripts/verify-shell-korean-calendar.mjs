@@ -1230,6 +1230,145 @@ function extractFunctionSource(source, name) {
     Array.isArray(legacyProbeBad) && legacyProbeBad.length > 0,
     `걸린 해 ${legacyProbeBad ? legacyProbeBad.length : "측정 불가"}건 — 0 이면 경계 판정이 죽은 것이다`,
   );
+
+  // ── ⑰ 간지 축 야자시는 **일진만** 민다 (節 프레임을 안 움직인다) ──────────
+  //
+  // 후속-2. 예전에는 `KasiEngine.getGanjiFromParts` 가 23시대에 **부품을 통째로** 하루 밀어
+  // 서비스에 넘겼다 — 그 하루가 절기 프레임까지 밀어 세차·월건이 함께 갈렸다.
+  // 실측 2026-08-28(정정 전): 표본 1,645건 중 19건이 코어와 어긋났고 전부 23시대였다
+  // (세차 4 · 월건 19 · 일진 0 · 시간 0 — npm run measure:ganji-null-transition 축 B).
+  // 지금은 서비스가 `options.nightZi` 로 **일진에만** 적용한다. 정본은 코어의 정책 주석이다
+  // (lib/korean-calendar/policy.js — "이 정책이 적용되는 축은 일진 하나뿐").
+  //
+  // 🔴 값과 소스를 함께 본다. 값만 보면 엔진이 다시 부품을 밀어도 이 블록은 서비스를 직접
+  // 부르므로 초록이고, 소스만 보면 서비스 쪽 구현이 갈려도 못 본다.
+  {
+    const win = evalKasiService();
+    const core = win.KoreanCalendar;
+    const compute = win.KasiCalendarService && win.KasiCalendarService.__test
+      ? win.KasiCalendarService.__test.computeGanjiFromParts
+      : null;
+    ok("⑰ KasiCalendarService 를 평가했다", typeof compute === "function", "__test.computeGanjiFromParts 가 없다");
+
+    const NIGHT_FROM = 1950;
+    const NIGHT_TO = 2050;
+    const termsCache = new Map();
+    const termsForYear = (year) => {
+      if (!termsCache.has(year)) termsCache.set(year, coreTermRows(year, core));
+      return termsCache.get(year);
+    };
+    const shiftDays = (at, days) => {
+      const w = new Date(Date.UTC(at.year, at.month - 1, at.day, at.hour, at.minute) + days * 86400000);
+      return {
+        year: w.getUTCFullYear(), month: w.getUTCMonth() + 1, day: w.getUTCDate(),
+        hour: w.getUTCHours(), minute: w.getUTCMinutes(),
+      };
+    };
+
+    // 🔴 표본을 손으로 안 적는다 — 節 이 든 날과 그 전날의 23시대를 코어 節 목록에서 유도한다.
+    // 節 경계를 낀 23시대가 곧 정정 전에 세차·월건이 갈리던 자리다.
+    const nightProbes = [];
+    for (let year = NIGHT_FROM; year <= NIGHT_TO; year += 1) {
+      for (const term of nodeTerms(year) || []) {
+        for (const dayOffset of [0, -1]) {
+          for (const minute of [0, 30, 59]) {
+            const at = shiftDays({ year: term.year, month: term.month, day: term.day, hour: 23, minute }, dayOffset);
+            if (at.year < NIGHT_FROM || at.year > NIGHT_TO) continue;
+            nightProbes.push(at);
+          }
+        }
+      }
+    }
+    ok("⑰ 23시대 표본이 실제로 모였다(0 이면 가드가 깨진 것)", nightProbes.length >= 4000, `${nightProbes.length}건`);
+    ok(
+      "⑰ 표본이 전건 23시대다(다른 시각이 섞이면 이 검사가 다른 것을 잰다)",
+      nightProbes.every((at) => at.hour === 23),
+      `${nightProbes.filter((at) => at.hour !== 23).length}건이 23시가 아니다`,
+    );
+
+    if (typeof compute === "function") {
+      const mismatched = [];
+      const frameMoved = [];
+      const dayStuck = [];
+      let nullRows = 0;
+      let legacyMismatch = 0;
+      for (const at of nightProbes) {
+        const parts = { ...at, second: 0 };
+        const terms = termsForYear(at.year);
+        const expect = corePillars(at, { nightZiPolicy: NIGHT_ZI_POLICY.SHIFT_DAY });
+        const on = compute(parts, terms, { nightZi: true });
+        const off = compute(parts, terms, { nightZi: false });
+        if (!on || !off) { nullRows += 1; continue; }
+        if (expect && (on.year !== expect.year || on.month !== expect.month
+          || on.day !== expect.day || on.hour !== expect.hour)) {
+          mismatched.push(`${stamp(at)} 코어 ${expect.year}/${expect.month}/${expect.day}/${expect.hour}`
+            + ` · 셸 ${on.year}/${on.month}/${on.day}/${on.hour}`);
+        }
+        // 🔴 야자시가 닿는 축이 정확히 둘(일진·시주)이라는 것을 **값으로** 못박는다.
+        if (on.year !== off.year || on.month !== off.month) {
+          frameMoved.push(`${stamp(at)} 세차 ${off.year}→${on.year} · 월건 ${off.month}→${on.month}`);
+        }
+        if (on.day === off.day || on.hour === off.hour) {
+          dayStuck.push(`${stamp(at)} 일진 ${off.day}→${on.day} · 시주 ${off.hour}→${on.hour}`);
+        }
+        // 🔴 판별력 — 정정 전 동작(부품을 통째로 하루 밀어 넘기기)을 그 자리에서 흉내 낸다.
+        const legacyAt = shiftDays(at, 1);
+        const legacy = compute({ ...legacyAt, second: 0 }, termsForYear(legacyAt.year));
+        if (expect && legacy && (legacy.year !== expect.year || legacy.month !== expect.month)) legacyMismatch += 1;
+      }
+      ok("⑰ 서비스가 23시대에 null 을 내지 않는다", nullRows === 0, `${nullRows}건`);
+      ok(
+        "⑰ 🔴 nightZi 켠 4기둥이 코어(shift-day)와 전건 같다",
+        mismatched.length === 0,
+        `${mismatched.length}건${NL}${mismatched.slice(0, 10).join(NL)}`,
+      );
+      ok(
+        "⑰ 🔴 야자시가 세차·월건을 안 움직인다(節 프레임은 절기가 가른다)",
+        frameMoved.length === 0,
+        `${frameMoved.length}건${NL}${frameMoved.slice(0, 10).join(NL)}`
+        + NL + "→ 부품을 통째로 밀지 말고 서비스의 _dayGanjiFromParts 에서 일 수만 더하라.",
+      );
+      ok(
+        "⑰ 🔴 야자시가 일진·시주는 전건 움직인다(축이 죽으면 위 두 검사가 동어반복이 된다)",
+        dayStuck.length === 0,
+        `${dayStuck.length}건${NL}${dayStuck.slice(0, 10).join(NL)}`,
+      );
+      ok(
+        "⑰ 이 검사가 판별력이 있다(정정 전 동작 = 부품 통째 밀기는 실제로 걸린다)",
+        legacyMismatch > 0,
+        `걸린 표본 ${legacyMismatch}건 — 0 이면 節 프레임 판정이 죽은 것이다`,
+      );
+    }
+
+    // ── ⑰ 소스 축 — 엔진이 부품을 밀지 않고 서비스에 위임한다 ────────────────
+    const engineDefs = [];
+    for (const rel of GANJI_PATH_FILES) {
+      const raw = fs.readFileSync(path.join(root, rel), "utf8");
+      const src = stripComments(raw);
+      const match = /getGanjiFromParts\s*:\s*function\s*\([^)]*\)\s*\{/.exec(src);
+      if (!match) continue;
+      let body = null;
+      try { body = sliceFunction(src.slice(match.index), match[0], `${rel}:getGanjiFromParts`); } catch { body = null; }
+      engineDefs.push({ rel, body });
+    }
+    ok(
+      "⑰ getGanjiFromParts 정의를 간지 경로에서 정확히 한 벌 찾았다(0 이면 검사가 비어 통과한다)",
+      engineDefs.length === 1 && !!engineDefs[0].body,
+      `${engineDefs.length}벌 — ${engineDefs.map((d) => d.rel).join(", ")}`,
+    );
+    for (const def of engineDefs.filter((d) => d.body)) {
+      ok(
+        `⑰ 🔴 ${def.rel} getGanjiFromParts 가 부품을 밀지 않는다`,
+        !def.body.includes("_kasiShiftPartsByDays("),
+        "본문에 _kasiShiftPartsByDays( 가 있다 — 야자시는 서비스의 nightZi 옵션으로만 표현한다",
+      );
+      ok(
+        `⑰ 🔴 ${def.rel} getGanjiFromParts 가 야자시를 서비스에 위임한다`,
+        /nightZi\s*:/.test(def.body),
+        "본문에 nightZi 인자가 없다 — 위임이 끊기면 23시대 일진이 조용히 안 밀린다",
+      );
+    }
+  }
 }
 if (failures.length) {
   console.error(`[verify:shell-korean-calendar] 실패 ${failures.length}건 / 검사 ${checks}건`);
