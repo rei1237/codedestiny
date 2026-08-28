@@ -11,10 +11,24 @@
  */
 import { readFileSync } from "node:fs";
 import path from "node:path";
+// 🔴 주 시작일·달 1일 규칙은 scripts/fortune-build-data.mjs 가 패키지를 만들 때 쓴 것과
+//    **같은 함수**여야 한다. 폴백 경로에서 규칙이 갈리면 없는 파일을 찾아 빌드가 죽는다.
+import { kstWeekStartYmd, kstMonthStartYmd } from "@/scripts/lib/fortune-date.mjs";
 
 export type FortunePeriod = "today" | "tomorrow";
 
 export const FORTUNE_PERIODS: FortunePeriod[] = ["today", "tomorrow"];
+
+/**
+ * 패키지를 고르는 **시드 기간**. `FortunePeriod` 를 늘리지 않은 이유가 있다 — 그쪽은
+ * "하루짜리 로더의 입력 타입"이고 주간·월간은 범위다(lib/fortune/periods.ts 머리말).
+ *
+ * 🔴 주간·월간이 이 패키지에서 읽는 것은 `entry`(상시 톤 카피) 하나뿐이다. 달력·점수·절기는
+ *    lib/fortune/range-data.ts 가 기간 전체에서 계산한다. 그 경계를 넘어 여기서
+ *    `pkg.calendar` 를 읽으면 그 순간 "대표 하루"를 고르는 것이 되고, 그게 구 정적 셸이
+ *    하던 재탕이다(range-data.ts 머리말).
+ */
+export type FortuneTonePeriod = FortunePeriod | "weekly" | "monthly";
 
 /** 8개 언어 박스 — 이 페이지들은 kr 만 쓴다(로케일 확장은 별건). */
 interface LangBox {
@@ -98,31 +112,41 @@ function kstYmd(offsetDays = 0): string {
  * 매니페스트가 있으면 prebuild 가 실제로 무엇을 만들었는지 그대로 따른다. 매니페스트가
  * 없으면(로컬 개발 등 prebuild 를 안 거친 경우) 기존처럼 시계를 읽어 폴백한다.
  */
-let manifestCache: { today: string; tomorrow: string } | null = null;
+type RunManifest = Record<FortuneTonePeriod, string>;
+const MANIFEST_KEYS: FortuneTonePeriod[] = ["today", "tomorrow", "weekly", "monthly"];
+
+let manifestCache: RunManifest | null = null;
 let manifestRead = false;
-function readRunManifest(): { today: string; tomorrow: string } | null {
+function readRunManifest(): RunManifest | null {
   if (manifestRead) return manifestCache;
   manifestRead = true;
   try {
     const file = path.join(process.cwd(), "fortune", "data", "run-manifest.json");
     const parsed = JSON.parse(readFileSync(file, "utf8"));
-    manifestCache =
-      typeof parsed?.today === "string" && typeof parsed?.tomorrow === "string" ? parsed : null;
+    // 🔴 키가 하나라도 없으면 매니페스트 전체를 버린다. 절반만 믿으면 나머지 기간이
+    //    시계 폴백으로 떨어져 prebuild 가 만든 것과 다른 날짜를 찾는다.
+    manifestCache = MANIFEST_KEYS.every((key) => typeof parsed?.[key] === "string")
+      ? (parsed as RunManifest)
+      : null;
   } catch {
     manifestCache = null;
   }
   return manifestCache;
 }
 
-export function resolvePeriodDate(period: FortunePeriod): string {
+export function resolvePeriodDate(period: FortuneTonePeriod): string {
   const manifest = readRunManifest();
-  if (manifest) return period === "tomorrow" ? manifest.tomorrow : manifest.today;
-  return kstYmd(period === "tomorrow" ? 1 : 0);
+  if (manifest) return manifest[period];
+  const today = kstYmd(0);
+  if (period === "tomorrow") return kstYmd(1);
+  if (period === "weekly") return kstWeekStartYmd(today);
+  if (period === "monthly") return kstMonthStartYmd(today);
+  return today;
 }
 
 const cache = new Map<string, DailyPackage>();
 
-export function loadDailyPackage(period: FortunePeriod): DailyPackage {
+export function loadDailyPackage(period: FortuneTonePeriod): DailyPackage {
   const date = resolvePeriodDate(period);
   const cached = cache.get(date);
   if (cached) return cached;

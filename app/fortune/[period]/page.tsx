@@ -59,10 +59,19 @@ function seoText(periodParam: string) {
     // 상세 페이지와 같은 규약 — 브랜드 접미사 없이 약 28자. "별자리 12종·띠 12종" 은
     // 검색어가 아니라 설명이므로 제목에서 빼고 description·H1 에 남긴다.
     title: `${title} 운세 ${sample.titleDateLabel} | 무료 별자리·띠별 운세`,
+    // 🔴 주간만 문장 구조가 다르다. 다른 세 기간은 `일진 甲戌`·`월건 丙申` 처럼 값 하나가
+    //    산출 근거지만, 주간의 facts[0] 은 `기간 2026-08-24 ~ 2026-08-30` 이라 바로 앞
+    //    rangeLabel 의 재진술이다. 그 28폭 때문에 설명이 SERP 한계(160)를 넘겨 `…` 로
+    //    잘려 나갔다(2026-08-28 out/ 실측: 폭 157 에서 절단). 색인에서 빠져 있던 동안에는
+    //    폭 검사 대상이 아니라 드러나지 않았다. 날짜는 압축형을 쓰고, 근거는 실제로 계산에
+    //    쓰는 7일치 일진 배치를 적는다 — 달을 넘는 주 최악 폭 151(2026~2030 전 주 실측).
     description:
-      `${siteSeo.brandName}에서 보는 ${sample.rangeLabel} 별자리 12종·띠 12종의 ${title} 운세. ` +
-      `${sample.facts[0]?.label} ${sample.facts[0]?.value} 기준으로 계산했고 ` +
-      `총운·애정운·재물운·건강운·직장운을 무료로 제공합니다.`,
+      hub.period === "weekly"
+        ? `${siteSeo.brandName}에서 보는 ${sample.titleDateLabel} 별자리 12종·띠 12종의 ${title} 운세. ` +
+          `요일별 일진 배치로 계산한 총운·애정운·재물운·건강운·직장운을 무료로 제공합니다.`
+        : `${siteSeo.brandName}에서 보는 ${sample.rangeLabel} 별자리 12종·띠 12종의 ${title} 운세. ` +
+          `${sample.facts[0]?.label} ${sample.facts[0]?.value} 기준으로 계산했고 ` +
+          `총운·애정운·재물운·건강운·직장운을 무료로 제공합니다.`,
     keywords: [
       `${title} 운세`,
       "별자리 운세",

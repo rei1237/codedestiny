@@ -130,8 +130,17 @@ function buildDaily(profile: SignProfile, period: "today" | "tomorrow"): SignVie
 
 /** weekly — 7일의 일진 지도 */
 function buildWeekly(profile: SignProfile): SignViewModel | null {
-  // 상시 톤 카피는 오늘 패키지에서 빌려온다(날짜 무관한 값이라 어느 날짜에서 읽어도 같다).
-  const pkg = loadDailyPackage("today");
+  // 상시 톤 카피는 **이 주의 시드**로 뽑은 패키지에서 읽는다.
+  //
+  // 🔴 예전에는 loadDailyPackage("today") 였고 주석에 "날짜 무관한 값이라 어느 날짜에서
+  //    읽어도 같다" 고 적혀 있었지만 그건 사실이 아니었다 — gen-daily 는 (날짜, sign) 해시로
+  //    풀에서 뽑으므로 today 와 tomorrow 의 문안이 실제로 다르다(2026-08-28 dist 실측:
+  //    monkey 의 today·weekly·monthly 세 쪽이 글자까지 같았고 tomorrow 만 달랐다).
+  //    그래서 주간·월간이 오늘 문안을 그대로 재탕했고, 그 48쪽을 색인으로 되돌리자 한 문안이
+  //    실린 색인 페이지가 7 → 21쪽이 되어 verify-indexable-prose-depth 의 공용 문구
+  //    임계(20쪽)를 넘겼다(그 sign 들이 42단위씩 깎여 최솟값 934 → 900 = 임계값).
+  //    시드만 기간 키로 바꾸면 같은 풀에서 다른 칸이 뽑힌다 — 새 문안을 쓸 필요가 없다.
+  const pkg = loadDailyPackage("weekly");
   const entry = getSignEntry(pkg, profile.kind, profile.id);
   if (!entry) return null;
 
@@ -171,12 +180,19 @@ function buildWeekly(profile: SignProfile): SignViewModel | null {
     score: averageScores(perDay.map((p) => p.score)),
     basis: perDay[0].score.basis,
     rangeLabel: `${formatShortDate(week.start)} ~ ${formatShortDate(week.end)}`,
-    // 같은 달이면 "8월 17~23일", 달을 넘으면 "8월 31일~9월 6일". 뒤쪽 월을 생략하면
-    // 월말 주가 "8월 31~6일" 이 되어 거꾸로 읽힌다.
+    // 같은 달이면 "8월 17~23일", 달을 넘으면 "10월 26~11월 1일". 뒤쪽 월을 생략하면
+    // 월말 주가 "8월 31~6일" 이 되어 거꾸로 읽히므로 뒤쪽 월은 남기고, 대신 앞쪽 "일"을
+    // 떨어뜨린다 — 같은 달 형태와 같은 축약이다.
+    //
+    // 🔴 이 축약은 장식이 아니라 게이트다. 2026-08-28 색인 복귀 전에는 달을 넘는 주만
+    //    "10월 26일~11월 1일" 로 길어져 `쌍둥이자리`·`물고기자리` 의 <title> 표시 폭이
+    //    61 이 됐고, verify-adsense-readiness 의 SERP_TITLE_WIDTH_LIMIT(60)를 넘었다.
+    //    같은 달 주에 빌드하면 안 보이므로 로컬에서는 초록불이고 그 주에만 배포가 죽는다.
+    //    연중 최악(2026~2030 전 주 × sign 24종) 실측: 축약 전 61 / 축약 후 59.
     titleDateLabel:
       week.start.slice(0, 7) === week.end.slice(0, 7)
         ? `${formatShortDate(week.start)}~${Number(week.end.split("-")[2])}일`.replace("일~", "~")
-        : `${formatShortDate(week.start)}~${formatShortDate(week.end)}`,
+        : `${formatShortDate(week.start).replace("일", "")}~${formatShortDate(week.end)}`,
     dateKey: week.start,
     relation: null,
     facts: [
@@ -216,7 +232,8 @@ function buildWeekly(profile: SignProfile): SignViewModel | null {
 
 /** monthly — 월건 · 절기 · 삭망 */
 function buildMonthly(profile: SignProfile): SignViewModel | null {
-  const pkg = loadDailyPackage("today");
+  // 상시 톤 카피는 이 달의 시드(그 달 1일)로 뽑은 패키지에서 읽는다 — 사유는 buildWeekly 참고.
+  const pkg = loadDailyPackage("monthly");
   const entry = getSignEntry(pkg, profile.kind, profile.id);
   if (!entry) return null;
 

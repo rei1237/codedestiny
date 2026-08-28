@@ -111,12 +111,12 @@ const noindexPathPrefixes = [
   //  넣을 라우트 자체가 없다. `public/_redirects` 가 301 로 회수한다.)
   "/flower",
   // AdSense 재심사 대응 2차(2026-08-17 out/ 실측, 코퍼스=사이트맵 411개).
-  // ① 기간 근중복: /fortune/{weekly,monthly} 는 같은 sign 의 today/tomorrow 와
-  //    크롬 제거 8-gram Jaccard 24~38% 로 겹친다. 광고는 이미 못 붙는 라우트라
-  //    (adsense-route-policy.js 의 CONTENT_PREFIXES 에 today·tomorrow 만 있다)
-  //    색인만 빼면 광고 인벤토리 손실이 0이다. lib/seo/siteSeo.ts 와 짝으로 유지할 것.
-  "/fortune/weekly",
-  "/fortune/monthly",
+  // ① 2026-08-17 에 여기 있던 `/fortune/weekly`·`/fortune/monthly` 는 2026-08-28 에
+  //    색인으로 되돌렸다(상세 48 + 허브 2). 그 라우트들은 광고를 못 붙어(CONTENT_PREFIXES 에
+  //    today·tomorrow 만 있다) 색인을 빼도 얻는 것이 없었고, 크롬 제거 8-gram Jaccard 로 잰
+  //    중복도 24~38% 는 색인을 유지 중인 today↔tomorrow(31.1%)와 같은 범위다.
+  //    🔴 되돌리는 쪽도 lib/seo/siteSeo.ts 의 noindexPathPrefixes 와 짝으로 움직인다 —
+  //    한쪽만 고치면 「사이트맵에 있는데 noindex」가 된다. 사유 전문은 그 파일에 있다.
   // ② 2026-08-17 에 여기 있던 SeoLandingTemplate 얇은 라우트 5개
   //    (/physiognomy·/love·/compatibility·/saju/compatibility·/dream)는 2026-08-20 에
   //    본문을 채우고 색인으로 되돌렸다. 고유 본문 577~690자 → 1,294~1,638자로,

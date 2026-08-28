@@ -56,6 +56,30 @@ export function kstYmdTomorrow(now = new Date()) {
   return kstYmdNextDay(kstYmdToday(now));
 }
 
+/**
+ * 그 날짜가 속한 KST 주의 시작일(월요일).
+ *
+ * 🔴 규약의 정본은 lib/fortune/range-data.ts 의 `WEEK_STARTS_ON_MONDAY` 다. 여기 규칙을
+ *    다시 적는 이유는 그 파일이 korean-calendar·astronomy-engine 을 끌고 오는 TS 모듈이라
+ *    빌드 전 단계의 .mjs 스크립트에서 부를 수 없기 때문이다. 값이 어긋나면
+ *    scripts/verify-fortune-freshness.mjs 의 assertWeekStartsOnMonday 가 멈춘다.
+ * 순수 함수라 시계·OS 타임존에 의존하지 않는다(UTC 자정 산술 = DST 없는 KST 달력).
+ */
+export function kstWeekStartYmd(ymd) {
+  if (!isValidYmd(ymd)) throw new Error(`[fortune-date] YYYY-MM-DD 가 아닙니다: ${ymd}`);
+  const [y, m, d] = ymd.split('-').map(Number);
+  const dt = new Date(Date.UTC(y, m - 1, d));
+  // getUTCDay: 0=일 … 1=월. 월요일 시작이므로 일요일은 6일 전이 주 시작이다.
+  dt.setUTCDate(dt.getUTCDate() - ((dt.getUTCDay() + 6) % 7));
+  return dt.toISOString().slice(0, 10);
+}
+
+/** 그 날짜가 속한 달의 1일. 월간 운세의 기간 키다. */
+export function kstMonthStartYmd(ymd) {
+  if (!isValidYmd(ymd)) throw new Error(`[fortune-date] YYYY-MM-DD 가 아닙니다: ${ymd}`);
+  return `${ymd.slice(0, 7)}-01`;
+}
+
 export function parseFortuneDate(argv) {
   const fromEnv = typeof process.env.FORTUNE_DATE === 'string' && process.env.FORTUNE_DATE.trim();
   const fromArg = parseArg(argv);
