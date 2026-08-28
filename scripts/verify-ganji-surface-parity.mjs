@@ -23,6 +23,7 @@
  *   ② 버린 표본이 6개 존 전부 0 이고, 접힌 벽시계 수는 census 와 같다
  *   ③ **제외 없이** 모든 TZ 가 KST 와 같다                   (타임존 무관성)
  *   ⑭ 공개 표면에 Date 를 받는 함수가 하나도 없다            (어댑터가 되살아나는 것을 막는다)
+ *   ⑮ 표면을 도는 동안 로컬 `Date` 조작이 0 건이다          (값 대조가 못 보는 자리를 실행으로 덮는다)
  *
  * ✅ **②의 "총계 0" 은 PR-E 에서 달성됐다.** PR-B~D 동안 이 가드는 로컬 `Date` 를 캐리어로 받는
  * 옛 진입점 12벌을 따로 재고 있었고, 그 캐리어에 담기지 않는 벽시계 표본을 `DST-GAP` 으로
@@ -42,6 +43,23 @@
  *
  * 🔴 픽스처는 **정답이 아니라 현행**이다. 그 null 지도는 알려진 결함이며 별건이다
  * (scripts/fixtures/README-ganji-surface.md). 회귀 없음이 최우선이라 의도적으로 그렇게 고정한다.
+ *
+ * ── 🔴 값 축에는 사각지대가 있다 — 그래서 실행도 함께 본다 ────────────────
+ *
+ * 실측 2026-08-28(PR #1238 직후): 이 가드의 12벌 중 **5벌이 값을 한 칸도 안 나르고 있었다.**
+ *   · `_cdCivilDayPillar` · `getGanZhiForDate` · `getMonthGanZhi` 는 `{ g, j }` 를 돌려주는데
+ *     투영기가 `secha/weolgeon/iljin/sigan` 만 읽어 **1516행 전부 `///`** 였다(서로 다른 값 1개).
+ *   · `_cdHourPillarFromDayStem` 은 일간을 그 `{ g, j }` 에서 못 꺼내 **1516행 전부 null** 이었다.
+ *   · `calcZiweiPalaces:calcMeta` 는 calcMeta 에 **없는 키**(`yearGanji`…)를 읽어 `lunarDay` 한 칸만
+ *     날랐다(서로 다른 값 30개가 전부 `////N/` 꼴).
+ * 즉 그 열들은 접어도 값이 안 움직이는 열이었다. 이 PR 이 투영기를 고쳤고, 열이 **상수**인 것을
+ * ④ 가 이제 실패로 친다(태어날 때부터 죽은 열은 isNull 지도로도 안 잡힌다 — 늘 같으니까).
+ *
+ * 🔴 그래도 값 대조가 **구조적으로** 못 보는 자리가 남는다 — 검증캐시에 든 해 밖에서는 `null` 인
+ * 표면 3벌(`getGanjiFromParts` · `:noYaja` · `computeGanjiFromParts:noTerms`)이다. 두 겹으로 막는다:
+ *   · 표본을 그 해에도 만든다(`CACHE_YEARS` — 손으로 적지 않고 셸에 물어서 유도한다).
+ *   · 그 해 밖에서는 여전히 `null == null` 이므로, ⑮ 가 **실행 중 로컬 `Date` 조작 0 건**을 따로
+ *     요구한다. 값이 아니라 행위를 보므로 열이 죽어 있어도 접힘을 잡는다.
  */
 
 // 🔴 다른 import 보다 먼저. Node 는 존 데이터를 처음 쓸 때 캐시하므로 핀이 늦으면 안 먹는다.
@@ -133,6 +151,39 @@ function termsFor(year) {
 
 /** 표본을 만드는 해. 고정 리터럴이지만 **간격**이라 표가 바뀌어도 자리는 표에서 나온다. */
 const SAMPLE_YEARS = Object.freeze([1960, 1967, 1974, 1981, 1988, 1995, 2002, 2009, 2016, 2023, 2030]);
+
+/**
+ * 🔴 terms 없이 부르는 갈래(`computeGanjiFromParts(parts)`)는 서비스의 **검증 캐시**에 든 해만
+ * 답한다(지금은 1990 한 해뿐 — 알려진 결함이며 별건이다). 그 해가 표본에 없으면 그 표면 3벌의
+ * 열이 통째로 `null` 이라 값 대조가 아무것도 못 지킨다(실측 2026-08-28: 1516행 중 live 1행).
+ *
+ * 🔴 해를 손으로 적지 않고 **셸에 물어서** 찾는다 — 캐시가 늘면 표본이 따라 늘고, 캐시가 비면
+ * 아래 ⓪ 검사가 즉시 실패한다. 6월 15일 정오는 어느 존에도 존재하는 벽시계라 6개 프로세스가
+ * 같은 목록을 만든다(자식과 부모의 표본 인덱스가 어긋나면 대조 자체가 성립하지 않는다).
+ */
+function validatedCacheYears() {
+  const svc = win.KasiCalendarService;
+  const out = [];
+  for (let year = 1900; year <= 2100; year += 1) {
+    let v = null;
+    try { v = svc.computeGanjiFromParts({ year, month: 6, day: 15, hour: 12, minute: 0 }); } catch { v = null; }
+    if (v && v.year && v.month && v.day) out.push(year);
+  }
+  return out;
+}
+
+const CACHE_YEARS_ALL = Object.freeze(validatedCacheYears());
+/** 🔴 캐시가 커져도 표본이 폭발하지 않게 상한을 둔다. 버린 해는 **찍는다**(조용한 절단 금지). */
+const CACHE_YEARS = Object.freeze(spread([...CACHE_YEARS_ALL], 3));
+// 🔴 자식 모드에서는 stdout 이 JSON 봉투 전용이다 — 여기에 한 줄이라도 찍으면 부모의 파싱이 깨진다.
+if (!IS_CHILD && CACHE_YEARS_ALL.length > CACHE_YEARS.length) {
+  console.log(
+    `[verify:ganji-surface-parity] 검증캐시 해 ${CACHE_YEARS_ALL.length}개 중 ${CACHE_YEARS.length}개만 표본에 넣는다`
+    + ` — 쓴 해 ${CACHE_YEARS.join(",")} · 버린 해 ${CACHE_YEARS_ALL.filter((y) => !CACHE_YEARS.includes(y)).join(",")}`,
+  );
+}
+/** 표본을 만드는 해 전부. 🔴 6개 프로세스에서 **같은 순서**여야 한다. */
+const YEARS = Object.freeze([...new Set([...SAMPLE_YEARS, ...CACHE_YEARS])].sort((a, b) => a - b));
 /** 윤달은 전수로 훑는다 — 간격 표본으로는 대부분 놓친다. */
 const LEAP_SCAN_FROM = 1960;
 const LEAP_SCAN_TO = 2030;
@@ -220,7 +271,7 @@ function buildSamples() {
     out.push({ key, at, kind });
   };
 
-  for (const year of SAMPLE_YEARS) {
+  for (const year of YEARS) {
     const terms = core.solarTerms(year);
 
     // ① 節·中氣 경계 ±1분·±540분. 540 은 KST↔UTC 시차라 "존을 옮기면 넘어가는" 자리를 정확히 친다.
@@ -298,6 +349,17 @@ const g = (o, ...keys) => {
   return null;
 };
 const pill = (o) => (o ? [g(o, "secha", "year"), g(o, "weolgeon", "month"), g(o, "iljin", "day"), g(o, "sigan", "hour")].join("/") : null);
+/**
+ * 🔴 셸의 기둥 표면 넷(`_cdCivilDayPillar` · `_cdHourPillarFromDayStem` · `getGanZhiForDate` ·
+ * `getMonthGanZhi`)은 `{ g, j }`(천간·지지)를 돌려준다. `pill()` 로 찍으면 네 키를 하나도 못 찾아
+ * **모든 표본이 `///`** 가 되고, 그러면 그 열은 접혀도 안 움직인다 — PR-E 까지 실제로 그랬다.
+ */
+const gz = (o) => {
+  if (!o || typeof o !== "object") return null;
+  const stem = o.g == null ? "" : String(o.g);
+  const branch = o.j == null ? "" : String(o.j);
+  return stem || branch ? `${stem}${branch}` : null;
+};
 
 const SURFACES = Object.freeze([
   ["getGanjiFromParts", (at, p) => pill(win.KasiEngine.getGanjiFromParts(p))],
@@ -317,29 +379,33 @@ const SURFACES = Object.freeze([
   // 🔴 그래서 이 줄들이 움직이면 그것이 곧 회귀 신호다.
   ["_cdCivilDayPillar", (at) => {
     const r = win._cdCivilDayPillar(at.year, at.month, at.day, at.hour);
-    return typeof r === "string" ? r : pill(r);
+    return typeof r === "string" ? r : gz(r);
   }],
   ["_cdHourPillarFromDayStem", (at) => {
     const day = win._cdCivilDayPillar(at.year, at.month, at.day, at.hour);
-    const stem = typeof day === "string" ? day.charAt(0) : g(day, "day", "iljin");
+    // 🔴 일간은 `{ g, j }` 의 `g` 다. PR-E 까지 `day`/`iljin` 을 찾아 stem 이 늘 null 이었고,
+    //    그래서 이 열은 1516행 전부 null 이었다 — 값 대조가 이 표면을 한 번도 안 봤다.
+    const stem = typeof day === "string" ? day.charAt(0) : (day && day.g ? String(day.g) : null);
     const r = stem ? win._cdHourPillarFromDayStem(stem, at.hour) : null;
-    return typeof r === "string" ? r : pill(r);
+    return typeof r === "string" ? r : gz(r);
   }],
   ["getGanZhiForDate", (at) => {
     const r = win.getGanZhiForDate(at.year, at.month, at.day, at.hour);
-    return typeof r === "string" ? r : pill(r);
+    return typeof r === "string" ? r : gz(r);
   }],
   ["getMonthGanZhi", (at) => {
     const r = win.getMonthGanZhi(at.year, at.month);
-    return typeof r === "string" ? r : pill(r);
+    return typeof r === "string" ? r : gz(r);
   }],
   ["calcZiweiPalaces:calcMeta", (at) => {
     win.GENDER = "M";
     const chart = win.calcZiweiPalaces(at.year, at.month, at.day, at.hour, at.minute);
     const meta = chart && chart.calcMeta;
-    // 🔴 객체 전체를 찍으면 무관한 필드가 흔들려 가드가 못 쓰게 된다. 간지 축만 집는다.
+    // 🔴 객체 전체를 찍으면 무관한 필드가 흔들려 가드가 못 쓰게 된다. 음력·시지 축만 집는다.
+    //    PR-E 까지 여기서 `yearGanji`…를 읽었는데 calcMeta 에 **없는 키**라 `lunarDay` 한 칸만
+    //    날랐다. `lifeFormula`·`bodyFormula` 는 상수 문자열이라 뺀다.
     if (!meta) return null;
-    return [meta.yearGanji, meta.monthGanji, meta.dayGanji, meta.hourGanji, meta.lunarDay, meta.isLeapMonth]
+    return [meta.lunarMonth, meta.lunarDay, meta.hourBranch, meta.hourIndex]
       .map((v) => (v === undefined || v === null ? "" : String(v))).join("/");
   }],
 ]);
@@ -452,6 +518,13 @@ ok(
   );
 }
 ok("⓪ 표본을 실제로 만들었다(0 이면 가드가 깨진 것)", SAMPLES.length >= 600, `${SAMPLES.length}건`);
+// 🔴 검증캐시 해가 표본에 없으면 terms 없는 갈래 3벌의 열이 통째로 null 이 되고, 그러면 그 표면들은
+//    값 대조가 아무것도 안 지킨다(사각지대). 그 상태로 조용히 통과하지 않도록 여기서 세운다.
+ok(
+  "⓪ 🔴 검증캐시 해를 표본에 넣었다(없으면 terms 없는 표면 3벌이 통째로 null 이 된다)",
+  CACHE_YEARS.length >= 1 && CACHE_YEARS.every((y) => YEARS.includes(y)),
+  `캐시 해 ${CACHE_YEARS_ALL.length}개 · 표본에 넣은 해 ${CACHE_YEARS.join(",") || "없음"}`,
+);
 {
   const kinds = new Set(SAMPLES.map((s) => s.kind));
   ok(
@@ -671,6 +744,23 @@ for (const tz of TZ_MATRIX.slice(1)) {
     emptyRows === 0,
     `전부 빈 행 ${emptyRows}건`,
   );
+  // 🔴 열이 **상수**인 것도 같은 병이다 — 행이 비어 있지 않아도, 그 열이 1516행 내내 같은 값이면
+  //    그 표면은 접혀도 안 움직인다. PR-E 까지 4벌이 그 상태였다(`///` 셋 · 빈 값 하나).
+  //    isNull 지도도 이것은 못 잡는다 — 태어날 때부터 죽어 있으면 지도 역시 안 바뀌기 때문이다.
+  {
+    const distinct = SURFACES.map(([name], i) => {
+      const seen = new Set();
+      for (const row of base.rows) seen.add(row.split("\t")[i + 1]);
+      return { name, count: seen.size };
+    });
+    const frozen = distinct.filter((d) => d.count < 2);
+    ok(
+      "④ 🔴 상수 열이 없다(값이 하나뿐인 표면은 접혀도 안 움직인다)",
+      frozen.length === 0,
+      `${frozen.length}벌이 상수다: ${frozen.map((d) => d.name).join(", ")}`
+      + `\n      전체 서로 다른 값: ${distinct.map((d) => `${d.name}=${d.count}`).join(" · ")}`,
+    );
+  }
   const svc = win.KasiCalendarService;
   const eng = win.KasiEngine;
   ok(
@@ -762,6 +852,121 @@ for (const tz of TZ_MATRIX.slice(1)) {
   );
 }
 
+// ── ⑮ 🔴 표면을 도는 동안 로컬 Date 조작이 0 건이다 ────────────────────────
+//
+// 위 ①③ 은 **값**으로 접힘을 잡는다. 그런데 값이 늘 `null` 이거나 늘 같은 열은 접혀도 안 움직여서
+// 그 대조가 아무것도 안 지킨다(머리말의 사각지대). 그래서 여기서는 값이 아니라 **행위**를 본다 —
+// 표면을 도는 동안 로컬 타임존을 읽는 `Date` 조작이 한 번이라도 일어나면 실패다.
+//
+// 🔴 소스 검사(verify:shell-korean-calendar ⑬)로는 절반만 막힌다. ⑬ 은 `Date.UTC` 로 감싼 것을
+// 안전으로 치는데 `new Date(Date.UTC(...)).getFullYear()` 는 **읽는 쪽이 로컬**이라 그대로 타임존을
+// 탄다. 여기서는 조립과 독출을 **둘 다** 계측한다.
+{
+  // 로컬 타임존이 개입하는 읽기 전부. `getUTC*` 와 `Date.UTC`/`Date.now` 는 여기 없다 — 그게 정답 축이다.
+  const LOCAL_READS = Object.freeze([
+    "getFullYear", "getMonth", "getDate", "getHours", "getMinutes", "getSeconds",
+    "getMilliseconds", "getDay", "getTimezoneOffset",
+    "toString", "toDateString", "toTimeString", "toLocaleString", "toLocaleDateString", "toLocaleTimeString",
+  ]);
+  const REAL_DATE = globalThis.Date;
+  const REAL_READS = Object.freeze(LOCAL_READS.map((m) => REAL_DATE.prototype[m]));
+
+  /**
+   * `run()` 이 도는 동안의 로컬 Date 조작을 센다.
+   * 🔴 셸은 `vm.runInThisContext` 로 이 realm 에 올라오므로(하네스가 `global.window = global`),
+   * 여기서 `Date` 를 바꾸면 셸도 그것을 본다. 끝나면 반드시 되돌린다.
+   * 🔴 던진 것은 `ops` 에 넣지 않는다 — 섞으면 "계측이 죽어 예외가 났다"가 "잡았다"로 읽힌다
+   *   (실측: 그 구멍 때문에 계측을 죽이는 음성 테스트가 통과했다).
+   */
+  function spyLocalDateOps(run) {
+    const ops = [];
+    const saved = LOCAL_READS.map((m) => REAL_DATE.prototype[m]);
+    let threw = "";
+    function Spy(...args) {
+      if (!new.target) return REAL_DATE();
+      if (args.length >= 2) ops.push(`new Date(${args.length} args)`);
+      else if (args.length === 1 && typeof args[0] === "string") ops.push("new Date(string)");
+      return new REAL_DATE(...args);
+    }
+    Spy.prototype = REAL_DATE.prototype; // instanceof 를 깨지 않는다
+    Spy.UTC = REAL_DATE.UTC;
+    Spy.now = REAL_DATE.now;
+    Spy.parse = REAL_DATE.parse;
+    LOCAL_READS.forEach((m, i) => {
+      REAL_DATE.prototype[m] = function (...a) { ops.push(`.${m}()`); return saved[i].apply(this, a); };
+    });
+    globalThis.Date = Spy;
+    try { run(); } catch (err) { threw = String(err && err.message).slice(0, 80); }
+    finally {
+      globalThis.Date = REAL_DATE;
+      LOCAL_READS.forEach((m, i) => { REAL_DATE.prototype[m] = saved[i]; });
+    }
+    return { ops, threw };
+  }
+
+  // 🔴 자기검사 먼저 — 스파이가 안 물면 아래 "0 건"은 침묵이지 검증이 아니다.
+  //    조립 계측과 독출 계측을 **따로** 세운다. 한쪽만 살아 있어도 통과하면 반쪽 가드가 된다.
+  const assembled = spyLocalDateOps(() => {
+    const d = new Date(1990, 5, 15, 12, 0, 0);
+    return d.getFullYear();
+  });
+  ok(
+    "⑮ 스파이 자기검사 — 로컬 조립을 잡는다",
+    !assembled.threw && assembled.ops.includes("new Date(6 args)"),
+    `ops=${JSON.stringify(assembled.ops)} threw=${assembled.threw || "없음"}`,
+  );
+  ok(
+    "⑮ 스파이 자기검사 — 로컬 독출을 잡는다(조립만 재면 반쪽이다)",
+    !assembled.threw && assembled.ops.includes(".getFullYear()"),
+    `ops=${JSON.stringify(assembled.ops)} threw=${assembled.threw || "없음"}`,
+  );
+  const utcRead = spyLocalDateOps(() => {
+    const d = new Date(Date.UTC(1990, 5, 15, 12, 0, 0));
+    return d.getDate();
+  });
+  ok(
+    "⑮ 스파이 자기검사 — UTC 조립 + 로컬 독출도 잡는다(소스 검사 ⑬ 이 못 보는 모양)",
+    !utcRead.threw && utcRead.ops.includes(".getDate()"),
+    `ops=${JSON.stringify(utcRead.ops)} threw=${utcRead.threw || "없음"}`,
+  );
+  const cleanArith = spyLocalDateOps(() => Math.floor(Date.UTC(1990, 5, 15) / 86400000));
+  ok(
+    "⑮ 스파이 자기검사 — Date.UTC 산술은 안 잡는다(오탐이면 이 가드를 못 쓴다)",
+    !cleanArith.threw && cleanArith.ops.length === 0,
+    `ops=${JSON.stringify(cleanArith.ops)} threw=${cleanArith.threw || "없음"}`,
+  );
+
+  // 🔴 전 표본을 돈다. 갈래(야자시·서머타임 구멍·윤달)마다 다른 코드 경로를 타므로 표본을 줄이면
+  //    그만큼 안 보는 경로가 생긴다. 실측 비용은 스윕 한 번치(약 1.5초)다.
+  const offenders = new Map();
+  let spied = 0;
+  for (const sample of SAMPLES) {
+    const at = sample.at;
+    const p = { year: at.year, month: at.month, day: at.day, hour: at.hour, minute: at.minute, second: 0 };
+    for (const [name, fn] of SURFACES) {
+      const { ops } = spyLocalDateOps(() => fn(at, { ...p }));
+      spied += 1;
+      if (!ops.length || offenders.has(name)) continue;
+      offenders.set(name, { sample: sample.key, ops: [...new Set(ops)] });
+    }
+  }
+  ok("⑮ 스파이를 실제로 돌렸다(0 이면 가드가 깨진 것)", spied === SAMPLES.length * SURFACES.length, `${spied}회`);
+  ok(
+    "⑮ 🔴 표면 12벌이 로컬 Date 를 한 번도 안 만지고 계산한다",
+    offenders.size === 0,
+    `${offenders.size}벌이 로컬 Date 를 만졌다`
+    + [...offenders].map(([name, hit]) => `\n      ${name} @ ${hit.sample} — ${hit.ops.join(" ")}`).join("")
+    + "\n      → 로컬 Date 를 캐리어로 쓰지 말고 벽시계 부품 { year, month, day, hour, minute, second } 를 넘겨라.",
+  );
+  // 🔴 스파이가 판을 원상복구했는지 본다. 안 돌려놓으면 이 프로세스의 뒤쪽 검사가 조용히 다른 Date 를 쓴다.
+  ok(
+    "⑮ 스파이가 Date 를 원상복구했다",
+    globalThis.Date === REAL_DATE && LOCAL_READS.every((m, i) => REAL_DATE.prototype[m] === REAL_READS[i]),
+    `globalThis.Date ${globalThis.Date === REAL_DATE ? "복구" : "바뀐 채"}`
+    + ` · 되돌아오지 않은 메서드: ${LOCAL_READS.filter((m, i) => REAL_DATE.prototype[m] !== REAL_READS[i]).join(",") || "없음"}`,
+  );
+}
+
 if (failures.length) {
   console.error(`[verify:ganji-surface-parity] 실패 ${failures.length}건 / 검사 ${checks}건`);
   for (const f of failures) console.error(`  ✗ ${f}`);
@@ -770,5 +975,6 @@ if (failures.length) {
 console.log(
   `[verify:ganji-surface-parity] 통과 — 검사 ${checks}건 · 표본 ${SAMPLES.length}건 · TZ ${TZ_MATRIX.length}종`
   + `\n  부품 축(정본) 표면 ${SURFACES.length}벌 · 구멍 제외 없이 6개 존 전건 일치 · 버린 표본 0`
+  + `\n  로컬 Date 조작 0건 (표면 ${SURFACES.length}벌 × 표본 ${SAMPLES.length}건 실행 계측)`
   + `\n  접힌 벽시계 ${TZ_MATRIX.map((tz) => `${tz.split("/").pop()}:${(matrix.get(tz)?.foldedKeys || []).length}`).join(" ")}`,
 );
