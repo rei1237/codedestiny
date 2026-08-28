@@ -4,6 +4,7 @@ import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { STATIC_CANONICAL_ROUTES } from "./static-canonical-route-map.mjs";
 import { createSitemapLastmodLedger } from "./lib/sitemap-lastmod.mjs";
+import { kstYmdToday } from "./lib/fortune-date.mjs";
 import { createRequire } from "node:module";
 const requireJson = createRequire(import.meta.url);
 const STORY_EPISODE_SLUGS = requireJson("../lib/stories/vn/episodes.generated.json").episodes.map((e) => e.slug);
@@ -55,6 +56,12 @@ const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace
 const insightsApiBase = (process.env.INSIGHTS_API_BASE_URL || process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
 const useInsightsApi = String(process.env.SITEMAP_USE_INSIGHTS_API || "").toLowerCase() === "1";
 const today = new Date().toISOString().slice(0, 10);
+// 🔴 매일 갱신되는 라우트(운세)의 lastmod 는 UTC 가 아니라 **KST** 여야 한다. 그 페이지의
+// 콘텐츠 날짜를 정하는 것은 발행 워크플로이고 그 기준이 KST 이기 때문이다. 발행 빌드는
+// 00:20 KST(= 15:20 UTC 전날)에 도니, UTC 를 쓰면 08-28 자 본문에 lastmod=08-27 이 붙는다.
+// 나머지 라우트는 콘텐츠 날짜가 없어 UTC 그대로 둔다 — 여기서 전부 KST 로 밀면 원장 264개가
+// 자정~09시 KST 구간에 하루 앞선 날짜로 재기록된다.
+const volatileToday = kstYmdToday();
 // --check 는 아무것도 쓰지 않고 "지금 다시 만들면 나올 결과" 를 추적본과 비교만 한다.
 // 라우트·콘텐츠를 바꾸고 사이트맵을 갱신하지 않은 PR 을 CI 에서 잡기 위한 모드다.
 const checkOnly = process.argv.includes("--check");
@@ -688,6 +695,7 @@ async function main() {
   const lastmodLedger = createSitemapLastmodLedger({
     rootDir,
     today,
+    volatileToday,
     previousSitemapPath: sitemapRootPath,
   });
 

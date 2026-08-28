@@ -235,7 +235,7 @@ function resolveLocalSpecifier(rootDir, fromRel, specifier) {
   return { kind: "unresolved" };
 }
 
-export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath }) {
+export function createSitemapLastmodLedger({ rootDir, today, volatileToday = today, previousSitemapPath }) {
   const appPages = collectAppPages(rootDir);
   const constrainedValues = new Map(
     [...CONSTRAINED_SEGMENTS].map(([segment, read]) => [segment, read(rootDir)]),
@@ -411,7 +411,12 @@ export function createSitemapLastmodLedger({ rootDir, today, previousSitemapPath
       // 🔴 매일 바뀌는 데이터를 읽는 라우트는 서명이 그대로여도 내용이 달라졌다. 예전에는 서명에
       // 날짜를 섞어 이 분기를 우회했는데, 그 부작용이 원장의 매일 드리프트였다. 이제 명시적으로 판단한다.
       if (volatileRoutes.has(pathname)) {
-        lastmod = today;
+        // 🔴 휘발성 라우트만 **KST** 달력 날짜를 쓴다. 이 라우트의 콘텐츠 날짜는 운세 발행이
+        // 정하고 그 기준은 KST 다(scripts/lib/fortune-date.mjs). 발행 빌드는 00:20 KST
+        // = 15:20 UTC 전날에 도는데 여기서 UTC 를 쓰면, 08-28 자 본문을 실은 사이트맵이
+        // lastmod=08-27 로 신고한다 — 매일 하루 낡은 신선도를 구글에 보내는 셈이다(2026-08-28 실측).
+        // 나머지 라우트는 "콘텐츠 날짜" 라는 개념이 없으므로 그대로 today(UTC)를 쓴다.
+        lastmod = volatileToday;
         stats.updated += 1;
       } else if (previous && previous.signature === signature && /^\d{4}-\d{2}-\d{2}$/.test(previous.lastmod || "")) {
         lastmod = previous.lastmod;
