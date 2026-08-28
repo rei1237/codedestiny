@@ -2409,9 +2409,9 @@ function LoveSecretHero({ onStart, busy }: { onStart: () => void; busy: boolean 
         {/* 서체는 --font-display(픽셀 계열)가 아니라 DESIGN.md 의 brand-serif 역할(--font-serif).
             사진·밀랍 인장의 고전적인 화면에 픽셀 디스플레이체가 얹히면 결이 어긋난다.
             한글 명조 미러는 700 만 있으므로(globals.css 345행) font-black 이 아니라 font-bold 다. */}
-        <h1 className="mt-8 text-balance break-keep text-[clamp(2.2rem,7vw,3.6rem)] font-bold leading-[1.15] tracking-[-0.01em] text-[var(--ls-text)] [font-family:var(--font-serif)]">
+        <h2 className="mt-8 text-balance break-keep text-[clamp(2.2rem,7vw,3.6rem)] font-bold leading-[1.15] tracking-[-0.01em] text-[var(--ls-text)] [font-family:var(--font-serif)]">
           {copy.heroTitle}
-        </h1>
+        </h2>
         <p className="mt-3 text-balance break-keep text-lg font-bold leading-8 text-[var(--ls-accent)] sm:text-xl">
           {copy.heroSubtitle}
         </p>

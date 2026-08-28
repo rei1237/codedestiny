@@ -1972,7 +1972,7 @@ export default function NewYearAiConsultationPage() {
         </div>
         <div className="nyai-intro-copy">
           <span className="nyai-eyebrow">서비스 소개</span>
-          <h1><Moon size={20} aria-hidden="true" /> 신년운세 전문가 상담</h1>
+          <h2><Moon size={20} aria-hidden="true" /> 신년운세 전문가 상담</h2>
           <p>새해의 기운이 당신에게 건네는 첫 번째 조언을 명식과 세운의 흐름으로 차분히 살펴드립니다.</p>
           <div className="nyai-hero-badges" aria-label={copy.heroBadgesAria}>
             <span>사주 원국</span>
@@ -2636,7 +2636,7 @@ export default function NewYearAiConsultationPage() {
           font-size: 12px;
         }
 
-        .nyai-intro-copy h1 {
+        .nyai-intro-copy h2 {
           display: flex;
           align-items: center;
           gap: 10px;
@@ -2650,7 +2650,7 @@ export default function NewYearAiConsultationPage() {
           text-shadow: 0 12px 34px rgba(0, 0, 0, .5);
         }
 
-        .nyai-intro-copy h1 svg {
+        .nyai-intro-copy h2 svg {
           flex-shrink: 0;
           width: 0.6em;
           height: 0.6em;

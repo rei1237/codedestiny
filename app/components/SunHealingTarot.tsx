@@ -690,7 +690,7 @@ export default function SunHealingTarot() {
         <header className="mb-5 flex items-center justify-between gap-3">
           <div>
             <p className="text-[10px] font-semibold tracking-[0.18em] text-amber-700/80">{copy.headerEyebrow}</p>
-            <h1 className="mt-1 font-serif text-[24px] font-semibold leading-tight text-amber-950 md:text-[32px]">{copy.headerTitle}</h1>
+            <h2 className="mt-1 font-serif text-[24px] font-semibold leading-tight text-amber-950 md:text-[32px]">{copy.headerTitle}</h2>
           </div>
           <button type="button" onClick={goHome} className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-full border border-amber-200/70 bg-white/70 px-4 text-xs font-semibold text-amber-950 shadow-[0_12px_34px_rgba(180,120,35,0.14)] backdrop-blur-xl transition-colors hover:bg-white">
             <RotateCcw className="h-3.5 w-3.5" />{copy.homeButton}

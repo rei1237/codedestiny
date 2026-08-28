@@ -468,6 +468,16 @@ jobs:
         if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
         run: npm run verify:seo-heading-integrity
 
+      # 위 가드는 **서버 HTML 만** 본다. `page.tsx` 가 h1 을 그리고 같은 라우트의
+      # `ssr:false` 클라이언트가 또 h1 을 그리면 서버 HTML 에는 1개뿐이라 통과하고
+      # 브라우저에서는 2개가 된다(브라우저 실측 2026-08-28: 10개 라우트가 그랬다).
+      # dist/ 와 app/ 소스를 함께 읽으니 반드시 build:cf 뒤에 둔다.
+      # 🔴 여기 있어야 하는 이유: verify-guard-wiring 이 "아무 게이트도 안 부르는 검증기" 를
+      #    실패시킨다. 이 줄을 지우면 그 가드가 빨간불이 된다.
+      - name: Verify hydrated H1 integrity
+        if: needs.classify.outputs.runs_build == 'true' && github.event.pull_request.draft != true
+        run: npm run verify:hydrated-h1-integrity
+
       # 색인 대상 라우트가 "문장급" 본문을 실제로 갖고 있는지 본다. raw 글자수 게이트는 링크
       # 라벨·푸터 공용 문구까지 세기 때문에, 본문이 JS 안에만 있는 라우트를 통과시킨다
       # (2026-08-24 실측: /oracle/ifa 0자 · /saju/love-simulation 0자). dist/ 와 그 안의

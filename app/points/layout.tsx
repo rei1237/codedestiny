@@ -33,24 +33,17 @@ export const metadata: Metadata = {
   },
 };
 
+// 🔴 여기에 h1 을 두지 말 것 (2026-08-28 제거).
+//    이 레이아웃은 /points 와 /points/history 두 화면에 **함께** 주입되는데, 두 화면 모두
+//    자기 h1 을 클라이언트에서 그린다(PointsClient · PointHistoryClient, 둘 다 ssr:false).
+//    그래서 하이드레이션 이후 h1 이 2개가 됐다(브라우저 실측 2026-08-28: /points 는
+//    "이용권 상점 | 연이의 달빛 이용권 상점", /points/history 는 "이용권 상점 | ✦ 결제·이용권 기록").
+//    게다가 문구가 하나뿐이라 /points/history 에는 맞지도 않았고, sr-only 숨김 텍스트라
+//    app/components/ServiceIntroSection.tsx 가 없애기로 한 패턴이기도 하다.
+//    제목은 각 화면이 소유한다. 회귀 가드: scripts/verify-hydrated-h1-integrity.mjs
 export default function PointsLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
-      <h1
-        style={{
-          position: "absolute",
-          width: "1px",
-          height: "1px",
-          padding: 0,
-          margin: "-1px",
-          overflow: "hidden",
-          clip: "rect(0, 0, 0, 0)",
-          whiteSpace: "nowrap",
-          border: 0,
-        }}
-      >
-        {pointsLayoutCopy.title}
-      </h1>
       {children}
     </>
   );
