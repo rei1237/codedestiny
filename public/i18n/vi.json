@@ -507,16 +507,16 @@
       "destinyPokerAlt": "Destiny Poker - Cuộc đấu bài định mệnh với các vị thần",
       "destinyPokerImgAlt": "Poker định mệnh",
       "westernAstrologyAria": "Bắt đầu Biểu đồ chiêm tinh cơ bản của phương Tây",
-      "westernAstrologyAlt": "Biểu đồ chiêm tinh học phương Tây cơ bản - Biểu đồ sinh miễn phí · Khả năng tương thích Synastry KRW 5,000",
+      "westernAstrologyAlt": "Basic Western Astrology birth chart — Sun sign · Moon sign · Ascendant",
       "westernAstrologyImgAlt": "Biểu đồ chiêm tinh cơ bản của phương Tây",
       "ziweiBasicAria": "Bắt đầu Zi Wei Dou Shu",
-      "ziweiBasicAlt": "Zi Wei Dou Shu - Biểu đồ cơ sở miễn phí · Khả năng tương thích mở rộng tùy chọn KRW 5,000",
+      "ziweiBasicAlt": "Zi Wei Dou Shu — 12-palace chart destiny analysis",
       "ziweiBasicImgAlt": "Zi Wei Dou Shu",
       "ziweiAdvancedAria": "Bắt đầu Zi Wei nâng cao",
       "ziweiAdvancedAlt": "Tử Vi nâng cao - chiến lược cuộc đời 12 cung · Phân tích sâu sắc Minh Cung",
       "ziweiAdvancedImgAlt": "Tử vi nâng cao",
       "vedicAstrologyAria": "Bắt đầu Chiêm tinh học Vệ đà",
-      "vedicAstrologyAlt": "Chiêm tinh học Vệ đà - Biểu đồ cơ sở miễn phí · Khả năng tương thích KRW 5,000",
+      "vedicAstrologyAlt": "Vedic Astrology — Jyotish signs · Nakshatras · Dashas",
       "vedicAstrologyImgAlt": "Chiêm tinh học Vệ Đà",
       "olympusOracleAria": "Bắt đầu Olympus Oracle",
       "olympusOracleAlt": "Olympus Oracle - đọc vận mệnh 12 vị thần và cung hoàng đạo",
@@ -4580,7 +4580,7 @@
       "passActiveUnlockDesc": "Thẻ cao cấp của bạn sẽ mở khóa vĩnh viễn mà không cần thanh toán một lần.",
       "unlockTitle": "Mở khóa vĩnh viễn: {amount}",
       "unlockDesc": "Mở khóa một lần và tiếp tục sử dụng. Thẻ cao cấp cũng có thể mở khóa nó.",
-      "ziweiConsultDesc": "Nhập liệu miễn phí. Khi nhấn nút tạo tư vấn, sẽ tiến hành thanh toán một lần 30.000đ hoặc kiểm tra Thẻ Pass/Nguyệt Tinh Thạch."
+      "ziweiConsultDesc": "Nhập liệu miễn phí. Khi nhấn nút tạo tư vấn, sẽ tiến hành thanh toán một lần 30.000 KRW hoặc kiểm tra Thẻ Pass/Nguyệt Tinh Thạch."
     }
   },
   "famousSaju": {
@@ -5353,7 +5353,7 @@
     "se_20594_prop_label": "Hiệu chỉnh chính xác",
     "se_20856_prop_label": "Đại vận năm thứ 3",
     "se_20857_prop_label": "Đại vận năm thứ 7",
-    "se_21084_call_confirm": "Mở khóa dòng thời gian đại vận\\n\\nBạn có muốn mở khóa bản đồ vận mệnh cả đời với 20.000 VNĐ không?\\n\\nSau khi mua, bạn có thể xem vĩnh viễn.",
+    "se_21084_call_confirm": "Mở khóa dòng thời gian đại vận\\n\\nBạn có muốn mở khóa bản đồ vận mệnh cả đời với 20.000 KRW không?\\n\\nSau khi mua, bạn có thể xem vĩnh viễn.",
     "se_21090_attr_title": "Tử Vi Đẩu Số 10 năm vận khóa",
     "se_21291_prop_label": "Tứ Hóa tác động yếu",
     "se_21890_prop_label": "Sao chính",
@@ -6428,8 +6428,8 @@
         "kwnx8m7": "Tư vấn chuyên sâu: Vận trình năm mới"
       },
       "lifebookTileLabelRow": {
-        "AI30000": "Tư vấn AI · 30.000đ",
-        "n30000": "30.000đ khi tư vấn"
+        "AI30000": "Tư vấn AI · 30.000 KRW",
+        "n30000": "30.000 KRW khi tư vấn"
       }
     },
     "logoArea": {
@@ -6447,7 +6447,7 @@
     "lovebibleTileCoinGroup": {
       "lovebibleTileCoinBadge": {
         "k11zo0b": "Tư vấn AI",
-        "n30000": "30.000đ",
+        "n30000": "30.000 KRW",
         "k1tna4h3": "Tư vấn chuyên sâu"
       }
     },
@@ -6661,14 +6661,14 @@
         "k1o6s45i": "The energy map you were designed from. We calculate the sky at your birth alongside the other you from 88° earlier, and show where your type, strategy, authority and profile actually come from."
       },
       "tarotTileImgWrap": {
-        "AI30000": "Tư vấn AI · 30.000đ",
-        "AI300002": "Tư vấn AI · 30.000đ",
-        "AI300003": "Tư vấn AI · 30.000đ",
-        "AI300004": "Tư vấn AI · 30.000đ",
-        "AI300005": "Tư vấn AI · 30.000đ",
-        "AI300006": "Tư vấn AI · 30.000đ",
-        "AI300007": "Đặt tên AI · 30.000đ",
-        "AIConsultation50000": "Tư vấn AI · 50.000đ",
+        "AI30000": "Tư vấn AI · 30.000 KRW",
+        "AI300002": "Tư vấn AI · 30.000 KRW",
+        "AI300003": "Tư vấn AI · 30.000 KRW",
+        "AI300004": "Tư vấn AI · 30.000 KRW",
+        "AI300005": "Tư vấn AI · 30.000 KRW",
+        "AI300006": "Tư vấn AI · 30.000 KRW",
+        "AI300007": "Đặt tên AI · 30.000 KRW",
+        "AIConsultation50000": "Tư vấn AI · 50.000 KRW",
         "k1039k": "Đề xuất",
         "k11zo0b": "Tư vấn AI",
         "k125av1j": "Lá số miễn phí · Tư vấn AI",
@@ -6686,7 +6686,7 @@
         },
         "koe32kc": "Trải nghiệm miễn phí",
         "ktgbfsy": "MỚI · Phiên bản quyết định",
-        "n50001000020000": "Tarot 5.000đ · Tứ Trụ 10.000đ · Hợp duyên 20.000đ",
+        "n50001000020000": "Tarot 5.000 KRW · Tứ Trụ 10.000 KRW · Hợp duyên 20.000 KRW",
         "k1dw3t0h": "Lá số miễn phí · tư vấn chuyên sâu có phí",
         "kg12w8e": "Mới · La Bàn Cuộc Đời",
         "n110000": "Bản cơ bản miễn phí · bản chuyên sâu 10.000 KRW mỗi lượt",
