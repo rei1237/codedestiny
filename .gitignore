@@ -114,7 +114,7 @@ i18n/.translate-run*.log
 calibration/
 
 # 일일 운세 패키지 — 소스가 아니라 빌드 산출물이다.
-# scripts/fortune-build-data.mjs 가 prebuild:cf 에서 KST 오늘/내일분을 생성하고,
+# scripts/fortune-build-data.mjs 가 prebuild:cf 에서 KST 오늘/내일/주 시작일/달 1일분을 생성하고,
 # fortune-daily-once.mjs 가 45일 지난 파일을 프루닝한다. 커밋하면 매일 diff 가 생기고
 # retention 프루닝이 워킹트리를 더럽힌다.
 fortune/data/

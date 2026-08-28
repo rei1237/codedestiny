@@ -88,10 +88,11 @@ const STANDALONE_SHELL_ROUTES = new Map([
  * `id` 는 그 의존을 가리키는 **안정적인** 서명 조각이고, `volatile` 은 그 데이터가 날마다
  * 바뀐다는 표시다.
  *
- * lib/fortune/daily-data.ts 는 fortune/data/daily-<KST 오늘>.json 을 읽는다. 그리고
- * lib/fortune/build-view.ts 는 weekly(:109)·monthly(:179) 에서도 loadDailyPackage("today") 를
- * 부르므로 **네 기간 전부 매일 실제로 바뀐다.** 그건 churn 이 아니라 정직한 신호라 lastmod 는
- * 매일 올라가야 한다(파일 자체는 .gitignore 라 해싱하지 않는다).
+ * lib/fortune/daily-data.ts 는 fortune/data/daily-<시드 날짜>.json 을 읽는다. 시드는 기간마다
+ * 다르다 — today/tomorrow 는 그날, weekly 는 주 시작일, monthly 는 그 달 1일이다(2026-08-28).
+ * today·tomorrow 는 매일 바뀌고, weekly·monthly 는 시드 날짜가 바뀔 때 바뀐다. 다만 이 표는
+ * **모듈 단위**라 라우트별로 가를 수 없어 네 기간을 모두 volatile 로 둔다 — 주간·월간의 lastmod 가
+ * 실제 변경보다 자주 올라간다는 뜻이다(라우트별 volatile 은 별건).
  *
  * 🔴 다만 그 사실을 **서명에 날짜로 섞지 않는다**(2026-08-25 정정). 예전 값은
  * `fortune-daily-package:${kstYmdToday()}` 였는데, 그러면 원장에 저장되는 서명이 KST 자정마다
