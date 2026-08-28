@@ -91,6 +91,57 @@ test("휘발성이 아닌 라우트는 KST 로 밀리지 않는다", async () =>
   }
 });
 
+/**
+ * 기준 날짜를 **원장에서** 만든다. 시계를 읽으면 이 테스트가 도는 날에 따라 결과가 갈리고,
+ * 상수를 박으면 원장을 다시 만든 날이 그 상수를 지나는 순간 조용히 무의미해진다
+ * (판정이 `max(저장된 lastmod, 주기 날짜)` 라 저장값보다 뒤인 날짜를 골라야 주기가 드러난다).
+ */
+function pickProbeThursday() {
+  const stored = JSON.parse(readSource(path.join(root, "config", "sitemap-lastmod.json"))).routes;
+  const latest = Object.values(stored)
+    .map((entry) => entry.lastmod)
+    .filter((value) => /^\d{4}-\d{2}-\d{2}$/.test(value || ""))
+    .sort()
+    .pop();
+  assert.ok(latest, "원장에서 lastmod 를 하나도 읽지 못했습니다.");
+
+  const [y, m, d] = latest.split("-").map(Number);
+  const probe = new Date(Date.UTC(y, m - 1, d + 14));
+  // 목요일(4)로 맞춘다 — 주 시작(월)과 다른 요일이어야 "주기가 실제로 걸렸는지" 가 보인다.
+  probe.setUTCDate(probe.getUTCDate() + ((4 - probe.getUTCDay() + 7) % 7));
+  const thursday = probe.toISOString().slice(0, 10);
+  probe.setUTCDate(probe.getUTCDate() - 3);
+  return { thursday, monday: probe.toISOString().slice(0, 10) };
+}
+
+test("주간 라우트의 lastmod 는 주 시작일에 멈추고, 오늘·내일·월간만 날마다 올라간다", async () => {
+  // 지키는 사고 (2026-08-28): /fortune/** 100개가 전부 매일 lastmod 를 올렸다. 주간 50쪽은
+  // 주 단위로만 바뀌므로 나머지 6일치는 거짓 신호였다 — 구글에게 재크롤 신호는 이것 하나뿐이라
+  // 거짓이 쌓이면 신호 자체가 무시된다.
+  const { createSitemapLastmodLedger } = await import(pathToFileURL(LEDGER_MODULE).href);
+  const { thursday, monday } = pickProbeThursday();
+  const ledger = createSitemapLastmodLedger({
+    rootDir: root,
+    today: thursday,
+    volatileToday: thursday,
+    previousSitemapPath: path.join(root, "sitemap.xml"),
+  });
+
+  assert.equal(ledger.lastmodFor("/fortune/weekly/"), monday, "주간 허브가 주 시작일을 쓰지 않습니다.");
+  assert.equal(ledger.lastmodFor("/fortune/weekly/pig/"), monday, "주간 상세가 주 시작일을 쓰지 않습니다.");
+  assert.equal(ledger.lastmodFor("/fortune/today/aries/"), thursday, "오늘 운세가 그날 날짜를 잃었습니다.");
+  assert.equal(ledger.lastmodFor("/fortune/tomorrow/pig/"), thursday, "내일 운세가 그날 날짜를 잃었습니다.");
+
+  // 🔴 월간이 여기 daily 로 남아 있는 것은 의도다. lib/fortune/range-data.ts 의 loadMonthRange 가
+  //    **오늘**을 앵커로 잡아 월건·달 위상·점수를 계산하므로 월간 HTML 도 날마다 달라진다.
+  //    앵커를 달 1일로 옮기는 작업을 하게 되면 이 단언과 FORTUNE_VOLATILE_CADENCES 를 함께 고친다.
+  assert.equal(
+    ledger.lastmodFor("/fortune/monthly/pig/"),
+    thursday,
+    "월간이 월 주기로 바뀌었습니다 — 앵커(loadMonthRange)를 함께 옮기지 않았다면 진짜 변경을 숨기게 됩니다.",
+  );
+});
+
 test("generate-sitemap 이 KST 날짜를 실제로 원장에 넘긴다", () => {
   const source = readSource(GENERATOR);
   assert.match(

@@ -502,14 +502,15 @@ function extractFortuneSignRoutes() {
   }
 
   // lib/fortune/periods.ts 의 FORTUNE_PERIOD_IDS 와 같아야 한다.
-  // 주간·월간은 갱신 주기가 길지만 changefreq 는 크롤러의 참고값일 뿐이고,
-  // 실제로는 매일 재배포되며 요일별 표와 월건 구간이 함께 갱신되므로 daily 로 둔다.
-  const periods = ["today", "tomorrow", "weekly", "monthly"];
+  // changefreq 는 크롤러의 참고값일 뿐이지만 lastmod 와 어긋난 값을 적어 둘 이유는 없다 —
+  // 주간은 시드도 요일별 표도 그 주에서 나와 주 단위로만 바뀌고, 월간은 앵커가 오늘이라
+  // 여전히 날마다 바뀐다(근거: scripts/lib/sitemap-lastmod.mjs 의 FORTUNE_VOLATILE_CADENCES).
+  const periodChangefreq = { today: "daily", tomorrow: "daily", weekly: "weekly", monthly: "daily" };
   const routes = [];
-  for (const period of periods) {
-    routes.push({ path: `/fortune/${period}`, changefreq: "daily", priority: 0.9 });
+  for (const [period, changefreq] of Object.entries(periodChangefreq)) {
+    routes.push({ path: `/fortune/${period}`, changefreq, priority: 0.9 });
     for (const id of ids) {
-      routes.push({ path: `/fortune/${period}/${id}`, changefreq: "daily", priority: 0.82 });
+      routes.push({ path: `/fortune/${period}/${id}`, changefreq, priority: 0.82 });
     }
   }
   return routes;

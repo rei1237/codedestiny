@@ -59,7 +59,15 @@ export function createI18nMetadata(input: CreateI18nMetadataInput): Metadata {
       title,
       description: cappedDescription,
       url: canonical,
-      siteName: localeConfig.siteName,
+      // 🔴 사이트 이름 신호는 로케일 표가 아니라 브랜드 한 곳에서 나온다.
+      //    로케일 표의 siteName("Code Destiny Japan" 등)을 여기 쓰면 **같은 페이지 안에서** 신호가
+      //    갈린다 — dist/ja/today 실측(2026-08-28): og:site_name="Code Destiny Japan" 인데
+      //    application-name 과 WebSite 스키마 name 은 둘 다 "꿀꿀 운세"(inLanguage ko-KR)였다.
+      //    구글은 네 신호가 일치할 때만 사이트 이름을 채택하므로, 갈려 있는 동안에는 어느 쪽도
+      //    잡히지 않는다 — PR #1239 가 한국어 표면에서 없앤 그 갈라짐이 로케일 미러 52쪽에
+      //    그대로 남아 있었다(__tests__/ui/site-name-signals.static.test.js).
+      //    로케일 표의 siteName 은 빵부스러기 라벨(I18nSeoPageTemplate)에서 계속 쓴다.
+      siteName: siteSeo.brandName,
       images: [
         {
           url: imageUrl,
