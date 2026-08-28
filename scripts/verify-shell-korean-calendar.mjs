@@ -1472,6 +1472,84 @@ function extractFunctionSource(source, name) {
   }
 }
 
+// ── ⑲ 두 번 평가돼도 모달 프로필 상태가 살아남는다 ─────────────────────────
+//
+// 🔴 왜 이 가드 안인가 — 바로 위 ⑭ 가 "`js/core/saju/modalProfileState.js` 가 **무버전으로**
+// 참조되는 자리 2곳"을 이미 못박고 있다. 그 사실의 **결과**가 이것이다: 셸에 이 파일을 싣는
+// 로더가 셋인데 dedupe 규칙이 갈린다(실측 2026-08-28).
+//   · 체인 `__cdLoadScriptOnce` — DOM 을 훑고 `?v=` 를 무시한다(파일명까지 본다)
+//   · `__loadScriptOnce`(js/core/uiBindings.js) — DOM 을 훑지만 **정확한 문자열** 비교라
+//     `?v=` 붙은 체인 태그를 못 본다
+//   · `cd-lazy-feature-loader` — **DOM 을 아예 안 보고** 자기 맵만 본다
+// 그래서 체인이 먼저 돌면 나머지 둘이 태그를 하나 더 심고, 그 파일이 **다시 평가된다.**
+// 정정 전에는 그때 `_subs` 가 빈 인스턴스로 갈아치워져 열려 있던 모달의 구독이 조용히
+// 사라졌다(실측: dispatch 가 0회 전달, 예외 없음). 여기서 재평가 안전성을 실행으로 못박는다.
+// 🔴 로더 셋을 통일하는 것은 공유 모듈 변경이라 이 가드가 아니라 별건이다.
+{
+  const REL = "js/core/saju/modalProfileState.js";
+  let source = "";
+  try { source = fs.readFileSync(path.join(root, REL), "utf8"); } catch { source = ""; }
+  ok(`⑲ ${REL} 를 읽었다(0바이트면 아래는 침묵이다)`, source.length > 500, `${source.length}바이트`);
+
+  /** 이 프로세스의 전역을 안 건드리려고 **격리된 컨텍스트**에서 두 번 평가한다. */
+  const evalTwice = (src) => {
+    const sandbox = {
+      console, Object, Array, String, Number, Math, JSON, Date, setTimeout, clearTimeout,
+      document: {
+        getElementById() { return null; },
+        querySelector() { return null; },
+        querySelectorAll() { return []; },
+      },
+    };
+    sandbox.window = sandbox;
+    sandbox.globalThis = sandbox;
+    vm.createContext(sandbox);
+    vm.runInContext(src, sandbox, { filename: `${REL}#1` });
+    const first = sandbox._ModalProfileState;
+    let delivered = 0;
+    if (first && typeof first.subscribe === "function") first.subscribe("sukuyo", () => { delivered += 1; });
+    vm.runInContext(src, sandbox, { filename: `${REL}#2` });
+    const second = sandbox._ModalProfileState;
+    if (second && typeof second.dispatch === "function") {
+      try {
+        second.dispatch({ birth: { year: 2000, month: 6, day: 15, hour: 12, minute: 0 }, location: {} }, "sukuyo");
+      } catch { /* 전달 실패는 아래 delivered 로 드러난다 */ }
+    }
+    return { same: !!first && first === second, delivered, hasApi: !!first && typeof first.subscribe === "function" };
+  };
+
+  if (source.length > 500) {
+    const now = evalTwice(source);
+    ok("⑲ 첫 평가에서 모달 프로필 상태 API 가 살아난다", now.hasApi, "subscribe 가 없다");
+    ok(
+      "⑲ 🔴 두 번 평가해도 인스턴스가 갈리지 않는다",
+      now.same,
+      "재평가가 새 인스턴스를 만든다 — 열려 있던 모달의 구독이 사라진다",
+    );
+    ok(
+      "⑲ 🔴 두 번 평가해도 첫 평가에 건 구독이 산다(dispatch 가 전달된다)",
+      now.delivered === 1,
+      `전달 ${now.delivered}회`,
+    );
+
+    // 🔴 판별력 자기검사 — 가드를 걷어낸 정정 전 모양이 실제로 걸려야 위 두 줄이 의미가 있다.
+    const legacySource = source.replace("window._ModalProfileState || (function () {", "(function () {");
+    ok(
+      "⑲ 판별력 검사의 전제가 성립한다(정정 전 모양을 실제로 만들었다)",
+      legacySource !== source,
+      "재평가 가드 문자열을 못 찾았다 — 모양이 바뀌었으면 이 검사를 같이 고쳐야 한다",
+    );
+    if (legacySource !== source) {
+      const legacy = evalTwice(legacySource);
+      ok(
+        "⑲ 이 검사가 판별력이 있다(가드를 걷어내면 인스턴스가 갈리고 구독이 사라진다)",
+        !legacy.same && legacy.delivered === 0,
+        `같은 인스턴스=${legacy.same} · 전달 ${legacy.delivered}회`,
+      );
+    }
+  }
+}
+
 if (failures.length) {
   console.error(`[verify:shell-korean-calendar] 실패 ${failures.length}건 / 검사 ${checks}건`);
   for (const failure of failures) console.error(`  ✗ ${failure}`);
