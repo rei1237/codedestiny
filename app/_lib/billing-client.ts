@@ -2270,7 +2270,9 @@ function resolveRuntimeBillingPricing(input: BillingCoinGateInput, eligibility: 
     cost,
     coinPrice: cost,
     displayUnit: toText(rawPricing.displayUnit || "coin"),
-    displayPrice: toText(rawPricing.displayPrice || formatCoinValueWon(cost)),
+    // 🔴 서버의 displayPrice 는 "30,000원" 으로 굳어 있다(worker/lib/billing-feature-registry.js).
+    //    그 응답은 가격이 국가 불변이라 캐시되므로 로케일 반영은 클라 몫이다 — formatPaymentWon 이 정본.
+    displayPrice: toText(amountKRW > 0 ? formatPaymentWon(amountKRW) : (rawPricing.displayPrice || formatCoinValueWon(cost))),
     reason: toText(rawPricing.reason || input.reason || featureKey),
     currency: toText(rawPricing.currency || "KRW"),
     cashPrice: amountKRW,
