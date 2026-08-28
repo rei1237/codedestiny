@@ -96,14 +96,39 @@ PG 심사 탈락 사유이고, 환율이 움직일 때마다 판매가가 바뀌
 - 리다이렉트를 남기지 않으면 기존 링크·북마크가 죽는다
 경로 변경은 **화면 문구가 이미 맞으므로 급하지 않다.** 심사에서 실제로 지적을 받으면 그때 하는 편이 낫다.
 
-### ② 서버가 `displayPrice` 를 ko-KR + "원" 으로 굳혀 보낸다
-`worker/lib/billing-feature-registry.js:156`
+### ② 서버가 `displayPrice` 를 ko-KR + "원" 으로 굳혀 보낸다 — **완료** (2026-08-28)
+
+"쓰이지 않으면 서버에서 문자열을 만들지 말라"고 남겼지만, 전수 확인 결과 **실제로 쓰인다.**
+그리고 서버에서 로케일을 반영할 수도 없다 — `/api/billing/features` 응답은 가격이 국가
+불변이라 캐시되므로(§3 "국가별 캐시 오염") 로케일별 문자열을 만들면 캐시가 로케일마다
+갈라진다. 그래서 **고칠 지점은 서버가 아니라 클라**였다.
+
+실측한 경로 3개와 판정:
+| 경로 | 판정 |
+|---|---|
+| `js/core/feature-pricing-store.js` (셸 타일 배지) | 🔴 서버 문자열이 이겼다 → **고침** |
+| `app/_lib/billing-client.ts:2273` | 🔴 서버 문자열이 이겼다 → **고침** |
+| `app/hooks/useServerPrice.ts` (React) | ✅ 이미 정상 — 빌드 타임 `FEATURE_KEY_PRICE_TABLE` 은 `displayPrice` 를 **안 갖는다**(실측 130키 중 0건)라 로케일 인식 `formatRegistryAmount` 로 떨어진다 |
+
+고친 방식은 **기존 정본 재사용**이다(원칙 6 — 새 포맷터를 만들지 않았다):
+`js/core/checkout-entry.js` `formatKrwAmount()` 가 `displayLocale()` 자릿수 +
+`payment.currency.krw` 사전(12로케일 전부 보유, 실측)으로 이미 그리고 있었다.
+`seedFromMarkup` 이 checkout-entry 부착 전에 돌 수 있어 store 시점 포맷만으로는 부족하다 —
+**읽기 지점(`get`/`getOrLoad`)에서도 다시 그린다.** 모듈이 없으면 종전 한국어 표기로 물러난다.
+
+- 한국어 화면 표기는 종전과 완전히 같다. 금액·통화·결제 요청은 안 건드렸다(표시 전용).
+- 테스트: `__tests__/billing/feature-pricing-store-locale.test.js` 6건.
+  음성 테스트로 **수정 전 코드에서 4건이 실제로 실패**함을 확인했다(ko·폴백 2건은 불변이라 통과).
+
+🔴 **남은 같은 모양 1건 — `worker/routes/app-store.js:365`**
 ```js
-displayPrice: `${resolvedAmountKRW.toLocaleString("ko-KR")}원`,
+displayPrice: `${pass.amountKRW.toLocaleString("ko-KR")}원`,
 ```
-비한국어 사용자에게 한국식 표기가 그대로 나갈 수 있다. **어디서 실제로 렌더되는지 먼저
-전수 확인**하고(미확인), 쓰이지 않으면 서버에서 문자열을 만들지 말고 `amountKRW` 만 내려
-클라의 `formatKrwAmount()` 가 그리게 하는 편이 맞다.
+`buildPassPricingShape` 가 앱 이용권(`app-pass-<tier>`)에 같은 ko-KR 문자열을 굳힌다.
+**손대지 않았다** — 앱 상점은 Play SKU 가 통화를 따로 지역화하는 별개 표면이라
+(관련 메모 `new-price-point-needs-play-sku-in-three-places`), 이 문자열이 실제로 어디에
+렌더되는지 확인하지 않은 채 바꾸면 앱 확정가 표기와 어긋날 수 있다. 그 확인이 선행 조건이다.
+다만 이번 클라 수정 두 곳을 타고 흐르는 경로라면 이미 로케일 표기로 덮인다(미검증).
 
 ### ③ PG 결제창 중국어(ZH_CN) — **근거 선행 필요**
 `js/core/checkout-entry.js:245-254` `pgWindowLocale()` 이 `KO_KR`/`EN_US` 둘만 낸다.
@@ -129,12 +154,27 @@ displayPrice: `${resolvedAmountKRW.toLocaleString("ko-KR")}원`,
 (`checkout-entry.js` `REFERENCE_FX_BY_LANG`)이 생겼으므로 통합 가능하지만, 대규모 문자열
 리팩터링이라 이번 범위에서 뺐다. **두 표의 환율값이 갈라지지 않게** 주의(현재는 같다).
 
-### ⑥ Offer 미배선 페이지
-`buildServiceJsonLd` 를 쓰는 12개 중 8개에 배선했다. 나머지:
-- `app/master-love-codex/page.tsx` — 클라이언트에 결제 featureKey 가 **없다**(미확인: 무료인지 다른 기전인지)
-- `app/oracle/rune/page.tsx` · `app/today/page.js` · `app/nakshatra/NakshatraLanding.jsx` · `app/components/SeoLandingTemplate.jsx`
+### ⑥ Offer 미배선 페이지 — **완료** (2026-08-28)
 
-`verify:paid-service-offer` 의 `MIN_WIRED_PAGES = 8` 을 함께 올릴 것.
+**8 → 9.** `app/master-love-codex/page.tsx` 에 배선했다(`master-love-codex`, 20,000원).
+"클라이언트에 결제 featureKey 가 없다"고 남겼던 것은 틀렸다 — 상수는 `app/` 이 아니라
+`src/features/master-love-codex/constants.ts:4` 에 있다.
+
+🔴 그 오독이 곧 **가드의 사각**이었다. `verify:paid-service-offer` 의 §3 대조가 페이지
+디렉터리만 뒤져서, 상수를 feature 모듈에 두는 몰입형 페이지는 `declared` 가 비어
+**대조가 조용히 건너뛰어졌다**(fail-open — Offer 의 featureKey 가 틀려도 아무도 못 잡는다).
+가드가 `src/features/<이름>/constants.ts` 도 읽게 하고 그 경로를 `READ_PATHS` 에 넣어
+트리거 커버리지를 스스로 강제하게 했다. **대조 페이지 7 → 9**(다른 페이지 사각도 함께 닫힘).
+`MIN_WIRED_PAGES = 9` · `MIN_COMPARED = 8` 로 올렸다.
+음성 테스트로 Offer 키를 다른 상품으로 바꾸면 파일명을 지목하며 실패함을 확인했다.
+
+**의도적으로 배선하지 않은 나머지 4개** — 다시 열어보지 말 것:
+- `app/oracle/rune/page.tsx` — **무료 페이지**다. 본문이 "둘 다 무료로 가볍게 시작할 수
+  있습니다"라고 말한다. 유료 룬(`stonehenge-runes-*`)은 5개 티어라 단일 `Offer.price` 로
+  표현할 수도 없다(그건 `AggregateOffer` 이며 지금 헬퍼의 범위 밖이다).
+- `app/today/page.js` · `app/nakshatra/NakshatraLanding.jsx` · `app/components/SeoLandingTemplate.jsx`
+  — 페이지 메타로만 구동되는 **SEO 허브/템플릿**이라 파는 단일 상품이 없다.
+- 궁합판 `master-love-codex-compat`(30,000원)은 별도 결제라 한 Offer 에 두 가격을 안 섞는다.
 
 ### ⑦ Webhook 타임스탬프 허용오차 없음
 `worker/payments/webhook.js` — `webhook-timestamp` 를 서명 입력으로만 쓰고 신선도 비교를
