@@ -9,6 +9,8 @@
   당시 "현행 유지(ON)" 로 정했던 근거가 **틀린 전제** 위에 있었다 — 아래 "PR-3" 절.
 - ✅ **PR-F — 값 축의 사각지대를 닫았다.** PR-E 의 "새로 알게 된 것 3번"이 실제로는 5벌 더 있었다.
   아래 "PR-F" 절.
+- ✅ **PR-4 — 사본 동일성 가드(검사 ⑮).** `_partsOf ↔ _kasiPartsOf` 가 지문 단독 그룹인지와
+  UTC 부품 조립 함수 6건 전수를 본다. 아래 "PR-4" 절. **남은 것은 PR-5(측정 전용)와 별건 3건뿐.**
 
 Date 를 받는 진입점이 **소스에서 0개**가 됐고, `ganji-dst-gap-census.json` 의 `gaps` 가 6개 존
 전부 **문자 그대로 0** 이 됐다.
@@ -73,32 +75,7 @@ PR-2 가 `kst` 결함을 고쳤지만 **localStorage 180일 보유자에게는 �
 
 ### 🔴 남은 계획 항목 — 착수 전에 이 절을 읽어라 (2026-08-28 실측)
 
-**PR-4 — `_partsOf` 복제 동일성 가드 (값 변화 0).**
-
-🔴 **원 계획의 발견 규칙이 틀렸다.** *"본문에 `Date.UTC(` · `getUTCFullYear()` ·
-`getUTCMonth() + 1` 을 전부 포함하는 함수"* 로 스캔하면 **2벌이 아니라 7벌**이 잡힌다 —
-`_partsOf` · `_dpHasValidProfileDate` · `_addDaysToParts` · `_kasiPartsOf` ·
-`_shiftDatePartsByDays` · `_cdCivilDayPillar` · `_formatUtcFromLocal`.
-"정확히 2벌" 단언을 그대로 쓰면 **즉시 빨강**이다.
-
-대안(실현가능성 실측함): **전수 정규화 지문 인덱스.** `GANJI_PATH_FILES` 7개에서
-`function <이름>(...)` 선언을 전부 잘라 이름 → `F`, 파라미터 → 위치 토큰, 주석 제거,
-공백 정규화한 지문으로 묶으면 — **함수 1,839개 · 서로 다른 지문 1,821개 · 중복 그룹 14개**,
-그중 `kasi-calendar-service.js:_partsOf ↔ saju-engine.js:_kasiPartsOf` 가 **332자 지문의
-단독 그룹**이다(나머지 13개는 `escapeHtml`·`_pad2` 류의 무해한 복제 = 정상 배경).
-⇒ lock 지문을 가진 함수 집합이 정확히 그 2개인지 보면, 한 벌이 드리프트할 때 그룹에서 빠져
-1벌이 되므로 **동일성 단언까지 한 검사가 흡수**한다.
-
-- 🔴 **검사 번호는 ⑮ 다** — ⑭ 는 PR-4′ 가 무버전 참조 가드로 썼다.
-- **public 미러 지문 대조는 빼라**(원칙 6). `verify:public-mirror-fresh` 가 생성기를 실제로
-  돌려 대조하고, 실측상 미러 7개가 전부 정본과 blob 해시 동일이다.
-- 절단은 `scripts/lib/js-source-slice.mjs` 의 `sliceFunction` 을 import 해서 쓴다 —
-  `verify-shell-korean-calendar.mjs` 자체 `extractFunctionSource` 는 문자열·정규식 리터럴을
-  처리하지 않는다.
-- **R9 대상 곳수 정정**: 계획의 "`_kasiPartsOf` 13곳" 은 `js/saju-engine.js` 안만 센 값이다.
-  실측은 saju-engine.js 13곳(래퍼 제외) + `saju-engine-tarot-sukuyo-quantum.js` **5곳** = 18곳.
-  `_partsOf` 4곳 · 공개 `partsOf` 외부 3곳을 더해 **총 25곳**(계획의 20곳이 아니다).
-- `_partsValid` 는 `js/core/kasi-calendar-service.js` 에 있고 호출부 4곳.
+**PR-4 — ✅ 끝났다(아래 "PR-4" 절). 남은 것은 PR-5 와 별건 3건뿐이다.**
 
 **PR-5 — `getGanjiFromParts` null 전환 영향 측정 (측정 전용).** PR-3 이 머지됐으므로 착수 가능.
 🔴 표본 생성기 추출 범위가 계획보다 넓다 — `verify-ganji-surface-parity.mjs` 의 `buildSamples()`
@@ -115,6 +92,69 @@ PR-2 가 `kst` 결함을 고쳤지만 **localStorage 180일 보유자에게는 �
    야자시 축과 무관하다고 **추정**하나 미검증.
 3. MongoDB 박제 값(R-h) — `worker/lib/models.js` 의 `ziweiAiChartSchema.lunar` ·
    `sukuyoCompatibility…shuku/shukuIndex` · `lifeBookAi…sajuResult`. 로직 버전 필드가 없다.
+
+## ✅ PR-4 — `_partsOf` 사본 동일성 가드(검사 ⑮)를 넣었다 (2026-08-28)
+
+값 변화 0. 바꾼 파일은 `scripts/verify-shell-korean-calendar.mjs` **하나**다.
+
+### 🔴 원 계획의 발견 규칙은 역시 틀렸고, 실측은 7벌도 아니었다
+
+*"본문에 `Date.UTC(` · `getUTCFullYear()` · `getUTCMonth() + 1` 을 전부 포함하는 함수"* 는
+`GANJI_PATH_FILES` 7개 안에서 **6벌**이다 — 앞선 실측이 적은 7벌 중 `_dpHasValidProfileDate`
+는 `js/destiny-profile.js` 소속이라 **이 목록 밖**이다(R10 이 못 건드리게 한 그 파일).
+그리고 그 6벌도 마커를 **공백 무시**로 봐야 다 잡힌다 — `_formatUtcFromLocal` 이
+`getUTCMonth()+1`(공백 없음)이라 띄어쓰기 하나로 발견에서 빠졌다.
+
+또 하나: 마커 스캔은 **감싸는 바깥 함수까지** 잡는다. `renderAstroInsightLegacyNeon`
+(지문 199,858자)이 `_formatUtcFromLocal` 을 품고 있어 그대로 세면 7건이 된다. 그래서 검사는
+**최내곽**(자기 범위 안에 다른 매치가 없는) 함수만 센다.
+
+### 넣은 것 — 검사 ⑮ 5건 (같은 파일 ⑬⑭ 블록 안, `GANJI_PATH_FILES` 공유)
+
+축을 둘로 나눴다. 지문 그룹이 **동일성**을, 마커 전수가 **신규 유입**을 맡는다.
+
+| # | 무엇 | 실측 (2026-08-28, 이 브랜치) |
+|---|---|---|
+| ⑮-a | 스캐너 생존 — `function <이름>(` 느슨한 전수 == 슬라이스 전수 | 함수 **1,840**개 · 서로 다른 지문 **1,822**개 · 중복 그룹 **15**개 |
+| ⑮-b | 사본 2벌이 이름으로 실재(리네임·삭제 탐지) | `kasi-calendar-service.js:_partsOf` · `saju-engine.js:_kasiPartsOf` |
+| ⑮-c | 🔴 그 지문을 가진 함수 집합이 **정확히 2벌** | 332자 단독 그룹. 드리프트 → 1벌, 사본 증가 → 3벌 |
+| ⑮-d | 얼려 둔 그룹이 정말 부품 정규화다(조각 8종 존재) | 씨앗을 `_pad2` 로 바꾸면 즉시 빨강 |
+| ⑮-e | 🔴 마커 3종 최내곽 함수 전수 == 등재 목록(미분류·stale 양방향) | **6**건 등재 |
+
+등재된 6건과 역할: `_partsOf`(정본) · `_kasiPartsOf`(셸 사본) ·
+`saju-engine.js:_shiftDatePartsByDays`(날짜 축만, 시·분 없음) ·
+`saju-engine.js:_cdCivilDayPillar`(일진 60갑자 UTC 일련번호) ·
+`saju-engine.js:_formatUtcFromLocal`(디버그 표시) ·
+`luck-sync-diary.js:_addDaysToParts`(부품 시프트, 시·분 보존).
+
+- ⑮-a 의 "느슨한 전수 == 슬라이스 전수"는 **조용한 누락 탐지**다. 파라미터에 `)` 가 든 선언
+  (기본값·구조분해)이 생기면 `DECL_RE` 가 그 함수를 통째로 건너뛰는데, 그 순간 ⑮-e 가
+  "0건이라 통과"가 된다. 실측으로 심어 확인했다(느슨 1,841 vs 슬라이스 1,840 → 빨강).
+- 절단은 계획대로 `scripts/lib/js-source-slice.mjs` 의 `sliceFunction`·`stripComments` 를
+  import 한다. 🔴 `sliceFunction` 은 `indexOf` 로 **첫** 마커를 찾으므로 `src.slice(match.index)`
+  를 넘겨 마커가 0번에 오게 해야 한다 — 전체 소스를 넘기면 같은 시그니처의 앞선 선언을 잘라 온다.
+- 계획대로 **public 미러 지문 대조는 안 넣었다**(원칙 6, `verify:public-mirror-fresh` 중복).
+- 중복 그룹 15개 중 14개는 `escapeHtml`·`_pad2` 류의 무해한 복제 = 정상 배경이라 **세지 않는다**
+  (그 수를 단언하면 무관한 헬퍼 하나에 빨개진다).
+
+### 음성 테스트 7종 (전부 fail-closed → 바이트 백업으로 복구, 복원 후 64건 초록)
+
+| 심은 것 | 빨개진 검사 |
+|---|---|
+| `_kasiPartsOf` 의 `s \|\| 0` → `s \|\| 1` (한쪽만 드리프트) | ⑮-c 만 (그룹 1벌) |
+| `_kasiPartsOf` 를 파일 전역 리네임 | ⑮-b · ⑮-c · ⑮-e |
+| 같은 파일에 **글자 그대로 같은** 3번째 사본 추가 | ⑮-c(3벌) · ⑮-e(미분류) |
+| 다른 모양의 새 UTC 부품 함수 추가 | ⑮-e 만 |
+| 파라미터 기본값 `(a = Math.max(1, 2))` 함수 추가 | ⑮-a 만 |
+| 등재 목록에 없는 함수 이름 한 줄 추가 | ⑮-e (stale) |
+| 씨앗을 `_pad2`/`_kasiPad2`(진짜 2벌 그룹)로 교체 | ⑮-d 만 |
+
+### 여기서 안 쓴 실측 (PR-5·후속용으로 남긴다)
+
+- **R9 대상 곳수 정정**: 계획의 "`_kasiPartsOf` 13곳" 은 `js/saju-engine.js` 안만 센 값이다.
+  실측은 saju-engine.js 13곳(래퍼 제외) + `saju-engine-tarot-sukuyo-quantum.js` **5곳** = 18곳.
+  `_partsOf` 4곳 · 공개 `partsOf` 외부 3곳을 더해 **총 25곳**(계획의 20곳이 아니다).
+- `_partsValid` 는 `js/core/kasi-calendar-service.js` 에 있고 호출부 4곳.
 
 ## ✅ PR-3 — 음력일 축 야자시를 **OFF 로 통일**했다 (2026-08-28)
 
