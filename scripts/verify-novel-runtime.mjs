@@ -37,8 +37,23 @@ const requiredRuntimeHooks = [
   "function setSceneDirection(scene)",
   "RIVER_FALLBACK",
   "/images/novel/remaster/river-of-names-v1.webp",
+  // 배경 안정화 장치(2026-08-28). 카메라 연출은 .bgStage 의 transform 으로만 준다 —
+  // .bgImg 의 animation-name 을 갈아끼우면 transform 이 새 키프레임 시작값으로 스냅한다.
+  '.bgLayer[data-camera="focus"] .bgStage',
+  "function restartKenburns(el)",
+  "function shownBg()",
+  "if(token!==_bgReq)return;",
+  "var _hydrating=false",
+  "function hydrateFlush()",
+  "function applyReduceMotion()",
+];
+// 되살아나면 안 되는 패턴 — 각각이 실제로 났던 배경 흔들림의 원인이다.
+const forbiddenRuntimePatterns = [
+  ["kenburnsFocus", "카메라 연출이 .bgImg 의 animation 을 교체하면 배경이 스냅한다"],
+  ["S.curBg=null", "curBg 리셋은 같은 배경으로 되돌아오는 헛 크로스페이드를 만든다"],
 ];
 for (const hook of requiredRuntimeHooks) if (!html.includes(hook)) fail(`required runtime hook missing: ${hook}`);
+for (const [pattern, why] of forbiddenRuntimePatterns) if (html.includes(pattern)) fail(`forbidden pattern is back: ${pattern} — ${why}`);
 if ((html.match(/bootDirectPlay\(\);/g) ?? []).length !== 1) fail("direct player boot must have exactly one data-ready entry point");
 if (html.includes("EPISODES.push(")) fail("inline episode data remains in the player; run externalize-novel-episodes.mjs");
 if (statSync(PLAYER_PATH).size > 180_000) fail("player shell exceeds the 180KB initial-size budget");

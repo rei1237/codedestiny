@@ -118,8 +118,81 @@ async function verifyVisualCueBindings() {
   }
 }
 
+/* 배경/캐릭터 안정화 회귀 가드(2026-08-28).
+   고친 것: ① 점프가 지나온 배경 전환을 전부 다시 재생하던 것 ② 같은 배경인데도 크로스페이드하던 것
+   ③ 점프마다 캐릭터 DOM 을 전멸시켰다 다시 만들던 것 ④ 늦게 온 옛 배경 요청이 나중 것을 덮던 것. */
+async function verifyBackgroundStability() {
+  const { dom, errors } = createPlayerDom();
+  try {
+    const win = dom.window;
+    const { document } = win;
+    await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
+
+    const realRestart = win.restartKenburns;
+    let swaps = 0;
+    const countSwaps = () => {
+      swaps = 0;
+      win.restartKenburns = (el) => {
+        swaps += 1;
+        return realRestart(el);
+      };
+    };
+    const stopCounting = () => {
+      win.restartKenburns = realRestart;
+    };
+
+    // ① EP.23 은 배경이 15번 바뀌는 화다. 그 끝으로 점프해도 배경은 딱 한 번만 갈려야 한다.
+    await win.hydrateTo(23, 0);
+    countSwaps();
+    await win.hydrateTo(23, 199);
+    stopCounting();
+    assert.equal(swaps, 1, `hydrateTo replayed ${swaps} background swaps (must be 1)`);
+
+    // ② 같은 지점으로 다시 점프 — 배경은 그대로, 캐릭터 DOM 도 그대로.
+    const staged = [];
+    for (const slot of ["l", "c", "r"]) {
+      const el = document.getElementById(`char_${slot}`);
+      if (el) staged.push({ slot, el, who: el.dataset.who });
+    }
+    assert.ok(staged.length > 0, "no character was staged after the jump");
+    countSwaps();
+    await win.hydrateTo(23, 199);
+    stopCounting();
+    assert.equal(swaps, 0, "re-jumping to the same beat swapped the background again");
+    for (const { slot, el, who } of staged) {
+      const now = document.getElementById(`char_${slot}`);
+      assert.equal(now, el, `char_${slot} was recreated on re-jump (character flicker)`);
+      assert.equal(now.dataset.who, who, `char_${slot} changed occupant on re-jump`);
+    }
+
+    // ③ 프롤로그 끝과 EP.01 첫 비트는 같은 배경(river)이다 — 화가 바뀐다고 다시 갈면 안 된다.
+    const prologue = await win.ensureEpisodeLoaded(0);
+    await win.hydrateTo(0, prologue.beats.length - 1);
+    assert.equal(win.S.curBg, "river", "prologue did not end on the river background");
+    countSwaps();
+    await win.hydrateTo(1, 0);
+    stopCounting();
+    assert.equal(swaps, 0, "episode boundary with an identical background still crossfaded");
+
+    // ④ 두 요청이 겹치면 나중 것이 이긴다. 로드 전에는 보이는 배경을 건드리지 않는다.
+    const beforeKey = win.shownBg().dataset.bgKey;
+    win.setBg("room", null);
+    win.setBg("campus", null);
+    assert.equal(win.shownBg().dataset.bgKey, beforeKey, "the visible background was overwritten before its replacement loaded");
+    await waitFor(() => win.shownBg().dataset.bgKey !== beforeKey, "background commit");
+    const showing = ["bgA", "bgB"].filter((id) => document.getElementById(id).classList.contains("show"));
+    assert.deepEqual(showing.length, 1, `${showing.length} background slots are visible (must be 1)`);
+    assert.equal(win.shownBg().dataset.bgKey, "campus", "a stale background request overwrote the newer one");
+
+    assert.deepEqual(errors, [], "background stability checks emitted runtime errors");
+  } finally {
+    dom.window.close();
+  }
+}
+
 await verifyDirectStart();
 await verifyMainEntry();
 await verifyLoadFailureIsVisible();
 await verifyVisualCueBindings();
-console.log("[novel-player-start] OK: direct start, main entry, visible load failure, and event visuals verified");
+await verifyBackgroundStability();
+console.log("[novel-player-start] OK: direct start, main entry, visible load failure, event visuals, and background stability verified");

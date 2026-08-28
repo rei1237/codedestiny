@@ -32186,6 +32186,7 @@
       "beats": [
         {
           "s": "n",
+          "bg": "ziwei1",
           "bgm": "templeGate",
           "im": true,
           "tone": "dark",
