@@ -6,15 +6,16 @@
  * 이 스크립트는 그 순수 함수를 그대로 실행한다. 렌더 자체(satori/resvg)는 대상이 아니다.
  *
  * 고정하는 성질:
- *   ① `image` 파라미터를 받지 않는다 — 임의 원격 URL 을 워커가 fetch 하면 SSRF 다.
- *   ② badge·theme 는 프리셋 화이트리스트뿐이고 모르는 값은 기본값으로 떨어진다.
- *   ③ 제목·설명에 길이 상한이 실제로 걸린다(무한 문자열로 렌더를 태우지 못한다).
- *   ④ 사용자 입력이 카드 마크업에 이스케이프되어 들어간다.
- *   ⑤ 배치를 space-between 에 기대지 않는다(이 파서가 조용히 무시한다).
- *   ⑥ robots.txt 가 /api/og 만 열고 나머지 /api/ 는 계속 막는다.
- *   ⑦ 라우트가 worker/index.js 에 배선돼 있고 withCorsHeaders 를 거치지 않는다.
- *   ⑧ 기존 정적 OG 경로가 폴백으로 살아 있고 그 파일이 실재한다.
- *   ⑨ OG 소스에 리터럴 제어문자가 없다(git 이 파일을 바이너리로 취급하면 diff 가 사라진다).
+ *   ① image 파라미터를 받지 않는다 (SSRF)
+ *   ② badge·theme 은 화이트리스트뿐
+ *   ③ 길이 상한이 실제로 걸린다
+ *   ④ 사용자 입력이 마크업에 이스케이프되어 들어간다
+ *   ⑤ 배치는 모서리를 못박는다 — 이 파서에서 space-between 은 조용히 무시된다
+ *   ⑥ OG URL 헬퍼는 공유 SEO 모듈 밖에 있어야 한다
+ *   ⑦ robots.txt 가 /api/og 만 연다
+ *   ⑧ 라우트 배선 — 있고, CORS 래퍼를 안 거친다
+ *   ⑨ 폴백 정적 카드가 실재한다
+ *   ⑩ OG 소스에 리터럴 제어문자가 없다
  *
  * 실행: npm run verify:og-route-contract
  */
@@ -136,7 +137,28 @@ function params(query) {
   }
 }
 
-/* ⑤ robots.txt 가 /api/og 만 연다 */
+/* ⑥ OG URL 헬퍼는 공유 SEO 모듈 밖에 있어야 한다 */
+{
+  const seoV2 = fs.readFileSync(path.join(ROOT, "lib/seo.v2.ts"), "utf8");
+  assert.ok(
+    !seoV2.includes("buildDynamicOgImageUrl"),
+    "buildDynamicOgImageUrl 이 lib/seo.v2.ts 에 있다 — 그 파일은 118개 페이지의 import 클로저에 "
+      + "들어 있어서 한 줄만 더해도 사이트맵 lastmod 118건이 오늘로 밀린다(구글에 거짓 신선도 신호). "
+      + "2026-08-28 에 실제로 verify:sitemap-drift 가 PR CI 를 막았다. lib/seo/dynamicOgImage.ts 에 둘 것",
+  );
+
+  const helper = fs.readFileSync(path.join(ROOT, "lib/seo/dynamicOgImage.ts"), "utf8");
+  assert.ok(
+    helper.includes("export function buildDynamicOgImageUrl"),
+    "lib/seo/dynamicOgImage.ts 가 buildDynamicOgImageUrl 을 내보내지 않는다",
+  );
+  assert.ok(
+    helper.includes("/api/og?"),
+    "OG URL 헬퍼가 /api/og 를 가리키지 않는다 — 워커 라우트와 어긋났다",
+  );
+}
+
+/* ⑦ robots.txt 가 /api/og 만 연다 */
 {
   const robots = fs.readFileSync(path.join(ROOT, "app/robots.ts"), "utf8");
   assert.ok(
@@ -151,7 +173,7 @@ function params(query) {
   assert.ok(robots.includes('disallow: ["/"],'), "TRAINING_ONLY_CRAWLERS 차단이 사라졌다");
 }
 
-/* ⑦ 라우트 배선 — 있고, CORS 래퍼를 안 거친다 */
+/* ⑧ 라우트 배선 — 있고, CORS 래퍼를 안 거친다 */
 {
   const workerIndex = fs.readFileSync(path.join(ROOT, "worker/index.js"), "utf8");
   const marker = 'url.pathname === "/api/og"';
@@ -168,7 +190,7 @@ function params(query) {
   );
 }
 
-/* ⑧ 폴백 정적 카드가 실재한다 */
+/* ⑨ 폴백 정적 카드가 실재한다 */
 {
   const match = routeSource.match(/FALLBACK_OG_PATH = "([^"]+)"/);
   assert.ok(match, "FALLBACK_OG_PATH 를 찾지 못했다 — 이 가드가 낡았다");
@@ -181,7 +203,7 @@ function params(query) {
   assert.ok(routeSource.includes("status: 302"), "렌더 실패 시 폴백으로 넘기지 않는다");
 }
 
-/* ⑨ OG 소스에 리터럴 제어문자가 없다 */
+/* ⑩ OG 소스에 리터럴 제어문자가 없다 */
 {
   const STRAY = new RegExp("[\\u0000-\\u0008\\u000b\\u000c\\u000e-\\u001f\\u007f]", "g");
   for (const [name, source] of [["worker/lib/og-card.js", cardSource], ["worker/routes/og.js", routeSource]]) {
@@ -193,4 +215,4 @@ function params(query) {
   }
 }
 
-console.log("[verify-og-route-contract] 통과 — image 미수용 · 프리셋 화이트리스트 · 길이 상한 · 이스케이프 · 모서리 고정 · robots 예외 · 배선/캐시 · 폴백 실재 · 제어문자 0");
+console.log("[verify-og-route-contract] 통과 — image 미수용 · 프리셋 화이트리스트 · 길이 상한 · 이스케이프 · 모서리 고정 · 헬퍼 격리 · robots 예외 · 배선/캐시 · 폴백 실재 · 제어문자 0");
