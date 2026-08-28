@@ -12,6 +12,109 @@
 Date 를 받는 진입점이 **소스에서 0개**가 됐고, `ganji-dst-gap-census.json` 의 `gaps` 가 6개 존
 전부 **문자 그대로 0** 이 됐다.
 
+## ✅ PR-2 — R4 는 이미 닫혀 있었고, 같은 자리에 **더 큰 것**이 있었다 (2026-08-28)
+
+R4("`_normalizeTerms` 의 `atLocal` 이 Date 왕복으로 접힌다")를 확인하러 갔다가 나온 결과다.
+**R4 자체는 PR-C 가 이미 닫았다** — `atLocal` 은 `_partsOf`+`_partsToIsoLocal` 로만 만들어지고
+로컬 `Date` 를 캐리어로 쓰지 않는다. 그런데 그 함수의 **입력을 읽는 쪽**이 틀려 있었다.
+
+### 🔴 결함 — 셸이 KASI 절입 시각 필드(`kst`)를 아예 안 읽었다
+
+- `js/core/kasi-calendar-service.js:870` 이 `_pick(row, ['time','tm','locTime'])` 로 시각을 찾는데,
+  **파일 전체에 `kst` 문자열이 0회** 등장했다.
+- 워커의 메서드 프록시는 `get24DivisionsInfo` 업스트림 행을 **정규화 없이 passthrough** 한다
+  (`worker/routes/kasi.js:683` `rows: upstreamRows`). `kst→time` 변환기
+  `normalizeSolarTermRows`(`:224`)는 `requestCalendarSummary` 경로(`:725`·`:751`) 전용이다.
+- `time` 을 붙여 주는 로컬 폴백(`worker/routes/kasi.js:150`)은 `source:"local"` 이라 셸이
+  `KASI_UNVERIFIED_SOURCE` 로 던진다(`kasi-calendar-service.js:487-495`) — 브라우저에 도달하지 않는다.
+
+**실측 2026-08-28 (프로덕션 `/api/kasi/calendar`, `solYear=2020` 1회 조회):**
+
+```
+source=kasi rows=24
+row[0] = {"dateKind":"03","dateName":"소한","isHoliday":"N","kst":"0630      ","locdate":20200106,"seq":1,"sunLongitude":285}
+time 필드: 0/24행   ·   kst 필드: 24/24행   ·   solYear/solMonth/solDay: 없음(locdate 갈래를 탄다)
+```
+
+⇒ **KASI 갈래의 절입 시각이 전건 `T00:00:00` 으로 뭉개졌다.**
+크기(픽스처 `__tests__/fixtures/korean-calendar/kasi-24divisions.json` 29년 실측):
+`節 348건 중 자정(00:00)인 節 0건` · `자정 절사 오차 총합 4,156.6시간 = 연평균 143.3시간(5.97일/년)`.
+즉 KASI 가 살아 있는 **2000~2028 생** 중 연 6일 폭 구간의 월건이 한 칸 밀려 있었다
+(월건 한 칸 = 십신 전부 이동). `_applyCoreCalendarCorrection` 은 음력만 고치고 간지는 안 건드린다.
+
+🔴 **회귀가 아니라 정정이다** — 코어도 KASI 도 옳은 값을 갖고 있었고 셸만 자정을 썼다.
+
+### 도달성 (부정 단언 금지 — 실측 2026-08-28)
+
+| 축 | 실측 |
+|---|---|
+| 프로덕션 응답 | `--probe` 1회: `status=200 source=kasi rows=24` — **KASI 갈래가 라이브다** |
+| 캐시 창 | 워커 `LEGACY_CACHE_TTL_MS` 30분 · 셸 `_METHOD_CACHE_TTL_MS` 30분 · 셸 날짜컨텍스트 localStorage `cacheTtlMs` **180일** |
+| 진입점 | 셸에서 `resolveDateContext` 에 닿는 호출부 **10곳** 중 **9곳이 `localOnly` false 또는 미지정**(=KASI 갈래를 탈 수 있다). `localOnly:true` 는 `saju-engine.js:5212` 한 곳뿐 |
+
+🔴 `localOnly` grep 이 잡는 `js/entertain-engine.js:1231` 은 **RPG 스냅샷의 동명 필드**이지
+`resolveDateContext` 옵션이 아니다(실측 확인).
+
+🔴 **R6 재등장** — localStorage 180일 TTL 보유자는 옛(자정) 값을 계속 본다.
+`kasi:date-context:v2:` 는 **스키마가 안 바뀌므로 키 회전은 하지 않았다**(R6 의 원칙 그대로).
+회전이 필요하다는 판단이 서면 멈추고 보고할 것.
+
+### 수정과 검사 ⑪
+
+| 파일 | 무엇 |
+|---|---|
+| `js/core/kasi-calendar-service.js:870~` | `_pick` 에 `'kst'` 추가 + `HHMM`(3~4자리, **우측 공백 trim**) 파싱 갈래. 기존 `HH:MM(:SS)` 갈래는 그대로. 규칙은 워커 `normalizeSolarTermRows` 와 같다 |
+| `scripts/verify-solar-term-frame-kasi.mjs` | `runLive()` 의 인라인 파서를 **`parseLiveTermRow()` 로 추출**(동작 변화 0) — 채집기와 검사가 같은 함수를 쓴다. `synthesizeKasiRows()` 신설. **검사 ⑪ 7건** 신설. 검사 42 → **51건** |
+
+🔴 **왜 여기에 붙였나** — 기존 검사 ⑦ 은 이 구멍을 **구조적으로 볼 수 없다.** ⑦ 은 검증캐시 행
+(`atLocal` 이 이미 박힌 모양)만 먹이므로 `_normalizeTerms` 를 아예 안 지난다.
+🔴 `scripts/test-saju-solar-term-regression.mjs` 는 `package.json`·워크플로 **어디에도 없는 미배선**이라
+거기 붙였으면 영원히 안 돌았다(실측).
+
+| # | 단언 | 어디를 지키나 |
+|---|---|---|
+| ⑪-a | `shellTest.normalizeTerms` 가 함수다 — 🔴 **블록 밖에서** | 정규화기가 사라지면 블록이 통째로 안 돌고 "0건이라 통과"가 되는 fail-open |
+| ⑪-b | 합성 행 24개가 `parseLiveTermRow` 를 전건 통과 + 셀 왕복 일치 | 표본이 실응답 모양에서 멀어지는 것 |
+| ⑪-c | `normalizeTerms(rows, [], year)` 전 행이 `source==='kasi-api'` | 검증캐시·폴백 갈래로 새는 것 |
+| ⑪-d | 🔴 **본체** — 정규화된 절입 시각이 KASI 원본과 **전건 같다**(696셀) | 자정 뭉갬 |
+| ⑪-e | `kst` 3모양(`"1723      "` · `"1723"` · `"17:23"`)이 같은 `atLocal` | `.trim()` 이 죽는 것 |
+| ⑪-f | 그 terms 로 돌린 셸의 세차·월건이 코어와 같다(⑦ 과 같은 밴드 제외, 1,344건) | 프레임이 갈리는 것 |
+| ⑪-g | 대조 행 수 = 24 × 픽스처 연도(696) | 0건 통과 |
+
+🔴 **⑪-d 는 문자열이 아니라 벽시계 ms 로 잰다.** KASI 는 분 60 을 그대로 보내는 셀이 있다
+(실측: 2019 대한 `kst="1760"` — 픽스처 29년 696셀 중 유일). `_partsOf` 의 `Date.UTC` 가 그것을
+18:00 으로 정규화하므로 문자열 대조는 그 정규화를 결함으로 오독한다. 자정 탐지력은 그대로다.
+
+### 음성 테스트 7종 — 전부 fail-closed (복원 후 51건 초록)
+
+| 변형 | 잡은 검사 |
+|---|---|
+| `__test` 에서 `normalizeTerms` 삭제 | ⑪-a |
+| 합성 행에서 `kst` 제거 | ⑪-b · ⑪-d · ⑪-f |
+| 🔴 **`_pick` 의 `'kst'` 를 다시 뺀다(수정 되돌리기)** | ⑪-d(696셀 전건) · ⑪-f |
+| `HHMM` 파싱에서 `.trim()` 제거 | ⑪-e(+⑪-d·⑪-f) |
+| `normalizeTerms` 가 항상 `[]` | ⑪-d · ⑪-g · ⑪-e · ⑪-f |
+| 정규화 결과 `source` 를 `validated-cache` 로 | ⑪-c |
+| 픽스처 셀 한 칸 손편집 | ①-f · ② · ②-b · ⑨ |
+
+수정을 되돌렸을 때 ⑪-f 가 찍는 실제 값(= 라이브 결함의 모양):
+
+```
+2000-01-06 08:31  코어 己卯/丙子 · 셸 己卯/丁丑
+2000-02-04 20:10  코어 己卯/丁丑 · 셸 庚辰/戊寅   ← 입춘 경계라 세차까지 갈린다
+2000-03-05 14:13  코어 庚辰/戊寅 · 셸 庚辰/己卯
+```
+
+🔴 복원은 `git checkout` 이 아니라 **스크래치 백업본**에서 했다(checkout 은 그 파일의 미커밋 작업을
+통째로 날린다).
+
+### 안 건드린 것
+
+`scripts/fixtures/ganji-surface-kst.json` **무변경**(실측 확인) — 하네스 `fetch` 가 던지는 스텁이라
+KASI 갈래를 안 탄다. `_VALIDATED_SOLAR_TERMS_BY_YEAR`·`KASI_KNOWN_ERRATA`·픽스처도 무변경.
+
+---
+
 ## ✅ PR-F — 값 축의 사각지대를 닫았다 (2026-08-28)
 
 **무엇이 문제였나.** PR-E 의 "새로 알게 된 것 3번"은 `getGanjiFromParts` 한 벌만 지목했는데,
@@ -689,9 +792,9 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 | R1 | **`getGanji` 가 답하기 시작한다** — 13곳이 한꺼번에 갈아탄다 | null→값 은 어떤 값 대조도 못 잡는다 | 픽스처의 `isNull` 별도 필드 전건 대조 |
 | R2 | **월 인덱스 off-by-one** 4건 | 세운·유년 표시라 눈에 안 띈다. 월건 한 칸 = 십신 전부 이동 | KST 픽스처가 바로 잡는다 + 리뷰 체크리스트 |
 | R3 | **`solarToLunar` 에 옵션을 붙이면 `true` 둘이 의미를 갖는다** | 야자시 OFF → 자미 14주성 이동 | 인자 1개 고정. 옵션은 새 이름에만 |
-| R4 | **`_normalizeTerms` 의 `atLocal` 이 지금 Date 왕복으로 접히고 있다** | KASI 응답 + DST 구멍이 겹칠 때만. `get24DivisionsInfo` 는 403 이라 **가드에서 재현이 안 된다** | 픽스처에 **API 응답 모킹 갈래** — `__test.normalizeTerms` 에 KASI 형태 행을 먹여 `atLocal` 대조 |
+| R4 | ✅ **닫혔다(PR-C)** — `atLocal` 은 `_partsOf`+`_partsToIsoLocal` 로만 만들어져 Date 왕복이 없다. 🔴 **그런데 같은 자리에 더 큰 것이 있었다** — 셸이 KASI 의 시각 필드 `kst` 를 아예 안 읽어 절입 시각을 전건 자정으로 뭉갰다 | 403 이 풀리기 전에는 실응답 모양을 만나 볼 수 없었다 | ✅ **PR-2 가 수정 + 검사 ⑪**(`verify:solar-term-frame-kasi`). 위 "PR-2" 절 |
 | R5 | ✅ **닫혔다(PR-E)** — 가드가 `buildGanjiRepairCandidate`·`_calculateMonthBranchBySolarTerm` 를 전역 이름으로 꺼내 썼다 | 가드는 초록인데 재는 대상이 바뀐다 | PR-D 가 옛 이름 어댑터를 유지했고, PR-E 가 가드와 소스를 같은 커밋에서 `…FromParts` 로 옮겼다 |
-| R6 | **localStorage 캐시 TTL 180일이 옛 값을 되살린다** | 캐시 보유자는 옛 값을 계속 본다 | 출력 스키마 불변이므로 **값이 같아야 정상**. 회전이 필요하면 멈추고 보고 |
+| R6 | **localStorage 캐시 TTL 180일이 옛 값을 되살린다** | 캐시 보유자는 옛 값을 계속 본다 | 출력 스키마 불변이므로 **값이 같아야 정상**. 회전이 필요하면 멈추고 보고. 🔴 **PR-2 에서 실제로 걸렸다** — `kasi:date-context:v2:` 보유자는 옛(자정) 절입 시각으로 만든 월건을 최대 180일 계속 본다. 스키마 불변이라 회전은 안 했다 |
 | R7 | ✅ **이 축에는 해당 없음 — 실측(PR-E)** | — | 간지 경로 js 는 `index-inline-runtime.js:2193` 체인이 **전부 같은 `?v=build-<hash>`** 로 부르고 `sync:public` 이 빌드마다 그 토큰을 돌린다. 옛 파일과 새 파일이 섞일 캐시 키 조합이 없다 → 어댑터를 유예 없이 지웠다. `sync:public` 을 같은 커밋에 담는 것은 그대로 필수 |
 | R8 | **CI 는 UTC, 개발은 KST** | 둘 다 초록인데 서로 다른 것을 잰다 | `pinTimezone()` + 6종 매트릭스 + 오프셋 자기검사 |
 | R9 | **`_partsOf` 를 지금보다 엄격하게 만들면** 접혀서 계산되던 입력이 null 이 된다 | "고침"이지만 무손실 계약 위반 | PR-C 는 현행과 같은 정규화. 🔴 **PR-E 도 엄격화를 안 했다** — 유효성 5곳만 UTC 왕복으로 옮겼고 `_partsOf` 의 정규화는 그대로다. 엄격화가 필요하면 별건으로 실측과 함께 |
