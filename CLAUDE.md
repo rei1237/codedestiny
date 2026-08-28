@@ -56,8 +56,8 @@
 10. 🔴 **가드는 fail-closed 여야 하고, 손으로 쓴 대상 목록은 가드가 아니다** — 검사 대상이 없을 때 통과시키는 가드는 가드가 아니다. 배열에 파일명을 열거하지 말고 **소스에서 전수 발견해 미분류를 실패시킨다**(정본: `verify:auth-changed-coverage`·`verify:guard-wiring`). 가드가 보는 파일은 그 가드를 부르는 워크플로 트리거 `paths` 에도 있어야 한다 — `verify:guard-wiring` 이 미배선·낡은 선언을 이름별로 잡아 준다.
 11. 🔴 **끝은 "검증했다"까지다** — 변경마다 **실행한 명령과 그 출력**을 근거로 보고한다. 출력을 안 보고 "통과"라고 쓰지 않는다. 못 돌린 검증은 **"미검증"으로 명시**한다. 최종 보고에 수정 파일 · 의도 · 안 건드린 영역 · 검증 명령 · 추가 확인 필요 지점을 남긴다.
 12. 🔴 **컨텍스트가 모자라면 밀어붙이지 말고 인수인계** — 훅 [.claude/hooks/session-context-budget.mjs](.claude/hooks/session-context-budget.mjs) 가 300k/450k/650k 구간에서 담을 항목 8개·정본 예시·`/clear` 절차를 통째로 안내한다. 훅이 말해 주지 않는 것 둘만 여기 둔다:
-    - 🔴 **판단은 작업을 시작하기 전에** 한다. 넘긴 범위를 "완료"로 적지 않는다.
-    - 🔴 **인수인계 문서를 만들거나 갱신했으면 그 파일명을 사용자 보고에 반드시 적는다** — `docs/handoff/<주제 이름>.md` 전체 경로로(🔴 자리표시자의 공백을 빼지 말 것 — 아래 워크트리 항목과 같은 이유로 `verify:doc-freshness` 가 실패한다). 이름을 빠뜨리면 사용자가 다음 세션에서 그 문서를 찾지 못한다(실제로 간헐적으로 빠뜨렸다). `/clear` 를 권할 때는 **그 경로를 같은 문단에** 둔다. 새 세션에 넘길 다음 작업을 안내할 때도 근거 문서의 경로와 절 번호를 함께 적는다.
+    - 🔴 **판단은 작업을 시작하기 전에** 한다.
+    - 🔴 **인수인계 문서를 만들거나 갱신했으면 그 파일명을 사용자 보고에 반드시 적는다** — `docs/handoff/<주제 이름>.md` 전체 경로로(🔴 자리표시자의 공백 유지 — 이유는 아래 워크트리 항목). 이름을 빠뜨리면 사용자가 다음 세션에서 그 문서를 찾지 못한다(실제로 간헐적으로 빠뜨렸다). `/clear` 를 권할 때는 **그 경로를 같은 문단에** 둔다. 새 세션에 넘길 다음 작업을 안내할 때도 근거 문서의 경로와 절 번호를 함께 적는다.
 13. **모델 사용** — 판단이 들어가는 일(구현·디버깅·회귀 분석·**코드 리뷰**·설계·삭제 영향 판정)은 세션 주력 모델에서 그대로 하고 reasoning effort 는 `high` 이상. 낮춰도 되는 건 판단 없는 기계적 조회뿐이며 **그 결과만으로 결론 내지 않는다**. 규칙에 구 모델명을 박아 두지 않는다.
     - 그 "기계적 조회"의 실행 수단이 `code-locator` 서브에이전트다. **위치만 찾으면 되는 조회는 메인 세션에서 직접 훑지 말고 거기로 보낸다.** 🔴 돌아온 위치 목록은 **재료지 결론이 아니다**; 판정은 주력 모델에서 실제 함수 본문을 열어 한다.
 
@@ -69,14 +69,13 @@
 
 ## 검증 — 고친 기능의 `verify:*` 를 먼저 돌린다
 
-`verify:*` 가 **266개** 있다(2026-08-28 `verify:guard-wiring` 실측). 고친 기능의 것을 먼저 돌린다. 결제 최소: `verify:billing-pass-policy` · `verify:portone-single-payment` · `verify:paid-gate-ui` · `verify:payment-choice-parity` · `verify:checkout-pass-card`. UI: `verify:hero-contrast` + `verify:mobile-detail-nonintrusive`.
+고친 기능의 것을 먼저 돌린다. 전체 목록·배선 상태의 정본은 `npm run verify:guard-wiring` 출력이다 — 개수를 문서에 적지 않는다(손으로 센 값이 두 번 틀렸다). 결제 최소: `verify:billing-pass-policy` · `verify:portone-single-payment` · `verify:paid-gate-ui` · `verify:payment-choice-parity` · `verify:checkout-pass-card`. UI: `verify:hero-contrast` + `verify:mobile-detail-nonintrusive`.
 
 ## 레포 함정 (모르면 사고 나는 것)
 
 - **홈 `/` 은 정적 셸 `index.html` 의 승격본이다** — 홈 콘텐츠·메타는 `app/page.js` 가 아니라 정적 셸에 둔다. `public/**/index.html` 은 `sync:public` 이 만드는 미러이므로 직접 패치하지 않는다.
-- **`veda/` 와 `models/` 는 존재하지 않는다.** 실체는 `lib/vedicSwissChart.js`·`lib/vedicCalculator.js`·`worker/lib/vedic-*.js`·`worker/lib/nakshatra-*.js`. `tsconfig.json` `exclude` 등에 남은 `veda` 는 잔재이니 근거로 삼지 말 것.
 - **죽은 코드는 격리하지 말고 지운다** — 격리 디렉터리는 빌드에서만 빠지고 grep·AI 읽기에는 그대로 노출돼 다음 세션이 복제한다. 안전망은 git 히스토리다(복구: [docs/cleanup-2026-08/06-deleted.md](docs/cleanup-2026-08/06-deleted.md)).
-- 🔴 **스크린샷 1장이 세션 전체를 태운다** — 이미지 토큰은 파일 크기가 아니라 **치수**로 정해지고(`가로×세로/750`), 한 번 컨텍스트에 들어오면 **그 세션의 모든 후속 요청에서 다시 지불된다.** 훅 `guard-image-read.mjs` 가 비싼 Read 를 잡고 `visual-checker` 위임과 `shrink-shot.mjs --crop` 명령을 문구로 알려준다.
+- 🔴 **스크린샷 1장이 세션 전체를 태운다** — 비용은 파일 크기가 아니라 **치수**로 정해진다. 훅 `guard-image-read.mjs` 가 비싼 Read 를 잡아 실제 토큰 수와 `visual-checker` 위임·`shrink-shot.mjs --crop` 을 알려준다.
 
 ## 결제 게이팅 — 절대 순서
 
@@ -112,5 +111,4 @@
 - 코딩 후: `lint` → `typecheck` → 관련 `verify:*` → **변경 파일만** `git add` → Conventional Commits
 - 커밋 전 `git diff --name-only` 로 요청 범위와 일치하는지, `git diff --numstat` 로 비정상 대량 변경이 없는지 확인한다. 범위 밖 파일이 섞이면 staging 을 풀고 다시 검증한다([Rules/agent-regression-guard.md](Rules/agent-regression-guard.md))
 - 취약점·보안 위험·재현 가능한 버그를 발견하면 즉시 보고하고, 분리 디버깅이 가능하도록 위험도와 짧은 제안을 남긴다
-- 판단이 애매하면 머지하지 말고 안내를 택한다
 - 세션 전환 시 `/clear` 로 컨텍스트 오염 방지
