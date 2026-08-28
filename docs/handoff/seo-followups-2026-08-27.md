@@ -612,3 +612,76 @@ CI 게이트 추가는 사용자 승인 사항이다(`docs/CURRENT_DEV_BASELINE.
   §2 의 무료→유료 CTA 공백 9곳(페이지별 사전 조사가 선행돼야 한다)
 - [seo-indexing-2026-08-15.md](seo-indexing-2026-08-15.md) — §2 의 미해결 2건은 §4 가 답한다
 - [korean-calendar-migration-2026-08-27.md](korean-calendar-migration-2026-08-27.md) — 충돌을 만든 E 시리즈
+
+---
+
+## 8. 🔴 2026-08-28 전수 실측 — **코드로 고칠 기술 SEO 결함이 0 이다**
+
+> 이 절의 목적은 **다음 세션이 같은 감사를 반복하지 않게 하는 것**이다.
+> 사용자가 "계속 크게 무의미한 작업을 반복하는 것 같다"고 물어 그 답을 숫자로 냈다.
+
+성능 축(§5 · [home-lcp-inp-2026-08-28.md](home-lcp-inp-2026-08-28.md))이 CrUX 데이터 부재로
+닫힌 뒤, **"성능 말고 색인 축에는 고칠 게 있나"** 를 전수로 확인했다. 결론: **없다.**
+
+### 8-1. 사이트맵 388개 전수 (2026-08-28, 프로덕션 라이브)
+
+| 검사 | 결과 |
+|---|---|
+| HTTP 200 | **388 / 388** |
+| `<link rel="canonical">` 없음 | **0** |
+| canonical 이 자기 자신이 아님 | **0** |
+| `<meta name="robots">` 에 noindex | **0** |
+| 비200 | **0** |
+
+🔴 **[[next-layout-metadata-is-inherited-whole]] 이 남긴 "55개 페이지가 홈을 canonical 로
+가리킨다" 는 완전히 닫혔다.** 재확인하지 말 것.
+
+재현: 사이트맵의 `<loc>` 을 전부 GET 해서 canonical·robots 를 뽑는다(동시성 8).
+레포 도구로는 `npm run verify:sitemap -- --live` 가 **상태코드만** 본다(388개 all 200 확인).
+🔴 그 가드는 `--live` 없이는 로컬 파일만 보므로, CI 초록불을 "라이브 확인됨"으로 읽지 말 것.
+
+### 8-2. GSC 404 패턴의 라이브 상태 — 우리 쪽 조치는 살아 있다
+
+[gsc-coverage-drilldown-2026-08-17.md](gsc-coverage-drilldown-2026-08-17.md) §2 의 패턴을
+프로덕션에서 다시 밟았다:
+
+| 패턴 | 2026-08-28 라이브 |
+|---|---|
+| `/en-us/saju-picture` | 301 → 308 → **200** ✅ |
+| `/ja-jp/insights/<slug>` | 301 → 308 → **200** ✅ |
+| `/insights/<slug>` 무슬래시 | 301 → **200** ✅ |
+| `/en-us/` (후행 슬래시) | 301 → `/` **200** — 한국어 홈이다(문서가 적어둔 그대로, 미해결 1건) |
+| `/es-es/*` · `/de-de/*` | **404** — §4 의 의도적 방치 그대로 |
+| `/ko/` | **404** — 정상(한국어는 `pathPrefix: ""`) |
+
+🔴 **새로 관측한 것 하나**: `/zh-cn/high-value/category/informational-article` 은
+301 → `/high-value/category/informational-article` → **404** 로, **301 이 404 로 끝나는 체인**이다.
+목적지 자체가 없는 경로라 §2-3 이 "참조 0, 조치 불필요"로 판정한 것과 모순은 아니지만,
+크롤 예산 관점에서 순수 404 보다 나쁘다. 규칙 예산(89/95, 여유 6)을 쓸 만한 가치는 없다고 본다 —
+**기록만 남기고 방치**한다.
+
+### 8-3. `sitemap-insights.xml` 404 는 결함이 아니다
+
+`verify:sitemap --live` 가 `live sitemap-insights.xml status: 404` 를 찍지만 **정상이다** —
+2026-07 에 제거됐고 `robots.txt` 도 참조하지 않는다(라이브 확인: `Sitemap:` 지시자는
+`sitemap.xml` 하나뿐). 근거는 [SEO_SUBMISSION_GUIDE.md](../../SEO_SUBMISSION_GUIDE.md):14 ·
+[app/robots.ts](../../app/robots.ts):79. **버그로 오인해 되살리지 말 것.**
+
+### 8-4. 그래서 남은 것은 코드가 아니다
+
+기술 축(응답·canonical·noindex·사이트맵·리다이렉트)이 전부 0 결함이고, 성능 축은 필드 신호가
+없다. 남은 축은 셋뿐이며 **전부 코드 작업이 아니다**:
+
+1. **시간** — GSC 404 754건 중 고친 몫은 재크롤 대기다(2026-08-17 조치). 우리가 더 할 것이 없다.
+2. **모수** — CrUX 표본이 안 차는 것과 90일 결제 시도자 20명([[conversion-bottleneck-is-audience-not-funnel]])은
+   같은 원인이다. 병목은 "빠르기"나 "태그"가 아니라 **노출**이다.
+3. **콘텐츠 저작** — 얇은 페이지 본문 보강 · §1-4(b) 허브 카드 문구(사용자 보류) ·
+   메타 설명 183개([[serp-title-length-is-pixel-width]]) · 로케일 드리프트 83건
+   ([[ko-skips-the-dictionary-so-drift-is-invisible]]). 효과 측정이 느리고 간접적이다.
+
+🔴 **다음 세션에게**: "SEO 를 개선하라"는 지시를 받으면 **기술 감사부터 다시 돌리지 말 것.**
+8-1 이 그 답이고 날짜가 박혀 있다. 코드에서 찾을 것은 없다 — 위 3번(콘텐츠)으로 바로 가거나,
+사용자에게 GSC 커버리지 최신 수출본을 받아 754/317 이 실제로 줄었는지부터 대조하라.
+🔴 **GSC 는 에이전트가 조회할 수 없다** — 레포에 Search Console 연동이 전무하다
+(전수 검색: `scripts/`·`worker/`·`lib/`·`docs/` 에서 `searchconsole|webmasters|GSC_` **0건**).
+수출본은 사용자가 줘야 하고, 받는 법은 gsc-coverage-drilldown 문서 머리말에 있다.
