@@ -313,9 +313,14 @@ function buildBaseUrlCandidates(env, method) {
   const configured = String(env.KASI_API_BASE_URL || "").trim();
   // 메서드에 맞는 서비스를 우선 시도하고, 그 다음 나머지를 폴백 후보로 둔다.
   const preferred = METHOD_SERVICE_BASE_URL[String(method || "")] || PRIMARY_KASI_BASE_URL;
+  // 🔴 `preferred` 가 `configured` 보다 앞이다. 예전에는 반대였고, 그래서 KASI_API_BASE_URL 이
+  // 한 서비스로 고정돼 있으면 **다른 서비스 소속 오퍼레이션이 그 서비스로 먼저 나갔다.**
+  // data.go.kr 은 그 조합을 403 으로 돌려주므로, 바로 아래 fetchKasiUpstream 의 403 단축과
+  // 겹쳐 24절기가 업스트림에 닿아 보지도 못했다(실측 2026-08-28 · 아래 주석).
+  // 오퍼레이션→서비스 대응은 KASI 가 정하는 사실이지 운영 노브가 아니다.
   return Array.from(new Set([
-    configured,
     preferred,
+    configured,
     PRIMARY_KASI_BASE_URL,
     SECONDARY_KASI_BASE_URL,
   ].map((value) => String(value || "").trim().replace(/\/+$/, "")).filter(Boolean)));
@@ -474,7 +479,15 @@ async function fetchKasiUpstream(env, method, params) {
   let lastError = null;
 
   for (const kasiBaseUrl of kasiBaseUrls) {
+    // 🔴 401/403 은 **이 base URL 에 대한 판정**이다. 다음 base URL 은 그대로 시도한다.
+    // data.go.kr 은 그 서비스에 없는 오퍼레이션도 403 으로 돌려주므로, 예전처럼 여기서 통째로
+    // 던지면 메서드에 맞는 서비스에 닿아 보지도 못한 채 로컬 폴백으로 떨어진다.
+    // 실측 2026-08-28: get24DivisionsInfo 가 프로덕션·스테이징 **양쪽 모두** 403 → source:"local"
+    // 이었고(같은 시각 getLunCalInfo 는 source:"kasi"), 그 한 번의 403 이 회로까지 열어
+    // 정상 동작하던 음양력 조회를 10분간 함께 죽였다.
+    let authBlocked = false;
     for (const serviceKey of candidates) {
+      if (authBlocked) break;
       const query = new URLSearchParams({
         ...params,
         serviceKey,
@@ -558,15 +571,12 @@ async function fetchKasiUpstream(env, method, params) {
           }
 
           if (isAuthLikeUpstreamError(lastError)) {
-            noteKasiFailure(lastError?.code || "KASI_KEY_FORBIDDEN");
-            throw lastError;
+            // 이 base URL 에서는 키를 더 바꿔 봐야 소용없다. 다음 base URL 로 넘어간다.
+            authBlocked = true;
+            break;
           }
 
-          const canRetry = attempt < MAX_RETRIES;
-          if (!canRetry) {
-            noteKasiFailure(lastError?.code || "KASI_UPSTREAM_ERROR");
-          }
-          if (!canRetry) break;
+          if (attempt >= MAX_RETRIES) break;
         } finally {
           clearTimeout(timer);
         }
@@ -574,7 +584,11 @@ async function fetchKasiUpstream(env, method, params) {
     }
   }
 
-  throw lastError || createHttpError(503, "KASI API 요청 실패", { code: "KASI_REQUEST_FAILED" });
+  // 🔴 회로는 **요청 하나가 후보를 전부 소진했을 때** 한 번만 연다. 예전에는 base URL ×
+  // 키 후보마다 실패를 셌기 때문에 한 번의 403 이 임계 3을 혼자 넘겨 회로를 열었다.
+  const finalError = lastError || createHttpError(503, "KASI API 요청 실패", { code: "KASI_REQUEST_FAILED" });
+  noteKasiFailure(finalError?.code || "KASI_REQUEST_FAILED");
+  throw finalError;
 }
 
 async function requestLegacyMethod(env, methodRaw, paramsRaw) {
