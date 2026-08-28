@@ -11,7 +11,7 @@ export const metadata: Metadata = {
     title: "공유된 오늘의 귀인 운세 | Code Destiny",
     description: "사주·타로·점성술의 흐름을 엮어 오늘의 메시지를 읽어봤어요.",
     url: "https://code-destiny.com/fortune/share/",
-    siteName: "Code Destiny",
+    siteName: siteSeo.brandName,
     locale: "ko_KR",
     type: "website",
     images: [{ url: siteSeo.defaultOgImage }],

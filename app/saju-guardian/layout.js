@@ -6,7 +6,7 @@ const SAJU_GUARDIAN_LAYOUT_TEXT_TRANSLATIONS = {
     description: "생년월일 사주 정보를 바탕으로 일주·월지·시지의 수호 인장을 열고 7일 실행 의식을 전합니다.",
     ogTitle: "Saju Guardian — 사주 가디언 소환진",
     ogDescription: "일주·월지·시지의 기운으로 지금 필요한 수호 인장과 7일 의식이 열립니다.",
-    siteName: "Code Destiny — 꿀꿀 만세력",
+    siteName: "꿀꿀 운세",
     imageAlt: "Saju Guardian 사주 가디언 소환진",
     twitterDescription: "생년월일 사주 기운으로 수호 인장과 7일 의식이 열립니다.",
     keywords: ["사주 가디언", "Saju Guardian", "수호 인장", "60갑자", "일주 가디언", "오행 인장", "사주 소환진", "꿀꿀 만세력"],

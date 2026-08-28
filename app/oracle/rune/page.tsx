@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "ko_KR",
     url: `${siteSeo.siteUrl}${PAGE_PATH}`,
-    siteName: siteSeo.siteName,
+    siteName: siteSeo.brandName,
     title: PAGE_TITLE,
     description: PAGE_DESCRIPTION,
     images: [{ url: siteSeo.defaultOgImage, width: 1200, height: 630, alt: "꿀꿀 운세 룬 오라클" }],

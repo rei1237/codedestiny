@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "../home-cosmic.module.css";
+import { siteSeo } from "../../lib/seo/siteSeo";
 
 const PAGE_URL = "https://code-destiny.com/kkul-kkul-unse";
 const OG_IMAGE = "https://code-destiny.com/og/code-destiny-og-vvip.png?v=d50dc254ba";
@@ -172,7 +173,7 @@ export const metadata = {
     type: "website",
     locale: "ko_KR",
     url: PAGE_URL,
-    siteName: "Code Destiny",
+    siteName: siteSeo.brandName,
     title: SEO.ogTitle,
     description: SEO.ogDescription,
     images: [

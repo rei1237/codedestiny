@@ -50,8 +50,15 @@ export const SOCIAL_PROFILES = [
 
 export const siteSeo = {
   /**
-   * 제목 접미사 등 **표기용** 이름. `WebSite`·`Organization` 스키마의 이름과는 별개다 —
-   * 그쪽은 아래 brandName / organization.name 을 쓴다.
+   * 발행처 표기용 이름(`creator`·`publisher`). 회사 쪽 이름이다.
+   *
+   * 🔴 **`og:site_name` 과 `application-name` 에는 쓰지 말 것 — 그 둘은 brandName 이다.**
+   * 예전에는 여기가 og:site_name 이었고, 그 결과 사이트 이름 신호가 다섯 갈래로 갈렸다
+   * (2026-08-28 전수 실측): 정적 셸 "CODE DESTINY" 6개 · public/famous "Code Destiny (꿀꿀 만세력)" ·
+   * public/fortune "Code Destiny" · app 라우트 "Code Destiny" · WebSite 스키마 "꿀꿀 운세".
+   * 구글은 `WebSite.name`·`og:site_name`·`application-name`·title 접미사가 **서로 일치할 때만**
+   * 사이트 이름을 채택하므로, 갈린 동안에는 어느 이름도 잡히지 않았다 — "꿀꿀 운세"로 검색해도
+   * 이 사이트가 나오지 않던 상태의 원인이다. 가드: `__tests__/ui/site-name-signals.static.test.js`
    */
   siteName: "Code Destiny",
   /**
@@ -60,6 +67,8 @@ export const siteSeo = {
    * 회사 이름과 다르다(운영자 확인, 2026-08-16): 브랜드는 **꿀꿀 운세**, 회사는 **CODE DESTINY**.
    * schema.org 에서 WebSite 와 Organization 은 서로 다른 엔티티이므로 이름이 갈리는 것이 정상이고,
    * 오히려 둘을 같은 이름으로 두면 브랜드와 발행처가 한 덩어리로 읽힌다.
+   *
+   * 🔴 이 값이 곧 `og:site_name` · `application-name` 이기도 하다(2026-08-28) — 위 siteName 주석 참고.
    *
    * 🔴 이 값은 정적 셸 index.html 의 `#website` 노드 name 과 **글자 단위로 같아야 한다.**
    * 홈 `/` 은 승격된 셸이, 나머지 400여 라우트는 app/layout.js 가 서빙하는데 `@id` 가 같다.
