@@ -86,6 +86,10 @@ on:
       - "js/core/access-store.js"
       - "js/core/pass-verdict.js"
       - "js/core/checkout-entry.js"
+      # 🔴 나크샤트라 12로케일 가격 카피. verify:nakshatra-price-copy 가 이 사전과 각 화면의
+      #    amountKRW 를 대조해 "화면 금액 != 승인 금액" 을 잡는다 — 카피만 고친 PR 에서
+      #    가드가 안 깨어나면 그 대조가 통째로 빠진다.
+      - "app/nakshatra/**"
       - "js/core/payment-service.js"
       - "js/core/feature-pricing-store.js"
       - "js/destiny-profile.js"
