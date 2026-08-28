@@ -1256,6 +1256,13 @@ export default {
         return response;
       }
 
+      // 동적 OG 카드. withCorsHeaders 를 거치지 않는다 — 이미지에 CORS 가 필요 없고,
+      // 그 래퍼가 Cache-Control 이 없을 때 no-store 를 기본으로 붙이기 때문이다.
+      if (url.pathname === "/api/og" || url.pathname.startsWith("/api/og/")) {
+        const { handleOgRoutes } = await import("./routes/og.js");
+        return await handleOgRoutes(request, env);
+      }
+
       if (url.pathname === "/api/admin" || url.pathname.startsWith("/api/admin/")) {
         return withCorsHeaders(request, env, await handleAdminRoutes(request, env));
       }

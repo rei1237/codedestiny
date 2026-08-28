@@ -133,3 +133,29 @@ export function buildOpenGraphImageUrl(content?: Pick<SeoV2Content, "image" | "c
   if (content?.contentType === "result") return normalizeUrl("/og/code-destiny-result-og.png");
   return normalizeUrl(SEO_V2_SITE.defaultOgImage);
 }
+
+/**
+ * 동적 OG 카드 URL 을 만든다(워커 라우트 `GET /api/og`).
+ *
+ * 🔴 기존 정적 OG 를 대체하지 않는다. 이미 공유된 페이지의 og:image 를 갈아 끼워도 카카오는
+ * **페이지 URL** 을 키로 캐시한 옛 카드를 계속 보여 준다. 신규 페이지에만 쓸 것.
+ *
+ * badge 는 워커의 프리셋 키다(saju·tarot·astrology·ziwei·dream·compatibility·fortune·insight).
+ * 모르는 키는 워커가 조용히 기본값으로 떨어뜨린다.
+ *
+ * 결과를 buildSeoMetadata / SeoV2Content 의 image 로 넘겨도 안전하다 — normalizeUrl 이 지우는
+ * 것은 TRACKING_PARAMS(utm_*·fbclid·session·token 등)뿐이고 title/desc/badge/theme 는 남는다.
+ */
+export function buildDynamicOgImageUrl(input: {
+  title: string;
+  description?: string;
+  badge?: "saju" | "tarot" | "astrology" | "ziwei" | "dream" | "compatibility" | "fortune" | "insight";
+  theme?: "dark" | "light";
+}): string {
+  const params = new URLSearchParams();
+  params.set("title", String(input.title || "").trim());
+  if (input.description) params.set("desc", input.description.trim());
+  if (input.badge) params.set("badge", input.badge);
+  if (input.theme) params.set("theme", input.theme);
+  return `${SEO_V2_SITE.siteUrl}/api/og?${params.toString()}`;
+}

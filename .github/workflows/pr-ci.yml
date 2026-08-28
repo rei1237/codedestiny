@@ -451,6 +451,14 @@ jobs:
       - name: Verify guide feature CTA
         run: npm run verify:guide-feature-cta
 
+      # 동적 OG 카드는 요청 파라미터를 그대로 그림으로 그리는 유일한 표면이다. 이 가드는
+      # 네트워크도 wasm 도 타지 않고 worker/lib/og-card.js 의 순수 함수를 그대로 돌려
+      # image 미수용(SSRF) · 프리셋 화이트리스트 · 길이 상한 · 이스케이프를 고정한다.
+      # 🔴 fast 잡이어야 한다: 소스만 읽으므로 빌드가 필요 없고, robots.ts 나 스크립트만
+      # 바뀐 PR 에서 critical 티어가 스킵돼도 이 검사는 돌아야 한다.
+      - name: Verify dynamic OG route contract
+        run: npm run verify:og-route-contract
+
       # 🔴 이것도 **fast 잡**이어야 한다. `public/i18n/**` 단독 변경은 티어가 low/fast 라 build
       # 잡이 통째로 스킵되는데, 그게 정확히 지키려는 경로다(새 UI 카피를 en.json 에만 넣고 다른
       # 11개 로케일을 빠뜨리는 실수). 이 세 스크립트는 이미 npm run i18n:check 체인 안에 있지만

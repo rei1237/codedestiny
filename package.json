@@ -64,6 +64,7 @@
     "clean:build": "node scripts/clean-cloudflare-build.mjs",
     "clean:cf": "node scripts/clean-cloudflare-build.mjs",
     "og:render": "node scripts/og/render-og-card.mjs",
+    "verify:og-route-contract": "node scripts/verify-og-route-contract.mjs",
     "og:cache-bust": "node scripts/og/set-og-cache-bust.mjs",
     "sync:public": "node scripts/sync-legacy-static-to-public.mjs",
     "sync:music-track-count": "node scripts/sync-music-track-count.mjs",
@@ -490,6 +491,7 @@
     "sweph-wasm": "^2.6.9",
     "tz-lookup": "^6.1.25",
     "web-vitals": "^4.2.4",
+    "workers-og": "^0.0.27",
     "zustand": "^5.0.13"
   },
   "devDependencies": {
