@@ -4523,7 +4523,8 @@
     "priceUnknown": "価格の確認が必要です",
     "accessFree": "無料機能",
     "accessPaid": "決済後、元の画面へ移動します",
-    "navPending": "開いています…"
+    "navPending": "開いています…",
+    "priceDetailCheck": "詳細を確認"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ 利用券で永久解放",
       "payAndStart": "{amount}で始める",
       "namingStart": "✍️ プレミアム命名を始める",
-      "unlockWithAmount": "🔓 {amount}で永久解放"
+      "unlockWithAmount": "🔓 {amount}で永久解放",
+      "pricingCheckingMeta": "価格情報を確認しています。",
+      "pricingMissing": "この機能には価格が登録されていません。",
+      "pricingChecking": "価格を確認しています。",
+      "pricingFailed": "価格を確認できませんでした。しばらくしてからもう一度お試しください。",
+      "pricingUnavailable": "価格が登録されていないため、通常のページへ移動します。"
     },
     "paywall": {
       "passActiveSingleTitle": "プレミアム利用券を利用できます",

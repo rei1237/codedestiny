@@ -4523,7 +4523,8 @@
     "priceUnknown": "需要确认价格",
     "accessFree": "免费功能",
     "accessPaid": "付款后返回原画面",
-    "navPending": "正在打开…"
+    "navPending": "正在打开…",
+    "priceDetailCheck": "查看详情"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ 使用通行券永久解锁",
       "payAndStart": "以 {amount} 开始",
       "namingStart": "✍️ 开始高级命名",
-      "unlockWithAmount": "🔓 以 {amount} 永久解锁"
+      "unlockWithAmount": "🔓 以 {amount} 永久解锁",
+      "pricingCheckingMeta": "正在确认价格信息。",
+      "pricingMissing": "此功能尚未登记价格。",
+      "pricingChecking": "正在确认价格。",
+      "pricingFailed": "无法确认价格，请稍后再试。",
+      "pricingUnavailable": "由于未登记价格，将跳转至默认页面。"
     },
     "paywall": {
       "passActiveSingleTitle": "可使用高级通行券",

@@ -4523,7 +4523,8 @@
     "priceUnknown": "需要確認價格",
     "accessFree": "免費功能",
     "accessPaid": "付款後返回原畫面",
-    "navPending": "正在打開…"
+    "navPending": "正在打開…",
+    "priceDetailCheck": "查看詳情"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ 使用通行券永久解鎖",
       "payAndStart": "以 {amount} 開始",
       "namingStart": "✍️ 開始高級命名",
-      "unlockWithAmount": "🔓 以 {amount} 永久解鎖"
+      "unlockWithAmount": "🔓 以 {amount} 永久解鎖",
+      "pricingCheckingMeta": "正在確認價格資訊。",
+      "pricingMissing": "此功能尚未登錄價格。",
+      "pricingChecking": "正在確認價格。",
+      "pricingFailed": "無法確認價格，請稍後再試。",
+      "pricingUnavailable": "由於未登錄價格，將前往預設頁面。"
     },
     "paywall": {
       "passActiveSingleTitle": "可使用高級通行券",

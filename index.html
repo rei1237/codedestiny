@@ -1472,8 +1472,6 @@ body.neo-mode .auth-quick-links{background:linear-gradient(135deg,rgba(8,6,2,.95
 .cd-preparing-badge--cta{margin-left:6px;padding:2px 7px;font-size:.6rem}
 .cd-preparing-badge--headline{margin-left:12px;padding:7px 12px;border-radius:12px;font-size:1.12rem;font-weight:1000;box-shadow:0 6px 16px rgba(0,0,0,.35)}
 .cd-preparing-badge--pdf-card{position:absolute;top:8px;right:8px;z-index:4;padding:6px 11px;border-color:rgba(251,191,36,.7);background:linear-gradient(135deg,rgba(146,64,14,.9),rgba(109,40,217,.82));color:#fff7d6;font-size:.68rem;box-shadow:0 5px 16px rgba(0,0,0,.42),0 0 0 1px rgba(255,226,140,.14),inset 0 1px 0 rgba(255,245,200,.22)}
-.tarot-tile--vedic-premium .tarot-tile__coin-badge{font-size:0}
-.tarot-tile--vedic-premium .tarot-tile__coin-badge::after{content:"전문가 상담 · 30,000원";font-size:.7rem}
 .cd-preparing-badge--pdf-row{padding:7px 12px;border-color:rgba(251,191,36,.72);background:linear-gradient(135deg,rgba(146,64,14,.9),rgba(109,40,217,.82));color:#fff7d6;font-size:.72rem;box-shadow:0 5px 16px rgba(0,0,0,.32),0 0 0 1px rgba(255,226,140,.14),inset 0 1px 0 rgba(255,245,200,.22)}
 .cd-user-card{position:relative;margin-top:20px;padding:30px 16px 18px;border-radius:24px;background:radial-gradient(120% 90% at 50% -8%,rgba(199,160,255,0.32) 0%,rgba(89,45,174,0.34) 30%,transparent 58%),radial-gradient(130% 120% at 50% 0%,rgba(69,41,140,0.5) 0%,rgba(18,8,44,0.98) 44%,rgba(9,4,30,0.99) 100%);border:1px solid rgba(190,150,255,0.36);box-shadow:0 0 60px rgba(90,40,180,0.22),0 18px 52px rgba(0,0,0,0.54),inset 0 1px 0 rgba(236,214,255,0.22),inset 0 -24px 40px rgba(27,12,66,0.42);display:flex;flex-direction:column;align-items:center;gap:10px;text-align:center;width:100%;overflow:hidden;transform:translateZ(0);-webkit-transform:translateZ(0)}
 .cd-user-card--loading{animation:cdPulseLoading 1.8s ease-in-out infinite;-webkit-animation:cdPulseLoading 1.8s ease-in-out infinite}
@@ -19891,7 +19889,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-1a4473ec9dd3" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-1a4473ec9dd3" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-b32f43288dee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-1a4473ec9dd3" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-1a4473ec9dd3" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -32784,18 +32782,6 @@ function updateBadge() {
     return store ? store.get(featureKey) : null;
   }
 
-  function _applyLifeBookAiPrice(pricing){
-    if(!pricing)return;
-    document.querySelectorAll('[data-feature-key="'+LIFE_BOOK_AI_FEATURE_KEY+'"]').forEach(function(tile){
-      tile.setAttribute('data-coin-cost',String(pricing.coinPrice));
-      tile.setAttribute('data-price-krw',String(pricing.amountKRW));
-      tile.setAttribute('data-payment-amount-krw',String(pricing.amountKRW));
-      tile.setAttribute('data-cd-price-source','billing-features');
-      var badge=tile.querySelector('.tarot-tile__coin-badge,.lifebook-tile__coin-badge');
-      if(badge)badge.textContent=_pvwTr('home.nav.aiConsult','전문가 상담')+' · '+pricing.displayPrice;
-    });
-  }
-
   function _applyRegistryPricingToTiles(){
     var store=window.CodeDestinyFeaturePricingStore;
     if(!store)return;
@@ -33211,7 +33197,7 @@ function updateBadge() {
       merged.pricingPending=true;
     }
     if(!merged.cost){
-      merged.cost='상세 확인';
+      merged.cost=_pvwTr('preview.priceDetailCheck','상세 확인');
     }
     if(!merged.ct)merged.ct=_hasPaidPreviewSignal(tile)?'paid':'free';
     /* 🔴 무료 기능에 유료 프레이밍을 붙이지 않는다. '왜 유료인가요' 비교표와 결제 안내 문구는
@@ -33633,13 +33619,13 @@ function updateBadge() {
       // 🔴 여기서 CTA 를 죽이지 않는다. 조회는 백그라운드로 돌리고 버튼은 계속 눌리게 둔다 —
       // 사용자가 먼저 누르면 _onCta 가 그 조회를 기다렸다가 이어서 진행한다.
       _setCtaLoading(false,'');
-      _setCtaMeta(openFeatureKey?'가격 정보를 확인하고 있어요.':'가격 정보가 등록되지 않은 기능입니다.');
+      _setCtaMeta(openFeatureKey?_pvwTr('featurePreview.cta.pricingCheckingMeta','가격 정보를 확인하고 있어요.'):_pvwTr('featurePreview.cta.pricingMissing','가격 정보가 등록되지 않은 기능입니다.'));
       if(openFeatureKey){
         _ensureFeaturePricing(openFeatureKey).then(function(pricing){
           if(pricing&&_pendingTile===tile&&_ov&&_ov.classList.contains('pvw-open'))_open(tile,href,_resolvePreviewData(tile,href));
-          else if(!pricing&&_pendingTile===tile)_setCtaMeta('가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
+          else if(!pricing&&_pendingTile===tile)_setCtaMeta(_pvwTr('featurePreview.cta.pricingFailed','가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.'));
         }).catch(function(){
-          if(_pendingTile===tile)_setCtaMeta('가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.');
+          if(_pendingTile===tile)_setCtaMeta(_pvwTr('featurePreview.cta.pricingFailed','가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.'));
         });
       }
     } else {

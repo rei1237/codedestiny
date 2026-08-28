@@ -4523,7 +4523,8 @@
     "priceUnknown": "Price needs checking",
     "accessFree": "Free feature",
     "accessPaid": "Returns to the same screen after payment",
-    "navPending": "Opening..."
+    "navPending": "Opening...",
+    "priceDetailCheck": "Check details"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ Mit Pass dauerhaft entsperren",
       "payAndStart": "Beginnen Sie mit {amount}",
       "namingStart": "✍️ Beginnen Sie mit der Premium-Namensgebung",
-      "unlockWithAmount": "🔓 Dauerhaft entsperren mit {amount}"
+      "unlockWithAmount": "🔓 Dauerhaft entsperren mit {amount}",
+      "pricingCheckingMeta": "Checking the price information.",
+      "pricingMissing": "No price is registered for this feature.",
+      "pricingChecking": "Checking the price.",
+      "pricingFailed": "We could not check the price. Please try again in a moment.",
+      "pricingUnavailable": "No price is registered, so we will open the default page."
     },
     "paywall": {
       "passActiveSingleTitle": "Premium-Pass verfügbar",
