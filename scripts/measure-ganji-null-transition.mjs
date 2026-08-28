@@ -263,8 +263,12 @@ for (const [name, v] of vsCore) {
 //
 // 위 축 A·B 는 표본(절기·야자시 경계)을 본다. 그런데 호출부 중 넷은 사용자의 생시가 아니라
 // **박아 둔 인자**로 부른다 — 그 자리는 표본에 안 걸릴 수 있는데 영향은 전 사용자에게 간다.
-//   · `zwFlowGanji`(js/saju-engine.js:24300, 자미 유년) → `(year, 2, 4, 12:00)`
-//   · 대운 세운·연운(:28961 · :29086)                  → `(year, 6, 15, 12:00)`
+//   · `zwFlowGanji`(js/saju-engine.js, 자미 유년)       → `(year, 6, 15, 12:00)`
+//   · 대운 세운·연운(js/saju-engine.js)                 → `(year, 6, 15, 12:00)`
+// 🔴 `zwFlowGanji` 는 원래 `(year, 2, 4, 12:00)` 이었고 그 프로브는 1960~2030 중 **40해**에서
+//    입춘보다 일러 세차가 한 해 뒤로 밀렸다. 그 40해와 '입춘이 2/4 정오보다 늦은 해'가 정확히
+//    같아 원인이 갈렸다. 아래 **대조군** 이 그 옛 프로브를 그대로 돌려 정정을 재현한다 —
+//    verify:shell-korean-calendar 검사 ⑯ 이 소스 쪽에서 같은 경계를 못박는다.
 // 그래서 1960~2030 전 해를 그 모양 그대로 돌린다.
 {
   const FROM = 1960;
@@ -281,21 +285,27 @@ for (const [name, v] of vsCore) {
 
   const flow = [];
   const luck = [];
-  let flowOneYearBack = 0;
+  const legacy = [];
+  let legacyOneYearBack = 0;
   let ipchunAfterNoon = 0;
   withFilledCache(() => {
     for (let year = FROM; year <= TO; year += 1) {
-      // 🔴 원인 축을 따로 잰다 — 그 해 입춘이 2월 4일 정오보다 늦으면 그 프로브 시각은 아직
-      //    전해 세차다. 그 해 수가 아래 어긋난 해 수와 같으면 원인이 확정된다.
+      // 🔴 원인 축을 따로 잰다 — 그 해 입춘이 2월 4일 정오보다 늦으면 옛 프로브 시각은 아직
+      //    전해 세차다. 그 해 수가 아래 대조군의 어긋난 해 수와 같으면 원인이 확정된다.
       const ipchun = core.solarTerms(year)[2];
       if (ipchun && (ipchun.month > 2 || ipchun.day > 4 || (ipchun.day === 4 && ipchun.hour >= 12))) ipchunAfterNoon += 1;
 
-      const gj = safe(() => eng.getGanjiFromParts({ year, month: 2, day: 4, hour: 12, minute: 0, second: 0 }));
-      const then = P(gj, "secha");
       const now = arithSecha(year);
-      if (then && then !== now) {
-        flow.push(`${year}  산술 ${now}  →  전환 ${then}`);
-        if (then === arithSecha(year - 1)) flowOneYearBack += 1;
+      const gj = safe(() => eng.getGanjiFromParts({ year, month: 6, day: 15, hour: 12, minute: 0, second: 0 }));
+      const then = P(gj, "secha");
+      if (then && then !== now) flow.push(`${year}  산술 ${now}  →  전환 ${then}`);
+
+      // 대조군 — 정정 전 프로브. 이 줄이 0 을 내면 측정이 판별력을 잃은 것이다.
+      const lgj = safe(() => eng.getGanjiFromParts({ year, month: 2, day: 4, hour: 12, minute: 0, second: 0 }));
+      const lthen = P(lgj, "secha");
+      if (lthen && lthen !== now) {
+        legacy.push(`${year}  산술 ${now}  →  옛 프로브 ${lthen}`);
+        if (lthen === arithSecha(year - 1)) legacyOneYearBack += 1;
       }
 
       const sj = safe(() => eng.getGanjiFromParts({ year, month: 6, day: 15, hour: 12, minute: 0, second: 0 }));
@@ -306,12 +316,16 @@ for (const [name, v] of vsCore) {
   });
 
   console.log("\n── 축 D · 인자가 고정된 호출부 (1960~2030 전 해) ──────────────────────");
-  console.log(`  zwFlowGanji(자미 유년) — (year,2,4,12:00) 세차 · 지금은 1984 기준 산술식`);
-  console.log(`      어긋난 해 ${flow.length}건 / ${TO - FROM + 1}건`
-    + ` · 그중 정확히 한 해 뒤로 밀린 것 ${flowOneYearBack}건`
-    + ` · 입춘이 2/4 정오보다 늦은 해 ${ipchunAfterNoon}건`);
+  console.log(`  zwFlowGanji(자미 유년) — (year,6,15,12:00) 세차 · 지금은 1984 기준 산술식`);
+  console.log(`      어긋난 해 ${flow.length}건 / ${TO - FROM + 1}건`);
   for (const row of flow.slice(0, EXAMPLES)) console.log(`         ${row}`);
   if (flow.length > EXAMPLES) console.log(`         … 외 ${flow.length - EXAMPLES}건`);
+  console.log(`  🔴 대조군 · 정정 전 프로브 — (year,2,4,12:00)`);
+  console.log(`      어긋난 해 ${legacy.length}건 / ${TO - FROM + 1}건`
+    + ` · 그중 정확히 한 해 뒤로 밀린 것 ${legacyOneYearBack}건`
+    + ` · 입춘이 2/4 정오보다 늦은 해 ${ipchunAfterNoon}건`);
+  for (const row of legacy.slice(0, EXAMPLES)) console.log(`         ${row}`);
+  if (legacy.length > EXAMPLES) console.log(`         … 외 ${legacy.length - EXAMPLES}건`);
   console.log(`  대운 세운·연운 — (year,6,15,12:00) 세차 · 지금은 _coreEightChar`);
   console.log(`      어긋난 해 ${luck.length}건 / ${TO - FROM + 1}건`);
   for (const row of luck.slice(0, EXAMPLES)) console.log(`         ${row}`);

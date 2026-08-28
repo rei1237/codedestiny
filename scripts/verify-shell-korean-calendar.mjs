@@ -46,6 +46,7 @@ import {
   formatPillar,
   ganji,
   nodeTerms,
+  solarTerms,
 } from "../lib/korean-calendar/index.js";
 
 const require = createRequire(import.meta.url);
@@ -1055,6 +1056,179 @@ function extractFunctionSource(source, name) {
     + "→ 새 함수면 `_partsOf`(또는 `KasiEngine.partsOf`)를 쓸 수 없는지 먼저 보라. 그래도 필요하면"
     + String.fromCharCode(10) + "      "
     + "   UTC_PARTS_FUNCTIONS 에 역할을 적어 등재하라. 사라졌으면 그 줄을 지워라.",
+  );
+
+  // ── ⑯ 세차만 뽑는 **고정 프로브**가 입춘 경계 위에 얹혀 있지 않다 ──────────
+  //
+  // 🔴 호출부 몇 곳은 사용자 생시가 아니라 **박아 둔 월·일**로 `getGanjiFromParts` 를 불러
+  // 그 해 세차(年柱)만 꺼낸다(자미 유년 · 대운 세운/연운). 세차 구간을 가르는 것은 입춘인데
+  // 입춘은 2월 3~5일 사이를 오간다 — 프로브가 그 부근이면 어떤 해는 아직 **전해 세차**를 답한다.
+  // 실측(2026-08-28): `zwFlowGanji` 의 옛 프로브 `(year,2,4,12:00)` 는 1960~2030 중 **40해**에서
+  // 정확히 한 해 뒤로 밀렸고, 그 40해는 "입춘이 2/4 정오보다 늦은 해"와 **정확히 같았다**.
+  // 지금 안 드러나는 이유는 `getGanjiFromParts` 가 검증캐시 밖에서 null 이라 산술식 폴백이
+  // 답하기 때문이다 — null 이 값이 되는 순간 그 40해가 통째로 밀린다.
+  // 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
+  //
+  // 🔴 대상은 손으로 안 적는다 — 소스에서 전수 발견하고 **미분류를 실패**시킨다(원칙 10).
+  // 판별 기준도 상수가 아니라 코어 절기표에서 매 해 입춘을 실제로 읽어 잰다.
+  // 🔴 줄 번호는 안 쓴다 — `stripCommentsAndStrings` 가 블록 주석을 길이 보존 없이 지워
+  // 스트립된 소스의 줄 번호가 원본과 어긋난다. 대신 인자 문자열로 지목한다(⑬ 과 같은 방식).
+
+  /** `getGanjiFromParts(` 의 괄호를 균형 맞춰 첫 인자만 꺼낸다. */
+  function findGanjiFromPartsCalls(code) {
+    const hits = [];
+    const re = /getGanjiFromParts\s*\(/g;
+    let m;
+    while ((m = re.exec(code)) !== null) {
+      const start = m.index + m[0].length;
+      let depth = 1;
+      let i = start;
+      let firstEnd = -1;
+      while (i < code.length && depth > 0) {
+        const ch = code[i];
+        if (ch === "(" || ch === "[" || ch === "{") depth += 1;
+        else if (ch === ")" || ch === "]" || ch === "}") depth -= 1;
+        else if (ch === "," && depth === 1 && firstEnd < 0) firstEnd = i;
+        i += 1;
+      }
+      hits.push({ first: code.slice(start, firstEnd < 0 ? i - 1 : firstEnd).trim() });
+    }
+    return hits;
+  }
+
+  /** 깊이 0 쉼표로만 자른다 — `Number(year)` 같은 인자가 쪼개지지 않게. */
+  function splitTopLevel(text) {
+    const out = [];
+    let depth = 0;
+    let cur = "";
+    for (const ch of text) {
+      if (ch === "(" || ch === "[" || ch === "{") depth += 1;
+      else if (ch === ")" || ch === "]" || ch === "}") depth -= 1;
+      if (ch === "," && depth === 0) { out.push(cur.trim()); cur = ""; continue; }
+      cur += ch;
+    }
+    if (cur.trim()) out.push(cur.trim());
+    return out;
+  }
+
+  const PARTS_CALL_RE = /^(?:[A-Za-z_$][\w$]*\s*\.\s*)?(?:_kasiPartsOf|partsOf)\s*\(([\s\S]*)\)$/;
+  const CARRIER_RE = /^[A-Za-z_$][\w$.]*$/;
+  const INT_RE = /^-?\d+$/;
+
+  const fixedProbes = [];
+  const carrierCalls = [];
+  const unclassifiedCalls = [];
+  let ganjiCalls = 0;
+  for (const rel of GANJI_PATH_FILES) {
+    const code = stripCommentsAndStrings(fs.readFileSync(path.join(root, rel), "utf8"));
+    for (const hit of findGanjiFromPartsCalls(code)) {
+      ganjiCalls += 1;
+      const partsCall = PARTS_CALL_RE.exec(hit.first);
+      if (!partsCall) {
+        // 변수에 담아 넘기는 자리 = 사용자 생시 축. 이 검사 대상이 아니다.
+        if (CARRIER_RE.test(hit.first)) carrierCalls.push(`${rel}: ${hit.first}`);
+        else unclassifiedCalls.push(`${rel}: ${hit.first.replace(/\s+/g, " ").slice(0, 90)}`);
+        continue;
+      }
+      const args = splitTopLevel(partsCall[1]);
+      // 월·일이 리터럴이 아니면 그것도 사용자 생시 축이다.
+      if (!INT_RE.test(args[1] || "") || !INT_RE.test(args[2] || "")) {
+        carrierCalls.push(`${rel}: ${hit.first.replace(/\s+/g, " ")}`);
+        continue;
+      }
+      fixedProbes.push({
+        rel,
+        label: `${rel}: ${hit.first.replace(/\s+/g, " ")}`,
+        month: Number(args[1]),
+        day: Number(args[2]),
+        hour: INT_RE.test(args[3] || "") ? Number(args[3]) : null,
+        minute: INT_RE.test(args[4] || "") ? Number(args[4]) : null,
+      });
+    }
+  }
+
+  // 입춘 시각은 코어 절기표에서 매 해 실제로 읽는다(2월 4일 같은 상수를 박지 않는다).
+  const IPCHUN_FROM = 1900;
+  const IPCHUN_TO = 2100;
+  const ipchunCache = new Map();
+  function ipchunAt(year) {
+    if (!ipchunCache.has(year)) {
+      const row = solarTerms(year).find((t) => TERM_NAME_KO[t.index] === "입춘");
+      ipchunCache.set(year, row || null);
+    }
+    return ipchunCache.get(year);
+  }
+  const stampKey = (y, mo, d, h, mi) => ((((y * 100 + mo) * 100 + d) * 100 + h) * 100 + mi);
+
+  /** 그 프로브가 매 해 세차 구간(입춘(y) ≤ p < 입춘(y+1)) 안인지. 절기표가 죽으면 null. */
+  function probeOffendingYears(probe) {
+    const bad = [];
+    for (let y = IPCHUN_FROM; y < IPCHUN_TO; y += 1) {
+      const a = ipchunAt(y);
+      const b = ipchunAt(y + 1);
+      if (!a || !b) return null;
+      const p = stampKey(y, probe.month, probe.day, probe.hour, probe.minute);
+      if (p < stampKey(y, a.month, a.day, a.hour, a.minute)) {
+        bad.push(`${y}(입춘 ${a.month}/${a.day} ${pad2(a.hour)}:${pad2(a.minute)} 이전)`);
+      } else if (p >= stampKey(y + 1, b.month, b.day, b.hour, b.minute)) {
+        bad.push(`${y}(다음 해 입춘 이후)`);
+      }
+    }
+    return bad;
+  }
+
+  const NL = String.fromCharCode(10) + "      ";
+
+  ok(
+    "⑯ getGanjiFromParts 호출부 스캐너가 살아 있다(0 이면 가드가 깨진 것)",
+    ganjiCalls > 0,
+    `호출 ${ganjiCalls}건 · 고정 프로브 ${fixedProbes.length}건 · 생시 축 ${carrierCalls.length}건`,
+  );
+  ok(
+    "⑯ 🔴 고정 프로브가 실재한다(리네임·삭제로 검사가 비지 않았다)",
+    fixedProbes.length > 0,
+    `${fixedProbes.length}건 — 0 이면 아래 경계 검사가 아무것도 안 지킨다`,
+  );
+  ok(
+    "⑯ 🔴 getGanjiFromParts 첫 인자가 전부 분류된다(미분류 = 검사 사각지대)",
+    unclassifiedCalls.length === 0,
+    `미분류 ${unclassifiedCalls.length}건${NL}${unclassifiedCalls.join(NL)}`
+    + NL + "→ 부품을 인라인 객체로 넘기지 말고 `_kasiPartsOf`(또는 `KasiEngine.partsOf`)를 쓰라.",
+  );
+
+  const unclassifiedProbes = fixedProbes.filter((p) => p.hour === null || p.minute === null);
+  ok(
+    "⑯ 🔴 고정 프로브의 시·분이 전부 리터럴이다(미분류 없음)",
+    unclassifiedProbes.length === 0,
+    `미분류 ${unclassifiedProbes.length}건${NL}${unclassifiedProbes.map((p) => p.label).join(NL)}`,
+  );
+
+  const measurable = fixedProbes.filter((p) => p.hour !== null && p.minute !== null);
+  const probeVerdicts = measurable.map((p) => ({ probe: p, bad: probeOffendingYears(p) }));
+  const termTableDead = probeVerdicts.some((v) => v.bad === null);
+  ok(
+    `⑯ 코어 절기표가 ${IPCHUN_FROM}~${IPCHUN_TO} 입춘을 전부 답한다(못 읽으면 아래는 침묵이다)`,
+    !termTableDead,
+    "solarTerms 에서 '입춘'을 못 찾은 해가 있다",
+  );
+
+  const probeOffenders = probeVerdicts.filter((v) => v.bad && v.bad.length);
+  ok(
+    `⑯ 🔴 고정 프로브 전건이 ${IPCHUN_FROM}~${IPCHUN_TO} 모든 해에서 그 해 세차 구간 안이다`,
+    probeOffenders.length === 0,
+    probeOffenders
+      .map((v) => `${v.probe.label} — ${v.bad.length}해 어긋남${NL}   ${v.bad.slice(0, 5).join(" · ")}`)
+      .join(NL)
+    + NL + "→ 프로브를 세차 구간 한가운데(6/15 12:00 축)로 옮기라. 절기표를 고칠 일이 아니다.",
+  );
+
+  // 🔴 이 검사의 자기검사 — 정정 전 프로브가 실제로 걸려야 판별력이 있는 것이다.
+  // 절기표 로딩이나 stampKey 가 조용히 망가지면 위 검사는 "0건이라 초록"이 되는데 여기서 터진다.
+  const legacyProbeBad = probeOffendingYears({ month: 2, day: 4, hour: 12, minute: 0 });
+  ok(
+    "⑯ 이 검사가 판별력이 있다(정정 전 프로브 2/4 12:00 은 실제로 걸린다)",
+    Array.isArray(legacyProbeBad) && legacyProbeBad.length > 0,
+    `걸린 해 ${legacyProbeBad ? legacyProbeBad.length : "측정 불가"}건 — 0 이면 경계 판정이 죽은 것이다`,
   );
 }
 if (failures.length) {
