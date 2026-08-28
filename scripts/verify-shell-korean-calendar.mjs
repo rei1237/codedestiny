@@ -143,7 +143,12 @@ function tzProbeRows() {
 
 // 자식 프로세스 모드 — ⑫ 가 TZ 만 바꿔 자기를 다시 부른다.
 if (process.env.CD_SHELL_TZ_PROBE === "1") {
-  process.stdout.write(JSON.stringify(tzProbeRows()));
+  // 🔴 write 직후에 exit 하지 않는다. POSIX 에서 파이프 stdout 은 비동기라 아직 안 나간 바이트가
+  // 버려진다. 이 봉투는 지금 파이프 버퍼 안에 들어가지만 표본이 늘면 조용히 잘리고,
+  // Windows 는 동기 쓰기라 **로컬에서는 안 보인다**(같은 함정이 verify:ganji-surface-parity 에서
+  // 실제로 터졌다 — 로컬 통과 / CI 만 "파싱 실패").
+  // 🔴 콜백에 process.exit 만 걸면 콜백 전에 아래 부모 모드가 이 자식에서 돌아 손자를 또 띄운다.
+  await new Promise((resolve) => process.stdout.write(JSON.stringify(tzProbeRows()), resolve));
   process.exit(0);
 }
 

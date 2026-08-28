@@ -379,8 +379,17 @@ function sweep() {
 }
 
 // ── 자식 프로세스 모드 ─────────────────────────────────────────────────────
+//
+// 🔴 `process.exit(0)` 을 write **직후**에 부르지 않는다. POSIX 에서 파이프로 나가는 stdout 은
+// **비동기**라 아직 안 나간 바이트가 그대로 버려진다. 이 봉투는 약 250KB 라 파이프 버퍼(64KB)를
+// 훌쩍 넘어 잘린다. Windows 는 파이프 쓰기가 동기라 **로컬에서는 멀쩡하고 CI 에서만** 터졌다
+// (실측 2026-08-28: 로컬 37건 통과 / CI 는 자식 5개 전부 "파싱 실패").
+// 콜백은 플러시가 끝난 뒤에 온다.
 if (IS_CHILD) {
-  process.stdout.write(JSON.stringify(sweep()));
+  // 🔴 콜백에 process.exit 만 걸면, 그 콜백이 돌기 전에 **아래 부모 모드 코드가 이 자식에서
+  // 그대로 실행된다** — 그 안의 spawnSync 가 손자 5명을 또 띄워 프로세스가 지수로 터진다
+  // (실측 2026-08-28: 폴스루 재현). 그래서 top-level await 로 플러시를 기다린 뒤 끝낸다.
+  await new Promise((resolve) => process.stdout.write(JSON.stringify(sweep()), resolve));
   process.exit(0);
 }
 
@@ -467,11 +476,17 @@ for (const tz of TZ_MATRIX.slice(1)) {
     continue;
   }
   let parsed = null;
-  try { parsed = JSON.parse(child.stdout); } catch { parsed = null; }
+  let parseError = "";
+  try { parsed = JSON.parse(child.stdout); } catch (err) { parseError = String(err && err.message).slice(0, 80); }
   ok(
     `② TZ=${tz} 자식이 같은 표본 수를 냈다`,
     !!parsed && Array.isArray(parsed.rows) && parsed.rows.length === base.rows.length,
-    `${parsed && parsed.rows ? parsed.rows.length : "파싱 실패"}건 / 기준 ${base.rows.length}건`,
+    parsed && parsed.rows
+      ? `${parsed.rows.length}건 / 기준 ${base.rows.length}건`
+      // 🔴 길이를 함께 찍는다. 잘린 것과 오염된 것은 고치는 곳이 다르다 —
+      //    잘렸으면 stdout 플러시, 오염됐으면 자식이 JSON 앞에 뭘 찍은 것이다.
+      : `JSON 파싱 실패(${parseError}) · stdout ${String(child.stdout || "").length} bytes`
+        + `\n      stderr: ${String(child.stderr || "").slice(0, 200)}`,
   );
   if (parsed && Array.isArray(parsed.rows)) matrix.set(tz, parsed);
 }
