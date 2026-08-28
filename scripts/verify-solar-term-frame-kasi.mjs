@@ -61,6 +61,7 @@ import {
   solarTerms,
 } from "../lib/korean-calendar/index.js";
 import { solarTermInstants } from "../lib/korean-calendar/ephemeris.js";
+import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
@@ -222,11 +223,13 @@ const sourceYears = groundBlock
 // 🔴 소스 파싱만 하면 스캐너가 죽어도 아무도 모른다. 런타임 경로로 한 번 더 꺼내 집합을 대조한다.
 // 샌드박스 레시피는 scripts/test-saju-solar-term-regression.mjs 와 같다.
 // `Solar`/`Lunar` 는 **주입하지 않는다** — 셸이 lunar-javascript 없이 도는 것이 전제다.
-function evalShellService() {
+function evalShellService(storage) {
   const sandbox = {
     console, Date, Math, JSON, String, Number, Array, Object, isNaN,
     parseInt, parseFloat, setTimeout, clearTimeout, Promise, RegExp, Error,
-    localStorage: {
+    // 🔴 인자가 없으면 **지금 그대로의 죽은 스텁**이다 — ①-b·⑦·⑪ 의 동작을 바꾸지 않는다.
+    //    실동작 백킹은 ⑫ 만 넘긴다.
+    localStorage: storage || {
       get length() { return 0; },
       key() { return null; },
       getItem() { return null; },
@@ -1089,6 +1092,173 @@ if (shellTest && typeof shellTest.normalizeTerms === "function" && fixture && fi
   );
   ok("⑪-f 셸이 정규화된 KASI terms 를 먹고 null 을 내지 않는다", frameNull === 0, `${frameNull}건`);
   ok("⑪-f 셸의 세차·월건이 코어와 같다", frameRows.length === 0, frameRows.slice(0, 8).join("\n      "));
+}
+
+// ── ⑫ 로직 세대 게이트 — 고친 값이 캐시 보유자에게 도달하는가 ────────────────
+//
+// 🔴 이 절이 지키는 문장: **"이 파일의 계산을 고치면 localStorage 보유자도 새 값을 본다."**
+//
+// PR #1246 이 `_normalizeTerms` 의 `kst` 누락을 고쳐 節의 자정 뭉갬(연평균 143.3시간 =
+// 5.97일 폭의 월건 오차)을 정정했지만, 엔트리에는 `terms24` 가 통째로 박제되고 TTL 이
+// 180일이라 **보유자에게는 도달하지 않았다.** `_readStorage` 가 보던 것은 `savedAt` 나이
+// 하나뿐이었고 `context.version` 은 쓰이기만 하고 읽는 곳이 0이었다.
+//
+// 🔴 소스 문자열이 아니라 **실행으로** 잰다. 그리고 두 방향을 동시에 재야 한다 —
+// 게이트가 있는 방향(⑫-b)만 재면 "캐시를 통째로 죽여서 통과" 가 열린다(⑫-c 가 막는다).
+//
+// 🔴 `CACHE_PROBE_KEY` 는 손으로 적은 값이라 서비스의 `_makeCacheKey` 와 갈릴 수 있다.
+// 갈리면 심은 엔트리를 못 찾아 늘 miss 가 되는데, 그때 **⑫-c 가 빨강**이 된다(대조군이
+// 캐시에서 나오려면 키가 맞아야 한다). 키 드리프트는 조용히 통과하지 못한다.
+
+const STORAGE_PREFIX = "kasi:date-context:v2:";
+const CACHE_PROBE_INPUT = { calendarType: "solar", year: 1990, month: 6, day: 15, hour: 12, minute: 0, second: 0 };
+const CACHE_PROBE_KEY = STORAGE_PREFIX + "saju|solar|1990|06|15|12|00|0|37.5665|126.9780|9";
+
+/** 절입 시각을 전건 자정으로 뭉갠 엔트리 — `kst` 결함이 만들던 바로 그 모양이다. */
+function poisonedCacheEntry(version) {
+  return JSON.stringify({
+    savedAt: Date.now(),
+    context: {
+      version: version,
+      cacheKey: CACHE_PROBE_KEY.slice(STORAGE_PREFIX.length),
+      dateKey: "calendar:solar:1990:06:15",
+      source: "kasi",
+      input: { ...CACHE_PROBE_INPUT },
+      solar: { year: 1990, month: 6, day: 15, hour: 12, minute: 0, second: 0, isoLocal: "1990-06-15T12:00:00" },
+      lunar: { year: 1990, month: 5, day: 23, isLeap: false },
+      ganji: { year: "경오", month: "임오", day: "갑자", hour: "경오" },
+      terms24: TERM_NAME_KO.map((name, i) => ({
+        name,
+        atLocal: `1990-${String(Math.floor(i / 2) + 1).padStart(2, "0")}-15T00:00:00`,
+        source: "kasi-api",
+      })),
+      meta: { fetchedAt: "1970-01-01T00:00:00.000Z", fromCache: false, diagnostics: [], warnings: [] },
+    },
+  });
+}
+
+function memoryStorage(seed) {
+  const map = new Map(seed ? [[CACHE_PROBE_KEY, seed]] : []);
+  return {
+    map,
+    get length() { return map.size; },
+    key(i) { return [...map.keys()][i] ?? null; },
+    getItem(k) { return map.has(k) ? map.get(k) : null; },
+    setItem(k, v) { map.set(k, String(v)); },
+    removeItem(k) { map.delete(k); },
+  };
+}
+
+async function resolveWithSeed(seed) {
+  const storage = memoryStorage(seed);
+  const keysBefore = storage.map.size;
+  const win = evalShellService(storage);
+  const context = await win.KasiCalendarService.resolveDateContext(CACHE_PROBE_INPUT, {
+    localOnly: true,
+    setCurrent: false,
+  });
+  const terms = Array.isArray(context.terms24) ? context.terms24 : [];
+  let storedVersion = null;
+  try {
+    storedVersion = (JSON.parse(storage.map.get(CACHE_PROBE_KEY) || "{}").context || {}).version;
+  } catch { /* 아래 단언이 잡는다 */ }
+  return {
+    context,
+    terms,
+    midnight: terms.filter((row) => String(row.atLocal).endsWith("T00:00:00")).length,
+    keysBefore,
+    keysAfter: storage.map.size,
+    storedVersion,
+  };
+}
+
+// 🔴 블록 밖에서 단언한다 — ⑦ 이 존재검사로 통째로 감싸여 fail-open 이던 사고 반복 금지.
+ok(
+  "⑫-a 셸 서비스가 resolveDateContext 를 노출한다",
+  !!(shellWindow && shellWindow.KasiCalendarService
+    && typeof shellWindow.KasiCalendarService.resolveDateContext === "function"),
+  "resolveDateContext 가 없다",
+);
+
+const gateSource = fs.readFileSync(path.join(root, SERVICE_SRC), "utf8");
+const logicVersionMatch = gateSource.match(/var\s+_CONTEXT_LOGIC_VERSION\s*=\s*(\d+)\s*;/);
+ok("⑫-a 정본이 _CONTEXT_LOGIC_VERSION 을 선언한다", !!logicVersionMatch, `${SERVICE_SRC} 에 선언이 없다`);
+const LOGIC_VERSION = logicVersionMatch ? Number(logicVersionMatch[1]) : NaN;
+
+if (logicVersionMatch) {
+  const stale = await resolveWithSeed(poisonedCacheEntry(LOGIC_VERSION - 1));
+  const fresh = await resolveWithSeed(poisonedCacheEntry(LOGIC_VERSION));
+
+  ok(
+    "⑫-b 🔴 옛 세대 엔트리는 폐기되고 절입 시각이 다시 계산된다",
+    stale.terms.length > 0 && stale.midnight < stale.terms.length && stale.context.source !== "cache",
+    `terms ${stale.terms.length}건 · 자정 ${stale.midnight}건 · source=${stale.context.source}`,
+  );
+  ok(
+    "⑫-c 🔴 같은 세대 엔트리는 그대로 캐시에서 나온다(게이트가 과하지 않다)",
+    fresh.terms.length > 0 && fresh.context.source === "cache" && fresh.midnight === fresh.terms.length,
+    `source=${fresh.context.source} · terms ${fresh.terms.length}건 · 자정 ${fresh.midnight}건`,
+  );
+  ok(
+    "⑫-d 폐기된 자리에 같은 키로 다시 쓰인다(옛 키 잔류 0)",
+    stale.keysBefore === 1 && stale.keysAfter === 1 && stale.storedVersion === LOGIC_VERSION,
+    `키 ${stale.keysBefore}→${stale.keysAfter} · 저장 version=${stale.storedVersion} / 소스 ${LOGIC_VERSION}`,
+  );
+
+  let gateInRead = false;
+  let constInEmit = false;
+  let sliceError = "";
+  try {
+    gateInRead = /_CONTEXT_LOGIC_VERSION/.test(
+      stripComments(sliceFunction(gateSource, "function _readStorage(", "⑫-e _readStorage")),
+    );
+    constInEmit = /version:\s*_CONTEXT_LOGIC_VERSION/.test(
+      stripComments(sliceFunction(gateSource, "function _buildDateContext(", "⑫-e _buildDateContext")),
+    );
+  } catch (err) {
+    sliceError = String(err.message || err);
+  }
+  ok(
+    "⑫-e 게이트와 배출 지점이 같은 상수를 쓴다(리터럴 되돌림 금지)",
+    gateInRead && constInEmit,
+    sliceError || `_readStorage=${gateInRead} · _buildDateContext=${constInEmit}`,
+  );
+}
+
+// ── ⑬ 로직 지문 lock — "로직을 바꿨으면 세대를 올려라" ───────────────────────
+//
+// 🔴 ⑫ 는 게이트가 **동작하는지**만 본다. 게이트가 있어도 값을 고치면서 세대를 안 올리면
+// 결과는 같다 — 그게 #1246 에서 실제로 일어난 일이다. 여기서 그 한 걸음을 강제한다.
+// 지문은 주석을 걷어낸 뒤 잡으므로 설명을 고치는 것은 자유다.
+// 🔴 미러(`public/`)는 여기서 안 본다 — `verify:public-mirror-fresh` 가 생성기를 실제로
+// 돌려 대조하므로, 지문을 하나 더 얹는 것은 중첩 사전검사다(CLAUDE.md 원칙 6).
+
+const CONTEXT_LOGIC_LOCK = Object.freeze({
+  version: 2,
+  fingerprint: "8943625edab4b395f7901c1f6d4d7460167bf22740cbc12cc4b5175997b8a3cf",
+});
+
+{
+  const fingerprint = createHash("sha256")
+    .update(stripComments(gateSource).replace(/\s+/g, " ").trim())
+    .digest("hex");
+  ok(
+    "⑬-a 정본의 로직 지문이 lock 과 같다",
+    fingerprint === CONTEXT_LOGIC_LOCK.fingerprint,
+    [
+      `지금  ${fingerprint}`,
+      `lock  ${CONTEXT_LOGIC_LOCK.fingerprint}`,
+      "🔴 저장되는 terms24·ganji·lunar 값이 바뀌는 수정이면 _CONTEXT_LOGIC_VERSION 을 올리고",
+      "   CONTEXT_LOGIC_LOCK 을 함께 갱신하라 — 안 올리면 보유자는 최대 180일 옛 값을 본다.",
+      "   값에 영향이 없으면 lock 의 fingerprint 만 위 '지금' 값으로 갈고, 왜 영향이 없는지",
+      "   커밋 메시지에 적어라.",
+    ].join("\n      "),
+  );
+  ok(
+    "⑬-b 소스의 세대 번호가 lock 과 같다",
+    LOGIC_VERSION === CONTEXT_LOGIC_LOCK.version,
+    `소스 ${LOGIC_VERSION} / lock ${CONTEXT_LOGIC_LOCK.version}`,
+  );
 }
 
 // ── --probe / --live ────────────────────────────────────────────────────────

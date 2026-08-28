@@ -111,9 +111,11 @@ public/
 ```
 Cache-Control 정책
 │
-├── js/ → 무버전 JS (max-age=0)
-├── css/ → 무버전 CSS (max-age=0)
+├── js/ → max-age=604800 (7일) + SWR 30일  ※ /js/shell/* 는 내용 해시라 immutable
+├── css/ → styles/ 는 immutable (전량 ?v=build-… 를 단다)
 └── 이미지 → 장기 캐시 (max-age=31536000)
+※ HTML(`/` · `/index.html` · `/*.html` · `/*/`)은 브라우저·CDN 양쪽 no-cache 다.
+  그래서 `?v=build-…` 를 단 참조는 배포 즉시 새 파일을 받는다 — 7일 창은 **무버전 참조에만** 걸린다.
 ```
 
 ---

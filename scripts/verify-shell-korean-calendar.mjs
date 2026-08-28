@@ -805,6 +805,102 @@ function extractFunctionSource(source, name) {
     + String.fromCharCode(10) + "      → 로컬 Date 를 캐리어로 쓰지 말고 벽시계 부품 { year, month, day, hour, minute, second } 를 넘겨라."
     + String.fromCharCode(10) + "      표시 축이라 정말 안전하면 이 검사의 ALLOWED 에 사유와 함께 등재하라(도달 검사가 걸린다).",
   );
+
+  // ── ⑭ 간지 경로 파일이 무버전으로 참조되지 않는다 ──────────────────────
+  //
+  // 🔴 이 검사가 지키는 문장: **"셸의 값 로직을 고치면 다음 방문에 반드시 새 파일이 나간다."**
+  //
+  // `public/_headers` 가 `/js/*.js` 를 max-age 7일 · SWR 30일로 잡는다. 그런데도 지금까지
+  // 값 수정이 안전했던 것은 HTML 이 `no-cache` 이고(`_headers` 의 `/` · `/*.html` · `/*/`)
+  // 간지 경로 파일이 **전부 `?v=build-<hash>` 로만 로드되기 때문**이다 — `sync:public` 이
+  // 빌드마다 그 토큰을 돌리므로 옛 파일과 새 파일이 섞일 캐시 키 조합이 없다.
+  // 🔴 그 안전성은 **조건부**다. 무버전 참조가 하나라도 생기면 그 파일은 최대 7일 옛 사본이
+  // 계속 나가고, 같은 사용자가 같은 프로필에서 다른 값을 볼 수 있다.
+  //
+  // 🔴 `verify:js-module-graph` 는 **ES 모듈 지정자만** 본다고 스스로 적어 두었다
+  // (scripts/verify-js-module-graph.mjs 머리말). `<script src>` · `data-cd-*-src` ·
+  // `__loadScriptOnce('...')` 축은 그 가드가 안 보는 자리라 여기서 본다.
+  //
+  // 참조 판정은 **따옴표 안의 값 전체**가 그 경로일 때만이다. 주석 안 파일명 언급은 값이
+  // 아니므로 걸리지 않는다(실측 2026-08-28: 이 규칙으로 총 12건 · 오탐 0).
+  const REF_SCAN_DIRS = Object.freeze(["js", "app"]);
+  const REF_SCAN_EXT = /[.](?:js|mjs|ts|tsx|html)$/;
+
+  const refTargets = [];
+  const pushRefTree = (dir) => {
+    const abs = path.join(root, dir);
+    if (!fs.existsSync(abs)) return;
+    for (const entry of fs.readdirSync(abs, { withFileTypes: true })) {
+      const rel = `${dir}/${entry.name}`;
+      if (entry.isDirectory()) pushRefTree(rel);
+      else if (REF_SCAN_EXT.test(entry.name)) refTargets.push(rel);
+    }
+  };
+  for (const dir of REF_SCAN_DIRS) pushRefTree(dir);
+  for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
+    if (entry.isFile() && entry.name.endsWith(".html")) refTargets.push(entry.name);
+  }
+
+  // 🔴 무버전이어도 지금은 괜찮다고 판단한 자리. 키는 `파일|참조경로` 다 — 줄 번호를 넣으면
+  // 무관한 편집에 흔들린다. 새로 생기면 미분류로, 사라지면 stale 로 **양쪽 다** 실패한다.
+  const BARE_REF_ALLOWED = Object.freeze([
+    {
+      file: "index.html",
+      ref: "js/core/saju/modalProfileState.js",
+      why: "지연 로더 타일(data-cd-lazy-src). 이 파일의 값 로직을 고치기 전에 ?v= 를 붙여라.",
+    },
+    {
+      file: "js/core/uiBindings.js",
+      ref: "js/core/saju/modalProfileState.js",
+      why: "__ensureSajuCoreScripts 의 __loadScriptOnce. 위와 같은 조건.",
+    },
+  ]);
+
+  const refRows = [];
+  for (const target of refTargets) {
+    const text = fs.readFileSync(path.join(root, target), "utf8");
+    for (const rel of GANJI_PATH_FILES) {
+      const pattern = new RegExp("[\"'`]/?" + rel.replace(/[.]/g, "[.]") + "(\\?[^\"'`]*)?[\"'`]", "g");
+      let match;
+      while ((match = pattern.exec(text))) {
+        refRows.push({ file: target, ref: rel, versioned: String(match[1] || "").includes("?v=") });
+      }
+    }
+  }
+
+  const missingRefs = GANJI_PATH_FILES.filter((rel) => !refRows.some((r) => r.ref === rel));
+  const bareRefs = refRows.filter((r) => !r.versioned);
+  const bareRefKeys = new Set(bareRefs.map((r) => `${r.file}|${r.ref}`));
+  const allowRefKeys = new Set(BARE_REF_ALLOWED.map((a) => `${a.file}|${a.ref}`));
+  const unclassifiedRefs = [...bareRefKeys].filter((k) => !allowRefKeys.has(k));
+  const staleAllowedRefs = [...allowRefKeys].filter((k) => !bareRefKeys.has(k));
+
+  ok(
+    "⑭ 참조 스캔 대상이 비어 있지 않다(스캐너 사망 탐지)",
+    refTargets.length > 100 && refRows.length > 0,
+    `대상 ${refTargets.length}개 · 참조 ${refRows.length}건`,
+  );
+  ok(
+    "⑭ 🔴 간지 경로 7파일이 전부 최소 한 곳에서 참조된다",
+    missingRefs.length === 0,
+    `참조를 못 찾은 파일 ${missingRefs.length}개: ${missingRefs.join(", ")}`,
+  );
+  ok(
+    "⑭ 버전 붙은 참조가 실제로 존재한다(전건 무버전이면 아래 검사가 무의미하다)",
+    refRows.some((r) => r.versioned),
+    `버전 참조 ${refRows.filter((r) => r.versioned).length}건 / 총 ${refRows.length}건`,
+  );
+  ok(
+    "⑭ 🔴 무버전 참조가 허용 목록과 정확히 같다(미분류·stale 양방향)",
+    unclassifiedRefs.length === 0 && staleAllowedRefs.length === 0,
+    `미분류 ${unclassifiedRefs.length}건: ${unclassifiedRefs.join(" , ")}`
+    + String.fromCharCode(10) + "      "
+    + `stale ${staleAllowedRefs.length}건: ${staleAllowedRefs.join(" , ")}`
+    + String.fromCharCode(10) + "      "
+    + "→ 새 참조면 `?v=build-…` 를 붙여라(sync:public 이 이미 있는 토큰만 돌린다)."
+    + String.fromCharCode(10) + "      "
+    + "   못 붙일 사유가 있으면 BARE_REF_ALLOWED 에 사유와 함께 등재하라.",
+  );
 }
 if (failures.length) {
   console.error(`[verify:shell-korean-calendar] 실패 ${failures.length}건 / 검사 ${checks}건`);

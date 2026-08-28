@@ -9,6 +9,27 @@
     storageKeyPrefix: 'kasi:date-context:v2:'
   };
 
+  /**
+   * 🔴 이 파일의 **계산 로직 세대**다. 스키마 버전이 아니다.
+   *
+   * localStorage 엔트리에는 `terms24`(절입 시각) · `ganji`(4주) · `lunar` 가 통째로 박제되고
+   * TTL 은 180일이다. 그 값을 바꾸는 수정을 하고도 이 숫자를 안 올리면, **고친 값이 신규
+   * 방문자에게만 도달하고 보유자는 최대 180일 옛 값을 계속 본다.**
+   *
+   * 실제로 그렇게 됐다 — PR #1246 이 `_normalizeTerms` 의 `kst` 누락을 고쳐 節 348건 전건의
+   * 자정 뭉갬(연평균 143.3시간 = 5.97일 폭의 월건 오차)을 정정했지만, 캐시 보유자에게는
+   * 도달하지 않았다. `_applyCoreCalendarCorrection` 은 `lunar` 만 다시 쓰고 `terms24` 는
+   * 손대지 않으며, `ganji` 재계산 갈래(`!cached.ganji.hour`)조차 낡은 `terms24` 를 먹인다.
+   *
+   * 🔴 올리면 `_readStorage` 가 옛 엔트리를 폐기하고 **같은 키에** 새 값이 덮인다
+   * (접두사 회전과 달리 옛 키가 잔류하지 않는다 — `clearCache` 는 호출부가 0이다).
+   *
+   * 세대 이력:
+   *   1  ~2026-08-28
+   *   2  2026-08-28 — `kst` 절입 시각 정정(#1246)을 보유자에게 전달
+   */
+  var _CONTEXT_LOGIC_VERSION = 2;
+
   var _config = Object.assign({}, DEFAULTS);
   var _memoryCache = new Map();
   var _inflightCache = new Map();
@@ -333,6 +354,10 @@
       var parsed = JSON.parse(raw);
       if (!parsed || !parsed.context || !parsed.savedAt) return null;
       if (Date.now() - parsed.savedAt > _config.cacheTtlMs) return null;
+      // 🔴 로직 세대 게이트. 이 파일의 계산이 바뀌면 `_CONTEXT_LOGIC_VERSION` 이 올라가고,
+      // 그러면 옛 세대가 만든 `terms24`·`ganji` 를 **읽는 순간 폐기**한다. 나이(TTL)만 보던
+      // 시절에는 180일짜리 엔트리가 고친 값을 계속 덮고 있었다.
+      if (parsed.context.version !== _CONTEXT_LOGIC_VERSION) return null;
       return parsed.context;
     } catch (e) {
       return null;
@@ -1196,7 +1221,7 @@
       var ipchun = _extractIpchun(terms);
 
       var context = {
-        version: 1,
+        version: _CONTEXT_LOGIC_VERSION,
         cacheKey: cacheKey,
         dateKey: _makeCalendarDateKey(norm),
         source: termsSource === 'validated-cache' ? 'validated-cache' : (fallbackUsed ? 'local' : 'kasi'),
