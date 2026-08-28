@@ -5,12 +5,101 @@
 
 ## ✅ 이 계획은 끝났다 (2026-08-28) — PR-E 머지(#1238) + 야자시 결정 + PR-F(가드 사각지대)
 
-- ✅ **§6-4 야자시 = 현행 유지(ON).** 사용자 결정 2026-08-28. **코드 변경 0** — 아래 "야자시 결정" 절.
+- 🔴 **§6-4 야자시 결정은 뒤집혔다 (2026-08-28, PR-3).** `음력일 축 = OFF` 로 통일했다.
+  당시 "현행 유지(ON)" 로 정했던 근거가 **틀린 전제** 위에 있었다 — 아래 "PR-3" 절.
 - ✅ **PR-F — 값 축의 사각지대를 닫았다.** PR-E 의 "새로 알게 된 것 3번"이 실제로는 5벌 더 있었다.
   아래 "PR-F" 절.
 
 Date 를 받는 진입점이 **소스에서 0개**가 됐고, `ganji-dst-gap-census.json` 의 `gaps` 가 6개 존
 전부 **문자 그대로 0** 이 됐다.
+
+## ✅ PR-3 — 음력일 축 야자시를 **OFF 로 통일**했다 (2026-08-28)
+
+🔴 **§6-4 의 "현행 유지(ON)" 결정을 뒤집는다.** 그 결정의 근거였던
+*"셸 전체의 축이 shift-day 인데 숙요만 반대로 두면 같은 화면에서 규칙이 갈린다"* 는 **전제가
+틀렸다** — 셸은 이미 갈려 있었다. 서비스 컨텍스트를 거치는 소비자는 안 밀고,
+`solarToLunarFromParts` 를 직접 부르는 소비자는 밀었다(PR-1 의 검사 ⑥ 이 그것을 값으로 박았다:
+23시대 갈래 **2**). 그리고 앱·워커는 처음부터 안 밀었다.
+
+⇒ 방향은 "OFF 를 ON 으로"가 아니라 **이미 안 밀던 다수(서비스 경로·앱·워커)에 미는 소수를
+맞춘 것**이다. 🔴 **간지(일주·시주) 축의 야자시 ON 은 그대로다** — `getGanjiFromParts` 는
+한 글자도 안 건드렸다.
+
+### 바꾼 코드 4곳
+
+| # | 자리 | 무엇 |
+|---|---|---|
+| 1 | `js/saju-engine.js` `solarToLunarFromParts` | `options = options \|\| { yaja: true }` → `options = options \|\| {}` + 규약 비대칭 머리주석 |
+| 2 | `js/saju-engine-tarot-sukuyo-quantum.js` `syRadarResolveLunar` | 주석 정정(현행과 반대로 적혀 있었다) |
+| 3 | 같은 파일 `syBuildMonthlySukuyoLunar` | 주석 정정(정오 고정이라 값은 무관) |
+| 4 | 같은 파일, 숙요 3 폼의 **음력 입력** 갈래 | `if (h >= 23) _kasiShiftPartsByDays(tBirthParts, 1)` 제거 |
+
+🔴 **4번은 원 계획의 표에 없던 자리다.** 그 갈래는 `solarToLunarFromParts` 를 **안 거치고**
+부품을 직접 민다. 기본값만 뒤집었다면 **같은 폼에서 양력은 안 밀고 음력은 미는 자가당착**이
+남았다. 그래서 검사 ⑥-0c 로 `_kasiShiftPartsByDays(` 호출을 전수 발견해 축별로 분류하고
+미분류·stale 을 실패시킨다(발견은 주석을 걷어낸 소스에서, 이름은 `이름: function(` 형태까지).
+
+### 값 변화 — 전부 23시대 출생에만 해당 (실측 2026-08-28, 이 브랜치)
+
+```
+ganji-surface-kst.json  표본 1,645행 중 23시대 123행
+  solarToLunarFromParts       123칸 이동 (23시대 전건)
+  calcZiweiPalaces:calcMeta   123칸 이동 (lunarMonth/lunarDay 부분)
+  합계 246칸 · 23시대 밖 1,522행 0칸 · nullMap 0칸
+  getGanjiFromParts · :noYaja · computeGanjiFromParts:* · 기둥 4벌 · getMonthGanZhi = 0칸
+sukuyo-shell-axis.json  표본 77행 중 23시대 44행의 본명숙이 이동, groupCounts 2 → 1
+```
+
+재현: `git show <PR-3 직전>:scripts/fixtures/ganji-surface-kst.json` 과 현재 파일을 표면 이름으로
+짝지어 열 단위로 센다(`scripts/fixtures/README-ganji-surface.md` §①-d).
+
+### 🔴 fail-closed 증거 — 자미 가드가 23시대를 아예 안 보고 있었다
+
+`ziwei-star-parity`·`ziwei-worker-chart-facts`·`ziwei-chart-detail-view`·`ziwei-sohan` 은
+**23시 케이스가 한 건도 없어서** 이 불일치를 못 봤다. 그 무변화가 곧 사각지대였다.
+그래서 `verify-ziwei-star-parity.mjs` 의 `CASES` 에 2004~2015 × `23:30` 12건을 넣었다.
+
+```
+코드 수정 **전** (케이스만 추가한 커밋)
+  [verify:ziwei-star-parity] 실패 2건 / 검사 21건 · 대조 인물 41명
+    ④ 별 위치 불일치 308건   예) 2004-05-15 23:30 M · 자미 · 셸=丑 워커=戌
+    ⑤ 달력 드리프트 12건     예) 2004-05-15 23:30 M · 셸=3월 28일 · 워커=3월 27일
+
+코드 수정 **후**
+  [verify:ziwei-star-parity] 통과 — 검사 21건 · 대조 인물 41명 · 공용 별 28개
+```
+
+12건 전부 셸의 음력일이 워커보다 **하루 앞서** 있었다 — 정확히 야자시 밀기의 모양이다.
+
+### 가드 쪽 변경
+
+- `verify-sukuyo-korean-calendar.mjs` ⑥-b: 갈래 **2 → 1**.
+- ⑥-a 신설: 23시대도 **코어 값과 직접 대조**한다. 갈래 수만 보면 소비자 전원이 *같이* 밀어도 1 이라
+  통과하기 때문이다.
+- ⑥-e 의 의미가 뒤집혔다. 전에는 진단 태그 `korean-calendar-core-correction` 이 **찍히는지**를
+  봤다(보정이 밀린 값을 되돌린 증거). 지금은 폴백이 애초에 코어와 같은 값을 내므로 그 보정이
+  **no-op** 이고 태그가 안 찍힌다 — 이제 **안 찍히는지**를 본다. "네트워크가 없어서 통과" 는
+  별도 태그 `lunar conversion fallback` 이 실제로 찍혔는지로 계속 막는다.
+- ⑥-0c 신설: `_kasiShiftPartsByDays(` 전수 발견 + 축 분류(위 4번).
+- `verify-ganji-surface-parity.mjs` `SURFACES` 에 `solarToLunarFromParts:yaja` 열 추가(12 → 13벌).
+  규약 비대칭을 **네 열**로 적어 둔다 — `getGanjiFromParts`(ON) / `:noYaja`(OFF) /
+  `solarToLunarFromParts`(OFF) / `:yaja`(ON).
+
+### 안 건드린 것
+
+- `getGanjiFromParts` — 간지 축은 야자시 ON 이 정본이다(⑥-f 가 지킨다).
+- `js/destiny-profile.js` · 하네스 `SHELL_CHAIN` · `js/core/kasi-calendar-service.js`.
+- 앱·워커·`lib/` — 원래 안 밀고 있었다.
+
+### 🔴 남는 위험
+
+- **엣지 캐시 7일 공존** — `public/_headers` 가 `/js/*.js` 를 max-age 7일·SWR 30일로 잡는다.
+  `sync:public` 이 캐시키를 회전시키지만 SWR 로 한 번 더 옛 셸이 나갈 수 있고, 그 창에서
+  23시대 사용자는 같은 프로필에서 다른 본명숙/자미를 볼 수 있다. 공지 여부는 제품 판단.
+- **localStorage 날짜컨텍스트 180일** — 스키마가 안 바뀌어 키를 회전하지 않았다. 보유자는 옛 값을
+  최대 180일 본다(PR-2 의 R6 와 같은 성질).
+- **저장된 리포트·캐시된 LLM 결과**와 새 계산이 어긋날 수 있다(스냅샷에 로직 버전 필드가 있는지
+  확인은 별건).
 
 ## ✅ PR-2 — R4 는 이미 닫혀 있었고, 같은 자리에 **더 큰 것**이 있었다 (2026-08-28)
 
@@ -228,7 +317,11 @@ KASI 갈래를 안 탄다. `_VALIDATED_SOLAR_TERMS_BY_YEAR`·`KASI_KNOWN_ERRATA`
    전환에서 사라졌고, `tarot:11626` 도 인자 1개다. 부품 갈래는 옵션을 안 주면 야자시가 켜지므로
    **현행과 값이 같다.** 남은 것은 "켜 두는 게 맞나"라는 **의미 결정**뿐이다(아래).
 
-### ✅ 야자시 결정 — **현행 유지(ON)** (사용자 결정 2026-08-28)
+### ~~✅ 야자시 결정 — **현행 유지(ON)**~~ → 🔴 **뒤집혔다 (PR-3, 2026-08-28)**
+
+🔴 **아래는 그날의 판단으로만 남긴다. 현행은 위 "PR-3" 절이다 — 음력일 축은 OFF 다.**
+뒤집힌 이유는 근거의 전제가 틀렸기 때문이다: "셸 전체가 shift-day" 가 아니라 **셸은 이미
+갈려 있었고**, 앱·워커는 처음부터 안 밀었다.
 
 선택지 1번이 채택됐다. **코드 변경 0** 이다 — `syRadarResolveLunar:11629` 와
 `_fallbackLunarFromSolar:697` 은 그대로 두고, `yaja` 기본값 ON 이 정본이다.
@@ -311,9 +404,10 @@ KASI 갈래를 안 탄다. `_VALIDATED_SOLAR_TERMS_BY_YEAR`·`KASI_KNOWN_ERRATA`
 2. **숙요만 야자시 OFF.** 27수는 원래 태음일(lunar day) 기반이라 명리 자시 경계와 무관하다는 해석.
    고르면 **23시대 사용자의 본명숙이 99% 바뀐다** — 회귀가 아니라 정정이지만 사용자에게 보이는 변화다.
 
-✅ **1번이 채택됐다**(위 절). 2번을 나중에 고르려면 `syRadarResolveLunar:11629` 와
-`_fallbackLunarFromSolar:697` 에 `{ yaja: false }` 를 주고 `verify:sukuyo-korean-calendar` 의
-픽스처를 다시 뽑으면 된다 — 그때 23시대 사용자의 본명숙이 99% 바뀐다는 것을 함께 알려야 한다.
+~~✅ **1번이 채택됐다**(위 절).~~ 🔴 **2026-08-28 PR-3 에서 사실상 2번으로 뒤집혔다** — 다만
+호출부마다 `{ yaja: false }` 를 다는 방식이 아니라 `solarToLunarFromParts` 의 **기본값**을
+OFF 로 뒤집었다(호출부 방식은 새 호출부가 생기면 조용히 ON 으로 되돌아가 fail-open 이다 —
+실측상 옵션을 주는 호출부가 0건이라 기본값 뒤집기가 무손실이었다). 위 "PR-3" 절을 볼 것.
 
 ### PR-E 음성 테스트 7종 (전부 fail-closed → 복구 후 초록)
 

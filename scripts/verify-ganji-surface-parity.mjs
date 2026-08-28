@@ -364,8 +364,18 @@ const gz = (o) => {
 const SURFACES = Object.freeze([
   ["getGanjiFromParts", (at, p) => pill(win.KasiEngine.getGanjiFromParts(p))],
   ["getGanjiFromParts:noYaja", (at, p) => pill(win.KasiEngine.getGanjiFromParts(p, { yaja: false }))],
+  // 🔴 이 둘은 **야자시 규약의 비대칭을 값으로 못박는 자리**다. 위 두 줄(간지 축)은 기본값 ON,
+  // 아래 두 줄(음력 축)은 기본값 OFF 다 — 그래서 23시대 표본에서
+  //   getGanjiFromParts ≠ :noYaja  (간지 축은 민다)
+  //   solarToLunarFromParts ≠ :yaja (음력 축은 안 민다)
+  // 가 동시에 성립한다. 누가 "규약을 정리"해 한쪽으로 통일하면 열이 움직여 픽스처가 깨진다.
+  // 근거: js/saju-engine.js 의 solarToLunarFromParts 머리주석 · PR-3.
   ["solarToLunarFromParts", (at, p) => {
     const l = win.KasiEngine.solarToLunarFromParts(p);
+    return l ? `${l.year}-${pad2(l.month)}-${pad2(l.day)}${l.isLeap ? "L" : ""}` : null;
+  }],
+  ["solarToLunarFromParts:yaja", (at, p) => {
+    const l = win.KasiEngine.solarToLunarFromParts(p, { yaja: true });
     return l ? `${l.year}-${pad2(l.month)}-${pad2(l.day)}${l.isLeap ? "L" : ""}` : null;
   }],
   ["computeGanjiFromParts:noTerms", (at, p) => pill(win.KasiCalendarService.computeGanjiFromParts(p))],
@@ -495,7 +505,7 @@ ok(
     }
   }
   ok("⓪ 하네스에서 12벌 표면이 전부 실제로 돈다", threw.length === 0, threw.join("\n      "));
-  ok("⓪ 표면 목록이 12벌이다", SURFACES.length === 12, `${SURFACES.length}벌`);
+  ok("⓪ 표면 목록이 13벌이다", SURFACES.length === 13, `${SURFACES.length}벌`);
 }
 // 🔴 하네스에서 kasi-calendar-service.js 가 빠지는 것을 잡는 **유일한** 프로브다.
 // 다른 해로 만들면 null==null 로 통과한다 — terms 없이 부르는 갈래는 1990 말고 전부 null 이다.
