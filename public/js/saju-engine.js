@@ -24297,7 +24297,13 @@ function renderZiwei(p, natal, targetId) {
           try {
             if (typeof KasiEngine !== 'undefined' && KasiEngine && typeof KasiEngine.getGanjiFromParts === 'function') {
               // 🔴 월은 1-based 다 — 옛 `new Date(y, 1, 4, ...)` 의 월 인덱스 1 은 **2월**이다.
-              var gj = KasiEngine.getGanjiFromParts(_kasiPartsOf(Number(year), 2, 4, 12, 0, 0));
+              // 🔴 프로브는 그 해 **세차 구간 한가운데**여야 한다. 세차는 입춘이 가르는데 입춘은
+              //    2월 3~5일 사이를 오가므로 2/4 정오는 그 경계 위에 얹혀 있었다 — 1960~2030 중
+              //    40해에서 입춘이 2/4 정오보다 늦어, 그 해 유년 세차가 통째로 **한 해 뒤로** 밀렸다
+              //    (실측 2026-08-28 `npm run measure:ganji-null-transition` 축 D). 6/15 정오는 대운
+              //    세운·연운이 이미 쓰는 축이고 같은 측정에서 어긋난 해가 0 이다.
+              //    verify:shell-korean-calendar 검사 ⑯ 이 고정 프로브 전건을 전 해에 대해 못박는다.
+              var gj = KasiEngine.getGanjiFromParts(_kasiPartsOf(Number(year), 6, 15, 12, 0, 0));
               if (gj && gj.secha) return String(gj.secha || '').slice(0, 2);
             }
           } catch (_flowGanjiErr) {}
