@@ -18,6 +18,7 @@ import {
   FORTUNE_PERIOD_IDS,
   PERIOD_LABEL,
   PERIOD_TITLE,
+  isDailyPeriod,
   isFortunePeriodId,
   type FortunePeriodId,
 } from "@/lib/fortune/periods";
@@ -59,7 +60,7 @@ function seoText(periodParam: string) {
     // 검색어가 아니라 설명이므로 제목에서 빼고 description·H1 에 남긴다.
     title: `${title} 운세 ${sample.titleDateLabel} | 무료 별자리·띠별 운세`,
     description:
-      `${sample.rangeLabel} 별자리 12종과 띠 12종의 ${title} 운세를 확인하세요. ` +
+      `${siteSeo.brandName}에서 보는 ${sample.rangeLabel} 별자리 12종·띠 12종의 ${title} 운세. ` +
       `${sample.facts[0]?.label} ${sample.facts[0]?.value} 기준으로 계산했고 ` +
       `총운·애정운·재물운·건강운·직장운을 무료로 제공합니다.`,
     keywords: [
@@ -161,9 +162,12 @@ export default function FortunePeriodHubPage({ params }: { params: { period: str
                 {label} 운세
               </h1>
               <p className={`mt-3 max-w-2xl break-keep text-sm leading-7 ${MUTED}`}>
-                별자리 12종과 띠 12종의 {label} 운세를 한자리에서 봅니다. 일진·월건·절기와 달의 위치를 실제로 계산한
-                값을 각 기질에 대입해 총운·애정운·재물운·건강운·직장운으로 나누고, 점수가 어떤 값에서 나왔는지
-                근거를 함께 공개합니다. 로그인 없이 무료입니다.
+                {siteSeo.brandName}에서 보는 {label} 운세입니다. 별자리 12종과 띠 12종을 한자리에 모았습니다.{" "}
+                {isDailyPeriod(hub.period)
+                  ? "날짜가 바뀌면 그날의 일일 운세로 자동 갱신됩니다."
+                  : "기간이 바뀌면 그 구간을 기준으로 다시 계산됩니다."}{" "}
+                일진·월건·절기와 달의 위치를 실제로 계산한 값을 각 기질에 대입해 총운·애정운·재물운·건강운·직장운으로
+                나누고, 점수가 어떤 값에서 나왔는지 근거를 함께 공개합니다. 로그인 없이 무료입니다.
               </p>
             </div>
             <YeoniPortrait mood="greet" size={104} priority className="mt-1 hidden sm:block" />
