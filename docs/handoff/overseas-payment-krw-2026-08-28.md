@@ -206,10 +206,67 @@ ja `¥3,900〜` · zh `¥28起` · hi `₹200 से शुरू` · ms `Dari R
 "금액 보유 키" 집합에 안 들어오기 때문이다.
 
 
-### ⑤ `app/nakshatra/_lib/copy.ts` 의 환산 66건
-`:5-7` 주석에 환율표가 있고 계산 결과가 66개 문자열에 손으로 박혀 있다. 이제 정본
-(`checkout-entry.js` `REFERENCE_FX_BY_LANG`)이 생겼으므로 통합 가능하지만, 대규모 문자열
-리팩터링이라 이번 범위에서 뺐다. **두 표의 환율값이 갈라지지 않게** 주의(현재는 같다).
+### ⑤ `app/nakshatra/_lib/copy.ts` 의 환산 — **완료** (2026-08-28)
+
+🔴 **이 항목의 수치 "66건" 은 틀렸다. 실측 정정: 가격 라벨 8키 × 12로케일 = 96 문자열이고,
+그중 외화 환산을 가진 것은 88건이다**(ko 8건은 원화만 말한다). 그리고 **이 항목을 파는 도중
+인수인계에 없던 live 결함을 찾았다.**
+
+**🔴 결함 — 다샤 인생지도 가격이 12로케일 전부 틀렸다**
+
+| 근거 | 값 |
+|---|---|
+| 실제 결제 | `app/nakshatra/dasha-map/DashaMapClient.tsx:129` `amountKRW: 10000` |
+| 레지스트리 | `worker/lib/paid-feature-registry.js:361` `unlock.nakshatra_dasha_map` `cost: 100` (=10,000원) |
+| 화면 라벨 | `dashaPriceLabel` — 12벌 전부 **15,000원** |
+| 같은 상품 다른 화면 | `resultPaidProductDashaPrice` 는 10,000원 — 두 화면이 서로 다른 가격을 말했다 |
+
+그 라벨은 결제 버튼 바로 위 `UnlockGate priceLabel`(`DashaMapClient.tsx:161`)이다. 출처는
+로케일화가 아니라 그 이전 — `git show 9e6227854^:…DashaMapClient.tsx:172` 에
+`priceLabel="15,000원 · 1회 해금"` 이 `amountKRW: 10000` 과 나란히 있었다(PR #228).
+**화면 금액 ≠ 승인 금액**이라 §0 의 PG 심사 리스크에 정면으로 걸린다.
+
+**환산 88건도 정본과 달랐다.** 정본은 유효숫자 2자리로 잘라 확정가로 안 보이게 하는데
+(`$22`), 여기 값은 4자리였다(`$22.20`). 정본 함수를 로케일별로 실제 호출해 대조한 결과
+zh-CN 4건·ms 3건·ja 1건만 우연히 일치하고 **76건이 어긋나 있었다.**
+
+| | en 30k | ja 30k | zh-TW 30k | vi 30k | hi 30k | EUR 30k | ms 30k |
+|---|---|---|---|---|---|---|---|
+| 종전 | $22.20 | ¥3,260 | NT$698 | ₫544.500 | ₹1,852 | 20,60 € | RM104 |
+| 정정 | $22 | ¥3,300 | NT$700 | ₫540.000 | ₹1,900 | €21 | RM100 |
+
+**설계 판단 — 정본을 안 건드렸다.** `js/core/checkout-entry.js` 를 고치면
+`verify:payment-choice-parity` 의 **콘텐츠 유도 캐시 핀**이 정적 HTML 12개 + 미러에서 함께
+돌아 90파일 diff 가 된다(PR #1242 실적). 표 하나 옮기자고 결제 런타임 핀을 돌리는 건 대가가
+안 맞는다. 대신 **리터럴을 그대로 두고**(하이드레이션·CLS 위험 0) 가드가 정본을 `require` 해
+`formatReferenceAmount` 를 로케일별로 실제 호출한 결과와 글자 단위로 대조한다 — ④와 같은
+드리프트 가드 레버다. 환율표가 갱신되면 가드가 즉시 `copy.ts` 를 지목한다.
+
+머리주석의 **중복 환율표는 걷어냈다** — 이제 정본 포인터만 있고, 가드가 사본 재등장
+(`krwPerUnit` · `REFERENCE_FX_BY_LANG =`)을 막는다.
+
+**가드 `scripts/verify-nakshatra-price-copy.mjs`** (`npm run verify:nakshatra-price-copy`,
+`run-paid-gate-suite` + `paid-flow-gates` 트리거 `app/nakshatra/**` 배선 완료)
+
+| 검사 | 내용 |
+|---|---|
+| ① | 라벨↔금액 바인딩을 **소스에서 발견** — 각 `*Client.tsx` 의 `amountKRW`(상수 경유 포함) + 결과 카탈로그의 `price: copy.X … href:` 짝 |
+| ② | 라벨의 원화 숫자 == 그 화면이 실제로 청구하는 금액 (12로케일 전부) |
+| ③ | 괄호 속 외화가 정본 **호출 결과**로 끝나고, 통화 기호 개수가 정본과 같다 |
+| ④ | ko 에는 환산 괄호가 없다 |
+| ⑤ | 🔴 미분류 금액 문구를 실패시킨다 — 가격 라벨 아닌 줄의 외화는 금지, 원화만 말하는 줄(`vvipGateNote` 등 33건)은 상품 금액 집합 안에 있어야 한다 |
+| 바닥 | 라벨 8 · 로케일 12 · 키마다 12벌 · 단언 180 |
+
+실측 통과: `8 price labels x 12 locales, 184 assertions, 33 KRW-only mentions checked`.
+음성 테스트 **7/7** 확인(옛 15,000원 복원 · 옛 4자리 환산 복원 · 로케일 키 삭제 · 비가격 줄에
+외화 부착 · 환율표 사본 · **클라이언트 amountKRW 변경** · 트리거 경로 제거).
+
+**한계(의도적)**: ⑤의 원화 전용 줄은 "상품 금액 집합에 속한다" 까지만 본다. 지배성 리포트와
+다샤 지도가 둘 다 10,000원인 동안에는 서로 바뀌어도 통과한다. 금액 자체가 바뀌면 잡힌다.
+
+**남은 것 — 없음.** de/es/fr/nl 의 기호 위치가 `20,60 €` → `€21` 로 바뀌었다(정본이 항상
+기호를 앞에 붙인다). 덜 관용적이지만 **몇 초 뒤 뜨는 결제창과 같은 표기**가 되므로 의도한
+결과다. 되돌리려면 정본 `formatReferenceAmount` 를 고쳐야 하고 그러면 캐시 핀이 돈다.
 
 ### ⑥ Offer 미배선 페이지 — **완료** (2026-08-28)
 
@@ -341,6 +398,7 @@ React 쪽 `app/components/FeatureMarketingDetailModal.tsx:535-536` 이 **이미 
 npm run lint && npm run typecheck
 npm run verify:overseas-payment-notice     # 신규
 npm run verify:i18n-price-drift            # 신규 — 사전 12벌의 금액 드리프트(④)
+npm run verify:nakshatra-price-copy         # 신규 — 나크샤트라 12로케일 가격 라벨(⑤)
 npm run verify:paid-service-offer          # 신규
 npm run verify:payment-choice-parity       # 3렌더러 + 캐시 핀
 npm run verify:payment-copy-dictionary     # 폴백==ko.json · 12로케일
