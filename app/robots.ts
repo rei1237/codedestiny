@@ -3,6 +3,14 @@ import { SEO_V2_SITE } from "../lib/seo.v2";
 
 export const dynamic = "force-static";
 
+/**
+ * 🔴 동적 OG 카드(`/api/og`)는 Disallow 아래 있으면 안 된다. 구글은 리치 결과·Discover 썸네일에
+ * 쓸 이미지를 **직접 크롤링해야** 하고, robots.txt 로 막힌 이미지는 쓰지 않는다. robots.txt 는
+ * 가장 긴 일치 규칙이 이기므로 Allow:/api/og 가 Disallow:/api/ 를 이 경로에서만 덮는다.
+ * 나머지 /api/ 는 그대로 막힌 채다.
+ */
+const PUBLIC_API_ALLOW_RULES = ["/", "/api/og"];
+
 const privateDisallowRules = [
   "/api/",
   "/api-hello-test/",
@@ -58,17 +66,17 @@ export default function robots(): MetadataRoute.Robots {
     rules: [
       {
         userAgent: "*",
-        allow: ["/"],
+        allow: PUBLIC_API_ALLOW_RULES,
         disallow: privateDisallowRules,
       },
       {
         userAgent: "Mediapartners-Google",
-        allow: ["/"],
+        allow: PUBLIC_API_ALLOW_RULES,
         disallow: privateDisallowRules,
       },
       ...CITATION_AI_CRAWLERS.map((userAgent) => ({
         userAgent,
-        allow: ["/"],
+        allow: PUBLIC_API_ALLOW_RULES,
         disallow: privateDisallowRules,
       })),
       ...TRAINING_ONLY_CRAWLERS.map((userAgent) => ({
