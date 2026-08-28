@@ -208,9 +208,9 @@ export function PhaseRitualPrep() {
         
         {/* 제목 */}
         <div className="text-center mb-12">
-          <h1 className="text-3xl md:text-4xl font-bold text-pink-600 mb-3" style={{ fontFamily: "var(--font-playful)" }}>
+          <h2 className="text-3xl md:text-4xl font-bold text-pink-600 mb-3" style={{ fontFamily: "var(--font-playful)" }}>
             {copy.title}
-          </h1>
+          </h2>
           
           <p className="text-sm md:text-base text-rose-600 font-medium">
             {copy.subtitle}

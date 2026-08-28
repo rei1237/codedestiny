@@ -497,7 +497,7 @@ export default function InsightsCosmicClient({
       <section className="mx-auto w-full max-w-6xl px-4 py-8 md:px-6 md:py-10 space-y-6">
         <header className="rounded-3xl border border-white/10 bg-white/[0.04] p-5 md:p-7 backdrop-blur">
           <p className="text-xs tracking-[0.18em] text-amber-200/80">FORTUNE INSIGHTS</p>
-          <h1 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-amber-50">운세 인사이트 허브</h1>
+          <h2 className="mt-2 text-2xl md:text-4xl font-semibold leading-tight text-amber-50">운세 인사이트 허브</h2>
           <p className="mt-3 text-sm md:text-base text-slate-200 leading-7">
             흩어진 질문이 조용히 한 줄로 모이도록,
             사주와 타로, 별의 언어를 차분한 해석 순서로 정리했습니다.

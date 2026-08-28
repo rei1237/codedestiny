@@ -2369,9 +2369,9 @@ export default function NamingAiClient() {
           <span className="inline-flex w-max items-center gap-2 rounded-full border border-[#c4b5fd]/30 bg-[#c4b5fd]/10 px-3.5 py-1.5 text-xs font-bold text-[#dcd2fb]">
             {copy.heroBadge}
           </span>
-          <h1 className="mt-4 text-3xl font-black leading-tight text-[#f4eeff] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
+          <h2 className="mt-4 text-3xl font-black leading-tight text-[#f4eeff] [font-family:var(--font-display)] [text-wrap:balance] sm:text-5xl">
             {copy.heroTitle}
-          </h1>
+          </h2>
           <p className="mt-3 max-w-2xl text-sm leading-relaxed text-[#c8aaff]/85 sm:text-base">
             {copy.heroDescription}
           </p>

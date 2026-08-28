@@ -89,9 +89,9 @@ export function PhaseWelcoming() {
       <div className="relative z-10 text-center max-w-2xl px-6 sm:px-8 mt-[230px] sm:mt-[260px] md:mt-48">
         
         {/* "TERVETULOA!" - 환영 인사 */}
-        <h1 className="text-3xl sm:text-4xl md:text-5xl font-bold text-pink-600 mb-2" style={{ fontFamily: "var(--font-playful)" }}>
+        <h2 className="text-3xl sm:text-4xl md:text-5xl font-bold text-pink-600 mb-2" style={{ fontFamily: "var(--font-playful)" }}>
           TERVETULOA!
-        </h1>
+        </h2>
 
         {/* 인사말 */}
         <p className="text-xl sm:text-2xl md:text-3xl font-bold text-rose-600 mb-4 sm:mb-5" style={{ fontFamily: "var(--font-playful)" }}>

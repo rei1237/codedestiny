@@ -2888,9 +2888,9 @@ export default function YeonStarHugPage() {
               {copy.heroBadge}
             </m.div>
 
-            <h1 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight text-[#b31955] md:text-5xl">
+            <h2 className="font-['ui-rounded','Nunito',sans-serif] text-3xl font-black leading-tight text-[#b31955] md:text-5xl">
               {copy.heroTitle}
-            </h1>
+            </h2>
             <p className="font-['ui-rounded','Nunito',sans-serif] text-sm text-slate-600 md:text-base">
               {copy.heroSubtitle}
             </p>

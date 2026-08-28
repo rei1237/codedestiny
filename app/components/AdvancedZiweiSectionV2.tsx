@@ -1682,7 +1682,7 @@ export default function AdvancedZiweiSectionV2({
             <div className="flex flex-wrap items-start justify-between gap-4">
               <div>
                 <p className="text-[11px] font-semibold tracking-[0.3em] text-cyan-100/80">ZIWEI PREMIUM INPUT</p>
-                <h1 className="font-display mt-3 text-3xl font-black text-white md:text-4xl">{copy.formTitle}</h1>
+                <h2 className="font-display mt-3 text-3xl font-black text-white md:text-4xl">{copy.formTitle}</h2>
                 <p className="font-premium mt-3 max-w-2xl text-sm leading-7 text-slate-200/85">
                   {copy.formDesc}
                 </p>
@@ -1896,7 +1896,7 @@ export default function AdvancedZiweiSectionV2({
           <div className="grid gap-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-center">
             <div className="space-y-5">
               <p className="text-[11px] font-semibold tracking-[0.32em] text-amber-100/80">ZIWEI PREMIUM REPORT</p>
-              <h1 className="font-display max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{copy.resultTitleTemplate(chart.user.name || copy.resultTitleDefaultName)}</h1>
+              <h2 className="font-display max-w-3xl text-3xl font-black leading-tight text-white md:text-5xl">{copy.resultTitleTemplate(chart.user.name || copy.resultTitleDefaultName)}</h2>
               <p className="font-premium max-w-3xl text-sm leading-7 text-slate-200/90 md:text-base">
                 {copy.resultDesc}
               </p>
