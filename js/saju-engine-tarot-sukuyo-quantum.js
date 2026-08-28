@@ -10229,8 +10229,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
     if (!lunarObj) {
         try {
             const b = window._ziweiBirth;
-            if (b && typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
-                lunarObj = KasiEngine.solarToLunar(new Date(b.year, (b.month || 1) - 1, b.day || 1, b.hour || 12, b.minute || 0));
+            if (b && typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunarFromParts) {
+                lunarObj = KasiEngine.solarToLunarFromParts(_kasiPartsOf(b.year, b.month || 1, b.day || 1, b.hour || 12, b.minute || 0, 0));
             }
         } catch (e) {}
     }
@@ -11622,8 +11622,11 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
         lunarObj = { year: ctx.lunar.year, month: ctx.lunar.month, day: ctx.lunar.day, isLeap: !!ctx.lunar.isLeap };
       }
     }
-    if (!lunarObj && typeof KasiEngine !== 'undefined' && typeof KasiEngine.solarToLunar === 'function') {
-      lunarObj = KasiEngine.solarToLunar(new Date(parsed.year, parsed.month - 1, parsed.day, hour, minute, 0), true);
+    if (!lunarObj && typeof KasiEngine !== 'undefined' && typeof KasiEngine.solarToLunarFromParts === 'function') {
+      // 🔴 옛 2번째 인자 `true` 는 solarToLunar 가 **무시**하던 값이다. 부품 갈래는 옵션을 안 주면
+      // 야자시가 켜지므로(현행과 동일) 여기서 값이 안 바뀐다. 이 자리가 PR-E 의 야자시 결정 지점이다
+      // — 입력 시각이 23시일 수 있어 끄면 본명숙이 옆 칸으로 옮겨간다.
+      lunarObj = KasiEngine.solarToLunarFromParts(_kasiPartsOf(parsed.year, parsed.month, parsed.day, hour, minute, 0));
     }
     if (!lunarObj) throw new Error('음력 변환에 실패했습니다.');
     return lunarObj;
@@ -13257,8 +13260,10 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
   function syBuildMonthlySukuyoLunar(year, monthIndex) {
     var lunarObj = null;
     try {
-      if (typeof KasiEngine !== 'undefined' && typeof KasiEngine.solarToLunar === 'function') {
-        lunarObj = KasiEngine.solarToLunar(new Date(year, monthIndex, 1, 12, 0, 0), true);
+      if (typeof KasiEngine !== 'undefined' && typeof KasiEngine.solarToLunarFromParts === 'function') {
+        // 🔴 monthIndex 는 0-based 다 — 부품의 월은 1-based 라 +1 이다(아래 폴백이 같은 +1 을 쓴다).
+        // 정오 고정이라 야자시가 절대 안 걸리고, 그래서 옛 2번째 인자 `true` 는 값에 영향이 없었다.
+        lunarObj = KasiEngine.solarToLunarFromParts(_kasiPartsOf(year, monthIndex + 1, 1, 12, 0, 0));
       }
     } catch (_e) {}
     if (!lunarObj || !lunarObj.month || !lunarObj.day) {
@@ -15845,7 +15850,8 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
           if(isNaN(min)) min = 0;
 
           let lunarObj = null;
-          let tDate = new Date(y, m-1, d, h, min, 0);
+          // 🔴 이름이 tParts 면 위 timeStr.split(':') 을 덮는다. 벽시계 부품은 tBirthParts 다.
+          let tBirthParts = _kasiPartsOf(y, m, d, h, min, 0);
 
           try {
               if (calType === 'solar') {
@@ -15873,13 +15879,12 @@ function renderSukuyo(p, natal, bazi, lunarObj, canonicalPayload, sourceProfile)
                     };
                   }
                   if (!lunarObj) {
-                    lunarObj = KasiEngine.solarToLunar(tDate);
+                    lunarObj = KasiEngine.solarToLunarFromParts(tBirthParts);
                   }
               } else {
                   if(h >= 23) {
-                      let nextDay = new Date(tDate.getTime());
-                      nextDay.setDate(nextDay.getDate() + 1);
-                      y = nextDay.getFullYear(); m = nextDay.getMonth()+1; d = nextDay.getDate();
+                      let nextDay = _kasiShiftPartsByDays(tBirthParts, 1);
+                      y = nextDay.year; m = nextDay.month; d = nextDay.day;
                   }
                   let isLeap = (calType === 'lunar_leap');
                   lunarObj = { year: y, month: m, day: d, isLeap: isLeap };
@@ -17593,15 +17598,21 @@ function renderQuantumStrategy(p, natal, bazi){
     var out=[];
     if(typeof getGanZhiForDate!=='function')return out;
     var WEEK=['일','월','화','수','목','금','토'];
+    // 🔴 "오늘"만 로컬 Date 에서 읽고(그 축에만 존재하는 개념이다), 이후 날짜 산술은 전부 부품으로
+    //    한다. 예전에는 매 칸을 new Date(y, m, d+i, 12, 0, 0) 로 다시 조립해서, 하루가 통째로 없는
+    //    존(Pacific/Apia 2011-12-30)에서 그 칸의 일진이 하루 밀렸다.
+    var qNowParts=_kasiPartsOf(qNow.getFullYear(),qNow.getMonth()+1,qNow.getDate(),12,0,0);
     for(var d=0;d<7;d++){
-      var dt=new Date(qNow.getFullYear(),qNow.getMonth(),qNow.getDate()+d,12,0,0);
+      var at=_kasiShiftPartsByDays(qNowParts,d);
+      var weekdayIdx=new Date(Date.UTC(at.year,at.month-1,at.day)).getUTCDay();
       var gz=null;
-      try{ gz=getGanZhiForDate(dt.getFullYear(),dt.getMonth()+1,dt.getDate(),12); }catch(_){}
+      try{ gz=getGanZhiForDate(at.year,at.month,at.day,12); }catch(_){}
       if(!gz||!gz.g)continue;
       var res=null;
-      try{ res=analyzeFortuneGZ(gz,p,(d===0?'오늘 일운':(dt.getMonth()+1)+'/'+dt.getDate()+' 일운')); }catch(_){}
+      try{ res=analyzeFortuneGZ(gz,p,(d===0?'오늘 일운':at.month+'/'+at.day+' 일운')); }catch(_){}
       out.push({
-        date:dt, month:dt.getMonth()+1, day:dt.getDate(), weekday:WEEK[dt.getDay()],
+        // [Cleanup] 옛 `date: dt` 는 소비자가 하나도 안 읽는다(qDailyHtml·dailyFlow 둘 다 month/day 만 쓴다).
+        month:at.month, day:at.day, weekday:WEEK[weekdayIdx],
         gan:gz.g, zhi:gz.j, result:res, isToday:(d===0),
         ganRole:elType((GAN[gz.g]&&GAN[gz.g].e)||''),
         zhiRole:elType((JI[gz.j]&&JI[gz.j].e)||''),

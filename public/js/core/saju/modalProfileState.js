@@ -103,8 +103,8 @@ function _resolveSukuyoLunarObj(profile) {
   var l = profile.location || {};
 
   try {
-    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunar) {
-      var direct = KasiEngine.solarToLunar(new Date(b.year, b.month - 1, b.day, b.hour || 12, b.minute || 0));
+    if (typeof KasiEngine !== 'undefined' && KasiEngine.solarToLunarFromParts) {
+      var direct = KasiEngine.solarToLunarFromParts(KasiEngine.partsOf(b.year, b.month, b.day, b.hour || 12, b.minute || 0, 0));
       if (direct && direct.year && direct.month && direct.day) {
         return Promise.resolve(direct);
       }
