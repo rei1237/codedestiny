@@ -837,10 +837,42 @@ function _coreEightChar(year, month, day, hour, minute, options) {
   };
 }
 
+/**
+ * 🔴 이 스토어는 **코어를 덮을 수 없다.** 코어가 답하는 날짜에서 어긋나는 행은 읽는 그 자리에서
+ * 버리고 저장소에서도 지운다.
+ *
+ * 왜 필요한가 — 키 `kasi:local-calendar-patch:v1` 은 2026-03-14 부터 있었고(커밋 3b800d3bb),
+ * 서비스가 컨텍스트의 음력을 코어로 정정하기 시작한 것은 2026-08-27(54583b444) 이다. 그 사이에
+ * 쓰인 행은 KASI·lunar-javascript(중국 표준시) 프레임 값일 수 있는데, localStorage 에는 만료가
+ * 없고 이 스토어에는 버전 검사도 없어서 그 값이 **영원히** 코어를 이긴다. 실측 재현
+ * (2026-08-28, 셸 하네스): 틀린 쌍 하나를 등록하면 양방향 조회가 전부 그 값으로 답했다.
+ *
+ * 🔴 TTL 을 두지 않는 이유는 이 검사가 **시간이 아니라 값**을 보기 때문이다 — 시간이 지나도
+ * 맞는 행은 살리고, 방금 쓰였어도 틀린 행은 죽인다. 코어가 못 답하는 구간(1900~2100 밖)에서는
+ * 이 스토어가 유일한 답이므로 그때는 그대로 쓴다.
+ */
+function _coreCalendarOrNull() {
+  try { return _koreanCalendar(); } catch (e) { return null; }
+}
+
+function _dropKasiPatchRow(mapName, key) {
+  var map = _kasiLocalPatchStore ? _kasiLocalPatchStore[mapName] : null;
+  if (!map || !map[key]) return;
+  delete map[key];
+  _saveKasiLocalPatchStore(_kasiLocalPatchStore);
+}
+
 function _getPatchedSolarToLunar(y, m, d) {
   var key = _kasiSolarKey(y, m, d);
   var row = _kasiLocalPatchStore && _kasiLocalPatchStore.solarToLunar ? _kasiLocalPatchStore.solarToLunar[key] : null;
   if (!row || !row.year || !row.month || !row.day) return null;
+  var core = _coreCalendarOrNull();
+  var truth = core ? core.solarToLunar(y, m, d) : null;
+  if (truth && (truth.lunarYear !== row.year || truth.lunarMonth !== row.month
+      || truth.lunarDay !== row.day || !!truth.isLeapMonth !== !!row.isLeap)) {
+    _dropKasiPatchRow('solarToLunar', key);
+    return null;
+  }
   return {
     year: row.year,
     month: row.month,
@@ -854,6 +886,12 @@ function _getPatchedLunarToSolar(year, month, day, isLeap) {
   var key = _kasiLunarKey(year, month, day, isLeap);
   var row = _kasiLocalPatchStore && _kasiLocalPatchStore.lunarToSolar ? _kasiLocalPatchStore.lunarToSolar[key] : null;
   if (!row || !row.year || !row.month || !row.day) return null;
+  var core = _coreCalendarOrNull();
+  var truth = core ? core.lunarToSolar(year, Math.abs(month), day, !!isLeap) : null;
+  if (truth && (truth.year !== row.year || truth.month !== row.month || truth.day !== row.day)) {
+    _dropKasiPatchRow('lunarToSolar', key);
+    return null;
+  }
   return {
     year: row.year,
     month: row.month,

@@ -1370,6 +1370,108 @@ function extractFunctionSource(source, name) {
     }
   }
 }
+// ── ⑱ 로컬 패치 스토어가 코어를 덮지 못한다 ────────────────────────────────
+//
+// `kasi:local-calendar-patch:v1`(js/saju-engine.js)은 KASI 응답을 기억해 두는 localStorage
+// 캐시이고, `solarToLunarFromParts`·`lunarToSolar` 가 **코어보다 먼저** 읽는다. 만료도 버전
+// 검사도 없어서, 한 번 잘못 들어간 행은 그 방문자에게 영원히 코어를 이긴다.
+// 🔴 그 창은 실재했다 — 키는 2026-03-14(3b800d3bb)부터 있었고 서비스가 컨텍스트 음력을 코어로
+// 정정하기 시작한 것은 2026-08-27(54583b444)이다. 그 사이에 쓰인 행은 중국 표준시 프레임일 수
+// 있다. 그래서 읽는 자리에서 **값으로** 검사해 어긋나면 버린다(시간이 아니라 값을 본다).
+// 여기서는 그 계약을 실행으로 못박는다 — 소스 문자열이 아니라 실제 조회 결과를 본다.
+{
+  const eng = globalThis.KasiEngine;
+  const core = globalThis.KoreanCalendar;
+  const STORAGE_KEY = "kasi:local-calendar-patch:v1";
+  const usable = eng && typeof eng.registerCalendarReference === "function"
+    && typeof eng.solarToLunarFromParts === "function" && typeof eng.lunarToSolar === "function"
+    && core && typeof core.solarToLunar === "function"
+    && typeof globalThis.localStorage !== "undefined";
+  ok(
+    "⑱ 패치 스토어 API 와 저장소 스텁이 살아 있다(없으면 아래는 침묵이다)",
+    !!usable,
+    `KasiEngine=${typeof eng} · localStorage=${typeof globalThis.localStorage}`,
+  );
+
+  if (usable) {
+    const before = globalThis.localStorage.getItem(STORAGE_KEY);
+    const at = { year: 2000, month: 6, day: 15 };
+    const truth = core.solarToLunar(at.year, at.month, at.day);
+    const parts = { ...at, hour: 12, minute: 0, second: 0 };
+    const readStore = () => {
+      try { return JSON.parse(globalThis.localStorage.getItem(STORAGE_KEY) || "{}"); } catch { return {}; }
+    };
+    const solarKey = `${at.year}-${pad2(at.month)}-${pad2(at.day)}`;
+
+    // ⑱-a 맞는 행은 **그대로 서빙된다** — 스토어를 죽이는 것이 이 검사의 목적이 아니다.
+    globalThis.localStorage.removeItem(STORAGE_KEY);
+    eng.registerCalendarReference({
+      solar: { ...at },
+      lunar: { year: truth.lunarYear, month: truth.lunarMonth, day: truth.lunarDay, isLeap: !!truth.isLeapMonth },
+      source: "kasi_primary",
+    });
+    const served = eng.solarToLunarFromParts({ ...parts });
+    ok(
+      "⑱ 코어와 같은 행은 스토어에서 그대로 나온다(스토어가 죽지 않았다)",
+      !!served && served.source === "kasi_primary"
+      && served.year === truth.lunarYear && served.month === truth.lunarMonth && served.day === truth.lunarDay,
+      JSON.stringify(served),
+    );
+
+    // ⑱-b 🔴 틀린 행은 코어를 못 덮는다(양방향) · ⑱-c 저장소에서도 지워진다.
+    globalThis.localStorage.removeItem(STORAGE_KEY);
+    const poisonedDay = truth.lunarDay + 1;
+    eng.registerCalendarReference({
+      solar: { ...at },
+      lunar: { year: truth.lunarYear, month: truth.lunarMonth, day: poisonedDay, isLeap: false },
+      source: "kasi_primary",
+    });
+    const solarSide = eng.solarToLunarFromParts({ ...parts });
+    const lunarSide = eng.lunarToSolar(truth.lunarYear, truth.lunarMonth, poisonedDay, false);
+    const coreReverse = core.lunarToSolar(truth.lunarYear, truth.lunarMonth, poisonedDay, false);
+    ok(
+      "⑱ 🔴 코어와 어긋나는 행은 양력→음력을 못 덮는다",
+      !!solarSide && solarSide.day === truth.lunarDay && solarSide.month === truth.lunarMonth,
+      `코어 ${truth.lunarYear}-${truth.lunarMonth}-${truth.lunarDay} · 셸 ${JSON.stringify(solarSide)}`,
+    );
+    ok(
+      "⑱ 🔴 코어와 어긋나는 행은 음력→양력도 못 덮는다",
+      !!lunarSide && !!coreReverse && lunarSide.year === coreReverse.year
+      && lunarSide.month === coreReverse.month && lunarSide.day === coreReverse.day,
+      `코어 ${JSON.stringify(coreReverse)} · 셸 ${JSON.stringify(lunarSide)}`,
+    );
+    const after = readStore();
+    ok(
+      "⑱ 🔴 어긋나는 행은 저장소에서 지워진다(다음 방문에도 안 남는다)",
+      !(after.solarToLunar && after.solarToLunar[solarKey]),
+      JSON.stringify(after).slice(0, 200),
+    );
+
+    // ⑱-d 코어가 못 답하는 구간(1900~2100 밖)에서는 스토어가 유일한 답이므로 그대로 쓴다.
+    globalThis.localStorage.removeItem(STORAGE_KEY);
+    const outOfRange = { year: 1850, month: 6, day: 15 };
+    ok(
+      "⑱ 표본이 실제로 코어 범위 밖이다(안이면 아래가 다른 것을 잰다)",
+      core.solarToLunar(outOfRange.year, outOfRange.month, outOfRange.day) === null,
+      "코어가 1850년을 답한다",
+    );
+    eng.registerCalendarReference({
+      solar: { ...outOfRange },
+      lunar: { year: 1850, month: 5, day: 6, isLeap: false },
+      source: "kasi_primary",
+    });
+    const outside = eng.solarToLunarFromParts({ ...outOfRange, hour: 12, minute: 0, second: 0 });
+    ok(
+      "⑱ 코어 범위 밖에서는 스토어가 계속 답한다(기능을 지우지 않았다)",
+      !!outside && outside.year === 1850 && outside.month === 5 && outside.day === 6,
+      JSON.stringify(outside),
+    );
+
+    if (before === null) globalThis.localStorage.removeItem(STORAGE_KEY);
+    else globalThis.localStorage.setItem(STORAGE_KEY, before);
+  }
+}
+
 if (failures.length) {
   console.error(`[verify:shell-korean-calendar] 실패 ${failures.length}건 / 검사 ${checks}건`);
   for (const failure of failures) console.error(`  ✗ ${failure}`);
