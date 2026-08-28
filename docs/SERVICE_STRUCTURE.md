@@ -160,8 +160,8 @@ Code Destiny는 사주, 자미두수, 숙요점, 점성술, 베다 점성술, �
 
 ## 신규 개발자가 가장 먼저 봐야 할 파일 목록
 
-- `AGENTS.md`
-- `CLAUDE.md`
+- `CLAUDE.md` — 규약 정본. 그 안의 라우팅 표가 `docs/context/*.md` 중 무엇을 읽을지 정한다
+- `AGENTS.md` — Codex 진입점(위 파일로 보내는 표지판)
 - `docs/SERVICE_STRUCTURE.md`
 - `docs/FEATURE_MAP.md`
 - `docs/ROUTE_MAP.md`

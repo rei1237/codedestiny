@@ -41,3 +41,25 @@
 🔴 **월정석 증빙 쿼리를 라우트에 복제하지 말 것** (2026-08-16) — 월정석의 회계 정본은 `MonthlyCreditLedger` 하나이고 쓰는 곳도 `worker/payments/moonstone.js` 하나인데, **읽는 곳이 15곳에 각자 손으로 적힌 쿼리로** 흩어져 있었다. writer 가 바뀔 때마다 그중 몇 곳이 조용히 죽고, 죽은 자리에서 **월정석이 차감된 사용자가 402(미결제)** 를 받았다(초융합 ₩30,000 · 네오 팩폭 전략실, 두 번 재발). 이제 조회는 `worker/lib/moonstone-spend-proof.js` 하나이며, 정산 판정은 `settledAt` 단독이 아니라 **① `settledAt` ② 구 billing.js 행의 `afterBalance` ③ 미정산이면 `User.recentConsumeRequestIds`(차감의 정본 증거)** 3갈래다 — ③ 이 없으면 "차감은 끝났는데 정산 write 가 아직 안 내려앉은 창"에서 돈 낸 사용자가 402 를 맞는다(크론 sweep 은 5~10분 뒤). writer↔reader 왕복 계약은 `__tests__/worker/per-use-proof-roundtrip.test.js` 가 **소비 라우트 전수**로 고정한다.
 
 🔴 **`PERSISTENT_UNLOCK_KEY_SET`은 영구 해금의 기록 주체가 아니다** — 위치도 `content-unlocks.js`가 아니라 `worker/routes/fortune.js`다. 해금을 실제로 기록하는 곳은 `User.unlockedFeatures`이고, coin-gate(`billing.js`)와 카드 단건결제(`payments.js` `recordUserPaidFeature`)가 `isUnlockPaidFeatureKey` 기준으로 함께 쓴다. 저 상수는 `/api/fortune/*` 응답의 `unlockedFeatures`/`unlockMap` 필터와 PointHistory 복구 경로 전용이라, **신규 잠금 기능을 추가할 때 여기 등록하지 않아도 결제·재열람은 정상 동작한다**(같은 계약의 `ziwei-island-deep-report`·`nakshatra-lord-report`·`nakshatra-dasha-map`이 모두 미등록 상태로 동작 중). 등록이 필요한 경우는 그 키를 `/api/fortune/*` 응답으로 내보내야 할 때뿐이다.
+
+## 결제 안전 규칙 (2026-08-28 `AGENTS.md` 에서 이관)
+
+- 결제 작업 전 [docs/PAYMENT_AND_ACCESS.md](../PAYMENT_AND_ACCESS.md) 와 결제 정책 3부작([overview](../payment-policy-overview.md) · [content-access](../payment-policy-content-access.md) · [flow](../payment-policy-flow.md))을 먼저 읽는다.
+- **결제 정본 파일 6종** — 이 목록 밖에서 결제 판정 로직을 새로 만들지 않는다.
+
+  | 파일 | 역할 |
+  |---|---|
+  | `worker/routes/billing.js` | coin-gate 경로 |
+  | `worker/routes/payments.js` | 카드 단건 결제 경로 |
+  | `worker/lib/paid-feature-registry.js` | 유료 기능 가격·유형 정의 |
+  | `worker/lib/billing-policy.js` | 환산·정책 상수 |
+  | `worker/lib/profile-limits.js` | 프로필 한도 |
+  | `worker/lib/payment-refund.js` | 환불 경로 |
+
+- 🔴 **결제 문구는 제품 용어 3종을 유지한다**: `이용권` · `월정석` · `단건 결제`. 사용자에게 보이는 새 문구에 **코인 중심 표현을 도입하지 않는다** — 코인은 레거시 내부 계산 단위다.
+- 모든 유료 흐름은 현재의 접근 옵션 3종(이용권 · 단건 결제 · 월정석)을 그대로 보존한다.
+- **클라이언트는 최종 과금 판정을 하드코딩하지 않는다.** 서버의 registry/policy 가 결정한다.
+- 서버는 **명시적 `MEMBERSHIP_PASS` 커맨드에서만** 이용권 커버리지를 조회한다. `DIRECT_KRW` 와 `MONTHLY` 는 이용권 상태를 묻지 않는다 — 서버 권위의 가격·잔액·결제·엔타이틀먼트 검사는 그대로 적용된다.
+- 결제는 됐는데 서비스가 전달되지 않았으면 엔타이틀먼트 복구 · 월정석 크레딧 복원 · 환불 경로를 검토한다.
+- 🔴 프로덕션 대상 실제 취소·환불·정산은 **명시적 승인 없이 실행하지 않는다.**
+- 결제 정책 · 가격 · 접근 순서 · 환불 동작 · 인증 · DB 스키마 · Worker 바인딩 · 배포 설정을 가볍게 바꾸지 않는다.

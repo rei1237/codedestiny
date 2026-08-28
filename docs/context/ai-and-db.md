@@ -91,3 +91,21 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
 3. **엣지 캐시를 인증 경로까지 확장** — 공개 API 에서 22배가 나왔다(3,474ms → 155ms). 다만
    결제·이용권 정합성이 걸리므로 `docs/context/payment-gating.md` 를 먼저 읽을 것.
 4. **Cloudflare 에 라우팅 신고** — Free 존은 커뮤니티 채널뿐이다.
+
+## LLM 안전 규칙 (2026-08-28 `AGENTS.md` 에서 이관)
+
+- AI 작업 전 [docs/LLM_AND_AI_POLICY.md](../LLM_AND_AI_POLICY.md) 를 먼저 읽는다.
+- **LLM 정본 파일 5종** — 새 호출 경로를 만들기 전에 여기부터 본다.
+
+  | 파일 | 역할 |
+  |---|---|
+  | `lib/llm-client.ts` | 프론트/공유 클라이언트 |
+  | `worker/lib/gemini.js` | Gemini REST 직접 호출 |
+  | `worker/lib/structured-consultation.js` | 구조화 상담 생성 |
+  | `worker/lib/llm-cache-store.js` | 응답 캐시 |
+  | `worker/routes/*-ai.js` | 기능별 AI 라우트 |
+
+- 🔴 사용자가 **그 정확한 호출**을 명시적으로 승인하지 않으면 `--live` 나 실제 프로바이더 키를 쓰지 않는다.
+- 승인된 실호출이라도 사전에 **호출 횟수 · 프로바이더 · 모델 · 비용/타임아웃 위험**을 먼저 밝힌다.
+- 캐시 키 · 멱등 키 · 재시도 한도 · `fallbackMinChars` 를 확인한다.
+- 유료 AI 라우트는 **생성 전에** 결제/접근을 검사하고, 실패 시 복구·환불을 처리한다.

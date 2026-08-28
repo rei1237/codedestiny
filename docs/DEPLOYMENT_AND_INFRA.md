@@ -2,7 +2,7 @@
 
 > 🔴 **2026-08-24 — 이 문서의 첫 절은 폐기된 계약이다. 그대로 따르면 안 된다.**
 >
-> `AGENTS.md` §Important Docs 와 `docs/CURRENT_DEV_BASELINE.md` 가 이 문서를 **활성 참조**로
+> `docs/context/doc-precedence.md` §활성 참조 문서 목록과 `docs/CURRENT_DEV_BASELINE.md` 가 이 문서를 **활성 참조**로
 > 올려 두고 있는데, 바로 아래 "Current release policy (2026-08-08)" 절은 **"PR-first delivery was
 > retired"** 로 시작해 로컬 `deploy:safe` 배포를 지시한다. 이는 `CLAUDE.md` 절대 규칙 3(브랜치 →
 > PR → CI → 사용자가 머지 → 스테이징 자동, 프로덕션은 수동 `workflow_dispatch`)과 **정반대**다.
@@ -11,7 +11,7 @@
 > 같은 문서 안에서도 아래 "배포" 절(2026-08-11 개정)이 이미 반대 내용을 적고 있어, **한 문서에
 > 두 계약이 공존**한다.
 >
-> **활성 배포 계약의 정본은 `AGENTS.md` §Delivery 하나다.** 요약조차 여기 두지 않는다 — 요약이
+> **활성 배포 계약의 정본은 [docs/context/delivery-and-ci.md](context/delivery-and-ci.md) 하나다**(2026-08-28 경로 갱신). 요약조차 여기 두지 않는다 — 요약이
 > 낡는 것이 정확히 이 사고의 형태다. 기록은 [docs/CONTEXT_AUDIT.md](CONTEXT_AUDIT.md) 참조.
 >
 > 아래 내용은 **역사 기록으로만** 남긴다(왜 이런 계약이 있었고 왜 되돌렸는지가 유용하다).

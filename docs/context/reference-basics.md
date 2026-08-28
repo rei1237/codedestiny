@@ -49,6 +49,8 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - **결제**: PortOne V2 (+ KG Inicis 채널), 포인트/코인 기반 유료 기능
 - **인증**: 커스텀 JWT (NextAuth 아님), Google/Kakao/Naver OAuth
 - **i18n**: `ko`(기본, prefix 없음) / `ja`, `zh`, `en`(경로 prefix)
+- **모바일**: Capacitor Android 래퍼 — `apps/mobile/**`
+- **이미지 자산**: UI/UX 상 중요한 신규 이미지는 직접 제작하거나 기존 승인 자산에서 파생해 repo-local WebP 로 최적화한다. 외부 핫링크나 임시 생성 경로를 프로덕션 UI 에서 직접 참조하지 않는다.
 
 ## Code Rules
 
@@ -71,3 +73,31 @@ public/, dist/, out/   # 정적 자산 및 빌드 산출물
 - `.env*` 패턴의 모든 환경변수 파일 (절대로 깃허브에 업로드 금지 — `.env.local`, `.env`, 서버 전용 env 파일 등)
 - `dist/`, `out/` (빌드 산출물)
 - 마이그레이션 스크립트 실행 결과물 (`scripts/migrate-*` 자체는 리뷰 후 신중히 수정)
+
+## 시크릿 노출 금지의 유일한 예외 (사용자 승인 · 2026-08-28 `AGENTS.md` 에서 이관)
+
+- `worker/routes/fortune.js` 와 `app/points/history/PointHistoryClient.tsx` 는 **홈페이지 소유자의 지정 연락처 메타데이터**를 담아도 된다. 사용자가 이 두 파일을 통상 배포 흐름으로 공개하는 것을 명시적으로 승인했다.
+- 🔴 예외는 **그 두 파일의 사전 승인된 연락처 메타데이터뿐**이다. 새로 발견한 개인정보·자격증명·결제 데이터·인증 재료·무관한 연락처는 그대로 금지이며 업로드도 로깅도 하지 않는다.
+- 🔴 이 예외를 모르면 반대 방향 사고가 난다 — 다음 세션이 그 두 파일의 연락처를 "시크릿 노출"로 오판해 지운다.
+
+## 정적 셸(`index.html`) 변경 절차
+
+1. 루트 `index.html` 을 고친다 (🔴 `public/**/index.html` 미러가 아니다).
+2. `npm run sync:public`
+3. `npm run verify:locale-main-sync`
+4. `npm run verify:runtime-cache-sync`
+5. 고정 URL 자산이 바뀌었으면 `index.html` 과 동기화된 미러의 캐시 키를 함께 올린다.
+
+## Source Of Truth (경로별 정본)
+
+| 대상 | 정본 |
+|---|---|
+| Worker 런타임 API | `worker/**` |
+| Next/App UI | `app/**` · `components/**` |
+| 정적 홈 셸 | 루트 `index.html` |
+| 셸의 런타임 JS/CSS | `js/**` · `styles/**` |
+| 빌드·배포 스크립트 | `scripts/**` · `package.json` |
+| 생성 미러 | `public/**/index.html` — **정본이 아니다** |
+
+- 정적 셸과 React 라우트는 서로 대체 가능하지 않다. 라이브 홈의 소스는 루트 `index.html` 이다.
+- 미러 검색 제외(`.ignore`)와 삭제 전 3면 grep 규칙은 [search-discipline.md](search-discipline.md) 에 있다.
