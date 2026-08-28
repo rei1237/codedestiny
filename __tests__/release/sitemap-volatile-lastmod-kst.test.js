@@ -31,8 +31,13 @@ const GENERATOR = path.join(root, "scripts", "generate-sitemap.mjs");
 const INDEXNOW = path.join(root, "scripts", "indexnow-submit.mjs");
 
 // 자정~09시 KST 구간을 재현한다 — UTC 는 아직 어제, KST 는 이미 오늘인 상태.
-const UTC_DAY = "2026-08-27";
-const KST_DAY = "2026-08-28";
+//
+// 🔴 날짜를 상수로 박지 않는다. 판정이 `max(저장된 lastmod, 주기 날짜)` 라(아래 pickProbeThursday
+//    주석과 같은 이유), 원장을 다시 만든 날이 그 상수를 지나는 순간 max 가 저장값을 돌려주고
+//    이 단언이 깨진다 — 실제로 깨졌다(2026-08-29: 원장의 휘발성 lastmod 가 08-29 로 올라가자
+//    하드코딩된 KST_DAY="2026-08-28" 단언이 '2026-08-29' 를 받고 실패). 저장값보다 뒤인
+//    **연속 이틀**을 골라야 UTC/KST 의 하루 차이가 그대로 드러난다.
+const { utcDay: UTC_DAY, kstDay: KST_DAY } = pickProbeDayPair();
 
 /** 매일 바뀌는 일일 패키지를 읽는 대표 라우트. 구조가 바뀌면 아래 단언이 먼저 깨진다. */
 const VOLATILE_ROUTE = "/fortune/today/aries/";
@@ -96,7 +101,7 @@ test("휘발성이 아닌 라우트는 KST 로 밀리지 않는다", async () =>
  * 상수를 박으면 원장을 다시 만든 날이 그 상수를 지나는 순간 조용히 무의미해진다
  * (판정이 `max(저장된 lastmod, 주기 날짜)` 라 저장값보다 뒤인 날짜를 골라야 주기가 드러난다).
  */
-function pickProbeThursday() {
+function latestLedgerYmd() {
   const stored = JSON.parse(readSource(path.join(root, "config", "sitemap-lastmod.json"))).routes;
   const latest = Object.values(stored)
     .map((entry) => entry.lastmod)
@@ -104,6 +109,18 @@ function pickProbeThursday() {
     .sort()
     .pop();
   assert.ok(latest, "원장에서 lastmod 를 하나도 읽지 못했습니다.");
+  return latest;
+}
+
+/** 원장의 마지막 날짜보다 뒤인 연속 이틀 — 앞이 UTC(어제), 뒤가 KST(오늘)를 흉내낸다. */
+function pickProbeDayPair() {
+  const [y, m, d] = latestLedgerYmd().split("-").map(Number);
+  const ymd = (offset) => new Date(Date.UTC(y, m - 1, d + offset)).toISOString().slice(0, 10);
+  return { utcDay: ymd(14), kstDay: ymd(15) };
+}
+
+function pickProbeThursday() {
+  const latest = latestLedgerYmd();
 
   const [y, m, d] = latest.split("-").map(Number);
   const probe = new Date(Date.UTC(y, m - 1, d + 14));
