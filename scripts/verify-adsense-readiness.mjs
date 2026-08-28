@@ -1457,6 +1457,74 @@ function verifyNoInheritedHomeCanonical(baseDir) {
   }
 }
 
+// 루트 layout 의 기본 title·description 을 그대로 내보내도 되는 라우트.
+// 🔴 값은 "왜 예외인가" 다. 목록을 늘리기 전에 그 페이지가 정말 자기 문구를 가질 수 없는지
+//    따질 것 — 대개 정답은 목록 추가가 아니라 그 라우트가 title·description 을 선언하는 것이다.
+const rootMetadataAllowedRoutes = new Map([
+  ["/", "홈 자신. 배포본에서는 정적 셸이 덮지만 out/ 에는 이 값이 남는다."],
+  // 아래 6개는 `public/_redirects` 가 엣지에서 301 로 잡아 HTML 이 브라우저·크롤러에
+  // 절대 도달하지 않는다(2026-08-28 라이브 실측). 라우트 삭제는 절대규칙 6 위반이라
+  // 산출물은 남겨 두고 문구만 채우지 않는다.
+  ["/en-us", "엣지 301 → / (도달 불가)"],
+  ["/ja-jp", "엣지 301 → / (도달 불가)"],
+  ["/zh-cn", "엣지 301 → / (도달 불가)"],
+  ["/face-reading", "엣지 301 → /physiognomy/ (도달 불가)"],
+  ["/sukyo", "엣지 301 → /sukuyo/ (도달 불가)"],
+  ["/saju/animal-test", "엣지 301 → /saju/animal-destiny/ (도달 불가)"],
+]);
+
+/**
+ * 루트 기본 title·description 상속 회귀 가드 (2026-08-28 추가).
+ *
+ * `app/layout.js` 의 `title.default` 와 `description` 은 자식이 자기 값을 선언하지 않으면
+ * 그대로 내려간다. 2026-08-28 dist 실측에서 **33개 문서**가 홈과 바이트 동일한 제목·설명을
+ * 내보내고 있었다(전부 noindex 였지만 네이버 「동일 제목 / 동일 설명문」 집계에는 들어간다 —
+ * docs/handoff/seo-naver-diagnostic-2026-08-16.md §2-E).
+ *
+ * 🔴 위 verifyNoInheritedHomeCanonical 로는 이걸 못 잡는다. 그쪽은 canonical 축만 보는데,
+ *    canonical 상속은 2026-08-27 에 이미 끊겼고 title·description 축은 그대로 남아 있었다.
+ *
+ * fail-closed: 기본값을 소스에서 못 읽거나 검사한 문서가 0개면 실패한다 — 통과시키면
+ * 이 가드가 죽은 채로 남는다(코딩 원칙 10).
+ */
+function readRootLayoutDefaults() {
+  const source = readRequired("app/layout.js");
+  const block = source.match(/const ROOT_SEO = \{([\s\S]*?)\n\};/);
+  assert(Boolean(block), "app/layout.js: ROOT_SEO 선언을 못 찾았다 — 이 가드가 기준값을 잃었다.");
+  const title = block[1].match(/title:\s*"([^"]+)"/);
+  const description = block[1].match(/description:\s*\n?\s*"([^"]+)"/);
+  assert(Boolean(title), "app/layout.js: ROOT_SEO.title 을 못 읽었다.");
+  assert(Boolean(description), "app/layout.js: ROOT_SEO.description 을 못 읽었다.");
+  return { title: title[1], description: description[1] };
+}
+
+function verifyNoInheritedRootMetadata(baseDir) {
+  const defaults = readRootLayoutDefaults();
+  const htmlFiles = collectIndexHtmlFiles(resolve(rootDir, baseDir));
+  let checked = 0;
+  for (const absolutePath of htmlFiles) {
+    const pathname = routeFromHtmlPath(baseDir, absolutePath);
+    if (rootMetadataAllowedRoutes.has(pathname)) continue;
+    const html = readFileUtf8WithRetry(absolutePath);
+    const title = (html.match(/<title[^>]*>([\s\S]*?)<\/title>/i) || [])[1];
+    if (title === undefined) continue;
+    checked += 1;
+    assert(
+      decodeTitleEntities(title).trim() !== defaults.title,
+      `${baseDir}${pathname}: 루트 기본 title 을 그대로 내보낸다 — 이 라우트의 metadata 에 title 을 선언할 것.`,
+    );
+    const description = (html.match(/<meta[^>]*name=["']description["'][^>]*content=["']([^"']*)["']/i) || [])[1];
+    if (description === undefined) continue;
+    assert(
+      description.trim() !== defaults.description,
+      `${baseDir}${pathname}: 루트 기본 description 을 그대로 내보낸다 — 이 라우트의 metadata 에 description 을 선언할 것.`,
+    );
+  }
+  assert(
+    checked > 0,
+    `${baseDir}: 루트 기본 메타 검사 대상이 0개다 — collectIndexHtmlFiles 가 산출물을 못 찾았을 가능성이 크다.`,
+  );
+}
 /**
  * SERP 제목 표시 폭 가드 (2026-08-27 추가).
  *
@@ -1708,6 +1776,8 @@ for (const baseDir of ["out", "dist"]) {
   verifyBlockedIndexableSitemapRouteQuality(baseDir);
   trace(`${baseDir}: no inherited home canonical`);
   verifyNoInheritedHomeCanonical(baseDir);
+  trace(`${baseDir}: no inherited root title/description`);
+  verifyNoInheritedRootMetadata(baseDir);
   trace(`${baseDir}: indexable title width`);
   verifyIndexableTitleWidth(baseDir);
   trace(`${baseDir}: indexable description width`);
