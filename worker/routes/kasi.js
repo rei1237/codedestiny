@@ -649,10 +649,41 @@ async function requestLegacyMethod(env, methodRaw, paramsRaw) {
       throw error;
     }
 
+    const upstreamRows = result?.rows || [];
+
+    // 🔴 24절기는 업스트림이 **연도 커버리지 밖을 200 + totalCount 0 으로** 답한다(오류가 아니다).
+    // 실측 2026-08-28: SpcdeInfoService 는 2000~2028 만 답하고 1999 이하·2029 이상은 빈 목록이다
+    // (같은 키의 음양력 LrsrCldInfoService 는 1391~2050 을 덮는다 — 절기만 좁다).
+    // 그 빈 목록을 `source:"kasi"` 로 실어 보내면 소비자는 "KASI 가 절기가 없다고 답했다" 로 읽고,
+    // 게다가 30분간 캐시된다. 여기서 로컬 코어로 떨어뜨려 **사실대로** 알린다 —
+    // requestCalendarSummary 는 이미 같은 자리에서 그렇게 한다(`if (!solarTerms.length)`).
+    //
+    // 🔴 다른 메서드에는 걸지 않는다. getLunCalInfo/getSolCalInfo 의 빈 응답은 "커버리지 밖"이
+    // 아니라 "그런 날짜가 없다"(없는 윤달 등)일 수 있고, 그걸 로컬로 메우면 KASI 가 거절한 입력에
+    // 우리가 답하게 된다.
+    if (method === "get24DivisionsInfo" && !upstreamRows.length) {
+      const localRows = computeLocalCalendarFallback(method, params);
+      if (localRows && localRows.length) {
+        return {
+          ok: true,
+          method,
+          rows: localRows,
+          cache: "miss",
+          source: "local",
+          maintenance: false,
+          fallbackRecommended: true,
+          upstreamReason: "KASI_YEAR_OUT_OF_COVERAGE",
+          warnings: [
+            `KASI 24절기 커버리지 밖(solYear=${params?.solYear ?? "?"})이라 로컬 계산으로 대체되었습니다.`,
+          ],
+        };
+      }
+    }
+
     const payload = {
       ok: true,
       method,
-      rows: result?.rows || [],
+      rows: upstreamRows,
       cache: result?.cache || "miss",
       source: "kasi",
       maintenance: false,

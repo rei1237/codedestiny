@@ -283,10 +283,12 @@ jobs:
       # 그 대조는 이 가드가 생기기 전까지 레포 어디에도 없었다 —
       # verify:korean-calendar-solar-terms 는 이름과 달리 lunar-javascript 와 비교한다.
       #
-      # 두 층이다. tier-1 지상값은 셸에 체크인된 KASI 검증캐시(1990 12중절)라 항상 돈다.
-      # tier-2(1930~2050 픽스처)는 KASI get24DivisionsInfo 가 403 이라 아직 미채집이고,
-      # 그 상태를 kasi-24divisions.pending.json 마커로 **선언**하게 해서 조용한 skip 을 막는다
-      # (마커도 픽스처도 없으면 실패한다).
+      # 두 층이다. tier-1 지상값은 셸에 체크인된 KASI 검증캐시(1990 12중절)로 전수 스윕(518,427분).
+      # tier-2 는 2026-08-28 에 채집됐다 — data.go.kr 특일 정보 활용신청이 승인돼 403 이 풀렸고,
+      # KASI 가 실제로 답하는 **2000~2028** 29년을 픽스처로 받았다(1930~2050 은 승인 전의 가정이었다).
+      # 그중 2011 은 節(입동)에 KASI 데이터 오류가 있어 지상값에서 뺀다 — 우리 코어와
+      # lunar-javascript 가 1분 이내로 일치하고 KASI 만 5h51m 벗어난다(KASI_KNOWN_ERRATA).
+      # 픽스처도 마커도 없으면 실패한다(조용한 skip 방지).
       - name: Verify the solar-term frame matches KASI
         run: npm run verify:solar-term-frame-kasi
 

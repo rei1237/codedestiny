@@ -77,9 +77,20 @@ const FIXTURE = "__tests__/fixtures/korean-calendar/kasi-24divisions.json";
 const MARKER = "__tests__/fixtures/korean-calendar/kasi-24divisions.pending.json";
 const LUNAR_FIXTURE = "__tests__/fixtures/korean-calendar/kasi-samples.json";
 
-/** KASI SpcdeInfoService 커버리지. 코어 표는 1900~2100 이라 그 밖은 이 가드로 검증할 수 없다. */
-const KASI_MIN_YEAR = 1930;
-const KASI_MAX_YEAR = 2050;
+/**
+ * KASI SpcdeInfoService `get24DivisionsInfo` 의 **실측 커버리지**. 코어 표는 1900~2100 이라
+ * 그 밖은 이 가드로 검증할 수 없다.
+ *
+ * 🔴 실측 2026-08-28 (활용신청 승인 직후, `solYear` 만 넣고 1995~2035 전수 조회):
+ *   1995~1999 → totalCount 0 · **2000~2028 → 전부 24** · 2029~2035 → totalCount 0
+ *   음양력(LrsrCldInfoService)은 1391~2050 을 덮는다. **절기만 좁다.**
+ *
+ * 🔴 예전 값은 1930~2050 이었다. 그건 신청 승인 전 403 상태에서 적은 **가정**이지 실측이 아니었고,
+ * 그 범위로 채집하면 1930~1999 가 200 + totalCount 0 으로 와서 "행이 24개가 아니다"로 죽는다.
+ * 범위를 넓히기 전에 위 명령을 다시 돌려 경계를 재라 — KASI 가 해마다 뒤를 늘린다.
+ */
+const KASI_MIN_YEAR = 2000;
+const KASI_MAX_YEAR = 2028;
 
 /**
  * 🔴 지상값이 "코어에 맞추려고" 손질되는 것을 막는 동결 지문.
@@ -96,10 +107,46 @@ const GROUND_TRUTH_LOCK = Object.freeze({
  *   청명 +55 · 입하 +36 · 입동 +42 는 절사로 설명되고
  *   입춘 −2 · 입추 −35 · 백로 −31 은 절사로는 설명되지 않는다(KASI 가 더 뒤다).
  * 즉 KASI 표기 규칙은 **일관되지 않고**, 성립하는 사실은 "같은 순간을 1분 미만 차로 가리킨다"
- * 하나뿐이다. 그래서 임계는 부호 없는 60초다. 🔴 이 값을 조용히 넓히지 말 것 —
- * 넓히려면 그 근거(어느 절기가 왜)를 커밋 메시지에 남긴다.
+ * 하나뿐이다. 🔴 이 값을 조용히 넓히지 말 것 — 넓히려면 그 근거(어느 절기가 왜)를 여기에 적는다.
+ *
+ * 🔴 2026-08-28 60 → 90 으로 넓혔다. 근거는 표본이 12건에서 **348건(節 12 × 29년)** 으로
+ * 늘어난 것이다(활용신청 승인 후 tier-2 채집 · 이 검사는 節만 본다).
+ * 실측 Δ초(정확 − KASI표기) 범위 **−52 ~ +72**, 60 을 넘는 節은 4건이다:
+ *   2003 입춘 +72 · 2010 한로 +70 · 2015 입동 +68 · 2009 경칩 +61
+ * (24절기 전체 696건으로 넓히면 中氣 둘이 더 걸린다 — 2003 우수 +69 · 2018 소설 −68.)
+ * 분 반올림이 ±30초를 주므로 남는 천체력 차는 최대 ~42초다(ΔT 모델 차이로 설명되는 크기).
+ * 90 이면 "1분 이상 어긋나면 잡는다"는 이 검사의 목적은 그대로 서고, 실측 상단(72)에는 여유가 있다.
+ * 🔴 다음에 또 넘치면 넓히기 전에 **어느 절기가 얼마나** 인지부터 적을 것 — 조용히 올리면
+ * 이 검사는 아무것도 안 가른다.
  */
-const TERM_INSTANT_TOLERANCE_SEC = 60;
+const TERM_INSTANT_TOLERANCE_SEC = 90;
+
+/**
+ * 🔴 **KASI 24절기 데이터 자체의 오류.** 지상값이 틀린 자리라 대조에서 뺀다.
+ *
+ * 어떻게 판정했나(2026-08-28): 우리 코어(astronomy-engine)와 **lunar-javascript**(독립 천체력,
+ * 중국 표준시 기준이라 +1시간)가 서로 1분 이내로 일치하고 **KASI 만 벗어난다.** 두 독립 구현이
+ * 같은 값을 내는데 KASI 한 곳이 다르면 KASI 가 틀린 것이다.
+ *
+ *   | 셀            | lunar-javascript(KST) | 우리 코어   | KASI       | 성격                    |
+ *   |---------------|-----------------------|-------------|------------|-------------------------|
+ *   | 2011 대한     | 01-20 19:18           | 01-20 19:19 | 01-21 19:18| locdate 가 하루 뒤(中氣)|
+ *   | 2011 입동     | 11-08 03:34           | 11-08 03:35 | 11-08 09:26| 시각 5h51m 오류(🔴 節)  |
+ *   | 2015 하지     | 06-22 01:37           | 06-22 01:38 | 06-22 01:58| 시각 20분 오류(中氣)    |
+ *
+ * 中氣 둘은 월건 경계가 아니라 값에 영향이 없지만, **2011 입동은 節이라 월건을 가른다** —
+ * 그 해 11-08 03:35~09:26 에 태어난 사람의 월주가 어느 표를 믿느냐로 갈린다. 우리는 코어를 믿는다.
+ *
+ * 🔴 이 목록은 **양방향 fail-closed** 다(검사 ①-f):
+ *   ① 여기 적힌 셀이 픽스처에서 그대로 재현되지 않으면 실패 — KASI 가 고쳤다는 뜻이니 지워야 한다.
+ *   ② 여기 없는 셀이 코어와 1분 넘게 벌어지면 실패 — 새 오류를 조용히 삼키지 않는다.
+ * 손으로 늘리기 전에 반드시 독립 천체력으로 교차검증하고 그 값을 여기 적을 것.
+ */
+const KASI_KNOWN_ERRATA = Object.freeze({
+  "2011:대한": Object.freeze({ cell: "01211918", core: "01-20 19:19", lunarJs: "01-20 19:18" }),
+  "2011:입동": Object.freeze({ cell: "11080926", core: "11-08 03:35", lunarJs: "11-08 03:34" }),
+  "2015:하지": Object.freeze({ cell: "06220158", core: "06-22 01:38", lunarJs: "06-22 01:37" }),
+});
 
 const EB = "子丑寅卯辰巳午未申酉戌亥";
 
@@ -346,6 +393,14 @@ function buildProviders() {
       const year = Number(yearText);
       const cells = String(entry.cells || "").split(",").map((c) => c.trim()).filter(Boolean);
       const nodes = [];
+      // 🔴 그 해 **節**에 KASI 오류가 있으면 그 해를 통째로 뺀다. 節 하나만 빼면 그 節부터
+      // 다음 節까지 한 달이 통째로 "KASI 는 앞 달, 코어는 뒤 달"로 잡혀 밴드가 부풀고(실측:
+      // 2011 입동 하나를 빼자 층화 밴드가 69 → 158 분), 그 부풀림이 슬랙에 묻혀 안 보인다.
+      // 오염된 표는 지상값이 아니다. 中氣 오류(2011 대한 · 2015 하지)는 프레임 경계가 아니라
+      // 아래 `jieqiKo.has` 에서 이미 빠지므로 그 해는 남긴다. 검사 ①-f 가 목록을 양방향으로 지킨다.
+      const hasNodeErratum = Object.keys(KASI_KNOWN_ERRATA)
+        .some((key) => key.startsWith(`${year}:`) && jieqiKo.has(key.split(":")[1]));
+      if (hasNodeErratum) continue;
       cells.forEach((cell, index) => {
         const name = (fixture.termNames || TERM_NAME_KO)[index];
         if (!jieqiKo.has(name)) return; // 中氣는 프레임 경계가 아니다
@@ -364,6 +419,74 @@ function buildProviders() {
 
 const providers = buildProviders();
 ok("① provider 를 만들었다", providers.length > 0, `${providers.length}개`);
+
+// ── ①-f KASI 오류 셀 목록을 양방향으로 지킨다 ──────────────────────────────
+//
+// 🔴 24절기 **전체**(節 12 + 中氣 12)를 코어 표와 분 단위로 훑는다. 위쪽 검사 ②/②-b 는 節만
+// 보므로 中氣 쪽 오류(2011 대한 · 2015 하지)를 못 본다 — 값에 영향은 없어도 지상값이 썩는 것을
+// 알아야 다음 사람이 그 표를 근거로 쓰지 않는다.
+if (fixture && fixture.years) {
+  const rows = [];
+  const reproduced = new Set();
+  const names = fixture.termNames || TERM_NAME_KO;
+
+  for (const [yearText, entry] of Object.entries(fixture.years)) {
+    const year = Number(yearText);
+    const cells = String(entry.cells || "").split(",").map((c) => c.trim()).filter(Boolean);
+    const table = solarTerms(year);
+    cells.forEach((cell, index) => {
+      const name = names[index];
+      const t = table[index];
+      if (!t || !/^\d{8}$/.test(cell)) return;
+      const kasiMs = Date.UTC(year, Number(cell.slice(0, 2)) - 1, Number(cell.slice(2, 4)),
+        Number(cell.slice(4, 6)), Number(cell.slice(6, 8)));
+      const coreMs = Date.UTC(t.year, t.month - 1, t.day, t.hour, t.minute);
+      const deltaMin = Math.round((kasiMs - coreMs) / 60000);
+      const key = `${year}:${name}`;
+      const known = KASI_KNOWN_ERRATA[key];
+
+      if (known) {
+        // ① 적힌 오류가 그대로 재현되는가. 아니면 KASI 가 고친 것이니 목록을 지워야 한다.
+        if (known.cell !== cell) {
+          rows.push(`${key} 가 KASI_KNOWN_ERRATA 와 다르다 — 기대 ${known.cell} · 실측 ${cell}. `
+            + "KASI 가 고쳤다면 그 항목을 지우고 이 가드를 다시 돌려라.");
+        } else {
+          reproduced.add(key);
+        }
+        return;
+      }
+
+      // ② 목록에 없는데 1분을 넘게 벌어지면 **새 오류**다. 조용히 삼키지 않는다.
+      if (Math.abs(deltaMin) > 1) {
+        rows.push(`${key} 가 코어와 Δ${deltaMin}분 (KASI ${cell} · 코어 `
+          + `${pad2(t.month)}${pad2(t.day)}${pad2(t.hour)}${pad2(t.minute)}). `
+          + "독립 천체력으로 교차검증한 뒤 KASI_KNOWN_ERRATA 에 근거와 함께 등록하라.");
+      }
+    });
+  }
+
+  // ③ 목록에만 있고 픽스처에 없는 항목(연도가 커버리지에서 빠졌는데 선언이 남은 경우).
+  for (const key of Object.keys(KASI_KNOWN_ERRATA)) {
+    if (reproduced.has(key)) continue;
+    if (rows.some((r) => r.startsWith(`${key} `))) continue;
+    rows.push(`${key} 가 KASI_KNOWN_ERRATA 에만 있고 픽스처에서 재현되지 않았다(낡은 선언)`);
+  }
+
+  ok("①-f KASI 오류 셀 목록이 양방향으로 맞는다", rows.length === 0, rows.slice(0, 8).join("\n      "));
+
+  // 🔴 節 오류로 통째로 빠진 해를 **숫자로** 드러낸다. 조용히 줄어들면 커버리지가 새는 줄 모른다.
+  const droppedYears = [...new Set(Object.keys(KASI_KNOWN_ERRATA)
+    .filter((key) => jieqiKo.has(key.split(":")[1]))
+    .map((key) => key.split(":")[0]))]
+    .filter((y) => Object.prototype.hasOwnProperty.call(fixture.years, y));
+  const expectedProviders = runtimeGround.size + Object.keys(fixture.years).length - droppedYears.length;
+  ok(
+    "①-f provider 수가 픽스처 − 節오류 해와 정확히 같다",
+    providers.length === expectedProviders,
+    `provider ${providers.length} / 기대 ${expectedProviders} `
+    + `(검증캐시 ${runtimeGround.size} + 픽스처 ${Object.keys(fixture.years).length} − 제외 ${droppedYears.length}[${droppedYears.join(",") || "없음"}])`,
+  );
+}
 
 // ── ② 천체력 — KASI 절입 순간이 우리와 같은가 ──────────────────────────────
 {
@@ -465,21 +588,32 @@ function sweepMinutes(provider, exhaustive) {
 }
 
 {
-  const exhaustive = providers.length <= 2;
+  // 🔴 스윕 방식은 **provider 마다** 정한다. 예전에는 `providers.length <= 2` 라는 전역 판정이라,
+  // tier-2 픽스처가 채집되는 순간 tier-1(1990)의 전수 스윕 518,427분이 통째로 층화로 떨어졌다 —
+  // 커버리지가 넓어지면서 정작 가장 촘촘하던 축이 조용히 얇아지는 모양이다.
+  // 지상값이 검증캐시(1990)인 provider 는 한 해뿐이므로 전수, KASI 픽스처 29년은 층화한다.
+  const isExhaustive = (provider) => provider.rows !== null;
+
   let totalCompared = 0;
-  let totalBand = 0;
-  let totalSechaBand = 0;
   let totalUnverifiable = 0;
   const bandRows = [];
   const sechaRows = [];
-  let expectedBandMinutes = 0;
+  // 전수/층화는 단언이 다르므로 합계를 섞지 않는다.
+  const tally = {
+    exhaustive: { band: 0, secha: 0, expectBand: 0, expectSecha: 0, providers: 0 },
+    stratified: { band: 0, secha: 0, expectBand: 0, expectSecha: 0, providers: 0 },
+  };
 
   for (const provider of providers) {
+    const exhaustive = isExhaustive(provider);
+    const bucket = exhaustive ? tally.exhaustive : tally.stratified;
+    bucket.providers += 1;
+
     const swept = sweepMinutes(provider, exhaustive);
     totalCompared += swept.compared;
     totalUnverifiable += swept.unverifiable;
-    totalBand += swept.band.length;
-    totalSechaBand += swept.sechaBand.length;
+    bucket.band += swept.band.length;
+    bucket.secha += swept.sechaBand.length;
     for (const b of swept.band.slice(0, 8)) {
       bandRows.push(`${b.at.year}-${pad2(b.at.month)}-${pad2(b.at.day)} ${pad2(b.at.hour)}:${pad2(b.at.minute)} KASI ${b.kasi} vs 코어 ${b.core}`);
     }
@@ -488,15 +622,16 @@ function sweepMinutes(provider, exhaustive) {
     }
 
     // 🔴 밴드의 기대 크기는 표기 차의 합이다 — 표기가 1분 다른 節마다 정확히 1분씩 어긋난다.
-    // 전수 스윕일 때만 성립한다(층화는 표본이 그 분을 안 밟을 수 있다).
-    if (exhaustive) {
-      const tableByName = new Map(solarTerms(provider.year).map((t) => [TERM_NAME_KO[t.index], t]));
-      for (const node of provider.nodes) {
-        const table = tableByName.get(node.name);
-        if (!table) continue;
-        const tableMs = Date.UTC(table.year, table.month - 1, table.day, table.hour, table.minute);
-        expectedBandMinutes += Math.abs(Math.round((tableMs - node.ms) / 60000));
-      }
+    // 전수 스윕이면 등호로, 층화면 상한으로 쓴다(층화는 그 분을 안 밟을 수 있다).
+    const tableByName = new Map(solarTerms(provider.year).map((t) => [TERM_NAME_KO[t.index], t]));
+    for (const node of provider.nodes) {
+      const table = tableByName.get(node.name);
+      if (!table) continue;
+      const tableMs = Date.UTC(table.year, table.month - 1, table.day, table.hour, table.minute);
+      const gap = Math.abs(Math.round((tableMs - node.ms) / 60000));
+      bucket.expectBand += gap;
+      // 세차는 입춘 하나가 정한다 — 그 표기 차가 곧 세차 밴드의 기대 크기다.
+      if (node.name === "입춘") bucket.expectSecha += gap;
     }
   }
 
@@ -506,24 +641,38 @@ function sweepMinutes(provider, exhaustive) {
     `대조 ${totalCompared}분 · 지상값 앞 구간(대조 불가) ${totalUnverifiable}분`,
   );
   // 🔴 전수 스윕과 층화 스윕은 단언이 다르다. 한 줄로 뭉치면 의미가 흐려진다.
-  if (exhaustive) {
+  if (tally.exhaustive.providers) {
     ok(
       "③ 🔴 월건 밴드 크기가 표기 차의 합과 정확히 같다(그 밖의 불일치 0)",
-      totalBand === expectedBandMinutes,
-      `밴드 ${totalBand}분 · 표기 차 합 ${expectedBandMinutes}분\n      ${bandRows.join("\n      ")}`,
-    );
-  } else {
-    ok(
-      "③ 🔴 층화 표본에서 월건 불일치가 표기 차 안에 있다",
-      totalBand <= expectedBandMinutes + providers.length * 12,
-      `밴드 ${totalBand}분\n      ${bandRows.slice(0, 8).join("\n      ")}`,
+      tally.exhaustive.band === tally.exhaustive.expectBand,
+      `밴드 ${tally.exhaustive.band}분 · 표기 차 합 ${tally.exhaustive.expectBand}분\n      ${bandRows.join("\n      ")}`,
     );
   }
-  ok(
-    "④ 🔴 KASI 입춘으로 정한 세차가 코어와 전건 같다",
-    totalSechaBand === 0,
-    sechaRows.join("\n      "),
-  );
+  if (tally.stratified.providers) {
+    ok(
+      "③ 🔴 층화 표본에서 월건 불일치가 표기 차 안에 있다",
+      tally.stratified.band <= tally.stratified.expectBand + tally.stratified.providers * 12,
+      `밴드 ${tally.stratified.band}분 · 표기 차 합 ${tally.stratified.expectBand}분\n      ${bandRows.slice(0, 8).join("\n      ")}`,
+    );
+  }
+  // 🔴 세차도 월건과 같은 계약이다. 예전에는 `=== 0` 이었는데, 그건 지상값이 1990 한 해뿐이라
+  // 그 해 입춘 표기 차가 우연히 0 분이었기 때문에 성립하던 것이다. 29년을 채집하니 입춘 표기가
+  // 1분 다른 해(2003·2018·2020·2023)에서 정확히 1분씩 밴드가 생겼다 — 회귀가 아니라
+  // "분 반올림 표기의 필연"이고, 월건 쪽은 처음부터 그렇게 세고 있었다.
+  if (tally.exhaustive.providers) {
+    ok(
+      "④ 🔴 세차 밴드 크기가 입춘 표기 차와 정확히 같다",
+      tally.exhaustive.secha === tally.exhaustive.expectSecha,
+      `밴드 ${tally.exhaustive.secha}분 · 입춘 표기 차 ${tally.exhaustive.expectSecha}분\n      ${sechaRows.join("\n      ")}`,
+    );
+  }
+  if (tally.stratified.providers) {
+    ok(
+      "④ 🔴 층화 표본에서 세차 불일치가 입춘 표기 차 안에 있다",
+      tally.stratified.secha <= tally.stratified.expectSecha,
+      `밴드 ${tally.stratified.secha}분 · 입춘 표기 차 ${tally.stratified.expectSecha}분\n      ${sechaRows.join("\n      ")}`,
+    );
+  }
 
   // ⑤ 밴드가 실제로 답을 바꾼다 — 밴드인데 답이 같으면 밴드 계산이 죽은 것이다.
   ok(
@@ -532,7 +681,11 @@ function sweepMinutes(provider, exhaustive) {
     "",
   );
   if (REPORT) {
-    console.log(`      밴드 ${totalBand}분 · 세차 밴드 ${totalSechaBand}분 · 대조 ${totalCompared}분`);
+    console.log(
+      `      전수(${tally.exhaustive.providers}) 밴드 ${tally.exhaustive.band}/${tally.exhaustive.expectBand}분 · 세차 ${tally.exhaustive.secha}/${tally.exhaustive.expectSecha}분`
+      + ` | 층화(${tally.stratified.providers}) 밴드 ${tally.stratified.band}/${tally.stratified.expectBand}분 · 세차 ${tally.stratified.secha}/${tally.stratified.expectSecha}분`
+      + ` | 대조 ${totalCompared}분`,
+    );
     bandRows.forEach((r) => console.log(`      ${r}`));
   }
 }
@@ -669,7 +822,13 @@ if (shellTest && typeof shellTest.computeGanjiFromDate === "function") {
 // ── ⑧ 공회전 아님 ──────────────────────────────────────────────────────────
 {
   const nodeCount = providers.reduce((sum, p) => sum + p.nodes.length, 0);
-  ok("⑧ 節 지상값이 provider 당 12개다", nodeCount >= 12 * providers.length, `${nodeCount}개 / provider ${providers.length}`);
+  // 🔴 `>=` 가 아니라 **등호**다. 節이 하나라도 빠진 provider 가 섞이면 그 자리에서 잡힌다
+  // (節 오류가 있는 해는 buildProviders 가 통째로 빼므로 남은 provider 는 전부 12개여야 한다).
+  ok(
+    "⑧ 節 지상값이 provider 당 정확히 12개다",
+    nodeCount === 12 * providers.length,
+    `${nodeCount}개 / 기대 ${12 * providers.length}개 (provider ${providers.length})`,
+  );
 }
 
 // ── ⑨⑩ tier-2 ─────────────────────────────────────────────────────────────
@@ -725,7 +884,9 @@ async function callKasi(method, params) {
 }
 
 async function runProbe() {
-  const { status, payload } = await callKasi("get24DivisionsInfo", { solYear: "1997", numOfRows: "30" });
+  // 🔴 프로브 연도는 **커버리지 안**이어야 한다. 예전에는 1997 이었는데 그 해는 KASI 가
+  // 200 + totalCount 0 으로 답하는 구간이라, 승인이 나도 "아직 채집할 수 없다"로 보인다.
+  const { status, payload } = await callKasi("get24DivisionsInfo", { solYear: String(KASI_MAX_YEAR), numOfRows: "30" });
   console.log(`[--probe] ${ENDPOINT}`);
   console.log(`  status=${status} source=${payload.source} rows=${(payload.rows || []).length}`);
   console.log(`  warnings=${JSON.stringify(payload.warnings || [])}`);
@@ -776,7 +937,11 @@ async function runLive() {
     const parsed = rows.map((row) => {
       const name = String(row.dateName || row.termName || "").trim();
       const locdate = String(row.locdate || "").trim();
-      const kst = String(row.kst || row.time || "").replace(":", "").padStart(4, "0");
+      // 🔴 KASI 는 kst 를 **우측 공백으로 채워** 보낸다(실측 2026-08-28: `"1001      "` — 10자).
+      // trim 없이 padStart(4) 하면 그대로 10자라 `/^\d{4}$/` 가 떨어지고, 24행이 전부 null 이 되어
+      // "행이 24개가 아니다(0)" 로 죽는다. 이 줄은 403 때문에 실데이터를 한 번도 못 만나 본
+      // 코드였다 — worker/routes/kasi.js 의 normalizeSolarTermRows 는 처음부터 trim 한다.
+      const kst = String(row.kst || row.time || "").trim().replace(":", "").padStart(4, "0");
       if (!/^\d{8}$/.test(locdate) || !/^\d{4}$/.test(kst)) return null;
       return { name, cell: `${locdate.slice(4, 6)}${locdate.slice(6, 8)}${kst}`, ms: Date.UTC(Number(locdate.slice(0, 4)), Number(locdate.slice(4, 6)) - 1, Number(locdate.slice(6, 8)), Number(kst.slice(0, 2)), Number(kst.slice(2, 4))) };
     }).filter(Boolean);
