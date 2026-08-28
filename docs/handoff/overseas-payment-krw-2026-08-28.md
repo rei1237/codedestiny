@@ -152,23 +152,59 @@ displayPrice: `${pass.amountKRW.toLocaleString("ko-KR")}원`,
 
 지금은 **의도적으로 보류**된 상태이며, 그 판단은 타당하다. 근거 없이 뒤집지 말 것.
 
-### ④ i18n 사전에 구워진 가격 문자열 ~500건
-`public/i18n/*.json` 12벌 + `i18n/authored/passShopPackages-01.json` 에 금액이 문자열로
-박혀 있다(en 88건 · hi 78 · ms 76 · nl 63 · ko 55 …). 가격이 바뀌면 12벌을 손으로 고쳐야 한다.
-예: `home.tiles.price10000 = "One time KRW 10,000"`, `payment.passShop.packages.*.desc`
+### ④ i18n 사전에 구워진 가격 문자열 — **완료** (2026-08-28, 드리프트 가드로 해결)
 
-해결 방향은 문구에서 금액을 빼고 `{amount}` 보간으로 돌리는 것인데, 12로케일 전수 수정이라
-별도 PR 이어야 한다. 관련 메모: `new-shell-copy-costs-12-hand-written-locales`
+🔴 **이 항목의 두 차례 수치는 둘 다 틀렸다.** "~500건" 도 "약 1,875건 / 80 네임스페이스" 도
+느슨한 정규식의 오탐이었다 — `원\b` 가 `원국`·`지원` 같은 운세 본문을, 3자리 구분 숫자가
+연도·개수를 함께 셌다. **실측 정정: 113키 / 35 네임스페이스 / 12벌 합계 1,254 문자열.**
+그중 셸이 참조하는 것은 69키이고, 셸 마크업 텍스트가 금액을 담은 것은 **23키**다.
 
-🔴 **2026-08-28 재실측 — 이건 사전 저작 문제가 아니다.** ⑧과 묶으면 싸다고 적힌 판단은
-틀렸다(⑧의 저작 비용은 실제로 0이었다). 실측: 12벌 합계 약 1,875건이 **80개 네임스페이스**에
-흩어져 있고(en 183 · nl 191 · vi 184 · ms 182 · de 183 · hi 170 · es 171 · ja 139 · zh 137 ·
-fr 135 · ko 63), 상위 대부분이 `home.tiles.westernAstrologyDesc` · `home.passMini.standardPrice`
-같은 **정적 `data-cd-trans` 마크업**이다 — 여기엔 런타임 금액을 넣을 통로가 없다. 즉 비용은
-사전 12벌이 아니라 **렌더 지점 ~80곳의 구조 변경**이고, 그게 이 항목의 진짜 크기다.
-또 값이 레지스트리와 어긋나지도 않는다(상담 7종 실측 2026-08-28: 전부 30,000/20,000 일치) —
-**살아있는 결함이 아니라 유지보수 부채다.** 재현: `git grep` 대신
-`public/i18n/*.json` 을 순회하며 `/(\d{1,3}([.,]\d{3})+)|KRW|원\b|won/i` 로 세면 된다.
+🔴 **그리고 원안(`{amount}` 보간 전환)의 전제가 성립하지 않았다 — 런타임 금액 주입 통로가
+아예 없다.** 유일한 후보 `_applyRegistryPricingToTiles`(`index.html`)는
+`cd:feature-pricing-loaded` 를 듣는데 그 이벤트는 **리포 어디서도 발화되지 않는다**
+(검색 범위: `git grep feature-pricing-loaded` 전수 + 셸·`js/` 의 `dispatchEvent(new *Event(`
+리터럴 전수 — 전부 문자열 리터럴이고 그 이름은 없다). 보간으로 가려면 통로부터 새로 만들어야
+하고, 정적 금액을 런타임 조회로 바꾸면 홈 첫 페인트에 금액이 비어 CLS·체감성능 회귀가 따라온다.
+
+**그래서 레버를 바꿨다.** ④의 실제 위험은 "가격이 바뀌면 12벌이 조용히 어긋나는 것"이므로
+보간이 아니라 fail-closed 드리프트 가드로 막는다 — `scripts/verify-i18n-price-drift.mjs`
+(`npm run verify:i18n-price-drift`, `run-paid-gate-suite` 배선 완료).
+
+| 검사 | 내용 |
+|---|---|
+| ① | 키별로 로케일 간 금액 집합이 같다 (ko 의 `3만원`·`5천원` 표기는 숫자로 정규화) |
+| ② | 키를 가진 로케일에서 금액만 사라지지 않았다 (ko 에 **없는** 키는 드리프트가 아니다 — cdTranslate 가 ko 에서 사전을 건너뛴다) |
+| ③ | 셸 마크업(`data-cd-trans`) 금액 == 사전 금액 |
+| ④ | `PASS_MONTHLY_WON` 네 값이 사전에 실제로 나타난다 |
+| 바닥 | 합집합 100키 **+ 로케일별 85키** (합집합만 두면 한 벌을 통째로 비워도 나머지가 수를 채워 통과한다) |
+
+③ 이 사슬의 핵심이다 — 셸 리터럴은 `__tests__/worker/payments.subscription-purchase.test.js`
+가 이미 `lib/payment/pass-pricing.js` 와 대조하므로, 사전이 그 사슬로 코드 정본에 묶인다.
+
+**가드가 즉시 찾아낸 실제 결함 19건 (전부 수정)**
+- 🔴 **vi 14건이 원화를 베트남 동으로 적고 있었다** — `30.000đ` 13건 + `20.000 VNĐ` 1건.
+  30,000원을 약 1,600원이라 말한 셈이다. 그중 **3건은 화면에 살아 있다**
+  (`featurePreview.paywall.ziweiConsultDesc` · `shell.lifebookTileInner...n30000` ·
+  `shell.lovebibleTileCoinGroup...n30000`). 나머지 11건은 구세대 고아 키다.
+- 타일 alt 3건(`home.tiles.{westernAstrology,ziweiBasic,vedicAstrology}Alt`) — ko 정본이
+  개정되며 가격 문구가 빠졌는데 11벌이 옛 번역을 들고 있었다. 가격은 바로 옆 `...Desc` 키가
+  12벌 전부 말하므로 화면에서 잃는 정보는 없다.
+- `premiumPdf.lifeBook.badgePrice`(hi) — 통화 기호를 잃고 `पीढ़ी`(세대)로 오역돼 있었다.
+
+hi 의 `वॉन`(won 음차)은 **정당한 원 표기**라 단위 목록에 넣었다. 오표기가 아니다.
+
+음성 테스트 6건으로 가드가 무는 것을 확인했다(로케일 단독 변경 · 금액 삭제 · 다른 통화 ·
+셸만 변경 · 정본만 변경 · 한 벌 비우기).
+
+**남은 것 — `premium.priceDisplay` (손대지 않음)**
+사전 11벌에 서로 다른 **외화** 가격이 박혀 있다(en `From $39` · de `Ab 2,90€` ·
+ja `¥3,900〜` · zh `¥28起` · hi `₹200 से शुरू` · ms `Dari RM10`). 금액도 통화도 제각각이라
+번역 모델이 만들어 낸 값으로 보인다. **소비자 0건**(`git grep priceDisplay` 전수 — 걸리는 것은
+`src/features/master-love-codex/` 의 CSS 모듈 클래스명뿐이고, `premium.` 조합 키 사용처도 0건)
+이라 화면에는 안 나온다. ko 에는 이 키가 없다. 지우는 것이 맞아 보이지만 **키 삭제는 요청 범위
+밖**이라 보고만 남긴다. 이 키는 가드의 KRW 검사에 걸리지 않는다 — 원화 금액이 아예 없어서
+"금액 보유 키" 집합에 안 들어오기 때문이다.
+
 
 ### ⑤ `app/nakshatra/_lib/copy.ts` 의 환산 66건
 `:5-7` 주석에 환율표가 있고 계산 결과가 66개 문자열에 손으로 박혀 있다. 이제 정본
@@ -223,18 +259,29 @@ React 쪽 `app/components/FeatureMarketingDetailModal.tsx:535-536` 이 **이미 
 `__tests__/ui/mobile-pricing-source.static.test.js` 를 확장했다(원칙 6). 사전 파일 목록을
 디스크에서 발견해 12개 미만이면 실패시킨다(fail-closed). 음성 테스트 확인 완료.
 
-**남은 것 — 같은 표면의 미해결 3건**
-1. 🔴 `_applyLifeBookAiPrice`(`index.html:32787`)는 **호출자가 0**이다(3면 grep: 정의 +
-   `sync:public` 미러뿐). 위 `:32795` 배선은 그래서 현재 화면에 안 나온다. 삭제 판단 필요.
-2. 🔴 `index.html:1475-1476` CSS 가 베다점 타일 배지를 한국어로 고정한다 —
-   `font-size:0` 으로 실제 텍스트를 죽이고 `::after{content:"전문가 상담 · 30,000원"}` 로 그린다.
-   CSS 라 번역 불가이고 런타임 가격 갱신도 안 먹는다. 🔴 걷어내면
-   `_applyRegistryPricingToTiles` 가 배지를 **금액만**(`30,000원`)으로 바꿔 한국어 표기가
-   달라지므로 단순 삭제가 아니다. 도입 커밋은 `09c3f7740`(마크업 대신 CSS 로 라벨을 갈아끼운
-   것인데, 이후 마크업이 같은 문구 + 번역 키로 갱신돼 지금은 중복이다).
-3. `상세 확인`(`:33214`) · `_setCtaMeta` 한국어 3건(`:33636` `:33640`) — 같은 모달의 미번역
-   문구지만 **대응 사전 키가 없어** 신규 저작이 필요하다(관련 메모
-   `new-shell-copy-costs-12-hand-written-locales` · `locale-authoring-scope-is-four-locales`).
+**잔여 3건 — 완료** (2026-08-28)
+
+1. `_applyLifeBookAiPrice` **삭제**. 호출자 0(3면 grep: 정의 + `sync:public` 미러 6벌뿐,
+   `__tests__/`·`scripts/verify-*` 0건).
+2. `index.html:1475-1476` 의 배지 라벨 CSS **삭제**. 🔴 **인수인계가 적은 장애물은 사실이
+   아니었다** — `_applyRegistryPricingToTiles` 는 `cd:feature-pricing-loaded` 가 발화되지
+   않아 도달 불가라 배지를 덮어쓰지 않는다(④ 참조). 그래서 CSS 를 걷어내면 정적 마크업의
+   `shell.tarotTile.tarotTileImgWrap.n300005` 번역이 그대로 살아난다. 기본 배지 폰트도
+   `.7rem` 로 `::after` 와 같아 **한국어 표기는 종전과 동일**하다(구성상 동일 — 픽셀 실측은
+   하지 않았다).
+3. `상세 확인` · `_setCtaMeta` 한국어 3건을 `_pvwTr` 키로 배선. 신규 저작은
+   `preview.priceDetailCheck` · `featurePreview.cta.pricingCheckingMeta` ·
+   `featurePreview.cta.pricingMissing` 셋뿐이다.
+
+🔴 **같은 표면에서 인수인계에 없던 결함을 하나 더 찾았다.** `featurePreview.cta.pricingChecking`
+· `pricingFailed` · `pricingUnavailable` 은 셸이 **이미 `_pvwTr` 로 부르고 있었는데 사전 12벌
+어디에도 없었다.** 누락 키는 폴백으로 물러나지 않고 `missingText` 를 그리므로
+(`js/cd-lang-native.js` `resolveValue`) 비한국어 화면 11개에 "번역 준비 중" 이 뜨고 있었다.
+함께 저작했다.
+
+가드(`__tests__/ui/mobile-pricing-source.static.test.js`)는 이제 배선 키 목록을 손으로 적지
+않고 **셸에서 `_pvwTr` 리터럴 키를 전수 발견해** 비-ko 사전 11벌과 대조한다(ko 는 cdTranslate
+가 사전을 건너뛰므로 제외). 음성 테스트 4건 확인 완료.
 
 ## 3. 손대면 안 되는 것 (이번에 확인 완료)
 
@@ -293,6 +340,7 @@ React 쪽 `app/components/FeatureMarketingDetailModal.tsx:535-536` 이 **이미 
 ```
 npm run lint && npm run typecheck
 npm run verify:overseas-payment-notice     # 신규
+npm run verify:i18n-price-drift            # 신규 — 사전 12벌의 금액 드리프트(④)
 npm run verify:paid-service-offer          # 신규
 npm run verify:payment-choice-parity       # 3렌더러 + 캐시 핀
 npm run verify:payment-copy-dictionary     # 폴백==ko.json · 12로케일
