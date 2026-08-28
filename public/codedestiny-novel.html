@@ -170,14 +170,18 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 #player.on{opacity:1}
 /* L0 background */
 .bgLayer{position:absolute;inset:0;z-index:0;overflow:hidden;background:#05060c}
+/* 카메라 연출(focus)은 .bgImg 의 animation 을 갈아끼우지 않고 이 래퍼의 transform 으로만 준다.
+   animation-name 이 교체되면 transform 이 새 키프레임 시작값으로 즉시 스냅해 배경이 튄다 —
+   대본 전체에서 focus↔비focus 경계가 848회라 정주행 중 계속 흔들렸다. tint/ambient 는 밖에 남긴다
+   (같이 확대하면 대사창 뒤 그라데이션이 화면 밖으로 밀리고 달빛 핫스팟이 움직인다). */
+.bgStage{position:absolute;inset:0;transform:scale(1);transition:transform 2.6s var(--ease);will-change:transform}
+.bgLayer[data-camera="focus"] .bgStage{transform:scale(1.05)}
 .bgImg{position:absolute;inset:-4%;width:108%;height:108%;object-fit:cover;opacity:0;transition:opacity 1s var(--ease),filter 1s var(--ease);
   will-change:transform,opacity;animation:kenburns 18s ease-in-out infinite alternate}
 .bgImg.show{opacity:1}
 .bgImg.dark{filter:brightness(.5) saturate(.7)}
 .bgImg.desat{filter:brightness(.55) saturate(.3)}
 @keyframes kenburns{from{transform:scale(1.02) translate(0,0)}to{transform:scale(1.12) translate(-2%,-1.5%)}}
-.bgLayer[data-camera="focus"] .bgImg.show{animation:kenburnsFocus 8s var(--ease) forwards}
-@keyframes kenburnsFocus{from{transform:scale(1.03)}to{transform:scale(1.14) translate(-1.5%,-1%)}}
 .bgTint{position:absolute;inset:0;z-index:1;pointer-events:none;
   background:linear-gradient(180deg,rgba(5,6,12,.28),rgba(5,6,12,.05) 30%,rgba(5,6,12,.32) 72%,rgba(5,6,12,.72) 100%)}
 .ambientLayer{position:absolute;inset:0;z-index:1;pointer-events:none;opacity:0;transition:opacity .8s var(--ease);mix-blend-mode:screen}
@@ -493,8 +497,10 @@ button{font-family:inherit;color:inherit;background:none;border:none;cursor:poin
 @media (prefers-reduced-motion:reduce){
   *{animation-duration:.001s!important;animation-iteration-count:1!important;transition-duration:.12s!important}
   .bgImg{animation:none}
+  .bgStage{transform:none!important;transition:none!important}
 }
 body.reduce-motion .bgImg{animation:none;transform:scale(1.02)!important}
+body.reduce-motion .bgStage{transform:none;transition:none}
 body.reduce-motion .ambientLayer{animation:none!important}
 </style>
 </head>
@@ -543,7 +549,7 @@ body.reduce-motion .ambientLayer{animation:none!important}
 <!-- PLAYER -->
 <div id="player" class="hidden">
   <div class="bgLayer" id="bgLayer">
-    <img class="bgImg" id="bgA" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /><img class="bgImg" id="bgB" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" />
+    <div class="bgStage" id="bgStage"><img class="bgImg" id="bgA" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /><img class="bgImg" id="bgB" alt="" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" /></div>
     <div class="bgTint"></div>
     <div class="ambientLayer" id="ambientLayer" aria-hidden="true"></div>
   </div>
@@ -833,6 +839,10 @@ var S={screen:"enter",ep:0,bi:0,auto:false,skip:false,bgmOn:true,bgmKey:null,for
        typing:false,reduce:false,speed:30,save:null,bgSlot:"A",curBg:null,cast:{},active:null,slotWho:{l:null,c:null,r:null},started:false};
 var reduceMQ=typeof window.matchMedia==="function"?window.matchMedia("(prefers-reduced-motion: reduce)"):{matches:false};
 S.reduce=reduceMQ.matches;
+/* body.reduce-motion 을 붙이는 곳이 한 군데도 없어 그 CSS 두 줄이 죽어 있었다 —
+   설정에서 "모션 줄이기"를 켜도 배경 연출이 그대로 돌았다. */
+function applyReduceMotion(){document.body.classList.toggle("reduce-motion",!!S.reduce);}
+applyReduceMotion();
 
 /* 책갈피(이어읽기) — localStorage 영속(불가 시 메모리 폴백) */
 var BOOKMARK_KEY="cd_novel_bookmark";
@@ -858,7 +868,9 @@ audio.addEventListener("error",function(){
   if(fb){if(window.console&&console.debug)console.debug("BGM fallback:",S.bgmKey,"→",fb);playTrack(fb);}
 });
 function playTrack(key,vol){
-  if(!key)return; var url=TRK[key]||key;
+  if(!key)return;
+  if(_hydrating){_hBgm=key;return;} /* 리플레이: 지나온 트랙을 연쇄 페이드하지 않고 최종 1곡만 */
+  var url=TRK[key]||key;
   if(S.bgmKey===key&&!audio.paused)return;
   S.bgmKey=key;
   var target=(vol==null?0.55:vol);
@@ -1114,7 +1126,9 @@ function enterEpisode(ei,showCard){
   var eps=EPISODES[ei];if(!eps)return;
   S.ep=ei;
   warmNextEpisode(ei);
-  hardClearSlots();S.curBg=null;setSceneDirection(null); // form은 화 사이 유지(강 낙하 후 꽃돼지)
+  hardClearSlots();setSceneDirection(null); // form은 화 사이 유지(강 낙하 후 꽃돼지)
+  /* S.curBg 를 밀지 않는다 — setBg 가 dataset.bgKey 로 중복을 막으므로, 앞뒤 배경이 같은 화 경계
+     16곳에서 같은 그림으로 되돌아오는 1초 크로스페이드가 더는 돌지 않는다. */
   document.getElementById("epTag").textContent=eps.tag;
   // chapter card
   if(showCard!==false){
@@ -1154,6 +1168,16 @@ function runBeat(){
   if(b.skill)runSkill(b.skill);
   // dialogue
   showDialogue(b);
+  preloadNextBg();
+}
+/* 다음에 나올 배경 1장만 미리 받아 둔다. 그 화의 배경을 전부 받는 안은 쓰지 않는다 —
+   고유 배경이 가장 많은 화(EP.21)가 10장이라 진입 시 수 MB 버스트가 난다. */
+function preloadNextBg(){
+  try{var b=curBeats();
+    for(var i=S.bi+1;i<b.length;i++){if(b[i].bg){
+      if(b[i].bg!==S.curBg){var im=new Image();im.src=BG[b[i].bg]||b[i].bg;}
+      return;}}
+  }catch(e){}
 }
 async function nextEpisode(){
   if(S.ep+1<EPISODES.length){await ensureEpisodeLoaded(S.ep+1);S.bi=0;enterEpisode(S.ep+1,true);}
@@ -1168,6 +1192,10 @@ function endStory(){
 }
 
 /* --- 임의 지점 점프(지속상태 무손실 복원): 목차/뒤로가기용 --- */
+/* 리플레이 중 DOM 쓰기를 억제하는 플래그와, 그때 모아 두는 최종 상태.
+   슬롯 배치 규칙(빈 슬롯 우선 / 만석이면 연이 외 교체)은 autoStageSpeaker 가 이미 갖고 있으므로
+   복제하지 않는다 — 기존 함수를 그대로 돌리고 화면에 그리는 것만 막는다. */
+var _hydrating=false,_hSlot={l:null,c:null,r:null},_hBg=null,_hBgm=null;
 async function hydrateTo(ep,bi){
   var eps=EPISODES[ep];if(!eps)return;
   if(!Array.isArray(eps.beats)){try{eps=await ensureEpisodeLoaded(ep);}catch(e){return;}}
@@ -1175,7 +1203,11 @@ async function hydrateTo(ep,bi){
   if(bi<0)bi=0;
   var beats=eps.beats;if(bi>=beats.length)bi=beats.length-1;
   S.ep=ep;document.getElementById("epTag").textContent=eps.tag;
-  hardClearSlots();S.curBg=null;S.active=null;setSceneDirection(null);
+  /* hardClearSlots() 를 쓰지 않는다 — 캐릭터 DOM 을 전멸시킨 뒤 다시 만들면 새 <img> 가 디코드될
+     때까지 빈 칸이라, 뒤로가기 한 번에 캐릭터가 사라졌다 나타났다. 상태만 비운다(안 비우면
+     autoStageSpeaker 의 빈 슬롯 판정이 직전 화면에 오염된다). DOM 은 루프가 끝난 뒤 한 번만 맞춘다. */
+  _hydrating=true;_hSlot={l:null,c:null,r:null};_hBg=null;_hBgm=null;
+  S.slotWho={l:null,c:null,r:null};S.active=null;setSceneDirection(null);
   S.form=(ep>=1&&ep<=26)?"pig":"human"; /* EP.26(=index 26)에서 인간화 — 그 화 시작은 꽃돼지, 이후 화는 인간 기본 */
   for(var i=0;i<=bi;i++){
     var b=beats[i];
@@ -1185,10 +1217,27 @@ async function hydrateTo(ep,bi){
     stageBeat(b);
     if(b.scene)setSceneDirection(b.scene);
   }
+  _hydrating=false;
+  hydrateFlush();
   S.bi=bi;curBeat=beats[bi];
   if(beats[bi].fx)runFx(beats[bi].fx);
   if(beats[bi].skill)runSkill(beats[bi].skill);
   showDialogue(beats[bi]);
+}
+/* 리플레이가 끝난 뒤 최종 상태만 화면에 적용한다. 같은 캐릭터가 이미 그 슬롯에 서 있으면
+   엘리먼트를 유지하고 표정만 맞춘다. 배경은 instant — 건너뛴 구간과 크로스페이드할 이유가 없고,
+   동기 확정이라 await hydrateTo(...) 직후 S.curBg / bgA·bgB.src 가 이미 최종값이다. */
+function hydrateFlush(){
+  ["l","c","r"].forEach(function(slot){
+    if(_slotRm[slot]){clearTimeout(_slotRm[slot]);_slotRm[slot]=0;}
+    var want=_hSlot[slot],el=document.getElementById("char_"+slot);
+    if(!want){if(el)removeSlot(slot);else S.slotWho[slot]=null;return;}
+    if(el&&el.dataset.who===want.who)updateSlotExpr(slot,want.who,want.x);
+    else setSlot(slot,want.who,want.x);
+  });
+  updateActive();
+  if(_hBgm)playTrack(_hBgm);
+  if(_hBg)setBg(_hBg.k,_hBg.t,true);
 }
 async function stepPrev(){
   if(S.typing){finishType();return;}
@@ -1260,16 +1309,56 @@ function openScenePicker(){
   openOv("idxOv");
 }
 
-/* --- background swap (crossfade A/B) --- */
-function setBg(key,tone){
-  var url=BG[key]||key;if(S.curBg===key)return;S.curBg=key;
-  var show=document.getElementById("bg"+S.bgSlot);
-  var next=S.bgSlot==="A"?document.getElementById("bgB"):document.getElementById("bgA");
-  next.classList.remove("dark","desat");
-  if(tone==="dark")next.classList.add("dark");if(tone==="desat")next.classList.add("desat");
+/* --- background swap (crossfade A/B) ---
+   규칙 1: 보이는 슬롯(.show)은 절대 덮어쓰지 않는다. 새 배경은 늘 반대 슬롯에 실어 두고,
+           이미지가 실제로 준비된 뒤에야 .show 를 넘긴다 — 안 그러면 그 슬롯이 아직 들고 있던
+           두 단계 전 배경이 그대로 페이드인 해 "엉뚱한 배경이 잠깐 떴다 돌아오는" 것으로 보인다.
+   규칙 2: 중복 차단은 S.curBg 가 아니라 실제 표시 슬롯의 dataset.bgKey 로 한다. enterEpisode /
+           hydrateTo 가 S.curBg 를 밀어도 같은 배경으로 되돌아오는 헛 크로스페이드가 돌지 않는다
+           (화 경계 43곳 중 16곳이 앞뒤 배경 동일).
+   규칙 3: S.bgSlot = 가장 최근 요청된 배경을 실은 front 슬롯. 화면에 보이는 슬롯을 원하면
+           shownBg() 를 쓴다 — 로드 대기 중에는 둘이 다르다. */
+var _bgReq=0;
+/* 들어오는 슬롯의 ken-burns 를 처음부터 돌린다. 숨은 채로 제 주기를 돌던 슬롯이 임의 위상(scale 1.02~1.12)
+   으로 페이드인 하던 것을 막는다. 재시작 시점은 아직 opacity:0 이라 스냅이 보이지 않는다. */
+function restartKenburns(el){el.style.animation="none";void el.offsetWidth;el.style.animation="";}
+function applyBgTone(el,tone){
+  el.classList.remove("dark","desat");
+  if(tone==="dark")el.classList.add("dark");
+  if(tone==="desat")el.classList.add("desat");
+  el.dataset.tone=tone||"";
+}
+/* 지금 화면에 보이는 배경 슬롯. 아직 아무것도 안 떴으면 front 슬롯. */
+function shownBg(){
+  var a=document.getElementById("bgA"),b=document.getElementById("bgB");
+  if(a.classList.contains("show"))return a;
+  if(b.classList.contains("show"))return b;
+  return document.getElementById("bg"+S.bgSlot);
+}
+function setBg(key,tone,instant){
+  if(_hydrating){S.curBg=key;_hBg={k:key,t:tone};return;} /* 리플레이 중엔 상태만 — 최종 1회만 그린다 */
+  var url=BG[key]||key;
+  var a=document.getElementById("bgA"),b=document.getElementById("bgB");
+  var cur=a.classList.contains("show")?a:(b.classList.contains("show")?b:null);
+  if(cur&&cur.dataset.bgKey===key){applyBgTone(cur,tone);S.curBg=key;return;}
+  var next=(cur===a)?b:a;
+  var token=++_bgReq;
+  applyBgTone(next,tone);
+  next.dataset.bgKey=key;
   setImg(next,url,SVGBG);
-  next.classList.add("show");show.classList.remove("show");
-  S.bgSlot=S.bgSlot==="A"?"B":"A";
+  restartKenburns(next);
+  S.curBg=key;
+  S.bgSlot=(next===a)?"A":"B";
+  var done=false,timer=0,commit=function(){
+    if(done)return;done=true;
+    clearTimeout(timer);
+    next.removeEventListener("load",commit);next.removeEventListener("error",commit);
+    if(token!==_bgReq)return; /* 그 사이 다른 배경이 요청됐으면 늦게 온 이 응답은 버린다 */
+    next.classList.add("show");if(cur&&cur!==next)cur.classList.remove("show");
+  };
+  if(instant||(next.complete&&next.naturalWidth>0)){commit();return;}
+  next.addEventListener("load",commit);next.addEventListener("error",commit);
+  timer=setTimeout(commit,600); /* 느린 회선에서 배경이 영영 안 바뀌는 것 방지 */
 }
 
 /* 비트가 실어 오는 scene(카메라·앰비언트)을 화면 연출로 옮긴다.
@@ -1302,7 +1391,25 @@ function slotOfWho(who){
   if(S.slotWho.r===who)return "r";
   return null;
 }
+/* 이미 화면에 떠 있는 캐릭터의 src 를 그냥 갈면 디코드 전까지 빈 프레임이 opacity:1 로 보인다.
+   프로브로 먼저 받아 두고 준비되면 교체한다. 🔴 프로브를 document.createElement("img") 로 만드는
+   이유는 진짜 HTMLImageElement 가 필요해서다 — 테스트 하네스가 window.Image 를 스텁으로 덮는다. */
+function swapCharSrc(el,url){
+  var probe=document.createElement("img"),done=false;
+  var swap=function(){if(done)return;done=true;el.src=url;};
+  probe.addEventListener("load",swap);probe.addEventListener("error",swap);
+  probe.src=url;
+  setTimeout(swap,400);
+}
+/* 슬롯 이미지 교체 창구. 아직 안 보이는 엘리먼트는 바로 꽂고(어차피 opacity:0), 보이는 것만 프로브를 탄다. */
+function setCharImg(el,url){
+  if(el.dataset.spriteUrl===url)return;
+  el.dataset.spriteUrl=url;
+  if(el.classList.contains("show")&&el.src)swapCharSrc(el,url);
+  else setImg(el,url,svgData('<rect width="10" height="10" fill="none"/>',10,10));
+}
 function updateSlotExpr(slot,who,expr){ /* className/show를 안 건드리고 표정만 교체(깜빡임 방지) */
+  if(_hydrating){setSlot(slot,who,expr);return;} /* 리플레이: 상태 전용 경로로 넘긴다 */
   var el=document.getElementById("char_"+slot);if(!el){setSlot(slot,who,expr);return;}
   var sp=spriteFor(who,expr,S.form);
   /* cls 변동(네오 사자↔인간 등 형태 전환) 시엔 전체 재생성 — 안 하면 인간 초상이 사자 정사각 박스에 찌그러짐 */
@@ -1310,7 +1417,7 @@ function updateSlotExpr(slot,who,expr){ /* className/show를 안 건드리고 �
   var curCls=el.className.replace(/\b(show|dim)\b/g,"").replace(/\s+/g," ").trim();
   if(curCls!==wantCls){setSlot(slot,who,expr);return;}
   if(sp.sheet&&el.tagName==="DIV"){el.style.backgroundImage="url('"+sp.url+"')";el.style.backgroundPosition=sp.pos||"";el.style.backgroundSize=sp.size||"";return;}
-  if(!sp.sheet&&el.tagName==="IMG"){setImg(el,sp.url,svgData('<rect width="10" height="10" fill="none"/>',10,10));return;}
+  if(!sp.sheet&&el.tagName==="IMG"){setCharImg(el,sp.url);return;}
   setSlot(slot,who,expr); /* 시트↔img 전환 등 태그 불일치 시 전체 재생성 */
 }
 function autoStageSpeaker(b){
@@ -1342,6 +1449,10 @@ function stageBeat(b){
 var slotMap={l:"slotL",c:"slotC",r:"slotR"};
 var _slotRm={}; /* 슬롯별 대기중 제거 타이머 — hydrateTo 재생 레이스 방지 */
 function setSlot(slot,who,expr){
+  if(_hydrating){ /* 리플레이: S.slotWho 만 갱신하고 DOM 은 손대지 않는다 */
+    ["l","c","r"].forEach(function(s){if(s!==slot&&S.slotWho[s]===who){S.slotWho[s]=null;_hSlot[s]=null;}});
+    S.slotWho[slot]=who;_hSlot[slot]={who:who,x:expr};return;
+  }
   if(_slotRm[slot]){clearTimeout(_slotRm[slot]);_slotRm[slot]=0;} /* 재배치 시 대기중 제거 취소(안 하면 목차·책갈피 점프에서 슬롯 캐릭터가 사라짐) */
   /* 같은 캐릭터가 다른 슬롯에 이미 있으면 제거(1캐릭터=1슬롯) — 자동배치분 위에 명시 슬롯이 겹쳐 중복 표시되던 버그 방지 */
   ["l","c","r"].forEach(function(s){if(s!==slot&&S.slotWho[s]===who)removeSlot(s);});
@@ -1350,18 +1461,23 @@ function setSlot(slot,who,expr){
   var wantTag=sp.sheet?"DIV":"IMG"; // 시트 크롭은 background div, 그 외 <img>
   if(el&&el.tagName!==wantTag){if(el.parentNode)el.parentNode.removeChild(el);el=null;}
   if(!el){el=document.createElement(sp.sheet?"div":"img");el.id=id;charLayer.appendChild(el);}
-  el.className="char "+slotMap[slot]+" "+(sp.cls||"");el.dataset.who=who;S.slotWho[slot]=who;
+  /* 같은 캐릭터가 이미 서 있으면 .show 를 유지한다 — className 통째 대입이 이걸 떨궈, rAF 로 다시
+     붙이는 사이 한 프레임 깜빡였다. 🔴 다른 캐릭터로 바뀔 때는 절대 유지하지 않는다(옛 픽셀이
+     새 이미지를 기다리며 남아 유령 겹침이 된다). .dim 은 updateActive() 가 같은 틱에 다시 계산한다. */
+  var keepShown=(el.dataset.who===who&&el.classList.contains("show"));
+  el.className="char "+slotMap[slot]+" "+(sp.cls||"")+(keepShown?" show":"");el.dataset.who=who;S.slotWho[slot]=who;
   if(sp.sheet){
     el.setAttribute("role","img");el.setAttribute("aria-label",who);
     el.style.backgroundImage="url('"+sp.url+"')";el.style.backgroundPosition=sp.pos||"";el.style.backgroundSize=sp.size||"";
   }else{
     el.alt=who;
-    setImg(el,sp.url,svgData('<rect width="10" height="10" fill="none"/>',10,10));
+    setCharImg(el,sp.url);
   }
-  requestAnimationFrame(function(){el.classList.add("show");});
+  if(!keepShown)requestAnimationFrame(function(){el.classList.add("show");});
 }
-function removeSlot(slot){S.slotWho[slot]=null;var el=document.getElementById("char_"+slot);if(el){el.classList.remove("show");_slotRm[slot]=setTimeout(function(){_slotRm[slot]=0;if(el.parentNode)el.parentNode.removeChild(el);},500);}}
+function removeSlot(slot){S.slotWho[slot]=null;if(_hydrating){_hSlot[slot]=null;return;}var el=document.getElementById("char_"+slot);if(el){el.classList.remove("show");_slotRm[slot]=setTimeout(function(){_slotRm[slot]=0;if(el.parentNode)el.parentNode.removeChild(el);},500);}}
 function updateActive(){
+  if(_hydrating)return;
   ["l","c","r"].forEach(function(slot){
     var el=document.getElementById("char_"+slot);if(!el)return;
     var isActive=(el.dataset.who===S.active);
@@ -1455,7 +1571,9 @@ function fxVeil(){var d=mkOverlay();d.style.overflow="hidden";
   for(var i=0;i<16;i++){var p=document.createElement("div");p.style.cssText="position:absolute;top:0;width:2px;height:2px;border-radius:50%;background:rgba(232,228,217,.8);left:"+((i*61)%100)+"%;animation:dust "+(3+i%3)+"s linear "+(i*.12)+"s infinite";d.appendChild(p);}
   cleanup(d,2600);}
 function fxHands(){
-  document.getElementById("bg"+ (S.bgSlot==="A"?"B":"A")).classList.add("desat");
+  /* 보이는 슬롯에 건다 — 예전엔 S.bgSlot 의 반대편(=숨은 슬롯)이라 연출이 아예 안 걸렸다. */
+  var handsBg=shownBg(),handsKey=handsBg.dataset.bgKey,handsToned=(handsBg.dataset.tone==="desat");
+  if(!handsToned)handsBg.classList.add("desat");
   var d=mkOverlay();d.style.overflow="hidden";
   var vig=document.createElement("div");vig.style.cssText="position:absolute;inset:0;box-shadow:inset 0 0 200px 80px rgba(5,6,12,.85);opacity:0;transition:opacity .6s";d.appendChild(vig);requestAnimationFrame(function(){vig.style.opacity="1";});
   var n=6;for(var i=0;i<n;i++){
@@ -1467,7 +1585,11 @@ function fxHands(){
     d.appendChild(wrap);
   }
   cleanup(d,4200);
-  setTimeout(function(){document.getElementById("bgA").classList.remove("desat");document.getElementById("bgB").classList.remove("desat");},3600);
+  setTimeout(function(){
+    if(handsToned)return;                       /* tone:"desat" 로 원래 깔려 있던 톤은 건드리지 않는다 */
+    if(handsBg.dataset.bgKey!==handsKey)return; /* 그 사이 배경이 바뀌었으면 남의 톤을 벗기지 않는다 */
+    handsBg.classList.remove("desat");
+  },3600);
 }
 function fxClaw(){
   var p=document.getElementById("player");p.classList.add("shakeScreen");setTimeout(function(){p.classList.remove("shakeScreen");},520);
@@ -1797,9 +1919,9 @@ function toast(msg){var t=document.getElementById("toast");t.textContent=msg;t.c
 
 /* settings wiring */
 document.getElementById("setBgm").addEventListener("click",function(){setBgm(!S.bgmOn);});
-document.getElementById("setReduce").addEventListener("click",function(){S.reduce=!S.reduce;this.classList.toggle("on",S.reduce);});
+document.getElementById("setReduce").addEventListener("click",function(){S.reduce=!S.reduce;this.classList.toggle("on",S.reduce);applyReduceMotion();});
 document.getElementById("setSpeed").addEventListener("input",function(){S.speed=+this.value;document.getElementById("setSpeedV").textContent=this.value+"ms";});
-document.getElementById("setRestart").addEventListener("click",function(){clearBookmark();S.form="human";S.ep=0;S.bi=0;S.curBg=null;closeOv(document.getElementById("setOv"));enterEpisode(0,true);});
+document.getElementById("setRestart").addEventListener("click",function(){clearBookmark();S.form="human";S.ep=0;S.bi=0;closeOv(document.getElementById("setOv"));enterEpisode(0,true);});
 document.getElementById("bgmBtn").addEventListener("click",function(){setBgm(!S.bgmOn);});
 document.getElementById("epTag").addEventListener("click",function(){if(S.screen==="player")openScenePicker();});
 
