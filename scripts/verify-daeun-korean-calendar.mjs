@@ -6,6 +6,8 @@
  *
  * 🔴 LLM 실호출 없음. 네트워크 없음. DB 없음.
  *
+ * 🔴 검사 ⑥ 은 값이 아니라 **축**을 본다 — 한 응답 안에 세는 나이와 만 나이가 섞이지 않는지.
+ *
  * ── 이 가드의 핵심은 검사 ① 하나다 ──────────────────────────────────────────
  * 대운의 기운 나이는 **유파마다 절사 관례가 갈린다.** 그래서 이 이관은 "더 정확한 계산으로
  * 바꾸는 것"이 아니라 **관례를 그대로 재현하고 달력만 바꾸는 것**이어야 한다. 그러지 않으면
@@ -310,6 +312,57 @@ let divergence = null;
     'await import("lunar-javascript");',
   ].filter((line) => IMPORT_PATTERN.test(stripComments(line)));
   ok("⑤ import 탐지기가 살아 있다(스텁 3종을 실제로 잡는다)", detectorProbe.length === 3, `${detectorProbe.length}/3`);
+}
+
+// ── ⑥ 나이 축이 하나다 — 한 응답에 세는 나이와 만 나이가 섞이지 않는다 ──────
+//
+// 🔴 `worker/lib/destiny-bias-engine.js` 는 예전에 `displayText` 를 절기까지의 분 거리로
+// 따로 계산해 **0부터의 소수 나이**로 냈고, 같은 응답의 `list[].startAgeDisplay` 는
+// 코어의 **세는 나이**였다(실측 2026-08-28, 13,176표본 전건 1~2년 차).
+// 여기서 보는 것은 "값이 맞나"가 아니라 **축이 하나인가**다.
+// 성별 미상 경로(fallbackDaewoonList)까지 함께 본다 — 거기만 다른 축이었다.
+{
+  const { buildSajuProfile } = await import("../worker/lib/destiny-bias-engine.js");
+  const rows = [];
+  let probes = 0;
+  let genderless = 0;
+  for (const at of birthMoments({ fromYear: 1950, toYear: 2035, yearStep: 5 })) {
+    // 성별 미상은 birthMoments 가 안 내므로 여기서 한 번 더 돌린다.
+    for (const gender of [at.gender, "OTHER"]) {
+      const profile = buildSajuProfile({
+        name: "t",
+        gender,
+        birth: { year: at.year, month: at.month, day: at.day, hour: at.hour, minute: at.minute, calendarType: "solar" },
+      });
+      const dw = profile?.sajuCoreResult?.daewoon;
+      const first = dw?.list?.[0];
+      const legacy = profile?.daewoon?.[0];
+      probes += 1;
+      if (gender === "OTHER") genderless += 1;
+      const label = `${at.year}-${pad2(at.month)}-${pad2(at.day)} ${pad2(at.hour)}시 ${gender}`;
+      if (!dw || !first || !legacy) { rows.push(`${label} 대운이 비었다`); continue; }
+      // 🔴 옛 두 축의 흔적이 되살아나면 즉시 실패시킨다.
+      for (const dead of ["startAgeYearsDecimal", "startAgeYears", "startAgeMonths", "startAgeDays"]) {
+        if (dead in dw) rows.push(`${label} 옛 나이 필드 ${dead} 가 되살아났다`);
+      }
+      if (dw.startAge !== first.startAgeDecimal || dw.startYear !== first.estimatedStartYear) {
+        rows.push(`${label} 컨테이너 ${dw.startAge}세/${dw.startYear}년 vs list[0] ${first.startAgeDecimal}세/${first.estimatedStartYear}년`);
+      }
+      // 세는 나이의 정의 그대로 — 입운 연도 − 출생 연도 + 1.
+      if (first.startAgeDecimal !== first.estimatedStartYear - at.year + 1) {
+        rows.push(`${label} list[0] 가 세는 나이 축이 아니다(${first.startAgeDecimal}세 · ${first.estimatedStartYear}년 · 출생 ${at.year})`);
+      }
+      if (legacy.startAge !== first.startAgeDecimal) {
+        rows.push(`${label} legacy ${legacy.startAge}세 vs list[0] ${first.startAgeDecimal}세`);
+      }
+      if (!String(dw.displayText || "").startsWith(`${dw.startAge}세`)) {
+        rows.push(`${label} displayText "${dw.displayText}" 가 ${dw.startAge}세 로 시작하지 않는다`);
+      }
+    }
+  }
+  ok("⑥ 나이 축 표본을 실제로 돌렸다(0 이면 가드가 깨진 것)", probes >= 400, `표본 ${probes}건`);
+  ok("⑥ 성별 미상 경로도 함께 돌렸다", genderless >= 200, `${genderless}건`);
+  ok("⑥ 한 응답의 대운 나이가 전부 세는 나이 축이다", rows.length === 0, rows.slice(0, 10).join("\n      "));
 }
 
 if (failures.length) {

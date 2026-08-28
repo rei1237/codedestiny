@@ -782,25 +782,43 @@ function coreNodeTermWindow(birthParts) {
   return { previous: coreNodeTermSummary(previous), next: coreNodeTermSummary(next), birthMs };
 }
 
-function fallbackDaewoonList(monthGanji, direction, startAgeYearsDecimal, birthYear) {
+/**
+ * 코어 daeun() 이 못 도는 경우(성별 미상 등)의 대운 목록.
+ * 🔴 나이는 코어와 **같은 축(세는 나이, 1부터)** 이어야 한다 — 예전에는 여기만 0부터의
+ * 소수 나이라 성별을 아는 응답과 모르는 응답이 서로 다른 축을 냈다.
+ */
+function fallbackDaewoonList(monthGanji, direction, startAge, startYear) {
   const monthIndex = SEXAGENARY_CYCLE.indexOf(monthGanji);
   if (monthIndex < 0) return [];
   const step = direction === "BACKWARD" ? -1 : 1;
   return Array.from({ length: 10 }, (_, idx) => {
     const cycleIndex = (monthIndex + step * (idx + 1) + 6000) % 60;
-    const startAgeDecimal = Math.max(0, startAgeYearsDecimal + idx * 10);
-    const endAgeDecimal = startAgeDecimal + 9.999;
+    const rowStartAge = startAge + idx * 10;
+    const rowStartYear = Number.isFinite(startYear) ? startYear + idx * 10 : undefined;
     return {
       index: idx + 1,
       pillar: SEXAGENARY_CYCLE[cycleIndex],
-      startAgeDecimal,
-      endAgeDecimal,
-      startAgeDisplay: `${Math.floor(startAgeDecimal)}세`,
-      endAgeDisplay: `${Math.floor(endAgeDecimal)}세`,
-      estimatedStartYear: Number.isFinite(birthYear) ? birthYear + Math.floor(startAgeDecimal) : undefined,
-      estimatedEndYear: Number.isFinite(birthYear) ? birthYear + Math.floor(endAgeDecimal) : undefined,
+      startAgeDecimal: rowStartAge,
+      endAgeDecimal: rowStartAge + 9.999,
+      startAgeDisplay: `${rowStartAge}세`,
+      endAgeDisplay: `${rowStartAge + 9}세`,
+      estimatedStartYear: rowStartYear,
+      estimatedEndYear: rowStartYear === undefined ? undefined : rowStartYear + 9,
     };
   });
+}
+
+/**
+ * 입운까지의 경과 시간(년·월)으로 **세는 나이**와 입운 연도를 낸다.
+ * 코어 daeun() 이 돌면 그쪽 `cycles[1]` 이 정본이고, 이 함수는 그것이 없을 때만 쓴다.
+ * 코어와 같은 관례다 — 입운 연도 − 출생 연도 + 1.
+ */
+function countingStartAgeFrom(birthMoment, birthYear, elapsedYears, elapsedMonths) {
+  const baseYear = Number(birthMoment?.year) || Number(birthYear) || 0;
+  const baseMonth = Number(birthMoment?.month) || 1;
+  const monthIndex = (baseMonth - 1) + elapsedYears * 12 + elapsedMonths;
+  const entryYear = baseYear + Math.floor(monthIndex / 12);
+  return { startAge: entryYear - baseYear + 1, startYear: entryYear };
 }
 
 /**
@@ -811,9 +829,14 @@ function fallbackDaewoonList(monthGanji, direction, startAgeYearsDecimal, birthY
  * 바뀌는 것은 節을 어느 나라 시간으로 잡느냐 하나다. 예전에는 생시는 KST 벽시계인데
  * 절기는 CST 벽시계라 두 축이 60분 어긋난 채로 시진을 셌다.
  *
- * 🔴 나이 축이 둘인 것은 그대로다 — daeun() 의 startAge 는 **세는 나이 정수**(1부터)이고
- * 이 함수의 startAgeYearsDecimalByDiff 는 0부터의 소수 나이라 최대 12년 벌어진다.
- * 한 응답 안에 두 축이 섞여 있는 것은 이 이관 이전부터 있던 결함이라 여기서 바꾸지 않는다.
+ * 🔴 **나이 축은 하나다 — 세는 나이(1부터).** 코어 daeun() 이 내는 축이고,
+ * `list[].startAgeDisplay` · legacy `daewoon[].startAge` · AI 프롬프트(saju-ai-prompt.js
+ * buildLuckRow) · 어드민이 전부 이 축을 읽는다. 예전에는 이 함수가 diffMinutes 로 0부터의
+ * 소수 나이를 따로 계산해 `displayText` 에 실어서 한 응답 안에 두 축이 섞여 나갔다
+ * (실측 2026-08-28, 1960~2020 13,176표본 전건 1년 47.9% · 2년 52.1% 차).
+ *
+ * 🔴 입운까지의 **경과 시간**(3일=1년 관례)은 나이가 아니라서 `entryElapsed` 로 따로 둔다.
+ * 그 값도 코어의 daeun().start 에서 온다 — 여기서 다시 계산하지 않는다.
  */
 function buildDaewoonFromCore(birthMoment, yearStem, gender, termWindow, birthYear, monthPillarGanji, startAgeYearsDecimal) {
   const isMale = gender === "M";
@@ -834,16 +857,19 @@ function buildDaewoonFromCore(birthMoment, yearStem, gender, termWindow, birthYe
     ? Math.abs(Math.round((referenceTerm.ms - termWindow.birthMs) / 60000))
     : Math.max(0, Math.round(startAgeYearsDecimal * 365 * 24 * 60 / 3));
 
-  const startAgeYearsDecimalByDiff = diffMinutes / (60 * 24 * 3);
-  const years = Math.floor(startAgeYearsDecimalByDiff);
-  const monthsFloat = (startAgeYearsDecimalByDiff - years) * 12;
-  const months = Math.floor(monthsFloat);
-  const days = Math.max(0, Math.round((monthsFloat - months) * 30));
-
-  let list = [];
+  let coreDaeun = null;
   if ((isMale || isFemale) && birthMoment) {
     try {
-      const cycles = daeun(birthMoment, { gender: isMale ? "M" : "F" })?.cycles || [];
+      coreDaeun = daeun(birthMoment, { gender: isMale ? "M" : "F" });
+    } catch (_error) {
+      coreDaeun = null;
+    }
+  }
+
+  let list = [];
+  if (coreDaeun) {
+    try {
+      const cycles = coreDaeun.cycles || [];
       const monthCycleIndex = SEXAGENARY_CYCLE.indexOf(monthPillarGanji);
       const step = direction === "BACKWARD" ? -1 : 1;
       list = cycles
@@ -874,8 +900,27 @@ function buildDaewoonFromCore(birthMoment, yearStem, gender, termWindow, birthYe
     }
   }
 
+  // 🔴 입운까지의 **경과 시간**. 코어가 돌면 그 값이 정본이고(3일=1년 관례로 시진 단위까지
+  // 센다), 안 돌면 절기까지의 분 거리로 근사한다. 나이가 아니므로 entryElapsed 로만 나간다.
+  let entryElapsed = coreDaeun?.start
+    ? { years: coreDaeun.start.years, months: coreDaeun.start.months, days: coreDaeun.start.days }
+    : null;
+  if (!entryElapsed) {
+    const decimal = diffMinutes / (60 * 24 * 3);
+    const years = Math.floor(decimal);
+    const monthsFloat = (decimal - years) * 12;
+    const months = Math.floor(monthsFloat);
+    entryElapsed = { years, months, days: Math.max(0, Math.round((monthsFloat - months) * 30)) };
+  }
+
+  // 세는 나이. 코어가 돌면 1번 칸(첫 대운)이 정본이다.
+  const entryCycle = (coreDaeun?.cycles || []).find((row) => Number(row?.index) === 1) || null;
+  const entry = entryCycle && Number.isFinite(Number(entryCycle.startAge))
+    ? { startAge: Number(entryCycle.startAge), startYear: Number(entryCycle.startYear) }
+    : countingStartAgeFrom(birthMoment, birthYear, entryElapsed.years, entryElapsed.months);
+
   if (!list.length) {
-    list = fallbackDaewoonList(monthPillarGanji, direction, startAgeYearsDecimalByDiff, birthYear);
+    list = fallbackDaewoonList(monthPillarGanji, direction, entry.startAge, entry.startYear);
   }
 
   return {
@@ -893,11 +938,12 @@ function buildDaewoonFromCore(birthMoment, yearStem, gender, termWindow, birthYe
       dateTimeKst: referenceTerm?.dateTimeKst || "",
     },
     diffMinutes,
-    startAgeYearsDecimal: Math.round(startAgeYearsDecimalByDiff * 10000) / 10000,
-    startAgeYears: years,
-    startAgeMonths: months,
-    startAgeDays: days,
-    displayText: `${years}세 ${months}개월경`,
+    // 🔴 나이는 이 둘뿐이고 축은 세는 나이 하나다. list[].startAgeDisplay 와 같은 축이다.
+    startAge: entry.startAge,
+    startYear: entry.startYear,
+    displayText: `${entry.startAge}세(${entry.startYear}년)부터`,
+    // 🔴 나이가 아니라 입운까지의 경과 시간이다. 나이로 읽지 말 것.
+    entryElapsed,
     list,
   };
 }
