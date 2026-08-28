@@ -99,3 +99,35 @@ test("실패는 요청당 한 번만 센다 — 두 번 실패로는 회로가 �
   });
   expect(after.source).toBe("kasi");
 });
+
+// ── 커버리지 밖 연도 ────────────────────────────────────────────────────────
+//
+// 🔴 위 403 은 2026-08-28 에 **계정 쪽에서** 풀렸다(data.go.kr 특일 정보 활용신청 승인).
+// 그러자 그 뒤에 가려져 있던 것이 드러났다: SpcdeInfoService 는 **2000~2028 만** 답하고
+// 그 밖은 오류가 아니라 **HTTP 200 + totalCount 0** 으로 답한다(실측 1995~2035 전수).
+// 같은 키의 음양력(LrsrCldInfoService)은 1391~2050 을 덮으므로 절기만 좁다.
+//
+// 그 빈 목록을 `source:"kasi"` 로 실어 보내면 소비자는 "KASI 가 절기가 없다고 답했다" 로 읽고,
+// 게다가 30분간 캐시된다. 로컬 코어로 떨어뜨려 사실대로 알려야 한다.
+test("24절기 커버리지 밖 연도는 빈 rows 를 kasi 로 위장하지 않고 로컬로 떨어진다", async () => {
+  mockFetch(() => okPayload([]));
+
+  const result = await requestKasiLegacyCalendarMethod(ENV, "get24DivisionsInfo", { solYear: "1997" });
+
+  expect(result.source).toBe("local");
+  expect(result.rows.length).toBeGreaterThan(0);
+  expect(result.upstreamReason).toBe("KASI_YEAR_OUT_OF_COVERAGE");
+  expect(result.warnings.join(" ")).toContain("1997");
+});
+
+test("음양력의 빈 응답은 로컬로 메우지 않는다 — '그런 날짜가 없다' 일 수 있다", async () => {
+  // 🔴 위 폴백을 메서드 구분 없이 걸면, KASI 가 거절한 입력(없는 윤달 등)에 우리가 답하게 된다.
+  mockFetch(() => okPayload([]));
+
+  const result = await requestKasiLegacyCalendarMethod(ENV, "getLunCalInfo", {
+    solYear: "1997", solMonth: "02", solDay: "10",
+  });
+
+  expect(result.source).toBe("kasi");
+  expect(result.rows).toHaveLength(0);
+});
