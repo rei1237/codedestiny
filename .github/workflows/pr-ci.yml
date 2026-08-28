@@ -444,6 +444,14 @@ jobs:
           npm run verify:guard-wiring -- --self-test
           npm run verify:guard-wiring
 
+      # SNS 일일 자동 발행은 공개 채널로 나가는 되돌릴 수 없는 외부 행위다. 이 가드는 실제
+      # 발행 없이(fetch 주입) 계약을 고정한다 — 기본값 꺼짐 · 크론이 죽지 않게 throw 금지 ·
+      # 봇 토큰이 든 URL 미로깅 · 발행 링크가 sitemap 에 실재 · 새 크론을 만들지 않았는지.
+      # 🔴 fast 잡에 둔다: 소스만 읽어 빌드가 필요 없고, scripts/ 나 워크플로만 바뀐 PR 에서
+      # critical 티어가 스킵돼도 이 검사는 돌아야 한다.
+      - name: Verify SNS daily post contract
+        run: npm run verify:sns-daily-post
+
       # 기능 가이드가 자기 기능으로 가는 1차 동선을 갖고 있는지 본다. /health-report/guide 는
       # 그 동선이 0개인 채로 색인·광고 심사까지 통과했고, 그걸 볼 검사가 하나도 없었다.
       # 🔴 여기(fast 잡)여야 한다 — 소스만 읽으므로 빌드가 필요 없고, app/ 단독 변경이 낮은

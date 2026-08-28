@@ -282,6 +282,10 @@ const SECRET_KEYS = [
   "POINT_CHARGE_PACKAGES",
   "PIG_COIN_PAYMENT_API_READY",
   "DEFAULT_FORTUNE_COST_POINTS",
+  // SNS 일일 자동 발행(worker/lib/telegram.js). 목록에 없으면 --only-key 로도 밀어 넣을 수 없어
+  // .env.local 에 값을 넣어 둬도 프로덕션 워커에는 영영 도달하지 않는다.
+  "TELEGRAM_BOT_TOKEN",
+  "TELEGRAM_CHAT_ID",
 ];
 
 const SECRET_KEY_ALIASES = {
