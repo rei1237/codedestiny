@@ -13,6 +13,109 @@
 Date 를 받는 진입점이 **소스에서 0개**가 됐고, `ganji-dst-gap-census.json` 의 `gaps` 가 6개 존
 전부 **문자 그대로 0** 이 됐다.
 
+## ✅ PR-4′ — 고친 값이 **캐시 보유자에게 도달하게** 만들었다 (2026-08-28)
+
+PR-2 가 `kst` 결함을 고쳤지만 **localStorage 180일 보유자에게는 도달하지 않고 있었다.**
+회귀가 아니라 **정정의 전달**이다.
+
+### 왜 안 닿았나 (실측)
+
+- 엔트리에 `terms24`(절입 시각 24행) · `ganji` · `lunar` 가 **통째로 박제**된다.
+- `_readStorage` 의 유효성 검사는 **`savedAt` 나이 하나뿐**이었다. `context.version` 은
+  리터럴 `1` 로 쓰이기만 하고 **읽는 곳이 0** 이었다(전수 grep).
+- 유일한 재계산 갈래는 `!cached.ganji || !cached.ganji.hour` 일 때만 돌고,
+  **그때조차 낡은 `terms24` 를 입력으로 먹인다.**
+- `_applyCoreCalendarCorrection` 은 `lunar` 만 다시 쓴다 — 그래서 PR-3(음력일 축)은
+  자동 치유였고 PR-2(절입 시각 축)만 남았다.
+
+재현(가드 이전, 1990-06-15 12:00 · `localOnly`): `version:1` + 자정 24행을 심으면
+`source=cache` 로 **자정 24행이 그대로 나온다.**
+
+### 고친 것
+
+| 자리 | 무엇 |
+|---|---|
+| `js/core/kasi-calendar-service.js` 상수 | `var _CONTEXT_LOGIC_VERSION = 2;` — **스키마가 아니라 계산 로직 세대**. 세대 이력을 주석에 남긴다 |
+| 같은 파일 `_readStorage` | TTL 검사 뒤에 `if (parsed.context.version !== _CONTEXT_LOGIC_VERSION) return null;` |
+| 같은 파일 `_buildDateContext` | `version: 1` → `version: _CONTEXT_LOGIC_VERSION` |
+
+🔴 **접두사 회전(`v2`→`v3`)을 안 쓴 이유**: 청소 코드가 없어(`clearCache` 는 호출부 0)
+옛 키가 사용자 브라우저에 **영구 잔류**한다. 게이트는 폐기 후 **같은 키에** 새 값이 덮이므로
+용량 누수가 0이다(검사 ⑫-d 가 그것을 잰다).
+
+### 검사 ⑫ ⑬ (`verify:solar-term-frame-kasi`) · 검사 ⑭ (`verify:shell-korean-calendar`)
+
+| # | 무엇 |
+|---|---|
+| ⑫-a | `resolveDateContext` 노출 · `_CONTEXT_LOGIC_VERSION` 선언 — 🔴 **블록 밖에서**(⑦ 이 fail-open 이던 사고 반복 금지) |
+| ⑫-b | 옛 세대 엔트리가 폐기되고 절입 시각이 다시 계산된다 |
+| ⑫-c | 🔴 같은 세대 엔트리는 **그대로 캐시에서 나온다** — 게이트가 과해서 캐시를 죽이는 방향을 막는다 |
+| ⑫-d | 폐기된 자리에 같은 키로 다시 쓰인다(옛 키 잔류 0) |
+| ⑫-e | 게이트와 배출 지점이 같은 상수를 쓴다(리터럴 되돌림 금지) |
+| ⑬-a·b | 🔴 정본의 **로직 지문 lock**. 값이 바뀌는 수정을 하고 세대를 안 올리면 실패한다 — #1246 에서 실제로 일어난 일을 막는 자리다. 주석은 지문에서 걷어낸다 |
+| ⑭ | 🔴 간지 경로 7파일의 **무버전 참조가 허용 목록과 정확히 같다**(미분류·stale 양방향). 엣지 캐시 7일 창의 조건부 안전성을 값으로 고정한다 |
+
+🔴 `evalShellService()` 의 localStorage 스텁은 **인자 없이 부르면 지금 그대로**다 —
+①-b·⑦·⑪ 의 동작을 바꾸지 않는다. 실동작 백킹은 ⑫ 만 넘긴다.
+
+### 음성 테스트 (실측 — 각각 지정한 검사만 빨강, 복구 후 초록)
+
+게이트 줄 삭제 → ⑫-b·d(+⑫-e·⑬-a) / 게이트를 `===` 로 → ⑫-b·c·d / 배출 지점을 리터럴로 →
+⑫-e / 세대만 올리고 lock 은 그대로 → ⑬-a·b / 프로브가 스텁 storage 로 되돌아감 → ⑫-c·d /
+버전 토큰 하나 제거 → ⑭ 미분류 / 허용 목록 항목에 `?v=` 를 붙임 → ⑭ stale /
+스캔 디렉터리 비움 → ⑭ 3건.
+
+### 🔴 배포 시 알아 둘 것
+
+세대를 올렸으므로 **전 보유자가 날짜컨텍스트를 1회 재생성**한다. 완충은 워커의 인메모리
+캐시(`LEGACY_CACHE_TTL_MS` 30분 · `CALENDAR_CACHE_TTL_MS` 12시간)다. 도달성은 위 "PR-2 —
+도달성" 표 그대로(`localOnly:true` 는 `js/saju-engine.js` 한 곳뿐, 나머지는 KASI 갈래를 탈 수 있다).
+
+### 🔴 남은 계획 항목 — 착수 전에 이 절을 읽어라 (2026-08-28 실측)
+
+**PR-4 — `_partsOf` 복제 동일성 가드 (값 변화 0).**
+
+🔴 **원 계획의 발견 규칙이 틀렸다.** *"본문에 `Date.UTC(` · `getUTCFullYear()` ·
+`getUTCMonth() + 1` 을 전부 포함하는 함수"* 로 스캔하면 **2벌이 아니라 7벌**이 잡힌다 —
+`_partsOf` · `_dpHasValidProfileDate` · `_addDaysToParts` · `_kasiPartsOf` ·
+`_shiftDatePartsByDays` · `_cdCivilDayPillar` · `_formatUtcFromLocal`.
+"정확히 2벌" 단언을 그대로 쓰면 **즉시 빨강**이다.
+
+대안(실현가능성 실측함): **전수 정규화 지문 인덱스.** `GANJI_PATH_FILES` 7개에서
+`function <이름>(...)` 선언을 전부 잘라 이름 → `F`, 파라미터 → 위치 토큰, 주석 제거,
+공백 정규화한 지문으로 묶으면 — **함수 1,839개 · 서로 다른 지문 1,821개 · 중복 그룹 14개**,
+그중 `kasi-calendar-service.js:_partsOf ↔ saju-engine.js:_kasiPartsOf` 가 **332자 지문의
+단독 그룹**이다(나머지 13개는 `escapeHtml`·`_pad2` 류의 무해한 복제 = 정상 배경).
+⇒ lock 지문을 가진 함수 집합이 정확히 그 2개인지 보면, 한 벌이 드리프트할 때 그룹에서 빠져
+1벌이 되므로 **동일성 단언까지 한 검사가 흡수**한다.
+
+- 🔴 **검사 번호는 ⑮ 다** — ⑭ 는 PR-4′ 가 무버전 참조 가드로 썼다.
+- **public 미러 지문 대조는 빼라**(원칙 6). `verify:public-mirror-fresh` 가 생성기를 실제로
+  돌려 대조하고, 실측상 미러 7개가 전부 정본과 blob 해시 동일이다.
+- 절단은 `scripts/lib/js-source-slice.mjs` 의 `sliceFunction` 을 import 해서 쓴다 —
+  `verify-shell-korean-calendar.mjs` 자체 `extractFunctionSource` 는 문자열·정규식 리터럴을
+  처리하지 않는다.
+- **R9 대상 곳수 정정**: 계획의 "`_kasiPartsOf` 13곳" 은 `js/saju-engine.js` 안만 센 값이다.
+  실측은 saju-engine.js 13곳(래퍼 제외) + `saju-engine-tarot-sukuyo-quantum.js` **5곳** = 18곳.
+  `_partsOf` 4곳 · 공개 `partsOf` 외부 3곳을 더해 **총 25곳**(계획의 20곳이 아니다).
+- `_partsValid` 는 `js/core/kasi-calendar-service.js` 에 있고 호출부 4곳.
+
+**PR-5 — `getGanjiFromParts` null 전환 영향 측정 (측정 전용).** PR-3 이 머지됐으므로 착수 가능.
+🔴 표본 생성기 추출 범위가 계획보다 넓다 — `verify-ganji-surface-parity.mjs` 의 `buildSamples()`
+는 같은 파일의 **지역 정의** `TZ_MATRIX` · `YEARS` · `LEAP_SCAN_FROM/TO` · `forwardTransitions` ·
+`spread` · `partsOfWallMs` 에 의존한다. `scripts/lib/ganji-samples.mjs` 로 옮길 때 이들도 같이
+가고 코어 `KoreanCalendar` 는 인자로 주입한다.
+
+**별건으로 남긴 것 (발견만 기록).**
+
+1. `modalProfileState.js` **이중 로드 가능성** — 체인(`?v=` 있음)과 lazy-src·`__loadScriptOnce`
+   (`?v=` 없음)가 서로 다른 URL 이라 dedupe 가 갈린다. 실제 이중 실행 여부는 **미측정**.
+2. `kasi:local-calendar-patch:v1`(`js/saju-engine.js`) — **TTL 없음 · 버전 검사 없음**이고
+   `solarToLunarFromParts` 가 코어보다 **먼저** 읽는다. 키에 시각이 없어(`YYYY-MM-DD`)
+   야자시 축과 무관하다고 **추정**하나 미검증.
+3. MongoDB 박제 값(R-h) — `worker/lib/models.js` 의 `ziweiAiChartSchema.lunar` ·
+   `sukuyoCompatibility…shuku/shukuIndex` · `lifeBookAi…sajuResult`. 로직 버전 필드가 없다.
+
 ## ✅ PR-3 — 음력일 축 야자시를 **OFF 로 통일**했다 (2026-08-28)
 
 🔴 **§6-4 의 "현행 유지(ON)" 결정을 뒤집는다.** 그 결정의 근거였던
@@ -91,15 +194,32 @@ sukuyo-shell-axis.json  표본 77행 중 23시대 44행의 본명숙이 이동, 
 - `js/destiny-profile.js` · 하네스 `SHELL_CHAIN` · `js/core/kasi-calendar-service.js`.
 - 앱·워커·`lib/` — 원래 안 밀고 있었다.
 
-### 🔴 남는 위험
+### ✅ 남는 위험이라 적었던 둘 — PR-4′ 에서 실측으로 갈랐다 (2026-08-28)
 
-- **엣지 캐시 7일 공존** — `public/_headers` 가 `/js/*.js` 를 max-age 7일·SWR 30일로 잡는다.
-  `sync:public` 이 캐시키를 회전시키지만 SWR 로 한 번 더 옛 셸이 나갈 수 있고, 그 창에서
-  23시대 사용자는 같은 프로필에서 다른 본명숙/자미를 볼 수 있다. 공지 여부는 제품 판단.
-- **localStorage 날짜컨텍스트 180일** — 스키마가 안 바뀌어 키를 회전하지 않았다. 보유자는 옛 값을
-  최대 180일 본다(PR-2 의 R6 와 같은 성질).
+착수 당시 이 자리에 "엣지 캐시 7일 공존"과 "localStorage 180일" 을 나란히 적었다.
+🔴 **재실측 결과 셋으로 갈렸다 — 하나는 해당 없음, 하나는 자동 치유, 하나만 실재하는 결함이었다.**
+
+- 🟢 **엣지 캐시 7일 공존 — 이 축에 해당 없음.** 아래 "새로 알게 된 것 1"(PR-E 실측)과 같은 결론이고,
+  PR-4′ 가 세 사실로 다시 확인했다: ① HTML 이 `no-cache`(`public/_headers` 의 `/` · `/index.html` ·
+  `/*.html` · `/*/`) + 서비스워커가 문서를 `no-store` network-only 로 강제(`service-worker.js:106-121`)
+  ② PR-2·PR-3 이 바꾼 3파일의 **로드 지점 전건**이 `?v=build-<hash>`(`js/core/index-inline-runtime.js`
+  체인, 진입점 자체도 `index.html` 에서 토큰을 단다) ③ 그 토큰이 빌드마다 돈다
+  (`scripts/sync-legacy-static-to-public.mjs` `resolveDeterministicCacheKey()`, CI 는 커밋 SHA).
+  ⇒ 새 HTML → 새 토큰 → 새 캐시 키 → 미스. SWR 은 *같은 URL* 에만 걸리므로 관여할 자리가 없다.
+  **공지 불필요.**
+  🔴 다만 **조건부**다 — 무버전 참조가 하나라도 생기면 그 파일은 7일 창이 실재한다.
+  현행 무버전 참조는 `js/core/saju/modalProfileState.js` 2건(`index.html` 의 `data-cd-lazy-src`,
+  `js/core/uiBindings.js` 의 `__loadScriptOnce`)이고, **PR-4′ 의 검사 ⑭**
+  (`verify:shell-korean-calendar`)가 그 목록을 fail-closed 로 고정한다.
+- 🟢 **음력일 축은 캐시 보유자도 자동 치유된다.** 캐시 히트마다 `_applyCoreCalendarCorrection` 이
+  `context.lunar` 를 `KoreanCalendar.solarToLunar(y, m, d)` **3인자(시각 없음 = 야자시 개념 없음)**
+  로 덮어쓰고 재저장한다 — 그게 곧 PR-3 이 만든 OFF 값이다. **코드 변경 불필요.**
+- 🔴 **절입 시각 축만 실재했다** — `terms24` 가 엔트리에 통째로 박제되고 재계산 갈래조차 낡은
+  `terms24` 를 먹인다. PR-2 가 고친 값이 보유자에게 도달하지 않았다.
+  ⇒ **PR-4′ 가 로직 세대 게이트로 닫았다**(`_CONTEXT_LOGIC_VERSION`). 아래 "PR-4′" 절.
 - **저장된 리포트·캐시된 LLM 결과**와 새 계산이 어긋날 수 있다(스냅샷에 로직 버전 필드가 있는지
-  확인은 별건).
+  확인은 별건 — `worker/lib/models.js` 의 `ziweiAiChartSchema.lunar` ·
+  `sukuyoCompatibility…shuku` · `lifeBookAi…sajuResult` 가 그 표면이다).
 
 ## ✅ PR-2 — R4 는 이미 닫혀 있었고, 같은 자리에 **더 큰 것**이 있었다 (2026-08-28)
 
@@ -147,6 +267,14 @@ time 필드: 0/24행   ·   kst 필드: 24/24행   ·   solYear/solMonth/solDay:
 🔴 **R6 재등장** — localStorage 180일 TTL 보유자는 옛(자정) 값을 계속 본다.
 `kasi:date-context:v2:` 는 **스키마가 안 바뀌므로 키 회전은 하지 않았다**(R6 의 원칙 그대로).
 회전이 필요하다는 판단이 서면 멈추고 보고할 것.
+
+✅ **PR-4′ 가 닫았다 (2026-08-28).** 판단은 "회전이 필요하다"가 아니라 **"기준이 스키마가 아니라
+계산 로직이어야 한다"** 였다. `_readStorage` 가 보던 것은 `savedAt` 나이 하나뿐이었고
+`context.version` 은 리터럴 `1` 로 쓰이기만 하고 **읽는 곳이 0** 이었다. 상수
+`_CONTEXT_LOGIC_VERSION`(현재 2)을 세우고 읽기 시점에 게이트를 걸었다.
+🔴 접두사 회전(`v2`→`v3`)을 안 쓴 이유: 청소 코드가 없어(`clearCache` 호출부 0) 옛 키가
+사용자 브라우저에 **영구 잔류**한다. 게이트는 같은 키에 새 값이 덮이므로 용량 누수가 0이다.
+아래 "PR-4′" 절 · 검사 ⑫ ⑬.
 
 ### 수정과 검사 ⑪
 
@@ -782,8 +910,11 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 ### 🔴 왜 리네임이 아니라 새 메서드 + 어댑터인가
 1. 13개 호출부가 전부 `typeof ke.getGanji === 'function'` 가드 안이라 하드 리네임은 예외가 아니라
    **조용한 성능저하**로 끝난다.
-2. `public/_headers:310` 이 `/js/*.js` 를 max-age 7일·SWR 30일로 잡아 **옛 셸과 새 셸이 최대 7일 공존**한다.
+2. `public/_headers` 가 `/js/*.js` 를 max-age 7일·SWR 30일로 잡아 **옛 셸과 새 셸이 최대 7일 공존**한다.
    앞뒤 양방향 호환이 필요하다.
+   🔴 **이 판단은 PR-B 설계 시점의 것이고 뒤에 뒤집혔다** — 아래 "새로 알게 된 것 1"(PR-E)과
+   PR-4′ 의 재실측이 "간지 경로에는 그 창이 없다"를 값으로 확인했다. 신중한 쪽으로 틀린
+   것이라 PR-B 의 어댑터 결정 자체는 손해가 아니었다.
 3. 어댑터 호출 건수를 계측할 수 있어 PR-E 의 삭제가 주장이 아니라 측정이 된다.
 
 ### 🔴 `solarToLunar` 는 인자 1개로 고정한다
@@ -888,7 +1019,7 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 | R3 | **`solarToLunar` 에 옵션을 붙이면 `true` 둘이 의미를 갖는다** | 야자시 OFF → 자미 14주성 이동 | 인자 1개 고정. 옵션은 새 이름에만 |
 | R4 | ✅ **닫혔다(PR-C)** — `atLocal` 은 `_partsOf`+`_partsToIsoLocal` 로만 만들어져 Date 왕복이 없다. 🔴 **그런데 같은 자리에 더 큰 것이 있었다** — 셸이 KASI 의 시각 필드 `kst` 를 아예 안 읽어 절입 시각을 전건 자정으로 뭉갰다 | 403 이 풀리기 전에는 실응답 모양을 만나 볼 수 없었다 | ✅ **PR-2 가 수정 + 검사 ⑪**(`verify:solar-term-frame-kasi`). 위 "PR-2" 절 |
 | R5 | ✅ **닫혔다(PR-E)** — 가드가 `buildGanjiRepairCandidate`·`_calculateMonthBranchBySolarTerm` 를 전역 이름으로 꺼내 썼다 | 가드는 초록인데 재는 대상이 바뀐다 | PR-D 가 옛 이름 어댑터를 유지했고, PR-E 가 가드와 소스를 같은 커밋에서 `…FromParts` 로 옮겼다 |
-| R6 | **localStorage 캐시 TTL 180일이 옛 값을 되살린다** | 캐시 보유자는 옛 값을 계속 본다 | 출력 스키마 불변이므로 **값이 같아야 정상**. 회전이 필요하면 멈추고 보고. 🔴 **PR-2 에서 실제로 걸렸다** — `kasi:date-context:v2:` 보유자는 옛(자정) 절입 시각으로 만든 월건을 최대 180일 계속 본다. 스키마 불변이라 회전은 안 했다 |
+| R6 | ✅ **닫혔다(PR-4′)** — localStorage 캐시 TTL 180일이 옛 값을 되살린다 | 캐시 보유자는 옛 값을 계속 본다 | 🔴 **PR-2 에서 실제로 걸렸다** — 보유자는 옛(자정) 절입 시각으로 만든 월건을 최대 180일 계속 봤다. **PR-4′ 가 `_CONTEXT_LOGIC_VERSION` 게이트로 닫았다**: 기준은 스키마가 아니라 **계산 로직 세대**이고, `_readStorage` 가 세대 불일치 엔트리를 폐기한다. 접두사 회전은 옛 키가 영구 잔류해서 안 썼다. 🔴 음력일 축(PR-3)은 `_applyCoreCalendarCorrection` 이 캐시 히트마다 덮으므로 **처음부터 자동 치유**였다 |
 | R7 | ✅ **이 축에는 해당 없음 — 실측(PR-E)** | — | 간지 경로 js 는 `index-inline-runtime.js:2193` 체인이 **전부 같은 `?v=build-<hash>`** 로 부르고 `sync:public` 이 빌드마다 그 토큰을 돌린다. 옛 파일과 새 파일이 섞일 캐시 키 조합이 없다 → 어댑터를 유예 없이 지웠다. `sync:public` 을 같은 커밋에 담는 것은 그대로 필수 |
 | R8 | **CI 는 UTC, 개발은 KST** | 둘 다 초록인데 서로 다른 것을 잰다 | `pinTimezone()` + 6종 매트릭스 + 오프셋 자기검사 |
 | R9 | **`_partsOf` 를 지금보다 엄격하게 만들면** 접혀서 계산되던 입력이 null 이 된다 | "고침"이지만 무손실 계약 위반 | PR-C 는 현행과 같은 정규화. 🔴 **PR-E 도 엄격화를 안 했다** — 유효성 5곳만 UTC 왕복으로 옮겼고 `_partsOf` 의 정규화는 그대로다. 엄격화가 필요하면 별건으로 실측과 함께 |
