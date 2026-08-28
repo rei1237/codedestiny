@@ -867,16 +867,28 @@
         var y = _toInt(_pick(row, ['solYear', 'year']), null);
         var m = _toInt(_pick(row, ['solMonth', 'month']), null);
         var d = _toInt(_pick(row, ['solDay', 'day']), null);
-        var t = _pick(row, ['time', 'tm', 'locTime']);
+        var t = _pick(row, ['kst', 'time', 'tm', 'locTime']);
 
         if (!name) return;
 
+        // 🔴 KASI get24DivisionsInfo 의 절입 시각 필드는 `kst` 이고, 모양은 **HHMM 4자리에
+        // 우측 공백을 채운 문자열**이다(실측 2026-08-28 프로덕션 `/api/kasi/calendar`:
+        // `{"dateName":"소한","kst":"0630      ","locdate":20200106,...}` · `time` 필드는 24행 중 0행).
+        // 워커의 메서드 프록시(worker/routes/kasi.js:683)가 업스트림 행을 정규화 없이
+        // passthrough 하므로 그 모양이 그대로 여기 온다 — `time|tm|locTime` 만 보면 24행 전건이
+        // hh=mm=0 으로 떨어져 절입 시각이 자정으로 뭉개지고 월건이 한 칸 밀린다.
+        // 정규화기 worker/routes/kasi.js:262 `normalizeSolarTermRows` 와 같은 규칙을 쓴다.
+        var tText = t == null ? '' : String(t).trim();
         var hh = 0, mm = 0, ss = 0;
-        if (t && /^\d{2}:\d{2}(:\d{2})?$/.test(String(t))) {
-          var parts = String(t).split(':').map(function (v) { return _toInt(v, 0); });
+        if (/^\d{2}:\d{2}(:\d{2})?$/.test(tText)) {
+          var parts = tText.split(':').map(function (v) { return _toInt(v, 0); });
           hh = parts[0] || 0;
           mm = parts[1] || 0;
           ss = parts[2] || 0;
+        } else if (/^\d{3,4}$/.test(tText)) {
+          var padded = tText.length === 3 ? ('0' + tText) : tText;
+          hh = _toInt(padded.slice(0, 2), 0);
+          mm = _toInt(padded.slice(2, 4), 0);
         }
 
         if (!y || !m || !d) {
