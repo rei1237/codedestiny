@@ -8,6 +8,7 @@ import {
 import { FusionFortuneClient } from "./FusionFortuneClient";
 import { FusionValuePreview } from "./FusionValuePreview";
 import { FusionFortuneSeoContent, FUSION_FORTUNE_FAQS } from "./FusionFortuneSeoContent";
+import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const title = "초융합 운세 | 사주·자미두수·숙요점 AI 통합 해석 | Code Destiny";
 const description =
@@ -31,6 +32,9 @@ export default function FusionFortunePage() {
         description,
         path: "/fusion-fortune",
         serviceType: "AI 운세 통합 해석",
+        // 🔴 가격은 서버 가격표에서 푼다(lib/seo/paid-offer.ts). 못 풀면 null 이라 offers 가 빠진다.
+        //    통화는 언제나 KRW — 이니시스 해외카드 특약은 승인·정산이 모두 원화다.
+        offer: buildKrwOffer("fusion-fortune-consultation", "/fusion-fortune"),
       }),
       buildBreadcrumbJsonLd([
         { name: "홈", path: "/" },

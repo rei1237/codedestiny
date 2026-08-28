@@ -7,6 +7,7 @@ import {
 } from "../../lib/structured-data";
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
+import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/karma-destiny-ai/";
 const PAGE_TITLE = "업보 운세 | 반복되는 인생 패턴 리딩 — 운명의 업";
@@ -86,6 +87,9 @@ const karmaJsonLd = [
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "운명 패턴 상담 서비스",
+    // 🔴 가격은 서버 가격표에서 푼다(lib/seo/paid-offer.ts). 못 풀면 null 이라 offers 가 빠진다.
+    //    통화는 언제나 KRW — 이니시스 해외카드 특약은 승인·정산이 모두 원화다.
+    offer: buildKrwOffer("karma-destiny-ai-consultation", PAGE_PATH),
   }),
   buildFaqPageJsonLd(karmaFaqItems),
   buildBreadcrumbJsonLd([

@@ -2049,6 +2049,10 @@
     },
     "access": {
       "passAppliedContinue": "已使用通行券開啟。"
+    },
+    "overseas": {
+      "approx": "約 {amount}",
+      "chargedInKrw": "付款以韓元（KRW）授權。支援海外信用卡（VISA · Mastercard · JCB · Diners），匯率由發卡機構決定。"
     }
   },
   "auth": {

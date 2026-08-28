@@ -160,6 +160,13 @@ export function buildServiceJsonLd(input: {
   path: string;
   serviceType?: string;
   locale?: string;
+  /**
+   * 유료 서비스면 schema.org Offer. 정본은 lib/seo/paid-offer.ts 의 buildKrwOffer 하나이며
+   * 가격은 서버 가격표에서 푼다 — 🔴 여기에 숫자를 직접 넣지 말 것(검색결과가 실제 결제
+   * 금액과 어긋난 채 색인된다). 통화는 언제나 KRW 다(이니시스 해외카드 특약은 원화 승인).
+   * 가격을 못 풀면 buildKrwOffer 가 null 을 주고, 그때는 offers 를 아예 내보내지 않는다.
+   */
+  offer?: Record<string, unknown> | null;
 }) {
   const audience = SERVICE_AUDIENCE[String(input.locale || "ko").toLowerCase()] ?? DEFAULT_SERVICE_AUDIENCE;
   return {
@@ -185,6 +192,7 @@ export function buildServiceJsonLd(input: {
       audienceType: audience.audienceType,
     },
     url: toAbsoluteUrl(input.path),
+    ...(input.offer ? { offers: input.offer } : {}),
   };
 }
 

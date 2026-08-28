@@ -77,6 +77,8 @@ const SUITE = [
   { run: "npm run verify:payment-phone-consent", why: "🔴 결제용 휴대폰 번호의 법정 고지(개인정보 보호법 제15조 제2항)가 렌더러 3벌에서 같은지. 2026-08-25 까지 이 가드는 **주석에만 존재했다** — 세 렌더러가 모두 'verify:payment-phone-consent 가 동일성을 강제한다'고 적어 놓고 스크립트는 없었고, 그동안 한 곳만 고치면 사용자마다 다른 고지를 받았다." },
   { run: "npm run verify:payment-phone-consent -- --self-test", why: "위 가드의 판정이 실제로 실패하는지. 이 가드가 없던 채로 오래 초록이었던 이유가 정확히 '검사가 없다'와 '검사가 통과했다'를 구분하지 못한 것이라, 판정 자체를 합성 입력으로 찔러 본다." },
   { run: "npm run verify:payment-copy-dictionary", why: "결제 문구가 코드 폴백과 사전 사이에서 갈라지는지. cdTranslate 는 키가 없으면 폴백이 아니라 'Translation pending' 을 내므로 한국어만 멀쩡하고 나머지 11개 로케일이 깨진다 — 2026-08-20 전수 조사에서 21건이 나왔고 그중 둘은 **PG창 통과 뒤의 결제 성공 오버레이**였다." },
+  { run: "npm run verify:overseas-payment-notice", why: "🔴 해외카드 결제의 참고 환산가가 결제 금액으로 새는지. KG이니시스 해외카드 특약은 승인·정산이 모두 KRW 라 화면의 외화는 언제나 개산가다. 둘이 섞이면 화면 금액 ≠ 승인 금액이 돼 PG 심사 탈락 사유가 되는데, 국내(ko) 화면에서는 환산 표기가 아예 안 떠서 **한국어로 개발·리뷰하는 동안 아무 증상이 없다** — 해외 사용자만 잘못된 금액을 본다." },
+  { run: "npm run verify:paid-service-offer", why: "유료 서비스 페이지의 schema.org Offer 가 실제 결제 금액·상품과 같은지. 구조화 데이터의 가격은 검색결과에 그대로 실리는데 **화면 어디에도 증상이 없다** — 결제창은 서버 가격을 쓰고 검색결과만 옛 값을 말해도 아무도 눈치채지 못한다. featureKey 를 그 페이지의 결제 상수와 대조해 '가격은 맞는데 다른 상품' 인 경우까지 잡는다." },
   { run: "npm run verify:entry-fanout", why: "홈 진입 팬아웃 계약. 워밍이 채우던 것이 **이용권 스냅샷**이라, 이 계약이 깨지면 결제창 fast-path 와 이용권 판정이 함께 흔들린다. auth/me 의 degraded 응답을 스냅샷에 쓰면 tier:'free' 가 굳어 **이용권 보유자에게 결제창이 뜬다** — 돈 문제다." },
   { run: "npm run verify:pass-recovery-path", why: "이용권 구제 경로의 회귀 방지. 과거 두 사고가 모두 '핸들러·소비자는 남고 진입점만 사라진' 형태라 이름 grep 으로는 정상으로 보였다." },
   { run: "npm run verify:saju-fun-content-gate", why: "재밌는 사주 콘텐츠 타일: 상세 팝업이 결제보다 먼저 뜨는지 + 해금 후 CTA 가 카드를 열었다 닫지 않는지(이중 처리). 여기서는 6미러 불변식만 본다." },

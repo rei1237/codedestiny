@@ -2049,6 +2049,10 @@
     },
     "access": {
       "passAppliedContinue": "利用券で開きました。"
+    },
+    "overseas": {
+      "approx": "約 {amount} 相当",
+      "chargedInKrw": "決済は韓国ウォン（KRW）で承認されます。海外カード（VISA・Mastercard・JCB・Diners）もご利用いただけます。為替換算はカード会社のレートで行われます。"
     }
   },
   "auth": {

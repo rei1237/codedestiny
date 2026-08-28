@@ -7,6 +7,7 @@ import {
 } from "../../lib/structured-data";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
+import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/sukuyo-compatibility-ai/";
 const PAGE_TITLE = "숙요 궁합 상담 | 27수 관계 유형 1:1 해석 — Code Destiny";
@@ -71,6 +72,9 @@ const sukuyoCompatibilityJsonLd = [
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "숙요점 궁합 상담 서비스",
+    // 🔴 가격은 서버 가격표에서 푼다(lib/seo/paid-offer.ts). 못 풀면 null 이라 offers 가 빠진다.
+    //    통화는 언제나 KRW — 이니시스 해외카드 특약은 승인·정산이 모두 원화다.
+    offer: buildKrwOffer("sukuyo-compatibility-ai", PAGE_PATH),
   }),
   buildFaqPageJsonLd(sukuyoCompatibilityFaqItems),
   buildBreadcrumbJsonLd([

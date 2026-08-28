@@ -2049,6 +2049,10 @@
     },
     "access": {
       "passAppliedContinue": "Abierto con su pase."
+    },
+    "overseas": {
+      "approx": "approx. {amount}",
+      "chargedInKrw": "Payment is authorized in Korean Won (KRW). International cards (VISA · Mastercard · JCB · Diners) are accepted, and your card issuer applies its own exchange rate."
     }
   },
   "auth": {

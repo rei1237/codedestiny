@@ -11465,6 +11465,12 @@
       : '';
     // 🔴 단건결제 2단계(결제수단 고르기). 마크업·문구·수단 표는 공유 코어 하나가 소유한다.
     // 앱(Play Billing)에서는 만들지 않는다 — KR PG 수단 목록은 사실과 다르고 Play 정책에도 걸린다.
+    // 🔴 해외카드 고지. 문구·환산 규격은 세 렌더러 공유 코어 하나가 소유한다
+    // (js/core/checkout-entry.js buildOverseasChargeNoticeHtml) — 사본을 만들면 한 렌더러만 낡는다.
+    // 한국어 화면에서는 빈 문자열이라 기존 마크업과 완전히 같다.
+    var overseasNoticeHtml = (__dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildOverseasChargeNoticeHtml === 'function')
+      ? __dpPaymentCardsApi.buildOverseasChargeNoticeHtml({ amountKrw: amountKrw, escape: esc })
+      : '';
     var directMethodStepHtml = (!directUsesAppStore
       && __dpPaymentCardsApi && typeof __dpPaymentCardsApi.buildDirectPayMethodStepHtml === 'function')
       ? __dpPaymentCardsApi.buildDirectPayMethodStepHtml({ escape: esc })
@@ -11517,6 +11523,7 @@
           // 🔴 1단계 그리드를 교체하지 않고 hidden 으로 감춘다(셸과 같은 계약).
           (directMethodStepHtml ? '<div data-choice-step="methods" hidden>' + directMethodStepHtml + '</div>' : '') +
           '<div class="cd-direct-payment-status" data-payment-status role="status" aria-live="polite"></div>' +
+          overseasNoticeHtml +
           '<p class="cd-direct-payment-legal">' + esc(_dpCheckoutText('payment.directModal.legal.provisionTiming', '본 서비스는 결제 완료 즉시 제공됩니다. 결제가 확인되는 시점부터 서비스 이용이 시작되며, 서비스 제공이 개시된 콘텐츠는 전자상거래법에 따라 청약철회가 제한될 수 있습니다.')) + '</p>' +
           '<div class="cd-direct-payment-actions"><button type="button" class="cd-direct-payment-cancel" data-mode="cancel">' + esc(_dpCheckoutText('common.cancel', '취소')) + '</button></div>' +
         '</div>';

@@ -111,6 +111,25 @@ declare const checkoutEntry: {
   /** 금액을 현재 로케일 자릿수 + payment.currency.krw 문구로 그린다. */
   formatKrwAmount(value: number, fallbackText?: string): string;
   /**
+   * 참고 환산율의 기준 시점(예: "2026-08"). 🔴 실시간 환율이 아니다 — 표시 전용 개산가의
+   * 근거 날짜이며, 낡으면 손으로 갱신한다.
+   */
+  REFERENCE_FX_AS_OF: string;
+  /**
+   * 원화 금액의 현지통화 **참고** 표기(예: "$7.4", 유효숫자 2자리). 한국어 화면이거나 환산표에
+   * 없는 로케일이면 빈 문자열이다.
+   * 🔴 표시 전용 — 결제 요청의 totalAmount/currency 에 실으면 안 된다(승인 통화는 언제나 KRW).
+   */
+  formatReferenceAmount(krwAmount: number): string;
+  /**
+   * 결제창 하단 원화 청구 고지 `<p>` HTML. 한국어 화면에서는 빈 문자열.
+   * 세 렌더러가 문구를 각자 적지 않고 이 하나를 부른다.
+   */
+  buildOverseasChargeNoticeHtml(input: {
+    amountKrw?: number;
+    escape?: (value: unknown) => string;
+  }): string;
+  /**
    * 결제창의 추천 선택지와 카드 순서. 순수 함수이며 서버를 부르지 않는다 —
    * 표시 우선순위일 뿐 접근 권한 판정이 아니다(이용권 판정은 카드 클릭 시 서버가 한다).
    */

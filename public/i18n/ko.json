@@ -1539,6 +1539,10 @@
     },
     "access": {
       "passAppliedContinue": "이용권으로 열람되었습니다."
+    },
+    "overseas": {
+      "approx": "약 {amount} 상당",
+      "chargedInKrw": "결제는 원화(KRW)로 승인됩니다. 해외 카드(VISA · Mastercard · JCB · Diners)도 사용할 수 있으며, 환전은 카드사 환율로 이루어집니다."
     }
   },
   "auth": {
