@@ -37,6 +37,7 @@ import { fileURLToPath } from "node:url";
 
 import { Solar } from "lunar-javascript";
 
+import { sliceFunction, stripComments } from "./lib/js-source-slice.mjs";
 import {
   BRANCH_HANJA,
   NIGHT_ZI_POLICY,
@@ -900,6 +901,160 @@ function extractFunctionSource(source, name) {
     + "→ 새 참조면 `?v=build-…` 를 붙여라(sync:public 이 이미 있는 토큰만 돌린다)."
     + String.fromCharCode(10) + "      "
     + "   못 붙일 사유가 있으면 BARE_REF_ALLOWED 에 사유와 함께 등재하라.",
+  );
+
+  // ── ⑮ 벽시계 부품 정규화의 사본 2벌이 드리프트하지 않는다 ────────────────
+  //
+  // 🔴 `_partsOf`(kasi-calendar-service) 와 `_kasiPartsOf`(saju-engine) 는 파라미터 이름
+  // (`min` / `mi`) 만 다른 **글자 그대로 같은** 정규화다. 셸은 모듈이 아니라 브라우저 전역에
+  // 얹히는 스크립트 덩어리라 서로를 import 할 수 없어 사본이 둘이다. 한 벌만 고치면 같은
+  // 생년월일이 파일에 따라 다른 부품이 되는데, 그 차이는 ③~⑫ 의 값 대조를 **통과할 수 있다** —
+  // 두 벌 다 "말이 되는" 값을 내기 때문이다. 계획 전문:
+  // docs/handoff/ganji-wallclock-parts-migration.md
+  //
+  // 🔴 발견 규칙을 이름으로 적지 않는다. 계획서의 원안이었던 *"마커 3종을 다 가진 함수는
+  // 정확히 2벌"* 은 실측하면 즉시 빨강이다 — GANJI_PATH_FILES 안에서만 **6벌**이고 전부 다른
+  // 역할이다(실측 2026-08-28). 그래서 축을 둘로 나눈다.
+  //   ⑮-c **지문 그룹**: 이름→`F`, 파라미터→위치 토큰, 주석 제거, 공백 정규화한 지문이 같은
+  //        함수 집합이 정확히 그 2벌이다. 한 벌이 드리프트하면 그룹에서 빠져 1벌이 되므로
+  //        "사본이 아직 있다"와 "둘이 동일하다"를 **한 검사가 같이** 단언한다.
+  //        (실측: 함수 1,840개 · 서로 다른 지문 1,822개 · 중복 그룹 15개. 나머지 14개는
+  //         `escapeHtml`·`_pad2` 류의 무해한 복제 = 정상 배경이라 세지 않는다.)
+  //   ⑮-e **최내곽 마커 집합**: 손으로 새 정규화를 짜 넣으면 미분류로 터진다(원칙 10).
+  //
+  // 🔴 public 미러 지문 대조는 일부러 뺐다(원칙 6). `verify:public-mirror-fresh` 가 생성기를
+  // 실제로 돌려 대조한다 — 여기서 또 재면 같은 축을 두 겹으로 감싸는 것이다.
+  const DECL_RE = /function\s+([A-Za-z_$][\w$]*)\s*\(([^)]*)\)\s*\{/g;
+  const LOOSE_DECL_RE = /function\s+[A-Za-z_$][\w$]*\s*\(/g;
+
+  const normalizeFn = (body, params) => {
+    let out = body;
+    params.forEach((p, i) => {
+      // 기본값·구조분해는 식별자가 아니므로 건너뛴다. `.foo` 프로퍼티 접근은 안 건드린다.
+      if (!/^[A-Za-z_$][\w$]*$/.test(p)) return;
+      out = out.replace(new RegExp("(?<![\\w$.])" + p.replace(/[$]/g, "\\$&") + "(?![\\w$])", "g"), `P${i}`);
+    });
+    return out.replace(/^function\s+[A-Za-z_$][\w$]*\s*\(/, "function F(").replace(/\s+/g, " ").trim();
+  };
+
+  const fnRows = [];
+  let looseDecls = 0;
+  for (const rel of GANJI_PATH_FILES) {
+    // 🔴 주석을 먼저 걷어낸다 — 주석 안의 `function foo(` 예시가 선언으로 잡히면 슬라이서가
+    // 엉뚱한 곳에서 끝난다. 문자열·정규식 리터럴은 sliceFunction 이 처리한다(그 파일 머리말).
+    const src = stripComments(fs.readFileSync(path.join(root, rel), "utf8"));
+    looseDecls += (src.match(LOOSE_DECL_RE) || []).length;
+    DECL_RE.lastIndex = 0;
+    let match;
+    while ((match = DECL_RE.exec(src)) !== null) {
+      // 🔴 `src.slice(match.index)` 를 넘겨 마커가 0번 위치에 오게 한다. sliceFunction 은
+      // indexOf 로 첫 마커를 찾으므로 전체 소스를 넘기면 같은 시그니처의 앞선 선언을 잘라 온다.
+      const body = sliceFunction(src.slice(match.index), match[0], `${rel}:${match[1]}`);
+      const params = match[2].split(",").map((s) => s.trim()).filter(Boolean);
+      fnRows.push({
+        rel,
+        name: match[1],
+        start: match.index,
+        end: match.index + body.length,
+        fp: normalizeFn(body, params),
+      });
+    }
+  }
+
+  const fnKey = (r) => `${r.rel}:${r.name}`;
+  const fpGroups = new Map();
+  for (const r of fnRows) {
+    if (!fpGroups.has(r.fp)) fpGroups.set(r.fp, []);
+    fpGroups.get(r.fp).push(r);
+  }
+  const dupGroups = [...fpGroups.values()].filter((g) => g.length > 1);
+
+  // 🔴 지문이 같아야 하는 사본 2벌. 여기 순서의 첫 줄이 그룹을 찾는 씨앗이다.
+  const PARTS_CLONES = Object.freeze([
+    "js/core/kasi-calendar-service.js:_partsOf",
+    "js/saju-engine.js:_kasiPartsOf",
+  ]);
+
+  // 🔴 마커 3종(`Date.UTC(` · `getUTCFullYear()` · `getUTCMonth()+1`)을 전부 가진 **최내곽**
+  // 함수 전수. 감싸는 바깥 함수는 제외한다 — 안 그러면 `renderAstroInsightLegacyNeon`
+  // (지문 199,858자) 같은 덩어리가 목록에 들어와 아무 것도 안 지킨다.
+  const UTC_PARTS_FUNCTIONS = Object.freeze([
+    { key: "js/core/kasi-calendar-service.js:_partsOf", why: "부품 정규화 정본" },
+    { key: "js/saju-engine.js:_kasiPartsOf", why: "같은 정규화의 셸 사본 — ⑮-c 가 동일성을 잡는다" },
+    { key: "js/saju-engine.js:_shiftDatePartsByDays", why: "날짜 축만 미는 시프트(시·분 없음)" },
+    { key: "js/saju-engine.js:_cdCivilDayPillar", why: "일진 60갑자 — UTC 일련번호" },
+    { key: "js/saju-engine.js:_formatUtcFromLocal", why: "디버그 표시용 UTC 문자열" },
+    { key: "js/luck-sync-diary.js:_addDaysToParts", why: "부품 시프트(시·분 보존)" },
+  ]);
+
+  const MARKERS = Object.freeze(["Date.UTC(", "getUTCFullYear()", "getUTCMonth()+1"]);
+  // 🔴 공백을 전부 지우고 본다 — `getUTCMonth() + 1` 과 `getUTCMonth()+1` 이 갈리면
+  // 포맷 한 칸에 발견이 무너진다(`_formatUtcFromLocal` 이 실제로 후자다).
+  const dense = (s) => s.replace(/\s+/g, "");
+  const markerHits = fnRows.filter((r) => MARKERS.every((k) => dense(r.fp).includes(k)));
+  const innermostHits = markerHits.filter(
+    (r) => !markerHits.some((o) => o !== r && o.rel === r.rel && o.start >= r.start && o.end <= r.end),
+  );
+
+  ok(
+    "⑮ 함수 스캐너가 살아 있다(선언 전수 = 슬라이스 전수, 0 이면 가드가 깨진 것)",
+    fnRows.length >= 500 && fnRows.length === looseDecls && dupGroups.length >= 2,
+    `함수 ${fnRows.length}개(느슨한 선언 ${looseDecls}개) · 서로 다른 지문 ${fpGroups.size}개 · 중복 그룹 ${dupGroups.length}개`
+    + String.fromCharCode(10) + "      "
+    + "→ 두 수가 갈리면 파라미터에 `)` 가 든 선언(기본값·구조분해)이 생겨 조용히 빠진 것이다. DECL_RE 를 고쳐라.",
+  );
+
+  const missingClones = PARTS_CLONES.filter((k) => !fnRows.some((r) => fnKey(r) === k));
+  ok(
+    "⑮ 🔴 사본 2벌이 이름으로 실재한다(리네임·삭제 탐지)",
+    missingClones.length === 0,
+    `못 찾은 함수 ${missingClones.length}개: ${missingClones.join(" , ")}`
+    + String.fromCharCode(10) + "      "
+    + "→ 옮기거나 이름을 바꿨으면 PARTS_CLONES · UTC_PARTS_FUNCTIONS 를 같은 커밋에서 고쳐라.",
+  );
+
+  const seedRow = fnRows.find((r) => fnKey(r) === PARTS_CLONES[0]);
+  const cloneGroup = seedRow ? fpGroups.get(seedRow.fp).map(fnKey).sort() : [];
+  const expectedGroup = [...PARTS_CLONES].sort();
+  ok(
+    "⑮ 🔴 정규화 지문이 같은 함수 집합이 정확히 그 2벌이다(드리프트·3벌 탐지)",
+    seedRow ? cloneGroup.join("|") === expectedGroup.join("|") : false,
+    `지문 그룹 ${cloneGroup.length}벌: ${cloneGroup.join(" , ") || "(씨앗 함수 없음)"}`
+    + String.fromCharCode(10) + "      "
+    + `기대 ${expectedGroup.length}벌: ${expectedGroup.join(" , ")}`
+    + String.fromCharCode(10) + "      "
+    + "→ 1벌로 줄었으면 두 사본이 갈라진 것이다. 한쪽만 고치지 말고 **양쪽을 같은 커밋에서** 맞춰라."
+    + String.fromCharCode(10) + "      "
+    + "   3벌 이상이면 사본이 또 늘었다. 정말 필요하면 PARTS_CLONES 에 사유와 함께 등재하라.",
+  );
+
+  // 🔴 얼려 둔 그룹이 **정말 부품 정규화인지** 확인한다. 씨앗 함수가 다른 것으로 바뀌면
+  // ⑮-c 는 "2벌이 같다"로 초록인 채 엉뚱한 것을 지키게 된다.
+  const SEED_SHAPE = Object.freeze([
+    "Date.UTC(", "getUTCFullYear()", "getUTCMonth()+1", "getUTCDate()",
+    "getUTCHours()", "getUTCMinutes()", "getUTCSeconds()", "returnnull",
+  ]);
+  const seedShapeMissing = seedRow ? SEED_SHAPE.filter((k) => !dense(seedRow.fp).includes(k)) : SEED_SHAPE.slice();
+  ok(
+    "⑮ 지문 그룹이 실제로 부품 정규화다(엉뚱한 그룹을 얼려 두지 않는다)",
+    seedShapeMissing.length === 0,
+    seedRow ? `지문 ${seedRow.fp.length}자 · 빠진 조각 ${seedShapeMissing.join(" , ")}` : "씨앗 함수 없음",
+  );
+
+  const foundMarkerKeys = new Set(innermostHits.map(fnKey));
+  const registeredMarkerKeys = new Set(UTC_PARTS_FUNCTIONS.map((e) => e.key));
+  const unregisteredMarkers = [...foundMarkerKeys].filter((k) => !registeredMarkerKeys.has(k));
+  const staleMarkers = [...registeredMarkerKeys].filter((k) => !foundMarkerKeys.has(k));
+  ok(
+    "⑮ 🔴 UTC 부품 조립 함수 전수가 등재 목록과 정확히 같다(미분류·stale 양방향)",
+    unregisteredMarkers.length === 0 && staleMarkers.length === 0,
+    `미분류 ${unregisteredMarkers.length}건: ${unregisteredMarkers.join(" , ")}`
+    + String.fromCharCode(10) + "      "
+    + `stale ${staleMarkers.length}건: ${staleMarkers.join(" , ")}`
+    + String.fromCharCode(10) + "      "
+    + "→ 새 함수면 `_partsOf`(또는 `KasiEngine.partsOf`)를 쓸 수 없는지 먼저 보라. 그래도 필요하면"
+    + String.fromCharCode(10) + "      "
+    + "   UTC_PARTS_FUNCTIONS 에 역할을 적어 등재하라. 사라졌으면 그 줄을 지워라.",
   );
 }
 if (failures.length) {
