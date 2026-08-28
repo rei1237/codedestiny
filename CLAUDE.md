@@ -26,7 +26,7 @@
 | 파일·디렉터리를 지우기 전 (삭제 가능/금지 실측 목록) | [docs/context/cleanup-2026-08-15.md](docs/context/cleanup-2026-08-15.md) |
 
 - 분할 직전 원문 스냅샷: [docs/context/CLAUDE.archive-2026-08-15.md](docs/context/CLAUDE.archive-2026-08-15.md) (편집 금지, 대조용)
-- Codex 작업의 실행 계약은 [AGENTS.md](AGENTS.md), 에이전트 회귀 방지 규칙은 [Rules/agent-regression-guard.md](Rules/agent-regression-guard.md)
+- Codex 작업의 **진입점**은 [AGENTS.md](AGENTS.md) — 이 파일로 보내는 표지판이고 규칙 정본이 아니다(2026-08-28 축소). 에이전트 회귀 방지 규칙은 [Rules/agent-regression-guard.md](Rules/agent-regression-guard.md)
 - 현재 개발 초점은 [docs/CURRENT_DEV_BASELINE.md](docs/CURRENT_DEV_BASELINE.md). 문서끼리 어긋나면 **조용히 합치지 말고** [docs/CONTEXT_AUDIT.md](docs/CONTEXT_AUDIT.md) 에서 먼저 정리한다.
 
 ## 절대 규칙 (예외 없음)

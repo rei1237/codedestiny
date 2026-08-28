@@ -11,10 +11,14 @@ Use it only for:
 
 ## Active Document Precedence
 
-1. `AGENTS.md`
-2. `docs/CURRENT_DEV_BASELINE.md`
-3. `CLAUDE.md`
-4. `docs/CONTEXT_AUDIT.md`
+> 🔴 **2026-08-28 개정** — 예전 순서는 `AGENTS.md` 를 1위에 두었는데, 그 파일은 `CLAUDE.md` 의 미러였고 내용이 낡아 있었다. `AGENTS.md` 는 이제 Codex 진입점(표지판)일 뿐 규칙을 담지 않는다.
+
+1. `CLAUDE.md` — 규약 정본(절대 규칙 · 코딩 원칙 · 결제 게이팅 절대 순서)
+2. `docs/context/*.md` — 주제별 상세 정본. `CLAUDE.md` 라우팅 표가 어느 것을 읽을지 정한다
+3. `docs/CURRENT_DEV_BASELINE.md` — 현재 개발 초점(유일한 시간 민감 요약)
+4. `docs/CONTEXT_AUDIT.md` — 충돌·예외·역사 기록(현재 상태의 재서술이 아니다)
+
+`AGENTS.md` 는 순위에 들어가지 않는다 — 1번으로 보내는 진입점이다.
 
 If the first three documents disagree, do not merge rules silently. Record the mismatch here, then resolve it before coding.
 
@@ -22,7 +26,7 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 > 🔴 **2026-08-14 — 이 절이 폐기된 계약을 "Active rule" 로 선언하고 있었다.** 이 파일은 우선순위 4위인데 1위 `AGENTS.md` 와 정반대 규칙을 활성으로 적어 두었고, 바로 위 "세 문서가 disagree 하면 코딩 전에 화해시켜라" 규칙 때문에 **매 세션 시작이 그 화해 작업에 막혔다.** 이 파일의 역할은 충돌·예외의 기록이지 현재 상태의 재서술이 아니다(Purpose 절 참고). 그래서 여기에는 활성 규칙을 쓰지 않는다.
 
-- **활성 배포 규칙은 `AGENTS.md` §Delivery 하나다.** 요약조차 여기 두지 않는다 — 요약이 낡는 것이 정확히 이 사고의 형태였다.
+- **활성 배포 규칙은 `docs/context/delivery-and-ci.md` 하나다**(2026-08-28 — `AGENTS.md` §Delivery 를 그 파일로 흡수했다). 요약조차 여기 두지 않는다 — 요약이 낡는 것이 정확히 이 사고의 형태였다.
 - **Historical — 2026-08-08 "work on `main`, ship with `deploy:safe`" 계약**: 단일 개발자 레포라는 이유로 PR 레인을 걷어내고 워킹트리를 배포 단위로 삼았다. 함께 삭제된 것: worktree-policy judge, release-fast direct lane, release-PR-overlap check, Pages PR contract check, CI-gate waiter, Codex PR helper directory, worktree-pr-policy / pages-build-gate / cloudflare-safe-auto-release 워크플로. 필요하면 2026-08-08 이전 git 히스토리에서 복구한다.
 - **Historical — 왜 되돌렸나 (2026-08-11)**: `wrangler` 는 커밋이 아니라 **워킹트리**를 민다. 그래서 프로덕션이 어느 커밋인지 이름 붙일 수 없었고, 베이스가 낡으면 그 사이 머지된 변경이 조용히 증발했다(2026-08-01 하루에 3회). 지금은 릴리스가 `github.sha` 를 체크아웃해 배포하므로 워킹트리라는 개념 자체가 없다.
 - **Historical drift**: `release:fast` · `verify:worktree-policy` · `promote.lock` · `deploy:safe [y/N]` 승격 프롬프트 · "preview 는 릴리스의 일부" 를 설명하는 문서는 모두 2026-08-11 이전 것이다.
@@ -34,14 +38,14 @@ If the first three documents disagree, do not merge rules silently. Record the m
 - **충돌 내용**: 그 문서의 첫 절 "Current release policy (2026-08-08)" 이 **"PR-first delivery was
   retired"** 로 시작해 로컬 `deploy:safe` 배포를 지시한다. `CLAUDE.md` 절대 규칙 3(브랜치 → PR →
   CI → 사용자가 머지 → 스테이징 자동, 프로덕션은 수동 `workflow_dispatch`)과 정반대다.
-- **왜 위험했나**: 이 문서는 고아가 아니다. `AGENTS.md` §Important Docs 와
+- **왜 위험했나**: 이 문서는 고아가 아니다. `docs/context/doc-precedence.md` §활성 참조 문서 목록(2026-08-28 이전에는 `AGENTS.md` §Important Docs)과
   `docs/CURRENT_DEV_BASELINE.md:21` 이 **활성 참조**로 올려 두고 있다. `Rules/agent-regression-guard.md`
   는 아무도 안 읽어서 충돌이 안 드러났지만(2026-08-15 항목), 이쪽은 읽으라고 지시된 문서다.
 - 🔴 **같은 문서 안에 두 계약이 공존**한다 — 아래 "배포" 절(2026-08-11 개정)은 이미 GitHub Actions
   전용이라고 적고 있다. 즉 어느 절을 읽느냐로 결론이 갈린다.
 - **조치**: 문서를 다시 쓰지 않고 첫 절 위에 날짜 박은 🔴 정정 배너를 달아 폐기 표시했다. 아래
   내용은 역사 기록으로 남긴다 — 왜 그 계약이 있었고 왜 되돌렸는지가 유용하다.
-- **정본**: 활성 배포 계약은 `AGENTS.md` §Delivery 하나다. 요약조차 다른 문서에 두지 않는다.
+- **정본**: 활성 배포 계약은 `docs/context/delivery-and-ci.md` 하나다. 요약조차 다른 문서에 두지 않는다.
 - 실제로 폐기된 절을 따라 하면 `scripts/lib/production-deploy-guard.mjs` 가 막아 exit 1 이 난다 —
   즉 사고로 이어지지는 않지만, 읽는 사람의 시간을 태우고 계약을 오해하게 만든다.
 
@@ -99,7 +103,7 @@ If the first three documents disagree, do not merge rules silently. Record the m
 
 The following may still be useful as evidence, but they are not active coding baselines.
 
-> 🔴 **2026-08-14 정정** — 이 목록이 활성 문서 5종(`docs/payment-policy-overview.md` · `payment-policy-content-access.md` · `payment-policy-flow.md` · `deploy-cache.md` · `r2-assets-cache-strategy.md`)을 "역사 참고용"으로 강등하고 있었다. 다섯 모두 `AGENTS.md` §Important Docs 에 활성으로 올라 있고 결제 3부작은 정책 **정본**이다. 제거했다. 이 목록에 무언가를 넣기 전에 `AGENTS.md` §Important Docs 와 대조할 것.
+> 🔴 **2026-08-14 정정** — 이 목록이 활성 문서 5종(`docs/payment-policy-overview.md` · `payment-policy-content-access.md` · `payment-policy-flow.md` · `deploy-cache.md` · `r2-assets-cache-strategy.md`)을 "역사 참고용"으로 강등하고 있었다. 다섯 모두 활성 참조 목록에 올라 있고 결제 3부작은 정책 **정본**이다. 제거했다. 이 목록에 무언가를 넣기 전에 `docs/context/doc-precedence.md` §활성 참조 문서 목록과 대조할 것(2026-08-28 이전에는 `AGENTS.md` §Important Docs 였다).
 
 - `PROJECT_STRUCTURE.md`
 - `PAYMENT_POLICY.md`

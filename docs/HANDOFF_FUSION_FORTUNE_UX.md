@@ -190,7 +190,7 @@
 
 ---
 
-## 6. 변경 시 반드시 지킬 규칙 (AGENTS.md 요약)
+## 6. 변경 시 반드시 지킬 규칙 (정본: `CLAUDE.md` §절대 규칙 — 아래는 요약)
 
 - `main` 직접 push 금지. 브랜치 → PR → 머지가 곧 베타/프로덕션 배포 승인.
 - 로컬에서 `wrangler deploy` 류 금지 (production-deploy-guard).

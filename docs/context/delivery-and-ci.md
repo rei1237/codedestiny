@@ -43,7 +43,7 @@
 
 ## Delivery Contract (2026-08-11 — PR 기반 CI/CD)
 
-- This section supersedes every older delivery rule in this file, including the 2026-08-08 "PR 정책 폐기 / work on main / ship with `deploy:safe`" contract. That contract is retired. The full version lives in [AGENTS.md](../../AGENTS.md); this is the summary.
+- 🔴 **이 파일이 배포 계약의 정본이다** (2026-08-28 — `AGENTS.md` §Delivery 를 여기로 흡수했다. 요약을 다른 문서에 두지 않는다). 2026-08-08 의 "PR 정책 폐기 / work on main / ship with `deploy:safe`" 계약을 포함해, 이 파일 안팎의 더 오래된 배포 규칙을 전부 대체한다.
 - **GitHub is the source of truth for production.** Production only ever runs a commit that exists on `main`, and `main` is only reachable through a merged PR.
 - Never work on `main` directly. Branch (`feature/*`, `fix/*`, `refactor/*`, `chore/*`), commit, push, open a PR. A branch ruleset rejects direct pushes to `main`.
 - 🔴 **PR CI 는 변경 경로에 따라 강도가 갈린다** (`.github/workflows/pr-ci.yml`). 모든 PR 에 같은 검사를 돌리면 CSS 한 줄에 전체 회귀를 기다리게 되고, 그러면 게이트를 우회할 방법을 찾게 된다. 반대로 전부 가볍게 하면 결제·인증이 무방비가 된다.
@@ -81,3 +81,72 @@
 - Rollback: Actions → *Release Cloudflare Pages and Worker* → Run workflow → `mode: rollback` with `pages_deployment_id` and/or `worker_version_id`. Targets are listable locally with the read-only `npm run deploy:rollback -- --list`. The rollback smokes production afterwards.
 - Do not run real LLM API calls, real payments, production DB writes, or production cancel/refund/reconcile actions without explicit user approval for that exact action.
 - Use fake/stub LLM responses, sandbox/mock payment flows, and local/test DB or mocked models by default.
+
+## 명령이 어디서 도는가 (2026-08-28 `AGENTS.md` 에서 이관)
+
+| 명령 | 로컬 | CI |
+|---|---|---|
+| `npm run deploy:check` | ✅ 변경 집합만 확인, 업로드 없음 | — |
+| `npm run deploy:preview` | ✅ 로컬 개발 도구, 흐름의 일부가 아님 | — |
+| `npm run deploy:smoke -- --base <url>` | ✅ 읽기 전용 | ✅ |
+| `npm run deploy:production` / `deploy:rollback --yes` | ❌ 차단 | ✅ |
+| `npm run deploy:cf:worker` / `deploy:cf:pages` / `deploy:cf:opennext` | ❌ 차단 | ✅ |
+
+- ❌ 행을 집행하는 것은 `scripts/lib/production-deploy-guard.mjs` 다 — 프로덕션에 쓰는 것은 `GITHUB_ACTIONS=true` 가 아니면 종료된다.
+- **브레이크글라스**(GitHub Actions 자체가 죽었을 때)는 `CD_BREAK_GLASS=1` **과** 명시적 `--break-glass` 플래그가 **둘 다** 필요하고, PR 로 다시 랜딩하라는 경고를 찍는다. 🔴 그 단계를 건너뛰면 **다음 정식 릴리스가 그 핫픽스를 조용히 되돌린다.**
+- 프로덕션 Cloudflare 자격증명은 GitHub Actions 시크릿에 있다(`CLOUDFLARE_API_TOKEN` · `CLOUDFLARE_ACCOUNT_ID` · `CLOUDFLARE_CACHE_PURGE_TOKEN` · `CLOUDFLARE_ZONE_ID`). 저장소 파일에 넣지 않는다.
+
+## Pages 와 Worker 는 한 SHA 로 나간다 — 불변식을 지키는 3가지
+
+Pages 와 Worker 가 서로 다른 코드를 가리키는 것이 이 저장소의 모든 결제·접근 상태 장애의 형태였다.
+
+1. 릴리스가 브랜치 이름이 아니라 `ref: ${{ github.sha }}` 를 체크아웃한다 — 릴리스 도중에 머지가 들어와도 나가는 것이 안 바뀐다.
+2. `CD_ALLOW_EMPTY_CHANGESET=true` 로 릴리스가 팁 전체를 변경 집합으로 취급한다 — 변경 집합 휴리스틱이 Worker 를 건너뛰지 못한다.
+3. 배포 후 `npm run verify:deployed-sha` 가 `<origin>/version.json`(Pages)과 `<origin>/api/version`(Worker)을 읽어 릴리스 SHA 와 대조하고, 하나라도 다르면 릴리스를 실패시킨다(엣지 전파용 재시도 포함 — 재시도를 넘긴 불일치는 진짜 불일치다).
+
+양쪽 SHA 는 주입·조회가 가능하다:
+
+- Pages: `NEXT_PUBLIC_GIT_SHA` 가 `next.config.mjs` 에서 `GITHUB_SHA` 를 받고, `scripts/write-version-json.mjs` 가 `/version.json` 을 쓴다. 브라우저에서 `/version.json` 이 "무엇이 배포됐나"에 답하고, React 라우트에서는 `window.__cdBuild` 가 같은 답을 한다.
+- Worker: 릴리스가 `--var COMMIT_SHA:<sha>` 를 넘기고, `/api/version` 이 `{ gitSha, commit, commitShort, environment }` 를 돌려준다(시크릿 없음).
+
+## 유료 기능을 무엇으로 검증하나
+
+🔴 **PR 별 프리뷰 환경은 없고, 사실 제대로 있었던 적이 없다.** `public/_worker.js` 가 프리뷰의 `/api` 를 **프로덕션 Worker** 로 프록시하고 그 Worker 는 **프로덕션 DB** 를 읽는다 — Worker 프리뷰 버전은 라우팅되지 않으므로, 프리뷰 URL 의 `/api/*` 는 이미 라이브인 워커가 답했다. 정작 확인할 가치가 있던 변경을 그것만 못 건드렸다.
+
+🔴 이것은 2026-08-20 에 도입한 **`staging` 릴리스 타깃과 다르다.** 스테이징은 자체 Pages 프로젝트 · 자체 Worker(`code-destiny-web-staging`) · 자체 MongoDB(`MONGODB_DB_NAME=code_destiny_staging`, `worker/wrangler.staging.toml`)를 가진 실제 배포다. `noindex` + `robots.txt: Disallow: /` 로 색인이 막혀 있고 모든 머지를 자동으로 받는다 — 이 저장소에서 프로덕션 전 검사에 가장 가깝지만, **아래 가드들의 대체재는 아니다**(별도 PortOne 샌드박스 채널이 붙어 있는지는 `미검증`이므로 스테이징 결제를 "무해하다"고 단정하지 말 것).
+
+결제·인증의 신뢰는 대신 세 곳에서 온다:
+
+1. **머지 전** — `critical` 티어가 전체 테스트를 돌리고, `paid-flow-gates.yml` 이 해당 파일이 걸릴 때 결제/인증/운세 검증기를 돌린다. 소스·jsdom 수준 가드라 실제 결제 없이 성립한다.
+2. **릴리스 중** — 잡이 빌드하고 Pages 배포본을 올린 뒤, 무엇을 승격하기 전에 스모크를 돌린다.
+3. **승격 후** — 프로덕션 스모크, 그다음 양쪽 레이어에 `verify:deployed-sha`. 하나라도 실패하면 Pages 와 Worker 를 함께 롤백한다.
+
+`npm run deploy:preview` 는 로컬 개발 도구로 남아 있다. `.env.local` 에 `CD_PREVIEW_TEST_EMAIL` · `CD_PREVIEW_TEST_PASSWORD` 가 있으면 FAMILY 이용권 계정으로 **이미 로그인된 상태**로 프리뷰를 연다(`scripts/seed-preview-test-account.mjs` 를 격리된 자식 프로세스로 돌려 그 한 계정만 재시드 — "파이프라인은 DB 에 쓰지 않는다"의 유일한 한정 예외이며, 자식이 자기 `MONGO_URI` 를 로드하므로 `deploy-safe.mjs` 의 프로세스 env 는 그걸 보지 않는다). 실행하면 Cloudflare 에 Pages 배포본과 Worker 버전이 남으므로 습관적으로 돌리지 않는다.
+
+그 계정이 **커버하지 못하는 것**:
+
+- 프로필 카드 추가/삭제는 family 를 포함한 모든 티어에서 `passExcluded` 라 여전히 결제창이 뜬다. 버그가 아니라 정책이다.
+- 300코인 초과 프리미엄 상담은 이용권 주기당 공정사용 한도가 있다(`resolveFamilyPremiumQuota`).
+- 🔴 **`points` 는 통화가 아니다.** `worker/lib/access-control.js` 의 어떤 것도 그것을 읽지 않고, 그것을 차감하는 경로도 없다. 접근을 여는 것은 이용권(`profileSubscription`)과 월정석(`membershipCreditLots`) 뿐이다. 테스트 계정에 포인트를 줘도 아무것도 사지 못한다.
+
+🔴 프리뷰에서 한 일은 **프로덕션에 쓴다** — 실제 해금 기록, 실제 원장 행.
+
+## 테스트 규칙
+
+- LLM 테스트는 mock/fake/stub 응답을 쓴다.
+- 결제 테스트는 샌드박스/mock 흐름을 쓴다.
+- DB 쓰기는 테스트 DB · 로컬 DB · mock 만 쓴다.
+- 테스트에 프로덕션 환경변수를 쓰지 않는다.
+- 비용이 발생하는 테스트는 명시적 승인 없이 돌리지 않는다.
+- **한국어·다국어 텍스트 변경 시 인코딩 검사**:
+  - 변경된 텍스트 파일에서 깨짐 문자를 찾는다 — `U+FFFD`(치환 문자) 및 모지바케 흔적 `Ã` · `Â` · `ì` · `í` · `ê` · `ë` · `ð`
+  - 해당하면 `npm run verify:entry-encoding -- --strict-core`
+- **결제 변경 시** 최소로 돌릴 것:
+  - `npm run verify:billing-pass-policy`
+  - `npm run verify:portone-single-payment`
+  - `npm run verify:paid-gate-ui`
+  - `npm run verify:payment-choice-parity`
+  - `npm run verify:checkout-pass-card`
+  - `npm run verify:paid-feature-billing-policy`
+  - `npm run verify:ai-prompt-billing-policy`
+- **Worker/API 변경 시** 관련 라우트 테스트와, 필요하면 `npm run build:worker` 를 포함한다.

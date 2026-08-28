@@ -13,7 +13,7 @@ Last curated: `2026-08-15`
 
 ## Active Sources
 
-- Execution contract: `AGENTS.md`
+- Rule source of truth: `CLAUDE.md` + `docs/context/*.md` (`AGENTS.md` 는 거기로 보내는 Codex 진입점일 뿐이다 — 2026-08-28)
 - Current working summary: `docs/CURRENT_DEV_BASELINE.md`
 - Project operating context: `CLAUDE.md`
 - Conflict and exception log: `docs/CONTEXT_AUDIT.md`
@@ -45,9 +45,9 @@ Last curated: `2026-08-15`
 
 ### 5. PR-based delivery safety
 
-> 🔴 **2026-08-20 정정.** 아래는 요약이며 **계약 정본은 `AGENTS.md` §Delivery 하나다** — 여기에 상세를 복제하지 않는다(중복이 곧 다음 드리프트다).
+> 🔴 **2026-08-20 정정 · 2026-08-28 경로 갱신.** 아래는 요약이며 **계약 정본은 [docs/context/delivery-and-ci.md](context/delivery-and-ci.md) 하나다** — 여기에 상세를 복제하지 않는다(중복이 곧 다음 드리프트다).
 
-- Source files: `AGENTS.md`, `scripts/lib/change-risk.mjs`, `scripts/lib/production-deploy-guard.mjs`, `.github/workflows/pr-ci.yml`, `.github/workflows/cloudflare-pages-deploy.yml`
+- Source files: `docs/context/delivery-and-ci.md`, `scripts/lib/change-risk.mjs`, `scripts/lib/production-deploy-guard.mjs`, `.github/workflows/pr-ci.yml`, `.github/workflows/cloudflare-pages-deploy.yml`
 - 🔴 **2026-08-20 컷오버(커밋 `80d3660c1`)로 "머지가 곧 라이브"는 더 이상 맞지 않는다.** 흐름: **브랜치 → 커밋 → push → PR → PR CI → 사용자가 Merge → 그 SHA 가 스테이징(`staging.code-destiny.com`, DB 분리)에 자동 배포.** 프로덕션(`code-destiny.com`)은 사람이 `workflow_dispatch(mode=production)` 을 수동 실행해야 승격된다 — main HEAD 보다 뒤처져 있는 것이 정상 상태다. 일일 운세 재발행만 예외로 프로덕션을 직접 건드린다.
 - `main` 직접 push 는 브랜치 룰셋이 막고, 로컬 프로덕션 배포는 `production-deploy-guard.mjs` 가 막는다. 로컬에 남는 것은 `deploy:check`(업로드 없음)·`deploy:preview`(흐름 밖 도구)·`deploy:smoke` 뿐이다.
 - PR CI 강도는 변경 경로가 정한다(`fast` / `standard` / `critical`). 판정 정본은 `scripts/lib/change-risk.mjs` 하나이며, `deepRequired`(인증·결제·DB 스키마·배포 파이프라인)는 `level` 과 무관하게 전체 회귀를 강제한다.
