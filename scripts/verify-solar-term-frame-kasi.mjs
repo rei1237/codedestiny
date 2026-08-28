@@ -876,6 +876,221 @@ if (fixture) {
   ok("⑩ 🔴 픽스처와 검증캐시가 같은 절기 시각을 낸다", crossRows.length === 0, crossRows.slice(0, 8).join("\n      "));
 }
 
+// ── ⑪ KASI 원본 행의 `kst` 를 셸 정규화기가 실제로 읽는가 ──────────────────
+//
+// 🔴 이 검사가 생기기 전까지 셸은 KASI 절입 시각을 **전건 자정으로 뭉개고** 있었다.
+// `js/core/kasi-calendar-service.js` 의 `_normalizeTerms` 가 `time|tm|locTime` 만 봤는데,
+// KASI `get24DivisionsInfo` 의 시각 필드는 `kst`("HHMM" + 우측 공백)이고 워커의 메서드
+// 프록시(`worker/routes/kasi.js:683`)는 업스트림 행을 **정규화 없이 passthrough** 한다
+// (`kst→time` 변환기 `normalizeSolarTermRows` 는 `requestCalendarSummary` 경로 전용이다).
+// 실측 2026-08-28 프로덕션 1회 조회(solYear=2020): `time` 0/24행 · `kst` 24/24행 `"0630      "`.
+//
+// 🔴 위 ⑦ 은 이 구멍을 **구조적으로 볼 수 없다** — 검증캐시 행(`atLocal` 이 이미 박힌 모양)만
+// 먹이므로 `_normalizeTerms` 를 아예 안 지난다. 그래서 원본 응답 모양을 여기서 따로 태운다.
+
+/**
+ * KASI `get24DivisionsInfo` 원본 행 하나를 채집 모양(`{name, cell, ms}`)으로 판다.
+ *
+ * 🔴 `runLive()` 안에 있던 표현을 **추출**한 것이다(동작 변화 0). 채집기와 검사 ⑪ 이 같은
+ * 함수를 쓰게 해서, 검사의 합성 행이 "손으로 쓴 모양"이 되어 실응답과 갈라지는 것을 막는다.
+ *
+ * 🔴 KASI 는 kst 를 **우측 공백으로 채워** 보낸다(실측 2026-08-28: `"1001      "` — 10자).
+ * trim 없이 padStart(4) 하면 그대로 10자라 `/^\d{4}$/` 가 떨어지고, 24행이 전부 null 이 되어
+ * "행이 24개가 아니다(0)" 로 죽는다. 이 줄은 403 때문에 실데이터를 한 번도 못 만나 본
+ * 코드였다 — worker/routes/kasi.js 의 normalizeSolarTermRows 는 처음부터 trim 한다.
+ */
+function parseLiveTermRow(row) {
+  const name = String(row.dateName || row.termName || "").trim();
+  const locdate = String(row.locdate || "").trim();
+  const kst = String(row.kst || row.time || "").trim().replace(":", "").padStart(4, "0");
+  if (!/^\d{8}$/.test(locdate) || !/^\d{4}$/.test(kst)) return null;
+  return {
+    name,
+    cell: `${locdate.slice(4, 6)}${locdate.slice(6, 8)}${kst}`,
+    ms: Date.UTC(Number(locdate.slice(0, 4)), Number(locdate.slice(4, 6)) - 1, Number(locdate.slice(6, 8)),
+      Number(kst.slice(0, 2)), Number(kst.slice(2, 4))),
+  };
+}
+
+/**
+ * 픽스처 셀(`MMDDHHMM`) → KASI 원본 응답 행. 실응답의 필드 구성을 그대로 재현한다
+ * (실측: `dateKind`·`dateName`·`isHoliday`·`kst`·`locdate`·`seq`·`sunLongitude` —
+ * 🔴 `solYear/solMonth/solDay` 가 **없어서** `_normalizeTerms` 가 `locdate` 갈래를 타고,
+ * 🔴 `locdate` 는 문자열이 아니라 **숫자**다).
+ * `shape` 로 시각 필드 모양을 고른다 — 검사 ⑪-e 가 세 모양을 대조한다.
+ */
+function synthesizeKasiRows(year, cells, names, shape = "padded") {
+  return cells.map((cell, index) => {
+    const hhmm = `${cell.slice(4, 6)}${cell.slice(6, 8)}`;
+    const kst = shape === "colon"
+      ? `${cell.slice(4, 6)}:${cell.slice(6, 8)}`
+      : (shape === "bare" ? hhmm : `${hhmm}      `);
+    return {
+      dateKind: "03",
+      dateName: names[index],
+      isHoliday: "N",
+      kst,
+      locdate: Number(`${year}${cell.slice(0, 2)}${cell.slice(2, 4)}`),
+      seq: index + 1,
+    };
+  });
+}
+
+// 🔴 ⑪-a 는 **블록 밖**이다. 안에 넣으면 정규화기가 사라졌을 때 블록이 통째로 안 돌고
+// "0건이라 통과"가 된다(원칙 10 · ⑦ 이 fail-open 이던 사고와 같은 모양).
+ok(
+  "⑪-a 셸의 절기 정규화기가 __test 에 있다",
+  !!shellTest && typeof shellTest.normalizeTerms === "function",
+  `shellTest=${shellTest ? "있음" : "없음"} · normalizeTerms=${shellTest && typeof shellTest.normalizeTerms}`,
+);
+
+if (shellTest && typeof shellTest.normalizeTerms === "function" && fixture && fixture.years) {
+  const names = fixture.termNames || TERM_NAME_KO;
+  const fixtureYears = Object.entries(fixture.years).map(([yearText, entry]) => ({
+    yearText,
+    year: Number(yearText),
+    cells: String(entry.cells || "").split(",").map((c) => c.trim()).filter(Boolean),
+  }));
+  // buildProviders 와 **같은 규칙** — 節 오류가 있는 해는 지상값이 오염됐으므로 프레임 대조에서 뺀다.
+  const nodeErrataYears = new Set(Object.keys(KASI_KNOWN_ERRATA)
+    .filter((key) => jieqiKo.has(key.split(":")[1]))
+    .map((key) => key.split(":")[0]));
+
+  const parseFail = [];
+  const sourceRows = [];
+  const atLocalRows = [];
+  let normalizedCompared = 0;
+
+  for (const { year, cells } of fixtureYears) {
+    if (cells.length !== 24) { parseFail.push(`${year} 셀이 24개가 아니다(${cells.length})`); continue; }
+    const rows = synthesizeKasiRows(year, cells, names);
+
+    // ⑪-b 합성 행이 **채집기가 인정하는 모양**이다(표본이 실응답에서 멀어지는 것을 막는다).
+    rows.forEach((row, index) => {
+      const parsed = parseLiveTermRow(row);
+      if (!parsed) {
+        parseFail.push(`${year} ${names[index]} 행이 parseLiveTermRow 를 못 통과했다: ${JSON.stringify(row)}`);
+        return;
+      }
+      if (parsed.cell !== cells[index]) {
+        parseFail.push(`${year} ${names[index]} 왕복 셀 불일치 — 픽스처 ${cells[index]} · 파서 ${parsed.cell}`);
+      }
+    });
+
+    const terms = shellTest.normalizeTerms(rows, [], year);
+    if (!Array.isArray(terms) || terms.length !== 24) {
+      atLocalRows.push(`${year} normalizeTerms 가 24행을 안 냈다(${Array.isArray(terms) ? terms.length : typeof terms})`);
+      continue;
+    }
+    // ⑪-c 검증캐시/폴백 갈래로 새지 않고 KASI 갈래로 나왔다.
+    const otherSources = [...new Set(terms.map((t) => String(t.source)))].filter((s) => s !== "kasi-api");
+    if (otherSources.length) sourceRows.push(`${year} source=${otherSources.join(",")}`);
+
+    // ⑪-d 🔴 본체 — 정규화된 절입 시각이 KASI 원본과 전건 같다.
+    //
+    // 🔴 문자열이 아니라 **벽시계 ms** 로 잰다. KASI 는 분 60 을 그대로 보내는 셀이 있고
+    // (실측: 2019 대한 `kst="1760"` — 픽스처 29년 696셀 중 유일), `_partsOf` 의 `Date.UTC`
+    // 가 그것을 18:00 으로 정규화한다. 문자열 대조는 그 정규화를 결함으로 오독한다.
+    // 자정 뭉갬 탐지력은 그대로다 — hh/mm 이 0 으로 떨어지면 ms 가 어긋난다.
+    const byName = new Map(terms.map((t) => [String(t.name), t.atLocal]));
+    cells.forEach((cell, index) => {
+      const expectMs = Date.UTC(year, Number(cell.slice(0, 2)) - 1, Number(cell.slice(2, 4)),
+        Number(cell.slice(4, 6)), Number(cell.slice(6, 8)));
+      const got = byName.get(names[index]);
+      normalizedCompared += 1;
+      if (wallMs(got) !== expectMs) {
+        atLocalRows.push(`${year} ${names[index]} 기대 ${new Date(expectMs).toISOString().slice(0, 16)}`
+          + ` (KASI ${cell}) · 실측 ${got}`);
+      }
+    });
+  }
+
+  ok("⑪-b 합성 KASI 행이 채집기 파서를 전건 통과한다", parseFail.length === 0, parseFail.slice(0, 6).join("\n      "));
+  ok("⑪-c normalizeTerms 가 KASI 갈래(source=kasi-api)로 24행을 낸다", sourceRows.length === 0, sourceRows.slice(0, 6).join(" · "));
+  ok(
+    "⑪-d 🔴 정규화된 절입 시각이 KASI 원본과 전건 같다(자정 뭉갬 탐지)",
+    atLocalRows.length === 0,
+    atLocalRows.slice(0, 8).join("\n      "),
+  );
+  ok(
+    "⑪-g 절입 시각 대조 행 수가 픽스처 전량과 같다(0건 통과 방지)",
+    normalizedCompared === 24 * fixtureYears.length,
+    `${normalizedCompared}행 / 기대 ${24 * fixtureYears.length}행 (픽스처 ${fixtureYears.length}년 × 24)`,
+  );
+
+  // ⑪-e `kst` 세 모양이 같은 절입 시각을 낸다. 우측 공백만 다른 모양이 갈라지면 `.trim()` 이 죽은 것이다.
+  {
+    const sample = fixtureYears[0];
+    const shapes = ["padded", "bare", "colon"];
+    const rendered = shapes.map((shape) => {
+      const terms = shellTest.normalizeTerms(synthesizeKasiRows(sample.year, sample.cells, names, shape), [], sample.year);
+      return Array.isArray(terms) ? terms.map((t) => `${t.name}=${t.atLocal}`).join("|") : "null";
+    });
+    ok(
+      "⑪-e kst 3모양(우측공백 · 4자리 · HH:MM)이 같은 절입 시각을 낸다",
+      rendered[0].length > 0 && rendered[0] === rendered[1] && rendered[1] === rendered[2],
+      shapes.map((shape, i) => `${shape}: ${rendered[i].slice(0, 90)}`).join("\n      "),
+    );
+  }
+
+  // ⑪-f 그 terms 로 셸이 낸 세차·월건이 코어와 같다. 밴드(KASI 표기 ↔ 코어 표 사이 분)는 ③⑤ 가 설명했다.
+  const frameRows = [];
+  let framed = 0;
+  let frameNull = 0;
+  for (const { yearText, year, cells } of fixtureYears) {
+    if (nodeErrataYears.has(yearText) || cells.length !== 24) continue;
+    const terms = shellTest.normalizeTerms(synthesizeKasiRows(year, cells, names), [], year);
+    if (!Array.isArray(terms) || terms.length !== 24) continue;
+    const tableByName = new Map(solarTerms(year).map((t) => [TERM_NAME_KO[t.index], t]));
+    const bandMs = new Set();
+    const nodes = [];
+    cells.forEach((cell, index) => {
+      const name = names[index];
+      if (!jieqiKo.has(name)) return; // 中氣는 프레임 경계가 아니다
+      const kasiMs = Date.UTC(year, Number(cell.slice(0, 2)) - 1, Number(cell.slice(2, 4)),
+        Number(cell.slice(4, 6)), Number(cell.slice(6, 8)));
+      nodes.push({ name, ms: kasiMs });
+      const table = tableByName.get(name);
+      if (!table) return;
+      const tableMs = Date.UTC(table.year, table.month - 1, table.day, table.hour, table.minute);
+      for (let ms = Math.min(tableMs, kasiMs); ms < Math.max(tableMs, kasiMs); ms += 60000) bandMs.add(ms);
+    });
+
+    for (const node of nodes) {
+      for (const offset of [-90, -1, 1, 90]) {
+        const ms = node.ms + offset * 60000;
+        if (bandMs.has(ms)) continue;
+        const d = new Date(ms);
+        const at = {
+          year: d.getUTCFullYear(), month: d.getUTCMonth() + 1, day: d.getUTCDate(),
+          hour: d.getUTCHours(), minute: d.getUTCMinutes(),
+        };
+        if (at.year !== year) continue;
+        const gz = ganji(at, {});
+        if (!gz) continue;
+        framed += 1;
+        const got = shellTest.computeGanjiFromParts({ ...at, second: 0 }, terms);
+        if (!got) { frameNull += 1; continue; }
+        const expectYear = formatPillar(gz.year.stemIndex, gz.year.branchIndex, "hanja");
+        const expectMonth = formatPillar(gz.month.stemIndex, gz.month.branchIndex, "hanja");
+        if (got.year !== expectYear || got.month !== expectMonth) {
+          frameRows.push(`${at.year}-${pad2(at.month)}-${pad2(at.day)} ${pad2(at.hour)}:${pad2(at.minute)} `
+            + `코어 ${expectYear}/${expectMonth} · 셸 ${got.year}/${got.month}`);
+        }
+      }
+    }
+  }
+
+  const frameYears = fixtureYears.filter((f) => !nodeErrataYears.has(f.yearText)).length;
+  ok(
+    "⑪-f 정규화된 KASI terms 로 셸 경로를 실제로 돌렸다(0건 통과 방지)",
+    framed >= 24 * frameYears,
+    `${framed}건 / 하한 ${24 * frameYears}건 (픽스처 ${fixtureYears.length}년 − 節오류 ${fixtureYears.length - frameYears}년)`,
+  );
+  ok("⑪-f 셸이 정규화된 KASI terms 를 먹고 null 을 내지 않는다", frameNull === 0, `${frameNull}건`);
+  ok("⑪-f 셸의 세차·월건이 코어와 같다", frameRows.length === 0, frameRows.slice(0, 8).join("\n      "));
+}
+
 // ── --probe / --live ────────────────────────────────────────────────────────
 async function callKasi(method, params) {
   const response = await fetch(ENDPOINT, {
@@ -938,17 +1153,7 @@ async function runLive() {
     counts[source] += 1;
 
     const rows = payload.rows || [];
-    const parsed = rows.map((row) => {
-      const name = String(row.dateName || row.termName || "").trim();
-      const locdate = String(row.locdate || "").trim();
-      // 🔴 KASI 는 kst 를 **우측 공백으로 채워** 보낸다(실측 2026-08-28: `"1001      "` — 10자).
-      // trim 없이 padStart(4) 하면 그대로 10자라 `/^\d{4}$/` 가 떨어지고, 24행이 전부 null 이 되어
-      // "행이 24개가 아니다(0)" 로 죽는다. 이 줄은 403 때문에 실데이터를 한 번도 못 만나 본
-      // 코드였다 — worker/routes/kasi.js 의 normalizeSolarTermRows 는 처음부터 trim 한다.
-      const kst = String(row.kst || row.time || "").trim().replace(":", "").padStart(4, "0");
-      if (!/^\d{8}$/.test(locdate) || !/^\d{4}$/.test(kst)) return null;
-      return { name, cell: `${locdate.slice(4, 6)}${locdate.slice(6, 8)}${kst}`, ms: Date.UTC(Number(locdate.slice(0, 4)), Number(locdate.slice(4, 6)) - 1, Number(locdate.slice(6, 8)), Number(kst.slice(0, 2)), Number(kst.slice(2, 4))) };
-    }).filter(Boolean);
+    const parsed = rows.map((row) => parseLiveTermRow(row)).filter(Boolean);
 
     if (parsed.length !== 24) {
       console.error(`  🔴 ${year} 행이 24개가 아니다(${parsed.length}). 원문: ${JSON.stringify(rows).slice(0, 400)}`);
