@@ -23,7 +23,7 @@ function clampInt(value, fallback, min, max) {
   return Math.min(max, Math.max(min, n));
 }
 
-function getKstDateParts(value = Date.now()) {
+export function getKstDateParts(value = Date.now()) {
   const base = value instanceof Date ? value : new Date(value);
   const kst = new Date(base.getTime() + KST_OFFSET_MS);
   return {
@@ -34,7 +34,7 @@ function getKstDateParts(value = Date.now()) {
   };
 }
 
-function getKstDateKey(value = Date.now()) {
+export function getKstDateKey(value = Date.now()) {
   const { y, m, d } = getKstDateParts(value);
   return `${y}-${String(m).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 }
@@ -70,8 +70,8 @@ function getJulianDay(year, month, day) {
   return Math.floor(365.25 * (y + 4716)) + Math.floor(30.6001 * (m + 1)) + day + B - 1524.5;
 }
 
-function getTodayPillars() {
-  const { y, m, d, day } = getKstDateParts();
+export function getTodayPillars(now = Date.now()) {
+  const { y, m, d, day } = getKstDateParts(now);
 
   const jd = getJulianDay(y, m, d);
   const dayIdx = (Math.floor(jd + 0.5) + 49) % 60;
@@ -96,7 +96,7 @@ const ELEMENT_LABELS = {
   water: "수(水)",
 };
 
-function getSiteBaseUrl(env) {
+export function getSiteBaseUrl(env) {
   return String(env?.SITE_BASE_URL || env?.AUTH_FRONTEND_BASE_URL || "https://code-destiny.com").replace(/\/+$/, "");
 }
 

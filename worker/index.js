@@ -1872,6 +1872,10 @@ export default {
     const { runMonthlyCreditExpiryTask } = await import("./lib/monthly-credit-expiry-task.js");
     // 웹훅 즉시-ack 전환으로 백그라운드 실패/유실된 Transaction.Paid 지급을 재조정한다.
     const { runWebhookReconcileTask } = await import("./routes/payments.js");
+    // SNS 일일 자동 발행. 크론을 새로 만들지 않으려고 이 일일 세트에 얹혀 간다
+    // (worker/wrangler.toml 의 crons 는 수정 금지 대상). 기본값은 꺼짐이라
+    // SNS_DAILY_POST_ENABLED 를 켜기 전에는 이 태스크가 바로 반환한다.
+    const { runSnsDailyPostTask } = await import("./lib/sns-daily-post-task.js");
     // 🔴 allSettled — 예전 Promise.all 은 한 태스크가 throw 하면(runServiceExecutionTimeoutTask 는 실제로
     // re-throw 한다) 나머지 태스크가 함께 죽었다. 실패는 반드시 로그로 남긴다(조용히 삼키지 않는다).
     const tasks = [
@@ -1880,6 +1884,7 @@ export default {
       ["service-execution-timeout", runServiceExecutionTimeoutTask],
       ["monthly-credit-expiry", runMonthlyCreditExpiryTask],
       ["webhook-reconcile", runWebhookReconcileTask],
+      ["sns-daily-post", runSnsDailyPostTask],
     ];
     ctx.waitUntil(Promise.allSettled(tasks.map(([name, run]) => Promise.resolve()
       .then(() => run(env))
