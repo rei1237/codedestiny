@@ -424,6 +424,17 @@ jobs:
       - name: Verify hero first-paint lock matches its authoritative block
         run: npm run verify:hero-firstpaint-lock
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 입력이 index.html 하나뿐이고, 지켜야 할 변경이
+      # "오버레이 마크업 한 줄 추가" 라 티어가 low/fast 로 잡힌다.
+      # 지키는 것: 셸의 모달은 거의 전부 .wrap(isolation:isolate) 안이라 z-index 로는 body 직속
+      # 하단 탭바(z 980)를 못 넘는다. 유일한 해법인 "열리면 탭바를 물린다" 장치가 시빌라 모달에서
+      # 관측 트리거 누락으로 안 돌았고, 그래서 리포트 마지막 줄이 탭바에 잘렸다
+      # (Playwright 412x823 실측 2026-08-29: 모달을 열고 3.15초를 기다려도 안 물렸고, 무관한
+      # body 변이 하나에 그제서야 물렸다 — 상시 버그가 아니라 레이스였다).
+      # index.html 을 읽고 jsdom 으로 파싱할 뿐이라 네트워크 없이 2초 미만이다.
+      - name: Verify shell overlays hide the bottom tab bar
+        run: npm run verify:shell-overlay-nav-coverage
+
       # 🔴 이것도 **fast 잡**이어야 한다 — 2026-08-23 에 critical 잡에서 옮겨 왔다.
       # public/ 미러가 소스보다 낡으면 테스트는 전부 통과하고 사용자만 옛 화면을 본다.
       # 2026-08-20~21 이틀에 세 번 났고 세 번 다 CI 가 아무 말을 안 했다.
