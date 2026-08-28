@@ -10,6 +10,9 @@ import { redirect } from "next/navigation";
 //    `index, follow` + `canonical=홈` 으로 나갔다(out/ 실측 2026-08-27). 위 주석대로
 //    원래 noindex 였던 라우트이므로 여기서 명시한다. follow 는 남겨 /flower 로 신호를 넘긴다.
 export const metadata = {
+  title: "운명의 꽃 · 점성술 — 통합 아틀리에로 이동",
+  description:
+    "운명의 꽃 점성술 페이지는 통합 아틀리에 /flower 로 합쳐졌습니다. 이 주소는 이동 안내만 합니다.",
   robots: { index: false, follow: true },
 };
 

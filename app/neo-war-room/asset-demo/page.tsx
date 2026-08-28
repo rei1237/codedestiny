@@ -8,6 +8,8 @@ import {
 
 export const metadata = {
   title: "네오의 팩폭 작전실 자산 데모 | Code Destiny",
+  description:
+    "네오의 팩폭 작전실에 쓰이는 배경·스프라이트 자산을 한자리에서 확인하는 내부 데모 화면입니다. 검색 색인 대상이 아닙니다.",
   robots: {
     index: false,
     follow: false,
