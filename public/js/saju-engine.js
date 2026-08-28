@@ -924,6 +924,28 @@ function _kasiPartsFromLocalDate(date) {
   };
 }
 
+/**
+ * 벽시계 부품 조립 — `new Date(y, m - 1, d, h, mi, s)` 를 대신한다.
+ *
+ * 🔴 정규화는 그 생성자와 **한 글자도 달라지면 안 된다**(초과 일수는 다음 달로, 0~99 년은 1900+y).
+ * `Date.UTC` 가 같은 규칙을 갖고 있으면서 타임존에는 안 걸리므로 그 엔진을 그대로 빌린다.
+ * 실측 2026-08-28: 10,692 조합에서 TZ=UTC 불일치 0건, Asia/Seoul 3건은 전부 1950-04-01 00:30
+ * (한국 서머타임 시작) — 즉 차이의 정체가 정규화가 아니라 이 작업이 없애려는 그 접힘이다.
+ */
+function _kasiPartsOf(y, m, d, h, mi, s) {
+  var ms = Date.UTC(y, (m || 1) - 1, d || 1, h || 0, mi || 0, s || 0);
+  if (isNaN(ms)) return null;
+  var at = new Date(ms);
+  return {
+    year: at.getUTCFullYear(),
+    month: at.getUTCMonth() + 1,
+    day: at.getUTCDate(),
+    hour: at.getUTCHours(),
+    minute: at.getUTCMinutes(),
+    second: at.getUTCSeconds()
+  };
+}
+
 /** 부품을 날짜 축으로만 민다. 🔴 시·분은 그대로 — 로컬 Date 의 setDate 와 달리 접히지 않는다. */
 function _kasiShiftPartsByDays(parts, days) {
   var shifted = _shiftDatePartsByDays(parts.year, parts.month, parts.day, days);
@@ -938,6 +960,14 @@ function _kasiShiftPartsByDays(parts, days) {
 }
 
 const KasiEngine = {
+    /**
+     * 벽시계 부품 조립기를 공개한다. 🔴 다른 파일(js/core/**·js/inline/**·js/luck-sync-diary.js)이
+     * 이미 `window.KasiEngine` 존재를 확인하고 들어오므로, 전역 함수 이름에 새로 의존하지 않고
+     * 같은 가드 안에서 정규화를 쓸 수 있다. 인자 규약은 `new Date(y, m-1, d, ...)` 와 달리 **월이 1-based** 다.
+     */
+    partsOf: function(year, month, day, hour, minute, second) {
+        return _kasiPartsOf(year, month, day, hour, minute, second);
+    },
     /**
      * 🔴 인자 1개로 **고정**한다. 두 호출부가 2번째 인자로 `true` 를 넘기는데
      * (saju-engine-tarot-sukuyo-quantum.js) 오늘은 무시된다 — 여기에 options 를 붙이면 그 `true` 가
@@ -1195,31 +1225,36 @@ function hasCompleteGanjiContext(ctx) {
   );
 }
 
+/** 🔴 하위 호환 어댑터. 정본은 아래 buildGanjiRepairCandidateFromParts 다. */
 function buildGanjiRepairCandidate(date, terms24) {
-  if (!(date instanceof Date) || isNaN(date.getTime())) return null;
+  return buildGanjiRepairCandidateFromParts(_kasiPartsFromLocalDate(date), terms24);
+}
+
+function buildGanjiRepairCandidateFromParts(parts, terms24) {
+  if (!parts) return null;
 
   var candidate = null;
 
   try {
-    if (window.KasiCalendarService && typeof window.KasiCalendarService.computeGanjiFromDate === 'function') {
-      candidate = window.KasiCalendarService.computeGanjiFromDate(date, terms24) || null;
+    if (window.KasiCalendarService && typeof window.KasiCalendarService.computeGanjiFromParts === 'function') {
+      candidate = window.KasiCalendarService.computeGanjiFromParts(parts, terms24) || null;
     }
   } catch (svcErr) {
     console.warn('[KASI] service ganji repair failed:', svcErr && svcErr.message ? svcErr.message : svcErr);
   }
 
   /* 한글 주석:
-     validated terms가 부족한 케이스에서는 computeGanjiFromDate가 null을 돌려줄 수 있다.
+     validated terms가 부족한 케이스에서는 computeGanjiFromParts가 null을 돌려줄 수 있다.
      이때 이미 로컬 엔진이 구한 간지(secha/weolgeon/iljin/sigan)가 있으면 그대로 보존해
      사주 원국 4주가 한 개라도 비는 상황을 막는다. */
   if (
     (!candidate || !candidate.year || !candidate.month || !candidate.day || !candidate.hour) &&
     typeof KasiEngine !== 'undefined' &&
     KasiEngine &&
-    typeof KasiEngine.getGanji === 'function'
+    typeof KasiEngine.getGanjiFromParts === 'function'
   ) {
     try {
-      var engineGanji = KasiEngine.getGanji(date);
+      var engineGanji = KasiEngine.getGanjiFromParts(parts);
       if (engineGanji) {
         candidate = Object.assign({}, candidate || {}, {
           year: (candidate && candidate.year) || engineGanji.secha || null,
@@ -1241,11 +1276,11 @@ function buildGanjiRepairCandidate(date, terms24) {
   if (!candidate || !candidate.year || !candidate.month || !candidate.day || !candidate.hour) {
     try {
       var baZi = _coreEightChar(
-        date.getFullYear(),
-        date.getMonth() + 1,
-        date.getDate(),
-        date.getHours(),
-        date.getMinutes()
+        parts.year,
+        parts.month,
+        parts.day,
+        parts.hour,
+        parts.minute
       );
       candidate = Object.assign({}, candidate || {}, {
         year: (candidate && candidate.year) || baZi.getYear(),
@@ -1266,16 +1301,16 @@ function repairGanjiContextFromLocal(ctx, input) {
   if (hasCompleteGanjiContext(ctx)) return ctx;
   try {
     var solar = ctx.solar || {};
-    var date = new Date(
+    var parts = _kasiPartsOf(
       parseInt(solar.year, 10),
-      parseInt(solar.month, 10) - 1,
+      parseInt(solar.month, 10),
       parseInt(solar.day, 10),
       parseInt(solar.hour != null ? solar.hour : input.hour, 10) || 12,
       parseInt(solar.minute != null ? solar.minute : input.minute, 10) || 0,
       parseInt(solar.second != null ? solar.second : input.second, 10) || 0
     );
-    if (isNaN(date.getTime())) return ctx;
-    var computed = buildGanjiRepairCandidate(date, ctx.terms24);
+    if (!parts) return ctx;
+    var computed = buildGanjiRepairCandidateFromParts(parts, ctx.terms24);
     if (!computed) return ctx;
     ctx.ganji = Object.assign({}, ctx.ganji || {}, {
       year: ctx.ganji && ctx.ganji.year ? ctx.ganji.year : computed.year,
@@ -1413,7 +1448,7 @@ function buildFallbackDateContext(input, reason) {
     if (isNaN(minute)) minute = 0;
     if (isNaN(second)) second = 0;
 
-    var solarDate = null;
+    var solarParts = null;
     var lunarObj = null;
     var canUseEngine = (typeof KasiEngine !== 'undefined');
 
@@ -1421,11 +1456,11 @@ function buildFallbackDateContext(input, reason) {
       return !!(obj && obj.year && obj.month && obj.day);
     }
 
-    function safeSolarToLunar(dateObj) {
-      if (!dateObj || isNaN(dateObj.getTime())) return null;
+    function safeSolarToLunar(parts) {
+      if (!parts) return null;
       try {
-        if (canUseEngine && typeof KasiEngine.solarToLunar === 'function') {
-          var byEngine = KasiEngine.solarToLunar(dateObj);
+        if (canUseEngine && typeof KasiEngine.solarToLunarFromParts === 'function') {
+          var byEngine = KasiEngine.solarToLunarFromParts(parts);
           if (isValidLunar(byEngine)) return byEngine;
         }
       } catch (_e0) {}
@@ -1446,12 +1481,12 @@ function buildFallbackDateContext(input, reason) {
     }
 
     if (calType === 'solar') {
-      solarDate = new Date(year, month - 1, day, hour, minute, second);
-      lunarObj = safeSolarToLunar(solarDate);
+      solarParts = _kasiPartsOf(year, month, day, hour, minute, second);
+      lunarObj = safeSolarToLunar(solarParts);
     } else {
       var conv = safeLunarToSolar(year, month, day, calType === 'lunar_leap');
       if (!conv) return null;
-      solarDate = new Date(conv.year, conv.month - 1, conv.day, hour, minute, second);
+      solarParts = _kasiPartsOf(conv.year, conv.month, conv.day, hour, minute, second);
       lunarObj = {
         year: year,
         month: month,
@@ -1459,16 +1494,16 @@ function buildFallbackDateContext(input, reason) {
         isLeap: calType === 'lunar_leap'
       };
     }
-    if (!solarDate || isNaN(solarDate.getTime())) return null;
+    if (!solarParts) return null;
     if (!isValidLunar(lunarObj)) {
-      lunarObj = safeSolarToLunar(solarDate);
+      lunarObj = safeSolarToLunar(solarParts);
     }
     if (!isValidLunar(lunarObj)) return null;
 
     var gj = null;
     try {
-      if (canUseEngine && typeof KasiEngine.getGanji === 'function') {
-        gj = KasiEngine.getGanji(solarDate);
+      if (canUseEngine && typeof KasiEngine.getGanjiFromParts === 'function') {
+        gj = KasiEngine.getGanjiFromParts(solarParts);
       }
     } catch (_e) {}
     return {
@@ -1486,12 +1521,12 @@ function buildFallbackDateContext(input, reason) {
         tzOffsetHours: input.tzOffsetHours
       },
       solar: {
-        year: solarDate.getFullYear(),
-        month: solarDate.getMonth() + 1,
-        day: solarDate.getDate(),
-        hour: solarDate.getHours(),
-        minute: solarDate.getMinutes(),
-        second: solarDate.getSeconds()
+        year: solarParts.year,
+        month: solarParts.month,
+        day: solarParts.day,
+        hour: solarParts.hour,
+        minute: solarParts.minute,
+        second: solarParts.second
       },
       lunar: {
         year: lunarObj && lunarObj.year,
@@ -2910,8 +2945,7 @@ window.computeProfileForModal = function(profile) {
       second: 0
     });
     try {
-      var _d  = new Date(corrYear, corrMonth - 1, corrDay, corrH, corrM);
-      var _gj = KasiEngine.getGanji(_d);
+      var _gj = KasiEngine.getGanjiFromParts(_kasiPartsOf(corrYear, corrMonth, corrDay, corrH, corrM, 0));
       if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
         bazi.getYearGan  = function() { return _gj.secha[0]; };
         bazi.getYearZhi  = function() { return _gj.secha[1]; };
@@ -2977,11 +3011,11 @@ function calcZiweiPalaces(year, month, day, hour, minute) {
   // [Cleanup] lunar-javascript 의 solar/lunar 지역변수는 PR-C 가 폴백을 걷어낸 뒤로 한 번도
   // 읽히지 않았다(이 함수 전체에서 참조 0). 남겨 두면 이 함수가 그 라이브러리 없이는 못 도는
   // 것처럼 보이는데, 실제로는 아래 KasiEngine → 한국 음양력 코어만 있으면 된다.
-  var baseDate = new Date(year, month - 1, day, hour || 0, minute || 0, 0);
+  var baseParts = _kasiPartsOf(year, month, day, hour || 0, minute || 0, 0);
   var kasiLunar = null;
   try {
-    if (KasiEngine && typeof KasiEngine.solarToLunar === 'function') {
-      kasiLunar = KasiEngine.solarToLunar(baseDate);
+    if (KasiEngine && typeof KasiEngine.solarToLunarFromParts === 'function') {
+      kasiLunar = KasiEngine.solarToLunarFromParts(baseParts);
     }
   } catch (_kasiLunarErr) {}
 
@@ -5409,7 +5443,7 @@ async function calculate(){
         };
       }
       if (!lunarDateObj) {
-        lunarDateObj = KasiEngine.solarToLunar(new Date(year, month-1, day, correctedHour, correctedMinute));
+        lunarDateObj = KasiEngine.solarToLunarFromParts(_kasiPartsOf(year, month, day, correctedHour, correctedMinute, 0));
       }
       var leapStr = lunarDateObj.isLeap ? '(윤달)' : '(평달)';
       lunarInfo = `<div class="hero-lunar-row"><span class="hero-lunar-label">입춘기준 년도</span><span class="hero-lunar-value">${bazi.getYearGan()}${bazi.getYearZhi()}년</span></div>`
@@ -24289,8 +24323,9 @@ function renderZiwei(p, natal, targetId) {
         }
         function zwFlowGanji(year) {
           try {
-            if (typeof KasiEngine !== 'undefined' && KasiEngine && typeof KasiEngine.getGanji === 'function') {
-              var gj = KasiEngine.getGanji(new Date(Number(year), 1, 4, 12, 0, 0));
+            if (typeof KasiEngine !== 'undefined' && KasiEngine && typeof KasiEngine.getGanjiFromParts === 'function') {
+              // 🔴 월은 1-based 다 — 옛 `new Date(y, 1, 4, ...)` 의 월 인덱스 1 은 **2월**이다.
+              var gj = KasiEngine.getGanjiFromParts(_kasiPartsOf(Number(year), 2, 4, 12, 0, 0));
               if (gj && gj.secha) return String(gj.secha || '').slice(0, 2);
             }
           } catch (_flowGanjiErr) {}
@@ -26055,13 +26090,13 @@ function _sajuElementEnToKo(elementEn) {
   return '';
 }
 
-function _resolveMonthCommandBirthDate() {
+function _resolveMonthCommandBirthParts() {
   try {
     var b = window._ziweiBirth || window._astroBirth || null;
     if (b && b.year && b.month && b.day) {
       var hh = (b.hour != null) ? Number(b.hour) : 12;
       var mm = (b.minute != null) ? Number(b.minute) : 0;
-      return new Date(Number(b.year), Number(b.month) - 1, Number(b.day), isNaN(hh) ? 12 : hh, isNaN(mm) ? 0 : mm, 0);
+      return _kasiPartsOf(Number(b.year), Number(b.month), Number(b.day), isNaN(hh) ? 12 : hh, isNaN(mm) ? 0 : mm, 0);
     }
     var dEl = document.getElementById('birthDate');
     if (dEl && dEl.value) {
@@ -26072,23 +26107,22 @@ function _resolveMonthCommandBirthDate() {
         var mEl = document.getElementById('birthMinute');
         var h = hEl ? parseInt(String(hEl.value || '12'), 10) : 12;
         var m = mEl ? parseInt(String(mEl.value || '0'), 10) : 0;
-        return new Date(p[0], p[1] - 1, p[2], isNaN(h) ? 12 : h, isNaN(m) ? 0 : m, 0);
+        return _kasiPartsOf(p[0], p[1], p[2], isNaN(h) ? 12 : h, isNaN(m) ? 0 : m, 0);
       }
     }
   } catch (_e) {}
   return null;
 }
 
+/** 🔴 하위 호환 어댑터. 정본은 아래 부품 갈래다. */
 function _calculateMonthBranchBySolarTerm(dateObj) {
-  if (!dateObj || isNaN(dateObj.getTime())) return '';
+  return _calculateMonthBranchBySolarTermFromParts(_kasiPartsFromLocalDate(dateObj));
+}
+
+function _calculateMonthBranchBySolarTermFromParts(parts) {
+  if (!parts) return '';
   try {
-    var bazi = _coreEightChar(
-      dateObj.getFullYear(),
-      dateObj.getMonth() + 1,
-      dateObj.getDate(),
-      dateObj.getHours(),
-      dateObj.getMinutes()
-    );
+    var bazi = _coreEightChar(parts.year, parts.month, parts.day, parts.hour, parts.minute);
     return bazi.getMonthZhi();
   } catch (_e) {
     return '';
@@ -26127,8 +26161,8 @@ function _getRelationStrengthHint(relation, pw) {
 
 function _buildMonthCommandFromEngine(p, natal, pw) {
   var monthBranchByPillar = (p && p.m && p.m.j) ? String(p.m.j) : '';
-  var birthDate = _resolveMonthCommandBirthDate();
-  var monthBranchBySolarTerm = _calculateMonthBranchBySolarTerm(birthDate);
+  var birthParts = _resolveMonthCommandBirthParts();
+  var monthBranchBySolarTerm = _calculateMonthBranchBySolarTermFromParts(birthParts);
   var selectedBranch = monthBranchBySolarTerm || monthBranchByPillar;
   var fallbackUsed = false;
   var fallbackNotice = '';
@@ -27788,8 +27822,7 @@ async function runCompatCore(compatRunBtn, name, bd, type){
       bazi.getDayZhi = function() { return kasiDayPair.j; };
     } else {
       try {
-        var _d = new Date(year, month-1, day, hour, minute);
-        var _gj = KasiEngine.getGanji(_d);
+        var _gj = KasiEngine.getGanjiFromParts(_kasiPartsOf(year, month, day, hour, minute, 0));
         if (_gj && _gj.secha && _gj.weolgeon && _gj.iljin) {
             bazi.getYearGan = function() { return _gj.secha[0]; };
             bazi.getYearZhi = function() { return _gj.secha[1]; };
@@ -28954,7 +28987,7 @@ function renderCurrentSeasonSummary(bazi){
     try{
       var yBazi=_coreEightChar(nowYear,6,15,12,0);
       try{
-        var _sj=KasiEngine.getGanji(new Date(nowYear,5,15,12,0,0));
+        var _sj=KasiEngine.getGanjiFromParts(_kasiPartsOf(nowYear,6,15,12,0,0));
         if(_sj&&_sj.secha){ yBazi.getYearGan=function(){return _sj.secha[0];}; yBazi.getYearZhi=function(){return _sj.secha[1];}; }
       }catch(e){}
       yg=yBazi.getYearGan();yz=yBazi.getYearZhi();
@@ -29079,7 +29112,7 @@ function showDwDetail(age,gan,zhi,evaluation,score){
       var yBazi=_coreEightChar(yr,6,15,12,0);
 
       try {
-        var _sj = KasiEngine.getGanji(new Date(yr, 5, 15, 12, 0, 0));
+        var _sj = KasiEngine.getGanjiFromParts(_kasiPartsOf(yr, 6, 15, 12, 0, 0));
         if(_sj && _sj.secha) {
             yBazi.getYearGan = function() { return _sj.secha[0]; };
             yBazi.getYearZhi = function() { return _sj.secha[1]; };
@@ -29776,7 +29809,7 @@ function findSimilarCelebs(p){
       var bazi = _coreEightChar(year, month, day, hour, minute);
 
       try {
-        var _sj = KasiEngine.getGanji(new Date(year, month-1, day, hour, minute));
+        var _sj = KasiEngine.getGanjiFromParts(_kasiPartsOf(year, month, day, hour, minute, 0));
         if(_sj && _sj.secha && _sj.weolgeon && _sj.iljin) {
             bazi.getYearGan = function() { return _sj.secha[0]; };
             bazi.getYearZhi = function() { return _sj.secha[1]; };

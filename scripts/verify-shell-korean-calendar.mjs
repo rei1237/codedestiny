@@ -670,6 +670,142 @@ function extractFunctionSource(source, name) {
   }
 }
 
+// ── ⑬ 간지 경로에 로컬 Date 조립이 남아 있지 않다 ────────────────────
+//
+// 🔴 KST 벽시계 부품으로 로컬 `Date` 를 만들면, 그 벽시계가 브라우저 타임존에 **존재하지 않을 때**
+// (서머타임 시계 앞당김) JS 가 조용히 다른 시각으로 접고 시주·일주·월주가 틀어진다.
+// PR-D 가 간지 경로에서 그 조립을 전부 걷어냈고, 이 검사가 다시 들어오는 것을 막는다.
+// 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
+//
+// 🔴 대상 파일 목록과 허용 목록은 **둘 다 고정 리터럴**이다. 소스에서 유도하면 동어반복이 된다.
+// 그리고 허용 목록의 각 원소가 **실제 스캔 결과와 매치돼야** 한다(도달 검사) — 스캐너가 죽거나
+// 그 코드가 사라지면 "0건이라 통과"가 되는데, 그건 검증이 아니라 침묵이다.
+{
+  // 간지·절기·음력을 계산하는 셸 파일 전수. 여기 없는 파일은 이 검사가 안 본다.
+  const GANJI_PATH_FILES = Object.freeze([
+    "js/core/kasi-calendar-service.js",
+    "js/saju-engine.js",
+    "js/saju-engine-tarot-sukuyo-quantum.js",
+    "js/core/index-inline-runtime.js",
+    "js/core/saju/modalProfileState.js",
+    "js/inline/saju-core-bootstrap.js",
+    "js/luck-sync-diary.js",
+  ]);
+
+  // 🔴 남겨 둔 다인자 `new Date(` — 전부 **표시 축**이고 간지를 만들지 않는다.
+  // args 는 인자 문자열을 공백 제거해 그대로 적는다. 옮기거나 지웠으면 이 표도 같이 고쳐라.
+  const ALLOWED = Object.freeze([
+    { file: "js/saju-engine-tarot-sukuyo-quantum.js", args: "d.getFullYear(),0,1", why: "lottoWeekKey — ISO 주차 표시" },
+    { file: "js/luck-sync-diary.js", args: "Number(year),Number(monthIndex),Number(day),12,0,0,0", why: "_makeLocalNoonDate — 달력 표시 축(PR-E)" },
+    { file: "js/luck-sync-diary.js", args: "year,month,1", why: "월 그리드 첫 칸(PR-E)" },
+    { file: "js/luck-sync-diary.js", args: "year,month+1,0", why: "월 그리드 말일(PR-E)" },
+    { file: "js/luck-sync-diary.js", args: "year,month,0", why: "월 그리드 전월 말일(PR-E)" },
+    { file: "js/luck-sync-diary.js", args: "year,month-1,dayNum,12", why: "월 그리드 전월 칸(PR-E)" },
+    { file: "js/luck-sync-diary.js", args: "year,month+1,dayNum,12", why: "월 그리드 익월 칸(PR-E)" },
+    { file: "js/luck-sync-diary.js", args: "year,month,dayNum,12", why: "월 그리드 당월 칸(PR-E)" },
+    { file: "js/luck-sync-diary.js", args: "year,monthIndex+1,0", why: "월 일수 계산(PR-E)" },
+  ]);
+
+  // 🔴 주석·문자열을 **걷어내고** 센다. 안 그러면 이 검사가 자기를 설명하는 주석에 걸린다
+  // (실제로 걸렸다 — _partsOf 의 `new Date(y, m - 1, d, ...)` 설명이 첫 오탐이었다).
+  function stripCommentsAndStrings(text) {
+    let out = "";
+    let i = 0;
+    while (i < text.length) {
+      const two = text.slice(i, i + 2);
+      if (two === "//") {
+        const end = text.indexOf(String.fromCharCode(10), i);
+        i = end < 0 ? text.length : end;
+        continue;
+      }
+      if (two === "/*") {
+        const end = text.indexOf("*/", i + 2);
+        i = end < 0 ? text.length : end + 2;
+        continue;
+      }
+      const ch = text[i];
+      if (ch === '"' || ch === "'" || ch === "`") {
+        let j = i + 1;
+        while (j < text.length) {
+          if (text[j] === String.fromCharCode(92)) { j += 2; continue; }
+          if (text[j] === ch) { j += 1; break; }
+          j += 1;
+        }
+        out += " ".repeat(j - i);
+        i = j;
+        continue;
+      }
+      out += ch;
+      i += 1;
+    }
+    return out;
+  }
+
+  /** 다인자 `new Date(a, b, ...)` 만 센다. 인자 1개(타임스탬프·복제)와 Date.UTC 포장은 안전하다. */
+  function findAssembly(code) {
+    const hits = [];
+    const re = /new Date\(/g;
+    let m;
+    while ((m = re.exec(code)) !== null) {
+      const start = m.index + m[0].length;
+      let depth = 1;
+      let i = start;
+      while (i < code.length && depth > 0) {
+        const ch = code[i];
+        if (ch === "(") depth += 1;
+        else if (ch === ")") depth -= 1;
+        i += 1;
+      }
+      const args = code.slice(start, i - 1);
+      if (/^\s*Date\.UTC\(/.test(args)) continue;
+      let d = 0;
+      let commas = 0;
+      for (const ch of args) {
+        if (ch === "(" || ch === "[" || ch === "{") d += 1;
+        else if (ch === ")" || ch === "]" || ch === "}") d -= 1;
+        else if (ch === "," && d === 0) commas += 1;
+      }
+      if (commas < 1) continue;
+      hits.push({
+        line: code.slice(0, m.index).split(String.fromCharCode(10)).length,
+        args: args.replace(/\s+/g, ""),
+      });
+    }
+    return hits;
+  }
+
+  ok("⑬ 간지 경로 파일 목록이 비어 있지 않다", GANJI_PATH_FILES.length >= 7, `${GANJI_PATH_FILES.length}개`);
+
+  const matchedAllow = new Set();
+  let scanned = 0;
+  const offenders = [];
+  for (const rel of GANJI_PATH_FILES) {
+    const code = stripCommentsAndStrings(fs.readFileSync(path.join(root, rel), "utf8"));
+    for (const hit of findAssembly(code)) {
+      scanned += 1;
+      const allow = ALLOWED.find((a) => a.file === rel && a.args === hit.args);
+      if (allow) { matchedAllow.add(`${allow.file}|${allow.args}`); continue; }
+      offenders.push(`${rel}:${hit.line} new Date(${hit.args})`);
+    }
+  }
+
+  ok("⑬ 스캐너가 실제로 뭔가를 셌다(0 이면 가드가 깨진 것)", scanned >= ALLOWED.length, `${scanned}건`);
+  // 🔴 도달 검사 — 허용 목록이 죽으면 그 아래 "0건 통과"는 아무것도 안 지킨다.
+  const unreachable = ALLOWED.filter((a) => !matchedAllow.has(`${a.file}|${a.args}`));
+  ok(
+    "⑬ 🔴 허용 목록이 전부 실제 스캔 결과와 매치된다(스캐너·코드 사망 탐지)",
+    unreachable.length === 0,
+    `매치 실패 ${unreachable.length}건` + String.fromCharCode(10) + "      "
+    + unreachable.map((a) => `${a.file}: new Date(${a.args}) — ${a.why}`).join(String.fromCharCode(10) + "      "),
+  );
+  ok(
+    "⑬ 🔴 간지 경로에 Date.UTC 로 감싸이지 않은 다인자 new Date( 가 없다",
+    offenders.length === 0,
+    `${offenders.length}건` + String.fromCharCode(10) + "      " + offenders.join(String.fromCharCode(10) + "      ")
+    + String.fromCharCode(10) + "      → 로컬 Date 를 캐리어로 쓰지 말고 벽시계 부품 { year, month, day, hour, minute, second } 를 넘겨라."
+    + String.fromCharCode(10) + "      표시 축이라 정말 안전하면 이 검사의 ALLOWED 에 사유와 함께 등재하라(도달 검사가 걸린다).",
+  );
+}
 if (failures.length) {
   console.error(`[verify:shell-korean-calendar] 실패 ${failures.length}건 / 검사 ${checks}건`);
   for (const failure of failures) console.error(`  ✗ ${failure}`);

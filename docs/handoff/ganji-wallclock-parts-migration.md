@@ -3,7 +3,82 @@
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
 > 사용자 승인 계획: "전량 3단계"(2026-08-28). 여기 있는 PR-B~E 가 그것이다.
 
-## ✅ PR-C 완료 (2026-08-28) — **다음은 PR-D(§5)** 부터다
+## ✅ PR-D 완료 (2026-08-28) — **다음은 PR-E(§6)** 부터다
+
+간지 경로에서 **로컬 `Date` 를 캐리어로 쓰는 조립이 0건**이 됐다. 착수점은 §6 이다.
+
+| 파일 | 무엇이 바뀌었나 |
+|---|---|
+| `js/saju-engine.js` | 조립 13곳 전부 부품으로. `buildGanjiRepairCandidateFromParts` · `_calculateMonthBranchBySolarTermFromParts` · `_resolveMonthCommandBirthParts` 신설(옛 이름은 어댑터로 유지) · `_kasiPartsOf` 신설 · `KasiEngine.partsOf` 공개 |
+| `js/saju-engine-tarot-sukuyo-quantum.js` | 조립 5곳(§2 의 4곳 + **문서가 놓친 `qDailyFlow`**) 부품으로. 야자시 `setDate(+1)` → `_kasiShiftPartsByDays` |
+| `js/core/index-inline-runtime.js` · `js/core/saju/modalProfileState.js` · `js/inline/saju-core-bootstrap.js` | 각 1곳. `KasiEngine.partsOf` + `…FromParts` |
+| `js/luck-sync-diary.js` | **간지 축만** 부품으로(`_readGanzhiFromEngineParts` · `getGanZhiByParts` · `_addDaysToParts` 신설, 월 간지맵·궁합 7일 루프·원국). 달력 표시 축은 PR-E |
+| `scripts/verify-ganji-surface-parity.mjs` | 검사 ⑤ 신설 — **부품 축 10벌을 구멍 제외 없이 6개 존 전건 대조**. 51건 · 6.1초 |
+| `scripts/verify-shell-korean-calendar.mjs` | 검사 ⑬ 신설 — 간지 경로 7개 파일에 `Date.UTC` 로 안 감싸인 다인자 `new Date(` 0건. 55건 |
+
+### 🔴 §5 의 졸업 조건은 **자기모순이었다** — 그래서 다르게 잰다
+
+```
+✅ TZ=Asia/Seoul 산출물 == ganji-surface-kst.json (전건, 무수정)
+✅ 🔴 DST-GAP 총계 == 0
+```
+
+**이 둘은 동시에 성립할 수 없다.** 픽스처 `rows` 안에 값이 `DST-GAP` 인 행이 **12개 들어 있기**
+때문이다(Seoul 1960-05-01 ×3 · 1961-08-10 ×3 · 1987-05-10 ×3 · 1988-05-08 ×3). 구멍이 0 이 되면
+그 12행이 값으로 바뀌므로 픽스처가 반드시 바뀐다. §5 는 PR-B 가 "정본 축에도 구멍 12건" 을
+발견하기 **전에** 쓰였고, 그래서 "census 만 바뀐다"고 적혀 있다.
+
+게다가 그 구멍은 **셸이 만드는 것이 아니라 가드가 만든다** — `probeSample` 이 Date 표면에 넘기려고
+직접 `new Date(...)` 를 조립하고, 그게 접히면 그 표본을 버린다. 즉 호출부를 아무리 고쳐도
+그 숫자는 안 움직인다(실측: 변환 전후 census 완전 동일).
+
+**그래서 졸업 조건을 픽스처를 건드리지 않는 형태로 옮겼다** — 검사 ⑤:
+
+```
+✅ 부품 축 10벌 × 표본 1516건 × TZ 6종, **구멍 제외 없이** 전건 KST 와 일치
+✅ 옛 축이 버리던 KST 구멍 12건도 부품 축에서는 값이 나온다
+✅ 부품 산출물이 전부 비어 있지 않다 (빈 값끼리 대조하는 것을 막는다)
+```
+
+의미는 §5 가 원하던 것과 같다("간지 경로가 브라우저 타임존과 무관해졌다"). 다른 점은 **골든 파일을
+다시 뽑지 않고** 존 간 동일성으로 재는 것이라, PR-B 가 세운 before-image 가 그대로 살아 있다는 것이다.
+
+🔴 **남은 선택지(사용자 결정 필요)**: 문자 그대로 `ganji-dst-gap-census.json` 을 0 으로 만들려면
+가드의 **Date 표면 12벌을 부품 표면으로 갈아치우고 `--emit` 으로 픽스처를 다시 뽑아야** 한다.
+그건 before-image 를 버리는 일이라 이 PR 에서 하지 않았다. Date 표면은 PR-E 가 진입점을 지울 때
+같이 사라지므로, **그때 한 번에 정리하는 것이 자연스럽다.**
+
+### 🔴 문서가 놓쳤던 조립 사이트 3곳 (전부 이번에 변환했다)
+
+| 위치 | 무엇 |
+|---|---|
+| `js/saju-engine.js` `_resolveMonthCommandBirthDate` 의 **첫 갈래** | §2 는 `:26011`(두 번째 갈래)만 적었다. 두 갈래 모두 월지 판정에 들어간다 |
+| `js/saju-engine-tarot-sukuyo-quantum.js` `qDailyFlow` | "오늘부터 7일" 일운. 매 칸을 `new Date(y, m, d+i, 12, 0, 0)` 로 재조립해서, 하루가 통째로 없는 존(Apia 2011-12-30)에서 그 칸의 일진이 밀렸다 |
+| `js/luck-sync-diary.js` 궁합 7일 루프 | 같은 모양(`d+i`, 9시) |
+
+### 🔴 새로 알게 된 것
+
+1. **`KasiEngine.partsOf` 를 공개했다** — `js/core/**`·`js/inline/**`·`js/luck-sync-diary.js` 는 이미
+   `window.KasiEngine` 존재를 확인하고 들어오므로, 전역 함수 이름(`_kasiPartsOf`)에 새로 의존하지 않고
+   같은 가드 안에서 정규화를 쓸 수 있다. 🔴 인자 규약이 `new Date` 와 달리 **월이 1-based** 다.
+2. **`_makeLocalNoonDate` 는 안 지웠다** — `_parseDateKeyToDate` 가 그것을 쓰고, 그 반환 Date 를
+   5곳이 `getTime()`·`getDay()`·`getDate()` 로 쓰거나 `_classifyDayFromSaju` 에 넘긴다. 그 축은
+   간지가 아니라 **달력 표시**라 §2 가 이미 PR-E 로 분류해 둔 자리다(`js/luck-sync-diary.js:272`).
+   검사 ⑬ 의 `ALLOWED` 표가 그 9곳을 사유와 함께 등재하고 **도달 검사**로 지킨다.
+3. **월 인덱스 off-by-one 은 §5 가 예고한 4건 + 2건이었다** — `saju-engine:24229`(`,1,4,` → 월 **2**) ·
+   `:28893`·`:29018`(`,5,15,` → 월 **6**) · `tarot:13261`(`monthIndex` → **+1**) 에 더해
+   `tarot:qDailyFlow`(`getMonth()` → **+1**) · `luck-sync:_getGanzhiMonthMap`(`monthIndex` → **+1**).
+
+### PR-D 음성 테스트 5종 (전부 fail-closed → 복구 후 초록)
+
+부품 진입점을 다시 로컬 Date 로 되돌리기(→ **Apia·Kiritimati 가 KST 와 갈린다**) · 부품 표면을 전부
+빈 값으로 만들기 / 간지 경로에 다인자 `new Date(` 되살리기 · 허용 목록의 코드 없애기(도달 검사) ·
+스캐너 죽이기.
+🔴 첫 번째가 이 PR 의 증거다 — 그 변조는 옛 축(①②③)으로는 **안 잡힌다**(구멍 표본을 빼고 재니까).
+
+---
+
+## ✅ PR-C 완료 (2026-08-28)
 
 서비스가 부품 정본이 됐고 엔진에 부품 API 가 생겼다. §4 는 이제 "무엇을 만들었나"의 명세로
 읽고, 착수점은 §5 다. **계약(`ganji-surface-kst.json` 무수정)은 지켜졌다** — 그 파일은 이 PR 의
@@ -281,7 +356,7 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 
 ---
 
-## 5. PR-D — 조립 22곳 전환 · DST 구멍 0
+## 5. ✅ PR-D — 조립 22곳 전환 · DST 구멍 0 (완료 — 졸업 조건은 문서 맨 위대로 바뀌었다)
 
 §2 의 표대로 전부 "부품을 만들어 부품 API 에 넘긴다". 중간에 `Date` 를 만들지 않는다.
 
@@ -303,10 +378,12 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 ```
 `ganji-dst-gap-census.json` 을 0 으로 바꾸는 것이 **이 PR 의 의도된 유일한 픽스처 변경**이다.
 
-### 신설 검사 ⑬ (`verify:shell-korean-calendar`)
+### ✅ 신설 검사 ⑬ (`verify:shell-korean-calendar`)
 간지 경로 파일에 `Date.UTC` 로 감싸이지 않은 다인자 `new Date(` 0건.
-대상 파일 목록·허용 목록 **둘 다 고정 리터럴**. 🔴 **도달 검사**: 허용 목록의 각 원소가 실제로 그 파일에서
-매치돼야 한다(스캐너 사망 탐지 — `verify:lunar-conversion-core` 방식).
+대상 파일 목록·허용 목록 **둘 다 고정 리터럴**. 🔴 **도달 검사**: 허용 목록의 각 원소가 실제 스캔
+결과와 매치돼야 한다(스캐너 사망 탐지).
+🔴 **스캐너는 주석·문자열을 걷어내고 센다** — 안 그러면 이 검사가 자기를 설명하는 주석에 걸린다
+(실제로 걸렸다: `_partsOf` 의 "`new Date(y, m - 1, d, ...)` 와 같아야 한다" 설명이 첫 오탐이었다).
 
 ### `public/` · 캐시키
 `js/**` 를 건드리므로 캐시키가 회전한다 — `index.html` `?v=` 87곳 + 미러 = **#1217 과 같은 25파일** 규모.

@@ -725,10 +725,9 @@ function _computePillarsViaEngine(y, m, d, callback) {
   function doCompute() {
     try {
       var ke = window.KasiEngine;
-      if (!ke || typeof ke.getGanji !== 'function') { callback(null, '엔진 로딩 중'); return; }
+      if (!ke || typeof ke.getGanjiFromParts !== 'function') { callback(null, '엔진 로딩 중'); return; }
 
-      var dt = new Date(y, m - 1, d, 12, 0, 0);
-      var gj = ke.getGanji(dt);
+      var gj = ke.getGanjiFromParts(ke.partsOf(y, m, d, 12, 0, 0));
       if (!gj || !gj.secha || !gj.weolgeon || !gj.iljin) { callback(null, '계산 실패'); return; }
 
       var yg = String(gj.secha)[0]   || '', yz = String(gj.secha)[1]   || '';

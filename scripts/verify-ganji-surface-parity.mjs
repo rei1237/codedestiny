@@ -340,6 +340,61 @@ const SURFACES = Object.freeze([
  * 이 타임존에 존재하지 않는 것이고(서머타임 앞당김), 그 표본은 값이 아니라 `DST-GAP` 으로 센다.
  * 이 되읽기가 곧 이 가드가 세려는 구멍의 정의다.
  */
+/**
+ * ── 부품 표면 ─────────────────────────────────────────────────────────────
+ *
+ * 🔴 위 12벌은 전부 **로컬 Date 를 캐리어로** 받는 옛 진입점이라, 그 벽시계가 존재하지 않는
+ * 타임존에서는 가드가 값을 못 만들고 표본을 `DST-GAP` 으로 버린다(그 구멍이 곧 이 작업의 대상이다).
+ * 아래는 PR-C·PR-D 가 세운 **부품 진입점**이다 — 캐리어가 없으므로 버릴 표본도 없다.
+ *
+ * 그래서 검사 ⑤ 는 **구멍 제외 없이 1516 표본 전부**를 6개 존에서 대조한다. 그것이
+ * "간지 경로가 브라우저 타임존과 무관해졌다"의 실측이고, 옛 축(①②③)이 못 재던 자리다.
+ */
+const PARTS_SURFACES = Object.freeze([
+  ["getGanjiFromParts", (at, p) => pill(win.KasiEngine.getGanjiFromParts(p))],
+  ["getGanjiFromParts:noYaja", (at, p) => pill(win.KasiEngine.getGanjiFromParts(p, { yaja: false }))],
+  ["solarToLunarFromParts", (at, p) => {
+    const l = win.KasiEngine.solarToLunarFromParts(p);
+    return l ? `${l.year}-${pad2(l.month)}-${pad2(l.day)}${l.isLeap ? "L" : ""}` : null;
+  }],
+  ["computeGanjiFromParts:noTerms", (at, p) => pill(win.KasiCalendarService.computeGanjiFromParts(p))],
+  ["computeGanjiFromParts:terms", (at, p) => pill(win.KasiCalendarService.computeGanjiFromParts(p, termsFor(at.year)))],
+  ["buildGanjiRepairCandidateFromParts", (at, p) => pill(win.buildGanjiRepairCandidateFromParts(p, termsFor(at.year)))],
+  ["_calculateMonthBranchBySolarTermFromParts", (at, p) => {
+    const r = win._calculateMonthBranchBySolarTermFromParts(p);
+    return typeof r === "string" ? r : pill(r);
+  }],
+  ["_cdCivilDayPillar", (at) => {
+    const r = win._cdCivilDayPillar(at.year, at.month, at.day, at.hour);
+    return typeof r === "string" ? r : pill(r);
+  }],
+  ["getGanZhiForDate", (at) => {
+    const r = win.getGanZhiForDate(at.year, at.month, at.day, at.hour);
+    return typeof r === "string" ? r : pill(r);
+  }],
+  ["calcZiweiPalaces:calcMeta", (at) => {
+    win.GENDER = "M";
+    const chart = win.calcZiweiPalaces(at.year, at.month, at.day, at.hour, at.minute);
+    const meta = chart && chart.calcMeta;
+    if (!meta) return null;
+    return [meta.yearGanji, meta.monthGanji, meta.dayGanji, meta.hourGanji, meta.lunarDay, meta.isLeapMonth]
+      .map((v) => (v === undefined || v === null ? "" : String(v))).join("/");
+  }],
+]);
+
+/** 🔴 로컬 Date 를 **한 번도 안 만든다**. 그래서 구멍이라는 개념 자체가 없다. */
+function probeSampleParts(sample) {
+  const at = sample.at;
+  const p = { year: at.year, month: at.month, day: at.day, hour: at.hour, minute: at.minute, second: 0 };
+  const values = [];
+  for (const [, fn] of PARTS_SURFACES) {
+    let v = null;
+    try { v = fn(at, { ...p }); } catch (err) { v = `THROW:${String(err && err.message).slice(0, 60)}`; }
+    values.push(v === null || v === undefined ? "" : String(v));
+  }
+  return values.join("\t");
+}
+
 function probeSample(sample) {
   const at = sample.at;
   const d = new Date(at.year, at.month - 1, at.day, at.hour, at.minute, 0);
@@ -363,8 +418,10 @@ function probeSample(sample) {
 function sweep() {
   const rows = [];
   const nullMap = [];
+  const partsRows = [];
   let gaps = 0;
   for (const sample of SAMPLES) {
+    partsRows.push(`${sample.key}\t${probeSampleParts(sample)}`);
     const r = probeSample(sample);
     if (r.gap) {
       rows.push(`${sample.key}\tDST-GAP`);
@@ -375,7 +432,7 @@ function sweep() {
     rows.push(`${sample.key}\t${r.values}`);
     nullMap.push(`${sample.key}\t${r.nulls}`);
   }
-  return { rows, nullMap, gaps, tz: PINNED.tz, offsetMinutes: PINNED.offsetMinutes };
+  return { rows, nullMap, partsRows, gaps, tz: PINNED.tz, offsetMinutes: PINNED.offsetMinutes };
 }
 
 // ── 자식 프로세스 모드 ─────────────────────────────────────────────────────
@@ -680,6 +737,56 @@ for (const tz of TZ_MATRIX.slice(1)) {
     `부품 호출 중 Date 독출 ${partsReads}회 — 부품 갈래 어딘가에 로컬 Date 가 남아 있다`,
   );
 }
+// ── ⑤ 부품 진입점은 구멍에서도 타임존과 무관하다 ──────────────────────────
+//
+// 🔴 ③ 은 구멍 표본을 **빼고** 대조한다 — 옛 진입점에는 그 벽시계를 담을 로컬 Date 가 없기 때문이다.
+// 부품 진입점에는 그 제약이 없으므로 여기서는 **1516 표본 전부**를 예외 없이 대조한다.
+// 이것이 "간지 경로가 브라우저 타임존과 무관해졌다"의 실측이다.
+{
+  ok(
+    "⑤ 부품 표면 목록이 비어 있지 않다",
+    PARTS_SURFACES.length >= 10,
+    `${PARTS_SURFACES.length}벌`,
+  );
+  ok(
+    "⑤ KST 부품 산출물이 표본 수만큼 나왔다",
+    Array.isArray(base.partsRows) && base.partsRows.length === SAMPLES.length,
+    `${(base.partsRows || []).length}건 / 표본 ${SAMPLES.length}건`,
+  );
+  // 🔴 값이 통째로 비면 위 대조가 ""=="" 로 전건 통과한다. 실제로 답이 나오는지 따로 본다.
+  const emptyRows = (base.partsRows || []).filter((r) => /^[^\t]*(\t)+$/.test(r) || r.split("\t").slice(1).every((v) => v === "")).length;
+  ok(
+    "⑤ 🔴 부품 산출물이 전부 비어 있지 않다(빈 값끼리 대조하면 아무것도 안 지킨다)",
+    emptyRows === 0,
+    `전부 빈 행 ${emptyRows}건`,
+  );
+  // 🔴 옛 축이 버리던 12개 구멍 표본도 부품 축에서는 답이 나와야 한다 — 그게 이 PR 의 결과다.
+  const gapKeys = new Set((base.rows || []).filter((r) => r.endsWith("\tDST-GAP")).map((r) => r.split("\t")[0]));
+  const gapPartsRows = (base.partsRows || []).filter((r) => gapKeys.has(r.split("\t")[0]));
+  ok(
+    "⑤ 🔴 KST 구멍 표본도 부품 축에서는 값이 나온다",
+    gapKeys.size > 0 && gapPartsRows.length === gapKeys.size
+      && gapPartsRows.every((r) => r.split("\t").slice(1).some((v) => v !== "")),
+    `구멍 ${gapKeys.size}건 중 부품 값 ${gapPartsRows.length}건`,
+  );
+  for (const tz of TZ_MATRIX.slice(1)) {
+    const other = matrix.get(tz);
+    if (!other) continue;
+    if (!Array.isArray(other.partsRows)) {
+      ok(`⑤ TZ=${tz} 자식이 부품 산출물을 냈다`, false, "partsRows 없음");
+      continue;
+    }
+    const diff = [];
+    base.partsRows.forEach((row, i) => {
+      if (row !== other.partsRows[i]) diff.push(`${row}` + String.fromCharCode(10) + `        →  ${other.partsRows[i]}`);
+    });
+    ok(
+      `⑤ 🔴 TZ=${tz} 의 부품 산출물이 KST 와 전건 같다(구멍 제외 없음)`,
+      diff.length === 0 && other.partsRows.length === base.partsRows.length,
+      `${diff.length}건 다름` + String.fromCharCode(10) + "      " + diff.slice(0, 3).join(String.fromCharCode(10) + "      "),
+    );
+  }
+}
 // 🔴 PR-D 의 졸업 조건. **지금은 요구하지 않는다** — 그것이 이 가드가 저울인 이유다.
 if (REPORT && census) {
   const total = TZ_MATRIX.reduce((sum, tz) => sum + ((census.gaps || {})[tz] || 0), 0);
@@ -693,6 +800,7 @@ if (failures.length) {
   process.exit(1);
 }
 console.log(
-  `[verify:ganji-surface-parity] 통과 — 검사 ${checks}건 · 표본 ${SAMPLES.length}건 × 표면 ${SURFACES.length}벌 `
-  + `· TZ ${TZ_MATRIX.length}종 · 구멍 ${TZ_MATRIX.map((tz) => `${tz.split("/").pop()}:${matrix.get(tz)?.gaps ?? "?"}`).join(" ")}`,
+  `[verify:ganji-surface-parity] 통과 — 검사 ${checks}건 · 표본 ${SAMPLES.length}건 · TZ ${TZ_MATRIX.length}종`
+  + `\n  Date 축(옛 진입점) 표면 ${SURFACES.length}벌 · 구멍 ${TZ_MATRIX.map((tz) => `${tz.split("/").pop()}:${matrix.get(tz)?.gaps ?? "?"}`).join(" ")}`
+  + `\n  부품 축(정본) 표면 ${PARTS_SURFACES.length}벌 · 구멍 제외 없이 6개 존 전건 일치`,
 );

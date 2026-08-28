@@ -261,8 +261,23 @@ function _lsdText(key) {
     return null;
   }
 
+  /* 🔴 달력 표시 축 전용이다. 간지 축에서는 쓰지 말 것 — 벽시계가 그 타임존에 없으면 접힌다.
+     이 축(달력 그리드·요일·일수 계산)의 부품 전환은 PR-E 다. */
   function _makeLocalNoonDate(year, monthIndex, day) {
     return new Date(Number(year), Number(monthIndex), Number(day), 12, 0, 0, 0);
+  }
+
+  /** 벽시계 부품을 날짜 축으로만 민다. 🔴 시·분은 그대로 — 로컬 Date 의 setDate 와 달리 안 접힌다. */
+  function _addDaysToParts(parts, days) {
+    var at = new Date(Date.UTC(parts.year, parts.month - 1, parts.day + (days || 0)));
+    return {
+      year: at.getUTCFullYear(),
+      month: at.getUTCMonth() + 1,
+      day: at.getUTCDate(),
+      hour: parts.hour,
+      minute: parts.minute,
+      second: parts.second
+    };
   }
 
   function _formatDateKeyParts(year, month, day) {
@@ -363,16 +378,29 @@ function _lsdText(key) {
     };
   }
 
+  /** 🔴 하위 호환 어댑터. 정본은 아래 부품 갈래다. 지금 "오늘"을 넘기는 호출부만 남았다. */
   function _readGanzhiFromEngineDate(dateObj) {
     var baseDate = (dateObj instanceof Date && !isNaN(dateObj.getTime())) ? dateObj : new Date();
-    var y = baseDate.getFullYear();
-    var m = baseDate.getMonth() + 1;
-    var d = baseDate.getDate();
-    var h = baseDate.getHours();
+    return _readGanzhiFromEngineParts({
+      year: baseDate.getFullYear(),
+      month: baseDate.getMonth() + 1,
+      day: baseDate.getDate(),
+      hour: baseDate.getHours(),
+      minute: baseDate.getMinutes(),
+      second: baseDate.getSeconds()
+    });
+  }
 
-    if (window.KasiEngine && typeof window.KasiEngine.getGanji === 'function') {
+  function _readGanzhiFromEngineParts(parts) {
+    if (!parts) return null;
+    var y = parts.year;
+    var m = parts.month;
+    var d = parts.day;
+    var h = parts.hour;
+
+    if (window.KasiEngine && typeof window.KasiEngine.getGanjiFromParts === 'function') {
       try {
-        var gj = window.KasiEngine.getGanji(baseDate, { yaja: false, leapMonthOption: 'prev' });
+        var gj = window.KasiEngine.getGanjiFromParts(parts, { yaja: false, leapMonthOption: 'prev' });
         var yearPair = _normalizeGanjiPair(gj && (gj.secha || gj.year));
         var monthPair = _normalizeGanjiPair(gj && (gj.weolgeon || gj.month));
         var dayPair = _normalizeGanjiPair(gj && (gj.iljin || gj.day));
@@ -420,6 +448,11 @@ function _lsdText(key) {
     return info && info.day ? { g: info.day.charAt(0), j: info.day.charAt(1) } : null;
   }
 
+  function getGanZhiByParts(parts) {
+    var info = _readGanzhiFromEngineParts(parts);
+    return info && info.day ? { g: info.day.charAt(0), j: info.day.charAt(1) } : null;
+  }
+
   /* ─── 오늘 일진 계산 ─────────────────────────────────────────── */
   function getTodayGanZhi() {
     return getGanZhiByDate(new Date());
@@ -461,10 +494,11 @@ function _lsdText(key) {
     }
 
     try {
-      var birthDate = new Date(year, month - 1, day, hour, minute, 0, 0);
+      // 🔴 바로 아래 _coreGanjiPillars 가 이미 같은 부품을 1-based 로 받는다 — 그 축에 맞춘다.
+      var birthParts = { year: year, month: month, day: day, hour: hour, minute: minute, second: 0 };
       var corePillars = _coreGanjiPillars(year, month, day, hour, minute);
-      var ganji = window.KasiEngine && typeof window.KasiEngine.getGanji === 'function'
-        ? window.KasiEngine.getGanji(birthDate, { yaja: false, leapMonthOption: 'prev' })
+      var ganji = window.KasiEngine && typeof window.KasiEngine.getGanjiFromParts === 'function'
+        ? window.KasiEngine.getGanjiFromParts(birthParts, { yaja: false, leapMonthOption: 'prev' })
         : null;
       var yearPair = _normalizeGanjiPair(ganji && (ganji.secha || ganji.year)) || _normalizeGanjiPair(corePillars && corePillars.year);
       var monthPair = _normalizeGanjiPair(ganji && (ganji.weolgeon || ganji.month)) || _normalizeGanjiPair(corePillars && corePillars.month);
@@ -1836,17 +1870,20 @@ return true;
     } catch (err) {}
 
     var today = new Date();
+    // 🔴 "오늘"만 로컬 Date 에서 읽고, 이후 날짜 산술은 부품으로 한다. 예전에는 매 칸을
+    //    new Date(y, m, d+i, 9, ...) 로 다시 조립해서, 하루가 통째로 없는 존에서 일진이 밀렸다.
+    var todayParts = { year: today.getFullYear(), month: today.getMonth() + 1, day: today.getDate(), hour: 9, minute: 0, second: 0 };
     var best = null;
     for (var i = 0; i < 7; i++) {
-      var d = new Date(today.getFullYear(), today.getMonth(), today.getDate() + i, 9, 0, 0, 0);
-      var gz = getGanZhiByDate(d);
+      var at = _addDaysToParts(todayParts, i);
+      var gz = getGanZhiByParts(at);
       var dayEl = (gz && gz.g) ? (GAN_ELEM[gz.g] || 'earth') : 'earth';
       var score = _relScore(dayEl, _lsdCtx.dEl) + _relScore(dayEl, partnerEl) + _relScore(_lsdCtx.dEl, partnerEl);
       if (!best || score > best.score) {
-        best = { date: d, score: score, gz: gz, dayEl: dayEl };
+        best = { date: at, score: score, gz: gz, dayEl: dayEl };
       }
     }
-    var dStr = best.date.getMonth() + 1 + '/' + best.date.getDate();
+    var dStr = best.date.month + '/' + best.date.day;
     var vibe = best.score >= 3 ? '잘 맞는 흐름' : (best.score >= 1 ? '편안한 흐름' : '천천히 맞출 흐름');
     var relationScore = _relScore(_lsdCtx.dEl, partnerEl);
     var typeLabel = ctype === 'business' ? '비즈니스' : (ctype === 'friend' ? '친구' : '연애');
@@ -2714,9 +2751,10 @@ return true;
     var daysInMonth = new Date(year, monthIndex + 1, 0).getDate();
     var map = Object.create(null);
     for (var d = 1; d <= daysInMonth; d++) {
-      var dt = _makeLocalNoonDate(year, monthIndex, d);
-      var key = _dateKeyFromDate(dt);
-      var info = _readGanzhiFromEngineDate(dt);
+      // 🔴 monthIndex 는 0-based, 부품의 월은 1-based 다. d 는 1~daysInMonth 라 정규화가 필요 없다.
+      var at = { year: year, month: monthIndex + 1, day: d, hour: 12, minute: 0, second: 0 };
+      var key = _formatDateKeyParts(at.year, at.month, at.day);
+      var info = _readGanzhiFromEngineParts(at);
       map[key] = {
         year: info && info.year ? info.year : '',
         month: info && info.month ? info.month : '',
