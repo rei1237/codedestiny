@@ -24,11 +24,15 @@
  *      `{ yaja: false }` 로 부르므로 코어 기본값(shift-day)으로 부르면 23시대 일진만 하루 밀린다.
  *      문자열 매칭이 아니라 그 함수를 꺼내 **실행하고** 넘어온 인자를 관찰한다.
  *   ⑨ `js/sibyl-system.js` 의 월건 폴백이 코어와 같다(같은 방식으로 실행 관찰).
+ *   ⑩ `js/core/kasi-calendar-service.js` 의 12중절 이름 표가 **코어가 내는 節 이름 전부**를 덮는다.
+ *   ⑪ 그 서비스의 4기둥이 코어와 같고 **null 을 내지 않는다**.
+ *   ⑫ 그 값이 **브라우저 타임존과 무관하다**(TZ 를 바꿔 자기를 자식으로 띄워 대조).
  */
 import fs from "node:fs";
 import path from "node:path";
 import vm from "node:vm";
 import { createRequire } from "node:module";
+import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 import { Solar } from "lunar-javascript";
@@ -37,6 +41,7 @@ import {
   BRANCH_HANJA,
   NIGHT_ZI_POLICY,
   STEM_HANJA,
+  TERM_NAME_KO,
   formatPillar,
   ganji,
   nodeTerms,
@@ -57,6 +62,90 @@ function ok(label, condition, detail = "") {
 
 const pad2 = (v) => String(v).padStart(2, "0");
 const stamp = (s) => `${s.year}-${pad2(s.month)}-${pad2(s.day)} ${pad2(s.hour)}:${pad2(s.minute)}`;
+
+// ── ⑩~⑫ 셸의 KASI 폴백 서비스 ─────────────────────────────────────────────
+//
+// `js/core/kasi-calendar-service.js` 는 SHELL_SCRIPTS 3벌과 달리 window 를 인자로 받는 IIFE 라
+// 별도 샌드박스로 평가한다. 여기서 보는 것은 셋이다.
+//   ⑩ 12중절 이름 표가 **코어가 내는 節 이름 전부**를 덮는다. 손으로 적은 목록이 아니라
+//      코어에서 전수 발견해 미분류를 실패시킨다(CLAUDE.md 원칙 10).
+//      🔴 이 검사가 없어서 '경칩'이 '경침'(U+CE68)으로 적힌 것을 아무도 못 봤고,
+//      12중절 카운트가 영원히 11 이라 `_computeGanjiFromDate` 가 **모든 날짜에 null** 을 냈다
+//      (실측 2026-08-28). 값 대조(⑪)만 있으면 "null 이라 비교를 건너뛴다"로 조용히 통과한다.
+//   ⑪ 그 서비스의 4기둥이 코어와 같다.
+//   ⑫ **브라우저 타임존과 무관하다.** 절기 시각을 '+09:00' 절대시각으로 파싱해 브라우저 로컬
+//      Date 와 비교하던 동안 UTC 브라우저 39.7% · 뉴욕 49.7% 가 세차·월건 한 칸씩 어긋났다.
+//      자기 자신을 TZ 만 바꿔 자식으로 띄워 값을 대조한다.
+const KASI_SERVICE_SRC = "js/core/kasi-calendar-service.js";
+
+/** 셸이 실제로 쓰는 절기 목록(_fallbackSolarTerms 와 같은 모양)을 코어에서 만든다. */
+function coreTermRows(year, core) {
+  return core.solarTerms(year).map((t) => ({
+    name: core.TERM_NAME_KO[t.index],
+    atLocal: `${t.year}-${pad2(t.month)}-${pad2(t.day)}T${pad2(t.hour)}:${pad2(t.minute)}:00`,
+    source: "korean-calendar-core",
+  }));
+}
+
+function evalKasiService() {
+  const sandbox = {
+    console, Date, Math, JSON, String, Number, Array, Object, isNaN,
+    parseInt, parseFloat, setTimeout, clearTimeout, Promise, RegExp, Error,
+    localStorage: {
+      get length() { return 0; },
+      key() { return null; },
+      getItem() { return null; },
+      setItem() {},
+      removeItem() {},
+    },
+    __CD_SAJU_TEST_MODE__: true,
+  };
+  sandbox.window = sandbox;
+  sandbox.globalThis = sandbox;
+  for (const relative of ["js/core/korean-calendar.js", KASI_SERVICE_SRC]) {
+    const abs = path.join(root, relative);
+    vm.runInNewContext(fs.readFileSync(abs, "utf8"), sandbox, { filename: abs });
+  }
+  return sandbox.window;
+}
+
+/** ⑫ 의 표본. 프로세스마다 같아야 하므로 오직 코어에서만 유도한다. */
+function tzProbeRows() {
+  const win = evalKasiService();
+  const core = win.KoreanCalendar;
+  const compute = win.KasiCalendarService.__test.computeGanjiFromDate;
+  const rows = [];
+  for (let year = 1960; year <= 2030; year += 7) {
+    const terms = coreTermRows(year, core);
+    for (const term of nodeTerms(year) || []) {
+      // ±9시간이 KST↔UTC 시차다. ±1분은 경계 그 자체를 본다.
+      for (const offset of [-540, -1, 1, 540]) {
+        const w = new Date(Date.UTC(term.year, term.month - 1, term.day, term.hour, term.minute) + offset * 60000);
+        const at = {
+          year: w.getUTCFullYear(), month: w.getUTCMonth() + 1, day: w.getUTCDate(),
+          hour: w.getUTCHours(), minute: w.getUTCMinutes(),
+        };
+        const local = new Date(at.year, at.month - 1, at.day, at.hour, at.minute);
+        // 🔴 그 벽시계가 이 타임존에 **존재하지 않는 시각**이면(서머타임 시작 구간) JS 가 조용히
+        // 다른 시각으로 접는다. 1974-01-06 02:19 은 뉴욕에 없는 시각이다(1974년 미국 연중 서머타임).
+        // 그건 이 가드가 보려는 축이 아니므로 표시만 남기고 대조에서 뺀다 — 아래에서 건수를 찍는다.
+        if (local.getDate() !== at.day || local.getHours() !== at.hour || local.getMinutes() !== at.minute) {
+          rows.push(`${stamp(at)}|DST-GAP`);
+          continue;
+        }
+        const got = compute(local, terms) || {};
+        rows.push(`${stamp(at)}|${got.year || "null"}|${got.month || "null"}|${got.day || "null"}`);
+      }
+    }
+  }
+  return rows;
+}
+
+// 자식 프로세스 모드 — ⑫ 가 TZ 만 바꿔 자기를 다시 부른다.
+if (process.env.CD_SHELL_TZ_PROBE === "1") {
+  process.stdout.write(JSON.stringify(tzProbeRows()));
+  process.exit(0);
+}
 
 /** 코어의 4기둥을 셸과 같은 한자 표기로. */
 function corePillars(at, options) {
@@ -436,6 +525,122 @@ function extractFunctionSource(source, name) {
       }
     }
     ok("⑨ 시빌 월건 폴백이 코어와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+  }
+}
+
+// ── ⑩ 12중절 이름 표가 코어의 節 이름을 전부 덮는다 ───────────────────────
+{
+  const serviceSource = fs.readFileSync(path.join(root, KASI_SERVICE_SRC), "utf8");
+  const mapBlock = /var _JIEQI_MONTH_BRANCH = \{([\s\S]*?)\};/.exec(serviceSource);
+  ok(`⑩ ${KASI_SERVICE_SRC} 에서 12중절 이름 표를 잘라냈다`, !!mapBlock, "_JIEQI_MONTH_BRANCH 를 못 찾았다");
+
+  if (mapBlock) {
+    // 파일은 한글·한자를 \uXXXX 리터럴로 적는다. 그 형태 그대로 읽어 되돌린다.
+    const mapKeys = new Set(
+      [...mapBlock[1].matchAll(/'((?:\\u[0-9a-fA-F]{4})+)'\s*:/g)].map((m) => JSON.parse(`"${m[1]}"`)),
+    );
+    // 🔴 기대 목록을 손으로 적지 않는다 — 코어가 내는 節 이름을 전수로 받는다.
+    const coreNodeNames = [...new Set((nodeTerms(2000) || []).map((t) => TERM_NAME_KO[t.index]))];
+    ok("⑩ 코어에서 節 이름 12개를 전수로 받았다", coreNodeNames.length === 12, `${coreNodeNames.length}개`);
+    const uncovered = coreNodeNames.filter((name) => !mapKeys.has(name));
+    ok(
+      "⑩ 셸의 12중절 표가 코어의 節 이름을 전부 덮는다",
+      uncovered.length === 0,
+      uncovered.length ? `표에 없는 이름: ${uncovered.map((n) => `${n}(U+${n.charCodeAt(1).toString(16).toUpperCase()})`).join(", ")}` : "",
+    );
+  }
+}
+
+// ── ⑪ 셸 KASI 폴백의 4기둥이 코어와 같다 ───────────────────────────────────
+{
+  const win = evalKasiService();
+  const core = win.KoreanCalendar;
+  const compute = win.KasiCalendarService && win.KasiCalendarService.__test
+    ? win.KasiCalendarService.__test.computeGanjiFromDate
+    : null;
+  ok("⑪ KasiCalendarService 를 lunar-javascript 없이 평가했다", typeof compute === "function", "__test.computeGanjiFromDate 가 없다");
+
+  if (typeof compute === "function") {
+    const rows = [];
+    let nullRows = 0;
+    let probed = 0;
+    for (let year = 1950; year <= 2050; year += 1) {
+      const terms = coreTermRows(year, core);
+      const probes = [];
+      for (const term of nodeTerms(year) || []) {
+        for (const offset of [-90, -1, 1, 90]) {
+          const w = new Date(Date.UTC(term.year, term.month - 1, term.day, term.hour, term.minute) + offset * 60000);
+          if (w.getUTCFullYear() !== year) continue;
+          probes.push({
+            year: w.getUTCFullYear(), month: w.getUTCMonth() + 1, day: w.getUTCDate(),
+            hour: w.getUTCHours(), minute: w.getUTCMinutes(),
+          });
+        }
+      }
+      // 🔴 한 해의 첫 節(소한)보다 이른 1월 초 — 이 목록 안에 걸칠 중절이 없어서 예전에는
+      // 년주·월주가 통째로 null 이었다. 답은 언제나 子月 하나뿐이므로 여기서 함께 본다.
+      probes.push({ year, month: 1, day: 2, hour: 9, minute: 0 });
+      for (const at of probes) {
+        probed += 1;
+        // 셸의 야자시 축은 keep-day 다(PR-E5 판정). 코어 기본값으로 비교하면 23시대만 갈린다.
+        const gz = ganji(at, { nightZiPolicy: NIGHT_ZI_POLICY.KEEP_DAY });
+        if (!gz) continue;
+        const expect = {
+          year: formatPillar(gz.year.stemIndex, gz.year.branchIndex, "hanja"),
+          month: formatPillar(gz.month.stemIndex, gz.month.branchIndex, "hanja"),
+          day: formatPillar(gz.day.stemIndex, gz.day.branchIndex, "hanja"),
+        };
+        const got = compute(new Date(at.year, at.month - 1, at.day, at.hour, at.minute), terms);
+        if (!got) { nullRows += 1; rows.push(`${stamp(at)} null`); continue; }
+        if (got.year !== expect.year || got.month !== expect.month || got.day !== expect.day) {
+          rows.push(`${stamp(at)} 코어 ${expect.year}/${expect.month}/${expect.day} · 셸 ${got.year}/${got.month}/${got.day}`);
+        }
+      }
+    }
+    ok("⑪ 표본이 실제로 모였다(0 이면 가드가 깨진 것)", probed >= 4000, `${probed}건`);
+    ok("⑪ 셸 KASI 폴백이 null 을 내지 않는다", nullRows === 0, `${nullRows}건`);
+    ok("⑪ 셸 KASI 폴백의 년주·월주·일주가 코어와 같다", rows.length === 0, rows.slice(0, 10).join("\n      "));
+  }
+}
+
+// ── ⑫ 브라우저 타임존 축 ───────────────────────────────────────────────────
+{
+  const baseline = tzProbeRows();
+  ok("⑫ 타임존 표본을 실제로 만들었다(0 이면 가드가 깨진 것)", baseline.length >= 400, `${baseline.length}건`);
+  ok("⑫ 타임존 표본에 null 이 없다", !baseline.some((row) => row.includes("|null")), "");
+
+  for (const tz of ["UTC", "America/New_York"]) {
+    const child = spawnSync(process.execPath, [fileURLToPath(import.meta.url)], {
+      env: { ...process.env, TZ: tz, CD_SHELL_TZ_PROBE: "1" },
+      encoding: "utf8",
+      maxBuffer: 32 * 1024 * 1024,
+    });
+    if (child.status !== 0) {
+      ok(`⑫ TZ=${tz} 자식 프로세스가 돌았다`, false, String(child.stderr || child.error || "").slice(0, 400));
+      continue;
+    }
+    let rows = null;
+    try { rows = JSON.parse(child.stdout); } catch { rows = null; }
+    ok(`⑫ TZ=${tz} 자식 프로세스가 돌았다`, Array.isArray(rows) && rows.length === baseline.length, `${rows ? rows.length : "파싱 실패"}건 / 기준 ${baseline.length}건`);
+    if (!Array.isArray(rows)) continue;
+    const gaps = [];
+    const diff = [];
+    baseline.forEach((row, index) => {
+      const other = rows[index];
+      if (row.endsWith("|DST-GAP") || String(other).endsWith("|DST-GAP")) { gaps.push(row); return; }
+      if (row !== other) diff.push(`${row}  →  ${other}`);
+    });
+    // 서머타임 구멍은 조용히 넘기지 않고 건수를 찍는다. 표본 전체가 구멍이면 대조가 무의미하다.
+    ok(
+      `⑫ TZ=${tz} 대조 대상이 남아 있다(서머타임 구멍 ${gaps.length}건 제외)`,
+      baseline.length - gaps.length >= 400,
+      `대조 ${baseline.length - gaps.length}건 / 표본 ${baseline.length}건`,
+    );
+    ok(
+      `⑫ TZ=${tz} 브라우저에서도 셸의 간지가 같다`,
+      diff.length === 0,
+      diff.length ? `${diff.length}건 다름\n      ${diff.slice(0, 5).join("\n      ")}` : "",
+    );
   }
 }
 
