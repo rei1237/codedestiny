@@ -274,6 +274,22 @@ jobs:
       - name: Verify the core matches the checked-in KASI samples
         run: npm run verify:korean-calendar-kasi-samples
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 입력이 lib/korean-calendar/ 와 js/core/ 라
+      # 티어가 fast/standard 로 갈린다. 네트워크 0.
+      #
+      # 바로 위 가드와 **다른 것을 본다.** 그쪽 검사 ⑥ 은 KASI 의 lunSecha/lunWolgeon,
+      # 즉 **음력 프레임**이다(세차가 설날에, 월건이 음력 달에 바뀐다). 이 가드는
+      # **절기 프레임**(세차가 입춘에, 월건이 節에)을 KASI 절입 시각으로 유도해 코어와 대조한다.
+      # 그 대조는 이 가드가 생기기 전까지 레포 어디에도 없었다 —
+      # verify:korean-calendar-solar-terms 는 이름과 달리 lunar-javascript 와 비교한다.
+      #
+      # 두 층이다. tier-1 지상값은 셸에 체크인된 KASI 검증캐시(1990 12중절)라 항상 돈다.
+      # tier-2(1930~2050 픽스처)는 KASI get24DivisionsInfo 가 403 이라 아직 미채집이고,
+      # 그 상태를 kasi-24divisions.pending.json 마커로 **선언**하게 해서 조용한 skip 을 막는다
+      # (마커도 픽스처도 없으면 실패한다).
+      - name: Verify the solar-term frame matches KASI
+        run: npm run verify:solar-term-frame-kasi
+
       # 🔴 이것도 **fast 잡**이다. 절기를 다루는 소스(js/·worker/·app/·lib/)를 전수 발견해
       # CST 애드혹 보정(+3600*1000 · 480분 오프셋)이 되살아났는지 보고, 로컬 절기를 만드는
       # 소비자 5벌을 실제로 실행해 코어와 분 단위로 같은 12節을 내는지 대조한다.
