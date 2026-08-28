@@ -507,16 +507,16 @@
       "destinyPokerAlt": "Destiny Poker - A fate card duel with the gods",
       "destinyPokerImgAlt": "Destiny Poker",
       "westernAstrologyAria": "Start Basic Western Astrology Chart",
-      "westernAstrologyAlt": "Basic Western Astrology Chart - Free birth chart · Synastry compatibility KRW 5,000",
+      "westernAstrologyAlt": "Basic Western Astrology birth chart — Sun sign · Moon sign · Ascendant",
       "westernAstrologyImgAlt": "Basic Western Astrology Chart",
       "ziweiBasicAria": "Start Zi Wei Dou Shu",
-      "ziweiBasicAlt": "Zi Wei Dou Shu - Free base chart · Compatibility optional expansion KRW 5,000",
+      "ziweiBasicAlt": "Zi Wei Dou Shu — 12-palace chart destiny analysis",
       "ziweiBasicImgAlt": "Zi Wei Dou Shu",
       "ziweiAdvancedAria": "Start Advanced Zi Wei",
       "ziweiAdvancedAlt": "Advanced Zi Wei - 12-palace life strategy · deep Ming Palace analysis",
       "ziweiAdvancedImgAlt": "Advanced Zi Wei",
       "vedicAstrologyAria": "Start Vedic Astrology",
-      "vedicAstrologyAlt": "Vedic Astrology - Free base chart · Compatibility KRW 5,000",
+      "vedicAstrologyAlt": "Vedic Astrology — Jyotish signs · Nakshatras · Dashas",
       "vedicAstrologyImgAlt": "Vedic Astrology",
       "olympusOracleAria": "Start Olympus Oracle",
       "olympusOracleAlt": "Olympus Oracle - 12 gods and zodiac destiny reading",
@@ -4523,7 +4523,8 @@
     "priceUnknown": "Price needs checking",
     "accessFree": "Free feature",
     "accessPaid": "Returns to the same screen after payment",
-    "navPending": "Opening..."
+    "navPending": "Opening...",
+    "priceDetailCheck": "Check details"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ Unlock permanently with pass",
       "payAndStart": "Start with {amount}",
       "namingStart": "✍️ Start premium naming",
-      "unlockWithAmount": "🔓 Permanently unlock with {amount}"
+      "unlockWithAmount": "🔓 Permanently unlock with {amount}",
+      "pricingCheckingMeta": "Checking the price information.",
+      "pricingMissing": "No price is registered for this feature.",
+      "pricingChecking": "Checking the price.",
+      "pricingFailed": "We could not check the price. Please try again in a moment.",
+      "pricingUnavailable": "No price is registered, so we will open the default page."
     },
     "paywall": {
       "passActiveSingleTitle": "Premium pass available",

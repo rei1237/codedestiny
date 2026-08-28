@@ -507,16 +507,16 @@
       "destinyPokerAlt": "Destiny Poker - Een lotkaartduel met de goden",
       "destinyPokerImgAlt": "Destiny-poker",
       "westernAstrologyAria": "Start de basisgrafiek van de westerse astrologie",
-      "westernAstrologyAlt": "Basis westerse astrologiekaart - Gratis geboortehoroscoop · Synastry-compatibiliteit KRW 5,000",
+      "westernAstrologyAlt": "Basic Western Astrology birth chart — Sun sign · Moon sign · Ascendant",
       "westernAstrologyImgAlt": "Basisgrafiek van de westerse astrologie",
       "ziweiBasicAria": "Start Zi Wei Dou Shu",
-      "ziweiBasicAlt": "Zi Wei Dou Shu - Gratis basisgrafiek · Compatibiliteit optionele uitbreiding KRW 5,000",
+      "ziweiBasicAlt": "Zi Wei Dou Shu — 12-palace chart destiny analysis",
       "ziweiBasicImgAlt": "Zi Wei Dou Shu",
       "ziweiAdvancedAria": "Start Geavanceerd Zi Wei",
       "ziweiAdvancedAlt": "Geavanceerde Zi Wei - Levensstrategie met 12 paleizen · diepgaande Ming Palace-analyse",
       "ziweiAdvancedImgAlt": "Geavanceerde Zi Wei",
       "vedicAstrologyAria": "Start Vedische astrologie",
-      "vedicAstrologyAlt": "Vedische astrologie - Gratis basisgrafiek · Compatibiliteit KRW 5,000",
+      "vedicAstrologyAlt": "Vedic Astrology — Jyotish signs · Nakshatras · Dashas",
       "vedicAstrologyImgAlt": "Vedische astrologie",
       "olympusOracleAria": "Olympus Oracle starten",
       "olympusOracleAlt": "Olympus Orakel - 12 goden en lot van de dierenriem lezen",
@@ -4523,7 +4523,8 @@
     "priceUnknown": "Price needs checking",
     "accessFree": "Free feature",
     "accessPaid": "Returns to the same screen after payment",
-    "navPending": "Opening..."
+    "navPending": "Opening...",
+    "priceDetailCheck": "Check details"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ Permanent ontgrendelen met pas",
       "payAndStart": "Begin met {amount}",
       "namingStart": "✍️ Start premium naamgeving",
-      "unlockWithAmount": "🔓 Permanent ontgrendelen met {amount}"
+      "unlockWithAmount": "🔓 Permanent ontgrendelen met {amount}",
+      "pricingCheckingMeta": "Checking the price information.",
+      "pricingMissing": "No price is registered for this feature.",
+      "pricingChecking": "Checking the price.",
+      "pricingFailed": "We could not check the price. Please try again in a moment.",
+      "pricingUnavailable": "No price is registered, so we will open the default page."
     },
     "paywall": {
       "passActiveSingleTitle": "Premiumpas beschikbaar",

@@ -1973,7 +1973,8 @@
     "priceUnknown": "가격 확인 필요",
     "accessFree": "무료 기능",
     "accessPaid": "결제 후 기존 화면으로 이동",
-    "navPending": "열고 있어요…"
+    "navPending": "열고 있어요…",
+    "priceDetailCheck": "상세 확인"
   },
   "mbti": {
     "compat": {
@@ -2004,7 +2005,12 @@
       "passStart": "✅ 이용권으로 바로 시작하기",
       "passUnlock": "✅ 이용권으로 해금하기",
       "payAndStart": "{amount}로 시작하기",
-      "unlockWithAmount": "🔓 {amount}으로 해금하기"
+      "unlockWithAmount": "🔓 {amount}으로 해금하기",
+      "pricingCheckingMeta": "가격 정보를 확인하고 있어요.",
+      "pricingMissing": "가격 정보가 등록되지 않은 기능입니다.",
+      "pricingChecking": "가격을 확인하고 있어요.",
+      "pricingFailed": "가격을 확인하지 못했어요. 잠시 후 다시 시도해 주세요.",
+      "pricingUnavailable": "가격 정보가 등록되지 않아 기본 경로로 이동합니다."
     },
     "paywall": {
       "passActiveSingleTitle": "프리미엄 이용권 이용 가능",

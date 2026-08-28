@@ -507,16 +507,16 @@
       "destinyPokerAlt": "Destiny Poker - Pertarungan kad nasib dengan dewa",
       "destinyPokerImgAlt": "Destiny Poker",
       "westernAstrologyAria": "Mulakan Carta Astrologi Asas Barat",
-      "westernAstrologyAlt": "Carta Astrologi Barat Asas - Carta kelahiran percuma · Keserasian Synastry KRW 5,000",
+      "westernAstrologyAlt": "Basic Western Astrology birth chart — Sun sign · Moon sign · Ascendant",
       "westernAstrologyImgAlt": "Carta Asas Astrologi Barat",
       "ziweiBasicAria": "Mulakan Zi Wei Dou Shu",
-      "ziweiBasicAlt": "Zi Wei Dou Shu - Carta asas percuma · Pengembangan pilihan keserasian KRW 5,000",
+      "ziweiBasicAlt": "Zi Wei Dou Shu — 12-palace chart destiny analysis",
       "ziweiBasicImgAlt": "Zi Wei Dou Shu",
       "ziweiAdvancedAria": "Mulakan Zi Wei Lanjutan",
       "ziweiAdvancedAlt": "Zi Wei Lanjutan - Strategi kehidupan 12 istana · analisis mendalam Istana Ming",
       "ziweiAdvancedImgAlt": "Zi Wei Lanjutan",
       "vedicAstrologyAria": "Mulakan Astrologi Veda",
-      "vedicAstrologyAlt": "Astrologi Vedik - Carta asas percuma · Keserasian KRW 5,000",
+      "vedicAstrologyAlt": "Vedic Astrology — Jyotish signs · Nakshatras · Dashas",
       "vedicAstrologyImgAlt": "Astrologi Vedik",
       "olympusOracleAria": "Mulakan Olympus Oracle",
       "olympusOracleAlt": "Olympus Oracle - 12 tuhan dan bacaan takdir zodiak",
@@ -4523,7 +4523,8 @@
     "priceUnknown": "Price needs checking",
     "accessFree": "Free feature",
     "accessPaid": "Returns to the same screen after payment",
-    "navPending": "Opening..."
+    "navPending": "Opening...",
+    "priceDetailCheck": "Check details"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ Buka kunci secara kekal dengan pas",
       "payAndStart": "Mulakan dengan {amount}",
       "namingStart": "✍️ Mulakan penamaan premium",
-      "unlockWithAmount": "🔓 Buka kunci secara kekal dengan {amount}"
+      "unlockWithAmount": "🔓 Buka kunci secara kekal dengan {amount}",
+      "pricingCheckingMeta": "Checking the price information.",
+      "pricingMissing": "No price is registered for this feature.",
+      "pricingChecking": "Checking the price.",
+      "pricingFailed": "We could not check the price. Please try again in a moment.",
+      "pricingUnavailable": "No price is registered, so we will open the default page."
     },
     "paywall": {
       "passActiveSingleTitle": "Pas premium tersedia",

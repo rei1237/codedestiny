@@ -507,16 +507,16 @@
       "destinyPokerAlt": "Destiny Poker – Ein Schicksalskartenduell mit den Göttern",
       "destinyPokerImgAlt": "Destiny Poker",
       "westernAstrologyAria": "Grundlegende westliche Astrologiekarte starten",
-      "westernAstrologyAlt": "Grundlegende westliche Astrologie-Karte – Kostenloses Geburtshoroskop · Synastrie-Kompatibilität KRW 5,000",
+      "westernAstrologyAlt": "Basic Western Astrology birth chart — Sun sign · Moon sign · Ascendant",
       "westernAstrologyImgAlt": "Grundlegende westliche Astrologiekarte",
       "ziweiBasicAria": "Starten Sie Zi Wei Dou Shu",
-      "ziweiBasicAlt": "Zi Wei Dou Shu – Kostenlose Basiskarte · Kompatibilität optionale Erweiterung KRW 5,000",
+      "ziweiBasicAlt": "Zi Wei Dou Shu — 12-palace chart destiny analysis",
       "ziweiBasicImgAlt": "Zi Wei Dou Shu",
       "ziweiAdvancedAria": "Starten Sie Advanced Zi Wei",
       "ziweiAdvancedAlt": "Fortgeschrittenes Zi Wei – 12-Palast-Lebensstrategie · tiefgreifende Ming-Palast-Analyse",
       "ziweiAdvancedImgAlt": "Fortgeschrittenes Zi Wei",
       "vedicAstrologyAria": "Beginnen Sie mit der vedischen Astrologie",
-      "vedicAstrologyAlt": "Vedische Astrologie – Kostenlose Basiskarte · Kompatibilität KRW 5,000",
+      "vedicAstrologyAlt": "Vedic Astrology — Jyotish signs · Nakshatras · Dashas",
       "vedicAstrologyImgAlt": "Vedische Astrologie",
       "olympusOracleAria": "Starten Sie Olympus Oracle",
       "olympusOracleAlt": "Olympus-Orakel – 12 Götter und Tierkreis-Schicksalslesung",
@@ -4523,7 +4523,8 @@
     "priceUnknown": "Price needs checking",
     "accessFree": "Free feature",
     "accessPaid": "Returns to the same screen after payment",
-    "navPending": "Opening..."
+    "navPending": "Opening...",
+    "priceDetailCheck": "Check details"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ Mit Pass dauerhaft entsperren",
       "payAndStart": "Beginnen Sie mit {amount}",
       "namingStart": "✍️ Beginnen Sie mit der Premium-Namensgebung",
-      "unlockWithAmount": "🔓 Dauerhaft entsperren mit {amount}"
+      "unlockWithAmount": "🔓 Dauerhaft entsperren mit {amount}",
+      "pricingCheckingMeta": "Checking the price information.",
+      "pricingMissing": "No price is registered for this feature.",
+      "pricingChecking": "Checking the price.",
+      "pricingFailed": "We could not check the price. Please try again in a moment.",
+      "pricingUnavailable": "No price is registered, so we will open the default page."
     },
     "paywall": {
       "passActiveSingleTitle": "Premium-Pass verfügbar",

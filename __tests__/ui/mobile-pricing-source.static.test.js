@@ -51,6 +51,8 @@ test("static feature cards are hydrated from the Worker registry after explicit 
   assert.match(shell, /cd:feature-pricing-loaded/);
   assert.doesNotMatch(shell, /_hydrateLifeBookAiPricing/);
   assert.doesNotMatch(shell, /_featurePricingUrl\(/);
+  // 2026-08-28 제거: 호출자가 0인 채로 남아 있던 배지 갱신기(3면 grep — 정의 + sync:public 미러뿐).
+  assert.doesNotMatch(shell, /_applyLifeBookAiPrice/);
 });
 
 test("shell price labels route through shared dictionary keys instead of Korean literals", () => {
@@ -59,27 +61,53 @@ test("shell price labels route through shared dictionary keys instead of Korean 
   assert.doesNotMatch(shell, /'전문가 상담 · '\s*\+/);
   assert.doesNotMatch(shell, /\+\s*' · 전문가 상담'/);
   assert.doesNotMatch(shell, /(?:textContent|merged\.cost|_setCtaLabel\(|\|\|)\s*=?\s*'가격 확인 (?:중|필요)'/);
+  // CSS ::after 로 배지 라벨을 갈아끼우면 번역도 런타임 가격 갱신도 못 먹는다(2026-08-28 제거).
+  assert.doesNotMatch(shell, /content:\s*"전문가 상담 · [\d,]+원"/);
+  // _setCtaMeta 는 사전 키를 거친다 — 한국어를 첫 인자로 직접 넘기지 않는다.
+  assert.doesNotMatch(shell, /_setCtaMeta\(\s*'[^']*[가-힣]/);
 
   const wired = [
-    ["home.nav.aiConsult", 2],
+    ["home.nav.aiConsult", 1],
     ["preview.priceLoading", 4],
     ["preview.priceUnknown", 1],
+    ["preview.priceDetailCheck", 1],
+    ["featurePreview.cta.pricingCheckingMeta", 1],
+    ["featurePreview.cta.pricingMissing", 1],
+    ["featurePreview.cta.pricingFailed", 2],
   ];
   wired.forEach(([key, minCount]) => {
     const hits = shell.split(`_pvwTr('${key}'`).length - 1;
     assert.ok(hits >= minCount, `${key}: _pvwTr 배선이 ${hits}건 (최소 ${minCount}건이어야 한다)`);
   });
 
-  // 배선한 키는 사전 12벌 전부에 있어야 한다. 대상 목록을 손으로 적지 않고 디스크에서 발견하며,
-  // 발견된 사전이 12개 미만이면 검사 자체가 성립하지 않으므로 실패시킨다(fail-closed).
+  // 🔴 배선한 키가 사전에 없으면 폴백으로 물러나지 않고 "번역 준비 중" 문구가 그려진다
+  // (js/cd-lang-native.js 의 resolveValue → missingText). 그래서 대상 목록을 손으로 적지 않고
+  // 셸에서 전수 발견해 대조한다 — 손으로 적던 시절 featurePreview.cta.pricing* 3개가
+  // 12벌 어디에도 없는 채로 배선돼 비한국어 화면에서 그 문구를 그리고 있었다(2026-08-28 실측).
+  // ko 는 cdTranslate 가 사전을 건너뛰고 폴백을 그대로 쓰므로 대조 대상에서 뺀다.
+  const discoveredKeys = [
+    ...new Set(
+      [...shell.matchAll(/_pvwTr\(\s*'([A-Za-z0-9_.]+)'/g)]
+        .map((match) => match[1])
+        // `_pvwTr('featurePreview.cta.' + _pvwItemKey(...))` 같은 조립 키는 리터럴이 아니다.
+        .filter((key) => !key.endsWith(".")),
+    ),
+  ];
+  assert.ok(
+    discoveredKeys.length >= 30,
+    `셸의 _pvwTr 리터럴 키가 ${discoveredKeys.length}개 — 30개 미만이면 정규식이 깨진 것이다`,
+  );
+
   const localeDir = path.join(root, "public/i18n");
   const localeFiles = fs.readdirSync(localeDir).filter((name) => name.endsWith(".json"));
   assert.ok(localeFiles.length >= 12, `사전 파일 ${localeFiles.length}개 — 12개 미만이면 검사가 성립하지 않는다`);
-  localeFiles.forEach((file) => {
-    const dict = JSON.parse(fs.readFileSync(path.join(localeDir, file), "utf8"));
-    wired.forEach(([key]) => {
-      const value = key.split(".").reduce((acc, seg) => (acc == null ? acc : acc[seg]), dict);
-      assert.equal(typeof value, "string", `${file}: ${key} 가 없다`);
+  localeFiles
+    .filter((file) => file !== "ko.json")
+    .forEach((file) => {
+      const dict = JSON.parse(fs.readFileSync(path.join(localeDir, file), "utf8"));
+      discoveredKeys.forEach((key) => {
+        const value = key.split(".").reduce((acc, seg) => (acc == null ? acc : acc[seg]), dict);
+        assert.equal(typeof value, "string", `${file}: ${key} 가 없다 — 화면에 "번역 준비 중" 이 뜬다`);
+      });
     });
-  });
 });

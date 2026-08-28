@@ -507,16 +507,16 @@
       "destinyPokerAlt": "Destiny Poker - 神々との運命カード決闘",
       "destinyPokerImgAlt": "デスティニー ポーカー",
       "westernAstrologyAria": "基本西洋占星術チャートを始める",
-      "westernAstrologyAlt": "基本西洋占星術チャート - 無料出生図・シナストリー相性 KRW 5,000",
+      "westernAstrologyAlt": "西洋占星術の基本出生図 — 太陽星座・月星座・アセンダント",
       "westernAstrologyImgAlt": "基本西洋占星術チャート",
       "ziweiBasicAria": "Zi Wei Dou Shu を開始する",
-      "ziweiBasicAlt": "Zi Wei Dou Shu - 無料ベースチャート・互換性オプション拡張 KRW 5,000",
+      "ziweiBasicAlt": "紫微斗数 — 十二宮命盤の運命分析",
       "ziweiBasicImgAlt": "紫微斗数",
       "ziweiAdvancedAria": "アドバンスト Zi Wei を開始する",
       "ziweiAdvancedAlt": "高度な紫微 - 12 宮殿の生活戦略 · 明宮殿の詳細な分析",
       "ziweiAdvancedImgAlt": "高度な Zi Wei",
       "vedicAstrologyAria": "ヴェーダ占星術を始める",
-      "vedicAstrologyAlt": "ヴェーダ占星術 - 無料ベースチャート · 互換性 KRW 5,000",
+      "vedicAstrologyAlt": "ヴェーダ占星術 — ジョーティシュ星座・ナクシャトラ・ダシャー",
       "vedicAstrologyImgAlt": "ヴェーダ占星術",
       "olympusOracleAria": "Olympus Oracle を起動します",
       "olympusOracleAlt": "Olympus Oracle - 12 の神と黄道十二宮の運命の読み方",
@@ -4523,7 +4523,8 @@
     "priceUnknown": "価格の確認が必要です",
     "accessFree": "無料機能",
     "accessPaid": "決済後、元の画面へ移動します",
-    "navPending": "開いています…"
+    "navPending": "開いています…",
+    "priceDetailCheck": "詳細を確認"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ 利用券で永久解放",
       "payAndStart": "{amount}で始める",
       "namingStart": "✍️ プレミアム命名を始める",
-      "unlockWithAmount": "🔓 {amount}で永久解放"
+      "unlockWithAmount": "🔓 {amount}で永久解放",
+      "pricingCheckingMeta": "価格情報を確認しています。",
+      "pricingMissing": "この機能には価格が登録されていません。",
+      "pricingChecking": "価格を確認しています。",
+      "pricingFailed": "価格を確認できませんでした。しばらくしてからもう一度お試しください。",
+      "pricingUnavailable": "価格が登録されていないため、通常のページへ移動します。"
     },
     "paywall": {
       "passActiveSingleTitle": "プレミアム利用券を利用できます",

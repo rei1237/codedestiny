@@ -507,16 +507,16 @@
       "destinyPokerAlt": "Destiny Poker - 與眾神的命運卡牌對決",
       "destinyPokerImgAlt": "命運撲克",
       "westernAstrologyAria": "開始基本西方占星圖",
-      "westernAstrologyAlt": "基本西方占星圖 - 免費出生圖 · Synastry 相容性 KRW 5,000",
+      "westernAstrologyAlt": "西洋占星基礎出生圖 — 太陽星座·月亮星座·上升星座",
       "westernAstrologyImgAlt": "基本西方占星圖",
       "ziweiBasicAria": "啟動紫微鬥數",
-      "ziweiBasicAlt": "紫微鬥數 - 免費底圖·相容性可選擴展 KRW 5,000",
+      "ziweiBasicAlt": "紫微斗數 — 十二宮命盤命運分析",
       "ziweiBasicImgAlt": "紫微鬥數",
       "ziweiAdvancedAria": "啟動高階紫微",
       "ziweiAdvancedAlt": "進階紫微-十二宮命攻略·深明宮解析",
       "ziweiAdvancedImgAlt": "高階紫微",
       "vedicAstrologyAria": "開始吠陀占星學",
-      "vedicAstrologyAlt": "吠陀占星術 - 免費基礎圖表 · 相容性 KRW 5,000",
+      "vedicAstrologyAlt": "吠陀占星 — 星座·納克沙特拉·大運週期",
       "vedicAstrologyImgAlt": "吠陀占星學",
       "olympusOracleAria": "啟動 Olympus Oracle",
       "olympusOracleAlt": "奧林匹斯神諭 - 12 神與十二生肖命運解讀",
@@ -4523,7 +4523,8 @@
     "priceUnknown": "需要確認價格",
     "accessFree": "免費功能",
     "accessPaid": "付款後返回原畫面",
-    "navPending": "正在打開…"
+    "navPending": "正在打開…",
+    "priceDetailCheck": "查看詳情"
   },
   "mbti": {
     "compat": {
@@ -4562,7 +4563,12 @@
       "passUnlock": "✅ 使用通行券永久解鎖",
       "payAndStart": "以 {amount} 開始",
       "namingStart": "✍️ 開始高級命名",
-      "unlockWithAmount": "🔓 以 {amount} 永久解鎖"
+      "unlockWithAmount": "🔓 以 {amount} 永久解鎖",
+      "pricingCheckingMeta": "正在確認價格資訊。",
+      "pricingMissing": "此功能尚未登錄價格。",
+      "pricingChecking": "正在確認價格。",
+      "pricingFailed": "無法確認價格，請稍後再試。",
+      "pricingUnavailable": "由於未登錄價格，將前往預設頁面。"
     },
     "paywall": {
       "passActiveSingleTitle": "可使用高級通行券",
