@@ -97,6 +97,74 @@
 
 ---
 
+## 1-Z. 2026-08-28 마감 — §2 의 B·C·D·E 를 전부 닫았다
+
+아래 §2 는 **2026-08-16 시점의 계획서**다. 그날의 수치와 전제 중 몇 개가 그 뒤 틀렸으므로,
+§2 를 읽기 전에 이 절을 먼저 볼 것. 착수 전 재실측 지시(§8-3-2 [seo-followups-2026-08-27.md](seo-followups-2026-08-27.md))를
+실제로 돌린 결과다.
+
+| 항목 | 2026-08-16 | 2026-08-28 재실측 | 결말 |
+|---|---|---|---|
+| **§2-A** 내부 링크 후행 슬래시 | 94~102경로 | 고유 4경로 / 12건 | 사실상 자연 소멸(followups §8-3-2) |
+| **§2-B** H1 하이드레이션 중복 | 7 라우트(추정) | **10 라우트(브라우저 실측)** | ✅ PR #1227 |
+| **§2-C** description 누락 | 19건 | 18건 — **전부 noindex 지정** | ✅ PR #1224 |
+| **§2-D** 판단 필요 2건 | — | **둘 다 결함이 아님(실측)** | ✅ 아래 참조 |
+| **§2-E** 루트 메타 상속 | 30건(canonical 축) | canonical 축 **0건** / title·description 축 **33건** | ✅ PR #1226 |
+
+### 🔴 이 문서가 틀렸던 것 네 가지 (다음 세션이 그대로 믿지 말 것)
+
+1. **§2-B 의 "정적 분석으로 합산" 은 위양성을 만든다.**
+   `dynamic(..., { ssr: false, loading: () => <XShell /> })` 의 셸은 서버 HTML 에 h1 을 남기지만
+   청크가 로드되면 **통째로 교체돼 사라진다.** 서버 h1 과 클라이언트 h1 은 합산 관계가 아니다.
+   그대로 합산했다면 `/saju-guardian`(정적 5) · `/olympus`(3) · `/saju-fpti`(2) 를 고쳤을 텐데
+   **셋 다 브라우저 실측에서 h1 이 1개**였다. 반대로 문서에 없던 `/ziwei/chart` ·
+   `/tarot/healing` · `/oracle/sikojen-povailu` 가 진짜 결함이었다.
+   판정 수단은 `scripts/verify-hydrated-h1-integrity.mjs`(정적, CI 배선됨) + 필요하면 Playwright 실측.
+
+2. **§2-C 는 "색인 대상은 description 을 채운다" 를 전제했지만 색인 대상이 하나도 없었다.**
+   18건을 `public/_headers` 와 대조하니 전부 `X-Robots-Tag: noindex` 지정이었고,
+   라이브에서도 전부 그 헤더를 내보내고 있었다. 그래서 조치는 문구 작성이 아니라
+   **HTML 에 noindex 를 확정**하는 쪽 하나뿐이었다. 그 과정에서 `public/ifa-oracle.html` 이
+   `content="index,follow"` 로 **헤더와 정반대**를 선언한 채였던 것도 찾았다.
+
+3. **§2-E(a) 의 "redirect 스텁 13개는 엣지에서 잡혀 도달 불가" 는 절반만 맞다.**
+   라이브 실측 결과 **7개만 301** 이고 나머지는 200 으로 HTML 을 서빙한다
+   (`/flower/*` 4개 · `/fpti` · `/landing` · `/pdf/life-book` · `/saju/love-bible`).
+   `/premium/saju-{lifebook,love-bible}` 은 원본의 metadata 를 재수출해 제목까지 겹쳤다.
+
+4. **§2-D 의 두 건은 결함이 아니다 — 둘 다 실측으로 닫았다.**
+   - `google-site-verification` 플레이스홀더는 `index.html:487-489` 의 **HTML 주석 안**에 있어
+     라이브에 나가지 않는다(2026-08-28 실측: 홈의 검증 메타는 `naver-site-verification` 하나뿐).
+     "프로덕션에 리터럴로 나간다"는 서술은 틀렸다. **사용자에게 GSC 코드를 받을 필요가 없다** —
+     받으면 주석을 풀면 되는, 하면 좋은 일일 뿐 결함 대응이 아니다.
+   - `SukuyoWheel` 의 SVG `<title>` 27개는 **초기 로드에 렌더되지 않는다.**
+     `/sukuyo-compatibility-ai/` 를 브라우저로 열어 하이드레이션 후 세니 DOM 의 `<title>` 은
+     **1개**(문서 제목)뿐이고 `svg title` 은 **0개**였다. 휠은 입력을 거쳐야 그려진다.
+     크롤러가 볼 일이 없으므로 **툴팁을 없앨 이유가 없다.**
+
+### 새로 생긴 가드 두 개 (지우거나 무력화하지 말 것)
+
+| 가드 | 무엇을 막나 | 배선 |
+|---|---|---|
+| `scripts/verify-hydrated-h1-integrity.mjs` | 지속 서버 h1 위에 `ssr:false` 클라이언트가 h1 을 하나 더 얹는 것 | `pr-ci.yml` (`build:cf` 뒤) |
+| `verifyNoInheritedRootMetadata` (`scripts/verify-adsense-readiness.mjs`) | 루트 layout 의 기본 title·description 을 그대로 내보내는 문서 | `build:cf` postbuild |
+
+`scripts/verify-redirects-budget.mjs` 7절도 넓혔다 — 워커 include 프리픽스 아래만 보던 것을
+`_headers` 의 noindex 규칙 **전체**로 바꾸고 검사 대상 0개면 실패시킨다.
+
+### 그래서 §2 에서 실제로 남은 것
+
+**없다.** A·B·C·D·E 가 전부 닫혔다. 다만 작업 중 **범위 밖 결함 셋**을 새로 찾았고 손대지 않았다:
+
+1. `/saju-fpti` 는 `robots: index, follow` 인데 **사이트맵에 없다** — 색인 의도와 제출 목록 불일치.
+2. `/tarot/healing/start` 는 **h1 이 0개**다(사이트맵 밖이라 `verify:seo-heading-integrity` 가 안 본다).
+3. `rss.xml` · `insights/rss.xml`(및 `public/` 미러)의 **추적본이 낡았다** — 빌드가 재생성하면
+   인사이트 글 8건이 새로 붙는다.
+4. `public/famous/index.html` 은 유명인 50인+ 아카이브 허브인데 `_headers` 가 noindex 로 막고
+   사이트맵에도 없다. 헤더 의도대로 HTML 을 맞췄을 뿐, **색인 전환 여부는 콘텐츠 판단**이다.
+
+---
+
 ## 2. 남은 작업
 
 ### 시작 절차 (다음 세션이 제일 먼저 할 것)
