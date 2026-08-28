@@ -141,16 +141,22 @@ displayPrice: `${pass.amountKRW.toLocaleString("ko-KR")}원`,
 죽었다는 증거가 아니다). 앱 상점은 Play SKU 가 통화를 따로 지역화하는 별개 표면이기도 하다
 (관련 메모 `new-price-point-needs-play-sku-in-three-places`).
 
-### ③ PG 결제창 중국어(ZH_CN) — **근거 선행 필요**
-`js/core/checkout-entry.js:245-254` `pgWindowLocale()` 이 `KO_KR`/`EN_US` 둘만 낸다.
-공식 문서상 해외카드결제는 중국어를 지원하지만, **모바일 결제창은 ZH_CN 미지원**이고
-지원 밖 값의 최악은 "결제창이 아예 안 뜬다"(PR #104 windowType 회귀와 같은 모양)다.
+### ③ PG 결제창 중국어(ZH_CN) — **보류 확정** (2026-08-28 근거 재조사 완료)
 
-켜려면 먼저 필요한 것:
-- 우리 UA 판정과 PG 의 PC/모바일 판정이 어긋나지 않는다는 근거
-- 또는 실결제 1회 확인(🔴 사용자 허락 필요)
+`js/core/checkout-entry.js:245-254` `pgWindowLocale()` 이 `KO_KR`/`EN_US` 둘만 낸다. 그대로 둔다.
+**문서를 다시 읽는 방식으로는 열 수 없음이 확인됐다** — 아래가 그 재조사 결과다.
 
-지금은 **의도적으로 보류**된 상태이며, 그 판단은 타당하다. 근거 없이 뒤집지 말 것.
+| 확인한 것 | 결과 |
+|---|---|
+| 인수인계의 전제 | **맞다.** 다만 **렌더된 공개 문서에서는 이 표가 사라졌고**(SDK `payment-request` 는 "PG마다 지원하는 언어 목록은 차이가 있습니다"만 말한다), 인용 가능한 출처는 문서 저장소 원본 하나뿐이다 — `portone-io/developers.portone.io` 의 `opi/ko/integration/pg/v2/inicis-v2.mdx`: "PC 결제의 경우 `KO_KR`, `EN_US`, `ZH_CN`을 지원하며, 모바일 결제의 경우 `KO_KR`, `EN_US`만을 지원합니다" |
+| 모바일에 ZH_CN 을 보내면? | **여전히 미문서.** 🔴 다만 같은 문서의 가장 가까운 사례(모바일 빌링키 발급)는 "해당 파라미터를 지원하지 않고 **항상 한국어로 노출**됩니다" 라고 말한다 → 결제창도 같다면 zh-CN 모바일 사용자는 **지금의 영어 대신 한국어**를 본다. 개선 실패가 아니라 **회귀**다 |
+| PG 의 PC/모바일 판정 기준 | 🔴 **어느 문서에도 없다.** 남은 경로는 `cdn.portone.io/v2/browser-sdk.js`(버전 없는 URL) 역공학뿐인데, 언제든 바뀌는 번들에 우리 판정을 묶는 것은 근거가 아니라 숨은 결합이다 |
+
+**재개 조건은 실결제 1회 관찰 하나다**(🔴 사용자 허락 필요 — 규칙 2 급). 그 전까지 뒤집지 말 것.
+
+근거는 가드 `scripts/verify-portone-single-payment-regression.mjs` 의 `PG_WINDOW_LOCALES` 머리주석에
+날짜·출처·인용문과 함께 남겼다. 🔴 **정본 `js/core/checkout-entry.js` 는 일부러 안 건드렸다** —
+주석 한 줄에도 core 캐시 핀이 22곳 돌아 90파일 diff 가 된다(§5-1).
 
 ### ④ i18n 사전에 구워진 가격 문자열 — **완료** (2026-08-28, 드리프트 가드로 해결)
 
@@ -290,10 +296,39 @@ zh-CN 4건·ms 3건·ja 1건만 우연히 일치하고 **76건이 어긋나 있�
   — 페이지 메타로만 구동되는 **SEO 허브/템플릿**이라 파는 단일 상품이 없다.
 - 궁합판 `master-love-codex-compat`(30,000원)은 별도 결제라 한 Offer 에 두 가격을 안 섞는다.
 
-### ⑦ Webhook 타임스탬프 허용오차 없음
-`worker/payments/webhook.js` — `webhook-timestamp` 를 서명 입력으로만 쓰고 신선도 비교를
-하지 않는다. replay 는 `{provider,eventId}` unique 가 막으므로 **실질 위험은 낮다**.
-보고만 하고 손대지 않았다.
+### ⑦ Webhook 타임스탬프 허용오차 — **완료** (2026-08-28)
+
+`worker/payments/webhook.js` 가 서명 검증 뒤에 `webhook-timestamp` 신선도를 본다
+(`isWebhookTimestampStale`, 새 오류코드 `WEBHOOK_TIMESTAMP_STALE` = 401).
+라이브 경로임을 확인했다 — `worker/index.js:1304-1317`·`:1338-1342` 가 두 진입
+(`/api/webhooks/portone` 콘솔 Endpoint · `/api/payments/webhook`)을 모두 V2 로 보낸다.
+
+🔴 **이 항목에서 가장 중요한 것은 허용치다. Standard Webhooks 참조구현의 5분을 쓰면 안 된다.**
+PortOne 은 실패한 webhook 을 `0 → 1 → 4 → 16 → 64 → 256분` backoff(+jitter)로 최대 5회
+재전송하므로 첫 발송에서 마지막 재전송까지 **약 5시간 41분**이다. 그리고 **재전송이 헤더
+타임스탬프를 갱신하는지 첫 발송 값으로 고정하는지는 문서에 없다** — 문서가 "재시도에도 동일하게
+유지된다"고 말하는 것은 **본문의 RFC 3339 `timestamp` 필드**이지 이 헤더가 아니다. 그 둘을 같은
+것으로 읽고 5분을 잡으면 **모든 재전송이 401 로 거부**되고, 재전송은 이 레포에서 결제 확정의
+유일한 복구 경로다(파일 머리주석). 그래서 `WEBHOOK_TIMESTAMP_MAX_AGE_MS = 24시간` — 지평의 네 배다.
+
+설계 계약(깨면 안 되는 것):
+- **서명 검증 뒤에 본다.** 순서를 뒤집으면 위조된 숫자를 판정하게 되어 아무것도 막지 못한다.
+- **판정할 수 없는 값은 통과시킨다.** 이건 replay 방어의 *두 번째* 층이고, 첫 층인
+  `{provider,eventId}` unique 는 TTL 이 없어 영구적이다(`worker/lib/models.js:541` — 실측,
+  이 컬렉션에 `expireAfterSeconds` 인덱스가 없다). 반면 형식을 오독하면 대가가 **webhook 전량
+  거부 = 결제 확정 정지**다. 그래서 미래 방향은 아예 보지 않고(포획된 요청의 타임스탬프는 언제나
+  과거다) 초 단위가 아닌 값도 막지 않는다 — 밀리초 값이 오면 자연히 미래가 되어 통과한다.
+  **단위 분기 코드를 새로 넣지 말 것.** 그게 이 설계가 분기 없이 사는 이유다.
+- 오류코드를 `WEBHOOK_SIGNATURE_INVALID` 와 **나눴다.** 합치면 다음 사람이 시크릿·서명
+  알고리즘을 뒤지게 되고 실제 원인(시각)은 영영 안 나온다.
+
+🔴 **고정 타임스탬프 리터럴을 쓰는 테스트가 있으면 며칠 뒤 통째로 401 이 된다.** 실제로
+`__tests__/worker/payments-v2.webhook-events.test.js` 의 `1786000000`(2026-08-06)이 그랬다 —
+`Math.floor(Date.now()/1000)` 로 바꿨다. `acceptWebhook` 을 타는 하네스는 전부 그래야 한다.
+
+테스트: `__tests__/worker/payments-v2.webhook.test.js` 의 "타임스탬프 신선도" describe 5건.
+그중 하나가 재전송 지평(341분) 전체가 허용 범위 안임을 못 박아, 허용치를 5분으로 낮추면 실패한다.
+음성 테스트: `acceptWebhook` 의 throw 를 `false &&` 로 죽이면 해당 케이스 1건이 실패함을 확인했다.
 
 ### ⑧ 셸 가격 배지 옆 한국어 라벨 — **완료** (2026-08-28, PR #1249)
 

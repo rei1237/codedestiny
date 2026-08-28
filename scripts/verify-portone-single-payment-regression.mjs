@@ -129,17 +129,29 @@ function runPortOneRequestShapeTests() {
   assertNotContains(portoneClientSource, "windowType", "lib/payment/portone.ts must stay the windowType-free reference shape");
 }
 
-// 🔴 PG 결제창 언어 가드 (2026-08-20)
+// 🔴 PG 결제창 언어 가드 (2026-08-20, 근거 재확인 2026-08-28)
 //
 // locale 을 안 보내면 PortOne 이 한국어 결제창을 연다 — UI·문구를 전부 번역해 놓고도
 // 사용자가 마지막 화면에서 한국어를 만난다. 요청을 만드는 곳이 네 군데라(정적 셸 ·
 // 독립 정적 · React 단건 · /points 이용권) 한 곳만 빠져도 그 경로만 조용히 한국어로 열린다.
 //
 // 🔴 쓸 수 있는 값은 우리가 아니라 PG 가 정한다. KG이니시스는 **PC 결제창에서
-//    KO_KR·EN_US·ZH_CN, 모바일 결제창에서 KO_KR·EN_US** 만 지원한다(포트원 inicis-v2
-//    연동 가이드, 2026-08-20 확인). 지원 밖 값을 보냈을 때의 동작은 실결제 없이 확인할 수
-//    없고 최악은 '결제창이 아예 안 뜬다' 이므로(PR #104 windowType 회귀와 같은 모양),
-//    두 결제창이 모두 지원하는 두 값으로 못 박는다.
+//    KO_KR·EN_US·ZH_CN, 모바일 결제창에서 KO_KR·EN_US** 만 지원한다. 🔴 2026-08-28 재확인:
+//    렌더된 공개 문서에서는 이 표가 사라졌고("PG마다 지원하는 언어 목록은 차이가 있습니다"만
+//    남았다), 인용 가능한 출처는 문서 저장소 원본 하나뿐이다 — portone-io/developers.portone.io
+//    의 opi/ko/integration/pg/v2/inicis-v2.mdx: "PC 결제의 경우 KO_KR, EN_US, ZH_CN을
+//    지원하며, 모바일 결제의 경우 KO_KR, EN_US만을 지원합니다".
+//
+// 🔴 **ZH_CN 을 안 켜는 이유는 '몰라서'가 아니라 하방이 회귀이기 때문이다**(2026-08-28).
+//    ① 모바일에 지원 밖 locale 을 보냈을 때의 동작은 여전히 미문서다. 같은 문서가 밝히는
+//       가장 가까운 사례가 모바일 빌링키 발급이고, 거기서는 "해당 파라미터를 지원하지 않고
+//       항상 한국어로 노출됩니다" — 결제창도 같다면 zh-CN 모바일 사용자는 지금의 영어 대신
+//       **한국어**를 보게 된다. 개선 실패가 아니라 회귀다.
+//    ② PC 한정으로 보내려면 PG 의 PC/모바일 판정 기준을 알아야 하는데 **어느 문서에도 없다.**
+//       남은 경로는 cdn.portone.io/v2/browser-sdk.js(버전 없는 URL) 역공학뿐이고, 언제든
+//       바뀔 수 있는 번들에 우리 판정을 묶는 것은 근거가 아니라 숨은 결합이다.
+//    → 재개 조건은 실결제 1회 관찰(🔴 사용자 허락 필요)이다. 그 전까지 두 결제창이 모두
+//       지원하는 두 값으로 못 박는다. **문서만 다시 읽고 뒤집지 말 것** — 위가 그 결과다.
 const PG_WINDOW_LOCALES = new Set(["KO_KR", "EN_US"]);
 
 function runPgWindowLocaleTests() {

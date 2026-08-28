@@ -22,7 +22,9 @@ let eventSeq = 0;
 async function postWebhook(db, body) {
   const rawBody = JSON.stringify(body);
   const eventId = `evt_${(eventSeq += 1)}`;
-  const timestamp = "1786000000";
+  // 🔴 고정 리터럴을 쓰지 않는다 — acceptWebhook 이 신선도를 보므로 박아 둔 값은 며칠 뒤
+  //    전 케이스를 401 로 만든다(실제로 1786000000 이 그렇게 됐다).
+  const timestamp = String(Math.floor(Date.now() / 1000));
   const request = new Request("https://code-destiny.com/api/payments/webhook", {
     method: "POST",
     body: rawBody,

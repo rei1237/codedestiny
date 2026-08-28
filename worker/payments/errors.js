@@ -40,6 +40,9 @@ export const PAYMENT_ERROR_TABLE = Object.freeze({
   // 401 — 신원이 없다.
   UNAUTHORIZED: { status: 401 },
   WEBHOOK_SIGNATURE_INVALID: { status: 401 },
+  // 서명은 맞는데 서명된 시각이 너무 오래됐다. 서명 불일치와 **코드를 나눈다** — 합쳐 두면
+  // 다음 사람이 시크릿·서명 알고리즘을 뒤지게 되고, 실제 원인은 시각이라 영영 안 나온다.
+  WEBHOOK_TIMESTAMP_STALE: { status: 401 },
 
   // 400 — 이용권(구독) 요청 검증(구 계약 승계). 전부 "요청이 틀렸다"이지 서버 장애가 아니다.
   INVALID_SUBSCRIPTION_DURATION: { status: 400 },
