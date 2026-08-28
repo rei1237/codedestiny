@@ -58,17 +58,43 @@ PG 심사 탈락 사유이고, 환율이 움직일 때마다 판매가가 바뀌
 
 ## 2. 남은 항목 (우선순위 순)
 
-### ① `/points` 를 '충전'이 아니라 '구매'로 읽히게 — **심사 영향 있음**
-포트원 위험업종 문서에 **'사주/운세'가 등재**돼 있고, "보통 '포인트 충전'으로 사이트를 구축해
-충전 조건 제한을 받는다"고 명시돼 있다. 현재 `/points` 경로명·'코인' 개념·"충전" 문구가
-정확히 그 모양이라, **비실물 콘텐츠 PG 심사에서 불리하게 읽힐 수 있다.**
+### ① 폐지 재화 표현 정리 — **완료** (남은 것은 URL 경로명 하나)
 
-- 경로 변경은 SEO·앱 가드(`app-payment-guard.js` 가 `/points` 앵커를 가로챈다)에 걸리므로
-  **문구부터** 손대는 편이 안전하다.
-- 확인할 곳: `app/points/PointsClient.tsx` 카피 표(`copy.*`) · `index.html` `payment.passShop.*`
-  사전 키 · `public/i18n/*.json`
-- 🔴 코인은 이미 폐지된 개념이라 사용자 노출 문구에 남아 있으면 안 된다
-  (`docs/context/payment-gating.md`).
+포트원 위험업종 문서에 **'사주/운세'가 등재**돼 있고 "보통 '포인트 충전'으로 사이트를 구축해
+충전 조건 제한을 받는다"고 명시돼 있어, **'충전형 사이트'로 읽히는 것 자체가 PG 심사에 불리하다.**
+2026-08-28 전수 점검 결과와 조치:
+
+**고친 것 (2건)**
+- `withdrawModal.warningPointsPrefix` **12로케일** — "보유 포인트 및 모든 데이터가" → "보유 이용권 및…"
+  (각 로케일에 이미 확립된 이용권 표현을 씀: en `passes` · ja `利用券` · zh `通行券` · es `pases` · vi `Thẻ` …)
+- `app/account/delete/page.js` — "앱에서는 **포인트 화면**의" → "**이용권 상점 화면**의"
+
+**이미 정책과 맞아서 손대지 않은 것 (실측)**
+- `/points` 화면 문구는 전부 **"연이의 달빛 이용권 상점"** — h1(`PointsClient.tsx:2363`) ·
+  layout title 3로케일(`이용권 상점`/`Pass Store`/`利用券ストア`) · 주문내역 `결제·이용권 기록`
+- `/app/store/` 앱 상점 화면에 충전·포인트·코인 문구 **0건**
+- 남아 있는 "충전" 문구는 전부 **부정문**(`월정석은 구매·충전할 수 없습니다` — PointsClient 5건 ·
+  `lib/legal/refund-policy-rows.js` · `lib/i18n/siteFooterHubCopy.ts`). 정책을 못박는 문구라 **유지가 맞다.**
+- ko.json 의 나머지 충전/포인트 23건은 **운세 본문**(`용신 충전` · `핵심 포인트`)이라 결제 무관
+- `index.html`·`js/destiny-profile.js`·`worker/routes/payments.js` 의 "충전"은 **코드 주석**이며,
+  실제 함수명 `__cdOpenChargeModal` 을 가리킨다 — 주석만 고치면 코드와 어긋나므로 두었다
+
+**재발 방지 가드 추가**
+`__tests__/worker/legacy-coin-disabled.static.test.js` 에 사용자 문구 검사를 넣었다.
+기존 검사는 `forceDeduct`·`paymentMode:"COIN"`·pig-coin 엔드포인트 같은 **코드 플래그만** 봐서
+화면에 "포인트 충전"이라 써 놓아도 통과했다. 금지 패턴은 `보유 (포인트|코인)` ·
+`(포인트|코인)(을|를)? ?충전` · `(포인트|코인) ?구매` · `(포인트|코인) ?잔액` 이며,
+운세 본문과 위 부정문은 걸리지 않는다. fail-closed(스캔 500개 미만이면 실패).
+음성 테스트: ko.json 을 옛 문구로 되돌리면 파일명을 지목하며 실패함을 확인.
+
+**남은 것 — URL 경로명 `/points`**
+화면 문구는 다 고쳤지만 **경로명만 레거시**다. 바꾸려면 함께 봐야 할 곳:
+- `scripts/app-payment-guard.js` 가 `/points` **앵커 클릭을 가로채** `/app/store/` 로 보낸다
+  (🔴 앱 번들에 `/points` 가 없어 프로그래매틱 이동은 빈 화면이 된다)
+- `js/core/checkout-entry.js` `buildPassStoreUrl()` · 결제창 인계 `/points?plan=…&cdco=1`
+- `docs/context/payment-gating.md` · verify 스크립트 · 테스트의 문자열
+- 리다이렉트를 남기지 않으면 기존 링크·북마크가 죽는다
+경로 변경은 **화면 문구가 이미 맞으므로 급하지 않다.** 심사에서 실제로 지적을 받으면 그때 하는 편이 낫다.
 
 ### ② 서버가 `displayPrice` 를 ko-KR + "원" 으로 굳혀 보낸다
 `worker/lib/billing-feature-registry.js:156`

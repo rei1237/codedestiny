@@ -107,4 +107,42 @@ describe("legacy COIN removal regression guards", () => {
       }
     }
   });
+
+  /**
+   * 🔴 코드가 아니라 **사용자 문구**를 본다. 위 검사는 forceDeduct·paymentMode:"COIN"·pig-coin
+   *    엔드포인트 같은 플래그만 막아서, 화면에 "포인트 충전"이라고 써 놓아도 통과했다.
+   *
+   *    이게 왜 문제인가: 코인·포인트는 폐지된 개념이고 현재 판매 상품은 30일 이용권과 콘텐츠
+   *    단건 결제뿐이다(docs/context/payment-gating.md). 그런데 포트원 위험업종 문서가 '사주/운세'를
+   *    등재하면서 "보통 '포인트 충전'으로 사이트를 구축해 충전 조건 제한을 받는다"고 명시한다 —
+   *    즉 '충전형 사이트'로 읽히는 것 자체가 PG 심사에서 불리하다. 실제로 탈퇴 경고가
+   *    "보유 포인트 및 모든 데이터가…"로 12개 로케일에 남아 있었다(2026-08-28 정정).
+   *
+   *    금지하는 것은 **폐지 재화를 보유·구매 가능한 잔액으로 제시하는 표현**뿐이다.
+   *    운세 본문의 '용신 충전'·'핵심 포인트'나 정책을 못박는 부정문
+   *    ('월정석은 구매·충전할 수 없습니다')은 걸리지 않는다 — 후자는 오히려 오해를 막는 문구다.
+   */
+  test("사용자 문구가 폐지 재화(포인트·코인)를 보유·충전 가능한 잔액으로 제시하지 않는다", () => {
+    const surfaces = ["public/i18n", "app", "components", "src", "js", "index.html"];
+    const banned = /보유 (?:포인트|코인)|(?:포인트|코인)(?:을|를)? ?충전|(?:포인트|코인) ?구매|(?:포인트|코인) ?잔액/;
+
+    let scanned = 0;
+    for (const relativePath of surfaces) {
+      const target = path.join(root, relativePath);
+      const entries = fs.statSync(target).isDirectory()
+        ? fs.readdirSync(target, { recursive: true })
+          .map((entry) => path.join(target, entry))
+          .filter((entry) => fs.existsSync(entry) && fs.statSync(entry).isFile())
+        : [target];
+      for (const file of entries) {
+        if (!/\.(?:[cm]?[jt]sx?|html|json)$/i.test(file)) continue;
+        const rel = path.relative(root, file);
+        scanned += 1;
+        expect([rel, banned.test(read(rel))]).toEqual([rel, false]);
+      }
+    }
+
+    // 🔴 fail-closed: 스캔이 0 이면 '검사가 통과했다'와 '검사가 없다'가 구분되지 않는다.
+    expect(scanned).toBeGreaterThan(500);
+  });
 });
