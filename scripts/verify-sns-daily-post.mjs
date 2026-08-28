@@ -13,6 +13,8 @@
  *   ④ 요일 코너의 링크가 전부 sitemap.xml 에 실재한다(404 링크를 발행하지 않는다).
  *   ⑤ 문안이 템플릿으로 조립되고 주입한 시각을 실제로 반영한다.
  *   ⑥ 태스크가 worker/index.js 의 일일 크론 목록에 실제로 배선돼 있다.
+ *   ⑦ 배포 스위치(SNS_DAILY_POST_ENABLED)가 두 wrangler 설정에 같은 값으로 있고, 그 값을
+ *     isEnabled 가 해석할 수 있다 — 오타는 조용한 꺼짐이 된다.
  *
  * 실행: npm run verify:sns-daily-post
  */
@@ -184,4 +186,38 @@ function jsonResponse(body, status = 200) {
   );
 }
 
-console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 · 링크 실재 8건 · 시각 반영 · 크론 배선(실제 발행 0회)");
+
+/* ⑦ 배포 스위치가 두 wrangler 설정에 같은 값으로 선언돼 있고, 그 값이 isEnabled 가 실제로
+      해석하는 토큰이다. 🔴 [vars] 가 있으면 그 값이 프로덕션의 값이고 코드 기본값은 죽는다 —
+      "enabled" 같은 오타는 예외 없이 조용한 꺼짐이 되므로 여기서 잡는다(CLAUDE.md 규칙 4). */
+{
+  const taskSource = fs.readFileSync(path.join(ROOT, "worker/lib/sns-daily-post-task.js"), "utf8");
+  const isEnabledBody = taskSource.split("function isEnabled(env) {")[1];
+  assert.ok(isEnabledBody, "isEnabled 를 찾지 못했다 — 이 검사가 무엇을 지키는지 먼저 다시 볼 것");
+
+  // 켜짐 토큰을 여기에 손으로 적지 않는다 — 소스에서 뽑아야 isEnabled 가 바뀔 때 같이 따라간다.
+  const truthyTokens = (isEnabledBody.split("}")[0].match(/raw === "[^"]+"/g) || [])
+    .map((hit) => hit.slice('raw === "'.length, -1));
+  assert.ok(truthyTokens.length > 0, "isEnabled 가 인정하는 켜짐 토큰을 소스에서 못 찾았다");
+
+  const FALSEY_TOKENS = ["0", "false", "off", "no"];
+  const declared = new Map();
+  for (const configPath of ["worker/wrangler.toml", "worker/wrangler.staging.toml"]) {
+    const source = fs.readFileSync(path.join(ROOT, configPath), "utf8");
+    const line = source.split("\n").find((entry) => entry.trim().startsWith("SNS_DAILY_POST_ENABLED"));
+    assert.ok(line, `${configPath} 에 SNS_DAILY_POST_ENABLED 선언이 없다 — 스위치가 어디에도 없으면 발행은 영영 안 일어난다`);
+    const value = line.split("=")[1].trim().replace(/"/g, "").toLowerCase();
+    assert.ok(
+      truthyTokens.includes(value) || FALSEY_TOKENS.includes(value),
+      `${configPath} 의 SNS_DAILY_POST_ENABLED="${value}" 를 isEnabled 가 모른다 — 조용히 꺼짐이 된다`,
+    );
+    declared.set(configPath, value);
+  }
+  assert.equal(
+    declared.get("worker/wrangler.toml"),
+    declared.get("worker/wrangler.staging.toml"),
+    "두 wrangler 설정의 값이 다르다 — verify:worker-config-parity 가 [vars] 값 불일치를 실패로 본다",
+  );
+}
+
+console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능(실제 발행 0회)");
