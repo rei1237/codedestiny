@@ -23,8 +23,10 @@
  *   ② 각 TZ 의 서머타임 구멍 건수가 census 와 **정확히** 같다 (구멍이 조용히 늘거나 줄지 않았다)
  *   ③ 구멍을 뺀 나머지에서 모든 TZ 가 KST 와 같다            (타임존 무관성)
  *
- * 🔴 ②의 "총계 0" 은 **아직 요구하지 않는다.** 그것이 PR-D 의 졸업 조건이다. 지금 0 을 요구하면
- * 이 가드는 현행을 재는 저울이 아니라 실패 선언이 된다.
+ * 🔴 ②의 "총계 0" 은 **아직 요구하지 않는다.** 그것은 **PR-E**(Date 진입점 제거)의 졸업 조건이다.
+ * 지금 0 을 요구하면 이 가드는 현행을 재는 저울이 아니라 실패 선언이 된다.
+ * 🔴 PR-D 몫이 아니었다 — 구멍을 만드는 것은 셸이 아니라 아래 `probeSample` 이 조립하는 **Date**
+ * 라, 호출부를 전부 부품으로 옮겨도 이 숫자는 안 움직인다(PR-D 실측: 전후 완전 동일).
  *
  * ── 🔴 값이 아니라 `isNull` 지도를 본다 ────────────────────────────────────
  *
@@ -550,7 +552,7 @@ for (const tz of TZ_MATRIX.slice(1)) {
 
 if (EMIT) {
   const census = {
-    note: "🔴 서머타임 구멍의 **현행 크기**다. PR-D 가 이 값을 전부 0 으로 만드는 것이 졸업 조건이다.",
+    note: "🔴 서머타임 구멍의 **현행 크기**다. 총계 0 은 PR-E(Date 진입점 제거)의 졸업 조건이다 — PR-D 로는 안 움직인다(구멍을 만드는 것은 셸이 아니라 이 가드의 Date 표면이다).",
     generatedBy: "scripts/verify-ganji-surface-parity.mjs --emit",
     sampleCount: SAMPLES.length,
     gaps: Object.fromEntries(TZ_MATRIX.map((tz) => [tz, matrix.get(tz) ? matrix.get(tz).gaps : null])),
@@ -787,10 +789,10 @@ for (const tz of TZ_MATRIX.slice(1)) {
     );
   }
 }
-// 🔴 PR-D 의 졸업 조건. **지금은 요구하지 않는다** — 그것이 이 가드가 저울인 이유다.
+// 🔴 PR-E 의 졸업 조건. **지금은 요구하지 않는다** — 그것이 이 가드가 저울인 이유다.
 if (REPORT && census) {
   const total = TZ_MATRIX.reduce((sum, tz) => sum + ((census.gaps || {})[tz] || 0), 0);
-  console.log(`      [PR-D 졸업 조건] 서머타임 구멍 총계 ${total} → 0 이 되어야 한다`);
+  console.log(`      [PR-E 졸업 조건] 서머타임 구멍 총계 ${total} → 0 이 되어야 한다`);
   console.log(`      ${TZ_MATRIX.map((tz) => `${tz}:${(census.gaps || {})[tz]}`).join(" · ")}`);
 }
 
