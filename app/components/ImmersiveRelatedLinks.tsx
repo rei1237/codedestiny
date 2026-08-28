@@ -41,6 +41,7 @@ const CURATED_RELATED_PATHS: Record<string, readonly string[]> = {
   "/neo-operation-room": ["/saju", "/today", "/manse"],
   "/reviews": ["/saju", "/tarot", "/ziwei"],
   "/saju-guardian": ["/saju", "/manse", "/today"],
+  "/saju-fpti": ["/saju", "/animal/mbti", "/manse"],
   "/saju/destiny-bias": ["/saju", "/saju/compatibility", "/compatibility"],
   "/saju/destiny-meeting-place": ["/love", "/compatibility", "/saju"],
   "/saju/love-simulation": ["/love", "/saju/compatibility", "/compatibility"],

@@ -202,8 +202,6 @@ const xRobotsNoindexHeaderPatterns = [
   "/premium/*",
   "/premium-reports",
   "/premium-reports/*",
-  "/saju-fpti",
-  "/saju-fpti/*",
   "/saju-picture",
   "/saju-picture/*",
   "/sukuyo/calendar",
