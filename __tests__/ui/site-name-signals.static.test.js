@@ -38,7 +38,16 @@ function readBrandName() {
 
 const BRAND = readBrandName();
 
-/** 정적 셸이 있을 수 있는 곳. 존재하지 않는 경로는 건너뛰되, 전체가 비면 아래에서 실패한다. */
+/**
+ * 정적 셸이 있을 수 있는 곳. 존재하지 않는 경로는 건너뛰되, 전체가 비면 아래에서 실패한다.
+ *
+ * 🔴 루트를 깊이 4까지 걷기 때문에 로컬에 `dist/`·`out/` 이 있으면 **배포 산출물까지** 대상이
+ *    된다. 그건 사고가 아니라 이 가드의 값이 나오는 자리다 — 2026-08-28 에 여기서
+ *    `dist/{en,ja,zh,zh-tw}/**` 52쪽의 og:site_name 이 브랜드명과 갈려 있는 것이 처음 드러났다
+ *    (원인은 lib/seo/createI18nMetadata.ts 의 `localeConfig.siteName`, 아래 세 번째 테스트가
+ *    이제 소스 쪽에서 막는다). PR CI 의 fast 잡에는 빌드가 없어 커밋된 셸만 검사되므로,
+ *    로컬에서 이 테스트가 빨간불이면 낡은 산출물 탓으로 넘기지 말고 소스를 고친 뒤 다시 빌드한다.
+ */
 const SHELL_ROOTS = [root, path.join(root, "public")];
 
 function walkHtml(dir, out, depth = 0) {
@@ -89,8 +98,13 @@ test("셸을 만들어 내는 스크립트도 브랜드명을 쓴다", () => {
   assert.equal(match[1], BRAND, "운세 허브 셸 생성기가 옛 사이트 이름을 굳히고 있습니다.");
 });
 
-test("og:site_name·application-name 에 발행처 이름(siteSeo.siteName)을 쓰지 않는다", () => {
+test("og:site_name·application-name 에 발행처 이름·로케일 표 이름을 쓰지 않는다", () => {
   // 이것이 갈라짐을 만든 정확한 패턴이다. 전 저장소에서 0건이어야 한다.
+  //
+  // 🔴 `siteSeo.siteName` 만 막으면 절반이다 — 2026-08-28 에 `lib/seo/createI18nMetadata.ts` 가
+  //    `localeConfig.siteName`("Code Destiny Japan" 등)을 og:site_name 에 쓰고 있었고, 그 52쪽은
+  //    같은 페이지의 application-name·WebSite 스키마와 어긋난 채로 빌드에 실려 나갔다.
+  //    로케일 표(lib/i18n/locales.ts)의 siteName 은 빵부스러기 라벨용이지 사이트 이름 신호가 아니다.
   const offenders = [];
   const scanRoots = [path.join(root, "app"), path.join(root, "lib")];
 
@@ -107,7 +121,8 @@ test("og:site_name·application-name 에 발행처 이름(siteSeo.siteName)을 �
       const source = fs.readFileSync(full, "utf8");
       const lines = source.split(/\r?\n/);
       lines.forEach((line, index) => {
-        if (/(?:siteName|applicationName):\s*siteSeo\.siteName\b/.test(line)) {
+        const banned = /(?:siteName|applicationName):\s*(?:siteSeo\.siteName|localeConfig\.siteName|LOCALE_CONFIG\[[^\]]*\]\.siteName)\b/;
+        if (banned.test(line)) {
           offenders.push(`${path.relative(root, full)}:${index + 1}`);
         }
       });
@@ -118,7 +133,9 @@ test("og:site_name·application-name 에 발행처 이름(siteSeo.siteName)을 �
   assert.deepEqual(
     offenders,
     [],
-    "og:site_name / application-name 에 siteSeo.siteName 을 쓰는 곳이 남아 있습니다:\n  " + offenders.join("\n  "),
+    "og:site_name / application-name 에 siteSeo.siteName 이나 로케일 표의 siteName 을 쓰는 곳이 " +
+      "남아 있습니다(둘 다 siteSeo.brandName 이어야 합니다):\n  " +
+      offenders.join("\n  "),
   );
 });
 

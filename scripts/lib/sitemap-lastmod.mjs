@@ -32,6 +32,7 @@ import { createHash } from "node:crypto";
 import { existsSync, readFileSync, readdirSync, statSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { normalizeCacheBust } from "./cachebust-pattern.mjs";
+import { kstWeekStartYmd } from "./fortune-date.mjs";
 import { sliceFunction } from "./js-source-slice.mjs";
 
 const LEDGER_REL_PATH = "config/sitemap-lastmod.json";
@@ -90,9 +91,9 @@ const STANDALONE_SHELL_ROUTES = new Map([
  *
  * lib/fortune/daily-data.ts 는 fortune/data/daily-<시드 날짜>.json 을 읽는다. 시드는 기간마다
  * 다르다 — today/tomorrow 는 그날, weekly 는 주 시작일, monthly 는 그 달 1일이다(2026-08-28).
- * today·tomorrow 는 매일 바뀌고, weekly·monthly 는 시드 날짜가 바뀔 때 바뀐다. 다만 이 표는
- * **모듈 단위**라 라우트별로 가를 수 없어 네 기간을 모두 volatile 로 둔다 — 주간·월간의 lastmod 가
- * 실제 변경보다 자주 올라간다는 뜻이다(라우트별 volatile 은 별건).
+ * 그래서 `volatile` 은 "매일 바뀐다" 가 아니라 **"시계에서 나온다"** 는 표시다. 이 표는 모듈
+ * 단위라 라우트별로 가를 수 없지만, **얼마나 자주** 바뀌는지는 아래 FORTUNE_VOLATILE_CADENCES 가
+ * 라우트별로 가른다(2026-08-28 이전에는 네 기간이 모두 매일 올라갔다).
  *
  * 🔴 다만 그 사실을 **서명에 날짜로 섞지 않는다**(2026-08-25 정정). 예전 값은
  * `fortune-daily-package:${kstYmdToday()}` 였는데, 그러면 원장에 저장되는 서명이 KST 자정마다
@@ -107,6 +108,51 @@ const STANDALONE_SHELL_ROUTES = new Map([
 const RUNTIME_DATA_MODULES = new Map([
   ["lib/fortune/daily-data.ts", { id: "fortune-daily-package", volatile: true }],
 ]);
+
+/**
+ * 휘발성 라우트의 **갱신 주기**. volatileToday(KST 오늘)를 받아 "이 라우트가 마지막으로 달라진
+ * 날" 을 돌려준다.
+ *
+ * 🔴 왜 라우트별인가 — 구글은 이 사이트의 IndexNow 를 받지 않으므로 lastmod 가 재크롤을 부르는
+ *    유일한 신호인데, 2026-08-28 까지 /fortune/** 100개가 전부 매일 올라갔다. 주간 화면은 시드도
+ *    요일표도 그 주에서 나오므로 주 단위로만 바뀐다 — 나머지 6일치는 거짓 신호였고, 거짓이 쌓이면
+ *    신호 자체가 무시된다(이 파일이 2026-08-16 에 만들어진 이유와 같은 사고다).
+ *
+ * 🔴 monthly 가 왜 daily 인가(실측 2026-08-28) — 월간 화면은 달 1일 시드로 문안을 뽑지만,
+ *    lib/fortune/range-data.ts 의 loadMonthRange 가 **오늘**을 앵커로 잡아 monthGanji·moonPhase·
+ *    moonSign·anchorYmd 를 계산하고 lib/fortune/build-view.ts 의 buildMonthly 가 그 값으로 점수와
+ *    관계를 다시 계산한다. 즉 월간 HTML 은 달이 바뀔 때가 아니라 날마다 달라진다. 여기를 월 주기로
+ *    바꾸려면 그 앵커를 먼저 달 1일로 옮겨야 한다(화면 값이 바뀌는 별건 작업이다). 앵커보다 이 표를
+ *    먼저 고치면 진짜 변경을 숨기는, 방향만 반대인 거짓 신호가 된다.
+ */
+const FORTUNE_VOLATILE_CADENCES = new Map([
+  ["today", (ymd) => ymd],
+  ["tomorrow", (ymd) => ymd],
+  ["weekly", kstWeekStartYmd],
+  ["monthly", (ymd) => ymd],
+]);
+
+/**
+ * 기간 목록은 손으로 적지 않고 lib/fortune/periods.ts 에서 전수 발견한다(CLAUDE.md 원칙 10).
+ * 기간이 늘었는데 주기를 분류하지 않으면 원장 생성이 실패한다.
+ */
+function readFortunePeriodIds(rootDir) {
+  const source = readFileSync(resolve(rootDir, "lib/fortune/periods.ts"), "utf8");
+  const block = /FORTUNE_PERIOD_IDS[^=]*=\s*\[([^\]]*)\]/.exec(source);
+  const ids = block ? [...block[1].matchAll(/"([a-z]+)"/g)].map((match) => match[1]) : [];
+  if (ids.length === 0) {
+    throw new Error(
+      "[sitemap-lastmod] lib/fortune/periods.ts 에서 FORTUNE_PERIOD_IDS 를 읽지 못했습니다 — " +
+        "파일 구조가 바뀌었다면 이 추출기를 함께 고쳐야 합니다.",
+    );
+  }
+  return ids;
+}
+
+/** YYYY-MM-DD 두 개 중 늦은 것. 자리수가 고정이라 문자열 비교로 충분하다. */
+function maxYmd(a, b) {
+  return a > b ? a : b;
+}
 
 const RUNTIME_READ_RE = /\breadFileSync\s*\(/;
 
@@ -237,6 +283,16 @@ function resolveLocalSpecifier(rootDir, fromRel, specifier) {
 }
 
 export function createSitemapLastmodLedger({ rootDir, today, volatileToday = today, previousSitemapPath }) {
+  // 🔴 기간이 늘었는데 주기 분류가 빠지면 여기서 멈춘다 — 미분류가 조용히 "매일" 로 새면
+  //    이 원장이 없애려는 거짓 신호가 그대로 돌아온다.
+  for (const period of readFortunePeriodIds(rootDir)) {
+    if (FORTUNE_VOLATILE_CADENCES.has(period)) continue;
+    throw new Error(
+      `[sitemap-lastmod] 운세 기간 "${period}" 의 lastmod 갱신 주기가 분류되지 않았습니다. ` +
+        "scripts/lib/sitemap-lastmod.mjs 의 FORTUNE_VOLATILE_CADENCES 에 등록하세요.",
+    );
+  }
+
   const appPages = collectAppPages(rootDir);
   const constrainedValues = new Map(
     [...CONSTRAINED_SEGMENTS].map(([segment, read]) => [segment, read(rootDir)]),
@@ -365,6 +421,19 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
     return { pageFile: page.file, files, extras, volatileSource };
   }
 
+  /** 휘발성 라우트가 "마지막으로 달라진 날". 분류에 실패하면 통과시키지 않고 멈춘다. */
+  function volatileLastmodFor(pathname) {
+    const parts = pathname.split("/").filter(Boolean);
+    const cadence = parts[0] === "fortune" ? FORTUNE_VOLATILE_CADENCES.get(parts[1]) : undefined;
+    if (!cadence) {
+      throw new Error(
+        `[sitemap-lastmod] 휘발성 라우트 ${pathname} 의 갱신 주기를 분류하지 못했습니다. ` +
+          "운세 밖의 라우트가 런타임 데이터를 읽게 됐다면 FORTUNE_VOLATILE_CADENCES 를 함께 고쳐야 합니다.",
+      );
+    }
+    return cadence(volatileToday);
+  }
+
   function signatureFor(pathname) {
     const { files, extras, volatileSource } = sourcesFor(pathname);
     if (volatileSource) volatileRoutes.add(pathname);
@@ -408,6 +477,9 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
 
       const signature = signatureFor(pathname);
       const previous = stored[pathname];
+      const unchanged = Boolean(
+        previous && previous.signature === signature && /^\d{4}-\d{2}-\d{2}$/.test(previous.lastmod || ""),
+      );
       let lastmod;
       // 🔴 매일 바뀌는 데이터를 읽는 라우트는 서명이 그대로여도 내용이 달라졌다. 예전에는 서명에
       // 날짜를 섞어 이 분기를 우회했는데, 그 부작용이 원장의 매일 드리프트였다. 이제 명시적으로 판단한다.
@@ -417,9 +489,15 @@ export function createSitemapLastmodLedger({ rootDir, today, volatileToday = tod
         // = 15:20 UTC 전날에 도는데 여기서 UTC 를 쓰면, 08-28 자 본문을 실은 사이트맵이
         // lastmod=08-27 로 신고한다 — 매일 하루 낡은 신선도를 구글에 보내는 셈이다(2026-08-28 실측).
         // 나머지 라우트는 "콘텐츠 날짜" 라는 개념이 없으므로 그대로 today(UTC)를 쓴다.
-        lastmod = volatileToday;
-        stats.updated += 1;
-      } else if (previous && previous.signature === signature && /^\d{4}-\d{2}-\d{2}$/.test(previous.lastmod || "")) {
+        //
+        // 🔴 "휘발성 = 오늘" 은 아니다(2026-08-28). 얼마나 자주 바뀌는지는 라우트가 정하고
+        //    (FORTUNE_VOLATILE_CADENCES), 소스가 **진짜로** 바뀐 날은 주기와 무관하게 오늘이다.
+        //    그래서 둘 중 늦은 날짜를 쓴다 — 주 중간에 주간 화면 문안을 고쳤는데 lastmod 가 지난
+        //    월요일로 내려가면 거짓 신호의 방향만 반대가 된다.
+        lastmod = unchanged ? maxYmd(previous.lastmod, volatileLastmodFor(pathname)) : volatileToday;
+        if (previous && lastmod === previous.lastmod) stats.kept += 1;
+        else stats.updated += 1;
+      } else if (unchanged) {
         lastmod = previous.lastmod;
         stats.kept += 1;
       } else if (!previous && previousLastmod.has(pathname)) {
