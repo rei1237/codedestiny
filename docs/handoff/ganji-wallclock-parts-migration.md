@@ -3,6 +3,58 @@
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
 > 사용자 승인 계획: "전량 3단계"(2026-08-28). 여기 있는 PR-B~E 가 그것이다.
 
+## ✅ PR-B 완료 (2026-08-28) — **다음은 PR-C(§4)** 부터다
+
+저울이 섰다. 아래 §3 은 이제 "무엇을 만들었나"의 명세로 읽고, 착수점은 §4 다.
+
+| 만든 것 | 무엇 |
+|---|---|
+| `scripts/lib/shell-ganji-harness.cjs` | 반쪽 하네스 두 벌을 합쳤다. 브라우저와 같은 로드 체인 6벌, `lunar-javascript` 전역 삭제, `fetch` 는 **던지는 스텁** |
+| `scripts/lib/kst-clock.mjs` | `pinTimezone(tz)` + 자기검사 2단(오프셋 숫자 · `Intl` 해석 존). 🔴 Node 는 모르는 존 이름을 **조용히 UTC 로** 떨어뜨린다 |
+| `scripts/lib/ziwei-engine-harness.cjs` | 얇은 어댑터로. `PRELUDE_SCRIPTS` 가 위 체인에서 나온다 |
+| `scripts/verify-ganji-surface-parity.mjs` | 표본 1516 × 표면 12벌 × TZ 6종. 검사 37건 · **실측 5.6초**(fast 잡 예산 안) |
+| `scripts/fixtures/ganji-surface-kst.json` | before-image(249KB). `rows` 와 `nullMap` 이 **따로** |
+| `scripts/fixtures/ganji-dst-gap-census.json` | 구멍의 현행 크기 |
+| `scripts/fixtures/README-ganji-surface.md` | "정답이 아니라 현행" · `--emit` 을 언제 돌리는가 |
+
+### 🔴 첫 관문 결과 — 하네스에 서비스를 넣어도 기존 가드가 **한 건도 안 움직였다**
+
+`verify:ziwei-star-parity`(21) · `ziwei-sohan`(35) · `ziwei-worker-chart-facts`(114) ·
+`ziwei-chart-detail-view`(46) · `shell-korean-calendar` · `daeun-korean-calendar`(16) 전부 그대로.
+`verify-ziwei-brightness-constraints.cjs` 의 **45건 중 19건 실패도 숫자 그대로**(문서화된 기존값).
+⇒ §1-(1) 이 실측으로 재확인됐다 — `getGanji` 가 1990 말고 전부 `null` 이라 서비스를 실어도 값이 안 생긴다.
+
+### 🔴 새로 알게 된 것 — **정본 축(`Asia/Seoul`)에도 구멍이 12건 있다**
+
+```
+Asia/Seoul 12 · UTC 0 · America/New_York 21 · Pacific/Apia 18
+Pacific/Kiritimati 6 · Australia/Lord_Howe 18          (표본 1516 기준)
+```
+
+한국은 1948~51 · 1955~60 · **1987~88** 에 서머타임을 썼다. 즉 이 결함은 "해외 사용자만"이 아니라
+**그 창에 태어난 한국 사용자에게 지금 라이브로 일어나고 있다.** PR-D 의 명분이 여기 있다.
+
+🔴 구멍 표본은 손으로 안 적는다 — `Intl` 로 6개 존의 **시계 앞당김 전이**를 찾아 그 안의 분을 쓴다.
+처음엔 절기·음력에서만 표본을 유도했더니 뉴욕 3건 말고 **전부 0** 이었다(존이 매트릭스에 있어도
+그 구멍을 안 밟으면 아무것도 안 잰다). 가드의 `② 서머타임 존이 전부 최소 1건` 이 그것을 막는다.
+
+### 음성 테스트 6종 전건 확인 (전부 fail-closed → 복구 후 초록)
+
+체인에서 서비스 제거 · TZ 핀 무력화 후 `TZ=UTC` · 매트릭스에서 `Pacific/Apia` 제거 ·
+픽스처 한 줄 손편집 · census 를 0 으로 · **`isNull` 지도만 뒤집기(값은 그대로)**.
+🔴 마지막 것이 이 가드의 핵심이다 — 값 대조만 있으면 그 변조가 통과한다.
+
+### 덤으로 닫은 것 — §1-(3) 의 동어반복
+
+`verify:shell-korean-calendar` ⑫ 의 baseline 을 머신 로컬이 아니라 **`TZ=Asia/Seoul` 자식**에서 뽑고
+매트릭스를 6종으로 넓혔다(검사 40 → **51건**). CI 에서 UTC↔UTC 를 재던 자리가 없어졌다.
+
+### 🔴 PR-C 착수 전 주의
+
+- 🔴 `ganji-surface-kst.json` 을 **고치면 리뷰 거절 사유다**(§4 계약). `--emit` 은 회귀를 지우는 버튼이다.
+- 실행: `npm run verify:ganji-surface-parity` (CI 배선 완료 — fast 잡).
+- 표면 12벌의 이름·순서는 픽스처의 `surfaces` 가 갖고 가드가 대조한다. 늘리면 `--emit` 이 필요하다.
+
 ## 0. 무엇을 고치는가
 
 브라우저에서 사주 간지를 계산할 때 **KST 벽시계 부품으로 로컬 `Date` 를 조립**한다.

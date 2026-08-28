@@ -7,126 +7,43 @@
  *
  * 이 부트스트랩은 원래 scripts/verify-ziwei-brightness-constraints.cjs 안에 있던 것을 꺼낸 것이다.
  * 같은 엔진을 두 검증기가 쓰게 되면서 두 벌로 갈라지는 것을 막으려고 여기로 옮겼다.
+ *
+ * 🔴 2026-08-28 — DOM 스텁과 로드 체인은 이제 scripts/lib/shell-ganji-harness.cjs 하나가 갖는다.
+ * 이 파일은 그 위의 얇은 어댑터다(공개 API 는 그대로). 왜 옮겼는지는 그 파일 머리말에 있다 —
+ * 요약하면 이 하네스에 `KasiCalendarService` 가 없어서 셸의 간지 경로가 하네스에서는 항상 null 을
+ * 내고, 브라우저에서만 셸이 워커·앱과 갈렸다(js/saju-engine.js:2938).
  */
 const path = require("path");
-const fs = require("fs");
-const vm = require("vm");
 
-const { Solar, Lunar } = require("lunar-javascript");
+const shell = require("./shell-ganji-harness.cjs");
 
-const REPO_ROOT = path.resolve(__dirname, "..", "..");
+const REPO_ROOT = shell.REPO_ROOT;
 const DEFAULT_ENGINE = "js/saju-engine.js";
 
 /**
  * 🔴 엔진보다 먼저 평가해야 하는 것들. 브라우저의 로드 체인(js/core/index-inline-runtime.js 의
  * __cdEnsureSajuCoreLoaded)과 같은 순서다. 여기를 비워 두면 엔진이 window.KoreanCalendar 를
  * 못 찾아 던지고, 그게 곧 "가드는 초록인데 브라우저는 죽는다" 가 된다.
+ *
+ * 🔴 `js/core/kasi-calendar-service.js` 가 여기 들어 있다 — 브라우저가 엔진보다 먼저 싣기 때문이다.
+ * 빠져 있던 동안 `KasiEngine.getGanji` 가 하네스에서 **항상 null** 이라 자미 가드들이 그 경로를
+ * 아예 보지 못했다.
  */
-const PRELUDE_SCRIPTS = ["js/core/korean-calendar.js"];
+const PRELUDE_SCRIPTS = shell.ZIWEI_CHAIN.filter((rel) => rel !== DEFAULT_ENGINE);
 
-let loadedEnginePath = null;
-
-function createDummyEl() {
-  return {
-    style: {},
-    dataset: {},
-    classList: { add() {}, remove() {}, contains() { return false; } },
-    appendChild() {},
-    removeChild() {},
-    setAttribute() {},
-    getAttribute() { return null; },
-    addEventListener() {},
-    removeEventListener() {},
-    querySelector() { return null; },
-    querySelectorAll() { return []; },
-    focus() {},
-    blur() {},
-    click() {},
-    innerHTML: "",
-    textContent: "",
-    value: "",
-    checked: false,
-    options: [{
-      text: "대한민국 · 서울",
-      value: "Asia/Seoul",
-      getAttribute(name) {
-        if (name === "data-long") return "126.978";
-        if (name === "data-lat") return "37.5665";
-        if (name === "data-base-tz" || name === "data-tz") return "9";
-        return "";
-      },
-    }],
-    selectedIndex: 0,
-  };
-}
-
-function bootstrapDom() {
-  global.Solar = Solar;
-  global.Lunar = Lunar;
-
-  const cache = new Map();
-  const getEl = (id) => {
-    if (!cache.has(id)) cache.set(id, createDummyEl());
-    return cache.get(id);
-  };
-
-  global.window = global;
-  global.navigator = { userAgent: "node" };
-  global.location = { href: "" };
-  global.localStorage = {
-    _s: {},
-    getItem(k) { return this._s[k] || null; },
-    setItem(k, v) { this._s[k] = String(v); },
-    removeItem(k) { delete this._s[k]; },
-  };
-  global.sessionStorage = {
-    _s: {},
-    getItem(k) { return this._s[k] || null; },
-    setItem(k, v) { this._s[k] = String(v); },
-    removeItem(k) { delete this._s[k]; },
-  };
-  global.matchMedia = () => ({ matches: false, addListener() {}, removeListener() {} });
-  global.alert = () => {};
-  global.confirm = () => true;
-  global.requestAnimationFrame = (cb) => setTimeout(() => cb(Date.now()), 0);
-  global.cancelAnimationFrame = (id) => clearTimeout(id);
-  global.document = {
-    head: { appendChild() {}, removeChild() {} },
-    body: { appendChild() {}, removeChild() {} },
-    documentElement: { style: {} },
-    getElementById(id) { return getEl(id); },
-    getElementsByName() { return []; },
-    querySelector() { return null; },
-    querySelectorAll() { return []; },
-    createElement() { return createDummyEl(); },
-    addEventListener() {},
-    removeEventListener() {},
-  };
-
-  global.window.addEventListener = () => {};
-  global.window.removeEventListener = () => {};
-  global.window.scrollTo = () => {};
-}
+const createDummyEl = shell.createDummyEl;
+const bootstrapDom = shell.bootstrapDom;
 
 /** 엔진을 한 번만 평가한다. 이미 로드돼 있으면 그 경로를 그대로 돌려준다. */
 function loadEngine(engineRelPath = DEFAULT_ENGINE) {
-  const enginePath = path.resolve(REPO_ROOT, engineRelPath);
-  if (loadedEnginePath === enginePath) return enginePath;
-  if (loadedEnginePath) {
-    throw new Error(`engine already loaded from ${loadedEnginePath}; cannot re-load ${enginePath}`);
-  }
-  bootstrapDom();
-  for (const rel of PRELUDE_SCRIPTS) {
-    const abs = path.resolve(REPO_ROOT, rel);
-    vm.runInThisContext(fs.readFileSync(abs, "utf8"), { filename: abs });
-  }
-  const code = fs.readFileSync(enginePath, "utf8");
-  vm.runInThisContext(code, { filename: enginePath });
+  const chain = engineRelPath === DEFAULT_ENGINE
+    ? shell.ZIWEI_CHAIN
+    : [...PRELUDE_SCRIPTS, engineRelPath];
+  shell.loadShell(chain);
   if (typeof global.calcZiweiPalaces !== "function") {
-    throw new Error(`calcZiweiPalaces not found after engine load: ${enginePath}`);
+    throw new Error(`calcZiweiPalaces not found after engine load: ${engineRelPath}`);
   }
-  loadedEnginePath = enginePath;
-  return enginePath;
+  return path.resolve(REPO_ROOT, engineRelPath);
 }
 
 /**
@@ -139,4 +56,4 @@ function calcChart({ gender, year, month, day, hour, minute }, engineRelPath = D
   return global.calcZiweiPalaces(year, month, day, hour, minute);
 }
 
-module.exports = { REPO_ROOT, DEFAULT_ENGINE, bootstrapDom, loadEngine, calcChart, createDummyEl };
+module.exports = { REPO_ROOT, DEFAULT_ENGINE, PRELUDE_SCRIPTS, bootstrapDom, loadEngine, calcChart, createDummyEl };

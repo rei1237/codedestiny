@@ -1,0 +1,13 @@
+{
+  "note": "🔴 서머타임 구멍의 **현행 크기**다. PR-D 가 이 값을 전부 0 으로 만드는 것이 졸업 조건이다.",
+  "generatedBy": "scripts/verify-ganji-surface-parity.mjs --emit",
+  "sampleCount": 1516,
+  "gaps": {
+    "Asia/Seoul": 12,
+    "UTC": 0,
+    "America/New_York": 21,
+    "Pacific/Apia": 18,
+    "Pacific/Kiritimati": 6,
+    "Australia/Lord_Howe": 18
+  }
+}
