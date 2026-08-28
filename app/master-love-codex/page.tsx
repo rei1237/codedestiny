@@ -8,6 +8,7 @@ import {
 import { siteSeo } from "../../lib/seo/siteSeo";
 import ServiceIntroSection from "../components/ServiceIntroSection";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
+import { buildKrwOffer } from "@/lib/seo/paid-offer";
 
 const PAGE_PATH = "/master-love-codex/";
 const PAGE_TITLE = "사주 연애 리포트 · 자미두수 융합 20장 | 마스터 인연의 서";
@@ -133,6 +134,11 @@ const masterLoveCodexJsonLd = [
     description: PAGE_DESCRIPTION,
     path: PAGE_PATH,
     serviceType: "사주·자미두수 융합 프리미엄 연애 상담",
+    // 🔴 가격은 서버 가격표에서 푼다(lib/seo/paid-offer.ts). 못 풀면 null 이라 offers 가 빠진다.
+    //    통화는 언제나 KRW — 이니시스 해외카드 특약은 승인·정산이 모두 원화다.
+    //    이 페이지의 정가 상품은 단독판이다. 궁합판(master-love-codex-compat)은 별도 결제라
+    //    한 Offer 에 두 가격을 섞지 않는다.
+    offer: buildKrwOffer("master-love-codex", PAGE_PATH),
   }),
   buildFaqPageJsonLd(masterLoveCodexFaqItems),
   buildBreadcrumbJsonLd([

@@ -87,7 +87,7 @@ for (const rel of walk(APP_DIR)) {
   for (const featureKey of keys) wired.push({ rel, featureKey });
 }
 
-const MIN_WIRED_PAGES = 8; // 2026-08-28 실측 8. 줄어들면 배선이 사라진 것이다.
+const MIN_WIRED_PAGES = 9; // 2026-08-28 실측 9. 줄어들면 배선이 사라진 것이다.
 assert.ok(
   wired.length >= MIN_WIRED_PAGES,
   `Offer 가 붙은 유료 페이지가 ${wired.length}개입니다(최소 ${MIN_WIRED_PAGES}). `
@@ -113,7 +113,13 @@ for (const { rel, featureKey } of wired) {
 // ── 3) 페이지의 결제 상수와 Offer 의 featureKey 가 같다 ──────────────────────────
 // 결제에 쓰는 상수는 페이지 디렉터리의 클라이언트 파일에 있다(FEATURE_KEY / PAID_FEATURE_KEY / SERVICE_TYPE).
 const CLIENT_KEY_PATTERN = /^const (?:FEATURE_KEY|PAID_FEATURE_KEY|SERVICE_TYPE) = "([^"]+)";$/gm;
+// 🔴 몰입형 페이지는 상수를 app/ 이 아니라 src/features/<이름>/constants.ts 에 둔다
+//    (예: master-love-codex). 페이지 디렉터리만 뒤지면 그런 페이지는 declared 가 비어 대조가
+//    조용히 건너뛰어지고, Offer 의 featureKey 가 틀려도 아무도 못 잡는다 — fail-open 이다.
+const FEATURE_MODULE_KEY_PATTERN = /^export const [A-Z0-9_]*FEATURE_KEY = "([^"]+)";$/gm;
+const FEATURE_MODULE_ROOT = "src/features";
 let comparedPages = 0;
+const featureModuleReads = new Set();
 for (const { rel, featureKey } of wired) {
   const dirRel = dirname(rel);
   const siblings = readdirSync(resolve(root, dirRel), { withFileTypes: true })
@@ -125,6 +131,18 @@ for (const { rel, featureKey } of wired) {
     const source = readFileSync(resolve(root, sibling), "utf8");
     for (const match of source.matchAll(CLIENT_KEY_PATTERN)) declared.add(match[1]);
   }
+
+  const featureModuleRel = `${FEATURE_MODULE_ROOT}/${dirRel.split("/").pop()}/constants.ts`;
+  let featureModuleSource = null;
+  try {
+    featureModuleSource = readFileSync(resolve(root, featureModuleRel), "utf8");
+  } catch {
+    featureModuleSource = null; // 그런 모듈이 없는 페이지가 정상이다.
+  }
+  if (featureModuleSource) {
+    for (const match of featureModuleSource.matchAll(FEATURE_MODULE_KEY_PATTERN)) declared.add(match[1]);
+    featureModuleReads.add(featureModuleRel);
+  }
   if (declared.size === 0) continue; // 클라이언트 상수가 없는 페이지는 대조할 대상이 없다.
   comparedPages += 1;
   assert.ok(
@@ -134,7 +152,7 @@ for (const { rel, featureKey } of wired) {
   );
 }
 
-const MIN_COMPARED = 6; // 2026-08-28 실측 7. 정규식이 깨져 대조가 0 이 되면 여기서 걸린다.
+const MIN_COMPARED = 8; // 2026-08-28 실측 9. 정규식이 깨져 대조가 0 이 되면 여기서 걸린다.
 assert.ok(
   comparedPages >= MIN_COMPARED,
   `클라이언트 결제 상수와 대조된 페이지가 ${comparedPages}개입니다(최소 ${MIN_COMPARED}). `
@@ -144,7 +162,7 @@ assert.ok(
 // ── 6) CI 트리거 커버리지 ────────────────────────────────────────────────────────
 const GATE_WORKFLOW = ".github/workflows/paid-flow-gates.yml";
 const gatePatterns = readGatePatterns(resolve(root, GATE_WORKFLOW));
-const READ_PATHS = [OFFER_MODULE, SERVICE_JSONLD, ...new Set(wired.map((entry) => entry.rel))];
+const READ_PATHS = [OFFER_MODULE, SERVICE_JSONLD, ...new Set(wired.map((entry) => entry.rel)), ...featureModuleReads];
 const uncovered = READ_PATHS.filter((rel) => !gateCoversAny(gatePatterns, rel));
 assert.equal(
   uncovered.length,
