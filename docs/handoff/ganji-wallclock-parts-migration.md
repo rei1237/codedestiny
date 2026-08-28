@@ -3,16 +3,62 @@
 > 이 문서만 읽고 이어서 시작할 수 있어야 한다. **근거를 못 찾으면 추측하지 말고 사용자에게 물어라.**
 > 사용자 승인 계획: "전량 3단계"(2026-08-28). 여기 있는 PR-B~E 가 그것이다.
 
-## ✅ PR-B 완료 (2026-08-28) — **다음은 PR-C(§4)** 부터다
+## ✅ PR-C 완료 (2026-08-28) — **다음은 PR-D(§5)** 부터다
 
-저울이 섰다. 아래 §3 은 이제 "무엇을 만들었나"의 명세로 읽고, 착수점은 §4 다.
+서비스가 부품 정본이 됐고 엔진에 부품 API 가 생겼다. §4 는 이제 "무엇을 만들었나"의 명세로
+읽고, 착수점은 §5 다. **계약(`ganji-surface-kst.json` 무수정)은 지켜졌다** — 그 파일은 이 PR 의
+변경 목록에 없다.
+
+| 파일 | 무엇이 바뀌었나 |
+|---|---|
+| `js/core/kasi-calendar-service.js` | `_dateFromParts`·`_toIsoLocal`·`_wallClockMs` 삭제 → `_partsOf`·`_partsValid`·`_partsWallMs`·`_partsToIsoLocal`·`_partsFromLocalDate`. 계산 6벌·`_buildSolarParts`·`_buildDateContext`·`_normalizeTerms`·`_fetchLunarFromSolar`·`_fallbackLunarFromSolar` 전부 부품 입력. 공개 `computeGanjiFromParts` 신설 + `computeGanjiFromDate` 어댑터 |
+| `js/saju-engine.js` | `KasiEngine.getGanjiFromParts`·`solarToLunarFromParts` 신설, `getGanji(dateOrParts)`·`solarToLunar(date)` 는 어댑터. 야자시 밀기 `setDate(+1)` → `_kasiShiftPartsByDays` |
+| `scripts/verify-ganji-surface-parity.mjs` | 검사 ④ 신설(부품 진입점 == Date 진입점 · 부품 경로의 Date 독출 0). 검사 **37 → 42건**, 픽스처는 안 건드린다 |
+
+### 🔴 PR-C 에서 새로 알게 된 것 — 계획을 고쳐야 하는 것들
+
+1. 🔴 **셸에는 서비스 없이 엔진만 싣는 체인이 하나 더 있다** — `js/core/index-inline-runtime.js:8052`
+   (`__cdEnsureSajuCoreLoaded` 계열, 생년월일 모달 경로)은 `korean-calendar` → `compat-llm-prompts` →
+   `saju-engine` → `tarot` 만 싣고 **`kasi-calendar-service.js` 가 없다.**
+   ⇒ 엔진이 서비스의 함수를 부를 수 있다고 전제하면 안 된다. 그래서 로컬 Date 독출기는 두 파일에
+   각각 두되 **카운터 하나(`window.__CD_GANJI_LOCAL_DATE_READS__`)를 공유**한다. PR-E 의 "호출 0"
+   가드는 그 전역 하나만 읽으면 된다.
+2. **`_partsOf` 의 정규화가 `new Date(y, m-1, d, ...)` 와 같음을 실측했다**(2026-08-28,
+   10,692 조합: 연 0/50/99/1899/1900/2100/275760/NaN/문자열 × 월 0~25 × 일 0~60 × 시 0~25).
+   `TZ=UTC` **불일치 0건**. `TZ=Asia/Seoul` 은 **3건**인데 전부 `1950-04-01 00:30`(한국 서머타임
+   시작) — 즉 차이의 정체가 정규화가 아니라 **이 작업이 없애려는 그 접힘**이다.
+3. **`_shiftPartsByDays` 는 서비스에 안 넣었다** — 서비스에 호출부가 없어 데드코드가 된다.
+   날짜 밀기는 엔진에만 필요하고, 거기서는 이미 있던 `_shiftDatePartsByDays`(:1250, `Date.UTC` 기반)
+   위에 `_kasiShiftPartsByDays` 를 얹었다.
+4. **§6-3(`_toIsoLocal` 삭제)은 여기서 이미 끝났다.** 부품 전환으로 호출부가 0 이 됐다.
+   `_wallClockMs`·`_dateFromParts` 도 같은 이유로 지웠다. PR-E 는 그 항목을 빼고 시작하라.
+5. **`__test.computeMonthGanjiFromTerms` 는 Date 어댑터로 남겼다** —
+   `scripts/test-saju-solar-term-regression.mjs:146,154,155,159,160` 이 Date 를 넘긴다(npm 미배선
+   스크립트지만 살아 있다). 부품으로 옮기는 것은 그 스크립트와 **같은 커밋**에서.
+6. **캐시 복구 갈래가 조금 엄격해졌다**(`_buildDateContext` 의 `cached.ganji.hour` 없음 경로).
+   예전에는 `cached.solar` 가 깨져 있으면 Invalid Date 가 그대로 흘러 일주가 `甲子` 로 나왔다.
+   지금은 `_partsOf` 가 `null` 을 내고 캐시된 간지를 그대로 둔다. 정상 캐시에서는 도달 불가라
+   픽스처·가드 어디에도 안 나타난다.
+
+### PR-C 음성 테스트 4종 전건 확인 (전부 fail-closed → 복구 후 초록)
+
+부품 경로에서 로컬 Date 를 읽게 만들기 / **공개 `computeGanjiFromParts` 만 terms 를 버리기** /
+`solarToLunarFromParts` 제거 / 서비스의 Date 어댑터를 정본과 갈라놓기.
+🔴 두 번째가 검사 ④ 의 존재 이유다 — 픽스처는 Date 표면만 찍으므로 **공개 부품 API 만 깨지면
+①③ 이 전부 초록**이다. PR-D 가 호출부 22곳을 그 API 로 옮기므로 지금 고정해 둔다.
+
+---
+
+## ✅ PR-B 완료 (2026-08-28)
+
+저울이 섰다. 아래 §3 은 "무엇을 만들었나"의 명세다.
 
 | 만든 것 | 무엇 |
 |---|---|
 | `scripts/lib/shell-ganji-harness.cjs` | 반쪽 하네스 두 벌을 합쳤다. 브라우저와 같은 로드 체인 6벌, `lunar-javascript` 전역 삭제, `fetch` 는 **던지는 스텁** |
 | `scripts/lib/kst-clock.mjs` | `pinTimezone(tz)` + 자기검사 2단(오프셋 숫자 · `Intl` 해석 존). 🔴 Node 는 모르는 존 이름을 **조용히 UTC 로** 떨어뜨린다 |
 | `scripts/lib/ziwei-engine-harness.cjs` | 얇은 어댑터로. `PRELUDE_SCRIPTS` 가 위 체인에서 나온다 |
-| `scripts/verify-ganji-surface-parity.mjs` | 표본 1516 × 표면 12벌 × TZ 6종. 검사 37건 · **실측 5.6초**(fast 잡 예산 안) |
+| `scripts/verify-ganji-surface-parity.mjs` | 표본 1516 × 표면 12벌 × TZ 6종. 검사 37건(PR-C 가 ④ 를 더해 **42건**) · **실측 5.6초**(fast 잡 예산 안) |
 | `scripts/fixtures/ganji-surface-kst.json` | before-image(249KB). `rows` 와 `nullMap` 이 **따로** |
 | `scripts/fixtures/ganji-dst-gap-census.json` | 구멍의 현행 크기 |
 | `scripts/fixtures/README-ganji-surface.md` | "정답이 아니라 현행" · `--emit` 을 언제 돌리는가 |
@@ -134,7 +180,7 @@ Australia/Lord_Howe  2024-10-06 02:15 → 02:45        30분 DST — "±1시간"
 
 | 파일 | 줄 |
 |---|---|
-| `js/core/kasi-calendar-service.js` | `_dateFromParts` 정의 + 호출 4곳(`_normalizeTerms` · `_buildSolarDate` 양력/음력 · 캐시 복구) |
+| ~~`js/core/kasi-calendar-service.js`~~ | ✅ **PR-C 에서 끝났다** — `_dateFromParts` 정의 + 호출 4곳(`_normalizeTerms` · `_buildSolarDate` 양력/음력 · 캐시 복구) |
 | `js/saju-engine.js` | repair(`:1205`) · fallback 2(`:1385`,`:1390`) · 모달 원국(`:2849`) · 자미 baseDate(`:2916`) · 히어로(`:5348`) · 유년(`:24229`) · 월지(`:26011`) · 궁합(`:27727`) · 세운(`:28893`) · 대운연운(`:29018`) · 유명인(`:29715`) |
 | `js/core/index-inline-runtime.js` | `:4162` |
 | `js/core/saju/modalProfileState.js` | `:107` |
@@ -200,9 +246,10 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 
 ---
 
-## 4. PR-C — 서비스 parts 정본 + 엔진 parts API
+## 4. ✅ PR-C — 서비스 parts 정본 + 엔진 parts API (완료)
 
 **계약: `ganji-surface-kst.json` 이 한 바이트도 안 바뀐다. 이 PR 에서 그 파일을 고치면 리뷰 거절 사유다.**
+→ 지켜졌다. 아래는 착수 전에 적어 둔 명세이고, 실제로 어떻게 됐는지는 문서 맨 위 PR-C 절에 있다.
 
 - `_dateFromParts` 삭제 → `_partsOf` / `_partsValid` / `_partsWallMs` / `_shiftPartsByDays` / `_partsToIsoLocal`
 - 계산 6벌을 부품 입력으로: `_dayGanjiFromDate` · `_yearGanjiFromIpchun` · `_hourGanjiFromDay` ·
@@ -274,9 +321,13 @@ null==null 로 통과한다) / `pinTimezone()` 제거 후 `TZ=UTC` / 매트릭�
 
 1. `computeGanjiFromDate` · `_partsFromLocalDate` · `getGanji(Date)` 어댑터 삭제 —
    **PR-C 가 심은 계측이 호출 0 임을 가드로 증명한 뒤에만.**
+   🔴 계측의 실체는 전역 `window.__CD_GANJI_LOCAL_DATE_READS__.count` 하나다(두 파일이 공유).
+   `verify:ganji-surface-parity` 의 검사 ④ 가 이미 "부품 경로에서 그 수가 안 오른다"를 단언하므로,
+   PR-E 는 "전 표면을 부품으로 한 바퀴 돌린 뒤 그 수가 **0**" 을 더하면 된다.
    🔴 `verify:shell-korean-calendar` ③⑥-b·⑪ 이 전역 이름으로 Date 를 넘기므로 **같은 커밋**에서 부품으로.
 2. 유효성 5곳(§2 마지막 줄)을 `Date.UTC` 왕복으로. 2월 30일은 여전히 거르고 DST 구멍은 안 거른다.
-3. `_toIsoLocal` 삭제, `isoLocal` 을 정수에서 직접 조립. **출력 문자열은 한 글자도 안 바뀐다.**
+3. ~~`_toIsoLocal` 삭제, `isoLocal` 을 정수에서 직접 조립.~~ ✅ **PR-C 에서 끝났다**
+   (`_partsToIsoLocal`). 출력 문자열은 한 글자도 안 바뀌었다.
 4. 🔴 **야자시 의미 결정 — 이 계획 전체에서 값이 바뀌는 유일한 자리.**
    - `tarot:13261` 은 정오 고정이라 야자시가 절대 안 걸린다 → `true` 를 지운다. **값 변화 0**(가드로 증명).
    - `tarot:11626` 은 입력 시각이 23시일 수 있다 → **유일한 실제 결정 지점.**

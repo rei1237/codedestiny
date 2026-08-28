@@ -551,13 +551,13 @@
     return null;
   }
 
-  async function _fetchLunarFromSolar(solarDate) {
+  async function _fetchLunarFromSolar(solarParts) {
     if (_isMaintenanceCircuitOpen()) return null;
     try {
       var rows = await _fetchKasi('getLunCalInfo', {
-        solYear: String(solarDate.getFullYear()),
-        solMonth: _pad2(solarDate.getMonth() + 1),
-        solDay: _pad2(solarDate.getDate())
+        solYear: String(solarParts.year),
+        solMonth: _pad2(solarParts.month),
+        solDay: _pad2(solarParts.day)
       });
       if (rows && rows.length) {
         for (var r = 0; r < rows.length; r++) {
@@ -612,14 +612,92 @@
     return [];
   }
 
-  function _dateFromParts(y, m, d, h, min, s) {
-    return new Date(y, (m || 1) - 1, d || 1, h || 0, min || 0, s || 0);
+  /**
+   * 벽시계 부품 규약 — `{ year, month(1-based), day, hour, minute, second }`.
+   *
+   * 🔴 간지 경로에서 로컬 `Date` 를 캐리어로 쓰지 않는다. 그 벽시계가 브라우저 타임존에
+   * **존재하지 않으면**(서머타임 시계 앞당김) JS 가 조용히 다른 시각으로 접고, 되읽은 부품이
+   * 입력과 달라져 시주·일주·월주가 틀어진다. 존재하지 않는 벽시계를 담을 수 있는 로컬 Date 는
+   * 없으므로 "조립 후 보정"은 불가능하고 캐리어를 그만두는 것이 유일한 답이다.
+   * 계획 전문: docs/handoff/ganji-wallclock-parts-migration.md
+   *
+   * 🔴 정규화는 `new Date(y, m - 1, d, h, min, s)` 와 **한 글자도 달라지면 안 된다** — 초과 일수는
+   * 다음 달로 넘어가고 0~99 년은 1900+y 로 읽힌다. `Date.UTC` 가 같은 규칙을 갖고 있으면서
+   * 타임존에는 안 걸리므로 그 엔진을 그대로 빌린다. 2월 30일 거부 같은 엄격화는 여기가 아니라
+   * PR-E 에서 별도 실측과 함께 한다 — 지금 조이면 접혀서 계산되던 입력이 조용히 null 이 된다.
+   */
+  function _partsOf(y, m, d, h, min, s) {
+    var ms = Date.UTC(y, (m || 1) - 1, d || 1, h || 0, min || 0, s || 0);
+    if (isNaN(ms)) return null;
+    var at = new Date(ms);
+    return {
+      year: at.getUTCFullYear(),
+      month: at.getUTCMonth() + 1,
+      day: at.getUTCDate(),
+      hour: at.getUTCHours(),
+      minute: at.getUTCMinutes(),
+      second: at.getUTCSeconds()
+    };
   }
 
-  function _toIsoLocal(date) {
+  /**
+   * 부품 입구 가드. 🔴 Date 를 받던 시절의 `x instanceof Date && !isNaN(x.getTime())` 와
+   * **같은 강도**여야 한다 — 느슨해지면 지금 null 을 내는 표면들이 답하기 시작하고,
+   * 그 순간 호출부 13곳이 한꺼번에 절기 프레임 세차로 갈아탄다.
+   * `second` 만 선택이다(`_dateFromParts` 도 기본값 0 이었다).
+   */
+  function _partsValid(parts) {
+    if (!parts || typeof parts !== 'object') return false;
+    var keys = ['year', 'month', 'day', 'hour', 'minute'];
+    for (var i = 0; i < keys.length; i++) {
+      var v = parts[keys[i]];
+      if (typeof v !== 'number' || !isFinite(v)) return false;
+    }
+    return true;
+  }
+
+  /**
+   * 🔴 벽시계 부품을 그대로 UTC 축에 얹은 ms. **절대시각이 아니다.**
+   *
+   * 절기의 atLocal 도 KST 벽시계다(_termWallClockMs). 예전에는 atLocal 만 '+09:00' 을 붙여
+   * **절대시각**으로 바꿔 놓고 로컬 Date 의 getTime() 과 비교했다 — 브라우저 타임존이 KST 가
+   * 아니면 그 둘이 시차만큼 어긋난다(실측 2026-08-28, 입춘 ±10시간 710표본에서 UTC 브라우저
+   * 282건(39.7%) · 뉴욕 353건(49.7%) 이 세차·월건 모두 한 칸 어긋났다).
+   * 두 값을 같은 벽시계 축에 올리면 브라우저 타임존과 무관해진다.
+   */
+  function _partsWallMs(parts) {
+    if (!_partsValid(parts)) return NaN;
+    return Date.UTC(parts.year, parts.month - 1, parts.day, parts.hour, parts.minute, parts.second || 0);
+  }
+
+  function _partsToIsoLocal(parts) {
+    if (!_partsValid(parts)) return null;
+    return parts.year + '-' + _pad2(parts.month) + '-' + _pad2(parts.day) +
+      'T' + _pad2(parts.hour) + ':' + _pad2(parts.minute) + ':' + _pad2(parts.second || 0);
+  }
+
+  /**
+   * 🔴 이 레포에서 **로컬 Date 를 읽는 지점**은 여기와 js/saju-engine.js 의 같은 이름 둘뿐이다.
+   * Date 를 받던 진입점(`computeGanjiFromDate` · `KasiEngine.getGanji(Date)`)의 하위 호환을 위해
+   * 남아 있고, PR-E 가 그것들을 지울 근거로 **호출 건수를 센다** — 0 이면 아무도 안 쓰는 것이다.
+   *
+   * 두 파일이 파일별 리더 대신 같은 카운터를 공유하는 이유: 셸에는 서비스 없이 엔진만 싣는
+   * 체인이 하나 있어(js/core/index-inline-runtime.js:8052 생년월일 모달) 엔진이 서비스의
+   * 함수를 부를 수 있다고 전제할 수 없다.
+   */
+  var _localDateReads = (w.__CD_GANJI_LOCAL_DATE_READS__ = w.__CD_GANJI_LOCAL_DATE_READS__ || { count: 0 });
+
+  function _partsFromLocalDate(date) {
+    _localDateReads.count += 1;
     if (!(date instanceof Date) || isNaN(date.getTime())) return null;
-    return date.getFullYear() + '-' + _pad2(date.getMonth() + 1) + '-' + _pad2(date.getDate()) +
-      'T' + _pad2(date.getHours()) + ':' + _pad2(date.getMinutes()) + ':' + _pad2(date.getSeconds());
+    return {
+      year: date.getFullYear(),
+      month: date.getMonth() + 1,
+      day: date.getDate(),
+      hour: date.getHours(),
+      minute: date.getMinutes(),
+      second: date.getSeconds()
+    };
   }
 
   function _fallbackSolarFromLunar(norm) {
@@ -639,9 +717,9 @@
     return null;
   }
 
-  function _fallbackLunarFromSolar(solarDate) {
-    if (w.KasiEngine && typeof w.KasiEngine.solarToLunar === 'function') {
-      var lun = w.KasiEngine.solarToLunar(solarDate);
+  function _fallbackLunarFromSolar(solarParts) {
+    if (w.KasiEngine && typeof w.KasiEngine.solarToLunarFromParts === 'function') {
+      var lun = w.KasiEngine.solarToLunarFromParts(solarParts);
       if (lun && lun.year && lun.month && lun.day) {
         return {
           year: lun.year,
@@ -653,8 +731,8 @@
       }
     }
     // 🔴 _fallbackSolarFromLunar 와 같은 이유로 lunar-javascript 폴백을 두지 않는다.
-    if (w.KoreanCalendar && typeof w.KoreanCalendar.solarToLunar === 'function') {
-      var lun = w.KoreanCalendar.solarToLunar(solarDate.getFullYear(), solarDate.getMonth() + 1, solarDate.getDate());
+    if (w.KoreanCalendar && typeof w.KoreanCalendar.solarToLunar === 'function' && _partsValid(solarParts)) {
+      var lun = w.KoreanCalendar.solarToLunar(solarParts.year, solarParts.month, solarParts.day);
       if (lun) {
         return {
           year: lun.lunarYear,
@@ -708,25 +786,9 @@
     return _HS.charAt(idx % 10) + _EB.charAt(idx % 12);
   }
 
-  function _dayGanjiFromDate(solarDate) {
-    var serial = Math.floor(Date.UTC(solarDate.getFullYear(), solarDate.getMonth(), solarDate.getDate()) / 86400000);
+  function _dayGanjiFromParts(solarParts) {
+    var serial = Math.floor(Date.UTC(solarParts.year, solarParts.month - 1, solarParts.day) / 86400000);
     return _cycleGanji(serial + 17);
-  }
-
-  /**
-   * 🔴 벽시계 부품을 그대로 UTC 축에 얹은 ms. **절대시각이 아니다.**
-   *
-   * solarDate 는 KST 벽시계 부품으로 브라우저 로컬에 만든 Date 이고 절기의 atLocal 도 KST 벽시계다.
-   * 예전에는 atLocal 만 '+09:00' 을 붙여 **절대시각**으로 바꿔 놓고 solarDate.getTime() 과 비교했다.
-   * 브라우저 타임존이 KST 가 아니면 그 둘이 시차만큼 어긋난다 — 실측 2026-08-28, 입춘 ±10시간
-   * 710표본에서 UTC 브라우저 282건(39.7%) · 뉴욕 353건(49.7%) 이 세차·월건 모두 한 칸 어긋났다.
-   * 두 값을 같은 벽시계 축에 올리면 브라우저 타임존과 무관해진다.
-   */
-  function _wallClockMs(date) {
-    return Date.UTC(
-      date.getFullYear(), date.getMonth(), date.getDate(),
-      date.getHours(), date.getMinutes(), date.getSeconds()
-    );
   }
 
   /** 절기 atLocal('YYYY-MM-DDTHH:mm[:ss]' 또는 공백 구분)을 같은 벽시계 축의 ms 로. */
@@ -736,43 +798,43 @@
     return Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0));
   }
 
-  function _yearGanjiFromIpchun(solarDate, terms) {
-    var year = solarDate.getFullYear();
+  function _yearGanjiFromIpchun(solarParts, terms) {
+    var year = solarParts.year;
     var ipchun = _extractIpchun(terms);
     var pillarYear = year;
     if (ipchun && ipchun.atLocal) {
       var ipchunMs = _termWallClockMs(ipchun.atLocal);
-      if (!isNaN(ipchunMs) && _wallClockMs(solarDate) < ipchunMs) pillarYear = year - 1;
-    } else if (solarDate.getMonth() === 0 || (solarDate.getMonth() === 1 && solarDate.getDate() < 4)) {
+      if (!isNaN(ipchunMs) && _partsWallMs(solarParts) < ipchunMs) pillarYear = year - 1;
+    } else if (solarParts.month === 1 || (solarParts.month === 2 && solarParts.day < 4)) {
       pillarYear = year - 1;
     }
     return _cycleGanji(pillarYear - 1984);
   }
 
-  function _hourGanjiFromDay(dayGanji, solarDate) {
+  function _hourGanjiFromDay(dayGanji, solarParts) {
     if (!dayGanji || dayGanji.length < 1) return null;
     var dayStem = dayGanji.charAt(0);
     var start = _DAY_STEM_HOUR_START[dayStem];
     if (start == null) return null;
-    var hour = solarDate.getHours();
+    var hour = solarParts.hour;
     var branchIdx = Math.floor((hour + 1) / 2) % 12;
     return _HS.charAt((start + branchIdx) % 10) + _EB.charAt(branchIdx);
   }
 
-  function _fallbackGanji(solarDate, lunarObj, terms) {
+  function _fallbackGanji(solarParts, lunarObj, terms) {
     var kasiGanji = _extractGanjiFromKasiLunar(lunarObj);
-    var localTerms = terms && terms.length ? terms : _readValidatedSolarTerms(solarDate.getFullYear());
+    var localTerms = terms && terms.length ? terms : _readValidatedSolarTerms(solarParts.year);
     var hasMonthTerms = _countMonthBoundaryTerms(localTerms) >= 12;
-    var yearGanji = hasMonthTerms ? _yearGanjiFromIpchun(solarDate, localTerms) : null;
-    var dayGanji = _dayGanjiFromDate(solarDate);
-    var monthGanji = hasMonthTerms ? _computeMonthGanjiFromTerms(localTerms, solarDate, yearGanji) : null;
+    var yearGanji = hasMonthTerms ? _yearGanjiFromIpchun(solarParts, localTerms) : null;
+    var dayGanji = _dayGanjiFromParts(solarParts);
+    var monthGanji = hasMonthTerms ? _computeMonthGanjiFromTerms(localTerms, solarParts, yearGanji) : null;
     if (kasiGanji && (kasiGanji.year || kasiGanji.month || kasiGanji.day)) {
       var mergedDayGanji = kasiGanji.day || dayGanji;
       return {
         year: kasiGanji.year || yearGanji,
         month: kasiGanji.month || monthGanji,
         day: mergedDayGanji,
-        hour: _hourGanjiFromDay(mergedDayGanji, solarDate),
+        hour: _hourGanjiFromDay(mergedDayGanji, solarParts),
         source: (kasiGanji.source || 'kasi') + '+local-hour'
       };
     }
@@ -781,7 +843,7 @@
       year: yearGanji,
       month: monthGanji,
       day: dayGanji,
-      hour: _hourGanjiFromDay(dayGanji, solarDate),
+      hour: _hourGanjiFromDay(dayGanji, solarParts),
       source: localTerms && localTerms.length ? 'terms-julian' : 'julian'
     };
   }
@@ -850,12 +912,12 @@
           }
         }
 
-        var dt = y && m && d ? _dateFromParts(y, m, d, hh, mm, ss) : null;
+        var dt = y && m && d ? _partsOf(y, m, d, hh, mm, ss) : null;
         fallbackYear = fallbackYear || y;
         if (!dt || (fallbackYear && y && y !== fallbackYear)) return;
         out.push({
           name: String(name),
-          atLocal: dt ? _toIsoLocal(dt) : null,
+          atLocal: dt ? _partsToIsoLocal(dt) : null,
           source: 'kasi-api',
           sourceMeta: {
             basisYear: y,
@@ -925,21 +987,31 @@
     return count;
   }
 
-  function _computeGanjiFromDate(solarDate, terms) {
-    if (!(solarDate instanceof Date) || isNaN(solarDate.getTime())) return null;
-    var localTerms = terms && terms.length ? terms : _readValidatedSolarTerms(solarDate.getFullYear());
+  /** 🔴 정본. Date 를 받는 진입점은 아래 `_computeGanjiFromDate` 어댑터 하나뿐이다. */
+  function _computeGanjiFromParts(solarParts, terms) {
+    if (!_partsValid(solarParts)) return null;
+    var localTerms = terms && terms.length ? terms : _readValidatedSolarTerms(solarParts.year);
     if (_countMonthBoundaryTerms(localTerms) < 12) return null;
-    var yearGanji = _yearGanjiFromIpchun(solarDate, localTerms);
-    var dayGanji = _dayGanjiFromDate(solarDate);
-    var monthGanji = _computeMonthGanjiFromTerms(localTerms, solarDate, yearGanji);
+    var yearGanji = _yearGanjiFromIpchun(solarParts, localTerms);
+    var dayGanji = _dayGanjiFromParts(solarParts);
+    var monthGanji = _computeMonthGanjiFromTerms(localTerms, solarParts, yearGanji);
     if (!yearGanji || !monthGanji || !dayGanji) return null;
     return {
       year: yearGanji,
       month: monthGanji,
       day: dayGanji,
-      hour: _hourGanjiFromDay(dayGanji, solarDate),
+      hour: _hourGanjiFromDay(dayGanji, solarParts),
       source: String((localTerms[0] && localTerms[0].source) || 'validated-cache')
     };
+  }
+
+  /**
+   * 🔴 얇은 어댑터다. 옛 호출부(호출 13곳 + 가드 몇 개)가 로컬 Date 를 넘기는 동안만 산다.
+   * `_partsFromLocalDate` 의 `instanceof Date` 검사가 예전 입구 가드와 같은 강도다 —
+   * 여기를 duck-typing 으로 풀면 verify:shell-korean-calendar 가 재던 축이 통째로 바뀐다.
+   */
+  function _computeGanjiFromDate(solarDate, terms) {
+    return _computeGanjiFromParts(_partsFromLocalDate(solarDate), terms);
   }
 
   function _extractIpchun(terms) {
@@ -955,20 +1027,19 @@
   }
 
   /**
-   * 절기 데이터(terms24)와 생년월일시(solarDate)로 정확한 월주(月柱)를 계산한다.
+   * 절기 데이터(terms24)와 생년월일시(solarParts)로 정확한 월주(月柱)를 계산한다.
    * lunar-javascript CST 오차 및 KASI API 부분 조회 문제를 해결하기 위한 핵심 보정 함수.
    * @param {Array} terms - terms24 배열 ({name, atLocal, source} 형태)
-   * @param {Date} solarDate - 생년월일시 (JS Date, 로컬 KST)
+   * @param {{year:number,month:number,day:number,hour:number,minute:number,second?:number}} solarParts - 생년월일시 (KST 벽시계 부품)
    * @param {string} yearGanStr - 年柱 간지 문자열 (예: '丙午', 첫 글자가 天干)
    * @returns {string|null} 월주 간지 2글자 (예: '庚寅') 또는 null
    */
-  function _computeMonthGanjiFromTerms(terms, solarDate, yearGanStr) {
-    if (!terms || !terms.length || !solarDate) return null;
+  function _computeMonthGanjiFromTerms(terms, solarParts, yearGanStr) {
+    if (!terms || !terms.length || !solarParts) return null;
     try {
-      // 🔴 절대시각이 아니라 벽시계 축이다 — 이유는 _wallClockMs 주석에 있다.
-      var birthDate = solarDate instanceof Date ? solarDate : new Date(solarDate);
-      if (isNaN(birthDate.getTime())) return null;
-      var birthMs = _wallClockMs(birthDate);
+      // 🔴 절대시각이 아니라 벽시계 축이다 — 이유는 _partsWallMs 주석에 있다.
+      var birthMs = _partsWallMs(solarParts);
+      if (isNaN(birthMs)) return null;
 
       // 12중절만 필터링하여 정렬
       var brackets = [];
@@ -1014,12 +1085,12 @@
     }
   }
 
-  function _buildSolarDate(norm, solarFromLunar) {
+  function _buildSolarParts(norm, solarFromLunar) {
     if (norm.calendarType === 'solar') {
-      return _dateFromParts(norm.year, norm.month, norm.day, norm.hour, norm.minute, norm.second);
+      return _partsOf(norm.year, norm.month, norm.day, norm.hour, norm.minute, norm.second);
     }
     if (!solarFromLunar) return null;
-    return _dateFromParts(solarFromLunar.year, solarFromLunar.month, solarFromLunar.day, norm.hour, norm.minute, norm.second);
+    return _partsOf(solarFromLunar.year, solarFromLunar.month, solarFromLunar.day, norm.hour, norm.minute, norm.second);
   }
 
   function _buildDateContext(norm, options) {
@@ -1033,9 +1104,9 @@
       }
       if (!cached.ganji || !cached.ganji.hour) {
         var cachedSolar = cached.solar || {};
-        var cachedDate = _dateFromParts(cachedSolar.year, cachedSolar.month, cachedSolar.day, cachedSolar.hour, cachedSolar.minute, cachedSolar.second);
-        var cachedTerms = cached.terms24 || _readValidatedSolarTerms(cachedDate.getFullYear());
-        var recomputedGanji = _fallbackGanji(cachedDate, cached.lunar ? { raw: null } : null, cachedTerms);
+        var cachedParts = _partsOf(cachedSolar.year, cachedSolar.month, cachedSolar.day, cachedSolar.hour, cachedSolar.minute, cachedSolar.second);
+        var cachedTerms = cached.terms24 || _readValidatedSolarTerms(cachedParts ? cachedParts.year : null);
+        var recomputedGanji = cachedParts ? _fallbackGanji(cachedParts, cached.lunar ? { raw: null } : null, cachedTerms) : null;
         cached.ganji = Object.assign({}, cached.ganji || {}, recomputedGanji || {});
         _writeCache(cacheKey, cached);
       }
@@ -1075,20 +1146,20 @@
         }
       }
 
-      var solarDate = _buildSolarDate(norm, solarFromLunar);
-      if (!solarDate) throw new Error('Failed to resolve solar date');
+      var solarParts = _buildSolarParts(norm, solarFromLunar);
+      if (!solarParts) throw new Error('Failed to resolve solar date');
 
       var lunarObj = null;
       if (norm.calendarType === 'solar') {
         if (localOnly) {
-          lunarObj = _fallbackLunarFromSolar(solarDate);
+          lunarObj = _fallbackLunarFromSolar(solarParts);
           fallbackUsed = true;
           diagnostics.push('local-only: lunar conversion fallback');
         } else {
-          lunarObj = await _fetchLunarFromSolar(solarDate);
+          lunarObj = await _fetchLunarFromSolar(solarParts);
         }
         if (!lunarObj) {
-          lunarObj = _fallbackLunarFromSolar(solarDate);
+          lunarObj = _fallbackLunarFromSolar(solarParts);
           fallbackUsed = true;
           diagnostics.push('lunar conversion fallback');
           hadProxyFailure = hadProxyFailure || !!_lastProxyFailure;
@@ -1106,24 +1177,24 @@
       var apiTerms = [];
       if (!localOnly) {
         try {
-          apiTerms = await _fetchSolarTerms(solarDate.getFullYear(), solarDate.getMonth() + 1, solarDate.getDate());
+          apiTerms = await _fetchSolarTerms(solarParts.year, solarParts.month, solarParts.day);
         } catch (e) {
           diagnostics.push('solar terms API failed');
           hadProxyFailure = true;
         }
       }
-      var fallbackTerms = _fallbackSolarTerms(solarDate.getFullYear());
+      var fallbackTerms = _fallbackSolarTerms(solarParts.year);
       if (!apiTerms.length) {
         diagnostics.push(localOnly ? 'local-only: solar terms unavailable' : 'solar terms unavailable');
         hadProxyFailure = hadProxyFailure || !!_lastProxyFailure;
       }
-      var terms = _normalizeTerms(apiTerms, fallbackTerms, solarDate.getFullYear());
+      var terms = _normalizeTerms(apiTerms, fallbackTerms, solarParts.year);
       var termsSource = terms && terms.length ? String(terms[0].source || 'unknown') : 'unavailable';
       if (termsSource === 'validated-cache') {
         diagnostics.push('solar-terms-validated-cache');
       }
 
-      var ganji = _fallbackGanji(solarDate, lunarObj, terms);
+      var ganji = _fallbackGanji(solarParts, lunarObj, terms);
       if (!ganji || !ganji.year || !ganji.month || !ganji.day) {
         diagnostics.push('ganji limited');
       }
@@ -1131,7 +1202,7 @@
       // 절기 데이터로 월주 보정 (CST/KST 오차 수정 및 KASI 정밀 데이터 우선 적용)
       // terms24에 12중절이 충분하면 ganji.month를 정확한 값으로 덮어씀
       if (ganji && ganji.year && terms && terms.length > 0) {
-        var correctedMonth = _computeMonthGanjiFromTerms(terms, solarDate, ganji.year);
+        var correctedMonth = _computeMonthGanjiFromTerms(terms, solarParts, ganji.year);
         if (correctedMonth && correctedMonth.length === 2) {
           ganji.month = correctedMonth;
           diagnostics.push('month-corrected-by-terms');
@@ -1158,13 +1229,13 @@
           tzOffsetHours: norm.tzOffsetHours
         },
         solar: {
-          year: solarDate.getFullYear(),
-          month: solarDate.getMonth() + 1,
-          day: solarDate.getDate(),
-          hour: solarDate.getHours(),
-          minute: solarDate.getMinutes(),
-          second: solarDate.getSeconds(),
-          isoLocal: _toIsoLocal(solarDate)
+          year: solarParts.year,
+          month: solarParts.month,
+          day: solarParts.day,
+          hour: solarParts.hour,
+          minute: solarParts.minute,
+          second: solarParts.second,
+          isoLocal: _partsToIsoLocal(solarParts)
         },
         lunar: {
           year: lunarObj ? lunarObj.year : null,
@@ -1257,9 +1328,19 @@
       return this.resolveDateContext(input, { setCurrent: false });
     },
 
+    /**
+     * 🔴 정본 진입점. 인자는 KST 벽시계 부품이다 — `{ year, month, day, hour, minute, second? }`.
+     * 로컬 Date 를 만들어 넘기지 말 것(서머타임 구멍에서 조용히 다른 시각으로 접힌다).
+     */
+    computeGanjiFromParts: function (parts, terms) {
+      return _clone(_computeGanjiFromParts(parts, terms));
+    },
+
+    /** 🔴 하위 호환 어댑터. PR-E 가 지운다 — 그 근거가 __CD_GANJI_LOCAL_DATE_READS__ 다. */
     computeGanjiFromDate: function (date, terms) {
       return _clone(_computeGanjiFromDate(date, terms));
     },
+
 
     getCurrentContext: function () {
       return _clone(_currentContext || w.__KASI_DATE_CONTEXT__ || null);
@@ -1316,8 +1397,14 @@
 
   if (w.__CD_SAJU_TEST_MODE__) {
     service.__test = {
-      computeMonthGanjiFromTerms: _computeMonthGanjiFromTerms,
+      // 🔴 Date 를 받는 두 줄은 어댑터다. 기존 검증기들이 로컬 Date 를 넘기므로 그대로 남긴다
+      //    (scripts/verify-shell-korean-calendar.mjs ⑪⑫ · verify-solar-term-frame-kasi.mjs ⑦ ·
+      //     scripts/test-saju-solar-term-regression.mjs). 부품으로 옮기는 것은 PR-E 다.
+      computeMonthGanjiFromTerms: function (terms, date, yearGanStr) {
+        return _computeMonthGanjiFromTerms(terms, _partsFromLocalDate(date), yearGanStr);
+      },
       computeGanjiFromDate: _computeGanjiFromDate,
+      computeGanjiFromParts: _computeGanjiFromParts,
       normalizeTerms: _normalizeTerms,
       readValidatedSolarTerms: _readValidatedSolarTerms
     };
