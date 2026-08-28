@@ -283,56 +283,6 @@
   color: var(--hd-ink-dim);
 }
 
-/* ── 계산 중 ──────────────────────────────────────────── */
-
-.pipeline {
-  margin-top: 12vh;
-  background: var(--hd-panel);
-  border: 1px solid var(--hd-border);
-  border-radius: 18px;
-  padding: 1.25rem;
-}
-
-.pipelineHeading {
-  margin: 0 0 0.75rem;
-  font-family: var(--font-display);
-  font-size: 1rem;
-  font-weight: 700;
-  color: var(--hd-ink);
-}
-
-.pipelineList {
-  margin: 0;
-  padding: 0;
-  list-style: none;
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  counter-reset: hd-step;
-}
-
-.pipelineStep {
-  counter-increment: hd-step;
-  font-size: 0.8125rem;
-  color: var(--hd-ink-dim);
-  border: 1px solid var(--hd-border);
-  border-radius: 999px;
-  padding: 0.3125rem 0.75rem;
-}
-
-.pipelineStep::before {
-  content: counter(hd-step) ". ";
-  color: var(--hd-accent);
-  font-weight: 700;
-}
-
-.pipelineElapsed {
-  margin: 0.875rem 0 0;
-  font-size: 0.875rem;
-  font-variant-numeric: tabular-nums;
-  color: var(--hd-accent-warm);
-}
-
 /* ── 오류 ─────────────────────────────────────────────── */
 
 .error {
