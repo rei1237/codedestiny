@@ -206,9 +206,14 @@ for (const [alias, canonicalSlug] of Object.entries(aliasMap)) {
   }
 }
 
-// ── 7. 워커가 가로채는 경로에서 _headers 의 noindex 가 사라지지 않는가 ────
-// `_headers` 가 워커 처리 경로에도 적용되는지는 **미검증**이다. 그래서 워커가 가로채는
-// 프리픽스 아래의 X-Robots-Tag noindex 규칙은 HTML 자체에도 noindex 가 있어야 한다.
+// ── 7. _headers 의 noindex 가 HTML 에도 박혀 있는가 ──────────────────────
+// `_headers` 는 워커가 가로채는 경로에도 적용된다(2026-08-16 라이브 실측 —
+// docs/handoff/seo-naver-diagnostic-2026-08-16.md §1). 그래도 헤더는 배포 설정 하나가
+// 바뀌면 통째로 사라지지만 meta 는 산출물에 박혀 있으므로, X-Robots-Tag noindex 규칙에
+// 대응하는 HTML 이 있으면 그 HTML 에도 noindex 가 있어야 한다.
+// 🔴 2026-08-28 이전에는 워커 include 프리픽스 아래만 검사했다. 그래서 레거시 단독 HTML
+//    17개가 헤더로만 noindex 였고(그중 public/ifa-oracle.html 은 `index,follow` 로
+//    헤더와 정반대를 선언하고 있었다) 아무 가드도 그걸 보지 않았다.
 const headersText = read("public/_headers");
 if (headersText === null) {
   console.error("[redirects-budget] public/_headers 가 없다.");
@@ -243,23 +248,27 @@ function htmlFilesUnder(pattern) {
   return [...new Set(found)];
 }
 
+const noindexHtmlChecked = new Set();
 for (const headerPath of headerRules) {
-  const covered = workerIncludes.some((marker) => {
-    const prefix = marker.replace(/\*$/, "");
-    return headerPath.startsWith(prefix);
-  });
-  if (!covered) continue;
   const files = htmlFilesUnder(headerPath);
   if (files.length === 0) continue;
   for (const file of files) {
+    noindexHtmlChecked.add(file);
     const html = read(file) || "";
     if (!/<meta[^>]+name=["']robots["'][^>]*noindex/i.test(html)) {
       fail(
-        `public/_headers 의 "${headerPath}" 는 noindex 인데 ${file} 에 robots meta 가 없다. ` +
-          `이 경로는 public/_worker.js 가 가로채므로 _headers 가 적용된다는 보장이 없다 — HTML 에도 noindex 를 둘 것.`,
+        `public/_headers 의 "${headerPath}" 는 noindex 인데 ${file} 에 noindex robots meta 가 없다. ` +
+          `헤더는 배포 설정 하나로 통째로 사라질 수 있다 — HTML 에도 noindex 를 둘 것.`,
       );
     }
   }
+}
+// fail-closed: 검사 대상이 하나도 없으면 이 절은 아무것도 지키지 않는다(원칙 10).
+if (noindexHtmlChecked.size === 0) {
+  fail(
+    "_headers 의 noindex 규칙에 대응하는 HTML 을 하나도 못 찾았다 — htmlFilesUnder() 의 후보 경로가 " +
+      "레포 구조와 어긋났을 가능성이 크다. 통과시키면 이 절이 죽은 채로 남는다.",
+  );
 }
 
 // ── 결과 ─────────────────────────────────────────────────────────────────
@@ -272,5 +281,5 @@ if (failures.length > 0) {
 console.log(
   `[redirects-budget] OK — 규칙 ${rules.length}/${RULE_BUDGET}개, ` +
     `사이트맵 ${sitemapPaths.length}개와 교집합 0, 워커 include ${workerIncludes.length}개 정합, ` +
-    `유명인 사주 별칭 ${aliasCount}개 최신.`,
+    `유명인 사주 별칭 ${aliasCount}개 최신, noindex HTML ${noindexHtmlChecked.size}개 확인.`,
 );
