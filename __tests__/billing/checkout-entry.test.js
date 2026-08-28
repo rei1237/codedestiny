@@ -282,7 +282,7 @@ describe("trackCheckoutEvent", () => {
 describe("해외카드 결제 — 참고 환산과 원화 청구 고지", () => {
   // 🔴 checkoutText 는 globalThis.cdTranslate(key, vars, fallback) 를 본다(window 가 아니다).
   //    조회기가 없으면 ko 폴백을 그대로 쓴다 — 실제 런타임과 같은 계약으로 흉내 낸다.
-  function useLocale(lang, dictionary) {
+  function setLocale(lang, dictionary) {
     globalThis.window.cdGetCurrentLanguage = () => lang;
     if (!dictionary) {
       delete globalThis.cdTranslate;
@@ -301,7 +301,7 @@ describe("해외카드 결제 — 참고 환산과 원화 청구 고지", () => 
   });
 
   test("한국어 화면에서는 고지도 개산가도 렌더하지 않는다(국내 사용자에게는 노이즈)", () => {
-    useLocale("ko");
+    setLocale("ko");
     expect(checkoutEntry.formatReferenceAmount(10000)).toBe("");
     expect(checkoutEntry.buildOverseasChargeNoticeHtml({ amountKrw: 10000 })).toBe("");
   });
@@ -309,13 +309,13 @@ describe("해외카드 결제 — 참고 환산과 원화 청구 고지", () => 
   test("비한국어 화면에서는 로케일별 통화로 개산가를 낸다", () => {
     const expected = { en: "$7.4", ja: "¥1,100", "zh-CN": "¥53", "zh-TW": "NT$230" };
     for (const [lang, value] of Object.entries(expected)) {
-      useLocale(lang);
+      setLocale(lang);
       expect([lang, checkoutEntry.formatReferenceAmount(10000)]).toEqual([lang, value]);
     }
   });
 
   test("개산가는 유효숫자 2자리다 — 확정가처럼 보이면 안 된다", () => {
-    useLocale("en");
+    setLocale("en");
     // 1350원/USD 기준. 자릿수가 늘면 $7.41 처럼 '정확한 판매가'로 읽힌다.
     expect(checkoutEntry.formatReferenceAmount(1000)).toBe("$0.74");
     expect(checkoutEntry.formatReferenceAmount(10000)).toBe("$7.4");
@@ -324,7 +324,7 @@ describe("해외카드 결제 — 참고 환산과 원화 청구 고지", () => 
   });
 
   test("금액이 없거나 잘못되면 개산가는 비고, 고지는 그대로 뜬다", () => {
-    useLocale("en");
+    setLocale("en");
     for (const bad of [0, -1, NaN, undefined, null, "abc"]) {
       expect(checkoutEntry.formatReferenceAmount(bad)).toBe("");
     }
@@ -334,7 +334,7 @@ describe("해외카드 결제 — 참고 환산과 원화 청구 고지", () => 
   });
 
   test("환산표에 없는 로케일은 개산가 없이 고지만 낸다", () => {
-    useLocale("xx-YY");
+    setLocale("xx-YY");
     expect(checkoutEntry.formatReferenceAmount(10000)).toBe("");
     expect(checkoutEntry.buildOverseasChargeNoticeHtml({ amountKrw: 10000 })).toContain("cd-direct-payment-legal");
   });
@@ -344,7 +344,7 @@ describe("해외카드 결제 — 참고 환산과 원화 청구 고지", () => 
     const nodePath = require("node:path");
     const repoRoot = nodePath.resolve(__dirname, "../..");
     const en = JSON.parse(nodeFs.readFileSync(nodePath.join(repoRoot, "public/i18n/en.json"), "utf8"));
-    useLocale("en", en);
+    setLocale("en", en);
     const html = checkoutEntry.buildOverseasChargeNoticeHtml({ amountKrw: 10000 });
     expect(html).toContain(en.payment.overseas.chargedInKrw);
     expect(html).toContain("approx. $7.4");
@@ -352,13 +352,13 @@ describe("해외카드 결제 — 참고 환산과 원화 청구 고지", () => 
   });
 
   test("조회기가 없으면 ko 폴백으로 안전하게 떨어진다", () => {
-    useLocale("en");
+    setLocale("en");
     const html = checkoutEntry.buildOverseasChargeNoticeHtml({ amountKrw: 10000 });
     expect(html).toContain("원화(KRW)");
   });
 
   test("🔴 고지 노드에 data-mode 를 붙이지 않는다 — 붙이면 누를 때 결제창이 닫힌다", () => {
-    useLocale("en");
+    setLocale("en");
     expect(checkoutEntry.buildOverseasChargeNoticeHtml({ amountKrw: 10000 })).not.toContain("data-mode");
   });
 
