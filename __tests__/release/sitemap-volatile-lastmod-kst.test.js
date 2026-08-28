@@ -1,0 +1,126 @@
+/**
+ * 매일 갱신되는 운세 라우트의 사이트맵 `lastmod` 가 **KST 달력 날짜**인지 지킨다.
+ *
+ * 지키는 사고 (2026-08-28 실측): `/fortune/today/aries/` 가 08-28 자 본문을 서빙하는데
+ * 사이트맵은 `<lastmod>2026-08-27</lastmod>` 로 신고하고 있었다. 원인은 lastmod 를 UTC 로
+ * 계산한 것이다(generate-sitemap.mjs 의 `today`). 발행 워크플로는 00:10 KST = 15:10 UTC
+ * **전날**에 도니, 발행 빌드가 만드는 사이트맵은 언제나 콘텐츠보다 하루 이른 날짜를 단다.
+ * 구글은 IndexNow 를 받지 않으므로 이 lastmod 가 재크롤을 부르는 **유일한 신호**인데,
+ * 그 신호가 매일 하루씩 낡아 있었다.
+ *
+ * 🔴 이 어긋남은 **KST 00:00~09:00 사이에만** 관측된다(그 밖의 시간엔 UTC 와 KST 날짜가 같다).
+ * 그래서 "지금 돌려 보기"로는 잡히지 않고, 날짜를 주입해 판정해야 한다.
+ *
+ * 🔴 판정 로직만 보면 "함수는 맞는데 아무도 안 부르는" 상태를 놓친다. 그래서 ①원장의 판정과
+ * ②그 값을 실제로 넘기는 배선, ③같은 규칙을 공유해야 하는 IndexNow 델타까지 함께 본다.
+ * ③이 빠지면 운세 URL 50개가 델타에서 통째로 빠져 **매일 바뀌는 그 페이지들만** 통보를 못 받는다.
+ *
+ * 🔴 jest 가 아니라 node:test 다. `scripts/**` 는 tier=standard 로 분류돼 jest(critical 티어)가
+ * 스킵되는데, `test:node` 는 PR CI 의 fast 잡에 있어 티어와 무관하게 항상 돈다.
+ */
+
+const test = require("node:test");
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const path = require("node:path");
+const { pathToFileURL } = require("node:url");
+
+const root = path.resolve(__dirname, "../..");
+const LEDGER_MODULE = path.join(root, "scripts", "lib", "sitemap-lastmod.mjs");
+const GENERATOR = path.join(root, "scripts", "generate-sitemap.mjs");
+const INDEXNOW = path.join(root, "scripts", "indexnow-submit.mjs");
+
+// 자정~09시 KST 구간을 재현한다 — UTC 는 아직 어제, KST 는 이미 오늘인 상태.
+const UTC_DAY = "2026-08-27";
+const KST_DAY = "2026-08-28";
+
+/** 매일 바뀌는 일일 패키지를 읽는 대표 라우트. 구조가 바뀌면 아래 단언이 먼저 깨진다. */
+const VOLATILE_ROUTE = "/fortune/today/aries/";
+
+function readSource(filePath) {
+  assert.ok(fs.existsSync(filePath), `${path.relative(root, filePath)} 가 없습니다.`);
+  return fs.readFileSync(filePath, "utf8");
+}
+
+test("휘발성 운세 라우트의 lastmod 는 UTC 가 아니라 KST 날짜를 쓴다", async () => {
+  const { createSitemapLastmodLedger } = await import(pathToFileURL(LEDGER_MODULE).href);
+  const ledger = createSitemapLastmodLedger({
+    rootDir: root,
+    today: UTC_DAY,
+    volatileToday: KST_DAY,
+    previousSitemapPath: path.join(root, "sitemap.xml"),
+  });
+
+  // 이 라우트가 정말 휘발성으로 분류되는지 먼저 확인한다. 분류가 깨지면 아래 단언은
+  // "우연히 통과" 할 수 있으므로, 통과가 아니라 실패가 되게 여기서 끊는다.
+  const decided = ledger.lastmodFor(VOLATILE_ROUTE);
+  assert.ok(
+    ledger.volatileRoutes().has(VOLATILE_ROUTE),
+    `${VOLATILE_ROUTE} 가 휘발성으로 분류되지 않았습니다. ` +
+      "RUNTIME_DATA_MODULES 나 app/fortune/[period]/[sign] 의 의존 그래프가 바뀌었는지 확인하세요.",
+  );
+
+  assert.equal(decided, KST_DAY, `${VOLATILE_ROUTE} 의 lastmod 가 KST 날짜가 아닙니다.`);
+  assert.notEqual(decided, UTC_DAY, "UTC 날짜가 그대로 나갔습니다 — 이 테스트가 막으려는 바로 그 회귀입니다.");
+});
+
+test("휘발성이 아닌 라우트는 KST 로 밀리지 않는다", async () => {
+  const { createSitemapLastmodLedger } = await import(pathToFileURL(LEDGER_MODULE).href);
+  const ledger = createSitemapLastmodLedger({
+    rootDir: root,
+    today: UTC_DAY,
+    volatileToday: KST_DAY,
+    previousSitemapPath: path.join(root, "sitemap.xml"),
+  });
+
+  // 원장에서 휘발성이 아닌 라우트를 전수 발견해 고른다 — 손으로 경로를 적으면 그 라우트가
+  // 사라졌을 때 테스트가 조용히 무의미해진다(CLAUDE.md 원칙 10).
+  const stored = JSON.parse(readSource(path.join(root, "config", "sitemap-lastmod.json"))).routes;
+  const candidates = Object.keys(stored).filter(
+    (pathname) => !pathname.startsWith("/fortune/") && stored[pathname].lastmod !== KST_DAY,
+  );
+  assert.ok(candidates.length > 0, "휘발성이 아닌 비교 대상 라우트를 원장에서 찾지 못했습니다.");
+
+  for (const pathname of candidates.slice(0, 20)) {
+    const lastmod = ledger.lastmodFor(pathname);
+    assert.notEqual(
+      lastmod,
+      KST_DAY,
+      `${pathname} 이 KST 날짜를 받았습니다 — volatileToday 가 휘발성 라우트 밖으로 샜습니다.`,
+    );
+  }
+});
+
+test("generate-sitemap 이 KST 날짜를 실제로 원장에 넘긴다", () => {
+  const source = readSource(GENERATOR);
+  assert.match(
+    source,
+    /import \{ kstYmdToday \} from "\.\/lib\/fortune-date\.mjs";/,
+    "generate-sitemap.mjs 가 kstYmdToday 를 가져오지 않습니다.",
+  );
+  assert.match(source, /const volatileToday = kstYmdToday\(\);/, "volatileToday 를 KST 로 계산하지 않습니다.");
+  assert.match(
+    source,
+    /createSitemapLastmodLedger\(\{[\s\S]*?volatileToday,[\s\S]*?\}\)/,
+    "계산한 volatileToday 를 원장에 넘기지 않습니다 — 값만 만들고 배선이 빠진 상태입니다.",
+  );
+});
+
+test("IndexNow 델타가 UTC·KST 두 날짜를 모두 신선으로 본다", () => {
+  const source = readSource(INDEXNOW);
+  assert.match(
+    source,
+    /import \{ kstYmdToday \} from "\.\/lib\/fortune-date\.mjs";/,
+    "indexnow-submit.mjs 가 kstYmdToday 를 가져오지 않습니다.",
+  );
+  assert.match(
+    source,
+    /const freshDates = new Set\(\[today, volatileToday\]\);/,
+    "델타 기준 날짜 집합이 UTC·KST 두 값을 담고 있지 않습니다.",
+  );
+  assert.match(
+    source,
+    /entries\.filter\(\(entry\) => freshDates\.has\(entry\.lastmod\)\)/,
+    "델타 필터가 freshDates 를 쓰지 않습니다 — 운세 URL 이 통보 대상에서 빠집니다.",
+  );
+});

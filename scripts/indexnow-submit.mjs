@@ -21,6 +21,7 @@
  */
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { kstYmdToday } from "./lib/fortune-date.mjs";
 
 const rootDir = process.cwd();
 const dryRun = process.argv.includes("--dry-run");
@@ -97,9 +98,14 @@ async function main() {
   const contract = readIndexNowContract();
   const entries = readSitemapEntries();
 
-  // generate-sitemap.mjs 의 `today` 와 같은 규칙(UTC)이어야 델타가 맞는다.
+  // 🔴 generate-sitemap.mjs 와 **같은 두 규칙**을 써야 델타가 맞는다. 그쪽은 일반 라우트에
+  // UTC(`today`)를, 매일 갱신되는 운세 라우트에 KST(`volatileToday`)를 쓴다. 여기서 UTC 하나만
+  // 보면 발행 빌드(00:20 KST = 15:20 UTC 전날) 때 운세 URL 50개가 통째로 델타에서 빠져
+  // **매일 바뀌는 바로 그 페이지들만** IndexNow 통보를 못 받는다.
   const today = new Date().toISOString().slice(0, 10);
-  const changed = entries.filter((entry) => entry.lastmod === today).map((entry) => entry.loc);
+  const volatileToday = kstYmdToday();
+  const freshDates = new Set([today, volatileToday]);
+  const changed = entries.filter((entry) => freshDates.has(entry.lastmod)).map((entry) => entry.loc);
 
   const extra = String(process.env.INDEXNOW_EXTRA_URLS || "")
     .split(",")
@@ -108,7 +114,9 @@ async function main() {
 
   const urls = [...new Set([...changed, ...extra])];
 
-  console.log(`[indexnow] sitemap ${entries.length} URL · lastmod=${today} 델타 ${changed.length}건${extra.length ? ` · 추가 ${extra.length}건` : ""}`);
+  console.log(
+    `[indexnow] sitemap ${entries.length} URL · lastmod∈{${[...freshDates].join(", ")}} 델타 ${changed.length}건${extra.length ? ` · 추가 ${extra.length}건` : ""}`,
+  );
 
   if (urls.length === 0) {
     // 아무것도 안 바뀐 배포다. 실패가 아니다.

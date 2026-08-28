@@ -30,7 +30,7 @@ export const LOCALE_CONFIG: Record<Locale, {
     label: LOCALE_LABELS_TEXT_TRANSLATIONS.ko,
     htmlLang: "ko",
     pathPrefix: "",
-    siteName: "Code Destiny",
+    siteName: "꿀꿀 운세",
     ogLocale: "ko_KR",
     hrefLang: "ko",
     hrefLangAliases: ["ko-KR"],

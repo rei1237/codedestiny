@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { publicSeoPages } from "../lib/seo/siteSeo";
+import { publicSeoPages, siteSeo } from "../lib/seo/siteSeo";
 import {
   buildOrganizationJsonLd,
   buildWebPageJsonLd,
@@ -95,7 +95,7 @@ export const metadata = {
     type: "website",
     locale: "ko_KR",
     url: HOME_SEO.url,
-    siteName: "Code Destiny",
+    siteName: siteSeo.brandName,
     title: HOME_SEO.ogTitle,
     description: HOME_SEO.ogDescription,
     images: [

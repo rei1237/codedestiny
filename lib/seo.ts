@@ -122,7 +122,7 @@ export function buildSeoMetadata(options: BuildSeoMetadataOptions): Metadata {
       title,
       description,
       url: canonical,
-      siteName: siteSeo.siteName,
+      siteName: siteSeo.brandName,
       locale: "ko_KR",
       images: [
         {

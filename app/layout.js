@@ -47,7 +47,7 @@ const ROOT_SEO = {
 export const metadata = {
   charset: "utf-8",
   metadataBase: new URL(siteSeo.siteUrl),
-  applicationName: siteSeo.siteName,
+  applicationName: siteSeo.brandName,
   title: {
     default: ROOT_SEO.title,
     template: siteSeo.titleTemplate,
@@ -101,7 +101,7 @@ export const metadata = {
     type: "website",
     locale: "ko_KR",
     url: siteSeo.siteUrl,
-    siteName: siteSeo.siteName,
+    siteName: siteSeo.brandName,
     title: ROOT_SEO.ogTitle,
     description: ROOT_SEO.ogDescription,
     images: [

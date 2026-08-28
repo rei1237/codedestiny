@@ -179,7 +179,7 @@ export function generatePageMetadata(opts: FortunePageMeta) {
       url: canonicalUrl,
       title: uniqueTitle,
       description: uniqueDescription,
-      siteName: siteSeo.siteName,
+      siteName: siteSeo.brandName,
       images: [{ url: ogImage, width: 1200, height: 630, alt: uniqueTitle }],
       ...(publishedAt ? { publishedTime: new Date(publishedAt).toISOString() } : {}),
       ...(updatedAt ? { modifiedTime: new Date(updatedAt).toISOString() } : {}),
@@ -322,7 +322,7 @@ export function withUniqueRouteMetadata(
       type: normalizeMetaText(openGraph?.type) || "website",
       locale,
       url: normalizeMetaText(openGraph?.url) || canonical,
-      siteName: normalizeMetaText(openGraph?.siteName) || siteSeo.siteName,
+      siteName: normalizeMetaText(openGraph?.siteName) || siteSeo.brandName,
       title: appendUniqueTitle(normalizeMetaText(openGraph?.title) || mergedTitle, routeMetaCode),
       description: appendUniqueDescription(
         normalizeMetaText(openGraph?.description) || mergedDescription,

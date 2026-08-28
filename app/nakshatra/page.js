@@ -23,7 +23,7 @@ export const metadata = {
     url: `${siteSeo.siteUrl}${PAGE_PATH}`,
     title: page.title,
     description: page.description,
-    siteName: "Code Destiny",
+    siteName: siteSeo.brandName,
     images: [{ url: NAKSHATRA_OG_IMAGE, width: 1672, height: 941, alt: page.title }],
   },
   twitter: {

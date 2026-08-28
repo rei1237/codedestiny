@@ -1,8 +1,8 @@
 import { siteSeo } from "./siteSeo";
 
 export const SEO_SITE_CONFIG = {
-  siteName: siteSeo.siteName,
-  brandName: siteSeo.siteName,
+  siteName: siteSeo.brandName,
+  brandName: siteSeo.brandName,
   brandFullName: siteSeo.siteName,
   shortName: siteSeo.siteName,
   koreanName: "코드 데스티니",
