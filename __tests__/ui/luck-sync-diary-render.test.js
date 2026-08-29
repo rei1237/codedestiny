@@ -166,3 +166,109 @@ test("diary injects its token block before any rule can reference it", () => {
     "token definitions must come before the rules that use them",
   );
 });
+
+// 🔴 회귀 재발 방지 (2026-08-29): 등급 색을 정의하는 규칙 뒤에 **같은 특정성의 압축 블록**이
+//    한 벌 더 있었다. 나중 규칙이 이겨서 범례 알약 5종이 회색 하나로, 날짜 셀 5종이 거의 같은
+//    파스텔로 눌렸고 맑음/양호/보통/주의/강한 주의의 색 구분이 통째로 사라졌다.
+//    문자열 존재 검사로는 못 잡는다 — 규칙은 그대로 있었고 뒤에서 덮였을 뿐이다.
+//    그래서 여기서는 **캐스케이드를 실제로 접어** 최종 승자 선언을 계산한다.
+const GRADES = [
+  ["맑음", ".lsd-month-cell.is-very-good", ".lsd-month-pill.vg"],
+  ["양호", ".lsd-month-cell.is-good", ".lsd-month-pill.g"],
+  ["보통", ".lsd-month-cell.is-normal", ".lsd-month-pill.n"],
+  ["주의", ".lsd-month-cell.is-bad", ".lsd-month-pill.b"],
+  ["강한 주의", ".lsd-month-cell.is-very-bad", ".lsd-month-pill.vb"],
+];
+
+function foldCascade(css) {
+  const vars = {};
+  for (const m of css.matchAll(/(--lsd-[a-z0-9-]+)\s*:\s*([^;{}]+)/g)) vars[m[1]] = m[2].trim();
+  const resolve = (value, depth = 0) => {
+    if (depth > 8) return value;
+    const hit = /^var\((--[a-z0-9-]+)\)$/.exec(String(value).trim());
+    return hit ? resolve(vars[hit[1]] || "", depth + 1) : String(value).trim();
+  };
+  const rules = [...css.matchAll(/([^{}]+)\{([^{}]*)\}/g)].map((m) => ({
+    sels: m[1].split(",").map((sel) => sel.trim()),
+    decls: m[2],
+  }));
+  // 등급 규칙은 전부 (0,2,0) 동률이라 순서만이 승패를 가른다 — 마지막 선언이 이긴다.
+  return (selector, prop) => {
+    let winner = null;
+    for (const rule of rules) {
+      if (!rule.sels.includes(selector)) continue;
+      for (const decl of rule.decls.split(";")) {
+        const at = decl.indexOf(":");
+        if (at < 0) continue;
+        if (decl.slice(0, at).trim() === prop) winner = decl.slice(at + 1).trim();
+      }
+    }
+    return winner === null ? null : resolve(winner);
+  };
+}
+
+function rgb(hex) {
+  const raw = String(hex).replace("#", "");
+  const full = raw.length === 3 ? raw.split("").map((c) => c + c).join("") : raw;
+  // 반투명 워시는 아래 표면에 녹아 등급끼리 구분이 사라진다(회귀 당시 '양호'가 7% 워시였다).
+  assert.match(full, /^[0-9a-f]{6}$/i, `등급 색은 불투명 hex 여야 한다: ${hex}`);
+  return [0, 2, 4].map((i) => parseInt(full.slice(i, i + 2), 16));
+}
+function luminance(hex) {
+  const chan = (c) => (c / 255 <= 0.03928 ? c / 255 / 12.92 : ((c / 255 + 0.055) / 1.055) ** 2.4);
+  const [r, g, b] = rgb(hex);
+  return 0.2126 * chan(r) + 0.7152 * chan(g) + 0.0722 * chan(b);
+}
+function contrast(a, b) {
+  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
+  return (hi + 0.05) / (lo + 0.05);
+}
+function rgbDistance(a, b) {
+  const [p, q] = [rgb(a), rgb(b)];
+  return Math.hypot(p[0] - q[0], p[1] - q[1], p[2] - q[2]);
+}
+
+test("월간 달력의 5등급이 최종 캐스케이드에서 서로 다른 색으로 남는다", () => {
+  const { doc } = openDiary();
+  const css = doc.getElementById("lsd-tw-styles")?.textContent || "";
+  assert.ok(css, "style block was not injected");
+  const winning = foldCascade(css);
+
+  const cellBackgrounds = [];
+  const pillBackgrounds = [];
+  for (const [label, cellSel, pillSel] of GRADES) {
+    for (const [what, selector, bucket] of [
+      ["셀", cellSel, cellBackgrounds],
+      ["범례 알약", pillSel, pillBackgrounds],
+    ]) {
+      const bg = winning(selector, "background");
+      const ink = winning(selector, "color");
+      assert.ok(bg, `${label} ${what} 에 배경 선언이 없다 (${selector})`);
+      assert.ok(ink, `${label} ${what} 에 글자색 선언이 없다 (${selector})`);
+      // 배경만 바꾸고 잉크를 두고 가는 반쪽 오버라이드 방지 (design-and-ui.md 대비 기준)
+      const ratio = contrast(bg, ink);
+      assert.ok(ratio >= 4.5, `${label} ${what} 대비 ${ratio.toFixed(2)}:1 (${bg} 위 ${ink})`);
+      bucket.push([label, bg]);
+    }
+  }
+
+  for (const [what, list] of [["셀", cellBackgrounds], ["범례 알약", pillBackgrounds]]) {
+    assert.equal(
+      new Set(list.map(([, bg]) => bg)).size,
+      GRADES.length,
+      `${what} 등급 배경이 ${new Set(list.map(([, bg]) => bg)).size}종으로 접혔다: ${list.map(([l, bg]) => l + "=" + bg).join(", ")}`,
+    );
+    // 고유하기만 하면 1비트 차이도 통과한다 — 눈으로 갈리는 거리까지 요구한다.
+    for (let i = 1; i < list.length; i += 1) {
+      const gap = rgbDistance(list[i - 1][1], list[i][1]);
+      assert.ok(gap >= 24, `${what} ${list[i - 1][0]}↔${list[i][0]} 색 거리 ${gap.toFixed(0)} (최소 24)`);
+    }
+  }
+
+  // '보통'이 기본 셀 배경에 묻으면 등급이 있는데도 없는 것처럼 보인다
+  const base = winning(".lsd-month-cell", "background");
+  for (const [label, bg] of cellBackgrounds) {
+    const gap = rgbDistance(base, bg);
+    assert.ok(gap >= 16, `${label} 셀이 기본 배경(${base})과 거리 ${gap.toFixed(0)} 뿐이다`);
+  }
+});
