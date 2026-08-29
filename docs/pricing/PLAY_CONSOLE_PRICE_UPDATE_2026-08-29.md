@@ -1,11 +1,14 @@
 ---
-status: active
+status: done
 updated: 2026-08-29
-next: 사용자가 Play Console 에서 아래 표대로 인하·등록한 뒤 알려주면, 코드 쪽 가격 동일화(E)를 PR 로 올린다
+next: 없음 — Play 인하(사용자, 2026-08-29 확인)·코드 동일화 모두 끝났다. 남은 것은 배포 뒤 앱에서 티어 1건씩 결제 시트를 열어 표시가 = 청구가를 육안 대조하는 것뿐이다
 ---
 
 # Play Console 가격 최신화 작업표 — 앱가를 웹가와 동일하게
 
+> ✅ **2026-08-29 완료.** Play Console 인하는 사용자가 끝냈고, 코드 쪽 동일화도 뒤이어 들어갔다
+> (`worker/lib/app-store-pricing.js` 의 `CONTENT_TIER_TABLE`). 아래 표는 그때 등록한 값의 기록이다.
+>
 > 🔴 **이 문서의 작업은 코드가 하지 않는다.** Play Console 의 가격·이름·설명 변경은 사람이 직접 한다.
 > `npm run play:products:apply` 는 Play 에 실제로 쓰므로 **실행하지 않는다.**
 
