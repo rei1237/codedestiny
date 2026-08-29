@@ -409,9 +409,18 @@ if (DIST) {
     // 페이지 자체 스크립트는 돌리지 않는다(1.9MB 인라인 JS라 느리고 불안정) —
     // 정적 앵커만 봐도 충분하고, 동적 생성분은 가드의 MutationObserver가 맡는다.
     console.log("\n[4] 실제 산출물 페이지에서 프루닝 링크가 사라지는가 (jsdom)");
+    // 로케일 접두사가 붙은 링크(/en/insights/)도 프루닝 대상이다 — 라우트 파일이
+    // LOCALE_PREFIXES 조합으로 지워지므로 접두사가 붙었다고 살려두면 죽은 링크가 된다.
+    const PRUNED_HREF_RE = /^(?:\/[a-z]{2}(?:-[a-z]{2})?)?\/(?:insights|famous-saju)(?:\/|\?|#|$)/;
+    const countPrunedLinks = (doc) =>
+      Array.from(doc.querySelectorAll("a[href]")).filter((anchor) =>
+        PRUNED_HREF_RE.test(String(anchor.getAttribute("href") || "").replace(/^https?:\/\/[^/]+/, "")),
+      ).length;
+
     const pagesToCheck = [
       ["index.html", "홈(루트 셸)"],
       [path.join("saju", "basic", "index.html"), "/saju/basic (앱 탭 — /insights 링크 있던 곳)"],
+      [path.join("en", "today", "index.html"), "/en/today (로케일 페이지 — /en/insights 링크 있던 곳)"],
     ];
 
     for (const [relPath, label] of pagesToCheck) {
@@ -427,18 +436,14 @@ if (DIST) {
       const pageWindow = pageDom.window;
       pageWindow.fetch = async () => ({ ok: true, json: async () => ({ ok: true, data: {} }) });
 
-      const beforeCount = pageWindow.document.querySelectorAll(
-        'a[href^="/insights"], a[href^="/famous-saju"]',
-      ).length;
+      const beforeCount = countPrunedLinks(pageWindow.document);
 
       pageWindow.eval(guardSource);
       // 가드는 DOMContentLoaded에 정리를 건다 — jsdom은 이미 로드가 끝나 있어
       // 즉시 실행되지만, 확실히 하려고 한 번 더 부른다(멱등).
       pageWindow.__cdAppPaymentGuard.applyPrunedRouteCleanup();
 
-      const afterCount = pageWindow.document.querySelectorAll(
-        'a[href^="/insights"], a[href^="/famous-saju"]',
-      ).length;
+      const afterCount = countPrunedLinks(pageWindow.document);
 
       check(
         `${label}: 프루닝 링크 0건 (가드 실행 전 ${beforeCount}건)`,
