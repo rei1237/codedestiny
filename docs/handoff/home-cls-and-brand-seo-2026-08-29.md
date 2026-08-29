@@ -1,6 +1,7 @@
 ---
+status: active
 updated: 2026-08-29
-status: 진행중 — CLS 1단계 PR #1288 머지 대기, SEO 미착수
+next: PR #1288 머지 → 프로덕션 승격 → 2~3일 뒤 Cloudflare Web Analytics 로 홈 CLS 재측정, 그 결과로 남은 축의 우선순위를 정한다
 ---
 
 # 홈 CLS 회귀 + 브랜드 색인 회복
