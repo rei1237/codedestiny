@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-29
-next: Play Console 에 `20260829-1918-1.0.37-37-aea4ce105\CodeDestiny-1.0.37-37.aab` 업로드(신원·서명 실측 완료). 그 뒤 로그인이 필요한 기기검증 잔여 항목, 그 다음 하단 네비 라벨 잘림 수정.
+next: Play Console 에 `20260829-1918-1.0.37-37-aea4ce105\CodeDestiny-1.0.37-37.aab` 업로드(신원·서명 실측 완료). 그 뒤 로그인이 필요한 기기검증 잔여 항목.
 ---
 
 # Android 앱 ↔ 웹 동기화 · 가격 동일화 · 릴리스
@@ -45,29 +45,40 @@ next: Play Console 에 `20260829-1918-1.0.37-37-aea4ce105\CodeDestiny-1.0.37-37.
 - [ ] **1. Play 업로드** — 위 AAB + `mapping.txt`(디버그 기호). versionCode 37.
 - [ ] **2. 로그인이 필요한 기기검증** — 아래 "자동으로 못 하는 것". 항목 원문은
       `Desktop\CodeDestiny-업로드-준비\UPLOAD_CHECKLIST.md`(이번 검증 결과 반영해 갱신).
-- [ ] **3. 하단 네비 라벨 잘림 수정 — 🔴 업로드 뒤에** — 아래 "찾은 결함" 참조. 사전 파일을
-      고치면 앱 번들에 들어가 1.0.37 AAB 가 다시 낡으므로, **업로드가 끝난 다음** 손댄다.
+## 고친 결함 — 하단 네비 라벨 잘림 (2026-08-29)
 
-## 찾은 결함 (2026-08-29 실측, 미수정)
+탭 1칸의 텍스트 가용폭은 **58px** 인데(`.cd-mobile-bottom-nav__item`, 384px 뷰포트) 8개 값이
+넘쳐 `text-overflow:ellipsis` 로 잘리고 있었다. 폭은 실기기 웹뷰에서 그 요소의 실제 폰트
+(`900 10.36px CodeDestinyBody`)로 잰 값이다.
 
-🔴 **하단 네비 사주 탭 라벨이 5개 로케일에서 잘린다.** 탭 1칸의 텍스트 가용폭은 58px 인데
-(`.cd-mobile-bottom-nav__item`, 384px 뷰포트) 실제 텍스트 폭이 넘친다 — 초과량:
+| 키 | 로케일 | 이전 → 이후 | 폭 |
+|---|---|---|---|
+| kxvio | fr | Quatre Piliers (BaZi) → **4 Piliers** | 95.5 → 38.8 |
+| kxvio | en | Four Pillars (BaZi) → **Four Pillars** | 85.0 → 53.8 |
+| kxvio | nl | Vier Pijlers (BaZi) → **Vier Pijlers** | 83.2 → 52.0 |
+| kxvio | hi | फोर पिलर्स (बाज़ी) → **फोर पिलर्स** | 74.3 → 43.4 |
+| kxvio | es | Cuatro Pilares → **4 Pilares** | 66.6 → 41.3 |
+| k16cq4to | nl | Alle readings → **Alle** | 61.7 → 18.4 |
+| k16cq4to | ja | すべての占い → **占い一覧** | 61.0 → 41.4 |
+| k16cq4to | en | All Readings → **Readings** | 59.0 → 43.7 |
 
-| 로케일 | 라벨 | 초과 |
-|---|---|---|
-| fr | Quatre Piliers (BaZi) | +37.5px |
-| en | Four Pillars (BaZi) | +27.0px |
-| nl | Vier Pijlers (BaZi) | +25.2px |
-| hi | फोर पिलर्स (बाज़ी) | +16.2px |
-| es | Cuatro Pilares | +8.6px |
+원인은 `i18n/glossary.json` 의 정식 용어(`Four Pillars (BaZi)`)를 탭 라벨에 그대로 쓴 것이다.
+**vi `Tứ Trụ` · de `Vier Säulen` · ms `Empat Tiang` 은 이미 짧은 형이었다** — 그 패턴을 따랐다.
 
-`text-overflow:ellipsis` 라 깨지진 않고 `Four Pilla…` 로 잘린다. ko·zh-CN·zh-TW 는 여유가 있고,
-ja `すべての占い`(+3.0px)·nl `Alle readings`(+3.7px)·en `All Readings`(+1.0px)은 경계값이다.
-**vi `Tứ Trụ` · de `Vier Säulen` · ms `Empat Tiang` 은 이미 짧은 형으로 바뀌어 있다** — 즉
-`i18n/glossary.json` 의 정식 용어(`Four Pillars (BaZi)`)를 탭 라벨에 그대로 쓴 로케일만 넘친다.
-정본 키는 `shell.cdMobileBottomNav.cdMobileBottomNavMain.kxvio`(`public/i18n/<로케일>.json`,
-저작 원본은 `i18n/authored/shell-02.json`·`shell-04.json`). 웹에도 같이 있는 문제이고 P2 다.
-`verify:mobile-bottom-nav-sync` 는 **한국어 라벨만** 대조하므로 이 축을 못 잡는다.
+🔴 **이 수정은 1.0.37 AAB 에 없다.** 이미 서명된 빌드라 다음 앱 버전에 실린다(웹은 머지 후
+스테이징에 바로 반영). 업로드를 미룰 이유는 아니다 — 잘려도 `…` 로 보일 뿐 기능은 멀쩡하다.
+
+🔴 **두 키의 정본 위치가 다르다.** `k16cq4to` 는 `i18n/authored/shell-02.json` 에 있어 저작
+파일과 `public/i18n/*.json` 을 **함께** 고쳐야 하고, `kxvio` 는 저작 파일에 아예 없어
+`public/i18n/*.json` 이 정본이다. 🔴 저작 파일을 `JSON.parse`→`stringify` 로 왕복시키면 항목
+사이 빈 줄이 전부 사라져 32줄짜리 무관 diff 가 난다 — 문자열 치환으로 고칠 것.
+
+가드: `verify:mobile-bottom-nav-sync` 가 **한국어 라벨만** 대조하고 있어서 이 축을 못 잡았다.
+같은 스크립트에 로케일 라벨 **12자 상한**을 붙였고(사전 12벌 전수 발견, 대상 0건이면 실패),
+음성 테스트로 fr 을 되돌리면 exit 1 이 나는 것까지 확인했다. 🔴 다만 이건 **프록시**다 —
+`All Readings` 는 12자인데도 59px 로 넘쳤다. 폭이 걱정되면 아래 재현 절차로 기기에서 직접 재라.
+🔴 그리고 이 가드는 `verify-guard-wiring.mjs` 에 **"배선 후보(미승인)"** 으로 선언돼 있어
+**CI 에서 안 돈다** — 네비 라벨을 건드렸으면 손으로 돌릴 것.
 
 ## 자동으로 못 하는 것
 
