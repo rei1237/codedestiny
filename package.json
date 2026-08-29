@@ -274,6 +274,7 @@
     "verify:hour-pillar-parity": "node scripts/verify-hour-pillar-parity.mjs",
     "verify:ziwei-sohan": "node scripts/verify-ziwei-sohan.mjs",
     "verify:ziwei-star-parity": "node scripts/verify-ziwei-star-parity.mjs",
+    "verify:ziwei-borrowed-strength": "node scripts/verify-ziwei-borrowed-star-strength.mjs",
     "verify:ziwei-chart-detail-view": "node scripts/verify-ziwei-chart-detail-view.mjs",
     "verify:rpt-preview-cta": "node scripts/verify-rpt-preview-cta-flow.mjs",
     "verify:profile-card-action-policy": "node scripts/verify-profile-card-action-policy.mjs",
