@@ -1142,6 +1142,7 @@ async function enterEpisode(ei,showCard){
   /* 청크는 현재+다음 2개만 들고 있다 — ⏮ 로 앞 화로 돌아가거나 설정에서 "처음부터"를 누르면 그 화는
      비어 있어 runBeat 가 곧장 터진다. hydrateTo 와 같은 방식으로 여기서 한 번만 채운다. */
   if(!Array.isArray(eps.beats)){try{eps=await ensureEpisodeLoaded(ei);}catch(e){showNovelDataError(e);return;}}
+  clearCardTimers(); /* 앞 화의 카드 타이머를 물려받으면 이 화의 컷 0이 두 번 돈다 */
   S.ep=ei;
   warmNextEpisode(ei);
   hardClearSlots();setSceneDirection(null);
@@ -1153,16 +1154,29 @@ async function enterEpisode(ei,showCard){
   if(showCard!==false){
     var cc=document.getElementById("chCard"),ce=document.getElementById("chEp"),ct=document.getElementById("chTi");
     ce.textContent=eps.no;ct.textContent=eps.title;cc.classList.remove("hidden");cc.classList.add("on");
-    _cardTimer=setTimeout(function(){_cardTimer=0;cc.classList.remove("on");setTimeout(function(){cc.classList.add("hidden");},700);runBeat();},1600);
+    _cardTimer=setTimeout(function(){_cardTimer=0;closeChapterCard();runBeat();},1600);
   }else{runBeat();}
+}
+/* 챕터 카드 타이머는 두 겹이다 — 1600ms 뒤 카드를 닫고 컷 0을 실행하고, 그 700ms 뒤 hidden 을 건다.
+   진입할 때 앞 화의 타이머를 끊지 않아 두 가지가 났다: ⏭ 를 카드가 떠 있는 동안 연타하면 앞 화의
+   타이머가 살아남아 컷 0(배경·BGM·스테이징)이 두 번 돌았고, 늦게 도착한 hide 가 방금 띄운 새 카드를
+   숨겼다(카드 주기 1600ms > hide 지연 700ms 라 실제로 겹친다). 두 겹을 함께 끊는다. */
+var _cardTimer=0,_cardHideTimer=0;
+function clearCardTimers(){
+  if(_cardTimer){clearTimeout(_cardTimer);_cardTimer=0;}
+  if(_cardHideTimer){clearTimeout(_cardHideTimer);_cardHideTimer=0;}
+}
+function closeChapterCard(){
+  var cc=document.getElementById("chCard");if(!cc)return;
+  cc.classList.remove("on");
+  _cardHideTimer=setTimeout(function(){_cardHideTimer=0;cc.classList.add("hidden");},700);
 }
 /* 챕터 카드가 떠 있는 동안 클릭(advance)하면 beat0(변신·배경·스테이징)을 건너뛰던 버그 방지 —
    카드를 즉시 닫고 beat0을 실행한다(bi 증가 없이). */
-var _cardTimer=0;
 function flushCard(){
   if(!_cardTimer)return false;
   clearTimeout(_cardTimer);_cardTimer=0;
-  var cc=document.getElementById("chCard");if(cc){cc.classList.remove("on");setTimeout(function(){cc.classList.add("hidden");},700);}
+  closeChapterCard();
   runBeat();
   return true;
 }
