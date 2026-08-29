@@ -238,6 +238,16 @@ jobs:
       - name: Verify ziwei star placement parity (셸·워커·앱)
         run: npm run verify:ziwei-star-parity
 
+      # 🔴 이것도 **fast 잡**이어야 한다 — 입력이 js/saju-engine.js 하나라 티어가 fast/standard 다.
+      # 공궁(空宮)에 빌려 오는 차성(借星)의 밝기를 지킨다. 이 값은 **틀려도 화면이 조용하다** —
+      # 등급 기호(◎/O/▲/△/X)가 그럴듯하게 계속 나오기 때문에 뒤집혀도 아무도 모른다.
+      # 실제로 밝기를 별이 앉은 대궁이 아니라 빈 궁 지지로 재고 있었고, 168조합 중 원성 묘 78건 중
+      # 31건이 함(X)으로, 원성 함 40건 중 15건이 득(O)으로 나왔다(실측 2026-08-29).
+      # 기존 자미 가드 둘은 `if (row.borrowed) continue;` 로 차성을 건너뛰어 이 결함을 못 봤다.
+      # 엔진을 vm 으로 한 번 돌릴 뿐이라 네트워크 없이 2초 미만.
+      - name: Verify ziwei borrowed-star (차성) strength stays at 70% of the origin
+        run: npm run verify:ziwei-borrowed-strength
+
       # 🔴 이것도 **fast 잡**이어야 한다. 입력이 destiny-island.html 과 worker/lib/island/ 라
       # 티어가 fast/standard 로 갈린다 — critical 잡에 두면 정작 지켜야 할 섬 문구 한 줄 수정에 깨어나지 않는다.
       # 섬은 별 이름을 **키로** 설명을 찾는데 소비 코드가 전부 filter(Boolean) 이라,

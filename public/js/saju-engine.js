@@ -14943,6 +14943,12 @@ function zwCircularDistance12(a, b){
   var d = Math.abs(((a - b) % 12 + 12) % 12);
   return d > 6 ? 12 - d : d;
 }
+// 맞은편 궁(對宮)의 지지. 차성이 실제로 앉아 있는 자리를 찾을 때 쓴다.
+function zwOppositeZhi(zhi){
+  var idx = ZHI_LIST.indexOf(zhi);
+  if(idx < 0) return zhi;
+  return ZHI_LIST[(idx + 6) % 12];
+}
 function zwElementAffinityScore(starElement, branchElement){
   if(!starElement || !branchElement) return 0;
   if(starElement === branchElement) return 0.75;
@@ -15248,14 +15254,22 @@ ZW_BRIGHTNESS_INTERACTION_BIAS = {
   '천량|卯': 0.15,
   '천마|巳': 0.45
 };
+// 차성(借星)은 빌려 온 별이라 원성이 가진 힘의 70%로 읽는다.
+var ZW_BORROWED_STAR_RATIO = 0.7;
 function zwComputeStarStrength(starName, zhi, isBorrowed, ctxOverride){
-  var score = zwComputeBrightnessScore(starName, zhi, ctxOverride);
+  // 🔴 차성은 빈 궁이 아니라 **대궁(맞은편)에 실제로 앉아 있다.** 빌려 온 자리의 지지로 밝기를
+  // 재면 지지 거리가 항상 6(최대 충)이라 zwComputeBrightnessScore 의 거리항이 최소가 되고,
+  // 고전표(ZW_CLASSICAL_STATE)도 충 방향에서 대체로 반대 등급이라(태양 午=묘 / 子=함)
+  // 등급이 통째로 뒤집힌다 — 실측 2026-08-29: 원성 묘 78건 중 31건이 화면에 함(X)으로,
+  // 원성 함 40건 중 15건이 오히려 득(O)으로 나왔다. 반드시 별이 실제로 앉은 자리에서 잰다.
+  var seatZhi = isBorrowed ? zwOppositeZhi(zhi) : zhi;
+  var score = zwComputeBrightnessScore(starName, seatZhi, ctxOverride);
   if(score == null) return null;
-  var lv = zwNumericToStrength(score);
-
-  if(!isBorrowed) return lv;
-  var down = {'묘':'득','득':'리','리':'평','평':'함','함':'함'};
-  return down[lv] || lv;
+  if(!isBorrowed) return zwNumericToStrength(score);
+  // 등급을 한 칸 내리던 예전 방식(down 맵)은 '평'을 '함'으로 떨어뜨려, 평범한 별까지 함몰로
+  // 보이게 만들었다. 등급이 아니라 점수를 70%로 환산한 뒤 다시 등급으로 되돌린다.
+  var clamped = Math.max(0, Math.min(4, score));
+  return zwNumericToStrength(clamped * ZW_BORROWED_STAR_RATIO);
 }
 var ZW_GUNG_DEF={
   '명궁':'선천 자아·기질·운명의 뿌리',
@@ -15455,7 +15469,7 @@ function buildZwSummaryTableHtml(palace) {
 
   var legendHtml = '<div class="zw-summary-legend" style="padding:8px 12px 6px;font-size:0.71rem;color:#64748b;border-bottom:1px solid rgba(255,255,255,0.06);display:flex;gap:14px;flex-wrap:wrap">'
     +'<span>밝기: <b style="color:#4ade80">◎(묘)</b>=최상 · <b style="color:#60a5fa">O(득)</b>=득지 · <b style="color:#f59e0b">▲(리)</b>=이로움 · <b style="color:#94a3b8">△(평)</b>=균형 · <b style="color:#f87171">X(함·실)</b>=함몰</span>'
-    +'<span><b>*</b> 표시는 차성(借星) 보정 밝기이며 원성 대비 1단계 보수 해석</span>'
+    +'<span><b>*</b> 표시는 차성(借星) 보정 밝기이며 원성 밝기의 70%로 환산</span>'
     +'<span>사화: <b style="color:#4ade80">화록▲</b>=재물·인연 · <b style="color:#60a5fa">화권▲</b>=권위 · <b style="color:#c084fc">화과▲</b>=명성 · <b style="color:#f87171">화기▼</b>=주의</span>'
     +'</div>';
   var focusRows = ['명궁','관록궁','재백궁','부부궁'].map(function(name) {
@@ -15941,7 +15955,7 @@ function buildZwTwelvePalaceDeepHtml(pd) {
             +'</div>'
             +'<div style="margin-bottom:4px;"><b style="color:#c4b5fd;">'+zwDeepEsc(frame.label)+':</b> '+zwDeepEsc(prof[frame.field])+'</div>'
             +'<div style="color:#94a3b8;font-size:0.78rem;">'+zwDeepEsc(brPhrase)
-            +(st.borrowed ? ' 차성은 원성보다 한 단계 보수적으로 읽습니다.' : '')+'</div>'
+            +(st.borrowed ? ' 차성은 원성이 가진 힘의 70% 수준으로 읽습니다.' : '')+'</div>'
             +(st.strength === '함' || st.strength === '평'
               ? '<div style="color:#fca5a5;font-size:0.78rem;margin-top:4px;"><b>그림자:</b> '+zwDeepEsc(prof.shadow)+'</div>'
               : '')
