@@ -189,6 +189,19 @@ jobs:
           npm run verify:pig-sprite-crop -- --self-test
           npm run verify:pig-sprite-crop
 
+      # 🔴 노벨 가드 둘. 전부 **fast 잡**이어야 한다 — 입력이 정적 셸(public/codedestiny-novel.html)과
+      # 정본 JSON 이라 티어가 fast 로 잡히는데, build/critical 잡에 두면 정작 지키려는 "셸 엔진 한 줄
+      # 수정"에 깨어나지 않는다. 오래 "실브라우저 필요"로 미배선이었으나 둘 다 jsdom·파일 읽기뿐이고
+      # 합쳐 3초 미만이다(실측 2026-08-29 웜 캐시: 0.3s + 1.9s).
+      # 지키는 것: ① 연이의 모습(사람↔꽃돼지) 마커표가 정본과 일치 ② 어떤 진입 경로로 들어와도
+      # 같은 지점에서 같은 모습이 나오는 것. 이 상태는 **틀려도 화면이 조용하다** — 사람 연이가
+      # 멀쩡히 그려지기 때문에, 꽃돼지 구간 25화를 사람으로 읽고도 아무 에러가 안 난다(실사고).
+      - name: Verify the novel runtime matches its canonical source
+        run: npm run verify:novel-runtime
+
+      - name: Verify the novel player restores Yeon's form on every entry path
+        run: npm run verify:novel-player-start
+
       # 🔴 이것도 **fast 잡**이어야 한다. 시주를 세는 엔진이 런타임별로 3벌인데(정적 셸 / 워커 /
       # 앱 라우터) 앱 라우터 엔진만 고치면 티어가 standard 라 critical 잡이 통째로 스킵된다 —
       # 즉 거기 두면 세 벌 중 하나가 조용히 갈라지는 경로를 못 잡는다. 세 엔진을 실제로 돌려

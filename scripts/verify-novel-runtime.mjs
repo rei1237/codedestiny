@@ -46,11 +46,15 @@ const requiredRuntimeHooks = [
   "var _hydrating=false",
   "function hydrateFlush()",
   "function applyReduceMotion()",
+  // 연이의 모습은 화 경계를 넘어 유지되는 상태다. 진입 경로가 저마다 복원하면 경로별로 다른 모습이 나온다.
+  "function formAt(ep,bi)",
+  "var FORM_MARKS=",
 ];
 // 되살아나면 안 되는 패턴 — 각각이 실제로 났던 배경 흔들림의 원인이다.
 const forbiddenRuntimePatterns = [
   ["kenburnsFocus", "카메라 연출이 .bgImg 의 animation 을 교체하면 배경이 스냅한다"],
   ["S.curBg=null", "curBg 리셋은 같은 배경으로 되돌아오는 헛 크로스페이드를 만든다"],
+  ["S.form=(ep", "모습 복원에 화 범위를 손으로 박으면 진입 경로마다 연이가 달라진다 — formAt() 하나만 쓴다"],
 ];
 for (const hook of requiredRuntimeHooks) if (!html.includes(hook)) fail(`required runtime hook missing: ${hook}`);
 for (const [pattern, why] of forbiddenRuntimePatterns) if (html.includes(pattern)) fail(`forbidden pattern is back: ${pattern} — ${why}`);
@@ -92,6 +96,35 @@ if (manifest.sourceHash !== runtime.sourceHash || manifest.episodeCount !== 44 |
 }
 if (matrix.sourceHash !== runtime.sourceHash || matrix.episodes?.length !== runtime.episodeCount || matrix.episodes.some((episode) => episode.emotionPath?.length < 3 || !episode.visualCues?.every((cue) => cue.accessibility))) {
   fail("scene matrix is stale or missing its three-stage emotion/accessibility cues");
+}
+
+/* 연이의 모습(사람↔꽃돼지) 마커표는 셸에 손으로 적혀 있다 — 진입 즉시 결정해야 해서 청크 로드를
+   기다릴 수 없다. 그 표가 정본과 어긋나면 "쭉 읽으면 사람, 목차로 들어가면 꽃돼지"가 되므로,
+   정본 비트를 전수 스캔해 다시 만든 목록과 완전 일치를 요구한다(파싱 실패도 실패). */
+const canonicalFormMarks = [];
+runtime.episodes.forEach((episode, episodeIndex) => {
+  episode.beats.forEach((beat, beatIndex) => {
+    if (beat.form) canonicalFormMarks.push(`${episodeIndex}:${beatIndex}:${beat.form}`);
+  });
+});
+if (canonicalFormMarks.length === 0) fail("the canonical source declares no form markers; the shell table would be unverifiable");
+const formMarkSource = html.match(/var FORM_MARKS=(\[[^\]]*\]);/);
+if (!formMarkSource) fail("FORM_MARKS table was not found in the player shell");
+let shellFormMarks;
+try {
+  shellFormMarks = new Function(`return ${formMarkSource[1]}`)();
+} catch (error) {
+  fail(`FORM_MARKS does not parse: ${error.message}`);
+}
+if (!Array.isArray(shellFormMarks) || shellFormMarks.length === 0) fail("FORM_MARKS must be a non-empty array");
+const shellFormKeys = shellFormMarks.map((mark) => {
+  if (!Number.isInteger(mark?.ep) || !Number.isInteger(mark?.bi) || typeof mark?.form !== "string") {
+    fail(`FORM_MARKS entry is malformed: ${JSON.stringify(mark)}`);
+  }
+  return `${mark.ep}:${mark.bi}:${mark.form}`;
+});
+if (shellFormKeys.join("|") !== canonicalFormMarks.join("|")) {
+  fail(`FORM_MARKS in the player shell is out of sync with the canonical source. 정본에 변신을 더하거나 옮겼다면 셸의 표를 같은 커밋에서 갱신할 것.\n  shell:     ${shellFormKeys.join(", ")}\n  canonical: ${canonicalFormMarks.join(", ")}`);
 }
 const expectedVisualCues = [
   [36, 20, "memoryVault"],
