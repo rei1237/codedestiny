@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-29
-next: 백그라운드 재빌드 로그(아래 "검증" 1번)를 확인해 베이스라인을 확정하고, build:mobile 의 prebuild:cf 누락을 고친다
+next: dist/ 는 이미 생성돼 있다 — `npx cap sync android` → `assembleDebug` 로 베이스라인을 끝내고, build:mobile 의 prebuild:cf 누락을 고친다
 ---
 
 # Android 앱 ↔ 웹 동기화 · 가격 동일화 · 릴리스
@@ -23,8 +23,10 @@ Play Billing·잠금화면·RouteProcessor 가 손으로 작성된 의도적 네
 
 ## 남은 작업
 
-- [ ] **A. 베이스라인 확정** — 재빌드 → `npx cap sync android` → `assembleDebug`.
-      판정: `BUILD SUCCESSFUL` + `app-debug.apk` 존재.
+- [x] ~~A-1. `build:mobile:app`~~ — `fortune:build-data` 선행 시 **통과**(`BUILD_EXIT=0`,
+      `[통과] 앱 PortOne 차단 검증`, 가드 주입 451/451). `dist/` 생성돼 있다.
+- [ ] **A-2. 베이스라인 마무리** — `npx cap sync android` → `assembleDebug`.
+      판정: `BUILD SUCCESSFUL` + `app-debug.apk` 존재. (Gradle 첫 실행은 의존성 내려받느라 오래 걸린다)
 - [ ] **B. `build:mobile` 의 `prebuild:cf` 누락 수정 (확정 결함, 1건)**
       `build:mobile`(`package.json:429`) → `build`(`:63`) 라 `prebuild:cf`(`:410`)를 건너뛴다.
       그 안의 `fortune-build-data.mjs` 가 안 돌아 `/fortune/[period]/[sign]` 프리렌더가 죽는다.
@@ -32,6 +34,13 @@ Play Billing·잠금화면·RouteProcessor 가 손으로 작성된 의도적 네
       후보: `build:mobile` 을 `build:cf` 로 바꾼다. ⚠️ `prebuild:cf` 는 `sync:public` 을 포함해
       추적 파일을 쓴다 — 산출물을 같은 커밋에 담아야 한다.
 - [ ] **C. 드리프트 가드 6종 실행** (아래 검증 2번). 나온 실패만 고친다. 개수 미정.
+      🔴 A-1 빌드 출력이 이미 확인해 준 것 **2건**(가드는 둘 다 못 잡는다):
+      · 프루닝 목록에 `zh-tw/insights` 가 **없다** — 실제 제거된 건 `points, premium-unlock,
+        insights, en/insights, ja/insights, zh/insights`. `LOCALE_PREFIXES`(`build-mobile-app.mjs:50`)
+        에 `zh-tw` 누락 확정. 결제 위험은 아니고 번들 용량 문제.
+      · **VN·음원 CDN 오프로드가 0건**("참조 0건 재작성 / 번들에서 제외 0개 / 0.0 MB").
+        `public/codedestinyassets/` 가 이 PC 에 없어서다 → 이 빌드의 VN·노벨 자산은 깨진다.
+        코드 결함 아님. 필요하면 `node scripts/fetch-novel-assets.mjs` 로 먼저 채운다.
 - [ ] **D. 앱 `/api/*` 리타게팅 (31개 호출 지점)** — 아래 "정본 예시".
       판정: 기기에서 `fetch('/api/version')` 이 HTML 200 이 아니라 JSON 을 돌려준다.
 - [ ] **E. 가격 동일화** — 콘텐츠 티어 **8개만**(이용권 4종은 이미 앱가=웹가).
