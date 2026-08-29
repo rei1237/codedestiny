@@ -231,11 +231,19 @@
     return String(href || "").replace(/^https?:\/\/[^/]+/, "");
   }
 
+  // 로케일 접두사(/en, /ja, /zh, /zh-tw, /en-us …)를 벗기고 나서 판정한다.
+  // 라우트 파일은 build-mobile-app.mjs의 LOCALE_PREFIXES × REMOVED_ROUTE_DIRS 조합으로
+  // 지워지는데, 여기서 접두사를 안 벗기면 /en/insights 같은 링크가 그대로 남아
+  // 지워진 경로로 향한다(RouteProcessor가 홈으로 튕긴다). 2026-08-29 실측: dist에
+  // /en·/ja·/zh·/zh-tw insights 링크가 로케일당 9개 파일에 살아 있었다.
+  var LOCALE_PREFIX_RE = /^\/[a-z]{2}(?:-[a-z]{2})?(?=\/)/;
+
   function matchPrunedRoute(href) {
     var path = toPath(href);
     if (!path || path.charAt(0) !== "/") return null;
+    var routePath = path.replace(LOCALE_PREFIX_RE, "");
     for (var i = 0; i < PRUNED_ROUTES.length; i += 1) {
-      if (PRUNED_ROUTES[i].pattern.test(path)) return PRUNED_ROUTES[i];
+      if (PRUNED_ROUTES[i].pattern.test(routePath)) return PRUNED_ROUTES[i];
     }
     return null;
   }

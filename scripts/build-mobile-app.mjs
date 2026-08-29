@@ -47,7 +47,7 @@ const GUARD_TAG = `${REFERRER_META}${API_BASE_INLINE}<script src="${BRIDGE_PUBLI
 //   insights / famous-saju  : SEO 전용 문서. 앱 사용자는 도달할 일이 없는데
 //                             압축 후 28MB를 차지한다.
 const REMOVED_ROUTE_DIRS = ["points", "premium-unlock", "insights", "famous-saju"];
-const LOCALE_PREFIXES = ["", "en", "ja", "zh"];
+const LOCALE_PREFIXES = ["", "en", "ja", "zh", "zh-tw"];
 
 // 자산은 목록으로 지우지 않는다 — 반드시 참조 검사를 거친다.
 //
