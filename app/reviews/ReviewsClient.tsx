@@ -104,6 +104,7 @@ type ReviewsCopy = {
   submitButtonLoading: string;
   submitButtonIdle: string;
   moderationNotice: string;
+  rewardNotice: string;
   selectProductError: string;
   bodyTooShortError: string;
   submitFailedFallback: string;
@@ -161,6 +162,7 @@ const REVIEWS_COPY_EN: ReviewsCopy = {
   submitButtonLoading: "Submitting...",
   submitButtonIdle: "Submit review",
   moderationNotice: "Submitted reviews go through moderation before appearing publicly.",
+  rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
   selectProductError: "Please choose which service you're reviewing.",
   bodyTooShortError: "Your review needs to be at least 20 characters.",
   submitFailedFallback: "Couldn't submit your review.",
@@ -219,6 +221,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "등록 중...",
     submitButtonIdle: "리뷰 등록",
     moderationNotice: "등록한 후기는 바로 공개되지 않고 운영진 검수를 거쳐 반영됩니다.",
+    rewardNotice: "검수를 통과해 공개되면 후기 1건당 월정석 100개(1,000원 상당)를 드립니다.",
     selectProductError: "리뷰를 남길 상품을 선택해 주세요.",
     bodyTooShortError: "후기는 20자 이상 작성해 주세요.",
     submitFailedFallback: "리뷰를 등록하지 못했습니다.",
@@ -276,6 +279,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "送信中...",
     submitButtonIdle: "レビューを投稿",
     moderationNotice: "投稿されたレビューは審査後に公開されます。",
+    rewardNotice: "審査を通過して公開されると、レビュー1件につき月精石100個（1,000ウォン相当）を差し上げます。",
     selectProductError: "レビューを投稿するサービスを選択してください。",
     bodyTooShortError: "レビューは20文字以上で入力してください。",
     submitFailedFallback: "レビューを投稿できませんでした。",
@@ -332,6 +336,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "提交中...",
     submitButtonIdle: "提交评价",
     moderationNotice: "提交的评价将在审核后展示。",
+    rewardNotice: "评价通过审核并公开后，每篇可获得 100 颗月精石（约合 1,000 韩元）。",
     selectProductError: "请选择要评价的服务。",
     bodyTooShortError: "评价内容需至少20字。",
     submitFailedFallback: "评价提交失败。",
@@ -388,6 +393,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "提交中...",
     submitButtonIdle: "提交評價",
     moderationNotice: "提交的評價將在審核後展示。",
+    rewardNotice: "評價通過審核並公開後，每篇可獲得 100 顆月精石（約合 1,000 韓元）。",
     selectProductError: "請選擇要評價的服務。",
     bodyTooShortError: "評價內容需至少20字。",
     submitFailedFallback: "評價提交失敗。",
@@ -444,6 +450,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "Đang gửi...",
     submitButtonIdle: "Gửi đánh giá",
     moderationNotice: "Đánh giá đã gửi sẽ được kiểm duyệt trước khi hiển thị công khai.",
+    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
     selectProductError: "Vui lòng chọn dịch vụ bạn muốn đánh giá.",
     bodyTooShortError: "Đánh giá cần tối thiểu 20 ký tự.",
     submitFailedFallback: "Không thể gửi đánh giá của bạn.",
@@ -500,6 +507,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "सबमिट हो रहा है...",
     submitButtonIdle: "रिव्यू सबमिट करें",
     moderationNotice: "सबमिट किए गए रिव्यू सार्वजनिक होने से पहले समीक्षा से गुजरते हैं।",
+    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
     selectProductError: "कृपया वह सेवा चुनें जिसके लिए रिव्यू लिखना है।",
     bodyTooShortError: "रिव्यू कम से कम 20 अक्षर का होना चाहिए।",
     submitFailedFallback: "आपका रिव्यू सबमिट नहीं हो सका।",
@@ -556,6 +564,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "Enviando...",
     submitButtonIdle: "Enviar reseña",
     moderationNotice: "Las reseñas enviadas pasan por moderación antes de publicarse.",
+    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
     selectProductError: "Elige el servicio que quieres reseñar.",
     bodyTooShortError: "Tu reseña debe tener al menos 20 caracteres.",
     submitFailedFallback: "No se pudo enviar tu reseña.",
@@ -612,6 +621,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "Envoi en cours...",
     submitButtonIdle: "Envoyer l'avis",
     moderationNotice: "Les avis envoyés sont modérés avant d'être publiés.",
+    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
     selectProductError: "Choisissez le service que vous souhaitez noter.",
     bodyTooShortError: "Votre avis doit comporter au moins 20 caractères.",
     submitFailedFallback: "Votre avis n'a pas pu être envoyé.",
@@ -668,6 +678,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "Wird gesendet...",
     submitButtonIdle: "Bewertung absenden",
     moderationNotice: "Eingereichte Bewertungen werden vor der Veröffentlichung geprüft.",
+    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
     selectProductError: "Bitte wählen Sie die Leistung aus, die Sie bewerten möchten.",
     bodyTooShortError: "Ihre Bewertung muss mindestens 20 Zeichen lang sein.",
     submitFailedFallback: "Ihre Bewertung konnte nicht gesendet werden.",
@@ -724,6 +735,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "Bezig met verzenden...",
     submitButtonIdle: "Review verzenden",
     moderationNotice: "Ingediende reviews worden gemodereerd voordat ze zichtbaar worden.",
+    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
     selectProductError: "Selecteer de dienst waarover u een review wilt schrijven.",
     bodyTooShortError: "Uw review moet minstens 20 tekens bevatten.",
     submitFailedFallback: "Uw review kon niet worden verzonden.",
@@ -780,6 +792,7 @@ const REVIEWS_COPY: Partial<Record<LoadingLocale, ReviewsCopy>> = {
     submitButtonLoading: "Menghantar...",
     submitButtonIdle: "Hantar ulasan",
     moderationNotice: "Ulasan yang dihantar akan disemak sebelum dipaparkan secara umum.",
+    rewardNotice: "Approved reviews earn 100 Moonstones (worth about 1,000 KRW), credited once moderation is done.",
     selectProductError: "Sila pilih perkhidmatan yang ingin anda ulas.",
     bodyTooShortError: "Ulasan anda perlu sekurang-kurangnya 20 aksara.",
     submitFailedFallback: "Ulasan anda tidak dapat dihantar.",
@@ -1382,6 +1395,9 @@ export default function ReviewsClient() {
                   {submitting ? copy.submitButtonLoading : copy.submitButtonIdle}
                 </button>
 
+                <p className="rounded-2xl bg-[#fdf1f6] px-4 py-3 text-xs font-semibold leading-6 text-[#b31955] dark:bg-[#3c1830] dark:text-[#f4bed1]">
+                  {copy.rewardNotice}
+                </p>
                 <p className="text-xs leading-6 text-[#8a6478] dark:text-[#c99cb2]">
                   {copy.moderationNotice}
                 </p>

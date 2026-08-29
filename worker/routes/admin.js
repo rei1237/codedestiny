@@ -16,6 +16,7 @@ import {
 } from "../lib/review-models.js";
 import { getReviewProduct } from "../lib/review-product-catalog.js";
 import { screenReviewText } from "../lib/review-moderation.js";
+import { REVIEW_REWARD_AMOUNT, grantReviewApprovalReward } from "../lib/review-reward.js";
 import {
   FEATURE_KEY_PRICE_TABLE,
   FRONTEND_PAID_FEATURE_KEYS,
@@ -4539,6 +4540,11 @@ function toAdminReviewItem(doc) {
     aiFlagReason: reviewText(doc?.aiFlagReason),
     adminNote: reviewText(doc?.adminNote),
     reviewedBy: reviewText(doc?.reviewedBy),
+    reviewReward: {
+      granted: Boolean(doc?.reviewReward?.granted),
+      amount: Math.max(0, Math.floor(Number(doc?.reviewReward?.amount || 0))),
+      grantedAt: doc?.reviewReward?.grantedAt || null,
+    },
     approvedAt: doc?.approvedAt || null,
     displayedAt: doc?.displayedAt || null,
     createdAt: doc?.createdAt || null,
@@ -4813,7 +4819,33 @@ async function handleAdminReviewStatus(path, request, env) {
   const doc = await Review.findByIdAndUpdate(id, { $set: update }, { new: true }).lean();
   if (!doc) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
 
-  return json({ ok: true, item: toAdminReviewItem(doc) });
+  // 승인 전환이 곧 후기 보상 지급 시점이다. 반려·숨김은 지급하지 않고, 이미 지급된 건을
+  // 되돌리지도 않는다(월정석은 지급 후 30일 만료로 자연 소멸하고, 회수 배관은 만들지 않는다).
+  // 🔴 지급 실패가 승인을 막으면 후기가 영영 공개되지 않으므로, 실패는 응답에 실어 화면에만 알린다.
+  if (statusRaw !== REVIEW_STATUSES.APPROVED) {
+    return json({ ok: true, item: toAdminReviewItem(doc) });
+  }
+
+  const reward = await grantReviewApprovalReward({
+    reviewDoc: doc,
+    actorId: update.reviewedBy,
+    env,
+  });
+
+  return json({
+    ok: true,
+    item: toAdminReviewItem(reward.granted
+      ? {
+        ...doc,
+        reviewReward: {
+          granted: true,
+          amount: reward.amount || REVIEW_REWARD_AMOUNT,
+          grantedAt: doc?.reviewReward?.grantedAt || new Date(),
+        },
+      }
+      : doc),
+    reward,
+  });
 }
 
 async function handleAdminReviewDelete(path, request, env) {
