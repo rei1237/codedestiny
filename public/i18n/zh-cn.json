@@ -1834,7 +1834,9 @@
         "card": "信用卡 · 快捷支付",
         "transfer": "实时银行转账",
         "mobile": "手机小额支付",
-        "giftCertificate": "文化礼券",
+        "giftCultureland": "Cultureland 文化礼券",
+        "giftBooknlife": "图书文化礼券",
+        "giftSmartMunsang": "Smart 文商礼券",
         "comingSoon": "敬请期待",
         "back": "返回"
       }

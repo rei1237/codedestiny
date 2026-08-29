@@ -1834,7 +1834,9 @@
         "card": "Tarjeta de crédito · Pago rápido",
         "transfer": "Transferencia bancaria en tiempo real",
         "mobile": "Pago con factura móvil",
-        "giftCertificate": "Vale cultural",
+        "giftCultureland": "Cultureland gift certificate",
+        "giftBooknlife": "Book&Life gift certificate",
+        "giftSmartMunsang": "Smart Munsang gift certificate",
         "comingSoon": "Próximamente",
         "back": "Atrás"
       }

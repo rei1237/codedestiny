@@ -1834,7 +1834,9 @@
         "card": "クレジットカード · 簡単決済",
         "transfer": "リアルタイム口座振替",
         "mobile": "携帯キャリア決済",
-        "giftCertificate": "文化商品券",
+        "giftCultureland": "カルチャーランド商品券",
+        "giftBooknlife": "図書文化商品券",
+        "giftSmartMunsang": "スマート文商",
         "comingSoon": "準備中",
         "back": "戻る"
       }

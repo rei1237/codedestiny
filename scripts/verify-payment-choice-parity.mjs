@@ -503,7 +503,9 @@ const CORE_METHOD_KEYS = [
   "payment.directModal.method.card",
   "payment.directModal.method.transfer",
   "payment.directModal.method.mobile",
-  "payment.directModal.method.giftCertificate",
+  "payment.directModal.method.giftCultureland",
+  "payment.directModal.method.giftBooknlife",
+  "payment.directModal.method.giftSmartMunsang",
   "payment.directModal.method.comingSoon",
   "payment.directModal.method.back",
 ];

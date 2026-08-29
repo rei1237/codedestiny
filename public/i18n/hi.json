@@ -1834,7 +1834,9 @@
         "card": "क्रेडिट कार्ड · त्वरित भुगतान",
         "transfer": "रीयल-टाइम बैंक ट्रांसफ़र",
         "mobile": "मोबाइल बिल से भुगतान",
-        "giftCertificate": "कल्चर गिफ़्ट वाउचर",
+        "giftCultureland": "Cultureland gift certificate",
+        "giftBooknlife": "Book&Life gift certificate",
+        "giftSmartMunsang": "Smart Munsang gift certificate",
         "comingSoon": "जल्द आ रहा है",
         "back": "वापस"
       }
