@@ -2,11 +2,11 @@
   "_comment": "셸 잔여 한국어 배치 1 — 히어로·오늘의 운세 패널·오늘의 추천. 용어집(i18n/glossary.json)을 따른다. 브랜드 고유명사(Code Destiny, Neo, Yeoni)는 번역하지 않는다. 가격은 KRW 표기를 유지한다(해외 마켓 미개방, docs/INTERNATIONAL_MARKET_LOCALIZATION.md).",
 
   "shell.normalLogo.moonHeroCopy.kbm4p3d": {
-    "ko": "사주·타로·자미두수·숙요점·베다점·서양 점성술에 관상까지, 각 체계의 기준대로 읽습니다.",
-    "en": "Saju, tarot, Zi Wei Dou Shu, Sukuyo, Vedic and Western astrology, and even face reading — each read by the standards of its own tradition.",
-    "ja": "四柱推命・タロット・紫微斗数・宿曜・ヴェーダ占星術・西洋占星術に観相まで、それぞれの体系の基準どおりに読み解きます。",
-    "zh-CN": "四柱八字、塔罗、紫微斗数、宿曜、吠陀占星与西洋占星，再加上面相，各依其体系的标准来读。",
-    "zh-TW": "四柱八字、塔羅、紫微斗數、宿曜、吠陀占星與西洋占星，再加上面相，各依其體系的標準來讀。",
+    "ko": "한 체계의 결론을 다른 체계로 확인합니다. 생년월일만 넣으면 무료로 시작할 수 있습니다.",
+    "en": "We check one system's conclusion against the others. Enter your birth date and start free.",
+    "ja": "一つの体系の結論を、別の体系で確かめます。生年月日を入れるだけで無料で始められます。",
+    "zh-CN": "用另一套体系检验前一套的结论。只需输入生日即可免费开始。",
+    "zh-TW": "用另一套體系檢驗前一套的結論。只需輸入生日即可免費開始。",
     "vi": "Tứ Trụ, tarot, Tử Vi Đẩu Số, Túc Diệu, chiêm tinh Vệ Đà và chiêm tinh phương Tây, cùng cả nhân tướng học — mỗi hệ đọc theo đúng chuẩn mực của riêng nó.",
     "hi": "चार स्तंभ, टैरो, ज़ी वेई दोउ शू, नक्षत्र ज्योतिष, वैदिक और पश्चिमी ज्योतिष, यहाँ तक कि चेहरा पठन भी — हर पद्धति उसी के अपने मानकों से पढ़ी जाती है।",
     "es": "Cuatro Pilares, tarot, Zi Wei Dou Shu, Sukuyo, astrología védica y occidental, y hasta la lectura del rostro: cada uno leído según los criterios de su propia tradición.",

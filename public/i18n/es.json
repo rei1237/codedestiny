@@ -1219,7 +1219,9 @@
       "membership": "Guía de pases y suscripciones",
       "membershipAria": "Verifique el saldo del pase y la suscripción y abra los beneficios de la luz de la luna",
       "search": "Buscar todos los servicios",
-      "searchAria": "Encuentra cada servicio de adivinación con la búsqueda"
+      "searchAria": "Encuentra cada servicio de adivinación con la búsqueda",
+      "why": "What cross-checking means",
+      "whyAria": "Learn what cross-checking six systems means"
     },
     "badges": {
       "yogaGuru": "GURU DEL YOGA",

@@ -37,7 +37,10 @@ const ENTRY = resolve(root, "index.html");
 const LOCK_ID = "cd-hero-firstpaint-lock-v20260820";
 const CANON_ID = "cd-mobile-home-authoritative-v20260723";
 const HERO_MARKUP = 'class="normal-logo moon-hero';
-const TRUST_TARGETS = ["cdFortunePick", "cdServiceIndex", "honeyMembershipMini"];
+/* 3번 배지는 2026-08-30 에 #honeyMembershipMini(가격표) → #cdWhyUs(차별점 설명)로 옮겼다.
+   섹션·라우트는 그대로 두고 첫 방문 동선만 바꾼 것이다 — 이용권 진입은 하단 내비 /points 와
+   #honeyMembershipMini 섹션 자체가 계속 맡는다. */
+const TRUST_TARGETS = ["cdFortunePick", "cdServiceIndex", "cdWhyUs"];
 
 const failures = [];
 const fail = (msg) => failures.push(msg);

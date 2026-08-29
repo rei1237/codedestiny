@@ -1219,7 +1219,9 @@
       "membership": "Pass and subscription guide",
       "membershipAria": "Check pass and subscription balance and open moonlight benefits",
       "search": "Search all services",
-      "searchAria": "Find every fortune service by search"
+      "searchAria": "Find every fortune service by search",
+      "why": "What cross-checking means",
+      "whyAria": "Learn what cross-checking six systems means"
     },
     "badges": {
       "yogaGuru": "YOGA GURU",
@@ -1236,7 +1238,7 @@
       "neoLogoAlt": "Neo mode logo"
     },
     "hero2": {
-      "title": "From free Saju to Zi Wei Dou Shu and astrology — who you are, right now",
+      "title": "Six systems, cross-checked — do they point to the same answer?",
       "lead": "East-West wisdom meets expert insight to interpret your own story.",
       "primaryCta": "✦ See Today's Fortune Free",
       "journeyCta": "✦ Start Your Destiny Journey"
@@ -6486,7 +6488,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Path of Starlight Reading",
-        "kbm4p3d": "Saju, tarot, Zi Wei Dou Shu, Sukuyo, Vedic and Western astrology, and even face reading — each read by the standards of its own tradition.",
+        "kbm4p3d": "We check one system's conclusion against the others. Enter your birth date and start free.",
         "kdvbi0h": {
           "ariaLabel": "Key service highlights"
         }
@@ -6854,7 +6856,7 @@
     "moonHeroCopy": {
       "moonHeroActions": {
         "kerryje": "What is Fusion Fortune?",
-        "k107dp07": "Six systems cross-checked — Four Pillars to tarot →"
+        "k107dp07": "See how Fusion reading works →"
       }
     },
     "cdTodayPanelSaju": {
