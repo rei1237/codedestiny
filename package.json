@@ -233,6 +233,7 @@
     "verify:paid-gate-price-coverage": "node scripts/verify-paid-gate-price-coverage.mjs",
     "verify:home-service-registry": "node scripts/verify-home-service-registry.mjs",
     "verify:hero-firstpaint-lock": "node scripts/verify-hero-firstpaint-lock.mjs",
+    "verify:auth-bar-reservation": "node scripts/verify-auth-bar-reservation.mjs",
     "verify:shell-overlay-nav-coverage": "node scripts/verify-shell-overlay-nav-coverage.mjs",
     "verify:naming-prompt": "node scripts/verify-naming-prompt-flow.mjs",
     "verify:numerology-tarot-flow": "node scripts/verify-numerology-tarot-flow.mjs",

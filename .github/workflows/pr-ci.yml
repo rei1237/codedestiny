@@ -447,6 +447,16 @@ jobs:
       - name: Verify hero first-paint lock matches its authoritative block
         run: npm run verify:hero-firstpaint-lock
 
+      # 🔴 이것도 **fast 잡**이어야 한다. 입력이 index.html 하나뿐이라 티어가 low/fast 로 잡히는데,
+      # build 잡에 두면 정작 지켜야 할 "인증바 예약 스크립트 한 줄 수정"에 깨어나지 않는다.
+      # 지키는 것: 홈 히어로 바로 위 형제 #authQuickLinks 가 게스트 108px 로 그려졌다가 확정
+      # 로그인 카드(428~514px)로 통째로 교체되며 히어로를 320px 밀어내던 회귀
+      # (실측 2026-08-29 프로덕션 16b294592, 412x823 CPU 4x: 유효 로그인 CLS 0.2865 → 0.0003).
+      # 장치가 다리 넷(첫 페인트 스크립트·CSS 규칙·저장·해제)이라 하나만 빠져도 무음으로 죽는다.
+      # 정적 파일 하나를 읽고 문자열·순서를 대조할 뿐이라 네트워크 없이 1초 미만이다.
+      - name: Verify auth bar first-paint reservation is intact
+        run: npm run verify:auth-bar-reservation
+
       # 🔴 이것도 **fast 잡**이어야 한다. 입력이 index.html 하나뿐이고, 지켜야 할 변경이
       # "오버레이 마크업 한 줄 추가" 라 티어가 low/fast 로 잡힌다.
       # 지키는 것: 셸의 모달은 거의 전부 .wrap(isolation:isolate) 안이라 z-index 로는 body 직속
