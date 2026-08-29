@@ -15,6 +15,7 @@
 import { promises as fs } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { createHash } from "node:crypto";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const distArgIndex = process.argv.indexOf("--dist");
@@ -205,6 +206,95 @@ async function removeDeadPngOriginals(referenced) {
     removed.push({ path: path.relative(DIST, png).replace(/\\/g, "/"), bytes });
   }
   return removed;
+}
+
+// ── 앱 전용: 이미지 축소 ─────────────────────────────────────────────────────
+// 폰에 1080px 넘는 원본을 담을 이유가 없다. 2026-08-29 실측(`unzip -v` 로 압축 크기 집계):
+// AAB 110.7MB 중 이미지가 72.4MB(65%)였고 텍스트·코드는 전부 합쳐 32.4MB였다.
+// 선명해야 하는 자산(스프라이트 시트·컷아웃·타로 카드)의 분류는 scripts/optimize-images.mjs
+// 의 HERO_PATTERNS 와 같은 정책이다 — 그 모듈은 import 하면 run()이 돌아 여기에 다시 적는다.
+const IMAGE_MAX_WIDTH = 1080;
+const IMAGE_QUALITY_DEFAULT = 82;
+const IMAGE_QUALITY_CRISP = 90;
+const CRISP_PATTERNS = ["sprite", "photoroom", "mascot", "pig", "tarot", "tea-cups", "ten-gods"];
+const RESIZABLE_EXTENSIONS = new Set([".webp", ".png", ".jpg", ".jpeg"]);
+
+/**
+ * 바이트가 같은 이미지 사본 중 참조 0건인 것 제거.
+ *
+ * fail-safe 둘: 참조가 하나라도 잡히면 남긴다. 한 묶음이 전부 참조 0건이면 한 벌은
+ * 남긴다 — 파일명을 동적으로 조립하는 코드를 색인이 놓쳤을 수 있다(tadagochi 사고와 같은 축).
+ */
+export async function removeRedundantImageCopies(referenced, dist = DIST) {
+  const images = await walk(dist, (file) => RESIZABLE_EXTENSIONS.has(path.extname(file).toLowerCase()));
+  const byDigest = new Map();
+  for (const image of images) {
+    const digest = createHash("sha1").update(await fs.readFile(image)).digest("hex");
+    if (!byDigest.has(digest)) byDigest.set(digest, []);
+    byDigest.get(digest).push(image);
+  }
+  const removed = [];
+  for (const copies of byDigest.values()) {
+    if (copies.length < 2) continue;
+    const dead = copies.filter((file) => !referenced.has(path.basename(file)));
+    const drop = dead.length === copies.length ? dead.slice(1) : dead;
+    for (const file of drop) {
+      const bytes = (await fs.stat(file)).size;
+      await fs.rm(file, { force: true });
+      removed.push({ path: path.relative(dist, file).replace(/\\/g, "/"), bytes });
+    }
+  }
+  return removed;
+}
+
+/**
+ * 폭이 상한을 넘는 이미지를 줄이고 다시 인코딩한다. 앱 번들(dist 사본)만 손대므로
+ * public/ 원본과 웹 배포본은 그대로다.
+ *
+ * fail-safe 셋: 결과가 원본보다 크면 버리고 원본을 남긴다. 인코딩이 실패해도 원본을 남긴다.
+ * 여러 프레임(애니메이션 webp/gif)은 건너뛴다 — 재인코딩하면 첫 장으로 눌린다.
+ * 확대는 하지 않는다(상한 이하는 폭을 그대로 두고 재인코딩만 시도한다).
+ */
+export async function shrinkOversizedImages(dist = DIST) {
+  // verify-app-no-portone.mjs 가 이 모듈에서 색인 함수만 가져다 쓴다 —
+  // 그 경로까지 네이티브 모듈(sharp)을 물리지 않도록 여기서만 불러온다.
+  const { default: sharp } = await import("sharp");
+  const images = await walk(dist, (file) => RESIZABLE_EXTENSIONS.has(path.extname(file).toLowerCase()));
+  let rewritten = 0;
+  let skipped = 0;
+  let freed = 0;
+  for (const image of images) {
+    const input = await fs.readFile(image);
+    const before = input.length;
+    const ext = path.extname(image).toLowerCase();
+    const base = path.basename(image).toLowerCase();
+    const quality = CRISP_PATTERNS.some((p) => base.includes(p)) ? IMAGE_QUALITY_CRISP : IMAGE_QUALITY_DEFAULT;
+    let output;
+    try {
+      // 버퍼로 넘긴다 — 경로를 주면 sharp 가 핸들을 쥔 채라 같은 파일 쓰기가 윈도우에서 막힌다.
+      const source = sharp(input);
+      const meta = await source.metadata();
+      if ((meta.pages ?? 1) > 1) {
+        skipped += 1;
+        continue;
+      }
+      const sized = meta.width > IMAGE_MAX_WIDTH ? source.resize({ width: IMAGE_MAX_WIDTH }) : source;
+      if (ext === ".png") output = await sized.png({ compressionLevel: 9 }).toBuffer();
+      else if (ext === ".webp") output = await sized.webp({ quality, effort: 6, smartSubsample: true }).toBuffer();
+      else output = await sized.jpeg({ quality }).toBuffer();
+    } catch {
+      skipped += 1;
+      continue;
+    }
+    if (output.length >= before) {
+      skipped += 1;
+      continue;
+    }
+    await fs.writeFile(image, output);
+    rewritten += 1;
+    freed += before - output.length;
+  }
+  return { rewritten, skipped, freed, total: images.length };
 }
 
 // ── 앱 전용: 실제-페이지 라우트 링크를 /route/index.html 로 해석 ──────────────
@@ -408,6 +498,10 @@ async function main() {
   }
   if (removedPngs.length > 30) console.log(`       … 외 ${removedPngs.length - 30}개`);
 
+  const removedCopies = await removeRedundantImageCopies(referenced);
+  const copiesMB = removedCopies.reduce((sum, item) => sum + item.bytes, 0) / 1048576;
+  console.log(`  ✅ 중복 이미지 사본 제거: ${removedCopies.length}개 (${copiesMB.toFixed(1)} MB)`);
+
   const htmlFiles = await walk(DIST, (file) => file.toLowerCase().endsWith(".html"));
   let injected = 0;
   let linkRewritten = 0;
@@ -452,6 +546,9 @@ async function main() {
     jsNavRewritten += 1;
   }
   console.log(`  ✅ JS 정적 네비(html5mode 우회) 재작성: ${jsNavRewritten}개`);
+
+  const shrunk = await shrinkOversizedImages();
+  console.log(`  ✅ 이미지 축소: ${shrunk.rewritten}/${shrunk.total}개 재인코딩 (${(shrunk.freed / 1048576).toFixed(1)} MB 절감, 건너뜀 ${shrunk.skipped}개)`);
 
   console.log("\n✅ 앱 빌드 후처리 완료 — 이어서 `node scripts/verify-app-no-portone.mjs`로 검증하세요.\n");
 }
