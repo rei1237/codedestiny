@@ -8,12 +8,16 @@
 | 티어 | 웹가 | 코인 | 앱 SKU | 앱가 | 배수 | 성격 |
 |---|---:|---:|---|---:|---:|---|
 | `T0_FREE` | ₩0 | — | — | 무료 | — | 무료 진입 콘텐츠 |
-| `T1_LITE` | ₩3,000 | 30 | `cd_content_tier_01` | ₩3,900 | 1.30 | 단문 리딩·프롬프트 생성 |
-| `T2_BASIC` | ₩5,000 | 50 | `cd_content_tier_02` | ₩6,000 | 1.20 | 표준 단품·궁합·심화 해금 |
-| `T2_DEEP` | ₩7,000 | 70 | `cd_content_tier_14` | ₩8,900 | 1.27 | 카드 수 구간형 상담(타로 오라클 8~10카드) |
-| `T3_PLUS` | ₩10,000 | 100 | `cd_content_tier_06` | ₩13,000 | 1.30 | 심화 리포트·영구 해금 |
-| `T4_PREMIUM` | ₩20,000 | 200 | `cd_content_tier_09` | ₩25,000 | 1.25 | 장문 상담·번들 해금 |
-| `T5_MASTER` | ₩30,000 | 300 | `cd_content_tier_10` | ₩39,000 | 1.30 | 최상위 AI 상담 |
+| `T1_LITE` | ₩3,000 | 30 | `cd_content_tier_01` | ₩3,000 | 1.00 | 단문 리딩·프롬프트 생성 |
+| `T2_BASIC` | ₩5,000 | 50 | `cd_content_tier_02` | ₩5,000 | 1.00 | 표준 단품·궁합·심화 해금 |
+| `T2_DEEP` | ₩7,000 | 70 | `cd_content_tier_14` | ₩7,000 | 1.00 | 카드 수 구간형 상담(타로 오라클 8~10카드) |
+| `T3_PLUS` | ₩10,000 | 100 | `cd_content_tier_06` | ₩10,000 | 1.00 | 심화 리포트·영구 해금 |
+| `T4_PREMIUM` | ₩20,000 | 200 | `cd_content_tier_09` | ₩20,000 | 1.00 | 장문 상담·번들 해금 |
+| `T5_MASTER` | ₩30,000 | 300 | `cd_content_tier_10` | ₩30,000 | 1.00 | 최상위 AI 상담 |
+
+> 🔴 **2026-08-29 — 앱가 = 웹가**(사용자 확정, 배수 1.00). 종전의 20~30% 인상은 폐기했다.
+> Play 수수료 15%를 그대로 부담한다는 뜻이며, 되돌리는 것도 정책 결정이다 — 그때는
+> **Play Console 등록가를 사람이 먼저 올린 뒤** 코드를 올린다(반대 순서는 표시가 < 청구가 위반).
 
 ### 티어 값을 이렇게 정한 이유 — 정책 상수와 맞물려 있다
 
@@ -128,7 +132,7 @@
 ## 5. 티어를 새로 쓸 때
 
 1. **가격은 `worker/lib/paid-feature-registry.js`에만 적는다.** 코인 정수이며 원화는 `cost × 100`으로 파생된다(`KRW_PER_COIN = 100`).
-2. 위 표의 값 중 하나를 고른다. **새 가격 포인트를 만들지 않는다** — 만들면 앱 SKU도 새로 등록해야 하고(사람 손), `verify:app-store-pricing`이 "미커버 가격대"로 실패시킨다. 🔴 그래도 만들어야 한다면(2026-08-27 ₩7,000 이 그 사례) ①사용자 결정을 먼저 받고 ②`CONTENT_TIER_TABLE`에 **쓰지 않은 새 번호로** 티어를 추가하고(폐기 SKU 재사용 금지) ③인상률 20~30% 밴드를 지키고 ④[PLAY_CONSOLE_TASKS.md](./PLAY_CONSOLE_TASKS.md)에 수동 등록 작업을 남긴다.
+2. 위 표의 값 중 하나를 고른다. **새 가격 포인트를 만들지 않는다** — 만들면 앱 SKU도 새로 등록해야 하고(사람 손), `verify:app-store-pricing`이 "미커버 가격대"로 실패시킨다. 🔴 그래도 만들어야 한다면(2026-08-27 ₩7,000 이 그 사례) ①사용자 결정을 먼저 받고 ②`CONTENT_TIER_TABLE`에 **쓰지 않은 새 번호로** 티어를 추가하고(폐기 SKU 재사용 금지) ③앱가(`amountKRW`)를 웹가(`webAmountKRW`)와 같은 값으로 두고 ④[PLAY_CONSOLE_TASKS.md](./PLAY_CONSOLE_TASKS.md)에 수동 등록 작업을 남긴다.
 3. 프론트 폴백 상수(`FEATURE_COST`/`AMOUNT_KRW`)를 쓴다면 레지스트리와 같은 값이어야 한다. 서버 `runtimeGate` 실패 시 그 값이 그대로 결제창에 간다.
 4. 정적 셸 타일이면 `data-coin-cost` / `data-price-krw` 속성도 맞춘다(`verify:mobile-pricing-parity`가 대조).
 5. 검증: `verify:paid-feature-billing-policy` → `verify:app-store-pricing` → `verify:billing-pass-policy` → `verify:mobile-pricing-parity`.

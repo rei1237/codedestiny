@@ -37,20 +37,20 @@ const PACKAGE_NAME = String(
 // verify-play-console-products.mjs가 문서↔스크립트 일치를 검사한다.
 // 이 SKU들은 새 재화가 아니라 '단건 결제'를 Play에서 받기 위한 가격대 그릇이다.
 const CONTENT_LISTINGS = {
-  cd_content_tier_01: { title: "운세 콘텐츠 3,900원", description: "선택하신 운세·타로·사주 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
-  cd_content_tier_02: { title: "운세 콘텐츠 6,000원", description: "선택하신 운세·타로·관상 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_01: { title: "운세 콘텐츠 3,000원", description: "선택하신 운세·타로·사주 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_02: { title: "운세 콘텐츠 5,000원", description: "선택하신 운세·타로·관상 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_03: { title: "운세 콘텐츠 7,500원", description: "선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_04: { title: "운세 콘텐츠 8,900원", description: "선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_05: { title: "운세 콘텐츠 10,900원", description: "선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
-  cd_content_tier_06: { title: "운세 콘텐츠 13,000원", description: "선택하신 운세·상담 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_06: { title: "운세 콘텐츠 10,000원", description: "선택하신 운세·상담 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_07: { title: "운세 콘텐츠 15,000원", description: "선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
   cd_content_tier_08: { title: "운세 콘텐츠 19,000원", description: "선택하신 심화 분석 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
-  cd_content_tier_09: { title: "운세 콘텐츠 25,000원", description: "선택하신 궁합·심화 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
-  cd_content_tier_10: { title: "AI 상담 39,000원", description: "선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
-  cd_content_tier_11: { title: "프리미엄 해금 49,000원", description: "선택하신 프리미엄 운세 묶음을 영구 해금하는 단건 결제입니다." },
+  cd_content_tier_09: { title: "운세 콘텐츠 20,000원", description: "선택하신 궁합·심화 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_10: { title: "AI 상담 30,000원", description: "선택하신 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_11: { title: "프리미엄 해금 39,000원", description: "선택하신 프리미엄 운세 묶음을 영구 해금하는 단건 결제입니다." },
   cd_content_tier_12: { title: "AI 상담 65,000원", description: "선택하신 심층 AI 운세 상담 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
-  cd_content_tier_13: { title: "프리미엄 전체 해금 89,000원", description: "선택하신 프리미엄 전체 묶음을 영구 해금하는 단건 결제입니다." },
-  cd_content_tier_14: { title: "운세 콘텐츠 8,900원", description: "선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
+  cd_content_tier_13: { title: "프리미엄 전체 해금 70,000원", description: "선택하신 프리미엄 전체 묶음을 영구 해금하는 단건 결제입니다." },
+  cd_content_tier_14: { title: "운세 콘텐츠 7,000원", description: "선택하신 심화 운세 기능 1건의 단건 결제입니다. 이용권으로 열리는 기능은 결제 없이 이용됩니다." },
 };
 
 // 이용권: 30일 · 자동갱신 없음 · 등급별 월 이용 한도 있음.
@@ -58,9 +58,9 @@ const CONTENT_LISTINGS = {
 //    실제 정책과 모순된다(2026-08-24). 월 한도 금액은 웹 정본 MONTHLY_PASS_LIMITS_KRW 에서
 //    파생시킨다 — 여기에 숫자를 다시 적으면 사본이 하나 더 생긴다.
 const PASS_LISTINGS = {
-  cd_pass_standard_30d: { title: "스탠다드 꿀 (30일)", coverage: "6,000원 이하", profiles: "프로필 3개" },
-  cd_pass_premium_30d: { title: "프리미엄 꿀 (30일)", coverage: "13,000원 이하", profiles: "프로필 7개" },
-  cd_pass_vvip_30d: { title: "VVIP 꿀단지 (30일)", coverage: "25,000원 이하", profiles: "프로필 15개" },
+  cd_pass_standard_30d: { title: "스탠다드 꿀 (30일)", coverage: "5,000원 이하", profiles: "프로필 3개" },
+  cd_pass_premium_30d: { title: "프리미엄 꿀 (30일)", coverage: "10,000원 이하", profiles: "프로필 7개" },
+  cd_pass_vvip_30d: { title: "VVIP 꿀단지 (30일)", coverage: "20,000원 이하", profiles: "프로필 15개" },
   cd_pass_family_30d: { title: "Code Destiny Family (30일)", coverage: "이용권 대상 전체", profiles: "프로필 무제한" },
 };
 
@@ -91,7 +91,7 @@ function buildProducts() {
   return products;
 }
 
-/** Play는 마이크로 단위를 쓴다. ₩3,900 → "3900000000" */
+/** Play는 마이크로 단위를 쓴다. ₩3,000 → "3000000000" */
 function toPriceMicros(krw) {
   return String(BigInt(Math.round(Number(krw))) * 1000000n);
 }

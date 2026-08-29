@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-29
-next: D(앱 `/api/*` 리타게팅)부터. E(가격 동일화)는 Play 콘솔 가격 인하가 선행이라 사용자 조치가 먼저다
+next: D(앱 `/api/*` 리타게팅)부터. E(가격 동일화)는 끝났다
 ---
 
 # Android 앱 ↔ 웹 동기화 · 가격 동일화 · 릴리스
@@ -22,7 +22,7 @@ Play Billing·잠금화면·RouteProcessor 가 의도적 네이티브 통합이�
 - **베이스라인 성립**(A 완료) — `npm run build:mobile:app` 통과 → `npx cap sync android`
   → `assembleDebug` **BUILD SUCCESSFUL**, `app-debug.apk` **126,867,785바이트**.
 - 드리프트 가드 6종 전부 통과(아래 검증 명령 그대로).
-- B·C 완료. 남은 것은 D·E·F·G 넷.
+- B·C·E 완료. 남은 것은 D·F·G 셋.
 
 ## 남은 작업
 
@@ -32,9 +32,10 @@ Play Billing·잠금화면·RouteProcessor 가 의도적 네이티브 통합이�
       웹 blast radius 가 0이다. 🔴 호출부 31곳(`app/_lib/api-config.ts:110-114`)을
       직접 고치면 **웹 동작까지 바뀐다.**
       판정: 기기에서 `fetch('/api/version')` 이 HTML 200 이 아니라 JSON 을 준다.
-- [ ] **E. 가격 동일화** — 콘텐츠 티어 **8개만**(이용권 4종은 이미 앱가=웹가).
-      편집 5파일 + 문서 4. 상세 표는 스크래치의 `cd-android/EDIT-PLAN.md`.
-      가격 정본: `worker/lib/app-store-pricing.js:35-49`(콘텐츠) / `:66-71`(이용권).
+- [x] **E. 가격 동일화 — 완료.** 콘텐츠 티어 8개를 웹가로 내렸고 가드 2개를 동일가 단언으로
+      바꿨다. 이제 앱 전 SKU 가 웹가와 같다. 정본 `worker/lib/app-store-pricing.js`.
+      🔴 배포 뒤 앱에서 티어 1건씩 결제 시트를 열어 **표시가 = 청구가**를 육안 대조할 것 —
+      Play Console 등록가는 코드가 확인할 수 없고 사용자의 2026-08-29 확인에 의존한다.
 - [ ] **F. 실기기 검증** — 사용자가 USB 연결 예정.
       `docs/app-audit/DIAGNOSIS_REPORT.md` 의 "기기검증필요" 11건이 우선 대상.
 - [ ] **G. 릴리스** — 🔴 **업로드 키스토어 분실**(C 드라이브·D 드라이브·휴지통 전수 검색 0건).
@@ -54,10 +55,8 @@ Play Billing·잠금화면·RouteProcessor 가 의도적 네이티브 통합이�
   `create-play-console-products.mjs`·`build-mobile-app.mjs`·`verify-app-no-portone.mjs` 는
   **CRLF**. Edit/sed 로 고치면 전 파일 diff 가 된다 → node 패치 스크립트로.
   `app-native-bridge.js`·`app-payment-guard.js`·`app-store-pricing.js` 는 LF.
-- 🔴 `verify:app-store-billing-policy` 는 **CI 배선돼 있고** 가격 동일화 시 반드시 깨진다
-  (`:102` `amountKRW > webAmountKRW`, `:154` 커버리지 상수). 같은 커밋에 고칠 것.
-- 🔴 **Play 가격 인하가 코드 배포보다 먼저**다. 반대로 하면 화면 ₩3,000 / 실청구 ₩3,900 =
-  정책 위반.
+- 🔴 **Play 가격 변경이 코드 배포보다 먼저**다. 반대로 하면 화면 ₩3,000 / 실청구 ₩3,900 =
+  정책 위반. 인하는 2026-08-29 에 그 순서로 끝냈다 — **다시 인상할 때도 같은 순서**다.
 - 🔴 `play:products:apply` 는 Play 에 실제로 쓴다 — 실행 금지. 실결제 승인도 금지.
 - 워크트리에서 `npm install` 금지(정션이라 공유 설치본에 쓴다). 정리는 `cmd /c rmdir` 로
   링크부터.

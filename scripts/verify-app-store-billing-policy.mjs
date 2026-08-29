@@ -5,7 +5,8 @@
 //      → 기록되면 2번째 구매가 ITEM_ALREADY_OWNED로 막힌다(앱 출시 블로커였던 결함)
 //   2) 영구 해금(UNLOCK)은 정상적으로 기록된다
 //   3) 이용권은 Play `inapp`인데도 profileSubscription이 갱신된다(subs 판정에 기대지 않음)
-//   4) 서버가 기록하는 금액은 웹가가 아니라 앱 티어 확정가다
+//   4) 서버가 기록하는 금액은 앱 티어 확정가에서 오고, 그 값이 웹 레지스트리 가격과 같다
+//      (2026-08-29 앱가 = 웹가. 두 값은 서로 다른 정본에서 오므로 이 대조는 항등식이 아니다)
 //   5) 등록되지 않은 가격대는 fail-closed로 거부된다
 //   6) RTDN voidedPurchaseNotification(환불)이 해석된다
 //
@@ -93,12 +94,15 @@ for (const passTier of ["standard", "premium", "vvip", "family"]) {
   );
 }
 
-console.log("\n[4] 기록 금액이 웹가가 아니라 앱 티어 확정가인가");
+console.log("\n[4] 기록 금액이 앱 티어 확정가이고 웹가와 같은가");
+// amountKRW 는 앱 티어 테이블(app-store-pricing.js), webAmountKRW 는 웹 빌링 레지스트리에서
+// 온다 — 정본이 둘로 갈라져 있으므로 이 대조는 항등식이 아니라 실제 교차 검증이다.
+// 한쪽만 고치면(예: 웹가 인하 후 앱 티어 방치) 여기서 먼저 깨진다.
 for (const featureKey of ["tarot-love-relationship", "vedic-ai-consultation"]) {
   const product = resolveProductForFeature(featureKey);
   check(
-    `${featureKey} → 앱가 ₩${product?.amountKRW?.toLocaleString("ko-KR")} ≠ 웹가 ₩${product?.webAmountKRW?.toLocaleString("ko-KR")}`,
-    product && product.amountKRW > product.webAmountKRW,
+    `${featureKey} → 앱가 ₩${product?.amountKRW?.toLocaleString("ko-KR")} = 웹가 ₩${product?.webAmountKRW?.toLocaleString("ko-KR")}`,
+    product && product.amountKRW === product.webAmountKRW,
     product ? "" : "티어 해석 실패",
   );
 }
@@ -151,7 +155,7 @@ check(
 );
 
 console.log("\n[8] 이용권 커버 금액이 앱 기준으로 파생되는가");
-for (const [tier, expectedKRW] of [["standard", 6000], ["premium", 13000], ["vvip", 25000]]) {
+for (const [tier, expectedKRW] of [["standard", 5000], ["premium", 10000], ["vvip", 20000]]) {
   const coverage = resolveAppPassCoverageKRW(PASS_LIMITS[tier]);
   check(
     `${tier}: 웹 ₩${(PASS_LIMITS[tier] * 100).toLocaleString("ko-KR")} → 앱 ₩${expectedKRW.toLocaleString("ko-KR")}`,

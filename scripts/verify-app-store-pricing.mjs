@@ -32,14 +32,11 @@ const readSource = (rel) => {
   }
 };
 
-const MIN_MARKUP = 1.2;
-const MAX_MARKUP = 1.3;
-// 🔴 이용권은 앱가 = 웹가다(2026-08-24 사용자 확정). 콘텐츠 티어만 20~30% 인상하고
-// 이용권 SKU 는 인상하지 않는다 — Play 수수료 15%를 이용권에서 부담한다는 뜻이다.
-// 옛 기준("커버 금액 상승률 ±2%p")은 폐기했다: 건당 상한을 30/50/100 → 50/100/200 으로
-// 올리면서 각 등급이 참조하는 콘텐츠 티어가 바뀌어 세 등급 전부 판정을 통과할 수 없게 됐고,
-// 그때 고른 답이 "앱가를 웹가에 맞춘다"였다. 되돌리려면 그것도 정책 결정이다.
-// 아래 검사는 완화가 아니라 더 엄격하다 — 오차 0으로 정확히 같아야 한다.
+// 🔴 앱가 = 웹가다 — 이용권은 2026-08-24, 콘텐츠 티어는 2026-08-29 사용자 확정.
+// 종전의 "콘텐츠 티어만 20~30% 인상" 밴드 검사는 폐기했다. 이 검사는 완화가 아니라 더
+// 엄격하다 — 배수 범위가 아니라 오차 0으로 정확히 같아야 한다.
+// 🔴 다시 인상하려면 Play Console 등록가를 사람이 먼저 올린 뒤 코드를 올린다. 반대 순서면
+//    그 사이가 "앱 표시가 < 실제 청구가" 정책 위반 구간이 된다.
 
 const failures = [];
 const notes = [];
@@ -82,14 +79,16 @@ for (const tier of listAppContentTiers()) {
   }
 }
 
-// 3) 인상률이 20~30% 밴드 안인가
+// 3) 앱가가 웹가와 정확히 같은가 (오차 0)
 for (const tier of listAppContentTiers()) {
-  const markup = tier.amountKRW / tier.webAmountKRW;
-  if (markup < MIN_MARKUP || markup > MAX_MARKUP) {
-    failures.push(`앱 티어 ${tier.productId}: 인상률 ${((markup - 1) * 100).toFixed(1)}% — 20~30% 밴드 이탈 (웹 ₩${tier.webAmountKRW.toLocaleString("ko-KR")} → 앱 ₩${tier.amountKRW.toLocaleString("ko-KR")})`);
+  if (tier.amountKRW !== tier.webAmountKRW) {
+    failures.push(
+      `앱 티어 ${tier.productId}: 앱가 ₩${tier.amountKRW.toLocaleString("ko-KR")} ≠ 웹가 ₩${tier.webAmountKRW.toLocaleString("ko-KR")}`
+      + " — 콘텐츠 티어도 앱가와 웹가가 같아야 한다(2026-08-29 정책). 바꾸려면 정책부터 바꿀 것",
+    );
   }
 }
-// 이용권가는 앱·웹이 정확히 같아야 한다(오차 0). 인상 대상은 콘텐츠 티어뿐이다.
+// 이용권가도 앱·웹이 정확히 같아야 한다(오차 0).
 for (const pass of listAppPassProducts()) {
   if (pass.amountKRW !== pass.webAmountKRW) {
     failures.push(
@@ -188,4 +187,4 @@ if (failures.length) {
 }
 
 console.log(`[통과] 앱 가격표 검증 — 콘텐츠 티어 ${listAppContentTiers().length}개 + 이용권 ${listAppPassProducts().length}개 = Play Console 등록 대상 SKU ${totalSkus}개`);
-console.log(`       레지스트리 가격대 ${registryCoinPrices.size}종 전부 커버됨 (인상률 20~30% 밴드 준수)`);
+console.log(`       레지스트리 가격대 ${registryCoinPrices.size}종 전부 커버됨 (앱가 = 웹가, 오차 0)`);

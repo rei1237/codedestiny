@@ -1,11 +1,16 @@
 // 앱(Google Play) 전용 가격표 정본.
 //
-// 웹 가격(worker/lib/paid-feature-registry.js)은 절대 건드리지 않는다. Play 수수료(15%)가
-// 웹 PG(약 3%)보다 높아 앱 판매가만 웹 대비 20~30% 인상해 별도로 운영한다.
+// 웹 가격(worker/lib/paid-feature-registry.js)은 절대 건드리지 않는다.
 //
-// 여기 amountKRW는 "확정가"이며 Play Console 등록가와 1:1로 일치해야 한다.
-// 웹가 × 배수는 산출 근거일 뿐이므로 런타임에서 계산하지 않는다 — 계산하면 반올림 규칙이
-// 바뀔 때 Play Console 등록가와 조용히 어긋난다. webAmountKRW는 대조·감사용으로만 둔다.
+// 🔴 2026-08-29 개정 — **앱 판매가 = 웹 판매가다**(사용자 확정). 종전의 "웹 대비 20~30% 인상"은
+// 콘텐츠 티어에서도 폐기했다(이용권은 2026-08-24 에 먼저 같아졌다). Play 수수료 15%를 그대로
+// 부담한다는 뜻이며, 되돌리는 것도 정책 결정이다. 🔴 되돌릴 때는 **Play Console 등록가를 사람이
+// 먼저 올린 뒤** 코드를 올린다 — 반대 순서면 그 사이가 "표시가 < 청구가" 정책 위반 구간이 된다.
+//
+// 여기 amountKRW는 "확정가"이며 Play Console 등록가와 1:1로 일치해야 한다. 지금은 webAmountKRW와
+// 같은 값이지만 두 필드를 합치지 않는다 — 합치면 웹가를 고칠 때 Play Console 등록가(사람 손으로
+// 등록한다)가 조용히 따라 움직인다. webAmountKRW는 대조·감사용으로 남기고, 동일성은
+// scripts/verify-app-store-pricing.mjs가 오차 0으로 단언한다.
 //
 // ⚠️ 이 파일은 워커뿐 아니라 **클라이언트 번들에도 들어간다**(app/_lib/billing-client.ts 등이
 //    앱 표시 금액을 계산하려고 import한다). 따라서 여기에 worker 전용 모듈(db.js, models.js,
@@ -20,7 +25,7 @@ export const APP_PASS_DURATION_DAYS = 30;
 
 // 이 코인가 이하 콘텐츠는 앱에서 무료로 통과시킨다.
 // 현재 해당하는 것은 음악 트랙 다운로드 하나뿐이다(10코인/₩1,000, lib/music-access-policy.js).
-// 웹가 인상분 ₩1,250 은 Play KRW 최저 판매가 근처라 SKU 를 만들지 않고 앱에서는 무료로 둔다.
+// ₩1,000 은 Play KRW 최저 판매가 근처라 SKU 를 만들지 않고 앱에서는 무료로 둔다.
 // (웹 ₩300 → ₩1,000 인상 전에도 3코인이라 앱 무료였다. 이 값을 5로 되돌리면 앱에서 음악 구매가
 //  Play 티어 미등록 503 으로 하드블록된다 — 되돌리지 말 것.)
 // 2026-08-12: 여기 함께 있던 fortune-fish-gacha(5코인/₩500)는 무료로 전환돼 레지스트리에서 빠졌다.
@@ -31,29 +36,29 @@ export const APP_FREE_MAX_COIN_PRICE = 10;
 // verify-app-store-pricing.mjs 가 "레지스트리에 없는 코인가만 가진 티어"를 실패시킨다.
 // 🔴 productId 는 재사용 금지 — Play 는 한 번 만든 상품 ID 를 영구 점유한다. 폐기 SKU 를
 // 다른 가격으로 되살리면 과거 구매자의 영수증이 새 가격을 가리키게 된다.
-// 남은 티어의 amountKRW/webAmountKRW 는 손대지 않았다(인상률 20~30% 밴드 유지).
+// 2026-08-29: 남은 티어의 amountKRW 를 전부 webAmountKRW 와 같은 값으로 내렸다(앱가 = 웹가).
 const CONTENT_TIER_TABLE = Object.freeze([
-  { productId: "cd_content_tier_01", amountKRW: 3900, webAmountKRW: 3000, coinPrices: Object.freeze([30]) },
-  { productId: "cd_content_tier_02", amountKRW: 6000, webAmountKRW: 5000, coinPrices: Object.freeze([50]) },
+  { productId: "cd_content_tier_01", amountKRW: 3000, webAmountKRW: 3000, coinPrices: Object.freeze([30]) },
+  { productId: "cd_content_tier_02", amountKRW: 5000, webAmountKRW: 5000, coinPrices: Object.freeze([50]) },
   // 2026-08-27 부활: 타로 오라클 상담 8~10카드 티어(70코인/₩7,000). 같은 코인가를 쓰던 옛 SKU
   // cd_content_tier_04(₩8,900)는 2026-08-12 에 판매 중단됐고 Play 는 상품 ID 를 영구 점유하므로
   // 🔴 되살리지 않고 다음 빈 번호로 새로 만든다. Play Console 등록은 사람 손이다
   // (docs/pricing/PLAY_CONSOLE_TASKS.md). 등록 전까지 앱에서 이 구간만 티어 미등록 503 이다.
-  { productId: "cd_content_tier_14", amountKRW: 8900, webAmountKRW: 7000, coinPrices: Object.freeze([70]) },
-  { productId: "cd_content_tier_06", amountKRW: 13000, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
-  { productId: "cd_content_tier_09", amountKRW: 25000, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
-  { productId: "cd_content_tier_10", amountKRW: 39000, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },
+  { productId: "cd_content_tier_14", amountKRW: 7000, webAmountKRW: 7000, coinPrices: Object.freeze([70]) },
+  { productId: "cd_content_tier_06", amountKRW: 10000, webAmountKRW: 10000, coinPrices: Object.freeze([100]) },
+  { productId: "cd_content_tier_09", amountKRW: 20000, webAmountKRW: 20000, coinPrices: Object.freeze([200]) },
+  { productId: "cd_content_tier_10", amountKRW: 30000, webAmountKRW: 30000, coinPrices: Object.freeze([300]) },
   // 아래 둘은 티어 사다리 밖 "전체 해금형 번들" 전용이다(상한 예외).
-  { productId: "cd_content_tier_11", amountKRW: 49000, webAmountKRW: 39000, coinPrices: Object.freeze([390]) },
-  { productId: "cd_content_tier_13", amountKRW: 89000, webAmountKRW: 70000, coinPrices: Object.freeze([700]) },
+  { productId: "cd_content_tier_11", amountKRW: 39000, webAmountKRW: 39000, coinPrices: Object.freeze([390]) },
+  { productId: "cd_content_tier_13", amountKRW: 70000, webAmountKRW: 70000, coinPrices: Object.freeze([700]) },
 ]);
 
 // 이용권: 30일, 자동갱신 없음. 건당 커버 범위 안이면 몇 번이든 무료지만, 등급별 월 이용
 // 한도(coin 단위, 웹 정본 MONTHLY_PASS_LIMITS)를 넘으면 그 사이클 안에서는 커버가 끊긴다.
 //
-// 🔴 2026-08-24 개정 — **이용권만 앱가 = 웹가다**(사용자 확정). 콘텐츠 티어는 종전대로
-// 20~30% 인상하지만 이용권 SKU 는 인상하지 않는다. 그 결과 Play 수수료 15%를 이용권에서
-// 그대로 부담한다 — 의도된 선택이며, 되돌리려면 그것도 정책 결정이다.
+// 🔴 2026-08-24 개정 — 이용권가는 앱 = 웹이다(사용자 확정). 2026-08-29 에 콘텐츠 티어도
+// 같아지면서 이제 앱의 모든 SKU 가 웹가와 동일하다. Play 수수료 15%를 그대로 부담한다 —
+// 의도된 선택이며, 되돌리려면 그것도 정책 결정이다.
 // 옛 기준("커버 금액이 오른 비율만큼 이용권가도 올린다")은 폐기했다: 건당 상한이 30/50/100
 // → 50/100/200 으로 오르면서 각 등급이 참조하는 콘텐츠 티어가 바뀌어 세 등급 전부 밴드를
 // 벗어났고, 그때 고른 답이 "앱가를 웹가에 맞춘다"였다.
