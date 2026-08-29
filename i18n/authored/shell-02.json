@@ -273,8 +273,8 @@
 
   "shell.cdMobileBottomNav.cdMobileBottomNavMain.k16cq4to": {
     "ko": "모든 운세",
-    "en": "All Readings",
-    "ja": "すべての占い",
+    "en": "Readings",
+    "ja": "占い一覧",
     "zh-CN": "全部运势",
     "zh-TW": "全部運勢",
     "vi": "Tất cả",
@@ -282,7 +282,7 @@
     "es": "Todas",
     "fr": "Toutes",
     "de": "Alle",
-    "nl": "Alle readings",
+    "nl": "Alle",
     "ms": "Semua"
   },
 
