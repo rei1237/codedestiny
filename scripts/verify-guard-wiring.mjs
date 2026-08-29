@@ -87,6 +87,10 @@ const UNWIRED_BY_DESIGN = [
   ["verify:desktop-cdp-smoke", "실브라우저 CDP — 로컬 개발 서버 필요"],
   ["verify:hybrid-desktop-cdp-smoke", "실브라우저 CDP — 로컬 개발 서버 필요"],
   ["verify:mobile-detail-render", "jsdom 실렌더 — 무거워 수동 실행(정적 짝은 CI 배선됨)"],
+  [
+    "verify:mobile-bottom-nav-clearance",
+    "playwright 실렌더 + safe-area 에뮬레이션 — 브라우저 기동 비용. 하단 탭바 주변 fixed UI 를 고쳤으면 손으로 돌린다",
+  ],
   ["verify:r2-fonts", "R2 실요청 — 네트워크 필요"],
   ["verify:r2-public-cache", "R2 실요청 — 네트워크 필요"],
   ["verify:www-canonical", "프로덕션 도메인 실요청 — 배포 후 수동 확인"],

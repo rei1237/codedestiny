@@ -343,6 +343,7 @@
     "verify:mobile-entry-actions": "node scripts/verify-mobile-entry-actions.mjs",
     "verify:mobile-runtime-readiness": "node scripts/verify-mobile-runtime-readiness.mjs",
     "verify:mobile-bottom-nav-sync": "node scripts/verify-mobile-bottom-nav-sync.mjs",
+    "verify:mobile-bottom-nav-clearance": "node scripts/verify-mobile-bottom-nav-clearance.mjs",
     "verify:mobile-lazy-mount-openers": "node scripts/verify-mobile-lazy-mount-openers.mjs",
     "build:korean-calendar-table": "node scripts/build-korean-calendar-table.mjs",
     "verify:korean-calendar-table-fresh": "node scripts/verify-korean-calendar-table-fresh.mjs",
