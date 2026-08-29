@@ -25,6 +25,11 @@
       "reason": "#1061 과 같은 스택 PR 오탐이다. 자식(#1084)이 22:00:05 에 부모 브랜치 worktree-session-context-budget 로, 부모(#1083)가 22:04:59 에 main 으로 스쿼시 머지(0f5d3c680, main 조상 확인)돼 자식의 머지 커밋 fc4aec21 이 고아가 됐다. 순서는 옳았다. git diff --numstat origin/main fc4aec21 전체 출력(64개 파일, 이후 머지된 다른 PR 들의 차이)에 #1084 의 변경 파일 6개(.claude/agents/visual-checker.md, .claude/hooks/guard-image-read.mjs, .claude/hooks/guard-image-read.test.mjs, .claude/settings.json, CLAUDE.md, scripts/shrink-shot.mjs)가 하나도 나타나지 않았다 — 전부 내용 동일. 스크린샷 컨텍스트 가드는 유실되지 않았다.",
       "verifiedAt": "2026-08-24",
       "acknowledged": true
+    },
+    "1247": {
+      "reason": "base 재타게팅으로 생긴 close/reopen 중복이다. #1247 은 부모 브랜치 fix/sukuyo-shell-yaja-scale 로 머지됐고, 같은 작업이 main 을 base 로 다시 열린 #1246 (제목에 '구 #1247' 표기, 머지 커밋 358431f921f0, main 조상 확인)으로 착지했다. 두 머지 커밋의 트리를 대조하니 이 PR 의 실질 파일 3개(js/core/kasi-calendar-service.js, scripts/verify-solar-term-frame-kasi.mjs, docs/handoff/ganji-wallclock-parts-migration.md)가 차이 목록에 아예 나타나지 않았다 — 내용 동일. 나머지 20개 경로의 차이는 ?v=build- 캐시 키 스탬프와 그 사이 main 에 들어온 무관한 PR 들뿐이었고, 두 PR 각자의 index.html 변경도 캐시 키 외에는 0줄이었다. main 의 js/core/kasi-calendar-service.js:906 에 _pick(row, ['kst', 'time', 'tm', 'locTime']) 가 있어 절입 시각 kst 정정이 실제로 살아 있음을 확인했다.",
+      "verifiedAt": "2026-08-29",
+      "acknowledged": true
     }
   }
 }
