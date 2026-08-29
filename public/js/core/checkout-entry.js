@@ -503,19 +503,35 @@
 
   // ── 단건결제 결제수단(2단계) ────────────────────────────────────────────────────────
   //
-  // 🔴 **PG 승인이 떨어지면 고치는 곳은 아래 enabled 한 줄뿐이다.** 키는 PortOne V2 의 payMethod
-  // enum 값 그대로라 중간 매핑 테이블이 없고, 이 표 하나가 ① 준비중 배지 렌더 ② 선택 허용 여부
-  // ③ 실제 요청에 실리는 payMethod 셋을 동시에 정한다.
+  // 🔴 **PG 승인이 떨어지면 고치는 곳은 아래 enabled 한 줄뿐이다**(이미 있는 수단이라면). 이 표
+  // 하나가 ① 준비중 배지 렌더 ② 선택 허용 여부 ③ 실제 요청에 실리는 payMethod 셋을 동시에 정한다.
   //
   // 🔴 결제수단은 이니시스 상점(MID)에 **수단별로 계약·등록**돼 있어야 결제창에 뜬다. 등록 전에
   // enabled 를 켜면 PG 가 결제창을 그리기 전에 거절해 "결제창이 아예 안 뜬다"가 된다(PR #104 의
   // windowType 회귀와 같은 증상). 승인 근거 없이 켜지 말 것.
-  var DIRECT_PAY_METHOD_ORDER = ["CARD", "TRANSFER", "MOBILE", "GIFT_CERTIFICATE"];
+  //
+  // 🔴 **키는 카드 id 이고 PortOne 의 payMethod 는 항목 안에 있다**(2026-08-29). 예전에는 키가 곧
+  // payMethod enum 이라 매핑이 없었는데, 상품권 3종이 같은 payMethod("GIFT_CERTIFICATE")를 공유하면서
+  // 그 1:1 이 깨졌다 — PortOne V2 는 상품권에 giftCertificateType 을 **필수**로 요구하고 그 값을 창을
+  // 열기 전에 정해야 하므로, 상품권은 종류 수만큼 카드가 필요하다. 카드 id 를 PG 로 보내면 안 되고
+  // 반드시 resolveDirectPayFields() 를 거친다.
+  var DIRECT_PAY_METHOD_ORDER = [
+    "CARD",
+    "TRANSFER",
+    "MOBILE",
+    "GIFT_CULTURELAND",
+    "GIFT_BOOKNLIFE",
+    "GIFT_SMART_MUNSANG",
+  ];
   var DIRECT_PAY_METHODS = {
-    CARD: { enabled: true, glyph: "💳" },
-    TRANSFER: { enabled: false, glyph: "🏦" },
-    MOBILE: { enabled: false, glyph: "📱" },
-    GIFT_CERTIFICATE: { enabled: false, glyph: "🎁" },
+    CARD: { enabled: true, payMethod: "CARD", glyph: "💳" },
+    TRANSFER: { enabled: true, payMethod: "TRANSFER", glyph: "🏦" },
+    MOBILE: { enabled: false, payMethod: "MOBILE", glyph: "📱" },
+    // 🔴 KG이니시스가 PortOne V2 로 태울 수 있는 상품권은 이 3종뿐이다. 해피머니·CULTURE_GIFT 는
+    // 이니시스 상점에 등록돼 있어도 이 경로에 대응 값이 없어 넣을 수 없다.
+    GIFT_CULTURELAND: { enabled: true, payMethod: "GIFT_CERTIFICATE", giftCertificateType: "CULTURELAND", glyph: "🎁" },
+    GIFT_BOOKNLIFE: { enabled: true, payMethod: "GIFT_CERTIFICATE", giftCertificateType: "BOOKNLIFE", glyph: "📚" },
+    GIFT_SMART_MUNSANG: { enabled: true, payMethod: "GIFT_CERTIFICATE", giftCertificateType: "SMART_MUNSANG", glyph: "🎮" },
   };
   var DEFAULT_DIRECT_PAY_METHOD = "CARD";
 
@@ -531,7 +547,9 @@
     if (id === "CARD") return checkoutText("payment.directModal.method.card", "신용카드 · 간편결제");
     if (id === "TRANSFER") return checkoutText("payment.directModal.method.transfer", "실시간 계좌이체");
     if (id === "MOBILE") return checkoutText("payment.directModal.method.mobile", "휴대폰 소액결제");
-    if (id === "GIFT_CERTIFICATE") return checkoutText("payment.directModal.method.giftCertificate", "문화상품권");
+    if (id === "GIFT_CULTURELAND") return checkoutText("payment.directModal.method.giftCultureland", "컬쳐랜드 문화상품권");
+    if (id === "GIFT_BOOKNLIFE") return checkoutText("payment.directModal.method.giftBooknlife", "도서문화상품권");
+    if (id === "GIFT_SMART_MUNSANG") return checkoutText("payment.directModal.method.giftSmartMunsang", "스마트문상");
     return "";
   }
 
@@ -594,6 +612,9 @@
   // 🔴 상태는 모듈 클로저가 아니라 window 에 둔다. 이 파일은 classic script(globalThis.__cdCheckoutEntry)
   // 와 webpack import 두 경로로 로드돼 인스턴스가 둘이므로(CHOICE_LOCK_KEY 와 같은 이유), 클로저에
   // 두면 React 결제창이 고른 값을 셸의 _cdRunDirectKrwCheckout 이 못 본다.
+  //
+  // 🔴 여기 담기는 값은 **카드 id** 다(payMethod 가 아니다). PG 로 나가는 값은 반드시
+  // resolveDirectPayFields() 를 거쳐야 한다 — 상품권 카드 id 를 그대로 보내면 PortOne 이 거절한다.
   var SELECTED_PAY_METHOD_KEY = "__cdSelectedDirectPayMethod";
   var SELECTED_PAY_METHOD_TTL_MS = 120000;
 
@@ -634,10 +655,27 @@
    * 되돌아간다. 수명은 TTL 과 "결제창을 열 때 / direct 아닌 값으로 닫을 때 clear" 로 닫는다.
    */
   function resolveDirectPayMethod(configPayMethod) {
+    return resolveDirectPayFields(configPayMethod).payMethod;
+  }
+
+  /**
+   * PortOne 요청에 병합할 결제수단 필드 묶음. 요청 조립부(셸 _cdRunDirectKrwCheckout · 독립 정적
+   * _dpRunDirectKrwCheckout)가 payMethod 하나 대신 이걸 받아 통째로 얹는다.
+   *
+   * 🔴 상품권은 payMethod 만으로 부족하다 — PortOne V2 가 giftCertificate.giftCertificateType 을
+   * 요구하고, 없으면 **결제창을 그리기 전에** 거절해 "그 카드만 창이 안 뜬다"가 된다. 그래서 표에
+   * 상품권 항목을 늘릴 때 giftCertificateType 을 빠뜨리지 못하도록 verify:checkout-pass-card ⑬ 이
+   * 활성 카드를 전수 순회해 이 함수의 반환을 확인한다.
+   */
+  function resolveDirectPayFields(configPayMethod) {
     var picked = peekSelectedDirectPayMethod();
-    if (picked) return picked;
-    var fromConfig = text(configPayMethod).toUpperCase();
-    return fromConfig || DEFAULT_DIRECT_PAY_METHOD;
+    var entry = picked ? DIRECT_PAY_METHODS[picked] : null;
+    if (entry) {
+      var fields = { payMethod: text(entry.payMethod).toUpperCase() || DEFAULT_DIRECT_PAY_METHOD };
+      if (entry.giftCertificateType) fields.giftCertificate = { giftCertificateType: entry.giftCertificateType };
+      return fields;
+    }
+    return { payMethod: text(configPayMethod).toUpperCase() || DEFAULT_DIRECT_PAY_METHOD };
   }
 
   /**
@@ -940,6 +978,7 @@
     clearSelectedDirectPayMethod: clearSelectedDirectPayMethod,
     peekSelectedDirectPayMethod: peekSelectedDirectPayMethod,
     resolveDirectPayMethod: resolveDirectPayMethod,
+    resolveDirectPayFields: resolveDirectPayFields,
     resolveStorePlan: resolveStorePlan,
     buildPassStoreUrl: buildPassStoreUrl,
     shouldUseAppStoreEntry: shouldUseAppStoreEntry,

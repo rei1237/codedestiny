@@ -7,10 +7,32 @@ export type CheckoutStorePlan = "standard" | "premium" | "vvip" | "family";
 export type CheckoutOptionKey = "pass" | "direct" | "monthly";
 
 /**
- * 단건결제 2단계에서 고르는 결제수단. 값은 PortOne V2 의 payMethod enum 그대로다
- * (중간 매핑 테이블 없음). 활성 여부의 정본은 checkout-entry.js 의 DIRECT_PAY_METHODS 하나다.
+ * 단건결제 2단계에서 고르는 결제수단 **카드 id**. 활성 여부·PortOne payMethod 매핑의 정본은
+ * checkout-entry.js 의 DIRECT_PAY_METHODS 표 하나다.
+ *
+ * 🔴 이 값은 PortOne 의 payMethod 가 아니다 — 상품권 3종이 payMethod "GIFT_CERTIFICATE" 를
+ * 공유하므로 PG 로 나갈 값은 resolveDirectPayFields() 를 거쳐야 한다.
  */
-export type DirectPayMethodId = "CARD" | "TRANSFER" | "MOBILE" | "GIFT_CERTIFICATE";
+export type DirectPayMethodId =
+  | "CARD"
+  | "TRANSFER"
+  | "MOBILE"
+  | "GIFT_CULTURELAND"
+  | "GIFT_BOOKNLIFE"
+  | "GIFT_SMART_MUNSANG";
+
+/** PortOne V2 요청에 실리는 payMethod 값. DirectPayMethodId 와 1:1 이 아니다. */
+export type PortOnePayMethod = "CARD" | "TRANSFER" | "MOBILE" | "GIFT_CERTIFICATE";
+
+/** PortOne V2 이니시스 경로가 받는 상품권 종류. 해피머니·CULTURE_GIFT 는 대응 값이 없다. */
+export type GiftCertificateType = "CULTURELAND" | "BOOKNLIFE" | "SMART_MUNSANG";
+
+/** 요청 조립부가 requestPayment 인자에 통째로 병합하는 결제수단 필드 묶음. */
+export type DirectPayFields = {
+  payMethod: PortOnePayMethod;
+  /** 상품권 카드일 때만 존재한다. PortOne V2 가 상품권에 필수로 요구한다. */
+  giftCertificate?: { giftCertificateType: GiftCertificateType };
+};
 
 export type CheckoutReturnPoint = {
   /** 이용권 구매 후 돌아갈 화면. rememberCheckoutReturn 이 남긴 값 그대로다. */
@@ -180,7 +202,12 @@ declare const checkoutEntry: {
   /** TTL·활성 여부를 다시 확인해 돌려준다(소비하지 않음). */
   peekSelectedDirectPayMethod(): DirectPayMethodId | "";
   /** PortOne 요청에 실을 payMethod. 고른 값 → config 값 → 'CARD' 순. 읽어도 지우지 않는다. */
-  resolveDirectPayMethod(configPayMethod?: unknown): DirectPayMethodId;
+  resolveDirectPayMethod(configPayMethod?: unknown): PortOnePayMethod;
+  /**
+   * PortOne 요청에 병합할 결제수단 필드 묶음. 요청 조립부 2곳이 payMethod 하나 대신 이걸 쓴다.
+   * 🔴 상품권은 giftCertificateType 이 없으면 결제창이 열리기 전에 거절당한다.
+   */
+  resolveDirectPayFields(configPayMethod?: unknown): DirectPayFields;
   /** 이 금액을 덮는 가장 낮은 이용권 등급(보유 등급 이하는 제외). 판정 불가 시 빈 문자열. */
   resolveStorePlan(costCoins: number, currentTier?: unknown): CheckoutStorePlan | "";
   buildPassStoreUrl(options: {

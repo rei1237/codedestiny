@@ -2848,11 +2848,15 @@
     if (!api || typeof api.clearSelectedDirectPayMethod !== 'function') return;
     try { api.clearSelectedDirectPayMethod(); } catch (_clearError) { /* noop */ }
   }
-  // PortOne 요청에 실을 payMethod. 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.
-  function _dpResolveDirectPayMethod(configPayMethod) {
+  // PortOne 요청에 병합할 결제수단 필드({ payMethod, giftCertificate? }).
+  // 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.
+  // 🔴 payMethod 하나가 아니라 묶음인 이유: 상품권은 PortOne V2 가 giftCertificate.giftCertificateType
+  // 을 필수로 요구하고 그 값을 결제창을 열기 전에 정해야 한다(빠지면 그 수단만 창이 안 뜬다).
+  function _dpResolveDirectPayFields(configPayMethod) {
+    var fallback = { payMethod: configPayMethod || 'CARD' };
     var api = _dpCheckoutEntry();
-    if (!api || typeof api.resolveDirectPayMethod !== 'function') return configPayMethod || 'CARD';
-    try { return api.resolveDirectPayMethod(configPayMethod) || 'CARD'; } catch (_payMethodError) { return configPayMethod || 'CARD'; }
+    if (!api || typeof api.resolveDirectPayFields !== 'function') return fallback;
+    try { return api.resolveDirectPayFields(configPayMethod) || fallback; } catch (_payMethodError) { return fallback; }
   }
   // 앱에서는 /points 가 번들에 없다 — 판정이 애매하면 앱 경로(충전 모달)로 폴백한다.
   function _dpShouldUseAppStoreEntry() {
@@ -4763,6 +4767,7 @@
         email: customerEmail,
         phoneNumber: customerPhone
       };
+      var directPayFields = _dpResolveDirectPayFields(config.payMethod);
       var requestData = {
         storeId: config.storeId,
         channelKey: config.channelKey,
@@ -4774,7 +4779,7 @@
         totalAmount: orderAmount,
         currency: config.currency || 'CURRENCY_KRW',
         // 🔴 사용자가 결제창 2단계에서 고른 수단이 있으면 그것이 이긴다. 없으면 서버 config(=CARD).
-        payMethod: _dpResolveDirectPayMethod(config.payMethod),
+        payMethod: directPayFields.payMethod || 'CARD',
         // 🔴 안 보내면 PG 가 한국어 결제창을 연다. 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
         locale: _dpPgWindowLocale(),
         // [regression-guard] Do NOT send windowType. PR #104 added { pc:'IFRAME', mobile:'REDIRECTION' }
@@ -4791,6 +4796,8 @@
           targetYear: String(checkoutPayload.targetYear || ''),
         },
       };
+      // 🔴 상품권일 때만 붙인다. 카드/계좌이체 요청에 빈 giftCertificate 를 얹지 않는다.
+      if (directPayFields.giftCertificate) requestData.giftCertificate = directPayFields.giftCertificate;
       if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];
 
       // 확정 본문을 한 번만 만들어 정상 완료와 리다이렉트 복귀가 완전히 같은 값을 쓰게 한다.

@@ -19932,7 +19932,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-e9566080822e" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-e9566080822e" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-b32f43288dee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-e9566080822e" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-e9566080822e" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>
@@ -20564,11 +20564,15 @@ return you.name.restore();</span>
     if (!api || typeof api.clearSelectedDirectPayMethod !== 'function') return;
     try { api.clearSelectedDirectPayMethod(); } catch (_clearError) { /* noop */ }
   }
-  // PortOne 요청에 실을 payMethod. 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.
-  function _cdResolveDirectPayMethod(configPayMethod) {
+  // PortOne 요청에 병합할 결제수단 필드({ payMethod, giftCertificate? }).
+  // 모듈이 없으면 서버 config 값(=CARD)이 그대로 간다.
+  // 🔴 payMethod 하나가 아니라 묶음인 이유: 상품권은 PortOne V2 가 giftCertificate.giftCertificateType
+  // 을 필수로 요구하고 그 값을 결제창을 열기 전에 정해야 한다(빠지면 그 수단만 창이 안 뜬다).
+  function _cdResolveDirectPayFields(configPayMethod) {
+    var fallback = { payMethod: configPayMethod || 'CARD' };
     var api = _cdCheckoutEntry();
-    if (!api || typeof api.resolveDirectPayMethod !== 'function') return configPayMethod || 'CARD';
-    try { return api.resolveDirectPayMethod(configPayMethod) || 'CARD'; } catch (_payMethodError) { return configPayMethod || 'CARD'; }
+    if (!api || typeof api.resolveDirectPayFields !== 'function') return fallback;
+    try { return api.resolveDirectPayFields(configPayMethod) || fallback; } catch (_payMethodError) { return fallback; }
   }
   // 🔴 결제창 단일 인스턴스 정본도 /js/core/checkout-entry.js 하나다(React·독립 정적과 공유).
   // 셸은 ① 새 결제창을 붙이기 직전에 남의 고아 노드를 걷어내고 ② 자기 모달을 거기 등록해 다른 두
@@ -22569,6 +22573,7 @@ return you.name.restore();</span>
     // cd_direct_payment_resume 티켓(merchantUid+confirmBody)이 담당하므로 서버 URL 이 필요 없다.
     var redirectUrl = new URL(window.location.href);
     redirectUrl.searchParams.set('portone_redirect', '1');
+    var directPayFields = _cdResolveDirectPayFields(config.payMethod);
     var requestData = {
       storeId: storeId,
       channelKey: channelKey,
@@ -22582,7 +22587,7 @@ return you.name.restore();</span>
       currency: config.currency || 'CURRENCY_KRW',
       // 🔴 사용자가 결제창 2단계에서 고른 수단이 있으면 그것이 이긴다. 없으면 서버 config(=CARD).
       // 활성 여부 재검증은 checkout-entry 가 하므로 미승인 값이 PG 로 나가지 않는다.
-      payMethod: _cdResolveDirectPayMethod(config.payMethod),
+      payMethod: directPayFields.payMethod || 'CARD',
       // 🔴 안 보내면 PG 가 한국어 결제창을 연다 — 결제창까지 영어로 온 사용자가 마지막 화면에서
       // 한국어를 만난다. 쓸 수 있는 값의 범위는 PG 가 정한다(pgWindowLocale 머리주석).
       locale: _cdPgWindowLocale(),
@@ -22597,6 +22602,8 @@ return you.name.restore();</span>
         requestId: String(checkoutPayload.requestId || '')
       }
     };
+    // 🔴 상품권일 때만 붙인다. 카드/계좌이체 요청에 빈 giftCertificate 를 얹지 않는다.
+    if (directPayFields.giftCertificate) requestData.giftCertificate = directPayFields.giftCertificate;
     // noticeUrls 는 유지한다 — 정상 동작하는 /points 이용권 결제 경로(lib/payment/portone.ts)가
     // 똑같이 보내고 있어 PG창 미노출과 무관함이 확인됐다.
     if (config.noticeUrl) requestData.noticeUrls = [config.noticeUrl];

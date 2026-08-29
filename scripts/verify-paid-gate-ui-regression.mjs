@@ -146,8 +146,14 @@ for (const [source, label, enterCall, appGate] of [
   assertContains(source, appGate, `${label}: app runtime must not render the KR PG method list`);
   assertContains(source, 'data-choice-step="methods"', `${label}: method step is a hidden sibling, not a grid replacement`);
 }
-assertContains(indexSource, "payMethod: _cdResolveDirectPayMethod(config.payMethod)", "shell sends the chosen pay method to PortOne");
-assertContains(destinyProfileSource, "payMethod: _dpResolveDirectPayMethod(config.payMethod)", "standalone sends the chosen pay method to PortOne");
+// 🔴 payMethod 하나가 아니라 필드 묶음이다 — 상품권은 giftCertificate.giftCertificateType 이 같이
+// 가야 결제창이 열린다(2026-08-29). 조립부가 묶음을 만들고 그 값을 실제로 싣는지까지 본다.
+assertContains(indexSource, "var directPayFields = _cdResolveDirectPayFields(config.payMethod);", "shell resolves the chosen pay method fields");
+assertContains(indexSource, "payMethod: directPayFields.payMethod || 'CARD'", "shell sends the chosen pay method to PortOne");
+assertContains(indexSource, "if (directPayFields.giftCertificate) requestData.giftCertificate = directPayFields.giftCertificate;", "shell forwards the gift certificate type");
+assertContains(destinyProfileSource, "var directPayFields = _dpResolveDirectPayFields(config.payMethod);", "standalone resolves the chosen pay method fields");
+assertContains(destinyProfileSource, "payMethod: directPayFields.payMethod || 'CARD'", "standalone sends the chosen pay method to PortOne");
+assertContains(destinyProfileSource, "if (directPayFields.giftCertificate) requestData.giftCertificate = directPayFields.giftCertificate;", "standalone forwards the gift certificate type");
 assertContains(indexSource, "var passMode = 'pass-store';", "pass store mode");
 assertContains(indexSource, "var passDisabledClass = ' is-store';", "pass store visual state");
 assertContains(indexSource, "direct-payment-pass-store-v20260607", "pass store modal marker");
@@ -221,7 +227,7 @@ assertNotContains(billingClientSource, "BILLING_FETCH_MUTATION_TIMEOUT_MS", "Rea
 // 키가 3종(build-a300cf84f0f5 · build-4b96ba87f36f · 셸 키)으로 갈라져 있었고, destiny-profile.js
 // 를 고쳐도 그 참조들은 엣지 캐시(/*.js max-age 7일)의 옛 파일을 계속 받았다.
 // 지금은 셋을 셸 키로 통일했다. destiny-profile.js 를 고치면 이 값도 함께 올려야 한다.
-assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-31da94916c77"', "React paid runtime cache key carries the moonstone 409 same-requestId retry");
+assertContains(billingClientSource, 'PAID_SERVICE_RUNTIME_SRC = "/js/destiny-profile.js?v=build-789b5b0fe089"', "React paid runtime cache key carries the moonstone 409 same-requestId retry");
 assertNotContains(billingClientSource, "build-20260622-inicis-phone", "React paid runtime must not load stale Inicis phone runtime");
 assertContains(billingClientSource, "function isMonthlyCreditAccessType", "React billing has monthly-credit access resolver");
 assertContains(billingClientSource, "function resolveAppliedBillingPayment", "React billing resolves applied payment method from server response");

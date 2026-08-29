@@ -1834,7 +1834,9 @@
         "card": "Carte bancaire · Paiement express",
         "transfer": "Virement bancaire instantané",
         "mobile": "Paiement sur facture mobile",
-        "giftCertificate": "Chèque culture",
+        "giftCultureland": "Cultureland gift certificate",
+        "giftBooknlife": "Book&Life gift certificate",
+        "giftSmartMunsang": "Smart Munsang gift certificate",
         "comingSoon": "Bientôt disponible",
         "back": "Retour"
       }

@@ -37,15 +37,17 @@
   - 실패는 문구로만 알린다. **월정석 카드의 `disabled` 상태는 어느 경로에서도 건드리지 않는다**(미확정 ≠ 부족).
   - 문구 키: `payment.directModal.monthlyBalance.{checkButton,recheckButton,checking,error,signedOut}` + 값 라벨 `payment.directModal.currentMonthly`(12로케일).
   - 가드: `verify:payment-choice-parity`(자동 조회 잔여바 마커 부활 금지 + 확인 버튼 구조·문구 3렌더러 동일) · `verify:paid-gate-ui`(각 렌더러의 잔량 조회 호출이 **정확히 1곳**이고 그 위치가 확인 버튼 마크업보다 뒤 = 핸들러 안인지 확인).
-- 🔴 **단건결제는 2단계다**(2026-08-24). 결제창 1단계는 이용권/단건/월정석 3옵션 동등 노출로 **불변**이고, `[단건 결제]` 를 누르면 **같은 창 안에서** 결제수단 4종 + `[뒤로]` 로 바뀐다: 신용카드·간편결제(`CARD`) / 실시간 계좌이체(`TRANSFER`) / 휴대폰 소액결제(`MOBILE`) / 문화상품권(`GIFT_CERTIFICATE`). 이니시스 계약이 끝난 수단만 활성이고 나머지는 `준비 중` 으로 잠긴다.
-  - **활성 여부의 정본은 `js/core/checkout-entry.js` 의 `DIRECT_PAY_METHODS` 표 하나다** — PG 승인이 떨어지면 그 표의 `enabled` 한 줄만 true 로 바꾼다(키가 PortOne V2 `payMethod` enum 값 그대로라 매핑 테이블이 없다). 🔴 등록 전에 켜면 PG 가 결제창을 그리기 전에 거절해 "결제창이 아예 안 뜬다" 가 된다.
+- 🔴 **단건결제는 2단계다**(2026-08-24). 결제창 1단계는 이용권/단건/월정석 3옵션 동등 노출로 **불변**이고, `[단건 결제]` 를 누르면 **같은 창 안에서** 결제수단 6종 + `[뒤로]` 로 바뀐다: 신용카드·간편결제(`CARD`) / 실시간 계좌이체(`TRANSFER`) / 휴대폰 소액결제(`MOBILE`) / 컬쳐랜드 문화상품권 · 도서문화상품권 · 스마트문상(셋 다 `GIFT_CERTIFICATE`). 이니시스 계약이 끝난 수단만 활성이고 나머지는 `준비 중` 으로 잠긴다 — 2026-08-29 현재 `MOBILE` 하나만 잠겨 있다(이니시스 재신청 중).
+  - **활성 여부의 정본은 `js/core/checkout-entry.js` 의 `DIRECT_PAY_METHODS` 표 하나다** — 이미 있는 수단이면 PG 승인 후 그 표의 `enabled` 한 줄만 true 로 바꾼다. 🔴 등록 전에 켜면 PG 가 결제창을 그리기 전에 거절해 "그 수단만 결제창이 아예 안 뜬다" 가 된다.
+  - 🔴 **표의 키는 카드 id 이고 PortOne 의 `payMethod` 는 항목 안에 있다**(2026-08-29). 상품권 3종이 같은 `payMethod` 를 공유하면서 종전의 "키 = enum" 1:1 이 깨졌다 — PortOne V2 는 상품권에 `giftCertificate.giftCertificateType` 을 **필수**로 요구하고 그 값을 창을 열기 전에 정해야 하므로 상품권은 종류 수만큼 카드가 필요하다. 카드 id 를 그대로 PG 로 보내면 거절당하며, 요청 조립부는 반드시 `resolveDirectPayFields()` 를 거친다.
+  - 🔴 **KG이니시스가 PortOne V2 경로로 받는 상품권은 `CULTURELAND`·`BOOKNLIFE`·`SMART_MUNSANG` 3종뿐이다.** 해피머니·`CULTURE_GIFT` 는 이니시스 상점에 등록돼 있어도 이 경로에 대응 값이 없어 넣을 수 없다.
   - 마크업·문구도 같은 파일의 `buildDirectPayMethodStepHtml` 하나가 소유한다. 렌더러가 각자 그리면 승인 시 한 렌더러만 `준비 중` 으로 남는다.
   - 🔴 2단계 노드에 **`data-mode` 를 붙이지 않는다**(선택은 `data-pay-method`, 복귀는 `data-pay-step="back"`). 세 렌더러가 `[data-mode]` 를 "고르면 모달을 닫는" 노드로 일괄 처리하므로 붙이면 수단을 고르는 대신 창이 닫힌다 — 월정석 잔량 확인 버튼과 같은 이유·같은 규율이다.
   - 🔴 2단계 진입은 1단계 그리드를 **교체하지 않고 `hidden` 으로 감추며**, 카드에 `is-loading`/`disabled` 를 걸지 않는다. 둘 중 하나라도 어기면 `[뒤로]` 로 돌아온 카드가 죽는다.
   - 앱(Play Billing) 런타임에서는 2단계를 만들지 않는다 — KR PG 수단 목록은 사실과 다르고 Play 정책에도 걸린다.
-  - 반환 계약은 그대로 `'direct'` 다. 고른 수단은 `window.__cdSelectedDirectPayMethod`(TTL 120초)에 실려 `resolveDirectPayMethod()` 를 거쳐 PortOne 요청의 `payMethod` 가 된다. 서버 `getPortOnePublicConfig` 의 `payMethod:"CARD"` 는 그 폴백일 뿐이며, 확정 후 실제 수단은 PG 응답에서 `worker/payments/pg.js` 가 기록한다.
+  - 반환 계약은 그대로 `'direct'` 다. 고른 **카드 id** 는 `window.__cdSelectedDirectPayMethod`(TTL 120초)에 실려 `resolveDirectPayFields()` 를 거쳐 PortOne 요청의 `payMethod`(+ 상품권이면 `giftCertificate`)가 된다. 서버 `getPortOnePublicConfig` 의 `payMethod:"CARD"` 는 그 폴백일 뿐이며, 확정 후 실제 수단은 PG 응답에서 `worker/payments/pg.js` 가 기록한다.
   - 범위는 **콘텐츠 단건결제뿐**이다. 이용권 상품 구매(`/points`·앱 상점)는 아래 "이용권 상품 자체의 구매 흐름" 그대로 원화 단건 결제 하나다.
-  - 가드: `verify:checkout-pass-card`(⑬ 실행 검증 — 2단계 전환·[뒤로] 복귀·준비중 클릭) · `verify:payment-choice-parity`(세 렌더러가 공유 빌더를 참조하는가 + 문구 12로케일) · `verify:paid-gate-ui`(셸·React 소스 계약).
+  - 가드: `verify:checkout-pass-card`(⑬ 실행 검증 — 2단계 전환·[뒤로] 복귀·준비중 클릭 + **활성 카드 전수 순회**로 PortOne 필드 묶음이 유효한지) · `verify:payment-choice-parity`(세 렌더러가 공유 빌더를 참조하는가 + 문구 12로케일) · `verify:paid-gate-ui`(셸·React 소스 계약).
 - **월정석 원자성** — 월정석 lot 차감·원장·멱등 기록·권한 저장은 하나의 Mongo 트랜잭션이어야 한다. 트랜잭션을 사용할 수 없으면 차감 전에 `503 MONTHLY_ATOMIC_UNAVAILABLE`로 종료하며, 차감 후 restore를 결제 쓰기 폴백으로 사용하지 않는다.
 - **결제 POST 자동 재시도 금지** — network status 0, 401 refresh, 503에서 checkout·confirm POST를 자동 재전송하지 않는다. 동일 사용자 행동의 멱등키는 유지하되 재시도는 사용자의 명시적 행동으로만 시작한다.
 - 단, **결제수단이 이미 확정된 뒤의 UI 강제는 여전히 금지** — `paymentMode: "DIRECT_KRW"`를 클라이언트 게이트에 하드코딩하면 결제창에서 월정석 옵션이 사라진다(2026-07-08 ziwei-ai에서 제거). 결제수단 노출은 게이트가 `buildPassPaymentDecision` 결과로 스스로 정한다.
@@ -88,6 +90,7 @@
 
 | 날짜 | 변경 내용 |
 |---|---|
+| 2026-08-29 | **결제창 2단계에 실시간 계좌이체·상품권 3종 활성화.** KG이니시스가 계좌이체·상품권 지불수단 추가를 처리완료(2026-08-24)해 `TRANSFER` 와 상품권을 열었다. 상품권은 PortOne V2 가 `giftCertificate.giftCertificateType` 을 필수로 요구해 종류별 카드가 필요하므로 정본 표의 **키를 카드 id 로 승격**하고(`GIFT_CULTURELAND`·`GIFT_BOOKNLIFE`·`GIFT_SMART_MUNSANG`) 항목이 `payMethod` 를 들게 했다. 요청 조립부 2곳(셸·독립 정적)은 `resolveDirectPayFields()` 가 준 묶음을 얹는다. `MOBILE` 은 이니시스에서 처리불가(결제경로 미발송) 후 재신청 중이라 계속 잠금. 해피머니·`CULTURE_GIFT` 는 PortOne V2 이니시스 경로에 대응 값이 없어 제외. |
 | 2026-08-29 | **앱(Play) 콘텐츠 티어 가격을 웹가와 동일하게 인하.** 8개 SKU 를 3,900→3,000 / 6,000→5,000 / 8,900→7,000 / 13,000→10,000 / 25,000→20,000 / 39,000→30,000 / 49,000→39,000 / 89,000→70,000 으로 내렸다. 이용권 4종은 2026-08-24 에 이미 동일가였으므로 이제 **앱의 모든 SKU 가 웹가와 같다** — Play 수수료 15%를 그대로 부담한다는 뜻이고 의도된 선택이다. 종전의 "콘텐츠 티어 20~30% 인상" 밴드 검사는 `verify:app-store-pricing`·`verify:app-store-billing-policy` 에서 **동일가 단언(오차 0)** 으로 교체했다. 상품 이름에 금액이 박혀 있어 이름 8개도 함께 내렸다. 🔴 Play Console 등록가 인하가 코드 배포보다 **먼저** 끝나 있어야 한다(사용자가 2026-08-29 확인). 반대 순서면 그 사이가 "앱 표시가 < 실제 청구가" 정책 위반 구간이다. |
 | 2026-08-24 | **등급별 적용 가격 범위 상향 + 상담 포함횟수 폐지.** 건당 상한 3,000/5,000/10,000 → **5,000/10,000/20,000원**(family 상한 없음 유지). 월 이용 한도(3만·10만·20만·50만원)와 프로필 수(3/7/15/무제한)는 종전 그대로. '프리미엄 상담 포함 횟수'(family 10회·vvip 3회)와 그 대상 건의 건당 상한 우회를 폐지해 판정 규칙을 둘로 줄였다. 이용권 앱(Play) SKU 가격을 **웹가와 동일**하게 맞췄다(콘텐츠 티어는 종전대로 20~30% 인상 유지). 사용자 화면에서 '무제한'·'월 누적'·'횟수 제한 없음' 표현을 제거하고 `N원급 콘텐츠까지 · 월 최대 N원 상당 · 프로필 최대 N개`로 통일. 신규 가드 `verify:pass-tier-policy`가 정본과 하드코딩 사본 5곳, 가격 경계, 금지 문구를 함께 강제한다. |
 | 2026-08-24 | **단건결제에 결제수단 2단계 도입.** 1단계 3옵션은 불변이고, 단건 카드를 누르면 같은 창에서 카드·간편결제 / 실시간 계좌이체 / 휴대폰 소액결제 / 문화상품권으로 갈린다. 이니시스 계약이 끝난 `CARD` 만 활성이고 나머지는 `준비 중`. 활성 여부 정본은 `js/core/checkout-entry.js` 의 `DIRECT_PAY_METHODS` 표 하나. |

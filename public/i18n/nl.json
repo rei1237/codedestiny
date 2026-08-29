@@ -1834,7 +1834,9 @@
         "card": "Creditcard · Snelbetalen",
         "transfer": "Realtime bankoverschrijving",
         "mobile": "Betalen via mobiele rekening",
-        "giftCertificate": "Cultuurbon",
+        "giftCultureland": "Cultureland gift certificate",
+        "giftBooknlife": "Book&Life gift certificate",
+        "giftSmartMunsang": "Smart Munsang gift certificate",
         "comingSoon": "Binnenkort beschikbaar",
         "back": "Terug"
       }

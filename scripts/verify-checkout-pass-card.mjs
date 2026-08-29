@@ -668,7 +668,7 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
     assert.ok(methods, "결제수단 2단계 패널이 없다");
     assert.equal(methods.hidden, true, "2단계 패널이 처음부터 보인다");
   });
-  check("4종이 전부 렌더되고 활성은 정본 표를 따른다", () => {
+  check("정본 표의 수단이 전부 렌더되고 활성 여부도 표를 따른다", () => {
     const ids = Array.from(window.document.querySelectorAll("[data-pay-method]"))
       .map((node) => node.getAttribute("data-pay-method"));
     // 🔴 Array.from 으로 Node 렐름 배열을 만든다 — jsdom 렐름 배열을 그대로 넘기면
@@ -682,6 +682,38 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
   check("🔴 2단계 버튼에는 data-mode 가 없다(붙으면 누를 때 결제창이 닫힌다)", () => {
     const tagged = window.document.querySelectorAll('[data-pay-method][data-mode], [data-pay-step][data-mode]');
     assert.equal(tagged.length, 0, `2단계 노드 ${tagged.length}개에 data-mode 가 붙어 있다`);
+  });
+  // 🔴 손으로 쓴 목록이 아니라 정본 표를 전수 순회한다(원칙 10). 카드 id 는 PortOne 의 payMethod 와
+  // 더는 1:1 이 아니라서, 상품권 카드를 하나 더 켜면서 giftCertificateType 을 빠뜨려도 다른 단언은
+  // 전부 초록이고 증상은 "그 수단만 결제창이 안 뜬다"로 늦게 드러난다.
+  check("활성 수단은 전부 PortOne 이 받는 필드 묶음으로 번역된다", () => {
+    const PORTONE_PAY_METHODS = ["CARD", "TRANSFER", "VIRTUAL_ACCOUNT", "MOBILE", "GIFT_CERTIFICATE", "EASY_PAY"];
+    // KG이니시스가 PortOne V2 경로로 받는 상품권 종류. 해피머니·CULTURE_GIFT 는 대응 값이 없다.
+    const INICIS_GIFT_TYPES = ["CULTURELAND", "BOOKNLIFE", "SMART_MUNSANG"];
+    const order = Array.from(entry.DIRECT_PAY_METHOD_ORDER);
+    assert.ok(order.length > 0, "정본 표가 비어 있다 — 검사 대상이 없으면 통과시키지 않는다");
+    let checked = 0;
+    for (const id of order) {
+      if (!entry.isDirectPayMethodEnabled(id)) continue;
+      assert.equal(entry.setSelectedDirectPayMethod(id), id, `${id} 를 선택으로 기록하지 못했다`);
+      const fields = entry.resolveDirectPayFields("CARD");
+      assert.ok(
+        PORTONE_PAY_METHODS.includes(fields.payMethod),
+        `${id} 의 payMethod 가 PortOne enum 밖이다: ${fields.payMethod}`,
+      );
+      if (fields.payMethod === "GIFT_CERTIFICATE") {
+        const type = fields.giftCertificate && fields.giftCertificate.giftCertificateType;
+        assert.ok(
+          INICIS_GIFT_TYPES.includes(type),
+          `${id}: 상품권은 giftCertificateType 이 필수다(이니시스 지원 3종). 지금 값: ${type}`,
+        );
+      } else {
+        assert.equal(fields.giftCertificate, undefined, `${id}: 상품권이 아닌데 giftCertificate 가 붙었다`);
+      }
+      checked += 1;
+    }
+    assert.ok(checked > 0, "활성 수단이 하나도 없다 — 결제창 2단계가 통째로 잠겼다");
+    entry.clearSelectedDirectPayMethod();
   });
 
   clickNode('[data-mode="direct"]');
@@ -697,7 +729,7 @@ console.log("\n[13] 단건결제 2단계 결제수단 흐름");
     assert.equal(locked.length, 0, `1단계 카드 ${locked.length}개가 잠겼다 — [뒤로] 로 돌아가면 죽는다`);
   });
 
-  clickNode('[data-pay-method="TRANSFER"]');
+  clickNode('[data-pay-method="MOBILE"]');
   await flush();
   check("준비중 수단은 창을 닫지 않고 상태로만 알린다", () => {
     assert.ok(q("#cdStandalonePaymentChoice"), "준비중 수단 클릭이 결제창을 닫았다");
