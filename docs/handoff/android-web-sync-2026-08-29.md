@@ -87,13 +87,40 @@ next: Play Console 에 `20260829-1918-1.0.37-37-aea4ce105\CodeDestiny-1.0.37-37.
 (Play 등록가는 코드가 못 본다) → 잠금화면 오버레이 권한 → 회원가입 긴 폼·사주 입력 폼의
 키보드 겹침(IME 는 웹뷰 밖) → 스플래시 밝음→어두움 플래시 체감.
 
-🔴 **결과 페이지 하단 네비 겹침(P1)은 자동화 포기가 아니라 규칙 1 때문에 못 했다** — 결과를
-만들려면 프로덕션 AI 실호출이 필요하다. 대신 정적 근거만 남긴다: 네비는 `position:fixed`
-높이 **118.4px**, `bottomNavVisible:false` 는 `all-fortunes` 전체화면에서만 세워지므로
-(index.html:13743) 결과 뷰에서는 네비가 **떠 있다**. 그런데 `#inputPage` 에는
-`padding-bottom:calc(136px + safe-area)`(index.html:2963)가 있는 반면 **`#resultPage` 에는
-대응 규칙이 없고** 감싸는 `.wrap` 은 22px 뿐이다(index.html:641). 겹칠 개연성이 높으니
-사람이 볼 때 **여기를 먼저** 보라.
+~~결과 페이지 하단 네비 겹침(P1)~~ → **닫힘(PR #1293).** 아래 "고친 결함 — 스티키 CTA" 절 참조.
+
+## 고친 결함 — 스티키 CTA 가 탭바 뒤로 깔림 (2026-08-29, PR #1293)
+
+**"결과 페이지가 네비에 가린다"는 가설은 틀렸다.** `#resultPage` 는 이미
+`padding-bottom:calc(180px + safe-area)` 를 갖고 있다 — 정본이 index.html 이 아니라
+`styles/fortune-ui-home.css` 라 셸만 grep 해서 안 보였을 뿐이다. 푸터도 겹침 0 이다.
+
+실제로 가려지던 것은 `.cd-sticky-cta` 다. 그 `bottom:calc(64px + safe)` 는 탭바 높이를 손으로
+어림한 값인데, 🔴 **탭바는 safe-area 를 두 번 센다** — 자기 `bottom:max(6px,env(...))` 에서 한 번,
+자기 `padding-bottom:calc(8px + env(...))`(styles/mobile-lite.css)에서 또 한 번. 실제 발자국은
+`max(6px,safe) + 71px + safe` 다. 같은 함정에 빠진 상수가 셸에 더 있다(`.cd-fixed-business-bar` 68px ·
+`.theme-switch-wrapper` 72px · 쿠키 배너 84px) — 새 하단 고정 UI 에 상수를 또 찍지 말 것.
+
+| safe-area | 탭바 높이 | 바닥에서 | CTA 겹침 |
+|---|---|---|---|
+| 0px | 71px | 77px | 13px |
+| 47px | 118px | 165px | 52px = CTA 전체 |
+
+safe=47 이 갤럭시 M15 5G 웹뷰 값이다(그 값에서 탭바가 118px 로 나와 기기 실측 118.4px 과 맞는다).
+즉 **실기기에서는 CTA 가 통째로 안 보이고 있었다.**
+
+🔴 **결과 화면은 AI 실호출 없이 재현된다** — 무료 사주는 전 구간 클라이언트 계산이다. 레포를 정적으로
+서빙하고 `__cdExpandHome()`·`__cdOpenDestinyForm()` 으로 폼을 펼친 뒤 `#run-btn` 을 누르면
+(`sessionStorage.privacyAgreed='true'` 로 동의 모달을 건너뛴다) 실제 결과가 렌더된다. Playwright
+하네스 원형은 `scripts/verify-mobile-detail-render.mjs` 에 있다.
+
+가드: `npm run verify:mobile-bottom-nav-clearance` — 두 safe-area 값으로 렌더해 탭바보다 z-index 가
+낮은 하단 고정 요소를 전수 발견하고, 겹치거나 탭을 훔치면 실패한다. 🔴 브라우저 기동 비용 때문에
+**CI 에서는 안 돈다** — 하단 고정 UI 를 건드렸으면 손으로 돌릴 것.
+
+🔴 **이 수정도 1.0.37 AAB 에는 없다.** 그리고 실기기에서 그동안 안 보이던 CTA 가 이제 보인다 —
+결과 화면에서 이 CTA 를 안 띄우는 게 맞는지는 **미결**이다(결과 뷰에서도 `#inputPage` 가 계속
+렌더돼 있어 "히어로 CTA 가 화면 밖이면 뜬다"는 원래 조건은 그대로 성립한다).
 
 ## 이번에 확인한 함정
 
