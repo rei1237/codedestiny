@@ -81,9 +81,9 @@ Last curated: `2026-08-15`
 - 🔴 **캐시를 새로 배선할 때는 `cache.minChars` 를 함께 준다.** `withLLMCache` 의 저장 조건은 `!truncated` 뿐이라, 잘리지 않았지만 분량 미달인 응답이 TTL 30일 동안 굳는다. 실패 후 재생성이 같은 키에서 같은 미달을 다시 받는다. 직전 시도가 실패였으면 `skipRead` 도 함께(쓰기는 유지 — 성공한 재생성이 스스로 덮어쓴다).
 - 🔴 **사주 그룹 프롬프트의 배열 순서(`worker/routes/fortune.js` `buildSajuAISectionPrompt`)는 불변 접두사 → 가변 접미사다.** Gemini 암묵 캐싱은 공통 **접두사**에만 걸린다. 뒤집으면 6만자가 정가로 돌아간다.
 - 🟡 **넘긴 작업 2건 — 둘 다 미해결이다.**
-  - 숙요 궁합의 서버측 중복 생성 창(`findOne`~`create` 사이 60~100초, 중복 1회 = LLM 6회)은 스키마·계약 변경이 함께 필요하다 → [docs/handoff/sukuyo-duplicate-generation-window.md](handoff/sukuyo-duplicate-generation-window.md)
-  - 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자, 그중 `earthStorageOpenings` 하나가 9,853자). 사주 5그룹에 `evidenceRefs` 선언이 없어 새 설계가 필요하고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [docs/handoff/llm-prompt-json-slicing.md](handoff/llm-prompt-json-slicing.md)
-- 🟡 **남은 개별 항목**(각각 작고 서로 무관해 골라서 하면 된다) → [docs/handoff/llm-optimization-leftovers.md](handoff/llm-optimization-leftovers.md)
+  - 숙요 궁합의 서버측 중복 생성 창(`findOne`~`create` 사이 60~100초, 중복 1회 = LLM 6회)은 스키마·계약 변경이 함께 필요하다 → [`docs/handoff/sukuyo-duplicate-generation-window.md`](handoff/sukuyo-duplicate-generation-window.md)
+  - 프롬프트 JSON 덤프를 섹션이 쓰는 만큼만 싣기(사주 기준 남은 덤프 47,105자, 그중 `earthStorageOpenings` 하나가 9,853자). 사주 5그룹에 `evidenceRefs` 선언이 없어 새 설계가 필요하고, **모델이 보는 정보를 줄이는** 작업이라 위험도가 가장 높다 → [`docs/handoff/llm-prompt-json-slicing.md`](handoff/llm-prompt-json-slicing.md)
+- 🟡 **남은 개별 항목**(각각 작고 서로 무관해 골라서 하면 된다) → [`docs/handoff/llm-optimization-leftovers.md`](handoff/llm-optimization-leftovers.md)
   - ~~모델 오버라이드 무효 버그(`lib/llm-client.ts:159-170`)~~ — **2026-08-19 조치 완료**(`resolveGeminiEndpoint` 가 `apiEndpoint` 없이도 해석된 `model` 로 URL 조립).
   - 나머지: sukuyo 의 `attempts: 2` 와 `capTokens` 불일치 · JSON 스키마를 프롬프트 텍스트로 보내는 것(Gemini 네이티브 `responseSchema` 미사용) · 토큰 집계 사각지대 2곳(`lib/tarot/mindscan-reading.mjs` · `love-reading-llm.mjs` 가 `llm-client` 미경유)
 - 🔴 **thinking 토큰은 이미 전역 OFF다**(`lib/llm-client.ts:456` + `:139-145`, 옵트인 호출자 0건). 여기서 더 아낄 것이 없으니 다시 조사하지 말 것.

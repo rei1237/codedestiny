@@ -10,6 +10,10 @@
  *
  * 후보 조건 (둘 다 만족):
  *   ① 규약 문서(CLAUDE.md·AGENTS.md)와 `docs/**` 의 다른 어떤 마크다운에서도 참조되지 않는다.
+ *      🔴 단, `docs/handoff/**` 끼리의 참조는 세지 않는다(REFERRER_EXCLUDE_PREFIX). 인수인계 문서는
+ *      선행·후속을 서로 링크하는 것이 관례라, 그 링크를 참조로 인정하면 **묶음 전체가 서로를 붙들어**
+ *      영구 보존된다 — 2026-08-29 실측으로 그렇게 살아남던 문서가 12개였다. 살아 있는 포인터는
+ *      규약 문서나 `docs/` 의 다른 문서(예: `docs/CURRENT_DEV_BASELINE.md`)가 가리키는 것뿐이다.
  *      참조 판정은 `scripts/lib/doc-refs.mjs` — `verify:doc-freshness` 와 **같은 로직**을 쓴다.
  *      (다른 판정을 쓰면 "가드는 통과하는데 정리 후보로 뜨는" 문서가 생긴다.)
  *   ② 마지막 커밋이 N일(기본 14) 이상 지났다. 커밋 이력이 없으면(미추적) 후보에서 뺀다 —
@@ -26,6 +30,8 @@ import { extractRefsFromLine } from './lib/doc-refs.mjs';
 const repoRoot = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const TARGET_DIR = 'docs/handoff';
 const EXTRA_SOURCES = ['CLAUDE.md', 'AGENTS.md'];
+/** 참조 '출처'에서 제외할 접두사 — 후보끼리 서로를 붙들어 영구 보존되는 것을 막는다(헤더 ① 참조). */
+const REFERRER_EXCLUDE_PREFIX = `${TARGET_DIR}/`;
 
 function parseDays(argv) {
   const index = argv.indexOf('--days');
@@ -75,6 +81,7 @@ if (candidates.length === 0) {
 // 참조 색인: 후보 자신을 제외한 모든 문서에서 뽑은 레포 경로 참조.
 const referencedBy = new Map();
 for (const source of [...EXTRA_SOURCES, ...allDocs]) {
+  if (source.startsWith(REFERRER_EXCLUDE_PREFIX)) continue;
   const abs = path.join(repoRoot, source);
   if (!fs.existsSync(abs)) continue;
   for (const line of fs.readFileSync(abs, 'utf8').split(/\r?\n/)) {

@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-08-19
+next: "sukuyo `attempts:2`↔`capTokens` 불일치 · Gemini `responseSchema` 미사용 · 토큰 집계 사각지대 2곳 중 골라 착수"
+---
+
 # 인수인계 — LLM 토큰 최적화에서 남은 개별 항목 5건
 
 > 이 문서만 읽고 시작할 수 있게 쓴다. 작성 2026-08-15.

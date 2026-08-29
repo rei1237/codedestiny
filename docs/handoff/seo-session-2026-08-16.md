@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-08-16
+next: "§3 남은 것 — 비교 문서 `/compare/astrology-vs-myeongri` · `/compare/tarot-vs-saju`"
+---
+
 # SEO 작업 세션 인수인계 (2026-08-16)
 
 > **이 문서만 읽고 시작할 수 있게 쓴다.** 수치는 전부 이 세션의 실측이고 재현 명령을 함께 남긴다.

@@ -1,3 +1,9 @@
+---
+status: active
+updated: 2026-08-16
+next: "§1 남은 주제 2개 — `/compare/astrology-vs-myeongri` · `/compare/tarot-vs-saju` (1·2호는 완료)"
+---
+
 # 체계 간 비교 문서 — 인수인계 (2026-08-16)
 
 > **이 문서만 읽고 시작할 수 있게 쓴다.** 수치는 전부 실측이고 재현 명령을 함께 남긴다.
