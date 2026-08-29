@@ -27,6 +27,65 @@
     document.documentElement.dataset.runtimeTarget = "mobile-app";
   } catch (e) { /* noop */ }
 
+  // ── 앱 /api/* 리타게팅 (2026-08-29) ─────────────────────────────────────────────
+  // 앱 번들은 https://localhost 출처에서 서빙되고 그 출처엔 서버가 없다(scripts/build-mobile-app.mjs).
+  // 상대 경로 '/api/*' 를 그대로 두면 죽은 출처로 나가 인증·이용권·결제 확인이 통째로 실패한다.
+  //
+  // 🔴 고칠 지점은 호출부가 아니라 여기다. 호출부 31곳은 전부 웹과 공유하는 파일이라
+  //    거기서 고치면 웹 동작까지 바뀐다. 이 브릿지는 앱 HTML 에만 주입되므로 웹 blast radius 가 0이다.
+  //
+  // 🔴 중첩 아님 — 셸(index.html)의 인라인 런타임에 같은 리타게팅이 있지만 이건 그 **안쪽** 층이다.
+  //    가드 태그가 <meta charset> 바로 뒤에 들어가므로(build-mobile-app.mjs injectGuardTag)
+  //    이 래퍼가 먼저 설치되고 셸의 fetchWithCache 가 그 위를 감싼다. 셸이 이미 절대 URL 로 바꿔
+  //    넘기면 여기서는 교차 출처라 손대지 않고 통과한다(멱등). 셸 쪽을 지우지 않는 이유는 그 코드가
+  //    앱 전용이 아니라 웹 스테이징(workers.dev 출처)에서도 살아 있는 경로이기 때문이다.
+  //
+  // 판정: 기기에서 fetch('/api/version') 이 셸 HTML 200 이 아니라 워커 JSON 을 준다.
+  (function installAppApiRetarget() {
+    if (window.__cdAppApiRetargetInstalled) return;
+    if (typeof window.fetch !== "function" || typeof Headers !== "function") return;
+    window.__cdAppApiRetargetInstalled = true;
+
+    var passthroughFetch = window.fetch.bind(window);
+
+    // 호출 시점에 읽는다 — 셸의 rememberSuccessfulApiBase 가 부팅 뒤 이 값을 갈아치운다.
+    function retargetBase() {
+      try {
+        var base = String(window.CODE_DESTINY_API_BASE_URL || "").replace(/\/+$/, "");
+        if (!base || base === window.location.origin) return "";
+        return base;
+      } catch (e) { return ""; }
+    }
+
+    window.fetch = function (input, init) {
+      var base = retargetBase();
+      // Request 객체는 본문이 스트림이라 URL 만 바꿔 옮길 수 없다 — 손대지 않고 통과시킨다.
+      if (!base || (typeof Request !== "undefined" && input instanceof Request)) {
+        return passthroughFetch(input, init);
+      }
+      var url;
+      try {
+        url = new URL(String(input == null ? "" : input), window.location.href);
+      } catch (e) { return passthroughFetch(input, init); }
+      if (url.origin !== window.location.origin || url.pathname.indexOf("/api/") !== 0) {
+        return passthroughFetch(input, init);
+      }
+      var nextInit = (init && typeof init === "object") ? Object.assign({}, init) : {};
+      var headers = new Headers();
+      try {
+        if (init && init.headers) {
+          new Headers(init.headers).forEach(function (value, key) { headers.set(key, value); });
+        }
+      } catch (e) { /* noop */ }
+      // 워커의 교차 출처 가드는 이 헤더를 든 앱 요청만 면제한다(worker/routes/auth.js isMobileAppAuthRequest).
+      if (!headers.has("X-Code-Destiny-Runtime")) headers.set("X-Code-Destiny-Runtime", "mobile-app");
+      nextInit.headers = headers;
+      // 앱은 SameSite=Lax 쿠키를 못 싣지만 워커가 Allow-Credentials 를 주므로 자격증명 경로는 열어 둔다.
+      if (!nextInit.credentials) nextInit.credentials = "include";
+      return passthroughFetch(base + url.pathname + url.search, nextInit);
+    };
+  })();
+
   // Google 번역 위젯을 앱에서는 띄우지 않는다.
   // //translate.google.com 스크립트를 물어 와 앱 안에서 예측 불가한 이동을 만들고,
   // 번역 오버레이가 결제 문구까지 갈아치울 수 있다. 로더에 이미 억제 훅이 있어 그것만 켠다
