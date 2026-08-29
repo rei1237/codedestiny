@@ -18603,6 +18603,40 @@ return you.name.restore();</span>
           <a class="cd-reviews__all" href="/reviews/" data-cd-trans data-key="home.reviews.allCta">전체 후기 보기 →</a>
         </div>
       </section>
+      <!-- 후기 보상 안내 — 금액 정본은 worker/lib/review-reward.js 의 REVIEW_REWARD_AMOUNT(100).
+           바꾸면 app/reviews/ReviewsClient.tsx 의 rewardNotice 와 이 줄도 함께 고칠 것.
+           #cdReviews 밖에 두는 이유: 그 섹션은 /api/reviews 응답 전까지 hidden 이라
+           응답이 늦거나 끊기면 보상 안내까지 함께 사라진다. 이 안내는 후기 수와 무관하게 늘 보여야 한다. -->
+      <aside class="cd-review-reward" data-marker="cd-review-reward-v20260829" aria-labelledby="cdReviewRewardLead">
+        <style>
+          .cd-review-reward{max-width:1120px;margin:0 auto;padding:0 20px 40px}
+          .cd-review-reward__card{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:14px;padding:18px 20px;border-radius:20px;background:var(--cd-surface,#fff);border:1px solid color-mix(in srgb,var(--cd-accent,#b31955) 24%,transparent);box-shadow:var(--cd-elev-1,0 10px 24px rgba(0,0,0,.06))}
+          .cd-review-reward__icon{font-size:1.5rem;line-height:1}
+          .cd-review-reward__lead{margin:0;font-size:.98rem;font-weight:800;line-height:1.45;color:var(--cd-text,#3c1830)}
+          .cd-review-reward__amount{color:var(--cd-accent,#b31955)}
+          .cd-review-reward__note{margin:4px 0 0;font-size:.84rem;line-height:1.6;color:color-mix(in srgb,var(--cd-text,#3c1830) 68%,transparent);word-break:keep-all}
+          .cd-review-reward__cta{display:inline-flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;min-height:44px;padding:11px 20px;border-radius:999px;text-decoration:none;font-size:.88rem;font-weight:900;color:#fff;background:var(--cd-accent,#b31955);box-shadow:0 8px 20px color-mix(in srgb,var(--cd-accent,#b31955) 26%,transparent);transition:transform var(--cd-dur-base,220ms) var(--cd-ease-out,ease),box-shadow var(--cd-dur-base,220ms) ease}
+          .cd-review-reward__cta:hover,.cd-review-reward__cta:focus-visible{transform:translateY(-2px);box-shadow:0 14px 28px color-mix(in srgb,var(--cd-accent,#b31955) 34%,transparent)}
+          .cd-review-reward__cta:focus-visible{outline:2px solid var(--cd-accent,#b31955);outline-offset:3px}
+          @media (max-width:860px){
+            .cd-review-reward{padding:0 14px 32px}
+            .cd-review-reward__card{grid-template-columns:auto minmax(0,1fr);row-gap:12px;padding:16px}
+            .cd-review-reward__cta{grid-column:1 / -1;width:100%}
+          }
+          @media (prefers-reduced-motion:reduce){
+            .cd-review-reward__cta{transition:none}
+            .cd-review-reward__cta:hover,.cd-review-reward__cta:focus-visible{transform:none}
+          }
+        </style>
+        <div class="cd-review-reward__card">
+          <span class="cd-review-reward__icon" aria-hidden="true">🌙</span>
+          <div>
+            <p class="cd-review-reward__lead" id="cdReviewRewardLead"><span data-cd-trans="home.reviews.rewardPrefix">검수를 통과해 공개된 후기 1건당</span> <strong class="cd-review-reward__amount" data-cd-trans="home.reviews.rewardAmount">월정석 100개</strong></p>
+            <p class="cd-review-reward__note" data-cd-trans="home.reviews.rewardNote">이용해 본 상품에 별점과 후기를 남기면, 승인되는 순간 계정으로 자동 지급됩니다.</p>
+          </div>
+          <a class="cd-review-reward__cta" href="/reviews/" data-cd-trans="home.reviews.rewardCta">리뷰 쓰고 월정석 받기</a>
+        </div>
+      </aside>
       <script data-marker="cd-reviews-v20260819">
         (function () {
           var section = document.getElementById('cdReviews');
@@ -19926,7 +19960,7 @@ return you.name.restore();</span>
      🔴 레지스트리가 엔진보다 먼저 실행돼야 한다(defer 는 문서 순서를 지킨다). -->
 <script defer src="/js/core/service-registry.js?v=build-396429049c5f" data-marker="cd-home-service-registry-v20260819"></script>
 <script defer src="/js/core/home-service-finder.js?v=build-396429049c5f" data-marker="cd-home-service-finder-v20260819"></script>
-<script defer src="/js/mobile-interaction-patch.js?v=build-b32f43288dee" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
+<script defer src="/js/mobile-interaction-patch.js?v=build-396429049c5f" data-marker="mobile-touch-route-modal-guard-v20260701 mobile-perf-media-guard-v20260701"></script>
 <script data-cd-lazy-src="/js/services/sajuService.js" data-cd-mobile-delay="1"></script>
 <script data-cd-lazy-src="/js/core/saju/modalProfileState.js" data-cd-mobile-delay="1"></script>
 <script data-cd-noncritical-src="/js/core/premium-chapter-orchestrator.js?v=build-396429049c5f" data-cd-mobile-delay="1" data-cd-lowend-skip="1"></script>

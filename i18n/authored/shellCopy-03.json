@@ -1,6 +1,5 @@
 {
   "_comment": "홈에서 비-ko 로케일에 한국어가 그대로 남던 자리 4곳에 마커를 붙이면서 만든 키. verify:i18n-rendered-korean 이 en·ja·zh-CN 세 로케일에서 똑같이 잡아내던 항목들이다. 🔴 pickWhy.prefix/suffix 는 한 문장을 앞뒤로 쪼갠 것이라 로케일마다 어순이 다르다 — 한국어는 가운데 조사 스팬(이/가)이 붙고, 다른 로케일은 조사 스팬이 비므로 필요한 조사·전치사를 suffix 쪽에 넣는다(예: ja \"今日は {제목} が最も合います。\" · de \"Heute passt {제목} am besten zu dir.\"). ko 값은 셸 마크업과 글자까지 일치해야 한다(__tests__/ui/shell-dictionary-parity.static.test.js).",
-
   "home.pickWhy.prefix": {
     "ko": "오늘은",
     "en": "Today,",
@@ -56,5 +55,61 @@
     "de": "Pro angenommenem Fehlerbericht",
     "nl": "Per geaccepteerde bugmelding",
     "ms": "Bagi setiap laporan pepijat yang diterima"
+  },
+  "home.reviews.rewardPrefix": {
+    "ko": "검수를 통과해 공개된 후기 1건당",
+    "en": "Per review approved and published",
+    "ja": "審査を通過して公開されたレビュー1件につき",
+    "zh-CN": "每一则通过审核并公开的评价",
+    "zh-TW": "每一則通過審核並公開的評價",
+    "vi": "Per review approved and published",
+    "hi": "Per review approved and published",
+    "es": "Per review approved and published",
+    "fr": "Per review approved and published",
+    "de": "Per review approved and published",
+    "nl": "Per review approved and published",
+    "ms": "Per review approved and published"
+  },
+  "home.reviews.rewardAmount": {
+    "ko": "월정석 100개",
+    "en": "100 Moonstones",
+    "ja": "月精石100個",
+    "zh-CN": "100 颗月精石",
+    "zh-TW": "100 顆月精石",
+    "vi": "100 Moonstones",
+    "hi": "100 Moonstones",
+    "es": "100 Moonstones",
+    "fr": "100 Moonstones",
+    "de": "100 Moonstones",
+    "nl": "100 Moonstones",
+    "ms": "100 Moonstones"
+  },
+  "home.reviews.rewardNote": {
+    "ko": "이용해 본 상품에 별점과 후기를 남기면, 승인되는 순간 계정으로 자동 지급됩니다.",
+    "en": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+    "ja": "利用した商品に評価とレビューを残すと、承認された瞬間にアカウントへ自動で付与されます。",
+    "zh-CN": "为体验过的商品打分并留下评价，通过审核后即刻自动发放到账户。",
+    "zh-TW": "為體驗過的商品評分並留下評價，通過審核後即刻自動發放到帳戶。",
+    "vi": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+    "hi": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+    "es": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+    "fr": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+    "de": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+    "nl": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+    "ms": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved."
+  },
+  "home.reviews.rewardCta": {
+    "ko": "리뷰 쓰고 월정석 받기",
+    "en": "Write a review, get Moonstones",
+    "ja": "レビューを書いて月精石をもらう",
+    "zh-CN": "写评价领月精石",
+    "zh-TW": "寫評價領月精石",
+    "vi": "Write a review, get Moonstones",
+    "hi": "Write a review, get Moonstones",
+    "es": "Write a review, get Moonstones",
+    "fr": "Write a review, get Moonstones",
+    "de": "Write a review, get Moonstones",
+    "nl": "Write a review, get Moonstones",
+    "ms": "Write a review, get Moonstones"
   }
 }

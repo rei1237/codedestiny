@@ -42,7 +42,11 @@
       "title": "Đánh giá của người dùng",
       "lead": "Những đánh giá do người thật sự đã xem để lại.",
       "allCta": "Xem tất cả đánh giá →",
-      "empty": "Chưa có đánh giá nào. Hãy thử một buổi luận giải và để lại đánh giá đầu tiên."
+      "empty": "Chưa có đánh giá nào. Hãy thử một buổi luận giải và để lại đánh giá đầu tiên.",
+      "rewardPrefix": "Per review approved and published",
+      "rewardAmount": "100 Moonstones",
+      "rewardNote": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+      "rewardCta": "Write a review, get Moonstones"
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
