@@ -493,6 +493,16 @@ jobs:
       # 그 체인은 build-cf-main.mjs 에서 optional:true 로 돈다(2026-07-28 배포 정지 사고 이후
       # 의도적 조치, 되돌리지 않음) — 즉 실패해도 지금까지는 아무 것도 막지 않았다. 여기 fast
       # 잡에 직접 두면 티어 무관 항상 실행되고 필수 체크라 실패 시 병합이 막힌다.
+      # 인수인계 문서는 다음 세션이 "그것만 읽고 시작하는" 물건이라, 상태가 본문에만 있으면
+      # 그 상태를 알기 위해 문서를 통째로 읽어야 한다 — 규약이 줄이려던 비용을 규약이 만든다.
+      # status·updated·next 세 줄만 강제한다. 규약 정본은 docs/handoff/_TEMPLATE.md.
+      # 🔴 여기(fast 잡)여야 한다 — docs/** 단독 변경은 티어가 fast 라 build/critical 잡이
+      # 통째로 스킵되는데, 그게 정확히 이 검사가 지켜야 할 경로다.
+      - name: Verify handoff frontmatter contract
+        run: |
+          npm run verify:handoff-contract -- --self-test
+          npm run verify:handoff-contract
+
       - name: Verify i18n locale coverage
         run: |
           node scripts/i18n-check.mjs

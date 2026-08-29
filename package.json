@@ -44,6 +44,7 @@
     "verify:redirects-budget": "node scripts/verify-redirects-budget.mjs",
     "verify:redirects:live": "node scripts/verify-redirects-live.mjs",
     "verify:doc-freshness": "node scripts/verify-doc-freshness.mjs",
+    "verify:handoff-contract": "node scripts/verify-handoff-contract.mjs",
     "docs:stale": "node scripts/list-stale-docs.mjs",
     "cleanup:candidates": "node scripts/list-cleanup-candidates.mjs",
     "audit:content-headroom": "node scripts/audit-content-headroom.mjs",

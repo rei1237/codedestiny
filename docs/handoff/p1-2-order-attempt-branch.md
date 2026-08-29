@@ -1,3 +1,9 @@
+---
+status: done
+updated: 2026-08-16
+next: "착수 대상 아님 — `worker/payments/orders.js` 의 `createPayableOrder` 가 이 설계의 현행 구현이다"
+---
+
 # P1-2 설계안 — 종료 상태 주문의 409 를 없애는 "시도 회차" 분기
 
 > 🔴 **상태 (2026-08-15 갱신): 이 설계는 이미 착륙했다. 아래는 이력·근거 보존용이다.**
