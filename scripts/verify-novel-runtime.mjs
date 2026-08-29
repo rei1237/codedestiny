@@ -49,12 +49,16 @@ const requiredRuntimeHooks = [
   // 연이의 모습은 화 경계를 넘어 유지되는 상태다. 진입 경로가 저마다 복원하면 경로별로 다른 모습이 나온다.
   "function formAt(ep,bi)",
   "var FORM_MARKS=",
+  // 챕터 카드 타이머(닫기 1600ms + hidden 700ms)를 진입마다 두 겹 다 끊는 자리.
+  "function clearCardTimers()",
+  "function closeChapterCard()",
 ];
 // 되살아나면 안 되는 패턴 — 각각이 실제로 났던 배경 흔들림의 원인이다.
 const forbiddenRuntimePatterns = [
   ["kenburnsFocus", "카메라 연출이 .bgImg 의 animation 을 교체하면 배경이 스냅한다"],
   ["S.curBg=null", "curBg 리셋은 같은 배경으로 되돌아오는 헛 크로스페이드를 만든다"],
   ["S.form=(ep", "모습 복원에 화 범위를 손으로 박으면 진입 경로마다 연이가 달라진다 — formAt() 하나만 쓴다"],
+  ['setTimeout(function(){cc.classList.add("hidden");},700)', '추적되지 않는 카드 hide 타이머는 다음 화의 카드를 숨긴다 — closeChapterCard() 를 쓴다'],
 ];
 for (const hook of requiredRuntimeHooks) if (!html.includes(hook)) fail(`required runtime hook missing: ${hook}`);
 for (const [pattern, why] of forbiddenRuntimePatterns) if (html.includes(pattern)) fail(`forbidden pattern is back: ${pattern} — ${why}`);

@@ -286,10 +286,43 @@ async function verifyFormContinuity() {
     }
   }
 }
+/* 챕터 카드 타이머 회귀 가드(2026-08-29).
+   카드 타이머는 두 겹이다 — 1600ms 뒤 카드를 닫고 컷 0을 실행하고, 그 700ms 뒤 hidden 을 건다.
+   진입할 때 앞 화의 타이머를 끊지 않으면 ⏭ 연타에서 컷 0(배경·BGM·스테이징)이 두 번 돈다. */
+async function verifyChapterCardTimers() {
+  const { dom, errors } = createPlayerDom();
+  try {
+    const win = dom.window;
+    const { document } = win;
+    await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
+    await win.ensureEpisodeLoaded(1);
+    await win.ensureEpisodeLoaded(2);
+    const realRunBeat = win.runBeat;
+    let runs = 0;
+    win.runBeat = function (...args) {
+      runs += 1;
+      return realRunBeat.apply(this, args);
+    };
+    win.S.bi = 0;
+    win.enterEpisode(1, true);
+    assert.equal(document.getElementById("chCard").classList.contains("on"), true, "the chapter card did not open");
+    win.S.bi = 0;
+    win.enterEpisode(2, true); // 카드가 떠 있는 동안 ⏭ — 앞 화의 타이머는 여기서 끊겨야 한다
+    await waitFor(() => win.curBeat?.id?.startsWith("ep-02:"), "the newer chapter card ran its first cut");
+    await wait(150); // 앞 화의 타이머가 살아 있었다면 이 사이에 컷 0이 한 번 더 돈다
+    win.runBeat = realRunBeat;
+    assert.equal(runs, 1, `an abandoned chapter card ran cut 0 again (runBeat fired ${runs} times, must be 1)`);
+    assert.equal(win.S.ep, 2, "the player did not settle on the newer episode");
+    assert.deepEqual(errors, [], "chapter card timers emitted runtime errors");
+  } finally {
+    dom.window.close();
+  }
+}
 await verifyDirectStart();
 await verifyMainEntry();
 await verifyLoadFailureIsVisible();
 await verifyVisualCueBindings();
 await verifyBackgroundStability();
 await verifyFormContinuity();
-console.log("[novel-player-start] OK: direct start, main entry, visible load failure, event visuals, background stability, and Yeon form continuity verified");
+await verifyChapterCardTimers();
+console.log("[novel-player-start] OK: direct start, main entry, visible load failure, event visuals, background stability, Yeon form continuity, and chapter card timers verified");
