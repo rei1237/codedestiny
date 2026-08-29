@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-29
-next: PR #1295 머지(GitHub 이 PR head 를 못 읽고 있으면 아래 "함정" 참조) → 머지 후 프로덕션 재승격.
+next: 프로덕션 재승격(TBT 수정은 main 에 있고 라이브에는 아직 없다). 그 뒤 앱 재빌드(사용자 실행).
 ---
 
 # 데스크탑 TBT · 프로덕션 승격 · 앱 versionCode
@@ -14,20 +14,19 @@ next: PR #1295 머지(GitHub 이 PR head 를 못 읽고 있으면 아래 "함정
 ## 지금 상태
 
 - (1) **완료** — 프로덕션 승격 run 33255031849 성공. 프로덕션은 `9bbe695ed` 서빙 중.
-- (3) **PR #1295 (`worktree-desktop-tbt-content-visibility`) — CI 전부 초록, 머지 대기.**
+- (3) **PR #1295 머지 완료** (`f7fec876e`). 스테이징 반영됨, 프로덕션은 아직.
 - (2) **미완** — 빌드 스크립트 버전만 40 으로 올려 뒀고 빌드는 아직 안 돌렸다.
 
 ## 남은 작업
 
-- [ ] **1. PR #1295 머지** (사용자). 머지되면 스테이징 자동 배포.
-- [ ] **2. 프로덕션 재승격** — `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`.
+- [ ] **1. 프로덕션 재승격** — `gh workflow run "Release Cloudflare Pages and Worker" --ref main -f mode=production`.
       TBT 수정이 라이브에 반영되려면 이 승격이 필요하다. 판정: PSI 데스크탑 TBT 가
       1,730ms 에서 내려가는지.
-- [ ] **3. 앱 재빌드 (versionCode 40)** — 🔴 **사용자가 직접** `Desktop\CodeDestiny-업로드-준비\_전부하기.ps1`
+- [ ] **2. 앱 재빌드 (versionCode 40)** — 🔴 **사용자가 직접** `Desktop\CodeDestiny-업로드-준비\_전부하기.ps1`
       을 더블클릭해야 한다(44번 줄에서 키스토어 비밀번호를 `Read-Host` 로 묻는다 — 에이전트
       실행 불가). `$VersionCode = 40` / `$VersionName = "1.0.40"` 은 이미 반영해 뒀다.
       상세와 Play 업로드 절차는 [android-web-sync-2026-08-29.md](android-web-sync-2026-08-29.md) "남은 작업" 1~2번.
-- [ ] **4. 쓰레기 코드 정리** — 사용자가 다음 작업으로 지목. 아직 범위 미정. 시작 전
+- [ ] **3. 쓰레기 코드 정리** — 사용자가 다음 작업으로 지목. 아직 범위 미정. 시작 전
       [docs/context/cleanup-2026-08-15.md](../context/cleanup-2026-08-15.md)(삭제 가능/금지 실측 목록)를 읽을 것.
 
 ## 정본 예시
@@ -38,10 +37,10 @@ next: PR #1295 머지(GitHub 이 PR head 를 못 읽고 있으면 아래 "함정
 
 ## 함정
 
-- 🔴 **GitHub 이 PR #1295 의 head 를 갱신하지 않고 있다.** 원격 브랜치는 `d6f22fa6f` 인데
-  PR API 는 `c03cd7805` 를 head 로 보고 `mergeable=null`. 빈 커밋 푸시로도 안 풀렸다(3분씩 2회 대기).
-  뒤에 붙은 2커밋은 문서 + 빈 커밋이라 코드 영향은 없다. 안 풀리면 close/reopen 하거나
-  브랜치를 rebase 후 force-push 할 것([[github-can-silently-drop-a-pr-synchronize-event]] 와 같은 계열).
+- 🔴 **`mergeable=null` + head 가 안 움직이는 것은 "이미 머지됨"의 증상이다.** 여기서 그걸
+  synchronize 드롭으로 오진해 빈 커밋 푸시 + 3분 대기를 두 번 낭비했다. PR head 가 굳었으면
+  `gh pr view <번호> --json state,mergedAt` 을 **먼저** 볼 것 — 머지된 PR 은 head 를 영원히
+  그 SHA 로 고정한다. 머지 뒤에 브랜치에 더 쌓은 커밋은 새 PR 로 내야 한다.
 - `index.html` 을 고치면 `npm run sitemap:generate` 도 돌려야 한다 — 셸 5개 라우트의
   서명이 바뀌어 `verify:sitemap-drift` 가 **"Typecheck and lint"** 이름으로 실패한다.
 - `verify:public-mirror-fresh` 는 윈도우에서 `.ignore` 개행 하나로 헛실패한다. 차이 파일이
