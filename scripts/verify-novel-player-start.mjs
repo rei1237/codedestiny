@@ -20,7 +20,7 @@ async function waitFor(check, label) {
   throw new Error(`timed out: ${label}`);
 }
 
-function createPlayerDom({ hash = "", failManifest = false } = {}) {
+function createPlayerDom({ hash = "", failManifest = false, bookmark = null } = {}) {
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on("jsdomError", (error) => errors.push(`jsdom: ${error.message}`));
@@ -49,6 +49,7 @@ function createPlayerDom({ hash = "", failManifest = false } = {}) {
       window.HTMLMediaElement.prototype.pause = () => {};
       window.requestAnimationFrame = (callback) => window.setTimeout(() => callback(Date.now()), 0);
       window.cancelAnimationFrame = (id) => window.clearTimeout(id);
+      if (bookmark) window.localStorage.setItem("cd_novel_bookmark", JSON.stringify({ ...bookmark, at: Date.now() }));
     },
   });
   return { dom, errors };
@@ -190,9 +191,105 @@ async function verifyBackgroundStability() {
   }
 }
 
+/* 연이의 모습(사람↔꽃돼지) 연속성 회귀 가드(2026-08-29).
+   변신 마커는 8,844비트 중 2개뿐이라 form 은 화 경계를 넘어 유지되는 상태다. 그 복원 규칙이 진입
+   경로마다 갈리면 "쭉 읽으면 사람인데 목차로 다시 들어가면 꽃돼지"가 된다 — 실제로 났던 버그다.
+   두 경로(enterEpisode / hydrateTo)가 같은 답을 내는지를 지점별로 대조한다. */
+async function verifyFormContinuity() {
+  // ① 컷 0에 저장된 책갈피로 이어읽기 — 변신 마커를 지나지 않는 진입이라 여기가 무너졌었다.
+  {
+    const { dom, errors } = createPlayerDom({ bookmark: { ep: 5, bi: 0, episodeId: "ep-05", beatId: "ep-05:1" } });
+    try {
+      const win = dom.window;
+      const { document } = win;
+      await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
+      document.getElementById("enterBtn").click();
+      await waitFor(() => document.querySelector("#menu button"), "main menu");
+      const resume = document.querySelector("#menu button");
+      assert.match(resume.textContent, /이어읽기/, "the bookmark did not produce a resume entry");
+      resume.click();
+      await waitFor(() => document.getElementById("dlgBody")?.textContent.trim().length > 0, "resumed dialogue");
+      assert.equal(win.S.ep, 5, "resume did not land on the bookmarked episode");
+      assert.equal(win.S.bi, 0, "this case must resume at cut 0 — the entry that never replays the marker");
+      assert.equal(win.S.form, "pig", "resuming inside the pig arc left Yeon in her human form");
+      win.setSlot("l", "yeon", "neutral");
+      assert.match(document.getElementById("char_l").className, /\bpigsheet\b/, "the staged Yeon sprite is not the pig sheet");
+      assert.deepEqual(errors, [], "resume-at-cut-0 emitted runtime errors");
+    } finally {
+      dom.window.close();
+    }
+  }
+
+  // ② ⏮ 로 앞 화로 돌아가기 — 그 화는 로드돼 있지 않다(현재+다음 2개만 유지).
+  {
+    const { dom, errors } = createPlayerDom();
+    try {
+      const win = dom.window;
+      await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
+      await win.hydrateTo(27, 0);
+      assert.equal(win.S.form, "human", "episodes after the EP.26 marker must start human");
+      assert.equal(Array.isArray(win.EPISODES[26].beats), false, "EP.26 must be unloaded for this case to mean anything");
+      win.chapSkip(-1);
+      await waitFor(() => win.curBeat?.id?.startsWith("ep-26:"), "backward chapter skip");
+      assert.equal(win.S.ep, 26, "backward chapter skip did not land on EP.26");
+      assert.equal(win.S.form, "pig", "backward chapter skip into the pig arc rendered Yeon as a human");
+      assert.deepEqual(errors, [], "backward chapter skip emitted runtime errors");
+    } finally {
+      dom.window.close();
+    }
+  }
+
+  // ③ 두 진입 경로가 같은 지점에서 같은 모습을 내야 한다. 정본 마커는 ep-01:1(→pig) · ep-26:60(→human).
+  {
+    const { dom, errors } = createPlayerDom();
+    try {
+      const win = dom.window;
+      await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
+      const points = [
+        [0, 0, "human", "the prologue is before the transformation"],
+        [1, 0, "pig", "the EP.01 transformation marker did not take"],
+        [12, 0, "pig", "the middle of the pig arc"],
+        [26, 58, "pig", "EP.26 is still a pig up to its final marker"],
+        [26, 59, "human", "the EP.26 marker back to human did not take"],
+        [27, 0, "human", "episodes after EP.26 start human"],
+      ];
+      for (const [ep, bi, form, why] of points) {
+        await win.hydrateTo(ep, bi);
+        assert.equal(win.S.form, form, `hydrateTo(${ep},${bi}) — ${why}`);
+        await win.ensureEpisodeLoaded(ep);
+        win.S.bi = bi;
+        win.enterEpisode(ep, false);
+        await waitFor(() => win.curBeat?.id === win.EPISODES[ep].beats[bi].id, `enterEpisode(${ep}) at cut ${bi}`);
+        assert.equal(win.S.form, form, `enterEpisode(${ep}) at cut ${bi} — ${why}`);
+      }
+      assert.deepEqual(errors, [], "entry-path parity emitted runtime errors");
+    } finally {
+      dom.window.close();
+    }
+  }
+
+  // ④ 설정의 "처음부터" — 프롤로그는 로드돼 있지 않고, 모습도 사람으로 되돌아야 한다.
+  {
+    const { dom, errors } = createPlayerDom();
+    try {
+      const win = dom.window;
+      const { document } = win;
+      await waitFor(() => win.__NOVEL_READY === true, "novel manifest");
+      await win.hydrateTo(20, 0);
+      assert.equal(win.S.form, "pig", "EP.20 is inside the pig arc");
+      document.getElementById("setRestart").click();
+      await waitFor(() => win.curBeat?.id?.startsWith("prologue:"), "restart from the beginning");
+      assert.equal(win.S.form, "human", "restarting from the prologue left Yeon as a pig");
+      assert.deepEqual(errors, [], "restart emitted runtime errors");
+    } finally {
+      dom.window.close();
+    }
+  }
+}
 await verifyDirectStart();
 await verifyMainEntry();
 await verifyLoadFailureIsVisible();
 await verifyVisualCueBindings();
 await verifyBackgroundStability();
-console.log("[novel-player-start] OK: direct start, main entry, visible load failure, event visuals, and background stability verified");
+await verifyFormContinuity();
+console.log("[novel-player-start] OK: direct start, main entry, visible load failure, event visuals, background stability, and Yeon form continuity verified");
