@@ -63,6 +63,19 @@ const reviewSchema = new mongoose.Schema({
   aiReviewScore: { type: Number, default: null },
   aiFlagReason: { type: String, default: "", trim: true, maxlength: 300 },
 
+  // ── 후기 작성 보상(월정석). 승인(status:"approved") 전환 시 1회 자동 지급된다.
+  // ledgerSourceId 가 MonthlyCreditLedger 의 sourceId 와 같아 같은 리뷰를 반려했다가 다시
+  // 승인해도 중복 지급되지 않는다(grantMonthlyCreditLotDetailed 의 lotId 멱등).
+  // 🔴 feedback-models.js 의 bugReward 와 같은 모양이다 — 형태를 갈라 두면 두 보상의
+  // 회계 조회가 갈라진다. 지급 로직 정본은 worker/lib/review-reward.js 하나다.
+  reviewReward: {
+    granted: { type: Boolean, default: false },
+    amount: { type: Number, default: 0, min: 0 },
+    grantedAt: { type: Date, default: null },
+    grantedBy: { type: String, default: "", trim: true, maxlength: 120 },
+    ledgerSourceId: { type: String, default: "", trim: true, maxlength: 160 },
+  },
+
   // 노출 시각. 관리자가 임의로 지정할 수 있어야 하므로 createdAt과 분리한다.
   displayedAt: { type: Date, default: Date.now, index: true },
 }, { timestamps: true, collection: "reviews" });

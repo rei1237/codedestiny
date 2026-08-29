@@ -41,6 +41,7 @@ interface ReviewItem {
   autoFlagReasons: string[];
   adminNote: string;
   reviewedBy: string;
+  reviewReward?: { granted: boolean; amount: number; grantedAt?: string | null };
   approvedAt?: string | null;
   displayedAt?: string | null;
   createdAt?: string | null;
@@ -102,12 +103,39 @@ function commandButtonClass(tone: "neutral" | "primary" | "success" | "warn" | "
   return "inline-flex items-center gap-2 rounded-lg border border-slate-700 bg-slate-900 px-3 py-2 text-sm text-slate-100 hover:border-slate-500 disabled:opacity-50";
 }
 
+interface RewardOutcome {
+  granted?: boolean;
+  idempotent?: boolean;
+  amount?: number;
+  reason?: string;
+}
+
+const REWARD_SKIP_LABELS: Record<string, string> = {
+  ADMIN_SEEDED_REVIEW: "관리자가 직접 작성한 리뷰입니다.",
+  NO_AUTHOR_ACCOUNT: "작성자 계정이 연결되어 있지 않습니다.",
+  TARGET_USER_NOT_FOUND: "작성자 계정을 찾을 수 없습니다.",
+  TARGET_USER_WITHDRAWN: "탈퇴한 계정입니다.",
+};
+
 function statusBadgeClass(status?: ReviewStatus): string {
   if (status === "approved") return "border-emerald-700 bg-emerald-950 text-emerald-200";
   if (status === "pending") return "border-amber-700 bg-amber-950 text-amber-200";
   if (status === "rejected") return "border-rose-700 bg-rose-950 text-rose-200";
   if (status === "hidden") return "border-slate-700 bg-slate-900 text-slate-400";
   return "border-slate-700 bg-slate-900 text-slate-400";
+}
+
+// 승인 응답의 reward 필드를 사람이 읽는 한 문장으로 바꾼다. 지급 실패가 승인을 막지 않으므로
+// (worker/lib/review-reward.js) 여기서 알리지 않으면 관리자가 누락을 영영 모른다.
+function describeRewardOutcome(raw: unknown): string {
+  const reward = raw as RewardOutcome | undefined;
+  if (!reward) return "";
+  if (reward.granted) {
+    if (reward.idempotent) return " 보상은 이미 지급된 건이라 추가 지급은 없습니다.";
+    return ` 작성자에게 월정석 ${reward.amount || 0}개를 지급했습니다.`;
+  }
+  const reason = REWARD_SKIP_LABELS[String(reward.reason || "")];
+  return reason ? ` 보상은 지급하지 않았습니다 — ${reason}` : " 보상 지급에 실패했습니다. 다시 승인 처리하면 재시도합니다.";
 }
 
 function statusLabel(status?: ReviewStatus): string {
@@ -233,7 +261,7 @@ export default function AdminReviewsPage() {
   const updateStatus = useCallback(async (id: string, status: ReviewStatus) => {
     const result = await mutate(`/api/admin/reviews/${id}/status`, "POST", { status });
     if (!result) return;
-    setMessage(`리뷰를 ${statusLabel(status)} 처리했습니다.`);
+    setMessage(`리뷰를 ${statusLabel(status)} 처리했습니다.${describeRewardOutcome(result.reward)}`);
     await loadList();
   }, [loadList, mutate]);
 
@@ -397,6 +425,9 @@ export default function AdminReviewsPage() {
                         ) : null}
                         {item.isVerifiedPurchase ? (
                           <span className="rounded border border-emerald-800 bg-emerald-950 px-1.5 py-0.5 text-[10px] text-emerald-200">구매 인증</span>
+                        ) : null}
+                        {item.reviewReward?.granted ? (
+                          <span className="rounded border border-violet-800 bg-violet-950 px-1.5 py-0.5 text-[10px] text-violet-200">월정석 {item.reviewReward.amount} 지급</span>
                         ) : null}
                         {item.autoFlagReasons.map((flag) => (
                           <span key={flag} className="rounded border border-rose-800 bg-rose-950 px-1.5 py-0.5 text-[10px] text-rose-200">
