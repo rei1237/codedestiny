@@ -83,38 +83,38 @@ function runWithTokens(total) {
 // ─────────────────────────────────────────── 구간 경계 (전수)
 
 test("임계 미만은 출력이 0바이트다 — 훅 자신이 토큰을 쓰면 안 된다", () => {
-  for (const tokens of [0, 1_000, 150_000, 299_999]) {
+  for (const tokens of [0, 1_000, 50_000, 149_999]) {
     const { status, stdout } = runWithTokens(tokens);
     assert.equal(status, 0, `${tokens}: exit 0 이어야 한다`);
     assert.equal(stdout.length, 0, `${tokens}: stdout 이 0바이트여야 하는데 ${stdout.length}바이트`);
   }
 });
 
-test("300k 경계 — 300,000 부터 주의 문구가 뜬다", () => {
-  assert.equal(runWithTokens(299_999).stdout.length, 0);
+test("150k 경계 — 150,000 부터 주의 문구가 뜬다", () => {
+  assert.equal(runWithTokens(149_999).stdout.length, 0);
 
-  const ctx = contextOf(runWithTokens(300_000).stdout);
-  assert.ok(ctx, "300,000 에서는 문구가 있어야 한다");
+  const ctx = contextOf(runWithTokens(150_000).stdout);
+  assert.ok(ctx, "150,000 에서는 문구가 있어야 한다");
   assert.match(ctx, /\/clear/);
-  assert.match(ctx, /300k/);
+  assert.match(ctx, /150k/);
 });
 
-test("450k 경계 — 인수인계 착수 지시로 승격된다", () => {
-  const notice = contextOf(runWithTokens(449_999).stdout);
-  assert.doesNotMatch(notice, /docs\/handoff/, "449,999 는 아직 주의 구간이다");
+test("200k 경계 — 인수인계 착수 지시로 승격된다", () => {
+  const notice = contextOf(runWithTokens(199_999).stdout);
+  assert.doesNotMatch(notice, /docs\/handoff/, "199,999 는 아직 주의 구간이다");
 
-  const handoff = contextOf(runWithTokens(450_000).stdout);
+  const handoff = contextOf(runWithTokens(200_000).stdout);
   assert.match(handoff, /docs\/handoff/);
   assert.match(handoff, /원칙 12/);
   assert.match(handoff, /detail-sheet-copy-rewrite\.md/);
-  assert.doesNotMatch(handoff, /새 작업 착수 금지/, "450k 는 아직 하드 구간이 아니다");
+  assert.doesNotMatch(handoff, /새 작업 착수 금지/, "200k 는 아직 하드 구간이 아니다");
 });
 
-test("650k 경계 — 하드 구간은 새 작업 착수를 금지한다", () => {
-  const handoff = contextOf(runWithTokens(649_999).stdout);
+test("300k 경계 — 하드 구간은 새 작업 착수를 금지한다", () => {
+  const handoff = contextOf(runWithTokens(299_999).stdout);
   assert.doesNotMatch(handoff, /새 작업 착수 금지/);
 
-  const hard = contextOf(runWithTokens(650_000).stdout);
+  const hard = contextOf(runWithTokens(300_000).stdout);
   assert.match(hard, /새 작업 착수 금지/);
   assert.match(hard, /docs\/handoff/);
 });
@@ -126,7 +126,7 @@ test("모든 구간이 분류된다 — 미분류가 없다", () => {
     ["handoff", 0],
     ["hard", 0],
   ]);
-  for (const tokens of [50_000, 299_999, 300_000, 400_000, 449_999, 450_000, 600_000, 649_999, 650_000, 999_999]) {
+  for (const tokens of [50_000, 149_999, 150_000, 175_000, 199_999, 200_000, 250_000, 299_999, 300_000, 999_999]) {
     const ctx = contextOf(runWithTokens(tokens).stdout);
     let bucket;
     if (ctx === null) bucket = "silent";
@@ -140,6 +140,16 @@ test("모든 구간이 분류된다 — 미분류가 없다", () => {
   for (const [name, count] of buckets) {
     assert.ok(count > 0, `${name} 구간이 한 번도 안 나왔다 — 케이스 목록이 구간을 못 덮는다`);
   }
+});
+
+test("NOTICE 문구는 200자 미만이다 — 훅 자신이 토큰을 쓰면 최적화가 역전된다", () => {
+  // 150k 는 대부분의 세션에서 뜬다. 0바이트 축만으로는 이 축이 안 지켜진다.
+  const ctx = contextOf(runWithTokens(150_000).stdout);
+  assert.ok(ctx, "150,000 에서는 문구가 있어야 한다");
+  assert.ok(
+    ctx.length < 200,
+    `NOTICE 문구가 ${ctx.length}자다 — 자주 뜨는 구간이므로 200자 미만이어야 한다`
+  );
 });
 
 // ─────────────────────────────────────────── 서브에이전트 줄
