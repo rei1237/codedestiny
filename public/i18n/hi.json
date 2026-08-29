@@ -42,7 +42,11 @@
       "title": "उपयोगकर्ता समीक्षाएँ",
       "lead": "ये समीक्षाएँ उन लोगों की हैं जिन्होंने वास्तव में परामर्श लिया।",
       "allCta": "सभी समीक्षाएँ देखें →",
-      "empty": "अभी कोई समीक्षा नहीं है। एक रीडिंग लें और पहली समीक्षा लिखें।"
+      "empty": "अभी कोई समीक्षा नहीं है। एक रीडिंग लें और पहली समीक्षा लिखें।",
+      "rewardPrefix": "Per review approved and published",
+      "rewardAmount": "100 Moonstones",
+      "rewardNote": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+      "rewardCta": "Write a review, get Moonstones"
     },
     "hero": {
       "eyebrow": "CODE DESTINY",

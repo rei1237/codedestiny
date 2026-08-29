@@ -42,7 +42,11 @@
       "title": "Ulasan pengguna",
       "lead": "Ulasan daripada mereka yang benar-benar membuat bacaan.",
       "allCta": "Lihat semua ulasan →",
-      "empty": "Belum ada ulasan. Cuba satu sesi bacaan dan tinggalkan yang pertama."
+      "empty": "Belum ada ulasan. Cuba satu sesi bacaan dan tinggalkan yang pertama.",
+      "rewardPrefix": "Per review approved and published",
+      "rewardAmount": "100 Moonstones",
+      "rewardNote": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+      "rewardCta": "Write a review, get Moonstones"
     },
     "hero": {
       "eyebrow": "CODE DESTINY",

@@ -42,7 +42,11 @@
       "title": "User reviews",
       "lead": "Reviews left by people who actually had a reading.",
       "allCta": "See all reviews →",
-      "empty": "No reviews yet. Try a reading and leave the first one."
+      "empty": "No reviews yet. Try a reading and leave the first one.",
+      "rewardPrefix": "Per review approved and published",
+      "rewardAmount": "100 Moonstones",
+      "rewardNote": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
+      "rewardCta": "Write a review, get Moonstones"
     },
     "hero": {
       "eyebrow": "CODE DESTINY",
