@@ -308,8 +308,7 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(update.$addToSet.paidFeatures).toBe(unlock.key);
   });
 
-  test("이용권(standard) 구매는 profileSubscription을 30일 활성으로 세팅한다", async () => {
-    const before = Date.now();
+  test("이용권(standard) 구매는 채널이 막혀 403 이고 아무것도 지급하지 않는다", async () => {
     const { status, payload } = await callRoute(postJson("/google/verify", {
       passTier: "standard",
       productId: "cd_pass_standard_30d",
@@ -319,24 +318,6 @@ describe("verify — 영구 해금(UNLOCK)과 이용권", () => {
     expect(payload.code).toBe("PASS_PURCHASE_CHANNEL_DISABLED");
     expect(mockPaymentCreate).not.toHaveBeenCalled();
     expect(mockUserFindByIdAndUpdate).not.toHaveBeenCalled();
-    return;
-
-    const doc = mockPaymentCreate.mock.calls[0][0];
-    expect(doc.paymentAmount).toBe(13000);
-    expect(doc.paymentType).toBe("membership_pass");
-    expect(doc.subscriptionTier).toBe("standard");
-
-    const update = mockUserFindByIdAndUpdate.mock.calls[0][1];
-    expect(update.$set["profileSubscription.tier"]).toBe("standard");
-    expect(update.$set["profileSubscription.status"]).toBe("active");
-    expect(update.$set["profileSubscription.paymentMethod"]).toBe("GOOGLE_PLAY");
-    const expiresAt = update.$set["profileSubscription.expiresAt"];
-    const expectedMs = 30 * 24 * 60 * 60 * 1000;
-    expect(expiresAt.getTime() - before).toBeGreaterThan(expectedMs - 60 * 1000);
-    expect(expiresAt.getTime() - before).toBeLessThan(expectedMs + 60 * 1000);
-
-    // 이용권도 inapp이므로 소비 대상이다(소비 안 하면 30일 뒤 재구매가 막힌다).
-    expect(payload.data.appPurchase.shouldConsume).toBe(true);
   });
 });
 
