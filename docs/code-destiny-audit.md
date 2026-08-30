@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: "§5 로드맵 P4(퍼널 이벤트 계측)부터 — 한 세션에 한 항목. P1~P3 는 완료다"
+next: "§5 로드맵 P5(브랜드 분산 정리)부터 — 한 세션에 한 항목. P1~P4 는 완료다"
 ---
 
 # Code Destiny 전면 개선 감사 (요청 20단계 → 레포 실측 매핑)
@@ -36,7 +36,7 @@ next: "§5 로드맵 P4(퍼널 이벤트 계측)부터 — 한 세션에 한 항
 | 2. 서비스 과다노출 → Tier 1/2/3 | 대부분 완료 | `data-cd-home-secondary` 16개(초기 노출 축소+펼치기), `#cdQuickServices` 6개, `#cdSignatureConsult` 4개, `#cdFinder` 목적/방식/가격 필터. 정본 `js/core/service-registry.js` 43항목 |
 | 2-보완. 차별점 노출 순서 | **이번 세션에서 일부 수정** | §4 (`#cdWhyUs` 카드 순서 + 히어로 배지). 섹션 자체의 위치 이동은 미착수 — §5 P2 |
 | 3. 의도 기반 진입점 | 완료 | `#cdConcernPick` 6축 + 상품 1:1 매핑 |
-| 4. 핵심 퍼널·이벤트 계측 | 미착수 | §5 P4 |
+| 4. 핵심 퍼널·이벤트 계측 | 완료 | §5 P4. 결제·무료사주·인증·리텐션은 이미 있었고, 빠져 있던 홈 섹션 귀속을 2026-08-30 에 채웠다 |
 | 5. 유료 상품 재편 | 미착수 | [monetization-free-paid-boundary.md](handoff/monetization-free-paid-boundary.md) |
 | 6. 기술 SEO 감사 | 사실상 포화 | §3-3 |
 | 7. 검색 의도 SEO 구조 | 진행 중 | [seo-content-expansion-roadmap.md](handoff/seo-content-expansion-roadmap.md) |
@@ -50,8 +50,8 @@ next: "§5 로드맵 P4(퍼널 이벤트 계측)부터 — 한 세션에 한 항
 | 15. 연이·네오 캐릭터 UX | 미착수 | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 3번(브랜드 분산) |
 | 16. 콘텐츠 마케팅 구조 | 진행 중 | [seo-content-expansion-roadmap.md](handoff/seo-content-expansion-roadmap.md) |
 | 17. 신뢰 | 부분 | 히어로 신뢰배지 3종(§4에서 3번을 차별점 설명으로 교체) |
-| 18. 애널리틱스·KPI | 미착수 | §5 P4 |
-| 19. A/B 가능한 홈 구조 | 미착수 | §5 P5 |
+| 18. 애널리틱스·KPI | 계측은 완료, 대시보드는 미착수 | §5 P4. GA4 이벤트는 갖춰졌으나 KPI 를 정의한 문서·대시보드는 없다 |
+| 19. A/B 가능한 홈 구조 | 미착수 | 로드맵에 P 번호가 없다. 선행 조건이던 계측(P4)은 닫혔다 |
 | 20. 최종 검증 | 이번 변경분만 | §4 검증 목록 |
 
 ## 2. 이번 세션 신규 실측 (2026-08-30)
@@ -114,9 +114,25 @@ CrUX origin/url 8개 조합 전부 404. 필드 데이터가 없으면 CWV 는 �
 | ~~P1~~ | ✅ 2026-08-30 완료 — 390x844/412x823 에서 히어로 높이 변화 0px · CLS 0.00082(히어로 아님). 수치·한계는 [home-positioning-2026-08-30.md](handoff/home-positioning-2026-08-30.md) | 광고발 CLS 는 여전히 미측정(프로덕션 전용) |
 | ~~P2~~ | ✅ 2026-08-30 완료 — `#cdWhyUs` 를 `<style>` 블록째 `#cdSignatureConsult` 앞으로 이동 | 이동 전후 CLS·docHeight 동일 |
 | ~~P3~~ | ✅ **이미 끝나 있었다**(2026-08-24 에 처리됨) — 2026-08-30 dist/ 실측으로 확인. 아래 표 참고 |
-| P4 | 퍼널 이벤트 계측(요청 4·18) | `useAnalytics` 훅은 정의돼 있으나 **호출자 0** — 2026-08-30 `git grep -n "useAnalytics"` (레포 전체) 결과가 정의 1건 + 가드 참조뿐. 계측 없이 A/B(19)는 불가 |
+| ~~P4~~ | ✅ 2026-08-30 완료 — 전제가 절반 낡았다(아래 표). 실제 구멍은 **홈 섹션 귀속** 하나였고 `home_section_click` 으로 채웠다. [home-funnel-attribution-2026-08-30.md](handoff/home-funnel-attribution-2026-08-30.md) |
 | P5 | 브랜드 분산 정리 — 캐릭터·상품명(요청 15) | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 3번 |
 | P6 | 무료 AI 상담 `premiumCta` 연결 | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 2번 |
+
+### P4 의 전제도 절반이 낡았다 — 2026-08-30 재실측
+
+P4 의 근거는 "`useAnalytics` 호출자 0" 이었다. 그건 사실이지만 **그 훅이 계측의 정본이 아니다.**
+계측 정본은 `js/core/analytics.js` 가 설치하는 `window.cdTrack` 이고, 홈이 정적 셸이라 React 훅은
+애초에 홈에서 돌 수가 없다. 훅의 호출자 수를 계측 유무의 지표로 쓴 것이 오독이었다.
+
+| 요청서가 원한 퍼널 단계 | 2026-08-30 실측 |
+|---|---|
+| 결제창 진입·옵션 선택·성공/실패 | **이미 있었다** — `js/core/checkout-entry.js` 의 `FUNNEL_EVENTS` 6종. GA4 + 1st-party `/api/billing/funnel-event` 양쪽 |
+| 무료 사주 시작·완료 | **이미 있었다** — `js/saju-engine.js` 의 `free_saju_started`/`free_saju_completed` |
+| 구매·인증·리텐션·공유 유입·크로스셀 | **이미 있었다** — `purchase`, `retention_visit`, `share_receive`, `cross_sell_click` |
+| **홈의 어느 섹션이 그 클릭을 만들었나** | **없었다.** 이것이 P4 의 유일한 실제 구멍이었고, A/B(19)를 막고 있던 것도 이것뿐이다 |
+
+`useAnalytics.trackPaymentAttempt` 를 호출부에 붙이는 것은 **하면 안 된다** — `checkout_option_click` 과
+같은 행동을 두 번 쏘게 되어 분해가 불가능해진다.
 
 ### P3 를 다시 열지 말 것 — 2026-08-30 dist/ 실측
 

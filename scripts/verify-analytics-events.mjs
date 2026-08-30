@@ -17,6 +17,11 @@
  *   ⑥ 측정 ID 가 깨지면 태그를 아예 붙이지 않고 cdTrack 은 no-op 이 된다.
  *   ⑦ 🔴 analytics.js 는 page_view 이벤트를 직접 쏘지 않는다 — 첫 발화는 gtag("config") 담당이고,
  *      React 라우트 전환분만 NavigationProvider 가 보탠다. 양쪽이 다 쏘면 진입 화면이 두 번 잡힌다.
+ *   ⑧ useAnalytics 훅은 태그를 다시 붙이지 않고 발화를 전부 trackEvent 로 보낸다.
+ *   ⑨ 훅이 쏘는 이름이 레포에서 이미 발화하는 이름·GA4 예약어와 겹치지 않는다.
+ *   ⑩ home_section_click 은 data-cd-funnel-section 안의 앵커에서만 발화하고(버튼은 세지 않는다),
+ *      한 리스너로 합친 뒤에도 cross_sell_click 과 함께 산다.
+ *   ⑪ 홈 셸(index.html)의 표식이 실제로 붙어 있고, 결과 페이지 구간에는 하나도 없다.
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -26,6 +31,56 @@ import { JSDOM, VirtualConsole } from "jsdom";
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), "..");
 const ANALYTICS_SOURCE = fs.readFileSync(path.join(ROOT, "js/core/analytics.js"), "utf8");
+const SHELL_SOURCE = fs.readFileSync(path.join(ROOT, "index.html"), "utf8");
+
+/**
+ * 이 레포가 실제로 쏘는 이벤트 이름을 소스에서 전수 발견한다.
+ *
+ * 🔴 손으로 쓴 목록은 가드가 아니다(CLAUDE.md 원칙 10). 실제로 이 목록이 배열로 박혀 있던
+ * 동안 free_saju_started·free_saju_completed 와 checkout_* 6종이 빠져 있었고, 훅이 그 이름을
+ * 골라도 아무도 막지 못하는 상태였다.
+ *
+ * 두 갈래로 모은다.
+ *  (a) cdTrack("x") · trackEvent("x") 의 문자열 리터럴 — 발화 지점 대부분이 이 형태다.
+ *  (b) js/core/checkout-entry.js 의 FUNNEL_EVENTS 키 — 결제 퍼널은 이벤트 이름을 변수로
+ *      넘기므로 리터럴 스캔에 안 잡힌다.
+ * 훅 자신(app/hooks/useAnalytics.ts)은 검사 대상이므로 뺀다.
+ */
+function collectEmittedEventNames() {
+  const SKIP_DIRS = new Set(["node_modules", ".next", "dist", "out", "__tests__"]);
+  const SUBJECT = path.join(ROOT, "app/hooks/useAnalytics.ts");
+  const files = [path.join(ROOT, "index.html")];
+
+  const walk = (dir) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        if (!SKIP_DIRS.has(entry.name)) walk(full);
+      } else if (/\.(?:js|jsx|mjs|ts|tsx)$/.test(entry.name) && full !== SUBJECT) {
+        files.push(full);
+      }
+    }
+  };
+  for (const root of ["js", "app", "lib"]) walk(path.join(ROOT, root));
+
+  const names = new Set();
+  const literal = /(?:cdTrack|trackEvent)\(\s*["']([a-z0-9_]+)["']/g;
+  for (const file of files) {
+    const text = fs.readFileSync(file, "utf8");
+    for (const match of text.matchAll(literal)) names.add(match[1]);
+  }
+
+  const checkoutEntry = fs.readFileSync(path.join(ROOT, "js/core/checkout-entry.js"), "utf8");
+  const funnelBlock = checkoutEntry.match(/FUNNEL_EVENTS\s*=\s*\{([\s\S]*?)\n\s*\};/);
+  assert.ok(funnelBlock, "checkout-entry.js 에서 FUNNEL_EVENTS 블록을 못 찾았다 — 이 파서가 낡았다");
+  const funnelNames = [...funnelBlock[1].matchAll(/^\s*([a-z0-9_]+)\s*:\s*true/gm)].map((m) => m[1]);
+  assert.ok(funnelNames.length >= 5, `FUNNEL_EVENTS 키가 ${funnelNames.length}개다 — 파서가 낡았다`);
+  for (const name of funnelNames) names.add(name);
+
+  // 🔴 대상이 0개일 때 통과하는 검사는 가드가 아니다.
+  assert.ok(names.size >= 12, `발화 이름을 ${names.size}개밖에 못 찾았다 — 스캔 범위나 정규식이 낡았다`);
+  return names;
+}
 
 function boot({ url = "https://code-destiny.com/", consent = "", measurementId = "", lastVisit = null, body = "" } = {}) {
   const virtualConsole = new VirtualConsole();
@@ -200,10 +255,9 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
 
   /* ⑨ 훅이 쏘는 이벤트 이름이 이미 쓰는 이름과 겹치지 않는가 */
   const TAKEN_EVENT_NAMES = new Set([
-    // 이 레포가 이미 쓰는 이름
-    "page_view", "login", "signup", "purchase_complete",
-    "cross_sell_click", "share_receive", "retention_visit",
-    // GA4 가 자동 수집하거나 예약해 둔 이름
+    ...collectEmittedEventNames(),
+    // GA4 가 자동 수집하거나 예약해 둔 이름. 이것만 손으로 쓴다 — 레포 소스에 나타나지 않는
+    // 외부 사실이라 전수 발견의 대상이 아니다.
     "purchase", "first_visit", "session_start", "user_engagement", "click", "scroll",
   ]);
   const emitted = source.split('trackEvent("').slice(1).map((chunk) => chunk.split('"')[0]);
@@ -220,4 +274,86 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   }
 }
 
-console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약");
+/* ⑩ home_section_click — 홈 섹션 귀속 */
+{
+  const markup = `
+    <section data-cd-funnel-section="signature_consult">
+      <a id="inside" href="/fusion-fortune/">초융합 리딩</a>
+      <button id="toggle" type="button">펼치기</button>
+    </section>
+    <section><a id="outside" href="/tarot/">타로</a></section>
+  `;
+  const { window } = boot({ body: markup });
+  const fired = () =>
+    (window.dataLayer || [])
+      .map((entry) => Array.from(entry))
+      .filter((c) => c[0] === "event" && c[1] === "home_section_click");
+
+  window.document.getElementById("outside").click();
+  assert.equal(fired().length, 0, "표식 밖의 링크에서 home_section_click 이 나갔다 — 홈 밖 클릭이 홈으로 집계된다");
+
+  window.document.getElementById("toggle").click();
+  assert.equal(
+    fired().length,
+    0,
+    "버튼 클릭에서 home_section_click 이 나갔다 — 앵커만 세야 목적지별 분해가 유지된다(탭·펼치기는 화면을 떠나지 않는다)",
+  );
+
+  window.document.getElementById("inside").click();
+  const hits = fired();
+  assert.equal(hits.length, 1, "표식 안의 앵커에서 home_section_click 이 한 번 나가지 않았다");
+  assert.equal(hits[0][2].section, "signature_consult");
+  assert.equal(hits[0][2].destination, "/fusion-fortune/");
+}
+
+/* ⑩-2 두 축을 한 리스너로 합친 뒤에도 서로를 죽이지 않는가 */
+{
+  const markup = `
+    <section data-cd-funnel-section="why_us">
+      <ul data-cd-cross-sell="/"><li><a id="both" href="/ziwei/">자미두수</a></li></ul>
+    </section>
+  `;
+  const { window } = boot({ body: markup });
+  window.document.getElementById("both").click();
+  const names = (window.dataLayer || [])
+    .map((entry) => Array.from(entry))
+    .filter((c) => c[0] === "event")
+    .map((c) => c[1]);
+  assert.ok(names.includes("cross_sell_click"), "합친 리스너에서 cross_sell_click 이 사라졌다");
+  assert.ok(names.includes("home_section_click"), "합친 리스너에서 home_section_click 이 사라졌다");
+}
+
+/* ⑪ 홈 셸에 표식이 실제로 붙어 있고, 결과 페이지에는 없는가 */
+{
+  const homeStart = SHELL_SOURCE.indexOf('<main id="inputPage"');
+  const resultStart = SHELL_SOURCE.indexOf('<article id="resultPage"');
+  assert.ok(homeStart > -1, 'index.html 에서 <main id="inputPage"> 를 못 찾았다 — 이 검사가 통째로 안 돌게 된다');
+  assert.ok(resultStart > homeStart, 'index.html 에서 <article id="resultPage"> 를 홈 뒤에서 못 찾았다 — 이 검사가 통째로 안 돌게 된다');
+
+  const home = SHELL_SOURCE.slice(homeStart, resultStart);
+  const outsideHome = SHELL_SOURCE.slice(0, homeStart) + SHELL_SOURCE.slice(resultStart);
+  const marks = [...home.matchAll(/data-cd-funnel-section="([^"]*)"/g)].map((m) => m[1]);
+
+  assert.ok(
+    marks.length >= 8,
+    `홈의 data-cd-funnel-section 표식이 ${marks.length}개다 — 면이 통째로 빠지면 그 면의 클릭이 어디에도 안 잡힌다`,
+  );
+  assert.equal(
+    new Set(marks).size,
+    marks.length,
+    "표식 값이 중복이다 — 두 면이 한 이름으로 합쳐지면 어느 쪽이 클릭을 만들었는지 분해할 수 없다",
+  );
+  for (const name of marks) {
+    assert.ok(
+      /^[a-z][a-z0-9_]*$/.test(name),
+      `표식 값 "${name}" 이 snake_case 가 아니다 — GA4 파라미터 값으로 그대로 나가므로 표기가 갈리면 집계가 쪼개진다`,
+    );
+  }
+  assert.equal(
+    (outsideHome.match(/data-cd-funnel-section=/g) || []).length,
+    0,
+    '홈 <main id="inputPage"> 밖에 표식이 있다 — 결과 페이지 클릭이 홈 섹션 클릭으로 집계된다',
+  );
+}
+
+console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 홈 셸 표식");

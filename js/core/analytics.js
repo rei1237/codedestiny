@@ -116,22 +116,59 @@
   };
 
   /**
-   * 크로스셀 클릭. 정본 렌더러 app/components/SeoLandingTemplate.jsx 는 서버 컴포넌트라 onClick 을
-   * 달 수 없어, 목록 컨테이너에 data-cd-cross-sell 표식만 남기고 여기서 위임으로 받는다.
-   * 표식이 붙은 목록 안의 앵커만 대상이므로 일반 내비게이션 링크는 걸리지 않는다.
+   * 앵커 클릭 위임 — 크로스셀과 홈 섹션 귀속을 한 리스너에서 받는다.
+   *
+   * 🔴 축마다 리스너를 새로 달지 말 것. 같은 노드·같은 이벤트에 위임을 겹쳐 놓으면 실행 순서가
+   * 암묵적으로 정해지고, 한쪽에서 stopImmediatePropagation 이 나면 나머지가 조용히 죽는다.
+   * 축을 늘릴 때는 아래에 try 블록을 하나 더 붙인다 — 블록을 나눠 두는 이유는 한 축의 실패가
+   * 다른 축의 발화를 막지 않게 하기 위해서다.
+   *
    * capture 단계에서 듣는 이유는 라우터가 클릭을 가로채기 전에 기록하기 위해서다.
+   * 두 축 모두 표식이 붙은 컨테이너 안의 앵커만 대상이라 일반 내비게이션 링크는 걸리지 않는다.
    */
   document.addEventListener("click", function (event) {
+    var anchor = null;
     try {
-      var anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
-      if (!anchor) return;
+      anchor = event.target && event.target.closest ? event.target.closest("a[href]") : null;
+    } catch (_anchorError) {
+      return;
+    }
+    if (!anchor) return;
+
+    /*
+     * 크로스셀 클릭. 정본 렌더러 app/components/SeoLandingTemplate.jsx 는 서버 컴포넌트라 onClick 을
+     * 달 수 없어, 목록 컨테이너에 data-cd-cross-sell 표식만 남기고 여기서 위임으로 받는다.
+     */
+    try {
       var container = anchor.closest("[data-cd-cross-sell]");
-      if (!container) return;
-      global.cdTrack("cross_sell_click", {
-        from_service: String(container.getAttribute("data-cd-cross-sell") || ""),
-        to_service: String(anchor.getAttribute("href") || "")
-      });
+      if (container) {
+        global.cdTrack("cross_sell_click", {
+          from_service: String(container.getAttribute("data-cd-cross-sell") || ""),
+          to_service: String(anchor.getAttribute("href") || "")
+        });
+      }
     } catch (_crossSellError) {
+      /* 계측 실패는 무시한다 */
+    }
+
+    /*
+     * 홈 섹션 귀속. 홈은 정적 셸이라 React 훅(app/hooks/useAnalytics.ts)을 쓸 수 없고, 어느 면이
+     * 클릭을 만들었는지 남는 기록이 없어 홈 구조를 바꿔도 효과를 판정할 수 없었다.
+     *
+     * 🔴 앵커만 센다. 탭 전환·펼치기 버튼은 화면을 떠나지 않아 퍼널 이탈이 아니고, 같이 세면
+     * 목적지별 분해가 흐려진다. 무료 사주 시작과 결제창 단계는 이미 다른 채널이 잡으므로
+     * (js/saju-engine.js 의 free_saju_*, js/core/checkout-entry.js 의 checkout_*) 여기서 다시
+     * 쏘지 않는다 — 두 지점이 한 행동을 쏘면 분해가 불가능해진다.
+     */
+    try {
+      var section = anchor.closest("[data-cd-funnel-section]");
+      if (section) {
+        global.cdTrack("home_section_click", {
+          section: String(section.getAttribute("data-cd-funnel-section") || ""),
+          destination: String(anchor.getAttribute("href") || "")
+        });
+      }
+    } catch (_homeSectionError) {
       /* 계측 실패는 무시한다 */
     }
   }, true);
