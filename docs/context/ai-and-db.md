@@ -95,7 +95,7 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
 ### 쿼리·인덱스 (2026-08-30 실측)
 
 - **싱글턴은 완결이다** — `worker/lib/db.js` `connectDb` 하나뿐이고 새 연결 패턴을 추가하지 않는다. 요청당 핸드셰이크는 위 "지리" 절의 Cloudflare 소켓 수명 때문이지 싱글턴 부재가 아니다.
-- **요청 경로 쿼리 리터럴 = 인덱스 접두** — `explain` 실측([docs/db-query-plans-2026-08-30.md](../db-query-plans-2026-08-30.md), 재현 `npm run audit:mongo-query-plans`)에서 COLLSCAN 은 `users {referralCode}` 하나였고 나머지 후보 14개는 IXSCAN 이었다. 정적 분석으로 인덱스를 추측해 만들지 말고 `explain` 으로 확정한 뒤 `scripts/migrations/` 에 담는다(생성 실행은 사용자 허가).
+- **요청 경로 쿼리 리터럴 = 인덱스 접두** — `explain` 실측([docs/db-query-plans-2026-08-30.md](../db-query-plans-2026-08-30.md), 재현 `npm run audit:mongo-query-plans`)에서 COLLSCAN 은 `users {referralCode}` 하나였고 나머지 후보 14개는 IXSCAN 이었다. 정적 분석으로 인덱스를 추측해 만들지 말고 `explain` 으로 확정한 뒤 `scripts/migrations/` 에 담는다(생성 실행은 사용자 허가). 새 요청 경로 쿼리가 선언 인덱스의 선두 키를 쓰는지는 `verify:mongo-query-index-shapes`(PR CI critical) 가 정적으로 잡고, 예외는 `config/mongo-query-index-allowlist.json` 에 사유와 함께 둔다 — 리터럴이 아닌 필터(`dynamic`)는 검사 밖이다.
 - **캐시 히트는 쿼리가 아니라 핸드셰이크 ~1.3s 를 통째로 건너뛴다** — 그래서 인덱스보다 `worker/lib/cms-cache.js`·`credential-scoped-cache.js` 확장이 더 큰 레버다(결제·인증 판정 경로 제외).
 
 ## LLM 안전 규칙 (2026-08-28 `AGENTS.md` 에서 이관)

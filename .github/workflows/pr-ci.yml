@@ -760,6 +760,16 @@ jobs:
           npm run verify:credential-cache
           npm run verify:credential-cache -- --self-test
 
+      # 요청 경로 Mongo 쿼리 리터럴이 선언 인덱스(models.js schema.indexes + 마이그레이션 createIndex)의
+      # 선두 키를 쓰는지. CI 에 DB 가 없어 explain 을 못 돌리므로 정적으로 잡는다 — 08-30 실측에서
+      # users {referralCode} 가 가입마다 최대 8회 COLLSCAN 이었고, 그런 쿼리는 머지 전엔 아무도 못 봤다.
+      # worker/** 는 change-risk 가 level=high 라 이 잡(runs_critical)이 항상 깨어난다.
+      - name: Verify Mongo query shapes match declared indexes
+        if: needs.classify.outputs.runs_critical == 'true'
+        run: |
+          npm run verify:mongo-query-index-shapes
+          npm run verify:mongo-query-index-shapes -- --self-test
+
       - name: Verify ads.txt is present
         if: needs.classify.outputs.runs_critical == 'true'
         run: npm run verify:ads-txt

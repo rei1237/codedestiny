@@ -259,6 +259,7 @@
     "verify:no-nested-retry": "node scripts/verify-no-nested-retry.mjs",
     "verify:worker-no-undef": "node scripts/verify-worker-no-undef.mjs",
     "verify:mongo-reset-callers": "node scripts/verify-mongo-reset-callers.mjs",
+    "verify:mongo-query-index-shapes": "node scripts/verify-mongo-query-index-shapes.mjs",
     "verify:admin-route-error-context": "node scripts/verify-admin-route-error-context.mjs",
     "verify:entry-fanout": "node scripts/verify-entry-fanout.mjs",
     "verify:payment-freeze": "node scripts/verify-payment-freeze.mjs",
