@@ -119,6 +119,17 @@ function renderGrid(list) {
     .join("\n");
 }
 
+/**
+ * 기간 허브(오늘 말고 나머지)로 가는 24종 링크 목록.
+ * 🔴 이 셸이 96개 전부를 링크하지 않으면 나머지 72개는 홈에서 3홉이 되고,
+ * 그러면 구글이 발견만 하고 크롤하지 않는다(2026-08-30 GSC 실측).
+ */
+function renderPeriodLinkList(periodId, list) {
+  return list
+    .map((r) => `        <a class="fi-chip" href="/fortune/${periodId}/${r.id}/">${esc(r.nameKo)}</a>`)
+    .join("\n");
+}
+
 export function buildHubShell() {
   const periodIds = readPeriodIds();
   const { zodiac, animal } = readSignProfiles();
@@ -129,6 +140,19 @@ export function buildHubShell() {
         <a class="fi-period-link" href="/fortune/${id}/">${PERIOD_COPY[id].emoji} ${PERIOD_LABEL[id]} 운세</a>
         <p class="fi-period-desc">${esc(PERIOD_COPY[id].desc)}</p>
       </li>`,
+    )
+    .join("\n");
+
+  const otherPeriodIds = periodIds.filter((id) => id !== "today");
+  const allSigns = [...animal, ...zodiac];
+  const periodLinkBlocks = otherPeriodIds
+    .map(
+      (id) => `      <div class="fi-periodlinks">
+        <h3 class="fi-periodlinks-title"><a href="/fortune/${id}/">${PERIOD_COPY[id].emoji} ${PERIOD_LABEL[id]} 운세 ${allSigns.length}종</a></h3>
+        <div class="fi-chiplist">
+${renderPeriodLinkList(id, allSigns)}
+        </div>
+      </div>`,
     )
     .join("\n");
 
@@ -222,6 +246,13 @@ ${JSON.stringify(jsonLd, null, 2)}
     .fi-item:hover,.fi-item:focus{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.4);color:#e879f9;}
     .fi-item span{display:block;font-size:1.6rem;margin-bottom:6px;}
     .fi-item-sub{display:block;margin-top:5px;font-size:.68rem;font-weight:600;font-style:normal;color:rgba(232,224,240,.56);line-height:1.5;word-break:keep-all;}
+    .fi-periodlinks{margin-bottom:18px;}
+    .fi-periodlinks-title{font-size:.9rem;font-weight:900;margin:0 0 10px;}
+    .fi-periodlinks-title a{color:#e879f9;text-decoration:none;}
+    .fi-periodlinks-title a:hover,.fi-periodlinks-title a:focus{text-decoration:underline;}
+    .fi-chiplist{display:flex;flex-wrap:wrap;gap:8px;}
+    .fi-chip{display:inline-block;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:999px;padding:7px 13px;text-decoration:none;color:rgba(232,224,240,.82);font-size:.78rem;font-weight:700;-webkit-tap-highlight-color:transparent;}
+    .fi-chip:hover,.fi-chip:focus{background:rgba(124,58,237,.15);border-color:rgba(124,58,237,.4);color:#e879f9;}
     .fi-faq{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:16px;margin-bottom:10px;}
     .fi-faq-q{font-size:.9rem;font-weight:900;color:#f0e6ff;margin:0 0 8px;word-break:keep-all;}
     .fi-faq-a{font-size:.82rem;color:rgba(232,224,240,.7);line-height:1.8;margin:0;word-break:keep-all;}
@@ -275,6 +306,12 @@ ${renderGrid(animal)}
     <div class="fi-grid" id="zodiac-grid">
 ${renderGrid(zodiac)}
     </div>
+  </section>
+
+  <section class="fi-section" id="other-periods">
+    <h2 class="fi-section-title"><span aria-hidden="true">🗓️</span> ${otherPeriodIds.map((id) => PERIOD_LABEL[id]).join(" · ")} 운세 ${otherPeriodIds.length * allSigns.length}종</h2>
+    <p class="fi-lead">위 두 목록은 오늘 운세로 이어집니다. 내일이나 이번 주, 이번 달을 바로 보고 싶다면 아래에서 고르세요. 기간마다 간지를 따로 뽑아 계산하기 때문에 같은 띠라도 오늘과 이번 달의 결과가 서로 다를 수 있습니다.</p>
+${periodLinkBlocks}
   </section>
 
   <section class="fi-section" id="method">
