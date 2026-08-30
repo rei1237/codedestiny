@@ -971,6 +971,15 @@
   transition: transform 180ms var(--tea-ease-out), border-color 180ms var(--tea-ease-out), box-shadow 180ms var(--tea-ease-out);
 }
 
+/* 터치 기기 최소 탭 타깃 44px — ≤640px 밖(폰 가로 등)에서도 보장한다. 데스크톱은 종전값 유지. */
+@media (hover: none) and (pointer: coarse) {
+  .backButton,
+  .homeButton,
+  .bgmToggle {
+    min-height: 44px;
+  }
+}
+
 .bgmAudio {
   position: fixed;
   width: 1px;
@@ -2232,7 +2241,7 @@
   width: min(100%, 1220px);
   min-height: 100svh;
   margin: 0 auto;
-  padding: 22px 16px 32px;
+  padding: 22px 16px max(32px, env(safe-area-inset-bottom, 0px));
   display: grid;
   grid-template-rows: auto 1fr;
   gap: 18px;
@@ -2240,7 +2249,9 @@
 
 .sceneFrame {
   position: relative;
-  min-height: calc(100svh - 92px);
+  /* 92px = 상단 여백 22 + 헤더 행 + gap 18 + 하단 여백 32. 하단이 safe-area 로 늘면
+     프레임도 같은 만큼 줄어야 씬 바닥이 시스템 UI 아래로 내려가지 않는다(60 = 92 - 32). */
+  min-height: calc(100svh - 60px - max(32px, env(safe-area-inset-bottom, 0px)));
   display: grid;
   align-items: center;
 }
@@ -8379,7 +8390,7 @@
 .readyNotice {
   position: fixed;
   left: 50%;
-  bottom: 22px;
+  bottom: calc(22px + env(safe-area-inset-bottom, 0px));
   z-index: 8;
   width: min(92%, 520px);
   transform: translateX(-50%);
@@ -8981,7 +8992,7 @@
   }
 
   .pageInner {
-    padding: 30px 24px 44px;
+    padding: 30px 24px max(44px, env(safe-area-inset-bottom, 0px));
   }
 
   .tarotDebugPage {
@@ -9526,7 +9537,8 @@
   }
 
   .sceneFrame {
-    min-height: calc(100svh - 72px);
+    /* 46 = 72 - 26(같은 브레이크포인트의 .pageInner 하단 여백) */
+    min-height: calc(100svh - 46px - max(26px, env(safe-area-inset-bottom, 0px)));
   }
 
   .stageDots {

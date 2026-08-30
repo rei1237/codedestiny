@@ -588,7 +588,7 @@ export default function AppVersionGuard() {
     : "";
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-[2147483647] px-3 pb-3 sm:px-4 sm:pb-4">
+    <div className="fixed inset-x-0 bottom-0 z-[2147483647] px-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] sm:px-4 sm:pb-[calc(1rem+env(safe-area-inset-bottom,0px))]">
       <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 rounded-xl border border-amber-300/45 bg-amber-50 px-4 py-3 text-amber-950 shadow-[0_10px_30px_rgba(0,0,0,0.15)] sm:flex-row sm:items-center sm:justify-between">
         <div>
           <p className="text-sm font-semibold">{copy.updateTitle}</p>

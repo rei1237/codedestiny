@@ -3,7 +3,8 @@
   min-height: 100svh;
   isolation: isolate;
   overflow-x: hidden;
-  padding: clamp(20px, 4vw, 48px);
+  /* 마지막 CTA 가 width:100% 라 하단 여백이 그대로 제스처바에 물린다. env=0 인 웹에서는 종전값. */
+  padding: clamp(20px, 4vw, 48px) clamp(20px, 4vw, 48px) max(clamp(20px, 4vw, 48px), env(safe-area-inset-bottom, 0px));
   color: #f6eed9;
   background: #05070c;
   font-family: var(--font-body);
@@ -1028,7 +1029,7 @@
 
 @media (max-width: 680px) {
   .shell {
-    padding: 16px;
+    padding: 16px 16px max(16px, env(safe-area-inset-bottom, 0px));
   }
 
   /* 본문에 모바일 규칙이 아예 없어 320~390px 폭에서도 0.97rem(15.52px)로 읽혔다 — 카드 패딩을 빼면
