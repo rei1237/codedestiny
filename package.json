@@ -90,6 +90,7 @@
     "verify:neo-output-safety": "node scripts/verify-neo-operation-room-output-safety.mjs",
     "verify:no-secret-leak": "node scripts/verify-no-secret-leak.mjs",
     "verify:env-parity": "node scripts/env-parity.mjs",
+    "diag:resend-domains": "node scripts/test-resend-email.mjs --check-domains",
     "verify:env-parity:remote": "node scripts/env-parity.mjs --remote",
     "env:report": "node scripts/env-parity.mjs --report",
     "verify:worker-size": "node scripts/verify-worker-size-budget.mjs",
