@@ -92,36 +92,62 @@ export async function runSnsDailyPostTask(env, options = {}) {
   const dateKey = getKstDateKey(now);
   await connectDb(env);
 
-  // 선점 실패(중복 키)는 "오늘 이미 나갔다"는 뜻이다. 크론 재시도로 같은 글이 두 번 나가는 것을 막는다.
-  try {
-    await IdempotencyKey.create({
-      endpoint: SNS_POST_ENDPOINT,
-      keyHash: dateKey,
-      status: "processing",
-      expiresAt: new Date(now + DEDUPE_TTL_MS),
-    });
-  } catch (error) {
-    if (isDuplicateKeyError(error)) {
-      console.log(`[CRON] SNS Daily Post: ${dateKey} 는 이미 발행됐다 — 건너뛴다.`);
-      return { ok: true, skipped: "already_posted", dateKey };
+  // 🔴 그날 "실패" 로 남은 문서는 재선점한다 — 실패는 흔적으로 남기되(아래) 재시도를 막지는 않는다.
+  // 관리자 수동 실행(routes/admin-sns.js)이 이 경로로 같은 날 다시 시도한다.
+  const reclaimed = await IdempotencyKey.findOneAndUpdate(
+    { userId: null, endpoint: SNS_POST_ENDPOINT, keyHash: dateKey, status: "failed" },
+    { $set: { status: "processing", updatedAt: new Date(now), expiresAt: new Date(now + DEDUPE_TTL_MS) } },
+    { new: true },
+  );
+
+  // 선점 실패(중복 키)는 "오늘 이미 나갔다(성공 또는 진행 중)"는 뜻이다. 크론 재시도로 같은 글이 두 번 나가는 것을 막는다.
+  if (!reclaimed) {
+    try {
+      await IdempotencyKey.create({
+        endpoint: SNS_POST_ENDPOINT,
+        keyHash: dateKey,
+        status: "processing",
+        expiresAt: new Date(now + DEDUPE_TTL_MS),
+      });
+    } catch (error) {
+      if (isDuplicateKeyError(error)) {
+        console.log(`[CRON] SNS Daily Post: ${dateKey} 는 이미 발행됐다 — 건너뛴다.`);
+        return { ok: true, skipped: "already_posted", dateKey };
+      }
+      throw error;
     }
-    throw error;
   }
 
   const text = buildDailyPostText(env, now);
   const result = await sendTelegramMessage(env, { text, fetchImpl });
 
   if (!result.ok) {
-    // 🔴 실패하면 선점을 **놓아준다.** 남겨 두면 그날은 재시도할 방법이 영영 없다
-    // (이 태스크를 태운 크론은 하루 한 번만 돈다).
-    await IdempotencyKey.deleteOne({ endpoint: SNS_POST_ENDPOINT, keyHash: dateKey }).catch(() => {});
-    console.error(`[CRON] SNS Daily Post: 발행 실패(${result.error}) — 잠금을 해제했다.`);
+    // 🔴 실패는 **지우지 않고 failed 로 남긴다.** 예전에는 잠금을 삭제했는데, 그러면 DB 에 흔적이 0건이라
+    // 2026-08-29 크론이 왜 발행을 못 했는지 아무도 알 수 없었다(Workers Logs 도 꺼져 있었다).
+    // failed 문서는 위 findOneAndUpdate 가 재선점하므로 재시도 경로도 그대로 열려 있다.
+    await IdempotencyKey.updateOne(
+      { endpoint: SNS_POST_ENDPOINT, keyHash: dateKey },
+      {
+        $set: {
+          status: "failed",
+          responseRef: { error: result.error, status: result.status ?? null, at: new Date(now).toISOString() },
+          updatedAt: new Date(now),
+        },
+      },
+    ).catch(() => {});
+    console.error(`[CRON] SNS Daily Post: 발행 실패(${result.error}) — failed 로 기록했다.`);
     return { ok: false, error: result.error, dateKey };
   }
 
   await IdempotencyKey.updateOne(
     { endpoint: SNS_POST_ENDPOINT, keyHash: dateKey },
-    { $set: { status: "success", updatedAt: new Date(now) } },
+    {
+      $set: {
+        status: "success",
+        responseRef: { messageId: result.data?.result?.message_id ?? null, at: new Date(now).toISOString() },
+        updatedAt: new Date(now),
+      },
+    },
   ).catch(() => {});
 
   console.log(`[CRON] SNS Daily Post: ${dateKey} 발행 완료.`);

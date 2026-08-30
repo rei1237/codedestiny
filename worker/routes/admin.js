@@ -5022,6 +5022,12 @@ export async function handleAdminRoutes(request, env) {
       return await handleAdminFeedbackRoutes(path.slice("/feedback".length) || "/", request, env, adminContext);
     }
 
+    if (path === "/sns-daily-post" || path.startsWith("/sns-daily-post/")) {
+      await authorizeAdminRequest(request, env);
+      const { handleAdminSnsRoutes } = await import("./admin-sns.js");
+      return await handleAdminSnsRoutes(path.slice("/sns-daily-post".length) || "/", request, env);
+    }
+
     if (path === "/site-content/overrides") {
       if (method === "GET") return await handleSiteContentOverrideList(request, env);
       return methodNotAllowed();
