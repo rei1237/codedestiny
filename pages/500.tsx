@@ -1,3 +1,4 @@
+import Head from "next/head";
 import React from "react";
 
 export default function ServerErrorPage() {
@@ -13,6 +14,16 @@ export default function ServerErrorPage() {
         padding: 24,
       },
     },
+    // 🔴 pages/404.tsx 와 같은 세트를 유지한다. 이 선언이 없어서 `/500/` 이 본문 0자짜리
+    // 인덱서블 페이지로 배포되고 있었다(2026-08-30 dist 전수 실측).
+    // next/head 는 트리 어디에 있든 document head 로 올리므로, 본문 전체를 Fragment 로
+    // 감싸 재들여쓰기하는 대신 여기 둔다.
+    React.createElement(
+      Head,
+      null,
+      React.createElement("title", null, "Server error | Code Destiny"),
+      React.createElement("meta", { name: "robots", content: "noindex,follow" })
+    ),
     React.createElement(
       "section",
       {
