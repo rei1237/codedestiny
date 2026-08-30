@@ -2,7 +2,7 @@ import { withUniqueRouteMetadata } from "../../lib/generate-page-metadata";
 
 const SAJU_GUARDIAN_LAYOUT_TEXT_TRANSLATIONS = {
   ko: {
-    title: "Saju Guardian — 사주 가디언 소환진 | 꿀꿀 만세력",
+    title: "Saju Guardian — 사주 가디언 소환진 | 꿀꿀 운세",
     description: "생년월일 사주 정보를 바탕으로 일주·월지·시지의 수호 인장을 열고 7일 실행 의식을 전합니다.",
     ogTitle: "Saju Guardian — 사주 가디언 소환진",
     ogDescription: "일주·월지·시지의 기운으로 지금 필요한 수호 인장과 7일 의식이 열립니다.",

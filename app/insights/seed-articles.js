@@ -1,9 +1,9 @@
 import { INSIGHT_ARTICLES } from "./articles";
 import { SEO_GROWTH_ARTICLES } from "./seo-growth-articles";
 
-// 🔴 lib/structured-data.ts 의 AUTHOR_PEN_NAME 과 같은 값이어야 한다(필명 "네오").
+// 🔴 lib/structured-data.ts 의 SITE_AUTHOR.name 과 같은 값이어야 한다(실명, 2026-08-30).
 //    여기에 경력·자격을 덧붙이지 말 것 — 가짜 저자·가짜 자격 금지.
-const DEFAULT_AUTHOR = "네오";
+const DEFAULT_AUTHOR = "박병하";
 const SITE_ORIGIN = "https://code-destiny.com";
 // 화면에 보이는 대표 이미지는 연이(꽃돼지) 자산, 소셜 공유 썸네일은 기존 브랜드 배지를 유지한다.
 // 둘은 의도적으로 분리되어 있으니 한쪽만 바꾸지 말 것.

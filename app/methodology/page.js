@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
-import { buildBreadcrumbJsonLd, buildWebPageJsonLd } from "../../lib/structured-data";
+import { buildAuthorPersonJsonLd, buildBreadcrumbJsonLd, buildWebPageJsonLd, SITE_AUTHOR } from "../../lib/structured-data";
 import { publicSeoPages } from "../../lib/seo/siteSeo";
 import { getEditorNote } from "../_content/editor-notes";
 import EditorNote from "../components/EditorNote";
@@ -44,6 +44,10 @@ const METHODOLOGY_TEXT_TRANSLATIONS = {
       {
         title: "한계와 반증 가능성",
         body: "운세 해석은 반증 가능한 과학적 예측이 아닙니다. 같은 명식을 두 사람이 읽으면 강조점이 달라질 수 있고, 맞았다고 느끼는 문장은 누구에게나 해당하는 서술일 수 있습니다. Code Destiny는 이 한계를 감추지 않는 것을 원칙으로 하며, 해석을 읽을 때 맞은 문장과 틀린 문장을 함께 세어 보기를 권합니다. 결과가 현실 판단을 대신하도록 쓰이는 순간, 이 콘텐츠는 의도한 용도에서 벗어납니다.",
+      },
+      {
+        title: "검수자와 검수 기준",
+        body: `공개 콘텐츠의 최종 검수는 ${SITE_AUTHOR.name}(${SITE_AUTHOR.jobTitle}, 명리 10년)가 맡습니다. 검수는 세 가지를 봅니다. 첫째, 명식·별자리·27수 같은 계산값이 엔진 산출과 일치하는지 — 해설이 실제 명식에 없는 십성이나 오행을 말하면 그 문장을 고칩니다. 둘째, 해석이 고전 명리의 통상 읽기 범위 안에 있는지 — 한 유파의 소수 견해를 정설처럼 쓰지 않고, 견해가 갈리는 대목은 갈린다고 적습니다. 셋째, 표현이 과장·불안 조장·의료·법률·금융 조언으로 읽히지 않는지. 검수자 소개와 책임 주체는 서비스 소개 페이지의 '만드는 사람과 책임' 절에 있습니다.`,
       },
       {
         title: "면책 고지",
@@ -103,6 +107,7 @@ const jsonLd = JSON.stringify({
       { name: methodologyCopy.breadcrumb, path: "/methodology" },
     ]),
     buildWebPageJsonLd(seo),
+    buildAuthorPersonJsonLd(),
   ],
 });
 
