@@ -2,6 +2,7 @@ import { toAbsoluteUrl } from "./seo";
 import { siteSeo } from "./seo/siteSeo";
 import { FUSION_FORTUNE_PROFILE } from "./seo/entity-registry.mjs";
 import { LOCALE_CONFIG } from "./i18n/locales";
+import { BUSINESS_IDENTITY, BUSINESS_PHONE_INTL } from "./site-policy-config";
 
 type FaqItem = {
   question: string;
@@ -36,6 +37,21 @@ export function buildOrganizationJsonLd() {
       email: siteSeo.contact.email,
       contactType: siteSeo.contact.contactType,
       availableLanguage: siteSeo.contact.availableLanguage,
+    },
+    // 사업자등록증에 적힌 값만 옮긴다. 새 사실을 만들지 않으며 값의 정본은
+    // lib/site-policy-config.js 의 BUSINESS_IDENTITY 하나다(verify:business-identity 가 지킨다).
+    legalName: BUSINESS_IDENTITY.companyName,
+    address: {
+      "@type": "PostalAddress",
+      addressCountry: "KR",
+      streetAddress: BUSINESS_IDENTITY.address,
+    },
+    telephone: BUSINESS_PHONE_INTL,
+    email: BUSINESS_IDENTITY.email,
+    taxID: BUSINESS_IDENTITY.registrationNumber,
+    founder: {
+      "@type": "Person",
+      name: BUSINESS_IDENTITY.representative,
     },
     knowsAbout: [
       {
