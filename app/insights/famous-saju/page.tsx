@@ -194,8 +194,13 @@ function getTopTags() {
 
 export default function FamousSajuInsightIndexPage() {
   const tags = getTopTags();
-  const visibleSeeds = publishedCelebritySajuSeeds.slice(0, SERVER_RENDERED_CARD_LIMIT);
-  const deferredSeeds = publishedCelebritySajuSeeds.slice(SERVER_RENDERED_CARD_LIMIT).map((item) => ({
+  // 검수된 고유 원고가 있는(색인되는) 인물은 항상 서버 렌더 구간에 둔다 — 지연 구간은 클라이언트가 채우므로
+  // 색인 페이지가 그 상세로 보내는 가시 <a> 가 없어져 readiness 가드가 고아 URL 로 잡는다.
+  const orderedSeeds = [...publishedCelebritySajuSeeds].sort(
+    (left, right) => Number(Boolean(getCelebrityEditorial(right.slug)?.reviewedAt)) - Number(Boolean(getCelebrityEditorial(left.slug)?.reviewedAt)),
+  );
+  const visibleSeeds = orderedSeeds.slice(0, SERVER_RENDERED_CARD_LIMIT);
+  const deferredSeeds = orderedSeeds.slice(SERVER_RENDERED_CARD_LIMIT).map((item) => ({
     slug: item.slug,
     nameKo: item.nameKo,
     category: item.category,
