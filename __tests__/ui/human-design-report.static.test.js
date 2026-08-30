@@ -25,6 +25,11 @@ const PAGE = read("app/human-design/report/page.tsx");
 const LOCKED = read("app/human-design/report/_components/ReportLockedPanel.tsx");
 const CHAPTER = read("app/human-design/report/_components/ReportChapter.tsx");
 const REPORT_CSS = read("app/human-design/report/report.module.css");
+const GENERATION = read("app/human-design/report/_components/GenerationProgress.tsx");
+const SCENE_CSS = read("app/human-design/report/_components/generation-scene.module.css");
+const HANDOFF = read("app/human-design/_lib/chart-handoff.ts");
+const COPY = read("app/human-design/report/_lib/copy.ts");
+const CONTRACT = read("worker/lib/human-design-report-contract.js");
 
 /**
  * 주석을 걷어낸 소스. 🔴 이 파일이 막는 것들은 대부분 **주석에 그 단어가 적혀 있다**
@@ -284,4 +289,72 @@ test("본문 언어는 저장된 report.locale 이다", () => {
     "🔴 본문 언어를 뷰어 언어에서 끌어오면 ko 리포트를 en 브라우저에서 열 때 웹과 PDF 가 갈린다",
   );
   assert.ok(CLIENT.includes("lang={bodyLocale}"), "본문에 lang 을 달지 않았다");
+});
+
+test("🔴 '작성 중' 장 수가 서버 동시성과 같다", () => {
+  // 한 웨이브가 실제로 집는 장 수만큼만 "작성 중" 이라고 말한다. 이 값이 서버보다 크면
+  // 아직 시작도 안 한 장을 쓰고 있다고 말하게 되고, 그건 지어낸 진행률이다.
+  const client = Number((GENERATION.match(/WRITING_WINDOW = (\d+)/) || [])[1]);
+  const server = Number((CONTRACT.match(/HD_REPORT_SECTION_CONCURRENCY = (\d+)/) || [])[1]);
+  assert.ok(Number.isFinite(client) && Number.isFinite(server), "동시성 상수를 못 읽었다");
+  assert.equal(client, server, "🔴 클라이언트의 '작성 중' 창이 서버 웨이브 동시성과 어긋난다");
+});
+
+test("🔴 생성 목록을 경과 시간으로 칠하지 않는다", () => {
+  // 상태는 완료 집합에서만 나온다. 이 파일에 elapsedMs 가 있는 것은 상단의 실측 경과
+  // 표시 때문이고, 목록을 그리는 자리로 새어 들어가면 그때부터 가짜 진행률이 된다.
+  const list = codeOnly(GENERATION).slice(codeOnly(GENERATION).indexOf("entries.map("));
+  assert.ok(list.length > 0, "목록 렌더 자리를 못 찾았다");
+  assert.ok(!/elapsed/i.test(list), "🔴 목록이 경과 시간을 읽는다 — 지어낸 진행률이다");
+  assert.ok(GENERATION.includes("completedKeys.has(entry.key)"), "상태를 완료 집합에서 얻지 않는다");
+});
+
+test("🔴 생성 화면이 배경을 새로 저작하지 않는다", () => {
+  assert.ok(GENERATION.includes("import { PipelineField }"), "무료 대기 화면의 필드를 재사용하지 않는다");
+  assert.ok(
+    !/\.nebula|\.stars\b|\.wireframe/.test(SCENE_CSS.replace(/\/\*[\s\S]*?\*\//g, "")),
+    "🔴 성운·별밭을 두 번째로 그렸다 — 한쪽만 바뀐다",
+  );
+});
+
+test("🔴 모션 감소에서 생성 씬이 최종 상태로 앉는다", () => {
+  // animation: none 만 두면 등장 키프레임의 시작값(opacity: 0)이 그대로 남아 목록이
+  // 통째로 사라진다. 끄는 것이 아니라 도착 상태로 앉혀야 한다.
+  const reduced = SCENE_CSS.slice(SCENE_CSS.indexOf("@media (prefers-reduced-motion: reduce)"));
+  assert.ok(reduced.length > 0, "모션 감소 블록이 없다");
+  const settled = (reduced.match(/\{[^{}]*\}/g) || []).filter((rule) => /animation: none;/.test(rule));
+  assert.ok(settled.length > 0, "모션 감소 규칙이 하나도 없다");
+  for (const rule of settled) {
+    assert.match(rule, /opacity:/, "🔴 애니메이션만 끄고 최종 opacity 를 안 박았다 — 그 요소가 사라진다");
+  }
+});
+
+test("statusWriting 카피가 다섯 언어 전부에 있다", () => {
+  const line = COPY.split("\n").find((row) => row.trim().startsWith("statusWriting:")) || "";
+  for (const locale of ["ko", "en", "ja", "zh-CN", "zh-TW"]) {
+    assert.ok(new RegExp(`["']?${locale}["']?:`).test(line), `statusWriting 에 ${locale} 이 없다`);
+  }
+  assert.ok(GENERATION.includes('"statusWriting"'), "저작된 카피를 아무도 안 쓴다");
+});
+
+test("🔴 리포트 화면이 같은 차트를 두 번 계산시키지 않는다", () => {
+  const code = codeOnly(CLIENT);
+  assert.ok(code.includes("readChartHandoff(stored)"), "차트 화면이 놓고 간 결과를 안 본다");
+  // 🔴 deps 에 locale 이 있으면 마운트 뒤 언어 재확정 때 차트 POST 가 한 번 더 나간다.
+  assert.match(
+    code,
+    /return \(\) => \{ cancelled = true; \};\s*\}, \[\]\);/,
+    "🔴 차트 이펙트의 deps 가 비어 있지 않다 — 언어 확정 때 이중 발화한다",
+  );
+});
+
+test("🔴 차트 인계는 표시 전용이다", () => {
+  const code = codeOnly(HANDOFF);
+  assert.ok(
+    !/reportId|accessType|accessSource|billing|passId|entitle/i.test(code),
+    "🔴 결제·이용권 상태를 클라이언트 저장소에 담았다",
+  );
+  assert.ok(code.includes("sessionStorage"), "세션 저장소를 안 쓴다");
+  assert.ok(!code.includes("localStorage"), "🔴 localStorage 는 탭을 넘겨 낡은 차트를 되살린다");
+  assert.ok(code.includes("sameBirth"), "출생 입력이 달라도 캐시를 쓴다");
 });

@@ -739,6 +739,106 @@ if (!hookSource) {
     /finally \{[\s\S]{0,120}clearTimeout\(timer\)/.test(fetchSource));
 }
 
+// ── ⑧ 생성 화면 · 차트 인계 · 계측 ───────────────────────────────────────────
+//
+// 🔴 여기서 지키는 것은 "지어낸 진행률" 금지선이다. 생성 화면이 무엇을 '작성 중' 이라고
+//    말하려면 그 근거가 **서버 계약**이어야 한다 — 경과 시간이면 안 된다.
+
+console.log("\n── ⑧ 생성 화면 · 차트 인계 · 계측 ──");
+
+const progressSource = readRepoFile("app/human-design/report/_components/GenerationProgress.tsx");
+check("생성 화면 파일이 있다", progressSource.length > 0);
+if (!progressSource) {
+  check("🔴 생성 화면을 읽지 못해 진행률 계약을 확인할 수 없다", false);
+} else {
+  const progressCode = codeLines(progressSource);
+  const writingWindow = Number((progressCode.match(/WRITING_WINDOW = (\d+)/) || [])[1] || 0);
+
+  check(`🔴 '작성 중' 장 수가 서버 동시성과 같다 (${writingWindow} = ${contract.HD_REPORT_SECTION_CONCURRENCY})`,
+    writingWindow > 0 && writingWindow === contract.HD_REPORT_SECTION_CONCURRENCY,
+    "서버보다 크면 아직 시작도 안 한 장을 작성 중이라고 말하게 된다");
+  check("🔴 '작성 중' 을 완료 여부에서 유도한다 (경과 시간이 아니다)",
+    /completedKeys\.has\(entry\.key\)/.test(progressCode) && /\.slice\(0, WRITING_WINDOW\)/.test(progressCode));
+
+  // 목록을 그리는 자리에 경과 시간이 얼씬하면 그게 곧 시간 기반 점등이다.
+  const listStart = progressCode.indexOf("entries.map(");
+  const listCode = listStart > 0 ? progressCode.slice(listStart) : "";
+  check("🔴 목록이 경과 시간을 읽지 않는다 (시간으로 칠하면 지어낸 진행률이다)",
+    listCode.length > 0 && !/elapsed/i.test(listCode));
+
+  check("이미 저작된 statusWriting 카피를 쓴다 (새 번역을 만들지 않는다)",
+    /"statusWriting"/.test(progressCode));
+  check("🔴 배경을 다시 그리지 않고 PipelineField 를 재사용한다",
+    /import \{ PipelineField \}/.test(progressCode) && /<PipelineField \/>/.test(progressCode));
+}
+
+const sceneCss = readRepoFile("app/human-design/report/_components/generation-scene.module.css");
+check("생성 씬 CSS 가 있다", sceneCss.length > 0);
+if (sceneCss) {
+  check("🔴 씬 CSS 가 성운·별밭을 복제하지 않는다 (정본은 pipeline-scene.module.css)",
+    !/\.nebula|\.stars\b|\.wireframe/.test(codeLines(sceneCss)));
+
+  const reduced = sceneCss.slice(sceneCss.indexOf("@media (prefers-reduced-motion: reduce)"));
+  check("모션 감소 블록이 있다", reduced.length > 0);
+  // 🔴 animation: none 만 두면 hdGenItemIn 의 시작 프레임(opacity: 0)이 그대로 남아
+  //    목록 18줄이 통째로 사라진다. 끄는 것이 아니라 최종 상태로 앉혀야 한다.
+  check("🔴 모션 감소에서 목록이 최종 상태로 앉는다 (사라지지 않는다)",
+    /\.item \{\s*animation: none;\s*transform: none;\s*opacity: 1;/.test(reduced));
+  // 🔴 규칙 **하나하나**가 최종 opacity 를 못박아야 한다. 총합만 세면 한 규칙이 두 번 적고
+  //    다른 규칙이 빠져도 통과하고, 빠진 그 요소만 투명한 채로 영원히 안 보인다.
+  const settledRules = (reduced.match(/\{[^{}]*\}/g) || []).filter((rule) => /animation: none;/.test(rule));
+  check(`🔴 모션 감소 규칙이 전부 opacity 를 함께 못박는다 (${settledRules.length}건)`,
+    settledRules.length > 0 && settledRules.every((rule) => /opacity:/.test(rule)));
+}
+
+const handoffSource = readRepoFile("app/human-design/_lib/chart-handoff.ts");
+check("차트 인계 모듈이 있다", handoffSource.length > 0);
+if (handoffSource) {
+  const handoffCode = codeLines(handoffSource);
+  // 🔴 표시 전용 계약. 결제·이용권 상태가 여기 들어가면 클라이언트가 고칠 수 있는 값이
+  //    유료 판정에 닿는다. 서버는 계속 자기 아카이브를 읽는다.
+  check("🔴 인계 캐시에 결제·이용권 상태를 담지 않는다",
+    !/reportId|accessType|accessSource|billing|passId|entitle/i.test(handoffCode));
+  check("🔴 세션 저장소만 쓴다 (탭을 닫으면 서버에 다시 묻는다)",
+    /sessionStorage/.test(handoffCode) && !/localStorage/.test(handoffCode));
+  check("출생 입력이 다르면 캐시를 버린다", /sameBirth/.test(handoffCode));
+}
+
+const reportClient = readRepoFile("app/human-design/report/HumanDesignReportClient.tsx");
+if (reportClient) {
+  const clientCode = codeLines(reportClient);
+  check("🔴 리포트 화면이 인계된 차트를 먼저 본다 (같은 차트를 두 번 계산시키지 않는다)",
+    /readChartHandoff\(stored\)/.test(clientCode));
+  // 🔴 locale 은 마운트 뒤 이펙트로 재확정된다. 차트 이펙트가 그것에 의존하면 ko 가 아닌
+  //    사용자에게 /api/human-design/chart 가 두 번 나간다.
+  check("🔴 차트 이펙트가 locale 에 의존하지 않는다 (이중 발화 금지)",
+    /return \(\) => \{ cancelled = true; \};\s*\}, \[\]\);/.test(clientCode));
+  check("차트 인계 키를 직접 적지 않고 공용 모듈에서 가져온다",
+    /BIRTH_STORAGE_KEY/.test(clientCode) && !/"cd_hd_birth_v1"/.test(clientCode));
+}
+
+const chartRoute = readRepoFile("worker/routes/human-design.js");
+const ephemeris = readRepoFile("worker/lib/human-design-ephemeris.js");
+if (chartRoute && ephemeris) {
+  const routeCode = codeLines(chartRoute);
+  // 🔴 재지 않은 구간은 없는 구간이 아니다. 인증·아카이브 조회가 pipeline 밖에 있으면
+  //    "차트가 느리다" 는 신고를 받아도 어디가 느린지 응답만 보고는 알 수 없다.
+  check("🔴 스테이지 타이머가 인증보다 먼저 시작한다",
+    routeCode.indexOf("createStageTimer") < routeCode.indexOf("requireAuth(request, env)"));
+  check("인증 구간을 잰다", /timer\.mark\("AUTH"\)/.test(routeCode));
+  check("아카이브 조회 미스 구간을 잰다", /timer\.mark\("ARCHIVE_LOOKUP"\)/.test(routeCode));
+  check("계산 내부 단계를 타이머에 배선한다", /onStage: \(stage\) => timer\.mark\(stage\)/.test(routeCode));
+
+  const ephemerisCode = codeLines(ephemeris);
+  for (const stage of ["PERSONALITY", "DESIGN_SEARCH", "DESIGN"]) {
+    check(`계산이 ${stage} 구간을 알린다`, new RegExp(`markStage\\("${stage}"\\)`).test(ephemerisCode));
+  }
+  // 🔴 계측을 위해 공용 Swiss 모듈에 워밍업 export 를 뚫지 않는다. 사주·서양점성술·베딕이
+  //    같은 모듈을 쓴다. 콜드 초기화 비용은 PERSONALITY 와 DESIGN 의 차이로 읽는다.
+  check("🔴 계측이 공용 Swiss 모듈을 건드리지 않는다",
+    !/warmSwiss|initSwiss|swissWarm/i.test(ephemerisCode));
+}
+
 // ── 결과 ─────────────────────────────────────────────────────────────────────
 
 if (failures.length) {

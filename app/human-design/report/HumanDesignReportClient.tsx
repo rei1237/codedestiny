@@ -24,6 +24,8 @@ import { reportContents } from "@/lib/human-design/report-sections";
 import type { HdChart } from "../_lib/types";
 import { resolveHumanDesignLocale, type Locale as ViewerLocale } from "../_copy";
 import { getCurrentLoadingLocale } from "@/constants/loadingMessages";
+import { PipelineField } from "../_components/PipelineScene";
+import { BIRTH_STORAGE_KEY, readChartHandoff } from "../_lib/chart-handoff";
 import ReportCover from "./_components/ReportCover";
 import ReportDownload from "./_components/ReportDownload";
 import GenerationProgress from "./_components/GenerationProgress";
@@ -34,11 +36,14 @@ import { say } from "./_lib/copy";
 import type { ReportLocale, ReportPlan } from "./_lib/types";
 import { useActiveChapter, useReadingProgress } from "./_lib/useActiveChapter";
 import { useReportGeneration } from "./_lib/useReportGeneration";
+import scene from "./_components/generation-scene.module.css";
 import styles from "./report.module.css";
 
-/** 차트 화면이 남긴 출생 입력. 리포트는 이 값으로 같은 차트를 다시 불러온다. */
-const BIRTH_STORAGE_KEY = "cd_hd_birth_v1";
-
+/**
+ * 차트 화면이 남긴 출생 입력. 리포트는 이 값으로 같은 차트를 얻는다.
+ * 🔴 키와 인계 규격은 ../_lib/chart-handoff.ts 한 곳에만 둔다 — 두 화면이 각자 문자열을
+ *    적어 두면 한쪽만 바뀌어도 아무도 실패하지 않고 조용히 어긋난다.
+ */
 type BirthInput = {
   birthDate: string;
   birthTime: string;
@@ -89,18 +94,33 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
   const [birth, setBirth] = useState<BirthInput | null>(null);
   const [chart, setChart] = useState<HdChart | null>(null);
   const [inputHash, setInputHash] = useState("");
-  const [chartError, setChartError] = useState("");
+  // 🔴 에러를 **번역된 문장**으로 들고 있지 않는다. 그러면 아래 이펙트가 locale 에 의존하게
+  //    되고, locale 은 마운트 뒤에 이펙트로 재확정되므로(useReportViewerLocale) ko 가 아닌
+  //    사용자는 차트 POST 가 **두 번** 나갔다. 키로 들고 있다가 렌더에서 번역한다.
+  const [chartError, setChartError] = useState<{ key: "needChart" | "serverError" } | { text: string } | null>(null);
   const articleRef = useRef<HTMLDivElement | null>(null);
 
   // ① 무료 차트를 먼저 확보한다. 리포트의 표·도표·근거가 전부 이 계산에서 나오고,
   //    아카이브 히트면 재계산 없이 즉시 돌아온다.
+  // 🔴 deps 가 비어 있는 것은 의도다. 여기 있는 값 중 리액티브한 것이 하나도 없어야
+  //    "언어가 확정되면서 차트를 한 번 더 부르는" 이중 발화가 원리상 생기지 않는다.
   useEffect(() => {
     const stored = readBirth();
     if (!stored) {
-      setChartError(say("needChart", locale));
+      setChartError({ key: "needChart" });
       return;
     }
     setBirth(stored);
+
+    // 같은 탭에서 차트 화면이 방금 받아 놓고 간 것이 있으면 서버에 다시 묻지 않는다.
+    // 아카이브 히트여도 인증 + Mongo 왕복 한 벌은 그대로 들고, 그동안 화면은 비어 있었다.
+    const handed = readChartHandoff(stored);
+    if (handed) {
+      setChart(handed.chart);
+      setInputHash(handed.inputHash);
+      return;
+    }
+
     let cancelled = false;
     void (async () => {
       // 차트 화면과 **같은 본문 모양**으로 보낸다. 서버가 같은 inputHash 를 유도해야 이미
@@ -108,14 +128,20 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
       const { data } = await postPaidBody("/api/human-design/chart", { birth: stored });
       if (cancelled) return;
       if (!data?.ok || !data.chart) {
-        setChartError(typeof data?.message === "string" && data.message ? data.message : say("serverError", locale));
+        setChartError(
+          typeof data?.message === "string" && data.message ? { text: data.message } : { key: "serverError" },
+        );
         return;
       }
       setChart(data.chart as HdChart);
       setInputHash(String(data.inputHash || ""));
     })();
     return () => { cancelled = true; };
-  }, [locale]);
+  }, []);
+
+  const chartErrorText = chartError
+    ? ("text" in chartError ? chartError.text : say(chartError.key, locale))
+    : "";
 
   // 🔴 본문 언어는 뷰어 언어를 따르지 않는다. 서버 생성 계약이 ko|en 이고, 무엇보다
   //    이 값이 stableRequestId 에 들어가 **결제 요청 식별자**가 된다 — 바꾸면 지금까지
@@ -159,15 +185,25 @@ export default function HumanDesignReportClient({ locale: localeOverride }: { lo
         <Link className={styles.exit} href="/">{say("home", locale)}</Link>
       </div>
 
-      {chartError && (
+      {chartErrorText && (
         <section className={styles.notice}>
-          <p className={styles.error} role="alert">{chartError}</p>
+          <p className={styles.error} role="alert">{chartErrorText}</p>
           <Link className={styles.buyButton} href="/human-design">{say("goBuildChart", locale)}</Link>
         </section>
       )}
 
-      {!chartError && !chart && (
-        <p className={styles.notice} aria-busy="true">{say("loading", locale)}</p>
+      {/* 🔴 여기도 생성 화면과 **같은 씬**을 쓴다. 예전에는 맨 텍스트 한 줄이라 차트가 늦게
+          오면 화면이 죽은 것처럼 보였다. 세 점은 진행률이 아니라 살아 있다는 표시다. */}
+      {!chartErrorText && !chart && (
+        <section className={`${scene.loading} ${scene.scene}`} aria-busy="true" aria-live="polite">
+          <PipelineField />
+          <p className={scene.loadingLine}>{say("loading", locale)}</p>
+          <p className={scene.loadingDots} aria-hidden="true">
+            {[0, 1, 2].map((i) => (
+              <span key={i} className={scene.loadingDot} style={{ ["--hd-gen-i" as string]: i }} />
+            ))}
+          </p>
+        </section>
       )}
 
       {chart && phase === "locked" && (

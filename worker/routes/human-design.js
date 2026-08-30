@@ -135,15 +135,20 @@ function createStageTimer(now) {
 }
 
 async function handleChart(request, env) {
+  // 🔴 타이머를 인증 **앞에서** 만든다. 2026-08-30 까지는 auth·본문 파싱이 끝난 뒤에 시작해
+  //    "차트가 느리다"는 신고를 받아도 그 구간이 pipeline 에 아예 없었다. 재지 않은 구간은
+  //    없는 구간이 아니다.
+  const now = () => Date.now();
+  const timer = createStageTimer(now);
+
   const auth = await requireAuth(request, env);
+  timer.mark("AUTH");
   const body = await readJson(request);
   const input = normalizeBirthBody(body);
   if (!isValidBirth(input)) {
     return json({ ok: false, reason: "INVALID_INPUT", message: MESSAGES.invalidInput }, { status: 400 });
   }
 
-  const now = () => Date.now();
-  const timer = createStageTimer(now);
   const inputHash = await sha256Hex(inputHashSource(input));
   timer.mark("BIRTH_DATA");
 
@@ -161,6 +166,10 @@ async function handleChart(request, env) {
     );
   }
 
+  // 히트 경로는 위에서 ARCHIVE_HIT 으로 이미 쟀다. 미스 경로의 조회 비용은 여기서만 보인다 —
+  // 안 재면 아래 CHART 에 섞여 들어가 "계산이 느리다"로 잘못 읽힌다.
+  timer.mark("ARCHIVE_LOOKUP");
+
   // 🔴 여기서부터가 무과금 WASM 계산이다. 아카이브 히트는 위에서 이미 빠져나갔으므로
   //    이 상한은 "새 차트를 몇 개나 만들 수 있는가" 만 센다.
   if (!allowCalculation(auth.userId)) {
@@ -175,6 +184,9 @@ async function handleChart(request, env) {
     chart = await calculateHumanDesignChart(env, input, {
       requestUrl: request.url,
       calculatedAt: new Date().toISOString(),
+      // 계산 내부를 PERSONALITY / DESIGN_SEARCH / DESIGN 으로 쪼개 실측한다. 아래 CHART 는
+      // 그 뒤에 남는 조립 구간이 된다.
+      onStage: (stage) => timer.mark(stage),
     });
   } catch (error) {
     const message = String(error?.message || error);
