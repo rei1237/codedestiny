@@ -450,9 +450,45 @@ export async function enforceSensitiveEndpointSecurity(options = {}) {
   return limited;
 }
 
-function aiActionFromPath(path = "") {
+/**
+ * `/generate` 가 `/start` 의 **별칭이 아니라** 이어짓기(웨이브) 호출인 서비스들.
+ *
+ * 리포트 1건은 엣지 응답 데드라인(100초) 때문에 한 요청에 다 담기지 않아서, 클라이언트가
+ * 완료될 때까지 `/generate` 를 반복 호출한다(휴먼 디자인 18섹션 = 서버 상한 10웨이브).
+ * 그래서 `/generate` 를 `/start` 와 같은 일일 버킷에 넣으면 **리포트 1건이 일일 예산을 6~11건씩
+ * 먹어** 60건 예산이 사용자당 하루 8~10건으로 쪼그라든다(2026-08-30 확인).
+ *
+ * 🔴 여기 없는 서비스의 `/generate` 는 `/start` 별칭으로 본다 — 실제로 ziwei-ai·life-book-ai·
+ *    love-secret-ai·ziwei-island-ai·sukuyo-compatibility-ai 는 두 경로가 같은 handleStart 로
+ *    가므로, 따로 버킷을 주면 일일 천장이 두 배가 된다. 즉 기본값이 엄격한 쪽이다.
+ * 🔴 이 목록이 낡으면 verify:worker-security-guards 가 라우트 소스를 전수 훑어 실패시킨다
+ *    (`/generate` 디스패치가 handleGenerate 인지 handleStart 인지로 판별).
+ */
+export const WAVE_GENERATE_SERVICE_KEYS = Object.freeze([
+  "human-design-report",
+  "master-love-codex",
+  "nakshatra-ai",
+  "naming-prompt",
+  "ziwei-deep-report",
+]);
+const WAVE_GENERATE_SERVICES = new Set(WAVE_GENERATE_SERVICE_KEYS);
+
+/**
+ * 일일 버킷. `start` 가 "리포트를 몇 건이나 시작할 수 있는가" 의 천장이고,
+ * `generate` 는 **그 천장만큼의 리포트를 끝까지 완주시키는 데 필요한 몫**이지 새 천장이 아니다
+ * (60건 × 서버 웨이브 상한 10회).
+ */
+const AI_DAILY_BUDGETS = Object.freeze({
+  start: { limit: 60, windowSeconds: 24 * 60 * 60 },
+  generate: { limit: 600, windowSeconds: 24 * 60 * 60 },
+});
+
+export function aiActionFromPath(path = "", serviceKey = "") {
   const normalized = cleanText(path, 200).toLowerCase();
-  if (/\/(start|generate|create|consult)$/.test(normalized)) return "start";
+  if (/\/generate$/.test(normalized)) {
+    return WAVE_GENERATE_SERVICES.has(cleanText(serviceKey, 80)) ? "generate" : "start";
+  }
+  if (/\/(start|create|consult)$/.test(normalized)) return "start";
   if (/\/(prepare|ensure-access|access|checkout)$/.test(normalized)) return "ensure";
   if (/\/(message|refine|chat)$/.test(normalized)) return "message";
   if (/\/(result|session|consultation)/.test(normalized) || /^\/[^/]+$/.test(normalized)) return "result";
@@ -460,7 +496,7 @@ function aiActionFromPath(path = "") {
 }
 
 export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", path = "", userId = "" } = {}) {
-  const action = aiActionFromPath(path);
+  const action = aiActionFromPath(path, serviceKey);
   if (!action) return { ok: true };
   const auth = userId ? null : await getOptionalUserFromRequest(request, env).catch(() => null);
   const resolvedUserId = userId || String(auth?.userId || "");
@@ -468,9 +504,10 @@ export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", 
   const isRead = action === "result" && method === "GET";
   const allowedMethods = isRead ? ["GET"] : ["POST"];
   const endpoint = `ai:${cleanText(serviceKey, 80)}:${action}`;
-  const rateLimit = isRead
-    ? { limit: 100, windowSeconds: 60 }
-    : { limit: 15, windowSeconds: 60 };
+  // 🔴 이어짓기는 락 경합(409 GENERATION_IN_PROGRESS)일 때 4초 간격으로 다시 묻는다 —
+  //    분당 15 면 그 간격과 정확히 겹쳐 정상 대기가 429 로 끊긴다. 이어짓기에만 여유를 준다.
+  const perMinuteLimit = isRead ? 100 : (action === "generate" ? 30 : 15);
+  const rateLimit = { limit: perMinuteLimit, windowSeconds: 60 };
   const primary = await enforceSensitiveEndpointSecurity({
     env,
     request,
@@ -483,15 +520,16 @@ export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", 
     maxPayloadBytes: 256 * 1024,
   });
   if (!primary.ok) return primary;
-  if (action === "start") {
+  const dailyBudget = AI_DAILY_BUDGETS[action];
+  if (dailyBudget) {
     const daily = await enforceRateLimit({
       env,
       request,
       userId: resolvedUserId,
       endpoint: `${endpoint}:daily`,
-      key: `${resolvedUserId || getRequestMeta(request).ip}:${serviceKey}:start:daily`,
-      limit: 60,
-      windowSeconds: 24 * 60 * 60,
+      key: `${resolvedUserId || getRequestMeta(request).ip}:${serviceKey}:${action}:daily`,
+      limit: dailyBudget.limit,
+      windowSeconds: dailyBudget.windowSeconds,
     });
     if (!daily.ok) return daily;
   }

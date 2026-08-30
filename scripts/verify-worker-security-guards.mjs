@@ -107,6 +107,59 @@ assertBefore(profile, "const security = await enforceProfileRouteSecurity(reques
   );
 });
 
+/* `/generate` 의 일일 버킷 분류를 **라우트 소스에서 전수 발견**해 대조한다.
+   손으로 쓴 목록은 가드가 아니다(코딩 원칙 10). 여기서는 worker/index.js 의 보안 배선에서
+   serviceKey → 라우트 파일을 뽑고, 각 파일의 `/generate` 디스패치가 handleGenerate(이어짓기)
+   인지 handleStart(`/start` 별칭)인지 읽어 security 모듈의 WAVE_GENERATE_SERVICE_KEYS 와
+   **정확히 일치**하는지 본다. 미분류(둘 다 아님)는 통과가 아니라 실패다.
+
+   왜 필요한가: 이어짓기 서비스를 목록에서 빠뜨리면 리포트 1건이 일일 예산을 6~11건씩 먹어
+   사용자가 하루 8~10건에서 막히고, 반대로 별칭 서비스를 넣으면 일일 천장이 두 배가 된다. */
+const wiredAiServices = new Map();
+for (const [, serviceKey, handler] of workerIndex.matchAll(
+  /runAiRouteWithSecurity\(request, env, "([^"]+)", (\w+)/g,
+)) {
+  wiredAiServices.set(serviceKey, handler);
+}
+assert.ok(wiredAiServices.size > 10, "ai route wiring: runAiRouteWithSecurity 배선을 하나도 못 읽었다");
+
+const lazyRouteModules = new Map();
+for (const [, handler, file] of workerIndex.matchAll(
+  /const (\w+) = createLazyRouteHandler\("\.\/routes\/([\w.-]+)"/g,
+)) {
+  lazyRouteModules.set(handler, file);
+}
+
+const discoveredWaveServices = [];
+for (const [serviceKey, handler] of wiredAiServices) {
+  const file = lazyRouteModules.get(handler);
+  assert.ok(file, `ai route ${serviceKey}: ${handler} 의 라우트 모듈을 못 찾았다`);
+  const lines = source(`worker/routes/${file}`).split("\n");
+  const kinds = new Set();
+  lines.forEach((line, index) => {
+    if (!line.includes('path === "/generate"')) return;
+    const statement = /handleGenerate\(|handleStart\(/.test(line) ? line : `${line}\n${lines[index + 1] || ""}`;
+    if (statement.includes("handleGenerate(")) kinds.add("wave");
+    else if (statement.includes("handleStart(")) kinds.add("alias");
+    else assert.fail(`ai route ${serviceKey} (${file}:${index + 1}): /generate 디스패치를 분류할 수 없다`);
+  });
+  assert.ok(kinds.size <= 1, `ai route ${serviceKey}: /generate 가 이어짓기와 별칭으로 동시에 배선됐다`);
+  if (kinds.has("wave")) discoveredWaveServices.push(serviceKey);
+}
+
+const declaredWaveBlock = security.match(/WAVE_GENERATE_SERVICE_KEYS = Object\.freeze\(\[([\s\S]*?)\]\)/);
+assert.ok(declaredWaveBlock, "security module: WAVE_GENERATE_SERVICE_KEYS 선언을 못 읽었다");
+const declaredWaveServices = [...declaredWaveBlock[1].matchAll(/"([^"]+)"/g)].map(([, key]) => key);
+assert.deepEqual(
+  [...declaredWaveServices].sort(),
+  [...discoveredWaveServices].sort(),
+  "security module: WAVE_GENERATE_SERVICE_KEYS 가 라우트 소스의 이어짓기 `/generate` 목록과 다르다",
+);
+assert.ok(discoveredWaveServices.length > 0, "ai route wiring: 이어짓기 `/generate` 를 하나도 못 찾았다");
+// 이어짓기는 `/start` 와 **다른** 일일 버킷을 써야 한다 — 같은 키로 돌아가면 이 가드 전체가 무의미하다.
+assertContains(security, "const dailyBudget = AI_DAILY_BUDGETS[action];", "ai daily budget lookup by action");
+assertContains(security, "generate: { limit:", "ai daily budget: generate 버킷");
+
 assertNotContains(security, "usage_pass", "security module usage pass access type");
 assertNotContains(security, "usagePass", "security module usage pass fields");
 
