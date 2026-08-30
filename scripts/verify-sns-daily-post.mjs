@@ -15,6 +15,9 @@
  *   ⑥ 태스크가 worker/index.js 의 일일 크론 목록에 실제로 배선돼 있다.
  *   ⑦ 배포 스위치(SNS_DAILY_POST_ENABLED)가 두 wrangler 설정에 같은 값으로 있고, 그 값을
  *     isEnabled 가 해석할 수 있다 — 오타는 조용한 꺼짐이 된다.
+ *   ⑧ 발행 실패가 DB 에 failed 로 **남는다**(잠금 삭제 금지) — 2026-08-29 크론이 흔적 없이 실패했다.
+ *     같은 날 재시도는 failed 문서 재선점(findOneAndUpdate)으로만 연다.
+ *   ⑨ 관리자 수동 실행·상태 조회(/api/admin/sns-daily-post)가 배선돼 있고 크론과 같은 태스크를 부른다.
  *
  * 실행: npm run verify:sns-daily-post
  */
@@ -220,4 +223,36 @@ function jsonResponse(body, status = 200) {
   );
 }
 
-console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능(실제 발행 0회)");
+/* ⑧ 실패는 지우지 않고 failed 로 남긴다. 예전 구현은 실패 시 잠금을 deleteOne 해서 idempotency_keys 에
+      cron:sns-daily-post 문서가 0건이었고, 2026-08-29 22:00Z 크론이 왜 발행을 못 했는지 아무도 알 수 없었다.
+      재시도 경로는 failed 문서 재선점(findOneAndUpdate) 하나뿐이어야 한다 — 삭제가 돌아오면 흔적도 같이 사라진다. */
+{
+  const taskSource = fs.readFileSync(path.join(ROOT, "worker/lib/sns-daily-post-task.js"), "utf8");
+  assert.ok(!/IdempotencyKey\.deleteOne\(/.test(taskSource), "태스크가 잠금을 deleteOne 한다 — 실패 흔적이 사라진다(⑧)");
+  assert.ok(/status: "failed"/.test(taskSource), "태스크가 실패를 status: \"failed\" 로 기록하지 않는다(⑧)");
+  assert.ok(
+    /IdempotencyKey\.findOneAndUpdate\([\s\S]*?status: "failed"/.test(taskSource),
+    "failed 문서를 재선점하는 findOneAndUpdate 가 없다 — 실패한 날은 재시도가 영영 막힌다(⑧)",
+  );
+  assert.ok(/responseRef:\s*\{\s*error:/.test(taskSource), "실패 사유(responseRef.error)를 남기지 않는다(⑧)");
+}
+
+/* ⑨ 관리자 수동 실행·상태 조회가 배선돼 있고, 크론과 **같은** runSnsDailyPostTask 를 부른다 —
+      별도 발행 경로가 생기면 잠금·플래그를 우회한다(CLAUDE.md 원칙 6). */
+{
+  const adminSource = fs.readFileSync(path.join(ROOT, "worker/routes/admin.js"), "utf8");
+  assert.ok(adminSource.includes('path === "/sns-daily-post"'), "admin.js 에 /sns-daily-post 위임이 없다(⑨)");
+  assert.ok(adminSource.includes('import("./admin-sns.js")'), "admin.js 가 admin-sns.js 를 지연 import 하지 않는다(⑨)");
+  const delegation = adminSource.split('path === "/sns-daily-post"')[1].split("}")[0];
+  assert.ok(delegation.includes("authorizeAdminRequest(request, env)"), "/sns-daily-post 위임이 관리자 인증을 거치지 않는다(⑨)");
+
+  const snsSource = fs.readFileSync(path.join(ROOT, "worker/routes/admin-sns.js"), "utf8");
+  assert.ok(
+    /import \{ runSnsDailyPostTask \} from "\.\.\/lib\/sns-daily-post-task\.js"/.test(snsSource),
+    "admin-sns.js 가 크론과 같은 runSnsDailyPostTask 를 import 하지 않는다(⑨)",
+  );
+  assert.ok(!snsSource.includes("sendTelegramMessage"), "admin-sns.js 가 태스크를 우회해 직접 발행한다(⑨)");
+  assert.ok(snsSource.includes('path === "/run"') && snsSource.includes('path === "/status"'), "run/status 경로가 없다(⑨)");
+}
+
+console.log("[verify-sns-daily-post] 통과 — 기본 꺼짐 · throw 없음 4종 · 토큰 URL 미로깅 · 링크 실재 8건 · 시각 반영 · 크론 배선 · 배포 스위치 해석 가능 · 실패 기록 유지 · 관리자 수동 실행 배선(실제 발행 0회)");
