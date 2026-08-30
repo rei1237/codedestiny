@@ -1813,6 +1813,9 @@ fusionFortuneConsultationSchema.index({ userId: 1, createdAt: -1 });
 // NOTE: db.js는 autoIndex:false로 연결하므로 이 선언만으로는 실제 인덱스가 생성되지 않는다 —
 // scripts/migrations/20260711-add-monthly-credit-lot-expiry.mjs를 DB에 1회 실행할 것.
 userSchema.index({ "profileSubscription.membershipCreditLots.expiresAt": 1 });
+// 가입 시 referralCode 유일성 루프(worker/routes/auth.js createUniqueReferralCode)가 users 를 COLLSCAN 하던 것
+// (실측 docs/db-query-plans-2026-08-30.md). 실제 생성은 scripts/migrations/20260830-add-request-path-indexes.mjs.
+userSchema.index({ referralCode: 1 }, { sparse: true });
 
 export const User = mongoose.models.User || mongoose.model("User", userSchema);
 export const ProfileCard = mongoose.models.ProfileCard || mongoose.model("ProfileCard", profileCardSchema);

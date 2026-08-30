@@ -3974,7 +3974,8 @@ async function handleContentDiag(request, env) {
     dynamicRss,
     dynamicInsightsRss,
   ] = await adminMongoRead(env, async () => Promise.all([
-    Insight.countDocuments({}),
+    // 전체 건수는 메타데이터 읽기로 — countDocuments({}) 는 COLLSCAN 이다(근사값이라 대시보드에만 쓴다).
+    Insight.estimatedDocumentCount(),
     Insight.countDocuments({
       $or: [{ type: "fortune_insight" }, { type: { $exists: false } }, { type: "" }],
     }),
