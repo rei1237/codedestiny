@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: "390x844 실기기에서 히어로 CLS 재고 → 이상 없으면 docs/code-destiny-audit.md §5 P2. 홈 '고르는 면' 추가 축소는 아래 '기각' 절을 먼저 읽을 것"
+next: "docs/code-destiny-audit.md §5 P4(퍼널 이벤트 계측). P1·P2 완료, P3 는 실측해 보니 이미 끝나 있었다(감사 문서 §5). 홈 '고르는 면' 추가 축소는 아래 '기각' 절을 먼저 읽을 것"
 ---
 
 # 홈 포지셔닝 · 단순화
@@ -13,11 +13,12 @@ next: "390x844 실기기에서 히어로 CLS 재고 → 이상 없으면 docs/co
 
 ## 지금 상태
 
-브랜치 `worktree-home-hero-positioning-0830`, PR **#1298 미머지**(CI 전부 통과). 커밋 3건. 삭제 0건 · 라우트/결제 경로 변경 0건.
+PR **#1298 머지됨**(2026-08-30 00:50Z). 이어서 P2 를 브랜치 `worktree-home-whyus-before-signature`(origin/main 분기)에서 작업했다. 삭제 0건 · 라우트/결제 경로 변경 0건.
 
 1. H1·lead — 교차검증 주장을 사이트 전체가 아니라 `/fusion-fortune/` 한 상품으로 좁히고, 무료 경계를 같은 줄에서 밝혔다.
 2. `#cdTodayPick` 접기(`data-cd-home-secondary`).
 3. `#cdWhyUs` 에 교차검증 결과 형태(`.cd-why-us__proof`) 추가.
+4. (P2) `#cdWhyUs` 를 자기 `<style id="cd-why-us-v20260824">`·주석과 함께 `#cdSignatureConsult` **앞으로** 이동. 82줄 순수 이동, 문구 변경 0건.
 
 감사·로드맵은 [docs/code-destiny-audit.md](../code-destiny-audit.md) §5(P1~P6).
 
@@ -37,11 +38,34 @@ next: "390x844 실기기에서 히어로 CLS 재고 → 이상 없으면 docs/co
 
 결론: **접기 장치는 이미 쓸 수 있는 곳에 다 쓰여 있다.** 홈 밀도를 더 줄이려면 접기가 아니라 (a) `#cdFinder` 기본 렌더 신설 또는 (b) 가격 이관 후 대표 상담 통합이 선행이어야 하고, 둘 다 새 동작이라 별도 PR·별도 CLS 실측이 필요하다.
 
+## P1 실측 (2026-08-30, 로컬 dist + Chrome headless CDP)
+
+| 프로필 | 히어로 높이 | 12초간 높이 변화 | CLS | H1 줄 |
+|---|---|---|---|---|
+| 390x844 DPR3 | 618px | **0px** | 0.00082 | 3 |
+| 412x823 DPR1.75 | 605px | **0px** | 0.00082 | 3 |
+
+- 잡힌 시프트는 1건이고 히어로가 아니다 — `div.theme-switch-pill`(1.2~1.9초).
+- 390px 에서 lead 는 3줄인데 **잘리지 않는다**: 활성 런타임에서 `-webkit-line-clamp` 가 `none` 으로 풀리고 `clientHeight == scrollHeight`(75px).
+- 🔴 **광고발 CLS 는 안 들어 있다**(로컬 dist). 이 수치는 히어로가 첫 페인트 뒤 안 움직인다는 근거이지 홈 전체 CLS 가 아니다 — 그건 프로덕션에서만 유효하다.
+- 재현: dist 를 정적 서빙하고 CDP 로 `Emulation.setDeviceMetricsOverride` + `layout-shift` PerformanceObserver + `.normal-logo.moon-hero` rAF 샘플링. 일회용 스크립트라 커밋하지 않았다.
+
+## P2 실측 (같은 조건, 이동 전/후)
+
+`#cdWhyUs` 3771 → **2959**, `#cdSignatureConsult` 2947 → **3640**(390x844 기준 문서 좌표).
+CLS·히어로·`docHeight`(12121)는 이동 전과 같다. `#cdWhyUs` 에는 `content-visibility` 가 안 걸려 있고, `#cdSignatureConsult` 의 `contain-intrinsic-size: auto 792px` 는 실측 높이 792px 과 일치해 이동으로 어긋나지 않는다.
+
+## P3 는 재실측으로 닫았다 (2026-08-30)
+
+로드맵 P3(얇은 라우트 7개 본문 + `/ziwei/chart` 색인)은 **착수해 보니 이미 끝나 있었다.**
+근거 문서가 2026-08-24 **오전** 값을 옮겨 적었고 같은 날 오후에 해소됐다. 수치·재현은
+[docs/code-destiny-audit.md](../code-destiny-audit.md) §5 "P3 를 다시 열지 말 것".
+코드 변경 0건 — 문서 3건만 고쳤다.
+
 ## 남은 작업
 
-- [ ] **실기기 CLS 검증** — 390x844 에서 히어로 높이 변화 0px. `verify:hero-firstpaint-lock` 은 마크업 구조만 보므로 대신하지 못한다. (`#cdWhyUs` 는 폴드 아래라 초기 레이아웃 변화지 시프트가 아니다 — `추정`, 미측정)
 - [ ] **비색인 7개 로케일**(vi·hi·es·fr·de·nl·ms)의 히어로 lead·2차 CTA 는 옛 문구. 의도된 보류. `home.whyUs.proof.*` 는 영어 복사본이 들어가 있다.
-- [ ] 로드맵 P2 이후 — 감사 문서 §5.
+- [ ] 로드맵 P3 이후 — 감사 문서 §5.
 
 ## 정본 위치
 
@@ -58,7 +82,7 @@ next: "390x844 실기기에서 히어로 CLS 재고 → 이상 없으면 docs/co
 - 🔴 `index.html` 을 고치면 lastmod 가 움직여 **매번 `npm run sitemap:generate`** 가 필요하다. 안 하면 CI 가 "Typecheck and lint" 이름으로 빨개진다(#1298 에서 두 번 겪음).
 - `data-cd-home-secondary` 는 `display:none!important` 를 즉시 적용한다. `#cdHomeSecondaryPanel` 안의 4개 섹션에는 쓰지 말 것 — 그 패널은 `grid-template-rows` 애니메이션이다.
 
-## 검증 (2026-08-30 전부 통과)
+## 검증 (2026-08-30 전부 통과 — P1·P2 두 라운드)
 
 ```
 npm run sync:public && npm run verify:public-parity && npm run sitemap:generate
@@ -69,6 +93,8 @@ npm run verify:home-service-registry && npm run verify:paid-gate-price-coverage
 npm run verify:payment-freeze && npm run verify:adsense-readiness
 npm run i18n:check && npm run verify:locale-main-sync
 npm run lint && npm run typecheck && npm test && npm run test:node
+npm run verify:master-love-codex-flow   # 이 가드가 셸을 id=cdSignatureConsult 부터 잘라 읽는다
+npm run build:cf                       # postbuild 의 [adsense-readiness] OK 까지 확인
 ```
 
 ## 모르는 것
