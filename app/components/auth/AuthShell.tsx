@@ -422,6 +422,27 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     window.addEventListener("cd:auth-cancelled", release);
     return () => window.removeEventListener("cd:auth-cancelled", release);
   }, []);
+  // 🔴 키보드가 올라오면 안드로이드 웹뷰가 창을 줄인다(AndroidManifest windowSoftInputMode=adjustResize).
+  // 그때 카드가 보이는 높이보다 길어지면서 포커스된 칸이 키보드 뒤로 들어간다. 높이가 줄어든
+  // 순간에만 그 칸을 화면 가운데로 끌어올린다 — 늘어날 때(키보드 내림)는 아무것도 하지 않는다.
+  // 🔴 visualViewport 구독을 여기 말고 또 만들지 말 것 — /login·/signup 은
+  // app/app/_components/AppShell.tsx 바깥이라 그쪽 구독이 닿지 않고, 이 화면에서는 여기가
+  // 유일한 지점이다(원칙 6 중첩 사전검사).
+  useEffect(() => {
+    const viewport = window.visualViewport;
+    if (!viewport) return undefined;
+    let previousHeight = viewport.height;
+    const onViewportResize = () => {
+      const shrank = previousHeight - viewport.height > KEYBOARD_SHRINK_PX;
+      previousHeight = viewport.height;
+      if (!shrank) return;
+      const active = document.activeElement;
+      if (!(active instanceof HTMLElement) || !active.closest("form")) return;
+      active.scrollIntoView({ block: "center", behavior: "smooth" });
+    };
+    viewport.addEventListener("resize", onViewportResize);
+    return () => viewport.removeEventListener("resize", onViewportResize);
+  }, []);
 
   // 🔴 서버(worker/lib/validation.js validateBirthYear)와 같은 규칙이다. 여기 검사는 우회
   // 방지가 아니라 오타를 그 자리에서 알려주기 위한 것이고, 판정의 정본은 언제나 서버다.
@@ -554,8 +575,8 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const needsBirthYear = isSignup && !ageVerifiedByProvider;
   return <main className="relative min-h-[100dvh] overflow-x-hidden bg-[#090b1a] px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1.25rem+env(safe-area-inset-top))] text-white [color-scheme:dark] sm:px-6">
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(125,92,190,.32),transparent_42%),linear-gradient(180deg,#11132a_0%,#090b1a_72%)]" />
-    <div className="relative mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2.5rem)] w-full max-w-[440px] items-center py-3">
-      <section className="w-full rounded-[24px] border border-[#c9b7f0]/20 bg-[#12152b] p-5 shadow-[0_24px_70px_rgba(0,0,0,.38)] sm:p-7" aria-labelledby="auth-title">
+    <div className="relative mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2.5rem)] w-full max-w-[440px] py-3">
+      <section className="my-auto w-full rounded-[24px] border border-[#c9b7f0]/20 bg-[#12152b] p-5 shadow-[0_24px_70px_rgba(0,0,0,.38)] sm:p-7" aria-labelledby="auth-title">
         <header className="text-center"><img src="/icons/app-logo-96.png" width="52" height="52" alt="" className="mx-auto h-[52px] w-[52px] rounded-2xl" /><h1 id="auth-title" className="mt-4 text-balance text-[1.55rem] font-black tracking-[-0.025em]">{appReturnUrl ? copy.returnToApp : ticket ? copy.finishTitle : isSignup ? copy.signupTitle : copy.loginTitle}</h1><p className="mx-auto mt-2 max-w-[38ch] text-pretty text-sm leading-6 text-[#d8d0ea]">{appReturnUrl ? copy.returnToAppHint : ticket ? copy.finishDescription : isSignup ? copy.signupDescription : copy.loginDescription}</p></header>
         <div className="my-4 min-h-6" aria-live="polite">{error ? <p id="auth-error" role="alert" className="rounded-xl border border-[#ff8ca5]/40 bg-[#421d2a] px-3 py-2.5 text-sm text-[#ffd7df]">{error}</p> : null}</div>
         {appReturnUrl ? <a href={appReturnUrl} className="flex min-h-12 w-full items-center justify-center rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff]">{copy.returnToApp}</a> : null}
@@ -587,6 +608,10 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     </div>
   </main>;
 }
+
+// 이보다 크게 줄어들면 키보드가 올라온 것으로 본다. 주소창 숨김 같은 잔변화(보통 60px 미만)와
+// 구분하려고 둔 값이고, 소프트 키보드는 세로 화면에서 이보다 훨씬 크게 먹는다.
+const KEYBOARD_SHRINK_PX = 120;
 
 // 입력 클래스 정본은 ./styles.ts 다 — /onboarding 과 같은 문자열을 써야 퍼널 안에서 이음매가 없다.
 const inputClass = AUTH_INPUT;
