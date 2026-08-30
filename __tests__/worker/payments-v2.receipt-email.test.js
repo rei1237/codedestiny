@@ -140,6 +140,33 @@ describe("sendPendingReceiptEmails", () => {
     expect(order.receiptEmailSentAt).toBeNull();
   });
 
+  test("🔴 계정 설정 실패면 첫 주문에서 배치를 멈춘다 (같은 403 을 주문 수만큼 쌓지 않는다)", async () => {
+    const db = makeFakePaymentDb();
+    const first = seed(db);
+    const second = seed(db, { _id: "pay-2", merchantUid: "cd_order_0002" });
+    const failing = recorder({ ok: false, status: 403, error: "domain is not verified", configError: true, from: "Code Destiny <admin@code-destiny.com>" });
+
+    const report = await sendPendingReceiptEmails(ENV, db, { now: NOW, send: failing.send });
+
+    expect(failing.calls).toHaveLength(1);
+    expect(report).toMatchObject({ scanned: 2, sent: 0, failed: 1, configError: true });
+    // 🔴 선점은 풀려 있어야 한다 — 설정이 고쳐지면 다음 크론이 두 건 다 다시 잡는다.
+    expect(first.receiptEmailSentAt).toBeNull();
+    expect(second.receiptEmailSentAt).toBeNull();
+  });
+
+  test("🔴 수신자별 실패는 배치를 멈추지 않는다 (일시적 실패 한 건이 그 회차를 죽이면 안 된다)", async () => {
+    const db = makeFakePaymentDb();
+    seed(db);
+    seed(db, { _id: "pay-2", merchantUid: "cd_order_0002" });
+    const failing = recorder({ ok: false, status: 500, error: "resend_error" });
+
+    const report = await sendPendingReceiptEmails(ENV, db, { now: NOW, send: failing.send });
+
+    expect(failing.calls).toHaveLength(2);
+    expect(report).toMatchObject({ scanned: 2, sent: 0, failed: 2, configError: false });
+  });
+
   test("이메일 주소가 없으면 표식을 찍고 넘어간다 — 매 크론 무한 재시도 금지", async () => {
     const db = makeFakePaymentDb();
     const order = { _id: "pay-2", merchantUid: "cd_order_0002", userId: "64b000000000000000000009", status: "paid", paymentAmount: 5000, paidAt: new Date(NOW.getTime() - 60_000), entitlementGrantedAt: new Date(NOW.getTime() - 30_000), receiptEmailSentAt: null };
