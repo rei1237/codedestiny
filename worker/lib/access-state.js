@@ -5,43 +5,23 @@ import {
 } from "./content-unlocks.js";
 import { isPerUsePaidFeatureKey, isUnlockPaidFeatureKey } from "./paid-feature-registry.js";
 import { KRW_PER_COIN, MONTHLY_PASS_LIMITS, PASS_LIMITS, normalizePassTier } from "./profile-limits.js";
+import {
+  ACCESS_STATE_STALE_TTL_MS,
+  ACCESS_STATE_TTL_MS,
+  normalizeProfileId,
+  normalizeUserId,
+} from "./access-state-cache.js";
 
-const ACCESS_STATE_TTL_MS = 60000;
-const ACCESS_STATE_STALE_TTL_MS = 30 * 60 * 1000;
+// TTL 캐시 저장소는 의존이 없어야 해서 ./access-state-cache.js 로 갈라져 있다(그 파일 머리말 참고).
+// 기존 호출부가 전부 이 모듈에서 가져가고 있으므로 이름은 여기서 그대로 다시 내보낸다.
+export {
+  invalidateAccessStateCacheForUser,
+  readAccessStateCache,
+  writeAccessStateCache,
+} from "./access-state-cache.js";
+
 const ACCESS_STATE_GRACE_TTL_MS = 24 * 60 * 60 * 1000;
-const ACCESS_STATE_MAX_ENTRIES = 2500;
 const ACCESS_STATE_POLICY_VERSION = "access-state-snapshot-v2";
-
-// entries 는 평범한 데이터라 요청 간 재사용이 합법이다. 예전에는 여기에 in-flight Promise 맵도
-// 함께 있었는데, Cloudflare Workers 가 요청 간 Promise continuation 을 금지하므로 제거했다
-// (worker/routes/access-state.js 의 주석 참고 — 같은 위법이 auth 에서 503 을 냈다).
-const cache = globalThis.__codeDestinyAccessStateCache || (globalThis.__codeDestinyAccessStateCache = {
-  entries: new Map(),
-  currentProfileByUser: new Map(),
-});
-if (!cache.currentProfileByUser) cache.currentProfileByUser = new Map();
-
-function normalizeUserId(userId) {
-  return String(userId || "").trim();
-}
-
-function normalizeProfileId(profileId) {
-  return String(profileId || "").trim().slice(0, 100);
-}
-
-function normalizeIncludes(include = "") {
-  const values = Array.isArray(include) ? include : String(include || "").split(",");
-  return Array.from(new Set(values.map((value) => String(value || "").trim().toLowerCase()).filter(Boolean))).sort();
-}
-
-function accessStateCacheKey(userId, profileId = "", include = "") {
-  const normalizedUserId = normalizeUserId(userId);
-  if (!normalizedUserId) return "";
-  const normalizedProfileId = normalizeProfileId(profileId);
-  const base = normalizedProfileId ? `${normalizedUserId}::${normalizedProfileId}` : normalizedUserId;
-  const includeKey = normalizeIncludes(include).join(",");
-  return includeKey ? `${base}::include=${includeKey}` : base;
-}
 
 function normalizeIsoDate(value) {
   if (!value) return undefined;
@@ -100,17 +80,6 @@ function buildMonthlyBalance(profileSubscription = {}, nowMs = Date.now()) {
     remaining: toNonNegativeInteger(lotsState?.balance),
     resetAt: resolveNextExpiry(lotsState?.lots || profileSubscription?.membershipCreditLots || [], nowMs) || undefined,
   };
-}
-
-function prune(now = Date.now()) {
-  for (const [key, entry] of cache.entries) {
-    if (!entry || entry.staleUntil <= now) cache.entries.delete(key);
-  }
-  while (cache.entries.size > ACCESS_STATE_MAX_ENTRIES) {
-    const oldest = cache.entries.keys().next().value;
-    if (!oldest) break;
-    cache.entries.delete(oldest);
-  }
 }
 
 function snapshotFingerprint(values = []) {
@@ -387,58 +356,6 @@ export async function resolveCompleteAccessState({
     checkedAt,
   });
 }
-
-export function readAccessStateCache(userId, { profileId = "", include = "", allowStale = false } = {}) {
-  const normalizedUserId = normalizeUserId(userId);
-  const fallbackProfileId = profileId || cache.currentProfileByUser.get(normalizedUserId) || "";
-  const key = accessStateCacheKey(normalizedUserId, fallbackProfileId, include);
-  if (!key) return null;
-  const entry = cache.entries.get(key);
-  if (!entry) return null;
-  const now = Date.now();
-  if (entry.expiresAt > now) return { ...entry.value, source: "cache" };
-  if (allowStale && entry.staleUntil > now) return { ...entry.value, source: "stale-cache" };
-  if (entry.staleUntil <= now) cache.entries.delete(key);
-  return null;
-}
-
-export function writeAccessStateCache(userId, value, { profileId = "", include = "" } = {}) {
-  const normalizedUserId = normalizeUserId(userId);
-  const normalizedProfileId = normalizeProfileId(profileId || value?.currentProfileId || value?.profileId);
-  const key = accessStateCacheKey(normalizedUserId, normalizedProfileId, include);
-  if (!key || !value) return value;
-  const now = Date.now();
-  prune(now);
-  cache.entries.set(key, {
-    value: { ...value, source: "db" },
-    expiresAt: now + ACCESS_STATE_TTL_MS,
-    staleUntil: now + ACCESS_STATE_STALE_TTL_MS,
-  });
-  if (normalizedProfileId) cache.currentProfileByUser.set(normalizedUserId, normalizedProfileId);
-  return value;
-}
-
-export function invalidateAccessStateCacheForUser(userId) {
-  const normalizedUserId = normalizeUserId(userId);
-  if (!normalizedUserId) return false;
-  let deleted = false;
-  for (const key of cache.entries.keys()) {
-    if (key === normalizedUserId || key.startsWith(`${normalizedUserId}::`)) {
-      deleted = cache.entries.delete(key) || deleted;
-    }
-  }
-  cache.currentProfileByUser.delete(normalizedUserId);
-  const legacyUnlockCache = globalThis.__codeDestinyAccessUnlocksCache;
-  const legacyPrefix = `${normalizedUserId}::`;
-  for (const key of legacyUnlockCache?.entries?.keys?.() || []) {
-    if (key.startsWith(legacyPrefix)) legacyUnlockCache.entries.delete(key);
-  }
-  return deleted;
-}
-
-globalThis.__accessStateCache = {
-  invalidateForUser: invalidateAccessStateCacheForUser,
-};
 
 export const ACCESS_STATE_USER_PROJECTION = Object.freeze({
   updatedAt: 1,

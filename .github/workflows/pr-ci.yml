@@ -759,6 +759,10 @@ jobs:
           # 자격증명 단위 캐시(/api/auth/me · /api/profile)는 틀리면 남의 세션이 보인다.
           npm run verify:credential-cache
           npm run verify:credential-cache -- --self-test
+          # /api/me/access-state 는 캐시 히트 시 인증 DB 왕복을 건너뛴다. 그 대가(탈퇴 판정도 함께
+          # 건너뛴다)를 갚는 무효화가 탈퇴 라우트에 붙어 있는지 순서와 함께 본다.
+          npm run verify:access-state-cache-order
+          npm run verify:access-state-cache-order -- --self-test
 
       # 요청 경로 Mongo 쿼리 리터럴이 선언 인덱스(models.js schema.indexes + 마이그레이션 createIndex)의
       # 선두 키를 쓰는지. CI 에 DB 가 없어 explain 을 못 돌리므로 정적으로 잡는다 — 08-30 실측에서

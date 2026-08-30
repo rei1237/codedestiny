@@ -64,6 +64,11 @@ on:
       - "worker/lib/paid-feature-access.js"
       - "worker/lib/profile-card-mutation-policy.js"
       - "worker/routes/access.js"
+      # 🔴 또 같은 형태의 구멍이었다(2026-08-31). worker/lib/access-state.js 는 위에 있는데, 그
+      #    스냅샷을 실제로 내보내는 라우트가 빠져 있었다. 이 라우트는 화면이 읽는 유료 판정
+      #    (entitlement · passUsage · 해금 맵)의 배달 경로이고, 캐시 순서를 여기서 바꾸면 "결제했는데
+      #    이용권이 안 붙는다" 가 나온다. 그런데도 이 파일만 고친 PR 은 결제 게이트가 안 깨어났다.
+      - "worker/routes/access-state.js"
       - "worker/routes/profile.js"
       - "app/_lib/billing-client.ts"
       - "app/hooks/useCoinGate.ts"
