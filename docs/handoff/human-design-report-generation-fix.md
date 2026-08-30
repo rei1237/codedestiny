@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: 켜진 적 없는 `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 를 배선한다 (호출부를 try 안으로 → 양쪽 `[vars]` → 대조 가드). 차트 병목은 아래 실측에서 AUTH 로 좁혀졌다
+next: 인증 계측(`authDetail`)을 배선했으나 **아직 한 번도 측정하지 않았다** — 이 브랜치가 머지되면 스테이징에서 로그인 상태로 차트를 한 번 쏴 `authDetail` 을 읽고 AUTH 3.1s 의 범인을 확정한다
 ---
 
 # 휴먼 디자인 유료 리포트 — 생성 복구 · 대기 씬 · 차트 병목
@@ -42,17 +42,32 @@ next: 켜진 적 없는 `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 를 배선한다 (
 
 - **`AUTH` 가 유일한 병목** — 기준의 10배, 히트 wall 의 84%. 아카이브 Mongo 읽기 413~429ms 는
   기준 초과지만 AUTH 의 1/7.5. 계산 구간 배제 판정은 그대로 유효하다(콜드 487ms · 웜 0ms).
-- 🔴 **콜드 아이솔레이트가 아니라 라우트 고유 비용이다.** 같은 루프에서 번갈아 쏜
-  `GET /api/billing/balance`(웜 인증+Mongo)는 212~276ms 인데, 같은 순간 차트 POST 는
-  **워커 내부 시각**으로 AUTH 3.10~3.15s 였다. `enforceAiRouteSecurity` 래퍼와 지연 임포트는
-  타이머 바깥이라 무관하다(wall − 합계 ≈ 160ms).
-- 🔴 **원인 후보 2개는 미검증** — 접근토큰 경로의 Mongo 접촉은 `User.collection.findOne` 1회
-  (관측 ≈410ms)뿐이라 7.6배가 설명되지 않는다. (a) 액세스 쿠키 만료로 매 요청
-  `verifyRefreshSessionToAuth` 폴백(Mongo 2왕복)을 타는가, (b) `withMongoRetry` 가 재시도를
-  도는가. 가르려면 `requireAuth` 안에 서브마크를 넣는 워커 변경 + 스테이징 배포가 필요하다.
+- 🔴 **그때 쓴 대조군은 무효였다 (2026-08-30 정정).** 대조군으로 삼은
+  `GET /api/billing/balance` 212~276ms 는 "웜 인증+Mongo" 가 아니다 — 그 라우트는
+  `peekAccessTokenUserId`(로컬 JWT 검증, Mongo 0회)로 캐시 키를 만들고 45초 스냅샷 캐시에서
+  인증·조회를 통째로 건너뛴다(`worker/routes/billing.js` 의 `BILLING_BALANCE_CACHE_TTL_MS` ·
+  `readBillingSnapshot`). 표의 숫자로도 검산된다 — 관측된 `User.collection.findOne` 1왕복이
+  ≈410ms 인데 212~276ms 는 그보다 짧으니 Mongo 를 탄 응답일 수 없다. 따라서 **"라우트 고유
+  비용" 이라는 결론은 근거를 잃었고, 느린 공용 인증 경로가 배제되지 않았다.**
+  AUTH 3.10~3.15s 라는 값 자체는 워커 내부 타이머라 그대로 유효하다.
+  `enforceAiRouteSecurity` 래퍼와 지연 임포트가 타이머 바깥인 것도 그대로다(wall − 합계 ≈ 160ms).
+- 🔴 **원인 후보 4개 — 계측은 배선했고 측정은 아직이다.** 접근토큰 경로의 Mongo 접촉은
+  `User.collection.findOne` 1회(관측 ≈410ms)뿐이라 7.6배가 설명되지 않는다.
+  - (a) 액세스 쿠키 만료로 매 요청 `verifyRefreshSessionToAuth` 폴백(Mongo 2왕복)을 타는가
+  - (b) `withMongoRetry` 가 재시도를 도는가
+  - (c) 🔴 **가장 유력** — 첫 시도가 서버선택 타임아웃에서 죽고 두 번째가 성공하는가.
+    스테이징 `MONGO_SERVER_SELECTION_TIMEOUT_MS = 3000` + `MONGO_OP_RETRY_DELAY_MS = 120`
+    = **3120ms**, 관측 중앙값 **3122ms**. 히트 5회가 전부 3.1s 에 붙어 있는 것도 큐 대기보다
+    고정 타임아웃의 모양이다(양쪽 `worker/wrangler*.toml` 에서 2026-08-30 확인).
+  - (d) admission 슬롯 대기(`MONGO_OP_ADMISSION_TIMEOUT_MS = 2500`)에 먹히는가
+
+  넷을 가르는 계측을 배선했다 — `/api/human-design/chart` 응답의 **`authDetail`** 이
+  `path`(어느 분기가 인증을 성사시켰나) · `attempts` · `admissionMs` · `connectMs` · `opMs`
+  를 싣는다. 🔴 **새 계측기를 만들지 않았다** — 뒤 넷은 `worker/lib/db.js` 의 기존
+  `options.timings` 싱크를 인증 조회(`resolveActiveUserAuth`)로 끌어낸 것이다.
 - 🔴 **전부 스테이징 값이다** — 아래 *모르는 것* 의 "프로덕션에서 몇 ms" 는 여전히 미해결.
 - 재현: 로그인한 브라우저에서 동일 출처 `fetch("/api/human-design/chart", {credentials:"include"})`
-  를 미스 1회 + 히트 5회 돌리고 응답 `pipeline` 을 읽는다. 🔴 캐시버스터 없이 GET 을 반복하면
+  를 미스 1회 + 히트 5회 돌리고 응답의 `pipeline` 과 `authDetail` 을 읽는다. 🔴 캐시버스터 없이 GET 을 반복하면
   `cache:"no-store"` 여도 0ms 가 찍혀 판독이 통째로 오염된다.
 
 ## 씬 렌더 육안 확인 — 3항목 통과 (2026-08-30, 스테이징)
@@ -67,7 +82,20 @@ next: 켜진 적 없는 `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 를 배선한다 (
 
 ## 남은 작업
 
-- [ ] 🔴 **켜진 적 없는 rate limit** (위 감사에서 나온 별건). `/api/fortune/**` 의 유일한 상한인
+- [x] **켜진 적 없는 rate limit — 완료** (PR #1337 / `82318cd8b`). 호출부를 `try` 안으로 옮기고,
+      양쪽 `[vars]` 에 `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "true"` 를 넣고,
+      `scripts/verify-worker-config-parity.mjs` 의 `REQUIRED_ON_KEYS` 가 "양쪽에 있고 켜져 있음"
+      을 fail-closed 로 지킨다. 🔴 끌 일이 생기면 값을 `"false"` 로 바꾸지 말고 그 목록에서
+      사유와 함께 뺄 것 — 그래야 "꺼졌다" 가 리뷰에 보인다.
+- [ ] 🔴 **AUTH 3.1s 확정 측정 — 이 문서의 유일한 남은 작업.** 계측은 배선됐고 값은 아직 없다.
+      이 브랜치가 머지되면 스테이징에 자동 배포되니, 로그인한 브라우저에서 아래 *재현* 을 한 번
+      돌리고 응답의 `authDetail` 을 읽는다. 판독표 — `path === "refresh-fallback"` → 후보 (a) /
+      `attempts >= 2` → (b) / `connectMs` 가 3000 근처 → (c) / `admissionMs` 가 큼 → (d).
+      네 값이 전부 작으면 병목은 Mongo 밖(JWT 검증·모듈 지연 임포트)이라는 뜻이니 그때 다시 쪼갠다.
+
+<details><summary>완료된 rate limit 항목의 원래 진단 (참고용)</summary>
+
+- `/api/fortune/**` 의 유일한 상한인
       `enforceGuardianFortuneRateLimit`(`worker/routes/fortune.js:6236`)은
       `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 가 `"true"` 일 때만 도는데, 그 키가
       `worker/wrangler.toml`·`wrangler.staging.toml` 양쪽 `[vars]` 에 **없다**
@@ -78,6 +106,8 @@ next: 켜진 적 없는 `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 를 배선한다 (
       계약(`SERVICE_TEMPORARILY_UNAVAILABLE` + `retryable`)을 못 타고 영문 503 으로 샌다.
       순서: ① 호출부를 try 안으로 ② 양쪽 `[vars]` 에 플래그 ③ 두 wrangler 를 대조하는 가드.
 
+</details>
+
 ## 정본 예시
 
 - 웨이브 계약 상수: `worker/lib/human-design-report-contract.js:49`
@@ -86,6 +116,11 @@ next: 켜진 적 없는 `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 를 배선한다 (
 - 그 목록을 라우트 소스에서 전수 대조하는 가드: `scripts/verify-worker-security-guards.mjs`
 - 버킷 계약 테스트: `__tests__/worker/security.ai-route-buckets.test.js`
 - 새 가드 ⑧절: `scripts/verify-human-design-report.mjs` 의 "⑧ 생성 화면 · 차트 인계 · 계측"
+- 인증 계측 싱크의 소비처: `worker/lib/db.js` 의 `options.timings` (호출부가 객체를 주면 채운다)
+- 그 싱크를 인증으로 끌어낸 지점: `worker/lib/auth.js` 의 `resolveActiveUserAuth` 4번째 인자와
+  `getOptionalUserFromRequest` 의 `markAuthPath`
+- 4계층 통과가 끊기지 않았는지 보는 테스트: `__tests__/worker/auth.require-auth.fallback.test.js`
+  의 "requireAuth 계측 싱크(authTimings)"
 
 ## 함정
 

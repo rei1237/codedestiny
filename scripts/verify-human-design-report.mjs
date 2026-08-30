@@ -823,8 +823,21 @@ if (chartRoute && ephemeris) {
   const routeCode = codeLines(chartRoute);
   // 🔴 재지 않은 구간은 없는 구간이 아니다. 인증·아카이브 조회가 pipeline 밖에 있으면
   //    "차트가 느리다" 는 신고를 받아도 어디가 느린지 응답만 보고는 알 수 없다.
+  // 🔴 requireAuth 는 계측 싱크를 받으면서 3번째 인자가 생겼다. 두 형태를 모두 인정하되 둘 다
+  //    없으면 -1 이 되어 이 순서 비교가 그대로 실패한다(fail-closed 를 잃지 않는다).
+  const authCallIdx = Math.max(
+    routeCode.indexOf("requireAuth(request, env)"),
+    routeCode.indexOf("requireAuth(request, env,"),
+  );
   check("🔴 스테이지 타이머가 인증보다 먼저 시작한다",
-    routeCode.indexOf("createStageTimer") < routeCode.indexOf("requireAuth(request, env)"));
+    routeCode.indexOf("createStageTimer") < authCallIdx);
+  // 🔴 AUTH 합계만으로는 원인을 못 가른다 — 2026-08-30 실측에서 아카이브 히트에도 3122ms(중앙값)
+  //    였는데 pipeline 에는 "AUTH 3122ms" 한 줄뿐이라 분기·왕복·재시도 중 무엇인지 알 수 없었다.
+  //    이 배선이 조용히 빠지면 다음 세션이 같은 자리에서 다시 막히므로 여기서 고정한다.
+  check("인증 계측 싱크를 requireAuth 에 넘긴다",
+    /requireAuth\(request, env, \{ authTimings \}\)/.test(routeCode));
+  check("인증 분해를 응답에 실어 밖에서 읽을 수 있다",
+    /authDetail: authTimings/.test(routeCode));
   check("인증 구간을 잰다", /timer\.mark\("AUTH"\)/.test(routeCode));
   check("아카이브 조회 미스 구간을 잰다", /timer\.mark\("ARCHIVE_LOOKUP"\)/.test(routeCode));
   check("계산 내부 단계를 타이머에 배선한다", /onStage: \(stage\) => timer\.mark\(stage\)/.test(routeCode));

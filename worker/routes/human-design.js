@@ -141,7 +141,13 @@ async function handleChart(request, env) {
   const now = () => Date.now();
   const timer = createStageTimer(now);
 
-  const auth = await requireAuth(request, env);
+  // 🔴 AUTH 는 아카이브 히트에도 3.1s 를 먹는 최대 구간인데(2026-08-30 스테이징 실측, 중앙값
+  //    3122ms), pipeline 은 그 합계만 알려 준다. authTimings 가 그 안을 세 축으로 쪼갠다:
+  //    어느 분기가 인증을 성사시켰나(path) / Mongo 왕복이 admission·connect·op 중 어디서 샜나 /
+  //    재시도를 돌았나(attempts). 뒤 두 축은 worker/lib/db.js 의 기존 timings 싱크가 채운다.
+  //    응답에만 싣고 화면에는 그리지 않는다 — pipeline 줄은 이미 사용자에게 보인다.
+  const authTimings = {};
+  const auth = await requireAuth(request, env, { authTimings });
   timer.mark("AUTH");
   const body = await readJson(request);
   const input = normalizeBirthBody(body);
@@ -161,7 +167,7 @@ async function handleChart(request, env) {
       //    "이 차트로 이미 산 리포트가 있는가" 를 /human-design-report/result?inputHash= 로
       //    물어봐야 하기 때문이다(요구 30·32 — 재열람에 AI 를 다시 부르지 않는다).
       //    본인 인증 요청에만 나가고 조회도 userId 로 묶여 있어 남의 해시를 알아도 쓸 데가 없다.
-      { ok: true, free: true, reused: true, inputHash, chart: archived.calculation, pipeline: timer.stages },
+      { ok: true, free: true, reused: true, inputHash, chart: archived.calculation, pipeline: timer.stages, authDetail: authTimings },
       { headers: { "Cache-Control": "no-store" } },
     );
   }
@@ -224,7 +230,7 @@ async function handleChart(request, env) {
   timer.mark("ARCHIVE");
 
   return json(
-    { ok: true, free: true, reused: false, inputHash, chart, pipeline: timer.stages },
+    { ok: true, free: true, reused: false, inputHash, chart, pipeline: timer.stages, authDetail: authTimings },
     { headers: { "Cache-Control": "no-store" } },
   );
 }

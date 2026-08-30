@@ -381,7 +381,7 @@ const AUTH_USER_IDENTITY_PROJECTION = {
   status: 1,
 };
 
-async function resolveActiveUserAuth(userId, env, userProjection = null) {
+async function resolveActiveUserAuth(userId, env, userProjection = null, timings = null) {
   // stateless Worker 풀 초기화 시 무방비 connectDb/findOne이 정착하지 않아 요청이 hang되는 것을
   // 막는다. withMongoRetry가 각 시도를 per-attempt 타임아웃으로 감싸고 일시적 오류를 재연결·재시도한다.
   //
@@ -405,7 +405,7 @@ async function resolveActiveUserAuth(userId, env, userProjection = null) {
   const user = await withMongoRetry(env, () => User.collection.findOne(
     { _id: new mongoose.Types.ObjectId(userId) },
     { projection },
-  ), { retryAdmissionOnOverload: true });
+  ), { retryAdmissionOnOverload: true, timings });
   if (!user || isWithdrawnUser(user)) return null;
   const authResult = normalizeAuthResultFromUser(user);
   if (userProjection) authResult.authUserDoc = user;
@@ -423,7 +423,7 @@ async function verifyAccessTokenToAuth(token, env, options = {}) {
     if (!userId) return null;
     const tokenAuth = normalizeAuthResultFromPayload(payload, userId);
     try {
-      return await resolveActiveUserAuth(userId, env, options.userProjection || null);
+      return await resolveActiveUserAuth(userId, env, options.userProjection || null, options.timings || null);
     } catch (dbError) {
       logAuthError("verify-access-token-user", dbError, { userId });
       if (options.allowDbFallback === true) {
@@ -598,27 +598,36 @@ export async function getOptionalUserFromRequest(request, env, options = {}) {
     // 확장해 원본 문서를 authUserDoc로 첨부한다(호출자의 인증-후 재조회 왕복 제거).
     // 예전엔 refresh 폴백만 미부착이라, access 만료 직후 첫 /api/auth/me 가 Mongo 3왕복을 돌았다.
     // admin/dev 폴백 경로는 여전히 미부착 → 호출자는 authUserDoc 부재 시 종전대로 자체 조회로 폴백한다.
-    const verifyOptions = { allowDbFallback: allowTokenDbFallback, surfaceDbInfraError, userProjection: options?.userProjection || null };
+    // 🔴 선택적 계측 싱크(options.authTimings). 호출부가 객체를 주지 않으면 아래 markAuthPath 는
+    //    전부 no-op 이고 이 함수의 동작은 종전과 완전히 같다 — 이 경로는 전 라우트가 지난다.
+    //    목적: "AUTH 가 3.1s"(2026-08-30 실측, docs/handoff/human-design-report-generation-fix.md)를
+    //    (어느 분기가 인증을 성사시켰나) × (그 분기의 Mongo 왕복이 admission/connect/op 중 어디서
+    //    샜나) 로 가른다. 뒤쪽은 worker/lib/db.js 의 **기존** timings 싱크가 그대로 채운다 —
+    //    여기에 새 계측기를 만들지 않는다(중첩 사전검사 금지).
+    const authTimings = options?.authTimings && typeof options.authTimings === "object" ? options.authTimings : null;
+    const markAuthPath = (path) => { if (authTimings) authTimings.path = path; };
+    const verifyOptions = { allowDbFallback: allowTokenDbFallback, surfaceDbInfraError, userProjection: options?.userProjection || null, timings: authTimings };
 
     const flowerAdminAuth = await verifyFlowerAdminTokenForPaidService(request, env);
-    if (flowerAdminAuth) return flowerAdminAuth;
+    if (flowerAdminAuth) { markAuthPath("flower-admin"); return flowerAdminAuth; }
 
     const bearerAuth = await verifyAccessTokenToAuth(bearerToken, env, verifyOptions);
-    if (bearerAuth) return bearerAuth;
+    if (bearerAuth) { markAuthPath("bearer"); return bearerAuth; }
 
     if (accessCookieToken && accessCookieToken !== bearerToken) {
       const cookieAuth = await verifyAccessTokenToAuth(accessCookieToken, env, verifyOptions);
-      if (cookieAuth) return cookieAuth;
+      if (cookieAuth) { markAuthPath("access-cookie"); return cookieAuth; }
     }
 
     if (refreshCookieToken) {
       const refreshAuth = await verifyRefreshSessionToAuth(request, env, verifyOptions);
-      if (refreshAuth) return refreshAuth;
+      if (refreshAuth) { markAuthPath("refresh-fallback"); return refreshAuth; }
     }
 
     const devAuth = await getDevAuthUserFromEnv(env);
-    if (devAuth) return devAuth;
+    if (devAuth) { markAuthPath("dev"); return devAuth; }
 
+    markAuthPath("none");
     return null;
   } catch (error) {
     if (error?.message === "DEV_AUTH_USER_ID must not be used in production") throw error;
@@ -671,6 +680,7 @@ export async function requireUserFromRequest(request, env, options = {}) {
     surfaceDbInfraError: true,
     allowDbFallback: options.allowDbFallback === true,
     userProjection: options.userProjection || null,
+    authTimings: options.authTimings || null,
   });
   if (auth) return auth;
   throw createHttpError(401, "Authentication is required.", { code: "UNAUTHORIZED" });
