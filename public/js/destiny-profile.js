@@ -4912,6 +4912,17 @@
       }
       // 확정됐으니 이제 복귀 티켓을 회수한다.
       _dpClearDirectResumeTicket();
+      // 🔴 셸(index.html _cdRefreshAccessStateAfterPayment)과 같은 자리·같은 조건이다 — 서버가 확정을
+      //    검증한 뒤에만 /api/me/access-state 의 60초 스냅샷을 강제 무효화한다. 안 하면 방금 산
+      //    기능이 최대 60초간 잠긴 채로 보인다. 실패·PENDING 갈래는 위에서 이미 throw 로 빠졌다.
+      //    독립 정적 페이지에 셸의 세션캐시 블록이 없으면 조용히 no-op 이다(그 표면은 구멍이 남는다).
+      try {
+        var _dpAccessCache = window.CodeDestinyUserAccessCache;
+        if (_dpAccessCache && typeof _dpAccessCache.refreshUserAccessAfterPayment === 'function') {
+          // 결과를 기다리지 않는다 — 결제 완료 오버레이 뒤 콘텐츠 생성이 곧바로 이어져야 한다.
+          Promise.resolve(_dpAccessCache.refreshUserAccessAfterPayment()).catch(function () {});
+        }
+      } catch (_dpAccessRefreshError) {}
       // \uB2E8\uAC74 \uACB0\uC81C \uC644\uB8CC \uD504\uB808\uC784(\uC81C\uBAA9 "\uACB0\uC81C \uC644\uB8CC"\u00B7\uC2A4\uD53C\uB108 off) \uD45C\uC2DC \uD6C4 ~1.2s \uC790\uB3D9 \uB2EB\uD798. \uC774\uD6C4 \uCF58\uD150\uCE20 \uC0DD\uC131\uC740 \uBCD1\uB82C \uC9C4\uD589.
       _dpShowPaymentCompleteOverlay(_dpText('paymentCompleteOverlay'));
       await _dpWaitForPaymentOverlayPaint();

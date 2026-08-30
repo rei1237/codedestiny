@@ -21,6 +21,11 @@
 import { getRequestMeta, json } from "../lib/http.js";
 import { peekAccessTokenUserId } from "../lib/auth.js";
 import { CREDENTIAL_CACHE_PREFIXES, purgeCredentialCache } from "../lib/credential-scoped-cache.js";
+// 🔴 leaf 를 import 한다(../lib/access-state.js 가 아니라). 그쪽은 models.js·content-unlocks.js 를
+//    딸고 오므로 models.js 를 부분 모킹한 스위트가 통째로 죽는다(2026-08-31 실측 11개 스위트 109건).
+//    옵셔널 경유(globalThis.__accessStateCache?.invalidateForUser?.())는 아이솔레이트에 모듈이 아직
+//    안 실렸으면 조용히 no-op 이라 fail-open 이고, verify:access-state-cache-order 가 거부한다.
+import { invalidateAccessStateCacheForUser } from "../lib/access-state-cache.js";
 import { User } from "../lib/models.js";
 import { getPortOnePublicConfig } from "../lib/portone.js";
 import { decryptPhoneNumber } from "../lib/pii-crypto.js";
@@ -89,15 +94,31 @@ function requireUser(userId) {
 }
 
 /**
- * 표시용 잔액 스냅샷(/api/billing/balance·unlock-status 공용, billing.js) 유저별 무효화.
- * 정본 패턴은 worker/lib/monthly-credit-store.js 와 동일 — globalThis 공유 객체라 임포트가 없다.
- * 🔴 TTL 이 45초로 늘어난 뒤에는(2026-08-12) 잔액·해금·구독을 바꾸는 **모든** V2 쓰기가 이걸
- * 불러야 한다 — 빠뜨리면 결제 직후 새로고침에서 옛 잔량·미해금 상태가 최대 45초 보인다.
+ * 잔액·권한을 바꾸는 V2 쓰기 뒤의 **유저별 캐시 무효화 초크포인트**. 두 캐시를 함께 지운다.
+ *
+ *   ① 표시용 잔액 스냅샷(/api/billing/balance·unlock-status 공용, billing.js).
+ *      정본 패턴은 worker/lib/monthly-credit-store.js 와 동일 — globalThis 공유 객체라 임포트가 없다.
+ *      🔴 TTL 이 45초로 늘어난 뒤에는(2026-08-12) 잔액·해금·구독을 바꾸는 **모든** V2 쓰기가 이걸
+ *      불러야 한다 — 빠뜨리면 결제 직후 새로고침에서 옛 잔량·미해금 상태가 최대 45초 보인다.
+ *   ② /api/me/access-state 의 60초 이용권 스냅샷(2026-08-31 추가). 같은 이유다 — 결제로 커버가
+ *      생겼는데 옛 스냅샷이 나가면 방금 산 기능이 잠긴 채로 보인다.
+ *
+ * 🔴 ②는 **best-effort 다.** 그 캐시는 globalThis 맵이라 아이솔레이트 로컬이고, 확정 요청이 탄
+ * 아이솔레이트만 지워진다. 사용자에게 보이는 창을 실제로 닫는 것은 클라이언트가 결제 성공 직후
+ * 보내는 x-code-destiny-cache-refresh: 1 강제 GET 이다(refreshUserAccessAfterPayment). 여기 한 줄로
+ * "해결됐다"고 보지 말 것.
+ *
+ * 🔴 새 무효화 초크포인트를 따로 만들지 말 것 — 이 함수가 클라이언트 확정·PG 웹훅·크론 정산을
+ * 모두 덮는 유일한 지점이고, 갈라 놓으면 그중 하나가 조용히 죽는다(코딩 원칙 6).
  */
 function invalidateBalanceSnapshot(userId) {
+  const normalizedUserId = String(userId || "");
   try {
-    globalThis.__billingBalanceCache?.invalidateForUser?.(String(userId || ""));
+    globalThis.__billingBalanceCache?.invalidateForUser?.(normalizedUserId);
   } catch { /* 표시 캐시 무효화 실패는 결제를 막지 않는다 */ }
+  try {
+    invalidateAccessStateCacheForUser(normalizedUserId);
+  } catch { /* 스냅샷 무효화 실패도 결제를 막지 않는다 */ }
 }
 
 /**

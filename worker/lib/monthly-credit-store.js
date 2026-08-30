@@ -81,6 +81,10 @@ async function runConsumeCas({ userId, amount, pushRequestId, incrementUsed, rea
       // 월정석 잔량이 바뀌었으니 billing.js의 표시용 잔량 캐시(globalThis 공유)를 즉시 무효화한다
       // — 결제 직후 결제창 재개폐에서 stale 잔량이 뜨지 않게 한다. import 순환 없이 globalThis로 접근.
       try { globalThis.__billingBalanceCache?.invalidateForUser?.(userId); } catch {}
+      // 🔴 잔량만 지우면 /api/me/access-state 의 60초 스냅샷이 남아 방금 해금한 콘텐츠가 잠긴 채로
+      // 보인다. billing.js 의 청크포인트(invalidatePaidAccessDecisionCacheForUser)가 접근결정·이용권·
+      // access-state·해금 캐시를 함께 버리므로 여기서는 그 하나만 부른다(중첩 무효화를 새로 만들지 않는다).
+      try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(userId); } catch {}
       return { ok: true, reason: "OK", balance: deduction.balance, user: updated };
     }
     // 버전 충돌 → 재조회 후 재시도.
@@ -185,6 +189,8 @@ export async function restoreMonthlyCreditLot({
     ).lean();
     if (updated) {
       try { globalThis.__billingBalanceCache?.invalidateForUser?.(userId); } catch {}
+      // 복구(환불·롤백)도 접근 결정을 바꾼다 — 위 차감 경로와 같은 이유로 함께 버린다.
+      try { globalThis.__paidAccessDecisionCache?.invalidateForUser?.(userId); } catch {}
       if (returnDetails) {
         return {
           user: updated,

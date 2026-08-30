@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { getAuthState, handleSessionInvalidated, refreshAuth } from "../_lib/auth-store";
+import { refreshUserAccessAfterPayment } from "../_lib/user-session-cache";
 import {
   hasClientAuthSessionHint,
   loadPaidServiceRuntimeGate,
@@ -555,6 +556,12 @@ export function useCoinGate() {
       // 잔액은 coin-gate 응답으로 이미 반영됨. force 없이 호출해 쿨다운/in-flight 병합을
       // 존중 → 성공마다 /api/auth/me를 강제 재요청하던 중복 왕복 제거.
       refreshAuth({ silent: true }).catch(() => {});
+      // 🔴 위 refreshAuth 와 겹치지 않는다(코딩 원칙 6 확인함) — 엔드포인트도 소비처도 다르다.
+      //    refreshAuth        → /api/auth/me,          인증 스토어(잔량·티어 표시)
+      //    이 호출            → /api/me/access-state,  이용권 스냅샷 + 서버 60초 캐시 강제 무효화
+      //    그래서 refreshAuth 를 이걸로 대체하면 결제 후 잔량 표시가 회귀한다. 둘 다 필요하다.
+      //    access-state 응답이 정상이면 헬퍼는 거기서 early-return 하므로 실제 요청은 1건이다.
+      refreshUserAccessAfterPayment().catch(() => {});
 
       return {
         ok: true,
