@@ -18,6 +18,7 @@ import { relative, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { canLoadAdsense } from "../app/components/adsense-route-policy.js";
 import { EDITOR_NOTES } from "../app/_content/editor-notes.js";
+import { jaccard, shingles as buildShingles } from "./lib/text-shingles.mjs";
 
 const rootDir = fileURLToPath(new URL("..", import.meta.url));
 const baseDir = "out";
@@ -27,6 +28,7 @@ const MIN_UNIQUE_BODY = 1500;
 /** 8-gram shingle 이 전체 라우트의 이 비율을 넘게 등장하면 공통 크롬으로 본다. */
 const BOILERPLATE_DF_RATIO = 0.1;
 const SHINGLE_SIZE = 8;
+const shingles = (text) => buildShingles(text, SHINGLE_SIZE);
 
 /**
  * 🔴 이 하한은 **한국어 글자 수** 기준이다. 영어 감각으로 올리지 말 것 — 한국어는 글자당
@@ -122,22 +124,6 @@ function routeFromHtmlPath(absolutePath) {
   const rel = relative(resolve(rootDir, baseDir), absolutePath).replace(/\\/g, "/");
   const route = `/${rel.replace(/index\.html$/, "")}`.replace(/\/+$/, "");
   return route || "/";
-}
-
-function shingles(text) {
-  const words = text.split(" ");
-  const set = new Set();
-  for (let i = 0; i + SHINGLE_SIZE <= words.length; i += 1) {
-    set.add(words.slice(i, i + SHINGLE_SIZE).join(" "));
-  }
-  return set;
-}
-
-function jaccard(a, b) {
-  if (a.size === 0 || b.size === 0) return 0;
-  let shared = 0;
-  for (const item of a) if (b.has(item)) shared += 1;
-  return shared / (a.size + b.size - shared);
 }
 
 function noteText(note) {

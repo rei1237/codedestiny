@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { generatePageMetadata } from "../../../lib/generate-page-metadata";
 import { categoryToSlug, famousSajuCategories, publishedCelebritySajuSeeds } from "../../../lib/famous-saju/celebrity-saju-service";
+import { getCelebrityEditorial } from "../../../lib/famous-saju/celebrity-editorial";
 import EditorNote from "../../components/EditorNote";
 import { getEditorNote } from "../../_content/editor-notes";
 
@@ -200,7 +201,7 @@ export default function FamousSajuInsightIndexPage() {
     category: item.category,
     categorySlug: categoryToSlug(item.category),
     tags: item.tags,
-    shortDescription: item.shortDescription,
+    shortDescription: getCelebrityEditorial(item.slug)?.hook || item.shortDescription,
     birthLine: `${item.birthDate?.slice(0, 4)}년생 · ${item.isBirthTimeKnown ? "시주 포함 분석" : "출생 시간 미상 분석"}`,
     search: [item.nameKo, item.name, item.nameEn, item.category, item.country, item.slug, ...item.aliases, ...item.tags, ...item.seoKeywords].filter(Boolean).join(" "),
   }));
@@ -359,7 +360,7 @@ export default function FamousSajuInsightIndexPage() {
                 </div>
                 <span className="rounded-full border border-amber-200/30 px-2.5 py-1 text-xs text-amber-100">{categoryToSlug(item.category)}</span>
               </div>
-              <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-300">{item.shortDescription}</p>
+              <p className="mt-3 line-clamp-2 text-sm leading-6 text-slate-300">{getCelebrityEditorial(item.slug)?.hook || item.shortDescription}</p>
               <div className="mt-4 flex flex-wrap gap-2">
                 {item.tags.slice(0, 3).map((tag) => (
                   <span key={tag} className="rounded-full bg-white/10 px-2 py-1 text-xs text-slate-200">

@@ -172,6 +172,15 @@ jobs:
       - name: Verify the tracked sitemap matches its sources
         run: npm run verify:sitemap-drift
 
+      # 유명인 고유 원고(lib/famous-saju/celebrity-editorial.js)와 다체계 표 모듈의 fail-closed 가드.
+      # 원고 분량·출처·엔진 산출값 정합·원고 간 중복도, 그리고 숙요 시각 무관성·1900년 이전 null·
+      # 베다 확정/후보 규칙·자미두수 열 부재를 본다. 입력이 lib/·scripts/ 라 티어가 fast 로 잡히므로
+      # 여기 둔다. 정적 소스 + 엔진 계산뿐이라 네트워크 없이 수 초다.
+      - name: Verify celebrity editorial entries and the multi-system table
+        run: |
+          npm run verify:famous-saju-editorial
+          npm run verify:famous-saju-multisystem
+
       # 🔴 이 두 가드는 **fast 잡**에 있어야 한다. 입력이 CSS·정적 셸·package.json 이라
       # build/critical 잡에 두면 `styles/mobile-lite.css` 한 줄 수정에는 깨어나지 않는데,
       # 그게 정확히 지키려는 경로다. 둘 다 node 내장 모듈만 쓰는 정적 파일 읽기라 1초 미만이다.

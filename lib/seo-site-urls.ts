@@ -1,7 +1,7 @@
 /** Shared with app/sitemap.ts — single source for public indexable URLs. */
 
 import { PSYCHOTESTS } from "./psychotest-catalog";
-import { publishedCelebritySajuSeeds } from "./famous-saju/celebrity-data";
+import { getIndexedCelebritySlugs } from "./famous-saju/celebrity-editorial";
 import { isNoindexPath } from "./seo/siteSeo";
 
 export const BASE_URL = "https://code-destiny.com";
@@ -38,8 +38,10 @@ const PSYCHOTEST_ROUTE_ENTRIES: SitemapRouteEntry[] = [
 // 로 `/insights/famous-saju/` 에 접었다. 정본은 아래 INSIGHT 항목 하나뿐이다.
 const FAMOUS_SAJU_INSIGHT_ROUTE_ENTRIES: SitemapRouteEntry[] = [
   { path: "/insights/famous-saju", changeFrequency: "weekly", priority: 0.89 },
-  ...publishedCelebritySajuSeeds.map((item) => ({
-    path: `/insights/famous-saju/${item.slug}`,
+  // 상세는 검수된 고유 원고가 있는 인물만(색인 정본 = celebrity-editorial.js 의 reviewedAt).
+  // 예전에는 발행 인물 134명을 전부 열거했는데 그 페이지들은 noindex 라 목록 자체가 거짓이었다.
+  ...getIndexedCelebritySlugs().map((slug) => ({
+    path: `/insights/famous-saju/${slug}`,
     changeFrequency: "monthly" as const,
     priority: 0.78,
   })),
