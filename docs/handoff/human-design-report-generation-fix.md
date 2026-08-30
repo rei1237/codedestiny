@@ -22,6 +22,14 @@ next: 로그인한 스테이징 세션에서 차트 응답의 `pipeline` 을 읽
 - AI 라우트 우회도 닫혔다 — `aiActionFromPath` 가 미분류에 `""`(= 즉시 통과) 대신 기본 버킷
   `other` 를 돌려준다. 새 버킷 4종(`batch` 90 · `basis` 30 · `read` 100 · `unlock` 10)은
   경로별 호출 빈도를 재서 정했고, 기존 분류 79개 경로의 버킷은 하나도 안 바뀌었다.
+- `/api/fortune/**` 는 이 작업의 대상이 아니었고, 2026-08-30 실측(`origin/main` db5f8a4ee)으로
+  **별도 계층이 있음**을 확인했다. catch-all(`worker/index.js:1458`)이라 `enforceAiRouteSecurity`
+  는 안 타지만, LLM 에 닿는 경로는 전부 `resolvePaidRouteAuth` 로 401 을 먼저 내고
+  (`worker/routes/fortune.js:6636-6735`) Gemini 앞에 결제 증거 검사가 선다
+  (`findAIPromptPaidAccessEvidence`, `:4545`). `saju-ai-consultation/basis` 는 LLM·DB·과금 0.
+  비로그인 LLM 노출도 없다 — `GUARDIAN_FORTUNE_GUEST_LIMIT = 0` 이라 게스트 생성이 항상 막힌다
+  (`worker/lib/guardian-fortune-usage.js:15`·`:290`). **없는 것**은 분당 상한·일일 AI 예산·
+  소프트블록·페이로드 상한뿐이고, 결제가 앞을 막으므로 열린 문이 아니라 심층방어 공백이다.
 
 ## 남은 작업
 
@@ -37,11 +45,16 @@ next: 로그인한 스테이징 세션에서 차트 응답의 `pipeline` 을 읽
 - [ ] **씬 렌더 육안 확인 (미검증)**. `next dev` 가 이 저장소에서 깨져 있어 실제 모습을 못 봤다.
       CSS 토큰 존재는 대조했다. 스테이징에서 ① 생성 화면 목록의 "작성 중" 4줄, ② 차트 로딩 중
       세 점, ③ `prefers-reduced-motion` 켠 상태에서 **목록 18줄이 안 사라지는지**를 본다.
-- [ ] **`fortune` 라우트군은 이 작업의 대상이 아니었다 (미검증)**. `/api/fortune/**` 는
-      `runAiRouteWithSecurity` 로 배선돼 있지 않아 `enforceAiRouteSecurity` 를 아예 안 탄다
-      (배선 서비스 19개 목록은 `worker/index.js` 의 `runAiRouteWithSecurity(` grep). 그 라우트군에
-      별도 보안 계층이 있는지는 확인하지 않았다 — `js/saju-engine.js:7472` 가
-      `/api/fortune/saju-ai-consultation/basis` 를 POST 로 친다.
+- [ ] 🔴 **켜진 적 없는 rate limit** (위 감사에서 나온 별건). `/api/fortune/**` 의 유일한 상한인
+      `enforceGuardianFortuneRateLimit`(`worker/routes/fortune.js:6236`)은
+      `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 가 `"true"` 일 때만 도는데, 그 키가
+      `worker/wrangler.toml`·`wrangler.staging.toml` 양쪽 `[vars]` 에 **없다**
+      (`config/env.contract.json:777` 의 `required_in: []`; 테스트·문서 참조 0건). `git log -S` 상
+      최초 기능 커밋 `8b0d6bea5` 부터 꺼진 채였다 — 의도적 비활성화가 아니라 배선 미완이고
+      원칙 10 의 fail-open 형태다. 🔴 **플래그만 켜면 안 된다**: 호출부 `:6349` 가
+      `let result; try {` **밖**이라 `incrementRateLimit` 의 `connectDb` 실패가 아래 한국어 503
+      계약(`SERVICE_TEMPORARILY_UNAVAILABLE` + `retryable`)을 못 타고 영문 503 으로 샌다.
+      순서: ① 호출부를 try 안으로 ② 양쪽 `[vars]` 에 플래그 ③ 두 wrangler 를 대조하는 가드.
 
 ## 정본 예시
 
