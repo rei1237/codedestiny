@@ -168,7 +168,7 @@ function buildFaq(topic, keyword) {
   ];
 }
 
-function article({ slug, title, description, category, keywords, topic, angle, ctaTitle, contentHtml }) {
+function article({ slug, title, description, category, keywords, topic, angle, ctaTitle, contentHtml, updatedAt }) {
   const internalLinks = CATEGORY_LINKS[category] || [{ href: "/insights", label: seoGrowthArticleText("sga_97_prop_label") }];
   return {
     slug,
@@ -177,7 +177,10 @@ function article({ slug, title, description, category, keywords, topic, angle, c
     excerpt: description,
     category,
     tags: keywords,
-    updatedAt: "2026-07-04",
+    // 🔴 기본값은 이 파일 전체가 공유한다 — 개별 기사를 고쳤을 때만 updatedAt 을 넘긴다.
+    //    전부 바꾸면 손대지 않은 기사 100여 개까지 사이트맵 lastmod 가 함께 움직여
+    //    색인 재크롤 신호가 거짓이 된다.
+    updatedAt: updatedAt || "2026-07-04",
     publishedAt: "2026-05-10",
     author: "Code Destiny Editorial Team",
     readingTime: 8,
@@ -692,10 +695,11 @@ const ZIWEI = [
 const SUKUYO = [
   article({
     slug: "sukuyo-what-is",
+    updatedAt: "2026-08-30",
     title: "숙요점이란? 달이 머문 별자리로 읽는 나의 운명 — 입문 완전 가이드",
     description: "숙요점은 태어난 날 달이 머문 별자리로 나를 읽는 동양의 점술입니다. 28수·27숙의 구조부터 본명숙 찾는 법, 사주와의 차이, 오늘의 달자리 활용법까지 입문자를 위해 정리했습니다.",
     category: "숙요점",
-    keywords: ["숙요점", "숙요점이란", "28수", "27숙", "본명숙", "달자리"],
+    keywords: ["숙요점", "숙요점이란", "숙요 점성술", "숙요점성술", "28수", "27숙", "본명숙", "달자리"],
     topic: "숙요점",
     angle: "달자리로 읽는 나",
     ctaTitle: "숙요점 궁합 바로 보기",
@@ -739,6 +743,17 @@ const SUKUYO = [
 <li>충돌하는 숙이라면 — 잠깐 쉬어가는 날입니다.</li>
 </ul>
 <p>이를 알면 억지로 무언가를 하려다 지치는 날이 줄어듭니다. 오늘이 어떤 날인지 알고 그 흐름에 맞춰 움직일 수 있기 때문입니다.</p>
+<h2>숙요 점성술의 관계 6유형 — 영친·업태·안괴·명성·위성·우쇠</h2>
+<p>숙요점(숙요 점성술)이 가장 많이 쓰이는 자리는 관계입니다. 두 사람의 본명숙이 27자리 안에서 몇 칸 떨어져 있는지를 세면 여섯 가지 관계 가운데 하나가 나오고, 같은 유형이라도 두 숙의 거리가 가까운지(근거리) 먼지(원거리)에 따라 체감이 달라집니다.</p>
+<ul>
+<li><a href="/insights/sukuyo-eishin/">영친관계</a> — 서로를 편안하게 만들고 오래 이어지는 인연</li>
+<li><a href="/insights/sukuyo-antai/">업태관계</a> — 부족한 곳을 서로 비추며 함께 자라는 인연</li>
+<li><a href="/insights/sukuyo-ankai/">안괴관계</a> — 안정과 변화가 함께 오는, 가장 강렬한 인연</li>
+<li><a href="/insights/sukuyo-myeongseong/">명성관계</a> — 가능성을 현실로 만들어 가는 동반자형 인연</li>
+<li><a href="/insights/sukuyo-wiseong/">위성관계</a> — 위기를 함께 건너 성취에 닿는 인연</li>
+<li><a href="/insights/sukuyo-useo/">우쇠관계</a> — 상승과 하강을 함께 겪으며 깊어지는 인연</li>
+</ul>
+<p>여섯 유형의 판정 기준은 <a href="/insights/sukuyo-compatibility-guide/">숙요점 궁합 총정리</a>에 모아 두었습니다. 내 본명숙과 상대의 본명숙이 어느 유형인지는 <a href="/sukuyo/">숙요점 무료 분석</a>에서 생년월일만으로 확인할 수 있습니다.</p>
 <h2>연이의 말</h2>
 <p>오래된 별자리 이야기가 왜 지금도 유효하냐고 물을 수 있습니다.</p>
 <p>달은 변함없이 하늘을 돌고 있고, 우리는 여전히 그 달빛 아래 잠들고 깨어납니다. 수천 년 전 사람들이 달을 보며 읽었던 것들 — 그 감각이 완전히 틀리지는 않았을 것입니다.</p>
@@ -746,6 +761,7 @@ const SUKUYO = [
   }),
   article({
     slug: "sukuyo-compatibility-guide",
+    updatedAt: "2026-08-30",
     title: "숙요점(宿曜占星術) 궁합 총정리 — 인간관계와 궁합의 모든 것",
     description: "숙요점 궁합은 좋고 나쁨을 가리는 도구가 아니라 관계의 성격과 방향을 이해하는 지도입니다. 영친·업태·안괴·명성·위성·우쇠 6유형의 핵심 특징과 연애·결혼 궁합에서 진짜 중요한 것을 정리했습니다.",
     category: "숙요점",
@@ -943,6 +959,7 @@ const SUKUYO = [
   }),
   article({
     slug: "sukuyo-eishin",
+    updatedAt: "2026-08-30",
     title: "영친관계(榮親關係) 완전 가이드 — 숙요점에서 가장 편안하고 오래가는 인연",
     description: "영친관계는 숙요점 6유형 궁합 가운데 가장 안정적이고 이상적인 인연으로 꼽힙니다. 영(榮)과 친(親)의 의미, 연애·결혼·친구·직장·사업별 특징과 오래 유지하는 법을 정리했습니다.",
     category: "숙요점",
@@ -1004,6 +1021,7 @@ const SUKUYO = [
   }),
   article({
     slug: "sukuyo-antai",
+    updatedAt: "2026-08-30",
     title: "업태관계(業胎關係) 완전 가이드 — 함께 성장하며 완성해 가는 인연",
     description: "업태관계는 숙요점에서 서로의 부족한 부분을 비추며 함께 성장하는 관계입니다. 업(業)과 태(胎)의 역할, 연애·결혼·가족·직장·사업에서의 특징과 근·중·원거리별 차이를 정리했습니다.",
     category: "숙요점",
@@ -1091,6 +1109,7 @@ const SUKUYO = [
   }),
   article({
     slug: "sukuyo-ankai",
+    updatedAt: "2026-08-30",
     title: "안괴관계(安壞關係) 완전 가이드 — 숙요점에서 가장 강렬하고 운명적인 인연",
     description: "안괴관계는 강한 끌림과 변화의 충격이 공존하는 숙요점의 대표 관계입니다. 안(安)·괴(壞)의 역할부터 연애·결혼·가족·직장·사업·거리별 해석, 흔한 오해와 FAQ까지 총정리했습니다.",
     category: "숙요점",
@@ -1209,6 +1228,7 @@ const SUKUYO = [
   }),
   article({
     slug: "sukuyo-myeongseong",
+    updatedAt: "2026-08-30",
     title: "명성관계(命成關係) 완전 가이드 — 운명을 함께 완성하는 인연의 구조",
     description: "명성관계는 숙요점에서 서로의 가능성을 현실로 만들어 가는 동반자형 관계입니다. 명(命)과 성(成)의 의미, 연애·결혼·가족·친구·직장·사업에서의 특징과 오래 유지하는 법을 정리했습니다.",
     category: "숙요점",
@@ -1271,6 +1291,7 @@ const SUKUYO = [
   }),
   article({
     slug: "sukuyo-wiseong",
+    updatedAt: "2026-08-30",
     title: "위성관계(危成關係) 완전 가이드 — 위기를 넘어 성취를 이루는 운명의 동반자",
     description: "위성관계는 숙요점에서 위기를 함께 통과하며 더 큰 성취를 이루는 관계입니다. 위(危)와 성(成)의 의미, 연애·결혼·가족·직장·사업·거리별 특징과 오래 유지하는 법, FAQ까지 정리했습니다.",
     category: "숙요점",
@@ -1340,6 +1361,7 @@ const SUKUYO = [
   }),
   article({
     slug: "sukuyo-useo",
+    updatedAt: "2026-08-30",
     title: "우쇠관계(友衰關係) 완전 가이드 — 시간이 증명하는 인연, 성장과 쇠퇴를 함께 건너는 관계",
     description: "우쇠관계는 인생의 상승과 하강을 함께 경험하며 시간이 흐를수록 의미가 깊어지는 관계입니다. 성(成)과 쇠(衰)의 역할, 연애·결혼·가족·친구·직장·사업에서의 특징과 오래 유지하는 법을 정리했습니다.",
     category: "숙요점",
