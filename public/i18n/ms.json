@@ -1219,7 +1219,9 @@
       "membership": "Panduan pas dan langganan",
       "membershipAria": "Semak baki pas dan langganan serta faedah cahaya bulan terbuka",
       "search": "Cari semua perkhidmatan",
-      "searchAria": "Temui setiap perkhidmatan tilikan melalui carian"
+      "searchAria": "Temui setiap perkhidmatan tilikan melalui carian",
+      "why": "What cross-checking means",
+      "whyAria": "Learn what cross-checking six systems means"
     },
     "badges": {
       "yogaGuru": "GURU YOGA",
@@ -1348,6 +1350,15 @@
     },
     "feedback": {
       "rewardPrefix": "Bagi setiap laporan pepijat yang diterima"
+    },
+    "whyUs": {
+      "proof": {
+        "head": "This is what cross-checking looks like",
+        "agree": "Same direction",
+        "conditional": "Conditional",
+        "caution": "Slow down",
+        "caption": "Agreement Across Systems · 4 overlapping signals · 2 diverging signals. This is the verdict format the Fusion reading actually produces; the values shown are an example and vary with your input."
+      }
     }
   },
   "terms": {

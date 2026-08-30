@@ -1219,7 +1219,9 @@
       "membership": "Pass and subscription guide",
       "membershipAria": "Check pass and subscription balance and open moonlight benefits",
       "search": "Search all services",
-      "searchAria": "Find every fortune service by search"
+      "searchAria": "Find every fortune service by search",
+      "why": "What cross-checking means",
+      "whyAria": "Learn what cross-checking six systems means"
     },
     "badges": {
       "yogaGuru": "YOGA GURU",
@@ -1236,7 +1238,7 @@
       "neoLogoAlt": "Neo mode logo"
     },
     "hero2": {
-      "title": "From free Saju to Zi Wei Dou Shu and astrology — who you are, right now",
+      "title": "Today's reading is free — deep answers are cross-checked across six systems",
       "lead": "East-West wisdom meets expert insight to interpret your own story.",
       "primaryCta": "✦ See Today's Fortune Free",
       "journeyCta": "✦ Start Your Destiny Journey"
@@ -1348,6 +1350,15 @@
     },
     "feedback": {
       "rewardPrefix": "Per accepted bug report"
+    },
+    "whyUs": {
+      "proof": {
+        "head": "This is what cross-checking looks like",
+        "agree": "Same direction",
+        "conditional": "Conditional",
+        "caution": "Slow down",
+        "caption": "Agreement Across Systems · 4 overlapping signals · 2 diverging signals. This is the verdict format the Fusion reading actually produces; the values shown are an example and vary with your input."
+      }
     }
   },
   "terms": {
@@ -6486,7 +6497,7 @@
     "normalLogo": {
       "moonHeroCopy": {
         "k5pz2jn": "Path of Starlight Reading",
-        "kbm4p3d": "Saju, tarot, Zi Wei Dou Shu, Sukuyo, Vedic and Western astrology, and even face reading — each read by the standards of its own tradition.",
+        "kbm4p3d": "Enter your birth date and today's reading is free. The Fusion reading cross-checks six systems.",
         "kdvbi0h": {
           "ariaLabel": "Key service highlights"
         }
@@ -6854,7 +6865,7 @@
     "moonHeroCopy": {
       "moonHeroActions": {
         "kerryje": "What is Fusion Fortune?",
-        "k107dp07": "Six systems cross-checked — Four Pillars to tarot →"
+        "k107dp07": "See how Fusion reading works →"
       }
     },
     "cdTodayPanelSaju": {

@@ -1219,7 +1219,9 @@
       "membership": "पास और सदस्यता मार्गदर्शिका",
       "membershipAria": "पास और सदस्यता शेष की जांच करें और चांदनी लाभ खोलें",
       "search": "सभी सेवाएँ खोजें",
-      "searchAria": "खोज से हर भाग्य सेवा पाएं"
+      "searchAria": "खोज से हर भाग्य सेवा पाएं",
+      "why": "What cross-checking means",
+      "whyAria": "Learn what cross-checking six systems means"
     },
     "badges": {
       "yogaGuru": "योग गुरु",
@@ -1348,6 +1350,15 @@
     },
     "feedback": {
       "rewardPrefix": "स्वीकृत प्रत्येक बग रिपोर्ट पर"
+    },
+    "whyUs": {
+      "proof": {
+        "head": "This is what cross-checking looks like",
+        "agree": "Same direction",
+        "conditional": "Conditional",
+        "caution": "Slow down",
+        "caption": "Agreement Across Systems · 4 overlapping signals · 2 diverging signals. This is the verdict format the Fusion reading actually produces; the values shown are an example and vary with your input."
+      }
     }
   },
   "terms": {
