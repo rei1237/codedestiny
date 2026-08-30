@@ -92,6 +92,12 @@ DB 연산 2회  /api/reviews         3,450ms   (+  718ms)
    결제·이용권 정합성이 걸리므로 `docs/context/payment-gating.md` 를 먼저 읽을 것.
 4. **Cloudflare 에 라우팅 신고** — Free 존은 커뮤니티 채널뿐이다.
 
+### 쿼리·인덱스 (2026-08-30 실측)
+
+- **싱글턴은 완결이다** — `worker/lib/db.js` `connectDb` 하나뿐이고 새 연결 패턴을 추가하지 않는다. 요청당 핸드셰이크는 위 "지리" 절의 Cloudflare 소켓 수명 때문이지 싱글턴 부재가 아니다.
+- **요청 경로 쿼리 리터럴 = 인덱스 접두** — `explain` 실측([docs/db-query-plans-2026-08-30.md](../db-query-plans-2026-08-30.md), 재현 `npm run audit:mongo-query-plans`)에서 COLLSCAN 은 `users {referralCode}` 하나였고 나머지 후보 14개는 IXSCAN 이었다. 정적 분석으로 인덱스를 추측해 만들지 말고 `explain` 으로 확정한 뒤 `scripts/migrations/` 에 담는다(생성 실행은 사용자 허가).
+- **캐시 히트는 쿼리가 아니라 핸드셰이크 ~1.3s 를 통째로 건너뛴다** — 그래서 인덱스보다 `worker/lib/cms-cache.js`·`credential-scoped-cache.js` 확장이 더 큰 레버다(결제·인증 판정 경로 제외).
+
 ## LLM 안전 규칙 (2026-08-28 `AGENTS.md` 에서 이관)
 
 - AI 작업 전 [docs/LLM_AND_AI_POLICY.md](../LLM_AND_AI_POLICY.md) 를 먼저 읽는다.
