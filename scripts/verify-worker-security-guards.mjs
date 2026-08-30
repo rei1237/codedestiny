@@ -160,6 +160,21 @@ assert.ok(discoveredWaveServices.length > 0, "ai route wiring: 이어짓기 `/ge
 assertContains(security, "const dailyBudget = AI_DAILY_BUDGETS[action];", "ai daily budget lookup by action");
 assertContains(security, "generate: { limit:", "ai daily budget: generate 버킷");
 
+/* 분류 안 된 경로가 보안 계층을 통째로 빠져나가지 않는다.
+   2026-08-30 이전에는 aiActionFromPath 가 `""` 를 돌려주고 enforceAiRouteSecurity 가 그 falsy 를
+   보고 즉시 통과시켜, 배선된 AI 라우트 21개 경로(`/basis` 4종 · `/plan` 2종 · 꿀방울/배지 6종 ·
+   `/generate-batch` · `/generate-image` · `/report{,/continue}` · `/compat` · `/verify-payment` ·
+   서비스 루트 2종)가 레이트리밋·메서드 허용목록·페이로드 상한·소프트블록을 하나도 안 거쳤다.
+   경로별 상한의 전수 대조는 __tests__/worker/security.ai-route-buckets.test.js 가 맡고
+   (worker/** 변경은 PR CI 크리티컬 티어라 항상 돈다), 여기서는 그 '우회 문'이 되살아나지
+   않았는지만 본다. */
+const classifierStart = security.indexOf("export function aiActionFromPath");
+assert.ok(classifierStart > 0, "ai route classifier: aiActionFromPath 선언을 못 읽었다");
+const classifierBody = security.slice(classifierStart, security.indexOf("\n}", classifierStart));
+assertNotContains(classifierBody, 'return "";', "ai route classifier: 미분류 경로를 빈 문자열로 흘려보낸다");
+assertContains(classifierBody, "return AI_FALLBACK_ACTION;", "ai route classifier: 미분류 기본 버킷");
+assertNotContains(security, "if (!action) return { ok: true };", "ai route security: 미분류 즉시 통과 우회");
+
 assertNotContains(security, "usage_pass", "security module usage pass access type");
 assertNotContains(security, "usagePass", "security module usage pass fields");
 

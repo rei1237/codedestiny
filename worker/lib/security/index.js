@@ -483,30 +483,77 @@ const AI_DAILY_BUDGETS = Object.freeze({
   generate: { limit: 600, windowSeconds: 24 * 60 * 60 },
 });
 
+/**
+ * 분류되지 않은 경로가 떨어지는 기본 버킷.
+ *
+ * 🔴 예전에는 여기서 `""` 를 돌려줬고 `enforceAiRouteSecurity` 가 그걸 보고 **즉시 통과**시켰다.
+ *    그래서 AI 라우트 21개 경로(`/basis` 4종 · `/plan` 2종 · 꿀방울/배지 6종 · `/generate-batch` ·
+ *    `/generate-image` · `/report{,/continue}` · `/compat` · `/verify-payment` · 서비스 루트 2종)가
+ *    레이트리밋·메서드 허용목록·페이로드 상한·소프트블록을 **하나도 안 거쳤다**(2026-08-30 실측).
+ *    분류기에 규칙을 더하는 것만으로는 같은 사고가 다시 난다 — 다음에 라우트를 추가하는 사람이
+ *    규칙을 빼먹으면 또 조용히 뚫린다. 그래서 기본값을 "통과" 가 아니라 "기본 버킷" 으로 바꾼다.
+ * 🔴 대가: AI 접두사 아래의 404 쓰레기 요청도 이제 Mongo 를 2번(소프트블록·레이트리밋) 탄다.
+ *    스캐너를 막는 값이 그 비용보다 크다고 봤다.
+ * 🔴 그래도 **실제 라우트가 여기로 떨어지면 실패**여야 한다 — 어떤 상한을 줄지는 경로마다
+ *    재야 하기 때문이다. 그 전수 대조는 __tests__/worker/security.ai-route-buckets.test.js 가 한다.
+ */
+export const AI_FALLBACK_ACTION = "other";
+
+/** GET 을 허용하는 읽기 액션. 나머지는 POST 전용이다. */
+const AI_READ_ACTIONS = new Set(["result", "read"]);
+
+/**
+ * 액션별 분당 상한. 없으면 15.
+ *
+ * 🔴 `batch` 를 따로 둔 이유: karma-destiny-ai 의 `/generate-batch` 는 배치 락을 기다리는 동안
+ *    클라이언트가 무진척 라운드를 **분당 약 48회**까지 친다(app/karma-destiny-ai/result/
+ *    KarmaDestinyAiResultClient.tsx 의 타이머 900ms + 왕복, 상한 `maxGenerationStalls = 360`).
+ *    `generate`(30) 에 넣으면 살아 있는 생성 흐름이 429 로 끊긴다.
+ * 🔴 `basis` 는 결정론 계산(LLM 없음)이지만 차트 계산이라 CPU 를 쓴다 — 단발 호출이므로 30.
+ * 🔴 `unlock` 은 재화(꿀방울·배지)를 소모하는 단발 POST 라 가장 좁게 둔다.
+ */
+export const AI_ACTION_PER_MINUTE = Object.freeze({
+  generate: 30,
+  batch: 90,
+  basis: 30,
+  unlock: 10,
+  [AI_FALLBACK_ACTION]: 30,
+});
+
 export function aiActionFromPath(path = "", serviceKey = "") {
   const normalized = cleanText(path, 200).toLowerCase();
+  const service = cleanText(serviceKey, 80).toLowerCase();
   if (/\/generate$/.test(normalized)) {
     return WAVE_GENERATE_SERVICES.has(cleanText(serviceKey, 80)) ? "generate" : "start";
   }
-  if (/\/(start|create|consult)$/.test(normalized)) return "start";
-  if (/\/(prepare|ensure-access|access|checkout)$/.test(normalized)) return "ensure";
+  // 이어짓기 폴링. `/generate` 웨이브와 달리 락 대기 중 초당 1회 가까이 친다.
+  if (/\/(generate-batch|continue)$/.test(normalized)) return "batch";
+  // 생성 진입점. `/report`·`/compat`·`/generate-image` 는 `/start` 와 같은 급이다(1건 = 1리포트).
+  if (/\/(start|create|consult|report|compat|generate-image)$/.test(normalized)) return "start";
+  if (/\/(prepare|ensure-access|access|checkout|verify-payment)$/.test(normalized)) return "ensure";
   if (/\/(message|refine|chat)$/.test(normalized)) return "message";
+  if (/\/basis$/.test(normalized)) return "basis";
+  if (/\/(unlock|unlock-benefits)$/.test(normalized)) return "unlock";
+  if (/\/(plan|badges|honey-drops|balance)$/.test(normalized)) return "read";
+  // 서비스 루트(`/api/<service>` · 후행 슬래시 포함) — 일부 서비스가 `/plan` 별칭으로 쓴다.
+  if (service && (normalized === `/api/${service}` || normalized === `/api/${service}/`)) return "read";
   if (/\/(result|session|consultation)/.test(normalized) || /^\/[^/]+$/.test(normalized)) return "result";
-  return "";
+  return AI_FALLBACK_ACTION;
 }
 
 export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", path = "", userId = "" } = {}) {
   const action = aiActionFromPath(path, serviceKey);
-  if (!action) return { ok: true };
   const auth = userId ? null : await getOptionalUserFromRequest(request, env).catch(() => null);
   const resolvedUserId = userId || String(auth?.userId || "");
   const method = cleanText(request?.method).toUpperCase();
-  const isRead = action === "result" && method === "GET";
-  const allowedMethods = isRead ? ["GET"] : ["POST"];
+  const isRead = AI_READ_ACTIONS.has(action) && method === "GET";
+  // 🔴 기본 버킷에서는 메서드를 좁히지 않는다 — 아직 분류 안 된 GET 라우트를 405 로 죽이면
+  //    호출부가 조용히 실패한다(꿀방울 잔량이 0 으로 굳던 형태). 상한과 소프트블록은 그대로 건다.
+  const allowedMethods = isRead ? ["GET"] : action === AI_FALLBACK_ACTION ? ["GET", "POST"] : ["POST"];
   const endpoint = `ai:${cleanText(serviceKey, 80)}:${action}`;
   // 🔴 이어짓기는 락 경합(409 GENERATION_IN_PROGRESS)일 때 4초 간격으로 다시 묻는다 —
   //    분당 15 면 그 간격과 정확히 겹쳐 정상 대기가 429 로 끊긴다. 이어짓기에만 여유를 준다.
-  const perMinuteLimit = isRead ? 100 : (action === "generate" ? 30 : 15);
+  const perMinuteLimit = isRead ? 100 : (AI_ACTION_PER_MINUTE[action] || 15);
   const rateLimit = { limit: perMinuteLimit, windowSeconds: 60 };
   const primary = await enforceSensitiveEndpointSecurity({
     env,

@@ -19,6 +19,9 @@ next: 로그인한 스테이징 세션에서 차트 응답의 `pipeline` 을 읽
   (일일 600 = 60리포트 × 서버 웨이브 상한 10, 분당 30). 리포트 1건은 이제 `/start` 예산 1건만
   먹는다. `/generate` 가 `/start` **별칭**인 5개 서비스(ziwei-ai·life-book-ai·love-secret-ai·
   ziwei-island-ai·sukuyo-compatibility-ai)는 그대로 `start` 버킷에 남는다.
+- AI 라우트 우회도 닫혔다 — `aiActionFromPath` 가 미분류에 `""`(= 즉시 통과) 대신 기본 버킷
+  `other` 를 돌려준다. 새 버킷 4종(`batch` 90 · `basis` 30 · `read` 100 · `unlock` 10)은
+  경로별 호출 빈도를 재서 정했고, 기존 분류 79개 경로의 버킷은 하나도 안 바뀌었다.
 
 ## 남은 작업
 
@@ -34,16 +37,11 @@ next: 로그인한 스테이징 세션에서 차트 응답의 `pipeline` 을 읽
 - [ ] **씬 렌더 육안 확인 (미검증)**. `next dev` 가 이 저장소에서 깨져 있어 실제 모습을 못 봤다.
       CSS 토큰 존재는 대조했다. 스테이징에서 ① 생성 화면 목록의 "작성 중" 4줄, ② 차트 로딩 중
       세 점, ③ `prefers-reduced-motion` 켠 상태에서 **목록 18줄이 안 사라지는지**를 본다.
-- [ ] 🔴 **AI 라우트 19개가 `enforceAiRouteSecurity` 를 통째로 빠져나간다** (별건, 미착수).
-      `aiActionFromPath` 가 `""` 를 돌려주면 레이트리밋·메서드 허용목록·페이로드 상한·소프트블록이
-      **하나도 안 돈다**. 해당 경로는 `/karma-destiny-ai/generate-batch` · `/guardian/generate-image` ·
-      `/destiny-compass-ai/report{,/continue}` · `/pet-saju-ai/{compat,report}` · `/*/basis` 3종 ·
-      `/*/plan` 2종 · `/naming-prompt/verify-payment` · 꿀방울/배지 6종.
-      🔴 **이번 PR 에 묶지 않았다** — `/generate-batch` 는 클라이언트가 락 대기 중 **분당 약 48회**
-      까지 친다(`KarmaDestinyAiResultClient.tsx:874` 의 `maxGenerationStalls = 360`, ≈0.8req/s).
-      기존 `generate` 버킷(분당 30)에 그냥 넣으면 살아 있는 흐름이 429 로 끊긴다. 경로마다 상한을
-      따로 재야 한다. 재현: `worker/index.js` 의 `runAiRouteWithSecurity` 배선에서 serviceKey→
-      라우트 파일을 뽑아 각 파일의 `path === "/..."` 를 분류기에 먹여 본다.
+- [ ] **`fortune` 라우트군은 이 작업의 대상이 아니었다 (미검증)**. `/api/fortune/**` 는
+      `runAiRouteWithSecurity` 로 배선돼 있지 않아 `enforceAiRouteSecurity` 를 아예 안 탄다
+      (배선 서비스 19개 목록은 `worker/index.js` 의 `runAiRouteWithSecurity(` grep). 그 라우트군에
+      별도 보안 계층이 있는지는 확인하지 않았다 — `js/saju-engine.js:7472` 가
+      `/api/fortune/saju-ai-consultation/basis` 를 POST 로 친다.
 
 ## 정본 예시
 
