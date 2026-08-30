@@ -4768,9 +4768,19 @@
         phoneNumber: customerPhone
       };
       var directPayFields = _dpResolveDirectPayFields(config.payMethod);
+      // 🔴 결제수단 2단계에서 고른 카드가 이니시스와 **다른 채널**을 쓸 수 있다(카카오페이). PortOne V2 는
+      // 호출당 채널키를 하나만 받으므로 채널키는 "고른 수단의 함수"다. fail-closed — 전용 채널키가 비면
+      // config.channelKey(이니시스)로 조용히 폴백하지 않는다. 폴백하면 "카카오페이를 눌렀는데 이니시스
+      // 카드창"이 뜬다.
+      var channelKey = directPayFields.channelKeyName
+        ? String(config[directPayFields.channelKeyName] || '').trim()
+        : config.channelKey;
+      if (!channelKey) {
+        throw new Error('선택한 결제수단의 포트원 채널 설정이 없습니다.');
+      }
       var requestData = {
         storeId: config.storeId,
-        channelKey: config.channelKey,
+        channelKey: channelKey,
         paymentId: merchantUid,
         // 🔴 order.productName 은 서버 응답에 없는 필드다(구독 응답 전용). 항상 undefined 가 되어
         // reason 으로 흘렀고, 서버가 이니시스 제약에 맞춰 40 UTF-8 바이트로 다듬은 orderName 이 버려졌다.

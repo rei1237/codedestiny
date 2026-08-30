@@ -1467,6 +1467,7 @@
         "prompt": "어떤 방법으로 결제할까요?",
         "card": "신용카드 · 간편결제",
         "transfer": "실시간 계좌이체",
+        "kakaopay": "카카오페이",
         "mobile": "휴대폰 소액결제",
         "giftCultureland": "컬쳐랜드 문화상품권",
         "giftBooknlife": "도서문화상품권",

@@ -814,6 +814,7 @@ function buildPaymentPayload({ config, paymentId, pricing, user, userId, idempot
   return {
     storeId: config.storeId || "",
     channelKey: config.channelKey || "",
+    kakaopayChannelKey: config.kakaopayChannelKey || "",
     paymentId,
     merchantUid: paymentId,
     orderName: ORDER_NAME,

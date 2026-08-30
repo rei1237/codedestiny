@@ -1842,6 +1842,7 @@
         "prompt": "How would you like to pay?",
         "card": "Credit card · Easy pay",
         "transfer": "Real-time bank transfer",
+        "kakaopay": "KakaoPay",
         "mobile": "Mobile carrier billing",
         "giftCultureland": "Cultureland gift certificate",
         "giftBooknlife": "Book&Life gift certificate",

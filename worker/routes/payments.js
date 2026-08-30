@@ -1237,6 +1237,8 @@ function buildSinglePaymentOrderResponse({ config, paymentId, orderName, amountK
   return {
     storeId: config.storeId,
     channelKey: config.channelKey,
+    // 🔴 수단별 채널키. 없으면 인라인 config 경로(js/destiny-profile.js)가 카카오페이 채널키를 못 본다.
+    kakaopayChannelKey: config.kakaopayChannelKey || "",
     paymentId,
     merchantUid: paymentId,
     orderName,
@@ -3624,6 +3626,7 @@ async function handleDigitalContentPrepare(request, env, auth, body) {
   const orderClientConfig = {
     storeId: portOneClientConfig.storeId,
     channelKey: portOneClientConfig.channelKey,
+    kakaopayChannelKey: portOneClientConfig.kakaopayChannelKey || "",
     currency: portOneClientConfig.currency || "CURRENCY_KRW",
     payMethod: portOneClientConfig.payMethod || "CARD",
     noticeUrl: portOneClientConfig.noticeUrl,

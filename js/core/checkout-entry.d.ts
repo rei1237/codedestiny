@@ -16,13 +16,14 @@ export type CheckoutOptionKey = "pass" | "direct" | "monthly";
 export type DirectPayMethodId =
   | "CARD"
   | "TRANSFER"
+  | "KAKAOPAY"
   | "MOBILE"
   | "GIFT_CULTURELAND"
   | "GIFT_BOOKNLIFE"
   | "GIFT_SMART_MUNSANG";
 
 /** PortOne V2 요청에 실리는 payMethod 값. DirectPayMethodId 와 1:1 이 아니다. */
-export type PortOnePayMethod = "CARD" | "TRANSFER" | "MOBILE" | "GIFT_CERTIFICATE";
+export type PortOnePayMethod = "CARD" | "TRANSFER" | "MOBILE" | "GIFT_CERTIFICATE" | "EASY_PAY";
 
 /** PortOne V2 이니시스 경로가 받는 상품권 종류. 해피머니·CULTURE_GIFT 는 대응 값이 없다. */
 export type GiftCertificateType = "CULTURELAND" | "BOOKNLIFE" | "SMART_MUNSANG";
@@ -32,6 +33,12 @@ export type DirectPayFields = {
   payMethod: PortOnePayMethod;
   /** 상품권 카드일 때만 존재한다. PortOne V2 가 상품권에 필수로 요구한다. */
   giftCertificate?: { giftCertificateType: GiftCertificateType };
+  /**
+   * 이니시스와 다른 채널을 쓰는 카드(현재 카카오페이)일 때만 존재한다.
+   * 🔴 채널키 **값이 아니라 서버 config 의 필드 이름**이다. 조립부가 config[channelKeyName] 로
+   * 꺼내며, 비어 있으면 config.channelKey 로 폴백하지 말고 던진다.
+   */
+  channelKeyName?: string;
 };
 
 export type CheckoutReturnPoint = {

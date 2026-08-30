@@ -518,6 +518,7 @@
   var DIRECT_PAY_METHOD_ORDER = [
     "CARD",
     "TRANSFER",
+    "KAKAOPAY",
     "MOBILE",
     "GIFT_CULTURELAND",
     "GIFT_BOOKNLIFE",
@@ -526,6 +527,13 @@
   var DIRECT_PAY_METHODS = {
     CARD: { enabled: true, payMethod: "CARD", glyph: "💳" },
     TRANSFER: { enabled: true, payMethod: "TRANSFER", glyph: "🏦" },
+    // 🔴 카카오페이만 **채널이 다르다**. 나머지 수단은 전부 이니시스 채널 하나를 공유하지만,
+    // PortOne V2 는 requestPayment 호출당 채널키를 하나만 받으므로 카카오페이는 자기 채널키를
+    // 써야 한다. 표에는 값이 아니라 **서버 config 의 필드 이름**을 둔다 — 값을 두려면 이 코어에
+    // 서버 config 를 주입해야 하고, 그러면 resolveDirectPayFields 시그니처가 바뀐다.
+    // easyPayProvider 는 넣지 않는다 — 카카오페이는 PG사 자체가 간편결제사라 채워도 무시된다
+    // (PortOne V2 카카오페이 연동 문서, 2026-08-31 확인).
+    KAKAOPAY: { enabled: false, payMethod: "EASY_PAY", channelKeyName: "kakaopayChannelKey", glyph: "💛" },
     MOBILE: { enabled: false, payMethod: "MOBILE", glyph: "📱" },
     // 🔴 KG이니시스가 PortOne V2 로 태울 수 있는 상품권은 이 3종뿐이다. 해피머니·CULTURE_GIFT 는
     // 이니시스 상점에 등록돼 있어도 이 경로에 대응 값이 없어 넣을 수 없다.
@@ -546,6 +554,7 @@
   function directPayMethodLabel(id) {
     if (id === "CARD") return checkoutText("payment.directModal.method.card", "신용카드 · 간편결제");
     if (id === "TRANSFER") return checkoutText("payment.directModal.method.transfer", "실시간 계좌이체");
+    if (id === "KAKAOPAY") return checkoutText("payment.directModal.method.kakaopay", "카카오페이");
     if (id === "MOBILE") return checkoutText("payment.directModal.method.mobile", "휴대폰 소액결제");
     if (id === "GIFT_CULTURELAND") return checkoutText("payment.directModal.method.giftCultureland", "컬쳐랜드 문화상품권");
     if (id === "GIFT_BOOKNLIFE") return checkoutText("payment.directModal.method.giftBooknlife", "도서문화상품권");
@@ -673,6 +682,10 @@
     if (entry) {
       var fields = { payMethod: text(entry.payMethod).toUpperCase() || DEFAULT_DIRECT_PAY_METHOD };
       if (entry.giftCertificateType) fields.giftCertificate = { giftCertificateType: entry.giftCertificateType };
+      // 🔴 값이 아니라 서버 config 의 **필드 이름**이다. 조립부가 config[channelKeyName] 로 꺼내고,
+      // 비어 있으면 config.channelKey 로 폴백하지 말고 던져야 한다 — 폴백하면 "카카오페이를 눌렀는데
+      // 이니시스 카드창"이 뜬다(giftCertificateType 누락과 같은 실패 모드).
+      if (entry.channelKeyName) fields.channelKeyName = entry.channelKeyName;
       return fields;
     }
     return { payMethod: text(configPayMethod).toUpperCase() || DEFAULT_DIRECT_PAY_METHOD };

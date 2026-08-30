@@ -1842,6 +1842,7 @@
         "prompt": "Hoe wil je betalen?",
         "card": "Creditcard · Snelbetalen",
         "transfer": "Realtime bankoverschrijving",
+        "kakaopay": "KakaoPay",
         "mobile": "Betalen via mobiele rekening",
         "giftCultureland": "Cultureland gift certificate",
         "giftBooknlife": "Book&Life gift certificate",

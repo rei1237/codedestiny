@@ -1842,6 +1842,7 @@
         "prompt": "¿Cómo quieres pagar?",
         "card": "Tarjeta de crédito · Pago rápido",
         "transfer": "Transferencia bancaria en tiempo real",
+        "kakaopay": "KakaoPay",
         "mobile": "Pago con factura móvil",
         "giftCultureland": "Cultureland gift certificate",
         "giftBooknlife": "Book&Life gift certificate",

@@ -1842,6 +1842,7 @@
         "prompt": "您想用哪種方式付款？",
         "card": "信用卡 · 快捷支付",
         "transfer": "即時銀行轉帳",
+        "kakaopay": "KakaoPay",
         "mobile": "手機小額支付",
         "giftCultureland": "Cultureland 文化禮券",
         "giftBooknlife": "圖書文化禮券",

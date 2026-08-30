@@ -94,6 +94,9 @@ export function toLegacyPrepareOrder(order, { config = {}, customer = null, pric
     // PG 클라이언트 config 블록 — 셸이 이걸 인라인으로 받으면 /api/payments/config 왕복을 건너뛴다.
     storeId: String(config.storeId || ""),
     channelKey: String(config.channelKey || ""),
+    // 🔴 셸은 인라인 config 에 storeId·channelKey 가 있으면 /api/payments/config 를 아예 부르지
+    // 않는다(_cdResolveDirectCheckoutConfig). 수단별 채널키를 여기에 안 실으면 셸은 이 값을 영영 못 본다.
+    kakaopayChannelKey: String(config.kakaopayChannelKey || ""),
     currency: String(config.currency || "CURRENCY_KRW"),
     payMethod: String(config.payMethod || "CARD"),
     noticeUrl: String(config.noticeUrl || ""),

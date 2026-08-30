@@ -310,7 +310,7 @@ function customerFromUser(user, userId) {
 }
 function buildPaymentPayload({ config, paymentId, pricing, user, userId, idempotencyKey }) {
   return {
-    storeId: config.storeId || "", channelKey: config.channelKey || "", paymentId, merchantUid: paymentId,
+    storeId: config.storeId || "", channelKey: config.channelKey || "", kakaopayChannelKey: config.kakaopayChannelKey || "", paymentId, merchantUid: paymentId,
     orderName: ORDER_NAME, totalAmount: pricing.amountKRW, paymentAmount: pricing.amountKRW, amountKRW: pricing.amountKRW,
     currency: config.currency || "CURRENCY_KRW", payMethod: config.payMethod || "CARD", customer: customerFromUser(user, userId),
     featureKey: FEATURE_KEY, serviceId: SERVICE_KEY, serviceKey: SERVICE_KEY, contentId: FEATURE_KEY, contentType: SERVICE_KEY,
