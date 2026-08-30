@@ -70,6 +70,14 @@ const deepVerificationRules = [
   [/^lib\/payment\//i, "결제 클라이언트"],
   [/^app\/_lib\/billing-client\.ts$/i, "React 결제 게이트"],
   [/^app\/hooks\/useCoinGate\.ts$/i, "단건 결제 훅"],
+  // 🔴 worker/payments/** 는 paid-flow-gates.yml 트리거에는 처음부터 있었는데 여기에는 없었다
+  //    (2026-08-31 실측). PortOne 확정·PG 웹훅·크론 정산의 캐시 무효화 청크포인트가 전부 이 아래인데
+  //    그것만 고친 PR 은 deepRequired 가 아니었다 — paid-flow-gates 는 깨어나고 deploy:critical 은 안
+  //    도는 어긋난 상태였다.
+  [/^worker\/payments\//i, "결제 확정·정산 청크포인트"],
+  // 결제 직후 잠금 판정은 이 세 저장소의 무효화에 걸린다: 이용권 스냅샷 빌더 · 그 TTL 저장소(leaf) ·
+  //    월정석 잔량. 셋 다 목록에 없어서 access-state.js 조차 deepRequired 가 아니었다.
+  [/^worker\/lib\/(access-state|access-state-cache|monthly-credit-store)\.js$/i, "이용권 스냅샷·월정석 잔량 저장소"],
   [/^js\/core\/(pass-verdict|checkout-entry)\.js$/i, "이용권 판정·결제 진입 정본"],
 
   // ── 유료 기능 UI (정적 계약 테스트가 지키는 곳, preview 스모크는 게스트 경로만 두드린다)

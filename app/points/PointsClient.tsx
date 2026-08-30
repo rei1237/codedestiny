@@ -28,6 +28,7 @@ import { isAuthUserCacheVerified, persistSanitizedAuthUser, readSanitizedAuthUse
 import { resolveMonthlyStoneBalance, resolveMonthlyStoneExpiresAt, formatMonthlyStoneExpiry } from "../_lib/monthly-stone";
 import { describePaymentPhoneFailure, promptPaymentPhoneNumber } from "../_lib/payment-phone-prompt";
 import { runAccessCheckWithTransientRetry } from "../_lib/consultationResultPolling";
+import { refreshUserAccessAfterPayment } from "../_lib/user-session-cache";
 
 type PaymentLoadingVariant = NonNullable<PaymentLoadingProps["variant"]>;
 
@@ -3631,6 +3632,10 @@ export default function PointsPage() {
         throw error;
       }
 
+        // 🔴 서버가 확정을 검증한 뒤에만 /api/me/access-state 의 60초 스냅샷을 강제 무효화한다.
+        //    안 하면 방금 결제한 기능이 최대 60초간 잠긴 채로 보인다. 실패 갈래는 위에서 throw 로 빠졌다.
+        //    결과를 기다리지 않는다 — 화면 잠금 해제는 로컬 스냅샷이 판정한다(결제 게이팅 1번).
+        refreshUserAccessAfterPayment().catch(() => {});
         return payload;
       })();
 
@@ -3671,6 +3676,9 @@ export default function PointsPage() {
           (error as Error & { status?: number }).status = response.status;
           throw error;
         }
+        // 🔴 복귀 예약보다 **먼저** 서버 스냅샷을 무효화한다 — scheduleCheckoutReturn 은 복귀 티켓이
+        //    없으면 곧바로 false 로 빠지므로(일반 /points 구매), 거기에 얹으면 그 경로가 통째로 빈다.
+        refreshUserAccessAfterPayment().catch(() => {});
         // 결제 성공 지점은 카드·월정석·모바일 리다이렉트 복귀 세 곳인데 전부 이 헬퍼를 지난다.
         // 여기서 '예약'만 하므로(1.2초 뒤 이동) 호출부의 상태 갱신·토스트가 끝날 시간이 남는다.
         scheduleCheckoutReturn();

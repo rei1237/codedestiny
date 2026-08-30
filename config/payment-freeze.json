@@ -13,7 +13,7 @@
       "file": "index.html",
       "marker": "  async function _cdRunDirectKrwCheckout(options) {",
       "why": "단건 PortOne 결제 실행 경로. 호출부 6곳이 여기에 물려 있다.",
-      "sha256": "8f14699ceb1df009"
+      "sha256": "37c7868e97bc73c3"
     },
     {
       "file": "index.html",
@@ -32,12 +32,12 @@
     {
       "file": "app/_lib/billing-client.ts",
       "why": "React 결제 코어. 낙관 이용권 grant 와 결제창 렌더러가 여기 있다.",
-      "sha256": "ed45c7b98698379a"
+      "sha256": "47fe1eeeea67957c"
     },
     {
       "file": "app/hooks/useCoinGate.ts",
       "why": "React 유료 게이트 공개 훅.",
-      "sha256": "6f2bcdebf95a06ff"
+      "sha256": "7a8d5971a5f6a594"
     },
     {
       "file": "lib/payment/portone.ts",

@@ -46,6 +46,12 @@ on:
       #    스냅샷에 실어 화면이 읽는 값을 만든다 — 결제 판정과 같은 카운터를 읽는 파일이다.
       - "worker/lib/app-store-pricing.js"
       - "worker/lib/access-state.js"
+      # 🔴 또 같은 짝 구멍이다(2026-08-31). access-state.js 는 위에 있는데 그 **TTL 저장소**를
+      #    가른 leaf 와, 월정석 잔량 차감/복구 저장소가 빠져 있었다. verify:access-state-cache-order
+      #    축 ④ 가 "잔량 캐시를 버리는 곳은 access-state 스냅샷도 버린다"를 이 두 파일에서 단언하므로,
+      #    여기만 고친 PR 에서 게이트가 안 깨어나면 결제 직후 잠금 회귀가 그대로 통과한다.
+      - "worker/lib/access-state-cache.js"
+      - "worker/lib/monthly-credit-store.js"
       - "worker/lib/portone.js"
       # 🔴 결제 **레인**이 사는 곳이다(2026-08-12 추가). connectPaymentDb(전용 소켓 풀) ·
       #    mongoPaymentAdmission(전용 admission 레인) · withMongoRetry 의 skipSharedConnect 가

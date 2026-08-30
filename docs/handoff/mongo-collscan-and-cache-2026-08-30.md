@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: 결제 직후 access-state 정합성 구멍 2건(결제 라우트 무효화 미호출 · refreshUserAccessAfterPayment 호출자 0) — 아래 "남은 작업".
+next: 없음 — "남은 작업" 전 항목 완료. 마지막 항목(결제 직후 정합성)의 PR 머지 여부만 확인하면 이 문서는 닫힌다.
 ---
 
 # MongoDB M10 최적화 — 풀 스캔 제거 · 캐시 확장 (2026-08-30)
@@ -29,7 +29,9 @@ next: 결제 직후 access-state 정합성 구멍 2건(결제 라우트 무효�
 - [x] `users {referralCode}` 인덱스 — 2026-08-31 허가 실행. 선행 `--check` 가 이미 `OK … 누락=0`(실행 전에 존재, 생성 주체 미확인) 이라 apply 는 no-op 였다. 사후 `verify:request-path-indexes` = `누락=0 충돌=0`.
 - [x] 5단계 캐시 확장 — insights 목록/상세·content 피드 완료(위 "지금 상태"). `/api/me/access-state` 는 보류(사유 위). 스테이징 판정 완료(2026-08-31): 연속 2회 GET 에서 `X-CD-Cache: miss` → `hit`. 🔴 `curl -sI`(HEAD)는 405 라 헤더가 안 나온다 — `curl -s -D - -o /dev/null https://staging.code-destiny.com/api/insights` 로 잴 것. 응답의 `Cache-Control: no-store` 는 결함이 아니다: 이 캐시는 브라우저/CDN 이 아니라 워커 내부(아이솔레이트 memo + `caches.default`)이고, 판정 신호는 `X-CD-Cache` 하나다.
 - [x] `/api/me/access-state` 조기 조회 — PR #1364. 착수 조건이던 `paid-gate-auditor` 사전 감사 완료(판정 **조건부 착수**, 9개 조건 전부 반영). 가드 `verify:access-state-cache-order`(fail-closed, 축 2개: 조회 순서 · 탈퇴 무효화 배선을 `worker/**` 에서 전수 발견, 0건이면 실패) · 테스트 `__tests__/worker/access-state.early-cache.test.js`.
-- [ ] 🔴 **결제 직후 정합성 구멍 2건**(감사가 함께 찾은 **기존** 결함, PR #1364 범위 밖) — ① 결제 라우트가 `invalidateAccessStateCacheForUser` 를 부르지 않는다 ② `refreshUserAccessAfterPayment` 는 **호출자 0개**다. 결제 직후 최대 60초간 옛 스냅샷이 나갈 수 있다(진입 판정은 로컬 스냅샷이므로 유료 기능이 잠긴 채로 보일 수 있다). 서버는 이제 `x-code-destiny-cache-refresh: 1` 을 받으면 즉시 무효화하고, 그 헤더를 붙이는 코드는 양쪽 표면에 이미 있다(`index.html:462` · `app/_lib/user-session-cache.ts:504`) — **둘 다 `refreshUserAccessAfterPayment` 안에 있고 그 함수를 부르는 곳이 없다**(2026-08-31 `git grep` 전수: 정의 2 · 훅 배선 1 · 호출 0). 즉 배관은 다 깔렸고 **결제 완료 지점에서 그 함수를 부르기만 하면 된다**. 착수 전 `paid-gate-auditor` 재감사 권장.
+- [x] 🔴 **결제 직후 정합성 구멍** — 브랜치 `perf/payment-access-state-invalidation`(PR 번호는 `gh pr list`). 🔴 착수 전 항목 ①의 서술이 **틀렸다**: `worker/routes/billing.js:271` 의 청크포인트가 이미 `__accessStateCache` 를 버리고 코인 차감·해금·환불 4곳이 그리로 모인다. 실제로 비어 있던 곳은 둘 — PortOne 확정·PG 웹훅·크론 정산이 지나는 `worker/payments/index.js` 의 `invalidateBalanceSnapshot`(잔량만 버렸다)과 월정석 차감/복구 `worker/lib/monthly-credit-store.js`. 항목 ②(호출자 0)는 사실이었고 셸 3곳(`_cdRefreshAccessStateAfterPayment`)·`js/destiny-profile.js` 1곳·App Router 3곳(`useCoinGate` · `PointsClient` 2)에 배선했다.
+- 🔴 그래서 **서버 무효화는 best-effort 다** — 저장소가 `globalThis.__codeDestinyAccessStateCache`(아이솔레이트 로컬 Map)라 다른 아이솔레이트가 들고 있는 스냅샷은 못 지운다. 사용자에게 실제로 보이는 수정은 **클라이언트의 강제 GET**(`x-code-destiny-cache-refresh: 1` → 라우트가 그 자리에서 무효화 후 재계산)이고, 서버 쪽 무효화는 같은 아이솔레이트가 재사용될 때만 듣는다. 둘 다 있어야 하는 이유가 이것이다.
+- 가드는 `verify:access-state-cache-order` 에 축 2개를 더했다: ③ 표면별(셸 = `index.html`+`js/**`, App = `app/**`) `refreshUserAccessAfterPayment` 정의·호출 각 ≥1(정의 0이면 실패) · ④ 잔량 캐시를 버리는 `worker/**` 파일은 access-state 도 버린다(위임을 인정할 때 청크포인트 **본문**까지 확인). CI 배선 구멍도 함께 막았다 — `change-risk.mjs` 에 `worker/payments/**`·access-state·monthly-credit-store, `paid-flow-gates.yml` 에 `access-state-cache.js`·`monthly-credit-store.js`.
 - [x] 4단계 정적 가드 — 구현·배선 완료(위 "지금 상태"). PR #1353 CI(run 33319863161) 에서 스텝 "Verify Mongo query shapes match declared indexes" 가 로컬과 같은 수치(위반 0)로 돈 것을 확인(2026-08-31). 남은 판정 없음.
 
 ## 정본 예시
@@ -50,7 +52,7 @@ npm run lint && npm run typecheck && npm run verify:guard-wiring
 npm run verify:mongo-query-index-shapes -- --self-test && npm run verify:mongo-query-index-shapes -- --report   # 4단계 가드
 npx --no-install cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testEnvironment node __tests__/scripts/verify-mongo-query-index-shapes.test.js
 node scripts/verify-public-api-edge-cache.mjs --self-test   # 5단계 가드, self-test 14
-npm run verify:access-state-cache-order && npm run verify:access-state-cache-order -- --self-test   # 라우트 7 · 배선 2 · 발견 1
+npm run verify:access-state-cache-order && npm run verify:access-state-cache-order -- --self-test   # 라우트 7 · 배선 2 · 발견 1 · 새로고침 4 · 잔량짝 2
 npx --no-install cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testEnvironment node __tests__/worker/access-state.early-cache.test.js
 npx --no-install cross-env NODE_OPTIONS=--experimental-vm-modules jest --runInBand --testEnvironment node __tests__/worker/insights-public-cache.route.test.js
 MONGO_URI=... npm run verify:request-path-indexes   # 읽기 전용, MISSING 1 이 정상(미실행 상태)
