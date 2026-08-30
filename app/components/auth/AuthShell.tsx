@@ -49,6 +49,7 @@ type Copy = {
   privacy: string; privacySummary: string; terms: string; birthYear: string; invalidAge: string; agreeOnSubmit: string; finishTitle: string;
   finishDescription: string; finish: string; invalidEmail: string; invalidSignup: string;
   credentialsError: string; network: string; unavailable: string; providerPolicy: string;
+  returnToApp: string; returnToAppHint: string;
 };
 
 const EN: Copy = {
@@ -74,6 +75,7 @@ const EN: Copy = {
   credentialsError: "Check your email or password.", network: "The connection is unstable. Your entries are still here.",
   unavailable: "Authentication is temporarily unavailable. Try again shortly.",
   providerPolicy: "Your social provider’s account security policy also applies.",
+  returnToApp: "Return to the app", returnToAppHint: "Your account is ready. Tap below to go back to the app.",
 };
 
 const COPY: Partial<Record<LoadingLocale, Copy>> = {
@@ -101,6 +103,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "잠시 연결이 불안정해요. 입력한 내용은 그대로 유지했어요.",
     unavailable: "인증 서비스가 잠시 불안정해요. 잠시 후 다시 시도해 주세요.",
     providerPolicy: "소셜 인증 제공자의 계정 보안 정책도 함께 적용됩니다.",
+    returnToApp: "앱으로 돌아가기", returnToAppHint: "가입이 끝났어요. 아래를 눌러 앱으로 돌아가세요.",
   },
   ja: {
     loginTitle: "おかえりなさい", signupTitle: "運命の記録を安全に保存しましょう",
@@ -126,6 +129,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "接続が不安定です。入力内容はそのまま保持されています。",
     unavailable: "認証サービスが一時的にご利用いただけません。しばらくしてから再度お試しください。",
     providerPolicy: "ご利用のソーシャル提供元のアカウントセキュリティポリシーも適用されます。",
+    returnToApp: "アプリに戻る", returnToAppHint: "登録が完了しました。下のボタンからアプリに戻ってください。",
   },
   "zh-CN": {
     loginTitle: "欢迎回来", signupTitle: "安全保存你的命运记录",
@@ -151,6 +155,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "连接暂时不稳定。您输入的内容已保留。",
     unavailable: "认证服务暂时不可用,请稍后重试。",
     providerPolicy: "同时适用您所用社交账号提供方的账户安全政策。",
+    returnToApp: "返回应用", returnToAppHint: "注册已完成。点击下方返回应用。",
   },
   "zh-TW": {
     loginTitle: "歡迎回來", signupTitle: "安全保存你的命運記錄",
@@ -176,6 +181,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "連線暫時不穩定。您輸入的內容已保留。",
     unavailable: "驗證服務暫時無法使用,請稍後再試。",
     providerPolicy: "同時適用您所使用社群帳號提供方的帳戶安全政策。",
+    returnToApp: "返回應用程式", returnToAppHint: "註冊已完成。點擊下方返回應用程式。",
   },
   vi: {
     loginTitle: "Chào mừng bạn trở lại", signupTitle: "Lưu trữ vận mệnh của bạn một cách an toàn",
@@ -201,6 +207,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "Kết nối tạm thời không ổn định. Nội dung bạn đã nhập vẫn được giữ nguyên.",
     unavailable: "Dịch vụ xác thực tạm thời không khả dụng. Vui lòng thử lại sau.",
     providerPolicy: "Chính sách bảo mật tài khoản của nhà cung cấp mạng xã hội cũng sẽ được áp dụng.",
+    returnToApp: "Quay lại ứng dụng", returnToAppHint: "Tài khoản đã sẵn sàng. Nhấn bên dưới để quay lại ứng dụng.",
   },
   hi: {
     loginTitle: "वापसी पर स्वागत है", signupTitle: "अपनी नियति को सुरक्षित रूप से सहेजें",
@@ -226,6 +233,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "कनेक्शन अस्थायी रूप से अस्थिर है। आपकी दर्ज की गई जानकारी सुरक्षित है।",
     unavailable: "प्रमाणीकरण सेवा अस्थायी रूप से अनुपलब्ध है। कृपया थोड़ी देर बाद पुनः प्रयास करें।",
     providerPolicy: "आपके सोशल प्रदाता की खाता सुरक्षा नीति भी लागू होती है।",
+    returnToApp: "ऐप पर लौटें", returnToAppHint: "खाता तैयार है। ऐप पर लौटने के लिए नीचे टैप करें।",
   },
   es: {
     loginTitle: "Bienvenido de nuevo", signupTitle: "Guarda tu destino de forma segura",
@@ -251,6 +259,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "La conexión es inestable por el momento. Tus datos introducidos siguen aquí.",
     unavailable: "El servicio de autenticación no está disponible temporalmente. Vuelve a intentarlo en breve.",
     providerPolicy: "También se aplica la política de seguridad de cuentas de tu proveedor social.",
+    returnToApp: "Volver a la aplicación", returnToAppHint: "Tu cuenta está lista. Toca abajo para volver a la aplicación.",
   },
   fr: {
     loginTitle: "Content de vous revoir", signupTitle: "Sauvegardez votre destin en toute sécurité",
@@ -276,6 +285,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "La connexion est instable pour le moment. Vos informations saisies sont conservées.",
     unavailable: "Le service d'authentification est temporairement indisponible. Réessayez dans un instant.",
     providerPolicy: "La politique de sécurité du compte de votre fournisseur social s'applique également.",
+    returnToApp: "Revenir à l'application", returnToAppHint: "Votre compte est prêt. Touchez ci-dessous pour revenir à l'application.",
   },
   de: {
     loginTitle: "Willkommen zurück", signupTitle: "Speichere dein Schicksal sicher",
@@ -301,6 +311,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "Die Verbindung ist momentan instabil. Deine Eingaben bleiben erhalten.",
     unavailable: "Der Authentifizierungsdienst ist vorübergehend nicht verfügbar. Bitte versuche es in Kürze erneut.",
     providerPolicy: "Die Kontosicherheitsrichtlinie deines sozialen Anbieters gilt ebenfalls.",
+    returnToApp: "Zurück zur App", returnToAppHint: "Dein Konto ist bereit. Tippe unten, um zur App zurückzukehren.",
   },
   nl: {
     loginTitle: "Welkom terug", signupTitle: "Bewaar je lot veilig",
@@ -326,6 +337,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "De verbinding is momenteel onstabiel. Je ingevoerde gegevens blijven behouden.",
     unavailable: "De authenticatieservice is tijdelijk niet beschikbaar. Probeer het straks opnieuw.",
     providerPolicy: "Het accountbeveiligingsbeleid van je sociale provider is ook van toepassing.",
+    returnToApp: "Terug naar de app", returnToAppHint: "Je account is klaar. Tik hieronder om terug te gaan naar de app.",
   },
   ms: {
     loginTitle: "Selamat kembali", signupTitle: "Simpan takdir anda dengan selamat",
@@ -351,6 +363,7 @@ const COPY: Partial<Record<LoadingLocale, Copy>> = {
     network: "Sambungan tidak stabil buat masa ini. Maklumat yang anda masukkan masih disimpan.",
     unavailable: "Perkhidmatan pengesahan tidak tersedia buat sementara waktu. Sila cuba lagi sebentar lagi.",
     providerPolicy: "Dasar keselamatan akaun pembekal sosial anda turut terpakai.",
+    returnToApp: "Kembali ke apl", returnToAppHint: "Akaun anda sudah sedia. Ketik di bawah untuk kembali ke apl.",
   },
 };
 
@@ -382,6 +395,8 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const [busy, setBusy] = useState(false);
   const [socialBusy, setSocialBusy] = useState<SocialProvider | null>(null);
   const [error, setError] = useState("");
+  // 소셜 가입 마무리 뒤 앱으로 돌려보낼 커스텀 스킴 URL. 자동 이동이 막혔을 때만 화면에 남는다.
+  const [appReturnUrl, setAppReturnUrl] = useState("");
   const copy = getCopy(locale);
   const apiBase = useMemo(() => getApiBaseUrl(), []);
 
@@ -397,6 +412,16 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     setSocialAgeVerified(params.get("social_age") === "1");
     if (params.get("error") || params.get("social_error")) setError(copy.unavailable);
   }, [copy.unavailable]);
+  // 커스텀탭을 인증하지 않고 닫았거나 교환이 실패하면 브릿지가 이 이벤트를 쏜다
+  // (scripts/app-native-bridge.js notifyAuthCancelled). 이게 없으면 소셜 버튼 3개가
+  // "인증 화면으로 이동 중…" 으로 굳어 다시 누를 수 없다.
+  // 🔴 여기에 visibilitychange 리스너를 새로 달지 말 것 — 취소 판정은 openAuthStartedAt 을
+  // 가진 브릿지 한 곳에만 있다(원칙 6 중첩 사전검사).
+  useEffect(() => {
+    const release = () => setSocialBusy(null);
+    window.addEventListener("cd:auth-cancelled", release);
+    return () => window.removeEventListener("cd:auth-cancelled", release);
+  }, []);
 
   // 🔴 서버(worker/lib/validation.js validateBirthYear)와 같은 규칙이다. 여기 검사는 우회
   // 방지가 아니라 오타를 그 자리에서 알려주기 위한 것이고, 판정의 정본은 언제나 서버다.
@@ -429,21 +454,27 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
   const startSocial = (provider: SocialProvider) => {
     if (socialBusy || busy) return;
     setError(""); setSocialBusy(provider);
+    const params = new URLSearchParams({ flow: mode, next: nextPath() });
+    const current = new URLSearchParams(window.location.search);
+    for (const key of ["ref", "rs", "via"]) { const value = current.get(key); if (value) params.set(key, value); }
+    const webStartUrl = `${apiBase}/api/auth/oauth/${provider}/start?${params.toString()}`;
     const native = (window as unknown as {
       CodeDestinyNative?: {
-        openAuth?: (input: { provider: SocialProvider; nextPath?: string; flow?: AuthMode }) => Promise<{ ok?: boolean; message?: string }>;
+        openAuth?: (input: { provider: SocialProvider; nextPath?: string; flow?: AuthMode }) => Promise<{ ok?: boolean; code?: string; message?: string }>;
       };
     }).CodeDestinyNative;
     if (typeof native?.openAuth === "function") {
       void native.openAuth({ provider, nextPath: nextPath(), flow: mode }).then((result) => {
-        if (result?.ok === false) { setError(result.message || copy.unavailable); setSocialBusy(null); }
+        if (result?.ok !== false) return;
+        // 커스텀탭 플러그인이 없다고 여기서 멈추면 앱에서 소셜 로그인이 통째로 막힌다.
+        // 이 이동은 네이티브가 마지막에 받아 준다 — CodeDestinyNavigationPlugin.shouldOverrideLoad
+        // 이 /api/auth/oauth/ 최상위 이동을 잡아 appRedirect 를 붙인 커스텀탭으로 대신 연다.
+        if (result?.code === "NATIVE_BROWSER_UNAVAILABLE") { window.location.assign(webStartUrl); return; }
+        setError(result.message || copy.unavailable); setSocialBusy(null);
       }).catch(() => { setError(copy.network); setSocialBusy(null); });
       return;
     }
-    const params = new URLSearchParams({ flow: mode, next: nextPath() });
-    const current = new URLSearchParams(window.location.search);
-    for (const key of ["ref", "rs", "via"]) { const value = current.get(key); if (value) params.set(key, value); }
-    window.location.assign(`${apiBase}/api/auth/oauth/${provider}/start?${params.toString()}`);
+    window.location.assign(webStartUrl);
   };
 
   const submitEmail = async (event: FormEvent) => {
@@ -509,7 +540,12 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
       completeClientLogin(payload);
       markFreshSignup(payload.user);
       trackEvent("signup", { method: "social" });
-      if (payload.appRedirectUrl) window.location.assign(payload.appRedirectUrl); else redirect(payload.nextPath, payload.user?.role);
+      // 🔴 앱 복귀는 커스텀 스킴(com.codedestiny.app://auth) 이동이라 크롬이 조용히 막을 수 있다.
+      // 이 지점은 fetch 왕복 뒤여서 탭 활성화(transient user activation)가 이미 만료됐을 수 있고,
+      // 그러면 아무 일도 일어나지 않은 채 사용자가 커스텀탭 안에 갇힌다. 시도는 그대로 하되
+      // 눌러서 제스처를 다시 만들 링크를 화면에 남긴다(워커 핸드오프 페이지와 같은 방식).
+      if (payload.appRedirectUrl) { setAppReturnUrl(payload.appRedirectUrl); window.location.assign(payload.appRedirectUrl); return; }
+      redirect(payload.nextPath, payload.user?.role);
     } catch (reason) { setError(reason instanceof Error ? reason.message : copy.network); }
     finally { setBusy(false); }
   };
@@ -520,10 +556,11 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
     <div aria-hidden="true" className="pointer-events-none fixed inset-0 bg-[radial-gradient(circle_at_50%_-10%,rgba(125,92,190,.32),transparent_42%),linear-gradient(180deg,#11132a_0%,#090b1a_72%)]" />
     <div className="relative mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2.5rem)] w-full max-w-[440px] items-center py-3">
       <section className="w-full rounded-[24px] border border-[#c9b7f0]/20 bg-[#12152b] p-5 shadow-[0_24px_70px_rgba(0,0,0,.38)] sm:p-7" aria-labelledby="auth-title">
-        <header className="text-center"><img src="/icons/app-logo-96.png" width="52" height="52" alt="" className="mx-auto h-[52px] w-[52px] rounded-2xl" /><h1 id="auth-title" className="mt-4 text-balance text-[1.55rem] font-black tracking-[-0.025em]">{ticket ? copy.finishTitle : isSignup ? copy.signupTitle : copy.loginTitle}</h1><p className="mx-auto mt-2 max-w-[38ch] text-pretty text-sm leading-6 text-[#d8d0ea]">{ticket ? copy.finishDescription : isSignup ? copy.signupDescription : copy.loginDescription}</p></header>
+        <header className="text-center"><img src="/icons/app-logo-96.png" width="52" height="52" alt="" className="mx-auto h-[52px] w-[52px] rounded-2xl" /><h1 id="auth-title" className="mt-4 text-balance text-[1.55rem] font-black tracking-[-0.025em]">{appReturnUrl ? copy.returnToApp : ticket ? copy.finishTitle : isSignup ? copy.signupTitle : copy.loginTitle}</h1><p className="mx-auto mt-2 max-w-[38ch] text-pretty text-sm leading-6 text-[#d8d0ea]">{appReturnUrl ? copy.returnToAppHint : ticket ? copy.finishDescription : isSignup ? copy.signupDescription : copy.loginDescription}</p></header>
         <div className="my-4 min-h-6" aria-live="polite">{error ? <p id="auth-error" role="alert" className="rounded-xl border border-[#ff8ca5]/40 bg-[#421d2a] px-3 py-2.5 text-sm text-[#ffd7df]">{error}</p> : null}</div>
+        {appReturnUrl ? <a href={appReturnUrl} className="flex min-h-12 w-full items-center justify-center rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff]">{copy.returnToApp}</a> : null}
         {!ticket && <><section aria-label={copy.socialLabel}><div className="grid gap-3">{(["google", "naver", "kakao"] as const).map((provider) => <button key={provider} type="button" disabled={Boolean(socialBusy) || busy} onClick={() => startSocial(provider)} className={`min-h-12 rounded-xl border px-4 text-sm font-black focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white disabled:opacity-55 ${provider === "google" ? "border-[#d9dce5] bg-white text-[#252735]" : provider === "naver" ? "border-[#03a94d] bg-[#03C75A] text-white" : "border-[#e3cb00] bg-[#FEE500] text-[#191919]"}`}>{socialBusy === provider ? copy.moving : provider === "google" ? copy.google : provider === "naver" ? copy.naver : copy.kakao}</button>)}</div><p className="mt-3 text-center text-xs leading-5 text-[#a99dbd]">{copy.providerPolicy}</p><section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section></section><div className="my-5 flex items-center gap-3 text-xs text-[#aa9fbd]"><span className="h-px flex-1 bg-[#c9b7f0]/15" /><span>{copy.orEmail}</span><span className="h-px flex-1 bg-[#c9b7f0]/15" /></div></>}
-        <form onSubmit={ticket ? finishSocialSignup : submitEmail} className="space-y-4" noValidate aria-describedby={error ? "auth-error" : undefined}>
+        {!appReturnUrl && <form onSubmit={ticket ? finishSocialSignup : submitEmail} className="space-y-4" noValidate aria-describedby={error ? "auth-error" : undefined}>
           {/* 🔴 이름은 받지 않는다(2026-08-25). 소셜은 공급자가 항상 넘겨 주고(mapSocialProfile 이
               없으면 "<provider> user" 로 채운다), 이메일은 서버가 이메일 아이디에서 파생한다.
               결제창의 customer.fullName 도 그 값을 쓰므로 PG 쪽에 부족한 것이 없다. */}
@@ -544,7 +581,7 @@ export default function AuthShell({ initialMode }: { initialMode: AuthMode }) {
               (worker/routes/auth.js legalConsents) — 없앤 것은 클릭이지 고지도 기록도 아니다. */}
           {Boolean(ticket) && <section aria-label={copy.agreeOnSubmit} className="mt-3 space-y-1.5 rounded-xl border border-[#c9b7f0]/18 bg-[#0d1022] p-3 text-[11px] leading-5 text-[#aa9fbd]"><p className="text-[#cfc4e5]">{copy.agreeOnSubmit}</p><p className="flex flex-wrap items-center gap-x-3"><Link href="/terms" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.terms}</Link><Link href="/privacy" target="_blank" className="min-h-11 py-2.5 font-bold text-[#d7c1ff] underline underline-offset-4">{copy.privacy}</Link></p><p>{copy.privacySummary}</p></section>}
           <button type="submit" disabled={busy || Boolean(socialBusy)} aria-busy={busy} className="min-h-12 w-full rounded-xl border border-[#b89ae8]/45 bg-[#7c5cbf] px-4 text-sm font-black text-white shadow-[0_10px_28px_rgba(65,42,116,.36)] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#dbc9ff] disabled:opacity-55">{busy ? copy.processing : ticket ? copy.finish : isSignup ? copy.signup : copy.login}</button>
-        </form>
+        </form>}
         {!ticket && <p className="mt-5 text-center text-sm text-[#cfc4e1]">{isSignup ? copy.hasAccount : copy.noAccount} <Link href={isSignup ? `/login?next=${encodeURIComponent(nextPath())}` : `/signup?next=${encodeURIComponent(nextPath())}`} onClick={() => { setMode(isSignup ? "login" : "signup"); setError(""); }} className="ml-1 min-h-11 font-black text-[#d7c1ff] underline underline-offset-4">{isSignup ? copy.switchToLogin : copy.switchToSignup}</Link></p>}
       </section>
     </div>
