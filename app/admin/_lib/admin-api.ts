@@ -1,6 +1,7 @@
 // 관리자 CMS 전용 fetch 헬퍼.
 // 인증은 기존 꽃 admin 토큰(x-admin-token) 방식을 그대로 쓴다 — 새 인증 체계를 만들지 않는다.
 import { getApiBaseUrl } from "../../_lib/api-config";
+import { normalizeAppPathname } from "@/app/app/_lib/app-route";
 
 const FLOWER_ADMIN_TOKEN_RE = /^[A-Za-z0-9_-]{20,}\.[0-9a-f]{64}$/;
 const LOCAL_ADMIN_HOSTS = new Set(["localhost", "127.0.0.1", "0.0.0.0"]);
@@ -43,6 +44,9 @@ export function getFlowerAdminToken(): string {
   return "";
 }
 
+/** 로그인 화면 경로. 정규화한 pathname 과 비교하므로 후행 슬래시를 붙이지 않는다. */
+const ADMIN_LOGIN_PATH = "/admin/login";
+
 export function clearAdminToken(): void {
   for (const key of ["flower_admin_token", "flower_admin_password_ok"]) {
     try { window.sessionStorage.removeItem(key); } catch { /* 무시 */ }
@@ -51,10 +55,13 @@ export function clearAdminToken(): void {
 
 export function redirectToAdminLogin(): void {
   clearAdminToken();
-  const next = typeof window === "undefined"
-    ? "/admin/cms"
-    : `${window.location.pathname}${window.location.search}`;
-  window.location.assign(`/admin/login?next=${encodeURIComponent(next)}`);
+  if (typeof window === "undefined") return;
+  // 🔴 이미 로그인 화면이면 이동하지 않는다. trailingSlash:true 라 /admin/login 요청은 308 로
+  //    /admin/login/ 이 되므로, 자기 자신으로 다시 보내면 브라우저가 그 사이를 무한 왕복한다.
+  const here = normalizeAppPathname(window.location.pathname);
+  if (here === ADMIN_LOGIN_PATH) return;
+  const next = `${here}${window.location.search}`;
+  window.location.assign(`${ADMIN_LOGIN_PATH}?next=${encodeURIComponent(next)}`);
 }
 
 /** 워커 503 봉투에서 건져 올리는 진단 정보. 어느 것도 없을 수 있다. */
