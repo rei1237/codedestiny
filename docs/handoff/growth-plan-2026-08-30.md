@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: 1단계 PR(브랜드·저자) 머지 → 프로덕션 승격 → 1-C/1-D/1-E 를 새 세션에서 이어서(계획 파일 §1 참조)
+next: 1-C PR #1328 머지 → 프로덕션 승격 → 1-D 를 새 세션에서(계획 파일 §1-D)
 ---
 
 # 성장 계획 2026-08-30 — 검색 유입·AdSense·첫인상
@@ -22,12 +22,13 @@ next: 1단계 PR(브랜드·저자) 머지 → 프로덕션 승격 → 1-C/1-D/1
 
 ## 지금 상태
 
-- 1단계 PR 1(1-A 브랜드 신호 + 1-B 저자 실명화): 브랜치 `worktree-growth-stage1-brand`, PR #1327. 머지 대기.
+- 1단계 PR 1(1-A+1-B): #1327 머지·프로덕션 승격 완료(2026-08-30, run 33308525595, 홈·sitemap 200, `seo:check` PASS).
+- 1-C: PR #1328 머지 대기. 허브 산문 777 → 1,666자. sr-only 134 링크 제거와 편집자 노트는 **이미 main 에 있었다**(#1197, 6fc5c731f) — 계획 파일 §1-C 의 그 두 줄은 낡은 서술.
 - 2~5단계 미착수.
 
 ## 남은 작업
 
-- [ ] 1-C 허브 sr-only 링크 134개 제거 + `/insights/famous-saju` 허브 산문 1,500자 + editor-notes 2건(같은 커밋)
+- [ ] 1-C 잔여: `lib/seo-site-urls.ts:41-45` 134 URL 열거 → 2단계 editorial 플래그로 대체(2단계에서 같이)
 - [ ] 1-D 얇은 유료 랜딩 7개에 가시 본문 700자+ (`FeatureLandingPage` valueSections) · `/saju-fpti` 사이트맵 · `/tarot/healing/start` H1
 - [ ] 1-E 고아 페이지 가드(`scripts/verify-adsense-readiness.mjs` 안, fail-closed)
 - [ ] 2단계 유명인: `lib/famous-saju/celebrity-editorial.js` + `celebrity-multi-system.ts` + 가드 2개 + 색인 분기 3곳. T0 6명부터.
