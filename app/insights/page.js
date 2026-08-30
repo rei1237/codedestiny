@@ -201,43 +201,6 @@ export default async function InsightsPage() {
           점성술까지 — 처음 접하는 사람도 흐름을 읽을 수 있도록 정리한 운세 지식 아카이브입니다.
           주제별 허브에서 원하는 분야의 글을 모아 볼 수 있습니다.
         </p>
-        <nav aria-label="주제별 인사이트 허브">
-          <ul>
-            {topicHubs.map((topic) => (
-              <li key={topic.href}>
-                <a href={topic.href}>{topic.label}</a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        <nav aria-label="체계 비교 문서">
-          <ul>
-            {compareDocs.map((doc) => (
-              <li key={doc.href}>
-                <a href={doc.href}>{doc.label}</a>
-              </li>
-            ))}
-          </ul>
-        </nav>
-        {/*
-          🔴 유명인 사주 134개(slug 가 `famous-saju/` 로 시작)는 이 목록에서 뺀다.
-          상세는 이름·생일만 갈아 끼운 noindex 템플릿인데, 여기 있으면 색인·광고 대상인
-          이 허브가 **숨긴 링크로** 134개 전부에 크롤 경로를 열어 준다. 위 sr-only 안내가
-          "은닉 텍스트만 늘어난다"고 적어 둔 것과 같은 이유다. 허브 자체로 가는 길은
-          바로 위 topicHubs 의 `/insights/famous-saju/` 한 줄로 남는다.
-          (제거 후 이 페이지 고유 본문 6,212 → 4,600자대, MIN_UNIQUE_BODY 1,500 대비 여유.)
-        */}
-        <nav aria-label="전체 인사이트 글 목록">
-          <ul>
-            {initialAllItems
-              .filter((item) => item.isPublished && item.slug && !item.slug.startsWith("famous-saju/"))
-              .map((item) => (
-                <li key={item.slug}>
-                  <a href={`/insights/${item.slug}/`}>{item.title}</a>
-                </li>
-              ))}
-          </ul>
-        </nav>
       </section>
       {/*
         기능 가이드 12종은 사이트에서 가장 품질이 높은 자산인데(상호 공통 문장 0개)
@@ -261,6 +224,61 @@ export default async function InsightsPage() {
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+      {/*
+        아카이브 목차(주제 허브·비교 문서·전체 글 목록)는 2026-08-30 까지 위 sr-only 섹션 안에 있었다.
+        그 결과 인사이트 글 11개와 /compare/sukuyo-vs-vedic 이 **숨긴 링크로만** 도달 가능했고,
+        verify-adsense-readiness 의 인바운드 가드(성장 계획 1-E)가 고아로 잡았다. 기능 가이드와
+        같은 방식으로 눈에 보이게 렌더링한다 — 숨기면 크롤 경로는 열려도 내부 링크 신호가 0 이다.
+
+        🔴 유명인 사주 134개(slug 가 `famous-saju/` 로 시작)는 이 목록에서 뺀다.
+        상세는 이름·생일만 갈아 끼운 noindex 템플릿이라, 여기 있으면 색인·광고 대상인
+        이 허브가 134개 전부에 크롤 경로를 열어 준다. 허브 자체로 가는 길은
+        topicHubs 의 `/insights/famous-saju/` 한 줄로 남는다.
+        (제거 후 이 페이지 고유 본문 6,212 → 4,600자대, MIN_UNIQUE_BODY 1,500 대비 여유.)
+      */}
+      <section className="mx-auto w-full max-w-6xl px-4 pb-10 md:px-6" aria-label="운세 인사이트 아카이브 목차">
+        <div className="cd-guide-index">
+          <h2 className="cd-guide-index__title">인사이트 아카이브 전체 글</h2>
+          <p className="cd-guide-index__lede">
+            주제별 허브에서 분야를 고르거나, 아래 전체 목록에서 바로 글을 열 수 있습니다.
+          </p>
+          <nav aria-label="주제별 인사이트 허브">
+            <ul className="cd-guide-index__grid">
+              {topicHubs.map((topic) => (
+                <li key={topic.href}>
+                  <a href={topic.href} className="cd-guide-index__link">
+                    {topic.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <nav aria-label="체계 비교 문서">
+            <ul className="cd-guide-index__grid">
+              {compareDocs.map((doc) => (
+                <li key={doc.href}>
+                  <a href={doc.href} className="cd-guide-index__link">
+                    {doc.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+          <nav aria-label="전체 인사이트 글 목록">
+            <ul className="cd-guide-index__grid">
+              {initialAllItems
+                .filter((item) => item.isPublished && item.slug && !item.slug.startsWith("famous-saju/"))
+                .map((item) => (
+                  <li key={item.slug}>
+                    <a href={`/insights/${item.slug}/`} className="cd-guide-index__link">
+                      {item.title}
+                    </a>
+                  </li>
+                ))}
+            </ul>
+          </nav>
         </div>
       </section>
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(webPage) }} />
