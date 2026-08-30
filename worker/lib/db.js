@@ -527,10 +527,33 @@ export async function connectDb(env = {}, options = {}) {
     if (lastHealthyAt && Date.now() - lastHealthyAt < pingMinIntervalMS) {
       return mongoose.connection;
     }
-    /* 3500 → 1000. 이 타이머는 이제 "느린 서버를 기다리는 예산"이 아니라 **죽은 커넥션을 얼마나 빨리
-       포기하는가**이다. 위 실측에서 살아 있는 소켓의 ping 은 왕복 한 번이고, 죽은 쪽은 1.3초를
-       넘겨서야 돌아왔다 — 1000 은 그 사이를 가른다. 늦게 포기할수록 그만큼이 그대로 결제창 앞 지연이다. */
-    const pingTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_PING_TIMEOUT_MS", "1000"), 1000, 300, 10000);
+    /* 3500 → 1000 → 300. 이 타이머는 "느린 서버를 기다리는 예산"이 아니라 **죽은 커넥션을 얼마나 빨리
+       포기하는가**이다. 살아 있는 소켓의 ping 은 왕복 한 번이고, 죽은 쪽은 1.3초를 넘겨서야 돌아왔다.
+       늦게 포기할수록 그만큼이 그대로 결제창 앞 지연이다.
+
+       🔴 1000 → 300 (2026-08-31). 1000 이 "그 사이를 가른다"는 것은 맞았지만, **거의 모든 요청이
+       그 1초를 통째로 낸다**는 것이 프로덕션 실측으로 드러났다. `wrangler tail` 로 프로덕션·스테이징
+       워커 로그를 읽고 공용 connectDb 를 타는 `GET /api/insights` 를 6회씩 돌린 결과:
+
+         프로덕션 웜 ×10  요청시작→[db-connect] 1222~1286ms · 핸드셰이크 417~501ms · wall 1761~1867ms
+         프로덕션 콜드 ×5  요청시작→[db-connect]  223~ 834ms · 핸드셰이크 1481~1611ms
+         스테이징 웜 ×4   요청시작→[db-connect] 1689~1692ms · 핸드셰이크 1247~1269ms · wall 3087~3110ms
+
+       ping 을 타는 웜과 안 타는 콜드의 선행 구간 차이가 **약 1000ms** 로 이 노브와 정확히 같고,
+       웜 10건의 산포가 ±32ms 라 고정 타이머의 모양이다. 즉 매 요청이 실패가 예정된 ping 에 1초를
+       태우고 있었다. 재수립 자체는 양쪽 환경 공통이며(프로브 12건 전부 새 연결) 스테이징 퇴행이 아니다 —
+       3.5s vs 1.4s 격차의 정체는 정책이 아니라 Atlas 핸드셰이크(1256ms vs 493ms)다.
+
+       🔴 그런데도 ping 을 없애지 않는 이유는 **재사용이 되는 요청이 실제로 있기 때문**이다 —
+       같은 창에서 `[db-connect]` 없이 353~380ms 로 끝난 요청이 3건 있었다(= ping 이 통과한 살아 있는
+       소켓). 검증 없이 무조건 재수립하면 그 요청들을 ~500ms 핸드셰이크로 끌어올리고, M10 의
+       노드당 초당 15개 신규 커넥션 생성률 제한(maxIdleTimeMS 주석)을 향해 전 요청을 밀어 넣는다.
+       그래서 "포기 속도"만 줄인다. 300 은 이 clamp 의 기존 하한이라 가드레일을 건드리지 않는다.
+       🔴 더 내리려면 살아 있는 ping 의 왕복 시간을 먼저 재야 한다 — 위 353ms 는 핸들러+쿼리를 포함한
+       요청 전체라 ping 만 분해한 값이 아니다. 그 측정 없이 하한(300)을 내리지 말 것.
+       되돌리기는 이 값과 양쪽 `[vars]` 를 함께 1000 으로 올리는 것 하나다
+       (__tests__/worker/db.vars-code-default-parity.test.js 가 둘을 묶는다). */
+    const pingTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_PING_TIMEOUT_MS", "300"), 300, 300, 10000);
     try {
       await withTimeout(
         mongoose.connection.db.command({ ping: 1 }),
