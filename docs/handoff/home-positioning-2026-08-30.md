@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: "docs/code-destiny-audit.md §5 P3(얇은 라우트 7개 본문). P1·P2 는 끝났다. 홈 '고르는 면' 추가 축소는 아래 '기각' 절을 먼저 읽을 것"
+next: "docs/code-destiny-audit.md §5 P4(퍼널 이벤트 계측). P1·P2 완료, P3 는 실측해 보니 이미 끝나 있었다(감사 문서 §5). 홈 '고르는 면' 추가 축소는 아래 '기각' 절을 먼저 읽을 것"
 ---
 
 # 홈 포지셔닝 · 단순화
@@ -54,6 +54,13 @@ PR **#1298 머지됨**(2026-08-30 00:50Z). 이어서 P2 를 브랜치 `worktree-
 
 `#cdWhyUs` 3771 → **2959**, `#cdSignatureConsult` 2947 → **3640**(390x844 기준 문서 좌표).
 CLS·히어로·`docHeight`(12121)는 이동 전과 같다. `#cdWhyUs` 에는 `content-visibility` 가 안 걸려 있고, `#cdSignatureConsult` 의 `contain-intrinsic-size: auto 792px` 는 실측 높이 792px 과 일치해 이동으로 어긋나지 않는다.
+
+## P3 는 재실측으로 닫았다 (2026-08-30)
+
+로드맵 P3(얇은 라우트 7개 본문 + `/ziwei/chart` 색인)은 **착수해 보니 이미 끝나 있었다.**
+근거 문서가 2026-08-24 **오전** 값을 옮겨 적었고 같은 날 오후에 해소됐다. 수치·재현은
+[docs/code-destiny-audit.md](../code-destiny-audit.md) §5 "P3 를 다시 열지 말 것".
+코드 변경 0건 — 문서 3건만 고쳤다.
 
 ## 남은 작업
 

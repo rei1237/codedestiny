@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: "§5 로드맵 P1(홈 히어로 실측 검증)부터 — 한 세션에 한 항목"
+next: "§5 로드맵 P4(퍼널 이벤트 계측)부터 — 한 세션에 한 항목. P1~P3 는 완료다"
 ---
 
 # Code Destiny 전면 개선 감사 (요청 20단계 → 레포 실측 매핑)
@@ -113,10 +113,50 @@ CrUX origin/url 8개 조합 전부 404. 필드 데이터가 없으면 CWV 는 �
 |---|---|---|
 | ~~P1~~ | ✅ 2026-08-30 완료 — 390x844/412x823 에서 히어로 높이 변화 0px · CLS 0.00082(히어로 아님). 수치·한계는 [home-positioning-2026-08-30.md](handoff/home-positioning-2026-08-30.md) | 광고발 CLS 는 여전히 미측정(프로덕션 전용) |
 | ~~P2~~ | ✅ 2026-08-30 완료 — `#cdWhyUs` 를 `<style>` 블록째 `#cdSignatureConsult` 앞으로 이동 | 이동 전후 CLS·docHeight 동일 |
-| P3 | 얇은 라우트 7개에 본문 9,854자 + `/ziwei/chart` 색인 복구 | [service-exposure-audit-2026-08-24.md](handoff/service-exposure-audit-2026-08-24.md) §4-1·§4-2 |
+| ~~P3~~ | ✅ **이미 끝나 있었다**(2026-08-24 에 처리됨) — 2026-08-30 dist/ 실측으로 확인. 아래 표 참고 |
 | P4 | 퍼널 이벤트 계측(요청 4·18) | `useAnalytics` 훅은 정의돼 있으나 **호출자 0** — 2026-08-30 `git grep -n "useAnalytics"` (레포 전체) 결과가 정의 1건 + 가드 참조뿐. 계측 없이 A/B(19)는 불가 |
 | P5 | 브랜드 분산 정리 — 캐릭터·상품명(요청 15) | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 3번 |
 | P6 | 무료 AI 상담 `premiumCta` 연결 | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 2번 |
+
+### P3 를 다시 열지 말 것 — 2026-08-30 dist/ 실측
+
+이 로드맵의 P3 는 [service-exposure-audit-2026-08-24.md](handoff/service-exposure-audit-2026-08-24.md) §4-2 의
+"본문 부족 9,854자" 표를 그대로 옮겨 적은 것이었다. 그런데 그 표는 **같은 날 뒤에 이미 해소됐다**
+(`scripts/generate-sitemap.mjs` 의 `noindexPathPrefixes` 주석이 5개 라우트를 색인으로 되돌린 경위를 적어 두었다).
+
+`npm run build:cf` 뒤 `verify:indexable-prose-depth` 지표(40단위 이상 조각·페이지 내 중복 제거·
+20쪽 이상 공용 문구 제외·한자 2단위)로 잰 값:
+
+| 라우트 | 문장급 본문 | 08-24 문서가 적은 값 |
+|---|---:|---:|
+| `/oracle/ifa` | 1,292 | 23 |
+| `/saju/destiny-bias` | 1,309 | 697 |
+| `/tarot/healing` | 1,417 | 1,092 |
+| `/neo-operation-room` | 1,425 | 285 |
+| `/saju/love-simulation` | 1,815 | 58 |
+| `/saju-fpti` | 1,874 | 431 |
+| `/saju-guardian` | 1,970 | 160 |
+| `/ziwei/chart` | 2,618 | 1,920(색인 대기로 적혀 있었다) |
+
+- 색인 439개 전체 분포는 최소 929 · p05 1,004 · **중앙 1,689** · 최대 28,542 이고 **임계 900 위반 0개**다.
+  위 8개는 전부 임계 위이며 5개는 중앙값 위다.
+- `/ziwei/chart` 는 사이트맵에 등재돼 있고 색인 5개소 중 noindex 목록 세 곳
+  (`generate-sitemap.mjs`·`lib/seo/siteSeo.ts`·`_headers`) 어디에도 없다 — 애초에 들어간 적이 없다
+  (`git log -S'/ziwei/chart'` 로 뒤 두 파일 전 이력 0건).
+- §4-4 "`/oracle/ifa` 정본 뒤집기"도 끝났다 — `static-canonical-route-map.mjs` 의 canonical 이
+  이미 `/oracle/ifa` 다.
+- 아직 얇은 것은 `/oracle/royal-tea`·`/oracle/sikojen-povailu` 인데 **둘 다 noindex 유지가 정답**이라
+  P3 항목이 아니다.
+
+재현:
+
+```
+npm run build:cf
+npm run verify:indexable-prose-depth -- --report   # 하위 10개·분위수·위반 수
+```
+
+🔴 교훈: 이 로드맵의 P 항목은 **다른 문서의 표를 옮겨 적은 것**이라 그 문서가 갱신되면 낡는다.
+착수 전에 수치를 다시 재는 것이 CLAUDE.md 원칙 8이다. 여기서 P3 한 건이 통째로 그 경우였다.
 
 ## 6. 안 한 것과 이유
 
