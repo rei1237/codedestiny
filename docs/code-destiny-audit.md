@@ -111,8 +111,8 @@ CrUX origin/url 8개 조합 전부 404. 필드 데이터가 없으면 CWV 는 �
 
 | 순위 | 항목 | 근거 |
 |---|---|---|
-| P1 | 이번 히어로 변경의 실기기 검증 — 390x844 에서 줄 수·히어로 높이·CLS | `verify:hero-firstpaint-lock` 은 마크업 구조만 본다. 수치는 프로덕션 측정 필요 |
-| P2 | `#cdWhyUs` 섹션을 `#cdSignatureConsult`(유료 카드) **앞으로** 이동 | 지금은 "왜 돈을 내야 하나"가 상품 뒤에 있다. 🔴 인라인 스크립트가 파싱 중 실행돼 자기 뒤 섹션을 못 찾는 사고 전례 — [home-conversion-funnel.md](handoff/home-conversion-funnel.md) |
+| ~~P1~~ | ✅ 2026-08-30 완료 — 390x844/412x823 에서 히어로 높이 변화 0px · CLS 0.00082(히어로 아님). 수치·한계는 [home-positioning-2026-08-30.md](handoff/home-positioning-2026-08-30.md) | 광고발 CLS 는 여전히 미측정(프로덕션 전용) |
+| ~~P2~~ | ✅ 2026-08-30 완료 — `#cdWhyUs` 를 `<style>` 블록째 `#cdSignatureConsult` 앞으로 이동 | 이동 전후 CLS·docHeight 동일 |
 | P3 | 얇은 라우트 7개에 본문 9,854자 + `/ziwei/chart` 색인 복구 | [service-exposure-audit-2026-08-24.md](handoff/service-exposure-audit-2026-08-24.md) §4-1·§4-2 |
 | P4 | 퍼널 이벤트 계측(요청 4·18) | `useAnalytics` 훅은 정의돼 있으나 **호출자 0** — 2026-08-30 `git grep -n "useAnalytics"` (레포 전체) 결과가 정의 1건 + 가드 참조뿐. 계측 없이 A/B(19)는 불가 |
 | P5 | 브랜드 분산 정리 — 캐릭터·상품명(요청 15) | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 3번 |
