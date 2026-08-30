@@ -158,6 +158,61 @@ test("92개 라우트가 타는 공유 빌더와 로케일 표의 ko 항목이 �
   );
 });
 
+test("홈 셸(6개 미러 포함)은 application-name 을 브랜드명으로 선언한다", () => {
+  // 구글이 사이트 이름을 채택하는 네 신호 중 하나. 2026-08-30 까지 셸에 아예 없었다.
+  // 🔴 대상은 손 목록이 아니라 `home.nav.brandAlias` 를 가진 셸 = 홈 셸로 전수 발견한다.
+  const files = [];
+  for (const dir of SHELL_ROOTS) walkHtml(dir, files);
+  const homeShells = [...new Set(files)].filter((file) =>
+    fs.readFileSync(file, "utf8").includes('data-key="home.nav.brandAlias"'),
+  );
+  assert.ok(homeShells.length > 0, "home.nav.brandAlias 를 가진 홈 셸을 하나도 찾지 못했습니다 — 마커가 바뀌었다면 이 가드를 함께 고치세요.");
+
+  const wrong = [];
+  for (const file of homeShells) {
+    const html = fs.readFileSync(file, "utf8");
+    const match = /<meta\s+name="application-name"\s+content="([^"]*)"/.exec(html);
+    if (!match || match[1] !== BRAND) {
+      wrong.push(`${path.relative(root, file)}: ${match ? `"${match[1]}"` : "(선언 없음)"}`);
+    }
+    // apple-mobile-web-app-title 은 sync:public 이 로케일별로 번역하므로(`seo.appTitle`) ko 셸만 본다.
+    const apple = /<meta\s+name="apple-mobile-web-app-title"\s+content="([^"]*)"/.exec(html);
+    if (/<html\s+lang="ko"/.test(html) && apple && apple[1] !== BRAND) {
+      wrong.push(`${path.relative(root, file)}: apple-mobile-web-app-title "${apple[1]}"`);
+    }
+  }
+  assert.deepEqual(wrong, [], `application-name 이 브랜드명("${BRAND}")이 아닌 홈 셸:\n  ${wrong.join("\n  ")}`);
+});
+
+test("app/ 라우트 title 접미사에 구명(꿀꿀 만세력)을 쓰지 않는다", () => {
+  // 브랜드 연혁 문장·alternateName·푸터 저작권의 "꿀꿀 만세력" 은 의도된 구명 표기라 title 만 본다.
+  const offenders = [];
+  let scanned = 0;
+
+  function walkSource(dir, depth = 0) {
+    if (depth > 6 || !fs.existsSync(dir)) return;
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === "node_modules") continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) {
+        walkSource(full, depth + 1);
+        continue;
+      }
+      if (!/\.(?:js|jsx|ts|tsx)$/.test(entry.name)) continue;
+      scanned += 1;
+      fs.readFileSync(full, "utf8").split(/\r?\n/).forEach((line, index) => {
+        if (/\btitle:\s*["'`][^"'`]*\|\s*꿀꿀 만세력\s*["'`]/.test(line)) {
+          offenders.push(`${path.relative(root, full).split(path.sep).join("/")}:${index + 1}`);
+        }
+      });
+    }
+  }
+
+  walkSource(path.join(root, "app"));
+  assert.ok(scanned > 0, "app/ 에서 소스 파일을 하나도 읽지 못했습니다.");
+  assert.deepEqual(offenders, [], `title 접미사가 구명인 라우트(| ${BRAND} 로 바꾸세요):\n  ${offenders.join("\n  ")}`);
+});
+
 test("app/ 에 남은 비-브랜드 siteName 리터럴은 렌더되지 않는 비-한국어 카피 4개뿐이다", () => {
   // 개수를 찍어 둔다 — 새 라우트가 브랜드명을 손으로 박으면 여기서 개수가 어긋나 걸린다.
   // 남겨 둔 4개는 `sikojenLayoutCopy = ...ko` / `sajuGuardianLayoutCopy = ...ko` 처럼

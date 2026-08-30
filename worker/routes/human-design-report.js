@@ -108,7 +108,10 @@ function executionKeyOf(requestId) {
 /** 화면·PDF 가 함께 쓰는 공개 형태. 저장 문서의 내부 필드(lock·basis)는 내보내지 않는다. */
 function publicReport(doc) {
   const sections = (doc.sections || [])
-    .filter((section) => section.status === "ok")
+    // 🔴 과금·전달 하한(handleGenerate 의 delivered)이 "ok || degraded" 를 세므로 여기도 같아야
+    //    한다. ok 만 내보내면 진행률이 실제보다 적게 보고돼 클라이언트의 무진전 카운터가
+    //    멀쩡한 생성을 끊고, 완성된 리포트도 결제 기준(14장)보다 적은 장수로 보인다.
+    .filter((section) => section.status === "ok" || section.status === "degraded")
     .sort((a, b) => a.order - b.order)
     .map((section) => ({
       key: section.key,
@@ -464,11 +467,39 @@ async function handleStart(request, env) {
   };
 
   await connectDb(env);
-  await withMongoRetry(env, () => HumanDesignReport.updateOne(
-    { userId: auth.userId, reportKey },
-    { $setOnInsert: doc },
-    { upsert: true },
-  ));
+  if (existing) {
+    // 🔴 여기 도달하는 existing 은 generation_failed 하나뿐이다(위 재열람 분기가 나머지를 돌려준다).
+    //    그런데 $setOnInsert 는 **기존 문서에 아무것도 쓰지 못한다.** 닫힌 문서를 그대로 두면
+    //    /generate 가 곧바로 409 GENERATION_ALREADY_FAILED 를 돌려주고, 사용자는 다시 결제하고도
+    //    잠금 화면으로 되돌아온다. reportKey 가 결정적이라 그 고착은 영구적이다.
+    // 🔴 waveCount·lock 은 doc 에 없으므로 여기서 따로 되돌린다. 소진된 waveCount 가 남으면
+    //    claimWave 의 상한 조건이 첫 웨이브부터 걸린다.
+    // 🔴 billingRequestId 는 doc 안에서 이번 requestId 로 갱신된다 — 옛 값을 남기면 이후 환불이
+    //    이미 환불된 실행을 다시 닫고, 이번 결제금은 영영 돌아가지 않는다.
+    await withMongoRetry(env, () => HumanDesignReport.updateOne(
+      { userId: auth.userId, reportKey, status: "generation_failed" },
+      {
+        $set: {
+          ...doc,
+          waveCount: 0,
+          providerCallCount: 0,
+          totalChars: 0,
+          qualityIssues: [],
+          degraded: false,
+          lock: null,
+          generationError: null,
+          llmMeta: null,
+          completedAt: null,
+        },
+      },
+    ));
+  } else {
+    await withMongoRetry(env, () => HumanDesignReport.updateOne(
+      { userId: auth.userId, reportKey },
+      { $setOnInsert: doc },
+      { upsert: true },
+    ));
+  }
 
   await openRefundableExecution(env, auth.userId, requestId, reportId, clean(proof.transactionId, 120));
 
@@ -523,8 +554,12 @@ async function handleGenerate(request, env) {
       );
     }
     // 다른 요청이 웨이브를 잡고 있다. 이중 팬아웃을 막는 자리다.
+    // 🔴 retryable 을 붙이지 않는다. 붙이면 postPaidBody 가 이 409 를 스스로 5회 재시도해
+    //    useReportGeneration 의 4초 양보 위에 재시도가 한 겹 더 쌓이고(코딩 원칙 6),
+    //    웨이브당 요청이 5배가 되어 /start 와 공유하는 분당 15회 상한을 넘긴다.
+    //    재시도 주기는 아래 Retry-After 를 보고 클라이언트가 정한다.
     return json(
-      { ok: false, retryable: true, reason: "GENERATION_IN_PROGRESS", message: MESSAGES.busy },
+      { ok: false, reason: "GENERATION_IN_PROGRESS", message: MESSAGES.busy },
       { status: 409, headers: { ...noStore, "Retry-After": "4" } },
     );
   }

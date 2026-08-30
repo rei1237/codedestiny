@@ -73,8 +73,14 @@ function TrigramGlyph({ trigram }: { trigram: readonly number[] }) {
   );
 }
 
-/** 성운 · 별밭 · 바디그래프 실루엣. 전부 장식이라 aria-hidden 이고 props 가 없다. */
-const PipelineField = memo(function PipelineField() {
+/**
+ * 성운 · 별밭 · 바디그래프 실루엣. 전부 장식이라 aria-hidden 이고 props 가 없다.
+ *
+ * 🔴 유료 리포트의 생성·로딩 화면(app/human-design/report/_components)도 **이것을 그대로**
+ *    쓴다. 같은 그림을 두 벌 저작하면 한쪽만 바뀐다. 그래서 export 이고, 여기 있는 것은
+ *    상태를 주장하지 않는 장식뿐이라 어느 화면에 얹어도 진행률을 지어내지 않는다.
+ */
+export const PipelineField = memo(function PipelineField() {
   return (
     <div className={styles.field} aria-hidden="true">
       <div className={styles.nebula} />

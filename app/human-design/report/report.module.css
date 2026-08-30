@@ -313,7 +313,9 @@
   color: var(--hd-ink-dim);
 }
 
-.progressItem[data-done="true"] {
+/* 상태는 셋이다: done / writing / pending. writing 의 표시는 generation-scene.module.css
+   가 맡는다 — 움직이는 것은 전부 거기 모아 둔다. */
+.progressItem[data-state="done"] {
   color: var(--hd-ink);
   background: rgba(167, 139, 250, 0.14);
 }
@@ -324,7 +326,7 @@
   color: var(--hd-ink-dim);
 }
 
-.progressItem[data-done="true"] .progressState {
+.progressItem[data-state="done"] .progressState {
   color: var(--hd-accent);
 }
 

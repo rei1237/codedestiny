@@ -1,6 +1,7 @@
 import DestinyBiasRouteClient from "./DestinyBiasRouteClient";
 import MyDestinyBiasShell from "./components/MyDestinyBiasShell";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
+import ServiceIntroSection from "../../components/ServiceIntroSection";
 
 const DESTINY_BIAS_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -53,11 +54,14 @@ export const metadata = {
 export default function DestinyBiasPage() {
   return (
     <MyDestinyBiasShell>
+      <DestinyBiasRouteClient />
       {/* 분석 화면은 클라이언트에서만 그려져 크롤러에게는 사실상 빈 페이지였다. 아래 안내는
           서버에서 렌더해 이 분석이 무엇을 계산하는지 읽을 수 있게 한다. 네 축의 이름과 가중치는
           engine/compatibilityScore.ts 의 calculateBiasCompatibility 정의를 그대로 옮긴 것이다.
-          🔴 이 섹션에 H1 을 두지 말 것 — 페이지의 H1 은 클라이언트가 이미 소유하고 있다. */}
-      <section className="sr-only" aria-label="최애운명 분석 안내">
+          🔴 이 섹션에 H1 을 두지 말 것 — 페이지의 H1 은 클라이언트가 이미 소유하고 있다.
+          2026-08-30: sr-only 였던 본문을 ServiceIntroSection 으로 가시화했다(성장 계획 1-D) — 본문 전체를
+          숨긴 형태는 Google 의 Hidden text 정책 소지가 있고 AdSense 검수자에게도 보이지 않는다. 배치는 앱 아래. */}
+      <ServiceIntroSection label="최애운명 분석 안내">
         <h2>최애운명 — 나와 최애의 기운을 네 축으로 갈라 보는 분석</h2>
         <p>
           최애를 좋아하는 마음은 하나인데 그 마음이 쓰이는 방식은 사람마다 다릅니다. 어떤 사람은 감정이
@@ -111,8 +115,7 @@ export default function DestinyBiasPage() {
           최애운명은 팬덤 문화를 위한 오락 콘텐츠입니다. 실재하는 인물의 성격이나 사생활을 규정하지 않으며,
           입력한 이름과 생년월일은 결과 카드를 만드는 계산에만 쓰입니다.
         </p>
-      </section>
-      <DestinyBiasRouteClient />
+      </ServiceIntroSection>
       <ImmersiveRelatedLinks fromPath="/saju/destiny-bias" />
     </MyDestinyBiasShell>
   );

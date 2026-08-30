@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import NeoOperationRoomClient from "./NeoOperationRoomClient";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 export const metadata: Metadata = {
   title: "네오의 팩폭 작전실 | Code Destiny",
@@ -18,11 +19,14 @@ export const metadata: Metadata = {
 export default function NeoOperationRoomRoute() {
   return (
     <>
+      <NeoOperationRoomClient />
       {/* 상담 화면은 클라이언트에서만 그려져 크롤러에게는 사실상 빈 페이지였다. 아래 안내는
           서버에서 렌더한다. 네 가지 방식의 입력값과 계산 항목은
           src/features/neo-war-room/data/method-registry.ts 의 neoWarRoomMethodRegistry 를 따랐다.
-          🔴 이 섹션에 H1 을 두지 말 것 — 페이지의 H1 은 클라이언트가 이미 소유하고 있다. */}
-      <section className="sr-only" aria-label="네오의 팩폭 작전실 안내">
+          🔴 이 섹션에 H1 을 두지 말 것 — 페이지의 H1 은 클라이언트가 이미 소유하고 있다.
+          2026-08-30: sr-only 였던 본문을 ServiceIntroSection 으로 가시화했다(성장 계획 1-D) — 본문 전체를
+          숨긴 형태는 Google 의 Hidden text 정책 소지가 있고 AdSense 검수자에게도 보이지 않는다. 배치는 앱 아래. */}
+      <ServiceIntroSection label="네오의 팩폭 작전실 안내">
         <h2>네오의 팩폭 작전실 — 위로 대신 진단으로 여는 상담</h2>
         <p>
           운세를 보고 나서 마음은 풀렸는데 상황은 그대로인 경우가 많습니다. 작전실은 그 지점을 바꾸려고
@@ -90,8 +94,7 @@ export default function NeoOperationRoomRoute() {
           작전실은 직설적인 진단을 전제로 하는 유료 상담입니다. 듣기 좋은 문장을 기대한다면 맞지 않을 수
           있습니다. 전통 상징 체계를 바탕으로 한 콘텐츠이며 의료·법률·투자 판단의 근거로 쓸 수 없습니다.
         </p>
-      </section>
-      <NeoOperationRoomClient />
+      </ServiceIntroSection>
       <ImmersiveRelatedLinks fromPath="/neo-operation-room" />
     </>
   );

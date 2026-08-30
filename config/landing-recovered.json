@@ -30,6 +30,11 @@
       "reason": "base 재타게팅으로 생긴 close/reopen 중복이다. #1247 은 부모 브랜치 fix/sukuyo-shell-yaja-scale 로 머지됐고, 같은 작업이 main 을 base 로 다시 열린 #1246 (제목에 '구 #1247' 표기, 머지 커밋 358431f921f0, main 조상 확인)으로 착지했다. 두 머지 커밋의 트리를 대조하니 이 PR 의 실질 파일 3개(js/core/kasi-calendar-service.js, scripts/verify-solar-term-frame-kasi.mjs, docs/handoff/ganji-wallclock-parts-migration.md)가 차이 목록에 아예 나타나지 않았다 — 내용 동일. 나머지 20개 경로의 차이는 ?v=build- 캐시 키 스탬프와 그 사이 main 에 들어온 무관한 PR 들뿐이었고, 두 PR 각자의 index.html 변경도 캐시 키 외에는 0줄이었다. main 의 js/core/kasi-calendar-service.js:906 에 _pick(row, ['kst', 'time', 'tm', 'locTime']) 가 있어 절입 시각 kst 정정이 실제로 살아 있음을 확인했다.",
       "verifiedAt": "2026-08-29",
       "acknowledged": true
+    },
+    "1302": {
+      "reason": "#1061·#1084 와 같은 스택 PR 오탐이다. 자식(#1302)이 00:59:32 에 부모 브랜치 worktree-app-auth-ime-shell 로, 부모(#1300)가 01:19:02 에 main 으로 스쿼시 머지(e70e687bd, main 조상 확인)돼 자식의 머지 커밋 d446c91e 가 고아가 됐다. 순서는 옳았다. 삭제 21개(.agents/skills/caveman*, .playwright-mcp/*.yml, pprepare.json, prepare.json, prepare_astrology.json, 이모지 이름 파일)는 전부 origin/main 에서 사라진 것을 git cat-file -e 로 확인했다. 수정 파일의 자체 hunk(js/app.js, js/core/{bootstrapDestinyFlower,index-inline-runtime,init,uiBindings}.js, js/mobile-interaction-patch.js, app/components/auth/AuthShell.tsx — ?v=build- 캐시키 제외 27줄)를 git grep 으로 대조해 추가 27줄 전부 존재·삭제 0줄 잔존이었다. origin/main 과의 나머지 차이는 캐시키와 이후 머지된 #1300·#1301·#1304·#1307·#1310 의 변경뿐이다.",
+      "verifiedAt": "2026-08-30",
+      "acknowledged": true
     }
   }
 }

@@ -450,27 +450,111 @@ export async function enforceSensitiveEndpointSecurity(options = {}) {
   return limited;
 }
 
-function aiActionFromPath(path = "") {
+/**
+ * `/generate` 가 `/start` 의 **별칭이 아니라** 이어짓기(웨이브) 호출인 서비스들.
+ *
+ * 리포트 1건은 엣지 응답 데드라인(100초) 때문에 한 요청에 다 담기지 않아서, 클라이언트가
+ * 완료될 때까지 `/generate` 를 반복 호출한다(휴먼 디자인 18섹션 = 서버 상한 10웨이브).
+ * 그래서 `/generate` 를 `/start` 와 같은 일일 버킷에 넣으면 **리포트 1건이 일일 예산을 6~11건씩
+ * 먹어** 60건 예산이 사용자당 하루 8~10건으로 쪼그라든다(2026-08-30 확인).
+ *
+ * 🔴 여기 없는 서비스의 `/generate` 는 `/start` 별칭으로 본다 — 실제로 ziwei-ai·life-book-ai·
+ *    love-secret-ai·ziwei-island-ai·sukuyo-compatibility-ai 는 두 경로가 같은 handleStart 로
+ *    가므로, 따로 버킷을 주면 일일 천장이 두 배가 된다. 즉 기본값이 엄격한 쪽이다.
+ * 🔴 이 목록이 낡으면 verify:worker-security-guards 가 라우트 소스를 전수 훑어 실패시킨다
+ *    (`/generate` 디스패치가 handleGenerate 인지 handleStart 인지로 판별).
+ */
+export const WAVE_GENERATE_SERVICE_KEYS = Object.freeze([
+  "human-design-report",
+  "master-love-codex",
+  "nakshatra-ai",
+  "naming-prompt",
+  "ziwei-deep-report",
+]);
+const WAVE_GENERATE_SERVICES = new Set(WAVE_GENERATE_SERVICE_KEYS);
+
+/**
+ * 일일 버킷. `start` 가 "리포트를 몇 건이나 시작할 수 있는가" 의 천장이고,
+ * `generate` 는 **그 천장만큼의 리포트를 끝까지 완주시키는 데 필요한 몫**이지 새 천장이 아니다
+ * (60건 × 서버 웨이브 상한 10회).
+ */
+const AI_DAILY_BUDGETS = Object.freeze({
+  start: { limit: 60, windowSeconds: 24 * 60 * 60 },
+  generate: { limit: 600, windowSeconds: 24 * 60 * 60 },
+});
+
+/**
+ * 분류되지 않은 경로가 떨어지는 기본 버킷.
+ *
+ * 🔴 예전에는 여기서 `""` 를 돌려줬고 `enforceAiRouteSecurity` 가 그걸 보고 **즉시 통과**시켰다.
+ *    그래서 AI 라우트 21개 경로(`/basis` 4종 · `/plan` 2종 · 꿀방울/배지 6종 · `/generate-batch` ·
+ *    `/generate-image` · `/report{,/continue}` · `/compat` · `/verify-payment` · 서비스 루트 2종)가
+ *    레이트리밋·메서드 허용목록·페이로드 상한·소프트블록을 **하나도 안 거쳤다**(2026-08-30 실측).
+ *    분류기에 규칙을 더하는 것만으로는 같은 사고가 다시 난다 — 다음에 라우트를 추가하는 사람이
+ *    규칙을 빼먹으면 또 조용히 뚫린다. 그래서 기본값을 "통과" 가 아니라 "기본 버킷" 으로 바꾼다.
+ * 🔴 대가: AI 접두사 아래의 404 쓰레기 요청도 이제 Mongo 를 2번(소프트블록·레이트리밋) 탄다.
+ *    스캐너를 막는 값이 그 비용보다 크다고 봤다.
+ * 🔴 그래도 **실제 라우트가 여기로 떨어지면 실패**여야 한다 — 어떤 상한을 줄지는 경로마다
+ *    재야 하기 때문이다. 그 전수 대조는 __tests__/worker/security.ai-route-buckets.test.js 가 한다.
+ */
+export const AI_FALLBACK_ACTION = "other";
+
+/** GET 을 허용하는 읽기 액션. 나머지는 POST 전용이다. */
+const AI_READ_ACTIONS = new Set(["result", "read"]);
+
+/**
+ * 액션별 분당 상한. 없으면 15.
+ *
+ * 🔴 `batch` 를 따로 둔 이유: karma-destiny-ai 의 `/generate-batch` 는 배치 락을 기다리는 동안
+ *    클라이언트가 무진척 라운드를 **분당 약 48회**까지 친다(app/karma-destiny-ai/result/
+ *    KarmaDestinyAiResultClient.tsx 의 타이머 900ms + 왕복, 상한 `maxGenerationStalls = 360`).
+ *    `generate`(30) 에 넣으면 살아 있는 생성 흐름이 429 로 끊긴다.
+ * 🔴 `basis` 는 결정론 계산(LLM 없음)이지만 차트 계산이라 CPU 를 쓴다 — 단발 호출이므로 30.
+ * 🔴 `unlock` 은 재화(꿀방울·배지)를 소모하는 단발 POST 라 가장 좁게 둔다.
+ */
+export const AI_ACTION_PER_MINUTE = Object.freeze({
+  generate: 30,
+  batch: 90,
+  basis: 30,
+  unlock: 10,
+  [AI_FALLBACK_ACTION]: 30,
+});
+
+export function aiActionFromPath(path = "", serviceKey = "") {
   const normalized = cleanText(path, 200).toLowerCase();
-  if (/\/(start|generate|create|consult)$/.test(normalized)) return "start";
-  if (/\/(prepare|ensure-access|access|checkout)$/.test(normalized)) return "ensure";
+  const service = cleanText(serviceKey, 80).toLowerCase();
+  if (/\/generate$/.test(normalized)) {
+    return WAVE_GENERATE_SERVICES.has(cleanText(serviceKey, 80)) ? "generate" : "start";
+  }
+  // 이어짓기 폴링. `/generate` 웨이브와 달리 락 대기 중 초당 1회 가까이 친다.
+  if (/\/(generate-batch|continue)$/.test(normalized)) return "batch";
+  // 생성 진입점. `/report`·`/compat`·`/generate-image` 는 `/start` 와 같은 급이다(1건 = 1리포트).
+  if (/\/(start|create|consult|report|compat|generate-image)$/.test(normalized)) return "start";
+  if (/\/(prepare|ensure-access|access|checkout|verify-payment)$/.test(normalized)) return "ensure";
   if (/\/(message|refine|chat)$/.test(normalized)) return "message";
+  if (/\/basis$/.test(normalized)) return "basis";
+  if (/\/(unlock|unlock-benefits)$/.test(normalized)) return "unlock";
+  if (/\/(plan|badges|honey-drops|balance)$/.test(normalized)) return "read";
+  // 서비스 루트(`/api/<service>` · 후행 슬래시 포함) — 일부 서비스가 `/plan` 별칭으로 쓴다.
+  if (service && (normalized === `/api/${service}` || normalized === `/api/${service}/`)) return "read";
   if (/\/(result|session|consultation)/.test(normalized) || /^\/[^/]+$/.test(normalized)) return "result";
-  return "";
+  return AI_FALLBACK_ACTION;
 }
 
 export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", path = "", userId = "" } = {}) {
-  const action = aiActionFromPath(path);
-  if (!action) return { ok: true };
+  const action = aiActionFromPath(path, serviceKey);
   const auth = userId ? null : await getOptionalUserFromRequest(request, env).catch(() => null);
   const resolvedUserId = userId || String(auth?.userId || "");
   const method = cleanText(request?.method).toUpperCase();
-  const isRead = action === "result" && method === "GET";
-  const allowedMethods = isRead ? ["GET"] : ["POST"];
+  const isRead = AI_READ_ACTIONS.has(action) && method === "GET";
+  // 🔴 기본 버킷에서는 메서드를 좁히지 않는다 — 아직 분류 안 된 GET 라우트를 405 로 죽이면
+  //    호출부가 조용히 실패한다(꿀방울 잔량이 0 으로 굳던 형태). 상한과 소프트블록은 그대로 건다.
+  const allowedMethods = isRead ? ["GET"] : action === AI_FALLBACK_ACTION ? ["GET", "POST"] : ["POST"];
   const endpoint = `ai:${cleanText(serviceKey, 80)}:${action}`;
-  const rateLimit = isRead
-    ? { limit: 100, windowSeconds: 60 }
-    : { limit: 15, windowSeconds: 60 };
+  // 🔴 이어짓기는 락 경합(409 GENERATION_IN_PROGRESS)일 때 4초 간격으로 다시 묻는다 —
+  //    분당 15 면 그 간격과 정확히 겹쳐 정상 대기가 429 로 끊긴다. 이어짓기에만 여유를 준다.
+  const perMinuteLimit = isRead ? 100 : (AI_ACTION_PER_MINUTE[action] || 15);
+  const rateLimit = { limit: perMinuteLimit, windowSeconds: 60 };
   const primary = await enforceSensitiveEndpointSecurity({
     env,
     request,
@@ -483,15 +567,16 @@ export async function enforceAiRouteSecurity({ request, env, serviceKey = "ai", 
     maxPayloadBytes: 256 * 1024,
   });
   if (!primary.ok) return primary;
-  if (action === "start") {
+  const dailyBudget = AI_DAILY_BUDGETS[action];
+  if (dailyBudget) {
     const daily = await enforceRateLimit({
       env,
       request,
       userId: resolvedUserId,
       endpoint: `${endpoint}:daily`,
-      key: `${resolvedUserId || getRequestMeta(request).ip}:${serviceKey}:start:daily`,
-      limit: 60,
-      windowSeconds: 24 * 60 * 60,
+      key: `${resolvedUserId || getRequestMeta(request).ip}:${serviceKey}:${action}:daily`,
+      limit: dailyBudget.limit,
+      windowSeconds: dailyBudget.windowSeconds,
     });
     if (!daily.ok) return daily;
   }

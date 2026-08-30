@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { buildSeoMetadata } from "../../lib/seo";
-import { buildAboutPageJsonLd, buildOrganizationJsonLd } from "../../lib/structured-data";
+import { buildAboutPageJsonLd, buildAuthorPersonJsonLd, buildOrganizationJsonLd } from "../../lib/structured-data";
 import { publicSeoPages } from "../../lib/seo/siteSeo";
 import { cmsRecordFlat } from "../../lib/cms/build-text";
 import { ABOUT_PAGE_TEXT_TRANSLATIONS } from "../_content/about-copy";
@@ -36,6 +36,7 @@ const jsonLd = JSON.stringify({
   "@context": "https://schema.org",
   "@graph": [
     buildOrganizationJsonLd(),
+    buildAuthorPersonJsonLd(),
     buildAboutPageJsonLd({
       path: "/about",
       title: seo.title,
@@ -100,6 +101,9 @@ export default function AboutPage() {
         </p>
         <p>
           {aboutPageText("editorial.owner")}
+        </p>
+        <p>
+          {aboutPageText("editorial.author")}
         </p>
         <p>
           {aboutPageText("editorial.process")}

@@ -1,5 +1,6 @@
 import LoveSimulationClient from "./LoveSimulationClient";
 import ImmersiveRelatedLinks from "../../components/ImmersiveRelatedLinks";
+import ServiceIntroSection from "../../components/ServiceIntroSection";
 
 const LOVE_SIMULATION_PAGE_TEXT_TRANSLATIONS = {
   ko: {
@@ -56,12 +57,15 @@ export const metadata = {
 export default function LoveSimulationPage() {
   return (
     <main style={{ background: "#070a16", color: "#e2e8f0" }}>
+      <LoveSimulationClient />
       {/* 시뮬레이션은 클라이언트에서만 그려져 크롤러에게는 완전히 빈 페이지였다(2026-08-24
           실측: 가시 텍스트 45자). 아래 안내는 서버에서 렌더한다. 등장인물의 일간과 유형,
           다섯 수치의 초기값은 _data/loveCodeMvp.ts 의 LOVE_CHARACTERS · INITIAL_STATS 를 따랐다.
           🔴 이 라우트는 클라이언트가 H1 을 갖지 않는다 — 그래서 여기가 H1 을 소유한다.
-          클라이언트에 H1 을 추가하면 verify:seo-heading-integrity 가 실패한다. */}
-      <section className="sr-only" aria-label="LOVE CODE 사주 연애 시뮬레이션 안내">
+          클라이언트에 H1 을 추가하면 verify:seo-heading-integrity 가 실패한다.
+          2026-08-30: sr-only 였던 본문을 ServiceIntroSection 으로 가시화했다(성장 계획 1-D) — 본문 전체를
+          숨긴 형태는 Google 의 Hidden text 정책 소지가 있고 AdSense 검수자에게도 보이지 않는다. 배치는 앱 아래. */}
+      <ServiceIntroSection label="LOVE CODE 사주 연애 시뮬레이션 안내">
         <h1>LOVE CODE — 사주 일간으로 만든 인물과 걸어 보는 연애 시뮬레이션</h1>
         <p>
           궁합을 점수로 듣고 나면 대개 두 가지가 남습니다. 숫자 하나와, 그래서 어떻게 하라는 건지 모르겠다는
@@ -123,8 +127,7 @@ export default function LoveSimulationPage() {
           전통 명리학의 상징 체계를 바탕으로 한 오락 콘텐츠입니다. 실재하는 인물의 성격이나 관계를 규정하지
           않으며, 입력한 정보는 인물의 기질을 계산하는 데에만 쓰입니다.
         </p>
-      </section>
-      <LoveSimulationClient />
+      </ServiceIntroSection>
       <ImmersiveRelatedLinks fromPath="/saju/love-simulation" />
     </main>
   );

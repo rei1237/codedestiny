@@ -1,15 +1,19 @@
 import SajuGuardianRouteClient from "./SajuGuardianRouteClient";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 export default function SajuGuardianPage() {
   return (
     <>
+      <SajuGuardianRouteClient />
       {/* 소환진 화면은 클라이언트에서만 그려져 크롤러에게는 사실상 빈 페이지였다. 아래 안내는
           서버에서 렌더해 이 리딩이 무엇을 세우는지 읽을 수 있게 한다. 좌표 세 가지와 오행 다섯 가지의
           역할은 SajuGuardianClient.tsx 의 ELEMENT_GUARDIAN_READING_DEFAULT ·
           MONTH_BRANCH_READING_DEFAULT · HOUR_BRANCH_READING_DEFAULT 정의를 따랐다.
-          🔴 이 섹션에 H1 을 두지 말 것 — 페이지의 H1 은 클라이언트가 이미 소유하고 있다. */}
-      <section className="sr-only" aria-label="사주 가디언 소환진 안내">
+          🔴 이 섹션에 H1 을 두지 말 것 — 페이지의 H1 은 클라이언트가 이미 소유하고 있다.
+          2026-08-30: sr-only 였던 본문을 ServiceIntroSection 으로 가시화했다(성장 계획 1-D) — 본문 전체를
+          숨긴 형태는 Google 의 Hidden text 정책 소지가 있고 AdSense 검수자에게도 보이지 않는다. 배치는 앱 아래. */}
+      <ServiceIntroSection label="사주 가디언 소환진 안내">
         <h2>사주 가디언 소환진 — 일주·월지·시지로 여는 수호 인장</h2>
         <p>
           사주를 본다는 것은 대개 좋고 나쁨을 듣는 일이 되기 쉽습니다. 사주 가디언은 그 방향을 뒤집어,
@@ -70,8 +74,7 @@ export default function SajuGuardianPage() {
           리딩의 실제 작업입니다. 전통 상징 체계를 바탕으로 한 문화 콘텐츠이며 의료·법률·투자 판단의
           근거로 쓸 수 없습니다.
         </p>
-      </section>
-      <SajuGuardianRouteClient />
+      </ServiceIntroSection>
       <ImmersiveRelatedLinks fromPath="/saju-guardian" />
     </>
   );

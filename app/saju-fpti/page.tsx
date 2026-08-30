@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import SajuFptiRouteClient from "./SajuFptiRouteClient";
 import RouteMetadataLocaleSync from "../components/RouteMetadataLocaleSync";
 import ImmersiveRelatedLinks from "../components/ImmersiveRelatedLinks";
+import ServiceIntroSection from "../components/ServiceIntroSection";
 
 const SAJU_FPTI_METADATA_COPY = {
   ko: {
@@ -40,6 +41,7 @@ export default function SajuFptiPage() {
   return (
     <>
       <RouteMetadataLocaleSync entries={SAJU_FPTI_METADATA_COPY} />
+      <SajuFptiRouteClient />
       {/* 테스트 화면은 클라이언트가 그리고(ssr:false) 그 안의 설명은 짧다. 아래 안내는 서버에서
           렌더해 검색엔진이 이 테스트의 구조를 읽을 수 있게 한다. 네 축의 이름과 여덟 글자의 뜻은
           components/fpti/_lib/copy.ts 의 axisCardLabels·axis*Label 정의를 그대로 옮긴 것이고,
@@ -48,8 +50,10 @@ export default function SajuFptiPage() {
           H1 이 2개가 되면 verify:seo-heading-integrity 와 verify:hydrated-h1-integrity 가 실패한다.
           🔴 분량을 줄이지 말 것 — 이 라우트는 광고 게재 불가(canLoadAdsense=false)인데 사이트맵에
           색인 가능 상태로 들어가 있어, verify-adsense-readiness 의
-          verifyBlockedIndexableSitemapRouteQuality 가 렌더 텍스트 1,800자를 요구한다. */}
-      <section className="sr-only" aria-label="사주 FPTI 테스트 안내">
+          verifyBlockedIndexableSitemapRouteQuality 가 렌더 텍스트 1,800자를 요구한다.
+          2026-08-30: sr-only 였던 본문을 ServiceIntroSection 으로 가시화했다(성장 계획 1-D) — 본문 전체를
+          숨긴 형태는 Google 의 Hidden text 정책 소지가 있고 AdSense 검수자에게도 보이지 않는다. 배치는 앱 아래. */}
+      <ServiceIntroSection label="사주 FPTI 테스트 안내">
         <h2>사주 FPTI — 오행과 십성으로 읽는 네 개의 성향 축</h2>
         <p>
           FPTI는 사주 명식에 담긴 오행(목·화·토·금·수)의 균형과 십성(비견·겁재·식신·상관·편재·정재·편관·정관·편인·정인)의
@@ -120,8 +124,7 @@ export default function SajuFptiPage() {
           이 테스트는 오락과 자기 이해를 위한 콘텐츠이며 심리 상담이나 진단을 대신하지 않습니다. 건강, 법률, 투자,
           치료, 안전에 관한 결정은 전문 기관의 도움을 우선해 주세요.
         </p>
-      </section>
-      <SajuFptiRouteClient />
+      </ServiceIntroSection>
       <ImmersiveRelatedLinks fromPath="/saju-fpti" />
     </>
   );
