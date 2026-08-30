@@ -1,6 +1,7 @@
 import { connectDb } from "./db.js";
 import { DailyFortuneSubscription } from "./models.js";
 import { sendEmail } from "./resend.js";
+import { escapeTelegramHtml, sendTelegramMessage } from "./telegram.js";
 
 const STEMS = ["갑", "을", "병", "정", "무", "기", "경", "신", "임", "계"];
 const BRANCHES = ["자", "축", "인", "묘", "진", "사", "오", "미", "신", "유", "술", "해"];
@@ -442,10 +443,49 @@ export async function sendSingleFortune(env, sub, options = {}) {
     errorCode: emailResult.error || "email_send_failed",
     providerStatus: emailResult.status || 0,
     providerData: emailResult.data || null,
+    // 계정 설정이 원인이면 다음 구독자도 같은 응답을 받는다. 호출부가 배치를 멈추는 근거.
+    configError: emailResult.configError === true,
+    from: String(emailResult.from || ""),
   };
 }
 
-export async function runDailyFortuneTask(env) {
+/**
+ * 설정성 발송 실패를 사람에게 알린다. 크론 실행 1회당 최대 1건.
+ *
+ * 🔴 콘솔 로그만으로는 아무도 모른다 — 2026-08-19~08-31 에 이 태스크는 매일 돌면서 매일 실패했고,
+ * 12일이 지나서야 사람이 알아챘다. 텔레그램은 이 레포에서 이미 배선된 유일한 알림 채널이다
+ * (worker/lib/telegram.js · SNS 일일 발행이 같은 봇을 쓴다).
+ *
+ * 🔴 여기서도 throw 하지 않는다 — 알림 실패가 크론을 죽이면 안 된다.
+ */
+async function notifyEmailConfigFailure(env, { errorCode, providerStatus, from, unprocessed, fetchImpl }) {
+  const fromDomain = /@([^\s>]+)/.exec(String(from || ""))?.[1] || "(미설정 폴백)";
+  const text = [
+    "🔴 <b>메일 발송이 설정 오류로 중단됐다</b>",
+    "",
+    `태스크: 일일 운세 (daily-fortune)`,
+    `발신 도메인: ${escapeTelegramHtml(fromDomain)}`,
+    `Resend 응답: ${providerStatus || 0} ${escapeTelegramHtml(errorCode)}`,
+    `이번 실행에서 처리 못 한 구독자: ${unprocessed}명`,
+    "",
+    "같은 API 키·발신 도메인을 쓰는 <b>결제 영수증 메일</b>과 <b>피드백 알림</b>도 함께 막혀 있다.",
+    "Resend 대시보드에서 도메인 인증 상태와 API 키 소속 계정을 확인할 것.",
+  ].join("\n");
+
+  const result = await sendTelegramMessage(env, { text, disablePreview: true, fetchImpl });
+  if (!result.ok) {
+    console.error(`[CRON] Daily Fortune: 설정 오류 알림 발행 실패 — ${result.error || "unknown"}`);
+  }
+  return result;
+}
+
+/**
+ * @param {object} env
+ * @param {{ fetchImpl?: Function }} [options] fetchImpl — 설정 오류 알림의 실발행 없이 계약을 확인하는 주입구
+ *   (정본 패턴: worker/lib/sns-daily-post-task.js).
+ */
+export async function runDailyFortuneTask(env, options = {}) {
+  const { fetchImpl } = options;
   console.log("[CRON] Starting Daily Fortune Task...");
   await connectDb(env);
   const todayKey = getKstDateKey();
@@ -475,6 +515,7 @@ export async function runDailyFortuneTask(env) {
   const startedAt = Date.now();
   let processed = 0;
   let abortedReason = "";
+  let configFailure = null;
 
   for (const sub of subscribers) {
     if (Date.now() - startedAt >= timeBudgetMs) {
@@ -498,6 +539,18 @@ export async function runDailyFortuneTask(env) {
           { _id: sub._id },
           { $set: { lastMailError: mailErrorCode, lastMailErrorAt: new Date() } }
         );
+        // 🔴 설정성 오류는 수신자와 무관하다 — 남은 구독자에게 보내도 같은 응답이 온다.
+        // 계속 돌면 Resend 에 실패 요청만 구독자 수만큼 쌓이고, 요약은 failed=N 으로만 보여
+        // 침묵과 구별이 안 된다(2026-08-19~08-31 에 실제로 그렇게 12일이 지났다).
+        if (result.configError) {
+          abortedReason = "provider_config";
+          configFailure = {
+            errorCode: mailErrorCode,
+            providerStatus: result.providerStatus || 0,
+            from: result.from || "",
+          };
+          break;
+        }
         continue;
       }
       sentCount += 1;
@@ -515,10 +568,22 @@ export async function runDailyFortuneTask(env) {
   // 🔴 잘린 건수를 반드시 남긴다. 조용한 절단은 요약에서 "다 보냈다"로 읽힌다.
   const unprocessed = subscribers.length - processed;
   const batchFull = subscribers.length >= batchLimit;
-  if (abortedReason) {
+  if (abortedReason === "time_budget") {
     console.warn(
       `[CRON] Daily Fortune: 시간 예산 ${timeBudgetMs}ms 소진 — ${unprocessed}명을 이번 실행에서 처리하지 못했다.`,
     );
+  }
+  if (configFailure) {
+    console.error(
+      `[CRON] 🔴 Daily Fortune: 메일 발송이 설정 오류로 중단됐다 —`
+      + ` status=${configFailure.providerStatus} error=${configFailure.errorCode}`
+      + ` from=${configFailure.from || "(미설정 폴백)"} unprocessed=${unprocessed}.`
+      + ` 같은 키·발신 도메인을 쓰는 결제 영수증·피드백 알림 메일도 함께 막혀 있다.`,
+    );
+    await notifyEmailConfigFailure(env, { ...configFailure, unprocessed, fetchImpl })
+      .catch((error) => {
+        console.error("[CRON] Daily Fortune: 설정 오류 알림 자체가 실패했다:", error?.message || error);
+      });
   }
   if (batchFull) {
     console.warn(
