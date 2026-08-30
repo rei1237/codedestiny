@@ -350,7 +350,7 @@ export default function FortuneChatClient() {
       featureKey: PAID_FEATURE_KEY,
       coinPrice: PAID_COIN_PRICE,
       amountKRW: PAID_AMOUNT_KRW,
-      reason: "연이 운명 상담 1회",
+      reason: "대화형 운명 상담 1회",
       requestId,
     });
     if (gate.ok) return { ok: true as const };
