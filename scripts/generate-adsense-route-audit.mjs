@@ -178,7 +178,7 @@ function classifyRoute(route, indexable) {
   if (matchesPrefix(route, "/premium") || matchesPrefix(route, "/pdf") || matchesPrefix(route, "/points")) return "유료/개인 리포트";
   if (matchesPrefix(route, "/result") || matchesPrefix(route, "/results") || matchesPrefix(route, "/report/progress")) return "결과/생성 상태";
   if (route.includes("/guide") || route === "/about" || route === "/faq" || route === "/methodology") return "공개 정보/가이드";
-  if (matchesPrefix(route, "/insights") || matchesPrefix(route, "/high-value") || matchesPrefix(route, "/famous-saju")) return "블로그/매거진형 정보";
+  if (matchesPrefix(route, "/insights") || matchesPrefix(route, "/guides") || matchesPrefix(route, "/famous-saju")) return "블로그/매거진형 정보";
   if (route === "/privacy" || route === "/terms" || route === "/disclaimer" || route === "/editorial-policy" || route === "/contact") return "정책/신뢰 고지";
   if (!indexable) return "검색 제외 페이지";
   return "기능/도구 소개";

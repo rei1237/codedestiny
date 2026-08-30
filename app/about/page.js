@@ -180,7 +180,7 @@ export default function AboutPage() {
           <Link href="/methodology" className="cd-chip">{aboutPageText("docs.methodology")}</Link>
           <Link href="/faq" className="cd-chip">{aboutPageText("docs.faq")}</Link>
           <Link href="/disclaimer" className="cd-chip">{aboutPageText("docs.disclaimer")}</Link>
-          <Link href="/high-value" className="cd-chip">{aboutPageText("docs.insights")}</Link>
+          <Link href="/guides" className="cd-chip">{aboutPageText("docs.insights")}</Link>
           <Link href="/privacy" className="cd-chip">{aboutPageText("docs.privacy")}</Link>
           <Link href="/terms" className="cd-chip">{aboutPageText("docs.terms")}</Link>
           <Link href="/contact" className="cd-chip">{aboutPageText("docs.contact")}</Link>

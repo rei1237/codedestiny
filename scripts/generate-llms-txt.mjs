@@ -51,7 +51,7 @@ const SECTIONS = [
   },
   {
     heading: "읽을거리와 방법론",
-    paths: ["/high-value", "/insights", "/methodology"],
+    paths: ["/guides", "/insights", "/methodology"],
   },
   {
     heading: "브랜드",

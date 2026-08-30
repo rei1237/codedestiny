@@ -6085,7 +6085,7 @@ const NON_ESSENTIAL_CATEGORIES = new Set([
 
 // 마스코트(꽃돼지 연이)에게 "명리학 연구자 · 운세 콘텐츠 에디터" 라는 자격을 붙여
 // 저자로 세우던 자리다. 실재하지 않는 사람의 전문성 주장이라 조직 귀속으로 바꾼다.
-// /high-value/* 가 이미 쓰는 표기와 같은 이름을 쓴다.
+// /guides/* 가 이미 쓰는 표기와 같은 이름을 쓴다.
 const DEFAULT_ARTICLE_AUTHOR = {
   name: "Code Destiny 편집팀",
   role: "운세 콘텐츠 편집팀",

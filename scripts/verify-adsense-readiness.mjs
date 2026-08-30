@@ -94,8 +94,8 @@ const adsenseAllowedContentRoutes = [
   "/insights/tarot",
   "/tarot/numerology",
   "/tarot/prompt-maker",
-  "/high-value",
-  "/high-value/complete-guide-to-saju",
+  "/guides",
+  "/guides/complete-guide-to-saju",
   // 상세(/insights/famous-saju/<slug>)는 전량 noindex + 사이트맵 제외로 바뀌어
   // 광고 대상이 아니다. 허브만 광고 허용 라우트로 검사한다.
   // (근중복 허브였던 `/famous-saju` 는 2026-08-17 에 라우트째 삭제했다 — 이제 허브는 여기 하나뿐이다.)
@@ -109,7 +109,7 @@ const adsenseBlockedRoutes = [
   // 안 실렸는지**를 본다(둘은 다른 실패를 잡는다).
   // (`/famous-saju/category/actor` 는 라우트가 삭제돼 산출물이 없다 — 정책 함수 쪽 단언만
   //  verify-adsense-route-policy.mjs 에 남겼다.)
-  "/high-value/category/saju-beginner",
+  "/guides/category/saju-beginner",
   "/flower/destiny",
   "/advertising-policy",
   "/contact",

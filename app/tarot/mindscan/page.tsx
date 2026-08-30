@@ -10,7 +10,7 @@ const relatedLabels: Record<string, string> = {
   "/tarot/reunion": "재회 타로 리딩",
   "/love": "연애운 무료 보기",
   "/compatibility": "무료 궁합 보기",
-  "/high-value/how-tarot-actually-works": "타로 리딩 가이드",
+  "/guides/how-tarot-actually-works": "타로 리딩 가이드",
 };
 
 const questionExamples = [

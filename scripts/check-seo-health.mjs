@@ -19,13 +19,13 @@ const targets = [
   { path: "/today/", allowRedirect: false },
   { path: "/dream/", allowRedirect: false },
   { path: "/insights/", allowRedirect: false },
-  { path: "/high-value/", allowRedirect: false },
-  { path: "/high-value/how-fusion-fortune-works/", allowRedirect: false },
-  { path: "/high-value/saju-and-ziwei-reading/", allowRedirect: false },
-  { path: "/high-value/saju-and-sukuyo-compatibility/", allowRedirect: false },
-  { path: "/high-value/vedic-and-western-astrology/", allowRedirect: false },
-  { path: "/high-value/how-to-read-manse/", allowRedirect: false },
-  { path: "/high-value/ai-fortune-reading-guide/", allowRedirect: false },
+  { path: "/guides/", allowRedirect: false },
+  { path: "/guides/how-fusion-fortune-works/", allowRedirect: false },
+  { path: "/guides/saju-and-ziwei-reading/", allowRedirect: false },
+  { path: "/guides/saju-and-sukuyo-compatibility/", allowRedirect: false },
+  { path: "/guides/vedic-and-western-astrology/", allowRedirect: false },
+  { path: "/guides/how-to-read-manse/", allowRedirect: false },
+  { path: "/guides/ai-fortune-reading-guide/", allowRedirect: false },
 ];
 
 async function check(url) {

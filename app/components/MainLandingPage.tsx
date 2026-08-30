@@ -311,7 +311,7 @@ const COSMIC_ITEMS_COPY: ServiceCardModel[] = [
   { title: "베다 점성술", description: "나크샤트라·다샤 리딩", href: "/saju/basic/play", emoji: "🪐", badges: [{ text: "기본 무료", tone: "free" }] },
   { title: "올림푸스 신탁", description: "신화 별자리 상징 해석", href: "/olympus", emoji: "⚡", badges: [{ text: "해금 10,000원", tone: "coin" }, { text: "NEW", tone: "new" }] },
   { title: "명리학 인사이트", description: "해석 가이드 콘텐츠", href: "/insights", emoji: "📚", badges: [{ text: "가이드", tone: "soft" }] },
-  { title: "하이밸류 아카이브", description: "심층 운세 콘텐츠 모음", href: "/high-value", emoji: "🧭", badges: [{ text: "읽기", tone: "soft" }] },
+  { title: "하이밸류 아카이브", description: "심층 운세 콘텐츠 모음", href: "/guides", emoji: "🧭", badges: [{ text: "읽기", tone: "soft" }] },
 ];
 
 const ANIMAL_ITEMS_COPY: ServiceCardModel[] = [

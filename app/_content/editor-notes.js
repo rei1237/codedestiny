@@ -7,8 +7,8 @@
  * "가치 없는 콘텐츠" 로 거절당한 사유다. scripts/verify-editor-notes.mjs 가
  * 같은 페이지 본문의 부분 문자열인 노트와 라우트 간 중복이 높은 노트를 실패시킨다.
  *
- * 🔴 /high-value/<slug> 는 페이지 상단에 이미 `summary` 가 렌더된다
- * (app/high-value/[slug]/page.js:136). 그래서 여기 노트는 요약이 아니라
+ * 🔴 /guides/<slug> 는 페이지 상단에 이미 `summary` 가 렌더된다
+ * (app/guides/[slug]/page.js:136). 그래서 여기 노트는 요약이 아니라
  * **"무엇을 주의해서 읽는가 · 어떻게 쓰는가"** 각도로 쓴다. 요약을 다시 쓰면 같은 문장이
  * 두 번 보이고, 위 가드의 부분 문자열 검사에도 걸린다.
  *
@@ -19,8 +19,8 @@
  */
 
 export const EDITOR_NOTES = {
-  // ── /high-value 상세 12개 ──────────────────────────────────────────────
-  "/high-value/complete-guide-to-saju": {
+  // ── /guides 상세 12개 ──────────────────────────────────────────────
+  "/guides/complete-guide-to-saju": {
     updatedAt: "2026-08-17",
     lede: "처음 사주를 보는 사람이 가장 자주 하는 실수는 일간 한 글자를 성격 유형처럼 읽고 거기서 멈추는 것입니다. 이 글은 분량이 길지만 한 번에 다 읽을 필요가 없습니다. 네 기둥을 통째로 이해하려 하지 말고 계절(월지) → 나(일간) → 관계(십성) 순서로 층을 나눠 읽으면 훨씬 덜 헤맵니다.",
     tips: [
@@ -29,7 +29,7 @@ export const EDITOR_NOTES = {
       { label: "대운은 마지막에", body: "시간 축은 지금의 기질을 이해한 다음에 의미가 생깁니다. 순서를 뒤집으면 '몇 살에 무슨 일이 있다'는 예언처럼 읽히기 쉽습니다." },
     ],
   },
-  "/high-value/how-tarot-actually-works": {
+  "/guides/how-tarot-actually-works": {
     updatedAt: "2026-08-17",
     lede: "타로가 맞느냐 틀리느냐를 따지기 전에, 타로가 실제로 하는 일이 무엇인지부터 정리하는 글입니다. 78장의 의미를 외우는 것보다 질문을 어떻게 세우느냐가 리딩의 질을 훨씬 크게 좌우하며, 이 순서를 뒤집으면 카드를 아무리 많이 알아도 해석이 겉돕니다.",
     tips: [
@@ -38,7 +38,7 @@ export const EDITOR_NOTES = {
       { label: "같은 질문을 반복하지 않는다", body: "원하는 답이 나올 때까지 다시 뽑으면 리딩이 아니라 자기 확인이 됩니다. 결과가 불편하면 질문 자체를 다시 세우는 편이 낫습니다." },
     ],
   },
-  "/high-value/understanding-your-destiny": {
+  "/guides/understanding-your-destiny": {
     updatedAt: "2026-08-17",
     lede: "운명을 다루는 글은 두 극단으로 흐르기 쉽습니다. 다 정해져 있다는 쪽과 아무 의미도 없다는 쪽입니다. 이 문서는 그 사이에서 '반복되는 패턴'이라는 실용적인 중간 지점을 잡는 데 초점을 뒀습니다. 예측이 아니라 자기 점검 도구로 쓰고 싶을 때 읽으시면 됩니다.",
     tips: [
@@ -47,7 +47,7 @@ export const EDITOR_NOTES = {
       { label: "불안을 키우는 해석은 버린다", body: "읽고 나서 행동이 위축되기만 한다면 그 해석은 정확한지와 무관하게 쓸모가 없습니다. 다음 한 걸음이 보이는 해석만 남기고 나머지는 흘려보내세요." },
     ],
   },
-  "/high-value/what-your-birth-date-says-about-you": {
+  "/guides/what-your-birth-date-says-about-you": {
     updatedAt: "2026-08-17",
     lede: "생년월일 해석은 혈액형 성격론과 같은 취급을 받기 쉬운데, 그렇게 되는 이유는 대개 결론을 먼저 정하고 근거를 끼워 맞추기 때문입니다. 이 글은 어디까지가 계산이고 어디부터가 해석인지 선을 긋는 데 목적이 있습니다.",
     tips: [
@@ -56,7 +56,7 @@ export const EDITOR_NOTES = {
       { label: "맞는 부분만 기억하지 않는다", body: "해석이 맞았다고 느낄 때는 틀린 문장도 함께 세어 보세요. 이 습관 하나가 점술 콘텐츠를 대하는 태도를 크게 바꿉니다." },
     ],
   },
-  "/high-value/top-10-signs-of-compatibility": {
+  "/guides/top-10-signs-of-compatibility": {
     updatedAt: "2026-08-17",
     lede: "궁합 점수는 관계에 대해 생각보다 적은 것을 알려 줍니다. 이 글이 열 가지 신호를 나열하는 이유는 순위를 매기기 위해서가 아니라, 점수 하나로 뭉개졌던 항목들을 다시 분해해 보기 위해서입니다. 몇 점인지보다 어느 항목이 약한지가 훨씬 실용적인 정보입니다.",
     tips: [
@@ -65,7 +65,7 @@ export const EDITOR_NOTES = {
       { label: "한쪽만 읽지 않는다", body: "궁합은 두 사람의 상호작용이라 한쪽 명식만 보고 내린 결론은 절반짜리입니다. 상대의 관점에서 같은 항목을 다시 읽어 보세요." },
     ],
   },
-  "/high-value/common-user-questions-faq": {
+  "/guides/common-user-questions-faq": {
     updatedAt: "2026-08-17",
     lede: "실제로 들어온 질문 중 반복되는 것만 모았습니다. 답을 찾는 것 못지않게, 어떤 질문이 자주 나오는지를 훑어보는 것만으로도 이 서비스를 어떻게 쓰면 되는지 감이 잡히는 경우가 많습니다. 결제와 개인정보 항목은 특히 먼저 보시길 권합니다.",
     tips: [
@@ -74,7 +74,7 @@ export const EDITOR_NOTES = {
       { label: "여기 없으면 문의로", body: "이 목록은 자주 묻는 것만 담습니다. 개별 상황은 문의 페이지로 보내 주시면 영업일 기준 1~3일 안에 답변드립니다." },
     ],
   },
-  "/high-value/how-fusion-fortune-works": {
+  "/guides/how-fusion-fortune-works": {
     updatedAt: "2026-08-17",
     lede: "여러 체계를 한 문장으로 섞으면 그럴듯해 보이지만 무엇을 근거로 나온 말인지 확인할 수 없게 됩니다. 이 글에서 통합이란 결론을 합치는 것이 아니라, 체계별로 따로 읽은 다음 어디가 겹치고 어디가 어긋나는지를 그대로 남기는 작업을 뜻합니다.",
     tips: [
@@ -83,7 +83,7 @@ export const EDITOR_NOTES = {
       { label: "체계를 늘려도 정확도는 안 오른다", body: "다섯 개를 돌린다고 답이 다섯 배 정확해지지 않습니다. 두세 개로 좁히고 대신 각각을 제대로 읽는 편이 낫습니다." },
     ],
   },
-  "/high-value/saju-and-ziwei-reading": {
+  "/guides/saju-and-ziwei-reading": {
     updatedAt: "2026-08-17",
     lede: "사주와 자미두수는 같은 생년월일시를 입력으로 쓰지만 그 값으로 보는 대상이 다릅니다. 이 차이를 모르고 두 결과를 나란히 놓으면 '어느 쪽이 맞느냐'는, 애초에 답이 없는 질문에 갇히게 됩니다. 먼저 각 체계가 무엇을 보는 도구인지부터 갈라 두세요.",
     tips: [
@@ -92,7 +92,7 @@ export const EDITOR_NOTES = {
       { label: "용어를 1:1로 번역하지 않는다", body: "십성과 주성은 이름이 비슷해 보여도 대응 관계가 아닙니다. 억지로 짝을 지으면 두 체계가 모두 왜곡되어 어느 쪽 해석도 못 쓰게 됩니다." },
     ],
   },
-  "/high-value/saju-and-sukuyo-compatibility": {
+  "/guides/saju-and-sukuyo-compatibility": {
     updatedAt: "2026-08-17",
     lede: "궁합을 두 체계로 보면 결과가 엇갈리는 일이 흔합니다. 이 글은 그 엇갈림을 오류로 보지 않고, 사주가 보는 '기질의 조합'과 숙요가 보는 '관계의 거리'가 애초에 다른 축이라는 점에서 출발합니다. 축이 다르면 답이 달라도 모순이 아닙니다.",
     tips: [
@@ -101,7 +101,7 @@ export const EDITOR_NOTES = {
       { label: "결과를 상대에게 들이대지 않는다", body: "궁합 해석은 내가 관계를 운영하는 방식을 점검하는 자료입니다. 상대를 설득하거나 탓하는 근거로 쓰면 관계만 상합니다." },
     ],
   },
-  "/high-value/vedic-and-western-astrology": {
+  "/guides/vedic-and-western-astrology": {
     updatedAt: "2026-08-17",
     lede: "같은 날 태어난 사람이 서양 점성술에서는 사자자리, 베다 점성술에서는 게자리로 나오는 일이 생깁니다. 오류가 아니라 좌표의 기준점이 다르기 때문인데, 이 사정을 모르면 둘 중 하나는 가짜라는 결론으로 가기 쉽습니다. 그 기준 차이가 이 글의 출발점입니다.",
     tips: [
@@ -110,7 +110,7 @@ export const EDITOR_NOTES = {
       { label: "다샤는 베다 쪽 고유 도구", body: "시간 흐름을 보는 방식이 서양과 다릅니다. 시기 질문이 있다면 베다 쪽에서 다샤를 확인하는 편이 자연스럽습니다." },
     ],
   },
-  "/high-value/how-to-read-manse": {
+  "/guides/how-to-read-manse": {
     updatedAt: "2026-08-17",
     lede: "만세력 화면을 처음 열면 여덟 글자와 표가 한꺼번에 쏟아져서 어디부터 봐야 할지 알기 어렵습니다. 이 글은 화면의 모든 정보를 설명하려 들지 않고, 읽는 순서만 정해 줍니다. 순서가 잡히면 나머지 항목은 필요할 때 찾아보면 됩니다.",
     tips: [
@@ -119,7 +119,7 @@ export const EDITOR_NOTES = {
       { label: "지장간은 나중에", body: "숨은 글자까지 한 번에 보려 하면 초반에 길을 잃습니다. 겉으로 드러난 여덟 글자만으로 한 바퀴 돈 뒤에 들어가세요." },
     ],
   },
-  "/high-value/ai-fortune-reading-guide": {
+  "/guides/ai-fortune-reading-guide": {
     updatedAt: "2026-08-17",
     lede: "AI 가 쓴 운세 해설은 문장이 매끄러워서 실제 근거보다 더 확실해 보이는 문제가 있습니다. 이 글은 AI 운세를 쓰지 말라는 이야기가 아니라, 어디까지 믿고 어디부터 의심할지 선을 긋는 법을 다룹니다. 그 선만 알면 꽤 쓸모 있는 도구입니다.",
     tips: [

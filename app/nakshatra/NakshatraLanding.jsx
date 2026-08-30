@@ -16,7 +16,7 @@ const RELATED_LABELS = {
   "/vedic": "베다 점성술 무료 해석",
   "/astrology": "점성술 출생차트",
   "/ziwei": "자미두수 12궁 명반",
-  "/high-value": "운세 인사이트 가이드",
+  "/guides": "운세 인사이트 가이드",
   "/saju": "무료 사주팔자 분석",
 };
 
@@ -55,7 +55,7 @@ export default function NakshatraLanding({ page }) {
   // 구조화 데이터(JSON-LD): WebPage · Service · Breadcrumb · FAQPage(리치 스니펫)
   const breadcrumb = [
     { name: "꿀꿀 운세 홈", path: "/" },
-    { name: "운세 서비스", path: "/high-value" },
+    { name: "운세 서비스", path: "/guides" },
     { name: page?.h1 || page?.title, path: page?.path || "/nakshatra" },
   ];
   const jsonLd = [

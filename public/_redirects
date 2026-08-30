@@ -49,6 +49,13 @@
 /saju/lifebook/*               /life-book-ai/            301
 /saju/animal-test              /saju/animal-destiny/     301
 /saju/animal-test/*            /saju/animal-destiny/     301
+
+# ── /high-value → /guides 리네임 (2026-08-30) ────────────────────────────
+# URL 세그먼트가 광고 수익 최적화 의도를 노출해 허브+상세+카테고리 13개를 옮겼다.
+# 🔴 두 줄이 한 쌍이다 — `X/*` 는 `X` 를 매칭하지 않는다(파일 상단 실측).
+#    `/high-value/category/<c>/` 는 splat 이 다중 세그먼트를 먹어 함께 처리된다.
+/high-value                    /guides/                  301
+/high-value/*                  /guides/:splat            301
 # /oracle/ifa 는 2026-08-24 부터 실제 랜딩 페이지다(그전에는 /ifa-oracle 로 301 했다).
 # 리다이렉트를 되살리면 이파점에 색인 대상 페이지가 다시 0개가 된다.
 # 도구는 /ifa-oracle 그대로이며 랜딩의 실행 버튼이 그쪽으로 보낸다.

@@ -120,7 +120,7 @@ const SEO_LINK_GROUPS = [
       { href: "/oracle/royal-tea/", text: "로열 티 오라클" },
       { href: "/oracle/rune/", text: "스톤헨지 룬 오라클" },
       { href: "/oracle/sikojen-povailu/", text: "핀란드 주석점" },
-      { href: "/high-value/", text: "하이밸류 아카이브" },
+      { href: "/guides/", text: "하이밸류 아카이브" },
       // 아래 4개는 2026-08-16 실측에서 사이트맵에 있으면서 내부 링크가 0이던 고아 라우트다.
       // 새 링크는 처음부터 후행 슬래시를 단다(trailingSlash:true 이므로 슬래시가 없으면 308 을 한 번 탄다).
       { href: "/flower/destiny/", text: "운명의 꽃 아틀리에" },
@@ -137,10 +137,10 @@ const SEO_LINK_GROUPS = [
     title: siteFooterHubText("siteFooter.004"),
     links: [
       { href: "/insights/", text: "운명 인사이트 허브" },
-      { href: "/high-value/", text: "하이밸류 아카이브" },
-      { href: "/high-value/complete-guide-to-saju/", text: "사주 완전 가이드" },
-      { href: "/high-value/how-tarot-actually-works/", text: "타로 리딩 구조 이해" },
-      { href: "/high-value/understanding-your-destiny/", text: "운명 해석 프레임" },
+      { href: "/guides/", text: "하이밸류 아카이브" },
+      { href: "/guides/complete-guide-to-saju/", text: "사주 완전 가이드" },
+      { href: "/guides/how-tarot-actually-works/", text: "타로 리딩 구조 이해" },
+      { href: "/guides/understanding-your-destiny/", text: "운명 해석 프레임" },
       { href: "/insights/fusion/", text: "초융합 운세 인사이트 허브" },
       { href: "/reviews/", text: "실시간 사용자 후기" },
       { href: "/faq/", text: "자주 묻는 질문" },

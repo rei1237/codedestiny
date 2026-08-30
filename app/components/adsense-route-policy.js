@@ -115,7 +115,7 @@ const CONTENT_PREFIXES = [
   //    /fortune/sikojen-povailu 는 noindex 라, 상위 접두사로 열면 게이트끼리 충돌한다.
   "/fortune/today",
   "/fortune/tomorrow",
-  "/high-value",
+  "/guides",
   "/insights",
 ];
 
@@ -124,16 +124,16 @@ const CONTENT_PREFIXES = [
 // 이름·생일만 갈아 끼운 템플릿 양산물이라 noindex + 사이트맵 제외로 돌렸다.
 // 광고까지 같이 끄지 않으면 verify-adsense-readiness 의
 // "광고 가능 + self-canonical → noindex 금지 + 사이트맵 필수" 단언과 충돌한다.
-// /high-value 허브와 상세 12개는 계속 광고·색인 대상이지만, 카테고리 페이지는 목록만 있는
+// /guides 허브와 상세 12개는 계속 광고·색인 대상이지만, 카테고리 페이지는 목록만 있는
 // 얇은 페이지라(고유 본문 272~558자, 2026-08-17 out/ 실측) noindex + 사이트맵 제외로 돌렸다.
-// 자손만 막는 이 목록에 두어야 `/high-value/<slug>` 를 삼키지 않는다. `canLoadAdsense` 가
-// CONTENT_PREFIXES 보다 먼저 평가하므로 `/high-value` 허용과 공존한다.
+// 자손만 막는 이 목록에 두어야 `/guides/<slug>` 를 삼키지 않는다. `canLoadAdsense` 가
+// CONTENT_PREFIXES 보다 먼저 평가하므로 `/guides` 허용과 공존한다.
 // 🔴 광고까지 같이 끄지 않으면 verify-adsense-readiness 의
 //    "광고 가능 + self-canonical → noindex 금지 + 사이트맵 필수" 단언과 충돌한다.
 // (`/famous-saju/**` 는 라우트가 없어졌다 — 접두사 항목도 필요 없다. 기본 deny 로 떨어진다.)
 const BLOCKED_DESCENDANT_PREFIXES = [
   "/insights/famous-saju",
-  "/high-value/category",
+  "/guides/category",
 ];
 
 const SAFE_QUERY_KEYS = new Set([
