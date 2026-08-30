@@ -56,7 +56,7 @@ next: "종결. 이어서 볼 것은 docs/handoff/gsc-performance-2026-08-30.md �
 |---|---|---|
 | `/500/` | **0자** | ⚠️ PR #1306 — `pages/500.tsx` 에 robots 메타를 넣었으나 **이미 헤더로 막혀 있었다**(아래) |
 | `/ifa-oracle-about.html` | 745자 | ⚠️ PR #1306 — 같음. 메타는 이중 방어로 남았다 |
-| `/sukuyo/calendar/` | 1668자 | ✅ PR #1307 — `noindex` 대신 **본문 보강 + 색인 복귀**. 3,662자 |
+| `/sukuyo/calendar/` | 1668자 | ✅ PR #1308 — `noindex` 대신 **본문 보강 + 색인 복귀**. 3,662자 |
 | `/destiny-poker.html` | 2822자 | ✅ canonical 이 200 을 가리킴. 정상 |
 | `/contact-us/`·`/privacy-policy/`·`/terms-of-service/` | 3.2k~12.3k | ✅ 의도됨. AdSense 신뢰 지표라 인덱서블이 맞다 |
 
@@ -69,7 +69,7 @@ next: "종결. 이어서 볼 것은 docs/handoff/gsc-performance-2026-08-30.md �
 ## 6. 남은 일
 
 1. **커버리지는 종결.** 재크롤로 소멸할 것을 기다리는 것 외에 코드 작업 없다. 🔴 **§2 의 362건 방치 결정을 다시 검토하지 말 것** — 1차 §4 의 근거 4개 중 무엇이 바뀌었는지 먼저 적을 것.
-2. ~~**`/sukuyo/calendar/` 판단**~~ — 종결(PR #1307, 색인 복귀).
+2. ~~**`/sukuyo/calendar/` 판단**~~ — 종결(PR #1308, 색인 복귀).
 3. ~~**GSC 실적 자료**~~ — 받았다. 판정은 [gsc-performance-2026-08-30.md](gsc-performance-2026-08-30.md) 로 넘어갔고, **여기서부터는 그 문서가 정본이다.**
 4. **가드 확장 후보** — `verify:indexable-prose-depth` 에 "인덱서블 미등재" 축을 추가하면 §5 부류가 재발하지 않는다. 이번엔 정본 가드 변경 범위가 커서 하지 않았다.
 
