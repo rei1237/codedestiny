@@ -1,5 +1,5 @@
 ---
-status: in-progress
+status: active
 updated: 2026-08-31
 next: **스테이징에 머지되면 `wrangler tail` 로 새 계측을 읽고 판정한다**(아래 *단계 계측 — 읽는 법과 판정표*). 잔여 두 축(Atlas 핸드셰이크 410–450ms · "라우트 진입 오버헤드" ≈235ms)은 *측정 수단이 없어서* 닫혀 있었고, PR #1366 이 그 분해 계측을 넣었다 — `pingMs`·`resetMs`·`dnsMs`·`helloRttMs`·`socketReadyMs`. 이 PR 자체는 아무것도 최적화하지 않는다. `MONGO_PING_TIMEOUT_MS` 1000→300 은 이미 프로덕션 검증 완료(선행 구간 1223–1264ms → **533–545ms**)
 ---
