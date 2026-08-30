@@ -22,6 +22,7 @@
  *   ⑩ home_section_click 은 data-cd-funnel-section 안의 앵커에서만 발화하고(버튼은 세지 않는다),
  *      한 리스너로 합친 뒤에도 cross_sell_click 과 함께 산다.
  *   ⑪ 홈 셸(index.html)의 표식이 실제로 붙어 있고, 결과 페이지 구간에는 하나도 없다.
+ *   ⑫ 앱 라우터의 크로스셀 면이 전부 표식을 달았거나, 안 다는 이유가 적혀 있다(미분류는 실패).
  */
 import assert from "node:assert/strict";
 import fs from "node:fs";
@@ -356,4 +357,66 @@ const eventNames = (calls) => events(calls).map((c) => c[1]);
   );
 }
 
-console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 홈 셸 표식");
+
+/* ⑫ 앱 라우터의 크로스셀 면은 전부 분류돼 있어야 한다 */
+{
+  /**
+   * 🔴 손으로 쓴 대상 목록은 가드가 아니다(CLAUDE.md 원칙 10). 그래서 대상은 소스에서 전수 발견한다.
+   *
+   * 발견 규칙: app/components/ 아래에서 초융합(/fusion-fortune)으로 나가는 면. 크로스셀의 정의상
+   * 목적지가 다른 서비스인 링크 묶음이고, 이 레포에서 그 묶음은 예외 없이 초융합을 하나 끼워 넣는다.
+   *
+   * 실측(2026-08-30): 이 규칙이 5개를 찾았고 그중 ImmersiveRelatedLinks 하나가 표식이 없어,
+   * 19개 몰입형 라우트의 "이어서 볼 만한 운세" 클릭이 GA4 어디에도 안 잡히고 있었다.
+   */
+  const COMPONENT_DIR = path.join(ROOT, "app/components");
+  const CROSS_SELL_SURFACES = {
+    "FusionCrossSell.tsx": { marked: true },
+    "ImmersiveRelatedLinks.tsx": { marked: true },
+    "SeoLandingTemplate.jsx": { marked: true },
+    // GuideCta.jsx 가 이 표에서 표식(from)을 읽어 단다. 표식 자체는 verify:guide-feature-cta 가 지킨다.
+    "guide-cta-targets.js": { marked: false, why: "데이터 표일 뿐 링크를 렌더하지 않는다" },
+    // 라우트 이름 목록(몰입형 판정)이라 <a> 가 없다. 전역 크롬은 크로스셀 축이 아니다.
+    "AppChrome.tsx": { marked: false, why: "라우트 목록일 뿐 링크를 렌더하지 않는다" },
+  };
+
+  const walkComponents = (dir) => {
+    const found = [];
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) found.push(...walkComponents(full));
+      else if (/\.(?:js|jsx|ts|tsx)$/.test(entry.name)) found.push(full);
+    }
+    return found;
+  };
+
+  const discovered = walkComponents(COMPONENT_DIR).filter((full) =>
+    fs.readFileSync(full, "utf8").includes("/fusion-fortune"),
+  );
+  assert.ok(
+    discovered.length >= 5,
+    `app/components 에서 크로스셀 면을 ${discovered.length}개만 찾았다 — 발견 규칙이 헛돌면 이 검사가 통째로 초록불이 된다`,
+  );
+
+  for (const full of discovered) {
+    const name = path.basename(full);
+    const entry = CROSS_SELL_SURFACES[name];
+    assert.ok(
+      entry,
+      `app/components/${name} 이 초융합으로 나가는데 분류가 없다 — data-cd-cross-sell 을 달거나, 안 다는 이유를 이 표에 적을 것(cross_sell_click 이 조용히 빠진다)`,
+    );
+    const hasMark = fs.readFileSync(full, "utf8").includes("data-cd-cross-sell");
+    if (entry.marked) {
+      assert.ok(hasMark, `app/components/${name} 의 data-cd-cross-sell 표식이 사라졌다 — 이 면의 클릭이 어디에도 안 잡힌다`);
+    } else {
+      assert.ok(entry.why, `app/components/${name} 을 표식 없이 두려면 이유를 적을 것`);
+    }
+  }
+
+  const names = new Set(discovered.map((full) => path.basename(full)));
+  for (const name of Object.keys(CROSS_SELL_SURFACES)) {
+    assert.ok(names.has(name), `분류표의 ${name} 이 더는 크로스셀 면이 아니다 — 낡은 선언은 지울 것`);
+  }
+}
+
+console.log("[verify-analytics-events] 통과 — consent 순서·상태 3종 · share_receive · retention_visit · cross_sell_click · 깨진 ID no-op · page_view 단일 발화 · useAnalytics 훅 계약 · home_section_click 위임 · 홈 셸 표식 · 앱 라우터 크로스셀 면 분류");

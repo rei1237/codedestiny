@@ -40,7 +40,7 @@ next: "§5 로드맵 P1~P6 이 전부 닫혔다. 다음 후보는 요청 19(A/B)
 | 5. 유료 상품 재편 | 미착수 | [monetization-free-paid-boundary.md](handoff/monetization-free-paid-boundary.md) |
 | 6. 기술 SEO 감사 | 사실상 포화 | §3-3 |
 | 7. 검색 의도 SEO 구조 | 진행 중 | [seo-content-expansion-roadmap.md](handoff/seo-content-expansion-roadmap.md) |
-| 8. SEO 콘텐츠 → 서비스 연결 | 미착수(부분) | [service-exposure-audit-2026-08-24.md](handoff/service-exposure-audit-2026-08-24.md) §4-2 (7개 라우트 본문 9,854자) |
+| 8. SEO 콘텐츠 → 서비스 연결 | 대체로 완료 | CTA 는 9곳 전부 있었다(2026-08-30 재실측). 남은 것은 계측 귀속이고 `ImmersiveRelatedLinks` 19개 라우트는 처리했다 — [seo-content-expansion-roadmap.md](handoff/seo-content-expansion-roadmap.md) §2. 🔴 여기가 가리키던 `service-exposure-audit-2026-08-24.md` §4-2 는 그 문서 자신이 2026-08-30 에 해소로 표시했다 |
 | 9. 로케일·hreflang | 완료(셸) | [locale-sweep-2026-08-25-part4.md](handoff/locale-sweep-2026-08-25-part4.md). 색인 로케일은 ko·en·ja·zh·zh-TW 5개(`lib/i18n/locales.ts`) |
 | 10. 모바일 UX | 진행 중 | 최근 PR #1293(스티키 CTA 겹침), #1292(탭 라벨) |
 | 11. 성능 | 진행 중 · SEO 레버 아님 | §3-2 |

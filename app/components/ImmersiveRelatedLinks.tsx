@@ -101,7 +101,10 @@ export default function ImmersiveRelatedLinks({
     <nav aria-label="관련 운세" className={skin.section}>
       <div className={skin.panel}>
         <h2 className={skin.heading}>이어서 볼 만한 운세</h2>
-        <ul className="mt-4 flex flex-wrap gap-3">
+        {/* 🔴 클릭 계측을 새로 만들지 않는다 — js/core/analytics.js:143 의 앵커 위임이 이 표식을 보고
+            cross_sell_click{from_service,to_service} 로 집계한다. 서버 컴포넌트라 onClick 을 달 수도 없다.
+            표식이 없으면 이 19개 라우트의 이어보기 클릭이 어디에도 안 잡힌다(docs/analytics-kpi.md §3 크로스셀 KPI 의 분자). */}
+        <ul className="mt-4 flex flex-wrap gap-3" data-cd-cross-sell={fromPath}>
           {links.map((link) => (
             <li key={link.href}>
               <Link href={`${link.href}/`} className={skin.link}>
