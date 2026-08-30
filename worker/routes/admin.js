@@ -2,6 +2,7 @@ import { getEnv } from "../lib/env.js";
 import { buildConfigErrorBody, buildRuntimeKeyMatrix } from "../lib/key-health.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { purgeCmsCache, readCmsThroughCache } from "../lib/cms-cache.js";
+import { purgeInsightPublicCache } from "../lib/insight-public-cache.js";
 import { requireAuth } from "../lib/auth.js";
 import { PBKDF2_MAX_ITERATIONS, verifyPassword } from "../lib/password.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
@@ -2936,6 +2937,7 @@ async function handleInsightsCreate(request, env) {
   }
 
   const doc = await Insight.create(payload);
+  await purgeInsightPublicCache([doc.slug]);
   return json({ ok: true, item: doc.toObject() }, { status: 201 });
 }
 
@@ -2990,6 +2992,8 @@ async function handleInsightsUpdate(path, request, env) {
     { returnDocument: "after" },
   ).lean();
 
+  // 공개 캐시 무효화 — 슬러그가 바뀌었으면 옛 슬러그의 상세 키도 함께 지운다.
+  await purgeInsightPublicCache([existing.slug, updated?.slug]);
   return json({ ok: true, item: updated });
 }
 
@@ -3012,6 +3016,7 @@ async function handleInsightsDelete(path, request, env) {
   ).lean();
 
   if (!updated) throw createHttpError(404, "Not found.", { code: "NOT_FOUND" });
+  await purgeInsightPublicCache([updated.slug]);
   return json({ ok: true, item: updated });
 }
 
@@ -3250,6 +3255,7 @@ async function handleContentCreate(request, env) {
 
   const created = await Insight.create(payload);
   const item = toContentItem(created.toObject());
+  await purgeInsightPublicCache([item.slug]);
 
   logAdminContent("create_success", {
     endpoint: "/api/admin/content",
@@ -3357,6 +3363,7 @@ async function handleContentPatch(path, request, env) {
 
   const updated = await Insight.findById(id).lean();
   const item = toContentItem(updated);
+  await purgeInsightPublicCache([existing.slug, item.slug]);
 
   logAdminContent("patch_success", {
     endpoint: "/api/admin/content/:id",
@@ -3403,6 +3410,7 @@ async function handleContentDelete(path, request, env) {
 
   const updated = await Insight.findById(id).lean();
   const item = toContentItem(updated);
+  await purgeInsightPublicCache([existing.slug, item.slug]);
 
   logAdminContent("delete_soft_success", {
     endpoint: "/api/admin/content/:id",
@@ -3552,6 +3560,7 @@ async function handleContentRestore(path, request, env) {
 
   const updated = await Insight.findById(id).lean();
   const item = toContentItem(updated);
+  await purgeInsightPublicCache([existing.slug, item.slug]);
 
   logAdminContent("restore_success", {
     endpoint: "/api/admin/content/:id/restore",
