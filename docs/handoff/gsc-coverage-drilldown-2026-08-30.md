@@ -60,9 +60,9 @@ next: "GSC 실적(검색결과 → 페이지·쿼리) 내보내기를 받아 '�
 | `/destiny-poker.html` | 2822자 | ✅ canonical 이 200 을 가리킴. 정상 |
 | `/contact-us/`·`/privacy-policy/`·`/terms-of-service/` | 3.2k~12.3k | ✅ 의도됨. AdSense 신뢰 지표라 인덱서블이 맞다 |
 
-재현: `node scratch/orphans.mjs` (dist 전수 → noindex 아님 + 사이트맵 미등재 필터).
+재현: `dist/**.html` 를 전수 순회하며 (a) `robots`/`noindex` 없는 것, (b) `dist/sitemap.xml` 의 `<loc>` 집합에 없는 것만 남기고 태그를 걷어낸 본문 길이로 정렬한다. 스크래치에서 즉석으로 썼고 커밋하지 않았다.
 
-🔴 **`ifa-oracle-about.html` 의 배포 정본은 `public/` 사본이다.** 리포 루트 사본은 `scripts/sync-legacy-static-to-public.mjs` 의 **손으로 쓴 `staticTargets` 배열**에 없어 미러링되지 않는다(해시 실측: `out/` == `public/`, 루트와는 불일치). CLAUDE.md 원칙 10 이 말하는 "손으로 쓴 대상 목록은 가드가 아니다"의 실례다.
+🔴 **`ifa-oracle-about.html` 은 루트/`public/` 두 벌이 바이트 동일해야 한다.** 이 파일은 `scripts/sync-legacy-static-to-public.mjs` 의 **손으로 쓴 `staticTargets` 배열**에 없어 자동 미러링되지 않는데, `sync:public` 이 `.ignore` 미러 목록을 만들 때 "루트와 바이트 동일한 `public/` 사본"만 넣는다. 그래서 **한쪽에만 주석을 달아도** `.ignore` 에서 항목이 빠지고 `verify:public-mirror-fresh` 가 CI 에서 실패한다 — 실제로 이번에 한 번 밟았다(수정 커밋 별도). 🔴 **로컬 윈도우의 `.ignore` 실패는 개행 위양성이라 CI 를 봐야 구분된다.** CLAUDE.md 원칙 10 의 "손으로 쓴 대상 목록은 가드가 아니다" 실례이기도 하다.
 
 ## 6. 남은 일
 
