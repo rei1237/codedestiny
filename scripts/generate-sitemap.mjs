@@ -84,7 +84,6 @@ const noindexPathPrefixes = [
   "/premium",
   "/premium-reports",
   "/saju-picture",
-  "/sukuyo/calendar",
   // 2026-08-24: 이 목록에서 5개를 뺐다 — /saju/destiny-bias · /saju/love-simulation ·
   // /saju-guardian · /tarot/healing · /neo-operation-room. 얇아서 뺐던 것이 맞지만 얇았던
   // 이유는 본문이 없어서가 아니라 **본문이 클라이언트 JS 안에만 있어서**였다. page.tsx 에
@@ -198,6 +197,10 @@ const coreRoutes = [
   { path: "/astrology/cosmic", changefreq: "weekly", priority: 0.92 },
   { path: "/sukuyo", changefreq: "weekly", priority: 0.94 },
   { path: "/sukuyo/compatibility", changefreq: "weekly", priority: 0.93 },
+  // 2026-08-30: /sukuyo/calendar 를 noindexPathPrefixes 에서 빼고 여기 등재했다 —
+  // 달력 본체가 ssr:false 라 서버 HTML 이 비어 있던 것이 원인이었고, page.tsx 에
+  // 서버 렌더 해설 섹션을 넣어 해결했다(위 2026-08-24 5건과 같은 처방).
+  { path: "/sukuyo/calendar", changefreq: "daily", priority: 0.9 },
   { path: "/vedic", changefreq: "weekly", priority: 0.94 },
   { path: "/vedic/jyotish", changefreq: "weekly", priority: 0.93 },
   { path: "/nakshatra", changefreq: "weekly", priority: 0.9 },
