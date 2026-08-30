@@ -91,6 +91,10 @@ const UNWIRED_BY_DESIGN = [
     "verify:mobile-bottom-nav-clearance",
     "playwright 실렌더 + safe-area 에뮬레이션 — 브라우저 기동 비용. 하단 탭바 주변 fixed UI 를 고쳤으면 손으로 돌린다",
   ],
+  [
+    "verify:app-bottom-clearance",
+    "playwright 실렌더 + safe-area 에뮬레이션, 최신 dist/ 필요(빌드 3분) — 찻집·네오 등 App Router 화면의 하단 여백을 고쳤으면 손으로 돌린다",
+  ],
   ["verify:r2-fonts", "R2 실요청 — 네트워크 필요"],
   ["verify:r2-public-cache", "R2 실요청 — 네트워크 필요"],
   ["verify:www-canonical", "프로덕션 도메인 실요청 — 배포 후 수동 확인"],

@@ -75,7 +75,7 @@
 /* ── 저장 액션 ── */
 .actions {
   position: sticky;
-  bottom: 0.75rem;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
   z-index: 3;
   display: flex;
   gap: 0.6rem;

@@ -1705,7 +1705,7 @@ function TarotCardModal({
     >
       <article
         ref={modalRef}
-        className="relative grid max-h-[96svh] w-full max-w-6xl gap-5 overflow-y-auto rounded-t-[2rem] border border-champagne-gold/20 bg-midnight-ink/96 p-5 pb-24 shadow-[0_0_80px_rgba(156,135,212,0.25)] backdrop-blur-2xl sm:max-h-[92svh] sm:grid-cols-[minmax(220px,340px)_minmax(0,1fr)] sm:rounded-[2rem] sm:p-8"
+        className="relative grid max-h-[96svh] w-full max-w-6xl gap-5 overflow-y-auto rounded-t-[2rem] border border-champagne-gold/20 bg-midnight-ink/96 p-5 pb-[calc(6rem+env(safe-area-inset-bottom,0px))] shadow-[0_0_80px_rgba(156,135,212,0.25)] backdrop-blur-2xl sm:max-h-[92svh] sm:grid-cols-[minmax(220px,340px)_minmax(0,1fr)] sm:rounded-[2rem] sm:p-8"
         onKeyDown={handleKeyDown}
       >
         <button
@@ -1796,7 +1796,7 @@ function TarotCardModal({
             <p className="mt-2 text-sm leading-7 text-pearl-mist/88">{card.journalQuestion}</p>
           </section>
         </div>
-        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-midnight-ink/88 px-4 py-3 backdrop-blur-2xl sm:absolute sm:rounded-b-[2rem]">
+        <div className="fixed inset-x-0 bottom-0 z-20 border-t border-white/10 bg-midnight-ink/88 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))] backdrop-blur-2xl sm:absolute sm:pb-3 sm:rounded-b-[2rem]">
           <div className="mx-auto flex max-w-5xl items-center gap-2">
             <button
               type="button"
