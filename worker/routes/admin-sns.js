@@ -23,7 +23,7 @@ async function handleRun(env) {
 
 async function handleStatus(env) {
   await connectDb(env);
-  const docs = await withMongoRetry(() =>
+  const docs = await withMongoRetry(env, () =>
     IdempotencyKey.find({ userId: null, endpoint: SNS_POST_ENDPOINT })
       .sort({ keyHash: -1 })
       .limit(STATUS_LIMIT)
