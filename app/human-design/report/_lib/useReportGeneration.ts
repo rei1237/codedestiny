@@ -56,6 +56,19 @@ const MAX_NO_PROGRESS = 3;
 /** 락 대기(409) 로만 시간을 보낼 수 있는 총량. */
 const LOCK_WAIT_BUDGET_MS = 90000;
 
+// 🔴 /generate 한 번은 서버 웨이브 예산(HD_REPORT_WAVE_BUDGET_MS = 75초)만큼 응답을 붙들도록
+//    설계돼 있는데 authFetch 의 기본 상한은 22초다. 그래서 **정상 웨이브가 매번 abort** 됐고,
+//    끊긴 요청도 서버 쪽에서는 waveCount 를 이미 올린 채 계속 돌아 결국 상한(10)에 걸려
+//    환불 + generation_failed 로 닫혔다 — 결제하고도 리포트가 안 나오던 실제 경로다.
+//    그래서 이 호출에만 자기 상한을 준다. 🔴 엣지 응답 데드라인(100초)보다 **길어야** 한다 —
+//    Cloudflare 가 100초까지는 응답을 흘려보내므로 그보다 짧게 끊으면 도착 직전의 정상
+//    응답을 우리가 먼저 버린다. 값 정합은 verify:human-design-report 가 숫자로 대조한다.
+const WAVE_REQUEST_TIMEOUT_MS = 105000;
+/** 그 상한을 한 번은 온전히 쓰게 하는 총예산. 기본값(30초)이면 웨이브를 끝까지 못 기다린다. */
+const WAVE_REQUEST_BUDGET_MS = 110000;
+/** 🔴 시도 횟수는 늘리지 않는다 — 95초짜리 시도를 5회 돌리면 사용자를 8분 붙든다. */
+const WAVE_REQUEST_MAX_ATTEMPTS = 2;
+
 function readStorage(key: string): string {
   try {
     return window.localStorage.getItem(key) || "";
@@ -187,7 +200,15 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
     for (;;) {
       if (waves >= MAX_WAVES) throw new Error(say("budgetExceeded", uiLocale));
 
-      const { status, data, transient } = await postPaidBody("/api/human-design-report/generate", { reportId });
+      const { status, data, transient } = await postPaidBody(
+        "/api/human-design-report/generate",
+        { reportId },
+        {
+          timeoutMs: WAVE_REQUEST_TIMEOUT_MS,
+          budgetMs: WAVE_REQUEST_BUDGET_MS,
+          maxAttempts: WAVE_REQUEST_MAX_ATTEMPTS,
+        },
+      );
 
       if (!data?.ok) {
         // 409 는 실패가 아니라 "다른 탭이 이미 웨이브를 돌리는 중" 이다. 짧게 양보하고
@@ -341,6 +362,13 @@ export function useReportGeneration({ inputHash, locale, birth, uiLocale }: Opti
 
       if (data.reused === true) {
         applyDoc(data as unknown as ReportDocument);
+        // 🔴 재열람이 곧 완성본은 아니다. /start 는 앞 세션이 중간에 끊긴 generating 문서도
+        //    reused 로 돌려준다. 그때 reading 으로 보내면 빈 리포트를 그리고 사용자는
+        //    결제하고도 아무것도 못 본다 — 남은 웨이브를 이어서 돌려야 한다.
+        if (data.status === "generating") {
+          await runWaves(reportId);
+          return;
+        }
         setPhase("reading");
         return;
       }

@@ -346,6 +346,44 @@ if (!routeSource) {
   check("웨이브를 다 쓰면 닫고 환불한다",
     /WAVE_BUDGET_EXHAUSTED/.test(routeCode) && /HD_REPORT_MAX_WAVES/.test(generateBody));
 
+  // 🔴 $setOnInsert 는 **기존 문서에 아무것도 쓰지 못한다.** generation_failed 로 닫힌 문서를
+  //    그대로 두면 /generate 가 곧바로 409 GENERATION_ALREADY_FAILED 를 돌려주고, 사용자는
+  //    다시 결제하고도 잠금 화면으로 되돌아온다. reportKey 가 결정적이라 영구히 반복된다.
+  const reviveStart = startBody.indexOf("if (existing) {");
+  const reviveEnd = startBody.indexOf("} else {", reviveStart + 1);
+  const reviveBlock = reviveStart >= 0 && reviveEnd > reviveStart ? startBody.slice(reviveStart, reviveEnd) : "";
+  const revivesWholeDoc = /\$set:\s*\{\s*\.\.\.doc/.test(reviveBlock);
+  check("🔴 /start 가 generation_failed 문서를 되살린다 ($setOnInsert 는 기존 문서를 못 고친다)",
+    /status: "generation_failed"/.test(reviveBlock) && revivesWholeDoc);
+  check("🔴 부활이 waveCount·lock 을 되돌린다 (안 하면 첫 웨이브부터 상한 조건에 걸린다)",
+    /waveCount: 0/.test(reviveBlock) && /lock: null/.test(reviveBlock));
+  check("🔴 부활 문서의 billingRequestId 가 이번 결제의 requestId 다 (옛 값이면 새 결제가 환불되지 않는다)",
+    revivesWholeDoc && /billingRequestId: requestId/.test(startBody));
+
+  // 🔴 이 409 에 retryable 을 붙이면 postPaidBody 가 자기 재시도(5회)를 켠다. 훅의 4초 양보
+  //    위에 재시도가 한 겹 더 쌓여(코딩 원칙 6) 웨이브당 요청이 5배가 되고, /start 와 공유하는
+  //    분당 15회 상한을 넘겨 429 로 끝난다 — 429 에는 retryable 이 없어 곧장 에러 화면이다.
+  const inProgressLine = routeCode.split("\n").find((line) => line.includes(String.raw`reason: "GENERATION_IN_PROGRESS"`));
+  check("🔴 락 대기 409 에 retryable 을 붙이지 않는다 (클라이언트 재시도가 5배로 증폭된다)",
+    Boolean(inProgressLine) && !/retryable/.test(inProgressLine));
+
+  // 🔴 화면에 내보내는 섹션 집합과 과금·전달 하한이 세는 집합은 같아야 한다. 어긋나면
+  //    진행률이 실제보다 적게 보고돼 클라이언트의 무진전 카운터가 멀쩡한 생성을 끊고,
+  //    완성된 리포트도 결제 기준보다 적은 장수로 보인다.
+  const publicStart = routeCode.indexOf("function publicReport");
+  const publicEnds = ["\nfunction ", "\nasync function "]
+    .map((marker) => routeCode.indexOf(marker, publicStart + 1))
+    .filter((index) => index > 0);
+  const publicBody = publicStart >= 0 && publicEnds.length ? routeCode.slice(publicStart, Math.min(...publicEnds)) : "";
+  const deliveredLine = routeCode.split("\n").find((line) => line.includes("const delivered = all.filter")) || "";
+  const acceptedStatuses = (text) => [...new Set(
+    [...text.matchAll(/section\.status === "(\w+)"/g)].map((matched) => matched[1]),
+  )].sort().join("+");
+  const publicAccepted = acceptedStatuses(publicBody);
+  const deliveredAccepted = acceptedStatuses(deliveredLine);
+  check(`🔴 publicReport 가 내보내는 섹션 집합이 과금 하한과 같다 (${publicAccepted || "없음"} vs ${deliveredAccepted || "없음"})`,
+    Boolean(publicAccepted) && publicAccepted === deliveredAccepted);
+
   check("🔴 /result 에 결제 게이트가 없다", !/verifyPerUsePayment|PAYMENT_REQUIRED/.test(resultBody));
   check("/result 가 좀비를 승격해 환불한다", /GENERATION_STALLED/.test(resultBody) && /refundExecution/.test(resultBody));
 
@@ -656,6 +694,50 @@ if (chart) {
     /LOW_MEMORY_SCALE/.test(capture) && !/slots\.slice/.test(capture));
 }
 
+
+// ── ⑦ 클라이언트 웨이브 루프 ─────────────────────────────────────────────────
+//
+// 🔴 이 절이 없어서 사고가 났다. 위의 검사들은 전부 "문자열이 있는가" 라서 **시간 예산이
+//    서로 어긋난 것** 을 원리상 볼 수 없었다. 서버는 한 웨이브를 75초까지 붙들도록 만들어
+//    두었는데 클라이언트 authFetch 의 기본 상한은 22초여서 정상 웨이브가 매번 abort 됐고,
+//    결국 웨이브 상한(10)에 걸려 환불 + generation_failed 로 닫혔다 — 결제하고도 리포트가
+//    안 나오던 실제 경로다. 그래서 여기서는 **숫자를 직접 비교한다.**
+
+console.log("\n── ⑦ 클라이언트 웨이브 루프 ──");
+
+const hookSource = readRepoFile("app/human-design/report/_lib/useReportGeneration.ts");
+check("웨이브 훅 파일이 있다", hookSource.length > 0);
+if (!hookSource) {
+  check("🔴 훅을 읽지 못해 시간 예산을 확인할 수 없다", false);
+} else {
+  const hookCode = codeLines(hookSource);
+  const constMs = (name) => {
+    const matched = hookCode.match(new RegExp(`${name} = (\\d+)`));
+    return matched ? Number(matched[1]) : 0;
+  };
+  const waveTimeoutMs = constMs("WAVE_REQUEST_TIMEOUT_MS");
+  const waveBudgetMs = constMs("WAVE_REQUEST_BUDGET_MS");
+
+  check("/generate 호출이 자기 전송 상한을 넘긴다 (authFetch 기본 22초를 대체한다)",
+    /timeoutMs: WAVE_REQUEST_TIMEOUT_MS/.test(hookCode) && /budgetMs: WAVE_REQUEST_BUDGET_MS/.test(hookCode));
+  check(`🔴 전송 상한이 서버 웨이브 예산보다 크다 (${waveTimeoutMs}ms > ${contract.HD_REPORT_WAVE_BUDGET_MS}ms)`,
+    waveTimeoutMs > contract.HD_REPORT_WAVE_BUDGET_MS);
+  check(`🔴 전송 상한이 엣지 응답 데드라인 이상이다 (${waveTimeoutMs}ms ≥ ${syncTimeout.EDGE_RESPONSE_DEADLINE_MS}ms)`,
+    waveTimeoutMs >= syncTimeout.EDGE_RESPONSE_DEADLINE_MS);
+  check(`🔴 총예산이 한 번의 전송 상한을 온전히 담는다 (${waveBudgetMs}ms ≥ ${waveTimeoutMs}ms)`,
+    waveTimeoutMs > 0 && waveBudgetMs >= waveTimeoutMs);
+
+  check("🔴 재열람이 generating 이면 남은 웨이브를 이어 돌린다 (빈 리포트를 그리지 않는다)",
+    /data\.reused === true/.test(hookCode) && /data\.status === "generating"/.test(hookCode));
+  check("🔴 훅이 자기 백오프 루프를 만들지 않는다 (postPaidBody 가 이미 재시도한다)",
+    !/Math\.pow/.test(hookCode));
+
+  const fetchSource = readRepoFile("app/nakshatra/nakshatra-fetch.ts");
+  check("🔴 postPaidBody 가 timeoutMs 를 authFetch 의 signal 로 넘긴다 (안 넘기면 22초에 잘린다)",
+    /timeoutMs\?: number/.test(fetchSource) && /signal: controller\.signal/.test(fetchSource));
+  check("🔴 그 타이머를 finally 에서 해제한다",
+    /finally \{[\s\S]{0,120}clearTimeout\(timer\)/.test(fetchSource));
+}
 
 // ── 결과 ─────────────────────────────────────────────────────────────────────
 
