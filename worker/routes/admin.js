@@ -1,9 +1,9 @@
 import { getEnv } from "../lib/env.js";
-import { buildRuntimeKeyMatrix } from "../lib/key-health.js";
+import { buildConfigErrorBody, buildRuntimeKeyMatrix } from "../lib/key-health.js";
 import { connectDb, mongoose, withMongoRetry } from "../lib/db.js";
 import { purgeCmsCache, readCmsThroughCache } from "../lib/cms-cache.js";
 import { requireAuth } from "../lib/auth.js";
-import { verifyPassword } from "../lib/password.js";
+import { PBKDF2_MAX_ITERATIONS, verifyPassword } from "../lib/password.js";
 import { enforceSensitiveEndpointSecurity } from "../lib/security/index.js";
 import { callGeminiText } from "../lib/gemini.js";
 import { AdminAuditLog, ContentOverride, Insight, PointHistory, User } from "../lib/models.js";
@@ -4076,6 +4076,40 @@ async function verifyAdminEntryPassword(rawInput, env) {
   return verifyPassword(input, encodedHash);
 }
 
+// 검증 실패의 원인이 "비밀번호가 틀렸다"인지 "해시 설정이 잘못됐다"인지 가른다.
+// 🔴 두 경우가 똑같이 404 로 나가던 동안 로그인 화면은 둘 다 "비밀번호가 올바르지 않습니다"로
+//    표시했다. 스테이징 워커에는 정책상 ADMIN_ENTRY_PASSWORD_HASH 를 넣지 않는데
+//    (scripts/lib/staging-secret-policy.mjs), 그래서 맞는 비밀번호를 넣어도 "틀렸다"는 말만
+//    돌아왔고 원인을 화면에서 알 방법이 없었다(2026-08-30 실사고).
+// 실패 경로에서만 도는 **사후 분류**이지 두 번째 게이트가 아니다 — 통과 판정은 위
+// verifyAdminEntryPassword 하나가 그대로 갖는다(원칙 6 중첩 사전검사 아님).
+function describeAdminEntryHashProblem(env) {
+  const encodedHash = String(getEnv(env, ADMIN_ENTRY_PASSWORD_HASH_KEY) || "").trim();
+  if (!encodedHash) {
+    return { reason: "hash_missing", missingKeys: [ADMIN_ENTRY_PASSWORD_HASH_KEY], placeholderKeys: [] };
+  }
+  if (isPlaceholderAdminSecret(encodedHash)) {
+    return { reason: "hash_placeholder", missingKeys: [], placeholderKeys: [ADMIN_ENTRY_PASSWORD_HASH_KEY] };
+  }
+
+  // PBKDF2 반복수가 Workers 상한을 넘으면 crypto.subtle.deriveBits 가 throw 하고,
+  // verifyPassword 는 그 예외를 삼켜 false 를 돌려준다 — 비밀번호 오류와 구분이 안 된다.
+  // Node 에서 돌린 스크립트로 만든 해시는 상한이 없어 600,000 짜리가 나올 수 있다
+  // (worker/lib/password.js 의 PBKDF2_MAX_ITERATIONS 주석 · scripts/audit-legacy-pbkdf2-hashes.mjs).
+  const parts = encodedHash.split("$");
+  let iterationsRaw = "";
+  if (parts[0] === "pbkdf2-sha256") iterationsRaw = parts[1];
+  else if (`${parts[0]}$${parts[1]}` === "pbkdf2$sha256") iterationsRaw = parts[2];
+  const iterations = Number(iterationsRaw);
+  if (Number.isFinite(iterations) && iterations > PBKDF2_MAX_ITERATIONS) {
+    // 어느 키가 비었다고는 말할 수 없으므로 목록은 비운다 — 로그인 화면은 그때
+    // "관리자 키 설정이 올바르지 않습니다. Worker 비밀키를 확인해주세요."로 떨어진다.
+    return { reason: "hash_iterations_over_cap", missingKeys: [], placeholderKeys: [] };
+  }
+
+  return null;
+}
+
 async function issueFlowerAdminToken(env) {
   const now = Math.floor(Date.now() / 1000);
   // jti: 발급 세션 식별자. 진입 비밀번호는 공유 자격증명이라 "누구인지"는 알 수 없지만,
@@ -4131,14 +4165,26 @@ async function handleEntryPassword(request, env) {
   const body = await readJson(request);
   const password = String(body?.password || "");
   if (!await verifyAdminEntryPassword(password, env)) {
+    const configProblem = describeAdminEntryHashProblem(env);
     // 관리자 진입은 공유 비밀번호 하나가 전부라, 실패 시도가 가장 가치 높은 감사 기록이다.
     await writeAdminAuditLog(request, env, {
       actorLabel: "",
       actorUserId: null,
       mode: "anonymous",
       outcome: "denied",
-      meta: { reason: "bad_password" },
+      meta: { reason: configProblem?.reason || "bad_password" },
     });
+    if (configProblem) {
+      // 설정 오류는 감추지 않는다. 감춰 봐야 못 들어오는 건 관리자뿐이고, 공격자는
+      // "문이 잠겨 있다"는 것 말고는 아무것도 얻지 못한다(비밀번호 오답은 그대로 404 다).
+      // 이 응답 형태는 app/admin/login/page.tsx 가 이미 해석한다.
+      return json(buildConfigErrorBody("adminEntry", {
+        impact: "관리자 진입 비밀번호",
+        requiredKeys: [ADMIN_ENTRY_PASSWORD_HASH_KEY],
+        missingKeys: configProblem.missingKeys,
+        placeholderKeys: configProblem.placeholderKeys,
+      }), { status: 503 });
+    }
     return json({ message: "Not found" }, { status: 404 });
   }
 
@@ -5093,3 +5139,8 @@ export const __adminContentTestUtils = {
   toContentItem,
   CONTENT_LIST_PROJECTION,
 };
+
+/* 진입 비밀번호 실패 분류. 라우터를 태우려면 레이트리밋(Mongo) 하네스가 필요한데, 여기서
+   지키려는 계약은 "설정 오류를 비밀번호 오류로 표시하지 않는다" 하나이고 순수 함수다.
+   배선(handleEntryPassword 가 실제로 이걸 쓴다)은 verify:security-hardening R1e 가 본다. */
+export const __adminEntryTestUtils = { describeAdminEntryHashProblem };
