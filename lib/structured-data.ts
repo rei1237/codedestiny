@@ -10,13 +10,44 @@ type FaqItem = {
 };
 
 /**
- * 기사 저자로 표기하는 필명. 운영자가 정한 이름이다(2026-08-16).
+ * 기사 저자. 2026-08-30 운영자 결정으로 필명("네오")을 실명으로 바꿨다 — 대표이자
+ * 공개 콘텐츠 최종 검수 책임자(/about "만드는 사람과 책임" 절과 같은 사람).
  *
- * 🔴 이 이름에 경력·자격·전문 분야를 덧붙이지 말 것. 필명은 출판 관행이지만 없는 이력을
- * 만들어 붙이는 순간 SEO 요청서 22장의 가짜 저자·가짜 자격 금지에 걸린다.
- * `app/insights/seed-articles.js` 의 DEFAULT_AUTHOR 와 같은 값이어야 한다.
+ * 🔴 여기 적는 경력은 운영자가 직접 밝힌 사실(명리 10년)까지만이다. 검증 가능한 공개 출처
+ * (발행일 있는 게시물·기사 링크)가 없는 주장 — 예: 특정 인물 운세 적중 — 은 넣지 않는다.
+ * 없는 이력을 붙이는 순간 SEO 요청서 22장의 가짜 저자·가짜 자격 금지에 걸린다.
+ * `sameAs` 는 운영자가 준 외부 프로필 링크가 있을 때만 채운다(자기 사이트 URL 금지).
+ * `app/insights/seed-articles.js` 의 DEFAULT_AUTHOR 와 name 이 같아야 한다.
  */
-export const AUTHOR_PEN_NAME = "네오";
+export const SITE_AUTHOR = {
+  name: "박병하",
+  jobTitle: "명리학자",
+  description: "10년 경력의 명리학자. Code Destiny 가 공개하는 사주·운세 콘텐츠의 최종 검수 책임자입니다.",
+  knowsAbout: ["사주", "명리학", "만세력", "자미두수", "숙요점"],
+  sameAs: [] as string[],
+} as const;
+
+/**
+ * 저자 Person 노드. Article.author 와 /about·/methodology 의 @graph 가 **같은 @id** 로 가리켜
+ * 구글이 한 사람으로 합치게 한다.
+ */
+export function buildAuthorPersonJsonLd() {
+  return {
+    "@type": "Person",
+    "@id": `${siteSeo.siteUrl}/#author`,
+    name: SITE_AUTHOR.name,
+    jobTitle: SITE_AUTHOR.jobTitle,
+    description: SITE_AUTHOR.description,
+    knowsAbout: SITE_AUTHOR.knowsAbout,
+    url: `${siteSeo.siteUrl}/about`,
+    worksFor: {
+      "@type": "Organization",
+      "@id": `${siteSeo.siteUrl}/#organization`,
+      name: siteSeo.organization.name,
+    },
+    ...(SITE_AUTHOR.sameAs.length ? { sameAs: SITE_AUTHOR.sameAs } : {}),
+  };
+}
 
 export function buildOrganizationJsonLd() {
   return {
@@ -246,16 +277,14 @@ export function buildArticleJsonLd(input: {
     headline: input.title,
     description: input.description,
     image: toAbsoluteUrl(input.image || siteSeo.defaultOgImage),
-    // 저자는 필명 `네오`(운영자 결정, 2026-08-16). 예전에는 조직명으로 폴백돼
+    // 저자는 실명 Person 노드(SITE_AUTHOR, 2026-08-30). 예전에는 조직명으로 폴백돼
     // 모든 기사가 "Code Destiny" 를 저자로 선언했고, 그건 저자 신호가 아니라 발행처 신호였다.
-    //
-    // 🔴 이름만 선언하고 경력·자격·소개는 넣지 않는다. 필명 자체는 출판에서 정상이지만
-    // **없는 경력을 지어내는 것**은 SEO 요청서 22장의 가짜 저자·가짜 자격 금지에 직접 걸린다.
-    // 전문성 신호가 필요하면 사람을 꾸미지 말고 실재하는 방법론 문서를 연결한다(아래 isBasedOn).
-    author: {
-      "@type": "Person",
-      name: input.author || AUTHOR_PEN_NAME,
-    },
+    // 호출부가 다른 저자 문자열을 넘기면(가이드의 "Code Destiny 편집팀") 이름만 선언한다 —
+    // 그 표기에 사람의 경력을 붙이면 안 된다.
+    author:
+      !input.author || input.author === SITE_AUTHOR.name
+        ? buildAuthorPersonJsonLd()
+        : { "@type": "Person", name: input.author },
     publisher: {
       "@type": "Organization",
       "@id": `${siteSeo.siteUrl}/#organization`,
