@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-30
-next: 인증 계측(`authDetail`)을 배선했으나 **아직 한 번도 측정하지 않았다** — 이 브랜치가 머지되면 스테이징에서 로그인 상태로 차트를 한 번 쏴 `authDetail` 을 읽고 AUTH 3.1s 의 범인을 확정한다
+updated: 2026-08-31
+next: AUTH 3.1s 의 범인은 **매 요청 Mongo 커넥션 전면 재수립**으로 확정됐다(2026-08-31 실측, 아래 표). 후보 (a)~(d) 는 전부 기각. 다음 판단은 라우트가 아니라 공용 `worker/lib/db.js` 의 연결 재사용 정책이며, 손대기 전에 프로덕션에서 같은 측정을 한 번 해야 한다
 ---
 
 # 휴먼 디자인 유료 리포트 — 생성 복구 · 대기 씬 · 차트 병목
@@ -51,24 +51,48 @@ next: 인증 계측(`authDetail`)을 배선했으나 **아직 한 번도 측정�
   비용" 이라는 결론은 근거를 잃었고, 느린 공용 인증 경로가 배제되지 않았다.**
   AUTH 3.10~3.15s 라는 값 자체는 워커 내부 타이머라 그대로 유효하다.
   `enforceAiRouteSecurity` 래퍼와 지연 임포트가 타이머 바깥인 것도 그대로다(wall − 합계 ≈ 160ms).
-- 🔴 **원인 후보 4개 — 계측은 배선했고 측정은 아직이다.** 접근토큰 경로의 Mongo 접촉은
-  `User.collection.findOne` 1회(관측 ≈410ms)뿐이라 7.6배가 설명되지 않는다.
-  - (a) 액세스 쿠키 만료로 매 요청 `verifyRefreshSessionToAuth` 폴백(Mongo 2왕복)을 타는가
-  - (b) `withMongoRetry` 가 재시도를 도는가
-  - (c) 🔴 **가장 유력** — 첫 시도가 서버선택 타임아웃에서 죽고 두 번째가 성공하는가.
-    스테이징 `MONGO_SERVER_SELECTION_TIMEOUT_MS = 3000` + `MONGO_OP_RETRY_DELAY_MS = 120`
-    = **3120ms**, 관측 중앙값 **3122ms**. 히트 5회가 전부 3.1s 에 붙어 있는 것도 큐 대기보다
-    고정 타임아웃의 모양이다(양쪽 `worker/wrangler*.toml` 에서 2026-08-30 확인).
-  - (d) admission 슬롯 대기(`MONGO_OP_ADMISSION_TIMEOUT_MS = 2500`)에 먹히는가
 
-  넷을 가르는 계측을 배선했다 — `/api/human-design/chart` 응답의 **`authDetail`** 이
-  `path`(어느 분기가 인증을 성사시켰나) · `attempts` · `admissionMs` · `connectMs` · `opMs`
-  를 싣는다. 🔴 **새 계측기를 만들지 않았다** — 뒤 넷은 `worker/lib/db.js` 의 기존
-  `options.timings` 싱크를 인증 조회(`resolveActiveUserAuth`)로 끌어낸 것이다.
+### 범인 확정 — `connectMs` (2026-08-31, 스테이징 로그인 세션, 히트 6회)
+
+`authDetail` 실측. 후보 (a)~(d) 는 **전부 기각**됐다.
+
+| # | path | attempts | admissionMs | **connectMs** | opMs | AUTH | ARCHIVE_HIT |
+|---|---|---|---|---|---|---|---|
+| 0 | access-cookie | 1 | 0 | 1000 | 1108 | 2108ms | 545ms |
+| 1 | access-cookie | 1 | 0 | 3549 | 182 | 3731ms | 546ms |
+| 2 | access-cookie | 1 | 0 | 3538 | 174 | 3712ms | 524ms |
+| 3 | access-cookie | 1 | 0 | 3475 | 171 | 3646ms | 516ms |
+| 4 | access-cookie | 1 | 0 | 3483 | 172 | 3655ms | 512ms |
+| 5 | access-cookie | 1 | 0 | 3496 | 175 | 3671ms | 531ms |
+
+- (a) 기각 — `path` 가 6회 전부 `access-cookie`. 리프레시 폴백은 한 번도 안 탔다.
+- (b) 기각 — `attempts` 가 6회 전부 1. `withMongoRetry` 는 재시도를 돌지 않았다.
+- (c) 기각 — 재시도가 없으므로 "첫 시도가 죽고 두 번째가 성공"이 성립하지 않는다.
+  **`3120ms ≈ 3122ms` 는 우연이었다** — 산술이 맞는다고 경로가 맞는 게 아니다.
+- (d) 기각 — `admissionMs` 가 6회 전부 0. 슬롯 대기는 없다.
+- 🔴 **실제 범인은 (e) 매 요청 커넥션 전면 재수립이다.** 인증 조회의 실제 쿼리(`opMs`)는
+  **171~182ms** 로 싸고, AUTH 의 95% 가 그 앞의 `connectDb` 안에서 사라진다.
+- 🔴 **라우트 문제가 아니다.** `connectDb` 는 `worker/lib/db.js` 의 공용 경로이고, 인증을 하는
+  모든 워커 라우트가 요청당 첫 Mongo 접촉에서 같은 비용을 낸다. 차트가 유별난 게 아니라
+  차트에만 계측이 붙어 있었을 뿐이다.
+- **분해는 추정이다(미검증).** 코드 경로상 `MONGO_PING_MIN_INTERVAL_MS=0`(매 요청 검증) →
+  죽은 웜 소켓에 `ping` → `MONGO_PING_TIMEOUT_MS=1000` 소진 → `resetMongooseConnection` →
+  새 TLS+인증 핸드셰이크. 근거 셋: ① #0 의 `connectMs` 가 **정확히 1000** 이고 그 요청만
+  `opMs` 가 1108 로 튄다(= ping 실패 후 동시 op 가 있어 죽은 커넥션을 그대로 돌려주는 분기,
+  `db.js` 의 `countActiveMongoOps() > activeOpsOwned`) ② 같은 요청 안 두 번째 Mongo 접촉인
+  `ARCHIVE_HIT` 은 512~546ms 로 싸다(= 이 요청이 세운 소켓은 살아 있다) ③ `db.js` 주석의
+  2026-08-16 프로덕션 실측이 "요청 컨텍스트가 끝나면 그 소켓은 못 쓴다"를 이미 기록했다.
+  🔴 다만 그때 신규 커넥션은 **1.4초**였는데 지금 스테이징은 **3.5초**다 — 그 2.5배 격차는
+  아직 설명되지 않았다(워커 로그 `[db-connect]` 를 못 봤다).
+- 재현 하네스는 커밋하지 않았다(일회성). 만드는 법은 아래 *재현*.
 - 🔴 **전부 스테이징 값이다** — 아래 *모르는 것* 의 "프로덕션에서 몇 ms" 는 여전히 미해결.
-- 재현: 로그인한 브라우저에서 동일 출처 `fetch("/api/human-design/chart", {credentials:"include"})`
-  를 미스 1회 + 히트 5회 돌리고 응답의 `pipeline` 과 `authDetail` 을 읽는다. 🔴 캐시버스터 없이 GET 을 반복하면
-  `cache:"no-store"` 여도 0ms 가 찍혀 판독이 통째로 오염된다.
+- 재현: 로그인한 브라우저에서 동일 출처로 `POST /api/human-design/chart` 에 출생 본문
+  (`{birth:{birthDate,birthTime,timezone,calendar}}`)을 싣고 6회 돌린 뒤 응답의 `pipeline` 과
+  `authDetail` 을 읽는다. 🔴 캐시버스터 없이 반복하면 `cache:"no-store"` 여도 0ms 가 찍혀 판독이
+  통째로 오염된다. 🔴 Playwright 로 자동화할 때 **로그인 판정을 `/api/auth/me` 로 하지 말 것** —
+  로그아웃 상태에서도 200 이라 대기 없이 401 만 6건 찍는다(2026-08-31 실측). 대상 라우트에
+  빈 본문 `{}` 을 쏴 **`400`(로그인됨) 만** 통과시킨다. `401` 만 걸러 내는 방식도 안 된다 —
+  일시 `404`·`503` 이 실제로 튀어 그 한 건에 측정이 시작된다.
 
 ## 씬 렌더 육안 확인 — 3항목 통과 (2026-08-30, 스테이징)
 
@@ -87,26 +111,22 @@ next: 인증 계측(`authDetail`)을 배선했으나 **아직 한 번도 측정�
       `scripts/verify-worker-config-parity.mjs` 의 `REQUIRED_ON_KEYS` 가 "양쪽에 있고 켜져 있음"
       을 fail-closed 로 지킨다. 🔴 끌 일이 생기면 값을 `"false"` 로 바꾸지 말고 그 목록에서
       사유와 함께 뺄 것 — 그래야 "꺼졌다" 가 리뷰에 보인다.
-- [ ] 🔴 **AUTH 3.1s 확정 측정 — 이 문서의 유일한 남은 작업.** 계측은 배선됐고 값은 아직 없다.
-      이 브랜치가 머지되면 스테이징에 자동 배포되니, 로그인한 브라우저에서 아래 *재현* 을 한 번
-      돌리고 응답의 `authDetail` 을 읽는다. 판독표 — `path === "refresh-fallback"` → 후보 (a) /
-      `attempts >= 2` → (b) / `connectMs` 가 3000 근처 → (c) / `admissionMs` 가 큼 → (d).
-      네 값이 전부 작으면 병목은 Mongo 밖(JWT 검증·모듈 지연 임포트)이라는 뜻이니 그때 다시 쪼갠다.
-
-<details><summary>완료된 rate limit 항목의 원래 진단 (참고용)</summary>
-
-- `/api/fortune/**` 의 유일한 상한인
-      `enforceGuardianFortuneRateLimit`(`worker/routes/fortune.js:6236`)은
-      `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED` 가 `"true"` 일 때만 도는데, 그 키가
-      `worker/wrangler.toml`·`wrangler.staging.toml` 양쪽 `[vars]` 에 **없다**
-      (`config/env.contract.json:777` 의 `required_in: []`; 테스트·문서 참조 0건). `git log -S` 상
-      최초 기능 커밋 `8b0d6bea5` 부터 꺼진 채였다 — 의도적 비활성화가 아니라 배선 미완이고
-      원칙 10 의 fail-open 형태다. 🔴 **플래그만 켜면 안 된다**: 호출부 `:6349` 가
-      `let result; try {` **밖**이라 `incrementRateLimit` 의 `connectDb` 실패가 아래 한국어 503
-      계약(`SERVICE_TEMPORARILY_UNAVAILABLE` + `retryable`)을 못 타고 영문 503 으로 샌다.
-      순서: ① 호출부를 try 안으로 ② 양쪽 `[vars]` 에 플래그 ③ 두 wrangler 를 대조하는 가드.
-
-</details>
+- [x] **AUTH 3.1s 확정 측정 — 완료** (2026-08-31, 위 *범인 확정* 표). 후보 (a)~(d) 전부 기각,
+      범인은 `connectDb` 안의 커넥션 재수립이다.
+- [ ] 🔴 **프로덕션에서 같은 6회를 재기 — 다음 세션의 첫 작업.** 스테이징 `connectMs` 3.5s 가
+      `db.js` 주석의 2026-08-16 프로덕션 실측(신규 커넥션 1.4s)의 2.5배다. 이 격차가 티어·리전
+      차이인지 스테이징만의 퇴행인지 모르는 채로 공용 연결 정책을 손대면 안 된다. 재는 법은
+      아래 *재현* 과 같고 로그인만 프로덕션 계정으로 바꾼다. **설정 드리프트는 아니다** —
+      `MONGO_PING_MIN_INTERVAL_MS=0` · `MONGO_PING_TIMEOUT_MS=1000` 이 양쪽 wrangler `[vars]` 에
+      동일하게 있다(2026-08-31 확인).
+- [ ] **`[db-connect]` 워커 로그로 위 분해(추정)를 확정.** ping 실패 → reset → 재연결이 요청마다
+      실제로 찍히는지 본다. 이게 확인돼야 "무엇을 고칠지"가 정해진다.
+- [ ] 🔴 **고치는 것은 그 다음이고, 대상은 `worker/lib/db.js` 다 — 차트 라우트가 아니다.**
+      요청 경계에서 소켓이 죽는 게 Cloudflare 의 성질이라면 매 요청 1초짜리 ping 은 값을 못 내는
+      대기다. 다만 그 ping 은 2026-08-16 에 "죽은 소켓 위에서 7.8초 태우는" 사고를 막으려고
+      들어온 장치이므로, 지우는 게 아니라 **요청 경계에서는 검증 없이 바로 재수립**하는 쪽으로
+      가야 한다. 🔴 인증하는 모든 라우트가 지나는 공용 경로라 원칙 7(회귀 선보고) 대상이고,
+      `db.vars-code-default-parity.test.js` 가 코드 기본값과 `[vars]` 를 함께 묶는다.
 
 ## 정본 예시
 
