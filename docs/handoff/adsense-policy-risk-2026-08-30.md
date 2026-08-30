@@ -17,11 +17,16 @@ code-destiny.com 이 AdSense 에서 "가치가 별로 없는 콘텐츠"로 반�
 - PR2 신뢰 구조(`/about`·`/editorial-policy` 편집 책임 + 조직 JSON-LD) — **PR #1303, PR #1301 위에 스택, 머지 대기**
 - PR3 `/high-value/` → `/guides/` — **미착수**
 
-🔴 머지 순서: **#1301 → #1303**. 스택이라 #1301 이 머지되면 #1303 의 base 가 자동으로 `main` 이 된다.
+🔴 머지 순서는 **자식부터 — #1303 → #1301** 이다.
+`pr-ci.yml` 의 `Landing order` 잡이 자기 head 를 base 로 삼는 열린 PR 이 있으면 부모(#1301)를 막는다.
+그리고 `pull_request: branches: [main]` 필터 때문에 **자식 PR(#1303)은 체크가 0개인 게 정상**이다 — 검증은
+#1303 을 부모 브랜치에 머지했을 때 #1301 에 뜨는 `synchronize` 로 합쳐진 변경 전체에 대해 수행된다.
+🔴 부모를 먼저 머지하면 자동 재타게팅이 `edited` 이벤트라 CI 가 영영 안 돌아 **체크 0개 + 영구 BLOCKED** 가 된다
+(2026-08-16 #706→#707, 2026-08-28 #1244→#1247 실사고). 해소는 자식 브랜치에 `origin/main` 을 머지해 푸시.
 
 ## 남은 작업
 
-- [ ] 사용자가 #1301 → #1303 순서로 머지
+- [ ] 사용자가 **#1303 → #1301** 순서로 머지 (#1303 은 부모 브랜치로, #1301 이 main 으로 전부 싣고 간다)
 - [ ] **PR3 리네임** — 치환 지점 약 30곳. 정본은 `app/high-value/content.js`(`adsense-ready-articles.js` 아님). `_redirects` 는 `/high-value` 와 `/high-value/*` **두 줄**이 필요하다(splat 은 `X` 를 못 먹는다). 🔴 sitemap 재생성을 `_redirects` 편집과 **같은 커밋에** 담는다 — 삼킴 검사가 루트 `sitemap.xml` 을 읽는다.
 - [ ] 판정: `/guides/` 13개 200 · `/high-value/*` 301 · `verify:redirects:live` 통과 · `git grep high-value` 잔여 0(docs 제외)
 - [ ] 사용자에게 요청한 GSC 자료 도착 시 색인 원인 판정 (항목 목록은 계획 파일 말미)
