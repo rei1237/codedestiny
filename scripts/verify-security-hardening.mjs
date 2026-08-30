@@ -19,6 +19,11 @@ import { resolve, join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 import { BUILD_ARTIFACT_DIRS } from "./lib/source-scan-ignore.mjs";
+// 🔴 stripComments 사본을 들고 있다가 정규식 리터럴에서 따옴표 모드가 어긋났다 —
+//    worker/routes/admin.js 의 /content=[\"'](...)/ 한 줄이 뒤따르는 14,482자를 문자열로
+//    삼켜 그 구간의 주석이 코드로 읽혔고, R1 검사들이 조용히 오통과했다(2026-08-30 실측).
+//    공용 스캐너는 정규식 리터럴을 실제로 건너뛴다 — 사본을 만들지 말 것.
+import { stripComments } from "./lib/js-source-slice.mjs";
 
 const root = resolve(fileURLToPath(new URL("..", import.meta.url)));
 const failures = [];
@@ -33,53 +38,6 @@ function check(label, fn) {
   } catch (error) {
     failures.push(`${label}: ${error?.message || error}`);
   }
-}
-
-/**
- * 주석을 지운 사본을 만든다.
- *
- * 이게 없으면 "이 패턴은 금지"라고 설명하는 주석 자체가 규칙에 걸린다(실제로 첫 실행에서 걸렸다).
- * 문자열 안의 `//`(예: https://localhost)를 주석으로 오인하지 않도록 따옴표 상태를 추적한다.
- * 정규식 리터럴은 추적하지 않는데, 이 레포의 정규식 중 `//`·`/*` 로 시작하는 것이 없어 문제되지 않는다.
- */
-function stripComments(text) {
-  let out = "";
-  let i = 0;
-  let quote = "";
-  while (i < text.length) {
-    const ch = text[i];
-    const next = text[i + 1];
-    if (quote) {
-      if (ch === "\\") {
-        out += ch + (next ?? "");
-        i += 2;
-        continue;
-      }
-      if (ch === quote) quote = "";
-      out += ch;
-      i += 1;
-      continue;
-    }
-    if (ch === '"' || ch === "'" || ch === "`") {
-      quote = ch;
-      out += ch;
-      i += 1;
-      continue;
-    }
-    if (ch === "/" && next === "/") {
-      while (i < text.length && text[i] !== "\n") i += 1;
-      continue;
-    }
-    if (ch === "/" && next === "*") {
-      i += 2;
-      while (i < text.length && !(text[i] === "*" && text[i + 1] === "/")) i += 1;
-      i += 2;
-      continue;
-    }
-    out += ch;
-    i += 1;
-  }
-  return out;
 }
 
 /** 함수 본문을 중괄호 균형으로 잘라낸다 — 이름만 보고 판단하지 않기 위해. */
@@ -167,6 +125,32 @@ check("R1d 관리자 해시 포맷 경고 유지", () => {
   assert.ok(
     raw.includes("1102") && /PBKDF2/i.test(raw),
     "worker/routes/admin.js: ADMIN_ENTRY_PASSWORD_HASH 는 PBKDF2 여야 한다는 경고(1102 사유 포함)가 사라졌습니다.",
+  );
+});
+
+check("R1e 설정 오류를 비밀번호 오류로 표시하지 않는다", () => {
+  // 스테이징 워커에는 ADMIN_ENTRY_PASSWORD_HASH 를 정책상 넣지 않는다
+  // (scripts/lib/staging-secret-policy.mjs). 그때도 404 "Not found" 로만 응답하면 로그인 화면이
+  // "비밀번호가 올바르지 않습니다"로 표시해서, 맞는 비밀번호를 넣은 관리자가 원인을 알 수 없다.
+  // 2026-08-30 실사고 — 스테이징에서 관리자 진입이 막힌 채로 비밀번호 문제로 오진됐다.
+  const body = functionBody(adminWorker, "async function handleEntryPassword(");
+  assert.ok(
+    body.includes("describeAdminEntryHashProblem("),
+    "handleEntryPassword: 설정 오류 분류가 없습니다 — 시크릿 미설정이 '비밀번호 오류'로 표시됩니다.",
+  );
+  assert.ok(
+    body.includes("buildConfigErrorBody("),
+    "handleEntryPassword: config_key_mismatch 응답을 만들지 않습니다 — 로그인 화면이 원인을 표시할 수 없습니다.",
+  );
+
+  const classify = functionBody(adminWorker, "function describeAdminEntryHashProblem(");
+  assert.ok(
+    classify.includes("ADMIN_ENTRY_PASSWORD_HASH_KEY"),
+    "describeAdminEntryHashProblem: env 키를 읽지 않습니다.",
+  );
+  assert.ok(
+    classify.includes("PBKDF2_MAX_ITERATIONS"),
+    "describeAdminEntryHashProblem: 반복수 상한 검사가 없습니다 — 워커가 복원하지 못하는 해시도 '비밀번호 오류'가 됩니다.",
   );
 });
 
