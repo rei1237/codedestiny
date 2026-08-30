@@ -37,8 +37,16 @@ export function stagingDeferralReason(key) {
   if (name === "MONGO_DB_NAME" || name === "MONGO_NAME") {
     return "DB 분리를 덮는다 — resolveMongoDbName 이 이 키를 MONGODB_DB_NAME 보다 먼저 읽는다";
   }
+  // 🔴 아래 둘은 '스테이징에서 관리자 로그인을 못 한다'가 아니라 '프로덕션 값을 복제하지
+  //    않는다'는 뜻이다. 스테이징 전용 값을 .env.staging.local 에 두고 --only-key 로 넣는다
+  //    (--only-key 는 이 제외 목록을 우회한다 — sync-cloudflare-worker-secrets.mjs 의
+  //    targetFilteredKeys). 2026-08-30: 이 문구가 'fail-closed 로 둔다' 하나뿐이라
+  //    스테이징 관리자 로그인이 영구 차단으로 읽혔고, 원인 추적에 몇 시간이 들었다.
   if (name === "ADMIN_ENTRY_PASSWORD_HASH") {
-    return "스테이징 관리자 진입은 fail-closed 로 둔다";
+    return "프로덕션 진입 비밀번호를 복제하지 않는다 — 스테이징 전용 해시를 .env.staging.local 에 두고 --only-key 로 넣는다";
+  }
+  if (name === "FLOWER_ADMIN_SECRET") {
+    return "관리자 토큰 서명 키를 공유하면 스테이징에서 발급한 토큰이 프로덕션에서도 통과한다(페이로드에 환경 표식이 없다) — 스테이징 전용 값을 .env.staging.local 에 두고 --only-key 로 넣는다";
   }
 
   return "";
