@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-22
-next: "§2 \"다음 세션 선행 조사 항목 — CTA 공백 9곳\" 부터. 브리프를 그대로 실행하지 말 것"
+updated: 2026-08-30
+next: "§2 는 2026-08-30 에 닫혔다(공백 0곳, 실제 구멍은 계측이었고 PR 로 처리). 다음은 §1 I 의 P1~P3 신규 콘텐츠"
 ---
 
 # 검색 수요 기반 SEO + 신규 콘텐츠 확장 로드맵 (핸드오프)
@@ -95,14 +95,40 @@ noindex+리다이렉트, 실질 콘텐츠 없음], `sukuyo-compatibility-ai`), `
 
 ---
 
-## 2. 다음 세션 선행 조사 항목 — CTA 공백 9곳
+## 2. ~~CTA 공백 9곳~~ → 재실측 결과 **공백 0곳**, 진짜 구멍은 계측이었다 (2026-08-30 완료)
 
-`app/saju/basic`, `app/ziwei/chart`, `app/astrology`, `app/vedic/jyotish`, `app/sukuyo`,
-`app/tarot/healing`, `app/physiognomy`, `app/love`, `app/compatibility` — App Router 컴포넌트
-레벨(`FusionCrossSell`/`cross-sell`/`fusion-fortune`/`useCoinGate`/`ensurePaidAccess` 키워드)에서는
-CTA가 확인되지 않았다(2026-08-22 code-locator 조사).
+🔴 **이 절의 전제가 낡아 있었다.** 2026-08-22 의 "CTA 미확인 9곳"은 키워드 5개(`FusionCrossSell`/
+`cross-sell`/`fusion-fortune`/`useCoinGate`/`ensurePaidAccess`)로만 훑은 결과였고, 그 9곳은
+**전부 다른 이름의 CTA 를 이미 갖고 있었다.** 2026-08-30 `git grep` 재실측(범위 `app js index.html
+lib worker scripts __tests__`):
 
-**손대기 전에 반드시 개별 확인할 것**: 이 페이지들이 실제 "무료 결과 화면"인지, 아니면 SEO
+| 라우트 | 렌더러 | CTA | `data-cd-cross-sell` |
+|---|---|---|---|
+| astrology · compatibility · love · physiognomy · sukuyo (5) | `SeoLandingTemplate`(20개 라우트 공용) | ✅ `page.ctaHref` | ✅ 이미 있음(:342, 초융합 우선 정렬) |
+| saju/basic · vedic/jyotish (2) | `FeatureLandingPage`(16개 라우트 공용) | ✅ `runHref` + `/insights/` | ❌ **일부러 안 단다**(아래) |
+| ziwei/chart (1) | `ZiweiChartClientLoader` + `ImmersiveRelatedLinks` | ✅ 관련 링크 4개(초융합 포함) | ✅ 2026-08-30 추가 |
+| tarot/healing (1) | 자체 client + `TarotHealingLandingContent` | ✅ primaryCta + `/tarot` + 링크 목록 | ❌ 미착수 |
+
+그래서 실제로 한 일은 **CTA 추가가 아니라 클릭 귀속**이다 — `app/components/ImmersiveRelatedLinks.tsx`
+(19개 몰입형 라우트 공용)에 `data-cd-cross-sell={fromPath}` 를 달아, "이어서 볼 만한 운세" 클릭이
+`js/core/analytics.js:143` 의 기존 앵커 위임을 타고 `cross_sell_click` 으로 잡히게 했다. 이 이벤트는
+[analytics-kpi.md](../analytics-kpi.md) §3 크로스셀 KPI 의 **분자**라, 표식이 없는 동안 그 KPI 는
+분모만 있고 분자가 구조적으로 0 이었다.
+
+🔴 **`FeatureLandingPage`(16개 라우트)에는 일부러 안 달았다.** 그 화면의 주 CTA `runHref` 는
+크로스셀이 아니라 **그 페이지 자신의 서비스 실행**이고, 결제로 이어지면 `checkout_*` 6종이 이미
+같은 행동을 쏜다. 표식을 달면 한 클릭이 두 이벤트로 나가 분해가 불가능해진다 —
+[analytics-kpi.md](../analytics-kpi.md) §5 가 금지 패턴으로 적어 둔 바로 그 형태다.
+`TarotHealingLandingContent` 는 판단 보류(자체 링크 목록이라 표식이 맞지만 확인 안 했다) — **미검증**.
+
+가드는 `scripts/verify-analytics-events.mjs` ⑫ 다. 손으로 쓴 목록이 아니라 `app/components/` 에서
+초융합으로 나가는 면을 **전수 발견**해, 미분류·표식 실종·낡은 선언을 전부 실패시킨다(음성 테스트 3종 확인).
+
+---
+
+아래는 그때 남긴 조사 지침이다. **CTA 부류 2가지는 그대로 유효하다**(신규 콘텐츠 라우트를 만들 때 재사용).
+
+**페이지 성격을 개별 확인할 것**: 이 페이지들이 실제 "무료 결과 화면"인지, 아니면 SEO
 소개 페이지(`SeoLandingTemplate` 공용 컴포넌트로 렌더되는 곳이 다수 확인됨)이고 진짜 결과는
 정적 셸의 클라이언트 엔진(`js/saju-engine.js` 등, `docs/handoff/monetization-free-paid-boundary.md`
 §0이 언급하는 "사주·자미두수·점성술·관상은 전량 클라이언트 계산" 구조)이 별도로 렌더하는지
