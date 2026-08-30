@@ -14,12 +14,14 @@ code-destiny.com 이 AdSense 에서 "가치가 별로 없는 콘텐츠"로 반�
 ## 지금 상태
 
 - PR1 `/reviews` 정책 위험 제거 — **PR #1301, CI 8개 pass, 머지 대기**
-- PR2 신뢰 구조(`/about`·`/editorial-policy` 편집 책임 + 조직 JSON-LD) — 브랜치 `worktree-trust-structure`(PR1 위에 스택), 커밋 완료, `build:cf` 게이트 확인 후 push 예정
+- PR2 신뢰 구조(`/about`·`/editorial-policy` 편집 책임 + 조직 JSON-LD) — **PR #1303, PR #1301 위에 스택, 머지 대기**
 - PR3 `/high-value/` → `/guides/` — **미착수**
+
+🔴 머지 순서: **#1301 → #1303**. 스택이라 #1301 이 머지되면 #1303 의 base 가 자동으로 `main` 이 된다.
 
 ## 남은 작업
 
-- [ ] PR2 push·PR 생성 (base = `worktree-reviews-policy-risk`. PR1 머지되면 자동으로 main 기준)
+- [ ] 사용자가 #1301 → #1303 순서로 머지
 - [ ] **PR3 리네임** — 치환 지점 약 30곳. 정본은 `app/high-value/content.js`(`adsense-ready-articles.js` 아님). `_redirects` 는 `/high-value` 와 `/high-value/*` **두 줄**이 필요하다(splat 은 `X` 를 못 먹는다). 🔴 sitemap 재생성을 `_redirects` 편집과 **같은 커밋에** 담는다 — 삼킴 검사가 루트 `sitemap.xml` 을 읽는다.
 - [ ] 판정: `/guides/` 13개 200 · `/high-value/*` 301 · `verify:redirects:live` 통과 · `git grep high-value` 잔여 0(docs 제외)
 - [ ] 사용자에게 요청한 GSC 자료 도착 시 색인 원인 판정 (항목 목록은 계획 파일 말미)
