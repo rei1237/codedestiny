@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: PR #1359 머지 후 §③-C 의 순서대로 — ① Workers Logs 켜기(API PATCH, 허락 1회) ② 프로덕션 승격(허락 1회) ③ `POST /api/admin/sns-daily-post/run` 1회(공개 채널 실제 발행, 허락 1회) ④ 다음 KST 07:00 크론 뒤 `GET …/status` + 채널 확인
+next: 2026-09-01 07:00 KST 크론 뒤 `GET /api/admin/sns-daily-post/status` 에 `2026-09-01 success` + `t.me/Codedestinyofficial` 새 글 확인 — 있으면 이 문서 status: done. 없으면 Cloudflare 대시보드 Workers Logs(켜져 있음)에서 `[CRON] SNS Daily Post` 사유를 본다.
 ---
 # 마케팅 자동화 엔진 — 인수인계 (2026-08-28)
 
@@ -168,7 +168,12 @@ A·B 는 끝났다(#1241 머지, 승격 완료 — 라이브 버전 바인딩에
 같은 날 재시도는 failed 문서 재선점으로 연다(`worker/lib/sns-daily-post-task.js`). 관리자 수동 실행·상태
 조회 `worker/routes/admin-sns.js` (`POST /api/admin/sns-daily-post/run`, `GET …/status`). 가드 ⑧⑨.
 
-**다음 행동(순서대로, 각각 사용자 허락 1회):**
+**2026-08-30 16:42Z 실행 결과(전부 사용자 허락 후):** ① Workers Logs `enabled:true` (이전 `null`) ② 승격 run 33322608571 success
+③ `POST …/run` → `{"ok":true,"dateKey":"2026-08-31"}`, DB `success` + `responseRef.messageId: 2`, 채널 글 2번 확인.
+→ 08-29 실패는 일회성이었고 설정 결함은 없다. 🔴 dateKey 가 이미 `2026-08-31`(KST)이라 **08-31 07:00 크론은 `already_posted` 로 정상 스킵**된다 —
+첫 자동 발행 확인은 **09-01 07:00 KST**. 관리자 진입은 `POST /api/admin/entry/password` → 응답 `adminToken` 을 `x-admin-token` 헤더로.
+
+**실행한 순서(기록용, 각각 허락 1회였다):**
 1. Workers Logs 켜기 — `PATCH /accounts/e09010bfcee941c820b81640827974f0/workers/scripts/code-destiny-web/script-settings`
    본문 `{"observability":{"enabled":true}}` (wrangler OAuth 토큰, 출력 금지). 되돌림은 `false`.
    DB 에 못 남는 실패(예외·Mongo 연결)를 대시보드에서 보게 된다.
