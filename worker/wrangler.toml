@@ -124,6 +124,13 @@ ENABLE_GUARDIAN_FORTUNE_SHARE = "true"
 ENABLE_GUARDIAN_FORTUNE_REAL_LLM = "true"
 ALLOW_REAL_GUARDIAN_FORTUNE_LLM = "true"
 GUARDIAN_FORTUNE_LLM_PROVIDER = "gemini"
+# 🔴 /api/fortune 의 유일한 요청 상한이다(worker/routes/fortune.js 의
+#    enforceGuardianFortuneRateLimit / enforceGuardianFortuneShareRateLimit — 생성 12회/10분,
+#    공유 20회/10분, 주체는 로그인 사용자 id 또는 게스트 해시).
+#    최초 기능 커밋 8b0d6bea5 부터 이 키가 양쪽 [vars] 에 없어 한 번도 켜진 적이 없었다
+#    (2026-08-30 배선). 되돌릴 때도 키는 양쪽에 남기고 값만 "false" 로 둔다 —
+#    verify:worker-config-parity 가 두 파일을 대조하고, 지워지면 verify:env-parity 가 잡는다.
+GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "true"
 # Fusion Fortune stays fail-closed until the separate sales, API, and real-LLM
 # activation checklist has been approved and completed in production.
 ENABLE_FUSION_FORTUNE_UI = "true"

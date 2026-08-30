@@ -78,6 +78,21 @@ const STAGING_ONLY_KEYS = new Set([
   "vars.CORS_ORIGIN",
 ]);
 
+/**
+ * 양쪽에 **있어야 하고 켜져 있어야** 하는 보안 플래그.
+ *
+ * 위의 키별 비교는 "양쪽이 같은가"만 본다 — 한쪽만 지우면 잡지만, 둘을 함께 지우거나 함께
+ * "false" 로 내리면 조용히 통과한다. 그 구멍은 가정이 아니라 실제 사고다:
+ * GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED 는 최초 기능 커밋(8b0d6bea5)부터 양쪽 [vars] 에 없어서
+ * /api/fortune 의 유일한 요청 상한이 2026-08-30 까지 한 번도 켜진 적이 없었다(fail-open).
+ *
+ * 🔴 끌 이유가 생기면 값을 "false" 로 바꾸지 말고 이 목록에서 사유와 함께 빼라 — 그래야
+ *    "꺼졌다"가 리뷰에 보인다.
+ */
+const REQUIRED_ON_KEYS = new Map([
+  ["vars.GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED", "true"],
+]);
+
 const PRODUCTION_ORIGIN = "https://code-destiny.com";
 const STAGING_ORIGIN = "https://staging.code-destiny.com";
 
@@ -337,6 +352,18 @@ export function compareConfigs(productionText, stagingText) {
     }
   }
 
+  for (const [key, expected] of REQUIRED_ON_KEYS) {
+    for (const [label, flat] of [["프로덕션", production], ["스테이징", staging]]) {
+      const value = flat.get(key);
+      if (value === expected) continue;
+      const actual = value === undefined ? "키가 없다" : `${render(value)} 다`;
+      failures.push(
+        `${key}: ${label} 설정에서 ${render(expected)} 여야 하는데 ${actual}.`
+        + " 이 플래그가 꺼지면 그 상한이 통째로 사라진다 — 끌 이유가 있으면 REQUIRED_ON_KEYS 에서 사유와 함께 빼라.",
+      );
+    }
+  }
+
   return failures;
 }
 
@@ -364,6 +391,7 @@ const BASE_PRODUCTION = [
   'AUTH_API_BASE_URL = "https://code-destiny.com"',
   'AUTH_FRONTEND_BASE_URL = "https://code-destiny.com"',
   'WORKERS_AI_ENABLED = "true"',
+  'GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "true"',
   '',
   '[triggers]',
   'crons = ["0 22 * * *"]',
@@ -392,6 +420,7 @@ const BASE_STAGING = [
   'AUTH_API_BASE_URL = "https://staging.code-destiny.com"',
   'AUTH_FRONTEND_BASE_URL = "https://staging.code-destiny.com"',
   'WORKERS_AI_ENABLED = "false"',
+  'GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "true"',
   '',
   '[triggers]',
   'crons = []',
@@ -461,6 +490,19 @@ function runSelfTest() {
       production: BASE_PRODUCTION,
       staging: BASE_STAGING.replace('AUTH_FRONTEND_BASE_URL = "https://staging.code-destiny.com"', 'AUTH_FRONTEND_BASE_URL = "https://staging-front.code-destiny.com"'),
       expectFailure: /호스트가 다르다/,
+    },
+    {
+      // 양쪽에서 함께 지우면 위의 키별 비교는 아무 말도 하지 않는다 — 이 케이스가 그 구멍이다.
+      name: "켜져 있어야 하는 플래그를 양쪽에서 지우면 잡는다",
+      production: BASE_PRODUCTION.replace(`\nGUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "true"`, ""),
+      staging: BASE_STAGING.replace(`\nGUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "true"`, ""),
+      expectFailure: /키가 없다/,
+    },
+    {
+      name: "켜져 있어야 하는 플래그를 양쪽에서 끄면 잡는다",
+      production: BASE_PRODUCTION.replace(`GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "true"`, `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "false"`),
+      staging: BASE_STAGING.replace(`GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "true"`, `GUARDIAN_FORTUNE_RATE_LIMIT_ENABLED = "false"`),
+      expectFailure: /여야 하는데 "false" 다/,
     },
     {
       name: "스테이징 전용 키가 프로덕션에 새면 잡는다",
@@ -534,4 +576,4 @@ function main() {
 
 main();
 
-export { STRUCTURAL_KEYS, MUST_DIFFER_KEYS, STAGING_ONLY_KEYS };
+export { STRUCTURAL_KEYS, MUST_DIFFER_KEYS, STAGING_ONLY_KEYS, REQUIRED_ON_KEYS };
