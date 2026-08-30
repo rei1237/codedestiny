@@ -2304,16 +2304,28 @@
   overflow: hidden;
 }
 
+/* 🔴 낙하 키프레임에 var() 가 들어 있으면 컴포지터가 그 애니메이션을 받지 못해 꽃잎이
+   메인스레드에서 돈다 — .petalsLayer 는 전체화면 고정 레이어라 매 프레임 그만큼을 다시 칠한다.
+   그래서 크기 변주(--petal-scale)는 안쪽 span 이 정적으로 갖고, 바깥 span 은 var 없는
+   transform 만 애니메이션한다. 이 둘을 합치면 var() 가 키프레임으로 되돌아온다.
+   실측 2026-08-30 (CPU 6배·Slow4G·3회, 프롤로그): RecalcStyle 1305ms → 839ms.
+   재현: npm run perf:app-route -- --segments=entry --cpu=6 */
 .petal {
   position: absolute;
   top: -42px;
   width: 13px;
   height: 20px;
+  opacity: 0.72;
+  animation: petalFall 18s linear infinite;
+}
+
+.petalInner {
+  display: block;
+  width: 100%;
+  height: 100%;
   border-radius: 8px 8px 8px 2px;
   background: linear-gradient(145deg, rgba(255, 246, 250, 0.92), rgba(248, 187, 221, 0.72) 58%, rgba(233, 196, 106, 0.52));
-  opacity: 0.72;
   transform: scale(var(--petal-scale));
-  animation: petalFall 18s linear infinite;
   filter: drop-shadow(0 0 8px rgba(248, 187, 221, 0.34));
 }
 
@@ -10151,17 +10163,17 @@
 
 @keyframes petalFall {
   0% {
-    transform: translate3d(0, -40px, 0) rotate(0deg) scale(var(--petal-scale));
+    transform: translate3d(0, -40px, 0) rotate(0deg);
     opacity: 0;
   }
   12% {
     opacity: 0.72;
   }
   50% {
-    transform: translate3d(34px, 50svh, 0) rotate(78deg) scale(var(--petal-scale));
+    transform: translate3d(34px, 50svh, 0) rotate(78deg);
   }
   100% {
-    transform: translate3d(-24px, calc(100svh + 60px), 0) rotate(146deg) scale(var(--petal-scale));
+    transform: translate3d(-24px, calc(100svh + 60px), 0) rotate(146deg);
     opacity: 0;
   }
 }
