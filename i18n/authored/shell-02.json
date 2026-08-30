@@ -137,18 +137,18 @@
   },
 
   "shell.fortuneGatewayDoors.fortuneGatewayDoor.k69nrae": {
-    "ko": "연이 운명 상담",
-    "en": "A Reading with Yeoni",
-    "ja": "Yeoni の運命相談",
-    "zh-CN": "Yeoni 运命咨询",
-    "zh-TW": "Yeoni 運命諮詢",
-    "vi": "Tư vấn vận mệnh cùng Yeoni",
-    "hi": "Yeoni के साथ परामर्श",
-    "es": "Una consulta con Yeoni",
-    "fr": "Une consultation avec Yeoni",
-    "de": "Eine Beratung mit Yeoni",
-    "nl": "Een consult met Yeoni",
-    "ms": "Rundingan bersama Yeoni"
+    "ko": "대화형 운명 상담",
+    "en": "Conversational Reading",
+    "ja": "対話型リーディング",
+    "zh-CN": "对话式解读",
+    "zh-TW": "對話式解讀",
+    "vi": "Luận giải qua trò chuyện",
+    "hi": "बातचीत आधारित पाठ",
+    "es": "Lectura conversacional",
+    "fr": "Lecture par le dialogue",
+    "de": "Deutung im Dialog",
+    "nl": "Reading in dialoog",
+    "ms": "Bacaan Perbualan"
   },
 
   "shell.fortuneGatewayDoors.fortuneGatewayDoor.k1tbc6n5": {

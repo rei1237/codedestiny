@@ -17,7 +17,7 @@ next: "2번의 \"무료 AI 상담 premiumCta 연결\"과 3번 브랜드 분산(�
 |---|---|
 | 1. 히어로 1차 CTA | ✅ 완료 — 1차는 `#cdConcernPick`, 2차는 `/fusion-fortune/`. 노벨은 nav·세계관 존·푸터·검색에 유지 |
 | 2. 고민 선택 → 상품 추천 | ✅ 마크업 완료 — `#cdConcernPick` 칩 6개, 고민당 상담 1개. **무료 AI 상담 `premiumCta` 연결은 미착수** |
-| 3. 브랜드 분산 | 🔶 부분 — Moonlight Pass 노출 2곳(`membership-recap-cta`·`honeyMembershipMini`)은 홈에서 접었다. **캐릭터·상품명 정리는 미착수** |
+| 3. 브랜드 분산 | ✅ 2026-08-30 완료 — Moonlight Pass 2곳은 2026-08-17 에 접었고, 남은 상품명 1건(`연이 운명 상담` → `대화형 운명 상담`)을 개명했다. 🔴 **아래 "이름 6개" 를 다시 세지 말 것** — 재실측 결과 Destiny Flower Atelier·Moonlight Pass 는 이미 첫 화면에 없다. 정본 표는 [code-destiny-audit.md](../code-destiny-audit.md) §5 "P5 의 전제도 절반이 낡았다" |
 | (추가 지시) 홈 IA 축약 | ✅ 완료 — 초기 노출 5개, 나머지 9개는 `data-cd-home-secondary` 로 감춤 + "모두 펼치기" 토글 |
 
 이 작업에서 새로 확인한 것 — 다음 세션이 다시 재지 않도록:

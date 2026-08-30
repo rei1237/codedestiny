@@ -95,7 +95,7 @@ window.__cdServiceRegistry = [
   },
   {
     id: "fortune-chat",
-    name: "연이 운명 상담",
+    name: "대화형 운명 상담",
     desc: "연이·네오와 나누는 운명 대화",
     href: "/fortune-chat/",
     featureKey: "fortune-chat-consultation",

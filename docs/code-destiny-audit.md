@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: "§5 로드맵 P5(브랜드 분산 정리)부터 — 한 세션에 한 항목. P1~P4 는 완료다"
+next: "§5 로드맵 P6(무료 AI 상담 premiumCta 연결)부터 — 한 세션에 한 항목. P1~P5 는 완료다"
 ---
 
 # Code Destiny 전면 개선 감사 (요청 20단계 → 레포 실측 매핑)
@@ -47,7 +47,7 @@ next: "§5 로드맵 P5(브랜드 분산 정리)부터 — 한 세션에 한 항
 | 12. API 호출·503 | 미착수 | [payment-503-and-renderer-unification.md](handoff/payment-503-and-renderer-unification.md) |
 | 13. AI 비용 | 진행 중 | [llm-optimization-leftovers.md](handoff/llm-optimization-leftovers.md) |
 | 14. 결제 전환 UX | **투자 보류 권고** | §3-1 |
-| 15. 연이·네오 캐릭터 UX | 미착수 | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 3번(브랜드 분산) |
+| 15. 연이·네오 캐릭터 UX | 브랜드 분산은 완료, 캐릭터 UX 자체는 미착수 | §5 P5. 상품명에서 캐릭터를 뺀 것이 브랜드 분산의 실체였다(1건). 말투·페르소나 강화는 별개 작업으로 남아 있다 |
 | 16. 콘텐츠 마케팅 구조 | 진행 중 | [seo-content-expansion-roadmap.md](handoff/seo-content-expansion-roadmap.md) |
 | 17. 신뢰 | 부분 | 히어로 신뢰배지 3종(§4에서 3번을 차별점 설명으로 교체) |
 | 18. 애널리틱스·KPI | 계측은 완료, 대시보드는 미착수 | §5 P4. GA4 이벤트는 갖춰졌으나 KPI 를 정의한 문서·대시보드는 없다 |
@@ -115,7 +115,7 @@ CrUX origin/url 8개 조합 전부 404. 필드 데이터가 없으면 CWV 는 �
 | ~~P2~~ | ✅ 2026-08-30 완료 — `#cdWhyUs` 를 `<style>` 블록째 `#cdSignatureConsult` 앞으로 이동 | 이동 전후 CLS·docHeight 동일 |
 | ~~P3~~ | ✅ **이미 끝나 있었다**(2026-08-24 에 처리됨) — 2026-08-30 dist/ 실측으로 확인. 아래 표 참고 |
 | ~~P4~~ | ✅ 2026-08-30 완료 — 전제가 절반 낡았다(아래 표). 실제 구멍은 **홈 섹션 귀속** 하나였고 `home_section_click` 으로 채웠다. [home-funnel-attribution-2026-08-30.md](handoff/home-funnel-attribution-2026-08-30.md) |
-| P5 | 브랜드 분산 정리 — 캐릭터·상품명(요청 15) | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 3번 |
+| ~~P5~~ | ✅ 2026-08-30 완료 — **여기도 전제가 절반 낡아 있었다**(아래 표). 남은 실체는 상품명 1건이었고 `대화형 운명 상담` 으로 개명했다 |
 | P6 | 무료 AI 상담 `premiumCta` 연결 | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 2번 |
 
 ### P4 의 전제도 절반이 낡았다 — 2026-08-30 재실측
@@ -133,6 +133,40 @@ P4 의 근거는 "`useAnalytics` 호출자 0" 이었다. 그건 사실이지만 
 
 `useAnalytics.trackPaymentAttempt` 를 호출부에 붙이는 것은 **하면 안 된다** — `checkout_option_click` 과
 같은 행동을 두 번 쏘게 되어 분해가 불가능해진다.
+
+### P5 의 전제도 절반이 낡았다 — 2026-08-30 재실측
+
+P5 의 근거는 [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 3번(2026-08-19)의
+"첫 방문자에게 이름이 6개 보인다" 였다. 그 6개를 오늘 다시 셌다 — `index.html` 의 `main#inputPage` 에서
+`data-cd-home-secondary` · `hidden` · 인라인 `display:none` 을 걷어낸 텍스트 기준이다.
+
+| 이름 | 2026-08-19 문서 | 2026-08-30 실측 |
+|---|---|---|
+| 연이 | 보임 | 보임 (10곳, 그중 2곳은 테마 토글 라벨) |
+| 네오 | 보임 | 보임 (8곳) |
+| CODE DESTINY | 보임 | 보임 (7곳) |
+| 꿀꿀 운세 | 보임 | 보임 (topbar 브랜드 1곳) |
+| Destiny Flower Atelier | 보임 | **0** — `index.html` 의 `df-studio-kicker` 는 감춰진 secondary 안에 있다 |
+| Moonlight Pass · 달빛 이용권 | 보임 | **0** — 2026-08-17 에 이미 접혔다 |
+
+문서가 세지 않은 이름 2개가 대신 있다: **DEST1NOVA · 루나 블룸**(`#moonMusicEntry`). 음악 콘텐츠의
+고유 브랜드라 내리면 그 섹션의 정체성이 사라져 이번 범위에서 뺐다.
+
+🔴 **`.neo-logo{display:none}` 을 세지 말 것.** "네오의 팩폭 운세 플랫폼" 은 CSS 로 꺼져 있어 화면에 없다.
+가시성을 CSS 까지 보지 않고 DOM 텍스트만 세면 여기서 위양성이 난다(실제로 한 번 셌다).
+
+**"캐릭터를 상품명에서 뺀다"의 실제 대상은 2건뿐이었다.**
+
+| 대상 | 처리 |
+|---|---|
+| `연이 운명 상담` | ✅ **`대화형 운명 상담`** 으로 개명. 옆 문이 기능명(`초융합 심층 리딩`)인데 이 문만 캐릭터명이었고, 실제로는 연이·네오가 함께 나오는 상담이라 제목이 **부정확**하기도 했다 |
+| `연이의 마음 별자리` | ❌ 범위 밖. 라우트 `/yeon-star-hug/` 자체가 그 이름이고 페이지 h1·공유 문구·i18n 이 전부 따라간다. 홈 문구만 바꾸면 페이지와 어긋나므로 **별도 작업**이다 |
+
+🔴 **`연이 운명 상담` 은 홈 문구가 아니라 상품명 정본이었다.** 표시되는 곳이 4군데였고
+(홈 문 제목 · `js/core/service-registry.js` 의 검색 이름 · `i18n/authored/shell-02.json` 12로케일 ·
+`app/fortune-chat/FortuneChatClient.tsx` 의 결제 사유) 홈만 고치면 이름이 갈려 **분산을 줄이려다 이름을
+하나 더 만드는** 결과가 된다. 4곳을 함께 바꿨고 내부 키(`fortune-chat-consultation` · `k69nrae`)는 그대로 뒀다.
+캐릭터는 문 desc · 레지스트리 `desc` · 검색 키워드에 남아 있어 "연이" 로 검색하면 여전히 찾힌다.
 
 ### P3 를 다시 열지 말 것 — 2026-08-30 dist/ 실측
 

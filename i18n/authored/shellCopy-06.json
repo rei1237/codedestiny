@@ -1,0 +1,17 @@
+{
+  "_comment": "게이트웨이 문 제목 개명 1키 — '연이 운명 상담' → '대화형 운명 상담'(감사 §5 P5 브랜드 분산). 옆 문이 기능명('초융합 심층 리딩')인데 이 문만 캐릭터명이었고, 실제로는 연이·네오가 함께 나오는 상담이라 제목이 부정확하기도 했다. 캐릭터는 바로 아래 desc(k1tbc6n5)와 검색 키워드에 그대로 남는다. 🔴 저작 정본은 shell-02.json 이지만 사전 반영을 --namespace shell 로 하면 shell-01.json 의 낡은 kerryje 키가 함께 뒤집힌다(docs/handoff/locale-sweep-2026-08-24.md 2번). 그래서 이 파일 + --namespace shellCopy 로 내보낸다.",
+  "shell.fortuneGatewayDoors.fortuneGatewayDoor.k69nrae": {
+    "ko": "대화형 운명 상담",
+    "en": "Conversational Reading",
+    "ja": "対話型リーディング",
+    "zh-CN": "对话式解读",
+    "zh-TW": "對話式解讀",
+    "vi": "Luận giải qua trò chuyện",
+    "hi": "बातचीत आधारित पाठ",
+    "es": "Lectura conversacional",
+    "fr": "Lecture par le dialogue",
+    "de": "Deutung im Dialog",
+    "nl": "Reading in dialoog",
+    "ms": "Bacaan Perbualan"
+  }
+}
