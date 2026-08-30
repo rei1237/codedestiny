@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: 4단계 가드 PR(브랜치 `perf/mongo-query-index-shapes`) 머지 → 사용자 허가 받아 `npm run migrate:request-path-indexes` 1회 → 스테이징에서 5단계 캐시 hit 판정
+next: 스테이징에서 5단계 캐시 hit 판정(`curl -sI https://staging.code-destiny.com/api/insights | grep -i x-cd-cache` 두 번 → miss 다음 hit). 그 뒤 이 문서는 status: done
 ---
 
 # MongoDB M10 최적화 — 풀 스캔 제거 · 캐시 확장 (2026-08-30)
@@ -19,11 +19,11 @@ next: 4단계 가드 PR(브랜치 `perf/mongo-query-index-shapes`) 머지 → �
 - 5단계에서 **안 한 것**: `/api/content` 목록·상세 — 소비자 0(2026-08-31 `git grep` 전수, `admin.js:3590` 의 URL 문자열뿐)이고 필터별 키는 엣지에서 못 지운다. `/api/me/access-state` — 이미 60s 인메모리 캐시가 있고(중첩 사전검사, 원칙 6) 병목은 그 앞의 인증 DB 히트라 `readThroughCredentialCache` 로 가야 하는데 그 경로는 ETag/`private` 헤더를 버리고 `profileId`/`include` 가 키에 못 들어간다. 착수하려면 `paid-gate-auditor` 사전 감사부터.
 - 5단계 회귀 위험(수용): 상세 `viewCount` 는 미스 때만 +1(TTL 당 1회 표본). 관련글·이전/다음은 최대 5분 낡음. 예약 발행은 목록에선 즉시, **피드·상세에선 최대 5분 늦게** 실린다.
 - 실측 정본 [docs/db-query-plans-2026-08-30.md](../db-query-plans-2026-08-30.md): 조치 대상은 `users {referralCode}` 하나, 나머지 후보는 IXSCAN 이라 **만들지 않는다**.
-- 인덱스 **생성은 미실행**. 사용자 결정: 읽기 전용 실측 1회 허용(2026-08-30 사용 완료), 생성 실행은 별도 허가.
+- 인덱스 `users {referralCode}` 는 **존재 확인 완료**(2026-08-31, 아래 남은 작업).
 
 ## 남은 작업
 
-- [ ] 사용자 허가 후 `npm run migrate:request-path-indexes` 1회 (선행 `npm run verify:request-path-indexes` 로 MISSING 1건 확인). 판정: 재실행 시 `OK users :: referralCode` + `누락=0`.
+- [x] `users {referralCode}` 인덱스 — 2026-08-31 허가 실행. 선행 `--check` 가 이미 `OK … 누락=0`(실행 전에 존재, 생성 주체 미확인) 이라 apply 는 no-op 였다. 사후 `verify:request-path-indexes` = `누락=0 충돌=0`.
 - [x] 5단계 캐시 확장 — insights 목록/상세·content 피드 완료(위 "지금 상태"). `/api/me/access-state` 는 보류(사유 위). 남은 판정: 스테이징 머지 후 `curl -sI https://staging.code-destiny.com/api/insights | grep -i x-cd-cache` 두 번 → `miss` 다음 `hit`.
 - [x] 4단계 정적 가드 — 구현·배선 완료(위 "지금 상태"). PR #1353 CI(run 33319863161) 에서 스텝 "Verify Mongo query shapes match declared indexes" 가 로컬과 같은 수치(위반 0)로 돈 것을 확인(2026-08-31). 남은 판정 없음.
 
