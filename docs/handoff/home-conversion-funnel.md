@@ -1,7 +1,7 @@
 ---
 status: active
-updated: 2026-08-19
-next: "2번의 \"무료 AI 상담 premiumCta 연결\"과 3번 브랜드 분산(캐릭터·상품명 정리)이 미착수다"
+updated: 2026-08-30
+next: "2번의 \"무료 AI 상담 premiumCta 연결\"은 2026-08-30 PR #1314 로 닫혔고, 3번 브랜드 분산은 감사 P5 에서 닫혔다. 이 문서에 남은 미착수는 없다"
 ---
 
 # 홈 전환 퍼널 개선 3건 (핸드오프)
@@ -16,7 +16,7 @@ next: "2번의 \"무료 AI 상담 premiumCta 연결\"과 3번 브랜드 분산(�
 | 항목 | 상태 |
 |---|---|
 | 1. 히어로 1차 CTA | ✅ 완료 — 1차는 `#cdConcernPick`, 2차는 `/fusion-fortune/`. 노벨은 nav·세계관 존·푸터·검색에 유지 |
-| 2. 고민 선택 → 상품 추천 | ✅ 마크업 완료 — `#cdConcernPick` 칩 6개, 고민당 상담 1개. **무료 AI 상담 `premiumCta` 연결은 미착수** |
+| 2. 고민 선택 → 상품 추천 | ✅ 마크업 완료 — `#cdConcernPick` 칩 6개, 고민당 상담 1개. **무료 AI 상담 `premiumCta` 연결도 2026-08-30 완료**(PR #1314) |
 | 3. 브랜드 분산 | ✅ 2026-08-30 완료 — Moonlight Pass 2곳은 2026-08-17 에 접었고, 남은 상품명 1건(`연이 운명 상담` → `대화형 운명 상담`)을 개명했다. 🔴 **아래 "이름 6개" 를 다시 세지 말 것** — 재실측 결과 Destiny Flower Atelier·Moonlight Pass 는 이미 첫 화면에 없다. 정본 표는 [code-destiny-audit.md](../code-destiny-audit.md) §5 "P5 의 전제도 절반이 낡았다" |
 | (추가 지시) 홈 IA 축약 | ✅ 완료 — 초기 노출 5개, 나머지 9개는 `data-cd-home-secondary` 로 감춤 + "모두 펼치기" 토글 |
 
@@ -109,7 +109,7 @@ React 면 `useCoinGate().ensurePaidAccess`. 커스텀 체크아웃은 금지 패
 
 무료 상담 답변 끝에 맞춤 상품을 연결한다. 서버가 이미 `premiumCta` 필드를 내려보내고 있다
 (`worker/lib/guardian-fortune-runtime-contract.js:36`, 문구 지정은 `guardian-fortune-usage.js:702~`).
-**새 배관을 만들지 말고 그 필드의 내용을 고민별 상품으로 바꾸는 것부터** 한다.
+🔴 **2026-08-30 정정 — 이 문단의 전제가 틀렸다.** 그 필드의 내용은 **이미 고민별**이었다(`GUARDIAN_FORTUNE_CTA_BY_TOPIC` allowlist). 실제 구멍은 `app/fortune-chat/FortuneChatClient.tsx` 가 그 필드를 한 번도 읽지 않고 초융합 하나만 하드코딩한 것이었고(쓰던 화면은 `app/fortune/share/GuardianFortuneShareClient.tsx` 하나), 2026-08-30 PR #1314 로 연결했다. ✅ 완료.
 
 > 참고: 무료 상담은 2026-08-17 부터 **로그인 후 1회**다(비로그인 0회). PR #773.
 

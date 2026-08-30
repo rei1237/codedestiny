@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-30
-next: "§5 로드맵 P6(무료 AI 상담 premiumCta 연결)부터 — 한 세션에 한 항목. P1~P5 는 완료다"
+next: "§5 로드맵 P1~P6 이 전부 닫혔다. 다음 후보는 요청 19(A/B) 인데 P 번호가 없어 착수 전 순위 확인이 필요하다"
 ---
 
 # Code Destiny 전면 개선 감사 (요청 20단계 → 레포 실측 매핑)
@@ -116,7 +116,7 @@ CrUX origin/url 8개 조합 전부 404. 필드 데이터가 없으면 CWV 는 �
 | ~~P3~~ | ✅ **이미 끝나 있었다**(2026-08-24 에 처리됨) — 2026-08-30 dist/ 실측으로 확인. 아래 표 참고 |
 | ~~P4~~ | ✅ 2026-08-30 완료 — 전제가 절반 낡았다(아래 표). 실제 구멍은 **홈 섹션 귀속** 하나였고 `home_section_click` 으로 채웠다. [home-funnel-attribution-2026-08-30.md](handoff/home-funnel-attribution-2026-08-30.md) |
 | ~~P5~~ | ✅ 2026-08-30 완료 — **여기도 전제가 절반 낡아 있었다**(아래 표). 남은 실체는 상품명 1건이었고 `대화형 운명 상담` 으로 개명했다 |
-| P6 | 무료 AI 상담 `premiumCta` 연결 | [home-conversion-funnel.md](handoff/home-conversion-funnel.md) 2번 |
+| ~~P6~~ | ✅ 2026-08-30 완료 — **여기도 전제가 낡아 있었다**: `premiumCta` 내용은 이미 고민별이었고(allowlist `GUARDIAN_FORTUNE_CTA_BY_TOPIC`), 실제 구멍은 `app/fortune-chat/FortuneChatClient.tsx` 가 그 필드를 **한 번도 읽지 않은 것**이었다. PR #1314 | 화면 실물은 미검증 — 마무리 CTA 는 상담 1건 실호출이 있어야 나온다 |
 
 ### P4 의 전제도 절반이 낡았다 — 2026-08-30 재실측
 
