@@ -2689,6 +2689,12 @@
     <priority>0.94</priority>
   </url>
   <url>
+    <loc>https://code-destiny.com/sukuyo/calendar/</loc>
+    <lastmod>2026-08-30</lastmod>
+    <changefreq>daily</changefreq>
+    <priority>0.90</priority>
+  </url>
+  <url>
     <loc>https://code-destiny.com/sukuyo/compatibility/</loc>
     <lastmod>2026-08-30</lastmod>
     <changefreq>weekly</changefreq>

@@ -1,7 +1,7 @@
 ---
-status: active
+status: done
 updated: 2026-08-30
-next: "GSC 실적(검색결과 → 페이지·쿼리) 내보내기를 받아 '색인은 됐는데 노출이 없는' 페이지를 판정한다 — 커버리지 쪽은 종결됐다"
+next: "종결. 이어서 볼 것은 docs/handoff/gsc-performance-2026-08-30.md — 실적 축이 정본이다"
 ---
 
 # GSC 커버리지 드릴다운 2차 — 판정: 커버리지에 고칠 것이 없다 (2026-08-30)
@@ -54,21 +54,23 @@ next: "GSC 실적(검색결과 → 페이지·쿼리) 내보내기를 받아 '�
 
 | 페이지 | 본문 | 조치 |
 |---|---|---|
-| `/500/` | **0자** | ✅ PR #1306 — `pages/404.tsx` 에는 있던 robots 선언이 `pages/500.tsx` 에 없었다 |
-| `/ifa-oracle-about.html` | 745자 | ✅ PR #1306 — `noindex,follow` |
-| `/sukuyo/calendar/` | 1668자 | ⬜ **판단 남음.** 실제 도구 페이지라 임의로 손대지 않았다 |
+| `/500/` | **0자** | ⚠️ PR #1306 — `pages/500.tsx` 에 robots 메타를 넣었으나 **이미 헤더로 막혀 있었다**(아래) |
+| `/ifa-oracle-about.html` | 745자 | ⚠️ PR #1306 — 같음. 메타는 이중 방어로 남았다 |
+| `/sukuyo/calendar/` | 1668자 | ✅ PR #1308 — `noindex` 대신 **본문 보강 + 색인 복귀**. 3,662자 |
 | `/destiny-poker.html` | 2822자 | ✅ canonical 이 200 을 가리킴. 정상 |
 | `/contact-us/`·`/privacy-policy/`·`/terms-of-service/` | 3.2k~12.3k | ✅ 의도됨. AdSense 신뢰 지표라 인덱서블이 맞다 |
 
 재현: `dist/**.html` 를 전수 순회하며 (a) `robots`/`noindex` 없는 것, (b) `dist/sitemap.xml` 의 `<loc>` 집합에 없는 것만 남기고 태그를 걷어낸 본문 길이로 정렬한다. 스크래치에서 즉석으로 썼고 커밋하지 않았다.
+
+🔴 **이 스윕은 HTML `<meta>` 만 봤고 `_headers` 를 안 봤다 — 그래서 위 표의 앞 두 줄은 오탐이다.** 배포 후 라이브 실측(2026-08-30)에서 `/500` 과 `/ifa-oracle-about.html` 은 **이미 `X-Robots-Tag: noindex, nofollow` 를 받고 있었다.** noindex 축은 메타와 `_headers` **두 갈래**이고 한쪽만 보면 반드시 오탐이 난다. PR #1306 은 색인 결함을 고친 게 아니라 없던 층을 하나 더 얹은 것이다(CLAUDE.md 원칙 6 중첩 사전검사 위반). 되돌리지는 않았다 — 메타는 `_headers` 규칙이 100개 예산에 밀려 지워질 때의 안전망으로 남긴다. 🔴 **다음에 "인덱서블 누수" 를 스윕할 때는 `_headers` 패턴을 먼저 읽어 경로를 걸러낼 것.**
 
 🔴 **`ifa-oracle-about.html` 은 루트/`public/` 두 벌이 바이트 동일해야 한다.** 이 파일은 `scripts/sync-legacy-static-to-public.mjs` 의 **손으로 쓴 `staticTargets` 배열**에 없어 자동 미러링되지 않는데, `sync:public` 이 `.ignore` 미러 목록을 만들 때 "루트와 바이트 동일한 `public/` 사본"만 넣는다. 그래서 **한쪽에만 주석을 달아도** `.ignore` 에서 항목이 빠지고 `verify:public-mirror-fresh` 가 CI 에서 실패한다 — 실제로 이번에 한 번 밟았다(수정 커밋 별도). 🔴 **로컬 윈도우의 `.ignore` 실패는 개행 위양성이라 CI 를 봐야 구분된다.** CLAUDE.md 원칙 10 의 "손으로 쓴 대상 목록은 가드가 아니다" 실례이기도 하다.
 
 ## 6. 남은 일
 
 1. **커버리지는 종결.** 재크롤로 소멸할 것을 기다리는 것 외에 코드 작업 없다. 🔴 **§2 의 362건 방치 결정을 다시 검토하지 말 것** — 1차 §4 의 근거 4개 중 무엇이 바뀌었는지 먼저 적을 것.
-2. **`/sukuyo/calendar/` 판단** (§5) — 사이트맵 등재(본문 보강 필요, 현재 1668자로 임계 미달) vs `noindex`.
-3. 🔴 **아직 못 받은 자료: GSC 실적(검색결과 → 페이지·쿼리, 최근 3개월).** 커버리지는 "구글이 URL 을 어떻게 처리했나"만 말하고 **"콘텐츠가 값어치를 하나"는 말하지 않는다.** AdSense 판정과 연결되는 것은 실적 쪽이다.
+2. ~~**`/sukuyo/calendar/` 판단**~~ — 종결(PR #1308, 색인 복귀).
+3. ~~**GSC 실적 자료**~~ — 받았다. 판정은 [gsc-performance-2026-08-30.md](gsc-performance-2026-08-30.md) 로 넘어갔고, **여기서부터는 그 문서가 정본이다.**
 4. **가드 확장 후보** — `verify:indexable-prose-depth` 에 "인덱서블 미등재" 축을 추가하면 §5 부류가 재발하지 않는다. 이번엔 정본 가드 변경 범위가 커서 하지 않았다.
 
 ## 7. 🔴 AdSense 와의 관계 — 오해 방지
