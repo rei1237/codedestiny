@@ -42,11 +42,7 @@
       "title": "Opiniones de usuarios",
       "lead": "Opiniones dejadas por personas que realmente hicieron una consulta.",
       "allCta": "Ver todas las opiniones →",
-      "empty": "Aún no hay reseñas. Prueba una consulta y deja la primera.",
-      "rewardPrefix": "Per review approved and published",
-      "rewardAmount": "100 Moonstones",
-      "rewardNote": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
-      "rewardCta": "Write a review, get Moonstones"
+      "empty": "Aún no hay reseñas. Prueba una consulta y deja la primera."
     },
     "hero": {
       "eyebrow": "CODE DESTINY",

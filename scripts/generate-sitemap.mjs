@@ -182,7 +182,10 @@ const coreRoutes = [
   // 무료 기능이라 색인 대상으로 두되, 본문이 얇으면 "낮은 가치의 콘텐츠" 표본이 되므로
   // `verify-adsense-readiness` 의 1,800자 게이트를 반드시 통과시킨 채로 유지할 것.
   { path: "/destiny-poker", changefreq: "monthly", priority: 0.6 },
-  { path: "/reviews", changefreq: "daily", priority: 0.85 },
+  // /reviews 는 2026-08-30 에 색인 대상에서 뺐다 — 승인 리뷰가 0건인데 제목·h1 이 후기 모음을
+  // 약속해 "없는 콘텐츠를 약속하는 페이지"가 됐다. 라우트 자체의 noindex 는 app/reviews/page.tsx
+  // 의 metadata.robots 에 있고, 광고 대상 제외는 app/components/adsense-route-policy.js 에 있다.
+  // 리뷰가 실제로 쌓이면 세 곳을 함께 되돌릴 것.
   { path: "/today", changefreq: "daily", priority: 0.97 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
   { path: "/saju/compatibility", changefreq: "weekly", priority: 0.96 },
