@@ -1649,6 +1649,125 @@ function verifyIndexableOutboundLinks(baseDir) {
 }
 
 /**
+ * 색인 대상의 인바운드(고아 페이지) 가드 (2026-08-30 추가, 성장 계획 1-E).
+ *
+ * 위의 아웃바운드 가드는 "페이지가 밖으로 나가는 길"만 본다. 반대 방향 — 사이트맵에는
+ * 있는데 **다른 색인 페이지 어디서도 가시 링크를 받지 않는** URL — 은 크롤러가 사이트맵으로만
+ * 발견하고 내부 링크 신호가 0 이라, AdSense 심사와 색인 양쪽에서 "사이트에 붙어 있지 않은
+ * 페이지"로 읽힌다. 2026-08-30 실측(dist 439 URL): `.html` 접미를 정규화하기 전엔 `/destiny-poker`
+ * 1건이 고아로 잡혔다 — 홈이 `/destiny-poker.html` 로 링크하고 Pages 가 308 로 접는 경우다.
+ *
+ * 링크로 세는 것: 사이트맵에 있는 **다른** 페이지의 `<body>` 안 `<a href>` 중 내부 URL.
+ * 세지 않는 것: 자기 자신 · `<template>`·`<noscript>` 안 · 여는 태그에 `sr-only`/`hidden`/
+ * `aria-hidden="true"` 가 있는 앵커 · `class` 에 `sr-only` 가 있는 컨테이너 안(같은 태그명의
+ * 중첩을 세어 닫는 태그를 찾는다). 1-C 에서 걷어낸 "sr-only 안 134 링크" 패턴이 다시 들어와도
+ * 가시 링크로 세지 않도록 하는 것이 이 제외의 목적이다.
+ *
+ * 🔴 CSS 로만 숨긴 것(`display:none` 클래스, 오프스크린)은 정적 HTML 로 판정할 수 없어 안 본다.
+ * 🔴 예외 목록이 없다. 대상은 사이트맵 URL 전량이고, 읽지 못한 페이지가 하나라도 있으면 실패한다.
+ */
+function normalizeInternalLinkPathname(href) {
+  let url;
+  try {
+    url = new URL(href, siteOrigin);
+  } catch {
+    return "";
+  }
+  if (url.origin !== siteOrigin) return "";
+  const pathname = url.pathname.replace(/\/index\.html$/i, "/").replace(/\.html$/i, "");
+  return pathname.replace(/\/+$/, "") || "/";
+}
+
+const VOID_ELEMENTS = new Set([
+  "area", "base", "br", "col", "embed", "hr", "img", "input", "link", "meta", "source", "track", "wbr",
+]);
+
+function removeSrOnlyContainers(html) {
+  const openTag = /<([a-z][a-z0-9-]*)\b[^>]*\bclass=["'][^"']*\bsr-only\b[^"']*["'][^>]*>/gi;
+  let result = "";
+  let cursor = 0;
+  while (cursor < html.length) {
+    openTag.lastIndex = cursor;
+    const open = openTag.exec(html);
+    if (!open) {
+      result += html.slice(cursor);
+      break;
+    }
+    result += html.slice(cursor, open.index);
+    const tagName = open[1].toLowerCase();
+    // 빈 요소(`<input class="sr-only">` 등)는 닫는 태그가 없다 — 짝을 찾으면 문서 끝까지 삼킨다.
+    if (VOID_ELEMENTS.has(tagName)) {
+      cursor = open.index + open[0].length;
+      continue;
+    }
+    const sameTag = new RegExp(`<(/?)${tagName}\\b[^>]*>`, "gi");
+    sameTag.lastIndex = open.index + open[0].length;
+    let depth = 1;
+    let end = html.length;
+    for (let match = sameTag.exec(html); match; match = sameTag.exec(html)) {
+      depth += match[1] ? -1 : 1;
+      if (depth === 0) {
+        end = match.index + match[0].length;
+        break;
+      }
+    }
+    cursor = end;
+  }
+  return result;
+}
+
+function collectVisibleInternalLinkTargets(html) {
+  const body = html.slice(html.indexOf("<body"));
+  const visibleBody = removeSrOnlyContainers(
+    ["template", "noscript"].reduce((content, tagName) => removeElementBlocks(content, tagName), body),
+  );
+  const targets = new Set();
+  for (const match of visibleBody.matchAll(/<a\b([^>]*)>/gi)) {
+    const attributes = match[1];
+    if (/\bsr-only\b|\bhidden\b|aria-hidden=["']true["']/i.test(attributes)) continue;
+    const href = (attributes.match(/\bhref=["']([^"']+)["']/i) || [])[1] || "";
+    const pathname = normalizeInternalLinkPathname(href);
+    if (pathname) targets.add(pathname);
+  }
+  return targets;
+}
+
+function verifySitemapRoutesHaveInboundLinks(baseDir) {
+  const sitemapPaths = getSitemapPaths(readRequired(`${baseDir}/sitemap.xml`));
+  assert(sitemapPaths.length > 0, `${baseDir}/sitemap.xml: URL 이 하나도 없다`);
+  const inboundSources = new Map(sitemapPaths.map((pathname) => [pathname, new Set()]));
+  let scannedPages = 0;
+
+  for (const pathname of sitemapPaths) {
+    const relativePath = pathname === "/" ? "" : pathname.replace(/^\//, "");
+    const candidates = relativePath
+      ? [`${relativePath}/index.html`, `${relativePath}.html`]
+      : ["index.html"];
+    const absolutePath = candidates
+      .map((candidate) => resolve(rootDir, baseDir, candidate))
+      .find((candidate) => existsSync(candidate));
+    assert(Boolean(absolutePath), `${baseDir}${pathname}: 사이트맵 URL 의 HTML 이 산출물에 없다`);
+    scannedPages += 1;
+    for (const target of collectVisibleInternalLinkTargets(readFileUtf8WithRetry(absolutePath))) {
+      if (target !== pathname && inboundSources.has(target)) inboundSources.get(target).add(pathname);
+    }
+  }
+
+  assert(
+    scannedPages === sitemapPaths.length,
+    `${baseDir}: 인바운드 링크 스캔이 사이트맵 URL 전량을 읽지 못했다 (${scannedPages}/${sitemapPaths.length})`,
+  );
+  const orphans = sitemapPaths.filter((pathname) => inboundSources.get(pathname).size === 0);
+  assert(
+    orphans.length === 0,
+    `${baseDir}/sitemap.xml: 다른 색인 페이지에서 가시 링크를 하나도 받지 않는 고아 URL ${orphans.length}건 — ` +
+      `사이트맵에만 있는 페이지는 내부 링크 신호가 0 이다. 허브(예: /insights, /guide, 관련 카테고리 허브)나 ` +
+      `ImmersiveRelatedLinks 에서 가시 <a href> 를 달 것(sr-only·template·noscript 안은 세지 않는다): ` +
+      orphans.join(", "),
+  );
+}
+
+/**
  * 색인 대상의 RSC 플라이트 페이로드 예산 가드 (2026-08-28 추가).
  *
  * App Router 는 서버가 클라이언트 컴포넌트에 넘긴 props 를 프리렌더 HTML 안에
@@ -1780,6 +1899,12 @@ for (const baseDir of ["out", "dist"]) {
   verifyIndexableDescriptionWidth(baseDir);
   trace(`${baseDir}: indexable outbound links`);
   verifyIndexableOutboundLinks(baseDir);
+  // 인바운드는 dist 에서만 잰다 — out 의 홈은 Next 자리표시자(링크 1개)이고 정적 셸 승격본은
+  // dist 에만 있어서, out 기준이면 홈이 유일한 진입점인 라우트가 전부 고아로 오탐된다(2026-08-30 실측 16건).
+  if (baseDir === "dist") {
+    trace(`${baseDir}: sitemap routes have inbound links`);
+    verifySitemapRoutesHaveInboundLinks(baseDir);
+  }
   trace(`${baseDir}: indexable flight payload budget`);
   verifyIndexableFlightPayloadBudget(baseDir);
   trace(`${baseDir}: indexable route coverage`);
