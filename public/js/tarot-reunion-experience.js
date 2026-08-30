@@ -587,7 +587,7 @@
       .join("");
   }
 
-  var TAROT_LOCAL_BASES = ["/tarot-cards/", "/public/tarot-cards/", "tarot-cards/", "public/tarot-cards/"];
+  var TAROT_LOCAL_BASES = ["/tarot-cards/", "tarot-cards/"];
   var TAROT_LOCAL_BASE = TAROT_LOCAL_BASES[0];
   var TAROT_DEFAULT_FALLBACK_IMAGE = TAROT_LOCAL_BASE + "thefool.jpeg";
   var REUNION_FAST_TAP_DEBOUNCE_MS = 260;

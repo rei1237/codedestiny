@@ -467,9 +467,9 @@
           datePublished: now,
           dateModified: now,
           author: { '@type': 'Organization', name: '꿀꿀 만세력', url: 'https://code-destiny.com' },
-          publisher: { '@type': 'Organization', name: '꿀꿀 만세력', logo: { '@type': 'ImageObject', url: 'https://code-destiny.com/icons/icon-512x512.png' } },
+          publisher: { '@type': 'Organization', name: '꿀꿀 만세력', logo: { '@type': 'ImageObject', url: 'https://code-destiny.com/icons/app-logo-512.png' } },
           mainEntityOfPage: { '@type': 'WebPage', '@id': url },
-          image: 'https://code-destiny.com/icons/icon-512x512.png'
+          image: 'https://code-destiny.com/icons/app-logo-512.png'
         },
         {
           '@type': 'BreadcrumbList',

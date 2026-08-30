@@ -469,6 +469,70 @@ async function rewriteRealPageJsNav(js) {
   return { js: out, changed: out !== js };
 }
 
+// 동일 오리진 Cloudflare Image Resizing 접두어 제거.
+//
+// `/cdn-cgi/image/<opts>/<path>` 는 Cloudflare **존(zone) 기능**이라 앱에는 존재하지 않는다 —
+// 앱은 https://localhost 출처이고 번들에 cdn-cgi/ 디렉터리가 없으며, MainActivity 의
+// RouteProcessor 는 마지막 세그먼트에 "." 이 있으면 자산 요청으로 그대로 흘려보내므로 전부 404 다.
+// 홈의 "당신에게 맞는 운세를 선택하세요" 카드 6장이 실기기에서 깨진 이미지로 뜨던 원인(2026-08-30).
+// 마크업의 인라인 onerror 폴백은 재현 하네스에서는 구제하는데 실기기에서는 구제하지 못했다 —
+// 그래서 폴백을 손보는 대신 죽은 URL 자체를 앱 번들에서 없앤다.
+//
+// ⚠️ 두 가지는 건드리지 않는다:
+//   - 교차 오리진(https://assets.code-destiny.com/cdn-cgi/…) — 별개 존이라 앱에서도 정상이다.
+//     정규식이 구분자(따옴표·공백·괄호·= ·,)로 시작하도록 강제해 호스트 뒤의 경로는 매치되지 않는다.
+//   - 뒤에 경로가 없는 조각 리터럴("/cdn-cgi/image/width=220,quality=82,format=auto") — 런타임에
+//     조립되므로 잘라내면 접합이 깨진다. 옵션 뒤의 `/<path>.<ext>` 를 요구해 자연히 제외된다.
+const SAME_ORIGIN_RESIZE_RE = /([\s"'(=,])\/cdn-cgi\/image\/[^/"'()\s]+\/(?=[^"'()\s]*\.[A-Za-z0-9]{2,5})/g;
+
+export function stripSameOriginResizePrefixes(text) {
+  let rewritten = 0;
+  const out = text.replace(SAME_ORIGIN_RESIZE_RE, (full, delimiter) => {
+    rewritten += 1;
+    return `${delimiter}/`;
+  });
+  return { text: out, rewritten };
+}
+
+const RESIZE_SCAN_EXTENSIONS = /\.(?:html|css|js|mjs|json|webmanifest|xml|txt)$/i;
+
+export async function stripSameOriginImageResizing(dist = DIST) {
+  const files = await walk(dist, (file) => RESIZE_SCAN_EXTENSIONS.test(file));
+  let touched = 0;
+  let rewritten = 0;
+  for (const file of files) {
+    const original = await fs.readFile(file, "utf8");
+    if (!original.includes("/cdn-cgi/image/")) continue;
+    const result = stripSameOriginResizePrefixes(original);
+    if (!result.rewritten) continue;
+    await fs.writeFile(file, result.text, "utf8");
+    touched += 1;
+    rewritten += result.rewritten;
+  }
+
+  // fail-closed ①: 대상이 0건이면 통과가 아니라 실패다 — 정본이 바뀌었거나 이 재작성기가 죽은 것이다.
+  // (rewriteVnAssetsToCdn 이 매칭 0건으로 조용히 통과하며 죽어 있던 전례가 있다.)
+  if (rewritten === 0) {
+    throw new Error(
+      "동일 오리진 /cdn-cgi/image/ 참조를 한 건도 찾지 못했다 — 정본이 바뀌었거나 이 재작성기가 죽었다.\n" +
+        "   참조가 정말 사라졌다면 이 패스를 테스트와 함께 제거할 것."
+    );
+  }
+
+  // fail-closed ②: 재작성 뒤에도 남아 있으면 앱에서 그 이미지는 404 다.
+  const remaining = [];
+  for (const file of files) {
+    const text = await fs.readFile(file, "utf8");
+    const left = stripSameOriginResizePrefixes(text).rewritten;
+    if (left) remaining.push(`${path.relative(dist, file).split(path.sep).join("/")} (${left}건)`);
+  }
+  if (remaining.length) {
+    throw new Error(`동일 오리진 /cdn-cgi/image/ 참조가 남았다:\n   - ${remaining.join("\n   - ")}`);
+  }
+
+  return { files: touched, rewritten };
+}
+
 async function main() {
   if (!(await exists(DIST))) {
     console.error(`❌ dist를 찾을 수 없습니다: ${DIST}\n   먼저 \`npm run build:mobile\`을 실행하세요.`);
@@ -546,6 +610,9 @@ async function main() {
     jsNavRewritten += 1;
   }
   console.log(`  ✅ JS 정적 네비(html5mode 우회) 재작성: ${jsNavRewritten}개`);
+
+  const resized = await stripSameOriginImageResizing();
+  console.log(`  ✅ 동일 오리진 이미지 리사이징 접두어 제거: ${resized.rewritten}건 / ${resized.files}개 파일`);
 
   const shrunk = await shrinkOversizedImages();
   console.log(`  ✅ 이미지 축소: ${shrunk.rewritten}/${shrunk.total}개 재인코딩 (${(shrunk.freed / 1048576).toFixed(1)} MB 절감, 건너뜀 ${shrunk.skipped}개)`);
