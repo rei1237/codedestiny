@@ -20,7 +20,7 @@ async function waitFor(check, label) {
   throw new Error(`timed out: ${label}`);
 }
 
-function createPlayerDom({ hash = "", failManifest = false, bookmark = null } = {}) {
+function createPlayerDom({ hash = "", failManifest = false, bookmark = null, appRuntime = false } = {}) {
   const errors = [];
   const virtualConsole = new VirtualConsole();
   virtualConsole.on("jsdomError", (error) => errors.push(`jsdom: ${error.message}`));
@@ -50,6 +50,8 @@ function createPlayerDom({ hash = "", failManifest = false, bookmark = null } = 
       window.requestAnimationFrame = (callback) => window.setTimeout(() => callback(Date.now()), 0);
       window.cancelAnimationFrame = (id) => window.clearTimeout(id);
       if (bookmark) window.localStorage.setItem("cd_novel_bookmark", JSON.stringify({ ...bookmark, at: Date.now() }));
+      // 앱 번들(scripts/build-mobile-app.mjs)이 주입하는 브릿지가 세우는 플래그. 정본은 js/core/app-context.js.
+      if (appRuntime) window.__CODE_DESTINY_RUNTIME_TARGET = "mobile-app";
     },
   });
   return { dom, errors };
@@ -318,6 +320,50 @@ async function verifyChapterCardTimers() {
     dom.window.close();
   }
 }
+/* 앱 번들 에셋 출처 회귀 가드(2026-08-30).
+   앱은 https://localhost 출처라 hostname 만 보면 "로컬"로 판정되고, 그러면 배경·BGM 이 전부
+   /codedestinyassets/ 로 향한다. 그 미러는 .gitignore 대상이라 dist 에도 앱 번들에도 없어
+   실제로 앱에서 배경과 배경음이 통째로 404 였다. 웹 로컬 개발은 그 미러를 계속 써야 하므로
+   두 방향을 함께 못 박는다. */
+async function verifyAppRuntimeAssetOrigin() {
+  const MIRROR = "/codedestinyassets/";
+  const pick = (win) => ({
+    bg: win.BG.room,
+    bgm: win.TRK.daily,
+    war: win.TRK.main,
+  });
+
+  // ① 앱 런타임 — 배경·BGM 이 전부 R2 절대 URL 이어야 한다.
+  {
+    const { dom } = createPlayerDom({ appRuntime: true });
+    try {
+      const win = dom.window;
+      await waitFor(() => win.__NOVEL_READY === true, "novel manifest (app runtime)");
+      assert.equal(win.PROD, true, "app runtime was not treated as a remote-asset environment");
+      for (const [label, url] of Object.entries(pick(win))) {
+        assert.equal(url.startsWith("https://"), true, `app runtime resolved ${label} to a bundle path: ${url}`);
+        assert.equal(url.includes(MIRROR), false, `app runtime still points ${label} at the local mirror: ${url}`);
+      }
+    } finally {
+      dom.window.close();
+    }
+  }
+
+  // ② 웹 로컬 개발 — 미러를 그대로 써야 한다(핫링크 403 회피). 앱 수정이 여기까지 번지면 안 된다.
+  {
+    const { dom } = createPlayerDom();
+    try {
+      const win = dom.window;
+      await waitFor(() => win.__NOVEL_READY === true, "novel manifest (web dev)");
+      assert.equal(win.PROD, false, "a non-app, non-production host was treated as remote");
+      for (const [label, url] of Object.entries(pick(win))) {
+        assert.equal(url.startsWith(MIRROR), true, `local dev lost the asset mirror for ${label}: ${url}`);
+      }
+    } finally {
+      dom.window.close();
+    }
+  }
+}
 await verifyDirectStart();
 await verifyMainEntry();
 await verifyLoadFailureIsVisible();
@@ -325,4 +371,5 @@ await verifyVisualCueBindings();
 await verifyBackgroundStability();
 await verifyFormContinuity();
 await verifyChapterCardTimers();
-console.log("[novel-player-start] OK: direct start, main entry, visible load failure, event visuals, background stability, Yeon form continuity, and chapter card timers verified");
+await verifyAppRuntimeAssetOrigin();
+console.log("[novel-player-start] OK: direct start, main entry, visible load failure, event visuals, background stability, Yeon form continuity, chapter card timers, and app-runtime asset origin verified");

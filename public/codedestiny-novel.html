@@ -590,7 +590,33 @@ body.reduce-motion .ambientLayer{animation:none!important}
    ============================================================ */
 /* 프로덕션(code-destiny.com)은 R2 직접 참조. 그 외(localhost/프리뷰/터널)는
    R2 핫링크 403 회피를 위해 로컬 미러(/codedestinyassets/, npm run novel:assets 로 생성) 사용. */
-var PROD=/(?:^|\.)code-destiny\.com$/i.test(location.hostname);
+/* 🔴 앱(Capacitor/Android)도 원격이다 — hostname 만 보면 앱이 로컬로 판정돼 배경·BGM 이 전부 죽는다.
+   앱 번들은 https://localhost 출처인데, 그 미러(public/codedestinyassets/)는 .gitignore 대상이라
+   dist 에도 앱 번들에도 없다(실측 2026-08-30: dist/codedestinyassets 부재 → 아래 참조 105건이 전부 404).
+   앱은 scripts/build-mobile-app.mjs 가 <meta name="referrer" content="no-referrer"> 를 주입하므로
+   R2 핫링크 보호를 통과한다(실측 2026-08-30: 이미지 200 · mp3 206). */
+function IS_APP(){
+  /* 🔴 판별 정본은 js/core/app-context.js 하나다(docs/app-audit/APP_UIUX_SPEC.md §2). */
+  try{
+    var ctx=window.__cdAppContext;
+    if(ctx&&typeof ctx.isApp==="function")return ctx.isApp();
+  }catch(e){}
+  /* 정본 미로딩 폴백 — 정본과 같은 신호만 본다. `!!window.Capacitor` 로 넓히지 말 것(과대판정). */
+  try{
+    if(window.__CODE_DESTINY_RUNTIME_TARGET==="mobile-app")return true;
+    if(document.documentElement
+      &&document.documentElement.getAttribute("data-runtime-target")==="mobile-app")return true;
+    if(window.__cdAppPaymentGuard&&window.__cdAppPaymentGuard.installed===true)return true;
+    var cap=window.Capacitor;
+    return !!(cap&&typeof cap.isNativePlatform==="function"&&cap.isNativePlatform());
+  }catch(e){
+    return false;
+  }
+}
+/* PROD = "R2 원격을 직접 참조해도 되는 환경"(웹 프로덕션 + 앱 번들).
+   🔴 아래 삼항의 조건 토큰은 scripts/build-mobile-app.mjs 의 parseVnAssetBases 가
+   `= PROD ?` 로 찾으므로 이름을 바꾸지 않는다. */
+var PROD=IS_APP()||/(?:^|\.)code-destiny\.com$/i.test(location.hostname);
 var NOVEL=PROD?"https://assets.code-destiny.com/CodeDestinyNovel/":"/codedestinyassets/CodeDestinyNovel/";
 var CAFE =PROD?"https://assets.code-destiny.com/DestinyCafe/"     :"/codedestinyassets/DestinyCafe/";
 var WAR  =PROD?"https://assets.code-destiny.com/DestinyWar/"      :"/codedestinyassets/DestinyWar/";
