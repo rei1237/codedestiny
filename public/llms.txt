@@ -39,7 +39,7 @@
 
 ## 읽을거리와 방법론
 
-- [운세 가이드](https://code-destiny.com/high-value/): 정보성 가이드를 각 운세 기능 허브로 연결하는 콘텐츠 클러스터입니다.
+- [운세 가이드](https://code-destiny.com/guides/): 정보성 가이드를 각 운세 기능 허브로 연결하는 콘텐츠 클러스터입니다.
 - [운세 인사이트](https://code-destiny.com/insights/): 정보성 인사이트를 실제 사주·타로·점성술 서비스 허브로 연결합니다.
 - [운세 콘텐츠 방법론](https://code-destiny.com/methodology/): Code Destiny의 운세 콘텐츠 원칙과 각 체계의 역할을 확인하는 신뢰 정보입니다.
 

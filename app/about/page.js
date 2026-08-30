@@ -91,6 +91,31 @@ export default function AboutPage() {
         </p>
       </section>
 
+      {/* insights 기사의 저자 링크(DEFAULT_ARTICLE_AUTHOR.profileUrl)가 이 페이지로 착지한다.
+          그 이름이 무엇을 가리키고 누가 책임지는지를 여기서 설명한다. */}
+      <section className="cd-card">
+        <h2>{aboutPageText("editorial.title")}</h2>
+        <p>
+          {aboutPageText("editorial.team")}
+        </p>
+        <p>
+          {aboutPageText("editorial.owner")}
+        </p>
+        <p>
+          {aboutPageText("editorial.process")}
+        </p>
+        <p>
+          {aboutPageText("editorial.limits")}
+        </p>
+        <p>
+          {aboutPageText("editorial.correction")}
+        </p>
+        <div className="cd-chip-wrap mt-3">
+          <Link href="/editorial-policy" className="cd-chip">{aboutPageText("editorial.policyLink")}</Link>
+          <Link href="/contact" className="cd-chip">{aboutPageText("editorial.contactLink")}</Link>
+        </div>
+      </section>
+
       <section className="cd-card">
         <h2>{aboutPageText("principles.title")}</h2>
         <p>
@@ -155,7 +180,7 @@ export default function AboutPage() {
           <Link href="/methodology" className="cd-chip">{aboutPageText("docs.methodology")}</Link>
           <Link href="/faq" className="cd-chip">{aboutPageText("docs.faq")}</Link>
           <Link href="/disclaimer" className="cd-chip">{aboutPageText("docs.disclaimer")}</Link>
-          <Link href="/high-value" className="cd-chip">{aboutPageText("docs.insights")}</Link>
+          <Link href="/guides" className="cd-chip">{aboutPageText("docs.insights")}</Link>
           <Link href="/privacy" className="cd-chip">{aboutPageText("docs.privacy")}</Link>
           <Link href="/terms" className="cd-chip">{aboutPageText("docs.terms")}</Link>
           <Link href="/contact" className="cd-chip">{aboutPageText("docs.contact")}</Link>

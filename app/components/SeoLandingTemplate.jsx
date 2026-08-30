@@ -48,7 +48,7 @@ const DEFAULT_RELATED_LABELS = {
   "/dream": "무료 꿈해몽",
   "/fusion-fortune": "초융합 운세 — 여섯 체계 통합 해석",
   "/premium-reports": "프리미엄 운세 리포트",
-  "/high-value": "운세 인사이트 가이드",
+  "/guides": "운세 인사이트 가이드",
   "/insights": "운세 인사이트 아카이브",
 };
 
@@ -103,7 +103,7 @@ const CURATED_HEAD_LIMIT = 3;
 
 function buildRelatedServices(page, topicClusterLinks) {
   const related = Array.isArray(page?.relatedServices) ? page.relatedServices : [];
-  const fallback = ["/manse", "/tarot", "/today", "/high-value"];
+  const fallback = ["/manse", "/tarot", "/today", "/guides"];
   const fusionLink = topicClusterLinks.find((item) => item?.href === "/fusion-fortune");
   const source = [
     ...(fusionLink ? [fusionLink] : []),
@@ -164,7 +164,7 @@ export default function SeoLandingTemplate({ page }) {
   const faqs = mergeFaqs(page?.faqs);
   const topicProfile = getSeoRouteProfile(page?.path);
   const relatedServices = buildRelatedServices(page, getTopicClusterLinks(page?.path));
-  const guideHref = page?.guideHref || (page?.path === "/saju" ? "/high-value/complete-guide-to-saju" : "/high-value");
+  const guideHref = page?.guideHref || (page?.path === "/saju" ? "/guides/complete-guide-to-saju" : "/guides");
   const guideLabel = page?.guideLabel || (page?.path === "/saju" ? copy.guideSaju : copy.guideDefault);
   const steps = Array.isArray(page?.steps) && page.steps.length > 0
     ? page.steps
@@ -178,7 +178,7 @@ export default function SeoLandingTemplate({ page }) {
 
   const breadcrumb = [
     { name: copy.breadcrumbHome, path: "/" },
-    { name: copy.breadcrumbServices, path: "/high-value" },
+    { name: copy.breadcrumbServices, path: "/guides" },
     { name: page.h1, path: page.path },
   ];
   const webPageJsonLd = buildWebPageJsonLd({

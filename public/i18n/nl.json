@@ -42,11 +42,7 @@
       "title": "Gebruikersreviews",
       "lead": "Reviews van mensen die echt een consult hebben gedaan.",
       "allCta": "Bekijk alle reviews →",
-      "empty": "Nog geen reviews. Probeer een consult en schrijf de eerste.",
-      "rewardPrefix": "Per review approved and published",
-      "rewardAmount": "100 Moonstones",
-      "rewardNote": "Rate a product you have used and leave a review — the reward is credited to your account the moment it is approved.",
-      "rewardCta": "Write a review, get Moonstones"
+      "empty": "Nog geen reviews. Probeer een consult en schrijf de eerste."
     },
     "hero": {
       "eyebrow": "CODE DESTINY",

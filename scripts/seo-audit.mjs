@@ -60,13 +60,13 @@ const seedIndexablePaths = [
   "/today",
   "/love",
   "/sukuyo-compatibility-ai",
-  "/high-value",
-  "/high-value/complete-guide-to-saju",
-  "/high-value/how-tarot-actually-works",
-  "/high-value/understanding-your-destiny",
-  "/high-value/what-your-birth-date-says-about-you",
-  "/high-value/top-10-signs-of-compatibility",
-  "/high-value/common-user-questions-faq",
+  "/guides",
+  "/guides/complete-guide-to-saju",
+  "/guides/how-tarot-actually-works",
+  "/guides/understanding-your-destiny",
+  "/guides/what-your-birth-date-says-about-you",
+  "/guides/top-10-signs-of-compatibility",
+  "/guides/common-user-questions-faq",
 ];
 
 // 사이트맵에 애초에 들어가지 않는 비공개·인증 라우트의 점검용 표본.

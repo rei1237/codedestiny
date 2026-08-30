@@ -305,7 +305,7 @@
  * 기능 가이드 표면 — /saju/guide 등 12종 + /insights·토픽 허브의 가이드 목록.
  *
  * 위 "Classic Card System"(.cd-main-shell/.cd-card)은 /about·/faq·/methodology·
- * /high-value·홈이 함께 쓰므로 한 줄도 고치지 않는다. 가이드는 <main>에 .cd-guide 를
+ * /guides·홈이 함께 쓰므로 한 줄도 고치지 않는다. 가이드는 <main>에 .cd-guide 를
  * 덧붙여 여기서만 덮어쓴다 — 회귀 반경을 가이드 12종으로 못 박기 위한 스코프다.
  *
  * 팔레트: :root 의 --cd-* 페르소나 토큰은 연이(밝은 값)인데 App Router 는 data-cd-theme="neo"

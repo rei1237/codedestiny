@@ -56,7 +56,7 @@ export function generateMetadata({ params }) {
   const description = buildCategoryDescription(category, pages);
 
   return buildSeoMetadata({
-    path: `/high-value/category/${category.slug}`,
+    path: `/guides/category/${category.slug}`,
     title: `${category.name} 가이드 | Code Destiny`,
     description,
     keywords: [category.name, "운세 인사이트", "Code Destiny"],
@@ -69,13 +69,13 @@ export default function HighValueCategoryPage({ params }) {
 
   const pages = getHighValuePagesByCategory(category.slug);
   const description = buildCategoryDescription(category, pages);
-  const path = `/high-value/category/${category.slug}`;
+  const path = `/guides/category/${category.slug}`;
   const jsonLd = JSON.stringify({
     "@context": "https://schema.org",
     "@graph": [
       buildBreadcrumbJsonLd([
         { name: "홈", path: "/" },
-        { name: "운세 인사이트 가이드", path: "/high-value" },
+        { name: "운세 인사이트 가이드", path: "/guides" },
         { name: category.name, path },
       ]),
       buildCollectionPageJsonLd({
@@ -91,7 +91,7 @@ export default function HighValueCategoryPage({ params }) {
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
       <nav aria-label="breadcrumb" className="cd-chip-wrap">
         <Link href="/" className="cd-chip" data-cd-trans="home.nav.home">홈</Link>
-        <Link href="/high-value" className="cd-chip">운세 인사이트 가이드</Link>
+        <Link href="/guides" className="cd-chip">운세 인사이트 가이드</Link>
       </nav>
 
       <header className="cd-main-header">
@@ -103,7 +103,7 @@ export default function HighValueCategoryPage({ params }) {
         {pages.map((item) => (
           <article key={item.slug} className="cd-card">
             <h2>
-              <Link href={`/high-value/${item.slug}`} className="cd-link-reset">
+              <Link href={`/guides/${item.slug}`} className="cd-link-reset">
                 {item.title}
               </Link>
             </h2>

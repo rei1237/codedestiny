@@ -132,7 +132,7 @@ export default function MethodologyPage() {
 
       <nav className="cd-chip-wrap" aria-label={methodologyCopy.relatedAria}>
         <Link href="/faq" className="cd-chip">{methodologyCopy.faq}</Link>
-        <Link href="/high-value" className="cd-chip">{methodologyCopy.insightGuide}</Link>
+        <Link href="/guides" className="cd-chip">{methodologyCopy.insightGuide}</Link>
         <Link href="/disclaimer" className="cd-chip">{methodologyCopy.disclaimer}</Link>
         <Link href="/contact" className="cd-chip">{methodologyCopy.contact}</Link>
       </nav>

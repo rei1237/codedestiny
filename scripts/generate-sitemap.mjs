@@ -49,7 +49,7 @@ const rootShellRoutes = new Set(
 
 const sitemapRootPath = resolve(rootDir, "sitemap.xml");
 const sitemapPublicPath = resolve(rootDir, "public", "sitemap.xml");
-const highValueSourcePath = resolve(rootDir, "app", "high-value", "content.js");
+const highValueSourcePath = resolve(rootDir, "app", "guides", "content.js");
 const famousSajuSourcePath = resolve(rootDir, "lib", "famous-saju", "celebrity-data.ts");
 const fortuneSignSourcePath = resolve(rootDir, "lib", "fortune", "sign-profiles.ts");
 const siteBaseUrl = (process.env.SITE_URL || "https://code-destiny.com").replace(/\/$/, "");
@@ -106,7 +106,7 @@ const noindexPathPrefixes = [
   // AdSense "가치 없는 콘텐츠" 거절 대응 — 얇은 목록형·스텁 22개(2026-08-17 out/ 실측).
   // lib/seo/siteSeo.ts 의 noindexPathPrefixes 와 짝이다. 한쪽만 고치면
   // "사이트맵에 있는데 noindex" 가 되어 GSC 가 「제출된 URL에 noindex」로 잡는다.
-  "/high-value/category",
+  "/guides/category",
   // (`/famous-saju/category` 는 2026-08-17 에 라우트째 삭제해 여기서 뺐다 — 사이트맵에
   //  넣을 라우트 자체가 없다. `public/_redirects` 가 301 로 회수한다.)
   "/flower",
@@ -182,7 +182,10 @@ const coreRoutes = [
   // 무료 기능이라 색인 대상으로 두되, 본문이 얇으면 "낮은 가치의 콘텐츠" 표본이 되므로
   // `verify-adsense-readiness` 의 1,800자 게이트를 반드시 통과시킨 채로 유지할 것.
   { path: "/destiny-poker", changefreq: "monthly", priority: 0.6 },
-  { path: "/reviews", changefreq: "daily", priority: 0.85 },
+  // /reviews 는 2026-08-30 에 색인 대상에서 뺐다 — 승인 리뷰가 0건인데 제목·h1 이 후기 모음을
+  // 약속해 "없는 콘텐츠를 약속하는 페이지"가 됐다. 라우트 자체의 noindex 는 app/reviews/page.tsx
+  // 의 metadata.robots 에 있고, 광고 대상 제외는 app/components/adsense-route-policy.js 에 있다.
+  // 리뷰가 실제로 쌓이면 세 곳을 함께 되돌릴 것.
   { path: "/today", changefreq: "daily", priority: 0.97 },
   { path: "/compatibility", changefreq: "weekly", priority: 0.96 },
   { path: "/saju/compatibility", changefreq: "weekly", priority: 0.96 },
@@ -284,8 +287,8 @@ const coreRoutes = [
   { path: "/insights/fusion", changefreq: "weekly", priority: 0.83 },
   // (`/famous-saju` 허브는 2026-08-17 에 라우트째 삭제했다 — 정본은 `/insights/famous-saju`
   //  하나이고, `public/_redirects` 가 `/famous-saju/**` 를 전량 301 로 회수한다.)
-  { path: "/high-value", changefreq: "weekly", priority: 0.84 },
-  { path: "/high-value/complete-guide-to-saju", changefreq: "monthly", priority: 0.82 },
+  { path: "/guides", changefreq: "weekly", priority: 0.84 },
+  { path: "/guides/complete-guide-to-saju", changefreq: "monthly", priority: 0.82 },
   { path: "/saju/guide", changefreq: "monthly", priority: 0.8 },
   { path: "/saju/ten-gods", changefreq: "monthly", priority: 0.78 },
   { path: "/saju/five-elements", changefreq: "monthly", priority: 0.78 },
@@ -542,7 +545,7 @@ function extractHighValueRoutes() {
       seenPage.add(slug);
       if (slug !== "saju-beginner") {
         pageRoutes.push({
-          path: `/high-value/${slug}`,
+          path: `/guides/${slug}`,
           changefreq: "monthly",
           priority: 0.72,
           lastmod: normalizeDate(updatedAt),
@@ -553,7 +556,7 @@ function extractHighValueRoutes() {
     const cSlug = categorySlug(category);
     if (cSlug && !categoryRoutes.has(cSlug)) {
       categoryRoutes.set(cSlug, {
-        path: `/high-value/category/${cSlug}`,
+        path: `/guides/category/${cSlug}`,
         changefreq: "monthly",
         priority: 0.68,
       });

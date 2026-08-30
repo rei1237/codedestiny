@@ -19,7 +19,7 @@ const allowRoutes = [
   "/faq",
   "/insights/saju",
   "/insights/famous-saju",
-  "/high-value/complete-guide-to-saju",
+  "/guides/complete-guide-to-saju",
   "/saju/guide",
   "/saju/ten-gods",
   "/saju/five-elements",
@@ -37,12 +37,12 @@ const allowRoutes = [
 
 const blockedRoutes = [
   // 얇은 목록형·스텁 라우트 — 2026-08-17 에 색인·광고에서 뺐다(고유 본문 272~1,859자).
-  // 허브 `/high-value` 와 `/high-value/<slug>` 는 위 allowRoutes 에 남아 있어야 한다:
+  // 허브 `/guides` 와 `/guides/<slug>` 는 위 allowRoutes 에 남아 있어야 한다:
   // 카테고리만 막고 허브까지 삼키는 회귀를 이 짝이 잡는다.
   // `/famous-saju/**` 는 라우트째 삭제돼 기본 deny 로 떨어진다 — 허용으로 되살아나면 여기가 잡는다.
   "/famous-saju",
   "/famous-saju/category/actor",
-  "/high-value/category/saju-beginner",
+  "/guides/category/saju-beginner",
   "/flower/destiny",
   "/advertising-policy",
   "/404",
@@ -157,7 +157,7 @@ const canonicalAllowSamples = [
   ["/about?utm_source=test", "/about"],
   ["/about?gclid=test-click-id", "/about"],
   ["/insights/famous-saju", "/insights/famous-saju"],
-  ["/high-value/complete-guide-to-saju?utm_source=test", "/high-value/complete-guide-to-saju"],
+  ["/guides/complete-guide-to-saju?utm_source=test", "/guides/complete-guide-to-saju"],
   ["/tarot/numerology", "/tarot/numerology"],
   ["/tarot/prompt-maker", "/tarot/prompt-maker"],
 ];
@@ -185,9 +185,9 @@ const canonicalUrlAllowSamples = [
     "https://code-destiny.com/about/",
   ],
   [
-    "/high-value/complete-guide-to-saju?utm_source=test",
-    "https://code-destiny.com/high-value/complete-guide-to-saju/",
-    "https://code-destiny.com/high-value/complete-guide-to-saju/?utm_source=test",
+    "/guides/complete-guide-to-saju?utm_source=test",
+    "https://code-destiny.com/guides/complete-guide-to-saju/",
+    "https://code-destiny.com/guides/complete-guide-to-saju/?utm_source=test",
   ],
   [
     "/saju/guide?gclid=test-click-id",

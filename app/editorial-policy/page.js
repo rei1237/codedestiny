@@ -115,7 +115,18 @@ export default function EditorialPolicyPage() {
           <li>⑤ 발행과 갱신 — 발행일과 최종 수정일을 표기하고, 정책이나 기능이 바뀌면 관련 문서와 내부 링크를 함께 갱신합니다.</li>
         </ul>
         <p style={paragraphStyle}>
-          규칙에 따라 자동으로 조립된 페이지는 한 건씩 사람이 검토하지 않습니다. 그런 페이지는 문서 하단에 그 사실을 밝히고 검색 색인 대상에서 제외합니다.
+          규칙에 따라 자동으로 조립되는 페이지는 문서를 한 건씩 사람이 검토하지 않습니다. 대신 조립에 쓰이는 문안과 템플릿을 사람이 쓰고 검수하며, 아래 4번의 표현 안전 기준을 같은 방식으로 적용합니다. 사람의 검토를 거치지 않고 독립적인 정보 가치도 충분하지 않은 페이지는 검색 색인 대상에서 제외합니다.
+        </p>
+      </section>
+
+      <section style={{ ...sectionStyle, marginBottom: "14px" }}>
+        <h2 style={{ fontSize: "20px", fontWeight: 700, marginBottom: "8px" }}>3-2. 편집 책임</h2>
+        <p style={paragraphStyle}>
+          공개 문서에 저자로 적히는 &ldquo;Code Destiny 편집팀&rdquo;은 개인 필명이 아니라 운영사의 콘텐츠 제작·검수 기능을 가리키는 표기입니다. 실재하지 않는 사람에게 경력이나 자격을 붙이지 않기 위해 개인 저자 대신 조직 이름으로 귀속합니다.
+        </p>
+        <p style={paragraphStyle}>
+          위 절차의 최종 검수 책임은 대표 박병하에게 있습니다. 운영 주체와 사업자 정보는 모든 페이지 하단에 표시하며, 편집팀이 무엇을 가리키는지와 정정 요청 경로는{" "}
+          <Link href="/about" style={linkStyle}>서비스 소개</Link>에서도 함께 안내합니다.
         </p>
       </section>
 

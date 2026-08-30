@@ -45,7 +45,7 @@ const TARGETS = [
   "lib/seo/siteSeo.ts",
   "app/page.js",
   "app/kkul-kkul-unse/page.js",
-  "app/high-value/[slug]/page.js",
+  "app/guides/[slug]/page.js",
 ];
 
 let totalHits = 0;

@@ -42,7 +42,7 @@
  *     /destiny-poker 755 → 1,612   (게임 데이터 SUITS·HAND_FORTUNES 를 안내로 노출)
  *     /tarot/love    792 → 1,0xx   (relationship_six_card 의 가중치·읽는 법 2개 추가)
  *     /saju/sibyl    822 → 1,2xx   (결정론 근거·활용법 2개 추가)
- *     /high-value    866 → 1,6xx   (허브 고유 산문 3문단)
+ *     /guides    866 → 1,6xx   (허브 고유 산문 3문단)
  *   🔴 다음 상한은 929 다(/fortune/tomorrow/pig). 그 위로 올리려면 자동 생성되는
  *      /fortune/{기간}/{sign} 96개의 문안 생성기를 손봐야 하므로 별건이다.
  *
