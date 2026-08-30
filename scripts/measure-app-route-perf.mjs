@@ -145,6 +145,7 @@ function parseArgs(argv) {
     label: (get("label") || "baseline").replace(/[^a-zA-Z0-9._-]/g, "-"),
     out: get("out"),
     headed: argv.includes("--headed"),
+    dumpAnimations: argv.includes("--dump-animations"),
   };
 }
 
@@ -353,6 +354,30 @@ function censusAlbum() {
     scrollHeight: dialog.scrollHeight,
     clientHeight: dialog.clientHeight,
   };
+}
+
+/**
+ * 돌고 있는 CSS 애니메이션을 이름별로 센다 — 어떤 연출이 프레임 예산을 먹는지 **추측 대신 실측**하려고 둔다.
+ * 2026-08-30 절제에서 `animation:none` 하나가 앨범 끊김을 54.5% → 2.2% 로 없앴는데, 그건 전부 끈 값이라
+ * 무엇을 고쳐야 하는지는 못 알려준다. 이 조사는 그 다음 질문("어느 애니메이션이냐")에만 쓴다.
+ * 🔴 측정 창을 시작하기 **전에만** 부른다 — `getAnimations()` 자체가 스타일을 강제 갱신한다.
+ */
+function censusAnimations() {
+  const byName = new Map();
+  for (const anim of document.getAnimations()) {
+    const effect = anim.effect;
+    const target = effect && effect.target;
+    if (!target) continue;
+    const name = anim.animationName || (anim.constructor && anim.constructor.name) || "(unknown)";
+    const entry = byName.get(name) || { name, count: 0, running: 0, sample: "", infinite: false };
+    entry.count += 1;
+    if (anim.playState === "running") entry.running += 1;
+    const timing = effect.getComputedTiming ? effect.getComputedTiming() : {};
+    if (timing.iterations === Infinity) entry.infinite = true;
+    if (!entry.sample) entry.sample = (target.className && String(target.className).slice(0, 60)) || target.tagName;
+    byName.set(name, entry);
+  }
+  return [...byName.values()].sort((a, b) => b.running - a.running || b.count - a.count);
 }
 
 /* ───────────────────────────── CDP 보조 ───────────────────────────── */
@@ -657,6 +682,7 @@ async function measureEntry(page, cdp, origin, { tracing, network }) {
   }
   await page.waitForTimeout(1200);
 
+  const animations = args.dumpAnimations ? await page.evaluate(censusAnimations) : null;
   if (tracing) await startTracing(cdp);
   const stages = [];
   for (let step = 0; step <= ADVANCES; step += 1) {
@@ -701,7 +727,7 @@ async function measureEntry(page, cdp, origin, { tracing, network }) {
   if (stages.length !== ADVANCES + 1) {
     failures.push(`입장 스토리 단계를 ${stages.length}개만 쟀다(${ADVANCES + 1}개 기대).`);
   }
-  return { failures, stages, trace, layers, network: network.summary() };
+  return { failures, stages, trace, layers, animations, network: network.summary() };
 }
 
 /** 구간 B — 타로 앨범 스크롤. */
@@ -723,6 +749,7 @@ async function measureAlbum(page, cdp, origin, { tracing, network }) {
   if (!census.present) return { failures: ["앨범 다이얼로그가 사라졌다 — 잴 대상이 없다."], scrolls: [] };
   if (!census.cards) failures.push(`앨범에 카드가 0장이다(이미지 ${census.images}개) — 표본 없이 통과시키지 않는다.`);
 
+  const animations = args.dumpAnimations ? await page.evaluate(censusAnimations) : null;
   if (tracing) await startTracing(cdp);
   const before = await readMetrics(cdp);
   await page.evaluate(() => window.__routePerf.start());
@@ -753,6 +780,7 @@ async function measureAlbum(page, cdp, origin, { tracing, network }) {
     nodes: raw.nodes,
     trace,
     layers,
+    animations,
     network: network.summary(),
   };
 }
@@ -938,6 +966,7 @@ function buildReport(collected) {
     }
     // 외부 요청은 run 마다 같아야 정상이라 마지막 run 의 내역을 그대로 싣는다(밴드가 아니라 목록이 정보다).
     report[segment].external = good[good.length - 1].external;
+    report[segment].animations = good[good.length - 1].animations || null;
     report[segment].externalCount = band(good.map((r) => r.external?.total));
     const pipeline = collected[segment].pipeline.filter((r) => !(r.failures && r.failures.length));
     if (pipeline.length) {
@@ -1026,6 +1055,15 @@ function printReport(report) {
     line("  그중 오디오", { median: data.audioBytes.median / 1024, min: data.audioBytes.min / 1024, max: data.audioBytes.max / 1024 }, 0, "KB");
     if (data.cards) line("앨범 카드", data.cards, 0, "장");
     if (data.albumNodes) line("앨범 DOM 노드", data.albumNodes, 0, "개");
+
+    if (data.animations) {
+      const running = data.animations.reduce((s, a) => s + a.running, 0);
+      console.log(`\n  ── 측정 직전 실행 중인 CSS 애니메이션 · ${data.animations.length}종 ${running}개 ──`);
+      for (const anim of data.animations) {
+        const mark = anim.infinite ? "∞" : " ";
+        console.log(`    ${String(anim.running).padStart(4)}개 ${mark} ${anim.name.padEnd(22)} ${anim.sample}`);
+      }
+    }
 
     if (data.external) {
       console.log(`\n  ── 외부 출처 요청 (차단하고 세기만 한다) · 총 ${data.external.total}건 ──`);
