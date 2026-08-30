@@ -29,6 +29,11 @@ export type NakshatraFetchResult = {
 const PAID_BODY_BUDGET_MS = 30000;
 const PAID_BODY_MAX_ATTEMPTS = 5;
 
+// 🔴 timeoutMs 를 주면 authFetch 의 기본 상한(22초)을 **대체한다** — 새로 한 겹 씌우는 것이
+//    아니다. authFetch 는 호출부가 signal 을 넘기면(callerControlsAbort) 자기 타이머를 아예
+//    걸지 않으므로(app/_lib/auth-client.ts fetchAuthRequest), 여기 컨트롤러 하나가 유일한 상한이
+//    된다. 서버가 한 응답을 22초보다 오래 붙들도록 설계된 엔드포인트(웨이브 생성 등)에만 준다.
+
 /**
  * 결제 완료 뒤 본문을 받아 오는 POST. 일시적 503/네트워크 블립은 백오프로 자동 재시도한다.
  * 확정 실패(401·402·400 등)는 즉시 돌려준다.
@@ -36,15 +41,22 @@ const PAID_BODY_MAX_ATTEMPTS = 5;
 export async function postPaidBody(
   endpoint: string,
   body: Record<string, unknown>,
-  options: { budgetMs?: number; maxAttempts?: number } = {},
+  options: { budgetMs?: number; maxAttempts?: number; timeoutMs?: number } = {},
 ): Promise<NakshatraFetchResult> {
   const result = await runAccessCheckWithTransientRetry<NakshatraFetchResult>(
     async () => {
+      const controller = options.timeoutMs && typeof AbortController !== "undefined"
+        ? new AbortController()
+        : null;
+      const timer = controller
+        ? setTimeout(() => { try { controller.abort(); } catch { /* 이미 끝났다 */ } }, options.timeoutMs)
+        : null;
       try {
         const response = await authFetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(body),
+          ...(controller ? { signal: controller.signal } : {}),
         });
         const data = (await response.json().catch(() => ({}))) as Record<string, unknown>;
         return {
@@ -61,6 +73,8 @@ export async function postPaidBody(
           data: { ok: false, reason: "DB_DEGRADED", retryable: true },
           transient: false,
         };
+      } finally {
+        if (timer) clearTimeout(timer);
       }
     },
     {

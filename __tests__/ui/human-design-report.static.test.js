@@ -205,6 +205,13 @@ test("🔴 중첩 재시도 금지 — 백오프 루프를 새로 만들지 않�
   assert.ok(HOOK.includes("postPaidBody"), "공용 재시도 배관을 쓰지 않는다");
 });
 
+test("🔴 웨이브 요청 상한을 호출부가 직접 준다", () => {
+  // authFetch 의 기본 22초 상한은 서버 웨이브 예산(75초)보다 짧아 정상 웨이브를 매번 abort 했다.
+  // postPaidBody 에 timeoutMs 를 주면 그 기본값이 **대체**된다 — 새 타임아웃 계층이 아니다.
+  assert.ok(HOOK.includes("timeoutMs: WAVE_REQUEST_TIMEOUT_MS"), "웨이브 호출에 전송 상한을 넘기지 않는다");
+  assert.ok(HOOK.includes("budgetMs: WAVE_REQUEST_BUDGET_MS"), "총예산이 상한보다 짧으면 첫 시도를 끝까지 못 기다린다");
+});
+
 test("🔴 결제 전에는 본문을 DOM 에 넣지 않는다", () => {
   assert.ok(!codeOnly(LOCKED).includes("ReportChapter"), "잠금 화면이 장을 렌더한다");
   assert.ok(!codeOnly(LOCKED).includes("ReportBlockView"), "잠금 화면이 블록을 렌더한다");
