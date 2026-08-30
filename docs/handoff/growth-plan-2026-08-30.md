@@ -1,7 +1,7 @@
 ---
 status: active
 updated: 2026-08-31
-next: 사용자 검수 후 reviewedAt 켜기(12명) → T1 2차(해외 인물은 시주 시간대 검증 선행) 또는 3단계 홈 히어로
+next: 라이브 검수(12명 index 중) → 문제 인물은 reviewedAt null 로 되돌리기 → AdSense 재신청 2026-09-14 이후 → T1 2차(해외 인물은 시주 시간대 검증 선행) 또는 3단계 홈 히어로
 ---
 
 # 성장 계획 2026-08-30 — 검색 유입·AdSense·첫인상
@@ -24,16 +24,18 @@ next: 사용자 검수 후 reviewedAt 켜기(12명) → T1 2차(해외 인물은
 
 - 1단계(1-A~1-E) 전부 main 머지·프로덕션 승격 완료. 마지막 승격 run 33314844807(2026-08-30, main 9de4ccfe5 = #1334 포함).
 - 2단계 1차: **#1340 머지·프로덕션 승격 완료**(2026-08-30, run 33315732990, main 66bdb09ac; 홈·sitemap·`/insights/famous-saju/yu-gwan-sun/` 200, `npm run seo:check` PASS, 유관순 페이지에 다체계 표·"검수 전 초안"·`noindex, follow` curl 로 확인). 요지:
-  - `lib/famous-saju/celebrity-editorial.js` — T0 6명 원고, **전부 `reviewedAt: null`(초안) → 아직 아무 상세 페이지도 색인되지 않는다.**
+  - `lib/famous-saju/celebrity-editorial.js` — T0 6명 원고. (#1357 에서 `reviewedAt` 켜짐 — 아래 참조)
   - `lib/famous-saju/celebrity-multi-system.ts` — 사주·숙요·베다 3줄 표(자미두수 없음).
   - 색인 분기 3곳(`[slug]/page.tsx` robots · `generate-sitemap.mjs` · `verify-adsense-readiness.mjs`) + `lib/seo-site-urls.ts` 가 전부 `reviewedAt` 하나를 본다. 1-C 잔여(134 URL 열거)도 이걸로 해소.
   - 가드 `verify:famous-saju-editorial` · `verify:famous-saju-multisystem` — PR CI fast 잡 배선 완료.
-- 2단계 2차(T1 1차): **#1347 머지·프로덕션 승격 완료**(2026-08-31 KST, run 33319085878, main 4e9b2b222; 홈·sitemap·`/insights/famous-saju/iu/`·`/son-heung-min/` 200, 아이유 `noindex, follow`+"검수 전 초안" 배지, 사이트맵에 famous-saju 는 허브 1건뿐, `npm run seo:check` PASS). 한국 인물 6명 원고(아이유·손흥민·김연아·봉준호·한강·BTS 정국), 전부 `reviewedAt: null`. 아이유만 생시 보유(4주·베다 확정). 해외 T1 10명(오바마·잡스 등)은 **미착수** — 엔진이 시주를 KST 로 세우는지 미검증이라 생시 보유자라도 시주를 원고에 쓰면 안 된다(착수 전 `celebrity-saju-service.ts` 의 시간대 처리를 실측할 것).
+- 2단계 2차(T1 1차): **#1347 머지·프로덕션 승격 완료**(2026-08-31 KST, run 33319085878, main 4e9b2b222; 홈·sitemap·`/insights/famous-saju/iu/`·`/son-heung-min/` 200, 아이유 `noindex, follow`+"검수 전 초안" 배지, 사이트맵에 famous-saju 는 허브 1건뿐, `npm run seo:check` PASS). 한국 인물 6명 원고(아이유·손흥민·김연아·봉준호·한강·BTS 정국). 아이유만 생시 보유(4주·베다 확정). 해외 T1 10명(오바마·잡스 등)은 **미착수** — 엔진이 시주를 KST 로 세우는지 미검증이라 생시 보유자라도 시주를 원고에 쓰면 안 된다(착수 전 `celebrity-saju-service.ts` 의 시간대 처리를 실측할 것).
 - 3~5단계 미착수.
 
-## 검수 대기 인물 (사용자 = 박병하)
+- **#1357 머지·프로덕션 승격 완료**(2026-08-31 KST, run 33322608571, main 0ef916c6d): 사용자 요청으로 **12명 전원 `reviewedAt: "2026-08-30"`** — 검수는 라이브에서 진행. 스모크: `/insights/famous-saju/iu/` `index, follow`·초안 배지 0, 사이트맵 famous-saju 13건(허브+12), 허브가 iu·bts-jungkook·son-heung-min 에 가시 링크, `npm run seo:check` PASS. 허브는 검수 인물을 서버 렌더 24장 앞으로 정렬한다(지연 구간은 가드가 링크로 안 센다). 🔴 가드가 UTC 로 오늘을 재므로 KST 날짜는 CI 에서 미래로 막힐 수 있다.
 
-`lib/famous-saju/celebrity-editorial.js` 에서 원고를 읽고 문제 없으면 **그 인물의 `reviewedAt: null` → `"YYYY-MM-DD"`(검수한 날)** 로 바꾼다. 그게 발행 스위치다 — robots index · 사이트맵 등재(lastmod=그 날짜) · Article.author=박병하 Person · citation 이 한꺼번에 켜진다.
+## 라이브 검수 인물 (사용자 = 박병하)
+
+12명 전원 색인 중. 문제 있는 인물은 **`reviewedAt` 을 `null` 로 되돌리면** robots noindex · 사이트맵 제외 · Article.author · citation 이 한꺼번에 꺼진다(`sitemap:generate` 재실행 후 원장 동반 커밋). 문장 수정은 엔진 정합·분량·중복도 가드가 다시 돈다.
 
 | slug | 인물 | 일주/일간 | 숙요 | 베다 달 |
 |---|---|---|---|---|
@@ -56,7 +58,7 @@ next: 사용자 검수 후 reviewedAt 켜기(12명) → T1 2차(해외 인물은
 ## 남은 작업
 
 - [x] #1340 머지·승격·스모크(2026-08-30). 스모크 명령은 `npm run seo:check`(`seo:check` 라는 스크립트는 없다 — 실측 2026-08-30 `npm run` 목록)
-- [ ] 사용자: T0 6명 원고 검수 → `reviewedAt` 켜기(위 절차). **AdSense 재신청은 검수된 인물이 실제로 색인에 오른 승격 + 2주 뒤.**
+- [x] 12명 `reviewedAt` 켜기 → #1357 승격(2026-08-31). 사용자 라이브 검수 진행 중. **AdSense 재신청은 2026-09-14 이후**(승격 + 2주).
 - [x] 2단계 2차 T1 1차: 한국 6명 원고 #1347 머지·승격·스모크(2026-08-31). 검수 대상은 위 표 12명.
 - [ ] T1 2차: 시드 내 한국 인물 6명(후보: 박보검·김수현·전지현·송혜교·BTS RM·블랙핑크 제니 — 검색량 근거는 GSC CSV 를 받은 뒤 확정). 해외 생시 보유 10명은 시주 시간대 실측 뒤에만.
 - [ ] 1-D·1-E 잔여: 프로덕션에서 6개 랜딩 가시 섹션과 `/insights` 하단 아카이브 그리드 **눈으로 1회 확인**(`visual-checker`)
