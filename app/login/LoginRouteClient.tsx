@@ -13,17 +13,19 @@ export default function LoginRouteClient() {
 
 function LoginShell() {
   return (
-    <main className="min-h-screen bg-[#050516] px-4 py-6 text-white">
-      <div className="mx-auto grid min-h-[calc(100vh-3rem)] w-full max-w-5xl place-items-center">
-        <section className="w-full max-w-md rounded-[28px] border border-violet-200/15 bg-white/[0.06] p-6 shadow-2xl shadow-black/30">
-          <div className="mx-auto h-16 w-16 rounded-full bg-violet-100/15" />
-          <div className="mx-auto mt-6 h-5 w-32 rounded-full bg-violet-100/20" />
-          <div className="mx-auto mt-4 h-8 w-3/4 rounded-2xl bg-white/10" />
-          <div className="mx-auto mt-3 h-4 w-11/12 rounded-full bg-white/10" />
-          <div className="mt-8 grid gap-3">
-            <div className="h-12 rounded-2xl bg-white/10" />
-            <div className="h-12 rounded-2xl bg-white/10" />
-            <div className="h-12 rounded-2xl bg-violet-200/20" />
+    <main className="relative min-h-[100dvh] overflow-x-hidden bg-[#090b1a] px-4 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-[calc(1.25rem+env(safe-area-inset-top))] text-white [color-scheme:dark] sm:px-6" aria-busy="true">
+      <div className="relative mx-auto flex min-h-[calc(100dvh-env(safe-area-inset-top)-env(safe-area-inset-bottom)-2.5rem)] w-full max-w-[440px] py-3">
+        <section className="my-auto w-full rounded-[24px] border border-[#c9b7f0]/20 bg-[#12152b] p-5 shadow-[0_24px_70px_rgba(0,0,0,.38)] sm:p-7">
+          <div className="mx-auto h-[52px] w-[52px] rounded-2xl bg-white/10" />
+          <div className="mx-auto mt-4 h-8 w-3/5 rounded-2xl bg-white/10" />
+          <div className="mx-auto mt-2 h-4 w-11/12 rounded-full bg-white/[0.07]" />
+          <div className="my-4 min-h-6" />
+          <div className="grid gap-3">
+            <div className="h-12 rounded-xl bg-white/10" />
+            <div className="h-12 rounded-xl bg-white/10" />
+            <div className="h-12 rounded-xl bg-white/10" />
+            <div className="mt-2 h-12 rounded-xl bg-white/[0.07]" />
+            <div className="h-12 rounded-xl bg-[#7c5cbf]/45" />
           </div>
         </section>
       </div>
