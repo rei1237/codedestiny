@@ -308,6 +308,54 @@ function instrumentMongoClient(client) {
   }
 }
 
+/**
+ * 핸드셰이크 한 덩어리(elapsedMs)를 네 갈래로 가른다.
+ *
+ * 왜 필요한가: 프로덕션 핸드셰이크는 410~450ms 인데(2026-08-31), 그 값 하나로는 **줄일 수 있는
+ * 성분이 남았는지**를 못 가른다. 왕복 수로만 설명되면(= helloRttMs × N) 코드로 줄일 것이 없고
+ * RTT 자체가 답이다. 반대로 dnsMs 가 큰 덩어리면 `mongodb+srv://` 를 시드리스트 URI 로 바꿔
+ * SRV+TXT 조회 두 번을 없앨 수 있다 — 그건 코드가 아니라 URI 하나의 문제다.
+ *
+ *   dnsMs        connect() 시작 → 첫 serverOpening. SRV/TXT 조회 구간(비-SRV URI 면 0에 가깝다).
+ *   hosts        토폴로지에 등록된 노드 수(M10 리플리카셋이면 3).
+ *   helloRttMs   첫 hello 왕복. **Atlas 까지의 실제 RTT 단위**라 나머지 값을 왕복 수로 환산한다.
+ *   socketReadyMs 풀 소켓 하나의 connectionCreated → connectionReady. TCP+TLS+SCRAM 인증 합계.
+ *
+ * 실패해도 연결을 막지 않는다(전부 try 안, 값은 -1 로 남는다).
+ */
+function observeConnectPhases(startedAt) {
+  const phases = { dnsMs: -1, hosts: 0, helloRttMs: -1, socketReadyMs: -1 };
+  try {
+    const client = mongoose.connection.getClient?.();
+    if (!client || typeof client.on !== "function") return phases;
+    const createdAtByConnection = new Map();
+    client.on("serverOpening", () => {
+      phases.hosts += 1;
+      if (phases.dnsMs < 0) phases.dnsMs = Date.now() - startedAt;
+    });
+    client.on("serverHeartbeatSucceeded", (event) => {
+      if (phases.helloRttMs < 0) phases.helloRttMs = Math.round(Number(event?.duration) || 0);
+    });
+    client.on("connectionCreated", (event) => {
+      const key = `${event?.address}#${event?.connectionId}`;
+      if (!createdAtByConnection.has(key)) createdAtByConnection.set(key, Date.now());
+    });
+    client.on("connectionReady", (event) => {
+      if (phases.socketReadyMs >= 0) return;
+      const openedAt = createdAtByConnection.get(`${event?.address}#${event?.connectionId}`);
+      if (openedAt) phases.socketReadyMs = Date.now() - openedAt;
+    });
+  } catch (e) {
+    // 계측 실패가 연결 수립을 막아서는 안 된다.
+  }
+  return phases;
+}
+
+function formatConnectPhases(phases) {
+  if (!phases) return "dnsMs=-1 hosts=0 helloRttMs=-1 socketReadyMs=-1";
+  return `dnsMs=${phases.dnsMs} hosts=${phases.hosts} helloRttMs=${phases.helloRttMs} socketReadyMs=${phases.socketReadyMs}`;
+}
+
 function extractDbNameFromUri(uri) {
   try {
     const parsed = new URL(String(uri || ""));
@@ -450,6 +498,12 @@ function sleep(ms) {
 export async function connectDb(env = {}, options = {}) {
   installProcessEnv(env);
   const activeOpsOwned = Number.isFinite(options?.activeOpsOwned) ? Math.max(0, options.activeOpsOwned) : 0;
+  // withMongoRetry 가 넘겨 주는 계측 싱크(없으면 null). 여기서 채우는 값은 전부 진단용이고
+  // 흐름을 바꾸지 않는다 — 소비처는 worker/lib/auth.js 의 authDetail 과 아래 [db-*] 로그다.
+  const timings = options.timings && typeof options.timings === "object" ? options.timings : null;
+  // 웜 커넥션 검증 구간의 실비용. -1 은 '이 요청은 웜 판정을 타지 않았다'(콜드 아이솔레이트)를 뜻한다.
+  let warmPingMs = -1;
+  let warmResetMs = -1;
 
   const guardTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_WORKER_CONNECT_GUARD_MS", "10000"), 10000, 3000, 20000);
   // 🔴 8000 → 3000 (2026-08-12, M10 전환의 두 번째 축). 8000 의 근거는 **M0 의 공유 vCPU 스로틀링**
@@ -554,15 +608,25 @@ export async function connectDb(env = {}, options = {}) {
        되돌리기는 이 값과 양쪽 `[vars]` 를 함께 1000 으로 올리는 것 하나다
        (__tests__/worker/db.vars-code-default-parity.test.js 가 둘을 묶는다). */
     const pingTimeoutMS = clampTimeoutMs(getEnv(env, "MONGO_PING_TIMEOUT_MS", "300"), 300, 300, 10000);
+    const pingStartedAt = Date.now();
     try {
       await withTimeout(
         mongoose.connection.db.command({ ping: 1 }),
         pingTimeoutMS,
         "MongoDB ping timed out in Worker.",
       );
+      warmPingMs = Date.now() - pingStartedAt;
+      if (timings) timings.pingMs = warmPingMs;
+      /* 🔴 살아 있는 소켓의 ping 왕복 **단독 수치**다. 이 한 줄이 없어서 하한(clampTimeoutMs 의
+         min=300) 인하 판단이 막혀 있었다 — 가진 근거가 핸들러+쿼리를 포함한 요청 전체
+         353~380ms 뿐이라 ping 만 떼어낸 값이 없었다(2026-08-31 기각 사유).
+         재사용 성공은 프로덕션 45건 중 3건 정도라 로그가 시끄러워지지 않는다. */
+      console.log(`[db-ping] warm socket alive. rttMs=${warmPingMs} budgetMs=${pingTimeoutMS}`);
       lastHealthyAt = Date.now();
       return mongoose.connection;
     } catch (e) {
+      warmPingMs = Date.now() - pingStartedAt;
+      if (timings) timings.pingMs = warmPingMs;
       /* 🔴 검증에 실패한 커넥션을 그대로 돌려주지 않는다. 예전에는 readyState 가 1 이기만 하면
          돌려줬고, 그 뒤 쿼리가 죽은 소켓 위에서 7.8초(위 표 1·6·7행)를 태웠다.
          "느린 성공"은 사용자에게 실패와 구분되지 않는다.
@@ -577,7 +641,15 @@ export async function connectDb(env = {}, options = {}) {
         lastHealthyAt = 0;
         return mongoose.connection;
       }
+      /* 🔴 이 teardown 은 **임계 경로 위에 있다** — 여기가 끝나야 새 커넥션 수립이 시작된다.
+         mongoose.disconnect() 는 죽은 소켓 위에서 endSessions 를 시도할 수 있어 공짜가 아니다.
+         핸드오프가 "라우트 진입 오버헤드 ≈235ms" 로 적어 둔 잔량이 실제로는 이 구간일 수 있다
+         (선행 구간 535ms − ping 300ms − 엣지 캐시 조회 1~3ms ≈ 230ms). 그 산술을 확정하거나
+         기각하는 것이 resetMs 다. */
+      const resetStartedAt = Date.now();
       await resetMongooseConnection();
+      warmResetMs = Date.now() - resetStartedAt;
+      if (timings) timings.resetMs = warmResetMs;
       connectPromise = null;
       lastHealthyAt = 0;
     }
@@ -611,8 +683,15 @@ export async function connectDb(env = {}, options = {}) {
     const ipFamily = familyCandidates[familyIndex];
 
     for (let attempt = 0; attempt <= retryCount; attempt += 1) {
+      // 이 시도가 실제로 커넥션을 세웠을 때만 채워진다(다른 요청이 만든 connectPromise 를 기다린
+      // 경우에는 null 로 남는다 — 그 요청의 계측을 훔쳐 오지 않는다).
+      let connectStartedAt = 0;
+      let connectPhases = null;
       if (!connectPromise) {
-        console.log(`[db-connect] starting connection to mongodb... family=${ipFamily} attempt=${attempt + 1}/${retryCount + 1}`);
+        // warmPingMs/warmResetMs 는 "이 요청이 왜 재수립하게 됐는가"의 값이다. 별도 줄로 찍으면
+        // 요청당 로그가 하나 더 늘므로 이미 요청당 1회 나가는 이 줄에 붙인다.
+        const warmSuffix = warmPingMs >= 0 ? ` warmPingMs=${warmPingMs} warmResetMs=${warmResetMs}` : "";
+        console.log(`[db-connect] starting connection to mongodb... family=${ipFamily} attempt=${attempt + 1}/${retryCount + 1}${warmSuffix}`);
         const connectOptions = {
           dbName: resolveMongoDbName(env) || undefined,
           // 🔴 이 값은 전역 예산의 분모다: 총 연결 = 아이솔레이트 수 × maxPoolSize.
@@ -697,13 +776,17 @@ export async function connectDb(env = {}, options = {}) {
           connectOptions.family = ipFamily;
         }
 
-        const connectStartedAt = Date.now();
+        connectStartedAt = Date.now();
         const connectTask = mongoose.connect(uri, connectOptions);
+        // 🔴 리스너는 connect() **직후 동기적으로** 건다. mongoose 는 MongoClient 를 동기적으로
+        // 만든 뒤 SRV DNS 를 비동기로 풀기 때문에, 여기서 걸면 topology 가 열리기 전 구간
+        // (= SRV+TXT 조회)이 그대로 잡힌다. 한 틱이라도 늦추면 그 구간을 놓친다.
+        connectPhases = observeConnectPhases(connectStartedAt);
 
         // 핸드셰이크 실비용을 남긴다 — op-타임아웃이 '쿼리가 느린' 것인지 '연결 수립이 느린' 것인지
         // 구분할 유일한 근거다(2026-08-01 조사에서 이 값이 없어 한참 헤맸다).
         connectTask
-          .then(() => console.log(`[db-connect] mongodb connected successfully. family=${ipFamily} elapsedMs=${Date.now() - connectStartedAt}`))
+          .then(() => console.log(`[db-connect] mongodb connected successfully. family=${ipFamily} elapsedMs=${Date.now() - connectStartedAt} ${formatConnectPhases(connectPhases)}`))
           .catch((err) => {
             console.error(`[db-connect-error] mongodb connection failed. family=${ipFamily}:`, err.message);
           });
@@ -742,6 +825,15 @@ export async function connectDb(env = {}, options = {}) {
 
       if (mongoose.connection.readyState === 1) {
         lastHealthyAt = Date.now();
+        if (timings && connectStartedAt) {
+          timings.handshakeMs = Date.now() - connectStartedAt;
+          if (connectPhases) {
+            timings.dnsMs = connectPhases.dnsMs;
+            timings.socketReadyMs = connectPhases.socketReadyMs;
+            timings.helloRttMs = connectPhases.helloRttMs;
+            timings.hosts = connectPhases.hosts;
+          }
+        }
         // 새 클라이언트가 생겼을 수 있으므로 여기서 계측을 건다(WeakSet 가드로 1회만 붙는다).
         try {
           instrumentMongoClient(mongoose.connection.getClient?.() || mongoose.connection.client);
@@ -1123,7 +1215,9 @@ export async function withMongoRetry(env = {}, operation, options = {}) {
         const attemptTask = (async () => {
           // activeOpsOwned:1 — 이 op 은 위에서 이미 activeMongoOps 에 등록됐다. 웜 커넥션 재수립
           // 판정이 자기 자신을 '동시 요청'으로 세지 않게 알려 준다(connectDb 머리주석).
-          if (ownsSharedConnection) await connectDb(env, { activeOpsOwned: 1 });
+          // timings 를 그대로 넘긴다 — connectDb 가 connectMs 안쪽을 pingMs·resetMs·handshakeMs 로
+          // 쪼개 채운다(전용 레인은 공유 커넥션을 안 타므로 넘길 것이 없다).
+          if (ownsSharedConnection) await connectDb(env, { activeOpsOwned: 1, timings });
           connectFinishedAt = Date.now();
           return await operation();
         })();
