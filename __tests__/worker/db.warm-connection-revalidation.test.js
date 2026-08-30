@@ -35,15 +35,29 @@ const PING_HANGS = () => new Promise(() => { /* 좀비 소켓: 영원히 pending
 function buildMongooseMock({ pingBehavior }) {
   // 테스트 도중 좀비로 바꿀 수 있게 한 겹 둔다(커넥션을 세운 뒤에 죽는 순서를 재현해야 한다).
   const state = { ping: pingBehavior };
+  // mongoose 의 openUri 는 매번 새 MongoClient 를 만들어 connection.client 에 꽂는다. 떼어 낸
+  // 옛 클라이언트와 새 클라이언트를 구분할 수 있어야 teardown 이 어느 쪽을 닫았는지 볼 수 있다.
+  const clients = [];
+  const newClient = () => {
+    const client = { on: jest.fn(), close: jest.fn(async () => {}) };
+    clients.push(client);
+    return client;
+  };
   const connection = {
     readyState: 0,
+    client: newClient(),
     db: { command: jest.fn((...args) => state.ping(...args)) },
-    getClient: () => ({ on: jest.fn() }),
+    getClient() { return this.client; },
+    close: jest.fn(async function close() {
+      connection.readyState = 0;
+    }),
+    __clients: clients,
     __setPing: (next) => { state.ping = next; },
   };
   const mock = {
     connection,
     connect: jest.fn(async () => {
+      connection.client = newClient();
       connection.readyState = 1;
       return connection;
     }),
@@ -83,15 +97,17 @@ test("a warm connection that fails revalidation is re-established, not handed ba
 
   await connectDb({ ...env, MONGO_PING_TIMEOUT_MS: "300" });
   const connectsAfterFirst = mongooseMock.connect.mock.calls.length;
-  const disconnectsAfterFirst = mongooseMock.disconnect.mock.calls.length;
+  const closesAfterFirst = mongooseMock.connection.close.mock.calls.length;
 
   // 커넥션을 세운 **뒤에** 소켓이 죽는다(readyState 는 1 그대로) = 실측의 cdop 7.8초 원인.
   mongooseMock.connection.__setPing(PING_HANGS);
   await connectDb({ ...env, MONGO_PING_TIMEOUT_MS: "300" });
 
-  // 🔴 구 동작은 여기서 "readyState 가 1 이면 그대로 반환"이라 disconnect 도 connect 도 0 이었고,
+  // 🔴 구 동작은 여기서 "readyState 가 1 이면 그대로 반환"이라 teardown 도 connect 도 0 이었고,
   //    그 커넥션 위의 쿼리가 7.8초를 태웠다.
-  expect(mongooseMock.disconnect.mock.calls.length).toBeGreaterThan(disconnectsAfterFirst);
+  //    teardown 수단은 mongoose.disconnect() → connection.close({skipCloseClient}) 로 바뀌었다
+  //    (db.warm-teardown-off-critical-path.test.js 가 그 이유와 값을 고정한다).
+  expect(mongooseMock.connection.close.mock.calls.length).toBeGreaterThan(closesAfterFirst);
   expect(mongooseMock.connect.mock.calls.length).toBeGreaterThan(connectsAfterFirst);
   expect(mongooseMock.connection.readyState).toBe(1);
 });
@@ -106,14 +122,14 @@ test("the withMongoRetry path re-establishes a dead warm connection instead of c
 
   await connectDb(opts);
   mongooseMock.connection.__setPing(PING_HANGS);
-  const disconnectsBefore = mongooseMock.disconnect.mock.calls.length;
+  const closesBefore = mongooseMock.connection.close.mock.calls.length;
   const connectsBefore = mongooseMock.connect.mock.calls.length;
 
   await withMongoRetry(opts, async () => ({ ok: 1 }), {
     retries: 0, attemptTimeoutMS: 4000, minAttemptTimeoutMS: 250, respectServerSelectionFloor: false,
   });
 
-  expect(mongooseMock.disconnect.mock.calls.length).toBeGreaterThan(disconnectsBefore);
+  expect(mongooseMock.connection.close.mock.calls.length).toBeGreaterThan(closesBefore);
   expect(mongooseMock.connect.mock.calls.length).toBeGreaterThan(connectsBefore);
 });
 
@@ -140,11 +156,17 @@ test("revalidation failure must not disconnect while another operation is in fli
     // 이웃이 작업 중인 동안 소켓이 죽는다.
     mongooseMock.connection.__setPing(PING_HANGS);
     const disconnectsBefore = mongooseMock.disconnect.mock.calls.length;
+    const closesBefore = mongooseMock.connection.close.mock.calls.length;
+    const staleClient = mongooseMock.connection.getClient();
 
     await connectDb(neighbourEnv);
 
     // 🔴 남의 소켓을 끊지 않는다 — 2026-08-08 재연결 폭풍 사고의 가드.
+    //    teardown 을 배경으로 내보낸 뒤에도 이 가드가 첫 번째 방어선이다: 여기까지 오지 않는 것이
+    //    맞고, 그래서 클라이언트 close 도 일어나지 않아야 한다(배경이라도 소켓은 실제로 끊긴다).
     expect(mongooseMock.disconnect.mock.calls.length).toBe(disconnectsBefore);
+    expect(mongooseMock.connection.close.mock.calls.length).toBe(closesBefore);
+    expect(staleClient.close).not.toHaveBeenCalled();
     expect(mongooseMock.connection.readyState).toBe(1);
   } finally {
     releaseNeighbour?.({ ok: 1 });

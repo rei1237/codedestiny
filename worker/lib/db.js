@@ -409,6 +409,83 @@ export async function resetMongooseConnection() {
   }
 }
 
+// 배경으로 소켓·세션을 정리하고 있는 stale MongoClient 의 작업. 흐름에는 관여하지 않고
+// (아무도 await 하지 않는다) 테스트가 완료를 기다릴 수 있게만 붙들어 둔다.
+let staleClientCloseTask = null;
+
+/**
+ * 웜 검증(ping)에 실패한 죽은 커넥션을 **임계 경로에서 기다리지 않고** 떼어 낸다.
+ *
+ * 여기 있던 `await resetMongooseConnection()` 은 요청당 프로덕션 ≈232ms · 스테이징 ≈1316ms 를
+ * 먹었고(2026-08-31 `[db-connect] warmResetMs` 실측), 그게 끝나야 새 커넥션 수립이 시작됐다.
+ * 비용의 정체는 죽은 소켓 위에서 도는 드라이버 `MongoClient.close()` 다 — activeCursors 정리 →
+ * activeSessions 의 endSession() → `endSessions` 명령(서버 왕복) 순서라, 소켓이 죽어 있으면
+ * 그 왕복들이 전부 늘어진다(node_modules/mongodb/lib/mongo_client.js 의 `_close`).
+ * 🔴 드라이버 7 의 `close(force)` 는 force 를 **무시한다**(`async close(_force = false)`) —
+ * "강제로 싸게 닫기"는 선택지가 아니다.
+ *
+ * 그런데 **새 커넥션을 세우는 데 그 정리가 끝나 있을 필요가 없다.** mongoose 의 `openUri` 는
+ * 매번 `new mongodb.MongoClient(...)` 를 만들어 `connection.client` 에 새로 꽂으므로
+ * (node-mongodb-native/connection.js 의 `createClient`), 옛 클라이언트는 자기 소켓·토폴로지만
+ * 들고 있는 별개 객체다. 그래서 순서를 뒤집는다:
+ *
+ *   ① mongoose 상태 전이만 먼저 끝낸다 — `close({ skipCloseClient: true })` 는 `doClose` 에서
+ *      `client.close()` 를 건너뛰므로 I/O 가 0 이고, 이 await 가 끝난 시점에 readyState 는
+ *      확정적으로 0 이다. 이 시점부터 stale 클라이언트는 **mongoose 에서 도달 불가**다.
+ *   ② 그 다음에 옛 클라이언트를 배경으로 닫는다. 새 핸드셰이크(프로덕션 ≈423ms ·
+ *      스테이징 ≈2440ms)와 겹쳐 돌므로 요청이 그 시간을 다시 내지 않는다.
+ *
+ * 🔴 이 순서가 2026-08-08 재연결 폭주에 대한 경계를 **좁힌다**. 종전 `mongoose.disconnect()` 는
+ * mongoose 가 아직 그 클라이언트를 가리키는 채로 `closeCheckedOutConnections()` 를 불렀다 —
+ * 그래서 그 사이 컬렉션을 잡은 op 은 함께 끊겼다. 지금은 **끊기 전에 먼저 떼므로**, 떼어 낸 뒤
+ * 들어온 요청은 옛 클라이언트에 닿을 길이 없다. 호출부의
+ * `countActiveMongoOps() > activeOpsOwned` 가드(= 남이 쓰고 있으면 아예 여기까지 오지 않는다)는
+ * 그대로 남는다 — 두 장치는 서로를 대체하지 않는다.
+ *
+ * 🔴 옛 클라이언트를 그냥 버리면 안 된다 — `serverMonitoringMode:"poll"` 모니터가 노드마다
+ * heartbeat 를 계속 던져(heartbeatFrequencyMS 주석 참조) 트래픽 없는 시간대의 Atlas Opcounters 를
+ * 그대로 태운다. 닫기는 하되 기다리지 않는 것이 이 함수의 전부다.
+ *
+ * 🔴 `skipCloseClient` 가 mongoose 업그레이드로 사라지면 `doClose` 가 그 객체를 그대로
+ * `client.close(force)` 에 넘겨 **종전 동작(느리지만 정확한 teardown)** 으로 퇴화한다. 조용히
+ * 느려지지 않게 두 테스트가 값으로 고정한다 —
+ * `__tests__/worker/db.mongoose-detach-contract.test.js`(실제 mongoose 와의 계약) ·
+ * `__tests__/worker/db.warm-teardown-off-critical-path.test.js`(임계 경로 위 순서).
+ */
+async function detachDeadWarmConnection() {
+  const staleClient = (() => {
+    try {
+      return mongoose.connection.getClient?.() || mongoose.connection.client || null;
+    } catch (e) {
+      return null;
+    }
+  })();
+
+  try {
+    await mongoose.connection.close({ skipCloseClient: true });
+  } catch (error) {
+    // 상태 전이에 실패하면 확실한 쪽(전량 teardown)으로 떨어진다. 여기서 조용히 넘기면
+    // readyState 가 1 로 남아 아래 재수립이 죽은 커넥션을 그대로 돌려준다 — 2026-08-16 의 7.8초다.
+    console.warn(`[db-detach] fast detach failed, falling back to full teardown. reason=${String(error?.message || error).slice(0, 120)}`);
+    await resetMongooseConnection();
+    return;
+  }
+
+  if (!staleClient || typeof staleClient.close !== "function") return;
+
+  const closeStartedAt = Date.now();
+  staleClientCloseTask = Promise.resolve()
+    .then(() => staleClient.close())
+    .then(() => {
+      console.log(`[db-detach] stale client closed off the critical path. elapsedMs=${Date.now() - closeStartedAt}`);
+    })
+    .catch((error) => {
+      // 죽은 소켓 위의 close 는 실패해도 정상이다 — 남는 건 mongoose 에서 이미 분리된 객체뿐이라
+      // 이 요청에도 다음 요청에도 영향이 없다. 다만 조용히 삼키면 모니터 누수를 못 보므로 남긴다.
+      console.warn(`[db-detach] stale client close failed (ignored). elapsedMs=${Date.now() - closeStartedAt} reason=${String(error?.message || error).slice(0, 120)}`);
+    });
+}
+
 /**
  * 라우트가 "연결이 이상하다"고 판단했을 때 부르는 **유일한** 복구 진입점.
  *
@@ -641,13 +718,14 @@ export async function connectDb(env = {}, options = {}) {
         lastHealthyAt = 0;
         return mongoose.connection;
       }
-      /* 🔴 이 teardown 은 **임계 경로 위에 있다** — 여기가 끝나야 새 커넥션 수립이 시작된다.
-         mongoose.disconnect() 는 죽은 소켓 위에서 endSessions 를 시도할 수 있어 공짜가 아니다.
-         핸드오프가 "라우트 진입 오버헤드 ≈235ms" 로 적어 둔 잔량이 실제로는 이 구간일 수 있다
-         (선행 구간 535ms − ping 300ms − 엣지 캐시 조회 1~3ms ≈ 230ms). 그 산술을 확정하거나
-         기각하는 것이 resetMs 다. */
+      /* 🔴 이 teardown 은 **임계 경로 위에 있었다** — 여기가 끝나야 새 커넥션 수립이 시작됐다.
+         2026-08-31 계측(`[db-connect] warmResetMs`)이 그 값을 찍었다: 프로덕션 ≈232ms ·
+         스테이징 1313~1390ms. 산술도 닫혔다 — 스테이징 선행 구간 1623 ≈ ping 300 + reset 1316.
+         지금은 detachDeadWarmConnection() 이 그 정리를 배경으로 내보내므로 이 resetMs 는
+         **떼어 내는 비용만**(mongoose 상태 전이, I/O 0) 남는다. 배경 정리의 실비용은 별도 줄
+         `[db-detach]` 로 나간다. */
       const resetStartedAt = Date.now();
-      await resetMongooseConnection();
+      await detachDeadWarmConnection();
       warmResetMs = Date.now() - resetStartedAt;
       if (timings) timings.resetMs = warmResetMs;
       connectPromise = null;
@@ -1384,6 +1462,9 @@ export const __dbTestUtils = {
     }
     return countActiveMongoOps();
   },
+  // 배경 teardown 은 아무도 await 하지 않으므로(그게 이 변경의 요점이다) 테스트가 완료를
+  // 확인할 창구가 따로 필요하다. 프로덕션 경로는 이 값을 읽지 않는다.
+  awaitStaleClientCloseForTest: () => Promise.resolve(staleClientCloseTask),
   // agoMs 만큼 과거에 리셋이 있었던 것으로 둔다(쿨다운·자기유발 창을 시간 경과 없이 재현).
   markPoolResetForTest: (agoMs = 0) => {
     lastPoolResetAt = Date.now() - agoMs;
